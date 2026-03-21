@@ -9,6 +9,3 @@ export 'interceptors/error.dart';
 export 'interceptors/log.dart';
 export 'interceptors/token.dart';
 export 'repositories/base_repository.dart';
-export 'request/request.dart';
-export 'response/response.dart';
-export 'error/error.dart';

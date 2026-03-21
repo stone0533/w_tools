@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools/src/values/reg_exp.dart';
+import 'package:w_tools/src/utils/reg_exp.dart';
 
 void main() {
   group('WRegExp', () {

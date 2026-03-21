@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../components/buttons/button.dart';
+import '../components/common/button.dart';
 
 /// Widget 扩展，提供常用的布局辅助方法
 extension WidgetExtension on Widget {

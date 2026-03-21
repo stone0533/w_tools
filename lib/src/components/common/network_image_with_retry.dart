@@ -6,7 +6,7 @@ import '../common/image.dart';
 /// 支持重试的网络图片组件
 ///
 /// 当网络图片加载失败时，会自动重试指定次数
-class NetworkImageWithRetry extends StatefulWidget {
+class WNetworkImageWithRetry extends StatefulWidget {
   final String imageUrl;
   final double? width;
   final double? height;
@@ -21,7 +21,7 @@ class NetworkImageWithRetry extends StatefulWidget {
   final ValueChanged<WImageLoadStatus>? onLoadStatusChanged;
   final ValueChanged<double>? onLoadProgress;
 
-  const NetworkImageWithRetry({
+  const WNetworkImageWithRetry({
     super.key,
     required this.imageUrl,
     this.width,
@@ -39,10 +39,10 @@ class NetworkImageWithRetry extends StatefulWidget {
   });
 
   @override
-  State<NetworkImageWithRetry> createState() => NetworkImageWithRetryState();
+  State<WNetworkImageWithRetry> createState() => WNetworkImageWithRetryState();
 }
 
-class NetworkImageWithRetryState extends State<NetworkImageWithRetry> {
+class WNetworkImageWithRetryState extends State<WNetworkImageWithRetry> {
   int currentRetryCount = 0;
   bool isLoading = true;
 

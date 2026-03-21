@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../buttons/button.dart';
+import '../common/button.dart';
 
 /// 自定义导航栏组件
-class WAppbar extends StatefulWidget {
+class WAppBar extends StatefulWidget {
   /// 导航栏配置
-  final WAppbarConfig config;
+  final WAppBarConfig config;
 
   /// 标题文本
   final String? title;
@@ -25,7 +25,7 @@ class WAppbar extends StatefulWidget {
   final Widget? actions;
 
   /// 创建导航栏
-  const WAppbar({
+  const WAppBar({
     super.key,
     required this.config,
     this.title,
@@ -36,11 +36,11 @@ class WAppbar extends StatefulWidget {
   });
 
   @override
-  State<WAppbar> createState() => _WAppbarState();
+  State<WAppBar> createState() => _WAppBarState();
 }
 
-/// WAppbar 的状态类
-class _WAppbarState extends State<WAppbar> {
+/// WAppBar 的状态类
+class _WAppBarState extends State<WAppBar> {
   @override
   void initState() {
     super.initState();
@@ -97,7 +97,7 @@ class _WAppbarState extends State<WAppbar> {
 }
 
 /// 导航栏配置类
-class WAppbarConfig {
+class WAppBarConfig {
   Color? _color;
   TextStyle? _titleStyle;
   double? _height;
@@ -136,14 +136,14 @@ class WAppbarConfig {
   }
 
   /// 构建导航栏组件
-  WAppbar build({
+  WAppBar build({
     String? title,
     Widget? titleWidget,
     bool? hideBackIcon,
     Widget? leading,
     Widget? actions,
   }) {
-    return WAppbar(
+    return WAppBar(
       config: this,
       title: title,
       titleWidget: titleWidget,

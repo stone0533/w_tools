@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'container.dart';
+import '../layout/container.dart';
 import 'nav_controller.dart';
 
 class WNavBar extends StatefulWidget {
@@ -115,5 +115,3 @@ class WNavBarConfig {
     );
   }
 }
-
-

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'w.dart';
+import 'get.dart';
 
 /// GetX 路由观察者，用于监听路由变化并维护路由列表
-class GetXRouterObserver extends NavigatorObserver {
+class WGetXRouterObserver extends NavigatorObserver {
   /// 当路由被推入导航栈时调用
   ///
   /// @param route 被推入的路由

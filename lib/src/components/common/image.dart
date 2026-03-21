@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'network_image_with_retry.dart';
-import 'image_cache_manager.dart';
+import '../../utils/image_cache_manager.dart';
 
 /// 图片加载状态枚举
 enum WImageLoadStatus {
@@ -236,7 +236,7 @@ class WImage extends StatelessWidget {
     }
 
     // 实现重试机制
-    return NetworkImageWithRetry(
+    return WNetworkImageWithRetry(
       imageUrl: data,
       width: config._width,
       height: config._height,

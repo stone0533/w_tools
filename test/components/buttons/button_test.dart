@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools/src/components/buttons/button.dart';
+import 'package:w_tools/src/components/common/button.dart';
 
 void main() {
   group('WButtonConfig', () {

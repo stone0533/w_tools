@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools/src/components/common/image.dart';
-import 'package:w_tools/src/components/common/image_cache_manager.dart';
+import 'package:w_tools/src/utils/image_cache_manager.dart';
 import 'package:w_tools/src/components/common/network_image_with_retry.dart';
 
 void main() {
@@ -54,9 +54,9 @@ void main() {
     });
   });
 
-  group('NetworkImageWithRetry', () {
+  group('WNetworkImageWithRetry', () {
     test('should initialize with parameters', () {
-      final image = NetworkImageWithRetry(
+      final image = WNetworkImageWithRetry(
         imageUrl: 'https://example.com/image.png',
         width: 100,
         height: 100,

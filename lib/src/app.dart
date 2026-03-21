@@ -299,7 +299,7 @@ class WApp {
             getPages: effectiveGetPages,
             debugShowCheckedModeBanner: false,
             builder: effectiveBuilder,
-            navigatorObservers: [...effectiveNavigatorObservers, GetXRouterObserver()],
+            navigatorObservers: [...effectiveNavigatorObservers, WGetXRouterObserver()],
             translations: effectiveTranslations,
             locale: effectiveLocale,
             fallbackLocale: effectiveFallbackLocale,
