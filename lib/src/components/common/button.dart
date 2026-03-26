@@ -96,7 +96,7 @@ class WButtonConfig {
   /// 容器配置
   WContainerConfig? _containerConfig;
 
-  WTextConfig? _textButtonTitleStyle;
+  WTextConfig? _textButtonStyle;
 
   /// 设置点击时的透明度
   ///
@@ -164,7 +164,7 @@ class WButtonConfig {
   }
 
   set textButtonStyle(WTextConfig textButtonStyle) {
-    _textButtonTitleStyle = textButtonStyle;
+    _textButtonStyle = textButtonStyle;
   }
 
 
@@ -178,7 +178,7 @@ class WButtonConfig {
       onTap: onTap,
       child: WText(
         text: text,
-        config: textStyle ?? _textButtonTitleStyle,
+        config: textStyle ?? _textButtonStyle,
       ),
     );
   }

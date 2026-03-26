@@ -2,26 +2,13 @@
 
 一个基于 Config 开发的功能丰富的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
 
-## 项目结构
+## 特性
 
-```
-lib/
-├── w.dart                # 主入口文件
-└── src/
-    ├── app.dart          # 应用核心
-    ├── config.dart       # 配置文件
-    ├── api/              # API 相关
-    │   ├── clients/      # 客户端工具
-    │   ├── interceptors/ # 拦截器
-    │   └── repositories/ # 仓库
-    ├── components/       # 组件库
-    │   ├── common/       # 通用组件
-    │   ├── inputs/       # 输入组件
-    │   ├── layout/       # 布局组件
-    │   └── navigation/   # 导航组件
-    ├── extensions/       # 扩展方法
-    └── utils/            # 工具类
-```
+- **组件库**：提供丰富的 UI 组件，涵盖通用组件、输入组件、布局组件和导航组件
+- **工具类**：包含加密、验证、日志、存储、网络请求等多种实用工具
+- **扩展功能**：提供颜色、字符串、数字、容器等多种扩展方法
+- **配置驱动**：采用配置驱动的设计模式，便于定制和扩展
+- **响应式设计**：支持屏幕适配，自动适应不同设备尺寸
 
 ## 安装
 
@@ -31,7 +18,7 @@ lib/
 
 ```yaml
 dependencies:
-  w_tools: ^1.0.0
+  w_tools: ^1.0.2
 ```
 
 然后运行：
@@ -79,7 +66,7 @@ void main() async {
 
 #### 通用组件
 - **Badge** (`WBadge`): 徽章组件
-- **Button** (`WButton`): 多种样式的按钮组件
+- **Button** (`WButton`): 多种样式的按钮组件，支持透明度、缩放、震动等点击效果
 - **Clip** (`WClip`): 裁剪组件
 - **GradientCircularProgressIndicator** (`WGradientCircularProgressIndicator`): 渐变圆形进度指示器
 - **Image** (`WImage`): 增强的图片组件
@@ -90,21 +77,22 @@ void main() async {
 - **RowButtons** (`WRowButtons`): 行按钮组件
 - **Text** (`WText`): 增强的文本组件
 - **TextStyle** (`WTextStyle`): 文本样式工具
+- **RichText** (`WRichText`): 富文本组件，支持复杂文本渲染
 
 #### 输入组件
 - **FormButton** (`WFormButton`): 表单按钮组件
 - **FormCheckbox** (`WFormCheckbox`): 单个复选框字段组件
 - **FormBuilder** (`WFormBuilder`): 表单构建器组件
-- **FormDropdown** (`WFormDropdown`): 表单下拉选择组件
-- **FormMultiDropdown** (`WFormMultiDropdown`): 表单多选下拉框组件
+- **FormDropdown** (`WFormDropdown`): 表单下拉选择组件，支持自定义样式和选项
+- **FormMultiDropdown** (`WFormMultiDropdown`): 表单多选下拉框组件，支持多项选择和自定义样式配置
 - **FormRadioGroup** (`WFormRadioGroup`): 表单单选按钮组组件
 - **FormTextField** (`WFormTextField`): 表单单行文本输入组件
 - **DatePicker** (`FormBuilderDatePicker`): 表单日期选择器组件
 
 #### 布局组件
 - **AppBar** (`WAppBar`): 自定义应用栏组件
-- **Container** (`WContainer`): 增强的容器组件
-- **ListView** (`WListView`): 增强的列表视图组件
+- **Container** (`WContainer`): 增强的容器组件，支持多种装饰和变换
+- **ListView** (`WListView`): 增强的列表视图组件，支持下拉刷新和上拉加载
 - **Scaffold** (`WScaffold`): 增强的脚手架组件
 - **Step** (`WStep`): 步骤指示器组件
 
@@ -153,6 +141,106 @@ void main() async {
 - **全局键扩展** (`GlobalKey`): 提供全局键的便捷操作
 - **尺寸框扩展** (`SizedBox`): 提供尺寸框的便捷创建
 - **内边距扩展** (`Padding`): 提供内边距的便捷添加
+
+## 使用示例
+
+### 使用组件
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:w_tools/w.dart';
+
+class MyPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return WScaffold(
+      appBar: WAppBar(
+        config: WAppBarConfig(),
+        title: '示例页面',
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            WButton(
+              onPressed: () {},
+              child: Text('点击我'),
+            ),
+            WText('这是一个文本组件'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+### 使用表单组件
+
+```dart
+import 'package:w_tools/w.dart';
+
+// 使用多选下拉框
+final multiDropdownConfig = WFormMultiDropdownConfig()
+  ..height = 50
+  ..width = 200
+  ..itemStyle = TextStyle(fontSize: 16)
+  ..itemCheckedStyle = TextStyle(fontSize: 16, color: Colors.blue)
+  ..itemDisabledStyle = TextStyle(fontSize: 16, color: Colors.grey);
+
+WFormMultiDropdown<String> multiDropdown = multiDropdownConfig.build(
+  name: 'multi_select',
+  items: {'option1': '选项1', 'option2': '选项2', 'option3': '选项3'},
+  initialValue: 'option1',
+  onChanged: (value) {
+    print('选中的值: $value');
+  },
+);
+```
+
+### 使用工具类
+
+```dart
+import 'package:w_tools/w.dart';
+
+// 加密解密
+String encrypted = WSecret.encryptAES('hello', 'mykey');
+String decrypted = WSecret.decryptAES(encrypted, 'mykey');
+
+// 验证
+bool isValid = WValidator.isEmail('test@example.com');
+
+// 存储
+await WStorage.setString('key', 'value');
+String value = await WStorage.getString('key');
+
+// 响应式设计
+Container(
+  width: 100.w, // 根据设计稿宽度按比例缩放
+  height: 50.h, // 根据设计稿高度按比例缩放
+  child: Text('响应式布局'),
+)
+```
+
+## 项目结构
+
+```
+lib/
+├── w.dart                # 主入口文件
+└── src/
+    ├── app.dart          # 应用核心
+    ├── config.dart       # 配置文件
+    ├── api/              # API 相关
+    │   ├── clients/      # 客户端工具
+    │   ├── interceptors/ # 拦截器
+    │   └── repositories/ # 仓库
+    ├── components/       # 组件库
+    │   ├── common/       # 通用组件
+    │   ├── inputs/       # 输入组件
+    │   ├── layout/       # 布局组件
+    │   └── navigation/   # 导航组件
+    ├── extensions/       # 扩展方法
+    └── utils/            # 工具类
+```
 
 ## 贡献
 

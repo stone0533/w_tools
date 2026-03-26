@@ -306,21 +306,57 @@ class WFormDropdownConfig {
   ///
   /// @return 新的配置实例
   WFormDropdownConfig copy() {
+    return copyWith();
+  }
+
+  /// 创建当前配置的副本，并可以选择性地更新某些属性
+  ///
+  /// @param height 高度
+  /// @param width 宽度
+  /// @param contentPadding 内容内边距
+  /// @param yOffset Y轴偏移
+  /// @param leading 左侧组件
+  /// @param actions 操作按钮列表
+  /// @param containerDecoration 容器装饰
+  /// @param containerMargin 容器边距
+  /// @param containerPadding 容器内边距
+  /// @param hint 提示文本
+  /// @param icon 图标
+  /// @param style 标签样式
+  /// @param hintStyle 提示文本样式
+  /// @param dropdownColor 下拉弹出层背景色
+  /// @return WFormDropdownConfig 实例，包含更新后的配置
+  WFormDropdownConfig copyWith({
+    double? height,
+    double? width,
+    EdgeInsetsGeometry? contentPadding,
+    double? yOffset,
+    Widget? leading,
+    List<Widget>? actions,
+    Decoration? containerDecoration,
+    EdgeInsetsGeometry? containerMargin,
+    EdgeInsetsGeometry? containerPadding,
+    Widget? hint,
+    Widget? icon,
+    TextStyle? style,
+    TextStyle? hintStyle,
+    Color? dropdownColor,
+  }) {
     final config = WFormDropdownConfig();
-    config._height = _height;
-    config._width = _width;
-    config._contentPadding = _contentPadding;
-    config._yOffset = _yOffset;
-    config._leading = _leading;
-    config._actions = _actions;
-    config._containerDecoration = _containerDecoration;
-    config._containerMargin = _containerMargin;
-    config._containerPadding = _containerPadding;
-    config._hint = _hint;
-    config._icon = _icon;
-    config._style = _style;
-    config._hintStyle = _hintStyle;
-    config._dropdownColor = _dropdownColor;
+    config._height = height ?? _height;
+    config._width = width ?? _width;
+    config._contentPadding = contentPadding ?? _contentPadding;
+    config._yOffset = yOffset ?? _yOffset;
+    config._leading = leading ?? _leading;
+    config._actions = actions ?? _actions;
+    config._containerDecoration = containerDecoration ?? _containerDecoration;
+    config._containerMargin = containerMargin ?? _containerMargin;
+    config._containerPadding = containerPadding ?? _containerPadding;
+    config._hint = hint ?? _hint;
+    config._icon = icon ?? _icon;
+    config._style = style ?? _style;
+    config._hintStyle = hintStyle ?? _hintStyle;
+    config._dropdownColor = dropdownColor ?? _dropdownColor;
     return config;
   }
 

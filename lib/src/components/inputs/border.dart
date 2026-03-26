@@ -388,14 +388,36 @@ class WFormBorderConfig {
   ///
   /// @return 新的 WFormBorderConfig 实例
   WFormBorderConfig copy() {
+    return copyWith();
+  }
+
+  /// 创建当前配置的副本，并可以选择性地更新某些属性
+  ///
+  /// @param defaultDecoration 默认状态的装饰
+  /// @param readOnlyDecoration 只读状态的装饰
+  /// @param errorDecoration 错误状态的装饰
+  /// @param focusedDecoration 聚焦状态的装饰
+  /// @param hintBuilder 提示文本构建器
+  /// @param errorBuilder 错误文本构建器
+  /// @param configForTagCallback 标签配置回调函数
+  /// @return WFormBorderConfig 实例，包含更新后的配置
+  WFormBorderConfig copyWith({
+    WFormBorderDecoration? defaultDecoration,
+    WFormBorderDecoration? readOnlyDecoration,
+    WFormBorderDecoration? errorDecoration,
+    WFormBorderDecoration? focusedDecoration,
+    Function(List<String>? list)? hintBuilder,
+    Function(List<String>? list)? errorBuilder,
+    WFormBorderConfig? Function(String tag, WFormBorderConfig currentConfig)? configForTagCallback,
+  }) {
     final copyConfig = WFormBorderConfig();
-    copyConfig._defaultDecoration = _defaultDecoration;
-    copyConfig._readOnlyDecoration = _readOnlyDecoration;
-    copyConfig._errorDecoration = _errorDecoration;
-    copyConfig._focusedDecoration = _focusedDecoration;
-    copyConfig._hintBuilder = _hintBuilder;
-    copyConfig._errorBuilder = _errorBuilder;
-    copyConfig._configForTagCallback = _configForTagCallback;
+    copyConfig._defaultDecoration = defaultDecoration ?? _defaultDecoration;
+    copyConfig._readOnlyDecoration = readOnlyDecoration ?? _readOnlyDecoration;
+    copyConfig._errorDecoration = errorDecoration ?? _errorDecoration;
+    copyConfig._focusedDecoration = focusedDecoration ?? _focusedDecoration;
+    copyConfig._hintBuilder = hintBuilder ?? _hintBuilder;
+    copyConfig._errorBuilder = errorBuilder ?? _errorBuilder;
+    copyConfig._configForTagCallback = configForTagCallback ?? _configForTagCallback;
     return copyConfig;
   }
 }

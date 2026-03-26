@@ -75,18 +75,7 @@ class WContainer extends StatelessWidget {
 
 /// 容器配置类
 class WContainerConfig {
-  /// 构建容器组件
-  ///
-  /// @param child 子组件
-  /// @param key 组件键
-  /// @return WContainer 实例
-  WContainer build({Widget? child, Key? key}) {
-    return WContainer(
-      key: key,
-      config: this,
-      child: child,
-    );
-  }
+  // 私有属性
   double? _width;
   double? _height;
   BoxBorder? _border;
@@ -102,6 +91,20 @@ class WContainerConfig {
   Matrix4? _transform;
   BoxConstraints? _constraints;
 
+  /// 构建容器组件
+  ///
+  /// @param child 子组件
+  /// @param key 组件键
+  /// @return WContainer 实例
+  WContainer build({Widget? child, Key? key}) {
+    return WContainer(
+      key: key,
+      config: this,
+      child: child,
+    );
+  }
+
+  // 属性 Setter
   /// 设置宽度
   set width(double? value) {
     _width = value;
@@ -172,6 +175,7 @@ class WContainerConfig {
     _constraints = value;
   }
 
+  // 链式调用方法
   /// 设置宽高相同
   WContainerConfig size(double? size) {
     _height = size;
@@ -281,6 +285,7 @@ class WContainerConfig {
     return this;
   }
 
+  // 复制方法
   /// 创建一个新的配置实例，可选择性地覆盖属性
   WContainerConfig copyWith({
     double? width,

@@ -1,52 +1,69 @@
 import 'package:flutter/material.dart';
 
-/// 文本组件，用于显示和配置文本样式
-class WText extends StatelessWidget {
-  /// 文本配置
-  final WTextConfig? config;
+/// 富文本组件，用于显示包含多种样式的文本
+class WRichText extends StatelessWidget {
+  /// 富文本配置
+  final WRichTextConfig config;
 
-  /// 文本内容
-  final String text;
+  /// 数据源
+  final List<String> data;
+
+  /// 项目构建器
+  final Object? Function(BuildContext, int, String, WRichTextConfig) itemBuilder;
 
   /// 构造函数
   ///
   /// @param key 组件键
-  /// @param config 文本配置
-  /// @param text 文本内容
-  const WText({
+  /// @param config 富文本配置
+  /// @param data 数据源
+  /// @param itemBuilder 项目构建器
+  const WRichText({
     super.key,
-    required this.text,
-    this.config,
+    required this.config,
+    required this.data,
+    required this.itemBuilder,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontFamily: config?._fontFamily,
-        fontWeight: config?._fontWeight,
-        fontSize: config?._fontSize,
-        color: config?._color,
-        letterSpacing: config?._letterSpacing,
-        height: config?._height,
-        overflow: config?._overflow,
-        decoration: config?._decoration,
-        decorationColor: config?._decorationColor,
+    return RichText(
+      text: TextSpan(
+        style: config.toTextStyle(),
+        children: data.asMap().entries.map((entry) {
+          int index = entry.key;
+          String item = entry.value;
+          Object? result = itemBuilder(context, index, item, config.copy());
+          
+          return _convertToInlineSpan(result, item, config);
+        }).toList(),
       ),
-      strutStyle: StrutStyle(
-        fontFamily: config?._fontFamily,
-        fontSize: config?._fontSize,
-        height: config?._height,
-        forceStrutHeight: config?._forceStrutHeight ?? true,
-      ),
-      textAlign: config?._textAlign,
+      textAlign: config._textAlign ?? TextAlign.left,
+      textDirection: config._textDirection,
+      softWrap: config._softWrap ?? true,
+      overflow: config._overflow ?? TextOverflow.clip,
+      textScaler: config._textScaler ?? TextScaler.noScaling,
+      maxLines: config._maxLines,
     );
+  }
+  
+  /// 将结果转换为 InlineSpan
+  InlineSpan _convertToInlineSpan(Object? result, String item, WRichTextConfig config) {
+    if (result is InlineSpan) {
+      return result;
+    } else if (result is WRichTextConfig) {
+      return TextSpan(text: item, style: result.toTextStyle());
+    } else if (result is TextStyle) {
+      return TextSpan(text: item, style: result);
+    } else if (result is String) {
+      return TextSpan(text: result, style: config.toTextStyle());
+    } else {
+      return TextSpan(text: item, style: config.toTextStyle());
+    }
   }
 }
 
-/// 文本配置类，用于配置文本的样式
-class WTextConfig {
+/// 富文本配置类，用于配置富文本的样式
+class WRichTextConfig {
   /// 字体系列
   String? _fontFamily;
 
@@ -65,9 +82,6 @@ class WTextConfig {
   /// 行高
   double? _height;
 
-  /// 是否强制使用行高
-  bool? _forceStrutHeight;
-
   /// 文本溢出处理
   TextOverflow? _overflow;
 
@@ -79,6 +93,18 @@ class WTextConfig {
 
   /// 文本对齐方式
   TextAlign? _textAlign;
+
+  /// 文本方向
+  TextDirection? _textDirection;
+
+  /// 是否软换行
+  bool? _softWrap;
+
+  /// 文本缩放器
+  TextScaler? _textScaler;
+
+  /// 最大行数
+  int? _maxLines;
 
   /// 设置字体系列
   set fontFamily(String? value) {
@@ -110,11 +136,6 @@ class WTextConfig {
     _height = value;
   }
 
-  /// 设置是否强制使用行高
-  set forceStrutHeight(bool? value) {
-    _forceStrutHeight = value;
-  }
-
   /// 设置文本溢出处理
   set overflow(TextOverflow? value) {
     _overflow = value;
@@ -135,6 +156,26 @@ class WTextConfig {
     _textAlign = value;
   }
 
+  /// 设置文本方向
+  set textDirection(TextDirection? value) {
+    _textDirection = value;
+  }
+
+  /// 设置是否软换行
+  set softWrap(bool? value) {
+    _softWrap = value;
+  }
+
+  /// 设置文本缩放器
+  set textScaler(TextScaler? value) {
+    _textScaler = value;
+  }
+
+  /// 设置最大行数
+  set maxLines(int? value) {
+    _maxLines = value;
+  }
+
   /// 设置字体系列（别名）
   set family(String? fontFamily) {
     _fontFamily = fontFamily;
@@ -142,16 +183,16 @@ class WTextConfig {
 
   /// 设置字体系列为 NotoSansTC
   ///
-  /// @return WTextConfig 实例，用于链式调用
-  WTextConfig familyNotoSansTC() {
+  /// @return WRichTextConfig 实例，用于链式调用
+  WRichTextConfig familyNotoSansTC() {
     _fontFamily = 'NotoSansTC';
     return this;
   }
 
   /// 设置字体系列为 ZenMaruGothic
   ///
-  /// @return WTextConfig 实例，用于链式调用
-  WTextConfig familyZenMaruGothic() {
+  /// @return WRichTextConfig 实例，用于链式调用
+  WRichTextConfig familyZenMaruGothic() {
     _fontFamily = 'ZenMaruGothic';
     return this;
   }
@@ -191,18 +232,10 @@ class WTextConfig {
     }
   }
 
-  /// 设置不强制使用行高
-  ///
-  /// @return WTextConfig 实例，用于链式调用
-  WTextConfig forceStrutHeightFalse() {
-    _forceStrutHeight = false;
-    return this;
-  }
-
   /// 设置文本溢出为省略号
   ///
-  /// @return WTextConfig 实例，用于链式调用
-  WTextConfig overflowEllipsis() {
+  /// @return WRichTextConfig 实例，用于链式调用
+  WRichTextConfig overflowEllipsis() {
     _overflow = TextOverflow.ellipsis;
     return this;
   }
@@ -210,8 +243,8 @@ class WTextConfig {
   /// 设置文本装饰为下划线
   ///
   /// @param decorationColor 下划线颜色，默认为文本颜色
-  /// @return WTextConfig 实例，用于链式调用
-  WTextConfig decorationUnderline({Color? decorationColor}) {
+  /// @return WRichTextConfig 实例，用于链式调用
+  WRichTextConfig decorationUnderline({Color? decorationColor}) {
     _decoration = TextDecoration.underline;
     _decorationColor = decorationColor ?? _color;
     return this;
@@ -219,27 +252,48 @@ class WTextConfig {
 
   /// 设置文本对齐方式为居中
   ///
-  /// @return WTextConfig 实例，用于链式调用
-  WTextConfig textAlignCenter() {
+  /// @return WRichTextConfig 实例，用于链式调用
+  WRichTextConfig textAlignCenter() {
     _textAlign = TextAlign.center;
     return this;
   }
 
-  /// 构建 WText 组件
+  /// 设置文本对齐方式为左对齐
   ///
-  /// @param text 文本内容
-  /// @return WText 实例
-  WText build(String text) {
-    return WText(
-      text: text,
+  /// @return WRichTextConfig 实例，用于链式调用
+  WRichTextConfig textAlignLeft() {
+    _textAlign = TextAlign.left;
+    return this;
+  }
+
+  /// 设置文本对齐方式为右对齐
+  ///
+  /// @return WRichTextConfig 实例，用于链式调用
+  WRichTextConfig textAlignRight() {
+    _textAlign = TextAlign.right;
+    return this;
+  }
+
+  /// 构建 WRichText 组件
+  ///
+  /// @param data 数据源
+  /// @param itemBuilder 项目构建器
+  /// @return WRichText 实例
+  WRichText build({
+    required List<String> data,
+    required Object? Function(BuildContext, int, String, WRichTextConfig) itemBuilder,
+  }) {
+    return WRichText(
+      data: data,
+      itemBuilder: itemBuilder,
       config: this,
     );
   }
 
   /// 创建当前配置的副本
   ///
-  /// @return WTextConfig 实例的副本
-  WTextConfig copy() {
+  /// @return WRichTextConfig 实例的副本
+  WRichTextConfig copy() {
     return copyWith();
   }
 
@@ -251,37 +305,46 @@ class WTextConfig {
   /// @param color 文本颜色
   /// @param letterSpacing 字母间距
   /// @param height 行高
-  /// @param forceStrutHeight 是否强制使用行高
   /// @param overflow 文本溢出处理
   /// @param decoration 文本装饰
   /// @param decorationColor 文本装饰颜色
   /// @param textAlign 文本对齐方式
-  /// @return WTextConfig 实例，包含更新后的配置
-  WTextConfig copyWith({
+  /// @param textDirection 文本方向
+  /// @param softWrap 是否软换行
+  /// @param textScaler 文本缩放器
+  /// @param maxLines 最大行数
+  /// @return WRichTextConfig 实例，包含更新后的配置
+  WRichTextConfig copyWith({
     String? fontFamily,
     FontWeight? fontWeight,
     double? fontSize,
     Color? color,
     double? letterSpacing,
     double? height,
-    bool? forceStrutHeight,
     TextOverflow? overflow,
     TextDecoration? decoration,
     Color? decorationColor,
     TextAlign? textAlign,
+    TextDirection? textDirection,
+    bool? softWrap,
+    TextScaler? textScaler,
+    int? maxLines,
   }) {
-    final copy = WTextConfig();
+    final copy = WRichTextConfig();
     copy._fontFamily = fontFamily ?? _fontFamily;
     copy._fontWeight = fontWeight ?? _fontWeight;
     copy._fontSize = fontSize ?? _fontSize;
     copy._color = color ?? _color;
     copy._letterSpacing = letterSpacing ?? _letterSpacing;
     copy._height = height ?? _height;
-    copy._forceStrutHeight = forceStrutHeight ?? _forceStrutHeight;
     copy._overflow = overflow ?? _overflow;
     copy._decoration = decoration ?? _decoration;
     copy._decorationColor = decorationColor ?? _decorationColor;
     copy._textAlign = textAlign ?? _textAlign;
+    copy._textDirection = textDirection ?? _textDirection;
+    copy._softWrap = softWrap ?? _softWrap;
+    copy._textScaler = textScaler ?? _textScaler;
+    copy._maxLines = maxLines ?? _maxLines;
     return copy;
   }
 
@@ -299,18 +362,6 @@ class WTextConfig {
       overflow: _overflow,
       decoration: _decoration,
       decorationColor: _decorationColor,
-    );
-  }
-
-  /// 将当前配置转换为 StrutStyle
-  ///
-  /// @return StrutStyle 实例，包含当前配置的 strut 样式属性
-  StrutStyle toStrutStyle() {
-    return StrutStyle(
-      fontFamily: _fontFamily,
-      fontSize: _fontSize,
-      height: _height,
-      forceStrutHeight: _forceStrutHeight ?? true,
     );
   }
 }

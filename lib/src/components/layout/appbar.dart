@@ -3,11 +3,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../common/button.dart';
+import '../common/text.dart';
 
 /// 自定义导航栏组件
 class WAppBar extends StatefulWidget {
   /// 导航栏配置
-  final WAppBarConfig config;
+  final WAppBarConfig? config;
 
   /// 标题文本
   final String? title;
@@ -27,7 +28,7 @@ class WAppBar extends StatefulWidget {
   /// 创建导航栏
   const WAppBar({
     super.key,
-    required this.config,
+    this.config,
     this.title,
     this.titleWidget,
     this.hideBackIcon,
@@ -50,20 +51,28 @@ class _WAppBarState extends State<WAppBar> {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(top: ScreenUtil().statusBarHeight),
-      decoration: BoxDecoration(color: widget.config._color, gradient: widget.config._gradient),
+      decoration: BoxDecoration(
+        color: widget.config?._color, 
+        gradient: widget.config?._gradient,
+      ),
       child: Stack(
         children: [
           // 标题文本
           Container(
-            height: widget.config._height,
+            height: widget.config?._height,
             alignment: Alignment.center,
-            padding: widget.config._titlePadding,
-            child: Text(
-              widget.title ?? '',
-              style: widget.config._titleStyle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            padding: widget.config?._titlePadding,
+            child: widget.config?._titleTextConfig != null
+                ? WText(
+                    text: widget.title ?? '',
+                    config: widget.config!._titleTextConfig,
+                  )
+                : Text(
+                    widget.title ?? '',
+                    style: widget.config?._titleStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
           ),
           // 标题组件
           Positioned.fill(
@@ -84,7 +93,7 @@ class _WAppBarState extends State<WAppBar> {
                             onTap: () {
                               Get.back();
                             },
-                            child: widget.config._backIcon ?? Container(),
+                            child: widget.config?._backIcon ?? Container(),
                           )),
                 widget.actions ?? Container(),
               ],
@@ -104,6 +113,7 @@ class WAppBarConfig {
   EdgeInsetsGeometry? _titlePadding;
   Widget? _backIcon;
   Gradient? _gradient;
+  WTextConfig? _titleTextConfig;
 
   /// 设置导航栏背景颜色
   set color(Color? value) {
@@ -133,6 +143,48 @@ class WAppBarConfig {
   /// 设置渐变背景
   set gradient(Gradient? value) {
     _gradient = value;
+  }
+
+  /// 设置标题文本配置
+  set titleTextConfig(WTextConfig? value) {
+    _titleTextConfig = value;
+  }
+
+  /// 创建当前配置的副本
+  ///
+  /// @return WAppBarConfig 实例的副本
+  WAppBarConfig copy() {
+    return copyWith();
+  }
+
+  /// 创建当前配置的副本，并可以选择性地更新某些属性
+  ///
+  /// @param color 导航栏背景颜色
+  /// @param titleStyle 标题样式
+  /// @param height 导航栏高度
+  /// @param titlePadding 标题内边距
+  /// @param backIcon 返回图标
+  /// @param gradient 渐变背景
+  /// @param titleTextConfig 标题文本配置
+  /// @return WAppBarConfig 实例，包含更新后的配置
+  WAppBarConfig copyWith({
+    Color? color,
+    TextStyle? titleStyle,
+    double? height,
+    EdgeInsetsGeometry? titlePadding,
+    Widget? backIcon,
+    Gradient? gradient,
+    WTextConfig? titleTextConfig,
+  }) {
+    final copy = WAppBarConfig();
+    copy._color = color ?? _color;
+    copy._titleStyle = titleStyle ?? _titleStyle;
+    copy._height = height ?? _height;
+    copy._titlePadding = titlePadding ?? _titlePadding;
+    copy._backIcon = backIcon ?? _backIcon;
+    copy._gradient = gradient ?? _gradient;
+    copy._titleTextConfig = titleTextConfig ?? _titleTextConfig;
+    return copy;
   }
 
   /// 构建导航栏组件

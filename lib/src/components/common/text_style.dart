@@ -259,18 +259,48 @@ class WTextStyleConfig {
   ///
   /// @return 新的 WTextStyleConfig 实例
   WTextStyleConfig copy() {
+    return copyWith();
+  }
+
+  /// 创建当前配置的副本，并可以选择性地更新某些属性
+  ///
+  /// @param fontFamily 字体系列
+  /// @param fontWeight 字体粗细
+  /// @param fontSize 字体大小
+  /// @param color 文本颜色
+  /// @param letterSpacing 字母间距
+  /// @param wordSpacing 字间距
+  /// @param height 行高
+  /// @param overflow 文本溢出处理
+  /// @param decoration 文本装饰
+  /// @param decorationColor 文本装饰颜色
+  /// @param decorationStyle 文本装饰样式
+  /// @return WTextStyleConfig 实例，包含更新后的配置
+  WTextStyleConfig copyWith({
+    String? fontFamily,
+    FontWeight? fontWeight,
+    double? fontSize,
+    Color? color,
+    double? letterSpacing,
+    double? wordSpacing,
+    double? height,
+    TextOverflow? overflow,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+  }) {
     final config = WTextStyleConfig();
-    config._fontFamily = _fontFamily;
-    config._fontWeight = _fontWeight;
-    config._fontSize = _fontSize;
-    config._color = _color;
-    config._letterSpacing = _letterSpacing;
-    config._wordSpacing = _wordSpacing;
-    config._height = _height;
-    config._overflow = _overflow;
-    config._decoration = _decoration;
-    config._decorationColor = _decorationColor;
-    config._decorationStyle = _decorationStyle;
+    config._fontFamily = fontFamily ?? _fontFamily;
+    config._fontWeight = fontWeight ?? _fontWeight;
+    config._fontSize = fontSize ?? _fontSize;
+    config._color = color ?? _color;
+    config._letterSpacing = letterSpacing ?? _letterSpacing;
+    config._wordSpacing = wordSpacing ?? _wordSpacing;
+    config._height = height ?? _height;
+    config._overflow = overflow ?? _overflow;
+    config._decoration = decoration ?? _decoration;
+    config._decorationColor = decorationColor ?? _decorationColor;
+    config._decorationStyle = decorationStyle ?? _decorationStyle;
     return config;
   }
 }

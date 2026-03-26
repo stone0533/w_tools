@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../../utils/popup.dart';
+import 'border.dart';
+import 'form_builder.dart';
 
 /// 表单多选下拉框组件
 class WFormMultiDropdown<T> extends StatelessWidget {
@@ -39,6 +41,34 @@ class WFormMultiDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 获取 WFormData 实例
+    dynamic wFormData = WFormBuilder.of(context);
+
+    if (wFormData == null) {
+      // 尝试遍历祖先元素，查找 WFormBuilder 实例
+      context.visitAncestorElements((element) {
+        if (element.widget is WFormBuilder) {
+          wFormData = (element.widget as WFormBuilder).formData;
+          return false; // 停止遍历
+        }
+        return true; // 继续遍历
+      });
+    }
+
+    if (wFormData == null) {
+      throw Exception('WFormBuilder 未找到');
+    }
+
+    // 定义值变化回调函数
+    void onChangedHandler(T? value) {
+      // 确保 wFormData 不为 null
+      if (wFormData != null) {
+        wFormData.onChange(name, value);
+      }
+      // 调用用户传入的回调函数
+      onChanged?.call(value);
+    }
+
     return Container(
       height: config._height,
       width: config._width,
@@ -58,7 +88,7 @@ class WFormMultiDropdown<T> extends StatelessWidget {
                 name: name,
                 items: items,
                 initialValue: initialValue,
-                onChanged: onChanged,
+                onChanged: onChangedHandler,
                 enabled: config._enabled,
                 decoration: config._decoration,
                 icon: config._icon,
@@ -75,6 +105,11 @@ class WFormMultiDropdown<T> extends StatelessWidget {
                 popUpLayerElevation: config._popUpLayerElevation,
                 popUpLayerShadowColor: config._popUpLayerShadowColor,
                 disabledKeys: config._disabledKeys,
+                itemPadding: config._itemPadding,
+                itemStyle: config._itemStyle,
+                itemCheckedStyle: config._itemCheckedStyle,
+                itemDisabledStyle: config._itemDisabledStyle,
+                itemTitlePadding: config._itemTitlePadding,
               ),
             ),
           ),
@@ -149,6 +184,21 @@ class _FormBuilderMultiDropdown<T> extends FormBuilderField<T> {
   /// 禁用的键，逗号分隔
   final String? disabledKeys;
 
+  /// 选项项内边距
+  final EdgeInsetsGeometry? itemPadding;
+
+  /// 选项项标题样式
+  final TextStyle? itemStyle;
+
+  /// 选项项选中状态标题样式
+  final TextStyle? itemCheckedStyle;
+
+  /// 选项项禁用状态标题样式
+  final TextStyle? itemDisabledStyle;
+
+  /// 选项项标题内边距
+  final EdgeInsets? itemTitlePadding;
+
   /// 构造函数
   ///
   /// @param name 字段名称
@@ -170,7 +220,12 @@ class _FormBuilderMultiDropdown<T> extends FormBuilderField<T> {
   /// @param popUpLayerTitlePadding 弹出层标题内边距
   /// @param popUpLayerElevation 弹出层阴影高度
   /// @param popUpLayerShadowColor 弹出层阴影颜色
-  /// @param disabledKeys 禁用的键，逗号分隔
+  /// @param itemDisabledStyle 选项项禁用状态标题样式
+  /// @param itemPadding 选项项内边距
+  /// @param itemStyle 选项项标题样式
+  /// @param itemCheckedStyle 选项项选中状态标题样式
+  /// @param itemDisabledStyle 选项项禁用状态标题样式
+  /// @param itemTitlePadding 选项项标题内边距
   _FormBuilderMultiDropdown({
     super.key,
     required super.name,
@@ -193,6 +248,11 @@ class _FormBuilderMultiDropdown<T> extends FormBuilderField<T> {
     this.popUpLayerElevation,
     this.popUpLayerShadowColor,
     this.disabledKeys,
+    this.itemPadding,
+    this.itemStyle,
+    this.itemCheckedStyle,
+    this.itemDisabledStyle,
+    this.itemTitlePadding,
   }) : super(
          builder: (FormFieldState<T?> field) {
            final state = field as _FormBuilderMultiDropdownState<T>;
@@ -282,8 +342,11 @@ class _FormBuilderMultiDropdown<T> extends FormBuilderField<T> {
                                  state.setValue(newValue);
                                  state.didChange(newValue);
                                },
-                               titlePadding: popUpLayerTitlePadding,
-                               style: popUpLayerTitleStyle,
+                               titlePadding: itemTitlePadding,
+                               style: itemStyle,
+                               padding: itemPadding,
+                               checkedStyle: itemCheckedStyle,
+                               disabledStyle: itemDisabledStyle,
                              );
                            }).toList(),
                          ),
@@ -366,9 +429,6 @@ class _FormBuilderMultiDropdownItem extends StatefulWidget {
   /// 点击回调
   final _FormBuilderMultiDropdownItemGestureTapCallback onTap;
 
-  /// 内边距
-  final EdgeInsetsGeometry? padding;
-
   /// 文本样式
   final TextStyle? style;
 
@@ -377,6 +437,9 @@ class _FormBuilderMultiDropdownItem extends StatefulWidget {
 
   /// 禁用状态文本样式
   final TextStyle? disabledStyle;
+
+  /// 内边距
+  final EdgeInsetsGeometry? padding;
 
   /// 未选中状态图标
   final Widget icon;
@@ -550,6 +613,21 @@ class WFormMultiDropdownConfig {
   /// 禁用的键，逗号分隔
   String? _disabledKeys;
 
+  /// 选项项内边距
+  EdgeInsetsGeometry? _itemPadding;
+
+  /// 选项项标题样式
+  TextStyle? _itemStyle;
+
+  /// 选项项选中状态标题样式
+  TextStyle? _itemCheckedStyle;
+
+  /// 选项项禁用状态标题样式
+  TextStyle? _itemDisabledStyle;
+
+  /// 选项项标题内边距
+  EdgeInsets? _itemTitlePadding;
+
   /// 是否启用 setter
   set enabled(bool value) {
     _enabled = value;
@@ -675,6 +753,31 @@ class WFormMultiDropdownConfig {
     _disabledKeys = value;
   }
 
+  /// 选项项内边距 setter
+  set itemPadding(EdgeInsetsGeometry? value) {
+    _itemPadding = value;
+  }
+
+  /// 选项项标题样式 setter
+  set itemStyle(TextStyle? value) {
+    _itemStyle = value;
+  }
+
+  /// 选项项选中状态标题样式 setter
+  set itemCheckedStyle(TextStyle? value) {
+    _itemCheckedStyle = value;
+  }
+
+  /// 选项项禁用状态标题样式 setter
+  set itemDisabledStyle(TextStyle? value) {
+    _itemDisabledStyle = value;
+  }
+
+  /// 选项项标题内边距 setter
+  set itemTitlePadding(EdgeInsets? value) {
+    _itemTitlePadding = value;
+  }
+
   /// 构建 WFormMultiDropdown 组件
   ///
   /// @param T 选项值类型
@@ -695,6 +798,161 @@ class WFormMultiDropdownConfig {
       items: items,
       initialValue: initialValue,
       onChanged: onChanged,
+    );
+  }
+
+  /// 创建当前配置的副本
+  ///
+  /// @return WFormMultiDropdownConfig 实例的副本
+  WFormMultiDropdownConfig copy() {
+    return copyWith();
+  }
+
+  /// 创建当前配置的副本，并可以选择性地更新某些属性
+  ///
+  /// @param enabled 是否启用
+  /// @param height 高度
+  /// @param width 宽度
+  /// @param contentPadding 内容内边距
+  /// @param yOffset Y轴偏移
+  /// @param leading 左侧组件
+  /// @param actions 操作按钮列表
+  /// @param containerDecoration 容器装饰
+  /// @param containerMargin 容器边距
+  /// @param containerPadding 容器内边距
+  /// @param decoration 输入装饰
+  /// @param iconSize 图标大小
+  /// @param icon 下拉按钮图标
+  /// @param iconDisabledColor 禁用状态图标颜色
+  /// @param iconEnabledColor 启用状态图标颜色
+  /// @param unselectedIcon 未选中状态的复选框图标
+  /// @param selectedIcon 选中状态的复选框图标
+  /// @param disabledIcon 禁用状态的复选框图标
+  /// @param style 文本样式
+  /// @param popUpLayerPadding 弹出层内边距
+  /// @param popUpLayerTitleStyle 弹出层标题样式
+  /// @param popUpLayerTitlePadding 弹出层标题内边距
+  /// @param popUpLayerElevation 弹出层阴影高度
+  /// @param popUpLayerShadowColor 弹出层阴影颜色
+  /// @param disabledKeys 禁用的键
+  /// @param itemPadding 选项项内边距
+  /// @param itemStyle 选项项标题样式
+  /// @param itemCheckedStyle 选项项选中状态标题样式
+  /// @param itemDisabledStyle 选项项禁用状态标题样式
+  /// @param itemTitlePadding 选项项标题内边距
+  /// @return WFormMultiDropdownConfig 实例，包含更新后的配置
+  WFormMultiDropdownConfig copyWith({
+    bool? enabled,
+    double? height,
+    double? width,
+    EdgeInsetsGeometry? contentPadding,
+    double? yOffset,
+    Widget? leading,
+    List<Widget>? actions,
+    Decoration? containerDecoration,
+    EdgeInsetsGeometry? containerMargin,
+    EdgeInsetsGeometry? containerPadding,
+    InputDecoration? decoration,
+    double? iconSize,
+    Widget? icon,
+    Color? iconDisabledColor,
+    Color? iconEnabledColor,
+    Widget? unselectedIcon,
+    Widget? selectedIcon,
+    Widget? disabledIcon,
+    TextStyle? style,
+    EdgeInsets? popUpLayerPadding,
+    TextStyle? popUpLayerTitleStyle,
+    EdgeInsets? popUpLayerTitlePadding,
+    double? popUpLayerElevation,
+    Color? popUpLayerShadowColor,
+    String? disabledKeys,
+    EdgeInsetsGeometry? itemPadding,
+    TextStyle? itemStyle,
+    TextStyle? itemCheckedStyle,
+    TextStyle? itemDisabledStyle,
+    EdgeInsets? itemTitlePadding,
+  }) {
+    final config = WFormMultiDropdownConfig();
+    config._enabled = enabled ?? _enabled;
+    config._height = height ?? _height;
+    config._width = width ?? _width;
+    config._contentPadding = contentPadding ?? _contentPadding;
+    config._yOffset = yOffset ?? _yOffset;
+    config._leading = leading ?? _leading;
+    config._actions = actions ?? _actions;
+    config._containerDecoration = containerDecoration ?? _containerDecoration;
+    config._containerMargin = containerMargin ?? _containerMargin;
+    config._containerPadding = containerPadding ?? _containerPadding;
+    config._decoration = decoration ?? _decoration;
+    config._iconSize = iconSize ?? _iconSize;
+    config._icon = icon ?? _icon;
+    config._iconDisabledColor = iconDisabledColor ?? _iconDisabledColor;
+    config._iconEnabledColor = iconEnabledColor ?? _iconEnabledColor;
+    config._unselectedIcon = unselectedIcon ?? _unselectedIcon;
+    config._selectedIcon = selectedIcon ?? _selectedIcon;
+    config._disabledIcon = disabledIcon ?? _disabledIcon;
+    config._style = style ?? _style;
+    config._popUpLayerPadding = popUpLayerPadding ?? _popUpLayerPadding;
+    config._popUpLayerTitleStyle = popUpLayerTitleStyle ?? _popUpLayerTitleStyle;
+    config._popUpLayerTitlePadding = popUpLayerTitlePadding ?? _popUpLayerTitlePadding;
+    config._popUpLayerElevation = popUpLayerElevation ?? _popUpLayerElevation;
+    config._popUpLayerShadowColor = popUpLayerShadowColor ?? _popUpLayerShadowColor;
+    config._disabledKeys = disabledKeys ?? _disabledKeys;
+    config._itemPadding = itemPadding ?? _itemPadding;
+    config._itemStyle = itemStyle ?? _itemStyle;
+    config._itemCheckedStyle = itemCheckedStyle ?? _itemCheckedStyle;
+    config._itemDisabledStyle = itemDisabledStyle ?? _itemDisabledStyle;
+    config._itemTitlePadding = itemTitlePadding ?? _itemTitlePadding;
+    return config;
+  }
+
+  /// 构建带有 WFormBorder 包装的 WFormMultiDropdown 组件
+  ///
+  /// @param T 选项值类型
+  /// @param name 字段名称
+  /// @param items 选项映射，键为值，值为显示文本
+  /// @param initialValue 初始值
+  /// @param onChanged 值变化回调
+  /// @param hintText 提示文本
+  /// @param hintTextList 提示文本列表
+  /// @param isTransparentBackground 是否透明背景
+  /// @param key 组件键
+  /// @param enableFocusBorder 是否启用焦点边框
+  /// @return 带有 WFormBorder 包装的 WFormMultiDropdown 实例
+  Widget buildBordered<T>({
+    required String name,
+    required Map<T, String> items,
+    T? initialValue,
+    ValueChanged<T?>? onChanged,
+    String? hintText,
+    List<String>? hintTextList,
+    bool? isTransparentBackground,
+    Key? key,
+    bool enableFocusBorder = true,
+  }) {
+    // 验证 name 参数
+    if (name.isEmpty) {
+      throw Exception('字段名称不能为空');
+    }
+
+    // 构建基础组件
+    final multiDropdown = build<T>(
+      name: name,
+      items: items,
+      initialValue: initialValue,
+      onChanged: onChanged,
+    );
+
+    // 使用 WFormBorder 包装
+    return WFormBorderWithData(
+      key: key,
+      name: name,
+      hintTextList: hintTextList,
+      isTransparentBackground: isTransparentBackground,
+      readOnly: !_enabled,
+      enableFocusBorder: enableFocusBorder,
+      child: multiDropdown,
     );
   }
 }

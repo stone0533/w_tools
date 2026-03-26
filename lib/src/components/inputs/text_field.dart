@@ -434,29 +434,81 @@ class WFormTextFieldConfig {
   ///
   /// @return 新的 WFormTextFieldConfig 实例
   WFormTextFieldConfig copy() {
+    return copyWith();
+  }
+
+  /// 创建当前配置的副本，并可以选择性地更新某些属性
+  ///
+  /// @param keyboardType 键盘类型
+  /// @param inputFormatters 输入格式化器
+  /// @param readOnlyStyle 只读状态文本样式
+  /// @param height 高度
+  /// @param style 文本样式
+  /// @param contentPadding 内容内边距
+  /// @param hintStyle 提示文本样式
+  /// @param yOffset Y轴偏移
+  /// @param leading 左侧组件
+  /// @param actions 操作按钮列表
+  /// @param containerDecoration 容器装饰
+  /// @param containerMargin 容器边距
+  /// @param containerPadding 容器内边距
+  /// @param textAlign 文本对齐方式
+  /// @param autofocus 是否自动获取焦点
+  /// @param obscureText 是否密码模式
+  /// @param prefix 前缀组件
+  /// @param prefixIcon 前缀图标
+  /// @param obscureTextIcon 密码显示/隐藏图标
+  /// @param obscureTextIconOn 激活状态密码显示/隐藏图标
+  /// @param maxLines 最大行数
+  /// @param textInputAction 文本输入动作
+  /// @return WFormTextFieldConfig 实例，包含更新后的配置
+  WFormTextFieldConfig copyWith({
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    TextStyle? readOnlyStyle,
+    double? height,
+    TextStyle? style,
+    EdgeInsetsGeometry? contentPadding,
+    TextStyle? hintStyle,
+    double? yOffset,
+    Widget? leading,
+    List<Widget>? actions,
+    Decoration? containerDecoration,
+    EdgeInsetsGeometry? containerMargin,
+    EdgeInsetsGeometry? containerPadding,
+    TextAlign? textAlign,
+    bool? autofocus,
+    bool? obscureText,
+    Widget? prefix,
+    Widget? prefixIcon,
+    Widget? obscureTextIcon,
+    Widget? obscureTextIconOn,
+    int? maxLines,
+    TextInputAction? textInputAction,
+  }) {
     final config = WFormTextFieldConfig();
-    config._keyboardType = _keyboardType;
-    config._inputFormatters = _inputFormatters;
-    config._readOnlyStyle = _readOnlyStyle;
-    config._height = _height;
-    config._style = _style;
-    config._contentPadding = _contentPadding;
-    config._hintStyle = _hintStyle;
-    config._yOffset = _yOffset;
-    config._leading = _leading;
-    config._actions = _actions;
-    config._containerDecoration = _containerDecoration;
-    config._containerMargin = _containerMargin;
-    config._containerPadding = _containerPadding;
-    config._textAlign = _textAlign;
-    config._autofocus = _autofocus;
-    config._obscureText = _obscureText;
-    config._prefix = _prefix;
-    config._prefixIcon = _prefixIcon;
-    config._obscureTextIcon = _obscureTextIcon;
-    config._obscureTextIconOn = _obscureTextIconOn;
-    config._maxLines = _maxLines;
-    config._textInputAction = _textInputAction;
+    config._keyboardType = keyboardType ?? _keyboardType;
+    config._inputFormatters = inputFormatters ?? _inputFormatters;
+    config._readOnlyStyle = readOnlyStyle ?? _readOnlyStyle;
+    config._height = height ?? _height;
+    config._style = style ?? _style;
+    config._contentPadding = contentPadding ?? _contentPadding;
+    config._hintStyle = hintStyle ?? _hintStyle;
+    config._yOffset = yOffset ?? _yOffset;
+    config._leading = leading ?? _leading;
+    config._actions = actions ?? _actions;
+    config._containerDecoration = containerDecoration ?? _containerDecoration;
+    config._containerMargin = containerMargin ?? _containerMargin;
+    config._containerPadding = containerPadding ?? _containerPadding;
+    config._textAlign = textAlign ?? _textAlign;
+    config._autofocus = autofocus ?? _autofocus;
+    config._obscureText = obscureText ?? _obscureText;
+    config._prefix = prefix ?? _prefix;
+    config._prefixIcon = prefixIcon ?? _prefixIcon;
+    config._obscureTextIcon = obscureTextIcon ?? _obscureTextIcon;
+    config._obscureTextIconOn = obscureTextIconOn ?? _obscureTextIconOn;
+    config._maxLines = maxLines ?? _maxLines;
+    config._textInputAction = textInputAction ?? _textInputAction;
     return config;
   }
 
