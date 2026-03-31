@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 文本组件，用于显示和配置文本样式
 class WText extends StatelessWidget {
@@ -191,6 +192,182 @@ class WTextConfig {
     }
   }
 
+  /// 设置字体粗细为 w100
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w100() {
+    _fontWeight = FontWeight.w100;
+    return this;
+  }
+
+  /// 设置字体粗细为 w200
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w200() {
+    _fontWeight = FontWeight.w200;
+    return this;
+  }
+
+  /// 设置字体粗细为 w300
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w300() {
+    _fontWeight = FontWeight.w300;
+    return this;
+  }
+
+  /// 设置字体粗细为 w400（常规）
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w400() {
+    _fontWeight = FontWeight.w400;
+    return this;
+  }
+
+  /// 设置字体粗细为 w500（中等）
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w500() {
+    _fontWeight = FontWeight.w500;
+    return this;
+  }
+
+  /// 设置字体粗细为 w600
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w600() {
+    _fontWeight = FontWeight.w600;
+    return this;
+  }
+
+  /// 设置字体粗细为 w700（加粗）
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w700() {
+    _fontWeight = FontWeight.w700;
+    return this;
+  }
+
+  /// 设置字体粗细为 w800
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w800() {
+    _fontWeight = FontWeight.w800;
+    return this;
+  }
+
+  /// 设置字体粗细为 w900
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig w900() {
+    _fontWeight = FontWeight.w900;
+    return this;
+  }
+
+  /// 设置字体大小为 12.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize12sp() {
+    _fontSize = 12.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 14.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize14sp() {
+    _fontSize = 14.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 16.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize16sp() {
+    _fontSize = 16.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 18.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize18sp() {
+    _fontSize = 18.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 20.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize20sp() {
+    _fontSize = 20.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 24.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize24sp() {
+    _fontSize = 24.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 26.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize26sp() {
+    _fontSize = 26.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 28.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize28sp() {
+    _fontSize = 28.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 30.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize30sp() {
+    _fontSize = 30.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 32.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize32sp() {
+    _fontSize = 32.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 34.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize34sp() {
+    _fontSize = 34.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 36.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize36sp() {
+    _fontSize = 36.sp;
+    return this;
+  }
+
+  /// 设置字体大小为 38.sp
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig fontSize38sp() {
+    _fontSize = 38.sp;
+    return this;
+  }
+
   /// 设置不强制使用行高
   ///
   /// @return WTextConfig 实例，用于链式调用
@@ -207,6 +384,30 @@ class WTextConfig {
     return this;
   }
 
+  /// 设置文本溢出为裁剪
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig overflowClip() {
+    _overflow = TextOverflow.clip;
+    return this;
+  }
+
+  /// 设置文本溢出为淡出
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig overflowFade() {
+    _overflow = TextOverflow.fade;
+    return this;
+  }
+
+  /// 设置文本溢出为可见
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig overflowVisible() {
+    _overflow = TextOverflow.visible;
+    return this;
+  }
+
   /// 设置文本装饰为下划线
   ///
   /// @param decorationColor 下划线颜色，默认为文本颜色
@@ -217,11 +418,80 @@ class WTextConfig {
     return this;
   }
 
+  /// 设置文本装饰为上划线
+  ///
+  /// @param decorationColor 上划线颜色，默认为文本颜色
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig decorationOverline({Color? decorationColor}) {
+    _decoration = TextDecoration.overline;
+    _decorationColor = decorationColor ?? _color;
+    return this;
+  }
+
+  /// 设置文本装饰为删除线
+  ///
+  /// @param decorationColor 删除线颜色，默认为文本颜色
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig decorationLineThrough({Color? decorationColor}) {
+    _decoration = TextDecoration.lineThrough;
+    _decorationColor = decorationColor ?? _color;
+    return this;
+  }
+
+  /// 移除文本装饰
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig decorationNone() {
+    _decoration = TextDecoration.none;
+    _decorationColor = null;
+    return this;
+  }
+
   /// 设置文本对齐方式为居中
   ///
   /// @return WTextConfig 实例，用于链式调用
   WTextConfig textAlignCenter() {
     _textAlign = TextAlign.center;
+    return this;
+  }
+
+  /// 设置文本对齐方式为左对齐
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig textAlignLeft() {
+    _textAlign = TextAlign.left;
+    return this;
+  }
+
+  /// 设置文本对齐方式为右对齐
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig textAlignRight() {
+    _textAlign = TextAlign.right;
+    return this;
+  }
+
+  /// 设置文本对齐方式为两端对齐
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig textAlignJustify() {
+    _textAlign = TextAlign.justify;
+    return this;
+  }
+
+  /// 设置文本对齐方式为起始对齐
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig textAlignStart() {
+    _textAlign = TextAlign.start;
+    return this;
+  }
+
+  /// 设置文本对齐方式为结束对齐
+  ///
+  /// @return WTextConfig 实例，用于链式调用
+  WTextConfig textAlignEnd() {
+    _textAlign = TextAlign.end;
     return this;
   }
 
@@ -312,5 +582,67 @@ class WTextConfig {
       height: _height,
       forceStrutHeight: _forceStrutHeight ?? true,
     );
+  }
+
+  /// 创建标题文本配置
+  ///
+  /// @return WTextConfig 实例，包含标题文本的默认样式
+  static WTextConfig title() {
+    return WTextConfig()
+      ..fontSize = 24
+      ..fontWeight = FontWeight.w700
+      ..color = Colors.black;
+  }
+
+  /// 创建副标题文本配置
+  ///
+  /// @return WTextConfig 实例，包含副标题文本的默认样式
+  static WTextConfig subtitle() {
+    return WTextConfig()
+      ..fontSize = 20
+      ..fontWeight = FontWeight.w600
+      ..color = Colors.black87;
+  }
+
+  /// 创建正文文本配置
+  ///
+  /// @return WTextConfig 实例，包含正文文本的默认样式
+  static WTextConfig body() {
+    return WTextConfig()
+      ..fontSize = 16
+      ..fontWeight = FontWeight.w400
+      ..color = Colors.black87
+      ..height = 1.5;
+  }
+
+  /// 创建小文本配置
+  ///
+  /// @return WTextConfig 实例，包含小文本的默认样式
+  static WTextConfig small() {
+    return WTextConfig()
+      ..fontSize = 14
+      ..fontWeight = FontWeight.w400
+      ..color = Colors.black54;
+  }
+
+  /// 创建按钮文本配置
+  ///
+  /// @return WTextConfig 实例，包含按钮文本的默认样式
+  static WTextConfig button() {
+    return WTextConfig()
+      ..fontSize = 16
+      ..fontWeight = FontWeight.w500
+      ..color = Colors.white;
+  }
+
+  /// 创建链接文本配置
+  ///
+  /// @return WTextConfig 实例，包含链接文本的默认样式
+  static WTextConfig link() {
+    return WTextConfig()
+      ..fontSize = 16
+      ..fontWeight = FontWeight.w400
+      ..color = Colors.blue
+      ..decoration = TextDecoration.underline;
   }
 }

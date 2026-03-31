@@ -141,6 +141,8 @@ void main() async {
 - **全局键扩展** (`GlobalKey`): 提供全局键的便捷操作
 - **尺寸框扩展** (`SizedBox`): 提供尺寸框的便捷创建
 - **内边距扩展** (`Padding`): 提供内边距的便捷添加
+- **文本样式扩展** (`TextStyle`): 提供从 WTextConfig 创建 TextStyle 的方法
+- **行高样式扩展** (`StrutStyle`): 提供从 WTextConfig 创建 StrutStyle 的方法
 
 ## 使用示例
 

@@ -13,7 +13,6 @@ export 'common/notification_listener.dart';
 export 'common/qr_code_scanner.dart';
 export 'common/row_buttons.dart';
 export 'common/text.dart';
-export 'common/text_style.dart';
 export 'common/gradient_circular_progress_indicator.dart';
 export 'common/network_image_with_retry.dart';
 export 'common/rich_text.dart';

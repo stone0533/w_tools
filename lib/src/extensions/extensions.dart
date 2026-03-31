@@ -12,3 +12,5 @@ export 'row.dart';
 export 'widget.dart';
 export 'padding.dart';
 export 'column.dart';
+export 'text_style.dart';
+export 'strut_style.dart';
