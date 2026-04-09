@@ -4,79 +4,67 @@ import 'package:w_tools/src/utils/toast.dart';
 
 void main() {
   group('WToast', () {
-    test('showSuccess should not throw when message is not empty', () {
-      expect(() => WToast.showSuccess('Test success'), returnsNormally);
-    });
-
-    test('showSuccess should throw when message is empty', () {
-      expect(() => WToast.showSuccess(''), throwsAssertionError);
-    });
-
-    test('showError should not throw when message is not empty', () {
-      expect(() => WToast.showError('Test error'), returnsNormally);
-    });
-
-    test('showError should throw when message is empty', () {
-      expect(() => WToast.showError(''), throwsAssertionError);
-    });
-
-    test('showWarning should not throw when message is not empty', () {
-      expect(() => WToast.showWarning('Test warning'), returnsNormally);
-    });
-
-    test('showWarning should throw when message is empty', () {
-      expect(() => WToast.showWarning(''), throwsAssertionError);
+    test('showCustomDialog should not throw', () {
+      expect(
+        () => WToast.showCustomDialog(
+          toastBuilder: (_) => Container(),
+        ),
+        returnsNormally,
+      );
     });
 
     test('showLoading should return a cancel function', () {
-      final cancelFunc = WToast.showLoading();
+      final config = WToastConfig();
+      config.loadingBuilder = (message, cancelFunc, dismissible) => Container();
+      final cancelFunc = config.showLoading();
       expect(cancelFunc, isNotNull);
       expect(cancelFunc, isA<Function>());
-      WToast.hideLoading();
+      config.hideLoading();
     });
 
-    test('hideLoading should not throw when no loading is shown', () {
-      expect(() => WToast.hideLoading(), returnsNormally);
+    test('WToastConfig hideLoading should not throw when no loading is shown', () {
+      final config = WToastConfig();
+      expect(() => config.hideLoading(), returnsNormally);
     });
   });
 
   group('WToastConfig', () {
-    test('instance should return the same instance', () {
-      final instance1 = WToastConfig.instance;
-      final instance2 = WToastConfig.instance;
-      expect(instance1, same(instance2));
-    });
-
-    test('reset should create a new instance', () {
-      final instance1 = WToastConfig.instance;
-      WToastConfig.reset();
-      final instance2 = WToastConfig.instance;
+    test('should create new instances', () {
+      final instance1 = WToastConfig();
+      final instance2 = WToastConfig();
       expect(instance1, isNot(same(instance2)));
     });
 
-
-
     test('showSuccess should not throw when message is not empty', () {
-      expect(() => WToastConfig.instance.showSuccess('Test success'), returnsNormally);
+      final config = WToastConfig();
+      config.successBuilder = (message, cancelFunc) => Container();
+      expect(() => config.showSuccess('Test success'), returnsNormally);
     });
 
     test('showError should not throw when message is not empty', () {
-      expect(() => WToastConfig.instance.showError('Test error'), returnsNormally);
+      final config = WToastConfig();
+      config.errorBuilder = (message, cancelFunc) => Container();
+      expect(() => config.showError('Test error'), returnsNormally);
     });
 
     test('showWarning should not throw when message is not empty', () {
-      expect(() => WToastConfig.instance.showWarning('Test warning'), returnsNormally);
+      final config = WToastConfig();
+      config.warningBuilder = (message, cancelFunc) => Container();
+      expect(() => config.showWarning('Test warning'), returnsNormally);
     });
 
     test('showLoading should return a cancel function', () {
-      final cancelFunc = WToastConfig.instance.showLoading();
+      final config = WToastConfig();
+      config.loadingBuilder = (message, cancelFunc, dismissible) => Container();
+      final cancelFunc = config.showLoading();
       expect(cancelFunc, isNotNull);
       expect(cancelFunc, isA<Function>());
-      WToastConfig.instance.hideLoading();
+      config.hideLoading();
     });
 
     test('hideLoading should not throw when no loading is shown', () {
-      expect(() => WToastConfig.instance.hideLoading(), returnsNormally);
+      final config = WToastConfig();
+      expect(() => config.hideLoading(), returnsNormally);
     });
   });
 

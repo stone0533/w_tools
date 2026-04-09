@@ -52,7 +52,7 @@ class WImage extends StatelessWidget {
 
   /// 图片配置
   final WImageConfig config;
-  
+
   /// 图片数据（网络URL、本地资源路径、文件路径或 Base64 数据）
   final String data;
 
@@ -158,7 +158,11 @@ class WImage extends StatelessWidget {
   }
 
   /// 创建图片加载器
-  Widget _createImageLoader(BuildContext context, Widget defaultPlaceholder, Widget defaultErrorWidget) {
+  Widget _createImageLoader(
+    BuildContext context,
+    Widget defaultPlaceholder,
+    Widget defaultErrorWidget,
+  ) {
     final imageType = _determineImageType();
     switch (imageType) {
       case WImageType.network:
@@ -284,8 +288,7 @@ class WImage extends StatelessWidget {
             return config._placeholder?.call(context, data) ?? defaultPlaceholder;
           } else if (snapshot.hasError) {
             _handleLoadFailed();
-            return config._errorWidget?.call(context, data, snapshot.error) ??
-                defaultErrorWidget;
+            return config._errorWidget?.call(context, data, snapshot.error) ?? defaultErrorWidget;
           } else if (snapshot.hasData) {
             _handleLoadCompleted();
             return Image.memory(
@@ -335,8 +338,7 @@ class WImage extends StatelessWidget {
         }
         if (!snapshot.data!) {
           _handleLoadFailed();
-          return config._errorWidget?.call(context, data, 'File not found') ??
-              defaultErrorWidget;
+          return config._errorWidget?.call(context, data, 'File not found') ?? defaultErrorWidget;
         }
         _handleLoadCompleted();
         return Image.file(
@@ -410,10 +412,10 @@ class WImage extends StatelessWidget {
   /// @return Widget 变换后的图片组件
   Widget _applyTransformations(Widget image) {
     // 如果没有任何变换，直接返回原始图片
-    if (config._padding == null && 
-        config._borderRadius == null && 
-        config._border == null && 
-        (config._boxShadow == null || config._boxShadow!.isEmpty) && 
+    if (config._padding == null &&
+        config._borderRadius == null &&
+        config._border == null &&
+        (config._boxShadow == null || config._boxShadow!.isEmpty) &&
         config._margin == null) {
       return image;
     }
@@ -437,8 +439,8 @@ class WImage extends StatelessWidget {
     }
 
     // 合并应用边框、阴影和外边距
-    if (config._border != null || 
-        (config._boxShadow != null && config._boxShadow!.isNotEmpty) || 
+    if (config._border != null ||
+        (config._boxShadow != null && config._boxShadow!.isNotEmpty) ||
         config._margin != null) {
       transformedImage = Container(
         margin: config._margin,
@@ -510,7 +512,8 @@ class WImageConfig {
   /// @param onLoadStatusChanged 加载状态回调
   /// @param onLoadProgress 加载进度回调
   /// @return WImage 组件实例
-  WImage buildImage(String data, {
+  WImage buildImage(
+    String data, {
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<double>? onLoadProgress,
   }) {
@@ -528,7 +531,8 @@ class WImageConfig {
   /// @param onLoadStatusChanged 加载状态回调
   /// @param onLoadProgress 加载进度回调
   /// @return WImage 组件实例
-  WImage buildFile(File file, {
+  WImage buildFile(
+    File file, {
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<double>? onLoadProgress,
   }) {
@@ -546,7 +550,8 @@ class WImageConfig {
   /// @param onLoadStatusChanged 加载状态回调
   /// @param onLoadProgress 加载进度回调
   /// @return WImage 组件实例
-  WImage buildBase64(String base64, {
+  WImage buildBase64(
+    String base64, {
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<double>? onLoadProgress,
   }) {
@@ -841,4 +846,3 @@ class WImageGlobalConfig {
 }
 
 /// 带重试机制的网络图片组件
-

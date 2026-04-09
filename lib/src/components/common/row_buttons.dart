@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-
 /// 横向滚动按钮组件，用于创建可横向滚动的按钮列表
 ///
 /// 该组件支持以下功能：
@@ -198,7 +196,6 @@ class _ButtonItem extends StatelessWidget {
       ),
     );
   }
-
 }
 
 /// 横向滚动按钮控制器，用于管理按钮的选中状态和滚动
@@ -347,9 +344,14 @@ class WRowButtonsController {
   /// 返回处理后的目标滚动偏移量
   double _handleBoundaryConditions(double targetScrollOffset, Offset translation, Size size) {
     // 边界情况处理
-    if ((translation.dx + scrollController.offset + (size.width / 2)) < _boxConstraints!.maxWidth / 2) {
+    if ((translation.dx + scrollController.offset + (size.width / 2)) <
+        _boxConstraints!.maxWidth / 2) {
       return scrollController.position.minScrollExtent;
-    } else if (translation.dx + scrollController.offset + (size.width / 2) - scrollController.position.maxScrollExtent > _boxConstraints!.maxWidth / 2) {
+    } else if (translation.dx +
+            scrollController.offset +
+            (size.width / 2) -
+            scrollController.position.maxScrollExtent >
+        _boxConstraints!.maxWidth / 2) {
       return scrollController.position.maxScrollExtent;
     }
     return targetScrollOffset;
@@ -365,20 +367,20 @@ class WRowButtonsController {
     double buttonLeftToCenterOffset = translation.dx - (_boxConstraints!.maxWidth - size.width) / 2;
     // 目标滚动偏移量
     double targetScrollOffset = buttonLeftToCenterOffset + scrollController.offset;
-    
+
     // 处理边界情况
     targetScrollOffset = _handleBoundaryConditions(targetScrollOffset, translation, size);
-    
+
     // 应用过度滚动量
     targetScrollOffset = targetScrollOffset.clamp(
       scrollController.position.minScrollExtent - overScroll,
-      scrollController.position.maxScrollExtent + overScroll
+      scrollController.position.maxScrollExtent + overScroll,
     );
-    
+
     // 确保滚动位置在有效范围内
     return targetScrollOffset.clamp(
       scrollController.position.minScrollExtent,
-      scrollController.position.maxScrollExtent
+      scrollController.position.maxScrollExtent,
     );
   }
 

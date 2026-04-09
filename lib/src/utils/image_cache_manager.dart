@@ -199,11 +199,13 @@ class WImageCacheManager {
       if (item != null) {
         // 优先清理大型图片，然后是中型图片，最后是小型图片
         bool shouldClean = false;
-        
+
         if (item.size >= _mediumImageThreshold && largeImageCount > _maxLargeImageCacheSize) {
           shouldClean = true;
           largeImageCount--;
-        } else if (item.size >= _smallImageThreshold && item.size < _mediumImageThreshold && mediumImageCount > _maxMediumImageCacheSize) {
+        } else if (item.size >= _smallImageThreshold &&
+            item.size < _mediumImageThreshold &&
+            mediumImageCount > _maxMediumImageCacheSize) {
           shouldClean = true;
           mediumImageCount--;
         } else if (item.size < _smallImageThreshold && smallImageCount > _maxSmallImageCacheSize) {

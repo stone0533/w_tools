@@ -52,7 +52,7 @@ class _WAppBarState extends State<WAppBar> {
     return Container(
       padding: EdgeInsets.only(top: ScreenUtil().statusBarHeight),
       decoration: BoxDecoration(
-        color: widget.config?._color, 
+        color: widget.config?._color,
         gradient: widget.config?._gradient,
       ),
       child: Stack(

@@ -21,8 +21,7 @@ class WContainer extends StatelessWidget {
     Widget? child,
     Key? key,
   }) {
-    final config = WContainerConfig()
-      ..padding = padding;
+    final config = WContainerConfig()..padding = padding;
     return WContainer(
       key: key,
       config: config,
@@ -40,8 +39,7 @@ class WContainer extends StatelessWidget {
     Widget? child,
     Key? key,
   }) {
-    final config = WContainerConfig()
-      ..margin = margin;
+    final config = WContainerConfig()..margin = margin;
     return WContainer(
       key: key,
       config: config,

@@ -5,12 +5,16 @@ import 'nav_controller.dart';
 class WNavBar extends StatefulWidget {
   /// 标签栏配置
   final WNavBarConfig config;
+
   /// 导航项构建器
   final Widget Function(BuildContext, int, bool) itemBuilder;
+
   /// 导航项点击回调
   final Future<bool?>? Function(int)? onItemTap;
+
   /// 导航栏控制器
   final WNavController controller;
+
   /// 提供 vsync
   final TickerProvider? vsync;
   const WNavBar({
@@ -76,12 +80,12 @@ class _WNavBarState extends State<WNavBar> with TickerProviderStateMixin {
           ),
       ],
     );
-    
+
     // 如果提供了容器配置，使用配置中的构建器
     if (widget.config._containerConfig != null) {
       return widget.config._containerConfig!.build(child: navContent);
     }
-    
+
     // 默认直接返回导航内容
     return navContent;
   }

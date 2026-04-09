@@ -8,4 +8,5 @@ export 'interceptors/cookie.dart';
 export 'interceptors/error.dart';
 export 'interceptors/log.dart';
 export 'interceptors/token.dart';
+export 'common.dart';
 export 'repositories/base_repository.dart';

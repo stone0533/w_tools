@@ -45,10 +45,7 @@ void main() {
       final config = WImageConfig()
         ..width = (100)
         ..height = (100);
-      final image = WImage(
-        config: config,
-        data: 'test_image.png'
-      );
+      final image = WImage(config: config, data: 'test_image.png');
 
       expect(image.config, config);
     });

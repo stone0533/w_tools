@@ -26,7 +26,7 @@ class ToastQueueManager {
     _isProcessing = true;
     while (_queue.isNotEmpty) {
       final toastData = _queue.removeFirst();
-      
+
       // 显示提示并等待其关闭
       final completer = Completer<void>();
       WToast.showCustomDialog(
@@ -37,7 +37,7 @@ class ToastQueueManager {
         animationDuration: toastData['animationDuration'] as Duration?,
         onClose: () => completer.complete(),
       );
-      
+
       // 等待提示关闭
       await completer.future;
     }
@@ -102,7 +102,7 @@ class WToastTheme {
   final TextStyle messageTextStyle;
   final double borderRadius;
   final double padding;
-  
+
   const WToastTheme({
     this.successColor = Colors.green,
     this.errorColor = Colors.red,
@@ -113,7 +113,7 @@ class WToastTheme {
     this.borderRadius = 8.0,
     this.padding = 16.0,
   });
-  
+
   /// 预设主题
   static const light = WToastTheme();
   static const dark = WToastTheme(
@@ -145,9 +145,6 @@ class WToastTheme {
 /// WToast.hideLoading();
 /// ```
 class WToast {
-  // 全局 loading 状态
-  static CancelFunc? _loadingCancelFunc;
-
   /// 显示自定义对话框（直接使用 BotToast 原生方法）
   ///
   /// @param toastBuilder 构建对话框内容的回调函数
@@ -191,204 +188,6 @@ class WToast {
     }
   }
 
-  /// 显示提示（内部方法，结合主题管理和队列管理）
-  ///
-  /// @param message 提示消息文本
-  /// @param icon 提示图标
-  /// @param iconColor 图标颜色
-  /// @param duration 显示时长，默认 2 秒
-  /// @param align 对齐方式，默认居中
-  /// @param theme 主题，默认使用 light 主题
-  /// @param animationDuration 动画时长
-  /// @return CancelFunc 用于取消对话框的函数
-  static CancelFunc _showToast(
-    String message,
-    IconData icon,
-    Color iconColor, {
-    Duration? duration = const Duration(seconds: 2),
-    Alignment? align = Alignment.center,
-    WToastTheme theme = WToastTheme.light,
-    Duration? animationDuration = const Duration(milliseconds: 300),
-  }) {
-    assert(message.isNotEmpty, 'Message cannot be empty');
-    
-    // 创建缓存键
-    final cacheKey = 'toast_${message.hashCode}_${icon.hashCode}_${iconColor.hashCode}_${theme.hashCode}';
-    
-    return _showWithWidget(
-      widget: ToastWidgetCache.get(cacheKey, () => Container(
-        padding: EdgeInsets.all(theme.padding),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(theme.borderRadius),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: iconColor, size: 40),
-            const SizedBox(height: 12),
-            Text(message, style: theme.textStyle),
-          ],
-        ),
-      )),
-      align: align,
-      duration: duration,
-      animationDuration: animationDuration,
-    );
-  }
-
-  /// 显示成功提示（使用 BotToast 原生方法 + 主题管理）
-  ///
-  /// @param message 成功消息文本
-  /// @param duration 显示时长，默认 2 秒
-  /// @param align 对齐方式，默认居中
-  /// @param theme 主题，默认使用 light 主题
-  /// @return CancelFunc 用于取消对话框的函数
-  static CancelFunc showSuccess(String message, {
-    Duration? duration = const Duration(seconds: 2),
-    Alignment? align = Alignment.center,
-    WToastTheme theme = WToastTheme.light,
-  }) {
-    return _showToast(
-      message,
-      Icons.check_circle,
-      theme.successColor,
-      duration: duration,
-      align: align,
-      theme: theme,
-      animationDuration: const Duration(milliseconds: 300),
-    );
-  }
-
-  /// 显示错误提示（使用 BotToast 原生方法 + 主题管理）
-  ///
-  /// @param message 错误消息文本
-  /// @param duration 显示时长，默认 2 秒
-  /// @param align 对齐方式，默认居中
-  /// @param theme 主题，默认使用 light 主题
-  /// @return CancelFunc 用于取消对话框的函数
-  static CancelFunc showError(String message, {
-    Duration? duration = const Duration(seconds: 2),
-    Alignment? align = Alignment.center,
-    WToastTheme theme = WToastTheme.light,
-  }) {
-    return _showToast(
-      message,
-      Icons.error,
-      theme.errorColor,
-      duration: duration,
-      align: align,
-      theme: theme,
-      animationDuration: const Duration(milliseconds: 400),
-    );
-  }
-
-  /// 显示警告提示（使用 BotToast 原生方法 + 主题管理）
-  ///
-  /// @param message 警告消息文本
-  /// @param duration 显示时长，默认 2 秒
-  /// @param align 对齐方式，默认居中
-  /// @param theme 主题，默认使用 light 主题
-  /// @return CancelFunc 用于取消对话框的函数
-  static CancelFunc showWarning(String message, {
-    Duration? duration = const Duration(seconds: 2),
-    Alignment? align = Alignment.center,
-    WToastTheme theme = WToastTheme.light,
-  }) {
-    return _showToast(
-      message,
-      Icons.warning,
-      theme.warningColor,
-      duration: duration,
-      align: align,
-      theme: theme,
-      animationDuration: const Duration(milliseconds: 350),
-    );
-  }
-
-  /// 显示加载提示（使用 BotToast 原生方法 + 全局加载状态管理）
-  ///
-  /// @param message 加载提示文本，默认 "加载中..."
-  /// @param dismissible 是否可点击关闭，默认 false
-  /// @param theme 主题，默认使用 light 主题
-  /// @return CancelFunc 用于取消对话框的函数
-  static CancelFunc showLoading({
-    String message = '加载中...',
-    bool dismissible = false,
-    WToastTheme theme = WToastTheme.light,
-  }) {
-    // 先关闭之前的 loading
-    if (_loadingCancelFunc != null) {
-      _loadingCancelFunc!();
-    }
-    
-    _loadingCancelFunc = showCustomDialog(
-      toastBuilder: (cancel) => GestureDetector(
-        onTap: dismissible ? cancel : null,
-        child: Container(
-          padding: EdgeInsets.all(theme.padding),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(theme.borderRadius),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 12),
-              Text(message, style: theme.textStyle),
-            ],
-          ),
-        ),
-      ),
-      duration: null,
-    );
-    
-    return _loadingCancelFunc!;
-  }
-
-  /// 关闭加载提示
-  static void hideLoading() {
-    if (_loadingCancelFunc != null) {
-      _loadingCancelFunc!();
-      _loadingCancelFunc = null;
-    }
-  }
-
-  /// 显示带 Widget 的提示（内部方法）
-  ///
-  /// @param widget 要显示的 Widget
-  /// @param align 对齐方式
-  /// @param duration 显示时长
-  /// @param backgroundColor 背景颜色
-  /// @param animationDuration 动画时长
-  /// @return CancelFunc 用于取消对话框的函数
-  static CancelFunc _showWithWidget({
-    required Widget widget,
-    Alignment? align,
-    Duration? duration,
-    Color? backgroundColor,
-    Duration? animationDuration,
-  }) {
-    // 添加到队列
-    final toastData = {
-      'widget': widget,
-      'align': align,
-      'duration': duration,
-      'backgroundColor': backgroundColor,
-      'animationDuration': animationDuration,
-      'id': UniqueKey().toString(),
-    };
-    
-    ToastQueueManager.add(toastData);
-    
-    // 返回一个取消函数
-    return () {
-      // 从队列中移除
-      ToastQueueManager.remove(toastData['id'] as String);
-    };
-  }
-
   /// 清空所有提示队列
   static void clearQueue() {
     ToastQueueManager.clear();
@@ -400,48 +199,48 @@ class WToast {
   }
 }
 
-/// WToast 配置类，用于管理 WToast 的全局配置
+/// WToast 配置类，用于管理 WToast 的配置
 ///
 /// 使用示例：
 /// ```dart
-/// // 配置并显示提示
-/// WToastConfig.instance
-///   ..theme = WToastTheme.dark
-///   ..showSuccess('操作成功');
+/// // 创建配置实例并使用
+/// final config = WToastConfig()
+///   ..theme = WToastTheme.dark;
+/// config.showSuccess('操作成功');
 ///
 /// // 使用自定义构建器
-/// WToastConfig.instance
-///   ..messageBuilder = (message) => Container(
+/// final customConfig = WToastConfig()
+///   ..successBuilder = (message, cancelFunc) => Container(
 ///         padding: EdgeInsets.all(16),
 ///         decoration: BoxDecoration(
 ///           color: Colors.blue,
 ///           borderRadius: BorderRadius.circular(8),
 ///         ),
 ///         child: Text(message, style: TextStyle(color: Colors.white)),
-///       )
-///   ..showMessage('自定义消息提示');
+///       );
+/// customConfig.showSuccess('自定义成功提示');
 ///
-/// // 配置默认加载提示
-/// WToastConfig.instance.setDefaultLoadingToast(
-///   message: '加载中，请稍候...',
-///   loadingWidget: CircularProgressIndicator(strokeWidth: 2),
-/// );
+/// // 配置加载提示
+/// final loadingConfig = WToastConfig()
+///   ..loadingBuilder = (message, cancelFunc, dismissible) => GestureDetector(
+///         onTap: dismissible ? cancelFunc : null,
+///         child: Container(
+///           padding: EdgeInsets.all(16),
+///           decoration: BoxDecoration(
+///             color: Colors.white,
+///             borderRadius: BorderRadius.circular(8),
+///           ),
+///           child: Column(
+///             mainAxisSize: MainAxisSize.min,
+///             children: [
+///               CircularProgressIndicator(),
+///               Text(message),
+///             ],
+///           ),
+///         ),
+///       );
 /// ```
 class WToastConfig {
-  // 全局配置实例
-  static WToastConfig? _instance;
-  
-  // 获取全局配置实例
-  static WToastConfig get instance {
-    _instance ??= WToastConfig();
-    return _instance!;
-  }
-  
-  // 重置全局配置
-  static void reset() {
-    _instance = null;
-  }
-
   /// 对话框显示时长
   Duration? duration = const Duration(milliseconds: 800);
 
@@ -451,187 +250,160 @@ class WToastConfig {
   /// 对话框对齐方式
   Alignment? align = Alignment.center;
 
-  /// 构建对话框内容的回调函数
-  Widget Function(CancelFunc cancelFunc)? toastBuilder;
-
-  /// 对话框关闭时的回调函数
-  void Function()? onClose;
-
   /// 动画时长
   Duration? animationDuration = const Duration(milliseconds: 200);
 
   /// 主题
   WToastTheme theme = WToastTheme.light;
 
+  /// 构建对话框内容的回调函数
+  Widget Function(CancelFunc cancelFunc)? toastBuilder;
+
+  /// 对话框关闭时的回调函数
+  void Function()? onClose;
+
   /// 自定义成功提示 Widget 构建回调
-  Widget Function(String message)? successBuilder;
+  Widget Function(Object? message, CancelFunc cancelFunc)? successBuilder;
 
   /// 自定义错误提示 Widget 构建回调
-  Widget Function(String message)? errorBuilder;
+  Widget Function(Object? message, CancelFunc cancelFunc)? errorBuilder;
 
   /// 自定义警告提示 Widget 构建回调
-  Widget Function(String message)? warningBuilder;
+  Widget Function(Object? message, CancelFunc cancelFunc)? warningBuilder;
+
+  /// 自定义加载提示 Widget 构建回调
+  ///
+  /// @param message 加载提示内容
+  /// @param cancelFunc 取消函数，可用于手动关闭加载提示
+  /// @param dismissible 是否可点击关闭
+  Widget Function(Object? message, CancelFunc cancelFunc, bool dismissible)? loadingBuilder;
+
+  // 加载状态
+  CancelFunc? _loadingCancelFunc;
 
   /// 私有构造函数
   WToastConfig();
 
-  /// 设置默认加载中对话框
-  ///
-  /// @param message 加载提示文本，默认 "加载中..."
-  /// @param loadingWidget 加载图标，默认 CircularProgressIndicator
-  /// @param backgroundColor 背景颜色，默认白色
-  /// @param borderRadius 边框圆角，默认 8.0
-  void setDefaultLoadingToast({
-    String message = '加载中...',
-    Widget? loadingWidget,
-    Color? backgroundColor = Colors.white,
-    double borderRadius = 8.0,
-  }) {
-    toastBuilder = (cancelFunc) => Container(
-      padding: EdgeInsets.all(theme.padding),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          loadingWidget ?? const CircularProgressIndicator(),
-          const SizedBox(height: 12),
-          Text(message, style: theme.textStyle),
-        ],
-      ),
-    );
-  }
-
-  /// 显示自定义对话框
-  ///
-  /// @return CancelFunc 用于取消对话框的函数
-  /// @throws ArgumentError 如果 toastBuilder 为 null
-  CancelFunc show() {
-    if (toastBuilder == null) {
-      throw ArgumentError('toastBuilder 不能为空');
-    }
-
-    return WToast.showCustomDialog(
-      toastBuilder: toastBuilder!,
-      align: align,
-      onClose: onClose,
-      backgroundColor: backgroundColor,
-      duration: duration,
-      animationDuration: animationDuration,
-    );
-  }
-
   /// 显示成功提示
   ///
-  /// @param message 成功消息文本
+  /// @param message 成功消息内容
   /// @param duration 显示时长，默认 2 秒
   /// @param align 对齐方式，默认居中
   /// @return CancelFunc 用于取消对话框的函数
-  CancelFunc showSuccess(String message, {
-    Duration? duration = const Duration(seconds: 2),
-    Alignment? align = Alignment.center,
+  CancelFunc showSuccess(
+    Object? message, {
+    Duration? duration,
+    Alignment? align,
   }) {
+    // 优先使用配置中的值，如果配置中没有，则使用参数默认值
+    final effectiveDuration = duration ?? this.duration ?? const Duration(seconds: 2);
+    final effectiveAlign = align ?? this.align ?? Alignment.center;
+
     if (successBuilder != null) {
       // 使用自定义成功构建器
-      final successWidget = successBuilder!(message);
       return WToast.showCustomDialog(
-        toastBuilder: (cancelFunc) => successWidget,
-        align: align,
-        duration: duration,
+        toastBuilder: (cancelFunc) => successBuilder!(message, cancelFunc),
+        align: effectiveAlign,
+        duration: effectiveDuration,
         animationDuration: animationDuration,
       );
     } else {
-      // 使用 WToast 的默认实现
-      return WToast.showSuccess(
-        message,
-        duration: duration,
-        align: align,
-        theme: theme,
-      );
+      throw ArgumentError('successBuilder 不能为空，请先设置 successBuilder');
     }
   }
 
   /// 显示错误提示
   ///
-  /// @param message 错误消息文本
+  /// @param message 错误消息内容
   /// @param duration 显示时长，默认 2 秒
   /// @param align 对齐方式，默认居中
   /// @return CancelFunc 用于取消对话框的函数
-  CancelFunc showError(String message, {
-    Duration? duration = const Duration(seconds: 2),
-    Alignment? align = Alignment.center,
+  CancelFunc showError(
+    Object? message, {
+    Duration? duration,
+    Alignment? align,
   }) {
+    // 优先使用配置中的值，如果配置中没有，则使用参数默认值
+    final effectiveDuration = duration ?? this.duration ?? const Duration(seconds: 2);
+    final effectiveAlign = align ?? this.align ?? Alignment.center;
+
     if (errorBuilder != null) {
       // 使用自定义错误构建器
-      final errorWidget = errorBuilder!(message);
       return WToast.showCustomDialog(
-        toastBuilder: (cancelFunc) => errorWidget,
-        align: align,
-        duration: duration,
+        toastBuilder: (cancelFunc) => errorBuilder!(message, cancelFunc),
+        align: effectiveAlign,
+        duration: effectiveDuration,
         animationDuration: animationDuration,
       );
     } else {
-      // 使用 WToast 的默认实现
-      return WToast.showError(
-        message,
-        duration: duration,
-        align: align,
-        theme: theme,
-      );
+      throw ArgumentError('errorBuilder 不能为空，请先设置 errorBuilder');
     }
   }
 
   /// 显示警告提示
   ///
-  /// @param message 警告消息文本
+  /// @param message 警告消息内容
   /// @param duration 显示时长，默认 2 秒
   /// @param align 对齐方式，默认居中
   /// @return CancelFunc 用于取消对话框的函数
-  CancelFunc showWarning(String message, {
-    Duration? duration = const Duration(seconds: 2),
-    Alignment? align = Alignment.center,
+  CancelFunc showWarning(
+    Object? message, {
+    Duration? duration,
+    Alignment? align,
   }) {
+    // 优先使用配置中的值，如果配置中没有，则使用参数默认值
+    final effectiveDuration = duration ?? this.duration ?? const Duration(seconds: 2);
+    final effectiveAlign = align ?? this.align ?? Alignment.center;
+
     if (warningBuilder != null) {
       // 使用自定义警告构建器
-      final warningWidget = warningBuilder!(message);
       return WToast.showCustomDialog(
-        toastBuilder: (cancelFunc) => warningWidget,
-        align: align,
-        duration: duration,
+        toastBuilder: (cancelFunc) => warningBuilder!(message, cancelFunc),
+        align: effectiveAlign,
+        duration: effectiveDuration,
         animationDuration: animationDuration,
       );
     } else {
-      // 使用 WToast 的默认实现
-      return WToast.showWarning(
-        message,
-        duration: duration,
-        align: align,
-        theme: theme,
-      );
+      throw ArgumentError('warningBuilder 不能为空，请先设置 warningBuilder');
     }
   }
 
   /// 显示加载提示
   ///
-  /// @param message 加载提示文本，默认 "加载中..."
+  /// @param message 加载提示内容
   /// @param dismissible 是否可点击关闭，默认 false
   /// @return CancelFunc 用于取消对话框的函数
   CancelFunc showLoading({
-    String message = '加载中...',
+    Object? message,
     bool dismissible = false,
   }) {
-    return WToast.showLoading(
-      message: message,
-      dismissible: dismissible,
-      theme: theme,
-    );
+    if (loadingBuilder != null) {
+      // 使用自定义加载构建器
+      // 先关闭之前的加载提示
+      if (_loadingCancelFunc != null) {
+        _loadingCancelFunc!();
+      }
+
+      // 显示新的加载提示并保存取消函数
+      _loadingCancelFunc = WToast.showCustomDialog(
+        toastBuilder: (cancelFunc) => loadingBuilder!(message, cancelFunc, dismissible),
+        align: align,
+        duration: null, // 加载提示通常没有自动消失时间
+        animationDuration: animationDuration,
+      );
+
+      return _loadingCancelFunc!;
+    } else {
+      throw ArgumentError('loadingBuilder 不能为空，请先设置 loadingBuilder');
+    }
   }
 
   /// 关闭加载提示
   void hideLoading() {
-    WToast.hideLoading();
+    // 通过变量关闭加载提示
+    if (_loadingCancelFunc != null) {
+      _loadingCancelFunc!();
+      _loadingCancelFunc = null;
+    }
   }
 }
-

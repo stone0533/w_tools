@@ -69,7 +69,7 @@ class WFormTextField extends StatefulWidget {
 class _WFormTextFieldState extends State<WFormTextField> {
   /// 是否显示密码
   bool _isPasswordVisible = false;
-  
+
   /// 焦点节点
   late FocusNode _focusNode;
 
@@ -93,7 +93,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
   Widget build(BuildContext context) {
     // 获取 WFormData 实例
     dynamic wFormData = WFormBuilder.of(context);
-    
+
     if (wFormData == null) {
       // 尝试遍历祖先元素，查找 WFormBuilder 实例
       context.visitAncestorElements((element) {
@@ -104,7 +104,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
         return true; // 继续遍历
       });
     }
-    
+
     if (wFormData == null) {
       throw Exception('WFormBuilder 未找到');
     }
@@ -133,7 +133,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
       final icon = _isPasswordVisible
           ? (widget.config._obscureTextIconOn ?? WConfig.instance.obscureTextIconOn)
           : (widget.config._obscureTextIcon ?? WConfig.instance.obscureTextIcon);
-      
+
       obscureTextIcon = GestureDetector(
         onTap: togglePasswordVisibility,
         child: Container(
@@ -194,7 +194,9 @@ class _WFormTextFieldState extends State<WFormTextField> {
                 ),
                 obscureText: widget.config._obscureText && !_isPasswordVisible,
                 obscuringCharacter: '＊',
-                keyboardType: widget.config._keyboardType ?? (widget.config._obscureText ? TextInputType.visiblePassword : null),
+                keyboardType:
+                    widget.config._keyboardType ??
+                    (widget.config._obscureText ? TextInputType.visiblePassword : null),
                 inputFormatters: widget.config._inputFormatters,
                 textAlign: widget.config._textAlign ?? TextAlign.start,
                 autofocus: widget.config._autofocus ?? false,
@@ -264,7 +266,7 @@ class WFormTextFieldConfig {
 
   /// 是否自动获取焦点
   bool? _autofocus;
-  
+
   /// 是否密码模式
   bool _obscureText = false;
 
@@ -360,7 +362,7 @@ class WFormTextFieldConfig {
   set autofocus(bool? value) {
     _autofocus = value;
   }
-  
+
   /// 是否密码模式 setter
   set obscureText(bool value) {
     _obscureText = value;
@@ -545,7 +547,7 @@ class WFormTextFieldConfig {
     if (name.isEmpty) {
       throw Exception('字段名称不能为空');
     }
-    
+
     containerDecoration = null;
 
     final textField = build(
@@ -558,7 +560,7 @@ class WFormTextFieldConfig {
       readOnly: readOnly,
       focusNode: focusNode,
     );
-    
+
     return WFormBorderWithData(
       key: key,
       name: name,
@@ -570,6 +572,3 @@ class WFormTextFieldConfig {
     );
   }
 }
-
-
-

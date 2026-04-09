@@ -167,7 +167,6 @@ class WButtonConfig {
     _textButtonStyle = textButtonStyle;
   }
 
-
   WButton buildTextButton({
     required String text,
     GestureTapCallback? onTap,

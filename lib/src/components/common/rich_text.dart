@@ -33,7 +33,7 @@ class WRichText extends StatelessWidget {
           int index = entry.key;
           String item = entry.value;
           Object? result = itemBuilder(context, index, item, config.copy());
-          
+
           return _convertToInlineSpan(result, item, config);
         }).toList(),
       ),
@@ -45,7 +45,7 @@ class WRichText extends StatelessWidget {
       maxLines: config._maxLines,
     );
   }
-  
+
   /// 将结果转换为 InlineSpan
   InlineSpan _convertToInlineSpan(Object? result, String item, WRichTextConfig config) {
     if (result is InlineSpan) {

@@ -277,84 +277,90 @@ class _FormBuilderMultiDropdown<T> extends FormBuilderField<T> {
            }
 
            return InputDecorator(
-             decoration: decoration ?? const InputDecoration(
-               border: InputBorder.none,
-               focusedBorder: InputBorder.none,
-               enabledBorder: InputBorder.none,
-             ),
+             decoration:
+                 decoration ??
+                 const InputDecoration(
+                   border: InputBorder.none,
+                   focusedBorder: InputBorder.none,
+                   enabledBorder: InputBorder.none,
+                 ),
              child: GestureDetector(
-               onTap: enabled ? () {
-                 // 显示弹出层
-                 showPopup(
-                   context: state.context,
-                   elevation: popUpLayerElevation ?? 10,
-                   shadowColor: popUpLayerShadowColor ?? Colors.grey,
-                   builder: (context) {
-                     return Container(
-                       width: double.infinity,
-                       padding: popUpLayerPadding,
-                       child: SingleChildScrollView(
-                         child: Wrap(
-                           children: items.entries.map((e) {
-                             // 确定选项状态
-                             _FormBuilderMultiDropdownItemStatue statue =
-                                 _FormBuilderMultiDropdownItemStatue.enable;
+               onTap: enabled
+                   ? () {
+                       // 显示弹出层
+                       showPopup(
+                         context: state.context,
+                         elevation: popUpLayerElevation ?? 10,
+                         shadowColor: popUpLayerShadowColor ?? Colors.grey,
+                         builder: (context) {
+                           return Container(
+                             width: double.infinity,
+                             padding: popUpLayerPadding,
+                             child: SingleChildScrollView(
+                               child: Wrap(
+                                 children: items.entries.map((e) {
+                                   // 确定选项状态
+                                   _FormBuilderMultiDropdownItemStatue statue =
+                                       _FormBuilderMultiDropdownItemStatue.enable;
 
-                             // 检查是否选中
-                             if (state.value != null) {
-                               if (',${state.value},'.contains(',${e.key},')) {
-                                 statue = _FormBuilderMultiDropdownItemStatue.checked;
-                               }
-                             }
-
-                             // 检查是否禁用
-                             if (disabledKeys?.isNotEmpty ?? false) {
-                               if (',$disabledKeys,'.contains(',${e.key},')) {
-                                 statue = _FormBuilderMultiDropdownItemStatue.disable;
-                               }
-                             }
-
-                             // 创建选项项
-                             return _FormBuilderMultiDropdownItem(
-                               value: e.key.toString(),
-                               title: e.value,
-                               icon: checkBoxIcon ?? const Icon(Icons.check_box_outline_blank),
-                               checkedIcon:
-                                   checkBoxCheckedIcon ?? const Icon(Icons.check_box_outlined),
-                               disabledIcon: checkBoxDisabledIcon,
-                               statue: statue,
-                               onTap: (v, isChecked) {
-                                 List<String> list = state.value != null
-                                     ? state.value.toString().split(',')
-                                     : [];
-                                 if (isChecked) {
-                                   if (list.contains(v) == false) {
-                                     list.add(v);
+                                   // 检查是否选中
+                                   if (state.value != null) {
+                                     if (',${state.value},'.contains(',${e.key},')) {
+                                       statue = _FormBuilderMultiDropdownItemStatue.checked;
+                                     }
                                    }
-                                 } else {
-                                   if (list.contains(v)) {
-                                     list.remove(v);
-                                   }
-                                 }
 
-                                 // 更新值
-                                 T? newValue = list.isNotEmpty ? list.join(',') as T? : null;
-                                 state.setValue(newValue);
-                                 state.didChange(newValue);
-                               },
-                               titlePadding: itemTitlePadding,
-                               style: itemStyle,
-                               padding: itemPadding,
-                               checkedStyle: itemCheckedStyle,
-                               disabledStyle: itemDisabledStyle,
-                             );
-                           }).toList(),
-                         ),
-                       ),
-                     );
-                   },
-                 );
-               } : null,
+                                   // 检查是否禁用
+                                   if (disabledKeys?.isNotEmpty ?? false) {
+                                     if (',$disabledKeys,'.contains(',${e.key},')) {
+                                       statue = _FormBuilderMultiDropdownItemStatue.disable;
+                                     }
+                                   }
+
+                                   // 创建选项项
+                                   return _FormBuilderMultiDropdownItem(
+                                     value: e.key.toString(),
+                                     title: e.value,
+                                     icon:
+                                         checkBoxIcon ?? const Icon(Icons.check_box_outline_blank),
+                                     checkedIcon:
+                                         checkBoxCheckedIcon ??
+                                         const Icon(Icons.check_box_outlined),
+                                     disabledIcon: checkBoxDisabledIcon,
+                                     statue: statue,
+                                     onTap: (v, isChecked) {
+                                       List<String> list = state.value != null
+                                           ? state.value.toString().split(',')
+                                           : [];
+                                       if (isChecked) {
+                                         if (list.contains(v) == false) {
+                                           list.add(v);
+                                         }
+                                       } else {
+                                         if (list.contains(v)) {
+                                           list.remove(v);
+                                         }
+                                       }
+
+                                       // 更新值
+                                       T? newValue = list.isNotEmpty ? list.join(',') as T? : null;
+                                       state.setValue(newValue);
+                                       state.didChange(newValue);
+                                     },
+                                     titlePadding: itemTitlePadding,
+                                     style: itemStyle,
+                                     padding: itemPadding,
+                                     checkedStyle: itemCheckedStyle,
+                                     disabledStyle: itemDisabledStyle,
+                                   );
+                                 }).toList(),
+                               ),
+                             ),
+                           );
+                         },
+                       );
+                     }
+                   : null,
                behavior: HitTestBehavior.translucent,
                child: Row(
                  children: [

@@ -72,7 +72,6 @@ class WScaffold extends StatelessWidget {
   }
 }
 
-
 /// WScaffold 配置类，用于链式构建 WScaffold
 class WScaffoldConfig {
   /// 背景颜色

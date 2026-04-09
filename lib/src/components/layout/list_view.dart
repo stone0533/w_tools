@@ -205,26 +205,29 @@ class WListViewState extends State<WListView> {
 
   /// 获取缓存区域大小
   double _getCacheExtent() {
-    return widget.config._cacheExtent ?? (widget.config._scrollDirection == Axis.vertical ? WListViewConfig._defaultVerticalCacheExtent : WListViewConfig._defaultHorizontalCacheExtent);
+    return widget.config._cacheExtent ??
+        (widget.config._scrollDirection == Axis.vertical
+            ? WListViewConfig._defaultVerticalCacheExtent
+            : WListViewConfig._defaultHorizontalCacheExtent);
   }
 
   /// 构建带头部和尾部的列表
   Widget _buildListWithHeaderFooter() {
     final slivers = <Widget>[];
-    
+
     // 添加头部
     if (widget.header != null) {
       slivers.add(SliverToBoxAdapter(child: widget.header!));
     }
-    
+
     // 添加列表内容
     slivers.add(_buildListSliver());
-    
+
     // 添加尾部
     if (widget.footer != null) {
       slivers.add(SliverToBoxAdapter(child: widget.footer!));
     }
-    
+
     // 使用 CustomScrollView
     return CustomScrollView(
       key: widget.key,
@@ -360,7 +363,9 @@ class WListViewState extends State<WListView> {
     }
 
     // 应用背景色、圆角和边框
-    if (widget.config._backgroundColor != null || widget.config._borderRadius != null || widget.config._border != null) {
+    if (widget.config._backgroundColor != null ||
+        widget.config._borderRadius != null ||
+        widget.config._border != null) {
       return Container(
         decoration: BoxDecoration(
           color: widget.config._backgroundColor,
@@ -393,7 +398,7 @@ class WListViewState extends State<WListView> {
     } else {
       item = widget.itemBuilder(context, index);
     }
-    
+
     return item;
   }
 
@@ -414,7 +419,8 @@ class _PreciseCachedItemBuilder extends StatefulWidget {
   _PreciseCachedItemBuilderState createState() => _PreciseCachedItemBuilderState();
 }
 
-class _PreciseCachedItemBuilderState extends State<_PreciseCachedItemBuilder> with AutomaticKeepAliveClientMixin {
+class _PreciseCachedItemBuilderState extends State<_PreciseCachedItemBuilder>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -520,8 +526,6 @@ class WListViewConfig {
   set emptyWidget(Widget value) {
     _emptyWidget = value;
   }
-
-
 
   /// 设置是否使用精确的缓存机制
   set usePreciseCache(bool value) {
@@ -832,11 +836,11 @@ class WListViewConfig {
     Key? key,
   }) {
     assert(_itemBuilderByT != null, 'itemBuilderByT must be set before calling buildByList');
-    
+
     Widget itemBuilder(BuildContext context, int index) {
       return _itemBuilderByT!(context, data[index]);
     }
-    
+
     return WListView(
       key: key,
       config: this,
@@ -969,12 +973,4 @@ class WListViewConfig {
       hasMore: hasMore,
     );
   }
-
 }
-
-
-
-
-
-
-

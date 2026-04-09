@@ -11,7 +11,7 @@ void cleanUp() {
     // 忽略 BotToast 未初始化的错误
   }
   // 清理全局加载状态
-  WToast.hideLoading();
+  // 注意：现在每个 WToastConfig 实例有自己的加载状态
 }
 
 void main() {
@@ -21,42 +21,57 @@ void main() {
     // 测试结束后清理
     addTearDown(cleanUp);
     // Build a simple app with a button to trigger toasts
-    await tester.pumpWidget(MaterialApp(
-      builder: BotToastInit(),
-      navigatorObservers: [BotToastNavigatorObserver()],
-      home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () => WToast.showSuccess('Test success'),
-                child: const Text('Show Success'),
-              ),
-              ElevatedButton(
-                onPressed: () => WToast.showError('Test error'),
-                child: const Text('Show Error'),
-              ),
-              ElevatedButton(
-                onPressed: () => WToast.showWarning('Test warning'),
-                child: const Text('Show Warning'),
-              ),
-              ElevatedButton(
-                onPressed: () => WToast.showLoading(),
-                child: const Text('Show Loading'),
-              ),
-              ElevatedButton(
-                onPressed: () => WToast.hideLoading(),
-                child: const Text('Hide Loading'),
-              ),
-            ],
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: BotToastInit(),
+        navigatorObservers: [BotToastNavigatorObserver()],
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.showSuccess('Test success');
+                  },
+                  child: const Text('Show Success'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.showError('Test error');
+                  },
+                  child: const Text('Show Error'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.showWarning('Test warning');
+                  },
+                  child: const Text('Show Warning'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.showLoading();
+                  },
+                  child: const Text('Show Loading'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.hideLoading();
+                  },
+                  child: const Text('Hide Loading'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
-
-
 
     // Test showSuccess
     await tester.tap(find.text('Show Success'));
@@ -76,7 +91,7 @@ void main() {
 
     await tester.tap(find.text('Hide Loading'));
     await tester.pump(const Duration(milliseconds: 500));
-    
+
     // Clean up toasts
     BotToast.cleanAll();
     await tester.pump(const Duration(milliseconds: 500));
@@ -89,42 +104,57 @@ void main() {
     // 测试结束后清理
     addTearDown(cleanUp);
     // Build a simple app with a button to trigger config-based toasts
-    await tester.pumpWidget(MaterialApp(
-      builder: BotToastInit(),
-      navigatorObservers: [BotToastNavigatorObserver()],
-      home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () => WToastConfig.instance.showSuccess('Config success'),
-                child: const Text('Show Config Success'),
-              ),
-              ElevatedButton(
-                onPressed: () => WToastConfig.instance.showError('Config error'),
-                child: const Text('Show Config Error'),
-              ),
-              ElevatedButton(
-                onPressed: () => WToastConfig.instance.showWarning('Config warning'),
-                child: const Text('Show Config Warning'),
-              ),
-              ElevatedButton(
-                onPressed: () => WToastConfig.instance.showLoading(),
-                child: const Text('Show Config Loading'),
-              ),
-              ElevatedButton(
-                onPressed: () => WToastConfig.instance.hideLoading(),
-                child: const Text('Hide Config Loading'),
-              ),
-            ],
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: BotToastInit(),
+        navigatorObservers: [BotToastNavigatorObserver()],
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.showSuccess('Config success');
+                  },
+                  child: const Text('Show Config Success'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.showError('Config error');
+                  },
+                  child: const Text('Show Config Error'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.showWarning('Config warning');
+                  },
+                  child: const Text('Show Config Warning'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.showLoading();
+                  },
+                  child: const Text('Show Config Loading'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final config = WToastConfig();
+                    config.hideLoading();
+                  },
+                  child: const Text('Hide Config Loading'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
-
-
 
     // Test showSuccess via config
     await tester.tap(find.text('Show Config Success'));
@@ -144,7 +174,7 @@ void main() {
 
     await tester.tap(find.text('Hide Config Loading'));
     await tester.pump(const Duration(milliseconds: 500));
-    
+
     // Clean up toasts
     BotToast.cleanAll();
     await tester.pump(const Duration(milliseconds: 500));

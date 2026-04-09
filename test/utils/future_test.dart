@@ -123,7 +123,7 @@ void main() {
     test('cancellation should work', () async {
       final cancelToken = WCancelToken();
       final completer = Completer<String>();
-      
+
       final future = WFuture.one(
         () async {
           cancelToken.throwIfCancelled();
@@ -134,10 +134,10 @@ void main() {
         },
         cancelToken: cancelToken,
       );
-      
+
       // Cancel immediately
       cancelToken.cancel();
-      
+
       final result = await future;
       expect(result, null);
       expect(completer.isCompleted, false);

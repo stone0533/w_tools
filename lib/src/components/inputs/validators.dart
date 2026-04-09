@@ -39,18 +39,19 @@ class WFormValidators {
     // 遍历验证项
     for (var item in validationItems) {
       // 检查是否需要跳过当前校验
-      bool shouldSkip = config?._shouldSkipValidation?.call(item.fieldName, formKey.currentState?.value) ?? false;
+      bool shouldSkip =
+          config?._shouldSkipValidation?.call(item.fieldName, formKey.currentState?.value) ?? false;
       if (shouldSkip) {
         // 跳过当前校验，继续下一项
         continue;
       }
-      
+
       String? errorText = item.validatorBuilder().call(formKey.currentState?.value[item.fieldName]);
       bool isValid = errorText == null;
-      
+
       // 调用每一项校验的结果回调
       config?._itemValidationCallback?.call(item.fieldName, isValid, errorText);
-      
+
       if (errorText != null) {
         if (config?._showBorderError == true) {
           formData.setError(
@@ -89,7 +90,11 @@ class WFormValidatorsItem {
   /// @param fieldName 字段名称
   /// @param validatorBuilder 验证函数生成器
   /// @param autoFocus 是否自动聚焦到错误字段
-  WFormValidatorsItem({required this.fieldName, required this.validatorBuilder, this.autoFocus = true});
+  WFormValidatorsItem({
+    required this.fieldName,
+    required this.validatorBuilder,
+    this.autoFocus = true,
+  });
 }
 
 /// 表单验证器配置类，定义验证器的行为
@@ -122,7 +127,9 @@ class WFormValidatorsConfig {
   }
 
   /// 在校验前判断是否要跳过当前校验的回调函数 setter
-  set shouldSkipValidation(bool Function(String fieldName, Map<String, dynamic>? formValues) value) {
+  set shouldSkipValidation(
+    bool Function(String fieldName, Map<String, dynamic>? formValues) value,
+  ) {
     _shouldSkipValidation = value;
   }
 }

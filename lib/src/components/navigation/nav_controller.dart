@@ -42,7 +42,8 @@ class WNavController extends ChangeNotifier {
     currentIndex = index;
   }
 
-  Future<void> animateTo(int index, {
+  Future<void> animateTo(
+    int index, {
     Duration? duration,
     Curve curve = Curves.ease,
   }) async {

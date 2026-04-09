@@ -18,4 +18,5 @@ export 'platform.dart';
 export 'reg_exp.dart';
 //export 'image_cache_manager.dart';
 export 'get.dart';
+
 //export 'router_observer.dart';

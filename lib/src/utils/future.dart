@@ -78,30 +78,30 @@ class WCancellationException implements Exception {
 
 /// 错误处理策略枚举
 enum ErrorHandlingStrategy {
-  returnNull,    // 返回 null
-  rethrowError,  // 重新抛出异常
-  custom,        // 自定义处理
+  returnNull, // 返回 null
+  rethrowError, // 重新抛出异常
+  custom, // 自定义处理
 }
 
 /// 异步操作配置类
 class WFutureConfig {
   /// 是否显示加载中
-  final bool showLoading;
+  bool showLoading;
 
   /// 加载中回调函数
-  final VoidCallback? loadingCallback;
+  VoidCallback? loadingCallback;
 
   /// 加载完成回调函数
-  final VoidCallback? loadingCompleteCallback;
+  VoidCallback? loadingCompleteCallback;
 
   /// 错误处理策略
-  final ErrorHandlingStrategy errorStrategy;
+  ErrorHandlingStrategy errorStrategy;
 
   /// 自定义错误处理回调，用于 ErrorHandlingStrategy.custom 策略
-  final Future<dynamic> Function(dynamic error)? customErrorHandler;
+  Future<dynamic> Function(dynamic error)? customErrorHandler;
 
   /// 构造函数
-  const WFutureConfig({
+  WFutureConfig({
     this.showLoading = true,
     this.loadingCallback,
     this.loadingCompleteCallback,
@@ -131,13 +131,11 @@ class WFutureConfig {
   /// );
   /// ```
   Future<T?> one<T>(
-    Future<T> Function() func,
-    {
-      void Function(T)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Future<T> Function() func, {
+    void Function(T)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     return WFuture.one(
       func,
       config: this,
@@ -155,15 +153,13 @@ class WFutureConfig {
   /// [retryCount] 重试次数
   /// [retryDelay] 重试间隔
   Future<T?> oneWithRetry<T>(
-    Future<T> Function() func,
-    {
-      void Function(T)? onSuccess,
-      void Function(dynamic)? onError,
-      int retryCount = 3,
-      Duration retryDelay = const Duration(seconds: 1),
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Future<T> Function() func, {
+    void Function(T)? onSuccess,
+    void Function(dynamic)? onError,
+    int retryCount = 3,
+    Duration retryDelay = const Duration(seconds: 1),
+    WCancelToken? cancelToken,
+  }) async {
     return WFuture.oneWithRetry(
       func,
       config: this,
@@ -183,13 +179,11 @@ class WFutureConfig {
   /// [onError] 错误回调，接收错误信息
   Future<T?> oneWithTimeout<T>(
     Future<T> Function() func,
-    Duration timeout,
-    {
-      void Function(T)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Duration timeout, {
+    void Function(T)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     return WFuture.oneWithTimeout(
       func,
       timeout,
@@ -207,14 +201,12 @@ class WFutureConfig {
   /// [onError] 错误回调，接收错误信息
   /// [eagerError] 是否在第一个错误时立即失败
   Future<List<T>?> wait<T>(
-    Iterable<Future<T>> futures,
-    {
-      void Function(List<T>)? onSuccess,
-      void Function(dynamic)? onError,
-      bool eagerError = true,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Iterable<Future<T>> futures, {
+    void Function(List<T>)? onSuccess,
+    void Function(dynamic)? onError,
+    bool eagerError = true,
+    WCancelToken? cancelToken,
+  }) async {
     return WFuture.wait(
       futures,
       config: this,
@@ -232,14 +224,12 @@ class WFutureConfig {
   /// [onError] 错误回调，接收错误信息
   /// [concurrency] 并发数
   Future<List<T>?> waitWithConcurrency<T>(
-    Iterable<Future<T>> futures,
-    {
-      void Function(List<T>)? onSuccess,
-      void Function(dynamic)? onError,
-      int concurrency = 4,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Iterable<Future<T>> futures, {
+    void Function(List<T>)? onSuccess,
+    void Function(dynamic)? onError,
+    int concurrency = 4,
+    WCancelToken? cancelToken,
+  }) async {
     return WFuture.waitWithConcurrency(
       futures,
       config: this,
@@ -256,13 +246,11 @@ class WFutureConfig {
   /// [onSuccess] 成功回调，接收所有结果
   /// [onError] 错误回调，接收错误信息
   Future<List<dynamic>?> series(
-    List<Future<dynamic> Function()> funcs,
-    {
-      void Function(List<dynamic>)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    List<Future<dynamic> Function()> funcs, {
+    void Function(List<dynamic>)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     return WFuture.series(
       funcs,
       config: this,
@@ -278,13 +266,11 @@ class WFutureConfig {
   /// [onSuccess] 成功回调，接收所有结果
   /// [onError] 错误回调，接收错误信息
   Future<List<T>?> seriesWithType<T>(
-    List<Future<T> Function()> funcs,
-    {
-      void Function(List<T>)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    List<Future<T> Function()> funcs, {
+    void Function(List<T>)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     return WFuture.seriesWithType<T>(
       funcs,
       config: this,
@@ -298,7 +284,7 @@ class WFutureConfig {
 /// 异步操作助手
 class WFuture {
   /// 缓存的默认配置
-  static const WFutureConfig _defaultConfig = WFutureConfig();
+  static final WFutureConfig _defaultConfig = WFutureConfig();
 
   /// 执行单个异步操作
   ///
@@ -323,14 +309,12 @@ class WFuture {
   /// );
   /// ```
   static Future<T?> one<T>(
-    Future<T> Function() func,
-    {
-      WFutureConfig? config,
-      void Function(T)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Future<T> Function() func, {
+    WFutureConfig? config,
+    void Function(T)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     final configData = config ?? _defaultConfig;
 
     return _executeWithLoading(
@@ -356,16 +340,14 @@ class WFuture {
   /// [retryCount] 重试次数
   /// [retryDelay] 重试间隔
   static Future<T?> oneWithRetry<T>(
-    Future<T> Function() func,
-    {
-      WFutureConfig? config,
-      void Function(T)? onSuccess,
-      void Function(dynamic)? onError,
-      int retryCount = 3,
-      Duration retryDelay = const Duration(seconds: 1),
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Future<T> Function() func, {
+    WFutureConfig? config,
+    void Function(T)? onSuccess,
+    void Function(dynamic)? onError,
+    int retryCount = 3,
+    Duration retryDelay = const Duration(seconds: 1),
+    WCancelToken? cancelToken,
+  }) async {
     final configData = config ?? _defaultConfig;
     int attempt = 0;
 
@@ -408,14 +390,12 @@ class WFuture {
   /// [onError] 错误回调，接收错误信息
   static Future<T?> oneWithTimeout<T>(
     Future<T> Function() func,
-    Duration timeout,
-    {
-      WFutureConfig? config,
-      void Function(T)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Duration timeout, {
+    WFutureConfig? config,
+    void Function(T)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     final configData = config ?? _defaultConfig;
 
     return _executeWithLoading(
@@ -443,15 +423,13 @@ class WFuture {
   /// [onError] 错误回调，接收错误信息
   /// [eagerError] 是否在第一个错误时立即失败
   static Future<List<T>?> wait<T>(
-    Iterable<Future<T>> futures,
-    {
-      WFutureConfig? config,
-      void Function(List<T>)? onSuccess,
-      void Function(dynamic)? onError,
-      bool eagerError = true,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Iterable<Future<T>> futures, {
+    WFutureConfig? config,
+    void Function(List<T>)? onSuccess,
+    void Function(dynamic)? onError,
+    bool eagerError = true,
+    WCancelToken? cancelToken,
+  }) async {
     final configData = config ?? _defaultConfig;
 
     return _executeWithLoading(
@@ -479,15 +457,13 @@ class WFuture {
   /// [onError] 错误回调，接收错误信息
   /// [concurrency] 并发数
   static Future<List<T>?> waitWithConcurrency<T>(
-    Iterable<Future<T>> futures,
-    {
-      WFutureConfig? config,
-      void Function(List<T>)? onSuccess,
-      void Function(dynamic)? onError,
-      int concurrency = 4,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Iterable<Future<T>> futures, {
+    WFutureConfig? config,
+    void Function(List<T>)? onSuccess,
+    void Function(dynamic)? onError,
+    int concurrency = 4,
+    WCancelToken? cancelToken,
+  }) async {
     final configData = config ?? _defaultConfig;
     final futureList = futures.toList();
     final results = <T>[];
@@ -499,8 +475,8 @@ class WFuture {
         while (index < futureList.length) {
           cancelToken?.throwIfCancelled();
           // 计算当前批次的大小
-          int batchSize = (futureList.length - index) > concurrency 
-              ? concurrency 
+          int batchSize = (futureList.length - index) > concurrency
+              ? concurrency
               : (futureList.length - index);
           // 执行当前批次
           final batchFutures = futureList.sublist(index, index + batchSize);
@@ -524,14 +500,12 @@ class WFuture {
   /// [onSuccess] 成功回调，接收结果
   /// [onError] 错误回调，接收错误信息
   static Future<T?> any<T>(
-    Iterable<Future<T>> futures,
-    {
-      WFutureConfig? config,
-      void Function(T)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    Iterable<Future<T>> futures, {
+    WFutureConfig? config,
+    void Function(T)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     final configData = config ?? _defaultConfig;
 
     return _executeWithLoading(
@@ -555,14 +529,12 @@ class WFuture {
   /// [onSuccess] 成功回调，接收所有结果
   /// [onError] 错误回调，接收错误信息
   static Future<List<dynamic>?> series(
-    List<Future<dynamic> Function()> funcs,
-    {
-      WFutureConfig? config,
-      void Function(List<dynamic>)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    List<Future<dynamic> Function()> funcs, {
+    WFutureConfig? config,
+    void Function(List<dynamic>)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     return seriesWithType<dynamic>(
       funcs,
       config: config,
@@ -579,14 +551,12 @@ class WFuture {
   /// [onSuccess] 成功回调，接收所有结果
   /// [onError] 错误回调，接收错误信息
   static Future<List<T>?> seriesWithType<T>(
-    List<Future<T> Function()> funcs,
-    {
-      WFutureConfig? config,
-      void Function(List<T>)? onSuccess,
-      void Function(dynamic)? onError,
-      WCancelToken? cancelToken,
-    }
-  ) async {
+    List<Future<T> Function()> funcs, {
+    WFutureConfig? config,
+    void Function(List<T>)? onSuccess,
+    void Function(dynamic)? onError,
+    WCancelToken? cancelToken,
+  }) async {
     final configData = config ?? _defaultConfig;
 
     return _executeWithLoading(
@@ -650,11 +620,9 @@ class WFuture {
   }
 
   /// 清理资源
-  /// 
+  ///
   /// 用于释放 WFuture 相关的资源，防止内存泄漏
   static void cleanup() {
     // 清理资源
   }
-} 
-
-
+}
