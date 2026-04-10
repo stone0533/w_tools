@@ -5,7 +5,6 @@ export 'clients/dio_util.dart';
 export 'clients/http_config.dart';
 export 'interceptors/cache.dart';
 export 'interceptors/cookie.dart';
-export 'interceptors/error.dart';
 export 'interceptors/log.dart';
 export 'interceptors/token.dart';
 export 'common.dart';

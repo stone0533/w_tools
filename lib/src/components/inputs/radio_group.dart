@@ -78,10 +78,10 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
                                builder: (_) {
                                  if (isSelected) {
                                    return config._selectedIcon ??
-                                       WConfig.instance.radioSelectedIcon;
+                                       WConfig.radioSelectedIcon;
                                  }
                                  return config._unselectedIcon ??
-                                     WConfig.instance.radioUnselectedIcon;
+                                     WConfig.radioUnselectedIcon;
                                },
                              ),
                            ),

@@ -131,8 +131,8 @@ class _WFormTextFieldState extends State<WFormTextField> {
     if (widget.config._obscureText) {
       // 密码模式下使用配置的显示/隐藏图标或默认图标
       final icon = _isPasswordVisible
-          ? (widget.config._obscureTextIconOn ?? WConfig.instance.obscureTextIconOn)
-          : (widget.config._obscureTextIcon ?? WConfig.instance.obscureTextIcon);
+          ? (widget.config._obscureTextIconOn ?? WConfig.obscureTextIconOn)
+          : (widget.config._obscureTextIcon ?? WConfig.obscureTextIcon);
 
       obscureTextIcon = GestureDetector(
         onTap: togglePasswordVisibility,

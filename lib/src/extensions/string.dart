@@ -45,7 +45,7 @@ extension WStringExtension on String {
   ///
   /// @return 完整的资产图片路径
   String appendAssetsImage() {
-    return '${WConfig.instance.assetsImagePath}$this';
+    return '${WConfig.assetsImagePath}$this';
   }
 
   /// 将字符串转换为 WImage 组件

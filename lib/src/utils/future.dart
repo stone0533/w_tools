@@ -76,13 +76,6 @@ class WCancellationException implements Exception {
   }
 }
 
-/// 错误处理策略枚举
-enum ErrorHandlingStrategy {
-  returnNull, // 返回 null
-  rethrowError, // 重新抛出异常
-  custom, // 自定义处理
-}
-
 /// 异步操作配置类
 class WFutureConfig {
   /// 是否显示加载中
@@ -94,19 +87,15 @@ class WFutureConfig {
   /// 加载完成回调函数
   VoidCallback? loadingCompleteCallback;
 
-  /// 错误处理策略
-  ErrorHandlingStrategy errorStrategy;
-
-  /// 自定义错误处理回调，用于 ErrorHandlingStrategy.custom 策略
-  Future<dynamic> Function(dynamic error)? customErrorHandler;
+  /// 自定义错误处理回调
+  void Function(dynamic error)? errorHandler;
 
   /// 构造函数
   WFutureConfig({
     this.showLoading = true,
     this.loadingCallback,
     this.loadingCompleteCallback,
-    this.errorStrategy = ErrorHandlingStrategy.returnNull,
-    this.customErrorHandler,
+    this.errorHandler,
   });
 
   /// 执行单个异步操作
@@ -283,9 +272,6 @@ class WFutureConfig {
 
 /// 异步操作助手
 class WFuture {
-  /// 缓存的默认配置
-  static final WFutureConfig _defaultConfig = WFutureConfig();
-
   /// 执行单个异步操作
   ///
   /// [func] 要执行的异步函数
@@ -315,10 +301,8 @@ class WFuture {
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    final configData = config ?? _defaultConfig;
-
     return _executeWithLoading(
-      configData,
+      config,
       () async {
         cancelToken?.throwIfCancelled();
         final result = await func();
@@ -348,11 +332,10 @@ class WFuture {
     Duration retryDelay = const Duration(seconds: 1),
     WCancelToken? cancelToken,
   }) async {
-    final configData = config ?? _defaultConfig;
     int attempt = 0;
 
     return _executeWithLoading(
-      configData,
+      config,
       () async {
         while (true) {
           try {
@@ -396,10 +379,8 @@ class WFuture {
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    final configData = config ?? _defaultConfig;
-
     return _executeWithLoading(
-      configData,
+      config,
       () async {
         cancelToken?.throwIfCancelled();
         final result = await func().timeout(
@@ -430,10 +411,8 @@ class WFuture {
     bool eagerError = true,
     WCancelToken? cancelToken,
   }) async {
-    final configData = config ?? _defaultConfig;
-
     return _executeWithLoading(
-      configData,
+      config,
       () async {
         cancelToken?.throwIfCancelled();
         final results = await Future.wait(
@@ -464,12 +443,11 @@ class WFuture {
     int concurrency = 4,
     WCancelToken? cancelToken,
   }) async {
-    final configData = config ?? _defaultConfig;
     final futureList = futures.toList();
     final results = <T>[];
 
     return _executeWithLoading(
-      configData,
+      config,
       () async {
         int index = 0;
         while (index < futureList.length) {
@@ -506,10 +484,8 @@ class WFuture {
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    final configData = config ?? _defaultConfig;
-
     return _executeWithLoading(
-      configData,
+      config,
       () async {
         cancelToken?.throwIfCancelled();
         final result = await Future.any(futures);
@@ -557,10 +533,8 @@ class WFuture {
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    final configData = config ?? _defaultConfig;
-
     return _executeWithLoading(
-      configData,
+      config,
       () async {
         final results = <T>[];
         for (int i = 0; i < funcs.length; i++) {
@@ -579,42 +553,35 @@ class WFuture {
 
   /// 带加载状态的通用执行方法
   static Future<T?> _executeWithLoading<T>(
-    WFutureConfig config,
+    WFutureConfig? config,
     Future<T> Function() executeFunc,
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   ) async {
     try {
-      if (config.showLoading) {
-        config.loadingCallback?.call();
+      if (config?.showLoading == true) {
+        config?.loadingCallback?.call();
       }
 
       final result = await executeFunc();
       return result;
     } catch (e) {
-      onError?.call(e);
-
       // 处理取消异常
       if (e is WCancellationException) {
         return null;
       }
 
-      // 根据错误处理策略处理
-      switch (config.errorStrategy) {
-        case ErrorHandlingStrategy.returnNull:
-          return null;
-        case ErrorHandlingStrategy.rethrowError:
-          rethrow;
-        case ErrorHandlingStrategy.custom:
-          if (config.customErrorHandler != null) {
-            final customResult = await config.customErrorHandler!(e);
-            return customResult as T?;
-          }
-          return null;
+      onError?.call(e);
+
+      // 只在未提供 onError 的情况下执行自定义错误处理回调
+      if (onError == null) {
+        config?.errorHandler?.call(e);
       }
+      return null;
     } finally {
-      if (config.showLoading) {
-        config.loadingCompleteCallback?.call();
+    
+      if (config?.showLoading == true) {
+        config?.loadingCompleteCallback?.call();
       }
     }
   }

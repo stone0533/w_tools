@@ -132,7 +132,7 @@ class WFormDropdown<T> extends StatelessWidget {
                   contentPadding: config._contentPadding,
                 ),
                 initialValue: initialValue,
-                icon: config._icon ?? WConfig.instance.dropdownIcon,
+                icon: config._icon ?? WConfig.dropdownIcon,
                 onChanged: onChangedHandler,
                 hint: hintWidget,
                 enabled: enabled,

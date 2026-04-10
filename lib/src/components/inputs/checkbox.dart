@@ -71,9 +71,9 @@ class WFormCheckbox extends FormBuilderField<bool> {
                          return config._disableIcon!;
                        }
                        if (state.value == true) {
-                         return config._selectedIcon ?? WConfig.instance.checkboxSelectedIcon;
+                         return config._selectedIcon ?? WConfig.checkboxSelectedIcon;
                        }
-                       return config._unselectedIcon ?? WConfig.instance.checkboxUnselectedIcon;
+                       return config._unselectedIcon ?? WConfig.checkboxUnselectedIcon;
                      },
                    ),
                  ),

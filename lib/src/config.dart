@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// 应用配置类，提供应用初始化和运行的核心功能
 ///
-/// 这是一个单例类，负责：
+/// 这是一个静态类，负责：
 /// - 应用初始化
 /// - 系统UI设置
 /// - 屏幕方向配置
@@ -10,40 +10,31 @@ import 'package:flutter/material.dart';
 /// - 应用运行
 class WConfig {
   /// 资源图片路径
-  late String assetsImagePath;
+  static String assetsImagePath = 'assets/images/';
 
   /// 支持的语言列表，键为语言代码，值为语言名称
-  late Map<String, String> supportedLanguages;
+  static Map<String, String> supportedLanguages = {'en_US': 'English'};
 
   /// 当前语言
-  late String currentLanguage;
+  static String currentLanguage = 'en_US';
 
-  late Widget dropdownIcon;
-  late Widget radioUnselectedIcon;
-  late Widget radioSelectedIcon;
-  late Widget checkboxUnselectedIcon;
-  late Widget checkboxSelectedIcon;
-  late Widget obscureTextIcon;
-  late Widget obscureTextIconOn;
+  static Widget dropdownIcon = const Icon(Icons.keyboard_arrow_down);
+  static Widget radioUnselectedIcon = const Icon(Icons.radio_button_off);
+  static Widget radioSelectedIcon = const Icon(Icons.radio_button_checked);
+  static Widget checkboxUnselectedIcon = const Icon(Icons.check_box_outline_blank);
+  static Widget checkboxSelectedIcon = const Icon(Icons.check_box);
+  static Widget obscureTextIcon = const Icon(Icons.visibility_off);
+  static Widget obscureTextIconOn = const Icon(Icons.visibility);
 
-  /// 单例实例
-  static final WConfig _instance = WConfig._internal();
+  /// 默认的 token 存储键名
+  static const String tokenKey = 'token';
 
-  /// 私有构造函数
-  WConfig._internal() {
-    // 初始化默认值
-    assetsImagePath = 'assets/images/';
-    currentLanguage = 'en_US';
-    supportedLanguages = {'en_US': 'English'};
-    dropdownIcon = const Icon(Icons.keyboard_arrow_down);
-    radioUnselectedIcon = const Icon(Icons.radio_button_off);
-    radioSelectedIcon = const Icon(Icons.radio_button_checked);
-    checkboxUnselectedIcon = const Icon(Icons.check_box_outline_blank);
-    checkboxSelectedIcon = const Icon(Icons.check_box);
-    obscureTextIcon = const Icon(Icons.visibility_off);
-    obscureTextIconOn = const Icon(Icons.visibility);
-  }
+  /// 默认的 refresh token 存储键名
+  static const String refreshTokenKey = 'refresh_token';
 
-  /// 获取单例实例
-  static WConfig get instance => _instance;
+  /// 默认的 token 过期时间存储键名
+  static const String tokenExpiryKey = 'token_expiry';
+
+  /// 私有构造函数，防止实例化
+  WConfig._();
 }

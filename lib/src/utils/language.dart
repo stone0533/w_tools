@@ -15,7 +15,7 @@ class WLanguage {
   WLanguage._internal();
 
   /// 当前语言代码
-  late final RxString _currentLanguage = WConfig.instance.currentLanguage.obs;
+  late final RxString _currentLanguage = WConfig.currentLanguage.obs;
 
   /// 获取当前语言代码
   String get currentLanguage => _currentLanguage.value;
@@ -24,7 +24,7 @@ class WLanguage {
   RxString get languageStream => _currentLanguage;
 
   /// 支持的语言列表
-  final Map<String, String> supportedLanguages = WConfig.instance.supportedLanguages;
+  final Map<String, String> supportedLanguages = WConfig.supportedLanguages;
 
   /// 切换语言
   /// [languageCode] 语言代码，如 'zh_CN', 'en_US'

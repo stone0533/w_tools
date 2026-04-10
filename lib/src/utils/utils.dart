@@ -16,6 +16,7 @@ export 'validator.dart';
 export 'future.dart';
 export 'platform.dart';
 export 'reg_exp.dart';
+export 'token.dart';
 //export 'image_cache_manager.dart';
 export 'get.dart';
 

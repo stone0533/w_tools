@@ -130,23 +130,23 @@ class WApp {
   }
 
   set dropdownIcon(Widget value) {
-    WConfig.instance.dropdownIcon = value;
+    WConfig.dropdownIcon = value;
   }
 
   set radioUnselectedIcon(Widget value) {
-    WConfig.instance.radioUnselectedIcon = value;
+    WConfig.radioUnselectedIcon = value;
   }
 
   set radioSelectedIcon(Widget value) {
-    WConfig.instance.radioSelectedIcon = value;
+    WConfig.radioSelectedIcon = value;
   }
 
   set checkboxUnselectedIcon(Widget value) {
-    WConfig.instance.checkboxUnselectedIcon = value;
+    WConfig.checkboxUnselectedIcon = value;
   }
 
   set checkboxSelectedIcon(Widget value) {
-    WConfig.instance.checkboxSelectedIcon = value;
+    WConfig.checkboxSelectedIcon = value;
   }
 
   /// 初始化应用

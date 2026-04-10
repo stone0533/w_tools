@@ -18,7 +18,7 @@
 
 ```yaml
 dependencies:
-  w_tools: ^1.0.2
+  w_tools: ^1.0.5
 ```
 
 然后运行：
@@ -221,27 +221,6 @@ Container(
   height: 50.h, // 根据设计稿高度按比例缩放
   child: Text('响应式布局'),
 )
-```
-
-## 项目结构
-
-```
-lib/
-├── w.dart                # 主入口文件
-└── src/
-    ├── app.dart          # 应用核心
-    ├── config.dart       # 配置文件
-    ├── api/              # API 相关
-    │   ├── clients/      # 客户端工具
-    │   ├── interceptors/ # 拦截器
-    │   └── repositories/ # 仓库
-    ├── components/       # 组件库
-    │   ├── common/       # 通用组件
-    │   ├── inputs/       # 输入组件
-    │   ├── layout/       # 布局组件
-    │   └── navigation/   # 导航组件
-    ├── extensions/       # 扩展方法
-    └── utils/            # 工具类
 ```
 
 ## 贡献
