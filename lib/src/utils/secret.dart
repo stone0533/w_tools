@@ -1,287 +1,235 @@
-import 'dart:convert';
-import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart';
-import 'dart:io';
-import 'dart:math';
+import 'hash.dart';
+import 'encrypt.dart';
 
-/// 加密工具类，提供各种加密和哈希功能
+/// 加密工具类，提供各种加密和哈希功能（聚合类）
+///
+/// 该类是一个聚合类，整合了 WHash 和 WEncrypt 的功能，提供统一的接口
 class WSecret {
   /// MD5 哈希
   ///
+  /// 计算字符串的 MD5 哈希值
+  ///
   /// @param data 要哈希的数据
-  /// @return MD5 哈希值
-  static String hashMD5(String data) {
-    var content = const Utf8Encoder().convert(data);
-    var digest = md5.convert(content);
-    return hex.encode(digest.bytes);
+  /// @return MD5 哈希值（十六进制字符串）
+  /// @example
+  /// ```dart
+  /// final hash = WSecret.md5('Hello World');
+  /// print(hash); // 输出: b10a8db164e0754105b7a99be72e3fe5
+  /// ```
+  static String md5(String data) {
+    return WHash.md5(data);
   }
 
   /// 文件 MD5 哈希
   ///
+  /// 计算文件的 MD5 哈希值
+  ///
   /// @param path 文件路径
-  /// @return 文件的 MD5 哈希值
-  static String hashPathMD5(String path) {
-    var file = File(path);
-    var digest = md5.convert(file.readAsBytesSync());
-    return hex.encode(digest.bytes);
+  /// @return 文件的 MD5 哈希值（十六进制字符串）
+  /// @example
+  /// ```dart
+  /// final hash = WSecret.pathMD5('/path/to/file.txt');
+  /// print(hash); // 输出: 文件的 MD5 哈希值
+  /// ```
+  static String pathMD5(String path) {
+    return WHash.pathMD5(path);
   }
 
   /// Base64 编码
   ///
+  /// 将字符串转换为 Base64 编码的字符串
+  ///
   /// @param data 要编码的数据
   /// @return Base64 编码后的字符串
-  static String encodeBase64(String data) {
-    var content = utf8.encode(data);
-    var digest = base64Encode(content);
-    return digest;
+  /// @example
+  /// ```dart
+  /// final encoded = WSecret.base64Encode('Hello World');
+  /// print(encoded); // 输出: SGVsbG8gV29ybGQ=
+  /// ```
+  static String base64Encode(String data) {
+    return WEncrypt.base64Encode(data);
   }
 
   /// Base64 解码
   ///
+  /// 将 Base64 编码的字符串解码为原始字符串
+  ///
   /// @param data Base64 编码的字符串
   /// @return 解码后的数据
-  static String decodeBase64(String data) {
-    return String.fromCharCodes(base64Decode(data));
+  /// @example
+  /// ```dart
+  /// final decoded = WSecret.base64Decode('SGVsbG8gV29ybGQ=');
+  /// print(decoded); // 输出: Hello World
+  /// ```
+  static String base64Decode(String data) {
+    return WEncrypt.base64Decode(data);
   }
 
   /// 生成安全的随机密钥
   ///
+  /// 生成指定长度的安全随机密钥，返回 Base64 编码的字符串
+  ///
   /// @param length 密钥长度，默认 32 字节
   /// @return 安全的随机密钥（Base64 编码）
-  static String generateSecureKey({int length = 32}) {
-    final random = Random.secure();
-    final bytes = List<int>.generate(length, (_) => random.nextInt(256));
-    return base64Encode(bytes);
+  /// @example
+  /// ```dart
+  /// final key = WSecret.generateKey();
+  /// print(key); // 输出: 随机生成的 32 字节密钥（Base64 编码）
+  /// ```
+  static String generateKey({int length = 32}) {
+    return WEncrypt.generateKey(length: length);
   }
 
   /// 生成安全的随机 IV
   ///
+  /// 生成指定长度的安全随机 IV（初始化向量），返回 Base64 编码的字符串
+  ///
   /// @param length IV 长度，默认 16 字节
   /// @return 安全的随机 IV（Base64 编码）
-  static String generateSecureIV({int length = 16}) {
-    final random = Random.secure();
-    final bytes = List<int>.generate(length, (_) => random.nextInt(256));
-    return base64Encode(bytes);
+  /// @example
+  /// ```dart
+  /// final iv = WSecret.generateIV();
+  /// print(iv); // 输出: 随机生成的 16 字节 IV（Base64 编码）
+  /// ```
+  static String generateIV({int length = 16}) {
+    return WEncrypt.generateIV(length: length);
   }
 
   /// AES 加密（使用 CBC 模式）
+  ///
+  /// 使用 AES-CBC 模式加密数据，返回包含 IV 和密文的字符串
   ///
   /// @param data 要加密的数据
   /// @param keyStr 密钥（Base64 编码）
   /// @param ivStr IV（Base64 编码），如果不提供则自动生成
   /// @return 加密后的结果，格式为 "iv:密文"
-  static String encryptAES(
+  /// @example
+  /// ```dart
+  /// final key = WSecret.generateKey();
+  /// final encrypted = WSecret.aesEncrypt('Hello World', keyStr: key);
+  /// print(encrypted); // 输出: iv:密文
+  /// ```
+  static String aesEncrypt(
     String data, {
     required String keyStr,
     String? ivStr,
   }) {
-    final plainText = data;
-    final key = Key.fromBase64(keyStr);
-    final iv = ivStr != null ? IV.fromBase64(ivStr) : IV.fromLength(16);
-    final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
-    final encrypted = encrypter.encrypt(plainText, iv: iv);
-    // 返回 iv 和密文的组合，使用 : 分隔
-    return '${iv.base64}:${encrypted.base64}';
+    return WEncrypt.aesEncrypt(data, keyStr: keyStr, ivStr: ivStr);
   }
 
   /// AES 解密（使用 CBC 模式）
   ///
+  /// 使用 AES-CBC 模式解密数据，从 "iv:密文" 格式的字符串中提取 IV 和密文
+  ///
   /// @param data 加密的数据，格式为 "iv:密文"
   /// @param keyStr 密钥（Base64 编码）
   /// @return 解密后的数据
-  static String decryptAES(
+  /// @throws Exception 如果加密数据格式不正确
+  /// @example
+  /// ```dart
+  /// final key = WSecret.generateKey();
+  /// final encrypted = WSecret.aesEncrypt('Hello World', keyStr: key);
+  /// final decrypted = WSecret.aesDecrypt(encrypted, keyStr: key);
+  /// print(decrypted); // 输出: Hello World
+  /// ```
+  static String aesDecrypt(
     String data, {
     required String keyStr,
   }) {
-    // 解析 iv 和密文
-    final parts = data.split(':');
-    if (parts.length != 2) {
-      throw Exception('Invalid encrypted data format');
-    }
-    final iv = IV.fromBase64(parts[0]);
-    final encrypted = Encrypted.fromBase64(parts[1]);
-
-    final key = Key.fromBase64(keyStr);
-    final encrypter = Encrypter(AES(key, mode: AESMode.cbc));
-    final decrypted = encrypter.decrypt(
-      encrypted,
-      iv: iv,
-    );
-    return decrypted;
+    return WEncrypt.aesDecrypt(data, keyStr: keyStr);
   }
 
   /// SHA1 哈希
   ///
+  /// 计算字符串的 SHA1 哈希值
+  ///
   /// @param data 要哈希的数据
-  /// @return SHA1 哈希值
-  static String encryptSha1(String data) {
-    var bytes = utf8.encode(data);
-    var digest = sha1.convert(bytes).bytes;
-    return hex.encode(digest);
+  /// @return SHA1 哈希值（十六进制字符串）
+  /// @example
+  /// ```dart
+  /// final hash = WSecret.sha1('Hello World');
+  /// print(hash); // 输出: 0a4d55a8d778e5022fab701977c5d840bbc486d0
+  /// ```
+  static String sha1(String data) {
+    return WHash.sha1(data);
   }
 
   /// SHA256 哈希
   ///
+  /// 计算字符串的 SHA256 哈希值
+  ///
   /// @param data 要哈希的数据
-  /// @return SHA256 哈希值
-  static String encryptSha256(String data) {
-    var bytes = utf8.encode(data);
-    var digest = sha256.convert(bytes).bytes;
-    return hex.encode(digest);
+  /// @return SHA256 哈希值（十六进制字符串）
+  /// @example
+  /// ```dart
+  /// final hash = WSecret.sha256('Hello World');
+  /// print(hash); // 输出: a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e
+  /// ```
+  static String sha256(String data) {
+    return WHash.sha256(data);
   }
 
   /// SHA512 哈希
   ///
+  /// 计算字符串的 SHA512 哈希值
+  ///
   /// @param data 要哈希的数据
-  /// @return SHA512 哈希值
-  static String encryptSha512(String data) {
-    var bytes = utf8.encode(data);
-    var digest = sha512.convert(bytes).bytes;
-    return hex.encode(digest);
+  /// @return SHA512 哈希值（十六进制字符串）
+  /// @example
+  /// ```dart
+  /// final hash = WSecret.sha512('Hello World');
+  /// print(hash); // 输出: 309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76f
+  /// ```
+  static String sha512(String data) {
+    return WHash.sha512(data);
   }
 
   /// HMAC-SHA256 哈希
   ///
+  /// 计算字符串的 HMAC-SHA256 哈希值
+  ///
   /// @param data 要哈希的数据
   /// @param key 密钥
-  /// @return HMAC-SHA256 哈希值
+  /// @return HMAC-SHA256 哈希值（十六进制字符串）
+  /// @example
+  /// ```dart
+  /// final hash = WSecret.hmacSha256('Hello World', 'secret');
+  /// print(hash); // 输出: HMAC-SHA256 哈希值
+  /// ```
   static String hmacSha256(String data, String key) {
-    final hmac = Hmac(sha256, utf8.encode(key));
-    final digest = hmac.convert(utf8.encode(data));
-    return hex.encode(digest.bytes);
+    return WHash.hmacSha256(data, key);
   }
 
-  /// 密码哈希（使用 PBKDF2）
+  /// 密码哈希（使用 HMAC-SHA256）
+  ///
+  /// 对密码进行哈希处理，使用盐值增强安全性
   ///
   /// @param password 密码
   /// @param salt 盐值，如果不提供则自动生成
-  /// @return 密码哈希值
+  /// @return 密码哈希值，格式为 "sha256$盐值$哈希值"
+  /// @example
+  /// ```dart
+  /// final hash = WSecret.hashPassword('password123');
+  /// print(hash); // 输出: sha256$盐值$哈希值
+  /// ```
   static String hashPassword(String password, {String? salt}) {
-    final saltBytes = salt != null
-        ? utf8.encode(salt)
-        : List<int>.generate(16, (_) => Random.secure().nextInt(256));
-    final saltStr = salt ?? base64Encode(saltBytes);
-
-    // 使用 PBKDF2 算法
-    final pbkdf2 = Pbkdf2(
-      macAlgorithm: Hmac(sha256, utf8.encode('')),
-      iterations: 10000,
-      bits: 256,
-    );
-
-    final key = pbkdf2.convert(
-      utf8.encode(password),
-      salt: saltBytes,
-    );
-
-    return 'pbkdf210000$saltStr${hex.encode(key)}';
+    return WHash.hashPassword(password, salt: salt);
   }
 
   /// 验证密码哈希
   ///
+  /// 验证密码是否与哈希值匹配
+  ///
   /// @param password 密码
   /// @param hash 密码哈希值
   /// @return 是否验证通过
+  /// @example
+  /// ```dart
+  /// final hash = WSecret.hashPassword('password123');
+  /// final isMatch = WSecret.verifyPassword('password123', hash);
+  /// print(isMatch); // 输出: true
+  /// ```
   static bool verifyPassword(String password, String hash) {
-    final parts = hash.split('\$');
-    if (parts.length != 4) {
-      return false;
-    }
-
-    final salt = parts[2];
-    final expectedHash = parts[3];
-
-    final computedHash = hashPassword(password, salt: salt);
-    final computedHashParts = computedHash.split('\$');
-
-    return computedHashParts[3] == expectedHash;
-  }
-}
-
-/// PBKDF2 算法实现
-class Pbkdf2 {
-  /// 消息认证码算法
-  final Hmac macAlgorithm;
-
-  /// 迭代次数
-  final int iterations;
-
-  /// 密钥位数
-  final int bits;
-
-  /// 构造函数
-  ///
-  /// @param macAlgorithm 消息认证码算法
-  /// @param iterations 迭代次数
-  /// @param bits 密钥位数
-  Pbkdf2({
-    required this.macAlgorithm,
-    required this.iterations,
-    required this.bits,
-  });
-
-  /// 转换密码为密钥
-  ///
-  /// @param password 密码
-  /// @param salt 盐值
-  /// @return 生成的密钥
-  List<int> convert(List<int> password, {required List<int> salt}) {
-    const blockSize = 32; // SHA-256 block size
-    final keyLength = (bits + 7) ~/ 8;
-    final blocks = (keyLength + blockSize - 1) ~/ blockSize;
-
-    final result = <int>[];
-
-    for (var i = 1; i <= blocks; i++) {
-      var block = _computeBlock(password, salt, i);
-      result.addAll(block);
-    }
-
-    return result.take(keyLength).toList();
-  }
-
-  /// 计算单个块
-  ///
-  /// @param password 密码
-  /// @param salt 盐值
-  /// @param blockIndex 块索引
-  /// @return 计算的块
-  List<int> _computeBlock(List<int> password, List<int> salt, int blockIndex) {
-    final indexBytes = _intToBytes(blockIndex);
-    var block = macAlgorithm.convert([...salt, ...indexBytes]).bytes;
-    var previous = block;
-
-    for (var i = 1; i < iterations; i++) {
-      previous = macAlgorithm.convert([...password, ...previous]).bytes;
-      block = _xorLists(block, previous);
-    }
-
-    return block;
-  }
-
-  /// 将整数转换为字节
-  ///
-  /// @param value 整数
-  /// @return 字节列表
-  List<int> _intToBytes(int value) {
-    final bytes = <int>[];
-    for (var i = 3; i >= 0; i--) {
-      bytes.add((value >> (i * 8)) & 0xff);
-    }
-    return bytes;
-  }
-
-  /// 异或两个列表
-  ///
-  /// @param a 第一个列表
-  /// @param b 第二个列表
-  /// @return 异或结果
-  List<int> _xorLists(List<int> a, List<int> b) {
-    final result = <int>[];
-    for (var i = 0; i < a.length; i++) {
-      result.add(a[i] ^ b[i]);
-    }
-    return result;
+    return WHash.verifyPassword(password, hash);
   }
 }

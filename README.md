@@ -110,7 +110,7 @@ void main() async {
 ### 🔧 工具类
 
 #### 工具类列表
-- **加密工具** (`WSecret`): 提供 AES 加密/解密、多种哈希函数（MD5、SHA1、SHA256、SHA512、HMAC-SHA256）、安全随机密钥生成、Base64 编码/解码、密码哈希（PBKDF2）等功能
+- **加密工具** (`WSecret`): 提供 AES 加密/解密、多种哈希函数（MD5、SHA1、SHA256、SHA512、HMAC-SHA256）、安全随机密钥生成、Base64 编码/解码、密码哈希等功能
 - **验证工具** (`WValidator`): 提供邮箱、手机号、密码强度、用户名、URL、IP地址、身份证号码、银行卡号、日期时间等多种验证功能，以及防止 SQL 注入和 XSS 攻击的功能
 - **日志工具** (`WLogger`): 提供不同级别的日志记录功能
 - **倒计时工具** (`WCountdown`): 提供倒计时功能
@@ -205,8 +205,8 @@ WFormMultiDropdown<String> multiDropdown = multiDropdownConfig.build(
 import 'package:w_tools/w.dart';
 
 // 加密解密
-String encrypted = WSecret.encryptAES('hello', 'mykey');
-String decrypted = WSecret.decryptAES(encrypted, 'mykey');
+String encrypted = WSecret.aesEncrypt('hello', keyStr: 'mykey');
+String decrypted = WSecret.aesDecrypt(encrypted, keyStr: 'mykey');
 
 // 验证
 bool isValid = WValidator.isEmail('test@example.com');

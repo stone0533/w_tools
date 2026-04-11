@@ -112,7 +112,7 @@ void main() {
     });
 
     test('seriesWithType should execute in order with type safety', () async {
-      final results = await WFuture.seriesWithType<int>([
+      final results = await WFuture.series<int, List<int>>([
         () async => 1,
         () async => 2,
         () async => 3,

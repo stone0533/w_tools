@@ -50,16 +50,16 @@ void main() {
   });
 
   group('WSecret Tests', () {
-    test('encryptAES and decryptAES should work correctly', () {
-      final key = WSecret.generateSecureKey();
+    test('aesEncrypt and aesDecrypt should work correctly', () {
+      final key = WSecret.generateKey();
       const plainText = 'Hello, World!';
-      final encrypted = WSecret.encryptAES(plainText, keyStr: key);
-      final decrypted = WSecret.decryptAES(encrypted, keyStr: key);
+      final encrypted = WSecret.aesEncrypt(plainText, keyStr: key);
+      final decrypted = WSecret.aesDecrypt(encrypted, keyStr: key);
       expect(decrypted, plainText);
     });
 
-    test('generateSecureKey should return a valid key', () {
-      final key = WSecret.generateSecureKey();
+    test('generateKey should return a valid key', () {
+      final key = WSecret.generateKey();
       expect(key, isNotEmpty);
     });
 

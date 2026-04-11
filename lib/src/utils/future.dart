@@ -119,13 +119,13 @@ class WFutureConfig {
   ///   onError: (error) => print('Error: $error'),
   /// );
   /// ```
-  Future<T?> one<T>(
+  Future<R?> one<T, R>(
     Future<T> Function() func, {
-    void Function(T)? onSuccess,
+    R? Function(T)? onSuccess,
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    return WFuture.one(
+    return WFuture.one<T, R>(
       func,
       config: this,
       onSuccess: onSuccess,
@@ -141,15 +141,15 @@ class WFutureConfig {
   /// [onError] 错误回调，接收错误信息
   /// [retryCount] 重试次数
   /// [retryDelay] 重试间隔
-  Future<T?> oneWithRetry<T>(
+  Future<R?> oneWithRetry<T, R>(
     Future<T> Function() func, {
-    void Function(T)? onSuccess,
+    R? Function(T)? onSuccess,
     void Function(dynamic)? onError,
     int retryCount = 3,
     Duration retryDelay = const Duration(seconds: 1),
     WCancelToken? cancelToken,
   }) async {
-    return WFuture.oneWithRetry(
+    return WFuture.oneWithRetry<T, R>(
       func,
       config: this,
       onSuccess: onSuccess,
@@ -166,14 +166,14 @@ class WFutureConfig {
   /// [timeout] 超时时间
   /// [onSuccess] 成功回调，接收操作结果
   /// [onError] 错误回调，接收错误信息
-  Future<T?> oneWithTimeout<T>(
+  Future<R?> oneWithTimeout<T, R>(
     Future<T> Function() func,
     Duration timeout, {
-    void Function(T)? onSuccess,
+    R? Function(T)? onSuccess,
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    return WFuture.oneWithTimeout(
+    return WFuture.oneWithTimeout<T, R>(
       func,
       timeout,
       config: this,
@@ -189,14 +189,14 @@ class WFutureConfig {
   /// [onSuccess] 成功回调，接收所有结果
   /// [onError] 错误回调，接收错误信息
   /// [eagerError] 是否在第一个错误时立即失败
-  Future<List<T>?> wait<T>(
+  Future<R?> wait<T, R>(
     Iterable<Future<T>> futures, {
-    void Function(List<T>)? onSuccess,
+    R? Function(List<T>)? onSuccess,
     void Function(dynamic)? onError,
     bool eagerError = true,
     WCancelToken? cancelToken,
   }) async {
-    return WFuture.wait(
+    return WFuture.wait<T, R>(
       futures,
       config: this,
       onSuccess: onSuccess,
@@ -212,14 +212,14 @@ class WFutureConfig {
   /// [onSuccess] 成功回调，接收所有结果
   /// [onError] 错误回调，接收错误信息
   /// [concurrency] 并发数
-  Future<List<T>?> waitWithConcurrency<T>(
+  Future<R?> waitWithConcurrency<T, R>(
     Iterable<Future<T>> futures, {
-    void Function(List<T>)? onSuccess,
+    R? Function(List<T>)? onSuccess,
     void Function(dynamic)? onError,
     int concurrency = 4,
     WCancelToken? cancelToken,
   }) async {
-    return WFuture.waitWithConcurrency(
+    return WFuture.waitWithConcurrency<T, R>(
       futures,
       config: this,
       onSuccess: onSuccess,
@@ -231,36 +231,16 @@ class WFutureConfig {
 
   /// 按顺序执行多个异步操作
   ///
-  /// [funcs] 异步函数列表，按顺序执行
-  /// [onSuccess] 成功回调，接收所有结果
-  /// [onError] 错误回调，接收错误信息
-  Future<List<dynamic>?> series(
-    List<Future<dynamic> Function()> funcs, {
-    void Function(List<dynamic>)? onSuccess,
-    void Function(dynamic)? onError,
-    WCancelToken? cancelToken,
-  }) async {
-    return WFuture.series(
-      funcs,
-      config: this,
-      onSuccess: onSuccess,
-      onError: onError,
-      cancelToken: cancelToken,
-    );
-  }
-
-  /// 按顺序执行多个异步操作（泛型版本）
-  ///
   /// [funcs] 泛型异步函数列表，按顺序执行
   /// [onSuccess] 成功回调，接收所有结果
   /// [onError] 错误回调，接收错误信息
-  Future<List<T>?> seriesWithType<T>(
+  Future<R?> series<T, R>(
     List<Future<T> Function()> funcs, {
-    void Function(List<T>)? onSuccess,
+    R? Function(List<T>)? onSuccess,
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    return WFuture.seriesWithType<T>(
+    return WFuture.series<T, R>(
       funcs,
       config: this,
       onSuccess: onSuccess,
@@ -276,39 +256,41 @@ class WFuture {
   ///
   /// [func] 要执行的异步函数
   /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收操作结果
+  /// [onSuccess] 成功回调，接收操作结果并返回处理后的结果
   /// [onError] 错误回调，接收错误信息
+  /// [cancelToken] 取消令牌，用于取消操作
   ///
-  /// 返回值：操作成功返回结果，失败返回 null
+  /// 返回值：操作成功返回 onSuccess 的返回值，失败返回 null
   ///
   /// 示例：
   /// ```dart
-  /// final result = await WFuture.one(
-  ///   () async => 'Hello World',
+  /// final result = await WFuture.one<int, String>(
+  ///   () async => 42,
   ///   config: WFutureConfig(
   ///     showLoading: true,
   ///     loadingCallback: () => print('Loading...'),
   ///     loadingCompleteCallback: () => print('Loading complete'),
   ///   ),
-  ///   onSuccess: (data) => print('Success: $data'),
+  ///   onSuccess: (data) => 'The answer is $data',
   ///   onError: (error) => print('Error: $error'),
   /// );
+  /// print(result); // 输出: The answer is 42
   /// ```
-  static Future<T?> one<T>(
+  static Future<R?> one<T, R>(
     Future<T> Function() func, {
     WFutureConfig? config,
-    void Function(T)? onSuccess,
+    R? Function(T)? onSuccess,
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    return _executeWithLoading(
+    return _executeWithLoading<R?>(
       config,
       () async {
         cancelToken?.throwIfCancelled();
         final result = await func();
         cancelToken?.throwIfCancelled();
-        onSuccess?.call(result);
-        return result;
+        final processedResult = onSuccess?.call(result);
+        return processedResult;
       },
       onError,
       cancelToken,
@@ -319,14 +301,35 @@ class WFuture {
   ///
   /// [func] 要执行的异步函数
   /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收操作结果
+  /// [onSuccess] 成功回调，接收操作结果并返回处理后的结果
   /// [onError] 错误回调，接收错误信息
   /// [retryCount] 重试次数
   /// [retryDelay] 重试间隔
-  static Future<T?> oneWithRetry<T>(
+  /// [cancelToken] 取消令牌，用于取消操作
+  ///
+  /// 返回值：操作成功返回 onSuccess 的返回值，失败返回 null
+  ///
+  /// 示例：
+  /// ```dart
+  /// final result = await WFuture.oneWithRetry<int, String>(
+  ///   () async {
+  ///     // 模拟网络请求，可能失败
+  ///     if (Random().nextBool()) {
+  ///       throw Exception('Network error');
+  ///     }
+  ///     return 42;
+  ///   },
+  ///   retryCount: 3,
+  ///   retryDelay: Duration(seconds: 1),
+  ///   onSuccess: (data) => 'Success: $data',
+  ///   onError: (error) => print('Error: $error'),
+  /// );
+  /// print(result); // 输出: Success: 42
+  /// ```
+  static Future<R?> oneWithRetry<T, R>(
     Future<T> Function() func, {
     WFutureConfig? config,
-    void Function(T)? onSuccess,
+    R? Function(T)? onSuccess,
     void Function(dynamic)? onError,
     int retryCount = 3,
     Duration retryDelay = const Duration(seconds: 1),
@@ -334,7 +337,7 @@ class WFuture {
   }) async {
     int attempt = 0;
 
-    return _executeWithLoading(
+    return _executeWithLoading<R?>(
       config,
       () async {
         while (true) {
@@ -343,8 +346,8 @@ class WFuture {
             attempt++;
             final result = await func();
             cancelToken?.throwIfCancelled();
-            onSuccess?.call(result);
-            return result;
+            final processedResult = onSuccess?.call(result);
+            return processedResult;
           } catch (e) {
             if (e is WCancellationException) {
               rethrow;
@@ -369,17 +372,35 @@ class WFuture {
   /// [func] 要执行的异步函数
   /// [timeout] 超时时间
   /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收操作结果
+  /// [onSuccess] 成功回调，接收操作结果并返回处理后的结果
   /// [onError] 错误回调，接收错误信息
-  static Future<T?> oneWithTimeout<T>(
+  /// [cancelToken] 取消令牌，用于取消操作
+  ///
+  /// 返回值：操作成功返回 onSuccess 的返回值，失败返回 null
+  ///
+  /// 示例：
+  /// ```dart
+  /// final result = await WFuture.oneWithTimeout<int, String>(
+  ///   () async {
+  ///     // 模拟耗时操作
+  ///     await Future.delayed(Duration(seconds: 2));
+  ///     return 42;
+  ///   },
+  ///   Duration(seconds: 1), // 1秒超时
+  ///   onSuccess: (data) => 'Success: $data',
+  ///   onError: (error) => print('Error: $error'),
+  /// );
+  /// print(result); // 可能输出: Error: Operation timed out
+  /// ```
+  static Future<R?> oneWithTimeout<T, R>(
     Future<T> Function() func,
     Duration timeout, {
     WFutureConfig? config,
-    void Function(T)? onSuccess,
+    R? Function(T)? onSuccess,
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    return _executeWithLoading(
+    return _executeWithLoading<R?>(
       config,
       () async {
         cancelToken?.throwIfCancelled();
@@ -388,8 +409,8 @@ class WFuture {
           onTimeout: () => throw TimeoutException('Operation timed out'),
         );
         cancelToken?.throwIfCancelled();
-        onSuccess?.call(result);
-        return result;
+        final processedResult = onSuccess?.call(result);
+        return processedResult;
       },
       onError,
       cancelToken,
@@ -400,18 +421,35 @@ class WFuture {
   ///
   /// [futures] Future列表
   /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收所有结果
+  /// [onSuccess] 成功回调，接收所有结果并返回处理后的结果
   /// [onError] 错误回调，接收错误信息
   /// [eagerError] 是否在第一个错误时立即失败
-  static Future<List<T>?> wait<T>(
+  /// [cancelToken] 取消令牌，用于取消操作
+  ///
+  /// 返回值：操作成功返回 onSuccess 的返回值，失败返回 null
+  ///
+  /// 示例：
+  /// ```dart
+  /// final result = await WFuture.wait<int, int>(
+  ///   [
+  ///     Future.delayed(Duration(seconds: 1), () => 1),
+  ///     Future.delayed(Duration(seconds: 2), () => 2),
+  ///     Future.delayed(Duration(seconds: 3), () => 3),
+  ///   ],
+  ///   onSuccess: (data) => data.reduce((a, b) => a + b),
+  ///   onError: (error) => print('Error: $error'),
+  /// );
+  /// print(result); // 输出: 6
+  /// ```
+  static Future<R?> wait<T, R>(
     Iterable<Future<T>> futures, {
     WFutureConfig? config,
-    void Function(List<T>)? onSuccess,
+    R? Function(List<T>)? onSuccess,
     void Function(dynamic)? onError,
     bool eagerError = true,
     WCancelToken? cancelToken,
   }) async {
-    return _executeWithLoading(
+    return _executeWithLoading<R?>(
       config,
       () async {
         cancelToken?.throwIfCancelled();
@@ -420,8 +458,8 @@ class WFuture {
           eagerError: eagerError,
         );
         cancelToken?.throwIfCancelled();
-        onSuccess?.call(results);
-        return results;
+        final processedResults = onSuccess?.call(results);
+        return processedResults;
       },
       onError,
       cancelToken,
@@ -432,13 +470,33 @@ class WFuture {
   ///
   /// [futures] Future列表
   /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收所有结果
+  /// [onSuccess] 成功回调，接收所有结果并返回处理后的结果
   /// [onError] 错误回调，接收错误信息
   /// [concurrency] 并发数
-  static Future<List<T>?> waitWithConcurrency<T>(
+  /// [cancelToken] 取消令牌，用于取消操作
+  ///
+  /// 返回值：操作成功返回 onSuccess 的返回值，失败返回 null
+  ///
+  /// 示例：
+  /// ```dart
+  /// final result = await WFuture.waitWithConcurrency<int, String>(
+  ///   [
+  ///     Future.delayed(Duration(seconds: 1), () => 1),
+  ///     Future.delayed(Duration(seconds: 1), () => 2),
+  ///     Future.delayed(Duration(seconds: 1), () => 3),
+  ///     Future.delayed(Duration(seconds: 1), () => 4),
+  ///     Future.delayed(Duration(seconds: 1), () => 5),
+  ///   ],
+  ///   concurrency: 2, // 最多同时执行2个
+  ///   onSuccess: (data) => 'Results: ${data.join(', ')}',
+  ///   onError: (error) => print('Error: $error'),
+  /// );
+  /// print(result); // 输出: Results: 1, 2, 3, 4, 5
+  /// ```
+  static Future<R?> waitWithConcurrency<T, R>(
     Iterable<Future<T>> futures, {
     WFutureConfig? config,
-    void Function(List<T>)? onSuccess,
+    R? Function(List<T>)? onSuccess,
     void Function(dynamic)? onError,
     int concurrency = 4,
     WCancelToken? cancelToken,
@@ -446,7 +504,7 @@ class WFuture {
     final futureList = futures.toList();
     final results = <T>[];
 
-    return _executeWithLoading(
+    return _executeWithLoading<R?>(
       config,
       () async {
         int index = 0;
@@ -463,8 +521,8 @@ class WFuture {
           index += batchSize;
         }
         cancelToken?.throwIfCancelled();
-        onSuccess?.call(results);
-        return results;
+        final processedResults = onSuccess?.call(results);
+        return processedResults;
       },
       onError,
       cancelToken,
@@ -475,23 +533,40 @@ class WFuture {
   ///
   /// [futures] Future列表
   /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收结果
+  /// [onSuccess] 成功回调，接收结果并返回处理后的结果
   /// [onError] 错误回调，接收错误信息
-  static Future<T?> any<T>(
+  /// [cancelToken] 取消令牌，用于取消操作
+  ///
+  /// 返回值：操作成功返回 onSuccess 的返回值，失败返回 null
+  ///
+  /// 示例：
+  /// ```dart
+  /// final result = await WFuture.any<int, String>(
+  ///   [
+  ///     Future.delayed(Duration(seconds: 3), () => 1),
+  ///     Future.delayed(Duration(seconds: 1), () => 2), // 这个会先完成
+  ///     Future.delayed(Duration(seconds: 2), () => 3),
+  ///   ],
+  ///   onSuccess: (data) => 'First result: $data',
+  ///   onError: (error) => print('Error: $error'),
+  /// );
+  /// print(result); // 输出: First result: 2
+  /// ```
+  static Future<R?> any<T, R>(
     Iterable<Future<T>> futures, {
     WFutureConfig? config,
-    void Function(T)? onSuccess,
+    R? Function(T)? onSuccess,
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    return _executeWithLoading(
+    return _executeWithLoading<R?>(
       config,
       () async {
         cancelToken?.throwIfCancelled();
         final result = await Future.any(futures);
         cancelToken?.throwIfCancelled();
-        onSuccess?.call(result);
-        return result;
+        final processedResult = onSuccess?.call(result);
+        return processedResult;
       },
       onError,
       cancelToken,
@@ -502,38 +577,33 @@ class WFuture {
   ///
   /// [funcs] 异步函数列表，按顺序执行
   /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收所有结果
+  /// [onSuccess] 成功回调，接收所有结果并返回处理后的结果
   /// [onError] 错误回调，接收错误信息
-  static Future<List<dynamic>?> series(
-    List<Future<dynamic> Function()> funcs, {
-    WFutureConfig? config,
-    void Function(List<dynamic>)? onSuccess,
-    void Function(dynamic)? onError,
-    WCancelToken? cancelToken,
-  }) async {
-    return seriesWithType<dynamic>(
-      funcs,
-      config: config,
-      onSuccess: onSuccess,
-      onError: onError,
-      cancelToken: cancelToken,
-    );
-  }
-
-  /// 按顺序执行多个异步操作（泛型版本）
+  /// [cancelToken] 取消令牌，用于取消操作
   ///
-  /// [funcs] 泛型异步函数列表，按顺序执行
-  /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收所有结果
-  /// [onError] 错误回调，接收错误信息
-  static Future<List<T>?> seriesWithType<T>(
+  /// 返回值：操作成功返回 onSuccess 的返回值，失败返回 null
+  ///
+  /// 示例：
+  /// ```dart
+  /// final result = await WFuture.series<int, String>(
+  ///   [
+  ///     () => Future.delayed(Duration(seconds: 1), () => 1),
+  ///     () => Future.delayed(Duration(seconds: 1), () => 2),
+  ///     () => Future.delayed(Duration(seconds: 1), () => 3),
+  ///   ],
+  ///   onSuccess: (data) => 'Results: ${data.join(', ')}',
+  ///   onError: (error) => print('Error: $error'),
+  /// );
+  /// print(result); // 输出: Results: 1, 2, 3
+  /// ```
+  static Future<R?> series<T, R>(
     List<Future<T> Function()> funcs, {
     WFutureConfig? config,
-    void Function(List<T>)? onSuccess,
+    R? Function(List<T>)? onSuccess,
     void Function(dynamic)? onError,
     WCancelToken? cancelToken,
   }) async {
-    return _executeWithLoading(
+    return _executeWithLoading<R?>(
       config,
       () async {
         final results = <T>[];
@@ -543,8 +613,8 @@ class WFuture {
           results.add(result);
         }
         cancelToken?.throwIfCancelled();
-        onSuccess?.call(results);
-        return results;
+        final processedResults = onSuccess?.call(results);
+        return processedResults;
       },
       onError,
       cancelToken,
