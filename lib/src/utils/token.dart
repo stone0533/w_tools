@@ -4,13 +4,13 @@ import 'storage.dart';
 /// Token 管理类，用于管理 token 及过期时间
 class WToken {
   /// 存储 token 的键名
-  static const String tokenKey = WConfig.tokenKey;
+  static String tokenKey = WConfig.tokenKey;
 
   /// 存储 refresh token 的键名
-  static const String refreshTokenKey = WConfig.refreshTokenKey;
+  static String refreshTokenKey = WConfig.refreshTokenKey;
 
   /// 存储 token 过期时间的键名
-  static const String tokenExpiryKey = WConfig.tokenExpiryKey;
+  static String tokenExpiryKey = WConfig.tokenExpiryKey;
   
   /// 内存缓存的 token
   static String? _cachedToken;

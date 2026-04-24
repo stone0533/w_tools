@@ -27,14 +27,112 @@ class WConfig {
   static Widget obscureTextIconOn = const Icon(Icons.visibility);
 
   /// 默认的 token 存储键名
-  static const String tokenKey = 'token';
+  static  String? _tokenKey;
 
   /// 默认的 refresh token 存储键名
-  static const String refreshTokenKey = 'refresh_token';
+  static  String? _refreshTokenKey;
 
   /// 默认的 token 过期时间存储键名
-  static const String tokenExpiryKey = 'token_expiry';
+  static  String? _tokenExpiryKey;
+
+  /// 获取 token 存储键名
+  static String get tokenKey => _tokenKey??'token';
+
+  /// 设置 token 存储键名
+  /// 
+  /// @param value 要设置的 token 存储键名
+  /// @throws StateError 如果已经设置过 token 存储键名
+  static set tokenKey(String value) {
+    if (_tokenKey != null) {
+      throw StateError('tokenKey 已经设置过，不能重复设置');
+    }
+    _tokenKey = value;
+  }
+
+  /// 获取 refresh token 存储键名
+  static String get refreshTokenKey => _refreshTokenKey??'refresh_token';
+
+  /// 设置 refresh token 存储键名
+  /// 
+  /// @param value 要设置的 refresh token 存储键名
+  /// @throws StateError 如果已经设置过 refresh token 存储键名
+  static set refreshTokenKey(String value) {
+    if (_refreshTokenKey != null) {
+      throw StateError('refreshTokenKey 已经设置过，不能重复设置');
+    }
+    _refreshTokenKey = value;
+  }
+
+  /// 获取 token 过期时间存储键名
+  static String get tokenExpiryKey => _tokenExpiryKey??'token_expiry';
+
+  /// 设置 token 过期时间存储键名
+  /// 
+  /// @param value 要设置的 token 过期时间存储键名
+  /// @throws StateError 如果已经设置过 token 过期时间存储键名
+  static set tokenExpiryKey(String value) {
+    if (_tokenExpiryKey != null) {
+      throw StateError('tokenExpiryKey 已经设置过，不能重复设置');
+    }
+    _tokenExpiryKey = value;
+  }
 
   /// 私有构造函数，防止实例化
   WConfig._();
+
+  /// 配置方法，支持链式调用
+  ///
+  /// @example
+  /// ```dart
+  /// WConfig.setup
+  ///   ..dropdownIcon = const Icon(Icons.arrow_downward)
+  ///   ..radioUnselectedIcon = const Icon(Icons.radio_button_unchecked)
+  ///   ..radioSelectedIcon = const Icon(Icons.radio_button_checked);
+  /// ```
+  static WConfigSetup get setup => WConfigSetup._();
+}
+
+/// WConfig 配置辅助类，用于支持链式配置
+class WConfigSetup {
+  /// 私有构造函数
+  WConfigSetup._();
+
+  /// 设置下拉图标
+  set dropdownIcon(Widget value) => WConfig.dropdownIcon = value;
+
+  /// 设置单选框未选中图标
+  set radioUnselectedIcon(Widget value) => WConfig.radioUnselectedIcon = value;
+
+  /// 设置单选框选中图标
+  set radioSelectedIcon(Widget value) => WConfig.radioSelectedIcon = value;
+
+  /// 设置复选框未选中图标
+  set checkboxUnselectedIcon(Widget value) => WConfig.checkboxUnselectedIcon = value;
+
+  /// 设置复选框选中图标
+  set checkboxSelectedIcon(Widget value) => WConfig.checkboxSelectedIcon = value;
+
+  /// 设置密码隐藏图标
+  set obscureTextIcon(Widget value) => WConfig.obscureTextIcon = value;
+
+  /// 设置密码显示图标
+  set obscureTextIconOn(Widget value) => WConfig.obscureTextIconOn = value;
+
+  /// 设置资源图片路径
+  set assetsImagePath(String value) => WConfig.assetsImagePath = value;
+
+  /// 设置支持的语言列表
+  set supportedLanguages(Map<String, String> value) => WConfig.supportedLanguages = value;
+
+  /// 设置当前语言
+  set currentLanguage(String value) => WConfig.currentLanguage = value;
+
+  /// 设置 token 存储键名
+  set tokenKey(String value) => WConfig.tokenKey = value;
+
+  /// 设置 refresh token 存储键名
+  set refreshTokenKey(String value) => WConfig.refreshTokenKey = value;
+
+  /// 设置 token 过期时间存储键名
+  set tokenExpiryKey(String value) => WConfig.tokenExpiryKey = value;
 }

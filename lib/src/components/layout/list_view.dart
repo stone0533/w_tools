@@ -601,6 +601,7 @@ class WListViewConfig {
     BoxBorder? border,
     bool? shrinkWrap,
     Widget Function(BuildContext, int)? separatorBuilder,
+    Widget Function<T>(BuildContext, T)? itemBuilderByT,
   }) {
     final config = WListViewConfig();
     config._padding = padding ?? _padding;
@@ -618,6 +619,7 @@ class WListViewConfig {
     config._border = border ?? _border;
     config._shrinkWrap = shrinkWrap ?? _shrinkWrap;
     config._separatorBuilder = separatorBuilder ?? _separatorBuilder;
+    config._itemBuilderByT = itemBuilderByT ?? _itemBuilderByT;
     return config;
   }
 

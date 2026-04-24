@@ -1,3 +1,12 @@
+## 1.0.6
+
+- 修改了 WConfig 类，将 token 相关的键名从 const 改为私有变量 + 公共 getter 的形式
+- 为 WConfig 类添加了 set 方法，用于设置 token 相关的键名，并且在已经赋值的情况下抛出异常
+- 在 WConfigSetup 类中添加了对应的 setter 方法，以便通过链式调用设置这些键名
+- 整理了 widget.dart 文件中的 withContainer 方法，修复了缩进并添加了文档注释
+- 移除了 widget.dart 文件中不必要的导入
+- 检查了 WListViewConfig 类的 copyWith 方法，确保所有属性都被正确复制
+
 ## 1.0.4
 
 - 重构 WToastConfig 类，移除默认实现，使其更加灵活

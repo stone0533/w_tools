@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../components/common/button.dart';
+
+import '../../w.dart';
 
 /// Widget 扩展，提供常用的布局辅助方法
 extension WidgetExtension on Widget {
@@ -129,5 +130,13 @@ extension WidgetExtension on Widget {
       config: config,
       child: this,
     );
+  }
+
+  /// 将 Widget 包装在 Container 中
+  ///
+  /// @param config 容器配置
+  /// @return 包装在 Container 中的 Widget
+  Widget withContainer(WContainerConfig config) {
+    return config.build(child: this);
   }
 }
