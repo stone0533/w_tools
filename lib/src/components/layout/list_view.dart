@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 /// 增强版列表组件
 class WListView extends StatefulWidget {
@@ -24,30 +23,6 @@ class WListView extends StatefulWidget {
   /// 是否启用子项缓存
   final bool cacheItems;
 
-  /// 下拉刷新回调
-  final Future<void> Function()? onRefresh;
-
-  /// 上拉加载更多回调
-  final Future<void> Function()? onLoadMore;
-
-  /// 错误回调
-  final void Function(dynamic error)? onError;
-
-  /// 刷新开始回调
-  final void Function()? onRefreshStart;
-
-  /// 刷新完成回调
-  final void Function()? onRefreshComplete;
-
-  /// 加载开始回调
-  final void Function()? onLoadStart;
-
-  /// 加载完成回调
-  final void Function()? onLoadComplete;
-
-  /// 是否有更多数据
-  final bool hasMore;
-
   /// 网格布局代理
   final SliverGridDelegate? gridDelegate;
 
@@ -61,14 +36,6 @@ class WListView extends StatefulWidget {
     this.header,
     this.footer,
     this.cacheItems = false,
-    this.onRefresh,
-    this.onLoadMore,
-    this.onError,
-    this.onRefreshStart,
-    this.onRefreshComplete,
-    this.onLoadStart,
-    this.onLoadComplete,
-    this.hasMore = false,
     this.gridDelegate,
   });
 
@@ -82,14 +49,6 @@ class WListView extends StatefulWidget {
     this.header,
     this.footer,
     this.cacheItems = false,
-    this.onRefresh,
-    this.onLoadMore,
-    this.onError,
-    this.onRefreshStart,
-    this.onRefreshComplete,
-    this.onLoadStart,
-    this.onLoadComplete,
-    this.hasMore = false,
   }) : gridDelegate = null;
 
   /// 创建网格布局列表
@@ -103,14 +62,6 @@ class WListView extends StatefulWidget {
     this.header,
     this.footer,
     this.cacheItems = false,
-    this.onRefresh,
-    this.onLoadMore,
-    this.onError,
-    this.onRefreshStart,
-    this.onRefreshComplete,
-    this.onLoadStart,
-    this.onLoadComplete,
-    this.hasMore = false,
   });
 
   @override
@@ -119,16 +70,11 @@ class WListView extends StatefulWidget {
 
 class WListViewState extends State<WListView> {
   late ScrollController _controller;
-  RefreshController? _refreshController;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? ScrollController();
-    // 只在需要刷新或加载功能时初始化 _refreshController
-    if (widget.onRefresh != null || widget.onLoadMore != null) {
-      _refreshController = RefreshController(initialRefresh: false);
-    }
   }
 
   @override
@@ -136,61 +82,7 @@ class WListViewState extends State<WListView> {
     if (widget.controller == null) {
       _controller.dispose();
     }
-    // 只在初始化了 _refreshController 时才释放
-    _refreshController?.dispose();
     super.dispose();
-  }
-
-  void _onRefresh() async {
-    if (widget.onRefreshStart != null) {
-      widget.onRefreshStart!();
-    }
-    if (widget.onRefresh != null) {
-      try {
-        await widget.onRefresh!();
-        _refreshController?.refreshCompleted();
-        _refreshController?.resetNoData();
-        if (widget.onRefreshComplete != null) {
-          widget.onRefreshComplete!();
-        }
-      } catch (e) {
-        _refreshController?.refreshFailed();
-        if (widget.onError != null) {
-          widget.onError!(e);
-        }
-      }
-    } else {
-      _refreshController?.refreshCompleted();
-      _refreshController?.resetNoData();
-      if (widget.onRefreshComplete != null) {
-        widget.onRefreshComplete!();
-      }
-    }
-  }
-
-  void _onLoading() async {
-    if (widget.onLoadStart != null) {
-      widget.onLoadStart!();
-    }
-    if (widget.onLoadMore != null && widget.hasMore) {
-      try {
-        await widget.onLoadMore!();
-        _refreshController?.loadComplete();
-        if (widget.onLoadComplete != null) {
-          widget.onLoadComplete!();
-        }
-      } catch (e) {
-        _refreshController?.loadFailed();
-        if (widget.onError != null) {
-          widget.onError!(e);
-        }
-      }
-    } else {
-      _refreshController?.loadNoData();
-      if (widget.onLoadComplete != null) {
-        widget.onLoadComplete!();
-      }
-    }
   }
 
   /// 构建列表内容
@@ -372,24 +264,6 @@ class WListViewState extends State<WListView> {
     // 构建列表内容
     final listContent = _buildListContent();
 
-    // 只在需要刷新或加载功能时使用 SmartRefresher
-    Widget result;
-    if (widget.onRefresh != null || widget.onLoadMore != null) {
-      result = SmartRefresher(
-        enablePullDown: widget.onRefresh != null,
-        enablePullUp: widget.onLoadMore != null,
-        controller: _refreshController!,
-        onRefresh: _onRefresh,
-        onLoading: _onLoading,
-        header: widget.config._refreshHeader,
-        footer: widget.config._refreshFooter,
-        scrollDirection: widget.config._scrollDirection,
-        child: listContent,
-      );
-    } else {
-      result = listContent;
-    }
-
     // 应用背景色、圆角和边框
     if (widget.config._backgroundColor != null ||
         widget.config._borderRadius != null ||
@@ -400,11 +274,11 @@ class WListViewState extends State<WListView> {
           borderRadius: widget.config._borderRadius,
           border: widget.config._border,
         ),
-        child: result,
+        child: listContent,
       );
     }
 
-    return result;
+    return listContent;
   }
 
   /// 构建子项
@@ -506,12 +380,6 @@ class WListViewConfig {
   /// 是否使用精确的缓存机制
   bool _usePreciseCache = false;
 
-  /// 刷新头部
-  Widget? _refreshHeader;
-
-  /// 刷新尾部
-  Widget? _refreshFooter;
-
   /// 背景色
   Color? _backgroundColor;
 
@@ -578,16 +446,6 @@ class WListViewConfig {
     _usePreciseCache = value;
   }
 
-  /// 设置刷新头部
-  set refreshHeader(Widget value) {
-    _refreshHeader = value;
-  }
-
-  /// 设置刷新尾部
-  set refreshFooter(Widget value) {
-    _refreshFooter = value;
-  }
-
   /// 设置背景色
   set backgroundColor(Color value) {
     _backgroundColor = value;
@@ -633,8 +491,6 @@ class WListViewConfig {
   /// @param itemExtent 子项的固定尺寸（高度或宽度，取决于滚动方向）
   /// @param emptyWidget 空列表占位符
   /// @param usePreciseCache 是否使用精确的缓存机制
-  /// @param refreshHeader 刷新头部
-  /// @param refreshFooter 刷新尾部
   /// @param backgroundColor 背景色
   /// @param borderRadius 圆角
   /// @param border 边框
@@ -650,8 +506,6 @@ class WListViewConfig {
     double? itemExtent,
     Widget? emptyWidget,
     bool? usePreciseCache,
-    Widget? refreshHeader,
-    Widget? refreshFooter,
     Color? backgroundColor,
     BorderRadius? borderRadius,
     BoxBorder? border,
@@ -670,8 +524,6 @@ class WListViewConfig {
     config._itemExtent = itemExtent ?? _itemExtent;
     config._emptyWidget = emptyWidget ?? _emptyWidget;
     config._usePreciseCache = usePreciseCache ?? _usePreciseCache;
-    config._refreshHeader = refreshHeader ?? _refreshHeader;
-    config._refreshFooter = refreshFooter ?? _refreshFooter;
     config._backgroundColor = backgroundColor ?? _backgroundColor;
     config._borderRadius = borderRadius ?? _borderRadius;
     config._border = border ?? _border;
@@ -809,14 +661,6 @@ class WListViewConfig {
   /// @param header 列表头部
   /// @param footer 列表尾部
   /// @param cacheItems 是否启用子项缓存
-  /// @param onRefresh 下拉刷新回调
-  /// @param onLoadMore 上拉加载更多回调
-  /// @param onError 错误回调
-  /// @param onRefreshStart 刷新开始回调
-  /// @param onRefreshComplete 刷新完成回调
-  /// @param onLoadStart 加载开始回调
-  /// @param onLoadComplete 加载完成回调
-  /// @param hasMore 是否有更多数据
   /// @param key 组件键
   /// @return WListView 实例
   WListView build({
@@ -826,14 +670,6 @@ class WListViewConfig {
     Widget? header,
     Widget? footer,
     bool cacheItems = false,
-    Future<void> Function()? onRefresh,
-    Future<void> Function()? onLoadMore,
-    void Function(dynamic error)? onError,
-    void Function()? onRefreshStart,
-    void Function()? onRefreshComplete,
-    void Function()? onLoadStart,
-    void Function()? onLoadComplete,
-    bool hasMore = false,
     Key? key,
   }) {
     return WListView(
@@ -845,14 +681,6 @@ class WListViewConfig {
       header: header,
       footer: footer,
       cacheItems: cacheItems,
-      onRefresh: onRefresh,
-      onLoadMore: onLoadMore,
-      onError: onError,
-      onRefreshStart: onRefreshStart,
-      onRefreshComplete: onRefreshComplete,
-      onLoadStart: onLoadStart,
-      onLoadComplete: onLoadComplete,
-      hasMore: hasMore,
     );
   }
 
@@ -871,14 +699,6 @@ class WListViewConfig {
   /// @param header 列表头部
   /// @param footer 列表尾部
   /// @param cacheItems 是否启用子项缓存
-  /// @param onRefresh 下拉刷新回调
-  /// @param onLoadMore 上拉加载更多回调
-  /// @param onError 错误回调
-  /// @param onRefreshStart 刷新开始回调
-  /// @param onRefreshComplete 刷新完成回调
-  /// @param onLoadStart 加载开始回调
-  /// @param onLoadComplete 加载完成回调
-  /// @param hasMore 是否有更多数据
   /// @param key 组件键
   /// @return WListView 实例
   WListView buildByList<T>({
@@ -887,14 +707,6 @@ class WListViewConfig {
     Widget? header,
     Widget? footer,
     bool cacheItems = false,
-    Future<void> Function()? onRefresh,
-    Future<void> Function()? onLoadMore,
-    void Function(dynamic error)? onError,
-    void Function()? onRefreshStart,
-    void Function()? onRefreshComplete,
-    void Function()? onLoadStart,
-    void Function()? onLoadComplete,
-    bool hasMore = false,
     Key? key,
   }) {
     assert(_itemBuilderByT != null, 'itemBuilderByT must be set before calling buildByList');
@@ -912,14 +724,6 @@ class WListViewConfig {
       header: header,
       footer: footer,
       cacheItems: cacheItems,
-      onRefresh: onRefresh,
-      onLoadMore: onLoadMore,
-      onError: onError,
-      onRefreshStart: onRefreshStart,
-      onRefreshComplete: onRefreshComplete,
-      onLoadStart: onLoadStart,
-      onLoadComplete: onLoadComplete,
-      hasMore: hasMore,
     );
   }
 
@@ -931,14 +735,6 @@ class WListViewConfig {
   /// @param header 列表头部
   /// @param footer 列表尾部
   /// @param cacheItems 是否启用子项缓存
-  /// @param onRefresh 下拉刷新回调
-  /// @param onLoadMore 上拉加载更多回调
-  /// @param onError 错误回调
-  /// @param onRefreshStart 刷新开始回调
-  /// @param onRefreshComplete 刷新完成回调
-  /// @param onLoadStart 加载开始回调
-  /// @param onLoadComplete 加载完成回调
-  /// @param hasMore 是否有更多数据
   /// @param key 组件键
   /// @return WListView 实例
   WListView buildSeparated({
@@ -948,14 +744,6 @@ class WListViewConfig {
     Widget? header,
     Widget? footer,
     bool cacheItems = false,
-    Future<void> Function()? onRefresh,
-    Future<void> Function()? onLoadMore,
-    void Function(dynamic error)? onError,
-    void Function()? onRefreshStart,
-    void Function()? onRefreshComplete,
-    void Function()? onLoadStart,
-    void Function()? onLoadComplete,
-    bool hasMore = false,
     Key? key,
   }) {
     return WListView.separated(
@@ -967,14 +755,6 @@ class WListViewConfig {
       header: header,
       footer: footer,
       cacheItems: cacheItems,
-      onRefresh: onRefresh,
-      onLoadMore: onLoadMore,
-      onError: onError,
-      onRefreshStart: onRefreshStart,
-      onRefreshComplete: onRefreshComplete,
-      onLoadStart: onLoadStart,
-      onLoadComplete: onLoadComplete,
-      hasMore: hasMore,
     );
   }
 
@@ -987,14 +767,6 @@ class WListViewConfig {
   /// @param header 列表头部
   /// @param footer 列表尾部
   /// @param cacheItems 是否启用子项缓存
-  /// @param onRefresh 下拉刷新回调
-  /// @param onLoadMore 上拉加载更多回调
-  /// @param onError 错误回调
-  /// @param onRefreshStart 刷新开始回调
-  /// @param onRefreshComplete 刷新完成回调
-  /// @param onLoadStart 加载开始回调
-  /// @param onLoadComplete 加载完成回调
-  /// @param hasMore 是否有更多数据
   /// @param key 组件键
   /// @return WListView 实例
   WListView buildGrid({
@@ -1005,14 +777,6 @@ class WListViewConfig {
     Widget? header,
     Widget? footer,
     bool cacheItems = false,
-    Future<void> Function()? onRefresh,
-    Future<void> Function()? onLoadMore,
-    void Function(dynamic error)? onError,
-    void Function()? onRefreshStart,
-    void Function()? onRefreshComplete,
-    void Function()? onLoadStart,
-    void Function()? onLoadComplete,
-    bool hasMore = false,
     Key? key,
   }) {
     return WListView.grid(
@@ -1025,14 +789,6 @@ class WListViewConfig {
       header: header,
       footer: footer,
       cacheItems: cacheItems,
-      onRefresh: onRefresh,
-      onLoadMore: onLoadMore,
-      onError: onError,
-      onRefreshStart: onRefreshStart,
-      onRefreshComplete: onRefreshComplete,
-      onLoadStart: onLoadStart,
-      onLoadComplete: onLoadComplete,
-      hasMore: hasMore,
     );
   }
 }
