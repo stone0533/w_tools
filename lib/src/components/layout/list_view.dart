@@ -211,6 +211,34 @@ class WListViewState extends State<WListView> {
             : WListViewConfig._defaultHorizontalCacheExtent);
   }
 
+  /// 获取有效的子项高度（考虑重叠效果）
+  double? _getEffectiveItemExtent() {
+    if (widget.config._useOverlap && widget.config._overlapOffset != 0.0) {
+      // 使用 itemExtent + overlapOffset 作为每个子项实际占用的高度
+      final itemExtent = widget.config._itemExtent;
+      if (itemExtent != null) {
+        return itemExtent + widget.config._overlapOffset;
+      }
+    }
+    return widget.config._itemExtent;
+  }
+
+  /// 获取有效的 padding（考虑重叠效果）
+  EdgeInsetsGeometry? _getEffectivePadding() {
+    if (widget.config._useOverlap && widget.config._overlapOffset != 0.0) {
+      // 为第一个子项添加顶部 padding 补偿其向上偏移被裁剪的部分
+      final overlapOffset = widget.config._overlapOffset;
+      if (overlapOffset < 0) {
+        // overlapOffset 是负数，向上重叠，需要添加顶部 padding
+        final padding = widget.config._padding ?? EdgeInsets.zero;
+        if (padding is EdgeInsets) {
+          return padding.copyWith(top: padding.top - overlapOffset);
+        }
+      }
+    }
+    return widget.config._padding;
+  }
+
   /// 构建带头部和尾部的列表
   Widget _buildListWithHeaderFooter() {
     final slivers = <Widget>[];
@@ -249,7 +277,7 @@ class WListViewState extends State<WListView> {
         key: widget.key,
         itemBuilder: (context, index) => _buildItem(context, index),
         itemCount: widget.itemCount,
-        padding: widget.config._padding,
+        padding: _getEffectivePadding(),
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
@@ -268,7 +296,7 @@ class WListViewState extends State<WListView> {
         itemBuilder: (context, index) => _buildItem(context, index),
         separatorBuilder: (context, index) => widget.config._separatorBuilder!(context, index),
         itemCount: widget.itemCount,
-        padding: widget.config._padding,
+        padding: _getEffectivePadding(),
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
@@ -285,13 +313,13 @@ class WListViewState extends State<WListView> {
         key: widget.key,
         itemBuilder: (context, index) => _buildItem(context, index),
         itemCount: widget.itemCount,
-        padding: widget.config._padding,
+        padding: _getEffectivePadding(),
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
         physics: widget.config._physics,
         cacheExtent: _getCacheExtent(),
-        itemExtent: widget.config._itemExtent,
+        itemExtent: _getEffectiveItemExtent(),
         addAutomaticKeepAlives: widget.cacheItems && !widget.config._usePreciseCache,
         addRepaintBoundaries: true,
         addSemanticIndexes: true,
@@ -399,6 +427,18 @@ class WListViewState extends State<WListView> {
       item = widget.itemBuilder(context, index);
     }
 
+    // 如果启用了重叠效果，使用 OverflowBox 允许子项超出 itemExtent，然后向上偏移
+    if (widget.config._useOverlap && widget.config._overlapOffset != 0.0) {
+      item = OverflowBox(
+        maxHeight: double.infinity, // 允许子项无限高度，避免底部裁剪
+        alignment: Alignment.topCenter,
+        child: Transform.translate(
+          offset: Offset(0, widget.config._overlapOffset),
+          child: item,
+        ),
+      );
+    }
+
     return item;
   }
 
@@ -442,7 +482,7 @@ class WListViewConfig {
   static const Color _defaultBackgroundColor = Colors.transparent;
   static const BorderRadius _defaultCardBorderRadius = BorderRadius.all(Radius.circular(8.0));
 
-  /// 子项间隔
+  /// 列表的内边距
   EdgeInsetsGeometry? _padding;
 
   /// 滚动方向
@@ -457,7 +497,7 @@ class WListViewConfig {
   /// 缓存区域大小
   double? _cacheExtent;
 
-  /// 子项之间的间距
+  /// 子项的固定尺寸（高度或宽度，取决于滚动方向）
   double? _itemExtent;
 
   /// 空列表占位符
@@ -487,12 +527,18 @@ class WListViewConfig {
   /// 分隔线构建器
   Widget Function(BuildContext, int)? _separatorBuilder;
 
+  /// 是否启用子项重叠效果
+  bool _useOverlap = false;
+
+  /// 子项重叠偏移量（负数表示向上重叠）
+  double _overlapOffset = 0.0;
+
   /// 默认构造函数
   WListViewConfig() {
     _padding = EdgeInsets.zero;
   }
 
-  /// 设置子项间隔
+  /// 设置列表的内边距
   set padding(EdgeInsetsGeometry value) {
     _padding = value;
   }
@@ -517,7 +563,7 @@ class WListViewConfig {
     _cacheExtent = value;
   }
 
-  /// 设置子项之间的间距
+  /// 设置子项的固定尺寸（高度或宽度，取决于滚动方向）
   set itemExtent(double value) {
     _itemExtent = value;
   }
@@ -567,14 +613,24 @@ class WListViewConfig {
     _separatorBuilder = value;
   }
 
+  /// 设置是否启用子项重叠效果
+  set useOverlap(bool value) {
+    _useOverlap = value;
+  }
+
+  /// 设置子项重叠偏移量（负数表示向上重叠）
+  set overlapOffset(double value) {
+    _overlapOffset = value;
+  }
+
   /// 复制配置并返回新实例
   ///
-  /// @param padding 子项间隔
+  /// @param padding 列表的内边距
   /// @param scrollDirection 滚动方向
   /// @param reverse 是否反向滚动
   /// @param physics 物理滚动特性
   /// @param cacheExtent 缓存区域大小
-  /// @param itemExtent 子项之间的间距
+  /// @param itemExtent 子项的固定尺寸（高度或宽度，取决于滚动方向）
   /// @param emptyWidget 空列表占位符
   /// @param usePreciseCache 是否使用精确的缓存机制
   /// @param refreshHeader 刷新头部
@@ -602,6 +658,8 @@ class WListViewConfig {
     bool? shrinkWrap,
     Widget Function(BuildContext, int)? separatorBuilder,
     Widget Function<T>(BuildContext, T)? itemBuilderByT,
+    bool? useOverlap,
+    double? overlapOffset,
   }) {
     final config = WListViewConfig();
     config._padding = padding ?? _padding;
@@ -620,6 +678,8 @@ class WListViewConfig {
     config._shrinkWrap = shrinkWrap ?? _shrinkWrap;
     config._separatorBuilder = separatorBuilder ?? _separatorBuilder;
     config._itemBuilderByT = itemBuilderByT ?? _itemBuilderByT;
+    config._useOverlap = useOverlap ?? _useOverlap;
+    config._overlapOffset = overlapOffset ?? _overlapOffset;
     return config;
   }
 
