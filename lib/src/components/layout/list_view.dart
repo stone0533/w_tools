@@ -122,28 +122,6 @@ class WListViewState extends State<WListView> {
     return widget.config._itemExtent;
   }
 
-  /// 获取有效的 padding（考虑重叠效果）
-  ///
-  /// 当启用子项重叠效果时，所有子项会向上偏移 [_overlapOffset]，
-  /// 为了确保第一个子项顶部不被裁剪，需要增加顶部 padding 进行补偿。
-  ///
-  /// @return 考虑重叠效果后的有效 padding
-  EdgeInsetsGeometry? _getEffectivePadding() {
-    if (widget.config._useOverlap && widget.config._overlapOffset != 0.0) {
-      final overlapOffset = widget.config._overlapOffset;
-      if (overlapOffset < 0) {
-        // overlapOffset 是负数，向上重叠，需要添加顶部 padding 补偿
-        final padding = widget.config._padding ?? EdgeInsets.zero;
-        if (padding is EdgeInsets) {
-          return padding.copyWith(top: padding.top - overlapOffset);
-        } else if (padding is EdgeInsetsDirectional) {
-          return padding.copyWith(top: padding.top - overlapOffset);
-        }
-      }
-    }
-    return widget.config._padding;
-  }
-
   /// 构建带头部和尾部的列表
   Widget _buildListWithHeaderFooter() {
     final slivers = <Widget>[];
@@ -182,7 +160,7 @@ class WListViewState extends State<WListView> {
         key: widget.key,
         itemBuilder: (context, index) => _buildItem(context, index),
         itemCount: widget.itemCount,
-        padding: _getEffectivePadding(),
+        padding: widget.config._padding,
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
@@ -201,7 +179,7 @@ class WListViewState extends State<WListView> {
         itemBuilder: (context, index) => _buildItem(context, index),
         separatorBuilder: (context, index) => widget.config._separatorBuilder!(context, index),
         itemCount: widget.itemCount,
-        padding: _getEffectivePadding(),
+        padding: widget.config._padding,
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
@@ -218,7 +196,7 @@ class WListViewState extends State<WListView> {
         key: widget.key,
         itemBuilder: (context, index) => _buildItem(context, index),
         itemCount: widget.itemCount,
-        padding: _getEffectivePadding(),
+        padding: widget.config._padding,
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
@@ -319,10 +297,7 @@ class WListViewState extends State<WListView> {
       item = OverflowBox(
         maxHeight: double.infinity, // 允许子项无限高度，避免底部裁剪
         alignment: Alignment.topCenter,
-        child: Transform.translate(
-          offset: Offset(0, widget.config._overlapOffset),
-          child: item,
-        ),
+        child: item,
       );
     }
 
