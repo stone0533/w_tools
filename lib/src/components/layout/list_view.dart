@@ -104,11 +104,18 @@ class WListViewState extends State<WListView> {
   }
 
   /// 获取有效的子项高度（考虑重叠效果）
+  ///
+  /// 当启用子项重叠效果时，每个子项的实际布局空间需要调整：
+  /// - 子项会向上偏移 [_overlapOffset]（负数）
+  /// - 因此每个子项实际占用的高度 = itemExtent + overlapOffset
+  /// - 这确保了子项之间能够正确重叠而不会产生间隙
+  ///
+  /// @return 考虑重叠效果后的有效子项高度
   double? _getEffectiveItemExtent() {
     if (widget.config._useOverlap && widget.config._overlapOffset != 0.0) {
-      // 使用 itemExtent + overlapOffset 作为每个子项实际占用的高度
       final itemExtent = widget.config._itemExtent;
       if (itemExtent != null) {
+        // 子项实际占用高度 = 原始高度 + 重叠偏移量（负数）
         return itemExtent + widget.config._overlapOffset;
       }
     }
@@ -116,14 +123,20 @@ class WListViewState extends State<WListView> {
   }
 
   /// 获取有效的 padding（考虑重叠效果）
+  ///
+  /// 当启用子项重叠效果时，所有子项会向上偏移 [_overlapOffset]，
+  /// 为了确保第一个子项顶部不被裁剪，需要增加顶部 padding 进行补偿。
+  ///
+  /// @return 考虑重叠效果后的有效 padding
   EdgeInsetsGeometry? _getEffectivePadding() {
     if (widget.config._useOverlap && widget.config._overlapOffset != 0.0) {
-      // 为第一个子项添加顶部 padding 补偿其向上偏移被裁剪的部分
       final overlapOffset = widget.config._overlapOffset;
       if (overlapOffset < 0) {
-        // overlapOffset 是负数，向上重叠，需要添加顶部 padding
+        // overlapOffset 是负数，向上重叠，需要添加顶部 padding 补偿
         final padding = widget.config._padding ?? EdgeInsets.zero;
         if (padding is EdgeInsets) {
+          return padding.copyWith(top: padding.top - overlapOffset);
+        } else if (padding is EdgeInsetsDirectional) {
           return padding.copyWith(top: padding.top - overlapOffset);
         }
       }

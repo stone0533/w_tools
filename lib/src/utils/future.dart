@@ -98,6 +98,29 @@ class WFutureConfig {
     this.errorHandler,
   });
 
+  /// 创建一个新的配置对象，允许部分修改配置
+  ///
+  /// 未指定的参数将保持当前值
+  ///
+  /// @param showLoading 是否显示加载中
+  /// @param loadingCallback 加载中回调函数
+  /// @param loadingCompleteCallback 加载完成回调函数
+  /// @param errorHandler 自定义错误处理回调
+  /// @return 新的 WFutureConfig 实例
+  WFutureConfig copyWith({
+    bool? showLoading,
+    VoidCallback? loadingCallback,
+    VoidCallback? loadingCompleteCallback,
+    void Function(dynamic error)? errorHandler,
+  }) {
+    return WFutureConfig(
+      showLoading: showLoading ?? this.showLoading,
+      loadingCallback: loadingCallback ?? this.loadingCallback,
+      loadingCompleteCallback: loadingCompleteCallback ?? this.loadingCompleteCallback,
+      errorHandler: errorHandler ?? this.errorHandler,
+    );
+  }
+
   /// 执行单个异步操作
   ///
   /// [func] 要执行的异步函数
