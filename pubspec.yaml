@@ -1,6 +1,6 @@
 name: w_tools
 description: "一个功能丰富的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。"
-version: 1.0.6
+version: 1.0.7
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools
 issue_tracker: https://github.com/stone0533/w_tools/issues
@@ -30,6 +30,7 @@ dependencies:
   encrypt: ^5.0.3
   crypto: ^3.0.7
   convert: ^3.1.2
+  synchronized: ^3.1.0
 
   flutter_picker_plus: ^1.5.6
 

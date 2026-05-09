@@ -18,7 +18,7 @@
 
 ```yaml
 dependencies:
-  w_tools: ^1.0.5
+  w_tools: ^1.0.7
 ```
 
 然后运行：

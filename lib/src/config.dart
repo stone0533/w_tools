@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'api/clients/http_config.dart';
 
 /// 应用配置类，提供应用初始化和运行的核心功能
 ///
@@ -9,8 +10,8 @@ import 'package:flutter/material.dart';
 /// - 环境变量加载
 /// - 应用运行
 class WConfig {
-  /// 资源图片路径
-  static String assetsImagePath = 'assets/images/';
+  /// 资产图片路径
+  static String assetImagePath = 'assets/images/';
 
   /// 支持的语言列表，键为语言代码，值为语言名称
   static Map<String, String> supportedLanguages = {'en_US': 'English'};
@@ -34,6 +35,9 @@ class WConfig {
 
   /// 默认的 token 过期时间存储键名
   static  String? _tokenExpiryKey;
+
+  /// 默认 HTTP 配置（全局共享）
+  static HttpConfig httpConfig = HttpConfig();
 
   /// 获取 token 存储键名
   static String get tokenKey => _tokenKey??'token';
@@ -119,7 +123,7 @@ class WConfigSetup {
   set obscureTextIconOn(Widget value) => WConfig.obscureTextIconOn = value;
 
   /// 设置资源图片路径
-  set assetsImagePath(String value) => WConfig.assetsImagePath = value;
+  set assetImagePath(String value) => WConfig.assetImagePath = value;
 
   /// 设置支持的语言列表
   set supportedLanguages(Map<String, String> value) => WConfig.supportedLanguages = value;
@@ -135,4 +139,7 @@ class WConfigSetup {
 
   /// 设置 token 过期时间存储键名
   set tokenExpiryKey(String value) => WConfig.tokenExpiryKey = value;
+
+  /// 设置默认 HTTP 配置
+  set httpConfig(HttpConfig value) => WConfig.httpConfig = value;
 }

@@ -1,6 +1,70 @@
 import 'package:flutter/material.dart';
 
 /// 增强版列表组件
+///
+/// 提供丰富的列表功能，支持多种布局模式、子项重叠效果、空列表占位等特性。
+///
+/// **主要特性:**
+/// - ✅ 支持普通列表、带分隔线列表、网格布局
+/// - ✅ 支持头部和尾部组件
+/// - ✅ 子项重叠效果（卡片堆叠效果）
+/// - ✅ 空列表占位符
+/// - ✅ 子项缓存机制
+/// - ✅ 灵活的样式配置（背景色、圆角、边框）
+///
+/// **使用示例:**
+///
+/// ```dart
+/// // 1. 创建普通列表
+/// WListView(
+///   config: WListViewConfig.vertical(),
+///   itemBuilder: (context, index) => ListTile(title: Text('Item $index')),
+///   itemCount: 20,
+/// )
+///
+/// // 2. 创建带分隔线的列表
+/// WListView.separated(
+///   config: WListViewConfig.vertical(),
+///   itemBuilder: (context, index) => ListTile(title: Text('Item $index')),
+///   itemCount: 20,
+/// )
+///
+/// // 3. 创建网格布局
+/// WListView.grid(
+///   config: WListViewConfig.vertical(),
+///   itemBuilder: (context, index) => Container(color: Colors.blue),
+///   itemCount: 20,
+///   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+/// )
+///
+/// // 4. 使用配置类构建（推荐）
+/// WListViewConfig.card()
+///   ..itemExtent = 60
+///   ..build(
+///     itemBuilder: (context, index) => ListTile(title: Text('Item $index')),
+///     itemCount: 20,
+///     header: Text('Header'),
+///     footer: Text('Footer'),
+///   )
+///
+/// // 5. 带重叠效果的列表
+/// WListViewConfig.card()
+///   ..itemExtent = 100
+///   ..useOverlap = true
+///   ..overlapOffset = -20
+///   ..build(
+///     itemBuilder: (context, index) => Card(child: ListTile(title: Text('Card $index'))),
+///     itemCount: 10,
+///   )
+///
+/// // 6. 空列表处理
+/// WListView(
+///   config: WListViewConfig.vertical(),
+///   itemBuilder: (context, index) => ListTile(title: Text('Item $index')),
+///   itemCount: 0,
+///   emptyWidget: Center(child: Text('暂无数据')),
+/// )
+/// ```
 class WListView extends StatefulWidget {
   /// 列表配置
   final WListViewConfig config;
@@ -26,7 +90,20 @@ class WListView extends StatefulWidget {
   /// 网格布局代理
   final SliverGridDelegate? gridDelegate;
 
-  /// 创建列表组件
+  /// 空列表占位符组件（优先级高于 config 中的配置）
+  final Widget? emptyWidget;
+
+  /// 创建普通列表组件
+  ///
+  /// @param config 列表配置对象
+  /// @param itemBuilder 子项构建器
+  /// @param itemCount 子项数量
+  /// @param controller 滚动控制器
+  /// @param header 头部组件
+  /// @param footer 尾部组件
+  /// @param cacheItems 是否启用缓存
+  /// @param gridDelegate 网格布局代理（可选）
+  /// @param emptyWidget 空列表占位符组件（可选，优先级高于 config）
   const WListView({
     super.key,
     required this.config,
@@ -37,9 +114,19 @@ class WListView extends StatefulWidget {
     this.footer,
     this.cacheItems = false,
     this.gridDelegate,
+    this.emptyWidget,
   });
 
-  /// 创建带有分隔线的列表
+  /// 创建带有分隔线的列表组件
+  ///
+  /// @param config 列表配置对象
+  /// @param itemBuilder 子项构建器
+  /// @param itemCount 子项数量
+  /// @param controller 滚动控制器
+  /// @param header 头部组件
+  /// @param footer 尾部组件
+  /// @param cacheItems 是否启用缓存
+  /// @param emptyWidget 空列表占位符组件（可选，优先级高于 config）
   const WListView.separated({
     super.key,
     required this.config,
@@ -49,9 +136,20 @@ class WListView extends StatefulWidget {
     this.header,
     this.footer,
     this.cacheItems = false,
+    this.emptyWidget,
   }) : gridDelegate = null;
 
-  /// 创建网格布局列表
+  /// 创建网格布局列表组件
+  ///
+  /// @param config 列表配置对象
+  /// @param itemBuilder 子项构建器
+  /// @param itemCount 子项数量
+  /// @param gridDelegate 网格布局代理（必填）
+  /// @param controller 滚动控制器
+  /// @param header 头部组件
+  /// @param footer 尾部组件
+  /// @param cacheItems 是否启用缓存
+  /// @param emptyWidget 空列表占位符组件（可选，优先级高于 config）
   const WListView.grid({
     super.key,
     required this.config,
@@ -62,6 +160,7 @@ class WListView extends StatefulWidget {
     this.header,
     this.footer,
     this.cacheItems = false,
+    this.emptyWidget,
   });
 
   @override
@@ -122,6 +221,42 @@ class WListViewState extends State<WListView> {
     return widget.config._itemExtent;
   }
 
+  /// 获取有效的内边距（考虑重叠效果）
+  ///
+  /// 当启用子项重叠效果时，每个子项会向上偏移 [_overlapOffset]（负数）。
+  /// 由于子项实际占用空间减少（itemExtent + overlapOffset），需要调整底部 padding：
+  /// - 底部 padding 增加重叠偏移量的绝对值，确保列表底部有足够空间
+  ///
+  /// 注意：重叠效果仅支持垂直滚动列表
+  ///
+  /// @return 考虑重叠效果后的有效内边距
+  EdgeInsetsGeometry? _getEffectivePadding() {
+    if (widget.config._useOverlap &&
+        widget.config._overlapOffset != 0.0 &&
+        widget.config._itemExtent != null &&
+        widget.config._scrollDirection == Axis.vertical) {
+      final padding = widget.config._padding;
+      final overlapCompensation = -widget.config._overlapOffset;
+
+      if (padding is EdgeInsets) {
+        return EdgeInsets.only(
+          left: padding.left,
+          top: padding.top,
+          right: padding.right,
+          bottom: padding.bottom + overlapCompensation,
+        );
+      } else if (padding is EdgeInsetsDirectional) {
+        return EdgeInsetsDirectional.only(
+          start: padding.start,
+          top: padding.top,
+          end: padding.end,
+          bottom: padding.bottom + overlapCompensation,
+        );
+      }
+    }
+    return widget.config._padding;
+  }
+
   /// 构建带头部和尾部的列表
   Widget _buildListWithHeaderFooter() {
     final slivers = <Widget>[];
@@ -154,13 +289,15 @@ class WListViewState extends State<WListView> {
 
   /// 构建不带头部和尾部的列表
   Widget _buildListWithoutHeaderFooter() {
+    final effectivePadding = _getEffectivePadding();
+
     if (widget.gridDelegate != null) {
       // 网格布局
       return GridView.builder(
         key: widget.key,
         itemBuilder: (context, index) => _buildItem(context, index),
         itemCount: widget.itemCount,
-        padding: widget.config._padding,
+        padding: effectivePadding,
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
@@ -179,7 +316,7 @@ class WListViewState extends State<WListView> {
         itemBuilder: (context, index) => _buildItem(context, index),
         separatorBuilder: (context, index) => widget.config._separatorBuilder!(context, index),
         itemCount: widget.itemCount,
-        padding: widget.config._padding,
+        padding: effectivePadding,
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
@@ -196,7 +333,7 @@ class WListViewState extends State<WListView> {
         key: widget.key,
         itemBuilder: (context, index) => _buildItem(context, index),
         itemCount: widget.itemCount,
-        padding: widget.config._padding,
+        padding: effectivePadding,
         controller: _controller,
         scrollDirection: widget.config._scrollDirection,
         reverse: widget.config._reverse,
@@ -248,8 +385,12 @@ class WListViewState extends State<WListView> {
   @override
   Widget build(BuildContext context) {
     // 处理空列表情况
-    if (widget.itemCount == 0 && widget.config._emptyWidget != null) {
-      return widget.config._emptyWidget!;
+    // 优先使用组件参数，其次使用配置中的配置
+    if (widget.itemCount == 0) {
+      final emptyWidget = widget.emptyWidget ?? widget.config._emptyWidget;
+      if (emptyWidget != null) {
+        return emptyWidget;
+      }
     }
 
     // 构建列表内容
@@ -334,6 +475,57 @@ class _PreciseCachedItemBuilderState extends State<_PreciseCachedItemBuilder>
 }
 
 /// 列表配置类
+///
+/// 用于配置 WListView 的各种行为和样式属性。
+///
+/// **配置参数说明:**
+///
+/// | 参数 | 类型 | 默认值 | 说明 |
+/// |------|------|--------|------|
+/// | `padding` | `EdgeInsetsGeometry` | `EdgeInsets.zero` | 列表内边距 |
+/// | `scrollDirection` | `Axis` | `Axis.vertical` | 滚动方向 |
+/// | `reverse` | `bool` | `false` | 是否反向滚动 |
+/// | `physics` | `ScrollPhysics` | `AlwaysScrollableScrollPhysics` | 物理滚动特性 |
+/// | `cacheExtent` | `double?` | 垂直: 200, 水平: 100 | 预加载区域大小 |
+/// | `itemExtent` | `double?` | `null` | 子项固定尺寸（高度/宽度） |
+/// | `emptyWidget` | `Widget?` | `null` | 空列表占位符 |
+/// | `usePreciseCache` | `bool` | `false` | 是否使用精确缓存机制 |
+/// | `backgroundColor` | `Color?` | `Colors.transparent` | 背景色 |
+/// | `borderRadius` | `BorderRadius?` | `null` | 圆角半径 |
+/// | `border` | `BoxBorder?` | `null` | 边框 |
+/// | `shrinkWrap` | `bool` | `false` | 是否自适应高度 |
+/// | `separatorBuilder` | `Widget Function(BuildContext, int)?` | `null` | 分隔线构建器 |
+/// | `useOverlap` | `bool` | `false` | 是否启用子项重叠效果 |
+/// | `overlapOffset` | `double` | `0.0` | 重叠偏移量（必须 <= 0） |
+///
+/// **预设配置工厂方法:**
+///
+/// | 方法 | 说明 |
+/// |------|------|
+/// | `WListViewConfig()` | 默认配置 |
+/// | `WListViewConfig.vertical()` | 垂直列表配置 |
+/// | `WListViewConfig.horizontal()` | 水平列表配置 |
+/// | `WListViewConfig.card()` | 卡片风格配置（白色背景、圆角） |
+/// | `WListViewConfig.compact()` | 紧凑风格配置 |
+///
+/// **配置使用示例:**
+///
+/// ```dart
+/// // 创建垂直列表配置
+/// final config = WListViewConfig.vertical()
+///   ..itemExtent = 60
+///   ..padding = EdgeInsets.symmetric(horizontal: 16)
+///   ..backgroundColor = Colors.white;
+///
+/// // 创建卡片风格配置并修改
+/// final cardConfig = WListViewConfig.card()
+///   ..borderRadius = BorderRadius.circular(12)
+///   ..useOverlap = true
+///   ..overlapOffset = -15;
+///
+/// // 复制配置并修改部分参数
+/// final newConfig = config.copyWith(itemExtent: 80, shrinkWrap: true);
+/// ```
 class WListViewConfig {
   // 常量定义
   static const double _defaultVerticalCacheExtent = 200.0;
@@ -386,7 +578,7 @@ class WListViewConfig {
   /// 是否启用子项重叠效果
   bool _useOverlap = false;
 
-  /// 子项重叠偏移量（负数表示向上重叠）
+  /// 子项重叠偏移量（负数表示向上重叠，必须小于等于0）
   double _overlapOffset = 0.0;
 
   /// 默认构造函数
@@ -464,9 +656,12 @@ class WListViewConfig {
     _useOverlap = value;
   }
 
-  /// 设置子项重叠偏移量（负数表示向上重叠）
+  /// 设置子项重叠偏移量（负数表示向上重叠，必须小于等于0）
+  ///
+  /// @param value 重叠偏移量，必须小于等于0，否则会被截断为0
   set overlapOffset(double value) {
-    _overlapOffset = value;
+    assert(value <= 0, 'overlapOffset must be less than or equal to 0 (negative value means upward overlap)');
+    _overlapOffset = value <= 0 ? value : 0;
   }
 
   /// 复制配置并返回新实例
@@ -484,6 +679,7 @@ class WListViewConfig {
   /// @param border 边框
   /// @param shrinkWrap 是否根据内容自动调整高度
   /// @param separatorBuilder 分隔线构建器
+  /// @param itemBuilderByT 泛型子项构建器
   /// @return 新的 WListViewConfig 实例
   WListViewConfig copyWith({
     EdgeInsetsGeometry? padding,
@@ -649,6 +845,7 @@ class WListViewConfig {
   /// @param header 列表头部
   /// @param footer 列表尾部
   /// @param cacheItems 是否启用子项缓存
+  /// @param emptyWidget 空列表占位符组件
   /// @param key 组件键
   /// @return WListView 实例
   WListView build({
@@ -658,6 +855,7 @@ class WListViewConfig {
     Widget? header,
     Widget? footer,
     bool cacheItems = false,
+    Widget? emptyWidget,
     Key? key,
   }) {
     return WListView(
@@ -669,10 +867,11 @@ class WListViewConfig {
       header: header,
       footer: footer,
       cacheItems: cacheItems,
+      emptyWidget: emptyWidget,
     );
   }
 
-  /// 泛型子项构建器
+  /// 泛型子项构建器（可选，预设构建器）
   Widget Function<T>(BuildContext, T)? _itemBuilderByT;
 
   /// 设置泛型子项构建器
@@ -680,38 +879,65 @@ class WListViewConfig {
     _itemBuilderByT = value;
   }
 
-  /// 根据数据列表构建列表组件
+  /// 根据数据列表构建列表组件（泛型版本）
+  ///
+  /// 这是一个便捷方法，直接接收数据列表并自动处理 itemCount。
+  ///
+  /// **使用方式:**
+  ///
+  /// ```dart
+  /// // 方式1: 直接传入 itemBuilder
+  /// final List<User> users = [...];
+  /// WListViewConfig.vertical()
+  ///   ..buildByList<User>(
+  ///     data: users,
+  ///     itemBuilder: (context, user) => ListTile(title: Text(user.name)),
+  ///   );
+  ///
+  /// // 方式2: 预设 itemBuilderByT
+  /// final config = WListViewConfig.vertical()
+  ///   ..itemBuilderByT = (context, User user) => ListTile(title: Text(user.name));
+  /// config.buildByList<User>(data: users);
+  /// ```
   ///
   /// @param data 数据列表
+  /// @param itemBuilder 子项构建器（优先级高于配置中的预设 itemBuilderByT）
   /// @param controller 列表控制器
   /// @param header 列表头部
   /// @param footer 列表尾部
   /// @param cacheItems 是否启用子项缓存
+  /// @param emptyWidget 空列表占位符组件（当 data 为空时显示）
   /// @param key 组件键
   /// @return WListView 实例
+  /// @throws AssertionError 如果 itemBuilder 和 itemBuilderByT 都为 null
   WListView buildByList<T>({
     required List<T> data,
+    Widget Function(BuildContext, T)? itemBuilder,
     ScrollController? controller,
     Widget? header,
     Widget? footer,
     bool cacheItems = false,
+    Widget? emptyWidget,
     Key? key,
   }) {
-    assert(_itemBuilderByT != null, 'itemBuilderByT must be set before calling buildByList');
+    // 优先使用参数传入的构建器，其次使用配置中的预设
+    final effectiveBuilder = itemBuilder ?? _itemBuilderByT;
+    assert(effectiveBuilder != null, 'itemBuilder must be provided or itemBuilderByT must be set');
 
-    Widget itemBuilder(BuildContext context, int index) {
-      return _itemBuilderByT!(context, data[index]);
+    Widget itemBuilderWrapper(BuildContext context, int index) {
+      return effectiveBuilder!(context, data[index]);
     }
 
     return WListView(
       key: key,
       config: this,
-      itemBuilder: itemBuilder,
+      itemBuilder: itemBuilderWrapper,
       itemCount: data.length,
       controller: controller,
       header: header,
       footer: footer,
       cacheItems: cacheItems,
+      emptyWidget: emptyWidget,
     );
   }
 
@@ -723,6 +949,7 @@ class WListViewConfig {
   /// @param header 列表头部
   /// @param footer 列表尾部
   /// @param cacheItems 是否启用子项缓存
+  /// @param emptyWidget 空列表占位符组件
   /// @param key 组件键
   /// @return WListView 实例
   WListView buildSeparated({
@@ -732,6 +959,7 @@ class WListViewConfig {
     Widget? header,
     Widget? footer,
     bool cacheItems = false,
+    Widget? emptyWidget,
     Key? key,
   }) {
     return WListView.separated(
@@ -743,6 +971,7 @@ class WListViewConfig {
       header: header,
       footer: footer,
       cacheItems: cacheItems,
+      emptyWidget: emptyWidget,
     );
   }
 
@@ -755,6 +984,7 @@ class WListViewConfig {
   /// @param header 列表头部
   /// @param footer 列表尾部
   /// @param cacheItems 是否启用子项缓存
+  /// @param emptyWidget 空列表占位符组件
   /// @param key 组件键
   /// @return WListView 实例
   WListView buildGrid({
@@ -765,6 +995,7 @@ class WListViewConfig {
     Widget? header,
     Widget? footer,
     bool cacheItems = false,
+    Widget? emptyWidget,
     Key? key,
   }) {
     return WListView.grid(
@@ -777,6 +1008,7 @@ class WListViewConfig {
       header: header,
       footer: footer,
       cacheItems: cacheItems,
+      emptyWidget: emptyWidget,
     );
   }
 }

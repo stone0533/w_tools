@@ -41,11 +41,11 @@ extension WStringExtension on String {
     return HexColor.fromHex(this);
   }
 
-  /// 拼接资产图片路径
+  /// 将文件名转换为完整的资产图片路径
   ///
-  /// @return 完整的资产图片路径
-  String appendAssetsImage() {
-    return '${WConfig.assetsImagePath}$this';
+  /// @return 完整的资产图片路径，格式为 `assetsImagePath + 文件名`
+  String toAssetImagePath() {
+    return '${WConfig.assetImagePath}$this';
   }
 
   /// 将字符串转换为 WImage 组件

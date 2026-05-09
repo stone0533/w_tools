@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'http_config.dart';
 import '../interceptors/cache.dart';
+import '../../config.dart';
 
 /// Dio 工具类，用于创建和管理 Dio 实例
 class DioUtil {
@@ -33,7 +34,7 @@ class DioUtil {
     BaseOptions options = BaseOptions(
       baseUrl: _baseUrl,
       connectTimeout: _config.connectTimeout,
-      receiveTimeout: _config.receiveTimeOut,
+      receiveTimeout: _config.receiveTimeout,
       headers: _config.securityHeaders,
     );
     _dio = Dio(options);
@@ -96,7 +97,7 @@ class DioUtil {
 
       _dioUtils[baseUrl] = DioUtil._internal(
         baseUrl,
-        config ?? HttpConfigBuilder().build(),
+        config ?? WConfig.httpConfig,
         inter,
       );
     }

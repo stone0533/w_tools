@@ -98,9 +98,11 @@ class WTokenInterceptor extends Interceptor {
   /// 添加 token 到请求头
   void _addTokenToRequest(RequestOptions options) {
     final token = WToken.getToken();
-    if (token != null) {
+    if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
-      WLogger.d('Added token to request: ${token.substring(0, 10)}...');
+      // 安全的日志输出：只显示部分 token，避免敏感信息泄露
+      final displayLength = token.length >= 10 ? 10 : token.length;
+      WLogger.d('Added token to request: ${token.substring(0, displayLength)}...');
     } else {
       WLogger.d('No token found, skipping authorization header');
     }
@@ -154,6 +156,13 @@ class WTokenInterceptor extends Interceptor {
     String newToken,
     int retryCount,
   ) async {
+    // 检查 response 是否为 null（网络连接失败时可能为 null）
+    if (err.response == null) {
+      WLogger.e('Cannot retry request: response is null');
+      super.onError(err, handler);
+      return;
+    }
+    
     final dio = DioUtil.instance(err.response!.requestOptions.baseUrl).dio;
     err.response!.requestOptions.headers['Authorization'] = 'Bearer $newToken';
     err.requestOptions.extra['_retryCount'] = retryCount + 1;

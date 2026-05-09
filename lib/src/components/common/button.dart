@@ -20,9 +20,10 @@ enum WButtonEffectType {
 /// 按钮配置类
 ///
 /// 用于配置 WButton 组件的各种属性
-/// 支持链式调用
+/// 支持链式调用和配置缓存
 class WButtonConfig {
   /// 静态缓存常用配置，避免重复创建
+  /// Dart 2.0+ 中 Map 字面量默认使用 LinkedHashMap，保持插入顺序
   static final Map<String, WButtonConfig> _configCache = {};
 
   /// 缓存清理阈值
@@ -42,7 +43,9 @@ class WButtonConfig {
     if (_configCache.length > _cacheSizeThreshold) {
       // 保留最近使用的配置
       final keys = _configCache.keys.toList();
-      for (int i = 0; i < keys.length - _cacheSizeThreshold; i++) {
+      // 计算需要移除的数量，确保不超过列表长度
+      final removeCount = keys.length - _cacheSizeThreshold;
+      for (int i = 0; i < removeCount && i < keys.length; i++) {
         _configCache.remove(keys[i]);
       }
     }

@@ -1,5 +1,5 @@
-/// Map 扩展类，提供按键排序的功能
-extension SortedMapExtension on Map {
+/// Map 扩展类，提供按键排序和合并的功能
+extension WMapExtension<K, V> on Map<K, V> {
   /// 按键对 Map 进行排序
   ///
   /// @param compare 自定义排序函数，如果不提供则使用默认排序
@@ -15,14 +15,14 @@ extension SortedMapExtension on Map {
   /// final reverseSorted = map.sortedByKeys((a, b) => b.compareTo(a));
   /// print(reverseSorted); // 输出: {'c': 3, 'b': 2, 'a': 1}
   /// ```
-  Map<K, V> sortedByKeys<K, V>([int Function(K, K)? compare]) {
-    final sortedKeys = keys.cast<K>().toList();
+  Map<K, V> sortedByKeys([int Function(K, K)? compare]) {
+    final sortedKeys = keys.toList();
     if (compare != null) {
       sortedKeys.sort(compare);
     } else {
-      sortedKeys.sort();
+      sortedKeys.sort((a, b) => (a as Comparable).compareTo(b));
     }
-    return Map.fromEntries(sortedKeys.map((key) => MapEntry(key, this[key] as V)));
+    return Map<K, V>.fromEntries(sortedKeys.map((key) => MapEntry<K, V>(key, this[key] as V)));
   }
 
   /// 将另一个 Map 合并到当前 Map 中
@@ -45,12 +45,12 @@ extension SortedMapExtension on Map {
   /// map3.merge(map4, overwrite: false);
   /// print(map3); // 输出: {'a': 1, 'b': 2, 'c': 4}
   /// ```
-  Map<K, V> merge<K, V>(Map<K, V> other, {bool overwrite = true}) {
+  Map<K, V> merge(Map<K, V> other, {bool overwrite = true}) {
     other.forEach((key, value) {
       if (overwrite || !containsKey(key)) {
         this[key] = value;
       }
     });
-    return this as Map<K, V>;
+    return this;
   }
 }
