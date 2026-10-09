@@ -1,3 +1,11 @@
+## 1.0.8
+
+- **Breaking**: `WRowButtonsController.initialIndex` 从 `int`（默认 0）改为 `int?`（默认 null），支持无预选状态
+- **Breaking**: `WRowButtonsController.index` 返回类型从 `int` 改为 `int?`
+- **Breaking**: `WRowButtonsController.selectedIndexNotifier` 类型从 `ValueNotifier<int>` 改为 `ValueNotifier<int?>`
+- 新增 `WRowButtonsController.deselect()` 方法，可将选中状态重置为 null
+- 补充 `WRowButtonsController` 及 `WRowButtons` 的单元测试和 Widget 测试
+
 ## 1.0.7
 
 - 优化多个组件和工具类的代码质量

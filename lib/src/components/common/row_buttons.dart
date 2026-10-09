@@ -76,8 +76,8 @@ class _WRowButtonsState extends State<WRowButtons> {
   /// 滚动控制器
   late ScrollController scrollController;
 
-  /// 当前选中的索引
-  late int currentIndex;
+  /// 当前选中的索引，null 表示无预选
+  int? currentIndex;
 
   @override
   void initState() {
@@ -212,8 +212,8 @@ class WRowButtonsController {
   /// 按钮数量
   final int length;
 
-  /// 当前选中的索引
-  int _index;
+  /// 当前选中的索引，null 表示无预选
+  int? _index;
 
   /// 按钮的全局键，用于获取按钮的位置信息
   late List<GlobalKey> _keys;
@@ -250,20 +250,20 @@ class WRowButtonsController {
   final double scrollThreshold;
 
   /// 索引变化通知器，用于通知索引变化
-  final ValueNotifier<int> _indexNotifier;
+  final ValueNotifier<int?> _indexNotifier;
 
-  /// 获取当前选中的索引
-  int get index => _index;
+  /// 获取当前选中的索引，null 表示无预选
+  int? get index => _index;
 
   /// 获取选中状态通知器
   ///
   /// 可以通过监听此通知器来获取选中状态的变化
-  ValueNotifier<int> get selectedIndexNotifier => _indexNotifier;
+  ValueNotifier<int?> get selectedIndexNotifier => _indexNotifier;
 
   /// 构造函数
   ///
   /// [length] 按钮数量
-  /// [initialIndex] 初始选中的索引，默认 0
+  /// [initialIndex] 初始选中的索引，null 表示无预选，默认 null
   /// [animationDuration] 动画持续时间
   /// [scrollToCenter] 是否滚动到中心，默认 true
   /// [scrollCurve] 滚动曲线，默认 Curves.ease
@@ -272,7 +272,7 @@ class WRowButtonsController {
   /// [scrollThreshold] 滚动阈值，默认 0.5
   WRowButtonsController({
     required this.length,
-    int initialIndex = 0,
+    int? initialIndex,
     this.animationDuration,
     this.scrollToCenter = true,
     this.scrollCurve = Curves.ease,
@@ -286,8 +286,8 @@ class WRowButtonsController {
       throw ArgumentError('按钮数量必须为正数');
     }
 
-    // 检查初始索引是否在有效范围内
-    if (initialIndex < 0 || initialIndex >= length) {
+    // 检查初始索引是否在有效范围内（仅当不为 null 时校验）
+    if (initialIndex != null && (initialIndex < 0 || initialIndex >= length)) {
       throw ArgumentError('初始索引必须在有效范围内');
     }
 
@@ -447,6 +447,15 @@ class WRowButtonsController {
   /// [value] 目标索引
   void jumpTo(int value) {
     _changeIndex(value);
+  }
+
+  /// 取消选中，将索引重置为 null
+  ///
+  /// 调用后所有按钮将恢复为未选中状态。
+  /// 此操作不触发滚动动画。
+  void deselect() {
+    _index = null;
+    _indexNotifier.value = null;
   }
 
   /// 释放资源
