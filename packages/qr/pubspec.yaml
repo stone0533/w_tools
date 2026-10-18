@@ -1,0 +1,28 @@
+name: w_tools_qr
+description: "w_tools 的二维码扫描组件层：基于 qr_code_scanner_plus 提供单次/连续扫描、生命周期暂停恢复、广播扫描流与相机控制。"
+version: 1.0.0
+
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/qr
+issue_tracker: https://github.com/stone0533/w_tools/issues
+
+topics:
+  - flutter
+  - qr-code
+  - barcode
+  - scanner
+
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # 2.2.0+ 要求 Flutter 3.44 / iOS 13 / AGP 9，暂不升级
+  qr_code_scanner_plus: ">=2.1.2 <2.2.0"
+
+dev_dependencies:
+  flutter_lints: ^4.0.0

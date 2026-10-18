@@ -1,21 +1,12 @@
 library w;
 
-// 核心应用
-export 'src/app.dart';
-export 'src/config.dart';
+export 'config.dart';
 
-// 组件
-export 'src/components/components.dart';
-
-// Get 相关
-export 'src/utils/get.dart';
-export 'src/utils/router_observer.dart';
-
-// API 相关
-export 'src/api/api.dart';
-
-// 工具类
-export 'src/utils/utils.dart';
-
-// 扩展
-export 'src/extensions/extensions.dart';
+export 'package:w_tools_core/w_tools_core.dart' hide WConfig;
+export 'package:w_tools_api/w_tools_api.dart';
+export 'package:w_tools_app/w_tools_app.dart';
+export 'package:w_tools_toast/w_tools_toast.dart';
+export 'package:w_tools_form/w_tools_form.dart';
+export 'package:w_tools_ui/w_tools_ui.dart';
+export 'package:w_tools_map/w_tools_map.dart';
+export 'package:w_tools_qr/w_tools_qr.dart';

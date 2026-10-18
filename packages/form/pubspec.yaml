@@ -1,0 +1,30 @@
+name: w_tools_form
+description: "w_tools 的表单层：提供输入框、下拉、日期、单选复选等字段组件，以及表单构建器、边框、弹窗与字段级校验能力，支持配置化构建。"
+version: 1.0.0
+
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/form
+issue_tracker: https://github.com/stone0533/w_tools/issues
+
+topics:
+  - flutter
+  - forms
+  - validation
+  - widgets
+
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_form_builder: ^10.3.0+2
+  form_builder_validators: ^11.3.0
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_lints: ^4.0.0

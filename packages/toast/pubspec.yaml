@@ -1,0 +1,28 @@
+name: w_tools_toast
+description: "w_tools 的轻量提示层：基于 bot_toast 封装文本、成功、错误、警告、加载与自定义提示，统一配置样式、位置与关闭行为。"
+version: 1.0.0
+
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/toast
+issue_tracker: https://github.com/stone0533/w_tools/issues
+
+topics:
+  - flutter
+  - toast
+  - notifications
+  - ui
+
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  bot_toast: ^4.1.3
+
+dev_dependencies:
+  flutter_lints: ^4.0.0

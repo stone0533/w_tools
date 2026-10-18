@@ -2,111 +2,88 @@
 
 ## 概述
 
-API 模块提供了一套完整的网络请求解决方案，基于 Dio 封装，包含配置管理、拦截器体系和数据仓库模式。
+API 模块（`w_tools_api` 子包）提供了一套基于 Dio 封装的网络请求方案，包含 Dio 实例管理（配置直接使用 Dio 的 `BaseOptions`）、拦截器体系和数据仓库基类。
+
+该子包**零内部依赖**：不依赖其他 w_tools 子包；日志通过 `WApiConfig` 注入回调，Token 通过 `tokenGetter` / `tokenClearer` 注入，由调用方决定存储实现。
+
+Cookie 管理未内置，需要时请使用社区包 [`dio_cookie_manager`](https://pub.dev/packages/dio_cookie_manager)。
 
 ## 模块结构
 
 ```
 api/
-├── api.dart                    # 统一导出文件
-├── common.dart                 # 公共接口和标识符
+├── api.dart                        # 统一导出文件
+├── api_config.dart                 # WApiConfig 全局配置
+├── common.dart                     # IApiPath / ApiClientId
 ├── clients/
-│   ├── http_config.dart        # HTTP 配置类
-│   └── dio_util.dart           # Dio 工具类
+│   └── dio_registry.dart           # DioRegistry Dio 实例注册表
 ├── interceptors/
-│   ├── log.dart                # 日志拦截器
-│   ├── token.dart              # Token 拦截器
-│   ├── cache.dart              # 缓存拦截器
-│   └── cookie.dart             # Cookie 拦截器
+│   ├── log.dart                    # WLogInterceptor 日志拦截器
+│   └── token.dart                  # WTokenInterceptor 令牌拦截器
 └── repositories/
-    └── base_repository.dart    # 数据仓库基础类
+    └── base_repository.dart        # BaseRepository 数据仓库基类
 ```
 
 ---
 
-## 1. HttpConfig - HTTP 配置类
+## 1. DioRegistry - Dio 实例注册表
 
 ### 功能说明
 
-用于管理 HTTP 请求的配置参数，支持不可变性设计和便捷工厂方法。
+按 `baseUrl` 缓存并复用 `Dio` 实例，避免重复创建。配置直接使用 Dio 的 `BaseOptions`，不再引入额外的配置类型。
 
-### 配置字段
+传入的 `BaseOptions` 会被**复制**并注入 `baseUrl`，因此：
 
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `connectTimeout` | Duration | 10秒 | 连接超时时间 |
-| `receiveTimeout` | Duration | 50秒 | 接收超时时间 |
-| `retry` | bool | false | 是否启用重试 |
-| `retryCount` | int | 3 | 重试次数 |
-| `enableCertificateValidation` | bool | true | 是否启用证书验证 |
-| `securityHeaders` | Map<String,String> | 安全头部 | 安全响应头部配置 |
-
-### 使用示例
-
-```dart
-// 创建默认配置
-final config = HttpConfig();
-
-// 创建自定义配置
-final custom = HttpConfig(
-  connectTimeout: const Duration(seconds: 5),
-  retry: true,
-  retryCount: 3,
-);
-
-// 使用便捷工厂方法
-final fast = HttpConfig.fastTimeout();       // 快速超时配置
-final withRetry = HttpConfig.withRetry();    // 带重试配置
-final unsafe = HttpConfig.unsafe();          // 不安全配置（测试用）
-
-// 基于现有配置创建新配置
-final modified = custom.copyWith(retryCount: 5);
-```
-
----
-
-## 2. DioUtil - Dio 工具类
-
-### 功能说明
-
-单例模式管理 Dio 实例，支持缓存拦截器和自定义拦截器配置。
+- 传入实例不会被修改；
+- 多个 `Dio` 实例之间不会共享同一份可变配置。
 
 ### 核心方法
 
-| 方法 | 说明 |
+| 成员 | 说明 |
 |------|------|
-| `instance(baseUrl, options)` | 获取或创建 DioUtil 实例 |
-| `dio` | 获取 Dio 实例 |
+| `DioRegistry.forBaseUrl(baseUrl, {options, interceptors})` | 获取或创建指定 `baseUrl` 的实例 |
+| `dio` | 获取内部 `Dio` 实例 |
+| `DioRegistry.dispose(baseUrl)` | 关闭并移除指定 `baseUrl` 的实例 |
+| `DioRegistry.clearCache()` | 关闭并清空所有缓存实例 |
+
+> 注意：同一 `baseUrl` 命中缓存后会**直接返回已有实例**，此时传入的 `options` / `interceptors` 会被忽略；如需更换配置，请先 `DioRegistry.dispose(baseUrl)`。
 
 ### 使用示例
 
 ```dart
-// 基础用法
-final dioUtil = DioUtil.instance('https://api.example.com');
-final response = await dioUtil.dio.get('/users');
+// 基础用法（options 缺省时使用 WApiConfig.baseOptions）
+final registry = DioRegistry.forBaseUrl('https://api.example.com');
+final response = await registry.dio.get('/users');
 
-// 启用缓存
-final cachedDio = DioUtil.instance(
+// 自定义 Dio 配置
+final custom = DioRegistry.forBaseUrl(
   'https://api.example.com',
-  enableCache: true,
-  maxCacheSize: 1024 * 1024 * 20, // 20MB
-  maxCacheAge: 60 * 60, // 1小时
+  options: BaseOptions(
+    connectTimeout: const Duration(seconds: 15),
+    responseType: ResponseType.plain,
+  ),
 );
 
-// 添加自定义拦截器
-final customDio = DioUtil.instance(
+// 追加拦截器（按传入顺序挂载）
+final withInterceptors = DioRegistry.forBaseUrl(
   'https://api.example.com',
-  interceptors: [WLogInterceptor(), WTokenInterceptor()],
+  interceptors: [
+    WLogInterceptor(enableLog: kDebugMode),
+    WTokenInterceptor(tokenGetter: () => token),
+  ],
 );
+
+// 释放资源
+DioRegistry.dispose('https://api.example.com');
 ```
 
 ---
 
-## 3. WLogInterceptor - 日志拦截器
+## 2. WLogInterceptor - 日志拦截器
 
 ### 功能说明
 
-记录 HTTP 请求和响应的详细日志，支持灵活配置日志输出内容。
+按开关打印请求与响应详情，输出经 `WApiConfig.logDebugHandler` / `WApiConfig.logErrorHandler`。
 
 ### 配置参数
 
@@ -124,108 +101,97 @@ final customDio = DioUtil.instance(
 
 ```dart
 final logInterceptor = WLogInterceptor(
-  requestBody: true,
   responseBody: true,
-  enableLog: kDebugMode, // 仅在调试模式启用
+  enableLog: kDebugMode,
 );
 ```
 
 ---
 
-## 4. WTokenInterceptor - Token 拦截器
+## 3. WTokenInterceptor - 令牌拦截器
 
 ### 功能说明
 
-自动处理 Token 的添加、更新和过期重试逻辑。
+自动为请求添加 `Authorization: Bearer <token>`，并在收到未授权错误时清除 Token、请求新 Token 并重试。
+
+存储通过依赖注入解耦：`tokenGetter` / `tokenClearer` 由调用方提供。
 
 ### 配置参数
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `onAuthError` | Future<String?> Function() | null | 认证错误回调，返回新 Token |
-| `onRequestOptions` | void Function(RequestOptions) | null | 请求选项修改回调 |
-| `onResponseOptions` | void Function(Response) | null | 响应处理回调 |
-| `onErrorOptions` | void Function(DioException) | null | 错误处理回调 |
+| `tokenGetter` | `String? Function()?` | null | 读取当前 token |
+| `tokenClearer` | `Future<void> Function()?` | null | 清除 token |
+| `tokenRefresher` | `Future<String?> Function()?` | null | 刷新 token，返回新 token（返回 null 表示失败） |
+| `configureRequest` | `void Function(RequestOptions)?` | null | 配置请求（**可修改**） |
+| `configureResponse` | `void Function(Response)?` | null | 配置响应（**可修改**） |
+| `observeError` | `void Function(DioException)?` | null | 错误观测（**仅观测**，与 401 刷新独立，可同时使用） |
 | `unauthorizedStatusCode` | int | 401 | 未授权状态码 |
-| `maxAuthRetries` | int | 1 | 最大重试次数 |
+| `maxAuthRetries` | int | 1 | 认证重试上限 |
+
+### 行为说明
+
+- 请求时仅当 `contentType` 为空才补 `application/json`，不覆盖 `multipart/form-data` 等自定义类型。
+- `observeError` 与 401 刷新**相互独立、可同时使用**：错误观测回调先无条件执行，之后再独立判断 401 走刷新流程。
+- **并发 401 共享同一次刷新（single-flight）**，不会重复调用 `tokenRefresher`。
+- `tokenRefresher` 抛出的异常会被捕获并记录日志，请求以原错误结束，不会逃逸出拦截器链。
+- 刷新契约：`tokenRefresher` 取得新 token 后应自行持久化，使 `tokenGetter` 随后返回新 token；若提供 `tokenClearer`，须保证清除后 `tokenGetter` 不再返回旧 token（返回 null 亦可，此时重试会使用拦截器显式写入的新 token）。
+- 重试会**重新经过整条请求拦截器链**（请保证 `onRequest` 逻辑幂等）；`FormData` 请求体会在重放前被 `clone()`，`Stream` 请求体无法重放，此时放弃重试并记录日志。
+- 重试依赖**经 `DioRegistry.forBaseUrl` 创建的 Dio**；若自行 `Dio()` 创建实例，重试会走 `DioRegistry` 中的另一实例，可能导致配置不一致。
 
 ### 使用示例
 
 ```dart
 final tokenInterceptor = WTokenInterceptor(
-  onAuthError: () async {
-    // 获取新 token 的逻辑
-    return await refreshToken();
-  },
+  tokenGetter: () => WToken.getToken(),
+  tokenClearer: () async => WToken.clearAllTokens(),
+  tokenRefresher: () async => await refreshToken(),
   unauthorizedStatusCode: 401,
 );
 ```
 
 ---
 
-## 5. WCacheInterceptor - 缓存拦截器
+## 4. WApiConfig - 全局配置
 
-### 功能说明
-
-支持内存缓存和磁盘缓存，实现 LRU 淘汰策略。
-
-### 配置参数
-
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `maxCacheSize` | int | 10MB | 最大缓存大小 |
-| `maxCacheAge` | int | 24小时 | 最大缓存时间（秒） |
-| `maxMemoryEntries` | int | 100 | 内存缓存最大条目数 |
-
-### 使用示例
+| 字段 | 说明 |
+|------|------|
+| `baseOptions` | 全局默认 `BaseOptions`（可覆盖；`DioRegistry` 使用时复制，不修改原实例） |
+| `logDebugHandler` | Debug 日志回调，需显式注入 |
+| `logErrorHandler` | Error 日志回调，需显式注入 |
 
 ```dart
-final cacheInterceptor = WCacheInterceptor(
-  maxCacheSize: 1024 * 1024 * 20, // 20MB
-  maxCacheAge: 60 * 60, // 1小时
-  maxMemoryEntries: 200,
+WApiConfig.baseOptions = BaseOptions(
+  connectTimeout: const Duration(seconds: 15),
+  receiveTimeout: const Duration(seconds: 30),
 );
+WApiConfig.logDebugHandler = (m) => debugPrint('$m');
+WApiConfig.logErrorHandler = (m) => debugPrint('[E] $m');
 ```
 
 ---
 
-## 6. WCookieInterceptor - Cookie 拦截器
+## 5. BaseRepository - 数据仓库基类
 
 ### 功能说明
 
-自动管理 HTTP 请求和响应中的 Cookie。
+整合本地数据源与网络数据源的基础结构。
 
-### 使用示例
-
-```dart
-final cookieInterceptor = WCookieInterceptor();
-```
-
----
-
-## 7. BaseRepository - 数据仓库基础类
-
-### 功能说明
-
-提供数据仓库的基础结构，整合本地数据源和网络数据源。
+- `BaseLocalDataSource` / `BaseRemoteDataSource`：数据源抽象基类。
+- `BaseRepository<LocalDataSourceType, RemoteDataSourceType>`：持有 `localDataSource` / `remoteDataSource`。
 
 ### 使用示例
 
 ```dart
 class UserRepository extends BaseRepository<UserLocalDataSource, UserRemoteDataSource> {
-  UserRepository({
-    super.localDataSource,
-    super.remoteDataSource,
-  });
+  UserRepository({super.localDataSource, super.remoteDataSource});
 
   Future<User?> getUser(int id) async {
-    // 先从本地缓存获取
     final local = await localDataSource?.getUser(id);
     if (local != null) return local;
 
-    // 从网络获取
     final remote = await remoteDataSource?.getUser(id);
-    await localDataSource?.saveUser(remote!);
+    if (remote != null) await localDataSource?.saveUser(remote);
     return remote;
   }
 }
@@ -233,29 +199,41 @@ class UserRepository extends BaseRepository<UserLocalDataSource, UserRemoteDataS
 
 ---
 
+## 6. common.dart
+
+供使用方实现的通用契约（**扩展点**，库内部不强依赖，请勿因"无内部引用"而删除）：
+
+| 类型 | 说明 |
+|------|------|
+| `IApiPath` | 抽象接口，定义 `String get baseUrl` |
+| `ApiClientId` | 不可变标识符，持有 `name` |
+
+---
+
 ## 完整配置示例
 
 ```dart
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:w_tools/w_tools.dart';
 
 void setupApi() {
-  // 配置全局 HTTP 配置
-  WConfig.httpConfig = HttpConfig(
+  // 全局 Dio 基础配置（可选）
+  WApiConfig.baseOptions = BaseOptions(
     connectTimeout: const Duration(seconds: 15),
-    retry: true,
-    retryCount: 3,
+    receiveTimeout: const Duration(seconds: 30),
   );
 
-  // 创建带所有拦截器的 Dio 实例
-  final dioUtil = DioUtil.instance(
+  // 日志回调
+  WApiConfig.logDebugHandler = (m) => WLogger.d(m);
+  WApiConfig.logErrorHandler = (m) => WLogger.e(m);
+
+  // 创建带拦截器的 Dio 实例
+  final registry = DioRegistry.forBaseUrl(
     'https://api.example.com',
-    enableCache: true,
     interceptors: [
       WLogInterceptor(enableLog: kDebugMode),
-      WTokenInterceptor(
-        onAuthError: () async => await AuthService.refreshToken(),
-      ),
-      WCookieInterceptor(),
+      WTokenInterceptor(tokenGetter: () => token),
     ],
   );
 }
@@ -265,16 +243,11 @@ void setupApi() {
 
 ## 拦截器执行顺序
 
-```
-请求方向:
-┌─────────────────────────────────────────────────────────┐
-│  WTokenInterceptor → WLogInterceptor → WCookieInterceptor → 网络请求  │
-└─────────────────────────────────────────────────────────┘
+拦截器按添加顺序在请求方向正序执行、响应方向倒序执行（Dio 标准行为）：
 
-响应方向:
-┌─────────────────────────────────────────────────────────┐
-│  网络响应 → WCacheInterceptor → WLogInterceptor → 业务代码    │
-└─────────────────────────────────────────────────────────┘
+```
+请求方向:  interceptors[0] → interceptors[1] → ... → 网络请求
+响应方向:  网络响应 → ... → interceptors[1] → interceptors[0] → 业务代码
 ```
 
 ---
@@ -283,25 +256,24 @@ void setupApi() {
 
 | 错误类型 | 处理方式 |
 |----------|----------|
-| 连接超时 | 记录错误日志，可配置重试 |
-| 网络错误 | 记录错误日志，提示用户检查网络 |
-| 401 未授权 | 清除 Token，尝试刷新并重试 |
-| 服务器错误 | 记录错误日志，返回错误信息 |
-
----
-
-## 缓存策略
-
-1. **内存缓存**：优先使用，容量限制 100 条，LRU 淘汰
-2. **磁盘缓存**：二级缓存，容量限制 10MB，按时间和大小清理
-3. **缓存键**：基于 URL + 查询参数生成 MD5 哈希
-4. **缓存有效期**：默认 24 小时，可配置
+| 连接超时 / 发送超时 / 接收超时 | 记录「网络连接超时」错误日志 |
+| 网络连接失败 | 记录「网络连接失败」错误日志 |
+| 401 未授权 | `WTokenInterceptor` 清除 Token，尝试刷新并重试（受 `maxAuthRetries` 限制） |
+| 服务器错误（badResponse） | 记录状态码 |
+| 请求取消 | 记录「请求已取消」 |
 
 ---
 
 ## 安全特性
 
-- ✅ HTTPS 证书验证（默认启用）
-- ✅ 安全响应头部配置
-- ✅ Token 日志脱敏（仅显示前10位）
-- ✅ 不可变配置对象
+- ✅ Token 日志脱敏（仅显示前 10 位）
+- ✅ `DioRegistry` 使用前复制 `BaseOptions`，避免实例间共享可变配置
+
+---
+
+## 相关文档
+
+- [w_tools_core — WToken / WStorage](core_module.md)：Token 的持久化存储（`WToken` + `WStorage`）在 core 子包，`WTokenInterceptor` 通过 `tokenGetter` / `tokenClearer` 回调与它们解耦。
+- [w_tools_core — WLogger](core_module.md)：`WApiConfig.logDebugHandler` / `logErrorHandler` 通常对接 `WLogger.d` / `WLogger.e`。
+- [w_tools_core — WAsync](core_module.md)：网络请求的加载状态管理可配合 `WAsync` 的 `showLoading` / `onLoadingStart` / `onLoadingEnd`。
+- [模块文档索引](README.md)：全部 8 个子包的依赖矩阵与版本约束。

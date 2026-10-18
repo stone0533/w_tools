@@ -1,0 +1,28 @@
+name: w_tools_app
+description: "w_tools 的应用启动层：提供 WApp 启动器、插件依赖编排、GetX 路由与语言切换、底部弹窗与路由观察者，帮助快速搭建应用骨架。"
+version: 1.0.0
+
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/app
+issue_tracker: https://github.com/stone0533/w_tools/issues
+
+topics:
+  - flutter
+  - getx
+  - routing
+  - app-starter
+
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  get: ^4.7.3
+
+dev_dependencies:
+  flutter_lints: ^4.0.0

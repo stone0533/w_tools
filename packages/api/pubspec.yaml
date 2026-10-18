@@ -1,0 +1,28 @@
+name: w_tools_api
+description: "w_tools 的网络层：基于 Dio 提供多客户端注册、日志与 Token 拦截器、统一错误处理及 Repository 基类，可按域名管理多个客户端。"
+version: 1.0.0
+
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/api
+issue_tracker: https://github.com/stone0533/w_tools/issues
+
+topics:
+  - flutter
+  - dio
+  - networking
+  - interceptors
+
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  dio: ^5.9.2
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
