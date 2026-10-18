@@ -73,10 +73,11 @@ void main() {
       expect(identical(cfg, copied), false);
     });
 
-    test('buildBordered — name 空 → 抛 ArgumentError', () {
+    test('build(bordered: true) — name 空 → 抛 ArgumentError', () {
       final cfg = WFormDropdownConfig();
       expect(
-        () => cfg.buildBordered<String>(
+        () => cfg.build<String>(
+          bordered: true,
           name: '',
           items: const {'a': 'Apple'},
         ),
@@ -269,7 +270,7 @@ void main() {
       expect(container.constraints?.maxWidth, 200);
     });
 
-    testWidgets('buildBordered → 返回带 WFormBorderWithData', (tester) async {
+    testWidgets('build(bordered: true) → 返回带 WFormBorderWithData', (tester) async {
       final cfg = WFormDropdownConfig();
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
@@ -282,7 +283,8 @@ void main() {
             body: WFormBuilder(
               formData: formData,
               formBorderConfig: formBorderCfg,
-              child: cfg.buildBordered<String>(
+              child: cfg.build<String>(
+                bordered: true,
                 name: 'fruit',
                 items: const {'a': '苹果'},
                 hintText: '选',
@@ -297,7 +299,7 @@ void main() {
       expect(find.byType(WFormDropdown<String>), findsOneWidget);
     });
 
-    testWidgets('buildBordered readOnly → 外层只读 + 内层禁用', (tester) async {
+    testWidgets('build(bordered: true) readOnly → 外层只读 + 内层禁用', (tester) async {
       final cfg = WFormDropdownConfig();
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
@@ -309,7 +311,8 @@ void main() {
             body: WFormBuilder(
               formData: WFormData(),
               formBorderConfig: formBorderCfg,
-              child: cfg.buildBordered<String>(
+              child: cfg.build<String>(
+                bordered: true,
                 name: 'fruit',
                 items: const {'a': '苹果'},
                 readOnly: true,
@@ -407,10 +410,10 @@ void main() {
       expect(c, isNotNull);
     });
 
-    test('buildBordered — name 空 → 抛 ArgumentError', () {
+    test('build(bordered: true) — name 空 → 抛 ArgumentError', () {
       final cfg = WFormMultiDropdownConfig();
       expect(
-        () => cfg.buildBordered(name: '', items: const {'a': 'A'}),
+        () => cfg.build(bordered: true, name: '', items: const {'a': 'A'}),
         throwsArgumentError,
       );
     });
@@ -686,7 +689,7 @@ void main() {
       );
     });
 
-    testWidgets('buildBordered → WFormBorderWithData 包装', (tester) async {
+    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
       final cfg = WFormMultiDropdownConfig();
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
@@ -699,7 +702,8 @@ void main() {
             body: WFormBuilder(
               formData: formData,
               formBorderConfig: formBorderCfg,
-              child: cfg.buildBordered(
+              child: cfg.build(
+                bordered: true,
                 name: 'tags',
                 items: const {'a': '美食'},
               ),
@@ -712,7 +716,7 @@ void main() {
       expect(find.byType(WFormMultiDropdown), findsOneWidget);
     });
 
-    testWidgets('buildBordered readOnly → 外层只读 + 点击不弹出', (tester) async {
+    testWidgets('build(bordered: true) readOnly → 外层只读 + 点击不弹出', (tester) async {
       final cfg = WFormMultiDropdownConfig();
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
@@ -724,7 +728,8 @@ void main() {
             body: WFormBuilder(
               formData: WFormData(),
               formBorderConfig: formBorderCfg,
-              child: cfg.buildBordered(
+              child: cfg.build(
+                bordered: true,
                 name: 'tags',
                 items: const {'a': 'A'},
                 readOnly: true,
@@ -750,7 +755,7 @@ void main() {
           (w.decoration as BoxDecoration).color == color,
     );
 
-    testWidgets('buildBordered 清空内层 containerDecoration（避免与外层边框叠加）', (tester) async {
+    testWidgets('build(bordered: true) 清空内层 containerDecoration（避免与外层边框叠加）', (tester) async {
       const innerColor = Color(0xFF333333);
       final cfg = WFormMultiDropdownConfig()
         ..containerDecoration = const BoxDecoration(color: innerColor);
@@ -765,7 +770,7 @@ void main() {
             body: WFormBuilder(
               formData: formData,
               formBorderConfig: formBorderCfg,
-              child: cfg.buildBordered(name: 'tags', items: const {'a': 'A'}),
+              child: cfg.build(bordered: true, name: 'tags', items: const {'a': 'A'}),
             ),
           ),
         ),
@@ -776,7 +781,7 @@ void main() {
       expect(find.byType(WFormBorder), findsOneWidget);
     });
 
-    testWidgets('build() 仍保留 containerDecoration（buildBordered 的副本不污染原配置）', (tester) async {
+    testWidgets('build() 仍保留 containerDecoration（build(bordered: true) 的副本不污染原配置）', (tester) async {
       const innerColor = Color(0xFF333333);
       final cfg = WFormMultiDropdownConfig()
         ..containerDecoration = const BoxDecoration(color: innerColor);

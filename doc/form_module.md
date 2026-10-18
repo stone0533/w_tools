@@ -222,7 +222,7 @@ WFormBorderDecoration decoration = const WFormBorderDecoration()
 
 ### 4.3 WFormBorderWithData
 
-自动从祖先 `WFormBuilder` 获取 `WFormData`，通过 `formData.ensureBorderKey(name)` 注册边框 key，并注入 `WFormReadOnlyScope`。字段组件的 `buildBordered()` 即调用它。
+自动从祖先 `WFormBuilder` 获取 `WFormData`，通过 `formData.ensureBorderKey(name)` 注册边框 key，并注入 `WFormReadOnlyScope`。字段 Config 的 `build(bordered: true)` 即调用它。
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -248,9 +248,9 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 ## 5. 字段组件
 
 所有字段组件遵循统一模式：
-- `XxxConfig` + `Xxx` 组件 + `build()` / `buildBordered()` 两种构建
-- `buildBordered()` 清空内层 `containerDecoration`，包装 `WFormBorderWithData`
-- 只读 = 自身 `readOnly` ∨ `WFormReadOnlyScope.readOnlyOf(context)`
+- `XxxConfig` + `Xxx` 组件 + 单一构建入口 `build(bordered: bool)`
+- `bordered: true` 时清空内层 `containerDecoration`，包装 `WFormBorderWithData`；`bordered: false` 返回裸字段
+- 只读 = `build` 的 `readOnly` 参数 ∨ `WFormReadOnlyScope.readOnlyOf(context)`（部分字段还会与 `enabled` 合并）
 - 变更回调 → `FormBuilderFieldState.didChange` → `WFormData.onChange`
 
 ### 5.1 WFormTextField
@@ -291,22 +291,20 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 #### 使用示例
 
 ```dart
-WFormTextField(
+(WFormTextFieldConfig()
+  ..style = const TextStyle(fontSize: 16)
+  ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
+  ..inputFormatters = [FilteringTextInputFormatter.digitsOnly])
+    .build(
   name: 'username',
   hintText: '请输入用户名',
-  config: WFormTextFieldConfig()
-    ..style = const TextStyle(fontSize: 16)
-    ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
-    ..inputFormatters = [FilteringTextInputFormatter.digitsOnly],
   validator: (v) => (v?.isEmpty ?? true) ? '请输入' : null,
-).buildBordered(formData, name: 'username'),
+  bordered: true,
+),
 
 // 密码字段（带可见性切换 + 清空按钮）
-WFormTextField(
-  name: 'password',
-  config: WFormTextFieldConfig()
-    ..obscureText = true,
-).buildBordered(formData, name: 'password'),
+(WFormTextFieldConfig()..obscureText = true)
+    .build(name: 'password', bordered: true),
 ```
 
 ### 5.2 WFormDropdown\<T\>
@@ -321,14 +319,14 @@ WFormTextField(
 ```dart
 enum Gender { male, female }
 
-WFormDropdown<Gender>(
+(WFormDropdownConfig()..style = const TextStyle(fontSize: 16))
+    .build(
   name: 'gender',
   items: const {Gender.male: '男', Gender.female: '女'},
   initialValue: Gender.male,
   hint: '请选择性别',
-  config: WFormDropdownConfig()
-    ..textColorStyle = const TextStyle(fontSize: 16),
-).buildBordered(formData, name: 'gender'),
+  bordered: true,
+),
 ```
 
 ### 5.3 WFormMultiDropdown
@@ -344,13 +342,13 @@ WFormDropdown<Gender>(
 #### 使用示例
 
 ```dart
-WFormMultiDropdown(
+(WFormMultiDropdownConfig()..disabledKeys = const {'music'})
+    .build(
   name: 'hobbies',
   items: const {'read': '阅读', 'sport': '运动', 'music': '音乐'},
-  disabledKeys: const {'music'}, // 已选的禁用项
   hintText: '请选择爱好',
-  config: WFormMultiDropdownConfig(),
-).buildBordered(formData, name: 'hobbies'),
+  bordered: true,
+),
 ```
 
 ### 5.4 WFormCheckbox
@@ -373,13 +371,13 @@ WFormMultiDropdown(
 #### 使用示例
 
 ```dart
-WFormDatePicker(
+(WFormDatePickerConfig()..displayFormat = 'yyyy-MM-dd')
+    .build(
   name: 'birthday',
   firstDate: DateTime(1900),
   lastDate: DateTime.now(),
-  config: WFormDatePickerConfig()
-    ..displayFormat = 'yyyy-MM-dd',
-).buildBordered(formData, name: 'birthday'),
+  bordered: true,
+),
 ```
 
 ### 5.7 WFormButton
@@ -538,29 +536,31 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              WFormTextField(
+              (WFormTextFieldConfig()
+                ..style = const TextStyle(fontSize: 16)
+                ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12))
+                  .build(
                 name: 'username',
                 hintText: '用户名',
-                config: WFormTextFieldConfig()
-                  ..style = const TextStyle(fontSize: 16)
-                  ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 validator: (v) => (v?.isEmpty ?? true) ? '请输入用户名' : null,
-              ).buildBordered(_formData, name: 'username'),
+                bordered: true,
+              ),
 
               const SizedBox(height: 12),
 
-              WFormTextField(
+              (WFormTextFieldConfig()
+                ..obscureText = _obscurePwd
+                ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12))
+                  .build(
                 name: 'password',
                 hintText: '密码',
-                config: WFormTextFieldConfig()
-                  ..obscureText = _obscurePwd
-                  ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 validator: (v) {
                   if (v == null || v.isEmpty) return '请输入密码';
                   if (v.length < 6) return '密码至少 6 位';
                   return null;
                 },
-              ).buildBordered(_formData, name: 'password'),
+                bordered: true,
+              ),
 
               const SizedBox(height: 24),
 
@@ -590,7 +590,7 @@ class _LoginPageState extends State<LoginPage> {
 |---|------|------|
 | 1 | **Flutter 版本锁定** | 依赖链 `flutter_form_builder:10.3.0+2` / `form_builder_validators:11.3.0` 传递最低 Flutter 3.38，请确保项目约束 ≥ 3.38 |
 | 2 | **Config 私有字段** | `WFormBorderConfig._*` / `WFormTextFieldConfig._*` 等私有字段通过 setter / builder 方法配置，直接赋值会触发静态错误 |
-| 3 | **buildBordered 清空内层装饰** | 调用 `buildBordered()` 后，字段自身 `containerDecoration` 会被清空；必须依赖外层 `WFormBorderWithData` 提供边框 |
+| 3 | **bordered 构建清空内层装饰** | 调用 `build(bordered: true)` 后，字段自身 `containerDecoration` 会被清空；必须依赖外层 `WFormBorderWithData` 提供边框 |
 | 4 | **Dropdown items 键必须存在** | `WFormDropdown.items` 是 `Map<T, String>`，初始值 / 字段值必须存在于 map 的 keys 中（`FormBuilderDropdown` 内部断言会失败） |
 | 5 | **Scope 管道** | `WFormTextFieldScope`（InheritedWidget）将输入状态下发给插槽 Widget（清空按钮 / 密码切换），无需手动同步 |
 | 6 | **WFormBorderConfig 继承** | 子级显式传入 `WFormBorder.config` 优先；否则继承 `WFormBuilder.formBorderConfig`；都没配置时 `WFormBorder` 不渲染装饰 |

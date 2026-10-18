@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import '../border/border_with_data.dart';
 import '../border/read_only_scope.dart';
+import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_defaults.dart';
 import '../popup.dart';
@@ -64,52 +64,41 @@ class WFormMultiDropdown extends StatelessWidget {
       onChanged?.call(selected);
     }
 
-    return Container(
+    return WFormFieldFrame(
       height: config._height,
       width: width ?? config._width,
-      alignment: Alignment.center,
       decoration: config._containerDecoration,
       margin: config._containerMargin,
       padding: config._containerPadding,
-      child: Row(
-        children: [
-          config._leading ?? const SizedBox.shrink(),
-          Expanded(
-            child: Container(
-              transform: config._yOffset != null
-                  ? Matrix4.translationValues(0, config._yOffset!, 0)
-                  : null,
-              child: _WFormMultiDropdown(
-                name: name,
-                items: items,
-                initialValue: initialValue,
-                onChanged: onChangedHandler,
-                validator: validator,
-                enabled: (enabled ?? config._enabled) && !WFormReadOnlyScope.readOnlyOf(context),
-                decoration: config._decoration,
-                icon: config._icon,
-                iconSize: config._iconSize,
-                iconDisabledColor: config._iconDisabledColor,
-                iconEnabledColor: config._iconEnabledColor,
-                checkboxUnselectedIcon: config._checkboxUnselectedIcon,
-                checkboxSelectedIcon: config._checkboxSelectedIcon,
-                checkboxDisabledIcon: config._checkboxDisabledIcon,
-                style: config._style,
-                popUpLayerPadding: config._popUpLayerPadding,
-                popUpLayerElevation: config._popUpLayerElevation,
-                popUpLayerShadowColor: config._popUpLayerShadowColor,
-                hintText: hintText ?? config._hintText,
-                disabledKeys: config._disabledKeys,
-                itemPadding: config._itemPadding,
-                itemStyle: config._itemStyle,
-                itemCheckedStyle: config._itemCheckedStyle,
-                itemDisabledStyle: config._itemDisabledStyle,
-                itemTitlePadding: config._itemTitlePadding,
-              ),
-            ),
-          ),
-          ...?config._actions,
-        ],
+      yOffset: config._yOffset,
+      leading: config._leading,
+      actions: config._actions,
+      child: _WFormMultiDropdown(
+        name: name,
+        items: items,
+        initialValue: initialValue,
+        onChanged: onChangedHandler,
+        validator: validator,
+        enabled: (enabled ?? config._enabled) && !WFormReadOnlyScope.readOnlyOf(context),
+        decoration: config._decoration,
+        icon: config._icon,
+        iconSize: config._iconSize,
+        iconDisabledColor: config._iconDisabledColor,
+        iconEnabledColor: config._iconEnabledColor,
+        checkboxUnselectedIcon: config._checkboxUnselectedIcon,
+        checkboxSelectedIcon: config._checkboxSelectedIcon,
+        checkboxDisabledIcon: config._checkboxDisabledIcon,
+        style: config._style,
+        popUpLayerPadding: config._popUpLayerPadding,
+        popUpLayerElevation: config._popUpLayerElevation,
+        popUpLayerShadowColor: config._popUpLayerShadowColor,
+        hintText: hintText ?? config._hintText,
+        disabledKeys: config._disabledKeys,
+        itemPadding: config._itemPadding,
+        itemStyle: config._itemStyle,
+        itemCheckedStyle: config._itemCheckedStyle,
+        itemDisabledStyle: config._itemDisabledStyle,
+        itemTitlePadding: config._itemTitlePadding,
       ),
     );
   }
@@ -710,8 +699,12 @@ class WFormMultiDropdownConfig {
 
   /// 构建 [WFormMultiDropdown] 组件
   ///
-  /// [enabled] 为 null 时使用配置中的值。
-  WFormMultiDropdown build({
+  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
+  ///
+  /// [readOnly] 为 true 时内层控件不可交互、外层使用只读装饰；
+  /// [enabled]（配置项）为 false 时外层同样按只读展示。
+  Widget build({
     required String name,
     required Map<String, String> items,
     Set<String>? initialValue,
@@ -720,9 +713,20 @@ class WFormMultiDropdownConfig {
     String? hintText,
     double? width,
     bool? enabled,
+    bool readOnly = false,
+    bool bordered = false,
+    List<String>? hintTextList,
+    bool? isTransparentBackground,
+    Key? borderKey,
+    bool enableFocusBorder = true,
   }) {
-    return WFormMultiDropdown(
-      config: this,
+    final baseEnabled = enabled ?? _enabled;
+
+    // 清空内层容器装饰（在副本上操作，避免污染原配置的后续 build()），边框交由外层 WFormBorder 绘制
+    final config = bordered ? (copy()..containerDecoration = null) : this;
+
+    final multiDropdown = WFormMultiDropdown(
+      config: config,
       name: name,
       items: items,
       initialValue: initialValue,
@@ -730,7 +734,21 @@ class WFormMultiDropdownConfig {
       validator: validator,
       hintText: hintText,
       width: width,
-      enabled: enabled,
+      enabled: bordered ? baseEnabled && !readOnly : enabled,
+    );
+
+    if (!bordered) {
+      return multiDropdown;
+    }
+
+    return WFormFieldFrame.border(
+      name: name,
+      borderKey: borderKey,
+      hintTextList: hintTextList,
+      isTransparentBackground: isTransparentBackground,
+      enableFocusBorder: enableFocusBorder,
+      readOnly: readOnly || !baseEnabled,
+      child: multiDropdown,
     );
   }
 
@@ -802,57 +820,5 @@ class WFormMultiDropdownConfig {
     config._itemDisabledStyle = itemDisabledStyle ?? _itemDisabledStyle;
     config._itemTitlePadding = itemTitlePadding ?? _itemTitlePadding;
     return config;
-  }
-
-  /// 构建带有 [WFormBorderWithData] 包装的 [WFormMultiDropdown] 组件
-  ///
-  /// 内层容器装饰会被清空，边框交由外层绘制。
-  /// [readOnly] 为 true 时内层控件不可交互、外层使用只读装饰；
-  /// [enabled]（配置项）为 false 时外层同样按只读展示。
-  Widget buildBordered({
-    required String name,
-    required Map<String, String> items,
-    Set<String>? initialValue,
-    ValueChanged<Set<String>>? onChanged,
-    FormFieldValidator<Set<String>>? validator,
-    String? hintText,
-    double? width,
-    bool? enabled,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    Key? key,
-    bool enableFocusBorder = true,
-    bool readOnly = false,
-  }) {
-    if (name.isEmpty) {
-      throw ArgumentError.value(name, 'name', '字段名称不能为空');
-    }
-
-    final baseEnabled = enabled ?? _enabled;
-
-    // 清空内层容器装饰（在副本上操作，避免污染原配置的后续 build()），边框交由外层 WFormBorder 绘制
-    final innerConfig = copy()
-      ..containerDecoration = null
-      ..enabled = baseEnabled && !readOnly;
-
-    final multiDropdown = innerConfig.build(
-      name: name,
-      items: items,
-      initialValue: initialValue,
-      onChanged: onChanged,
-      validator: validator,
-      hintText: hintText,
-      width: width,
-    );
-
-    return WFormBorderWithData(
-      key: key,
-      name: name,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      readOnly: readOnly || !baseEnabled,
-      enableFocusBorder: enableFocusBorder,
-      child: multiDropdown,
-    );
   }
 }

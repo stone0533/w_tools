@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
 
-import '../border/border_with_data.dart';
 import '../border/read_only_scope.dart';
+import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_data.dart';
 
@@ -111,27 +111,16 @@ class WFormDatePicker extends FormBuilderField<String> {
              ),
            );
 
-           return Container(
+           return WFormFieldFrame(
              height: config._height,
              width: config._width,
-             alignment: Alignment.center,
              decoration: config._containerDecoration,
              margin: config._containerMargin,
              padding: config._containerPadding,
-             child: Row(
-               children: [
-                 config._leading ?? const SizedBox.shrink(),
-                 Expanded(
-                   child: Container(
-                     transform: config._yOffset != null
-                         ? Matrix4.translationValues(0, config._yOffset!, 0)
-                         : null,
-                     child: content,
-                   ),
-                 ),
-                 ...?config._actions,
-               ],
-             ),
+             yOffset: config._yOffset,
+             leading: config._leading,
+             actions: config._actions,
+             child: content,
            );
          },
        );
@@ -307,32 +296,10 @@ class WFormDatePickerConfig {
   /// 构建 [WFormDatePicker] 组件
   ///
   /// [enabled] 为 null 时使用配置中的值。
-  WFormDatePicker build({
-    required String name,
-    required DateTime firstDate,
-    required DateTime lastDate,
-    String? initialValue,
-    FormFieldValidator<String>? validator,
-    ValueChanged<String?>? onChanged,
-    bool? enabled,
-  }) {
-    return WFormDatePicker(
-      config: this,
-      name: name,
-      firstDate: firstDate,
-      lastDate: lastDate,
-      initialValue: initialValue,
-      validator: validator,
-      onChanged: onChanged,
-      enabled: enabled,
-    );
-  }
-
-  /// 构建带有 [WFormBorderWithData] 包装的 [WFormDatePicker] 组件
   ///
-  /// 内层容器装饰会被清空，边框交由外层绘制。
-  /// [readOnly] 为 true 时内层不可交互、外层使用只读装饰。
-  Widget buildBordered({
+  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
+  Widget build({
     required String name,
     required DateTime firstDate,
     required DateTime lastDate,
@@ -340,22 +307,32 @@ class WFormDatePickerConfig {
     FormFieldValidator<String>? validator,
     ValueChanged<String?>? onChanged,
     bool? enabled,
+    bool readOnly = false,
+    bool bordered = false,
     List<String>? hintTextList,
     bool? isTransparentBackground,
-    Key? key,
+    Key? borderKey,
     bool enableFocusBorder = true,
-    bool readOnly = false,
   }) {
-    if (name.isEmpty) {
-      throw ArgumentError.value(name, 'name', '字段名称不能为空');
+    if (!bordered) {
+      return WFormDatePicker(
+        config: this,
+        name: name,
+        firstDate: firstDate,
+        lastDate: lastDate,
+        initialValue: initialValue,
+        validator: validator,
+        onChanged: onChanged,
+        enabled: enabled,
+      );
     }
 
     final baseEnabled = enabled ?? _enabled;
     final innerConfig = copy()..containerDecoration = null;
 
-    return WFormBorderWithData(
-      key: key,
+    return WFormFieldFrame.border(
       name: name,
+      borderKey: borderKey,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       readOnly: readOnly || !baseEnabled,

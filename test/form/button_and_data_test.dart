@@ -258,10 +258,12 @@ void main() {
 
     testWidgets('WFormButtonConfig.build 返回 WFormButton', (tester) async {
       final config = WFormButtonConfig();
-      final btn = config.build(
-        name: 'x',
-        onTap: (_, __) {},
-      );
+      final btn =
+          config.build(
+                name: 'x',
+                onTap: (_, __) {},
+              )
+              as WFormButton;
       expect(btn, isA<WFormButton>());
       expect(btn.name, 'x');
     });
@@ -318,7 +320,8 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: config.buildBordered(
+        child: config.build(
+          bordered: true,
           name: 'validated_btn',
           validator: (value) => value == null || value.isEmpty ? '必填' : null,
           focusNode: focusNode,
@@ -332,12 +335,13 @@ void main() {
       expect(formData.formKey.currentState!.validate(), isFalse);
     });
 
-    testWidgets('buildBordered → WFormBorderWithData 包装', (tester) async {
+    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
       final config = WFormButtonConfig()..hintWidget = const Text('边框按钮');
 
       await pumpForm(
         tester,
-        child: config.buildBordered(
+        child: config.build(
+          bordered: true,
           name: 'btn_border',
           onTap: (_, __) {},
         ),

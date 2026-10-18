@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import '../border/border_with_data.dart';
 import '../border/read_only_scope.dart';
+import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_data.dart';
 import '../form_defaults.dart';
@@ -58,52 +58,39 @@ class WFormCheckbox extends FormBuilderField<bool> {
              container: true,
              checked: state.value == true,
              enabled: isEnabled,
-             child: Container(
+             child: WFormFieldFrame(
                height: config._height,
                width: config._width,
-               alignment: Alignment.center,
                decoration: config._containerDecoration,
                margin: config._containerMargin,
                padding: config._containerPadding,
+               leading: config._leading,
+               actions: config._actions,
                child: Row(
+                 mainAxisSize: MainAxisSize.min,
                  children: [
-                   config._leading ?? const SizedBox.shrink(),
-                   Expanded(
-                     child: Row(
-                       mainAxisSize: MainAxisSize.min,
-                       children: [
-                         MouseRegion(
-                           cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-                           child: GestureDetector(
-                             behavior: HitTestBehavior.opaque,
-                             onTap: toggle,
-                             child: Transform(
-                               transform: Matrix4.translationValues(
-                                 0,
-                                 config._iconYOffset ?? 0,
-                                 0,
-                               ),
-                               child: buildIcon(),
-                             ),
-                           ),
-                         ),
-                         SizedBox(width: config._iconSpacing ?? 0),
-                         Expanded(
-                           child: MouseRegion(
-                             cursor: isEnabled
-                                 ? SystemMouseCursors.click
-                                 : SystemMouseCursors.basic,
-                             child: GestureDetector(
-                               behavior: HitTestBehavior.opaque,
-                               onTap: toggle,
-                               child: title,
-                             ),
-                           ),
-                         ),
-                       ],
+                   MouseRegion(
+                     cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                     child: GestureDetector(
+                       behavior: HitTestBehavior.opaque,
+                       onTap: toggle,
+                       child: Transform(
+                         transform: Matrix4.translationValues(0, config._iconYOffset ?? 0, 0),
+                         child: buildIcon(),
+                       ),
                      ),
                    ),
-                   ...?config._actions,
+                   SizedBox(width: config._iconSpacing ?? 0),
+                   Expanded(
+                     child: MouseRegion(
+                       cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                       child: GestureDetector(
+                         behavior: HitTestBehavior.opaque,
+                         onTap: toggle,
+                         child: title,
+                       ),
+                     ),
+                   ),
                  ],
                ),
              ),
@@ -243,64 +230,45 @@ class WFormCheckboxConfig {
   /// 构建 [WFormCheckbox] 组件
   ///
   /// [enabled] 为 null 时使用配置中的值。
-  WFormCheckbox build({
+  ///
+  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
+  Widget build({
     required String name,
     required Widget title,
     bool initialValue = false,
     bool? enabled,
     ValueChanged<bool?>? onChanged,
     FormFieldValidator<bool>? validator,
+    bool readOnly = false,
+    bool bordered = false,
+    List<String>? hintTextList,
+    bool? isTransparentBackground,
+    Key? borderKey,
+    bool enableFocusBorder = true,
   }) {
-    return WFormCheckbox(
-      config: this,
+    final baseEnabled = enabled ?? _enabled;
+    final config = bordered ? (copy()..containerDecoration = null) : this;
+    final field = WFormCheckbox(
+      config: config,
       name: name,
       title: title,
       initialValue: initialValue,
-      enabled: enabled,
+      enabled: bordered ? baseEnabled && !readOnly : enabled,
       onChanged: onChanged,
       validator: validator,
     );
-  }
-
-  /// 构建带有 [WFormBorderWithData] 包装的 [WFormCheckbox] 组件
-  ///
-  /// 内层容器装饰会被清空，边框交由外层绘制。
-  /// [readOnly] 为 true 时内层不可交互、外层使用只读装饰。
-  Widget buildBordered({
-    required String name,
-    required Widget title,
-    bool initialValue = false,
-    bool? enabled,
-    ValueChanged<bool?>? onChanged,
-    FormFieldValidator<bool>? validator,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    Key? key,
-    bool enableFocusBorder = true,
-    bool readOnly = false,
-  }) {
-    if (name.isEmpty) {
-      throw ArgumentError.value(name, 'name', '字段名称不能为空');
+    if (!bordered) {
+      return field;
     }
-
-    final baseEnabled = enabled ?? _enabled;
-    final innerConfig = copy()..containerDecoration = null;
-
-    return WFormBorderWithData(
-      key: key,
+    return WFormFieldFrame.border(
       name: name,
+      borderKey: borderKey,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
-      readOnly: readOnly || !baseEnabled,
       enableFocusBorder: enableFocusBorder,
-      child: innerConfig.build(
-        name: name,
-        title: title,
-        initialValue: initialValue,
-        enabled: baseEnabled && !readOnly,
-        onChanged: onChanged,
-        validator: validator,
-      ),
+      readOnly: readOnly || !baseEnabled,
+      child: field,
     );
   }
 

@@ -206,15 +206,16 @@ void main() {
 
     testWidgets('build 返回 WFormCheckbox', (tester) async {
       final config = WFormCheckboxConfig();
-      final cb = config.build(name: 'x', title: const Text('t'));
+      final cb = config.build(name: 'x', title: const Text('t')) as WFormCheckbox;
       expect(cb, isA<WFormCheckbox>());
       expect(cb.name, 'x');
     });
 
-    testWidgets('buildBordered → WFormBorderWithData 包装', (tester) async {
+    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().buildBordered(
+        child: WFormCheckboxConfig().build(
+          bordered: true,
           name: 'cb_border',
           title: const Text('边框复选框'),
         ),
@@ -392,18 +393,21 @@ void main() {
 
     testWidgets('build 返回 WFormRadioGroup', (tester) async {
       final config = WFormRadioGroupConfig();
-      final radio = config.build<String>(
-        name: 'x',
-        items: const {'k': 'v'},
-      );
+      final radio =
+          config.build<String>(
+                name: 'x',
+                items: const {'k': 'v'},
+              )
+              as WFormRadioGroup<String>;
       expect(radio, isA<WFormRadioGroup<String>>());
       expect(radio.name, 'x');
     });
 
-    testWidgets('buildBordered → WFormBorderWithData 包装', (tester) async {
+    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().buildBordered<String>(
+        child: WFormRadioGroupConfig().build<String>(
+          bordered: true,
           name: 'radio_border',
           items: const {'a': 'A'},
         ),

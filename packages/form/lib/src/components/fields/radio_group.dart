@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import '../border/border_with_data.dart';
 import '../border/read_only_scope.dart';
+import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_data.dart';
 import '../form_defaults.dart';
@@ -136,19 +136,16 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
              ),
            );
 
-           return Container(
+           return WFormFieldFrame(
              height: config._height,
              width: config._width,
-             alignment: Alignment.center,
              decoration: config._containerDecoration,
              margin: config._containerMargin,
-             child: Row(
-               children: [
-                 config._leading ?? const SizedBox.shrink(),
-                 Expanded(child: options),
-                 ...?config._actions,
-               ],
-             ),
+             // containerPadding 作用在内层选项 Padding 上，外框不再重复施加
+             padding: null,
+             leading: config._leading,
+             actions: config._actions,
+             child: options,
            );
          },
        );
@@ -293,7 +290,10 @@ class WFormRadioGroupConfig {
   /// 构建 [WFormRadioGroup] 组件
   ///
   /// [enabled] 为 null 时使用配置中的值。
-  WFormRadioGroup<T> build<T>({
+  ///
+  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
+  Widget build<T>({
     required String name,
     required Map<T, String> items,
     Widget Function(BuildContext, T, String, bool)? titleBuilder,
@@ -302,63 +302,37 @@ class WFormRadioGroupConfig {
     bool? enabled,
     ValueChanged<T?>? onChanged,
     FormFieldValidator<T>? validator,
+    bool readOnly = false,
+    bool bordered = false,
+    List<String>? hintTextList,
+    bool? isTransparentBackground,
+    Key? borderKey,
+    bool enableFocusBorder = true,
   }) {
-    return WFormRadioGroup<T>(
-      config: this,
+    final baseEnabled = enabled ?? _enabled;
+    final config = bordered ? (copy()..containerDecoration = null) : this;
+    final field = WFormRadioGroup<T>(
+      config: config,
       name: name,
       items: items,
       titleBuilder: titleBuilder,
       itemExtraBuilder: itemExtraBuilder,
       initialValue: initialValue,
-      enabled: enabled,
+      enabled: bordered ? baseEnabled && !readOnly : enabled,
       onChanged: onChanged,
       validator: validator,
     );
-  }
-
-  /// 构建带有 [WFormBorderWithData] 包装的 [WFormRadioGroup] 组件
-  ///
-  /// 内层容器装饰会被清空，边框交由外层绘制。
-  /// [readOnly] 为 true 时内层不可交互、外层使用只读装饰。
-  Widget buildBordered<T>({
-    required String name,
-    required Map<T, String> items,
-    Widget Function(BuildContext, T, String, bool)? titleBuilder,
-    Widget Function(BuildContext, T, String, bool)? itemExtraBuilder,
-    T? initialValue,
-    bool? enabled,
-    ValueChanged<T?>? onChanged,
-    FormFieldValidator<T>? validator,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    Key? key,
-    bool enableFocusBorder = true,
-    bool readOnly = false,
-  }) {
-    if (name.isEmpty) {
-      throw ArgumentError.value(name, 'name', '字段名称不能为空');
+    if (!bordered) {
+      return field;
     }
-
-    final baseEnabled = enabled ?? _enabled;
-    final innerConfig = copy()..containerDecoration = null;
-
-    return WFormBorderWithData(
-      key: key,
+    return WFormFieldFrame.border(
       name: name,
+      borderKey: borderKey,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
-      readOnly: readOnly || !baseEnabled,
       enableFocusBorder: enableFocusBorder,
-      child: innerConfig.build<T>(
-        name: name,
-        items: items,
-        titleBuilder: titleBuilder,
-        itemExtraBuilder: itemExtraBuilder,
-        initialValue: initialValue,
-        enabled: baseEnabled && !readOnly,
-        onChanged: onChanged,
-        validator: validator,
-      ),
+      readOnly: readOnly || !baseEnabled,
+      child: field,
     );
   }
 

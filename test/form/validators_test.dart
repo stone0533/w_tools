@@ -111,8 +111,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().buildBordered(name: 'a'),
-            WFormTextFieldConfig().buildBordered(name: 'b'),
+            WFormTextFieldConfig().build(bordered: true, name: 'a'),
+            WFormTextFieldConfig().build(bordered: true, name: 'b'),
           ],
         ),
       );
@@ -235,8 +235,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().buildBordered(name: 'a', focusNode: focusA),
-            WFormTextFieldConfig().buildBordered(name: 'b', focusNode: focusB),
+            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
+            WFormTextFieldConfig().build(bordered: true, name: 'b', focusNode: focusB),
           ],
         ),
       );
@@ -266,7 +266,7 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().buildBordered(name: 'a', focusNode: focusA),
+            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
           ],
         ),
       );
@@ -295,8 +295,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().buildBordered(name: 'a', focusNode: focusA),
-            WFormTextFieldConfig().buildBordered(name: 'b', focusNode: focusB),
+            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
+            WFormTextFieldConfig().build(bordered: true, name: 'b', focusNode: focusB),
           ],
         ),
       );
@@ -331,8 +331,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().buildBordered(name: 'a'),
-            WFormTextFieldConfig().buildBordered(name: 'b'),
+            WFormTextFieldConfig().build(bordered: true, name: 'a'),
+            WFormTextFieldConfig().build(bordered: true, name: 'b'),
           ],
         ),
       );
@@ -370,7 +370,7 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().buildBordered(name: 'a'),
+            WFormTextFieldConfig().build(bordered: true, name: 'a'),
           ],
         ),
       );
@@ -457,7 +457,8 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormButtonConfig().buildBordered(
+        child: WFormButtonConfig().build(
+          bordered: true,
           name: 'btn',
           validator: (_) => '字段错误',
           onTap: (_, __) {},
@@ -482,7 +483,8 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormTextFieldConfig().buildBordered(
+        child: WFormTextFieldConfig().build(
+          bordered: true,
           name: 'name',
           validator: (_) => '必填',
         ),

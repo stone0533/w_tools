@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'border/border_with_data.dart';
 import 'border/read_only_scope.dart';
+import 'field_frame.dart';
 import 'form_builder.dart';
 import 'form_data.dart';
 
@@ -51,35 +51,24 @@ class WFormButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return WFormFieldFrame(
       height: config._height,
       width: config._width,
-      alignment: Alignment.center,
       decoration: config._containerDecoration,
       margin: config._containerMargin,
       padding: config._containerPadding,
-      child: Row(
-        children: [
-          config._leading ?? const SizedBox.shrink(),
-          Expanded(
-            child: Container(
-              transform: config._yOffset != null
-                  ? Matrix4.translationValues(0, config._yOffset!, 0)
-                  : null,
-              child: _WFormBuilderButton<String>(
-                name: name,
-                initialValue: initialValue,
-                enabled: (enabled ?? config._enabled) && !WFormReadOnlyScope.readOnlyOf(context),
-                onTap: onTap,
-                hintWidget: config._hintWidget,
-                selectedWidgetBuilder: selectedWidgetBuilder,
-                validator: validator,
-                focusNode: focusNode,
-              ),
-            ),
-          ),
-          ...?config._actions,
-        ],
+      yOffset: config._yOffset,
+      leading: config._leading,
+      actions: config._actions,
+      child: _WFormBuilderButton<String>(
+        name: name,
+        initialValue: initialValue,
+        enabled: (enabled ?? config._enabled) && !WFormReadOnlyScope.readOnlyOf(context),
+        onTap: onTap,
+        hintWidget: config._hintWidget,
+        selectedWidgetBuilder: selectedWidgetBuilder,
+        validator: validator,
+        focusNode: focusNode,
       ),
     );
   }
@@ -168,7 +157,14 @@ class WFormButtonConfig {
   }
 
   /// 构建 [WFormButton] 组件
-  WFormButton build({
+  ///
+  /// [enabled] 为 null 时读取配置值。
+  ///
+  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸按钮。
+  /// 最终启用状态为「配置启用 且未只读」；[readOnly] 为 true 或最终状态为禁用时，
+  /// 内层不可点击、外层使用只读装饰。
+  Widget build({
     required String name,
     required void Function(String? value, ValueChanged<String> didChange) onTap,
     Widget Function(String value)? selectedWidgetBuilder,
@@ -176,41 +172,24 @@ class WFormButtonConfig {
     bool? enabled,
     FormFieldValidator<String>? validator,
     FocusNode? focusNode,
-  }) {
-    return WFormButton(
-      config: this,
-      name: name,
-      onTap: onTap,
-      selectedWidgetBuilder: selectedWidgetBuilder,
-      initialValue: initialValue,
-      enabled: enabled,
-      validator: validator,
-      focusNode: focusNode,
-    );
-  }
-
-  /// 构建带有 [WFormBorderWithData] 包装的 [WFormButton] 组件
-  ///
-  /// 内层容器装饰会被清空，边框交由外层绘制。
-  ///
-  /// [enabled] 为 null 时读取配置值；最终启用状态为「配置启用 且未只读」。
-  /// [readOnly] 为 true 或最终状态为禁用时，内层不可点击、外层使用只读装饰。
-  Widget buildBordered({
-    required String name,
-    required void Function(String? value, ValueChanged<String> didChange) onTap,
-    Widget Function(String value)? selectedWidgetBuilder,
-    String? initialValue,
-    FormFieldValidator<String>? validator,
-    FocusNode? focusNode,
-    bool? enabled,
+    bool readOnly = false,
+    bool bordered = false,
     List<String>? hintTextList,
     bool? isTransparentBackground,
-    Key? key,
+    Key? borderKey,
     bool enableFocusBorder = true,
-    bool readOnly = false,
   }) {
-    if (name.isEmpty) {
-      throw ArgumentError.value(name, 'name', '字段名称不能为空');
+    if (!bordered) {
+      return WFormButton(
+        config: this,
+        name: name,
+        onTap: onTap,
+        selectedWidgetBuilder: selectedWidgetBuilder,
+        initialValue: initialValue,
+        enabled: enabled,
+        validator: validator,
+        focusNode: focusNode,
+      );
     }
 
     final baseEnabled = enabled ?? _enabled;
@@ -218,9 +197,9 @@ class WFormButtonConfig {
       ..containerDecoration = null
       ..enabled = baseEnabled && !readOnly;
 
-    return WFormBorderWithData(
-      key: key,
+    return WFormFieldFrame.border(
       name: name,
+      borderKey: borderKey,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       readOnly: readOnly || !baseEnabled,

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import '../border/border_with_data.dart';
 import '../border/read_only_scope.dart';
+import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_data.dart';
 import '../form_defaults.dart';
@@ -149,79 +149,66 @@ class _WFormTextFieldState extends State<WFormTextField> {
     _effectiveReadOnly = widget.readOnly || WFormReadOnlyScope.readOnlyOf(context);
     final readOnly = _effectiveReadOnly;
 
-    final row = Row(
-      children: [
-        widget.config._leading ?? const SizedBox.shrink(),
-        Expanded(
-          child: Container(
-            transform: widget.config._yOffset != null
-                ? Matrix4.translationValues(0, widget.config._yOffset!, 0)
-                : null,
-            child: FormBuilderTextField(
-              focusNode: _focusNode,
-              name: widget.name,
-              initialValue: widget.initialValue,
-              validator: widget.validator,
-              textInputAction: widget.config._textInputAction,
-              readOnly: readOnly,
-              onChanged: onChanged,
-              cursorColor: widget.config._style?.color,
-              decoration: InputDecoration(
-                hintText: widget.hintText,
-                hintStyle: widget.config._hintStyle,
-                fillColor: Colors.transparent,
-                filled: true,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                errorBorder: InputBorder.none,
-                focusedErrorBorder: InputBorder.none,
-                contentPadding: widget.config._contentPadding,
-                prefix: widget.config._prefix,
-                prefixIcon: widget.config._prefixIcon,
-                isCollapsed: true,
-              ),
-              style: readOnly
-                  ? widget.config._readOnlyStyle ?? widget.config._style
-                  : widget.config._style,
-              strutStyle: StrutStyle(
-                fontFamily: widget.config._style?.fontFamily,
-                fontSize: widget.config._style?.fontSize,
-                fontWeight: widget.config._style?.fontWeight,
-                height: widget.config._style?.height,
-                forceStrutHeight: true,
-              ),
-              obscureText: widget.config._obscureText && !_isPasswordVisible,
-              obscuringCharacter: '＊',
-              keyboardType:
-                  widget.config._keyboardType ??
-                  (widget.config._obscureText ? TextInputType.visiblePassword : null),
-              inputFormatters: widget.config._inputFormatters,
-              textAlign: widget.config._textAlign ?? TextAlign.start,
-              autofocus: widget.config._autofocus ?? false,
-              autocorrect: false,
-              maxLines: widget.config._maxLines ?? 1,
-              onSubmitted: widget.onSubmitted,
-              onEditingComplete: widget.onEditingComplete,
-            ),
-          ),
-        ),
-        ...?widget.config._actions,
-      ],
-    );
-
     return WFormTextFieldScope._(
       state: this,
       isPasswordVisible: _isPasswordVisible,
       readOnly: readOnly,
-      child: Container(
+      child: WFormFieldFrame(
         height: widget.config._height,
         width: widget.config._width,
-        alignment: Alignment.center,
         decoration: widget.config._containerDecoration,
         margin: widget.config._containerMargin,
         padding: widget.config._containerPadding,
-        child: row,
+        yOffset: widget.config._yOffset,
+        leading: widget.config._leading,
+        actions: widget.config._actions,
+        child: FormBuilderTextField(
+          focusNode: _focusNode,
+          name: widget.name,
+          initialValue: widget.initialValue,
+          validator: widget.validator,
+          textInputAction: widget.config._textInputAction,
+          readOnly: readOnly,
+          onChanged: onChanged,
+          cursorColor: widget.config._style?.color,
+          decoration: InputDecoration(
+            hintText: widget.hintText,
+            hintStyle: widget.config._hintStyle,
+            fillColor: Colors.transparent,
+            filled: true,
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            focusedErrorBorder: InputBorder.none,
+            contentPadding: widget.config._contentPadding,
+            prefix: widget.config._prefix,
+            prefixIcon: widget.config._prefixIcon,
+            isCollapsed: true,
+          ),
+          style: readOnly
+              ? widget.config._readOnlyStyle ?? widget.config._style
+              : widget.config._style,
+          strutStyle: StrutStyle(
+            fontFamily: widget.config._style?.fontFamily,
+            fontSize: widget.config._style?.fontSize,
+            fontWeight: widget.config._style?.fontWeight,
+            height: widget.config._style?.height,
+            forceStrutHeight: true,
+          ),
+          obscureText: widget.config._obscureText && !_isPasswordVisible,
+          obscuringCharacter: '＊',
+          keyboardType:
+              widget.config._keyboardType ??
+              (widget.config._obscureText ? TextInputType.visiblePassword : null),
+          inputFormatters: widget.config._inputFormatters,
+          textAlign: widget.config._textAlign ?? TextAlign.start,
+          autofocus: widget.config._autofocus ?? false,
+          autocorrect: false,
+          maxLines: widget.config._maxLines ?? 1,
+          onSubmitted: widget.onSubmitted,
+          onEditingComplete: widget.onEditingComplete,
+        ),
       ),
     );
   }
@@ -398,7 +385,10 @@ class WFormTextFieldConfig {
   }
 
   /// 构建 [WFormTextField] 组件
-  WFormTextField build({
+  ///
+  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
+  Widget build({
     required String name,
     ValueChanged<String?>? onChanged,
     void Function(String?)? onSubmitted,
@@ -408,9 +398,15 @@ class WFormTextFieldConfig {
     bool readOnly = false,
     FormFieldValidator<String>? validator,
     FocusNode? focusNode,
+    bool bordered = false,
+    List<String>? hintTextList,
+    bool? isTransparentBackground,
+    Key? borderKey,
+    bool enableFocusBorder = true,
   }) {
-    return WFormTextField(
-      config: this,
+    final config = bordered ? (copy()..containerDecoration = null) : this;
+    final field = WFormTextField(
+      config: config,
       name: name,
       onChanged: onChanged,
       onSubmitted: onSubmitted,
@@ -420,6 +416,18 @@ class WFormTextFieldConfig {
       readOnly: readOnly,
       validator: validator,
       focusNode: focusNode,
+    );
+    if (!bordered) {
+      return field;
+    }
+    return WFormFieldFrame.border(
+      name: name,
+      borderKey: borderKey,
+      hintTextList: hintTextList,
+      isTransparentBackground: isTransparentBackground,
+      enableFocusBorder: enableFocusBorder,
+      readOnly: readOnly,
+      child: field,
     );
   }
 
@@ -477,54 +485,6 @@ class WFormTextFieldConfig {
     config._maxLines = maxLines ?? _maxLines;
     config._textInputAction = textInputAction ?? _textInputAction;
     return config;
-  }
-
-  /// 构建带有 [WFormBorderWithData] 包装的 [WFormTextField] 组件
-  ///
-  /// 内层容器装饰会被清空，边框交由外层绘制。
-  Widget buildBordered({
-    required String name,
-    ValueChanged<String?>? onChanged,
-    void Function(String?)? onSubmitted,
-    VoidCallback? onEditingComplete,
-    String? initialValue,
-    String? hintText,
-    bool readOnly = false,
-    FormFieldValidator<String>? validator,
-    FocusNode? focusNode,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    Key? key,
-    bool enableFocusBorder = true,
-  }) {
-    if (name.isEmpty) {
-      throw ArgumentError.value(name, 'name', '字段名称不能为空');
-    }
-
-    // 清空内层容器装饰（在副本上操作，避免污染原配置的后续 build()），边框交由外层 WFormBorder 绘制
-    final innerConfig = copy()..containerDecoration = null;
-
-    final textField = innerConfig.build(
-      name: name,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
-      onEditingComplete: onEditingComplete,
-      initialValue: initialValue,
-      hintText: hintText,
-      readOnly: readOnly,
-      validator: validator,
-      focusNode: focusNode,
-    );
-
-    return WFormBorderWithData(
-      key: key,
-      name: name,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      readOnly: readOnly,
-      enableFocusBorder: enableFocusBorder,
-      child: textField,
-    );
   }
 }
 

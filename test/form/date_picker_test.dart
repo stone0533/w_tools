@@ -199,12 +199,13 @@ void main() {
       expect(container.constraints?.maxHeight, 64);
     });
 
-    testWidgets('buildBordered → WFormBorderWithData 包装', (tester) async {
+    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
       final formData = WFormData();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePickerConfig().buildBordered(
+          child: WFormDatePickerConfig().build(
+            bordered: true,
             name: 'd_border',
             firstDate: firstDate,
             lastDate: lastDate,

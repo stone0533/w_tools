@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import '../border/border_with_data.dart';
 import '../border/read_only_scope.dart';
+import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_defaults.dart';
 
@@ -82,59 +82,48 @@ class WFormDropdown<T> extends StatelessWidget {
     final effectiveEnabled =
         (enabled ?? config._enabled) && !WFormReadOnlyScope.readOnlyOf(context);
 
-    return Container(
+    return WFormFieldFrame(
       height: config._height,
       width: width ?? config._width,
-      alignment: Alignment.center,
       decoration: config._containerDecoration,
       margin: config._containerMargin,
       padding: config._containerPadding,
-      child: Row(
-        children: [
-          config._leading ?? const SizedBox.shrink(),
-          Expanded(
-            child: Container(
-              transform: config._yOffset != null
-                  ? Matrix4.translationValues(0, config._yOffset!, 0)
-                  : null,
-              child: FormBuilderDropdown<T>(
-                name: name,
-                items: items.entries
-                    .map(
-                      (e) => DropdownMenuItem<T>(
-                        value: e.key,
-                        child: Text(
-                          e.value,
-                          style: config._style,
-                          strutStyle: StrutStyle(
-                            fontFamily: config._style?.fontFamily,
-                            fontSize: config._style?.fontSize,
-                            fontWeight: config._style?.fontWeight,
-                            height: config._style?.height,
-                            forceStrutHeight: true,
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  contentPadding: config._contentPadding,
+      yOffset: config._yOffset,
+      leading: config._leading,
+      actions: config._actions,
+      child: FormBuilderDropdown<T>(
+        name: name,
+        items: items.entries
+            .map(
+              (e) => DropdownMenuItem<T>(
+                value: e.key,
+                child: Text(
+                  e.value,
+                  style: config._style,
+                  strutStyle: StrutStyle(
+                    fontFamily: config._style?.fontFamily,
+                    fontSize: config._style?.fontSize,
+                    fontWeight: config._style?.fontWeight,
+                    height: config._style?.height,
+                    forceStrutHeight: true,
+                  ),
                 ),
-                initialValue: initialValue,
-                validator: validator,
-                icon: config._icon ?? WFormDefaults.dropdownIcon,
-                onChanged: onChangedHandler,
-                hint: hintWidget,
-                enabled: effectiveEnabled,
-                dropdownColor: config._dropdownColor,
               ),
-            ),
-          ),
-          ...?config._actions,
-        ],
+            )
+            .toList(),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          contentPadding: config._contentPadding,
+        ),
+        initialValue: initialValue,
+        validator: validator,
+        icon: config._icon ?? WFormDefaults.dropdownIcon,
+        onChanged: onChangedHandler,
+        hint: hintWidget,
+        enabled: effectiveEnabled,
+        dropdownColor: config._dropdownColor,
       ),
     );
   }
@@ -263,7 +252,13 @@ class WFormDropdownConfig {
   }
 
   /// 构建 [WFormDropdown] 组件
-  WFormDropdown<T> build<T>({
+  ///
+  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
+  ///
+  /// [readOnly] 为 true 时内层控件不可交互、外层使用只读装饰；
+  /// [enabled] 为 false（且配置未启用）时外层同样按只读展示。
+  Widget build<T>({
     required String name,
     required Map<T, String> items,
     T? initialValue,
@@ -273,9 +268,20 @@ class WFormDropdownConfig {
     String? hintText,
     bool? enabled,
     double? width,
+    bool readOnly = false,
+    bool bordered = false,
+    List<String>? hintTextList,
+    bool? isTransparentBackground,
+    Key? borderKey,
+    bool enableFocusBorder = true,
   }) {
-    return WFormDropdown<T>(
-      config: this,
+    final baseEnabled = enabled ?? _enabled;
+
+    // 清空内层容器装饰（在副本上操作，避免污染原配置的后续 build()），边框交由外层 WFormBorder 绘制
+    final config = bordered ? (copy()..containerDecoration = null) : this;
+
+    final dropdown = WFormDropdown<T>(
+      config: config,
       name: name,
       items: items,
       initialValue: initialValue,
@@ -283,8 +289,22 @@ class WFormDropdownConfig {
       validator: validator,
       hint: hint,
       hintText: hintText,
-      enabled: enabled,
+      enabled: bordered ? baseEnabled && !readOnly : enabled,
       width: width,
+    );
+
+    if (!bordered) {
+      return dropdown;
+    }
+
+    return WFormFieldFrame.border(
+      name: name,
+      borderKey: borderKey,
+      hintTextList: hintTextList,
+      isTransparentBackground: isTransparentBackground,
+      enableFocusBorder: enableFocusBorder,
+      readOnly: readOnly || !baseEnabled,
+      child: dropdown,
     );
   }
 
@@ -330,58 +350,5 @@ class WFormDropdownConfig {
     config._hintStyle = hintStyle ?? _hintStyle;
     config._dropdownColor = dropdownColor ?? _dropdownColor;
     return config;
-  }
-
-  /// 构建带有 [WFormBorderWithData] 包装的 [WFormDropdown] 组件
-  ///
-  /// 内层容器装饰会被清空，边框交由外层绘制。
-  /// [readOnly] 为 true 时内层控件不可交互、外层使用只读装饰；
-  /// [enabled] 为 false（且配置未启用）时外层同样按只读展示。
-  Widget buildBordered<T>({
-    required String name,
-    required Map<T, String> items,
-    T? initialValue,
-    ValueChanged<T?>? onChanged,
-    FormFieldValidator<T>? validator,
-    Widget? hint,
-    String? hintText,
-    bool? enabled,
-    bool readOnly = false,
-    double? width,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    Key? key,
-    bool enableFocusBorder = true,
-  }) {
-    if (name.isEmpty) {
-      throw ArgumentError.value(name, 'name', '字段名称不能为空');
-    }
-
-    final baseEnabled = enabled ?? _enabled;
-
-    // 清空内层容器装饰（在副本上操作，避免污染原配置的后续 build()），边框交由外层 WFormBorder 绘制
-    final innerConfig = copy()..containerDecoration = null;
-
-    final dropdown = innerConfig.build<T>(
-      name: name,
-      items: items,
-      initialValue: initialValue,
-      onChanged: onChanged,
-      validator: validator,
-      hint: hint,
-      hintText: hintText,
-      enabled: baseEnabled && !readOnly,
-      width: width,
-    );
-
-    return WFormBorderWithData(
-      key: key,
-      name: name,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      readOnly: readOnly || !baseEnabled,
-      enableFocusBorder: enableFocusBorder,
-      child: dropdown,
-    );
   }
 }

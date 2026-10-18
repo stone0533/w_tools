@@ -58,7 +58,7 @@ void main() {
   group('WFormTextFieldConfig.build', () {
     testWidgets('build 返回 WFormTextField', (tester) async {
       final config = WFormTextFieldConfig();
-      final textField = config.build(name: 'email');
+      final textField = config.build(name: 'email') as WFormTextField;
       expect(textField, isA<WFormTextField>());
       expect(textField.name, 'email');
     });
@@ -66,14 +66,16 @@ void main() {
     testWidgets('build 传递 hintText / onChanged / onSubmitted', (tester) async {
       final config = WFormTextFieldConfig();
 
-      final textField = config.build(
-        name: 'test',
-        hintText: '请输入',
-        onChanged: (_) {},
-        onSubmitted: (_) {},
-        initialValue: 'hello',
-        readOnly: true,
-      );
+      final textField =
+          config.build(
+                name: 'test',
+                hintText: '请输入',
+                onChanged: (_) {},
+                onSubmitted: (_) {},
+                initialValue: 'hello',
+                readOnly: true,
+              )
+              as WFormTextField;
 
       expect(textField.name, 'test');
       expect(textField.hintText, '请输入');
@@ -81,17 +83,17 @@ void main() {
       expect(textField.initialValue, 'hello');
     });
 
-    testWidgets('buildBordered 空 name 抛 ArgumentError', (tester) async {
+    testWidgets('build(bordered: true) 空 name 抛 ArgumentError', (tester) async {
       final config = WFormTextFieldConfig();
       expect(
-        () => config.buildBordered(name: ''),
+        () => config.build(bordered: true, name: ''),
         throwsArgumentError,
       );
     });
 
-    testWidgets('buildBordered 非空 name 返回 Widget', (tester) async {
+    testWidgets('build(bordered: true) 非空 name 返回 Widget', (tester) async {
       final config = WFormTextFieldConfig();
-      final bordered = config.buildBordered(name: 'email');
+      final bordered = config.build(bordered: true, name: 'email');
       expect(bordered, isA<Widget>());
     });
   });
