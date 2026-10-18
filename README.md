@@ -1,5 +1,7 @@
 # Flutter W Tools
 
+[![CI](https://github.com/stone0533/w_tools/actions/workflows/ci.yml/badge.svg)](https://github.com/stone0533/w_tools/actions/workflows/ci.yml)
+
 一个基于 Config 开发的功能丰富的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
 
 ## 特性
