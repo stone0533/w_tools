@@ -22,12 +22,18 @@ class WValidator {
     return phoneRegex.hasMatch(phone);
   }
 
+  /// 密码规则的唯一真相
+  ///
+  /// 规则：至少 8 位，且同时包含小写字母、大写字母与数字（允许符号）。
+  /// [WRegExpPattern.password] 直接引用本常量，两个公开入口不会再各写一套。
+  static const String passwordPattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$';
+
   /// 是否为强密码
   ///
   /// 规则：至少 8 位，且同时包含小写字母、大写字母与数字。
+  /// 规则定义见 [passwordPattern]。
   static bool isValidPassword(String password) {
-    final passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$');
-    return passwordRegex.hasMatch(password);
+    return RegExp(passwordPattern).hasMatch(password);
   }
 
   /// 是否为有效用户名

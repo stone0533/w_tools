@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **行为变更（breaking）**：`WRegExpPattern.password` 与 `WValidator.isValidPassword` 统一为「≥8 位，且同时包含小写字母、大写字母与数字（允许符号）」。此前两个公开入口各写一套规则：`WRegExpPattern.password` 接受纯字母/纯数字组合并拒绝符号，`WValidator.isValidPassword` 强制大小写并允许符号。
+- `WValidator` 新增 `passwordPattern` 常量，作为密码规则的唯一真相；`WRegExpPattern.password` 直接引用它。
+- 新增回归测试 `test/core/password_rule_test.dart`，锁住「两个公开入口对同一输入给出相同结果」。
+
 ## 1.0.0
 
 首次发布。

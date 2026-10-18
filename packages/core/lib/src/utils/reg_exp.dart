@@ -10,8 +10,10 @@ class WRegExpPattern {
 
   // ---------- 个人信息 ----------
 
-  /// 密码：8 位以上，且同时包含字母与数字
-  static const String password = r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$';
+  /// 密码：至少 8 位，且同时包含小写字母、大写字母与数字
+  ///
+  /// 与 [WValidator.isValidPassword] 同源（引用 `WValidator.passwordPattern`）。
+  static const String password = WValidator.passwordPattern;
 
   /// 邮箱地址（整串匹配，TLD 至少 2 位）
   static const String email = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
