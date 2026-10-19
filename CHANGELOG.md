@@ -1,4 +1,6 @@
-## 1.1.0
+## 2.0.0
+
+> 根包 2.0.0 是聚合版的首个 Major：8 个子包各自以 `1.0.0` 独立发布，本节记录随聚合版带入根包的变更与迁移要求。
 
 ### w_tools（根包）
 - **Breaking**: 根包由「单体工具库」改为「8 个子包的聚合包」：依赖 `w_tools_core` / `w_tools_app` / `w_tools_form` / `w_tools_ui` / `w_tools_api` / `w_tools_toast` / `w_tools_map` / `w_tools_qr`（`^1.0.0`），通过 `package:w_tools/w.dart` 统一导出；实现代码移至各子包，根包只保留 `WConfig` 聚合配置兼容层
