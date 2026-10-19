@@ -1,0 +1,18 @@
+# 根包是聚合包（只 re-export 8 个子包），以下内容不进入发布 archive：
+# - packages/：子包源码（它们各自独立发布）
+# - test/：本仓库测试，依赖 root dev_dependencies
+# - doc/：模块文档（面向仓库，不随根包发布）
+# - scripts/ / .github/：仓库工具与 CI
+packages/
+test/
+doc/
+docs/
+scripts/
+.github/
+AGENTS.md
+devtools_options.yaml
+build/
+.dart_tool/
+.idea/
+*.iml
+.DS_Store

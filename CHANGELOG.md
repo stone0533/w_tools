@@ -1,5 +1,9 @@
 ## 1.1.0
 
+### w_tools（根包）
+- **Breaking**: 根包由「单体工具库」改为「8 个子包的聚合包」：依赖 `w_tools_core` / `w_tools_app` / `w_tools_form` / `w_tools_ui` / `w_tools_api` / `w_tools_toast` / `w_tools_map` / `w_tools_qr`（`^1.0.0`），通过 `package:w_tools/w.dart` 统一导出；实现代码移至各子包，根包只保留 `WConfig` 聚合配置兼容层
+- 根包不再直接依赖 `get` / `dio` / `flutter_screenutil` 等第三方库（改由各子包承担）；需要 `WApp` 启动器时 `get` 仍随 `w_tools_app` 传递引入
+
 ### w_tools_app
 - **Breaking**: `WApp.run()` 在未调用 `init()` 时抛 `StateError`（此前会静默继续，
   导致 .env 未加载、业务服务未就绪等难以定位的启动时序问题）。迁移方式：改用
