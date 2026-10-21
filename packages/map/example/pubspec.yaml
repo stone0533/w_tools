@@ -3,8 +3,9 @@ description: "w_tools_map 的最小可运行示例：渲染 3 个门店、点击
 publish_to: none
 version: 1.0.0
 
-resolution: workspace
-
+# 注意：这里刻意不声明 `resolution: workspace`。
+# example 会随 w_tools_map 一起发布，从 pub.dev 下载后 `cd example && flutter pub get`
+# 必须能独立解析；声明成 workspace 成员会让发布出去的示例直接跑不起来。
 environment:
   sdk: ^3.6.0
   flutter: ">=3.27.0"

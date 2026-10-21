@@ -1,3 +1,5 @@
+# Changelog
+
 ## 1.1.0
 
 ### Added
@@ -30,7 +32,10 @@
 ### Deprecated
 - `WMapZone.onDataUpdated`：改用 `addDataUpdatedListener` / `removeDataUpdatedListener`。
 
-# Changelog
+### Packaging
+- `example/` 改为独立包（去掉 `resolution: workspace`）：从 pub.dev 下载本包后
+  `cd example && flutter pub get` 可以直接跑起来，不再依赖仓库根的 workspace。
+- 新增本包自己的 `.pubignore`，显式排除 `test/`、构建产物与示例的 lock 文件。
 
 ## 1.0.0
 

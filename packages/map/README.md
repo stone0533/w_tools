@@ -174,6 +174,17 @@ zone.update(shops);
 多个 `WMap` 共享同一个 zone 时，用 `addDataUpdatedListener` 注册，而不是旧的
 `onDataUpdated` 字段（后者会被后注册的回调覆盖，已标记 deprecated）。
 
+## 示例
+
+完整可运行示例见 [`example/`](example/)，包含：3 个门店 Marker、点击选中 / 关闭、
+相机动画、底部卡片的内边距处理。
+
+```bash
+cd example
+flutter pub get
+flutter run   # 需先按 google_maps_flutter 文档配置 API Key
+```
+
 ## License
 
 MIT

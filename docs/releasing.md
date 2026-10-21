@@ -20,23 +20,40 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 1. 改子包 `version` + 写 `CHANGELOG.md`（`## x.y.z`）。
 2. 需要聚合包跟上的，改根 `pubspec.yaml` 里对应的 `w_tools_<pkg>: ^x.y.z`。
 3. 改根 `version` + 写根 `CHANGELOG.md`。
-4. 本地跑：
+4. 本地预检（不要求工作区干净）：
    ```bash
-   bash scripts/release_check.sh --strict --online
+   bash scripts/release_check.sh --package map
    ```
-   `--strict` 要求工作区干净（`pub publish` 在脏工作区会返回 65）；
-   `--online` 会对比 pub.dev，指出哪些包是「仓库领先 / 仓库落后」。
-5. 提交、打 tag。
-6. 逐个发布（顺序无关，但都要在聚合包之前）：
+5. 提交（`pub publish` 只有在干净工作区才不会报 65）。
+6. 干净工作区复核 + 发布预演：
+   ```bash
+   bash scripts/release_check.sh --strict --package map
+   cd packages/map && flutter pub publish --dry-run
+   ```
+7. 发布子包：
    ```bash
    cd packages/map && flutter pub publish
    # 其余需要发布的子包同理
    ```
-7. 最后发聚合包：
+8. 需要聚合包跟上时，最后发聚合包：
    ```bash
    flutter pub publish
    ```
-8. 发布后重跑 `bash scripts/release_check.sh --online`，应当全部显示「已发布」。
+9. 发布后确认（这一步才会把「待发布」判成通过）：
+   ```bash
+   bash scripts/release_check.sh --package map --online
+   # 发布多个包/聚合包时去掉 --package，做全量比对
+   ```
+
+> `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
+> 发布前的门禁是第 4、6 步。
+
+## 只发一个子包时
+
+- 用 `--package <pkg>` 收窄检查范围：根包版本、其他子包的漂移都不再阻塞你。
+- 但要确认根包对该子包的 caret 约束仍覆盖新版本（脚本在 `--package` 模式下也会检查这一条），
+  否则聚合包用户装不到新版本。
+- 已发布的聚合包不会自动升级依赖，需要一次新的聚合版本才会带上它。
 
 ## `scripts/release_check.sh` 检查项
 
@@ -51,6 +68,7 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 | `## Unreleased` 条目 | 只提醒：说明有已记录但未发版的改动 |
 | `--strict` | 已跟踪文件无未提交改动、无未跟踪文件 |
 | `--online` | 与 pub.dev API 对比最新版本，指出待发布 / 落后 |
+| `--package <pkg>` | 只检查指定子包；根包与其他子包不参与 |
 
 ## 常见坑
 

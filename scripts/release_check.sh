@@ -5,6 +5,7 @@
 #   scripts/release_check.sh            # 离线检查，CI 每次都跑
 #   scripts/release_check.sh --strict   # 额外要求工作区干净（真正发布前用）
 #   scripts/release_check.sh --online   # 额外对比 pub.dev 已发布版本，找出「仓库领先」的包
+#   scripts/release_check.sh --package map   # 只检查某个子包（单独发一个包时用）
 #
 set -uo pipefail
 
@@ -14,23 +15,47 @@ cd "$REPO_ROOT" || exit 2
 PACKAGES="core ui form api app toast map qr"
 STRICT=0
 ONLINE=0
+SELECTED=""
 
 usage() {
   sed -n '2,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
-for arg in "$@"; do
-  case "$arg" in
+while [ $# -gt 0 ]; do
+  case "$1" in
     --strict) STRICT=1 ;;
     --online) ONLINE=1 ;;
-    -h | --help) usage; exit 0 ;;
+    --package)
+      if [ $# -lt 2 ]; then
+        echo "--package 需要包名（如 --package map）" >&2
+        exit 2
+      fi
+      SELECTED="$2"
+      shift
+      ;;
+    --package=*) SELECTED="${1#*=}" ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
     *)
-      echo "未知参数: $arg" >&2
+      echo "未知参数: $1" >&2
       usage >&2
       exit 2
       ;;
   esac
+  shift
 done
+
+if [ -n "$SELECTED" ]; then
+  case " $PACKAGES " in
+    *" $SELECTED "*) ;;
+    *)
+      echo "未知子包: ${SELECTED}（可选：${PACKAGES}）" >&2
+      exit 2
+      ;;
+  esac
+fi
 
 errors=0
 warns=0
@@ -93,6 +118,9 @@ caret_accepts() {
 
 section '子包版本 / 发布物料'
 for pkg in $PACKAGES; do
+  if [ -n "$SELECTED" ] && [ "$pkg" != "$SELECTED" ]; then
+    continue
+  fi
   dir="packages/$pkg"
   pub="$dir/pubspec.yaml"
 
@@ -141,7 +169,9 @@ done
 
 section '根包'
 root_version="$(pubspec_version pubspec.yaml)"
-if [ -z "$root_version" ]; then
+if [ -n "$SELECTED" ]; then
+  ok "跳过（--package 只检查 w_tools_${SELECTED}；根包版本在完整检查里校验）"
+elif [ -z "$root_version" ]; then
   fail "根包 pubspec.yaml 缺 version"
 else
   if changelog_has_version CHANGELOG.md "$root_version"; then
@@ -180,10 +210,15 @@ fi
 
 if [ "$ONLINE" = 1 ]; then
   section 'pub.dev 发布状态（--online）'
-  for name in $(
-    printf 'w_tools\n'
-    for pkg in $PACKAGES; do printf 'w_tools_%s\n' "$pkg"; done
-  ); do
+  if [ -n "$SELECTED" ]; then
+    online_names="w_tools_$SELECTED"
+  else
+    online_names="$(
+      printf 'w_tools\n'
+      for pkg in $PACKAGES; do printf 'w_tools_%s\n' "$pkg"; done
+    )"
+  fi
+  for name in $online_names; do
     local_version="$root_version"
     [ "$name" = "w_tools" ] || local_version="$(pubspec_version "packages/${name#w_tools_}/pubspec.yaml")"
 
@@ -216,4 +251,8 @@ if [ "$errors" -gt 0 ]; then
 fi
 
 printf '检查通过（%s 条提醒）\n' "$warns"
-printf '发布顺序：先按「仓库领先」的子包逐个 flutter pub publish，再发根包 w_tools（抬高约束后发布）。\n'
+if [ -n "$SELECTED" ]; then
+  printf '单个包发布：cd packages/%s && flutter pub publish，发布后重跑本脚本 --package %s --online 确认。\n' "$SELECTED" "$SELECTED"
+else
+  printf '发布顺序：先按「仓库领先」的子包逐个 flutter pub publish，再发根包 w_tools（抬高约束后发布）。\n'
+fi

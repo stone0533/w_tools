@@ -19,7 +19,6 @@ workspace:
   - packages/api
   - packages/toast
   - packages/map
-  - packages/map/example
   - packages/qr
 
 environment:

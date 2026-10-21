@@ -1,1 +1,14 @@
-# 本包独立发布：根目录的 .pubignore 是为聚合包准备的，这里不继承任何排除规则。
+# 本包独立发布：不继承仓库根的 .pubignore（那份是给聚合包用的）。
+# 显式列出排除项，避免以后改根文件时悄悄影响本包的归档内容。
+test/
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# example 随包发布，但它的依赖解析产物不发布
+example/.dart_tool/
+example/build/
+example/pubspec.lock
+example/.flutter-plugins
+example/.flutter-plugins-dependencies

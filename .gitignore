@@ -24,6 +24,8 @@ migrate_working_dir/
 # Flutter/Dart/Pub related
 # Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
 /pubspec.lock
+# 示例是独立包（不在 workspace 里），单独解析依赖时产生的 lock 不提交
+packages/*/example/pubspec.lock
 **/doc/api/
 .dart_tool/
 build/

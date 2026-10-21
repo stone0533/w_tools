@@ -80,6 +80,14 @@ jobs:
       - name: Analyze (package)
         run: flutter analyze packages/${{ matrix.package }}
 
+      # example 会随包一起发布，必须能脱离 workspace 独立解析
+      - name: Analyze example (published with package)
+        if: hashFiles(format('packages/{0}/example/pubspec.yaml', matrix.package)) != ''
+        working-directory: packages/${{ matrix.package }}/example
+        run: |
+          flutter pub get
+          flutter analyze
+
       # 发布门禁：缺 README/CHANGELOG、版本号问题、未跟踪文件等在这一步暴露。
       # 放在 test 之前，避免 `coverage/` 产物混进归档（见根 .pubignore）。
       - name: Publish dry-run (package)
