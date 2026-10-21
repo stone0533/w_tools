@@ -164,6 +164,16 @@ void main() {
       expect(icons[0], isNot(icons[1]));
     });
 
+    test('WMapIconAssets.preload：资产缺失也不抛异常', () async {
+      await expectLater(
+        WMapIconAssets.preload(
+          ['assets/missing_a.png', 'assets/missing_b.png'],
+          imagePixelRatio: 2.5,
+        ),
+        completes,
+      );
+    });
+
     test('iconAsset：资产缺失时降级为默认图标，不崩', () {
       final zone = WMapZone<_TestMapItem>(
         maps: const [_TestMapItem(id: 'a', latitude: 1, longitude: 2)],

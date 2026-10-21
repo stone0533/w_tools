@@ -62,6 +62,64 @@ WMapItemMapper<T> wMapItemMapper<T>() {
   );
 }
 
+/// 资产图标缓存：`asset@imagePixelRatio` -> 解码结果。
+///
+/// key 里带 pixelRatio：同一张图用不同密度时不至于互相顶掉。
+final Map<String, BitmapDescriptor> _assetIconCache = {};
+
+/// 正在解码中的 key（避免重复解码）
+final Set<String> _loadingIconKeys = {};
+
+String _iconCacheKey(String asset, double imagePixelRatio) =>
+    '$asset@$imagePixelRatio';
+
+/// 加载并缓存资产图标；失败返回 null（调用方降级为默认图标）。
+Future<BitmapDescriptor?> _loadAssetIcon(
+  String asset,
+  double imagePixelRatio,
+) async {
+  final key = _iconCacheKey(asset, imagePixelRatio);
+  final cached = _assetIconCache[key];
+  if (cached != null) return cached;
+  if (!_loadingIconKeys.add(key)) return null;
+  try {
+    final data = await rootBundle.load(asset);
+    final icon = BitmapDescriptor.bytes(
+      data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      imagePixelRatio: imagePixelRatio,
+    );
+    _assetIconCache[key] = icon;
+    return icon;
+  } catch (_) {
+    // 资产不存在/解码失败：保持默认图标，不要崩
+    return null;
+  } finally {
+    _loadingIconKeys.remove(key);
+  }
+}
+
+/// 资产图标预热。
+///
+/// 在 App 启动阶段调用一次，进入地图页时直接命中缓存，
+/// 避免首帧先画默认图标再切换（3ms 左右的可见闪烁）。
+///
+/// ```dart
+/// await WMapIconAssets.preload(
+///   ['assets/images/map_address_icon.png'],
+///   imagePixelRatio: 2.5,
+/// );
+/// ```
+abstract final class WMapIconAssets {
+  static Future<void> preload(
+    Iterable<String> assets, {
+    double imagePixelRatio = 1.0,
+  }) async {
+    for (final asset in assets) {
+      await _loadAssetIcon(asset, imagePixelRatio);
+    }
+  }
+}
+
 /// MarkerId 规则见 [WMapItemMapper.id]（id > name > 经纬度，不用 hashCode）。
 bool _sameCamera(CameraPosition? a, CameraPosition? b) {
   if (a == null || b == null) return a == b;
@@ -176,12 +234,6 @@ class WMapZone<T> {
     _onMarkerTaps.remove(listener);
   }
 
-  /// 资产图标缓存（同一个路径只解码一次）
-  static final Map<String, BitmapDescriptor> _assetIconCache = {};
-
-  /// 正在加载中的资产图标
-  static final Set<String> _loadingIcons = {};
-
   LatLng _latLngOf(T item) {
     final p = mapper.position(item);
     return LatLng(p.latitude, p.longitude);
@@ -193,29 +245,16 @@ class WMapZone<T> {
     if (icon != null) return icon!;
     final asset = iconAsset;
     if (asset == null || asset.isEmpty) return BitmapDescriptor.defaultMarker;
-    final cached = _assetIconCache[asset];
+    final key = _iconCacheKey(asset, imagePixelRatio);
+    final cached = _assetIconCache[key];
     if (cached != null) return cached;
-    // 首次遇到就先返回默认图标，加载完成后再 initMap 重建
-    if (_loadingIcons.add(asset)) {
-      _loadAssetIcon(asset);
+    // 首次遇到就先返回默认图标，解码完成后 initMap 重建（WMap 会 setState）
+    if (!_loadingIconKeys.contains(key)) {
+      _loadAssetIcon(asset, imagePixelRatio).then((icon) {
+        if (icon != null) initMap();
+      });
     }
     return BitmapDescriptor.defaultMarker;
-  }
-
-  Future<void> _loadAssetIcon(String asset) async {
-    try {
-      final data = await rootBundle.load(asset);
-      _assetIconCache[asset] = BitmapDescriptor.bytes(
-        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-        imagePixelRatio: imagePixelRatio,
-      );
-      // 重建 markers 并通知（WMap 会 setState 让地图重绘）
-      initMap();
-    } catch (_) {
-      // 资产不存在/解码失败：保持默认图标，不要崩
-    } finally {
-      _loadingIcons.remove(asset);
-    }
   }
 
   /// 初始化地图

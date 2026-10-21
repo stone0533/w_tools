@@ -1,3 +1,13 @@
+## 1.2.0
+
+### Added
+- `WMapIconAssets.preload(assets, {imagePixelRatio})`：启动阶段预热 marker 图标，
+  进入地图页直接命中缓存，避免首帧先画默认红点再切换（约 3ms 的可见闪烁）。
+
+### Fixed
+- 资产图标缓存 key 改为 `asset@imagePixelRatio`：同一张图用不同像素密度时
+  不再互相覆盖。
+
 # Changelog
 
 ## 1.1.0
