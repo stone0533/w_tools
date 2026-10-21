@@ -4,7 +4,10 @@
 
 - **行为变更（breaking）**：`WRegExpPattern.password` 与 `WValidator.isValidPassword` 统一为「≥8 位，且同时包含小写字母、大写字母与数字（允许符号）」。此前两个公开入口各写一套规则：`WRegExpPattern.password` 接受纯字母/纯数字组合并拒绝符号，`WValidator.isValidPassword` 强制大小写并允许符号。
 - `WValidator` 新增 `passwordPattern` 常量，作为密码规则的唯一真相；`WRegExpPattern.password` 直接引用它。
-- 新增回归测试 `test/core/password_rule_test.dart`，锁住「两个公开入口对同一输入给出相同结果」。
+- 新增回归测试 `packages/core/test/password_rule_test.dart`，锁住「两个公开入口对同一输入给出相同结果」。
+- `WConfig.assetImagePath` 标记为 `@Deprecated`：该字段从未被读取，资源前缀的实际开关是
+  `w_tools_ui` 的 `WAssets.imagePath`（聚合包的 `WConfig.assetImagePath` 已改为代理它）。
+  字段仅为源码兼容保留，将在下个大版本移除。
 
 ## 1.0.0
 

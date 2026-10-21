@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:w_tools_core/w_tools_core.dart' as core;
 import 'package:w_tools_form/w_tools_form.dart';
 import 'package:w_tools_app/w_tools_app.dart';
+import 'package:w_tools_ui/w_tools_ui.dart' show WAssets;
 
 // 暴露各子包的 Config 类供直接引用
 export 'package:w_tools_form/w_tools_form.dart' show WFormDefaults;
@@ -15,9 +16,12 @@ export 'package:w_tools_api/w_tools_api.dart' show WApiConfig;
 /// 此类作为统一入口提供向后兼容的静态访问路径。
 /// 新代码建议直接使用对应的子包 Config 类。
 class WConfig {
-  /// 资产图片路径（core 保留）
-  static String get assetImagePath => core.WConfig.assetImagePath;
-  static set assetImagePath(String v) => core.WConfig.assetImagePath = v;
+  /// 资产图片路径（代理 `w_tools_ui` 的 `WAssets.imagePath`）
+  ///
+  /// 资源前缀只认 `WAssets.imagePath` 一个开关：这里是它的转发，
+  /// `'logo.png'.assetImagePath` 也会读同一个值。
+  static String get assetImagePath => WAssets.imagePath;
+  static set assetImagePath(String v) => WAssets.imagePath = v;
 
   /// token 存储键名
   static String get tokenKey => core.WConfig.tokenKey;

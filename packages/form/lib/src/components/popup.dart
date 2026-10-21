@@ -190,7 +190,9 @@ class WFormPopupRoute<T> extends PopupRoute<T> {
           clipBehavior: borderRadius != null ? Clip.antiAlias : Clip.none,
           child: SizeTransition(
             sizeFactor: animation,
-            alignment: Alignment.topCenter,
+            // Flutter 3.38 起 SizeTransition 不再有 alignment，改用 axisAlignment
+            // （-1.0 = 顶部对齐，等价于原来的 Alignment.topCenter）
+            axisAlignment: -1.0,
             // 撑满外层约束，保证「未指定 width 时与锚点同宽」
             child: SizedBox(width: double.infinity, child: builder(context)),
           ),

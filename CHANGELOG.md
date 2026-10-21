@@ -1,3 +1,15 @@
+## 2.0.1
+
+- 修复：根包 `WConfig.assetImagePath` / `WConfig.setup.assetImagePath` 此前转发到
+  `w_tools_core` 的 `WConfig.assetImagePath`，但该字段从未被任何代码读取，真正生效的是
+  `w_tools_ui` 的 `WAssets.imagePath` —— 于是设置 `WConfig.assetImagePath` 后
+  `'logo.png'.assetImagePath` 不会变化。现在兼容层直接代理 `WAssets.imagePath`，
+  两个入口等价。
+- 依赖：`w_tools_map` 约束提升到 `^1.1.0`，聚合包用户可拿到 1.1.0 的地图改进
+  （`iconAsset` / `WMapItemMapper` / `WMapConfig.padding` / `onMapTap` 等）。
+- 文档：根 README 不再硬编码各包「当前版本」，改为以各包 pubspec / pub.dev 为准；
+  新增 `docs/releasing.md` 与 `scripts/release_check.sh`，把版本与发布约束变成可执行检查。
+
 ## 2.0.0
 
 > 根包 2.0.0 是聚合版的首个 Major：8 个子包各自以 `1.0.0` 独立发布，本节记录随聚合版带入根包的变更与迁移要求。

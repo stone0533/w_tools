@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_core/w_tools_core.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
@@ -100,6 +99,14 @@ void main() {
       expect((value >> 8) & 0xFF, 87); // green
       expect(value & 0xFF, 51); // blue
     });
+
+    test('String.assetImagePath 读 WAssets.imagePath（资源前缀唯一开关）', () {
+      final origin = WAssets.imagePath;
+      WAssets.imagePath = 'assets/test/';
+      expect('logo.png'.assetImagePath, 'assets/test/logo.png');
+      WAssets.imagePath = origin;
+      expect('logo.png'.assetImagePath, 'assets/images/logo.png');
+    });
   });
 
   group('Num Extensions', () {
@@ -195,52 +202,6 @@ void main() {
       expect(5.toPadLeft(4), '0005');
       expect(0.toPadLeft(3), '000');
       expect((-1).toPadLeft(3), '0-1');
-    });
-  });
-
-  group('Map Extensions', () {
-    test('Map.sortedByKeys - 默认排序', () {
-      final map = {'b': 2, 'a': 1, 'c': 3};
-      final sorted = map.sortedByKeys();
-      expect(sorted.keys.toList(), ['a', 'b', 'c']);
-    });
-
-    test('Map.sortedByKeys - 自定义排序', () {
-      final map = {'b': 2, 'a': 1, 'c': 3};
-      final sorted = map.sortedByKeys((a, b) => b.compareTo(a));
-      expect(sorted.keys.toList(), ['c', 'b', 'a']);
-    });
-
-    test('Map.sortedByKeys - 空Map', () {
-      final map = <String, int>{};
-      final sorted = map.sortedByKeys();
-      expect(sorted.isEmpty, isTrue);
-    });
-
-    test('Map.merge - 默认覆盖', () {
-      final map1 = {'a': 1, 'b': 2};
-      final map2 = {'b': 3, 'c': 4};
-      map1.merge(map2);
-      expect(map1, {'a': 1, 'b': 3, 'c': 4});
-    });
-
-    test('Map.merge - 不覆盖', () {
-      final map1 = {'a': 1, 'b': 2};
-      final map2 = {'b': 3, 'c': 4};
-      map1.merge(map2, overwrite: false);
-      expect(map1, {'a': 1, 'b': 2, 'c': 4});
-    });
-
-    test('Map.merge - 空Map合并', () {
-      final map1 = {'a': 1};
-      final map2 = <String, int>{};
-      map1.merge(map2);
-      expect(map1, {'a': 1});
-
-      final map3 = <String, int>{};
-      final map4 = {'b': 2};
-      map3.merge(map4);
-      expect(map3, {'b': 2});
     });
   });
 

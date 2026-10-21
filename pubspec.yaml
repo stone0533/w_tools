@@ -1,6 +1,6 @@
 name: w_tools
 description: "聚合 8 个子包的 Flutter 工具库：涵盖 UI 组件、表单、网络、Toast、二维码、地图与核心工具，帮助开发者快速构建高质量的 Flutter 应用。"
-version: 2.0.0
+version: 2.0.1
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools
 issue_tracker: https://github.com/stone0533/w_tools/issues
@@ -19,6 +19,7 @@ workspace:
   - packages/api
   - packages/toast
   - packages/map
+  - packages/map/example
   - packages/qr
 
 environment:
@@ -35,20 +36,10 @@ dependencies:
   w_tools_ui: ^1.0.0
   w_tools_api: ^1.0.0
   w_tools_toast: ^1.0.0
-  w_tools_map: ^1.0.0
+  w_tools_map: ^1.1.0
   w_tools_qr: ^1.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  flutter_localizations:
-    sdk: flutter
-  intl: ^0.20.2
-  shared_preferences: ^2.2.0
-  dio: ^5.9.2
-  get: ^4.7.3
-  google_maps_flutter: any
-  qr_code_scanner_plus: any
-  flutter_form_builder: ^10.3.0+2
-  bot_toast: ^4.1.3

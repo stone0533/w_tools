@@ -14,9 +14,16 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # 与本地 fvm 使用的版本保持一致（pubspec 要求 Flutter >= 3.38 / Dart ^3.10）。
+  # 升级 Flutter 时同步改这里，避免 CI 与本地解析出不同的依赖版本。
+  FLUTTER_VERSION: '3.44.9'
+
 jobs:
-  analyze-and-test:
-    name: Analyze & test
+  # 聚合包契约：w.dart 的重导出、WConfig 兼容层。
+  # 子包的行为测试已移入各自的 packages/<pkg>/test/，由下面的矩阵负责。
+  umbrella:
+    name: Umbrella (w_tools)
     # 固定 runner 版本：ubuntu-latest 自 2026-10-19 起开始迁移到 Ubuntu 26，
     # 先钉住 24.04，确认迁移无影响后再改回 latest。
     runs-on: ubuntu-24.04
@@ -25,29 +32,69 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # 与本地 fvm 使用的版本保持一致（pubspec 要求 Flutter >= 3.38 / Dart ^3.10）。
-      # 升级 Flutter 时同步改这里，避免 CI 与本地解析出不同的依赖版本。
+      # 版本 / CHANGELOG / 根包依赖约束 / README 版本声明的一致性检查（不需要 Flutter）
+      - name: Release readiness
+        run: bash scripts/release_check.sh
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze
+      - name: Analyze (workspace)
         run: flutter analyze
 
-      - name: Test
+      - name: Test (umbrella contract)
+        run: flutter test
+
+  # 每个子包独立跑：analyze / test / 发布前校验。
+  # 这一步保证「子包能独立发布」不是口号 —— 缺依赖、缺导出、缺发布物料都会在这里失败。
+  packages:
+    name: Package / ${{ matrix.package }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [core, ui, form, api, app, toast, map, qr]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # workspace 解析在根目录进行，子包不单独 pub get
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze (package)
+        run: flutter analyze packages/${{ matrix.package }}
+
+      # 发布门禁：缺 README/CHANGELOG、版本号问题、未跟踪文件等在这一步暴露。
+      # 放在 test 之前，避免 `coverage/` 产物混进归档（见根 .pubignore）。
+      - name: Publish dry-run (package)
+        working-directory: packages/${{ matrix.package }}
+        run: flutter pub publish --dry-run
+
+      - name: Test (package)
+        working-directory: packages/${{ matrix.package }}
         run: flutter test --coverage
 
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: coverage-lcov
-          path: coverage/lcov.info
+          name: coverage-${{ matrix.package }}
+          path: packages/${{ matrix.package }}/coverage/lcov.info
           if-no-files-found: ignore
           retention-days: 14

@@ -1,6 +1,6 @@
 name: w_tools_map
 description: "w_tools 的地图组件层：基于 google_maps_flutter 提供 WMap / WMapZone / WMapConfig，支持 Marker 渲染、选中与关闭相机动画及事件回调。"
-version: 1.0.0
+version: 1.1.0
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/map
@@ -24,4 +24,6 @@ dependencies:
   google_maps_flutter: ^2.12.0
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   flutter_lints: ^4.0.0

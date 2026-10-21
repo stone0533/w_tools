@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_map: ^1.0.0
+  w_tools_map: ^1.1.0
 ```
 
 请按 `google_maps_flutter` 文档配置 Android / iOS 的 Google Maps API Key。
@@ -70,7 +70,109 @@ class MapPage extends StatelessWidget {
 | 数据模型 | `WMapItem` |
 | 地图区域 | `WMapZone` / `initMap` / `update` |
 | 地图组件 | `WMap` |
-| 配置 | `WMapConfig` / `onItemSelected` / `onItemClosed` |
+| 配置 | `WMapConfig` / `onItemSelected` / `onItemClosed` / `onMapTap` |
+| 业务侧控制地图 | `WMapController`（目前提供 `closeSelection`） |
+| 多地图共享数据 | `WMapZone.addDataUpdatedListener` / `removeDataUpdatedListener` |
+
+## 模型不实现 WMapItem（推荐用于生成模型）
+
+`json_serializable` 生成的模型不方便手改，可以直接用 `WMapItemMapper`：
+
+```dart
+final zone = WMapZone<MapListResultDataMaps>(
+  maps: maps,
+  mapper: WMapItemMapper<MapListResultDataMaps>(
+    // MarkerId 必须稳定
+    id: (m) => m.map_id ?? m.name ?? '',
+    name: (m) => m.name,
+    // record，不用 import google_maps_flutter
+    position: (m) => (
+      latitude: double.tryParse(m.latitude ?? '') ?? 0,
+      longitude: double.tryParse(m.longitude ?? '') ?? 0,
+    ),
+  ),
+);
+```
+
+不传 `mapper` 时，`T` 必须 `implements WMapItem`（原来的用法不变）。
+
+## 用资产做 Marker 图标
+
+```dart
+WMapZone<Shop>(
+  maps: shops,
+  iconAsset: 'assets/images/map_address_icon.png',
+  imagePixelRatio: 2.5,
+);
+```
+
+包内部 `rootBundle.load` + 缓存，同一路径只解码一次；资产缺失时自动降级为默认图标。
+这样业务层不需要 `BitmapDescriptor`，也不需要 `google_maps_flutter`。
+
+## 每个条目不同图标
+
+```dart
+final zone = WMapZone<Shop>(
+  maps: shops,
+  iconBuilder: (shop) => shop.isFlagship
+      ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed)
+      : BitmapDescriptor.defaultMarker,
+);
+```
+
+> Google Maps 对图片图标有缓存，`BitmapDescriptor.fromAssetImage` 的结果请复用同一实例，
+> 不要每次构建都重新创建。
+
+## 地图内边距（避免 marker 被卡片挡住）
+
+```dart
+WMap<Shop>(
+  zone: zone,
+  config: const WMapConfig<Shop>(
+    // 底部选中卡片 140 高
+    padding: EdgeInsets.only(bottom: 140, top: 60),
+  ),
+);
+```
+
+`padding` 改变的是"可视区域中心"，选中动画会按调整后的中心计算。
+
+## 关闭选中 / 点击地图空白
+
+```dart
+final mapController = WMapController<Shop>();
+
+WMap<Shop>(
+  controller: mapController,
+  zone: zone,
+  config: WMapConfig<Shop>(
+    onItemSelected: (item) => setState(() => selected = item),
+    onItemClosed: (_) => setState(() => selected = null),
+    // 点地图空白处，常用于"点空白关闭选中"
+    onMapTap: (position) {
+      if (selected != null) mapController.closeSelection(selected!);
+    },
+  ),
+);
+```
+
+> `closeSelection` 必须通过 `WMapController` 调用：它定义在组件内部状态里，
+> 之前外部拿不到实例，导致 `onItemClosed` 无法触发。
+
+## 数据异步加载
+
+`initialCameraPosition` 只在首帧使用。若首次渲染时 `maps` 为空，
+拿到数据后调用 `zone.update(maps)`，包内会自动把相机移到新的 `cameraPosition`：
+
+```dart
+// 先渲染空地图
+final zone = WMapZone<Shop>(maps: const []);
+// 接口回来
+zone.update(shops);
+```
+
+多个 `WMap` 共享同一个 zone 时，用 `addDataUpdatedListener` 注册，而不是旧的
+`onDataUpdated` 字段（后者会被后注册的回调覆盖，已标记 deprecated）。
 
 ## License
 

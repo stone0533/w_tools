@@ -4,7 +4,6 @@ import 'package:w_tools_core/w_tools_core.dart';
 void main() {
   group('WConfig', () {
     test('默认值正确', () {
-      expect(WConfig.assetImagePath, 'assets/images/');
       expect(WConfig.tokenKey, 'token');
       expect(WConfig.refreshTokenKey, 'refresh_token');
       expect(WConfig.tokenExpiryKey, 'token_expiry');

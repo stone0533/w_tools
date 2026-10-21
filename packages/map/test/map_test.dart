@@ -3,6 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:w_tools_map/w_tools_map.dart';
 
+/// 不实现 WMapItem 的业务模型（用于 mapper 模式）
+class _PlainShop {
+  const _PlainShop({required this.code, required this.lat, required this.lng});
+  final String code;
+  final double lat;
+  final double lng;
+}
+
 /// WMapItem 具体实现（测试用）
 class _TestMapItem implements WMapItem {
   @override
@@ -99,17 +107,77 @@ void main() {
       expect(zone.cameraPosition!.zoom, 11); // defaultZoom
     });
 
-    test('markerId 生成优先级: id > name > hashCode', () {
+    test('markerId 生成优先级: id > name > 经纬度（不用 hashCode）', () {
       const a = _TestMapItem(id: 'myId', name: 'N', latitude: 0, longitude: 0);
       const b = _TestMapItem(id: null, name: 'myName', latitude: 0, longitude: 0);
-      const c = _TestMapItem(id: null, name: null, latitude: 0, longitude: 0);
+      const c = _TestMapItem(id: null, name: null, latitude: 22.3, longitude: 114.2);
       final zone = WMapZone<_TestMapItem>(maps: [a, b, c]);
 
       final markerIds = zone.markers.map((m) => m.markerId.value).toList();
       expect(markerIds, contains('myId'));
       expect(markerIds, contains('myName'));
-      // c 用 hashCode.toString()，不可预测，只验证有 3 个
+      // 都没有时用经纬度兜底：对象重建后仍然稳定
+      expect(markerIds, contains('22.3_114.2'));
       expect(markerIds.length, 3);
+    });
+
+    test('mapper 模式：模型不必实现 WMapItem', () {
+      final zone = WMapZone<_PlainShop>(
+        maps: const [
+          _PlainShop(code: 's1', lat: 22.3, lng: 114.1),
+        ],
+        mapper: WMapItemMapper<_PlainShop>(
+          id: (s) => s.code,
+          name: (s) => '門店 ${s.code}',
+          position: (s) => (latitude: s.lat, longitude: s.lng),
+        ),
+      );
+
+      expect(zone.markers.length, 1);
+      expect(zone.markers.first.markerId.value, 's1');
+      expect(zone.markers.first.position.latitude, 22.3);
+      expect(zone.markers.first.infoWindow.title, '門店 s1');
+      expect(zone.cameraPosition!.target.longitude, 114.1);
+    });
+
+    test('iconBuilder：按条目决定图标，优先于 zone.icon', () {
+      var calls = 0;
+      final red = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+      final green =
+          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+      final zone = WMapZone<_TestMapItem>(
+        maps: const [
+          _TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2),
+          _TestMapItem(id: 'b', name: 'B', latitude: 3, longitude: 4),
+        ],
+        icon: BitmapDescriptor.defaultMarker,
+        iconBuilder: (item) {
+          calls++;
+          return item.id == 'a' ? red : green;
+        },
+      );
+
+      expect(calls, 2, reason: '每个条目都应调用一次 iconBuilder');
+      final icons = zone.markers.map((m) => m.icon).toList();
+      expect(icons[0], red);
+      expect(icons[1], green);
+      expect(icons[0], isNot(icons[1]));
+    });
+
+    test('iconAsset：资产缺失时降级为默认图标，不崩', () {
+      final zone = WMapZone<_TestMapItem>(
+        maps: const [_TestMapItem(id: 'a', latitude: 1, longitude: 2)],
+        iconAsset: 'assets/not_exists_should_not_crash.png',
+      );
+      expect(zone.markers.length, 1);
+      expect(zone.markers.first.icon, BitmapDescriptor.defaultMarker);
+    });
+
+    test('没有 iconBuilder 时回退到 zone.icon / 默认图标', () {
+      final zone = WMapZone<_TestMapItem>(
+        maps: const [_TestMapItem(id: 'a', latitude: 1, longitude: 2)],
+      );
+      expect(zone.markers.first.icon, BitmapDescriptor.defaultMarker);
     });
 
     test('null lat/lng → Marker position (0.0, 0.0)', () {
@@ -175,22 +243,32 @@ void main() {
       expect(zone.cameraPosition, isNull);
     });
 
-    test('onDataUpdated 在 initMap 时触发', () {
-      var called = 0;
+    test('addDataUpdatedListener：initMap 触发、可多注册、可移除', () {
+      var first = 0;
+      var second = 0;
       final zone = WMapZone<_TestMapItem>(
         maps: const [_TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2)],
       );
-      zone.onDataUpdated = () {
-        called++;
-      };
-      // 构造函数已调 initMap，此时 onDataUpdated 还未赋值
-      // update → initMap → 触发
-      zone.update(const [_TestMapItem(id: 'b', name: 'B', latitude: 3, longitude: 4)]);
-      expect(called, 1);
+      void firstListener() => first++;
+      void secondListener() => second++;
 
-      // 手动 initMap 也触发
+      zone.addDataUpdatedListener(firstListener);
+      zone.addDataUpdatedListener(secondListener);
+      // 重复注册同一个 listener 不会重复触发
+      zone.addDataUpdatedListener(firstListener);
+      expect(zone.dataUpdatedListenerCount, 2);
+
+      zone.update(const [
+        _TestMapItem(id: 'b', name: 'B', latitude: 3, longitude: 4),
+      ]);
+      expect(first, 1);
+      expect(second, 1);
+
+      zone.removeDataUpdatedListener(firstListener);
       zone.initMap();
-      expect(called, 2);
+      expect(first, 1);
+      expect(second, 2);
+      expect(zone.dataUpdatedListenerCount, 1);
     });
   });
 
@@ -271,7 +349,7 @@ void main() {
       expect(zone.cameraPosition!.target.latitude, 31.1979);
     });
 
-    testWidgets('WMap dispose → 移除 listener + 清理 onDataUpdated', (tester) async {
+    testWidgets('WMap dispose → 移除 listener', (tester) async {
       const cfg = WMapConfig<_TestMapItem>();
       final zone = WMapZone<_TestMapItem>(
         maps: const [_TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2)],
@@ -283,14 +361,92 @@ void main() {
         ),
       );
 
-      // zone.onDataUpdated 应该被注册
-      expect(zone.onDataUpdated, isNotNull);
+      // 挂载后应该注册了数据更新监听
+      expect(zone.dataUpdatedListenerCount, 1);
 
       // dispose
       await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('done'))));
 
-      // dispose 后 onDataUpdated 应该被清除
-      expect(zone.onDataUpdated, isNull);
+      // dispose 后监听应该被移除
+      expect(zone.dataUpdatedListenerCount, 0);
+    });
+
+    testWidgets('WMapConfig.padding 透传给 GoogleMap', (tester) async {
+      const cfg = WMapConfig<_TestMapItem>(
+        padding: EdgeInsets.only(bottom: 120),
+      );
+      final zone = WMapZone<_TestMapItem>(
+        maps: const [
+          _TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: WMap<_TestMapItem>(config: cfg, zone: zone)),
+        ),
+      );
+
+      final map = tester.widget<GoogleMap>(find.byType(GoogleMap));
+      expect(map.padding, const EdgeInsets.only(bottom: 120));
+    });
+
+    testWidgets('WMapController.select → 触发 onItemSelected', (tester) async {
+      _TestMapItem? selected;
+      final controller = WMapController<_TestMapItem>();
+      final zone = WMapZone<_TestMapItem>(
+        maps: const [
+          _TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WMap<_TestMapItem>(
+              controller: controller,
+              zone: zone,
+              config: WMapConfig<_TestMapItem>(
+                onItemSelected: (item) => selected = item,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await controller.select(zone.maps!.first);
+      await tester.pump();
+      expect(selected?.id, 'a');
+    });
+
+    testWidgets('WMapController 随 WMap 挂载/卸载绑定', (tester) async {
+      const cfg = WMapConfig<_TestMapItem>();
+      final controller = WMapController<_TestMapItem>();
+      final zone = WMapZone<_TestMapItem>(
+        maps: const [
+          _TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2),
+        ],
+      );
+
+      expect(controller.isAttached, isFalse);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WMap<_TestMapItem>(
+              config: cfg,
+              zone: zone,
+              controller: controller,
+            ),
+          ),
+        ),
+      );
+      expect(controller.isAttached, isTrue);
+
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: Text('done'))),
+      );
+      expect(controller.isAttached, isFalse);
     });
   });
 }

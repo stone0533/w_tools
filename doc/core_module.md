@@ -46,11 +46,14 @@ core/
 
 集中管理模块内通用的键名和路径常量。所有字段为可修改的静态变量，建议在应用启动时一次性配置。
 
+> ⚠️ `assetImagePath` 已废弃且**不再产生任何效果**（从未被读取）。资源前缀的唯一开关是
+> `w_tools_ui` 的 `WAssets.imagePath`；聚合包中的 `WConfig.assetImagePath` 已改为代理它。
+
 ### 配置字段
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `assetImagePath` | String | `'assets/images/'` | 图片资源默认前缀 |
+| `assetImagePath` | String | `'assets/images/'` | **已废弃**，无效；请用 `WAssets.imagePath` |
 | `tokenKey` | String | — | Token 存储键名 |
 | `refreshTokenKey` | String | — | 刷新 Token 存储键名 |
 | `tokenExpiryKey` | String | — | Token 过期时间存储键名 |
@@ -59,7 +62,6 @@ core/
 
 ```dart
 void main() {
-  WConfig.assetImagePath = 'assets/images/';
   WConfig.tokenKey = 'auth_token';
   WConfig.refreshTokenKey = 'auth_refresh_token';
   WConfig.tokenExpiryKey = 'auth_token_expiry';
@@ -778,8 +780,7 @@ base.merge({'b': 0}, overwrite: false); // 不覆盖已有值
 import 'package:w_tools_core/w_tools_core.dart';
 
 Future<void> initializeApp() async {
-  // 1. 静态配置
-  WConfig.assetImagePath = 'assets/images/';
+  // 1. 静态配置（资源前缀请用 w_tools_ui 的 WAssets.imagePath）
   WConfig.tokenKey = 'app_auth_token';
   WConfig.refreshTokenKey = 'app_refresh_token';
   WConfig.tokenExpiryKey = 'app_token_expiry';

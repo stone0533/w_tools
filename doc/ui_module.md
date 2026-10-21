@@ -870,7 +870,13 @@ WSizeBox.square(50)
 
 ### WAssets
 
-资源路径管理，支持统一的资源目录前缀。
+资源前缀的**唯一开关**：`'logo.png'.assetImagePath` 读的就是 `WAssets.imagePath`；
+聚合包中的 `WConfig.assetImagePath` 也是它的转发，两处设置等价。
+
+```dart
+WAssets.imagePath = 'assets/icons/';
+'logo.png'.assetImagePath; // → 'assets/icons/logo.png'
+```
 
 ---
 
