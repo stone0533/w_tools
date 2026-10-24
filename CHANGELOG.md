@@ -9,8 +9,9 @@
   `w_tools_ui` 的 `WAssets.imagePath` —— 于是设置 `WConfig.assetImagePath` 后
   `'logo.png'.assetImagePath` 不会变化。现在兼容层直接代理 `WAssets.imagePath`，
   两个入口等价。
-- 依赖：`w_tools_ui` 提升到 `^1.1.0`（WImage 1.1.0），`w_tools_map` 提升到 `^1.2.0`；
+- 依赖：`w_tools_ui: ^1.1.0`、`w_tools_map: ^1.2.0`、`w_tools_core: ^1.0.1`、`w_tools_form: ^1.0.1`；
   这样新装聚合包的用户不会停在旧子包上（已有 lockfile 的项目仍需 `pub upgrade` 才会升级）。
+  其中 form 1.0.1 修复了 1.0.0 在 Flutter 3.38+ 的编译失败。
 - 文档：根 README 不再硬编码各包「当前版本」，改为以各包 pubspec / pub.dev 为准；
   新增 `docs/releasing.md` 与 `scripts/release_check.sh`，把版本与发布约束变成可执行检查。
 

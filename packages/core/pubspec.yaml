@@ -1,6 +1,6 @@
 name: w_tools_core
 description: "w_tools 的基础工具层：扩展方法、异步任务、校验、正则、加密、存储、日志、倒计时、平台判断与全局配置，零业务框架依赖。"
-version: 1.0.0
+version: 1.0.1
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/core

@@ -1,17 +1,21 @@
 # Changelog
 
-## Unreleased
+## 1.0.1
 
-- **行为变更（breaking）**：字段 Config 的 `build()` / `buildBordered()` 双入口合并为单一 `build({bool bordered = false, ...})`。
-  - `bordered: false`（默认）返回裸字段；`bordered: true` 返回包装了 `WFormBorderWithData` 的版本（清空内层 `containerDecoration`）。
-  - 原 `buildBordered` 的 `key` 参数更名为 `borderKey`。
-  - 影响：`WFormTextFieldConfig` / `WFormDropdownConfig` / `WFormMultiDropdownConfig` / `WFormCheckboxConfig` / `WFormRadioGroupConfig` / `WFormDatePickerConfig` / `WFormButtonConfig`；旧 `buildBordered(...)` 调用点需改为 `build(bordered: true, ...)`。
-- 内部：7 个字段重复的 `Container + Row` 外框与 bordered 装配抽到内部 `WFormFieldFrame`（不对外导出），行为不变。
+### Fixed
+- Flutter 3.38 起 `SizeTransition.alignment` 已移除，`WFormPopupRoute` 改用
+  `axisAlignment: -1.0`（等价于原来的顶部对齐）。修复 1.0.0 在 Flutter 3.38+ 编译失败。
 
 ## 1.0.0
 
 首次发布。
 
+- 字段 Config 统一为 `build({bool bordered = false, ...})`：`buildBordered(...)` 合并为
+  `build(bordered: true, ...)`，`key` 参数更名为 `borderKey`
+  （影响 `WFormTextFieldConfig` / `WFormDropdownConfig` / `WFormMultiDropdownConfig` /
+  `WFormCheckboxConfig` / `WFormRadioGroupConfig` / `WFormDatePickerConfig` / `WFormButtonConfig`）。
+- 内部：7 个字段重复的 `Container + Row` 外框与 bordered 装配抽到内部 `WFormFieldFrame`
+  （不对外导出），行为不变。
 - 新增字段组件：`WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`
 - 新增表单容器：`WFormBuilder` / `WFormData` / `WFormButton`
 - 新增边框体系：`WFormBorder` / `WFormBorderConfig` / `WFormBorderWithData` / `WFormReadOnlyScope`

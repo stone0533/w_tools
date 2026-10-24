@@ -148,7 +148,7 @@ for pkg in $PACKAGES; do
     changelog_has_version "$dir/CHANGELOG.md" "$version" ||
       fail "$pkg: CHANGELOG 里没有 '## $version' 段（当前 pubspec 版本是 ${version}）"
     changelog_has_unreleased "$dir/CHANGELOG.md" &&
-      warn "$pkg: CHANGELOG 有未发版条目（## Unreleased）"
+      warn "$pkg: CHANGELOG 有未发版条目（## Unreleased）—— 若是已随旧版本发布的内容，折叠进对应版本；只有真正未发的才留在这里"
   fi
 
   constraint="$(sed -n "s/^  w_tools_${pkg}:[[:space:]]*//p" pubspec.yaml | head -n1)"

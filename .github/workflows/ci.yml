@@ -18,6 +18,8 @@ env:
   # 与本地 fvm 使用的版本保持一致（pubspec 要求 Flutter >= 3.38 / Dart ^3.10）。
   # 升级 Flutter 时同步改这里，避免 CI 与本地解析出不同的依赖版本。
   FLUTTER_VERSION: '3.44.9'
+  # 声明的最低版本：单独跑一遍，防止「声明支持 3.38 却用了 3.38 已移除的 API」。
+  MIN_FLUTTER_VERSION: '3.38.4'
 
 jobs:
   # 聚合包契约：w.dart 的重导出、WConfig 兼容层。
@@ -56,6 +58,33 @@ jobs:
       # `packages/core` 而失败（2.0.0 踩过，见 docs/releasing.md）。
       - name: Publish dry-run (root, staged)
         run: bash scripts/publish_package.sh . --dry-run
+
+  # 声明的最低 Flutter 版本上再跑一遍：form 1.0.0 的 SizeTransition.alignment
+  # 就是「声明支持 3.38、却在 3.38 编译失败」漏出去的。
+  min-sdk:
+    name: Flutter ${{ env.MIN_FLUTTER_VERSION }} (declared minimum)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.MIN_FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # workspace analyze 会覆盖所有子包；umbrella 测试会编译所有子包的 lib
+      - name: Analyze (minimum SDK)
+        run: flutter analyze
+
+      - name: Test (umbrella on minimum SDK)
+        run: flutter test
 
   # 每个子包独立跑：analyze / test / 发布前校验。
   # 这一步保证「子包能独立发布」不是口号 —— 缺依赖、缺导出、缺发布物料都会在这里失败。

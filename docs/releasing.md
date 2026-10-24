@@ -103,3 +103,6 @@ Failed to update packages.        # 退出码 66
 - **直接在包目录敲 `flutter pub publish`**：会把 `workspace:` / `resolution: workspace`
   带进发布物，消费方 `dart pub deps` 会以退出码 66 失败。统一用
   `scripts/publish_package.sh`。
+- **`## Unreleased` 一直挂着**：先确认这些改动是不是已经随已发布版本出去了——
+  是就折叠进对应版本（已发布版本的 CHANGELOG 会原样显示在 pub.dev 上，改不了旧版本，
+  只能发新版本修正）；只有真正未发的才继续留在 Unreleased。
