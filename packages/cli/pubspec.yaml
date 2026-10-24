@@ -1,0 +1,25 @@
+name: w_tools_cli
+description: "w_tools 的接入工具：init 生成聚合入口 / 暂存层 / AGENTS 片段，doctor 检查消费方是否遵守接入约定。"
+version: 1.0.0
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/cli
+issue_tracker: https://github.com/stone0533/w_tools/issues
+topics:
+  - dart
+  - tooling
+  - cli
+
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  args: ^2.6.0
+  path: ^1.9.0
+  yaml: ^3.1.2
+
+dev_dependencies:
+  coverage: ^1.16.0
+  lints: ^4.0.0
+  test: ^1.25.0

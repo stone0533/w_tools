@@ -237,3 +237,7 @@ class _MyPageState extends State<MyPage> {
 - **`_guardBuilder` 兜底**：`WToast.showCustomDialog` 的 `toastBuilder` 在 build 阶段执行，其异常由内部 `_guardBuilder` 兜底上报 `onError`，不会逃逸出 try-catch。
 - **`showCustom` 必须先设置 `toastBuilder`**：未设置时会抛 `ArgumentError`，不走 `onError` 兜底。
 - **`WToast.hideAll` vs `cancelFunc()`**：前者一次性清理所有提示且不播放关闭动画；后者只关闭单个提示。调用 `hideAll` 后 `_loadingCancelFunc` 会被置为 null。
+
+---
+
+相关文档：[模块索引](README.md) · [组件目录](components.md) · [接入约定](../conventions.md)

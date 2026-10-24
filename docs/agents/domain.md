@@ -18,11 +18,15 @@ Single-context repo (this repo):
 
 ```
 /
-├── GLOSSARY.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
+├── packages/            # 8 个 Flutter 子包 + cli
+├── docs/
+│   ├── modules/         # 使用者文档（模块 / 组件）
+│   ├── adr/             # 0001 版本策略、0002 依赖子包
+│   ├── agents/          # issue tracker / triage / domain
+│   ├── conventions.md
+│   └── releasing.md
+├── CONTRIBUTING.md
+└── GLOSSARY.md          # 按需创建
 ```
 
 Multi-context repo (presence of `GLOSSARY-MAP.md` at the root):

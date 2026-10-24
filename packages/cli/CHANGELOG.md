@@ -1,0 +1,29 @@
+# Changelog
+
+## 1.0.0
+
+首次发布。
+
+### Added
+- `dart run w_tools_cli:init`：把接入约定装进消费方项目 —— 生成聚合入口
+  `lib/app/w/toolkit.dart`、暂存层 `lib/app/design_system/README.md`、`AGENTS.md` 片段
+  （标记块 `<!-- w_tools:begin -->`，重复执行原地更新）与 `.w_tools_doctor.yaml`
+  （全注释，不改变行为）。`--check` 只检查缺失（内容不同只提示、不算失败），
+  `--check-drift` 把「模板已过期」也判失败，`--force` 才覆盖，
+  `--no-qr` / `--with-map` 控制导出范围。
+- `init` 输出的 pubspec 片段会自动识别已有 `dependencies` / `dev_dependencies`
+  section，只给「追加的缩进行」，避免复制出重复的顶层 key。
+- `dart run w_tools_cli:doctor`：扫描消费方项目并报出违反接入约定的地方：
+  - `R1` 依赖了聚合包 `w_tools`（会拖进 google_maps_flutter）
+  - `R2` 业务代码直接 import `package:w_tools_*` 或聚合包 `package:w_tools/`
+    （聚合入口与暂存层除外；`//` 注释里的 import 不算）
+  - `R3` 硬编码语义色（调色板必须项目自己配置，默认空 → 跳过）
+  - `R4` 暂存层 import 了 `data/` / `modules/` / `routes/` / `services/`
+  - `R5` 暂存层文件缺 `// STAGED:` 标记
+  - `R6` 使用了禁用的尺寸单位 `.h` / `.r`（项目专用，默认关；warn，`--strict` 才失败）
+  支持 `--json`、`--strict`、`--only=R1,R2`、`--include-tests`。
+- `doctor --print-config` / `--write-config`：打印或落盘带注释的默认配置
+  `.w_tools_doctor.yaml`；内容由代码默认值渲染（不是手写模板），
+  `test/config_render_test.dart` 保证「打印出来的 = 实际默认值」。
+- 模板唯一来源是 `templates/`，构建期由 `dart run tool/gen_templates.dart`
+  生成 `lib/src/init/templates.g.dart`，`test/templates_fresh_test.dart` 拦截漂移。

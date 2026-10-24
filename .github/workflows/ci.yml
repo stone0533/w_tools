@@ -51,6 +51,9 @@ jobs:
       - name: Analyze (workspace)
         run: flutter analyze
 
+      - name: Check docs
+        run: bash scripts/check_docs.sh
+
       - name: Test (umbrella contract)
         run: flutter test
 
@@ -95,7 +98,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [core, ui, form, api, app, toast, map, qr]
+        package: [core, ui, form, api, app, toast, map, qr, cli]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -111,12 +114,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze (package)
+      - name: Analyze (Flutter package)
+        if: matrix.package != 'cli'
         run: flutter analyze packages/${{ matrix.package }}
+
+      - name: Analyze (pure Dart package)
+        if: matrix.package == 'cli'
+        working-directory: packages/cli
+        run: dart analyze
 
       # example 会随包一起发布，必须能脱离 workspace 独立解析
       - name: Analyze example (published with package)
-        if: hashFiles(format('packages/{0}/example/pubspec.yaml', matrix.package)) != ''
+        if: matrix.package != 'cli' && hashFiles(format('packages/{0}/example/pubspec.yaml', matrix.package)) != ''
         working-directory: packages/${{ matrix.package }}/example
         run: |
           flutter pub get
@@ -127,9 +136,22 @@ jobs:
       - name: Publish dry-run (package, staged)
         run: bash scripts/publish_package.sh packages/${{ matrix.package }} --dry-run
 
-      - name: Test (package)
+      - name: Test (Flutter package)
+        if: matrix.package != 'cli'
         working-directory: packages/${{ matrix.package }}
         run: flutter test --coverage
+
+      - name: Test (pure Dart package)
+        if: matrix.package == 'cli'
+        working-directory: packages/cli
+        run: dart test --coverage=coverage
+
+      - name: Format coverage (pure Dart package)
+        if: matrix.package == 'cli'
+        working-directory: packages/cli
+        run: >-
+          dart run coverage:format_coverage
+          --lcov --in=coverage --out=coverage/lcov.info --report-on=lib --package=.
 
       - name: Upload coverage
         if: always()

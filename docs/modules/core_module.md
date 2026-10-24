@@ -907,3 +907,7 @@ await WAsync.run(() {
 ### 6. WConfig 是全局可变单例
 
 `WConfig` 的字段在运行时可被重新赋值。如果你的应用存在多入口或测试场景，请注意隔离：测试前先重置配置。
+
+---
+
+相关文档：[模块索引](README.md) · [组件目录](components.md) · [接入约定](../conventions.md)

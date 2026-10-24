@@ -383,3 +383,7 @@ void main() {
 - **`WLanguage.currentLocale` 解析约定**：语言代码必须形如 `zh_CN`（下划线分隔），否则 `currentLocale` 会返回 null。
 - **`WAppConfig.supportedLanguages` 是整体赋值**：使用 `=` 覆盖，不提供 `.add` 增量 API。
 - **`WAppPlugin.onInit` 可返回 Future**：若返回 `Future<void>`，`WApp.init` 会等待它完成再进入下一层。
+
+---
+
+相关文档：[模块索引](README.md) · [组件目录](components.md) · [接入约定](../conventions.md)

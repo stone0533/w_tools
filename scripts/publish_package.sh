@@ -99,7 +99,6 @@ rsync -a \
   --exclude '.flutter-plugins-dependencies' \
   --exclude 'pubspec.lock' \
   --exclude 'test' \
-  --exclude 'doc' \
   --exclude 'docs' \
   --exclude 'scripts' \
   --exclude '.github' \
@@ -150,6 +149,12 @@ fi
 echo "== 暂存目录: $staging"
 grep -nE '^(name|version):' "$staging/pubspec.yaml"
 
+publish_runner=flutter
+if ! grep -qE 'sdk:[[:space:]]*flutter' "$staging/pubspec.yaml"; then
+  publish_runner=dart
+fi
+echo "== 发布方式: $publish_runner pub publish"
+
 version="$(sed -n 's/^version:[[:space:]]*//p' "$staging/pubspec.yaml" | head -n1)"
 major="${version%%.*}"
 rest="${version#*.}"
@@ -169,4 +174,4 @@ if [ -n "$stage_only" ]; then
 fi
 
 cd "$staging"
-PUB_HOSTED_URL="$publish_host" flutter pub publish $dry_run
+PUB_HOSTED_URL="$publish_host" "$publish_runner" pub publish $dry_run

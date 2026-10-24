@@ -12,7 +12,7 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT" || exit 2
 
-PACKAGES="core ui form api app toast map qr"
+PACKAGES="core ui form api app toast map qr cli"
 STRICT=0
 ONLINE=0
 SELECTED=""
@@ -151,22 +151,27 @@ for pkg in $PACKAGES; do
       warn "$pkg: CHANGELOG 有未发版条目（## Unreleased）—— 若是已随旧版本发布的内容，折叠进对应版本；只有真正未发的才留在这里"
   fi
 
-  constraint="$(sed -n "s/^  w_tools_${pkg}:[[:space:]]*//p" pubspec.yaml | head -n1)"
-  if [ -z "$constraint" ]; then
-    fail "根包 pubspec.yaml 缺少对 w_tools_$pkg 的依赖"
+  if [ "$pkg" = "cli" ]; then
+    # CLI 是独立工具包：消费方放 dev_dependencies，不需要根包依赖它
+    ok "$name ${version}（独立工具包，不要求根包依赖）"
   else
-    caret_accepts "$constraint" "$version"
-    rc=$?
-    if [ "$rc" = 0 ]; then
-      ok "$name ${version}（根约束 ${constraint}）"
-      lower="${constraint#^}"
-      if ver_gt "$version" "$lower"; then
-        warn "根包约束 ${constraint} 的下界低于本地版本 ${version} —— 已有 lockfile 的聚合包用户不会自动拿到它"
-      fi
-    elif [ "$rc" = 2 ]; then
-      fail "根包对 w_tools_$pkg 的约束 '$constraint' 不是 ^ 形式，脚本无法校验"
+    constraint="$(sed -n "s/^  w_tools_${pkg}:[[:space:]]*//p" pubspec.yaml | head -n1)"
+    if [ -z "$constraint" ]; then
+      fail "根包 pubspec.yaml 缺少对 w_tools_$pkg 的依赖"
     else
-      fail "根包约束 $constraint 不接受本地版本 $version —— 聚合包用户拿不到这个子包版本"
+      caret_accepts "$constraint" "$version"
+      rc=$?
+      if [ "$rc" = 0 ]; then
+        ok "$name ${version}（根约束 ${constraint}）"
+        lower="${constraint#^}"
+        if ver_gt "$version" "$lower"; then
+          warn "根包约束 ${constraint} 的下界低于本地版本 ${version} —— 已有 lockfile 的聚合包用户不会自动拿到它"
+        fi
+      elif [ "$rc" = 2 ]; then
+        fail "根包对 w_tools_$pkg 的约束 '$constraint' 不是 ^ 形式，脚本无法校验"
+      else
+        fail "根包约束 $constraint 不接受本地版本 $version —— 聚合包用户拿不到这个子包版本"
+      fi
     fi
   fi
 done
@@ -256,7 +261,7 @@ fi
 
 printf '检查通过（%s 条提醒）\n' "$warns"
 if [ -n "$SELECTED" ]; then
-  printf '单个包发布：cd packages/%s && flutter pub publish，发布后重跑本脚本 --package %s --online 确认。\n' "$SELECTED" "$SELECTED"
+  printf '单个包发布：bash scripts/publish_package.sh packages/%s，发布后重跑本脚本 --package %s --online 确认。\n' "$SELECTED" "$SELECTED"
 else
-  printf '发布顺序：先按「仓库领先」的子包逐个 flutter pub publish，再发根包 w_tools（抬高约束后发布）。\n'
+  printf '发布顺序：先按「仓库领先」的子包逐个 bash scripts/publish_package.sh packages/<pkg>，再发根包（抬高约束后发布）；w_tools_cli 独立发布。\n'
 fi

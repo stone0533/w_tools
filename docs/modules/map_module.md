@@ -249,4 +249,7 @@ WMap<StoreItem>(config: mapConfig, zone: zone);
 
 - [w_tools_ui — WListView / WScaffold](ui_module.md)：地图页面的布局容器通常来自 ui 子包。
 - [w_tools_core — WPlatform](core_module.md)：地图功能依赖原生平台（Android / iOS），Web / 桌面端不支持。
-- [模块文档索引](README.md)：全部 8 个子包的依赖矩阵与版本约束。
+
+---
+
+相关文档：[模块索引](README.md) · [组件目录](components.md) · [接入约定](../conventions.md)

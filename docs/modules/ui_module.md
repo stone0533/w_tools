@@ -1174,3 +1174,7 @@ class MainNavBar extends StatelessWidget {
 
 - 与 `WListView controller` 同理，controller 由调用方管理
 - `dispose()` 需在 `State.dispose()` 中调用
+
+---
+
+相关文档：[模块索引](README.md) · [组件目录](components.md) · [接入约定](../conventions.md)

@@ -12,11 +12,27 @@
 - **配置驱动**：采用配置驱动的设计模式，便于定制和扩展
 - **响应式设计**：支持屏幕适配，自动适应不同设备尺寸
 
+## 文档
+
+| 文档 | 内容 |
+|------|------|
+| [docs/modules/README.md](docs/modules/README.md) | 模块文档索引、依赖矩阵、SDK 速查 |
+| [docs/modules/components.md](docs/modules/components.md) | 组件目录（先查这里），含「不要用在哪」 |
+| [docs/conventions.md](docs/conventions.md) | 接入约定：包 / 暂存层 / 业务层判定与 doctor 规则 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 新增/修改组件的硬性要求 |
+| [docs/releasing.md](docs/releasing.md) | 发版流程与发布脚本 |
+| [docs/adr/](docs/adr/) | 架构决策（版本策略、依赖子包） |
+| [packages/cli/README.md](packages/cli/README.md) | `init` / `doctor` CLI |
+
+> `docs/modules/` 面向使用者，`docs/` 顶层面向维护者/agent；`docs/` 不随 pub 发布会
+>（已在根 `.pubignore` 排除）。
+
 ## 安装
 
-> ℹ️ **发布状态**：8 个子包与根包 `w_tools` 均已发布到 pub.dev。
-> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 8 个子包（各包 `^1.x`，其中
-> `w_tools_map` 自根包 2.0.1 起要求 `^1.1.0`），只 re-export 子包能力。
+> ℹ️ **发布状态**：8 个 Flutter 子包与聚合包 `w_tools` 已发布到 pub.dev；
+> `w_tools_cli` 是独立的纯 Dart 工具包，发布状态见 pub.dev。
+> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 8 个 Flutter 子包，只 re-export 子包能力；
+> 各包约束以根 `pubspec.yaml` 为准（本文不硬编码版本号）。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
 ### 本地开发 / 跨仓库接入
@@ -41,6 +57,35 @@ dependencies:
 
 > 只想用某个子包时同理：把 `path` 指向仓库内的 `packages/ui`、`packages/core` 等。
 
+### 推荐：只依赖用到的子包（不要依赖聚合包）
+
+聚合包会把 `w_tools_map` 的 `google_maps_flutter` 原生 SDK 一起拖进构建。
+不用地图的项目请直接依赖子包，并在项目里放一个聚合入口：
+
+```yaml
+dependencies:
+  w_tools_core: ^1.0.0
+  w_tools_ui: ^1.0.0
+  w_tools_form: ^1.0.0
+  # 需要再加 w_tools_app / api / toast / qr / map
+```
+
+模板与理由：[`packages/cli/templates/`](packages/cli/templates/)、[`docs/conventions.md`](docs/conventions.md)、
+[ADR-0002](docs/adr/0002-consumers-depend-on-subpackages.md)。
+
+更省事的做法是用 CLI 生成（聚合入口、暂存层 README、`AGENTS.md` 片段一次装好）。
+CLI 在独立的纯 Dart 包里，不需要先引入聚合包：
+
+```yaml
+dev_dependencies:
+  w_tools_cli: ^1.0.0
+```
+
+```bash
+dart run w_tools_cli:init      # 生成到当前项目
+dart run w_tools_cli:doctor    # 之后随时检查是否守约定
+```
+
 ### 从 pub.dev 安装
 
 各子包独立发布，可只引入需要的包；根包 `w_tools` 也作为聚合包发布。
@@ -51,7 +96,7 @@ dependencies:
   w_tools_ui: ^1.0.0
 ```
 
-或一键引入聚合包（会带上全部 8 个子包及其依赖）：
+或一键引入聚合包（会带上全部 8 个 Flutter 子包及其依赖）：
 
 ```yaml
 dependencies:
@@ -66,7 +111,7 @@ flutter pub get
 
 ### 依赖与子包说明（选依赖前请先读）
 
-`w_tools` 是**聚合包**，直接依赖以下 8 个子包，方便一键引入：
+`w_tools` 是**聚合包**，直接依赖以下 8 个 Flutter 子包，方便一键引入：
 
 | 子包 | 职责 |
 |---|---|
@@ -113,9 +158,9 @@ dependencies:
 import 'package:w_tools/w.dart';
 ```
 
-> **版本策略**：8 个子包各自独立发版，互不跟随（具体版本以各包 `pubspec.yaml`
-> 与 pub.dev 为准，不在本文硬编码）；根包按聚合层版本独立发布，其依赖约束为各子包 `^1.x`。
-> 发版流程与自动校验见 `docs/releasing.md`。
+> **版本策略**：8 个 Flutter 子包与 `w_tools_cli` 各自独立发版，互不跟随（具体版本以
+> 各包 `pubspec.yaml` 与 pub.dev 为准，不在本文硬编码）；根包按聚合层版本独立发布，
+> 其依赖约束为各子包 `^1.x`。发版流程与自动校验见 `docs/releasing.md`。
 
 ## 快速开始
 

@@ -276,4 +276,7 @@ void setupApi() {
 - [w_tools_core — WToken / WStorage](core_module.md)：Token 的持久化存储（`WToken` + `WStorage`）在 core 子包，`WTokenInterceptor` 通过 `tokenGetter` / `tokenClearer` 回调与它们解耦。
 - [w_tools_core — WLogger](core_module.md)：`WApiConfig.logDebugHandler` / `logErrorHandler` 通常对接 `WLogger.d` / `WLogger.e`。
 - [w_tools_core — WAsync](core_module.md)：网络请求的加载状态管理可配合 `WAsync` 的 `showLoading` / `onLoadingStart` / `onLoadingEnd`。
-- [模块文档索引](README.md)：全部 8 个子包的依赖矩阵与版本约束。
+
+---
+
+相关文档：[模块索引](README.md) · [组件目录](components.md) · [接入约定](../conventions.md)

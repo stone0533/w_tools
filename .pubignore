@@ -2,11 +2,10 @@
 # 所以这里不能排除 packages/ —— 否则子包发布出来是 <1KB 的空包（pubspec 都会被隐藏）。
 # 根包是聚合包，只 re-export 8 个子包，这里只排除仓库级内容：
 # - test/：本仓库测试，依赖各包自己的 dev_dependencies
-# - doc/：模块文档（面向仓库，不随根包发布）
+# - docs/：模块与维护者文档（面向仓库，不随根包发布）
 # - scripts/ / .github/：仓库工具与 CI
 # - coverage/：`flutter test --coverage` 的产物，绝不能进发布包
 test/
-doc/
 docs/
 scripts/
 .github/

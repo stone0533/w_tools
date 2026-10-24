@@ -600,3 +600,7 @@ class _LoginPageState extends State<LoginPage> {
 | 10 | **校验器双通道风险** | `WFormValidatorItem.field` 模式直接执行字段 `validator`，**不**写入字段 `errorText`，只通过 `WFormBorder.setError` 渲染；若同时开 FormBuilder 原生 `validate()` 会走另一通道，建议统一使用 `WFormValidator` |
 | 11 | **copyWith(null) 不代表清空** | `WFormBorderConfig.copyWith(errorDecoration: null)` 保持原值；清空请用 `cfg.copy()..errorDecoration = null` |
 | 12 | **全局默认图标替换** | `WFormDefaults` 替换后影响所有未显式配置的组件，可用于主题化；组件显式配置优先于全局默认 |
+
+---
+
+相关文档：[模块索引](README.md) · [组件目录](components.md) · [接入约定](../conventions.md)

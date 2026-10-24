@@ -1,0 +1,27 @@
+# lib/app/design_system —— 通用组件暂存层
+
+> **这里不是终点，是「等着上移到 w_tools 的候车室」。**
+> 判定方法与上移流程见 [w_tools 的接入约定](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md)。
+
+## 什么该放这里
+
+只描述「长什么样」、完全不知道业务的组件：弹窗壳、品牌 logo 方块、图标+文字一行、
+虚线分隔、空态/加载态、语义颜色。
+
+**不该放**：知道业务概念的（交易卡、点数徽章、会员等级条）—— 留在 `lib/app/modules/`。
+
+## 四条硬约束
+
+1. **import 边界**：只允许 `dart:*`、`package:flutter*`、`package:w_tools*`、`package:get`；
+   禁止 `data/`、`modules/`、`routes/`、`services/`
+2. 文件头标 `// STAGED: 待上移到 w_tools_ui`
+3. 注释写清设计稿实测尺寸（宽/高/圆角/颜色/行距）
+4. 至少一个测试
+
+> 这一层**可以**直接 import 子包（`package:w_tools_ui/...`）：它将来要整体搬进包里。
+
+## 检查
+
+```bash
+dart run w_tools_cli:doctor      # R4 / R5 会检查这一层
+```

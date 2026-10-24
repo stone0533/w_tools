@@ -1,6 +1,6 @@
-# 发版流程（8 个子包 + 聚合包）
+# 发版流程（8 个 Flutter 子包 + w_tools_cli + 聚合包）
 
-`w_tools` 是 8 个独立发布的子包 + 1 个聚合包。两边版本各自演进，所以「仓库里有什么」和
+`w_tools` 是 8 个 Flutter 子包 + 1 个纯 Dart 工具包（`w_tools_cli`）+ 1 个聚合包。版本各自演进，所以「仓库里有什么」和
 「pub.dev 上用户能装到什么」很容易分叉 —— 例如 `w_tools_map` 曾经是仓库 1.1.0、
 pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 
@@ -18,6 +18,9 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
   `Removed` / 破坏性行为变更 → **major**。发布脚本会在「版本不是 X.0.0 但 CHANGELOG
   含 Removed/breaking」时给出警告。
 - **发布顺序**：先子包，后聚合包。聚合包约束抬高到新子包版本之后才能发。
+- **`w_tools_cli` 独立发布**：它是纯 Dart 工具包（`packages/cli`），不被根包依赖，
+  版本自己走。发布命令一样用 `bash scripts/publish_package.sh packages/cli`
+  （脚本检测到没有 Flutter 依赖时会改用 `dart pub publish`），不需要跟子包/根包同批。
 - **历史例外**：`w_tools_ui 1.1.0` 删除了 `WNetworkImageWithRetry`，按 semver 应为 2.0.0；
   当时无外部使用者，未回滚、未加兼容垫片。今后破坏性改动一律按 major 发。
 
@@ -69,7 +72,7 @@ Failed to update packages.        # 退出码 66
 ```
 
 `scripts/publish_package.sh` 会先把包复制到仓库外的临时目录，去掉 `workspace:` 与
-`resolution: workspace`，排除 `test/`、`doc/`、`scripts/` 等仓库内容（根包还排除 `packages/`），
+`resolution: workspace`，排除 `test/`、`docs/`、`scripts/` 等仓库内容（根包还排除 `packages/`），
 确认暂存 pubspec 干净后再执行 `pub publish`。CI 的发布预演也走它。
 
 发布目标**默认是 `https://pub.dev`**，不会继承本地 shell 里的 `PUB_HOSTED_URL`

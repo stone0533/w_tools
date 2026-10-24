@@ -419,3 +419,7 @@ class _QrScanPageState extends State<QrScanPage> {
 - `showOverlay=false` 时 `borderColor` / `checkedBorderColor` / `overlay` 均不生效，组件进入全屏扫描模式。
 - `formatsAllowed` 为空列表时使用平台默认识别格式，显式指定可提升识别速度。
 - 桌面端（Windows/macOS/Linux）运行会在插件层抛 `UnsupportedError`，请在使用前做平台判断。
+
+---
+
+相关文档：[模块索引](README.md) · [组件目录](components.md) · [接入约定](../conventions.md)
