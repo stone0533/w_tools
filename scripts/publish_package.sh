@@ -14,6 +14,10 @@
 #   scripts/publish_package.sh packages/ui --dry-run
 #   scripts/publish_package.sh . --stage-only    # 只生成暂存副本（调试用，不删除）
 #
+# 发布目标：默认 https://pub.dev。
+#   不复用 PUB_HOSTED_URL —— 本机常把它设成只读镜像，且镜像元数据会滞后。
+#   需要发到其它 host 时显式设 PUBLISH_HOSTED_URL。
+#
 # 暂存副本会：
 #   - 去掉顶层 `workspace:` 块与 `resolution: workspace`
 #   - 排除 .git / .dart_tool / build / coverage / test / doc / scripts / .github / pubspec.lock
@@ -23,14 +27,24 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# 显式指定发布目标：本地 shell 里的 PUB_HOSTED_URL 常指向只读镜像，不能带进发布流程。
+publish_host="${PUBLISH_HOSTED_URL:-https://pub.dev}"
+
 usage() {
-  sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 if [ $# -lt 1 ]; then
   usage >&2
   exit 2
 fi
+
+case "$1" in
+  -h | --help)
+    usage
+    exit 0
+    ;;
+esac
 
 target="$1"
 shift
@@ -129,6 +143,10 @@ if grep -qE '^(workspace:|resolution:[[:space:]]*workspace)' "$staging/pubspec.y
   exit 1
 fi
 
+echo "== 发布目标: $publish_host"
+if [ "$publish_host" != "https://pub.dev" ]; then
+  echo "!! 注意：目标不是 pub.dev" >&2
+fi
 echo "== 暂存目录: $staging"
 grep -nE '^(name|version):' "$staging/pubspec.yaml"
 
@@ -138,4 +156,4 @@ if [ -n "$stage_only" ]; then
 fi
 
 cd "$staging"
-flutter pub publish $dry_run
+PUB_HOSTED_URL="$publish_host" flutter pub publish $dry_run

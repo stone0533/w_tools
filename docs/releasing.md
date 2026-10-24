@@ -67,6 +67,13 @@ Failed to update packages.        # 退出码 66
 `resolution: workspace`，排除 `test/`、`doc/`、`scripts/` 等仓库内容（根包还排除 `packages/`），
 确认暂存 pubspec 干净后再执行 `pub publish`。CI 的发布预演也走它。
 
+发布目标**默认是 `https://pub.dev`**，不会继承本地 shell 里的 `PUB_HOSTED_URL`
+（那通常是只读镜像，元数据还会滞后）。需要发到其它 host 时用：
+
+```bash
+PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh packages/map
+```
+
 > `w_tools 2.0.0` 就是这样把 `workspace:` 发出去的，而已发布版本无法修改：
 > 用 2.0.0 的项目 `flutter pub get` / `flutter analyze` 仍可用，但 `dart pub deps`
 > 会报上面的错误；升级到修复版本即可。
