@@ -9,8 +9,8 @@
   `w_tools_ui` 的 `WAssets.imagePath` —— 于是设置 `WConfig.assetImagePath` 后
   `'logo.png'.assetImagePath` 不会变化。现在兼容层直接代理 `WAssets.imagePath`，
   两个入口等价。
-- 依赖：`w_tools_map` 约束提升到 `^1.1.0`，聚合包用户可拿到 1.1.0 的地图改进
-  （`iconAsset` / `WMapItemMapper` / `WMapConfig.padding` / `onMapTap` 等）。
+- 依赖：`w_tools_ui` 提升到 `^1.1.0`（WImage 1.1.0），`w_tools_map` 提升到 `^1.2.0`；
+  这样新装聚合包的用户不会停在旧子包上（已有 lockfile 的项目仍需 `pub upgrade` 才会升级）。
 - 文档：根 README 不再硬编码各包「当前版本」，改为以各包 pubspec / pub.dev 为准；
   新增 `docs/releasing.md` 与 `scripts/release_check.sh`，把版本与发布约束变成可执行检查。
 
