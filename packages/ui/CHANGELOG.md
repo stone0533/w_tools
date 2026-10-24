@@ -2,6 +2,10 @@
 
 ## 1.1.0
 
+> 说明：本版本删除了公开组件 `WNetworkImageWithRetry`。按 semver 这应当作为 2.0.0 发布；
+> 发布时没有外部使用者，因此未回滚、也未提供兼容垫片。自 1.1.0 起该组件不再存在，
+> 后续破坏性变更会按 major 发布。
+
 ### Added
 - `WImage.network` / `WImage.asset` / `WImage.file` / `WImage.base64` 命名构造：
   跳过字符串嗅探，类型确定，也不会因为 asset 名长得像 URL 而走错分支。

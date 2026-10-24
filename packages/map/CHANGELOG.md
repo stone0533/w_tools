@@ -1,3 +1,5 @@
+# Changelog
+
 ## 1.2.0
 
 ### Added
@@ -7,8 +9,6 @@
 ### Fixed
 - 资产图标缓存 key 改为 `asset@imagePixelRatio`：同一张图用不同像素密度时
   不再互相覆盖。
-
-# Changelog
 
 ## 1.1.0
 

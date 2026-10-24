@@ -150,6 +150,19 @@ fi
 echo "== 暂存目录: $staging"
 grep -nE '^(name|version):' "$staging/pubspec.yaml"
 
+version="$(sed -n 's/^version:[[:space:]]*//p' "$staging/pubspec.yaml" | head -n1)"
+major="${version%%.*}"
+rest="${version#*.}"
+if [ "$major" != "0" ] && [ "$rest" != "0.0" ] && [ -f "$staging/CHANGELOG.md" ]; then
+  if awk -v ver="$version" '
+      $0 ~ "^##[ \t]+" ver "$" {found = 1; next}
+      found && /^## / {exit}
+      found {print}
+    ' "$staging/CHANGELOG.md" | grep -qiE '^###[[:space:]]+Removed|breaking'; then
+    echo "!! 警告：$version 的 CHANGELOG 含 Removed/breaking，按 semver 应作为 major（X.0.0）发布" >&2
+  fi
+fi
+
 if [ -n "$stage_only" ]; then
   echo "== --stage-only：跳过发布，暂存目录保留"
   exit 0
