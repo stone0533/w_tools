@@ -25,19 +25,20 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
    bash scripts/release_check.sh --package map
    ```
 5. 提交（`pub publish` 只有在干净工作区才不会报 65）。
-6. 干净工作区复核 + 发布预演：
+6. 干净工作区复核 + 发布预演（**必须走发布脚本**，原因见下一节）：
    ```bash
    bash scripts/release_check.sh --strict --package map
-   cd packages/map && flutter pub publish --dry-run
+   bash scripts/publish_package.sh packages/map --dry-run
    ```
 7. 发布子包：
    ```bash
-   cd packages/map && flutter pub publish
+   bash scripts/publish_package.sh packages/map
    # 其余需要发布的子包同理
    ```
 8. 需要聚合包跟上时，最后发聚合包：
    ```bash
-   flutter pub publish
+   bash scripts/publish_package.sh . --dry-run   # 预演
+   bash scripts/publish_package.sh .             # 正式发布
    ```
 9. 发布后确认（这一步才会把「待发布」判成通过）：
    ```bash
@@ -47,6 +48,27 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 
 > `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
 > 发布前的门禁是第 4、6 步。
+
+## 为什么用 `publish_package.sh` 而不是直接 `flutter pub publish`
+
+仓库根的 `pubspec.yaml` 为了本地开发写着 `workspace:`，子包写着 `resolution: workspace`。
+pub 会把 pubspec **原样**发布；消费方把包装进 pub 缓存后，`dart pub deps`
+（以及依赖它的 IDE / 工具）会去读依赖的 `workspace:`，然后找不到
+`~/.pub-cache/.../w_tools-x.y.z/packages/core` 而直接失败：
+
+```
+Could not find a file named "pubspec.yaml" in ".../w_tools-2.0.0/packages/core".
+That was included in the workspace of ".../w_tools-2.0.0/pubspec.yaml".
+Failed to update packages.        # 退出码 66
+```
+
+`scripts/publish_package.sh` 会先把包复制到仓库外的临时目录，去掉 `workspace:` 与
+`resolution: workspace`，排除 `test/`、`doc/`、`scripts/` 等仓库内容（根包还排除 `packages/`），
+确认暂存 pubspec 干净后再执行 `pub publish`。CI 的发布预演也走它。
+
+> `w_tools 2.0.0` 就是这样把 `workspace:` 发出去的，而已发布版本无法修改：
+> 用 2.0.0 的项目 `flutter pub get` / `flutter analyze` 仍可用，但 `dart pub deps`
+> 会报上面的错误；升级到修复版本即可。
 
 ## 只发一个子包时
 
@@ -77,3 +99,6 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
   新的聚合版本。
 - **忘记抬约束**：子包发了 1.1.0，但根包还写 `^1.0.0`，用户拿到的是 1.0.0。脚本会直接报错。
 - **CHANGELOG 写成 `## v1.1.0`**：脚本按 `## 1.1.0` 精确匹配，不要带 `v`。
+- **直接在包目录敲 `flutter pub publish`**：会把 `workspace:` / `resolution: workspace`
+  带进发布物，消费方 `dart pub deps` 会以退出码 66 失败。统一用
+  `scripts/publish_package.sh`。

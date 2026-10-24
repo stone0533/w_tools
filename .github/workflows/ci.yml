@@ -52,6 +52,11 @@ jobs:
       - name: Test (umbrella contract)
         run: flutter test
 
+      # 发布必须在去掉 workspace 字段的暂存副本里做，否则消费方 `pub deps` 会去缓存里找
+      # `packages/core` 而失败（2.0.0 踩过，见 docs/releasing.md）。
+      - name: Publish dry-run (root, staged)
+        run: bash scripts/publish_package.sh . --dry-run
+
   # 每个子包独立跑：analyze / test / 发布前校验。
   # 这一步保证「子包能独立发布」不是口号 —— 缺依赖、缺导出、缺发布物料都会在这里失败。
   packages:
@@ -89,10 +94,9 @@ jobs:
           flutter analyze
 
       # 发布门禁：缺 README/CHANGELOG、版本号问题、未跟踪文件等在这一步暴露。
-      # 放在 test 之前，避免 `coverage/` 产物混进归档（见根 .pubignore）。
-      - name: Publish dry-run (package)
-        working-directory: packages/${{ matrix.package }}
-        run: flutter pub publish --dry-run
+      # 用暂存副本发布：去掉 `resolution: workspace`，避免把仓库结构带进发布物。
+      - name: Publish dry-run (package, staged)
+        run: bash scripts/publish_package.sh packages/${{ matrix.package }} --dry-run
 
       - name: Test (package)
         working-directory: packages/${{ matrix.package }}

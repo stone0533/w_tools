@@ -1,5 +1,9 @@
 ## 2.0.1
 
+- 修复发布物：2.0.0 的 pubspec 带上了仓库的 `workspace:` 字段（指向 `packages/core` 等），
+  消费方 `dart pub deps` 会去 pub 缓存里找这些不存在的目录并以退出码 66 失败。
+  现在发布改由 `scripts/publish_package.sh` 在暂存副本里执行，发布物不再包含
+  `workspace:` / `resolution: workspace`；CI 的发布预演也走同一脚本。
 - 修复：根包 `WConfig.assetImagePath` / `WConfig.setup.assetImagePath` 此前转发到
   `w_tools_core` 的 `WConfig.assetImagePath`，但该字段从未被任何代码读取，真正生效的是
   `w_tools_ui` 的 `WAssets.imagePath` —— 于是设置 `WConfig.assetImagePath` 后

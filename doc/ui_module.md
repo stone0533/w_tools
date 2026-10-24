@@ -24,13 +24,15 @@ ui/
     │   │   ├── badge.dart                     # WBadge / WBadgeConfig
     │   │   ├── button.dart                    # WButton, WButtonConfig, WButtonEffectType
     │   │   ├── clip.dart                      # WClipRRect
-    │   │   ├── image.dart                     # WImage, WImageConfig, WImageGlobalConfig
+    │   │   ├── image.dart                     # WImage, WImageController
+    │   │   ├── image_types.dart               # WImageType / WImageProgress / WImageError
+    │   │   ├── image_config.dart              # WImageConfig / WImageGlobalConfig
+    │   │   ├── image_retry_policy.dart        # 重试判定与退避（内部）
     │   │   ├── keep_alive_wrapper.dart        # WKeepAliveWrapper
     │   │   ├── notification_listener.dart      # WNotificationListenerBuilder
     │   │   ├── row_buttons.dart               # WRowButtons
     │   │   ├── text.dart                      # WText, WTextConfig
     │   │   ├── gradient_circular_progress_indicator.dart
-    │   │   ├── network_image_with_retry.dart
     │   │   └── rich_text.dart                 # WRichText
     │   ├── layout/                 # 布局组件
     │   │   ├── appbar.dart                    # WAppBar
@@ -341,68 +343,92 @@ WText(
 
 ### 功能说明
 
-智能图片组件，按 `data` 内容自动判定类型（网络 URL / 本地资源 / 文件路径 / Base64），提供占位符、错误处理、加载进度、重试机制和图片变换（圆角、边框、阴影、margin/padding）。
+图片组件，支持四种来源：网络 URL、本地资源、本地文件、Base64。默认按 `data` 自动判定类型；需要确定性时用命名构造（`WImage.network` / `WImage.asset` / `WImage.file` / `WImage.base64`）。提供占位符、错误处理、加载进度、网络重试、解码尺寸限制与图片变换。
 
-### WImage 构造参数
+### 构造参数
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `data` | String | 必需，图片数据 |
 | `config` | `WImageConfig?` | 图片配置（可选） |
 | `onLoadStatusChanged` | `ValueChanged<WImageLoadStatus>?` | 加载状态回调 |
-| `onLoadProgress` | `ValueChanged<double>?` | 加载进度回调 |
+| `onLoadProgress` | `ValueChanged<double>?` | 进度回调（0-1，仅网络） |
+| `onProgress` | `ValueChanged<WImageProgress>?` | 类型化进度回调（仅网络） |
 
-### WImageType 枚举
+### 显式构造
+
+| 构造 | 说明 |
+|------|------|
+| `WImage.network(url)` | 网络图；`//` 开头的协议相对地址会补 `https:` |
+| `WImage.asset(path)` | 资产图；前后的空白会被裁掉 |
+| `WImage.file(path)` | 本地文件；带不带 `file://` 都可以 |
+| `WImage.base64(data)` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
+
+### WImageType 与自动判定
 
 | 类型 | 识别条件 |
 |------|----------|
-| `asset` | 非 `http://`、`https://`、`file://`、`data:image/` 的字符串 |
-| `network` | `http://` 或 `https://` 开头 |
-| `file` | `file://` 开头 |
-| `base64` | `data:image/` 开头 |
+| `network` | `Uri` 解析出的 scheme 为 `http`/`https`（大小写无关）且 host 非空；或 `//` 开头 |
+| `file` | scheme 为 `file` |
+| `base64` | `data:` 开头（不限于 `data:image/`） |
+| `asset` | 其余；空串/纯空白会直接渲染错误占位 |
 
-### WImageConfig 配置参数
+判定只在 `initState` / `didUpdateWidget` 执行一次，不使用跨实例的全局缓存。
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `width` | `double?` | null | 图片宽度 |
-| `height` | `double?` | null | 图片高度 |
-| `fit` | BoxFit | cover | 图片适配模式 |
-| `cacheEnabled` | bool | true | 是否启用缓存 |
-| `placeholder` | `Widget?` | 灰色 Container | 加载中占位符 |
-| `errorWidget` | `Widget?` | 灰色 Container + error icon | 错误占位符 |
-| `progressIndicatorBuilder` | 可选 | - | 进度指示器构建器 |
-| `retryCount` | int | 0 | 网络图片重试次数 |
-| `retryDelay` | int | 1000 | 重试间隔（毫秒） |
-| `borderRadius` | `BorderRadius?` | null | 圆角裁剪 |
-| `border` | `BoxBorder?` | null | 边框 |
-| `boxShadow` | `List<BoxShadow>?` | null | 阴影 |
-| `margin` | `EdgeInsets?` | null | 外边距 |
-| `padding` | `EdgeInsets?` | null | 内边距 |
+### 错误类型
 
-### WImageConfig 链式方法
+`errorWidgetBuilder` 的第三个参数是 `WImageError`，可用 `is` 分支：
 
-| 方法 | 说明 |
+| 类型 | 场景 |
 |------|------|
-| `size(width, height)` | 设置尺寸 |
-| `circle(radius)` | 设置圆形图片（width/height/borderRadius 一并设置） |
-| `fitWidth(width)` / `fitHeight(height)` | 按宽度/高度适配 |
-| `fitContain()` / `fitCover()` / `fitFill()` / `fitNone()` / `fitScaleDown()` / `fitCenter()` | 适配模式快捷方法 |
-| `build(data, ...)` | 构建 WImage 组件 |
-| `buildFilePath(path, ...)` | 从文件路径构建 |
-| `buildBase64(base64, ...)` | 从 Base64 构建 |
+| `WImageEmptyError` | 空串 / 纯空白 |
+| `WImageNetworkError` | 网络请求失败（`cause` 为底层异常） |
+| `WImageAssetError` | 资产不存在或解码失败 |
+| `WImageDecodeError` | Base64 解码失败 |
+| `WImageFileError` | 文件读取失败 |
+| `WImageUnsupportedError` | Web 上的 `file://` |
+
+### WImageConfig 配置
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `width` / `height` | `double?` | null | 尺寸 |
+| `fit` | `BoxFit` | cover | 适配模式 |
+| `memCacheWidth` / `memCacheHeight` | `int?` | null | 解码尺寸上限（物理像素） |
+| `retryCount` / `retryDelay` | int / int | 0 / 1000 | 网络重试次数 / 间隔（毫秒） |
+| `placeholderBuilder` | 函数 | null | 占位符（推荐） |
+| `placeholder` | `Widget?` | null | 固定占位符 |
+| `errorWidgetBuilder` | 函数 | null | 错误占位（推荐，第三参是 `WImageError`） |
+| `errorWidget` | `Widget?` | null | 固定错误占位 |
+| `progressIndicatorBuilder` | 函数 | null | 旧进度签名（`DownloadProgress`） |
+| `progressBuilder` | 函数 | null | 新进度签名（`WImageProgress`） |
+| `aspectRatio` | `double?` | null | 固定宽高比，加载前后不跳版 |
+| `semanticLabel` | `String?` | null | 无障碍描述 |
+| `excludeFromSemantics` | bool | false | 从语义树排除 |
+| `gaplessPlayback` | bool | false | 换图保留上一帧 |
+| `filterQuality` | `FilterQuality` | low | 采样质量 |
+| `alignment` | `Alignment` | center | 对齐方式 |
+| `httpHeaders` | `Map<String, String>?` | null | 网络请求头（鉴权图） |
+| `cacheKey` | `String?` | null | 自定义缓存键 |
+| `borderRadius` / `border` / `boxShadow` | — | null | 装饰 |
+| `margin` / `padding` | `EdgeInsets?` | null | 间距 |
+| `cacheEnabled` | bool | true | **已废弃**，不再影响行为 |
+
+配置项都是公开字段，可以直接读写；`placeholder` / `errorWidget` 是只写的固定 Widget 便捷 setter，
+需要读回或动态构建时用 `placeholderBuilder` / `errorWidgetBuilder`。
+链式方法：`size` / `circle` / `fitWidth` / `fitHeight` / `fitContain` / `fitCover` / `fitFill` / `fitNone` / `fitScaleDown`；
+`fitCenter` 等价于 `fitContain`，已标记弃用（2.0 移除）。
 
 ### WImageGlobalConfig - 全局配置（单例）
 
-| 参数 | 默认值 | 说明 |
+| 字段 | 默认值 | 说明 |
 |------|--------|------|
-| `defaultPlaceholder` | null | 默认加载中占位符 |
-| `defaultErrorWidget` | null | 默认错误占位符 |
-| `maxCacheSize` | 100 | 最大缓存数量 |
-| `maxCacheMemory` | 100MB | 最大缓存内存 |
+| `defaultPlaceholder` | null | 全局加载中占位符 |
+| `defaultErrorWidget` | null | 全局错误占位符 |
+| `maxCacheSize` | 100 | 同步到 Flutter `ImageCache.maximumSize` |
+| `maxCacheMemory` | 100MB | 同步到 `ImageCache.maximumSizeBytes` |
 
 ```dart
-// 全局配置（在应用初始化时设置）
 WImageGlobalConfig().configure(
   defaultPlaceholder: const CircularProgressIndicator(),
   defaultErrorWidget: const Icon(Icons.broken_image),
@@ -410,43 +436,79 @@ WImageGlobalConfig().configure(
 );
 ```
 
+### 缓存
+
+- 资产 / 文件 / Base64 统一走 `Image` + Flutter `ImageCache`；`memCacheWidth` / `memCacheHeight` 通过 `ResizeImage` 生效。
+- 网络图走 `cached_network_image`（内存 + 磁盘），可用 `httpHeaders` / `cacheKey` 定制。
+- `WImageCacheManager` 是 1.0 的资产原始字节缓存，`WImage` 已不再使用，保留给预加载与统计。
+
+### 重试与手动重试
+
+- `retryCount` 默认 0（不自动重试）；开启后只对**可重试错误**生效：
+  `5xx` / `408` / `429` / 连接级失败（拿不到状态码）。`4xx` 直接失败，不会白白等 N 次延迟。
+- 重试间隔按指数退避（`retryDelay` → 2× → 4×……，上限 30s）并带 20% 抖动，
+  避免同屏多张图在同一毫秒齐刷刷重试。
+- 需要用户手动重试时，传一个 `WImageController`，在错误占位里调用 `retry()`：
+
+```dart
+final controller = WImageController();
+
+WImage.network(
+  url,
+  controller: controller,
+  config: WImageConfig()
+    ..errorWidgetBuilder = (context, url, error) => TextButton(
+          onPressed: controller.retry,
+          child: const Text('重试'),
+        ),
+)
+```
+
+`retry()` 会立即发起新请求（不等待自动重试的退避时间），对网络 / 资产 / 文件 / Base64 四种来源都有效；
+组件卸载后调用是空操作。手动重试也会把已执行的重试计数清零。
+
 ### 使用示例
 
 ```dart
-// 网络图片（自动识别 http:// 或 https://）
-WImage(
-  data: 'https://example.com/image.jpg',
+// 网络图片 + 固定宽高比 + 解码尺寸
+WImage.network(
+  'https://example.com/image.jpg',
   config: WImageConfig()
-    ..size(WImageType.asset: 200, 200)
+    ..aspectRatio = 16 / 9
+    ..memCacheWidth = 480
     ..borderRadius = BorderRadius.circular(12),
 )
 
-// 带重试机制的网络图片
-WImage(
-  data: 'https://example.com/image.jpg',
+// 列表缩略图：限制解码尺寸（大图按原尺寸解码很吃内存）
+WImage.network(url, config: WImageConfig()..memCacheWidth = 240)
+
+// 带重试与进度
+WImage.network(
+  url,
   config: WImageConfig()
-    ..width = 150
-    ..height = 150
     ..retryCount = 3
-    ..retryDelay = 1500,
+    ..retryDelay = 1500
+    ..progressBuilder = (context, url, progress) =>
+        CircularProgressIndicator(value: progress.fraction),
+  onProgress: (p) => debugPrint('${p.downloadedBytes}/${p.totalBytes}'),
 )
 
-// 本地资源图片
-WImage(data: 'assets/images/logo.png')
+// 本地资源 / 文件 / Base64
+WImage.asset('assets/images/logo.png')
+WImage.file('/tmp/a.png')
+WImage.base64(base64String)
 
-// 圆形图片（链式快捷方法）
-WImage(
-  data: 'https://example.com/avatar.jpg',
-  config: WImageConfig()..circle(50),
-)
+// 圆形头像
+WImage.network(avatarUrl, config: WImageConfig()..circle(50))
 
-// 带加载状态和进度
-WImage(
-  data: imageUrl,
-  onLoadStatusChanged: (status) {
-    if (status == WImageLoadStatus.completed) print('加载完成');
-  },
-  onLoadProgress: (progress) => print('进度: ${progress * 100}%'),
+// 错误分支
+WImage.network(
+  url,
+  config: WImageConfig()
+    ..errorWidgetBuilder = (context, url, error) => switch (error) {
+          WImageNetworkError() => const Icon(Icons.wifi_off),
+          _ => const Icon(Icons.broken_image),
+        },
 )
 ```
 
@@ -866,7 +928,7 @@ WSizeBox.square(50)
 
 ### WImageCacheManager
 
-图片缓存管理，配合 `WImageGlobalConfig` 设置缓存上限（数量 + 内存），提供清理方法。
+1.0 的资产原始字节缓存（LRU + 内存上限 + 命中率统计）。1.1.0 起 `WImage` 不再使用它：资产图片直接走 `Image.asset` + Flutter `ImageCache`。该类保留用于 `preloadImage` 预加载与缓存统计。
 
 ### WAssets
 
@@ -1098,8 +1160,9 @@ class MainNavBar extends StatelessWidget {
 
 ### WImage 平台差异
 
-- `file://` 图片使用条件导入（`_image_file_native.dart` vs `_image_file_web.dart`），Web 端安全编译
-- Base64 图片使用 `compute()` 在后台线程解码
+- 文件图片使用条件导入（`_image_file_native.dart` vs `_image_file_web.dart`）；判断条件是 `dart.library.io`，Web/WASM 都走 Web 实现并返回 `WImageUnsupportedError`
+- Base64：≤64KB 在主 isolate 解码，超过 64KB 才用 `compute()`
+- 网络进度与重试依赖 `cached_network_image`
 
 ### WListView controller 生命周期
 

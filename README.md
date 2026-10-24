@@ -211,9 +211,8 @@ class MyAppPlugin extends WAppPlugin {
 - **Button** (`WButton`): 多种样式的按钮组件，支持透明度、缩放、震动等点击效果
 - **Clip** (`WClipRRect`): 圆角裁剪组件
 - **GradientCircularProgressIndicator** (`WGradientCircularProgressIndicator`): 渐变圆形进度指示器
-- **Image** (`WImage`): 增强的图片组件
+- **Image** (`WImage`): 增强的图片组件（网络图支持自动重试与 `WImageController` 手动重试）
 - **KeepAliveWrapper** (`WKeepAliveWrapper`): 保持组件状态的包装器
-- **NetworkImageWithRetry** (`WNetworkImageWithRetry`): 带重试机制的网络图片
 - **NotificationListener** (`WNotificationListenerBuilder`): 通知监听器构建器
 - **QrView** (`WQrView`): 二维码扫描组件（来自 `w_tools_qr` 子包）
 - **RowButtons** (`WRowButtons`): 行按钮组件

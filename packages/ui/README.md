@@ -7,7 +7,7 @@
 
 ## 特性
 
-- **通用组件**：`WText` / `WImage` / `WButton` / `WBadge` / `WNetworkImageWithRetry` 等
+- **通用组件**：`WText` / `WImage` / `WButton` / `WBadge` 等
 - **布局组件**：`WScaffold` / `WAppBar` / `WContainer` / `WListView` / `WStep`
 - **导航组件**：`WNavBar` / `WNavController` / `WTabBar`
 - **扩展方法**：颜色、字符串、数字、Row / Column、TextStyle、Widget 等
@@ -48,7 +48,7 @@ class DemoPage extends StatelessWidget {
 
 | 能力 | 入口 |
 |---|---|
-| 文本 / 图片 | `WText` / `WImage` / `WNetworkImageWithRetry` |
+| 文本 / 图片 | `WText` / `WImage` |
 | 按钮 / 徽标 | `WButton` / `WBadge` / `WRowButtons` |
 | 布局 | `WScaffold` / `WAppBar` / `WContainer` / `WListView` |
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
