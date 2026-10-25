@@ -82,7 +82,7 @@ doctor 检查项：
 
 | id | 级别 | 内容 |
 | --- | --- | --- |
-| R1 | error | `dependencies` 里出现聚合包 `w_tools` |
+| R1 | error | `dependencies` 里出现聚合包 `w_tools`（`dev_dependencies` 豁免 —— doctor 自己就靠它；`dependency_overrides` 里出现只 **warn**） |
 | R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口除外） |
 | R3 | warn | 硬编码语义色（**调色板默认空**，需在 `.w_tools_doctor.yaml` 声明 `colors.palette`） |
 | R4 | error | 暂存层 import 了 `data/` / `modules/` / `routes/` / `services/` |

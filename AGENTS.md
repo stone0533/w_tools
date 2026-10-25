@@ -12,7 +12,8 @@
 ## 工具（本仓库维护）
 
 CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
-`bin/init.dart`、`bin/doctor.dart`，实现分别在 `lib/src/init/`、`lib/src/doctor/`。
+`packages/cli/bin/init.dart`、`packages/cli/bin/doctor.dart`，
+实现分别在 `packages/cli/lib/src/init/`、`packages/cli/lib/src/doctor/`。
 
 改动它们时必须同步：
 
