@@ -17,7 +17,9 @@ import 'package:path/path.dart' as p;
 const _templates = <String, String>{
   'toolkit.dart.tpl': 'toolkitTemplate',
   'design_system_README.md': 'designSystemReadme',
+  'design_system_README.en.md': 'designSystemReadmeEn',
   'AGENTS_snippet.md': 'agentsSnippet',
+  'AGENTS_snippet.en.md': 'agentsSnippetEn',
 };
 
 String generate(String repoRoot) {

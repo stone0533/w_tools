@@ -65,6 +65,7 @@ class DoctorReporter {
                       'line': i.line,
                       'message': i.message,
                       'hint': i.hint,
+                      if (i.fix != null) 'fix': i.fix!.toJson(),
                     },
                   )
                   .toList(),
@@ -73,6 +74,40 @@ class DoctorReporter {
           .toList(),
     };
     print(const JsonEncoder.withIndent('  ').convert(payload));
+  }
+
+  /// Markdown 摘要：可直接粘给 AI / 写进 PR 评论。
+  void printMarkdown(List<DoctorRuleResult> results) {
+    final errors = _count(results, DoctorLevel.error);
+    final warns = _count(results, DoctorLevel.warn);
+    final b = StringBuffer()
+      ..writeln('# w_tools doctor · $projectName')
+      ..writeln()
+      ..writeln('- 扫描文件：$fileCount')
+      ..writeln('- 结果：$errors error / $warns warning（退出码 ${exitCode(results)}）')
+      ..writeln();
+    for (final r in results) {
+      if (r.status == DoctorRuleStatus.skipped) {
+        b.writeln('- `${r.ruleId}` ${r.title}：跳过（${r.skipReason ?? ''}）');
+        continue;
+      }
+      if (r.status == DoctorRuleStatus.pass) {
+        b.writeln('- `${r.ruleId}` ${r.title}：通过');
+        continue;
+      }
+      b
+        ..writeln('### `${r.ruleId}` ${r.title}')
+        ..writeln();
+      for (final issue in r.issues) {
+        final where = issue.location.isEmpty ? '' : '`${issue.location}` ';
+        b.writeln('- $where**${issue.level.name}** ${issue.message}');
+        if (issue.hint != null) b.writeln('  - 建议：${issue.hint}');
+        final command = issue.fix?.command;
+        if (command != null) b.writeln('  - 修复命令：`$command`');
+      }
+      b.writeln();
+    }
+    print(b.toString().trimRight());
   }
 
   int exitCode(List<DoctorRuleResult> results) {

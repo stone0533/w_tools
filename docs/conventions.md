@@ -88,8 +88,11 @@ doctor 检查项：
 | R4 | error | 暂存层 import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
 | R6 | warn | 禁用单位 `.h` / `.r`（**项目专用，默认关**，配置 `rules.R6: true` 打开） |
+| R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致（导出未依赖 / 依赖未导出） |
+| R8 | warn | 生成物由旧版 `w_tools_cli` 生成（只检查带 w_tools 标记的 target 文件与 toolkit；版本标记与 `pubspec.lock` 不一致） |
 
-`--strict` 让 warning 也失败（默认关）；`--json` 给 CI 解析。
+`--strict` 让 warning 也失败（默认关）；`--json` 给 CI 解析，issue 里的 `fix`
+（`run` / `edit`）可直接执行，没有 `fix` 时看 `hint`。
 
 **配置（可选）**：`.w_tools_doctor.yaml`。不写它 doctor 也按默认值运行；
 把开关摊开用：

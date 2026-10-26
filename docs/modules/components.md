@@ -1,5 +1,7 @@
 # 组件目录（先查这里，没有再动手）
 
+> CLI 内置同一份目录：`dart run w_tools_cli:list <关键词>` / `:explain <组件名>`。
+
 > 用法：**按用途找**。找到就用，找不到再看文末「待补」清单 —— 待补的东西应该先进消费方的
 > `lib/app/design_system/`，出现第二个用例后再上移进包（见 [`docs/conventions.md`](../conventions.md)）。
 

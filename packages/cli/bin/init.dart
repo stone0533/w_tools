@@ -1,9 +1,13 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:args/args.dart';
+import 'package:w_tools_cli/src/common/cli.dart';
+import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
+import 'package:w_tools_cli/src/init/targets.dart';
+import 'package:yaml/yaml.dart' show YamlException;
 
 const _usage = '''
 w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
@@ -14,80 +18,121 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   lib/app/w/toolkit.dart            本项目用到的能力清单（聚合入口）
   lib/app/design_system/README.md   通用组件暂存层规则
   .w_tools_doctor.yaml              doctor 的可选配置（全注释，不改变行为）
-  AGENTS.md                         w_tools 片段（标记块，重复执行会原地更新）
+  AGENTS.md / CLAUDE.md / ...       w_tools 片段（标记块，重复执行会原地更新）
 
 选项：
   --root=<dir>   项目根目录（默认当前目录）
   --check        只报告缺失、不改文件（CI 用）；内容不同只提示，不算失败
   --check-drift  在 --check 基础上，内容与模板不同也算失败（检查模板是否过期）
+  --json         输出机器可读结果（CI / AI 用）
   --force        覆盖已存在的不同文件（默认不动）
   --no-qr        不导出 w_tools_qr（不用扫码）
   --with-map     导出 w_tools_map（会引入 google_maps_flutter）
+  --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
+  --lang=<l>     zh | en（默认取配置 / zh）
+  --version      显示版本
   --help, -h     显示本帮助
 ''';
 
 void main(List<String> argv) {
-  final parser = ArgParser()
+  final parser = cliParser()
     ..addOption('root')
     ..addFlag('check', negatable: false)
     ..addFlag('check-drift', negatable: false)
+    ..addFlag('json', negatable: false)
     ..addFlag('force', negatable: false)
     ..addFlag('qr', negatable: true, defaultsTo: true)
     ..addFlag('with-map', negatable: false)
-    ..addFlag('help', abbr: 'h', negatable: false);
+    ..addOption('targets')
+    ..addOption('lang');
 
-  ArgResults args;
-  try {
-    args = parser.parse(argv);
-  } on FormatException catch (e) {
-    stderr.writeln('参数错误：${e.message}\n$_usage');
-    exit(2);
-  }
+  runCli(
+    argv,
+    usage: _usage,
+    parser: parser,
+    body: (args) {
+      final root = Directory(args['root'] as String? ?? Directory.current.path);
+      if (!File('${root.path}/pubspec.yaml').existsSync()) {
+        stderr.writeln('找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
+        exit(2);
+      }
 
-  if (args['help'] as bool) {
-    print(_usage);
-    return;
-  }
+      DoctorConfig config;
+      try {
+        config = DoctorConfig.load(root);
+      } on YamlException catch (e) {
+        stderr.writeln('.w_tools_doctor.yaml 解析失败：${e.message}');
+        exit(2);
+      }
 
-  final root = Directory(args['root'] as String? ?? Directory.current.path);
-  if (!File('${root.path}/pubspec.yaml').existsSync()) {
-    stderr.writeln('找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
-    exit(2);
-  }
+      final targetsRaw = args['targets'] as String?;
+      final targets = targetsRaw == null || targetsRaw.trim().isEmpty
+          ? config.aiTargets.toSet()
+          : targetsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet();
+      final unknown = targets.difference(targetFiles.keys.toSet());
+      if (unknown.isNotEmpty) {
+        stderr.writeln('未知 targets：${unknown.join(', ')}（可选：${targetFiles.keys.join(', ')}）');
+        exit(2);
+      }
 
-  final checkDrift = args['check-drift'] as bool;
-  final check = (args['check'] as bool) || checkDrift;
-  final report = runInit(
-    root,
-    force: args['force'] as bool,
-    check: check,
-    withQr: args['qr'] as bool,
-    withMap: args['with-map'] as bool,
+      final lang = (args['lang'] as String?) ?? config.aiLanguage;
+      if (lang != 'zh' && lang != 'en') {
+        stderr.writeln('未知语言：$lang（可选：zh, en）');
+        exit(2);
+      }
+
+      final checkDrift = args['check-drift'] as bool;
+      final check = (args['check'] as bool) || checkDrift;
+      final report = runInit(
+        root,
+        force: args['force'] as bool,
+        check: check,
+        withQr: args['qr'] as bool,
+        withMap: args['with-map'] as bool,
+        targets: targets,
+        lang: lang,
+      );
+
+      if (args['json'] as bool) {
+        print(
+          const JsonEncoder.withIndent('  ').convert(<String, Object?>{
+            'root': root.path,
+            'check': check,
+            'checkDrift': checkDrift,
+            'created': report.created,
+            'upToDate': report.upToDate,
+            'drift': report.drift,
+            'missing': report.missing,
+            'warnings': report.warnings,
+            'pubspecSnippet': report.pubspecSnippet,
+          }),
+        );
+      } else {
+        print('w_tools_cli init${check ? '（check 模式，不写文件）' : ''} · ${root.path}');
+        print('━' * 56);
+        for (final f in report.created) {
+          print('✓ $f');
+        }
+        for (final f in report.upToDate) {
+          print('· $f（已是最新）');
+        }
+        for (final f in report.drift) {
+          print('! $f');
+        }
+        for (final f in report.missing) {
+          print('- $f（缺失）');
+        }
+        for (final w in report.warnings) {
+          print('! $w');
+        }
+        print('');
+        print('需要在 pubspec.yaml 里加入：');
+        print(report.pubspecSnippet);
+        print('下一步：dart run w_tools_cli:doctor');
+      }
+      if (check && (report.missing.isNotEmpty || (checkDrift && report.drift.isNotEmpty))) {
+        exit(1);
+      }
+    },
   );
-
-  print('w_tools_cli init${check ? '（check 模式，不写文件）' : ''} · ${root.path}');
-  print('━' * 56);
-  for (final f in report.created) {
-    print('✓ $f');
-  }
-  for (final f in report.upToDate) {
-    print('· $f（已是最新）');
-  }
-  for (final f in report.drift) {
-    print('! $f');
-  }
-  for (final f in report.missing) {
-    print('- $f（缺失）');
-  }
-  for (final w in report.warnings) {
-    print('! $w');
-  }
-  print('');
-  print('需要在 pubspec.yaml 里加入：');
-  print(report.pubspecSnippet);
-  print('下一步：dart run w_tools_cli:doctor');
-
-  if (check && (report.missing.isNotEmpty || (checkDrift && report.drift.isNotEmpty))) {
-    exit(1);
-  }
 }

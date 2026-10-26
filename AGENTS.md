@@ -12,12 +12,12 @@
 ## 工具（本仓库维护）
 
 CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
-`packages/cli/bin/init.dart`、`packages/cli/bin/doctor.dart`，
-实现分别在 `packages/cli/lib/src/init/`、`packages/cli/lib/src/doctor/`。
+入口 `packages/cli/bin/{init,doctor,context,list,explain}.dart`，
+实现分别在 `packages/cli/lib/src/init/`、`lib/src/doctor/`、`lib/src/context/`、`lib/src/catalog/`。
 
 改动它们时必须同步：
 
-- [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R6）
+- [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R8）
 - [`docs/modules/components.md`](docs/modules/components.md)（若涉及组件建议）
 - `packages/cli/test/init_test.dart` / `doctor_test.dart` 的用例
 - `packages/cli/CHANGELOG.md`
@@ -33,6 +33,10 @@ dart run tool/gen_templates.dart
 
 生成 `lib/src/init/templates.g.dart`，否则 `test/templates_fresh_test.dart` 会红 ——
 这是有意的：模板只允许有一份来源（`templates/`）。
+
+**改了 `packages/cli/catalog/components.yaml` 后必须跑** `dart run tool/gen_catalog.dart`
+（生成 `lib/src/catalog/catalog.g.dart`），否则 `test/catalog_test.dart` 会红 ——
+组件目录同样只允许有一份来源。
 
 CLI 是纯 Dart 包：测试用 `dart test`，发布用 `dart pub publish`（`scripts/publish_package.sh` 会自动识别）。
 

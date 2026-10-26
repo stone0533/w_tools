@@ -47,6 +47,8 @@ void main() {
       // 注意：注释里会提到 w_tools_map（解释为什么不导出），所以要断言 export 行
       expect(toolkit, isNot(contains("export 'package:w_tools_map")));
       expect(toolkit, contains('w_tools_qr'));
+      final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      expect(agents, contains("package:demo_app/app/w/toolkit.dart"));
     });
 
     test('--no-qr / --with-map 影响导出', () async {
@@ -147,7 +149,7 @@ void main() {
       );
       runInit(root);
       final content = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
-      expect(content, contains('组件来源（优先用 w_tools）'));
+      expect(content, contains('用 w_tools 的方式'));
       expect(content, isNot(contains('旧内容')));
       expect(content, endsWith('结尾\n'));
     });
@@ -224,6 +226,34 @@ void main() {
       final report = runInit(root, check: true);
       expect(report.missing, isEmpty);
       expect(report.drift.any((e) => e.contains('标记块')), isTrue);
+    });
+  });
+
+  group('targets / language', () {
+    test('--targets 生成多个指令文件', () async {
+      final root = makeProject();
+      final report = runInit(root, targets: const {'agents', 'claude', 'cursor'});
+      expect(report.created, containsAll(<String>['AGENTS.md', 'CLAUDE.md']));
+      expect(File(p.join(root.path, 'CLAUDE.md')).existsSync(), isTrue);
+      final cursor = File(p.join(root.path, '.cursor/rules/w_tools.mdc'));
+      expect(cursor.existsSync(), isTrue);
+      expect(cursor.readAsStringSync(), startsWith('---\ndescription: w_tools conventions'));
+    });
+
+    test('--lang=en 生成英文指令', () async {
+      final root = makeProject();
+      runInit(root, lang: 'en');
+      final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      expect(agents, contains('Get facts first'));
+      final readme = File(p.join(root.path, 'lib/app/design_system/README.md')).readAsStringSync();
+      expect(readme, contains('staging area'));
+    });
+
+    test('多个 target 都是最新时 check 通过', () async {
+      final root = makeProject();
+      runInit(root, targets: const {'agents', 'claude'});
+      final report = runInit(root, check: true, targets: const {'agents', 'claude'});
+      expect(report.missing, isEmpty);
     });
   });
 

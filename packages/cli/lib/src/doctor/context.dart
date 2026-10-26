@@ -15,6 +15,9 @@ class ProjectContext {
 
   final Directory root;
 
+  /// 规则之间共享文件内容，避免同一个文件被 8 条规则各读一次
+  final Map<String, String> _cache = <String, String>{};
+
   /// pubspec.yaml 解析后的内容（未解析成功时为空 map）
   final YamlMap pubspec;
 
@@ -50,7 +53,10 @@ class ProjectContext {
     return ProjectContext(root: root, pubspec: pubspec, files: files);
   }
 
-  String read(String relPath) => File(p.join(root.path, relPath)).readAsStringSync();
+  String read(String relPath) => _cache.putIfAbsent(
+    relPath,
+    () => File(p.join(root.path, relPath)).readAsStringSync(),
+  );
 
   /// 忽略项按路径前缀匹配：`lib/app/generated` 只命中该目录及其子文件，
   /// 不会误伤 `lib/app/generated2/`。

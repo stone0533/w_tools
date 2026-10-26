@@ -18,12 +18,13 @@ class R1MetaDependency {
     final deps = ctx.pubspec['dependencies'];
     if (deps is YamlMap && deps.containsKey('w_tools')) {
       issues.add(
-        const DoctorIssue(
+        DoctorIssue(
           rule: id,
           level: DoctorLevel.error,
           file: 'pubspec.yaml',
           message: 'dependencies 里出现聚合包 w_tools：它会拖进 w_tools_map 的 google_maps_flutter 原生 SDK',
           hint: '改成具体子包（w_tools_core / ui / form / app / api / toast）；需要地图才加 w_tools_map',
+          fix: DoctorFix.edit(file: 'pubspec.yaml', path: 'dependencies.w_tools'),
         ),
       );
     }

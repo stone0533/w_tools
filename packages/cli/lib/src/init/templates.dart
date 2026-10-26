@@ -1,3 +1,4 @@
+import '../common/version.dart';
 import 'templates.g.dart' as generated;
 
 /// `init` 用的模板内容。
@@ -20,10 +21,17 @@ class InitTemplates {
       if (line.contains('@optional:map') && !withMap) continue;
       out.add(line);
     }
-    return out.join('\n');
+    return out.join('\n').replaceAll('{{version}}', cliVersion);
   }
 
-  static String designSystemReadme() => generated.designSystemReadme;
+  static String designSystemReadme({String lang = 'zh'}) =>
+      (lang == 'en' ? generated.designSystemReadmeEn : generated.designSystemReadme).replaceAll(
+        '{{version}}',
+        cliVersion,
+      );
 
-  static String agentsBlock() => generated.agentsSnippet;
+  static String agentsBlock({String lang = 'zh', String app = 'app'}) =>
+      (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
+          .replaceAll('{{version}}', cliVersion)
+          .replaceAll('{{app}}', app);
 }

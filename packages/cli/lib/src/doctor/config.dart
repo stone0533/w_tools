@@ -14,6 +14,8 @@ class DoctorConfig {
     this.colorMinCount = 3,
     this.enabledRules = const <String>{'R1', 'R2', 'R3', 'R4', 'R5'},
     this.ignore = const <String>[],
+    this.aiTargets = const <String>['agents'],
+    this.aiLanguage = 'zh',
   });
 
   /// R2 的白名单：这个文件里允许 import 子包（它就是聚合入口）
@@ -33,6 +35,12 @@ class DoctorConfig {
 
   /// 忽略的路径前缀（相对项目根，按 startsWith 匹配）
   final List<String> ignore;
+
+  /// init 默认生成哪些指令文件：agents / claude / cursor / copilot
+  final List<String> aiTargets;
+
+  /// init 默认语言：zh / en
+  final String aiLanguage;
 
   /// 配置文件名（项目根）
   static const fileName = '.w_tools_doctor.yaml';
@@ -77,6 +85,16 @@ class DoctorConfig {
     }
 
     final ignoreNode = raw['ignore'];
+    var aiTargets = const <String>['agents'];
+    var aiLanguage = 'zh';
+    final aiNode = raw['ai'];
+    if (aiNode is YamlMap) {
+      final t = aiNode['targets'];
+      if (t is YamlList) aiTargets = t.map((e) => '$e').toList();
+      final l = aiNode['language'];
+      if (l is String) aiLanguage = l;
+    }
+
     return DoctorConfig(
       toolkitEntry: (raw['toolkit_entry'] as String?) ?? 'lib/app/w/toolkit.dart',
       designSystemDir: (raw['design_system_dir'] as String?) ?? 'lib/app/design_system',
@@ -84,6 +102,8 @@ class DoctorConfig {
       colorMinCount: minCount,
       enabledRules: rules,
       ignore: ignoreNode is YamlList ? ignoreNode.map((e) => '$e').toList() : const <String>[],
+      aiTargets: aiTargets,
+      aiLanguage: aiLanguage,
     );
   }
 
@@ -92,6 +112,8 @@ class DoctorConfig {
     String? designSystemDir,
     List<String>? palette,
     Set<String>? enabledRules,
+    List<String>? aiTargets,
+    String? aiLanguage,
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
@@ -100,6 +122,8 @@ class DoctorConfig {
       colorMinCount: colorMinCount,
       enabledRules: enabledRules ?? this.enabledRules,
       ignore: ignore,
+      aiTargets: aiTargets ?? this.aiTargets,
+      aiLanguage: aiLanguage ?? this.aiLanguage,
     );
   }
 }
@@ -127,6 +151,11 @@ String renderDefaultConfig() {
     ..writeln('rules:')
     ..writeln('  # R6 是**项目专用**规则（禁用 .h / .r 尺寸单位），需要时打开：')
     ..writeln('  # R6: true')
+    ..writeln()
+    ..writeln('ai:')
+    ..writeln('  # init 生成哪些指令文件：agents / claude / cursor / copilot')
+    ..writeln('  # targets: [agents, claude]')
+    ..writeln('  # language: en')
     ..writeln()
     ..writeln('# 跳过的路径前缀（相对项目根）')
     ..writeln('ignore: []')

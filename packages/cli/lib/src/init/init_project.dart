@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import '../doctor/config.dart';
+import 'targets.dart';
 import 'templates.dart';
 
 /// 子包版本约束。必须与仓库 `packages/*/pubspec.yaml` 的当前版本一致，
@@ -57,8 +58,11 @@ InitReport runInit(
   bool check = false,
   bool withQr = true,
   bool withMap = false,
+  Set<String> targets = const <String>{'agents'},
+  String lang = 'zh',
 }) {
   final report = InitReport();
+  final app = _projectName(root);
 
   void write(String rel, String content, {bool projectConfig = false}) {
     final file = File(p.join(root.path, rel));
@@ -97,29 +101,62 @@ InitReport runInit(
   }
 
   write('lib/app/w/toolkit.dart', InitTemplates.toolkit(withQr: withQr, withMap: withMap));
-  write('lib/app/design_system/README.md', InitTemplates.designSystemReadme());
+  write('lib/app/design_system/README.md', InitTemplates.designSystemReadme(lang: lang));
   // doctor 的默认配置：全注释，写了也不改变行为，只是把开关摊开。
   // 它是项目配置而不是生成物：存在就不再比对内容。
   write(DoctorConfig.fileName, renderDefaultConfig(), projectConfig: true);
-  _upsertAgents(root, report, check: check);
+  for (final target in targets) {
+    final rel = targetFiles[target];
+    if (rel == null) continue;
+    _upsertBlock(
+      root,
+      rel,
+      report,
+      check: check,
+      block: InitTemplates.agentsBlock(lang: lang, app: app),
+      createdPrefix: target == 'cursor'
+          ? '---\ndescription: w_tools conventions\nglobs:\n---\n\n'
+          : '',
+    );
+  }
 
   report.pubspecSnippet = _snippet(root, report, withQr: withQr, withMap: withMap);
   return report;
 }
 
-void _upsertAgents(Directory root, InitReport report, {required bool check}) {
-  final file = File(p.join(root.path, 'AGENTS.md'));
-  final block = InitTemplates.agentsBlock().trim();
+String _projectName(Directory root) {
+  final file = File(p.join(root.path, 'pubspec.yaml'));
+  if (!file.existsSync()) return 'app';
+  try {
+    final raw = loadYaml(file.readAsStringSync());
+    if (raw is YamlMap) return (raw['name'] as String?) ?? 'app';
+  } on YamlException {
+    // pubspec 写坏时回退到 app；真正的解析警告由 _snippet 报出
+  }
+  return 'app';
+}
+
+void _upsertBlock(
+  Directory root,
+  String rel,
+  InitReport report, {
+  required bool check,
+  required String block,
+  String createdPrefix = '',
+}) {
+  final file = File(p.join(root.path, rel));
+  final blockText = block.trim();
   const begin = '<!-- w_tools:begin -->';
   const end = '<!-- w_tools:end -->';
 
   if (!file.existsSync()) {
     if (check) {
-      report.missing.add('AGENTS.md');
+      report.missing.add(rel);
       return;
     }
-    file.writeAsStringSync('$block\n');
-    report.created.add('AGENTS.md');
+    file.parent.createSync(recursive: true);
+    file.writeAsStringSync('$createdPrefix$blockText\n');
+    report.created.add(rel);
     return;
   }
 
@@ -129,37 +166,37 @@ void _upsertAgents(Directory root, InitReport report, {required bool check}) {
 
   if (b >= 0 && e > b) {
     // 已有标记块 → 原地替换（幂等，标记块由 w_tools 管理）
-    final next = content.replaceRange(b, e + end.length, block);
+    final next = content.replaceRange(b, e + end.length, blockText);
     if (next == content) {
-      report.upToDate.add('AGENTS.md');
+      report.upToDate.add(rel);
       return;
     }
     if (check) {
-      report.drift.add('AGENTS.md（标记块内容与模板不同）');
+      report.drift.add('$rel（标记块内容与模板不同）');
       return;
     }
     file.writeAsStringSync(next);
-    report.created.add('AGENTS.md（已更新标记块）');
+    report.created.add('$rel（已更新标记块）');
     return;
   }
 
   if (b >= 0) {
     // 有 begin 没 end：不猜，交给人修，避免越写越乱
     if (check) {
-      report.missing.add('AGENTS.md（标记块缺少 w_tools:end）');
+      report.missing.add('$rel（标记块缺少 w_tools:end）');
     } else {
-      report.drift.add('AGENTS.md（标记块不完整：缺少 w_tools:end）');
-      report.warnings.add('AGENTS.md 的标记块不完整，未改动；请手工补齐 end 标记后重跑');
+      report.drift.add('$rel（标记块不完整：缺少 w_tools:end）');
+      report.warnings.add('$rel 的标记块不完整，未改动；请手工补齐 end 标记后重跑');
     }
     return;
   }
 
   if (check) {
-    report.missing.add('AGENTS.md（缺少 w_tools 标记块）');
+    report.missing.add('$rel（缺少 w_tools 标记块）');
     return;
   }
-  file.writeAsStringSync('${content.trimRight()}\n\n$block\n');
-  report.created.add('AGENTS.md（已追加 w_tools 片段）');
+  file.writeAsStringSync('${content.trimRight()}\n\n$blockText\n');
+  report.created.add('$rel（已追加 w_tools 片段）');
 }
 
 String _snippet(

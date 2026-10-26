@@ -85,6 +85,8 @@ void main() {
     final failJson = jsonDecode('${fail.stdout}') as Map<String, Object?>;
     expect(failJson['exitCode'], 1);
     expect((failJson['counts'] as Map)['error'], greaterThan(0));
+    final issues = (((failJson['rules'] as List).first as Map)['issues'] as List);
+    expect((issues.first as Map)['fix'], isNotNull);
 
     final good = _project();
     final ok = await _run('doctor.dart', ['--root', good.path, '--json']);
@@ -92,6 +94,77 @@ void main() {
     final okJson = jsonDecode('${ok.stdout}') as Map<String, Object?>;
     expect(okJson['exitCode'], 0);
     expect((okJson['counts'] as Map)['error'], 0);
+  });
+
+  test('init --targets / --lang 生效，未知 target 返回 2', () async {
+    final root = _project();
+    final ok = await _run('init.dart', [
+      '--root',
+      root.path,
+      '--targets=agents,claude',
+      '--lang=en',
+    ]);
+    expect(ok.exitCode, 0);
+    expect(File(p.join(root.path, 'CLAUDE.md')).existsSync(), isTrue);
+    expect(File(p.join(root.path, 'AGENTS.md')).readAsStringSync(), contains('Get facts first'));
+
+    final bad = await _run('init.dart', ['--root', root.path, '--targets=bogus']);
+    expect(bad.exitCode, 2);
+    expect('${bad.stderr}', contains('未知 targets'));
+  });
+
+  test('init --json 输出机器可读结果', () async {
+    final root = _project();
+    final r = await _run('init.dart', ['--root', root.path, '--json']);
+    expect(r.exitCode, 0);
+    final json = jsonDecode('${r.stdout}') as Map<String, Object?>;
+    expect(json['created'], isA<List<Object?>>());
+    expect(json['missing'], isA<List<Object?>>());
+  });
+
+  test('init / doctor 支持 --version', () async {
+    for (final bin in <String>['init.dart', 'doctor.dart']) {
+      final r = await _run(bin, ['--version']);
+      expect(r.exitCode, 0);
+      expect('${r.stdout}'.trim(), isNotEmpty);
+    }
+  });
+
+  test('context --format=json 输出项目事实', () async {
+    final root = _project();
+    final r = await _run('context.dart', ['--root', root.path, '--format=json']);
+    expect(r.exitCode, 0);
+    final json = jsonDecode('${r.stdout}') as Map<String, Object?>;
+    expect(json['schemaVersion'], 1);
+    expect((json['project'] as Map)['name'], 'demo_app');
+    expect(json['commands'], isA<Map>());
+  });
+
+  test('context 的 --max-tokens 非法时返回 2', () async {
+    final root = _project();
+    final r = await _run('context.dart', ['--root', root.path, '--max-tokens=abc']);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('--max-tokens'));
+  });
+
+  test('list 能按关键词查到组件（text / json）', () async {
+    final r = await _run('list.dart', ['WImage']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('WImage'));
+
+    final json = await _run('list.dart', ['WImage', '--format=json']);
+    final payload = jsonDecode('${json.stdout}') as Map<String, Object?>;
+    expect(payload['count'], greaterThan(0));
+  });
+
+  test('explain 输出 import 与反例（text / json）', () async {
+    final r = await _run('explain.dart', ['WImage']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains("import 'package:w_tools_ui/w_tools_ui.dart';"));
+
+    final json = await _run('explain.dart', ['WImage', '--format=json']);
+    final payload = jsonDecode('${json.stdout}') as Map<String, Object?>;
+    expect(payload['found'], isTrue);
   });
 
   test('doctor --print-config 不要求项目目录', () async {

@@ -18,6 +18,8 @@ void main() {
     expect(parsed.colorMinCount, defaults.colorMinCount);
     expect(parsed.enabledRules, defaults.enabledRules);
     expect(parsed.ignore, isEmpty);
+    expect(parsed.aiTargets, defaults.aiTargets);
+    expect(parsed.aiLanguage, defaults.aiLanguage);
   });
 
   test('渲染文本里的 R6 与 palette 都是注释掉的', () {

@@ -31,6 +31,12 @@ void main() {
     expect(config.ignore, ['lib/app/generated/', 'build/']);
   });
 
+  test('ai.targets 与 ai.language 解析', () {
+    final config = DoctorConfig.parse('ai:\n  targets: [agents, claude]\n  language: en\n');
+    expect(config.aiTargets, ['agents', 'claude']);
+    expect(config.aiLanguage, 'en');
+  });
+
   test('copyWith 覆盖指定字段', () {
     final config = DoctorConfig().copyWith(
       toolkitEntry: 'lib/x/toolkit.dart',
@@ -44,6 +50,15 @@ void main() {
     expect(config.enabledRules, {'R1'});
     expect(config.colorMinCount, DoctorConfig().colorMinCount);
     expect(config.ignore, DoctorConfig().ignore);
+  });
+
+  test('copyWith 可覆盖 ai 字段', () {
+    final config = DoctorConfig().copyWith(
+      aiTargets: const ['agents', 'cursor'],
+      aiLanguage: 'en',
+    );
+    expect(config.aiTargets, ['agents', 'cursor']);
+    expect(config.aiLanguage, 'en');
   });
 
   test('copyWith 不传参数时保留原值', () {
