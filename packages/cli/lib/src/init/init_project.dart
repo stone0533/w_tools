@@ -21,7 +21,7 @@ const _subpackageConstraints = <String, String>{
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const _cliConstraint = '^1.0.0';
+const _cliConstraint = '^1.1.0';
 
 /// `init` 的执行结果（供 CLI 打印）。
 class InitReport {

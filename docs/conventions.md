@@ -69,7 +69,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.0.0
+  w_tools_cli: ^1.1.0
 ```
 
 ```bash

@@ -13,7 +13,7 @@ Directory _project({String toolkitVersion = '1.0.0', String lockCliVersion = '1.
     "  w_tools_ui: ^1.1.0\n"
     "  w_tools_core: ^1.0.1\n"
     "dev_dependencies:\n"
-    "  w_tools_cli: ^1.0.0\n",
+    "  w_tools_cli: ^1.1.0\n",
   );
   File(p.join(root.path, 'pubspec.lock')).writeAsStringSync(
     'packages:\n'
