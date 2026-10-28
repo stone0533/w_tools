@@ -130,6 +130,69 @@ void main() {
       expect(find.text('公共构造'), findsOneWidget);
     });
 
+    testWidgets('content 支持静态复杂内容', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            variant: 'primary',
+            content: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.info_outline),
+                SizedBox(width: 8),
+                Text('自定义内容'),
+              ],
+            ),
+            onTap: () {},
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+      expect(find.text('自定义内容'), findsOneWidget);
+
+      final semantics = tester
+          .widgetList<Semantics>(
+            find.descendant(
+              of: find.byType(WButton),
+              matching: find.byType(Semantics),
+            ),
+          )
+          .firstWhere((s) => s.properties.button == true);
+      expect(semantics.properties.button, isTrue);
+    });
+
+    testWidgets('contentBuilder 接收最终 style', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            variant: 'primary',
+            size: const WButtonSize(name: 'custom', iconSize: 32),
+            contentBuilder: (context, style) => Text('icon=${style.iconSize}'),
+            onTap: () {},
+          ),
+        ),
+      );
+      expect(find.text('icon=32.0'), findsOneWidget);
+    });
+
+    testWidgets('loading 保留 content 尺寸', (tester) async {
+      Widget build(bool loading) => _wrap(
+            WButton(
+              variant: 'primary',
+              loading: loading,
+              content: const SizedBox(width: 120, height: 40),
+              onTap: () {},
+            ),
+          );
+
+      await tester.pumpWidget(build(false));
+      final normal = tester.getSize(find.byType(WButton));
+      await tester.pumpWidget(build(true));
+      final loading = tester.getSize(find.byType(WButton));
+      expect(loading.width, normal.width);
+      expect(loading.height, normal.height);
+    });
+
     testWidgets('WButton.primary / icon 可用', (tester) async {
       await tester.pumpWidget(
         _wrap(WButton.primary('主按钮', onTap: () {})),

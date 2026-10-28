@@ -20,10 +20,17 @@ part 'button_content.dart';
 part 'button_effect.dart';
 part 'button_tap_target.dart';
 
-/// 纯点击区域组件。
+/// 按钮内容构建器。
 ///
-/// 只负责交互、点击反馈与无障碍；视觉样式由 [WButtonStyle] 提供，
-/// 运行时状态（enabled / loading）由本组件参数提供。
+/// [style] 是已经合并 theme、variant、size 后的最终样式。
+typedef WButtonContentBuilder = Widget Function(
+  BuildContext context,
+  WButtonStyle style,
+);
+
+/// 真正的按钮组件。
+///
+/// 内容可以是 label/icon、静态 [content]，或需要访问最终样式的 [contentBuilder]。
 class WButton extends StatefulWidget {
   const WButton({
     super.key,
@@ -31,6 +38,8 @@ class WButton extends StatefulWidget {
     this.variant,
     this.label,
     this.icon,
+    this.content,
+    this.contentBuilder,
     this.size,
     this.sizeName,
     this.semanticLabel,
@@ -51,9 +60,16 @@ class WButton extends StatefulWidget {
     this.behavior = HitTestBehavior.opaque,
     this.tooltip,
     this.enableFeedback = true,
-  }) : assert(
-          label != null || icon != null,
-          'WButton: label 或 icon 至少提供一个',
+  })  : assert(
+          content != null || contentBuilder != null || label != null || icon != null,
+          'WButton: content / contentBuilder / label / icon 至少提供一个',
+        ),
+        assert(
+          (content == null ? 0 : 1) +
+                  (contentBuilder == null ? 0 : 1) +
+                  ((label != null || icon != null) ? 1 : 0) ==
+              1,
+          'WButton: content / contentBuilder / label+icon 只能选择一种',
         );
 
   /// 按钮样式；null 时使用 [WButtonTheme] 的 primary / 内置默认
@@ -65,6 +81,12 @@ class WButton extends StatefulWidget {
   /// 快捷构造的文本 / 图标
   final String? label;
   final IconData? icon;
+
+  /// 静态复杂内容
+  final Widget? content;
+
+  /// 需要访问最终 WButtonStyle 的复杂内容
+  final WButtonContentBuilder? contentBuilder;
 
   /// 尺寸；优先级高于 sizeName
   final WButtonSize? size;
@@ -509,7 +531,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     final interactive = _interactive;
     final theme = Theme.of(context);
 
-    final child = _buildButtonLabel(this, style);
+    final child = _buildButtonContentWidget(this, context, style);
     final container = style.container?.copy();
     final inner = _buildButtonContent(this, context, style, child);
     final padded = style.padding != null ? Padding(padding: style.padding!, child: inner) : inner;

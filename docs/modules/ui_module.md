@@ -160,7 +160,9 @@ final bottomSafe = WScreen.bottomBarHeight;
 |------|------|--------|------|
 | `style` | `WButtonStyle?` | null | 样式；null 时使用 `WButtonTheme` / 内置预设 |
 | `variant` | `String?` | null | primary / secondary / text / danger 或项目自定义 |
-| `label` / `icon` | String? / IconData? | null | 至少提供一个 |
+| `label` / `icon` | String? / IconData? | null | 简单文本/图标 |
+| `content` | Widget? | null | 静态复杂内容 |
+| `contentBuilder` | `WButtonContentBuilder?` | null | 需要最终 style 的复杂内容 |
 | `size` | `WButtonSize?` | null | 尺寸对象 |
 | `sizeName` | `String?` | null | 主题中注册的尺寸名 |
 | `semanticLabel` | `String?` | null | 显式无障碍标签；纯图标按钮建议提供 |
@@ -304,6 +306,62 @@ WButton(
   onFocusChange: (focused) {},
 )
 ```
+
+### 复杂按钮内容
+
+`WButton` 支持真实按钮的复杂内容，但它仍然是按钮（保留 button 语义、loading、键盘和 hit area）。
+
+静态内容：
+
+```dart
+WButton(
+  variant: 'primary',
+  onTap: openOrder,
+  semanticLabel: '订单 A123，3 件商品，待支付，共 128 元',
+  content: Row(
+    children: [
+      WImage.assetImage('demo.png'),
+      const SizedBox(width: 12),
+      const Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('订单 #A123'),
+            Text('3 件商品 · 待支付'),
+          ],
+        ),
+      ),
+      const Icon(Icons.chevron_right),
+    ],
+  ),
+)
+```
+
+需要复用按钮最终样式时用 builder：
+
+```dart
+WButton(
+  variant: 'primary',
+  onTap: add,
+  contentBuilder: (context, style) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.add, size: style.iconSize),
+        SizedBox(width: style.gap),
+        WText(text: '新增', config: style.textStyle),
+      ],
+    );
+  },
+)
+```
+
+约束：
+
+- `content`、`contentBuilder`、`label/icon` 只能选一种；
+- `contentBuilder` 收到的是合并 theme / variant / size 后的最终 `WButtonStyle`；
+- loading 时仍会构建 content 并保留尺寸；
+- 复杂内容建议显式提供 `semanticLabel`。
 
 ## 2.1 WPressable - 任意 child 点击
 

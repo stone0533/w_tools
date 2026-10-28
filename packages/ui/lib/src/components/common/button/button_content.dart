@@ -19,6 +19,18 @@ Widget _buildButtonLabel(_WButtonState state, WButtonStyle style) {
   return const SizedBox.shrink();
 }
 
+Widget _buildButtonContentWidget(
+  _WButtonState state,
+  BuildContext context,
+  WButtonStyle style,
+) {
+  final builder = state.widget.contentBuilder;
+  if (builder != null) return builder(context, style);
+  final content = state.widget.content;
+  if (content != null) return content;
+  return _buildButtonLabel(state, style);
+}
+
 Widget _buildButtonLoading(
   _WButtonState state,
   BuildContext context,

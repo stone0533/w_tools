@@ -49,6 +49,7 @@
   `WButtonThemeData` 的 variants/sizes 使用不可变 Map。
 - 公共 `WButton` 构造使用 `variant + label/icon`，并暴露全部高级参数。
 - 新增 `WPressable`：任意 child 点击 + opacity/scale，不声明 button 语义、不负责样式/loading/最小区域。
+- `WButton` 新增 `content` / `contentBuilder`：支持真实按钮的复杂内容，`contentBuilder` 可读取最终 style。
 - 新增 `WButtonStyle.filled/outlined/text` 工厂与 `WButtonThemeData.copyWith`；
   focus/hover overlay 支持 `overlayBorderRadius`。
 - `WButtonThemeData` 支持 `ThemeExtension`，可直接挂到 `ThemeData.extensions`。

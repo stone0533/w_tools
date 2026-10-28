@@ -290,6 +290,46 @@ class _ButtonsPageState extends State<ButtonsPage> {
           ),
         ),
         _Section(
+          title: '11. 真正的复杂按钮：content / contentBuilder',
+          subtitle: '保留 button 语义、loading、键盘和点击区域',
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              WButton(
+                variant: 'primary',
+                semanticLabel: '查看订单 A123',
+                onTap: () {},
+                content: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.receipt_long, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(
+                      '订单详情',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+              WButton(
+                variant: 'secondary',
+                onTap: () {},
+                contentBuilder: (context, style) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add, size: style.iconSize),
+                      SizedBox(width: style.gap),
+                      WText(text: '新增', config: style.textStyle),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        _Section(
           title: '9. 键盘与无障碍',
           subtitle: 'Tab 聚焦，Enter / Space 激活',
           child: Wrap(
