@@ -143,6 +143,9 @@ class WImageLoader extends WImageLoadState {
 
   /// 进入 loading（无进度事件时使用）
   void markLoading() {
+    if (status == WImageLoadStatus.completed || status == WImageLoadStatus.failed) {
+      return;
+    }
     if (markStatus(WImageLoadStatus.loading)) {
       onStatus?.call(WImageLoadStatus.loading);
     }

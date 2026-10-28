@@ -58,6 +58,15 @@ void main() {
     expect(loader.state.value.retryScheduled, isFalse);
   });
 
+  test('completed 后 markLoading 不会回退状态', () {
+    final loader = WImageLoader(retryCount: 0, retryDelay: 1000);
+    addTearDown(loader.dispose);
+    loader.reset(retryCount: 0, retryDelay: 1000);
+    loader.handleCompleted();
+    loader.markLoading();
+    expect(loader.state.value.isCompleted, isTrue);
+  });
+
   test('completed 后迟到的进度不会回退状态', () {
     final loader = WImageLoader(retryCount: 0, retryDelay: 1000);
     addTearDown(loader.dispose);

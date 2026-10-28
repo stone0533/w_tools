@@ -11,7 +11,7 @@ flutter test --update-goldens test/image_golden_test.dart
 
 ## CI / 跨平台
 
-当前 `image_golden_test.dart` 通过 `Platform.isMacOS` 仅在 macOS 运行 golden；
+当前 `image_golden_test.dart` 通过 `defaultTargetPlatform == TargetPlatform.macOS` 仅在 macOS 运行 golden；
 其它平台自动 skip，避免用 macOS 基线误判 Linux/Windows。
 
 - 在对应平台重新执行上面的命令生成基线并提交；

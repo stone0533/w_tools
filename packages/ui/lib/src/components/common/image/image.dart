@@ -401,7 +401,8 @@ class _WImageState extends State<WImage> {
 
   /// 上一次构建的 provider（避免每次 build 重新 new）
   ImageProvider? _providerCache;
-  String? _providerKey;
+  Object? _providerKey;
+  Widget? _lastFrame;
 
   /// 加载 / 重试 / 进度状态
   late final WImageLoader _load;
@@ -483,6 +484,7 @@ class _WImageState extends State<WImage> {
     _bytesFuture = null;
     _providerCache = null;
     _providerKey = null;
+    _lastFrame = null;
     _load.reset(
       retryCount: config.retryCount,
       retryDelay: config.retryDelay,
@@ -502,6 +504,7 @@ class _WImageState extends State<WImage> {
       _bytesFuture = null;
       _providerCache = null;
       _providerKey = null;
+      _lastFrame = null;
     }
     return _buildContent(context);
   }
@@ -571,18 +574,15 @@ class _WImageState extends State<WImage> {
           error: error,
           onRetry: canRetry ? _load.retryNow : null,
           retryLabel: config.retryLabel,
-          compact: (config.width != null && config.width! < 64) ||
-              (config.height != null && config.height! < 64),
-          showAction: canRetry &&
-              (config.width == null || config.width! >= 120) &&
-              (config.height == null || config.height! >= 112),
+          // 实际尺寸交给 WImageErrorView 的 LayoutBuilder 判断；
+          // compact/showAction 仅保留为调用方显式覆盖参数。
         ),
       );
     }
     return _buildErrorWidget(context);
   }
 
-  ImageProvider _cachedProvider(String key, ImageProvider Function() create) {
+  ImageProvider _cachedProvider(Object key, ImageProvider Function() create) {
     if (_providerKey == key && _providerCache != null) return _providerCache!;
     final provider = create();
     _providerKey = key;
@@ -619,10 +619,7 @@ class _WImageState extends State<WImage> {
   /// 任意 provider（含 MemoryImage）
   Widget _buildProvider() {
     final source = widget.source as WProviderImageSource;
-    final provider = _cachedProvider(
-      'provider:${source.key}:${config.memCacheWidth}x${config.memCacheHeight}',
-      () => source.provider,
-    );
+    final provider = _cachedProvider(source.provider, () => source.provider);
     return _imageWidget(
       provider,
       errorFactory: (error) => WImageProviderError(widget.data, error),
@@ -722,6 +719,7 @@ class _WImageState extends State<WImage> {
           ? (context, child, frame, wasSynchronouslyLoaded) {
               final done = wasSynchronouslyLoaded || frame != null;
               if (done) {
+                _lastFrame = child;
                 if (notifyCompletion) {
                   _load.handleCompleted(notifyProgress: notifyProgressCompletion);
                 }
@@ -734,6 +732,9 @@ class _WImageState extends State<WImage> {
           : null,
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
+        if (_load.status == WImageLoadStatus.completed || _load.status == WImageLoadStatus.failed) {
+          return child;
+        }
         final progress = WImageProgress(
           downloadedBytes: loadingProgress.cumulativeBytesLoaded,
           totalBytes: loadingProgress.expectedTotalBytes,
@@ -743,6 +744,9 @@ class _WImageState extends State<WImage> {
         return builder?.call(context, _value, progress) ?? _placeholderFor(context);
       },
       errorBuilder: (context, error, stackTrace) {
+        if (_load.status == WImageLoadStatus.completed) {
+          return _lastFrame ?? const SizedBox.shrink();
+        }
         final typed = errorFactory(error);
         _load.handleError(error, typed, retry: retryOnError);
         if (_load.retryScheduled) return _placeholderFor(context);

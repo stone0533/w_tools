@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/image/image.dart';
@@ -28,7 +27,7 @@ const _errorBox = ColoredBox(
   ),
 );
 
-final _goldenSkip = !Platform.isMacOS;
+final _goldenSkip = defaultTargetPlatform != TargetPlatform.macOS || kIsWeb;
 
 void main() {
   testWidgets('loaded golden', skip: _goldenSkip, (tester) async {
