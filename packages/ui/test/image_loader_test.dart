@@ -4,7 +4,7 @@ import 'package:w_tools_ui/src/components/common/image_types.dart';
 
 void main() {
   test('reset / beginAttempt 会推送快照', () {
-    final loader = WImageLoader();
+    final loader = WImageLoader(retryCount: 3, retryDelay: 1000);
     addTearDown(loader.dispose);
     final snapshots = <WImageLoadSnapshot>[];
     loader.state.addListener(() => snapshots.add(loader.state.value));
@@ -18,7 +18,7 @@ void main() {
   });
 
   test('status / progress 进入快照', () {
-    final loader = WImageLoader();
+    final loader = WImageLoader(retryCount: 3, retryDelay: 1000);
     addTearDown(loader.dispose);
     loader.markStatus(WImageLoadStatus.loading);
     loader.pendingProgress = const WImageProgress(downloadedBytes: 1, totalBytes: 2);

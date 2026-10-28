@@ -368,6 +368,7 @@ WImage.source(
 - `WImageStyle` 不可变，提供 `copyWith`、`validate`、`toConfig`/`fromConfig`；
 - `WImageTheme`（InheritedWidget）可按子树覆盖默认占位符/错误占位符，优先于 `WImageGlobalConfig`；
 - `WImageController.state` 暴露 `ValueListenable<WImageLoadSnapshot>`（status / progress / attempt）；
+- 重试定时器、错误分类、进度上报与状态去重都在 `WImageLoader` 内，`WImage` 的 State 只负责构建与渲染；
 - 网络图统一走 `CachedNetworkImageProvider` + `Image`：磁盘缓存仍由 `cached_network_image` 负责，
   进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`；
 - 旧的 `WImage(data:, config:)` 与命名构造仍然可用，内部会转换成 `WImageSource` + `WImageStyle`。

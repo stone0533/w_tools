@@ -15,6 +15,7 @@
   `WImageFrame`、`WImageTheme`。
 - `WImageSource.parse` 保留字符串自动判定；旧 `WImage(data:, config:)` 与命名构造作为适配层。
 - `WImageController.state`：`ValueListenable<WImageLoadSnapshot>`（status/progress/attempt）。
+- 重试定时器、错误分类、进度上报与状态去重移入 `WImageLoader`；`WImage` 的 State 只做构建/渲染。
 - 网络路径统一为 `CachedNetworkImageProvider` + `Image`，进度改用 `ImageChunkEvent`；
   磁盘缓存仍走 `cached_network_image`。
 - `WImageConfig.copy()`：复制全部配置字段，便于"以现有配置为底再覆盖少量字段"。
