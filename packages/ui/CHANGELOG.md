@@ -8,8 +8,16 @@
 - `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。
 - `WImage.onLoadProgress`、`progressIndicatorBuilder`、`cacheEnabled`、`fitCenter`、`size` 均已删除。
 - `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageTheme` + `WImageCachePolicy`。
-- `WButtonConfig` / 配置缓存删除；`WButton` 改用不可变 `WButtonStyle` + `WButtonTheme`。
-- `WButton.enabled` / `loading` 改为组件参数；`WButtonEffectType` 增加 `none`。
+- `WButtonConfig` / 配置缓存删除；`WButton` 改用不可变 `WButtonStyle` + `WButtonThemeData`。
+- `WButton.enabled` / `loading` 改为组件参数。
+- `WButton` 删除任意 `child`；改用 `content` / `contentBuilder`，任意区域点击用 `WPressable`。
+- `WButton` 删除 `shake`、`onSecondaryTap`、`onTapDown/Up/Cancel`、`onFocusChange/onHover`、
+  `onPressedChanged`、`tooltip`、`enableFeedback`、`behavior`、`sizeName`。
+- `WButtonTheme` 删除；只保留 `WButtonThemeData` ThemeExtension。
+- `WButtonThemeData` 删除 `base` / `sizes` / `defaultSize`。
+- `WButton.icon` / `WButton.variant` 工厂删除；用公共构造 `variant + icon/label`。
+- `WButtonStyle` 的 `effect/pressedOpacity/pressedScale/animationDuration/curve/semanticLabel/
+  semanticHint/loadingLabel` 移到 `WButtonMotion` / `WButtonSemantics`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
 
 ### Added
@@ -33,22 +41,22 @@
   `onProgress` 参数；`style` 不可变，不会被修改。
 - 新增 `String.toAssetImage({prefix})` / `toBase64Image()` / `toFileImage()` / `toNetworkImage()`。
 - `WImage` 默认构造支持显式 `type`，与命名构造一致。
-- `WButtonStyle` + `WButtonStyles.primary/secondary/text/danger` 静态预设；
-  `WButtonTheme` 提供 App 级默认。
-- `WButton` 新增 `loading` / `loadingBuilder` / `focusNode` / `autofocus` / `behavior` /
-  `tooltip` / `enableFeedback`，键盘激活会触发按下效果，`semanticLabel` / `semanticHint` 进入 Semantics。
-- `WButton` 增加 focus/hover overlay、48×48 最小点击区域、禁用时阻断 child 交互；
-  loading 保持 child 占位尺寸，长按进入 Semantics。
-- `WButton` 增加 `onTapDown/onTapUp/onTapCancel/onSecondaryTap/onFocusChange/onHover/onPressedChanged`。
-- 新增 `WButtonSize` 值对象（3 个默认尺寸 + 项目自定义）与 `WButtonThemeData.variants/sizes/base/defaultSize`。
-- 新增一行式构造：`WButton.primary/secondary/text/danger/variant/icon`。
-- 示例 App 新增「按钮」页，覆盖主题、loading、尺寸、图标、列表、对话框、自定义变体和纯点击区域。
-- `WButton` 增加 `tapTargetSize`：小/中尺寸视觉高度 32/40，但实际点击区域保持 48；
-  补充尺寸校验、无 container 时的 padding、图标按钮语义标签与键盘/指针 press 竞态修复。
-- `WButtonStyles` 预设改为返回独立副本；`WButtonStyle` / `WButton` 对 container/textStyle 做快照，
-  `WButtonThemeData` 的 variants/sizes 使用不可变 Map。
-- 公共 `WButton` 构造使用 `variant + label/icon`，并暴露全部高级参数。
+- `WButtonStyle` 拆分为视觉 `WButtonStyle` + 动效 `WButtonMotion` + 语义 `WButtonSemantics`；
+  `WButtonStyles.primary/secondary/text/danger` 预设保留。
+- `WButton` 支持 `label` / `icon` / `content` / `contentBuilder`；复杂内容保留 button 语义、
+  loading、键盘和点击区域。
+- `WButton` 保留 `loading`、`loadingBuilder`、`focusNode`、`autofocus`、`semanticLabel`、
+  48×48 hit target、focus/hover overlay、禁用隔离。
+- `WButtonSize` 支持 `lineHeight` / `letterSpacing`，默认 small/medium/large 视觉高度 32/40/48，
+  实际 hit target 保持 48。
+- 新增 `WButtonStyle.filled/outlined/text` 工厂与 `WButtonThemeData.copyWith`。
+- `WButtonThemeData` 作为 ThemeExtension 挂到 `ThemeData.extensions`；只保留这一套主题入口。
 - 新增 `WPressable`：任意 child 点击 + opacity/scale，不声明 button 语义、不负责样式/loading/最小区域。
+- `button.dart` 拆出 content / effect / tap target 三个 part 文件。
+- `String.toImage` 增加 `key` / `style` / `type` / `semanticLabel` / `controller` /
+  `onProgress` 参数；`style` 不可变，不会被修改。
+- 新增 `String.toAssetImage({prefix})` / `toBase64Image()` / `toFileImage()` / `toNetworkImage()`。
+- `WImage` 默认构造支持显式 `type`，与命名构造一致。
 - `WButton` 新增 `content` / `contentBuilder`：支持真实按钮的复杂内容，`contentBuilder` 可读取最终 style。
 - 新增 `WButtonStyle.filled/outlined/text` 工厂与 `WButtonThemeData.copyWith`；
   focus/hover overlay 支持 `overlayBorderRadius`。

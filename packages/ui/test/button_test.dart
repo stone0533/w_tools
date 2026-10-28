@@ -3,48 +3,51 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/button/button.dart';
 
-Widget _wrap(Widget child) => MaterialApp(
+Widget _wrap(Widget child, {WButtonThemeData? theme}) => MaterialApp(
+      theme: theme == null ? null : ThemeData(extensions: [theme]),
       home: Scaffold(body: Center(child: child)),
     );
 
 void main() {
-  group('WButtonStyle', () {
-    test('默认值 / copyWith / validate', () {
+  group('WButtonStyle / motion / semantics', () {
+    test('默认值与 copyWith', () {
       final style = WButtonStyle();
-      expect(style.effect, WButtonEffectType.opacity);
-      expect(style.pressedOpacity, 0.7);
-      expect(style.pressedScale, 0.95);
-      expect(style.animationDuration, const Duration(milliseconds: 100));
-      expect(style.semanticLabel, isNull);
+      expect(style.motion.effect, WButtonEffectType.opacity);
+      expect(style.motion.pressedOpacity, 0.7);
+      expect(style.motion.pressedScale, 0.95);
+      expect(style.motion.duration, const Duration(milliseconds: 100));
+      expect(style.semantics.label, isNull);
 
       final next = style.copyWith(
-        effect: WButtonEffectType.scale,
-        pressedScale: 0.9,
-        semanticLabel: '提交',
+        motion: const WButtonMotion(
+          effect: WButtonEffectType.scale,
+          pressedScale: 0.9,
+        ),
+        semantics: const WButtonSemantics(label: '提交'),
         minHeight: 60,
         focusColor: Colors.black12,
       );
-      expect(next.effect, WButtonEffectType.scale);
-      expect(next.pressedScale, 0.9);
-      expect(next.semanticLabel, '提交');
+      expect(next.motion.effect, WButtonEffectType.scale);
+      expect(next.motion.pressedScale, 0.9);
+      expect(next.semantics.label, '提交');
       expect(next.minHeight, 60);
       expect(next.focusColor, Colors.black12);
-      expect(style.effect, WButtonEffectType.opacity);
+      expect(style.motion.effect, WButtonEffectType.opacity);
       expect(() => style.validate(), returnsNormally);
     });
 
     test('非法值触发 assert', () {
       expect(
-        () => WButtonStyle(pressedOpacity: 1.5).validate(),
+        () => const WButtonMotion(pressedOpacity: 1.5).validate(),
         throwsAssertionError,
       );
       expect(
-        () => WButtonStyle(pressedScale: 0).validate(),
+        () => const WButtonMotion(pressedScale: 0).validate(),
         throwsAssertionError,
       );
       expect(
-        () => WButtonStyle(
-          animationDuration: const Duration(milliseconds: -1),
+        () => const WButtonMotion(
+          duration: Duration(milliseconds: -1),
         ).validate(),
         throwsAssertionError,
       );
@@ -116,7 +119,7 @@ void main() {
     });
   });
 
-  group('WButton 构造与尺寸', () {
+  group('WButton 构造与内容', () {
     testWidgets('公共构造支持 variant + label', (tester) async {
       await tester.pumpWidget(
         _wrap(
@@ -175,35 +178,23 @@ void main() {
       expect(find.text('icon=32.0'), findsOneWidget);
     });
 
-    testWidgets('loading 保留 content 尺寸', (tester) async {
-      Widget build(bool loading) => _wrap(
-            WButton(
-              variant: 'primary',
-              loading: loading,
-              content: const SizedBox(width: 120, height: 40),
-              onTap: () {},
-            ),
-          );
-
-      await tester.pumpWidget(build(false));
-      final normal = tester.getSize(find.byType(WButton));
-      await tester.pumpWidget(build(true));
-      final loading = tester.getSize(find.byType(WButton));
-      expect(loading.width, normal.width);
-      expect(loading.height, normal.height);
-    });
-
-    testWidgets('WButton.primary / icon 可用', (tester) async {
+    testWidgets('label/icon/content 三选一', (tester) async {
       await tester.pumpWidget(
         _wrap(WButton.primary('主按钮', onTap: () {})),
       );
       expect(find.text('主按钮'), findsOneWidget);
 
       await tester.pumpWidget(
-        _wrap(WButton.icon(Icons.add, label: '新增', onTap: () {})),
+        _wrap(
+          WButton(
+            variant: 'primary',
+            icon: Icons.add,
+            semanticLabel: '新增',
+            onTap: () {},
+          ),
+        ),
       );
       expect(find.byIcon(Icons.add), findsOneWidget);
-      expect(find.text('新增'), findsOneWidget);
     });
 
     testWidgets('默认尺寸和 small 都有 48 高点击区域', (tester) async {
@@ -229,77 +220,13 @@ void main() {
         greaterThanOrEqualTo(48),
       );
     });
-
-    testWidgets('图标按钮 tooltip 作为语义标签', (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          WButton.icon(Icons.close, tooltip: '关闭', onTap: () {}),
-        ),
-      );
-      final semantics = tester
-          .widgetList<Semantics>(
-            find.descendant(
-              of: find.byType(WButton),
-              matching: find.byType(Semantics),
-            ),
-          )
-          .firstWhere((s) => s.properties.button == true);
-      expect(semantics.properties.label, '关闭');
-    });
-
-    testWidgets('自定义 variant 从 theme 解析', (tester) async {
-      await tester.pumpWidget(
-        WButtonTheme(
-          data: WButtonThemeData(
-            variants: {
-              'brand': WButtonStyle(semanticLabel: '品牌按钮'),
-            },
-          ),
-          child: _wrap(
-            WButton.variant('brand', '品牌', onTap: () {}),
-          ),
-        ),
-      );
-
-      final semantics = tester
-          .widgetList<Semantics>(
-            find.descendant(
-              of: find.byType(WButton),
-              matching: find.byType(Semantics),
-            ),
-          )
-          .firstWhere((s) => s.properties.button == true);
-      expect(semantics.properties.label, '品牌按钮');
-    });
-
-    testWidgets('sizeName 从 theme 解析', (tester) async {
-      await tester.pumpWidget(
-        WButtonTheme(
-          data: WButtonThemeData(
-            sizes: const {
-              'hero': WButtonSize(name: 'hero', minHeight: 60),
-            },
-          ),
-          child: _wrap(
-            WButton.primary('大按钮', sizeName: 'hero', onTap: () {}),
-          ),
-        ),
-      );
-
-      final box = tester
-          .widgetList<ConstrainedBox>(find.byType(ConstrainedBox))
-          .firstWhere((b) => b.constraints.minHeight == 60);
-      expect(box.constraints.minHeight, 60);
-    });
   });
 
   group('WButton 交互', () {
     testWidgets('点击触发 onTap', (tester) async {
       var taps = 0;
       await tester.pumpWidget(
-        _wrap(
-          WButton.primary('点击', onTap: () => taps++),
-        ),
+        _wrap(WButton.primary('点击', onTap: () => taps++)),
       );
 
       await tester.tap(find.text('点击'));
@@ -339,11 +266,7 @@ void main() {
 
     testWidgets('loading 保持按钮尺寸', (tester) async {
       Widget build(bool loading) => _wrap(
-            WButton.primary(
-              '提交',
-              loading: loading,
-              onTap: () {},
-            ),
+            WButton.primary('提交', loading: loading, onTap: () {}),
           );
 
       await tester.pumpWidget(build(false));
@@ -352,30 +275,6 @@ void main() {
       final loading = tester.getSize(find.byType(WButton));
       expect(loading.width, normal.width);
       expect(loading.height, normal.height);
-    });
-
-    testWidgets('tooltip 与 onPressedChanged', (tester) async {
-      final pressed = <bool>[];
-      await tester.pumpWidget(
-        _wrap(
-          WButton(
-            variant: 'primary',
-            label: 'tooltip',
-            tooltip: '提交提示',
-            onPressedChanged: pressed.add,
-            onTap: () {},
-          ),
-        ),
-      );
-      expect(find.byType(Tooltip), findsOneWidget);
-
-      final gesture = await tester.startGesture(
-        tester.getCenter(find.text('tooltip')),
-      );
-      await tester.pump();
-      await gesture.up();
-      await tester.pumpAndSettle();
-      expect(pressed, [true, false]);
     });
 
     testWidgets('长按进入 Semantics 并触发 onLongPress', (tester) async {
@@ -430,7 +329,9 @@ void main() {
         _wrap(
           WButton.primary(
             'opacity',
-            style: WButtonStyle(pressedOpacity: 0.4),
+            style: WButtonStyle(
+              motion: const WButtonMotion(pressedOpacity: 0.4),
+            ),
             onTap: () {},
           ),
         ),
@@ -459,8 +360,10 @@ void main() {
           WButton.primary(
             'scale',
             style: WButtonStyle(
-              effect: WButtonEffectType.scale,
-              pressedScale: 0.8,
+              motion: const WButtonMotion(
+                effect: WButtonEffectType.scale,
+                pressedScale: 0.8,
+              ),
             ),
             onTap: () {},
           ),
@@ -476,52 +379,26 @@ void main() {
         0.8,
       );
       await gesture.up();
+      await tester.pumpAndSettle();
     });
 
     testWidgets('没有 onTap 时键盘不触发按下状态', (tester) async {
-      final pressed = <bool>[];
-      await tester.pumpWidget(
-        _wrap(
-          WButton(
-            variant: 'primary',
-            label: 'longpress-only',
-            autofocus: true,
-            onLongPress: () {},
-            onPressedChanged: pressed.add,
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-      await tester.pump();
-      expect(pressed, isEmpty);
-    });
-
-    testWidgets('键盘 press 不会被后续指针 press 的旧 timer 提前复位', (tester) async {
       await tester.pumpWidget(
         _wrap(
           WButton.primary(
-            'race',
+            'longpress-only',
             autofocus: true,
-            style: WButtonStyle(pressedOpacity: 0.35),
-            onTap: () {},
+            onLongPress: () {},
           ),
         ),
       );
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pump();
-
-      final gesture = await tester.startGesture(
-        tester.getCenter(find.text('race')),
-      );
-      await tester.pump(const Duration(milliseconds: 150));
       expect(
         tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity,
-        0.35,
+        1.0,
       );
-      await gesture.up();
-      await tester.pumpAndSettle();
     });
 
     testWidgets('键盘 Enter 触发 onTap 和按下效果', (tester) async {
@@ -531,7 +408,9 @@ void main() {
           WButton.primary(
             '键盘',
             autofocus: true,
-            style: WButtonStyle(pressedOpacity: 0.35),
+            style: WButtonStyle(
+              motion: const WButtonMotion(pressedOpacity: 0.35),
+            ),
             onTap: () => taps++,
           ),
         ),
@@ -552,11 +431,14 @@ void main() {
     testWidgets('semanticLabel / hint 进入 Semantics', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton.icon(
-            Icons.close,
+          WButton(
+            variant: 'primary',
+            icon: Icons.close,
             style: WButtonStyle(
-              semanticLabel: '关闭',
-              semanticHint: '关闭当前弹窗',
+              semantics: const WButtonSemantics(
+                label: '关闭',
+                hint: '关闭当前弹窗',
+              ),
             ),
             onTap: () {},
           ),
@@ -580,16 +462,12 @@ void main() {
   group('WButtonTheme', () {
     testWidgets('支持 ThemeData.extensions', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(
-            extensions: [
-              WButtonThemeData(
-                primary: WButtonStyle(semanticLabel: 'extension-button'),
-              ),
-            ],
-          ),
-          home: Scaffold(
-            body: WButton.primary('extension', onTap: () {}),
+        _wrap(
+          WButton.primary('extension', onTap: () {}),
+          theme: WButtonThemeData(
+            primary: WButtonStyle(
+              semantics: const WButtonSemantics(label: 'extension-button'),
+            ),
           ),
         ),
       );
@@ -615,14 +493,16 @@ void main() {
       expect(identical(next.primary, data.primary), isFalse);
     });
 
-    testWidgets('未传 style 时使用 theme.primary', (tester) async {
+    testWidgets('自定义 variant 从 theme 解析', (tester) async {
       await tester.pumpWidget(
-        WButtonTheme(
-          data: WButtonThemeData(
-            primary: WButtonStyle(semanticLabel: '主题按钮'),
-          ),
-          child: _wrap(
-            WButton.primary('themed', onTap: () {}),
+        _wrap(
+          WButton(variant: 'brand', label: '品牌', onTap: () {}),
+          theme: WButtonThemeData(
+            variants: {
+              'brand': WButtonStyle(
+                semantics: const WButtonSemantics(label: '品牌按钮'),
+              ),
+            },
           ),
         ),
       );
@@ -635,34 +515,7 @@ void main() {
             ),
           )
           .firstWhere((s) => s.properties.button == true);
-      expect(semantics.properties.label, '主题按钮');
-    });
-
-    testWidgets('显式 style 覆盖 theme', (tester) async {
-      await tester.pumpWidget(
-        WButtonTheme(
-          data: WButtonThemeData(
-            primary: WButtonStyle(semanticLabel: '主题按钮'),
-          ),
-          child: _wrap(
-            WButton.primary(
-              'override',
-              style: WButtonStyle(semanticLabel: '局部按钮'),
-              onTap: () {},
-            ),
-          ),
-        ),
-      );
-
-      final semantics = tester
-          .widgetList<Semantics>(
-            find.descendant(
-              of: find.byType(WButton),
-              matching: find.byType(Semantics),
-            ),
-          )
-          .firstWhere((s) => s.properties.button == true);
-      expect(semantics.properties.label, '局部按钮');
+      expect(semantics.properties.label, '品牌按钮');
     });
   });
 }

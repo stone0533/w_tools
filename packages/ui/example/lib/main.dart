@@ -16,29 +16,12 @@ void main() {
   );
 
   runApp(
-    WButtonTheme(
-      data: WButtonThemeData(
-        primary: WButtonStyles.primary,
-        secondary: WButtonStyles.secondary,
-        text: WButtonStyles.text,
-        danger: WButtonStyles.danger,
-        variants: {
-          'brand': WButtonStyles.primary,
-          'warning': WButtonStyles.danger,
-        },
-        sizes: const {
-          'compact': WButtonSize.small,
-          'hero': WButtonSize.large,
-        },
-        defaultSize: WButtonSize.medium,
+    const WImageTheme(
+      data: WImageThemeData(
+        defaultPlaceholder: Center(child: CircularProgressIndicator()),
+        defaultErrorWidget: Icon(Icons.broken_image),
       ),
-      child: const WImageTheme(
-        data: WImageThemeData(
-          defaultPlaceholder: Center(child: CircularProgressIndicator()),
-          defaultErrorWidget: Icon(Icons.broken_image),
-        ),
-        child: WImageExampleApp(),
-      ),
+      child: WImageExampleApp(),
     ),
   );
 }
@@ -53,6 +36,18 @@ class WImageExampleApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
+        extensions: [
+          WButtonThemeData(
+            primary: WButtonStyles.primary,
+            secondary: WButtonStyles.secondary,
+            text: WButtonStyles.text,
+            danger: WButtonStyles.danger,
+            variants: {
+              'brand': WButtonStyles.primary,
+              'warning': WButtonStyles.danger,
+            },
+          ),
+        ],
       ),
       home: const HomeShell(),
     );

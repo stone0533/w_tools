@@ -5,12 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../layout/container.dart';
+import '../text.dart';
+import 'button_motion.dart';
 import 'button_size.dart';
 import 'button_style.dart';
 import 'button_styles.dart';
-import '../text.dart';
 import 'button_theme.dart';
 
+export 'button_motion.dart';
+export 'button_semantics.dart';
 export 'button_size.dart';
 export 'button_style.dart';
 export 'button_styles.dart';
@@ -30,7 +33,8 @@ typedef WButtonContentBuilder = Widget Function(
 
 /// 真正的按钮组件。
 ///
-/// 内容可以是 label/icon、静态 [content]，或需要访问最终样式的 [contentBuilder]。
+/// 支持 label/icon、静态 [content]、需要最终样式的 [contentBuilder]；
+/// 保留 button 语义、键盘、loading 和最小点击区域。
 class WButton extends StatefulWidget {
   const WButton({
     super.key,
@@ -41,25 +45,14 @@ class WButton extends StatefulWidget {
     this.content,
     this.contentBuilder,
     this.size,
-    this.sizeName,
     this.semanticLabel,
     this.onTap,
     this.onLongPress,
-    this.onSecondaryTap,
-    this.onTapDown,
-    this.onTapUp,
-    this.onTapCancel,
-    this.onFocusChange,
-    this.onHover,
-    this.onPressedChanged,
     this.enabled = true,
     this.loading = false,
     this.loadingBuilder,
     this.focusNode,
     this.autofocus = false,
-    this.behavior = HitTestBehavior.opaque,
-    this.tooltip,
-    this.enableFeedback = true,
   })  : assert(
           content != null || contentBuilder != null || label != null || icon != null,
           'WButton: content / contentBuilder / label / icon 至少提供一个',
@@ -72,109 +65,65 @@ class WButton extends StatefulWidget {
           'WButton: content / contentBuilder / label+icon 只能选择一种',
         );
 
-  /// 按钮样式；null 时使用 [WButtonTheme] 的 primary / 内置默认
   final WButtonStyle? style;
-
-  /// 变体名（primary / secondary / text / danger 或项目自定义）
   final String? variant;
 
-  /// 快捷构造的文本 / 图标
+  /// 简单内容
   final String? label;
   final IconData? icon;
 
   /// 静态复杂内容
   final Widget? content;
 
-  /// 需要访问最终 WButtonStyle 的复杂内容
+  /// 需要最终 style 的复杂内容
   final WButtonContentBuilder? contentBuilder;
 
-  /// 尺寸；优先级高于 sizeName
+  /// 尺寸；null 时 variant 构造回退到 medium
   final WButtonSize? size;
-
-  /// 主题里注册的尺寸名
-  final String? sizeName;
 
   /// 显式无障碍标签；纯图标按钮建议提供
   final String? semanticLabel;
 
-  /// 点击回调
   final GestureTapCallback? onTap;
-
-  /// 长按回调
   final GestureLongPressCallback? onLongPress;
 
-  /// 次要点击（右键 / 桌面端）
-  final GestureTapCallback? onSecondaryTap;
-
-  /// 按下 / 抬起 / 取消（用于埋点、联动）
-  final GestureTapDownCallback? onTapDown;
-  final GestureTapUpCallback? onTapUp;
-  final GestureTapCancelCallback? onTapCancel;
-
-  /// 焦点 / hover 变化
-  final ValueChanged<bool>? onFocusChange;
-  final ValueChanged<bool>? onHover;
-
-  /// 按下状态变化
-  final ValueChanged<bool>? onPressedChanged;
-
-  /// 是否启用
   final bool enabled;
-
-  /// 是否加载中；加载中不响应点击
   final bool loading;
 
   /// 加载中占位；默认小号 CircularProgressIndicator
   final WidgetBuilder? loadingBuilder;
 
-  /// 焦点节点
   final FocusNode? focusNode;
-
-  /// 是否自动获取焦点
   final bool autofocus;
 
-  /// 命中测试行为
-  final HitTestBehavior behavior;
-
-  /// 长按提示（桌面端/无障碍）
-  final String? tooltip;
-
-  /// 是否启用点击反馈（触觉）
-  final bool enableFeedback;
-
-  /// 快捷构造：primary / secondary / text / danger 变体
   factory WButton.primary(
     String label, {
     Key? key,
     WButtonStyle? style,
     WButtonSize? size,
-    String? sizeName,
     String? semanticLabel,
     bool enabled = true,
     bool loading = false,
+    WidgetBuilder? loadingBuilder,
     GestureTapCallback? onTap,
     GestureLongPressCallback? onLongPress,
     FocusNode? focusNode,
     bool autofocus = false,
-    String? tooltip,
-    bool enableFeedback = true,
   }) =>
       WButton(
+        key: key,
         variant: 'primary',
         label: label,
-        key: key,
         style: style,
         size: size,
-        sizeName: sizeName,
         semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
+        loadingBuilder: loadingBuilder,
         onTap: onTap,
         onLongPress: onLongPress,
         focusNode: focusNode,
         autofocus: autofocus,
-        tooltip: tooltip,
-        enableFeedback: enableFeedback,
       );
 
   factory WButton.secondary(
@@ -182,33 +131,29 @@ class WButton extends StatefulWidget {
     Key? key,
     WButtonStyle? style,
     WButtonSize? size,
-    String? sizeName,
     String? semanticLabel,
     bool enabled = true,
     bool loading = false,
+    WidgetBuilder? loadingBuilder,
     GestureTapCallback? onTap,
     GestureLongPressCallback? onLongPress,
     FocusNode? focusNode,
     bool autofocus = false,
-    String? tooltip,
-    bool enableFeedback = true,
   }) =>
       WButton(
+        key: key,
         variant: 'secondary',
         label: label,
-        key: key,
         style: style,
         size: size,
-        sizeName: sizeName,
         semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
+        loadingBuilder: loadingBuilder,
         onTap: onTap,
         onLongPress: onLongPress,
         focusNode: focusNode,
         autofocus: autofocus,
-        tooltip: tooltip,
-        enableFeedback: enableFeedback,
       );
 
   factory WButton.text(
@@ -216,33 +161,29 @@ class WButton extends StatefulWidget {
     Key? key,
     WButtonStyle? style,
     WButtonSize? size,
-    String? sizeName,
     String? semanticLabel,
     bool enabled = true,
     bool loading = false,
+    WidgetBuilder? loadingBuilder,
     GestureTapCallback? onTap,
     GestureLongPressCallback? onLongPress,
     FocusNode? focusNode,
     bool autofocus = false,
-    String? tooltip,
-    bool enableFeedback = true,
   }) =>
       WButton(
+        key: key,
         variant: 'text',
         label: label,
-        key: key,
         style: style,
         size: size,
-        sizeName: sizeName,
         semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
+        loadingBuilder: loadingBuilder,
         onTap: onTap,
         onLongPress: onLongPress,
         focusNode: focusNode,
         autofocus: autofocus,
-        tooltip: tooltip,
-        enableFeedback: enableFeedback,
       );
 
   factory WButton.danger(
@@ -250,115 +191,39 @@ class WButton extends StatefulWidget {
     Key? key,
     WButtonStyle? style,
     WButtonSize? size,
-    String? sizeName,
     String? semanticLabel,
     bool enabled = true,
     bool loading = false,
+    WidgetBuilder? loadingBuilder,
     GestureTapCallback? onTap,
     GestureLongPressCallback? onLongPress,
     FocusNode? focusNode,
     bool autofocus = false,
-    String? tooltip,
-    bool enableFeedback = true,
   }) =>
       WButton(
+        key: key,
         variant: 'danger',
         label: label,
-        key: key,
         style: style,
         size: size,
-        sizeName: sizeName,
         semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
+        loadingBuilder: loadingBuilder,
         onTap: onTap,
         onLongPress: onLongPress,
         focusNode: focusNode,
         autofocus: autofocus,
-        tooltip: tooltip,
-        enableFeedback: enableFeedback,
-      );
-
-  factory WButton.variant(
-    String variant,
-    String label, {
-    Key? key,
-    WButtonStyle? style,
-    WButtonSize? size,
-    String? sizeName,
-    String? semanticLabel,
-    bool enabled = true,
-    bool loading = false,
-    GestureTapCallback? onTap,
-    GestureLongPressCallback? onLongPress,
-    FocusNode? focusNode,
-    bool autofocus = false,
-    String? tooltip,
-    bool enableFeedback = true,
-  }) =>
-      WButton(
-        variant: variant,
-        label: label,
-        key: key,
-        style: style,
-        size: size,
-        sizeName: sizeName,
-        semanticLabel: semanticLabel,
-        enabled: enabled,
-        loading: loading,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        focusNode: focusNode,
-        autofocus: autofocus,
-        tooltip: tooltip,
-        enableFeedback: enableFeedback,
-      );
-
-  factory WButton.icon(
-    IconData icon, {
-    String? label,
-    String? semanticLabel,
-    Key? key,
-    WButtonStyle? style,
-    WButtonSize? size,
-    String? sizeName,
-    bool enabled = true,
-    bool loading = false,
-    GestureTapCallback? onTap,
-    GestureLongPressCallback? onLongPress,
-    FocusNode? focusNode,
-    bool autofocus = false,
-    String? tooltip,
-    bool enableFeedback = true,
-  }) =>
-      WButton(
-        icon: icon,
-        label: label,
-        semanticLabel: semanticLabel,
-        key: key,
-        style: style,
-        size: size,
-        sizeName: sizeName,
-        enabled: enabled,
-        loading: loading,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        focusNode: focusNode,
-        autofocus: autofocus,
-        tooltip: tooltip,
-        enableFeedback: enableFeedback,
       );
 
   @override
   State<WButton> createState() => _WButtonState();
 }
 
-class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
+class _WButtonState extends State<WButton> {
   final ValueNotifier<bool> _pressed = ValueNotifier<bool>(false);
-  AnimationController? _animationController;
-  Animation<double>? _shakeAnimation;
-  int _pressToken = 0;
   Timer? _pressTimer;
+  int _pressToken = 0;
   bool _focused = false;
   bool _hovered = false;
   WButtonStyle? _cachedStyle;
@@ -370,7 +235,6 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
   void dispose() {
     _pressTimer?.cancel();
     _pressed.dispose();
-    _animationController?.dispose();
     super.dispose();
   }
 
@@ -382,23 +246,21 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
       _focused = false;
       _hovered = false;
     }
-    _syncController(_resolveStyle(context));
   }
 
   WButtonStyle _resolveStyle(BuildContext context) {
-    final theme = WButtonTheme.maybeOf(context) ?? Theme.of(context).extension<WButtonThemeData>();
+    final theme = Theme.of(context).extension<WButtonThemeData>();
     final key = Object.hash(
       widget.style,
       widget.variant,
       widget.size,
-      widget.sizeName,
       widget.semanticLabel,
       widget.label,
       widget.icon,
-      widget.tooltip,
       theme,
     );
     if (_cachedStyle != null && _cachedStyleKey == key) return _cachedStyle!;
+
     final fallback = switch (widget.variant) {
       'primary' => WButtonStyles.primary,
       'secondary' => WButtonStyles.secondary,
@@ -412,88 +274,47 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
         !const {'primary', 'secondary', 'text', 'danger'}.contains(widget.variant)) {
       assert(false, 'WButton: 未注册的 variant "${widget.variant}"');
     }
-    final namedSize = theme?.resolveSize(widget.sizeName);
-    if (widget.sizeName != null) {
-      assert(namedSize != null, 'WButton: 未注册的 sizeName "${widget.sizeName}"');
-    }
+
     final base = widget.style ??
         theme?.resolveStyle(widget.variant) ??
         (widget.variant != null ? fallback : WButtonStyle());
-    final size = widget.size ??
-        namedSize ??
-        (widget.variant != null ? (theme?.defaultSize ?? WButtonSize.medium) : null);
-    final semantic = widget.semanticLabel ??
-        (widget.label == null && widget.icon != null ? widget.tooltip : null);
-    final resolved = semantic == null ? base.copy() : base.copy().copyWith(semanticLabel: semantic);
+    final size = widget.size ?? (widget.variant != null ? WButtonSize.medium : null);
+    final semantic = widget.semanticLabel;
+    final resolved = semantic == null
+        ? base.copy()
+        : base.copyWith(
+            semantics: base.semantics.copyWith(label: semantic),
+          );
     final sized = resolved.applySize(size);
     assert(
-      widget.icon == null || widget.label != null || sized.semanticLabel != null,
-      'WButton.icon: 纯图标按钮请提供 semanticLabel 或 tooltip',
+      widget.icon == null ||
+          widget.label != null ||
+          widget.content != null ||
+          widget.contentBuilder != null ||
+          sized.semantics.label != null,
+      'WButton: 纯图标按钮请提供 semanticLabel',
     );
     _cachedStyle = sized;
     _cachedStyleKey = key;
     return sized;
   }
 
-  void _syncController(WButtonStyle style) {
-    final controller = _animationController;
-    if (controller != null && controller.duration != style.animationDuration) {
-      controller.duration = style.animationDuration;
-    }
-  }
-
-  AnimationController _controllerFor(WButtonStyle style) {
-    if (_animationController == null) {
-      _animationController = AnimationController(
-        duration: style.animationDuration,
-        vsync: this,
-      );
-      _shakeAnimation = Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(
-          parent: _animationController!,
-          curve: Curves.elasticOut,
-        ),
-      );
-    } else if (_animationController!.duration != style.animationDuration) {
-      _animationController!.duration = style.animationDuration;
-    }
-    return _animationController!;
-  }
-
-  Animation<double> _shakeFor(WButtonStyle style) {
-    _controllerFor(style);
-    return _shakeAnimation!;
-  }
-
-  void _shake(WButtonStyle style) {
-    _controllerFor(style)
-      ..reset()
-      ..forward();
-  }
-
   void _setPressed(bool value) {
     if (_pressed.value == value) return;
     _pressed.value = value;
-    widget.onPressedChanged?.call(value);
   }
 
   void _pulse(WButtonStyle style) {
     final token = ++_pressToken;
     _pressTimer?.cancel();
     _setPressed(true);
-    if (style.effect == WButtonEffectType.shake) _shake(style);
-    _pressTimer = Timer(style.animationDuration, () {
+    _pressTimer = Timer(style.motion.duration, () {
       if (mounted && token == _pressToken) _setPressed(false);
     });
   }
 
   void _handleTap() {
-    final onTap = widget.onTap;
-    if (onTap == null) return;
-    if (widget.enableFeedback) {
-      HapticFeedback.selectionClick();
-    }
-    onTap();
+    widget.onTap?.call();
   }
 
   void _activate(WButtonStyle style) {
@@ -506,20 +327,16 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     if (!_interactive) return;
     _pressToken++;
     _pressTimer?.cancel();
-    widget.onTapDown?.call(details);
     _setPressed(true);
-    if (style.effect == WButtonEffectType.shake) _shake(style);
   }
 
   void _onTapUp(TapUpDetails details) {
     if (!_interactive) return;
-    widget.onTapUp?.call(details);
     _setPressed(false);
   }
 
   void _onTapCancel() {
     if (!_interactive) return;
-    widget.onTapCancel?.call();
     _setPressed(false);
   }
 
@@ -527,14 +344,15 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final style = _resolveStyle(context);
     style.validate();
-    _syncController(style);
     final interactive = _interactive;
     final theme = Theme.of(context);
 
     final child = _buildButtonContentWidget(this, context, style);
     final container = style.container?.copy();
     final inner = _buildButtonContent(this, context, style, child);
-    final padded = style.padding != null ? Padding(padding: style.padding!, child: inner) : inner;
+    final padded = container == null && style.padding != null
+        ? Padding(padding: style.padding!, child: inner)
+        : inner;
     final content = container == null ? padded : WContainer(config: container, child: padded);
 
     Widget visualChild = ConstrainedBox(
@@ -545,7 +363,6 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
       child: content,
     );
 
-    // 禁用时同时阻断 WButton 与 child 的交互。
     visualChild = IgnorePointer(ignoring: !interactive, child: visualChild);
     if (!interactive) {
       visualChild = Opacity(
@@ -558,33 +375,37 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     final focusColor = style.focusColor ?? theme.focusColor;
 
     Widget buildVisual(bool pressed) {
-      var result = _buildButtonVisual(this, style, pressed, visualChild);
+      var result = _buildButtonVisual(style, pressed, visualChild);
       if (_hovered && interactive) {
-        result = _buildButtonOverlay(result, hoverColor, style.overlayBorderRadius);
+        result = _buildButtonOverlay(
+          result,
+          hoverColor,
+          style.overlayBorderRadius,
+        );
       }
       if (_focused && interactive) {
-        result = _buildButtonOverlay(result, focusColor, style.overlayBorderRadius);
+        result = _buildButtonOverlay(
+          result,
+          focusColor,
+          style.overlayBorderRadius,
+        );
       }
       return result;
     }
 
-    Widget result = Semantics(
+    return Semantics(
       button: true,
       enabled: interactive,
-      label: style.semanticLabel,
-      hint: style.semanticHint,
+      label: style.semantics.label,
+      hint: style.semantics.hint,
       onTap: interactive && widget.onTap != null ? () => _activate(style) : null,
       onLongPress: interactive && widget.onLongPress != null ? widget.onLongPress : null,
       child: FocusableActionDetector(
         enabled: interactive,
         autofocus: widget.autofocus,
         focusNode: widget.focusNode,
-        onFocusChange: widget.onFocusChange,
         onShowFocusHighlight: (value) => setState(() => _focused = value),
-        onShowHoverHighlight: (value) {
-          setState(() => _hovered = value);
-          widget.onHover?.call(value);
-        },
+        onShowHoverHighlight: (value) => setState(() => _hovered = value),
         mouseCursor: interactive ? SystemMouseCursors.click : SystemMouseCursors.basic,
         shortcuts: const <ShortcutActivator, Intent>{
           SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
@@ -599,11 +420,10 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
           ),
         },
         child: GestureDetector(
-          behavior: widget.behavior,
+          behavior: HitTestBehavior.opaque,
           excludeFromSemantics: true,
           onTap: interactive ? _handleTap : null,
           onLongPress: interactive ? widget.onLongPress : null,
-          onSecondaryTap: interactive ? widget.onSecondaryTap : null,
           onTapDown: interactive ? (details) => _onTapDown(style, details) : null,
           onTapUp: interactive ? _onTapUp : null,
           onTapCancel: interactive ? _onTapCancel : null,
@@ -614,10 +434,5 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
         ),
       ),
     );
-
-    if (widget.tooltip != null) {
-      result = Tooltip(message: widget.tooltip!, child: result);
-    }
-    return result;
   }
 }

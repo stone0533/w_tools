@@ -118,30 +118,33 @@ class _ButtonsPageState extends State<ButtonsPage> {
         ),
         _Section(
           title: '4. 图标按钮 / 纯图标工具栏',
-          subtitle: '图标按钮建议提供 tooltip',
+          subtitle: '纯图标按钮建议提供 semanticLabel',
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              WButton.icon(
-                Icons.add,
+              WButton(
+                variant: 'primary',
+                icon: Icons.add,
                 label: '新增',
                 onTap: () {},
               ),
-              WButton.icon(
-                Icons.refresh,
-                tooltip: '刷新',
+              WButton(
+                variant: 'primary',
+                icon: Icons.refresh,
+                semanticLabel: '刷新',
                 onTap: () {},
               ),
-              WButton.icon(
-                Icons.more_horiz,
-                tooltip: '更多',
+              WButton(
+                variant: 'primary',
+                icon: Icons.more_horiz,
+                semanticLabel: '更多',
                 onTap: () {},
               ),
-              WButton.icon(
-                Icons.delete_outline,
-                tooltip: '删除',
-                style: WButtonStyles.danger,
+              WButton(
+                variant: 'danger',
+                icon: Icons.delete_outline,
+                semanticLabel: '删除',
                 onTap: _showConfirmDialog,
               ),
             ],
@@ -193,8 +196,8 @@ class _ButtonsPageState extends State<ButtonsPage> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              WButton.variant('brand', '品牌按钮', onTap: () {}),
-              WButton.variant('warning', '警告按钮', onTap: () {}),
+              WButton(variant: 'brand', label: '品牌按钮', onTap: () {}),
+              WButton(variant: 'warning', label: '警告按钮', onTap: () {}),
             ],
           ),
         ),
@@ -336,17 +339,21 @@ class _ButtonsPageState extends State<ButtonsPage> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              WButton.primary(
-                '聚焦我',
-                autofocus: true,
-                tooltip: '按 Enter 或 Space 触发',
-                onTap: () {},
+              Tooltip(
+                message: '按 Enter 或 Space 触发',
+                child: WButton.primary(
+                  '聚焦我',
+                  autofocus: true,
+                  onTap: () {},
+                ),
               ),
               WButton.secondary(
                 '带语义的按钮',
                 style: WButtonStyle(
-                  semanticLabel: '保存草稿',
-                  semanticHint: '保存当前内容但不提交',
+                  semantics: const WButtonSemantics(
+                    label: '保存草稿',
+                    hint: '保存当前内容但不提交',
+                  ),
                 ),
                 onTap: () {},
               ),

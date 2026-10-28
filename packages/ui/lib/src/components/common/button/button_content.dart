@@ -43,7 +43,7 @@ Widget _buildButtonLoading(
         child: CircularProgressIndicator(strokeWidth: 2),
       );
   return Semantics(
-    label: style.loadingLabel,
+    label: style.semantics.loadingLabel,
     container: true,
     child: child,
   );
