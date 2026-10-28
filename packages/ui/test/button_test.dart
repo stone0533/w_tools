@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/button.dart';
+import 'package:w_tools_ui/src/components/common/button/button.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: Center(child: child)));
 

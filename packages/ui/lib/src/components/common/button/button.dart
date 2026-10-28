@@ -3,11 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../layout/container.dart';
+import '../../layout/container.dart';
 import 'button_size.dart';
 import 'button_style.dart';
 import 'button_styles.dart';
-import 'text.dart';
+import '../text.dart';
 import 'button_theme.dart';
 
 export 'button_size.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/screen.dart';
-import '../common/button.dart';
+import '../common/button/button.dart';
 import '../common/text.dart';
 
 /// 自定义导航栏组件

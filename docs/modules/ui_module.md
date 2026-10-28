@@ -22,10 +22,12 @@ ui/
     ├── components/
     │   ├── common/                 # 通用组件
     │   │   ├── badge.dart                     # WBadge / WBadgeConfig
-    │   │   ├── button.dart                    # WButton
-    │   │   ├── button_style.dart             # WButtonStyle / WButtonEffectType
-    │   │   ├── button_theme.dart             # WButtonTheme / WButtonThemeData
-    │   │   ├── button_styles.dart            # WButtonStyles 预设
+    │   │   ├── button/                 # 按钮组件
+    │   │   │   ├── button.dart                 # WButton
+    │   │   │   ├── button_style.dart           # WButtonStyle / WButtonEffectType
+    │   │   │   ├── button_size.dart            # WButtonSize
+    │   │   │   ├── button_theme.dart           # WButtonTheme / WButtonThemeData
+    │   │   │   └── button_styles.dart          # WButtonStyles 预设
     │   │   ├── clip.dart                      # WClipRRect
     │   │   ├── image/                  # 图片组件
     │   │   │   ├── image.dart                  # WImage, WImageController

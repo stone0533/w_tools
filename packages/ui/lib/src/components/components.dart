@@ -1,7 +1,7 @@
 // 组件统一导出入口
 
 // 通用组件
-export 'common/button.dart';
+export 'common/button/button.dart';
 export 'common/badge.dart';
 export 'common/clip.dart';
 export 'common/image/image.dart';

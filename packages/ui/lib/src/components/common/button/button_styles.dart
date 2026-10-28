@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../layout/container.dart';
+import '../../layout/container.dart';
 import 'button_style.dart';
-import 'text.dart';
+import '../text.dart';
 
 /// 常用按钮样式预设。
 ///

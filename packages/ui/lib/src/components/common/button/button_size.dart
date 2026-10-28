@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'text.dart';
+import '../text.dart';
 
 /// 不可变的按钮尺寸令牌。
 ///
