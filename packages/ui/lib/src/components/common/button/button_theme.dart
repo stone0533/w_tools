@@ -35,6 +35,28 @@ class WButtonThemeData {
   /// 默认尺寸；variant 构造未显式传 size 时使用
   final WButtonSize? defaultSize;
 
+  WButtonThemeData copyWith({
+    WButtonStyle? primary,
+    WButtonStyle? secondary,
+    WButtonStyle? text,
+    WButtonStyle? danger,
+    Map<String, WButtonStyle>? variants,
+    Map<String, WButtonSize>? sizes,
+    WButtonStyle? base,
+    WButtonSize? defaultSize,
+  }) {
+    return WButtonThemeData(
+      primary: primary ?? this.primary,
+      secondary: secondary ?? this.secondary,
+      text: text ?? this.text,
+      danger: danger ?? this.danger,
+      variants: variants ?? this.variants,
+      sizes: sizes ?? this.sizes,
+      base: base ?? this.base,
+      defaultSize: defaultSize ?? this.defaultSize,
+    );
+  }
+
   WButtonStyle? resolveStyle(String? variant) {
     if (variant == null) return primary ?? base;
     final semantic = switch (variant) {

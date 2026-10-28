@@ -24,6 +24,82 @@ enum WButtonEffectType {
 /// 可跨页面复用；运行时状态（enabled / loading）不要放在这里。
 @immutable
 class WButtonStyle {
+  /// 填充按钮的常用构造，避免手写 WContainerConfig / WTextConfig。
+  factory WButtonStyle.filled({
+    required Color backgroundColor,
+    Color? foregroundColor,
+    Color? borderColor,
+    BorderRadiusGeometry? borderRadius,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    WTextConfig? textStyle,
+    WButtonEffectType effect = WButtonEffectType.opacity,
+    double pressedOpacity = 0.7,
+  }) {
+    final container = WContainerConfig()
+      ..color = backgroundColor
+      ..padding = padding
+      ..borderRadius = borderRadius ?? BorderRadius.circular(8);
+    if (borderColor != null) {
+      container.border = Border.all(color: borderColor);
+    }
+    final text = textStyle?.copy() ?? WTextConfig();
+    if (foregroundColor != null) text.color = foregroundColor;
+    return WButtonStyle(
+      container: container,
+      textStyle: text,
+      effect: effect,
+      pressedOpacity: pressedOpacity,
+      overlayBorderRadius: borderRadius ?? BorderRadius.circular(8),
+    );
+  }
+
+  /// 描边按钮的常用构造。
+  factory WButtonStyle.outlined({
+    Color? foregroundColor,
+    Color? borderColor,
+    BorderRadiusGeometry? borderRadius,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    WTextConfig? textStyle,
+    WButtonEffectType effect = WButtonEffectType.opacity,
+    double pressedOpacity = 0.7,
+  }) {
+    final color = borderColor ?? foregroundColor;
+    final container = WContainerConfig()
+      ..color = Colors.transparent
+      ..padding = padding
+      ..borderRadius = borderRadius ?? BorderRadius.circular(8);
+    if (color != null) container.border = Border.all(color: color);
+    final text = textStyle?.copy() ?? WTextConfig();
+    if (foregroundColor != null) text.color = foregroundColor;
+    return WButtonStyle(
+      container: container,
+      textStyle: text,
+      effect: effect,
+      pressedOpacity: pressedOpacity,
+      overlayBorderRadius: borderRadius ?? BorderRadius.circular(8),
+    );
+  }
+
+  /// 文字按钮的常用构造。
+  factory WButtonStyle.text({
+    Color? foregroundColor,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    WTextConfig? textStyle,
+    WButtonEffectType effect = WButtonEffectType.opacity,
+    double pressedOpacity = 0.7,
+  }) {
+    final container = WContainerConfig()..color = Colors.transparent;
+    final text = textStyle?.copy() ?? WTextConfig();
+    if (foregroundColor != null) text.color = foregroundColor;
+    return WButtonStyle(
+      container: container,
+      textStyle: text,
+      effect: effect,
+      pressedOpacity: pressedOpacity,
+      overlayBorderRadius: BorderRadius.circular(8),
+    );
+  }
+
   WButtonStyle({
     this.effect = WButtonEffectType.opacity,
     this.pressedOpacity = 0.7,
@@ -37,6 +113,7 @@ class WButtonStyle {
     this.semanticHint,
     this.focusColor,
     this.hoverColor,
+    this.overlayBorderRadius,
     this.disabledOpacity = 0.5,
     this.minWidth = 48,
     this.minHeight = 48,
@@ -58,7 +135,7 @@ class WButtonStyle {
   /// 容器样式快照；每次读取返回副本
   WContainerConfig? get container => _container?.copy();
 
-  /// 无 container 时使用的外层 padding（尺寸令牌可覆盖）
+  /// 无 container 时的外层 padding（有 container 时由 container.padding 控制）
   final EdgeInsetsGeometry? padding;
 
   final WTextConfig? _textStyle;
@@ -77,6 +154,9 @@ class WButtonStyle {
 
   /// hover overlay（null 时使用 Theme.hoverColor）
   final Color? hoverColor;
+
+  /// focus/hover overlay 的裁剪圆角；null 时不裁剪
+  final BorderRadiusGeometry? overlayBorderRadius;
 
   /// 禁用时内容透明度（0..1）
   final double disabledOpacity;
@@ -135,6 +215,7 @@ class WButtonStyle {
     Object? semanticHint = _unset,
     Object? focusColor = _unset,
     Object? hoverColor = _unset,
+    Object? overlayBorderRadius = _unset,
     Object? disabledOpacity = _unset,
     Object? minWidth = _unset,
     Object? minHeight = _unset,
@@ -162,6 +243,9 @@ class WButtonStyle {
       semanticHint: identical(semanticHint, _unset) ? this.semanticHint : semanticHint as String?,
       focusColor: identical(focusColor, _unset) ? this.focusColor : focusColor as Color?,
       hoverColor: identical(hoverColor, _unset) ? this.hoverColor : hoverColor as Color?,
+      overlayBorderRadius: identical(overlayBorderRadius, _unset)
+          ? this.overlayBorderRadius
+          : overlayBorderRadius as BorderRadiusGeometry?,
       disabledOpacity: identical(disabledOpacity, _unset)
           ? this.disabledOpacity
           : (disabledOpacity as num).toDouble(),
@@ -189,7 +273,7 @@ class WButtonStyle {
     );
     return copyWith(
       container: nextContainer,
-      padding: nextContainer == null ? (size.padding ?? padding) : padding,
+      padding: nextContainer == null ? (size.padding ?? padding) : null,
       minWidth: size.minWidth ?? minWidth,
       minHeight: size.minHeight ?? minHeight,
       tapTargetSize: size.tapTargetSize,

@@ -183,10 +183,11 @@ final bottomSafe = WScreen.bottomBarHeight;
 | `animationDuration` | Duration | 100ms | 动画时长 |
 | `curve` | Curve | easeInOut | 动画曲线 |
 | `container` | `WContainerConfig?` | null | 容器样式模板（只读） |
-| `padding` | `EdgeInsetsGeometry?` | null | 无 container 时的外层 padding |
+| `padding` | `EdgeInsetsGeometry?` | null | 无 container 时的外层 padding；有 container 时用 container.padding |
 | `textStyle` | `WTextConfig?` | null | 文本样式模板（只读） |
 | `semanticLabel` / `semanticHint` | String? | null | 无障碍标签/提示 |
 | `focusColor` / `hoverColor` | Color? | null | 焦点/悬停 overlay，null 时用 Theme |
+| `overlayBorderRadius` | `BorderRadiusGeometry?` | null | focus/hover overlay 裁剪圆角 |
 | `disabledOpacity` | double | 0.5 | 禁用时透明度 |
 | `minWidth` / `minHeight` | double | 48 | 视觉/布局最小尺寸 |
 | `tapTargetSize` | double | 48 | 实际 hit area 下限 |
@@ -232,6 +233,27 @@ WButton.primary('保存', size: AppButtonSizes.hero)
 WButton.primary('保存', sizeName: 'hero') // 主题 sizes 注册后
 ```
 
+### Style 常用工厂
+
+除了手写 `WContainerConfig` / `WTextConfig`，也可以直接用：
+
+```dart
+WButtonStyle.filled(
+  backgroundColor: brand,
+  foregroundColor: Colors.white,
+  borderRadius: BorderRadius.circular(8),
+)
+
+WButtonStyle.outlined(
+  foregroundColor: brand,
+  borderColor: brand,
+)
+
+WButtonStyle.text(
+  foregroundColor: brand,
+)
+```
+
 ### WButtonStyles 预设
 
 ```dart
@@ -270,6 +292,8 @@ WButtonTheme(
 )
 ```
 
+`WButtonThemeData.copyWith` 支持只覆盖部分变体/尺寸。
+
 解析顺序：
 
 1. `WButton.style`
@@ -284,6 +308,15 @@ WButtonTheme(
 ```dart
 // 一行式（最常用）
 WButton.primary('提交', onTap: submit)
+
+// 公共构造：variant + label，同时可直接使用高级参数
+WButton(
+  variant: 'primary',
+  label: '提交',
+  onTap: submit,
+  onTapDown: (_) {},
+  onFocusChange: (focused) {},
+)
 WButton.primary('提交', loading: isSubmitting, enabled: canSubmit)
 WButton.secondary('取消', onTap: cancel)
 WButton.danger('删除', onTap: delete)

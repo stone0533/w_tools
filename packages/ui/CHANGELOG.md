@@ -47,6 +47,9 @@
   补充尺寸校验、无 container 时的 padding、图标按钮语义标签与键盘/指针 press 竞态修复。
 - `WButtonStyles` 预设改为返回独立副本；`WButtonStyle` / `WButton` 对 container/textStyle 做快照，
   `WButtonThemeData` 的 variants/sizes 使用不可变 Map。
+- 公共 `WButton` 构造支持省略 `child`，可直接用 `variant + label/icon`，并暴露全部高级参数。
+- 新增 `WButtonStyle.filled/outlined/text` 工厂与 `WButtonThemeData.copyWith`；
+  focus/hover overlay 支持 `overlayBorderRadius`。
 
 ### Changed
 - `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。

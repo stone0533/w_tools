@@ -78,6 +78,26 @@ void main() {
       );
     });
 
+    test('Style 常用工厂', () {
+      final filled = WButtonStyle.filled(
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
+      );
+      expect(filled.container, isNotNull);
+      expect(filled.textStyle, isNotNull);
+      expect(filled.overlayBorderRadius, isNotNull);
+
+      final outlined = WButtonStyle.outlined(
+        foregroundColor: Colors.blue,
+      );
+      expect(outlined.container, isNotNull);
+      expect(outlined.textStyle, isNotNull);
+
+      final text = WButtonStyle.text(foregroundColor: Colors.black);
+      expect(text.container, isNotNull);
+      expect(text.textStyle, isNotNull);
+    });
+
     test('预设返回独立副本', () {
       final a = WButtonStyles.primary;
       final b = WButtonStyles.primary;
@@ -86,6 +106,19 @@ void main() {
 
       final deep = a.copy();
       expect(identical(a.container, deep.container), isFalse);
+    });
+
+    testWidgets('公共构造支持 variant + label', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            variant: 'primary',
+            label: '公共构造',
+            onTap: () {},
+          ),
+        ),
+      );
+      expect(find.text('公共构造'), findsOneWidget);
     });
 
     testWidgets('WButton.primary 使用内置预设', (tester) async {
@@ -408,6 +441,24 @@ void main() {
       await gesture.up();
     });
 
+    testWidgets('没有 onTap 时键盘不触发按下状态', (tester) async {
+      final pressed = <bool>[];
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            autofocus: true,
+            onPressedChanged: pressed.add,
+            onLongPress: () {},
+            child: const Text('longpress-only'),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(pressed, isEmpty);
+    });
+
     testWidgets('键盘 press 不会被后续指针 press 的旧 timer 提前复位', (tester) async {
       await tester.pumpWidget(
         _wrap(
@@ -486,6 +537,16 @@ void main() {
   });
 
   group('WButtonTheme', () {
+    test('copyWith 保留未覆盖字段', () {
+      final data = WButtonThemeData(
+        primary: WButtonStyles.primary,
+        danger: WButtonStyles.danger,
+      );
+      final next = data.copyWith(primary: WButtonStyles.secondary);
+      expect(identical(next.danger, data.danger), isTrue);
+      expect(identical(next.primary, data.primary), isFalse);
+    });
+
     testWidgets('未传 style 时使用 theme.primary', (tester) async {
       await tester.pumpWidget(
         WButtonTheme(

@@ -47,8 +47,11 @@ class WButton extends StatefulWidget {
     this.behavior = HitTestBehavior.opaque,
     this.tooltip,
     this.enableFeedback = true,
-    required this.child,
-  });
+    this.child,
+  }) : assert(
+          child != null || label != null || icon != null,
+          'WButton: child、label、icon 至少提供一个',
+        );
 
   /// 按钮样式；null 时使用 [WButtonTheme] 的 primary / 内置默认
   final WButtonStyle? style;
@@ -134,7 +137,7 @@ class WButton extends StatefulWidget {
     String? tooltip,
     bool enableFeedback = true,
   }) =>
-      WButton._preset(
+      WButton(
         variant: 'primary',
         label: label,
         key: key,
@@ -168,7 +171,7 @@ class WButton extends StatefulWidget {
     String? tooltip,
     bool enableFeedback = true,
   }) =>
-      WButton._preset(
+      WButton(
         variant: 'secondary',
         label: label,
         key: key,
@@ -202,7 +205,7 @@ class WButton extends StatefulWidget {
     String? tooltip,
     bool enableFeedback = true,
   }) =>
-      WButton._preset(
+      WButton(
         variant: 'text',
         label: label,
         key: key,
@@ -236,7 +239,7 @@ class WButton extends StatefulWidget {
     String? tooltip,
     bool enableFeedback = true,
   }) =>
-      WButton._preset(
+      WButton(
         variant: 'danger',
         label: label,
         key: key,
@@ -271,7 +274,7 @@ class WButton extends StatefulWidget {
     String? tooltip,
     bool enableFeedback = true,
   }) =>
-      WButton._preset(
+      WButton(
         variant: variant,
         label: label,
         key: key,
@@ -306,7 +309,7 @@ class WButton extends StatefulWidget {
     String? tooltip,
     bool enableFeedback = true,
   }) =>
-      WButton._preset(
+      WButton(
         icon: icon,
         label: label,
         semanticLabel: semanticLabel,
@@ -324,73 +327,6 @@ class WButton extends StatefulWidget {
         enableFeedback: enableFeedback,
       );
 
-  static WButton _preset({
-    String? variant,
-    String? label,
-    IconData? icon,
-    Key? key,
-    WButtonStyle? style,
-    WButtonSize? size,
-    String? sizeName,
-    String? semanticLabel,
-    bool enabled = true,
-    bool loading = false,
-    GestureTapCallback? onTap,
-    GestureLongPressCallback? onLongPress,
-    FocusNode? focusNode,
-    bool autofocus = false,
-    String? tooltip,
-    bool enableFeedback = true,
-  }) {
-    return WButton._(
-      key: key,
-      variant: variant,
-      label: label,
-      icon: icon,
-      style: style,
-      size: size,
-      sizeName: sizeName,
-      semanticLabel: semanticLabel,
-      enabled: enabled,
-      loading: loading,
-      onTap: onTap,
-      onLongPress: onLongPress,
-      focusNode: focusNode,
-      autofocus: autofocus,
-      tooltip: tooltip,
-      enableFeedback: enableFeedback,
-      child: null,
-    );
-  }
-
-  const WButton._({
-    super.key,
-    this.style,
-    this.variant,
-    this.label,
-    this.icon,
-    this.size,
-    this.sizeName,
-    this.semanticLabel,
-    this.onTap,
-    this.onLongPress,
-    this.enabled = true,
-    this.loading = false,
-    this.focusNode,
-    this.autofocus = false,
-    this.tooltip,
-    this.enableFeedback = true,
-    this.child,
-  })  : onSecondaryTap = null,
-        onTapDown = null,
-        onTapUp = null,
-        onTapCancel = null,
-        onFocusChange = null,
-        onHover = null,
-        onPressedChanged = null,
-        loadingBuilder = null,
-        behavior = HitTestBehavior.opaque;
-
   @override
   State<WButton> createState() => _WButtonState();
 }
@@ -403,6 +339,8 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
   Timer? _pressTimer;
   bool _focused = false;
   bool _hovered = false;
+  WButtonStyle? _cachedStyle;
+  Object? _cachedStyleKey;
 
   bool get _interactive => widget.enabled && !widget.loading;
 
@@ -427,6 +365,18 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
 
   WButtonStyle _resolveStyle(BuildContext context) {
     final theme = WButtonTheme.maybeOf(context);
+    final key = Object.hash(
+      widget.style,
+      widget.variant,
+      widget.size,
+      widget.sizeName,
+      widget.semanticLabel,
+      widget.label,
+      widget.icon,
+      widget.tooltip,
+      theme,
+    );
+    if (_cachedStyle != null && _cachedStyleKey == key) return _cachedStyle!;
     final fallback = switch (widget.variant) {
       'primary' => WButtonStyles.primary,
       'secondary' => WButtonStyles.secondary,
@@ -458,6 +408,8 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
       widget.icon == null || widget.label != null || sized.semanticLabel != null,
       'WButton.icon: 纯图标按钮请提供 semanticLabel 或 tooltip',
     );
+    _cachedStyle = sized;
+    _cachedStyleKey = key;
     return sized;
   }
 
@@ -514,14 +466,16 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
   }
 
   void _handleTap() {
+    final onTap = widget.onTap;
+    if (onTap == null) return;
     if (widget.enableFeedback) {
       HapticFeedback.selectionClick();
     }
-    widget.onTap?.call();
+    onTap();
   }
 
   void _activate(WButtonStyle style) {
-    if (!_interactive) return;
+    if (!_interactive || widget.onTap == null) return;
     _pulse(style);
     _handleTap();
   }
@@ -579,15 +533,21 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _overlay(Widget child, Color color) {
+  Widget _overlay(
+    Widget child,
+    Color color,
+    BorderRadiusGeometry? borderRadius,
+  ) {
+    Widget overlay = ColoredBox(color: color);
+    if (borderRadius != null) {
+      overlay = ClipRRect(borderRadius: borderRadius, child: overlay);
+    }
     return Stack(
       fit: StackFit.passthrough,
       children: [
         child,
         Positioned.fill(
-          child: IgnorePointer(
-            child: ColoredBox(color: color),
-          ),
+          child: IgnorePointer(child: overlay),
         ),
       ],
     );
@@ -665,10 +625,8 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     final child = widget.child ?? _label(context, style);
     final container = style.container?.copy();
     final inner = _content(context, style, child);
-    final padded = container == null && style.padding != null
-        ? Padding(padding: style.padding!, child: inner)
-        : inner;
-    final content = container == null ? padded : WContainer(config: container, child: inner);
+    final padded = style.padding != null ? Padding(padding: style.padding!, child: inner) : inner;
+    final content = container == null ? padded : WContainer(config: container, child: padded);
 
     Widget visualChild = ConstrainedBox(
       constraints: BoxConstraints(
@@ -693,10 +651,10 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     Widget buildVisual(bool pressed) {
       var result = _visual(style, pressed, visualChild);
       if (_hovered && interactive) {
-        result = _overlay(result, hoverColor);
+        result = _overlay(result, hoverColor, style.overlayBorderRadius);
       }
       if (_focused && interactive) {
-        result = _overlay(result, focusColor);
+        result = _overlay(result, focusColor, style.overlayBorderRadius);
       }
       return result;
     }
