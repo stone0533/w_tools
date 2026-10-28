@@ -270,6 +270,8 @@ class WButtonStyle {
     final nextTextStyle = textStyle?.copyWith(
       fontSize: size.fontSize,
       fontWeight: size.fontWeight,
+      height: size.lineHeight,
+      letterSpacing: size.letterSpacing,
     );
     return copyWith(
       container: nextContainer,

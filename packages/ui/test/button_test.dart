@@ -330,6 +330,25 @@ void main() {
       expect(loading.height, normal.height);
     });
 
+    testWidgets('RTL 与大字号下可构建', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+              child: Scaffold(
+                body: Center(
+                  child: WButton.primary('提交', onTap: () {}),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('提交'), findsOneWidget);
+    });
+
     testWidgets('tooltip 与 onPressedChanged', (tester) async {
       final pressed = <bool>[];
       await tester.pumpWidget(
@@ -537,6 +556,33 @@ void main() {
   });
 
   group('WButtonTheme', () {
+    testWidgets('支持 ThemeData.extensions', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            extensions: [
+              WButtonThemeData(
+                primary: WButtonStyle(semanticLabel: 'extension-button'),
+              ),
+            ],
+          ),
+          home: Scaffold(
+            body: WButton(
+              onTap: () {},
+              child: const Text('extension'),
+            ),
+          ),
+        ),
+      );
+
+      final semantics = tester
+          .widgetList<Semantics>(
+            find.descendant(of: find.byType(WButton), matching: find.byType(Semantics)),
+          )
+          .firstWhere((s) => s.properties.button == true);
+      expect(semantics.properties.label, 'extension-button');
+    });
+
     test('copyWith 保留未覆盖字段', () {
       final data = WButtonThemeData(
         primary: WButtonStyles.primary,

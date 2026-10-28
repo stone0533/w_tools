@@ -16,6 +16,10 @@ export 'button_style.dart';
 export 'button_styles.dart';
 export 'button_theme.dart';
 
+part 'button_content.dart';
+part 'button_effect.dart';
+part 'button_tap_target.dart';
+
 /// 纯点击区域组件。
 ///
 /// 只负责交互、点击反馈与无障碍；视觉样式由 [WButtonStyle] 提供，
@@ -364,7 +368,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
   }
 
   WButtonStyle _resolveStyle(BuildContext context) {
-    final theme = WButtonTheme.maybeOf(context);
+    final theme = WButtonTheme.maybeOf(context) ?? Theme.of(context).extension<WButtonThemeData>();
     final key = Object.hash(
       widget.style,
       widget.variant,
@@ -501,119 +505,6 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     _setPressed(false);
   }
 
-  Widget _label(BuildContext context, WButtonStyle style) {
-    final label = widget.label;
-    final icon = widget.icon;
-    if (label != null && icon != null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: style.iconSize),
-          SizedBox(width: style.gap),
-          WText(text: label, config: style.textStyle),
-        ],
-      );
-    }
-    if (icon != null) return Icon(icon, size: style.iconSize);
-    if (label != null) return WText(text: label, config: style.textStyle);
-    return const SizedBox.shrink();
-  }
-
-  Widget _loading(BuildContext context, WButtonStyle style) {
-    final child = widget.loadingBuilder?.call(context) ??
-        const SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        );
-    return Semantics(
-      label: style.loadingLabel,
-      container: true,
-      child: child,
-    );
-  }
-
-  Widget _overlay(
-    Widget child,
-    Color color,
-    BorderRadiusGeometry? borderRadius,
-  ) {
-    Widget overlay = ColoredBox(color: color);
-    if (borderRadius != null) {
-      overlay = ClipRRect(borderRadius: borderRadius, child: overlay);
-    }
-    return Stack(
-      fit: StackFit.passthrough,
-      children: [
-        child,
-        Positioned.fill(
-          child: IgnorePointer(child: overlay),
-        ),
-      ],
-    );
-  }
-
-  Widget _tapTarget(Widget child, WButtonStyle style) {
-    final horizontal = max(0.0, style.tapTargetSize - style.minWidth);
-    final vertical = max(0.0, style.tapTargetSize - style.minHeight);
-    if (horizontal == 0 && vertical == 0) return child;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontal / 2,
-        vertical: vertical / 2,
-      ),
-      child: child,
-    );
-  }
-
-  Widget _visual(WButtonStyle style, bool pressed, Widget child) {
-    switch (style.effect) {
-      case WButtonEffectType.none:
-        return child;
-      case WButtonEffectType.opacity:
-        return AnimatedOpacity(
-          opacity: pressed ? style.pressedOpacity.clamp(0.0, 1.0) : 1.0,
-          duration: style.animationDuration,
-          curve: style.curve,
-          child: child,
-        );
-      case WButtonEffectType.scale:
-        return AnimatedScale(
-          scale: pressed ? style.pressedScale.clamp(0.1, 1.0) : 1.0,
-          duration: style.animationDuration,
-          curve: style.curve,
-          child: child,
-        );
-      case WButtonEffectType.shake:
-        return AnimatedBuilder(
-          animation: _shakeFor(style),
-          builder: (context, child) {
-            final offset = sin(_shakeAnimation!.value * 2 * pi * 3) * 4;
-            return Transform.translate(
-              offset: Offset(offset, 0),
-              child: child,
-            );
-          },
-          child: child,
-        );
-    }
-  }
-
-  Widget _content(BuildContext context, WButtonStyle style, Widget child) {
-    if (!widget.loading) return child;
-
-    // loading 时保留 child 占位，避免按钮尺寸跳动。
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        ExcludeSemantics(
-          child: Opacity(opacity: 0, child: child),
-        ),
-        _loading(context, style),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final style = _resolveStyle(context);
@@ -622,9 +513,9 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     final interactive = _interactive;
     final theme = Theme.of(context);
 
-    final child = widget.child ?? _label(context, style);
+    final child = widget.child ?? _buildButtonLabel(this, style);
     final container = style.container?.copy();
-    final inner = _content(context, style, child);
+    final inner = _buildButtonContent(this, context, style, child);
     final padded = style.padding != null ? Padding(padding: style.padding!, child: inner) : inner;
     final content = container == null ? padded : WContainer(config: container, child: padded);
 
@@ -649,12 +540,12 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     final focusColor = style.focusColor ?? theme.focusColor;
 
     Widget buildVisual(bool pressed) {
-      var result = _visual(style, pressed, visualChild);
+      var result = _buildButtonVisual(this, style, pressed, visualChild);
       if (_hovered && interactive) {
-        result = _overlay(result, hoverColor, style.overlayBorderRadius);
+        result = _buildButtonOverlay(result, hoverColor, style.overlayBorderRadius);
       }
       if (_focused && interactive) {
-        result = _overlay(result, focusColor, style.overlayBorderRadius);
+        result = _buildButtonOverlay(result, focusColor, style.overlayBorderRadius);
       }
       return result;
     }
@@ -700,7 +591,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
           onTapCancel: interactive ? _onTapCancel : null,
           child: ValueListenableBuilder<bool>(
             valueListenable: _pressed,
-            builder: (context, pressed, _) => _tapTarget(buildVisual(pressed), style),
+            builder: (context, pressed, _) => _buildButtonTapTarget(buildVisual(pressed), style),
           ),
         ),
       ),

@@ -12,6 +12,8 @@ class WButtonSize {
     this.padding,
     this.fontSize,
     this.fontWeight,
+    this.lineHeight,
+    this.letterSpacing,
     this.iconSize,
     this.gap,
     this.tapTargetSize = 48,
@@ -23,6 +25,8 @@ class WButtonSize {
   final EdgeInsetsGeometry? padding;
   final double? fontSize;
   final FontWeight? fontWeight;
+  final double? lineHeight;
+  final double? letterSpacing;
   final double? iconSize;
   final double? gap;
 
@@ -60,6 +64,8 @@ class WButtonSize {
     assert(minWidth == null || (minWidth! >= 0 && minWidth!.isFinite));
     assert(minHeight == null || (minHeight! >= 0 && minHeight!.isFinite));
     assert(fontSize == null || (fontSize! > 0 && fontSize!.isFinite));
+    assert(lineHeight == null || (lineHeight! > 0 && lineHeight!.isFinite));
+    assert(letterSpacing == null || letterSpacing!.isFinite);
     assert(iconSize == null || (iconSize! >= 0 && iconSize!.isFinite));
     assert(gap == null || (gap! >= 0 && gap!.isFinite));
     assert(tapTargetSize >= 0 && tapTargetSize.isFinite);
@@ -72,6 +78,8 @@ class WButtonSize {
     EdgeInsetsGeometry? padding,
     double? fontSize,
     FontWeight? fontWeight,
+    double? lineHeight,
+    double? letterSpacing,
     double? iconSize,
     double? gap,
     double? tapTargetSize,
@@ -83,6 +91,8 @@ class WButtonSize {
       padding: padding ?? this.padding,
       fontSize: fontSize ?? this.fontSize,
       fontWeight: fontWeight ?? this.fontWeight,
+      lineHeight: lineHeight ?? this.lineHeight,
+      letterSpacing: letterSpacing ?? this.letterSpacing,
       iconSize: iconSize ?? this.iconSize,
       gap: gap ?? this.gap,
       tapTargetSize: tapTargetSize ?? this.tapTargetSize,
@@ -98,6 +108,8 @@ class WButtonSize {
       other.padding == padding &&
       other.fontSize == fontSize &&
       other.fontWeight == fontWeight &&
+      other.lineHeight == lineHeight &&
+      other.letterSpacing == letterSpacing &&
       other.iconSize == iconSize &&
       other.gap == gap &&
       other.tapTargetSize == tapTargetSize;
@@ -110,6 +122,8 @@ class WButtonSize {
         padding,
         fontSize,
         fontWeight,
+        lineHeight,
+        letterSpacing,
         iconSize,
         gap,
         tapTargetSize,

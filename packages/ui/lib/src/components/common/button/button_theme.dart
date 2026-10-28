@@ -1,11 +1,11 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import 'button_size.dart';
 import 'button_style.dart';
 
 /// 按钮主题：App 级默认按钮样式。
 @immutable
-class WButtonThemeData {
+class WButtonThemeData extends ThemeExtension<WButtonThemeData> {
   WButtonThemeData({
     this.primary,
     this.secondary,
@@ -35,6 +35,13 @@ class WButtonThemeData {
   /// 默认尺寸；variant 构造未显式传 size 时使用
   final WButtonSize? defaultSize;
 
+  @override
+  WButtonThemeData lerp(covariant WButtonThemeData? other, double t) {
+    if (other == null) return this;
+    return t < 0.5 ? this : other;
+  }
+
+  @override
   WButtonThemeData copyWith({
     WButtonStyle? primary,
     WButtonStyle? secondary,
@@ -88,7 +95,8 @@ class WButtonTheme extends InheritedWidget {
   static WButtonThemeData? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<WButtonTheme>()?.data;
 
-  static WButtonThemeData of(BuildContext context) => maybeOf(context) ?? WButtonThemeData();
+  static WButtonThemeData of(BuildContext context) =>
+      maybeOf(context) ?? Theme.of(context).extension<WButtonThemeData>() ?? WButtonThemeData();
 
   @override
   bool updateShouldNotify(WButtonTheme oldWidget) =>

@@ -50,6 +50,9 @@
 - 公共 `WButton` 构造支持省略 `child`，可直接用 `variant + label/icon`，并暴露全部高级参数。
 - 新增 `WButtonStyle.filled/outlined/text` 工厂与 `WButtonThemeData.copyWith`；
   focus/hover overlay 支持 `overlayBorderRadius`。
+- `WButtonThemeData` 支持 `ThemeExtension`，可直接挂到 `ThemeData.extensions`。
+- `WButtonSize` 支持 `lineHeight` / `letterSpacing`。
+- `button.dart` 拆分出 content / effect / tap target 三个 part 文件，降低主文件复杂度。
 
 ### Changed
 - `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。

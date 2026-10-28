@@ -24,6 +24,9 @@ ui/
     │   │   ├── badge.dart                     # WBadge / WBadgeConfig
     │   │   ├── button/                 # 按钮组件
     │   │   │   ├── button.dart                 # WButton
+    │   │   │   ├── button_content.dart         # label/loading（part）
+    │   │   │   ├── button_effect.dart          # 按下/overlay 效果（part）
+    │   │   │   ├── button_tap_target.dart      # 48×48 hit area（part）
     │   │   │   ├── button_style.dart           # WButtonStyle / WButtonEffectType
     │   │   │   ├── button_size.dart            # WButtonSize
     │   │   │   ├── button_theme.dart           # WButtonTheme / WButtonThemeData
@@ -205,6 +208,9 @@ WButtonSize.medium  // 视觉 40 高，14 号字，hit target 48
 WButtonSize.large   // 视觉 48 高，15 号字，hit target 48
 ```
 
+支持的排版字段：`fontSize` / `fontWeight` / `lineHeight` / `letterSpacing` /
+`iconSize` / `gap` / `padding` / `tapTargetSize`。
+
 3 个只是默认值；项目可自定义：
 
 ```dart
@@ -223,6 +229,8 @@ abstract final class AppButtonSizes {
     padding: EdgeInsets.symmetric(horizontal: 28, vertical: 16),
     fontSize: 17,
     fontWeight: FontWeight.w700,
+    lineHeight: 1.2,
+    letterSpacing: 0.2,
     tapTargetSize: 48,
   );
 }
@@ -292,7 +300,15 @@ WButtonTheme(
 )
 ```
 
-`WButtonThemeData.copyWith` 支持只覆盖部分变体/尺寸。
+`WButtonThemeData.copyWith` 支持只覆盖部分变体/尺寸。也可以直接挂到 `ThemeData.extensions`：
+
+```dart
+ThemeData(
+  extensions: [
+    WButtonThemeData(primary: WButtonStyles.primary),
+  ],
+)
+```
 
 解析顺序：
 
