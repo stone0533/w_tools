@@ -34,3 +34,6 @@ coverage/
 # stone addition
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Flutter golden failure artifacts
+**/test/failures/

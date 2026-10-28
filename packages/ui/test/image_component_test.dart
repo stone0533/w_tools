@@ -179,8 +179,8 @@ void main() {
       final controller = WImageController();
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage(
-            data: 'data:image/png;base64,@@bad@@',
+          home: WImage.memory(
+            Uint8List.fromList([1, 2, 3]),
             controller: controller,
             style: const WImageStyle(
               width: 160,
@@ -196,6 +196,24 @@ void main() {
       await tester.tap(find.text('重试'));
       await tester.pump();
       expect(controller.state!.value.attempt, 1);
+    });
+
+    testWidgets('不可重试的错误不显示重试按钮', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WImage(
+            data: 'data:image/png;base64,@@bad@@',
+            style: const WImageStyle(
+              width: 160,
+              height: 120,
+              showRetryButton: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(WImageErrorView), findsOneWidget);
+      expect(find.text('重试'), findsNothing);
     });
 
     testWidgets('小尺寸错误视图只显示图标，不溢出', (tester) async {

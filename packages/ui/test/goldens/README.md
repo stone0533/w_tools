@@ -11,7 +11,8 @@ flutter test --update-goldens test/image_golden_test.dart
 
 ## CI / 跨平台
 
-`matchesGoldenFile` 的像素结果可能因 Skia/字体/平台略有差异。如果 CI（Linux）与本地基线不一致：
+当前 `image_golden_test.dart` 通过 `Platform.isMacOS` 仅在 macOS 运行 golden；
+其它平台自动 skip，避免用 macOS 基线误判 Linux/Windows。
 
 - 在对应平台重新执行上面的命令生成基线并提交；
 - 或只在一个平台跑 golden，其它平台只跑结构测试；

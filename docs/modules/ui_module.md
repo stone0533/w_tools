@@ -414,6 +414,8 @@ WImage.source(
 | `file` | scheme 为 `file` |
 | `base64` | `data:` 开头（不限于 `data:image/`） |
 | `provider` | 任意 `ImageProvider`（`WImage.provider` / `WImage.memory`） |
+
+`data:` / `file:` 前缀大小写不敏感（`DATA:` / `FILE:` 同样识别）。
 | `asset` | 其余；空串/纯空白会直接渲染错误占位 |
 
 判定只在 `initState` / `didUpdateWidget` 执行一次，不使用跨实例的全局缓存。
@@ -486,8 +488,18 @@ WImageCachePolicy.reset();
 优先级：style builder > style 固定 Widget > `WImageTheme` > 内置兜底。
 `WImageThemeData.defaultProgressBuilder` 可作为所有网络图的默认进度 UI。
 内置错误视图可用 `WImageStyle(showRetryButton: true)` 启用，或直接复用 `WImageErrorView`。
-`WImageErrorView` 在小于约 64px 时会自动只显示图标；100×100 会显示文案但不显示按钮。
-也可显式传 `compact: true` / `showAction: false`。
+`WImageErrorView` 尺寸策略：
+
+| 尺寸 | 图标 | 文案 | 重试按钮 |
+|---|---|---|---|
+| `< 64` | ✅ | ❌ | ❌ |
+| `64–96` | ✅ | ❌ | ❌ |
+| `96–120` | ✅ | ✅ | ❌ |
+| `>= 120×112` | ✅ | ✅ | ✅（仅可重试错误） |
+
+- 仅 `WImageNetworkError` / `WImageProviderError` / `WImageFileError` 显示重试按钮；
+- 空数据、Base64 解码失败、asset 不存在、平台不支持不显示重试；
+- 也可显式传 `compact: true` / `showAction: false`。
 优先级：`errorWidgetBuilder` > `errorWidget` > `showRetryButton` > theme/兜底。
 
 `WImageStyle.thumbnail(width)` 默认按 `max(width, height) × 3` 估算 `memCache`；

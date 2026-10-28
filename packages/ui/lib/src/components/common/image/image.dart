@@ -564,15 +564,17 @@ class _WImageState extends State<WImage> {
     }
     if (config.errorWidget != null) return config.errorWidget!;
     if (config.showRetryButton) {
+      final canRetry =
+          error is WImageNetworkError || error is WImageProviderError || error is WImageFileError;
       return _sizedSlot(
         WImageErrorView(
           error: error,
-          onRetry: _load.retryNow,
+          onRetry: canRetry ? _load.retryNow : null,
           retryLabel: config.retryLabel,
-          // 只在极小尺寸强制只显示图标；100×100 等交给 LayoutBuilder 决定
           compact: (config.width != null && config.width! < 64) ||
               (config.height != null && config.height! < 64),
-          showAction: (config.width == null || config.width! >= 120) &&
+          showAction: canRetry &&
+              (config.width == null || config.width! >= 120) &&
               (config.height == null || config.height! >= 112),
         ),
       );

@@ -62,6 +62,11 @@ sealed class WImageSource {
   /// 任意 [ImageProvider]（高级入口，含 `MemoryImage`）
   factory WImageSource.provider(ImageProvider provider) => WProviderImageSource(provider);
 
+  static bool _hasPrefix(String value, String prefix) {
+    return value.length >= prefix.length &&
+        value.substring(0, prefix.length).toLowerCase() == prefix;
+  }
+
   static WImageType _detect(String value) {
     final uri = Uri.tryParse(value);
     final scheme = uri?.scheme.toLowerCase() ?? '';
@@ -69,13 +74,13 @@ sealed class WImageSource {
       return WImageType.network;
     }
     if (scheme == 'file') return WImageType.file;
-    if (value.startsWith('data:')) return WImageType.base64;
+    if (_hasPrefix(value, 'data:')) return WImageType.base64;
     if (value.startsWith('//')) return WImageType.network;
     return WImageType.asset;
   }
 
   static String _filePathOf(String value) {
-    if (!value.startsWith('file:')) return value;
+    if (!_hasPrefix(value, 'file:')) return value;
     final uri = Uri.tryParse(value);
     if (uri != null && uri.scheme == 'file') {
       try {
@@ -84,11 +89,11 @@ sealed class WImageSource {
         // 非法 file URI（例如 Windows 盘符写法）退回字符串处理
       }
     }
-    return value.replaceFirst(RegExp(r'^file://'), '');
+    return value.substring(5).replaceFirst(RegExp(r'^//'), '');
   }
 
   static String _stripDataPrefix(String value) {
-    if (!value.startsWith('data:')) return value;
+    if (!_hasPrefix(value, 'data:')) return value;
     final comma = value.indexOf(',');
     return comma < 0 ? value : value.substring(comma + 1);
   }
@@ -233,7 +238,7 @@ final class WProviderImageSource extends WImageSource {
   String get value => key;
 
   @override
-  String get key => 'provider:${identityHashCode(provider)}';
+  String get key => 'provider:${provider.runtimeType}:${provider.hashCode}';
 
   @override
   bool operator ==(Object other) => other is WProviderImageSource && other.provider == provider;

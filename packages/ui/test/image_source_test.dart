@@ -26,6 +26,16 @@ void main() {
       expect(WImageSource.file('file:///tmp/x.png').value, '/tmp/x.png');
     });
 
+    test('大小写不敏感：DATA: / FILE:', () {
+      final data = WImageSource.parse('DATA:image/png;base64,AAAA');
+      expect(data, isA<WBase64ImageSource>());
+      expect(data.value, 'AAAA');
+
+      final file = WImageSource.file('FILE:///tmp/x.png');
+      expect(file.type, WImageType.file);
+      expect(file.value, '/tmp/x.png');
+    });
+
     test('data: 前缀被剥离（不限于 image/）', () {
       final source = WImageSource.base64('data:application/octet-stream;base64,AAA');
       expect(source.value, 'AAA');

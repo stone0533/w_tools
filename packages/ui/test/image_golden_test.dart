@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/image/image.dart';
@@ -26,8 +28,10 @@ const _errorBox = ColoredBox(
   ),
 );
 
+final _goldenSkip = !Platform.isMacOS;
+
 void main() {
-  testWidgets('loaded golden', (tester) async {
+  testWidgets('loaded golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
         WImage.base64(
@@ -51,7 +55,7 @@ void main() {
     );
   });
 
-  testWidgets('avatar golden', (tester) async {
+  testWidgets('avatar golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
         WImage.avatar(
@@ -68,7 +72,7 @@ void main() {
     );
   });
 
-  testWidgets('retry error golden', (tester) async {
+  testWidgets('retry error golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
         WImage(
@@ -89,7 +93,7 @@ void main() {
     );
   });
 
-  testWidgets('error golden', (tester) async {
+  testWidgets('error golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
         WImage(
@@ -110,7 +114,7 @@ void main() {
     );
   });
 
-  testWidgets('empty golden', (tester) async {
+  testWidgets('empty golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
         WImage(
