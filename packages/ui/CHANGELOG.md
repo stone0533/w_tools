@@ -35,8 +35,11 @@
 - `WImage` 默认构造支持显式 `type`，与命名构造一致。
 - `WButtonStyle` + `WButtonStyles.primary/secondary/text/danger` 静态预设；
   `WButtonTheme` 提供 App 级默认。
-- `WButton` 新增 `loading` / `loadingBuilder` / `focusNode` / `autofocus` / `behavior`，
-  键盘激活会触发按下效果，`semanticLabel` / `semanticHint` 进入 Semantics。
+- `WButton` 新增 `loading` / `loadingBuilder` / `focusNode` / `autofocus` / `behavior` /
+  `tooltip` / `enableFeedback`，键盘激活会触发按下效果，`semanticLabel` / `semanticHint` 进入 Semantics。
+- `WButton` 增加 focus/hover overlay、48×48 最小点击区域、禁用时阻断 child 交互；
+  loading 保持 child 占位尺寸，长按进入 Semantics。
+- `WButton` 增加 `onTapDown/onTapUp/onTapCancel/onSecondaryTap/onFocusChange/onHover/onPressedChanged`。
 
 ### Changed
 - `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。

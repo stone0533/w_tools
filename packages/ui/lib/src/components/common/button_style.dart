@@ -33,6 +33,12 @@ class WButtonStyle {
     this.textStyle,
     this.semanticLabel,
     this.semanticHint,
+    this.focusColor,
+    this.hoverColor,
+    this.disabledOpacity = 0.5,
+    this.minWidth = 48,
+    this.minHeight = 48,
+    this.loadingLabel = '加载中',
   });
 
   final WButtonEffectType effect;
@@ -53,6 +59,24 @@ class WButtonStyle {
   /// 无障碍提示
   final String? semanticHint;
 
+  /// 键盘焦点 overlay（null 时使用 Theme.focusColor）
+  final Color? focusColor;
+
+  /// hover overlay（null 时使用 Theme.hoverColor）
+  final Color? hoverColor;
+
+  /// 禁用时内容透明度（0..1）
+  final double disabledOpacity;
+
+  /// 最小点击宽度（移动端建议 >= 48）
+  final double minWidth;
+
+  /// 最小点击高度
+  final double minHeight;
+
+  /// loading 时的无障碍文案
+  final String loadingLabel;
+
   /// 校验（debug assert）
   void validate() {
     assert(
@@ -64,6 +88,11 @@ class WButtonStyle {
       'pressedScale 必须在 0.1..1',
     );
     assert(!animationDuration.isNegative, 'animationDuration 不能为负');
+    assert(
+      disabledOpacity >= 0 && disabledOpacity <= 1,
+      'disabledOpacity 必须在 0..1',
+    );
+    assert(minWidth >= 0 && minHeight >= 0, 'minWidth/minHeight 不能为负');
   }
 
   static const Object _unset = Object();
@@ -78,6 +107,12 @@ class WButtonStyle {
     Object? textStyle = _unset,
     Object? semanticLabel = _unset,
     Object? semanticHint = _unset,
+    Object? focusColor = _unset,
+    Object? hoverColor = _unset,
+    Object? disabledOpacity = _unset,
+    Object? minWidth = _unset,
+    Object? minHeight = _unset,
+    Object? loadingLabel = _unset,
   }) {
     return WButtonStyle(
       effect: identical(effect, _unset) ? this.effect : effect as WButtonEffectType,

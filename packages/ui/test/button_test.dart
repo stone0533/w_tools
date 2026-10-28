@@ -97,6 +97,104 @@ void main() {
       expect(taps, 0);
     });
 
+    testWidgets('禁用时 child 的点击也被阻断', (tester) async {
+      var childTaps = 0;
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            enabled: false,
+            child: GestureDetector(
+              onTap: () => childTaps++,
+              child: const SizedBox(width: 80, height: 40, child: Text('child')),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('child'));
+      await tester.pumpAndSettle();
+      expect(childTaps, 0);
+    });
+
+    testWidgets('最小点击区域为 48x48', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            onTap: () {},
+            child: const SizedBox(width: 1, height: 1),
+          ),
+        ),
+      );
+
+      final box = tester.widget<ConstrainedBox>(
+        find
+            .descendant(
+              of: find.byType(WButton),
+              matching: find.byType(ConstrainedBox),
+            )
+            .first,
+      );
+      expect(box.constraints.minWidth, 48);
+      expect(box.constraints.minHeight, 48);
+    });
+
+    testWidgets('loading 保持 child 占位尺寸', (tester) async {
+      Widget build(bool loading) => _wrap(
+            WButton(
+              loading: loading,
+              onTap: () {},
+              child: const SizedBox(width: 120, height: 40),
+            ),
+          );
+
+      await tester.pumpWidget(build(false));
+      final normal = tester.getSize(find.byType(WButton));
+      await tester.pumpWidget(build(true));
+      final loading = tester.getSize(find.byType(WButton));
+      expect(loading.width, normal.width);
+      expect(loading.height, normal.height);
+    });
+
+    testWidgets('tooltip 与 onPressedChanged', (tester) async {
+      final pressed = <bool>[];
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            tooltip: '提交提示',
+            onPressedChanged: pressed.add,
+            onTap: () {},
+            child: const Text('tooltip'),
+          ),
+        ),
+      );
+      expect(find.byType(Tooltip), findsOneWidget);
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('tooltip')),
+      );
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(pressed, [true, false]);
+    });
+
+    testWidgets('长按进入 Semantics', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            onLongPress: () {},
+            child: const Text('semantic-longpress'),
+          ),
+        ),
+      );
+      final semantics = tester
+          .widgetList<Semantics>(
+            find.descendant(of: find.byType(WButton), matching: find.byType(Semantics)),
+          )
+          .firstWhere((s) => s.properties.button == true);
+      expect(semantics.properties.onLongPress, isNotNull);
+    });
+
     testWidgets('长按触发 onLongPress', (tester) async {
       var longPressed = 0;
       await tester.pumpWidget(

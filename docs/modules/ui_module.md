@@ -154,11 +154,17 @@ final bottomSafe = WScreen.bottomBarHeight;
 | `style` | `WButtonStyle?` | null | 样式；null 时使用 `WButtonTheme.primary` / 内置默认 |
 | `onTap` | `GestureTapCallback?` | null | 点击回调 |
 | `onLongPress` | `GestureLongPressCallback?` | null | 长按回调 |
+| `onSecondaryTap` | `GestureTapCallback?` | null | 次要点击（桌面端右键） |
+| `onTapDown` / `onTapUp` / `onTapCancel` | 手势回调 | null | 按下/抬起/取消 |
+| `onFocusChange` / `onHover` | `ValueChanged<bool>?` | null | 焦点/悬停变化 |
+| `onPressedChanged` | `ValueChanged<bool>?` | null | 按下状态变化 |
 | `enabled` | bool | true | 是否启用 |
 | `loading` | bool | false | 加载中，不响应点击 |
 | `loadingBuilder` | `WidgetBuilder?` | null | 加载中占位，默认小号进度圈 |
 | `focusNode` / `autofocus` | — | null / false | 键盘焦点 |
 | `behavior` | `HitTestBehavior` | opaque | 命中测试行为 |
+| `tooltip` | `String?` | null | 长按提示 |
+| `enableFeedback` | bool | true | 是否触发触觉反馈 |
 
 ### WButtonStyle
 
@@ -172,6 +178,10 @@ final bottomSafe = WScreen.bottomBarHeight;
 | `container` | `WContainerConfig?` | null | 容器样式模板（只读） |
 | `textStyle` | `WTextConfig?` | null | 文本样式模板（只读） |
 | `semanticLabel` / `semanticHint` | String? | null | 无障碍标签/提示 |
+| `focusColor` / `hoverColor` | Color? | null | 焦点/悬停 overlay，null 时用 Theme |
+| `disabledOpacity` | double | 0.5 | 禁用时透明度 |
+| `minWidth` / `minHeight` | double | 48 | 最小点击区域 |
+| `loadingLabel` | String | 加载中 | loading 无障碍文案 |
 
 `WButtonStyle` 不可变，用 `copyWith` 修改；`validate()` 会检查透明度/缩放/时长范围。
 
@@ -259,8 +269,11 @@ WButton(
 ### 键盘与效果
 
 - Enter / Space 通过 `ActivateIntent` 触发 `onTap`，同时触发 opacity/scale/shake 反馈；
-- 禁用 / loading 时 `Semantics.onTap` 为空、`onTap` 不执行；
-- `onLongPress` 只对指针长按生效。
+- 禁用 / loading 时 `Semantics.onTap` 为空、`onTap` 不执行，且 child 的点击由 `IgnorePointer` 阻断；
+- loading 保持 child 占位尺寸，避免布局跳动；
+- `onLongPress` 同时进入 `Semantics.onLongPress`；
+- 默认最小点击区域 48×48，可用 `minWidth/minHeight` 覆盖；
+- focus/hover 默认使用 Theme 的 `focusColor` / `hoverColor` 叠加。
 
 ## 3. WText - 文本组件
 
