@@ -569,8 +569,11 @@ class _WImageState extends State<WImage> {
           error: error,
           onRetry: _load.retryNow,
           retryLabel: config.retryLabel,
-          compact: (config.width != null && config.width! < 120) ||
-              (config.height != null && config.height! < 112),
+          // 只在极小尺寸强制只显示图标；100×100 等交给 LayoutBuilder 决定
+          compact: (config.width != null && config.width! < 64) ||
+              (config.height != null && config.height! < 64),
+          showAction: (config.width == null || config.width! >= 120) &&
+              (config.height == null || config.height! >= 112),
         ),
       );
     }
@@ -614,8 +617,12 @@ class _WImageState extends State<WImage> {
   /// 任意 provider（含 MemoryImage）
   Widget _buildProvider() {
     final source = widget.source as WProviderImageSource;
+    final provider = _cachedProvider(
+      'provider:${source.key}:${config.memCacheWidth}x${config.memCacheHeight}',
+      () => source.provider,
+    );
     return _imageWidget(
-      source.provider,
+      provider,
       errorFactory: (error) => WImageProviderError(widget.data, error),
     );
   }

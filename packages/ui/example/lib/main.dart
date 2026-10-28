@@ -13,8 +13,6 @@ void main() {
     maxSize: 300,
     maxMemoryBytes: 300 * 1024 * 1024,
   );
-  // 让 WImage.assetImage('demo.png') 指向 example/assets/demo.png。
-  WAssets.imagePath = 'assets/';
 
   runApp(
     const WImageTheme(
@@ -52,6 +50,13 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   var _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // 让 WImage.assetImage('demo.png') 指向 example/assets/demo.png。
+    WAssets.imagePath = 'assets/';
+  }
 
   static const _pages = <Widget>[
     PlaygroundPage(),

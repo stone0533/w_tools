@@ -58,6 +58,41 @@ void main() {
     expect(loader.state.value.retryScheduled, isFalse);
   });
 
+  test('completed 后迟到的进度不会回退状态', () {
+    final loader = WImageLoader(retryCount: 0, retryDelay: 1000);
+    addTearDown(loader.dispose);
+    loader.reset(retryCount: 0, retryDelay: 1000);
+    loader.handleCompleted();
+    loader.handleProgress(const WImageProgress(downloadedBytes: 1, totalBytes: 10));
+    expect(loader.state.value.isCompleted, isTrue);
+  });
+
+  test('completed 会取消已排队的重试', () async {
+    final loader = WImageLoader(retryCount: 3, retryDelay: 1);
+    addTearDown(loader.dispose);
+    loader.reset(retryCount: 3, retryDelay: 1);
+    loader.handleError(
+      StateError('connection reset'),
+      const WImageNetworkError('x', 'cause'),
+      retry: true,
+    );
+    expect(loader.state.value.retryScheduled, isTrue);
+
+    loader.handleCompleted();
+    expect(loader.state.value.retryScheduled, isFalse);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(loader.attempt, 0);
+  });
+
+  test('beginAttempt 清空旧进度', () {
+    final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
+    addTearDown(loader.dispose);
+    loader.reset(retryCount: 1, retryDelay: 1000);
+    loader.pendingProgress = const WImageProgress(downloadedBytes: 1, totalBytes: 2);
+    loader.beginAttempt();
+    expect(loader.pendingProgress, isNull);
+  });
+
   test('status / progress 进入快照', () {
     final loader = WImageLoader(retryCount: 3, retryDelay: 1000);
     addTearDown(loader.dispose);

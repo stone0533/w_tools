@@ -151,6 +151,9 @@ class WImageLoader extends WImageLoadState {
 
   /// 收到进度
   void handleProgress(WImageProgress progress) {
+    if (status == WImageLoadStatus.completed || status == WImageLoadStatus.failed) {
+      return;
+    }
     pendingProgress = progress;
     if (markStatus(WImageLoadStatus.loading)) {
       onStatus?.call(WImageLoadStatus.loading);
@@ -161,6 +164,9 @@ class WImageLoader extends WImageLoadState {
 
   /// 成功加载到首帧
   void handleCompleted({bool notifyProgress = false}) {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    retryScheduled = false;
     error = null;
     if (markStatus(WImageLoadStatus.completed)) {
       onStatus?.call(WImageLoadStatus.completed);
@@ -179,6 +185,7 @@ class WImageLoader extends WImageLoadState {
     WImageError error, {
     bool retry = false,
   }) {
+    if (status == WImageLoadStatus.completed) return;
     if (retry && hasRetries && isRetryableNetworkError(cause)) {
       if (retryScheduled) return;
       this.error = error;

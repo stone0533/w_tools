@@ -71,5 +71,6 @@ class WImageLoadState {
     attempt++;
     status = null;
     completedProgressSent = false;
+    pendingProgress = null;
   }
 }

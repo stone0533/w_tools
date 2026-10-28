@@ -38,6 +38,9 @@
   `package:w_tools_ui/src/components/common/image/image.dart`。
 
 ### Fixed
+- `WImageLoader` 在 `completed/failed` 后忽略迟到的进度/错误，完成时取消已排队的重试，`beginAttempt` 清空旧进度。
+- `WImageErrorView` 只在 <64 时自动 compact；100×100 显示错误文案，按钮按尺寸单独控制。
+- `WImage.provider` / `WImage.memory` 复用 provider，避免每次 build 重新解析。
 - `WImage` 的 `key` 之前没有传给 `StatefulWidget`，导致所有构造方式的 `key` 实际失效。
 - 修改 `retryCount` / `retryDelay` 时会取消已排队的重试。
 - 网络图的 `completed` 状态改为在首帧到达时上报。

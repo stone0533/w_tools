@@ -486,7 +486,8 @@ WImageCachePolicy.reset();
 优先级：style builder > style 固定 Widget > `WImageTheme` > 内置兜底。
 `WImageThemeData.defaultProgressBuilder` 可作为所有网络图的默认进度 UI。
 内置错误视图可用 `WImageStyle(showRetryButton: true)` 启用，或直接复用 `WImageErrorView`。
-`WImageErrorView` 在小于约 120×112 时会自动只显示图标；也可显式传 `compact: true`。
+`WImageErrorView` 在小于约 64px 时会自动只显示图标；100×100 会显示文案但不显示按钮。
+也可显式传 `compact: true` / `showAction: false`。
 优先级：`errorWidgetBuilder` > `errorWidget` > `showRetryButton` > theme/兜底。
 
 `WImageStyle.thumbnail(width)` 默认按 `max(width, height) × 3` 估算 `memCache`；

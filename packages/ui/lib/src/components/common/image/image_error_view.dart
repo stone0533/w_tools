@@ -12,6 +12,7 @@ class WImageErrorView extends StatelessWidget {
     this.onRetry,
     this.retryLabel = '重试',
     this.compact = false,
+    this.showAction = true,
   });
 
   final WImageError error;
@@ -20,6 +21,9 @@ class WImageErrorView extends StatelessWidget {
 
   /// 小尺寸时只显示图标（不显示文案/按钮）
   final bool compact;
+
+  /// 是否允许显示重试按钮（由外层按已知尺寸决定）
+  final bool showAction;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +35,8 @@ class WImageErrorView extends StatelessWidget {
           final width = constraints.maxWidth.isFinite ? constraints.maxWidth : 400.0;
           final height = constraints.maxHeight.isFinite ? constraints.maxHeight : 400.0;
           final showText = !compact && width >= 96 && height >= 64;
-          final showButton = !compact && onRetry != null && width >= 120 && height >= 112;
+          final showButton =
+              !compact && showAction && onRetry != null && width >= 120 && height >= 112;
 
           return Center(
             child: Padding(

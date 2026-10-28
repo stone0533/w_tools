@@ -217,6 +217,41 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('同一 provider 重建时复用', (tester) async {
+      final provider = MemoryImage(Uint8List.fromList([9, 9, 9]));
+      Widget build() => MaterialApp(
+            home: WImage.provider(
+              provider,
+              style: const WImageStyle(width: 10, height: 10),
+            ),
+          );
+
+      await tester.pumpWidget(build());
+      final first = tester.widget<Image>(find.byType(Image)).image;
+      await tester.pumpWidget(build());
+      final second = tester.widget<Image>(find.byType(Image)).image;
+      expect(identical(first, second), isTrue);
+    });
+
+    testWidgets('100x100 错误视图显示文案但不显示按钮', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WImage(
+            data: 'data:image/png;base64,@@bad@@',
+            style: const WImageStyle(
+              width: 100,
+              height: 100,
+              showRetryButton: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final view = tester.widget<WImageErrorView>(find.byType(WImageErrorView));
+      expect(view.compact, isFalse);
+      expect(find.text('重试'), findsNothing);
+    });
+
     testWidgets('provider 解码失败使用 WImageProviderError', (tester) async {
       WImageError? captured;
       await tester.pumpWidget(
