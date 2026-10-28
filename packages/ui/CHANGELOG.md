@@ -1,6 +1,14 @@
 # Changelog
 
-## 1.2.0
+## 2.0.0
+
+### Breaking
+- `WImageConfig.progressIndicatorBuilder`（旧 `DownloadProgress` 签名）删除，统一用 `progressBuilder`。
+- `WImage.onLoadProgress` / `toImage(onLoadProgress:)` 删除，统一用 `onProgress`。
+- `WImageConfig.cacheEnabled` 删除（资产统一走 `Image.asset` + `ImageCache`）。
+- `WImageConfig.size(w, h)` 改名为 `dimensions(w, h)`；新增 `square(side)`。
+- `WImageConfig.fitCenter()` 删除，用 `fitContain()`。
+- `WImageConfigBuild.build` 返回类型从 `Widget` 收窄为 `WImage`。
 
 ### Added
 - `WImageConfig.copy()`：复制全部配置字段，便于"以现有配置为底再覆盖少量字段"。

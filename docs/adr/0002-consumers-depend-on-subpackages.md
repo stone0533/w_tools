@@ -28,7 +28,7 @@ dependencies:
   w_tools_core: ^1.0.0
   w_tools_app: ^1.0.0
   w_tools_form: ^1.0.0
-  w_tools_ui: ^1.0.0
+  w_tools_ui: ^2.0.0
   w_tools_api: ^1.0.0
   w_tools_toast: ^1.0.0
   # 需要再加 w_tools_qr / w_tools_map

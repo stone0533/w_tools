@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../utils/image_cache_manager.dart';
@@ -29,9 +28,6 @@ class WImageConfig {
 
   /// 错误占位符构建器（推荐形式）；第三个参数是 [WImageError]
   Widget? Function(BuildContext, String, WImageError)? errorWidgetBuilder;
-
-  /// 进度指示器构建器（旧签名，参数是 `cached_network_image` 的 `DownloadProgress`）
-  Widget? Function(BuildContext, String, DownloadProgress)? progressIndicatorBuilder;
 
   /// 进度指示器构建器（新签名，参数是 [WImageProgress]）
   Widget? Function(BuildContext, String, WImageProgress)? progressBuilder;
@@ -84,20 +80,24 @@ class WImageConfig {
   /// 自定义缓存键（同一 URL 不同裁剪/版本时使用）
   String? cacheKey;
 
-  /// 是否启用缓存
-  ///
-  /// 已废弃：资产图片统一走 `Image.asset` + Flutter `ImageCache`，
-  /// 该开关不再改变行为；保留仅为源码兼容。
-  @Deprecated('资产图片已统一走 Image.asset + Flutter ImageCache，该开关不再生效')
-  bool cacheEnabled = true;
+  Widget? _placeholder;
+  Widget? _errorWidget;
+
+  /// 固定加载占位符（只由 setter 设置；直接写 builder 时这里为 null）
+  Widget? get placeholder => _placeholder;
 
   /// 设置加载中占位符（固定 Widget 形式）
   set placeholder(Widget? placeholder) {
+    _placeholder = placeholder;
     placeholderBuilder = placeholder == null ? null : (_, __) => placeholder;
   }
 
+  /// 固定错误占位符（只由 setter 设置；直接写 builder 时这里为 null）
+  Widget? get errorWidget => _errorWidget;
+
   /// 设置错误占位符（固定 Widget 形式）
   set errorWidget(Widget? errorWidget) {
+    _errorWidget = errorWidget;
     errorWidgetBuilder = errorWidget == null ? null : (_, __, ___) => errorWidget;
   }
 
@@ -116,7 +116,6 @@ class WImageConfig {
       ..memCacheHeight = memCacheHeight
       ..placeholderBuilder = placeholderBuilder
       ..errorWidgetBuilder = errorWidgetBuilder
-      ..progressIndicatorBuilder = progressIndicatorBuilder
       ..progressBuilder = progressBuilder
       ..retryCount = retryCount
       ..retryDelay = retryDelay
@@ -132,17 +131,25 @@ class WImageConfig {
       ..filterQuality = filterQuality
       ..alignment = alignment
       ..httpHeaders = httpHeaders
-      ..cacheKey = cacheKey;
-    // 已废弃字段仅做源码兼容，复制与否不改变行为
-    // ignore: deprecated_member_use_from_same_package
-    c.cacheEnabled = cacheEnabled;
+      ..cacheKey = cacheKey
+      .._placeholder = _placeholder
+      .._errorWidget = _errorWidget;
     return c;
   }
 
-  /// 设置图片尺寸（链式）
-  WImageConfig size(double? width, double? height) {
-    width = width;
-    height = height;
+  /// 设置图片宽高（链式）
+  ///
+  /// 与 [WImageConfig.square] 不同，这里可以只传其中一个。
+  WImageConfig dimensions(double? width, double? height) {
+    this.width = width;
+    this.height = height;
+    return this;
+  }
+
+  /// 设置正方形边长（链式）
+  WImageConfig square(double side) {
+    width = side;
+    height = side;
     return this;
   }
 
@@ -197,15 +204,6 @@ class WImageConfig {
     fit = BoxFit.scaleDown;
     return this;
   }
-
-  /// 居中显示（链式）
-  ///
-  /// 等价于 [fitContain]；保留旧名字仅为兼容，将在 2.0 移除。
-  @Deprecated('等价于 fitContain()，将在 2.0 移除')
-  WImageConfig fitCenter() {
-    fit = BoxFit.contain;
-    return this;
-  }
 }
 
 /// 图片全局配置类
@@ -249,16 +247,28 @@ class WImageGlobalConfig {
     this.defaultErrorWidget = defaultErrorWidget;
     if (maxCacheSize != null) this.maxCacheSize = maxCacheSize;
     if (maxCacheMemory != null) this.maxCacheMemory = maxCacheMemory;
+    _applyCacheLimits();
+  }
 
+  /// 恢复默认占位符与缓存上限（测试/多实例隔离用）
+  void reset() {
+    defaultPlaceholder = null;
+    defaultErrorWidget = null;
+    maxCacheSize = 1000;
+    maxCacheMemory = 100 * 1024 * 1024;
+    _applyCacheLimits();
+  }
+
+  void _applyCacheLimits() {
     // 统一到 Flutter 的 ImageCache：asset / 网络解码后的位图共用同一预算
     final imageCache = PaintingBinding.instance.imageCache;
-    imageCache.maximumSize = this.maxCacheSize;
-    imageCache.maximumSizeBytes = this.maxCacheMemory;
+    imageCache.maximumSize = maxCacheSize;
+    imageCache.maximumSizeBytes = maxCacheMemory;
 
     // 兼容旧版本：原始字节缓存仍在，但 WImage 已不再使用
     WImageCacheManager().configureLimits(
-      maxCacheSize: this.maxCacheSize,
-      maxCacheMemory: this.maxCacheMemory,
+      maxCacheSize: maxCacheSize,
+      maxCacheMemory: maxCacheMemory,
     );
   }
 }

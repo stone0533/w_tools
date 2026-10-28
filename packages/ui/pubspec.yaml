@@ -1,6 +1,6 @@
 name: w_tools_ui
 description: "w_tools 的 UI 组件层：提供文本、图片、按钮、布局、导航与常用扩展，支持响应式尺寸、图片缓存与重试，帮助快速构建一致的界面。"
-version: 1.2.0
+version: 2.0.0
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/ui

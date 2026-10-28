@@ -32,7 +32,7 @@
 > ℹ️ **发布状态**：8 个 Flutter 子包与聚合包 `w_tools` 已发布到 pub.dev；
 > `w_tools_cli` 是独立的纯 Dart 工具包，发布状态见 pub.dev。
 > 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 8 个 Flutter 子包，只 re-export 子包能力；
-> 各包约束以根 `pubspec.yaml` 为准（本文不硬编码版本号）。
+> 各包按其当前主版本约束（见根 `pubspec.yaml`，本文不硬编码版本号）。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
 ### 本地开发 / 跨仓库接入
@@ -65,7 +65,7 @@ dependencies:
 ```yaml
 dependencies:
   w_tools_core: ^1.0.0
-  w_tools_ui: ^1.0.0
+  w_tools_ui: ^2.0.0
   w_tools_form: ^1.0.0
   # 需要再加 w_tools_app / api / toast / qr / map
 ```
@@ -93,7 +93,7 @@ dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 ```yaml
 dependencies:
   w_tools_core: ^1.0.0   # 只引子包
-  w_tools_ui: ^1.0.0
+  w_tools_ui: ^2.0.0
 ```
 
 或一键引入聚合包（会带上全部 8 个 Flutter 子包及其依赖）：
@@ -138,7 +138,7 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_ui: ^1.0.0     # 只用 UI 组件
+  w_tools_ui: ^2.0.0     # 只用 UI 组件
   w_tools_core: ^1.0.0   # 只用工具类与扩展
 ```
 

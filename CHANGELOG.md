@@ -1,7 +1,8 @@
-## 2.0.2
+## 3.0.0
 
-- 依赖：`w_tools_ui` 提升到 `^1.2.0`（`WImageConfig.copy()`、`String.toImage` 增强、
-  `WImage` key 修复）。
+- 依赖：`w_tools_ui` 提升到 `^2.0.0`。
+- `w_tools_ui 2.0.0` 为破坏性版本：移除旧进度 API、`cacheEnabled`、`fitCenter`，
+  `WImageConfig.size` 改为 `dimensions` / `square`。详见 `packages/ui/CHANGELOG.md`。
 
 ## 2.0.1
 

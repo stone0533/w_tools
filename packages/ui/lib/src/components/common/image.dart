@@ -63,9 +63,6 @@ class WImage extends StatefulWidget {
   /// 加载状态回调
   final ValueChanged<WImageLoadStatus>? onLoadStatusChanged;
 
-  /// 加载进度回调（0.0 - 1.0，仅网络图片有值）
-  final ValueChanged<double>? onLoadProgress;
-
   /// 类型化的进度回调（仅网络图片有值）
   final ValueChanged<WImageProgress>? onProgress;
 
@@ -81,7 +78,6 @@ class WImage extends StatefulWidget {
     required String data,
     WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) : this._(
@@ -90,7 +86,6 @@ class WImage extends StatefulWidget {
           data: data,
           type: type,
           onLoadStatusChanged: onLoadStatusChanged,
-          onLoadProgress: onLoadProgress,
           onProgress: onProgress,
           controller: controller,
         );
@@ -101,7 +96,6 @@ class WImage extends StatefulWidget {
     Key? key,
     WImageConfig? config,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) : this._(
@@ -110,7 +104,6 @@ class WImage extends StatefulWidget {
           data: data,
           type: WImageType.network,
           onLoadStatusChanged: onLoadStatusChanged,
-          onLoadProgress: onLoadProgress,
           onProgress: onProgress,
           controller: controller,
         );
@@ -121,7 +114,6 @@ class WImage extends StatefulWidget {
     Key? key,
     WImageConfig? config,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) : this._(
@@ -130,7 +122,6 @@ class WImage extends StatefulWidget {
           data: data,
           type: WImageType.asset,
           onLoadStatusChanged: onLoadStatusChanged,
-          onLoadProgress: onLoadProgress,
           onProgress: onProgress,
           controller: controller,
         );
@@ -141,7 +132,6 @@ class WImage extends StatefulWidget {
     Key? key,
     WImageConfig? config,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) : this._(
@@ -150,7 +140,6 @@ class WImage extends StatefulWidget {
           data: data,
           type: WImageType.file,
           onLoadStatusChanged: onLoadStatusChanged,
-          onLoadProgress: onLoadProgress,
           onProgress: onProgress,
           controller: controller,
         );
@@ -161,7 +150,6 @@ class WImage extends StatefulWidget {
     Key? key,
     WImageConfig? config,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) : this._(
@@ -170,7 +158,6 @@ class WImage extends StatefulWidget {
           data: data,
           type: WImageType.base64,
           onLoadStatusChanged: onLoadStatusChanged,
-          onLoadProgress: onLoadProgress,
           onProgress: onProgress,
           controller: controller,
         );
@@ -181,10 +168,27 @@ class WImage extends StatefulWidget {
     required this.data,
     required this.type,
     this.onLoadStatusChanged,
-    this.onLoadProgress,
     this.onProgress,
     this.controller,
-  }) : config = config ?? WImageConfig();
+  }) : config = config ?? WImageConfig() {
+    final c = this.config;
+    assert(c.retryCount >= 0, 'retryCount 不能为负');
+    assert(c.retryDelay >= 0, 'retryDelay 不能为负');
+    assert(
+      c.memCacheWidth == null || c.memCacheWidth! > 0,
+      'memCacheWidth 必须大于 0',
+    );
+    assert(
+      c.memCacheHeight == null || c.memCacheHeight! > 0,
+      'memCacheHeight 必须大于 0',
+    );
+    assert(
+      c.aspectRatio == null || c.aspectRatio! > 0,
+      'aspectRatio 必须大于 0',
+    );
+    assert(c.width == null || c.width! >= 0, 'width 不能为负');
+    assert(c.height == null || c.height! >= 0, 'height 不能为负');
+  }
 
   @override
   State<WImage> createState() => _WImageState();
@@ -417,8 +421,6 @@ class _WImageState extends State<WImage> {
       final pending = _load.pendingProgress;
       if (pending == null) return;
       widget.onProgress?.call(pending);
-      final fraction = pending.fraction;
-      if (fraction != null) widget.onLoadProgress?.call(fraction);
     });
   }
 
@@ -428,7 +430,7 @@ class _WImageState extends State<WImage> {
     _load.completedProgressSent = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      widget.onLoadProgress?.call(1.0);
+      widget.onProgress?.call(const WImageProgress(downloadedBytes: 1, totalBytes: 1));
     });
   }
 
@@ -527,7 +529,7 @@ class _WImageState extends State<WImage> {
   ///
   /// 重试、进度与状态都在本 State 内处理，不再经过额外的包装组件。
   Widget _buildNetwork() {
-    final hasProgress = config.progressBuilder != null || config.progressIndicatorBuilder != null;
+    final hasProgress = config.progressBuilder != null;
     return CachedNetworkImage(
       // 换 key 才会真正重新发起请求（同一 provider 重建不会重新拉取）
       key: ValueKey('$_value#attempt=${_load.attempt}'),
@@ -569,17 +571,16 @@ class _WImageState extends State<WImage> {
     String url,
     DownloadProgress downloadProgress,
   ) {
-    final progress = _progressFrom(downloadProgress);
+    final progress = WImageProgress(
+      downloadedBytes: downloadProgress.downloaded,
+      totalBytes: downloadProgress.totalSize,
+    );
     _notifyStatus(WImageLoadStatus.loading);
     _notifyProgress(progress);
 
-    final typedBuilder = config.progressBuilder;
-    if (typedBuilder != null) {
-      return typedBuilder(context, url, progress) ?? _buildPlaceholder();
-    }
-    final legacyBuilder = config.progressIndicatorBuilder;
-    if (legacyBuilder != null) {
-      return legacyBuilder(context, url, downloadProgress) ?? _buildPlaceholder();
+    final builder = config.progressBuilder;
+    if (builder != null) {
+      return builder(context, url, progress) ?? _buildPlaceholder();
     }
     return _buildPlaceholder();
   }
@@ -737,27 +738,23 @@ class _WImageState extends State<WImage> {
   }
 }
 
-/// `cached_network_image` 的进度 → 本包的类型化进度
-WImageProgress _progressFrom(DownloadProgress progress) => WImageProgress(
-      downloadedBytes: progress.downloaded,
-      totalBytes: progress.totalSize,
-    );
-
 /// [WImageConfig] 的构建便利方法
 extension WImageConfigBuild on WImageConfig {
   /// 构建 WImage 组件
-  Widget build({
+  WImage build({
     required String data,
+    Key? key,
+    WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
     return WImage(
+      key: key,
       config: this,
       data: data,
+      type: type,
       onLoadStatusChanged: onLoadStatusChanged,
-      onLoadProgress: onLoadProgress,
       onProgress: onProgress,
       controller: controller,
     );
@@ -766,16 +763,18 @@ extension WImageConfigBuild on WImageConfig {
   /// 构建文件图片组件（通过路径字符串）
   WImage buildFilePath(
     String filePath, {
+    Key? key,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
   }) {
     return WImage.file(
       filePath,
+      key: key,
       config: this,
       onLoadStatusChanged: onLoadStatusChanged,
-      onLoadProgress: onLoadProgress,
       onProgress: onProgress,
+      controller: controller,
     );
   }
 
@@ -784,16 +783,18 @@ extension WImageConfigBuild on WImageConfig {
   /// 可以带 `data:...;base64,` 前缀，也可以直接给 Base64 串。
   WImage buildBase64(
     String base64, {
+    Key? key,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
   }) {
     return WImage.base64(
       base64,
+      key: key,
       config: this,
       onLoadStatusChanged: onLoadStatusChanged,
-      onLoadProgress: onLoadProgress,
       onProgress: onProgress,
+      controller: controller,
     );
   }
 }

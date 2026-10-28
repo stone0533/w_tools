@@ -20,16 +20,18 @@ extension WImageConfigIO on WImageConfig {
   /// Web 平台请使用 `buildFilePath(String path)`。
   WImage buildFile(
     File file, {
+    Key? key,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
   }) {
     return WImage.file(
       file.path,
+      key: key,
       config: this,
       onLoadStatusChanged: onLoadStatusChanged,
-      onLoadProgress: onLoadProgress,
       onProgress: onProgress,
+      controller: controller,
     );
   }
 }

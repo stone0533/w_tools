@@ -54,7 +54,7 @@ void main() {
         _wrap(
           WImage.network(
             _url,
-            config: WImageConfig()..progressIndicatorBuilder = (_, __, ___) => const Text('PROG'),
+            config: WImageConfig()..progressBuilder = (_, __, ___) => const Text('PROG'),
           ),
         ),
       );

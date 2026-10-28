@@ -352,8 +352,8 @@ WText(
 | `data` | String | 必需，图片数据 |
 | `config` | `WImageConfig?` | 图片配置（可选） |
 | `onLoadStatusChanged` | `ValueChanged<WImageLoadStatus>?` | 加载状态回调 |
-| `onLoadProgress` | `ValueChanged<double>?` | 进度回调（0-1，仅网络） |
 | `onProgress` | `ValueChanged<WImageProgress>?` | 类型化进度回调（仅网络） |
+| `type` | `WImageType?` | 显式类型；null 表示按 data 自动判定 |
 
 ### 显式构造
 
@@ -400,7 +400,6 @@ WText(
 | `placeholder` | `Widget?` | null | 固定占位符 |
 | `errorWidgetBuilder` | 函数 | null | 错误占位（推荐，第三参是 `WImageError`） |
 | `errorWidget` | `Widget?` | null | 固定错误占位 |
-| `progressIndicatorBuilder` | 函数 | null | 旧进度签名（`DownloadProgress`） |
 | `progressBuilder` | 函数 | null | 新进度签名（`WImageProgress`） |
 | `aspectRatio` | `double?` | null | 固定宽高比，加载前后不跳版 |
 | `semanticLabel` | `String?` | null | 无障碍描述 |
@@ -412,12 +411,10 @@ WText(
 | `cacheKey` | `String?` | null | 自定义缓存键 |
 | `borderRadius` / `border` / `boxShadow` | — | null | 装饰 |
 | `margin` / `padding` | `EdgeInsets?` | null | 间距 |
-| `cacheEnabled` | bool | true | **已废弃**，不再影响行为 |
 
 配置项都是公开字段，可以直接读写；`placeholder` / `errorWidget` 是只写的固定 Widget 便捷 setter，
 需要读回或动态构建时用 `placeholderBuilder` / `errorWidgetBuilder`。
-链式方法：`size` / `circle` / `fitWidth` / `fitHeight` / `fitContain` / `fitCover` / `fitFill` / `fitNone` / `fitScaleDown`；
-`fitCenter` 等价于 `fitContain`，已标记弃用（2.0 移除）。
+链式方法：`dimensions(width, height)` / `square(side)` / `circle(radius)` / `fitWidth` / `fitHeight` / `fitContain` / `fitCover` / `fitFill` / `fitNone` / `fitScaleDown`。
 
 ### WImageGlobalConfig - 全局配置（单例）
 
@@ -425,7 +422,7 @@ WText(
 |------|--------|------|
 | `defaultPlaceholder` | null | 全局加载中占位符 |
 | `defaultErrorWidget` | null | 全局错误占位符 |
-| `maxCacheSize` | 100 | 同步到 Flutter `ImageCache.maximumSize` |
+| `maxCacheSize` | 1000 | 同步到 Flutter `ImageCache.maximumSize` |
 | `maxCacheMemory` | 100MB | 同步到 `ImageCache.maximumSizeBytes` |
 
 ```dart
@@ -434,6 +431,9 @@ WImageGlobalConfig().configure(
   defaultErrorWidget: const Icon(Icons.broken_image),
   maxCacheSize: 200,
 );
+
+// 测试/多实例隔离：恢复默认占位符与缓存上限
+WImageGlobalConfig().reset();
 ```
 
 ### 缓存
@@ -441,6 +441,14 @@ WImageGlobalConfig().configure(
 - 资产 / 文件 / Base64 统一走 `Image` + Flutter `ImageCache`；`memCacheWidth` / `memCacheHeight` 通过 `ResizeImage` 生效。
 - 网络图走 `cached_network_image`（内存 + 磁盘），可用 `httpHeaders` / `cacheKey` 定制。
 - `WImageCacheManager` 是 1.0 的资产原始字节缓存，`WImage` 已不再使用，保留给预加载与统计。
+
+### 2.0 迁移
+
+- `WImageConfig.progressIndicatorBuilder` → `progressBuilder`（参数是 `WImageProgress`）；
+- `WImage.onLoadProgress` → `onProgress`；
+- `WImageConfig.cacheEnabled` 已删除（资产统一走 `Image.asset` + `ImageCache`）；
+- `WImageConfig.size(w, h)` → `dimensions(w, h)`，另加 `square(side)`；
+- `WImageConfig.fitCenter()` 已删除，用 `fitContain()`。
 
 ### 重试与手动重试
 

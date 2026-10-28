@@ -58,7 +58,6 @@ extension WUiStringExtension on String {
     WImageController? controller,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
-    ValueChanged<double>? onLoadProgress,
   }) {
     final c = (config ?? WImageConfig()).copy();
     if (width != null || size != null) c.width = width ?? size;
@@ -74,7 +73,6 @@ extension WUiStringExtension on String {
       controller: controller,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
-      onLoadProgress: onLoadProgress,
     );
   }
 

@@ -24,6 +24,67 @@ void main() {
       expect(config.retryDelay, 500);
     });
 
+    test('dimensions / square', () {
+      final config = WImageConfig()..dimensions(10, 20);
+      expect(config.width, 10);
+      expect(config.height, 20);
+      config.square(30);
+      expect(config.width, 30);
+      expect(config.height, 30);
+    });
+
+    test('placeholder / errorWidget 可以读回', () {
+      final config = WImageConfig()
+        ..placeholder = const Text('p')
+        ..errorWidget = const Text('e');
+      expect(config.placeholder, isA<Text>());
+      expect(config.errorWidget, isA<Text>());
+      config.placeholder = null;
+      expect(config.placeholder, isNull);
+    });
+
+    test('非法配置触发 assert', () {
+      expect(
+        () => WImage(data: 'x', config: WImageConfig()..retryCount = -1),
+        throwsAssertionError,
+      );
+      expect(
+        () => WImage(data: 'x', config: WImageConfig()..retryDelay = -1),
+        throwsAssertionError,
+      );
+      expect(
+        () => WImage(data: 'x', config: WImageConfig()..memCacheWidth = 0),
+        throwsAssertionError,
+      );
+      expect(
+        () => WImage(data: 'x', config: WImageConfig()..memCacheHeight = 0),
+        throwsAssertionError,
+      );
+      expect(
+        () => WImage(data: 'x', config: WImageConfig()..aspectRatio = 0),
+        throwsAssertionError,
+      );
+      expect(
+        () => WImage(data: 'x', config: WImageConfig()..width = -1),
+        throwsAssertionError,
+      );
+    });
+
+    test('WImageConfigBuild 透传 key / type / controller', () {
+      const key = Key('k');
+      final controller = WImageController();
+      final config = WImageConfig();
+      final widget =
+          config.build(data: 'x', key: key, type: WImageType.base64, controller: controller);
+      expect(widget.key, key);
+      expect(widget.type, WImageType.base64);
+      expect(widget.controller, same(controller));
+
+      final file = config.buildFilePath('/tmp/a.png', key: key, controller: controller);
+      expect(file.key, key);
+      expect(file.controller, same(controller));
+    });
+
     test('circle() 同时设置宽高与圆角', () {
       final config = WImageConfig()..circle(50);
 
