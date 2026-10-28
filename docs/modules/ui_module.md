@@ -325,6 +325,65 @@ WButton(
 )
 ```
 
+### 复杂按钮
+
+多行文本、不同文字样式、图片、图标等情况，不要硬塞进 `WButton.primary(label)`；
+用公共构造 + `child`，`WButton` 只负责点击、效果、loading 和语义：
+
+```dart
+WButton(
+  style: WButtonStyles.primary.copyWith(
+    container: WContainerConfig()
+      ..padding = const EdgeInsets.all(12)
+      ..color = Colors.white
+      ..borderRadius = BorderRadius.circular(12)
+      ..border = Border.all(color: Colors.black12),
+    minHeight: 88,
+    effect: WButtonEffectType.scale,
+    pressedScale: 0.99,
+    semanticLabel: '订单 A123，3 件商品，待支付，共 128 元',
+    semanticHint: '双击查看订单详情',
+  ),
+  onTap: openOrder,
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      WImage.assetImage(
+        'demo.png',
+        style: WImageStyle(
+          width: 56,
+          height: 56,
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('订单 #A123', style: titleStyle),
+            const SizedBox(height: 4),
+            Text('3 件商品 · 待支付', style: subtitleStyle),
+            const SizedBox(height: 8),
+            Text('¥ 128.00', style: priceStyle),
+          ],
+        ),
+      ),
+      const Icon(Icons.chevron_right),
+    ],
+  ),
+)
+```
+
+要点：
+
+- 多行文本放在 `Expanded` / `Column` 里，避免溢出；
+- 每段文字用各自的 `TextStyle`，`WButtonStyle.textStyle` 只服务一行式 `label`；
+- 图片/图标作为普通 child，不需要特殊 API；
+- 整个区域只有**一个**点击目标，不要在内部再放 `IconButton` / `TextButton`；
+- 复杂内容建议显式设置 `semanticLabel` / `semanticHint`；
+- 需要 loading 时传 `loading: true`，复杂 child 会保持占位尺寸。
+
 可运行示例见 [`packages/ui/example/lib/buttons_page.dart`](../../packages/ui/example/lib/buttons_page.dart)，包含主题、loading、尺寸、图标、列表、对话框、自定义变体和纯点击区域等场景。
 
 ### 键盘与效果

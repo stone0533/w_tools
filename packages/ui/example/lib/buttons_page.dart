@@ -215,6 +215,84 @@ class _ButtonsPageState extends State<ButtonsPage> {
           ),
         ),
         _Section(
+          title: '10. 复杂按钮：多行文本 + 图片 + 图标',
+          subtitle: '复杂内容直接用 child，一行式只服务简单文本/图标',
+          child: WButton(
+            style: WButtonStyles.primary.copyWith(
+              container: WContainerConfig()
+                ..padding = const EdgeInsets.all(12)
+                ..color = Colors.white
+                ..borderRadius = BorderRadius.circular(12)
+                ..border = Border.all(color: Colors.black12),
+              minHeight: 88,
+              effect: WButtonEffectType.scale,
+              pressedScale: 0.99,
+              semanticLabel: '订单 A123，3 件商品，待支付，共 128 元',
+              semanticHint: '双击查看订单详情',
+            ),
+            onTap: () {},
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                WImage.assetImage(
+                  'demo.png',
+                  style: const WImageStyle(
+                    width: 56,
+                    height: 56,
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '订单 #A123',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '3 件商品 · 待支付',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.black54,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(
+                            '¥ 128.00',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: const Color(0xFFD32F2F),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const Spacer(),
+                          const Text(
+                            '查看详情',
+                            style: TextStyle(
+                              color: Color(0xFF3949AB),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Icon(Icons.chevron_right, color: Colors.black38),
+                ),
+              ],
+            ),
+          ),
+        ),
+        _Section(
           title: '9. 键盘与无障碍',
           subtitle: 'Tab 聚焦，Enter / Space 激活',
           child: Wrap(
