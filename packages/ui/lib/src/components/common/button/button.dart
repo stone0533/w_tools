@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -399,6 +400,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
   Animation<double>? _shakeAnimation;
   int _pressToken = 0;
+  Timer? _pressTimer;
   bool _focused = false;
   bool _hovered = false;
 
@@ -406,6 +408,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    _pressTimer?.cancel();
     _pressed.dispose();
     _animationController?.dispose();
     super.dispose();
@@ -502,9 +505,10 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
 
   void _pulse(WButtonStyle style) {
     final token = ++_pressToken;
+    _pressTimer?.cancel();
     _setPressed(true);
     if (style.effect == WButtonEffectType.shake) _shake(style);
-    Future<void>.delayed(style.animationDuration, () {
+    _pressTimer = Timer(style.animationDuration, () {
       if (mounted && token == _pressToken) _setPressed(false);
     });
   }
@@ -525,6 +529,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
   void _onTapDown(WButtonStyle style, TapDownDetails details) {
     if (!_interactive) return;
     _pressToken++;
+    _pressTimer?.cancel();
     widget.onTapDown?.call(details);
     _setPressed(true);
     if (style.effect == WButtonEffectType.shake) _shake(style);
