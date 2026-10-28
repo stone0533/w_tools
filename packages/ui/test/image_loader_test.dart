@@ -17,6 +17,47 @@ void main() {
     expect(snapshots, isNotEmpty);
   });
 
+  test('相同状态重复 emit 不重复通知', () {
+    final loader = WImageLoader(retryCount: 0, retryDelay: 1000);
+    addTearDown(loader.dispose);
+    loader.reset(retryCount: 0, retryDelay: 1000);
+    var notifications = 0;
+    loader.state.addListener(() => notifications++);
+
+    loader.emit();
+    loader.emit();
+    expect(notifications, 0);
+
+    loader.markLoading();
+    final afterLoading = notifications;
+    loader.markLoading();
+    expect(notifications, afterLoading);
+  });
+
+  test('completed 时进度归 1.0', () {
+    final loader = WImageLoader(retryCount: 0, retryDelay: 1000);
+    addTearDown(loader.dispose);
+    loader.reset(retryCount: 0, retryDelay: 1000);
+    loader.handleCompleted(notifyProgress: true);
+    expect(loader.state.value.progress?.fraction, 1.0);
+    expect(loader.state.value.isCompleted, isTrue);
+  });
+
+  test('失败后按 retryCount 自动重试', () async {
+    final loader = WImageLoader(retryCount: 1, retryDelay: 1);
+    addTearDown(loader.dispose);
+    loader.reset(retryCount: 1, retryDelay: 1);
+    loader.handleError(
+      StateError('connection reset'),
+      const WImageNetworkError('x', 'cause'),
+      retry: true,
+    );
+    expect(loader.state.value.retryScheduled, isTrue);
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+    expect(loader.attempt, 1);
+    expect(loader.state.value.retryScheduled, isFalse);
+  });
+
   test('status / progress 进入快照', () {
     final loader = WImageLoader(retryCount: 3, retryDelay: 1000);
     addTearDown(loader.dispose);

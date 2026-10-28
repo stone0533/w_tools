@@ -14,19 +14,45 @@ class WImageLoadSnapshot {
     this.status,
     this.progress,
     this.attempt = 0,
+    this.error,
+    this.retryScheduled = false,
+    this.retryDelayMs,
   });
 
   final WImageLoadStatus? status;
   final WImageProgress? progress;
   final int attempt;
+  final WImageError? error;
+  final bool retryScheduled;
+  final int? retryDelayMs;
 
   bool get isLoading => status == WImageLoadStatus.loading;
   bool get isCompleted => status == WImageLoadStatus.completed;
   bool get isFailed => status == WImageLoadStatus.failed;
 
   @override
-  String toString() =>
-      'WImageLoadSnapshot(status: $status, attempt: $attempt, progress: $progress)';
+  bool operator ==(Object other) =>
+      other is WImageLoadSnapshot &&
+      other.status == status &&
+      other.progress == progress &&
+      other.attempt == attempt &&
+      other.error == error &&
+      other.retryScheduled == retryScheduled &&
+      other.retryDelayMs == retryDelayMs;
+
+  @override
+  int get hashCode => Object.hash(
+        status,
+        progress,
+        attempt,
+        error,
+        retryScheduled,
+        retryDelayMs,
+      );
+
+  @override
+  String toString() => 'WImageLoadSnapshot(status: $status, attempt: $attempt, '
+      'progress: $progress, retryScheduled: $retryScheduled)';
 }
 
 /// 图片加载状态持有者：把 `WImageLoadState` 与 `ValueListenable` 组合。
@@ -67,11 +93,16 @@ class WImageLoader extends WImageLoadState {
 
   /// 把当前状态推给监听者
   void emit() {
-    _notifier.value = WImageLoadSnapshot(
+    final next = WImageLoadSnapshot(
       status: status,
       progress: pendingProgress,
       attempt: attempt,
+      error: error,
+      retryScheduled: retryScheduled,
+      retryDelayMs: retryScheduled ? _retryDelay : null,
     );
+    if (_notifier.value == next) return;
+    _notifier.value = next;
   }
 
   bool get hasRetries => attempt < _retryCount;
@@ -136,7 +167,8 @@ class WImageLoader extends WImageLoadState {
     }
     if (notifyProgress && !completedProgressSent) {
       completedProgressSent = true;
-      onProgress?.call(const WImageProgress(downloadedBytes: 1, totalBytes: 1));
+      pendingProgress = const WImageProgress(downloadedBytes: 1, totalBytes: 1);
+      onProgress?.call(pendingProgress!);
     }
     emit();
   }
@@ -147,11 +179,14 @@ class WImageLoader extends WImageLoadState {
     WImageError error, {
     bool retry = false,
   }) {
-    this.error = error;
     if (retry && hasRetries && isRetryableNetworkError(cause)) {
+      if (retryScheduled) return;
+      this.error = error;
       _scheduleRetry();
       return;
     }
+    if (status == WImageLoadStatus.failed) return;
+    this.error = error;
     if (markStatus(WImageLoadStatus.failed)) {
       onStatus?.call(WImageLoadStatus.failed);
     }
@@ -169,16 +204,15 @@ class WImageLoader extends WImageLoadState {
       base: Duration(milliseconds: _retryDelay),
       random: _random,
     );
+    _generationAtSchedule = generation;
     _retryTimer?.cancel();
     _retryTimer = Timer(delay, () {
       if (generation != _generationAtSchedule) return;
-      beginAttempt();
+      super.beginAttempt();
       retryScheduled = false;
       error = null;
       emit();
     });
-    // 记录本次调度对应的 generation，数据变化/手动重试后旧定时器不再生效
-    _generationAtSchedule = generation;
     emit();
   }
 
@@ -188,11 +222,11 @@ class WImageLoader extends WImageLoadState {
   void retryNow() {
     _retryTimer?.cancel();
     _retryTimer = null;
-    beginAttempt();
     generation++;
     retryScheduled = false;
     pendingProgress = null;
     error = null;
+    super.beginAttempt();
     emit();
   }
 

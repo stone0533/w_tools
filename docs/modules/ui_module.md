@@ -27,7 +27,8 @@ ui/
     │   │   ├── image/                  # 图片组件
     │   │   │   ├── image.dart                  # WImage, WImageController
     │   │   │   ├── image_source.dart           # WImageSource（sealed）
-    │   │   │   ├── image_style.dart            # WImageStyle / WImageGlobalConfig
+    │   │   │   ├── image_style.dart            # WImageStyle
+    │   │   │   ├── image_cache_policy.dart     # WImageCachePolicy
     │   │   │   ├── image_loader.dart           # WImageLoader / WImageLoadSnapshot
     │   │   │   ├── image_load_state.dart       # 内部状态基类
     │   │   │   ├── image_frame.dart            # WImageFrame
@@ -372,7 +373,7 @@ WImage.source(
 
 - `WImageSource` 是 sealed：`network` / `asset` / `file` / `base64`，`WImageSource.parse` 保留字符串自动判定；
 - `WImageStyle` 不可变，提供 `copyWith`、`validate`；
-- `WImageTheme`（InheritedWidget）可按子树覆盖默认占位符/错误占位符，优先于 `WImageGlobalConfig`；
+- `WImageTheme`（InheritedWidget）可按子树覆盖默认占位符/错误占位符，优先于组件内置兜底；
 - `WImageController.state` 暴露 `ValueListenable<WImageLoadSnapshot>`（status / progress / attempt）；
 - 重试定时器、错误分类、进度上报与状态去重都在 `WImageLoader` 内，`WImage` 的 State 只负责构建与渲染；
 - 网络图统一走 `CachedNetworkImageProvider` + `Image`：磁盘缓存仍由 `cached_network_image` 负责，
@@ -453,32 +454,33 @@ WImage.source(
 - `aspectRatio` 不要和固定的 `width` + `height` 同时设置（debug 下会 assert，约束会冲突）。
 - `borderRadius` 同时作用于图片本体、`border` 与 `boxShadow`。
 
-### WImageGlobalConfig - 全局配置（单例）
+### WImageTheme / WImageCachePolicy
 
-| 字段 | 默认值 | 说明 |
-|------|--------|------|
-| `defaultPlaceholder` | null | 全局加载中占位符 |
-| `defaultErrorWidget` | null | 全局错误占位符 |
-| `maxCacheSize` | 1000 | 同步到 Flutter `ImageCache.maximumSize` |
-| `maxCacheMemory` | 100MB | 同步到 `ImageCache.maximumSizeBytes` |
+- `WImageTheme`（InheritedWidget）按子树覆盖默认占位符/错误占位符；
+- `WImageCachePolicy` 是进程级缓存预算，直接同步 Flutter `ImageCache`：
 
 ```dart
-WImageGlobalConfig().configure(
-  defaultPlaceholder: const CircularProgressIndicator(),
-  defaultErrorWidget: const Icon(Icons.broken_image),
-  maxCacheSize: 200,
-);
+WImageTheme(
+  data: const WImageThemeData(
+    defaultPlaceholder: CircularProgressIndicator(),
+    defaultErrorWidget: Icon(Icons.broken_image),
+  ),
+  child: ...,
+)
 
-// 测试/多实例隔离：恢复默认占位符与缓存上限
-WImageGlobalConfig().reset();
+WImageCachePolicy.configure(maxSize: 200, maxMemoryBytes: 200 * 1024 * 1024);
+WImageCachePolicy.reset();
 ```
+
+优先级：style builder > style 固定 Widget > `WImageTheme` > 内置兜底。
+`WImageCachePolicy` 只影响 `ImageCache`，与 `WImagePreloader` 的字节缓存互不影响。
 
 ### 缓存
 
 - 资产 / 文件 / Base64 统一走 `Image` + Flutter `ImageCache`；`memCacheWidth` / `memCacheHeight` 通过 `ResizeImage` 生效。
 - 网络图走 `cached_network_image`（内存 + 磁盘），可用 `httpHeaders` / `cacheKey` 定制。
 - `WImagePreloader` 是**独立**的资源字节预加载工具，`WImage` 不使用；
-  `WImageGlobalConfig.configure/reset` 只改 Flutter `ImageCache`，不会修改它的上限。
+  `WImageCachePolicy` 只改 Flutter `ImageCache`，不会修改它的上限。
 
 ### 2.0 迁移
 

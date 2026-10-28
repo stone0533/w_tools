@@ -23,6 +23,16 @@ void main() {
     );
   });
 
+  test('placeholder 与 builder 不能同时设置', () {
+    expect(
+      () => WImageStyle(
+        placeholder: const Text('p'),
+        placeholderBuilder: (_, __) => const Text('b'),
+      ).validate(),
+      throwsAssertionError,
+    );
+  });
+
   test('默认值', () {
     const style = WImageStyle();
     expect(style.fit, BoxFit.cover);

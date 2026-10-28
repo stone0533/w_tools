@@ -100,6 +100,24 @@ void main() {
       expect(image.type, WImageType.base64);
     });
 
+    testWidgets('style 固定占位符优先于 theme', (tester) async {
+      await tester.pumpWidget(
+        WImageTheme(
+          data: const WImageThemeData(defaultPlaceholder: Text('theme')),
+          child: MaterialApp(
+            home: Scaffold(
+              body: WImage(
+                data: 'data:image/png;base64,@@bad@@',
+                style: const WImageStyle(placeholder: Text('style')),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('style'), findsOneWidget);
+      expect(find.text('theme'), findsNothing);
+    });
+
     testWidgets('WImageTheme 覆盖默认占位符', (tester) async {
       await tester.pumpWidget(
         WImageTheme(
@@ -122,59 +140,30 @@ void main() {
     });
   });
 
-  group('WImageGlobalConfig', () {
-    test('should be a singleton', () {
-      final instance1 = WImageGlobalConfig();
-      final instance2 = WImageGlobalConfig();
-      expect(identical(instance1, instance2), true);
-    });
-
-    test('configure 写入全局默认值，并同步 Flutter ImageCache 上限', () {
-      final config = WImageGlobalConfig();
-      final testPlaceholder = Container(color: Colors.red);
-      final testErrorWidget = Container(color: Colors.blue);
+  group('WImageCachePolicy', () {
+    test('configure 同步 Flutter ImageCache 上限，reset 恢复默认', () {
       final oldMaxSize = PaintingBinding.instance.imageCache.maximumSize;
       final oldMaxBytes = PaintingBinding.instance.imageCache.maximumSizeBytes;
       addTearDown(() {
+        WImageCachePolicy.reset();
         PaintingBinding.instance.imageCache.maximumSize = oldMaxSize;
         PaintingBinding.instance.imageCache.maximumSizeBytes = oldMaxBytes;
-        config.configure(defaultPlaceholder: null, defaultErrorWidget: null);
       });
 
-      config.configure(
-        defaultPlaceholder: testPlaceholder,
-        defaultErrorWidget: testErrorWidget,
-        maxCacheSize: 50,
-        maxCacheMemory: 50 * 1024 * 1024,
+      WImageCachePolicy.configure(
+        maxSize: 50,
+        maxMemoryBytes: 50 * 1024 * 1024,
       );
-
-      expect(config.defaultPlaceholder, testPlaceholder);
-      expect(config.defaultErrorWidget, testErrorWidget);
-      expect(config.maxCacheSize, 50);
-      expect(config.maxCacheMemory, 50 * 1024 * 1024);
+      expect(WImageCachePolicy.maxSize, 50);
       expect(PaintingBinding.instance.imageCache.maximumSize, 50);
       expect(
         PaintingBinding.instance.imageCache.maximumSizeBytes,
         50 * 1024 * 1024,
       );
-    });
 
-    testWidgets('WImage 使用全局默认占位符', (tester) async {
-      final global = WImageGlobalConfig()
-        ..defaultPlaceholder = const Text('global-placeholder')
-        ..defaultErrorWidget = const Text('global-error');
-      addTearDown(
-        () => global.configure(defaultPlaceholder: null, defaultErrorWidget: null),
-      );
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: WImage(data: 'data:image/png;base64,@@invalid@@'),
-        ),
-      );
-
-      // 解码尚未完成时显示全局默认占位符
-      expect(find.text('global-placeholder'), findsOneWidget);
+      WImageCachePolicy.reset();
+      expect(WImageCachePolicy.maxSize, 1000);
+      expect(PaintingBinding.instance.imageCache.maximumSize, 1000);
     });
   });
 

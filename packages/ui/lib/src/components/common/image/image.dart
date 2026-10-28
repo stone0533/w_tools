@@ -19,6 +19,7 @@ import 'image_types.dart';
 import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
 export 'image_frame.dart';
+export 'image_cache_policy.dart';
 export 'image_loader.dart';
 export 'image_source.dart';
 export 'image_style.dart';
@@ -251,6 +252,10 @@ class _WImageState extends State<WImage> {
   /// Base64 解码的 Future 缓存
   Future<Uint8List>? _bytesFuture;
 
+  /// 上一次构建的 provider（避免每次 build 重新 new）
+  ImageProvider? _providerCache;
+  String? _providerKey;
+
   /// 加载 / 重试 / 进度状态
   late final WImageLoader _load;
 
@@ -284,10 +289,15 @@ class _WImageState extends State<WImage> {
     widget.controller?._attach(this);
   }
 
+  bool _rebuildScheduled = false;
+
   void _scheduleRebuild() {
     if (!mounted) return;
     if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      if (_rebuildScheduled) return;
+      _rebuildScheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _rebuildScheduled = false;
         if (mounted) setState(() {});
       });
       return;
@@ -324,6 +334,8 @@ class _WImageState extends State<WImage> {
     _type = widget.source.type;
     _value = widget.source.value;
     _bytesFuture = null;
+    _providerCache = null;
+    _providerKey = null;
     _load.reset(
       retryCount: config.retryCount,
       retryDelay: config.retryDelay,
@@ -341,6 +353,8 @@ class _WImageState extends State<WImage> {
     if (_load.attempt != _seenAttempt) {
       _seenAttempt = _load.attempt;
       _bytesFuture = null;
+      _providerCache = null;
+      _providerKey = null;
     }
     return _buildContent(context);
   }
@@ -376,17 +390,13 @@ class _WImageState extends State<WImage> {
   /// 构建默认占位符（theme 优先，其次全局配置/内置兜底）
   Widget _buildPlaceholder(BuildContext context) {
     final themed = WImageTheme.maybeOf(context)?.defaultPlaceholder;
-    return _sizedSlot(
-      themed ?? WImageGlobalConfig().defaultPlaceholder ?? _fallbackPlaceholder,
-    );
+    return _sizedSlot(themed ?? _fallbackPlaceholder);
   }
 
   /// 构建默认错误占位符（theme 优先，其次全局配置/内置兜底）
   Widget _buildErrorWidget(BuildContext context) {
     final themed = WImageTheme.maybeOf(context)?.defaultErrorWidget;
-    return _sizedSlot(
-      themed ?? WImageGlobalConfig().defaultErrorWidget ?? _fallbackErrorWidget,
-    );
+    return _sizedSlot(themed ?? _fallbackErrorWidget);
   }
 
   /// 图片加载中的占位（优先业务自定义）
@@ -407,18 +417,29 @@ class _WImageState extends State<WImage> {
     return config.errorWidget ?? _buildErrorWidget(context);
   }
 
+  ImageProvider _cachedProvider(String key, ImageProvider Function() create) {
+    if (_providerKey == key && _providerCache != null) return _providerCache!;
+    final provider = create();
+    _providerKey = key;
+    _providerCache = provider;
+    return provider;
+  }
+
   /// 网络图片：CachedNetworkImageProvider + 统一 Image 管线
   ///
   /// 磁盘/内存缓存仍由 `cached_network_image` 的 provider 负责；
   /// 进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`。
   Widget _buildNetwork() {
     final network = widget.source as WNetworkImageSource;
-    final provider = CachedNetworkImageProvider(
-      _value,
-      headers: network.headers,
-      cacheKey: network.cacheKey,
-      maxWidth: config.memCacheWidth,
-      maxHeight: config.memCacheHeight,
+    final provider = _cachedProvider(
+      'network:${network.key}:${config.memCacheWidth}x${config.memCacheHeight}',
+      () => CachedNetworkImageProvider(
+        _value,
+        headers: network.headers,
+        cacheKey: network.cacheKey,
+        maxWidth: config.memCacheWidth,
+        maxHeight: config.memCacheHeight,
+      ),
     );
     return _imageWidget(
       provider,
@@ -433,8 +454,12 @@ class _WImageState extends State<WImage> {
   /// 本地资源：统一走 [AssetImage]（Flutter 自带 ImageCache，支持 2x/3x 变体）
   Widget _buildAsset() {
     final asset = widget.source as WAssetImageSource;
+    final provider = _cachedProvider(
+      'asset:${asset.key}:${config.memCacheWidth}x${config.memCacheHeight}',
+      () => AssetImage(asset.value, package: asset.package),
+    );
     return _imageWidget(
-      AssetImage(asset.value, package: asset.package),
+      provider,
       errorFactory: (error) => WImageAssetError(widget.data, error),
     );
   }
@@ -447,8 +472,12 @@ class _WImageState extends State<WImage> {
       _load.fail(error);
       return _errorSlot(context, error);
     }
+    final cached = _cachedProvider(
+      'file:${widget.source.key}',
+      () => provider,
+    );
     return _imageWidget(
-      provider,
+      cached,
       errorFactory: (error) => WImageFileError(widget.data, error),
     );
   }
@@ -467,8 +496,13 @@ class _WImageState extends State<WImage> {
           _load.markLoading();
           return _placeholderFor(context);
         }
+        final bytes = snapshot.data!;
+        final provider = _cachedProvider(
+          'base64:${identityHashCode(bytes)}:${config.memCacheWidth}x${config.memCacheHeight}',
+          () => MemoryImage(bytes),
+        );
         return _imageWidget(
-          MemoryImage(snapshot.data!),
+          provider,
           errorFactory: (error) => WImageDecodeError(widget.data, error),
         );
       },

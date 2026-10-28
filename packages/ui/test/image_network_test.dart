@@ -87,6 +87,16 @@ void main() {
       expect(after[1], isNot(before[1]), reason: '最后一个 WImage 应重建');
     });
 
+    testWidgets('同一 source 重建复用 provider', (tester) async {
+      await tester.pumpWidget(_wrap(WImage.network(_url)));
+      final first = tester.widget<Image>(find.byType(Image)).image;
+
+      await tester.pumpWidget(_wrap(WImage.network(_url)));
+      final second = tester.widget<Image>(find.byType(Image)).image;
+
+      expect(identical(first, second), isTrue);
+    });
+
     testWidgets('重试计数体现在 ValueKey 上', (tester) async {
       await tester.pumpWidget(_wrap(WImage.network(_url)));
 

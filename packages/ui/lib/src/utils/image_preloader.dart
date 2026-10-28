@@ -39,7 +39,7 @@ class _CacheItem {
 ///
 /// 独立于 `WImage` 与 Flutter `ImageCache`：只用于 **资源字节预加载/统计**
 /// （`preloadImage` / `cacheImage`），与 `ImageCache` 的内存预算互不影响。
-/// `WImage` 本身已不再使用它，`WImageGlobalConfig` 也不会修改它的上限。
+/// `WImage` 本身已不再使用它，`WImageCachePolicy` 也不会修改它的上限。
 ///
 /// 采用单例模式，实现了 LRU (Least Recently Used) 缓存策略。
 class WImagePreloader {
@@ -72,7 +72,7 @@ class WImagePreloader {
   /// 当前缓存内存
   int _currentCacheMemory = 0;
 
-  /// 更新缓存上限（由 `WImageGlobalConfig.configure` 调用）
+  /// 更新缓存上限（由 `WImageCachePolicy.configure` 调用）
   ///
   /// 缩小上限后若已超限，会立即按 LRU 清理。
   void configureLimits({int? maxCacheSize, int? maxCacheMemory}) {

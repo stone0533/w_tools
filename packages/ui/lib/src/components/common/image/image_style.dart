@@ -72,6 +72,14 @@ class WImageStyle {
       !(aspectRatio != null && width != null && height != null),
       'aspectRatio 与固定 width/height 不要同时设置（约束会冲突）',
     );
+    assert(
+      !(placeholder != null && placeholderBuilder != null),
+      'placeholder 与 placeholderBuilder 只能选一个（builder 优先）',
+    );
+    assert(
+      !(errorWidget != null && errorWidgetBuilder != null),
+      'errorWidget 与 errorWidgetBuilder 只能选一个（builder 优先）',
+    );
   }
 
   static const Object _unset = Object();

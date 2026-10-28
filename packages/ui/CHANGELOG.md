@@ -7,12 +7,15 @@
 - `WImageConfigBuild` 扩展删除；用 `WImage.source` / `WImage.network/asset/file/base64`。
 - `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。
 - `WImage.onLoadProgress`、`progressIndicatorBuilder`、`cacheEnabled`、`fitCenter`、`size` 均已删除。
+- `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageTheme` + `WImageCachePolicy`。
 
 ### Added
 - 新架构入口：`WImage.source(source:, style:)`、sealed `WImageSource`、不可变 `WImageStyle`、
   `WImageFrame`、`WImageTheme`。
 - `WImageSource.parse` 保留字符串自动判定；`WImage(data:, style:)` 与命名构造作为便利入口。
-- `WImageController.state`：`ValueListenable<WImageLoadSnapshot>`（status/progress/attempt）。
+- `WImageController.state`：`ValueListenable<WImageLoadSnapshot>`（status/progress/attempt/error/retryScheduled）。
+- `WImageLoadSnapshot` 实现 `==`/`hashCode`，`emit()` 相同快照不重复通知。
+- `WImageCachePolicy`：进程级 `ImageCache` 预算；`WImageTheme` 管默认占位符。
 - 重试定时器、错误分类、进度上报与状态去重移入 `WImageLoader`；`WImage` 的 State 只做构建/渲染。
 - 网络路径统一为 `CachedNetworkImageProvider` + `Image`，进度改用 `ImageChunkEvent`；
   磁盘缓存仍走 `cached_network_image`。
@@ -33,7 +36,8 @@
 - 网络图的 `completed` 状态改为在首帧到达时上报。
 - `borderRadius` 现在同时作用于 `border` 与 `boxShadow`。
 - `WImageStyle.validate()` 在构造、更新、build 时复用；`aspectRatio` 与固定宽高冲突时 debug assert。
-- `WImageCacheManager` 与 `WImageGlobalConfig` 解耦（全局配置不再修改预加载工具的上限）。
+- 每个 `WImage` 缓存 provider，避免每次 build 重新创建 `CachedNetworkImageProvider` / `AssetImage` / `FileImage`。
+- `WImagePreloader` 与 `WImageCachePolicy` 解耦（缓存预算只作用于 Flutter `ImageCache`）。
 
 ## 1.1.0
 
