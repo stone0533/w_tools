@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'image_types.dart';
@@ -57,7 +59,8 @@ class WImageStyle {
     int? cacheSize,
   }) {
     final side = height ?? width;
-    final cache = cacheSize ?? (width * 3).round();
+    // 3× 是经验值；需要精确控制时显式传 cacheSize（通常按 devicePixelRatio 计算）
+    final cache = cacheSize ?? (math.max(width, side) * 3).round();
     return WImageStyle(
       width: width,
       height: side,
@@ -216,5 +219,5 @@ extension WImageStyleX on WImageStyle {
 
   WImageStyle rounded(double radius) => copyWith(borderRadius: BorderRadius.circular(radius));
 
-  WImageStyle memCached(int size) => copyWith(memCacheWidth: size, memCacheHeight: size);
+  WImageStyle decodeSize(int size) => copyWith(memCacheWidth: size, memCacheHeight: size);
 }

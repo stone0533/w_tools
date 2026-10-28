@@ -63,6 +63,28 @@ WImage.network(
 四种来源：`WImage.network` / `WImage.asset` / `WImage.file` / `WImage.base64`，
 需要确定性时用命名构造；动态字符串用 `WImageSource.parse`。
 
+### 常用配方
+
+```dart
+WImage.avatar(url, size: 40)                 // 圆形头像
+WImage.thumbnail(url, width: 80)             // 缩略图 + 解码尺寸上限
+WImage.cover(url, aspectRatio: 16 / 9)       // 封面图
+WImage.assetImage('logo.png')                // 自动拼 WAssets.imagePath
+WImage.memory(bytes)                         // Uint8List
+WImage.provider(myProvider)                  // 任意 ImageProvider
+WImage.network(url, style: const WImageStyle(showRetryButton: true)) // 内置重试
+```
+
+`WImageStyle` 也提供预设与链式糖：
+
+```dart
+WImageStyle.avatar(40)
+WImageStyle.thumbnail(80, cacheSize: 240)
+WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)
+
+const WImageStyle().square(40).rounded(20).decodeSize(120)
+```
+
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 

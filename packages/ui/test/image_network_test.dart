@@ -6,8 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/image/image.dart';
 import 'package:w_tools_ui/src/components/common/image/image_retry_policy.dart';
 
-import 'image_test_style.dart';
-
 const _url = 'https://example.com/img.png';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
@@ -152,22 +150,24 @@ void main() {
 
   group('重试状态', () {
     testWidgets('retryCount 变化后 attempt 归零', (tester) async {
-      final config = TestImageStyle()..retryCount = 3;
       final controller = WImageController();
 
-      Widget build() => _wrap(
-            WImage.network(_url, style: config.build(), controller: controller),
+      Widget build(int retryCount) => _wrap(
+            WImage.network(
+              _url,
+              style: WImageStyle(retryCount: retryCount),
+              controller: controller,
+            ),
           );
 
-      await tester.pumpWidget(build());
+      await tester.pumpWidget(build(3));
       controller.retry();
       await tester.pump();
       controller.retry();
       await tester.pump();
       expect(find.byKey(const ValueKey('$_url#attempt=2')), findsOneWidget);
 
-      config.retryCount = 0;
-      await tester.pumpWidget(build());
+      await tester.pumpWidget(build(0));
       expect(find.byKey(const ValueKey('$_url#attempt=0')), findsOneWidget);
     });
 

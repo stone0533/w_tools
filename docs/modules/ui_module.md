@@ -429,6 +429,7 @@ WImage.source(
 | `WImageAssetError` | 资产不存在或解码失败 |
 | `WImageDecodeError` | Base64 解码失败 |
 | `WImageFileError` | 文件读取失败 |
+| `WImageProviderError` | `WImage.provider` / `WImage.memory` 解码失败 |
 | `WImageUnsupportedError` | Web 上的 `file://` |
 
 ### WImageStyle 配置
@@ -485,6 +486,12 @@ WImageCachePolicy.reset();
 优先级：style builder > style 固定 Widget > `WImageTheme` > 内置兜底。
 `WImageThemeData.defaultProgressBuilder` 可作为所有网络图的默认进度 UI。
 内置错误视图可用 `WImageStyle(showRetryButton: true)` 启用，或直接复用 `WImageErrorView`。
+`WImageErrorView` 在小于约 120×112 时会自动只显示图标；也可显式传 `compact: true`。
+优先级：`errorWidgetBuilder` > `errorWidget` > `showRetryButton` > theme/兜底。
+
+`WImageStyle.thumbnail(width)` 默认按 `max(width, height) × 3` 估算 `memCache`；
+需要精确控制时显式传 `cacheSize`（通常按 `devicePixelRatio` 计算）。
+预设构造和显式 `style` 同时传时，`style` 会完整覆盖预设参数（`size` / `width` / `aspectRatio` 等）。
 `WImageCachePolicy` 只影响 `ImageCache`，与 `WImagePreloader` 的字节缓存互不影响。
 
 ### 缓存

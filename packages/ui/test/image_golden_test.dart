@@ -51,6 +51,44 @@ void main() {
     );
   });
 
+  testWidgets('avatar golden', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        WImage.avatar(
+          'data:image/png;base64,$_redPixel',
+          size: 64,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await expectLater(
+      find.byType(WImage),
+      matchesGoldenFile('goldens/wimage_avatar.png'),
+    );
+  });
+
+  testWidgets('retry error golden', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        WImage(
+          data: 'data:image/png;base64,@@invalid@@',
+          style: const WImageStyle(
+            width: 160,
+            height: 120,
+            showRetryButton: true,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await expectLater(
+      find.byType(WImage),
+      matchesGoldenFile('goldens/wimage_retry.png'),
+    );
+  });
+
   testWidgets('error golden', (tester) async {
     await tester.pumpWidget(
       _wrap(

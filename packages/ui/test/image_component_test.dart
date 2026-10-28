@@ -175,14 +175,16 @@ void main() {
       expect(find.byType(Image), findsOneWidget);
     });
 
-    testWidgets('showRetryButton 使用内置错误视图', (tester) async {
+    testWidgets('showRetryButton 使用内置错误视图并可重试', (tester) async {
+      final controller = WImageController();
       await tester.pumpWidget(
         MaterialApp(
           home: WImage(
             data: 'data:image/png;base64,@@bad@@',
+            controller: controller,
             style: const WImageStyle(
-              width: 100,
-              height: 100,
+              width: 160,
+              height: 120,
               showRetryButton: true,
             ),
           ),
@@ -190,7 +192,61 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(WImageErrorView), findsOneWidget);
-      expect(find.text('重试'), findsOneWidget);
+
+      await tester.tap(find.text('重试'));
+      await tester.pump();
+      expect(controller.state!.value.attempt, 1);
+    });
+
+    testWidgets('小尺寸错误视图只显示图标，不溢出', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WImage(
+            data: 'data:image/png;base64,@@bad@@',
+            style: const WImageStyle(
+              width: 40,
+              height: 40,
+              showRetryButton: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(WImageErrorView), findsOneWidget);
+      expect(find.text('重试'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('provider 解码失败使用 WImageProviderError', (tester) async {
+      WImageError? captured;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WImage.memory(
+            Uint8List.fromList([1, 2, 3]),
+            style: const WImageStyle(width: 64, height: 64),
+            onLoadStatusChanged: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+      // 通过 errorWidgetBuilder 捕获更直接
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WImage.memory(
+            Uint8List.fromList([4, 5, 6]),
+            style: WImageStyle(
+              width: 64,
+              height: 64,
+              errorWidgetBuilder: (context, url, error) {
+                captured = error;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(captured, isA<WImageProviderError>());
     });
 
     test('命名构造带显式类型', () {

@@ -51,7 +51,7 @@ void main() {
 
   test('链式糖返回新实例', () {
     const base = WImageStyle();
-    final next = base.square(40).rounded(20).memCached(120);
+    final next = base.square(40).rounded(20).decodeSize(120);
     expect(base.width, isNull);
     expect(next.width, 40);
     expect(next.height, 40);

@@ -100,6 +100,10 @@ class WImage extends StatefulWidget {
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
+    assert(
+      type != WImageType.provider,
+      'provider 来源请使用 WImage.provider(...) / WImage.memory(...)',
+    );
     return WImage._(
       key: key,
       type: type,
@@ -222,6 +226,10 @@ class WImage extends StatefulWidget {
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
+    assert(
+      style == null || size == 40,
+      '传了 style 时 size 会被忽略；需要自定义请直接写 WImageStyle',
+    );
     return WImage(
       key: key,
       data: data,
@@ -246,6 +254,10 @@ class WImage extends StatefulWidget {
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
+    assert(
+      style == null || (width == 80 && height == null && cacheSize == null),
+      '传了 style 时 width/height/cacheSize 会被忽略',
+    );
     return WImage(
       key: key,
       data: data,
@@ -269,6 +281,10 @@ class WImage extends StatefulWidget {
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
+    assert(
+      style == null || (aspectRatio == 16 / 9 && radius == null),
+      '传了 style 时 aspectRatio/radius 会被忽略',
+    );
     return WImage(
       key: key,
       data: data,
@@ -548,10 +564,14 @@ class _WImageState extends State<WImage> {
     }
     if (config.errorWidget != null) return config.errorWidget!;
     if (config.showRetryButton) {
-      return WImageErrorView(
-        error: error,
-        onRetry: _load.retryNow,
-        retryLabel: config.retryLabel,
+      return _sizedSlot(
+        WImageErrorView(
+          error: error,
+          onRetry: _load.retryNow,
+          retryLabel: config.retryLabel,
+          compact: (config.width != null && config.width! < 120) ||
+              (config.height != null && config.height! < 112),
+        ),
       );
     }
     return _buildErrorWidget(context);
@@ -596,7 +616,7 @@ class _WImageState extends State<WImage> {
     final source = widget.source as WProviderImageSource;
     return _imageWidget(
       source.provider,
-      errorFactory: (error) => WImageDecodeError(widget.data, error),
+      errorFactory: (error) => WImageProviderError(widget.data, error),
     );
   }
 

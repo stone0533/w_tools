@@ -132,6 +132,18 @@ final class WImageDecodeError extends WImageError {
   String get message => 'Base64 解码失败';
 }
 
+/// 任意 [ImageProvider] / 内存图片解码失败
+final class WImageProviderError extends WImageError {
+  /// 创建错误
+  const WImageProviderError(super.data, this.cause);
+
+  /// 底层异常
+  final Object? cause;
+
+  @override
+  String get message => '图片解码失败';
+}
+
 /// 本地文件读取失败
 final class WImageFileError extends WImageError {
   /// 创建错误
