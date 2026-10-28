@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
+import 'buttons_page.dart';
 import 'playground_page.dart';
 import 'recipes_page.dart';
 import 'states_page.dart';
@@ -15,12 +16,29 @@ void main() {
   );
 
   runApp(
-    const WImageTheme(
-      data: WImageThemeData(
-        defaultPlaceholder: Center(child: CircularProgressIndicator()),
-        defaultErrorWidget: Icon(Icons.broken_image),
+    WButtonTheme(
+      data: WButtonThemeData(
+        primary: WButtonStyles.primary,
+        secondary: WButtonStyles.secondary,
+        text: WButtonStyles.text,
+        danger: WButtonStyles.danger,
+        variants: {
+          'brand': WButtonStyles.primary,
+          'warning': WButtonStyles.danger,
+        },
+        sizes: const {
+          'compact': WButtonSize.small,
+          'hero': WButtonSize.large,
+        },
+        defaultSize: WButtonSize.medium,
       ),
-      child: WImageExampleApp(),
+      child: const WImageTheme(
+        data: WImageThemeData(
+          defaultPlaceholder: Center(child: CircularProgressIndicator()),
+          defaultErrorWidget: Icon(Icons.broken_image),
+        ),
+        child: WImageExampleApp(),
+      ),
     ),
   );
 }
@@ -31,7 +49,7 @@ class WImageExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'w_tools_ui · WImage',
+      title: 'w_tools_ui · 示例',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
@@ -62,12 +80,13 @@ class _HomeShellState extends State<HomeShell> {
     PlaygroundPage(),
     StatesPage(),
     RecipesPage(),
+    ButtonsPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('WImage 示例')),
+      appBar: AppBar(title: const Text('w_tools_ui 示例')),
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
@@ -84,6 +103,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: Icon(Icons.receipt_long),
             label: '常用配方',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.smart_button),
+            label: '按钮',
           ),
         ],
       ),

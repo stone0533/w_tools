@@ -325,6 +325,8 @@ WButton(
 )
 ```
 
+可运行示例见 [`packages/ui/example/lib/buttons_page.dart`](../../packages/ui/example/lib/buttons_page.dart)，包含主题、loading、尺寸、图标、列表、对话框、自定义变体和纯点击区域等场景。
+
 ### 键盘与效果
 
 - Enter / Space 通过 `ActivateIntent` 触发 `onTap`，同时触发 opacity/scale/shake 反馈；
