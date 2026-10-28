@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+### Changed
+- `init` 生成的 pubspec 片段把 `w_tools_ui` 约束更新到 `^1.2.0`
+  （配合 `w_tools_ui 1.2.0` 的 `String.toImage` 增强）。
+
 ## 1.1.0
 
 ### Added

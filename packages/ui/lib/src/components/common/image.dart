@@ -79,6 +79,7 @@ class WImage extends StatefulWidget {
     Key? key,
     WImageConfig? config,
     required String data,
+    WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<double>? onLoadProgress,
     ValueChanged<WImageProgress>? onProgress,
@@ -87,7 +88,7 @@ class WImage extends StatefulWidget {
           key: key,
           config: config,
           data: data,
-          type: null,
+          type: type,
           onLoadStatusChanged: onLoadStatusChanged,
           onLoadProgress: onLoadProgress,
           onProgress: onProgress,
@@ -175,7 +176,7 @@ class WImage extends StatefulWidget {
         );
 
   WImage._({
-    Key? key,
+    super.key,
     WImageConfig? config,
     required this.data,
     required this.type,

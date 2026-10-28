@@ -1,3 +1,8 @@
+## 2.0.2
+
+- 依赖：`w_tools_ui` 提升到 `^1.2.0`（`WImageConfig.copy()`、`String.toImage` 增强、
+  `WImage` key 修复）。
+
 ## 2.0.1
 
 - 修复发布物：2.0.0 的 pubspec 带上了仓库的 `workspace:` 字段（指向 `packages/core` 等），

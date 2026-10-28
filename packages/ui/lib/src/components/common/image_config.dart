@@ -104,6 +104,41 @@ class WImageConfig {
   /// 构造函数
   WImageConfig();
 
+  /// 复制一份配置（浅拷贝；builder / map 等引用共享）
+  ///
+  /// 用于“以现有配置为底，再覆盖少量字段”的场景，避免修改调用方传入的配置。
+  WImageConfig copy() {
+    final c = WImageConfig()
+      ..width = width
+      ..height = height
+      ..fit = fit
+      ..memCacheWidth = memCacheWidth
+      ..memCacheHeight = memCacheHeight
+      ..placeholderBuilder = placeholderBuilder
+      ..errorWidgetBuilder = errorWidgetBuilder
+      ..progressIndicatorBuilder = progressIndicatorBuilder
+      ..progressBuilder = progressBuilder
+      ..retryCount = retryCount
+      ..retryDelay = retryDelay
+      ..borderRadius = borderRadius
+      ..border = border
+      ..boxShadow = boxShadow
+      ..margin = margin
+      ..padding = padding
+      ..aspectRatio = aspectRatio
+      ..semanticLabel = semanticLabel
+      ..excludeFromSemantics = excludeFromSemantics
+      ..gaplessPlayback = gaplessPlayback
+      ..filterQuality = filterQuality
+      ..alignment = alignment
+      ..httpHeaders = httpHeaders
+      ..cacheKey = cacheKey;
+    // 已废弃字段仅做源码兼容，复制与否不改变行为
+    // ignore: deprecated_member_use_from_same_package
+    c.cacheEnabled = cacheEnabled;
+    return c;
+  }
+
   /// 设置图片尺寸（链式）
   WImageConfig size(double? width, double? height) {
     width = width;

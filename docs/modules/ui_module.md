@@ -512,6 +512,26 @@ WImage.network(
 )
 ```
 
+### String 扩展：`toImage`
+
+`'...'.toImage(...)` 是 `WImage` 的便捷入口，适合 URL / 资源路径直接从字符串来的场景。
+
+```dart
+'https://example.com/a.png'.toImage(width: 40);
+'logo.png'.toAssetImage();                 // → assets/images/logo.png
+'assets/icons/logo.png'.toAssetImage(prefix: false);
+base64String.toBase64Image();
+'/tmp/a.png'.toFileImage();
+```
+
+规则：
+
+- 默认按内容自动判定类型（同 [WImageType]）；需要确定性时传 `type:`；
+- `size` 只作为 `width` / `height` 的 fallback，**显式宽高优先**；
+- `config:` 会被复制，`toImage` 内的覆盖不会修改调用方传入的配置；
+- 支持 `key` / `controller` / `onProgress` / `semanticLabel`；
+- 本地资源**不会**自动拼 `WAssets.imagePath`，需要时用 `toAssetImage()` 或其 `prefix: false`。
+
 ---
 
 ## 5. WBadge - 徽章组件

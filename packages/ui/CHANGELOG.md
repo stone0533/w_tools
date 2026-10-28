@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.0
+
+### Added
+- `WImageConfig.copy()`：复制全部配置字段，便于"以现有配置为底再覆盖少量字段"。
+- `String.toImage` 增加 `key` / `config` / `type` / `semanticLabel` / `controller` /
+  `onProgress` 参数；`config` 会被复制，不会修改调用方对象。
+- 新增 `String.toAssetImage({prefix})` / `toBase64Image()` / `toFileImage()` / `toNetworkImage()`，
+  避免自动判定在「纯 Base64」「无 file:// 前缀」「短资源名」上猜错。
+- `WImage` 默认构造支持显式 `type`，与命名构造一致。
+
+### Changed
+- `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback
+  （旧行为是 `size` 覆盖宽高）。
+
+### Fixed
+- `WImage` 的 `key` 之前没有传给 `StatefulWidget`，导致所有构造方式的 `key` 实际失效；
+  现在会正确传递。
+
 ## 1.1.0
 
 > 说明：本版本删除了公开组件 `WNetworkImageWithRetry`。按 semver 这应当作为 2.0.0 发布；
