@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../../utils/assets.dart';
+import '../../../utils/assets.dart';
 import 'image_types.dart';
 
 /// 图片来源。

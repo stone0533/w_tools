@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image_style.dart';
+import 'package:w_tools_ui/src/components/common/image/image_style.dart';
 
 void main() {
   test('不可变：copyWith 返回新实例', () {

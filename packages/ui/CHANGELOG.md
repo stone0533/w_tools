@@ -24,6 +24,8 @@
 ### Changed
 - `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。
 - 网络图的进度改由 `Image.loadingBuilder` 的 `ImageChunkEvent` 上报。
+- `WImage` 相关源码集中到 `lib/src/components/common/image/`，导入路径统一为
+  `package:w_tools_ui/src/components/common/image/image.dart`。
 
 ### Fixed
 - `WImage` 的 `key` 之前没有传给 `StatefulWidget`，导致所有构造方式的 `key` 实际失效。

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image.dart';
+import 'package:w_tools_ui/src/components/common/image/image.dart';
 
 /// 空数据 / 类型判定 / 显式构造 / 解码尺寸 / 布局 / 语义 的回归测试。
 const _pngBase64 =

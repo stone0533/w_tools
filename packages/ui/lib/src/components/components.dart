@@ -4,7 +4,7 @@
 export 'common/button.dart';
 export 'common/badge.dart';
 export 'common/clip.dart';
-export 'common/image.dart';
+export 'common/image/image.dart';
 export 'common/keep_alive_wrapper.dart';
 export 'common/notification_listener.dart';
 export 'common/row_buttons.dart';

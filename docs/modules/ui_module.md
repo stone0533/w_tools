@@ -24,10 +24,17 @@ ui/
     │   │   ├── badge.dart                     # WBadge / WBadgeConfig
     │   │   ├── button.dart                    # WButton, WButtonConfig, WButtonEffectType
     │   │   ├── clip.dart                      # WClipRRect
-    │   │   ├── image.dart                     # WImage, WImageController
-    │   │   ├── image_types.dart               # WImageType / WImageProgress / WImageError
-    │   │   ├── image_style.dart               # WImageStyle / WImageGlobalConfig
-    │   │   ├── image_retry_policy.dart        # 重试判定与退避（内部）
+    │   │   ├── image/                  # 图片组件
+    │   │   │   ├── image.dart                  # WImage, WImageController
+    │   │   │   ├── image_source.dart           # WImageSource（sealed）
+    │   │   │   ├── image_style.dart            # WImageStyle / WImageGlobalConfig
+    │   │   │   ├── image_loader.dart           # WImageLoader / WImageLoadSnapshot
+    │   │   │   ├── image_load_state.dart       # 内部状态基类
+    │   │   │   ├── image_frame.dart            # WImageFrame
+    │   │   │   ├── image_theme.dart            # WImageTheme
+    │   │   │   ├── image_types.dart            # WImageType / WImageProgress / WImageError
+    │   │   │   ├── image_retry_policy.dart     # 重试判定与退避（内部）
+    │   │   │   └── _image_file_*.dart          # file provider 条件实现
     │   │   ├── keep_alive_wrapper.dart        # WKeepAliveWrapper
     │   │   ├── notification_listener.dart      # WNotificationListenerBuilder
     │   │   ├── row_buttons.dart               # WRowButtons

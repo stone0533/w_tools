@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image.dart';
-import 'package:w_tools_ui/src/components/common/image_retry_policy.dart';
+import 'package:w_tools_ui/src/components/common/image/image.dart';
+import 'package:w_tools_ui/src/components/common/image/image_retry_policy.dart';
 
 import 'image_test_style.dart';
 

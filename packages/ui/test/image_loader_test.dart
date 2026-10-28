@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image_loader.dart';
-import 'package:w_tools_ui/src/components/common/image_types.dart';
+import 'package:w_tools_ui/src/components/common/image/image_loader.dart';
+import 'package:w_tools_ui/src/components/common/image/image_types.dart';
 
 void main() {
   test('reset / beginAttempt 会推送快照', () {

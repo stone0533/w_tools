@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image.dart';
+import 'package:w_tools_ui/src/components/common/image/image.dart';
 import 'package:w_tools_ui/src/utils/image_preloader.dart';
 
 void main() {

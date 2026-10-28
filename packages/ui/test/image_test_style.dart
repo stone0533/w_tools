@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:w_tools_ui/src/components/common/image_style.dart';
-import 'package:w_tools_ui/src/components/common/image_types.dart';
+import 'package:w_tools_ui/src/components/common/image/image_style.dart';
+import 'package:w_tools_ui/src/components/common/image/image_types.dart';
 
 /// 测试用可变样式构造器（生产 API 是不可变 WImageStyle）。
 class TestImageStyle {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image_load_state.dart';
-import 'package:w_tools_ui/src/components/common/image_types.dart';
+import 'package:w_tools_ui/src/components/common/image/image_load_state.dart';
+import 'package:w_tools_ui/src/components/common/image/image_types.dart';
 
 void main() {
   test('syncRetryConfig 变化时取消已排队的重试', () {

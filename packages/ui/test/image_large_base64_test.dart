@@ -6,7 +6,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image.dart';
+import 'package:w_tools_ui/src/components/common/image/image.dart';
 
 /// 生成 >64KB 的 PNG，覆盖 `_decodeBase64` 的 isolate 分支（阈值 64KB）。
 Future<String> _largePngBase64() async {
