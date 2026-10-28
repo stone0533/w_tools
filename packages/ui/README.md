@@ -66,6 +66,21 @@ WImage.network(
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
+## 1.x → 2.0 迁移
+
+| 1.x | 2.0 |
+|---|---|
+| `WImage(url, config: WImageConfig()..width = 100)` | `WImage.network(url, style: const WImageStyle(width: 100))` |
+| `WImageConfig`（可变 + 链式） | `WImageStyle`（不可变 + `copyWith`） |
+| `WImageConfigBuild` | `WImage.source` / `WImage.network/asset/file/base64` |
+| `toImage(config:)` | `toImage(style:)` |
+| `onLoadProgress` | `onProgress` |
+| `progressIndicatorBuilder` | `progressBuilder` |
+| `cacheEnabled` / `fitCenter` / `size` | 已删除 |
+| `WImageGlobalConfig` 默认占位符 | `WImageTheme` |
+| `WImageGlobalConfig` 缓存预算 | `WImageCachePolicy` |
+| `WImageCacheManager` | `WImagePreloader` |
+
 ## 主要 API
 
 | 能力 | 入口 |

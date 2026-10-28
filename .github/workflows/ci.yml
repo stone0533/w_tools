@@ -131,6 +131,12 @@ jobs:
           flutter pub get
           flutter analyze
 
+      # ui 的 example 有 smoke test；其它 example 没有测试，保持只 analyze。
+      - name: Test example (ui)
+        if: matrix.package == 'ui'
+        working-directory: packages/ui/example
+        run: flutter test
+
       # 发布门禁：缺 README/CHANGELOG、版本号问题、未跟踪文件等在这一步暴露。
       # 用暂存副本发布：去掉 `resolution: workspace`，避免把仓库结构带进发布物。
       - name: Publish dry-run (package, staged)

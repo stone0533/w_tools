@@ -499,6 +499,7 @@ flutter pub get
 flutter run
 ```
 
+包含 **Playground**（实时调参 + 生成 `WImageStyle` 代码）与 **状态矩阵**（成功/失败/空数据/加载中/主题/文件不支持）。
 覆盖网络图、asset、Base64、圆形头像、进度、自动/手动重试、主题、缓存预算与预加载。
 
 ### 重试与手动重试
