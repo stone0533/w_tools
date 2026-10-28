@@ -13,7 +13,7 @@ ImageProvider? buildFileImageProvider(String path) => FileImage(File(path));
 /// 原生平台专用 extension — 提供 buildFile(File) 便利 API
 ///
 /// 这样原生平台调用方可以继续用 `config.buildFile(file)`。
-extension WImageConfigIO on WImageConfig {
+extension WImageStyleIO on WImageStyle {
   /// 构建文件图片组件（dart:io File 对象）
   ///
   /// 仅在原生平台（iOS/Android/Desktop）可用。
@@ -28,7 +28,7 @@ extension WImageConfigIO on WImageConfig {
     return WImage.file(
       file.path,
       key: key,
-      config: this,
+      style: this,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,

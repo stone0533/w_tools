@@ -1,118 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/image.dart';
-import 'package:w_tools_ui/src/utils/image_cache_manager.dart';
+import 'package:w_tools_ui/src/utils/image_preloader.dart';
 
 void main() {
   setUpAll(() {
     WidgetsFlutterBinding.ensureInitialized();
   });
 
-  group('WImageConfig', () {
-    test('链式方法写入的值可以读回', () {
-      final config = WImageConfig()
-        ..width = 100
-        ..height = 200
-        ..fitCover()
-        ..retryCount = 3
-        ..retryDelay = 500;
+  group('WImageStyle', () {
+    test('字段可读，copyWith 产生新实例', () {
+      const style = WImageStyle(
+        width: 100,
+        height: 200,
+        fit: BoxFit.cover,
+        retryCount: 3,
+        retryDelay: 500,
+      );
+      expect(style.width, 100);
+      expect(style.height, 200);
+      expect(style.fit, BoxFit.cover);
+      expect(style.retryCount, 3);
+      expect(style.retryDelay, 500);
 
-      expect(config.width, 100);
-      expect(config.height, 200);
-      expect(config.fit, BoxFit.cover);
-      expect(config.retryCount, 3);
-      expect(config.retryDelay, 500);
-    });
-
-    test('dimensions / square', () {
-      final config = WImageConfig()..dimensions(10, 20);
-      expect(config.width, 10);
-      expect(config.height, 20);
-      config.square(30);
-      expect(config.width, 30);
-      expect(config.height, 30);
-    });
-
-    test('placeholder / errorWidget 可以读回', () {
-      final config = WImageConfig()
-        ..placeholder = const Text('p')
-        ..errorWidget = const Text('e');
-      expect(config.placeholder, isA<Text>());
-      expect(config.errorWidget, isA<Text>());
-      config.placeholder = null;
-      expect(config.placeholder, isNull);
+      final next = style.copyWith(width: 10);
+      expect(next.width, 10);
+      expect(style.width, 100);
     });
 
     test('非法配置触发 assert', () {
       expect(
-        () => WImage(data: 'x', config: WImageConfig()..retryCount = -1),
+        () => WImage(data: 'x', style: const WImageStyle(retryCount: -1)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', config: WImageConfig()..retryDelay = -1),
+        () => WImage(data: 'x', style: const WImageStyle(retryDelay: -1)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', config: WImageConfig()..memCacheWidth = 0),
+        () => WImage(data: 'x', style: const WImageStyle(memCacheWidth: 0)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', config: WImageConfig()..memCacheHeight = 0),
+        () => WImage(data: 'x', style: const WImageStyle(memCacheHeight: 0)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', config: WImageConfig()..aspectRatio = 0),
+        () => WImage(data: 'x', style: const WImageStyle(aspectRatio: 0)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', config: WImageConfig()..width = -1),
+        () => WImage(data: 'x', style: const WImageStyle(width: -1)),
         throwsAssertionError,
       );
     });
 
     test('validate 捕获 aspectRatio 与固定宽高的冲突', () {
       expect(
-        () => (WImageConfig()
-              ..aspectRatio = 2
-              ..width = 10
-              ..height = 10)
-            .validate(),
+        () => const WImageStyle(aspectRatio: 2, width: 10, height: 10).validate(),
         throwsAssertionError,
       );
     });
-
-    test('WImageConfigBuild 透传 key / type / controller', () {
-      const key = Key('k');
-      final controller = WImageController();
-      final config = WImageConfig();
-      final widget =
-          config.build(data: 'x', key: key, type: WImageType.base64, controller: controller);
-      expect(widget.key, key);
-      expect(widget.type, WImageType.base64);
-      expect(widget.controller, same(controller));
-
-      final file = config.buildFilePath('/tmp/a.png', key: key, controller: controller);
-      expect(file.key, key);
-      expect(file.controller, same(controller));
-    });
-
-    test('circle() 同时设置宽高与圆角', () {
-      final config = WImageConfig()..circle(50);
-
-      expect(config.width, 100);
-      expect(config.height, 100);
-      expect(config.borderRadius, BorderRadius.circular(50));
-    });
   });
 
-  group('WImageCacheManager', () {
+  group('WImagePreloader', () {
     test('should initialize correctly', () {
-      final cacheManager = WImageCacheManager();
+      final cacheManager = WImagePreloader();
       expect(cacheManager, isNotNull);
     });
 
     test('should handle cache operations', () async {
-      final cacheManager = WImageCacheManager();
+      final cacheManager = WImagePreloader();
 
       // 测试清理缓存
       cacheManager.clearCache();
@@ -124,24 +82,18 @@ void main() {
 
   group('WImage', () {
     test('should build with config', () {
-      final config = WImageConfig()
-        ..width = 100
-        ..height = 100;
-      final image = WImage(config: config, data: 'test_image.png');
+      const style = WImageStyle(width: 100, height: 100);
+      final image = WImage(style: style, data: 'test_image.png');
 
-      expect(image.config.width, 100);
-      expect(image.config.height, 100);
+      expect(image.style.width, 100);
+      expect(image.style.height, 100);
       expect(image.type, isNull);
     });
 
     test('WImage.source + WImageStyle', () {
       final image = WImage.source(
         source: WImageSource.base64('AAAA'),
-        style: WImageStyle(
-          config: WImageConfig()
-            ..width = 10
-            ..height = 10,
-        ),
+        style: const WImageStyle(width: 10, height: 10),
       );
       expect(image.source, isA<WBase64ImageSource>());
       expect(image.style.width, 10);
@@ -232,7 +184,7 @@ void main() {
         MaterialApp(
           home: WImage.asset(
             'no_such_asset_for_test.png',
-            config: WImageConfig()..fitContain(),
+            style: const WImageStyle(fit: BoxFit.contain),
           ),
         ),
       );
@@ -250,11 +202,12 @@ void main() {
           MaterialApp(
             home: WImage(
               data: 'data:image/png;base64,@@invalid@@',
-              config: WImageConfig()
-                ..errorWidgetBuilder = (context, url, error) {
+              style: WImageStyle(
+                errorWidgetBuilder: (context, url, error) {
                   capturedError = error;
                   return const Text('base64-error');
                 },
+              ),
               onLoadStatusChanged: (s) => status = s,
             ),
           ),
@@ -277,7 +230,7 @@ void main() {
       Widget build() => MaterialApp(
             home: WImage(
               data: 'data:image/png;base64,@@invalid@@',
-              config: WImageConfig()..errorWidget = const Text('base64-error'),
+              style: const WImageStyle(errorWidget: Text('base64-error')),
               onLoadStatusChanged: statuses.add,
             ),
           );

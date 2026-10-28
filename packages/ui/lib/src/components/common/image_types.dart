@@ -68,7 +68,7 @@ class WImageProgress {
 
 /// 图片加载错误
 ///
-/// `WImageConfig.errorWidgetBuilder` 的第三个参数会收到它的子类型，
+/// `WImageStyle.errorWidgetBuilder` 的第三个参数会收到它的子类型，
 /// 调用方可以按类型分支处理。
 sealed class WImageError implements Exception {
   /// 创建错误

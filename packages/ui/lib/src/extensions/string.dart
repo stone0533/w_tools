@@ -39,7 +39,7 @@ extension WUiStringExtension on String {
   /// 或使用 [toAssetImage] / [toBase64Image] / [toFileImage] / [toNetworkImage]。
   ///
   /// 尺寸优先级：显式 `width` / `height` 优先，[size] 只作为缺省宽高的 fallback。
-  /// [config] 会被复制，方法内的覆盖不会修改调用方传入的配置。
+  /// [style] 会被复制，方法内的覆盖不会修改调用方传入的配置。
   ///
   /// ```dart
   /// 'https://a.com/logo.png'.toImage(width: 40);
@@ -48,7 +48,7 @@ extension WUiStringExtension on String {
   /// ```
   WImage toImage({
     Key? key,
-    WImageConfig? config,
+    WImageStyle style = const WImageStyle(),
     WImageType? type,
     double? width,
     double? height,
@@ -59,16 +59,20 @@ extension WUiStringExtension on String {
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
   }) {
-    final c = (config ?? WImageConfig()).copy();
-    if (width != null || size != null) c.width = width ?? size;
-    if (height != null || size != null) c.height = height ?? size;
-    if (fit != null) c.fit = fit;
-    if (semanticLabel != null) c.semanticLabel = semanticLabel;
+    var s = style;
+    if (width != null || height != null || size != null) {
+      s = s.copyWith(
+        width: width ?? style.width ?? size,
+        height: height ?? style.height ?? size,
+      );
+    }
+    if (fit != null) s = s.copyWith(fit: fit);
+    if (semanticLabel != null) s = s.copyWith(semanticLabel: semanticLabel);
 
     return WImage(
       key: key,
-      config: c,
       data: this,
+      style: s,
       type: type,
       controller: controller,
       onLoadStatusChanged: onLoadStatusChanged,
@@ -81,23 +85,23 @@ extension WUiStringExtension on String {
   /// [prefix] 为 true（默认）时自动拼 [WAssets.imagePath]：
   /// `'logo.png'.toAssetImage()` → `assets/images/logo.png`。
   /// 如果传入的已经是完整路径（`assets/...` / `packages/...`），用 `prefix: false`。
-  WImage toAssetImage({bool prefix = true, Key? key, WImageConfig? config}) {
+  WImage toAssetImage({bool prefix = true, Key? key, WImageStyle style = const WImageStyle()}) {
     final data = prefix ? assetImagePath : this;
-    return data.toImage(type: WImageType.asset, key: key, config: config);
+    return data.toImage(type: WImageType.asset, key: key, style: style);
   }
 
   /// Base64 图片（可带 `data:...;base64,` 前缀，也可直接给 Base64 串）
-  WImage toBase64Image({Key? key, WImageConfig? config}) {
-    return toImage(type: WImageType.base64, key: key, config: config);
+  WImage toBase64Image({Key? key, WImageStyle style = const WImageStyle()}) {
+    return toImage(type: WImageType.base64, key: key, style: style);
   }
 
   /// 本地文件图片（带不带 `file://` 前缀都可以）
-  WImage toFileImage({Key? key, WImageConfig? config}) {
-    return toImage(type: WImageType.file, key: key, config: config);
+  WImage toFileImage({Key? key, WImageStyle style = const WImageStyle()}) {
+    return toImage(type: WImageType.file, key: key, style: style);
   }
 
   /// 网络图片（`http` / `https`，或以 `//` 开头的协议相对地址）
-  WImage toNetworkImage({Key? key, WImageConfig? config}) {
-    return toImage(type: WImageType.network, key: key, config: config);
+  WImage toNetworkImage({Key? key, WImageStyle style = const WImageStyle()}) {
+    return toImage(type: WImageType.network, key: key, style: style);
   }
 }

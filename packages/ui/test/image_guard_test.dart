@@ -64,11 +64,12 @@ void main() {
         MaterialApp(
           home: WImage(
             data: '   ',
-            config: WImageConfig()
-              ..errorWidgetBuilder = (context, url, error) {
+            style: WImageStyle(
+              errorWidgetBuilder: (context, url, error) {
                 captured = error;
                 return const SizedBox.shrink();
               },
+            ),
           ),
         ),
       );
@@ -84,11 +85,12 @@ void main() {
         MaterialApp(
           home: WImage(
             data: '',
-            config: WImageConfig()
-              ..errorWidgetBuilder = (context, url, error) {
+            style: WImageStyle(
+              errorWidgetBuilder: (context, url, error) {
                 captured = error;
                 return const Text('custom-error');
               },
+            ),
           ),
         ),
       );
@@ -197,15 +199,13 @@ void main() {
 
   group('WImage 解码尺寸', () {
     testWidgets('memCacheWidth / memCacheHeight 透传给 CachedNetworkImageProvider', (tester) async {
-      final config = WImageConfig()
-        ..memCacheWidth = 240
-        ..memCacheHeight = 240;
+      const config = WImageStyle(memCacheWidth: 240, memCacheHeight: 240);
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: WImage(
-              config: config,
+              style: config,
               data: 'https://cdn.example.com/a.png',
             ),
           ),
@@ -224,7 +224,7 @@ void main() {
           home: Scaffold(
             body: WImage.asset(
               'assets/images/logo.png',
-              config: WImageConfig()..memCacheWidth = 120,
+              style: const WImageStyle(memCacheWidth: 120),
             ),
           ),
         ),
@@ -244,11 +244,12 @@ void main() {
           home: Scaffold(
             body: WImage(
               data: 'data:image/png;base64,$_pngBase64',
-              config: WImageConfig()
-                ..width = 10
-                ..height = 10
-                ..borderRadius = radius
-                ..border = Border.all(),
+              style: WImageStyle(
+                width: 10,
+                height: 10,
+                borderRadius: radius,
+                border: Border.all(),
+              ),
             ),
           ),
         ),
@@ -271,10 +272,11 @@ void main() {
           home: Scaffold(
             body: WImage(
               data: 'data:image/png;base64,$_pngBase64',
-              config: WImageConfig()
-                ..width = 10
-                ..height = 10
-                ..padding = const EdgeInsets.all(5),
+              style: const WImageStyle(
+                width: 10,
+                height: 10,
+                padding: EdgeInsets.all(5),
+              ),
             ),
           ),
         ),
@@ -297,7 +299,7 @@ void main() {
               width: 200,
               child: WImage.asset(
                 'assets/images/logo.png',
-                config: WImageConfig()..aspectRatio = 2,
+                style: const WImageStyle(aspectRatio: 2),
               ),
             ),
           ),
@@ -313,9 +315,10 @@ void main() {
           home: Scaffold(
             body: WImage.asset(
               'assets/images/logo.png',
-              config: WImageConfig()
-                ..semanticLabel = '门店照片'
-                ..excludeFromSemantics = true,
+              style: const WImageStyle(
+                semanticLabel: '门店照片',
+                excludeFromSemantics: true,
+              ),
             ),
           ),
         ),
@@ -327,36 +330,33 @@ void main() {
     });
   });
 
-  group('WImageConfig 可读', () {
+  group('WImageStyle 可读', () {
     test('所有配置都能读回', () {
-      final config = WImageConfig()
-        ..width = 10
-        ..height = 20
-        ..fit = BoxFit.contain
-        ..memCacheWidth = 30
-        ..memCacheHeight = 40
-        ..retryCount = 2
-        ..retryDelay = 300
-        ..aspectRatio = 1.5
-        ..semanticLabel = 'label'
-        ..gaplessPlayback = true
-        ..filterQuality = FilterQuality.high
-        ..httpHeaders = const {'Authorization': 'Bearer x'}
-        ..cacheKey = 'k';
+      const style = WImageStyle(
+        width: 10,
+        height: 20,
+        fit: BoxFit.contain,
+        memCacheWidth: 30,
+        memCacheHeight: 40,
+        retryCount: 2,
+        retryDelay: 300,
+        aspectRatio: 1.5,
+        semanticLabel: 'label',
+        gaplessPlayback: true,
+        filterQuality: FilterQuality.high,
+      );
 
-      expect(config.width, 10);
-      expect(config.height, 20);
-      expect(config.fit, BoxFit.contain);
-      expect(config.memCacheWidth, 30);
-      expect(config.memCacheHeight, 40);
-      expect(config.retryCount, 2);
-      expect(config.retryDelay, 300);
-      expect(config.aspectRatio, 1.5);
-      expect(config.semanticLabel, 'label');
-      expect(config.gaplessPlayback, isTrue);
-      expect(config.filterQuality, FilterQuality.high);
-      expect(config.httpHeaders, {'Authorization': 'Bearer x'});
-      expect(config.cacheKey, 'k');
+      expect(style.width, 10);
+      expect(style.height, 20);
+      expect(style.fit, BoxFit.contain);
+      expect(style.memCacheWidth, 30);
+      expect(style.memCacheHeight, 40);
+      expect(style.retryCount, 2);
+      expect(style.retryDelay, 300);
+      expect(style.aspectRatio, 1.5);
+      expect(style.semanticLabel, 'label');
+      expect(style.gaplessPlayback, isTrue);
+      expect(style.filterQuality, FilterQuality.high);
     });
 
     test('WImageProgress.fraction 处理未知总大小', () {

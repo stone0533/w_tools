@@ -3,43 +3,35 @@
 ## 2.0.0
 
 ### Breaking
-- `WImageConfig.progressIndicatorBuilder`（旧 `DownloadProgress` 签名）删除，统一用 `progressBuilder`。
-- `WImage.onLoadProgress` / `toImage(onLoadProgress:)` 删除，统一用 `onProgress`。
-- `WImageConfig.cacheEnabled` 删除（资产统一走 `Image.asset` + `ImageCache`）。
-- `WImageConfig.size(w, h)` 改名为 `dimensions(w, h)`；新增 `square(side)`。
-- `WImageConfig.fitCenter()` 删除，用 `fitContain()`。
-- `WImageConfigBuild.build` 返回类型从 `Widget` 收窄为 `WImage`。
+- `WImageConfig` 删除，改为不可变 `WImageStyle`（`copyWith` / `validate`）。
+- `WImageConfigBuild` 扩展删除；用 `WImage.source` / `WImage.network/asset/file/base64`。
+- `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。
+- `WImage.onLoadProgress`、`progressIndicatorBuilder`、`cacheEnabled`、`fitCenter`、`size` 均已删除。
 
 ### Added
 - 新架构入口：`WImage.source(source:, style:)`、sealed `WImageSource`、不可变 `WImageStyle`、
   `WImageFrame`、`WImageTheme`。
-- `WImageSource.parse` 保留字符串自动判定；旧 `WImage(data:, config:)` 与命名构造作为适配层。
+- `WImageSource.parse` 保留字符串自动判定；`WImage(data:, style:)` 与命名构造作为便利入口。
 - `WImageController.state`：`ValueListenable<WImageLoadSnapshot>`（status/progress/attempt）。
 - 重试定时器、错误分类、进度上报与状态去重移入 `WImageLoader`；`WImage` 的 State 只做构建/渲染。
 - 网络路径统一为 `CachedNetworkImageProvider` + `Image`，进度改用 `ImageChunkEvent`；
   磁盘缓存仍走 `cached_network_image`。
-- `WImageConfig.copy()`：复制全部配置字段，便于"以现有配置为底再覆盖少量字段"。
-- `String.toImage` 增加 `key` / `config` / `type` / `semanticLabel` / `controller` /
-  `onProgress` 参数；`config` 会被复制，不会修改调用方对象。
-- 新增 `String.toAssetImage({prefix})` / `toBase64Image()` / `toFileImage()` / `toNetworkImage()`，
-  避免自动判定在「纯 Base64」「无 file:// 前缀」「短资源名」上猜错。
+- `String.toImage` 增加 `key` / `style` / `type` / `semanticLabel` / `controller` /
+  `onProgress` 参数；`style` 不可变，不会被修改。
+- 新增 `String.toAssetImage({prefix})` / `toBase64Image()` / `toFileImage()` / `toNetworkImage()`。
 - `WImage` 默认构造支持显式 `type`，与命名构造一致。
 
 ### Changed
-- `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback
-  （旧行为是 `size` 覆盖宽高）。
+- `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。
+- 网络图的进度改由 `Image.loadingBuilder` 的 `ImageChunkEvent` 上报。
 
 ### Fixed
-- `WImage` 的 `key` 之前没有传给 `StatefulWidget`，导致所有构造方式的 `key` 实际失效；
-  现在会正确传递。
-- 修改 `retryCount` / `retryDelay` 时会取消已排队的重试，避免关掉重试后仍多发一次请求。
-- 网络图的 `completed` 状态改为在首帧到达时上报，避免解码失败时先报 `completed` 再报 `failed`。
-- `borderRadius` 现在同时作用于 `border` 与 `boxShadow`，不再出现圆角图片 + 直角边框。
-- `WImageConfig.validate()` 在构造、更新、build 时复用；`aspectRatio` 与固定宽高冲突时 debug assert。
+- `WImage` 的 `key` 之前没有传给 `StatefulWidget`，导致所有构造方式的 `key` 实际失效。
+- 修改 `retryCount` / `retryDelay` 时会取消已排队的重试。
+- 网络图的 `completed` 状态改为在首帧到达时上报。
+- `borderRadius` 现在同时作用于 `border` 与 `boxShadow`。
+- `WImageStyle.validate()` 在构造、更新、build 时复用；`aspectRatio` 与固定宽高冲突时 debug assert。
 - `WImageCacheManager` 与 `WImageGlobalConfig` 解耦（全局配置不再修改预加载工具的上限）。
-
-### Changed
-- `_WImageLoadState` 拆到 `image_load_state.dart`（内部实现，便于测试与维护）。
 
 ## 1.1.0
 

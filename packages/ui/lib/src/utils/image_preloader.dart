@@ -42,15 +42,15 @@ class _CacheItem {
 /// `WImage` 本身已不再使用它，`WImageGlobalConfig` 也不会修改它的上限。
 ///
 /// 采用单例模式，实现了 LRU (Least Recently Used) 缓存策略。
-class WImageCacheManager {
+class WImagePreloader {
   /// 单例实例
-  static final WImageCacheManager _instance = WImageCacheManager._();
+  static final WImagePreloader _instance = WImagePreloader._();
 
   /// 工厂构造函数
-  factory WImageCacheManager() => _instance;
+  factory WImagePreloader() => _instance;
 
   /// 私有构造函数
-  WImageCacheManager._() {
+  WImagePreloader._() {
     // 监听内存警告
     _listenToMemoryWarnings();
   }

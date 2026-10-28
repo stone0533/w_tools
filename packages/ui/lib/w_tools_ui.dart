@@ -16,7 +16,7 @@ export 'src/extensions/widget.dart';
 // 工具
 export 'src/utils/assets.dart';
 export 'src/utils/column.dart';
-export 'src/utils/image_cache_manager.dart';
+export 'src/utils/image_preloader.dart';
 export 'src/utils/padding.dart';
 export 'src/utils/row.dart';
 export 'src/utils/screen.dart';

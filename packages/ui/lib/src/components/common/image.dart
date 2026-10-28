@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'image_config.dart';
 import 'image_frame.dart';
 import 'image_loader.dart';
 import 'image_source.dart';
@@ -19,7 +18,6 @@ import 'image_types.dart';
 // dart.library.html 不可用，用 html 判断会落到原生分支并编译 dart:io。
 import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
-export 'image_config.dart';
 export 'image_frame.dart';
 export 'image_loader.dart';
 export 'image_source.dart';
@@ -83,50 +81,38 @@ class WImage extends StatefulWidget {
   /// 图片控制器（手动重试）
   final WImageController? controller;
 
-  /// 旧的配置视图（返回重命名前的配置副本）
-  WImageConfig get config => style.toConfig();
-
   /// 调用方传入的原始值（未 trim / 未规范化）
   String get data => source.raw;
 
   /// 显式类型；默认构造自动判定时为 null（历史语义）
   final WImageType? type;
 
-  /// 按字符串自动判定来源（兼容入口；新代码建议用 [WImage.source]）
+  /// 按字符串自动判定来源（便利入口；新代码建议用 [WImage.source]）
   factory WImage({
     Key? key,
-    WImageConfig? config,
-    WImageStyle? style,
+    WImageStyle style = const WImageStyle(),
     required String data,
     WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
-    var source = WImageSource.parse(data, type: type);
-    if (source is WNetworkImageSource) {
-      source = WNetworkImageSource(
-        source.raw,
-        headers: source.headers ?? config?.httpHeaders,
-        cacheKey: source.cacheKey ?? config?.cacheKey,
-      );
-    }
     return WImage._(
       key: key,
       type: type,
-      source: source,
-      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      source: WImageSource.parse(data, type: type),
+      style: style,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
     );
   }
 
-  /// 显式来源 + 不可变样式（推荐的新入口）
+  /// 显式来源 + 不可变样式（推荐入口）
   factory WImage.source({
     Key? key,
     required WImageSource source,
-    WImageStyle? style,
+    WImageStyle style = const WImageStyle(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -135,7 +121,7 @@ class WImage extends StatefulWidget {
       key: key,
       type: source.type,
       source: source,
-      style: style ?? WImageStyle(),
+      style: style,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -146,8 +132,7 @@ class WImage extends StatefulWidget {
   factory WImage.network(
     String data, {
     Key? key,
-    WImageConfig? config,
-    WImageStyle? style,
+    WImageStyle style = const WImageStyle(),
     Map<String, String>? headers,
     String? cacheKey,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
@@ -156,12 +141,8 @@ class WImage extends StatefulWidget {
   }) {
     return WImage.source(
       key: key,
-      source: WImageSource.network(
-        data,
-        headers: headers ?? config?.httpHeaders,
-        cacheKey: cacheKey ?? config?.cacheKey,
-      ),
-      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      source: WImageSource.network(data, headers: headers, cacheKey: cacheKey),
+      style: style,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -172,8 +153,7 @@ class WImage extends StatefulWidget {
   factory WImage.asset(
     String data, {
     Key? key,
-    WImageConfig? config,
-    WImageStyle? style,
+    WImageStyle style = const WImageStyle(),
     String? package,
     bool prefix = false,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
@@ -183,7 +163,7 @@ class WImage extends StatefulWidget {
     return WImage.source(
       key: key,
       source: WImageSource.asset(data, package: package, prefix: prefix),
-      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      style: style,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -194,8 +174,7 @@ class WImage extends StatefulWidget {
   factory WImage.file(
     String data, {
     Key? key,
-    WImageConfig? config,
-    WImageStyle? style,
+    WImageStyle style = const WImageStyle(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -203,7 +182,7 @@ class WImage extends StatefulWidget {
     return WImage.source(
       key: key,
       source: WImageSource.file(data),
-      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      style: style,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -214,8 +193,7 @@ class WImage extends StatefulWidget {
   factory WImage.base64(
     String data, {
     Key? key,
-    WImageConfig? config,
-    WImageStyle? style,
+    WImageStyle style = const WImageStyle(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -223,7 +201,7 @@ class WImage extends StatefulWidget {
     return WImage.source(
       key: key,
       source: WImageSource.base64(data),
-      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      style: style,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -413,13 +391,20 @@ class _WImageState extends State<WImage> {
 
   /// 图片加载中的占位（优先业务自定义）
   Widget _placeholderFor(BuildContext context) {
-    return config.placeholderBuilder?.call(context, _value) ?? _buildPlaceholder(context);
+    final builder = config.placeholderBuilder;
+    if (builder != null) {
+      return builder(context, _value) ?? _buildPlaceholder(context);
+    }
+    return config.placeholder ?? _buildPlaceholder(context);
   }
 
-  /// 错误占位：业务自定义优先，其次默认错误占位
+  /// 错误占位：业务自定义优先，其次固定 Widget，最后默认错误占位
   Widget _errorSlot(BuildContext context, WImageError error) {
-    return config.errorWidgetBuilder?.call(context, error.data, error) ??
-        _buildErrorWidget(context);
+    final builder = config.errorWidgetBuilder;
+    if (builder != null) {
+      return builder(context, error.data, error) ?? _buildErrorWidget(context);
+    }
+    return config.errorWidget ?? _buildErrorWidget(context);
   }
 
   /// 网络图片：CachedNetworkImageProvider + 统一 Image 管线
@@ -563,66 +548,5 @@ class _WImageState extends State<WImage> {
       return Future<Uint8List>.sync(() => _decodeBase64Sync(value));
     }
     return compute(_decodeBase64Sync, value);
-  }
-}
-
-/// [WImageConfig] 的构建便利方法
-extension WImageConfigBuild on WImageConfig {
-  /// 构建 WImage 组件
-  WImage build({
-    required String data,
-    Key? key,
-    WImageType? type,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage(
-      key: key,
-      config: this,
-      data: data,
-      type: type,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 构建文件图片组件（通过路径字符串）
-  WImage buildFilePath(
-    String filePath, {
-    Key? key,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.file(
-      filePath,
-      key: key,
-      config: this,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 构建 Base64 图片组件
-  ///
-  /// 可以带 `data:...;base64,` 前缀，也可以直接给 Base64 串。
-  WImage buildBase64(
-    String base64, {
-    Key? key,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.base64(
-      base64,
-      key: key,
-      config: this,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
   }
 }

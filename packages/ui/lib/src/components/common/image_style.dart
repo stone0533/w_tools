@@ -1,60 +1,81 @@
 import 'package:flutter/material.dart';
 
-import 'image_config.dart';
 import 'image_types.dart';
 
 /// 不可变的图片样式。
-///
-/// 绿field 设计里 `WImage` 接收 [WImageStyle]；旧的可变 [WImageConfig]
-/// 仍保留作为 builder 适配层，[WImageStyle.fromConfig] / [WImageStyle.toConfig]
-/// 负责转换。
 @immutable
 class WImageStyle {
-  /// 从可选配置创建（内部复制一份，之后修改原 config 不会影响 style）
-  WImageStyle({WImageConfig? config}) : _config = (config ?? WImageConfig()).copy();
+  const WImageStyle({
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.alignment = Alignment.center,
+    this.memCacheWidth,
+    this.memCacheHeight,
+    this.aspectRatio,
+    this.borderRadius,
+    this.border,
+    this.boxShadow,
+    this.margin,
+    this.padding,
+    this.semanticLabel,
+    this.excludeFromSemantics = false,
+    this.gaplessPlayback = false,
+    this.filterQuality = FilterQuality.low,
+    this.retryCount = 0,
+    this.retryDelay = 1000,
+    this.placeholderBuilder,
+    this.errorWidgetBuilder,
+    this.progressBuilder,
+    this.placeholder,
+    this.errorWidget,
+  });
 
-  /// 从旧配置创建
-  WImageStyle.fromConfig(WImageConfig config) : _config = config.copy();
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final Alignment alignment;
+  final int? memCacheWidth;
+  final int? memCacheHeight;
+  final double? aspectRatio;
+  final BorderRadius? borderRadius;
+  final BoxBorder? border;
+  final List<BoxShadow>? boxShadow;
+  final EdgeInsets? margin;
+  final EdgeInsets? padding;
+  final String? semanticLabel;
+  final bool excludeFromSemantics;
+  final bool gaplessPlayback;
+  final FilterQuality filterQuality;
+  final int retryCount;
+  final int retryDelay;
+  final Widget? Function(BuildContext, String)? placeholderBuilder;
+  final Widget? Function(BuildContext, String, WImageError)? errorWidgetBuilder;
+  final Widget? Function(BuildContext, String, WImageProgress)? progressBuilder;
 
-  final WImageConfig _config;
+  /// 固定占位符（与 builder 二选一）
+  final Widget? placeholder;
 
-  double? get width => _config.width;
-  double? get height => _config.height;
-  BoxFit get fit => _config.fit;
-  Alignment get alignment => _config.alignment;
-  int? get memCacheWidth => _config.memCacheWidth;
-  int? get memCacheHeight => _config.memCacheHeight;
-  double? get aspectRatio => _config.aspectRatio;
-  BorderRadius? get borderRadius => _config.borderRadius;
-  BoxBorder? get border => _config.border;
-  List<BoxShadow>? get boxShadow => _config.boxShadow;
-  EdgeInsets? get margin => _config.margin;
-  EdgeInsets? get padding => _config.padding;
-  String? get semanticLabel => _config.semanticLabel;
-  bool get excludeFromSemantics => _config.excludeFromSemantics;
-  bool get gaplessPlayback => _config.gaplessPlayback;
-  FilterQuality get filterQuality => _config.filterQuality;
-  int get retryCount => _config.retryCount;
-  int get retryDelay => _config.retryDelay;
-  Widget? Function(BuildContext, String)? get placeholderBuilder => _config.placeholderBuilder;
-  Widget? Function(BuildContext, String, WImageError)? get errorWidgetBuilder =>
-      _config.errorWidgetBuilder;
-  Widget? Function(BuildContext, String, WImageProgress)? get progressBuilder =>
-      _config.progressBuilder;
-  Widget? get placeholder => _config.placeholder;
-  Widget? get errorWidget => _config.errorWidget;
+  /// 固定错误占位（与 builder 二选一）
+  final Widget? errorWidget;
 
   /// 校验（debug assert）
-  void validate() => _config.validate();
-
-  /// 转回旧配置（返回副本，修改它不会影响 style）
-  WImageConfig toConfig() => _config.copy();
+  void validate() {
+    assert(retryCount >= 0, 'retryCount 不能为负');
+    assert(retryDelay >= 0, 'retryDelay 不能为负');
+    assert(memCacheWidth == null || memCacheWidth! > 0, 'memCacheWidth 必须大于 0');
+    assert(memCacheHeight == null || memCacheHeight! > 0, 'memCacheHeight 必须大于 0');
+    assert(aspectRatio == null || aspectRatio! > 0, 'aspectRatio 必须大于 0');
+    assert(width == null || width! >= 0, 'width 不能为负');
+    assert(height == null || height! >= 0, 'height 不能为负');
+    assert(
+      !(aspectRatio != null && width != null && height != null),
+      'aspectRatio 与固定 width/height 不要同时设置（约束会冲突）',
+    );
+  }
 
   static const Object _unset = Object();
 
-  /// 复制并覆盖字段。
-  ///
-  /// nullable 字段支持显式传 `null` 清空；不传则保留原值。
   WImageStyle copyWith({
     Object? width = _unset,
     Object? height = _unset,
@@ -80,40 +101,44 @@ class WImageStyle {
     Object? placeholder = _unset,
     Object? errorWidget = _unset,
   }) {
-    final c = _config.copy();
-    if (!identical(width, _unset)) c.width = (width as num?)?.toDouble();
-    if (!identical(height, _unset)) c.height = (height as num?)?.toDouble();
-    if (!identical(fit, _unset)) c.fit = fit as BoxFit;
-    if (!identical(alignment, _unset)) c.alignment = alignment as Alignment;
-    if (!identical(memCacheWidth, _unset)) c.memCacheWidth = memCacheWidth as int?;
-    if (!identical(memCacheHeight, _unset)) c.memCacheHeight = memCacheHeight as int?;
-    if (!identical(aspectRatio, _unset)) c.aspectRatio = (aspectRatio as num?)?.toDouble();
-    if (!identical(borderRadius, _unset)) c.borderRadius = borderRadius as BorderRadius?;
-    if (!identical(border, _unset)) c.border = border as BoxBorder?;
-    if (!identical(boxShadow, _unset)) c.boxShadow = boxShadow as List<BoxShadow>?;
-    if (!identical(margin, _unset)) c.margin = margin as EdgeInsets?;
-    if (!identical(padding, _unset)) c.padding = padding as EdgeInsets?;
-    if (!identical(semanticLabel, _unset)) c.semanticLabel = semanticLabel as String?;
-    if (!identical(excludeFromSemantics, _unset)) {
-      c.excludeFromSemantics = excludeFromSemantics as bool;
-    }
-    if (!identical(gaplessPlayback, _unset)) c.gaplessPlayback = gaplessPlayback as bool;
-    if (!identical(filterQuality, _unset)) c.filterQuality = filterQuality as FilterQuality;
-    if (!identical(retryCount, _unset)) c.retryCount = retryCount as int;
-    if (!identical(retryDelay, _unset)) c.retryDelay = retryDelay as int;
-    if (!identical(placeholderBuilder, _unset)) {
-      c.placeholderBuilder = placeholderBuilder as Widget? Function(BuildContext, String)?;
-    }
-    if (!identical(errorWidgetBuilder, _unset)) {
-      c.errorWidgetBuilder =
-          errorWidgetBuilder as Widget? Function(BuildContext, String, WImageError)?;
-    }
-    if (!identical(progressBuilder, _unset)) {
-      c.progressBuilder =
-          progressBuilder as Widget? Function(BuildContext, String, WImageProgress)?;
-    }
-    if (!identical(placeholder, _unset)) c.placeholder = placeholder as Widget?;
-    if (!identical(errorWidget, _unset)) c.errorWidget = errorWidget as Widget?;
-    return WImageStyle(config: c);
+    return WImageStyle(
+      width: identical(width, _unset) ? this.width : (width as num?)?.toDouble(),
+      height: identical(height, _unset) ? this.height : (height as num?)?.toDouble(),
+      fit: identical(fit, _unset) ? this.fit : fit as BoxFit,
+      alignment: identical(alignment, _unset) ? this.alignment : alignment as Alignment,
+      memCacheWidth: identical(memCacheWidth, _unset) ? this.memCacheWidth : memCacheWidth as int?,
+      memCacheHeight:
+          identical(memCacheHeight, _unset) ? this.memCacheHeight : memCacheHeight as int?,
+      aspectRatio:
+          identical(aspectRatio, _unset) ? this.aspectRatio : (aspectRatio as num?)?.toDouble(),
+      borderRadius:
+          identical(borderRadius, _unset) ? this.borderRadius : borderRadius as BorderRadius?,
+      border: identical(border, _unset) ? this.border : border as BoxBorder?,
+      boxShadow: identical(boxShadow, _unset) ? this.boxShadow : boxShadow as List<BoxShadow>?,
+      margin: identical(margin, _unset) ? this.margin : margin as EdgeInsets?,
+      padding: identical(padding, _unset) ? this.padding : padding as EdgeInsets?,
+      semanticLabel:
+          identical(semanticLabel, _unset) ? this.semanticLabel : semanticLabel as String?,
+      excludeFromSemantics: identical(excludeFromSemantics, _unset)
+          ? this.excludeFromSemantics
+          : excludeFromSemantics as bool,
+      gaplessPlayback:
+          identical(gaplessPlayback, _unset) ? this.gaplessPlayback : gaplessPlayback as bool,
+      filterQuality:
+          identical(filterQuality, _unset) ? this.filterQuality : filterQuality as FilterQuality,
+      retryCount: identical(retryCount, _unset) ? this.retryCount : retryCount as int,
+      retryDelay: identical(retryDelay, _unset) ? this.retryDelay : retryDelay as int,
+      placeholderBuilder: identical(placeholderBuilder, _unset)
+          ? this.placeholderBuilder
+          : placeholderBuilder as Widget? Function(BuildContext, String)?,
+      errorWidgetBuilder: identical(errorWidgetBuilder, _unset)
+          ? this.errorWidgetBuilder
+          : errorWidgetBuilder as Widget? Function(BuildContext, String, WImageError)?,
+      progressBuilder: identical(progressBuilder, _unset)
+          ? this.progressBuilder
+          : progressBuilder as Widget? Function(BuildContext, String, WImageProgress)?,
+      placeholder: identical(placeholder, _unset) ? this.placeholder : placeholder as Widget?,
+      errorWidget: identical(errorWidget, _unset) ? this.errorWidget : errorWidget as Widget?,
+    );
   }
 }

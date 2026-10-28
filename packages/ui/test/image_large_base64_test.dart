@@ -44,9 +44,7 @@ void main() {
         home: Scaffold(
           body: WImage(
             data: 'data:image/png;base64,$base64Text',
-            config: WImageConfig()
-              ..width = 64
-              ..height = 64,
+            style: const WImageStyle(width: 64, height: 64),
           ),
         ),
       ),

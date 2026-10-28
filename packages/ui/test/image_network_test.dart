@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/image.dart';
 import 'package:w_tools_ui/src/components/common/image_retry_policy.dart';
 
+import 'image_test_style.dart';
+
 const _url = 'https://example.com/img.png';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
@@ -17,7 +19,7 @@ void main() {
         _wrap(
           WImage.network(
             _url,
-            config: WImageConfig()..placeholder = const Text('LOAD'),
+            style: const WImageStyle(placeholder: Text('LOAD')),
           ),
         ),
       );
@@ -31,11 +33,9 @@ void main() {
         _wrap(
           WImage.network(
             _url,
-            config: WImageConfig()
-              ..httpHeaders = const {'Authorization': 'Bearer token'}
-              ..cacheKey = 'home-hero'
-              ..memCacheWidth = 240
-              ..memCacheHeight = 120,
+            headers: const {'Authorization': 'Bearer token'},
+            cacheKey: 'home-hero',
+            style: const WImageStyle(memCacheWidth: 240, memCacheHeight: 120),
           ),
         ),
       );
@@ -53,7 +53,9 @@ void main() {
         _wrap(
           WImage.network(
             _url,
-            config: WImageConfig()..progressBuilder = (_, __, ___) => const Text('PROG'),
+            style: WImageStyle(
+              progressBuilder: (_, __, ___) => const Text('PROG'),
+            ),
           ),
         ),
       );
@@ -140,11 +142,11 @@ void main() {
 
   group('重试状态', () {
     testWidgets('retryCount 变化后 attempt 归零', (tester) async {
-      final config = WImageConfig()..retryCount = 3;
+      final config = TestImageStyle()..retryCount = 3;
       final controller = WImageController();
 
       Widget build() => _wrap(
-            WImage.network(_url, config: config, controller: controller),
+            WImage.network(_url, style: config.build(), controller: controller),
           );
 
       await tester.pumpWidget(build());
@@ -180,15 +182,13 @@ void main() {
     });
   });
 
-  group('WImageConfig 构建扩展', () {
-    test('buildBase64 生成显式 base64 类型', () {
-      final widget = WImageConfig().buildBase64('AAAA');
-      expect(widget.type, WImageType.base64);
+  group('WImage 构造快捷入口', () {
+    test('base64 生成显式 base64 类型', () {
+      expect(WImage.base64('AAAA').type, WImageType.base64);
     });
 
-    test('buildFilePath 生成显式 file 类型', () {
-      final widget = WImageConfig().buildFilePath('/tmp/a.png');
-      expect(widget.type, WImageType.file);
+    test('file 生成显式 file 类型', () {
+      expect(WImage.file('/tmp/a.png').type, WImageType.file);
     });
   });
 
