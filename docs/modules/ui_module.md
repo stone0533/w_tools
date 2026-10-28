@@ -345,6 +345,30 @@ WText(
 
 图片组件，支持四种来源：网络 URL、本地资源、本地文件、Base64。默认按 `data` 自动判定类型；需要确定性时用命名构造（`WImage.network` / `WImage.asset` / `WImage.file` / `WImage.base64`）。提供占位符、错误处理、加载进度、网络重试、解码尺寸限制与图片变换。
 
+### 新 API（推荐）
+
+```dart
+WImage.source(
+  source: WImageSource.network(
+    url,
+    headers: {'Authorization': token},
+    cacheKey: 'home-hero',
+  ),
+  style: WImageStyle(
+    config: WImageConfig()
+      ..width = 120
+      ..height = 120
+      ..fitCover()
+      ..borderRadius = BorderRadius.circular(12),
+  ),
+)
+```
+
+- `WImageSource` 是 sealed：`network` / `asset` / `file` / `base64`，`WImageSource.parse` 保留字符串自动判定；
+- `WImageStyle` 不可变，提供 `copyWith`、`validate`、`toConfig`/`fromConfig`；
+- `WImageTheme`（InheritedWidget）可按子树覆盖默认占位符/错误占位符，优先于 `WImageGlobalConfig`；
+- 旧的 `WImage(data:, config:)` 与命名构造仍然可用，内部会转换成 `WImageSource` + `WImageStyle`。
+
 ### 构造参数
 
 | 参数 | 类型 | 说明 |

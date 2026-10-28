@@ -7,7 +7,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'image_config.dart';
+import 'image_frame.dart';
 import 'image_load_state.dart';
+import 'image_source.dart';
+import 'image_style.dart';
+import 'image_theme.dart';
 import 'image_retry_policy.dart';
 import 'image_types.dart';
 
@@ -17,6 +21,10 @@ import 'image_types.dart';
 import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
 export 'image_config.dart';
+export 'image_frame.dart';
+export 'image_source.dart';
+export 'image_style.dart';
+export 'image_theme.dart';
 export 'image_types.dart';
 
 /// 图片控制器
@@ -52,14 +60,11 @@ class WImageController {
 /// 提供占位符、错误处理、加载进度、网络重试（自动 + 手动）与图片变换
 /// （圆角、边框、阴影、margin/padding）。
 class WImage extends StatefulWidget {
-  /// 图片配置
-  final WImageConfig config;
+  /// 图片来源
+  final WImageSource source;
 
-  /// 图片数据（网络 URL、本地资源路径、文件路径或 Base64 数据）
-  final String data;
-
-  /// 显式指定的图片类型；null 表示按 [data] 自动判定
-  final WImageType? type;
+  /// 不可变样式
+  final WImageStyle style;
 
   /// 加载状态回调
   final ValueChanged<WImageLoadStatus>? onLoadStatusChanged;
@@ -70,109 +75,163 @@ class WImage extends StatefulWidget {
   /// 图片控制器（手动重试）
   final WImageController? controller;
 
-  /// 按 [data] 自动判定类型
-  ///
-  /// 判定规则见 [WImageType]；空串/纯空白渲染错误占位。
-  WImage({
+  /// 旧的配置视图（返回重命名前的配置副本）
+  WImageConfig get config => style.toConfig();
+
+  /// 调用方传入的原始值（未 trim / 未规范化）
+  String get data => source.raw;
+
+  /// 显式类型；默认构造自动判定时为 null（历史语义）
+  final WImageType? type;
+
+  /// 按字符串自动判定来源（兼容入口；新代码建议用 [WImage.source]）
+  factory WImage({
     Key? key,
     WImageConfig? config,
+    WImageStyle? style,
     required String data,
     WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
-  }) : this._(
-          key: key,
-          config: config,
-          data: data,
-          type: type,
-          onLoadStatusChanged: onLoadStatusChanged,
-          onProgress: onProgress,
-          controller: controller,
-        );
+  }) {
+    var source = WImageSource.parse(data, type: type);
+    if (source is WNetworkImageSource) {
+      source = WNetworkImageSource(
+        source.raw,
+        headers: source.headers ?? config?.httpHeaders,
+        cacheKey: source.cacheKey ?? config?.cacheKey,
+      );
+    }
+    return WImage._(
+      key: key,
+      type: type,
+      source: source,
+      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
+
+  /// 显式来源 + 不可变样式（推荐的新入口）
+  factory WImage.source({
+    Key? key,
+    required WImageSource source,
+    WImageStyle? style,
+    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
+    ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
+  }) {
+    return WImage._(
+      key: key,
+      type: source.type,
+      source: source,
+      style: style ?? WImageStyle(),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
 
   /// 网络图片（`http` / `https`，或以 `//` 开头的协议相对地址）
-  WImage.network(
+  factory WImage.network(
     String data, {
     Key? key,
     WImageConfig? config,
+    WImageStyle? style,
+    Map<String, String>? headers,
+    String? cacheKey,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
-  }) : this._(
-          key: key,
-          config: config,
-          data: data,
-          type: WImageType.network,
-          onLoadStatusChanged: onLoadStatusChanged,
-          onProgress: onProgress,
-          controller: controller,
-        );
+  }) {
+    return WImage.source(
+      key: key,
+      source: WImageSource.network(
+        data,
+        headers: headers ?? config?.httpHeaders,
+        cacheKey: cacheKey ?? config?.cacheKey,
+      ),
+      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
 
   /// 本地资源图片（`assets/...` 或 `packages/<pkg>/...`）
-  WImage.asset(
+  factory WImage.asset(
     String data, {
     Key? key,
     WImageConfig? config,
+    WImageStyle? style,
+    String? package,
+    bool prefix = false,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
-  }) : this._(
-          key: key,
-          config: config,
-          data: data,
-          type: WImageType.asset,
-          onLoadStatusChanged: onLoadStatusChanged,
-          onProgress: onProgress,
-          controller: controller,
-        );
+  }) {
+    return WImage.source(
+      key: key,
+      source: WImageSource.asset(data, package: package, prefix: prefix),
+      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
 
   /// 本地文件图片（带不带 `file://` 前缀都可以）
-  WImage.file(
+  factory WImage.file(
     String data, {
     Key? key,
     WImageConfig? config,
+    WImageStyle? style,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
-  }) : this._(
-          key: key,
-          config: config,
-          data: data,
-          type: WImageType.file,
-          onLoadStatusChanged: onLoadStatusChanged,
-          onProgress: onProgress,
-          controller: controller,
-        );
+  }) {
+    return WImage.source(
+      key: key,
+      source: WImageSource.file(data),
+      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
 
   /// Base64 图片（可以带 `data:...;base64,` 前缀，也可以直接给 Base64 串）
-  WImage.base64(
+  factory WImage.base64(
     String data, {
     Key? key,
     WImageConfig? config,
+    WImageStyle? style,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
-  }) : this._(
-          key: key,
-          config: config,
-          data: data,
-          type: WImageType.base64,
-          onLoadStatusChanged: onLoadStatusChanged,
-          onProgress: onProgress,
-          controller: controller,
-        );
+  }) {
+    return WImage.source(
+      key: key,
+      source: WImageSource.base64(data),
+      style: style ?? WImageStyle.fromConfig(config ?? WImageConfig()),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
 
   WImage._({
     super.key,
-    WImageConfig? config,
-    required this.data,
     required this.type,
+    required this.source,
+    required this.style,
     this.onLoadStatusChanged,
     this.onProgress,
     this.controller,
-  }) : config = config ?? WImageConfig() {
-    this.config.validate();
+  }) {
+    style.validate();
   }
 
   @override
@@ -197,9 +256,6 @@ class _WImageState extends State<WImage> {
   /// （`compute` 起 isolate 的开销更大；Web 上 `compute` 也仍在主线程）
   static const int _inlineDecodeMaxBytes = 64 * 1024;
 
-  /// `file://` 前缀（避免每次调用都重新编译）
-  static final RegExp _fileSchemePattern = RegExp(r'^file://');
-
   /// 重试抖动源（同屏多图不会在同一毫秒齐刷刷重试）
   static final Random _random = Random();
 
@@ -215,7 +271,7 @@ class _WImageState extends State<WImage> {
   /// 加载 / 重试 / 进度状态
   final WImageLoadState _load = WImageLoadState();
 
-  WImageConfig get config => widget.config;
+  WImageStyle get config => widget.style;
 
   @override
   void initState() {
@@ -233,7 +289,7 @@ class _WImageState extends State<WImage> {
       oldWidget.controller?._detach(this);
       widget.controller?._attach(this);
     }
-    if (oldWidget.data != widget.data || oldWidget.type != widget.type) {
+    if (oldWidget.source != widget.source) {
       _reset();
     }
   }
@@ -245,8 +301,8 @@ class _WImageState extends State<WImage> {
   }
 
   void _reset() {
-    _type = widget.type ?? _detectType(widget.data);
-    _value = _normalize(widget.data, _type);
+    _type = widget.source.type;
+    _value = widget.source.value;
     _bytesFuture = null;
     _load.reset(
       retryCount: config.retryCount,
@@ -260,63 +316,6 @@ class _WImageState extends State<WImage> {
       retryCount: config.retryCount,
       retryDelay: config.retryDelay,
     );
-  }
-
-  /// 按内容判定类型
-  ///
-  /// 用 [Uri] 解析 scheme（大小写无关），而不是 `startsWith('http')`：
-  /// `HTTPS://`、前导空格、`//` 协议相对地址都能识别。
-  static WImageType _detectType(String raw) {
-    final value = raw.trim();
-    final uri = Uri.tryParse(value);
-    final scheme = uri?.scheme.toLowerCase() ?? '';
-    if ((scheme == 'http' || scheme == 'https') && (uri?.host.isNotEmpty ?? false)) {
-      return WImageType.network;
-    }
-    if (scheme == 'file') return WImageType.file;
-    if (value.startsWith('data:')) return WImageType.base64;
-    // 协议相对地址：`//cdn.example.com/a.png`
-    if (value.startsWith('//')) return WImageType.network;
-    return WImageType.asset;
-  }
-
-  /// 规范化数据：所有分支统一使用 trim 后的值
-  static String _normalize(String raw, WImageType type) {
-    final value = raw.trim();
-    switch (type) {
-      case WImageType.network:
-        return value.startsWith('//') ? 'https:$value' : value;
-      case WImageType.file:
-        return _filePathOf(value);
-      case WImageType.base64:
-        return _stripDataUriPrefix(value);
-      case WImageType.asset:
-        return value;
-    }
-  }
-
-  /// `file://` URI → 文件系统路径
-  static String _filePathOf(String value) {
-    if (!value.startsWith('file:')) return value;
-    final uri = Uri.tryParse(value);
-    if (uri != null && uri.scheme == 'file') {
-      try {
-        return uri.toFilePath();
-      } catch (_) {
-        // 非法 file URI（例如 Windows 盘符写法）退回字符串处理
-      }
-    }
-    return value.replaceFirst(_fileSchemePattern, '');
-  }
-
-  /// 剥掉 `data:[<mediatype>][;base64],` 前缀
-  ///
-  /// 不限于 `data:image/`：`data:application/octet-stream;base64,...` 同样是图片数据。
-  static String _stripDataUriPrefix(String value) {
-    if (!value.startsWith('data:')) return value;
-    final comma = value.indexOf(',');
-    if (comma < 0) return value;
-    return value.substring(comma + 1);
   }
 
   /// 通知加载状态（同一状态只通知一次，且组件已卸载时不回调）
@@ -373,7 +372,7 @@ class _WImageState extends State<WImage> {
       };
     }
 
-    result = _applyTransformations(result);
+    result = WImageFrame(style: config, child: result);
     final aspectRatio = config.aspectRatio;
     if (aspectRatio != null && aspectRatio > 0) {
       return AspectRatio(aspectRatio: aspectRatio, child: result);
@@ -387,28 +386,31 @@ class _WImageState extends State<WImage> {
     return SizedBox(width: config.width, height: config.height, child: child);
   }
 
-  /// 构建默认占位符
-  Widget _buildPlaceholder() {
+  /// 构建默认占位符（theme 优先，其次全局配置/内置兜底）
+  Widget _buildPlaceholder(BuildContext context) {
+    final themed = WImageTheme.maybeOf(context)?.defaultPlaceholder;
     return _sizedSlot(
-      WImageGlobalConfig().defaultPlaceholder ?? _fallbackPlaceholder,
+      themed ?? WImageGlobalConfig().defaultPlaceholder ?? _fallbackPlaceholder,
     );
   }
 
-  /// 构建默认错误占位符
-  Widget _buildErrorWidget() {
+  /// 构建默认错误占位符（theme 优先，其次全局配置/内置兜底）
+  Widget _buildErrorWidget(BuildContext context) {
+    final themed = WImageTheme.maybeOf(context)?.defaultErrorWidget;
     return _sizedSlot(
-      WImageGlobalConfig().defaultErrorWidget ?? _fallbackErrorWidget,
+      themed ?? WImageGlobalConfig().defaultErrorWidget ?? _fallbackErrorWidget,
     );
   }
 
   /// 图片加载中的占位（优先业务自定义）
   Widget _placeholderFor(BuildContext context) {
-    return config.placeholderBuilder?.call(context, _value) ?? _buildPlaceholder();
+    return config.placeholderBuilder?.call(context, _value) ?? _buildPlaceholder(context);
   }
 
   /// 错误占位：业务自定义优先，其次默认错误占位
   Widget _errorSlot(BuildContext context, WImageError error) {
-    return config.errorWidgetBuilder?.call(context, error.data, error) ?? _buildErrorWidget();
+    return config.errorWidgetBuilder?.call(context, error.data, error) ??
+        _buildErrorWidget(context);
   }
 
   /// 是否还有自动重试次数
@@ -451,6 +453,7 @@ class _WImageState extends State<WImage> {
   ///
   /// 重试、进度与状态都在本 State 内处理，不再经过额外的包装组件。
   Widget _buildNetwork() {
+    final network = widget.source as WNetworkImageSource;
     final hasProgress = config.progressBuilder != null;
     return CachedNetworkImage(
       // 换 key 才会真正重新发起请求（同一 provider 重建不会重新拉取）
@@ -463,8 +466,8 @@ class _WImageState extends State<WImage> {
       filterQuality: config.filterQuality,
       memCacheWidth: config.memCacheWidth,
       memCacheHeight: config.memCacheHeight,
-      httpHeaders: config.httpHeaders,
-      cacheKey: config.cacheKey,
+      httpHeaders: network.headers,
+      cacheKey: network.cacheKey,
       progressIndicatorBuilder: hasProgress ? _networkProgress : null,
       placeholder: hasProgress ? null : _networkPlaceholder,
       errorWidget: _networkError,
@@ -483,7 +486,7 @@ class _WImageState extends State<WImage> {
   /// 网络占位符
   Widget _networkPlaceholder(BuildContext context, String url) {
     _notifyStatus(WImageLoadStatus.loading);
-    return config.placeholderBuilder?.call(context, url) ?? _buildPlaceholder();
+    return config.placeholderBuilder?.call(context, url) ?? _buildPlaceholder(context);
   }
 
   /// 网络进度：新签名优先，其次旧签名
@@ -501,9 +504,9 @@ class _WImageState extends State<WImage> {
 
     final builder = config.progressBuilder;
     if (builder != null) {
-      return builder(context, url, progress) ?? _buildPlaceholder();
+      return builder(context, url, progress) ?? _buildPlaceholder(context);
     }
-    return _buildPlaceholder();
+    return _buildPlaceholder(context);
   }
 
   /// 网络错误：可重试就先重试，否则渲染错误占位
@@ -518,8 +521,9 @@ class _WImageState extends State<WImage> {
 
   /// 本地资源：统一走 [AssetImage]（Flutter 自带 ImageCache，支持 2x/3x 变体）
   Widget _buildAsset() {
+    final asset = widget.source as WAssetImageSource;
     return _imageWidget(
-      AssetImage(_value),
+      AssetImage(asset.value, package: asset.package),
       errorFactory: (error) => WImageAssetError(widget.data, error),
     );
   }
@@ -619,54 +623,6 @@ class _WImageState extends State<WImage> {
       return Future<Uint8List>.sync(() => _decodeBase64Sync(value));
     }
     return compute(_decodeBase64Sync, value);
-  }
-
-  /// 应用图片变换
-  Widget _applyTransformations(Widget image) {
-    if (config.padding == null &&
-        config.borderRadius == null &&
-        config.border == null &&
-        (config.boxShadow == null || config.boxShadow!.isEmpty) &&
-        config.margin == null) {
-      return image;
-    }
-
-    Widget transformedImage = image;
-
-    // 先裁剪图片本体；padding 在裁剪之外（见下方 Padding）
-    final borderRadius = config.borderRadius;
-    if (borderRadius != null) {
-      transformedImage = ClipRRect(
-        borderRadius: borderRadius,
-        child: transformedImage,
-      );
-    }
-
-    // 应用边框、阴影和外边距（顺序与 Container 一致：margin 在 decoration 外层）
-    final border = config.border;
-    final boxShadow = config.boxShadow;
-    if (border != null || (boxShadow != null && boxShadow.isNotEmpty)) {
-      transformedImage = DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          border: border,
-          boxShadow: boxShadow,
-        ),
-        child: transformedImage,
-      );
-    }
-    final margin = config.margin;
-    if (margin != null) {
-      transformedImage = Padding(padding: margin, child: transformedImage);
-    }
-
-    // 最后应用内边距
-    final padding = config.padding;
-    if (padding != null) {
-      transformedImage = Padding(padding: padding, child: transformedImage);
-    }
-
-    return transformedImage;
   }
 }
 

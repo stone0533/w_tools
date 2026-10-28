@@ -11,6 +11,9 @@
 - `WImageConfigBuild.build` 返回类型从 `Widget` 收窄为 `WImage`。
 
 ### Added
+- 新架构入口：`WImage.source(source:, style:)`、sealed `WImageSource`、不可变 `WImageStyle`、
+  `WImageFrame`、`WImageTheme`。
+- `WImageSource.parse` 保留字符串自动判定；旧 `WImage(data:, config:)` 与命名构造作为适配层。
 - `WImageConfig.copy()`：复制全部配置字段，便于"以现有配置为底再覆盖少量字段"。
 - `String.toImage` 增加 `key` / `config` / `type` / `semanticLabel` / `controller` /
   `onProgress` 参数；`config` 会被复制，不会修改调用方对象。

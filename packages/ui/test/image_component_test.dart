@@ -129,8 +129,37 @@ void main() {
         ..height = 100;
       final image = WImage(config: config, data: 'test_image.png');
 
-      expect(image.config, config);
+      expect(image.config.width, 100);
+      expect(image.config.height, 100);
       expect(image.type, isNull);
+    });
+
+    test('WImage.source + WImageStyle', () {
+      final image = WImage.source(
+        source: WImageSource.base64('AAAA'),
+        style: WImageStyle(
+          config: WImageConfig()
+            ..width = 10
+            ..height = 10,
+        ),
+      );
+      expect(image.source, isA<WBase64ImageSource>());
+      expect(image.style.width, 10);
+      expect(image.type, WImageType.base64);
+    });
+
+    testWidgets('WImageTheme 覆盖默认占位符', (tester) async {
+      await tester.pumpWidget(
+        WImageTheme(
+          data: const WImageThemeData(defaultPlaceholder: Text('themed')),
+          child: MaterialApp(
+            home: Scaffold(
+              body: WImage(data: 'data:image/png;base64,@@bad@@'),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('themed'), findsOneWidget);
     });
 
     test('命名构造带显式类型', () {
