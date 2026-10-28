@@ -25,6 +25,14 @@
 ### Fixed
 - `WImage` 的 `key` 之前没有传给 `StatefulWidget`，导致所有构造方式的 `key` 实际失效；
   现在会正确传递。
+- 修改 `retryCount` / `retryDelay` 时会取消已排队的重试，避免关掉重试后仍多发一次请求。
+- 网络图的 `completed` 状态改为在首帧到达时上报，避免解码失败时先报 `completed` 再报 `failed`。
+- `borderRadius` 现在同时作用于 `border` 与 `boxShadow`，不再出现圆角图片 + 直角边框。
+- `WImageConfig.validate()` 在构造、更新、build 时复用；`aspectRatio` 与固定宽高冲突时 debug assert。
+- `WImageCacheManager` 与 `WImageGlobalConfig` 解耦（全局配置不再修改预加载工具的上限）。
+
+### Changed
+- `_WImageLoadState` 拆到 `image_load_state.dart`（内部实现，便于测试与维护）。
 
 ## 1.1.0
 

@@ -37,8 +37,11 @@ class _CacheItem {
 
 /// 图片缓存管理器
 ///
-/// 用于管理本地图片的缓存，采用单例模式
-/// 实现了 LRU (Least Recently Used) 缓存策略
+/// 独立于 `WImage` 与 Flutter `ImageCache`：只用于 **资源字节预加载/统计**
+/// （`preloadImage` / `cacheImage`），与 `ImageCache` 的内存预算互不影响。
+/// `WImage` 本身已不再使用它，`WImageGlobalConfig` 也不会修改它的上限。
+///
+/// 采用单例模式，实现了 LRU (Least Recently Used) 缓存策略。
 class WImageCacheManager {
   /// 单例实例
   static final WImageCacheManager _instance = WImageCacheManager._();

@@ -70,6 +70,17 @@ void main() {
       );
     });
 
+    test('validate 捕获 aspectRatio 与固定宽高的冲突', () {
+      expect(
+        () => (WImageConfig()
+              ..aspectRatio = 2
+              ..width = 10
+              ..height = 10)
+            .validate(),
+        throwsAssertionError,
+      );
+    });
+
     test('WImageConfigBuild 透传 key / type / controller', () {
       const key = Key('k');
       final controller = WImageController();

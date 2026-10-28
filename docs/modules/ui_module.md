@@ -412,8 +412,15 @@ WText(
 | `borderRadius` / `border` / `boxShadow` | — | null | 装饰 |
 | `margin` / `padding` | `EdgeInsets?` | null | 间距 |
 
-配置项都是公开字段，可以直接读写；`placeholder` / `errorWidget` 是只写的固定 Widget 便捷 setter，
-需要读回或动态构建时用 `placeholderBuilder` / `errorWidgetBuilder`。
+配置项都是公开字段，可以直接读写；`placeholder` / `errorWidget` 是固定 Widget 便捷 setter，
+可通过同名 getter 读回（直接写 builder 时 getter 为 null）；需要动态构建时用对应 builder。
+`copy()` 复制一份配置（builder / map 等引用共享）。
+
+- `width` / `height` 是**图片内容尺寸**；`padding` / `margin` 在外部叠加，
+  实际总尺寸 = 内容尺寸 + 间距。
+- `aspectRatio` 不要和固定的 `width` + `height` 同时设置（debug 下会 assert，约束会冲突）。
+- `borderRadius` 同时作用于图片本体、`border` 与 `boxShadow`。
+
 链式方法：`dimensions(width, height)` / `square(side)` / `circle(radius)` / `fitWidth` / `fitHeight` / `fitContain` / `fitCover` / `fitFill` / `fitNone` / `fitScaleDown`。
 
 ### WImageGlobalConfig - 全局配置（单例）
@@ -440,7 +447,8 @@ WImageGlobalConfig().reset();
 
 - 资产 / 文件 / Base64 统一走 `Image` + Flutter `ImageCache`；`memCacheWidth` / `memCacheHeight` 通过 `ResizeImage` 生效。
 - 网络图走 `cached_network_image`（内存 + 磁盘），可用 `httpHeaders` / `cacheKey` 定制。
-- `WImageCacheManager` 是 1.0 的资产原始字节缓存，`WImage` 已不再使用，保留给预加载与统计。
+- `WImageCacheManager` 是**独立**的资源字节预加载工具，`WImage` 不使用；
+  `WImageGlobalConfig.configure/reset` 只改 Flutter `ImageCache`，不会修改它的上限。
 
 ### 2.0 迁移
 
@@ -456,6 +464,8 @@ WImageGlobalConfig().reset();
   `5xx` / `408` / `429` / 连接级失败（拿不到状态码）。`4xx` 直接失败，不会白白等 N 次延迟。
 - 重试间隔按指数退避（`retryDelay` → 2× → 4×……，上限 30s）并带 20% 抖动，
   避免同屏多张图在同一毫秒齐刷刷重试。
+- 修改 `retryCount` / `retryDelay` 会取消已经排队的旧重试（避免关掉重试后仍多发一次请求）。
+- 一个 `WImageController` 对应一个 `WImage`；多个 WImage 共享时只有最后一个能收到 `retry()`。
 - 需要用户手动重试时，传一个 `WImageController`，在错误占位里调用 `retry()`：
 
 ```dart

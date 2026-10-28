@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../utils/image_cache_manager.dart';
 import 'image_types.dart';
 
 /// 图片配置类
@@ -103,6 +102,21 @@ class WImageConfig {
 
   /// 构造函数
   WImageConfig();
+
+  /// 校验配置（debug 下 assert；WImage 在创建/更新/构建时复用）
+  void validate() {
+    assert(retryCount >= 0, 'retryCount 不能为负');
+    assert(retryDelay >= 0, 'retryDelay 不能为负');
+    assert(memCacheWidth == null || memCacheWidth! > 0, 'memCacheWidth 必须大于 0');
+    assert(memCacheHeight == null || memCacheHeight! > 0, 'memCacheHeight 必须大于 0');
+    assert(aspectRatio == null || aspectRatio! > 0, 'aspectRatio 必须大于 0');
+    assert(width == null || width! >= 0, 'width 不能为负');
+    assert(height == null || height! >= 0, 'height 不能为负');
+    assert(
+      !(aspectRatio != null && width != null && height != null),
+      'aspectRatio 与固定 width/height 不要同时设置（约束会冲突）',
+    );
+  }
 
   /// 复制一份配置（浅拷贝；builder / map 等引用共享）
   ///
@@ -264,11 +278,5 @@ class WImageGlobalConfig {
     final imageCache = PaintingBinding.instance.imageCache;
     imageCache.maximumSize = maxCacheSize;
     imageCache.maximumSizeBytes = maxCacheMemory;
-
-    // 兼容旧版本：原始字节缓存仍在，但 WImage 已不再使用
-    WImageCacheManager().configureLimits(
-      maxCacheSize: maxCacheSize,
-      maxCacheMemory: maxCacheMemory,
-    );
   }
 }

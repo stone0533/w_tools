@@ -236,6 +236,58 @@ void main() {
     });
   });
 
+  group('WImage 变换', () {
+    testWidgets('borderRadius 同时作用于 border', (tester) async {
+      const radius = BorderRadius.all(Radius.circular(8));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WImage(
+              data: 'data:image/png;base64,$_pngBase64',
+              config: WImageConfig()
+                ..width = 10
+                ..height = 10
+                ..borderRadius = radius
+                ..border = Border.all(),
+            ),
+          ),
+        ),
+      );
+      await _settle(tester);
+
+      final decorations = tester
+          .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+          .map((d) => d.decoration)
+          .whereType<BoxDecoration>()
+          .where((d) => d.border != null)
+          .toList();
+      expect(decorations, isNotEmpty);
+      expect(decorations.first.borderRadius, radius);
+    });
+
+    testWidgets('padding 在 width/height 之外（当前语义）', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WImage(
+              data: 'data:image/png;base64,$_pngBase64',
+              config: WImageConfig()
+                ..width = 10
+                ..height = 10
+                ..padding = const EdgeInsets.all(5),
+            ),
+          ),
+        ),
+      );
+      await _settle(tester);
+
+      final image = tester.widget<Image>(find.byType(Image));
+      expect(image.width, 10);
+      expect(image.height, 10);
+      expect(tester.getSize(find.byType(WImage)), const Size(20, 20));
+    });
+  });
+
   group('WImage 布局与语义', () {
     testWidgets('aspectRatio 让加载前后的尺寸稳定', (tester) async {
       await tester.pumpWidget(

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'image_config.dart';
+import 'image_load_state.dart';
 import 'image_retry_policy.dart';
 import 'image_types.dart';
 
@@ -171,96 +172,11 @@ class WImage extends StatefulWidget {
     this.onProgress,
     this.controller,
   }) : config = config ?? WImageConfig() {
-    final c = this.config;
-    assert(c.retryCount >= 0, 'retryCount 不能为负');
-    assert(c.retryDelay >= 0, 'retryDelay 不能为负');
-    assert(
-      c.memCacheWidth == null || c.memCacheWidth! > 0,
-      'memCacheWidth 必须大于 0',
-    );
-    assert(
-      c.memCacheHeight == null || c.memCacheHeight! > 0,
-      'memCacheHeight 必须大于 0',
-    );
-    assert(
-      c.aspectRatio == null || c.aspectRatio! > 0,
-      'aspectRatio 必须大于 0',
-    );
-    assert(c.width == null || c.width! >= 0, 'width 不能为负');
-    assert(c.height == null || c.height! >= 0, 'height 不能为负');
+    this.config.validate();
   }
 
   @override
   State<WImage> createState() => _WImageState();
-}
-
-/// 加载 / 重试 / 进度的一次性状态
-///
-/// 从 `_WImageState` 抽出来：重试时机、去重与进度合并都可以脱离 widget 阅读。
-/// 真正的回调仍留在 State（依赖 `mounted` 与 widget 回调）。
-class _WImageLoadState {
-  /// 上一次已通知的加载状态
-  WImageLoadStatus? status;
-
-  /// 已执行的重试次数
-  int attempt = 0;
-
-  /// 加载代际：数据变化 / 手动重试时 +1，用来丢弃过期的延迟重试
-  int generation = 0;
-
-  /// 是否有待执行的重试（避免 errorWidget 多次构建时重复调度）
-  bool retryScheduled = false;
-
-  /// 是否已经上报过进度 1.0
-  bool completedProgressSent = false;
-
-  /// 是否有待上报的进度（同一帧内的多次进度只上报最后一次）
-  bool progressScheduled = false;
-  WImageProgress? pendingProgress;
-
-  /// 上一次见到的重试配置（config 可变，只能靠快照检测变化）
-  int retryCountSeen = 0;
-  int retryDelaySeen = 1000;
-
-  /// 重置到初始状态
-  void reset({required int retryCount, required int retryDelay}) {
-    status = null;
-    attempt = 0;
-    generation++;
-    retryScheduled = false;
-    completedProgressSent = false;
-    progressScheduled = false;
-    pendingProgress = null;
-    retryCountSeen = retryCount;
-    retryDelaySeen = retryDelay;
-  }
-
-  /// 标记新状态；返回是否发生变化（用于去重）
-  bool markStatus(WImageLoadStatus next) {
-    if (status == next) return false;
-    status = next;
-    return true;
-  }
-
-  /// 重试配置变化时重置重试进度；返回是否发生了变化
-  bool syncRetryConfig({required int retryCount, required int retryDelay}) {
-    if (retryCount == retryCountSeen && retryDelay == retryDelaySeen) {
-      return false;
-    }
-    retryCountSeen = retryCount;
-    retryDelaySeen = retryDelay;
-    attempt = 0;
-    retryScheduled = false;
-    completedProgressSent = false;
-    return true;
-  }
-
-  /// 开始新一次尝试（自动重试或手动重试）
-  void beginAttempt() {
-    attempt++;
-    status = null;
-    completedProgressSent = false;
-  }
 }
 
 /// WImage 的状态类
@@ -297,13 +213,14 @@ class _WImageState extends State<WImage> {
   Future<Uint8List>? _bytesFuture;
 
   /// 加载 / 重试 / 进度状态
-  final _WImageLoadState _load = _WImageLoadState();
+  final WImageLoadState _load = WImageLoadState();
 
   WImageConfig get config => widget.config;
 
   @override
   void initState() {
     super.initState();
+    widget.config.validate();
     _reset();
     widget.controller?._attach(this);
   }
@@ -311,6 +228,7 @@ class _WImageState extends State<WImage> {
   @override
   void didUpdateWidget(WImage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    widget.config.validate();
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller?._detach(this);
       widget.controller?._attach(this);
@@ -436,6 +354,10 @@ class _WImageState extends State<WImage> {
 
   @override
   Widget build(BuildContext context) {
+    assert(() {
+      config.validate();
+      return true;
+    }());
     _syncRetryConfig();
 
     Widget result;
@@ -547,13 +469,12 @@ class _WImageState extends State<WImage> {
       placeholder: hasProgress ? null : _networkPlaceholder,
       errorWidget: _networkError,
       imageBuilder: (context, imageProvider) {
-        _notifyStatus(WImageLoadStatus.completed);
-        _notifyCompletedProgress();
         return _imageWidget(
           imageProvider,
           errorFactory: (error) => WImageNetworkError(widget.data, error),
           showPlaceholderWhileLoading: false,
           applyDecodeSize: false,
+          notifyProgressCompletion: true,
         );
       },
     );
@@ -645,6 +566,8 @@ class _WImageState extends State<WImage> {
     required WImageError Function(Object error) errorFactory,
     bool showPlaceholderWhileLoading = true,
     bool applyDecodeSize = true,
+    bool notifyCompletion = true,
+    bool notifyProgressCompletion = false,
   }) {
     final effectiveProvider = applyDecodeSize
         ? ResizeImage.resizeIfNeeded(
@@ -664,12 +587,17 @@ class _WImageState extends State<WImage> {
       gaplessPlayback: config.gaplessPlayback,
       semanticLabel: config.semanticLabel,
       excludeFromSemantics: config.excludeFromSemantics,
-      frameBuilder: showPlaceholderWhileLoading
+      frameBuilder: (showPlaceholderWhileLoading || notifyCompletion)
           ? (context, child, frame, wasSynchronouslyLoaded) {
-              if (wasSynchronouslyLoaded || frame != null) {
-                _notifyStatus(WImageLoadStatus.completed);
+              final done = wasSynchronouslyLoaded || frame != null;
+              if (done) {
+                if (notifyCompletion) {
+                  _notifyStatus(WImageLoadStatus.completed);
+                  if (notifyProgressCompletion) _notifyCompletedProgress();
+                }
                 return child;
               }
+              if (!showPlaceholderWhileLoading) return child;
               _notifyStatus(WImageLoadStatus.loading);
               return _placeholderFor(context);
             }
@@ -705,7 +633,7 @@ class _WImageState extends State<WImage> {
 
     Widget transformedImage = image;
 
-    // 先应用圆角裁剪（作用于图片本体 + padding 区域）
+    // 先裁剪图片本体；padding 在裁剪之外（见下方 Padding）
     final borderRadius = config.borderRadius;
     if (borderRadius != null) {
       transformedImage = ClipRRect(
@@ -719,7 +647,11 @@ class _WImageState extends State<WImage> {
     final boxShadow = config.boxShadow;
     if (border != null || (boxShadow != null && boxShadow.isNotEmpty)) {
       transformedImage = DecoratedBox(
-        decoration: BoxDecoration(border: border, boxShadow: boxShadow),
+        decoration: BoxDecoration(
+          borderRadius: borderRadius,
+          border: border,
+          boxShadow: boxShadow,
+        ),
         child: transformedImage,
       );
     }
