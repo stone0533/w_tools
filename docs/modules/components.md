@@ -30,7 +30,8 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WButton` | ui | 纯点击区域 + 可选 `WButtonStyle` | 需要完整表单按钮样式时用 `WForm.buttonLogin` 等 |
+| `WButton` | ui | 真正的按钮（label/icon + variant/size/loading） | 任意 child 点击用 `WPressable` |
+| `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义时用 `WButton` |
 | `WRowButtons` | ui | 一行多个按钮 | — |
 | `WBadge` | ui | 角标数字 | — |
 
@@ -52,7 +53,7 @@
 | `WFormCheckbox` / `WFormRadioGroup` | form | 复选、单选 | — |
 | `WFormDatePicker` | form | 日期选择 | — |
 | `WFormValidator*` | form | 表单校验 | — |
-| `WFormButton` | form | 带样式的按钮（登录/注册/主按钮） | 纯点击用 `WButton` |
+| `WFormButton` | form | 带样式的表单按钮（登录/注册/主按钮） | 任意内容点击用 `WPressable` |
 
 ## 6. 弹层
 

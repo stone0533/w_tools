@@ -244,12 +244,12 @@ void main() {
       expect(find.byType(Padding), findsOneWidget);
     });
 
-    testWidgets('Widget.toButton', (tester) async {
+    testWidgets('Widget.toPressable', (tester) async {
       bool tapped = false;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: const Text('Click').toButton(onTap: () => tapped = true),
+            body: const Text('Click').toPressable(onTap: () => tapped = true),
           ),
         ),
       );

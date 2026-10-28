@@ -51,10 +51,9 @@ class WButton extends StatefulWidget {
     this.behavior = HitTestBehavior.opaque,
     this.tooltip,
     this.enableFeedback = true,
-    this.child,
   }) : assert(
-          child != null || label != null || icon != null,
-          'WButton: child、label、icon 至少提供一个',
+          label != null || icon != null,
+          'WButton: label 或 icon 至少提供一个',
         );
 
   /// 按钮样式；null 时使用 [WButtonTheme] 的 primary / 内置默认
@@ -120,9 +119,6 @@ class WButton extends StatefulWidget {
 
   /// 是否启用点击反馈（触觉）
   final bool enableFeedback;
-
-  /// 子组件（快捷构造时可为空）
-  final Widget? child;
 
   /// 快捷构造：primary / secondary / text / danger 变体
   factory WButton.primary(
@@ -513,7 +509,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     final interactive = _interactive;
     final theme = Theme.of(context);
 
-    final child = widget.child ?? _buildButtonLabel(this, style);
+    final child = _buildButtonLabel(this, style);
     final container = style.container?.copy();
     final inner = _buildButtonContent(this, context, style, child);
     final padded = style.padding != null ? Padding(padding: style.padding!, child: inner) : inner;

@@ -32,6 +32,7 @@ ui/
     │   │   │   ├── button_theme.dart           # WButtonTheme / WButtonThemeData
     │   │   │   └── button_styles.dart          # WButtonStyles 预设
     │   │   ├── clip.dart                      # WClipRRect
+    │   │   ├── pressable.dart                 # WPressable
     │   │   ├── image/                  # 图片组件
     │   │   │   ├── image.dart                  # WImage, WImageController
     │   │   │   ├── image_source.dart           # WImageSource（sealed）
@@ -148,57 +149,53 @@ final bottomSafe = WScreen.bottomBarHeight;
 
 ### 功能说明
 
-纯点击区域组件：只负责点击、视觉反馈、键盘/无障碍交互；视觉样式由 `WButtonStyle` 提供，
-运行时状态（`enabled` / `loading`）由 `WButton` 参数提供。
+真正的按钮组件：负责 label/icon、视觉样式、variant、size、loading、`button` 语义、
+键盘/焦点、48×48 点击区域。
+
+**任意 child 不使用 `WButton`。**任意内容点击用 `WPressable`。
 
 ### WButton 参数
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `child` | Widget | - | 子组件；快捷构造可省略 |
 | `style` | `WButtonStyle?` | null | 样式；null 时使用 `WButtonTheme` / 内置预设 |
 | `variant` | `String?` | null | primary / secondary / text / danger 或项目自定义 |
-| `label` / `icon` | String? / IconData? | null | 快捷构造的文本/图标 |
+| `label` / `icon` | String? / IconData? | null | 至少提供一个 |
 | `size` | `WButtonSize?` | null | 尺寸对象 |
 | `sizeName` | `String?` | null | 主题中注册的尺寸名 |
 | `semanticLabel` | `String?` | null | 显式无障碍标签；纯图标按钮建议提供 |
-| `onTap` | `GestureTapCallback?` | null | 点击回调 |
-| `onLongPress` | `GestureLongPressCallback?` | null | 长按回调 |
-| `onSecondaryTap` | `GestureTapCallback?` | null | 次要点击（桌面端右键） |
-| `onTapDown` / `onTapUp` / `onTapCancel` | 手势回调 | null | 按下/抬起/取消 |
+| `onTap` / `onLongPress` | 回调 | null | 点击 / 长按 |
+| `onSecondaryTap` | 回调 | null | 次要点击（桌面端右键） |
+| `onTapDown` / `onTapUp` / `onTapCancel` | 回调 | null | 按下/抬起/取消 |
 | `onFocusChange` / `onHover` | `ValueChanged<bool>?` | null | 焦点/悬停变化 |
 | `onPressedChanged` | `ValueChanged<bool>?` | null | 按下状态变化 |
-| `enabled` | bool | true | 是否启用 |
-| `loading` | bool | false | 加载中，不响应点击 |
-| `loadingBuilder` | `WidgetBuilder?` | null | 加载中占位，默认小号进度圈 |
+| `enabled` / `loading` | bool | true / false | 状态 |
+| `loadingBuilder` | `WidgetBuilder?` | null | 加载中占位 |
 | `focusNode` / `autofocus` | — | null / false | 键盘焦点 |
 | `behavior` | `HitTestBehavior` | opaque | 命中测试行为 |
 | `tooltip` | `String?` | null | 长按提示 |
-| `enableFeedback` | bool | true | 是否触发触觉反馈 |
+| `enableFeedback` | bool | true | 触觉反馈 |
 
 ### WButtonStyle
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `effect` | `WButtonEffectType` | opacity | none / opacity / scale / shake |
-| `pressedOpacity` | double | 0.7 | 按下透明度（0–1） |
-| `pressedScale` | double | 0.95 | 按下缩放（0.1–1） |
-| `animationDuration` | Duration | 100ms | 动画时长 |
-| `curve` | Curve | easeInOut | 动画曲线 |
+| `pressedOpacity` / `pressedScale` | double | 0.7 / 0.95 | 按下效果 |
+| `animationDuration` / `curve` | Duration / Curve | 100ms / easeInOut | 动画 |
 | `container` | `WContainerConfig?` | null | 容器样式模板（只读） |
-| `padding` | `EdgeInsetsGeometry?` | null | 无 container 时的外层 padding；有 container 时用 container.padding |
+| `padding` | `EdgeInsetsGeometry?` | null | 无 container 时使用 |
 | `textStyle` | `WTextConfig?` | null | 文本样式模板（只读） |
-| `semanticLabel` / `semanticHint` | String? | null | 无障碍标签/提示 |
-| `focusColor` / `hoverColor` | Color? | null | 焦点/悬停 overlay，null 时用 Theme |
-| `overlayBorderRadius` | `BorderRadiusGeometry?` | null | focus/hover overlay 裁剪圆角 |
-| `disabledOpacity` | double | 0.5 | 禁用时透明度 |
+| `semanticLabel` / `semanticHint` | String? | null | 无障碍 |
+| `focusColor` / `hoverColor` | Color? | null | 焦点/悬停 overlay |
+| `overlayBorderRadius` | `BorderRadiusGeometry?` | null | overlay 裁剪圆角 |
+| `disabledOpacity` | double | 0.5 | 禁用透明度 |
 | `minWidth` / `minHeight` | double | 48 | 视觉/布局最小尺寸 |
 | `tapTargetSize` | double | 48 | 实际 hit area 下限 |
-| `loadingLabel` | String | 加载中 | loading 无障碍文案 |
-| `iconSize` / `gap` | double | 18 / 8 | 图标尺寸 / 图标文字间距 |
+| `loadingLabel` | String | 加载中 | loading 文案 |
+| `iconSize` / `gap` | double | 18 / 8 | 图标/间距 |
 
-`WButtonStyle` 顶层不可变，用 `copyWith` 修改；`WButton` 会快照 `container` / `textStyle`，
-预设 getter 也返回独立副本。`validate()` 会检查透明度/缩放/时长/尺寸范围。
+`WButtonStyle` 顶层不可变，`WButton` 会快照 `container` / `textStyle`；预设 getter 返回独立副本。
 
 ### WButtonSize
 
@@ -208,21 +205,11 @@ WButtonSize.medium  // 视觉 40 高，14 号字，hit target 48
 WButtonSize.large   // 视觉 48 高，15 号字，hit target 48
 ```
 
-支持的排版字段：`fontSize` / `fontWeight` / `lineHeight` / `letterSpacing` /
-`iconSize` / `gap` / `padding` / `tapTargetSize`。
-
-3 个只是默认值；项目可自定义：
+支持 `minWidth/minHeight`、`padding`、`fontSize`、`fontWeight`、`lineHeight`、`letterSpacing`、
+`iconSize`、`gap`、`tapTargetSize`。
 
 ```dart
 abstract final class AppButtonSizes {
-  static const compact = WButtonSize(
-    name: 'compact',
-    minHeight: 30,
-    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    fontSize: 12,
-    tapTargetSize: 48,
-  );
-
   static const hero = WButtonSize(
     name: 'hero',
     minHeight: 56,
@@ -230,20 +217,12 @@ abstract final class AppButtonSizes {
     fontSize: 17,
     fontWeight: FontWeight.w700,
     lineHeight: 1.2,
-    letterSpacing: 0.2,
     tapTargetSize: 48,
   );
 }
 ```
 
-```dart
-WButton.primary('保存', size: AppButtonSizes.hero)
-WButton.primary('保存', sizeName: 'hero') // 主题 sizes 注册后
-```
-
 ### Style 常用工厂
-
-除了手写 `WContainerConfig` / `WTextConfig`，也可以直接用：
 
 ```dart
 WButtonStyle.filled(
@@ -271,19 +250,7 @@ WButtonStyles.text
 WButtonStyles.danger
 ```
 
-这些是静态模板；需要微调时：
-
-```dart
-WButtonStyles.primary.copyWith(
-  container: WButtonStyles.primary.container!.copyWith(
-    width: 200,
-  ),
-)
-```
-
 ### WButtonTheme
-
-App 级默认样式：
 
 ```dart
 WButtonTheme(
@@ -300,7 +267,7 @@ WButtonTheme(
 )
 ```
 
-`WButtonThemeData.copyWith` 支持只覆盖部分变体/尺寸。也可以直接挂到 `ThemeData.extensions`：
+也可以挂到 `ThemeData.extensions`：
 
 ```dart
 ThemeData(
@@ -313,19 +280,22 @@ ThemeData(
 解析顺序：
 
 1. `WButton.style`
-2. `WButtonTheme.resolveStyle(variant)`（`variants` / `primary` / `secondary` / `text` / `danger` / `base`）
+2. `WButtonTheme.resolveStyle(variant)`
 3. 内置 `WButtonStyles` 预设（有 variant 时）
 4. `WButtonStyle()` 默认值
-
-尺寸：`WButton.size` > `WButtonTheme.resolveSize(sizeName)` > `defaultSize`；variant 构造未传时回退 `WButtonSize.medium`。
 
 ### 使用示例
 
 ```dart
-// 一行式（最常用）
 WButton.primary('提交', onTap: submit)
+WButton.primary('提交', loading: isSubmitting, enabled: canSubmit)
+WButton.secondary('取消', onTap: cancel)
+WButton.danger('删除', onTap: delete)
+WButton.text('查看更多', onTap: more)
+WButton.icon(Icons.close, tooltip: '关闭', onTap: close)
+WButton.variant('brand', '品牌按钮', onTap: onTap)
 
-// 公共构造：variant + label，同时可直接使用高级参数
+// 高级参数用公共构造
 WButton(
   variant: 'primary',
   label: '提交',
@@ -333,125 +303,66 @@ WButton(
   onTapDown: (_) {},
   onFocusChange: (focused) {},
 )
-WButton.primary('提交', loading: isSubmitting, enabled: canSubmit)
-WButton.secondary('取消', onTap: cancel)
-WButton.danger('删除', onTap: delete)
-WButton.text('查看更多', onTap: more)
-WButton.icon(Icons.close, tooltip: '关闭', onTap: close)
-WButton.icon(Icons.close, semanticLabel: '关闭', onTap: close)
-WButton.variant('brand', '品牌按钮', onTap: onTap)
-WButton.primary('大按钮', size: WButtonSize.large, onTap: submit)
-
-// 默认样式（theme / 内置）
-WButton(
-  onTap: submit,
-  child: const Text('提交'),
-)
-
-// 使用预设
-WButton(
-  style: WButtonStyles.primary,
-  onTap: submit,
-  child: const Text('提交'),
-)
-
-// 运行时状态与样式分离
-WButton(
-  style: WButtonStyles.primary,
-  enabled: canSubmit,
-  loading: isSubmitting,
-  onTap: submit,
-  child: const Text('提交'),
-)
-
-// 纯点击区域（无视觉样式）
-WButton(
-  style: WButtonStyle(effect: WButtonEffectType.none),
-  onTap: () {},
-  child: const Icon(Icons.close),
-)
-
-// 无障碍
-WButton(
-  style: WButtonStyle(
-    effect: WButtonEffectType.none,
-    semanticLabel: '关闭',
-    semanticHint: '关闭当前弹窗',
-  ),
-  onTap: close,
-  child: const Icon(Icons.close),
-)
 ```
 
-### 复杂按钮
+## 2.1 WPressable - 任意 child 点击
 
-多行文本、不同文字样式、图片、图标等情况，不要硬塞进 `WButton.primary(label)`；
-用公共构造 + `child`，`WButton` 只负责点击、效果、loading 和语义：
+`WPressable` 不是按钮：只负责点击和基础效果，不声明 `button` 语义，不负责样式、variant、size、
+theme、loading、最小点击区域或键盘焦点。
 
 ```dart
-WButton(
-  style: WButtonStyles.primary.copyWith(
-    container: WContainerConfig()
-      ..padding = const EdgeInsets.all(12)
-      ..color = Colors.white
-      ..borderRadius = BorderRadius.circular(12)
-      ..border = Border.all(color: Colors.black12),
-    minHeight: 88,
-    effect: WButtonEffectType.scale,
-    pressedScale: 0.99,
-    semanticLabel: '订单 A123，3 件商品，待支付，共 128 元',
-    semanticHint: '双击查看订单详情',
-  ),
+WPressable(
   onTap: openOrder,
-  child: Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      WImage.assetImage(
-        'demo.png',
-        style: WImageStyle(
-          width: 56,
-          height: 56,
-          borderRadius: BorderRadius.circular(8),
+  effect: WPressEffect.opacity,
+  child: Card(
+    child: Row(
+      children: [
+        WImage.assetImage('demo.png'),
+        Expanded(
+          child: Column(
+            children: [
+              Text('订单 #A123'),
+              Text('3 件商品 · 待支付'),
+            ],
+          ),
         ),
-      ),
-      const SizedBox(width: 12),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('订单 #A123', style: titleStyle),
-            const SizedBox(height: 4),
-            Text('3 件商品 · 待支付', style: subtitleStyle),
-            const SizedBox(height: 8),
-            Text('¥ 128.00', style: priceStyle),
-          ],
-        ),
-      ),
-      const Icon(Icons.chevron_right),
-    ],
+        Icon(Icons.chevron_right),
+      ],
+    ),
   ),
 )
 ```
 
-要点：
+参数：
 
-- 多行文本放在 `Expanded` / `Column` 里，避免溢出；
-- 每段文字用各自的 `TextStyle`，`WButtonStyle.textStyle` 只服务一行式 `label`；
-- 图片/图标作为普通 child，不需要特殊 API；
-- 整个区域只有**一个**点击目标，不要在内部再放 `IconButton` / `TextButton`；
-- 复杂内容建议显式设置 `semanticLabel` / `semanticHint`；
-- 需要 loading 时传 `loading: true`，复杂 child 会保持占位尺寸。
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `child` | Widget | - | 任意内容 |
+| `onTap` / `onLongPress` | 回调 | null | 点击 / 长按 |
+| `enabled` | bool | true | 禁用时阻断 child 点击 |
+| `effect` | `WPressEffect` | opacity | none / opacity / scale |
+| `pressedOpacity` / `pressedScale` | double | 0.85 / 0.98 | 按下效果 |
+| `duration` / `curve` | Duration / Curve | 100ms / easeInOut | 动画 |
+| `behavior` | `HitTestBehavior` | opaque | 命中测试 |
 
-可运行示例见 [`packages/ui/example/lib/buttons_page.dart`](../../packages/ui/example/lib/buttons_page.dart)，包含主题、loading、尺寸、图标、列表、对话框、自定义变体和纯点击区域等场景。
+需要真正的按钮语义时，不要用 `WPressable`；用 `WButton`，或显式：
+
+```dart
+Semantics(
+  button: true,
+  label: '订单 A123',
+  child: WPressable(onTap: openOrder, child: card),
+)
+```
 
 ### 键盘与效果
 
-- Enter / Space 通过 `ActivateIntent` 触发 `onTap`，同时触发 opacity/scale/shake 反馈；
-- 禁用 / loading 时 `Semantics.onTap` 为空、`onTap` 不执行，且 child 的点击由 `IgnorePointer` 阻断；
-- loading 保持 child 占位尺寸，避免布局跳动；
-- `onLongPress` 同时进入 `Semantics.onLongPress`；
-- 默认最小点击区域 48×48，可用 `minWidth/minHeight` 覆盖；
-- focus/hover 默认使用 Theme 的 `focusColor` / `hoverColor` 叠加。
+- Enter / Space 通过 `ActivateIntent` 触发 `onTap`；
+- 禁用 / loading 时 `Semantics.onTap` 为空、`onTap` 不执行；
+- 没有 `onTap` 时键盘不触发按下效果；
+- loading 保持按钮 label 占位尺寸。
+
+可运行示例见 [`packages/ui/example/lib/buttons_page.dart`](../../packages/ui/example/lib/buttons_page.dart)。
 
 ## 3. WText - 文本组件
 
@@ -1355,13 +1266,11 @@ class _HomePageState extends State<HomePage> {
               ..w500()
               ..color = Colors.black87,
           ),
-          trailing: WButton(
-            style: WButtonStyles.text,
+          trailing: WButton.text(
+            '删除',
+            size: WButtonSize.small,
+            style: WButtonStyles.danger,
             onTap: () => setState(() => _items.removeAt(i)),
-            child: WText(
-              text: '删除',
-              config: WTextConfig()..fontSize14sp()..color = Colors.red,
-            ),
           ),
         ),
         header: WText(
@@ -1371,13 +1280,9 @@ class _HomePageState extends State<HomePage> {
         footer: SizedBox(
           height: WScreen.h(80),
           child: Center(
-            child: WButton(
-              style: WButtonStyles.primary,
+            child: WButton.primary(
+              '提交',
               onTap: () => print('提交'),
-              child: WText(
-                text: '提交',
-                config: WTextConfig.button(),
-              ),
             ),
           ),
         ),

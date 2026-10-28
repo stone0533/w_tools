@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../utils/screen.dart';
-import '../components/common/button/button.dart';
+import '../components/common/pressable.dart';
 import '../components/layout/container.dart';
 
 /// Widget 扩展（通用工具方法，不依赖 ui 组件）
@@ -89,20 +89,18 @@ extension WWidgetExtension on Widget {
 
 /// Widget 扩展（依赖 ui 组件）
 extension WUiWidgetExtension on Widget {
-  /// 将 Widget 包装在 WButton 中
-  Widget toButton({
+  /// 给任意 Widget 添加点击能力（不声明 button 语义）
+  Widget toPressable({
     GestureTapCallback? onTap,
     GestureLongPressCallback? onLongPress,
-    WButtonStyle? style,
     bool enabled = true,
-    bool loading = false,
+    WPressEffect effect = WPressEffect.opacity,
   }) {
-    return WButton(
+    return WPressable(
       onTap: onTap,
       onLongPress: onLongPress,
-      style: style,
       enabled: enabled,
-      loading: loading,
+      effect: effect,
       child: this,
     );
   }

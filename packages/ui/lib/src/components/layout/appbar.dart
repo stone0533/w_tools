@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/screen.dart';
-import '../common/button/button.dart';
+import '../common/pressable.dart';
 import '../common/text.dart';
 
 /// 自定义导航栏组件
@@ -112,17 +112,23 @@ class _WAppBarState extends State<WAppBar> {
                         : Semantics(
                             button: true,
                             label: MaterialLocalizations.of(context).backButtonTooltip,
-                            child: WButton(
-                              onTap: () {
-                                // 优先使用自定义返回回调，否则使用默认的 Navigator.pop
-                                final onBackPressed = widget.config?._onBackPressed;
-                                if (onBackPressed != null) {
-                                  onBackPressed();
-                                } else {
-                                  Navigator.maybePop(context);
-                                }
-                              },
-                              child: widget.config?._backIcon ?? const Icon(Icons.arrow_back),
+                            child: SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: Center(
+                                child: WPressable(
+                                  onTap: () {
+                                    // 优先使用自定义返回回调，否则使用默认的 Navigator.pop
+                                    final onBackPressed = widget.config?._onBackPressed;
+                                    if (onBackPressed != null) {
+                                      onBackPressed();
+                                    } else {
+                                      Navigator.maybePop(context);
+                                    }
+                                  },
+                                  child: widget.config?._backIcon ?? const Icon(Icons.arrow_back),
+                                ),
+                              ),
                             ),
                           )),
                 widget.actions ?? Container(),

@@ -10,7 +10,7 @@
 - `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageTheme` + `WImageCachePolicy`。
 - `WButtonConfig` / 配置缓存删除；`WButton` 改用不可变 `WButtonStyle` + `WButtonTheme`。
 - `WButton.enabled` / `loading` 改为组件参数；`WButtonEffectType` 增加 `none`。
-- `Widget.toButton(config:)` 改为 `toButton(style:)`。
+- `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
 
 ### Added
 - 新架构入口：`WImage.source(source:, style:)`、sealed `WImageSource`、不可变 `WImageStyle`、
@@ -47,7 +47,8 @@
   补充尺寸校验、无 container 时的 padding、图标按钮语义标签与键盘/指针 press 竞态修复。
 - `WButtonStyles` 预设改为返回独立副本；`WButtonStyle` / `WButton` 对 container/textStyle 做快照，
   `WButtonThemeData` 的 variants/sizes 使用不可变 Map。
-- 公共 `WButton` 构造支持省略 `child`，可直接用 `variant + label/icon`，并暴露全部高级参数。
+- 公共 `WButton` 构造使用 `variant + label/icon`，并暴露全部高级参数。
+- 新增 `WPressable`：任意 child 点击 + opacity/scale，不声明 button 语义、不负责样式/loading/最小区域。
 - 新增 `WButtonStyle.filled/outlined/text` 工厂与 `WButtonThemeData.copyWith`；
   focus/hover overlay 支持 `overlayBorderRadius`。
 - `WButtonThemeData` 支持 `ThemeExtension`，可直接挂到 `ThemeData.extensions`。
