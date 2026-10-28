@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../layout/container.dart';
+import 'button_size.dart';
 import 'text.dart';
 
 /// 按钮点击效果
@@ -39,6 +40,8 @@ class WButtonStyle {
     this.minWidth = 48,
     this.minHeight = 48,
     this.loadingLabel = '加载中',
+    this.iconSize = 18,
+    this.gap = 8,
   });
 
   final WButtonEffectType effect;
@@ -77,6 +80,12 @@ class WButtonStyle {
   /// loading 时的无障碍文案
   final String loadingLabel;
 
+  /// 图标尺寸（WButton.icon / label + icon）
+  final double iconSize;
+
+  /// 图标与文字间距
+  final double gap;
+
   /// 校验（debug assert）
   void validate() {
     assert(
@@ -93,6 +102,7 @@ class WButtonStyle {
       'disabledOpacity 必须在 0..1',
     );
     assert(minWidth >= 0 && minHeight >= 0, 'minWidth/minHeight 不能为负');
+    assert(iconSize >= 0 && gap >= 0, 'iconSize/gap 不能为负');
   }
 
   static const Object _unset = Object();
@@ -113,6 +123,8 @@ class WButtonStyle {
     Object? minWidth = _unset,
     Object? minHeight = _unset,
     Object? loadingLabel = _unset,
+    Object? iconSize = _unset,
+    Object? gap = _unset,
   }) {
     return WButtonStyle(
       effect: identical(effect, _unset) ? this.effect : effect as WButtonEffectType,
@@ -130,6 +142,38 @@ class WButtonStyle {
       semanticLabel:
           identical(semanticLabel, _unset) ? this.semanticLabel : semanticLabel as String?,
       semanticHint: identical(semanticHint, _unset) ? this.semanticHint : semanticHint as String?,
+      focusColor: identical(focusColor, _unset) ? this.focusColor : focusColor as Color?,
+      hoverColor: identical(hoverColor, _unset) ? this.hoverColor : hoverColor as Color?,
+      disabledOpacity: identical(disabledOpacity, _unset)
+          ? this.disabledOpacity
+          : (disabledOpacity as num).toDouble(),
+      minWidth: identical(minWidth, _unset) ? this.minWidth : (minWidth as num).toDouble(),
+      minHeight: identical(minHeight, _unset) ? this.minHeight : (minHeight as num).toDouble(),
+      loadingLabel: identical(loadingLabel, _unset) ? this.loadingLabel : loadingLabel as String,
+      iconSize: identical(iconSize, _unset) ? this.iconSize : (iconSize as num).toDouble(),
+      gap: identical(gap, _unset) ? this.gap : (gap as num).toDouble(),
+    );
+  }
+
+  /// 把尺寸令牌叠加到当前样式；只覆盖布局/文字/图标字段。
+  WButtonStyle applySize(WButtonSize? size) {
+    if (size == null) return this;
+    final nextContainer = container?.copy();
+    if (size.padding != null && nextContainer != null) {
+      nextContainer.padding = size.padding;
+    }
+    final nextTextStyle = textStyle?.copyWith(
+          fontSize: size.fontSize,
+          fontWeight: size.fontWeight,
+        ) ??
+        size.textStyle;
+    return copyWith(
+      container: nextContainer,
+      minWidth: size.minWidth ?? minWidth,
+      minHeight: size.minHeight ?? minHeight,
+      textStyle: nextTextStyle,
+      iconSize: size.iconSize ?? iconSize,
+      gap: size.gap ?? gap,
     );
   }
 }

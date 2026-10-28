@@ -40,6 +40,8 @@
 - `WButton` 增加 focus/hover overlay、48×48 最小点击区域、禁用时阻断 child 交互；
   loading 保持 child 占位尺寸，长按进入 Semantics。
 - `WButton` 增加 `onTapDown/onTapUp/onTapCancel/onSecondaryTap/onFocusChange/onHover/onPressedChanged`。
+- 新增 `WButtonSize` 值对象（3 个默认尺寸 + 项目自定义）与 `WButtonThemeData.variants/sizes/base/defaultSize`。
+- 新增一行式构造：`WButton.primary/secondary/text/danger/variant/icon`。
 
 ### Changed
 - `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。

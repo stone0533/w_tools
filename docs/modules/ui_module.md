@@ -150,8 +150,12 @@ final bottomSafe = WScreen.bottomBarHeight;
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `child` | Widget | - | 必需，子组件 |
-| `style` | `WButtonStyle?` | null | 样式；null 时使用 `WButtonTheme.primary` / 内置默认 |
+| `child` | Widget | - | 子组件；快捷构造可省略 |
+| `style` | `WButtonStyle?` | null | 样式；null 时使用 `WButtonTheme` / 内置预设 |
+| `variant` | `String?` | null | primary / secondary / text / danger 或项目自定义 |
+| `label` / `icon` | String? / IconData? | null | 快捷构造的文本/图标 |
+| `size` | `WButtonSize?` | null | 尺寸对象 |
+| `sizeName` | `String?` | null | 主题中注册的尺寸名 |
 | `onTap` | `GestureTapCallback?` | null | 点击回调 |
 | `onLongPress` | `GestureLongPressCallback?` | null | 长按回调 |
 | `onSecondaryTap` | `GestureTapCallback?` | null | 次要点击（桌面端右键） |
@@ -182,8 +186,43 @@ final bottomSafe = WScreen.bottomBarHeight;
 | `disabledOpacity` | double | 0.5 | 禁用时透明度 |
 | `minWidth` / `minHeight` | double | 48 | 最小点击区域 |
 | `loadingLabel` | String | 加载中 | loading 无障碍文案 |
+| `iconSize` / `gap` | double | 18 / 8 | 图标尺寸 / 图标文字间距 |
 
 `WButtonStyle` 不可变，用 `copyWith` 修改；`validate()` 会检查透明度/缩放/时长范围。
+
+### WButtonSize
+
+```dart
+WButtonSize.small   // 32 高，13 号字
+WButtonSize.medium  // 40 高，14 号字
+WButtonSize.large   // 48 高，15 号字
+```
+
+3 个只是默认值；项目可自定义：
+
+```dart
+abstract final class AppButtonSizes {
+  static const compact = WButtonSize(
+    name: 'compact',
+    minHeight: 30,
+    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    fontSize: 12,
+  );
+
+  static const hero = WButtonSize(
+    name: 'hero',
+    minHeight: 56,
+    padding: EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+    fontSize: 17,
+    fontWeight: FontWeight.w700,
+  );
+}
+```
+
+```dart
+WButton.primary('保存', size: AppButtonSizes.hero)
+WButton.primary('保存', sizeName: 'hero') // 主题 sizes 注册后
+```
 
 ### WButtonStyles 预设
 
@@ -215,16 +254,36 @@ WButtonTheme(
     secondary: WButtonStyles.secondary,
     text: WButtonStyles.text,
     danger: WButtonStyles.danger,
+    variants: {'brand': WButtonStyles.primary},
+    sizes: {'compact': WButtonSize.small},
+    defaultSize: WButtonSize.medium,
   ),
   child: MaterialApp(...),
 )
 ```
 
-解析顺序：`WButton.style` > `WButtonTheme.primary` > `WButtonStyle()`。
+解析顺序：
+
+1. `WButton.style`
+2. `WButtonTheme.resolveStyle(variant)`（`variants` / `primary` / `secondary` / `text` / `danger` / `base`）
+3. 内置 `WButtonStyles` 预设（有 variant 时）
+4. `WButtonStyle()` 默认值
+
+尺寸：`WButton.size` > `WButtonTheme.resolveSize(sizeName)` > `defaultSize`；variant 构造未传时回退 `WButtonSize.medium`。
 
 ### 使用示例
 
 ```dart
+// 一行式（最常用）
+WButton.primary('提交', onTap: submit)
+WButton.primary('提交', loading: isSubmitting, enabled: canSubmit)
+WButton.secondary('取消', onTap: cancel)
+WButton.danger('删除', onTap: delete)
+WButton.text('查看更多', onTap: more)
+WButton.icon(Icons.close, tooltip: '关闭', onTap: close)
+WButton.variant('brand', '品牌按钮', onTap: onTap)
+WButton.primary('大按钮', size: WButtonSize.large, onTap: submit)
+
 // 默认样式（theme / 内置）
 WButton(
   onTap: submit,

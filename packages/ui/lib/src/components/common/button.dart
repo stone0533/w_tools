@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../layout/container.dart';
+import 'button_size.dart';
 import 'button_style.dart';
+import 'button_styles.dart';
+import 'text.dart';
 import 'button_theme.dart';
 
+export 'button_size.dart';
 export 'button_style.dart';
 export 'button_styles.dart';
 export 'button_theme.dart';
@@ -19,6 +23,11 @@ class WButton extends StatefulWidget {
   const WButton({
     super.key,
     this.style,
+    this.variant,
+    this.label,
+    this.icon,
+    this.size,
+    this.sizeName,
     this.onTap,
     this.onLongPress,
     this.onSecondaryTap,
@@ -41,6 +50,19 @@ class WButton extends StatefulWidget {
 
   /// 按钮样式；null 时使用 [WButtonTheme] 的 primary / 内置默认
   final WButtonStyle? style;
+
+  /// 变体名（primary / secondary / text / danger 或项目自定义）
+  final String? variant;
+
+  /// 快捷构造的文本 / 图标
+  final String? label;
+  final IconData? icon;
+
+  /// 尺寸；优先级高于 sizeName
+  final WButtonSize? size;
+
+  /// 主题里注册的尺寸名
+  final String? sizeName;
 
   /// 点击回调
   final GestureTapCallback? onTap;
@@ -87,8 +109,265 @@ class WButton extends StatefulWidget {
   /// 是否启用点击反馈（触觉）
   final bool enableFeedback;
 
-  /// 子组件
-  final Widget child;
+  /// 子组件（快捷构造时可为空）
+  final Widget? child;
+
+  /// 快捷构造：primary / secondary / text / danger 变体
+  factory WButton.primary(
+    String label, {
+    Key? key,
+    WButtonStyle? style,
+    WButtonSize? size,
+    String? sizeName,
+    bool enabled = true,
+    bool loading = false,
+    GestureTapCallback? onTap,
+    GestureLongPressCallback? onLongPress,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    String? tooltip,
+    bool enableFeedback = true,
+  }) =>
+      WButton._preset(
+        variant: 'primary',
+        label: label,
+        key: key,
+        style: style,
+        size: size,
+        sizeName: sizeName,
+        enabled: enabled,
+        loading: loading,
+        onTap: onTap,
+        onLongPress: onLongPress,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        tooltip: tooltip,
+        enableFeedback: enableFeedback,
+      );
+
+  factory WButton.secondary(
+    String label, {
+    Key? key,
+    WButtonStyle? style,
+    WButtonSize? size,
+    String? sizeName,
+    bool enabled = true,
+    bool loading = false,
+    GestureTapCallback? onTap,
+    GestureLongPressCallback? onLongPress,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    String? tooltip,
+    bool enableFeedback = true,
+  }) =>
+      WButton._preset(
+        variant: 'secondary',
+        label: label,
+        key: key,
+        style: style,
+        size: size,
+        sizeName: sizeName,
+        enabled: enabled,
+        loading: loading,
+        onTap: onTap,
+        onLongPress: onLongPress,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        tooltip: tooltip,
+        enableFeedback: enableFeedback,
+      );
+
+  factory WButton.text(
+    String label, {
+    Key? key,
+    WButtonStyle? style,
+    WButtonSize? size,
+    String? sizeName,
+    bool enabled = true,
+    bool loading = false,
+    GestureTapCallback? onTap,
+    GestureLongPressCallback? onLongPress,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    String? tooltip,
+    bool enableFeedback = true,
+  }) =>
+      WButton._preset(
+        variant: 'text',
+        label: label,
+        key: key,
+        style: style,
+        size: size,
+        sizeName: sizeName,
+        enabled: enabled,
+        loading: loading,
+        onTap: onTap,
+        onLongPress: onLongPress,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        tooltip: tooltip,
+        enableFeedback: enableFeedback,
+      );
+
+  factory WButton.danger(
+    String label, {
+    Key? key,
+    WButtonStyle? style,
+    WButtonSize? size,
+    String? sizeName,
+    bool enabled = true,
+    bool loading = false,
+    GestureTapCallback? onTap,
+    GestureLongPressCallback? onLongPress,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    String? tooltip,
+    bool enableFeedback = true,
+  }) =>
+      WButton._preset(
+        variant: 'danger',
+        label: label,
+        key: key,
+        style: style,
+        size: size,
+        sizeName: sizeName,
+        enabled: enabled,
+        loading: loading,
+        onTap: onTap,
+        onLongPress: onLongPress,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        tooltip: tooltip,
+        enableFeedback: enableFeedback,
+      );
+
+  factory WButton.variant(
+    String variant,
+    String label, {
+    Key? key,
+    WButtonStyle? style,
+    WButtonSize? size,
+    String? sizeName,
+    bool enabled = true,
+    bool loading = false,
+    GestureTapCallback? onTap,
+    GestureLongPressCallback? onLongPress,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    String? tooltip,
+    bool enableFeedback = true,
+  }) =>
+      WButton._preset(
+        variant: variant,
+        label: label,
+        key: key,
+        style: style,
+        size: size,
+        sizeName: sizeName,
+        enabled: enabled,
+        loading: loading,
+        onTap: onTap,
+        onLongPress: onLongPress,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        tooltip: tooltip,
+        enableFeedback: enableFeedback,
+      );
+
+  factory WButton.icon(
+    IconData icon, {
+    String? label,
+    Key? key,
+    WButtonStyle? style,
+    WButtonSize? size,
+    String? sizeName,
+    bool enabled = true,
+    bool loading = false,
+    GestureTapCallback? onTap,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    String? tooltip,
+    bool enableFeedback = true,
+  }) =>
+      WButton._preset(
+        icon: icon,
+        label: label,
+        key: key,
+        style: style,
+        size: size,
+        sizeName: sizeName,
+        enabled: enabled,
+        loading: loading,
+        onTap: onTap,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        tooltip: tooltip,
+        enableFeedback: enableFeedback,
+      );
+
+  static WButton _preset({
+    String? variant,
+    String? label,
+    IconData? icon,
+    Key? key,
+    WButtonStyle? style,
+    WButtonSize? size,
+    String? sizeName,
+    bool enabled = true,
+    bool loading = false,
+    GestureTapCallback? onTap,
+    GestureLongPressCallback? onLongPress,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    String? tooltip,
+    bool enableFeedback = true,
+  }) {
+    return WButton._(
+      key: key,
+      variant: variant,
+      label: label,
+      icon: icon,
+      style: style,
+      size: size,
+      sizeName: sizeName,
+      enabled: enabled,
+      loading: loading,
+      onTap: onTap,
+      onLongPress: onLongPress,
+      focusNode: focusNode,
+      autofocus: autofocus,
+      tooltip: tooltip,
+      enableFeedback: enableFeedback,
+      child: null,
+    );
+  }
+
+  const WButton._({
+    super.key,
+    this.style,
+    this.variant,
+    this.label,
+    this.icon,
+    this.size,
+    this.sizeName,
+    this.onTap,
+    this.onLongPress,
+    this.enabled = true,
+    this.loading = false,
+    this.focusNode,
+    this.autofocus = false,
+    this.tooltip,
+    this.enableFeedback = true,
+    this.child,
+  })  : onSecondaryTap = null,
+        onTapDown = null,
+        onTapUp = null,
+        onTapCancel = null,
+        onFocusChange = null,
+        onHover = null,
+        onPressedChanged = null,
+        loadingBuilder = null,
+        behavior = HitTestBehavior.opaque;
 
   @override
   State<WButton> createState() => _WButtonState();
@@ -123,7 +402,21 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
   }
 
   WButtonStyle _resolveStyle(BuildContext context) {
-    return widget.style ?? WButtonTheme.maybeOf(context)?.primary ?? const WButtonStyle();
+    final theme = WButtonTheme.maybeOf(context);
+    final fallback = switch (widget.variant) {
+      'primary' => WButtonStyles.primary,
+      'secondary' => WButtonStyles.secondary,
+      'text' => WButtonStyles.text,
+      'danger' => WButtonStyles.danger,
+      _ => const WButtonStyle(),
+    };
+    final base = widget.style ??
+        theme?.resolveStyle(widget.variant) ??
+        (widget.variant != null ? fallback : const WButtonStyle());
+    final size = widget.size ??
+        theme?.resolveSize(widget.sizeName) ??
+        (widget.variant != null ? (theme?.defaultSize ?? WButtonSize.medium) : null);
+    return base.applySize(size);
   }
 
   void _syncController(WButtonStyle style) {
@@ -209,6 +502,24 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     _setPressed(false);
   }
 
+  Widget _label(BuildContext context, WButtonStyle style) {
+    final label = widget.label;
+    final icon = widget.icon;
+    if (label != null && icon != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: style.iconSize),
+          SizedBox(width: style.gap),
+          WText(text: label, config: style.textStyle),
+        ],
+      );
+    }
+    if (icon != null) return Icon(icon, size: style.iconSize);
+    if (label != null) return WText(text: label, config: style.textStyle);
+    return const SizedBox.shrink();
+  }
+
   Widget _loading(BuildContext context, WButtonStyle style) {
     final child = widget.loadingBuilder?.call(context) ??
         const SizedBox(
@@ -270,15 +581,15 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     }
   }
 
-  Widget _content(BuildContext context, WButtonStyle style) {
-    if (!widget.loading) return widget.child;
+  Widget _content(BuildContext context, WButtonStyle style, Widget child) {
+    if (!widget.loading) return child;
 
     // loading 时保留 child 占位，避免按钮尺寸跳动。
     return Stack(
       alignment: Alignment.center,
       children: [
         ExcludeSemantics(
-          child: Opacity(opacity: 0, child: widget.child),
+          child: Opacity(opacity: 0, child: child),
         ),
         _loading(context, style),
       ],
@@ -293,10 +604,11 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     final interactive = _interactive;
     final theme = Theme.of(context);
 
+    final child = widget.child ?? _label(context, style);
     final container = style.container?.copy();
     final content = container == null
-        ? _content(context, style)
-        : WContainer(config: container, child: _content(context, style));
+        ? _content(context, style, child)
+        : WContainer(config: container, child: _content(context, style, child));
 
     Widget visualChild = ConstrainedBox(
       constraints: BoxConstraints(

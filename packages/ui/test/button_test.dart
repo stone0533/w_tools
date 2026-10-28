@@ -19,10 +19,14 @@ void main() {
         effect: WButtonEffectType.scale,
         pressedScale: 0.9,
         semanticLabel: '提交',
+        minHeight: 60,
+        focusColor: Colors.black12,
       );
       expect(next.effect, WButtonEffectType.scale);
       expect(next.pressedScale, 0.9);
       expect(next.semanticLabel, '提交');
+      expect(next.minHeight, 60);
+      expect(next.focusColor, Colors.black12);
       expect(style.effect, WButtonEffectType.opacity);
       expect(() => style.validate(), returnsNormally);
     });
@@ -47,6 +51,91 @@ void main() {
       expect(WButtonStyles.secondary.container, isNotNull);
       expect(WButtonStyles.text.textStyle, isNotNull);
       expect(WButtonStyles.danger.container, isNotNull);
+    });
+  });
+
+  group('WButtonSize / variants', () {
+    test('尺寸默认值与 copyWith', () {
+      const small = WButtonSize.small;
+      expect(small.name, 'small');
+      expect(small.minHeight, 32);
+      expect(small.fontSize, 13);
+
+      final custom = small.copyWith(name: 'compact', minHeight: 28);
+      expect(custom.name, 'compact');
+      expect(custom.minHeight, 28);
+      expect(custom.padding, small.padding);
+    });
+
+    testWidgets('WButton.primary 使用内置预设', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton.primary('主按钮', onTap: () {}),
+        ),
+      );
+      expect(find.text('主按钮'), findsOneWidget);
+    });
+
+    testWidgets('自定义 variant 从 theme 解析', (tester) async {
+      await tester.pumpWidget(
+        WButtonTheme(
+          data: const WButtonThemeData(
+            variants: {
+              'brand': WButtonStyle(semanticLabel: '品牌按钮'),
+            },
+          ),
+          child: _wrap(
+            WButton.variant('brand', '品牌', onTap: () {}),
+          ),
+        ),
+      );
+
+      final semantics = tester
+          .widgetList<Semantics>(
+            find.descendant(of: find.byType(WButton), matching: find.byType(Semantics)),
+          )
+          .firstWhere((s) => s.properties.button == true);
+      expect(semantics.properties.label, '品牌按钮');
+    });
+
+    testWidgets('sizeName 从 theme 解析', (tester) async {
+      await tester.pumpWidget(
+        WButtonTheme(
+          data: const WButtonThemeData(
+            sizes: {
+              'hero': WButtonSize(
+                name: 'hero',
+                minHeight: 60,
+              ),
+            },
+          ),
+          child: _wrap(
+            WButton.primary('大按钮', sizeName: 'hero', onTap: () {}),
+          ),
+        ),
+      );
+
+      // ignore: avoid_print
+      print(
+          'constraints=${tester.widgetList<ConstrainedBox>(find.byType(ConstrainedBox)).map((b) => b.constraints).toList()}');
+      final box = tester
+          .widgetList<ConstrainedBox>(find.byType(ConstrainedBox))
+          .firstWhere((b) => b.constraints.minHeight == 60);
+      expect(box.constraints.minHeight, 60);
+    });
+
+    testWidgets('WButton.icon 支持图标 + 文本', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton.icon(
+            Icons.add,
+            label: '新增',
+            onTap: () {},
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.add), findsOneWidget);
+      expect(find.text('新增'), findsOneWidget);
     });
   });
 
