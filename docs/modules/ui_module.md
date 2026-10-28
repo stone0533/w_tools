@@ -489,6 +489,18 @@ WImageCachePolicy.reset();
 - `WImage.onLoadProgress` 删除，用 `onProgress`；
 - `cacheEnabled` / `fitCenter` / `size` 均已删除。
 
+### 可运行示例
+
+完整示例在 [`packages/ui/example`](../../packages/ui/example/README.md)：
+
+```bash
+cd packages/ui/example
+flutter pub get
+flutter run
+```
+
+覆盖网络图、asset、Base64、圆形头像、进度、自动/手动重试、主题、缓存预算与预加载。
+
 ### 重试与手动重试
 
 - `retryCount` 默认 0（不自动重试）；开启后只对**可重试错误**生效：

@@ -1,0 +1,24 @@
+name: w_tools_ui_example
+description: "w_tools_ui 的 WImage 使用示例：网络、资源、Base64、进度、重试、主题与缓存。"
+publish_to: none
+version: 1.0.0
+
+# 与 packages/map/example 一致：不声明 resolution: workspace，
+# 示例要能从发布后的 w_tools_ui 独立 pub get。
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  w_tools_ui:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/demo.png

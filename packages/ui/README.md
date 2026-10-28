@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^1.0.0
+  w_tools_ui: ^2.0.0
 ```
 
 > 本包最低要求 Flutter 3.27.0。
@@ -43,6 +43,28 @@ class DemoPage extends StatelessWidget {
   }
 }
 ```
+
+## WImage 快速示例
+
+```dart
+import 'package:w_tools_ui/w_tools_ui.dart';
+
+WImage.network(
+  'https://example.com/cover.jpg',
+  style: const WImageStyle(
+    aspectRatio: 16 / 9,
+    fit: BoxFit.cover,
+    memCacheWidth: 800,
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+  ),
+)
+```
+
+四种来源：`WImage.network` / `WImage.asset` / `WImage.file` / `WImage.base64`，
+需要确定性时用命名构造；动态字符串用 `WImageSource.parse`。
+
+完整的网络、资源、Base64、进度、重试、主题与预加载示例见
+[`example/`](example/README.md)。
 
 ## 主要 API
 
