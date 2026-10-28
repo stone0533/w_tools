@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'playground_page.dart';
+import 'recipes_page.dart';
 import 'states_page.dart';
 
 void main() {
@@ -12,6 +13,8 @@ void main() {
     maxSize: 300,
     maxMemoryBytes: 300 * 1024 * 1024,
   );
+  // 让 WImage.assetImage('demo.png') 指向 example/assets/demo.png。
+  WAssets.imagePath = 'assets/';
 
   runApp(
     const WImageTheme(
@@ -53,6 +56,7 @@ class _HomeShellState extends State<HomeShell> {
   static const _pages = <Widget>[
     PlaygroundPage(),
     StatesPage(),
+    RecipesPage(),
   ];
 
   @override
@@ -71,6 +75,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: Icon(Icons.grid_view),
             label: '状态矩阵',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long),
+            label: '常用配方',
           ),
         ],
       ),

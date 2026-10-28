@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/image/image.dart';
@@ -130,6 +132,65 @@ void main() {
         ),
       );
       expect(find.text('themed'), findsOneWidget);
+    });
+
+    test('常用预设构造', () {
+      final avatar = WImage.avatar('a.png', size: 80);
+      expect(avatar.style.width, 80);
+      expect(avatar.style.borderRadius, BorderRadius.circular(40));
+
+      final thumb = WImage.thumbnail('a.png', width: 80, cacheSize: 240);
+      expect(thumb.style.memCacheWidth, 240);
+
+      final cover = WImage.cover('a.png', aspectRatio: 2, radius: 12);
+      expect(cover.style.aspectRatio, 2);
+    });
+
+    test('assetImage 默认拼 WAssets.imagePath', () {
+      final image = WImage.assetImage('logo.png');
+      expect(image.source, isA<WAssetImageSource>());
+      expect((image.source as WAssetImageSource).value, 'assets/images/logo.png');
+    });
+
+    test('memory / provider 类型', () {
+      final bytes = Uint8List.fromList([1, 2, 3]);
+      final memory = WImage.memory(bytes);
+      expect(memory.type, WImageType.provider);
+      expect(memory.source, isA<WProviderImageSource>());
+    });
+
+    testWidgets('memory 图片可渲染', (tester) async {
+      final bytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAIklEQVR4nGO8Y2PDQApgIkk1w6gG4gATkergYFQDMYBkDQBDhAF0tn7oPgAAAABJRU5ErkJggg==',
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WImage.memory(
+            bytes,
+            style: const WImageStyle(width: 10, height: 10),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(Image), findsOneWidget);
+    });
+
+    testWidgets('showRetryButton 使用内置错误视图', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WImage(
+            data: 'data:image/png;base64,@@bad@@',
+            style: const WImageStyle(
+              width: 100,
+              height: 100,
+              showRetryButton: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(WImageErrorView), findsOneWidget);
+      expect(find.text('重试'), findsOneWidget);
     });
 
     test('命名构造带显式类型', () {

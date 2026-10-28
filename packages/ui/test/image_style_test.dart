@@ -33,6 +33,38 @@ void main() {
     );
   });
 
+  test('常用预设', () {
+    final avatar = WImageStyle.avatar(80);
+    expect(avatar.width, 80);
+    expect(avatar.height, 80);
+    expect(avatar.borderRadius, BorderRadius.circular(40));
+    expect(avatar.fit, BoxFit.cover);
+
+    final thumb = WImageStyle.thumbnail(80, cacheSize: 240);
+    expect(thumb.memCacheWidth, 240);
+    expect(thumb.memCacheHeight, 240);
+
+    final cover = WImageStyle.cover(aspectRatio: 2, radius: 12);
+    expect(cover.aspectRatio, 2);
+    expect(cover.borderRadius, BorderRadius.circular(12));
+  });
+
+  test('链式糖返回新实例', () {
+    const base = WImageStyle();
+    final next = base.square(40).rounded(20).memCached(120);
+    expect(base.width, isNull);
+    expect(next.width, 40);
+    expect(next.height, 40);
+    expect(next.borderRadius, BorderRadius.circular(20));
+    expect(next.memCacheWidth, 120);
+  });
+
+  test('showRetryButton 可复制', () {
+    const style = WImageStyle(showRetryButton: true, retryLabel: '重新加载');
+    expect(style.copyWith(showRetryButton: false).showRetryButton, isFalse);
+    expect(style.copyWith(retryLabel: '再来一次').retryLabel, '再来一次');
+  });
+
   test('默认值', () {
     const style = WImageStyle();
     expect(style.fit, BoxFit.cover);

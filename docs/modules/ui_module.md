@@ -399,6 +399,12 @@ WImage.source(
 | `WImage.asset(path)` | 资产图；前后的空白会被裁掉 |
 | `WImage.file(path)` | 本地文件；带不带 `file://` 都可以 |
 | `WImage.base64(data)` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
+| `WImage.avatar(data, size:)` | 正方形 + 全圆角 |
+| `WImage.thumbnail(data, width:)` | 缩略图 + 默认 memCache |
+| `WImage.cover(data, aspectRatio:)` | 固定比例封面 |
+| `WImage.assetImage(name)` | 自动拼 `WAssets.imagePath` |
+| `WImage.memory(bytes)` | `Uint8List` → `MemoryImage` |
+| `WImage.provider(provider)` | 任意 `ImageProvider` |
 
 ### WImageType 与自动判定
 
@@ -407,6 +413,7 @@ WImage.source(
 | `network` | `Uri` 解析出的 scheme 为 `http`/`https`（大小写无关）且 host 非空；或 `//` 开头 |
 | `file` | scheme 为 `file` |
 | `base64` | `data:` 开头（不限于 `data:image/`） |
+| `provider` | 任意 `ImageProvider`（`WImage.provider` / `WImage.memory`） |
 | `asset` | 其余；空串/纯空白会直接渲染错误占位 |
 
 判定只在 `initState` / `didUpdateWidget` 执行一次，不使用跨实例的全局缓存。
@@ -443,6 +450,8 @@ WImage.source(
 | `gaplessPlayback` | bool | false | 换图保留上一帧 |
 | `filterQuality` | `FilterQuality` | low | 采样质量 |
 | `alignment` | `Alignment` | center | 对齐方式 |
+| `showRetryButton` | bool | false | 无自定义错误占位时显示内置“错误 + 重试”视图 |
+| `retryLabel` | String | 重试 | 内置重试按钮文案 |
 | `borderRadius` / `border` / `boxShadow` | — | null | 装饰 |
 | `margin` / `padding` | `EdgeInsets?` | null | 间距 |
 
@@ -456,7 +465,7 @@ WImage.source(
 
 ### WImageTheme / WImageCachePolicy
 
-- `WImageTheme`（InheritedWidget）按子树覆盖默认占位符/错误占位符；
+- `WImageTheme`（InheritedWidget）按子树覆盖默认占位符/错误占位符/默认进度构建器；
 - `WImageCachePolicy` 是进程级缓存预算，直接同步 Flutter `ImageCache`：
 
 ```dart
@@ -464,6 +473,7 @@ WImageTheme(
   data: const WImageThemeData(
     defaultPlaceholder: CircularProgressIndicator(),
     defaultErrorWidget: Icon(Icons.broken_image),
+    defaultProgressBuilder: _defaultProgress,
   ),
   child: ...,
 )
@@ -473,6 +483,8 @@ WImageCachePolicy.reset();
 ```
 
 优先级：style builder > style 固定 Widget > `WImageTheme` > 内置兜底。
+`WImageThemeData.defaultProgressBuilder` 可作为所有网络图的默认进度 UI。
+内置错误视图可用 `WImageStyle(showRetryButton: true)` 启用，或直接复用 `WImageErrorView`。
 `WImageCachePolicy` 只影响 `ImageCache`，与 `WImagePreloader` 的字节缓存互不影响。
 
 ### 缓存

@@ -12,6 +12,11 @@
 ### Added
 - 新架构入口：`WImage.source(source:, style:)`、sealed `WImageSource`、不可变 `WImageStyle`、
   `WImageFrame`、`WImageTheme`。
+- 场景预设：`WImage.avatar` / `WImage.thumbnail` / `WImage.cover` / `WImage.assetImage` /
+  `WImage.memory` / `WImage.provider`，以及 `WImageStyle.avatar/thumbnail/cover`。
+- `WImageStyle` 链式糖：`square()` / `rounded()` / `memCached()`。
+- `WImageStyle(showRetryButton: true)` + `WImageErrorView` 内置错误/重试视图。
+- `WImageThemeData.defaultProgressBuilder`。
 - `WImageSource.parse` 保留字符串自动判定；`WImage(data:, style:)` 与命名构造作为便利入口。
 - `WImageController.state`：`ValueListenable<WImageLoadSnapshot>`（status/progress/attempt/error/retryScheduled）。
 - `WImageLoadSnapshot` 实现 `==`/`hashCode`，`emit()` 相同快照不重复通知。

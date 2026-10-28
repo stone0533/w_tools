@@ -25,6 +25,9 @@ enum WImageType {
 
   /// Base64 图片
   base64,
+
+  /// 任意 [ImageProvider]（含内存图片）
+  provider,
 }
 
 /// 图片加载进度

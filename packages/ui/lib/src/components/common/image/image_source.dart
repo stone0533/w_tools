@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 
 import '../../../utils/assets.dart';
 import 'image_types.dart';
@@ -32,6 +33,7 @@ sealed class WImageSource {
       WImageType.asset => WAssetImageSource(raw),
       WImageType.file => WFileImageSource(raw),
       WImageType.base64 => WBase64ImageSource(raw),
+      WImageType.provider => throw ArgumentError('provider 来源不能从字符串解析'),
     };
   }
 
@@ -56,6 +58,9 @@ sealed class WImageSource {
 
   /// Base64（可带 data: 前缀）
   factory WImageSource.base64(String data) => WBase64ImageSource(data);
+
+  /// 任意 [ImageProvider]（高级入口，含 `MemoryImage`）
+  factory WImageSource.provider(ImageProvider provider) => WProviderImageSource(provider);
 
   static WImageType _detect(String value) {
     final uri = Uri.tryParse(value);
@@ -210,4 +215,29 @@ final class WBase64ImageSource extends WImageSource {
 
   @override
   int get hashCode => data.hashCode;
+}
+
+/// 任意 [ImageProvider] 来源
+final class WProviderImageSource extends WImageSource {
+  const WProviderImageSource(this.provider);
+
+  final ImageProvider provider;
+
+  @override
+  WImageType get type => WImageType.provider;
+
+  @override
+  String get raw => provider.toString();
+
+  @override
+  String get value => key;
+
+  @override
+  String get key => 'provider:${identityHashCode(provider)}';
+
+  @override
+  bool operator ==(Object other) => other is WProviderImageSource && other.provider == provider;
+
+  @override
+  int get hashCode => provider.hashCode;
 }

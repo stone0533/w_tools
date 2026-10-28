@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'image_error_view.dart';
 import 'image_frame.dart';
 import 'image_loader.dart';
 import 'image_source.dart';
@@ -20,6 +21,7 @@ import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
 export 'image_frame.dart';
 export 'image_cache_policy.dart';
+export 'image_error_view.dart';
 export 'image_loader.dart';
 export 'image_source.dart';
 export 'image_style.dart';
@@ -209,6 +211,135 @@ class WImage extends StatefulWidget {
     );
   }
 
+  /// 头像：正方形 + 全圆角
+  factory WImage.avatar(
+    String data, {
+    Key? key,
+    double size = 40,
+    WImageStyle? style,
+    WImageType? type,
+    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
+    ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
+  }) {
+    return WImage(
+      key: key,
+      data: data,
+      type: type,
+      style: style ?? WImageStyle.avatar(size),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
+
+  /// 缩略图：正方形 + 解码尺寸上限
+  factory WImage.thumbnail(
+    String data, {
+    Key? key,
+    double width = 80,
+    double? height,
+    int? cacheSize,
+    WImageStyle? style,
+    WImageType? type,
+    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
+    ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
+  }) {
+    return WImage(
+      key: key,
+      data: data,
+      type: type,
+      style: style ?? WImageStyle.thumbnail(width, height: height, cacheSize: cacheSize),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
+
+  /// 封面图：固定比例 + 可选圆角
+  factory WImage.cover(
+    String data, {
+    Key? key,
+    double? aspectRatio = 16 / 9,
+    double? radius,
+    WImageStyle? style,
+    WImageType? type,
+    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
+    ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
+  }) {
+    return WImage(
+      key: key,
+      data: data,
+      type: type,
+      style: style ?? WImageStyle.cover(aspectRatio: aspectRatio, radius: radius),
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
+
+  /// 资源图片：默认拼 `WAssets.imagePath`
+  factory WImage.assetImage(
+    String name, {
+    Key? key,
+    String? package,
+    WImageStyle style = const WImageStyle(),
+    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
+    ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
+  }) {
+    return WImage.asset(
+      name,
+      key: key,
+      package: package,
+      prefix: true,
+      style: style,
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
+
+  /// 任意 [ImageProvider]（高级入口）
+  factory WImage.provider(
+    ImageProvider provider, {
+    Key? key,
+    WImageStyle style = const WImageStyle(),
+    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
+    ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
+  }) {
+    return WImage.source(
+      key: key,
+      source: WImageSource.provider(provider),
+      style: style,
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
+
+  /// 内存字节（内部转成 `MemoryImage`）
+  factory WImage.memory(
+    Uint8List bytes, {
+    Key? key,
+    WImageStyle style = const WImageStyle(),
+    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
+    ValueChanged<WImageProgress>? onProgress,
+    WImageController? controller,
+  }) {
+    return WImage.provider(
+      MemoryImage(bytes),
+      key: key,
+      style: style,
+      onLoadStatusChanged: onLoadStatusChanged,
+      onProgress: onProgress,
+      controller: controller,
+    );
+  }
+
   WImage._({
     super.key,
     required this.type,
@@ -370,6 +501,7 @@ class _WImageState extends State<WImage> {
         WImageType.asset => _buildAsset(),
         WImageType.file => _buildFile(context),
         WImageType.base64 => _buildBase64(),
+        WImageType.provider => _buildProvider(),
       };
     }
 
@@ -408,13 +540,21 @@ class _WImageState extends State<WImage> {
     return config.placeholder ?? _buildPlaceholder(context);
   }
 
-  /// 错误占位：业务自定义优先，其次固定 Widget，最后默认错误占位
+  /// 错误占位：业务 builder > 固定 Widget > 内置重试视图 > theme/兜底
   Widget _errorSlot(BuildContext context, WImageError error) {
     final builder = config.errorWidgetBuilder;
     if (builder != null) {
       return builder(context, error.data, error) ?? _buildErrorWidget(context);
     }
-    return config.errorWidget ?? _buildErrorWidget(context);
+    if (config.errorWidget != null) return config.errorWidget!;
+    if (config.showRetryButton) {
+      return WImageErrorView(
+        error: error,
+        onRetry: _load.retryNow,
+        retryLabel: config.retryLabel,
+      );
+    }
+    return _buildErrorWidget(context);
   }
 
   ImageProvider _cachedProvider(String key, ImageProvider Function() create) {
@@ -448,6 +588,15 @@ class _WImageState extends State<WImage> {
       notifyProgressCompletion: true,
       retryOnError: true,
       progressBuilder: config.progressBuilder,
+    );
+  }
+
+  /// 任意 provider（含 MemoryImage）
+  Widget _buildProvider() {
+    final source = widget.source as WProviderImageSource;
+    return _imageWidget(
+      source.provider,
+      errorFactory: (error) => WImageDecodeError(widget.data, error),
     );
   }
 
@@ -561,7 +710,8 @@ class _WImageState extends State<WImage> {
           totalBytes: loadingProgress.expectedTotalBytes,
         );
         _load.handleProgress(progress);
-        return progressBuilder?.call(context, _value, progress) ?? _placeholderFor(context);
+        final builder = progressBuilder ?? WImageTheme.maybeOf(context)?.defaultProgressBuilder;
+        return builder?.call(context, _value, progress) ?? _placeholderFor(context);
       },
       errorBuilder: (context, error, stackTrace) {
         final typed = errorFactory(error);

@@ -29,7 +29,55 @@ class WImageStyle {
     this.progressBuilder,
     this.placeholder,
     this.errorWidget,
+    this.showRetryButton = false,
+    this.retryLabel = '重试',
   });
+
+  /// 常用预设：头像（正方形 + 全圆角）
+  factory WImageStyle.avatar(
+    double size, {
+    BorderRadius? borderRadius,
+    Border? border,
+    List<BoxShadow>? boxShadow,
+  }) {
+    return WImageStyle(
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      borderRadius: borderRadius ?? BorderRadius.circular(size / 2),
+      border: border,
+      boxShadow: boxShadow,
+    );
+  }
+
+  /// 常用预设：列表缩略图（正方形 + 解码尺寸上限）
+  factory WImageStyle.thumbnail(
+    double width, {
+    double? height,
+    int? cacheSize,
+  }) {
+    final side = height ?? width;
+    final cache = cacheSize ?? (width * 3).round();
+    return WImageStyle(
+      width: width,
+      height: side,
+      fit: BoxFit.cover,
+      memCacheWidth: cache,
+      memCacheHeight: cache,
+    );
+  }
+
+  /// 常用预设：封面图（固定比例 + 可选圆角）
+  factory WImageStyle.cover({
+    double? aspectRatio = 16 / 9,
+    double? radius,
+  }) {
+    return WImageStyle(
+      aspectRatio: aspectRatio,
+      fit: BoxFit.cover,
+      borderRadius: radius == null ? null : BorderRadius.circular(radius),
+    );
+  }
 
   final double? width;
   final double? height;
@@ -58,6 +106,12 @@ class WImageStyle {
 
   /// 固定错误占位（与 builder 二选一）
   final Widget? errorWidget;
+
+  /// 没有自定义错误占位时，是否显示内置的“错误 + 重试”视图
+  final bool showRetryButton;
+
+  /// 内置重试按钮文案
+  final String retryLabel;
 
   /// 校验（debug assert）
   void validate() {
@@ -108,6 +162,8 @@ class WImageStyle {
     Object? progressBuilder = _unset,
     Object? placeholder = _unset,
     Object? errorWidget = _unset,
+    Object? showRetryButton = _unset,
+    Object? retryLabel = _unset,
   }) {
     return WImageStyle(
       width: identical(width, _unset) ? this.width : (width as num?)?.toDouble(),
@@ -147,6 +203,18 @@ class WImageStyle {
           : progressBuilder as Widget? Function(BuildContext, String, WImageProgress)?,
       placeholder: identical(placeholder, _unset) ? this.placeholder : placeholder as Widget?,
       errorWidget: identical(errorWidget, _unset) ? this.errorWidget : errorWidget as Widget?,
+      showRetryButton:
+          identical(showRetryButton, _unset) ? this.showRetryButton : showRetryButton as bool,
+      retryLabel: identical(retryLabel, _unset) ? this.retryLabel : retryLabel as String,
     );
   }
+}
+
+/// 不可变样式的链式糖：每次返回新实例。
+extension WImageStyleX on WImageStyle {
+  WImageStyle square(double size) => copyWith(width: size, height: size);
+
+  WImageStyle rounded(double radius) => copyWith(borderRadius: BorderRadius.circular(radius));
+
+  WImageStyle memCached(int size) => copyWith(memCacheWidth: size, memCacheHeight: size);
 }
