@@ -93,12 +93,16 @@ extension WUiWidgetExtension on Widget {
   Widget toButton({
     GestureTapCallback? onTap,
     GestureLongPressCallback? onLongPress,
-    WButtonConfig? config,
+    WButtonStyle? style,
+    bool enabled = true,
+    bool loading = false,
   }) {
     return WButton(
       onTap: onTap,
       onLongPress: onLongPress,
-      config: config,
+      style: style,
+      enabled: enabled,
+      loading: loading,
       child: this,
     );
   }

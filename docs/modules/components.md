@@ -30,7 +30,7 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WButton` | ui | 纯点击区域（无样式，包任何 child） | 需要「看起来像按钮」时用 `WForm.buttonLogin` 等 |
+| `WButton` | ui | 纯点击区域 + 可选 `WButtonStyle` | 需要完整表单按钮样式时用 `WForm.buttonLogin` 等 |
 | `WRowButtons` | ui | 一行多个按钮 | — |
 | `WBadge` | ui | 角标数字 | — |
 

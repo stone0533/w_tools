@@ -22,7 +22,10 @@ ui/
     ├── components/
     │   ├── common/                 # 通用组件
     │   │   ├── badge.dart                     # WBadge / WBadgeConfig
-    │   │   ├── button.dart                    # WButton, WButtonConfig, WButtonEffectType
+    │   │   ├── button.dart                    # WButton
+    │   │   ├── button_style.dart             # WButtonStyle / WButtonEffectType
+    │   │   ├── button_theme.dart             # WButtonTheme / WButtonThemeData
+    │   │   ├── button_styles.dart            # WButtonStyles 预设
     │   │   ├── clip.dart                      # WClipRRect
     │   │   ├── image/                  # 图片组件
     │   │   │   ├── image.dart                  # WImage, WImageController
@@ -140,97 +143,124 @@ final bottomSafe = WScreen.bottomBarHeight;
 
 ### 功能说明
 
-为子组件添加点击时的视觉反馈效果，支持透明度 / 缩放 / 震动三种效果类型，提供 `button` 语义、鼠标光标与 Enter/Space 键盘激活。禁用时不再响应点击与键盘操作。
+纯点击区域组件：只负责点击、视觉反馈、键盘/无障碍交互；视觉样式由 `WButtonStyle` 提供，
+运行时状态（`enabled` / `loading`）由 `WButton` 参数提供。
 
-### WButtonEffectType 枚举
-
-| 类型 | 说明 |
-|------|------|
-| `opacity` | 透明度变化：点击时子组件透明度降低（默认 0.7） |
-| `scale` | 缩放效果：点击时子组件轻微缩小（默认 0.95） |
-| `shake` | 震动效果：点击时子组件产生震动动画 |
-
-### WButton 构造参数
+### WButton 参数
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `child` | Widget | - | 必需，子组件 |
+| `style` | `WButtonStyle?` | null | 样式；null 时使用 `WButtonTheme.primary` / 内置默认 |
 | `onTap` | `GestureTapCallback?` | null | 点击回调 |
 | `onLongPress` | `GestureLongPressCallback?` | null | 长按回调 |
-| `config` | `WButtonConfig?` | null | 按钮配置 |
+| `enabled` | bool | true | 是否启用 |
+| `loading` | bool | false | 加载中，不响应点击 |
+| `loadingBuilder` | `WidgetBuilder?` | null | 加载中占位，默认小号进度圈 |
+| `focusNode` / `autofocus` | — | null / false | 键盘焦点 |
+| `behavior` | `HitTestBehavior` | opaque | 命中测试行为 |
 
-### WButtonConfig 配置参数
+### WButtonStyle
 
-| 参数 | 类型 | 默认值 | 说明 |
+| 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `tapOpacity` | double | 0.7 | opacity 效果点击时的透明度 |
-| `animationDuration` | Duration | 100ms | 动画持续时间 |
-| `enabled` | bool | true | 是否启用按钮 |
-| `behavior` | HitTestBehavior | opaque | 点击行为 |
-| `effectType` | WButtonEffectType | opacity | 按钮效果类型 |
-| `scale` | double | 0.95 | scale 效果缩放比例（clamp 0.1~1.0） |
+| `effect` | `WButtonEffectType` | opacity | none / opacity / scale / shake |
+| `pressedOpacity` | double | 0.7 | 按下透明度（0–1） |
+| `pressedScale` | double | 0.95 | 按下缩放（0.1–1） |
+| `animationDuration` | Duration | 100ms | 动画时长 |
 | `curve` | Curve | easeInOut | 动画曲线 |
-| `containerConfig` | WContainerConfig? | null | 容器配置（装饰、变换） |
-| `textButtonStyle` | WTextConfig? | null | 文本按钮默认样式 |
+| `container` | `WContainerConfig?` | null | 容器样式模板（只读） |
+| `textStyle` | `WTextConfig?` | null | 文本样式模板（只读） |
+| `semanticLabel` / `semanticHint` | String? | null | 无障碍标签/提示 |
 
-### WButtonConfig 缓存方法
+`WButtonStyle` 不可变，用 `copyWith` 修改；`validate()` 会检查透明度/缩放/时长范围。
 
-| 方法 | 说明 |
-|------|------|
-| `WButtonConfig.opacityEffect({opacity})` | 创建透明度效果配置（带缓存） |
-| `WButtonConfig.scaleEffect({scale})` | 创建缩放效果配置（带缓存） |
-| `WButtonConfig.shakeEffect()` | 创建震动效果配置（带缓存） |
-| `WButtonConfig.getCachedConfig(key, creator)` | 通用缓存获取，返回副本避免污染模板 |
-| `WButtonConfig.clearCache()` | 清空所有配置缓存 |
-| `WButtonConfig.trimCache()` | 清理超出阈值（100）的缓存 |
-| `copy()` | 复制一份独立配置 |
-| `buildText(text, {onTap, textStyle})` | 用配置创建文本按钮（WButton + WText） |
+### WButtonStyles 预设
+
+```dart
+WButtonStyles.primary
+WButtonStyles.secondary
+WButtonStyles.text
+WButtonStyles.danger
+```
+
+这些是静态模板；需要微调时：
+
+```dart
+WButtonStyles.primary.copyWith(
+  container: WButtonStyles.primary.container!.copyWith(
+    width: 200,
+  ),
+)
+```
+
+### WButtonTheme
+
+App 级默认样式：
+
+```dart
+WButtonTheme(
+  data: WButtonThemeData(
+    primary: WButtonStyles.primary,
+    secondary: WButtonStyles.secondary,
+    text: WButtonStyles.text,
+    danger: WButtonStyles.danger,
+  ),
+  child: MaterialApp(...),
+)
+```
+
+解析顺序：`WButton.style` > `WButtonTheme.primary` > `WButtonStyle()`。
 
 ### 使用示例
 
 ```dart
-// 基础用法：透明度效果（默认）
+// 默认样式（theme / 内置）
 WButton(
-  onTap: () => print('clicked'),
-  child: Container(
-    padding: const EdgeInsets.all(16),
-    color: Colors.blue,
-    child: const Text('按钮'),
+  onTap: submit,
+  child: const Text('提交'),
+)
+
+// 使用预设
+WButton(
+  style: WButtonStyles.primary,
+  onTap: submit,
+  child: const Text('提交'),
+)
+
+// 运行时状态与样式分离
+WButton(
+  style: WButtonStyles.primary,
+  enabled: canSubmit,
+  loading: isSubmitting,
+  onTap: submit,
+  child: const Text('提交'),
+)
+
+// 纯点击区域（无视觉样式）
+WButton(
+  style: const WButtonStyle(effect: WButtonEffectType.none),
+  onTap: () {},
+  child: const Icon(Icons.close),
+)
+
+// 无障碍
+WButton(
+  style: const WButtonStyle(
+    effect: WButtonEffectType.none,
+    semanticLabel: '关闭',
+    semanticHint: '关闭当前弹窗',
   ),
-)
-
-// 使用配置类（链式）
-WButton(
-  config: WButtonConfig.scaleEffect(scale: 0.92),
-  onTap: () => print('clicked'),
-  child: const Text('缩放按钮'),
-)
-
-// 使用 WButtonConfig.buildText 快速创建文本按钮
-final config = WButtonConfig()
-  ..effectType = WButtonEffectType.opacity
-  ..textButtonStyle = WTextConfig.button();
-
-WButton(
-  config: config,
-  onTap: () {},
-  child: WText(text: '立即开始', config: config.textButtonStyle),
-)
-
-// 带容器装饰的按钮
-WButton(
-  config: WButtonConfig.opacityEffect()
-    ..containerConfig = (WContainerConfig()
-      ..width = WScreen.w(200)
-      ..height = 48
-      ..bgColor = Colors.blue
-      ..borderRadius = BorderRadius.circular(24)),
-  onTap: () {},
-  child: const Text('提交', style: TextStyle(color: Colors.white)),
+  onTap: close,
+  child: const Icon(Icons.close),
 )
 ```
 
----
+### 键盘与效果
+
+- Enter / Space 通过 `ActivateIntent` 触发 `onTap`，同时触发 opacity/scale/shake 反馈；
+- 禁用 / loading 时 `Semantics.onTap` 为空、`onTap` 不执行；
+- `onLongPress` 只对指针长按生效。
 
 ## 3. WText - 文本组件
 
@@ -1135,7 +1165,7 @@ class _HomePageState extends State<HomePage> {
               ..color = Colors.black87,
           ),
           trailing: WButton(
-            config: WButtonConfig.opacityEffect(opacity: 0.6),
+            style: WButtonStyles.text,
             onTap: () => setState(() => _items.removeAt(i)),
             child: WText(
               text: '删除',
@@ -1151,12 +1181,7 @@ class _HomePageState extends State<HomePage> {
           height: WScreen.h(80),
           child: Center(
             child: WButton(
-              config: WButtonConfig.scaleEffect(scale: 0.92)
-                ..containerConfig = (WContainerConfig()
-                  ..width = WScreen.w(200)
-                  ..height = WScreen.h(48)
-                  ..bgColor = Colors.blue
-                  ..borderRadius = BorderRadius.circular(WScreen.w(24))),
+              style: WButtonStyles.primary,
               onTap: () => print('提交'),
               child: WText(
                 text: '提交',
@@ -1279,11 +1304,11 @@ class MainNavBar extends StatelessWidget {
 - **非延迟初始化**：`WScreen.screenWidth` 等设备信息可在应用任何时刻调用，但依赖 `WidgetsBinding.instance.platformDispatcher.views.first`，因此 WidgetsBinding 必须已初始化（默认 `Flutter.ensureInitialized()` 或 `runApp` 后自动满足）
 - 无委托时 `w()` / `h()` / `sp()` 直接返回原值，可安全用作统一 API
 
-### WButtonConfig 缓存机制
+### WButton 样式复用
 
-- `getCachedConfig` 用 LinkedHashMap 按 LRU 管理（key 被访问时移到末尾）
-- 返回的是**副本**，调用方修改不会污染缓存模板
-- 缓存阈值 100，超出自动清理最旧条目
+- 样式用 `WButtonStyle`（不可变），跨页面复用静态预设 `WButtonStyles.*`；
+- App 级默认用 `WButtonTheme`，单页覆盖传 `style`；
+- 不再有 `WButtonConfig` / 全局配置缓存；运行时 `enabled` / `loading` 由 `WButton` 参数承载。
 
 ### WImage 平台差异
 

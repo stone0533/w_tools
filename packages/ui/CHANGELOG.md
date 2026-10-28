@@ -8,6 +8,9 @@
 - `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。
 - `WImage.onLoadProgress`、`progressIndicatorBuilder`、`cacheEnabled`、`fitCenter`、`size` 均已删除。
 - `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageTheme` + `WImageCachePolicy`。
+- `WButtonConfig` / 配置缓存删除；`WButton` 改用不可变 `WButtonStyle` + `WButtonTheme`。
+- `WButton.enabled` / `loading` 改为组件参数；`WButtonEffectType` 增加 `none`。
+- `Widget.toButton(config:)` 改为 `toButton(style:)`。
 
 ### Added
 - 新架构入口：`WImage.source(source:, style:)`、sealed `WImageSource`、不可变 `WImageStyle`、
@@ -30,6 +33,10 @@
   `onProgress` 参数；`style` 不可变，不会被修改。
 - 新增 `String.toAssetImage({prefix})` / `toBase64Image()` / `toFileImage()` / `toNetworkImage()`。
 - `WImage` 默认构造支持显式 `type`，与命名构造一致。
+- `WButtonStyle` + `WButtonStyles.primary/secondary/text/danger` 静态预设；
+  `WButtonTheme` 提供 App 级默认。
+- `WButton` 新增 `loading` / `loadingBuilder` / `focusNode` / `autofocus` / `behavior`，
+  键盘激活会触发按下效果，`semanticLabel` / `semanticHint` 进入 Semantics。
 
 ### Changed
 - `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。
