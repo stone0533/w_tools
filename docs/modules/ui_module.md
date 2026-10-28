@@ -158,6 +158,7 @@ final bottomSafe = WScreen.bottomBarHeight;
 | `label` / `icon` | String? / IconData? | null | 快捷构造的文本/图标 |
 | `size` | `WButtonSize?` | null | 尺寸对象 |
 | `sizeName` | `String?` | null | 主题中注册的尺寸名 |
+| `semanticLabel` | `String?` | null | 显式无障碍标签；纯图标按钮建议提供 |
 | `onTap` | `GestureTapCallback?` | null | 点击回调 |
 | `onLongPress` | `GestureLongPressCallback?` | null | 长按回调 |
 | `onSecondaryTap` | `GestureTapCallback?` | null | 次要点击（桌面端右键） |
@@ -182,22 +183,25 @@ final bottomSafe = WScreen.bottomBarHeight;
 | `animationDuration` | Duration | 100ms | 动画时长 |
 | `curve` | Curve | easeInOut | 动画曲线 |
 | `container` | `WContainerConfig?` | null | 容器样式模板（只读） |
+| `padding` | `EdgeInsetsGeometry?` | null | 无 container 时的外层 padding |
 | `textStyle` | `WTextConfig?` | null | 文本样式模板（只读） |
 | `semanticLabel` / `semanticHint` | String? | null | 无障碍标签/提示 |
 | `focusColor` / `hoverColor` | Color? | null | 焦点/悬停 overlay，null 时用 Theme |
 | `disabledOpacity` | double | 0.5 | 禁用时透明度 |
-| `minWidth` / `minHeight` | double | 48 | 最小点击区域 |
+| `minWidth` / `minHeight` | double | 48 | 视觉/布局最小尺寸 |
+| `tapTargetSize` | double | 48 | 实际 hit area 下限 |
 | `loadingLabel` | String | 加载中 | loading 无障碍文案 |
 | `iconSize` / `gap` | double | 18 / 8 | 图标尺寸 / 图标文字间距 |
 
-`WButtonStyle` 不可变，用 `copyWith` 修改；`validate()` 会检查透明度/缩放/时长范围。
+`WButtonStyle` 顶层不可变，用 `copyWith` 修改；`WButton` 会快照 `container` / `textStyle`，
+预设 getter 也返回独立副本。`validate()` 会检查透明度/缩放/时长/尺寸范围。
 
 ### WButtonSize
 
 ```dart
-WButtonSize.small   // 32 高，13 号字
-WButtonSize.medium  // 40 高，14 号字
-WButtonSize.large   // 48 高，15 号字
+WButtonSize.small   // 视觉 32 高，13 号字，hit target 48
+WButtonSize.medium  // 视觉 40 高，14 号字，hit target 48
+WButtonSize.large   // 视觉 48 高，15 号字，hit target 48
 ```
 
 3 个只是默认值；项目可自定义：
@@ -209,6 +213,7 @@ abstract final class AppButtonSizes {
     minHeight: 30,
     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     fontSize: 12,
+    tapTargetSize: 48,
   );
 
   static const hero = WButtonSize(
@@ -217,6 +222,7 @@ abstract final class AppButtonSizes {
     padding: EdgeInsets.symmetric(horizontal: 28, vertical: 16),
     fontSize: 17,
     fontWeight: FontWeight.w700,
+    tapTargetSize: 48,
   );
 }
 ```
@@ -283,6 +289,7 @@ WButton.secondary('取消', onTap: cancel)
 WButton.danger('删除', onTap: delete)
 WButton.text('查看更多', onTap: more)
 WButton.icon(Icons.close, tooltip: '关闭', onTap: close)
+WButton.icon(Icons.close, semanticLabel: '关闭', onTap: close)
 WButton.variant('brand', '品牌按钮', onTap: onTap)
 WButton.primary('大按钮', size: WButtonSize.large, onTap: submit)
 
@@ -310,14 +317,14 @@ WButton(
 
 // 纯点击区域（无视觉样式）
 WButton(
-  style: const WButtonStyle(effect: WButtonEffectType.none),
+  style: WButtonStyle(effect: WButtonEffectType.none),
   onTap: () {},
   child: const Icon(Icons.close),
 )
 
 // 无障碍
 WButton(
-  style: const WButtonStyle(
+  style: WButtonStyle(
     effect: WButtonEffectType.none,
     semanticLabel: '关闭',
     semanticHint: '关闭当前弹窗',

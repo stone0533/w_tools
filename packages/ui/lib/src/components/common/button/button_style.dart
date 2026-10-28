@@ -24,14 +24,15 @@ enum WButtonEffectType {
 /// 可跨页面复用；运行时状态（enabled / loading）不要放在这里。
 @immutable
 class WButtonStyle {
-  const WButtonStyle({
+  WButtonStyle({
     this.effect = WButtonEffectType.opacity,
     this.pressedOpacity = 0.7,
     this.pressedScale = 0.95,
     this.animationDuration = const Duration(milliseconds: 100),
     this.curve = Curves.easeInOut,
-    this.container,
-    this.textStyle,
+    WContainerConfig? container,
+    this.padding,
+    WTextConfig? textStyle,
     this.semanticLabel,
     this.semanticHint,
     this.focusColor,
@@ -39,10 +40,12 @@ class WButtonStyle {
     this.disabledOpacity = 0.5,
     this.minWidth = 48,
     this.minHeight = 48,
+    this.tapTargetSize = 48,
     this.loadingLabel = '加载中',
     this.iconSize = 18,
     this.gap = 8,
-  });
+  })  : _container = container?.copy(),
+        _textStyle = textStyle?.copy();
 
   final WButtonEffectType effect;
   final double pressedOpacity;
@@ -50,11 +53,18 @@ class WButtonStyle {
   final Duration animationDuration;
   final Curve curve;
 
-  /// 容器样式模板（按只读使用；需要变化时请 copy）
-  final WContainerConfig? container;
+  final WContainerConfig? _container;
 
-  /// 文本样式模板（按只读使用；需要变化时请 copy）
-  final WTextConfig? textStyle;
+  /// 容器样式快照；每次读取返回副本
+  WContainerConfig? get container => _container?.copy();
+
+  /// 无 container 时使用的外层 padding（尺寸令牌可覆盖）
+  final EdgeInsetsGeometry? padding;
+
+  final WTextConfig? _textStyle;
+
+  /// 文本样式快照；每次读取返回副本
+  WTextConfig? get textStyle => _textStyle?.copy();
 
   /// 无障碍标签（纯图标按钮建议必填）
   final String? semanticLabel;
@@ -74,8 +84,11 @@ class WButtonStyle {
   /// 最小点击宽度（移动端建议 >= 48）
   final double minWidth;
 
-  /// 最小点击高度
+  /// 最小点击高度（视觉/布局）
   final double minHeight;
+
+  /// 实际 hit area 下限；视觉尺寸可以更小
+  final double tapTargetSize;
 
   /// loading 时的无障碍文案
   final String loadingLabel;
@@ -102,6 +115,8 @@ class WButtonStyle {
       'disabledOpacity 必须在 0..1',
     );
     assert(minWidth >= 0 && minHeight >= 0, 'minWidth/minHeight 不能为负');
+    assert(minWidth.isFinite && minHeight.isFinite, 'minWidth/minHeight 必须有限');
+    assert(tapTargetSize >= 0 && tapTargetSize.isFinite, 'tapTargetSize 非法');
     assert(iconSize >= 0 && gap >= 0, 'iconSize/gap 不能为负');
   }
 
@@ -114,6 +129,7 @@ class WButtonStyle {
     Object? animationDuration = _unset,
     Object? curve = _unset,
     Object? container = _unset,
+    Object? padding = _unset,
     Object? textStyle = _unset,
     Object? semanticLabel = _unset,
     Object? semanticHint = _unset,
@@ -122,6 +138,7 @@ class WButtonStyle {
     Object? disabledOpacity = _unset,
     Object? minWidth = _unset,
     Object? minHeight = _unset,
+    Object? tapTargetSize = _unset,
     Object? loadingLabel = _unset,
     Object? iconSize = _unset,
     Object? gap = _unset,
@@ -138,6 +155,7 @@ class WButtonStyle {
           : animationDuration as Duration,
       curve: identical(curve, _unset) ? this.curve : curve as Curve,
       container: identical(container, _unset) ? this.container : container as WContainerConfig?,
+      padding: identical(padding, _unset) ? this.padding : padding as EdgeInsetsGeometry?,
       textStyle: identical(textStyle, _unset) ? this.textStyle : textStyle as WTextConfig?,
       semanticLabel:
           identical(semanticLabel, _unset) ? this.semanticLabel : semanticLabel as String?,
@@ -149,6 +167,8 @@ class WButtonStyle {
           : (disabledOpacity as num).toDouble(),
       minWidth: identical(minWidth, _unset) ? this.minWidth : (minWidth as num).toDouble(),
       minHeight: identical(minHeight, _unset) ? this.minHeight : (minHeight as num).toDouble(),
+      tapTargetSize:
+          identical(tapTargetSize, _unset) ? this.tapTargetSize : (tapTargetSize as num).toDouble(),
       loadingLabel: identical(loadingLabel, _unset) ? this.loadingLabel : loadingLabel as String,
       iconSize: identical(iconSize, _unset) ? this.iconSize : (iconSize as num).toDouble(),
       gap: identical(gap, _unset) ? this.gap : (gap as num).toDouble(),
@@ -158,22 +178,32 @@ class WButtonStyle {
   /// 把尺寸令牌叠加到当前样式；只覆盖布局/文字/图标字段。
   WButtonStyle applySize(WButtonSize? size) {
     if (size == null) return this;
+    size.validate();
     final nextContainer = container?.copy();
     if (size.padding != null && nextContainer != null) {
       nextContainer.padding = size.padding;
     }
     final nextTextStyle = textStyle?.copyWith(
-          fontSize: size.fontSize,
-          fontWeight: size.fontWeight,
-        ) ??
-        size.textStyle;
+      fontSize: size.fontSize,
+      fontWeight: size.fontWeight,
+    );
     return copyWith(
       container: nextContainer,
+      padding: nextContainer == null ? (size.padding ?? padding) : padding,
       minWidth: size.minWidth ?? minWidth,
       minHeight: size.minHeight ?? minHeight,
+      tapTargetSize: size.tapTargetSize,
       textStyle: nextTextStyle,
       iconSize: size.iconSize ?? iconSize,
       gap: size.gap ?? gap,
+    );
+  }
+
+  /// 深拷贝，避免共享可变的 container / textStyle。
+  WButtonStyle copy() {
+    return copyWith(
+      container: container?.copy(),
+      textStyle: textStyle?.copy(),
     );
   }
 }

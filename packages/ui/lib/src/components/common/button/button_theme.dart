@@ -6,16 +6,17 @@ import 'button_style.dart';
 /// 按钮主题：App 级默认按钮样式。
 @immutable
 class WButtonThemeData {
-  const WButtonThemeData({
+  WButtonThemeData({
     this.primary,
     this.secondary,
     this.text,
     this.danger,
-    this.variants = const <String, WButtonStyle>{},
-    this.sizes = const <String, WButtonSize>{},
+    Map<String, WButtonStyle> variants = const <String, WButtonStyle>{},
+    Map<String, WButtonSize> sizes = const <String, WButtonSize>{},
     this.base,
     this.defaultSize,
-  });
+  })  : variants = Map.unmodifiable(variants),
+        sizes = Map.unmodifiable(sizes);
 
   final WButtonStyle? primary;
   final WButtonStyle? secondary;
@@ -65,7 +66,7 @@ class WButtonTheme extends InheritedWidget {
   static WButtonThemeData? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<WButtonTheme>()?.data;
 
-  static WButtonThemeData of(BuildContext context) => maybeOf(context) ?? const WButtonThemeData();
+  static WButtonThemeData of(BuildContext context) => maybeOf(context) ?? WButtonThemeData();
 
   @override
   bool updateShouldNotify(WButtonTheme oldWidget) =>

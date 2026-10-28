@@ -28,6 +28,7 @@ class WButton extends StatefulWidget {
     this.icon,
     this.size,
     this.sizeName,
+    this.semanticLabel,
     this.onTap,
     this.onLongPress,
     this.onSecondaryTap,
@@ -63,6 +64,9 @@ class WButton extends StatefulWidget {
 
   /// 主题里注册的尺寸名
   final String? sizeName;
+
+  /// 显式无障碍标签；纯图标按钮建议提供
+  final String? semanticLabel;
 
   /// 点击回调
   final GestureTapCallback? onTap;
@@ -119,6 +123,7 @@ class WButton extends StatefulWidget {
     WButtonStyle? style,
     WButtonSize? size,
     String? sizeName,
+    String? semanticLabel,
     bool enabled = true,
     bool loading = false,
     GestureTapCallback? onTap,
@@ -135,6 +140,7 @@ class WButton extends StatefulWidget {
         style: style,
         size: size,
         sizeName: sizeName,
+        semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
         onTap: onTap,
@@ -151,6 +157,7 @@ class WButton extends StatefulWidget {
     WButtonStyle? style,
     WButtonSize? size,
     String? sizeName,
+    String? semanticLabel,
     bool enabled = true,
     bool loading = false,
     GestureTapCallback? onTap,
@@ -167,6 +174,7 @@ class WButton extends StatefulWidget {
         style: style,
         size: size,
         sizeName: sizeName,
+        semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
         onTap: onTap,
@@ -183,6 +191,7 @@ class WButton extends StatefulWidget {
     WButtonStyle? style,
     WButtonSize? size,
     String? sizeName,
+    String? semanticLabel,
     bool enabled = true,
     bool loading = false,
     GestureTapCallback? onTap,
@@ -199,6 +208,7 @@ class WButton extends StatefulWidget {
         style: style,
         size: size,
         sizeName: sizeName,
+        semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
         onTap: onTap,
@@ -215,6 +225,7 @@ class WButton extends StatefulWidget {
     WButtonStyle? style,
     WButtonSize? size,
     String? sizeName,
+    String? semanticLabel,
     bool enabled = true,
     bool loading = false,
     GestureTapCallback? onTap,
@@ -231,6 +242,7 @@ class WButton extends StatefulWidget {
         style: style,
         size: size,
         sizeName: sizeName,
+        semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
         onTap: onTap,
@@ -248,6 +260,7 @@ class WButton extends StatefulWidget {
     WButtonStyle? style,
     WButtonSize? size,
     String? sizeName,
+    String? semanticLabel,
     bool enabled = true,
     bool loading = false,
     GestureTapCallback? onTap,
@@ -264,6 +277,7 @@ class WButton extends StatefulWidget {
         style: style,
         size: size,
         sizeName: sizeName,
+        semanticLabel: semanticLabel,
         enabled: enabled,
         loading: loading,
         onTap: onTap,
@@ -277,6 +291,7 @@ class WButton extends StatefulWidget {
   factory WButton.icon(
     IconData icon, {
     String? label,
+    String? semanticLabel,
     Key? key,
     WButtonStyle? style,
     WButtonSize? size,
@@ -284,6 +299,7 @@ class WButton extends StatefulWidget {
     bool enabled = true,
     bool loading = false,
     GestureTapCallback? onTap,
+    GestureLongPressCallback? onLongPress,
     FocusNode? focusNode,
     bool autofocus = false,
     String? tooltip,
@@ -292,6 +308,7 @@ class WButton extends StatefulWidget {
       WButton._preset(
         icon: icon,
         label: label,
+        semanticLabel: semanticLabel,
         key: key,
         style: style,
         size: size,
@@ -299,6 +316,7 @@ class WButton extends StatefulWidget {
         enabled: enabled,
         loading: loading,
         onTap: onTap,
+        onLongPress: onLongPress,
         focusNode: focusNode,
         autofocus: autofocus,
         tooltip: tooltip,
@@ -313,6 +331,7 @@ class WButton extends StatefulWidget {
     WButtonStyle? style,
     WButtonSize? size,
     String? sizeName,
+    String? semanticLabel,
     bool enabled = true,
     bool loading = false,
     GestureTapCallback? onTap,
@@ -330,6 +349,7 @@ class WButton extends StatefulWidget {
       style: style,
       size: size,
       sizeName: sizeName,
+      semanticLabel: semanticLabel,
       enabled: enabled,
       loading: loading,
       onTap: onTap,
@@ -350,6 +370,7 @@ class WButton extends StatefulWidget {
     this.icon,
     this.size,
     this.sizeName,
+    this.semanticLabel,
     this.onTap,
     this.onLongPress,
     this.enabled = true,
@@ -408,15 +429,33 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
       'secondary' => WButtonStyles.secondary,
       'text' => WButtonStyles.text,
       'danger' => WButtonStyles.danger,
-      _ => const WButtonStyle(),
+      _ => WButtonStyle(),
     };
+    if (widget.variant != null &&
+        theme != null &&
+        theme.resolveStyle(widget.variant) == null &&
+        !const {'primary', 'secondary', 'text', 'danger'}.contains(widget.variant)) {
+      assert(false, 'WButton: 未注册的 variant "${widget.variant}"');
+    }
+    final namedSize = theme?.resolveSize(widget.sizeName);
+    if (widget.sizeName != null) {
+      assert(namedSize != null, 'WButton: 未注册的 sizeName "${widget.sizeName}"');
+    }
     final base = widget.style ??
         theme?.resolveStyle(widget.variant) ??
-        (widget.variant != null ? fallback : const WButtonStyle());
+        (widget.variant != null ? fallback : WButtonStyle());
     final size = widget.size ??
-        theme?.resolveSize(widget.sizeName) ??
+        namedSize ??
         (widget.variant != null ? (theme?.defaultSize ?? WButtonSize.medium) : null);
-    return base.applySize(size);
+    final semantic = widget.semanticLabel ??
+        (widget.label == null && widget.icon != null ? widget.tooltip : null);
+    final resolved = semantic == null ? base.copy() : base.copy().copyWith(semanticLabel: semantic);
+    final sized = resolved.applySize(size);
+    assert(
+      widget.icon == null || widget.label != null || sized.semanticLabel != null,
+      'WButton.icon: 纯图标按钮请提供 semanticLabel 或 tooltip',
+    );
+    return sized;
   }
 
   void _syncController(WButtonStyle style) {
@@ -485,6 +524,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
 
   void _onTapDown(WButtonStyle style, TapDownDetails details) {
     if (!_interactive) return;
+    _pressToken++;
     widget.onTapDown?.call(details);
     _setPressed(true);
     if (style.effect == WButtonEffectType.shake) _shake(style);
@@ -548,6 +588,19 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
     );
   }
 
+  Widget _tapTarget(Widget child, WButtonStyle style) {
+    final horizontal = max(0.0, style.tapTargetSize - style.minWidth);
+    final vertical = max(0.0, style.tapTargetSize - style.minHeight);
+    if (horizontal == 0 && vertical == 0) return child;
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontal / 2,
+        vertical: vertical / 2,
+      ),
+      child: child,
+    );
+  }
+
   Widget _visual(WButtonStyle style, bool pressed, Widget child) {
     switch (style.effect) {
       case WButtonEffectType.none:
@@ -606,9 +659,11 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
 
     final child = widget.child ?? _label(context, style);
     final container = style.container?.copy();
-    final content = container == null
-        ? _content(context, style, child)
-        : WContainer(config: container, child: _content(context, style, child));
+    final inner = _content(context, style, child);
+    final padded = container == null && style.padding != null
+        ? Padding(padding: style.padding!, child: inner)
+        : inner;
+    final content = container == null ? padded : WContainer(config: container, child: inner);
 
     Widget visualChild = ConstrainedBox(
       constraints: BoxConstraints(
@@ -682,7 +737,7 @@ class _WButtonState extends State<WButton> with SingleTickerProviderStateMixin {
           onTapCancel: interactive ? _onTapCancel : null,
           child: ValueListenableBuilder<bool>(
             valueListenable: _pressed,
-            builder: (context, pressed, _) => buildVisual(pressed),
+            builder: (context, pressed, _) => _tapTarget(buildVisual(pressed), style),
           ),
         ),
       ),

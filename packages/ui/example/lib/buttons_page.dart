@@ -202,7 +202,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
           title: '8. 纯点击区域：包裹任意 child',
           subtitle: 'effect: none 时不改变子组件视觉',
           child: WButton(
-            style: const WButtonStyle(effect: WButtonEffectType.none),
+            style: WButtonStyle(effect: WButtonEffectType.none),
             onTap: () {},
             child: const Card(
               child: ListTile(
@@ -307,7 +307,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
               ),
               WButton.secondary(
                 '带语义的按钮',
-                style: const WButtonStyle(
+                style: WButtonStyle(
                   semanticLabel: '保存草稿',
                   semanticHint: '保存当前内容但不提交',
                 ),

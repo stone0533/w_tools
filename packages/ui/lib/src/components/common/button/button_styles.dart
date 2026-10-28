@@ -9,7 +9,7 @@ import '../text.dart';
 /// 这些是只读模板；需要微调时用 `copyWith`，不要直接修改嵌套的
 /// `WContainerConfig` / `WTextConfig`。
 abstract final class WButtonStyles {
-  static final primary = WButtonStyle(
+  static final _primary = WButtonStyle(
     container: WContainerConfig()
       ..padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
       ..color = const Color(0xFF3949AB)
@@ -20,7 +20,7 @@ abstract final class WButtonStyles {
       ..fontWeight = FontWeight.w600,
   );
 
-  static final secondary = WButtonStyle(
+  static final _secondary = WButtonStyle(
     container: WContainerConfig()
       ..padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
       ..color = Colors.transparent
@@ -32,7 +32,7 @@ abstract final class WButtonStyles {
       ..fontWeight = FontWeight.w600,
   );
 
-  static final text = WButtonStyle(
+  static final _text = WButtonStyle(
     container: WContainerConfig()
       ..padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
       ..color = Colors.transparent,
@@ -42,7 +42,7 @@ abstract final class WButtonStyles {
       ..fontWeight = FontWeight.w500,
   );
 
-  static final danger = WButtonStyle(
+  static final _danger = WButtonStyle(
     container: WContainerConfig()
       ..padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
       ..color = const Color(0xFFD32F2F)
@@ -52,4 +52,8 @@ abstract final class WButtonStyles {
       ..fontSize = 14
       ..fontWeight = FontWeight.w600,
   );
+  static WButtonStyle get primary => _primary.copy();
+  static WButtonStyle get secondary => _secondary.copy();
+  static WButtonStyle get text => _text.copy();
+  static WButtonStyle get danger => _danger.copy();
 }

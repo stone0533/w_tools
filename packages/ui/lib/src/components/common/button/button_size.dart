@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../text.dart';
-
 /// 不可变的按钮尺寸令牌。
 ///
 /// 3 个默认值只是约定，不是限制；项目可以自定义任意 [WButtonSize]。
@@ -12,22 +10,24 @@ class WButtonSize {
     this.minWidth,
     this.minHeight,
     this.padding,
-    this.textStyle,
     this.fontSize,
     this.fontWeight,
     this.iconSize,
     this.gap,
+    this.tapTargetSize = 48,
   });
 
   final String name;
   final double? minWidth;
   final double? minHeight;
   final EdgeInsetsGeometry? padding;
-  final WTextConfig? textStyle;
   final double? fontSize;
   final FontWeight? fontWeight;
   final double? iconSize;
   final double? gap;
+
+  /// 实际 hit area 下限；视觉尺寸可以更小。
+  final double tapTargetSize;
 
   static const small = WButtonSize(
     name: 'small',
@@ -56,27 +56,36 @@ class WButtonSize {
     gap: 10,
   );
 
+  void validate() {
+    assert(minWidth == null || (minWidth! >= 0 && minWidth!.isFinite));
+    assert(minHeight == null || (minHeight! >= 0 && minHeight!.isFinite));
+    assert(fontSize == null || (fontSize! > 0 && fontSize!.isFinite));
+    assert(iconSize == null || (iconSize! >= 0 && iconSize!.isFinite));
+    assert(gap == null || (gap! >= 0 && gap!.isFinite));
+    assert(tapTargetSize >= 0 && tapTargetSize.isFinite);
+  }
+
   WButtonSize copyWith({
     String? name,
     double? minWidth,
     double? minHeight,
     EdgeInsetsGeometry? padding,
-    WTextConfig? textStyle,
     double? fontSize,
     FontWeight? fontWeight,
     double? iconSize,
     double? gap,
+    double? tapTargetSize,
   }) {
     return WButtonSize(
       name: name ?? this.name,
       minWidth: minWidth ?? this.minWidth,
       minHeight: minHeight ?? this.minHeight,
       padding: padding ?? this.padding,
-      textStyle: textStyle ?? this.textStyle,
       fontSize: fontSize ?? this.fontSize,
       fontWeight: fontWeight ?? this.fontWeight,
       iconSize: iconSize ?? this.iconSize,
       gap: gap ?? this.gap,
+      tapTargetSize: tapTargetSize ?? this.tapTargetSize,
     );
   }
 
@@ -87,11 +96,11 @@ class WButtonSize {
       other.minWidth == minWidth &&
       other.minHeight == minHeight &&
       other.padding == padding &&
-      other.textStyle == textStyle &&
       other.fontSize == fontSize &&
       other.fontWeight == fontWeight &&
       other.iconSize == iconSize &&
-      other.gap == gap;
+      other.gap == gap &&
+      other.tapTargetSize == tapTargetSize;
 
   @override
   int get hashCode => Object.hash(
@@ -99,10 +108,10 @@ class WButtonSize {
         minWidth,
         minHeight,
         padding,
-        textStyle,
         fontSize,
         fontWeight,
         iconSize,
         gap,
+        tapTargetSize,
       );
 }

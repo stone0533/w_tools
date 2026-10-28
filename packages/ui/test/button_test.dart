@@ -8,7 +8,7 @@ Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: Center(child: chi
 void main() {
   group('WButtonStyle', () {
     test('默认值 / copyWith / validate', () {
-      const style = WButtonStyle();
+      final style = WButtonStyle();
       expect(style.effect, WButtonEffectType.opacity);
       expect(style.pressedOpacity, 0.7);
       expect(style.pressedScale, 0.95);
@@ -33,15 +33,15 @@ void main() {
 
     test('非法值触发 assert', () {
       expect(
-        () => const WButtonStyle(pressedOpacity: 1.5).validate(),
+        () => WButtonStyle(pressedOpacity: 1.5).validate(),
         throwsAssertionError,
       );
       expect(
-        () => const WButtonStyle(pressedScale: 0).validate(),
+        () => WButtonStyle(pressedScale: 0).validate(),
         throwsAssertionError,
       );
       expect(
-        () => const WButtonStyle(animationDuration: Duration(milliseconds: -1)).validate(),
+        () => WButtonStyle(animationDuration: const Duration(milliseconds: -1)).validate(),
         throwsAssertionError,
       );
     });
@@ -67,6 +67,27 @@ void main() {
       expect(custom.padding, small.padding);
     });
 
+    test('尺寸非法值触发 assert', () {
+      expect(
+        () => const WButtonSize(name: 'bad', minHeight: -1).validate(),
+        throwsAssertionError,
+      );
+      expect(
+        () => const WButtonSize(name: 'bad', fontSize: 0).validate(),
+        throwsAssertionError,
+      );
+    });
+
+    test('预设返回独立副本', () {
+      final a = WButtonStyles.primary;
+      final b = WButtonStyles.primary;
+      expect(identical(a, b), isFalse);
+      expect(identical(a.container, b.container), isFalse);
+
+      final deep = a.copy();
+      expect(identical(a.container, deep.container), isFalse);
+    });
+
     testWidgets('WButton.primary 使用内置预设', (tester) async {
       await tester.pumpWidget(
         _wrap(
@@ -76,10 +97,42 @@ void main() {
       expect(find.text('主按钮'), findsOneWidget);
     });
 
+    testWidgets('默认尺寸和 small 都有 48 高点击区域', (tester) async {
+      await tester.pumpWidget(
+        _wrap(WButton.primary('默认', onTap: () {})),
+      );
+      expect(tester.getSize(find.byType(WButton)).height, greaterThanOrEqualTo(48));
+
+      await tester.pumpWidget(
+        _wrap(
+          WButton.primary(
+            '小按钮',
+            size: WButtonSize.small,
+            onTap: () {},
+          ),
+        ),
+      );
+      expect(tester.getSize(find.byType(WButton)).height, greaterThanOrEqualTo(48));
+    });
+
+    testWidgets('图标按钮 tooltip 作为语义标签', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton.icon(Icons.close, tooltip: '关闭', onTap: () {}),
+        ),
+      );
+      final semantics = tester
+          .widgetList<Semantics>(
+            find.descendant(of: find.byType(WButton), matching: find.byType(Semantics)),
+          )
+          .firstWhere((s) => s.properties.button == true);
+      expect(semantics.properties.label, '关闭');
+    });
+
     testWidgets('自定义 variant 从 theme 解析', (tester) async {
       await tester.pumpWidget(
         WButtonTheme(
-          data: const WButtonThemeData(
+          data: WButtonThemeData(
             variants: {
               'brand': WButtonStyle(semanticLabel: '品牌按钮'),
             },
@@ -101,8 +154,8 @@ void main() {
     testWidgets('sizeName 从 theme 解析', (tester) async {
       await tester.pumpWidget(
         WButtonTheme(
-          data: const WButtonThemeData(
-            sizes: {
+          data: WButtonThemeData(
+            sizes: const {
               'hero': WButtonSize(
                 name: 'hero',
                 minHeight: 60,
@@ -306,7 +359,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: const WButtonStyle(pressedOpacity: 0.4),
+            style: WButtonStyle(pressedOpacity: 0.4),
             onTap: () {},
             child: const Text('opacity'),
           ),
@@ -334,7 +387,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: const WButtonStyle(
+            style: WButtonStyle(
               effect: WButtonEffectType.scale,
               pressedScale: 0.8,
             ),
@@ -355,13 +408,40 @@ void main() {
       await gesture.up();
     });
 
+    testWidgets('键盘 press 不会被后续指针 press 的旧 timer 提前复位', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            autofocus: true,
+            style: WButtonStyle(pressedOpacity: 0.35),
+            onTap: () {},
+            child: const Text('race'),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('race')),
+      );
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(
+        tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity,
+        0.35,
+      );
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('键盘 Enter 触发 onTap 和按下效果', (tester) async {
       var taps = 0;
       await tester.pumpWidget(
         _wrap(
           WButton(
             autofocus: true,
-            style: const WButtonStyle(pressedOpacity: 0.35),
+            style: WButtonStyle(pressedOpacity: 0.35),
             onTap: () => taps++,
             child: const Text('键盘'),
           ),
@@ -384,7 +464,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: const WButtonStyle(
+            style: WButtonStyle(
               semanticLabel: '关闭',
               semanticHint: '关闭当前弹窗',
             ),
@@ -409,7 +489,7 @@ void main() {
     testWidgets('未传 style 时使用 theme.primary', (tester) async {
       await tester.pumpWidget(
         WButtonTheme(
-          data: const WButtonThemeData(
+          data: WButtonThemeData(
             primary: WButtonStyle(semanticLabel: '主题按钮'),
           ),
           child: _wrap(
@@ -432,12 +512,12 @@ void main() {
     testWidgets('显式 style 覆盖 theme', (tester) async {
       await tester.pumpWidget(
         WButtonTheme(
-          data: const WButtonThemeData(
+          data: WButtonThemeData(
             primary: WButtonStyle(semanticLabel: '主题按钮'),
           ),
           child: _wrap(
             WButton(
-              style: const WButtonStyle(semanticLabel: '局部按钮'),
+              style: WButtonStyle(semanticLabel: '局部按钮'),
               onTap: () {},
               child: const Text('override'),
             ),

@@ -43,6 +43,10 @@
 - 新增 `WButtonSize` 值对象（3 个默认尺寸 + 项目自定义）与 `WButtonThemeData.variants/sizes/base/defaultSize`。
 - 新增一行式构造：`WButton.primary/secondary/text/danger/variant/icon`。
 - 示例 App 新增「按钮」页，覆盖主题、loading、尺寸、图标、列表、对话框、自定义变体和纯点击区域。
+- `WButton` 增加 `tapTargetSize`：小/中尺寸视觉高度 32/40，但实际点击区域保持 48；
+  补充尺寸校验、无 container 时的 padding、图标按钮语义标签与键盘/指针 press 竞态修复。
+- `WButtonStyles` 预设改为返回独立副本；`WButtonStyle` / `WButton` 对 container/textStyle 做快照，
+  `WButtonThemeData` 的 variants/sizes 使用不可变 Map。
 
 ### Changed
 - `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。
