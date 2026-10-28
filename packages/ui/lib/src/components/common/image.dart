@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 import 'image_config.dart';
 import 'image_frame.dart';
-import 'image_load_state.dart';
+import 'image_loader.dart';
 import 'image_source.dart';
 import 'image_style.dart';
 import 'image_theme.dart';
@@ -22,6 +22,7 @@ import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
 export 'image_config.dart';
 export 'image_frame.dart';
+export 'image_loader.dart';
 export 'image_source.dart';
 export 'image_style.dart';
 export 'image_theme.dart';
@@ -33,9 +34,13 @@ export 'image_types.dart';
 /// 立即重新发起请求（不等自动重试的退避时间）。
 class WImageController {
   _WImageState? _state;
+  WImageLoader? _loader;
 
   /// 是否已绑定到 [WImage]
   bool get isAttached => _state != null;
+
+  /// 加载状态（未绑定时为 null）
+  ValueListenable<WImageLoadSnapshot>? get state => _loader?.state;
 
   /// 手动重新加载
   ///
@@ -44,10 +49,14 @@ class WImageController {
 
   void _attach(_WImageState state) {
     _state = state;
+    _loader = state.loader;
   }
 
   void _detach(_WImageState state) {
-    if (identical(_state, state)) _state = null;
+    if (identical(_state, state)) {
+      _state = null;
+      _loader = null;
+    }
   }
 }
 
@@ -269,7 +278,10 @@ class _WImageState extends State<WImage> {
   Future<Uint8List>? _bytesFuture;
 
   /// 加载 / 重试 / 进度状态
-  final WImageLoadState _load = WImageLoadState();
+  final WImageLoader _load = WImageLoader();
+
+  /// 供 controller 读取的状态
+  WImageLoader get loader => _load;
 
   WImageStyle get config => widget.style;
 
@@ -297,6 +309,7 @@ class _WImageState extends State<WImage> {
   @override
   void dispose() {
     widget.controller?._detach(this);
+    _load.dispose();
     super.dispose();
   }
 
@@ -321,6 +334,7 @@ class _WImageState extends State<WImage> {
   /// 通知加载状态（同一状态只通知一次，且组件已卸载时不回调）
   void _notifyStatus(WImageLoadStatus status) {
     if (!_load.markStatus(status)) return;
+    _load.emit();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       widget.onLoadStatusChanged?.call(status);
@@ -330,6 +344,7 @@ class _WImageState extends State<WImage> {
   /// 上报下载进度（延迟到帧结束后，避免在 build 阶段回调业务代码）
   void _notifyProgress(WImageProgress progress) {
     _load.pendingProgress = progress;
+    _load.emit();
     if (_load.progressScheduled) return;
     _load.progressScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -431,6 +446,7 @@ class _WImageState extends State<WImage> {
       setState(() {
         _load.beginAttempt();
         _load.retryScheduled = false;
+        _load.emit();
       });
     });
   }
@@ -446,77 +462,31 @@ class _WImageState extends State<WImage> {
       _load.retryScheduled = false;
       _load.pendingProgress = null;
       _bytesFuture = null;
+      _load.emit();
     });
   }
 
-  /// 网络图片：直接构建 [CachedNetworkImage]
+  /// 网络图片：CachedNetworkImageProvider + 统一 Image 管线
   ///
-  /// 重试、进度与状态都在本 State 内处理，不再经过额外的包装组件。
+  /// 磁盘/内存缓存仍由 `cached_network_image` 的 provider 负责；
+  /// 进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`。
   Widget _buildNetwork() {
     final network = widget.source as WNetworkImageSource;
-    final hasProgress = config.progressBuilder != null;
-    return CachedNetworkImage(
-      // 换 key 才会真正重新发起请求（同一 provider 重建不会重新拉取）
-      key: ValueKey('$_value#attempt=${_load.attempt}'),
-      imageUrl: _value,
-      width: config.width,
-      height: config.height,
-      fit: config.fit,
-      alignment: config.alignment,
-      filterQuality: config.filterQuality,
-      memCacheWidth: config.memCacheWidth,
-      memCacheHeight: config.memCacheHeight,
-      httpHeaders: network.headers,
+    final provider = CachedNetworkImageProvider(
+      _value,
+      headers: network.headers,
       cacheKey: network.cacheKey,
-      progressIndicatorBuilder: hasProgress ? _networkProgress : null,
-      placeholder: hasProgress ? null : _networkPlaceholder,
-      errorWidget: _networkError,
-      imageBuilder: (context, imageProvider) {
-        return _imageWidget(
-          imageProvider,
-          errorFactory: (error) => WImageNetworkError(widget.data, error),
-          showPlaceholderWhileLoading: false,
-          applyDecodeSize: false,
-          notifyProgressCompletion: true,
-        );
-      },
+      maxWidth: config.memCacheWidth,
+      maxHeight: config.memCacheHeight,
     );
-  }
-
-  /// 网络占位符
-  Widget _networkPlaceholder(BuildContext context, String url) {
-    _notifyStatus(WImageLoadStatus.loading);
-    return config.placeholderBuilder?.call(context, url) ?? _buildPlaceholder(context);
-  }
-
-  /// 网络进度：新签名优先，其次旧签名
-  Widget _networkProgress(
-    BuildContext context,
-    String url,
-    DownloadProgress downloadProgress,
-  ) {
-    final progress = WImageProgress(
-      downloadedBytes: downloadProgress.downloaded,
-      totalBytes: downloadProgress.totalSize,
+    return _imageWidget(
+      provider,
+      errorFactory: (error) => WImageNetworkError(widget.data, error),
+      applyDecodeSize: false,
+      notifyProgressCompletion: true,
+      retryOnError: true,
+      progressBuilder: config.progressBuilder,
     );
-    _notifyStatus(WImageLoadStatus.loading);
-    _notifyProgress(progress);
-
-    final builder = config.progressBuilder;
-    if (builder != null) {
-      return builder(context, url, progress) ?? _buildPlaceholder(context);
-    }
-    return _buildPlaceholder(context);
-  }
-
-  /// 网络错误：可重试就先重试，否则渲染错误占位
-  Widget _networkError(BuildContext context, String url, Object error) {
-    if (_hasRetries && isRetryableNetworkError(error)) {
-      _scheduleRetry();
-      return _networkPlaceholder(context, url);
-    }
-    _notifyStatus(WImageLoadStatus.failed);
-    return _errorSlot(context, WImageNetworkError(widget.data, error));
   }
 
   /// 本地资源：统一走 [AssetImage]（Flutter 自带 ImageCache，支持 2x/3x 变体）
@@ -572,6 +542,8 @@ class _WImageState extends State<WImage> {
     bool applyDecodeSize = true,
     bool notifyCompletion = true,
     bool notifyProgressCompletion = false,
+    bool retryOnError = false,
+    Widget? Function(BuildContext, String, WImageProgress)? progressBuilder,
   }) {
     final effectiveProvider = applyDecodeSize
         ? ResizeImage.resizeIfNeeded(
@@ -606,7 +578,21 @@ class _WImageState extends State<WImage> {
               return _placeholderFor(context);
             }
           : null,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        final progress = WImageProgress(
+          downloadedBytes: loadingProgress.cumulativeBytesLoaded,
+          totalBytes: loadingProgress.expectedTotalBytes,
+        );
+        _notifyStatus(WImageLoadStatus.loading);
+        _notifyProgress(progress);
+        return progressBuilder?.call(context, _value, progress) ?? _placeholderFor(context);
+      },
       errorBuilder: (context, error, stackTrace) {
+        if (retryOnError && _hasRetries && isRetryableNetworkError(error)) {
+          _scheduleRetry();
+          return _placeholderFor(context);
+        }
         _notifyStatus(WImageLoadStatus.failed);
         return _errorSlot(context, errorFactory(error));
       },

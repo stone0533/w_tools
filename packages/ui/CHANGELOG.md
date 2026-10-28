@@ -14,6 +14,9 @@
 - 新架构入口：`WImage.source(source:, style:)`、sealed `WImageSource`、不可变 `WImageStyle`、
   `WImageFrame`、`WImageTheme`。
 - `WImageSource.parse` 保留字符串自动判定；旧 `WImage(data:, config:)` 与命名构造作为适配层。
+- `WImageController.state`：`ValueListenable<WImageLoadSnapshot>`（status/progress/attempt）。
+- 网络路径统一为 `CachedNetworkImageProvider` + `Image`，进度改用 `ImageChunkEvent`；
+  磁盘缓存仍走 `cached_network_image`。
 - `WImageConfig.copy()`：复制全部配置字段，便于"以现有配置为底再覆盖少量字段"。
 - `String.toImage` 增加 `key` / `config` / `type` / `semanticLabel` / `controller` /
   `onProgress` 参数；`config` 会被复制，不会修改调用方对象。

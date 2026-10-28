@@ -105,7 +105,7 @@ void main() {
         MaterialApp(home: Scaffold(body: WImage(data: data))),
       );
       expect(
-        find.byType(CachedNetworkImage),
+        find.byType(Image),
         findsOneWidget,
         reason: '$data 应判定为网络图片',
       );
@@ -123,10 +123,9 @@ void main() {
           home: Scaffold(body: WImage(data: '//cdn.example.com/a.png')),
         ),
       );
-      final image = tester.widget<CachedNetworkImage>(
-        find.byType(CachedNetworkImage),
-      );
-      expect(image.imageUrl, 'https://cdn.example.com/a.png');
+      final image = tester.widget<Image>(find.byType(Image));
+      final provider = image.image as CachedNetworkImageProvider;
+      expect(provider.url, 'https://cdn.example.com/a.png');
     });
 
     testWidgets('data: 前缀（非 image/）按 base64 处理并能真正解码', (tester) async {
@@ -197,7 +196,7 @@ void main() {
   });
 
   group('WImage 解码尺寸', () {
-    testWidgets('memCacheWidth / memCacheHeight 透传给 CachedNetworkImage', (tester) async {
+    testWidgets('memCacheWidth / memCacheHeight 透传给 CachedNetworkImageProvider', (tester) async {
       final config = WImageConfig()
         ..memCacheWidth = 240
         ..memCacheHeight = 240;
@@ -213,9 +212,10 @@ void main() {
         ),
       );
 
-      final image = tester.widget<CachedNetworkImage>(find.byType(CachedNetworkImage));
-      expect(image.memCacheWidth, 240);
-      expect(image.memCacheHeight, 240);
+      final image = tester.widget<Image>(find.byType(Image));
+      final provider = image.image as CachedNetworkImageProvider;
+      expect(provider.maxWidth, 240);
+      expect(provider.maxHeight, 240);
     });
 
     testWidgets('asset 的 memCache 会变成 ResizeImage', (tester) async {

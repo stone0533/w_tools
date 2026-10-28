@@ -367,6 +367,9 @@ WImage.source(
 - `WImageSource` 是 sealed：`network` / `asset` / `file` / `base64`，`WImageSource.parse` 保留字符串自动判定；
 - `WImageStyle` 不可变，提供 `copyWith`、`validate`、`toConfig`/`fromConfig`；
 - `WImageTheme`（InheritedWidget）可按子树覆盖默认占位符/错误占位符，优先于 `WImageGlobalConfig`；
+- `WImageController.state` 暴露 `ValueListenable<WImageLoadSnapshot>`（status / progress / attempt）；
+- 网络图统一走 `CachedNetworkImageProvider` + `Image`：磁盘缓存仍由 `cached_network_image` 负责，
+  进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`；
 - 旧的 `WImage(data:, config:)` 与命名构造仍然可用，内部会转换成 `WImageSource` + `WImageStyle`。
 
 ### 构造参数

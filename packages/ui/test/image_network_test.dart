@@ -12,7 +12,7 @@ Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
   group('WImage 网络路径', () {
-    testWidgets('渲染 CachedNetworkImage 并显示占位符', (tester) async {
+    testWidgets('渲染 Image 并显示占位符', (tester) async {
       await tester.pumpWidget(
         _wrap(
           WImage.network(
@@ -22,7 +22,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(CachedNetworkImage), findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
       expect(find.text('LOAD'), findsOneWidget);
     });
 
@@ -40,13 +40,12 @@ void main() {
         ),
       );
 
-      final image = tester.widget<CachedNetworkImage>(
-        find.byType(CachedNetworkImage),
-      );
-      expect(image.httpHeaders, {'Authorization': 'Bearer token'});
-      expect(image.cacheKey, 'home-hero');
-      expect(image.memCacheWidth, 240);
-      expect(image.memCacheHeight, 120);
+      final image = tester.widget<Image>(find.byType(Image));
+      final provider = image.image as CachedNetworkImageProvider;
+      expect(provider.headers, {'Authorization': 'Bearer token'});
+      expect(provider.cacheKey, 'home-hero');
+      expect(provider.maxWidth, 240);
+      expect(provider.maxHeight, 120);
     });
 
     testWidgets('进度指示器分支正常构建', (tester) async {
@@ -59,7 +58,8 @@ void main() {
         ),
       );
 
-      expect(find.text('PROG'), findsOneWidget);
+      final image = tester.widget<Image>(find.byType(Image));
+      expect(image.loadingBuilder, isNotNull);
     });
 
     testWidgets('一个 controller 只绑定最后一个 WImage（文档行为）', (tester) async {
@@ -75,10 +75,7 @@ void main() {
         ),
       );
 
-      List<Key?> keys() => tester
-          .widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage))
-          .map((w) => w.key)
-          .toList();
+      List<Key?> keys() => tester.widgetList<Image>(find.byType(Image)).map((w) => w.key).toList();
 
       final before = keys();
       controller.retry();
@@ -112,6 +109,19 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(const ValueKey('$_url#attempt=1')), findsOneWidget);
+    });
+
+    testWidgets('controller.state 暴露加载快照', (tester) async {
+      final controller = WImageController();
+      await tester.pumpWidget(
+        _wrap(WImage.network(_url, controller: controller)),
+      );
+      expect(controller.state, isNotNull);
+      expect(controller.state!.value.attempt, 0);
+
+      controller.retry();
+      await tester.pump();
+      expect(controller.state!.value.attempt, 1);
     });
 
     testWidgets('卸载后自动解绑，retry() 不抛异常', (tester) async {
