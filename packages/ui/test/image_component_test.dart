@@ -267,6 +267,7 @@ void main() {
       await tester.pump();
       final view = tester.widget<WImageErrorView>(find.byType(WImageErrorView));
       expect(view.compact, isFalse);
+      expect(find.text('Base64 解码失败'), findsOneWidget);
       expect(find.text('重试'), findsNothing);
     });
 

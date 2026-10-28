@@ -35,12 +35,16 @@ export 'image_types.dart';
 class WImageController {
   _WImageState? _state;
   WImageLoader? _loader;
+  ValueListenable<WImageLoadSnapshot>? _lastState;
 
   /// 是否已绑定到 [WImage]
   bool get isAttached => _state != null;
 
-  /// 加载状态（未绑定时为 null）
-  ValueListenable<WImageLoadSnapshot>? get state => _loader?.state;
+  /// 加载状态。
+  ///
+  /// 首次绑定后保持同一 [ValueListenable]；WImage 卸载后仍可安全监听/移除监听，
+  /// 只是不再更新。
+  ValueListenable<WImageLoadSnapshot>? get state => _loader?.state ?? _lastState;
 
   /// 手动重新加载
   ///
@@ -50,12 +54,14 @@ class WImageController {
   void _attach(_WImageState state) {
     _state = state;
     _loader = state.loader;
+    _lastState = _loader!.state;
   }
 
   void _detach(_WImageState state) {
     if (identical(_state, state)) {
       _state = null;
       _loader = null;
+      // 保留 _lastState：外部持有的 ValueListenable 仍然有效，只是不再更新。
     }
   }
 }
@@ -464,6 +470,9 @@ class _WImageState extends State<WImage> {
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller?._detach(this);
       widget.controller?._attach(this);
+    }
+    if (oldWidget.style != widget.style) {
+      _lastFrame = null;
     }
     if (oldWidget.source != widget.source) {
       _reset();

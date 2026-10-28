@@ -165,7 +165,9 @@ class WImageLoader extends WImageLoadState {
     onProgress?.call(progress);
   }
 
-  /// 成功加载到首帧
+  /// 成功加载到首帧。
+  ///
+  /// 允许从 `failed` 恢复为 `completed`（例如迟到的成功帧），并取消已排队的重试。
   void handleCompleted({bool notifyProgress = false}) {
     _retryTimer?.cancel();
     _retryTimer = null;
@@ -243,6 +245,7 @@ class WImageLoader extends WImageLoadState {
   void dispose() {
     _retryTimer?.cancel();
     _retryTimer = null;
-    _notifier.dispose();
+    // 不 dispose notifier：controller 可能在 WImage 卸载后仍持有它。
+    // notifier 会随 loader/controller 一起被 GC。
   }
 }

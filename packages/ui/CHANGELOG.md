@@ -39,7 +39,8 @@
 
 ### Fixed
 - `WImageLoader` 在 `completed/failed` 后忽略迟到的进度/`markLoading`/错误，完成时取消已排队的重试，`beginAttempt` 清空旧进度。
-- 迟到的 `loadingBuilder`/`errorBuilder` 不再覆盖已完成的图片。
+- 迟到的 `loadingBuilder`/`errorBuilder` 不再覆盖已完成的图片；style 变化会清空上一帧缓存。
+- `WImageController.state` 首次绑定后保持稳定，WImage 卸载后仍可安全移除监听。
 - `data:` / `file:` 前缀改为大小写不敏感（`DATA:` / `FILE:`）。
 - `showRetryButton` 只对网络/provider/文件错误显示重试，空数据/Base64/asset/unsupported 不显示。
 - `WImageErrorView` 的尺寸完全交给 `LayoutBuilder` 判断；`compact` / `showAction` 仅作为显式覆盖参数。

@@ -542,6 +542,8 @@ flutter run
   避免同屏多张图在同一毫秒齐刷刷重试。
 - 修改 `retryCount` / `retryDelay` 会取消已经排队的旧重试（避免关掉重试后仍多发一次请求）。
 - 一个 `WImageController` 对应一个 `WImage`；多个 WImage 共享时只有最后一个能收到 `retry()`。
+- `WImageController.state` 在首次绑定后保持同一 `ValueListenable`；WImage 卸载后不再更新，
+  但外部持有的监听器仍可安全 `removeListener`。
 - 需要用户手动重试时，传一个 `WImageController`，在错误占位里调用 `retry()`：
 
 ```dart
