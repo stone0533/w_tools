@@ -6,8 +6,9 @@
   支持 `json` / `markdown` / `prompt` 三种格式，给 AI 和 CI 读。
 - **list / explain**：查内置组件目录（`list <关键词>`、`explain <组件名>`），
   避免凭记忆造组件名。
-- **init**：把接入约定装进当前项目，生成聚合入口、暂存层 README、`AGENTS.md` 片段
-  和 `.w_tools_doctor.yaml`（全注释，不改变行为）。
+- **init**：把接入约定装进当前项目，生成聚合入口、暂存层 README、`AGENTS.md` 片段、
+  `lib/app/ui/` 页面规范（AppBars / AppBoxes / AppButtons / AppCard / AppScaffold）
+  和 `.w_tools_doctor.yaml`（默认值与内置一致）。
 - **doctor**：扫描项目，检查是否遵守「只依赖子包、业务代码只 import 聚合入口、
   暂存层不依赖业务」等约定（R1~R8）。
 
@@ -15,7 +16,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.1.0
+  w_tools_cli: ^1.2.0
 ```
 
 ```bash
@@ -57,7 +58,7 @@ dart run w_tools_cli:doctor --json             # 写完自检（0 error 才算�
 | --- | --- | --- |
 | R1 | error | `dependencies` 里出现聚合包 `w_tools` |
 | R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
-| R3 | warn | 硬编码语义色（默认关；需在 `.w_tools_doctor.yaml` 声明 `colors.palette`） |
+| R3 | warn | 业务层硬编码语义色（默认关；需声明 `colors.palette`；项目 UI / 暂存层豁免） |
 | R4 | error | 设计系统（`lib/app/ui/`、暂存层）import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
 | R6 | warn | 禁用单位 `.h` / `.r`（项目专用，默认关，配置 `rules.R6: true` 打开） |

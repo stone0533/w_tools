@@ -26,11 +26,6 @@ void main() {
     expect(DoctorConfig.parse('rules:\n  R1: false\n').enabledRules, isNot(contains('R1')));
   });
 
-  test('project_ui_dir 解析为自定义路径', () {
-    final config = DoctorConfig.parse('project_ui_dir: lib/app/design\n');
-    expect(config.projectUiDir, 'lib/app/design');
-  });
-
   test('ignore 解析为列表', () {
     final config = DoctorConfig.parse('ignore:\n  - lib/app/generated/\n  - build/\n');
     expect(config.ignore, ['lib/app/generated/', 'build/']);
@@ -45,14 +40,10 @@ void main() {
   test('copyWith 覆盖指定字段', () {
     final config = DoctorConfig().copyWith(
       toolkitEntry: 'lib/x/toolkit.dart',
-      projectUiDir: 'lib/x/ui',
-      designSystemDir: 'lib/x/design_system',
       palette: const ['#333333'],
       enabledRules: const {'R1'},
     );
     expect(config.toolkitEntry, 'lib/x/toolkit.dart');
-    expect(config.projectUiDir, 'lib/x/ui');
-    expect(config.designSystemDir, 'lib/x/design_system');
     expect(config.palette, ['#333333']);
     expect(config.enabledRules, {'R1'});
     expect(config.colorMinCount, DoctorConfig().colorMinCount);
@@ -76,8 +67,6 @@ void main() {
     );
     final copy = base.copyWith();
     expect(copy.toolkitEntry, base.toolkitEntry);
-    expect(copy.projectUiDir, base.projectUiDir);
-    expect(copy.designSystemDir, base.designSystemDir);
     expect(copy.palette, base.palette);
     expect(copy.enabledRules, base.enabledRules);
     expect(copy.colorMinCount, base.colorMinCount);

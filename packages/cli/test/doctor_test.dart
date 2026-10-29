@@ -157,6 +157,16 @@ void main() {
       expect(r.status, DoctorRuleStatus.pass);
     });
 
+    test('项目 ui 里的固定品牌色不报', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/ui/app_boxes.dart':
+            "const a = Color(0xFF3F3F3F);\nconst b = Color(0xFF3F3F3F);\nconst c = Color(0xFF3F3F3F);\n",
+      });
+      final r = R3HardcodedColors.check(ctxOf(root, configured()), configured());
+      expect(r.status, DoctorRuleStatus.pass);
+    });
+
     test('暂存层里的硬编码不报（还没上移）', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',

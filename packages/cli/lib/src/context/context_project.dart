@@ -20,7 +20,7 @@ class ProjectSnapshot {
     required this.dependencies,
     required this.toolkitPath,
     required this.toolkitExports,
-    required this.designSystemDir,
+    required this.stagingDir,
     required this.designSystemFiles,
     required this.missingStaged,
     required this.results,
@@ -38,7 +38,7 @@ class ProjectSnapshot {
   final String? toolkitPath;
   final List<String> toolkitExports;
 
-  final String designSystemDir;
+  final String stagingDir;
   final int designSystemFiles;
   final int missingStaged;
 
@@ -85,7 +85,7 @@ class ProjectSnapshot {
     }
 
     final designFiles = ctx
-        .filesUnder(config.designSystemDir)
+        .filesUnder(designSystemDirPath)
         .where((file) => file.endsWith('.dart'))
         .toList();
     var missingStaged = 0;
@@ -102,7 +102,7 @@ class ProjectSnapshot {
       dependencies: deps,
       toolkitPath: toolkitPath,
       toolkitExports: exports,
-      designSystemDir: config.designSystemDir,
+      stagingDir: designSystemDirPath,
       designSystemFiles: designFiles.length,
       missingStaged: missingStaged,
       results: runDoctor(ctx, config),
@@ -124,7 +124,7 @@ class ProjectSnapshot {
       'exports': toolkitExports,
     },
     'designSystem': <String, Object?>{
-      'dir': designSystemDir,
+      'dir': stagingDir,
       'files': designSystemFiles,
       'missingStaged': missingStaged,
     },
@@ -172,7 +172,9 @@ class ProjectSnapshot {
         '- toolkit：${toolkitPath ?? '（未初始化）'}'
         '${toolkitExports.isEmpty ? '' : '，导出 ${toolkitExports.map((e) => '`$e`').join('、')}'}',
       )
-      ..writeln('- 暂存层：`$designSystemDir`（$designSystemFiles 个文件，$missingStaged 个缺 `// STAGED:`）')
+      ..writeln(
+        '- 暂存层：`$stagingDir`（$designSystemFiles 个文件，$missingStaged 个缺 `// STAGED:`）',
+      )
       ..writeln('- 规则：${doctorRuleIds.map((id) => '`$id ${doctorRuleLevels[id]}`').join(' ')}')
       ..writeln('- 当前检查：$errorCount error / $warnCount warning')
       ..writeln()
@@ -201,7 +203,7 @@ class ProjectSnapshot {
       '直接依赖: ${dependencies.isEmpty ? '（无）' : dependencies.join(', ')}',
       'toolkit: ${toolkitPath ?? '（未初始化）'}'
           '${toolkitExports.isEmpty ? '' : '（导出 ${toolkitExports.join(', ')}）'}',
-      '暂存层: $designSystemDir（$designSystemFiles 个文件，$missingStaged 个缺 STAGED）',
+      '暂存层: $stagingDir（$designSystemFiles 个文件，$missingStaged 个缺 STAGED）',
       '规则: ${doctorRuleIds.map((id) => '$id=${doctorRuleLevels[id]}').join(' ')}',
       '当前: $errorCount error / $warnCount warning',
       '命令: ${commands().entries.map((e) => '${e.key}=${e.value}').join(' | ')}',

@@ -90,7 +90,7 @@ doctor 检查项：
 | --- | --- | --- |
 | R1 | error | `dependencies` 里出现聚合包 `w_tools`（`dev_dependencies` 豁免 —— doctor 自己就靠它；`dependency_overrides` 里出现只 **warn**） |
 | R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
-| R3 | warn | 硬编码语义色（**调色板默认空**，需在 `.w_tools_doctor.yaml` 声明 `colors.palette`） |
+| R3 | warn | 业务层硬编码语义色（**调色板默认空**，需声明 `colors.palette`；项目 UI / 暂存层豁免） |
 | R4 | error | 设计系统（`lib/app/ui/`、暂存层）import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
 | R6 | warn | 禁用单位 `.h` / `.r`（**项目专用，默认关**，配置 `rules.R6: true` 打开） |
@@ -108,9 +108,9 @@ dart run w_tools_cli:doctor --print-config    # 打印带注释的默认配置
 dart run w_tools_cli:doctor --write-config    # 写到 .w_tools_doctor.yaml（已存在则跳过，--force 覆盖）
 ```
 
-`init` 也会顺手生成这个文件（全注释，不改变行为）。
+`init` 也会顺手生成这个文件（带注释的默认配置，值与内置默认一致）。
 常见调整：`colors.palette` 填项目语义色（不填则 R3 跳过）、`rules.R6: true` 打开禁用单位检查；
-`project_ui_dir` / `design_system_dir` 用于自定义项目 UI 层与暂存层路径。
+项目 UI 层固定为 `lib/app/ui/`，暂存层固定为 `lib/app/design_system/`；`init` 与 doctor 使用同一套路径。
 
 > 早期这里放的是三条 grep 命令，现在**以 doctor 为唯一事实源** —— 同一份规则不能有两个实现，
 > 否则必然漂移。

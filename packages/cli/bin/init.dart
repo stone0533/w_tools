@@ -17,7 +17,13 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
 生成：
   lib/app/w/toolkit.dart            本项目用到的能力清单（聚合入口）
   lib/app/design_system/README.md   通用组件暂存层规则
-  .w_tools_doctor.yaml              doctor 的可选配置（全注释，不改变行为）
+  lib/app/ui/README.md              项目永久 UI 规范
+  lib/app/ui/app_bars.dart          AppBar 默认样式
+  lib/app/ui/app_boxes.dart         盒子装饰预设
+  lib/app/ui/app_buttons.dart       按钮样式注册表
+  lib/app/ui/app_card.dart          重复卡片入口
+  lib/app/ui/app_scaffold.dart      标准页面入口
+  .w_tools_doctor.yaml              doctor 的可选配置（默认值与内置一致）
   AGENTS.md / CLAUDE.md / ...       w_tools 片段（标记块，重复执行会原地更新）
 
 选项：

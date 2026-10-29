@@ -12,7 +12,7 @@ class R5StagedMarker {
   static const title = '暂存层 STAGED 标记';
 
   static DoctorRuleResult check(ProjectContext ctx, DoctorConfig config) {
-    final dir = Directory(p.join(ctx.root.path, config.designSystemDir));
+    final dir = Directory(p.join(ctx.root.path, designSystemDirPath));
     if (!dir.existsSync()) {
       return const DoctorRuleResult(
         ruleId: id,
@@ -23,7 +23,7 @@ class R5StagedMarker {
     }
 
     final issues = <DoctorIssue>[];
-    for (final file in ctx.filesUnder(config.designSystemDir)) {
+    for (final file in ctx.filesUnder(designSystemDirPath)) {
       // README / 资源文件不是待上移组件
       if (!file.endsWith('.dart')) continue;
       final head = ctx.read(file).split('\n').take(10).join('\n');

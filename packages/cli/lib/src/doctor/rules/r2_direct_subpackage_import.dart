@@ -17,10 +17,10 @@ class R2DirectSubpackageImport {
       // 聚合入口自己就是靠 export 子包工作的
       if (file == config.toolkitEntry) continue;
       // 项目永久 UI 规范层与暂存层允许直接 import 子包
-      if (file == config.projectUiDir ||
-          file.startsWith('${config.projectUiDir}/') ||
-          file == config.designSystemDir ||
-          file.startsWith('${config.designSystemDir}/')) {
+      if (file == projectUiDirPath ||
+          file.startsWith('$projectUiDirPath/') ||
+          file == designSystemDirPath ||
+          file.startsWith('$designSystemDirPath/')) {
         continue;
       }
       final lines = ctx.read(file).split('\n');

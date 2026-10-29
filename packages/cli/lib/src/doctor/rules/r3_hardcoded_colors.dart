@@ -27,8 +27,10 @@ class R3HardcodedColors {
     final hits = <String, List<({String file, int line})>>{};
 
     for (final file in ctx.files) {
-      // 暂存层的组件还没上移，允许先硬编码
-      if (file.startsWith('${config.designSystemDir}/')) continue;
+      // 项目 UI 是样式注册表，暂存层还没上移，允许先固定颜色
+      if (file.startsWith('$projectUiDirPath/') || file.startsWith('$designSystemDirPath/')) {
+        continue;
+      }
       final lines = ctx.read(file).split('\n');
       for (var i = 0; i < lines.length; i++) {
         if (lines[i].trimLeft().startsWith('//')) continue;

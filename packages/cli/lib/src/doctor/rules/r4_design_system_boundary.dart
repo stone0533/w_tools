@@ -19,7 +19,7 @@ class R4DesignSystemBoundary {
   );
 
   static DoctorRuleResult check(ProjectContext ctx, DoctorConfig config) {
-    final dirs = <String>{config.projectUiDir, config.designSystemDir};
+    const dirs = <String>{projectUiDirPath, designSystemDirPath};
     final issues = <DoctorIssue>[];
     var found = false;
 

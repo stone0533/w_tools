@@ -6,11 +6,13 @@ import 'package:yaml/yaml.dart';
 ///
 /// 优先级：CLI 参数 > 配置文件 > 内置默认。
 /// 内置默认**不含调色板**（R3 需要项目自己声明语义色，避免把某个项目的色值当通用规则）。
+/// 固定路径：init 生成物与 doctor 检查必须使用同一套目录。
+const String projectUiDirPath = 'lib/app/ui';
+const String designSystemDirPath = 'lib/app/design_system';
+
 class DoctorConfig {
   DoctorConfig({
     this.toolkitEntry = 'lib/app/w/toolkit.dart',
-    this.projectUiDir = 'lib/app/ui',
-    this.designSystemDir = 'lib/app/design_system',
     this.palette = const <String>[],
     this.colorMinCount = 3,
     this.enabledRules = const <String>{'R1', 'R2', 'R3', 'R4', 'R5'},
@@ -21,12 +23,6 @@ class DoctorConfig {
 
   /// R2 的白名单：这个文件里允许 import 子包（它就是聚合入口）
   final String toolkitEntry;
-
-  /// 项目永久 UI 规范目录：允许直接 import w_tools 子包
-  final String projectUiDir;
-
-  /// R4 / R5 检查的暂存层目录
-  final String designSystemDir;
 
   /// R3 的语义色调色板（十六进制，大小写不敏感，可带/不带 `#`）。为空时 R3 跳过。
   final List<String> palette;
@@ -101,8 +97,6 @@ class DoctorConfig {
 
     return DoctorConfig(
       toolkitEntry: (raw['toolkit_entry'] as String?) ?? 'lib/app/w/toolkit.dart',
-      projectUiDir: (raw['project_ui_dir'] as String?) ?? 'lib/app/ui',
-      designSystemDir: (raw['design_system_dir'] as String?) ?? 'lib/app/design_system',
       palette: palette,
       colorMinCount: minCount,
       enabledRules: rules,
@@ -114,8 +108,6 @@ class DoctorConfig {
 
   DoctorConfig copyWith({
     String? toolkitEntry,
-    String? projectUiDir,
-    String? designSystemDir,
     List<String>? palette,
     Set<String>? enabledRules,
     List<String>? aiTargets,
@@ -123,8 +115,6 @@ class DoctorConfig {
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
-      projectUiDir: projectUiDir ?? this.projectUiDir,
-      designSystemDir: designSystemDir ?? this.designSystemDir,
       palette: palette ?? this.palette,
       colorMinCount: colorMinCount,
       enabledRules: enabledRules ?? this.enabledRules,
@@ -147,8 +137,6 @@ String renderDefaultConfig() {
     ..writeln('# 这个文件是可选的：没有它，doctor 就按下面的默认值运行；')
     ..writeln('# 把它写下来只是把可选开关摊开，方便团队按项目调整。')
     ..writeln('toolkit_entry: ${defaults.toolkitEntry}')
-    ..writeln('project_ui_dir: ${defaults.projectUiDir}')
-    ..writeln('design_system_dir: ${defaults.designSystemDir}')
     ..writeln()
     ..writeln('colors:')
     ..writeln('  # R3 语义色检查：palette 留空 = 跳过该规则。')

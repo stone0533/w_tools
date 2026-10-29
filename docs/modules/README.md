@@ -25,7 +25,7 @@
 
 | 包 | 路径 | 职责 |
 |------|------|------|
-| `w_tools_cli` | `packages/cli/` | 消费方接入工具：`init` 生成聚合入口/暂存层/AGENTS 片段，`doctor` 检查接入约定 |
+| `w_tools_cli` | `packages/cli/` | 消费方接入工具：`init` 生成聚合入口/暂存层/项目 UI 规范/AGENTS 片段，`doctor` 检查接入约定 |
 
 只依赖 `args` / `path` / `yaml`，不依赖 Flutter；发版独立于子包与聚合包。
 

@@ -54,5 +54,5 @@ dependencies:
 
 ## 工具支持
 
-- `dart run w_tools_cli:init`：生成 `toolkit.dart` + 暂存层 README + `AGENTS.md` 片段
+- `dart run w_tools_cli:init`：生成 `toolkit.dart` + 暂存层 README + `lib/app/ui/` 页面规范 + `AGENTS.md` 片段
 - `dart run w_tools_cli:doctor`：R1（禁止聚合包）/ R2（禁止直连子包）等 6 条检查
