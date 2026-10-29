@@ -264,7 +264,8 @@ contentBuilder: (context, style) {
 > 如果 `contentBuilder` 改变了内容含义（例如“提交”变成“不可用”），要同步提供匹配的
 > `semanticLabel`；否则屏幕阅读器仍会播报旧含义。
 >
-> 只有 `onLongPress` 时，键盘 Enter / Space 不会触发长按；键盘激活依赖 `onTap`。
+> 只有 `onLongPress` 时不会启用键盘焦点；键盘激活依赖 `onTap`，此时仅保留指针和
+> 屏幕阅读器的长按操作。
 
 ### WButtonStyle
 

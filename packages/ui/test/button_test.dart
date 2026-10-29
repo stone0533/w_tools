@@ -582,6 +582,25 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('只有 onLongPress 时不启用键盘焦点', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            style: WButtonStyles.primary,
+            label: 'long-only',
+            onLongPress: () {},
+          ),
+        ),
+      );
+      final detector = tester.widget<FocusableActionDetector>(
+        find.descendant(
+          of: find.byType(WButton),
+          matching: find.byType(FocusableActionDetector),
+        ),
+      );
+      expect(detector.enabled, isFalse);
+    });
+
     testWidgets('没有 onTap 时键盘不触发按下状态', (tester) async {
       await tester.pumpWidget(
         _wrap(

@@ -212,6 +212,7 @@ class _WButtonState extends State<WButton> {
     final style = _resolveStyle();
     style.validate();
     final interactive = _interactive;
+    final keyboardInteractive = interactive && widget.onTap != null;
     final theme = Theme.of(context);
     final hoverColor = style.hoverColor ?? theme.hoverColor;
     final focusColor = style.focusColor ?? theme.focusColor;
@@ -289,7 +290,7 @@ class _WButtonState extends State<WButton> {
       onTap: interactive && widget.onTap != null ? () => _activate(style) : null,
       onLongPress: interactive && widget.onLongPress != null ? _handleLongPress : null,
       child: FocusableActionDetector(
-        enabled: interactive,
+        enabled: keyboardInteractive,
         autofocus: widget.autofocus,
         focusNode: widget.focusNode,
         onShowFocusHighlight: (value) => setState(() => _focused = value),
