@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 
 import 'button_motion.dart';
+import 'button_resolved_style.dart';
 import 'button_semantics.dart';
 import 'button_size.dart';
 
 /// 不可变的按钮视觉样式。
 ///
-/// 动效见 [WButtonMotion]，语义/loading 文案见 [WButtonSemantics]。
+/// 颜色/边框/阴影/文字使用 [WidgetStateProperty]，由 WButton 按当前
+/// `WidgetState` 解析成 [WButtonResolvedStyle]。
 @immutable
 class WButtonStyle {
-  WButtonStyle({
+  const WButtonStyle({
     this.motion = const WButtonMotion(),
     this.semantics = const WButtonSemantics(),
     this.backgroundColor,
     this.gradient,
     this.border,
     this.borderRadius,
+    this.boxShadow,
     this.padding,
     this.clipBehavior = Clip.none,
     this.foregroundColor,
@@ -28,48 +31,26 @@ class WButtonStyle {
     this.tapTargetSize = 48,
     this.iconSize = 18,
     this.gap = 8,
-    List<BoxShadow>? boxShadow,
-  }) : boxShadow = boxShadow == null ? null : List<BoxShadow>.unmodifiable(boxShadow);
+  });
 
   final WButtonMotion motion;
   final WButtonSemantics semantics;
 
-  /// 纯色背景
-  final Color? backgroundColor;
-
-  /// 渐变背景
-  final Gradient? gradient;
-
-  /// 边框
-  final BoxBorder? border;
-
-  /// 圆角
+  final WidgetStateProperty<Color?>? backgroundColor;
+  final WidgetStateProperty<Gradient?>? gradient;
+  final WidgetStateProperty<BoxBorder?>? border;
   final BorderRadius? borderRadius;
-
-  /// 阴影
-  final List<BoxShadow>? boxShadow;
-
-  /// 内容内边距
+  final WidgetStateProperty<List<BoxShadow>?>? boxShadow;
   final EdgeInsetsGeometry? padding;
-
-  /// 背景裁剪行为；none 表示不裁剪
   final Clip clipBehavior;
+  final WidgetStateProperty<Color?>? foregroundColor;
+  final WidgetStateProperty<TextStyle?>? textStyle;
 
-  /// 文字/图标默认前景色
-  final Color? foregroundColor;
-
-  /// 文本样式
-  final TextStyle? textStyle;
-
-  /// 键盘焦点 overlay
+  /// hover/focus overlay 颜色（非状态属性，overlay 只在这些状态出现）
   final Color? focusColor;
-
-  /// hover overlay
   final Color? hoverColor;
 
-  /// 禁用透明度
   final double disabledOpacity;
-
   final double minWidth;
   final double minHeight;
   final double tapTargetSize;
@@ -88,12 +69,12 @@ class WButtonStyle {
     WButtonSemantics semantics = const WButtonSemantics(),
   }) {
     return WButtonStyle(
-      backgroundColor: backgroundColor,
-      foregroundColor: foregroundColor,
-      border: borderColor == null ? null : Border.all(color: borderColor),
+      backgroundColor: WidgetStatePropertyAll(backgroundColor),
+      foregroundColor: foregroundColor == null ? null : WidgetStatePropertyAll(foregroundColor),
+      border: borderColor == null ? null : WidgetStatePropertyAll(Border.all(color: borderColor)),
       borderRadius: borderRadius ?? BorderRadius.circular(8),
       padding: padding,
-      textStyle: textStyle,
+      textStyle: textStyle == null ? null : WidgetStatePropertyAll(textStyle),
       motion: motion,
       semantics: semantics,
     );
@@ -111,12 +92,12 @@ class WButtonStyle {
   }) {
     final color = borderColor ?? foregroundColor;
     return WButtonStyle(
-      backgroundColor: Colors.transparent,
-      foregroundColor: foregroundColor,
-      border: color == null ? null : Border.all(color: color),
+      backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+      foregroundColor: foregroundColor == null ? null : WidgetStatePropertyAll(foregroundColor),
+      border: color == null ? null : WidgetStatePropertyAll(Border.all(color: color)),
       borderRadius: borderRadius ?? BorderRadius.circular(8),
       padding: padding,
-      textStyle: textStyle,
+      textStyle: textStyle == null ? null : WidgetStatePropertyAll(textStyle),
       motion: motion,
       semantics: semantics,
     );
@@ -131,12 +112,27 @@ class WButtonStyle {
     WButtonSemantics semantics = const WButtonSemantics(),
   }) {
     return WButtonStyle(
-      foregroundColor: foregroundColor,
+      foregroundColor: foregroundColor == null ? null : WidgetStatePropertyAll(foregroundColor),
       borderRadius: BorderRadius.circular(8),
       padding: padding,
-      textStyle: textStyle,
+      textStyle: textStyle == null ? null : WidgetStatePropertyAll(textStyle),
       motion: motion,
       semantics: semantics,
+    );
+  }
+
+  /// 根据当前 WidgetState 解析出可直接渲染的视觉值。
+  WButtonResolvedStyle resolve(Set<WidgetState> states) {
+    final shadows = boxShadow?.resolve(states);
+    return WButtonResolvedStyle(
+      backgroundColor: backgroundColor?.resolve(states),
+      gradient: gradient?.resolve(states),
+      border: border?.resolve(states),
+      boxShadow: shadows == null ? null : List<BoxShadow>.unmodifiable(shadows),
+      textStyle: textStyle?.resolve(states),
+      foregroundColor: foregroundColor?.resolve(states),
+      iconSize: iconSize,
+      gap: gap,
     );
   }
 
@@ -155,15 +151,15 @@ class WButtonStyle {
   WButtonStyle copyWith({
     WButtonMotion? motion,
     WButtonSemantics? semantics,
-    Color? backgroundColor,
-    Gradient? gradient,
-    BoxBorder? border,
+    WidgetStateProperty<Color?>? backgroundColor,
+    WidgetStateProperty<Gradient?>? gradient,
+    WidgetStateProperty<BoxBorder?>? border,
     BorderRadius? borderRadius,
-    List<BoxShadow>? boxShadow,
+    WidgetStateProperty<List<BoxShadow>?>? boxShadow,
     EdgeInsetsGeometry? padding,
     Clip? clipBehavior,
-    Color? foregroundColor,
-    TextStyle? textStyle,
+    WidgetStateProperty<Color?>? foregroundColor,
+    WidgetStateProperty<TextStyle?>? textStyle,
     Color? focusColor,
     Color? hoverColor,
     double? disabledOpacity,
@@ -196,14 +192,22 @@ class WButtonStyle {
     );
   }
 
+  /// 静态改背景色，内部包装为 WidgetStatePropertyAll。
+  WButtonStyle withBackgroundColor(Color color) =>
+      copyWith(backgroundColor: WidgetStatePropertyAll(color));
+
+  /// 静态改前景色，内部包装为 WidgetStatePropertyAll。
+  WButtonStyle withForegroundColor(Color color) =>
+      copyWith(foregroundColor: WidgetStatePropertyAll(color));
+
   static const Object _unset = Object();
 
   WButtonStyle _copyNullable({
     Object? backgroundColor = _unset,
     Object? gradient = _unset,
     Object? border = _unset,
-    Object? borderRadius = _unset,
     Object? boxShadow = _unset,
+    Object? borderRadius = _unset,
     Object? textStyle = _unset,
     Object? foregroundColor = _unset,
     Object? focusColor = _unset,
@@ -212,18 +216,25 @@ class WButtonStyle {
     return WButtonStyle(
       motion: motion,
       semantics: semantics,
-      backgroundColor:
-          identical(backgroundColor, _unset) ? this.backgroundColor : backgroundColor as Color?,
-      gradient: identical(gradient, _unset) ? this.gradient : gradient as Gradient?,
-      border: identical(border, _unset) ? this.border : border as BoxBorder?,
+      backgroundColor: identical(backgroundColor, _unset)
+          ? this.backgroundColor
+          : backgroundColor as WidgetStateProperty<Color?>?,
+      gradient:
+          identical(gradient, _unset) ? this.gradient : gradient as WidgetStateProperty<Gradient?>?,
+      border: identical(border, _unset) ? this.border : border as WidgetStateProperty<BoxBorder?>?,
       borderRadius:
           identical(borderRadius, _unset) ? this.borderRadius : borderRadius as BorderRadius?,
-      boxShadow: identical(boxShadow, _unset) ? this.boxShadow : boxShadow as List<BoxShadow>?,
+      boxShadow: identical(boxShadow, _unset)
+          ? this.boxShadow
+          : boxShadow as WidgetStateProperty<List<BoxShadow>?>?,
       padding: padding,
       clipBehavior: clipBehavior,
-      foregroundColor:
-          identical(foregroundColor, _unset) ? this.foregroundColor : foregroundColor as Color?,
-      textStyle: identical(textStyle, _unset) ? this.textStyle : textStyle as TextStyle?,
+      foregroundColor: identical(foregroundColor, _unset)
+          ? this.foregroundColor
+          : foregroundColor as WidgetStateProperty<Color?>?,
+      textStyle: identical(textStyle, _unset)
+          ? this.textStyle
+          : textStyle as WidgetStateProperty<TextStyle?>?,
       focusColor: identical(focusColor, _unset) ? this.focusColor : focusColor as Color?,
       hoverColor: identical(hoverColor, _unset) ? this.hoverColor : hoverColor as Color?,
       disabledOpacity: disabledOpacity,
@@ -235,13 +246,11 @@ class WButtonStyle {
     );
   }
 
-  /// 只清空背景色/渐变，保留边框、圆角、阴影。
   WButtonStyle withoutBackground() => _copyNullable(
         backgroundColor: null,
         gradient: null,
       );
 
-  /// 清空全部装饰：背景、边框、圆角、阴影。
   WButtonStyle withoutDecoration() => _copyNullable(
         backgroundColor: null,
         gradient: null,
@@ -250,7 +259,6 @@ class WButtonStyle {
         boxShadow: null,
       );
 
-  /// 清空文本样式与前景色。
   WButtonStyle withoutTextStyle() => _copyNullable(
         textStyle: null,
         foregroundColor: null,
@@ -266,17 +274,21 @@ class WButtonStyle {
   WButtonStyle applySize(WButtonSize? size) {
     if (size == null) return this;
     size.validate();
-    TextStyle? nextTextStyle = textStyle;
+    WidgetStateProperty<TextStyle?>? nextTextStyle = textStyle;
     if (size.fontSize != null ||
         size.fontWeight != null ||
         size.lineHeight != null ||
         size.letterSpacing != null) {
-      nextTextStyle = (textStyle ?? const TextStyle()).copyWith(
-        fontSize: size.fontSize,
-        fontWeight: size.fontWeight,
-        height: size.lineHeight,
-        letterSpacing: size.letterSpacing,
-      );
+      final base = textStyle;
+      nextTextStyle = WidgetStateProperty.resolveWith((states) {
+        final text = base?.resolve(states);
+        return (text ?? const TextStyle()).copyWith(
+          fontSize: size.fontSize,
+          fontWeight: size.fontWeight,
+          height: size.lineHeight,
+          letterSpacing: size.letterSpacing,
+        );
+      });
     }
     return copyWith(
       padding: size.padding ?? padding,

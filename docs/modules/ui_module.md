@@ -28,6 +28,7 @@ ui/
     │   │   │   ├── button_effect.dart          # 按下/overlay 效果（part）
     │   │   │   ├── button_tap_target.dart      # 48×48 hit area（part）
     │   │   │   ├── button_style.dart           # WButtonStyle
+    │   │   │   ├── button_resolved_style.dart  # WButtonResolvedStyle
     │   │   │   ├── button_motion.dart          # WButtonMotion / WButtonEffectType
     │   │   │   ├── button_semantics.dart       # WButtonSemantics
     │   │   │   ├── button_size.dart            # WButtonSize
@@ -235,12 +236,12 @@ abstract final class AppButtons {
 ```dart
 typedef WButtonContentBuilder = Widget Function(
   BuildContext context,
-  WButtonStyle style,
+  WButtonResolvedStyle style,
 );
 ```
 
-`style` 是已合并 size 后的最终样式，可直接使用 `style.iconSize`、`style.gap`、
-`style.textStyle`。
+`style` 是当前 WidgetState 下解析后的最终视觉值，可直接使用 `style.iconSize`、
+`style.gap`、`style.textStyle`、`style.foregroundColor`。
 
 ### WButtonStyle
 
@@ -248,20 +249,59 @@ typedef WButtonContentBuilder = Widget Function(
 |------|------|------|
 | `motion` | `WButtonMotion` | 按压效果 |
 | `semantics` | `WButtonSemantics` | 语义 / loading 文案 |
-| `backgroundColor` | Color? | 纯色背景 |
-| `gradient` | Gradient? | 渐变背景 |
-| `border` | BoxBorder? | 边框 |
-| `borderRadius` | BorderRadius? | 圆角 |
-| `boxShadow` | List<BoxShadow>? | 阴影（构造时复制为不可变） |
-| `padding` | EdgeInsetsGeometry? | 内容 padding |
-| `clipBehavior` | Clip | 背景裁剪 |
-| `foregroundColor` | Color? | 文字/图标前景色 |
-| `textStyle` | TextStyle? | 文本样式 |
+| `backgroundColor` | `WidgetStateProperty<Color?>?` | 纯色背景 |
+| `gradient` | `WidgetStateProperty<Gradient?>?` | 渐变背景 |
+| `border` | `WidgetStateProperty<BoxBorder?>?` | 边框 |
+| `borderRadius` | BorderRadius? | 圆角（静态） |
+| `boxShadow` | `WidgetStateProperty<List<BoxShadow>?>?` | 阴影 |
+| `padding` | EdgeInsetsGeometry? | 内容 padding（静态） |
+| `clipBehavior` | Clip | 背景裁剪（静态） |
+| `foregroundColor` | `WidgetStateProperty<Color?>?` | 文字/图标前景色 |
+| `textStyle` | `WidgetStateProperty<TextStyle?>?` | 文本样式 |
 | `focusColor` / `hoverColor` | Color? | 焦点/悬停 overlay |
 | `disabledOpacity` | double | 禁用透明度 |
 | `minWidth` / `minHeight` | double | 视觉/布局最小尺寸 |
 | `tapTargetSize` | double | 实际 hit area 下限 |
 | `iconSize` / `gap` | double | 图标尺寸 / 间距 |
+
+颜色/边框/阴影/文字都使用 `WidgetStateProperty`：
+
+```dart
+WButtonStyle(
+  backgroundColor: WidgetStateProperty.resolveWith((states) {
+    if (states.contains(WidgetState.disabled)) return Colors.grey.shade300;
+    if (states.contains(WidgetState.pressed)) return brandDark;
+    if (states.contains(WidgetState.hovered)) return brandHover;
+    return brand;
+  }),
+  foregroundColor: WidgetStateProperty.resolveWith((states) {
+    if (states.contains(WidgetState.disabled)) return Colors.grey.shade600;
+    return Colors.white;
+  }),
+  disabledOpacity: 1, // 已用状态色表达禁用，不再叠加整体透明度
+)
+```
+
+> 使用 `disabled` 状态色时，把 `disabledOpacity` 设为 `1`，避免双重禁用效果。
+
+简单静态值可用工厂或 `WidgetStatePropertyAll`：
+
+```dart
+WButtonStyle.filled(
+  backgroundColor: brand,
+  foregroundColor: Colors.white,
+)
+```
+
+需要单按钮静态覆盖时：
+
+```dart
+style.withBackgroundColor(Colors.red)
+style.withForegroundColor(Colors.white)
+```
+
+`WButton` 会把当前 `WidgetState`（disabled / pressed / hovered / focused）
+解析成 `WButtonResolvedStyle` 后再渲染。
 
 ### WButtonMotion
 

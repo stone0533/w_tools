@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'button_motion.dart';
+import 'button_resolved_style.dart';
 import 'button_size.dart';
 import 'button_style.dart';
 import 'button_styles.dart';
 
 export 'button_motion.dart';
+export 'button_resolved_style.dart';
 export 'button_semantics.dart';
 export 'button_size.dart';
 export 'button_style.dart';
@@ -24,7 +26,7 @@ part 'button_tap_target.dart';
 /// [style] 是已经应用 size 的最终样式。
 typedef WButtonContentBuilder = Widget Function(
   BuildContext context,
-  WButtonStyle style,
+  WButtonResolvedStyle style,
 );
 
 /// 真正的按钮组件。
@@ -200,76 +202,72 @@ class _WButtonState extends State<WButton> {
     style.validate();
     final interactive = _interactive;
     final theme = Theme.of(context);
-
-    final child = _buildButtonContentWidget(this, context, style);
-    final inner = _buildButtonContent(this, context, style, child);
-    final padded = Padding(
-      padding: style.padding ?? EdgeInsets.zero,
-      child: inner,
-    );
-
-    Widget content = padded;
-    final hasDecoration = style.backgroundColor != null ||
-        style.gradient != null ||
-        style.border != null ||
-        style.borderRadius != null ||
-        style.boxShadow != null;
-    if (hasDecoration) {
-      content = DecoratedBox(
-        decoration: BoxDecoration(
-          color: style.backgroundColor,
-          gradient: style.gradient,
-          border: style.border,
-          borderRadius: style.borderRadius,
-          boxShadow: style.boxShadow,
-        ),
-        child: padded,
-      );
-    }
-    if (style.clipBehavior != Clip.none) {
-      content = ClipRRect(
-        borderRadius: style.borderRadius ?? BorderRadius.zero,
-        clipBehavior: style.clipBehavior,
-        child: content,
-      );
-    }
-
-    Widget visualChild = ConstrainedBox(
-      constraints: BoxConstraints(
-        minWidth: style.minWidth,
-        minHeight: style.minHeight,
-      ),
-      child: content,
-    );
-
-    visualChild = IgnorePointer(ignoring: !interactive, child: visualChild);
-    if (!interactive) {
-      visualChild = Opacity(
-        opacity: style.disabledOpacity.clamp(0.0, 1.0),
-        child: visualChild,
-      );
-    }
-
     final hoverColor = style.hoverColor ?? theme.hoverColor;
     final focusColor = style.focusColor ?? theme.focusColor;
 
-    Widget buildVisual(bool pressed) {
+    Widget buildResolvedVisual(
+      BuildContext context,
+      WButtonStyle style,
+      WButtonResolvedStyle visual,
+      bool pressed,
+    ) {
+      final child = _buildButtonContentWidget(this, context, visual);
+      final inner = _buildButtonContent(this, context, style, child);
+      final padded = Padding(
+        padding: style.padding ?? EdgeInsets.zero,
+        child: inner,
+      );
+
+      Widget content = padded;
+      final hasDecoration = visual.backgroundColor != null ||
+          visual.gradient != null ||
+          visual.border != null ||
+          style.borderRadius != null ||
+          visual.boxShadow != null;
+      if (hasDecoration) {
+        content = DecoratedBox(
+          decoration: BoxDecoration(
+            color: visual.backgroundColor,
+            gradient: visual.gradient,
+            border: visual.border,
+            borderRadius: style.borderRadius,
+            boxShadow: visual.boxShadow,
+          ),
+          child: padded,
+        );
+      }
+      if (style.clipBehavior != Clip.none) {
+        content = ClipRRect(
+          borderRadius: style.borderRadius ?? BorderRadius.zero,
+          clipBehavior: style.clipBehavior,
+          child: content,
+        );
+      }
+
+      Widget visualChild = ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: style.minWidth,
+          minHeight: style.minHeight,
+        ),
+        child: content,
+      );
+
+      visualChild = IgnorePointer(ignoring: !interactive, child: visualChild);
+      if (!interactive) {
+        visualChild = Opacity(
+          opacity: style.disabledOpacity.clamp(0.0, 1.0),
+          child: visualChild,
+        );
+      }
+
       var result = _buildButtonVisual(style, pressed, visualChild);
       if (_hovered && interactive) {
-        result = _buildButtonOverlay(
-          result,
-          hoverColor,
-          style.borderRadius,
-        );
+        result = _buildButtonOverlay(result, hoverColor, style.borderRadius);
       }
       if (_focused && interactive) {
-        result = _buildButtonOverlay(
-          result,
-          focusColor,
-          style.borderRadius,
-        );
+        result = _buildButtonOverlay(result, focusColor, style.borderRadius);
       }
-      return result;
+      return _buildButtonTapTarget(result, style);
     }
 
     return Semantics(
@@ -308,7 +306,16 @@ class _WButtonState extends State<WButton> {
           onTapCancel: interactive ? _onTapCancel : null,
           child: ValueListenableBuilder<bool>(
             valueListenable: _pressed,
-            builder: (context, pressed, _) => _buildButtonTapTarget(buildVisual(pressed), style),
+            builder: (context, pressed, _) {
+              final states = <WidgetState>{
+                if (!interactive) WidgetState.disabled,
+                if (pressed) WidgetState.pressed,
+                if (_hovered) WidgetState.hovered,
+                if (_focused) WidgetState.focused,
+              };
+              final visual = style.resolve(states);
+              return buildResolvedVisual(context, style, visual, pressed);
+            },
           ),
         ),
       ),

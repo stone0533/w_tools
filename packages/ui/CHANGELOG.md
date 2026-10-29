@@ -19,8 +19,11 @@
   semanticHint/loadingLabel` 移到 `WButtonMotion` / `WButtonSemantics`。
 - `WButtonStyle` 不再依赖 `WContainerConfig` / `WTextConfig`；改为显式
   `backgroundColor/gradient/border/borderRadius/boxShadow/padding/foregroundColor/textStyle`。
-- `boxShadow` 构造时复制为不可变列表；增加 `withoutDecoration` / `withoutForegroundColor` /
-  `withoutFocusColor` / `withoutHoverColor`。
+- 颜色/边框/阴影/文字改为 `WidgetStateProperty`，`WButton` 解析为 `WButtonResolvedStyle`；
+  支持 disabled/pressed/hovered/focused 状态组合。使用 disabled 状态色时需将
+  `disabledOpacity` 设为 1，避免双重禁用效果。
+- 增加 `withBackgroundColor` / `withForegroundColor` 静态覆盖便利方法，以及
+  `withoutDecoration` / `withoutForegroundColor` / `withoutFocusColor` / `withoutHoverColor`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
 
 ### Added

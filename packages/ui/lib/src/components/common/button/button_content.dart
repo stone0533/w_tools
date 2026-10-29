@@ -1,16 +1,10 @@
 part of 'button.dart';
 
-TextStyle? _buttonLabelStyle(WButtonStyle style) {
-  final base = style.textStyle;
-  if (style.foregroundColor == null) return base;
-  return (base ?? const TextStyle()).copyWith(color: style.foregroundColor);
-}
-
-Widget _buildButtonLabel(_WButtonState state, WButtonStyle style) {
+Widget _buildButtonLabel(_WButtonState state, WButtonResolvedStyle style) {
   final widget = state.widget;
   final label = widget.label;
   final icon = widget.icon;
-  final textStyle = _buttonLabelStyle(style);
+  final textStyle = style.textStyle;
   final iconColor = style.foregroundColor;
   if (label != null && icon != null) {
     return Row(
@@ -32,7 +26,7 @@ Widget _buildButtonLabel(_WButtonState state, WButtonStyle style) {
 Widget _buildButtonContentWidget(
   _WButtonState state,
   BuildContext context,
-  WButtonStyle style,
+  WButtonResolvedStyle style,
 ) {
   final builder = state.widget.contentBuilder;
   if (builder != null) return builder(context, style);

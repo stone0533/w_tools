@@ -10,7 +10,7 @@ Widget _wrap(Widget child) => MaterialApp(
 void main() {
   group('WButtonStyle / motion / semantics', () {
     test('默认值与 copyWith', () {
-      final style = WButtonStyle();
+      const style = WButtonStyle();
       expect(style.motion.effect, WButtonEffectType.opacity);
       expect(style.motion.pressedOpacity, 0.7);
       expect(style.motion.pressedScale, 0.95);
@@ -82,25 +82,29 @@ void main() {
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
       );
-      expect(filled.backgroundColor, Colors.red);
-      expect(filled.foregroundColor, Colors.white);
+      expect(filled.backgroundColor!.resolve(const {}), Colors.red);
+      expect(filled.foregroundColor!.resolve(const {}), Colors.white);
       expect(filled.borderRadius, isNotNull);
 
       final outlined = WButtonStyle.outlined(foregroundColor: Colors.blue);
-      expect(outlined.border, isNotNull);
-      expect(outlined.foregroundColor, Colors.blue);
+      expect(outlined.border!.resolve(const {}), isNotNull);
+      expect(outlined.foregroundColor!.resolve(const {}), Colors.blue);
 
       final text = WButtonStyle.text(foregroundColor: Colors.black);
-      expect(text.foregroundColor, Colors.black);
+      expect(text.foregroundColor!.resolve(const {}), Colors.black);
       expect(text.backgroundColor, isNull);
     });
 
-    test('boxShadow 防御性不可变', () {
-      final shadows = <BoxShadow>[const BoxShadow()];
-      final style = WButtonStyle(boxShadow: shadows);
-      shadows.add(const BoxShadow());
-      expect(style.boxShadow, hasLength(1));
-      expect(() => style.boxShadow!.add(const BoxShadow()), throwsUnsupportedError);
+    test('boxShadow 解析后不可变', () {
+      const style = WButtonStyle(
+        boxShadow: WidgetStatePropertyAll(<BoxShadow>[BoxShadow()]),
+      );
+      final resolved = style.resolve(const {});
+      expect(resolved.boxShadow, hasLength(1));
+      expect(
+        () => resolved.boxShadow!.add(const BoxShadow()),
+        throwsUnsupportedError,
+      );
     });
 
     test('预设不可变且共享', () {
@@ -109,6 +113,31 @@ void main() {
       expect(identical(a, b), isTrue);
       expect(identical(a.textStyle, b.textStyle), isTrue);
     });
+  });
+
+  testWidgets('WidgetStateProperty 按 pressed/disabled 解析', (tester) async {
+    final style = WButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) return Colors.grey;
+        if (states.contains(WidgetState.pressed)) return Colors.red;
+        return Colors.blue;
+      }),
+    );
+
+    await tester.pumpWidget(
+      _wrap(WButton(label: 'state', style: style, onTap: () {})),
+    );
+    BoxDecoration decoration() =>
+        tester.widget<DecoratedBox>(find.byType(DecoratedBox).first).decoration as BoxDecoration;
+    expect(decoration().color, Colors.blue);
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('state')),
+    );
+    await tester.pump();
+    expect(decoration().color, Colors.red);
+    await gesture.up();
+    await tester.pumpAndSettle();
   });
 
   group('WButtonSize', () {
@@ -354,7 +383,7 @@ void main() {
           WButton(
             label: 'focus',
             autofocus: true,
-            style: WButtonStyle(focusColor: Colors.red),
+            style: const WButtonStyle(focusColor: Colors.red),
             onTap: () {},
           ),
         ),
@@ -392,8 +421,8 @@ void main() {
         _wrap(
           WButton(
             label: 'opacity',
-            style: WButtonStyle(
-              motion: const WButtonMotion(pressedOpacity: 0.4),
+            style: const WButtonStyle(
+              motion: WButtonMotion(pressedOpacity: 0.4),
             ),
             onTap: () {},
           ),
@@ -422,8 +451,8 @@ void main() {
         _wrap(
           WButton(
             label: 'scale',
-            style: WButtonStyle(
-              motion: const WButtonMotion(
+            style: const WButtonStyle(
+              motion: WButtonMotion(
                 effect: WButtonEffectType.scale,
                 pressedScale: 0.8,
               ),
@@ -472,8 +501,8 @@ void main() {
           WButton(
             label: '键盘',
             autofocus: true,
-            style: WButtonStyle(
-              motion: const WButtonMotion(pressedOpacity: 0.35),
+            style: const WButtonStyle(
+              motion: WButtonMotion(pressedOpacity: 0.35),
             ),
             onTap: () => taps++,
           ),
@@ -497,8 +526,8 @@ void main() {
         _wrap(
           WButton(
             icon: Icons.close,
-            style: WButtonStyle(
-              semantics: const WButtonSemantics(
+            style: const WButtonStyle(
+              semantics: WButtonSemantics(
                 label: '关闭',
                 hint: '关闭当前弹窗',
               ),
