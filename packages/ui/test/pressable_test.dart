@@ -45,6 +45,41 @@ void main() {
     expect(taps, 0);
   });
 
+  testWidgets('禁用时可选择排除 child 语义', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        const WPressable(
+          enabled: false,
+          child: Text('semantic-child'),
+        ),
+      ),
+    );
+    expect(
+      find.descendant(
+        of: find.byType(WPressable),
+        matching: find.byType(ExcludeSemantics),
+      ),
+      findsNothing,
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        const WPressable(
+          enabled: false,
+          excludeChildSemanticsWhenDisabled: true,
+          child: Text('semantic-child'),
+        ),
+      ),
+    );
+    expect(
+      find.descendant(
+        of: find.byType(WPressable),
+        matching: find.byType(ExcludeSemantics),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('没有回调时不参与点击', (tester) async {
     await tester.pumpWidget(
       _wrap(const WPressable(child: Text('inert'))),

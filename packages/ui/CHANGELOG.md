@@ -27,6 +27,7 @@
 - `WPressable` 禁用时重置按下态；没有 `onTap`/`onLongPress` 时不再安装手势或 click cursor；
   增加动画参数断言。
 - `WPressable` 回调增加 `_actionable` 守卫，禁用中手势不会触发 onTap/onLongPress。
+- `WPressable` 增加 `excludeChildSemanticsWhenDisabled`，可选在禁用时排除 child 语义。
 - 增加 `withBackgroundColor` / `withForegroundColor` 静态覆盖便利方法，以及
   `withoutDecoration` / `withoutForegroundColor` / `withoutFocusColor` / `withoutHoverColor`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
