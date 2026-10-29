@@ -40,15 +40,24 @@ void main() {
 
       expect(report.created, contains('lib/app/w/toolkit.dart'));
       expect(report.created, contains('lib/app/design_system/README.md'));
+      expect(report.created, contains('lib/app/design_system/app_bars.dart'));
+      expect(report.created, contains('lib/app/design_system/app_scaffold.dart'));
       expect(report.created.any((e) => e.startsWith('AGENTS.md')), isTrue);
 
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, contains("export 'package:w_tools_ui/w_tools_ui.dart';"));
+      expect(toolkit, contains("export '../design_system/app_scaffold.dart';"));
       // 注意：注释里会提到 w_tools_map（解释为什么不导出），所以要断言 export 行
       expect(toolkit, isNot(contains("export 'package:w_tools_map")));
       expect(toolkit, contains('w_tools_qr'));
       final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
       expect(agents, contains("package:demo_app/app/w/toolkit.dart"));
+      expect(agents, contains('AppScaffold'));
+      final appScaffold = File(
+        p.join(root.path, 'lib/app/design_system/app_scaffold.dart'),
+      ).readAsStringSync();
+      expect(appScaffold, contains('class AppScaffold'));
+      expect(appScaffold, contains('AppBars.style(context)'));
     });
 
     test('--no-qr / --with-map 影响导出', () async {

@@ -5,6 +5,28 @@
 > **这里不是终点，是「等着上移到 w_tools 的候车室」。**
 > 判定方法与上移流程见 [w_tools 的接入约定](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md)。
 
+## 页面规范
+
+标准页面统一：
+
+```dart
+AppScaffold(
+  title: '标题',
+  body: ...,
+)
+```
+
+特殊顶部栏：
+
+```dart
+AppScaffold(
+  appBar: WAppBar(...),
+  body: ...,
+)
+```
+
+`AppBars.style` 是全项目 AppBar 默认样式的唯一入口。
+
 ## 什么该放这里
 
 只描述「长什么样」、完全不知道业务的组件：弹窗壳、品牌 logo 方块、图标+文字一行、

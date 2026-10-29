@@ -12,9 +12,13 @@
    - 文件头标 `// STAGED: 待上移到 w_tools_ui`，注释写设计稿实测尺寸
    - 至少一个测试；是否进包由维护者决定（第二个用例 / 发版窗口）
 4. **业务层只放这个功能独有的组合**，不放通用组件。
-5. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
+5. **页面骨架**：标准页面默认用 `AppScaffold`（`lib/app/design_system/app_scaffold.dart`）；
+   不要直接使用 `WScaffold` / `WAppBar`。特殊顶部栏用 `AppScaffold(appBar: WAppBar(...))`；
+   需要 drawer / bottomSheet / 非标准安全区时用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
+   AppBar 默认样式只在 `AppBars.style` 修改。
+6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
-6. **完成前必须通过**：
+7. **完成前必须通过**：
    - `dart run w_tools_cli:doctor --json` → 0 error（warning 看情况）
    - `flutter analyze`、`flutter test`
 <!-- w_tools:end -->

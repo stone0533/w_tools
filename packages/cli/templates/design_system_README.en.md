@@ -5,6 +5,12 @@
 > **This is not the destination — it is the waiting room before moving into w_tools.**
 > See the [w_tools conventions](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md).
 
+## Page convention
+
+Standard pages use `AppScaffold(title: ..., body: ...)`.
+Use `AppScaffold(appBar: WAppBar(...), ...)` for a custom app bar.
+`AppBars.style` is the only source of default app-bar styling.
+
 ## What belongs here
 
 Components that only describe “what it looks like” and know nothing about business:

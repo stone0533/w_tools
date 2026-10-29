@@ -17,3 +17,7 @@ export 'package:w_tools_api/w_tools_api.dart';
 export 'package:w_tools_toast/w_tools_toast.dart';
 export 'package:w_tools_qr/w_tools_qr.dart';   // @optional:qr
 export 'package:w_tools_map/w_tools_map.dart'; // @optional:map
+
+// 项目级页面规范
+export '../design_system/app_bars.dart';
+export '../design_system/app_scaffold.dart';

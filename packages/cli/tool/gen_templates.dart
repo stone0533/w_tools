@@ -20,6 +20,8 @@ const _templates = <String, String>{
   'design_system_README.en.md': 'designSystemReadmeEn',
   'AGENTS_snippet.md': 'agentsSnippet',
   'AGENTS_snippet.en.md': 'agentsSnippetEn',
+  'app_bars.dart.tpl': 'appBarsTemplate',
+  'app_scaffold.dart.tpl': 'appScaffoldTemplate',
 };
 
 String generate(String repoRoot) {

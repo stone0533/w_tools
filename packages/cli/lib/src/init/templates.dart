@@ -30,6 +30,11 @@ class InitTemplates {
         cliVersion,
       );
 
+  static String appBars() => generated.appBarsTemplate.replaceAll('{{version}}', cliVersion);
+
+  static String appScaffold() =>
+      generated.appScaffoldTemplate.replaceAll('{{version}}', cliVersion);
+
   static String agentsBlock({String lang = 'zh', String app = 'app'}) =>
       (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
           .replaceAll('{{version}}', cliVersion)
