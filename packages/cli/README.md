@@ -27,6 +27,9 @@ dart run w_tools_cli:doctor    # 检查约定
 
 # 多目标 / 英文
 dart run w_tools_cli:init --targets=agents,claude --lang=en
+
+# 不生成 lib/app/ui / design_system 规范，也不导出 w_tools_ui
+dart run w_tools_cli:init --no-ui
 ```
 
 `init --targets` 支持 `agents`（AGENTS.md）/ `claude`（CLAUDE.md）/

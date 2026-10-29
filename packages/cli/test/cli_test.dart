@@ -37,6 +37,17 @@ void main() {
     expect(check.exitCode, 0);
   });
 
+  test('init --no-ui 不生成 UI 文件', () async {
+    final root = _project();
+    expect((await _run('init.dart', ['--root', root.path, '--no-ui'])).exitCode, 0);
+    expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
+    expect(File(p.join(root.path, 'lib/app/design_system/README.md')).existsSync(), isFalse);
+    final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+    expect(toolkit, isNot(contains("export 'package:w_tools_ui")));
+    final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+    expect(agents, isNot(contains('AppScaffold')));
+  });
+
   test('init --check-drift 对改过的产物返回 1', () async {
     final root = _project();
     await _run('init.dart', ['--root', root.path]);

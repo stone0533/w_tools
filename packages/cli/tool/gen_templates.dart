@@ -20,6 +20,8 @@ const _templates = <String, String>{
   'design_system_README.en.md': 'designSystemReadmeEn',
   'AGENTS_snippet.md': 'agentsSnippet',
   'AGENTS_snippet.en.md': 'agentsSnippetEn',
+  'AGENTS_snippet_no_ui.md': 'agentsSnippetNoUi',
+  'AGENTS_snippet_no_ui.en.md': 'agentsSnippetNoUiEn',
   'ui_README.md': 'uiReadme',
   'ui_README.en.md': 'uiReadmeEn',
   'app_bars.dart.tpl': 'appBarsTemplate',

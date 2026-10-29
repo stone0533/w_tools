@@ -58,6 +58,7 @@ InitReport runInit(
   bool check = false,
   bool withQr = true,
   bool withMap = false,
+  bool withUi = true,
   Set<String> targets = const <String>{'agents'},
   String lang = 'zh',
 }) {
@@ -107,15 +108,23 @@ InitReport runInit(
     report.created.add(rel);
   }
 
-  write('lib/app/w/toolkit.dart', InitTemplates.toolkit(withQr: withQr, withMap: withMap));
-  write('lib/app/design_system/README.md', InitTemplates.designSystemReadme(lang: lang));
-  write('lib/app/ui/README.md', InitTemplates.uiReadme(lang: lang), starter: true);
-  write('lib/app/ui/app_bars.dart', InitTemplates.appBars(), starter: true);
-  write('lib/app/ui/app_boxes.dart', InitTemplates.appBoxes(), starter: true);
-  write('lib/app/ui/app_buttons.dart', InitTemplates.appButtons(), starter: true);
-  write('lib/app/ui/app_card.dart', InitTemplates.appCard(), starter: true);
-  write('lib/app/ui/app_scaffold.dart', InitTemplates.appScaffold(), starter: true);
-  // doctor 的默认配置：全注释，写了也不改变行为，只是把开关摊开。
+  write(
+    'lib/app/w/toolkit.dart',
+    InitTemplates.toolkit(withQr: withQr, withMap: withMap, withUi: withUi),
+  );
+  if (withUi) {
+    write(
+      'lib/app/design_system/README.md',
+      InitTemplates.designSystemReadme(lang: lang),
+    );
+    write('lib/app/ui/README.md', InitTemplates.uiReadme(lang: lang), starter: true);
+    write('lib/app/ui/app_bars.dart', InitTemplates.appBars(), starter: true);
+    write('lib/app/ui/app_boxes.dart', InitTemplates.appBoxes(), starter: true);
+    write('lib/app/ui/app_buttons.dart', InitTemplates.appButtons(), starter: true);
+    write('lib/app/ui/app_card.dart', InitTemplates.appCard(), starter: true);
+    write('lib/app/ui/app_scaffold.dart', InitTemplates.appScaffold(), starter: true);
+  }
+  // doctor 的默认配置：带注释，值与内置默认一致，只是把开关摊开。
   // 它是项目配置而不是生成物：存在就不再比对内容。
   write(DoctorConfig.fileName, renderDefaultConfig(), projectConfig: true);
   for (final target in targets) {
@@ -126,14 +135,20 @@ InitReport runInit(
       rel,
       report,
       check: check,
-      block: InitTemplates.agentsBlock(lang: lang, app: app),
+      block: InitTemplates.agentsBlock(lang: lang, app: app, withUi: withUi),
       createdPrefix: target == 'cursor'
           ? '---\ndescription: w_tools conventions\nglobs:\n---\n\n'
           : '',
     );
   }
 
-  report.pubspecSnippet = _snippet(root, report, withQr: withQr, withMap: withMap);
+  report.pubspecSnippet = _snippet(
+    root,
+    report,
+    withQr: withQr,
+    withMap: withMap,
+    withUi: withUi,
+  );
   return report;
 }
 
@@ -217,6 +232,7 @@ String _snippet(
   InitReport report, {
   required bool withQr,
   required bool withMap,
+  required bool withUi,
 }) {
   final pubspecFile = File(p.join(root.path, 'pubspec.yaml'));
   var name = 'app';
@@ -249,7 +265,7 @@ String _snippet(
     'w_tools_core',
     'w_tools_app',
     'w_tools_form',
-    'w_tools_ui',
+    if (withUi) 'w_tools_ui',
     'w_tools_api',
     'w_tools_toast',
     if (withQr) 'w_tools_qr',

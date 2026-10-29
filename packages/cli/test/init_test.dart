@@ -82,6 +82,27 @@ void main() {
       expect(appCard, contains('AppBoxes.card'));
     });
 
+    test('--no-ui 不生成 ui 文件，也不导出 w_tools_ui', () async {
+      final root = makeProject();
+      final report = runInit(root, withUi: false);
+
+      expect(report.created, isNot(contains('lib/app/ui/app_scaffold.dart')));
+      expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
+      expect(
+        File(p.join(root.path, 'lib/app/design_system/README.md')).existsSync(),
+        isFalse,
+      );
+
+      final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+      expect(toolkit, isNot(contains("export 'package:w_tools_ui")));
+      expect(toolkit, isNot(contains("export '../ui/")));
+
+      final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      expect(agents, isNot(contains('AppScaffold')));
+
+      expect(report.pubspecSnippet, isNot(contains('w_tools_ui:')));
+    });
+
     test('--no-qr / --with-map 影响导出', () async {
       final root = makeProject();
       runInit(root, withQr: false, withMap: true);

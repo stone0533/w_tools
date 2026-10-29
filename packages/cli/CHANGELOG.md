@@ -13,6 +13,7 @@
 - toolkit 导出 AppScaffold/AppBars/AppButtons；AGENTS / `lib/app/ui/README.md`
   增加页面与按钮规范。
 - 固定 `lib/app/ui/` 与 `lib/app/design_system/`：R2/R4/R5 与 init 使用同一套路径。
+- `init --no-ui`：不生成 `lib/app/ui/` 与 `design_system/`，不导出 `w_tools_ui`，AGENTS 不写 UI 规则。
 - R5 / context 只统计 `.dart` 暂存文件，不再把 `design_system/README.md` 算作缺 `// STAGED`。
 - R4 同时检查 `lib/app/ui/` 与 `design_system/`，项目 UI 也不得依赖业务层；R3 对这两层豁免硬编码色。
 - `lib/app/ui/` 下的 App* 与 README 视为 starter：自定义后不算 drift，也不会被

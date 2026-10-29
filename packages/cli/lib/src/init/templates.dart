@@ -14,11 +14,16 @@ class InitTemplates {
   InitTemplates._();
 
   /// 聚合入口模板：剔除带 `@optional:qr` / `@optional:map` 标记的行。
-  static String toolkit({required bool withQr, required bool withMap}) {
+  static String toolkit({
+    required bool withQr,
+    required bool withMap,
+    bool withUi = true,
+  }) {
     final out = <String>[];
     for (final line in generated.toolkitTemplate.split('\n')) {
       if (line.contains('@optional:qr') && !withQr) continue;
       if (line.contains('@optional:map') && !withMap) continue;
+      if (line.contains('@optional:ui') && !withUi) continue;
       out.add(line);
     }
     return out.join('\n').replaceAll('{{version}}', cliVersion);
@@ -47,8 +52,14 @@ class InitTemplates {
 
   static String appButtons() => generated.appButtonsTemplate.replaceAll('{{version}}', cliVersion);
 
-  static String agentsBlock({String lang = 'zh', String app = 'app'}) =>
-      (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
-          .replaceAll('{{version}}', cliVersion)
-          .replaceAll('{{app}}', app);
+  static String agentsBlock({
+    String lang = 'zh',
+    String app = 'app',
+    bool withUi = true,
+  }) {
+    final template = withUi
+        ? (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
+        : (lang == 'en' ? generated.agentsSnippetNoUiEn : generated.agentsSnippetNoUi);
+    return template.replaceAll('{{version}}', cliVersion).replaceAll('{{app}}', app);
+  }
 }

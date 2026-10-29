@@ -34,6 +34,7 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --force        覆盖已存在的不同文件（默认不动）
   --no-qr        不导出 w_tools_qr（不用扫码）
   --with-map     导出 w_tools_map（会引入 google_maps_flutter）
+  --no-ui        不生成 lib/app/ui 与 design_system 规范，也不导出 w_tools_ui
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
   --version      显示版本
@@ -49,6 +50,7 @@ void main(List<String> argv) {
     ..addFlag('force', negatable: false)
     ..addFlag('qr', negatable: true, defaultsTo: true)
     ..addFlag('with-map', negatable: false)
+    ..addFlag('ui', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
 
@@ -95,6 +97,7 @@ void main(List<String> argv) {
         check: check,
         withQr: args['qr'] as bool,
         withMap: args['with-map'] as bool,
+        withUi: args['ui'] as bool,
         targets: targets,
         lang: lang,
       );
@@ -105,6 +108,7 @@ void main(List<String> argv) {
             'root': root.path,
             'check': check,
             'checkDrift': checkDrift,
+            'withUi': args['ui'] as bool,
             'created': report.created,
             'upToDate': report.upToDate,
             'drift': report.drift,
