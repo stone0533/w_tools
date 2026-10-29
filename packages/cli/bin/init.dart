@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
+import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
 import 'package:w_tools_cli/src/init/targets.dart';
 import 'package:yaml/yaml.dart' show YamlException;
@@ -32,7 +33,8 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --check-drift  在 --check 基础上，内容与模板不同也算失败（检查模板是否过期）
   --json         输出机器可读结果（CI / AI 用）
   --force        覆盖已存在的不同文件（默认不动）
-  --no-qr        不导出 w_tools_qr（不用扫码）
+  --profile=<p>  minimal | ui | api | full（默认 full）
+  --no-qr        不导出 w_tools_qr（--profile=full 时默认导出）
   --with-map     导出 w_tools_map（会引入 google_maps_flutter）
   --no-ui        不生成 lib/app/ui 与 design_system 规范，也不导出 w_tools_ui
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
@@ -48,6 +50,11 @@ void main(List<String> argv) {
     ..addFlag('check-drift', negatable: false)
     ..addFlag('json', negatable: false)
     ..addFlag('force', negatable: false)
+    ..addOption(
+      'profile',
+      defaultsTo: 'full',
+      allowed: <String>['minimal', 'ui', 'api', 'full'],
+    )
     ..addFlag('qr', negatable: true, defaultsTo: true)
     ..addFlag('with-map', negatable: false)
     ..addFlag('ui', negatable: true, defaultsTo: true)
@@ -91,13 +98,24 @@ void main(List<String> argv) {
 
       final checkDrift = args['check-drift'] as bool;
       final check = (args['check'] as bool) || checkDrift;
+      final profile = InitProfile.values.firstWhere(
+        (p) => p.name == args['profile'],
+      );
+      var features = InitFeatures.forProfile(profile);
+      if (args.wasParsed('ui')) {
+        features = features.copyWith(ui: args['ui'] as bool);
+      }
+      if (args.wasParsed('qr')) {
+        features = features.copyWith(qr: args['qr'] as bool);
+      }
+      if (args['with-map'] as bool) {
+        features = features.copyWith(map: true);
+      }
       final report = runInit(
         root,
         force: args['force'] as bool,
         check: check,
-        withQr: args['qr'] as bool,
-        withMap: args['with-map'] as bool,
-        withUi: args['ui'] as bool,
+        features: features,
         targets: targets,
         lang: lang,
       );
@@ -108,7 +126,17 @@ void main(List<String> argv) {
             'root': root.path,
             'check': check,
             'checkDrift': checkDrift,
-            'withUi': args['ui'] as bool,
+            'profile': profile.name,
+            'features': <String, bool>{
+              'core': features.core,
+              'app': features.app,
+              'form': features.form,
+              'ui': features.ui,
+              'api': features.api,
+              'toast': features.toast,
+              'qr': features.qr,
+              'map': features.map,
+            },
             'created': report.created,
             'upToDate': report.upToDate,
             'drift': report.drift,

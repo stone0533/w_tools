@@ -48,6 +48,18 @@ void main() {
     expect(agents, isNot(contains('AppScaffold')));
   });
 
+  test('init --profile=minimal 只导出 core', () async {
+    final root = _project();
+    expect(
+      (await _run('init.dart', ['--root', root.path, '--profile=minimal'])).exitCode,
+      0,
+    );
+    final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+    expect(toolkit, contains("export 'package:w_tools_core"));
+    expect(toolkit, isNot(contains("export 'package:w_tools_ui")));
+    expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
+  });
+
   test('init --check-drift 对改过的产物返回 1', () async {
     final root = _project();
     await _run('init.dart', ['--root', root.path]);

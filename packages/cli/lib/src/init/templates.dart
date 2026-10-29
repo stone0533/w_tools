@@ -1,4 +1,5 @@
 import '../common/version.dart';
+import 'features.dart';
 import 'templates.g.dart' as generated;
 
 /// `init` 用的模板内容。
@@ -14,16 +15,20 @@ class InitTemplates {
   InitTemplates._();
 
   /// 聚合入口模板：剔除带 `@optional:qr` / `@optional:map` 标记的行。
-  static String toolkit({
-    required bool withQr,
-    required bool withMap,
-    bool withUi = true,
-  }) {
+  static String toolkit({required InitFeatures features}) {
     final out = <String>[];
+    final enabled = <String>{
+      if (features.app) 'app',
+      if (features.form) 'form',
+      if (features.ui) 'ui',
+      if (features.api) 'api',
+      if (features.toast) 'toast',
+      if (features.qr) 'qr',
+      if (features.map) 'map',
+    };
     for (final line in generated.toolkitTemplate.split('\n')) {
-      if (line.contains('@optional:qr') && !withQr) continue;
-      if (line.contains('@optional:map') && !withMap) continue;
-      if (line.contains('@optional:ui') && !withUi) continue;
+      final match = RegExp(r'@optional:([a-z]+)').firstMatch(line);
+      if (match != null && !enabled.contains(match.group(1))) continue;
       out.add(line);
     }
     return out.join('\n').replaceAll('{{version}}', cliVersion);

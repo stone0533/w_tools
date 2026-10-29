@@ -28,6 +28,12 @@ dart run w_tools_cli:doctor    # 检查约定
 # 多目标 / 英文
 dart run w_tools_cli:init --targets=agents,claude --lang=en
 
+# 按能力组合生成（默认 full）
+dart run w_tools_cli:init --profile=minimal   # core
+dart run w_tools_cli:init --profile=ui        # core + ui + toast
+dart run w_tools_cli:init --profile=api       # core + api
+dart run w_tools_cli:init --profile=full      # 当前默认
+
 # 不生成 lib/app/ui / design_system 规范，也不导出 w_tools_ui
 dart run w_tools_cli:init --no-ui
 ```

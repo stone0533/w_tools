@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import '../doctor/config.dart';
+import 'features.dart';
 import 'targets.dart';
 import 'templates.dart';
 
@@ -56,9 +57,7 @@ InitReport runInit(
   Directory root, {
   bool force = false,
   bool check = false,
-  bool withQr = true,
-  bool withMap = false,
-  bool withUi = true,
+  InitFeatures features = InitFeatures.full,
   Set<String> targets = const <String>{'agents'},
   String lang = 'zh',
 }) {
@@ -110,9 +109,9 @@ InitReport runInit(
 
   write(
     'lib/app/w/toolkit.dart',
-    InitTemplates.toolkit(withQr: withQr, withMap: withMap, withUi: withUi),
+    InitTemplates.toolkit(features: features),
   );
-  if (withUi) {
+  if (features.ui) {
     write(
       'lib/app/design_system/README.md',
       InitTemplates.designSystemReadme(lang: lang),
@@ -135,7 +134,7 @@ InitReport runInit(
       rel,
       report,
       check: check,
-      block: InitTemplates.agentsBlock(lang: lang, app: app, withUi: withUi),
+      block: InitTemplates.agentsBlock(lang: lang, app: app, withUi: features.ui),
       createdPrefix: target == 'cursor'
           ? '---\ndescription: w_tools conventions\nglobs:\n---\n\n'
           : '',
@@ -145,9 +144,7 @@ InitReport runInit(
   report.pubspecSnippet = _snippet(
     root,
     report,
-    withQr: withQr,
-    withMap: withMap,
-    withUi: withUi,
+    features: features,
   );
   return report;
 }
@@ -230,9 +227,7 @@ void _upsertBlock(
 String _snippet(
   Directory root,
   InitReport report, {
-  required bool withQr,
-  required bool withMap,
-  required bool withUi,
+  required InitFeatures features,
 }) {
   final pubspecFile = File(p.join(root.path, 'pubspec.yaml'));
   var name = 'app';
@@ -263,13 +258,13 @@ String _snippet(
 
   final pkgs = <String>[
     'w_tools_core',
-    'w_tools_app',
-    'w_tools_form',
-    if (withUi) 'w_tools_ui',
-    'w_tools_api',
-    'w_tools_toast',
-    if (withQr) 'w_tools_qr',
-    if (withMap) 'w_tools_map',
+    if (features.app) 'w_tools_app',
+    if (features.form) 'w_tools_form',
+    if (features.ui) 'w_tools_ui',
+    if (features.api) 'w_tools_api',
+    if (features.toast) 'w_tools_toast',
+    if (features.qr) 'w_tools_qr',
+    if (features.map) 'w_tools_map',
   ];
 
   final depLines = <String>[

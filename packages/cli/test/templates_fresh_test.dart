@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:path/path.dart' as p;
+import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/templates.dart';
 
 import '../tool/gen_templates.dart';
@@ -36,14 +37,16 @@ void main() {
   });
 
   test('生成的常量能按开关剔除可选 export', () {
-    final all = InitTemplates.toolkit(withQr: true, withMap: true);
+    final all = InitTemplates.toolkit(features: InitFeatures.full.copyWith(map: true));
     expect(all, contains("export 'package:w_tools_qr/w_tools_qr.dart';"));
     expect(all, contains("export 'package:w_tools_map/w_tools_map.dart';"));
 
-    final minimal = InitTemplates.toolkit(withQr: false, withMap: false);
+    final minimal = InitTemplates.toolkit(
+      features: InitFeatures.forProfile(InitProfile.minimal),
+    );
     expect(minimal, isNot(contains("export 'package:w_tools_qr")));
     expect(minimal, isNot(contains("export 'package:w_tools_map")));
-    expect(minimal, contains("export 'package:w_tools_ui/w_tools_ui.dart';"));
+    expect(minimal, isNot(contains("export 'package:w_tools_ui")));
   });
 
   test('AGENTS 片段带标记块（init 靠它幂等替换）', () {

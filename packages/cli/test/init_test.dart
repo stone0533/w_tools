@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
 import 'package:yaml/yaml.dart';
 
@@ -84,7 +85,7 @@ void main() {
 
     test('--no-ui 不生成 ui 文件，也不导出 w_tools_ui', () async {
       final root = makeProject();
-      final report = runInit(root, withUi: false);
+      final report = runInit(root, features: InitFeatures.full.copyWith(ui: false));
 
       expect(report.created, isNot(contains('lib/app/ui/app_scaffold.dart')));
       expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
@@ -103,9 +104,20 @@ void main() {
       expect(report.pubspecSnippet, isNot(contains('w_tools_ui:')));
     });
 
+    test('profile=minimal 只保留 core', () async {
+      final root = makeProject();
+      runInit(root, features: InitFeatures.forProfile(InitProfile.minimal));
+
+      final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+      expect(toolkit, contains("export 'package:w_tools_core"));
+      expect(toolkit, isNot(contains("export 'package:w_tools_ui")));
+      expect(toolkit, isNot(contains("export 'package:w_tools_api")));
+      expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
+    });
+
     test('--no-qr / --with-map 影响导出', () async {
       final root = makeProject();
-      runInit(root, withQr: false, withMap: true);
+      runInit(root, features: InitFeatures.full.copyWith(qr: false, map: true));
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains("export 'package:w_tools_qr")));
       expect(toolkit, contains("export 'package:w_tools_map"));
@@ -336,7 +348,10 @@ void main() {
     final repo = tryRepoRoot();
     test('与仓库当前子包版本一致（防漂移）', () async {
       final root = repo!;
-      final snippet = runInit(makeProject(), withMap: true).pubspecSnippet;
+      final snippet = runInit(
+        makeProject(),
+        features: InitFeatures.full.copyWith(map: true),
+      ).pubspecSnippet;
       for (final pkg in <String>[
         'core',
         'app',
