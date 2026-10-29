@@ -308,6 +308,105 @@ void main() {
     );
   });
 
+  testWidgets('WScaffold — 无 AppBar 时使用 MediaQuery 顶部安全区', (tester) async {
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(top: 24),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: const WScaffold(
+            includeTopSafeArea: true,
+            body: Align(
+              alignment: Alignment.topCenter,
+              child: Text('body'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getTopLeft(find.text('body')).dy, 24);
+  });
+
+  testWidgets('WScaffold — 无 bottomNavigationBar 时 body 加底部安全区', (tester) async {
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(bottom: 20),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: const WScaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: Text('body'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getBottomLeft(find.text('body')).dy, 580);
+  });
+
+  testWidgets('WScaffold — 有 bottomNavigationBar 时 body 不重复加底部安全区', (tester) async {
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(bottom: 20),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: const WScaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: Text('body'),
+            ),
+            bottomNavigationBar: SizedBox(
+              height: 40,
+              child: Text('nav'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getBottomLeft(find.text('body')).dy, 560);
+  });
+
+  testWidgets('WScaffold — 空标题不创建 AppBar', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WScaffold(
+          title: '',
+          body: Text('body'),
+        ),
+      ),
+    );
+
+    expect(find.byType(NavigationToolbar), findsNothing);
+  });
+
+  testWidgets('WScaffold — onBack 优先于 automaticallyImplyLeading', (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WScaffold(
+          title: '标题',
+          automaticallyImplyLeading: false,
+          onBack: () => taps++,
+          body: const Text('body'),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    expect(taps, 1);
+  });
+
   testWidgets('WScaffold — 支持 bottomNavigationBar / floatingActionButton', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

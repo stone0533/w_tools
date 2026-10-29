@@ -150,8 +150,9 @@ class WAppBar extends StatelessWidget {
   }
 
   Widget? _buildLeading(BuildContext context) {
-    if (!automaticallyImplyLeading) return null;
+    // 显式 onBack 优先；automaticallyImplyLeading 只控制默认返回。
     if (onBack != null) return BackButton(onPressed: onBack);
+    if (!automaticallyImplyLeading) return null;
     if (!Navigator.canPop(context)) return null;
     return const BackButton();
   }

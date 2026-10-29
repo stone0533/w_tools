@@ -1152,7 +1152,8 @@ WListViewConfig.vertical()
 
 说明：
 
-- 不传 `title` / `actions` / `onBack` / `appBarBottom` / `appBar` 时不会创建顶部栏；
+- 不传非空 `title` / `actions` / `onBack` / `appBarBottom` / `appBar` 时不会创建顶部栏；
+- 安全区使用 `MediaQuery.padding`，与 WAppBar 的状态栏来源一致；
 - 没有顶部栏且 `includeTopSafeArea` 为 false 时，body 会顶到状态栏下方；
 - 有 `bottomNavigationBar` 时不再重复加底部安全区；
 - `WScaffold` 是轻量页面壳，不提供 drawer / bottomSheet / extendBody；需要时用原生 `Scaffold`；
@@ -1268,7 +1269,8 @@ WScaffold(
 
 功能契约：
 
-- `leading` 优先；否则 `onBack`；否则 `Navigator.canPop` 时显示默认返回；
+- `leading` 优先；否则 `onBack`（优先于 `automaticallyImplyLeading`）；否则
+  `Navigator.canPop` 时显示默认返回；
 - 默认返回按钮是 `BackButton` / `IconButton`，支持键盘和语义；
 - `title` 与 `titleWidget` 二选一；
 - `actions` 是 `List<Widget>`；

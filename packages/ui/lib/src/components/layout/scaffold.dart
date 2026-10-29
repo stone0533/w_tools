@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../extensions/widget.dart';
 import 'appbar.dart';
 
 /// 项目页面脚手架：默认顶部栏 + body + 常用 Scaffold 槽位。
@@ -62,7 +61,7 @@ class WScaffold extends StatelessWidget {
         );
 
   bool get _needsDefaultAppBar =>
-      title != null ||
+      (title?.isNotEmpty ?? false) ||
       titleWidget != null ||
       leading != null ||
       actions.isNotEmpty ||
@@ -109,13 +108,20 @@ class WScaffold extends StatelessWidget {
           );
 
     Widget? content = body;
+    final padding = MediaQuery.paddingOf(context);
 
     if (content != null) {
-      if (includeTopSafeArea && appBarWidget == null) {
-        content = content.withTopSafeSpace();
+      if (includeTopSafeArea && appBarWidget == null && padding.top > 0) {
+        content = Padding(
+          padding: EdgeInsets.only(top: padding.top),
+          child: content,
+        );
       }
-      if (includeBottomSafeArea && bottomNavigationBar == null) {
-        content = content.withBottomSafeSpace();
+      if (includeBottomSafeArea && bottomNavigationBar == null && padding.bottom > 0) {
+        content = Padding(
+          padding: EdgeInsets.only(bottom: padding.bottom),
+          child: content,
+        );
       }
     }
 
