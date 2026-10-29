@@ -34,7 +34,14 @@ class WPressable extends StatefulWidget {
     this.duration = const Duration(milliseconds: 100),
     this.curve = Curves.easeInOut,
     this.behavior = HitTestBehavior.opaque,
-  });
+  })  : assert(
+          pressedOpacity >= 0 && pressedOpacity <= 1,
+          'pressedOpacity 必须在 0..1',
+        ),
+        assert(
+          pressedScale >= 0.1 && pressedScale <= 1,
+          'pressedScale 必须在 0.1..1',
+        );
 
   final Widget child;
   final GestureTapCallback? onTap;
@@ -53,6 +60,14 @@ class WPressable extends StatefulWidget {
 
 class _WPressableState extends State<WPressable> {
   var _pressed = false;
+
+  bool get _actionable => widget.enabled && (widget.onTap != null || widget.onLongPress != null);
+
+  @override
+  void didUpdateWidget(WPressable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_actionable) _setPressed(false);
+  }
 
   void _setPressed(bool value) {
     if (_pressed == value) return;
@@ -82,24 +97,28 @@ class _WPressableState extends State<WPressable> {
 
   @override
   Widget build(BuildContext context) {
-    final enabled = widget.enabled;
-    final content = IgnorePointer(
-      ignoring: !enabled,
-      child: _effect(widget.child),
-    );
+    assert(!widget.duration.isNegative, 'duration 不能为负');
+    if (!widget.enabled) {
+      return IgnorePointer(child: widget.child);
+    }
+    if (!_actionable) {
+      return widget.child;
+    }
+
+    final content = _effect(widget.child);
     return Semantics(
-      onTap: enabled ? widget.onTap : null,
-      onLongPress: enabled ? widget.onLongPress : null,
+      onTap: widget.onTap,
+      onLongPress: widget.onLongPress,
       child: MouseRegion(
-        cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        cursor: SystemMouseCursors.click,
         child: GestureDetector(
           behavior: widget.behavior,
           excludeFromSemantics: true,
-          onTap: enabled ? widget.onTap : null,
-          onLongPress: enabled ? widget.onLongPress : null,
-          onTapDown: enabled ? (_) => _setPressed(true) : null,
-          onTapUp: enabled ? (_) => _setPressed(false) : null,
-          onTapCancel: enabled ? () => _setPressed(false) : null,
+          onTap: widget.onTap,
+          onLongPress: widget.onLongPress,
+          onTapDown: (_) => _setPressed(true),
+          onTapUp: (_) => _setPressed(false),
+          onTapCancel: () => _setPressed(false),
           child: content,
         ),
       ),

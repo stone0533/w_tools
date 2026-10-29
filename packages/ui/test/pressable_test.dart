@@ -45,6 +45,74 @@ void main() {
     expect(taps, 0);
   });
 
+  testWidgets('没有回调时不参与点击', (tester) async {
+    await tester.pumpWidget(
+      _wrap(const WPressable(child: Text('inert'))),
+    );
+    expect(
+      find.descendant(
+        of: find.byType(WPressable),
+        matching: find.byType(GestureDetector),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(WPressable),
+        matching: find.byType(MouseRegion),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('按下后禁用再启用时状态复位', (tester) async {
+    Widget build(bool enabled) => _wrap(
+          WPressable(
+            enabled: enabled,
+            onTap: () {},
+            pressedOpacity: 0.4,
+            child: const Text('toggle'),
+          ),
+        );
+
+    await tester.pumpWidget(build(true));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('toggle')),
+    );
+    await tester.pump();
+    expect(
+      tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity,
+      0.4,
+    );
+
+    await tester.pumpWidget(build(false));
+    await tester.pump();
+    await tester.pumpWidget(build(true));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity,
+      1.0,
+    );
+    await gesture.up();
+  });
+
+  test('非法动画参数触发 assert', () {
+    expect(
+      () => WPressable(
+        pressedOpacity: 1.5,
+        child: const SizedBox(),
+      ),
+      throwsAssertionError,
+    );
+    expect(
+      () => WPressable(
+        pressedScale: 0,
+        child: const SizedBox(),
+      ),
+      throwsAssertionError,
+    );
+  });
+
   testWidgets('不声明 button 语义', (tester) async {
     await tester.pumpWidget(
       _wrap(

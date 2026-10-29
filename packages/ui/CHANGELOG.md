@@ -24,6 +24,8 @@
   `disabledOpacity` 设为 1，避免双重禁用效果。
 - `WButtonResolvedStyle` 暴露不可变 `states`，`contentBuilder` 可按状态改变内容结构。
 - `WPressable` 保持纯指针点击，不参与键盘焦点；键盘操作统一用 `WButton`。
+- `WPressable` 禁用时重置按下态；没有 `onTap`/`onLongPress` 时不再安装手势或 click cursor；
+  增加动画参数断言。
 - 增加 `withBackgroundColor` / `withForegroundColor` 静态覆盖便利方法，以及
   `withoutDecoration` / `withoutForegroundColor` / `withoutFocusColor` / `withoutHoverColor`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
