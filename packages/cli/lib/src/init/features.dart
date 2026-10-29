@@ -22,6 +22,19 @@ class InitFeatures {
   final bool qr;
   final bool map;
 
+  List<String> get enabled => <String>[
+    if (core) 'core',
+    if (app) 'app',
+    if (form) 'form',
+    if (ui) 'ui',
+    if (api) 'api',
+    if (toast) 'toast',
+    if (qr) 'qr',
+    if (map) 'map',
+  ];
+
+  String get summary => enabled.join(', ');
+
   static const full = InitFeatures(
     app: true,
     form: true,

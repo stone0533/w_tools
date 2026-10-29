@@ -36,7 +36,13 @@ dart run w_tools_cli:init --profile=full      # 当前默认
 
 # 不生成 lib/app/ui / design_system 规范，也不导出 w_tools_ui
 dart run w_tools_cli:init --no-ui
+
+# 不生成 / 不检查 AGENTS 等指令文件
+dart run w_tools_cli:init --no-agents
 ```
+
+`--profile` 决定基础能力，`--ui` / `--no-ui` / `--no-qr` / `--with-map` 覆盖单项；
+`--no-agents` 优先于 `--targets`。
 
 `init --targets` 支持 `agents`（AGENTS.md）/ `claude`（CLAUDE.md）/
 `cursor`（.cursor/rules/w_tools.mdc，新文件会带 Cursor 需要的 frontmatter）/

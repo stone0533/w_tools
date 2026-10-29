@@ -115,6 +115,38 @@ void main() {
       expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
     });
 
+    test('profile=ui / api 生成匹配能力', () async {
+      final uiRoot = makeProject();
+      final uiReport = runInit(
+        uiRoot,
+        features: InitFeatures.forProfile(InitProfile.ui),
+      );
+      final uiToolkit = File(
+        p.join(uiRoot.path, 'lib/app/w/toolkit.dart'),
+      ).readAsStringSync();
+      expect(uiToolkit, contains("export 'package:w_tools_ui"));
+      expect(uiToolkit, contains("export 'package:w_tools_toast"));
+      expect(uiToolkit, isNot(contains("export 'package:w_tools_api")));
+      expect(File(p.join(uiRoot.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isTrue);
+      expect(File(p.join(uiRoot.path, 'lib/app/design_system/README.md')).existsSync(), isTrue);
+      expect(uiReport.pubspecSnippet, contains('w_tools_ui:'));
+      expect(uiReport.pubspecSnippet, isNot(contains('w_tools_api:')));
+
+      final apiRoot = makeProject();
+      final apiReport = runInit(
+        apiRoot,
+        features: InitFeatures.forProfile(InitProfile.api),
+      );
+      final apiToolkit = File(
+        p.join(apiRoot.path, 'lib/app/w/toolkit.dart'),
+      ).readAsStringSync();
+      expect(apiToolkit, contains("export 'package:w_tools_api"));
+      expect(apiToolkit, isNot(contains("export 'package:w_tools_ui")));
+      expect(File(p.join(apiRoot.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
+      expect(apiReport.pubspecSnippet, contains('w_tools_api:'));
+      expect(apiReport.pubspecSnippet, isNot(contains('w_tools_ui:')));
+    });
+
     test('--no-qr / --with-map 影响导出', () async {
       final root = makeProject();
       runInit(root, features: InitFeatures.full.copyWith(qr: false, map: true));

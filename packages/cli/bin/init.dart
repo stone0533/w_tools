@@ -34,9 +34,11 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --json         输出机器可读结果（CI / AI 用）
   --force        覆盖已存在的不同文件（默认不动）
   --profile=<p>  minimal | ui | api | full（默认 full）
+                 profile 决定基础能力；--ui/--no-ui/--no-qr/--with-map 覆盖单项
   --no-qr        不导出 w_tools_qr（--profile=full 时默认导出）
   --with-map     导出 w_tools_map（会引入 google_maps_flutter）
   --no-ui        不生成 lib/app/ui 与 design_system 规范，也不导出 w_tools_ui
+  --no-agents    不生成/不检查 AGENTS 等指令文件（优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
   --version      显示版本
@@ -58,6 +60,7 @@ void main(List<String> argv) {
     ..addFlag('qr', negatable: true, defaultsTo: true)
     ..addFlag('with-map', negatable: false)
     ..addFlag('ui', negatable: true, defaultsTo: true)
+    ..addFlag('agents', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
 
@@ -81,9 +84,11 @@ void main(List<String> argv) {
       }
 
       final targetsRaw = args['targets'] as String?;
-      final targets = targetsRaw == null || targetsRaw.trim().isEmpty
-          ? config.aiTargets.toSet()
-          : targetsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet();
+      final targets = args['agents'] as bool
+          ? (targetsRaw == null || targetsRaw.trim().isEmpty
+                ? config.aiTargets.toSet()
+                : targetsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet())
+          : <String>{};
       final unknown = targets.difference(targetFiles.keys.toSet());
       if (unknown.isNotEmpty) {
         stderr.writeln('未知 targets：${unknown.join(', ')}（可选：${targetFiles.keys.join(', ')}）');
@@ -127,6 +132,7 @@ void main(List<String> argv) {
             'check': check,
             'checkDrift': checkDrift,
             'profile': profile.name,
+            'targets': targets.toList()..sort(),
             'features': <String, bool>{
               'core': features.core,
               'app': features.app,
@@ -147,6 +153,9 @@ void main(List<String> argv) {
         );
       } else {
         print('w_tools_cli init${check ? '（check 模式，不写文件）' : ''} · ${root.path}');
+        print('profile: ${profile.name}');
+        print('features: ${features.summary}');
+        print('targets: ${targets.isEmpty ? '（无）' : targets.join(', ')}');
         print('━' * 56);
         for (final f in report.created) {
           print('✓ $f');
