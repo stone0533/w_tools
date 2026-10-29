@@ -13,7 +13,7 @@
    - at least one test; maintainers decide promotion (second use case / release window)
 4. Business layer keeps feature-specific composition only.
 5. **Page shell**: standard pages default to `AppScaffold`
-   (`lib/app/design_system/app_scaffold.dart`); do not use `WScaffold` / `WAppBar` directly.
+   (`lib/app/ui/app_scaffold.dart`); do not use `WScaffold` / `WAppBar` directly.
    Use `AppScaffold(appBar: WAppBar(...))` for a custom app bar; use `WScaffold` or plain
    `Scaffold` for drawers/bottom sheets/non-standard safe areas, and note why in the PR.
    Change app-bar defaults only in `AppBars.style`.

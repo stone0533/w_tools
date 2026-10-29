@@ -5,16 +5,11 @@
 > **This is not the destination — it is the waiting room before moving into w_tools.**
 > See the [w_tools conventions](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md).
 
-## Page convention
+## Permanent project UI conventions
 
-Standard pages use `AppScaffold(title: ..., body: ...)`.
-Use `AppScaffold(appBar: WAppBar(...), ...)` for a custom app bar.
-`AppBars.style` is the only source of default app-bar styling.
-
-Buttons use `AppButtons.primary/secondary/text/danger(context)`; do not write
-`WButtonStyle` in pages unless it is an explicit one-off style.
-Use `WButton` for real buttons and `WPressable` for arbitrary cards/child taps;
-do not wrap arbitrary children with `WButton`.
+Page shells, app bars, and button conventions live in `lib/app/ui/README.md`.
+This directory only holds **components waiting for promotion**; do not put
+AppScaffold / AppBars / AppButtons here.
 
 ## What belongs here
 

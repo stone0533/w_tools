@@ -56,7 +56,7 @@ dart run w_tools_cli:doctor --json             # 写完自检（0 error 才算�
 | id | 级别 | 内容 |
 | --- | --- | --- |
 | R1 | error | `dependencies` 里出现聚合包 `w_tools` |
-| R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口、暂存层除外） |
+| R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
 | R3 | warn | 硬编码语义色（默认关；需在 `.w_tools_doctor.yaml` 声明 `colors.palette`） |
 | R4 | error | 暂存层 import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |

@@ -87,6 +87,7 @@ class ProjectSnapshot {
     final designFiles = ctx.filesUnder(config.designSystemDir).toList();
     var missingStaged = 0;
     for (final file in designFiles) {
+      if (!file.endsWith('.dart')) continue;
       final head = ctx.read(file).split('\n').take(10).join('\n');
       if (!head.contains('// STAGED:')) missingStaged++;
     }

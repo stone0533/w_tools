@@ -35,6 +35,12 @@ class InitTemplates {
   static String appScaffold() =>
       generated.appScaffoldTemplate.replaceAll('{{version}}', cliVersion);
 
+  static String uiReadme({String lang = 'zh'}) =>
+      (lang == 'en' ? generated.uiReadmeEn : generated.uiReadme).replaceAll(
+        '{{version}}',
+        cliVersion,
+      );
+
   static String appButtons() => generated.appButtonsTemplate.replaceAll('{{version}}', cliVersion);
 
   static String agentsBlock({String lang = 'zh', String app = 'app'}) =>

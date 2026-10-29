@@ -87,6 +87,15 @@ void main() {
       expect(r.status, DoctorRuleStatus.pass);
     });
 
+    test('项目 ui 目录 import 子包 → 通过（项目永久 UI 规范）', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/ui/app_scaffold.dart': "import 'package:w_tools_ui/w_tools_ui.dart';\n",
+      });
+      final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.status, DoctorRuleStatus.pass);
+    });
+
     test('暂存层 import 子包 → 通过（将来要整体上移，允许直连）', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',
@@ -193,6 +202,15 @@ void main() {
       });
       final config = DoctorConfig();
       final r = R5StagedMarker.check(ctxOf(root, config), config);
+      expect(r.status, DoctorRuleStatus.pass);
+    });
+
+    test('暂存层 README 不算缺 STAGED 标记', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/design_system/README.md': '# staging\n',
+      });
+      final r = R5StagedMarker.check(ctxOf(root, DoctorConfig()), DoctorConfig());
       expect(r.status, DoctorRuleStatus.pass);
     });
 

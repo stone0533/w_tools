@@ -40,11 +40,13 @@ void main() {
   test('copyWith 覆盖指定字段', () {
     final config = DoctorConfig().copyWith(
       toolkitEntry: 'lib/x/toolkit.dart',
+      projectUiDir: 'lib/x/ui',
       designSystemDir: 'lib/x/design_system',
       palette: const ['#333333'],
       enabledRules: const {'R1'},
     );
     expect(config.toolkitEntry, 'lib/x/toolkit.dart');
+    expect(config.projectUiDir, 'lib/x/ui');
     expect(config.designSystemDir, 'lib/x/design_system');
     expect(config.palette, ['#333333']);
     expect(config.enabledRules, {'R1'});
@@ -69,6 +71,7 @@ void main() {
     );
     final copy = base.copyWith();
     expect(copy.toolkitEntry, base.toolkitEntry);
+    expect(copy.projectUiDir, base.projectUiDir);
     expect(copy.designSystemDir, base.designSystemDir);
     expect(copy.palette, base.palette);
     expect(copy.enabledRules, base.enabledRules);

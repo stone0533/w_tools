@@ -9,6 +9,7 @@ import 'package:yaml/yaml.dart';
 class DoctorConfig {
   DoctorConfig({
     this.toolkitEntry = 'lib/app/w/toolkit.dart',
+    this.projectUiDir = 'lib/app/ui',
     this.designSystemDir = 'lib/app/design_system',
     this.palette = const <String>[],
     this.colorMinCount = 3,
@@ -20,6 +21,9 @@ class DoctorConfig {
 
   /// R2 的白名单：这个文件里允许 import 子包（它就是聚合入口）
   final String toolkitEntry;
+
+  /// 项目永久 UI 规范目录：允许直接 import w_tools 子包
+  final String projectUiDir;
 
   /// R4 / R5 检查的暂存层目录
   final String designSystemDir;
@@ -97,6 +101,7 @@ class DoctorConfig {
 
     return DoctorConfig(
       toolkitEntry: (raw['toolkit_entry'] as String?) ?? 'lib/app/w/toolkit.dart',
+      projectUiDir: (raw['project_ui_dir'] as String?) ?? 'lib/app/ui',
       designSystemDir: (raw['design_system_dir'] as String?) ?? 'lib/app/design_system',
       palette: palette,
       colorMinCount: minCount,
@@ -109,6 +114,7 @@ class DoctorConfig {
 
   DoctorConfig copyWith({
     String? toolkitEntry,
+    String? projectUiDir,
     String? designSystemDir,
     List<String>? palette,
     Set<String>? enabledRules,
@@ -117,6 +123,7 @@ class DoctorConfig {
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
+      projectUiDir: projectUiDir ?? this.projectUiDir,
       designSystemDir: designSystemDir ?? this.designSystemDir,
       palette: palette ?? this.palette,
       colorMinCount: colorMinCount,
@@ -140,6 +147,7 @@ String renderDefaultConfig() {
     ..writeln('# 这个文件是可选的：没有它，doctor 就按下面的默认值运行；')
     ..writeln('# 把它写下来只是把可选开关摊开，方便团队按项目调整。')
     ..writeln('toolkit_entry: ${defaults.toolkitEntry}')
+    ..writeln('project_ui_dir: ${defaults.projectUiDir}')
     ..writeln('design_system_dir: ${defaults.designSystemDir}')
     ..writeln()
     ..writeln('colors:')

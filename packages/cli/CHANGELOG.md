@@ -3,11 +3,15 @@
 ## 1.2.0
 
 ### Added
-- `init` 生成 `lib/app/design_system/app_bars.dart`、`app_buttons.dart` 与
+- `init` 生成 `lib/app/ui/app_bars.dart`、`app_buttons.dart` 与
   `app_scaffold.dart`：标准页面默认使用 `AppScaffold`，AppBar / 按钮样式统一走
-  `AppBars.style` / `AppButtons`。
+  `AppBars.style` / `AppButtons`。`lib/app/design_system/` 只保留待上移组件。
 - AGENTS / 暂存层规范补充：真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`。
 - toolkit 导出 AppScaffold/AppBars；AGENTS / 暂存层 README 增加页面规范。
+- 新增 `project_ui_dir`（默认 `lib/app/ui`）：R2 允许项目永久 UI 层直接 import 子包。
+- R5 / context 只统计 `.dart` 暂存文件，不再把 `design_system/README.md` 算作缺 `// STAGED`。
+- 迁移：旧版生成的 `design_system/app_*.dart` 移到 `lib/app/ui/`；
+  toolkit 的 export 改为 `../ui/...`。
 
 ## 1.1.1
 

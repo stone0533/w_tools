@@ -16,8 +16,11 @@ class R2DirectSubpackageImport {
     for (final file in ctx.files) {
       // 聚合入口自己就是靠 export 子包工作的
       if (file == config.toolkitEntry) continue;
-      // 暂存层的组件将来要整体搬进包里，允许直接 import 子包
-      if (file == config.designSystemDir || file.startsWith('${config.designSystemDir}/')) {
+      // 项目永久 UI 规范层与暂存层允许直接 import 子包
+      if (file == config.projectUiDir ||
+          file.startsWith('${config.projectUiDir}/') ||
+          file == config.designSystemDir ||
+          file.startsWith('${config.designSystemDir}/')) {
         continue;
       }
       final lines = ctx.read(file).split('\n');

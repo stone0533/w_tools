@@ -5,41 +5,10 @@
 > **这里不是终点，是「等着上移到 w_tools 的候车室」。**
 > 判定方法与上移流程见 [w_tools 的接入约定](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md)。
 
-## 页面规范
+## 项目永久 UI 规范
 
-标准页面统一：
-
-```dart
-AppScaffold(
-  title: '标题',
-  body: ...,
-)
-```
-
-特殊顶部栏：
-
-```dart
-AppScaffold(
-  appBar: WAppBar(...),
-  body: ...,
-)
-```
-
-`AppBars.style` 是全项目 AppBar 默认样式的唯一入口。
-
-按钮统一：
-
-```dart
-WButton(
-  style: AppButtons.primary(context),
-  label: '提交',
-  onTap: submit,
-)
-```
-
-`AppButtons` 是项目按钮样式的唯一入口；页面不要直接写 `WButtonStyle`。
-
-真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`；不要用 `WButton` 包任意 child。
+页面壳、AppBar、按钮规范在 `lib/app/ui/README.md`。
+本目录只放**待上移的通用组件**，不要放 AppScaffold / AppBars / AppButtons。
 
 ## 什么该放这里
 

@@ -13,6 +13,7 @@ void main() {
     final defaults = DoctorConfig();
 
     expect(parsed.toolkitEntry, defaults.toolkitEntry);
+    expect(parsed.projectUiDir, defaults.projectUiDir);
     expect(parsed.designSystemDir, defaults.designSystemDir);
     expect(parsed.palette, isEmpty, reason: 'R3 调色板默认必须是空（不配置就跳过）');
     expect(parsed.colorMinCount, defaults.colorMinCount);
@@ -34,7 +35,14 @@ void main() {
         .toSet();
     expect(
       activeKeys,
-      containsAll(<String>['toolkit_entry', 'design_system_dir', 'colors', 'rules', 'ignore']),
+      containsAll(<String>[
+        'toolkit_entry',
+        'project_ui_dir',
+        'design_system_dir',
+        'colors',
+        'rules',
+        'ignore',
+      ]),
     );
   });
 

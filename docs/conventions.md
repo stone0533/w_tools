@@ -4,13 +4,17 @@
 >
 > 只写会被违反的规则；每条都配「怎么检查」。详细组件清单见 [`modules/components.md`](modules/components.md)。
 
-## 1. 三个层，各放各的
+## 1. 四个层，各放各的
 
 | 层 | 路径（消费方项目内） | 放什么 |
 | --- | --- | --- |
 | **包** | `package:w_tools_*` | 与业务无关、多项目可用 |
-| **暂存层** | `lib/app/design_system/` | 判定为「通用」但还没进包 |
+| **项目 UI 层** | `lib/app/ui/` | 项目永久设计系统（AppScaffold / AppBars / AppButtons） |
+| **暂存层** | `lib/app/design_system/` | 判定为「通用」、待上移进包的组件 |
 | **业务层** | `lib/app/modules/**`、`data/**` | 知道业务的组合、数据、路由 |
+
+`lib/app/ui/` 是项目永久规范，**不用于上移**；`design_system/` 只放带
+`// STAGED:` 标记的候车组件。两者都允许直接 import `package:w_tools_*`。
 
 ## 2. 判定三连
 
@@ -20,7 +24,9 @@
    不知道 → 继续
 
 ② 别的功能 / 别的项目会不会也要？
-   会 → 通用：写进 lib/app/design_system/，不要再放模块目录
+   会 → 通用：
+        项目永久规范（页面壳 / 样式注册表）→ lib/app/ui/
+        可能进包 → lib/app/design_system/
    不确定 → 先放业务层，第二次出现再上移
 
 ③ 它只是「长什么样」（尺寸/颜色/圆角/间距）吗？
@@ -83,7 +89,7 @@ doctor 检查项：
 | id | 级别 | 内容 |
 | --- | --- | --- |
 | R1 | error | `dependencies` 里出现聚合包 `w_tools`（`dev_dependencies` 豁免 —— doctor 自己就靠它；`dependency_overrides` 里出现只 **warn**） |
-| R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口除外） |
+| R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
 | R3 | warn | 硬编码语义色（**调色板默认空**，需在 `.w_tools_doctor.yaml` 声明 `colors.palette`） |
 | R4 | error | 暂存层 import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |

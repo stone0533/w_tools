@@ -24,6 +24,8 @@ class R5StagedMarker {
 
     final issues = <DoctorIssue>[];
     for (final file in ctx.filesUnder(config.designSystemDir)) {
+      // README / 资源文件不是待上移组件
+      if (!file.endsWith('.dart')) continue;
       final head = ctx.read(file).split('\n').take(10).join('\n');
       if (!head.contains('// STAGED:')) {
         issues.add(
