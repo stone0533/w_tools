@@ -54,6 +54,10 @@ class WAppBarStyle {
       titleSpacing == null || titleSpacing!.isFinite,
       'WAppBarStyle.titleSpacing 非法',
     );
+    assert(
+      !(backgroundColor != null && gradient != null),
+      'WAppBarStyle.backgroundColor 与 gradient 只能选一个',
+    );
   }
 }
 
@@ -98,8 +102,7 @@ class WAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     style.validate();
-    final localizations = MaterialLocalizations.of(context);
-    final leadingWidget = leading ?? _buildLeading(context, localizations);
+    final leadingWidget = leading ?? _buildLeading(context);
     final middle = _buildTitle();
     final trailing =
         actions.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, children: actions);
@@ -146,18 +149,9 @@ class WAppBar extends StatelessWidget {
           );
   }
 
-  Widget? _buildLeading(
-    BuildContext context,
-    MaterialLocalizations localizations,
-  ) {
+  Widget? _buildLeading(BuildContext context) {
     if (!automaticallyImplyLeading) return null;
-    if (onBack != null) {
-      return IconButton(
-        tooltip: localizations.backButtonTooltip,
-        icon: const Icon(Icons.arrow_back),
-        onPressed: onBack,
-      );
-    }
+    if (onBack != null) return BackButton(onPressed: onBack);
     if (!Navigator.canPop(context)) return null;
     return const BackButton();
   }

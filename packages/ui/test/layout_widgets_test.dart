@@ -258,6 +258,24 @@ void main() {
     expect(tester.getTopLeft(find.text('body')).dy, 80);
   });
 
+  testWidgets('WScaffold — appBar 覆盖可自定义 centerTitle / 返回', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WScaffold(
+          appBar: WAppBar(
+            title: '自定义',
+            centerTitle: false,
+            automaticallyImplyLeading: false,
+          ),
+          body: Text('body'),
+        ),
+      ),
+    );
+
+    expect(find.text('自定义'), findsOneWidget);
+    expect(find.text('body'), findsOneWidget);
+  });
+
   testWidgets('WScaffold — appBarBottom 会触发默认 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -281,6 +299,13 @@ void main() {
     expect(next.height, 64);
     expect(next.titleSpacing, isNull);
     expect(() => style.copyWith(height: -1).validate(), throwsAssertionError);
+    expect(
+      () => const WAppBarStyle(
+        backgroundColor: Colors.white,
+        gradient: LinearGradient(colors: [Colors.red, Colors.blue]),
+      ).validate(),
+      throwsAssertionError,
+    );
   });
 
   testWidgets('WScaffold — 支持 bottomNavigationBar / floatingActionButton', (tester) async {
