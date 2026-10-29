@@ -80,9 +80,11 @@ class WScaffold extends StatelessWidget {
               onBack == null &&
               appBarStyle == null &&
               appBarBottom == null &&
-              appBar!.includeStatusBar),
+              appBar!.includeStatusBar &&
+              automaticallyImplyLeading &&
+              centerTitle),
       'WScaffold: 传了 appBar 时不要再传 title/leading/actions/onBack/appBarStyle/appBarBottom；'
-      'appBar 必须包含状态栏',
+      'appBar 必须包含状态栏，且 WScaffold 自身的 leading/centerTitle 参数保持默认',
     );
     final bar = appBar ??
         (_needsDefaultAppBar

@@ -1156,8 +1156,8 @@ WListViewConfig.vertical()
 - 没有顶部栏且 `includeTopSafeArea` 为 false 时，body 会顶到状态栏下方；
 - 有 `bottomNavigationBar` 时不再重复加底部安全区；
 - `WScaffold` 是轻量页面壳，不提供 drawer / bottomSheet / extendBody；需要时用原生 `Scaffold`；
-- `appBar` 覆盖时，appBar 必须 `includeStatusBar: true`；其 `automaticallyImplyLeading` /
-  `centerTitle` 不受 WScaffold 限制。
+- `appBar` 覆盖时，appBar 必须 `includeStatusBar: true`；appBar 自身的
+  `automaticallyImplyLeading` / `centerTitle` 不受限制；WScaffold 上同名参数必须保持默认。
 
 ### 使用示例
 
@@ -1276,6 +1276,9 @@ WScaffold(
 - 高度为 `style.height`，bottom 额外计算；
 - WScaffold 内部的 PreferredSize 只包含 `contentHeight`（toolbar + bottom），状态栏由 WAppBar 自己绘制，避免重复计算；
 - `WAppBarStyle` 提供 `copyWith` 与 `validate`；`backgroundColor` 与 `gradient` 只能选一个；
+- `foregroundColor` 只作用于默认标题和默认图标主题；`titleWidget` / 自定义 leading 由调用方负责颜色；
+- WAppBar 的 `systemOverlayStyle` 优先于 WScaffold 的 `systemStatusBarStyle`；
+- actions 建议控制在 2–3 个，更多操作放 overflow menu。
 - WAppBar 只暴露 `contentHeight`，不提供 totalHeight。
 
 需要完全自定义叠放时，直接在页面里使用 `Container` / `Stack`，不使用 WAppBar。
