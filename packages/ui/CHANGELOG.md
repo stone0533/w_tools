@@ -24,7 +24,8 @@
   `disabledOpacity` 设为 1，避免双重禁用效果。
 - `WButtonResolvedStyle` 暴露不可变 `states`，`contentBuilder` 可按状态改变内容结构。
 - `WButton` 要求可交互按钮至少提供 `onTap` / `onLongPress`，并让指针回调在禁用中不再触发；
-  无 `onLongPress` 时不再安装长按识别器，避免延迟普通点击的按下反馈。
+  release 下没有回调时按 disabled 渲染；无 `onLongPress` 时不再安装长按识别器，避免延迟普通点击。
+- `withBackgroundColor` 同时清空 `gradient`，避免背景色被渐变覆盖。
 - `WPressable` 保持纯指针点击，不参与键盘焦点；键盘操作统一用 `WButton`。
 - `WPressable` 禁用时重置按下态；没有 `onTap`/`onLongPress` 时不再安装手势或 click cursor；
   增加动画参数断言。

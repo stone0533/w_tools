@@ -198,9 +198,11 @@ class WButtonStyle {
     );
   }
 
-  /// 静态改背景色，内部包装为 WidgetStatePropertyAll。
-  WButtonStyle withBackgroundColor(Color color) =>
-      copyWith(backgroundColor: WidgetStatePropertyAll(color));
+  /// 静态改背景色，内部包装为 WidgetStatePropertyAll，并清空 gradient。
+  WButtonStyle withBackgroundColor(Color color) => _copyNullable(
+        backgroundColor: WidgetStatePropertyAll(color),
+        gradient: null,
+      );
 
   /// 静态改前景色，内部包装为 WidgetStatePropertyAll。
   WButtonStyle withForegroundColor(Color color) =>

@@ -101,6 +101,15 @@ void main() {
         backgroundColor: Colors.blue,
       ).withBackgroundColor(Colors.red);
       expect(overridden.backgroundColor!.resolve(const {}), Colors.red);
+      expect(overridden.gradient, isNull);
+
+      final withGradient = const WButtonStyle(
+        gradient: WidgetStatePropertyAll(LinearGradient(
+          colors: [Colors.blue, Colors.red],
+        )),
+      ).withBackgroundColor(Colors.green);
+      expect(withGradient.gradient, isNull);
+      expect(withGradient.backgroundColor!.resolve(const {}), Colors.green);
     });
 
     test('boxShadow 解析后不可变', () {

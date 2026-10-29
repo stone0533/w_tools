@@ -109,7 +109,8 @@ class _WButtonState extends State<WButton> {
   WButtonStyle? _cachedStyle;
   Object? _cachedStyleKey;
 
-  bool get _interactive => widget.enabled && !widget.loading;
+  bool get _interactive =>
+      widget.enabled && !widget.loading && (widget.onTap != null || widget.onLongPress != null);
 
   @override
   void dispose() {

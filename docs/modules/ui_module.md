@@ -284,7 +284,7 @@ contentBuilder: (context, style) {
 | `focusColor` / `hoverColor` | Color? | 焦点/悬停 overlay |
 | `disabledOpacity` | double | 禁用透明度 |
 | `minWidth` / `minHeight` | double | 视觉/布局最小尺寸 |
-| `tapTargetSize` | double | 实际 hit area 下限 |
+| `tapTargetSize` | double | 实际 hit area 下限；与 `minWidth` / `minHeight` 配合计算 |
 | `iconSize` / `gap` | double | 图标尺寸 / 间距 |
 
 颜色/边框/阴影/文字都使用 `WidgetStateProperty`：
@@ -326,6 +326,10 @@ style.withForegroundColor(Colors.white)
 `withBackgroundColor` / `withForegroundColor` 会包成 `WidgetStatePropertyAll`，
 覆盖整套状态；如果只想改 normal 状态，请直接用
 `WidgetStateProperty.resolveWith`。
+
+`withBackgroundColor` 还会清空 `gradient`，避免 `BoxDecoration` 里 gradient 覆盖 color。
+`tapTargetSize` 的 padding 基于 `minWidth` / `minHeight` 计算，自定义时应让这两个值反映
+视觉基准尺寸；设置为 0 可能产生额外 padding。
 
 清空 nullable 字段用 `without...`：
 
