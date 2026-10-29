@@ -13,6 +13,8 @@ Use `AppScaffold(appBar: WAppBar(...), ...)` for a custom app bar.
 
 Buttons use `AppButtons.primary/secondary/text/danger(context)`; do not write
 `WButtonStyle` in pages unless it is an explicit one-off style.
+Use `WButton` for real buttons and `WPressable` for arbitrary cards/child taps;
+do not wrap arbitrary children with `WButton`.
 
 ## What belongs here
 

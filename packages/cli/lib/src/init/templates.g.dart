@@ -73,6 +73,8 @@ WButton(
 
 `AppButtons` 是项目按钮样式的唯一入口；页面不要直接写 `WButtonStyle`。
 
+真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`；不要用 `WButton` 包任意 child。
+
 ## 什么该放这里
 
 只描述「长什么样」、完全不知道业务的组件：弹窗壳、品牌 logo 方块、图标+文字一行、
@@ -113,6 +115,8 @@ Use `AppScaffold(appBar: WAppBar(...), ...)` for a custom app bar.
 
 Buttons use `AppButtons.primary/secondary/text/danger(context)`; do not write
 `WButtonStyle` in pages unless it is an explicit one-off style.
+Use `WButton` for real buttons and `WPressable` for arbitrary cards/child taps;
+do not wrap arbitrary children with `WButton`.
 
 ## What belongs here
 
@@ -162,6 +166,7 @@ const String agentsSnippet = r'''
    AppBar 默认样式只在 `AppBars.style` 修改。
    **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
    `WButtonStyle`，除非是明确的局部一次性样式。
+   **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；不要用 `WButton` 包任意 child。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
@@ -192,6 +197,8 @@ const String agentsSnippetEn = r'''
    Change app-bar defaults only in `AppBars.style`.
    **Buttons** use `AppButtons.primary/secondary/text/danger(context)`; do not write
    `WButtonStyle` in pages unless it is an explicit one-off style.
+   **Use `WButton` for real buttons, `WPressable` for arbitrary cards/child taps**;
+   do not wrap arbitrary children with `WButton`.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

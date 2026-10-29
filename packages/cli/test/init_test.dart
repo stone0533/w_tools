@@ -55,6 +55,7 @@ void main() {
       final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
       expect(agents, contains("package:demo_app/app/w/toolkit.dart"));
       expect(agents, contains('AppScaffold'));
+      expect(agents, contains('WPressable'));
       final appScaffold = File(
         p.join(root.path, 'lib/app/design_system/app_scaffold.dart'),
       ).readAsStringSync();

@@ -19,6 +19,8 @@
    Change app-bar defaults only in `AppBars.style`.
    **Buttons** use `AppButtons.primary/secondary/text/danger(context)`; do not write
    `WButtonStyle` in pages unless it is an explicit one-off style.
+   **Use `WButton` for real buttons, `WPressable` for arbitrary cards/child taps**;
+   do not wrap arbitrary children with `WButton`.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

@@ -39,6 +39,8 @@ WButton(
 
 `AppButtons` 是项目按钮样式的唯一入口；页面不要直接写 `WButtonStyle`。
 
+真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`；不要用 `WButton` 包任意 child。
+
 ## 什么该放这里
 
 只描述「长什么样」、完全不知道业务的组件：弹窗壳、品牌 logo 方块、图标+文字一行、
