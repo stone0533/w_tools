@@ -95,10 +95,6 @@ class WAppBar extends StatelessWidget {
   /// toolbar + bottom 的高度，不含状态栏。
   double get contentHeight => style.height + (bottom?.preferredSize.height ?? 0);
 
-  /// 实际占用高度，含状态栏（如果 [includeStatusBar]）。
-  double totalHeight(BuildContext context) =>
-      contentHeight + (includeStatusBar ? MediaQuery.paddingOf(context).top : 0);
-
   @override
   Widget build(BuildContext context) {
     style.validate();

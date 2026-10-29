@@ -242,6 +242,22 @@ void main() {
     expect(tester.getTopLeft(find.text('body')).dy, 80);
   });
 
+  testWidgets('WScaffold — appBar 覆盖时状态栏只计算一次', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(padding: EdgeInsets.only(top: 24)),
+          child: WScaffold(
+            appBar: WAppBar(title: '自定义'),
+            body: Text('body'),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getTopLeft(find.text('body')).dy, 80);
+  });
+
   testWidgets('WScaffold — appBarBottom 会触发默认 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

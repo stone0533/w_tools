@@ -17,6 +17,8 @@
   `bottomNavigationBar`、`floatingActionButton`、`resizeToAvoidBottomInset`。
 - `WScaffold` 的 PreferredSize 只包含 toolbar + bottom，状态栏由 WAppBar 绘制，避免重复；
   `appBarBottom` 会触发默认 AppBar；`WAppBarStyle` 增加 copyWith / validate。
+- `WScaffold.appBar` 覆盖要求 WAppBar 包含状态栏且使用默认 leading/centerTitle 行为；
+  WAppBar 移除未使用的 `totalHeight`。
 - `WAppBar` 默认包含状态栏背景；不再提供 `WAppBarPreferred` / `WTopBar`。
 - `WButtonConfig` / 配置缓存 / `WButtonThemeData` 删除；`WButton` 改用显式 `WButtonStyle`。
 - `WButton.enabled` / `loading` 改为组件参数。
