@@ -37,6 +37,9 @@ class InitReport {
   /// 已存在但内容与模板不同的产物：只提示，不算失败（`--force` 才更新）
   final drift = <String>[];
 
+  /// 当前 profile 不生成、但仍存在的旧 UI 生成物（只报告，不删除）
+  final stale = <String>[];
+
   /// 已存在且内容一致（或属于项目自己的配置）
   final upToDate = <String>[];
 
@@ -141,12 +144,32 @@ InitReport runInit(
     );
   }
 
+  _collectStale(report, root, features);
   report.pubspecSnippet = _snippet(
     root,
     report,
     features: features,
   );
   return report;
+}
+
+const _uiStarterFiles = <String>[
+  'lib/app/design_system/README.md',
+  'lib/app/ui/README.md',
+  'lib/app/ui/app_bars.dart',
+  'lib/app/ui/app_boxes.dart',
+  'lib/app/ui/app_buttons.dart',
+  'lib/app/ui/app_card.dart',
+  'lib/app/ui/app_scaffold.dart',
+];
+
+void _collectStale(InitReport report, Directory root, InitFeatures features) {
+  if (features.ui) return;
+  for (final rel in _uiStarterFiles) {
+    if (File(p.join(root.path, rel)).existsSync()) {
+      report.stale.add('$rel（当前 profile 不生成，未删除）');
+    }
+  }
 }
 
 String _projectName(Directory root) {

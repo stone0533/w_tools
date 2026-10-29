@@ -178,6 +178,18 @@ void main() {
       expect(noUiToolkit, contains("export 'package:w_tools_toast"));
     });
 
+    test('profile 切换会报告旧 UI 文件（不删除）', () async {
+      final root = makeProject();
+      runInit(root);
+      final report = runInit(
+        root,
+        features: InitFeatures.forProfile(InitProfile.minimal),
+      );
+
+      expect(report.stale, contains('lib/app/ui/app_scaffold.dart（当前 profile 不生成，未删除）'));
+      expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isTrue);
+    });
+
     test('--no-qr / --with-map 影响导出', () async {
       final root = makeProject();
       runInit(root, features: InitFeatures.full.copyWith(qr: false, map: true));

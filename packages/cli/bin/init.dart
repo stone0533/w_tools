@@ -37,6 +37,7 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --force        覆盖已存在的不同文件（默认不动）
   --profile=<p>  minimal | ui | api | full（默认 full）
                  profile 决定基础能力；--ui/--no-ui/--no-qr/--with-map 覆盖单项
+                 minimal / api 不生成 lib/app/ui
   --no-qr        不导出 w_tools_qr（--profile=full 时默认导出）
   --with-map     导出 w_tools_map（会引入 google_maps_flutter）
   --no-ui        不生成 lib/app/ui 与 design_system 规范，也不导出 w_tools_ui
@@ -149,6 +150,7 @@ void main(List<String> argv) {
             'created': report.created,
             'upToDate': report.upToDate,
             'drift': report.drift,
+            'stale': report.stale,
             'missing': report.missing,
             'warnings': report.warnings,
             'pubspecSnippet': report.pubspecSnippet,
@@ -167,6 +169,9 @@ void main(List<String> argv) {
           print('· $f（已是最新）');
         }
         for (final f in report.drift) {
+          print('! $f');
+        }
+        for (final f in report.stale) {
           print('! $f');
         }
         for (final f in report.missing) {

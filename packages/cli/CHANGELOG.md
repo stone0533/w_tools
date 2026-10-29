@@ -17,6 +17,7 @@
 - `init --profile=minimal|ui|api|full`：按能力组合生成 toolkit 与依赖片段。
 - `init --no-instructions`：不生成/不检查 AGENTS 等 AI 指令文件，优先于 `--targets`。
 - help 明确 UI 生成条件；text 输出 profile / features / targets；R8 文档说明跳过 UI starter。
+- `init` 报告 profile 切换后遗留的 UI 文件（`stale`），但不会自动删除。
 - R5 / context 只统计 `.dart` 暂存文件，不再把 `design_system/README.md` 算作缺 `// STAGED`。
 - R4 同时检查 `lib/app/ui/` 与 `design_system/`，项目 UI 也不得依赖业务层；R3 对这两层豁免硬编码色。
 - `lib/app/ui/` 下的 App* 与 README 视为 starter：自定义后不算 drift，也不会被

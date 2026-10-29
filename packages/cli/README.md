@@ -51,7 +51,18 @@ dart run w_tools_cli:init --no-instructions
 `--profile` 决定基础能力，`--ui` / `--no-ui` / `--no-qr` / `--with-map` 覆盖单项；
 `--no-instructions` 优先于 `--targets`。
 
-`--no-ui` / `--no-instructions` 只停止生成，不删除已有文件。
+Profile 能力：
+
+| 参数 | 能力 |
+|---|---|
+| `--profile=minimal` | core |
+| `--profile=ui` | core + ui + toast |
+| `--profile=api` | core + api |
+| `--profile=full` | core + app + form + ui + api + toast + qr |
+
+`--no-ui` / `--no-instructions` 只停止生成，不删除已有文件。  
+切换 profile 后，当前 profile 不再生成的旧 UI 文件会在 `stale` 中提示，但不会自动删除。  
+`--no-ui` 只关闭页面 UI 与 `w_tools_ui`，不会自动移除 `w_tools_toast`。
 
 `init --targets` 支持 `agents`（AGENTS.md）/ `claude`（CLAUDE.md）/
 `cursor`（.cursor/rules/w_tools.mdc，新文件会带 Cursor 需要的 frontmatter）/
