@@ -59,6 +59,9 @@ void main() {
       expect(style.withoutBackground().backgroundColor, isNull);
       expect(style.withoutBackground().borderRadius, isNotNull);
       expect(style.withoutDecoration().borderRadius, isNull);
+      expect(style.withoutBorder().border, isNull);
+      expect(style.withoutBorder().borderRadius, isNotNull);
+      expect(style.withoutBoxShadow().boxShadow, isNull);
       expect(style.withoutTextStyle().textStyle, isNull);
       expect(style.withoutTextStyle().foregroundColor, isNull);
       expect(style.withoutForegroundColor().foregroundColor, isNull);
@@ -93,6 +96,11 @@ void main() {
       final text = WButtonStyle.text(foregroundColor: Colors.black);
       expect(text.foregroundColor!.resolve(const {}), Colors.black);
       expect(text.backgroundColor, isNull);
+
+      final overridden = WButtonStyle.filled(
+        backgroundColor: Colors.blue,
+      ).withBackgroundColor(Colors.red);
+      expect(overridden.backgroundColor!.resolve(const {}), Colors.red);
     });
 
     test('boxShadow 解析后不可变', () {

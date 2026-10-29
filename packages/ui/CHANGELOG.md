@@ -30,7 +30,8 @@
 - `WPressable` 默认只阻断指针，不清理 child 的交互语义；可选
   `excludeChildSemanticsWhenDisabled` 在禁用时排除 child 语义。
 - 增加 `withBackgroundColor` / `withForegroundColor` 静态覆盖便利方法，以及
-  `withoutDecoration` / `withoutForegroundColor` / `withoutFocusColor` / `withoutHoverColor`。
+  `withoutDecoration` / `withoutBorder` / `withoutBoxShadow` / `withoutForegroundColor` /
+  `withoutFocusColor` / `withoutHoverColor`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
 
 ### Added

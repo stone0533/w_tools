@@ -260,6 +260,9 @@ contentBuilder: (context, style) {
 > 建议只用 `contentBuilder` 处理 disabled / selected 等结构性状态；pressed / hover / focus
 > 优先通过 `WidgetStateProperty` 和 `WButtonMotion` 表达，避免内容尺寸和文案跳动。
 > loading 内容用 `loadingBuilder`，不要混进 `contentBuilder`。
+>
+> 如果 `contentBuilder` 改变了内容含义（例如“提交”变成“不可用”），要同步提供匹配的
+> `semanticLabel`；否则屏幕阅读器仍会播报旧含义。
 
 ### WButtonStyle
 
@@ -316,6 +319,18 @@ WButtonStyle.filled(
 ```dart
 style.withBackgroundColor(Colors.red)
 style.withForegroundColor(Colors.white)
+```
+
+`withBackgroundColor` / `withForegroundColor` 会包成 `WidgetStatePropertyAll`，
+覆盖整套状态；如果只想改 normal 状态，请直接用
+`WidgetStateProperty.resolveWith`。
+
+清空 nullable 字段用 `without...`：
+
+```dart
+style.withoutBorder()
+style.withoutBoxShadow()
+style.withoutDecoration()
 ```
 
 `WButton` 会把当前 `WidgetState`（disabled / pressed / hovered / focused）

@@ -265,6 +265,10 @@ class WButtonStyle {
         boxShadow: null,
       );
 
+  WButtonStyle withoutBorder() => _copyNullable(border: null);
+
+  WButtonStyle withoutBoxShadow() => _copyNullable(boxShadow: null);
+
   WButtonStyle withoutTextStyle() => _copyNullable(
         textStyle: null,
         foregroundColor: null,
