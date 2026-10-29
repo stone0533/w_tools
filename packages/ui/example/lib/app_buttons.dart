@@ -5,10 +5,28 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 abstract final class AppButtons {
   static WButtonStyle primary(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return WButtonStyle.filled(
-      backgroundColor: scheme.primary,
-      foregroundColor: scheme.onPrimary,
+    return WButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return scheme.onSurface.withValues(alpha: 0.12);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return scheme.primary.withValues(alpha: 0.82);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return scheme.primary.withValues(alpha: 0.92);
+        }
+        return scheme.primary;
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return scheme.onSurface.withValues(alpha: 0.38);
+        }
+        return scheme.onPrimary;
+      }),
       borderRadius: BorderRadius.circular(8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      disabledOpacity: 1,
     );
   }
 

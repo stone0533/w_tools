@@ -23,6 +23,7 @@
   支持 disabled/pressed/hovered/focused 状态组合。使用 disabled 状态色时需将
   `disabledOpacity` 设为 1，避免双重禁用效果。
 - `WButtonResolvedStyle` 暴露不可变 `states`，`contentBuilder` 可按状态改变内容结构。
+- 示例 `AppButtons.primary` 改为 `WidgetStateProperty` 状态样式，示例页新增第 12 节演示。
 - `WButton` 要求可交互按钮至少提供 `onTap` / `onLongPress`，并让指针回调在禁用中不再触发；
   release 下没有回调时按 disabled 渲染；无 `onLongPress` 时不再安装长按识别器，避免延迟普通点击。
 - 只有 `onLongPress` 时不启用键盘焦点，避免出现可聚焦但 Enter/Space 无响应的按钮。

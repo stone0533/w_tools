@@ -367,7 +367,38 @@ class _ButtonsPageState extends State<ButtonsPage> {
           ),
         ),
         _Section(
-          title: '9. 键盘与无障碍',
+          title: '12. 状态样式：WidgetStateProperty',
+          subtitle: 'primary 按钮按 disabled / pressed / hovered 返回不同背景色',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  WButton(
+                    style: AppButtons.primary(context),
+                    label: '按下或悬停我',
+                    onTap: () {},
+                  ),
+                  WButton(
+                    style: AppButtons.primary(context),
+                    label: '禁用状态',
+                    enabled: false,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'AppButtons.primary 内部使用 WidgetStateProperty.resolveWith；'
+                '禁用时不再叠加 disabledOpacity。',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        _Section(
+          title: '13. 键盘与无障碍',
           subtitle: 'Tab 聚焦，Enter / Space 激活',
           child: Wrap(
             spacing: 12,
