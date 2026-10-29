@@ -4,7 +4,7 @@ import 'button_style.dart';
 
 /// 常用按钮样式 fallback 预设。
 ///
-/// 项目应通过 `WButtonThemeData` 覆盖这些默认值；这里的颜色是最小可用 fallback，
+/// 项目应定义自己的 `AppButtons` / `WButtonStyle` 覆盖这些默认值；这里的颜色是最小可用 fallback，
 /// 不保证适配所有明暗主题。
 abstract final class WButtonStyles {
   static final _primary = WButtonStyle.filled(

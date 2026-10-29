@@ -8,14 +8,13 @@
 - `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。
 - `WImage.onLoadProgress`、`progressIndicatorBuilder`、`cacheEnabled`、`fitCenter`、`size` 均已删除。
 - `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageTheme` + `WImageCachePolicy`。
-- `WButtonConfig` / 配置缓存删除；`WButton` 改用不可变 `WButtonStyle` + `WButtonThemeData`。
+- `WButtonConfig` / 配置缓存 / `WButtonThemeData` 删除；`WButton` 改用显式 `WButtonStyle`。
 - `WButton.enabled` / `loading` 改为组件参数。
 - `WButton` 删除任意 `child`；改用 `content` / `contentBuilder`，任意区域点击用 `WPressable`。
 - `WButton` 删除 `shake`、`onSecondaryTap`、`onTapDown/Up/Cancel`、`onFocusChange/onHover`、
   `onPressedChanged`、`tooltip`、`enableFeedback`、`behavior`、`sizeName`。
-- `WButtonTheme` 删除；只保留 `WButtonThemeData` ThemeExtension。
-- `WButtonThemeData` 删除 `base` / `sizes` / `defaultSize`。
-- `WButton.icon` / `WButton.variant` 工厂删除；用公共构造 `variant + icon/label`。
+- `WButton` 所有命名工厂（`primary/secondary/text/danger`）删除；统一用 `WButton(style: ...)`。
+- 项目样式通过 `AppButtons` / `WButtonStyle` 显式传入；`WButtonStyles.primary` 仅作 fallback。
 - `WButtonStyle` 的 `effect/pressedOpacity/pressedScale/animationDuration/curve/semanticLabel/
   semanticHint/loadingLabel` 移到 `WButtonMotion` / `WButtonSemantics`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
@@ -49,20 +48,9 @@
   48×48 hit target、focus/hover overlay、禁用隔离。
 - `WButtonSize` 支持 `lineHeight` / `letterSpacing`，默认 small/medium/large 视觉高度 32/40/48，
   实际 hit target 保持 48。
-- 新增 `WButtonStyle.filled/outlined/text` 工厂与 `WButtonThemeData.copyWith`。
-- `WButtonThemeData` 作为 ThemeExtension 挂到 `ThemeData.extensions`；只保留这一套主题入口。
+- 新增 `WButtonStyle.filled/outlined/text` 工厂。
 - 新增 `WPressable`：任意 child 点击 + opacity/scale，不声明 button 语义、不负责样式/loading/最小区域。
 - `button.dart` 拆出 content / effect / tap target 三个 part 文件。
-- `String.toImage` 增加 `key` / `style` / `type` / `semanticLabel` / `controller` /
-  `onProgress` 参数；`style` 不可变，不会被修改。
-- 新增 `String.toAssetImage({prefix})` / `toBase64Image()` / `toFileImage()` / `toNetworkImage()`。
-- `WImage` 默认构造支持显式 `type`，与命名构造一致。
-- `WButton` 新增 `content` / `contentBuilder`：支持真实按钮的复杂内容，`contentBuilder` 可读取最终 style。
-- 新增 `WButtonStyle.filled/outlined/text` 工厂与 `WButtonThemeData.copyWith`；
-  focus/hover overlay 支持 `overlayBorderRadius`。
-- `WButtonThemeData` 支持 `ThemeExtension`，可直接挂到 `ThemeData.extensions`。
-- `WButtonSize` 支持 `lineHeight` / `letterSpacing`。
-- `button.dart` 拆分出 content / effect / tap target 三个 part 文件，降低主文件复杂度。
 
 ### Changed
 - `String.toImage` 的尺寸优先级改为显式 `width` / `height` 优先，`size` 仅作 fallback。

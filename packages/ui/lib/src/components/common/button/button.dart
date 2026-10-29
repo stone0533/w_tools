@@ -10,14 +10,12 @@ import 'button_motion.dart';
 import 'button_size.dart';
 import 'button_style.dart';
 import 'button_styles.dart';
-import 'button_theme.dart';
 
 export 'button_motion.dart';
 export 'button_semantics.dart';
 export 'button_size.dart';
 export 'button_style.dart';
 export 'button_styles.dart';
-export 'button_theme.dart';
 
 part 'button_content.dart';
 part 'button_effect.dart';
@@ -39,7 +37,6 @@ class WButton extends StatefulWidget {
   const WButton({
     super.key,
     this.style,
-    this.variant,
     this.label,
     this.icon,
     this.content,
@@ -66,7 +63,6 @@ class WButton extends StatefulWidget {
         );
 
   final WButtonStyle? style;
-  final String? variant;
 
   /// 简单内容
   final String? label;
@@ -95,126 +91,6 @@ class WButton extends StatefulWidget {
 
   final FocusNode? focusNode;
   final bool autofocus;
-
-  factory WButton.primary(
-    String label, {
-    Key? key,
-    WButtonStyle? style,
-    WButtonSize? size,
-    String? semanticLabel,
-    bool enabled = true,
-    bool loading = false,
-    WidgetBuilder? loadingBuilder,
-    GestureTapCallback? onTap,
-    GestureLongPressCallback? onLongPress,
-    FocusNode? focusNode,
-    bool autofocus = false,
-  }) =>
-      WButton(
-        key: key,
-        variant: 'primary',
-        label: label,
-        style: style,
-        size: size,
-        semanticLabel: semanticLabel,
-        enabled: enabled,
-        loading: loading,
-        loadingBuilder: loadingBuilder,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        focusNode: focusNode,
-        autofocus: autofocus,
-      );
-
-  factory WButton.secondary(
-    String label, {
-    Key? key,
-    WButtonStyle? style,
-    WButtonSize? size,
-    String? semanticLabel,
-    bool enabled = true,
-    bool loading = false,
-    WidgetBuilder? loadingBuilder,
-    GestureTapCallback? onTap,
-    GestureLongPressCallback? onLongPress,
-    FocusNode? focusNode,
-    bool autofocus = false,
-  }) =>
-      WButton(
-        key: key,
-        variant: 'secondary',
-        label: label,
-        style: style,
-        size: size,
-        semanticLabel: semanticLabel,
-        enabled: enabled,
-        loading: loading,
-        loadingBuilder: loadingBuilder,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        focusNode: focusNode,
-        autofocus: autofocus,
-      );
-
-  factory WButton.text(
-    String label, {
-    Key? key,
-    WButtonStyle? style,
-    WButtonSize? size,
-    String? semanticLabel,
-    bool enabled = true,
-    bool loading = false,
-    WidgetBuilder? loadingBuilder,
-    GestureTapCallback? onTap,
-    GestureLongPressCallback? onLongPress,
-    FocusNode? focusNode,
-    bool autofocus = false,
-  }) =>
-      WButton(
-        key: key,
-        variant: 'text',
-        label: label,
-        style: style,
-        size: size,
-        semanticLabel: semanticLabel,
-        enabled: enabled,
-        loading: loading,
-        loadingBuilder: loadingBuilder,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        focusNode: focusNode,
-        autofocus: autofocus,
-      );
-
-  factory WButton.danger(
-    String label, {
-    Key? key,
-    WButtonStyle? style,
-    WButtonSize? size,
-    String? semanticLabel,
-    bool enabled = true,
-    bool loading = false,
-    WidgetBuilder? loadingBuilder,
-    GestureTapCallback? onTap,
-    GestureLongPressCallback? onLongPress,
-    FocusNode? focusNode,
-    bool autofocus = false,
-  }) =>
-      WButton(
-        key: key,
-        variant: 'danger',
-        label: label,
-        style: style,
-        size: size,
-        semanticLabel: semanticLabel,
-        enabled: enabled,
-        loading: loading,
-        loadingBuilder: loadingBuilder,
-        onTap: onTap,
-        onLongPress: onLongPress,
-        focusNode: focusNode,
-        autofocus: autofocus,
-      );
 
   @override
   State<WButton> createState() => _WButtonState();
@@ -248,44 +124,24 @@ class _WButtonState extends State<WButton> {
     }
   }
 
-  WButtonStyle _resolveStyle(BuildContext context) {
-    final theme = Theme.of(context).extension<WButtonThemeData>();
+  WButtonStyle _resolveStyle() {
     final key = Object.hash(
       widget.style,
-      widget.variant,
       widget.size,
       widget.semanticLabel,
       widget.label,
       widget.icon,
-      theme,
     );
     if (_cachedStyle != null && _cachedStyleKey == key) return _cachedStyle!;
 
-    final fallback = switch (widget.variant) {
-      'primary' => WButtonStyles.primary,
-      'secondary' => WButtonStyles.secondary,
-      'text' => WButtonStyles.text,
-      'danger' => WButtonStyles.danger,
-      _ => WButtonStyle(),
-    };
-    if (widget.variant != null &&
-        theme != null &&
-        theme.resolveStyle(widget.variant) == null &&
-        !const {'primary', 'secondary', 'text', 'danger'}.contains(widget.variant)) {
-      assert(false, 'WButton: 未注册的 variant "${widget.variant}"');
-    }
-
-    final base = widget.style ??
-        theme?.resolveStyle(widget.variant) ??
-        (widget.variant != null ? fallback : WButtonStyle());
-    final size = widget.size ?? (widget.variant != null ? WButtonSize.medium : null);
+    final base = widget.style ?? WButtonStyles.primary;
     final semantic = widget.semanticLabel;
     final resolved = semantic == null
         ? base.copy()
         : base.copyWith(
             semantics: base.semantics.copyWith(label: semantic),
           );
-    final sized = resolved.applySize(size);
+    final sized = resolved.applySize(widget.size);
     assert(
       widget.icon == null ||
           widget.label != null ||
@@ -342,7 +198,7 @@ class _WButtonState extends State<WButton> {
 
   @override
   Widget build(BuildContext context) {
-    final style = _resolveStyle(context);
+    final style = _resolveStyle();
     style.validate();
     final interactive = _interactive;
     final theme = Theme.of(context);

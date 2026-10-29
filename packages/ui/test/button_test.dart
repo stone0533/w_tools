@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/button/button.dart';
 
-Widget _wrap(Widget child, {WButtonThemeData? theme}) => MaterialApp(
-      theme: theme == null ? null : ThemeData(extensions: [theme]),
+Widget _wrap(Widget child) => MaterialApp(
       home: Scaffold(body: Center(child: child)),
     );
 
@@ -134,11 +133,10 @@ void main() {
   });
 
   group('WButton 构造与内容', () {
-    testWidgets('公共构造支持 variant + label', (tester) async {
+    testWidgets('公共构造支持 label', (tester) async {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            variant: 'primary',
             label: '公共构造',
             onTap: () {},
           ),
@@ -151,7 +149,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            variant: 'primary',
+            style: WButtonStyles.primary,
             content: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -182,7 +180,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            variant: 'primary',
+            style: WButtonStyles.primary,
             size: const WButtonSize(name: 'custom', iconSize: 32),
             contentBuilder: (context, style) => Text('icon=${style.iconSize}'),
             onTap: () {},
@@ -194,14 +192,14 @@ void main() {
 
     testWidgets('label/icon/content 三选一', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton.primary('主按钮', onTap: () {})),
+        _wrap(WButton(style: WButtonStyles.primary, label: '主按钮', onTap: () {})),
       );
       expect(find.text('主按钮'), findsOneWidget);
 
       await tester.pumpWidget(
         _wrap(
           WButton(
-            variant: 'primary',
+            style: WButtonStyles.primary,
             icon: Icons.add,
             semanticLabel: '新增',
             onTap: () {},
@@ -213,7 +211,7 @@ void main() {
 
     testWidgets('默认尺寸和 small 都有 48 高点击区域', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton.primary('默认', onTap: () {})),
+        _wrap(WButton(style: WButtonStyles.primary, label: '默认', onTap: () {})),
       );
       expect(
         tester.getSize(find.byType(WButton)).height,
@@ -222,8 +220,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            '小按钮',
+          WButton(
+            style: WButtonStyles.primary,
+            label: '小按钮',
             size: WButtonSize.small,
             onTap: () {},
           ),
@@ -240,7 +239,7 @@ void main() {
     testWidgets('点击触发 onTap', (tester) async {
       var taps = 0;
       await tester.pumpWidget(
-        _wrap(WButton.primary('点击', onTap: () => taps++)),
+        _wrap(WButton(style: WButtonStyles.primary, label: '点击', onTap: () => taps++)),
       );
 
       await tester.tap(find.text('点击'));
@@ -252,8 +251,9 @@ void main() {
       var taps = 0;
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            '禁用',
+          WButton(
+            style: WButtonStyles.primary,
+            label: '禁用',
             enabled: false,
             onTap: () => taps++,
           ),
@@ -265,8 +265,9 @@ void main() {
 
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            '加载中',
+          WButton(
+            style: WButtonStyles.primary,
+            label: '加载中',
             loading: true,
             onTap: () => taps++,
           ),
@@ -280,7 +281,7 @@ void main() {
 
     testWidgets('loading 保持按钮尺寸', (tester) async {
       Widget build(bool loading) => _wrap(
-            WButton.primary('提交', loading: loading, onTap: () {}),
+            WButton(style: WButtonStyles.primary, label: '提交', loading: loading, onTap: () {}),
           );
 
       await tester.pumpWidget(build(false));
@@ -295,8 +296,9 @@ void main() {
       var longPressed = 0;
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            '长按',
+          WButton(
+            style: WButtonStyles.primary,
+            label: '长按',
             onLongPress: () => longPressed++,
           ),
         ),
@@ -320,14 +322,10 @@ void main() {
     testWidgets('暗色主题下可构建', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: ThemeData.dark(useMaterial3: true).copyWith(
-            extensions: [
-              WButtonThemeData(primary: WButtonStyles.primary),
-            ],
-          ),
+          theme: ThemeData.dark(useMaterial3: true),
           home: Scaffold(
             body: Center(
-              child: WButton.primary('暗色', onTap: () {}),
+              child: WButton(style: WButtonStyles.primary, label: '暗色', onTap: () {}),
             ),
           ),
         ),
@@ -342,8 +340,8 @@ void main() {
       });
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            'focus',
+          WButton(
+            label: 'focus',
             autofocus: true,
             style: WButtonStyle(focusColor: Colors.red),
             onTap: () {},
@@ -366,7 +364,7 @@ void main() {
               data: const MediaQueryData(textScaler: TextScaler.linear(2)),
               child: Scaffold(
                 body: Center(
-                  child: WButton.primary('提交', onTap: () {}),
+                  child: WButton(style: WButtonStyles.primary, label: '提交', onTap: () {}),
                 ),
               ),
             ),
@@ -381,8 +379,8 @@ void main() {
     testWidgets('opacity 效果按下时降低透明度', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            'opacity',
+          WButton(
+            label: 'opacity',
             style: WButtonStyle(
               motion: const WButtonMotion(pressedOpacity: 0.4),
             ),
@@ -411,8 +409,8 @@ void main() {
     testWidgets('scale 效果按下时缩小', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            'scale',
+          WButton(
+            label: 'scale',
             style: WButtonStyle(
               motion: const WButtonMotion(
                 effect: WButtonEffectType.scale,
@@ -439,8 +437,9 @@ void main() {
     testWidgets('没有 onTap 时键盘不触发按下状态', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            'longpress-only',
+          WButton(
+            style: WButtonStyles.primary,
+            label: 'longpress-only',
             autofocus: true,
             onLongPress: () {},
           ),
@@ -459,8 +458,8 @@ void main() {
       var taps = 0;
       await tester.pumpWidget(
         _wrap(
-          WButton.primary(
-            '键盘',
+          WButton(
+            label: '键盘',
             autofocus: true,
             style: WButtonStyle(
               motion: const WButtonMotion(pressedOpacity: 0.35),
@@ -486,7 +485,6 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            variant: 'primary',
             icon: Icons.close,
             style: WButtonStyle(
               semantics: const WButtonSemantics(
@@ -510,66 +508,6 @@ void main() {
       expect(semantics.properties.label, '关闭');
       expect(semantics.properties.hint, '关闭当前弹窗');
       expect(semantics.properties.onTap, isNotNull);
-    });
-  });
-
-  group('WButtonTheme', () {
-    testWidgets('支持 ThemeData.extensions', (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          WButton.primary('extension', onTap: () {}),
-          theme: WButtonThemeData(
-            primary: WButtonStyle(
-              semantics: const WButtonSemantics(label: 'extension-button'),
-            ),
-          ),
-        ),
-      );
-
-      final semantics = tester
-          .widgetList<Semantics>(
-            find.descendant(
-              of: find.byType(WButton),
-              matching: find.byType(Semantics),
-            ),
-          )
-          .firstWhere((s) => s.properties.button == true);
-      expect(semantics.properties.label, 'extension-button');
-    });
-
-    test('copyWith 保留未覆盖字段', () {
-      final data = WButtonThemeData(
-        primary: WButtonStyles.primary,
-        danger: WButtonStyles.danger,
-      );
-      final next = data.copyWith(primary: WButtonStyles.secondary);
-      expect(identical(next.danger, data.danger), isTrue);
-      expect(identical(next.primary, data.primary), isFalse);
-    });
-
-    testWidgets('自定义 variant 从 theme 解析', (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          WButton(variant: 'brand', label: '品牌', onTap: () {}),
-          theme: WButtonThemeData(
-            variants: {
-              'brand': WButtonStyle(
-                semantics: const WButtonSemantics(label: '品牌按钮'),
-              ),
-            },
-          ),
-        ),
-      );
-
-      final semantics = tester
-          .widgetList<Semantics>(
-            find.descendant(
-              of: find.byType(WButton),
-              matching: find.byType(Semantics),
-            ),
-          )
-          .firstWhere((s) => s.properties.button == true);
-      expect(semantics.properties.label, '品牌按钮');
     });
   });
 }

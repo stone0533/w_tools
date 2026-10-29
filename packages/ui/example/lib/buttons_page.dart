@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
+import 'app_buttons.dart';
+
 /// WButton 使用场景示例。
 class ButtonsPage extends StatefulWidget {
   const ButtonsPage({super.key});
@@ -41,12 +43,14 @@ class _ButtonsPageState extends State<ButtonsPage> {
         title: const Text('确认删除？'),
         content: const Text('删除后不可恢复。'),
         actions: [
-          WButton.text(
-            '取消',
+          WButton(
+            style: AppButtons.text(context),
+            label: '取消',
             onTap: () => Navigator.pop(dialogContext),
           ),
-          WButton.danger(
-            '删除',
+          WButton(
+            style: AppButtons.danger(context),
+            label: '删除',
             onTap: () {
               Navigator.pop(dialogContext);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -71,10 +75,10 @@ class _ButtonsPageState extends State<ButtonsPage> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              WButton.primary('提交', onTap: _submit),
-              WButton.secondary('取消', onTap: () {}),
-              WButton.text('查看更多', onTap: () {}),
-              WButton.danger('删除', onTap: _showConfirmDialog),
+              WButton(style: AppButtons.primary(context), label: '提交', onTap: _submit),
+              WButton(style: AppButtons.secondary(context), label: '取消', onTap: () {}),
+              WButton(style: AppButtons.text(context), label: '查看更多', onTap: () {}),
+              WButton(style: AppButtons.danger(context), label: '删除', onTap: _showConfirmDialog),
             ],
           ),
         ),
@@ -86,14 +90,16 @@ class _ButtonsPageState extends State<ButtonsPage> {
             runSpacing: 12,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              WButton.primary(
-                '提交',
+              WButton(
+                style: AppButtons.primary(context),
+                label: '提交',
                 enabled: _enabled,
                 loading: _submitting,
                 onTap: _submit,
               ),
-              WButton.secondary(
-                '重置',
+              WButton(
+                style: AppButtons.secondary(context),
+                label: '重置',
                 enabled: !_submitting,
                 onTap: () => setState(() => _enabled = true),
               ),
@@ -109,10 +115,22 @@ class _ButtonsPageState extends State<ButtonsPage> {
             runSpacing: 12,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              WButton.primary('Small', size: WButtonSize.small, onTap: () {}),
-              WButton.primary('Medium', size: WButtonSize.medium, onTap: () {}),
-              WButton.primary('Large', size: WButtonSize.large, onTap: () {}),
-              WButton.primary('Hero', size: _hero, onTap: () {}),
+              WButton(
+                  style: AppButtons.primary(context),
+                  label: 'Small',
+                  size: WButtonSize.small,
+                  onTap: () {}),
+              WButton(
+                  style: AppButtons.primary(context),
+                  label: 'Medium',
+                  size: WButtonSize.medium,
+                  onTap: () {}),
+              WButton(
+                  style: AppButtons.primary(context),
+                  label: 'Large',
+                  size: WButtonSize.large,
+                  onTap: () {}),
+              WButton(style: AppButtons.primary(context), label: 'Hero', size: _hero, onTap: () {}),
             ],
           ),
         ),
@@ -124,25 +142,25 @@ class _ButtonsPageState extends State<ButtonsPage> {
             runSpacing: 8,
             children: [
               WButton(
-                variant: 'primary',
+                style: AppButtons.primary(context),
                 icon: Icons.add,
                 label: '新增',
                 onTap: () {},
               ),
               WButton(
-                variant: 'primary',
+                style: AppButtons.primary(context),
                 icon: Icons.refresh,
                 semanticLabel: '刷新',
                 onTap: () {},
               ),
               WButton(
-                variant: 'primary',
+                style: AppButtons.primary(context),
                 icon: Icons.more_horiz,
                 semanticLabel: '更多',
                 onTap: () {},
               ),
               WButton(
-                variant: 'danger',
+                style: AppButtons.danger(context),
                 icon: Icons.delete_outline,
                 semanticLabel: '删除',
                 onTap: _showConfirmDialog,
@@ -163,15 +181,16 @@ class _ButtonsPageState extends State<ButtonsPage> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        WButton.text(
-                          '编辑',
+                        WButton(
+                          style: AppButtons.text(context),
+                          label: '编辑',
                           size: WButtonSize.small,
                           onTap: () {},
                         ),
-                        WButton.text(
-                          '删除',
+                        WButton(
+                          style: AppButtons.danger(context),
+                          label: '删除',
                           size: WButtonSize.small,
-                          style: WButtonStyles.danger,
                           onTap: _showConfirmDialog,
                         ),
                       ],
@@ -184,20 +203,35 @@ class _ButtonsPageState extends State<ButtonsPage> {
         _Section(
           title: '6. 对话框：取消 / 危险确认',
           subtitle: '在 AlertDialog.actions 中直接使用',
-          child: WButton.secondary(
-            '打开确认框',
+          child: WButton(
+            style: AppButtons.secondary(context),
+            label: '打开确认框',
             onTap: _showConfirmDialog,
           ),
         ),
         _Section(
-          title: '7. 项目自定义变体',
-          subtitle: 'variants 中注册 brand / warning 等',
+          title: '7. 单按钮样式覆盖',
+          subtitle: '不需要主题变体，直接传一个 WButtonStyle',
           child: Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              WButton(variant: 'brand', label: '品牌按钮', onTap: () {}),
-              WButton(variant: 'warning', label: '警告按钮', onTap: () {}),
+              WButton(
+                style: WButtonStyle.filled(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                ),
+                label: '品牌按钮',
+                onTap: () {},
+              ),
+              WButton(
+                style: WButtonStyle.filled(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black87,
+                ),
+                label: '警告按钮',
+                onTap: () {},
+              ),
             ],
           ),
         ),
@@ -300,7 +334,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             runSpacing: 12,
             children: [
               WButton(
-                variant: 'primary',
+                style: AppButtons.primary(context),
                 semanticLabel: '查看订单 A123',
                 onTap: () {},
                 content: const Row(
@@ -316,7 +350,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
                 ),
               ),
               WButton(
-                variant: 'secondary',
+                style: AppButtons.secondary(context),
                 onTap: () {},
                 contentBuilder: (context, style) {
                   return Row(
@@ -341,20 +375,21 @@ class _ButtonsPageState extends State<ButtonsPage> {
             children: [
               Tooltip(
                 message: '按 Enter 或 Space 触发',
-                child: WButton.primary(
-                  '聚焦我',
+                child: WButton(
+                  style: AppButtons.primary(context),
+                  label: '聚焦我',
                   autofocus: true,
                   onTap: () {},
                 ),
               ),
-              WButton.secondary(
-                '带语义的按钮',
-                style: WButtonStyle(
+              WButton(
+                style: AppButtons.secondary(context).copyWith(
                   semantics: const WButtonSemantics(
                     label: '保存草稿',
                     hint: '保存当前内容但不提交',
                   ),
                 ),
+                label: '带语义的按钮',
                 onTap: () {},
               ),
             ],

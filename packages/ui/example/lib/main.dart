@@ -36,18 +36,6 @@ class WImageExampleApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
-        extensions: [
-          WButtonThemeData(
-            primary: WButtonStyles.primary,
-            secondary: WButtonStyles.secondary,
-            text: WButtonStyles.text,
-            danger: WButtonStyles.danger,
-            variants: {
-              'brand': WButtonStyles.primary,
-              'warning': WButtonStyles.danger,
-            },
-          ),
-        ],
       ),
       home: const HomeShell(),
     );
