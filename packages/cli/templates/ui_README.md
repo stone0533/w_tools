@@ -5,7 +5,9 @@
 这里放项目自己的设计系统与页面约定，**不用于上移到 w_tools_ui**。
 
 - `app_bars.dart`：AppBar 默认样式，唯一入口 `AppBars.style`
+- `app_boxes.dart`：盒子装饰注册表（`AppBoxes.card` / `AppBoxes.warning`）
 - `app_buttons.dart`：按钮样式注册表，页面只使用 `AppButtons`
+- `app_card.dart`：重复卡片入口 `AppCard`
 - `app_scaffold.dart`：标准页面入口 `AppScaffold`
 
 ## 页面
@@ -37,6 +39,29 @@ WButton(
 ```
 
 真按钮用 `WButton`；任意 child/卡片点击用 `WPressable`；不要用 `WButton` 包任意 child。
+
+## 盒子与卡片
+
+重复的 `BoxDecoration` 收进 `AppBoxes`：
+
+```dart
+Container(
+  decoration: AppBoxes.card,
+  padding: const EdgeInsets.all(16),
+  child: ...,
+)
+```
+
+重复卡片：
+
+```dart
+AppCard(
+  child: ...,
+)
+```
+
+一次性盒子直接用 `Container` + `BoxDecoration`；需要 width / height / constraints /
+transform 时也直接用 `Container`。
 
 需要 drawer / bottomSheet / 非标准安全区时，用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
 

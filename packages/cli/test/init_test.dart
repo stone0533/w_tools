@@ -41,13 +41,17 @@ void main() {
       expect(report.created, contains('lib/app/w/toolkit.dart'));
       expect(report.created, contains('lib/app/design_system/README.md'));
       expect(report.created, contains('lib/app/ui/app_bars.dart'));
+      expect(report.created, contains('lib/app/ui/app_boxes.dart'));
       expect(report.created, contains('lib/app/ui/app_buttons.dart'));
+      expect(report.created, contains('lib/app/ui/app_card.dart'));
       expect(report.created, contains('lib/app/ui/app_scaffold.dart'));
       expect(report.created.any((e) => e.startsWith('AGENTS.md')), isTrue);
 
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, contains("export 'package:w_tools_ui/w_tools_ui.dart';"));
+      expect(toolkit, contains("export '../ui/app_boxes.dart';"));
       expect(toolkit, contains("export '../ui/app_buttons.dart';"));
+      expect(toolkit, contains("export '../ui/app_card.dart';"));
       expect(toolkit, contains("export '../ui/app_scaffold.dart';"));
       // 注意：注释里会提到 w_tools_map（解释为什么不导出），所以要断言 export 行
       expect(toolkit, isNot(contains("export 'package:w_tools_map")));
@@ -66,6 +70,16 @@ void main() {
       ).readAsStringSync();
       expect(appButtons, contains('class AppButtons'));
       expect(appButtons, contains('WButtonStyle primary'));
+      final appBoxes = File(
+        p.join(root.path, 'lib/app/ui/app_boxes.dart'),
+      ).readAsStringSync();
+      expect(appBoxes, contains('class AppBoxes'));
+      expect(appBoxes, contains('static const card'));
+      final appCard = File(
+        p.join(root.path, 'lib/app/ui/app_card.dart'),
+      ).readAsStringSync();
+      expect(appCard, contains('class AppCard'));
+      expect(appCard, contains('AppBoxes.card'));
     });
 
     test('--no-qr / --with-map 影响导出', () async {

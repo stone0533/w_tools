@@ -23,7 +23,9 @@ const _templates = <String, String>{
   'ui_README.md': 'uiReadme',
   'ui_README.en.md': 'uiReadmeEn',
   'app_bars.dart.tpl': 'appBarsTemplate',
+  'app_boxes.dart.tpl': 'appBoxesTemplate',
   'app_buttons.dart.tpl': 'appButtonsTemplate',
+  'app_card.dart.tpl': 'appCardTemplate',
   'app_scaffold.dart.tpl': 'appScaffoldTemplate',
 };
 

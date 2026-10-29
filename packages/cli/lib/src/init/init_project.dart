@@ -111,7 +111,9 @@ InitReport runInit(
   write('lib/app/design_system/README.md', InitTemplates.designSystemReadme(lang: lang));
   write('lib/app/ui/README.md', InitTemplates.uiReadme(lang: lang), starter: true);
   write('lib/app/ui/app_bars.dart', InitTemplates.appBars(), starter: true);
+  write('lib/app/ui/app_boxes.dart', InitTemplates.appBoxes(), starter: true);
   write('lib/app/ui/app_buttons.dart', InitTemplates.appButtons(), starter: true);
+  write('lib/app/ui/app_card.dart', InitTemplates.appCard(), starter: true);
   write('lib/app/ui/app_scaffold.dart', InitTemplates.appScaffold(), starter: true);
   // doctor 的默认配置：全注释，写了也不改变行为，只是把开关摊开。
   // 它是项目配置而不是生成物：存在就不再比对内容。

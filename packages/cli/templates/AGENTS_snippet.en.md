@@ -21,6 +21,9 @@
    `WButtonStyle` in pages unless it is an explicit one-off style.
    **Use `WButton` for real buttons, `WPressable` for arbitrary cards/child taps**;
    do not wrap arbitrary children with `WButton`.
+   **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated
+   cards; use `Container` + `BoxDecoration` for one-off boxes; use `Container` directly
+   for width/height/constraints/transform. Do not add an `AppBox` / `AppContainer` god wrapper.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

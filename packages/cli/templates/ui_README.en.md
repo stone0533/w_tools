@@ -6,7 +6,9 @@ Project-owned design system and page conventions live here.
 These files are **not** candidates for moving into `w_tools_ui`.
 
 - `app_bars.dart`: default app-bar style, entry point `AppBars.style`
+- `app_boxes.dart`: box decoration registry (`AppBoxes.card` / `AppBoxes.warning`)
 - `app_buttons.dart`: button style registry, pages use `AppButtons`
+- `app_card.dart`: repeated-card entry `AppCard`
 - `app_scaffold.dart`: standard page entry `AppScaffold`
 
 ## Pages
@@ -40,5 +42,28 @@ WButton(
 Use `WButton` for real buttons and `WPressable` for arbitrary card/child taps.
 Use `WScaffold` or plain `Scaffold` for drawers/bottom sheets/non-standard safe areas,
 and explain why in the PR.
+
+## Boxes and cards
+
+Put repeated `BoxDecoration` values in `AppBoxes`:
+
+```dart
+Container(
+  decoration: AppBoxes.card,
+  padding: const EdgeInsets.all(16),
+  child: ...,
+)
+```
+
+Use `AppCard` for repeated cards:
+
+```dart
+AppCard(
+  child: ...,
+)
+```
+
+Use `Container` + `BoxDecoration` for one-off boxes, and `Container` directly when you
+need width / height / constraints / transform.
 
 > Components waiting for promotion belong in `lib/app/design_system/`, not here.

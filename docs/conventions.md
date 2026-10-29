@@ -9,7 +9,7 @@
 | 层 | 路径（消费方项目内） | 放什么 |
 | --- | --- | --- |
 | **包** | `package:w_tools_*` | 与业务无关、多项目可用 |
-| **项目 UI 层** | `lib/app/ui/` | 项目永久设计系统（AppScaffold / AppBars / AppButtons） |
+| **项目 UI 层** | `lib/app/ui/` | 项目永久设计系统（AppScaffold / AppBars / AppBoxes / AppButtons / AppCard） |
 | **暂存层** | `lib/app/design_system/` | 判定为「通用」、待上移进包的组件 |
 | **业务层** | `lib/app/modules/**`、`data/**` | 知道业务的组合、数据、路由 |
 

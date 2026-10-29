@@ -20,5 +20,7 @@ export 'package:w_tools_map/w_tools_map.dart'; // @optional:map
 
 // 项目级页面规范
 export '../ui/app_bars.dart';
+export '../ui/app_boxes.dart';
 export '../ui/app_buttons.dart';
+export '../ui/app_card.dart';
 export '../ui/app_scaffold.dart';

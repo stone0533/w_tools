@@ -32,6 +32,10 @@ class InitTemplates {
 
   static String appBars() => generated.appBarsTemplate.replaceAll('{{version}}', cliVersion);
 
+  static String appBoxes() => generated.appBoxesTemplate.replaceAll('{{version}}', cliVersion);
+
+  static String appCard() => generated.appCardTemplate.replaceAll('{{version}}', cliVersion);
+
   static String appScaffold() =>
       generated.appScaffoldTemplate.replaceAll('{{version}}', cliVersion);
 

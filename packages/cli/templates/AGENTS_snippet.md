@@ -19,6 +19,9 @@
    **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
    `WButtonStyle`，除非是明确的局部一次性样式。
    **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；不要用 `WButton` 包任意 child。
+   **盒子**：重复 `BoxDecoration` 收进 `AppBoxes`；重复卡片用 `AppCard`；
+   一次性盒子用 `Container` + `BoxDecoration`；需要 width/height/constraints/transform
+   时直接用 `Container`。不要新增 `AppBox` / `AppContainer` 万能包装。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：

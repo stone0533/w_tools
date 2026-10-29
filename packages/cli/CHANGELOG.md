@@ -3,9 +3,10 @@
 ## 1.2.0
 
 ### Added
-- `init` 生成 `lib/app/ui/app_bars.dart`、`app_buttons.dart` 与
-  `app_scaffold.dart`：标准页面默认使用 `AppScaffold`，AppBar / 按钮样式统一走
-  `AppBars.style` / `AppButtons`。`lib/app/design_system/` 只保留待上移组件。
+- `init` 生成 `lib/app/ui/app_bars.dart`、`app_boxes.dart`、`app_buttons.dart`、
+  `app_card.dart` 与 `app_scaffold.dart`：标准页面默认使用 `AppScaffold`，
+  AppBar / 盒子 / 按钮样式统一走 `AppBars.style` / `AppBoxes` / `AppButtons`，
+  重复卡片用 `AppCard`。`lib/app/design_system/` 只保留待上移组件。
 - AGENTS / 暂存层规范补充：真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`。
 - toolkit 导出 AppScaffold/AppBars/AppButtons；AGENTS / `lib/app/ui/README.md`
   增加页面与按钮规范。
