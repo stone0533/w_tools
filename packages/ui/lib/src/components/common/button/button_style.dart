@@ -9,14 +9,13 @@ import 'button_size.dart';
 /// 动效见 [WButtonMotion]，语义/loading 文案见 [WButtonSemantics]。
 @immutable
 class WButtonStyle {
-  const WButtonStyle({
+  WButtonStyle({
     this.motion = const WButtonMotion(),
     this.semantics = const WButtonSemantics(),
     this.backgroundColor,
     this.gradient,
     this.border,
     this.borderRadius,
-    this.boxShadow,
     this.padding,
     this.clipBehavior = Clip.none,
     this.foregroundColor,
@@ -29,7 +28,8 @@ class WButtonStyle {
     this.tapTargetSize = 48,
     this.iconSize = 18,
     this.gap = 8,
-  });
+    List<BoxShadow>? boxShadow,
+  }) : boxShadow = boxShadow == null ? null : List<BoxShadow>.unmodifiable(boxShadow);
 
   final WButtonMotion motion;
   final WButtonSemantics semantics;
@@ -196,17 +196,36 @@ class WButtonStyle {
     );
   }
 
-  /// 清空背景相关字段。
-  WButtonStyle withoutBackground() {
+  static const Object _unset = Object();
+
+  WButtonStyle _copyNullable({
+    Object? backgroundColor = _unset,
+    Object? gradient = _unset,
+    Object? border = _unset,
+    Object? borderRadius = _unset,
+    Object? boxShadow = _unset,
+    Object? textStyle = _unset,
+    Object? foregroundColor = _unset,
+    Object? focusColor = _unset,
+    Object? hoverColor = _unset,
+  }) {
     return WButtonStyle(
       motion: motion,
       semantics: semantics,
+      backgroundColor:
+          identical(backgroundColor, _unset) ? this.backgroundColor : backgroundColor as Color?,
+      gradient: identical(gradient, _unset) ? this.gradient : gradient as Gradient?,
+      border: identical(border, _unset) ? this.border : border as BoxBorder?,
+      borderRadius:
+          identical(borderRadius, _unset) ? this.borderRadius : borderRadius as BorderRadius?,
+      boxShadow: identical(boxShadow, _unset) ? this.boxShadow : boxShadow as List<BoxShadow>?,
       padding: padding,
       clipBehavior: clipBehavior,
-      foregroundColor: foregroundColor,
-      textStyle: textStyle,
-      focusColor: focusColor,
-      hoverColor: hoverColor,
+      foregroundColor:
+          identical(foregroundColor, _unset) ? this.foregroundColor : foregroundColor as Color?,
+      textStyle: identical(textStyle, _unset) ? this.textStyle : textStyle as TextStyle?,
+      focusColor: identical(focusColor, _unset) ? this.focusColor : focusColor as Color?,
+      hoverColor: identical(hoverColor, _unset) ? this.hoverColor : hoverColor as Color?,
       disabledOpacity: disabledOpacity,
       minWidth: minWidth,
       minHeight: minHeight,
@@ -216,28 +235,32 @@ class WButtonStyle {
     );
   }
 
+  /// 只清空背景色/渐变，保留边框、圆角、阴影。
+  WButtonStyle withoutBackground() => _copyNullable(
+        backgroundColor: null,
+        gradient: null,
+      );
+
+  /// 清空全部装饰：背景、边框、圆角、阴影。
+  WButtonStyle withoutDecoration() => _copyNullable(
+        backgroundColor: null,
+        gradient: null,
+        border: null,
+        borderRadius: null,
+        boxShadow: null,
+      );
+
   /// 清空文本样式与前景色。
-  WButtonStyle withoutTextStyle() {
-    return WButtonStyle(
-      motion: motion,
-      semantics: semantics,
-      backgroundColor: backgroundColor,
-      gradient: gradient,
-      border: border,
-      borderRadius: borderRadius,
-      boxShadow: boxShadow,
-      padding: padding,
-      clipBehavior: clipBehavior,
-      focusColor: focusColor,
-      hoverColor: hoverColor,
-      disabledOpacity: disabledOpacity,
-      minWidth: minWidth,
-      minHeight: minHeight,
-      tapTargetSize: tapTargetSize,
-      iconSize: iconSize,
-      gap: gap,
-    );
-  }
+  WButtonStyle withoutTextStyle() => _copyNullable(
+        textStyle: null,
+        foregroundColor: null,
+      );
+
+  WButtonStyle withoutForegroundColor() => _copyNullable(foregroundColor: null);
+
+  WButtonStyle withoutFocusColor() => _copyNullable(focusColor: null);
+
+  WButtonStyle withoutHoverColor() => _copyNullable(hoverColor: null);
 
   /// 把尺寸令牌叠加到当前样式；只覆盖布局/文字/图标字段。
   WButtonStyle applySize(WButtonSize? size) {

@@ -252,7 +252,7 @@ typedef WButtonContentBuilder = Widget Function(
 | `gradient` | Gradient? | 渐变背景 |
 | `border` | BoxBorder? | 边框 |
 | `borderRadius` | BorderRadius? | 圆角 |
-| `boxShadow` | List<BoxShadow>? | 阴影 |
+| `boxShadow` | List<BoxShadow>? | 阴影（构造时复制为不可变） |
 | `padding` | EdgeInsetsGeometry? | 内容 padding |
 | `clipBehavior` | Clip | 背景裁剪 |
 | `foregroundColor` | Color? | 文字/图标前景色 |

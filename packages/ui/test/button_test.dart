@@ -10,7 +10,7 @@ Widget _wrap(Widget child) => MaterialApp(
 void main() {
   group('WButtonStyle / motion / semantics', () {
     test('默认值与 copyWith', () {
-      const style = WButtonStyle();
+      final style = WButtonStyle();
       expect(style.motion.effect, WButtonEffectType.opacity);
       expect(style.motion.pressedOpacity, 0.7);
       expect(style.motion.pressedScale, 0.95);
@@ -57,9 +57,13 @@ void main() {
       expect(style.backgroundColor, isNotNull);
       expect(style.borderRadius, isNotNull);
       expect(style.withoutBackground().backgroundColor, isNull);
-      expect(style.withoutBackground().borderRadius, isNull);
+      expect(style.withoutBackground().borderRadius, isNotNull);
+      expect(style.withoutDecoration().borderRadius, isNull);
       expect(style.withoutTextStyle().textStyle, isNull);
       expect(style.withoutTextStyle().foregroundColor, isNull);
+      expect(style.withoutForegroundColor().foregroundColor, isNull);
+      expect(style.withoutFocusColor().focusColor, isNull);
+      expect(style.withoutHoverColor().hoverColor, isNull);
 
       const semantics = WButtonSemantics(label: 'label', hint: 'hint');
       expect(semantics.withoutLabel().label, isNull);
@@ -89,6 +93,14 @@ void main() {
       final text = WButtonStyle.text(foregroundColor: Colors.black);
       expect(text.foregroundColor, Colors.black);
       expect(text.backgroundColor, isNull);
+    });
+
+    test('boxShadow 防御性不可变', () {
+      final shadows = <BoxShadow>[const BoxShadow()];
+      final style = WButtonStyle(boxShadow: shadows);
+      shadows.add(const BoxShadow());
+      expect(style.boxShadow, hasLength(1));
+      expect(() => style.boxShadow!.add(const BoxShadow()), throwsUnsupportedError);
     });
 
     test('预设不可变且共享', () {
@@ -342,7 +354,7 @@ void main() {
           WButton(
             label: 'focus',
             autofocus: true,
-            style: const WButtonStyle(focusColor: Colors.red),
+            style: WButtonStyle(focusColor: Colors.red),
             onTap: () {},
           ),
         ),
@@ -380,8 +392,8 @@ void main() {
         _wrap(
           WButton(
             label: 'opacity',
-            style: const WButtonStyle(
-              motion: WButtonMotion(pressedOpacity: 0.4),
+            style: WButtonStyle(
+              motion: const WButtonMotion(pressedOpacity: 0.4),
             ),
             onTap: () {},
           ),
@@ -410,8 +422,8 @@ void main() {
         _wrap(
           WButton(
             label: 'scale',
-            style: const WButtonStyle(
-              motion: WButtonMotion(
+            style: WButtonStyle(
+              motion: const WButtonMotion(
                 effect: WButtonEffectType.scale,
                 pressedScale: 0.8,
               ),
@@ -460,8 +472,8 @@ void main() {
           WButton(
             label: '键盘',
             autofocus: true,
-            style: const WButtonStyle(
-              motion: WButtonMotion(pressedOpacity: 0.35),
+            style: WButtonStyle(
+              motion: const WButtonMotion(pressedOpacity: 0.35),
             ),
             onTap: () => taps++,
           ),
@@ -485,8 +497,8 @@ void main() {
         _wrap(
           WButton(
             icon: Icons.close,
-            style: const WButtonStyle(
-              semantics: WButtonSemantics(
+            style: WButtonStyle(
+              semantics: const WButtonSemantics(
                 label: '关闭',
                 hint: '关闭当前弹窗',
               ),
