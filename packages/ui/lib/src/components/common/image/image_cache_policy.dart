@@ -3,7 +3,7 @@ import 'package:flutter/painting.dart';
 /// 全局图片缓存预算。
 ///
 /// 直接作用于 Flutter 的 [ImageCache]，对 asset / 网络 / Base64 解码后的位图统一生效。
-/// 这是**无 context** 的进程级配置；占位符默认值请用 `WImageTheme`。
+/// 这是**无 context** 的进程级配置；占位符默认值请用 `WImageDefaultsScope`。
 class WImageCachePolicy {
   WImageCachePolicy._();
 

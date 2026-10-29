@@ -102,10 +102,12 @@ void main() {
       expect(image.type, WImageType.base64);
     });
 
-    testWidgets('style 固定占位符优先于 theme', (tester) async {
+    testWidgets('style 固定占位符优先于 defaults', (tester) async {
       await tester.pumpWidget(
-        WImageTheme(
-          data: const WImageThemeData(defaultPlaceholder: Text('theme')),
+        WImageDefaultsScope(
+          defaults: WImageDefaults(
+            placeholderBuilder: (context, data) => const Text('theme'),
+          ),
           child: MaterialApp(
             home: Scaffold(
               body: WImage(
@@ -120,10 +122,12 @@ void main() {
       expect(find.text('theme'), findsNothing);
     });
 
-    testWidgets('WImageTheme 覆盖默认占位符', (tester) async {
+    testWidgets('WImageDefaultsScope 覆盖默认占位符', (tester) async {
       await tester.pumpWidget(
-        WImageTheme(
-          data: const WImageThemeData(defaultPlaceholder: Text('themed')),
+        WImageDefaultsScope(
+          defaults: WImageDefaults(
+            placeholderBuilder: (context, data) => const Text('themed'),
+          ),
           child: MaterialApp(
             home: Scaffold(
               body: WImage(data: 'data:image/png;base64,@@bad@@'),
@@ -132,6 +136,23 @@ void main() {
         ),
       );
       expect(find.text('themed'), findsOneWidget);
+    });
+
+    testWidgets('WImageDefaultsScope.errorBuilder 接收错误类型', (tester) async {
+      await tester.pumpWidget(
+        WImageDefaultsScope(
+          defaults: WImageDefaults(
+            errorBuilder: (context, data, error) => Text('ERR:${error.runtimeType}'),
+          ),
+          child: MaterialApp(
+            home: Scaffold(
+              body: WImage(data: 'data:image/png;base64,@@bad@@'),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.textContaining('ERR:WImageDecodeError'), findsOneWidget);
     });
 
     test('常用预设构造', () {

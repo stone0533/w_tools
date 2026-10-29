@@ -13,7 +13,7 @@
 - Base64
 - 圆形头像 + 边框/阴影
 - 进度、自动重试、手动重试
-- `WImageTheme` 默认占位符
+- `WImageDefaultsScope` 默认占位符/错误占位
 - `WImageCachePolicy` 缓存预算
 - `WImagePreloader` 预加载
 
@@ -36,6 +36,6 @@ flutter run
 | 状态矩阵 | `lib/states_page.dart` |
 | 常用配方 | `lib/recipes_page.dart` |
 | 进度 + 重试 | `WImage.network(..., retryCount:, progressBuilder:, errorWidgetBuilder:)` |
-| 主题 | `main()` 里的 `WImageTheme` |
+| 默认加载 UI | `main()` 里的 `WImageDefaultsScope` |
 | 缓存预算 | `main()` 里的 `WImageCachePolicy.configure` |
 | 预加载 | `states_page.dart` 里的 `WImagePreloader` 示例（可移到 Playground） |

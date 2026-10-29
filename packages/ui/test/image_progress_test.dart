@@ -54,13 +54,13 @@ class _ChunkProvider extends ImageProvider<_ChunkProvider> {
 }
 
 void main() {
-  testWidgets('WImageTheme.defaultProgressBuilder 用于网络/字节进度', (tester) async {
+  testWidgets('defaults progressBuilder 用于网络/字节进度', (tester) async {
     final provider = _ChunkProvider(base64Decode(_redPixel));
 
     await tester.pumpWidget(
-      WImageTheme(
-        data: WImageThemeData(
-          defaultProgressBuilder: (context, url, progress) => const Text('THEME_PROGRESS'),
+      WImageDefaultsScope(
+        defaults: WImageDefaults(
+          progressBuilder: (context, url, progress) => const Text('THEME_PROGRESS'),
         ),
         child: MaterialApp(
           home: WImage.provider(

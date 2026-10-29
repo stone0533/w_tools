@@ -7,7 +7,9 @@
 - `WImageConfigBuild` 扩展删除；用 `WImage.source` / `WImage.network/asset/file/base64`。
 - `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。
 - `WImage.onLoadProgress`、`progressIndicatorBuilder`、`cacheEnabled`、`fitCenter`、`size` 均已删除。
-- `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageTheme` + `WImageCachePolicy`。
+- `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageDefaultsScope` + `WImageCachePolicy`。
+- `WImageTheme` / `WImageThemeData` 改为 `WImageDefaultsScope` / `WImageDefaults`；
+  默认占位/错误/进度统一为 builder。
 - `WButtonConfig` / 配置缓存 / `WButtonThemeData` 删除；`WButton` 改用显式 `WButtonStyle`。
 - `WButton.enabled` / `loading` 改为组件参数。
 - `WButton` 删除任意 `child`；改用 `content` / `contentBuilder`，任意区域点击用 `WPressable`。
@@ -43,18 +45,18 @@
 
 ### Added
 - 新架构入口：`WImage.source(source:, style:)`、sealed `WImageSource`、不可变 `WImageStyle`、
-  `WImageFrame`、`WImageTheme`。
+  `WImageFrame`、`WImageDefaultsScope`。
 - 场景预设：`WImage.avatar` / `WImage.thumbnail` / `WImage.cover` / `WImage.assetImage` /
   `WImage.memory` / `WImage.provider`，以及 `WImageStyle.avatar/thumbnail/cover`。
 - `WImageStyle` 链式糖：`square()` / `rounded()` / `decodeSize()`。
 - `WImageStyle(showRetryButton: true)` + `WImageErrorView` 内置错误/重试视图；
   小尺寸自动只显示图标。
 - `WImageProviderError`：`provider` / `memory` 解码失败的错误类型。
-- `WImageThemeData.defaultProgressBuilder`。
+- `WImageDefaults.progressBuilder`。
 - `WImageSource.parse` 保留字符串自动判定；`WImage(data:, style:)` 与命名构造作为便利入口。
 - `WImageController.state`：`ValueListenable<WImageLoadSnapshot>`（status/progress/attempt/error/retryScheduled）。
 - `WImageLoadSnapshot` 实现 `==`/`hashCode`，`emit()` 相同快照不重复通知。
-- `WImageCachePolicy`：进程级 `ImageCache` 预算；`WImageTheme` 管默认占位符。
+- `WImageCachePolicy`：进程级 `ImageCache` 预算；`WImageDefaultsScope` 管默认占位/错误/进度。
 - 重试定时器、错误分类、进度上报与状态去重移入 `WImageLoader`；`WImage` 的 State 只做构建/渲染。
 - 网络路径统一为 `CachedNetworkImageProvider` + `Image`，进度改用 `ImageChunkEvent`；
   磁盘缓存仍走 `cached_network_image`。
@@ -88,6 +90,8 @@
 - `showRetryButton` 只对网络/provider/文件错误显示重试，空数据/Base64/asset/unsupported 不显示。
 - `WImageErrorView` 的尺寸完全交给 `LayoutBuilder` 判断；`compact` / `showAction` 仅作为显式覆盖参数。
 - `WImage.provider` / `WImage.memory` 复用 provider，避免每次 build 重新解析。
+- `WImageController` 同时绑定多个 WImage 时在 debug 下断言；`WImageFrame` 渲染时复制 `boxShadow`
+  为不可变快照。
 - `WImage` 的 `key` 之前没有传给 `StatefulWidget`，导致所有构造方式的 `key` 实际失效。
 - 修改 `retryCount` / `retryDelay` 时会取消已排队的重试。
 - 网络图的 `completed` 状态改为在首帧到达时上报。
@@ -155,9 +159,6 @@
   迁移：`WNetworkImageWithRetry(imageUrl: url, retryCount: 3, ...)` →
   `WImage.network(url, config: WImageConfig()..retryCount = 3)`；
   需要手动重试时用 `WImageController`。
-
-- `WImage`：文档推荐优先使用 `WImage.source` / 命名构造；`WImageController` 增加单图绑定断言；
-  `WImageFrame` 渲染时复制 `boxShadow` 为不可变快照，并补充自定义占位尺寸说明。
 
 ### Deprecated
 - `WImageConfig.cacheEnabled`：资产图片已统一走 Flutter `ImageCache`，该开关不再生效。

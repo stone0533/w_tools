@@ -43,7 +43,7 @@ ui/
     │   │   │   ├── image_loader.dart           # WImageLoader / WImageLoadSnapshot
     │   │   │   ├── image_load_state.dart       # 内部状态基类
     │   │   │   ├── image_frame.dart            # WImageFrame
-    │   │   │   ├── image_theme.dart            # WImageTheme
+    │   │   │   ├── image_defaults.dart         # WImageDefaultsScope
     │   │   │   ├── image_types.dart            # WImageType / WImageProgress / WImageError
     │   │   │   ├── image_retry_policy.dart     # 重试判定与退避（内部）
     │   │   │   └── _image_file_*.dart          # file provider 条件实现
@@ -663,7 +663,7 @@ WImage.source(
 
 - `WImageSource` 是 sealed：`network` / `asset` / `file` / `base64`，`WImageSource.parse` 保留字符串自动判定；
 - `WImageStyle` 不可变，提供 `copyWith`、`validate`；
-- `WImageTheme`（InheritedWidget）可按子树覆盖默认占位符/错误占位符，优先于组件内置兜底；
+- `WImageDefaultsScope`（InheritedWidget）可按子树覆盖默认占位符/错误占位/进度 UI；
 - `WImageController.state` 暴露 `ValueListenable<WImageLoadSnapshot>`（status / progress / attempt）；
 - 重试定时器、错误分类、进度上报与状态去重都在 `WImageLoader` 内，`WImage` 的 State 只负责构建与渲染；
 - 网络图统一走 `CachedNetworkImageProvider` + `Image`：磁盘缓存仍由 `cached_network_image` 负责，
@@ -760,17 +760,17 @@ WImage.source(
 - 自定义 `placeholder` / `placeholderBuilder` / `errorWidget` / `errorWidgetBuilder`
   不会自动套 `SizedBox`；需要自己按 `width` / `height` 或 `AspectRatio` 处理尺寸。
 
-### WImageTheme / WImageCachePolicy
+### WImageDefaultsScope / WImageCachePolicy
 
-- `WImageTheme`（InheritedWidget）按子树覆盖默认占位符/错误占位符/默认进度构建器；
+- `WImageDefaultsScope`（InheritedWidget）按子树覆盖默认占位符/错误占位/默认进度构建器；
 - `WImageCachePolicy` 是进程级缓存预算，直接同步 Flutter `ImageCache`：
 
 ```dart
-WImageTheme(
-  data: const WImageThemeData(
-    defaultPlaceholder: CircularProgressIndicator(),
-    defaultErrorWidget: Icon(Icons.broken_image),
-    defaultProgressBuilder: _defaultProgress,
+WImageDefaultsScope(
+  defaults: WImageDefaults(
+    placeholderBuilder: (context, data) => const CircularProgressIndicator(),
+    errorBuilder: (context, data, error) => const Icon(Icons.broken_image),
+    progressBuilder: (context, data, progress) => _defaultProgress(progress),
   ),
   child: ...,
 )
@@ -779,8 +779,8 @@ WImageCachePolicy.configure(maxSize: 200, maxMemoryBytes: 200 * 1024 * 1024);
 WImageCachePolicy.reset();
 ```
 
-优先级：style builder > style 固定 Widget > `WImageTheme` > 内置兜底。
-`WImageThemeData.defaultProgressBuilder` 可作为所有网络图的默认进度 UI。
+优先级：style builder > style 固定 Widget > `WImageDefaultsScope` > 内置兜底。
+`WImageDefaults.progressBuilder` 可作为所有网络图的默认进度 UI。
 内置错误视图可用 `WImageStyle(showRetryButton: true)` 启用，或直接复用 `WImageErrorView`。
 `WImageErrorView` 尺寸策略：
 

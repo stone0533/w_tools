@@ -178,7 +178,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text('自定义 placeholder'),
-          subtitle: const Text('关闭后使用 WImageTheme 的默认占位符'),
+          subtitle: const Text('关闭后使用 WImageDefaultsScope 的默认占位符'),
           value: _customPlaceholder,
           onChanged: (value) => setState(() => _customPlaceholder = value),
         ),

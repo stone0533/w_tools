@@ -11,7 +11,7 @@ import 'image_frame.dart';
 import 'image_loader.dart';
 import 'image_source.dart';
 import 'image_style.dart';
-import 'image_theme.dart';
+import 'image_defaults.dart';
 import 'image_types.dart';
 
 // 条件导入：默认 Web（没有文件系统），只有存在 dart:io 时才切到原生实现。
@@ -25,7 +25,7 @@ export 'image_error_view.dart';
 export 'image_loader.dart';
 export 'image_source.dart';
 export 'image_style.dart';
-export 'image_theme.dart';
+export 'image_defaults.dart';
 export 'image_types.dart';
 
 /// 图片控制器
@@ -552,15 +552,15 @@ class _WImageState extends State<WImage> {
     return SizedBox(width: config.width, height: config.height, child: child);
   }
 
-  /// 构建默认占位符（theme 优先，其次全局配置/内置兜底）
+  /// 构建默认占位符（defaults 优先，其次内置兜底）
   Widget _buildPlaceholder(BuildContext context) {
-    final themed = WImageTheme.maybeOf(context)?.defaultPlaceholder;
+    final themed = WImageDefaultsScope.maybeOf(context)?.placeholderBuilder?.call(context, _value);
     return _sizedSlot(themed ?? _fallbackPlaceholder);
   }
 
-  /// 构建默认错误占位符（theme 优先，其次全局配置/内置兜底）
-  Widget _buildErrorWidget(BuildContext context) {
-    final themed = WImageTheme.maybeOf(context)?.defaultErrorWidget;
+  /// 构建默认错误占位符（defaults 优先，其次内置兜底）
+  Widget _buildErrorWidget(BuildContext context, WImageError error) {
+    final themed = WImageDefaultsScope.maybeOf(context)?.errorBuilder?.call(context, _value, error);
     return _sizedSlot(themed ?? _fallbackErrorWidget);
   }
 
@@ -573,11 +573,11 @@ class _WImageState extends State<WImage> {
     return config.placeholder ?? _buildPlaceholder(context);
   }
 
-  /// 错误占位：业务 builder > 固定 Widget > 内置重试视图 > theme/兜底
+  /// 错误占位：业务 builder > 固定 Widget > 内置重试视图 > defaults/兜底
   Widget _errorSlot(BuildContext context, WImageError error) {
     final builder = config.errorWidgetBuilder;
     if (builder != null) {
-      return builder(context, error.data, error) ?? _buildErrorWidget(context);
+      return builder(context, error.data, error) ?? _buildErrorWidget(context, error);
     }
     if (config.errorWidget != null) return config.errorWidget!;
     if (config.showRetryButton) {
@@ -593,7 +593,7 @@ class _WImageState extends State<WImage> {
         ),
       );
     }
-    return _buildErrorWidget(context);
+    return _buildErrorWidget(context, error);
   }
 
   ImageProvider _cachedProvider(Object key, ImageProvider Function() create) {
@@ -754,7 +754,7 @@ class _WImageState extends State<WImage> {
           totalBytes: loadingProgress.expectedTotalBytes,
         );
         _load.handleProgress(progress);
-        final builder = progressBuilder ?? WImageTheme.maybeOf(context)?.defaultProgressBuilder;
+        final builder = progressBuilder ?? WImageDefaultsScope.maybeOf(context)?.progressBuilder;
         return builder?.call(context, _value, progress) ?? _placeholderFor(context);
       },
       errorBuilder: (context, error, stackTrace) {

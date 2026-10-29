@@ -9,19 +9,19 @@ import 'states_page.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 进程级缓存预算；占位符默认值交给 WImageTheme。
+  // 进程级缓存预算；占位符/错误占位默认值交给 WImageDefaultsScope。
   WImageCachePolicy.configure(
     maxSize: 300,
     maxMemoryBytes: 300 * 1024 * 1024,
   );
 
   runApp(
-    const WImageTheme(
-      data: WImageThemeData(
-        defaultPlaceholder: Center(child: CircularProgressIndicator()),
-        defaultErrorWidget: Icon(Icons.broken_image),
+    WImageDefaultsScope(
+      defaults: WImageDefaults(
+        placeholderBuilder: (context, data) => const Center(child: CircularProgressIndicator()),
+        errorBuilder: (context, data, error) => const Icon(Icons.broken_image),
       ),
-      child: WImageExampleApp(),
+      child: const WImageExampleApp(),
     ),
   );
 }
