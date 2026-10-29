@@ -1150,6 +1150,13 @@ WListViewConfig.vertical()
 
 不再提供 `WScaffoldConfig`；直接构造参数。
 
+说明：
+
+- 不传 `title` / `actions` / `onBack` / `appBarBottom` / `appBar` 时不会创建顶部栏；
+- 没有顶部栏且 `includeTopSafeArea` 为 false 时，body 会顶到状态栏下方；
+- 有 `bottomNavigationBar` 时不再重复加底部安全区；
+- `WScaffold` 是轻量页面壳，不提供 drawer / bottomSheet / extendBody；需要时用原生 `Scaffold`。
+
 ### 使用示例
 
 ```dart
@@ -1264,7 +1271,9 @@ WScaffold(
 - `title` 与 `titleWidget` 二选一；
 - `actions` 是 `List<Widget>`；
 - `includeStatusBar` 默认 true，负责状态栏背景与 padding；
-- 高度为 `style.height`，bottom 额外计算。
+- 高度为 `style.height`，bottom 额外计算；
+- WScaffold 内部的 PreferredSize 只包含 `contentHeight`（toolbar + bottom），状态栏由 WAppBar 自己绘制，避免重复计算；
+- `WAppBarStyle` 提供 `copyWith` 与 `validate`。
 
 需要完全自定义叠放时，直接在页面里使用 `Container` / `Stack`，不使用 WAppBar。
 

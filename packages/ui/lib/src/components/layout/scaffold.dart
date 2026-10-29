@@ -66,7 +66,8 @@ class WScaffold extends StatelessWidget {
       titleWidget != null ||
       leading != null ||
       actions.isNotEmpty ||
-      onBack != null;
+      onBack != null ||
+      appBarBottom != null;
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +100,7 @@ class WScaffold extends StatelessWidget {
     final appBarWidget = bar == null
         ? null
         : PreferredSize(
-            preferredSize: Size.fromHeight(bar.totalHeight(context)),
+            preferredSize: Size.fromHeight(bar.contentHeight),
             child: bar,
           );
 

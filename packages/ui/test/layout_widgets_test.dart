@@ -226,6 +226,47 @@ void main() {
     expect(find.text('body'), findsOneWidget);
   });
 
+  testWidgets('WScaffold — 状态栏只计算一次', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(padding: EdgeInsets.only(top: 24)),
+          child: WScaffold(
+            title: '标题',
+            body: Text('body'),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getTopLeft(find.text('body')).dy, 80);
+  });
+
+  testWidgets('WScaffold — appBarBottom 会触发默认 AppBar', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WScaffold(
+          appBarBottom: PreferredSize(
+            preferredSize: Size.fromHeight(20),
+            child: Text('tab'),
+          ),
+          body: Text('body'),
+        ),
+      ),
+    );
+
+    expect(find.text('tab'), findsOneWidget);
+    expect(find.text('body'), findsOneWidget);
+  });
+
+  test('WAppBarStyle — copyWith / validate', () {
+    const style = WAppBarStyle(height: 56, titleSpacing: 8);
+    final next = style.copyWith(height: 64, titleSpacing: null);
+    expect(next.height, 64);
+    expect(next.titleSpacing, isNull);
+    expect(() => style.copyWith(height: -1).validate(), throwsAssertionError);
+  });
+
   testWidgets('WScaffold — 支持 bottomNavigationBar / floatingActionButton', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

@@ -21,6 +21,40 @@ class WAppBarStyle {
   final double height;
   final double? titleSpacing;
   final SystemUiOverlayStyle? systemOverlayStyle;
+
+  static const Object _unset = Object();
+
+  WAppBarStyle copyWith({
+    Object? backgroundColor = _unset,
+    Object? gradient = _unset,
+    Object? foregroundColor = _unset,
+    Object? titleStyle = _unset,
+    double? height,
+    Object? titleSpacing = _unset,
+    Object? systemOverlayStyle = _unset,
+  }) {
+    return WAppBarStyle(
+      backgroundColor:
+          identical(backgroundColor, _unset) ? this.backgroundColor : backgroundColor as Color?,
+      gradient: identical(gradient, _unset) ? this.gradient : gradient as Gradient?,
+      foregroundColor:
+          identical(foregroundColor, _unset) ? this.foregroundColor : foregroundColor as Color?,
+      titleStyle: identical(titleStyle, _unset) ? this.titleStyle : titleStyle as TextStyle?,
+      height: height ?? this.height,
+      titleSpacing: identical(titleSpacing, _unset) ? this.titleSpacing : titleSpacing as double?,
+      systemOverlayStyle: identical(systemOverlayStyle, _unset)
+          ? this.systemOverlayStyle
+          : systemOverlayStyle as SystemUiOverlayStyle?,
+    );
+  }
+
+  void validate() {
+    assert(height >= 0 && height.isFinite, 'WAppBarStyle.height 非法');
+    assert(
+      titleSpacing == null || titleSpacing!.isFinite,
+      'WAppBarStyle.titleSpacing 非法',
+    );
+  }
 }
 
 /// 标准顶部导航栏。
@@ -67,6 +101,7 @@ class WAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    style.validate();
     final localizations = MaterialLocalizations.of(context);
     final leadingWidget = leading ?? _buildLeading(context, localizations);
     final middle = _buildTitle();
