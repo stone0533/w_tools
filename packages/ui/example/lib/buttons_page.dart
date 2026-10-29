@@ -358,7 +358,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
                     children: [
                       Icon(Icons.add, size: style.iconSize),
                       SizedBox(width: style.gap),
-                      WText(text: '新增', config: style.textStyle),
+                      Text('新增', style: style.textStyle),
                     ],
                   );
                 },

@@ -1,49 +1,65 @@
 import 'package:flutter/material.dart';
 
-import '../../layout/container.dart';
-import '../text.dart';
 import 'button_motion.dart';
-import 'button_size.dart';
 import 'button_semantics.dart';
+import 'button_size.dart';
 
 /// 不可变的按钮视觉样式。
 ///
 /// 动效见 [WButtonMotion]，语义/loading 文案见 [WButtonSemantics]。
 @immutable
 class WButtonStyle {
-  WButtonStyle({
+  const WButtonStyle({
     this.motion = const WButtonMotion(),
     this.semantics = const WButtonSemantics(),
-    WContainerConfig? container,
+    this.backgroundColor,
+    this.gradient,
+    this.border,
+    this.borderRadius,
+    this.boxShadow,
     this.padding,
-    WTextConfig? textStyle,
+    this.clipBehavior = Clip.none,
+    this.foregroundColor,
+    this.textStyle,
     this.focusColor,
     this.hoverColor,
-    this.overlayBorderRadius,
     this.disabledOpacity = 0.5,
     this.minWidth = 48,
     this.minHeight = 48,
     this.tapTargetSize = 48,
     this.iconSize = 18,
     this.gap = 8,
-  })  : _container = container?.copy(),
-        _textStyle = textStyle?.copy();
+  });
 
   final WButtonMotion motion;
   final WButtonSemantics semantics;
 
-  final WContainerConfig? _container;
+  /// 纯色背景
+  final Color? backgroundColor;
 
-  /// 容器样式快照；每次读取返回副本
-  WContainerConfig? get container => _container?.copy();
+  /// 渐变背景
+  final Gradient? gradient;
 
-  /// 无 container 时的外层 padding；有 container 时由 container.padding 控制
+  /// 边框
+  final BoxBorder? border;
+
+  /// 圆角
+  final BorderRadius? borderRadius;
+
+  /// 阴影
+  final List<BoxShadow>? boxShadow;
+
+  /// 内容内边距
   final EdgeInsetsGeometry? padding;
 
-  final WTextConfig? _textStyle;
+  /// 背景裁剪行为；none 表示不裁剪
+  final Clip clipBehavior;
 
-  /// 文本样式快照；每次读取返回副本
-  WTextConfig? get textStyle => _textStyle?.copy();
+  /// 文字/图标默认前景色
+  final Color? foregroundColor;
+
+  /// 文本样式
+  final TextStyle? textStyle;
 
   /// 键盘焦点 overlay
   final Color? focusColor;
@@ -51,10 +67,9 @@ class WButtonStyle {
   /// hover overlay
   final Color? hoverColor;
 
-  /// focus/hover overlay 裁剪圆角
-  final BorderRadiusGeometry? overlayBorderRadius;
-
+  /// 禁用透明度
   final double disabledOpacity;
+
   final double minWidth;
   final double minHeight;
   final double tapTargetSize;
@@ -66,25 +81,21 @@ class WButtonStyle {
     required Color backgroundColor,
     Color? foregroundColor,
     Color? borderColor,
-    BorderRadiusGeometry? borderRadius,
+    BorderRadius? borderRadius,
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-    WTextConfig? textStyle,
+    TextStyle? textStyle,
     WButtonMotion motion = const WButtonMotion(),
     WButtonSemantics semantics = const WButtonSemantics(),
   }) {
-    final container = WContainerConfig()
-      ..color = backgroundColor
-      ..padding = padding
-      ..borderRadius = borderRadius ?? BorderRadius.circular(8);
-    if (borderColor != null) container.border = Border.all(color: borderColor);
-    final text = textStyle?.copy() ?? WTextConfig();
-    if (foregroundColor != null) text.color = foregroundColor;
     return WButtonStyle(
-      container: container,
-      textStyle: text,
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      border: borderColor == null ? null : Border.all(color: borderColor),
+      borderRadius: borderRadius ?? BorderRadius.circular(8),
+      padding: padding,
+      textStyle: textStyle,
       motion: motion,
       semantics: semantics,
-      overlayBorderRadius: borderRadius ?? BorderRadius.circular(8),
     );
   }
 
@@ -92,26 +103,22 @@ class WButtonStyle {
   factory WButtonStyle.outlined({
     Color? foregroundColor,
     Color? borderColor,
-    BorderRadiusGeometry? borderRadius,
+    BorderRadius? borderRadius,
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-    WTextConfig? textStyle,
+    TextStyle? textStyle,
     WButtonMotion motion = const WButtonMotion(),
     WButtonSemantics semantics = const WButtonSemantics(),
   }) {
     final color = borderColor ?? foregroundColor;
-    final container = WContainerConfig()
-      ..color = Colors.transparent
-      ..padding = padding
-      ..borderRadius = borderRadius ?? BorderRadius.circular(8);
-    if (color != null) container.border = Border.all(color: color);
-    final text = textStyle?.copy() ?? WTextConfig();
-    if (foregroundColor != null) text.color = foregroundColor;
     return WButtonStyle(
-      container: container,
-      textStyle: text,
+      backgroundColor: Colors.transparent,
+      foregroundColor: foregroundColor,
+      border: color == null ? null : Border.all(color: color),
+      borderRadius: borderRadius ?? BorderRadius.circular(8),
+      padding: padding,
+      textStyle: textStyle,
       motion: motion,
       semantics: semantics,
-      overlayBorderRadius: borderRadius ?? BorderRadius.circular(8),
     );
   }
 
@@ -119,21 +126,17 @@ class WButtonStyle {
   factory WButtonStyle.text({
     Color? foregroundColor,
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    WTextConfig? textStyle,
+    TextStyle? textStyle,
     WButtonMotion motion = const WButtonMotion(),
     WButtonSemantics semantics = const WButtonSemantics(),
   }) {
-    final container = WContainerConfig()
-      ..color = Colors.transparent
-      ..padding = padding;
-    final text = textStyle?.copy() ?? WTextConfig();
-    if (foregroundColor != null) text.color = foregroundColor;
     return WButtonStyle(
-      container: container,
-      textStyle: text,
+      foregroundColor: foregroundColor,
+      borderRadius: BorderRadius.circular(8),
+      padding: padding,
+      textStyle: textStyle,
       motion: motion,
       semantics: semantics,
-      overlayBorderRadius: BorderRadius.circular(8),
     );
   }
 
@@ -152,12 +155,17 @@ class WButtonStyle {
   WButtonStyle copyWith({
     WButtonMotion? motion,
     WButtonSemantics? semantics,
-    WContainerConfig? container,
+    Color? backgroundColor,
+    Gradient? gradient,
+    BoxBorder? border,
+    BorderRadius? borderRadius,
+    List<BoxShadow>? boxShadow,
     EdgeInsetsGeometry? padding,
-    WTextConfig? textStyle,
+    Clip? clipBehavior,
+    Color? foregroundColor,
+    TextStyle? textStyle,
     Color? focusColor,
     Color? hoverColor,
-    BorderRadiusGeometry? overlayBorderRadius,
     double? disabledOpacity,
     double? minWidth,
     double? minHeight,
@@ -168,12 +176,17 @@ class WButtonStyle {
     return WButtonStyle(
       motion: motion ?? this.motion,
       semantics: semantics ?? this.semantics,
-      container: container ?? this.container,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      gradient: gradient ?? this.gradient,
+      border: border ?? this.border,
+      borderRadius: borderRadius ?? this.borderRadius,
+      boxShadow: boxShadow ?? this.boxShadow,
       padding: padding ?? this.padding,
+      clipBehavior: clipBehavior ?? this.clipBehavior,
+      foregroundColor: foregroundColor ?? this.foregroundColor,
       textStyle: textStyle ?? this.textStyle,
       focusColor: focusColor ?? this.focusColor,
       hoverColor: hoverColor ?? this.hoverColor,
-      overlayBorderRadius: overlayBorderRadius ?? this.overlayBorderRadius,
       disabledOpacity: disabledOpacity ?? this.disabledOpacity,
       minWidth: minWidth ?? this.minWidth,
       minHeight: minHeight ?? this.minHeight,
@@ -183,16 +196,17 @@ class WButtonStyle {
     );
   }
 
-  /// 清空 container（用于从有背景切换到纯文本）。
-  WButtonStyle withoutContainer() {
+  /// 清空背景相关字段。
+  WButtonStyle withoutBackground() {
     return WButtonStyle(
       motion: motion,
       semantics: semantics,
       padding: padding,
+      clipBehavior: clipBehavior,
+      foregroundColor: foregroundColor,
       textStyle: textStyle,
       focusColor: focusColor,
       hoverColor: hoverColor,
-      overlayBorderRadius: overlayBorderRadius,
       disabledOpacity: disabledOpacity,
       minWidth: minWidth,
       minHeight: minHeight,
@@ -202,16 +216,20 @@ class WButtonStyle {
     );
   }
 
-  /// 清空 textStyle。
+  /// 清空文本样式与前景色。
   WButtonStyle withoutTextStyle() {
     return WButtonStyle(
       motion: motion,
       semantics: semantics,
-      container: container,
+      backgroundColor: backgroundColor,
+      gradient: gradient,
+      border: border,
+      borderRadius: borderRadius,
+      boxShadow: boxShadow,
       padding: padding,
+      clipBehavior: clipBehavior,
       focusColor: focusColor,
       hoverColor: hoverColor,
-      overlayBorderRadius: overlayBorderRadius,
       disabledOpacity: disabledOpacity,
       minWidth: minWidth,
       minHeight: minHeight,
@@ -225,33 +243,26 @@ class WButtonStyle {
   WButtonStyle applySize(WButtonSize? size) {
     if (size == null) return this;
     size.validate();
-    final nextContainer = container?.copy();
-    if (size.padding != null && nextContainer != null) {
-      nextContainer.padding = size.padding;
+    TextStyle? nextTextStyle = textStyle;
+    if (size.fontSize != null ||
+        size.fontWeight != null ||
+        size.lineHeight != null ||
+        size.letterSpacing != null) {
+      nextTextStyle = (textStyle ?? const TextStyle()).copyWith(
+        fontSize: size.fontSize,
+        fontWeight: size.fontWeight,
+        height: size.lineHeight,
+        letterSpacing: size.letterSpacing,
+      );
     }
-    final nextTextStyle = textStyle?.copyWith(
-      fontSize: size.fontSize,
-      fontWeight: size.fontWeight,
-      height: size.lineHeight,
-      letterSpacing: size.letterSpacing,
-    );
     return copyWith(
-      container: nextContainer,
-      padding: nextContainer == null ? (size.padding ?? padding) : null,
+      padding: size.padding ?? padding,
       minWidth: size.minWidth ?? minWidth,
       minHeight: size.minHeight ?? minHeight,
       tapTargetSize: size.tapTargetSize,
       textStyle: nextTextStyle,
       iconSize: size.iconSize ?? iconSize,
       gap: size.gap ?? gap,
-    );
-  }
-
-  /// 深拷贝，避免共享可变的 container / textStyle。
-  WButtonStyle copy() {
-    return copyWith(
-      container: container?.copy(),
-      textStyle: textStyle?.copy(),
     );
   }
 }

@@ -4,8 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../layout/container.dart';
-import '../text.dart';
 import 'button_motion.dart';
 import 'button_size.dart';
 import 'button_style.dart';
@@ -23,7 +21,7 @@ part 'button_tap_target.dart';
 
 /// 按钮内容构建器。
 ///
-/// [style] 是已经合并 theme、variant、size 后的最终样式。
+/// [style] 是已经应用 size 的最终样式。
 typedef WButtonContentBuilder = Widget Function(
   BuildContext context,
   WButtonStyle style,
@@ -137,7 +135,7 @@ class _WButtonState extends State<WButton> {
     final base = widget.style ?? WButtonStyles.primary;
     final semantic = widget.semanticLabel;
     final resolved = semantic == null
-        ? base.copy()
+        ? base
         : base.copyWith(
             semantics: base.semantics.copyWith(label: semantic),
           );
@@ -204,12 +202,37 @@ class _WButtonState extends State<WButton> {
     final theme = Theme.of(context);
 
     final child = _buildButtonContentWidget(this, context, style);
-    final container = style.container?.copy();
     final inner = _buildButtonContent(this, context, style, child);
-    final padded = container == null && style.padding != null
-        ? Padding(padding: style.padding!, child: inner)
-        : inner;
-    final content = container == null ? padded : WContainer(config: container, child: padded);
+    final padded = Padding(
+      padding: style.padding ?? EdgeInsets.zero,
+      child: inner,
+    );
+
+    Widget content = padded;
+    final hasDecoration = style.backgroundColor != null ||
+        style.gradient != null ||
+        style.border != null ||
+        style.borderRadius != null ||
+        style.boxShadow != null;
+    if (hasDecoration) {
+      content = DecoratedBox(
+        decoration: BoxDecoration(
+          color: style.backgroundColor,
+          gradient: style.gradient,
+          border: style.border,
+          borderRadius: style.borderRadius,
+          boxShadow: style.boxShadow,
+        ),
+        child: padded,
+      );
+    }
+    if (style.clipBehavior != Clip.none) {
+      content = ClipRRect(
+        borderRadius: style.borderRadius ?? BorderRadius.zero,
+        clipBehavior: style.clipBehavior,
+        child: content,
+      );
+    }
 
     Widget visualChild = ConstrainedBox(
       constraints: BoxConstraints(
@@ -236,14 +259,14 @@ class _WButtonState extends State<WButton> {
         result = _buildButtonOverlay(
           result,
           hoverColor,
-          style.overlayBorderRadius,
+          style.borderRadius,
         );
       }
       if (_focused && interactive) {
         result = _buildButtonOverlay(
           result,
           focusColor,
-          style.overlayBorderRadius,
+          style.borderRadius,
         );
       }
       return result;

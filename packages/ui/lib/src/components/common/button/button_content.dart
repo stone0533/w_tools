@@ -1,21 +1,31 @@
 part of 'button.dart';
 
+TextStyle? _buttonLabelStyle(WButtonStyle style) {
+  final base = style.textStyle;
+  if (style.foregroundColor == null) return base;
+  return (base ?? const TextStyle()).copyWith(color: style.foregroundColor);
+}
+
 Widget _buildButtonLabel(_WButtonState state, WButtonStyle style) {
   final widget = state.widget;
   final label = widget.label;
   final icon = widget.icon;
+  final textStyle = _buttonLabelStyle(style);
+  final iconColor = style.foregroundColor;
   if (label != null && icon != null) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: style.iconSize),
+        Icon(icon, size: style.iconSize, color: iconColor),
         SizedBox(width: style.gap),
-        WText(text: label, config: style.textStyle),
+        Text(label, style: textStyle),
       ],
     );
   }
-  if (icon != null) return Icon(icon, size: style.iconSize);
-  if (label != null) return WText(text: label, config: style.textStyle);
+  if (icon != null) {
+    return Icon(icon, size: style.iconSize, color: iconColor);
+  }
+  if (label != null) return Text(label, style: textStyle);
   return const SizedBox.shrink();
 }
 

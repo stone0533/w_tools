@@ -248,11 +248,16 @@ typedef WButtonContentBuilder = Widget Function(
 |------|------|------|
 | `motion` | `WButtonMotion` | 按压效果 |
 | `semantics` | `WButtonSemantics` | 语义 / loading 文案 |
-| `container` | `WContainerConfig?` | 容器样式快照 |
-| `padding` | `EdgeInsetsGeometry?` | 无 container 时外层 padding |
-| `textStyle` | `WTextConfig?` | 文本样式快照 |
+| `backgroundColor` | Color? | 纯色背景 |
+| `gradient` | Gradient? | 渐变背景 |
+| `border` | BoxBorder? | 边框 |
+| `borderRadius` | BorderRadius? | 圆角 |
+| `boxShadow` | List<BoxShadow>? | 阴影 |
+| `padding` | EdgeInsetsGeometry? | 内容 padding |
+| `clipBehavior` | Clip | 背景裁剪 |
+| `foregroundColor` | Color? | 文字/图标前景色 |
+| `textStyle` | TextStyle? | 文本样式 |
 | `focusColor` / `hoverColor` | Color? | 焦点/悬停 overlay |
-| `overlayBorderRadius` | `BorderRadiusGeometry?` | overlay 圆角 |
 | `disabledOpacity` | double | 禁用透明度 |
 | `minWidth` / `minHeight` | double | 视觉/布局最小尺寸 |
 | `tapTargetSize` | double | 实际 hit area 下限 |
@@ -350,7 +355,7 @@ WButton(
       children: [
         Icon(Icons.add, size: style.iconSize),
         SizedBox(width: style.gap),
-        WText(text: '新增', config: style.textStyle),
+        Text('新增', style: style.textStyle),
       ],
     );
   },

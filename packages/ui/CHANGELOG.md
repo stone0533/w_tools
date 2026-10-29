@@ -17,6 +17,8 @@
 - 项目样式通过 `AppButtons` / `WButtonStyle` 显式传入；`WButtonStyles.primary` 仅作 fallback。
 - `WButtonStyle` 的 `effect/pressedOpacity/pressedScale/animationDuration/curve/semanticLabel/
   semanticHint/loadingLabel` 移到 `WButtonMotion` / `WButtonSemantics`。
+- `WButtonStyle` 不再依赖 `WContainerConfig` / `WTextConfig`；改为显式
+  `backgroundColor/gradient/border/borderRadius/boxShadow/padding/foregroundColor/textStyle`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
 
 ### Added

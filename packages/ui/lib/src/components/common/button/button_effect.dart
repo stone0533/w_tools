@@ -3,7 +3,7 @@ part of 'button.dart';
 Widget _buildButtonOverlay(
   Widget child,
   Color color,
-  BorderRadiusGeometry? borderRadius,
+  BorderRadius? borderRadius,
 ) {
   Widget overlay = ColoredBox(color: color);
   if (borderRadius != null) {

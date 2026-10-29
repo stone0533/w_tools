@@ -10,7 +10,7 @@ Widget _wrap(Widget child) => MaterialApp(
 void main() {
   group('WButtonStyle / motion / semantics', () {
     test('默认值与 copyWith', () {
-      final style = WButtonStyle();
+      const style = WButtonStyle();
       expect(style.motion.effect, WButtonEffectType.opacity);
       expect(style.motion.pressedOpacity, 0.7);
       expect(style.motion.pressedScale, 0.95);
@@ -54,10 +54,12 @@ void main() {
 
     test('typed copyWith 与 clear helpers', () {
       final style = WButtonStyles.primary;
-      expect(style.container, isNotNull);
-      expect(style.textStyle, isNotNull);
-      expect(style.withoutContainer().container, isNull);
+      expect(style.backgroundColor, isNotNull);
+      expect(style.borderRadius, isNotNull);
+      expect(style.withoutBackground().backgroundColor, isNull);
+      expect(style.withoutBackground().borderRadius, isNull);
       expect(style.withoutTextStyle().textStyle, isNull);
+      expect(style.withoutTextStyle().foregroundColor, isNull);
 
       const semantics = WButtonSemantics(label: 'label', hint: 'hint');
       expect(semantics.withoutLabel().label, isNull);
@@ -67,36 +69,33 @@ void main() {
     });
 
     test('静态预设与工厂可用', () {
-      expect(WButtonStyles.primary.container, isNotNull);
-      expect(WButtonStyles.secondary.container, isNotNull);
-      expect(WButtonStyles.text.textStyle, isNotNull);
-      expect(WButtonStyles.danger.container, isNotNull);
+      expect(WButtonStyles.primary.backgroundColor, isNotNull);
+      expect(WButtonStyles.secondary.border, isNotNull);
+      expect(WButtonStyles.text.foregroundColor, isNotNull);
+      expect(WButtonStyles.danger.backgroundColor, isNotNull);
 
       final filled = WButtonStyle.filled(
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
       );
-      expect(filled.container, isNotNull);
-      expect(filled.textStyle, isNotNull);
-      expect(filled.overlayBorderRadius, isNotNull);
+      expect(filled.backgroundColor, Colors.red);
+      expect(filled.foregroundColor, Colors.white);
+      expect(filled.borderRadius, isNotNull);
 
       final outlined = WButtonStyle.outlined(foregroundColor: Colors.blue);
-      expect(outlined.container, isNotNull);
-      expect(outlined.textStyle, isNotNull);
+      expect(outlined.border, isNotNull);
+      expect(outlined.foregroundColor, Colors.blue);
 
       final text = WButtonStyle.text(foregroundColor: Colors.black);
-      expect(text.container, isNotNull);
-      expect(text.textStyle, isNotNull);
+      expect(text.foregroundColor, Colors.black);
+      expect(text.backgroundColor, isNull);
     });
 
-    test('预设返回独立副本', () {
+    test('预设不可变且共享', () {
       final a = WButtonStyles.primary;
       final b = WButtonStyles.primary;
-      expect(identical(a, b), isFalse);
-      expect(identical(a.container, b.container), isFalse);
-
-      final deep = a.copy();
-      expect(identical(a.container, deep.container), isFalse);
+      expect(identical(a, b), isTrue);
+      expect(identical(a.textStyle, b.textStyle), isTrue);
     });
   });
 
@@ -343,7 +342,7 @@ void main() {
           WButton(
             label: 'focus',
             autofocus: true,
-            style: WButtonStyle(focusColor: Colors.red),
+            style: const WButtonStyle(focusColor: Colors.red),
             onTap: () {},
           ),
         ),
@@ -381,8 +380,8 @@ void main() {
         _wrap(
           WButton(
             label: 'opacity',
-            style: WButtonStyle(
-              motion: const WButtonMotion(pressedOpacity: 0.4),
+            style: const WButtonStyle(
+              motion: WButtonMotion(pressedOpacity: 0.4),
             ),
             onTap: () {},
           ),
@@ -411,8 +410,8 @@ void main() {
         _wrap(
           WButton(
             label: 'scale',
-            style: WButtonStyle(
-              motion: const WButtonMotion(
+            style: const WButtonStyle(
+              motion: WButtonMotion(
                 effect: WButtonEffectType.scale,
                 pressedScale: 0.8,
               ),
@@ -461,8 +460,8 @@ void main() {
           WButton(
             label: '键盘',
             autofocus: true,
-            style: WButtonStyle(
-              motion: const WButtonMotion(pressedOpacity: 0.35),
+            style: const WButtonStyle(
+              motion: WButtonMotion(pressedOpacity: 0.35),
             ),
             onTap: () => taps++,
           ),
@@ -486,8 +485,8 @@ void main() {
         _wrap(
           WButton(
             icon: Icons.close,
-            style: WButtonStyle(
-              semantics: const WButtonSemantics(
+            style: const WButtonStyle(
+              semantics: WButtonSemantics(
                 label: '关闭',
                 hint: '关闭当前弹窗',
               ),
