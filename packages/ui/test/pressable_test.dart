@@ -45,15 +45,31 @@ void main() {
     expect(taps, 0);
   });
 
-  testWidgets('禁用时可选择排除 child 语义', (tester) async {
+  testWidgets('禁用时默认保留 child 语义，可选排除', (tester) async {
+    Widget child() => Semantics(
+          label: 'child-action',
+          onTap: () {},
+          child: const Text('semantic-child'),
+        );
+
     await tester.pumpWidget(
       _wrap(
-        const WPressable(
+        WPressable(
           enabled: false,
-          child: Text('semantic-child'),
+          child: child(),
         ),
       ),
     );
+    final childSemantics = tester
+        .widgetList<Semantics>(
+          find.descendant(
+            of: find.byType(WPressable),
+            matching: find.byType(Semantics),
+          ),
+        )
+        .where((s) => s.properties.label == 'child-action');
+    expect(childSemantics, isNotEmpty);
+    expect(childSemantics.first.properties.onTap, isNotNull);
     expect(
       find.descendant(
         of: find.byType(WPressable),
@@ -64,10 +80,10 @@ void main() {
 
     await tester.pumpWidget(
       _wrap(
-        const WPressable(
+        WPressable(
           enabled: false,
           excludeChildSemanticsWhenDisabled: true,
-          child: Text('semantic-child'),
+          child: child(),
         ),
       ),
     );
@@ -78,6 +94,25 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('behavior 透传给 GestureDetector', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        WPressable(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {},
+          child: const Text('behavior'),
+        ),
+      ),
+    );
+    final detector = tester.widget<GestureDetector>(
+      find.descendant(
+        of: find.byType(WPressable),
+        matching: find.byType(GestureDetector),
+      ),
+    );
+    expect(detector.behavior, HitTestBehavior.translucent);
   });
 
   testWidgets('没有回调时不参与点击', (tester) async {

@@ -448,8 +448,9 @@ WPressable(
 注意：
 
 - `WPressable` 不保证 48×48 点击区域；小目标请用 `WButton.icon` 或外层约束。
-- 内部不要再嵌套 `WButton` / `IconButton` / `Switch` 等交互控件；
-  如果必须嵌套，禁用时开启 `excludeChildSemanticsWhenDisabled`。
+- 内部不要再嵌套 `WButton` / `IconButton` / `Switch` 等交互控件。
+- 默认 `excludeChildSemanticsWhenDisabled: false` 只阻断指针，不会清理 child 的交互语义；
+  如果确实嵌套了交互控件，禁用时请开启 `excludeChildSemanticsWhenDisabled: true`。
 - 只有 `onLongPress` 时，短按只提供视觉反馈，不执行动作。
 - 键盘操作请用 `WButton`，`WPressable` 不参与 Tab 焦点。
 
