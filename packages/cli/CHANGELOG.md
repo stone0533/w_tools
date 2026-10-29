@@ -7,7 +7,8 @@
   `app_scaffold.dart`：标准页面默认使用 `AppScaffold`，AppBar / 按钮样式统一走
   `AppBars.style` / `AppButtons`。`lib/app/design_system/` 只保留待上移组件。
 - AGENTS / 暂存层规范补充：真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`。
-- toolkit 导出 AppScaffold/AppBars；AGENTS / 暂存层 README 增加页面规范。
+- toolkit 导出 AppScaffold/AppBars/AppButtons；AGENTS / `lib/app/ui/README.md`
+  增加页面与按钮规范。
 - 新增 `project_ui_dir`（默认 `lib/app/ui`）：R2 允许项目永久 UI 层直接 import 子包。
 - R5 / context 只统计 `.dart` 暂存文件，不再把 `design_system/README.md` 算作缺 `// STAGED`。
 - R4 同时检查 `lib/app/ui/` 与 `design_system/`，项目 UI 也不得依赖业务层。

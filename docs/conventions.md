@@ -109,7 +109,8 @@ dart run w_tools_cli:doctor --write-config    # 写到 .w_tools_doctor.yaml（�
 ```
 
 `init` 也会顺手生成这个文件（全注释，不改变行为）。
-常见调整：`colors.palette` 填项目语义色（不填则 R3 跳过）、`rules.R6: true` 打开禁用单位检查。
+常见调整：`colors.palette` 填项目语义色（不填则 R3 跳过）、`rules.R6: true` 打开禁用单位检查；
+`project_ui_dir` / `design_system_dir` 用于自定义项目 UI 层与暂存层路径。
 
 > 早期这里放的是三条 grep 命令，现在**以 doctor 为唯一事实源** —— 同一份规则不能有两个实现，
 > 否则必然漂移。

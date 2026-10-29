@@ -26,6 +26,11 @@ void main() {
     expect(DoctorConfig.parse('rules:\n  R1: false\n').enabledRules, isNot(contains('R1')));
   });
 
+  test('project_ui_dir 解析为自定义路径', () {
+    final config = DoctorConfig.parse('project_ui_dir: lib/app/design\n');
+    expect(config.projectUiDir, 'lib/app/design');
+  });
+
   test('ignore 解析为列表', () {
     final config = DoctorConfig.parse('ignore:\n  - lib/app/generated/\n  - build/\n');
     expect(config.ignore, ['lib/app/generated/', 'build/']);
