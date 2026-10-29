@@ -179,6 +179,26 @@ void main() {
       expect(r.issues.single.level, DoctorLevel.error);
     });
 
+    test('项目 ui import data/ → error', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/ui/widget.dart': "import '../data/foo.dart';\n",
+      });
+      final config = DoctorConfig();
+      final r = R4DesignSystemBoundary.check(ctxOf(root, config), config);
+      expect(r.issues.single.file, 'lib/app/ui/widget.dart');
+    });
+
+    test('只有项目 ui、没有暂存层时仍会检查', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/ui/widget.dart': '# project ui\n',
+      });
+      final config = DoctorConfig();
+      final r = R4DesignSystemBoundary.check(ctxOf(root, config), config);
+      expect(r.status, DoctorRuleStatus.pass);
+    });
+
     test('metadata/、my_services/ 不误报', () {
       for (final path in <String>[
         'package:foo/metadata/x.dart',

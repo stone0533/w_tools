@@ -84,7 +84,10 @@ class ProjectSnapshot {
             ..sort();
     }
 
-    final designFiles = ctx.filesUnder(config.designSystemDir).toList();
+    final designFiles = ctx
+        .filesUnder(config.designSystemDir)
+        .where((file) => file.endsWith('.dart'))
+        .toList();
     var missingStaged = 0;
     for (final file in designFiles) {
       if (!file.endsWith('.dart')) continue;

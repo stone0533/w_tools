@@ -64,11 +64,16 @@ InitReport runInit(
   final report = InitReport();
   final app = _projectName(root);
 
-  void write(String rel, String content, {bool projectConfig = false}) {
+  void write(
+    String rel,
+    String content, {
+    bool projectConfig = false,
+    bool starter = false,
+  }) {
     final file = File(p.join(root.path, rel));
     if (file.existsSync()) {
-      // 项目自己的配置（.w_tools_doctor.yaml）：存在即视为完成，内容不做比对
-      if (projectConfig && !force) {
+      // 项目自己的配置 / 可自定义的起始文件：存在即视为完成，内容不做比对
+      if ((projectConfig || starter) && !force) {
         report.upToDate.add(rel);
         return;
       }
@@ -86,6 +91,8 @@ InitReport runInit(
       }
       if (projectConfig) {
         report.warnings.add('覆盖了 $rel：原有的自定义配置会丢失');
+      } else if (starter) {
+        report.warnings.add('覆盖了 $rel：原有的自定义内容会丢失');
       }
       file.writeAsStringSync(content);
       report.created.add('$rel（已覆盖）');
@@ -102,10 +109,10 @@ InitReport runInit(
 
   write('lib/app/w/toolkit.dart', InitTemplates.toolkit(withQr: withQr, withMap: withMap));
   write('lib/app/design_system/README.md', InitTemplates.designSystemReadme(lang: lang));
-  write('lib/app/ui/README.md', InitTemplates.uiReadme(lang: lang));
-  write('lib/app/ui/app_bars.dart', InitTemplates.appBars());
-  write('lib/app/ui/app_buttons.dart', InitTemplates.appButtons());
-  write('lib/app/ui/app_scaffold.dart', InitTemplates.appScaffold());
+  write('lib/app/ui/README.md', InitTemplates.uiReadme(lang: lang), starter: true);
+  write('lib/app/ui/app_bars.dart', InitTemplates.appBars(), starter: true);
+  write('lib/app/ui/app_buttons.dart', InitTemplates.appButtons(), starter: true);
+  write('lib/app/ui/app_scaffold.dart', InitTemplates.appScaffold(), starter: true);
   // doctor 的默认配置：全注释，写了也不改变行为，只是把开关摊开。
   // 它是项目配置而不是生成物：存在就不再比对内容。
   write(DoctorConfig.fileName, renderDefaultConfig(), projectConfig: true);
