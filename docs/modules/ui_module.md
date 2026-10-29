@@ -437,7 +437,7 @@ WButton(
   semanticLabel: '订单 A123，3 件商品，待支付，共 128 元',
   content: Row(
     children: [
-      WImage.assetImage('demo.png'),
+      WImage.asset('demo.png', prefix: true),
       const SizedBox(width: 12),
       const Expanded(
         child: Column(
@@ -695,7 +695,7 @@ WImage.source(
 | `WImage.avatar(data, size:)` | 正方形 + 全圆角 |
 | `WImage.thumbnail(data, width:)` | 缩略图；`cacheSize` 会写入 `WImageConfig.memCache` |
 | `WImage.cover(data, aspectRatio:)` | 固定比例封面 |
-| `WImage.assetImage(name)` | 自动拼 `WAssets.imagePath` |
+| `WImage.assetImage(name)` | 兼容入口；优先用 `WImage.asset(name, prefix: true)` |
 | `WImage.memory(bytes)` | `Uint8List` → `MemoryImage` |
 | `WImage.provider(provider)` | 任意 `ImageProvider` |
 
@@ -757,6 +757,7 @@ WImage.source(
 | `retryLabel` | String | 重试 | 内置重试按钮文案 |
 
 `WImageStyle` / `WImageConfig` 都是不可变的：用 `copyWith` 覆盖字段，字段本身没有 setter。
+新的 `WImageConfig` 不是旧版可变配置的回归。
 `boxShadow` 列表在渲染时会复制为不可变快照，但不要依赖这一点去修改传入列表。
 `httpHeaders` / `cacheKey` 属于来源，放在 `WImageSource.network(...)` 上。
 
@@ -786,7 +787,7 @@ WImageCachePolicy.configure(maxSize: 200, maxMemoryBytes: 200 * 1024 * 1024);
 WImageCachePolicy.reset();
 ```
 
-优先级：style builder > style 固定 Widget > `WImageDefaultsScope` > 内置兜底。
+优先级：`WImageConfig.placeholderBuilder` > `WImageConfig.placeholder` > `WImageDefaultsScope.placeholderBuilder` > 内置兜底。
 `WImageDefaults.progressBuilder` 可作为所有网络图的默认进度 UI。
 内置错误视图可用 `WImageConfig(showRetryButton: true)` 启用，或直接复用 `WImageErrorView`。
 `WImageErrorView` 尺寸策略：
@@ -817,7 +818,8 @@ WImageCachePolicy.reset();
 
 ### 2.0 迁移
 
-- 旧的可变 `WImageConfig` 删除，改为不可变 `WImageStyle`（视觉）+ `WImageConfig`（加载）；
+- 旧的可变 `WImageConfig` 删除；2.0 的 `WImageConfig` 是**新的不可变加载配置**；
+  视觉样式由 `WImageStyle` 负责。
 - `WImageConfigBuild` 删除，用 `WImage.source` / `WImage.network/asset/file/base64`；
 - `WImage.onLoadProgress` 删除，用 `onProgress`；
 - `cacheEnabled` / `fitCenter` / `size` 均已删除。

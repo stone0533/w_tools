@@ -6,6 +6,8 @@ import 'image_types.dart';
 ///
 /// 负责解码尺寸、重试、占位/错误/进度 UI 与 gaplessPlayback；
 /// 视觉样式由 [WImageStyle] 负责。
+///
+/// 这是 2.0 新增的不可变配置，不是旧版可变 `WImageConfig` 的回归。
 @immutable
 class WImageConfig {
   const WImageConfig({

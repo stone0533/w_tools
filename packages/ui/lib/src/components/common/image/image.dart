@@ -33,6 +33,7 @@ export 'image_types.dart';
 
 /// 图片控制器
 ///
+/// 一个 controller 只对应一张 WImage；同时绑定多张图会在 debug 下断言。
 /// 目前只提供手动重试：在 `errorWidget` 里放一个按钮，点击调用 [retry]
 /// 立即重新发起请求（不等自动重试的退避时间）。
 class WImageController {
@@ -337,6 +338,8 @@ class WImage extends StatefulWidget {
   }
 
   /// 资源图片：默认拼 `WAssets.imagePath`
+  ///
+  /// 兼容入口；新代码优先用 `WImage.asset(name, prefix: true)`。
   factory WImage.assetImage(
     String name, {
     Key? key,

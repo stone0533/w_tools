@@ -29,6 +29,8 @@ class WImageDefaults {
 }
 
 /// 按子树提供 [WImageDefaults]。
+///
+/// 优先级：WImageConfig 的 builder/widget > 本作用域 > 内置兜底。
 class WImageDefaultsScope extends InheritedWidget {
   const WImageDefaultsScope({
     super.key,
