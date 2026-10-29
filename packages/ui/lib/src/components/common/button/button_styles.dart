@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'button_style.dart';
 
-/// 常用按钮样式预设。
+/// 常用按钮样式 fallback 预设。
 ///
-/// 这些是只读模板；需要微调时用 `copyWith`，不要直接修改嵌套配置。
+/// 项目应通过 `WButtonThemeData` 覆盖这些默认值；这里的颜色是最小可用 fallback，
+/// 不保证适配所有明暗主题。
 abstract final class WButtonStyles {
   static final _primary = WButtonStyle.filled(
     backgroundColor: const Color(0xFF3949AB),

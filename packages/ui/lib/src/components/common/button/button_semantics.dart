@@ -24,4 +24,10 @@ class WButtonSemantics {
       loadingLabel: loadingLabel ?? this.loadingLabel,
     );
   }
+
+  /// 清空 label。
+  WButtonSemantics withoutLabel() => WButtonSemantics(hint: hint, loadingLabel: loadingLabel);
+
+  /// 清空 hint。
+  WButtonSemantics withoutHint() => WButtonSemantics(label: label, loadingLabel: loadingLabel);
 }

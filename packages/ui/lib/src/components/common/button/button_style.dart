@@ -149,44 +149,75 @@ class WButtonStyle {
     assert(iconSize >= 0 && gap >= 0, 'iconSize/gap 不能为负');
   }
 
-  static const Object _unset = Object();
-
   WButtonStyle copyWith({
-    Object? motion = _unset,
-    Object? semantics = _unset,
-    Object? container = _unset,
-    Object? padding = _unset,
-    Object? textStyle = _unset,
-    Object? focusColor = _unset,
-    Object? hoverColor = _unset,
-    Object? overlayBorderRadius = _unset,
-    Object? disabledOpacity = _unset,
-    Object? minWidth = _unset,
-    Object? minHeight = _unset,
-    Object? tapTargetSize = _unset,
-    Object? iconSize = _unset,
-    Object? gap = _unset,
+    WButtonMotion? motion,
+    WButtonSemantics? semantics,
+    WContainerConfig? container,
+    EdgeInsetsGeometry? padding,
+    WTextConfig? textStyle,
+    Color? focusColor,
+    Color? hoverColor,
+    BorderRadiusGeometry? overlayBorderRadius,
+    double? disabledOpacity,
+    double? minWidth,
+    double? minHeight,
+    double? tapTargetSize,
+    double? iconSize,
+    double? gap,
   }) {
     return WButtonStyle(
-      motion: identical(motion, _unset) ? this.motion : motion as WButtonMotion,
-      semantics: identical(semantics, _unset) ? this.semantics : semantics as WButtonSemantics,
-      container: identical(container, _unset) ? this.container : container as WContainerConfig?,
-      padding: identical(padding, _unset) ? this.padding : padding as EdgeInsetsGeometry?,
-      textStyle: identical(textStyle, _unset) ? this.textStyle : textStyle as WTextConfig?,
-      focusColor: identical(focusColor, _unset) ? this.focusColor : focusColor as Color?,
-      hoverColor: identical(hoverColor, _unset) ? this.hoverColor : hoverColor as Color?,
-      overlayBorderRadius: identical(overlayBorderRadius, _unset)
-          ? this.overlayBorderRadius
-          : overlayBorderRadius as BorderRadiusGeometry?,
-      disabledOpacity: identical(disabledOpacity, _unset)
-          ? this.disabledOpacity
-          : (disabledOpacity as num).toDouble(),
-      minWidth: identical(minWidth, _unset) ? this.minWidth : (minWidth as num).toDouble(),
-      minHeight: identical(minHeight, _unset) ? this.minHeight : (minHeight as num).toDouble(),
-      tapTargetSize:
-          identical(tapTargetSize, _unset) ? this.tapTargetSize : (tapTargetSize as num).toDouble(),
-      iconSize: identical(iconSize, _unset) ? this.iconSize : (iconSize as num).toDouble(),
-      gap: identical(gap, _unset) ? this.gap : (gap as num).toDouble(),
+      motion: motion ?? this.motion,
+      semantics: semantics ?? this.semantics,
+      container: container ?? this.container,
+      padding: padding ?? this.padding,
+      textStyle: textStyle ?? this.textStyle,
+      focusColor: focusColor ?? this.focusColor,
+      hoverColor: hoverColor ?? this.hoverColor,
+      overlayBorderRadius: overlayBorderRadius ?? this.overlayBorderRadius,
+      disabledOpacity: disabledOpacity ?? this.disabledOpacity,
+      minWidth: minWidth ?? this.minWidth,
+      minHeight: minHeight ?? this.minHeight,
+      tapTargetSize: tapTargetSize ?? this.tapTargetSize,
+      iconSize: iconSize ?? this.iconSize,
+      gap: gap ?? this.gap,
+    );
+  }
+
+  /// 清空 container（用于从有背景切换到纯文本）。
+  WButtonStyle withoutContainer() {
+    return WButtonStyle(
+      motion: motion,
+      semantics: semantics,
+      padding: padding,
+      textStyle: textStyle,
+      focusColor: focusColor,
+      hoverColor: hoverColor,
+      overlayBorderRadius: overlayBorderRadius,
+      disabledOpacity: disabledOpacity,
+      minWidth: minWidth,
+      minHeight: minHeight,
+      tapTargetSize: tapTargetSize,
+      iconSize: iconSize,
+      gap: gap,
+    );
+  }
+
+  /// 清空 textStyle。
+  WButtonStyle withoutTextStyle() {
+    return WButtonStyle(
+      motion: motion,
+      semantics: semantics,
+      container: container,
+      padding: padding,
+      focusColor: focusColor,
+      hoverColor: hoverColor,
+      overlayBorderRadius: overlayBorderRadius,
+      disabledOpacity: disabledOpacity,
+      minWidth: minWidth,
+      minHeight: minHeight,
+      tapTargetSize: tapTargetSize,
+      iconSize: iconSize,
+      gap: gap,
     );
   }
 

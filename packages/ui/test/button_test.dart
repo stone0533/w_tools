@@ -53,6 +53,20 @@ void main() {
       );
     });
 
+    test('typed copyWith 与 clear helpers', () {
+      final style = WButtonStyles.primary;
+      expect(style.container, isNotNull);
+      expect(style.textStyle, isNotNull);
+      expect(style.withoutContainer().container, isNull);
+      expect(style.withoutTextStyle().textStyle, isNull);
+
+      const semantics = WButtonSemantics(label: 'label', hint: 'hint');
+      expect(semantics.withoutLabel().label, isNull);
+      expect(semantics.withoutLabel().hint, 'hint');
+      expect(semantics.withoutHint().hint, isNull);
+      expect(semantics.withoutHint().label, 'label');
+    });
+
     test('静态预设与工厂可用', () {
       expect(WButtonStyles.primary.container, isNotNull);
       expect(WButtonStyles.secondary.container, isNotNull);
@@ -301,6 +315,46 @@ void main() {
       await tester.longPress(find.text('长按'));
       await tester.pumpAndSettle();
       expect(longPressed, 1);
+    });
+
+    testWidgets('暗色主题下可构建', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(useMaterial3: true).copyWith(
+            extensions: [
+              WButtonThemeData(primary: WButtonStyles.primary),
+            ],
+          ),
+          home: Scaffold(
+            body: Center(
+              child: WButton.primary('暗色', onTap: () {}),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('暗色'), findsOneWidget);
+    });
+
+    testWidgets('focus overlay 使用 focusColor', (tester) async {
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(() {
+        FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+      });
+      await tester.pumpWidget(
+        _wrap(
+          WButton.primary(
+            'focus',
+            autofocus: true,
+            style: WButtonStyle(focusColor: Colors.red),
+            onTap: () {},
+          ),
+        ),
+      );
+      await tester.pump();
+      final boxes = tester
+          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .where((box) => box.color == Colors.red);
+      expect(boxes, isNotEmpty);
     });
 
     testWidgets('RTL 与大字号下可构建', (tester) async {
