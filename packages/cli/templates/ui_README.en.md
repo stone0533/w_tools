@@ -6,7 +6,7 @@ Project-owned design system and page conventions live here.
 These files are **not** candidates for moving into `w_tools_ui`.
 
 - `app_bars.dart`: default app-bar style, entry point `AppBars.style`
-- `app_boxes.dart`: box decoration registry (`AppBoxes.card` / `AppBoxes.warning`)
+- `app_boxes.dart`: box decoration registry (`AppBoxes.card(context)` / `AppBoxes.warning(context)`)
 - `app_buttons.dart`: button style registry, pages use `AppButtons`
 - `app_card.dart`: repeated-card entry `AppCard`
 - `app_scaffold.dart`: standard page entry `AppScaffold`
@@ -49,7 +49,7 @@ Put repeated `BoxDecoration` values in `AppBoxes`:
 
 ```dart
 Container(
-  decoration: AppBoxes.card,
+  decoration: AppBoxes.card(context),
   padding: const EdgeInsets.all(16),
   child: ...,
 )

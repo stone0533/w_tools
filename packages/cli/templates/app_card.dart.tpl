@@ -11,23 +11,24 @@ class AppCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
-    this.decoration = AppBoxes.card,
+    this.decoration,
+    this.clipBehavior = Clip.none,
     this.onTap,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
-  final BoxDecoration decoration;
+  final BoxDecoration? decoration;
+  final Clip clipBehavior;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final card = DecoratedBox(
-      decoration: decoration,
-      child: Padding(
-        padding: padding,
-        child: child,
-      ),
+    final card = Container(
+      decoration: decoration ?? AppBoxes.card(context),
+      padding: padding,
+      clipBehavior: clipBehavior,
+      child: child,
     );
 
     if (onTap == null) return card;

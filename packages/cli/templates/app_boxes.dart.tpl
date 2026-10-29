@@ -4,27 +4,25 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppBoxes {
-  static const card = BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-    border: Border.fromBorderSide(
-      BorderSide(color: Color(0x1F000000)),
-    ),
-  );
-
-  static const warning = BoxDecoration(
-    color: Color(0xFFFFF8E1),
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-    border: Border.fromBorderSide(
-      BorderSide(color: Color(0xFFFFB300)),
-    ),
-  );
-
-  static BoxDecoration surface(BuildContext context) {
+  static BoxDecoration card(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return BoxDecoration(
       color: scheme.surface,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      border: Border.fromBorderSide(
+        BorderSide(color: scheme.outlineVariant),
+      ),
+    );
+  }
+
+  static BoxDecoration warning(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return BoxDecoration(
+      color: dark ? const Color(0xFF3A2A00) : const Color(0xFFFFF8E1),
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      border: Border.fromBorderSide(
+        const BorderSide(color: Color(0xFFFFB300)),
+      ),
     );
   }
 }

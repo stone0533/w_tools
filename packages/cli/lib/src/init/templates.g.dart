@@ -187,7 +187,7 @@ const String uiReadme = r'''
 这里放项目自己的设计系统与页面约定，**不用于上移到 w_tools_ui**。
 
 - `app_bars.dart`：AppBar 默认样式，唯一入口 `AppBars.style`
-- `app_boxes.dart`：盒子装饰注册表（`AppBoxes.card` / `AppBoxes.warning`）
+- `app_boxes.dart`：盒子装饰注册表（`AppBoxes.card(context)` / `AppBoxes.warning(context)`）
 - `app_buttons.dart`：按钮样式注册表，页面只使用 `AppButtons`
 - `app_card.dart`：重复卡片入口 `AppCard`
 - `app_scaffold.dart`：标准页面入口 `AppScaffold`
@@ -228,7 +228,7 @@ WButton(
 
 ```dart
 Container(
-  decoration: AppBoxes.card,
+  decoration: AppBoxes.card(context),
   padding: const EdgeInsets.all(16),
   child: ...,
 )
@@ -259,7 +259,7 @@ Project-owned design system and page conventions live here.
 These files are **not** candidates for moving into `w_tools_ui`.
 
 - `app_bars.dart`: default app-bar style, entry point `AppBars.style`
-- `app_boxes.dart`: box decoration registry (`AppBoxes.card` / `AppBoxes.warning`)
+- `app_boxes.dart`: box decoration registry (`AppBoxes.card(context)` / `AppBoxes.warning(context)`)
 - `app_buttons.dart`: button style registry, pages use `AppButtons`
 - `app_card.dart`: repeated-card entry `AppCard`
 - `app_scaffold.dart`: standard page entry `AppScaffold`
@@ -302,7 +302,7 @@ Put repeated `BoxDecoration` values in `AppBoxes`:
 
 ```dart
 Container(
-  decoration: AppBoxes.card,
+  decoration: AppBoxes.card(context),
   padding: const EdgeInsets.all(16),
   child: ...,
 )
@@ -352,27 +352,25 @@ const String appBoxesTemplate = r'''
 import 'package:flutter/material.dart';
 
 abstract final class AppBoxes {
-  static const card = BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-    border: Border.fromBorderSide(
-      BorderSide(color: Color(0x1F000000)),
-    ),
-  );
-
-  static const warning = BoxDecoration(
-    color: Color(0xFFFFF8E1),
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-    border: Border.fromBorderSide(
-      BorderSide(color: Color(0xFFFFB300)),
-    ),
-  );
-
-  static BoxDecoration surface(BuildContext context) {
+  static BoxDecoration card(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return BoxDecoration(
       color: scheme.surface,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      border: Border.fromBorderSide(
+        BorderSide(color: scheme.outlineVariant),
+      ),
+    );
+  }
+
+  static BoxDecoration warning(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return BoxDecoration(
+      color: dark ? const Color(0xFF3A2A00) : const Color(0xFFFFF8E1),
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      border: Border.fromBorderSide(
+        const BorderSide(color: Color(0xFFFFB300)),
+      ),
     );
   }
 }
@@ -451,23 +449,24 @@ class AppCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
-    this.decoration = AppBoxes.card,
+    this.decoration,
+    this.clipBehavior = Clip.none,
     this.onTap,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
-  final BoxDecoration decoration;
+  final BoxDecoration? decoration;
+  final Clip clipBehavior;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final card = DecoratedBox(
-      decoration: decoration,
-      child: Padding(
-        padding: padding,
-        child: child,
-      ),
+    final card = Container(
+      decoration: decoration ?? AppBoxes.card(context),
+      padding: padding,
+      clipBehavior: clipBehavior,
+      child: child,
     );
 
     if (onTap == null) return card;

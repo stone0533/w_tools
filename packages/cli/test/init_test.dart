@@ -74,7 +74,7 @@ void main() {
         p.join(root.path, 'lib/app/ui/app_boxes.dart'),
       ).readAsStringSync();
       expect(appBoxes, contains('class AppBoxes'));
-      expect(appBoxes, contains('static const card'));
+      expect(appBoxes, contains('static BoxDecoration card'));
       final appCard = File(
         p.join(root.path, 'lib/app/ui/app_card.dart'),
       ).readAsStringSync();

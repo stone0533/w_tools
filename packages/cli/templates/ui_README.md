@@ -5,7 +5,7 @@
 这里放项目自己的设计系统与页面约定，**不用于上移到 w_tools_ui**。
 
 - `app_bars.dart`：AppBar 默认样式，唯一入口 `AppBars.style`
-- `app_boxes.dart`：盒子装饰注册表（`AppBoxes.card` / `AppBoxes.warning`）
+- `app_boxes.dart`：盒子装饰注册表（`AppBoxes.card(context)` / `AppBoxes.warning(context)`）
 - `app_buttons.dart`：按钮样式注册表，页面只使用 `AppButtons`
 - `app_card.dart`：重复卡片入口 `AppCard`
 - `app_scaffold.dart`：标准页面入口 `AppScaffold`
@@ -46,7 +46,7 @@ WButton(
 
 ```dart
 Container(
-  decoration: AppBoxes.card,
+  decoration: AppBoxes.card(context),
   padding: const EdgeInsets.all(16),
   child: ...,
 )
