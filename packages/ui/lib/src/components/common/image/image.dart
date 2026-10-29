@@ -52,6 +52,11 @@ class WImageController {
   void retry() => _loader?.retryNow();
 
   void _attach(_WImageState state) {
+    assert(
+      _state == null || identical(_state, state),
+      'WImageController 不能同时绑定多个 WImage；请为每张图使用独立 controller',
+    );
+    if (identical(_state, state)) return;
     _state = state;
     _loader = state.loader;
     _lastState = _loader!.state;

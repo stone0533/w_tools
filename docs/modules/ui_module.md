@@ -637,7 +637,11 @@ WText(
 
 ### 功能说明
 
-图片组件，支持四种来源：网络 URL、本地资源、本地文件、Base64。默认按 `data` 自动判定类型；需要确定性时用命名构造（`WImage.network` / `WImage.asset` / `WImage.file` / `WImage.base64`）。提供占位符、错误处理、加载进度、网络重试、解码尺寸限制与图片变换。
+图片组件，支持网络 URL、本地资源、本地文件、Base64 与任意 `ImageProvider`。
+
+**新代码优先使用 `WImage.source(...)` 或命名构造**（`WImage.network` / `WImage.asset` /
+`WImage.file` / `WImage.base64`）；`WImage(data: ...)` 的自动判定只作为便利入口。
+提供占位符、错误处理、加载进度、网络重试、解码尺寸限制与图片变换。
 
 ### 新 API（推荐）
 
@@ -745,12 +749,16 @@ WImage.source(
 | `margin` / `padding` | `EdgeInsets?` | null | 间距 |
 
 `WImageStyle` 是不可变的：用 `copyWith` 覆盖字段，字段本身没有 setter。
+`boxShadow` 列表在渲染时会复制为不可变快照，但不要依赖这一点去修改传入列表。
+`WImageStyle` 同时包含视觉与加载配置（retry / placeholder / error / progress），不是纯视觉 token。
 `httpHeaders` / `cacheKey` 属于来源，放在 `WImageSource.network(...)` 上。
 
 - `width` / `height` 是**图片内容尺寸**；`padding` / `margin` 在外部叠加，
   实际总尺寸 = 内容尺寸 + 间距。
 - `aspectRatio` 不要和固定的 `width` + `height` 同时设置（debug 下会 assert，约束会冲突）。
 - `borderRadius` 同时作用于图片本体、`border` 与 `boxShadow`。
+- 自定义 `placeholder` / `placeholderBuilder` / `errorWidget` / `errorWidgetBuilder`
+  不会自动套 `SizedBox`；需要自己按 `width` / `height` 或 `AspectRatio` 处理尺寸。
 
 ### WImageTheme / WImageCachePolicy
 
@@ -827,7 +835,7 @@ flutter run
 - 重试间隔按指数退避（`retryDelay` → 2× → 4×……，上限 30s）并带 20% 抖动，
   避免同屏多张图在同一毫秒齐刷刷重试。
 - 修改 `retryCount` / `retryDelay` 会取消已经排队的旧重试（避免关掉重试后仍多发一次请求）。
-- 一个 `WImageController` 对应一个 `WImage`；多个 WImage 共享时只有最后一个能收到 `retry()`。
+- 一个 `WImageController` 对应一个 `WImage`；同时绑定两张图会在 debug 下触发断言。
 - `WImageController.state` 在首次绑定后保持同一 `ValueListenable`；WImage 卸载后不再更新，
   但外部持有的监听器仍可安全 `removeListener`。
 - 需要用户手动重试时，传一个 `WImageController`，在错误占位里调用 `retry()`：

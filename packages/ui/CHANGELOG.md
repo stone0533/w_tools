@@ -156,6 +156,9 @@
   `WImage.network(url, config: WImageConfig()..retryCount = 3)`；
   需要手动重试时用 `WImageController`。
 
+- `WImage`：文档推荐优先使用 `WImage.source` / 命名构造；`WImageController` 增加单图绑定断言；
+  `WImageFrame` 渲染时复制 `boxShadow` 为不可变快照，并补充自定义占位尺寸说明。
+
 ### Deprecated
 - `WImageConfig.cacheEnabled`：资产图片已统一走 Flutter `ImageCache`，该开关不再生效。
 - `WImageConfig.fitCenter()`：等价于 `fitContain()`，将在 2.0 移除。

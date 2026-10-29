@@ -62,29 +62,6 @@ void main() {
       expect(image.loadingBuilder, isNotNull);
     });
 
-    testWidgets('一个 controller 只绑定最后一个 WImage（文档行为）', (tester) async {
-      final controller = WImageController();
-      await tester.pumpWidget(
-        _wrap(
-          Column(
-            children: <Widget>[
-              WImage.network(_url, key: const Key('a'), controller: controller),
-              WImage.network(_url, key: const Key('b'), controller: controller),
-            ],
-          ),
-        ),
-      );
-
-      List<Key?> keys() => tester.widgetList<Image>(find.byType(Image)).map((w) => w.key).toList();
-
-      final before = keys();
-      controller.retry();
-      await tester.pump();
-      final after = keys();
-      expect(after[0], before[0], reason: '第一个 WImage 不应被 retry');
-      expect(after[1], isNot(before[1]), reason: '最后一个 WImage 应重建');
-    });
-
     testWidgets('同一 source 重建复用 provider', (tester) async {
       await tester.pumpWidget(_wrap(WImage.network(_url)));
       final first = tester.widget<Image>(find.byType(Image)).image;

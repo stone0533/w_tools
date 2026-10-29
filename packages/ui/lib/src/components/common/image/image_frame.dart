@@ -16,7 +16,9 @@ class WImageFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderRadius = style.borderRadius;
     final border = style.border;
-    final boxShadow = style.boxShadow;
+    // style 的 const 构造保留 boxShadow 引用；渲染时做一次不可变快照。
+    final boxShadow =
+        style.boxShadow == null ? null : List<BoxShadow>.unmodifiable(style.boxShadow!);
     final margin = style.margin;
     final padding = style.padding;
 
