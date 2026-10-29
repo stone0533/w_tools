@@ -51,6 +51,16 @@ void main() {
       expect(cfg, isNotNull);
     });
 
+    test('copyWith overlapOffset 走校验', () {
+      final cfg = WListViewConfig.vertical();
+      expect(() => cfg.copyWith(overlapOffset: 5), throwsAssertionError);
+    });
+
+    test('itemExtent 必须大于 0', () {
+      final cfg = WListViewConfig()..itemExtent = 0;
+      expect(cfg.validate, throwsAssertionError);
+    });
+
     test('copyWith 部分覆盖 + copy 深拷贝', () {
       final cfg = WListViewConfig.vertical();
       cfg.itemExtent = 50;
@@ -225,6 +235,90 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('item-0'), findsOneWidget);
+    });
+
+    testWidgets('useOverlap 缺少 itemExtent 时断言', (tester) async {
+      final cfg = WListViewConfig.vertical()..useOverlap = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WListView(
+              config: cfg,
+              itemBuilder: (_, i) => Text('item-$i'),
+              itemCount: 2,
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isAssertionError);
+    });
+
+    testWidgets('useOverlap 不能与 separatorBuilder 同时使用', (tester) async {
+      final cfg = WListViewConfig.vertical()
+        ..itemExtent = 10
+        ..useOverlap = true
+        ..separatorBuilder = (_, i) => const Divider();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WListView.separated(
+              config: cfg,
+              itemBuilder: (_, i) => Text('item-$i'),
+              itemCount: 2,
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isAssertionError);
+    });
+
+    testWidgets('useOverlap 不能与 gridDelegate 同时使用', (tester) async {
+      final cfg = WListViewConfig.vertical()
+        ..itemExtent = 10
+        ..useOverlap = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WListView.grid(
+              config: cfg,
+              itemBuilder: (_, i) => Text('item-$i'),
+              itemCount: 2,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isAssertionError);
+    });
+
+    testWidgets('usePreciseCache 需要 cacheItems', (tester) async {
+      final cfg = WListViewConfig.vertical()..usePreciseCache = true;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WListView(
+              config: cfg,
+              itemBuilder: (_, i) => Text('item-$i'),
+              itemCount: 2,
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isAssertionError);
+    });
+
+    testWidgets('圆角列表会裁剪内容', (tester) async {
+      final cfg = WListViewConfig.vertical()
+        ..backgroundColor = Colors.white
+        ..borderRadius = BorderRadius.circular(8);
+      await tester.pumpWidget(buildList(config: cfg, itemCount: 2));
+
+      final container = tester
+          .widgetList<Container>(find.byType(Container))
+          .firstWhere((c) => c.decoration != null);
+      expect(container.clipBehavior, Clip.antiAlias);
     });
 
     testWidgets('itemCount=0 + emptyWidget → 显示 emptyWidget', (tester) async {
