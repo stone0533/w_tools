@@ -16,14 +16,10 @@ void main() {
         width: 100,
         height: 200,
         fit: BoxFit.cover,
-        retryCount: 3,
-        retryDelay: 500,
       );
       expect(style.width, 100);
       expect(style.height, 200);
       expect(style.fit, BoxFit.cover);
-      expect(style.retryCount, 3);
-      expect(style.retryDelay, 500);
 
       final next = style.copyWith(width: 10);
       expect(next.width, 10);
@@ -32,19 +28,19 @@ void main() {
 
     test('非法配置触发 assert', () {
       expect(
-        () => WImage(data: 'x', style: const WImageStyle(retryCount: -1)),
+        () => WImage(data: 'x', config: const WImageConfig(retryCount: -1)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', style: const WImageStyle(retryDelay: -1)),
+        () => WImage(data: 'x', config: const WImageConfig(retryDelay: -1)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', style: const WImageStyle(memCacheWidth: 0)),
+        () => WImage(data: 'x', config: const WImageConfig(memCacheWidth: 0)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', style: const WImageStyle(memCacheHeight: 0)),
+        () => WImage(data: 'x', config: const WImageConfig(memCacheHeight: 0)),
         throwsAssertionError,
       );
       expect(
@@ -112,7 +108,7 @@ void main() {
             home: Scaffold(
               body: WImage(
                 data: 'data:image/png;base64,@@bad@@',
-                style: const WImageStyle(placeholder: Text('style')),
+                config: const WImageConfig(placeholder: Text('style')),
               ),
             ),
           ),
@@ -161,7 +157,11 @@ void main() {
       expect(avatar.style.borderRadius, BorderRadius.circular(40));
 
       final thumb = WImage.thumbnail('a.png', width: 80, cacheSize: 240);
-      expect(thumb.style.memCacheWidth, 240);
+      expect(thumb.config.memCacheWidth, 240);
+
+      final defaultThumb = WImage.thumbnail('a.png', width: 80);
+      expect(defaultThumb.config.memCacheWidth, 240);
+      expect(defaultThumb.config.memCacheHeight, 240);
 
       final cover = WImage.cover('a.png', aspectRatio: 2, radius: 12);
       expect(cover.style.aspectRatio, 2);
@@ -203,11 +203,8 @@ void main() {
           home: WImage.memory(
             Uint8List.fromList([1, 2, 3]),
             controller: controller,
-            style: const WImageStyle(
-              width: 160,
-              height: 120,
-              showRetryButton: true,
-            ),
+            style: const WImageStyle(width: 160, height: 120),
+            config: const WImageConfig(showRetryButton: true),
           ),
         ),
       );
@@ -224,11 +221,8 @@ void main() {
         MaterialApp(
           home: WImage(
             data: 'data:image/png;base64,@@bad@@',
-            style: const WImageStyle(
-              width: 160,
-              height: 120,
-              showRetryButton: true,
-            ),
+            style: const WImageStyle(width: 160, height: 120),
+            config: const WImageConfig(showRetryButton: true),
           ),
         ),
       );
@@ -242,11 +236,8 @@ void main() {
         MaterialApp(
           home: WImage(
             data: 'data:image/png;base64,@@bad@@',
-            style: const WImageStyle(
-              width: 40,
-              height: 40,
-              showRetryButton: true,
-            ),
+            style: const WImageStyle(width: 40, height: 40),
+            config: const WImageConfig(showRetryButton: true),
           ),
         ),
       );
@@ -277,11 +268,8 @@ void main() {
         MaterialApp(
           home: WImage(
             data: 'data:image/png;base64,@@bad@@',
-            style: const WImageStyle(
-              width: 100,
-              height: 100,
-              showRetryButton: true,
-            ),
+            style: const WImageStyle(width: 100, height: 100),
+            config: const WImageConfig(showRetryButton: true),
           ),
         ),
       );
@@ -309,9 +297,8 @@ void main() {
         MaterialApp(
           home: WImage.memory(
             Uint8List.fromList([4, 5, 6]),
-            style: WImageStyle(
-              width: 64,
-              height: 64,
+            style: const WImageStyle(width: 64, height: 64),
+            config: WImageConfig(
               errorWidgetBuilder: (context, url, error) {
                 captured = error;
                 return const SizedBox.shrink();
@@ -383,7 +370,7 @@ void main() {
           MaterialApp(
             home: WImage(
               data: 'data:image/png;base64,@@invalid@@',
-              style: WImageStyle(
+              config: WImageConfig(
                 errorWidgetBuilder: (context, url, error) {
                   capturedError = error;
                   return const Text('base64-error');
@@ -411,7 +398,7 @@ void main() {
       Widget build() => MaterialApp(
             home: WImage(
               data: 'data:image/png;base64,@@invalid@@',
-              style: const WImageStyle(errorWidget: Text('base64-error')),
+              config: const WImageConfig(errorWidget: Text('base64-error')),
               onLoadStatusChanged: statuses.add,
             ),
           );

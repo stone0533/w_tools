@@ -76,11 +76,8 @@ void main() {
       _wrap(
         WImage(
           data: 'data:image/png;base64,@@invalid@@',
-          style: const WImageStyle(
-            width: 160,
-            height: 120,
-            showRetryButton: true,
-          ),
+          style: const WImageStyle(width: 160, height: 120),
+          config: const WImageConfig(showRetryButton: true),
         ),
       ),
     );
@@ -97,11 +94,8 @@ void main() {
       _wrap(
         WImage(
           data: 'data:image/png;base64,@@invalid@@',
-          style: const WImageStyle(
-            width: 64,
-            height: 64,
-            errorWidget: _errorBox,
-          ),
+          style: const WImageStyle(width: 64, height: 64),
+          config: const WImageConfig(errorWidget: _errorBox),
         ),
       ),
     );
@@ -118,11 +112,8 @@ void main() {
       _wrap(
         WImage(
           data: '',
-          style: const WImageStyle(
-            width: 64,
-            height: 64,
-            errorWidget: _errorBox,
-          ),
+          style: const WImageStyle(width: 64, height: 64),
+          config: const WImageConfig(errorWidget: _errorBox),
         ),
       ),
     );

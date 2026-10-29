@@ -9,14 +9,9 @@ void main() {
         width: 10,
         height: 20,
         fit: BoxFit.contain,
-        memCacheWidth: 100,
-        memCacheHeight: 200,
-        retryCount: 2,
-        retryDelay: 500,
         aspectRatio: 1.5,
         semanticLabel: '头像',
         excludeFromSemantics: true,
-        gaplessPlayback: true,
         filterQuality: FilterQuality.high,
         alignment: Alignment.topCenter,
       );
@@ -45,6 +40,11 @@ void main() {
       final half = 'x'.toImage(size: 20, width: 100);
       expect(half.style.width, 100);
       expect(half.style.height, 20);
+    });
+
+    test('config 透传', () {
+      final w = 'x'.toImage(config: const WImageConfig(retryCount: 2));
+      expect(w.config.retryCount, 2);
     });
 
     test('fit / semanticLabel 覆盖配置', () {

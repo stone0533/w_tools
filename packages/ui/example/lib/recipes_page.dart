@@ -85,15 +85,15 @@ class RecipesPage extends StatelessWidget {
         _Card(
           child: WImage(
             data: 'https://example.invalid/retry.png',
-            style: const WImageStyle(
-              width: 160,
-              height: 90,
+            style: const WImageStyle(width: 160, height: 90),
+            config: const WImageConfig(
               showRetryButton: true,
               retryCount: 1,
             ),
           ),
         ),
-        const _Code('WImageStyle(showRetryButton: true, retryCount: 1)'),
+        const _Code(
+            'WImageStyle(width: 160, height: 90) + WImageConfig(showRetryButton: true, retryCount: 1)'),
       ],
     );
   }

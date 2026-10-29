@@ -49,6 +49,7 @@ extension WUiStringExtension on String {
   WImage toImage({
     Key? key,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     WImageType? type,
     double? width,
     double? height,
@@ -73,6 +74,7 @@ extension WUiStringExtension on String {
       key: key,
       data: this,
       style: s,
+      config: config,
       type: type,
       controller: controller,
       onLoadStatusChanged: onLoadStatusChanged,
@@ -85,23 +87,40 @@ extension WUiStringExtension on String {
   /// [prefix] 为 true（默认）时自动拼 [WAssets.imagePath]：
   /// `'logo.png'.toAssetImage()` → `assets/images/logo.png`。
   /// 如果传入的已经是完整路径（`assets/...` / `packages/...`），用 `prefix: false`。
-  WImage toAssetImage({bool prefix = true, Key? key, WImageStyle style = const WImageStyle()}) {
+  WImage toAssetImage({
+    bool prefix = true,
+    Key? key,
+    WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
+  }) {
     final data = prefix ? assetImagePath : this;
-    return data.toImage(type: WImageType.asset, key: key, style: style);
+    return data.toImage(type: WImageType.asset, key: key, style: style, config: config);
   }
 
   /// Base64 图片（可带 `data:...;base64,` 前缀，也可直接给 Base64 串）
-  WImage toBase64Image({Key? key, WImageStyle style = const WImageStyle()}) {
-    return toImage(type: WImageType.base64, key: key, style: style);
+  WImage toBase64Image({
+    Key? key,
+    WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
+  }) {
+    return toImage(type: WImageType.base64, key: key, style: style, config: config);
   }
 
   /// 本地文件图片（带不带 `file://` 前缀都可以）
-  WImage toFileImage({Key? key, WImageStyle style = const WImageStyle()}) {
-    return toImage(type: WImageType.file, key: key, style: style);
+  WImage toFileImage({
+    Key? key,
+    WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
+  }) {
+    return toImage(type: WImageType.file, key: key, style: style, config: config);
   }
 
   /// 网络图片（`http` / `https`，或以 `//` 开头的协议相对地址）
-  WImage toNetworkImage({Key? key, WImageStyle style = const WImageStyle()}) {
-    return toImage(type: WImageType.network, key: key, style: style);
+  WImage toNetworkImage({
+    Key? key,
+    WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
+  }) {
+    return toImage(type: WImageType.network, key: key, style: style, config: config);
   }
 }

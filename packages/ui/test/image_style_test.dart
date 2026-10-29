@@ -12,23 +12,13 @@ void main() {
     expect(next.copyWith(borderRadius: null).borderRadius, isNull);
   });
 
-  test('validate 复用统一规则', () {
-    expect(
-      () => const WImageStyle(retryCount: -1).validate(),
-      throwsAssertionError,
-    );
+  test('validate 校验视觉约束', () {
     expect(
       () => const WImageStyle(aspectRatio: 2, width: 1, height: 1).validate(),
       throwsAssertionError,
     );
-  });
-
-  test('placeholder 与 builder 不能同时设置', () {
     expect(
-      () => WImageStyle(
-        placeholder: const Text('p'),
-        placeholderBuilder: (_, __) => const Text('b'),
-      ).validate(),
+      () => const WImageStyle(aspectRatio: 0).validate(),
       throwsAssertionError,
     );
   });
@@ -40,9 +30,9 @@ void main() {
     expect(avatar.borderRadius, BorderRadius.circular(40));
     expect(avatar.fit, BoxFit.cover);
 
-    final thumb = WImageStyle.thumbnail(80, cacheSize: 240);
-    expect(thumb.memCacheWidth, 240);
-    expect(thumb.memCacheHeight, 240);
+    final thumb = WImageStyle.thumbnail(80);
+    expect(thumb.width, 80);
+    expect(thumb.height, 80);
 
     final cover = WImageStyle.cover(aspectRatio: 2, radius: 12);
     expect(cover.aspectRatio, 2);
@@ -51,26 +41,17 @@ void main() {
 
   test('链式糖返回新实例', () {
     const base = WImageStyle();
-    final next = base.square(40).rounded(20).decodeSize(120);
+    final next = base.square(40).rounded(20);
     expect(base.width, isNull);
     expect(next.width, 40);
     expect(next.height, 40);
     expect(next.borderRadius, BorderRadius.circular(20));
-    expect(next.memCacheWidth, 120);
-  });
-
-  test('showRetryButton 可复制', () {
-    const style = WImageStyle(showRetryButton: true, retryLabel: '重新加载');
-    expect(style.copyWith(showRetryButton: false).showRetryButton, isFalse);
-    expect(style.copyWith(retryLabel: '再来一次').retryLabel, '再来一次');
   });
 
   test('默认值', () {
     const style = WImageStyle();
     expect(style.fit, BoxFit.cover);
     expect(style.alignment, Alignment.center);
-    expect(style.retryCount, 0);
-    expect(style.retryDelay, 1000);
     expect(style.filterQuality, FilterQuality.low);
   });
 }

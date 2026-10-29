@@ -3,13 +3,15 @@
 ## 2.0.0
 
 ### Breaking
-- `WImageConfig` 删除，改为不可变 `WImageStyle`（`copyWith` / `validate`）。
+- 旧的可变 `WImageConfig` / `WImageConfigBuild` 删除；`WImageStyle` 改为不可变视觉样式。
 - `WImageConfigBuild` 扩展删除；用 `WImage.source` / `WImage.network/asset/file/base64`。
 - `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。
 - `WImage.onLoadProgress`、`progressIndicatorBuilder`、`cacheEnabled`、`fitCenter`、`size` 均已删除。
 - `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageDefaultsScope` + `WImageCachePolicy`。
 - `WImageTheme` / `WImageThemeData` 改为 `WImageDefaultsScope` / `WImageDefaults`；
   默认占位/错误/进度统一为 builder。
+- `WImageStyle` 拆为视觉 `WImageStyle` + 加载 `WImageConfig`；`WImage` / 所有命名构造新增
+  `config` 参数，`style` 不再包含 retry / placeholder / memCache / gaplessPlayback。
 - `WButtonConfig` / 配置缓存 / `WButtonThemeData` 删除；`WButton` 改用显式 `WButtonStyle`。
 - `WButton.enabled` / `loading` 改为组件参数。
 - `WButton` 删除任意 `child`；改用 `content` / `contentBuilder`，任意区域点击用 `WPressable`。
@@ -48,8 +50,8 @@
   `WImageFrame`、`WImageDefaultsScope`。
 - 场景预设：`WImage.avatar` / `WImage.thumbnail` / `WImage.cover` / `WImage.assetImage` /
   `WImage.memory` / `WImage.provider`，以及 `WImageStyle.avatar/thumbnail/cover`。
-- `WImageStyle` 链式糖：`square()` / `rounded()` / `decodeSize()`。
-- `WImageStyle(showRetryButton: true)` + `WImageErrorView` 内置错误/重试视图；
+- `WImageStyle` 链式糖：`square()` / `rounded()`。
+- `WImageConfig(showRetryButton: true)` + `WImageErrorView` 内置错误/重试视图；
   小尺寸自动只显示图标。
 - `WImageProviderError`：`provider` / `memory` 解码失败的错误类型。
 - `WImageDefaults.progressBuilder`。
@@ -60,8 +62,8 @@
 - 重试定时器、错误分类、进度上报与状态去重移入 `WImageLoader`；`WImage` 的 State 只做构建/渲染。
 - 网络路径统一为 `CachedNetworkImageProvider` + `Image`，进度改用 `ImageChunkEvent`；
   磁盘缓存仍走 `cached_network_image`。
-- `String.toImage` 增加 `key` / `style` / `type` / `semanticLabel` / `controller` /
-  `onProgress` 参数；`style` 不可变，不会被修改。
+- `String.toImage` 增加 `key` / `style` / `config` / `type` / `semanticLabel` / `controller` /
+  `onProgress` 参数；`style` / `config` 不可变，不会被修改。
 - 新增 `String.toAssetImage({prefix})` / `toBase64Image()` / `toFileImage()` / `toNetworkImage()`。
 - `WImage` 默认构造支持显式 `type`，与命名构造一致。
 - `WButtonStyle` 拆分为视觉 `WButtonStyle` + 动效 `WButtonMotion` + 语义 `WButtonSemantics`；
@@ -96,7 +98,7 @@
 - 修改 `retryCount` / `retryDelay` 时会取消已排队的重试。
 - 网络图的 `completed` 状态改为在首帧到达时上报。
 - `borderRadius` 现在同时作用于 `border` 与 `boxShadow`。
-- `WImageStyle.validate()` 在构造、更新、build 时复用；`aspectRatio` 与固定宽高冲突时 debug assert。
+- `WImageStyle.validate()` / `WImageConfig.validate()` 在构造、更新、build 时复用；`aspectRatio` 与固定宽高冲突时 debug assert。
 - 每个 `WImage` 缓存 provider，避免每次 build 重新创建 `CachedNetworkImageProvider` / `AssetImage` / `FileImage`。
 - `WImagePreloader` 与 `WImageCachePolicy` 解耦（缓存预算只作用于 Flutter `ImageCache`）。
 

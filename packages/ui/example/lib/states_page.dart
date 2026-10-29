@@ -26,9 +26,8 @@ class StatesPage extends StatelessWidget {
         _StateCard(
           child: WImage(
             data: 'data:image/png;base64,@@invalid@@',
-            style: const WImageStyle(
-              width: 160,
-              height: 90,
+            style: const WImageStyle(width: 160, height: 90),
+            config: const WImageConfig(
               errorWidget: ColoredBox(
                 color: Color(0xFFFFEBEE),
                 child: Center(child: Icon(Icons.broken_image_outlined)),
@@ -42,9 +41,8 @@ class StatesPage extends StatelessWidget {
         _StateCard(
           child: WImage(
             data: '',
-            style: const WImageStyle(
-              width: 160,
-              height: 90,
+            style: const WImageStyle(width: 160, height: 90),
+            config: const WImageConfig(
               errorWidget: ColoredBox(
                 color: Color(0xFFFFF3E0),
                 child: Center(child: Icon(Icons.image_not_supported_outlined)),
@@ -58,9 +56,8 @@ class StatesPage extends StatelessWidget {
         _StateCard(
           child: WImage.network(
             'https://example.invalid/loading.png',
-            style: const WImageStyle(
-              width: 160,
-              height: 90,
+            style: const WImageStyle(width: 160, height: 90),
+            config: const WImageConfig(
               placeholder: ColoredBox(
                 color: Color(0xFFE8EAF6),
                 child: Center(child: CircularProgressIndicator()),
@@ -104,9 +101,8 @@ class StatesPage extends StatelessWidget {
           child: WImage(
             data: 'file:///definitely/not/here.png',
             type: WImageType.file,
-            style: const WImageStyle(
-              width: 160,
-              height: 90,
+            style: const WImageStyle(width: 160, height: 90),
+            config: const WImageConfig(
               errorWidget: ColoredBox(
                 color: Color(0xFFE0F2F1),
                 child: Center(child: Icon(Icons.folder_off_outlined)),

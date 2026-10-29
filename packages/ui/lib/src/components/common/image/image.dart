@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,7 @@ import 'image_frame.dart';
 import 'image_loader.dart';
 import 'image_source.dart';
 import 'image_style.dart';
+import 'image_config.dart';
 import 'image_defaults.dart';
 import 'image_types.dart';
 
@@ -25,6 +27,7 @@ export 'image_error_view.dart';
 export 'image_loader.dart';
 export 'image_source.dart';
 export 'image_style.dart';
+export 'image_config.dart';
 export 'image_defaults.dart';
 export 'image_types.dart';
 
@@ -83,8 +86,11 @@ class WImage extends StatefulWidget {
   /// 图片来源
   final WImageSource source;
 
-  /// 不可变样式
+  /// 不可变视觉样式
   final WImageStyle style;
+
+  /// 不可变加载配置
+  final WImageConfig config;
 
   /// 加载状态回调
   final ValueChanged<WImageLoadStatus>? onLoadStatusChanged;
@@ -105,6 +111,7 @@ class WImage extends StatefulWidget {
   factory WImage({
     Key? key,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     required String data,
     WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
@@ -120,6 +127,7 @@ class WImage extends StatefulWidget {
       type: type,
       source: WImageSource.parse(data, type: type),
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -131,6 +139,7 @@ class WImage extends StatefulWidget {
     Key? key,
     required WImageSource source,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -140,6 +149,7 @@ class WImage extends StatefulWidget {
       type: source.type,
       source: source,
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -151,6 +161,7 @@ class WImage extends StatefulWidget {
     String data, {
     Key? key,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     Map<String, String>? headers,
     String? cacheKey,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
@@ -161,6 +172,7 @@ class WImage extends StatefulWidget {
       key: key,
       source: WImageSource.network(data, headers: headers, cacheKey: cacheKey),
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -172,6 +184,7 @@ class WImage extends StatefulWidget {
     String data, {
     Key? key,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     String? package,
     bool prefix = false,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
@@ -182,6 +195,7 @@ class WImage extends StatefulWidget {
       key: key,
       source: WImageSource.asset(data, package: package, prefix: prefix),
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -193,6 +207,7 @@ class WImage extends StatefulWidget {
     String data, {
     Key? key,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -201,6 +216,7 @@ class WImage extends StatefulWidget {
       key: key,
       source: WImageSource.file(data),
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -212,6 +228,7 @@ class WImage extends StatefulWidget {
     String data, {
     Key? key,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -220,6 +237,7 @@ class WImage extends StatefulWidget {
       key: key,
       source: WImageSource.base64(data),
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -232,6 +250,7 @@ class WImage extends StatefulWidget {
     Key? key,
     double size = 40,
     WImageStyle? style,
+    WImageConfig config = const WImageConfig(),
     WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
@@ -246,6 +265,7 @@ class WImage extends StatefulWidget {
       data: data,
       type: type,
       style: style ?? WImageStyle.avatar(size),
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -260,6 +280,7 @@ class WImage extends StatefulWidget {
     double? height,
     int? cacheSize,
     WImageStyle? style,
+    WImageConfig config = const WImageConfig(),
     WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
@@ -269,11 +290,17 @@ class WImage extends StatefulWidget {
       style == null || (width == 80 && height == null && cacheSize == null),
       '传了 style 时 width/height/cacheSize 会被忽略',
     );
+    final side = height ?? width;
+    final defaultCache = cacheSize ?? (math.max(width, side) * 3).round();
     return WImage(
       key: key,
       data: data,
       type: type,
-      style: style ?? WImageStyle.thumbnail(width, height: height, cacheSize: cacheSize),
+      style: style ?? WImageStyle.thumbnail(width, height: height),
+      config: config.copyWith(
+        memCacheWidth: config.memCacheWidth ?? defaultCache,
+        memCacheHeight: config.memCacheHeight ?? defaultCache,
+      ),
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -287,6 +314,7 @@ class WImage extends StatefulWidget {
     double? aspectRatio = 16 / 9,
     double? radius,
     WImageStyle? style,
+    WImageConfig config = const WImageConfig(),
     WImageType? type,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
@@ -301,6 +329,7 @@ class WImage extends StatefulWidget {
       data: data,
       type: type,
       style: style ?? WImageStyle.cover(aspectRatio: aspectRatio, radius: radius),
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -313,6 +342,7 @@ class WImage extends StatefulWidget {
     Key? key,
     String? package,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -323,6 +353,7 @@ class WImage extends StatefulWidget {
       package: package,
       prefix: true,
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -334,6 +365,7 @@ class WImage extends StatefulWidget {
     ImageProvider provider, {
     Key? key,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -342,6 +374,7 @@ class WImage extends StatefulWidget {
       key: key,
       source: WImageSource.provider(provider),
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -353,6 +386,7 @@ class WImage extends StatefulWidget {
     Uint8List bytes, {
     Key? key,
     WImageStyle style = const WImageStyle(),
+    WImageConfig config = const WImageConfig(),
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
@@ -361,6 +395,7 @@ class WImage extends StatefulWidget {
       MemoryImage(bytes),
       key: key,
       style: style,
+      config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
       controller: controller,
@@ -372,11 +407,13 @@ class WImage extends StatefulWidget {
     required this.type,
     required this.source,
     required this.style,
+    required this.config,
     this.onLoadStatusChanged,
     this.onProgress,
     this.controller,
   }) {
     style.validate();
+    config.validate();
   }
 
   @override
@@ -421,12 +458,14 @@ class _WImageState extends State<WImage> {
   /// 供 controller 读取的状态
   WImageLoader get loader => _load;
 
-  WImageStyle get config => widget.style;
+  WImageStyle get style => widget.style;
+  WImageConfig get config => widget.config;
 
   @override
   void initState() {
     super.initState();
-    widget.style.validate();
+    style.validate();
+    config.validate();
     _load = WImageLoader(
       retryCount: config.retryCount,
       retryDelay: config.retryDelay,
@@ -467,7 +506,8 @@ class _WImageState extends State<WImage> {
   @override
   void didUpdateWidget(WImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    widget.style.validate();
+    style.validate();
+    config.validate();
     _load.syncRetryConfig(
       retryCount: config.retryCount,
       retryDelay: config.retryDelay,
@@ -476,7 +516,7 @@ class _WImageState extends State<WImage> {
       oldWidget.controller?._detach(this);
       widget.controller?._attach(this);
     }
-    if (oldWidget.style != widget.style) {
+    if (oldWidget.style != widget.style || oldWidget.config != widget.config) {
       _lastFrame = null;
     }
     if (oldWidget.source != widget.source) {
@@ -510,6 +550,7 @@ class _WImageState extends State<WImage> {
   @override
   Widget build(BuildContext context) {
     assert(() {
+      style.validate();
       config.validate();
       return true;
     }());
@@ -538,8 +579,8 @@ class _WImageState extends State<WImage> {
       };
     }
 
-    result = WImageFrame(style: config, child: result);
-    final aspectRatio = config.aspectRatio;
+    result = WImageFrame(style: style, child: result);
+    final aspectRatio = style.aspectRatio;
     if (aspectRatio != null && aspectRatio > 0) {
       return AspectRatio(aspectRatio: aspectRatio, child: result);
     }
@@ -548,8 +589,8 @@ class _WImageState extends State<WImage> {
 
   /// 给占位/错误占位加尺寸约束（配置了宽高时）
   Widget _sizedSlot(Widget child) {
-    if (config.width == null && config.height == null) return child;
-    return SizedBox(width: config.width, height: config.height, child: child);
+    if (style.width == null && style.height == null) return child;
+    return SizedBox(width: style.width, height: style.height, child: child);
   }
 
   /// 构建默认占位符（defaults 优先，其次内置兜底）
@@ -721,14 +762,14 @@ class _WImageState extends State<WImage> {
     return Image(
       key: ValueKey('$_value#attempt=${_load.attempt}'),
       image: effectiveProvider,
-      width: config.width,
-      height: config.height,
-      fit: config.fit,
-      filterQuality: config.filterQuality,
-      alignment: config.alignment,
+      width: style.width,
+      height: style.height,
+      fit: style.fit,
+      filterQuality: style.filterQuality,
+      alignment: style.alignment,
       gaplessPlayback: config.gaplessPlayback,
-      semanticLabel: config.semanticLabel,
-      excludeFromSemantics: config.excludeFromSemantics,
+      semanticLabel: style.semanticLabel,
+      excludeFromSemantics: style.excludeFromSemantics,
       frameBuilder: (showPlaceholderWhileLoading || notifyCompletion)
           ? (context, child, frame, wasSynchronouslyLoaded) {
               final done = wasSynchronouslyLoaded || frame != null;

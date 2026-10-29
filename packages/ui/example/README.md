@@ -2,7 +2,7 @@
 
 `WImage` 的可运行示例，包含三个页面：
 
-- **Playground**：实时调整 width / height / aspectRatio / fit / memCache / borderRadius / retryCount / placeholder，并显示对应 `WImageStyle` 代码；
+- **Playground**：实时调整 width / height / aspectRatio / fit / memCache / borderRadius / retryCount / placeholder，并显示对应 `WImageStyle` / `WImageConfig` 代码；
 - **状态矩阵**：加载成功、失败、空数据、加载中占位、主题默认错误占位、文件/Web 不支持；
 - **常用配方**：`WImage.avatar` / `thumbnail` / `cover` / `assetImage` / `memory` / `provider` / `showRetryButton`。
 
@@ -35,7 +35,7 @@ flutter run
 | Playground 参数与代码生成 | `lib/playground_page.dart` |
 | 状态矩阵 | `lib/states_page.dart` |
 | 常用配方 | `lib/recipes_page.dart` |
-| 进度 + 重试 | `WImage.network(..., retryCount:, progressBuilder:, errorWidgetBuilder:)` |
+| 进度 + 重试 | `WImage.network(..., config: WImageConfig(retryCount:, progressBuilder:, errorWidgetBuilder:))` |
 | 默认加载 UI | `main()` 里的 `WImageDefaultsScope` |
 | 缓存预算 | `main()` 里的 `WImageCachePolicy.configure` |
 | 预加载 | `states_page.dart` 里的 `WImagePreloader` 示例（可移到 Playground） |

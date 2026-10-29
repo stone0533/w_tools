@@ -64,7 +64,7 @@ void main() {
         MaterialApp(
           home: WImage(
             data: '   ',
-            style: WImageStyle(
+            config: WImageConfig(
               errorWidgetBuilder: (context, url, error) {
                 captured = error;
                 return const SizedBox.shrink();
@@ -85,7 +85,7 @@ void main() {
         MaterialApp(
           home: WImage(
             data: '',
-            style: WImageStyle(
+            config: WImageConfig(
               errorWidgetBuilder: (context, url, error) {
                 captured = error;
                 return const Text('custom-error');
@@ -199,13 +199,13 @@ void main() {
 
   group('WImage 解码尺寸', () {
     testWidgets('memCacheWidth / memCacheHeight 透传给 CachedNetworkImageProvider', (tester) async {
-      const config = WImageStyle(memCacheWidth: 240, memCacheHeight: 240);
+      const config = WImageConfig(memCacheWidth: 240, memCacheHeight: 240);
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: WImage(
-              style: config,
+              config: config,
               data: 'https://cdn.example.com/a.png',
             ),
           ),
@@ -224,7 +224,7 @@ void main() {
           home: Scaffold(
             body: WImage.asset(
               'assets/images/logo.png',
-              style: const WImageStyle(memCacheWidth: 120),
+              config: const WImageConfig(memCacheWidth: 120),
             ),
           ),
         ),
@@ -336,27 +336,29 @@ void main() {
         width: 10,
         height: 20,
         fit: BoxFit.contain,
+        aspectRatio: 1.5,
+        semanticLabel: 'label',
+        filterQuality: FilterQuality.high,
+      );
+      const config = WImageConfig(
         memCacheWidth: 30,
         memCacheHeight: 40,
         retryCount: 2,
         retryDelay: 300,
-        aspectRatio: 1.5,
-        semanticLabel: 'label',
         gaplessPlayback: true,
-        filterQuality: FilterQuality.high,
       );
 
       expect(style.width, 10);
       expect(style.height, 20);
       expect(style.fit, BoxFit.contain);
-      expect(style.memCacheWidth, 30);
-      expect(style.memCacheHeight, 40);
-      expect(style.retryCount, 2);
-      expect(style.retryDelay, 300);
       expect(style.aspectRatio, 1.5);
       expect(style.semanticLabel, 'label');
-      expect(style.gaplessPlayback, isTrue);
       expect(style.filterQuality, FilterQuality.high);
+      expect(config.memCacheWidth, 30);
+      expect(config.memCacheHeight, 40);
+      expect(config.retryCount, 2);
+      expect(config.retryDelay, 300);
+      expect(config.gaplessPlayback, isTrue);
     });
 
     test('WImageProgress.fraction 处理未知总大小', () {

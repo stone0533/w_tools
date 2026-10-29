@@ -26,9 +26,12 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
         height: _aspectRatio == null ? _height : null,
         aspectRatio: _aspectRatio,
         fit: _fit,
+        borderRadius: BorderRadius.circular(_radius),
+      );
+
+  WImageConfig get _config => WImageConfig(
         memCacheWidth: _memCache,
         memCacheHeight: _memCache,
-        borderRadius: BorderRadius.circular(_radius),
         retryCount: _retryCount,
         retryDelay: 500,
         placeholder: _customPlaceholder ? const _Placeholder() : null,
@@ -41,10 +44,12 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
           'assets/demo.png',
           prefix: false,
           style: _style,
+          config: _config,
         ),
       _Source.network => WImage.network(
           'https://picsum.photos/seed/wtools-playground/640/360',
           style: _style,
+          config: _config,
         ),
     };
   }
@@ -64,11 +69,13 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
       buffer.writeln('    aspectRatio: ${_aspectRatio!.toStringAsFixed(2)},');
     }
     buffer.writeln('    fit: BoxFit.${_fit.name},');
-    buffer.writeln('    memCacheWidth: $_memCache,');
-    buffer.writeln('    memCacheHeight: $_memCache,');
     buffer.writeln(
       '    borderRadius: BorderRadius.circular(${_radius.toStringAsFixed(0)}),',
     );
+    buffer.writeln('  ),');
+    buffer.writeln('  config: WImageConfig(');
+    buffer.writeln('    memCacheWidth: $_memCache,');
+    buffer.writeln('    memCacheHeight: $_memCache,');
     buffer.writeln('    retryCount: $_retryCount,');
     if (_customPlaceholder) buffer.writeln('    placeholder: const _Placeholder(),');
     buffer.writeln('  ),');
