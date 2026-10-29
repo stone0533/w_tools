@@ -3,8 +3,9 @@
 ## 1.2.0
 
 ### Added
-- `init` 生成 `lib/app/design_system/app_bars.dart` 与 `app_scaffold.dart`：
-  标准页面默认使用 `AppScaffold`，AppBar 默认样式统一走 `AppBars.style`。
+- `init` 生成 `lib/app/design_system/app_bars.dart`、`app_buttons.dart` 与
+  `app_scaffold.dart`：标准页面默认使用 `AppScaffold`，AppBar / 按钮样式统一走
+  `AppBars.style` / `AppButtons`。
 - toolkit 导出 AppScaffold/AppBars；AGENTS / 暂存层 README 增加页面规范。
 
 ## 1.1.1

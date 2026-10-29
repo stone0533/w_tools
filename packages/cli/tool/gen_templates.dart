@@ -21,6 +21,7 @@ const _templates = <String, String>{
   'AGENTS_snippet.md': 'agentsSnippet',
   'AGENTS_snippet.en.md': 'agentsSnippetEn',
   'app_bars.dart.tpl': 'appBarsTemplate',
+  'app_buttons.dart.tpl': 'appButtonsTemplate',
   'app_scaffold.dart.tpl': 'appScaffoldTemplate',
 };
 

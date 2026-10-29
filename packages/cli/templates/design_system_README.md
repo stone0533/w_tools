@@ -27,6 +27,18 @@ AppScaffold(
 
 `AppBars.style` 是全项目 AppBar 默认样式的唯一入口。
 
+按钮统一：
+
+```dart
+WButton(
+  style: AppButtons.primary(context),
+  label: '提交',
+  onTap: submit,
+)
+```
+
+`AppButtons` 是项目按钮样式的唯一入口；页面不要直接写 `WButtonStyle`。
+
 ## 什么该放这里
 
 只描述「长什么样」、完全不知道业务的组件：弹窗壳、品牌 logo 方块、图标+文字一行、

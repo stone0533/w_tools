@@ -17,6 +17,8 @@
    Use `AppScaffold(appBar: WAppBar(...))` for a custom app bar; use `WScaffold` or plain
    `Scaffold` for drawers/bottom sheets/non-standard safe areas, and note why in the PR.
    Change app-bar defaults only in `AppBars.style`.
+   **Buttons** use `AppButtons.primary/secondary/text/danger(context)`; do not write
+   `WButtonStyle` in pages unless it is an explicit one-off style.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

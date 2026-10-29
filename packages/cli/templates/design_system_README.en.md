@@ -11,6 +11,9 @@ Standard pages use `AppScaffold(title: ..., body: ...)`.
 Use `AppScaffold(appBar: WAppBar(...), ...)` for a custom app bar.
 `AppBars.style` is the only source of default app-bar styling.
 
+Buttons use `AppButtons.primary/secondary/text/danger(context)`; do not write
+`WButtonStyle` in pages unless it is an explicit one-off style.
+
 ## What belongs here
 
 Components that only describe “what it looks like” and know nothing about business:

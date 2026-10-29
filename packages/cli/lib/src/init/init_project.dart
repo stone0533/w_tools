@@ -103,6 +103,7 @@ InitReport runInit(
   write('lib/app/w/toolkit.dart', InitTemplates.toolkit(withQr: withQr, withMap: withMap));
   write('lib/app/design_system/README.md', InitTemplates.designSystemReadme(lang: lang));
   write('lib/app/design_system/app_bars.dart', InitTemplates.appBars());
+  write('lib/app/design_system/app_buttons.dart', InitTemplates.appButtons());
   write('lib/app/design_system/app_scaffold.dart', InitTemplates.appScaffold());
   // doctor 的默认配置：全注释，写了也不改变行为，只是把开关摊开。
   // 它是项目配置而不是生成物：存在就不再比对内容。

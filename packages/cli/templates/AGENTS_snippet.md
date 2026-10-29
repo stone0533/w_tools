@@ -16,6 +16,8 @@
    不要直接使用 `WScaffold` / `WAppBar`。特殊顶部栏用 `AppScaffold(appBar: WAppBar(...))`；
    需要 drawer / bottomSheet / 非标准安全区时用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
    AppBar 默认样式只在 `AppBars.style` 修改。
+   **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
+   `WButtonStyle`，除非是明确的局部一次性样式。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
