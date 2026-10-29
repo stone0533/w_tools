@@ -48,30 +48,6 @@ void main() {
     });
   });
 
-  group('WContainerConfig', () {
-    test('链式方法返回 this', () {
-      final c = WContainerConfig();
-      expect(c.center(), same(c));
-      expect(c.paddingAll(8), same(c));
-      expect(c.borderRadiusAll(12), same(c));
-      expect(c.size(100), same(c));
-      expect(c.shapeCircle(), same(c));
-      expect(c.clipBehaviorAntiAlias(), same(c));
-    });
-
-    test('所有 setter 可调用', () {
-      final c = WContainerConfig()
-        ..width = 100
-        ..height = 50
-        ..margin = const EdgeInsets.all(4)
-        ..padding = const EdgeInsets.all(8)
-        ..color = Colors.green
-        ..alignment = Alignment.center
-        ..clipBehavior = Clip.antiAlias;
-      expect(c, isNotNull);
-    });
-  });
-
   group('WListViewConfig', () {
     test('setter 可调用', () {
       final c = WListViewConfig()
@@ -82,9 +58,13 @@ void main() {
   });
 
   group('WNavBarConfig', () {
-    test('setter containerConfig 可调用', () {
-      final c = WNavBarConfig()..containerConfig = WContainerConfig();
-      expect(c, isNotNull);
+    test('decoration / padding 可设置', () {
+      const c = WNavBarConfig(
+        decoration: BoxDecoration(color: Colors.white),
+        padding: EdgeInsets.all(4),
+      );
+      expect(c.decoration, isNotNull);
+      expect(c.padding, const EdgeInsets.all(4));
     });
   });
 

@@ -56,7 +56,6 @@ ui/
     │   │   └── rich_text.dart                 # WRichText
     │   ├── layout/                 # 布局组件
     │   │   ├── appbar.dart                    # WAppBar / WAppBarStyle
-    │   │   ├── container.dart                 # WContainer / WContainerConfig
     │   │   ├── list_view.dart                 # WListView / WListViewConfig
     │   │   ├── scaffold.dart                  # WScaffold
     │   │   └── step.dart                      # WStep
@@ -1194,21 +1193,33 @@ WScaffold(
 
 ## 8. 其他组件速览
 
-### WContainer / WContainerConfig
+### 盒子：Container + BoxDecoration
 
-增强版容器，支持装饰（背景色、圆角、边框、阴影、前景装饰）、布局（alignment、padding、margin、constraints、transform）。被 `WButton`、`WImage`、`WNavBar` 等组件复用。
-
-> `WContainerConfig` 是可变的链式构建器；`copyWith` 支持把可空字段显式设为 `null` 来清空。
+不再提供 `WContainer` / `WContainerConfig`。盒子直接用 Flutter 原生 `Container` +
+`BoxDecoration`，完整支持背景、渐变、边框、圆角、阴影、前景装饰、约束和 transform。
 
 ```dart
-WContainer(
-  config: WContainerConfig()
-    ..width = 200
-    ..height = 48
-    ..color = Colors.blue
-    ..borderRadius = BorderRadius.circular(24)
-    ..padding = EdgeInsets.symmetric(horizontal: 16),
+Container(
+  width: 200,
+  height: 48,
+  decoration: BoxDecoration(
+    color: Colors.blue,
+    borderRadius: BorderRadius.circular(24),
+  ),
+  padding: const EdgeInsets.symmetric(horizontal: 16),
   child: const Text('内容'),
+)
+```
+
+需要 1px 描边且不占宽度时用 `foregroundDecoration`：
+
+```dart
+Container(
+  foregroundDecoration: BoxDecoration(
+    border: Border.all(color: Colors.black12),
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: ...,
 )
 ```
 
@@ -1364,17 +1375,19 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 
 ### WWidgetExtension
 
-Widget 扩展，提供链式装饰、布局、padding、margin：
+Widget 扩展，只提供间距、展开和点击糖；装饰仍用 `Container` +
+`BoxDecoration`：
 
 ```dart
-// 链式装饰
 Text('Hello')
-  .padding(16)
-  .margin(all: 8)
-  .bgColor(Colors.blue)
-  .borderRadius(BorderRadius.circular(8))
-  .shadow([BoxShadow(...)])
+  .withHorizontalPadding(16)
+  .withVerticalPadding(8)
+  .expanded()
 ```
+
+可用方法：`expanded`、`withHorizontalPadding`、`withVerticalPadding`、
+`withLeftPadding`、`withRightPadding`、`withTopPadding`、`withBottomPadding`、
+`withTopSafeSpace`、`withBottomSafeSpace`、`withBottomSpace`。
 
 ### WRow / WColumn
 

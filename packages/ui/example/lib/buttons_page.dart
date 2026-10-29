@@ -253,17 +253,18 @@ class _ButtonsPageState extends State<ButtonsPage> {
         ),
         _Section(
           title: '10. 复杂可点击区域：多行文本 + 图片 + 图标',
-          subtitle: 'WPressable + WContainer；不是按钮语义',
+          subtitle: 'WPressable + Container；不是按钮语义',
           child: WPressable(
             effect: WPressEffect.scale,
             pressedScale: 0.99,
             onTap: () {},
-            child: WContainer(
-              config: WContainerConfig()
-                ..padding = const EdgeInsets.all(12)
-                ..color = Colors.white
-                ..borderRadius = BorderRadius.circular(12)
-                ..border = Border.all(color: Colors.black12),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black12),
+              ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -154,25 +154,25 @@ void main() {
       int disposeCount = 0;
 
       Widget buildTree({required bool keepAlive}) => MaterialApp(
-        home: Scaffold(
-          body: ListView.builder(
-            itemExtent: 100,
-            itemCount: 30,
-            itemBuilder: (context, index) {
-              if (index != 0) {
-                return Text('item $index');
-              }
-              return WKeepAliveWrapper(
-                keepAlive: keepAlive,
-                child: _KeepAliveProbe(
-                  onInit: () => initCount++,
-                  onDispose: () => disposeCount++,
-                ),
-              );
-            },
-          ),
-        ),
-      );
+            home: Scaffold(
+              body: ListView.builder(
+                itemExtent: 100,
+                itemCount: 30,
+                itemBuilder: (context, index) {
+                  if (index != 0) {
+                    return Text('item $index');
+                  }
+                  return WKeepAliveWrapper(
+                    keepAlive: keepAlive,
+                    child: _KeepAliveProbe(
+                      onInit: () => initCount++,
+                      onDispose: () => disposeCount++,
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
 
       await tester.pumpWidget(buildTree(keepAlive: true));
       expect(initCount, 1);

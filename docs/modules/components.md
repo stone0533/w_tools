@@ -39,7 +39,6 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WContainer` / `WContainerConfig` | ui | 圆角/描边/阴影/内边距的盒子 | 需要**1px 描边且不占宽度**时用 `foregroundDecoration`（`border` 会挤掉 2px） |
 | `WRow` / `WColumn` / `WPadding` / `WSizeBox` | ui | 常用布局糖 | — |
 | `WClipRRect` | ui | 裁剪 | — |
 

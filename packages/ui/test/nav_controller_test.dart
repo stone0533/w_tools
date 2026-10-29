@@ -93,14 +93,14 @@ void main() {
 
   group('WNavBar — controller 生命周期', () {
     Widget buildNav(WNavController controller) => MaterialApp(
-      home: Scaffold(
-        body: WNavBar(
-          config: WNavBarConfig(),
-          controller: controller,
-          itemBuilder: (_, i, selected) => Text('item-$i'),
-        ),
-      ),
-    );
+          home: Scaffold(
+            body: WNavBar(
+              config: const WNavBarConfig(),
+              controller: controller,
+              itemBuilder: (_, i, selected) => Text('item-$i'),
+            ),
+          ),
+        );
 
     testWidgets('卸载后不释放外部 controller', (tester) async {
       final controller = WNavController(length: 2, vsync: tester);

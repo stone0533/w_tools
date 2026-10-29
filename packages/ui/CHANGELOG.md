@@ -1,10 +1,11 @@
 # Changelog
 
 ## 2.0.0
-- `WContainer`：修文档 `bgColor`，`copyWith` 支持清空可空字段；新增
-  `foregroundDecoration` 与圆形/圆角校验；`constraintsMinHeight` 改为合并 constraints。
 
 ### Breaking
+- 删除 `WContainer` / `WContainerConfig`；盒子直接用 `Container` + `BoxDecoration`。
+- 删除 `WWidgetExtension.withContainer`；`WWidgetExtension` 只保留间距、展开和点击糖。
+- `WNavBarConfig.containerConfig` 改为 `decoration` + `padding`。
 - 旧的可变 `WImageConfig` / `WImageConfigBuild` 删除；`WImageStyle` 改为不可变视觉样式。
 - `WImageConfigBuild` 扩展删除；用 `WImage.source` / `WImage.network/asset/file/base64`。
 - `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。

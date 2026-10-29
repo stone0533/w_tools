@@ -277,7 +277,6 @@ class MyAppPlugin extends WAppPlugin {
 
 #### 布局组件
 - **AppBar** (`WAppBar`): 自定义应用栏组件
-- **Container** (`WContainer`): 增强的容器组件，支持多种装饰和变换
 - **ListView** (`WListView`): 增强的列表视图组件，支持普通/分隔线/网格布局、头尾组件、子项重叠与空列表占位
 - **Scaffold** (`WScaffold`): 增强的脚手架组件
 - **Step** (`WStep`): 步骤指示器组件

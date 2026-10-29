@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../layout/container.dart';
 import 'nav_controller.dart';
 
 /// 底部导航栏组件
@@ -90,25 +89,32 @@ class _WNavBarState extends State<WNavBar> {
       ],
     );
 
-    // 如果提供了容器配置，使用配置中的构建器
-    if (widget.config._containerConfig != null) {
-      return widget.config._containerConfig!.build(child: navContent);
+    final decoration = widget.config.decoration;
+    final padding = widget.config.padding;
+    if (decoration == null && padding == null) {
+      return navContent;
     }
 
-    // 默认直接返回导航内容
-    return navContent;
+    return Container(
+      decoration: decoration,
+      padding: padding,
+      child: navContent,
+    );
   }
 }
 
 /// 导航栏配置类
 class WNavBarConfig {
-  /// 外层容器配置；为 null 时直接返回导航内容
-  WContainerConfig? _containerConfig;
+  /// 外层装饰；为 null 时不包裹 Container
+  final BoxDecoration? decoration;
 
-  /// 设置外层容器配置
-  set containerConfig(WContainerConfig? value) {
-    _containerConfig = value;
-  }
+  /// 外层 padding；为 null 时不额外加 padding
+  final EdgeInsetsGeometry? padding;
+
+  const WNavBarConfig({
+    this.decoration,
+    this.padding,
+  });
 
   /// 构建导航栏
   WNavBar build({

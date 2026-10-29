@@ -128,16 +128,6 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
   ),
   CatalogEntry(
-    name: "WContainer / WContainerConfig",
-    names: <String>["WContainer", "WContainerConfig"],
-    package: "w_tools_ui",
-    section: "4. 布局与容器",
-    useFor: "圆角/描边/阴影/内边距的盒子",
-    dontUseFor: "需要**1px 描边且不占宽度**时用 `foregroundDecoration`（`border` 会挤掉 2px）",
-    importPath: "package:w_tools_ui/w_tools_ui.dart",
-    docs: "docs/modules/ui_module.md",
-  ),
-  CatalogEntry(
     name: "WRow / WColumn / WPadding / WSizeBox",
     names: <String>["WRow", "WColumn", "WPadding", "WSizeBox"],
     package: "w_tools_ui",

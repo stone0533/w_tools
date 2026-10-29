@@ -15,7 +15,6 @@ export 'common/rich_text.dart';
 
 // 布局组件
 export 'layout/appbar.dart';
-export 'layout/container.dart';
 export 'layout/list_view.dart';
 export 'layout/scaffold.dart';
 export 'layout/step.dart';

@@ -8,7 +8,7 @@
 ## 特性
 
 - **通用组件**：`WText` / `WImage` / `WButton` / `WBadge` 等
-- **布局组件**：`WScaffold` / `WAppBar` / `WContainer` / `WListView` / `WStep`
+- **布局组件**：`WScaffold` / `WAppBar` / `WListView` / `WStep`
 - **导航组件**：`WNavBar` / `WNavController` / `WTabBar`
 - **扩展方法**：颜色、字符串、数字、Row / Column、TextStyle、Widget 等
 - **屏幕适配**：`WScreen`、间距与尺寸工具
@@ -109,7 +109,7 @@ const WImageStyle().square(40).rounded(20).decodeSize(120)
 |---|---|
 | 文本 / 图片 | `WText` / `WImage` |
 | 按钮 / 徽标 | `WButton` / `WBadge` / `WRowButtons` |
-| 布局 | `WScaffold` / `WAppBar` / `WContainer` / `WListView` |
+| 布局 | `WScaffold` / `WAppBar` / `WListView` |
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
 | 屏幕工具 | `WScreen` / `WSizeBox` / `WPadding` |
 | 扩展 | `ColorExtension` / `StringExtension` / `NumExtension` / `WidgetExtension` 等 |
