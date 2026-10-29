@@ -55,10 +55,10 @@ ui/
     │   │   ├── gradient_circular_progress_indicator.dart
     │   │   └── rich_text.dart                 # WRichText
     │   ├── layout/                 # 布局组件
-    │   │   ├── appbar.dart                    # WAppBar / WTopBar / WAppBarStyle
+    │   │   ├── appbar.dart                    # WAppBar / WAppBarStyle
     │   │   ├── container.dart                 # WContainer / WContainerConfig
     │   │   ├── list_view.dart                 # WListView / WListViewConfig
-    │   │   ├── scaffold.dart                  # WScaffold / WScaffoldConfig
+    │   │   ├── scaffold.dart                  # WScaffold
     │   │   └── step.dart                      # WStep
     │   └── navigation/             # 导航组件
     │       ├── nav_bar.dart                   # WNavBar / WNavBarConfig
@@ -1132,24 +1132,23 @@ WListViewConfig.vertical()
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `appBar` | `PreferredSizeWidget?` | null | 顶部 AppBar；用 `WAppBarPreferred` 适配 |
-| `body` | `Widget?` | null | 主体内容 |
-| `backgroundColor` | `Color?` | null | 背景颜色 |
-| `systemStatusBarStyle` | `SystemUiOverlayStyle?` | null | 状态栏样式（通过 AnnotatedRegion 设置） |
-| `underlayWidget` | `Widget?` | null | 底层 widget（Stack 叠加在 body 下方） |
-| `includeTopSafeArea` | bool | false | 是否包含顶部安全区域 |
-| `includeBottomSafeArea` | bool | true | 是否包含底部安全区域 |
+| `title` / `titleWidget` | — | null | 自动构建默认 `WAppBar` |
+| `leading` / `actions` | — | null / [] | 默认 AppBar 的左右内容 |
+| `onBack` | VoidCallback? | null | 自定义返回；不传走 canPop |
+| `appBarStyle` | WAppBarStyle? | null | 默认 AppBar 样式 |
+| `appBarBottom` | PreferredSizeWidget? | null | 默认 AppBar 的 bottom |
+| `appBar` | WAppBar? | null | 完全覆盖默认顶部栏 |
+| `body` | Widget? | null | 主体内容 |
+| `bottomNavigationBar` | Widget? | null | 底部导航 |
+| `floatingActionButton` | Widget? | null | FAB |
+| `backgroundColor` | Color? | null | 背景颜色 |
+| `systemStatusBarStyle` | SystemUiOverlayStyle? | null | 状态栏样式 |
+| `underlayWidget` | Widget? | null | 底层 widget |
+| `includeTopSafeArea` | bool | false | 无 AppBar 时是否加顶部安全区 |
+| `includeBottomSafeArea` | bool | true | 无 bottomNavigationBar 时是否加底部安全区 |
+| `resizeToAvoidBottomInset` | bool | true | 键盘避让 |
 
-### WScaffoldConfig 链式构建
-
-```dart
-WScaffoldConfig()
-  ..appBar = const WAppBarPreferred(appBar: WAppBar(title: '标题'))
-  ..backgroundColor = Colors.white
-  ..includeTopSafeArea = true
-  ..systemStatusBarStyle = SystemUiOverlayStyle.dark
-  ..build(body: const HomePage())
-```
+不再提供 `WScaffoldConfig`；直接构造参数。
 
 ### 使用示例
 
@@ -1225,25 +1224,33 @@ WContainer(
 
 带渐变效果的圆形进度指示器。
 
-### WAppBar / WTopBar
-
-#### WAppBar
+### WAppBar
 
 标准顶部导航栏：leading / title / actions / bottom。
 
 ```dart
 WScaffold(
-  appBar: WAppBarPreferred(
-    appBar: WAppBar(
-      title: '订单详情',
-      actions: [
-        IconButton(
-          tooltip: '搜索',
-          icon: const Icon(Icons.search),
-          onPressed: search,
-        ),
-      ],
-      onBack: () => Navigator.pop(context),
+  title: '订单详情',
+  actions: [
+    IconButton(
+      tooltip: '搜索',
+      icon: const Icon(Icons.search),
+      onPressed: search,
+    ),
+  ],
+  body: ...,
+)
+```
+
+WScaffold 会自动构建 `WAppBar`；特殊页面可直接传 `appBar`：
+
+```dart
+WScaffold(
+  appBar: WAppBar(
+    title: '自定义',
+    style: const WAppBarStyle(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
     ),
   ),
   body: ...,
@@ -1256,49 +1263,10 @@ WScaffold(
 - 默认返回按钮是 `BackButton` / `IconButton`，支持键盘和语义；
 - `title` 与 `titleWidget` 二选一；
 - `actions` 是 `List<Widget>`；
-- 不处理状态栏高度，也不实现 `PreferredSizeWidget`；
-- 作为 `Scaffold.appBar` 时用 `WAppBarPreferred` 适配高度。
+- `includeStatusBar` 默认 true，负责状态栏背景与 padding；
+- 高度为 `style.height`，bottom 额外计算。
 
-```dart
-WAppBar(
-  title: '标题',
-  style: const WAppBarStyle(
-    backgroundColor: Colors.white,
-    foregroundColor: Colors.black,
-    height: 56,
-    systemOverlayStyle: SystemUiOverlayStyle.dark,
-  ),
-  actions: const [
-    IconButton(
-      tooltip: '更多',
-      icon: Icon(Icons.more_horiz),
-      onPressed: null,
-    ),
-  ],
-)
-```
-
-#### WTopBar
-
-完全自定义顶部区域，只负责高度和背景：
-
-```dart
-WTopBar(
-  height: 64,
-  child: Stack(
-    children: [
-      // 任意布局
-    ],
-  ),
-)
-```
-
-不承诺 `PreferredSizeWidget`，也不提供 leading/title/actions 布局。
-
-#### 迁移
-
-2.0 删除 `WAppBarConfig` / `WTextConfig` 标题配置 / `hideBackIcon`；改用显式参数和
-`WAppBarStyle`。需要完全自定义布局时用 `WTopBar`。
+需要完全自定义叠放时，直接在页面里使用 `Container` / `Stack`，不使用 WAppBar。
 
 ### WStep
 

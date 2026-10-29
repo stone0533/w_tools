@@ -9,9 +9,8 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WScaffold` | ui | 页面容器：背景色、状态栏样式、底部安全区 | 不要在页面里再手写 `Scaffold` 包一层 |
-| `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom） | 任意叠放/覆盖布局用 `WTopBar` |
-| `WTopBar` | ui | 完全自定义顶部区域 | 不要代替标准 `WAppBar` |
+| `WScaffold` | ui | 页面壳：默认 WAppBar、body、底部导航/FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
+| `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom） | 任意叠放/覆盖布局在页面层用 Container/Stack |
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏 | 不要自己写 `BottomNavigationBar` |
 | `WTabBar` | ui | 顶部 tab | 需要下划线跟随的复杂交互时先看它够不够 |
 | `WStep` | ui | 步骤条（注册流程等） | — |

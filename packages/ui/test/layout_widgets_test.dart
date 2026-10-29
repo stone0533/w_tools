@@ -193,19 +193,16 @@ void main() {
     expect(find.byIcon(Icons.search), findsOneWidget);
   });
 
-  test('WAppBar — WAppBarPreferred 负责 PreferredSize 适配', () {
+  test('WAppBar — contentHeight 不含状态栏', () {
     const bar = WAppBar(title: '标题');
-    const preferred = WAppBarPreferred(appBar: bar);
-    expect(preferred.preferredSize, const Size.fromHeight(56));
+    expect(bar.contentHeight, 56);
   });
 
-  testWidgets('WScaffold — 支持 WAppBarPreferred', (tester) async {
+  testWidgets('WScaffold — title 自动生成默认 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: WScaffold(
-          appBar: WAppBarPreferred(
-            appBar: WAppBar(title: '标题'),
-          ),
+          title: '标题',
           body: Text('body'),
         ),
       ),
@@ -215,32 +212,34 @@ void main() {
     expect(find.text('body'), findsOneWidget);
   });
 
-  testWidgets('WTopBar — 自定义 child 与高度', (tester) async {
+  testWidgets('WScaffold — appBar 覆盖默认顶部栏', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(
-          body: WTopBar(
-            height: 72,
-            child: Center(child: Text('custom')),
-          ),
+        home: WScaffold(
+          appBar: WAppBar(title: '自定义'),
+          body: Text('body'),
         ),
       ),
     );
 
-    expect(find.text('custom'), findsOneWidget);
-    expect(
-      tester
-          .getSize(
-            find
-                .descendant(
-                  of: find.byType(WTopBar),
-                  matching: find.byType(Container),
-                )
-                .first,
-          )
-          .height,
-      72,
+    expect(find.text('自定义'), findsOneWidget);
+    expect(find.text('body'), findsOneWidget);
+  });
+
+  testWidgets('WScaffold — 支持 bottomNavigationBar / floatingActionButton', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WScaffold(
+          title: '标题',
+          body: Text('body'),
+          bottomNavigationBar: Text('nav'),
+          floatingActionButton: FloatingActionButton(onPressed: null),
+        ),
+      ),
     );
+
+    expect(find.text('nav'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 
   group('GlobalKey 扩展', () {

@@ -114,22 +114,6 @@ void main() {
     });
   });
 
-  group('WScaffoldConfig', () {
-    test('所有 setter 可调用', () {
-      final c = WScaffoldConfig()
-        ..backgroundColor = Colors.white
-        ..includeTopSafeArea = true
-        ..includeBottomSafeArea = true;
-      expect(c, isNotNull);
-    });
-
-    test('copyWith', () {
-      final c = WScaffoldConfig()..backgroundColor = Colors.black;
-      final copy = c.copyWith(backgroundColor: Colors.yellow);
-      expect(copy, isA<WScaffoldConfig>());
-    });
-  });
-
   group('WRichTextConfig', () {
     test('链式方法返回 this', () {
       final c = WRichTextConfig();

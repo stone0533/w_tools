@@ -26,10 +26,9 @@ class WAppBarStyle {
 /// 标准顶部导航栏。
 ///
 /// 只提供 leading / title / actions / bottom 的标准布局；
-/// 任意叠放请使用 [WTopBar]。
+/// 任意叠放请在页面层自己用 Container/Stack。
 ///
-/// 本组件不处理状态栏高度，也不实现 PreferredSizeWidget；
-/// 作为 Scaffold.appBar 使用时套 [WAppBarPreferred]。
+/// 默认包含状态栏背景；嵌套在 SafeArea 中时可传 `includeStatusBar: false`。
 class WAppBar extends StatelessWidget {
   const WAppBar({
     super.key,
@@ -41,6 +40,7 @@ class WAppBar extends StatelessWidget {
     this.onBack,
     this.automaticallyImplyLeading = true,
     this.centerTitle = true,
+    this.includeStatusBar = true,
     this.style = const WAppBarStyle(),
   }) : assert(
           title == null || titleWidget == null,
@@ -55,7 +55,15 @@ class WAppBar extends StatelessWidget {
   final VoidCallback? onBack;
   final bool automaticallyImplyLeading;
   final bool centerTitle;
+  final bool includeStatusBar;
   final WAppBarStyle style;
+
+  /// toolbar + bottom 的高度，不含状态栏。
+  double get contentHeight => style.height + (bottom?.preferredSize.height ?? 0);
+
+  /// 实际占用高度，含状态栏（如果 [includeStatusBar]）。
+  double totalHeight(BuildContext context) =>
+      contentHeight + (includeStatusBar ? MediaQuery.paddingOf(context).top : 0);
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +74,7 @@ class WAppBar extends StatelessWidget {
         actions.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, children: actions);
 
     final foreground = style.foregroundColor;
+    final statusBarHeight = includeStatusBar ? MediaQuery.paddingOf(context).top : 0.0;
     Widget toolbar = SizedBox(
       height: style.height,
       child: IconTheme(
@@ -89,6 +98,7 @@ class WAppBar extends StatelessWidget {
     );
 
     content = Container(
+      padding: EdgeInsets.only(top: statusBarHeight),
       decoration: BoxDecoration(
         color: style.gradient == null ? style.backgroundColor : null,
         gradient: style.gradient,
@@ -139,61 +149,5 @@ class WAppBar extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       style: titleStyle,
     );
-  }
-}
-
-/// 把 [WAppBar] 适配为 Scaffold.appBar 使用的 PreferredSizeWidget。
-class WAppBarPreferred extends StatelessWidget implements PreferredSizeWidget {
-  const WAppBarPreferred({super.key, required this.appBar});
-
-  final WAppBar appBar;
-
-  @override
-  Size get preferredSize => Size.fromHeight(
-        appBar.style.height + (appBar.bottom?.preferredSize.height ?? 0),
-      );
-
-  @override
-  Widget build(BuildContext context) => appBar;
-}
-
-/// 完全自定义的顶部区域。
-///
-/// 只负责高度与背景，不提供 leading/title/actions 布局，
-/// 也不实现 PreferredSizeWidget。
-class WTopBar extends StatelessWidget {
-  const WTopBar({
-    super.key,
-    required this.child,
-    this.height = 56,
-    this.backgroundColor,
-    this.gradient,
-    this.systemOverlayStyle,
-  });
-
-  final Widget child;
-  final double height;
-  final Color? backgroundColor;
-  final Gradient? gradient;
-  final SystemUiOverlayStyle? systemOverlayStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget content = Container(
-      height: height,
-      decoration: BoxDecoration(
-        color: gradient == null ? backgroundColor : null,
-        gradient: gradient,
-      ),
-      child: child,
-    );
-
-    final overlay = systemOverlayStyle;
-    return overlay == null
-        ? content
-        : AnnotatedRegion<SystemUiOverlayStyle>(
-            value: overlay,
-            child: content,
-          );
   }
 }
