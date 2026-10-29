@@ -35,13 +35,16 @@ void main() {
   });
 
   // ========= ui Config =========
-  group('WAppBarConfig', () {
-    test('所有 setter 可调用', () {
-      final c = WAppBarConfig()
-        ..color = Colors.blue
-        ..height = 56
-        ..gradient = const LinearGradient(colors: [Colors.red, Colors.blue]);
-      expect(c, isNotNull);
+  group('WAppBarStyle', () {
+    test('字段可读', () {
+      const style = WAppBarStyle(
+        backgroundColor: Colors.blue,
+        height: 56,
+        titleSpacing: 8,
+      );
+      expect(style.backgroundColor, Colors.blue);
+      expect(style.height, 56);
+      expect(style.titleSpacing, 8);
     });
   });
 

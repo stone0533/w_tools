@@ -106,21 +106,20 @@ void main() {
     var notifications = 0;
     double? percentage;
 
-    final wrapper =
-        WNotificationListenerBuilder<ScrollNotification>(
-            child: SizedBox(
-              height: 100,
-              child: ListView.builder(
-                itemCount: 50,
-                itemBuilder: (_, i) => SizedBox(height: 20, child: Text('row-$i')),
-              ),
-            ),
-          )
-          ..onNotification((_) {
-            notifications++;
-            return false;
-          })
-          ..onNotificationPercentage((value) => percentage = value);
+    final wrapper = WNotificationListenerBuilder<ScrollNotification>(
+      child: SizedBox(
+        height: 100,
+        child: ListView.builder(
+          itemCount: 50,
+          itemBuilder: (_, i) => SizedBox(height: 20, child: Text('row-$i')),
+        ),
+      ),
+    )
+      ..onNotification((_) {
+        notifications++;
+        return false;
+      })
+      ..onNotificationPercentage((value) => percentage = value);
 
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: wrapper.build())));
     await tester.drag(find.byType(ListView), const Offset(0, -100));
@@ -143,39 +142,105 @@ void main() {
     );
   });
 
-  testWidgets('WAppBar — 默认返回图标与语义', (tester) async {
+  testWidgets('WAppBar — 默认高度与无 canPop 时不显示返回', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: SizedBox(
-            height: 56,
-            child: WAppBar(titleWidget: Text('my bar')),
-          ),
+          body: WAppBar(titleWidget: Text('my bar')),
         ),
       ),
     );
 
     expect(find.text('my bar'), findsOneWidget);
-    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
-
-    final backSemantics = tester
-        .widgetList<Semantics>(find.byType(Semantics))
-        .firstWhere((s) => s.properties.button == true && s.properties.label != null);
-    expect(backSemantics.properties.label, isNotNull);
+    expect(find.byIcon(Icons.arrow_back), findsNothing);
+    expect(tester.getSize(find.byType(NavigationToolbar)).height, 56);
   });
 
-  testWidgets('WAppBar — 单独渲染（不是 PreferredSizeWidget）', (tester) async {
+  testWidgets('WAppBar — onBack 显示标准返回按钮', (tester) async {
+    var taps = 0;
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Scaffold(
-          body: SizedBox(
-            height: 56,
-            child: WAppBar(titleWidget: Text('my bar')),
+          body: WAppBar(
+            titleWidget: const Text('my bar'),
+            onBack: () => taps++,
           ),
         ),
       ),
     );
-    expect(find.text('my bar'), findsOneWidget);
+
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    expect(taps, 1);
+  });
+
+  testWidgets('WAppBar — actions 列表与 title 不重叠', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: WAppBar(
+            title: '标题',
+            actions: [
+              Icon(Icons.search),
+              SizedBox(width: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('标题'), findsOneWidget);
+    expect(find.byIcon(Icons.search), findsOneWidget);
+  });
+
+  test('WAppBar — WAppBarPreferred 负责 PreferredSize 适配', () {
+    const bar = WAppBar(title: '标题');
+    const preferred = WAppBarPreferred(appBar: bar);
+    expect(preferred.preferredSize, const Size.fromHeight(56));
+  });
+
+  testWidgets('WScaffold — 支持 WAppBarPreferred', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WScaffold(
+          appBar: WAppBarPreferred(
+            appBar: WAppBar(title: '标题'),
+          ),
+          body: Text('body'),
+        ),
+      ),
+    );
+
+    expect(find.text('标题'), findsOneWidget);
+    expect(find.text('body'), findsOneWidget);
+  });
+
+  testWidgets('WTopBar — 自定义 child 与高度', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: WTopBar(
+            height: 72,
+            child: Center(child: Text('custom')),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('custom'), findsOneWidget);
+    expect(
+      tester
+          .getSize(
+            find
+                .descendant(
+                  of: find.byType(WTopBar),
+                  matching: find.byType(Container),
+                )
+                .first,
+          )
+          .height,
+      72,
+    );
   });
 
   group('GlobalKey 扩展', () {

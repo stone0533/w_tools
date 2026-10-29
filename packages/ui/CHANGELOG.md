@@ -12,6 +12,9 @@
   默认占位/错误/进度统一为 builder。
 - `WImageStyle` 拆为视觉 `WImageStyle` + 加载 `WImageConfig`；`WImage` / 所有命名构造新增
   `config` 参数，`style` 不再包含 retry / placeholder / memCache / gaplessPlayback。
+- `WAppBarConfig` 删除；`WAppBar` 改为显式 `WAppBarStyle` + leading/title/actions/bottom。
+  新增 `WTopBar`（完全自定义顶部区域）和 `WAppBarPreferred`（Scaffold.appBar 适配）。
+- `WScaffold` 新增 `appBar` 参数。
 - `WButtonConfig` / 配置缓存 / `WButtonThemeData` 删除；`WButton` 改用显式 `WButtonStyle`。
 - `WButton.enabled` / `loading` 改为组件参数。
 - `WButton` 删除任意 `child`；改用 `content` / `contentBuilder`，任意区域点击用 `WPressable`。

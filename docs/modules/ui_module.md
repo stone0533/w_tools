@@ -55,7 +55,7 @@ ui/
     │   │   ├── gradient_circular_progress_indicator.dart
     │   │   └── rich_text.dart                 # WRichText
     │   ├── layout/                 # 布局组件
-    │   │   ├── appbar.dart                    # WAppBar
+    │   │   ├── appbar.dart                    # WAppBar / WTopBar / WAppBarStyle
     │   │   ├── container.dart                 # WContainer / WContainerConfig
     │   │   ├── list_view.dart                 # WListView / WListViewConfig
     │   │   ├── scaffold.dart                  # WScaffold / WScaffoldConfig
@@ -1132,6 +1132,7 @@ WListViewConfig.vertical()
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
+| `appBar` | `PreferredSizeWidget?` | null | 顶部 AppBar；用 `WAppBarPreferred` 适配 |
 | `body` | `Widget?` | null | 主体内容 |
 | `backgroundColor` | `Color?` | null | 背景颜色 |
 | `systemStatusBarStyle` | `SystemUiOverlayStyle?` | null | 状态栏样式（通过 AnnotatedRegion 设置） |
@@ -1143,6 +1144,7 @@ WListViewConfig.vertical()
 
 ```dart
 WScaffoldConfig()
+  ..appBar = const WAppBarPreferred(appBar: WAppBar(title: '标题'))
   ..backgroundColor = Colors.white
   ..includeTopSafeArea = true
   ..systemStatusBarStyle = SystemUiOverlayStyle.dark
@@ -1223,9 +1225,80 @@ WContainer(
 
 带渐变效果的圆形进度指示器。
 
-### WAppBar
+### WAppBar / WTopBar
 
-自定义应用栏，可作为 `WScaffold` 的 appBar 或独立使用。
+#### WAppBar
+
+标准顶部导航栏：leading / title / actions / bottom。
+
+```dart
+WScaffold(
+  appBar: WAppBarPreferred(
+    appBar: WAppBar(
+      title: '订单详情',
+      actions: [
+        IconButton(
+          tooltip: '搜索',
+          icon: const Icon(Icons.search),
+          onPressed: search,
+        ),
+      ],
+      onBack: () => Navigator.pop(context),
+    ),
+  ),
+  body: ...,
+)
+```
+
+功能契约：
+
+- `leading` 优先；否则 `onBack`；否则 `Navigator.canPop` 时显示默认返回；
+- 默认返回按钮是 `BackButton` / `IconButton`，支持键盘和语义；
+- `title` 与 `titleWidget` 二选一；
+- `actions` 是 `List<Widget>`；
+- 不处理状态栏高度，也不实现 `PreferredSizeWidget`；
+- 作为 `Scaffold.appBar` 时用 `WAppBarPreferred` 适配高度。
+
+```dart
+WAppBar(
+  title: '标题',
+  style: const WAppBarStyle(
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.black,
+    height: 56,
+    systemOverlayStyle: SystemUiOverlayStyle.dark,
+  ),
+  actions: const [
+    IconButton(
+      tooltip: '更多',
+      icon: Icon(Icons.more_horiz),
+      onPressed: null,
+    ),
+  ],
+)
+```
+
+#### WTopBar
+
+完全自定义顶部区域，只负责高度和背景：
+
+```dart
+WTopBar(
+  height: 64,
+  child: Stack(
+    children: [
+      // 任意布局
+    ],
+  ),
+)
+```
+
+不承诺 `PreferredSizeWidget`，也不提供 leading/title/actions 布局。
+
+#### 迁移
+
+2.0 删除 `WAppBarConfig` / `WTextConfig` 标题配置 / `hideBackIcon`；改用显式参数和
+`WAppBarStyle`。需要完全自定义布局时用 `WTopBar`。
 
 ### WStep
 

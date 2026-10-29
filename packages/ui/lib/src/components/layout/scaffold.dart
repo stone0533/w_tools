@@ -5,6 +5,9 @@ import '../../extensions/widget.dart';
 
 /// 增强版脚手架组件，提供更多自定义选项
 class WScaffold extends StatelessWidget {
+  /// 顶部 AppBar
+  final PreferredSizeWidget? appBar;
+
   /// 主体内容
   final Widget? body;
 
@@ -26,6 +29,7 @@ class WScaffold extends StatelessWidget {
   /// 创建脚手架
   const WScaffold({
     super.key,
+    this.appBar,
     this.body,
     this.backgroundColor,
     this.systemStatusBarStyle,
@@ -40,7 +44,7 @@ class WScaffold extends StatelessWidget {
 
     // 处理安全空间
     if (content != null) {
-      if (includeTopSafeArea) {
+      if (includeTopSafeArea && appBar == null) {
         content = content.withTopSafeSpace();
       }
       if (includeBottomSafeArea) {
@@ -59,6 +63,7 @@ class WScaffold extends StatelessWidget {
 
     // 创建基础 Scaffold
     final scaffold = Scaffold(
+      appBar: appBar,
       backgroundColor: backgroundColor,
       body: content,
     );
@@ -75,6 +80,9 @@ class WScaffold extends StatelessWidget {
 
 /// WScaffold 配置类，用于链式构建 WScaffold
 class WScaffoldConfig {
+  /// 顶部 AppBar
+  PreferredSizeWidget? _appBar;
+
   /// 背景颜色
   Color? _backgroundColor;
 
@@ -89,6 +97,11 @@ class WScaffoldConfig {
 
   /// 是否包含底部安全区域
   bool _includeBottomSafeArea = true;
+
+  /// 设置顶部 AppBar
+  set appBar(PreferredSizeWidget? value) {
+    _appBar = value;
+  }
 
   /// 设置背景颜色
   set backgroundColor(Color? value) {
@@ -125,6 +138,7 @@ class WScaffoldConfig {
   /// - [includeBottomSafeArea]：是否包含底部安全区域
   /// 返回：WScaffold 实例
   WScaffold build({
+    PreferredSizeWidget? appBar,
     Widget? body,
     Color? backgroundColor,
     SystemUiOverlayStyle? systemStatusBarStyle,
@@ -133,6 +147,7 @@ class WScaffoldConfig {
     bool? includeBottomSafeArea,
   }) {
     return WScaffold(
+      appBar: appBar ?? _appBar,
       backgroundColor: backgroundColor ?? _backgroundColor,
       systemStatusBarStyle: systemStatusBarStyle ?? _systemStatusBarStyle,
       underlayWidget: underlayWidget ?? _underlayWidget,
@@ -158,6 +173,7 @@ class WScaffoldConfig {
   /// - [includeBottomSafeArea]：是否包含底部安全区域
   /// 返回：WScaffoldConfig 实例，包含更新后的配置
   WScaffoldConfig copyWith({
+    PreferredSizeWidget? appBar,
     Color? backgroundColor,
     SystemUiOverlayStyle? systemStatusBarStyle,
     Widget? underlayWidget,
@@ -165,6 +181,7 @@ class WScaffoldConfig {
     bool? includeBottomSafeArea,
   }) {
     final copy = WScaffoldConfig();
+    copy._appBar = appBar ?? _appBar;
     copy._backgroundColor = backgroundColor ?? _backgroundColor;
     copy._systemStatusBarStyle = systemStatusBarStyle ?? _systemStatusBarStyle;
     copy._underlayWidget = underlayWidget ?? _underlayWidget;
