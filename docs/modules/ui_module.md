@@ -241,7 +241,21 @@ typedef WButtonContentBuilder = Widget Function(
 ```
 
 `style` 是当前 WidgetState 下解析后的最终视觉值，可直接使用 `style.iconSize`、
-`style.gap`、`style.textStyle`、`style.foregroundColor`。
+`style.gap`、`style.textStyle`、`style.foregroundColor`，也可以通过 `style.states`
+判断当前状态：
+
+```dart
+contentBuilder: (context, style) {
+  final disabled = style.states.contains(WidgetState.disabled);
+  final pressed = style.states.contains(WidgetState.pressed);
+
+  if (disabled) return const Icon(Icons.lock);
+  if (pressed) return const Text('提交中…');
+  return const Text('提交');
+}
+```
+
+`style.states` 是不可变 Set。
 
 ### WButtonStyle
 

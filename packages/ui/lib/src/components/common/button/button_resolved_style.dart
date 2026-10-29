@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 @immutable
 class WButtonResolvedStyle {
   const WButtonResolvedStyle({
+    this.states = const <WidgetState>{},
     this.backgroundColor,
     this.gradient,
     this.border,
@@ -13,6 +14,9 @@ class WButtonResolvedStyle {
     this.iconSize = 18,
     this.gap = 8,
   });
+
+  /// 当前解析时的 WidgetState（unmodifiable）
+  final Set<WidgetState> states;
 
   final Color? backgroundColor;
   final Gradient? gradient;

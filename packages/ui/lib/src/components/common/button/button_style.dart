@@ -125,6 +125,7 @@ class WButtonStyle {
   WButtonResolvedStyle resolve(Set<WidgetState> states) {
     final shadows = boxShadow?.resolve(states);
     return WButtonResolvedStyle(
+      states: Set<WidgetState>.unmodifiable(states),
       backgroundColor: backgroundColor?.resolve(states),
       gradient: gradient?.resolve(states),
       border: border?.resolve(states),

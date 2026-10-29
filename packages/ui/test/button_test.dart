@@ -216,18 +216,50 @@ void main() {
       expect(semantics.properties.button, isTrue);
     });
 
-    testWidgets('contentBuilder 接收最终 style', (tester) async {
+    testWidgets('contentBuilder 接收最终 style 和 states', (tester) async {
+      Set<WidgetState>? states;
       await tester.pumpWidget(
         _wrap(
           WButton(
             style: WButtonStyles.primary,
             size: const WButtonSize(name: 'custom', iconSize: 32),
-            contentBuilder: (context, style) => Text('icon=${style.iconSize}'),
+            contentBuilder: (context, style) {
+              states = style.states;
+              return Text('icon=${style.iconSize}');
+            },
             onTap: () {},
           ),
         ),
       );
       expect(find.text('icon=32.0'), findsOneWidget);
+      expect(states, isEmpty);
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('icon=32.0')),
+      );
+      await tester.pump();
+      expect(states, contains(WidgetState.pressed));
+      expect(() => states!.add(WidgetState.hovered), throwsUnsupportedError);
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('contentBuilder 可读取 disabled state', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            style: WButtonStyles.primary,
+            enabled: false,
+            contentBuilder: (context, style) {
+              return Text(
+                style.states.contains(WidgetState.disabled) ? '禁用内容' : '正常内容',
+              );
+            },
+            onTap: () {},
+          ),
+        ),
+      );
+      expect(find.text('禁用内容'), findsOneWidget);
     });
 
     testWidgets('label/icon/content 三选一', (tester) async {
