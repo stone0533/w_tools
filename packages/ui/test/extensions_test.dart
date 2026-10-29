@@ -257,6 +257,26 @@ void main() {
       expect(find.byType(Padding), findsOneWidget);
     });
 
+    testWidgets('Widget.withTopSafeSpace / withBottomSafeSpace', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                const Text('top').withTopSafeSpace(),
+                const Text('bottom').withBottomSafeSpace(),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final paddings =
+          tester.widgetList<Padding>(find.byType(Padding)).map((e) => e.padding).toList();
+      expect(paddings, contains(EdgeInsets.only(top: WScreen.statusBarHeight)));
+      expect(paddings, contains(EdgeInsets.only(bottom: WScreen.bottomBarHeight)));
+    });
+
     testWidgets('Widget.toPressable', (tester) async {
       bool tapped = false;
       await tester.pumpWidget(

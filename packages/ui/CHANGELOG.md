@@ -11,8 +11,9 @@
 - `toCurrency` 负数符号改为 `-$1,234.56`；`toPadLeft` 负数补零保留符号；
   `toPercent` 整数结果不再带 `.0`。
 - `HexColor.fromHex` 忽略前后空格；`trimAll` 正则简化。
-- `WImageExtension.imagePrecache` 标记废弃，改用 `WImagePreloader.preloadImages`。
+- 删除 `WImageExtension`；图片预加载用 `WImagePreloader.preloadImages` 或 `precacheImage`。
 - `withIntrinsicHeight` 合并到 `WWidgetExtension`，删除 Row/Column 专用扩展。
+- `withBottomSpace` 标记废弃，改用 `withBottomPadding`。
 - 删除 `WStrutStyleExtension` 与 `WUiTextStyleExtension.fromConfig`；使用
   `WTextConfig.toTextStyle()` / `toStrutStyle()`。
 - `WWidgetExtension.withDecoration`：给 Widget 包一层 `DecoratedBox`。

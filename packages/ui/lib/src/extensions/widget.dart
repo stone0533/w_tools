@@ -13,7 +13,9 @@ extension WWidgetExtension on Widget {
     );
   }
 
-  /// 添加底部安全空间（适配底部导航栏）
+  /// 添加底部安全空间（适配底部导航栏）。
+  ///
+  /// 读取 [WScreen.bottomBarHeight]，不读取当前 [MediaQuery]。
   Widget withBottomSafeSpace() {
     return Padding(
       padding: EdgeInsets.only(bottom: WScreen.bottomBarHeight),
@@ -21,15 +23,13 @@ extension WWidgetExtension on Widget {
     );
   }
 
-  /// 添加自定义底部空间
-  Widget withBottomSpace(double height) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: height),
-      child: this,
-    );
-  }
+  /// 添加自定义底部空间。
+  @Deprecated('Use withBottomPadding instead')
+  Widget withBottomSpace(double height) => withBottomPadding(height);
 
-  /// 添加顶部安全空间（适配状态栏）
+  /// 添加顶部安全空间（适配状态栏）。
+  ///
+  /// 读取 [WScreen.statusBarHeight]，不读取当前 [MediaQuery]。
   Widget withTopSafeSpace() {
     return Padding(
       padding: EdgeInsets.only(top: WScreen.statusBarHeight),

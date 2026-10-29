@@ -5,7 +5,6 @@ export 'src/components/components.dart';
 export 'src/extensions/box_decoration.dart';
 export 'src/extensions/color.dart';
 export 'src/extensions/global_key.dart';
-export 'src/extensions/image.dart';
 export 'src/extensions/num.dart';
 export 'src/extensions/string.dart';
 export 'src/extensions/text_style.dart';

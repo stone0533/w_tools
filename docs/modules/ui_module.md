@@ -67,7 +67,6 @@ ui/
     │   ├── box_decoration.dart                # WBoxDecorationExtension
     │   ├── color.dart                         # HexColor（Color 扩展）
     │   ├── global_key.dart                    # WGlobalKeyExtension
-    │   ├── image.dart                         # WImageExtension
     │   ├── num.dart                           # WNumExtension
     │   ├── string.dart                        # WStringExtension
     │   ├── text_style.dart                    # WTextStyleExtension
@@ -1372,11 +1371,6 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 
 字符串扩展，提供格式化、验证、转换等便捷方法。
 
-### WImageExtension
-
-图片扩展。`imagePrecache` 已废弃，仅支持 asset；请使用 `WImagePreloader.preloadImages`
-或 Flutter 的 `precacheImage`。
-
 ### WNumExtension
 
 数值扩展，提供尺寸、间距、圆角、格式化与补零：
@@ -1410,11 +1404,13 @@ Text('Hello')
 
 可用方法：`expanded`、`withHorizontalPadding`、`withVerticalPadding`、
 `withLeftPadding`、`withRightPadding`、`withTopPadding`、`withBottomPadding`、
-`withTopSafeSpace`、`withBottomSafeSpace`、`withBottomSpace`、`withDecoration`、
-`withIntrinsicHeight`。
+`withTopSafeSpace`、`withBottomSafeSpace`、`withDecoration`、
+`withIntrinsicHeight`。`withBottomSpace` 已废弃，用 `withBottomPadding`。
 
 `withDecoration` 只包一层 `DecoratedBox`，不提供 padding / margin；
 需要圆角裁剪时用 `Container(clipBehavior: Clip.antiAlias)`。
+
+`withTopSafeSpace` / `withBottomSafeSpace` 读取 `WScreen`，不读取当前 `MediaQuery`。
 
 ### WBoxDecorationExtension / WGradients / WShadows
 
