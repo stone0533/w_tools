@@ -144,7 +144,7 @@ InitReport runInit(
     );
   }
 
-  _collectStale(report, root, features);
+  _collectStale(report, root, features, targets);
   report.pubspecSnippet = _snippet(
     root,
     report,
@@ -163,12 +163,26 @@ const _uiStarterFiles = <String>[
   'lib/app/ui/app_scaffold.dart',
 ];
 
-void _collectStale(InitReport report, Directory root, InitFeatures features) {
-  if (features.ui) return;
-  for (final rel in _uiStarterFiles) {
-    if (File(p.join(root.path, rel)).existsSync()) {
-      report.stale.add('$rel（当前 profile 不生成，未删除）');
+void _collectStale(
+  InitReport report,
+  Directory root,
+  InitFeatures features,
+  Set<String> targets,
+) {
+  if (!features.ui) {
+    for (final rel in _uiStarterFiles) {
+      if (File(p.join(root.path, rel)).existsSync()) {
+        report.stale.add('$rel（当前 profile 不生成，未删除）');
+      }
     }
+  }
+
+  for (final entry in targetFiles.entries) {
+    if (targets.contains(entry.key)) continue;
+    final file = File(p.join(root.path, entry.value));
+    if (!file.existsSync()) continue;
+    if (!file.readAsStringSync().contains('<!-- w_tools:begin -->')) continue;
+    report.stale.add('${entry.value}（当前 targets 未包含 ${entry.key}，未删除）');
   }
 }
 

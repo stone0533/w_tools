@@ -61,7 +61,8 @@ Profile 能力：
 | `--profile=full` | core + app + form + ui + api + toast + qr |
 
 `--no-ui` / `--no-instructions` 只停止生成，不删除已有文件。  
-切换 profile 后，当前 profile 不再生成的旧 UI 文件会在 `stale` 中提示，但不会自动删除。  
+切换 profile 或 targets 后，当前配置不再生成的旧 UI / 指令文件会在 `stale` 中提示，
+但不会自动删除。  
 `--no-ui` 只关闭页面 UI 与 `w_tools_ui`，不会自动移除 `w_tools_toast`。
 
 `init --targets` 支持 `agents`（AGENTS.md）/ `claude`（CLAUDE.md）/

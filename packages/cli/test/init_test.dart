@@ -190,6 +190,18 @@ void main() {
       expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isTrue);
     });
 
+    test('--no-instructions 报告旧 AGENTS（不删除）', () async {
+      final root = makeProject();
+      runInit(root);
+      final report = runInit(root, targets: const <String>{});
+
+      expect(
+        report.stale.any((e) => e.contains('AGENTS.md（当前 targets 未包含 agents')),
+        isTrue,
+      );
+      expect(File(p.join(root.path, 'AGENTS.md')).existsSync(), isTrue);
+    });
+
     test('--no-qr / --with-map 影响导出', () async {
       final root = makeProject();
       runInit(root, features: InitFeatures.full.copyWith(qr: false, map: true));
