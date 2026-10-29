@@ -1362,6 +1362,8 @@ controller.currentIndex; // 当前选中索引
 - `#ARGB`（简写，每字符重复）
 - `#RGB`（简写）
 
+输入前后的空格会被忽略。
+
 ```dart
 final c = HexColor.fromHex('#FF5733');    // RRGGBB
 final c2 = HexColor.fromHex('#80FF5733'); // AARRGGBB
@@ -1373,9 +1375,29 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 
 字符串扩展，提供格式化、验证、转换等便捷方法。
 
+### WImageExtension
+
+图片扩展。`imagePrecache` 已废弃，仅支持 asset；请使用 `WImagePreloader.preloadImages`
+或 Flutter 的 `precacheImage`。
+
 ### WNumExtension
 
-数值扩展，提供格式化、范围检查、数字转颜色等。
+数值扩展，提供尺寸、间距、圆角、格式化与补零：
+
+| 方法 | 说明 |
+|------|------|
+| `10.heightBox` / `10.widthBox` / `10.squareBox` | 创建 SizedBox |
+| `10.allPadding` / `horizontalPadding` / `verticalPadding` | 创建 EdgeInsets |
+| `10.borderRadius` | `BorderRadius.circular(10)` |
+| `1234.toThousand` | `1,234` |
+| `1234.toCurrency(symbol: '¥')` | `¥1,234` |
+| `(-1234.56).toCurrency(symbol: '\$')` | `-\$1,234.56` |
+| `0.5.toPercent` | `50%` |
+| `0.333.toPercentWithFixed(1)` | `33.3%` |
+| `1.toPadLeft(3)` | `001` |
+| `(-1).toPadLeft(3)` | `-01` |
+
+补零时负号计入总长度；`toPercent` 的整数结果不带 `.0`。
 
 ### WWidgetExtension
 

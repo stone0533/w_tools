@@ -8,6 +8,10 @@
 - `WGradients`：vertical / horizontal / diagonal / radial 方向预设。
 - `WShadows`：none / card / elevated / floating 中性阴影预设。
 - `withShadow` 复制为不可变列表；`WGradients` 校验 colors/stops。
+- `toCurrency` 负数符号改为 `-$1,234.56`；`toPadLeft` 负数补零保留符号；
+  `toPercent` 整数结果不再带 `.0`。
+- `HexColor.fromHex` 忽略前后空格；`trimAll` 正则简化。
+- `WImageExtension.imagePrecache` 标记废弃，改用 `WImagePreloader.preloadImages`。
 - `WWidgetExtension.withDecoration`：给 Widget 包一层 `DecoratedBox`。
 
 ### Breaking

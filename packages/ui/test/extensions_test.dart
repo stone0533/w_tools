@@ -39,6 +39,11 @@ void main() {
       expect(value & 0xFF, 0); // blue
     });
 
+    test('HexColor.fromHex - 前后空格', () {
+      final color = HexColor.fromHex(' #FF5733 ');
+      expect(color.toARGB32(), const Color(0xFFFF5733).toARGB32());
+    });
+
     test('HexColor.fromHex - 不带#前缀', () {
       final color = HexColor.fromHex('FF5733');
       final value = color.toARGB32();
@@ -172,7 +177,7 @@ void main() {
       expect(1234.toCurrency(symbol: '¥'), '¥1,234');
       expect(1234.56.toCurrency(symbol: '\$'), '\$1,234.56');
       expect(0.toCurrency(symbol: '¥'), '¥0');
-      expect((-1234.56).toCurrency(symbol: '\$'), '\$-1,234.56');
+      expect((-1234.56).toCurrency(symbol: '\$'), '-\$1,234.56');
     });
 
     test('num.toCurrency — 科学计数法展开', () {
@@ -190,10 +195,11 @@ void main() {
     });
 
     test('num.toPercent', () {
-      expect(0.5.toPercent, '50.0%');
+      expect(0.5.toPercent, '50%');
+      expect(0.333.toPercent, '33.3%');
       expect(1.25.toPercentWithFixed(1), '125.0%');
-      expect(0.0.toPercent, '0.0%');
-      expect(2.0.toPercent, '200.0%');
+      expect(0.0.toPercent, '0%');
+      expect(2.0.toPercent, '200%');
     });
 
     test('num.toPadLeft', () {
@@ -201,7 +207,8 @@ void main() {
       expect(123.toPadLeft(2), '123');
       expect(5.toPadLeft(4), '0005');
       expect(0.toPadLeft(3), '000');
-      expect((-1).toPadLeft(3), '0-1');
+      expect((-1).toPadLeft(3), '-01');
+      expect((-12).toPadLeft(4), '-012');
     });
   });
 
@@ -330,6 +337,52 @@ void main() {
       final box = WSizeBox.size(10, 20, null);
       expect(box.width, 10);
       expect(box.height, 20);
+    });
+  });
+
+  group('Row / Column / GlobalKey extensions', () {
+    testWidgets('Row / Column withIntrinsicHeight', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                const Row(children: [Text('A')]).withIntrinsicHeight(),
+                const Column(children: [Text('B')]).withIntrinsicHeight(),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(IntrinsicHeight), findsNWidgets(2));
+    });
+
+    testWidgets('GlobalKey offset / rect 使用全局坐标', (tester) async {
+      final key = GlobalKey();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                key: key,
+                width: 20,
+                height: 10,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(key.offset(), Offset.zero);
+      expect(key.rect(), const Rect.fromLTWH(0, 0, 20, 10));
+    });
+
+    testWidgets('未挂载的 GlobalKey 返回 null', (tester) async {
+      final key = GlobalKey();
+      expect(key.offset(), isNull);
+      expect(key.rect(), isNull);
     });
   });
 }

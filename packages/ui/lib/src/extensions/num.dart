@@ -81,6 +81,9 @@ extension WNumExtension on num {
       return str;
     }
 
+    final negative = str.startsWith('-');
+    final body = negative ? str.substring(1) : str;
+
     String group(String integerPart) {
       return integerPart.replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -88,23 +91,37 @@ extension WNumExtension on num {
       );
     }
 
-    final dotIndex = str.indexOf('.');
-    if (dotIndex == -1) {
-      return '$symbol${group(str)}';
-    }
-    return '$symbol${group(str.substring(0, dotIndex))}'
-        '$decimalSeparator${str.substring(dotIndex + 1)}';
+    final dotIndex = body.indexOf('.');
+    final formatted = dotIndex == -1
+        ? group(body)
+        : '${group(body.substring(0, dotIndex))}'
+            '$decimalSeparator${body.substring(dotIndex + 1)}';
+
+    return '${negative ? '-' : ''}$symbol$formatted';
   }
 
-  /// 转换为百分比格式的字符串
-  String get toPercent => '${(this * 100).toString()}%';
+  /// 转换为百分比格式的字符串；整数结果不带 `.0`。
+  String get toPercent {
+    final value = this * 100;
+    if (value == value.roundToDouble()) {
+      return '${value.toInt()}%';
+    }
+    final text = value.toStringAsFixed(6).replaceFirst(RegExp(r'\.?0+$'), '');
+    return '$text%';
+  }
 
   /// 转换为百分比格式的字符串（保留指定小数位数）
   String toPercentWithFixed(int fractionDigits) =>
       '${(this * 100).toStringAsFixed(fractionDigits)}%';
 
-  /// 将数字转换为带前导零的字符串
-  String toPadLeft(int length) => toString().padLeft(length, '0');
+  /// 将数字转换为带前导零的字符串；负数保留符号并计入总长度。
+  String toPadLeft(int length) {
+    final negative = this < 0;
+    final digits = abs().toString();
+    final target = length - (negative ? 1 : 0);
+    final padded = target > digits.length ? digits.padLeft(target, '0') : digits;
+    return negative ? '-$padded' : padded;
+  }
 }
 
 /// 将科学计数法字符串展开为普通十进制字符串

@@ -16,7 +16,7 @@ extension WStringExtension on String {
   num? toNum() => num.tryParse(this);
 
   /// 删除全部空格
-  String trimAll() => replaceAll(RegExp(r"\s+|\s+\b|\b\s"), '');
+  String trimAll() => replaceAll(RegExp(r'\s+'), '');
 
   /// 将十六进制字符串转换为颜色（如 '#FF0000' → Colors.red）
   Color toColor() => HexColor.fromHex(this);
