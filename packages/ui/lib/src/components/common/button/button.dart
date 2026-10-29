@@ -60,6 +60,10 @@ class WButton extends StatefulWidget {
                   ((label != null || icon != null) ? 1 : 0) ==
               1,
           'WButton: content / contentBuilder / label+icon 只能选择一种',
+        ),
+        assert(
+          onTap != null || onLongPress != null,
+          'WButton: 至少提供 onTap 或 onLongPress',
         );
 
   final WButtonStyle? style;
@@ -170,7 +174,13 @@ class _WButtonState extends State<WButton> {
   }
 
   void _handleTap() {
+    if (!_interactive) return;
     widget.onTap?.call();
+  }
+
+  void _handleLongPress() {
+    if (!_interactive) return;
+    widget.onLongPress?.call();
   }
 
   void _activate(WButtonStyle style) {
@@ -276,7 +286,7 @@ class _WButtonState extends State<WButton> {
       label: style.semantics.label,
       hint: style.semantics.hint,
       onTap: interactive && widget.onTap != null ? () => _activate(style) : null,
-      onLongPress: interactive && widget.onLongPress != null ? widget.onLongPress : null,
+      onLongPress: interactive && widget.onLongPress != null ? _handleLongPress : null,
       child: FocusableActionDetector(
         enabled: interactive,
         autofocus: widget.autofocus,
@@ -300,7 +310,7 @@ class _WButtonState extends State<WButton> {
           behavior: HitTestBehavior.opaque,
           excludeFromSemantics: true,
           onTap: interactive ? _handleTap : null,
-          onLongPress: interactive ? widget.onLongPress : null,
+          onLongPress: interactive && widget.onLongPress != null ? _handleLongPress : null,
           onTapDown: interactive ? (details) => _onTapDown(style, details) : null,
           onTapUp: interactive ? _onTapUp : null,
           onTapCancel: interactive ? _onTapCancel : null,

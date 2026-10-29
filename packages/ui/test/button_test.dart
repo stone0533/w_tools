@@ -343,6 +343,36 @@ void main() {
       expect(taps, 1);
     });
 
+    test('没有 onTap/onLongPress 时构造断言', () {
+      expect(
+        () => WButton(label: 'no-action'),
+        throwsAssertionError,
+      );
+    });
+
+    testWidgets('按下过程中禁用不触发 onTap', (tester) async {
+      var taps = 0;
+      Widget build(bool enabled) => _wrap(
+            WButton(
+              style: WButtonStyles.primary,
+              label: 'mid-gesture',
+              enabled: enabled,
+              onTap: () => taps++,
+            ),
+          );
+
+      await tester.pumpWidget(build(true));
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('mid-gesture')),
+      );
+      await tester.pump();
+      await tester.pumpWidget(build(false));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(taps, 0);
+    });
+
     testWidgets('禁用 / loading 不触发 onTap', (tester) async {
       var taps = 0;
       await tester.pumpWidget(

@@ -174,7 +174,7 @@ loading、button 语义、键盘焦点、48×48 点击区域。
 | `loadingBuilder` | `WidgetBuilder?` | null | 加载中占位 |
 | `focusNode` / `autofocus` | — | null / false | 键盘焦点 |
 
-`content`、`contentBuilder`、`label/icon` 只能选一种。
+`content`、`contentBuilder`、`label/icon` 只能选一种；`onTap` / `onLongPress` 至少提供一个。
 
 ### 使用方式
 
@@ -263,6 +263,8 @@ contentBuilder: (context, style) {
 >
 > 如果 `contentBuilder` 改变了内容含义（例如“提交”变成“不可用”），要同步提供匹配的
 > `semanticLabel`；否则屏幕阅读器仍会播报旧含义。
+>
+> 只有 `onLongPress` 时，键盘 Enter / Space 不会触发长按；键盘激活依赖 `onTap`。
 
 ### WButtonStyle
 
