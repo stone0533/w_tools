@@ -33,10 +33,16 @@ extension WBoxDecorationExtension on BoxDecoration {
     );
   }
 
+  /// 只设置 color，不会清空 gradient。
+  ///
+  /// 需要唯一背景时先调用 [withoutGradient]。
   BoxDecoration withColor(Color color) => _copy(color: color);
 
   BoxDecoration withoutColor() => _copy(color: null);
 
+  /// 只设置 gradient，不会清空 color。
+  ///
+  /// 需要唯一背景时先调用 [withoutColor]。
   BoxDecoration withGradient(Gradient gradient) => _copy(gradient: gradient);
 
   BoxDecoration withoutGradient() => _copy(gradient: null);
@@ -52,7 +58,9 @@ extension WBoxDecorationExtension on BoxDecoration {
 
   BoxDecoration withoutBorderRadius() => _copy(borderRadius: null);
 
-  BoxDecoration withShadow(List<BoxShadow> shadow) => _copy(boxShadow: shadow);
+  /// 设置阴影；列表会复制为不可变，避免调用方后续修改影响装饰。
+  BoxDecoration withShadow(List<BoxShadow> shadow) =>
+      _copy(boxShadow: List<BoxShadow>.unmodifiable(shadow));
 
   BoxDecoration withoutShadow() => _copy(boxShadow: null);
 

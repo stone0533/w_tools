@@ -29,6 +29,27 @@ void main() {
       expect(next.boxShadow, WShadows.card);
     });
 
+    test('withShadow 复制列表，外部修改不影响装饰', () {
+      final shadows = <BoxShadow>[
+        const BoxShadow(color: Colors.black12, blurRadius: 4),
+      ];
+      final next = base.withShadow(shadows);
+
+      shadows.clear();
+
+      expect(next.boxShadow, isNotEmpty);
+      expect(() => next.boxShadow!.add(const BoxShadow()), throwsUnsupportedError);
+    });
+
+    test('color 与 gradient 可以共存', () {
+      final next = base
+          .withGradient(WGradients.vertical(const [Colors.red, Colors.blue]))
+          .withColor(Colors.black);
+
+      expect(next.color, Colors.black);
+      expect(next.gradient, isNotNull);
+    });
+
     test('without* 可以显式清空', () {
       final decorated = base
           .withGradient(WGradients.diagonal(const [Colors.red, Colors.blue]))
@@ -74,6 +95,20 @@ void main() {
       expect(WGradients.horizontal(colors).end, Alignment.centerRight);
       expect(WGradients.diagonal(colors).begin, Alignment.topLeft);
       expect(WGradients.diagonal(colors).end, Alignment.bottomRight);
+    });
+
+    test('非法 colors / stops 断言', () {
+      expect(
+        () => WGradients.vertical(const [Colors.red]),
+        throwsAssertionError,
+      );
+      expect(
+        () => WGradients.vertical(
+          const [Colors.red, Colors.blue],
+          stops: const [0],
+        ),
+        throwsAssertionError,
+      );
     });
 
     test('radial 支持 stops 和 radius', () {

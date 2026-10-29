@@ -64,6 +64,7 @@ ui/
     │       ├── nav_controller.dart            # WNavController
     │       └── tab_bar.dart                   # WTabBar
     ├── extensions/                 # 扩展方法
+    │   ├── box_decoration.dart                # WBoxDecorationExtension
     │   ├── color.dart                         # HexColor（Color 扩展）
     │   ├── column.dart                        # WColumn / WColumnExtension
     │   ├── global_key.dart                    # WGlobalKeyExtension
@@ -74,6 +75,9 @@ ui/
     │   ├── strut_style.dart                   # WStrutStyleExtension
     │   ├── text_style.dart                    # WTextStyleExtension
     │   └── widget.dart                        # WWidgetExtension
+    ├── styles/                     # 样式预设
+    │   ├── gradients.dart                     # WGradients
+    │   └── shadows.dart                       # WShadows
     └── utils/                      # 工具类
         ├── assets.dart                        # WAssets
         ├── column.dart                        # WColumn / WColumnExtension（另实现）
@@ -1389,7 +1393,8 @@ Text('Hello')
 `withLeftPadding`、`withRightPadding`、`withTopPadding`、`withBottomPadding`、
 `withTopSafeSpace`、`withBottomSafeSpace`、`withBottomSpace`、`withDecoration`。
 
-`withDecoration` 只包一层 `DecoratedBox`，不提供 padding / margin / 裁剪。
+`withDecoration` 只包一层 `DecoratedBox`，不提供 padding / margin；
+需要圆角裁剪时用 `Container(clipBehavior: Clip.antiAlias)`。
 
 ### WBoxDecorationExtension / WGradients / WShadows
 

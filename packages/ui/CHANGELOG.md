@@ -7,6 +7,7 @@
   `withBorderRadius` / `withColor` 及对应 `without...` / `circle`。
 - `WGradients`：vertical / horizontal / diagonal / radial 方向预设。
 - `WShadows`：none / card / elevated / floating 中性阴影预设。
+- `withShadow` 复制为不可变列表；`WGradients` 校验 colors/stops。
 - `WWidgetExtension.withDecoration`：给 Widget 包一层 `DecoratedBox`。
 
 ### Breaking
