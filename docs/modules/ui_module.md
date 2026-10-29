@@ -1278,6 +1278,7 @@ WScaffold(
 - 高度为 `style.height`，bottom 额外计算；
 - WScaffold 内部的 PreferredSize 只包含 `contentHeight`（toolbar + bottom），状态栏由 WAppBar 自己绘制，避免重复计算；
 - `WAppBarStyle` 提供 `copyWith` 与 `validate`；`backgroundColor` 与 `gradient` 只能选一个；
+  `height` / `titleSpacing` 必须非负；
 - `foregroundColor` 只作用于默认标题和默认图标主题；`titleWidget` / 自定义 leading 由调用方负责颜色；
 - WAppBar 的 `systemOverlayStyle` 优先于 WScaffold 的 `systemStatusBarStyle`；
 - actions 建议控制在 2–3 个，更多操作放 overflow menu。

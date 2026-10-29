@@ -51,8 +51,8 @@ class WAppBarStyle {
   void validate() {
     assert(height >= 0 && height.isFinite, 'WAppBarStyle.height 非法');
     assert(
-      titleSpacing == null || titleSpacing!.isFinite,
-      'WAppBarStyle.titleSpacing 非法',
+      titleSpacing == null || (titleSpacing!.isFinite && titleSpacing! >= 0),
+      'WAppBarStyle.titleSpacing 必须非负',
     );
     assert(
       !(backgroundColor != null && gradient != null),

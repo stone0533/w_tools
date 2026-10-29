@@ -306,6 +306,10 @@ void main() {
       ).validate(),
       throwsAssertionError,
     );
+    expect(
+      () => style.copyWith(titleSpacing: -1.0).validate(),
+      throwsAssertionError,
+    );
   });
 
   testWidgets('WScaffold — 无 AppBar 时使用 MediaQuery 顶部安全区', (tester) async {
@@ -374,6 +378,28 @@ void main() {
     );
 
     expect(tester.getBottomLeft(find.text('body')).dy, 560);
+  });
+
+  testWidgets('WScaffold — appBarBottom 高度包含状态栏', (tester) async {
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(top: 24),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: const WScaffold(
+            appBarBottom: PreferredSize(
+              preferredSize: Size.fromHeight(20),
+              child: Text('tab'),
+            ),
+            body: Text('body'),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getTopLeft(find.text('body')).dy, 100);
   });
 
   testWidgets('WScaffold — 空标题不创建 AppBar', (tester) async {

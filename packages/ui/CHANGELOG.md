@@ -22,6 +22,7 @@
   WAppBarStyle 的 backgroundColor/gradient 改为二选一。
 - `WScaffold` 安全区改用 MediaQuery；`onBack` 优先于 automaticallyImplyLeading；
   空字符串 title 不再创建默认 AppBar。
+- `WAppBarStyle.titleSpacing` 增加非负校验；补 appBarBottom + 状态栏高度测试。
 - `WAppBar` 默认包含状态栏背景；不再提供 `WAppBarPreferred` / `WTopBar`。
 - `WButtonConfig` / 配置缓存 / `WButtonThemeData` 删除；`WButton` 改用显式 `WButtonStyle`。
 - `WButton.enabled` / `loading` 改为组件参数。
