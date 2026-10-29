@@ -12,6 +12,9 @@
   `toPercent` 整数结果不再带 `.0`。
 - `HexColor.fromHex` 忽略前后空格；`trimAll` 正则简化。
 - `WImageExtension.imagePrecache` 标记废弃，改用 `WImagePreloader.preloadImages`。
+- `withIntrinsicHeight` 合并到 `WWidgetExtension`，删除 Row/Column 专用扩展。
+- 删除 `WStrutStyleExtension` 与 `WUiTextStyleExtension.fromConfig`；使用
+  `WTextConfig.toTextStyle()` / `toStrutStyle()`。
 - `WWidgetExtension.withDecoration`：给 Widget 包一层 `DecoratedBox`。
 
 ### Breaking

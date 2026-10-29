@@ -95,6 +95,11 @@ extension WWidgetExtension on Widget {
       child: this,
     );
   }
+
+  /// 将 Widget 包装在 IntrinsicHeight 中。
+  Widget withIntrinsicHeight() {
+    return IntrinsicHeight(child: this);
+  }
 }
 
 /// Widget 扩展（依赖 ui 组件）

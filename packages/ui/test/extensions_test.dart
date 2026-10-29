@@ -151,6 +151,12 @@ void main() {
       expect(radius, BorderRadius.circular(10));
     });
 
+    test('num.borderSide', () {
+      final side = 1.5.borderSide(color: Colors.red);
+      expect(side.width, 1.5);
+      expect(side.color, Colors.red);
+    });
+
     test('num.toThousand', () {
       expect(1234.toThousand, '1,234');
       expect(1234567.toThousand, '1,234,567');
@@ -337,6 +343,15 @@ void main() {
       final box = WSizeBox.size(10, 20, null);
       expect(box.width, 10);
       expect(box.height, 20);
+    });
+  });
+
+  group('TextStyle extension', () {
+    test('bold / withColor / withSize', () {
+      const style = TextStyle();
+      expect(style.bold.fontWeight, FontWeight.bold);
+      expect(style.withColor(Colors.red).color, Colors.red);
+      expect(style.withSize(18).fontSize, 18);
     });
   });
 

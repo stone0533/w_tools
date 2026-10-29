@@ -66,13 +66,10 @@ ui/
     ├── extensions/                 # 扩展方法
     │   ├── box_decoration.dart                # WBoxDecorationExtension
     │   ├── color.dart                         # HexColor（Color 扩展）
-    │   ├── column.dart                        # WColumn / WColumnExtension
     │   ├── global_key.dart                    # WGlobalKeyExtension
     │   ├── image.dart                         # WImageExtension
     │   ├── num.dart                           # WNumExtension
-    │   ├── row.dart                           # WRow / WRowExtension
     │   ├── string.dart                        # WStringExtension
-    │   ├── strut_style.dart                   # WStrutStyleExtension
     │   ├── text_style.dart                    # WTextStyleExtension
     │   └── widget.dart                        # WWidgetExtension
     ├── styles/                     # 样式预设
@@ -80,10 +77,10 @@ ui/
     │   └── shadows.dart                       # WShadows
     └── utils/                      # 工具类
         ├── assets.dart                        # WAssets
-        ├── column.dart                        # WColumn / WColumnExtension（另实现）
+        ├── column.dart                        # WColumn
         ├── image_preloader.dart              # WImagePreloader
         ├── padding.dart                       # WPadding
-        ├── row.dart                           # WRow / WRowExtension（另实现）
+        ├── row.dart                           # WRow
         ├── screen.dart                        # WScreen
         └── size_box.dart                      # WSizeBox
 ```
@@ -1413,7 +1410,8 @@ Text('Hello')
 
 可用方法：`expanded`、`withHorizontalPadding`、`withVerticalPadding`、
 `withLeftPadding`、`withRightPadding`、`withTopPadding`、`withBottomPadding`、
-`withTopSafeSpace`、`withBottomSafeSpace`、`withBottomSpace`、`withDecoration`。
+`withTopSafeSpace`、`withBottomSafeSpace`、`withBottomSpace`、`withDecoration`、
+`withIntrinsicHeight`。
 
 `withDecoration` 只包一层 `DecoratedBox`，不提供 padding / margin；
 需要圆角裁剪时用 `Container(clipBehavior: Clip.antiAlias)`。
@@ -1447,11 +1445,12 @@ Container(
 
 ### WRow / WColumn
 
-便捷创建 Row / Column 的函数扩展：
+便捷创建 Row / Column 的工厂类：
 
 ```dart
-WRow([Widget1, Widget2]).mainCenter().spaceBetween()
-WColumn([Widget1, Widget2]).crossStart()
+WRow.min(children: [...])
+WRow.iconWithText(icon: ..., spacing: 8, text: ...)
+WColumn.min(children: [...])
 ```
 
 ### WGlobalKeyExtension
@@ -1464,11 +1463,8 @@ Image 相关扩展，便捷创建 CachedNetworkImage、带圆角的图片等。
 
 ### WTextStyleExtension
 
-从 `WTextConfig` 创建 `TextStyle` 的扩展。
-
-### WStrutStyleExtension
-
-从 `WTextConfig` 创建 `StrutStyle` 的扩展。
+`TextStyle` 的便捷扩展：`bold` / `withColor` / `withSize`。
+配置转换仍用 `WTextConfig.toTextStyle()` / `WTextConfig.toStrutStyle()`。
 
 ---
 
