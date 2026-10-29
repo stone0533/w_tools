@@ -257,6 +257,10 @@ contentBuilder: (context, style) {
 
 `style.states` 是不可变 Set。
 
+> 建议只用 `contentBuilder` 处理 disabled / selected 等结构性状态；pressed / hover / focus
+> 优先通过 `WidgetStateProperty` 和 `WButtonMotion` 表达，避免内容尺寸和文案跳动。
+> loading 内容用 `loadingBuilder`，不要混进 `contentBuilder`。
+
 ### WButtonStyle
 
 | 字段 | 类型 | 说明 |
@@ -426,7 +430,7 @@ WButton(
 ## 2.1 WPressable - 任意 child 点击
 
 `WPressable` 不是按钮：只负责点击和基础效果，不声明 `button` 语义，不负责样式、size、
-loading、最小点击区域或键盘焦点。
+loading 或最小点击区域。可选支持键盘 focus / Enter / Space，但仍不设置 `button` 语义。
 
 ```dart
 WPressable(

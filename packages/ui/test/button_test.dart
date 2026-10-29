@@ -262,6 +262,22 @@ void main() {
       expect(find.text('禁用内容'), findsOneWidget);
     });
 
+    testWidgets('foregroundColor 同步应用到 label', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            style: const WButtonStyle(
+              foregroundColor: WidgetStatePropertyAll(Colors.red),
+            ),
+            label: 'red-label',
+            onTap: () {},
+          ),
+        ),
+      );
+      final text = tester.widget<Text>(find.text('red-label'));
+      expect(text.style?.color, Colors.red);
+    });
+
     testWidgets('label/icon/content 三选一', (tester) async {
       await tester.pumpWidget(
         _wrap(WButton(style: WButtonStyles.primary, label: '主按钮', onTap: () {})),

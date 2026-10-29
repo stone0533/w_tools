@@ -124,14 +124,19 @@ class WButtonStyle {
   /// 根据当前 WidgetState 解析出可直接渲染的视觉值。
   WButtonResolvedStyle resolve(Set<WidgetState> states) {
     final shadows = boxShadow?.resolve(states);
+    final foreground = foregroundColor?.resolve(states);
+    final resolvedTextStyle = textStyle?.resolve(states);
+    final effectiveTextStyle = foreground == null
+        ? resolvedTextStyle
+        : (resolvedTextStyle ?? const TextStyle()).copyWith(color: foreground);
     return WButtonResolvedStyle(
       states: Set<WidgetState>.unmodifiable(states),
       backgroundColor: backgroundColor?.resolve(states),
       gradient: gradient?.resolve(states),
       border: border?.resolve(states),
       boxShadow: shadows == null ? null : List<BoxShadow>.unmodifiable(shadows),
-      textStyle: textStyle?.resolve(states),
-      foregroundColor: foregroundColor?.resolve(states),
+      textStyle: effectiveTextStyle,
+      foregroundColor: foreground,
       iconSize: iconSize,
       gap: gap,
     );
