@@ -174,7 +174,7 @@ loading、button 语义、键盘焦点、48×48 点击区域。
 | `loadingBuilder` | `WidgetBuilder?` | null | 加载中占位 |
 | `focusNode` / `autofocus` | — | null / false | 键盘焦点 |
 
-`content`、`contentBuilder`、`label/icon` 只能选一种；`onTap` / `onLongPress` 至少提供一个。
+`content`、`contentBuilder`、`label/icon` 只能选一种；可交互按钮的 `onTap` / `onLongPress` 至少提供一个。
 
 ### 使用方式
 

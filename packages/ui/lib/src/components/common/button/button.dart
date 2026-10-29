@@ -62,8 +62,8 @@ class WButton extends StatefulWidget {
           'WButton: content / contentBuilder / label+icon 只能选择一种',
         ),
         assert(
-          onTap != null || onLongPress != null,
-          'WButton: 至少提供 onTap 或 onLongPress',
+          !enabled || loading || onTap != null || onLongPress != null,
+          'WButton: 可交互按钮至少提供 onTap 或 onLongPress',
         );
 
   final WButtonStyle? style;

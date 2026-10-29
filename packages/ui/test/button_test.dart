@@ -350,6 +350,19 @@ void main() {
       );
     });
 
+    testWidgets('禁用按钮可以不提供回调', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            style: WButtonStyles.primary,
+            label: 'disabled-no-callback',
+            enabled: false,
+          ),
+        ),
+      );
+      expect(find.text('disabled-no-callback'), findsOneWidget);
+    });
+
     testWidgets('按下过程中禁用不触发 onTap', (tester) async {
       var taps = 0;
       Widget build(bool enabled) => _wrap(
