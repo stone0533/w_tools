@@ -1375,7 +1375,7 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 
 ### WWidgetExtension
 
-Widget 扩展，只提供间距、展开和点击糖；装饰仍用 `Container` +
+Widget 扩展，提供间距、展开、点击糖和单层装饰；盒子装饰仍用 `Container` +
 `BoxDecoration`：
 
 ```dart
@@ -1387,7 +1387,36 @@ Text('Hello')
 
 可用方法：`expanded`、`withHorizontalPadding`、`withVerticalPadding`、
 `withLeftPadding`、`withRightPadding`、`withTopPadding`、`withBottomPadding`、
-`withTopSafeSpace`、`withBottomSafeSpace`、`withBottomSpace`。
+`withTopSafeSpace`、`withBottomSafeSpace`、`withBottomSpace`、`withDecoration`。
+
+`withDecoration` 只包一层 `DecoratedBox`，不提供 padding / margin / 裁剪。
+
+### WBoxDecorationExtension / WGradients / WShadows
+
+`BoxDecoration` 可组合扩展，避免重复写完整构造：
+
+```dart
+const base = BoxDecoration(
+  color: Colors.white,
+  borderRadius: BorderRadius.all(Radius.circular(12)),
+);
+
+Container(
+  decoration: base
+      .withGradient(WGradients.vertical([
+        Color(0xFF3949AB),
+        Color(0xFF5C6BC0),
+      ]))
+      .withShadow(WShadows.card),
+  child: ...,
+)
+```
+
+- `withGradient` / `withColor` 只设置对应字段，不自动清空另一个；
+- 需要唯一背景时显式 `withoutColor()` / `withoutGradient()`；
+- `withBorderRadius` 不能用于 circle；`circle()` 会自动清空 borderRadius；
+- `WGradients` 只提供方向，不绑定品牌色；
+- `WShadows` 提供 `none` / `card` / `elevated` / `floating` 中性预设。
 
 ### WRow / WColumn
 

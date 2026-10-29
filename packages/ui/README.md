@@ -10,7 +10,7 @@
 - **通用组件**：`WText` / `WImage` / `WButton` / `WBadge` 等
 - **布局组件**：`WScaffold` / `WAppBar` / `WListView` / `WStep`
 - **导航组件**：`WNavBar` / `WNavController` / `WTabBar`
-- **扩展方法**：颜色、字符串、数字、Row / Column、TextStyle、Widget 等
+- **扩展方法**：颜色、字符串、数字、Row / Column、TextStyle、Widget、BoxDecoration 等
 - **屏幕适配**：`WScreen`、间距与尺寸工具
 
 ## 安装

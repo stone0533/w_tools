@@ -84,6 +84,17 @@ extension WWidgetExtension on Widget {
       child: this,
     );
   }
+
+  /// 给任意 Widget 包一层装饰。
+  ///
+  /// 只负责绘制，不提供 padding / margin / 裁剪；
+  /// 需要这些能力时用 Container。
+  Widget withDecoration(BoxDecoration decoration) {
+    return DecoratedBox(
+      decoration: decoration,
+      child: this,
+    );
+  }
 }
 
 /// Widget 扩展（依赖 ui 组件）

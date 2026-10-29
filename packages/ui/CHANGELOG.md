@@ -2,6 +2,13 @@
 
 ## 2.0.0
 
+### Added
+- `WBoxDecorationExtension`：`withGradient` / `withShadow` / `withBorder` /
+  `withBorderRadius` / `withColor` 及对应 `without...` / `circle`。
+- `WGradients`：vertical / horizontal / diagonal / radial 方向预设。
+- `WShadows`：none / card / elevated / floating 中性阴影预设。
+- `WWidgetExtension.withDecoration`：给 Widget 包一层 `DecoratedBox`。
+
 ### Breaking
 - 删除 `WContainer` / `WContainerConfig`；盒子直接用 `Container` + `BoxDecoration`。
 - 删除 `WWidgetExtension.withContainer`；`WWidgetExtension` 只保留间距、展开和点击糖。
