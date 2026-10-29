@@ -33,9 +33,11 @@
 - `WPressable` 回调增加 `_actionable` 守卫，禁用中手势不会触发 onTap/onLongPress。
 - `WPressable` 默认只阻断指针，不清理 child 的交互语义；可选
   `excludeChildSemanticsWhenDisabled` 在禁用时排除 child 语义。
-- 增加 `withBackgroundColor` / `withForegroundColor` 静态覆盖便利方法，以及
-  `withoutDecoration` / `withoutBorder` / `withoutBoxShadow` / `withoutForegroundColor` /
+- 增加 `withBackgroundColor` / `withForegroundColor` / `withBorder` / `withBoxShadow` /
+  `withTextStyle` 静态覆盖便利方法，以及 `withoutDecoration` / `withoutBorder` /
+  `withoutBoxShadow` / `withoutTextStyle` / `withoutText` / `withoutForegroundColor` /
   `withoutFocusColor` / `withoutHoverColor`。
+- `withoutTextStyle` 只清 textStyle；同时清 textStyle 和 foregroundColor 用 `withoutText`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。
 
 ### Added

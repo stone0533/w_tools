@@ -332,12 +332,22 @@ style.withForegroundColor(Colors.white)
 `tapTargetSize` 的 padding 基于 `minWidth` / `minHeight` 计算，自定义时应让这两个值反映
 视觉基准尺寸；设置为 0 可能产生额外 padding。
 
-清空 nullable 字段用 `without...`：
+`copyWith(null)` 表示“不修改”，不是清空。清空 nullable 字段用 `without...`：
 
 ```dart
 style.withoutBorder()
 style.withoutBoxShadow()
 style.withoutDecoration()
+style.withoutTextStyle() // 只清 textStyle
+style.withoutText()      // 清 textStyle + foregroundColor
+```
+
+需要静态覆盖时也可以：
+
+```dart
+style.withBorder(Border.all(color: Colors.red))
+style.withBoxShadow(const [BoxShadow(...)])
+style.withTextStyle(const TextStyle(fontSize: 12))
 ```
 
 `WButton` 会把当前 `WidgetState`（disabled / pressed / hovered / focused）

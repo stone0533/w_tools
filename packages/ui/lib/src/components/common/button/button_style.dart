@@ -208,6 +208,20 @@ class WButtonStyle {
   WButtonStyle withForegroundColor(Color color) =>
       copyWith(foregroundColor: WidgetStatePropertyAll(color));
 
+  /// 静态改边框，内部包装为 WidgetStatePropertyAll。
+  WButtonStyle withBorder(BoxBorder border) =>
+      _copyNullable(border: WidgetStatePropertyAll(border));
+
+  /// 静态改阴影，内部包装为 WidgetStatePropertyAll。
+  WButtonStyle withBoxShadow(List<BoxShadow> shadows) => _copyNullable(
+        boxShadow: WidgetStatePropertyAll(List<BoxShadow>.unmodifiable(shadows)),
+      );
+
+  /// 静态改文字样式，内部包装为 WidgetStatePropertyAll。
+  WButtonStyle withTextStyle(TextStyle textStyle) => copyWith(
+        textStyle: WidgetStatePropertyAll(textStyle),
+      );
+
   static const Object _unset = Object();
 
   WButtonStyle _copyNullable({
@@ -271,7 +285,11 @@ class WButtonStyle {
 
   WButtonStyle withoutBoxShadow() => _copyNullable(boxShadow: null);
 
-  WButtonStyle withoutTextStyle() => _copyNullable(
+  /// 只清空 textStyle，保留 foregroundColor。
+  WButtonStyle withoutTextStyle() => _copyNullable(textStyle: null);
+
+  /// 清空 textStyle 和 foregroundColor。
+  WButtonStyle withoutText() => _copyNullable(
         textStyle: null,
         foregroundColor: null,
       );

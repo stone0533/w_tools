@@ -63,10 +63,19 @@ void main() {
       expect(style.withoutBorder().borderRadius, isNotNull);
       expect(style.withoutBoxShadow().boxShadow, isNull);
       expect(style.withoutTextStyle().textStyle, isNull);
-      expect(style.withoutTextStyle().foregroundColor, isNull);
+      expect(style.withoutTextStyle().foregroundColor, isNotNull);
+      expect(style.withoutText().textStyle, isNull);
+      expect(style.withoutText().foregroundColor, isNull);
       expect(style.withoutForegroundColor().foregroundColor, isNull);
       expect(style.withoutFocusColor().focusColor, isNull);
       expect(style.withoutHoverColor().hoverColor, isNull);
+
+      final bordered = style.withBorder(Border.all(color: Colors.black));
+      expect(bordered.border!.resolve(const {}), isNotNull);
+      final shadowed = style.withBoxShadow(const [BoxShadow()]);
+      expect(shadowed.boxShadow!.resolve(const {}), hasLength(1));
+      final textStyled = style.withTextStyle(const TextStyle(fontSize: 12));
+      expect(textStyled.textStyle!.resolve(const {})!.fontSize, 12);
 
       const semantics = WButtonSemantics(label: 'label', hint: 'hint');
       expect(semantics.withoutLabel().label, isNull);
