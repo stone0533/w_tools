@@ -123,6 +123,11 @@ jobs:
         working-directory: packages/cli
         run: dart analyze
 
+      - name: Compile generated UI templates
+        if: matrix.package == 'cli'
+        working-directory: packages/cli
+        run: dart run tool/check_templates_compile.dart
+
       # example 会随包一起发布，必须能脱离 workspace 独立解析
       - name: Analyze example (published with package)
         if: matrix.package != 'cli' && hashFiles(format('packages/{0}/example/pubspec.yaml', matrix.package)) != ''

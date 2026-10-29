@@ -15,8 +15,9 @@
 - 新增 `project_ui_dir`（默认 `lib/app/ui`）：R2 允许项目永久 UI 层直接 import 子包。
 - R5 / context 只统计 `.dart` 暂存文件，不再把 `design_system/README.md` 算作缺 `// STAGED`。
 - R4 同时检查 `lib/app/ui/` 与 `design_system/`，项目 UI 也不得依赖业务层。
-- `lib/app/ui/` 下的三个 App* 与 README 视为 starter：自定义后不算 drift，也不会被
+- `lib/app/ui/` 下的 App* 与 README 视为 starter：自定义后不算 drift，也不会被
   `init` / `--check-drift` 覆盖。
+- 新增 `tool/check_templates_compile.dart`，CI 用 Flutter analyze 编译检查生成的 UI starter。
 - 迁移：旧版生成的 `design_system/app_*.dart` 移到 `lib/app/ui/`；
   toolkit 的 export 改为 `../ui/...`。
 

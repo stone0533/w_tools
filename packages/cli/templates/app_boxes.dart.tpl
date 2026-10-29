@@ -15,13 +15,14 @@ abstract final class AppBoxes {
     );
   }
 
+  /// 固定品牌警示色；如果项目要完全跟随主题，可改用 scheme.tertiaryContainer。
   static BoxDecoration warning(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
       color: dark ? const Color(0xFF3A2A00) : const Color(0xFFFFF8E1),
       borderRadius: const BorderRadius.all(Radius.circular(12)),
-      border: Border.fromBorderSide(
-        const BorderSide(color: Color(0xFFFFB300)),
+      border: const Border.fromBorderSide(
+        BorderSide(color: Color(0xFFFFB300)),
       ),
     );
   }

@@ -60,6 +60,16 @@ AppCard(
 )
 ```
 
+圆角卡片包含图片等子内容时，显式裁剪：
+
+```dart
+AppCard(
+  clipBehavior: Clip.antiAlias,
+  padding: EdgeInsets.zero,
+  child: Image.asset('cover.png', fit: BoxFit.cover),
+)
+```
+
 一次性盒子直接用 `Container` + `BoxDecoration`；需要 width / height / constraints /
 transform 时也直接用 `Container`。
 

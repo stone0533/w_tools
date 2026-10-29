@@ -63,6 +63,16 @@ AppCard(
 )
 ```
 
+Clip rounded cards when the child is an image or other overflowing content:
+
+```dart
+AppCard(
+  clipBehavior: Clip.antiAlias,
+  padding: EdgeInsets.zero,
+  child: Image.asset('cover.png', fit: BoxFit.cover),
+)
+```
+
 Use `Container` + `BoxDecoration` for one-off boxes, and `Container` directly when you
 need width / height / constraints / transform.
 

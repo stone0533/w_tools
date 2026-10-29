@@ -242,6 +242,16 @@ AppCard(
 )
 ```
 
+圆角卡片包含图片等子内容时，显式裁剪：
+
+```dart
+AppCard(
+  clipBehavior: Clip.antiAlias,
+  padding: EdgeInsets.zero,
+  child: Image.asset('cover.png', fit: BoxFit.cover),
+)
+```
+
 一次性盒子直接用 `Container` + `BoxDecoration`；需要 width / height / constraints /
 transform 时也直接用 `Container`。
 
@@ -316,6 +326,16 @@ AppCard(
 )
 ```
 
+Clip rounded cards when the child is an image or other overflowing content:
+
+```dart
+AppCard(
+  clipBehavior: Clip.antiAlias,
+  padding: EdgeInsets.zero,
+  child: Image.asset('cover.png', fit: BoxFit.cover),
+)
+```
+
 Use `Container` + `BoxDecoration` for one-off boxes, and `Container` directly when you
 need width / height / constraints / transform.
 
@@ -363,13 +383,14 @@ abstract final class AppBoxes {
     );
   }
 
+  /// 固定品牌警示色；如果项目要完全跟随主题，可改用 scheme.tertiaryContainer。
   static BoxDecoration warning(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
       color: dark ? const Color(0xFF3A2A00) : const Color(0xFFFFF8E1),
       borderRadius: const BorderRadius.all(Radius.circular(12)),
-      border: Border.fromBorderSide(
-        const BorderSide(color: Color(0xFFFFB300)),
+      border: const Border.fromBorderSide(
+        BorderSide(color: Color(0xFFFFB300)),
       ),
     );
   }
