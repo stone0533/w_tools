@@ -25,6 +25,13 @@ dart run w_tools_cli:context   # 看项目事实
 dart run w_tools_cli:list 下拉 # 查组件
 dart run w_tools_cli:doctor    # 检查约定
 
+# profile 组合
+# minimal: core
+# ui:      core + ui + toast
+# api:     core + api
+# full:    core + app + form + ui + api + toast + qr（默认）
+dart run w_tools_cli:init --profile=ui
+
 # 多目标 / 英文
 dart run w_tools_cli:init --targets=agents,claude --lang=en
 
@@ -37,12 +44,14 @@ dart run w_tools_cli:init --profile=full      # 当前默认
 # 不生成 lib/app/ui / design_system 规范，也不导出 w_tools_ui
 dart run w_tools_cli:init --no-ui
 
-# 不生成 / 不检查 AGENTS 等指令文件
-dart run w_tools_cli:init --no-agents
+# 不生成 / 不检查 AGENTS 等 AI 指令文件
+dart run w_tools_cli:init --no-instructions
 ```
 
 `--profile` 决定基础能力，`--ui` / `--no-ui` / `--no-qr` / `--with-map` 覆盖单项；
-`--no-agents` 优先于 `--targets`。
+`--no-instructions` 优先于 `--targets`。
+
+`--no-ui` / `--no-instructions` 只停止生成，不删除已有文件。
 
 `init --targets` 支持 `agents`（AGENTS.md）/ `claude`（CLAUDE.md）/
 `cursor`（.cursor/rules/w_tools.mdc，新文件会带 Cursor 需要的 frontmatter）/
@@ -78,7 +87,7 @@ dart run w_tools_cli:doctor --json             # 写完自检（0 error 才算�
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
 | R6 | warn | 禁用单位 `.h` / `.r`（项目专用，默认关，配置 `rules.R6: true` 打开） |
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致 |
-| R8 | warn | 生成物由旧版 `w_tools_cli` 生成（只检查带 `<!-- w_tools:begin -->` 的 target 文件与 toolkit） |
+| R8 | warn | 生成物由旧版 `w_tools_cli` 生成（只检查带 `<!-- w_tools:begin -->` 的 target 文件与 toolkit；UI starter 不检查） |
 
 `--json` 的每条 issue 带可选的 `fix`（`run` 执行命令 / `edit` 改 YAML 字段），
 AI 可以直接执行；没有 `fix` 时用 `hint`：

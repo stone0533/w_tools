@@ -60,9 +60,9 @@ void main() {
     expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
   });
 
-  test('init --no-agents 不生成 AGENTS', () async {
+  test('init --no-instructions 不生成 AGENTS', () async {
     final root = _project();
-    expect((await _run('init.dart', ['--root', root.path, '--no-agents'])).exitCode, 0);
+    expect((await _run('init.dart', ['--root', root.path, '--no-instructions'])).exitCode, 0);
     expect(File(p.join(root.path, 'AGENTS.md')).existsSync(), isFalse);
   });
 

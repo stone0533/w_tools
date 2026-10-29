@@ -147,6 +147,37 @@ void main() {
       expect(apiReport.pubspecSnippet, isNot(contains('w_tools_ui:')));
     });
 
+    test('profile 可被单项覆盖', () async {
+      final addUiRoot = makeProject();
+      runInit(
+        addUiRoot,
+        features: InitFeatures.forProfile(InitProfile.minimal).copyWith(ui: true),
+      );
+      expect(
+        File(p.join(addUiRoot.path, 'lib/app/ui/app_scaffold.dart')).existsSync(),
+        isTrue,
+      );
+      final addUiToolkit = File(
+        p.join(addUiRoot.path, 'lib/app/w/toolkit.dart'),
+      ).readAsStringSync();
+      expect(addUiToolkit, contains("export 'package:w_tools_ui"));
+
+      final noUiRoot = makeProject();
+      runInit(
+        noUiRoot,
+        features: InitFeatures.forProfile(InitProfile.ui).copyWith(ui: false),
+      );
+      expect(
+        File(p.join(noUiRoot.path, 'lib/app/ui/app_scaffold.dart')).existsSync(),
+        isFalse,
+      );
+      final noUiToolkit = File(
+        p.join(noUiRoot.path, 'lib/app/w/toolkit.dart'),
+      ).readAsStringSync();
+      expect(noUiToolkit, isNot(contains("export 'package:w_tools_ui")));
+      expect(noUiToolkit, contains("export 'package:w_tools_toast"));
+    });
+
     test('--no-qr / --with-map 影响导出', () async {
       final root = makeProject();
       runInit(root, features: InitFeatures.full.copyWith(qr: false, map: true));
