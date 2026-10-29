@@ -65,6 +65,48 @@ void main() {
     );
   });
 
+  testWidgets('按下过程中禁用后不再触发 onTap', (tester) async {
+    var taps = 0;
+    Widget build(bool enabled) => _wrap(
+          WPressable(
+            enabled: enabled,
+            onTap: () => taps++,
+            child: const Text('mid-gesture'),
+          ),
+        );
+
+    await tester.pumpWidget(build(true));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('mid-gesture')),
+    );
+    await tester.pump();
+    await tester.pumpWidget(build(false));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(taps, 0);
+  });
+
+  testWidgets('只有 onLongPress 时短按不触发回调', (tester) async {
+    var longPressed = 0;
+    await tester.pumpWidget(
+      _wrap(
+        WPressable(
+          onLongPress: () => longPressed++,
+          child: const Text('long-only'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('long-only'));
+    await tester.pumpAndSettle();
+    expect(longPressed, 0);
+
+    await tester.longPress(find.text('long-only'));
+    await tester.pumpAndSettle();
+    expect(longPressed, 1);
+  });
+
   testWidgets('按下后禁用再启用时状态复位', (tester) async {
     Widget build(bool enabled) => _wrap(
           WPressable(

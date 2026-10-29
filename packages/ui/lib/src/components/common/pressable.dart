@@ -74,6 +74,26 @@ class _WPressableState extends State<WPressable> {
     setState(() => _pressed = value);
   }
 
+  void _handleTap() {
+    if (!_actionable) return;
+    widget.onTap?.call();
+  }
+
+  void _handleLongPress() {
+    if (!_actionable) return;
+    widget.onLongPress?.call();
+  }
+
+  void _handleTapDown() {
+    if (!_actionable) return;
+    _setPressed(true);
+  }
+
+  void _handleTapUp() {
+    if (!_actionable) return;
+    _setPressed(false);
+  }
+
   Widget _effect(Widget child) {
     switch (widget.effect) {
       case WPressEffect.none:
@@ -107,18 +127,18 @@ class _WPressableState extends State<WPressable> {
 
     final content = _effect(widget.child);
     return Semantics(
-      onTap: widget.onTap,
-      onLongPress: widget.onLongPress,
+      onTap: widget.onTap == null ? null : _handleTap,
+      onLongPress: widget.onLongPress == null ? null : _handleLongPress,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           behavior: widget.behavior,
           excludeFromSemantics: true,
-          onTap: widget.onTap,
-          onLongPress: widget.onLongPress,
-          onTapDown: (_) => _setPressed(true),
-          onTapUp: (_) => _setPressed(false),
-          onTapCancel: () => _setPressed(false),
+          onTap: widget.onTap == null ? null : _handleTap,
+          onLongPress: widget.onLongPress == null ? null : _handleLongPress,
+          onTapDown: (_) => _handleTapDown(),
+          onTapUp: (_) => _handleTapUp(),
+          onTapCancel: _handleTapUp,
           child: content,
         ),
       ),

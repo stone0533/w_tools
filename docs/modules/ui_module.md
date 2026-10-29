@@ -445,6 +445,13 @@ WPressable(
 )
 ```
 
+注意：
+
+- `WPressable` 不保证 48×48 点击区域；小目标请用 `WButton.icon` 或外层约束。
+- 内部不要再嵌套 `WButton` / `IconButton` / `Switch` 等交互控件。
+- 只有 `onLongPress` 时，短按只提供视觉反馈，不执行动作。
+- 键盘操作请用 `WButton`，`WPressable` 不参与 Tab 焦点。
+
 需要真正的按钮语义时，用 `WButton`，或显式：
 
 ```dart
