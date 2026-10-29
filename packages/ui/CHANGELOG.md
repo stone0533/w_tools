@@ -1,6 +1,8 @@
 # Changelog
 
 ## 2.0.0
+- `WContainer`：修文档 `bgColor`，`copyWith` 支持清空可空字段；新增
+  `foregroundDecoration` 与圆形/圆角校验；`constraintsMinHeight` 改为合并 constraints。
 
 ### Breaking
 - 旧的可变 `WImageConfig` / `WImageConfigBuild` 删除；`WImageStyle` 改为不可变视觉样式。

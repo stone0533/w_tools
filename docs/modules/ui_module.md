@@ -1196,14 +1196,16 @@ WScaffold(
 
 ### WContainer / WContainerConfig
 
-增强版容器，支持装饰（背景色、圆角、边框、阴影）、变换（alignment、padding、margin、transform）。被 `WButton`、`WImage`、`WNavBar` 等组件复用。
+增强版容器，支持装饰（背景色、圆角、边框、阴影、前景装饰）、布局（alignment、padding、margin、constraints、transform）。被 `WButton`、`WImage`、`WNavBar` 等组件复用。
+
+> `WContainerConfig` 是可变的链式构建器；`copyWith` 支持把可空字段显式设为 `null` 来清空。
 
 ```dart
 WContainer(
   config: WContainerConfig()
     ..width = 200
     ..height = 48
-    ..bgColor = Colors.blue
+    ..color = Colors.blue
     ..borderRadius = BorderRadius.circular(24)
     ..padding = EdgeInsets.symmetric(horizontal: 16),
   child: const Text('内容'),

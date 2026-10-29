@@ -49,6 +49,7 @@ class WContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    config.validate();
     return Container(
       decoration: BoxDecoration(
         border: config._border,
@@ -58,6 +59,7 @@ class WContainer extends StatelessWidget {
         shape: config._shape,
         gradient: config._gradient,
       ),
+      foregroundDecoration: config._foregroundDecoration,
       width: config._width,
       height: config._height,
       alignment: config._alignment,
@@ -73,6 +75,8 @@ class WContainer extends StatelessWidget {
 
 /// 容器配置类
 class WContainerConfig {
+  static const Object _unset = Object();
+
   // 私有属性
   double? _width;
   double? _height;
@@ -83,6 +87,7 @@ class WContainerConfig {
   EdgeInsetsGeometry? _margin;
   EdgeInsetsGeometry? _padding;
   List<BoxShadow>? _boxShadow;
+  Decoration? _foregroundDecoration;
   Clip _clipBehavior = Clip.none;
   BoxShape _shape = BoxShape.rectangle;
   Gradient? _gradient;
@@ -146,6 +151,11 @@ class WContainerConfig {
   /// 设置阴影
   set boxShadow(List<BoxShadow>? value) {
     _boxShadow = value;
+  }
+
+  /// 设置前景装饰（例如不占宽度的描边）
+  set foregroundDecoration(Decoration? value) {
+    _foregroundDecoration = value;
   }
 
   /// 设置裁剪行为
@@ -279,44 +289,69 @@ class WContainerConfig {
 
   /// 设置最小高度约束
   WContainerConfig constraintsMinHeight(double minHeight) {
-    _constraints = BoxConstraints(minHeight: minHeight);
+    assert(minHeight >= 0 && minHeight.isFinite, 'minHeight 必须非负');
+    _constraints = (_constraints ?? const BoxConstraints()).copyWith(
+      minHeight: minHeight,
+    );
     return this;
   }
 
   // 复制方法
   /// 创建一个新的配置实例，可选择性地覆盖属性
   WContainerConfig copyWith({
-    double? width,
-    double? height,
-    BoxBorder? border,
-    BorderRadiusGeometry? borderRadius,
-    Color? color,
-    AlignmentGeometry? alignment,
-    EdgeInsetsGeometry? margin,
-    EdgeInsetsGeometry? padding,
-    List<BoxShadow>? boxShadow,
+    Object? width = _unset,
+    Object? height = _unset,
+    Object? border = _unset,
+    Object? borderRadius = _unset,
+    Object? color = _unset,
+    Object? alignment = _unset,
+    Object? margin = _unset,
+    Object? padding = _unset,
+    Object? boxShadow = _unset,
+    Object? foregroundDecoration = _unset,
     Clip? clipBehavior,
     BoxShape? shape,
-    Gradient? gradient,
-    Matrix4? transform,
-    BoxConstraints? constraints,
+    Object? gradient = _unset,
+    Object? transform = _unset,
+    Object? constraints = _unset,
   }) {
     final config = WContainerConfig();
-    config._width = width ?? _width;
-    config._height = height ?? _height;
-    config._border = border ?? _border;
-    config._borderRadius = borderRadius ?? _borderRadius;
-    config._color = color ?? _color;
-    config._alignment = alignment ?? _alignment;
-    config._margin = margin ?? _margin;
-    config._padding = padding ?? _padding;
-    config._boxShadow = boxShadow ?? _boxShadow;
+    config._width = identical(width, _unset) ? _width : width as double?;
+    config._height = identical(height, _unset) ? _height : height as double?;
+    config._border = identical(border, _unset) ? _border : border as BoxBorder?;
+    config._borderRadius =
+        identical(borderRadius, _unset) ? _borderRadius : borderRadius as BorderRadiusGeometry?;
+    config._color = identical(color, _unset) ? _color : color as Color?;
+    config._alignment = identical(alignment, _unset) ? _alignment : alignment as AlignmentGeometry?;
+    config._margin = identical(margin, _unset) ? _margin : margin as EdgeInsetsGeometry?;
+    config._padding = identical(padding, _unset) ? _padding : padding as EdgeInsetsGeometry?;
+    config._boxShadow = identical(boxShadow, _unset) ? _boxShadow : boxShadow as List<BoxShadow>?;
+    config._foregroundDecoration = identical(foregroundDecoration, _unset)
+        ? _foregroundDecoration
+        : foregroundDecoration as Decoration?;
     config._clipBehavior = clipBehavior ?? _clipBehavior;
     config._shape = shape ?? _shape;
-    config._gradient = gradient ?? _gradient;
-    config._transform = transform ?? _transform;
-    config._constraints = constraints ?? _constraints;
+    config._gradient = identical(gradient, _unset) ? _gradient : gradient as Gradient?;
+    config._transform = identical(transform, _unset) ? _transform : transform as Matrix4?;
+    config._constraints =
+        identical(constraints, _unset) ? _constraints : constraints as BoxConstraints?;
     return config;
+  }
+
+  /// 校验配置，尽量在构建前暴露非法组合。
+  void validate() {
+    assert(
+      _shape != BoxShape.circle || _borderRadius == null,
+      'WContainerConfig: shapeCircle 与 borderRadius 不能同时设置',
+    );
+    assert(
+      _width == null || (_width!.isFinite && _width! >= 0),
+      'WContainerConfig.width 必须是非负有限值',
+    );
+    assert(
+      _height == null || (_height!.isFinite && _height! >= 0),
+      'WContainerConfig.height 必须是非负有限值',
+    );
   }
 
   /// 创建当前配置的副本

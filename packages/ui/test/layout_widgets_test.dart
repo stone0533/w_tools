@@ -15,6 +15,76 @@ void main() {
     expect(find.text('content'), findsOneWidget);
   });
 
+  testWidgets('WContainer — decoration / foregroundDecoration', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WContainer(
+          config: WContainerConfig()
+            ..color = Colors.red
+            ..borderRadiusAll(8)
+            ..paddingAll(12)
+            ..foregroundDecoration = BoxDecoration(
+              border: Border.all(color: Colors.black),
+            ),
+          child: const Text('content'),
+        ),
+      ),
+    );
+
+    final container = tester.widget<Container>(find.byType(Container).first);
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.color, Colors.red);
+    expect(decoration.borderRadius, BorderRadius.circular(8));
+    expect(container.padding, const EdgeInsets.all(12));
+    expect(container.foregroundDecoration, isNotNull);
+  });
+
+  testWidgets('WContainer — copyWith 可以清空可空字段', (tester) async {
+    final base = WContainerConfig()
+      ..color = Colors.red
+      ..width = 100
+      ..paddingAll(8);
+    final next = base.copyWith(color: null, width: null, padding: null);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WContainer(config: next, child: const Text('content')),
+      ),
+    );
+
+    final container = tester.widget<Container>(find.byType(Container).first);
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.color, isNull);
+    expect(container.constraints, isNull);
+    expect(container.padding, isNull);
+  });
+
+  testWidgets('WContainer — 圆形与圆角互斥', (tester) async {
+    expect(
+      () => (WContainerConfig()
+            ..shapeCircle()
+            ..borderRadiusAll(8))
+          .validate(),
+      throwsAssertionError,
+    );
+  });
+
+  testWidgets('WContainer — constraintsMinHeight 合并已有约束', (tester) async {
+    final config = WContainerConfig()
+      ..constraints = const BoxConstraints(maxWidth: 300)
+      ..constraintsMinHeight(48);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WContainer(config: config, child: const Text('content')),
+      ),
+    );
+
+    final container = tester.widget<Container>(find.byType(Container).first);
+    expect(container.constraints?.maxWidth, 300);
+    expect(container.constraints?.minHeight, 48);
+  });
+
   testWidgets('WRichText — 渲染 RichText（itemBuilder 返回 TextSpan）', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
