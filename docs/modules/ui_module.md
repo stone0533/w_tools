@@ -429,8 +429,8 @@ WButton(
 
 ## 2.1 WPressable - 任意 child 点击
 
-`WPressable` 不是按钮：只负责点击和基础效果，不声明 `button` 语义，不负责样式、size、
-loading 或最小点击区域。可选支持键盘 focus / Enter / Space，但仍不设置 `button` 语义。
+`WPressable` 不是按钮：只负责指针点击和基础效果，不声明 `button` 语义，不负责样式、size、
+loading、键盘焦点或最小点击区域。需要键盘操作时用 `WButton`。
 
 ```dart
 WPressable(

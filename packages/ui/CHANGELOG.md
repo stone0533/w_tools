@@ -23,8 +23,7 @@
   支持 disabled/pressed/hovered/focused 状态组合。使用 disabled 状态色时需将
   `disabledOpacity` 设为 1，避免双重禁用效果。
 - `WButtonResolvedStyle` 暴露不可变 `states`，`contentBuilder` 可按状态改变内容结构。
-- `WPressable` 增加可选 `focusNode` / `autofocus` / `focusColor`，支持键盘 Enter / Space，
-  但仍不声明 `button` 语义。
+- `WPressable` 保持纯指针点击，不参与键盘焦点；键盘操作统一用 `WButton`。
 - 增加 `withBackgroundColor` / `withForegroundColor` 静态覆盖便利方法，以及
   `withoutDecoration` / `withoutForegroundColor` / `withoutFocusColor` / `withoutHoverColor`。
 - `Widget.toButton(config:)` / `toButton(style:)` 改为 `Widget.toPressable(...)`。

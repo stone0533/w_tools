@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/pressable.dart';
 
@@ -117,51 +116,6 @@ void main() {
     );
     await gesture.up();
     await tester.pumpAndSettle();
-  });
-
-  testWidgets('键盘 Enter / Space 触发 onTap', (tester) async {
-    var taps = 0;
-    await tester.pumpWidget(
-      _wrap(
-        WPressable(
-          autofocus: true,
-          onTap: () => taps++,
-          child: const Text('keyboard'),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-    expect(taps, 1);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.space);
-    await tester.pump();
-    expect(taps, 2);
-  });
-
-  testWidgets('键盘激活仍不声明 button 语义', (tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        WPressable(
-          autofocus: true,
-          onTap: () {},
-          child: const Text('semantics'),
-        ),
-      ),
-    );
-    await tester.pump();
-    final semantics = tester.widgetList<Semantics>(
-      find.descendant(
-        of: find.byType(WPressable),
-        matching: find.byType(Semantics),
-      ),
-    );
-    expect(
-      semantics.where((s) => s.properties.button == true),
-      isEmpty,
-    );
   });
 
   testWidgets('长按触发 onLongPress', (tester) async {
