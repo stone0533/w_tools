@@ -21,7 +21,7 @@ WFormValidatorItem passingItem(String name) => WFormValidatorItem(
 void main() {
   group('WFormValidator 短路 / 全量校验', () {
     testWidgets('默认短路校验：遇到第一个失败项即返回，不再校验后续字段', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final validated = <String>[];
       final config = WFormValidatorConfig()
         ..itemValidationCallback = (name, isValid, errorText) {
@@ -42,7 +42,7 @@ void main() {
     });
 
     testWidgets('全量校验：continueOnError = true 时遍历全部校验项', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final validated = <String>[];
       final config = WFormValidatorConfig()
         ..continueOnError = true
@@ -64,7 +64,7 @@ void main() {
     });
 
     testWidgets('全量校验：customErrorCallback 仅对第一个失败项触发', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final notified = <String>[];
       final config = WFormValidatorConfig()
         ..continueOnError = true
@@ -93,7 +93,7 @@ void main() {
         ..customErrorCallback = (fieldName, error) => notified.add(fieldName);
 
       final validators = WFormValidator(
-        formData: WFormData(),
+        formData: WFormController(),
         validationItems: [failingItem('a'), passingItem('b'), failingItem('c')],
         config: config,
       );
@@ -105,7 +105,7 @@ void main() {
     });
 
     testWidgets('全量校验：通过字段会清除上一次残留的边框错误', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -145,7 +145,7 @@ void main() {
 
     testWidgets('errors 汇总：全量校验收集全部失败项', (tester) async {
       final validators = WFormValidator(
-        formData: WFormData(),
+        formData: WFormController(),
         validationItems: [failingItem('a'), passingItem('b'), failingItem('c')],
         config: WFormValidatorConfig()..continueOnError = true,
       );
@@ -157,7 +157,7 @@ void main() {
 
     testWidgets('errors 汇总：短路校验只包含短路前的失败项', (tester) async {
       final validators = WFormValidator(
-        formData: WFormData(),
+        formData: WFormController(),
         validationItems: [failingItem('a'), failingItem('b')],
       );
 
@@ -169,7 +169,7 @@ void main() {
     testWidgets('errors 汇总：每次校验会先清空上一次结果', (tester) async {
       var fail = true;
       final validators = WFormValidator(
-        formData: WFormData(),
+        formData: WFormController(),
         validationItems: [
           WFormValidatorItem(
             fieldName: 'a',
@@ -189,7 +189,7 @@ void main() {
 
     testWidgets('errors 为只读视图，外部不可修改', (tester) async {
       final validators = WFormValidator(
-        formData: WFormData(),
+        formData: WFormController(),
         validationItems: [failingItem('a')],
       );
 
@@ -203,7 +203,7 @@ void main() {
     testWidgets('errors 返回快照：后续校验不修改已持有的结果', (tester) async {
       var fail = true;
       final validators = WFormValidator(
-        formData: WFormData(),
+        formData: WFormController(),
         validationItems: [
           WFormValidatorItem(
             fieldName: 'a',
@@ -224,7 +224,7 @@ void main() {
     });
 
     testWidgets('autofocus：仅聚焦第一个失败项，后续失败项不聚焦', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final focusA = FocusNode();
       final focusB = FocusNode();
       addTearDown(focusA.dispose);
@@ -257,7 +257,7 @@ void main() {
     });
 
     testWidgets('autofocus：与 showBorderError 解耦（关闭边框也会聚焦首个失败项）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final focusA = FocusNode();
       addTearDown(focusA.dispose);
 
@@ -284,7 +284,7 @@ void main() {
     });
 
     testWidgets('autofocus：第一个失败项 autofocus=false 时后续失败项也不聚焦', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final focusA = FocusNode();
       final focusB = FocusNode();
       addTearDown(focusA.dispose);
@@ -325,7 +325,7 @@ void main() {
     });
 
     testWidgets('短路校验：清除上一次全量校验遗留在后续字段的红框', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -364,7 +364,7 @@ void main() {
     });
 
     testWidgets('关闭 showBorderError 后清除上一次残留的边框错误', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -398,7 +398,7 @@ void main() {
 
   group('WFormValidatorItem.field — 使用字段自身 validator', () {
     testWidgets('执行字段 validator 并汇总 errors', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -423,7 +423,7 @@ void main() {
     });
 
     testWidgets('短路：首个字段失败后不再校验后续字段', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final visited = <String>[];
       await pumpForm(
         tester,
@@ -453,11 +453,11 @@ void main() {
     });
 
     testWidgets('showBorderError 将字段 validator 错误同步到边框', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormButtonConfig().build(
+        child: WFormFieldButtonConfig().build(
           bordered: true,
           name: 'btn',
           validator: (_) => '字段错误',
@@ -474,12 +474,12 @@ void main() {
       expect(validators.validate(), isFalse);
       await tester.pump();
 
-      // WFormButton 不渲染 InputDecoration.errorText，文案只能来自边框错误
+      // WFormFieldButton 不渲染 InputDecoration.errorText，文案只能来自边框错误
       expect(find.text('字段错误'), findsOneWidget);
     });
 
     testWidgets('错误只走边框：text 字段的 errorText 不被写入', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -505,7 +505,7 @@ void main() {
     });
 
     testWidgets('字段未注册时视为通过', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(tester, formData: formData, child: const SizedBox.shrink());
 
       final validators = formData.validators(items: [WFormValidatorItem.field('missing')]);

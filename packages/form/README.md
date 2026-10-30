@@ -8,10 +8,10 @@
 ## 特性
 
 - **字段组件**：`WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`
-- **表单容器**：`WFormBuilder` / `WFormData` / `WFormButton`
-- **边框体系**：`WFormBorder` / `WFormBorderConfig` / `WFormBorderWithData` / `WFormReadOnlyScope`
+- **表单容器**：`WFormBuilder` / `WFormController` / `WFormFieldButton`
+- **边框体系**：`WFormBorder` / `WFormBorderConfig` / `WFormFieldShell` / `WFormReadOnlyScope`
 - **校验**：`WFormValidator` / `WFormValidatorItem` / `WFormCustomValidator`
-- **默认值与格式化**：`WFormDefaults` / `WInputFormatters`
+- **默认值与格式化**：`WFormDefaults` / `WFormInputFormatters`
 
 ## 安装
 
@@ -31,7 +31,7 @@ import 'package:w_tools_form/w_tools_form.dart';
 class LoginForm extends StatelessWidget {
   LoginForm({super.key});
 
-  final formData = WFormData();
+  final formData = WFormController();
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class LoginForm extends StatelessWidget {
 
 | 能力 | 入口 |
 |---|---|
-| 表单构建 | `WFormBuilder` / `WFormData` |
+| 表单构建 | `WFormBuilder` / `WFormController` |
 | 文本 / 密码 | `WFormTextField` / `WFormTextFieldConfig` |
 | 下拉 | `WFormDropdown` / `WFormMultiDropdown` |
 | 日期 | `WFormDatePicker` |

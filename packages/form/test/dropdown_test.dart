@@ -95,7 +95,7 @@ void main() {
       String? initialValue,
       bool enabled = true,
     }) {
-      final formData = WFormData();
+      final formData = WFormController();
       return MaterialApp(
         home: Scaffold(
           body: WFormBuilder(
@@ -199,7 +199,7 @@ void main() {
 
     testWidgets('选择项 → FormData 更新 + onChanged 回调', (tester) async {
       String? changedValue;
-      final formData = WFormData();
+      final formData = WFormController();
       final cfg = WFormDropdownConfig();
 
       await tester.pumpWidget(
@@ -270,12 +270,12 @@ void main() {
       expect(container.constraints?.maxWidth, 200);
     });
 
-    testWidgets('build(bordered: true) → 返回带 WFormBorderWithData', (tester) async {
+    testWidgets('build(bordered: true) → 返回带 WFormFieldShell', (tester) async {
       final cfg = WFormDropdownConfig();
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -294,8 +294,8 @@ void main() {
         ),
       );
 
-      // WFormBorderWithData 包含 WFormDropdown
-      expect(find.byType(WFormBorderWithData), findsOneWidget);
+      // WFormFieldShell 包含 WFormDropdown
+      expect(find.byType(WFormFieldShell), findsOneWidget);
       expect(find.byType(WFormDropdown<String>), findsOneWidget);
     });
 
@@ -309,7 +309,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WFormBuilder(
-              formData: WFormData(),
+              formData: WFormController(),
               formBorderConfig: formBorderCfg,
               child: cfg.build<String>(
                 bordered: true,
@@ -322,7 +322,7 @@ void main() {
         ),
       );
 
-      final border = tester.widget<WFormBorderWithData>(find.byType(WFormBorderWithData));
+      final border = tester.widget<WFormFieldShell>(find.byType(WFormFieldShell));
       expect(border.readOnly, isTrue);
       final button = tester.widget<DropdownButton<String>>(find.byType(DropdownButton<String>));
       expect(button.onChanged, isNull);
@@ -432,7 +432,7 @@ void main() {
       bool? enabled,
     }) {
       if (disabledKeys != null) config.disabledKeys = disabledKeys;
-      final formData = WFormData();
+      final formData = WFormController();
       return MaterialApp(
         home: Scaffold(
           body: WFormBuilder(
@@ -565,7 +565,7 @@ void main() {
     });
 
     testWidgets('validator 暴露：formKey.validate() 执行并写入 errorText', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -689,12 +689,12 @@ void main() {
       );
     });
 
-    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
+    testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       final cfg = WFormMultiDropdownConfig();
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -712,7 +712,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(WFormBorderWithData), findsOneWidget);
+      expect(find.byType(WFormFieldShell), findsOneWidget);
       expect(find.byType(WFormMultiDropdown), findsOneWidget);
     });
 
@@ -726,7 +726,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WFormBuilder(
-              formData: WFormData(),
+              formData: WFormController(),
               formBorderConfig: formBorderCfg,
               child: cfg.build(
                 bordered: true,
@@ -739,7 +739,7 @@ void main() {
         ),
       );
 
-      final border = tester.widget<WFormBorderWithData>(find.byType(WFormBorderWithData));
+      final border = tester.widget<WFormFieldShell>(find.byType(WFormFieldShell));
       expect(border.readOnly, isTrue);
 
       await tester.tap(find.byType(InputDecorator));
@@ -762,7 +762,7 @@ void main() {
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(

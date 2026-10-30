@@ -13,7 +13,7 @@ import 'package:flutter/services.dart';
 /// - `RegExp("[-_\u4E00-\u9FA5a-zA-Z0-9]")`：允许中英文、数字、下划线与短横线
 /// - `RegExp("[a-zA-Z]")`：只允许字母
 /// - `RegExp("^[a-z0-9A-Z]+")`：只允许数字与字母
-class WInputFormatters {
+class WFormInputFormatters {
   /// 香港电话号码格式化器
   ///
   /// 最多 8 位数字，每 4 位用空格分隔（格式化后总长度上限 9）。

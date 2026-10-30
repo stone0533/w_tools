@@ -14,7 +14,7 @@ void main() {
   final displayedText = DateFormat.yMMMMd().format(testDate);
 
   Widget buildWrapped({
-    required WFormData formData,
+    required WFormController formData,
     required Widget child,
   }) {
     return MaterialApp(
@@ -37,7 +37,7 @@ void main() {
 
   group('WFormDatePicker — 渲染', () {
     testWidgets('初始空值 → title 为空 + hintText 显示', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -55,7 +55,7 @@ void main() {
     });
 
     testWidgets('initialValue 非空 → 格式化显示', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -73,7 +73,7 @@ void main() {
     });
 
     testWidgets('iconSize 默认 24 可自定义', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -91,7 +91,7 @@ void main() {
     });
 
     testWidgets('iconEnabledColor / iconDisabledColor 生效', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -129,7 +129,7 @@ void main() {
     });
 
     testWidgets('自定义 icon 替换默认下拉图标', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -147,7 +147,7 @@ void main() {
     });
 
     testWidgets('style 应用于显示文本', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -173,7 +173,7 @@ void main() {
 
     testWidgets('config 容器高度 / 装饰生效', (tester) async {
       const color = Color(0xFF123456);
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -199,8 +199,8 @@ void main() {
       expect(container.constraints?.maxHeight, 64);
     });
 
-    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
-      final formData = WFormData();
+    testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -213,12 +213,12 @@ void main() {
         ),
       );
 
-      expect(find.byType(WFormBorderWithData), findsOneWidget);
+      expect(find.byType(WFormFieldShell), findsOneWidget);
       expect(find.byType(WFormDatePicker), findsOneWidget);
     });
 
     testWidgets('外层只读作用域 → 不可点击且语义为禁用', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -250,7 +250,7 @@ void main() {
     });
 
     testWidgets('validator 暴露：formKey.validate() 执行并写入 errorText', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -269,7 +269,7 @@ void main() {
     });
 
     testWidgets('form reset 后 formEntered 同步复位', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -294,7 +294,7 @@ void main() {
 
   group('WFormDatePicker — DatePickerDialog 交互', () {
     testWidgets('点击 → 弹出 DatePickerDialog', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -314,7 +314,7 @@ void main() {
     });
 
     testWidgets('选日期 + OK → 更新 FormData', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -346,7 +346,7 @@ void main() {
     });
 
     testWidgets('Cancel → 不更新 FormData', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -371,7 +371,7 @@ void main() {
     });
 
     testWidgets('Cancel → 保留已有值', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -398,7 +398,7 @@ void main() {
 
   group('WFormDatePicker — 回归', () {
     testWidgets('选择日期后 onChanged 被触发（回归：曾用 setValue 导致永不回调）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       String? changed;
       await tester.pumpWidget(
         buildWrapped(
@@ -425,7 +425,7 @@ void main() {
     });
 
     testWidgets('enabled=false 时点击不弹出选择器（回归）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -446,7 +446,7 @@ void main() {
     });
 
     testWidgets('初始值早于 firstDate 时不崩溃（回归：曾触发框架 assert）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
@@ -468,7 +468,7 @@ void main() {
     });
 
     testWidgets('无法解析的初始值不崩溃（回归：曾抛 FormatException）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,

@@ -53,7 +53,7 @@
 | `WFormCheckbox` / `WFormRadioGroup` | form | 复选、单选 | — |
 | `WFormDatePicker` | form | 日期选择 | — |
 | `WFormValidator*` | form | 表单校验 | — |
-| `WFormButton` | form | 带样式的表单按钮（登录/注册/主按钮） | 任意内容点击用 `WPressable` |
+| `WFormFieldButton` | form | 带样式的表单按钮（登录/注册/主按钮） | 任意内容点击用 `WPressable` |
 
 ## 6. 弹层
 

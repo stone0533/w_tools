@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../form_builder.dart';
+import '../form_controller.dart';
 import 'border.dart';
 import 'read_only_scope.dart';
 
-/// Row 扩展，为 Row 附加表单边框（[WFormBorderWithData]）及内部只读下发能力
+/// Row 扩展，为 Row 附加表单边框（[WFormFieldShell]）及内部只读下发能力
 extension WFormRowBorderExtension on Row {
   /// 为 Row 添加表单边框装饰，并把内部输入组件统一为只读 / 可编辑
   ///
@@ -29,7 +30,7 @@ extension WFormRowBorderExtension on Row {
       throw ArgumentError.value(name, 'name', '字段名称不能为空');
     }
 
-    return WFormBorderWithData(
+    return WFormFieldShell(
       key: key,
       name: name,
       hintTextList: hintTextList,
@@ -47,9 +48,9 @@ extension WFormRowBorderExtension on Row {
 /// 同时负责：
 /// - 通过 [WFormReadOnlyScope] 向内部下发只读状态；
 /// - 聚焦追踪（[enableFocusBorder]）与可选 [IntrinsicHeight]；
-/// - 作为错误展示的唯一出口：校验错误通过 `WFormData.setError` 设置 /
+/// - 作为错误展示的唯一出口：校验错误通过 `WFormController.setError` 设置 /
 ///   清除后由 [WFormBorder] 渲染，内部字段不再重复展示。
-class WFormBorderWithData extends StatefulWidget {
+class WFormFieldShell extends StatefulWidget {
   /// 子组件
   final Widget child;
 
@@ -74,7 +75,7 @@ class WFormBorderWithData extends StatefulWidget {
   final bool useIntrinsicHeight;
 
   /// 创建带表单数据的边框
-  const WFormBorderWithData({
+  const WFormFieldShell({
     super.key,
     required this.name,
     this.hintTextList,
@@ -86,13 +87,32 @@ class WFormBorderWithData extends StatefulWidget {
   });
 
   @override
-  State<WFormBorderWithData> createState() => _WFormBorderWithDataState();
+  State<WFormFieldShell> createState() => _WFormFieldShellState();
 }
 
-/// WFormBorderWithData 的状态类
-class _WFormBorderWithDataState extends State<WFormBorderWithData> {
+/// WFormFieldShell 的状态类
+class _WFormFieldShellState extends State<WFormFieldShell> {
   /// 当前是否聚焦
   bool _isFocused = false;
+
+  /// 当前绑定的表单 controller（用于卸载时注销 border key）
+  WFormController? _formData;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final next = WFormBuilder.requireOf(context);
+    if (!identical(_formData, next)) {
+      _formData?.removeBorderKey(widget.name);
+      _formData = next;
+    }
+  }
+
+  @override
+  void dispose() {
+    _formData?.removeBorderKey(widget.name);
+    super.dispose();
+  }
 
   void _onFocusChange(bool hasFocus) {
     if (!mounted) return;
@@ -102,8 +122,14 @@ class _WFormBorderWithDataState extends State<WFormBorderWithData> {
   }
 
   @override
-  void didUpdateWidget(WFormBorderWithData oldWidget) {
+  void didUpdateWidget(WFormFieldShell oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // name 变化后旧 key 不再有意义，避免 formBorderKeys 累积
+    if (oldWidget.name != widget.name) {
+      _formData?.removeBorderKey(oldWidget.name);
+    }
+
     // 关闭焦点边框后回调不再触发，需在此复位，避免边框卡在聚焦装饰
     if (!widget.enableFocusBorder && _isFocused) {
       _isFocused = false;

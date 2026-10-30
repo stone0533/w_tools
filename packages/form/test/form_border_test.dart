@@ -492,12 +492,12 @@ void main() {
     });
   });
 
-  group('WFormBorderWithData', () {
+  group('WFormFieldShell', () {
     testWidgets('无 WFormBuilder → 抛 Exception', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: WFormBorderWithData(
+            body: WFormFieldShell(
               name: 'test',
               readOnly: false,
               child: Text('c'),
@@ -509,14 +509,14 @@ void main() {
     });
 
     testWidgets('有 WFormBuilder → 正常渲染 + 自动注册 key', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: WFormBuilder(
               formData: formData,
               formBorderConfig: makeCfg(),
-              child: const WFormBorderWithData(
+              child: const WFormFieldShell(
                 name: 'email',
                 readOnly: false,
                 child: Text('input'),
@@ -530,19 +530,19 @@ void main() {
       expect(formData.formBorderKeys.containsKey('email'), true);
     });
 
-    testWidgets('hintTextList 从 WFormBorderWithData 传递', (tester) async {
+    testWidgets('hintTextList 从 WFormFieldShell 传递', (tester) async {
       final cfg = makeCfg();
       cfg.hintBuilder = (list) => Column(
         children: list!.map((e) => Text(e)).toList(),
       );
-      final formData = WFormData();
+      final formData = WFormController();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: WFormBuilder(
               formData: formData,
               formBorderConfig: cfg,
-              child: const WFormBorderWithData(
+              child: const WFormFieldShell(
                 name: 'pwd',
                 readOnly: false,
                 hintTextList: ['至少8位'],
@@ -593,7 +593,7 @@ void main() {
     testWidgets('enableFocusBorder 由 true 改 false → 聚焦装饰不再残留', (tester) async {
       final focusNode = FocusNode();
       addTearDown(focusNode.dispose);
-      final formData = WFormData();
+      final formData = WFormController();
 
       Widget buildWith({required bool enableFocusBorder}) => MaterialApp(
         home: Scaffold(
@@ -611,7 +611,7 @@ void main() {
                 ),
               ),
             ),
-            child: WFormBorderWithData(
+            child: WFormFieldShell(
               name: 'field',
               readOnly: false,
               enableFocusBorder: enableFocusBorder,
@@ -639,7 +639,7 @@ void main() {
 
   group('WFormBuilder.formBorderConfig', () {
     testWidgets('运行时变更 → 子树内边框装饰随之更新', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final cfgNotifier = ValueNotifier<WFormBorderConfig>(
         makeCfg(defaultDecoration: const WFormBorderDecoration(color: Color(0xFF111111))),
       );
@@ -653,7 +653,7 @@ void main() {
               builder: (context, cfg, _) => WFormBuilder(
                 formData: formData,
                 formBorderConfig: cfg,
-                child: const WFormBorderWithData(
+                child: const WFormFieldShell(
                   name: 'live',
                   readOnly: false,
                   child: Text('c'),
@@ -680,7 +680,7 @@ void main() {
       cfg.hintBuilder = (list) => Column(
         children: [for (final e in list ?? const <String>[]) Text('hint-$e')],
       );
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -708,7 +708,7 @@ void main() {
       final borderCfg = WFormBorderConfig();
       borderCfg.hintBuilder = (list) => Text('border-${list!.first}');
 
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -734,7 +734,7 @@ void main() {
 
   group('Row.withFormBorder（WFormRowBorderExtension）', () {
     testWidgets('readOnly: true → 内部输入组件被置为只读 / 禁用', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -774,7 +774,7 @@ void main() {
     });
 
     testWidgets('readOnly: true 可穿透任意包装 widget（Padding）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -801,7 +801,7 @@ void main() {
     });
 
     testWidgets('Row 内的 Container 属性（宽高 / 裁剪）完整保留', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final container = Container(
         width: 120,
         height: 48,
@@ -832,7 +832,7 @@ void main() {
     });
 
     testWidgets('readOnly: true 也会禁用内部 WFormCheckbox', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -864,7 +864,7 @@ void main() {
     });
 
     testWidgets('readOnly: true → 非 String 泛型的 WFormDropdown 也被禁用', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -898,7 +898,7 @@ void main() {
     });
 
     testWidgets('readOnly: false 时保留内部原有的 enabled: false（回归）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -930,7 +930,7 @@ void main() {
     });
 
     testWidgets('内部子组件保留自身的 key（回归）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final fieldKey = GlobalKey();
 
       await tester.pumpWidget(
@@ -960,7 +960,7 @@ void main() {
     });
 
     testWidgets('内部 Stack 的 clipBehavior 被保留（回归）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
 
       await tester.pumpWidget(
         MaterialApp(

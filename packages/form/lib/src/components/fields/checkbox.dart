@@ -4,7 +4,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
-import '../form_data.dart';
+import '../form_controller.dart';
 import '../form_defaults.dart';
 
 /// 单个复选框字段组件
@@ -33,7 +33,7 @@ class WFormCheckbox extends FormBuilderField<bool> {
          builder: (FormFieldState<bool?> field) {
            final state = field as FormBuilderFieldState<WFormCheckbox, bool>;
 
-           // 继承外层只读作用域（WFormBorderWithData.readOnly）
+           // 继承外层只读作用域（WFormFieldShell.readOnly）
            final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(field.context);
 
            void toggle() {
@@ -105,7 +105,7 @@ class WFormCheckbox extends FormBuilderField<bool> {
 /// WFormCheckbox 的状态类
 class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckbox, bool> {
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
-  WFormData? _formData;
+  WFormController? _formData;
 
   @override
   void didChangeDependencies() {
@@ -231,7 +231,7 @@ class WFormCheckboxConfig {
   ///
   /// [enabled] 为 null 时使用配置中的值。
   ///
-  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
   /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
   Widget build({
     required String name,

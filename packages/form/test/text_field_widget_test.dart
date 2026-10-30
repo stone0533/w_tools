@@ -263,7 +263,7 @@ void main() {
 
   group('WFormTextFieldClearButton（预置 action）', () {
     testWidgets('有内容时显示，点击清空并触发 onCleared', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       var cleared = 0;
 
       await pumpForm(
@@ -318,7 +318,7 @@ void main() {
     });
 
     testWidgets('外层只读作用域下隐藏（且随作用域切换更新）', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final config = WFormTextFieldConfig()..actions = const [WFormTextFieldClearButton()];
 
       Widget build(bool readOnly) => MaterialApp(

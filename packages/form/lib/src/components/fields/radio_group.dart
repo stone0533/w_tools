@@ -4,7 +4,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
-import '../form_data.dart';
+import '../form_controller.dart';
 import '../form_defaults.dart';
 
 /// 表单单选按钮组组件
@@ -42,7 +42,7 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
          builder: (FormFieldState<T?> field) {
            final state = field as FormBuilderFieldState<WFormRadioGroup<T>, T>;
 
-           // 继承外层只读作用域（WFormBorderWithData.readOnly）
+           // 继承外层只读作用域（WFormFieldShell.readOnly）
            final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(field.context);
 
            void click(T v) {
@@ -157,7 +157,7 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
 /// WFormRadioGroup 的状态类
 class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroup<T>, T> {
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
-  WFormData? _formData;
+  WFormController? _formData;
 
   @override
   void didChangeDependencies() {
@@ -291,7 +291,7 @@ class WFormRadioGroupConfig {
   ///
   /// [enabled] 为 null 时使用配置中的值。
   ///
-  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
   /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
   Widget build<T>({
     required String name,

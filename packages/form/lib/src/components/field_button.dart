@@ -4,16 +4,16 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'border/read_only_scope.dart';
 import 'field_frame.dart';
 import 'form_builder.dart';
-import 'form_data.dart';
+import 'form_controller.dart';
 
 /// 表单按钮组件，用于创建可点击的表单字段
 ///
 /// 按钮本身不展示选项，点击行为由 [onTap] 决定：调用方通过 `didChange`
 /// 写入新值，`selectedWidgetBuilder` 负责渲染当前值。
 /// 禁用或位于只读作用域时不响应点击，并以半透明样式呈现。
-class WFormButton extends StatelessWidget {
+class WFormFieldButton extends StatelessWidget {
   /// 按钮配置
-  final WFormButtonConfig config;
+  final WFormFieldButtonConfig config;
 
   /// 字段名称
   final String name;
@@ -27,7 +27,7 @@ class WFormButton extends StatelessWidget {
   /// 初始值
   final String? initialValue;
 
-  /// 是否启用（null 时使用 [WFormButtonConfig] 中的值）
+  /// 是否启用（null 时使用 [WFormFieldButtonConfig] 中的值）
   final bool? enabled;
 
   /// 校验器
@@ -37,7 +37,7 @@ class WFormButton extends StatelessWidget {
   final FocusNode? focusNode;
 
   /// 创建表单按钮组件
-  const WFormButton({
+  const WFormFieldButton({
     super.key,
     required this.config,
     required this.name,
@@ -75,7 +75,7 @@ class WFormButton extends StatelessWidget {
 }
 
 /// 表单按钮配置类，定义按钮的样式和行为
-class WFormButtonConfig {
+class WFormFieldButtonConfig {
   /// 提示 widget
   Widget? _hintWidget;
 
@@ -156,11 +156,11 @@ class WFormButtonConfig {
     _containerPadding = value;
   }
 
-  /// 构建 [WFormButton] 组件
+  /// 构建 [WFormFieldButton] 组件
   ///
   /// [enabled] 为 null 时读取配置值。
   ///
-  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
   /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸按钮。
   /// 最终启用状态为「配置启用 且未只读」；[readOnly] 为 true 或最终状态为禁用时，
   /// 内层不可点击、外层使用只读装饰。
@@ -180,7 +180,7 @@ class WFormButtonConfig {
     bool enableFocusBorder = true,
   }) {
     if (!bordered) {
-      return WFormButton(
+      return WFormFieldButton(
         config: this,
         name: name,
         onTap: onTap,
@@ -216,14 +216,14 @@ class WFormButtonConfig {
   }
 
   /// 创建当前配置的副本
-  WFormButtonConfig copy() {
+  WFormFieldButtonConfig copy() {
     return copyWith();
   }
 
   /// 创建当前配置的副本，并可以选择性地更新某些属性
   ///
   /// 参数为 null 表示沿用原值。
-  WFormButtonConfig copyWith({
+  WFormFieldButtonConfig copyWith({
     Widget? hintWidget,
     bool? enabled,
     double? height,
@@ -235,7 +235,7 @@ class WFormButtonConfig {
     EdgeInsetsGeometry? containerMargin,
     EdgeInsetsGeometry? containerPadding,
   }) {
-    final config = WFormButtonConfig();
+    final config = WFormFieldButtonConfig();
     config._hintWidget = hintWidget ?? _hintWidget;
     config._enabled = enabled ?? _enabled;
     config._height = height ?? _height;
@@ -316,7 +316,7 @@ class _WFormBuilderButton<T> extends FormBuilderField<T> {
 /// 内部按钮字段的状态类
 class _WFormBuilderButtonState<T> extends FormBuilderFieldState<_WFormBuilderButton<T>, T> {
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
-  WFormData? _formData;
+  WFormController? _formData;
 
   @override
   void didChangeDependencies() {

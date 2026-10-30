@@ -78,7 +78,7 @@ void main() {
     });
 
     testWidgets('值为 null 时点击可切换为选中', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -99,7 +99,7 @@ void main() {
     });
 
     testWidgets('点击后同步 formEntered', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -116,7 +116,7 @@ void main() {
     });
 
     testWidgets('form reset 后 formEntered 同步复位', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -137,7 +137,7 @@ void main() {
     });
 
     testWidgets('validator 暴露：formKey.validate() 执行并写入 errorText', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -211,7 +211,7 @@ void main() {
       expect(cb.name, 'x');
     });
 
-    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
+    testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       await pumpForm(
         tester,
         child: WFormCheckboxConfig().build(
@@ -221,7 +221,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(WFormBorderWithData), findsOneWidget);
+      expect(find.byType(WFormFieldShell), findsOneWidget);
       expect(find.byType(WFormCheckbox), findsOneWidget);
     });
 
@@ -277,7 +277,7 @@ void main() {
 
     testWidgets('点击选项切换选中', (tester) async {
       String? lastValue;
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -297,7 +297,7 @@ void main() {
     });
 
     testWidgets('form reset 后 formEntered 同步复位', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -317,7 +317,7 @@ void main() {
     });
 
     testWidgets('validator 暴露：formKey.validate() 执行并写入 errorText', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
@@ -403,7 +403,7 @@ void main() {
       expect(radio.name, 'x');
     });
 
-    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
+    testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       await pumpForm(
         tester,
         child: WFormRadioGroupConfig().build<String>(
@@ -413,7 +413,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(WFormBorderWithData), findsOneWidget);
+      expect(find.byType(WFormFieldShell), findsOneWidget);
       expect(find.byType(WFormRadioGroup<String>), findsOneWidget);
     });
   });

@@ -93,9 +93,9 @@ void main() {
     });
   });
 
-  group('WInputFormatters.phone()', () {
+  group('WFormInputFormatters.phone()', () {
     test('返回 3 个 formatter', () {
-      final List<TextInputFormatter> list = WInputFormatters.phone();
+      final List<TextInputFormatter> list = WFormInputFormatters.phone();
       expect(list, hasLength(3));
       expect(list[0], FilteringTextInputFormatter.digitsOnly);
       expect(list[1], isA<WCardNumberInputFormatter>());
@@ -103,7 +103,7 @@ void main() {
     });
 
     test('LengthLimitingTextInputFormatter 限制 9 位', () {
-      final List<TextInputFormatter> list = WInputFormatters.phone();
+      final List<TextInputFormatter> list = WFormInputFormatters.phone();
       final limiter = list[2] as LengthLimitingTextInputFormatter;
       expect(limiter.maxLength, 9);
     });

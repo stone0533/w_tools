@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import '../form_data.dart';
+import '../form_controller.dart';
 
 /// 表单验证器类，用于管理和执行表单验证
 ///
@@ -16,7 +16,7 @@ import '../form_data.dart';
 /// 仅 text / dropdown 会渲染文案，自定义构建的字段不渲染。
 class WFormValidator {
   /// 表单数据对象
-  WFormData formData;
+  WFormController formData;
 
   /// 验证项列表
   List<WFormValidatorItem> validationItems;

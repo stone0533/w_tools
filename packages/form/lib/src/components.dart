@@ -3,7 +3,7 @@
 // 边框与布局
 export 'components/border/border.dart';
 export 'components/border/border_layout.dart';
-export 'components/border/border_with_data.dart';
+export 'components/border/field_shell.dart';
 export 'components/border/read_only_scope.dart';
 
 // 输入字段
@@ -15,13 +15,13 @@ export 'components/fields/radio_group.dart';
 export 'components/fields/text_field.dart';
 
 // 表单容器与数据
-export 'components/button.dart';
+export 'components/field_button.dart';
 export 'components/form_builder.dart';
-export 'components/form_data.dart';
+export 'components/form_controller.dart';
 
 // 默认值与工具
 export 'components/form_defaults.dart';
-export 'components/input_formatters.dart';
+export 'components/form_input_formatters.dart';
 export 'components/popup.dart';
 
 // 校验器

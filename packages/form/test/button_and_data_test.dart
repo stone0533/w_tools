@@ -5,9 +5,9 @@ import 'package:w_tools_form/w_tools_form.dart';
 import '_helpers/form_test_scaffold.dart';
 
 void main() {
-  group('WFormButton Widget', () {
+  group('WFormFieldButton Widget', () {
     testWidgets('渲染 hintWidget', (tester) async {
-      final config = WFormButtonConfig()..hintWidget = const Text('请选择');
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('请选择');
 
       await pumpForm(
         tester,
@@ -21,7 +21,7 @@ void main() {
     });
 
     testWidgets('initialValue 显示 selectedWidget 内容', (tester) async {
-      final config = WFormButtonConfig()..hintWidget = const Text('请选择');
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('请选择');
 
       await pumpForm(
         tester,
@@ -39,7 +39,7 @@ void main() {
     testWidgets('点击按钮触发 onTap', (tester) async {
       bool tapped = false;
 
-      final config = WFormButtonConfig()..hintWidget = const Text('点我');
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('点我');
 
       await pumpForm(
         tester,
@@ -63,7 +63,7 @@ void main() {
 
     testWidgets('enabled=false 时点击不触发 onTap', (tester) async {
       bool tapped = false;
-      final config = WFormButtonConfig()
+      final config = WFormFieldButtonConfig()
         ..hintWidget = const Text('禁用')
         ..enabled = false;
 
@@ -79,7 +79,7 @@ void main() {
 
       // 禁用态视觉半透明
       final opacity = tester.widget<Opacity>(
-        find.descendant(of: find.byType(WFormButton), matching: find.byType(Opacity)).first,
+        find.descendant(of: find.byType(WFormFieldButton), matching: find.byType(Opacity)).first,
       );
       expect(opacity.opacity, 0.5);
 
@@ -90,7 +90,7 @@ void main() {
 
     testWidgets('build(enabled: false) 覆盖配置', (tester) async {
       bool tapped = false;
-      final config = WFormButtonConfig()..hintWidget = const Text('覆盖禁用');
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('覆盖禁用');
 
       await pumpForm(
         tester,
@@ -108,14 +108,14 @@ void main() {
 
       expect(tapped, false);
       final opacity = tester.widget<Opacity>(
-        find.descendant(of: find.byType(WFormButton), matching: find.byType(Opacity)).first,
+        find.descendant(of: find.byType(WFormFieldButton), matching: find.byType(Opacity)).first,
       );
       expect(opacity.opacity, 0.5);
     });
 
     testWidgets('点击 didChange 同步 formEntered', (tester) async {
-      final formData = WFormData();
-      final config = WFormButtonConfig()..hintWidget = const Text('选择');
+      final formData = WFormController();
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('选择');
 
       await pumpForm(
         tester,
@@ -133,8 +133,8 @@ void main() {
     });
 
     testWidgets('form reset 后 formEntered 同步复位', (tester) async {
-      final formData = WFormData();
-      final config = WFormButtonConfig()..hintWidget = const Text('重置按钮');
+      final formData = WFormController();
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('重置按钮');
 
       await pumpForm(
         tester,
@@ -155,7 +155,7 @@ void main() {
     });
 
     testWidgets('具备 button 语义与启用状态', (tester) async {
-      final config = WFormButtonConfig()..hintWidget = const Text('语义');
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('语义');
 
       await pumpForm(
         tester,
@@ -165,7 +165,7 @@ void main() {
       final buttonSemantics = tester
           .widgetList<Semantics>(
             find.descendant(
-              of: find.byType(WFormButton),
+              of: find.byType(WFormFieldButton),
               matching: find.byType(Semantics),
             ),
           )
@@ -175,7 +175,7 @@ void main() {
     });
 
     testWidgets('禁用态语义 enabled=false', (tester) async {
-      final config = WFormButtonConfig()
+      final config = WFormFieldButtonConfig()
         ..hintWidget = const Text('禁用语义')
         ..enabled = false;
 
@@ -187,7 +187,7 @@ void main() {
       final buttonSemantics = tester
           .widgetList<Semantics>(
             find.descendant(
-              of: find.byType(WFormButton),
+              of: find.byType(WFormFieldButton),
               matching: find.byType(Semantics),
             ),
           )
@@ -197,7 +197,7 @@ void main() {
     });
 
     testWidgets('leading / actions 渲染在按钮两侧', (tester) async {
-      final config = WFormButtonConfig()
+      final config = WFormFieldButtonConfig()
         ..hintWidget = const Text('带附加内容')
         ..leading = const Icon(Icons.star)
         ..actions = const [Icon(Icons.add), Icon(Icons.remove)];
@@ -214,7 +214,7 @@ void main() {
     });
 
     testWidgets('yOffset 平移按钮内容', (tester) async {
-      final config = WFormButtonConfig()
+      final config = WFormFieldButtonConfig()
         ..hintWidget = const Text('偏移')
         ..yOffset = 6;
 
@@ -225,7 +225,7 @@ void main() {
 
       final transformed = tester
           .widgetList<Container>(
-            find.descendant(of: find.byType(WFormButton), matching: find.byType(Container)),
+            find.descendant(of: find.byType(WFormFieldButton), matching: find.byType(Container)),
           )
           .firstWhere((container) => container.transform != null);
 
@@ -234,7 +234,7 @@ void main() {
 
     testWidgets('外层只读作用域下不可点击', (tester) async {
       bool tapped = false;
-      final config = WFormButtonConfig()..hintWidget = const Text('只读');
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('只读');
 
       await pumpForm(
         tester,
@@ -256,20 +256,20 @@ void main() {
       expect(tapped, false);
     });
 
-    testWidgets('WFormButtonConfig.build 返回 WFormButton', (tester) async {
-      final config = WFormButtonConfig();
+    testWidgets('WFormFieldButtonConfig.build 返回 WFormFieldButton', (tester) async {
+      final config = WFormFieldButtonConfig();
       final btn =
           config.build(
                 name: 'x',
                 onTap: (_, __) {},
               )
-              as WFormButton;
-      expect(btn, isA<WFormButton>());
+              as WFormFieldButton;
+      expect(btn, isA<WFormFieldButton>());
       expect(btn.name, 'x');
     });
 
     testWidgets('height / width 渲染到外层容器', (tester) async {
-      final config = WFormButtonConfig()
+      final config = WFormFieldButtonConfig()
         ..hintWidget = const Text('尺寸')
         ..height = 48
         ..width = 200;
@@ -279,13 +279,13 @@ void main() {
         child: config.build(name: 'size_btn', onTap: (_, __) {}),
       );
 
-      final size = tester.getSize(find.byType(WFormButton));
+      final size = tester.getSize(find.byType(WFormFieldButton));
       expect(size.width, 200);
       expect(size.height, 48);
     });
 
     testWidgets('setter 传 null 可清空配置', (tester) async {
-      final config = WFormButtonConfig()
+      final config = WFormFieldButtonConfig()
         ..hintWidget = const Text('可清空')
         ..height = 40
         ..width = 100
@@ -303,7 +303,7 @@ void main() {
       );
 
       final container = tester.widget<Container>(
-        find.descendant(of: find.byType(WFormButton), matching: find.byType(Container)).first,
+        find.descendant(of: find.byType(WFormFieldButton), matching: find.byType(Container)).first,
       );
       expect(container.constraints, isNull);
       expect(container.padding, isNull);
@@ -311,11 +311,11 @@ void main() {
     });
 
     testWidgets('validator / focusNode 透传到内部字段', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
       final focusNode = FocusNode();
       addTearDown(focusNode.dispose);
 
-      final config = WFormButtonConfig()..hintWidget = const Text('校验');
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('校验');
 
       await pumpForm(
         tester,
@@ -329,14 +329,14 @@ void main() {
         ),
       );
 
-      final button = tester.widget<WFormButton>(find.byType(WFormButton));
+      final button = tester.widget<WFormFieldButton>(find.byType(WFormFieldButton));
       expect(button.validator, isNotNull);
       expect(button.focusNode, same(focusNode));
       expect(formData.formKey.currentState!.validate(), isFalse);
     });
 
-    testWidgets('build(bordered: true) → WFormBorderWithData 包装', (tester) async {
-      final config = WFormButtonConfig()..hintWidget = const Text('边框按钮');
+    testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
+      final config = WFormFieldButtonConfig()..hintWidget = const Text('边框按钮');
 
       await pumpForm(
         tester,
@@ -347,20 +347,20 @@ void main() {
         ),
       );
 
-      expect(find.byType(WFormBorderWithData), findsOneWidget);
-      expect(find.byType(WFormButton), findsOneWidget);
+      expect(find.byType(WFormFieldShell), findsOneWidget);
+      expect(find.byType(WFormFieldButton), findsOneWidget);
       expect(find.text('边框按钮'), findsOneWidget);
     });
   });
 
-  group('WFormData', () {
+  group('WFormController', () {
     testWidgets('isAllEntered — 初始时 false', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       expect(data.isAllEntered(1), false);
     });
 
     testWidgets('onChange — 非 String 值也维护 formEntered', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       // 数字：按 value != null 判定
       data.onChange('count', 1);
       expect(data.formEntered['count'], true);
@@ -384,41 +384,41 @@ void main() {
     });
 
     testWidgets('ensureBorderKey — 返回同一个 key（单例模式）', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       final k1 = data.ensureBorderKey('field');
       final k2 = data.ensureBorderKey('field');
       expect(k1, same(k2));
     });
 
-    testWidgets('formKey — 不同 WFormData 实例有不同 formKey', (tester) async {
-      final data1 = WFormData();
-      final data2 = WFormData();
+    testWidgets('formKey — 不同 WFormController 实例有不同 formKey', (tester) async {
+      final data1 = WFormController();
+      final data2 = WFormController();
       expect(data1.formKey, isNot(same(data2.formKey)));
     });
 
     testWidgets('closeKeyboard — 不抛异常', (tester) async {
       await pumpForm(tester, child: const SizedBox.shrink());
-      final data = WFormData();
+      final data = WFormController();
       data.closeKeyboard();
       // 不抛异常 = 通过
     });
 
     testWidgets('isAllEntered — 全部为 true 时返回 true', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       data.formEntered['a'] = true;
       data.formEntered['b'] = true;
       expect(data.isAllEntered(2), true);
     });
 
     testWidgets('isAllEntered — 有一个为 false 时返回 false', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       data.formEntered['a'] = true;
       data.formEntered['b'] = false;
       expect(data.isAllEntered(2), false);
     });
 
     testWidgets('isAllEntered — 忽略已卸载字段的陈旧记录', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       await pumpForm(
         tester,
         formData: data,
@@ -432,9 +432,9 @@ void main() {
     });
   });
 
-  group('WFormData — 辅助 API', () {
+  group('WFormController — 辅助 API', () {
     testWidgets('didChange / getFieldsValue 按字段名读写', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       await pumpForm(
         tester,
         formData: data,
@@ -450,7 +450,7 @@ void main() {
     });
 
     testWidgets('validators() 工厂可创建并执行校验器', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       await pumpForm(
         tester,
         formData: data,

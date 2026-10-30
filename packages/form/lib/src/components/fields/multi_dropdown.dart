@@ -699,7 +699,7 @@ class WFormMultiDropdownConfig {
 
   /// 构建 [WFormMultiDropdown] 组件
   ///
-  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
   /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
   ///
   /// [readOnly] 为 true 时内层控件不可交互、外层使用只读装饰；

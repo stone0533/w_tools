@@ -12,14 +12,14 @@ import 'package:w_tools_form/w_tools_form.dart';
 Future<void> pumpForm(
   WidgetTester tester, {
   required Widget child,
-  WFormData? formData,
+  WFormController? formData,
   WFormBorderConfig? formBorderConfig,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
         body: WFormBuilder(
-          formData: formData ?? WFormData(),
+          formData: formData ?? WFormController(),
           formBorderConfig: formBorderConfig ?? terseBorderConfig(),
           child: child,
         ),

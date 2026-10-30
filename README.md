@@ -67,7 +67,7 @@ dependencies:
   w_tools_core: ^2.0.0
   w_tools_async: ^1.0.0
   w_tools_ui: ^2.1.0
-  w_tools_form: ^1.0.0
+  w_tools_form: ^2.0.0
   # 需要再加 w_tools_app / api / toast / qr / map
 ```
 
@@ -268,7 +268,7 @@ class MyAppPlugin extends WAppPlugin {
 - **RichText** (`WRichText`): 富文本组件，支持复杂文本渲染
 
 #### 输入组件
-- **FormButton** (`WFormButton`): 表单按钮组件
+- **FormButton** (`WFormFieldButton`): 表单按钮组件
 - **FormCheckbox** (`WFormCheckbox`): 单个复选框字段组件
 - **FormBuilder** (`WFormBuilder`): 表单构建器组件
 - **FormDropdown** (`WFormDropdown`): 表单下拉选择组件，支持自定义样式和选项

@@ -6,7 +6,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
-import '../form_data.dart';
+import '../form_controller.dart';
 import '../form_defaults.dart';
 
 /// 表单单行文本输入组件
@@ -77,7 +77,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
   final ValueNotifier<String?> _valueNotifier = ValueNotifier<String?>(null);
 
   /// 宿主表单数据（在 [didChangeDependencies] 中跟随 WFormBuilder 更新）
-  late WFormData _formData;
+  late WFormController _formData;
 
   /// 当前生效的只读状态（组件自身 + 外层只读作用域）
   bool _effectiveReadOnly = false;
@@ -128,7 +128,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
     });
   }
 
-  /// 清空当前字段值（通过 [WFormData.didChange] 同步清空并广播给所有订阅者）
+  /// 清空当前字段值（通过 [WFormController.didChange] 同步清空并广播给所有订阅者）
   ///
   /// 只读状态下不执行任何操作。
   void _clearField() {
@@ -145,7 +145,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
       widget.onChanged?.call(value);
     }
 
-    // 继承外层只读作用域（WFormBorderWithData.readOnly）
+    // 继承外层只读作用域（WFormFieldShell.readOnly）
     _effectiveReadOnly = widget.readOnly || WFormReadOnlyScope.readOnlyOf(context);
     final readOnly = _effectiveReadOnly;
 
@@ -386,7 +386,7 @@ class WFormTextFieldConfig {
 
   /// 构建 [WFormTextField] 组件
   ///
-  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
   /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
   Widget build({
     required String name,

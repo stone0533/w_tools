@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
-import '../form_data.dart';
+import '../form_controller.dart';
 
 /// 表单日期选择器组件
 ///
@@ -43,7 +43,7 @@ class WFormDatePicker extends FormBuilderField<String> {
            final state = field as FormBuilderFieldState<WFormDatePicker, String>;
            final locale = Localizations.localeOf(state.context).toString();
 
-           // 继承外层只读作用域（WFormBorderWithData.readOnly）
+           // 继承外层只读作用域（WFormFieldShell.readOnly）
            final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(state.context);
 
            // 显示文本
@@ -147,7 +147,7 @@ class WFormDatePicker extends FormBuilderField<String> {
 /// WFormDatePicker 的状态类
 class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePicker, String> {
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
-  WFormData? _formData;
+  WFormController? _formData;
 
   @override
   void didChangeDependencies() {
@@ -297,7 +297,7 @@ class WFormDatePickerConfig {
   ///
   /// [enabled] 为 null 时使用配置中的值。
   ///
-  /// [bordered] 为 `true` 时返回带 [WFormBorderWithData] / [WFormBorder] 的版本，
+  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
   /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
   Widget build({
     required String name,

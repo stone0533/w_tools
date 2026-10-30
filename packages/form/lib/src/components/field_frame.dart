@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'border/border_with_data.dart';
+import 'border/field_shell.dart';
 
 /// 表单字段的布局外框（内部实现，不对外导出）
 ///
@@ -12,7 +12,7 @@ import 'border/border_with_data.dart';
 /// ```
 ///
 /// 以及 bordered 构建路径的公共装配：
-/// 空 name 校验 + `WFormBorderWithData` 包装（内层装饰由调用方清空）。
+/// 空 name 校验 + `WFormFieldShell` 包装（内层装饰由调用方清空）。
 ///
 /// 字段之间的语义差异（text 的 `readOnly`、其他字段的 `enabled`）仍由各字段
 /// 自行计算后传入，不进入本类的接口。
@@ -82,7 +82,7 @@ class WFormFieldFrame extends StatelessWidget {
     );
   }
 
-  /// 用 [WFormBorderWithData] 包装字段（bordered 构建路径）
+  /// 用 [WFormFieldShell] 包装字段（bordered 构建路径）
   ///
   /// 空 name 校验集中在这里，替代此前 7 处重复的 `ArgumentError` 抛出。
   static Widget border({
@@ -97,7 +97,7 @@ class WFormFieldFrame extends StatelessWidget {
     if (name.isEmpty) {
       throw ArgumentError.value(name, 'name', '字段名称不能为空');
     }
-    return WFormBorderWithData(
+    return WFormFieldShell(
       key: borderKey,
       name: name,
       hintTextList: hintTextList,

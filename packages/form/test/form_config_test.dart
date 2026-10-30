@@ -90,7 +90,7 @@ void main() {
     });
 
     testWidgets('作为表单字段校验器挂载（FormBuilder）：空值失败、填写后通过', (tester) async {
-      final formData = WFormData();
+      final formData = WFormController();
 
       await pumpForm(
         tester,
@@ -119,7 +119,7 @@ void main() {
 
   group('WFormValidator.validate（回归）', () {
     testWidgets('开启全量校验后不再短路：全部校验项都会被检查', (tester) async {
-      final data = WFormData();
+      final data = WFormController();
       final visited = <String>[];
 
       await tester.pumpWidget(

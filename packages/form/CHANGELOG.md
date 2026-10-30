@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking
+- `WFormData` → `WFormController`；
+- `WFormButton` / `WFormButtonConfig` → `WFormFieldButton` / `WFormFieldButtonConfig`；
+- `WFormBorderWithData` → `WFormFieldShell`；
+- `WInputFormatters` → `WFormInputFormatters`。
+
+### Fixed
+- `WFormFieldShell` 卸载时注销 `formBorderKeys`，避免动态字段累积 GlobalKey。
+
 ## 1.0.1
 
 ### Fixed

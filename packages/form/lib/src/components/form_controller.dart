@@ -11,9 +11,9 @@ import 'validation/validator.dart';
 /// - 输入状态：[formEntered]、[isAllEntered]
 /// - 边框错误：[setError]、[clearError]、[ensureBorderKey]（配合 [formBorderKeys]）
 /// - 校验器工厂：[validators]
-class WFormData {
+class WFormController {
   /// 创建表单数据容器
-  WFormData();
+  WFormController();
 
   /// 表单 key
   final formKey = GlobalKey<FormBuilderState>();
@@ -78,7 +78,7 @@ class WFormData {
 
   /// 设置指定字段的错误样式
   ///
-  /// 需要该字段已通过 `WFormBorderWithData` / `withFormBorder` 注册边框；
+  /// 需要该字段已通过 `WFormFieldShell` / `withFormBorder` 注册边框；
   /// [errorTextList] 会交给边框的 `errorBuilder` 渲染。
   void setError(
     String name, {
@@ -103,6 +103,11 @@ class WFormData {
   /// 获取指定字段的边框 key，不存在时创建
   GlobalKey<WFormBorderState> ensureBorderKey(String name) {
     return formBorderKeys.putIfAbsent(name, () => GlobalKey<WFormBorderState>());
+  }
+
+  /// 注销指定字段的边框 key；字段卸载时由 WFormFieldShell 调用
+  void removeBorderKey(String name) {
+    formBorderKeys.remove(name);
   }
 
   /// 关闭键盘

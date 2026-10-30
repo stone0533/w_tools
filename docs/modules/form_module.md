@@ -21,15 +21,15 @@ form/
 └── lib/src/
     ├── components/
     │   ├── form_builder.dart
-    │   ├── form_data.dart
+    │   ├── form_controller.dart
     │   ├── form_defaults.dart
-    │   ├── input_formatters.dart
-    │   ├── button.dart
+    │   ├── form_input_formatters.dart
+    │   ├── field_button.dart
     │   ├── popup.dart
     │   ├── border/
     │   │   ├── border.dart          # WFormBorder + WFormBorderConfig + WFormBorderDecoration
     │   │   ├── border_layout.dart   # 边框与消息的布局策略（column / row / 内联等）
-    │   │   ├── border_with_data.dart # WFormBorderWithData + Row 扩展
+    │   │   ├── field_shell.dart # WFormFieldShell + Row 扩展
     │   │   └── read_only_scope.dart # WFormReadOnlyScope（InheritedWidget）
     │   ├── validation/
     │   │   ├── validator.dart       # WFormValidator + WFormValidatorItem + WFormValidatorConfig
@@ -49,26 +49,26 @@ form/
 
 ```
 WFormBuilder (StatelessWidget)
-  └─ _WFormDataInherited (InheritedWidget)
-      ├─ formData: WFormData
+  └─ _WFormControllerInherited (InheritedWidget)
+      ├─ formData: WFormController
       └─ formBorderConfig: WFormBorderConfig?
           └─ FormBuilder (flutter_form_builder)
               └─ [各字段组件]
-                  └─ WFormBorderWithData（绑定 formData.formBorderKeys[name]）
+                  └─ WFormFieldShell（绑定 formData.formBorderKeys[name]）
                       ├─ 自动注入 WFormReadOnlyScope
                       └─ WFormBorder（边框绘制 + 错误展示）
 
 WFormValidator
-  └─ WFormData.validators({config, items}) 工厂创建
+  └─ WFormController.validators({config, items}) 工厂创建
       └─ 按序执行 WFormValidatorItem 列表
 ```
 
 ### 数据流
 
-1. `WFormBuilder.of(context)` 拿到 `WFormData`
-2. 字段通过 `FormBuilderFieldState.didChange` → `WFormData.onChange` 更新 `formEntered`
-3. 校验失败时 `WFormData.setError(name)` 命中 `formBorderKeys[name]` → 触发 `WFormBorder.setError(true)` 渲染错误
-4. 只读作用域通过 `WFormBorderWithData` → `WFormReadOnlyScope` 穿透任意包装
+1. `WFormBuilder.of(context)` 拿到 `WFormController`
+2. 字段通过 `FormBuilderFieldState.didChange` → `WFormController.onChange` 更新 `formEntered`
+3. 校验失败时 `WFormController.setError(name)` 命中 `formBorderKeys[name]` → 触发 `WFormBorder.setError(true)` 渲染错误
+4. 只读作用域通过 `WFormFieldShell` → `WFormReadOnlyScope` 穿透任意包装
 
 ---
 
@@ -76,13 +76,13 @@ WFormValidator
 
 ### 功能说明
 
-基于 `flutter_form_builder` 的 `FormBuilder` 封装，负责建立 `WFormData` 与子树的 InheritedWidget 传递通道。`formBorderConfig` 在这里配置后，整棵子树的边框都会继承。
+基于 `flutter_form_builder` 的 `FormBuilder` 封装，负责建立 `WFormController` 与子树的 InheritedWidget 传递通道。`formBorderConfig` 在这里配置后，整棵子树的边框都会继承。
 
 ### 构造参数
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `formData` | `WFormData` | ✅ | 持有 `formKey`，整棵子树共享 |
+| `formData` | `WFormController` | ✅ | 持有 `formKey`，整棵子树共享 |
 | `child` | `Widget` | ✅ | 表单内容 |
 | `autovalidateMode` | `AutovalidateMode?` | | 自动校验模式 |
 | `formBorderConfig` | `WFormBorderConfig?` | | 全局边框配置，为 null 时 `WFormBorder` 不渲染装饰 |
@@ -91,14 +91,14 @@ WFormValidator
 
 | 方法 | 说明 |
 |------|------|
-| `WFormBuilder.of(BuildContext)` | 获取 `WFormData?`，无祖先时返回 null |
-| `WFormBuilder.requireOf(BuildContext)` | 获取 `WFormData`，无祖先时抛 `StateError('WFormBuilder 未找到')` |
+| `WFormBuilder.of(BuildContext)` | 获取 `WFormController?`，无祖先时返回 null |
+| `WFormBuilder.requireOf(BuildContext)` | 获取 `WFormController`，无祖先时抛 `StateError('WFormBuilder 未找到')` |
 | `WFormBuilder.borderConfigOf(BuildContext)` | 获取子树生效的边框配置 |
 
 ### 使用示例
 
 ```dart
-final formData = WFormData();
+final formData = WFormController();
 final borderConfig = WFormBorderConfig()
   ..defaultDecoration = WFormBorderDecoration(color: Colors.white)
   ..errorDecoration = WFormBorderDecoration(border: Border.all(color: Colors.red));
@@ -117,7 +117,7 @@ WFormBuilder(
 
 ---
 
-## 2. WFormData — 表单状态管理
+## 2. WFormController — 表单状态管理
 
 ### 功能说明
 
@@ -220,9 +220,9 @@ WFormBorderDecoration decoration = const WFormBorderDecoration()
 
 > **注意**：配置按引用被 `WFormBorder` 捕获。替换实例（`cfg = cfg.copyWith(...)`）立即生效；原地修改（`cfg.errorDecoration = ...`）仅在组件随后重建时生效。清空字段请使用 `cfg.copy()..errorDecoration = null`。
 
-### 4.3 WFormBorderWithData
+### 4.3 WFormFieldShell
 
-自动从祖先 `WFormBuilder` 获取 `WFormData`，通过 `formData.ensureBorderKey(name)` 注册边框 key，并注入 `WFormReadOnlyScope`。字段 Config 的 `build(bordered: true)` 即调用它。
+自动从祖先 `WFormBuilder` 获取 `WFormController`，通过 `formData.ensureBorderKey(name)` 注册边框 key，并注入 `WFormReadOnlyScope`。字段 Config 的 `build(bordered: true)` 即调用它。
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -241,7 +241,7 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 
 ### 4.4 WFormReadOnlyScope
 
-`InheritedWidget`，`WFormBorderWithData` 始终插入，所有字段组件通过 `WFormReadOnlyScope.readOnlyOf(context)` 合并只读状态，可穿透 `Padding` / `Center` / 自定义组件等任意包装。
+`InheritedWidget`，`WFormFieldShell` 始终插入，所有字段组件通过 `WFormReadOnlyScope.readOnlyOf(context)` 合并只读状态，可穿透 `Padding` / `Center` / 自定义组件等任意包装。
 
 ---
 
@@ -249,9 +249,9 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 
 所有字段组件遵循统一模式：
 - `XxxConfig` + `Xxx` 组件 + 单一构建入口 `build(bordered: bool)`
-- `bordered: true` 时清空内层 `containerDecoration`，包装 `WFormBorderWithData`；`bordered: false` 返回裸字段
+- `bordered: true` 时清空内层 `containerDecoration`，包装 `WFormFieldShell`；`bordered: false` 返回裸字段
 - 只读 = `build` 的 `readOnly` 参数 ∨ `WFormReadOnlyScope.readOnlyOf(context)`（部分字段还会与 `enabled` 合并）
-- 变更回调 → `FormBuilderFieldState.didChange` → `WFormData.onChange`
+- 变更回调 → `FormBuilderFieldState.didChange` → `WFormController.onChange`
 
 ### 5.1 WFormTextField
 
@@ -380,7 +380,7 @@ enum Gender { male, female }
 ),
 ```
 
-### 5.7 WFormButton
+### 5.7 WFormFieldButton
 
 - 点击行为完全由 `onTap` 决定：`(value, didChange)` 回调，调用方通过 `didChange` 写值
 - `selectedWidgetBuilder` 渲染当前选中值
@@ -423,7 +423,7 @@ WFormPopup.hide<T>(context, [result, rootNavigator]);
 
 ### 概述
 
-`WFormValidator` 由 `WFormData.validators({config, items})` 创建，按序执行校验项，支持短路 / 全量校验、边框错误渲染、自动聚焦与错误提示回调。
+`WFormValidator` 由 `WFormController.validators({config, items})` 创建，按序执行校验项，支持短路 / 全量校验、边框错误渲染、自动聚焦与错误提示回调。
 
 ### WFormValidatorItem
 
@@ -472,7 +472,7 @@ if (validator.validate()) {
 
 ---
 
-## 8. input_formatters.dart
+## 8. form_input_formatters.dart
 
 输入格式化器集合，常见内置项（按项目实际导出）：
 - `FilteringTextInputFormatter.digitsOnly`
@@ -494,7 +494,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _formData = WFormData();
+  final _formData = WFormController();
   bool _obscurePwd = true;
 
   late final WFormBorderConfig _borderConfig = WFormBorderConfig()
@@ -590,12 +590,12 @@ class _LoginPageState extends State<LoginPage> {
 |---|------|------|
 | 1 | **Flutter 版本锁定** | 依赖链 `flutter_form_builder:10.3.0+2` / `form_builder_validators:11.3.0` 传递最低 Flutter 3.38，请确保项目约束 ≥ 3.38 |
 | 2 | **Config 私有字段** | `WFormBorderConfig._*` / `WFormTextFieldConfig._*` 等私有字段通过 setter / builder 方法配置，直接赋值会触发静态错误 |
-| 3 | **bordered 构建清空内层装饰** | 调用 `build(bordered: true)` 后，字段自身 `containerDecoration` 会被清空；必须依赖外层 `WFormBorderWithData` 提供边框 |
+| 3 | **bordered 构建清空内层装饰** | 调用 `build(bordered: true)` 后，字段自身 `containerDecoration` 会被清空；必须依赖外层 `WFormFieldShell` 提供边框 |
 | 4 | **Dropdown items 键必须存在** | `WFormDropdown.items` 是 `Map<T, String>`，初始值 / 字段值必须存在于 map 的 keys 中（`FormBuilderDropdown` 内部断言会失败） |
 | 5 | **Scope 管道** | `WFormTextFieldScope`（InheritedWidget）将输入状态下发给插槽 Widget（清空按钮 / 密码切换），无需手动同步 |
 | 6 | **WFormBorderConfig 继承** | 子级显式传入 `WFormBorder.config` 优先；否则继承 `WFormBuilder.formBorderConfig`；都没配置时 `WFormBorder` 不渲染装饰 |
 | 7 | **formEntered 陈旧过滤** | `isAllEntered(length)` 按已注册 `fields` 过滤，动态移除字段后不会因残留记录恒为 false，但调用方需保证传入的 `length` 与实际参与判断的字段数一致 |
-| 8 | **setError / 字段 name 一致性** | `WFormBorderWithData.name` 必须与内部字段 `name` 一致，否则校验红框无法自动联动 |
+| 8 | **setError / 字段 name 一致性** | `WFormFieldShell.name` 必须与内部字段 `name` 一致，否则校验红框无法自动联动 |
 | 9 | **PopRoute 不跟随滚动** | `WFormPopup` 位置打开时计算一次，锚点滚动后弹层不跟随，如需跟随请使用其他方案 |
 | 10 | **校验器双通道风险** | `WFormValidatorItem.field` 模式直接执行字段 `validator`，**不**写入字段 `errorText`，只通过 `WFormBorder.setError` 渲染；若同时开 FormBuilder 原生 `validate()` 会走另一通道，建议统一使用 `WFormValidator` |
 | 11 | **copyWith(null) 不代表清空** | `WFormBorderConfig.copyWith(errorDecoration: null)` 保持原值；清空请用 `cfg.copy()..errorDecoration = null` |
