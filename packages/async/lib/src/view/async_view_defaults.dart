@@ -10,6 +10,9 @@ typedef WAsyncErrorWidgetBuilder = Widget Function(
 ///
 /// 放在 App 根部即可让多个页面共享默认 loading / empty / error 视图；
 /// 单个 WAsyncView 仍可显式覆盖。
+///
+/// 只作用于 [WAsyncView]；[WAsyncBuilder] 由调用方自行构建状态 UI，
+/// 不会读取这些默认值。
 class WAsyncViewDefaults extends InheritedWidget {
   const WAsyncViewDefaults({
     super.key,

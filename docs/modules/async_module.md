@@ -252,6 +252,8 @@ WAsyncViewDefaults(
 )
 ```
 
+`WAsyncViewDefaults` 只作用于 `WAsyncView`；`WAsyncBuilder` 不会读取它。
+
 优先级：
 
 ```text
@@ -321,5 +323,15 @@ WAsyncBuilder<List<Gift>>(
 ```
 
 `WAsyncController` 负责首屏和整页刷新；`loadMore` 的追加与 footer 状态由业务侧维护，不要用 `WAsyncController.failed` 表示分页失败。
+
+`WAsyncBuilder.builder` 必须始终返回同一个滚动壳：
+
+```text
+WAsyncBuilder
+  → SmartRefresher
+      → CustomScrollView
+```
+
+loading / empty / error 只能作为 `slivers` 内部的分支，不要在外层直接 return `Center` / `WAsyncErrorView`，否则 `SmartRefresher` 会被重新挂载。
 
 `WAsyncView` 适合普通页面区块；滚动页面用 `WAsyncBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。

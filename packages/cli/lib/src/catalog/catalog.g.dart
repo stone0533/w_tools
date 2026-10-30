@@ -283,7 +283,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     package: "w_tools_async",
     section: "7. 状态与反馈",
     useFor: "滚动页面、SmartRefresher、CustomScrollView、自定义状态布局",
-    dontUseFor: "普通页面区块优先用 `WAsyncView`",
+    dontUseFor: "普通页面区块优先用 `WAsyncView`；不要在外层用 if 切换滚动壳，loading/empty/error 必须作为 slivers 分支",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
   ),

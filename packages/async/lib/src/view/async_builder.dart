@@ -9,6 +9,10 @@ import '../state/async_state.dart';
 /// loading / empty / error 布局的场景。
 ///
 /// 普通页面区块优先使用 [WAsyncView]。
+///
+/// [builder] 必须始终返回稳定的滚动壳（例如 `SmartRefresher` +
+/// `CustomScrollView`）；loading / empty / error 只能作为壳内部的分支，
+/// 不要在外层切换成 Center / ErrorView，否则滚动组件会被重新挂载。
 class WAsyncBuilder<T> extends StatelessWidget {
   const WAsyncBuilder({
     super.key,
