@@ -96,6 +96,39 @@ builder 链（由内向外）：
   - `dependsOn` 中声明的依赖未被注册；
   - 存在循环依赖。
 
+### `builderWrapper` 与 `.sp`
+
+如果 `ThemeData.extensions` 里的 `WTextStyles` 使用 `flutter_screenutil` 的 `.sp`，
+必须放在 `builderWrapper`（或 `ScreenUtilInit.builder`）中构建：
+
+```dart
+class TextStylesPlugin with WAppPlugin {
+  @override
+  String get name => 'text-styles';
+
+  @override
+  TransitionBuilder get builderWrapper => (context, child) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        extensions: [buildAppTextStyles()],
+      ),
+      child: child ?? const SizedBox.shrink(),
+    );
+  };
+}
+```
+
+不要在 `main` / 顶层 `final` 中构造：
+
+```dart
+// 错：ScreenUtil 尚未 configure
+final appTheme = AppTheme.data;
+```
+
+`wrapApp` 在 MaterialApp 外，没有 Theme；需要 Theme/`.sp` 的排版扩展用
+`builderWrapper`。`WAsyncViewDefaults` 这类只存 builder、不立即计算 `.sp`
+的配置仍可放在 `wrapApp`。
+
 ### 使用示例
 
 ```dart
@@ -153,8 +186,8 @@ void main() {
 | 钩子 | 返回类型 | 说明 |
 |------|----------|------|
 | `onInit()` | `Future<void>` / `void` | 初始化阶段被调用，可返回 Future 参与分层编排 |
-| `builderWrapper` | `TransitionBuilder?` | 对 `MaterialApp.builder` 的再次包裹；**后注册的插件在 builder 链更外层** |
-| `wrapApp` | `Widget Function(Widget)?` | 对根 Widget 的包裹（如注入 Provider、全局主题等）；**后注册者最外** |
+| `builderWrapper` | `TransitionBuilder?` | 对 `MaterialApp.builder` 的再次包裹；**后注册的插件在 builder 链更外层**。需要 Theme/MediaQuery/`.sp` 的主题扩展应在这里构建 |
+| `wrapApp` | `Widget Function(Widget)` | 对根 Widget 的包裹（如 Provider、最外层手势）；**后注册者最外**。位于 MaterialApp 之外，没有 Theme/MediaQuery |
 | `navigatorObservers` | `List<NavigatorObserver>?` | 额外的 `NavigatorObserver`，会与 `WApp.navigatorObservers` 合并 |
 
 ### 使用示例

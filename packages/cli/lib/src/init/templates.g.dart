@@ -136,6 +136,9 @@ const String agentsSnippet = r'''
    **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；不要用 `WButton` 包任意 child。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    不要再用 `WTextConfig` 逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
+   **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
+   在 `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper` 的 build 期构建。
+   `wrapApp` 没有 Theme；需要 Theme 的排版扩展用 `builderWrapper`。
    **盒子**：重复 `BoxDecoration` 收进 `AppBoxes`；重复卡片用 `AppCard`；
    一次性盒子用 `Container` + `BoxDecoration`；需要 width/height/constraints/transform
    时直接用 `Container`。不要新增 `AppBox` / `AppContainer` 万能包装。
@@ -188,6 +191,9 @@ const String agentsSnippetEn = r'''
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, not `WTextConfig` field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
+   **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
+   in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme,
+   so theme-aware typography must use `builderWrapper`.
    **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated
    cards; use `Container` + `BoxDecoration` for one-off boxes; use `Container` directly
    for width/height/constraints/transform. Do not add an `AppBox` / `AppContainer` god wrapper.

@@ -121,6 +121,19 @@ ui/
 | `WScreen.h(double value)` | 高度缩放，无 delegate 时返回原始值 |
 | `WScreen.sp(double value)` | 字体缩放，无 delegate 时返回原始值 |
 
+### ⚠️ `.sp` 初始化时机
+
+不要在 `main()`、顶层 `final` 或 `static final` 中调用 `.sp`：
+
+```dart
+// 错：ScreenUtil 还没 configure
+final typography = WTextStyles(... fontSize: 16.sp ...);
+```
+
+`ScreenUtil._minTextAdapt` 是 late 字段，未 configure 时调用会抛
+`LateInitializationError`。应在 `ScreenUtilInit.builder` 或
+`WAppPlugin.builderWrapper` 的 build 期再计算。
+
 ### 使用示例
 
 ```dart
@@ -559,6 +572,9 @@ ThemeData(
 ```
 
 没有安装时，`WTextStyles.of` 会从当前 `TextTheme` 生成兜底样式。
+
+> 如果 `WTextStyles` 使用 `.sp`，不要写顶层 `final` / `static final`；
+> 在 `ScreenUtilInit` 之后、推荐在 `WAppPlugin.builderWrapper` 中构建。
 
 ### WText 新参数
 

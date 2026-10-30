@@ -69,6 +69,13 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。
 
 
+## 启动与主题（ScreenUtil / WTextStyles）
+
+- 不要在 `main()`、顶层 `final` 或 `static final` 中调用 `flutter_screenutil` 的 `.sp`；此时 `ScreenUtil` 还没 `configure`。
+- `WTextStyles` / Theme 扩展如果使用 `.sp`，应在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期构建。
+- `WAppPlugin.wrapApp` 位于 MaterialApp 外，没有 Theme/MediaQuery；需要 Theme 的排版扩展用 `builderWrapper`。
+- `WAsyncViewDefaults` 只存 builder，可以放 `wrapApp`；不要把“放到根节点”套到需要立即计算 `.sp` 的 Theme 对象上。
+
 ## 文字（w_tools_ui）
 
 - 新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`，不要再用 `WTextConfig` 逐字段拼样式。

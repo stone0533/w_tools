@@ -28,6 +28,10 @@ enum WTextVariant {
 /// ```
 ///
 /// 没有安装时，[of] 会从当前 [TextTheme] 生成一组兜底样式。
+///
+/// 如果样式里使用 `flutter_screenutil` 的 `.sp`，必须在
+/// `ScreenUtilInit` 之后构建；推荐在 `WAppPlugin.builderWrapper` 中
+/// 懒构建 ThemeData + WTextStyles，不要在 main / 顶层 final 中计算。
 @immutable
 class WTextStyles extends ThemeExtension<WTextStyles> {
   const WTextStyles({

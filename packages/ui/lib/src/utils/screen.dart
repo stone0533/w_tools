@@ -9,6 +9,9 @@ import 'package:flutter/widgets.dart';
 /// Text('标题', style: TextStyle(fontSize: WScreen.sp(14)));
 ///
 /// // 2. 与 flutter_screenutil 共存（共享 ScreenUtil 配置）
+/// // 注意：不要在 main / 顶层 final / static 初始化中调用 `.sp`，
+/// // 此时 ScreenUtil 尚未 configure；应在 ScreenUtilInit.builder 或
+/// // WAppPlugin.builderWrapper 的 build 期计算。
 /// runApp(ScreenUtilInit(
 ///   designSize: const Size(375, 667),
 ///   builder: (context, child) {
