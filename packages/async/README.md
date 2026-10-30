@@ -189,3 +189,5 @@ WAsyncView<List<Gift>>(
 ```
 
 分页的 `loadMore` 和 footer 状态由业务侧维护，不要用 `WAsyncController.failed` 表示分页失败。
+
+`WAsyncView` 在 ready / refreshing / failed + 旧数据之间保持同一内容子树，切换状态不会重建 `readyBuilder`。

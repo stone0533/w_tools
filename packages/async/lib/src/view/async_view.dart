@@ -25,6 +25,9 @@ import 'async_view_defaults.dart';
 ///
 /// [readyBuilder] 返回内容本身；需要 `SmartRefresher` / `RefreshIndicator`
 /// 时，把滚动组件放进 [readyBuilder] 内部，不要包在 [WAsyncView] 外面。
+///
+/// ready / refreshing / failed + 旧数据共用同一层内容容器，
+/// 状态切换不会重建 `readyBuilder` 的子树。
 class WAsyncView<T> extends StatelessWidget {
   const WAsyncView({
     super.key,
@@ -63,9 +66,9 @@ class WAsyncView<T> extends StatelessWidget {
           final indicator = (refreshingBuilder ?? defaults?.refreshingBuilder)?.call(context) ??
               const LinearProgressIndicator();
 
-          return _buildOverlay(
+          return _buildContent(
             context,
-            content: readyBuilder(context, data),
+            data: data,
             overlay: Positioned(
               left: 0,
               right: 0,
@@ -78,9 +81,9 @@ class WAsyncView<T> extends StatelessWidget {
         if (data != null && value.isFailed) {
           final error =
               errorBannerBuilder ?? defaults?.errorBannerBuilder ?? _defaultErrorBannerBuilder;
-          return _buildOverlay(
+          return _buildContent(
             context,
-            content: readyBuilder(context, data),
+            data: data,
             overlay: Positioned(
               left: 0,
               right: 0,
@@ -98,7 +101,7 @@ class WAsyncView<T> extends StatelessWidget {
           loading: () =>
               (loadingBuilder ?? defaults?.loadingBuilder)?.call(context) ??
               _defaultLoadingBuilder(context),
-          ready: (data) => readyBuilder(context, data),
+          ready: (data) => _buildContent(context, data: data),
           empty: () =>
               (emptyBuilder ?? defaults?.emptyBuilder)?.call(context) ??
               _defaultEmptyBuilder(context),
@@ -112,16 +115,27 @@ class WAsyncView<T> extends StatelessWidget {
     );
   }
 
-  static Widget _buildOverlay(
+  /// ready / refreshing / failed+data 都使用同一层 Stack，
+  /// 避免 SmartRefresher 等 readyBuilder 子树在状态切换时被重新挂载。
+  Widget _buildContent(
     BuildContext context, {
-    required Widget content,
-    required Widget overlay,
+    required T data,
+    Widget? overlay,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final stack = Stack(children: [content, overlay]);
-        if (!constraints.hasBoundedWidth) return stack;
-        return SizedBox(width: constraints.maxWidth, child: stack);
+        final stack = Stack(
+          children: [
+            readyBuilder(context, data),
+            if (overlay != null) overlay,
+          ],
+        );
+
+        return SizedBox(
+          width: constraints.hasBoundedWidth ? constraints.maxWidth : null,
+          height: constraints.hasBoundedHeight ? constraints.maxHeight : null,
+          child: stack,
+        );
       },
     );
   }

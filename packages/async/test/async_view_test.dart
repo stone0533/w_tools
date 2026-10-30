@@ -8,6 +8,31 @@ Widget _host(Widget child) {
   );
 }
 
+class _Counter extends StatefulWidget {
+  const _Counter();
+
+  @override
+  State<_Counter> createState() => _CounterState();
+}
+
+class _CounterState extends State<_Counter> {
+  int count = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('count-$count'),
+        TextButton(
+          onPressed: () => setState(() => count++),
+          child: const Text('increment'),
+        ),
+      ],
+    );
+  }
+}
+
 void main() {
   testWidgets('loading / ready / empty / failed', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
@@ -38,6 +63,59 @@ void main() {
     state.value = const WAsyncState.failed('boom');
     await tester.pump();
     expect(find.text('重试'), findsOneWidget);
+  });
+
+  testWidgets('ready → refreshing 保留 readyBuilder 子树状态', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.ready(1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async {},
+          readyBuilder: (context, value) => const _Counter(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('increment'));
+    await tester.pump();
+    expect(find.text('count-1'), findsOneWidget);
+
+    state.value = const WAsyncState.loading(previousData: 1);
+    await tester.pump();
+
+    expect(find.text('count-1'), findsOneWidget);
+  });
+
+  testWidgets('ready 可滚动内容获得有界高度', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.ready(1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          height: 240,
+          child: WAsyncView<int>(
+            state: state,
+            onRetry: () async {},
+            readyBuilder: (context, value) {
+              return ListView(
+                children: const [Text('row')],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(ListView), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('failed + previousData 保留内容并展示错误条', (tester) async {
