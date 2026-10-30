@@ -35,13 +35,95 @@ void main() {
     expect(richText.textScaler, const TextScaler.linear(2));
   });
 
-  testWidgets('WStep — 渲染（config 必填）', (tester) async {
+  testWidgets('WStep — 默认显示 1 基 label / 状态', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: WStep(config: WStepConfig()..length = 3),
+      const MaterialApp(
+        home: WStep(
+          current: 1,
+          labels: ['One', 'Two', 'Three'],
+        ),
       ),
     );
-    expect(find.byType(WStep), findsOneWidget);
+
+    expect(find.text('One'), findsOneWidget);
+    expect(find.text('Two'), findsOneWidget);
+    expect(find.text('Three'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+  });
+
+  testWidgets('WStep — itemBuilder / separatorBuilder 使用 1 基索引', (tester) async {
+    final states = <int, WStepState>{};
+    final separators = <int, bool>{};
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WStep(
+          current: 2,
+          labels: const ['A', 'B', 'C'],
+          itemBuilder: (context, index, state) {
+            states[index] = state;
+            return Text('item-$index');
+          },
+          separatorBuilder: (context, index, completed) {
+            separators[index] = completed;
+            return const SizedBox(height: 2);
+          },
+        ),
+      ),
+    );
+
+    expect(states, {
+      1: WStepState.completed,
+      2: WStepState.current,
+      3: WStepState.upcoming,
+    });
+    expect(separators, {
+      1: true,
+      2: false,
+    });
+  });
+
+  testWidgets('WStep — WStepFlow 复用流程定义', (tester) async {
+    const flow = WStepFlow(
+      labels: ['A', 'B', 'C'],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: flow.build(current: 3),
+      ),
+    );
+
+    expect(find.text('A'), findsOneWidget);
+    expect(find.text('C'), findsOneWidget);
+  });
+
+  testWidgets('WStep — current 越界断言', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WStep(
+          current: 4,
+          labels: ['A', 'B', 'C'],
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isAssertionError);
+  });
+
+  testWidgets('WStep — labels 为空断言', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WStep(
+          current: 1,
+          labels: [],
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isAssertionError);
   });
 
   testWidgets('WScaffold — 渲染 body', (tester) async {

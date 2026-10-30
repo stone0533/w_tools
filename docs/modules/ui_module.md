@@ -1320,7 +1320,56 @@ WScaffold(
 
 ### WStep
 
-步骤指示器，支持当前步骤高亮、自定义样式。
+步骤条，`current` 从 **1** 开始。
+
+```dart
+WStep(
+  current: 2,
+  labels: const ['確認電郵', '電郵驗證', '基本資料'],
+  style: const WStepStyle(
+    completedColor: Colors.green,
+    currentColor: Colors.green,
+  ),
+)
+```
+
+#### WStep 参数
+
+| 参数 | 说明 |
+|------|------|
+| `current` | 当前步骤，1..labels.length |
+| `labels` | 步骤标题，不能为空 |
+| `itemBuilder` | 可选，`(context, index, state)`；index 从 1 开始 |
+| `separatorBuilder` | 可选，`(context, index, completed)`；index 表示第 index 步后的分割线 |
+| `style` | `WStepStyle`，默认蓝/灰 |
+
+#### WStepState
+
+```dart
+enum WStepState { completed, current, upcoming }
+```
+
+#### WStepFlow
+
+同一套步骤在多个页面复用时，先定义 flow：
+
+```dart
+final registerStepFlow = WStepFlow(
+  labels: const ['確認電郵', '電郵驗證', '基本資料'],
+  style: const WStepStyle(completedColor: Colors.green),
+);
+
+// 页面只传 current
+registerStepFlow.build(current: step)
+```
+
+#### 约束
+
+- `itemBuilder` 返回的 widget 会被放进 `Expanded` 单元格，不要返回 `Expanded`；
+- `labels` 不能为空；
+- `current` 必须在 `1..labels.length`；
+- 默认最多适合 3–5 步；步骤过多时横向空间不足；
+- 背景、高度、padding 由外层 `Container` 负责，不用 `backgroundBuilder`。
 
 ### WNavBar / WNavController
 

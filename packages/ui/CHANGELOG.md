@@ -21,6 +21,8 @@
 - `WWidgetExtension.withDecoration`：给 Widget 包一层 `DecoratedBox`。
 
 ### Breaking
+- `WStepConfig` 删除；`WStep` 改为 `current`（1 基）+ `labels` + `WStepState` +
+  `WStepStyle`，新增可复用 `WStepFlow`。
 - `WListView` 拆为 `WListView` + `WListViewSliver`：前者只负责独立滚动，后者只提供
   sliver，可直接嵌入 SmartRefresher / NestedScrollView；删除 `WListViewConfig`、
   `buildByList`、`itemBuilderByT`；重叠改为 `WListViewSliver.overlap` 的正向 `overlap`。

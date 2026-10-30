@@ -59,20 +59,6 @@ void main() {
     });
   });
 
-  group('WStepConfig', () {
-    test('setter length / builder 可调用', () {
-      final c = WStepConfig()..length = 3;
-      expect(c, isNotNull);
-    });
-
-    test('copyWith', () {
-      final c = WStepConfig()..length = 2;
-      final copy = c.copyWith(length: 5);
-      // copyWith 创建新实例，length 应已更新（私有字段无 getter 但 setter 可赋值）
-      expect(copy, isA<WStepConfig>());
-    });
-  });
-
   group('WTabBarConfig', () {
     test('所有 setter 可调用', () {
       final c = WTabBarConfig()

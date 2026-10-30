@@ -13,7 +13,7 @@
 | `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom） | 任意叠放/覆盖布局在页面层用 Container/Stack |
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏 | 不要自己写 `BottomNavigationBar` |
 | `WTabBar` | ui | 顶部 tab | 需要下划线跟随的复杂交互时先看它够不够 |
-| `WStep` | ui | 步骤条（注册流程等） | — |
+| `WStep` / `WStepFlow` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
 
 ## 2. 文本与图标
 

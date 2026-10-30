@@ -1,131 +1,215 @@
 import 'package:flutter/material.dart';
 
-/// 步骤指示器配置类
-class WStepConfig {
-  /// 长度
-  int? _length;
+/// 步骤状态。
+enum WStepState { completed, current, upcoming }
 
-  /// 背景构建器
-  Widget Function(Widget child)? _backgroundBuilder;
+/// 步骤项构建器。
+///
+/// [index] 从 1 开始，等于 [WStep.labels] 中的位置。
+/// 返回的 widget 会被放进 Expanded 单元格，不要再返回 Expanded。
+typedef WStepItemBuilder = Widget Function(
+  BuildContext context,
+  int index,
+  WStepState state,
+);
 
-  /// 步骤项构建器
-  Widget Function(int index, int current)? _itemBuilder;
+/// 分割线构建器。
+///
+/// [index] 从 1 开始，表示分割线位于第 index 步和第 index + 1 步之间。
+typedef WStepSeparatorBuilder = Widget Function(
+  BuildContext context,
+  int index,
+  bool completed,
+);
 
-  /// 分割线构建器
-  Widget Function(int index, int current)? _dividerBuilder;
+/// 步骤条视觉样式。
+class WStepStyle {
+  const WStepStyle({
+    this.completedColor = Colors.blue,
+    this.currentColor = Colors.blue,
+    this.upcomingColor = Colors.grey,
+    this.itemSize = 28,
+    this.labelSpacing = 8,
+    this.separatorHeight = 2,
+    this.separatorIndent = 8,
+    this.labelStyle,
+    this.completedLabelStyle,
+    this.currentLabelStyle,
+    this.upcomingLabelStyle,
+  });
 
-  /// 设置长度
-  set length(int value) {
-    _length = value;
-  }
+  final Color completedColor;
+  final Color currentColor;
+  final Color upcomingColor;
+  final double itemSize;
+  final double labelSpacing;
+  final double separatorHeight;
+  final double separatorIndent;
+  final TextStyle? labelStyle;
+  final TextStyle? completedLabelStyle;
+  final TextStyle? currentLabelStyle;
+  final TextStyle? upcomingLabelStyle;
+}
 
-  /// 设置背景构建器
-  set backgroundBuilder(Widget Function(Widget child)? value) {
-    _backgroundBuilder = value;
-  }
+/// 一组步骤的不可变定义，可在多个页面复用。
+///
+/// 页面只需要传 [current]：
+///
+/// ```dart
+/// AppSteps.register.build(current: step)
+/// ```
+class WStepFlow {
+  const WStepFlow({
+    required this.labels,
+    this.style = const WStepStyle(),
+    this.itemBuilder,
+    this.separatorBuilder,
+  });
 
-  /// 设置步骤项构建器
-  set itemBuilder(Widget Function(int index, int current)? value) {
-    _itemBuilder = value;
-  }
+  final List<String> labels;
+  final WStepStyle style;
+  final WStepItemBuilder? itemBuilder;
+  final WStepSeparatorBuilder? separatorBuilder;
 
-  /// 设置分割线构建器
-  set dividerBuilder(Widget Function(int index, int current)? value) {
-    _dividerBuilder = value;
-  }
-
-  /// 构建步骤指示器组件
   WStep build({
     Key? key,
-    int? index,
+    required int current,
   }) {
     return WStep(
       key: key,
-      config: this,
-      index: index ?? 0,
+      current: current,
+      labels: labels,
+      style: style,
+      itemBuilder: itemBuilder,
+      separatorBuilder: separatorBuilder,
     );
-  }
-
-  /// 创建当前配置的副本
-  WStepConfig copy() {
-    return copyWith();
-  }
-
-  /// 创建当前配置的副本，并可以选择性地更新某些属性
-  WStepConfig copyWith({
-    int? length,
-    Widget Function(Widget child)? backgroundBuilder,
-    Widget Function(int index, int current)? itemBuilder,
-    Widget Function(int index, int current)? dividerBuilder,
-  }) {
-    final config = WStepConfig();
-    config._length = length ?? _length;
-    config._backgroundBuilder = backgroundBuilder ?? _backgroundBuilder;
-    config._itemBuilder = itemBuilder ?? _itemBuilder;
-    config._dividerBuilder = dividerBuilder ?? _dividerBuilder;
-    return config;
   }
 }
 
-/// 步骤指示器组件
+/// 步骤条。
+///
+/// [current] 从 1 开始，等于当前步骤在 [labels] 中的位置。
 class WStep extends StatelessWidget {
-  /// 配置
-  final WStepConfig config;
-
-  /// 索引
-  final int index;
-
-  /// 创建步骤指示器
   const WStep({
     super.key,
-    required this.config,
-    this.index = 0,
+    required this.current,
+    required this.labels,
+    this.itemBuilder,
+    this.separatorBuilder,
+    this.style = const WStepStyle(),
   });
+
+  final int current;
+  final List<String> labels;
+  final WStepItemBuilder? itemBuilder;
+  final WStepSeparatorBuilder? separatorBuilder;
+  final WStepStyle style;
 
   @override
   Widget build(BuildContext context) {
-    // 读取配置，未设置时回退到默认构建器
-    final length = config._length;
-    final backgroundBuilder = config._backgroundBuilder ?? ((child) => child);
-    final itemBuilder = config._itemBuilder ?? _defaultItemBuilder;
-    final dividerBuilder = config._dividerBuilder ?? _defaultDividerBuilder;
+    assert(labels.isNotEmpty, 'WStep.labels 不能为空');
+    assert(
+      current >= 1 && current <= labels.length,
+      'WStep.current 必须在 1..${labels.length} 之间',
+    );
 
-    List<Widget> children = [];
+    final children = <Widget>[];
+    for (var index = 1; index <= labels.length; index++) {
+      final state = index < current
+          ? WStepState.completed
+          : index == current
+              ? WStepState.current
+              : WStepState.upcoming;
 
-    // 构建步骤项和分割线
-    if (length != null) {
-      for (int i = 0; i < length; i++) {
-        children.add(itemBuilder(i, index));
-        if (i + 1 < length) {
-          children.add(Expanded(child: dividerBuilder(i + 1, index)));
-        }
+      children.add(
+        Expanded(
+          child: itemBuilder?.call(context, index, state) ?? _buildItem(index, state),
+        ),
+      );
+
+      if (index < labels.length) {
+        final completed = index < current;
+        children.add(
+          Expanded(
+            child: separatorBuilder?.call(context, index, completed) ?? _buildSeparator(completed),
+          ),
+        );
       }
     }
 
-    // 使用背景构建器包装
-    return backgroundBuilder(Row(children: children));
-  }
-
-  /// 默认步骤项构建器
-  Widget _defaultItemBuilder(int index, int currentIndex) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: index <= currentIndex ? Colors.blue : Colors.grey,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        '$index',
-        style: const TextStyle(color: Colors.white),
-      ),
+    return Semantics(
+      label: 'Step $current of ${labels.length}',
+      child: Row(children: children),
     );
   }
 
-  /// 默认分割线构建器
-  Widget _defaultDividerBuilder(int index, int currentIndex) {
+  Widget _buildItem(int index, WStepState state) {
+    final color = switch (state) {
+      WStepState.completed => style.completedColor,
+      WStepState.current => style.currentColor,
+      WStepState.upcoming => style.upcomingColor,
+    };
+    final filled = state != WStepState.upcoming;
+    final labelStyle = _labelStyle(state);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: style.itemSize,
+          height: style.itemSize,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: filled ? color : Colors.transparent,
+            border: Border.all(color: color),
+          ),
+          child: state == WStepState.completed
+              ? Icon(
+                  Icons.check,
+                  size: style.itemSize * 0.55,
+                  color: Colors.white,
+                )
+              : Text(
+                  '$index',
+                  style: TextStyle(
+                    color: filled ? Colors.white : color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+        ),
+        SizedBox(height: style.labelSpacing),
+        Text(
+          labels[index - 1],
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: labelStyle,
+        ),
+      ],
+    );
+  }
+
+  TextStyle _labelStyle(WStepState state) {
+    final color = switch (state) {
+      WStepState.completed => style.completedColor,
+      WStepState.current => style.currentColor,
+      WStepState.upcoming => style.upcomingColor,
+    };
+    final base = style.labelStyle ?? const TextStyle(fontSize: 12);
+    final stateStyle = switch (state) {
+      WStepState.completed => style.completedLabelStyle,
+      WStepState.current => style.currentLabelStyle,
+      WStepState.upcoming => style.upcomingLabelStyle,
+    };
+    return base.copyWith(color: color).merge(stateStyle);
+  }
+
+  Widget _buildSeparator(bool completed) {
     return Container(
-      height: 2,
-      color: index <= currentIndex ? Colors.blue : Colors.grey,
+      height: style.separatorHeight,
+      margin: EdgeInsets.symmetric(horizontal: style.separatorIndent),
+      color: completed ? style.completedColor : style.upcomingColor,
     );
   }
 }
