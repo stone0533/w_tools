@@ -10,4 +10,5 @@ export 'src/view/async_error_view.dart';
 export 'src/view/async_builder.dart';
 export 'src/view/async_state_builder.dart';
 export 'src/view/async_view.dart';
+export 'src/view/async_state_sliver.dart';
 export 'src/view/async_view_defaults.dart';

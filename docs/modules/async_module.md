@@ -31,6 +31,7 @@ packages/async/lib/
       async_error_banner.dart # WAsyncErrorBanner
       async_view_defaults.dart
       async_state_builder.dart # WAsyncStateBuilder
+      async_state_sliver.dart # WAsyncStateSliver
       async_builder.dart    # deprecated alias
 ```
 
@@ -273,6 +274,32 @@ WAsyncViewDefaults
 
 Controller 会把所有异常（包括 `Error`）转为 failed，便于 UI 展示；它只丢弃旧请求结果，
 不会中止已启动的底层 Future。需要区分业务异常与编程错误时使用 `WAsync`。
+
+## WAsyncStateSliver
+
+`WAsyncStateSliver` 负责 `CustomScrollView` 里的状态 sliver：
+
+```dart
+WAsyncStateSliver<List<Gift>>(
+  state: state,
+  onRetry: controller.refreshGifts,
+  readySliverBuilder: (context, gifts) => WListViewSliver.list(...),
+  emptyBuilder: (context) => ...,
+  errorBuilder: (context, error, onRetry) => ...,
+)
+```
+
+它会把四态统一成：
+
+```text
+ready                   → readySliverBuilder
+loading / empty / failed → SliverFillRemaining
+failed + 旧数据         → ready sliver + WAsyncErrorBanner
+refreshing + 旧数据     → ready sliver + 可选刷新 sliver
+```
+
+`readySliverBuilder` 必须返回 sliver，不能返回 `ListView` / `Column`。
+它始终用 `SliverMainAxisGroup`，所以状态切换不会重建 ready 子树。
 
 ## App 层固定滚动壳
 

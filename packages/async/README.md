@@ -230,6 +230,39 @@ WAsyncStateBuilder
 
 loading / empty / error 只能作为 `slivers` 内部的分支，不要在外层直接 return `Center` / `WAsyncErrorView`，否则 `SmartRefresher` 会被重新挂载。
 
+## 用 WAsyncStateSliver 收口 sliver 状态
+
+如果页面已经在 `CustomScrollView` 里，不需要自己写 `if (items.isEmpty)` 和
+`SliverFillRemaining`：
+
+```dart
+WAsyncStateSliver<List<Gift>>(
+  state: state,
+  onRetry: controller.refreshGifts,
+  readySliverBuilder: (context, gifts) {
+    return WListViewSliver.list(
+      itemCount: gifts.length,
+      itemBuilder: (context, index) => GiftTile(gift: gifts[index]),
+    );
+  },
+  emptyBuilder: (context) => const Center(child: Text('暂无数据')),
+  errorBuilder: (context, error, onRetry) {
+    return WAsyncErrorView(error: error, onRetry: onRetry);
+  },
+)
+```
+
+它会自动处理：
+
+```text
+ready                  → readySliverBuilder
+loading / empty / failed（无数据）→ SliverFillRemaining
+failed + 旧数据        → ready sliver + WAsyncErrorBanner
+refreshing + 旧数据    → ready sliver + 刷新 sliver
+```
+
+`readySliverBuilder` 必须返回 sliver，例如 `WListViewSliver.list` / `SliverList`。
+
 ## App 层固定滚动壳
 
 为了避免每个页面都重复 `WAsyncStateBuilder → SmartRefresher → CustomScrollView`，
