@@ -267,3 +267,34 @@ WAsyncViewDefaults
 
 Controller 会把所有异常（包括 `Error`）转为 failed，便于 UI 展示；它只丢弃旧请求结果，
 不会中止已启动的底层 Future。需要区分业务异常与编程错误时使用 `WAsync`。
+
+## 异步列表：WAsyncView + SmartRefresher
+
+`WAsyncView` 是状态切换器，不是 `ScrollView`。不要把 `SmartRefresher` 包在它外面：
+
+```dart
+// 不要
+SmartRefresher(
+  child: WAsyncView(...),
+)
+```
+
+把滚动组件放进 `readyBuilder`：
+
+```dart
+WAsyncView<List<Gift>>(
+  state: controller.state,
+  onRetry: controller.load,
+  refreshingBuilder: (_) => const SizedBox.shrink(), // SmartRefresher 自己显示
+  readyBuilder: (context, gifts) {
+    return SmartRefresher(
+      controller: refreshController,
+      onRefresh: controller.load,
+      onLoading: loadMore,
+      child: ListView.builder(...),
+    );
+  },
+)
+```
+
+`WAsyncController` 负责首屏和整页刷新；`loadMore` 的追加与 footer 状态由业务侧维护，不要用 `controller.failed` 表示分页失败。

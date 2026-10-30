@@ -77,6 +77,7 @@
 | --- | --- | --- |
 | `WApp` / `WAppPlugin` | app | 启动器与插件分层初始化 |
 | `WAsync` / `WAsyncState` / `WCancelToken` | async | 异步执行、状态、取消 |
+| `WCountdown` | core | 倒计时 |
 | `WStorage` / `WToken` / `WEncrypt` / `WHash` | core | 存储、令牌、加密、摘要 |
 | `WLogger` / `WValidator` / `WRegExp` | core | 日志、校验、正则 |
 | `WApiConfig` | api | 请求配置与日志注入 |

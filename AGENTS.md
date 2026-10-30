@@ -75,6 +75,8 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
 - 每个独立区块一个 Controller；不要用一个 `WAsyncConfig` 合并多个独立区块的 Loading。
 - 全局默认 loading / empty / error 用 `WAsyncViewDefaults`。
+- `WAsyncView` 不是 `ScrollView`：`SmartRefresher` / `RefreshIndicator` 放进 `readyBuilder`，不要包在 `WAsyncView` 外面。
+- 分页 `loadMore` 由业务侧维护；不要用 `WAsyncController.failed` 表示分页失败。
 - `WAsyncController` 会把所有异常转为 failed；只丢弃旧请求，不中止底层 Future。
 - 需要中止请求时，由 loader 接收 `WCancelToken`。
 - `WAsync` / `WAsyncConfig` / `WCancelToken` 只在不需要 UI 状态时直接使用。

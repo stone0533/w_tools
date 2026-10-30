@@ -164,3 +164,28 @@ final result = await WAsync.runWithRetry<List<Gift>, List<Gift>>(
 - `WAsyncView` 适合页面主体 / Column / ListView item；不要直接放进无界宽度的 Row。
 - `onRetry` 应自行处理异常；推荐直接传 `WAsyncController.load`。
 - 刷新进度条可通过 `refreshingBuilder` 或 `WAsyncViewDefaults.refreshingBuilder` 覆盖。
+
+## 异步列表：WAsyncView + SmartRefresher
+
+`WAsyncView` 不是 `ScrollView`，不要用 `SmartRefresher` 直接包它。把滚动组件放进 `readyBuilder`：
+
+```dart
+WAsyncView<List<Gift>>(
+  state: controller.state,
+  onRetry: controller.load,
+  refreshingBuilder: (_) => const SizedBox.shrink(),
+  readyBuilder: (context, gifts) {
+    return SmartRefresher(
+      controller: refreshController,
+      onRefresh: controller.load,
+      onLoading: loadMore,
+      child: ListView.builder(
+        itemCount: gifts.length,
+        itemBuilder: (context, index) => GiftTile(gift: gifts[index]),
+      ),
+    );
+  },
+)
+```
+
+分页的 `loadMore` 和 footer 状态由业务侧维护，不要用 `WAsyncController.failed` 表示分页失败。

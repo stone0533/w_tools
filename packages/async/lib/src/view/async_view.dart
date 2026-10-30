@@ -22,6 +22,9 @@ import 'async_view_defaults.dart';
 /// 不要直接放进无界宽度的 Row / 横向滚动容器。
 ///
 /// [onRetry] 由调用方负责处理异常；推荐直接传 `WAsyncController.load`。
+///
+/// [readyBuilder] 返回内容本身；需要 `SmartRefresher` / `RefreshIndicator`
+/// 时，把滚动组件放进 [readyBuilder] 内部，不要包在 [WAsyncView] 外面。
 class WAsyncView<T> extends StatelessWidget {
   const WAsyncView({
     super.key,

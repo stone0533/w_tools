@@ -25,6 +25,8 @@
    **异步区块**：使用 `w_tools_async` 时，页面统一 `WAsyncController + WAsyncView`；
    不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
    每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncViewDefaults`。
+   `WAsyncView` 不是 ScrollView：`SmartRefresher` / `RefreshIndicator` 放进 `readyBuilder`，
+   不要包在 `WAsyncView` 外面；分页 `loadMore` 自己维护，不要用 Controller.failed 表示分页失败。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
