@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+
+### Added
+- 新增 `w_tools_async` 子包支持：`init --profile=full` 默认导出，
+  `--no-async` 可关闭；`toolkit` / pubspec 片段同步。
+
 ## 1.2.0
 
 ### Added

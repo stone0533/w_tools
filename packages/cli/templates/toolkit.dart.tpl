@@ -15,8 +15,9 @@ export 'package:w_tools_form/w_tools_form.dart'; // @optional:form
 export 'package:w_tools_ui/w_tools_ui.dart'; // @optional:ui
 export 'package:w_tools_api/w_tools_api.dart'; // @optional:api
 export 'package:w_tools_toast/w_tools_toast.dart'; // @optional:toast
-export 'package:w_tools_qr/w_tools_qr.dart';   // @optional:qr
+export 'package:w_tools_qr/w_tools_qr.dart'; // @optional:qr
 export 'package:w_tools_map/w_tools_map.dart'; // @optional:map
+export 'package:w_tools_async/w_tools_async.dart'; // @optional:async
 
 // 项目级页面规范
 export '../ui/app_bars.dart'; // @optional:ui

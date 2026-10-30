@@ -29,7 +29,7 @@ dart run w_tools_cli:doctor    # 检查约定
 # minimal: core
 # ui:      core + ui + toast
 # api:     core + api
-# full:    core + app + form + ui + api + toast + qr（默认）
+# full:    core + app + form + ui + api + toast + qr + async（默认）
 dart run w_tools_cli:init --profile=ui
 
 # 多目标 / 英文
@@ -44,11 +44,14 @@ dart run w_tools_cli:init --profile=full      # 当前默认
 # 不生成 lib/app/ui / design_system 规范，也不导出 w_tools_ui
 dart run w_tools_cli:init --no-ui
 
+# 不导出 w_tools_async
+dart run w_tools_cli:init --no-async
+
 # 不生成 / 不检查 AGENTS 等 AI 指令文件
 dart run w_tools_cli:init --no-instructions
 ```
 
-`--profile` 决定基础能力，`--ui` / `--no-ui` / `--no-qr` / `--with-map` 覆盖单项；
+`--profile` 决定基础能力，`--ui` / `--no-ui` / `--no-qr` / `--no-async` / `--with-map` 覆盖单项；
 `--no-instructions` 优先于 `--targets`。
 
 Profile 能力：
@@ -58,7 +61,7 @@ Profile 能力：
 | `--profile=minimal` | core |
 | `--profile=ui` | core + ui + toast |
 | `--profile=api` | core + api |
-| `--profile=full` | core + app + form + ui + api + toast + qr |
+| `--profile=full` | core + app + form + ui + api + toast + qr + async |
 
 `--no-ui` / `--no-instructions` 只停止生成，不删除已有文件。  
 切换 profile 或 targets 后，当前配置不再生成的旧 UI / 指令文件会在 `stale` 中提示，

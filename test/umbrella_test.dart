@@ -4,14 +4,14 @@ import 'package:w_tools/w.dart' as w;
 /// 聚合包契约测试。
 ///
 /// 这里只做两件事：
-/// 1. 确认 `package:w_tools/w.dart` 能解析 8 个子包的公开类型
+/// 1. 确认 `package:w_tools/w.dart` 能解析 9 个子包的公开类型
 ///    —— 任一子包的重导出出现命名冲突，本文件会直接编译失败；
 /// 2. 确认根 `WConfig` 兼容层仍代理到子包的配置类。
 ///
 /// 各能力的行为测试放在各自的包内（packages/<pkg>/test/），
 /// 本文件不重复覆盖。
 void main() {
-  test('w.dart 汇总 8 个子包的公开类型', () {
+  test('w.dart 汇总 9 个子包的公开类型', () {
     expect(w.WConfig, isNotNull); // 根兼容层
     expect(w.WFormDefaults, isNotNull); // form
     expect(w.WAppConfig, isNotNull); // app
@@ -20,6 +20,7 @@ void main() {
     expect(w.WButton, isNotNull); // ui
     expect(w.WMap<Object>, isNotNull); // map
     expect(w.WQrView, isNotNull); // qr
+    expect(w.WAsyncState<Object>, isNotNull); // async
   });
 
   test('WConfig 代理 core 的 token 键名', () {

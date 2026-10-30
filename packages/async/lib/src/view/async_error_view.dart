@@ -1,0 +1,81 @@
+import 'package:flutter/material.dart';
+
+/// 默认的异步失败视图，可作为整页错误态或紧凑错误条。
+class WAsyncErrorView extends StatelessWidget {
+  const WAsyncErrorView({
+    super.key,
+    required this.error,
+    this.onRetry,
+    this.title = '加载失败',
+    this.retryText = '重试',
+    this.compact = false,
+  });
+
+  final Object error;
+  final VoidCallback? onRetry;
+  final String title;
+  final String retryText;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    if (compact) {
+      return Material(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              const Icon(Icons.error_outline, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '$title：$error',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (onRetry != null)
+                TextButton(
+                  onPressed: onRetry,
+                  child: Text(retryText),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '$error',
+              textAlign: TextAlign.center,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: onRetry,
+                child: Text(retryText),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

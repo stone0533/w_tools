@@ -1,0 +1,223 @@
+# Async 模块
+
+`w_tools_async` 负责异步执行、状态、Controller 与异步视图。`WAsync` 只管「怎么请求」，
+`WAsyncState` 只管「界面该显示什么」。
+
+## 模块结构
+
+```text
+packages/async/lib/
+  w_tools_async.dart
+  src/
+    task/
+      async_task.dart       # WAsync / WAsyncConfig
+      cancel_token.dart     # WCancelToken / WCancellationException
+    state/
+      async_state.dart      # WAsyncState / WAsyncStatus
+      async_controller.dart # WAsyncController
+    view/
+      async_view.dart       # WAsyncView
+      async_error_view.dart # WAsyncErrorView
+      async_view_defaults.dart
+```
+
+## 1. WAsync - 异步编排
+
+### 功能说明
+
+统一封装异步任务的执行、重试、超时、并发控制，内置 Loading 状态合并与错误处理。
+
+### 类与成员概览
+
+#### WAsyncConfig（异步配置）
+
+| 成员 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `showLoading` | bool | true | 是否显示 Loading |
+| `onLoadingStart` | VoidCallback? | null | Loading 开始回调 |
+| `onLoadingEnd` | VoidCallback? | null | Loading 结束回调 |
+| `fallbackOnError` | `void Function(Object?)?` | null | 未传 `onError` 时的兜底错误回调 |
+| `run / runWithRetry / runWithTimeout / wait / runAllWithConcurrency / any / sequence` | 委托方法 | — | 均转发给 WAsync 静态方法 |
+
+内部维护 `_activeCount` 计数器，**并发任务的 Loading 状态会自动合并**（多任务共享一次 start/end）。
+
+#### WAsyncState（四态快照）
+
+| 状态 | 构造 | 说明 |
+|------|------|------|
+| `loading` | `WAsyncState.loading()` | 首次加载 |
+| `ready` | `WAsyncState.ready(data)` | 有数据 |
+| `empty` | `WAsyncState.empty()` | 加载成功但为空 |
+| `failed` | `WAsyncState.failed(error)` | 加载失败 |
+
+刷新场景用：
+
+```dart
+WAsyncState.loading(previousData: oldData)
+WAsyncState.failed(error, previousData: oldData)
+```
+
+`isRefreshing` / `dataOrNull` 可读取旧数据；`when(...)` 四态全覆盖。
+
+#### WAsync（静态类）
+
+| 方法 | 签名 | 说明 |
+|------|------|------|
+| `run<T,R>` | `(task, {config, onSuccess, onError, cancelToken})` | 执行单个任务 |
+| `runWithRetry<T,R>` | `(task, {config, onSuccess, onError, retryCount=3, retryDelay=1s, retryIf, cancelToken})` | 带重试执行 |
+| `runWithTimeout<T,R>` | `(task, timeout, {...})` | 带超时执行 |
+| `wait<T,R>` | `(futures, {config, onSuccess, onError, eagerError=true, cancelToken})` | 等待多个 Future 完成 |
+| `runAllWithConcurrency<T,R>` | `(tasks, {config, onSuccess, onError, concurrency=4, cancelToken})` | 限制并发数执行 |
+| `any<T,R>` | `(futures, {...})` | 返回第一个完成的结果，空集合返回 null |
+| `sequence<T,R>` | `(tasks, {...})` | 顺序串行执行 |
+
+### 行为说明
+
+- **业务异常 vs 编程错误**：`Exception` 被捕获并回调 `onError`；`Error`（`TypeError`、`StateError` 等）向上抛出不拦截。
+- **取消语义**：`WCancelToken.cancel()` 后任务返回 `null`，**不回调 onError**；取消是协作式的，任务内部需主动检查。
+  `wait` / `any` / `runWithTimeout` 在等待期间取消会立即返回；`run` / `sequence` 在当前任务结束后响应。
+- **Loading 合并**：多个并发任务共享同一个 `WAsyncConfig` 时，`showLoading=true` 只会触发一次 start/end。
+- **空集合**：`any([])` 直接返回 null，不进入 Loading；`wait([])` / `sequence([])` /
+  `runAllWithConcurrency([])` 视为成功空结果，会触发 Loading。
+- **并发取消**：`runAllWithConcurrency` 取消后不再启动新任务，但会等待当前在途任务结束后返回。
+
+### 使用示例
+
+```dart
+// 基础执行
+final result = await WAsync.run(
+  () => fetchUserData(),
+  config: WAsyncConfig(showLoading: true),
+  onSuccess: (data) => print('成功: $data'),
+  onError: (e) => print('失败: $e'),
+);
+
+// 带重试（指数退避）
+final apiResult = await WAsync.runWithRetry(
+  () => unstableApiCall(),
+  retryCount: 3,
+  retryDelay: const Duration(seconds: 1),
+  retryIf: (e) => e is TimeoutException,
+);
+
+// 并发限流（最多 4 个同时运行）
+final results = await WAsync.runAllWithConcurrency(
+  [task1, task2, task3, task4, task5, task6],
+  concurrency: 4,
+);
+
+// 取消任务
+final cancelToken = WCancelToken();
+WAsync.run(
+  () => longRunningTask(cancelToken),
+  cancelToken: cancelToken,
+);
+// 在需要时取消
+cancelToken.cancel('用户主动取消');
+```
+
+---
+
+## 2. WCancelToken - 取消令牌
+
+### 功能说明
+
+协作式取消的令牌对象。任务内需要主动检查 `isCancelled` 或调用 `throwIfCancelled()` 来响应取消请求。
+
+### 成员方法
+
+| 成员 | 类型 | 说明 |
+|------|------|------|
+| `isCancelled` | bool (getter) | 是否已取消 |
+| `cancelReason` | Object? (getter) | 取消原因 |
+| `cancel([reason])` | void | 触发取消 |
+| `addListener(callback)` | void | 添加取消监听 |
+| `removeListener(callback)` | void | 移除取消监听 |
+| `throwIfCancelled()` | void | 若已取消则抛出 `WCancellationException` |
+| `clearListeners()` | void | 清空所有监听 |
+
+### 注意事项
+
+**不可复用**：取消后令牌进入终态，后续新任务直接返回 null。如需再次执行请创建新实例。
+
+### 使用示例
+
+```dart
+final token = WCancelToken();
+
+// 添加监听
+token.addListener((reason) {
+  print('已取消: $reason');
+});
+
+// 任务内部检查
+Future<void> longTask(WCancelToken token) async {
+  for (var i = 0; i < 100; i++) {
+    await Future.delayed(const Duration(milliseconds: 50));
+    token.throwIfCancelled(); // 主动抛出异常响应取消
+    print('进度: $i');
+  }
+}
+
+// 取消
+token.cancel('页面已销毁');
+```
+
+---
+
+
+## 3. WAsyncState - 四态状态
+
+```dart
+enum WAsyncStatus { loading, ready, empty, failed }
+```
+
+```dart
+WAsyncState<List<Gift>>.loading()
+WAsyncState.ready(gifts)
+WAsyncState.empty()
+WAsyncState.failed(error, previousData: oldGifts)
+```
+
+- `loading(previousData:)` 用于刷新时保留旧数据；
+- `isRefreshing` / `dataOrNull` 可读取旧数据；
+- `when(...)` 四态全覆盖。
+
+## 4. WAsyncController - 状态流转
+
+```dart
+final controller = WAsyncController.list(() => api.gifts());
+
+WAsyncView<List<Gift>>(
+  state: controller.state,
+  onRetry: controller.load,
+  readyBuilder: (context, gifts) => GiftList(gifts),
+)
+```
+
+每个异步区块使用独立 controller；旧请求返回后不会覆盖新请求状态。
+
+## 5. WAsyncView - 异步视图
+
+```dart
+WAsyncView<List<Gift>>(
+  state: controller.state,
+  onRetry: controller.load,
+  readyBuilder: (context, data) => GiftList(data),
+  emptyBuilder: (context) => const EmptyView(),
+  errorBuilder: (context, error, retry) => RetryView(
+    error: error,
+    onRetry: retry,
+  ),
+)
+```
+
+默认行为：
+
+- loading → `CircularProgressIndicator`；
+- empty → 「暂无数据」；
+- failed → `WAsyncErrorView` + 重试按钮；
+- failed + 旧数据 → 保留内容 + 紧凑错误条；
+- refreshing → 保留内容 + 线性进度条。
+
+默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置。

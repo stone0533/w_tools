@@ -268,6 +268,16 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
   ),
   CatalogEntry(
+    name: "WAsyncView / WAsyncErrorView",
+    names: <String>["WAsyncView", "WAsyncErrorView"],
+    package: "w_tools_async",
+    section: "7. 状态与反馈",
+    useFor: "异步四态视图与默认重试视图",
+    dontUseFor: "纯状态逻辑用 `WAsyncState` / `WAsyncController`",
+    importPath: "package:w_tools_async/w_tools_async.dart",
+    docs: "docs/modules/async_module.md",
+  ),
+  CatalogEntry(
     name: "WListView / WListViewSliver",
     names: <String>["WListView", "WListViewSliver"],
     package: "w_tools_ui",

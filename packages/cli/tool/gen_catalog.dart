@@ -18,6 +18,7 @@ const _docsByPackage = <String, String>{
   'w_tools_toast': 'docs/modules/toast_module.md',
   'w_tools_qr': 'docs/modules/qr_module.md',
   'w_tools_map': 'docs/modules/map_module.md',
+  'w_tools_async': 'docs/modules/async_module.md',
 };
 
 String generate(String packageRoot) {

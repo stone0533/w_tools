@@ -11,7 +11,8 @@ import 'templates.dart';
 /// 子包版本约束。必须与仓库 `packages/*/pubspec.yaml` 的当前版本一致，
 /// 由 `test/init_test.dart` 读取仓库 pubspec 校验（防止版本漂移）。
 const _subpackageConstraints = <String, String>{
-  'w_tools_core': '^1.0.1',
+  'w_tools_core': '^2.0.0',
+  'w_tools_async': '^1.0.0',
   'w_tools_app': '^1.0.0',
   'w_tools_form': '^1.0.1',
   'w_tools_ui': '^2.0.0',
@@ -22,7 +23,7 @@ const _subpackageConstraints = <String, String>{
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const _cliConstraint = '^1.1.0';
+const _cliConstraint = '^1.3.0';
 
 /// `init` 的执行结果（供 CLI 打印）。
 class InitReport {
@@ -302,6 +303,7 @@ String _snippet(
     if (features.toast) 'w_tools_toast',
     if (features.qr) 'w_tools_qr',
     if (features.map) 'w_tools_map',
+    if (features.asyncFeature) 'w_tools_async',
   ];
 
   final depLines = <String>[

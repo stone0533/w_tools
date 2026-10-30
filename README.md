@@ -29,9 +29,9 @@
 
 ## 安装
 
-> ℹ️ **发布状态**：8 个 Flutter 子包与聚合包 `w_tools` 已发布到 pub.dev；
+> ℹ️ **发布状态**：9 个 Flutter 子包与聚合包 `w_tools` 已发布到 pub.dev；
 > `w_tools_cli` 是独立的纯 Dart 工具包，发布状态见 pub.dev。
-> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 8 个 Flutter 子包，只 re-export 子包能力；
+> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 9 个 Flutter 子包，只 re-export 子包能力；
 > 各包按其当前主版本约束（见根 `pubspec.yaml`，本文不硬编码版本号）。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
@@ -64,7 +64,8 @@ dependencies:
 
 ```yaml
 dependencies:
-  w_tools_core: ^1.0.0
+  w_tools_core: ^2.0.0
+  w_tools_async: ^1.0.0
   w_tools_ui: ^2.0.0
   w_tools_form: ^1.0.0
   # 需要再加 w_tools_app / api / toast / qr / map
@@ -92,15 +93,15 @@ dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 
 ```yaml
 dependencies:
-  w_tools_core: ^1.0.0   # 只引子包
+  w_tools_core: ^2.0.0   # 只引子包
   w_tools_ui: ^2.0.0
 ```
 
-或一键引入聚合包（会带上全部 8 个 Flutter 子包及其依赖）：
+或一键引入聚合包（会带上全部 9 个 Flutter 子包及其依赖）：
 
 ```yaml
 dependencies:
-  w_tools: ^2.0.0
+  w_tools: ^4.0.0
 ```
 
 然后运行：
@@ -111,11 +112,12 @@ flutter pub get
 
 ### 依赖与子包说明（选依赖前请先读）
 
-`w_tools` 是**聚合包**，直接依赖以下 8 个 Flutter 子包，方便一键引入：
+`w_tools` 是**聚合包**，直接依赖以下 9 个 Flutter 子包，方便一键引入：
 
 | 子包 | 职责 |
 |---|---|
 | `w_tools_core` | 工具类、扩展方法、全局配置 |
+| `w_tools_async` | 异步执行、状态、Controller 与异步视图 |
 | `w_tools_ui` | UI 组件（`WText` / `WImage` / `WButton` / `WScaffold` / `WAppBar` / `WListView` / `WNavBar` 等） |
 | `w_tools_form` | 表单组件（`WFormTextField` / `WFormDropdown` / `WFormCheckbox` / `WFormBorder` 等） |
 | `w_tools_api` | 网络请求（`DioRegistry` / `BaseOptions` / 各类拦截器 / `BaseRepository`） |
@@ -139,7 +141,7 @@ flutter pub get
 ```yaml
 dependencies:
   w_tools_ui: ^2.0.0     # 只用 UI 组件
-  w_tools_core: ^1.0.0   # 只用工具类与扩展
+  w_tools_core: ^2.0.0   # 只用工具类与扩展
 ```
 
 ```dart
@@ -151,14 +153,14 @@ import 'package:w_tools_core/w_tools_core.dart';
 
 ```yaml
 dependencies:
-  w_tools: ^2.0.0
+  w_tools: ^4.0.0
 ```
 
 ```dart
 import 'package:w_tools/w.dart';
 ```
 
-> **版本策略**：8 个 Flutter 子包与 `w_tools_cli` 各自独立发版，互不跟随（具体版本以
+> **版本策略**：9 个 Flutter 子包与 `w_tools_cli` 各自独立发版，互不跟随（具体版本以
 > 各包 `pubspec.yaml` 与 pub.dev 为准，不在本文硬编码）；根包按聚合层版本独立发布，
 > 其依赖约束为各子包 `^1.x`。发版流程与自动校验见 `docs/releasing.md`。
 
@@ -305,7 +307,7 @@ class MyAppPlugin extends WAppPlugin {
 - **弹窗工具** (`WFormPopup.show` / `WFormPopupRoute`): 提供从触发控件下方弹出的自定义路由
 - **语言工具** (`WLanguage`): 提供语言管理和切换功能
 - **Toast 工具** (`WToast`): 提供轻量级消息提示功能
-- **异步工具** (`WAsync`): 提供单个/批量 Future 的加载、重试、超时、并发控制与错误处理
+- **异步工具** (`WAsync` / `WAsyncState` / `WAsyncView`): 提供执行、四态状态、Controller 与异步视图
 - **平台工具** (`WPlatform`): 提供平台检测和适配功能，支持移动、桌面和 Web 平台的判断，以及平台特定操作的执行
 - **正则工具** (`WRegExp`): 提供常用正则表达式
 - **路由工具** (`WRoute`): 基于 GetX 的路由栈管理（记录、按名称移除/回退）

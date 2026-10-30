@@ -12,7 +12,7 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT" || exit 2
 
-PACKAGES="core ui form api app toast map qr cli"
+PACKAGES="core async ui form api app toast map qr cli"
 STRICT=0
 ONLINE=0
 SELECTED=""

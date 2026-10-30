@@ -11,6 +11,7 @@ class InitFeatures {
     this.toast = false,
     this.qr = false,
     this.map = false,
+    this.asyncFeature = false,
   });
 
   final bool core;
@@ -21,6 +22,7 @@ class InitFeatures {
   final bool toast;
   final bool qr;
   final bool map;
+  final bool asyncFeature;
 
   List<String> get enabled => <String>[
     if (core) 'core',
@@ -31,6 +33,7 @@ class InitFeatures {
     if (toast) 'toast',
     if (qr) 'qr',
     if (map) 'map',
+    if (asyncFeature) 'async',
   ];
 
   String get summary => enabled.join(', ');
@@ -42,6 +45,7 @@ class InitFeatures {
     api: true,
     toast: true,
     qr: true,
+    asyncFeature: true,
   );
 
   factory InitFeatures.forProfile(InitProfile profile) {
@@ -62,6 +66,7 @@ class InitFeatures {
     bool? toast,
     bool? qr,
     bool? map,
+    bool? asyncFeature,
   }) {
     return InitFeatures(
       core: core ?? this.core,
@@ -72,6 +77,7 @@ class InitFeatures {
       toast: toast ?? this.toast,
       qr: qr ?? this.qr,
       map: map ?? this.map,
+      asyncFeature: asyncFeature ?? this.asyncFeature,
     );
   }
 }

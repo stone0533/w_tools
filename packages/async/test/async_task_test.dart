@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_core/src/utils/async_task.dart';
+import 'package:w_tools_async/w_tools_async.dart';
 
 void main() {
   group('WAsync Tests', () {

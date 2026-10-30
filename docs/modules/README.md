@@ -2,17 +2,18 @@
 
 ## 概述
 
-`w_tools` 是一个 Flutter Monorepo：**8 个 Flutter 子包** + **聚合包 `w_tools`** +
+`w_tools` 是一个 Flutter Monorepo：**9 个 Flutter 子包** + **聚合包 `w_tools`** +
 **纯 Dart 工具包 [`w_tools_cli`](../../packages/cli/README.md)**。
 
-8 个 Flutter 子包通过顶层 `w_tools` 聚合导出，业务工程可按需引入；`w_tools_cli` 是
+9 个 Flutter 子包通过顶层 `w_tools` 聚合导出，业务工程可按需引入；`w_tools_cli` 是
 独立的开发工具（`init` / `doctor`），只放 `dev_dependencies`，不参与聚合、也不进构建。
 
 ## Flutter 子包职责
 
 | 子包 | 路径 | 职责 |
 |------|------|------|
-| `w_tools_core` | `packages/core/` | 零 UI 依赖的核心工具：扩展方法、日志、加解密、Token 管理、存储、倒计时、正则、异步任务等 |
+| `w_tools_core` | `packages/core/` | 零 UI 依赖的核心工具：扩展方法、日志、加解密、Token 管理、存储、倒计时、正则等 |
+| `w_tools_async` | `packages/async/` | 异步执行、四态状态、Controller 与异步视图 |
 | `w_tools_app` | `packages/app/` | 应用启动器 `WApp`、插件体系 `WAppPlugin`、语言切换、路由管理、底部弹窗 |
 | `w_tools_ui` | `packages/ui/` | 通用 UI 组件：按钮、图片、文本、AppBar、Scaffold、导航、TabBar、列表等 |
 | `w_tools_form` | `packages/form/` | 基于 `flutter_form_builder` 的表单组件：输入框、下拉、日期选择、校验、按钮、边框 |
@@ -42,6 +43,7 @@
 | `w_tools_toast` | `bot_toast` |
 | `w_tools_api` | `dio` |
 | `w_tools_map` | `google_maps_flutter` |
+| `w_tools_async` | `flutter`（无第三方强依赖） |
 | `w_tools_core` | `encrypt`、`crypto`、`convert`、`logger`、`shared_preferences`、`synchronized` |
 
 子包间**无强制相互依赖**，可单独引入。
@@ -54,6 +56,7 @@
 | 包 | Dart SDK | Flutter SDK |
 |------|----------|-------------|
 | `w_tools_core` | ^3.6.0 | >= 3.27 |
+| `w_tools_async` | ^3.6.0 | >= 3.27 |
 | `w_tools_app` | ^3.6.0 | >= 3.27 |
 | `w_tools_ui` | ^3.6.0 | >= 3.27 |
 | `w_tools_api` | ^3.6.0 | >= 3.27 |
@@ -88,6 +91,7 @@
 |------|------|
 | App 模块 | [app_module.md](app_module.md) |
 | Core 模块 | [core_module.md](core_module.md) |
+| Async 模块 | [async_module.md](async_module.md) |
 | UI 模块 | [ui_module.md](ui_module.md) |
 | Form 模块 | [form_module.md](form_module.md) |
 | API 模块 | [api_module.md](api_module.md) |

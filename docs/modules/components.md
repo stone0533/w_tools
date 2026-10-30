@@ -66,6 +66,7 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
+| `WAsyncView` / `WAsyncErrorView` | async | 异步四态视图与默认重试视图 | 纯状态逻辑用 `WAsyncState` / `WAsyncController` |
 | `WToast` / `WnnToast` | toast | 轻提示 | — |
 | `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | — |
@@ -75,7 +76,7 @@
 | 能力 | 子包 | 说明 |
 | --- | --- | --- |
 | `WApp` / `WAppPlugin` | app | 启动器与插件分层初始化 |
-| `WAsync` / `WCountdown` / `WCancelToken` | core | 异步、倒计时、取消 |
+| `WAsync` / `WAsyncState` / `WCancelToken` | async | 异步执行、状态、取消 |
 | `WStorage` / `WToken` / `WEncrypt` / `WHash` | core | 存储、令牌、加密、摘要 |
 | `WLogger` / `WValidator` / `WRegExp` | core | 日志、校验、正则 |
 | `WApiConfig` | api | 请求配置与日志注入 |

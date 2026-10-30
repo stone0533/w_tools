@@ -4,14 +4,14 @@
 
 Core 模块（`w_tools_core` 子包）是整个 `w_tools` 工具库的**零业务依赖基础层**，只依赖 Dart SDK 和 Flutter SDK 的 `foundation` / `services` 等基础包，不依赖任何第三方业务包（如 Dio、GetX 等）。
 
-模块提供通用的异步编排、加解密、哈希、日志、平台判断、正则匹配、本地存储、Token 管理、防抖节流、表单验证等工具类，是 UI 模块和 API 模块的共同底座。
+模块提供通用的加解密、哈希、日志、平台判断、正则匹配、本地存储、Token 管理、防抖节流、表单验证等工具类。
 
 ### 与 w_tools_ui 的职责划分
 
 | 模块 | 职责 | 依赖 |
 |------|------|------|
 | **Core** | 纯 Dart/Flutter 基础工具，不涉及 UI 组件 | 仅基础 SDK |
-| **UI** | Flutter Widget 组件（Toast、Dialog、Loading 等）、BuildContext 扩展 | Core + Flutter Widgets |
+| **UI** | Flutter Widget 组件（Toast、Dialog、Loading 等）、BuildContext 扩展 | Flutter Widgets |
 
 ---
 
@@ -25,7 +25,6 @@ core/
     ├── extensions/
     │   └── map.dart         # WMapExtension
     └── utils/
-        ├── async_task.dart  # WAsync, WAsyncConfig, WCancelToken, WCancellationException
         ├── countdown.dart   # WCountdown
         ├── encrypt.dart     # WEncrypt
         ├── hash.dart        # WHash
@@ -70,151 +69,7 @@ void main() {
 
 ---
 
-## 2. WAsync - 异步编排
-
-### 功能说明
-
-统一封装异步任务的执行、重试、超时、并发控制，内置 Loading 状态合并与错误处理。
-
-### 类与成员概览
-
-#### WAsyncConfig（异步配置）
-
-| 成员 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `showLoading` | bool | true | 是否显示 Loading |
-| `onLoadingStart` | VoidCallback? | null | Loading 开始回调 |
-| `onLoadingEnd` | VoidCallback? | null | Loading 结束回调 |
-| `fallbackOnError` | `void Function(Object?)?` | null | 未传 `onError` 时的兜底错误回调 |
-| `run / runWithRetry / runWithTimeout / wait / runAllWithConcurrency / any / sequence` | 委托方法 | — | 均转发给 WAsync 静态方法 |
-
-内部维护 `_activeCount` 计数器，**并发任务的 Loading 状态会自动合并**（多任务共享一次 start/end）。
-
-#### WAsyncState（四态快照）
-
-| 状态 | 构造 | 说明 |
-|------|------|------|
-| `loading` | `WAsyncState.loading()` | 首次加载 |
-| `ready` | `WAsyncState.ready(data)` | 有数据 |
-| `empty` | `WAsyncState.empty()` | 加载成功但为空 |
-| `failed` | `WAsyncState.failed(error)` | 加载失败 |
-
-刷新场景用：
-
-```dart
-WAsyncState.loading(previousData: oldData)
-WAsyncState.failed(error, previousData: oldData)
-```
-
-`isRefreshing` / `dataOrNull` 可读取旧数据；`when(...)` 四态全覆盖。
-
-#### WAsync（静态类）
-
-| 方法 | 签名 | 说明 |
-|------|------|------|
-| `run<T,R>` | `(task, {config, onSuccess, onError, cancelToken})` | 执行单个任务 |
-| `runWithRetry<T,R>` | `(task, {config, onSuccess, onError, retryCount=3, retryDelay=1s, retryIf, cancelToken})` | 带重试执行 |
-| `runWithTimeout<T,R>` | `(task, timeout, {...})` | 带超时执行 |
-| `wait<T,R>` | `(futures, {config, onSuccess, onError, eagerError=true, cancelToken})` | 等待多个 Future 完成 |
-| `runAllWithConcurrency<T,R>` | `(tasks, {config, onSuccess, onError, concurrency=4, cancelToken})` | 限制并发数执行 |
-| `any<T,R>` | `(futures, {...})` | 返回第一个完成的结果，空集合返回 null |
-| `sequence<T,R>` | `(tasks, {...})` | 顺序串行执行 |
-
-### 行为说明
-
-- **业务异常 vs 编程错误**：`Exception` 被捕获并回调 `onError`；`Error`（`TypeError`、`StateError` 等）向上抛出不拦截。
-- **取消语义**：`WCancelToken.cancel()` 后任务返回 `null`，**不回调 onError**；取消是协作式的，任务内部需主动检查。
-  `wait` / `any` / `runWithTimeout` 在等待期间取消会立即返回；`run` / `sequence` 在当前任务结束后响应。
-- **Loading 合并**：多个并发任务共享同一个 `WAsyncConfig` 时，`showLoading=true` 只会触发一次 start/end。
-- **空集合**：`any([])` 直接返回 null，不进入 Loading；`wait([])` / `sequence([])` /
-  `runAllWithConcurrency([])` 视为成功空结果，会触发 Loading。
-- **并发取消**：`runAllWithConcurrency` 取消后不再启动新任务，但会等待当前在途任务结束后返回。
-
-### 使用示例
-
-```dart
-// 基础执行
-final result = await WAsync.run(
-  () => fetchUserData(),
-  config: WAsyncConfig(showLoading: true),
-  onSuccess: (data) => print('成功: $data'),
-  onError: (e) => print('失败: $e'),
-);
-
-// 带重试（指数退避）
-final apiResult = await WAsync.runWithRetry(
-  () => unstableApiCall(),
-  retryCount: 3,
-  retryDelay: const Duration(seconds: 1),
-  retryIf: (e) => e is TimeoutException,
-);
-
-// 并发限流（最多 4 个同时运行）
-final results = await WAsync.runAllWithConcurrency(
-  [task1, task2, task3, task4, task5, task6],
-  concurrency: 4,
-);
-
-// 取消任务
-final cancelToken = WCancelToken();
-WAsync.run(
-  () => longRunningTask(cancelToken),
-  cancelToken: cancelToken,
-);
-// 在需要时取消
-cancelToken.cancel('用户主动取消');
-```
-
----
-
-## 3. WCancelToken - 取消令牌
-
-### 功能说明
-
-协作式取消的令牌对象。任务内需要主动检查 `isCancelled` 或调用 `throwIfCancelled()` 来响应取消请求。
-
-### 成员方法
-
-| 成员 | 类型 | 说明 |
-|------|------|------|
-| `isCancelled` | bool (getter) | 是否已取消 |
-| `cancelReason` | Object? (getter) | 取消原因 |
-| `cancel([reason])` | void | 触发取消 |
-| `addListener(callback)` | void | 添加取消监听 |
-| `removeListener(callback)` | void | 移除取消监听 |
-| `throwIfCancelled()` | void | 若已取消则抛出 `WCancellationException` |
-| `clearListeners()` | void | 清空所有监听 |
-
-### 注意事项
-
-**不可复用**：取消后令牌进入终态，后续新任务直接返回 null。如需再次执行请创建新实例。
-
-### 使用示例
-
-```dart
-final token = WCancelToken();
-
-// 添加监听
-token.addListener((reason) {
-  print('已取消: $reason');
-});
-
-// 任务内部检查
-Future<void> longTask(WCancelToken token) async {
-  for (var i = 0; i < 100; i++) {
-    await Future.delayed(const Duration(milliseconds: 50));
-    token.throwIfCancelled(); // 主动抛出异常响应取消
-    print('进度: $i');
-  }
-}
-
-// 取消
-token.cancel('页面已销毁');
-```
-
----
-
-## 4. WCountdown - 倒计时
+## 2. WCountdown - 倒计时
 
 ### 功能说明
 
@@ -260,7 +115,7 @@ countdown.start(60);  // 60 秒倒计时
 
 ---
 
-## 5. WEncrypt - 加解密
+## 3. WEncrypt - 加解密
 
 ### 功能说明
 
@@ -295,7 +150,7 @@ print(decrypted); // "hello world"
 
 ---
 
-## 6. WHash - 哈希工具
+## 4. WHash - 哈希工具
 
 ### 功能说明
 
@@ -330,7 +185,7 @@ final bad = WHash.verifyPassword('wrong_password', stored); // false
 
 ---
 
-## 7. WLogger - 日志工具
+## 5. WLogger - 日志工具
 
 ### 功能说明
 
@@ -380,7 +235,7 @@ final result = WLogger.measureSync('sync_op', () {
 
 ---
 
-## 8. WPlatform - 平台判断
+## 6. WPlatform - 平台判断
 
 ### 功能说明
 
@@ -434,7 +289,7 @@ WPlatform.runForPlatform(
 
 ---
 
-## 9. WRegExp - 正则工具
+## 7. WRegExp - 正则工具
 
 ### 功能说明
 
@@ -504,7 +359,7 @@ final formatted = WRegExp.formatPhone('13812345678'); // "138-1234-5678"
 
 ---
 
-## 10. WStorage - 本地存储
+## 8. WStorage - 本地存储
 
 ### 功能说明
 
@@ -565,7 +420,7 @@ await WStorage.clear();
 
 ---
 
-## 11. WToken - Token 管理
+## 9. WToken - Token 管理
 
 ### 功能说明
 
@@ -631,7 +486,7 @@ await WToken.clearAllTokens();
 
 ---
 
-## 12. WUx - UX 辅助（单例）
+## 10. WUx - UX 辅助（单例）
 
 ### 功能说明
 
@@ -693,7 +548,7 @@ await WUx.instance.smoothScrollToTop(scrollController);
 
 ---
 
-## 13. WValidator - 表单验证与安全清洗
+## 11. WValidator - 表单验证与安全清洗
 
 ### 功能说明
 
@@ -764,7 +619,7 @@ final ok = WValidator.isNotBlank(name) && WValidator.isLengthValid(name, 3, 20);
 
 ---
 
-## 14. WMapExtension - Map 扩展
+## 12. WMapExtension - Map 扩展
 
 ### 功能说明
 
@@ -813,42 +668,10 @@ Future<void> initializeApp() async {
   // 3. 日志级别（生产可关闭）
   WLogger.setLevel(Level.info);
   // WLogger.turnOff();
-
-  // 4. 异步配置（全局 Loading 回调）
-  WAsyncConfig().showLoading = true;
 }
 ```
 
-### 示例 2：异步任务 + 并发 + 取消
-
-```dart
-final cancelToken = WCancelToken();
-
-final config = WAsyncConfig(
-  showLoading: true,
-  onLoadingStart: () => print('Loading...'),
-  onLoadingEnd: () => print('Done'),
-);
-
-try {
-  // 并发限流 + 取消
-  final results = await WAsync.runAllWithConcurrency(
-    [fetchA, fetchB, fetchC, fetchD, fetchE],
-    config: config,
-    concurrency: 3,
-    cancelToken: cancelToken,
-    onSuccess: (data) => print('全部完成: $data'),
-    onError: (e) => print('出错: $e'),
-  );
-} finally {
-  cancelToken.clearListeners();
-}
-
-// 页面销毁时取消
-// cancelToken.cancel('页面关闭');
-```
-
-### 示例 3：WStorage + WToken 完整认证流程
+### 示例 2：WStorage + WToken 完整认证流程
 
 ```dart
 // 登录
@@ -887,46 +710,22 @@ Future<void> logout() async {
 
 ## 注意事项
 
-### 1. 编程 Error 不拦截
-
-`WAsync` 只捕获 `Exception`，`Error`（`TypeError`、`StateError`、`ArgumentError` 等）会**向上抛出**。如果你的任务可能抛出 `Error` 且需要被拦截，请在任务内部自行 try-catch 并转换为 `Exception`。
-
-```dart
-// ❌ 这个 StateError 不会被 onError 捕获
-await WAsync.run(() {
-  throw StateError('bad state');
-}, onError: (e) {}); // onError 不会被调用
-
-// ✅ 手动转换为 Exception
-await WAsync.run(() {
-  try {
-    throw StateError('bad state');
-  } catch (e) {
-    throw Exception(e.toString());
-  }
-});
-```
-
-### 2. Async 取消是协作式
-
-`WCancelToken` 不会强制中断任务，任务内必须主动检查 `isCancelled` 或调用 `throwIfCancelled()`。不配合的长任务无法被提前终止。
-
-### 3. WStorage 读取前需 init
+### 1. WStorage 读取前需 init
 
 直接调用 `WStorage.getString('key')` 而未先 `await WStorage.init()` 会抛 `StateError`。建议在 `main()` 里一次性初始化。
 
-### 4. WEncrypt 的 Key/IV 须 Base64
+### 2. WEncrypt 的 Key/IV 须 Base64
 
 `WEncrypt.aesEncrypt` / `aesDecrypt` 传入的 `keyStr` 和 `ivStr` **必须是 Base64 编码字符串**。直接传明文会导致解密失败。使用 `WEncrypt.generateKey()` 和 `WEncrypt.generateIv()` 生成的就是符合要求的 Base64 格式。
 
-### 5. WValidator 安全方法仅基础清洗
+### 3. WValidator 安全方法仅基础清洗
 
 `escapeSql` 和 `stripHtml` 是**基础防护**，不替代：
 
 - SQL：必须使用参数化查询 / ORM 预编译；
 - HTML：生产环境请使用专业包（如 `vader` / `html_whitelist`）做严格白名单过滤。
 
-### 6. WConfig 是全局可变单例
+### 4. WConfig 是全局可变单例
 
 `WConfig` 的字段在运行时可被重新赋值。如果你的应用存在多入口或测试场景，请注意隔离：测试前先重置配置。
 

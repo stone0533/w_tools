@@ -25,6 +25,7 @@ class InitTemplates {
       if (features.toast) 'toast',
       if (features.qr) 'qr',
       if (features.map) 'map',
+      if (features.asyncFeature) 'async',
     };
     for (final line in generated.toolkitTemplate.split('\n')) {
       final match = RegExp(r'@optional:([a-z]+)').firstMatch(line);

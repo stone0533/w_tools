@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_core/w_tools_core.dart';
+import 'package:w_tools_async/w_tools_async.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 import 'package:w_tools_toast/w_tools_toast.dart';
