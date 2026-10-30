@@ -8,7 +8,7 @@
 ## 特性
 
 - **字段组件**：`WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`
-- **表单容器**：`WFormBuilder` / `WFormController` / `WFormFieldButton`
+- **表单容器**：`WFormScope` / `WFormController` / `WFormFieldButton`
 - **边框体系**：`WFormBorder` / `WFormBorderConfig` / `WFormFieldShell` / `WFormReadOnlyScope`
 - **字段公共配置**：`WFormFieldChrome`（enabled / height / width / leading / actions / container）
 - **校验**：`WFormValidator` / `WFormValidatorItem` / `WFormCustomValidator`
@@ -36,7 +36,7 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WFormBuilder(
+    return WFormScope(
       formData: formData,
       child: Column(
         children: [
@@ -61,7 +61,7 @@ class LoginForm extends StatelessWidget {
 
 | 能力 | 入口 |
 |---|---|
-| 表单构建 | `WFormBuilder` / `WFormController` |
+| 表单构建 | `WFormScope` / `WFormController` |
 | 文本 / 密码 | `WFormTextField` / `WFormTextFieldConfig` |
 | 下拉 | `WFormDropdown` / `WFormMultiDropdown` |
 | 日期 | `WFormDatePicker` |

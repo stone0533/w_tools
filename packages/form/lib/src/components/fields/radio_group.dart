@@ -3,7 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_builder.dart';
+import '../form_scope.dart';
 import '../form_controller.dart';
 import '../field_chrome.dart';
 import '../form_defaults.dart';
@@ -169,14 +169,14 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroup<T>,
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _formData = WFormBuilder.of(context);
+    _formData = WFormScope.of(context);
   }
 
   @override
   void didChange(T? value) {
     super.didChange(value);
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
-    _formData?.onChange(widget.name, value);
+    _formData?.handleChange(widget.name, value);
   }
 }
 

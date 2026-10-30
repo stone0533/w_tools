@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../form_builder.dart';
+import '../form_scope.dart';
 import '../form_controller.dart';
 import 'border.dart';
 import 'read_only_scope.dart';
@@ -43,7 +43,7 @@ extension WFormRowBorderExtension on Row {
   }
 }
 
-/// 自动从祖先 [WFormBuilder] 获取表单数据、并复用同一个边框 key 的 WFormBorder
+/// 自动从祖先 [WFormScope] 获取表单数据、并复用同一个边框 key 的 WFormBorder
 ///
 /// 同时负责：
 /// - 通过 [WFormReadOnlyScope] 向内部下发只读状态；
@@ -101,7 +101,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final next = WFormBuilder.requireOf(context);
+    final next = WFormScope.requireOf(context);
     if (!identical(_formData, next)) {
       _formData?.removeBorderKey(widget.name);
       _formData = next;
@@ -138,7 +138,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
 
   @override
   Widget build(BuildContext context) {
-    final formData = WFormBuilder.requireOf(context);
+    final formData = WFormScope.requireOf(context);
 
     // 继承外层只读作用域：内层无法解除外层的只读锁定
     final isReadOnly = widget.readOnly || WFormReadOnlyScope.readOnlyOf(context);
@@ -155,7 +155,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
 
     return WFormBorder(
       key: formData.ensureBorderKey(widget.name),
-      config: WFormBuilder.borderConfigOf(context),
+      config: WFormScope.borderConfigOf(context),
       hintTextList: widget.hintTextList,
       isReadOnly: isReadOnly,
       isTransparentBackground: widget.isTransparentBackground,

@@ -415,7 +415,7 @@ void main() {
       // 不写入字段 errorText，错误只通过 errors / 边框汇总
       expect(formData.formKey.currentState!.fields['name']!.errorText, isNull);
 
-      formData.didChange('name', 'abc');
+      formData.setValue('name', 'abc');
       await tester.pump();
 
       expect(validators.validate(), isTrue);

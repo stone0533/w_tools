@@ -5,7 +5,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_builder.dart';
+import '../form_scope.dart';
 import '../form_controller.dart';
 import '../field_chrome.dart';
 import '../form_defaults.dart';
@@ -78,7 +78,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
   /// 当前输入值的订阅器（供 actions Widget 监听 hasText / clear）
   final ValueNotifier<String?> _valueNotifier = ValueNotifier<String?>(null);
 
-  /// 宿主表单数据（在 [didChangeDependencies] 中跟随 WFormBuilder 更新）
+  /// 宿主表单数据（在 [didChangeDependencies] 中跟随 WFormScope 更新）
   late WFormController _formData;
 
   /// 当前生效的只读状态（组件自身 + 外层只读作用域）
@@ -96,8 +96,8 @@ class _WFormTextFieldState extends State<WFormTextField> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 跟随 WFormBuilder 的 formData 实例变化，避免持有旧实例
-    _formData = WFormBuilder.requireOf(context);
+    // 跟随 WFormScope 的 formData 实例变化，避免持有旧实例
+    _formData = WFormScope.requireOf(context);
   }
 
   @override
@@ -135,7 +135,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
   /// 只读状态下不执行任何操作。
   void _clearField() {
     if (_effectiveReadOnly) return;
-    _formData.didChange<String?>(widget.name, null);
+    _formData.setValue<String?>(widget.name, null);
   }
 
   @override
@@ -143,7 +143,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
     // 值变化回调：同步 ValueNotifier + FormData + 用户回调
     void onChanged(String? value) {
       _valueNotifier.value = value;
-      _formData.onChange(widget.name, value);
+      _formData.handleChange(widget.name, value);
       widget.onChanged?.call(value);
     }
 

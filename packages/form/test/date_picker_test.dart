@@ -22,7 +22,7 @@ void main() {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: WFormBuilder(
+      home: WFormScope(
         formData: formData,
         child: child,
       ),
@@ -282,7 +282,7 @@ void main() {
         ),
       );
 
-      formData.didChange<String?>('reset_date', initialValue);
+      formData.setValue<String?>('reset_date', initialValue);
       await tester.pump();
       expect(formData.formEntered['reset_date'], isTrue);
 

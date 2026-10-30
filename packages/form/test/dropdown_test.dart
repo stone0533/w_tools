@@ -98,7 +98,7 @@ void main() {
       final formData = WFormController();
       return MaterialApp(
         home: Scaffold(
-          body: WFormBuilder(
+          body: WFormScope(
             formData: formData,
             child: WFormDropdown<String>(
               config: config,
@@ -128,7 +128,7 @@ void main() {
       expect(find.byType(WFormDropdown<String>), findsOneWidget);
     });
 
-    testWidgets('无 WFormBuilder → 抛 Exception', (tester) async {
+    testWidgets('无 WFormScope → 抛 Exception', (tester) async {
       final cfg = WFormDropdownConfig();
       await tester.pumpWidget(
         MaterialApp(
@@ -205,7 +205,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               child: WFormDropdown<String>(
                 config: cfg,
@@ -280,7 +280,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: formBorderCfg,
               child: cfg.build<String>(
@@ -308,7 +308,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: WFormController(),
               formBorderConfig: formBorderCfg,
               child: cfg.build<String>(
@@ -435,7 +435,7 @@ void main() {
       final formData = WFormController();
       return MaterialApp(
         home: Scaffold(
-          body: WFormBuilder(
+          body: WFormScope(
             formData: formData,
             child: WFormMultiDropdown(
               config: config,
@@ -465,7 +465,7 @@ void main() {
       expect(find.text('ALL'), findsOneWidget);
     });
 
-    testWidgets('无 WFormBuilder → 抛 Exception', (tester) async {
+    testWidgets('无 WFormScope → 抛 Exception', (tester) async {
       final cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         MaterialApp(
@@ -569,7 +569,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               child: WFormMultiDropdownConfig().build(
                 name: 'validated_tags',
@@ -699,7 +699,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: formBorderCfg,
               child: cfg.build(
@@ -725,7 +725,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: WFormController(),
               formBorderConfig: formBorderCfg,
               child: cfg.build(
@@ -767,7 +767,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: formBorderCfg,
               child: cfg.build(bordered: true, name: 'tags', items: const {'a': 'A'}),

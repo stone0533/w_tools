@@ -493,7 +493,7 @@ void main() {
   });
 
   group('WFormFieldShell', () {
-    testWidgets('无 WFormBuilder → 抛 Exception', (tester) async {
+    testWidgets('无 WFormScope → 抛 Exception', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -508,12 +508,12 @@ void main() {
       expect(tester.takeException(), isNotNull);
     });
 
-    testWidgets('有 WFormBuilder → 正常渲染 + 自动注册 key', (tester) async {
+    testWidgets('有 WFormScope → 正常渲染 + 自动注册 key', (tester) async {
       final formData = WFormController();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: const WFormFieldShell(
@@ -539,7 +539,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: cfg,
               child: const WFormFieldShell(
@@ -597,7 +597,7 @@ void main() {
 
       Widget buildWith({required bool enableFocusBorder}) => MaterialApp(
         home: Scaffold(
-          body: WFormBuilder(
+          body: WFormScope(
             formData: formData,
             formBorderConfig: makeCfg(
               defaultDecoration: const WFormBorderDecoration(
@@ -637,7 +637,7 @@ void main() {
     });
   });
 
-  group('WFormBuilder.formBorderConfig', () {
+  group('WFormScope.formBorderConfig', () {
     testWidgets('运行时变更 → 子树内边框装饰随之更新', (tester) async {
       final formData = WFormController();
       final cfgNotifier = ValueNotifier<WFormBorderConfig>(
@@ -650,7 +650,7 @@ void main() {
           home: Scaffold(
             body: ValueListenableBuilder<WFormBorderConfig>(
               valueListenable: cfgNotifier,
-              builder: (context, cfg, _) => WFormBuilder(
+              builder: (context, cfg, _) => WFormScope(
                 formData: formData,
                 formBorderConfig: cfg,
                 child: const WFormFieldShell(
@@ -675,7 +675,7 @@ void main() {
       expect(findBorderFillColor(const Color(0xFF111111)), findsNothing);
     });
 
-    testWidgets('直接使用 WFormBorder 时继承 WFormBuilder.formBorderConfig', (tester) async {
+    testWidgets('直接使用 WFormBorder 时继承 WFormScope.formBorderConfig', (tester) async {
       final cfg = WFormBorderConfig();
       cfg.hintBuilder = (list) => Column(
         children: [for (final e in list ?? const <String>[]) Text('hint-$e')],
@@ -685,7 +685,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: cfg,
               child: const WFormBorder(
@@ -701,7 +701,7 @@ void main() {
       expect(find.text('hint-继承成功'), findsOneWidget);
     });
 
-    testWidgets('显式 config 优先于 WFormBuilder.formBorderConfig', (tester) async {
+    testWidgets('显式 config 优先于 WFormScope.formBorderConfig', (tester) async {
       final builderCfg = WFormBorderConfig();
       builderCfg.hintBuilder = (list) => Text('builder-${list!.first}');
 
@@ -713,7 +713,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: builderCfg,
               child: WFormBorder(
@@ -739,7 +739,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: Row(
@@ -779,7 +779,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: Row(
@@ -813,7 +813,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: Row(children: [container]).withFormBorder(name: 'row'),
@@ -837,7 +837,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: Row(
@@ -869,7 +869,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: Row(
@@ -903,7 +903,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: Row(
@@ -936,7 +936,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: Row(
@@ -965,7 +965,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
               child: const Row(

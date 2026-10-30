@@ -133,8 +133,8 @@ void main() {
     expect(find.byType(Row), findsOneWidget);
   });
 
-  testWidgets('WFormTextField — 无 WFormBuilder 时 build 抛异常', (tester) async {
-    // 没有 WFormBuilder 祖先时抛出 StateError('WFormBuilder 未找到')，
+  testWidgets('WFormTextField — 无 WFormScope 时 build 抛异常', (tester) async {
+    // 没有 WFormScope 祖先时抛出 StateError('WFormScope 未找到')，
     // Flutter framework 会捕获并通过 tester.takeException 返回
     await tester.pumpWidget(
       MaterialApp(
@@ -323,7 +323,7 @@ void main() {
 
       Widget build(bool readOnly) => MaterialApp(
         home: Scaffold(
-          body: WFormBuilder(
+          body: WFormScope(
             formData: formData,
             child: WFormReadOnlyScope(
               readOnly: readOnly,

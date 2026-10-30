@@ -7,7 +7,7 @@ import 'validation/validator.dart';
 /// 表单数据管理类
 ///
 /// 持有表单 [formKey]，并提供：
-/// - 字段值读写：[value]、[didChange]、[getFieldsValue]（[fields] 为底层字段集合）
+/// - 字段值读写：[value]、[setValue]、[getFieldsValue]（[fields] 为底层字段集合）
 /// - 输入状态：[formEntered]、[isAllEntered]
 /// - 边框错误：[setError]、[clearError]、[ensureBorderKey]（配合 [formBorderKeys]）
 /// - 校验器工厂：[validators]
@@ -44,8 +44,8 @@ class WFormController {
   /// 按字段名设置字段值
   ///
   /// 仅写入字段状态，不会更新 [formEntered]；需要同步输入状态时
-  /// 请改用 [onChange]。
-  void didChange<T>(String name, T value) {
+  /// 请改用 [handleChange]。
+  void setValue<T>(String name, T value) {
     formKey.currentState?.fields[name]?.didChange(value);
   }
 
@@ -53,7 +53,7 @@ class WFormController {
   ///
   /// [formEntered] 判定规则：字符串 / 集合 / Map 按非空，
   /// 布尔按自身值，其它类型按非 null。
-  void onChange<T>(
+  void handleChange<T>(
     String name,
     T? value, {
     VoidCallback? callback,

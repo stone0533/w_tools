@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
-import '../form_builder.dart';
+import '../form_scope.dart';
 import 'border_layout.dart';
 
 /// WFormBorder 组件是一个表单边框容器，用于为表单输入添加统一的边框样式和错误提示
@@ -14,7 +14,7 @@ import 'border_layout.dart';
 class WFormBorder extends StatefulWidget {
   /// 创建表单边框容器
   ///
-  /// [config] 为 null 时继承祖先 [WFormBuilder.formBorderConfig]。
+  /// [config] 为 null 时继承祖先 [WFormScope.formBorderConfig]。
   const WFormBorder({
     super.key,
     this.config,
@@ -40,7 +40,7 @@ class WFormBorder extends StatefulWidget {
   /// 是否聚焦
   final bool? isFocused;
 
-  /// 边框配置（为 null 时继承祖先 WFormBuilder.formBorderConfig）
+  /// 边框配置（为 null 时继承祖先 WFormScope.formBorderConfig）
   final WFormBorderConfig? config;
 
   @override
@@ -49,7 +49,7 @@ class WFormBorder extends StatefulWidget {
 
 /// WFormBorder 的状态类
 class WFormBorderState extends State<WFormBorder> {
-  /// 当前生效的边框配置（显式传入或继承自 [WFormBuilder.formBorderConfig]）
+  /// 当前生效的边框配置（显式传入或继承自 [WFormScope.formBorderConfig]）
   late WFormBorderConfig config;
 
   /// 是否有错误
@@ -91,7 +91,7 @@ class WFormBorderState extends State<WFormBorder> {
   void initState() {
     super.initState();
     // initState 中不能读取 InheritedWidget：先用显式配置或空配置占位，
-    // 继承 WFormBuilder.formBorderConfig 在 didChangeDependencies 中完成
+    // 继承 WFormScope.formBorderConfig 在 didChangeDependencies 中完成
     config = widget.config ?? WFormBorderConfig();
     _configSnapshot = _snapshotOf(config);
     messageList = widget.hintTextList;
@@ -113,11 +113,11 @@ class WFormBorderState extends State<WFormBorder> {
     }
   }
 
-  /// 同步生效配置：显式传入优先，否则继承 [WFormBuilder.formBorderConfig]
+  /// 同步生效配置：显式传入优先，否则继承 [WFormScope.formBorderConfig]
   ///
   /// 比较内容快照而非实例身份，配置被原地修改时只要组件重建即可生效。
   void _syncConfig() {
-    final resolved = widget.config ?? WFormBuilder.borderConfigOf(context) ?? WFormBorderConfig();
+    final resolved = widget.config ?? WFormScope.borderConfigOf(context) ?? WFormBorderConfig();
     final snapshot = _snapshotOf(resolved);
     if (snapshot == _configSnapshot) return;
     config = resolved;

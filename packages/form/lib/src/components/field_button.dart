@@ -3,7 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/read_only_scope.dart';
 import 'field_frame.dart';
-import 'form_builder.dart';
+import 'form_scope.dart';
 import 'form_controller.dart';
 
 /// 表单按钮组件，用于创建可点击的表单字段
@@ -60,7 +60,7 @@ class WFormFieldButton extends StatelessWidget {
       yOffset: config._yOffset,
       leading: config._leading,
       actions: config._actions,
-      child: _WFormBuilderButton<String>(
+      child: _WFormScopeButton<String>(
         name: name,
         initialValue: initialValue,
         enabled: (enabled ?? config._enabled) && !WFormReadOnlyScope.readOnlyOf(context),
@@ -251,7 +251,7 @@ class WFormFieldButtonConfig {
 }
 
 /// 内部按钮字段，承载表单值、点击与选中态渲染
-class _WFormBuilderButton<T> extends FormBuilderField<T> {
+class _WFormScopeButton<T> extends FormBuilderField<T> {
   /// 提示 widget
   final Widget? hintWidget;
 
@@ -262,7 +262,7 @@ class _WFormBuilderButton<T> extends FormBuilderField<T> {
   final void Function(T? value, ValueChanged<T> didChange) onTap;
 
   /// 创建内部按钮字段
-  _WFormBuilderButton({
+  _WFormScopeButton({
     super.key,
     required super.name,
     super.validator,
@@ -279,7 +279,7 @@ class _WFormBuilderButton<T> extends FormBuilderField<T> {
     this.hintWidget,
   }) : super(
          builder: (FormFieldState<T?> field) {
-           final state = field as FormBuilderFieldState<_WFormBuilderButton<T>, T>;
+           final state = field as FormBuilderFieldState<_WFormScopeButton<T>, T>;
 
            final T? value = state.value;
            final Widget content = value == null
@@ -310,24 +310,24 @@ class _WFormBuilderButton<T> extends FormBuilderField<T> {
        );
 
   @override
-  FormBuilderFieldState<_WFormBuilderButton<T>, T> createState() => _WFormBuilderButtonState<T>();
+  FormBuilderFieldState<_WFormScopeButton<T>, T> createState() => _WFormScopeButtonState<T>();
 }
 
 /// 内部按钮字段的状态类
-class _WFormBuilderButtonState<T> extends FormBuilderFieldState<_WFormBuilderButton<T>, T> {
+class _WFormScopeButtonState<T> extends FormBuilderFieldState<_WFormScopeButton<T>, T> {
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
   WFormController? _formData;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _formData = WFormBuilder.of(context);
+    _formData = WFormScope.of(context);
   }
 
   @override
   void didChange(T? value) {
     super.didChange(value);
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
-    _formData?.onChange(widget.name, value);
+    _formData?.handleChange(widget.name, value);
   }
 }

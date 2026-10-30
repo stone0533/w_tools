@@ -270,7 +270,7 @@ class MyAppPlugin extends WAppPlugin {
 #### 输入组件
 - **FormButton** (`WFormFieldButton`): 表单按钮组件
 - **FormCheckbox** (`WFormCheckbox`): 单个复选框字段组件
-- **FormBuilder** (`WFormBuilder`): 表单构建器组件
+- **FormBuilder** (`WFormScope`): 表单构建器组件
 - **FormDropdown** (`WFormDropdown`): 表单下拉选择组件，支持自定义样式和选项
 - **FormMultiDropdown** (`WFormMultiDropdown`): 表单多选下拉框组件，支持多项选择和自定义样式配置
 - **FormRadioGroup** (`WFormRadioGroup`): 表单单选按钮组组件

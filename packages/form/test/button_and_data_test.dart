@@ -362,24 +362,24 @@ void main() {
     testWidgets('onChange — 非 String 值也维护 formEntered', (tester) async {
       final data = WFormController();
       // 数字：按 value != null 判定
-      data.onChange('count', 1);
+      data.handleChange('count', 1);
       expect(data.formEntered['count'], true);
-      data.onChange<int>('count', null);
+      data.handleChange<int>('count', null);
       expect(data.formEntered['count'], false);
       // 集合：按 isNotEmpty 判定
-      data.onChange('tags', <String>['a']);
+      data.handleChange('tags', <String>['a']);
       expect(data.formEntered['tags'], true);
-      data.onChange('tags', <String>[]);
+      data.handleChange('tags', <String>[]);
       expect(data.formEntered['tags'], false);
       // 字符串：按 isNotEmpty 判定
-      data.onChange('name', '');
+      data.handleChange('name', '');
       expect(data.formEntered['name'], false);
-      data.onChange('name', 'x');
+      data.handleChange('name', 'x');
       expect(data.formEntered['name'], true);
       // 布尔：false 视为未输入（与表单 reset 语义一致）
-      data.onChange('agree', true);
+      data.handleChange('agree', true);
       expect(data.formEntered['agree'], true);
-      data.onChange('agree', false);
+      data.handleChange('agree', false);
       expect(data.formEntered['agree'], false);
     });
 
@@ -425,8 +425,8 @@ void main() {
         child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
       );
 
-      data.onChange('a', 'x');
-      data.onChange('unmounted', 'y');
+      data.handleChange('a', 'x');
+      data.handleChange('unmounted', 'y');
 
       expect(data.isAllEntered(1), isTrue);
     });
@@ -443,7 +443,7 @@ void main() {
 
       expect(data.getFieldsValue('a'), isNull);
 
-      data.didChange('a', 'hello');
+      data.setValue('a', 'hello');
       await tester.pump();
 
       expect(data.getFieldsValue('a'), 'hello');
@@ -469,7 +469,7 @@ void main() {
 
       expect(validators.validate(), isFalse);
 
-      data.didChange('a', 'x');
+      data.setValue('a', 'x');
       await tester.pump();
       expect(validators.validate(), isTrue);
     });

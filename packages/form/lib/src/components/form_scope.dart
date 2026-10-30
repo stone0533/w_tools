@@ -25,7 +25,7 @@ class _WFormControllerInherited extends InheritedWidget {
 }
 
 /// 表单构建器组件，用于创建和管理表单
-class WFormBuilder extends StatelessWidget {
+class WFormScope extends StatelessWidget {
   /// 表单数据对象
   final WFormController formData;
 
@@ -42,7 +42,7 @@ class WFormBuilder extends StatelessWidget {
   final WFormBorderConfig? formBorderConfig;
 
   /// 创建表单构建器
-  const WFormBuilder({
+  const WFormScope({
     super.key,
     required this.formData,
     required this.child,
@@ -56,11 +56,11 @@ class WFormBuilder extends StatelessWidget {
     return inherited?.formData;
   }
 
-  /// 获取当前子树中的 [WFormController]，没有 [WFormBuilder] 祖先时抛 [StateError]
+  /// 获取当前子树中的 [WFormController]，没有 [WFormScope] 祖先时抛 [StateError]
   static WFormController requireOf(BuildContext context) {
     final formData = of(context);
     if (formData == null) {
-      throw StateError('WFormBuilder 未找到');
+      throw StateError('WFormScope 未找到');
     }
     return formData;
   }

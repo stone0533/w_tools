@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
-/// 在测试中 pump 一个带 WFormBuilder 的完整 scaffold
+/// 在测试中 pump 一个带 WFormScope 的完整 scaffold
 ///
-/// 所有 form Widget 都必须放在 WFormBuilder 下面才能正常工作
+/// 所有 form Widget 都必须放在 WFormScope 下面才能正常工作
 /// （WFormTextField 通过 context.visitAncestorElements 查找它）
 ///
 /// [formBorderConfig] 未显式传入时，使用一个只提供文案渲染的最小配置
@@ -18,7 +18,7 @@ Future<void> pumpForm(
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: WFormBuilder(
+        body: WFormScope(
           formData: formData ?? WFormController(),
           formBorderConfig: formBorderConfig ?? terseBorderConfig(),
           child: child,

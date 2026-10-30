@@ -20,7 +20,7 @@ form/
 ├── w_tools_form.dart
 └── lib/src/
     ├── components/
-    │   ├── form_builder.dart
+    │   ├── form_scope.dart
     │   ├── form_controller.dart
     │   ├── form_defaults.dart
     │   ├── form_input_formatters.dart
@@ -49,7 +49,7 @@ form/
 ## 核心架构
 
 ```
-WFormBuilder (StatelessWidget)
+WFormScope (StatelessWidget)
   └─ _WFormControllerInherited (InheritedWidget)
       ├─ formData: WFormController
       └─ formBorderConfig: WFormBorderConfig?
@@ -66,14 +66,14 @@ WFormValidator
 
 ### 数据流
 
-1. `WFormBuilder.of(context)` 拿到 `WFormController`
-2. 字段通过 `FormBuilderFieldState.didChange` → `WFormController.onChange` 更新 `formEntered`
+1. `WFormScope.of(context)` 拿到 `WFormController`
+2. 字段通过 `FormBuilderFieldState.didChange` → `WFormController.handleChange` 更新 `formEntered`
 3. 校验失败时 `WFormController.setError(name)` 命中 `formBorderKeys[name]` → 触发 `WFormBorder.setError(true)` 渲染错误
 4. 只读作用域通过 `WFormFieldShell` → `WFormReadOnlyScope` 穿透任意包装
 
 ---
 
-## 1. WFormBuilder — 表单容器
+## 1. WFormScope — 表单容器
 
 ### 功能说明
 
@@ -92,9 +92,9 @@ WFormValidator
 
 | 方法 | 说明 |
 |------|------|
-| `WFormBuilder.of(BuildContext)` | 获取 `WFormController?`，无祖先时返回 null |
-| `WFormBuilder.requireOf(BuildContext)` | 获取 `WFormController`，无祖先时抛 `StateError('WFormBuilder 未找到')` |
-| `WFormBuilder.borderConfigOf(BuildContext)` | 获取子树生效的边框配置 |
+| `WFormScope.of(BuildContext)` | 获取 `WFormController?`，无祖先时返回 null |
+| `WFormScope.requireOf(BuildContext)` | 获取 `WFormController`，无祖先时抛 `StateError('WFormScope 未找到')` |
+| `WFormScope.borderConfigOf(BuildContext)` | 获取子树生效的边框配置 |
 
 ### 使用示例
 
@@ -104,7 +104,7 @@ final borderConfig = WFormBorderConfig()
   ..defaultDecoration = WFormBorderDecoration(color: Colors.white)
   ..errorDecoration = WFormBorderDecoration(border: Border.all(color: Colors.red));
 
-WFormBuilder(
+WFormScope(
   formData: formData,
   formBorderConfig: borderConfig,
   child: Column(
@@ -128,13 +128,13 @@ WFormBuilder(
 
 | 成员 | 类型 | 说明 |
 |------|------|------|
-| `formKey` | `GlobalKey<FormBuilderState>` | **核心键**，`WFormBuilder` 内部绑定 |
+| `formKey` | `GlobalKey<FormBuilderState>` | **核心键**，`WFormScope` 内部绑定 |
 | `fields` | `FormBuilderFields?` | 表单未挂载时为 null |
 | `value` | `Map<String, dynamic>` | 表单未挂载时返回空表 |
 | `formEntered` | `Map<String, bool>` | 各字段「是否已输入」，可手动读取做按钮启用判定 |
 | `isAllEntered(int length)` | `bool` | 按已注册字段过滤陈旧记录（关闭弹窗 / 动态移除字段后不恒为 false） |
-| `didChange<T>(name, value)` | `void` | 仅写字段值，**不**更新 `formEntered` |
-| `onChange<T>(name, value, {callback})` | `void` | 清除错误 + 更新 `formEntered` + 回调 |
+| `setValue<T>(name, value)` | `void` | 仅写字段值，**不**更新 `formEntered` |
+| `handleChange<T>(name, value, {callback})` | `void` | 清除错误 + 更新 `formEntered` + 回调 |
 | `getFieldsValue<T>(name)` | `T?` | 无需先 `save` 即可获取即时值 |
 | `setError(name, {errorTextList, callback})` | `void` | 触发边框 `errorBuilder` |
 | `clearError(name)` | `void` | 清除边框错误 |
@@ -143,7 +143,7 @@ WFormBuilder(
 | `formBorderKeys` | `Map<String, GlobalKey<WFormBorderState>>` | 边框 key 注册表 |
 | `ensureBorderKey(name)` | `GlobalKey<WFormBorderState>` | 获取 / 创建边框 key |
 
-### formEntered 判定规则（onChange）
+### formEntered 判定规则（handleChange）
 
 | 值类型 | 判定条件 |
 |--------|----------|
@@ -163,7 +163,7 @@ WFormBuilder(
 WFormTheme(
   dropdownIcon: const Icon(Icons.expand_more),
   checkboxSelectedIcon: const Icon(Icons.check_circle),
-  child: WFormBuilder(...),
+  child: WFormScope(...),
 )
 ```
 
@@ -265,7 +265,7 @@ WFormBorderDecoration decoration = const WFormBorderDecoration()
 
 ### 4.3 WFormFieldShell
 
-自动从祖先 `WFormBuilder` 获取 `WFormController`，通过 `formData.ensureBorderKey(name)` 注册边框 key，并注入 `WFormReadOnlyScope`。字段 Config 的 `build(bordered: true)` 即调用它。
+自动从祖先 `WFormScope` 获取 `WFormController`，通过 `formData.ensureBorderKey(name)` 注册边框 key，并注入 `WFormReadOnlyScope`。字段 Config 的 `build(bordered: true)` 即调用它。
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -294,7 +294,7 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 - `XxxConfig` + `Xxx` 组件 + 单一构建入口 `build(bordered: bool)`
 - `bordered: true` 时清空内层 `containerDecoration`，包装 `WFormFieldShell`；`bordered: false` 返回裸字段
 - 只读 = `build` 的 `readOnly` 参数 ∨ `WFormReadOnlyScope.readOnlyOf(context)`（部分字段还会与 `enabled` 合并）
-- 变更回调 → `FormBuilderFieldState.didChange` → `WFormController.onChange`
+- 变更回调 → `FormBuilderFieldState.didChange` → `WFormController.handleChange`
 
 ### 5.1 WFormTextField
 
@@ -572,7 +572,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WFormBuilder(
+      body: WFormScope(
         formData: _formData,
         formBorderConfig: _borderConfig,
         child: Padding(
@@ -636,7 +636,7 @@ class _LoginPageState extends State<LoginPage> {
 | 3 | **bordered 构建清空内层装饰** | 调用 `build(bordered: true)` 后，字段自身 `containerDecoration` 会被清空；必须依赖外层 `WFormFieldShell` 提供边框 |
 | 4 | **Dropdown items 键必须存在** | `WFormDropdown.items` 是 `Map<T, String>`，初始值 / 字段值必须存在于 map 的 keys 中（`FormBuilderDropdown` 内部断言会失败） |
 | 5 | **Scope 管道** | `WFormTextFieldScope`（InheritedWidget）将输入状态下发给插槽 Widget（清空按钮 / 密码切换），无需手动同步 |
-| 6 | **WFormBorderConfig 继承** | 子级显式传入 `WFormBorder.config` 优先；否则继承 `WFormBuilder.formBorderConfig`；都没配置时 `WFormBorder` 不渲染装饰 |
+| 6 | **WFormBorderConfig 继承** | 子级显式传入 `WFormBorder.config` 优先；否则继承 `WFormScope.formBorderConfig`；都没配置时 `WFormBorder` 不渲染装饰 |
 | 7 | **formEntered 陈旧过滤** | `isAllEntered(length)` 按已注册 `fields` 过滤，动态移除字段后不会因残留记录恒为 false，但调用方需保证传入的 `length` 与实际参与判断的字段数一致 |
 | 8 | **setError / 字段 name 一致性** | `WFormFieldShell.name` 必须与内部字段 `name` 一致，否则校验红框无法自动联动 |
 | 9 | **PopRoute 不跟随滚动** | `WFormPopup` 位置打开时计算一次，锚点滚动后弹层不跟随，如需跟随请使用其他方案 |

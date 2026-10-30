@@ -125,7 +125,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormBuilder(
+            body: WFormScope(
               formData: data,
               child: Column(
                 children: [

@@ -89,7 +89,7 @@ void main() {
         ),
       );
 
-      formData.didChange<bool?>('null_value', null);
+      formData.setValue<bool?>('null_value', null);
       await tester.pump();
       expect(find.byIcon(Icons.check_box_outline_blank), findsOneWidget);
 

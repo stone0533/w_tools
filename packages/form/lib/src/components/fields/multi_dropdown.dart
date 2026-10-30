@@ -4,7 +4,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../field_chrome.dart';
-import '../form_builder.dart';
+import '../form_scope.dart';
 import '../form_defaults.dart';
 import '../form_theme.dart';
 import '../popup.dart';
@@ -58,11 +58,11 @@ class WFormMultiDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wFormData = WFormBuilder.requireOf(context);
+    final wFormData = WFormScope.requireOf(context);
 
     void onChangedHandler(Set<String>? value) {
       final selected = value ?? const <String>{};
-      wFormData.onChange(name, selected);
+      wFormData.handleChange(name, selected);
       onChanged?.call(selected);
     }
 

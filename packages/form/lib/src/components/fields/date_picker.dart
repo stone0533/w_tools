@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_builder.dart';
+import '../form_scope.dart';
 import '../form_controller.dart';
 import '../field_chrome.dart';
 
@@ -153,14 +153,14 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePicker, Strin
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _formData = WFormBuilder.of(context);
+    _formData = WFormScope.of(context);
   }
 
   @override
   void didChange(String? value) {
     super.didChange(value);
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
-    _formData?.onChange(widget.name, value);
+    _formData?.handleChange(widget.name, value);
   }
 }
 

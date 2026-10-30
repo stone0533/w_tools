@@ -4,7 +4,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../field_chrome.dart';
-import '../form_builder.dart';
+import '../form_scope.dart';
 import '../form_defaults.dart';
 import '../form_theme.dart';
 
@@ -64,10 +64,10 @@ class WFormDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = WFormTheme.maybeOf(context);
-    final wFormData = WFormBuilder.requireOf(context);
+    final wFormData = WFormScope.requireOf(context);
 
     void onChangedHandler(T? value) {
-      wFormData.onChange(name, value);
+      wFormData.handleChange(name, value);
       onChanged?.call(value);
     }
 

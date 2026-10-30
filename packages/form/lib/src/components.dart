@@ -17,7 +17,7 @@ export 'components/fields/text_field.dart';
 // 表单容器与数据
 export 'components/field_button.dart';
 export 'components/field_chrome.dart';
-export 'components/form_builder.dart';
+export 'components/form_scope.dart';
 export 'components/form_controller.dart';
 
 // 默认值与工具
