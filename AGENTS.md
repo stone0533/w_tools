@@ -74,7 +74,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
 - 每个独立区块一个 Controller；不要用一个 `WAsyncConfig` 合并多个独立区块的 Loading。
-- 全局默认 loading / empty / error 用 `WAsyncViewDefaults`。
+- 全局默认 loading / empty / error 用 `WAsyncViewDefaults`；放在 App 根节点（推荐 `WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放 `AppScaffold.body`。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
 - `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；loading / empty / error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
 - `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncStateBuilder`。

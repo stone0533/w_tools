@@ -26,7 +26,8 @@
    for width/height/constraints/transform. Do not add an `AppBox` / `AppContainer` god wrapper.
    **Async blocks**: with `w_tools_async`, use `WAsyncController + WAsyncView` for pages;
    do not hand-write `ValueNotifier<WAsyncState>` or repeat `when + RetryView` per page.
-   One Controller per independent block; use `WAsyncViewDefaults` for global defaults.
+   One Controller per independent block; use `WAsyncViewDefaults` for global defaults
+   at the app root (`WAppPlugin.wrapApp` / `WApp.appWrapper`), not only inside `AppScaffold.body`.
    Use `WAsyncView` for normal blocks; use `WAsyncStateBuilder` for scroll pages /
    `SmartRefresher`, never wrap `SmartRefresher` around `WAsyncView`; keep pagination local.
    `WAsyncStateBuilder.builder` must always return the same `SmartRefresher + CustomScrollView`;

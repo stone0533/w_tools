@@ -277,6 +277,30 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('WAsyncViewDefaults 可放在 MaterialApp 外层', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      WAsyncViewDefaults(
+        errorBuilder: (context, error, retry) => const Text('root-default-error'),
+        child: MaterialApp(
+          home: Scaffold(
+            body: WAsyncView<int>(
+              state: state,
+              onRetry: () async {},
+              readyBuilder: (context, value) => Text('value-$value'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('root-default-error'), findsOneWidget);
+  });
+
   testWidgets('WAsyncViewDefaults.refreshingBuilder 生效', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.loading(previousData: 1),

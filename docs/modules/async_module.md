@@ -241,7 +241,27 @@ WAsyncView<List<Gift>>(
 刷新进度条可通过 `WAsyncView.refreshingBuilder` / `WAsyncViewDefaults.refreshingBuilder` 覆盖；
 默认仍为 `LinearProgressIndicator`。
 
-默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置：
+默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置。
+优先放在 `WAppPlugin.wrapApp` 或 `WApp.appWrapper`，不要只放在 `AppScaffold.body`；
+否则 AppBar actions、对话框、bottom sheet、Tab 页面不会继承默认值。
+
+```dart
+class AsyncDefaultsPlugin with WAppPlugin {
+  @override
+  String get name => 'async-defaults';
+
+  @override
+  Widget wrapApp(Widget child) {
+    return WAsyncViewDefaults(
+      errorBuilder: ...,
+      errorBannerBuilder: ...,
+      child: child,
+    );
+  }
+}
+```
+
+
 
 ```dart
 WAsyncViewDefaults(

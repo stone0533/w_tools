@@ -139,7 +139,8 @@ const String agentsSnippet = r'''
    时直接用 `Container`。不要新增 `AppBox` / `AppContainer` 万能包装。
    **异步区块**：使用 `w_tools_async` 时，页面统一 `WAsyncController + WAsyncView`；
    不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
-   每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncViewDefaults`。
+   每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncViewDefaults`，
+   放在 App 根节点（`WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放 `AppScaffold.body`。
    普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，
    不要把 `SmartRefresher` 包在 `WAsyncView` 外面；分页 `loadMore` 自己维护，
    `loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
@@ -186,7 +187,8 @@ const String agentsSnippetEn = r'''
    for width/height/constraints/transform. Do not add an `AppBox` / `AppContainer` god wrapper.
    **Async blocks**: with `w_tools_async`, use `WAsyncController + WAsyncView` for pages;
    do not hand-write `ValueNotifier<WAsyncState>` or repeat `when + RetryView` per page.
-   One Controller per independent block; use `WAsyncViewDefaults` for global defaults.
+   One Controller per independent block; use `WAsyncViewDefaults` for global defaults
+   at the app root (`WAppPlugin.wrapApp` / `WApp.appWrapper`), not only inside `AppScaffold.body`.
    Use `WAsyncView` for normal blocks; use `WAsyncStateBuilder` for scroll pages /
    `SmartRefresher`, never wrap `SmartRefresher` around `WAsyncView`; keep pagination local.
    `WAsyncStateBuilder.builder` must always return the same `SmartRefresher + CustomScrollView`;
