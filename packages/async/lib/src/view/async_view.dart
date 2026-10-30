@@ -18,8 +18,8 @@ import 'async_view_defaults.dart';
 /// 默认 loading / empty / error 文案只是 fallback；正式项目应通过
 /// [WAsyncViewDefaults] 或显式 builder 覆盖。
 ///
-/// [WAsyncView] 适合页面主体、Column 或 ListView item；内部会检测宽度，
-/// 无界宽度时不会强制撑满，但 [readyBuilder] 内容仍应自行约束宽度。
+/// [WAsyncView] 适合页面主体、Column 或 ListView item；
+/// 为错误条/刷新条约束有界宽度，不强制高度。
 ///
 /// [onRetry] 由调用方负责处理异常；推荐直接传 `WAsyncController.load`。
 ///
@@ -117,6 +117,8 @@ class WAsyncView<T> extends StatelessWidget {
 
   /// ready / refreshing / failed+data 都使用同一层 Stack，
   /// 避免 SmartRefresher 等 readyBuilder 子树在状态切换时被重新挂载。
+  ///
+  /// 只约束有界宽度，不强制高度；滚动组件的高度由页面父级决定。
   Widget _buildContent(
     BuildContext context, {
     required T data,
@@ -131,11 +133,8 @@ class WAsyncView<T> extends StatelessWidget {
           ],
         );
 
-        return SizedBox(
-          width: constraints.hasBoundedWidth ? constraints.maxWidth : null,
-          height: constraints.hasBoundedHeight ? constraints.maxHeight : null,
-          child: stack,
-        );
+        if (!constraints.hasBoundedWidth) return stack;
+        return SizedBox(width: constraints.maxWidth, child: stack);
       },
     );
   }

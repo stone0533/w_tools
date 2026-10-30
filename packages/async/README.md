@@ -161,7 +161,7 @@ final result = await WAsync.runWithRetry<List<Gift>, List<Gift>>(
 - Controller 只丢弃旧请求结果，不会中止底层 Future；
 - 需要中止请求时，由 loader 自己接收 `WCancelToken`；
 - 默认 loading / empty / error 文案只是 fallback；
-- `WAsyncView` 适合页面主体 / Column / ListView item；内部会检测宽度，无界时不会强制撑满，但 `readyBuilder` 内容仍需自行约束宽度。
+- `WAsyncView` 为错误条/刷新条约束宽度，不强制高度；滚动组件的高度由页面父级提供。
 - `onRetry` 应自行处理异常；推荐直接传 `WAsyncController.load`。
 - 刷新进度条可通过 `refreshingBuilder` 或 `WAsyncViewDefaults.refreshingBuilder` 覆盖。
 

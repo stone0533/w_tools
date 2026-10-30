@@ -233,7 +233,7 @@ WAsyncView<List<Gift>>(
 - failed + 旧数据 → 保留内容 + `WAsyncErrorBanner`；
 - refreshing → 保留内容 + 线性进度条。
 
-`WAsyncView` 内部用 `LayoutBuilder` 检测宽度：有界时撑满，无界时不强制 `infinity`。
+`WAsyncView` 为错误条/刷新条约束有界宽度，不强制高度；滚动组件的高度由页面父级提供。
 
 刷新进度条可通过 `WAsyncView.refreshingBuilder` / `WAsyncViewDefaults.refreshingBuilder` 覆盖；
 默认仍为 `LinearProgressIndicator`。
