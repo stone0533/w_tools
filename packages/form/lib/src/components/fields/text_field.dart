@@ -128,7 +128,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
     });
   }
 
-  /// 清空当前字段值（通过 [WFormController.didChange] 同步清空并广播给所有订阅者）
+  /// 清空当前字段值（通过 [WFormController.setValue] 同步清空并广播给所有订阅者）
   ///
   /// 只读状态下不执行任何操作。
   void _clearField() {
