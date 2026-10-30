@@ -126,6 +126,9 @@ WAsyncState.failed(error, previousData: oldData)
 - **取消语义**：`WCancelToken.cancel()` 后任务返回 `null`，**不回调 onError**；取消是协作式的，任务内部需主动检查。
   `wait` / `any` / `runWithTimeout` 在等待期间取消会立即返回；`run` / `sequence` 在当前任务结束后响应。
 - **Loading 合并**：多个并发任务共享同一个 `WAsyncConfig` 时，`showLoading=true` 只会触发一次 start/end。
+- **空集合**：`any([])` 直接返回 null，不进入 Loading；`wait([])` / `sequence([])` /
+  `runAllWithConcurrency([])` 视为成功空结果，会触发 Loading。
+- **并发取消**：`runAllWithConcurrency` 取消后不再启动新任务，但会等待当前在途任务结束后返回。
 
 ### 使用示例
 

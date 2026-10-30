@@ -103,9 +103,9 @@ class WAsyncState<T> {
 
   /// 保留已有数据的错误信息（超过 [maxLength] 时截断，避免日志/文案过长）。
   String errorMessage({int maxLength = 120}) {
-    assert(maxLength >= 0, 'maxLength 不能为负数');
+    final limit = maxLength < 0 ? 0 : maxLength;
     final text = error?.toString() ?? '';
-    return text.length <= maxLength ? text : '${text.substring(0, maxLength)}…';
+    return text.length <= limit ? text : '${text.substring(0, limit)}…';
   }
 
   @override

@@ -65,9 +65,9 @@ void main() {
       expect(long.errorMessage(maxLength: 10).endsWith('…'), isTrue);
     });
 
-    test('errorMessage 拒绝负数 maxLength', () {
+    test('errorMessage 负数 maxLength 按 0 处理', () {
       final state = WAsyncState<int>.failed(Exception('e'));
-      expect(() => state.errorMessage(maxLength: -1), throwsAssertionError);
+      expect(state.errorMessage(maxLength: -1), '…');
     });
 
     test('值相等与 hashCode', () {

@@ -355,6 +355,29 @@ void main() {
       expect(stopwatch.elapsed, lessThan(const Duration(seconds: 1)));
     });
 
+    test('runWithTimeout 取消后底层任务仍继续执行', () async {
+      var completed = false;
+      final cancelToken = WCancelToken();
+
+      final future = WAsync.runWithTimeout<int, int>(
+        () async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          completed = true;
+          return 1;
+        },
+        const Duration(seconds: 10),
+        cancelToken: cancelToken,
+      );
+
+      await Future.delayed(const Duration(milliseconds: 20));
+      cancelToken.cancel();
+      expect(await future, isNull);
+      expect(completed, isFalse);
+
+      await Future.delayed(const Duration(milliseconds: 150));
+      expect(completed, isTrue);
+    });
+
     test('runWithTimeout 负数超时抛出 ArgumentError', () async {
       await expectLater(
         WAsync.runWithTimeout<int, int>(
@@ -415,6 +438,25 @@ void main() {
         ]),
         throwsStateError,
       );
+    });
+
+    test('wait 空集合视为成功空结果并触发 Loading', () async {
+      var startCount = 0;
+      var endCount = 0;
+      final config = WAsyncConfig(
+        onLoadingStart: () => startCount++,
+        onLoadingEnd: () => endCount++,
+      );
+
+      final result = await WAsync.wait<int, int>(
+        <Future<int>>[],
+        config: config,
+        onSuccess: (list) => list.length,
+      );
+
+      expect(result, 0);
+      expect(startCount, 1);
+      expect(endCount, 1);
     });
 
     test('wait 在等待期间取消会立即返回 null', () async {
@@ -808,6 +850,29 @@ void main() {
       expect(result, isNull);
       expect(secondCalled, isFalse);
       expect(errorCount, 1);
+    });
+
+    test('sequence 取消会等当前任务结束后返回 null', () async {
+      final cancelToken = WCancelToken();
+      var completed = false;
+
+      final future = WAsync.sequence<int, int>(
+        [
+          () async {
+            await Future.delayed(const Duration(milliseconds: 60));
+            completed = true;
+            return 1;
+          },
+        ],
+        cancelToken: cancelToken,
+      );
+
+      await Future.delayed(const Duration(milliseconds: 10));
+      cancelToken.cancel();
+      final result = await future;
+
+      expect(result, isNull);
+      expect(completed, isTrue);
     });
 
     test('sequence 支持任意 Iterable', () async {
