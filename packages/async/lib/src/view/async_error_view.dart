@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 /// 默认的异步失败视图，可作为整页错误态或紧凑错误条。
+///
+/// [title] / [retryText] 只是 fallback，项目应通过 [WAsyncViewDefaults] 或
+/// 自定义 builder 覆盖品牌文案。
 class WAsyncErrorView extends StatelessWidget {
   const WAsyncErrorView({
     super.key,

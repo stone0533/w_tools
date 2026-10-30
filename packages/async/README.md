@@ -25,3 +25,7 @@ WAsyncView<List<Gift>>(
   readyBuilder: (context, gifts) => GiftList(gifts),
 )
 ```
+
+Controller 会把所有异常转为 failed，方便 UI 展示；它只丢弃旧请求结果，不会中止
+已启动的底层 Future。默认视图文案只是 fallback，项目可通过 `WAsyncViewDefaults`
+统一覆盖。

@@ -224,3 +224,6 @@ WAsyncView<List<Gift>>(
 
 `WAsyncController.state` 是只读的 `ValueListenable`，状态变更必须经过 `load()` / `retry()`；
 可通过 `initial:` 指定初始状态。
+
+Controller 会把所有异常（包括 `Error`）转为 failed，便于 UI 展示；它只丢弃旧请求结果，
+不会中止已启动的底层 Future。需要区分业务异常与编程错误时使用 `WAsync`。

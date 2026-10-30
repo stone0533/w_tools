@@ -5,6 +5,12 @@ import 'async_state.dart';
 /// 管理一个异步区块的状态与加载动作。
 ///
 /// 每个页面区块使用一个独立实例；旧请求返回后不会覆盖新请求的状态。
+///
+/// [load] / [dispose] 不会中止已经启动的底层 [Future]，只保证旧结果不写入
+/// 状态；需要真正取消请求时，由 loader 自己接收 `WCancelToken`。
+///
+/// 所有异常（包括 `Error`）都会转为 failed，方便 UI 展示；需要区分
+/// 业务异常与编程错误时，请直接使用 `WAsync`。
 class WAsyncController<T> {
   WAsyncController(
     this._loader, {

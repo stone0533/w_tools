@@ -106,6 +106,29 @@ void main() {
     expect(find.text('default-error'), findsOneWidget);
   });
 
+  testWidgets('WAsyncViewDefaults.errorBannerBuilder 覆盖刷新错误条', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom', previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncViewDefaults(
+          errorBannerBuilder: (context, error, retry) => const Text('banner-error'),
+          child: WAsyncView<int>(
+            state: state,
+            onRetry: () async {},
+            readyBuilder: (context, value) => Text('value-$value'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('value-1'), findsOneWidget);
+    expect(find.text('banner-error'), findsOneWidget);
+  });
+
   testWidgets('refreshing 保留内容并显示进度条', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.loading(previousData: 1),

@@ -13,6 +13,9 @@ import 'async_view_defaults.dart';
 /// - failed：默认 [WAsyncErrorView]，并通过 [onRetry] 重试；
 /// - failed + 旧数据：保留内容，展示紧凑错误条；
 /// - refreshing：保留内容，展示线性进度。
+///
+/// 默认 loading / empty / error 文案只是 fallback；正式项目应通过
+/// [WAsyncViewDefaults] 或显式 builder 覆盖。
 class WAsyncView<T> extends StatelessWidget {
   const WAsyncView({
     super.key,

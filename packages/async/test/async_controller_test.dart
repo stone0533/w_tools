@@ -34,6 +34,18 @@ void main() {
       expect(controller.state.value.isEmpty, isTrue);
     });
 
+    test('Error 也会转为 failed', () async {
+      final controller = WAsyncController<int>(
+        () async => throw StateError('bug'),
+      );
+      addTearDown(controller.dispose);
+
+      await controller.load();
+
+      expect(controller.state.value.isFailed, isTrue);
+      expect(controller.state.value.error, isA<StateError>());
+    });
+
     test('失败保留旧数据', () async {
       var fail = false;
       final controller = WAsyncController<int>(() async {
