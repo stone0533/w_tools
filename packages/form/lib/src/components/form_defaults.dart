@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// 表单全局默认值
+/// 表单全局默认值（静态兜底）
 ///
 /// 这些字段是可替换的静态变量，修改后对之后构建的表单组件生效；
 /// 若某个组件显式配置了对应项，则优先使用组件自身的配置。
+///
+/// 需要按页面 / 品牌隔离时，优先使用 `WFormTheme`；本类只作为最终回退。
 class WFormDefaults {
   /// 下拉箭头图标
   static Widget dropdownIcon = const Icon(Icons.keyboard_arrow_down);

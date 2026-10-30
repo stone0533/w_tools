@@ -6,6 +6,7 @@ import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_controller.dart';
 import '../form_defaults.dart';
+import '../form_theme.dart';
 
 /// 表单单选按钮组组件
 ///
@@ -41,6 +42,7 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
          enabled: enabled ?? config._enabled,
          builder: (FormFieldState<T?> field) {
            final state = field as FormBuilderFieldState<WFormRadioGroup<T>, T>;
+           final theme = WFormTheme.maybeOf(field.context);
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
            final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(field.context);
@@ -91,8 +93,12 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
                                    0,
                                  ),
                                  child: isSelected
-                                     ? config._selectedIcon ?? WFormDefaults.radioSelectedIcon
-                                     : config._unselectedIcon ?? WFormDefaults.radioUnselectedIcon,
+                                     ? config._selectedIcon ??
+                                           theme?.effectiveRadioSelectedIcon ??
+                                           WFormDefaults.radioSelectedIcon
+                                     : config._unselectedIcon ??
+                                           theme?.effectiveRadioUnselectedIcon ??
+                                           WFormDefaults.radioUnselectedIcon,
                                ),
                              ),
                            ),

@@ -5,6 +5,7 @@ import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_defaults.dart';
+import '../form_theme.dart';
 import '../popup.dart';
 
 /// 表单多选下拉框组件
@@ -198,6 +199,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
   }) : super(
          builder: (FormFieldState<Set<String>?> field) {
            final state = field as FormBuilderFieldState<_WFormMultiDropdown, Set<String>>;
+           final theme = WFormTheme.maybeOf(state.context);
 
            // 按已选顺序拼接显示文本
            final selectedValues = state.value ?? const <String>{};
@@ -254,9 +256,11 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                                          disabled: isDisabled,
                                          icon:
                                              checkboxUnselectedIcon ??
+                                             theme?.effectiveCheckboxUnselectedIcon ??
                                              WFormDefaults.checkboxUnselectedIcon,
                                          checkedIcon:
                                              checkboxSelectedIcon ??
+                                             theme?.effectiveCheckboxSelectedIcon ??
                                              WFormDefaults.checkboxSelectedIcon,
                                          disabledIcon: checkboxDisabledIcon,
                                          status: status,
@@ -307,7 +311,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                            size: iconSize,
                            color: enabled ? iconEnabledColor : iconDisabledColor,
                          ),
-                         child: icon ?? WFormDefaults.dropdownIcon,
+                         child: icon ?? theme?.effectiveDropdownIcon ?? WFormDefaults.dropdownIcon,
                        ),
                      ],
                    ),

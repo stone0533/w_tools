@@ -8,6 +8,7 @@ import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_controller.dart';
 import '../form_defaults.dart';
+import '../form_theme.dart';
 
 /// 表单单行文本输入组件
 ///
@@ -668,9 +669,12 @@ class WFormTextFieldPasswordToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return WFormTextFieldAction(
       visibleWhen: (data) => data.obscureText,
-      iconBuilder: (data) => data.isPasswordVisible
-          ? WFormDefaults.obscureTextVisibleIcon
-          : WFormDefaults.obscureTextIcon,
+      iconBuilder: (data) {
+        final theme = WFormTheme.maybeOf(context);
+        return data.isPasswordVisible
+            ? theme?.effectiveObscureTextVisibleIcon ?? WFormDefaults.obscureTextVisibleIcon
+            : theme?.effectiveObscureTextIcon ?? WFormDefaults.obscureTextIcon;
+      },
       onPressed: (data) => data.togglePasswordVisibility(),
     );
   }
@@ -702,7 +706,10 @@ class WFormTextFieldClearButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return WFormTextFieldAction(
       visibleWhen: (data) => data.hasText && !data.readOnly,
-      iconBuilder: (_) => icon ?? WFormDefaults.clearButtonIcon,
+      iconBuilder: (_) {
+        final theme = WFormTheme.maybeOf(context);
+        return icon ?? theme?.effectiveClearButtonIcon ?? WFormDefaults.clearButtonIcon;
+      },
       onPressed: (data) {
         data.clear();
         onCleared?.call();

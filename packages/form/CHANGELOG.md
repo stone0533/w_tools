@@ -6,7 +6,8 @@
 - `WFormData` → `WFormController`；
 - `WFormButton` / `WFormButtonConfig` → `WFormFieldButton` / `WFormFieldButtonConfig`；
 - `WFormBorderWithData` → `WFormFieldShell`；
-- `WInputFormatters` → `WFormInputFormatters`。
+- `WInputFormatters` → `WFormInputFormatters`；
+- 新增 `WFormTheme`：按页面 / 品牌隔离表单图标，`WFormDefaults` 保留为静态兜底。
 
 ### Fixed
 - `WFormFieldShell` 卸载时注销 `formBorderKeys`，避免动态字段累积 GlobalKey。

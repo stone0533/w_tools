@@ -5,6 +5,7 @@ import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_defaults.dart';
+import '../form_theme.dart';
 
 /// 表单下拉选择组件
 ///
@@ -61,6 +62,7 @@ class WFormDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = WFormTheme.maybeOf(context);
     final wFormData = WFormBuilder.requireOf(context);
 
     void onChangedHandler(T? value) {
@@ -119,7 +121,7 @@ class WFormDropdown<T> extends StatelessWidget {
         ),
         initialValue: initialValue,
         validator: validator,
-        icon: config._icon ?? WFormDefaults.dropdownIcon,
+        icon: config._icon ?? theme?.effectiveDropdownIcon ?? WFormDefaults.dropdownIcon,
         onChanged: onChangedHandler,
         hint: hintWidget,
         enabled: effectiveEnabled,

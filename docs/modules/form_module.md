@@ -154,7 +154,24 @@ WFormBuilder(
 
 ---
 
-## 3. WFormDefaults — 全局默认图标
+## 3. WFormTheme / WFormDefaults — 默认图标
+
+推荐用 `WFormTheme` 做作用域隔离：
+
+```dart
+WFormTheme(
+  dropdownIcon: const Icon(Icons.expand_more),
+  checkboxSelectedIcon: const Icon(Icons.check_circle),
+  child: WFormBuilder(...),
+)
+```
+
+未配置的项回退到 `WFormDefaults` 静态值。组件显式配置优先于两者。
+
+`WFormDefaults` 仍保留为全局兜底，适合 App 启动时统一设置；多品牌 / 页面隔离使用
+`WFormTheme`。
+
+### WFormDefaults — 全局默认图标
 
 静态可替换变量，修改后对之后构建的表单组件生效；组件显式配置优先。
 
@@ -599,7 +616,7 @@ class _LoginPageState extends State<LoginPage> {
 | 9 | **PopRoute 不跟随滚动** | `WFormPopup` 位置打开时计算一次，锚点滚动后弹层不跟随，如需跟随请使用其他方案 |
 | 10 | **校验器双通道风险** | `WFormValidatorItem.field` 模式直接执行字段 `validator`，**不**写入字段 `errorText`，只通过 `WFormBorder.setError` 渲染；若同时开 FormBuilder 原生 `validate()` 会走另一通道，建议统一使用 `WFormValidator` |
 | 11 | **copyWith(null) 不代表清空** | `WFormBorderConfig.copyWith(errorDecoration: null)` 保持原值；清空请用 `cfg.copy()..errorDecoration = null` |
-| 12 | **全局默认图标替换** | `WFormDefaults` 替换后影响所有未显式配置的组件，可用于主题化；组件显式配置优先于全局默认 |
+| 12 | **默认图标替换** | `WFormTheme` 优先，未配置项回退到 `WFormDefaults`；组件显式配置最高优先 |
 
 ---
 

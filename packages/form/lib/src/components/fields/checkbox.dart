@@ -6,6 +6,7 @@ import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_controller.dart';
 import '../form_defaults.dart';
+import '../form_theme.dart';
 
 /// 单个复选框字段组件
 ///
@@ -32,6 +33,7 @@ class WFormCheckbox extends FormBuilderField<bool> {
          enabled: enabled ?? config._enabled,
          builder: (FormFieldState<bool?> field) {
            final state = field as FormBuilderFieldState<WFormCheckbox, bool>;
+           final theme = WFormTheme.maybeOf(field.context);
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
            final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(field.context);
@@ -49,9 +51,13 @@ class WFormCheckbox extends FormBuilderField<bool> {
                return config._disabledIcon!;
              }
              if (state.value == true) {
-               return config._selectedIcon ?? WFormDefaults.checkboxSelectedIcon;
+               return config._selectedIcon ??
+                   theme?.effectiveCheckboxSelectedIcon ??
+                   WFormDefaults.checkboxSelectedIcon;
              }
-             return config._unselectedIcon ?? WFormDefaults.checkboxUnselectedIcon;
+             return config._unselectedIcon ??
+                 theme?.effectiveCheckboxUnselectedIcon ??
+                 WFormDefaults.checkboxUnselectedIcon;
            }
 
            return Semantics(

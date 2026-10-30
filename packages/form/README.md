@@ -11,7 +11,7 @@
 - **表单容器**：`WFormBuilder` / `WFormController` / `WFormFieldButton`
 - **边框体系**：`WFormBorder` / `WFormBorderConfig` / `WFormFieldShell` / `WFormReadOnlyScope`
 - **校验**：`WFormValidator` / `WFormValidatorItem` / `WFormCustomValidator`
-- **默认值与格式化**：`WFormDefaults` / `WFormInputFormatters`
+- **默认值与格式化**：`WFormTheme`（作用域）+ `WFormDefaults`（静态兜底）/ `WFormInputFormatters`
 
 ## 安装
 

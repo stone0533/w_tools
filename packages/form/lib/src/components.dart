@@ -21,6 +21,7 @@ export 'components/form_controller.dart';
 
 // 默认值与工具
 export 'components/form_defaults.dart';
+export 'components/form_theme.dart';
 export 'components/form_input_formatters.dart';
 export 'components/popup.dart';
 
