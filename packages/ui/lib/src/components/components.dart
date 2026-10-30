@@ -9,10 +9,10 @@ export 'common/keep_alive_wrapper.dart';
 export 'common/notification_listener.dart';
 export 'common/pressable.dart';
 export 'common/row_buttons.dart';
-export 'common/text.dart';
-export 'common/text_styles.dart';
+export 'text/w_text.dart';
+export 'text/w_text_styles.dart';
 export 'common/gradient_circular_progress_indicator.dart';
-export 'common/rich_text.dart';
+export 'text/w_rich_text.dart';
 
 // 布局组件
 export 'layout/appbar.dart';

@@ -51,10 +51,11 @@ ui/
     │   │   ├── keep_alive_wrapper.dart        # WKeepAliveWrapper
     │   │   ├── notification_listener.dart      # WNotificationListenerBuilder
     │   │   ├── row_buttons.dart               # WRowButtons
-    │   │   ├── text.dart                      # WText, WTextConfig
-    │   │   ├── text_styles.dart               # WTextStyles / WTextVariant
     │   │   ├── gradient_circular_progress_indicator.dart
-    │   │   └── rich_text.dart                 # WRichText
+    │   │   ├── text/                  # 文字组件
+    │   │   │   ├── w_text.dart                 # WText, WTextConfig
+    │   │   │   ├── w_text_styles.dart          # WTextStyles / WTextVariant
+    │   │   │   └── w_rich_text.dart            # WRichText, WRichTextConfig
     │   ├── layout/                 # 布局组件
     │   │   ├── appbar.dart                    # WAppBar / WAppBarStyle
     │   │   ├── list_view.dart                 # WListView / WListViewSliver

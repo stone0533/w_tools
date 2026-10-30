@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/screen.dart';
-import 'text_styles.dart';
+import 'w_text_styles.dart';
 
 /// 文本组件，用于显示和配置文本样式
 class WText extends StatelessWidget {
