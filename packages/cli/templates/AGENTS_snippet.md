@@ -33,6 +33,7 @@
    `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncStateBuilder`。
    `WAsyncBuilder` 是兼容别名，新代码用 `WAsyncStateBuilder`。
    `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
+   `WAsyncStateSliver` 默认不额外显示 refreshing 进度，刷新反馈交给 SmartRefresher。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：

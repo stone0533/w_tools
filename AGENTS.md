@@ -81,6 +81,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - `WAsyncBuilder` 是 `WAsyncStateBuilder` 的兼容别名，新代码使用后者。
 - 分页使用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
 - `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
+- `WAsyncStateSliver` 默认不添加 refreshing 进度条；由外层 SmartRefresher 负责，需要额外进度时显式传 `refreshingSliverBuilder`。
 - `WAsyncController` 会把所有异常转为 failed；只丢弃旧请求，不中止底层 Future。
 - 需要中止请求时，由 loader 接收 `WCancelToken`。
 - `WAsync` / `WAsyncConfig` / `WCancelToken` 只在不需要 UI 状态时直接使用。

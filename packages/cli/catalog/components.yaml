@@ -134,7 +134,7 @@ components:
     package: 'w_tools_async'
     section: '7. 状态与反馈'
     useFor: 'CustomScrollView 的四态 sliver、failed+旧数据'
-    dontUseFor: '非滚动页面用 `WAsyncView`；readySliverBuilder 必须返回 sliver'
+    dontUseFor: '非滚动页面用 `WAsyncView`；readySliverBuilder 必须返回 sliver；默认不额外显示刷新进度'
   - name: '`WAsyncPagedController`'
     package: 'w_tools_async'
     section: '8. 能力（非 UI）'

@@ -57,13 +57,40 @@ void main() {
     expect(find.byType(WAsyncErrorBanner), findsOneWidget);
   });
 
-  testWidgets('refreshing 保留 ready 并附加进度', (tester) async {
+  testWidgets('refreshing 默认不附加额外进度', (tester) async {
     await tester.pumpWidget(
       _host(_scroll(const WAsyncState.loading(previousData: 1))),
     );
 
     expect(find.text('ready-1'), findsOneWidget);
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  testWidgets('可显式添加 refreshing sliver', (tester) async {
+    const state = WAsyncState<int>.loading(previousData: 1);
+    await tester.pumpWidget(
+      _host(
+        CustomScrollView(
+          slivers: [
+            WAsyncStateSliver<int>(
+              state: state,
+              onRetry: () {},
+              readySliverBuilder: (context, value) {
+                return SliverToBoxAdapter(child: Text('ready-$value'));
+              },
+              refreshingSliverBuilder: (context) {
+                return const SliverToBoxAdapter(
+                  child: Text('custom-refreshing'),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('ready-1'), findsOneWidget);
+    expect(find.text('custom-refreshing'), findsOneWidget);
   });
 
   testWidgets('重试回调可用', (tester) async {

@@ -293,7 +293,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     package: "w_tools_async",
     section: "7. 状态与反馈",
     useFor: "CustomScrollView 的四态 sliver、failed+旧数据",
-    dontUseFor: "非滚动页面用 `WAsyncView`；readySliverBuilder 必须返回 sliver",
+    dontUseFor: "非滚动页面用 `WAsyncView`；readySliverBuilder 必须返回 sliver；默认不额外显示刷新进度",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
   ),

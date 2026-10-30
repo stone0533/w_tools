@@ -295,7 +295,7 @@ WAsyncStateSliver<List<Gift>>(
 ready                   → readySliverBuilder
 loading / empty / failed → SliverFillRemaining
 failed + 旧数据         → ready sliver + WAsyncErrorBanner
-refreshing + 旧数据     → ready sliver + 可选刷新 sliver
+refreshing + 旧数据     → ready sliver；默认不添加进度，避免和 SmartRefresher 重复
 ```
 
 `readySliverBuilder` 必须返回 sliver，不能返回 `ListView` / `Column`。

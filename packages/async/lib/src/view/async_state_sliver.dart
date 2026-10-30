@@ -10,7 +10,9 @@ import 'async_view_defaults.dart';
 /// - ready → [readySliverBuilder]；
 /// - loading / empty / failed（无数据）→ [SliverFillRemaining]；
 /// - failed + 旧数据 → ready sliver + [WAsyncErrorBanner]；
-/// - refreshing + 旧数据 → ready sliver + 可选刷新 sliver。
+/// - refreshing + 旧数据 → ready sliver；如需额外进度，显式传
+///   [refreshingSliverBuilder]。默认不添加进度条，避免和 SmartRefresher
+///   自带的刷新指示器重复。
 ///
 /// 始终返回同一个 [SliverMainAxisGroup]，避免状态切换重建 ready 子树。
 /// [readySliverBuilder] 必须返回 sliver（例如 `SliverList`），不能返回 box。
@@ -46,13 +48,8 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     if (data != null) {
       slivers.add(readySliverBuilder(context, data));
 
-      if (state.isRefreshing) {
-        slivers.add(
-          refreshingSliverBuilder?.call(context) ??
-              const SliverToBoxAdapter(
-                child: LinearProgressIndicator(),
-              ),
-        );
+      if (state.isRefreshing && refreshingSliverBuilder != null) {
+        slivers.add(refreshingSliverBuilder!(context));
       }
 
       if (state.isFailed) {

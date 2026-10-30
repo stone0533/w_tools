@@ -34,6 +34,7 @@
    `WAsyncViewDefaults` applies to `WAsyncView` only, not `WAsyncStateBuilder`.
    `WAsyncBuilder` is a compatibility alias; use `WAsyncStateBuilder` in new code.
    Use `WAsyncStateSliver` for four-state slivers; `readySliverBuilder` must return a sliver.
+   It adds no refreshing indicator by default; let SmartRefresher own refresh feedback.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

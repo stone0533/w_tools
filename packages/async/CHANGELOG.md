@@ -11,4 +11,4 @@
 - `WAsyncStateBuilder`：滚动页面 / `SmartRefresher` / `CustomScrollView` 的状态构建入口。
 - `WAsyncBuilder`：`WAsyncStateBuilder` 的兼容别名。
 - `WAsyncPagedController`：分页列表的首屏、刷新、追加、hasMore 与 loadMore 错误。
-- `WAsyncStateSliver`：CustomScrollView 的四态 sliver、failed+旧数据与 refreshing。
+- `WAsyncStateSliver`：CustomScrollView 的四态 sliver、failed+旧数据；默认不额外添加 refreshing 进度。
