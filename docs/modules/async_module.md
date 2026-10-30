@@ -28,8 +28,8 @@ packages/async/lib/
       async_view.dart       # WAsyncView
       async_error_view.dart # WAsyncErrorView
       async_error_banner.dart # WAsyncErrorBanner
-      async_error_banner.dart # WAsyncErrorBanner
       async_view_defaults.dart
+      async_builder.dart    # WAsyncBuilder
 ```
 
 ## 1. WAsync - 异步编排

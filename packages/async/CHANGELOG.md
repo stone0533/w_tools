@@ -8,3 +8,4 @@
 - `WAsyncState` / `WAsyncStatus`：四态异步状态快照。
 - `WAsyncController`：每个异步区块独立管理状态、旧请求丢弃与手动重试。
 - `WAsyncView` / `WAsyncErrorView` / `WAsyncErrorBanner` / `WAsyncViewDefaults`：异步视图、默认错误态与刷新错误条。
+- `WAsyncBuilder`：滚动页面 / `SmartRefresher` / `CustomScrollView` 的状态构建入口。
