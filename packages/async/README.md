@@ -268,6 +268,41 @@ refreshing + 旧数据    → ready sliver（默认不额外加速进度，避�
 
 `readySliverBuilder` 必须返回 sliver，例如 `WListViewSliver.list` / `SliverList`。
 
+## Sliver 页面的全局默认
+
+`WAsyncStateSliver` 使用独立的 `WAsyncSliverDefaults`，不要复用 `WAsyncViewDefaults`：
+
+```dart
+WAsyncSliverDefaults(
+  loadingBuilder: (_) => const AppAsyncStatusLoading(), // 非滚动
+  emptyBuilder: (_) => const AppAsyncStatusEmpty(),     // 非滚动
+  errorBuilder: (context, error, retry) => AppAsyncStatusError(error, retry),
+  errorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
+  child: MaterialApp(...),
+)
+```
+
+约束：
+
+```text
+loading / empty / error builder 必须是非滚动 Widget
+refreshingSliverBuilder 必须返回 sliver
+```
+
+不要放 `AppRefreshable` / `SingleChildScrollView` 到 `SliverFillRemaining(hasScrollBody: false)` 里。
+
+App 根部可以同时安装两套：
+
+```dart
+WAsyncViewDefaults(
+  ...,
+  child: WAsyncSliverDefaults(
+    ...,
+    child: MaterialApp(...),
+  ),
+)
+```
+
 ## App 层固定滚动壳
 
 为了避免每个页面都重复 `WAsyncStateBuilder → SmartRefresher → CustomScrollView`，

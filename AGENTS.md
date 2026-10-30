@@ -77,7 +77,8 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 全局默认 loading / empty / error 用 `WAsyncViewDefaults`；放在 App 根节点（推荐 `WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放 `AppScaffold.body`。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
 - `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；loading / empty / error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
-- `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncStateBuilder`。
+- `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncSliverDefaults` / `WAsyncStateBuilder`。
+- Sliver 页面默认视图用 `WAsyncSliverDefaults`；loading/empty/error 必须是非滚动 Widget，`refreshingSliverBuilder` 必须返回 sliver。
 - `WAsyncBuilder` 是 `WAsyncStateBuilder` 的兼容别名，新代码使用后者。
 - 分页使用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
 - `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。

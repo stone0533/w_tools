@@ -146,7 +146,8 @@ const String agentsSnippet = r'''
    `loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
    `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；
    loading/empty/error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
-   `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncStateBuilder`。
+   `WAsyncViewDefaults` 只作用于 `WAsyncView`；Sliver 页面默认视图用 `WAsyncSliverDefaults`，
+   其中 loading/empty/error 必须是非滚动 Widget，`refreshingSliverBuilder` 必须返回 sliver。
    `WAsyncBuilder` 是兼容别名，新代码用 `WAsyncStateBuilder`。
    `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
    `WAsyncStateSliver` 默认不额外显示 refreshing 进度，刷新反馈交给 SmartRefresher。
@@ -193,7 +194,8 @@ const String agentsSnippetEn = r'''
    `SmartRefresher`, never wrap `SmartRefresher` around `WAsyncView`; keep pagination local.
    `WAsyncStateBuilder.builder` must always return the same `SmartRefresher + CustomScrollView`;
    put loading/empty/error inside slivers, never switch the outer scroll shell.
-   `WAsyncViewDefaults` applies to `WAsyncView` only, not `WAsyncStateBuilder`.
+   `WAsyncViewDefaults` applies to `WAsyncView` only; use `WAsyncSliverDefaults` for slivers.
+   Its loading/empty/error builders must be non-scrollable; `refreshingSliverBuilder` must return a sliver.
    `WAsyncBuilder` is a compatibility alias; use `WAsyncStateBuilder` in new code.
    Use `WAsyncStateSliver` for four-state slivers; `readySliverBuilder` must return a sliver.
    It adds no refreshing indicator by default; let SmartRefresher own refresh feedback.

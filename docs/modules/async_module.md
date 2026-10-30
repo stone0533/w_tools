@@ -32,6 +32,7 @@ packages/async/lib/
       async_view_defaults.dart
       async_state_builder.dart # WAsyncStateBuilder
       async_state_sliver.dart # WAsyncStateSliver
+      async_sliver_defaults.dart # WAsyncSliverDefaults
       async_builder.dart    # deprecated alias
 ```
 
@@ -320,6 +321,27 @@ refreshing + 旧数据     → ready sliver；默认不添加进度，避免和 
 
 `readySliverBuilder` 必须返回 sliver，不能返回 `ListView` / `Column`。
 它始终用 `SliverMainAxisGroup`，所以状态切换不会重建 ready 子树。
+
+## Sliver 默认视图
+
+`WAsyncStateSliver` 使用独立的 `WAsyncSliverDefaults`：
+
+```dart
+WAsyncSliverDefaults(
+  loadingBuilder: (_) => const AppAsyncStatusLoading(),
+  emptyBuilder: (_) => const AppAsyncStatusEmpty(),
+  errorBuilder: (context, error, retry) => AppAsyncStatusError(error, retry),
+  errorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
+  child: MaterialApp(...),
+)
+```
+
+- `loading/empty/error` builder 必须是非滚动 Widget，因为会被放进 `SliverFillRemaining(hasScrollBody: false)`；
+- `refreshingSliverBuilder` 必须返回 sliver；
+- 不要复用 `WAsyncViewDefaults`；
+- 不要把 `AppRefreshable` / `SingleChildScrollView` 放进 sliver 状态。
+
+App 根部可以同时安装 `WAsyncViewDefaults` 和 `WAsyncSliverDefaults`。
 
 ## App 层固定滚动壳
 

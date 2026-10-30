@@ -12,3 +12,4 @@
 - `WAsyncBuilder`：`WAsyncStateBuilder` 的兼容别名。
 - `WAsyncPagedController`：分页列表的首屏、刷新、追加、hasMore 与 loadMore 错误。
 - `WAsyncStateSliver`：CustomScrollView 的四态 sliver、failed+旧数据；默认不额外添加 refreshing 进度。
+- `WAsyncSliverDefaults`：Sliver 页面独立的默认 loading/empty/error/banner 与 refreshing sliver。

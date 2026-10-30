@@ -298,6 +298,16 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
   ),
   CatalogEntry(
+    name: "WAsyncSliverDefaults",
+    names: <String>["WAsyncSliverDefaults"],
+    package: "w_tools_async",
+    section: "7. 状态与反馈",
+    useFor: "WAsyncStateSliver 的全局默认 loading/empty/error/banner",
+    dontUseFor: "不要复用 `WAsyncViewDefaults`；状态 builder 必须是非滚动 Widget",
+    importPath: "package:w_tools_async/w_tools_async.dart",
+    docs: "docs/modules/async_module.md",
+  ),
+  CatalogEntry(
     name: "WAsyncPagedController",
     names: <String>["WAsyncPagedController"],
     package: "w_tools_async",

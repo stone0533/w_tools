@@ -17,6 +17,8 @@ typedef WAsyncErrorWidgetBuilder = Widget Function(
 ///
 /// 只作用于 [WAsyncView]；[WAsyncStateBuilder] 由调用方自行构建状态 UI，
 /// 不会读取这些默认值。
+///
+/// sliver 页面使用独立的 `WAsyncSliverDefaults`。
 class WAsyncViewDefaults extends InheritedWidget {
   const WAsyncViewDefaults({
     super.key,

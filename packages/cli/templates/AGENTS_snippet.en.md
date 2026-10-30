@@ -32,7 +32,8 @@
    `SmartRefresher`, never wrap `SmartRefresher` around `WAsyncView`; keep pagination local.
    `WAsyncStateBuilder.builder` must always return the same `SmartRefresher + CustomScrollView`;
    put loading/empty/error inside slivers, never switch the outer scroll shell.
-   `WAsyncViewDefaults` applies to `WAsyncView` only, not `WAsyncStateBuilder`.
+   `WAsyncViewDefaults` applies to `WAsyncView` only; use `WAsyncSliverDefaults` for slivers.
+   Its loading/empty/error builders must be non-scrollable; `refreshingSliverBuilder` must return a sliver.
    `WAsyncBuilder` is a compatibility alias; use `WAsyncStateBuilder` in new code.
    Use `WAsyncStateSliver` for four-state slivers; `readySliverBuilder` must return a sliver.
    It adds no refreshing indicator by default; let SmartRefresher own refresh feedback.

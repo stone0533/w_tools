@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../state/async_state.dart';
 import 'async_error_banner.dart';
 import 'async_error_view.dart';
+import 'async_sliver_defaults.dart';
 import 'async_view_defaults.dart';
 
 /// 把 [WAsyncState] 渲染成 sliver：
@@ -16,6 +17,9 @@ import 'async_view_defaults.dart';
 ///
 /// 始终返回同一个 [SliverMainAxisGroup]，避免状态切换重建 ready 子树。
 /// [readySliverBuilder] 必须返回 sliver（例如 `SliverList`），不能返回 box。
+///
+/// loading / empty / error 的默认值来自 `WAsyncSliverDefaults`，
+/// 不是 `WAsyncViewDefaults`；这些 builder 必须返回非滚动内容。
 class WAsyncStateSliver<T> extends StatelessWidget {
   const WAsyncStateSliver({
     super.key,
@@ -43,17 +47,20 @@ class WAsyncStateSliver<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = state.dataOrNull;
+    final defaults = WAsyncSliverDefaults.maybeOf(context);
     final slivers = <Widget>[];
 
     if (data != null) {
       slivers.add(readySliverBuilder(context, data));
 
-      if (state.isRefreshing && refreshingSliverBuilder != null) {
-        slivers.add(refreshingSliverBuilder!(context));
+      final refreshing = refreshingSliverBuilder ?? defaults?.refreshingSliverBuilder;
+      if (state.isRefreshing && refreshing != null) {
+        slivers.add(refreshing(context));
       }
 
       if (state.isFailed) {
-        final banner = errorBannerBuilder ?? _defaultErrorBannerBuilder;
+        final banner =
+            errorBannerBuilder ?? defaults?.errorBannerBuilder ?? _defaultErrorBannerBuilder;
         slivers.add(
           SliverToBoxAdapter(
             child: banner(context, state.error!, onRetry),
@@ -67,10 +74,18 @@ class WAsyncStateSliver<T> extends StatelessWidget {
         SliverFillRemaining(
           hasScrollBody: hasScrollBody,
           child: switch (state.status) {
-            WAsyncStatus.loading =>
-              loadingBuilder?.call(context) ?? const Center(child: CircularProgressIndicator()),
-            WAsyncStatus.empty => emptyBuilder?.call(context) ?? const Center(child: Text('暂无数据')),
+            WAsyncStatus.loading => loadingBuilder?.call(context) ??
+                defaults?.loadingBuilder?.call(context) ??
+                const Center(child: CircularProgressIndicator()),
+            WAsyncStatus.empty => emptyBuilder?.call(context) ??
+                defaults?.emptyBuilder?.call(context) ??
+                const Center(child: Text('暂无数据')),
             WAsyncStatus.failed => errorBuilder?.call(context, state.error!, onRetry) ??
+                defaults?.errorBuilder?.call(
+                  context,
+                  state.error!,
+                  onRetry,
+                ) ??
                 WAsyncErrorView(
                   error: state.error!,
                   onRetry: onRetry,
