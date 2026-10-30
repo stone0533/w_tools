@@ -39,6 +39,8 @@ class WAsyncPagedController<T> {
     if (_disposed) return;
 
     final oldData = _state.value.dataOrNull;
+    final oldPage = _page;
+    final oldHasMore = _hasMore;
     final generation = ++_generation;
     _page = initialPage;
     _hasMore = true;
@@ -56,6 +58,11 @@ class WAsyncPagedController<T> {
           items.isEmpty ? WAsyncState<List<T>>.empty() : WAsyncState<List<T>>.ready(items);
     } catch (error) {
       if (_disposed || generation != _generation) return;
+
+      // 刷新失败时保留旧列表，也必须保留旧分页游标，
+      // 否则下一次 loadMore 会从第一页重新追加，产生重复数据。
+      _page = oldPage;
+      _hasMore = oldHasMore;
       _state.value = WAsyncState<List<T>>.failed(
         error,
         previousData: oldData,

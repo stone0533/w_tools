@@ -72,6 +72,33 @@ void main() {
       expect(controller.state.value.data, [1]);
     });
 
+    test('刷新失败保留旧分页游标，避免 loadMore 重复第一页', () async {
+      var fail = false;
+      final pages = <int, List<int>>{
+        1: [1],
+        2: [2],
+        3: [3],
+      };
+      final controller = WAsyncPagedController<int>((page) async {
+        if (fail) throw StateError('refresh failed');
+        return pages[page] ?? const <int>[];
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      expect(controller.state.value.data, [1, 2]);
+
+      fail = true;
+      await controller.refresh();
+      expect(controller.state.value.isFailed, isTrue);
+      expect(controller.state.value.data, [1, 2]);
+
+      fail = false;
+      await controller.loadMore();
+      expect(controller.state.value.data, [1, 2, 3]);
+    });
+
     test('loadMore 期间 isLoadingMore 为 true', () async {
       final page2 = Completer<List<int>>();
       final controller = WAsyncPagedController<int>((page) async {
