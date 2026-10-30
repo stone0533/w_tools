@@ -142,6 +142,9 @@ class WStepFlow {
 /// 步骤条。
 ///
 /// [current] 从 1 开始，等于当前步骤在 [labels] 中的位置。
+///
+/// 直接传 [labels] 时由调用方保证列表不再变化；需要复用流程请使用
+/// [WStepFlow]，它会在构造时复制并冻结 labels。
 class WStep extends StatelessWidget {
   const WStep({
     super.key,

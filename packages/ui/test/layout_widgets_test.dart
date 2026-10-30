@@ -120,6 +120,51 @@ void main() {
     );
   });
 
+  testWidgets('WStep — completed / current / upcoming 默认状态', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WStep(
+          current: 2,
+          labels: ['A', 'B', 'C'],
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.check), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+  });
+
+  testWidgets('WStep — WStepFlow.copyWith', (tester) async {
+    final flow = WStepFlow(labels: const ['A', 'B', 'C']);
+    final copy = flow.copyWith(labels: const ['X', 'Y']);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: copy.build(current: 2),
+      ),
+    );
+
+    expect(find.text('X'), findsOneWidget);
+    expect(find.text('Y'), findsOneWidget);
+    expect(copy.labels, isNot(same(flow.labels)));
+  });
+
+  testWidgets('WStep — itemSize 必须大于 0', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WStep(
+          current: 1,
+          labels: ['A'],
+          style: WStepStyle(itemSize: 0),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isAssertionError);
+  });
+
   test('WStepStyle — copyWith 返回新实例', () {
     const style = WStepStyle(itemSize: 30);
     final copy = style.copyWith(itemSize: 40, completedColor: Colors.green);

@@ -1367,7 +1367,7 @@ registerStepFlow.build(current: step)
 #### 约束
 
 - `itemBuilder` 返回的 widget 会被放进 `Expanded` 单元格，不要返回 `Expanded`；
-- `labels` 不能为空；
+- `labels` 不能为空；直接传 `WStep` 时由调用方保证 list 不再修改，复用流程请用 `WStepFlow`；
 - `current` 必须在 `1..labels.length`；
 - 默认最多适合 3–5 步；步骤过多时横向空间不足；
 - 背景、高度、padding 由外层 `Container` 负责，不用 `backgroundBuilder`。
