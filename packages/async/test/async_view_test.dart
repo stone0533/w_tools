@@ -342,7 +342,7 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('WAsyncBuilder 透传状态变化', (tester) async {
+  testWidgets('WAsyncStateBuilder 透传状态变化', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.loading(),
     );
@@ -350,7 +350,7 @@ void main() {
 
     await tester.pumpWidget(
       _host(
-        WAsyncBuilder<int>(
+        WAsyncStateBuilder<int>(
           state: state,
           builder: (context, value) => Text('status-${value.status.name}'),
         ),
@@ -370,6 +370,25 @@ void main() {
     state.value = const WAsyncState.failed('boom');
     await tester.pump();
     expect(find.text('status-failed'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncBuilder 兼容别名仍可用', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.ready(1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        // ignore: deprecated_member_use_from_same_package
+        WAsyncBuilder<int>(
+          state: state,
+          builder: (context, value) => Text('alias-${value.data}'),
+        ),
+      ),
+    );
+
+    expect(find.text('alias-1'), findsOneWidget);
   });
 
   testWidgets('默认错误视图重试回调可用', (tester) async {

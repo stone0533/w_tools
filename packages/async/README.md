@@ -99,7 +99,7 @@ WAsyncViewDefaults(
 )
 ```
 
-`WAsyncViewDefaults` 只作用于 `WAsyncView`；`WAsyncBuilder` 不会读取它。
+`WAsyncViewDefaults` 只作用于 `WAsyncView`；`WAsyncStateBuilder` 不会读取它。
 
 优先级：
 
@@ -167,13 +167,13 @@ final result = await WAsync.runWithRetry<List<Gift>, List<Gift>>(
 - `onRetry` 应自行处理异常；推荐直接传 `WAsyncController.load`。
 - 刷新进度条可通过 `refreshingBuilder` 或 `WAsyncViewDefaults.refreshingBuilder` 覆盖。
 
-## 异步列表：WAsyncBuilder + SmartRefresher
+## 异步列表：WAsyncStateBuilder + SmartRefresher
 
-滚动页面不要用 `WAsyncView` 包 `SmartRefresher`。用 `WAsyncBuilder` 把状态交给调用方，
+滚动页面不要用 `WAsyncView` 包 `SmartRefresher`。用 `WAsyncStateBuilder` 把状态交给调用方，
 让 `SmartRefresher` 的直接子节点始终是 `CustomScrollView`：
 
 ```dart
-WAsyncBuilder<List<Gift>>(
+WAsyncStateBuilder<List<Gift>>(
   state: controller.state,
   builder: (context, state) {
     final gifts = state.dataOrNull ?? const <Gift>[];
@@ -220,22 +220,117 @@ WAsyncBuilder<List<Gift>>(
 
 `loadMore` 的追加与 footer 状态由业务侧维护，不要用 `WAsyncController.failed` 表示分页失败。
 
-`WAsyncBuilder.builder` 必须始终返回同一个滚动壳：
+`WAsyncStateBuilder.builder` 必须始终返回同一个滚动壳：
 
 ```text
-WAsyncBuilder
+WAsyncStateBuilder
   → SmartRefresher
       → CustomScrollView
 ```
 
 loading / empty / error 只能作为 `slivers` 内部的分支，不要在外层直接 return `Center` / `WAsyncErrorView`，否则 `SmartRefresher` 会被重新挂载。
 
+## App 层固定滚动壳
+
+为了避免每个页面都重复 `WAsyncStateBuilder → SmartRefresher → CustomScrollView`，
+建议在 App 层封装一个 helper（不要放进 `w_tools_async`，因为它依赖 `pull_to_refresh`）：
+
+```dart
+class AsyncRefreshShell<T> extends StatelessWidget {
+  const AsyncRefreshShell({
+    super.key,
+    required this.state,
+    required this.controller,
+    required this.onRefresh,
+    required this.onLoading,
+    required this.slivers,
+  });
+
+  final ValueListenable<WAsyncState<T>> state;
+  final RefreshController controller;
+  final Future<void> Function() onRefresh;
+  final Future<void> Function() onLoading;
+  final List<Widget> Function(BuildContext, WAsyncState<T>) slivers;
+
+  @override
+  Widget build(BuildContext context) {
+    return WAsyncStateBuilder<T>(
+      state: state,
+      builder: (context, value) {
+        return SmartRefresher(
+          controller: controller,
+          onRefresh: onRefresh,
+          onLoading: onLoading,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: slivers(context, value),
+          ),
+        );
+      },
+    );
+  }
+}
+```
+
+这样页面只负责 `slivers`，不会被允许把 `SmartRefresher` 包到错误的位置。
+
+## 分页列表
+
+分页使用独立的 `WAsyncPagedController`，不要把它塞进普通 `WAsyncController`：
+
+```dart
+final gifts = WAsyncPagedController<Gift>(
+  (page) => api.gifts(page: page),
+);
+
+await gifts.refresh();   // 第一页
+await gifts.loadMore();  // 下一页
+```
+
+可用状态：
+
+```text
+gifts.state           WAsyncState<List<Gift>>
+gifts.isLoadingMore   ValueListenable<bool>
+gifts.loadMoreError   ValueListenable<Object?>
+gifts.hasMore         bool
+```
+
+`loadMore` 失败只写 `loadMoreError`，不会清空已有列表；`SmartRefresher` 的 footer 状态：
+
+```dart
+Future<void> _loadMore() async {
+  await gifts.loadMore();
+
+  if (gifts.loadMoreError.value != null) {
+    refreshController.loadFailed();
+  } else if (!gifts.hasMore) {
+    refreshController.loadNoData();
+  } else {
+    refreshController.loadComplete();
+  }
+}
+```
+
+`WAsyncStateBuilder` 可以直接消费：
+
+```dart
+WAsyncStateBuilder<List<Gift>>(
+  state: gifts.state,
+  builder: (context, state) {
+    ...
+  },
+)
+```
+
 ## 选择哪个入口
 
 ```text
 普通页面区块 / 非滚动内容  → WAsyncView
-SmartRefresher / 滚动页面  → WAsyncBuilder
+SmartRefresher / 滚动页面  → WAsyncStateBuilder
 ```
 
 `WAsyncView` 的 ready / refreshing / failed + 旧数据使用稳定内容容器，
-但滚动页面仍应使用 `WAsyncBuilder`，不要把 `SmartRefresher` 长期塞进 `WAsyncView.readyBuilder`。
+但滚动页面仍应使用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 长期塞进 `WAsyncView.readyBuilder`。
+
+`WAsyncBuilder` 是旧名，保留为兼容别名；新代码使用 `WAsyncStateBuilder`。

@@ -27,11 +27,12 @@
    **Async blocks**: with `w_tools_async`, use `WAsyncController + WAsyncView` for pages;
    do not hand-write `ValueNotifier<WAsyncState>` or repeat `when + RetryView` per page.
    One Controller per independent block; use `WAsyncViewDefaults` for global defaults.
-   Use `WAsyncView` for normal blocks; use `WAsyncBuilder` for scroll pages /
+   Use `WAsyncView` for normal blocks; use `WAsyncStateBuilder` for scroll pages /
    `SmartRefresher`, never wrap `SmartRefresher` around `WAsyncView`; keep pagination local.
-   `WAsyncBuilder.builder` must always return the same `SmartRefresher + CustomScrollView`;
+   `WAsyncStateBuilder.builder` must always return the same `SmartRefresher + CustomScrollView`;
    put loading/empty/error inside slivers, never switch the outer scroll shell.
-   `WAsyncViewDefaults` applies to `WAsyncView` only, not `WAsyncBuilder`.
+   `WAsyncViewDefaults` applies to `WAsyncView` only, not `WAsyncStateBuilder`.
+   `WAsyncBuilder` is a compatibility alias; use `WAsyncStateBuilder` in new code.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

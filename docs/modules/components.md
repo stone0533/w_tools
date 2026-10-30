@@ -66,8 +66,9 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WAsyncView` / `WAsyncErrorView` / `WAsyncErrorBanner` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
-| `WAsyncBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView` |
+| `WAsyncView` / `WAsyncErrorView` / `WAsyncErrorBanner` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
+| `WAsyncStateBuilder` / `WAsyncBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；`WAsyncBuilder` 是兼容别名 |
+| `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore | 普通单请求用 `WAsyncController` |
 | `WToast` / `WnnToast` | toast | 轻提示 | — |
 | `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | — |

@@ -25,12 +25,13 @@
    **异步区块**：使用 `w_tools_async` 时，页面统一 `WAsyncController + WAsyncView`；
    不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
    每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncViewDefaults`。
-   普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncBuilder`，
+   普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，
    不要把 `SmartRefresher` 包在 `WAsyncView` 外面；分页 `loadMore` 自己维护，
-   不要用 Controller.failed 表示分页失败。
-   `WAsyncBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；
+   `loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
+   `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；
    loading/empty/error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
-   `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncBuilder`。
+   `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncStateBuilder`。
+   `WAsyncBuilder` 是兼容别名，新代码用 `WAsyncStateBuilder`。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
