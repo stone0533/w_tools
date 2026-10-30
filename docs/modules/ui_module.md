@@ -1039,14 +1039,6 @@ WBadge(
 | `useOverlap` | bool | false | 子项重叠效果 |
 | `overlapOffset` | double | 0.0 | 重叠偏移量（≤ 0） |
 
-### 约束
-
-- `useOverlap` 仅支持**垂直普通列表 + itemExtent**；不能与 grid / separator 同时使用；
-- `usePreciseCache` 必须配合 `cacheItems: true`，否则断言；
-- `itemExtent` 必须大于 0；
-- `backgroundColor` / `borderRadius` / `border` 同时存在时，列表会以 `Clip.antiAlias` 裁剪内容；
-- `emptyWidget` 优先级高于 config.emptyWidget；一旦使用，header / footer 不显示。
-
 ### WListViewConfig 预设工厂
 
 | 工厂方法 | 说明 |

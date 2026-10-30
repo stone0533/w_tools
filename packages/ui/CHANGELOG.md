@@ -14,9 +14,6 @@
 - 删除 `WImageExtension`；图片预加载用 `WImagePreloader.preloadImages` 或 `precacheImage`。
 - `withIntrinsicHeight` 合并到 `WWidgetExtension`，删除 Row/Column 专用扩展。
 - `withBottomSpace` 标记废弃，改用 `withBottomPadding`。
-- `WListView`：`useOverlap` 限制为垂直普通列表 + itemExtent；`copyWith(overlapOffset:)`
-  走校验；圆角列表增加 `Clip.antiAlias`；`usePreciseCache` 要求 `cacheItems`；
-  默认配置与工厂默认值统一。
 - 删除 `WStrutStyleExtension` 与 `WUiTextStyleExtension.fromConfig`；使用
   `WTextConfig.toTextStyle()` / `toStrutStyle()`。
 - `WWidgetExtension.withDecoration`：给 Widget 包一层 `DecoratedBox`。

@@ -420,20 +420,6 @@ class _WListViewState extends State<WListView> {
 
   @override
   Widget build(BuildContext context) {
-    widget.config.validate();
-    assert(
-      !widget.config._useOverlap || widget.gridDelegate == null,
-      'useOverlap 不能与 gridDelegate 同时使用',
-    );
-    assert(
-      !widget.config._useOverlap || widget.config._separatorBuilder == null,
-      'useOverlap 不能与 separatorBuilder 同时使用',
-    );
-    assert(
-      !widget.config._usePreciseCache || widget.cacheItems,
-      'usePreciseCache 需要 cacheItems: true',
-    );
-
     // 处理空列表情况
     // 优先使用组件参数，其次使用配置中的配置
     if (widget.itemCount == 0) {
@@ -451,7 +437,6 @@ class _WListViewState extends State<WListView> {
         widget.config._borderRadius != null ||
         widget.config._border != null) {
       return Container(
-        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: widget.config._backgroundColor,
           borderRadius: widget.config._borderRadius,
@@ -494,6 +479,11 @@ class _WListViewState extends State<WListView> {
     }
 
     return item;
+  }
+
+  /// 刷新列表
+  void refresh() {
+    setState(() {});
   }
 }
 
@@ -630,9 +620,6 @@ class WListViewConfig {
   /// 默认构造函数
   WListViewConfig() {
     _padding = EdgeInsets.zero;
-    _physics = const AlwaysScrollableScrollPhysics();
-    _cacheExtent = _defaultVerticalCacheExtent;
-    _backgroundColor = _defaultBackgroundColor;
   }
 
   /// 设置列表的内边距
@@ -714,18 +701,6 @@ class WListViewConfig {
     _overlapOffset = value <= 0 ? value : 0;
   }
 
-  /// 校验配置；在构建前暴露非法组合。
-  void validate() {
-    assert(
-      !_useOverlap || (_itemExtent != null && _scrollDirection == Axis.vertical),
-      'useOverlap 需要垂直列表和 itemExtent',
-    );
-    assert(
-      _itemExtent == null || _itemExtent! > 0,
-      'itemExtent 必须大于 0',
-    );
-  }
-
   /// 复制配置并返回新实例
   ///
   /// - [padding]：列表的内边距
@@ -777,12 +752,7 @@ class WListViewConfig {
     config._separatorBuilder = separatorBuilder ?? _separatorBuilder;
     config._itemBuilderByT = itemBuilderByT ?? _itemBuilderByT;
     config._useOverlap = useOverlap ?? _useOverlap;
-    if (overlapOffset != null) {
-      config.overlapOffset = overlapOffset;
-    } else {
-      config._overlapOffset = _overlapOffset;
-    }
-    config.validate();
+    config._overlapOffset = overlapOffset ?? _overlapOffset;
     return config;
   }
 
