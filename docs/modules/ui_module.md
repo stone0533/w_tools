@@ -1090,7 +1090,7 @@ itemExtent > 0
 ```
 
 重叠仅由 `WListViewSliver.overlap` 提供，不再使用 `useOverlap` / `overlapOffset`。
-`overlap` 只支持垂直方向；水平列表请使用 `WListViewSliver.list` / `.separated` / `.grid`。
+`overlap` 只支持垂直方向，且不支持 `reverse`；水平列表请使用 `WListViewSliver.list` / `.separated` / `.grid`。
 
 ### 与 SmartRefresher 配合
 
@@ -1132,6 +1132,7 @@ WListViewSliver.list(
 ```
 
 - `empty` 只替换列表主体；
+- 无 header/footer 时 `empty` 填满剩余空间；有 header/footer 时按自然高度显示；
 - header / footer 继续显示；
 - 不再有 `WListViewConfig`、`buildByList`、`itemBuilderByT`。
 
@@ -1699,11 +1700,9 @@ class MainNavBar extends StatelessWidget {
 
 | 版本 | 状态 | 说明 |
 |------|------|------|
-| 3.27 – 3.40 | ✅ 兼容 | `cacheExtent` 正常使用 |
-| 3.41 – 3.43 | ✅ 兼容 | `cacheExtent` 仍可用，同时存在 `scrollCacheExtent` |
-| 3.44+ | ✅ 兼容（deprecated） | `cacheExtent` 被标记 deprecated，源码使用 `// ignore: deprecated_member_use` 保持兼容 |
+| 3.27+ | ✅ 兼容 | `WListViewSliver` 使用 `SliverMainAxisGroup` 与 sliver API |
 
-> 最低 Flutter 版本锁定为 3.27。`WListView` / `WListViewSliver` 使用 sliver API；未来统一迁移缓存参数时需同步提升最低 Flutter 版本。
+> 最低 Flutter 版本锁定为 3.27。列表不再单独声明 `cacheExtent`，滚动缓存由外层 `CustomScrollView` 决定。
 
 ### WScreen 委托注入
 

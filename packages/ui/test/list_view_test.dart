@@ -198,6 +198,65 @@ void main() {
       );
     });
 
+    testWidgets('overlap 不能用于水平列表', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            scrollDirection: Axis.horizontal,
+            sliver: WListViewSliver.overlap(
+              itemExtent: 100,
+              overlap: 20,
+              itemCount: 2,
+              itemBuilder: (_, i) => SizedBox(
+                width: 100,
+                child: Text('item-$i'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isAssertionError);
+    });
+
+    testWidgets('overlap 不能用于 reverse', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            reverse: true,
+            sliver: WListViewSliver.overlap(
+              itemExtent: 100,
+              overlap: 20,
+              itemCount: 2,
+              itemBuilder: (_, i) => SizedBox(
+                height: 100,
+                child: Text('item-$i'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isAssertionError);
+    });
+
+    testWidgets('空 overlap 不产生额外底部 spacer', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.overlap(
+              itemExtent: 100,
+              overlap: 20,
+              itemCount: 0,
+              itemBuilder: (_, i) => const SizedBox(),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(SizedBox), findsNothing);
+    });
+
     test('itemCount 不能为负', () {
       expect(
         () => WListViewSliver.list(
