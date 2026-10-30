@@ -120,6 +120,49 @@ void main() {
       expect(third - second, 80);
     });
 
+    testWidgets('overlap 与 padding / footer 一起工作', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.overlap(
+              itemExtent: 100,
+              overlap: 20,
+              itemCount: 2,
+              padding: const EdgeInsets.all(10),
+              footer: const Text('footer'),
+              itemBuilder: (_, i) => SizedBox(
+                height: 100,
+                child: Text('item-$i'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.getTopLeft(find.text('item-0')).dy, 10);
+      expect(
+        tester.getTopLeft(find.text('item-1')).dy - tester.getTopLeft(find.text('item-0')).dy,
+        80,
+      );
+      expect(find.text('footer'), findsOneWidget);
+    });
+
+    testWidgets('keepAlive 开启后 item 可保持', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.list(
+              itemCount: 3,
+              keepAlive: true,
+              itemBuilder: (_, i) => Text('item-$i'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AutomaticKeepAlive), findsNWidgets(3));
+    });
+
     testWidgets('独立 WListView 可滚动', (tester) async {
       final controller = ScrollController();
       addTearDown(controller.dispose);
