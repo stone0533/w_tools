@@ -6,6 +6,7 @@ import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_controller.dart';
+import '../field_chrome.dart';
 
 /// 表单日期选择器组件
 ///
@@ -38,7 +39,7 @@ class WFormDatePicker extends FormBuilderField<String> {
     super.onReset,
     super.focusNode,
   }) : super(
-         enabled: enabled ?? config._enabled,
+         enabled: enabled ?? config.enabled,
          builder: (FormFieldState<String?> field) {
            final state = field as FormBuilderFieldState<WFormDatePicker, String>;
            final locale = Localizations.localeOf(state.context).toString();
@@ -112,14 +113,14 @@ class WFormDatePicker extends FormBuilderField<String> {
            );
 
            return WFormFieldFrame(
-             height: config._height,
-             width: config._width,
-             decoration: config._containerDecoration,
-             margin: config._containerMargin,
-             padding: config._containerPadding,
-             yOffset: config._yOffset,
-             leading: config._leading,
-             actions: config._actions,
+             height: config.height,
+             width: config.width,
+             decoration: config.containerDecoration,
+             margin: config.containerMargin,
+             padding: config.containerPadding,
+             yOffset: config.yOffset,
+             leading: config.leading,
+             actions: config.actions,
              child: content,
            );
          },
@@ -164,10 +165,7 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePicker, Strin
 }
 
 /// 日期选择器配置类，定义日期选择器的样式和行为
-class WFormDatePickerConfig {
-  /// 是否启用
-  bool _enabled = true;
-
+class WFormDatePickerConfig extends WFormFieldChrome {
   /// 输入装饰
   InputDecoration? _decoration = const InputDecoration();
 
@@ -188,35 +186,6 @@ class WFormDatePickerConfig {
 
   /// 展示格式（[DateFormat] pattern，默认 `yMMMMd`）
   String _displayFormat = 'yMMMMd';
-
-  /// 高度
-  double? _height;
-
-  /// 宽度
-  double? _width;
-
-  /// Y 轴偏移
-  double? _yOffset;
-
-  /// 左侧组件
-  Widget? _leading;
-
-  /// 操作按钮列表
-  List<Widget>? _actions;
-
-  /// 容器装饰
-  Decoration? _containerDecoration;
-
-  /// 容器边距
-  EdgeInsetsGeometry? _containerMargin;
-
-  /// 容器内边距
-  EdgeInsetsGeometry? _containerPadding;
-
-  /// 设置是否启用
-  set enabled(bool value) {
-    _enabled = value;
-  }
 
   /// 设置输入装饰（null 表示不渲染装饰）
   set decoration(InputDecoration? value) {
@@ -253,46 +222,6 @@ class WFormDatePickerConfig {
     _displayFormat = value;
   }
 
-  /// 设置高度
-  set height(double? value) {
-    _height = value;
-  }
-
-  /// 设置宽度
-  set width(double? value) {
-    _width = value;
-  }
-
-  /// 设置 Y 轴偏移
-  set yOffset(double? value) {
-    _yOffset = value;
-  }
-
-  /// 设置左侧组件
-  set leading(Widget? value) {
-    _leading = value;
-  }
-
-  /// 设置操作按钮列表
-  set actions(List<Widget>? value) {
-    _actions = value;
-  }
-
-  /// 设置容器装饰
-  set containerDecoration(Decoration? value) {
-    _containerDecoration = value;
-  }
-
-  /// 设置容器边距
-  set containerMargin(EdgeInsetsGeometry? value) {
-    _containerMargin = value;
-  }
-
-  /// 设置容器内边距
-  set containerPadding(EdgeInsetsGeometry? value) {
-    _containerPadding = value;
-  }
-
   /// 构建 [WFormDatePicker] 组件
   ///
   /// [enabled] 为 null 时使用配置中的值。
@@ -327,7 +256,7 @@ class WFormDatePickerConfig {
       );
     }
 
-    final baseEnabled = enabled ?? _enabled;
+    final baseEnabled = enabled ?? this.enabled;
     final innerConfig = copy()..containerDecoration = null;
 
     return WFormFieldFrame.border(
@@ -376,7 +305,7 @@ class WFormDatePickerConfig {
     EdgeInsetsGeometry? containerPadding,
   }) {
     final config = WFormDatePickerConfig();
-    config._enabled = enabled ?? _enabled;
+    config.enabled = enabled ?? this.enabled;
     config._decoration = decoration ?? _decoration;
     config._icon = icon ?? _icon;
     config._iconSize = iconSize ?? _iconSize;
@@ -384,14 +313,14 @@ class WFormDatePickerConfig {
     config._iconEnabledColor = iconEnabledColor ?? _iconEnabledColor;
     config._style = style ?? _style;
     config._displayFormat = displayFormat ?? _displayFormat;
-    config._height = height ?? _height;
-    config._width = width ?? _width;
-    config._yOffset = yOffset ?? _yOffset;
-    config._leading = leading ?? _leading;
-    config._actions = actions ?? _actions;
-    config._containerDecoration = containerDecoration ?? _containerDecoration;
-    config._containerMargin = containerMargin ?? _containerMargin;
-    config._containerPadding = containerPadding ?? _containerPadding;
+    config.height = height ?? this.height;
+    config.width = width ?? this.width;
+    config.yOffset = yOffset ?? this.yOffset;
+    config.leading = leading ?? this.leading;
+    config.actions = actions ?? this.actions;
+    config.containerDecoration = containerDecoration ?? this.containerDecoration;
+    config.containerMargin = containerMargin ?? this.containerMargin;
+    config.containerPadding = containerPadding ?? this.containerPadding;
     return config;
   }
 }

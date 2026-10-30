@@ -25,6 +25,7 @@ form/
     │   ├── form_defaults.dart
     │   ├── form_input_formatters.dart
     │   ├── field_button.dart
+    │   ├── field_chrome.dart        # WFormFieldChrome（字段公共配置）
     │   ├── popup.dart
     │   ├── border/
     │   │   ├── border.dart          # WFormBorder + WFormBorderConfig + WFormBorderDecoration
@@ -195,6 +196,31 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 ```
 
 ---
+
+## 3.5 WFormFieldChrome — 字段公共配置
+
+六个字段 Config 继承同一套公共外框配置：
+
+```dart
+class WFormCheckboxConfig extends WFormFieldChrome { ... }
+class WFormTextFieldConfig extends WFormFieldChrome { ... }
+```
+
+包含：
+
+```text
+enabled
+height
+width
+yOffset
+leading
+actions
+containerDecoration
+containerMargin
+containerPadding
+```
+
+字段 Config 不再各自重复这些字段；原有 `config..height = ...` 用法保留。
 
 ## 4. 边框系统
 

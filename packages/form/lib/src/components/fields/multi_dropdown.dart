@@ -3,6 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
+import '../field_chrome.dart';
 import '../form_builder.dart';
 import '../form_defaults.dart';
 import '../form_theme.dart';
@@ -66,21 +67,21 @@ class WFormMultiDropdown extends StatelessWidget {
     }
 
     return WFormFieldFrame(
-      height: config._height,
-      width: width ?? config._width,
-      decoration: config._containerDecoration,
-      margin: config._containerMargin,
-      padding: config._containerPadding,
-      yOffset: config._yOffset,
-      leading: config._leading,
-      actions: config._actions,
+      height: config.height,
+      width: width ?? config.width,
+      decoration: config.containerDecoration,
+      margin: config.containerMargin,
+      padding: config.containerPadding,
+      yOffset: config.yOffset,
+      leading: config.leading,
+      actions: config.actions,
       child: _WFormMultiDropdown(
         name: name,
         items: items,
         initialValue: initialValue,
         onChanged: onChangedHandler,
         validator: validator,
-        enabled: (enabled ?? config._enabled) && !WFormReadOnlyScope.readOnlyOf(context),
+        enabled: (enabled ?? config.enabled) && !WFormReadOnlyScope.readOnlyOf(context),
         decoration: config._decoration,
         icon: config._icon,
         iconSize: config._iconSize,
@@ -476,34 +477,7 @@ class _WFormMultiDropdownItemState extends State<_WFormMultiDropdownItem> {
 }
 
 /// 多选下拉框配置类，定义多选下拉框的样式和行为
-class WFormMultiDropdownConfig {
-  /// 是否启用
-  bool _enabled = true;
-
-  /// 高度
-  double? _height;
-
-  /// 宽度
-  double? _width;
-
-  /// Y 轴偏移
-  double? _yOffset;
-
-  /// 左侧组件
-  Widget? _leading;
-
-  /// 操作按钮列表
-  List<Widget>? _actions;
-
-  /// 容器装饰
-  Decoration? _containerDecoration;
-
-  /// 容器边距
-  EdgeInsetsGeometry? _containerMargin;
-
-  /// 容器内边距
-  EdgeInsetsGeometry? _containerPadding;
-
+class WFormMultiDropdownConfig extends WFormFieldChrome {
   /// 输入装饰
   InputDecoration? _decoration;
 
@@ -560,51 +534,6 @@ class WFormMultiDropdownConfig {
 
   /// 选项项标题内边距
   EdgeInsets? _itemTitlePadding;
-
-  /// 设置是否启用
-  set enabled(bool value) {
-    _enabled = value;
-  }
-
-  /// 设置高度
-  set height(double? value) {
-    _height = value;
-  }
-
-  /// 设置宽度
-  set width(double? value) {
-    _width = value;
-  }
-
-  /// 设置 Y 轴偏移
-  set yOffset(double? value) {
-    _yOffset = value;
-  }
-
-  /// 设置左侧组件
-  set leading(Widget? value) {
-    _leading = value;
-  }
-
-  /// 设置操作按钮列表
-  set actions(List<Widget>? value) {
-    _actions = value;
-  }
-
-  /// 设置容器装饰
-  set containerDecoration(Decoration? value) {
-    _containerDecoration = value;
-  }
-
-  /// 设置容器边距
-  set containerMargin(EdgeInsetsGeometry? value) {
-    _containerMargin = value;
-  }
-
-  /// 设置容器内边距
-  set containerPadding(EdgeInsetsGeometry? value) {
-    _containerPadding = value;
-  }
 
   /// 设置输入装饰
   set decoration(InputDecoration? value) {
@@ -724,7 +653,7 @@ class WFormMultiDropdownConfig {
     Key? borderKey,
     bool enableFocusBorder = true,
   }) {
-    final baseEnabled = enabled ?? _enabled;
+    final baseEnabled = enabled ?? this.enabled;
 
     // 清空内层容器装饰（在副本上操作，避免污染原配置的后续 build()），边框交由外层 WFormBorder 绘制
     final config = bordered ? (copy()..containerDecoration = null) : this;
@@ -795,15 +724,15 @@ class WFormMultiDropdownConfig {
     EdgeInsets? itemTitlePadding,
   }) {
     final config = WFormMultiDropdownConfig();
-    config._enabled = enabled ?? _enabled;
-    config._height = height ?? _height;
-    config._width = width ?? _width;
-    config._yOffset = yOffset ?? _yOffset;
-    config._leading = leading ?? _leading;
-    config._actions = actions ?? _actions;
-    config._containerDecoration = containerDecoration ?? _containerDecoration;
-    config._containerMargin = containerMargin ?? _containerMargin;
-    config._containerPadding = containerPadding ?? _containerPadding;
+    config.enabled = enabled ?? this.enabled;
+    config.height = height ?? this.height;
+    config.width = width ?? this.width;
+    config.yOffset = yOffset ?? this.yOffset;
+    config.leading = leading ?? this.leading;
+    config.actions = actions ?? this.actions;
+    config.containerDecoration = containerDecoration ?? this.containerDecoration;
+    config.containerMargin = containerMargin ?? this.containerMargin;
+    config.containerPadding = containerPadding ?? this.containerPadding;
     config._decoration = decoration ?? _decoration;
     config._iconSize = iconSize ?? _iconSize;
     config._icon = icon ?? _icon;

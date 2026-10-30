@@ -5,6 +5,7 @@ import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_controller.dart';
+import '../field_chrome.dart';
 import '../form_defaults.dart';
 import '../form_theme.dart';
 
@@ -39,7 +40,7 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
     super.onChanged,
     super.validator,
   }) : super(
-         enabled: enabled ?? config._enabled,
+         enabled: enabled ?? config.enabled,
          builder: (FormFieldState<T?> field) {
            final state = field as FormBuilderFieldState<WFormRadioGroup<T>, T>;
            final theme = WFormTheme.maybeOf(field.context);
@@ -55,7 +56,7 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
            }
 
            final options = Padding(
-             padding: config._containerPadding ?? EdgeInsets.zero,
+             padding: config.containerPadding ?? EdgeInsets.zero,
              child: Column(
                mainAxisSize: MainAxisSize.min,
                crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,14 +144,14 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
            );
 
            return WFormFieldFrame(
-             height: config._height,
-             width: config._width,
-             decoration: config._containerDecoration,
-             margin: config._containerMargin,
+             height: config.height,
+             width: config.width,
+             decoration: config.containerDecoration,
+             margin: config.containerMargin,
              // containerPadding 作用在内层选项 Padding 上，外框不再重复施加
              padding: null,
-             leading: config._leading,
-             actions: config._actions,
+             leading: config.leading,
+             actions: config.actions,
              child: options,
            );
          },
@@ -180,7 +181,7 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroup<T>,
 }
 
 /// 单选按钮组配置类，定义单选按钮组的样式和行为
-class WFormRadioGroupConfig {
+class WFormRadioGroupConfig extends WFormFieldChrome {
   /// 未选中状态的图标
   Widget? _unselectedIcon;
 
@@ -195,30 +196,6 @@ class WFormRadioGroupConfig {
 
   /// 图标 Y 轴偏移
   double? _iconYOffset;
-
-  /// 是否启用
-  bool _enabled = true;
-
-  /// 高度
-  double? _height;
-
-  /// 宽度
-  double? _width;
-
-  /// 左侧组件
-  Widget? _leading;
-
-  /// 操作按钮列表
-  List<Widget>? _actions;
-
-  /// 容器装饰
-  Decoration? _containerDecoration;
-
-  /// 容器边距
-  EdgeInsetsGeometry? _containerMargin;
-
-  /// 容器内边距
-  EdgeInsetsGeometry? _containerPadding;
 
   /// 文本样式
   TextStyle? _style;
@@ -241,46 +218,6 @@ class WFormRadioGroupConfig {
   /// 设置图标 Y 轴偏移（null 表示不偏移）
   set iconYOffset(double? value) {
     _iconYOffset = value;
-  }
-
-  /// 设置是否启用
-  set enabled(bool value) {
-    _enabled = value;
-  }
-
-  /// 设置高度
-  set height(double? value) {
-    _height = value;
-  }
-
-  /// 设置宽度
-  set width(double? value) {
-    _width = value;
-  }
-
-  /// 设置左侧组件
-  set leading(Widget? value) {
-    _leading = value;
-  }
-
-  /// 设置操作按钮列表
-  set actions(List<Widget>? value) {
-    _actions = value;
-  }
-
-  /// 设置容器装饰
-  set containerDecoration(Decoration? value) {
-    _containerDecoration = value;
-  }
-
-  /// 设置容器边距
-  set containerMargin(EdgeInsetsGeometry? value) {
-    _containerMargin = value;
-  }
-
-  /// 设置容器内边距
-  set containerPadding(EdgeInsetsGeometry? value) {
-    _containerPadding = value;
   }
 
   /// 设置行间距（null 表示无额外间距）
@@ -315,7 +252,7 @@ class WFormRadioGroupConfig {
     Key? borderKey,
     bool enableFocusBorder = true,
   }) {
-    final baseEnabled = enabled ?? _enabled;
+    final baseEnabled = enabled ?? this.enabled;
     final config = bordered ? (copy()..containerDecoration = null) : this;
     final field = WFormRadioGroup<T>(
       config: config,
@@ -372,14 +309,14 @@ class WFormRadioGroupConfig {
     config._iconSpacing = iconSpacing ?? _iconSpacing;
     config._lineSpacing = lineSpacing ?? _lineSpacing;
     config._iconYOffset = iconYOffset ?? _iconYOffset;
-    config._enabled = enabled ?? _enabled;
-    config._height = height ?? _height;
-    config._width = width ?? _width;
-    config._leading = leading ?? _leading;
-    config._actions = actions ?? _actions;
-    config._containerDecoration = containerDecoration ?? _containerDecoration;
-    config._containerMargin = containerMargin ?? _containerMargin;
-    config._containerPadding = containerPadding ?? _containerPadding;
+    config.enabled = enabled ?? this.enabled;
+    config.height = height ?? this.height;
+    config.width = width ?? this.width;
+    config.leading = leading ?? this.leading;
+    config.actions = actions ?? this.actions;
+    config.containerDecoration = containerDecoration ?? this.containerDecoration;
+    config.containerMargin = containerMargin ?? this.containerMargin;
+    config.containerPadding = containerPadding ?? this.containerPadding;
     config._style = style ?? _style;
     return config;
   }

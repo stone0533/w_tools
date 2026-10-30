@@ -5,6 +5,7 @@ import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_builder.dart';
 import '../form_controller.dart';
+import '../field_chrome.dart';
 import '../form_defaults.dart';
 import '../form_theme.dart';
 
@@ -30,7 +31,7 @@ class WFormCheckbox extends FormBuilderField<bool> {
     super.onChanged,
     super.validator,
   }) : super(
-         enabled: enabled ?? config._enabled,
+         enabled: enabled ?? config.enabled,
          builder: (FormFieldState<bool?> field) {
            final state = field as FormBuilderFieldState<WFormCheckbox, bool>;
            final theme = WFormTheme.maybeOf(field.context);
@@ -65,13 +66,13 @@ class WFormCheckbox extends FormBuilderField<bool> {
              checked: state.value == true,
              enabled: isEnabled,
              child: WFormFieldFrame(
-               height: config._height,
-               width: config._width,
-               decoration: config._containerDecoration,
-               margin: config._containerMargin,
-               padding: config._containerPadding,
-               leading: config._leading,
-               actions: config._actions,
+               height: config.height,
+               width: config.width,
+               decoration: config.containerDecoration,
+               margin: config.containerMargin,
+               padding: config.containerPadding,
+               leading: config.leading,
+               actions: config.actions,
                child: Row(
                  mainAxisSize: MainAxisSize.min,
                  children: [
@@ -128,7 +129,7 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckbox, bool> {
 }
 
 /// 复选框配置类，定义复选框的样式和行为
-class WFormCheckboxConfig {
+class WFormCheckboxConfig extends WFormFieldChrome {
   /// 未选中状态的图标
   Widget? _unselectedIcon;
 
@@ -143,30 +144,6 @@ class WFormCheckboxConfig {
 
   /// 图标 Y 轴偏移
   double? _iconYOffset;
-
-  /// 是否启用
-  bool _enabled = true;
-
-  /// 高度
-  double? _height;
-
-  /// 宽度
-  double? _width;
-
-  /// 左侧组件
-  Widget? _leading;
-
-  /// 操作按钮列表
-  List<Widget>? _actions;
-
-  /// 容器装饰
-  Decoration? _containerDecoration;
-
-  /// 容器边距
-  EdgeInsetsGeometry? _containerMargin;
-
-  /// 容器内边距
-  EdgeInsetsGeometry? _containerPadding;
 
   /// 设置禁用状态图标（null 表示使用默认）
   set disabledIcon(Widget? value) {
@@ -193,46 +170,6 @@ class WFormCheckboxConfig {
     _iconYOffset = value;
   }
 
-  /// 设置是否启用
-  set enabled(bool value) {
-    _enabled = value;
-  }
-
-  /// 设置高度
-  set height(double? value) {
-    _height = value;
-  }
-
-  /// 设置宽度
-  set width(double? value) {
-    _width = value;
-  }
-
-  /// 设置左侧组件
-  set leading(Widget? value) {
-    _leading = value;
-  }
-
-  /// 设置操作按钮列表
-  set actions(List<Widget>? value) {
-    _actions = value;
-  }
-
-  /// 设置容器装饰
-  set containerDecoration(Decoration? value) {
-    _containerDecoration = value;
-  }
-
-  /// 设置容器边距
-  set containerMargin(EdgeInsetsGeometry? value) {
-    _containerMargin = value;
-  }
-
-  /// 设置容器内边距
-  set containerPadding(EdgeInsetsGeometry? value) {
-    _containerPadding = value;
-  }
-
   /// 构建 [WFormCheckbox] 组件
   ///
   /// [enabled] 为 null 时使用配置中的值。
@@ -253,7 +190,7 @@ class WFormCheckboxConfig {
     Key? borderKey,
     bool enableFocusBorder = true,
   }) {
-    final baseEnabled = enabled ?? _enabled;
+    final baseEnabled = enabled ?? this.enabled;
     final config = bordered ? (copy()..containerDecoration = null) : this;
     final field = WFormCheckbox(
       config: config,
@@ -307,14 +244,14 @@ class WFormCheckboxConfig {
     config._disabledIcon = disabledIcon ?? _disabledIcon;
     config._iconSpacing = iconSpacing ?? _iconSpacing;
     config._iconYOffset = iconYOffset ?? _iconYOffset;
-    config._enabled = enabled ?? _enabled;
-    config._height = height ?? _height;
-    config._width = width ?? _width;
-    config._leading = leading ?? _leading;
-    config._actions = actions ?? _actions;
-    config._containerDecoration = containerDecoration ?? _containerDecoration;
-    config._containerMargin = containerMargin ?? _containerMargin;
-    config._containerPadding = containerPadding ?? _containerPadding;
+    config.enabled = enabled ?? this.enabled;
+    config.height = height ?? this.height;
+    config.width = width ?? this.width;
+    config.leading = leading ?? this.leading;
+    config.actions = actions ?? this.actions;
+    config.containerDecoration = containerDecoration ?? this.containerDecoration;
+    config.containerMargin = containerMargin ?? this.containerMargin;
+    config.containerPadding = containerPadding ?? this.containerPadding;
     return config;
   }
 }

@@ -2,6 +2,9 @@
 
 ## 2.0.0
 
+### Changed
+- 新增 `WFormFieldChrome`，六个字段 Config 统一继承公共外框配置。
+
 ### Breaking
 - `WFormData` → `WFormController`；
 - `WFormButton` / `WFormButtonConfig` → `WFormFieldButton` / `WFormFieldButtonConfig`；
