@@ -95,6 +95,48 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('empty + shrinkWrap 不崩溃', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          Column(
+            children: [
+              WListView(
+                shrinkWrap: true,
+                sliver: WListViewSliver.list(
+                  itemCount: 0,
+                  itemBuilder: (_, i) => Text('item-$i'),
+                  empty: const Text('empty'),
+                ),
+              ),
+              const Text('after'),
+            ],
+          ),
+        ),
+      );
+
+      expect(find.text('empty'), findsOneWidget);
+      expect(find.text('after'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('emptyFill 时 empty 填满剩余视口', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.list(
+              itemCount: 0,
+              itemBuilder: (_, i) => Text('item-$i'),
+              empty: const Text('empty'),
+              emptyFill: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(SliverFillRemaining), findsOneWidget);
+      expect(find.text('empty'), findsOneWidget);
+    });
+
     testWidgets('overlap 按 itemExtent - overlap 布局', (tester) async {
       await tester.pumpWidget(
         _host(

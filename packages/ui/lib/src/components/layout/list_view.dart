@@ -54,6 +54,7 @@ class WListViewSliver extends StatelessWidget {
     this.header,
     this.footer,
     this.empty,
+    this.emptyFill = false,
     this.keepAlive = false,
   })  : _kind = _WListViewKind.list,
         separatorBuilder = null,
@@ -71,6 +72,7 @@ class WListViewSliver extends StatelessWidget {
     this.header,
     this.footer,
     this.empty,
+    this.emptyFill = false,
     this.keepAlive = false,
   })  : _kind = _WListViewKind.separated,
         itemExtent = null,
@@ -87,6 +89,7 @@ class WListViewSliver extends StatelessWidget {
     this.header,
     this.footer,
     this.empty,
+    this.emptyFill = false,
     this.keepAlive = false,
   })  : _kind = _WListViewKind.grid,
         itemExtent = null,
@@ -104,6 +107,7 @@ class WListViewSliver extends StatelessWidget {
     this.header,
     this.footer,
     this.empty,
+    this.emptyFill = false,
     this.keepAlive = false,
   })  : _kind = _WListViewKind.overlap,
         // ignore: prefer_initializing_formals
@@ -121,6 +125,12 @@ class WListViewSliver extends StatelessWidget {
   final Widget? header;
   final Widget? footer;
   final Widget? empty;
+
+  /// [empty] 是否填满剩余视口。
+  ///
+  /// 仅在无 header/footer 时生效；`shrinkWrap: true` 时必须为 false。
+  final bool emptyFill;
+
   final bool keepAlive;
 
   final _WListViewKind _kind;
@@ -138,7 +148,7 @@ class WListViewSliver extends StatelessWidget {
     final slivers = <Widget>[
       if (header != null) SliverToBoxAdapter(child: header),
       if (hasEmpty)
-        header == null && footer == null
+        emptyFill && header == null && footer == null
             ? SliverFillRemaining(
                 hasScrollBody: false,
                 child: empty,

@@ -3,6 +3,8 @@
 ## 2.0.0
 
 ### Added
+- `WListViewSliver` 增加 `emptyFill`，显式控制空态是否填满视口；
+  `shrinkWrap: true` 时必须为 false。
 - `WBoxDecorationExtension`：`withGradient` / `withShadow` / `withBorder` /
   `withBorderRadius` / `withColor` 及对应 `without...` / `circle`。
 - `WGradients`：vertical / horizontal / diagonal / radial 方向预设。

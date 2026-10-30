@@ -1061,6 +1061,7 @@ WListView(
 | `padding` | 整个 sliver 组的内边距 |
 | `header` / `footer` | 头部 / 尾部 |
 | `empty` | `itemCount == 0` 时显示；header/footer 仍保留 |
+| `emptyFill` | 是否填满剩余视口；`shrinkWrap: true` 时必须为 false |
 | `keepAlive` | 标准 `addAutomaticKeepAlives` |
 
 ### 重叠列表
@@ -1132,7 +1133,8 @@ WListViewSliver.list(
 ```
 
 - `empty` 只替换列表主体；
-- 无 header/footer 时 `empty` 填满剩余空间；有 header/footer 时按自然高度显示；
+- `emptyFill: true` 且无 header/footer 时填满剩余空间；否则按自然高度显示；
+- `shrinkWrap: true` 时必须使用 `emptyFill: false`；
 - header / footer 继续显示；
 - 不再有 `WListViewConfig`、`buildByList`、`itemBuilderByT`。
 
