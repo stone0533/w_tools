@@ -22,6 +22,12 @@ typedef WStepSeparatorBuilder = Widget Function(
   bool completed,
 );
 
+/// 步骤条语义标签构建器。
+typedef WStepSemanticLabelBuilder = String Function(
+  int current,
+  int total,
+);
+
 /// 步骤条视觉样式。
 class WStepStyle {
   const WStepStyle({
@@ -49,6 +55,34 @@ class WStepStyle {
   final TextStyle? completedLabelStyle;
   final TextStyle? currentLabelStyle;
   final TextStyle? upcomingLabelStyle;
+
+  WStepStyle copyWith({
+    Color? completedColor,
+    Color? currentColor,
+    Color? upcomingColor,
+    double? itemSize,
+    double? labelSpacing,
+    double? separatorHeight,
+    double? separatorIndent,
+    TextStyle? labelStyle,
+    TextStyle? completedLabelStyle,
+    TextStyle? currentLabelStyle,
+    TextStyle? upcomingLabelStyle,
+  }) {
+    return WStepStyle(
+      completedColor: completedColor ?? this.completedColor,
+      currentColor: currentColor ?? this.currentColor,
+      upcomingColor: upcomingColor ?? this.upcomingColor,
+      itemSize: itemSize ?? this.itemSize,
+      labelSpacing: labelSpacing ?? this.labelSpacing,
+      separatorHeight: separatorHeight ?? this.separatorHeight,
+      separatorIndent: separatorIndent ?? this.separatorIndent,
+      labelStyle: labelStyle ?? this.labelStyle,
+      completedLabelStyle: completedLabelStyle ?? this.completedLabelStyle,
+      currentLabelStyle: currentLabelStyle ?? this.currentLabelStyle,
+      upcomingLabelStyle: upcomingLabelStyle ?? this.upcomingLabelStyle,
+    );
+  }
 }
 
 /// 一组步骤的不可变定义，可在多个页面复用。
@@ -59,17 +93,35 @@ class WStepStyle {
 /// AppSteps.register.build(current: step)
 /// ```
 class WStepFlow {
-  const WStepFlow({
-    required this.labels,
+  WStepFlow({
+    required List<String> labels,
     this.style = const WStepStyle(),
     this.itemBuilder,
     this.separatorBuilder,
-  });
+    this.semanticLabelBuilder,
+  }) : labels = List.unmodifiable(labels);
 
   final List<String> labels;
   final WStepStyle style;
   final WStepItemBuilder? itemBuilder;
   final WStepSeparatorBuilder? separatorBuilder;
+  final WStepSemanticLabelBuilder? semanticLabelBuilder;
+
+  WStepFlow copyWith({
+    List<String>? labels,
+    WStepStyle? style,
+    WStepItemBuilder? itemBuilder,
+    WStepSeparatorBuilder? separatorBuilder,
+    WStepSemanticLabelBuilder? semanticLabelBuilder,
+  }) {
+    return WStepFlow(
+      labels: labels ?? this.labels,
+      style: style ?? this.style,
+      itemBuilder: itemBuilder ?? this.itemBuilder,
+      separatorBuilder: separatorBuilder ?? this.separatorBuilder,
+      semanticLabelBuilder: semanticLabelBuilder ?? this.semanticLabelBuilder,
+    );
+  }
 
   WStep build({
     Key? key,
@@ -82,6 +134,7 @@ class WStepFlow {
       style: style,
       itemBuilder: itemBuilder,
       separatorBuilder: separatorBuilder,
+      semanticLabelBuilder: semanticLabelBuilder,
     );
   }
 }
@@ -96,6 +149,7 @@ class WStep extends StatelessWidget {
     required this.labels,
     this.itemBuilder,
     this.separatorBuilder,
+    this.semanticLabelBuilder,
     this.style = const WStepStyle(),
   });
 
@@ -103,6 +157,7 @@ class WStep extends StatelessWidget {
   final List<String> labels;
   final WStepItemBuilder? itemBuilder;
   final WStepSeparatorBuilder? separatorBuilder;
+  final WStepSemanticLabelBuilder? semanticLabelBuilder;
   final WStepStyle style;
 
   @override
@@ -112,6 +167,10 @@ class WStep extends StatelessWidget {
       current >= 1 && current <= labels.length,
       'WStep.current 必须在 1..${labels.length} 之间',
     );
+    assert(style.itemSize > 0, 'WStepStyle.itemSize 必须大于 0');
+    assert(style.labelSpacing >= 0, 'WStepStyle.labelSpacing 不能为负');
+    assert(style.separatorHeight >= 0, 'WStepStyle.separatorHeight 不能为负');
+    assert(style.separatorIndent >= 0, 'WStepStyle.separatorIndent 不能为负');
 
     final children = <Widget>[];
     for (var index = 1; index <= labels.length; index++) {
@@ -138,7 +197,8 @@ class WStep extends StatelessWidget {
     }
 
     return Semantics(
-      label: 'Step $current of ${labels.length}',
+      label:
+          semanticLabelBuilder?.call(current, labels.length) ?? 'Step $current of ${labels.length}',
       child: Row(children: children),
     );
   }

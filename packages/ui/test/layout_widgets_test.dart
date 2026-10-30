@@ -86,7 +86,7 @@ void main() {
   });
 
   testWidgets('WStep — WStepFlow 复用流程定义', (tester) async {
-    const flow = WStepFlow(
+    final flow = WStepFlow(
       labels: ['A', 'B', 'C'],
     );
 
@@ -98,6 +98,34 @@ void main() {
 
     expect(find.text('A'), findsOneWidget);
     expect(find.text('C'), findsOneWidget);
+    expect(() => flow.labels.add('D'), throwsUnsupportedError);
+  });
+
+  testWidgets('WStep — semanticLabelBuilder 自定义语义标签', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WStep(
+          current: 2,
+          labels: const ['A', 'B', 'C'],
+          semanticLabelBuilder: (current, total) => '第 $current 步，共 $total 步',
+        ),
+      ),
+    );
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is Semantics && widget.properties.label == '第 2 步，共 3 步',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  test('WStepStyle — copyWith 返回新实例', () {
+    const style = WStepStyle(itemSize: 30);
+    final copy = style.copyWith(itemSize: 40, completedColor: Colors.green);
+    expect(copy.itemSize, 40);
+    expect(copy.completedColor, Colors.green);
+    expect(style.itemSize, 30);
   });
 
   testWidgets('WStep — current 越界断言', (tester) async {

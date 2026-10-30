@@ -1341,6 +1341,7 @@ WStep(
 | `labels` | 步骤标题，不能为空 |
 | `itemBuilder` | 可选，`(context, index, state)`；index 从 1 开始 |
 | `separatorBuilder` | 可选，`(context, index, completed)`；index 表示第 index 步后的分割线 |
+| `semanticLabelBuilder` | 可选，自定义读屏文案 |
 | `style` | `WStepStyle`，默认蓝/灰 |
 
 #### WStepState
