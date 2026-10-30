@@ -18,8 +18,8 @@ import 'async_view_defaults.dart';
 /// 默认 loading / empty / error 文案只是 fallback；正式项目应通过
 /// [WAsyncViewDefaults] 或显式 builder 覆盖。
 ///
-/// [WAsyncView] 需要有界宽度，适合页面主体、Column 或 ListView item；
-/// 不要直接放进无界宽度的 Row / 横向滚动容器。
+/// [WAsyncView] 适合页面主体、Column 或 ListView item；内部会检测宽度，
+/// 无界宽度时不会强制撑满，但 [readyBuilder] 内容仍应自行约束宽度。
 ///
 /// [onRetry] 由调用方负责处理异常；推荐直接传 `WAsyncController.load`。
 ///
