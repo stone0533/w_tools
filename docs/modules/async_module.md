@@ -233,6 +233,9 @@ WAsyncView<List<Gift>>(
 - failed + 旧数据 → 保留内容 + `WAsyncErrorBanner`；
 - refreshing → 保留内容 + 线性进度条。
 
+刷新进度条可通过 `WAsyncView.refreshingBuilder` / `WAsyncViewDefaults.refreshingBuilder` 覆盖；
+默认仍为 `LinearProgressIndicator`。
+
 默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置：
 
 ```dart

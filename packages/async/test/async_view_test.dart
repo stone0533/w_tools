@@ -154,6 +154,73 @@ void main() {
     expect(find.text('重试'), findsNothing);
   });
 
+  testWidgets('自定义 refreshingBuilder 生效', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.loading(previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async {},
+          readyBuilder: (context, value) => Text('value-$value'),
+          refreshingBuilder: (context) => const Text('custom-refreshing'),
+        ),
+      ),
+    );
+
+    expect(find.text('value-1'), findsOneWidget);
+    expect(find.text('custom-refreshing'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  testWidgets('WAsyncView 在 Row 的无界宽度下不崩溃', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.loading(previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        Row(
+          children: [
+            WAsyncView<int>(
+              state: state,
+              onRetry: () async {},
+              readyBuilder: (context, value) => Text('value-$value'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('WAsyncViewDefaults.refreshingBuilder 生效', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.loading(previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncViewDefaults(
+          refreshingBuilder: (context) => const Text('default-refreshing'),
+          child: WAsyncView<int>(
+            state: state,
+            onRetry: () async {},
+            readyBuilder: (context, value) => Text('value-$value'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('default-refreshing'), findsOneWidget);
+  });
+
   testWidgets('WAsyncViewDefaults.errorBannerBuilder 覆盖刷新错误条', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom', previousData: 1),

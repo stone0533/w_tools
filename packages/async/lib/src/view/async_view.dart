@@ -32,6 +32,7 @@ class WAsyncView<T> extends StatelessWidget {
     this.emptyBuilder,
     this.errorBuilder,
     this.errorBannerBuilder,
+    this.refreshingBuilder,
   });
 
   final ValueListenable<WAsyncState<T>> state;
@@ -44,6 +45,9 @@ class WAsyncView<T> extends StatelessWidget {
   /// failed + 旧数据时的紧凑错误条构建器。
   final WAsyncErrorWidgetBuilder? errorBannerBuilder;
 
+  /// refreshing 时的进度指示器；默认 [LinearProgressIndicator]。
+  final WidgetBuilder? refreshingBuilder;
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<WAsyncState<T>>(
@@ -53,18 +57,17 @@ class WAsyncView<T> extends StatelessWidget {
         final data = value.dataOrNull;
 
         if (data != null && value.isRefreshing) {
-          return SizedBox(
-            width: double.infinity,
-            child: Stack(
-              children: [
-                readyBuilder(context, data),
-                const Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  child: LinearProgressIndicator(),
-                ),
-              ],
+          final indicator = (refreshingBuilder ?? defaults?.refreshingBuilder)?.call(context) ??
+              const LinearProgressIndicator();
+
+          return _buildOverlay(
+            context,
+            content: readyBuilder(context, data),
+            overlay: Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              child: indicator,
             ),
           );
         }
@@ -72,22 +75,18 @@ class WAsyncView<T> extends StatelessWidget {
         if (data != null && value.isFailed) {
           final error =
               errorBannerBuilder ?? defaults?.errorBannerBuilder ?? _defaultErrorBannerBuilder;
-          return SizedBox(
-            width: double.infinity,
-            child: Stack(
-              children: [
-                readyBuilder(context, data),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: error(
-                    context,
-                    value.error!,
-                    () => onRetry(),
-                  ),
-                ),
-              ],
+          return _buildOverlay(
+            context,
+            content: readyBuilder(context, data),
+            overlay: Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: error(
+                context,
+                value.error!,
+                () => onRetry(),
+              ),
             ),
           );
         }
@@ -106,6 +105,20 @@ class WAsyncView<T> extends StatelessWidget {
             () => onRetry(),
           ),
         );
+      },
+    );
+  }
+
+  static Widget _buildOverlay(
+    BuildContext context, {
+    required Widget content,
+    required Widget overlay,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stack = Stack(children: [content, overlay]);
+        if (!constraints.hasBoundedWidth) return stack;
+        return SizedBox(width: constraints.maxWidth, child: stack);
       },
     );
   }

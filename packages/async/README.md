@@ -163,3 +163,4 @@ final result = await WAsync.runWithRetry<List<Gift>, List<Gift>>(
 - 默认 loading / empty / error 文案只是 fallback；
 - `WAsyncView` 适合页面主体 / Column / ListView item；不要直接放进无界宽度的 Row。
 - `onRetry` 应自行处理异常；推荐直接传 `WAsyncController.load`。
+- 刷新进度条可通过 `refreshingBuilder` 或 `WAsyncViewDefaults.refreshingBuilder` 覆盖。

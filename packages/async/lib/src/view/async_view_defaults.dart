@@ -17,6 +17,7 @@ class WAsyncViewDefaults extends InheritedWidget {
     this.emptyBuilder,
     this.errorBuilder,
     this.errorBannerBuilder,
+    this.refreshingBuilder,
     required super.child,
   });
 
@@ -24,6 +25,7 @@ class WAsyncViewDefaults extends InheritedWidget {
   final WidgetBuilder? emptyBuilder;
   final WAsyncErrorWidgetBuilder? errorBuilder;
   final WAsyncErrorWidgetBuilder? errorBannerBuilder;
+  final WidgetBuilder? refreshingBuilder;
 
   static WAsyncViewDefaults? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<WAsyncViewDefaults>();
@@ -34,6 +36,7 @@ class WAsyncViewDefaults extends InheritedWidget {
     return loadingBuilder != oldWidget.loadingBuilder ||
         emptyBuilder != oldWidget.emptyBuilder ||
         errorBuilder != oldWidget.errorBuilder ||
-        errorBannerBuilder != oldWidget.errorBannerBuilder;
+        errorBannerBuilder != oldWidget.errorBannerBuilder ||
+        refreshingBuilder != oldWidget.refreshingBuilder;
   }
 }
