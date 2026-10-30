@@ -1,11 +1,8 @@
-## 4.0.0
-
-- 新增 `w_tools_async`：异步执行、重试、超时、取消、四态状态、Controller 与异步视图。
-- `w_tools_core` 升到 `2.0.0`：异步能力整体迁出 core，迁移到 `w_tools_async`。
-- 根包 `w_tools` 聚合 `w_tools_async`。
-
 ## 3.0.0
 
+- 新增 `w_tools_async`：异步执行、重试、超时、取消、四态状态、Controller 与异步视图。
+- `w_tools_core` 升到 `2.0.0`：异步能力整体迁出 core，迁移到 `w_tools_async`；
+  根包新增 `w_tools_async` 聚合。
 - 依赖：`w_tools_ui` 提升到 `^2.0.0`。
 - `w_tools_ui 2.0.0` 为破坏性版本：移除旧进度 API、`cacheEnabled`、`fitCenter`，
   `WImageConfig.size` 改为 `dimensions` / `square`。详见 `packages/ui/CHANGELOG.md`。
