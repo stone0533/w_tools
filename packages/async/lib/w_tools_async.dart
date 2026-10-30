@@ -4,6 +4,7 @@ export 'src/task/async_task.dart';
 export 'src/task/cancel_token.dart';
 export 'src/state/async_state.dart';
 export 'src/state/async_controller.dart';
+export 'src/view/async_error_banner.dart';
 export 'src/view/async_error_view.dart';
 export 'src/view/async_view.dart';
 export 'src/view/async_view_defaults.dart';

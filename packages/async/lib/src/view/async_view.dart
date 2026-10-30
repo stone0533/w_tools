@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../state/async_state.dart';
+import 'async_error_banner.dart';
 import 'async_error_view.dart';
 import 'async_view_defaults.dart';
 
@@ -128,10 +129,9 @@ class WAsyncView<T> extends StatelessWidget {
     Object error,
     VoidCallback onRetry,
   ) {
-    return WAsyncErrorView(
+    return WAsyncErrorBanner(
       error: error,
       onRetry: onRetry,
-      compact: true,
     );
   }
 }

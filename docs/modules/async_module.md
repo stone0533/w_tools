@@ -3,6 +3,15 @@
 `w_tools_async` 负责异步执行、状态、Controller 与异步视图。`WAsync` 只管「怎么请求」，
 `WAsyncState` 只管「界面该显示什么」。
 
+| 需求 | 入口 |
+|------|------|
+| 页面展示异步结果 | `WAsyncController` + `WAsyncView` |
+| 只执行、不要 UI | `WAsync` |
+| 全 App 默认 loading / empty / error | `WAsyncViewDefaults` |
+| 刷新失败但保留旧数据 | `WAsyncErrorBanner` |
+
+不要手写 `ValueNotifier<WAsyncState>`，也不要在每个页面重复 `when + RetryView`。
+
 ## 模块结构
 
 ```text
@@ -18,6 +27,8 @@ packages/async/lib/
     view/
       async_view.dart       # WAsyncView
       async_error_view.dart # WAsyncErrorView
+      async_error_banner.dart # WAsyncErrorBanner
+      async_error_banner.dart # WAsyncErrorBanner
       async_view_defaults.dart
 ```
 
@@ -29,7 +40,7 @@ packages/async/lib/
 
 ### 类与成员概览
 
-#### WAsyncConfig（异步配置）
+#### WAsyncConfig（执行配置）
 
 | 成员 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -38,6 +49,8 @@ packages/async/lib/
 | `onLoadingEnd` | VoidCallback? | null | Loading 结束回调 |
 | `fallbackOnError` | `void Function(Object?)?` | null | 未传 `onError` 时的兜底错误回调 |
 | `run / runWithRetry / runWithTimeout / wait / runAllWithConcurrency / any / sequence` | 委托方法 | — | 均转发给 WAsync 静态方法 |
+
+`WAsyncConfig` 只管执行期 Loading 回调与兜底错误，不是 UI 默认视图配置。
 
 内部维护 `_activeCount` 计数器，**并发任务的 Loading 状态会自动合并**（多任务共享一次 start/end）。
 
@@ -217,8 +230,32 @@ WAsyncView<List<Gift>>(
 - loading → `CircularProgressIndicator`；
 - empty → 「暂无数据」；
 - failed → `WAsyncErrorView` + 重试按钮；
-- failed + 旧数据 → 保留内容 + 紧凑错误条（`WAsyncErrorView(compact: true)`）；
+- failed + 旧数据 → 保留内容 + `WAsyncErrorBanner`；
 - refreshing → 保留内容 + 线性进度条。
+
+默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置：
+
+```dart
+WAsyncViewDefaults(
+  loadingBuilder: (_) => const AppLoadingView(),
+  emptyBuilder: (_) => const AppEmptyView(),
+  errorBuilder: (context, error, retry) =>
+      AppRetryView(error, retry),
+  errorBannerBuilder: (context, error, retry) =>
+      AppErrorBanner(error, retry),
+  child: MaterialApp(...),
+)
+```
+
+优先级：
+
+```text
+WAsyncView 显式 builder
+  ↓
+WAsyncViewDefaults
+  ↓
+包内默认视图
+```
 
 默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置；`errorBannerBuilder` 可单独覆盖刷新失败条。
 

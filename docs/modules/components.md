@@ -66,7 +66,7 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WAsyncView` / `WAsyncErrorView` | async | 异步四态视图与默认重试视图 | 纯状态逻辑用 `WAsyncState` / `WAsyncController` |
+| `WAsyncView` / `WAsyncErrorView` / `WAsyncErrorBanner` | async | 异步四态视图、默认重试页与刷新错误条 | 纯状态逻辑用 `WAsyncState` / `WAsyncController` |
 | `WToast` / `WnnToast` | toast | 轻提示 | — |
 | `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | — |

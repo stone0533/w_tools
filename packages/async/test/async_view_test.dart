@@ -77,10 +77,7 @@ void main() {
       ),
     );
 
-    final errorView = tester.widget<WAsyncErrorView>(
-      find.byType(WAsyncErrorView),
-    );
-    expect(errorView.compact, isTrue);
+    expect(find.byType(WAsyncErrorBanner), findsOneWidget);
     expect(find.text('value-1'), findsOneWidget);
   });
 

@@ -24,6 +24,9 @@
    **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated
    cards; use `Container` + `BoxDecoration` for one-off boxes; use `Container` directly
    for width/height/constraints/transform. Do not add an `AppBox` / `AppContainer` god wrapper.
+   **Async blocks**: with `w_tools_async`, use `WAsyncController + WAsyncView` for pages;
+   do not hand-write `ValueNotifier<WAsyncState>` or repeat `when + RetryView` per page.
+   One Controller per independent block; use `WAsyncViewDefaults` for global defaults.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

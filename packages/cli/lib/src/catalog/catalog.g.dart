@@ -268,8 +268,8 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
   ),
   CatalogEntry(
-    name: "WAsyncView / WAsyncErrorView",
-    names: <String>["WAsyncView", "WAsyncErrorView"],
+    name: "WAsyncView / WAsyncErrorView / WAsyncErrorBanner",
+    names: <String>["WAsyncView", "WAsyncErrorView", "WAsyncErrorBanner"],
     package: "w_tools_async",
     section: "7. 状态与反馈",
     useFor: "异步四态视图与默认重试视图",

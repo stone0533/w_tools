@@ -22,6 +22,9 @@
    **盒子**：重复 `BoxDecoration` 收进 `AppBoxes`；重复卡片用 `AppCard`；
    一次性盒子用 `Container` + `BoxDecoration`；需要 width/height/constraints/transform
    时直接用 `Container`。不要新增 `AppBox` / `AppContainer` 万能包装。
+   **异步区块**：使用 `w_tools_async` 时，页面统一 `WAsyncController + WAsyncView`；
+   不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
+   每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncViewDefaults`。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：

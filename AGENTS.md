@@ -68,3 +68,13 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。
 
+
+## 异步区块（w_tools_async）
+
+- 页面展示异步结果：`WAsyncController` + `WAsyncView`。
+- 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
+- 每个独立区块一个 Controller；不要用一个 `WAsyncConfig` 合并多个独立区块的 Loading。
+- 全局默认 loading / empty / error 用 `WAsyncViewDefaults`。
+- `WAsyncController` 会把所有异常转为 failed；只丢弃旧请求，不中止底层 Future。
+- 需要中止请求时，由 loader 接收 `WCancelToken`。
+- `WAsync` / `WAsyncConfig` / `WCancelToken` 只在不需要 UI 状态时直接使用。

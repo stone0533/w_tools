@@ -11,44 +11,15 @@ class WAsyncErrorView extends StatelessWidget {
     this.onRetry,
     this.title = '加载失败',
     this.retryText = '重试',
-    this.compact = false,
   });
 
   final Object error;
   final VoidCallback? onRetry;
   final String title;
   final String retryText;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    if (compact) {
-      return Material(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              const Icon(Icons.error_outline, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '$title：$error',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (onRetry != null)
-                TextButton(
-                  onPressed: onRetry,
-                  child: Text(retryText),
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
