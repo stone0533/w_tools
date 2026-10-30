@@ -11,6 +11,7 @@ export 'src/utils/storage.dart';
 export 'src/utils/ux.dart';
 export 'src/utils/countdown.dart';
 export 'src/utils/platform.dart';
+export 'src/utils/cancel_token.dart';
 export 'src/utils/async_task.dart';
 export 'src/utils/async_state.dart';
 export 'src/utils/reg_exp.dart';
