@@ -68,7 +68,7 @@
 | --- | --- | --- | --- |
 | `WToast` / `WnnToast` | toast | 轻提示 | — |
 | `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
-| `WListView` / `WListViewConfig` | ui | 列表（分页、下拉刷新） | — |
+| `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | — |
 
 ## 8. 能力（非 UI）
 

@@ -56,7 +56,7 @@ ui/
     │   │   └── rich_text.dart                 # WRichText
     │   ├── layout/                 # 布局组件
     │   │   ├── appbar.dart                    # WAppBar / WAppBarStyle
-    │   │   ├── list_view.dart                 # WListView / WListViewConfig
+    │   │   ├── list_view.dart                 # WListView / WListViewSliver
     │   │   ├── scaffold.dart                  # WScaffold
     │   │   └── step.dart                      # WStep
     │   └── navigation/             # 导航组件
@@ -991,133 +991,149 @@ WBadge(
 
 ---
 
-## 6. WListView - 增强列表组件
+## 6. WListView - 列表
 
 ### 功能说明
 
-支持普通列表、带分隔线列表、网格布局；支持头尾组件、重叠效果、空列表占位、子项缓存。使用 `SliverMainAxisGroup` 组织带头尾的列表，`cacheExtent` 兼容 Flutter 3.27–3.44 各版本。
+`WListView` 只负责独立滚动，`WListViewSliver` 只负责列表内容：
 
-### 构造函数
+```text
+WListView        + controller / physics / shrinkWrap
+WListViewSliver  + list / separated / grid / overlap
+```
 
-| 构造函数 | 说明 |
-|----------|------|
-| `WListView({config, itemBuilder, itemCount, ...})` | 普通列表 |
-| `WListView.separated({...})` | 带分隔线的列表 |
-| `WListView.grid({gridDelegate, ...})` | 网格布局列表 |
-
-### WListView 构造参数
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `config` | WListViewConfig | 必需，列表配置 |
-| `itemBuilder` | `Widget Function(BuildContext, int)` | 子项构建器 |
-| `itemCount` | int | 子项数量 |
-| `controller` | `ScrollController?` | 滚动控制器 |
-| `header` | `Widget?` | 头部组件 |
-| `footer` | `Widget?` | 尾部组件 |
-| `cacheItems` | bool | false | 是否启用子项缓存 |
-| `gridDelegate` | `SliverGridDelegate?` | 网格代理（grid 构造函数中必填） |
-| `emptyWidget` | `Widget?` | 空列表占位符（优先级高于 config） |
-
-### WListViewConfig 配置参数
-
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `padding` | `EdgeInsetsGeometry` | EdgeInsets.zero | 列表内边距 |
-| `scrollDirection` | Axis | vertical | 滚动方向 |
-| `reverse` | bool | false | 是否反向滚动 |
-| `physics` | ScrollPhysics | AlwaysScrollableScrollPhysics | 物理滚动特性 |
-| `cacheExtent` | `double?` | 垂直 200, 水平 100 | 预加载区域大小 |
-| `itemExtent` | `double?` | null | 子项固定尺寸 |
-| `emptyWidget` | `Widget?` | null | 空列表占位符 |
-| `usePreciseCache` | bool | false | 是否使用精确缓存 |
-| `backgroundColor` | `Color?` | null | 背景色 |
-| `borderRadius` | `BorderRadius?` | null | 圆角 |
-| `border` | `BoxBorder?` | null | 边框 |
-| `shrinkWrap` | bool | false | 是否自适应高度 |
-| `separatorBuilder` | `Widget Function(BuildContext, int)?` | null | 分隔线构建器 |
-| `useOverlap` | bool | false | 子项重叠效果 |
-| `overlapOffset` | double | 0.0 | 重叠偏移量（≤ 0） |
-
-### WListViewConfig 预设工厂
-
-| 工厂方法 | 说明 |
-|----------|------|
-| `WListViewConfig()` | 默认配置 |
-| `WListViewConfig.vertical(...)` | 垂直列表（cacheExtent 200） |
-| `WListViewConfig.horizontal(...)` | 水平列表（cacheExtent 100） |
-| `WListViewConfig.card(...)` | 卡片风格（白色背景、圆角 8、padding 16） |
-| `WListViewConfig.compact(...)` | 紧凑风格（cacheExtent 150） |
-
-### WListViewConfig 构建方法
-
-| 方法 | 说明 |
-|------|------|
-| `build({itemBuilder, itemCount, ...})` | 构建普通列表 |
-| `buildSeparated({...})` | 构建带分隔线列表 |
-| `buildGrid({itemBuilder, itemCount, gridDelegate, ...})` | 构建网格列表 |
-| `buildByList<T>({data, itemBuilder, ...})` | 从数据列表构建泛型列表 |
-| `copyWith(...)` / `copy()` | 创建副本 |
-
-### 使用示例
+需要嵌入 SmartRefresher / NestedScrollView 时，直接使用 `WListViewSliver`：
 
 ```dart
-// 基础用法
-WListView(
-  config: WListViewConfig.vertical(),
-  itemCount: 20,
-  itemBuilder: (ctx, i) => ListTile(title: Text('Item $i')),
-)
-
-// 使用配置类链式构建（推荐）
-WListViewConfig.card()
-  ..itemExtent = 60
-  ..padding = EdgeInsets.symmetric(horizontal: WScreen.w(16))
-  ..backgroundColor = Colors.white
-  ..borderRadius = BorderRadius.circular(12)
-  ..build(
-    itemCount: 20,
-    itemBuilder: (ctx, i) => ListTile(title: Text('Item $i')),
-    header: const Text('头部'),
-    footer: const Text('尾部'),
-  )
-
-// 带分隔线
-WListViewConfig.vertical()
-  ..separatorBuilder = (_, __) => const Divider(height: 1)
-  ..buildSeparated(
-    itemCount: 20,
-    itemBuilder: (ctx, i) => ListTile(title: Text('Item $i')),
-  )
-
-// 网格布局
-WListViewConfig.vertical().buildGrid(
-  itemCount: 20,
-  itemBuilder: (ctx, i) => Container(color: Colors.blue, child: Text('$i')),
-  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: 2, childAspectRatio: 1.0,
+SmartRefresher(
+  child: CustomScrollView(
+    slivers: [
+      WListViewSliver.overlap(
+        itemExtent: 230,
+        overlap: 60,
+        itemCount: items.length,
+        itemBuilder: (context, index) => card(items[index]),
+      ),
+    ],
   ),
 )
-
-// 从数据列表构建（泛型）
-final List<User> users = [...];
-WListViewConfig.vertical().buildByList<User>(
-  data: users,
-  itemBuilder: (ctx, user) => ListTile(title: Text(user.name)),
-  emptyWidget: const Center(child: Text('暂无数据')),
-)
-
-// 子项重叠效果（卡片堆叠）
-WListViewConfig.vertical()
-  ..itemExtent = 100
-  ..useOverlap = true
-  ..overlapOffset = -20
-  ..backgroundColor = Colors.transparent
-  ..build(
-    itemCount: 10,
-    itemBuilder: (ctx, i) => Card(child: ListTile(title: Text('Card $i'))),
-  )
 ```
+
+### WListView
+
+```dart
+WListView(
+  controller: controller,
+  physics: const AlwaysScrollableScrollPhysics(),
+  sliver: WListViewSliver.list(
+    itemCount: items.length,
+    itemBuilder: (context, index) => Text('$index'),
+  ),
+)
+```
+
+参数：
+
+| 参数 | 说明 |
+|------|------|
+| `sliver` | 必需，列表内容 |
+| `controller` | 可选，滚动控制器，由调用方管理 |
+| `physics` | 可选，只属于最终滚动层 |
+| `shrinkWrap` | 可选，独立列表使用；嵌套滚动请用 sliver |
+| `scrollDirection` | 可选，默认垂直 |
+| `reverse` | 可选，默认 false |
+
+### WListViewSliver 构造
+
+| 构造 | 说明 |
+|------|------|
+| `WListViewSliver.list` | 普通列表，可选 `itemExtent` |
+| `WListViewSliver.separated` | 分隔列表，`separatorBuilder` 必填 |
+| `WListViewSliver.grid` | 网格列表，`gridDelegate` 必填 |
+| `WListViewSliver.overlap` | 重叠列表，`itemExtent` + `overlap` 必填 |
+
+公共参数：
+
+| 参数 | 说明 |
+|------|------|
+| `itemCount` | 子项数量 |
+| `itemBuilder` | 子项构建器 |
+| `padding` | 整个 sliver 组的内边距 |
+| `header` / `footer` | 头部 / 尾部 |
+| `empty` | `itemCount == 0` 时显示；header/footer 仍保留 |
+| `keepAlive` | 标准 `addAutomaticKeepAlives` |
+
+### 重叠列表
+
+```dart
+WListViewSliver.overlap(
+  itemExtent: 230,
+  overlap: 60,
+  itemCount: items.length,
+  itemBuilder: (context, index) => card(items[index]),
+)
+```
+
+语义：
+
+```text
+itemExtent = 卡片自身高度
+overlap = 相邻卡片重叠高度
+有效布局高度 = itemExtent - overlap
+```
+
+约束：
+
+```text
+itemExtent > 0
+0 <= overlap < itemExtent
+```
+
+重叠仅由 `WListViewSliver.overlap` 提供，不再使用 `useOverlap` / `overlapOffset`。
+`overlap` 只支持垂直方向；水平列表请使用 `WListViewSliver.list` / `.separated` / `.grid`。
+
+### 与 SmartRefresher 配合
+
+```dart
+GetBuilder(
+  builder: (c) => SmartRefresher(
+    controller: controller.refreshController,
+    onRefresh: controller.onRefresh,
+    child: CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        WListViewSliver.list(
+          itemCount: c.items.length,
+          itemBuilder: (context, index) => card(c.items[index]),
+        ),
+      ],
+    ),
+  ),
+)
+```
+
+关键约束：
+
+- `SmartRefresher` 的 child 必须直接是 `CustomScrollView`；
+- 不要把 `GetBuilder` 放在 `SmartRefresher` 和 `CustomScrollView` 之间；
+- 不要在 `WListViewSliver` 内部放 controller / physics；
+- 不要再使用 `shrinkWrap` 作为嵌套适配。
+
+### 头部 / 尾部 / 空状态
+
+```dart
+WListViewSliver.list(
+  itemCount: items.length,
+  header: const Text('Header'),
+  footer: const Text('Footer'),
+  empty: const Center(child: Text('暂无数据')),
+  itemBuilder: ...,
+)
+```
+
+- `empty` 只替换列表主体；
+- header / footer 继续显示；
+- 不再有 `WListViewConfig`、`buildByList`、`itemBuilderByT`。
 
 ---
 
@@ -1544,11 +1560,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WListViewConfig.card()
-      ..padding = EdgeInsets.all(WScreen.w(16))
-      ..itemExtent = WScreen.h(60)
-      ..separatorBuilder = (_, __) => const Divider(height: 1, indent: 16, endIndent: 16)
-      ..build(
+    return WListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      sliver: WListViewSliver.separated(
+        padding: EdgeInsets.all(WScreen.w(16)),
+        separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
         itemCount: _items.length,
         itemBuilder: (ctx, i) => ListTile(
           leading: CircleAvatar(child: Text('${i + 1}')),
@@ -1580,8 +1596,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
-        emptyWidget: const Center(child: Text('暂无数据')),
-      );
+        empty: const Center(child: Text('暂无数据')),
+      ),
+    );
   }
 }
 ```
@@ -1686,7 +1703,7 @@ class MainNavBar extends StatelessWidget {
 | 3.41 – 3.43 | ✅ 兼容 | `cacheExtent` 仍可用，同时存在 `scrollCacheExtent` |
 | 3.44+ | ✅ 兼容（deprecated） | `cacheExtent` 被标记 deprecated，源码使用 `// ignore: deprecated_member_use` 保持兼容 |
 
-> 最低 Flutter 版本锁定为 3.27。源码中 `WListView` 所有 ListView/GridView 分支均使用 `cacheExtent`，并带 deprecation 忽略注释。未来统一迁移到 `scrollCacheExtent` 时需同步提升最低 Flutter 版本。
+> 最低 Flutter 版本锁定为 3.27。`WListView` / `WListViewSliver` 使用 sliver API；未来统一迁移缓存参数时需同步提升最低 Flutter 版本。
 
 ### WScreen 委托注入
 
@@ -1708,9 +1725,10 @@ class MainNavBar extends StatelessWidget {
 
 ### WListView controller 生命周期
 
-- `controller` 由调用方持有，组件只负责添加/移除监听
-- 内部创建的 controller（未传入时）在组件 dispose 时自动释放
-- 带 header/footer 时使用 `SliverMainAxisGroup`（最低 Flutter 3.27 提供）
+- `WListView.controller` 由调用方持有并释放
+- 组件不创建内部 controller
+- `WListViewSliver` 不持有 controller / physics
+- header/footer/empty 统一使用 `SliverMainAxisGroup`
 
 ### WNavController 生命周期
 

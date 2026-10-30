@@ -268,8 +268,8 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
   ),
   CatalogEntry(
-    name: "WListView / WListViewConfig",
-    names: <String>["WListView", "WListViewConfig"],
+    name: "WListView / WListViewSliver",
+    names: <String>["WListView", "WListViewSliver"],
     package: "w_tools_ui",
     section: "7. 状态与反馈",
     useFor: "列表（分页、下拉刷新）",

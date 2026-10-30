@@ -120,7 +120,7 @@ components:
     package: 'w_tools_ui'
     section: '7. 状态与反馈'
     useFor: '加载指示'
-  - name: '`WListView` / `WListViewConfig`'
+  - name: '`WListView` / `WListViewSliver`'
     package: 'w_tools_ui'
     section: '7. 状态与反馈'
     useFor: '列表（分页、下拉刷新）'

@@ -48,15 +48,6 @@ void main() {
     });
   });
 
-  group('WListViewConfig', () {
-    test('setter 可调用', () {
-      final c = WListViewConfig()
-        ..padding = const EdgeInsets.symmetric(horizontal: 16)
-        ..physics = const AlwaysScrollableScrollPhysics();
-      expect(c, isNotNull);
-    });
-  });
-
   group('WNavBarConfig', () {
     test('decoration / padding 可设置', () {
       const c = WNavBarConfig(

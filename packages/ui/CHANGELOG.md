@@ -19,6 +19,9 @@
 - `WWidgetExtension.withDecoration`：给 Widget 包一层 `DecoratedBox`。
 
 ### Breaking
+- `WListView` 拆为 `WListView` + `WListViewSliver`：前者只负责独立滚动，后者只提供
+  sliver，可直接嵌入 SmartRefresher / NestedScrollView；删除 `WListViewConfig`、
+  `buildByList`、`itemBuilderByT`；重叠改为 `WListViewSliver.overlap` 的正向 `overlap`。
 - 删除 `WContainer` / `WContainerConfig`；盒子直接用 `Container` + `BoxDecoration`。
 - 删除 `WWidgetExtension.withContainer`；`WWidgetExtension` 只保留间距、展开和点击糖。
 - `WNavBarConfig.containerConfig` 改为 `decoration` + `padding`。
