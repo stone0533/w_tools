@@ -69,6 +69,13 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。
 
 
+## 文字（w_tools_ui）
+
+- 新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`，不要再用 `WTextConfig` 逐字段拼样式。
+- 字体/字号/字重/行高统一放 `WTextStyles` / `TextTheme`。
+- 局部用 `style` / `color` / `maxLines` / `overflow` / `textScaler` 覆盖。
+- 多字体优先 `fontFamilyFallback`；同一段主动混排用 `Text.rich` / `WRichText`。
+
 ## 异步区块（w_tools_async）
 
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。

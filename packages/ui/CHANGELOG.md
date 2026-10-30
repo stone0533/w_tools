@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+
+- 新增 `WTextVariant` / `WTextStyles`：语义文字样式与 `ThemeExtension`；
+- `WText` 增加 `variant`、`style`、`color`、`maxLines`、`softWrap`、`textScaler` 等参数；
+- `WTextConfig` 保留兼容。
+
 ## 2.0.0
 
 ### Added

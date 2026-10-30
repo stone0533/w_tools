@@ -48,6 +48,69 @@ void main() {
       expect(find.text('default'), findsOneWidget);
     });
 
+    testWidgets('variant 使用 WTextStyles 主题', (tester) async {
+      final styles = WTextStyles.fromTextTheme(ThemeData.light().textTheme).copyWith(
+        body: const TextStyle(fontSize: 42, color: Colors.green),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(extensions: [styles]),
+          home: const Scaffold(
+            body: WText(text: 'semantic', variant: WTextVariant.body),
+          ),
+        ),
+      );
+
+      final text = tester.widget<Text>(find.text('semantic'));
+      expect(text.style?.fontSize, 42);
+      expect(text.style?.color, Colors.green);
+    });
+
+    testWidgets('style / color 可覆盖 variant', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: WText(
+              text: 'override',
+              variant: WTextVariant.body,
+              color: Colors.red,
+              style: TextStyle(fontSize: 19),
+            ),
+          ),
+        ),
+      );
+
+      final text = tester.widget<Text>(find.text('override'));
+      expect(text.style?.color, Colors.red);
+      expect(text.style?.fontSize, 19);
+    });
+
+    testWidgets('支持 maxLines / softWrap / textScaler', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: WText(
+              text: 'standard text props',
+              variant: WTextVariant.body,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              softWrap: false,
+              textScaler: TextScaler.linear(1.5),
+            ),
+          ),
+        ),
+      );
+
+      final text = tester.widget<Text>(find.text('standard text props'));
+      expect(text.maxLines, 2);
+      expect(text.overflow, TextOverflow.ellipsis);
+      expect(text.textAlign, TextAlign.center);
+      expect(text.softWrap, isFalse);
+      expect(text.textScaler, const TextScaler.linear(1.5));
+    });
+
     testWidgets('无 config 时不设置 strutStyle（避免裁切继承字号）', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(

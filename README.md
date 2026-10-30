@@ -66,7 +66,7 @@ dependencies:
 dependencies:
   w_tools_core: ^2.0.0
   w_tools_async: ^1.0.0
-  w_tools_ui: ^2.0.0
+  w_tools_ui: ^2.1.0
   w_tools_form: ^1.0.0
   # 需要再加 w_tools_app / api / toast / qr / map
 ```
@@ -94,7 +94,7 @@ dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 ```yaml
 dependencies:
   w_tools_core: ^2.0.0   # 只引子包
-  w_tools_ui: ^2.0.0
+  w_tools_ui: ^2.1.0
 ```
 
 或一键引入聚合包（会带上全部 9 个 Flutter 子包及其依赖）：
@@ -140,7 +140,7 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_ui: ^2.0.0     # 只用 UI 组件
+  w_tools_ui: ^2.1.0     # 只用 UI 组件
   w_tools_core: ^2.0.0   # 只用工具类与扩展
 ```
 

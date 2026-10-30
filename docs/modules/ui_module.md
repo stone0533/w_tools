@@ -52,6 +52,7 @@ ui/
     │   │   ├── notification_listener.dart      # WNotificationListenerBuilder
     │   │   ├── row_buttons.dart               # WRowButtons
     │   │   ├── text.dart                      # WText, WTextConfig
+    │   │   ├── text_styles.dart               # WTextStyles / WTextVariant
     │   │   ├── gradient_circular_progress_indicator.dart
     │   │   └── rich_text.dart                 # WRichText
     │   ├── layout/                 # 布局组件
@@ -519,6 +520,64 @@ Semantics(
 可运行示例见 [`packages/ui/example/lib/buttons_page.dart`](../../packages/ui/example/lib/buttons_page.dart)。
 
 ## 3. WText - 文本组件
+
+> 新代码推荐 `WText(variant: ...)` + `WTextStyles`。  
+> `WTextConfig` 仅保留兼容。
+
+### 推荐：语义文字样式
+
+```dart
+WText(
+  text: '标题',
+  variant: WTextVariant.title,
+  maxLines: 1,
+  overflow: TextOverflow.ellipsis,
+)
+```
+
+`WTextStyles` 是 `ThemeExtension<WTextStyles>`：
+
+```dart
+ThemeData(
+  extensions: [
+    WTextStyles(
+      display: ...,
+      headline: ...,
+      title: ...,
+      body: ...,
+      bodyStrong: ...,
+      caption: ...,
+      label: ...,
+      button: ...,
+      price: ...,
+      number: ...,
+      badge: ...,
+    ),
+  ],
+)
+```
+
+没有安装时，`WTextStyles.of` 会从当前 `TextTheme` 生成兜底样式。
+
+### WText 新参数
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `variant` | `WTextVariant?` | 语义样式；null 时保持旧 config-only 行为 |
+| `style` | `TextStyle?` | 一次性样式覆盖 |
+| `color` | `Color?` | 一次性颜色覆盖 |
+| `maxLines` | `int?` | 最大行数 |
+| `overflow` | `TextOverflow?` | 溢出处理 |
+| `textAlign` | `TextAlign?` | 对齐方式 |
+| `softWrap` | `bool?` | 是否软换行 |
+| `textDirection` | `TextDirection?` | 文本方向 |
+| `textScaler` | `TextScaler?` | 文本缩放 |
+| `semanticsLabel` | `String?` | 无障碍标签 |
+| `locale` | `Locale?` | 语言 |
+| `textWidthBasis` | `TextWidthBasis?` | 宽度基准 |
+| `strutStyle` | `StrutStyle?` | 显式 strut |
+
+
 
 ### 功能说明
 

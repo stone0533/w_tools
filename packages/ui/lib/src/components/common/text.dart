@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/screen.dart';
+import 'text_styles.dart';
 
 /// 文本组件，用于显示和配置文本样式
 class WText extends StatelessWidget {
@@ -10,29 +11,66 @@ class WText extends StatelessWidget {
   /// 文本内容
   final String text;
 
+  /// 语义文字样式；为 null 时保持旧版 config-only 行为。
+  final WTextVariant? variant;
+
+  /// 一次性样式覆盖，优先级高于 variant / config。
+  final TextStyle? style;
+
+  /// 一次性颜色覆盖，优先级高于 variant / config / style。
+  final Color? color;
+
+  final int? maxLines;
+  final TextOverflow? overflow;
+  final TextAlign? textAlign;
+  final bool? softWrap;
+  final TextDirection? textDirection;
+  final TextScaler? textScaler;
+  final String? semanticsLabel;
+  final Locale? locale;
+  final TextWidthBasis? textWidthBasis;
+  final StrutStyle? strutStyle;
+
   /// 构造函数
   ///
   /// - [key]：组件键
-  /// - [config]：文本配置
+  /// - [config]：旧版文本配置
   /// - [text]：文本内容
+  /// - [variant]：语义文字样式；推荐新代码使用
+  /// - [style]：一次性 TextStyle 覆盖
+  /// - [color]：一次性颜色覆盖
   const WText({
     super.key,
     required this.text,
     this.config,
+    this.variant,
+    this.style,
+    this.color,
+    this.maxLines,
+    this.overflow,
+    this.textAlign,
+    this.softWrap,
+    this.textDirection,
+    this.textScaler,
+    this.semanticsLabel,
+    this.locale,
+    this.textWidthBasis,
+    this.strutStyle,
   });
 
   @override
   Widget build(BuildContext context) {
     final config = this.config;
+    final variant = this.variant;
 
     // 仅在显式配置了相关字段时才覆盖 strut，避免默认 strut 裁切继承来的大字号
-    StrutStyle? strutStyle;
+    StrutStyle? configStrutStyle;
     if (config != null &&
         (config._fontFamily != null ||
             config._fontSize != null ||
             config._height != null ||
             config._forceStrutHeight != null)) {
-      strutStyle = StrutStyle(
+      configStrutStyle = StrutStyle(
         fontFamily: config._fontFamily,
         fontSize: config._fontSize,
         height: config._height,
@@ -40,21 +78,34 @@ class WText extends StatelessWidget {
       );
     }
 
+    TextStyle? effectiveStyle;
+    if (variant != null) {
+      effectiveStyle = WTextStyles.of(context).resolve(variant);
+    }
+    if (config != null) {
+      final configStyle = config.toTextStyle();
+      effectiveStyle = effectiveStyle?.merge(configStyle) ?? configStyle;
+    }
+    if (style != null) {
+      effectiveStyle = effectiveStyle?.merge(style) ?? style;
+    }
+    if (color != null) {
+      effectiveStyle = (effectiveStyle ?? const TextStyle()).copyWith(color: color);
+    }
+
     return Text(
       text,
-      style: TextStyle(
-        fontFamily: config?._fontFamily,
-        fontWeight: config?._fontWeight,
-        fontSize: config?._fontSize,
-        color: config?._color,
-        letterSpacing: config?._letterSpacing,
-        height: config?._height,
-        overflow: config?._overflow,
-        decoration: config?._decoration,
-        decorationColor: config?._decorationColor,
-      ),
-      strutStyle: strutStyle,
-      textAlign: config?._textAlign,
+      style: effectiveStyle,
+      strutStyle: strutStyle ?? configStrutStyle,
+      textAlign: textAlign ?? config?._textAlign,
+      maxLines: maxLines,
+      overflow: overflow ?? config?._overflow,
+      softWrap: softWrap,
+      textDirection: textDirection,
+      textScaler: textScaler,
+      semanticsLabel: semanticsLabel,
+      locale: locale,
+      textWidthBasis: textWidthBasis,
     );
   }
 }

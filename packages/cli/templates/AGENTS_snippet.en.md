@@ -21,6 +21,9 @@
    `WButtonStyle` in pages unless it is an explicit one-off style.
    **Use `WButton` for real buttons, `WPressable` for arbitrary cards/child taps**;
    do not wrap arbitrary children with `WButton`.
+   **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
+   in the theme, not `WTextConfig` field-by-field. Override with `style` / `color` /
+   `maxLines` / `overflow` locally.
    **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated
    cards; use `Container` + `BoxDecoration` for one-off boxes; use `Container` directly
    for width/height/constraints/transform. Do not add an `AppBox` / `AppContainer` god wrapper.

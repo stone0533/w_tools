@@ -19,6 +19,8 @@
    **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
    `WButtonStyle`，除非是明确的局部一次性样式。
    **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；不要用 `WButton` 包任意 child。
+   **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
+   不要再用 `WTextConfig` 逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
    **盒子**：重复 `BoxDecoration` 收进 `AppBoxes`；重复卡片用 `AppCard`；
    一次性盒子用 `Container` + `BoxDecoration`；需要 width/height/constraints/transform
    时直接用 `Container`。不要新增 `AppBox` / `AppContainer` 万能包装。

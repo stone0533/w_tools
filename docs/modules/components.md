@@ -19,7 +19,8 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WText` / `WTextConfig` | ui | 所有文字（字体、字重、行高、颜色） | 不要裸用 `Text` —— 字体会漏配 NotoSansTC |
+| `WText` / `WTextVariant` / `WTextStyles` | ui | 语义文字样式、overrides、maxLines、textScaler | 新代码不要再用 `WTextConfig` 逐字段拼样式 |
+| `WTextConfig` | ui | 旧版文字配置（兼容保留） | 新代码不用；改用 `WTextStyles` |
 | `WRichText` | ui | 一段文字里多种颜色/字重 | 单色文本用 `WText` 更省事 |
 | `WImage` | ui | 网络图/资源图（缓存、重试、占位） | 不要裸用 `Image.network` |
 
