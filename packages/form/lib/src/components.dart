@@ -13,6 +13,7 @@ export 'components/fields/dropdown.dart';
 export 'components/fields/multi_dropdown.dart';
 export 'components/fields/radio_group.dart';
 export 'components/fields/text_field.dart';
+export 'components/fields/text_field_actions.dart';
 
 // 表单容器与数据
 export 'components/field_button.dart';
