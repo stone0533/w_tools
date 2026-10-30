@@ -1134,7 +1134,7 @@ WListViewSliver.list(
 
 - `empty` 只替换列表主体；
 - `emptyFill: true` 且无 header/footer 时填满剩余空间；否则按自然高度显示；
-- `shrinkWrap: true` 时必须使用 `emptyFill: false`；
+- `shrinkWrap: true` 时必须使用 `emptyFill: false`；直接放进 `CustomScrollView` 时同样受此限制；
 - header / footer 继续显示；
 - 不再有 `WListViewConfig`、`buildByList`、`itemBuilderByT`。
 

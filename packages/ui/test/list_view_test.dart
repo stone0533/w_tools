@@ -137,6 +137,26 @@ void main() {
       expect(tester.takeException(), isAssertionError);
     });
 
+    testWidgets('emptyFill false 可直接放进 shrinkWrap CustomScrollView', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          CustomScrollView(
+            shrinkWrap: true,
+            slivers: [
+              WListViewSliver.list(
+                itemCount: 0,
+                itemBuilder: (_, i) => Text('item-$i'),
+                empty: const Text('empty'),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(find.text('empty'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('emptyFill + header/footer 时忽略 fill', (tester) async {
       await tester.pumpWidget(
         _host(

@@ -133,6 +133,7 @@ class WListViewSliver extends StatelessWidget {
   /// [empty] 是否填满剩余视口。
   ///
   /// 仅在无 header/footer 时生效；`shrinkWrap: true` 时必须为 false。
+  /// 直接放进 `CustomScrollView` 时同样受此限制。
   final bool emptyFill;
 
   final bool keepAlive;
