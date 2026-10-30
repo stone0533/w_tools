@@ -1,0 +1,29 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+import '../state/async_state.dart';
+
+/// 把 [WAsyncState] 交给调用方自行构建 UI。
+///
+/// 适合滚动页面、`SmartRefresher`、`CustomScrollView` 或需要完全控制
+/// loading / empty / error 布局的场景。
+///
+/// 普通页面区块优先使用 [WAsyncView]。
+class WAsyncBuilder<T> extends StatelessWidget {
+  const WAsyncBuilder({
+    super.key,
+    required this.state,
+    required this.builder,
+  });
+
+  final ValueListenable<WAsyncState<T>> state;
+  final Widget Function(BuildContext context, WAsyncState<T> state) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<WAsyncState<T>>(
+      valueListenable: state,
+      builder: (context, value, _) => builder(context, value),
+    );
+  }
+}

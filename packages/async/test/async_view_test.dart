@@ -342,6 +342,36 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
+  testWidgets('WAsyncBuilder 透传状态变化', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.loading(),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncBuilder<int>(
+          state: state,
+          builder: (context, value) => Text('status-${value.status.name}'),
+        ),
+      ),
+    );
+
+    expect(find.text('status-loading'), findsOneWidget);
+
+    state.value = const WAsyncState.ready(1);
+    await tester.pump();
+    expect(find.text('status-ready'), findsOneWidget);
+
+    state.value = const WAsyncState.empty();
+    await tester.pump();
+    expect(find.text('status-empty'), findsOneWidget);
+
+    state.value = const WAsyncState.failed('boom');
+    await tester.pump();
+    expect(find.text('status-failed'), findsOneWidget);
+  });
+
   testWidgets('默认错误视图重试回调可用', (tester) async {
     var retries = 0;
     final state = ValueNotifier<WAsyncState<int>>(

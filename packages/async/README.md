@@ -165,29 +165,65 @@ final result = await WAsync.runWithRetry<List<Gift>, List<Gift>>(
 - `onRetry` 应自行处理异常；推荐直接传 `WAsyncController.load`。
 - 刷新进度条可通过 `refreshingBuilder` 或 `WAsyncViewDefaults.refreshingBuilder` 覆盖。
 
-## 异步列表：WAsyncView + SmartRefresher
+## 异步列表：WAsyncBuilder + SmartRefresher
 
-`WAsyncView` 不是 `ScrollView`，不要用 `SmartRefresher` 直接包它。把滚动组件放进 `readyBuilder`：
+滚动页面不要用 `WAsyncView` 包 `SmartRefresher`。用 `WAsyncBuilder` 把状态交给调用方，
+让 `SmartRefresher` 的直接子节点始终是 `CustomScrollView`：
 
 ```dart
-WAsyncView<List<Gift>>(
+WAsyncBuilder<List<Gift>>(
   state: controller.state,
-  onRetry: controller.load,
-  refreshingBuilder: (_) => const SizedBox.shrink(),
-  readyBuilder: (context, gifts) {
+  builder: (context, state) {
+    final gifts = state.dataOrNull ?? const <Gift>[];
+
     return SmartRefresher(
       controller: refreshController,
       onRefresh: controller.load,
       onLoading: loadMore,
-      child: ListView.builder(
-        itemCount: gifts.length,
-        itemBuilder: (context, index) => GiftTile(gift: gifts[index]),
+      child: CustomScrollView(
+        slivers: [
+          if (state.isLoading && gifts.isEmpty)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (state.isEmpty)
+            const SliverFillRemaining(
+              child: Center(child: Text('暂无数据')),
+            )
+          else if (state.isFailed && gifts.isEmpty)
+            SliverFillRemaining(
+              child: WAsyncErrorView(
+                error: state.error!,
+                onRetry: controller.load,
+              ),
+            )
+          else
+            SliverList.builder(
+              itemCount: gifts.length,
+              itemBuilder: (context, index) => GiftTile(gift: gifts[index]),
+            ),
+          if (state.isFailed && gifts.isNotEmpty)
+            SliverToBoxAdapter(
+              child: WAsyncErrorBanner(
+                error: state.error!,
+                onRetry: controller.load,
+              ),
+            ),
+        ],
       ),
     );
   },
 )
 ```
 
-分页的 `loadMore` 和 footer 状态由业务侧维护，不要用 `WAsyncController.failed` 表示分页失败。
+`loadMore` 的追加与 footer 状态由业务侧维护，不要用 `WAsyncController.failed` 表示分页失败。
 
-`WAsyncView` 在 ready / refreshing / failed + 旧数据之间保持同一内容子树，切换状态不会重建 `readyBuilder`。
+## 选择哪个入口
+
+```text
+普通页面区块 / 非滚动内容  → WAsyncView
+SmartRefresher / 滚动页面  → WAsyncBuilder
+```
+
+`WAsyncView` 的 ready / refreshing / failed + 旧数据使用稳定内容容器，
+但滚动页面仍应使用 `WAsyncBuilder`，不要把 `SmartRefresher` 长期塞进 `WAsyncView.readyBuilder`。
