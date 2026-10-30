@@ -103,6 +103,57 @@ void main() {
     expect(find.text('default-error'), findsOneWidget);
   });
 
+  testWidgets('显式 errorBannerBuilder 优先于 Defaults', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom', previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncViewDefaults(
+          errorBannerBuilder: (context, error, retry) => const Text('default-banner'),
+          child: WAsyncView<int>(
+            state: state,
+            onRetry: () async {},
+            readyBuilder: (context, value) => Text('value-$value'),
+            errorBannerBuilder: (context, error, retry) => const Text('explicit-banner'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('explicit-banner'), findsOneWidget);
+    expect(find.text('default-banner'), findsNothing);
+  });
+
+  testWidgets('WAsyncErrorBanner 可独立使用', (tester) async {
+    var retries = 0;
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncErrorBanner(
+          error: 'boom',
+          onRetry: () => retries++,
+        ),
+      ),
+    );
+
+    expect(find.textContaining('加载失败'), findsOneWidget);
+    await tester.tap(find.text('重试'));
+    expect(retries, 1);
+  });
+
+  testWidgets('WAsyncErrorBanner 无 onRetry 时不显示按钮', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        const WAsyncErrorBanner(error: 'boom'),
+      ),
+    );
+
+    expect(find.text('重试'), findsNothing);
+  });
+
   testWidgets('WAsyncViewDefaults.errorBannerBuilder 覆盖刷新错误条', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom', previousData: 1),

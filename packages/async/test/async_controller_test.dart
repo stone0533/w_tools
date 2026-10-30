@@ -83,6 +83,17 @@ void main() {
       expect(controller.state.value.data, 2);
     });
 
+    test('load 期间 dispose 不抛异常', () async {
+      final completer = Completer<int>();
+      final controller = WAsyncController<int>(() => completer.future);
+      final loading = controller.load();
+
+      controller.dispose();
+      completer.complete(1);
+
+      await expectLater(loading, completes);
+    });
+
     test('dispose 后 load 不再改状态', () async {
       final controller = WAsyncController<int>(() async => 1);
       controller.dispose();
