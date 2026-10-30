@@ -15,7 +15,8 @@
 - 新增 `WFormTheme`：按页面 / 品牌隔离表单图标，`WFormDefaults` 保留为静态兜底。
 
 ### Changed
-- 拆分 `text_field_actions.dart`，文本框 action 独立维护。
+- 拆分 `text_field_actions.dart`，文本框 action 独立维护；
+- 拆分 `multi_dropdown` 的 field / item / config part 文件。
 
 ### Fixed
 - `WFormFieldShell` 卸载时注销 `formBorderKeys`，避免动态字段累积 GlobalKey。

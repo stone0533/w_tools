@@ -39,7 +39,10 @@ form/
     │       ├── text_field.dart       # WFormTextField + WFormTextFieldConfig + Scope 管道
     │       ├── text_field_actions.dart # WFormTextFieldAction / PasswordToggle / ClearButton
     │       ├── dropdown.dart         # WFormDropdown + WFormDropdownConfig
-    │       ├── multi_dropdown.dart   # WFormMultiDropdown + WFormMultiDropdownConfig
+    │       ├── multi_dropdown.dart   # WFormMultiDropdown
+    │       ├── multi_dropdown_field.dart  # 内部字段实现
+    │       ├── multi_dropdown_item.dart   # 选项项
+    │       ├── multi_dropdown_config.dart # WFormMultiDropdownConfig
     │       ├── checkbox.dart         # WFormCheckbox + WFormCheckboxConfig
     │       ├── radio_group.dart      # WFormRadioGroup + WFormRadioGroupConfig
     │       └── date_picker.dart      # WFormDatePicker + WFormDatePickerConfig
