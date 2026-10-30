@@ -28,6 +28,10 @@ class WListView extends StatelessWidget {
       !sliver.isOverlap || (scrollDirection == Axis.vertical && !reverse),
       'WListViewSliver.overlap 只支持垂直、非 reverse 列表',
     );
+    assert(
+      !(shrinkWrap && sliver.emptyFill && sliver.hasEmpty),
+      'shrinkWrap: true 时不能使用 emptyFill: true',
+    );
     return CustomScrollView(
       controller: controller,
       physics: physics,
@@ -142,9 +146,12 @@ class WListViewSliver extends StatelessWidget {
   /// 是否为重叠列表。
   bool get isOverlap => _kind == _WListViewKind.overlap;
 
+  /// 是否展示 empty。
+  bool get hasEmpty => itemCount == 0 && empty != null;
+
   @override
   Widget build(BuildContext context) {
-    final hasEmpty = itemCount == 0 && empty != null;
+    final hasEmpty = this.hasEmpty;
     final slivers = <Widget>[
       if (header != null) SliverToBoxAdapter(child: header),
       if (hasEmpty)

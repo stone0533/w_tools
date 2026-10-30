@@ -1061,7 +1061,7 @@ WListView(
 | `padding` | 整个 sliver 组的内边距 |
 | `header` / `footer` | 头部 / 尾部 |
 | `empty` | `itemCount == 0` 时显示；header/footer 仍保留 |
-| `emptyFill` | 是否填满剩余视口；`shrinkWrap: true` 时必须为 false |
+| `emptyFill` | 是否填满剩余视口；`shrinkWrap: true` 时必须为 false，否则断言 |
 | `keepAlive` | 标准 `addAutomaticKeepAlives` |
 
 ### 重叠列表

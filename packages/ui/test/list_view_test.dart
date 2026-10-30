@@ -119,6 +119,46 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('emptyFill + shrinkWrap 应断言', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            shrinkWrap: true,
+            sliver: WListViewSliver.list(
+              itemCount: 0,
+              itemBuilder: (_, i) => Text('item-$i'),
+              empty: const Text('empty'),
+              emptyFill: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isAssertionError);
+    });
+
+    testWidgets('emptyFill + header/footer 时忽略 fill', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.list(
+              itemCount: 0,
+              itemBuilder: (_, i) => Text('item-$i'),
+              header: const Text('header'),
+              footer: const Text('footer'),
+              empty: const Text('empty'),
+              emptyFill: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('header'), findsOneWidget);
+      expect(find.text('empty'), findsOneWidget);
+      expect(find.text('footer'), findsOneWidget);
+      expect(find.byType(SliverFillRemaining), findsNothing);
+    });
+
     testWidgets('emptyFill 时 empty 填满剩余视口', (tester) async {
       await tester.pumpWidget(
         _host(
