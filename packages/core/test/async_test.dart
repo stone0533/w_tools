@@ -330,6 +330,31 @@ void main() {
       expect(completed, isTrue);
     });
 
+    test('runWithTimeout 等待期间取消会立即返回 null', () async {
+      final cancelToken = WCancelToken();
+      final stopwatch = Stopwatch()..start();
+      var errorCount = 0;
+
+      final future = WAsync.runWithTimeout<int, int>(
+        () async {
+          await Future.delayed(const Duration(seconds: 5));
+          return 1;
+        },
+        const Duration(seconds: 10),
+        onError: (_) => errorCount++,
+        cancelToken: cancelToken,
+      );
+
+      await Future.delayed(const Duration(milliseconds: 50));
+      cancelToken.cancel();
+      final result = await future;
+      stopwatch.stop();
+
+      expect(result, isNull);
+      expect(errorCount, 0);
+      expect(stopwatch.elapsed, lessThan(const Duration(seconds: 1)));
+    });
+
     test('runWithTimeout 负数超时抛出 ArgumentError', () async {
       await expectLater(
         WAsync.runWithTimeout<int, int>(
@@ -418,8 +443,7 @@ void main() {
     test('runAllWithConcurrency should process tasks in batches', () async {
       final results = await WAsync.runAllWithConcurrency<int, List<int>>(
         [1, 2, 3, 4, 5].map(
-          (i) =>
-              () async => i,
+          (i) => () async => i,
         ),
         onSuccess: (list) => list,
         concurrency: 2,
@@ -430,8 +454,7 @@ void main() {
     test('runAllWithConcurrency should return null when onSuccess not provided', () async {
       final results = await WAsync.runAllWithConcurrency(
         [1, 2, 3, 4, 5].map(
-          (i) =>
-              () async => i,
+          (i) => () async => i,
         ),
         concurrency: 2,
       );
@@ -790,8 +813,7 @@ void main() {
     test('sequence 支持任意 Iterable', () async {
       final result = await WAsync.sequence<int, List<int>>(
         {1, 2, 3}.map(
-          (i) =>
-              () async => i,
+          (i) => () async => i,
         ),
         onSuccess: (list) => list,
       );

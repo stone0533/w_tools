@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.0
+
+### Added
+- `WAsyncStatus` / `WAsyncState<T>`：异步区块的四态（loading / ready / empty / failed）。
+  与 `WAsync` 配套使用：`WAsync` 管「怎么请求」，`WAsyncState` 管「界面该显示什么」。
+  - `WAsyncState.ofList(list)`：null 或空列表都归为 `empty`，非空才是 `ready`
+  - `when(...)` 四态全覆盖
+  - `WAsyncState.loading(previousData:)` / `failed(..., previousData:)` 保留刷新前旧数据，
+    `isRefreshing` 与 `dataOrNull` 可读取
+  - `errorMessage({maxLength})` 便于展示/日志截断
+- `WAsync.runWithTimeout` 等待期间取消会立即返回，不再等到底层任务超时。
+
 ## 1.0.1
 
 ### Deprecated

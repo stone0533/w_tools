@@ -501,6 +501,7 @@ class WAsync {
   ///
   /// 超时只会结束本次等待，[task] 返回的 Future 不会被取消，仍可能继续执行；
   /// 超时以 [TimeoutException] 上报给 `onError`。
+  /// 等待期间取消会立即以取消结束，不会等到底层任务超时。
   ///
   /// [task] 要执行的异步函数
   /// [timeout] 超时时间
@@ -526,10 +527,13 @@ class WAsync {
       config,
       () async {
         cancelToken?.throwIfCancelled();
-        final result = await task().timeout(
+        final timeoutFuture = task().timeout(
           timeout,
           onTimeout: () => throw TimeoutException('Operation timed out'),
         );
+        final result = cancelToken == null
+            ? await timeoutFuture
+            : await _awaitWithCancellation(timeoutFuture, cancelToken);
         cancelToken?.throwIfCancelled();
         final processedResult = onSuccess?.call(result);
         return processedResult;

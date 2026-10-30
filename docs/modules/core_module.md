@@ -85,10 +85,28 @@ void main() {
 | `showLoading` | bool | true | 是否显示 Loading |
 | `onLoadingStart` | VoidCallback? | null | Loading 开始回调 |
 | `onLoadingEnd` | VoidCallback? | null | Loading 结束回调 |
-| `fallbackOnError` | bool | false | 出错时是否返回 fallback 值 |
+| `fallbackOnError` | `void Function(Object?)?` | null | 未传 `onError` 时的兜底错误回调 |
 | `run / runWithRetry / runWithTimeout / wait / runAllWithConcurrency / any / sequence` | 委托方法 | — | 均转发给 WAsync 静态方法 |
 
 内部维护 `_activeCount` 计数器，**并发任务的 Loading 状态会自动合并**（多任务共享一次 start/end）。
+
+#### WAsyncState（四态快照）
+
+| 状态 | 构造 | 说明 |
+|------|------|------|
+| `loading` | `WAsyncState.loading()` | 首次加载 |
+| `ready` | `WAsyncState.ready(data)` | 有数据 |
+| `empty` | `WAsyncState.empty()` | 加载成功但为空 |
+| `failed` | `WAsyncState.failed(error)` | 加载失败 |
+
+刷新场景用：
+
+```dart
+WAsyncState.loading(previousData: oldData)
+WAsyncState.failed(error, previousData: oldData)
+```
+
+`isRefreshing` / `dataOrNull` 可读取旧数据；`when(...)` 四态全覆盖。
 
 #### WAsync（静态类）
 
@@ -106,6 +124,7 @@ void main() {
 
 - **业务异常 vs 编程错误**：`Exception` 被捕获并回调 `onError`；`Error`（`TypeError`、`StateError` 等）向上抛出不拦截。
 - **取消语义**：`WCancelToken.cancel()` 后任务返回 `null`，**不回调 onError**；取消是协作式的，任务内部需主动检查。
+  `wait` / `any` / `runWithTimeout` 在等待期间取消会立即返回；`run` / `sequence` 在当前任务结束后响应。
 - **Loading 合并**：多个并发任务共享同一个 `WAsyncConfig` 时，`showLoading=true` 只会触发一次 start/end。
 
 ### 使用示例

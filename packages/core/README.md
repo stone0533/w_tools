@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_core: ^1.0.0
+  w_tools_core: ^1.1.0
 ```
 
 ```bash
@@ -53,7 +53,7 @@ Future<void> example() async {
 | 能力 | 入口 |
 |---|---|
 | 全局配置 | `WConfig` |
-| 异步任务 | `WAsync` / `WAsyncConfig` / `WCancelToken` |
+| 异步任务 | `WAsync` / `WAsyncConfig` / `WAsyncState` / `WCancelToken` |
 | 校验 | `WValidator` |
 | 正则 | `WRegExp` / `WRegExpPattern` / `WRegExpPreset` |
 | 加密 / 哈希 | `WEncrypt` / `WHash` |
