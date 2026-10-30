@@ -217,7 +217,10 @@ WAsyncView<List<Gift>>(
 - loading → `CircularProgressIndicator`；
 - empty → 「暂无数据」；
 - failed → `WAsyncErrorView` + 重试按钮；
-- failed + 旧数据 → 保留内容 + 紧凑错误条；
+- failed + 旧数据 → 保留内容 + 紧凑错误条（`WAsyncErrorView(compact: true)`）；
 - refreshing → 保留内容 + 线性进度条。
 
-默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置。
+默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置；`errorBannerBuilder` 可单独覆盖刷新失败条。
+
+`WAsyncController.state` 是只读的 `ValueListenable`，状态变更必须经过 `load()` / `retry()`；
+可通过 `initial:` 指定初始状态。

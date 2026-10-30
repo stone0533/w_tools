@@ -15,6 +15,16 @@ void main() {
       expect(controller.state.value.data, 1);
     });
 
+    test('支持初始状态', () {
+      final controller = WAsyncController<int>(
+        () async => 2,
+        initial: const WAsyncState.ready(1),
+      );
+      addTearDown(controller.dispose);
+
+      expect(controller.state.value.data, 1);
+    });
+
     test('list 空列表进入 empty', () async {
       final controller = WAsyncController.list<int>(() async => <int>[]);
       addTearDown(controller.dispose);

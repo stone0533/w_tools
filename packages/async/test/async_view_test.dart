@@ -52,13 +52,58 @@ void main() {
           state: state,
           onRetry: () async {},
           readyBuilder: (context, value) => Text('value-$value'),
-          errorBuilder: (context, error, retry) => Text('error-$error'),
+          errorBannerBuilder: (context, error, retry) => Text('error-$error'),
         ),
       ),
     );
 
     expect(find.text('value-1'), findsOneWidget);
     expect(find.text('error-boom'), findsOneWidget);
+  });
+
+  testWidgets('failed + previousData 默认使用紧凑错误条', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom', previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async {},
+          readyBuilder: (context, value) => Text('value-$value'),
+        ),
+      ),
+    );
+
+    final errorView = tester.widget<WAsyncErrorView>(
+      find.byType(WAsyncErrorView),
+    );
+    expect(errorView.compact, isTrue);
+    expect(find.text('value-1'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncViewDefaults 可覆盖错误视图', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncViewDefaults(
+          errorBuilder: (context, error, retry) => const Text('default-error'),
+          child: WAsyncView<int>(
+            state: state,
+            onRetry: () async {},
+            readyBuilder: (context, value) => Text('value-$value'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('default-error'), findsOneWidget);
   });
 
   testWidgets('refreshing 保留内容并显示进度条', (tester) async {

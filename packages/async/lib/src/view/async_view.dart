@@ -22,6 +22,7 @@ class WAsyncView<T> extends StatelessWidget {
     this.loadingBuilder,
     this.emptyBuilder,
     this.errorBuilder,
+    this.errorBannerBuilder,
   });
 
   final ValueListenable<WAsyncState<T>> state;
@@ -30,6 +31,9 @@ class WAsyncView<T> extends StatelessWidget {
   final WidgetBuilder? loadingBuilder;
   final WidgetBuilder? emptyBuilder;
   final WAsyncErrorWidgetBuilder? errorBuilder;
+
+  /// failed + 旧数据时的紧凑错误条构建器。
+  final WAsyncErrorWidgetBuilder? errorBannerBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -40,35 +44,42 @@ class WAsyncView<T> extends StatelessWidget {
         final data = value.dataOrNull;
 
         if (data != null && value.isRefreshing) {
-          return Stack(
-            children: [
-              readyBuilder(context, data),
-              const Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                child: LinearProgressIndicator(),
-              ),
-            ],
+          return SizedBox(
+            width: double.infinity,
+            child: Stack(
+              children: [
+                readyBuilder(context, data),
+                const Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: LinearProgressIndicator(),
+                ),
+              ],
+            ),
           );
         }
 
         if (data != null && value.isFailed) {
-          final error = errorBuilder ?? defaults?.errorBuilder ?? _defaultErrorBuilder;
-          return Stack(
-            children: [
-              readyBuilder(context, data),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: error(
-                  context,
-                  value.error!,
-                  () => onRetry(),
+          final error =
+              errorBannerBuilder ?? defaults?.errorBannerBuilder ?? _defaultErrorBannerBuilder;
+          return SizedBox(
+            width: double.infinity,
+            child: Stack(
+              children: [
+                readyBuilder(context, data),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: error(
+                    context,
+                    value.error!,
+                    () => onRetry(),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         }
 
@@ -106,6 +117,18 @@ class WAsyncView<T> extends StatelessWidget {
     return WAsyncErrorView(
       error: error,
       onRetry: onRetry,
+    );
+  }
+
+  static Widget _defaultErrorBannerBuilder(
+    BuildContext context,
+    Object error,
+    VoidCallback onRetry,
+  ) {
+    return WAsyncErrorView(
+      error: error,
+      onRetry: onRetry,
+      compact: true,
     );
   }
 }

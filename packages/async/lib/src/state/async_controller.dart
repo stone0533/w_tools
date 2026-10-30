@@ -9,22 +9,28 @@ class WAsyncController<T> {
   WAsyncController(
     this._loader, {
     bool Function(T value)? isEmpty,
-  }) : _isEmpty = isEmpty;
+    WAsyncState<T>? initial,
+  })  : _isEmpty = isEmpty,
+        _state = ValueNotifier(initial ?? WAsyncState<T>.loading());
 
   /// 列表场景：空列表自动归为 empty。
   static WAsyncController<List<E>> list<E>(
-    Future<List<E>> Function() loader,
-  ) {
+    Future<List<E>> Function() loader, {
+    WAsyncState<List<E>>? initial,
+  }) {
     return WAsyncController<List<E>>(
       loader,
       isEmpty: (value) => value.isEmpty,
+      initial: initial,
     );
   }
 
   final Future<T> Function() _loader;
   final bool Function(T value)? _isEmpty;
+  final ValueNotifier<WAsyncState<T>> _state;
 
-  final ValueNotifier<WAsyncState<T>> state = ValueNotifier(const WAsyncState.loading());
+  /// 外部只读；状态变更必须经过 controller。
+  ValueListenable<WAsyncState<T>> get state => _state;
 
   int _generation = 0;
   bool _disposed = false;
@@ -33,18 +39,18 @@ class WAsyncController<T> {
   Future<void> load() async {
     if (_disposed) return;
 
-    final previousData = state.value.dataOrNull;
+    final previousData = _state.value.dataOrNull;
     final generation = ++_generation;
-    state.value = WAsyncState.loading(previousData: previousData);
+    _state.value = WAsyncState.loading(previousData: previousData);
 
     try {
       final value = await _loader();
       if (_disposed || generation != _generation) return;
 
-      state.value = _isEmpty?.call(value) == true ? WAsyncState.empty() : WAsyncState.ready(value);
+      _state.value = _isEmpty?.call(value) == true ? WAsyncState.empty() : WAsyncState.ready(value);
     } catch (error) {
       if (_disposed || generation != _generation) return;
-      state.value = WAsyncState.failed(error, previousData: previousData);
+      _state.value = WAsyncState.failed(error, previousData: previousData);
     }
   }
 
@@ -54,6 +60,6 @@ class WAsyncController<T> {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-    state.dispose();
+    _state.dispose();
   }
 }

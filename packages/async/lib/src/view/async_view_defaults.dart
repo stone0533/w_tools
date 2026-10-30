@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-typedef WAsyncErrorWidgetBuilder =
-    Widget Function(
-      BuildContext context,
-      Object error,
-      VoidCallback onRetry,
-    );
+typedef WAsyncErrorWidgetBuilder = Widget Function(
+  BuildContext context,
+  Object error,
+  VoidCallback onRetry,
+);
 
 /// 异步视图的显式默认配置。
 ///
@@ -17,12 +16,14 @@ class WAsyncViewDefaults extends InheritedWidget {
     this.loadingBuilder,
     this.emptyBuilder,
     this.errorBuilder,
+    this.errorBannerBuilder,
     required super.child,
   });
 
   final WidgetBuilder? loadingBuilder;
   final WidgetBuilder? emptyBuilder;
   final WAsyncErrorWidgetBuilder? errorBuilder;
+  final WAsyncErrorWidgetBuilder? errorBannerBuilder;
 
   static WAsyncViewDefaults? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<WAsyncViewDefaults>();
@@ -32,6 +33,7 @@ class WAsyncViewDefaults extends InheritedWidget {
   bool updateShouldNotify(WAsyncViewDefaults oldWidget) {
     return loadingBuilder != oldWidget.loadingBuilder ||
         emptyBuilder != oldWidget.emptyBuilder ||
-        errorBuilder != oldWidget.errorBuilder;
+        errorBuilder != oldWidget.errorBuilder ||
+        errorBannerBuilder != oldWidget.errorBannerBuilder;
   }
 }
