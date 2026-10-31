@@ -137,8 +137,8 @@ const String agentsSnippet = r'''
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
    **图片**：网络图 / 资源图用 `WImage`；不要裸用 `Image.network` / `Image.asset`。
-   **弹层 / 提示**：锚定选择用 `WFormPopup`，底部面板用 `WBottomSheet`，轻提示用
-   `WToast`；确认框用 Flutter `showDialog`。
+   **弹层 / 提示**：若启用 `w_tools_form`，锚定选择用 `WFormPopup`；若启用
+   `w_tools_app`，底部面板用 `WBottomSheet`；轻提示用 `WToast`；确认框用 Flutter `showDialog`。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    不要再用 `WTextConfig` 逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
    **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
@@ -197,8 +197,9 @@ const String agentsSnippetEn = r'''
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
    **Images**: use `WImage` for network/asset images; do not use `Image.network` / `Image.asset` directly.
-   **Overlays / toasts**: use `WFormPopup` for anchored selection, `WBottomSheet` for bottom
-   sheets, `WToast` for light feedback, and Flutter `showDialog` for confirmation.
+   **Overlays / toasts**: when `w_tools_form` is enabled, use `WFormPopup` for anchored
+   selection; when `w_tools_app` is enabled, use `WBottomSheet`; use `WToast` for light
+   feedback and Flutter `showDialog` for confirmation.
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, not `WTextConfig` field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
