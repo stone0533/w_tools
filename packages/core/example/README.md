@@ -10,6 +10,7 @@
 - `WUx.debounce`
 - `WCountdown`
 - `WPlatform`
+- `WRegExp` / `WLogger` / `WEncrypt.base64Encode`
 
 ## 运行
 
@@ -43,6 +44,11 @@ token
 计数
   计数 +1
   读取计数
+
+更多工具
+  正则匹配
+  Base64 往返
+  写日志
 
 倒计时
   开始 5 秒倒计时

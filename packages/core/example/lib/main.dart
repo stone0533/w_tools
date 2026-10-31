@@ -41,6 +41,7 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
   String _cryptoResult = '点击生成哈希与加密结果';
   String _storageResult = '尚未读取 token';
   String _counterResult = '尚未读写计数';
+  String _extraResult = '更多工具尚未运行';
   String _debounceResult = '输入内容观察防抖';
   int _remaining = 0;
   int _debounceCount = 0;
@@ -132,6 +133,27 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
   void _readCounter() {
     final value = WStorage.getInt('demo_counter');
     setState(() => _counterResult = '读取计数：${value ?? 'null'}');
+  }
+
+  void _runRegex() {
+    final match = WRegExp.firstEmailMatch(_emailController.text);
+    setState(() {
+      _extraResult = match == null ? 'regex: 无匹配' : 'regex: ${match.group(0)}';
+    });
+  }
+
+  void _runBase64() {
+    final source = _emailController.text.isEmpty ? 'w_tools_core' : _emailController.text;
+    final encoded = WEncrypt.base64Encode(source);
+    final decoded = WEncrypt.base64Decode(encoded);
+    setState(() {
+      _extraResult = 'base64: $encoded\ndecoded: $decoded';
+    });
+  }
+
+  void _writeLog() {
+    WLogger.i('w_tools_core example log');
+    setState(() => _extraResult = 'WLogger.i 已写入控制台');
   }
 
   @override
@@ -230,6 +252,22 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
             ),
             const SizedBox(height: 8),
             Text('$_debounceResult（触发 $_debounceCount 次）'),
+            const Divider(height: 32),
+            const Text('更多工具', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton(onPressed: _runRegex, child: const Text('正则匹配')),
+                OutlinedButton(onPressed: _runBase64, child: const Text('Base64 往返')),
+                OutlinedButton(onPressed: _writeLog, child: const Text('写日志')),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              _extraResult,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+            ),
             const Divider(height: 32),
             const Text('倒计时', style: TextStyle(fontWeight: FontWeight.w600)),
             Text('剩余：$_remaining 秒'),

@@ -23,6 +23,22 @@ void main() {
     expect(find.textContaining('decrypted: dev@example.com'), findsOneWidget);
   });
 
+  testWidgets('正则与 Base64', (tester) async {
+    await tester.pumpWidget(const CoreExampleApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'dev@example.com');
+    await tester.ensureVisible(find.text('正则匹配'));
+    await tester.tap(find.text('正则匹配'));
+    await tester.pumpAndSettle();
+    expect(find.text('regex: dev@example.com'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Base64 往返'));
+    await tester.tap(find.text('Base64 往返'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('decoded: dev@example.com'), findsOneWidget);
+  });
+
   testWidgets('保存并读取 token', (tester) async {
     await tester.pumpWidget(const CoreExampleApp());
     await tester.pumpAndSettle();
