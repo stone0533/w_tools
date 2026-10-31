@@ -447,5 +447,25 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
   ),
+  CatalogEntry(
+    name: "WScreen",
+    names: <String>["WScreen"],
+    package: "w_tools_ui",
+    section: "4. 布局与容器",
+    useFor: "屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区",
+    dontUseFor: "不要重复用 MediaQuery 手写全局适配",
+    importPath: "package:w_tools_ui/w_tools_ui.dart",
+    docs: "docs/modules/ui_module.md",
+  ),
+  CatalogEntry(
+    name: "WAssets",
+    names: <String>["WAssets"],
+    package: "w_tools_ui",
+    section: "4. 布局与容器",
+    useFor: "图片资源前缀唯一开关",
+    dontUseFor: "不要硬编码 `assets/images/`",
+    importPath: "package:w_tools_ui/w_tools_ui.dart",
+    docs: "docs/modules/ui_module.md",
+  ),
 ];
 

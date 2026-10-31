@@ -40,6 +40,8 @@
 | --- | --- | --- | --- |
 | `WRow` / `WColumn` / `WPadding` / `WSizeBox` | ui | 常用布局糖 | — |
 | `WClipRRect` | ui | 裁剪 | — |
+| `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
+| `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
 
 ## 5. 表单
 

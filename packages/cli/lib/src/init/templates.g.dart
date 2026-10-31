@@ -155,6 +155,8 @@ const String agentsSnippet = r'''
    **扩展**：数字格式化用 `toThousandsSeparated` / `toCurrency` / `toPercent`；
    hex 颜色用 `HexColor.fromHex` 或 `'#rrggbb'.toColor()`；间距用 `num.heightBox` / `allPadding`；
    BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合，不要重复手写。
+   **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
+   间距 / 尺寸优先 `WSizeBox` / `WPadding` / `WColumn` / `WRow`。
    **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
    在 `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper` 的 build 期构建。
    `wrapApp` 没有 Theme；需要 Theme 的排版扩展用 `builderWrapper`。
@@ -230,6 +232,8 @@ const String agentsSnippetEn = r'''
    **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
    `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; `num.heightBox` / `allPadding` for spacing;
    compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
+   **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath`
+   for asset prefixes; prefer `WSizeBox` / `WPadding` / `WColumn` / `WRow` for spacing/sizing.
    **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
    in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme,
    so theme-aware typography must use `builderWrapper`.

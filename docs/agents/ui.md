@@ -22,6 +22,16 @@ BoxDecoration → withColor / withBorderRadius / withShadow
 
 新增通用工具前先看 `packages/ui/lib/src/extensions/` 是否已有。
 
+## 工具
+
+```text
+屏幕 / 字体适配 → WScreen.w / h / sp
+资源前缀 → WAssets.imagePath
+间距 / 尺寸 → WSizeBox / WPadding / WColumn / WRow
+```
+
+WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate。
+
 ## 页面骨架
 
 ```text

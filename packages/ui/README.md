@@ -172,6 +172,20 @@ const BoxDecoration()
 
 扩展方法随 `package:w_tools_ui/w_tools_ui.dart` 一起导入。
 
+## 工具
+
+```dart
+WScreen.w(16);
+WScreen.h(24);
+WScreen.sp(14);
+
+WAssets.imagePath = 'assets/icons/';
+'logo.png'.assetImagePath;
+```
+
+`WScreen` 无 delegate 时返回原始值；需要 `ScreenUtil` 时注入 delegate。
+
+
 ## 主要 API
 
 | 能力 | 入口 |
