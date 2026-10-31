@@ -3,36 +3,36 @@ part of 'multi_dropdown.dart';
 class WFormMultiDropdownConfig {
   static WFormMultiDropdownConfigBuilder builder() => WFormMultiDropdownConfigBuilder();
 
-  final bool enabled;
-  final double? height;
-  final double? width;
-  final double? yOffset;
-  final Widget? leading;
-  final List<Widget>? actions;
-  final Decoration? containerDecoration;
-  final EdgeInsetsGeometry? containerMargin;
-  final EdgeInsetsGeometry? containerPadding;
-  final InputDecoration? decoration;
-  final double? iconSize;
-  final Widget? icon;
-  final Color? iconDisabledColor;
-  final Color? iconEnabledColor;
-  final Widget? checkboxUnselectedIcon;
-  final Widget? checkboxSelectedIcon;
-  final Widget? checkboxDisabledIcon;
-  final TextStyle? style;
-  final EdgeInsets? popUpLayerPadding;
-  final double? popUpLayerElevation;
-  final Color? popUpLayerShadowColor;
-  final String? hintText;
-  final Set<String> disabledKeys;
-  final EdgeInsetsGeometry? itemPadding;
-  final TextStyle? itemStyle;
-  final TextStyle? itemCheckedStyle;
-  final TextStyle? itemDisabledStyle;
-  final EdgeInsets? itemTitlePadding;
+  bool enabled;
+  double? height;
+  double? width;
+  double? yOffset;
+  Widget? leading;
+  List<Widget>? actions;
+  Decoration? containerDecoration;
+  EdgeInsetsGeometry? containerMargin;
+  EdgeInsetsGeometry? containerPadding;
+  InputDecoration? decoration;
+  double? iconSize;
+  Widget? icon;
+  Color? iconDisabledColor;
+  Color? iconEnabledColor;
+  Widget? checkboxUnselectedIcon;
+  Widget? checkboxSelectedIcon;
+  Widget? checkboxDisabledIcon;
+  TextStyle? style;
+  EdgeInsets? popUpLayerPadding;
+  double? popUpLayerElevation;
+  Color? popUpLayerShadowColor;
+  String? hintText;
+  Set<String> disabledKeys;
+  EdgeInsetsGeometry? itemPadding;
+  TextStyle? itemStyle;
+  TextStyle? itemCheckedStyle;
+  TextStyle? itemDisabledStyle;
+  EdgeInsets? itemTitlePadding;
 
-  const WFormMultiDropdownConfig({
+  WFormMultiDropdownConfig({
     this.enabled = true,
     this.height,
     this.width,

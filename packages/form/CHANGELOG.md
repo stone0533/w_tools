@@ -4,7 +4,7 @@
 
 ### Changed
 - 新增各 Config 的 Builder 基础设施（`builder()..buildConfig()`，阶段 1）。
-- 所有字段 Config 与 `WFormBorderConfig` 已完成不可变化迁移；`WFormFieldButtonConfig` / `WFormDatePickerConfig` / `WFormCheckboxConfig` / `WFormRadioGroupConfig` / `WFormDropdownConfig` 已定向回滚为可变配置。
+- 所有字段 Config 与 `WFormBorderConfig` 已完成不可变化迁移；`WFormFieldButtonConfig` / `WFormDatePickerConfig` / `WFormCheckboxConfig` / `WFormRadioGroupConfig` / `WFormDropdownConfig` / `WFormMultiDropdownConfig` 已定向回滚为可变配置。
 - 移除 `WFormFieldChrome`；各字段 Config 自行持有不可变公共字段。
 - 新增 `WFormController.updateValue`，同时写值并更新输入状态。
 - 新增 `WFormController.validate()`；`isAllEntered` 改为显式字段名集合（空集合返回 false）。
