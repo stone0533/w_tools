@@ -40,6 +40,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
   bool _torchOn = false;
   bool _continuous = false;
   bool _showOverlay = true;
+  bool _qrOnly = true;
 
   void _onScanned(Barcode barcode) {
     setState(() => _result = barcode.code);
@@ -122,6 +123,9 @@ class _QrScannerPageState extends State<QrScannerPage> {
               scanOnce: !_continuous,
               scanInterval: const Duration(seconds: 1),
               showOverlay: _showOverlay,
+              formatsAllowed: _qrOnly
+                  ? const <BarcodeFormat>[BarcodeFormat.qrcode]
+                  : const <BarcodeFormat>[],
               noPermissionCallback: () {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -151,6 +155,12 @@ class _QrScannerPageState extends State<QrScannerPage> {
                   label: const Text('扫描框'),
                   selected: _showOverlay,
                   onSelected: (value) => setState(() => _showOverlay = value),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('仅二维码'),
+                  selected: _qrOnly,
+                  onSelected: (value) => setState(() => _qrOnly = value),
                 ),
               ],
             ),

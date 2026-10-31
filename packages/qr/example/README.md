@@ -7,7 +7,7 @@
 - `WQrViewState.restartScan` 继续扫描
 - `WQrController.scannedDataStream` 广播流
 - `WQrController` 闪光灯 / 摄像头翻转
-- 连续扫描 / 扫描框开关
+- 连续扫描 / 扫描框 / 仅二维码开关
 - 无权限与错误提示
 
 ## 运行
@@ -42,7 +42,7 @@ iOS `Info.plist`：
 扫描成功 → 底部展示结果
 继续扫描 → restartScan
 右上角 → 闪光灯 / 翻转摄像头
-顶部 → 连续扫描 / 扫描框开关
+顶部 → 连续扫描 / 扫描框 / 仅二维码开关
 ```
 
 ## 测试
