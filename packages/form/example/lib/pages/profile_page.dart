@@ -37,6 +37,9 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
         controller: _form,
         borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
+        validatorSettings: WFormValidatorSettings()
+          ..showBorderError = true
+          ..continueOnError = true,
         readOnly: _readOnly,
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -183,18 +186,7 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
   }
 
   Future<void> _save() async {
-    final valid = _form
-        .validators(
-          settings: WFormValidatorSettings()
-            ..showBorderError = true
-            ..continueOnError = true,
-          items: [
-            WFormValidatorItem.field('name'),
-            WFormValidatorItem.field('country'),
-          ],
-        )
-        .validate();
-    if (!valid) return;
+    if (!_form.validate()) return;
 
     setState(() => _saving = true);
     try {

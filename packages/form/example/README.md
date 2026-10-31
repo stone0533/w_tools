@@ -45,10 +45,10 @@ test/
 WForm(
   controller: form,
   borderConfig: exampleBorderConfig,
-  fieldStyle: const WFormFieldStyle(
-    height: 52,
-    containerPadding: EdgeInsets.symmetric(horizontal: 16),
-  ),
+  fieldStyle: exampleFieldStyle,
+  validatorSettings: WFormValidatorSettings()
+    ..showBorderError = true
+    ..continueOnError = true,
   readOnly: isReadOnly,
   child: ListView(...),
 )
@@ -110,10 +110,26 @@ WFormButton(
 ### 校验与提交
 
 ```dart
-final valid = form.validate(
-  settings: WFormValidatorSettings()
+// WForm 上统一设置一次
+WForm(
+  validatorSettings: WFormValidatorSettings()
     ..showBorderError = true
     ..continueOnError = true,
+  ...
+)
+
+// 页面提交时直接使用默认设置
+if (!form.validate()) return;
+```
+
+### 锚定弹层
+
+```dart
+final anchor = anchorKey.currentContext!;
+final value = await WFormPopup.show<String>(
+  context: anchor,
+  anchorContext: anchor,
+  width: 220,
+  builder: (popupContext) => ...,
 );
-if (!valid) return;
 ```

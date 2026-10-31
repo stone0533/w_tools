@@ -16,16 +16,6 @@ class LoginExamplePage extends StatefulWidget {
 class _LoginExamplePageState extends State<LoginExamplePage> {
   final _form = WFormController();
 
-  late final _validators = _form.validators(
-    settings: WFormValidatorSettings()
-      ..showBorderError = true
-      ..continueOnError = true,
-    items: [
-      WFormValidatorItem.field('email'),
-      WFormValidatorItem.field('password'),
-    ],
-  );
-
   bool _submitting = false;
 
   @override
@@ -36,6 +26,9 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
         controller: _form,
         borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
+        validatorSettings: WFormValidatorSettings()
+          ..showBorderError = true
+          ..continueOnError = true,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
@@ -71,6 +64,7 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
               message: '密码至少 8 位',
               obscureText: true,
               textInputAction: TextInputAction.done,
+              config: exampleTextConfig(),
               actions: const [WFormTextFieldPasswordToggle()],
               validator: (value) {
                 final password = value ?? '';
@@ -106,7 +100,7 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
   }
 
   Future<void> _submit() async {
-    if (!_validators.validate()) return;
+    if (!_form.validate()) return;
 
     FocusScope.of(context).unfocus();
     setState(() => _submitting = true);
