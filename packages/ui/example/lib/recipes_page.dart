@@ -52,15 +52,16 @@ class RecipesPage extends StatelessWidget {
         ),
         const _Code('WImage.cover(..., aspectRatio: 16 / 9, radius: 12)'),
         const SizedBox(height: 24),
-        const _SectionTitle('自动拼接资源路径：WImage.assetImage'),
+        const _SectionTitle('自动拼接资源路径：WImage.asset(prefix: true)'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.assetImage(
+          child: WImage.asset(
             'demo.png',
+            prefix: true,
             style: const WImageStyle(width: 120, height: 68),
           ),
         ),
-        const _Code("WAssets.imagePath = 'assets/' 后：WImage.assetImage('demo.png')"),
+        const _Code("WAssets.imagePath = 'assets/' 后：WImage.asset('demo.png', prefix: true)"),
         const SizedBox(height: 24),
         const _SectionTitle('内存字节：WImage.memory'),
         const SizedBox(height: 8),

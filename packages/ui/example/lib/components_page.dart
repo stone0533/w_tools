@@ -62,7 +62,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
           ),
         ),
         const SizedBox(height: 24),
-        const _SectionTitle('WSizeBox / WPadding / 扩展'),
+        const _SectionTitle('WScreen / BoxDecoration / 扩展'),
         Row(
           children: [
             WSizeBox.square(32),
@@ -83,6 +83,27 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
               width: 16,
               height: 16,
               color: '#FF5733'.toColor(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Text('WScreen.w(16) = ${WScreen.w(16)}'),
+            const SizedBox(width: 12),
+            Container(
+              width: 48,
+              height: 32,
+              decoration: const BoxDecoration()
+                  .withColor(Colors.indigo)
+                  .withBorderRadius(const BorderRadius.all(Radius.circular(8)))
+                  .withShadow(const [
+                BoxShadow(
+                  color: Color(0x33000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ]),
             ),
           ],
         ),

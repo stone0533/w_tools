@@ -37,6 +37,9 @@ class WUiExampleApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
+        extensions: [
+          WTextStyles.fromTextTheme(ThemeData.light().textTheme),
+        ],
       ),
       home: const HomeShell(),
     );

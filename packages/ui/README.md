@@ -87,7 +87,7 @@ WImage.network(
 WImage.avatar(url, size: 40)                 // 圆形头像
 WImage.thumbnail(url, width: 80)             // 缩略图 + 解码尺寸上限
 WImage.cover(url, aspectRatio: 16 / 9)       // 封面图
-WImage.assetImage('logo.png')                // 自动拼 WAssets.imagePath
+WImage.asset('logo.png', prefix: true)       // 自动拼 WAssets.imagePath
 WImage.memory(bytes)                         // Uint8List
 WImage.provider(myProvider)                  // 任意 ImageProvider
 WImage.network(url, config: const WImageConfig(showRetryButton: true)) // 内置重试
