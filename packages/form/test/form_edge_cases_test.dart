@@ -56,7 +56,7 @@ void main() {
     });
 
     testWidgets('WFormFieldButton', (tester) async {
-      final config = WFormFieldButtonConfig()..hintWidget = const Text('选择');
+      const config = WFormFieldButtonConfig(hintWidget: Text('选择'));
       await expectCleanup(
         tester,
         config.build(name: 'button', onTap: (_, __) {}),
@@ -118,7 +118,7 @@ void main() {
 
     testWidgets('WFormFieldButton', (tester) async {
       var tapped = false;
-      final config = WFormFieldButtonConfig()..hintWidget = const Text('选择');
+      const config = WFormFieldButtonConfig(hintWidget: Text('选择'));
       await pumpForm(
         tester,
         child: config.build(

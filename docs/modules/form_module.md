@@ -214,8 +214,8 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 ## 3.5 WFormFieldChrome — 字段公共配置
 
 截至当前迁移阶段，`WFormDatePickerConfig` / `WFormCheckboxConfig` / `WFormRadioGroupConfig` /
-`WFormDropdownConfig` / `WFormMultiDropdownConfig` / `WFormTextFieldConfig` 已完成不可变化，
-自行持有同名公共字段；`WFormFieldButtonConfig` 仍继承 `WFormFieldChrome`。
+`WFormDropdownConfig` / `WFormMultiDropdownConfig` / `WFormTextFieldConfig` /
+`WFormFieldButtonConfig` 已完成不可变化，自行持有同名公共字段。
 
 ```dart
 class WFormCheckboxConfig extends WFormFieldChrome { ... }
@@ -264,8 +264,8 @@ final config = builder.buildConfig();
 `buildConfig()`，避免与字段构建冲突。
 
 `WFormDatePickerConfig` / `WFormCheckboxConfig` / `WFormRadioGroupConfig` /
-`WFormDropdownConfig` / `WFormMultiDropdownConfig` / `WFormTextFieldConfig` 已完成
-不可变化；`WFormFieldButtonConfig` / `WFormBorderConfig` 仍待迁移。
+`WFormDropdownConfig` / `WFormMultiDropdownConfig` / `WFormTextFieldConfig` /
+`WFormFieldButtonConfig` 已完成不可变化；仅剩 `WFormBorderConfig`。
 
 ## 4. 边框系统
 
