@@ -62,7 +62,8 @@ class WQrView extends StatefulWidget {
 
   /// 允许识别的条码格式；为空表示使用平台默认值
   ///
-  /// 运行期修改会重建平台视图，并重置扫描状态。
+  /// 运行期修改（包括原地修改列表内容）会重建平台视图，并重置扫描状态。
+  /// 为避免原地修改导致比较失效，内部会保存一份不可变快照。
   final List<BarcodeFormat> formatsAllowed;
 
   /// 是否只扫描一次
@@ -142,12 +143,16 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   /// 上一次回调的时间（用于 [WQrView.scanInterval] 去重）
   DateTime? _lastScannedAt;
 
+  /// 条码格式的不可变快照，用于检测原地修改
+  late List<BarcodeFormat> _formatsAllowed;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _borderColor = widget.borderColor;
     _overlay = widget.overlay ?? const WQrViewOverlayShape();
+    _formatsAllowed = List<BarcodeFormat>.unmodifiable(widget.formatsAllowed);
   }
 
   /// 同步父组件更新：相机配置、扫描框样式、边框颜色与扫描模式
@@ -155,7 +160,8 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   void didUpdateWidget(covariant WQrView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.cameraFacing != widget.cameraFacing ||
-        !listEquals(oldWidget.formatsAllowed, widget.formatsAllowed)) {
+        !listEquals(_formatsAllowed, widget.formatsAllowed)) {
+      _formatsAllowed = List<BarcodeFormat>.unmodifiable(widget.formatsAllowed);
       _recreatePlatformView();
     }
     if (oldWidget.overlay != widget.overlay) {
@@ -227,7 +233,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
           : null,
       overlayMargin: widget.overlayMargin,
       cameraFacing: widget.cameraFacing,
-      formatsAllowed: widget.formatsAllowed,
+      formatsAllowed: _formatsAllowed,
       onPermissionSet: _onPermissionSet,
     );
   }

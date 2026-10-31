@@ -6,6 +6,7 @@
 - `WQrView` 平台视图在 State 销毁后回调时不再建立新控制器 / 订阅。
 - `reassemble` 在应用后台时不再恢复相机。
 - `WQrViewOverlayShape` 校验边框与扫描框尺寸必须大于 0。
+- `formatsAllowed` 使用不可变快照，支持调用方原地修改列表后触发平台视图重建。
 
 ## 1.0.0
 
