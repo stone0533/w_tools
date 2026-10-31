@@ -146,6 +146,21 @@ void main() {
       expect(clip.clipBehavior, Clip.hardEdge);
     });
 
+    testWidgets('WClipRRect 默认 clipBehavior 为 antiAlias', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WClipRRect(
+              config: WClipRRectConfig(),
+              child: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+      final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
+      expect(clip.clipBehavior, Clip.antiAlias);
+    });
+
     testWidgets('WClipRRectConfig.borderRadiusAll 设置圆角', (tester) async {
       final config = WClipRRectConfig();
       final returned = config.borderRadiusAll(8);
@@ -203,6 +218,28 @@ void main() {
       config.showBadge();
       await tester.pump();
       expect(config.isShown, isTrue);
+    });
+
+    testWidgets('badgeStyle 可配置', (tester) async {
+      final config = WBadgeConfig()
+        ..badgeStyle(
+          const badges.BadgeStyle(
+            badgeColor: Colors.red,
+            padding: EdgeInsets.all(4),
+          ),
+        );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WBadge(
+              config: config,
+              badgeContent: const Text('3'),
+              child: const Icon(Icons.notifications),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('3'), findsOneWidget);
     });
 
     testWidgets('hideBadge() 隐藏徽章', (tester) async {

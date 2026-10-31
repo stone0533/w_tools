@@ -1330,6 +1330,9 @@ Container(
 
 通知监听构建器，便捷封装 `NotificationListener` + `Builder`。
 
+`onNotificationPercentage` 只在 `depth == 0` 的 `ScrollUpdateNotification` 上回调；
+滚动开始 / 结束不会触发。`preventNotificationPropagation(true)` 可阻止通知继续向上传递。
+
 ### 富文本
 
 多色 / 多字重 / 可点击片段使用 Flutter 原生 `Text.rich`，基础样式从
