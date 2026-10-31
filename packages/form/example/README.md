@@ -6,6 +6,7 @@
 - 会员资料：输入格式化、下拉、日期、单选、多选、复选、自定义 `WFormButton`
 - 只读预览：`WForm(readOnly: true)`
 - 锚定弹层：`WFormPopup` + `WFormButton`
+- 高级字段：leading / maxLines / 禁用下拉 / 自定义勾选 / 单选样式 / controller 读取
 - 统一边框 / 图标：`WFormBorderConfig` + `WForm`
 
 ## 运行
@@ -33,6 +34,7 @@ lib/
     login_page.dart     登录场景
     profile_page.dart   资料编辑 / 只读场景
     popup_page.dart     WFormPopup 锚定弹层
+    advanced_fields_page.dart 字段 Config / controller 读取
 test/
   example_smoke_test.dart
 ```

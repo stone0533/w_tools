@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'pages/advanced_fields_page.dart';
 import 'pages/login_page.dart';
 import 'pages/popup_page.dart';
 import 'pages/profile_page.dart';
@@ -44,6 +45,7 @@ class _ExampleHomeState extends State<_ExampleHome> {
           LoginExamplePage(),
           ProfileExamplePage(),
           PopupExamplePage(),
+          AdvancedFieldsPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -63,6 +65,10 @@ class _ExampleHomeState extends State<_ExampleHome> {
           NavigationDestination(
             icon: Icon(Icons.arrow_drop_down_circle_outlined),
             label: '弹层',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.tune_rounded),
+            label: '高级',
           ),
         ],
       ),
