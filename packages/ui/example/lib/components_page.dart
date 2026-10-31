@@ -1,0 +1,273 @@
+import 'package:flutter/material.dart';
+import 'package:w_tools_ui/w_tools_ui.dart';
+
+/// 覆盖非 WImage 的核心组件：文字、徽标、裁剪、进度、步骤、
+/// 列表、横向按钮、Tab、底部导航、通知与保活。
+class ComponentsPage extends StatefulWidget {
+  const ComponentsPage({super.key});
+
+  @override
+  State<ComponentsPage> createState() => _ComponentsPageState();
+}
+
+class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStateMixin {
+  late final WNavController _navController;
+  late final WRowButtonsController _rowButtonsController;
+  double? _scrollPercent;
+
+  @override
+  void initState() {
+    super.initState();
+    _navController = WNavController(length: 3, vsync: this);
+    _rowButtonsController = WRowButtonsController(length: 6);
+  }
+
+  @override
+  void dispose() {
+    _rowButtonsController.dispose();
+    _navController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const _SectionTitle('WText 语义文字'),
+        const Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            WText(text: 'title', variant: WTextVariant.title),
+            WText(text: 'body', variant: WTextVariant.body),
+            WText(text: 'caption', variant: WTextVariant.caption),
+          ],
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WBadge 角标'),
+        Row(
+          children: [
+            WBadge(
+              config: WBadgeConfig().positionTopRight(0, 0),
+              badgeContent: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                child: const Text(
+                  '3',
+                  style: TextStyle(color: Colors.white, fontSize: 11),
+                ),
+              ),
+              child: const Icon(Icons.notifications, size: 32),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WClipRRect 圆角裁剪'),
+        WClipRRect(
+          config: WClipRRectConfig()..borderRadiusAll(16),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            width: 120,
+            height: 72,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.indigo, Colors.blueAccent],
+              ),
+            ),
+            child: const Center(
+              child: WText(
+                text: 'clip',
+                variant: WTextVariant.bodyStrong,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WGradientCircularProgressIndicator'),
+        const Center(
+          child: WGradientCircularProgressIndicator(
+            radius: 32,
+            value: 0.65,
+            semanticsLabel: '加载中',
+            colors: [Colors.indigo, Colors.lightBlue],
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WStep 步骤'),
+        const WStep(
+          current: 2,
+          labels: ['选择', '确认', '完成'],
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WListView 列表'),
+        SizedBox(
+          height: 150,
+          child: WListView(
+            sliver: WListViewSliver.separated(
+              itemCount: 20,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, index) => ListTile(
+                dense: true,
+                leading: CircleAvatar(child: Text('${index + 1}')),
+                title: Text('列表项 ${index + 1}'),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WRowButtons 横向按钮'),
+        WRowButtons(
+          controller: _rowButtonsController,
+          spacing: 8,
+          builder: (context, index, selected) => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: selected ? Colors.indigo : Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '标签 $index',
+              style: TextStyle(
+                color: selected ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WTabBar 顶部 Tab'),
+        SizedBox(
+          height: 180,
+          child: DefaultTabController(
+            length: 3,
+            child: Column(
+              children: [
+                WTabBar(
+                  config: WTabBarConfig(),
+                  tabs: const [
+                    Tab(text: '全部'),
+                    Tab(text: '进行中'),
+                    Tab(text: '已完成'),
+                  ],
+                ),
+                const Expanded(
+                  child: TabBarView(
+                    children: [
+                      Center(child: Text('全部内容')),
+                      Center(child: Text('进行中内容')),
+                      Center(child: Text('已完成内容')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WNavBar 底部导航'),
+        SizedBox(
+          height: 64,
+          child: DecoratedBox(
+            decoration: const BoxDecoration(color: Colors.white),
+            child: WNavBar(
+              config: const WNavBarConfig(),
+              controller: _navController,
+              itemBuilder: (context, index, selected) {
+                const icons = [Icons.home, Icons.message, Icons.person];
+                return Icon(
+                  icons[index],
+                  color: selected ? Colors.indigo : Colors.grey,
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WNotificationListenerBuilder 滚动百分比'),
+        WNotificationListenerBuilder<ScrollNotification>(
+          child: SizedBox(
+            height: 120,
+            child: ListView.builder(
+              itemCount: 30,
+              itemBuilder: (context, index) => ListTile(
+                dense: true,
+                title: Text('滚动项 $index'),
+              ),
+            ),
+          ),
+        ).onNotificationPercentage((value) {
+          if (mounted) setState(() => _scrollPercent = value);
+        }).build(),
+        const SizedBox(height: 8),
+        Text(
+          _scrollPercent == null ? '滚动上面的列表查看百分比' : '滚动百分比：${(_scrollPercent! * 100).round()}%',
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WKeepAliveWrapper 列表保活'),
+        SizedBox(
+          height: 96,
+          child: WListView(
+            scrollDirection: Axis.horizontal,
+            sliver: WListViewSliver.list(
+              itemCount: 8,
+              itemExtent: 96,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: WKeepAliveWrapper(
+                  child: _CounterTile(index: index),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+class _CounterTile extends StatefulWidget {
+  const _CounterTile({required this.index});
+
+  final int index;
+
+  @override
+  State<_CounterTile> createState() => _CounterTileState();
+}
+
+class _CounterTileState extends State<_CounterTile> {
+  var _count = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        onTap: () => setState(() => _count++),
+        child: Center(
+          child: Text(
+            '#${widget.index}\n$_count',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+    );
+  }
+}

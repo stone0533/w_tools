@@ -3,14 +3,19 @@ import 'package:w_tools_ui_example/main.dart';
 
 void main() {
   testWidgets('示例 App 能构建并显示导航', (tester) async {
-    await tester.pumpWidget(const WImageExampleApp());
+    await tester.pumpWidget(const WUiExampleApp());
     expect(find.text('w_tools_ui 示例'), findsOneWidget);
     expect(find.text('Playground'), findsOneWidget);
     expect(find.text('状态矩阵'), findsOneWidget);
     expect(find.text('按钮'), findsOneWidget);
+    expect(find.text('组件'), findsOneWidget);
 
     await tester.tap(find.text('按钮'));
     await tester.pump();
     expect(find.text('1. 项目主题：定义一次，页面一行'), findsOneWidget);
+
+    await tester.tap(find.text('组件'));
+    await tester.pump();
+    expect(find.text('WText 语义文字'), findsOneWidget);
   });
 }

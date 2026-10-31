@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'buttons_page.dart';
+import 'components_page.dart';
 import 'playground_page.dart';
 import 'recipes_page.dart';
 import 'states_page.dart';
@@ -21,13 +22,13 @@ void main() {
         placeholderBuilder: (context, data) => const Center(child: CircularProgressIndicator()),
         errorBuilder: (context, data, error) => const Icon(Icons.broken_image),
       ),
-      child: const WImageExampleApp(),
+      child: const WUiExampleApp(),
     ),
   );
 }
 
-class WImageExampleApp extends StatelessWidget {
-  const WImageExampleApp({super.key});
+class WUiExampleApp extends StatelessWidget {
+  const WUiExampleApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +65,7 @@ class _HomeShellState extends State<HomeShell> {
     StatesPage(),
     RecipesPage(),
     ButtonsPage(),
+    ComponentsPage(),
   ];
 
   @override
@@ -90,6 +92,10 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: Icon(Icons.smart_button),
             label: '按钮',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.widgets),
+            label: '组件',
           ),
         ],
       ),
