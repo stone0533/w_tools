@@ -62,10 +62,17 @@ class InitTemplates {
     String lang = 'zh',
     String app = 'app',
     bool withUi = true,
+    bool withQr = true,
   }) {
     final template = withUi
         ? (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
         : (lang == 'en' ? generated.agentsSnippetNoUiEn : generated.agentsSnippetNoUi);
-    return template.replaceAll('{{version}}', cliVersion).replaceAll('{{app}}', app);
+    final lines = template.split('\n');
+    final filtered = <String>[];
+    for (final line in lines) {
+      if (!withQr && line.contains('@optional:qr')) continue;
+      filtered.add(line.replaceAll(' <!-- @optional:qr -->', ''));
+    }
+    return filtered.join('\n').replaceAll('{{version}}', cliVersion).replaceAll('{{app}}', app);
   }
 }

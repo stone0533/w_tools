@@ -208,6 +208,8 @@ void main() {
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains("export 'package:w_tools_qr")));
       expect(toolkit, contains("export 'package:w_tools_map"));
+      final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      expect(agents, isNot(contains('WQrView')));
     });
 
     test('已有 section 时只追加缩进行，不重复 section 头', () async {

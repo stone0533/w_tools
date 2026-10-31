@@ -193,8 +193,8 @@ const String agentsSnippet = r'''
    Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储。`WValidator` 做业务语义校验，纯正则用 `WRegExp`；日志用 `WLogger`。
-   **扫码**：用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce=true`，
-   重新扫描用 `GlobalKey<WQrViewState>.restartScan()`。
+   **扫码**：用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce=true`， <!-- @optional:qr -->
+   重新扫描用 `GlobalKey<WQrViewState>.restartScan()`。 <!-- @optional:qr -->
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
@@ -289,8 +289,8 @@ const String agentsSnippetEn = r'''
    **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
    are plaintext storage. Use `WValidator` for semantic validation and `WRegExp` for
    pure regex; log through `WLogger`.
-   **Scanning**: use `WQrView`, not the raw `QRView`; `scanOnce` defaults to true,
-   and restart via `GlobalKey<WQrViewState>.restartScan()`.
+   **Scanning**: use `WQrView`, not the raw `QRView`; `scanOnce` defaults to true, <!-- @optional:qr -->
+   and restart via `GlobalKey<WQrViewState>.restartScan()`. <!-- @optional:qr -->
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:
@@ -316,7 +316,7 @@ const String agentsSnippetNoUi = r'''
    **启动**：入口用 `WApp.start()`；插件需要顺序时用 `WAppPlugin.dependsOn`。
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储；`WValidator` 做业务校验，纯正则用 `WRegExp`。
-   **扫码**：用 `WQrView`；重新扫描用 `WQrViewState.restartScan()`。
+   **扫码**：用 `WQrView`；重新扫描用 `WQrViewState.restartScan()`。 <!-- @optional:qr -->
 3. **业务层只放这个功能独有的组合**，不放通用组件。
 4. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
@@ -344,7 +344,7 @@ const String agentsSnippetNoUiEn = r'''
    **Startup**: use `WApp.start()`; declare plugin order with `WAppPlugin.dependsOn`.
    **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
    are plaintext storage; use `WValidator` / `WRegExp` for validation.
-   **Scanning**: use `WQrView`; restart with `WQrViewState.restartScan()`.
+   **Scanning**: use `WQrView`; restart with `WQrViewState.restartScan()`. <!-- @optional:qr -->
 3. Business layer keeps feature-specific composition only.
 4. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.

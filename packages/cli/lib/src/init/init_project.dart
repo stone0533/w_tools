@@ -138,7 +138,12 @@ InitReport runInit(
       rel,
       report,
       check: check,
-      block: InitTemplates.agentsBlock(lang: lang, app: app, withUi: features.ui),
+      block: InitTemplates.agentsBlock(
+        lang: lang,
+        app: app,
+        withUi: features.ui,
+        withQr: features.qr,
+      ),
       createdPrefix: target == 'cursor'
           ? '---\ndescription: w_tools conventions\nglobs:\n---\n\n'
           : '',
