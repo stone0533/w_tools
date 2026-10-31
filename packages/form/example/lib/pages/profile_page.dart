@@ -106,6 +106,11 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
               initialValue: '1998-06-18',
               firstDate: DateTime(1900),
               lastDate: DateTime.now(),
+              config: WFormDatePickerConfig(
+                displayFormat: 'yyyy-MM-dd',
+                icon: const Icon(Icons.calendar_today_outlined),
+                iconSize: 20,
+              ),
             ),
             const SizedBox(height: 16),
             const Card(

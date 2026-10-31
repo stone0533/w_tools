@@ -44,6 +44,9 @@ class _PopupExamplePageState extends State<PopupExamplePage> {
               child: WFormButton(
                 name: 'coupon',
                 label: '请选择优惠券',
+                config: WFormFieldButtonConfig(
+                  leading: const Icon(Icons.local_offer_outlined),
+                ),
                 selectedWidgetBuilder: (value) => Text('已选：$value'),
                 onTap: (_, didChange) async {
                   final value = await _showCouponPopup();
