@@ -16,10 +16,8 @@ void _applyBaseStyle(
   WFormFieldStyle? style,
 ) {
   if (style == null) return;
-  if (style.height != null) config.height = style.height;
-  if (style.containerPadding != null) {
-    config.containerPadding = style.containerPadding;
-  }
+  config.height ??= style.height;
+  config.containerPadding ??= style.containerPadding;
 }
 
 /// 直接构造的表单字段。
@@ -82,11 +80,9 @@ class WFormTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormTextFieldConfig();
-    if (config == null) {
-      _applyBaseStyle(c, fieldStyle);
-      if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
-      if (fieldStyle?.hintStyle != null) c.hintStyle = fieldStyle!.hintStyle;
-    }
+    _applyBaseStyle(c, fieldStyle);
+    c.style ??= fieldStyle?.textStyle;
+    c.hintStyle ??= fieldStyle?.hintStyle;
     if (enabled != null) c.enabled = enabled!;
     if (obscureText != null) c.obscureText = obscureText!;
     if (autofocus != null) c.autofocus = autofocus!;
@@ -157,11 +153,9 @@ class WFormDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormDropdownConfig();
-    if (config == null) {
-      _applyBaseStyle(c, fieldStyle);
-      if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
-      if (fieldStyle?.hintStyle != null) c.hintStyle = fieldStyle!.hintStyle;
-    }
+    _applyBaseStyle(c, fieldStyle);
+    c.style ??= fieldStyle?.textStyle;
+    c.hintStyle ??= fieldStyle?.hintStyle;
     if (enabled != null) c.enabled = enabled!;
     return c.build<T>(
       name: name,
@@ -219,11 +213,9 @@ class WFormMultiDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormMultiDropdownConfig();
-    if (config == null) {
-      _applyBaseStyle(c, fieldStyle);
-      if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
-      c.hintText = label ?? c.hintText;
-    }
+    _applyBaseStyle(c, fieldStyle);
+    c.style ??= fieldStyle?.textStyle;
+    if (config == null) c.hintText = label ?? c.hintText;
     if (enabled != null) c.enabled = enabled!;
     return c.build(
       name: name,
@@ -283,10 +275,8 @@ class WFormDatePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormDatePickerConfig();
-    if (config == null) {
-      _applyBaseStyle(c, fieldStyle);
-      if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
-    }
+    _applyBaseStyle(c, fieldStyle);
+    c.style ??= fieldStyle?.textStyle;
     if (label != null && c.decoration?.hintText == null) {
       c.decoration = (c.decoration ?? const InputDecoration()).copyWith(hintText: label);
     }
@@ -343,7 +333,7 @@ class WFormCheckbox extends StatelessWidget {
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormCheckboxConfig();
-    if (config == null) _applyBaseStyle(c, fieldStyle);
+    _applyBaseStyle(c, fieldStyle);
     if (enabled != null) c.enabled = enabled!;
     return c.build(
       name: name,
@@ -398,10 +388,8 @@ class WFormRadioGroup<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormRadioGroupConfig();
-    if (config == null) {
-      _applyBaseStyle(c, fieldStyle);
-      if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
-    }
+    _applyBaseStyle(c, fieldStyle);
+    c.style ??= fieldStyle?.textStyle;
     if (enabled != null) c.enabled = enabled!;
     return c.build<T>(
       name: name,
@@ -460,7 +448,7 @@ class WFormButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormFieldButtonConfig();
-    if (config == null) _applyBaseStyle(c, fieldStyle);
+    _applyBaseStyle(c, fieldStyle);
     if (enabled != null) c.enabled = enabled!;
     if (hintWidget != null || label != null) {
       c.hintWidget = hintWidget ?? Text(label!);

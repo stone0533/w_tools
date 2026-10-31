@@ -319,13 +319,14 @@ WForm(
 )
 ```
 
-样式优先级：
+样式优先级（按属性合并）：
 
 ```text
 字段 config > WForm.fieldStyle > 框架默认
 ```
 
-传了 `config` 时，`WForm.fieldStyle` 不再覆盖该字段。`WFormFieldStyle` 目前覆盖：
+传了 `config` 时，config 只覆盖自己设置的属性；未设置的属性继续由
+`WForm.fieldStyle` 填充，而不是整个字段跳过 fieldStyle。`WFormFieldStyle` 目前覆盖：
 
 | 属性 | 生效范围 |
 |---|---|

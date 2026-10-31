@@ -331,4 +331,31 @@ void main() {
     expect(field.decoration?.hintText, '配置提示');
     expect(field.decoration?.suffixIcon, isNotNull);
   });
+
+  testWidgets('config 只覆盖自己设置的字段，fieldStyle 填充其余项', (tester) async {
+    final config = WFormTextFieldConfig()..obscureText = true;
+    const fieldStyle = WFormFieldStyle(
+      height: 52,
+      textStyle: TextStyle(fontSize: 18),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            fieldStyle: fieldStyle,
+            child: WFormTextField(name: 'password', config: config),
+          ),
+        ),
+      ),
+    );
+
+    final core = tester.widget<WFormTextFieldCore>(
+      find.byType(WFormTextFieldCore),
+    );
+    expect(core.config.obscureText, isTrue);
+    expect(core.config.height, 52);
+    expect(core.config.style?.fontSize, 18);
+  });
 }

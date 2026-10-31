@@ -121,11 +121,13 @@ WFormTextField(
 );
 ```
 
-优先级：
+优先级（按属性合并）：
 
 ```text
 字段 config > WForm.fieldStyle > 默认值
 ```
+
+config 只覆盖自己设置的属性，未设置项继续继承 `WForm.fieldStyle`。
 
 字段 Config 可变，**一个字段一份 Config**，不要跨字段共享同一个实例。
 `WForm` 与 `WFormController` 建议一对一使用。
