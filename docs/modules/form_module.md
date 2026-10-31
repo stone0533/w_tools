@@ -246,6 +246,24 @@ containerPadding
 - `copyWith(null)` 表示沿用旧值，清空字段请用 `copy()..field = null`；
 - 共享样式优先放到 `WFormTheme` / `WFormBorderConfig.standard()`，不要靠共享可变 Config。
 
+### Config Builder（阶段 1）
+
+所有 Config 已提供 Builder：
+
+```dart
+final builder = WFormTextFieldConfig.builder()
+  ..height = 52
+  ..style = const TextStyle(fontSize: 16);
+
+final config = builder.buildConfig();
+```
+
+注意：`build()` 仍然是「生成字段 Widget」的方法；Builder 的终态方法叫
+`buildConfig()`，避免与字段构建冲突。
+
+当前阶段 Builder 仍返回可变 Config；下一阶段把 Config 字段转为 final 后，
+调用方式保持不变。
+
 ## 4. 边框系统
 
 ### 4.1 WFormBorderDecoration

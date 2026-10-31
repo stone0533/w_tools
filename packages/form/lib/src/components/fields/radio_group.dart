@@ -188,6 +188,9 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroup<T>,
 
 /// 单选按钮组配置类，定义单选按钮组的样式和行为
 class WFormRadioGroupConfig extends WFormFieldChrome {
+  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+  static WFormRadioGroupConfigBuilder builder() => WFormRadioGroupConfigBuilder();
+
   /// 未选中状态的图标
   Widget? _unselectedIcon;
 
@@ -326,4 +329,11 @@ class WFormRadioGroupConfig extends WFormFieldChrome {
     config._style = style ?? _style;
     return config;
   }
+}
+
+/// WFormRadioGroupConfig 的 Builder。
+///
+/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+class WFormRadioGroupConfigBuilder extends WFormRadioGroupConfig {
+  WFormRadioGroupConfig buildConfig() => copy();
 }

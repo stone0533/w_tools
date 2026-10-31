@@ -224,6 +224,9 @@ class _WFormTextFieldState extends State<WFormTextField> {
 
 /// 文本输入配置类，定义文本输入的样式和行为
 class WFormTextFieldConfig extends WFormFieldChrome {
+  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+  static WFormTextFieldConfigBuilder builder() => WFormTextFieldConfigBuilder();
+
   /// 键盘类型
   TextInputType? _keyboardType;
 
@@ -537,4 +540,11 @@ final class WFormTextFieldScope extends InheritedWidget implements WFormTextFiel
 
   @override
   bool get obscureText => _state.widget.config._obscureText;
+}
+
+/// WFormTextFieldConfig 的 Builder。
+///
+/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+class WFormTextFieldConfigBuilder extends WFormTextFieldConfig {
+  WFormTextFieldConfig buildConfig() => copy();
 }

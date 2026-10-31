@@ -77,6 +77,9 @@ class WFormFieldButton extends StatelessWidget {
 
 /// 表单按钮配置类，定义按钮的样式和行为
 class WFormFieldButtonConfig extends WFormFieldChrome {
+  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+  static WFormFieldButtonConfigBuilder builder() => WFormFieldButtonConfigBuilder();
+
   /// 提示 widget
   Widget? _hintWidget;
 
@@ -266,4 +269,11 @@ class _WFormScopeButtonState<T> extends FormBuilderFieldState<_WFormScopeButton<
     _formData?.removeFormEntered(widget.name);
     super.dispose();
   }
+}
+
+/// WFormFieldButtonConfig 的 Builder。
+///
+/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+class WFormFieldButtonConfigBuilder extends WFormFieldButtonConfig {
+  WFormFieldButtonConfig buildConfig() => copy();
 }

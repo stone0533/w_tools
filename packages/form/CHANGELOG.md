@@ -3,6 +3,7 @@
 ## 2.0.0
 
 ### Changed
+- 新增各 Config 的 Builder 基础设施（`builder()..buildConfig()`，阶段 1）。
 - 新增 `WFormFieldChrome`，六个字段 Config 与 `WFormFieldButtonConfig` 统一继承公共外框配置。
 - 新增 `WFormController.updateValue`，同时写值并更新输入状态。
 - 新增 `WFormController.validate()`；`isAllEntered` 改为显式字段名集合（空集合返回 false）。

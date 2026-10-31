@@ -137,6 +137,9 @@ class WFormDropdown<T> extends StatelessWidget {
 
 /// 下拉选择配置类，定义下拉选择的样式和行为
 class WFormDropdownConfig extends WFormFieldChrome {
+  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+  static WFormDropdownConfigBuilder builder() => WFormDropdownConfigBuilder();
+
   /// 内容内边距
   EdgeInsetsGeometry? _contentPadding;
 
@@ -285,4 +288,11 @@ class WFormDropdownConfig extends WFormFieldChrome {
     config._dropdownColor = dropdownColor ?? _dropdownColor;
     return config;
   }
+}
+
+/// WFormDropdownConfig 的 Builder。
+///
+/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+class WFormDropdownConfigBuilder extends WFormDropdownConfig {
+  WFormDropdownConfig buildConfig() => copy();
 }

@@ -172,6 +172,9 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePicker, Strin
 
 /// 日期选择器配置类，定义日期选择器的样式和行为
 class WFormDatePickerConfig extends WFormFieldChrome {
+  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+  static WFormDatePickerConfigBuilder builder() => WFormDatePickerConfigBuilder();
+
   /// 输入装饰
   InputDecoration? _decoration = const InputDecoration();
 
@@ -330,4 +333,11 @@ class WFormDatePickerConfig extends WFormFieldChrome {
     config.containerPadding = containerPadding ?? this.containerPadding;
     return config;
   }
+}
+
+/// WFormDatePickerConfig 的 Builder。
+///
+/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+class WFormDatePickerConfigBuilder extends WFormDatePickerConfig {
+  WFormDatePickerConfig buildConfig() => copy();
 }

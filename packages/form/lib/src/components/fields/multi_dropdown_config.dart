@@ -1,6 +1,9 @@
 part of 'multi_dropdown.dart';
 
 class WFormMultiDropdownConfig extends WFormFieldChrome {
+  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+  static WFormMultiDropdownConfigBuilder builder() => WFormMultiDropdownConfigBuilder();
+
   /// 输入装饰
   InputDecoration? _decoration;
 
@@ -277,4 +280,11 @@ class WFormMultiDropdownConfig extends WFormFieldChrome {
     config._itemTitlePadding = itemTitlePadding ?? _itemTitlePadding;
     return config;
   }
+}
+
+/// WFormMultiDropdownConfig 的 Builder。
+///
+/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+class WFormMultiDropdownConfigBuilder extends WFormMultiDropdownConfig {
+  WFormMultiDropdownConfig buildConfig() => copy();
 }

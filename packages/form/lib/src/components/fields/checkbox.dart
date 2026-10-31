@@ -136,6 +136,9 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckbox, bool> {
 
 /// 复选框配置类，定义复选框的样式和行为
 class WFormCheckboxConfig extends WFormFieldChrome {
+  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+  static WFormCheckboxConfigBuilder builder() => WFormCheckboxConfigBuilder();
+
   /// 未选中状态的图标
   Widget? _unselectedIcon;
 
@@ -260,4 +263,11 @@ class WFormCheckboxConfig extends WFormFieldChrome {
     config.containerPadding = containerPadding ?? this.containerPadding;
     return config;
   }
+}
+
+/// WFormCheckboxConfig 的 Builder。
+///
+/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+class WFormCheckboxConfigBuilder extends WFormCheckboxConfig {
+  WFormCheckboxConfig buildConfig() => copy();
 }

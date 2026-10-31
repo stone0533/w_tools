@@ -238,6 +238,9 @@ class WFormBorderState extends State<WFormBorder> {
 /// [copyWith] 的 null 参数表示「保持不变」；要清空某个装饰，请使用 setter：
 /// `cfg.copy()..errorDecoration = null`。
 class WFormBorderConfig {
+  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+  static WFormBorderConfigBuilder builder() => WFormBorderConfigBuilder();
+
   /// 默认状态的装饰
   WFormBorderDecoration? _defaultDecoration;
 
@@ -508,4 +511,11 @@ class WFormBorderConfigScope extends InheritedWidget {
   bool updateShouldNotify(WFormBorderConfigScope oldWidget) {
     return config != oldWidget.config;
   }
+}
+
+/// WFormBorderConfig 的 Builder。
+///
+/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+class WFormBorderConfigBuilder extends WFormBorderConfig {
+  WFormBorderConfig buildConfig() => copy();
 }
