@@ -15,6 +15,12 @@
 - **日志与性能**：`WLogger` 支持级别切换、标签、性能计时
 - **其他工具**：倒计时、平台判断、防抖/节流、Map 扩展与全局配置
 
+## 安全说明
+
+- `WStorage` / `WToken` 使用 SharedPreferences，是**明文存储**，不是安全存储。
+- 高敏感 token、密码、密钥请使用 `flutter_secure_storage` 等 Keychain / Keystore 方案。
+- `WEncrypt` 的 AES-CBC 只提供机密性，不提供完整性 / 认证；需要防篡改时使用 AES-GCM。
+
 ## 安装
 
 ```yaml

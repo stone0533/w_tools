@@ -12,6 +12,8 @@
 - `WHash.verifyPassword` 使用常量时间比较，降低时序侧信道。
 
 ### Docs
+- `WStorage` / `WToken` 明确 SharedPreferences 为明文存储，高敏感数据应使用 Keychain / Keystore。
+- `WUx` 说明 duration 必须为非负毫秒数。
 - `WEncrypt` 明确 AES-CBC 只提供机密性，不提供完整性 / 认证。
 - `WMapExtension.sortedByKeys` 说明混合 Comparable 键需显式传 compare。
 

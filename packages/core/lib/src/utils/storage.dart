@@ -7,6 +7,10 @@ import 'logger.dart';
 
 /// 基于 SharedPreferences 的静态工具类，用于本地存储操作
 ///
+/// **安全边界**：SharedPreferences 是明文存储，不是安全存储。不要用它保存
+/// 高敏感 token、密码或密钥；这类数据请使用 `flutter_secure_storage` 等
+/// Keychain / Keystore 方案。
+///
 /// 提供了多种类型数据的存储和读取方法，包括：
 /// - 基本类型：字符串、整数、布尔值、双精度浮点数
 /// - 复杂类型：字符串列表、对象（通过 JSON 序列化）

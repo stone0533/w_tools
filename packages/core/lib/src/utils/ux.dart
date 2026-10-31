@@ -19,7 +19,7 @@ class WUx {
 
   /// 防抖函数
   ///
-  /// 连续调用时只在停止调用 [duration] 毫秒后执行最后一次；返回值可通过
+  /// [duration] 必须为非负毫秒数。连续调用时只在停止调用 [duration] 毫秒后执行最后一次；返回值可通过
   /// [WCancellableAction.cancel] 取消尚未触发的回调（例如页面 dispose 时）。
   WCancellableAction debounce(Function() function, {int duration = 300}) {
     Timer? timer;
@@ -37,7 +37,7 @@ class WUx {
 
   /// 节流函数
   ///
-  /// [duration] 毫秒内只执行第一次调用；返回值可通过
+  /// [duration] 必须为非负毫秒数。[duration] 毫秒内只执行第一次调用；返回值可通过
   /// [WCancellableAction.cancel] 提前结束当前节流窗口。
   WCancellableAction throttle(Function() function, {int duration = 300}) {
     bool isExecuting = false;
@@ -62,7 +62,8 @@ class WUx {
 
   /// 延迟执行
   ///
-  /// 等待 [duration] 毫秒后调用 [function]；Future 在函数执行完成后结束。
+  /// [duration] 必须为非负毫秒数。等待 [duration] 毫秒后调用 [function]；
+  /// Future 在函数执行完成后结束。
   Future<void> delay(Function() function, {int duration = 0}) async {
     await Future.delayed(Duration(milliseconds: duration));
     function();
