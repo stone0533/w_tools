@@ -14,6 +14,7 @@
    **启动**：入口用 `WApp.start()`；插件需要顺序时用 `WAppPlugin.dependsOn`。
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储；`WValidator` 做业务校验，纯正则用 `WRegExp`。
+   **扫码**：用 `WQrView`；重新扫描用 `WQrViewState.restartScan()`。
 3. **业务层只放这个功能独有的组合**，不放通用组件。
 4. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。

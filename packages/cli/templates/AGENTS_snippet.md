@@ -78,6 +78,8 @@
    Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储。`WValidator` 做业务语义校验，纯正则用 `WRegExp`；日志用 `WLogger`。
+   **扫码**：用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce=true`，
+   重新扫描用 `GlobalKey<WQrViewState>.restartScan()`。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：

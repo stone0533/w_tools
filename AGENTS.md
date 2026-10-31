@@ -129,3 +129,11 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - `WValidator` 负责业务语义校验；纯正则匹配 / 提取用 `WRegExp`，不要再手写重复正则。
 - 日志统一用 `WLogger.i/d/w/e`；不要直接 `print`。
 - `WEncrypt` 的 AES-CBC 不提供完整性 / 认证；需要防篡改时用 AES-GCM。
+
+## 扫码（w_tools_qr）
+
+- 扫码用 `WQrView`，不要直接使用 `qr_code_scanner_plus` 的 `QRView`。
+- 默认 `scanOnce = true`；需要连续扫描显式传 `false`。
+- 单次扫码完成后需要重新扫描时，通过 `GlobalKey<WQrViewState>` 调用 `restartScan()`。
+- 相机权限：Android `CAMERA`，iOS `NSCameraUsageDescription`。
+- `onScanned` 只在 `Barcode.code` 非空时触发。

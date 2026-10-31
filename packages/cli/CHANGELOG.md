@@ -11,6 +11,7 @@
 - 消费方 AGENTS 与组件目录补充 `w_tools_api` 的 `DioRegistry` / `WTokenInterceptor` / `WLogInterceptor` 网络规则。
 - 消费方 AGENTS 与组件目录补充 `w_tools_app` 的 `WApp.start` / 插件依赖 / `WLanguage` / `WRouteObserver` 启动规则。
 - 消费方 AGENTS 与组件目录补充 `w_tools_core` 的 `WStorage.init` / 明文存储 / `WValidator` 与 `WRegExp` 分工规则。
+- 消费方 AGENTS 与组件目录补充 `w_tools_qr` 的 `WQrView` / `WQrController` / `restartScan` 扫码规则。
 - `DoctorConfig.copyWith` 支持覆盖 `colorMinCount` / `ignore`。
 
 ## 1.3.0

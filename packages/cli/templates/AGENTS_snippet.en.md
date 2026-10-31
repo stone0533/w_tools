@@ -83,6 +83,8 @@
    **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
    are plaintext storage. Use `WValidator` for semantic validation and `WRegExp` for
    pure regex; log through `WLogger`.
+   **Scanning**: use `WQrView`, not the raw `QRView`; `scanOnce` defaults to true,
+   and restart via `GlobalKey<WQrViewState>.restartScan()`.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:
