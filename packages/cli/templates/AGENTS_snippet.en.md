@@ -25,6 +25,8 @@
    `SizedBox(width: double.infinity)` or `Expanded` to fill, and an outer `SizedBox` for fixed width.
    `WButton` has no `variant`; use `style`; do not pass both `label` and `content`.
    With `loading`, also set `enabled: !loading`; provide `semanticLabel` for icon-only buttons.
+   Put state colors (disabled / pressed / hovered / focused) in `AppButtons`; set
+   `disabledOpacity: 1` when explicit disabled colors are used.
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.

@@ -324,6 +324,17 @@ contentBuilder: (context, style) {
 | `tapTargetSize` | double | 实际 hit area 下限；与 `minWidth` / `minHeight` 配合计算 |
 | `iconSize` / `gap` | double | 图标尺寸 / 间距 |
 
+状态色说明：
+
+- `WButtonStyle.filled / outlined / text` 只是单色快捷构造；`pressed / disabled /
+  hovered / focused` 由项目级 `AppButtons` 通过 `WidgetStateProperty.resolveWith` 定义。
+- `foregroundColor` 会合并进最终 `textStyle`；`label` / `icon` 不需要自己设置颜色，
+  `textStyle.color` 会被 `foregroundColor` 覆盖。
+- 如果已经在 `backgroundColor` / `foregroundColor` 中解析了禁用色，必须设置
+  `disabledOpacity: 1`，否则 `WButton` 还会再叠一层透明度。
+- `hoverColor` / `focusColor` 是 WButton 的 overlay；项目通过 `_bg` 处理 hover 时，
+  通常应把 `hoverColor` 设为 `Colors.transparent`，避免双重叠加。
+
 颜色/边框/阴影/文字都使用 `WidgetStateProperty`：
 
 ```dart

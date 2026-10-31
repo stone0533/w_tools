@@ -24,6 +24,8 @@
    `SizedBox(width: double.infinity)` 或 `Expanded`，固定宽度用外层 `SizedBox`。
    `WButton` 没有 `variant`；样式用 `style`，`label` 和 `content` 不能同时传。
    `loading` 时同时设置 `enabled: !loading`；纯图标按钮提供 `semanticLabel`。
+   状态色（disabled / pressed / hovered / focused）放 `AppButtons`；显式禁用色时
+   `disabledOpacity: 1`，避免二次变淡。
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
    **图片**：网络图 / 资源图用 `WImage`；不要裸用 `Image.network` / `Image.asset`。
