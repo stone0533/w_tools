@@ -36,7 +36,12 @@ class DemoPage extends StatelessWidget {
       body: Column(
         children: const [
           WAppBar(title: 'Demo'),
-          Expanded(child: WText(text: 'Hello w_tools_ui')),
+          Expanded(
+            child: WText(
+              text: 'Hello w_tools_ui',
+              variant: WTextVariant.body,
+            ),
+          ),
         ],
       ),
     );

@@ -37,6 +37,7 @@
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, `WTextConfig` has been removed; do not build styles field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
+   Minimal example: `WText(text: 'Title', variant: WTextVariant.title)`.
    **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
    in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme,
    so theme-aware typography must use `builderWrapper`.

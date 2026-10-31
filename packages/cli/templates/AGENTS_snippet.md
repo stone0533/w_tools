@@ -33,6 +33,7 @@
    `w_tools_app`，底部面板用 `WBottomSheet`；轻提示用 `WToast`；确认框用 Flutter `showDialog`。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    `WTextConfig` 已移除；不要逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
+   最小示例：`WText(text: '标题', variant: WTextVariant.title)`。
    **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
    在 `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper` 的 build 期构建。
    `wrapApp` 没有 Theme；需要 Theme 的排版扩展用 `builderWrapper`。
