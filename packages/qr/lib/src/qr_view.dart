@@ -203,7 +203,9 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       _runCameraAction(_controller?.pauseCamera());
     }
-    _runCameraAction(_controller?.resumeCamera());
+    if (!_pausedByLifecycle) {
+      _runCameraAction(_controller?.resumeCamera());
+    }
   }
 
   @override
@@ -265,6 +267,9 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
 
   /// 包装底层控制器，并把扫描流转换为广播流
   void _onQRViewCreated(QRViewController controller) {
+    // State 已销毁时不再建立新的包装控制器 / 订阅；底层控制器由 QRView 释放。
+    if (!mounted) return;
+
     // 平台视图重建时，先释放旧的包装控制器与订阅
     unawaited(_scanSubscription?.cancel());
     unawaited(_controller?.dispose());

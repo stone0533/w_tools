@@ -26,7 +26,7 @@
 
 ```yaml
 dependencies:
-  w_tools_qr: ^1.0.0
+  w_tools_qr: ^1.0.1
 ```
 
 ## 快速开始

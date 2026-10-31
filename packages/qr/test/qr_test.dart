@@ -83,6 +83,17 @@ void main() {
     });
   });
 
+  test('非法尺寸在 debug 下断言失败', () {
+    expect(
+      () => WQrViewOverlayShape(cutOutWidth: 0),
+      throwsA(isA<AssertionError>()),
+    );
+    expect(
+      () => WQrViewOverlayShape(borderWidth: 0),
+      throwsA(isA<AssertionError>()),
+    );
+  });
+
   group('WQrView — 构造 & 渲染（Tier 1）', () {
     testWidgets('默认构造 — onScanned 必填 + 默认参数', (tester) async {
       await tester.pumpWidget(
