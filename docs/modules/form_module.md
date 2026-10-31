@@ -452,6 +452,8 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 |------|------|------|
 | `obscureText` | `bool` | 是否密码模式 |
 | `style` / `readOnlyStyle` / `hintStyle` | `TextStyle?` | 文本样式 |
+| `hintText` | `String?` | 输入框提示；直接字段的 `label` 优先 |
+| `decoration` | `InputDecoration?` | 高级输入装饰覆盖，保留统一边框默认值 |
 | `contentPadding` | `EdgeInsetsGeometry?` | 内边距 |
 | `inputFormatters` | `List<TextInputFormatter>?` | 输入格式化器 |
 | `keyboardType` | `TextInputType?` | 键盘类型，缺省密码模式自动补 `visiblePassword` |

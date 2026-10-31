@@ -267,4 +267,68 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('直接字段不覆盖 config 的 enabled / obscureText / autofocus', (tester) async {
+    final config = WFormTextFieldConfig()
+      ..enabled = false
+      ..obscureText = true
+      ..autofocus = true;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormTextField(name: 'password', config: config),
+          ),
+        ),
+      ),
+    );
+
+    final core = tester.widget<WFormTextFieldCore>(
+      find.byType(WFormTextFieldCore),
+    );
+    expect(core.config.enabled, isFalse);
+    expect(core.config.obscureText, isTrue);
+    expect(core.config.autofocus, isTrue);
+  });
+
+  testWidgets('label 不进入 hintTextList', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormTextField(name: 'email', label: '邮箱'),
+          ),
+        ),
+      ),
+    );
+
+    final shell = tester.widget<WFormFieldShell>(
+      find.byType(WFormFieldShell),
+    );
+    expect(shell.hintTextList, isNull);
+  });
+
+  testWidgets('TextFieldConfig 的 hintText / decoration 生效', (tester) async {
+    final config = WFormTextFieldConfig()
+      ..hintText = '配置提示'
+      ..decoration = const InputDecoration(suffixIcon: Icon(Icons.clear));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormTextField(name: 'email', config: config),
+          ),
+        ),
+      ),
+    );
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.decoration?.hintText, '配置提示');
+    expect(field.decoration?.suffixIcon, isNotNull);
+  });
 }

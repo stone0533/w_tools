@@ -156,6 +156,9 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
     _effectiveReadOnly = !isEnabled || widget.readOnly || inheritedReadOnly;
     final readOnly = _effectiveReadOnly;
 
+    final customDecoration = widget.config.decoration;
+    final hintText = widget.hintText ?? widget.config.hintText ?? customDecoration?.hintText;
+
     return WFormTextFieldScope._(
       state: this,
       isPasswordVisible: _isPasswordVisible,
@@ -180,19 +183,21 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
           onChanged: onChanged,
           cursorColor: widget.config.style?.color,
           decoration: InputDecoration(
-            hintText: widget.hintText,
-            hintStyle: widget.config.hintStyle,
-            fillColor: Colors.transparent,
-            filled: true,
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            errorBorder: InputBorder.none,
-            focusedErrorBorder: InputBorder.none,
-            contentPadding: widget.config.contentPadding,
-            prefix: widget.config.prefix,
-            prefixIcon: widget.config.prefixIcon,
-            isCollapsed: true,
+            hintText: hintText,
+            hintStyle: customDecoration?.hintStyle ?? widget.config.hintStyle,
+            fillColor: customDecoration?.fillColor ?? Colors.transparent,
+            filled: customDecoration?.filled ?? true,
+            border: customDecoration?.border ?? InputBorder.none,
+            enabledBorder: customDecoration?.enabledBorder ?? InputBorder.none,
+            focusedBorder: customDecoration?.focusedBorder ?? InputBorder.none,
+            errorBorder: customDecoration?.errorBorder ?? InputBorder.none,
+            focusedErrorBorder: customDecoration?.focusedErrorBorder ?? InputBorder.none,
+            contentPadding: customDecoration?.contentPadding ?? widget.config.contentPadding,
+            prefix: customDecoration?.prefix ?? widget.config.prefix,
+            prefixIcon: customDecoration?.prefixIcon ?? widget.config.prefixIcon,
+            suffix: customDecoration?.suffix,
+            suffixIcon: customDecoration?.suffixIcon,
+            isCollapsed: customDecoration?.isCollapsed ?? true,
           ),
           style: readOnly
               ? widget.config.readOnlyStyle ?? widget.config.style
@@ -232,6 +237,8 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
   TextStyle? style;
   EdgeInsetsGeometry? contentPadding;
   TextStyle? hintStyle;
+  String? hintText;
+  InputDecoration? decoration;
   TextAlign? textAlign;
   bool? autofocus;
   bool obscureText;
@@ -250,6 +257,8 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
     this.style,
     this.contentPadding,
     this.hintStyle,
+    this.hintText,
+    this.decoration,
     double? yOffset,
     Widget? leading,
     List<Widget>? actions,
@@ -299,7 +308,7 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
       onSubmitted: onSubmitted,
       onEditingComplete: onEditingComplete,
       initialValue: initialValue,
-      hintText: hintText,
+      hintText: hintText ?? this.hintText,
       readOnly: readOnly,
       enabled: enabled,
       validator: validator,
@@ -330,6 +339,8 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
     TextStyle? style,
     EdgeInsetsGeometry? contentPadding,
     TextStyle? hintStyle,
+    String? hintText,
+    InputDecoration? decoration,
     double? yOffset,
     Widget? leading,
     List<Widget>? actions,
@@ -354,6 +365,8 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
       style: style ?? this.style,
       contentPadding: contentPadding ?? this.contentPadding,
       hintStyle: hintStyle ?? this.hintStyle,
+      hintText: hintText ?? this.hintText,
+      decoration: decoration ?? this.decoration,
       yOffset: yOffset ?? this.yOffset,
       leading: leading ?? this.leading,
       actions: actions ?? this.actions,

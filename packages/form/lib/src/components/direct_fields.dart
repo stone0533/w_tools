@@ -38,11 +38,11 @@ class WFormTextField extends StatelessWidget {
     this.onSubmitted,
     this.onEditingComplete,
     this.focusNode,
-    this.enabled = true,
+    this.enabled,
     this.readOnly = false,
     this.bordered = true,
-    this.obscureText = false,
-    this.autofocus = false,
+    this.obscureText,
+    this.autofocus,
     this.keyboardType,
     this.textInputAction,
     this.maxLines,
@@ -63,11 +63,11 @@ class WFormTextField extends StatelessWidget {
   final void Function(String?)? onSubmitted;
   final VoidCallback? onEditingComplete;
   final FocusNode? focusNode;
-  final bool enabled;
+  final bool? enabled;
   final bool readOnly;
   final bool bordered;
-  final bool obscureText;
-  final bool autofocus;
+  final bool? obscureText;
+  final bool? autofocus;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final int? maxLines;
@@ -87,10 +87,9 @@ class WFormTextField extends StatelessWidget {
       if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
       if (fieldStyle?.hintStyle != null) c.hintStyle = fieldStyle!.hintStyle;
     }
-    c
-      ..enabled = enabled
-      ..obscureText = obscureText
-      ..autofocus = autofocus;
+    if (enabled != null) c.enabled = enabled!;
+    if (obscureText != null) c.obscureText = obscureText!;
+    if (autofocus != null) c.autofocus = autofocus!;
     if (keyboardType != null) c.keyboardType = keyboardType;
     if (textInputAction != null) c.textInputAction = textInputAction;
     if (maxLines != null) c.maxLines = maxLines;
@@ -116,7 +115,6 @@ class WFormTextField extends StatelessWidget {
 
   List<String>? get _messages {
     if (message != null) return [message!];
-    if (label != null) return [label!];
     return null;
   }
 }
@@ -131,7 +129,7 @@ class WFormDropdown<T> extends StatelessWidget {
     this.initialValue,
     this.validator,
     this.onChanged,
-    this.enabled = true,
+    this.enabled,
     this.readOnly = false,
     this.bordered = true,
     this.hintTextList,
@@ -147,7 +145,7 @@ class WFormDropdown<T> extends StatelessWidget {
   final T? initialValue;
   final FormFieldValidator<T>? validator;
   final ValueChanged<T?>? onChanged;
-  final bool enabled;
+  final bool? enabled;
   final bool readOnly;
   final bool bordered;
   final List<String>? hintTextList;
@@ -164,7 +162,7 @@ class WFormDropdown<T> extends StatelessWidget {
       if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
       if (fieldStyle?.hintStyle != null) c.hintStyle = fieldStyle!.hintStyle;
     }
-    c.enabled = enabled;
+    if (enabled != null) c.enabled = enabled!;
     return c.build<T>(
       name: name,
       items: items,
@@ -193,7 +191,7 @@ class WFormMultiDropdown extends StatelessWidget {
     this.initialValue,
     this.validator,
     this.onChanged,
-    this.enabled = true,
+    this.enabled,
     this.readOnly = false,
     this.bordered = true,
     this.hintTextList,
@@ -209,7 +207,7 @@ class WFormMultiDropdown extends StatelessWidget {
   final Set<String>? initialValue;
   final FormFieldValidator<Set<String>>? validator;
   final ValueChanged<Set<String>>? onChanged;
-  final bool enabled;
+  final bool? enabled;
   final bool readOnly;
   final bool bordered;
   final List<String>? hintTextList;
@@ -226,7 +224,7 @@ class WFormMultiDropdown extends StatelessWidget {
       if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
       c.hintText = label ?? c.hintText;
     }
-    c.enabled = enabled;
+    if (enabled != null) c.enabled = enabled!;
     return c.build(
       name: name,
       items: items,
@@ -256,7 +254,7 @@ class WFormDatePicker extends StatelessWidget {
     this.lastDate,
     this.validator,
     this.onChanged,
-    this.enabled = true,
+    this.enabled,
     this.readOnly = false,
     this.bordered = true,
     this.hintTextList,
@@ -273,7 +271,7 @@ class WFormDatePicker extends StatelessWidget {
   final DateTime? lastDate;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String?>? onChanged;
-  final bool enabled;
+  final bool? enabled;
   final bool readOnly;
   final bool bordered;
   final List<String>? hintTextList;
@@ -292,7 +290,7 @@ class WFormDatePicker extends StatelessWidget {
     if (label != null && c.decoration?.hintText == null) {
       c.decoration = (c.decoration ?? const InputDecoration()).copyWith(hintText: label);
     }
-    c.enabled = enabled;
+    if (enabled != null) c.enabled = enabled!;
     return c.build(
       name: name,
       firstDate: firstDate ?? DateTime(1900),
@@ -319,7 +317,7 @@ class WFormCheckbox extends StatelessWidget {
     this.initialValue = false,
     this.validator,
     this.onChanged,
-    this.enabled = true,
+    this.enabled,
     this.readOnly = false,
     this.bordered = false,
     this.hintTextList,
@@ -333,7 +331,7 @@ class WFormCheckbox extends StatelessWidget {
   final bool initialValue;
   final FormFieldValidator<bool>? validator;
   final ValueChanged<bool?>? onChanged;
-  final bool enabled;
+  final bool? enabled;
   final bool readOnly;
   final bool bordered;
   final List<String>? hintTextList;
@@ -346,7 +344,7 @@ class WFormCheckbox extends StatelessWidget {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormCheckboxConfig();
     if (config == null) _applyBaseStyle(c, fieldStyle);
-    c.enabled = enabled;
+    if (enabled != null) c.enabled = enabled!;
     return c.build(
       name: name,
       title: title,
@@ -372,7 +370,7 @@ class WFormRadioGroup<T> extends StatelessWidget {
     this.onChanged,
     this.titleBuilder,
     this.itemExtraBuilder,
-    this.enabled = true,
+    this.enabled,
     this.readOnly = false,
     this.bordered = false,
     this.hintTextList,
@@ -388,7 +386,7 @@ class WFormRadioGroup<T> extends StatelessWidget {
   final ValueChanged<T?>? onChanged;
   final Widget Function(BuildContext, T, String, bool)? titleBuilder;
   final Widget Function(BuildContext, T, String, bool)? itemExtraBuilder;
-  final bool enabled;
+  final bool? enabled;
   final bool readOnly;
   final bool bordered;
   final List<String>? hintTextList;
@@ -404,7 +402,7 @@ class WFormRadioGroup<T> extends StatelessWidget {
       _applyBaseStyle(c, fieldStyle);
       if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
     }
-    c.enabled = enabled;
+    if (enabled != null) c.enabled = enabled!;
     return c.build<T>(
       name: name,
       items: items,
@@ -433,7 +431,7 @@ class WFormButton extends StatelessWidget {
     this.initialValue,
     this.validator,
     this.focusNode,
-    this.enabled = true,
+    this.enabled,
     this.readOnly = false,
     this.bordered = true,
     this.hintTextList,
@@ -450,7 +448,7 @@ class WFormButton extends StatelessWidget {
   final String? initialValue;
   final FormFieldValidator<String>? validator;
   final FocusNode? focusNode;
-  final bool enabled;
+  final bool? enabled;
   final bool readOnly;
   final bool bordered;
   final List<String>? hintTextList;
@@ -463,7 +461,7 @@ class WFormButton extends StatelessWidget {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormFieldButtonConfig();
     if (config == null) _applyBaseStyle(c, fieldStyle);
-    c.enabled = enabled;
+    if (enabled != null) c.enabled = enabled!;
     if (hintWidget != null || label != null) {
       c.hintWidget = hintWidget ?? Text(label!);
     }
