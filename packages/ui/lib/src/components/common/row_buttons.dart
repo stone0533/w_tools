@@ -107,7 +107,7 @@ class _WRowButtonsState extends State<WRowButtons> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final index = widget.controller.index;
-      if (index != null) {
+      if (index != null && widget.controller.scrollToCenter) {
         widget.controller.ensureVisible(index, duration: Duration.zero);
       }
     });
@@ -437,6 +437,8 @@ class WRowButtonsController {
   }
 
   /// 确保指定索引在视口中间（不改变选中索引）
+  ///
+  /// 显式调用不受 [scrollToCenter] 限制；初始布局的自动居中会检查该开关。
   void ensureVisible(
     int index, {
     Duration? duration,
