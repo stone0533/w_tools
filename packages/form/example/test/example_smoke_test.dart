@@ -56,5 +56,9 @@ void main() {
     await tester.tap(find.text('读取 controller 状态'));
     await tester.pumpAndSettle();
     expect(find.textContaining('values:'), findsOneWidget);
+
+    await tester.tap(find.text('边框'));
+    await tester.pumpAndSettle();
+    expect(find.text('自定义边框'), findsWidgets);
   });
 }

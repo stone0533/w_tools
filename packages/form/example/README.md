@@ -7,6 +7,7 @@
 - 只读预览：`WForm(readOnly: true)`
 - 锚定弹层：`WFormPopup` + `WFormButton`
 - 高级字段：leading / maxLines / 禁用下拉 / 自定义勾选 / 单选样式 / controller 读取
+- 自定义边框：`WFormBorderConfig` 的聚焦 / 错误装饰与 hint / error builder
 - 统一边框 / 图标：`WFormBorderConfig` + `WForm` 的 icon 配置
 
 ## 运行
@@ -35,6 +36,7 @@ lib/
     profile_page.dart   资料编辑 / 只读场景
     popup_page.dart     WFormPopup 锚定弹层
     advanced_fields_page.dart 字段 Config / controller 读取
+    border_page.dart   自定义 WFormBorderConfig
 test/
   example_smoke_test.dart
 ```
