@@ -24,7 +24,7 @@ void main() {
     testWidgets('WFormCheckbox', (tester) async {
       await expectCleanup(
         tester,
-        const WFormCheckboxConfig().build(
+        WFormCheckboxConfig().build(
           name: 'checkbox',
           title: const Text('同意'),
         ),
@@ -70,7 +70,7 @@ void main() {
       var changed = false;
       await pumpForm(
         tester,
-        child: const WFormCheckboxConfig().build(
+        child: WFormCheckboxConfig().build(
           name: 'checkbox',
           title: const Text('同意'),
           readOnly: true,

@@ -886,7 +886,7 @@ void main() {
                 children: [
                   Expanded(
                     child: WFormCheckbox(
-                      config: const WFormCheckboxConfig(),
+                      config: WFormCheckboxConfig(),
                       name: 'agree',
                       title: const Text('同意'),
                     ),

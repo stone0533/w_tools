@@ -3,6 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
+import '../field_chrome.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 import '../form_defaults.dart';
@@ -135,41 +136,41 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckbox, bool> {
 
 /// 复选框配置类，定义复选框的样式和行为。
 ///
-/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
-class WFormCheckboxConfig {
-  static WFormCheckboxConfigBuilder builder() => WFormCheckboxConfigBuilder();
+/// 可变的字段配置；需要链式构建时为 [builder]。
+class WFormCheckboxConfig extends WFormFieldChrome {
+  Widget? unselectedIcon;
+  Widget? selectedIcon;
+  Widget? disabledIcon;
+  double? iconSpacing;
+  double? iconYOffset;
 
-  final Widget? unselectedIcon;
-  final Widget? selectedIcon;
-  final Widget? disabledIcon;
-  final double? iconSpacing;
-  final double? iconYOffset;
-  final bool enabled;
-  final double? height;
-  final double? width;
-  final Widget? leading;
-  final List<Widget>? actions;
-  final Decoration? containerDecoration;
-  final EdgeInsetsGeometry? containerMargin;
-  final EdgeInsetsGeometry? containerPadding;
-
-  const WFormCheckboxConfig({
+  WFormCheckboxConfig({
     this.unselectedIcon,
     this.selectedIcon,
     this.disabledIcon,
     this.iconSpacing,
     this.iconYOffset,
-    this.enabled = true,
-    this.height,
-    this.width,
-    this.leading,
-    this.actions,
-    this.containerDecoration,
-    this.containerMargin,
-    this.containerPadding,
-  });
+    bool enabled = true,
+    double? height,
+    double? width,
+    Widget? leading,
+    List<Widget>? actions,
+    Decoration? containerDecoration,
+    EdgeInsetsGeometry? containerMargin,
+    EdgeInsetsGeometry? containerPadding,
+  }) {
+    this.enabled = enabled;
+    this.height = height;
+    this.width = width;
+    this.leading = leading;
+    this.actions = actions;
+    this.containerDecoration = containerDecoration;
+    this.containerMargin = containerMargin;
+    this.containerPadding = containerPadding;
+  }
 
-  /// 构建 [WFormCheckbox] 组件。
+  static WFormCheckboxConfigBuilder builder() => WFormCheckboxConfigBuilder();
+
   Widget build({
     required String name,
     required Widget title,
@@ -185,9 +186,7 @@ class WFormCheckboxConfig {
     bool enableFocusBorder = true,
   }) {
     final baseEnabled = enabled ?? this.enabled;
-    final config = bordered
-        ? (WFormCheckboxConfigBuilder.from(this)..containerDecoration = null).buildConfig()
-        : this;
+    final config = bordered ? (copy()..containerDecoration = null) : this;
     final field = WFormCheckbox(
       config: config,
       name: name,
@@ -213,7 +212,6 @@ class WFormCheckboxConfig {
 
   WFormCheckboxConfig copy() => copyWith();
 
-  /// 参数为 null 表示沿用原值；清空请用 [builder]。
   WFormCheckboxConfig copyWith({
     Widget? unselectedIcon,
     Widget? selectedIcon,
@@ -247,54 +245,8 @@ class WFormCheckboxConfig {
   }
 }
 
-/// [WFormCheckboxConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
-class WFormCheckboxConfigBuilder {
-  Widget? unselectedIcon;
-  Widget? selectedIcon;
-  Widget? disabledIcon;
-  double? iconSpacing;
-  double? iconYOffset;
-  bool enabled = true;
-  double? height;
-  double? width;
-  Widget? leading;
-  List<Widget>? actions;
-  Decoration? containerDecoration;
-  EdgeInsetsGeometry? containerMargin;
-  EdgeInsetsGeometry? containerPadding;
-
+/// [WFormCheckboxConfig] 的 Builder；返回可变配置副本。
+class WFormCheckboxConfigBuilder extends WFormCheckboxConfig {
   WFormCheckboxConfigBuilder();
-
-  WFormCheckboxConfigBuilder.from(WFormCheckboxConfig config)
-    : unselectedIcon = config.unselectedIcon,
-      selectedIcon = config.selectedIcon,
-      disabledIcon = config.disabledIcon,
-      iconSpacing = config.iconSpacing,
-      iconYOffset = config.iconYOffset,
-      enabled = config.enabled,
-      height = config.height,
-      width = config.width,
-      leading = config.leading,
-      actions = config.actions,
-      containerDecoration = config.containerDecoration,
-      containerMargin = config.containerMargin,
-      containerPadding = config.containerPadding;
-
-  WFormCheckboxConfig buildConfig() {
-    return WFormCheckboxConfig(
-      unselectedIcon: unselectedIcon,
-      selectedIcon: selectedIcon,
-      disabledIcon: disabledIcon,
-      iconSpacing: iconSpacing,
-      iconYOffset: iconYOffset,
-      enabled: enabled,
-      height: height,
-      width: width,
-      leading: leading,
-      actions: actions,
-      containerDecoration: containerDecoration,
-      containerMargin: containerMargin,
-      containerPadding: containerPadding,
-    );
-  }
+  WFormCheckboxConfig buildConfig() => copy();
 }

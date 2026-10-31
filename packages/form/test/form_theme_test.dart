@@ -14,7 +14,7 @@ void main() {
               child: WFormCheckbox(
                 name: 'agree',
                 title: const Text('同意'),
-                config: const WFormCheckboxConfig(),
+                config: WFormCheckboxConfig(),
               ),
             ),
           ),
@@ -116,7 +116,7 @@ void main() {
               child: WFormCheckbox(
                 name: 'agree',
                 title: const Text('同意'),
-                config: const WFormCheckboxConfig(),
+                config: WFormCheckboxConfig(),
               ),
             ),
           ),
