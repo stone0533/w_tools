@@ -73,6 +73,7 @@ void main() {
     await _emitBarcode(tester, 'https://example.com');
     expect(find.text('扫描结果'), findsOneWidget);
     expect(find.text('https://example.com'), findsOneWidget);
+    expect(find.text('广播流扫描次数：1'), findsOneWidget);
 
     await tester.tap(find.text('继续扫描'));
     await tester.pump();

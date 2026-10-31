@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:w_tools_qr/w_tools_qr.dart';
 
@@ -32,7 +34,9 @@ class QrScannerPage extends StatefulWidget {
 class _QrScannerPageState extends State<QrScannerPage> {
   final _qrKey = GlobalKey<WQrViewState>();
   WQrController? _controller;
+  StreamSubscription<Barcode>? _streamSubscription;
   String? _result;
+  int _streamCount = 0;
   bool _torchOn = false;
   bool _continuous = false;
   bool _showOverlay = true;
@@ -74,6 +78,12 @@ class _QrScannerPageState extends State<QrScannerPage> {
   }
 
   @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -99,6 +109,14 @@ class _QrScannerPageState extends State<QrScannerPage> {
               onScanned: _onScanned,
               onQRViewCreated: (controller) {
                 _controller = controller;
+                _streamSubscription?.cancel();
+                _streamSubscription = controller.scannedDataStream.listen(
+                  (barcode) {
+                    final code = barcode.code;
+                    if (code == null || code.isEmpty || !mounted) return;
+                    setState(() => _streamCount++);
+                  },
+                );
               },
               onError: _report,
               scanOnce: !_continuous,
@@ -135,6 +153,16 @@ class _QrScannerPageState extends State<QrScannerPage> {
                   onSelected: (value) => setState(() => _showOverlay = value),
                 ),
               ],
+            ),
+          ),
+          Positioned(
+            top: 60,
+            left: 12,
+            right: 12,
+            child: Text(
+              '广播流扫描次数：$_streamCount',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white),
             ),
           ),
           if (_result != null)

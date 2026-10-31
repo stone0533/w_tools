@@ -5,6 +5,7 @@
 - `WQrView` 单次扫码
 - 扫描结果展示
 - `WQrViewState.restartScan` 继续扫描
+- `WQrController.scannedDataStream` 广播流
 - `WQrController` 闪光灯 / 摄像头翻转
 - 连续扫描 / 扫描框开关
 - 无权限与错误提示
