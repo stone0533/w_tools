@@ -1024,7 +1024,7 @@ base64String.toBase64Image();
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `config` | WBadgeConfig | 必需，徽章配置 |
-| `badgeContent` | `Widget?` | 徽章内容（如数字、图标） |
+| `badgeContent` | `Widget?` | 徽章内容；显示徽章时不能为空 |
 | `child` | `Widget?` | 子组件 |
 
 ### WBadgeConfig 链式方法

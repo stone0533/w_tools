@@ -18,12 +18,15 @@ class WBadge extends StatelessWidget {
   /// - [config]：徽章配置
   /// - [badgeContent]：徽章内容
   /// - [child]：子组件
-  const WBadge({
+  WBadge({
     super.key,
     required this.config,
     this.badgeContent,
     this.child,
-  });
+  }) : assert(
+          !config.isShown || badgeContent != null,
+          'WBadge: 显示徽章时 badgeContent 不能为空',
+        );
 
   @override
   Widget build(BuildContext context) {

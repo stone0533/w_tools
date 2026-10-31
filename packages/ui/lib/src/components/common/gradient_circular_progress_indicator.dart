@@ -68,9 +68,10 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
     if (strokeCapRound) {
       offset = asin((strokeWidth / (radius * 2 - strokeWidth)).clamp(-1.0, 1.0));
     }
+    final progress = value.clamp(0.0, 1.0);
     return Semantics(
       label: semanticsLabel,
-      value: '${(value * 100).round()}%',
+      value: '${(progress * 100).round()}%',
       child: Transform.rotate(
         angle: -pi / 2.0 - offset,
         child: CustomPaint(

@@ -200,6 +200,23 @@ void main() {
       expect(find.byIcon(Icons.email), findsOneWidget);
     });
 
+    testWidgets('显示徽章时 badgeContent 不能为空', (tester) async {
+      expect(
+        () => WBadge(
+          config: WBadgeConfig(),
+          child: const Icon(Icons.notifications),
+        ),
+        throwsAssertionError,
+      );
+      expect(
+        () => WBadge(
+          config: WBadgeConfig().hideBadge(),
+          child: const Icon(Icons.notifications),
+        ),
+        returnsNormally,
+      );
+    });
+
     testWidgets('showBadge() 可恢复显示', (tester) async {
       final config = WBadgeConfig()..hideBadge();
       expect(config.isShown, isFalse);
