@@ -6,6 +6,7 @@
 - 分页：`WAsyncPagedController`、`loadMore`、`hasMore`、追加失败
 - Sliver：`WAsyncStateSliver`
 - 全局默认：`WAsyncViewDefaults` / `WAsyncSliverDefaults`
+- 执行编排：`WAsync` / `WAsyncConfig` / `WCancelToken`
 
 ## 运行
 
@@ -31,6 +32,7 @@ lib/
     async_view_page.dart    WAsyncController + WAsyncView
     paged_page.dart         WAsyncPagedController
     sliver_page.dart        WAsyncStateSliver
+    execution_page.dart     WAsync / 重试 / 超时 / 取消
 test/
   example_smoke_test.dart
 ```

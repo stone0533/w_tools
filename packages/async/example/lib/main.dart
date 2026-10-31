@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
+import 'pages/execution_page.dart';
 import 'pages/paged_page.dart';
 import 'pages/sliver_page.dart';
 import 'pages/async_view_page.dart';
@@ -82,6 +83,7 @@ class _ExampleHomeState extends State<_ExampleHome> {
           AsyncViewPage(),
           PagedPage(),
           SliverPage(),
+          ExecutionPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -99,6 +101,10 @@ class _ExampleHomeState extends State<_ExampleHome> {
           NavigationDestination(
             icon: Icon(Icons.view_day_rounded),
             label: 'Sliver',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.play_circle_outline_rounded),
+            label: '执行',
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async_example/main.dart';
 
@@ -19,6 +20,16 @@ void main() {
     await tester.tap(find.text('加载更多'));
     await tester.pumpAndSettle();
     expect(find.text('第 2 页 · 1'), findsOneWidget);
+  });
+
+  testWidgets('执行页面可以运行 WAsync.run', (tester) async {
+    await tester.pumpWidget(const AsyncExampleApp());
+    await tester.tap(find.text('执行').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, '执行'));
+    await tester.pumpAndSettle();
+    expect(find.text('run: 执行成功'), findsOneWidget);
   });
 
   testWidgets('Sliver 页面展示四态 sliver', (tester) async {
