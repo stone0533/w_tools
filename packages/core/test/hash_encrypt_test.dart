@@ -82,6 +82,18 @@ void main() {
   });
 
   group('WEncrypt', () {
+    test('generateKey 只接受 AES 合法长度', () {
+      expect(() => WEncrypt.generateKey(length: 16), returnsNormally);
+      expect(() => WEncrypt.generateKey(length: 24), returnsNormally);
+      expect(() => WEncrypt.generateKey(length: 32), returnsNormally);
+      expect(() => WEncrypt.generateKey(length: 10), throwsArgumentError);
+    });
+
+    test('generateIv 只接受 16 字节', () {
+      expect(() => WEncrypt.generateIv(), returnsNormally);
+      expect(() => WEncrypt.generateIv(length: 8), throwsArgumentError);
+    });
+
     test('base64 编解码对称', () {
       const data = 'Hello World';
       final encoded = WEncrypt.base64Encode(data);

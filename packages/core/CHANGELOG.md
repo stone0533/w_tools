@@ -9,6 +9,7 @@
 
 ### Fixed
 - `WUx.debounce` / `throttle` / `delay` 对负数 duration 抛出 `ArgumentError`。
+- `WEncrypt.generateKey` / `generateIv` 校验 AES 合法长度。
 - `WValidator.isValidUrl` 要求 host 非空，拒绝 `https://` / `https://?q=1`。
 - `WHash.verifyPassword` 使用常量时间比较，降低时序侧信道。
 

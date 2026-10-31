@@ -30,6 +30,9 @@ class WEncrypt {
   ///
   /// [length] 为字节数，默认 32（AES-256）；AES 密钥长度需为 16 / 24 / 32。
   static String generateKey({int length = 32}) {
+    if (length != 16 && length != 24 && length != 32) {
+      throw ArgumentError.value(length, 'length', 'AES 密钥长度必须为 16 / 24 / 32');
+    }
     final random = Random.secure();
     final bytes = List<int>.generate(length, (_) => random.nextInt(256));
     return convert.base64Encode(bytes);
@@ -39,6 +42,9 @@ class WEncrypt {
   ///
   /// [length] 为字节数，默认 16；AES-CBC 的 IV 固定为 16 字节。
   static String generateIv({int length = 16}) {
+    if (length != 16) {
+      throw ArgumentError.value(length, 'length', 'AES-CBC IV 长度必须为 16');
+    }
     final random = Random.secure();
     final bytes = List<int>.generate(length, (_) => random.nextInt(256));
     return convert.base64Encode(bytes);
