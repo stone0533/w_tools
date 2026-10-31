@@ -6,11 +6,11 @@ import 'package:w_tools_form/w_tools_form.dart';
 void main() {
   group('WFormTextFieldConfig copyWith / copy', () {
     test('copyWith 不覆盖时保留原值', () {
-      final config = WFormTextFieldConfig()
+      final config = WFormTextFieldConfig.builder()
         ..height = 50
         ..obscureText = true;
 
-      final copied = config.copyWith();
+      final copied = config.buildConfig().copyWith();
       // 私有字段但通过 build 间接验证不行
       // 只能通过 setter 再次设置验证... 实际上这里很难，
       // 因为私有字段没 getter
@@ -18,7 +18,7 @@ void main() {
     });
 
     test('copy 创建独立实例', () {
-      final config = WFormTextFieldConfig()..height = 42;
+      const config = WFormTextFieldConfig(height: 42);
       final copied = config.copy();
       expect(copied, isNot(same(config)));
     });
@@ -26,9 +26,7 @@ void main() {
 
   group('WFormTextFieldConfig setter', () {
     test('所有 setter 都能正常赋值', () {
-      final config = WFormTextFieldConfig();
-      // 逐个调用确保无 setter 抛异常
-      config
+      final config = WFormTextFieldConfig.builder()
         ..keyboardType = TextInputType.emailAddress
         ..inputFormatters = [FilteringTextInputFormatter.digitsOnly]
         ..readOnlyStyle = const TextStyle(color: Colors.grey)
@@ -50,21 +48,20 @@ void main() {
         ..maxLines = 5
         ..textInputAction = TextInputAction.done;
 
-      // 全部 setter 不抛异常 = 通过
-      expect(config, isNotNull);
+      expect(config.buildConfig(), isA<WFormTextFieldConfig>());
     });
   });
 
   group('WFormTextFieldConfig.build', () {
     testWidgets('build 返回 WFormTextField', (tester) async {
-      final config = WFormTextFieldConfig();
+      const config = WFormTextFieldConfig();
       final textField = config.build(name: 'email') as WFormTextField;
       expect(textField, isA<WFormTextField>());
       expect(textField.name, 'email');
     });
 
     testWidgets('build 传递 hintText / onChanged / onSubmitted', (tester) async {
-      final config = WFormTextFieldConfig();
+      const config = WFormTextFieldConfig();
 
       final textField =
           config.build(
@@ -84,7 +81,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) 空 name 抛 ArgumentError', (tester) async {
-      final config = WFormTextFieldConfig();
+      const config = WFormTextFieldConfig();
       expect(
         () => config.build(bordered: true, name: ''),
         throwsArgumentError,
@@ -92,7 +89,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) 非空 name 返回 Widget', (tester) async {
-      final config = WFormTextFieldConfig();
+      const config = WFormTextFieldConfig();
       final bordered = config.build(bordered: true, name: 'email');
       expect(bordered, isA<Widget>());
     });

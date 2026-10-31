@@ -7,7 +7,6 @@ import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
-import '../field_chrome.dart';
 
 /// 表单单行文本输入组件
 ///
@@ -174,14 +173,14 @@ class _WFormTextFieldState extends State<WFormTextField> {
           name: widget.name,
           initialValue: widget.initialValue,
           validator: widget.validator,
-          textInputAction: widget.config._textInputAction,
+          textInputAction: widget.config.textInputAction,
           enabled: isEnabled,
           readOnly: readOnly,
           onChanged: onChanged,
-          cursorColor: widget.config._style?.color,
+          cursorColor: widget.config.style?.color,
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: widget.config._hintStyle,
+            hintStyle: widget.config.hintStyle,
             fillColor: Colors.transparent,
             filled: true,
             border: InputBorder.none,
@@ -189,31 +188,31 @@ class _WFormTextFieldState extends State<WFormTextField> {
             focusedBorder: InputBorder.none,
             errorBorder: InputBorder.none,
             focusedErrorBorder: InputBorder.none,
-            contentPadding: widget.config._contentPadding,
-            prefix: widget.config._prefix,
-            prefixIcon: widget.config._prefixIcon,
+            contentPadding: widget.config.contentPadding,
+            prefix: widget.config.prefix,
+            prefixIcon: widget.config.prefixIcon,
             isCollapsed: true,
           ),
           style: readOnly
-              ? widget.config._readOnlyStyle ?? widget.config._style
-              : widget.config._style,
+              ? widget.config.readOnlyStyle ?? widget.config.style
+              : widget.config.style,
           strutStyle: StrutStyle(
-            fontFamily: widget.config._style?.fontFamily,
-            fontSize: widget.config._style?.fontSize,
-            fontWeight: widget.config._style?.fontWeight,
-            height: widget.config._style?.height,
+            fontFamily: widget.config.style?.fontFamily,
+            fontSize: widget.config.style?.fontSize,
+            fontWeight: widget.config.style?.fontWeight,
+            height: widget.config.style?.height,
             forceStrutHeight: true,
           ),
-          obscureText: widget.config._obscureText && !_isPasswordVisible,
+          obscureText: widget.config.obscureText && !_isPasswordVisible,
           obscuringCharacter: '＊',
           keyboardType:
-              widget.config._keyboardType ??
-              (widget.config._obscureText ? TextInputType.visiblePassword : null),
-          inputFormatters: widget.config._inputFormatters,
-          textAlign: widget.config._textAlign ?? TextAlign.start,
-          autofocus: widget.config._autofocus ?? false,
+              widget.config.keyboardType ??
+              (widget.config.obscureText ? TextInputType.visiblePassword : null),
+          inputFormatters: widget.config.inputFormatters,
+          textAlign: widget.config.textAlign ?? TextAlign.start,
+          autofocus: widget.config.autofocus ?? false,
           autocorrect: false,
-          maxLines: widget.config._maxLines ?? 1,
+          maxLines: widget.config.maxLines ?? 1,
           onSubmitted: widget.onSubmitted,
           onEditingComplete: widget.onEditingComplete,
         ),
@@ -222,119 +221,60 @@ class _WFormTextFieldState extends State<WFormTextField> {
   }
 }
 
-/// 文本输入配置类，定义文本输入的样式和行为
-class WFormTextFieldConfig extends WFormFieldChrome {
-  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+/// 文本输入配置类，定义文本输入的样式和行为。
+///
+/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
+class WFormTextFieldConfig {
   static WFormTextFieldConfigBuilder builder() => WFormTextFieldConfigBuilder();
 
-  /// 键盘类型
-  TextInputType? _keyboardType;
+  final bool enabled;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextStyle? readOnlyStyle;
+  final double? height;
+  final double? width;
+  final TextStyle? style;
+  final EdgeInsetsGeometry? contentPadding;
+  final TextStyle? hintStyle;
+  final double? yOffset;
+  final Widget? leading;
+  final List<Widget>? actions;
+  final Decoration? containerDecoration;
+  final EdgeInsetsGeometry? containerMargin;
+  final EdgeInsetsGeometry? containerPadding;
+  final TextAlign? textAlign;
+  final bool? autofocus;
+  final bool obscureText;
+  final Widget? prefix;
+  final Widget? prefixIcon;
+  final int? maxLines;
+  final TextInputAction? textInputAction;
 
-  /// 输入格式化器
-  List<TextInputFormatter>? _inputFormatters;
+  const WFormTextFieldConfig({
+    this.enabled = true,
+    this.keyboardType,
+    this.inputFormatters,
+    this.readOnlyStyle,
+    this.height,
+    this.width,
+    this.style,
+    this.contentPadding,
+    this.hintStyle,
+    this.yOffset,
+    this.leading,
+    this.actions,
+    this.containerDecoration,
+    this.containerMargin,
+    this.containerPadding,
+    this.textAlign,
+    this.autofocus,
+    this.obscureText = false,
+    this.prefix,
+    this.prefixIcon,
+    this.maxLines,
+    this.textInputAction,
+  });
 
-  /// 只读状态文本样式
-  TextStyle? _readOnlyStyle;
-
-  /// 文本样式
-  TextStyle? _style;
-
-  /// 内容内边距
-  EdgeInsetsGeometry? _contentPadding;
-
-  /// 提示文本样式
-  TextStyle? _hintStyle;
-
-  /// 文本对齐方式
-  TextAlign? _textAlign;
-
-  /// 是否自动获取焦点
-  bool? _autofocus;
-
-  /// 是否密码模式
-  bool _obscureText = false;
-
-  /// 前缀组件
-  Widget? _prefix;
-
-  /// 前缀图标
-  Widget? _prefixIcon;
-
-  /// 最大行数
-  int? _maxLines;
-
-  /// 文本输入动作
-  TextInputAction? _textInputAction;
-
-  /// 设置键盘类型
-  set keyboardType(TextInputType? value) {
-    _keyboardType = value;
-  }
-
-  /// 设置输入格式化器
-  set inputFormatters(List<TextInputFormatter>? value) {
-    _inputFormatters = value;
-  }
-
-  /// 设置只读状态文本样式
-  set readOnlyStyle(TextStyle? value) {
-    _readOnlyStyle = value;
-  }
-
-  /// 设置文本样式
-  set style(TextStyle? value) {
-    _style = value;
-  }
-
-  /// 设置内容内边距
-  set contentPadding(EdgeInsetsGeometry? value) {
-    _contentPadding = value;
-  }
-
-  /// 设置提示文本样式
-  set hintStyle(TextStyle? value) {
-    _hintStyle = value;
-  }
-
-  /// 设置文本对齐方式
-  set textAlign(TextAlign? value) {
-    _textAlign = value;
-  }
-
-  /// 设置是否自动获取焦点
-  set autofocus(bool? value) {
-    _autofocus = value;
-  }
-
-  /// 设置是否密码模式
-  set obscureText(bool value) {
-    _obscureText = value;
-  }
-
-  /// 设置前缀组件
-  set prefix(Widget? value) {
-    _prefix = value;
-  }
-
-  /// 设置前缀图标
-  set prefixIcon(Widget? value) {
-    _prefixIcon = value;
-  }
-
-  /// 设置最大行数
-  set maxLines(int? value) {
-    _maxLines = value;
-  }
-
-  /// 设置文本输入动作
-  set textInputAction(TextInputAction? value) {
-    _textInputAction = value;
-  }
-
-  /// 构建 [WFormTextField] 组件
-  ///
-  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
-  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
   Widget build({
     required String name,
     ValueChanged<String?>? onChanged,
@@ -351,7 +291,9 @@ class WFormTextFieldConfig extends WFormFieldChrome {
     Key? borderKey,
     bool enableFocusBorder = true,
   }) {
-    final config = bordered ? (copy()..containerDecoration = null) : this;
+    final config = bordered
+        ? (WFormTextFieldConfigBuilder.from(this)..containerDecoration = null).buildConfig()
+        : this;
     final effectiveReadOnly = readOnly || !enabled;
     final field = WFormTextField(
       config: config,
@@ -380,14 +322,8 @@ class WFormTextFieldConfig extends WFormFieldChrome {
     );
   }
 
-  /// 创建当前配置的副本
-  WFormTextFieldConfig copy() {
-    return copyWith();
-  }
+  WFormTextFieldConfig copy() => copyWith();
 
-  /// 创建当前配置的副本，并可以选择性地更新某些属性
-  ///
-  /// 参数为 null 表示沿用原值。
   WFormTextFieldConfig copyWith({
     bool? enabled,
     TextInputType? keyboardType,
@@ -412,30 +348,109 @@ class WFormTextFieldConfig extends WFormFieldChrome {
     int? maxLines,
     TextInputAction? textInputAction,
   }) {
-    final config = WFormTextFieldConfig();
-    config.enabled = enabled ?? this.enabled;
-    config._keyboardType = keyboardType ?? _keyboardType;
-    config._inputFormatters = inputFormatters ?? _inputFormatters;
-    config._readOnlyStyle = readOnlyStyle ?? _readOnlyStyle;
-    config.height = height ?? this.height;
-    config.width = width ?? this.width;
-    config._style = style ?? _style;
-    config._contentPadding = contentPadding ?? _contentPadding;
-    config._hintStyle = hintStyle ?? _hintStyle;
-    config.yOffset = yOffset ?? this.yOffset;
-    config.leading = leading ?? this.leading;
-    config.actions = actions ?? this.actions;
-    config.containerDecoration = containerDecoration ?? this.containerDecoration;
-    config.containerMargin = containerMargin ?? this.containerMargin;
-    config.containerPadding = containerPadding ?? this.containerPadding;
-    config._textAlign = textAlign ?? _textAlign;
-    config._autofocus = autofocus ?? _autofocus;
-    config._obscureText = obscureText ?? _obscureText;
-    config._prefix = prefix ?? _prefix;
-    config._prefixIcon = prefixIcon ?? _prefixIcon;
-    config._maxLines = maxLines ?? _maxLines;
-    config._textInputAction = textInputAction ?? _textInputAction;
-    return config;
+    return WFormTextFieldConfig(
+      enabled: enabled ?? this.enabled,
+      keyboardType: keyboardType ?? this.keyboardType,
+      inputFormatters: inputFormatters ?? this.inputFormatters,
+      readOnlyStyle: readOnlyStyle ?? this.readOnlyStyle,
+      height: height ?? this.height,
+      width: width ?? this.width,
+      style: style ?? this.style,
+      contentPadding: contentPadding ?? this.contentPadding,
+      hintStyle: hintStyle ?? this.hintStyle,
+      yOffset: yOffset ?? this.yOffset,
+      leading: leading ?? this.leading,
+      actions: actions ?? this.actions,
+      containerDecoration: containerDecoration ?? this.containerDecoration,
+      containerMargin: containerMargin ?? this.containerMargin,
+      containerPadding: containerPadding ?? this.containerPadding,
+      textAlign: textAlign ?? this.textAlign,
+      autofocus: autofocus ?? this.autofocus,
+      obscureText: obscureText ?? this.obscureText,
+      prefix: prefix ?? this.prefix,
+      prefixIcon: prefixIcon ?? this.prefixIcon,
+      maxLines: maxLines ?? this.maxLines,
+      textInputAction: textInputAction ?? this.textInputAction,
+    );
+  }
+}
+
+/// [WFormTextFieldConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
+class WFormTextFieldConfigBuilder {
+  bool enabled = true;
+  TextInputType? keyboardType;
+  List<TextInputFormatter>? inputFormatters;
+  TextStyle? readOnlyStyle;
+  double? height;
+  double? width;
+  TextStyle? style;
+  EdgeInsetsGeometry? contentPadding;
+  TextStyle? hintStyle;
+  double? yOffset;
+  Widget? leading;
+  List<Widget>? actions;
+  Decoration? containerDecoration;
+  EdgeInsetsGeometry? containerMargin;
+  EdgeInsetsGeometry? containerPadding;
+  TextAlign? textAlign;
+  bool? autofocus;
+  bool obscureText = false;
+  Widget? prefix;
+  Widget? prefixIcon;
+  int? maxLines;
+  TextInputAction? textInputAction;
+
+  WFormTextFieldConfigBuilder();
+
+  WFormTextFieldConfigBuilder.from(WFormTextFieldConfig config)
+    : enabled = config.enabled,
+      keyboardType = config.keyboardType,
+      inputFormatters = config.inputFormatters,
+      readOnlyStyle = config.readOnlyStyle,
+      height = config.height,
+      width = config.width,
+      style = config.style,
+      contentPadding = config.contentPadding,
+      hintStyle = config.hintStyle,
+      yOffset = config.yOffset,
+      leading = config.leading,
+      actions = config.actions,
+      containerDecoration = config.containerDecoration,
+      containerMargin = config.containerMargin,
+      containerPadding = config.containerPadding,
+      textAlign = config.textAlign,
+      autofocus = config.autofocus,
+      obscureText = config.obscureText,
+      prefix = config.prefix,
+      prefixIcon = config.prefixIcon,
+      maxLines = config.maxLines,
+      textInputAction = config.textInputAction;
+
+  WFormTextFieldConfig buildConfig() {
+    return WFormTextFieldConfig(
+      enabled: enabled,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      readOnlyStyle: readOnlyStyle,
+      height: height,
+      width: width,
+      style: style,
+      contentPadding: contentPadding,
+      hintStyle: hintStyle,
+      yOffset: yOffset,
+      leading: leading,
+      actions: actions,
+      containerDecoration: containerDecoration,
+      containerMargin: containerMargin,
+      containerPadding: containerPadding,
+      textAlign: textAlign,
+      autofocus: autofocus,
+      obscureText: obscureText,
+      prefix: prefix,
+      prefixIcon: prefixIcon,
+      maxLines: maxLines,
+      textInputAction: textInputAction,
+    );
   }
 }
 
@@ -539,12 +554,5 @@ final class WFormTextFieldScope extends InheritedWidget implements WFormTextFiel
   void clear() => _state._clearField();
 
   @override
-  bool get obscureText => _state.widget.config._obscureText;
-}
-
-/// WFormTextFieldConfig 的 Builder。
-///
-/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
-class WFormTextFieldConfigBuilder extends WFormTextFieldConfig {
-  WFormTextFieldConfig buildConfig() => copy();
+  bool get obscureText => _state.widget.config.obscureText;
 }
