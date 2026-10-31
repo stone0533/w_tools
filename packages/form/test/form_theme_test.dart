@@ -27,6 +27,9 @@ void main() {
 
   testWidgets('WFormTheme 未配置时回退 WFormDefaults', (tester) async {
     final original = WFormDefaults.checkboxUnselectedIcon;
+    addTearDown(() {
+      WFormDefaults.checkboxUnselectedIcon = original;
+    });
     WFormDefaults.checkboxUnselectedIcon = const Icon(Icons.favorite);
 
     await tester.pumpWidget(
@@ -47,6 +50,5 @@ void main() {
     );
 
     expect(find.byIcon(Icons.favorite), findsOneWidget);
-    WFormDefaults.checkboxUnselectedIcon = original;
   });
 }
