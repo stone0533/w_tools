@@ -7,7 +7,7 @@ import 'package:w_tools_form/w_tools_form.dart';
 import '_helpers/form_test_scaffold.dart';
 
 void main() {
-  group('WFormCheckbox Widget', () {
+  group('WFormCheckboxCore Widget', () {
     testWidgets('默认未选中时显示 checkboxUnselectedIcon', (tester) async {
       await pumpForm(
         tester,
@@ -205,10 +205,10 @@ void main() {
       expect(find.byIcon(Icons.star), findsOneWidget);
     });
 
-    testWidgets('build 返回 WFormCheckbox', (tester) async {
+    testWidgets('build 返回 WFormCheckboxCore', (tester) async {
       final config = WFormCheckboxConfig();
-      final cb = config.build(name: 'x', title: const Text('t')) as WFormCheckbox;
-      expect(cb, isA<WFormCheckbox>());
+      final cb = config.build(name: 'x', title: const Text('t')) as WFormCheckboxCore;
+      expect(cb, isA<WFormCheckboxCore>());
       expect(cb.name, 'x');
     });
 
@@ -223,7 +223,7 @@ void main() {
       );
 
       expect(find.byType(WFormFieldShell), findsOneWidget);
-      expect(find.byType(WFormCheckbox), findsOneWidget);
+      expect(find.byType(WFormCheckboxCore), findsOneWidget);
     });
 
     testWidgets('选项具备 checkbox 语义', (tester) async {
@@ -249,7 +249,7 @@ void main() {
     });
   });
 
-  group('WFormRadioGroup Widget', () {
+  group('WFormRadioGroupCore Widget', () {
     testWidgets('渲染所有选项', (tester) async {
       await pumpForm(
         tester,
@@ -392,15 +392,15 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets('build 返回 WFormRadioGroup', (tester) async {
+    testWidgets('build 返回 WFormRadioGroupCore', (tester) async {
       final config = WFormRadioGroupConfig();
       final radio =
           config.build<String>(
                 name: 'x',
                 items: const {'k': 'v'},
               )
-              as WFormRadioGroup<String>;
-      expect(radio, isA<WFormRadioGroup<String>>());
+              as WFormRadioGroupCore<String>;
+      expect(radio, isA<WFormRadioGroupCore<String>>());
       expect(radio.name, 'x');
     });
 
@@ -415,7 +415,7 @@ void main() {
       );
 
       expect(find.byType(WFormFieldShell), findsOneWidget);
-      expect(find.byType(WFormRadioGroup<String>), findsOneWidget);
+      expect(find.byType(WFormRadioGroupCore<String>), findsOneWidget);
     });
   });
 }

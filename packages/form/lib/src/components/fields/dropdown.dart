@@ -14,7 +14,7 @@ import '../form_theme.dart';
 /// 选项由 [items] 提供（键为值、值为展示文本），选中值必须存在于 [items]；
 /// 容器、提示、图标与弹层背景色等可通过 [WFormDropdownConfig] 配置，
 /// 只读状态会合并外层 [WFormReadOnlyScope]。
-class WFormDropdown<T> extends StatelessWidget {
+class WFormDropdownCore<T> extends StatelessWidget {
   /// 下拉选择配置
   final WFormDropdownConfig config;
 
@@ -48,7 +48,7 @@ class WFormDropdown<T> extends StatelessWidget {
   final double? width;
 
   /// 创建下拉选择组件
-  const WFormDropdown({
+  const WFormDropdownCore({
     super.key,
     required this.config,
     required this.name,
@@ -193,7 +193,7 @@ class WFormDropdownConfig extends WFormFieldBaseConfig {
   }) {
     final baseEnabled = enabled ?? this.enabled;
     final config = bordered ? (copy()..containerDecoration = null) : this;
-    final dropdown = WFormDropdown<T>(
+    final dropdown = WFormDropdownCore<T>(
       config: config,
       name: name,
       items: items,

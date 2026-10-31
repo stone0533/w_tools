@@ -1,18 +1,20 @@
 # w_tools_form
 
 [![pub package](https://img.shields.io/pub/v/w_tools_form.svg)](https://pub.dev/packages/w_tools_form)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-`w_tools_form` 是 w_tools 的表单层，提供输入框、下拉、日期、单选复选等字段组件，以及表单构建器、边框、弹窗与字段级校验能力。
+`w_tools_form` 是 w_tools 的表单层，提供输入、下拉、日期、单选复选等字段，以及表单容器、边框、只读和字段级校验能力。
 
 ## 特性
 
-- **字段组件**：`WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`
-- **表单容器**：`WFormScope` / `WFormController` / `WFormFieldButton`
-- **边框体系**：`WFormBorder` / `WFormBorderConfig` / `WFormFieldShell` / `WFormReadOnlyScope`
-- **字段配置**：可变 Config + `WFormFieldBaseConfig` + cascade（enabled / height / width / leading / actions / container）
-- **校验**：`WFormValidator` / `WFormValidatorItem` / `WFormCustomValidator`
-- **默认值与格式化**：`WFormTheme`（作用域）+ `WFormDefaults`（静态兜底）/ `WFormInputFormatters`
+- **WForm 容器**：一次组合主题、表单作用域和只读作用域
+- **直接字段构造**：`WFormTextField` / `WFormDropdown` / `WFormDatePicker` 等直接使用
+- **可变字段 Config**：特殊样式通过可选 `config` 覆盖，不再要求 `Config.build`
+- **边框体系**：`WFormBorderConfig`（不可变）+ `WFormBorder`
+- **只读与校验**：`WFormReadOnlyScope` / `WFormValidatorSettings`
+- **字段按钮**：`WFormButton` 自定义选择、弹层等交互
+
+完整可运行示例见 [`example/`](example/)。
 
 ## 安装
 
@@ -21,11 +23,7 @@ dependencies:
   w_tools_form: ^2.0.0
 ```
 
-> 本包最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
-
-## 示例
-
-完整可运行的登录 / 会员资料示例见 [`example/`](example/)。
+> 最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
 
 ## 快速开始
 
@@ -33,48 +31,98 @@ dependencies:
 import 'package:flutter/material.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
-class LoginForm extends StatelessWidget {
-  LoginForm({super.key});
+class LoginForm extends StatefulWidget {
+  const LoginForm({super.key});
 
-  final formData = WFormController();
+  @override
+  State<LoginForm> createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<LoginForm> {
+  final _form = WFormController();
 
   @override
   Widget build(BuildContext context) {
-    return WFormTheme(
-      borderConfig: WFormBorderConfig.standard(),
-      child: WFormScope(
-        formData: formData,
-        child: Column(
-          children: [
-            WFormTextFieldConfig().build(
-              name: 'email',
-              hintText: '邮箱',
-              bordered: true,
-            ),
-            (WFormTextFieldConfig()..obscureText = true).build(
-              name: 'password',
-              hintText: '密码',
-              bordered: true,
-            ),
-          ],
-        ),
+    return WForm(
+      controller: _form,
+      borderConfig: WFormBorderConfig.standard(radius: 12),
+      child: Column(
+        children: [
+          WFormTextField(
+            name: 'email',
+            label: '邮箱',
+            message: '请输入邮箱',
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              final email = value?.trim() ?? '';
+              if (email.isEmpty) return '请输入邮箱';
+              if (!email.contains('@')) return '邮箱格式不正确';
+              return null;
+            },
+          ),
+          WFormTextField(
+            name: 'password',
+            label: '密码',
+            message: '密码至少 8 位',
+            obscureText: true,
+            actions: const [WFormTextFieldPasswordToggle()],
+            validator: (value) {
+              final password = value ?? '';
+              if (password.length < 8) return '密码至少 8 位';
+              return null;
+            },
+          ),
+          FilledButton(
+            onPressed: () {
+              if (_form.validate(
+                settings: WFormValidatorSettings()..showBorderError = true,
+              )) {
+                debugPrint('submit: ${_form.value}');
+              }
+            },
+            child: const Text('登录'),
+          ),
+        ],
       ),
     );
   }
 }
 ```
 
+## 高级样式
+
+普通页面不需要 Config。需要单独调整样式时再传 `config`：
+
+```dart
+final emailConfig = WFormTextFieldConfig()
+  ..height = 64
+  ..style = const TextStyle(fontSize: 18);
+
+WFormTextField(
+  name: 'email',
+  label: '邮箱',
+  config: emailConfig,
+);
+```
+
+字段 Config 可变，**一个字段一份 Config**，不要跨字段共享同一个实例。
+
 ## 主要 API
 
 | 能力 | 入口 |
 |---|---|
-| 表单构建 | `WFormScope` / `WFormController` |
-| 文本 / 密码 | `WFormTextField` / `WFormTextFieldConfig` |
-| 下拉 | `WFormDropdown` / `WFormMultiDropdown` |
+| 表单容器 | `WForm` / `WFormController` |
+| 文本 / 密码 | `WFormTextField` / `WFormTextFieldPasswordToggle` |
+| 下拉 / 多选 | `WFormDropdown` / `WFormMultiDropdown` |
 | 日期 | `WFormDatePicker` |
 | 复选 / 单选 | `WFormCheckbox` / `WFormRadioGroup` |
+| 自定义字段按钮 | `WFormButton` |
 | 边框 | `WFormBorder` / `WFormBorderConfig` |
-| 校验 | `WFormValidator` / `WFormValidatorItem` |
+| 校验 | `WFormValidator` / `WFormValidatorItem` / `WFormValidatorSettings` |
+
+## 低层 API
+
+既有 `WFormTextFieldCore` / `WFormDropdownCore` 等核心 Widget 仍保留，供边框、自定义字段或特殊布局使用。普通业务页面优先使用直接字段构造。
 
 ## License
 

@@ -5,7 +5,7 @@ import '../form_style.dart';
 
 /// 真实场景一：登录。
 ///
-/// 展示：文本 / 密码字段、字段 validator、统一边框、校验设置、提交。
+/// 展示：WForm 容器、直接字段构造、字段 validator、校验设置、提交。
 class LoginExamplePage extends StatefulWidget {
   const LoginExamplePage({super.key});
 
@@ -32,91 +32,74 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('登录表单')),
-      body: SafeArea(
-        child: exampleFormTheme(
-          child: WFormScope(
-            formData: _form,
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                const Text(
-                  '欢迎回来',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '这里展示字段 Config、字段校验和 WFormValidatorSettings。',
-                  style: TextStyle(color: Color(0xFF6B7280)),
-                ),
-                const SizedBox(height: 24),
-                _emailField(),
-                const SizedBox(height: 16),
-                _passwordField(),
-                const SizedBox(height: 28),
-                FilledButton(
-                  onPressed: _submitting ? null : _submit,
-                  child: _submitting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('登录'),
-                ),
-                const SizedBox(height: 16),
-                const _TipCard(
-                  title: '提示',
-                  lines: [
-                    '每个字段使用一份新的 Config。',
-                    '校验设置通过 settings 传入。',
-                    '边框由 WFormTheme 统一提供。',
-                  ],
-                ),
+      body: WForm(
+        controller: _form,
+        borderConfig: exampleBorderConfig,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            const Text(
+              '欢迎回来',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '这里展示 WForm / 直接字段构造 / 字段校验。',
+              style: TextStyle(color: Color(0xFF6B7280)),
+            ),
+            const SizedBox(height: 24),
+            WFormTextField(
+              name: 'email',
+              label: '邮箱',
+              message: '请输入邮箱',
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autofocus: true,
+              validator: (value) {
+                final email = value?.trim() ?? '';
+                if (email.isEmpty) return '请输入邮箱';
+                if (!email.contains('@')) return '邮箱格式不正确';
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            WFormTextField(
+              name: 'password',
+              label: '密码',
+              message: '密码至少 8 位',
+              obscureText: true,
+              textInputAction: TextInputAction.done,
+              actions: const [WFormTextFieldPasswordToggle()],
+              validator: (value) {
+                final password = value ?? '';
+                if (password.isEmpty) return '请输入密码';
+                if (password.length < 8) return '密码至少 8 位';
+                return null;
+              },
+            ),
+            const SizedBox(height: 28),
+            FilledButton(
+              onPressed: _submitting ? null : _submit,
+              child: _submitting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('登录'),
+            ),
+            const SizedBox(height: 16),
+            const _TipCard(
+              title: '提示',
+              lines: [
+                'WForm 统一提供主题、Scope 和只读作用域。',
+                '字段直接构造，不再写 Config.build。',
+                '校验设置通过 settings 传入。',
               ],
             ),
-          ),
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _emailField() {
-    final config = exampleTextConfig()
-      ..keyboardType = TextInputType.emailAddress
-      ..textInputAction = TextInputAction.next
-      ..autofocus = true;
-
-    return config.build(
-      name: 'email',
-      hintText: '邮箱',
-      bordered: true,
-      hintTextList: const ['请输入邮箱'],
-      validator: (value) {
-        final email = value?.trim() ?? '';
-        if (email.isEmpty) return '请输入邮箱';
-        if (!email.contains('@')) return '邮箱格式不正确';
-        return null;
-      },
-    );
-  }
-
-  Widget _passwordField() {
-    final config = exampleTextConfig()
-      ..obscureText = true
-      ..textInputAction = TextInputAction.done
-      ..actions = const [WFormTextFieldPasswordToggle()];
-
-    return config.build(
-      name: 'password',
-      hintText: '密码',
-      bordered: true,
-      hintTextList: const ['密码至少 8 位'],
-      validator: (value) {
-        final password = value ?? '';
-        if (password.isEmpty) return '请输入密码';
-        if (password.length < 8) return '密码至少 8 位';
-        return null;
-      },
     );
   }
 

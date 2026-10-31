@@ -474,7 +474,7 @@ void main() {
       expect(validators.validate(), isFalse);
       await tester.pump();
 
-      // WFormFieldButton 不渲染 InputDecoration.errorText，文案只能来自边框错误
+      // WFormFieldButtonCore 不渲染 InputDecoration.errorText，文案只能来自边框错误
       expect(find.text('字段错误'), findsOneWidget);
     });
 

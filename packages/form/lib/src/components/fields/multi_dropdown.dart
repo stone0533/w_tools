@@ -19,7 +19,7 @@ part 'multi_dropdown_config.dart';
 /// 点击后在锚点下方弹出可多选的选项列表，字段值为 `Set<String>`；
 /// 未选择时的占位文本、禁用项、弹层外观与选项样式可通过
 /// [WFormMultiDropdownConfig] 配置，只读状态会合并外层 [WFormReadOnlyScope]。
-class WFormMultiDropdown extends StatelessWidget {
+class WFormMultiDropdownCore extends StatelessWidget {
   /// 多选下拉框配置
   final WFormMultiDropdownConfig config;
 
@@ -48,7 +48,7 @@ class WFormMultiDropdown extends StatelessWidget {
   final bool? enabled;
 
   /// 创建多选下拉框组件
-  const WFormMultiDropdown({
+  const WFormMultiDropdownCore({
     super.key,
     required this.config,
     required this.name,

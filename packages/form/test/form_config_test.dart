@@ -129,8 +129,8 @@ void main() {
               formData: data,
               child: Column(
                 children: [
-                  WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
-                  WFormTextField(config: WFormTextFieldConfig(), name: 'b'),
+                  WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
+                  WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'b'),
                 ],
               ),
             ),

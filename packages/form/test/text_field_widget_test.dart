@@ -4,11 +4,11 @@ import 'package:w_tools_form/w_tools_form.dart';
 
 import '_helpers/form_test_scaffold.dart';
 
-/// 选择 WFormTextField 内部真正的 TextField（FormBuilderTextField 包装的）
+/// 选择 WFormTextFieldCore 内部真正的 TextField（FormBuilderTextField 包装的）
 Finder findTextField() => find.byType(TextField);
 
 void main() {
-  testWidgets('WFormTextField — hintText 正确渲染', (tester) async {
+  testWidgets('WFormTextFieldCore — hintText 正确渲染', (tester) async {
     await pumpForm(
       tester,
       child: WFormTextFieldConfig().build(
@@ -19,7 +19,7 @@ void main() {
     expect(find.text('请输入邮箱'), findsOneWidget);
   });
 
-  testWidgets('WFormTextField — initialValue 正确显示', (tester) async {
+  testWidgets('WFormTextFieldCore — initialValue 正确显示', (tester) async {
     await pumpForm(
       tester,
       child: WFormTextFieldConfig().build(
@@ -30,7 +30,7 @@ void main() {
     expect(find.text('user@test.com'), findsOneWidget);
   });
 
-  testWidgets('WFormTextField — onChanged 回调被调用', (tester) async {
+  testWidgets('WFormTextFieldCore — onChanged 回调被调用', (tester) async {
     String? lastValue;
     await pumpForm(
       tester,
@@ -45,7 +45,7 @@ void main() {
     expect(lastValue, 'hello');
   });
 
-  testWidgets('WFormTextField — readOnly=true 仍渲染 TextField', (tester) async {
+  testWidgets('WFormTextFieldCore — readOnly=true 仍渲染 TextField', (tester) async {
     await pumpForm(
       tester,
       child: WFormTextFieldConfig().build(
@@ -57,7 +57,7 @@ void main() {
     expect(findTextField(), findsOneWidget);
   });
 
-  testWidgets('WFormTextField — config.enabled=false 进入只读态', (tester) async {
+  testWidgets('WFormTextFieldCore — config.enabled=false 进入只读态', (tester) async {
     final config = WFormTextFieldConfig(enabled: false);
 
     await pumpForm(
@@ -71,18 +71,18 @@ void main() {
     expect(tester.widget<TextField>(findTextField()).readOnly, isTrue);
   });
 
-  testWidgets('WFormTextField — config.width 渲染到外层容器', (tester) async {
+  testWidgets('WFormTextFieldCore — config.width 渲染到外层容器', (tester) async {
     final config = WFormTextFieldConfig(width: 200);
 
     await pumpForm(tester, child: config.build(name: 'sized'));
 
     final container = tester.widget<Container>(
-      find.descendant(of: find.byType(WFormTextField), matching: find.byType(Container)).first,
+      find.descendant(of: find.byType(WFormTextFieldCore), matching: find.byType(Container)).first,
     );
     expect(container.constraints?.maxWidth, 200);
   });
 
-  testWidgets('WFormTextField — 密码模式显示/隐藏图标', (tester) async {
+  testWidgets('WFormTextFieldCore — 密码模式显示/隐藏图标', (tester) async {
     await pumpForm(
       tester,
       child:
@@ -97,7 +97,7 @@ void main() {
     expect(find.byIcon(Icons.visibility_off), findsOneWidget);
   });
 
-  testWidgets('WFormTextField — 非密码模式下不显示密码切换按钮', (tester) async {
+  testWidgets('WFormTextFieldCore — 非密码模式下不显示密码切换按钮', (tester) async {
     await pumpForm(
       tester,
       child:
@@ -112,7 +112,7 @@ void main() {
     expect(find.byIcon(Icons.visibility), findsNothing);
   });
 
-  testWidgets('WFormTextField — 点击密码图标切换显示状态', (tester) async {
+  testWidgets('WFormTextFieldCore — 点击密码图标切换显示状态', (tester) async {
     await pumpForm(
       tester,
       child:
@@ -138,7 +138,7 @@ void main() {
     expect(find.byIcon(Icons.visibility_off), findsOneWidget);
   });
 
-  testWidgets('WFormTextField — 渲染后有 Row', (tester) async {
+  testWidgets('WFormTextFieldCore — 渲染后有 Row', (tester) async {
     await pumpForm(
       tester,
       child: WFormTextFieldConfig().build(
@@ -146,11 +146,11 @@ void main() {
         hintText: 'row hint',
       ),
     );
-    // WFormTextField 的 build 方法用 Row 承载 leading + Expanded + actions
+    // WFormTextFieldCore 的 build 方法用 Row 承载 leading + Expanded + actions
     expect(find.byType(Row), findsOneWidget);
   });
 
-  testWidgets('WFormTextField — 无 WFormScope 时 build 抛异常', (tester) async {
+  testWidgets('WFormTextFieldCore — 无 WFormScope 时 build 抛异常', (tester) async {
     // 没有 WFormScope 祖先时抛出 StateError('WFormScope 未找到')，
     // Flutter framework 会捕获并通过 tester.takeException 返回
     await tester.pumpWidget(

@@ -233,6 +233,75 @@ final config = WFormTextFieldConfig()
 `WFormBorderConfigBuilder` 用于构建和清空边框字段；它不是字段 Config 的
 Builder，字段侧不要重新引入 `buildConfig()`。
 
+## 3.6 直接字段与 WForm
+
+普通业务页面优先使用 `WForm` + 直接字段构造。`WForm` 统一组合主题、表单作用域与只读作用域：
+
+```dart
+WForm(
+  controller: form,
+  borderConfig: WFormBorderConfig.standard(radius: 12),
+  readOnly: false,
+  child: ListView(
+    children: [
+      WFormTextField(
+        name: 'email',
+        label: '邮箱',
+        message: '请输入邮箱',
+        validator: (value) {
+          if (value == null || value.isEmpty) return '请输入邮箱';
+          return null;
+        },
+      ),
+      WFormDropdown<String>(
+        name: 'country',
+        label: '国家 / 地区',
+        items: const {
+          'CN': '中国大陆',
+          'HK': '中国香港',
+        },
+      ),
+      WFormButton(
+        name: 'coupon',
+        label: '选择优惠券',
+        onTap: (_, didChange) {
+          // 打开选择器后调用 didChange(value)
+        },
+      ),
+    ],
+  ),
+)
+```
+
+直接字段包括：
+
+| 字段 | 入口 |
+|---|---|
+| 文本 / 密码 | `WFormTextField` |
+| 下拉 | `WFormDropdown<T>` |
+| 多选 | `WFormMultiDropdown` |
+| 日期 | `WFormDatePicker` |
+| 复选 | `WFormCheckbox` |
+| 单选 | `WFormRadioGroup<T>` |
+| 自定义按钮 | `WFormButton` |
+
+需要特殊样式时传可选 `config`；字段 Config 可变，一个字段一份：
+
+```dart
+final config = WFormTextFieldConfig()
+  ..height = 64
+  ..style = const TextStyle(fontSize: 18);
+
+WFormTextField(
+  name: 'email',
+  label: '邮箱',
+  config: config,
+)
+```
+
+`WFormTextFieldCore` / `WFormDropdownCore` 等是低层核心 Widget，普通业务页面不需要直接使用。完整示例见
+[`packages/form/example`](../../packages/form/example/README.md)。
+
 ## 4. 边框系统
 
 ### 4.1 WFormBorderDecoration

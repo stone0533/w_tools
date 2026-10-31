@@ -13,7 +13,7 @@ import '../form_theme.dart';
 ///
 /// 点击图标或标题切换选中状态；选中 / 未选中 / 禁用图标、间距与图标偏移可通过
 /// [WFormCheckboxConfig] 配置，未配置时取 [WFormDefaults] 的默认图标。
-class WFormCheckbox extends FormBuilderField<bool> {
+class WFormCheckboxCore extends FormBuilderField<bool> {
   /// 复选框配置
   final WFormCheckboxConfig config;
 
@@ -21,7 +21,7 @@ class WFormCheckbox extends FormBuilderField<bool> {
   final Widget? title;
 
   /// 创建复选框字段
-  WFormCheckbox({
+  WFormCheckboxCore({
     super.key,
     required this.config,
     required super.name,
@@ -33,7 +33,7 @@ class WFormCheckbox extends FormBuilderField<bool> {
   }) : super(
          enabled: enabled ?? config.enabled,
          builder: (FormFieldState<bool?> field) {
-           final state = field as FormBuilderFieldState<WFormCheckbox, bool>;
+           final state = field as FormBuilderFieldState<WFormCheckboxCore, bool>;
            final theme = WFormTheme.maybeOf(field.context);
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
@@ -106,11 +106,11 @@ class WFormCheckbox extends FormBuilderField<bool> {
        );
 
   @override
-  FormBuilderFieldState<WFormCheckbox, bool> createState() => _WFormCheckboxState();
+  FormBuilderFieldState<WFormCheckboxCore, bool> createState() => _WFormCheckboxState();
 }
 
-/// WFormCheckbox 的状态类
-class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckbox, bool> {
+/// WFormCheckboxCore 的状态类
+class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckboxCore, bool> {
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
   WFormController? _formData;
 
@@ -185,7 +185,7 @@ class WFormCheckboxConfig extends WFormFieldBaseConfig {
   }) {
     final baseEnabled = enabled ?? this.enabled;
     final config = bordered ? (copy()..containerDecoration = null) : this;
-    final field = WFormCheckbox(
+    final field = WFormCheckboxCore(
       config: config,
       name: name,
       title: title,

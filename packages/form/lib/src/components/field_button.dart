@@ -12,7 +12,7 @@ import 'form_controller.dart';
 /// 按钮本身不展示选项，点击行为由 [onTap] 决定：调用方通过 `didChange`
 /// 写入新值，`selectedWidgetBuilder` 负责渲染当前值。
 /// 禁用或位于只读作用域时不响应点击，并以半透明样式呈现。
-class WFormFieldButton extends StatelessWidget {
+class WFormFieldButtonCore extends StatelessWidget {
   /// 按钮配置
   final WFormFieldButtonConfig config;
 
@@ -38,7 +38,7 @@ class WFormFieldButton extends StatelessWidget {
   final FocusNode? focusNode;
 
   /// 创建表单按钮组件
-  const WFormFieldButton({
+  const WFormFieldButtonCore({
     super.key,
     required this.config,
     required this.name,
@@ -120,7 +120,7 @@ class WFormFieldButtonConfig extends WFormFieldBaseConfig {
     bool enableFocusBorder = true,
   }) {
     if (!bordered) {
-      final field = WFormFieldButton(
+      final field = WFormFieldButtonCore(
         config: this,
         name: name,
         onTap: onTap,

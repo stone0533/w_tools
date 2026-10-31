@@ -5,7 +5,7 @@ import 'form_scope.dart';
 
 /// 无状态表单字段的生命周期清理包装。
 ///
-/// WFormDropdown / WFormMultiDropdown 自身是 StatelessWidget，无法在 dispose
+/// WFormDropdownCore / WFormMultiDropdownCore 自身是 StatelessWidget，无法在 dispose
 /// 时清理 formEntered；本组件只负责在字段卸载 / name 变化时注销输入状态。
 class WFormFieldCleanup extends StatefulWidget {
   const WFormFieldCleanup({

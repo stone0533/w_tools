@@ -11,7 +11,7 @@ void main() {
             checkboxUnselectedIcon: const Icon(Icons.star),
             child: WFormScope(
               formData: WFormController(),
-              child: WFormCheckbox(
+              child: WFormCheckboxCore(
                 name: 'agree',
                 title: const Text('同意'),
                 config: WFormCheckboxConfig(),
@@ -113,7 +113,7 @@ void main() {
           body: WFormTheme(
             child: WFormScope(
               formData: WFormController(),
-              child: WFormCheckbox(
+              child: WFormCheckboxCore(
                 name: 'agree',
                 title: const Text('同意'),
                 config: WFormCheckboxConfig(),

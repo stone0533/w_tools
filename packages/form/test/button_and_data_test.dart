@@ -5,7 +5,7 @@ import 'package:w_tools_form/w_tools_form.dart';
 import '_helpers/form_test_scaffold.dart';
 
 void main() {
-  group('WFormFieldButton Widget', () {
+  group('WFormFieldButtonCore Widget', () {
     testWidgets('渲染 hintWidget', (tester) async {
       final config = WFormFieldButtonConfig(hintWidget: const Text('请选择'));
 
@@ -80,7 +80,9 @@ void main() {
 
       // 禁用态视觉半透明
       final opacity = tester.widget<Opacity>(
-        find.descendant(of: find.byType(WFormFieldButton), matching: find.byType(Opacity)).first,
+        find
+            .descendant(of: find.byType(WFormFieldButtonCore), matching: find.byType(Opacity))
+            .first,
       );
       expect(opacity.opacity, 0.5);
 
@@ -109,7 +111,9 @@ void main() {
 
       expect(tapped, false);
       final opacity = tester.widget<Opacity>(
-        find.descendant(of: find.byType(WFormFieldButton), matching: find.byType(Opacity)).first,
+        find
+            .descendant(of: find.byType(WFormFieldButtonCore), matching: find.byType(Opacity))
+            .first,
       );
       expect(opacity.opacity, 0.5);
     });
@@ -166,7 +170,7 @@ void main() {
       final buttonSemantics = tester
           .widgetList<Semantics>(
             find.descendant(
-              of: find.byType(WFormFieldButton),
+              of: find.byType(WFormFieldButtonCore),
               matching: find.byType(Semantics),
             ),
           )
@@ -189,7 +193,7 @@ void main() {
       final buttonSemantics = tester
           .widgetList<Semantics>(
             find.descendant(
-              of: find.byType(WFormFieldButton),
+              of: find.byType(WFormFieldButtonCore),
               matching: find.byType(Semantics),
             ),
           )
@@ -229,7 +233,10 @@ void main() {
 
       final transformed = tester
           .widgetList<Container>(
-            find.descendant(of: find.byType(WFormFieldButton), matching: find.byType(Container)),
+            find.descendant(
+              of: find.byType(WFormFieldButtonCore),
+              matching: find.byType(Container),
+            ),
           )
           .firstWhere((container) => container.transform != null);
 
@@ -260,15 +267,15 @@ void main() {
       expect(tapped, false);
     });
 
-    testWidgets('WFormFieldButtonConfig.build 返回 WFormFieldButton', (tester) async {
+    testWidgets('WFormFieldButtonConfig.build 返回 WFormFieldButtonCore', (tester) async {
       final config = WFormFieldButtonConfig();
       final btn =
           config.build(
                 name: 'x',
                 onTap: (_, __) {},
               )
-              as WFormFieldButton;
-      expect(btn, isA<WFormFieldButton>());
+              as WFormFieldButtonCore;
+      expect(btn, isA<WFormFieldButtonCore>());
       expect(btn.name, 'x');
     });
 
@@ -284,7 +291,7 @@ void main() {
         child: config.build(name: 'size_btn', onTap: (_, __) {}),
       );
 
-      final size = tester.getSize(find.byType(WFormFieldButton));
+      final size = tester.getSize(find.byType(WFormFieldButtonCore));
       expect(size.width, 200);
       expect(size.height, 48);
     });
@@ -298,7 +305,9 @@ void main() {
       );
 
       final container = tester.widget<Container>(
-        find.descendant(of: find.byType(WFormFieldButton), matching: find.byType(Container)).first,
+        find
+            .descendant(of: find.byType(WFormFieldButtonCore), matching: find.byType(Container))
+            .first,
       );
       expect(container.constraints, isNull);
       expect(container.padding, isNull);
@@ -324,7 +333,7 @@ void main() {
         ),
       );
 
-      final button = tester.widget<WFormFieldButton>(find.byType(WFormFieldButton));
+      final button = tester.widget<WFormFieldButtonCore>(find.byType(WFormFieldButtonCore));
       expect(button.validator, isNotNull);
       expect(button.focusNode, same(focusNode));
       expect(formData.formKey.currentState!.validate(), isFalse);
@@ -343,7 +352,7 @@ void main() {
       );
 
       expect(find.byType(WFormFieldShell), findsOneWidget);
-      expect(find.byType(WFormFieldButton), findsOneWidget);
+      expect(find.byType(WFormFieldButtonCore), findsOneWidget);
       expect(find.text('边框按钮'), findsOneWidget);
     });
   });
@@ -428,7 +437,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       data.handleChange('a', 'x');
@@ -444,7 +453,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       expect(data.getFieldsValue('a'), isNull);
@@ -460,7 +469,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       data.updateValue<String>('a', 'hello');
@@ -475,7 +484,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextField(config: WFormTextFieldConfig(), name: 'raw'),
+        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'raw'),
       );
 
       data.handleChange('raw', 'x');
@@ -494,7 +503,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       data.updateValue<String>('a', 'hello');
@@ -527,7 +536,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       final validators = data.validators(

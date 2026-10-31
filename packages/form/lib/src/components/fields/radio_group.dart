@@ -14,7 +14,7 @@ import '../form_theme.dart';
 /// 以单列布局渲染所有选项，支持自定义标题（[titleBuilder]）与选项下方
 /// 附加内容（[itemExtraBuilder]）；选中状态、间距与图标可通过
 /// [WFormRadioGroupConfig] 配置，只读状态会合并外层 [WFormReadOnlyScope]。
-class WFormRadioGroup<T> extends FormBuilderField<T> {
+class WFormRadioGroupCore<T> extends FormBuilderField<T> {
   /// 单选按钮组配置
   final WFormRadioGroupConfig config;
 
@@ -28,7 +28,7 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
   final Widget Function(BuildContext, T, String, bool)? itemExtraBuilder;
 
   /// 创建单选按钮组字段
-  WFormRadioGroup({
+  WFormRadioGroupCore({
     super.key,
     required this.config,
     required super.name,
@@ -42,7 +42,7 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
   }) : super(
          enabled: enabled ?? config.enabled,
          builder: (FormFieldState<T?> field) {
-           final state = field as FormBuilderFieldState<WFormRadioGroup<T>, T>;
+           final state = field as FormBuilderFieldState<WFormRadioGroupCore<T>, T>;
            final theme = WFormTheme.maybeOf(field.context);
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
@@ -158,11 +158,11 @@ class WFormRadioGroup<T> extends FormBuilderField<T> {
        );
 
   @override
-  FormBuilderFieldState<WFormRadioGroup<T>, T> createState() => _WFormRadioGroupState<T>();
+  FormBuilderFieldState<WFormRadioGroupCore<T>, T> createState() => _WFormRadioGroupState<T>();
 }
 
-/// WFormRadioGroup 的状态类
-class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroup<T>, T> {
+/// WFormRadioGroupCore 的状态类
+class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroupCore<T>, T> {
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
   WFormController? _formData;
 
@@ -241,7 +241,7 @@ class WFormRadioGroupConfig extends WFormFieldBaseConfig {
   }) {
     final baseEnabled = enabled ?? this.enabled;
     final config = bordered ? (copy()..containerDecoration = null) : this;
-    final field = WFormRadioGroup<T>(
+    final field = WFormRadioGroupCore<T>(
       config: config,
       name: name,
       items: items,

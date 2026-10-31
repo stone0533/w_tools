@@ -15,7 +15,7 @@ import '../form_controller.dart';
 /// 只读状态会合并自身 [readOnly] 与外层 [WFormReadOnlyScope]。
 /// 插槽中的控件可通过 [WFormTextFieldScope.of] 读取输入状态并触发清空、
 /// 密码可见性切换等操作。
-class WFormTextField extends StatefulWidget {
+class WFormTextFieldCore extends StatefulWidget {
   /// 文本输入配置
   final WFormTextFieldConfig config;
 
@@ -50,7 +50,7 @@ class WFormTextField extends StatefulWidget {
   final FocusNode? focusNode;
 
   /// 创建单行文本输入组件
-  const WFormTextField({
+  const WFormTextFieldCore({
     super.key,
     required this.config,
     required this.name,
@@ -66,11 +66,11 @@ class WFormTextField extends StatefulWidget {
   });
 
   @override
-  State<WFormTextField> createState() => _WFormTextFieldState();
+  State<WFormTextFieldCore> createState() => _WFormTextFieldState();
 }
 
-/// WFormTextField 的状态类
-class _WFormTextFieldState extends State<WFormTextField> {
+/// WFormTextFieldCore 的状态类
+class _WFormTextFieldState extends State<WFormTextFieldCore> {
   /// 密码是否可见（仅 obscureText=true 时有效）
   bool _isPasswordVisible = false;
 
@@ -103,7 +103,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
   }
 
   @override
-  void didUpdateWidget(WFormTextField oldWidget) {
+  void didUpdateWidget(WFormTextFieldCore oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.focusNode != oldWidget.focusNode) {
       if (oldWidget.focusNode == null) {
@@ -293,7 +293,7 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
   }) {
     final config = bordered ? (copy()..containerDecoration = null) : this;
     final effectiveReadOnly = readOnly || !enabled;
-    final field = WFormTextField(
+    final field = WFormTextFieldCore(
       config: config,
       name: name,
       onChanged: onChanged,
@@ -377,7 +377,7 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
 // 插件化管道：公开接口 + InheritedWidget Scope + 预置 Widget
 // ---------------------------------------------------------------------------
 
-/// WFormTextField 暴露给 actions / leading 槽 Widget 的只读接口。
+/// WFormTextFieldCore 暴露给 actions / leading 槽 Widget 的只读接口。
 ///
 /// 用户自定义 action Widget 通过 [WFormTextFieldScope.of] 获取此接口，
 /// 读取输入状态、订阅值变化、触发密码切换或清空等动作，无需闭包或外部回调。
@@ -423,7 +423,7 @@ abstract final class WFormTextFieldData {
   void clear();
 }
 
-/// 承载 WFormTextField 内部状态的 InheritedWidget，实现 [WFormTextFieldData]。
+/// 承载 WFormTextFieldCore 内部状态的 InheritedWidget，实现 [WFormTextFieldData]。
 ///
 /// widget 树中任意位置的 Widget 可通过 [WFormTextFieldScope.of] 获取接口实例。
 final class WFormTextFieldScope extends InheritedWidget implements WFormTextFieldData {
@@ -445,7 +445,7 @@ final class WFormTextFieldScope extends InheritedWidget implements WFormTextFiel
 
   /// 从 context 向上查找最近的 WFormTextFieldScope，返回 [WFormTextFieldData] 接口。
   ///
-  /// 未在 WFormTextField 子树中使用时返回 null，调用方需做 null 保护。
+  /// 未在 WFormTextFieldCore 子树中使用时返回 null，调用方需做 null 保护。
   static WFormTextFieldData? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<WFormTextFieldScope>();
   }

@@ -5,7 +5,7 @@ import 'package:w_tools_form/w_tools_form.dart';
 /// 在测试中 pump 一个带 WFormScope 的完整 scaffold
 ///
 /// 所有 form Widget 都必须放在 WFormScope 下面才能正常工作
-/// （WFormTextField 通过 context.visitAncestorElements 查找它）
+/// （WFormTextFieldCore 通过 context.visitAncestorElements 查找它）
 ///
 /// [formBorderConfig] 未显式传入时，使用一个只提供文案渲染的最小配置
 /// （生产代码不再内置默认主题，测试里需要能断言错误/提示文本）。

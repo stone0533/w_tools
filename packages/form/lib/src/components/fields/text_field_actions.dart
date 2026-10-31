@@ -67,7 +67,7 @@ class WFormTextFieldAction extends StatelessWidget {
 /// [WFormDefaults.obscureTextIcon] / [WFormDefaults.obscureTextVisibleIcon] 取全局默认。
 ///
 /// ```dart
-/// WFormTextField(
+/// WFormTextFieldCore(
 ///   config: WFormTextFieldConfig()
 ///     ..obscureText = true
 ///     ..actions = const [WFormTextFieldPasswordToggle()],

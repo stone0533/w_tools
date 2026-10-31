@@ -81,7 +81,7 @@ class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
     final baseEnabled = enabled ?? this.enabled;
     final config = bordered ? (copy()..containerDecoration = null) : this;
 
-    final multiDropdown = WFormMultiDropdown(
+    final multiDropdown = WFormMultiDropdownCore(
       config: config,
       name: name,
       items: items,

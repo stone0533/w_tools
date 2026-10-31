@@ -13,7 +13,7 @@ import '../form_controller.dart';
 /// 字段值以 ISO `yyyy-MM-dd` 存储（与 locale 无关），显示时按
 /// [WFormDatePickerConfig.displayFormat] 与当前 locale 格式化；
 /// 点击后弹出 [showDatePicker] 选择日期。
-class WFormDatePicker extends FormBuilderField<String> {
+class WFormDatePickerCore extends FormBuilderField<String> {
   /// 日期选择器配置
   final WFormDatePickerConfig config;
 
@@ -24,7 +24,7 @@ class WFormDatePicker extends FormBuilderField<String> {
   final DateTime lastDate;
 
   /// 创建日期选择器字段
-  WFormDatePicker({
+  WFormDatePickerCore({
     super.key,
     required this.config,
     required super.name,
@@ -41,7 +41,7 @@ class WFormDatePicker extends FormBuilderField<String> {
   }) : super(
          enabled: enabled ?? config.enabled,
          builder: (FormFieldState<String?> field) {
-           final state = field as FormBuilderFieldState<WFormDatePicker, String>;
+           final state = field as FormBuilderFieldState<WFormDatePickerCore, String>;
            final locale = Localizations.localeOf(state.context).toString();
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
@@ -140,11 +140,11 @@ class WFormDatePicker extends FormBuilderField<String> {
   }
 
   @override
-  FormBuilderFieldState<WFormDatePicker, String> createState() => _WFormDatePickerState();
+  FormBuilderFieldState<WFormDatePickerCore, String> createState() => _WFormDatePickerState();
 }
 
-/// WFormDatePicker 的状态类
-class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePicker, String> {
+/// WFormDatePickerCore 的状态类
+class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePickerCore, String> {
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
   WFormController? _formData;
 
@@ -225,7 +225,7 @@ class WFormDatePickerConfig extends WFormFieldBaseConfig {
     bool enableFocusBorder = true,
   }) {
     if (!bordered) {
-      final field = WFormDatePicker(
+      final field = WFormDatePickerCore(
         config: this,
         name: name,
         firstDate: firstDate,

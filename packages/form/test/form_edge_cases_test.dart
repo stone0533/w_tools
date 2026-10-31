@@ -21,7 +21,7 @@ void main() {
       expect(data.formEntered.containsKey(name), isFalse);
     }
 
-    testWidgets('WFormCheckbox', (tester) async {
+    testWidgets('WFormCheckboxCore', (tester) async {
       await expectCleanup(
         tester,
         WFormCheckboxConfig().build(
@@ -32,7 +32,7 @@ void main() {
       );
     });
 
-    testWidgets('WFormDatePicker', (tester) async {
+    testWidgets('WFormDatePickerCore', (tester) async {
       await expectCleanup(
         tester,
         WFormDatePickerConfig().build(
@@ -44,7 +44,7 @@ void main() {
       );
     });
 
-    testWidgets('WFormRadioGroup', (tester) async {
+    testWidgets('WFormRadioGroupCore', (tester) async {
       await expectCleanup(
         tester,
         WFormRadioGroupConfig().build<String>(
@@ -55,7 +55,7 @@ void main() {
       );
     });
 
-    testWidgets('WFormFieldButton', (tester) async {
+    testWidgets('WFormFieldButtonCore', (tester) async {
       final config = WFormFieldButtonConfig(hintWidget: const Text('选择'));
       await expectCleanup(
         tester,
@@ -66,7 +66,7 @@ void main() {
   });
 
   group('裸字段 readOnly 生效', () {
-    testWidgets('WFormCheckbox', (tester) async {
+    testWidgets('WFormCheckboxCore', (tester) async {
       var changed = false;
       await pumpForm(
         tester,
@@ -83,7 +83,7 @@ void main() {
       expect(changed, isFalse);
     });
 
-    testWidgets('WFormDatePicker', (tester) async {
+    testWidgets('WFormDatePickerCore', (tester) async {
       await pumpForm(
         tester,
         child: WFormDatePickerConfig().build(
@@ -94,12 +94,12 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(WFormDatePicker));
+      await tester.tap(find.byType(WFormDatePickerCore));
       await tester.pump();
       expect(find.byType(DatePickerDialog), findsNothing);
     });
 
-    testWidgets('WFormRadioGroup', (tester) async {
+    testWidgets('WFormRadioGroupCore', (tester) async {
       String? changed;
       await pumpForm(
         tester,
@@ -116,7 +116,7 @@ void main() {
       expect(changed, isNull);
     });
 
-    testWidgets('WFormFieldButton', (tester) async {
+    testWidgets('WFormFieldButtonCore', (tester) async {
       var tapped = false;
       final config = WFormFieldButtonConfig(hintWidget: const Text('选择'));
       await pumpForm(

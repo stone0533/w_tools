@@ -8,7 +8,7 @@ void main() {
   final firstDate = DateTime(1900);
   final lastDate = DateTime(2100);
   final testDate = DateTime(2024, 1, 15);
-  // WFormDatePicker 内部以 ISO yyyy-MM-dd 存储
+  // WFormDatePickerCore 内部以 ISO yyyy-MM-dd 存储
   const initialValue = '2024-01-15';
   // 内部按 displayFormat（默认 yMMMMd）+ 当前 locale 显示
   final displayedText = DateFormat.yMMMMd().format(testDate);
@@ -35,13 +35,13 @@ void main() {
     matching: f,
   );
 
-  group('WFormDatePicker — 渲染', () {
+  group('WFormDatePickerCore — 渲染', () {
     testWidgets('初始空值 → title 为空 + hintText 显示', (tester) async {
       final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'birthday',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -59,7 +59,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'birthday',
             config: WFormDatePickerConfig(),
             initialValue: initialValue,
@@ -77,7 +77,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -95,7 +95,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -114,7 +114,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -135,7 +135,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -153,7 +153,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             initialValue: initialValue,
             firstDate: firstDate,
@@ -177,7 +177,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -215,7 +215,7 @@ void main() {
       );
 
       expect(find.byType(WFormFieldShell), findsOneWidget);
-      expect(find.byType(WFormDatePicker), findsOneWidget);
+      expect(find.byType(WFormDatePickerCore), findsOneWidget);
     });
 
     testWidgets('外层只读作用域 → 不可点击且语义为禁用', (tester) async {
@@ -225,7 +225,7 @@ void main() {
           formData: formData,
           child: WFormReadOnlyScope(
             readOnly: true,
-            child: WFormDatePicker(
+            child: WFormDatePickerCore(
               name: 'd_readonly',
               firstDate: firstDate,
               lastDate: lastDate,
@@ -238,7 +238,7 @@ void main() {
       final buttonSemantics = tester
           .widgetList<Semantics>(
             find.descendant(
-              of: find.byType(WFormDatePicker),
+              of: find.byType(WFormDatePickerCore),
               matching: find.byType(Semantics),
             ),
           )
@@ -255,7 +255,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'validated_date',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -274,7 +274,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'reset_date',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -293,13 +293,13 @@ void main() {
     });
   });
 
-  group('WFormDatePicker — DatePickerDialog 交互', () {
+  group('WFormDatePickerCore — DatePickerDialog 交互', () {
     testWidgets('点击 → 弹出 DatePickerDialog', (tester) async {
       final formData = WFormController();
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -319,7 +319,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             config: WFormDatePickerConfig(),
             firstDate: firstDate,
@@ -351,7 +351,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             config: WFormDatePickerConfig(),
             firstDate: firstDate,
@@ -376,7 +376,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd_keep',
             config: WFormDatePickerConfig(),
             firstDate: firstDate,
@@ -397,14 +397,14 @@ void main() {
     });
   });
 
-  group('WFormDatePicker — 回归', () {
+  group('WFormDatePickerCore — 回归', () {
     testWidgets('选择日期后 onChanged 被触发（回归：曾用 setValue 导致永不回调）', (tester) async {
       final formData = WFormController();
       String? changed;
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             config: WFormDatePickerConfig(),
             firstDate: firstDate,
@@ -430,7 +430,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             config: WFormDatePickerConfig(),
             firstDate: firstDate,
@@ -451,7 +451,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             config: WFormDatePickerConfig(),
             initialValue: '1800-01-01',
@@ -473,7 +473,7 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePicker(
+          child: WFormDatePickerCore(
             name: 'd1',
             config: WFormDatePickerConfig(),
             initialValue: 'not-a-date',

@@ -84,7 +84,7 @@ void main() {
     });
   });
 
-  group('WFormDropdown<T> — Widget', () {
+  group('WFormDropdownCore<T> — Widget', () {
     Widget buildDropdown({
       required WFormDropdownConfig config,
       required String name,
@@ -98,7 +98,7 @@ void main() {
         home: Scaffold(
           body: WFormScope(
             formData: formData,
-            child: WFormDropdown<String>(
+            child: WFormDropdownCore<String>(
               config: config,
               name: name,
               items: items,
@@ -123,14 +123,14 @@ void main() {
       );
 
       expect(find.text('请选择水果'), findsOneWidget);
-      expect(find.byType(WFormDropdown<String>), findsOneWidget);
+      expect(find.byType(WFormDropdownCore<String>), findsOneWidget);
     });
 
     testWidgets('无 WFormScope → 抛 Exception', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormDropdown<String>(
+            body: WFormDropdownCore<String>(
               config: WFormDropdownConfig(),
               name: 'fruit',
               items: const {'a': '苹果'},
@@ -204,7 +204,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              child: WFormDropdown<String>(
+              child: WFormDropdownCore<String>(
                 config: cfg,
                 name: 'fruit',
                 items: const {'a': '苹果', 'b': '香蕉'},
@@ -290,9 +290,9 @@ void main() {
         ),
       );
 
-      // WFormFieldShell 包含 WFormDropdown
+      // WFormFieldShell 包含 WFormDropdownCore
       expect(find.byType(WFormFieldShell), findsOneWidget);
-      expect(find.byType(WFormDropdown<String>), findsOneWidget);
+      expect(find.byType(WFormDropdownCore<String>), findsOneWidget);
     });
 
     testWidgets('build(bordered: true) readOnly → 外层只读 + 内层禁用', (tester) async {
@@ -339,12 +339,12 @@ void main() {
     expect(button.onChanged, isNull);
   });
 
-  testWidgets('裸 WFormDropdown 卸载时清理 formEntered', (tester) async {
+  testWidgets('裸 WFormDropdownCore 卸载时清理 formEntered', (tester) async {
     final data = WFormController();
     await pumpForm(
       tester,
       formData: data,
-      child: WFormDropdown<String>(
+      child: WFormDropdownCore<String>(
         config: WFormDropdownConfig(),
         name: 'country',
         items: const {'CN': '中国'},
@@ -447,7 +447,7 @@ void main() {
     });
   });
 
-  group('WFormMultiDropdown — Widget', () {
+  group('WFormMultiDropdownCore — Widget', () {
     Widget buildMulti({
       required WFormMultiDropdownConfig config,
       required String name,
@@ -467,7 +467,7 @@ void main() {
         home: Scaffold(
           body: WFormScope(
             formData: formData,
-            child: WFormMultiDropdown(
+            child: WFormMultiDropdownCore(
               config: effectiveConfig,
               name: name,
               items: items,
@@ -482,12 +482,12 @@ void main() {
       );
     }
 
-    testWidgets('裸 WFormMultiDropdown 卸载时清理 formEntered', (tester) async {
+    testWidgets('裸 WFormMultiDropdownCore 卸载时清理 formEntered', (tester) async {
       final data = WFormController();
       await pumpForm(
         tester,
         formData: data,
-        child: WFormMultiDropdown(
+        child: WFormMultiDropdownCore(
           config: WFormMultiDropdownConfig(),
           name: 'tags',
           items: const {'a': 'A'},
@@ -518,7 +518,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormMultiDropdown(
+            body: WFormMultiDropdownCore(
               config: WFormMultiDropdownConfig(),
               name: 'tags',
               items: const {'a': '美食'},
@@ -773,7 +773,7 @@ void main() {
       );
 
       expect(find.byType(WFormFieldShell), findsOneWidget);
-      expect(find.byType(WFormMultiDropdown), findsOneWidget);
+      expect(find.byType(WFormMultiDropdownCore), findsOneWidget);
     });
 
     testWidgets('build(bordered: true) readOnly → 外层只读 + 点击不弹出', (tester) async {

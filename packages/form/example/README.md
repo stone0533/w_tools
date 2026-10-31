@@ -2,10 +2,10 @@
 
 真实场景示例，覆盖：
 
-- 登录表单：文本 / 密码、字段 validator、`WFormValidatorSettings`、提交
-- 会员资料：下拉、日期、单选、多选、复选、自定义字段按钮
-- 只读预览：`WFormReadOnlyScope`
-- 统一边框 / 图标：`WFormTheme` + `WFormBorderConfig`
+- 登录表单：`WForm` 容器、直接字段构造、字段 validator、`WFormValidatorSettings`
+- 会员资料：下拉、日期、单选、多选、复选、自定义 `WFormButton`
+- 只读预览：`WForm(readOnly: true)`
+- 统一边框 / 图标：`WFormBorderConfig` + `WForm`
 
 ## 运行
 
@@ -15,7 +15,7 @@ flutter pub get
 flutter run
 ```
 
-如果没有连接设备，可以先运行静态分析和测试：
+没有连接设备时：
 
 ```bash
 flutter analyze
@@ -27,7 +27,7 @@ flutter test
 ```text
 lib/
   main.dart             示例入口 + 底部导航
-  form_style.dart       共享边框 / 字段 Config 工厂
+  form_style.dart       共享边框 / 高级样式覆盖
   pages/
     login_page.dart     登录场景
     profile_page.dart   资料编辑 / 只读场景
@@ -35,46 +35,73 @@ test/
   example_smoke_test.dart
 ```
 
-## 关键约定
+## 使用方式
 
-### 一个字段一份 Config
-
-字段 Config 是可变的。每个字段都调用一次工厂函数：
+### WForm 统一容器
 
 ```dart
-final emailConfig = exampleTextConfig();
-final passwordConfig = exampleTextConfig();
-```
-
-不要：
-
-```dart
-final shared = exampleTextConfig();
-
-WFormTextField(config: shared, name: 'email');
-WFormTextField(config: shared, name: 'password');
-```
-
-### Config + build 需要括号
-
-```dart
-(WFormTextFieldConfig()
-      ..height = 52)
-    .build(
-      name: 'email',
-      bordered: true,
-    );
-```
-
-因为 cascade 返回的是 Config，不是 `build()` 返回的 Widget。
-
-### 共享样式用主题
-
-```dart
-WFormTheme(
+WForm(
+  controller: form,
   borderConfig: exampleBorderConfig,
-  child: ...,
+  readOnly: isReadOnly,
+  child: ListView(...),
 )
 ```
 
-`exampleBorderConfig` 是不可变配置，可以安全共享。
+自动组合：
+
+```text
+WFormTheme
+WFormScope
+WFormReadOnlyScope
+```
+
+### 直接字段构造
+
+```dart
+WFormTextField(
+  name: 'email',
+  label: '邮箱',
+  message: '请输入邮箱',
+  validator: (value) {
+    if (value == null || value.isEmpty) return '请输入邮箱';
+    return null;
+  },
+)
+```
+
+### 高级样式覆盖
+
+```dart
+WFormTextField(
+  name: 'email',
+  label: '邮箱',
+  config: exampleTextConfig(),
+)
+```
+
+字段 Config 可变，**一个字段一份 Config**，不要跨字段共享同一实例。
+
+### 自定义字段按钮
+
+```dart
+WFormButton(
+  name: 'coupon',
+  label: '请选择优惠券',
+  onTap: (_, didChange) async {
+    final value = await pickCoupon();
+    if (value != null) didChange(value);
+  },
+)
+```
+
+### 校验与提交
+
+```dart
+final valid = form.validate(
+  settings: WFormValidatorSettings()
+    ..showBorderError = true
+    ..continueOnError = true,
+);
+if (!valid) return;
+```

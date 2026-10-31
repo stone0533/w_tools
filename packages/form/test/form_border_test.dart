@@ -787,10 +787,10 @@ void main() {
               child: Row(
                 children: [
                   Expanded(
-                    child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+                    child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
                   ),
                   Expanded(
-                    child: WFormDropdown<String>(
+                    child: WFormDropdownCore<String>(
                       config: WFormDropdownConfig(),
                       name: 'b',
                       items: const {'x': 'X'},
@@ -803,11 +803,11 @@ void main() {
         ),
       );
 
-      // WFormTextField 的只读由外层 WFormReadOnlyScope 在 build 时合成
+      // WFormTextFieldCore 的只读由外层 WFormReadOnlyScope 在 build 时合成
       expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isTrue);
 
       // 类型实参保留；内部 DropdownButton 因外层只读被禁用
-      final dropdownFinder = find.byType(WFormDropdown<String>);
+      final dropdownFinder = find.byType(WFormDropdownCore<String>);
       expect(dropdownFinder, findsOneWidget);
       expect(
         tester.widget<DropdownButton<String>>(find.byType(DropdownButton<String>)).onChanged,
@@ -829,7 +829,7 @@ void main() {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(4),
-                      child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+                      child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
                     ),
                   ),
                 ],
@@ -849,7 +849,7 @@ void main() {
         height: 48,
         clipBehavior: Clip.antiAlias,
         decoration: const BoxDecoration(color: Color(0xFFEEEEEE)),
-        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       await tester.pumpWidget(
@@ -870,10 +870,10 @@ void main() {
         isTrue,
       );
       // 布局尺寸未丢失
-      expect(tester.getSize(find.byType(WFormTextField)), const Size(120, 48));
+      expect(tester.getSize(find.byType(WFormTextFieldCore)), const Size(120, 48));
     });
 
-    testWidgets('readOnly: true 也会禁用内部 WFormCheckbox', (tester) async {
+    testWidgets('readOnly: true 也会禁用内部 WFormCheckboxCore', (tester) async {
       final formData = WFormController();
 
       await tester.pumpWidget(
@@ -885,7 +885,7 @@ void main() {
               child: Row(
                 children: [
                   Expanded(
-                    child: WFormCheckbox(
+                    child: WFormCheckboxCore(
                       config: WFormCheckboxConfig(),
                       name: 'agree',
                       title: const Text('同意'),
@@ -905,7 +905,7 @@ void main() {
       expect(formData.value['agree'], false);
     });
 
-    testWidgets('readOnly: true → 非 String 泛型的 WFormDropdown 也被禁用', (tester) async {
+    testWidgets('readOnly: true → 非 String 泛型的 WFormDropdownCore 也被禁用', (tester) async {
       final formData = WFormController();
 
       await tester.pumpWidget(
@@ -917,7 +917,7 @@ void main() {
               child: (Row(
                 children: [
                   Expanded(
-                    child: WFormDropdown<int>(
+                    child: WFormDropdownCore<int>(
                       config: WFormDropdownConfig(),
                       name: 'b',
                       items: const {1: 'ONE'},
@@ -930,7 +930,7 @@ void main() {
         ),
       );
 
-      final dropdownFinder = find.byWidgetPredicate((w) => w is WFormDropdown);
+      final dropdownFinder = find.byWidgetPredicate((w) => w is WFormDropdownCore);
       expect(dropdownFinder, findsOneWidget);
       // 运行时实参保留；内部 DropdownButton 因外层只读被禁用
       expect(
@@ -951,7 +951,7 @@ void main() {
               child: (Row(
                 children: [
                   Expanded(
-                    child: WFormDropdown<String>(
+                    child: WFormDropdownCore<String>(
                       config: WFormDropdownConfig(),
                       name: 'b',
                       items: const {'x': 'X'},
@@ -966,9 +966,9 @@ void main() {
       );
 
       // 修复前会被 `enabled: !readOnly` 强制改回 true
-      final dropdownFinder = find.byType(WFormDropdown<String>);
+      final dropdownFinder = find.byType(WFormDropdownCore<String>);
       expect(dropdownFinder, findsOneWidget);
-      expect(tester.widget<WFormDropdown<String>>(dropdownFinder).enabled, isFalse);
+      expect(tester.widget<WFormDropdownCore<String>>(dropdownFinder).enabled, isFalse);
     });
 
     testWidgets('内部子组件保留自身的 key（回归）', (tester) async {
@@ -984,7 +984,7 @@ void main() {
               child: Row(
                 children: [
                   Expanded(
-                    child: WFormTextField(
+                    child: WFormTextFieldCore(
                       key: fieldKey,
                       config: WFormTextFieldConfig(),
                       name: 'a',

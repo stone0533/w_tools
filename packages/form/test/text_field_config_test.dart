@@ -53,10 +53,10 @@ void main() {
   });
 
   group('WFormTextFieldConfig.build', () {
-    testWidgets('build 返回 WFormTextField', (tester) async {
+    testWidgets('build 返回 WFormTextFieldCore', (tester) async {
       final config = WFormTextFieldConfig();
-      final textField = config.build(name: 'email') as WFormTextField;
-      expect(textField, isA<WFormTextField>());
+      final textField = config.build(name: 'email') as WFormTextFieldCore;
+      expect(textField, isA<WFormTextFieldCore>());
       expect(textField.name, 'email');
     });
 
@@ -72,7 +72,7 @@ void main() {
                 initialValue: 'hello',
                 readOnly: true,
               )
-              as WFormTextField;
+              as WFormTextFieldCore;
 
       expect(textField.name, 'test');
       expect(textField.hintText, '请输入');
