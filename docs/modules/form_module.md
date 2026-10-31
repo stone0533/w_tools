@@ -220,8 +220,18 @@ final config = WFormTextFieldConfig()
   ..style = const TextStyle(fontSize: 16);
 ```
 
+约定：
+
+- **一个字段一份 Config**，不要把同一个实例同时交给多个字段；
+- 需要跨字段复用字段样式时，用 `copy() / copyWith()` 复制新实例；
+- `copyWith(null)` 表示沿用原值，不清空字段；清空请直接对可变字段赋值，
+  例如 `config.height = null`；
+- 跨字段共享的边框 / 主题样式放 `WFormTheme` 或 `WFormBorderConfig`，不要靠共享
+  字段 Config 实现。
+
 字段 Config 不再提供 Builder。`WFormBorderConfig` 仍为不可变配置，保留
-`WFormBorderConfigBuilder` 用于清空字段。
+`WFormBorderConfigBuilder` 用于构建和清空边框字段；它不是字段 Config 的
+Builder，字段侧不要重新引入 `buildConfig()`。
 
 ## 4. 边框系统
 
