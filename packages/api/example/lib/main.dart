@@ -34,6 +34,8 @@ class ApiDemoPage extends StatefulWidget {
 }
 
 class _ApiDemoPageState extends State<ApiDemoPage> {
+  static const _path = _DemoPath();
+  static const _clientId = ApiClientId('demo');
   static const _baseUrl = 'https://api.example.com';
 
   late final DioRegistry _registry;
@@ -56,7 +58,7 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
 
     _adapter = _DemoAdapter();
     _registry = DioRegistry.forBaseUrl(
-      _baseUrl,
+      _path.baseUrl,
       interceptors: [
         WTokenInterceptor(
           tokenGetter: () => _token,
@@ -128,78 +130,90 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
           ),
         ],
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        children: [
-          const Text(
-            'DioRegistry + WLogInterceptor + WTokenInterceptor',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          Text('当前 token：${_token ?? 'null'}'),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              FilledButton(
-                onPressed: () => _request('/public'),
-                child: const Text('GET /public'),
-              ),
-              FilledButton.tonal(
-                onPressed: () => _request('/secure', resetToken: true),
-                child: const Text('401 → 刷新 → 重试'),
-              ),
-              OutlinedButton(
-                onPressed: () => _request('/error'),
-                child: const Text('GET /error（500）'),
-              ),
-              OutlinedButton(
-                onPressed: _loadRepository,
-                child: const Text('Repository 缓存'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Card(
-            color: const Color(0xFFF8FAFC),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(
-                _lastResult,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'DioRegistry + WLogInterceptor + WTokenInterceptor',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text('client：${_clientId.name}'),
+            Text('baseUrl：${_path.baseUrl}'),
+            Text('当前 token：${_token ?? 'null'}'),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton(
+                  onPressed: () => _request('/public'),
+                  child: const Text('GET /public'),
+                ),
+                FilledButton.tonal(
+                  onPressed: () => _request('/secure', resetToken: true),
+                  child: const Text('401 → 刷新 → 重试'),
+                ),
+                OutlinedButton(
+                  onPressed: () => _request('/error'),
+                  child: const Text('GET /error（500）'),
+                ),
+                OutlinedButton(
+                  onPressed: _loadRepository,
+                  child: const Text('Repository 缓存'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Card(
+              color: const Color(0xFFF8FAFC),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  _lastResult,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          const Text('日志', style: TextStyle(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          if (_logs.isEmpty)
-            const Text('暂无日志')
-          else
-            ..._logs.map(
-              (log) => Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  log,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'monospace',
-                    fontSize: 11,
+            const SizedBox(height: 20),
+            const Text('日志', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            if (_logs.isEmpty)
+              const Text('暂无日志')
+            else
+              ..._logs.map(
+                (log) => Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    log,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+class _DemoPath implements IApiPath {
+  const _DemoPath();
+
+  @override
+  String get baseUrl => 'https://api.example.com';
 }
 
 class _DemoLocalDataSource extends BaseLocalDataSource {

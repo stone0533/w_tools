@@ -9,6 +9,7 @@
 - `WTokenInterceptor`：401 清除、刷新、重试
 - `WApiConfig`：日志回调注入
 - `BaseRepository` / 本地 / 远程数据源组合
+- `IApiPath` / `ApiClientId` 扩展契约
 - 响应头脱敏 与 500 错误日志
 - `FormData` / Stream 等重试边界（见包测试）
 
