@@ -320,6 +320,19 @@ void main() {
   });
 
   group('WRow / WColumn', () {
+    test('left / top 支持 mainAxisSize', () {
+      final column = WColumn.left(
+        children: const [],
+        mainAxisSize: MainAxisSize.min,
+      );
+      final row = WRow.top(
+        children: const [],
+        mainAxisSize: MainAxisSize.min,
+      );
+      expect(column.mainAxisSize, MainAxisSize.min);
+      expect(row.mainAxisSize, MainAxisSize.min);
+    });
+
     testWidgets('WRow.min', (tester) async {
       await tester.pumpWidget(
         MaterialApp(

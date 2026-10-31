@@ -1649,6 +1649,9 @@ WRow.min(children: [...])
 WColumn.min(children: [...])
 ```
 
+`WRow.top` / `WRow.bottom` / `WColumn.left` / `WColumn.right` 默认
+`MainAxisSize.max`；需要包裹内容时显式传 `mainAxisSize: MainAxisSize.min`。
+
 ### WGlobalKeyExtension
 
 GlobalKey 扩展，支持查找、定位、获取 Widget 状态等。
