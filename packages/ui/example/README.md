@@ -1,6 +1,6 @@
 # w_tools_ui · 组件示例
 
-`w_tools_ui` 的可运行示例，包含五个页面：
+`w_tools_ui` 的可运行示例，页面壳使用 `WScaffold` + `WAppBar` + `WNavBar`；包含五个页面：
 
 - **Playground**：实时调整 width / height / aspectRatio / fit / memCache / borderRadius / retryCount / placeholder，并显示对应 `WImageStyle` / `WImageConfig` 代码；
 - **状态矩阵**：加载成功、失败、空数据、加载中占位、主题默认错误占位、文件/Web 不支持；
@@ -22,7 +22,7 @@
 - WRowButtons / WTabBar / WNavBar / Notification / KeepAlive
 - WListViewSliver.grid / WRow / WColumn / WImageController
 - WGradients / WShadows / BoxDecoration 扩展
-- WScaffold / WAppBar / WSizeBox / WPadding / WScreen / extensions
+- WScaffold / WAppBar / WNavBar / WSizeBox / WPadding / WScreen / extensions
 
 ## 运行
 

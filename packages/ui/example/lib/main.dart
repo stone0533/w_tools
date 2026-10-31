@@ -53,15 +53,8 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
-  var _index = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    // 让 WImage.assetImage('demo.png') 指向 example/assets/demo.png。
-    WAssets.imagePath = 'assets/';
-  }
+class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
+  late final WNavController _navController;
 
   static const _pages = <Widget>[
     PlaygroundPage(),
@@ -71,36 +64,61 @@ class _HomeShellState extends State<HomeShell> {
     ComponentsPage(),
   ];
 
+  static const _destinations = <({IconData icon, String label})>[
+    (icon: Icons.tune, label: 'Playground'),
+    (icon: Icons.grid_view, label: '状态矩阵'),
+    (icon: Icons.receipt_long, label: '常用配方'),
+    (icon: Icons.smart_button, label: '按钮'),
+    (icon: Icons.widgets, label: '组件'),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // 让 WImage.asset('demo.png', prefix: true) 指向 example/assets/demo.png。
+    WAssets.imagePath = 'assets/';
+    _navController = WNavController(
+      length: _destinations.length,
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _navController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('w_tools_ui 示例')),
-      body: IndexedStack(index: _index, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (index) => setState(() => _index = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.tune),
-            label: 'Playground',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.grid_view),
-            label: '状态矩阵',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long),
-            label: '常用配方',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.smart_button),
-            label: '按钮',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.widgets),
-            label: '组件',
-          ),
-        ],
+    return WScaffold(
+      title: 'w_tools_ui 示例',
+      body: ListenableBuilder(
+        listenable: _navController,
+        builder: (context, _) => IndexedStack(
+          index: _navController.currentIndex,
+          children: _pages,
+        ),
+      ),
+      bottomNavigationBar: WNavBar(
+        config: const WNavBarConfig(),
+        controller: _navController,
+        itemBuilder: (context, index, selected) {
+          final item = _destinations[index];
+          final color = selected ? Colors.indigo : Colors.grey;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(item.icon, color: color, size: 22),
+              const SizedBox(height: 2),
+              WText(
+                text: item.label,
+                variant: WTextVariant.caption,
+                color: color,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
