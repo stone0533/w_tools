@@ -5,7 +5,6 @@ import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
-import '../field_chrome.dart';
 import '../form_defaults.dart';
 import '../form_theme.dart';
 
@@ -48,15 +47,15 @@ class WFormCheckbox extends FormBuilderField<bool> {
            }
 
            Widget buildIcon() {
-             if (!isEnabled && config._disabledIcon != null) {
-               return config._disabledIcon!;
+             if (!isEnabled && config.disabledIcon != null) {
+               return config.disabledIcon!;
              }
              if (state.value == true) {
-               return config._selectedIcon ??
+               return config.selectedIcon ??
                    theme?.effectiveCheckboxSelectedIcon ??
                    WFormDefaults.checkboxSelectedIcon;
              }
-             return config._unselectedIcon ??
+             return config.unselectedIcon ??
                  theme?.effectiveCheckboxUnselectedIcon ??
                  WFormDefaults.checkboxUnselectedIcon;
            }
@@ -82,12 +81,12 @@ class WFormCheckbox extends FormBuilderField<bool> {
                        behavior: HitTestBehavior.opaque,
                        onTap: toggle,
                        child: Transform(
-                         transform: Matrix4.translationValues(0, config._iconYOffset ?? 0, 0),
+                         transform: Matrix4.translationValues(0, config.iconYOffset ?? 0, 0),
                          child: buildIcon(),
                        ),
                      ),
                    ),
-                   SizedBox(width: config._iconSpacing ?? 0),
+                   SizedBox(width: config.iconSpacing ?? 0),
                    Expanded(
                      child: MouseRegion(
                        cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
@@ -134,57 +133,43 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckbox, bool> {
   }
 }
 
-/// 复选框配置类，定义复选框的样式和行为
-class WFormCheckboxConfig extends WFormFieldChrome {
-  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+/// 复选框配置类，定义复选框的样式和行为。
+///
+/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
+class WFormCheckboxConfig {
   static WFormCheckboxConfigBuilder builder() => WFormCheckboxConfigBuilder();
 
-  /// 未选中状态的图标
-  Widget? _unselectedIcon;
+  final Widget? unselectedIcon;
+  final Widget? selectedIcon;
+  final Widget? disabledIcon;
+  final double? iconSpacing;
+  final double? iconYOffset;
+  final bool enabled;
+  final double? height;
+  final double? width;
+  final Widget? leading;
+  final List<Widget>? actions;
+  final Decoration? containerDecoration;
+  final EdgeInsetsGeometry? containerMargin;
+  final EdgeInsetsGeometry? containerPadding;
 
-  /// 选中状态的图标
-  Widget? _selectedIcon;
+  const WFormCheckboxConfig({
+    this.unselectedIcon,
+    this.selectedIcon,
+    this.disabledIcon,
+    this.iconSpacing,
+    this.iconYOffset,
+    this.enabled = true,
+    this.height,
+    this.width,
+    this.leading,
+    this.actions,
+    this.containerDecoration,
+    this.containerMargin,
+    this.containerPadding,
+  });
 
-  /// 禁用状态的图标
-  Widget? _disabledIcon;
-
-  /// 图标与标题之间的间距
-  double? _iconSpacing;
-
-  /// 图标 Y 轴偏移
-  double? _iconYOffset;
-
-  /// 设置禁用状态图标（null 表示使用默认）
-  set disabledIcon(Widget? value) {
-    _disabledIcon = value;
-  }
-
-  /// 设置未选中状态图标（null 表示使用默认图标）
-  set unselectedIcon(Widget? value) {
-    _unselectedIcon = value;
-  }
-
-  /// 设置选中状态图标（null 表示使用默认图标）
-  set selectedIcon(Widget? value) {
-    _selectedIcon = value;
-  }
-
-  /// 设置图标与标题之间的间距（null 表示无额外间距）
-  set iconSpacing(double? value) {
-    _iconSpacing = value;
-  }
-
-  /// 设置图标 Y 轴偏移（null 表示不偏移）
-  set iconYOffset(double? value) {
-    _iconYOffset = value;
-  }
-
-  /// 构建 [WFormCheckbox] 组件
-  ///
-  /// [enabled] 为 null 时使用配置中的值。
-  ///
-  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
-  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
+  /// 构建 [WFormCheckbox] 组件。
   Widget build({
     required String name,
     required Widget title,
@@ -200,7 +185,9 @@ class WFormCheckboxConfig extends WFormFieldChrome {
     bool enableFocusBorder = true,
   }) {
     final baseEnabled = enabled ?? this.enabled;
-    final config = bordered ? (copy()..containerDecoration = null) : this;
+    final config = bordered
+        ? (WFormCheckboxConfigBuilder.from(this)..containerDecoration = null).buildConfig()
+        : this;
     final field = WFormCheckbox(
       config: config,
       name: name,
@@ -224,14 +211,9 @@ class WFormCheckboxConfig extends WFormFieldChrome {
     );
   }
 
-  /// 创建当前配置的副本
-  WFormCheckboxConfig copy() {
-    return copyWith();
-  }
+  WFormCheckboxConfig copy() => copyWith();
 
-  /// 创建当前配置的副本，并可以选择性地更新某些属性
-  ///
-  /// 参数为 null 表示沿用原值。
+  /// 参数为 null 表示沿用原值；清空请用 [builder]。
   WFormCheckboxConfig copyWith({
     Widget? unselectedIcon,
     Widget? selectedIcon,
@@ -247,27 +229,72 @@ class WFormCheckboxConfig extends WFormFieldChrome {
     EdgeInsetsGeometry? containerMargin,
     EdgeInsetsGeometry? containerPadding,
   }) {
-    final config = WFormCheckboxConfig();
-    config._unselectedIcon = unselectedIcon ?? _unselectedIcon;
-    config._selectedIcon = selectedIcon ?? _selectedIcon;
-    config._disabledIcon = disabledIcon ?? _disabledIcon;
-    config._iconSpacing = iconSpacing ?? _iconSpacing;
-    config._iconYOffset = iconYOffset ?? _iconYOffset;
-    config.enabled = enabled ?? this.enabled;
-    config.height = height ?? this.height;
-    config.width = width ?? this.width;
-    config.leading = leading ?? this.leading;
-    config.actions = actions ?? this.actions;
-    config.containerDecoration = containerDecoration ?? this.containerDecoration;
-    config.containerMargin = containerMargin ?? this.containerMargin;
-    config.containerPadding = containerPadding ?? this.containerPadding;
-    return config;
+    return WFormCheckboxConfig(
+      unselectedIcon: unselectedIcon ?? this.unselectedIcon,
+      selectedIcon: selectedIcon ?? this.selectedIcon,
+      disabledIcon: disabledIcon ?? this.disabledIcon,
+      iconSpacing: iconSpacing ?? this.iconSpacing,
+      iconYOffset: iconYOffset ?? this.iconYOffset,
+      enabled: enabled ?? this.enabled,
+      height: height ?? this.height,
+      width: width ?? this.width,
+      leading: leading ?? this.leading,
+      actions: actions ?? this.actions,
+      containerDecoration: containerDecoration ?? this.containerDecoration,
+      containerMargin: containerMargin ?? this.containerMargin,
+      containerPadding: containerPadding ?? this.containerPadding,
+    );
   }
 }
 
-/// WFormCheckboxConfig 的 Builder。
-///
-/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
-class WFormCheckboxConfigBuilder extends WFormCheckboxConfig {
-  WFormCheckboxConfig buildConfig() => copy();
+/// [WFormCheckboxConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
+class WFormCheckboxConfigBuilder {
+  Widget? unselectedIcon;
+  Widget? selectedIcon;
+  Widget? disabledIcon;
+  double? iconSpacing;
+  double? iconYOffset;
+  bool enabled = true;
+  double? height;
+  double? width;
+  Widget? leading;
+  List<Widget>? actions;
+  Decoration? containerDecoration;
+  EdgeInsetsGeometry? containerMargin;
+  EdgeInsetsGeometry? containerPadding;
+
+  WFormCheckboxConfigBuilder();
+
+  WFormCheckboxConfigBuilder.from(WFormCheckboxConfig config)
+    : unselectedIcon = config.unselectedIcon,
+      selectedIcon = config.selectedIcon,
+      disabledIcon = config.disabledIcon,
+      iconSpacing = config.iconSpacing,
+      iconYOffset = config.iconYOffset,
+      enabled = config.enabled,
+      height = config.height,
+      width = config.width,
+      leading = config.leading,
+      actions = config.actions,
+      containerDecoration = config.containerDecoration,
+      containerMargin = config.containerMargin,
+      containerPadding = config.containerPadding;
+
+  WFormCheckboxConfig buildConfig() {
+    return WFormCheckboxConfig(
+      unselectedIcon: unselectedIcon,
+      selectedIcon: selectedIcon,
+      disabledIcon: disabledIcon,
+      iconSpacing: iconSpacing,
+      iconYOffset: iconYOffset,
+      enabled: enabled,
+      height: height,
+      width: width,
+      leading: leading,
+      actions: actions,
+      containerDecoration: containerDecoration,
+      containerMargin: containerMargin,
+      containerPadding: containerPadding,
+    );
+  }
 }

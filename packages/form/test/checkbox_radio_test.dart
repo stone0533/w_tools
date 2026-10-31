@@ -11,7 +11,7 @@ void main() {
     testWidgets('默认未选中时显示 checkboxUnselectedIcon', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'agree',
           title: const Text('我同意'),
           initialValue: false,
@@ -25,7 +25,7 @@ void main() {
     testWidgets('initialValue=true 显示选中图标', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'agree',
           title: const Text('同意'),
           initialValue: true,
@@ -38,7 +38,7 @@ void main() {
       bool? lastValue;
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'toggle',
           title: const Text('点我'),
           initialValue: false,
@@ -65,7 +65,7 @@ void main() {
     testWidgets('点击 title 区域也能切换', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'title_tap',
           title: const Text('标题可点击'),
           initialValue: false,
@@ -82,7 +82,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'null_value',
           title: const Text('空值'),
           initialValue: false,
@@ -103,7 +103,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'entered',
           title: const Text('记录输入'),
           initialValue: false,
@@ -120,7 +120,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'reset_checkbox',
           title: const Text('重置复选框'),
           initialValue: false,
@@ -141,7 +141,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'validated_checkbox',
           title: const Text('同意协议'),
           validator: (value) => value == true ? null : '请勾选',
@@ -155,7 +155,7 @@ void main() {
     testWidgets('build(enabled: false) 覆盖配置', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'override_disabled',
           title: const Text('覆盖禁用'),
           initialValue: false,
@@ -171,7 +171,7 @@ void main() {
     testWidgets('enabled=false 时点击不切换', (tester) async {
       await pumpForm(
         tester,
-        child: (WFormCheckboxConfig()..enabled = false).build(
+        child: const WFormCheckboxConfig(enabled: false).build(
           name: 'disabled',
           title: const Text('禁用'),
           initialValue: false,
@@ -185,9 +185,10 @@ void main() {
     });
 
     testWidgets('自定义 selectedIcon / unselectedIcon', (tester) async {
-      final config = WFormCheckboxConfig()
-        ..selectedIcon = const Icon(Icons.star)
-        ..unselectedIcon = const Icon(Icons.star_border);
+      const config = WFormCheckboxConfig(
+        selectedIcon: Icon(Icons.star),
+        unselectedIcon: Icon(Icons.star_border),
+      );
 
       await pumpForm(
         tester,
@@ -205,7 +206,7 @@ void main() {
     });
 
     testWidgets('build 返回 WFormCheckbox', (tester) async {
-      final config = WFormCheckboxConfig();
+      const config = WFormCheckboxConfig();
       final cb = config.build(name: 'x', title: const Text('t')) as WFormCheckbox;
       expect(cb, isA<WFormCheckbox>());
       expect(cb.name, 'x');
@@ -214,7 +215,7 @@ void main() {
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           bordered: true,
           name: 'cb_border',
           title: const Text('边框复选框'),
@@ -229,7 +230,7 @@ void main() {
       final handle = tester.ensureSemantics();
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: const WFormCheckboxConfig().build(
           name: 'cb_semantic',
           title: const Text('语义'),
           initialValue: true,
