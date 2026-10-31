@@ -4,6 +4,7 @@
 
 ### Changed
 - 消费方 AGENTS 模板补充 Form 直接字段、WImage、弹层与轻提示规则；修正不存在的 `WnnToast` 引用。
+- 消费方 AGENTS 不再放完整按钮代码，仅保留决策规则；完整模板留在 docs/agents/button.md。
 - 组件目录同步 Form 的 `WForm` / 直接字段 / `WFormFieldStyle` 入口，移除旧 App helper 名称。
 - 升级 `w_tools_cli` 后，消费方需重新执行 `dart run w_tools_cli:init`（或 `--check-drift`）以更新 AGENTS 片段。
 

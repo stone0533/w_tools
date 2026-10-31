@@ -24,46 +24,7 @@
    **Button width**: `WButtonSize` / `WButtonStyle` do not contain `width`; use
    `SizedBox(width: double.infinity)` or `Expanded` to fill, and an outer `SizedBox` for fixed width.
    `WButton` has no `variant`; use `style`; do not pass both `label` and `content`.
-   **Common button usage**:
-
-   ```dart
-   // primary action
-   WButton(
-     style: AppButtons.primary(context),
-     label: 'Save',
-     onTap: _save,
-   )
-
-   // loading
-   WButton(
-     style: AppButtons.primary(context),
-     label: 'Submit',
-     loading: submitting,
-     enabled: !submitting,
-     onTap: _submit,
-   )
-
-   // full width (label is centered)
-   SizedBox(
-     width: double.infinity,
-     child: WButton(
-       style: AppButtons.primary(context),
-       label: 'Submit',
-       onTap: _submit,
-     ),
-   )
-
-   // form field selection
-   WFormButton(
-     name: 'coupon',
-     label: 'Select a coupon',
-     onTap: (_, didChange) {
-       _pickCoupon().then((value) {
-         if (value != null) didChange(value);
-       });
-     },
-   )
-   ```
+   With `loading`, also set `enabled: !loading`; provide `semanticLabel` for icon-only buttons.
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
