@@ -146,7 +146,9 @@ class _WFormTextFieldState extends State<WFormTextField> {
     }
 
     // 继承外层只读作用域（WFormFieldShell.readOnly）
-    _effectiveReadOnly = widget.readOnly || WFormReadOnlyScope.readOnlyOf(context);
+    // config.enabled = false 与只读等价，避免该公共字段在文本字段上静默失效
+    _effectiveReadOnly =
+        widget.readOnly || !widget.config.enabled || WFormReadOnlyScope.readOnlyOf(context);
     final readOnly = _effectiveReadOnly;
 
     return WFormTextFieldScope._(
@@ -341,6 +343,7 @@ class WFormTextFieldConfig extends WFormFieldChrome {
     bool enableFocusBorder = true,
   }) {
     final config = bordered ? (copy()..containerDecoration = null) : this;
+    final effectiveReadOnly = readOnly || !enabled;
     final field = WFormTextField(
       config: config,
       name: name,
@@ -349,7 +352,7 @@ class WFormTextFieldConfig extends WFormFieldChrome {
       onEditingComplete: onEditingComplete,
       initialValue: initialValue,
       hintText: hintText,
-      readOnly: readOnly,
+      readOnly: effectiveReadOnly,
       validator: validator,
       focusNode: focusNode,
     );
@@ -362,7 +365,7 @@ class WFormTextFieldConfig extends WFormFieldChrome {
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
-      readOnly: readOnly,
+      readOnly: effectiveReadOnly,
       child: field,
     );
   }
@@ -376,6 +379,7 @@ class WFormTextFieldConfig extends WFormFieldChrome {
   ///
   /// 参数为 null 表示沿用原值。
   WFormTextFieldConfig copyWith({
+    bool? enabled,
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     TextStyle? readOnlyStyle,
@@ -399,6 +403,7 @@ class WFormTextFieldConfig extends WFormFieldChrome {
     TextInputAction? textInputAction,
   }) {
     final config = WFormTextFieldConfig();
+    config.enabled = enabled ?? this.enabled;
     config._keyboardType = keyboardType ?? _keyboardType;
     config._inputFormatters = inputFormatters ?? _inputFormatters;
     config._readOnlyStyle = readOnlyStyle ?? _readOnlyStyle;

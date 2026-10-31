@@ -3,7 +3,11 @@
 ## 2.0.0
 
 ### Changed
-- 新增 `WFormFieldChrome`，六个字段 Config 统一继承公共外框配置。
+- 新增 `WFormFieldChrome`，六个字段 Config 与 `WFormFieldButtonConfig` 统一继承公共外框配置。
+- 新增 `WFormController.updateValue`，同时写值并更新输入状态。
+- 新增 `WFormBorderConfig.standard()`，并提供 `WFormTheme.borderConfig` 作用域继承。
+- `WFormTextFieldConfig.enabled=false` 现在进入只读态，不再静默失效。
+- 修复 `WFormMultiDropdownConfig.hintText` 不生效。
 
 ### Breaking
 - `WFormData` → `WFormController`；

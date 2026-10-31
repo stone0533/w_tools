@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
+import '_helpers/form_test_scaffold.dart';
+
 void main() {
   group('WFormDropdownConfig — 纯 Dart', () {
     test('默认空实例化', () {
@@ -508,6 +510,20 @@ void main() {
       );
 
       expect(find.text('A,B'), findsOneWidget);
+    });
+
+    testWidgets('config.hintText 生效（build 路径）', (tester) async {
+      final cfg = WFormMultiDropdownConfig()..hintText = '请选择兴趣';
+
+      await pumpForm(
+        tester,
+        child: cfg.build(
+          name: 'tags',
+          items: const {'a': 'A'},
+        ),
+      );
+
+      expect(find.text('请选择兴趣'), findsOneWidget);
     });
 
     testWidgets('未选择时显示 hintText 占位', (tester) async {

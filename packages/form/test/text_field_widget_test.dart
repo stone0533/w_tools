@@ -57,6 +57,20 @@ void main() {
     expect(findTextField(), findsOneWidget);
   });
 
+  testWidgets('WFormTextField — config.enabled=false 进入只读态', (tester) async {
+    final config = WFormTextFieldConfig()..enabled = false;
+
+    await pumpForm(
+      tester,
+      child: config.build(
+        name: 'disabled_text',
+        initialValue: 'fixed',
+      ),
+    );
+
+    expect(tester.widget<TextField>(findTextField()).readOnly, isTrue);
+  });
+
   testWidgets('WFormTextField — config.width 渲染到外层容器', (tester) async {
     final config = WFormTextFieldConfig()..width = 200;
 

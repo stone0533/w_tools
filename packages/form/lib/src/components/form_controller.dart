@@ -49,6 +49,15 @@ class WFormController {
     formKey.currentState?.fields[name]?.didChange(value);
   }
 
+  /// 同时写入字段值并更新输入状态
+  ///
+  /// 等价于 [setValue] + [handleChange]，业务代码修改已有字段时优先使用本方法，
+  /// 避免只更新值而忘记维护 [formEntered]。
+  void updateValue<T>(String name, T value) {
+    setValue<T>(name, value);
+    handleChange<T>(name, value);
+  }
+
   /// 处理字段内容变更：清除该字段的错误样式并更新输入状态
   ///
   /// [formEntered] 判定规则：字符串 / 集合 / Map 按非空，

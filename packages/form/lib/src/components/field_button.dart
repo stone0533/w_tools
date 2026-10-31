@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/read_only_scope.dart';
+import 'field_chrome.dart';
 import 'field_frame.dart';
 import 'form_scope.dart';
 import 'form_controller.dart';
@@ -52,18 +53,18 @@ class WFormFieldButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WFormFieldFrame(
-      height: config._height,
-      width: config._width,
-      decoration: config._containerDecoration,
-      margin: config._containerMargin,
-      padding: config._containerPadding,
-      yOffset: config._yOffset,
-      leading: config._leading,
-      actions: config._actions,
+      height: config.height,
+      width: config.width,
+      decoration: config.containerDecoration,
+      margin: config.containerMargin,
+      padding: config.containerPadding,
+      yOffset: config.yOffset,
+      leading: config.leading,
+      actions: config.actions,
       child: _WFormScopeButton<String>(
         name: name,
         initialValue: initialValue,
-        enabled: (enabled ?? config._enabled) && !WFormReadOnlyScope.readOnlyOf(context),
+        enabled: (enabled ?? config.enabled) && !WFormReadOnlyScope.readOnlyOf(context),
         onTap: onTap,
         hintWidget: config._hintWidget,
         selectedWidgetBuilder: selectedWidgetBuilder,
@@ -75,85 +76,13 @@ class WFormFieldButton extends StatelessWidget {
 }
 
 /// 表单按钮配置类，定义按钮的样式和行为
-class WFormFieldButtonConfig {
+class WFormFieldButtonConfig extends WFormFieldChrome {
   /// 提示 widget
   Widget? _hintWidget;
-
-  /// 是否启用
-  bool _enabled = true;
-
-  /// 高度
-  double? _height;
-
-  /// 宽度
-  double? _width;
-
-  /// Y 轴偏移
-  double? _yOffset;
-
-  /// 左侧组件
-  Widget? _leading;
-
-  /// 操作按钮列表
-  List<Widget>? _actions;
-
-  /// 容器装饰
-  Decoration? _containerDecoration;
-
-  /// 容器边距
-  EdgeInsetsGeometry? _containerMargin;
-
-  /// 容器内边距
-  EdgeInsetsGeometry? _containerPadding;
 
   /// 设置提示 widget（null 表示清空）
   set hintWidget(Widget? value) {
     _hintWidget = value;
-  }
-
-  /// 设置是否启用
-  set enabled(bool value) {
-    _enabled = value;
-  }
-
-  /// 设置高度（null 表示清空）
-  set height(double? value) {
-    _height = value;
-  }
-
-  /// 设置宽度（null 表示清空）
-  set width(double? value) {
-    _width = value;
-  }
-
-  /// 设置 Y 轴偏移（null 表示清空）
-  set yOffset(double? value) {
-    _yOffset = value;
-  }
-
-  /// 设置左侧组件（null 表示清空）
-  set leading(Widget? value) {
-    _leading = value;
-  }
-
-  /// 设置操作按钮列表（null 表示清空）
-  set actions(List<Widget>? value) {
-    _actions = value;
-  }
-
-  /// 设置容器装饰（null 表示清空）
-  set containerDecoration(Decoration? value) {
-    _containerDecoration = value;
-  }
-
-  /// 设置容器边距（null 表示清空）
-  set containerMargin(EdgeInsetsGeometry? value) {
-    _containerMargin = value;
-  }
-
-  /// 设置容器内边距（null 表示清空）
-  set containerPadding(EdgeInsetsGeometry? value) {
-    _containerPadding = value;
   }
 
   /// 构建 [WFormFieldButton] 组件
@@ -192,7 +121,7 @@ class WFormFieldButtonConfig {
       );
     }
 
-    final baseEnabled = enabled ?? _enabled;
+    final baseEnabled = enabled ?? this.enabled;
     final innerConfig = copy()
       ..containerDecoration = null
       ..enabled = baseEnabled && !readOnly;
@@ -237,15 +166,15 @@ class WFormFieldButtonConfig {
   }) {
     final config = WFormFieldButtonConfig();
     config._hintWidget = hintWidget ?? _hintWidget;
-    config._enabled = enabled ?? _enabled;
-    config._height = height ?? _height;
-    config._width = width ?? _width;
-    config._yOffset = yOffset ?? _yOffset;
-    config._leading = leading ?? _leading;
-    config._actions = actions ?? _actions;
-    config._containerDecoration = containerDecoration ?? _containerDecoration;
-    config._containerMargin = containerMargin ?? _containerMargin;
-    config._containerPadding = containerPadding ?? _containerPadding;
+    config.enabled = enabled ?? this.enabled;
+    config.height = height ?? this.height;
+    config.width = width ?? this.width;
+    config.yOffset = yOffset ?? this.yOffset;
+    config.leading = leading ?? this.leading;
+    config.actions = actions ?? this.actions;
+    config.containerDecoration = containerDecoration ?? this.containerDecoration;
+    config.containerMargin = containerMargin ?? this.containerMargin;
+    config.containerPadding = containerPadding ?? this.containerPadding;
     return config;
   }
 }

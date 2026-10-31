@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'border/border.dart';
 import 'form_defaults.dart';
 
 /// 表单图标默认值的作用域版本。
@@ -10,6 +11,7 @@ import 'form_defaults.dart';
 class WFormTheme extends InheritedWidget {
   const WFormTheme({
     super.key,
+    this.borderConfig,
     this.dropdownIcon,
     this.radioUnselectedIcon,
     this.radioSelectedIcon,
@@ -20,6 +22,9 @@ class WFormTheme extends InheritedWidget {
     this.clearButtonIcon,
     required super.child,
   });
+
+  /// 表单边框配置；WFormScope 未显式传 formBorderConfig 时继承本项
+  final WFormBorderConfig? borderConfig;
 
   final Widget? dropdownIcon;
   final Widget? radioUnselectedIcon;
@@ -36,7 +41,8 @@ class WFormTheme extends InheritedWidget {
 
   @override
   bool updateShouldNotify(WFormTheme oldWidget) {
-    return dropdownIcon != oldWidget.dropdownIcon ||
+    return borderConfig != oldWidget.borderConfig ||
+        dropdownIcon != oldWidget.dropdownIcon ||
         radioUnselectedIcon != oldWidget.radioUnselectedIcon ||
         radioSelectedIcon != oldWidget.radioSelectedIcon ||
         checkboxUnselectedIcon != oldWidget.checkboxUnselectedIcon ||

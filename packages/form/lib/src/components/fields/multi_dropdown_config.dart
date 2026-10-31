@@ -188,7 +188,7 @@ class WFormMultiDropdownConfig extends WFormFieldChrome {
       initialValue: initialValue,
       onChanged: onChanged,
       validator: validator,
-      hintText: hintText,
+      hintText: hintText ?? _hintText,
       width: width,
       enabled: bordered ? baseEnabled && !readOnly : enabled,
     );

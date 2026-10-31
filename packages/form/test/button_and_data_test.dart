@@ -449,6 +449,21 @@ void main() {
       expect(data.getFieldsValue('a'), 'hello');
     });
 
+    testWidgets('updateValue 同时写值和输入状态', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+      );
+
+      data.updateValue<String>('a', 'hello');
+      await tester.pump();
+
+      expect(data.getFieldsValue<String>('a'), 'hello');
+      expect(data.formEntered['a'], isTrue);
+    });
+
     testWidgets('validators() 工厂可创建并执行校验器', (tester) async {
       final data = WFormController();
       await pumpForm(

@@ -138,7 +138,8 @@ WFormScope(
 | `formEntered` | `Map<String, bool>` | 各字段「是否已输入」，可手动读取做按钮启用判定 |
 | `isAllEntered(int length)` | `bool` | 按已注册字段过滤陈旧记录（关闭弹窗 / 动态移除字段后不恒为 false） |
 | `setValue<T>(name, value)` | `void` | 仅写字段值，**不**更新 `formEntered` |
-| `handleChange<T>(name, value, {callback})` | `void` | 清除错误 + 更新 `formEntered` + 回调 |
+| `handleChange<T>(name, value, {callback})` | `void` | 清除错误 + 更新 `formEntered` + 回调；不写字段值 |
+| `updateValue<T>(name, value)` | `void` | `setValue` + `handleChange`，业务代码优先用这个 |
 | `getFieldsValue<T>(name)` | `T?` | 无需先 `save` 即可获取即时值 |
 | `setError(name, {errorTextList, callback})` | `void` | 触发边框 `errorBuilder` |
 | `clearError(name)` | `void` | 清除边框错误 |
@@ -161,19 +162,22 @@ WFormScope(
 
 ---
 
-## 3. WFormTheme / WFormDefaults — 默认图标
+## 3. WFormTheme / WFormDefaults — 表单主题
 
 推荐用 `WFormTheme` 做作用域隔离：
 
 ```dart
 WFormTheme(
+  borderConfig: WFormBorderConfig.standard(),
   dropdownIcon: const Icon(Icons.expand_more),
   checkboxSelectedIcon: const Icon(Icons.check_circle),
   child: WFormScope(...),
 )
 ```
 
-未配置的项回退到 `WFormDefaults` 静态值。组件显式配置优先于两者。
+`WFormTheme.borderConfig` 会被 `WFormScope` 继承；`WFormScope.formBorderConfig` 显式传入时优先。
+
+未配置的图标回退到 `WFormDefaults` 静态值。组件显式配置优先于两者。
 
 `WFormDefaults` 仍保留为全局兜底，适合 App 启动时统一设置；多品牌 / 页面隔离使用
 `WFormTheme`。测试或品牌切换后可调用 `WFormDefaults.reset()` 恢复默认图标。
@@ -205,11 +209,12 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 
 ## 3.5 WFormFieldChrome — 字段公共配置
 
-六个字段 Config 继承同一套公共外框配置：
+六个输入字段和 `WFormFieldButtonConfig` 继承同一套公共外框配置：
 
 ```dart
 class WFormCheckboxConfig extends WFormFieldChrome { ... }
 class WFormTextFieldConfig extends WFormFieldChrome { ... }
+class WFormFieldButtonConfig extends WFormFieldChrome { ... }
 ```
 
 包含：
@@ -256,6 +261,14 @@ WFormBorderDecoration decoration = const WFormBorderDecoration()
 ### 4.2 WFormBorderConfig
 
 边框配置类，**不内置任何默认装饰**（全部为 null），外观完全由调用方决定。
+
+常用场景可直接用工厂：
+
+```dart
+final config = WFormBorderConfig.standard(radius: 12);
+```
+
+再按需覆盖 `hintStyle` / `errorStyle` 或任意 setter。
 
 | 配置项 | 类型 | 说明 |
 |--------|------|------|
@@ -318,6 +331,7 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 | `textAlign` | `TextAlign` | 对齐方式 |
 | `prefix` / `prefixIcon` / `leading` | `Widget?` | 前置插槽 |
 | `yOffset` | `double?` | 垂直微调 |
+| `enabled` | `bool` | false 时等价只读，禁止输入 |
 
 #### WFormTextFieldScope（InheritedWidget 管道）
 
@@ -433,6 +447,7 @@ enum Gender { male, female }
 
 - 点击行为完全由 `onTap` 决定：`(value, didChange)` 回调，调用方通过 `didChange` 写值
 - `selectedWidgetBuilder` 渲染当前选中值
+- `WFormFieldButtonConfig` 继承 `WFormFieldChrome`，支持 `bordered: true` / `hintTextList`，可复用统一边框
 
 ---
 

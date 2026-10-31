@@ -265,6 +265,50 @@ class WFormBorderConfig {
   /// 未配置的状态不渲染装饰，外观完全由调用方配置决定。
   WFormBorderConfig();
 
+  /// 创建一套常用的表单边框配置。
+  ///
+  /// 提供默认 / 聚焦 / 错误 / 只读四种装饰和提示 / 错误文本布局；
+  /// 需要品牌定制时继续用 setter 覆盖即可。
+  factory WFormBorderConfig.standard({
+    Color backgroundColor = Colors.white,
+    Color borderColor = const Color(0xFFE5E7EB),
+    Color focusColor = const Color(0xFF10B981),
+    Color errorColor = const Color(0xFFEF4444),
+    Color readOnlyColor = const Color(0xFFF9FAFB),
+    double radius = 12,
+    TextStyle? hintStyle,
+    TextStyle? errorStyle,
+  }) {
+    final base = WFormBorderDecoration(
+      color: backgroundColor,
+      border: Border.all(color: borderColor),
+      borderRadius: BorderRadius.circular(radius),
+    );
+    final hintTextStyle = hintStyle ?? const TextStyle(fontSize: 12, color: Color(0xFF6B7280));
+    final errorTextStyle = errorStyle ?? TextStyle(fontSize: 12, color: errorColor);
+
+    Widget buildMessages(List<String>? list, TextStyle style) {
+      if (list == null || list.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: 6, left: 4),
+        child: Text(list.join('；'), style: style),
+      );
+    }
+
+    final config = WFormBorderConfig()
+      ..defaultDecoration = base
+      ..focusedDecoration = base.copyWith(
+        border: Border.all(color: focusColor, width: 1.5),
+      )
+      ..errorDecoration = base.copyWith(
+        border: Border.all(color: errorColor),
+      )
+      ..readOnlyDecoration = base.copyWith(color: readOnlyColor)
+      ..hintBuilder = (list) => buildMessages(list, hintTextStyle);
+    config.errorBuilder = (list) => buildMessages(list, errorTextStyle);
+    return config;
+  }
+
   /// 设置默认状态装饰
   set defaultDecoration(WFormBorderDecoration? value) {
     _defaultDecoration = value;

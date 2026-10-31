@@ -34,6 +34,32 @@ void main() {
     expect(WFormDefaults.dropdownIcon, isA<Icon>());
   });
 
+  test('WFormBorderConfig.standard 可创建', () {
+    final config = WFormBorderConfig.standard();
+    expect(config.build(child: const Text('x')), isA<WFormBorder>());
+  });
+
+  testWidgets('WFormScope 继承 WFormTheme.borderConfig', (tester) async {
+    final borderConfig = WFormBorderConfig.standard();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WFormTheme(
+          borderConfig: borderConfig,
+          child: WFormScope(
+            formData: WFormController(),
+            child: Builder(
+              builder: (context) {
+                expect(WFormScope.borderConfigOf(context), same(borderConfig));
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  });
+
   testWidgets('WFormTheme 未配置时回退 WFormDefaults', (tester) async {
     final original = WFormDefaults.checkboxUnselectedIcon;
     addTearDown(() {
