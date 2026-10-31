@@ -27,6 +27,18 @@ class WLogInterceptor extends Interceptor {
   /// 是否启用日志
   final bool enableLog;
 
+  /// 需要脱敏的请求 / 响应头（大小写不敏感）
+  final Set<String> redactedHeaders;
+
+  /// 默认脱敏的敏感头
+  static const Set<String> defaultRedactedHeaders = {
+    'authorization',
+    'cookie',
+    'set-cookie',
+    'proxy-authorization',
+    'x-api-key',
+  };
+
   /// 构造函数
   WLogInterceptor({
     this.request = true,
@@ -36,6 +48,7 @@ class WLogInterceptor extends Interceptor {
     this.responseBody = true,
     this.error = true,
     this.enableLog = true,
+    this.redactedHeaders = defaultRedactedHeaders,
   });
 
   /// 请求阶段：打印请求详情
@@ -69,7 +82,11 @@ class WLogInterceptor extends Interceptor {
     }
     if (requestHeader) {
       builder.write('headers:\n');
-      options.headers.forEach((key, v) => builder.write(_printKV('  $key', v)));
+      options.headers.forEach(
+        (key, v) => builder.write(
+          _printKV('  $key', _isRedacted(key) ? '***' : v),
+        ),
+      );
     }
     if (requestBody) {
       var res = options.data;
@@ -170,7 +187,12 @@ class WLogInterceptor extends Interceptor {
     if (responseHeader) {
       builder.write('headers:\n');
       response.headers.forEach(
-        (key, v) => builder.write(_printKV(' $key', v.join('\r\n\t'))),
+        (key, v) => builder.write(
+          _printKV(
+            ' $key',
+            _isRedacted(key) ? '***' : v.join('\r\n\t'),
+          ),
+        ),
       );
     }
     if (responseBody) {
@@ -182,6 +204,8 @@ class WLogInterceptor extends Interceptor {
     }
     pr(builder.toString());
   }
+
+  bool _isRedacted(String header) => redactedHeaders.contains(header.toLowerCase());
 
   /// 打印键值对
   String _printKV(String key, Object? v) {

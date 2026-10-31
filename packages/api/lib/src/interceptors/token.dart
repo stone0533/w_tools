@@ -116,7 +116,7 @@ class WTokenInterceptor extends Interceptor {
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
       // 安全的日志输出：仅显示前缀；过短的 token 全量遮蔽，避免敏感信息泄露
-      final masked = token.length >= 10 ? '${token.substring(0, 10)}...' : '***';
+      final masked = token.length > 10 ? '${token.substring(0, 10)}...' : '***';
       WApiConfig.logDebugHandler?.call('Added token to request: $masked');
     } else {
       WApiConfig.logDebugHandler?.call('No token found, skipping authorization header');

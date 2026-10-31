@@ -81,6 +81,9 @@ DioRegistry.dispose('https://api.example.com');
 
 ## 2. WLogInterceptor - 日志拦截器
 
+默认会脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `Proxy-Authorization` / `X-Api-Key`；
+可通过 `redactedHeaders` 覆盖。
+
 ### 功能说明
 
 按开关打印请求与响应详情，输出经 `WApiConfig.logDebugHandler` / `WApiConfig.logErrorHandler`。

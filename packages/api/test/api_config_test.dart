@@ -47,22 +47,19 @@ void main() {
     });
 
     test('允许 local 为 null', () {
-      final repo = _TestRepository(
-          localDataSource: null, remoteDataSource: _RemoteImpl());
+      final repo = _TestRepository(localDataSource: null, remoteDataSource: _RemoteImpl());
       expect(repo.localDataSource, isNull);
       expect(repo.remoteDataSource, isA<_RemoteImpl>());
     });
 
     test('允许 remote 为 null', () {
-      final repo = _TestRepository(
-          localDataSource: _LocalImpl(), remoteDataSource: null);
+      final repo = _TestRepository(localDataSource: _LocalImpl(), remoteDataSource: null);
       expect(repo.localDataSource, isA<_LocalImpl>());
       expect(repo.remoteDataSource, isNull);
     });
 
     test('两个都可以为 null', () {
-      final repo = _TestRepository(
-          localDataSource: null, remoteDataSource: null);
+      final repo = _TestRepository(localDataSource: null, remoteDataSource: null);
       expect(repo.localDataSource, isNull);
       expect(repo.remoteDataSource, isNull);
     });

@@ -8,9 +8,9 @@
 ## 特性
 
 - **多客户端管理**：`DioRegistry` 按 `baseUrl` 缓存并复用 Dio 实例
-- **拦截器**：`WLogInterceptor` 日志、`WTokenInterceptor` Token 注入与 401 刷新
+- **拦截器**：`WLogInterceptor` 日志（默认脱敏 Authorization / Cookie 等敏感头）、`WTokenInterceptor` Token 注入与 401 刷新
 - **配置收敛**：`WApiConfig` 提供默认 `BaseOptions`
-- **Repository 基类**：`BaseRepository` 统一请求入口
+- **Repository 基类**：`BaseRepository` 统一持有本地 / 远程数据源
 - **路径契约**：`IApiPath` 供业务实现基础 URL
 
 ## 安装

@@ -8,10 +8,8 @@ abstract class BaseRemoteDataSource {}
 ///
 /// [LocalDataSourceType] 需继承 [BaseLocalDataSource]，
 /// [RemoteDataSourceType] 需继承 [BaseRemoteDataSource]。
-abstract class BaseRepository<
-  LocalDataSourceType extends BaseLocalDataSource?,
-  RemoteDataSourceType extends BaseRemoteDataSource?
-> {
+abstract class BaseRepository<LocalDataSourceType extends BaseLocalDataSource?,
+    RemoteDataSourceType extends BaseRemoteDataSource?> {
   /// 本地数据源实例
   final LocalDataSourceType? localDataSource;
 

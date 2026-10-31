@@ -85,6 +85,34 @@ void main() {
       expect(logs.any((l) => l.contains('*** Request ***')), true);
     });
 
+    test('敏感请求头默认脱敏', () async {
+      List<String> logs = [];
+      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
+
+      final adapter = _MockAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      dio.interceptors.add(WLogInterceptor());
+
+      await dio.get(
+        'https://example.com/api',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer super-secret',
+            'x-api-key': 'key-secret',
+            'x-trace-id': 'trace-ok',
+          },
+        ),
+      );
+      await Future.microtask(() {});
+
+      final joined = logs.join();
+      expect(joined, contains('Authorization: ***'));
+      expect(joined, contains('x-api-key: ***'));
+      expect(joined, contains('x-trace-id: trace-ok'));
+      expect(joined, isNot(contains('super-secret')));
+      expect(joined, isNot(contains('key-secret')));
+    });
+
     test('request=false 时不打印请求详情', () async {
       List<String> logs = [];
       WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
@@ -361,6 +389,22 @@ void main() {
       await Future.wait([fire(), fire(), fire()]);
 
       expect(authErrorCalled, 1, reason: '并发 401 应共享同一次刷新');
+    });
+
+    test('长度正好 10 的 token 不在日志中完整输出', () async {
+      final logs = <String>[];
+      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
+
+      final dio = Dio()..httpClientAdapter = _MockAdapter();
+      dio.interceptors.add(
+        WTokenInterceptor(tokenGetter: () => '1234567890'),
+      );
+
+      await dio.get('https://example.com/api');
+      await Future.microtask(() {});
+
+      expect(logs.join(), isNot(contains('1234567890')));
+      expect(logs.join(), contains('***'));
     });
 
     test('FormData 请求 401 后能成功重放（不再因 finalize 抛错）', () async {
