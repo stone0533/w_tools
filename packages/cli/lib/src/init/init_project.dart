@@ -13,7 +13,7 @@ import 'templates.dart';
 const _subpackageConstraints = <String, String>{
   'w_tools_core': '^2.0.0',
   'w_tools_async': '^1.0.0',
-  'w_tools_app': '^1.0.0',
+  'w_tools_app': '^1.0.1',
   'w_tools_form': '^2.0.0',
   'w_tools_ui': '^3.0.0',
   'w_tools_api': '^1.0.1',

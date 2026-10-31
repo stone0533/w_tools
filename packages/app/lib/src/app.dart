@@ -76,6 +76,9 @@ class WApp {
   /// 是否已完成 [init]，用于 init 幂等与 [run] 前的时序校验
   bool _initialized = false;
 
+  /// 进行中的初始化任务：并发调用共享同一次初始化
+  Future<void>? _initFuture;
+
   /// 已注册插件（只读快照）
   List<WAppPlugin> get plugins => List.unmodifiable(_plugins);
 
@@ -108,12 +111,36 @@ class WApp {
 
   /// 初始化应用（幂等：重复调用只执行一次）
   ///
+  /// 并发调用会共享同一次初始化；[onLazyInit] / [customTasks] 以首次调用为准。
+  ///
   /// - [onLazyInit]：首帧渲染完成后的延迟初始化回调
   /// - [customTasks]：用户自定义初始化任务（与插件同层并行执行）
-  Future<void> init({VoidCallback? onLazyInit, List<Future<void>>? customTasks}) async {
-    // 幂等：与 start() 混用或重复调用时只执行一次，避免插件 onInit 被跑两次
-    if (_initialized) return;
+  Future<void> init({VoidCallback? onLazyInit, List<Future<void>>? customTasks}) {
+    // 已完成：保持幂等
+    if (_initialized) return Future<void>.value();
 
+    // 已有初始化在跑：共享同一个 Future，避免插件 onInit 被执行两次
+    final pending = _initFuture;
+    if (pending != null) return pending;
+
+    late final Future<void> future;
+    future = _doInit(
+      onLazyInit: onLazyInit,
+      customTasks: customTasks,
+    ).whenComplete(() {
+      if (identical(_initFuture, future)) {
+        _initFuture = null;
+      }
+    });
+    _initFuture = future;
+    return future;
+  }
+
+  /// 实际执行初始化；只由 [init] 调用一次
+  Future<void> _doInit({
+    VoidCallback? onLazyInit,
+    List<Future<void>>? customTasks,
+  }) async {
     WidgetsFlutterBinding.ensureInitialized();
 
     // 1. 系统设置（状态栏、屏幕方向）
@@ -193,9 +220,7 @@ class WApp {
     final pending = <WAppPlugin>[..._plugins];
 
     while (pending.isNotEmpty) {
-      final ready = pending
-          .where((p) => p.dependsOn.every(done.contains))
-          .toList(growable: false);
+      final ready = pending.where((p) => p.dependsOn.every(done.contains)).toList(growable: false);
       if (ready.isEmpty) {
         throw StateError(
           '插件存在循环依赖：${pending.map((p) => p.name).join(", ")}',

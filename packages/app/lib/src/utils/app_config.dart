@@ -10,8 +10,7 @@ class WAppConfig {
   ///
   /// **只读**：返回不可变快照，就地修改会抛 `UnsupportedError`；
   /// 需要变更请**整体赋值**（`WAppConfig.supportedLanguages = {...}`）。
-  static Map<String, String> get supportedLanguages =>
-      Map.unmodifiable(_supportedLanguages);
+  static Map<String, String> get supportedLanguages => Map.unmodifiable(_supportedLanguages);
 
   /// 整体替换支持的语言列表（内部为拷贝，外部后续修改不影响本类）
   static set supportedLanguages(Map<String, String> value) {

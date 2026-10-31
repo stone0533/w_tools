@@ -1,8 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:w_tools_app/w_tools_app.dart';
+
+class _BlockingPlugin extends WAppPlugin {
+  _BlockingPlugin(this.name);
+
+  @override
+  final String name;
+
+  final ready = Completer<void>();
+  int initCount = 0;
+
+  @override
+  Future<void> onInit() async {
+    initCount++;
+    await ready.future;
+  }
+}
 
 class _CountingPlugin extends WAppPlugin {
   _CountingPlugin(this.name);
@@ -39,6 +57,22 @@ void main() {
     await app.init();
 
     expect(plugin.initCount, 1);
+  });
+
+  test('并发 init() 共享同一次初始化', () async {
+    final plugin = _BlockingPlugin('p');
+    final app = WApp()..addPlugin(plugin);
+
+    final first = app.init();
+    final second = app.init();
+    await Future<void>.delayed(Duration.zero);
+    expect(plugin.initCount, 1);
+
+    plugin.ready.complete();
+    await Future.wait([first, second]);
+
+    expect(plugin.initCount, 1);
+    expect(app.isInitialized, isTrue);
   });
 
   test('未 init 就 run() 抛 StateError（避免遗漏 init）', () {

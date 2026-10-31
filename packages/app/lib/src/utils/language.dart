@@ -26,8 +26,7 @@ class WLanguage {
   Map<String, String> get supportedLanguages => WAppConfig.supportedLanguages;
 
   /// 当前语言的显示名称（未收录时回退为语言代码本身）
-  String get currentLanguageName =>
-      supportedLanguages[currentLanguage] ?? currentLanguage;
+  String get currentLanguageName => supportedLanguages[currentLanguage] ?? currentLanguage;
 
   /// 当前语言对应的 [Locale]
   Locale get currentLocale => _toLocale(currentLanguage);

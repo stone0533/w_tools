@@ -92,7 +92,9 @@ void main() {
   test('依赖了未注册的插件时抛 StateError', () async {
     final log = <String>[];
     await expectLater(
-      initPlugins([_RecorderPlugin('a', log: log, dependsOn: ['nope'])]),
+      initPlugins([
+        _RecorderPlugin('a', log: log, dependsOn: ['nope'])
+      ]),
       throwsA(isA<StateError>()),
     );
   });
