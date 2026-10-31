@@ -57,7 +57,7 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
     _registry = DioRegistry.forBaseUrl(
       _baseUrl,
       interceptors: [
-        WLogInterceptor(),
+        WLogInterceptor(responseHeader: true),
         WTokenInterceptor(
           tokenGetter: () => _token,
           tokenClearer: () async => _token = null,
@@ -131,6 +131,10 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
                 onPressed: () => _request('/secure', resetToken: true),
                 child: const Text('401 → 刷新 → 重试'),
               ),
+              OutlinedButton(
+                onPressed: () => _request('/error'),
+                child: const Text('GET /error（500）'),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -190,6 +194,18 @@ class _DemoAdapter implements HttpClientAdapter {
         401,
         headers: {
           Headers.contentTypeHeader: ['application/json'],
+          'set-cookie': ['session=secret'],
+        },
+      );
+    }
+
+    if (options.path == '/error') {
+      return ResponseBody.fromString(
+        jsonEncode({'error': 'server error'}),
+        500,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+          'set-cookie': ['session=secret'],
         },
       );
     }
@@ -202,6 +218,7 @@ class _DemoAdapter implements HttpClientAdapter {
       200,
       headers: {
         Headers.contentTypeHeader: ['application/json'],
+        'set-cookie': ['session=secret'],
       },
     );
   }

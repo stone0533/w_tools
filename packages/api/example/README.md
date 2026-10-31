@@ -8,6 +8,7 @@
 - `WLogInterceptor`：请求 / 响应日志与敏感头脱敏
 - `WTokenInterceptor`：401 清除、刷新、重试
 - `WApiConfig`：日志回调注入
+- 响应头脱敏与 500 错误日志
 - `FormData` / Stream 等重试边界（见包测试）
 
 ## 运行
@@ -29,6 +30,7 @@ flutter test
 
 ```text
 GET /public      返回 200，观察请求 / 响应日志
+GET /error（500） 返回 500，观察错误日志
 401 → 刷新 → 重试
                  token 先过期，服务端返回 401；
                  WTokenInterceptor 清除旧 token、刷新、重试成功
@@ -42,6 +44,14 @@ Authorization: ***
 ```
 
 不会输出真实 token。
+
+响应头：
+
+```text
+set-cookie: ***
+```
+
+也不会输出真实 cookie。
 
 ## 说明
 

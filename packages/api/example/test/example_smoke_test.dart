@@ -9,6 +9,17 @@ void main() {
 
     expect(find.textContaining('/public → 200'), findsOneWidget);
     expect(find.textContaining('*** Request ***'), findsWidgets);
+    expect(find.textContaining('set-cookie: ***'), findsWidgets);
+    expect(find.textContaining('session=secret'), findsNothing);
+  });
+
+  testWidgets('500 请求会输出错误日志', (tester) async {
+    await tester.pumpWidget(const ApiExampleApp());
+    await tester.tap(find.text('GET /error（500）'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('/error → 失败'), findsOneWidget);
+    expect(find.textContaining('服务器返回错误: 500'), findsOneWidget);
   });
 
   testWidgets('401 会刷新 token 并重试成功', (tester) async {
