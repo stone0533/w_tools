@@ -103,6 +103,10 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
                     setState(() {
                       _snapshot =
                           'values: ${_form.value}\n'
+                          'fields: ${_form.getFieldsValue<String>('bio')}';
+                      _snapshot =
+                          '$_snapshot\n'
+                          'formEntered: ${_form.formEntered}\n'
                           'entered: ${_form.isAllEntered(['bio', 'agree', 'level'])}';
                     });
                   },
