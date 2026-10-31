@@ -35,7 +35,7 @@ void main() {
     testWidgets('WFormDatePicker', (tester) async {
       await expectCleanup(
         tester,
-        const WFormDatePickerConfig().build(
+        WFormDatePickerConfig().build(
           name: 'date',
           firstDate: DateTime(2000),
           lastDate: DateTime(2100),
@@ -86,7 +86,7 @@ void main() {
     testWidgets('WFormDatePicker', (tester) async {
       await pumpForm(
         tester,
-        child: const WFormDatePickerConfig().build(
+        child: WFormDatePickerConfig().build(
           name: 'date',
           firstDate: DateTime(2000),
           lastDate: DateTime(2100),
