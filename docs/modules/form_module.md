@@ -316,8 +316,29 @@ WForm(
 )
 ```
 
-字段仍可用 `style` / `config` 覆盖单个字段。`WForm.validatorSettings` 会作为
-`form.validate()` / `form.validators()` 的默认设置。
+样式优先级：
+
+```text
+字段 config > WForm.fieldStyle > 框架默认
+```
+
+传了 `config` 时，`WForm.fieldStyle` 不再覆盖该字段。`WFormFieldStyle` 目前覆盖：
+
+| 属性 | 生效范围 |
+|---|---|
+| `height` | 所有直接字段 |
+| `containerPadding` | 所有直接字段 |
+| `textStyle` | 文本 / 下拉 / 多选 / 日期 / 单选 |
+| `hintStyle` | 文本 / 下拉 |
+
+复选和单选默认 `bordered: false`，文本 / 下拉 / 多选 / 日期 / 按钮默认 `bordered: true`。
+需要边框时显式传 `bordered: true`。
+
+`WForm.validatorSettings` 会作为 `form.validate()` / `form.validators()` 的默认设置；
+即使 validator 在 `WForm` 之前创建，也会在 `validate()` 时读取该默认值。
+
+`WFormController` 与 `WForm` 建议一对一使用：`WForm` 会写入 controller 的默认校验设置，
+多个 `WForm` 共用同一个 controller 时，后挂载的会覆盖前一个的默认设置。
 
 `WFormTextFieldCore` / `WFormDropdownCore` 等是低层核心 Widget，普通业务页面不需要直接使用。完整示例见
 [`packages/form/example`](../../packages/form/example/README.md)。

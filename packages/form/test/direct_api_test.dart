@@ -179,4 +179,23 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: SizedBox()));
     expect(form.validatorSettings, isNull);
   });
+
+  testWidgets('WForm.fieldStyle 作为字段默认高度', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            fieldStyle: const WFormFieldStyle(height: 60),
+            child: const WFormTextField(name: 'email', label: '邮箱'),
+          ),
+        ),
+      ),
+    );
+
+    final core = tester.widget<WFormTextFieldCore>(
+      find.byType(WFormTextFieldCore),
+    );
+    expect(core.config.height, 60);
+  });
 }

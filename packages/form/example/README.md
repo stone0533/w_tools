@@ -86,6 +86,12 @@ WFormTextField(
 
 字段 Config 可变，**一个字段一份 Config**，不要跨字段共享同一实例。
 
+样式优先级：
+
+```text
+字段 config > WForm.fieldStyle > 默认值
+```
+
 ### 自定义字段按钮
 
 ```dart

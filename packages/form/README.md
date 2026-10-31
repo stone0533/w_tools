@@ -109,7 +109,14 @@ WFormTextField(
 );
 ```
 
+优先级：
+
+```text
+字段 config > WForm.fieldStyle > 默认值
+```
+
 字段 Config 可变，**一个字段一份 Config**，不要跨字段共享同一个实例。
+`WForm` 与 `WFormController` 建议一对一使用。
 
 ## 主要 API
 
