@@ -84,6 +84,14 @@ class _HomePageState extends State<HomePage> {
               style: const TextStyle(fontFamily: 'monospace'),
             ),
           ],
+          const SizedBox(height: 16),
+          ValueListenableBuilder<List<String>>(
+            valueListenable: routeEvents,
+            builder: (context, events, _) => Text(
+              '路由事件：${events.join(' / ')}',
+              style: const TextStyle(fontFamily: 'monospace'),
+            ),
+          ),
           const SizedBox(height: 24),
           const Card(
             child: Padding(

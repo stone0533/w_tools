@@ -8,6 +8,25 @@ import 'pages/home_page.dart';
 /// 示例启动日志：便于观察插件依赖顺序。
 final List<String> startupEvents = <String>[];
 
+/// 路由事件：演示插件 navigatorObservers。
+final ValueNotifier<List<String>> routeEvents = ValueNotifier<List<String>>(<String>[]);
+
+class _DemoRouteObserver extends NavigatorObserver {
+  void _add(String event) {
+    routeEvents.value = [...routeEvents.value, event];
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _add('push ${route.settings.name ?? '(unnamed)'}');
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _add('pop ${route.settings.name ?? '(unnamed)'}');
+  }
+}
+
 class EnvPlugin extends WAppPlugin {
   @override
   String get name => 'env';
@@ -17,6 +36,14 @@ class EnvPlugin extends WAppPlugin {
     await Future<void>.delayed(const Duration(milliseconds: 80));
     startupEvents.add('env: loaded');
   }
+}
+
+class RouteObserverPlugin extends WAppPlugin {
+  @override
+  String get name => 'route-observer';
+
+  @override
+  List<NavigatorObserver>? get navigatorObservers => [_DemoRouteObserver()];
 }
 
 class FeaturePlugin extends WAppPlugin {
@@ -49,7 +76,7 @@ WApp createApp() {
       GetPage(name: '/', page: () => const HomePage()),
       GetPage(name: '/detail', page: () => const DetailPage()),
     ]
-    ..addPlugins([FeaturePlugin(), EnvPlugin()]);
+    ..addPlugins([RouteObserverPlugin(), FeaturePlugin(), EnvPlugin()]);
 }
 
 Future<void> main() async {

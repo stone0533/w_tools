@@ -6,6 +6,7 @@
 - `WAppPlugin` / `dependsOn` 插件分层
 - GetX 路由
 - `WRoute` / `WRouteObserver`
+- 插件 `navigatorObservers` 路由事件
 - `WLanguage` 语言切换
 - `WBottomSheet`
 
