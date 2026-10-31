@@ -47,7 +47,7 @@ void main() {
     testWidgets('WFormRadioGroup', (tester) async {
       await expectCleanup(
         tester,
-        const WFormRadioGroupConfig().build<String>(
+        WFormRadioGroupConfig().build<String>(
           name: 'radio',
           items: const {'a': 'A'},
         ),
@@ -103,7 +103,7 @@ void main() {
       String? changed;
       await pumpForm(
         tester,
-        child: const WFormRadioGroupConfig().build<String>(
+        child: WFormRadioGroupConfig().build<String>(
           name: 'radio',
           items: const {'a': 'A'},
           readOnly: true,

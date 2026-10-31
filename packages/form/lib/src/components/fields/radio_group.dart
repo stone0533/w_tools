@@ -3,6 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
+import '../field_chrome.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 import '../form_defaults.dart';
@@ -187,43 +188,43 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroup<T>,
 
 /// 单选按钮组配置类，定义单选按钮组的样式和行为。
 ///
-/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
-class WFormRadioGroupConfig {
-  static WFormRadioGroupConfigBuilder builder() => WFormRadioGroupConfigBuilder();
+/// 可变的字段配置；需要链式构建时为 [builder]。
+class WFormRadioGroupConfig extends WFormFieldChrome {
+  Widget? unselectedIcon;
+  Widget? selectedIcon;
+  double? iconSpacing;
+  double? lineSpacing;
+  double? iconYOffset;
+  TextStyle? style;
 
-  final Widget? unselectedIcon;
-  final Widget? selectedIcon;
-  final double? iconSpacing;
-  final double? lineSpacing;
-  final double? iconYOffset;
-  final TextStyle? style;
-  final bool enabled;
-  final double? height;
-  final double? width;
-  final Widget? leading;
-  final List<Widget>? actions;
-  final Decoration? containerDecoration;
-  final EdgeInsetsGeometry? containerMargin;
-  final EdgeInsetsGeometry? containerPadding;
-
-  const WFormRadioGroupConfig({
+  WFormRadioGroupConfig({
     this.unselectedIcon,
     this.selectedIcon,
     this.iconSpacing,
     this.lineSpacing,
     this.iconYOffset,
     this.style,
-    this.enabled = true,
-    this.height,
-    this.width,
-    this.leading,
-    this.actions,
-    this.containerDecoration,
-    this.containerMargin,
-    this.containerPadding,
-  });
+    bool enabled = true,
+    double? height,
+    double? width,
+    Widget? leading,
+    List<Widget>? actions,
+    Decoration? containerDecoration,
+    EdgeInsetsGeometry? containerMargin,
+    EdgeInsetsGeometry? containerPadding,
+  }) {
+    this.enabled = enabled;
+    this.height = height;
+    this.width = width;
+    this.leading = leading;
+    this.actions = actions;
+    this.containerDecoration = containerDecoration;
+    this.containerMargin = containerMargin;
+    this.containerPadding = containerPadding;
+  }
 
-  /// 构建 [WFormRadioGroup] 组件。
+  static WFormRadioGroupConfigBuilder builder() => WFormRadioGroupConfigBuilder();
+
   Widget build<T>({
     required String name,
     required Map<T, String> items,
@@ -241,9 +242,7 @@ class WFormRadioGroupConfig {
     bool enableFocusBorder = true,
   }) {
     final baseEnabled = enabled ?? this.enabled;
-    final config = bordered
-        ? (WFormRadioGroupConfigBuilder.from(this)..containerDecoration = null).buildConfig()
-        : this;
+    final config = bordered ? (copy()..containerDecoration = null) : this;
     final field = WFormRadioGroup<T>(
       config: config,
       name: name,
@@ -271,7 +270,6 @@ class WFormRadioGroupConfig {
 
   WFormRadioGroupConfig copy() => copyWith();
 
-  /// 参数为 null 表示沿用原值；清空请用 [builder]。
   WFormRadioGroupConfig copyWith({
     Widget? unselectedIcon,
     Widget? selectedIcon,
@@ -307,57 +305,8 @@ class WFormRadioGroupConfig {
   }
 }
 
-/// [WFormRadioGroupConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
-class WFormRadioGroupConfigBuilder {
-  Widget? unselectedIcon;
-  Widget? selectedIcon;
-  double? iconSpacing;
-  double? lineSpacing;
-  double? iconYOffset;
-  TextStyle? style;
-  bool enabled = true;
-  double? height;
-  double? width;
-  Widget? leading;
-  List<Widget>? actions;
-  Decoration? containerDecoration;
-  EdgeInsetsGeometry? containerMargin;
-  EdgeInsetsGeometry? containerPadding;
-
+/// [WFormRadioGroupConfig] 的 Builder；返回可变配置副本。
+class WFormRadioGroupConfigBuilder extends WFormRadioGroupConfig {
   WFormRadioGroupConfigBuilder();
-
-  WFormRadioGroupConfigBuilder.from(WFormRadioGroupConfig config)
-    : unselectedIcon = config.unselectedIcon,
-      selectedIcon = config.selectedIcon,
-      iconSpacing = config.iconSpacing,
-      lineSpacing = config.lineSpacing,
-      iconYOffset = config.iconYOffset,
-      style = config.style,
-      enabled = config.enabled,
-      height = config.height,
-      width = config.width,
-      leading = config.leading,
-      actions = config.actions,
-      containerDecoration = config.containerDecoration,
-      containerMargin = config.containerMargin,
-      containerPadding = config.containerPadding;
-
-  WFormRadioGroupConfig buildConfig() {
-    return WFormRadioGroupConfig(
-      unselectedIcon: unselectedIcon,
-      selectedIcon: selectedIcon,
-      iconSpacing: iconSpacing,
-      lineSpacing: lineSpacing,
-      iconYOffset: iconYOffset,
-      style: style,
-      enabled: enabled,
-      height: height,
-      width: width,
-      leading: leading,
-      actions: actions,
-      containerDecoration: containerDecoration,
-      containerMargin: containerMargin,
-      containerPadding: containerPadding,
-    );
-  }
+  WFormRadioGroupConfig buildConfig() => copy();
 }
