@@ -494,6 +494,22 @@ void main() {
       expect(WFormController().validate(), isFalse);
     });
 
+    testWidgets('clearValue 清空值并复位输入状态', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+      );
+
+      data.updateValue<String>('a', 'hello');
+      data.clearValue('a');
+      await tester.pump();
+
+      expect(data.getFieldsValue<String>('a'), isNull);
+      expect(data.formEntered['a'], isFalse);
+    });
+
     testWidgets('validate 自动使用字段 validator', (tester) async {
       final data = WFormController();
       await pumpForm(

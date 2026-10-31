@@ -36,21 +36,24 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WFormScope(
-      formData: formData,
-      child: Column(
-        children: [
-          WFormTextField(
-            name: 'email',
-            config: WFormTextFieldConfig(),
-            hintText: '邮箱',
-          ),
-          WFormTextField(
-            name: 'password',
-            config: WFormTextFieldConfig()..obscureText = true,
-            hintText: '密码',
-          ),
-        ],
+    return WFormTheme(
+      borderConfig: WFormBorderConfig.standard(),
+      child: WFormScope(
+        formData: formData,
+        child: Column(
+          children: [
+            WFormTextFieldConfig().build(
+              name: 'email',
+              hintText: '邮箱',
+              bordered: true,
+            ),
+            (WFormTextFieldConfig()..obscureText = true).build(
+              name: 'password',
+              hintText: '密码',
+              bordered: true,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -64,6 +64,11 @@ class WFormController {
     handleChange<T>(name, value);
   }
 
+  /// 清空指定字段并更新输入状态
+  void clearValue(String name) {
+    updateValue<String?>(name, null);
+  }
+
   /// 处理字段内容变更：清除该字段的错误样式并更新输入状态
   ///
   /// [formEntered] 判定规则：字符串 / 集合 / Map 按非空，

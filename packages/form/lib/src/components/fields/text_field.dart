@@ -40,6 +40,9 @@ class WFormTextField extends StatefulWidget {
   /// 是否只读
   final bool readOnly;
 
+  /// 是否启用（null 时读取 [config.enabled]）
+  final bool? enabled;
+
   /// 校验器
   final FormFieldValidator<String>? validator;
 
@@ -57,6 +60,7 @@ class WFormTextField extends StatefulWidget {
     this.initialValue,
     this.hintText,
     this.readOnly = false,
+    this.enabled,
     this.validator,
     this.focusNode,
   });
@@ -146,10 +150,10 @@ class _WFormTextFieldState extends State<WFormTextField> {
       widget.onChanged?.call(value);
     }
 
-    // 继承外层只读作用域（WFormFieldShell.readOnly）
-    // config.enabled = false 与只读等价，避免该公共字段在文本字段上静默失效
-    _effectiveReadOnly =
-        widget.readOnly || !widget.config.enabled || WFormReadOnlyScope.readOnlyOf(context);
+    // 合并自身 enabled / config.enabled / 外层只读作用域
+    final inheritedReadOnly = WFormReadOnlyScope.readOnlyOf(context);
+    final isEnabled = (widget.enabled ?? widget.config.enabled) && !inheritedReadOnly;
+    _effectiveReadOnly = !isEnabled || widget.readOnly || inheritedReadOnly;
     final readOnly = _effectiveReadOnly;
 
     return WFormTextFieldScope._(
@@ -171,6 +175,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
           initialValue: widget.initialValue,
           validator: widget.validator,
           textInputAction: widget.config._textInputAction,
+          enabled: isEnabled,
           readOnly: readOnly,
           onChanged: onChanged,
           cursorColor: widget.config._style?.color,
@@ -353,7 +358,8 @@ class WFormTextFieldConfig extends WFormFieldChrome {
       onEditingComplete: onEditingComplete,
       initialValue: initialValue,
       hintText: hintText,
-      readOnly: effectiveReadOnly,
+      readOnly: readOnly,
+      enabled: enabled,
       validator: validator,
       focusNode: focusNode,
     );

@@ -141,6 +141,7 @@ WFormScope(
 | `setValue<T>(name, value)` | `void` | 仅写字段值，**不**更新 `formEntered` |
 | `handleChange<T>(name, value, {callback})` | `void` | 清除错误 + 更新 `formEntered` + 回调；不写字段值 |
 | `updateValue<T>(name, value)` | `void` | `setValue` + `handleChange`，业务代码优先用这个 |
+| `clearValue(name)` | `void` | 清空值并复位输入状态 |
 | `getFieldsValue<T>(name)` | `T?` | 无需先 `save` 即可获取即时值 |
 | `setError(name, {errorTextList, callback})` | `void` | 触发边框 `errorBuilder` |
 | `clearError(name)` | `void` | 清除边框错误 |
@@ -339,7 +340,7 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 | `textAlign` | `TextAlign` | 对齐方式 |
 | `prefix` / `prefixIcon` / `leading` | `Widget?` | 前置插槽 |
 | `yOffset` | `double?` | 垂直微调 |
-| `enabled` | `bool` | false 时等价只读，禁止输入 |
+| `enabled` | `bool` | false 时禁用文本字段（同时只读） |
 
 #### WFormTextFieldScope（InheritedWidget 管道）
 
