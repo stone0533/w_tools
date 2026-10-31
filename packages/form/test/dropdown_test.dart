@@ -7,7 +7,7 @@ import '_helpers/form_test_scaffold.dart';
 void main() {
   group('WFormDropdownConfig — 纯 Dart', () {
     test('默认空实例化', () {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       expect(cfg, isNotNull);
     });
 
@@ -32,14 +32,14 @@ void main() {
     });
 
     test('copy() 返回新实例', () {
-      const cfg = WFormDropdownConfig(height: 48);
+      final cfg = WFormDropdownConfig(height: 48);
       final cloned = cfg.copy();
       expect(cloned, isA<WFormDropdownConfig>());
       expect(identical(cfg, cloned), false);
     });
 
     test('copyWith 部分覆盖 height', () {
-      const cfg = WFormDropdownConfig(height: 48, width: 160);
+      final cfg = WFormDropdownConfig(height: 48, width: 160);
 
       final copied = cfg.copyWith(height: 64);
       expect(copied, isA<WFormDropdownConfig>());
@@ -49,7 +49,7 @@ void main() {
     });
 
     test('copyWith 全部覆盖', () {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       final copied = cfg.copyWith(
         enabled: false,
         height: 50,
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('build(bordered: true) — name 空 → 抛 ArgumentError', () {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       expect(
         () => cfg.build<String>(
           bordered: true,
@@ -112,7 +112,7 @@ void main() {
     }
 
     testWidgets('基本渲染 — items 显示 + hint', (tester) async {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       await tester.pumpWidget(
         buildDropdown(
           config: cfg,
@@ -128,12 +128,12 @@ void main() {
 
     testWidgets('无 WFormScope → 抛 Exception', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
             body: WFormDropdown<String>(
               config: WFormDropdownConfig(),
               name: 'fruit',
-              items: {'a': '苹果'},
+              items: const {'a': '苹果'},
             ),
           ),
         ),
@@ -143,7 +143,7 @@ void main() {
     });
 
     testWidgets('initialValue 非空 → 显示选中值', (tester) async {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       await tester.pumpWidget(
         buildDropdown(
           config: cfg,
@@ -157,7 +157,7 @@ void main() {
     });
 
     testWidgets('enabled=false → DropdownButton disabled', (tester) async {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       await tester.pumpWidget(
         buildDropdown(
           config: cfg,
@@ -174,7 +174,7 @@ void main() {
     });
 
     testWidgets('点击 dropdown → 弹出 menu', (tester) async {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       await tester.pumpWidget(
         buildDropdown(
           config: cfg,
@@ -197,7 +197,7 @@ void main() {
     testWidgets('选择项 → FormData 更新 + onChanged 回调', (tester) async {
       String? changedValue;
       final formData = WFormController();
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -230,9 +230,9 @@ void main() {
     });
 
     testWidgets('custom leading/icon 渲染', (tester) async {
-      const cfg = WFormDropdownConfig(
-        leading: Icon(Icons.pin),
-        icon: Icon(Icons.expand_more),
+      final cfg = WFormDropdownConfig(
+        leading: const Icon(Icons.pin),
+        icon: const Icon(Icons.expand_more),
       );
 
       await tester.pumpWidget(
@@ -249,7 +249,7 @@ void main() {
     });
 
     testWidgets('config.height / width 生效', (tester) async {
-      const cfg = WFormDropdownConfig(height: 60, width: 200);
+      final cfg = WFormDropdownConfig(height: 60, width: 200);
 
       await tester.pumpWidget(
         buildDropdown(
@@ -267,7 +267,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) → 返回带 WFormFieldShell', (tester) async {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       final formBorderCfg = WFormBorderConfig.builder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
@@ -296,7 +296,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) readOnly → 外层只读 + 内层禁用', (tester) async {
-      const cfg = WFormDropdownConfig();
+      final cfg = WFormDropdownConfig();
       final formBorderCfg = WFormBorderConfig.builder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
@@ -328,7 +328,7 @@ void main() {
   testWidgets('WFormDropdownConfig.build — readOnly 在无边框时也生效', (tester) async {
     await pumpForm(
       tester,
-      child: const WFormDropdownConfig().build<String>(
+      child: WFormDropdownConfig().build<String>(
         name: 'country',
         items: const {'CN': '中国'},
         readOnly: true,
@@ -344,10 +344,10 @@ void main() {
     await pumpForm(
       tester,
       formData: data,
-      child: const WFormDropdown<String>(
+      child: WFormDropdown<String>(
         config: WFormDropdownConfig(),
         name: 'country',
-        items: {'CN': '中国'},
+        items: const {'CN': '中国'},
       ),
     );
 

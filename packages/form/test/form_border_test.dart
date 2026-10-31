@@ -784,16 +784,16 @@ void main() {
             body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfgConfig(),
-              child: const Row(
+              child: Row(
                 children: [
-                  Expanded(
+                  const Expanded(
                     child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
                   ),
                   Expanded(
                     child: WFormDropdown<String>(
                       config: WFormDropdownConfig(),
                       name: 'b',
-                      items: {'x': 'X'},
+                      items: const {'x': 'X'},
                     ),
                   ),
                 ],
@@ -914,13 +914,13 @@ void main() {
             body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfgConfig(),
-              child: (const Row(
+              child: (Row(
                 children: [
                   Expanded(
                     child: WFormDropdown<int>(
                       config: WFormDropdownConfig(),
                       name: 'b',
-                      items: {1: 'ONE'},
+                      items: const {1: 'ONE'},
                     ),
                   ),
                 ],
@@ -948,13 +948,13 @@ void main() {
             body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfgConfig(),
-              child: (const Row(
+              child: (Row(
                 children: [
                   Expanded(
                     child: WFormDropdown<String>(
                       config: WFormDropdownConfig(),
                       name: 'b',
-                      items: {'x': 'X'},
+                      items: const {'x': 'X'},
                       enabled: false,
                     ),
                   ),
