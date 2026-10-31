@@ -31,8 +31,9 @@
    Put state colors (disabled / pressed / hovered / focused) in `AppButtons`; set
    `disabledOpacity: 1` when explicit disabled colors are used.
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
-   (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
-   / field `config` for styling.
+   (`WFormTextField`, etc.); do not start from `Config.build`. `WForm` requires a
+   `WFormController` (one-to-one); use `WForm.fieldStyle` for page-level height/padding
+   and `WFormValidatorSettings` for validation; use field `config` for special styling.
    **Images**: use `WImage.network` for network images and
    `WImage.asset(name, prefix: true)` for assets; use `WImageStyle` for visuals and
    `WImageConfig` for loading/retry/placeholders. Do not use `Image.network` / `Image.asset` directly.

@@ -1,6 +1,7 @@
 # Form 使用规则
 
 新页面默认使用 `WForm` + 直接字段，不要从 `Config.build` 开始写。
+`WForm` 需要 `WFormController`，且建议一对一；页面级高度 / 内边距用 `fieldStyle`，校验用 `validatorSettings`。
 
 ```dart
 WForm(

@@ -148,6 +148,16 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
   ),
   CatalogEntry(
+    name: "WFormController",
+    names: <String>["WFormController"],
+    package: "w_tools_form",
+    section: "5. 表单",
+    useFor: "WForm 的数据、字段值读写与校验入口",
+    dontUseFor: "不要让多个 WForm 共用同一个 controller；WForm 与 controller 一对一",
+    importPath: "package:w_tools_form/w_tools_form.dart",
+    docs: "docs/modules/form_module.md",
+  ),
+  CatalogEntry(
     name: "WFormTextField",
     names: <String>["WFormTextField"],
     package: "w_tools_form",
