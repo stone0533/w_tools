@@ -421,6 +421,53 @@ WButtonSize.large   // 视觉 48 高，15 号字，hit target 48
 支持 `minWidth/minHeight`、`padding`、`fontSize`、`fontWeight`、`lineHeight`、
 `letterSpacing`、`iconSize`、`gap`、`tapTargetSize`。
 
+> `WButtonSize` 不包含 `width`。宽度由父布局决定，不要为了“撑满”给
+> `WButtonSize` / `WButtonStyle` 加 `width`：
+>
+> - 撑满：`SizedBox(width: double.infinity, child: WButton(...))` 或 `Expanded`
+> - 固定宽度：外层 `SizedBox(width: ...)`
+> - 一行多个：`Row` + `Expanded`
+>
+> `minWidth` 只是最小视觉 / 点击尺寸，不是固定宽度；`double.infinity` 应交给父约束。
+
+```dart
+// 撑满
+SizedBox(
+  width: double.infinity,
+  child: WButton(label: '提交', onTap: _submit),
+)
+
+// 固定宽度
+SizedBox(
+  width: 343,
+  child: WButton(label: '保存', onTap: _save),
+)
+
+// 一行两个
+Row(
+  children: [
+    Expanded(child: WButton(label: '取消', onTap: _cancel)),
+    const SizedBox(width: 12),
+    Expanded(child: WButton(label: '确认', onTap: _confirm)),
+  ],
+)
+```
+
+如果需要统一“宽按钮”，在项目层增加 Widget 工厂，而不是扩展按钮样式：
+
+```dart
+Widget primaryWide(BuildContext context, {required String label, VoidCallback? onTap}) {
+  return SizedBox(
+    width: double.infinity,
+    child: WButton(
+      style: AppButtons.primary(context),
+      label: label,
+      onTap: onTap,
+    ),
+  );
+}
+```
+
 ### Style 工厂
 
 ```dart
