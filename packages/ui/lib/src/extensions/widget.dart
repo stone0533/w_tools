@@ -23,10 +23,6 @@ extension WWidgetExtension on Widget {
     );
   }
 
-  /// 添加自定义底部空间。
-  @Deprecated('Use withBottomPadding instead')
-  Widget withBottomSpace(double height) => withBottomPadding(height);
-
   /// 添加顶部安全空间（适配状态栏）。
   ///
   /// 读取 [WScreen.statusBarHeight]，不读取当前 [MediaQuery]。

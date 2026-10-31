@@ -103,6 +103,9 @@ extension WNumExtension on num {
   /// 转换为百分比格式的字符串；整数结果不带 `.0`。
   String get toPercent {
     final value = this * 100;
+    if (value.isNaN || value.isInfinite) {
+      return '$value%';
+    }
     if (value == value.roundToDouble()) {
       return '${value.toInt()}%';
     }

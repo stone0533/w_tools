@@ -102,6 +102,19 @@ void main() {
       expect(w.type, WImageType.asset);
     });
 
+    test('命名便捷方法支持尺寸 / fit / semanticLabel', () {
+      final w = 'logo.png'.toAssetImage(
+        width: 40,
+        height: 20,
+        fit: BoxFit.cover,
+        semanticLabel: 'logo',
+      );
+      expect(w.style.width, 40);
+      expect(w.style.height, 20);
+      expect(w.style.fit, BoxFit.cover);
+      expect(w.style.semanticLabel, 'logo');
+    });
+
     test('toBase64Image / toFileImage / toNetworkImage 强制类型', () {
       expect('iVBORw0KG'.toBase64Image().type, WImageType.base64);
       expect('/tmp/a.png'.toFileImage().type, WImageType.file);

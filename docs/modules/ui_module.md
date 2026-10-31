@@ -1001,6 +1001,7 @@ WImage.network(
 ```dart
 'https://example.com/a.png'.toImage(width: 40);
 'logo.png'.toAssetImage();                 // → assets/images/logo.png
+'logo.png'.toAssetImage(width: 40, fit: BoxFit.cover);
 'assets/icons/logo.png'.toAssetImage(prefix: false);
 base64String.toBase64Image();
 '/tmp/a.png'.toFileImage();
@@ -1591,7 +1592,7 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 | `1.toPadLeft(3)` | `001` |
 | `(-1).toPadLeft(3)` | `-01` |
 
-补零时负号计入总长度；`length` 必须为非负数；`toPercent` 的整数结果不带 `.0`。
+补零时负号计入总长度；`length` 必须为非负数；`toPercent` 的整数结果不带 `.0`，`NaN` / `Infinity` 原样加 `%`。
 
 ### WWidgetExtension
 
@@ -1608,7 +1609,7 @@ Text('Hello')
 可用方法：`expanded`、`withHorizontalPadding`、`withVerticalPadding`、
 `withLeftPadding`、`withRightPadding`、`withTopPadding`、`withBottomPadding`、
 `withTopSafeSpace`、`withBottomBarSpace`、`withDecoration`、
-`withIntrinsicHeight`。`withBottomSpace` 已废弃，用 `withBottomPadding`。
+`withIntrinsicHeight`。
 
 `withDecoration` 只包一层 `DecoratedBox`，不提供 padding / margin；
 需要圆角裁剪时用 `Container(clipBehavior: Clip.antiAlias)`。

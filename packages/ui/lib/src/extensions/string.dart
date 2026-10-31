@@ -92,9 +92,24 @@ extension WUiStringExtension on String {
     Key? key,
     WImageStyle style = const WImageStyle(),
     WImageConfig config = const WImageConfig(),
+    double? width,
+    double? height,
+    double? size,
+    BoxFit? fit,
+    String? semanticLabel,
   }) {
     final data = prefix ? assetImagePath : this;
-    return data.toImage(type: WImageType.asset, key: key, style: style, config: config);
+    return data.toImage(
+      type: WImageType.asset,
+      key: key,
+      style: style,
+      config: config,
+      width: width,
+      height: height,
+      size: size,
+      fit: fit,
+      semanticLabel: semanticLabel,
+    );
   }
 
   /// Base64 图片（可带 `data:...;base64,` 前缀，也可直接给 Base64 串）
@@ -102,8 +117,23 @@ extension WUiStringExtension on String {
     Key? key,
     WImageStyle style = const WImageStyle(),
     WImageConfig config = const WImageConfig(),
+    double? width,
+    double? height,
+    double? size,
+    BoxFit? fit,
+    String? semanticLabel,
   }) {
-    return toImage(type: WImageType.base64, key: key, style: style, config: config);
+    return toImage(
+      type: WImageType.base64,
+      key: key,
+      style: style,
+      config: config,
+      width: width,
+      height: height,
+      size: size,
+      fit: fit,
+      semanticLabel: semanticLabel,
+    );
   }
 
   /// 本地文件图片（带不带 `file://` 前缀都可以）
@@ -111,8 +141,23 @@ extension WUiStringExtension on String {
     Key? key,
     WImageStyle style = const WImageStyle(),
     WImageConfig config = const WImageConfig(),
+    double? width,
+    double? height,
+    double? size,
+    BoxFit? fit,
+    String? semanticLabel,
   }) {
-    return toImage(type: WImageType.file, key: key, style: style, config: config);
+    return toImage(
+      type: WImageType.file,
+      key: key,
+      style: style,
+      config: config,
+      width: width,
+      height: height,
+      size: size,
+      fit: fit,
+      semanticLabel: semanticLabel,
+    );
   }
 
   /// 网络图片（`http` / `https`，或以 `//` 开头的协议相对地址）
@@ -120,7 +165,22 @@ extension WUiStringExtension on String {
     Key? key,
     WImageStyle style = const WImageStyle(),
     WImageConfig config = const WImageConfig(),
+    double? width,
+    double? height,
+    double? size,
+    BoxFit? fit,
+    String? semanticLabel,
   }) {
-    return toImage(type: WImageType.network, key: key, style: style, config: config);
+    return toImage(
+      type: WImageType.network,
+      key: key,
+      style: style,
+      config: config,
+      width: width,
+      height: height,
+      size: size,
+      fit: fit,
+      semanticLabel: semanticLabel,
+    );
   }
 }

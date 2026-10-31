@@ -208,6 +208,8 @@ void main() {
       expect(1.25.toPercentWithFixed(1), '125.0%');
       expect(0.0.toPercent, '0%');
       expect(2.0.toPercent, '200%');
+      expect(double.infinity.toPercent, 'Infinity%');
+      expect(double.nan.toPercent, 'NaN%');
     });
 
     test('num.toPadLeft', () {
