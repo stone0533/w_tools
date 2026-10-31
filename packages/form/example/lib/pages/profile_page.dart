@@ -66,6 +66,21 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
               },
             ),
             const SizedBox(height: 16),
+            WFormTextField(
+              name: 'phone',
+              label: '手机号',
+              message: '香港手机号 8 位',
+              keyboardType: TextInputType.phone,
+              inputFormatters: WFormInputFormatters.phone(),
+              validator: (value) {
+                final digits = (value ?? '').replaceAll(' ', '');
+                if (digits.isNotEmpty && digits.length != 8) {
+                  return '请输入 8 位手机号';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
             WFormDropdown<String>(
               name: 'country',
               label: '国家 / 地区',
