@@ -112,6 +112,7 @@ class WApp {
   /// 初始化应用（幂等：重复调用只执行一次）
   ///
   /// 并发调用会共享同一次初始化；[onLazyInit] / [customTasks] 以首次调用为准。
+  /// 若初始化失败，[isInitialized] 保持 false；再次调用会重新执行插件 `onInit`。
   ///
   /// - [onLazyInit]：首帧渲染完成后的延迟初始化回调
   /// - [customTasks]：用户自定义初始化任务（与插件同层并行执行）
@@ -167,6 +168,8 @@ class WApp {
   ///
   /// 推荐入口 —— 避免调用方遗漏 [init] 导致 .env 未加载、业务服务未就绪、
   /// 原生闪屏未保留等难以定位的时序问题。
+  ///
+  /// 只应调用一次；重复调用会再次执行 [run]（再次 `runApp`）。
   Future<void> start({
     VoidCallback? onLazyInit,
     List<Future<void>>? customTasks,
@@ -252,6 +255,7 @@ class WApp {
   /// 运行应用
   ///
   /// 传入的参数会**覆盖**对应字段；未传则使用字段当前值。
+  /// 通常由 [start] 调用一次；重复调用会再次 `runApp`，不会做防重保护。
   void run({
     String? initialRoute,
     List<GetPage<dynamic>>? getPages,

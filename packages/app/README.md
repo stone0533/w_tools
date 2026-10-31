@@ -60,6 +60,16 @@ class AnalyticsPlugin with WAppPlugin {
 final app = WApp()..addPlugin(AnalyticsPlugin());
 ```
 
+## 生命周期
+
+```text
+init()   可重复 / 并发调用；只执行一次插件 onInit
+start()  = init() + run()，只调用一次
+run()    通常由 start 调用；重复调用会再次 runApp
+```
+
+初始化失败时 `isInitialized` 保持 false；再次调用 `init()` 会重新执行插件 `onInit`。
+
 ## 主要 API
 
 | 能力 | 入口 |
