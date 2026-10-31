@@ -17,6 +17,7 @@
 - `WRowButtonsController` 删除未使用的 `scrollThreshold`；相同索引不再重复通知；补充 controller dispose 顺序文档。
 - `WRowButtonsController` 首次布局自动居中 `initialIndex`，新增 `ensureVisible`；`overScroll` 增加非负断言；`onCanTap` 文档说明应为轻量纯函数。
 - `WRowButtons` 初始居中现在尊重 `scrollToCenter`；显式 `ensureVisible` 不受该开关限制。
+- `WRowButtonsController.selectedIndexNotifier` 改为只读 `ValueListenable<int?>`，避免外部直接写 value 导致索引不同步。
 - 重命名：`num.toThousand` → `num.toThousandsSeparated`；`Widget.withBottomSafeSpace` → `Widget.withBottomBarSpace`（后者明确是底部导航栏空间，不是系统 safe area）；`WScreen.bottomBarHeight` → `WScreen.bottomSafeAreaHeight`。
 - Navigation 加固：`WNavController.currentIndex` 会停止进行中的动画并在 dispose 后安全返回；`WNavBar` 增加 button/selected 语义；`WTabBar` 改为无状态并支持 `overlayColor`。
 

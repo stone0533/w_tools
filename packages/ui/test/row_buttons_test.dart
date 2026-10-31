@@ -83,9 +83,9 @@ void main() {
       controller.dispose();
     });
 
-    test('selectedIndexNotifier 类型应为 ValueNotifier<int?>', () {
+    test('selectedIndexNotifier 类型应为 ValueListenable<int?>', () {
       final controller = WRowButtonsController(length: length);
-      // 验证 ValueNotifier 的 value 可以是 null
+      // 验证 ValueListenable 的 value 可以是 null
       expect(controller.selectedIndexNotifier.value, isNull);
       controller.jumpTo(1);
       expect(controller.selectedIndexNotifier.value, equals(1));

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -304,10 +305,10 @@ class WRowButtonsController {
   /// 获取当前选中的索引，null 表示无预选
   int? get index => _index;
 
-  /// 获取选中状态通知器
+  /// 获取选中状态通知器（只读）
   ///
-  /// 可以通过监听此通知器来获取选中状态的变化
-  ValueNotifier<int?> get selectedIndexNotifier => _indexNotifier;
+  /// 只能监听，不能直接写 value；切换请用 [animateTo] / [jumpTo] / [deselect]。
+  ValueListenable<int?> get selectedIndexNotifier => _indexNotifier;
 
   /// 构造函数
   ///
