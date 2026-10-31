@@ -213,7 +213,8 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 
 ## 3.5 WFormFieldChrome — 字段公共配置
 
-六个输入字段和 `WFormFieldButtonConfig` 继承同一套公共外框配置：
+截至当前迁移阶段，五个输入字段和 `WFormFieldButtonConfig` 继承 `WFormFieldChrome`；
+`WFormDatePickerConfig` 已完成不可变化，自行持有同名公共字段。
 
 ```dart
 class WFormCheckboxConfig extends WFormFieldChrome { ... }
@@ -261,8 +262,8 @@ final config = builder.buildConfig();
 注意：`build()` 仍然是「生成字段 Widget」的方法；Builder 的终态方法叫
 `buildConfig()`，避免与字段构建冲突。
 
-当前阶段 Builder 仍返回可变 Config；下一阶段把 Config 字段转为 final 后，
-调用方式保持不变。
+`WFormDatePickerConfig` 已完成不可变化；其余 Config 仍处于阶段 1（Builder 可用、字段可变），
+后续按计划逐个迁移。
 
 ## 4. 边框系统
 

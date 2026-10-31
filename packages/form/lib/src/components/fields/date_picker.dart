@@ -6,7 +6,6 @@ import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
-import '../field_chrome.dart';
 
 /// 表单日期选择器组件
 ///
@@ -49,7 +48,7 @@ class WFormDatePicker extends FormBuilderField<String> {
 
            // 显示文本
            final date = _tryParse(state.value);
-           final title = date == null ? '' : DateFormat(config._displayFormat, locale).format(date);
+           final title = date == null ? '' : DateFormat(config.displayFormat, locale).format(date);
 
            // 容器与图标
            final content = Semantics(
@@ -57,7 +56,7 @@ class WFormDatePicker extends FormBuilderField<String> {
              button: true,
              enabled: isEnabled,
              child: InputDecorator(
-               decoration: config._decoration ?? const InputDecoration(),
+               decoration: config.decoration ?? const InputDecoration(),
                isEmpty: date == null,
                child: MouseRegion(
                  cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
@@ -94,16 +93,14 @@ class WFormDatePicker extends FormBuilderField<String> {
                        Expanded(
                          child: Text(
                            title,
-                           style: config._style,
+                           style: config.style,
                          ),
                        ),
-                       config._icon ??
+                       config.icon ??
                            Icon(
                              Icons.arrow_drop_down,
-                             size: config._iconSize,
-                             color: isEnabled
-                                 ? config._iconEnabledColor
-                                 : config._iconDisabledColor,
+                             size: config.iconSize,
+                             color: isEnabled ? config.iconEnabledColor : config.iconDisabledColor,
                            ),
                      ],
                    ),
@@ -170,73 +167,49 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePicker, Strin
   }
 }
 
-/// 日期选择器配置类，定义日期选择器的样式和行为
-class WFormDatePickerConfig extends WFormFieldChrome {
-  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+/// 日期选择器配置类，定义日期选择器的样式和行为。
+///
+/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
+class WFormDatePickerConfig {
   static WFormDatePickerConfigBuilder builder() => WFormDatePickerConfigBuilder();
 
-  /// 输入装饰
-  InputDecoration? _decoration = const InputDecoration();
+  final bool enabled;
+  final InputDecoration? decoration;
+  final Widget? icon;
+  final double? iconSize;
+  final Color? iconDisabledColor;
+  final Color? iconEnabledColor;
+  final TextStyle? style;
+  final String displayFormat;
+  final double? height;
+  final double? width;
+  final double? yOffset;
+  final Widget? leading;
+  final List<Widget>? actions;
+  final Decoration? containerDecoration;
+  final EdgeInsetsGeometry? containerMargin;
+  final EdgeInsetsGeometry? containerPadding;
 
-  /// 右侧图标
-  Widget? _icon;
-
-  /// 图标大小
-  double? _iconSize = 24;
-
-  /// 禁用状态图标颜色（仅作用于默认图标）
-  Color? _iconDisabledColor;
-
-  /// 启用状态图标颜色（仅作用于默认图标）
-  Color? _iconEnabledColor;
-
-  /// 文本样式
-  TextStyle? _style;
-
-  /// 展示格式（[DateFormat] pattern，默认 `yMMMMd`）
-  String _displayFormat = 'yMMMMd';
-
-  /// 设置输入装饰（null 表示不渲染装饰）
-  set decoration(InputDecoration? value) {
-    _decoration = value;
-  }
-
-  /// 设置右侧图标
-  set icon(Widget? value) {
-    _icon = value;
-  }
-
-  /// 设置图标大小（null 表示使用默认大小）
-  set iconSize(double? value) {
-    _iconSize = value;
-  }
-
-  /// 设置禁用状态图标颜色
-  set iconDisabledColor(Color? value) {
-    _iconDisabledColor = value;
-  }
-
-  /// 设置启用状态图标颜色
-  set iconEnabledColor(Color? value) {
-    _iconEnabledColor = value;
-  }
-
-  /// 设置文本样式
-  set style(TextStyle? value) {
-    _style = value;
-  }
-
-  /// 设置展示格式（[DateFormat] pattern）
-  set displayFormat(String value) {
-    _displayFormat = value;
-  }
+  const WFormDatePickerConfig({
+    this.enabled = true,
+    this.decoration = const InputDecoration(),
+    this.icon,
+    this.iconSize = 24,
+    this.iconDisabledColor,
+    this.iconEnabledColor,
+    this.style,
+    this.displayFormat = 'yMMMMd',
+    this.height,
+    this.width,
+    this.yOffset,
+    this.leading,
+    this.actions,
+    this.containerDecoration,
+    this.containerMargin,
+    this.containerPadding,
+  });
 
   /// 构建 [WFormDatePicker] 组件
-  ///
-  /// [enabled] 为 null 时使用配置中的值。
-  ///
-  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
-  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
   Widget build({
     required String name,
     required DateTime firstDate,
@@ -267,7 +240,7 @@ class WFormDatePickerConfig extends WFormFieldChrome {
     }
 
     final baseEnabled = enabled ?? this.enabled;
-    final innerConfig = copy()..containerDecoration = null;
+    final innerConfig = WFormDatePickerConfigBuilder.from(this)..containerDecoration = null;
 
     return WFormFieldFrame.border(
       name: name,
@@ -276,7 +249,7 @@ class WFormDatePickerConfig extends WFormFieldChrome {
       isTransparentBackground: isTransparentBackground,
       readOnly: readOnly || !baseEnabled,
       enableFocusBorder: enableFocusBorder,
-      child: innerConfig.build(
+      child: innerConfig.buildConfig().build(
         name: name,
         firstDate: firstDate,
         lastDate: lastDate,
@@ -288,14 +261,9 @@ class WFormDatePickerConfig extends WFormFieldChrome {
     );
   }
 
-  /// 创建当前配置的副本
-  WFormDatePickerConfig copy() {
-    return copyWith();
-  }
+  WFormDatePickerConfig copy() => copyWith();
 
-  /// 创建当前配置的副本，并可以选择性地更新某些属性
-  ///
-  /// 参数为 null 表示沿用原值。
+  /// 参数为 null 表示沿用原值；清空可先用 [builder] 或 [WFormDatePickerConfigBuilder]。
   WFormDatePickerConfig copyWith({
     bool? enabled,
     InputDecoration? decoration,
@@ -314,30 +282,84 @@ class WFormDatePickerConfig extends WFormFieldChrome {
     EdgeInsetsGeometry? containerMargin,
     EdgeInsetsGeometry? containerPadding,
   }) {
-    final config = WFormDatePickerConfig();
-    config.enabled = enabled ?? this.enabled;
-    config._decoration = decoration ?? _decoration;
-    config._icon = icon ?? _icon;
-    config._iconSize = iconSize ?? _iconSize;
-    config._iconDisabledColor = iconDisabledColor ?? _iconDisabledColor;
-    config._iconEnabledColor = iconEnabledColor ?? _iconEnabledColor;
-    config._style = style ?? _style;
-    config._displayFormat = displayFormat ?? _displayFormat;
-    config.height = height ?? this.height;
-    config.width = width ?? this.width;
-    config.yOffset = yOffset ?? this.yOffset;
-    config.leading = leading ?? this.leading;
-    config.actions = actions ?? this.actions;
-    config.containerDecoration = containerDecoration ?? this.containerDecoration;
-    config.containerMargin = containerMargin ?? this.containerMargin;
-    config.containerPadding = containerPadding ?? this.containerPadding;
-    return config;
+    return WFormDatePickerConfig(
+      enabled: enabled ?? this.enabled,
+      decoration: decoration ?? this.decoration,
+      icon: icon ?? this.icon,
+      iconSize: iconSize ?? this.iconSize,
+      iconDisabledColor: iconDisabledColor ?? this.iconDisabledColor,
+      iconEnabledColor: iconEnabledColor ?? this.iconEnabledColor,
+      style: style ?? this.style,
+      displayFormat: displayFormat ?? this.displayFormat,
+      height: height ?? this.height,
+      width: width ?? this.width,
+      yOffset: yOffset ?? this.yOffset,
+      leading: leading ?? this.leading,
+      actions: actions ?? this.actions,
+      containerDecoration: containerDecoration ?? this.containerDecoration,
+      containerMargin: containerMargin ?? this.containerMargin,
+      containerPadding: containerPadding ?? this.containerPadding,
+    );
   }
 }
 
-/// WFormDatePickerConfig 的 Builder。
-///
-/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
-class WFormDatePickerConfigBuilder extends WFormDatePickerConfig {
-  WFormDatePickerConfig buildConfig() => copy();
+/// [WFormDatePickerConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
+class WFormDatePickerConfigBuilder {
+  bool enabled = true;
+  InputDecoration? decoration = const InputDecoration();
+  Widget? icon;
+  double? iconSize = 24;
+  Color? iconDisabledColor;
+  Color? iconEnabledColor;
+  TextStyle? style;
+  String displayFormat = 'yMMMMd';
+  double? height;
+  double? width;
+  double? yOffset;
+  Widget? leading;
+  List<Widget>? actions;
+  Decoration? containerDecoration;
+  EdgeInsetsGeometry? containerMargin;
+  EdgeInsetsGeometry? containerPadding;
+
+  WFormDatePickerConfigBuilder();
+
+  WFormDatePickerConfigBuilder.from(WFormDatePickerConfig config)
+    : enabled = config.enabled,
+      decoration = config.decoration,
+      icon = config.icon,
+      iconSize = config.iconSize,
+      iconDisabledColor = config.iconDisabledColor,
+      iconEnabledColor = config.iconEnabledColor,
+      style = config.style,
+      displayFormat = config.displayFormat,
+      height = config.height,
+      width = config.width,
+      yOffset = config.yOffset,
+      leading = config.leading,
+      actions = config.actions,
+      containerDecoration = config.containerDecoration,
+      containerMargin = config.containerMargin,
+      containerPadding = config.containerPadding;
+
+  WFormDatePickerConfig buildConfig() {
+    return WFormDatePickerConfig(
+      enabled: enabled,
+      decoration: decoration,
+      icon: icon,
+      iconSize: iconSize,
+      iconDisabledColor: iconDisabledColor,
+      iconEnabledColor: iconEnabledColor,
+      style: style,
+      displayFormat: displayFormat,
+      height: height,
+      width: width,
+      yOffset: yOffset,
+      leading: leading,
+      actions: actions,
+      containerDecoration: containerDecoration,
+      containerMargin: containerMargin,
+      containerPadding: containerPadding,
+    );
+  }
 }
