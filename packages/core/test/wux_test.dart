@@ -94,6 +94,26 @@ void main() {
     });
   });
 
+  group('WUx - duration 校验', () {
+    test('debounce / throttle 负数 duration 抛 ArgumentError', () {
+      expect(
+        () => WUx().debounce(() {}, duration: -1),
+        throwsArgumentError,
+      );
+      expect(
+        () => WUx().throttle(() {}, duration: -1),
+        throwsArgumentError,
+      );
+    });
+
+    test('delay 负数 duration 返回失败的 Future', () async {
+      await expectLater(
+        WUx().delay(() {}, duration: -1),
+        throwsArgumentError,
+      );
+    });
+  });
+
   group('WUx - 静态常量', () {
     test('defaultCurve / defaultDuration / fastDuration / slowDuration', () {
       expect(WUx.defaultCurve, isNotNull);

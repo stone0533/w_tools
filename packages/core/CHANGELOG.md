@@ -8,6 +8,7 @@
   迁移：`import 'package:w_tools_async/w_tools_async.dart';`。
 
 ### Fixed
+- `WUx.debounce` / `throttle` / `delay` 对负数 duration 抛出 `ArgumentError`。
 - `WValidator.isValidUrl` 要求 host 非空，拒绝 `https://` / `https://?q=1`。
 - `WHash.verifyPassword` 使用常量时间比较，降低时序侧信道。
 
