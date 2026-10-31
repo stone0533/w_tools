@@ -22,6 +22,13 @@ void main() {
     expect(find.text('第 2 页 · 1'), findsOneWidget);
   });
 
+  testWidgets('状态构建器页面保持滚动壳并展示数据', (tester) async {
+    await tester.pumpWidget(const AsyncExampleApp());
+    await tester.tap(find.text('Builder'));
+    await tester.pumpAndSettle();
+    expect(find.text('Builder 数据 1'), findsOneWidget);
+  });
+
   testWidgets('执行页面可以运行 WAsync.run', (tester) async {
     await tester.pumpWidget(const AsyncExampleApp());
     await tester.tap(find.text('执行').last);
