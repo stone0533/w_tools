@@ -299,7 +299,9 @@ class WFormDatePicker extends StatelessWidget {
     if (config == null) {
       _applyBaseStyle(c, fieldStyle);
       if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
-      if (label != null) c.decoration = InputDecoration(hintText: label);
+    }
+    if (label != null && c.decoration?.hintText == null) {
+      c.decoration = (c.decoration ?? const InputDecoration()).copyWith(hintText: label);
     }
     c.enabled = enabled;
     return c.build(
@@ -481,9 +483,10 @@ class WFormButton extends StatelessWidget {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormFieldButtonConfig();
     if (config == null) _applyBaseStyle(c, fieldStyle);
-    c
-      ..enabled = enabled
-      ..hintWidget = hintWidget ?? (label == null ? null : Text(label!));
+    c.enabled = enabled;
+    if (hintWidget != null || label != null) {
+      c.hintWidget = hintWidget ?? Text(label!);
+    }
     return c.build(
       name: name,
       onTap: onTap,

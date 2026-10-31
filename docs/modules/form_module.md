@@ -442,6 +442,8 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 
 ### 5.1 WFormTextField
 
+> 低层说明：普通页面使用本节的 `WFormXxx` 直接入口；下方 Config 字段 / 构建细节仅供高级定制。
+
 密码模式下自动设 `obscuringCharacter: '＊'`、`keyboardType: TextInputType.visiblePassword`。
 
 #### WFormTextFieldConfig 常用字段
@@ -500,6 +502,8 @@ WFormTextField(
 
 ### 5.2 WFormDropdown\<T\>
 
+> 低层说明：普通页面使用本节的 `WFormXxx` 直接入口；下方 Config 字段 / 构建细节仅供高级定制。
+
 #### 特性
 
 - `items: Map<T, String>`，**初始值 / 字段值必须存在于 items 中**（`FormBuilderDropdown` 内部断言）
@@ -519,6 +523,8 @@ WFormDropdown<Gender>(
 ```
 
 ### 5.3 WFormMultiDropdown
+
+> 低层说明：普通页面使用本节的 `WFormXxx` 直接入口；下方 Config 字段 / 构建细节仅供高级定制。
 
 #### 特性
 
@@ -552,6 +558,8 @@ WFormMultiDropdown(
 
 ### 5.6 WFormDatePicker
 
+> 低层说明：普通页面使用本节的 `WFormXxx` 直接入口；下方 Config 字段 / 构建细节仅供高级定制。
+
 - 存储格式：ISO `yyyy-MM-dd`（与 locale 无关）
 - 显示格式：`DateFormat(config.displayFormat, locale)`，默认 `'yMMMMd'`
 - 使用系统 `showDatePicker`，`firstDate` / `lastDate` 必填
@@ -583,6 +591,24 @@ WFormDatePicker(
 - `selectedWidgetBuilder` 渲染当前选中值
 - `WFormFieldButtonCore` 是底层 Widget；`WFormFieldButtonConfig` 是可变的低层配置
 - 普通页面直接使用 `WFormButton`，需要特殊样式时再传 `config`
+
+```dart
+WFormButton(
+  name: 'coupon',
+  label: '请选择优惠券',
+  onTap: (_, didChange) {
+    // 选择后调用 didChange(value)
+  },
+)
+
+// config 自带 hintWidget 时，不传 label 也会保留
+WFormButton(
+  name: 'coupon',
+  config: WFormFieldButtonConfig()
+    ..hintWidget = const Text('请选择优惠券'),
+  onTap: (_, didChange) {},
+)
+```
 
 ---
 

@@ -198,4 +198,53 @@ void main() {
     );
     expect(core.config.height, 60);
   });
+
+  testWidgets('DatePicker 传 config 时 label 仍作为 hint 兜底', (tester) async {
+    final config = WFormDatePickerConfig()..displayFormat = 'yyyy-MM-dd';
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormDatePicker(
+              name: 'birthday',
+              label: '生日',
+              config: config,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final core = tester.widget<WFormDatePickerCore>(
+      find.byType(WFormDatePickerCore),
+    );
+    expect(core.config.decoration?.hintText, '生日');
+  });
+
+  testWidgets('Button 传 config 时保留 config 的 hintWidget', (tester) async {
+    final config = WFormFieldButtonConfig()..hintWidget = const Text('config hint');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormButton(
+              name: 'coupon',
+              config: config,
+              onTap: (_, didChange) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final core = tester.widget<WFormFieldButtonCore>(
+      find.byType(WFormFieldButtonCore),
+    );
+    expect(core.config.hintWidget, isNotNull);
+    expect(find.text('config hint'), findsOneWidget);
+  });
 }
