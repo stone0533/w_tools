@@ -1,0 +1,23 @@
+name: w_tools_core_example
+description: "w_tools_core 真实场景示例：校验、哈希、加密、存储、防抖、倒计时与平台判断。"
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.2.0
+  w_tools_core:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

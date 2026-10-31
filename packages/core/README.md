@@ -81,6 +81,10 @@ final debouncedSearch = WUx().debounce(
 debouncedSearch.cancel();
 ```
 
+## 完整示例
+
+见 [`example/`](example/)：校验、哈希、AES、存储、防抖、倒计时与平台判断。
+
 ## License
 
 MIT
