@@ -111,8 +111,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            const WFormTextFieldConfig().build(bordered: true, name: 'a'),
-            const WFormTextFieldConfig().build(bordered: true, name: 'b'),
+            WFormTextFieldConfig().build(bordered: true, name: 'a'),
+            WFormTextFieldConfig().build(bordered: true, name: 'b'),
           ],
         ),
       );
@@ -235,8 +235,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            const WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
-            const WFormTextFieldConfig().build(bordered: true, name: 'b', focusNode: focusB),
+            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
+            WFormTextFieldConfig().build(bordered: true, name: 'b', focusNode: focusB),
           ],
         ),
       );
@@ -266,7 +266,7 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            const WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
+            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
           ],
         ),
       );
@@ -295,8 +295,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            const WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
-            const WFormTextFieldConfig().build(bordered: true, name: 'b', focusNode: focusB),
+            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
+            WFormTextFieldConfig().build(bordered: true, name: 'b', focusNode: focusB),
           ],
         ),
       );
@@ -331,8 +331,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            const WFormTextFieldConfig().build(bordered: true, name: 'a'),
-            const WFormTextFieldConfig().build(bordered: true, name: 'b'),
+            WFormTextFieldConfig().build(bordered: true, name: 'a'),
+            WFormTextFieldConfig().build(bordered: true, name: 'b'),
           ],
         ),
       );
@@ -370,7 +370,7 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            const WFormTextFieldConfig().build(bordered: true, name: 'a'),
+            WFormTextFieldConfig().build(bordered: true, name: 'a'),
           ],
         ),
       );
@@ -402,7 +402,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: const WFormTextFieldConfig().build(
+        child: WFormTextFieldConfig().build(
           name: 'name',
           validator: (value) => value == null || value.isEmpty ? '必填' : null,
         ),
@@ -430,8 +430,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            const WFormTextFieldConfig().build(name: 'a', validator: (_) => 'a error'),
-            const WFormTextFieldConfig().build(name: 'b', validator: (_) => 'b error'),
+            WFormTextFieldConfig().build(name: 'a', validator: (_) => 'a error'),
+            WFormTextFieldConfig().build(name: 'b', validator: (_) => 'b error'),
           ],
         ),
       );
@@ -483,7 +483,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: const WFormTextFieldConfig().build(
+        child: WFormTextFieldConfig().build(
           bordered: true,
           name: 'name',
           validator: (_) => '必填',

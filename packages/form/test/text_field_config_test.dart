@@ -18,7 +18,7 @@ void main() {
     });
 
     test('copy 创建独立实例', () {
-      const config = WFormTextFieldConfig(height: 42);
+      final config = WFormTextFieldConfig(height: 42);
       final copied = config.copy();
       expect(copied, isNot(same(config)));
     });
@@ -54,14 +54,14 @@ void main() {
 
   group('WFormTextFieldConfig.build', () {
     testWidgets('build 返回 WFormTextField', (tester) async {
-      const config = WFormTextFieldConfig();
+      final config = WFormTextFieldConfig();
       final textField = config.build(name: 'email') as WFormTextField;
       expect(textField, isA<WFormTextField>());
       expect(textField.name, 'email');
     });
 
     testWidgets('build 传递 hintText / onChanged / onSubmitted', (tester) async {
-      const config = WFormTextFieldConfig();
+      final config = WFormTextFieldConfig();
 
       final textField =
           config.build(
@@ -81,7 +81,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) 空 name 抛 ArgumentError', (tester) async {
-      const config = WFormTextFieldConfig();
+      final config = WFormTextFieldConfig();
       expect(
         () => config.build(bordered: true, name: ''),
         throwsArgumentError,
@@ -89,7 +89,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) 非空 name 返回 Widget', (tester) async {
-      const config = WFormTextFieldConfig();
+      final config = WFormTextFieldConfig();
       final bordered = config.build(bordered: true, name: 'email');
       expect(bordered, isA<Widget>());
     });

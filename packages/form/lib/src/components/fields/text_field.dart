@@ -227,30 +227,30 @@ class _WFormTextFieldState extends State<WFormTextField> {
 class WFormTextFieldConfig {
   static WFormTextFieldConfigBuilder builder() => WFormTextFieldConfigBuilder();
 
-  final bool enabled;
-  final TextInputType? keyboardType;
-  final List<TextInputFormatter>? inputFormatters;
-  final TextStyle? readOnlyStyle;
-  final double? height;
-  final double? width;
-  final TextStyle? style;
-  final EdgeInsetsGeometry? contentPadding;
-  final TextStyle? hintStyle;
-  final double? yOffset;
-  final Widget? leading;
-  final List<Widget>? actions;
-  final Decoration? containerDecoration;
-  final EdgeInsetsGeometry? containerMargin;
-  final EdgeInsetsGeometry? containerPadding;
-  final TextAlign? textAlign;
-  final bool? autofocus;
-  final bool obscureText;
-  final Widget? prefix;
-  final Widget? prefixIcon;
-  final int? maxLines;
-  final TextInputAction? textInputAction;
+  bool enabled;
+  TextInputType? keyboardType;
+  List<TextInputFormatter>? inputFormatters;
+  TextStyle? readOnlyStyle;
+  double? height;
+  double? width;
+  TextStyle? style;
+  EdgeInsetsGeometry? contentPadding;
+  TextStyle? hintStyle;
+  double? yOffset;
+  Widget? leading;
+  List<Widget>? actions;
+  Decoration? containerDecoration;
+  EdgeInsetsGeometry? containerMargin;
+  EdgeInsetsGeometry? containerPadding;
+  TextAlign? textAlign;
+  bool? autofocus;
+  bool obscureText;
+  Widget? prefix;
+  Widget? prefixIcon;
+  int? maxLines;
+  TextInputAction? textInputAction;
 
-  const WFormTextFieldConfig({
+  WFormTextFieldConfig({
     this.enabled = true,
     this.keyboardType,
     this.inputFormatters,

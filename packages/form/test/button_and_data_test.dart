@@ -434,7 +434,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: const WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       data.handleChange('a', 'x');
@@ -450,7 +450,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: const WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       expect(data.getFieldsValue('a'), isNull);
@@ -466,7 +466,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: const WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       data.updateValue<String>('a', 'hello');
@@ -481,7 +481,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: const WFormTextField(config: WFormTextFieldConfig(), name: 'raw'),
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'raw'),
       );
 
       data.handleChange('raw', 'x');
@@ -500,7 +500,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: const WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       data.updateValue<String>('a', 'hello');
@@ -516,7 +516,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: const WFormTextFieldConfig().build(
+        child: WFormTextFieldConfig().build(
           name: 'email',
           validator: (value) => (value == null || value.isEmpty) ? '必填' : null,
         ),
@@ -533,7 +533,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: const WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       final validators = data.validators(

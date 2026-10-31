@@ -786,7 +786,7 @@ void main() {
               formBorderConfig: makeCfgConfig(),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
                   ),
                   Expanded(
@@ -824,11 +824,11 @@ void main() {
             body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfgConfig(),
-              child: const Row(
+              child: Row(
                 children: [
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(4),
                       child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
                     ),
                   ),
@@ -849,7 +849,7 @@ void main() {
         height: 48,
         clipBehavior: Clip.antiAlias,
         decoration: const BoxDecoration(color: Color(0xFFEEEEEE)),
-        child: const WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
       );
 
       await tester.pumpWidget(
@@ -986,7 +986,7 @@ void main() {
                   Expanded(
                     child: WFormTextField(
                       key: fieldKey,
-                      config: const WFormTextFieldConfig(),
+                      config: WFormTextFieldConfig(),
                       name: 'a',
                     ),
                   ),

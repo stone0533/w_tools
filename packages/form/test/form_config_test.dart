@@ -127,7 +127,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: data,
-              child: const Column(
+              child: Column(
                 children: [
                   WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
                   WFormTextField(config: WFormTextFieldConfig(), name: 'b'),

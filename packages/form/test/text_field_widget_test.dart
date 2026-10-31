@@ -11,7 +11,7 @@ void main() {
   testWidgets('WFormTextField — hintText 正确渲染', (tester) async {
     await pumpForm(
       tester,
-      child: const WFormTextFieldConfig().build(
+      child: WFormTextFieldConfig().build(
         name: 'email',
         hintText: '请输入邮箱',
       ),
@@ -22,7 +22,7 @@ void main() {
   testWidgets('WFormTextField — initialValue 正确显示', (tester) async {
     await pumpForm(
       tester,
-      child: const WFormTextFieldConfig().build(
+      child: WFormTextFieldConfig().build(
         name: 'email',
         initialValue: 'user@test.com',
       ),
@@ -34,7 +34,7 @@ void main() {
     String? lastValue;
     await pumpForm(
       tester,
-      child: const WFormTextFieldConfig().build(
+      child: WFormTextFieldConfig().build(
         name: 'email',
         hintText: 'hint',
         onChanged: (v) => lastValue = v,
@@ -48,7 +48,7 @@ void main() {
   testWidgets('WFormTextField — readOnly=true 仍渲染 TextField', (tester) async {
     await pumpForm(
       tester,
-      child: const WFormTextFieldConfig().build(
+      child: WFormTextFieldConfig().build(
         name: 'readonly',
         initialValue: 'fixed',
         readOnly: true,
@@ -58,7 +58,7 @@ void main() {
   });
 
   testWidgets('WFormTextField — config.enabled=false 进入只读态', (tester) async {
-    const config = WFormTextFieldConfig(enabled: false);
+    final config = WFormTextFieldConfig(enabled: false);
 
     await pumpForm(
       tester,
@@ -72,7 +72,7 @@ void main() {
   });
 
   testWidgets('WFormTextField — config.width 渲染到外层容器', (tester) async {
-    const config = WFormTextFieldConfig(width: 200);
+    final config = WFormTextFieldConfig(width: 200);
 
     await pumpForm(tester, child: config.build(name: 'sized'));
 
@@ -86,9 +86,9 @@ void main() {
     await pumpForm(
       tester,
       child:
-          const WFormTextFieldConfig(
+          WFormTextFieldConfig(
             obscureText: true,
-            actions: [WFormTextFieldPasswordToggle()],
+            actions: [const WFormTextFieldPasswordToggle()],
           ).build(
             name: 'password',
             initialValue: 'secret',
@@ -101,8 +101,8 @@ void main() {
     await pumpForm(
       tester,
       child:
-          const WFormTextFieldConfig(
-            actions: [WFormTextFieldPasswordToggle()],
+          WFormTextFieldConfig(
+            actions: [const WFormTextFieldPasswordToggle()],
           ).build(
             name: 'plain',
             initialValue: 'text',
@@ -116,9 +116,9 @@ void main() {
     await pumpForm(
       tester,
       child:
-          const WFormTextFieldConfig(
+          WFormTextFieldConfig(
             obscureText: true,
-            actions: [WFormTextFieldPasswordToggle()],
+            actions: [const WFormTextFieldPasswordToggle()],
           ).build(
             name: 'password',
             initialValue: 'secret',
@@ -141,7 +141,7 @@ void main() {
   testWidgets('WFormTextField — 渲染后有 Row', (tester) async {
     await pumpForm(
       tester,
-      child: const WFormTextFieldConfig().build(
+      child: WFormTextFieldConfig().build(
         name: 'row_test',
         hintText: 'row hint',
       ),
@@ -155,7 +155,7 @@ void main() {
     // Flutter framework 会捕获并通过 tester.takeException 返回
     await tester.pumpWidget(
       MaterialApp(
-        home: const WFormTextFieldConfig().build(
+        home: WFormTextFieldConfig().build(
           name: 'orphan',
           hintText: 'no builder',
         ),
@@ -173,7 +173,7 @@ void main() {
       await pumpForm(
         tester,
         child:
-            const WFormTextFieldConfig(
+            WFormTextFieldConfig(
               obscureText: true,
               actions: [customToggle],
             ).build(
@@ -196,7 +196,7 @@ void main() {
       const customClear = _CustomClearAction();
       await pumpForm(
         tester,
-        child: const WFormTextFieldConfig(actions: [customClear]).build(
+        child: WFormTextFieldConfig(actions: [customClear]).build(
           name: 'field',
           initialValue: 'hello',
         ),
@@ -303,8 +303,8 @@ void main() {
     testWidgets('自定义 icon 覆盖默认图标', (tester) async {
       await pumpForm(
         tester,
-        child: const WFormTextFieldConfig(
-          actions: [WFormTextFieldClearButton(icon: Icon(Icons.close))],
+        child: WFormTextFieldConfig(
+          actions: [const WFormTextFieldClearButton(icon: Icon(Icons.close))],
         ).build(name: 'field', initialValue: 'hello'),
       );
 
@@ -316,8 +316,8 @@ void main() {
       await pumpForm(
         tester,
         child:
-            const WFormTextFieldConfig(
-              actions: [WFormTextFieldClearButton()],
+            WFormTextFieldConfig(
+              actions: [const WFormTextFieldClearButton()],
             ).build(
               name: 'field',
               initialValue: 'hello',
@@ -330,7 +330,7 @@ void main() {
 
     testWidgets('外层只读作用域下隐藏（且随作用域切换更新）', (tester) async {
       final formData = WFormController();
-      const config = WFormTextFieldConfig(actions: [WFormTextFieldClearButton()]);
+      final config = WFormTextFieldConfig(actions: [const WFormTextFieldClearButton()]);
 
       Widget build(bool readOnly) => MaterialApp(
         home: Scaffold(
