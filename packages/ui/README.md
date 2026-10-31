@@ -108,6 +108,31 @@ const WImageStyle().square(40).rounded(20).decodeSize(120)
 | `WImageGlobalConfig` 缓存预算 | `WImageCachePolicy` |
 | `WImageCacheManager` | `WImagePreloader` |
 
+## 导航
+
+```dart
+class _NavDemoState extends State<NavDemo> {
+  late final _controller = WNavController(length: 3, vsync: this);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WNavBar(
+      config: const WNavBarConfig(),
+      controller: _controller,
+      itemBuilder: (context, index, selected) => Text('Tab $index'),
+    );
+  }
+}
+```
+
+`WNavController` 需要页面 State 提供 `vsync`，并由调用方 `dispose`。
+
 ## 主要 API
 
 | 能力 | 入口 |

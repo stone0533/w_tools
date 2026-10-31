@@ -16,6 +16,8 @@
    不要直接使用 `WScaffold` / `WAppBar`。特殊顶部栏用 `AppScaffold(appBar: WAppBar(...))`；
    需要 drawer / bottomSheet / 非标准安全区时用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
    AppBar 默认样式只在 `AppBars.style` 修改。
+   **底部导航**：用 `WNavBar` + `WNavController`；`WNavController` 需要 `vsync`，
+   在页面 State 创建并 `dispose`；顶部 tab 用 `WTabBar`。不要自己写 `BottomNavigationBar`。
    **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
    `WButtonStyle`，除非是明确的局部一次性样式。
    **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；表单字段值选择用

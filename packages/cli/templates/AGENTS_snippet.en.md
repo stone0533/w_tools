@@ -17,6 +17,9 @@
    Use `AppScaffold(appBar: WAppBar(...))` for a custom app bar; use `WScaffold` or plain
    `Scaffold` for drawers/bottom sheets/non-standard safe areas, and note why in the PR.
    Change app-bar defaults only in `AppBars.style`.
+   **Bottom navigation**: use `WNavBar` + `WNavController`; `WNavController` needs `vsync`,
+   is created in the page State and disposed there; use `WTabBar` for top tabs. Do not hand-roll
+   `BottomNavigationBar`.
    **Buttons** use `AppButtons.primary/secondary/text/danger(context)`; do not write
    `WButtonStyle` in pages unless it is an explicit one-off style.
    **Use `WButton` for real buttons and `WPressable` for arbitrary cards/child taps**;
