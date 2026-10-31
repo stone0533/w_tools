@@ -732,6 +732,31 @@ void main() {
     });
   });
 
+  testWidgets('WFormFieldShell 卸载时注销 formBorderKeys', (tester) async {
+    final formData = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WFormScope(
+            formData: formData,
+            child: const WFormFieldShell(
+              name: 'dynamic_field',
+              readOnly: false,
+              child: Text('field'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(formData.formBorderKeys.containsKey('dynamic_field'), isTrue);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+
+    expect(formData.formBorderKeys.containsKey('dynamic_field'), isFalse);
+  });
+
   group('Row.withFormBorder（WFormRowBorderExtension）', () {
     testWidgets('readOnly: true → 内部输入组件被置为只读 / 禁用', (tester) async {
       final formData = WFormController();
