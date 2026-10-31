@@ -193,6 +193,53 @@ void main() {
     expect(find.byType(WGradientCircularProgressIndicator), findsOneWidget);
   });
 
+  testWidgets('WGradientCircularProgressIndicator — 暴露进度语义', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WGradientCircularProgressIndicator(
+          radius: 40,
+          colors: [Colors.red, Colors.blue],
+          value: 0.5,
+          semanticsLabel: '加载中',
+        ),
+      ),
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == '加载中' &&
+            widget.properties.value == '50%',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('WGradientCircularProgressIndicator — colors 为空断言', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WGradientCircularProgressIndicator(
+          radius: 40,
+          colors: [],
+        ),
+      ),
+    );
+    expect(tester.takeException(), isAssertionError);
+  });
+
+  testWidgets('WGradientCircularProgressIndicator — stops 长度断言', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WGradientCircularProgressIndicator(
+          radius: 40,
+          colors: [Colors.red, Colors.blue],
+          stops: [0.5],
+        ),
+      ),
+    );
+    expect(tester.takeException(), isAssertionError);
+  });
+
   testWidgets('WNotificationListenerBuilder — build() 返回 NotificationListener', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

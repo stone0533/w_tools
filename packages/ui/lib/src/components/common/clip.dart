@@ -8,16 +8,29 @@ class WClipRRect extends StatelessWidget {
   /// 子组件
   final Widget child;
 
+  /// 裁剪行为，默认 antiAlias
+  final Clip clipBehavior;
+
   /// 构造函数
   ///
   /// - [key]：组件键
   /// - [config]：裁剪配置
   /// - [child]：子组件
-  const WClipRRect({super.key, required this.config, required this.child});
+  /// - [clipBehavior]：裁剪行为
+  const WClipRRect({
+    super.key,
+    required this.config,
+    required this.child,
+    this.clipBehavior = Clip.antiAlias,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(borderRadius: config._borderRadius, child: child);
+    return ClipRRect(
+      borderRadius: config._borderRadius,
+      clipBehavior: clipBehavior,
+      child: child,
+    );
   }
 }
 

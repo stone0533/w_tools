@@ -130,6 +130,22 @@ void main() {
       expect(find.byType(ClipRRect), findsOneWidget);
     });
 
+    testWidgets('WClipRRect 支持 clipBehavior', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WClipRRect(
+              config: WClipRRectConfig(),
+              clipBehavior: Clip.hardEdge,
+              child: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+      final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
+      expect(clip.clipBehavior, Clip.hardEdge);
+    });
+
     testWidgets('WClipRRectConfig.borderRadiusAll 设置圆角', (tester) async {
       final config = WClipRRectConfig();
       final returned = config.borderRadiusAll(8);
@@ -166,6 +182,27 @@ void main() {
       );
       expect(find.text('3'), findsOneWidget);
       expect(find.byIcon(Icons.email), findsOneWidget);
+    });
+
+    testWidgets('showBadge() 可恢复显示', (tester) async {
+      final config = WBadgeConfig()..hideBadge();
+      expect(config.isShown, isFalse);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WBadge(
+              config: config,
+              badgeContent: const Text('3'),
+              child: const Icon(Icons.notifications),
+            ),
+          ),
+        ),
+      );
+
+      config.showBadge();
+      await tester.pump();
+      expect(config.isShown, isTrue);
     });
 
     testWidgets('hideBadge() 隐藏徽章', (tester) async {

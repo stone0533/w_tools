@@ -1034,7 +1034,9 @@ base64String.toBase64Image();
 | `position({start, end, top, bottom, isCenter})` | 自定义位置 |
 | `positionTopRight(top, right)` | 右上角位置 |
 | `positionCenter()` | 居中位置 |
+| `showBadge()` | 显示徽章 |
 | `hideBadge()` | 隐藏徽章 |
+| `badgeStyle(style)` | 自定义 `badges.BadgeStyle`；默认透明，由 badgeContent 自带视觉 |
 
 ### 使用示例
 
@@ -1314,7 +1316,7 @@ Container(
 
 ### WClipRRect
 
-圆角裁剪组件，`ClipRRect` 的便捷封装。
+圆角裁剪组件，`ClipRRect` 的便捷封装；支持 `borderRadius` 与 `clipBehavior`。
 
 ### WRowButtons
 
@@ -1323,6 +1325,9 @@ Container(
 ### WKeepAliveWrapper
 
 保持组件状态的包装器，自动混入 `AutomaticKeepAliveClientMixin`。
+
+`onDeactivated` 在 `keepAlive` 为 true 时组件 deactivate 触发，包括滚出屏幕、
+父级替换和页面销毁；`onRevive` 首次插入与重新插入都会触发。
 
 ### WNotificationListenerBuilder
 
@@ -1353,7 +1358,8 @@ Text.rich(
 
 ### WGradientCircularProgressIndicator
 
-带渐变效果的圆形进度指示器。
+带渐变效果的圆形进度指示器；支持 `semanticsLabel`，并向读屏暴露当前进度。
+`colors` 不能为空，`stops` 长度必须与 `colors` 一致。
 
 ### WAppBar
 

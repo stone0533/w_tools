@@ -30,11 +30,12 @@ class WBadge extends StatelessWidget {
     return badges.Badge(
       showBadge: config._showBadge,
       position: config._position,
-      badgeStyle: const badges.BadgeStyle(
-        padding: EdgeInsets.zero,
-        borderSide: BorderSide(color: Colors.transparent, width: 0),
-        badgeColor: Colors.transparent,
-      ),
+      badgeStyle: config._badgeStyle ??
+          const badges.BadgeStyle(
+            padding: EdgeInsets.zero,
+            borderSide: BorderSide(color: Colors.transparent, width: 0),
+            badgeColor: Colors.transparent,
+          ),
       badgeContent: badgeContent,
       badgeAnimation: const badges.BadgeAnimation.fade(
         animationDuration: Duration(milliseconds: 0),
@@ -51,6 +52,9 @@ class WBadgeConfig {
 
   /// 是否显示徽章
   bool _showBadge = true;
+
+  /// 自定义徽章样式；为 null 时使用透明样式，由 badgeContent 自带视觉
+  badges.BadgeStyle? _badgeStyle;
 
   /// 设置徽章的自定义位置
   ///
@@ -95,11 +99,26 @@ class WBadgeConfig {
     return this;
   }
 
+  /// 是否显示徽章
+  bool get isShown => _showBadge;
+
+  /// 显示徽章
+  WBadgeConfig showBadge() {
+    _showBadge = true;
+    return this;
+  }
+
   /// 隐藏徽章
   ///
   /// 返回：WBadgeConfig 实例，用于链式调用
   WBadgeConfig hideBadge() {
     _showBadge = false;
+    return this;
+  }
+
+  /// 设置徽章样式；不设置时使用透明样式，由 badgeContent 自带视觉
+  WBadgeConfig badgeStyle(badges.BadgeStyle style) {
+    _badgeStyle = style;
     return this;
   }
 }

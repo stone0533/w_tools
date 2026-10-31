@@ -8,12 +8,12 @@ class WKeepAliveWrapper extends StatefulWidget {
   /// 是否保持组件状态，默认值为 true
   final bool keepAlive;
 
-  /// 当组件因保活被移出 widget 树时触发的回调
+  /// 组件 deactivate 时触发；仅 [keepAlive] 为 true 时触发
   ///
-  /// 仅在 [keepAlive] 为 true 时触发。
+  /// 注意：不只“保活滚出屏幕”，父级替换 / 页面销毁也会触发。
   final VoidCallback? onDeactivated;
 
-  /// 当组件重新插入 widget 树时触发的回调
+  /// 组件 activate 时触发；首次插入和重新插入都会触发
   final VoidCallback? onRevive;
 
   /// 构造函数

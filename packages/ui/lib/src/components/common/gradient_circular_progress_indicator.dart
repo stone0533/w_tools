@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// 带渐变效果的圆形进度指示器
@@ -25,6 +26,7 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
     this.backgroundColor = const Color(0xFFEEEEEE),
     this.totalAngle = 2 * pi,
     this.value = 0,
+    this.semanticsLabel,
   })  : assert(radius > 0, 'radius 必须大于 0'),
         assert(strokeWidth > 0, 'strokeWidth 必须大于 0'),
         assert(strokeWidth < radius * 2, 'strokeWidth 必须小于直径');
@@ -50,29 +52,39 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
   /// 渐变色数组
   final List<Color> colors;
 
+  /// 无障碍标签；为 null 时只暴露进度 value
+  final String? semanticsLabel;
+
   /// 渐变色的终止点，对应colors属性
   final List<double>? stops;
 
   @override
   Widget build(BuildContext context) {
+    assert(colors.isNotEmpty, 'colors 不能为空');
+    assert(stops == null || stops!.length == colors.length, 'stops 长度必须与 colors 一致');
+
     double offset = .0;
     // 如果两端为圆角，则需要对起始位置进行调整，否则圆角部分会偏离起始位置
     if (strokeCapRound) {
       offset = asin((strokeWidth / (radius * 2 - strokeWidth)).clamp(-1.0, 1.0));
     }
-    return Transform.rotate(
-      angle: -pi / 2.0 - offset,
-      child: CustomPaint(
-        size: Size.fromRadius(radius),
-        painter: _WGradientCircularProgressPainter(
-          strokeWidth: strokeWidth,
-          strokeCapRound: strokeCapRound,
-          backgroundColor: backgroundColor,
-          value: value,
-          total: totalAngle,
-          radius: radius,
-          colors: colors,
-          stops: stops,
+    return Semantics(
+      label: semanticsLabel,
+      value: '${(value * 100).round()}%',
+      child: Transform.rotate(
+        angle: -pi / 2.0 - offset,
+        child: CustomPaint(
+          size: Size.fromRadius(radius),
+          painter: _WGradientCircularProgressPainter(
+            strokeWidth: strokeWidth,
+            strokeCapRound: strokeCapRound,
+            backgroundColor: backgroundColor,
+            value: value,
+            total: totalAngle,
+            radius: radius,
+            colors: colors,
+            stops: stops,
+          ),
         ),
       ),
     );
@@ -157,9 +169,9 @@ class _WGradientCircularProgressPainter extends CustomPainter {
         oldDelegate.strokeCapRound != strokeCapRound ||
         oldDelegate.value != value ||
         oldDelegate.backgroundColor != backgroundColor ||
-        oldDelegate.colors != colors ||
+        !listEquals(oldDelegate.colors, colors) ||
         oldDelegate.total != total ||
         oldDelegate.radius != radius ||
-        oldDelegate.stops != stops;
+        !listEquals(oldDelegate.stops, stops);
   }
 }
