@@ -14,6 +14,7 @@ class AdvancedFieldsPage extends StatefulWidget {
 class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
   final _form = WFormController();
   String? _snapshot;
+  String? _validationResult;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +24,7 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
         controller: _form,
         borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         dropdownIcon: const Icon(Icons.expand_more_rounded),
         checkboxUnselectedIcon: const Icon(Icons.check_box_outline_blank),
         checkboxSelectedIcon: const Icon(Icons.check_box),
@@ -79,16 +81,56 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
               ),
             ),
             const SizedBox(height: 24),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _form.setValue('bio', '由 controller 写入的简介');
+                    _form.setValue('level', 'pro');
+                  },
+                  icon: const Icon(Icons.edit_note),
+                  label: const Text('写入示例值'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _form.clearValue('bio'),
+                  icon: const Icon(Icons.backspace_outlined),
+                  label: const Text('清空简介'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _snapshot =
+                          'values: ${_form.value}\n'
+                          'entered: ${_form.isAllEntered(['bio', 'agree', 'level'])}';
+                    });
+                  },
+                  icon: const Icon(Icons.memory),
+                  label: const Text('读取 controller 状态'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () {
+                final ok = _form.validate(
+                  items: [
+                    WFormValidatorItem(
+                      fieldName: 'bio',
+                      validatorBuilder: () => (value) {
+                        final text = value as String? ?? '';
+                        return text.contains('!') ? '简介不能包含感叹号' : null;
+                      },
+                    ),
+                  ],
+                );
                 setState(() {
-                  _snapshot =
-                      'values: ${_form.value}\n'
-                      'entered: ${_form.isAllEntered(['bio', 'agree', 'level'])}';
+                  _validationResult = ok ? '自定义校验通过' : '自定义校验失败';
                 });
               },
-              icon: const Icon(Icons.memory),
-              label: const Text('读取 controller 状态'),
+              icon: const Icon(Icons.fact_check_outlined),
+              label: const Text('自定义校验'),
             ),
             if (_snapshot != null) ...[
               const SizedBox(height: 8),
@@ -100,6 +142,10 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
                   color: Color(0xFF374151),
                 ),
               ),
+            ],
+            if (_validationResult != null) ...[
+              const SizedBox(height: 8),
+              Text(_validationResult!),
             ],
           ],
         ),

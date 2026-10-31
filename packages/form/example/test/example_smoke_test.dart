@@ -54,7 +54,6 @@ void main() {
     expect(find.text('字段配置'), findsOneWidget);
     await tester.ensureVisible(find.text('读取 controller 状态'));
     await tester.tap(find.text('读取 controller 状态'));
-    await tester.pump();
     await tester.pumpAndSettle();
     expect(find.textContaining('values:'), findsOneWidget);
   });
