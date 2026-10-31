@@ -253,7 +253,7 @@ void main() {
     testWidgets('渲染所有选项', (tester) async {
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: const WFormRadioGroupConfig().build<String>(
           name: 'fruit',
           items: const {'a': '苹果', 'b': '香蕉', 'c': '樱桃'},
         ),
@@ -266,7 +266,7 @@ void main() {
     testWidgets('initialValue 指定选中项', (tester) async {
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: const WFormRadioGroupConfig().build<String>(
           name: 'color',
           items: const {'r': '红', 'g': '绿', 'b': '蓝'},
           initialValue: 'g',
@@ -282,7 +282,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormRadioGroupConfig().build<String>(
+        child: const WFormRadioGroupConfig().build<String>(
           name: 'pick',
           items: const {'x': 'X', 'y': 'Y'},
           initialValue: 'x',
@@ -302,7 +302,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormRadioGroupConfig().build<String>(
+        child: const WFormRadioGroupConfig().build<String>(
           name: 'reset_radio',
           items: const {'x': 'X', 'y': 'Y'},
         ),
@@ -322,7 +322,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormRadioGroupConfig().build<String>(
+        child: const WFormRadioGroupConfig().build<String>(
           name: 'validated_radio',
           items: const {'x': 'X', 'y': 'Y'},
           validator: (value) => value == null ? '请选择' : null,
@@ -337,7 +337,7 @@ void main() {
       String? lastValue;
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: const WFormRadioGroupConfig().build<String>(
           name: 'override_disabled',
           items: const {'a': 'A', 'b': 'B'},
           initialValue: 'a',
@@ -355,7 +355,7 @@ void main() {
       String? lastValue;
       await pumpForm(
         tester,
-        child: (WFormRadioGroupConfig()..enabled = false).build<String>(
+        child: const WFormRadioGroupConfig(enabled: false).build<String>(
           name: 'disabled_pick',
           items: const {'a': 'A', 'b': 'B'},
           initialValue: 'a',
@@ -373,7 +373,7 @@ void main() {
 
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: const WFormRadioGroupConfig().build<String>(
           name: 'semantic',
           items: const {'x': 'X', 'y': 'Y'},
           initialValue: 'x',
@@ -393,7 +393,7 @@ void main() {
     });
 
     testWidgets('build 返回 WFormRadioGroup', (tester) async {
-      final config = WFormRadioGroupConfig();
+      const config = WFormRadioGroupConfig();
       final radio =
           config.build<String>(
                 name: 'x',
@@ -407,7 +407,7 @@ void main() {
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: const WFormRadioGroupConfig().build<String>(
           bordered: true,
           name: 'radio_border',
           items: const {'a': 'A'},
