@@ -48,6 +48,16 @@ semanticLabel
 onLongPress
 ```
 
+按钮宽度：
+
+```text
+WButtonSize / WButtonStyle 不包含 width
+width 由父布局决定
+撑满用 SizedBox(width: double.infinity) 或 Expanded
+固定宽度用外层 SizedBox(width: ...)
+minWidth 只是最小视觉 / 点击尺寸，不是固定宽度
+```
+
 构造约束：
 
 ```text

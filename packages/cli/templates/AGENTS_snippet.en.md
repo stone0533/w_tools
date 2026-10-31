@@ -21,6 +21,8 @@
    `WButtonStyle` in pages unless it is an explicit one-off style.
    **Use `WButton` for real buttons and `WPressable` for arbitrary cards/child taps**;
    use `WFormButton` for form-field value selection; do not wrap arbitrary children with `WButton`.
+   **Button width**: `WButtonSize` / `WButtonStyle` do not contain `width`; use
+   `SizedBox(width: double.infinity)` or `Expanded` to fill, and an outer `SizedBox` for fixed width.
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.

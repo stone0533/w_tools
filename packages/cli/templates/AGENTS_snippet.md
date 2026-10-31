@@ -20,6 +20,8 @@
    `WButtonStyle`，除非是明确的局部一次性样式。
    **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；表单字段值选择用
    `WFormButton`；不要用 `WButton` 包任意 child。
+   **按钮宽度**：`WButtonSize` / `WButtonStyle` 不含 `width`；撑满用
+   `SizedBox(width: double.infinity)` 或 `Expanded`，固定宽度用外层 `SizedBox`。
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
    **图片**：网络图 / 资源图用 `WImage`；不要裸用 `Image.network` / `Image.asset`。
