@@ -1324,10 +1324,7 @@ Container(
 
 ### WKeepAliveWrapper
 
-保持组件状态的包装器，自动混入 `AutomaticKeepAliveClientMixin`。
-
-`onDeactivated` 在 `keepAlive` 为 true 时组件 deactivate 触发，包括滚出屏幕、
-父级替换和页面销毁；`onRevive` 首次插入与重新插入都会触发。
+保持组件状态的包装器，自动混入 `AutomaticKeepAliveClientMixin`；只暴露 `keepAlive`，不提供不可靠的 activate/deactivate 回调。
 
 ### WNotificationListenerBuilder
 

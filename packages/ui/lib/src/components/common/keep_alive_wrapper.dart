@@ -8,27 +8,15 @@ class WKeepAliveWrapper extends StatefulWidget {
   /// 是否保持组件状态，默认值为 true
   final bool keepAlive;
 
-  /// 组件 deactivate 时触发；仅 [keepAlive] 为 true 时触发
-  ///
-  /// 注意：不只“保活滚出屏幕”，父级替换 / 页面销毁也会触发。
-  final VoidCallback? onDeactivated;
-
-  /// 组件 activate 时触发；首次插入和重新插入都会触发
-  final VoidCallback? onRevive;
-
   /// 构造函数
   ///
   /// - [key]：组件键
   /// - [child]：子组件
   /// - [keepAlive]：是否保持组件状态
-  /// - [onDeactivated]：当组件被移出 widget 树时触发的回调
-  /// - [onRevive]：当组件从保持状态恢复时触发的回调
   const WKeepAliveWrapper({
     super.key,
     required this.child,
     this.keepAlive = true,
-    this.onDeactivated,
-    this.onRevive,
   });
 
   @override
@@ -56,21 +44,5 @@ class _WKeepAliveWrapperState extends State<WKeepAliveWrapper> with AutomaticKee
     if (oldWidget.keepAlive != widget.keepAlive) {
       updateKeepAlive();
     }
-  }
-
-  @override
-  void activate() {
-    super.activate();
-    // 组件被重新插入 widget 树时触发
-    widget.onRevive?.call();
-  }
-
-  @override
-  void deactivate() {
-    // 组件被移出 widget 树时触发
-    if (wantKeepAlive) {
-      widget.onDeactivated?.call();
-    }
-    super.deactivate();
   }
 }

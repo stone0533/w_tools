@@ -11,6 +11,7 @@
 - `WSizeBox.size` 的 `child` 改为命名参数，与其他 `WSizeBox` 方法一致。
 - `WBadgeConfig` 增加 `showBadge()` / `isShown` / `badgeStyle()`；`WClipRRect` 增加 `clipBehavior`；`WGradientCircularProgressIndicator` 增加 `semanticsLabel`、colors/stops 校验与列表比较。
 - `WNotificationListenerBuilder.setPreventNotificationPropagation` 重命名为 `preventNotificationPropagation`，并增加 `preventsPropagation` 只读 getter。
+- 移除 `WKeepAliveWrapper.onDeactivated` / `onRevive`：`AutomaticKeepAlive` 下滚动保活不会触发这些 State 生命周期回调，保留会误导。
 - 重命名：`num.toThousand` → `num.toThousandsSeparated`；`Widget.withBottomSafeSpace` → `Widget.withBottomBarSpace`（后者明确是底部导航栏空间，不是系统 safe area）；`WScreen.bottomBarHeight` → `WScreen.bottomSafeAreaHeight`。
 - Navigation 加固：`WNavController.currentIndex` 会停止进行中的动画并在 dispose 后安全返回；`WNavBar` 增加 button/selected 语义；`WTabBar` 改为无状态并支持 `overlayColor`。
 
