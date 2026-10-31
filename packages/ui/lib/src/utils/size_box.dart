@@ -16,4 +16,9 @@ class WSizeBox {
   static SizedBox size(double width, double height, {Widget? child}) {
     return SizedBox(width: width, height: height, child: child);
   }
+
+  /// 创建正方形 SizedBox
+  static SizedBox square(double size, {Widget? child}) {
+    return SizedBox(width: size, height: size, child: child);
+  }
 }

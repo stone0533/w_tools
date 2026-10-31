@@ -386,10 +386,14 @@ void main() {
       expect(box.width, 20);
     });
 
-    test('WSizeBox.size', () {
+    test('WSizeBox.size / square', () {
       final box = WSizeBox.size(10, 20);
       expect(box.width, 10);
       expect(box.height, 20);
+
+      final square = WSizeBox.square(12);
+      expect(square.width, 12);
+      expect(square.height, 12);
     });
   });
 

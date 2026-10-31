@@ -15,17 +15,25 @@ class WRow {
   }
 
   /// 创建顶部对齐的 Row
-  static Row top({required List<Widget> children}) {
+  static Row top({
+    required List<Widget> children,
+    MainAxisSize mainAxisSize = MainAxisSize.max,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: mainAxisSize,
       children: children,
     );
   }
 
   /// 创建底部对齐的 Row
-  static Row bottom({required List<Widget> children}) {
+  static Row bottom({
+    required List<Widget> children,
+    MainAxisSize mainAxisSize = MainAxisSize.max,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: mainAxisSize,
       children: children,
     );
   }

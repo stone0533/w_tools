@@ -1671,7 +1671,7 @@ Image 相关扩展，便捷创建 CachedNetworkImage、带圆角的图片等。
 
 ```dart
 WPadding.all(16)
-WPadding.symmetric(h: 8, v: 4)
+WPadding.symmetric(horizontal: 8, vertical: 4, child: ...)
 WSizeBox.width(100)
 WSizeBox.height(WScreen.h(20))
 WSizeBox.square(50)
