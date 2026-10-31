@@ -84,6 +84,10 @@ await key.currentState?.restartScan();
 | 扫描框样式 | `WQrViewOverlayShape` |
 | 扫码结果 | `Barcode`（已由本包转出） |
 
+## 完整示例
+
+见 [`example/`](example/)：单次扫码、结果展示、继续扫描、闪光灯与摄像头翻转。
+
 ## License
 
 MIT
