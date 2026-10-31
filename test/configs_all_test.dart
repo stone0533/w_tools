@@ -115,13 +115,13 @@ void main() {
 
   group('WFormDropdownConfig', () {
     test('所有 setter 可调用', () {
-      final c = WFormDropdownConfig()
+      final c = WFormDropdownConfig.builder()
         ..height = 48
         ..hint = const Text('请选择')
         ..icon = const Icon(Icons.arrow_downward)
         ..dropdownColor = Colors.white
         ..style = const TextStyle(fontSize: 16);
-      expect(c, isNotNull);
+      expect(c.buildConfig(), isNotNull);
     });
   });
 

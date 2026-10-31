@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../field_lifecycle.dart';
-import '../field_chrome.dart';
 import '../form_scope.dart';
 import '../form_defaults.dart';
 import '../form_theme.dart';
@@ -77,9 +76,9 @@ class WFormDropdown<T> extends StatelessWidget {
     if (hint != null) {
       hintWidget = hint;
     } else if (hintText != null) {
-      hintWidget = Center(child: Text(hintText!, style: config._hintStyle));
-    } else if (config._hint != null) {
-      hintWidget = config._hint;
+      hintWidget = Center(child: Text(hintText!, style: config.hintStyle));
+    } else if (config.hint != null) {
+      hintWidget = config.hint;
     }
 
     // 继承外层只读作用域（WFormFieldShell.readOnly）
@@ -104,12 +103,12 @@ class WFormDropdown<T> extends StatelessWidget {
                   value: e.key,
                   child: Text(
                     e.value,
-                    style: config._style,
+                    style: config.style,
                     strutStyle: StrutStyle(
-                      fontFamily: config._style?.fontFamily,
-                      fontSize: config._style?.fontSize,
-                      fontWeight: config._style?.fontWeight,
-                      height: config._style?.height,
+                      fontFamily: config.style?.fontFamily,
+                      fontSize: config.style?.fontSize,
+                      fontWeight: config.style?.fontWeight,
+                      height: config.style?.height,
                       forceStrutHeight: true,
                     ),
                   ),
@@ -120,81 +119,62 @@ class WFormDropdown<T> extends StatelessWidget {
             border: InputBorder.none,
             focusedBorder: InputBorder.none,
             enabledBorder: InputBorder.none,
-            contentPadding: config._contentPadding,
+            contentPadding: config.contentPadding,
           ),
           initialValue: initialValue,
           validator: validator,
-          icon: config._icon ?? theme?.effectiveDropdownIcon ?? WFormDefaults.dropdownIcon,
+          icon: config.icon ?? theme?.effectiveDropdownIcon ?? WFormDefaults.dropdownIcon,
           onChanged: onChangedHandler,
           hint: hintWidget,
           enabled: effectiveEnabled,
-          dropdownColor: config._dropdownColor,
+          dropdownColor: config.dropdownColor,
         ),
       ),
     );
   }
 }
 
-/// 下拉选择配置类，定义下拉选择的样式和行为
-class WFormDropdownConfig extends WFormFieldChrome {
-  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
+/// 下拉选择配置类，定义下拉选择的样式和行为。
+///
+/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
+class WFormDropdownConfig {
   static WFormDropdownConfigBuilder builder() => WFormDropdownConfigBuilder();
 
-  /// 内容内边距
-  EdgeInsetsGeometry? _contentPadding;
+  final bool enabled;
+  final double? height;
+  final double? width;
+  final EdgeInsetsGeometry? contentPadding;
+  final double? yOffset;
+  final Widget? leading;
+  final List<Widget>? actions;
+  final Decoration? containerDecoration;
+  final EdgeInsetsGeometry? containerMargin;
+  final EdgeInsetsGeometry? containerPadding;
+  final Widget? hint;
+  final Widget? icon;
+  final TextStyle? style;
+  final TextStyle? hintStyle;
+  final Color? dropdownColor;
 
-  /// 提示 widget
-  Widget? _hint;
+  const WFormDropdownConfig({
+    this.enabled = true,
+    this.height,
+    this.width,
+    this.contentPadding,
+    this.yOffset,
+    this.leading,
+    this.actions,
+    this.containerDecoration,
+    this.containerMargin,
+    this.containerPadding,
+    this.hint,
+    this.icon,
+    this.style,
+    this.hintStyle,
+    this.dropdownColor,
+  });
 
-  /// 图标
-  Widget? _icon;
-
-  /// 标签样式
-  TextStyle? _style;
-
-  /// 提示文本样式
-  TextStyle? _hintStyle;
-
-  /// 下拉弹出层背景色
-  Color? _dropdownColor;
-
-  /// 设置内容内边距
-  set contentPadding(EdgeInsetsGeometry? value) {
-    _contentPadding = value;
-  }
-
-  /// 设置提示 widget
-  set hint(Widget? value) {
-    _hint = value;
-  }
-
-  /// 设置图标
-  set icon(Widget? value) {
-    _icon = value;
-  }
-
-  /// 设置标签样式
-  set style(TextStyle? value) {
-    _style = value;
-  }
-
-  /// 设置提示文本样式
-  set hintStyle(TextStyle? value) {
-    _hintStyle = value;
-  }
-
-  /// 设置下拉弹出层背景色
-  set dropdownColor(Color? value) {
-    _dropdownColor = value;
-  }
-
-  /// 构建 [WFormDropdown] 组件
-  ///
-  /// [bordered] 为 `true` 时返回带 [WFormFieldShell] / [WFormBorder] 的版本，
-  /// 内层 `containerDecoration` 会被清空，边框交由外层绘制；否则返回裸字段。
-  ///
-  /// [readOnly] 为 true 时内层控件不可交互、外层使用只读装饰；
-  /// [enabled] 为 false（且配置未启用）时外层同样按只读展示。
+  /// 构建 [WFormDropdown] 组件。
   Widget build<T>({
     required String name,
     required Map<T, String> items,
@@ -213,9 +193,9 @@ class WFormDropdownConfig extends WFormFieldChrome {
     bool enableFocusBorder = true,
   }) {
     final baseEnabled = enabled ?? this.enabled;
-
-    // 清空内层容器装饰（在副本上操作，避免污染原配置的后续 build()），边框交由外层 WFormBorder 绘制
-    final config = bordered ? (copy()..containerDecoration = null) : this;
+    final config = bordered
+        ? (WFormDropdownConfigBuilder.from(this)..containerDecoration = null).buildConfig()
+        : this;
 
     final dropdown = WFormDropdown<T>(
       config: config,
@@ -245,14 +225,9 @@ class WFormDropdownConfig extends WFormFieldChrome {
     );
   }
 
-  /// 创建当前配置的副本
-  WFormDropdownConfig copy() {
-    return copyWith();
-  }
+  WFormDropdownConfig copy() => copyWith();
 
-  /// 创建当前配置的副本，并可以选择性地更新某些属性
-  ///
-  /// 参数为 null 表示沿用原值。
+  /// 参数为 null 表示沿用原值；清空请用 [builder]。
   WFormDropdownConfig copyWith({
     bool? enabled,
     double? height,
@@ -270,29 +245,80 @@ class WFormDropdownConfig extends WFormFieldChrome {
     TextStyle? hintStyle,
     Color? dropdownColor,
   }) {
-    final config = WFormDropdownConfig();
-    config.enabled = enabled ?? this.enabled;
-    config.height = height ?? this.height;
-    config.width = width ?? this.width;
-    config._contentPadding = contentPadding ?? _contentPadding;
-    config.yOffset = yOffset ?? this.yOffset;
-    config.leading = leading ?? this.leading;
-    config.actions = actions ?? this.actions;
-    config.containerDecoration = containerDecoration ?? this.containerDecoration;
-    config.containerMargin = containerMargin ?? this.containerMargin;
-    config.containerPadding = containerPadding ?? this.containerPadding;
-    config._hint = hint ?? _hint;
-    config._icon = icon ?? _icon;
-    config._style = style ?? _style;
-    config._hintStyle = hintStyle ?? _hintStyle;
-    config._dropdownColor = dropdownColor ?? _dropdownColor;
-    return config;
+    return WFormDropdownConfig(
+      enabled: enabled ?? this.enabled,
+      height: height ?? this.height,
+      width: width ?? this.width,
+      contentPadding: contentPadding ?? this.contentPadding,
+      yOffset: yOffset ?? this.yOffset,
+      leading: leading ?? this.leading,
+      actions: actions ?? this.actions,
+      containerDecoration: containerDecoration ?? this.containerDecoration,
+      containerMargin: containerMargin ?? this.containerMargin,
+      containerPadding: containerPadding ?? this.containerPadding,
+      hint: hint ?? this.hint,
+      icon: icon ?? this.icon,
+      style: style ?? this.style,
+      hintStyle: hintStyle ?? this.hintStyle,
+      dropdownColor: dropdownColor ?? this.dropdownColor,
+    );
   }
 }
 
-/// WFormDropdownConfig 的 Builder。
-///
-/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
-class WFormDropdownConfigBuilder extends WFormDropdownConfig {
-  WFormDropdownConfig buildConfig() => copy();
+/// [WFormDropdownConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
+class WFormDropdownConfigBuilder {
+  bool enabled = true;
+  double? height;
+  double? width;
+  EdgeInsetsGeometry? contentPadding;
+  double? yOffset;
+  Widget? leading;
+  List<Widget>? actions;
+  Decoration? containerDecoration;
+  EdgeInsetsGeometry? containerMargin;
+  EdgeInsetsGeometry? containerPadding;
+  Widget? hint;
+  Widget? icon;
+  TextStyle? style;
+  TextStyle? hintStyle;
+  Color? dropdownColor;
+
+  WFormDropdownConfigBuilder();
+
+  WFormDropdownConfigBuilder.from(WFormDropdownConfig config)
+    : enabled = config.enabled,
+      height = config.height,
+      width = config.width,
+      contentPadding = config.contentPadding,
+      yOffset = config.yOffset,
+      leading = config.leading,
+      actions = config.actions,
+      containerDecoration = config.containerDecoration,
+      containerMargin = config.containerMargin,
+      containerPadding = config.containerPadding,
+      hint = config.hint,
+      icon = config.icon,
+      style = config.style,
+      hintStyle = config.hintStyle,
+      dropdownColor = config.dropdownColor;
+
+  WFormDropdownConfig buildConfig() {
+    return WFormDropdownConfig(
+      enabled: enabled,
+      height: height,
+      width: width,
+      contentPadding: contentPadding,
+      yOffset: yOffset,
+      leading: leading,
+      actions: actions,
+      containerDecoration: containerDecoration,
+      containerMargin: containerMargin,
+      containerPadding: containerPadding,
+      hint: hint,
+      icon: icon,
+      style: style,
+      hintStyle: hintStyle,
+      dropdownColor: dropdownColor,
+    );
+  }
 }

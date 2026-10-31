@@ -774,11 +774,11 @@ void main() {
                   Expanded(
                     child: WFormTextField(config: WFormTextFieldConfig(), name: 'a'),
                   ),
-                  Expanded(
+                  const Expanded(
                     child: WFormDropdown<String>(
                       config: WFormDropdownConfig(),
                       name: 'b',
-                      items: const {'x': 'X'},
+                      items: {'x': 'X'},
                     ),
                   ),
                 ],
@@ -899,17 +899,17 @@ void main() {
             body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
-              child: Row(
+              child: (const Row(
                 children: [
                   Expanded(
                     child: WFormDropdown<int>(
                       config: WFormDropdownConfig(),
                       name: 'b',
-                      items: const {1: 'ONE'},
+                      items: {1: 'ONE'},
                     ),
                   ),
                 ],
-              ).withFormBorder(name: 'row', readOnly: true, hintTextList: const ['提示']),
+              )).withFormBorder(name: 'row', readOnly: true, hintTextList: const ['提示']),
             ),
           ),
         ),
@@ -933,18 +933,18 @@ void main() {
             body: WFormScope(
               formData: formData,
               formBorderConfig: makeCfg(),
-              child: Row(
+              child: (const Row(
                 children: [
                   Expanded(
                     child: WFormDropdown<String>(
                       config: WFormDropdownConfig(),
                       name: 'b',
-                      items: const {'x': 'X'},
+                      items: {'x': 'X'},
                       enabled: false,
                     ),
                   ),
                 ],
-              ).withFormBorder(name: 'row', hintTextList: const ['提示']),
+              )).withFormBorder(name: 'row', hintTextList: const ['提示']),
             ),
           ),
         ),
