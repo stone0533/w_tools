@@ -454,20 +454,22 @@ Row(
 )
 ```
 
-如果需要统一“宽按钮”，在项目层增加 Widget 工厂，而不是扩展按钮样式：
+如果需要统一“宽按钮”，不要把 Widget 工厂塞进 `AppButtons`。`AppButtons` 只负责返回
+`WButtonStyle`；宽度是布局职责，页面直接组合：
 
 ```dart
-Widget primaryWide(BuildContext context, {required String label, VoidCallback? onTap}) {
-  return SizedBox(
-    width: double.infinity,
-    child: WButton(
-      style: AppButtons.primary(context),
-      label: label,
-      onTap: onTap,
-    ),
-  );
-}
+SizedBox(
+  width: double.infinity,
+  child: WButton(
+    style: AppButtons.primary(context),
+    label: '提交',
+    onTap: _submit,
+  ),
+)
 ```
+
+如果项目里大量重复，可以单独放一个布局 helper，例如
+`AppButtonLayouts.fullWidth(child)`，而不是让 `AppButtons` 同时返回样式和 Widget。
 
 ### Style 工厂
 
