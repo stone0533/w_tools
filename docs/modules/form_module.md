@@ -136,7 +136,7 @@ WFormScope(
 | `fields` | `FormBuilderFields?` | 表单未挂载时为 null |
 | `value` | `Map<String, dynamic>` | 表单未挂载时返回空表 |
 | `formEntered` | `Map<String, bool>` | 各字段「是否已输入」，可手动读取做按钮启用判定 |
-| `isAllEntered(int length)` | `bool` | 按已注册字段过滤陈旧记录（关闭弹窗 / 动态移除字段后不恒为 false） |
+| `isAllEntered(Iterable<String> fieldNames)` | `bool` | 指定字段是否都已输入；空集合返回 true |
 | `setValue<T>(name, value)` | `void` | 仅写字段值，**不**更新 `formEntered` |
 | `handleChange<T>(name, value, {callback})` | `void` | 清除错误 + 更新 `formEntered` + 回调；不写字段值 |
 | `updateValue<T>(name, value)` | `void` | `setValue` + `handleChange`，业务代码优先用这个 |
@@ -145,6 +145,7 @@ WFormScope(
 | `clearError(name)` | `void` | 清除边框错误 |
 | `closeKeyboard()` | `void` | unfocus |
 | `validators({config, items})` | `WFormValidator` | 校验器工厂 |
+| `validate({config, items})` | `bool` | 一步校验；items 为 null 时使用已挂载字段的自身 validator |
 | `formBorderKeys` | `Map<String, GlobalKey<WFormBorderState>>` | 边框 key 注册表 |
 | `ensureBorderKey(name)` | `GlobalKey<WFormBorderState>` | 获取 / 创建边框 key |
 | `removeBorderKey(name)` | `void` | 注销边框 key（字段卸载） |
@@ -658,7 +659,7 @@ class _LoginPageState extends State<LoginPage> {
 | 4 | **Dropdown items 键必须存在** | `WFormDropdown.items` 是 `Map<T, String>`，初始值 / 字段值必须存在于 map 的 keys 中（`FormBuilderDropdown` 内部断言会失败） |
 | 5 | **Scope 管道** | `WFormTextFieldScope`（InheritedWidget）将输入状态下发给插槽 Widget（清空按钮 / 密码切换），无需手动同步 |
 | 6 | **WFormBorderConfig 继承** | 子级显式传入 `WFormBorder.config` 优先；否则继承 `WFormScope.formBorderConfig`；都没配置时 `WFormBorder` 不渲染装饰 |
-| 7 | **formEntered 陈旧过滤** | `isAllEntered(length)` 按已注册 `fields` 过滤，动态移除字段后不会因残留记录恒为 false，但调用方需保证传入的 `length` 与实际参与判断的字段数一致 |
+| 7 | **formEntered 陈旧过滤** | `isAllEntered(fieldNames)` 用显式字段名判断；字段卸载时 `formEntered` 会清理，避免动态字段残留 |
 | 8 | **setError / 字段 name 一致性** | `WFormFieldShell.name` 必须与内部字段 `name` 一致，否则校验红框无法自动联动 |
 | 9 | **PopRoute 不跟随滚动** | `WFormPopup` 位置打开时计算一次，锚点滚动后弹层不跟随，如需跟随请使用其他方案 |
 | 10 | **校验器双通道风险** | `WFormValidatorItem.field` 模式直接执行字段 `validator`，**不**写入字段 `errorText`，只通过 `WFormBorder.setError` 渲染；若同时开 FormBuilder 原生 `validate()` 会走另一通道，建议统一使用 `WFormValidator` |

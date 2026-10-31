@@ -356,7 +356,7 @@ void main() {
   group('WFormController', () {
     testWidgets('isAllEntered — 初始时 false', (tester) async {
       final data = WFormController();
-      expect(data.isAllEntered(1), false);
+      expect(data.isAllEntered(const ['a']), false);
     });
 
     testWidgets('onChange — 非 String 值也维护 formEntered', (tester) async {
@@ -407,14 +407,25 @@ void main() {
       final data = WFormController();
       data.formEntered['a'] = true;
       data.formEntered['b'] = true;
-      expect(data.isAllEntered(2), true);
+      expect(data.isAllEntered(const ['a', 'b']), true);
     });
 
     testWidgets('isAllEntered — 有一个为 false 时返回 false', (tester) async {
       final data = WFormController();
       data.formEntered['a'] = true;
       data.formEntered['b'] = false;
-      expect(data.isAllEntered(2), false);
+      expect(data.isAllEntered(const ['a', 'b']), false);
+    });
+
+    testWidgets('isAllEntered — 缺少指定字段时返回 false', (tester) async {
+      final data = WFormController();
+      data.formEntered['a'] = true;
+
+      expect(data.isAllEntered(const ['a', 'missing']), false);
+    });
+
+    testWidgets('isAllEntered — 空字段集合返回 true', (tester) async {
+      expect(WFormController().isAllEntered(const []), true);
     });
 
     testWidgets('isAllEntered — 忽略已卸载字段的陈旧记录', (tester) async {
@@ -428,7 +439,7 @@ void main() {
       data.handleChange('a', 'x');
       data.handleChange('unmounted', 'y');
 
-      expect(data.isAllEntered(1), isTrue);
+      expect(data.isAllEntered(const ['a']), isTrue);
     });
   });
 
@@ -462,6 +473,23 @@ void main() {
 
       expect(data.getFieldsValue<String>('a'), 'hello');
       expect(data.formEntered['a'], isTrue);
+    });
+
+    testWidgets('validate 自动使用字段 validator', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: WFormTextFieldConfig().build(
+          name: 'email',
+          validator: (value) => (value == null || value.isEmpty) ? '必填' : null,
+        ),
+      );
+
+      expect(data.validate(), isFalse);
+      data.updateValue<String>('email', 'a@b.com');
+      await tester.pump();
+      expect(data.validate(), isTrue);
     });
 
     testWidgets('validators() 工厂可创建并执行校验器', (tester) async {

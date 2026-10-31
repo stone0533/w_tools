@@ -27,18 +27,15 @@ class WFormController {
   /// 各字段是否已输入的映射
   final Map<String, bool> formEntered = {};
 
-  /// 是否所有字段都已输入
+  /// 指定字段是否都已输入
   ///
-  /// [length] 需与实际参与判断的字段总数一致。
-  /// 已卸载字段残留在 [formEntered] 中的陈旧记录会被忽略，
-  /// 避免关闭弹窗 / 动态移除字段后本方法恒为 false。
-  bool isAllEntered(int length) {
-    final registered = fields;
-    if (registered == null) {
-      return formEntered.length == length && !formEntered.containsValue(false);
+  /// 用字段名显式表达判断范围，避免传错数量；空集合视为全部满足。
+  /// 字段卸载后 [formEntered] 会被清理，因此动态字段不会残留。
+  bool isAllEntered(Iterable<String> fieldNames) {
+    for (final name in fieldNames) {
+      if (formEntered[name] != true) return false;
     }
-    final entries = formEntered.entries.where((e) => registered.containsKey(e.key)).toList();
-    return entries.length == length && !entries.any((e) => !e.value);
+    return true;
   }
 
   /// 按字段名设置字段值
@@ -136,5 +133,18 @@ class WFormController {
       validationItems: items ?? [],
       config: config,
     );
+  }
+
+  /// 一步执行校验
+  ///
+  /// [items] 为 null 时自动使用当前已挂载字段的自身 validator。
+  /// 业务表单优先用本方法或 [validators]，避免直接调用 formKey.validate()
+  /// 造成两套错误通道。
+  bool validate({WFormValidatorConfig? config, List<WFormValidatorItem>? items}) {
+    final validationItems =
+        items ??
+        (fields?.keys.map(WFormValidatorItem.field).toList(growable: false) ??
+            const <WFormValidatorItem>[]);
+    return validators(items: validationItems, config: config).validate();
   }
 }
