@@ -8,7 +8,8 @@
   避免凭记忆造组件名。
 - **init**：把接入约定装进当前项目，生成聚合入口、暂存层 README、`AGENTS.md` 片段、
   `lib/app/ui/` 页面规范（AppBars / AppBoxes / AppButtons / AppCard / AppScaffold）
-  和 `.w_tools_doctor.yaml`（默认值与内置一致）。
+  和 `.w_tools_doctor.yaml`（默认值与内置一致）。`init` 只生成 AGENTS 摘要，不会复制
+  w_tools 仓库的 `docs/agents/*.md` 深度文档。
 - **doctor**：扫描项目，检查是否遵守「只依赖子包、业务代码只 import 聚合入口、
   暂存层不依赖业务」等约定（R1~R8）。
 

@@ -22,8 +22,6 @@
    `WFormButton`；不要用 `WButton` 包任意 child。
    **按钮宽度**：`WButtonSize` / `WButtonStyle` 不含 `width`；撑满用
    `SizedBox(width: double.infinity)` 或 `Expanded`，固定宽度用外层 `SizedBox`。
-   **按钮宽度**：`WButtonSize` / `WButtonStyle` 不含 `width`；撑满用
-   `SizedBox(width: double.infinity)` 或 `Expanded`，固定宽度用外层 `SizedBox`。
    `WButton` 没有 `variant`；样式用 `style`，`label` 和 `content` 不能同时传。
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
