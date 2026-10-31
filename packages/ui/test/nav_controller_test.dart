@@ -130,4 +130,61 @@ void main() {
       expect(first.currentIndex, 0);
     });
   });
+
+  group('WNavController — hardening', () {
+    testWidgets('非法 initialIndex 触发 assert', (tester) async {
+      expect(
+        () => WNavController(initialIndex: 3, length: 3, vsync: tester),
+        throwsAssertionError,
+      );
+    });
+
+    testWidgets('连续 animateTo 后以最后一次为准', (tester) async {
+      final ctrl = WNavController(length: 3, vsync: tester);
+      addTearDown(ctrl.dispose);
+
+      final first = ctrl.animateTo(1);
+      final second = ctrl.animateTo(2);
+      await tester.pumpAndSettle();
+      await Future.wait([first, second]);
+
+      expect(ctrl.currentIndex, 2);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('dispose 后 animateTo 安全返回', (tester) async {
+      final ctrl = WNavController(length: 3, vsync: tester);
+      final future = ctrl.animateTo(1);
+      ctrl.dispose();
+      await tester.pump();
+      await future;
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('WNavBar 暴露 button / selected 语义', (tester) async {
+    final controller = WNavController(length: 2, vsync: tester);
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WNavBar(
+            config: const WNavBarConfig(),
+            controller: controller,
+            itemBuilder: (_, index, selected) => Text('item-$index'),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.button == true &&
+            widget.properties.selected == true,
+      ),
+      findsOneWidget,
+    );
+  });
 }

@@ -137,4 +137,23 @@ void main() {
       expect(tabBar.indicatorWeight, 4);
     });
   });
+
+  testWidgets('WTabBar overlayColor 可配置', (tester) async {
+    final cfg = WTabBarConfig()..overlayColor = Colors.red;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            body: WTabBar(
+              config: cfg,
+              tabs: const [Text('A'), Text('B')],
+            ),
+          ),
+        ),
+      ),
+    );
+    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabBar.overlayColor?.resolve({}), Colors.red);
+  });
 }

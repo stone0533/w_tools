@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 ///
 /// 对 Material [TabBar] 的轻量封装，支持样式、指示器、分割线与对齐方式配置；
 /// 控制器可外部传入，未传入时由外层 [DefaultTabController] 提供。
-class WTabBar extends StatefulWidget {
+class WTabBar extends StatelessWidget {
   /// 标签栏配置
   final WTabBarConfig config;
 
@@ -27,29 +27,25 @@ class WTabBar extends StatefulWidget {
   });
 
   @override
-  State<WTabBar> createState() => _WTabBarState();
-}
-
-/// WTabBar 的状态类
-class _WTabBarState extends State<WTabBar> {
-  @override
   Widget build(BuildContext context) {
     return TabBar(
-      controller: widget.controller,
-      padding: widget.config._padding,
-      isScrollable: widget.config._isScrollable,
-      tabs: widget.tabs,
-      labelStyle: widget.config._labelStyle,
-      unselectedLabelStyle: widget.config._unselectedLabelStyle,
-      indicatorSize: widget.config._indicatorSize,
-      indicatorColor: widget.config._indicatorColor,
-      indicator: widget.config._indicator,
-      indicatorWeight: widget.config._indicatorWeight,
-      dividerColor: widget.config._dividerColor,
-      dividerHeight: widget.config._dividerHeight,
-      overlayColor: WidgetStateProperty.all(Colors.transparent),
-      tabAlignment: widget.config._tabAlignment,
-      onTap: widget.onTap,
+      controller: controller,
+      padding: config._padding,
+      isScrollable: config._isScrollable,
+      tabs: tabs,
+      labelStyle: config._labelStyle,
+      unselectedLabelStyle: config._unselectedLabelStyle,
+      indicatorSize: config._indicatorSize,
+      indicatorColor: config._indicatorColor,
+      indicator: config._indicator,
+      indicatorWeight: config._indicatorWeight,
+      dividerColor: config._dividerColor,
+      dividerHeight: config._dividerHeight,
+      overlayColor: WidgetStateProperty.all(
+        config._overlayColor ?? Colors.transparent,
+      ),
+      tabAlignment: config._tabAlignment,
+      onTap: onTap,
     );
   }
 }
@@ -69,6 +65,7 @@ class WTabBarConfig {
   Decoration? _indicator;
   double _indicatorWeight = 2.0;
   TabAlignment? _tabAlignment;
+  Color? _overlayColor;
 
   /// 设置选中标签样式
   set labelStyle(TextStyle? value) {
@@ -125,6 +122,11 @@ class WTabBarConfig {
     _tabAlignment = value;
   }
 
+  /// 设置点击 / hover overlay 颜色；null 时透明
+  set overlayColor(Color? value) {
+    _overlayColor = value;
+  }
+
   /// 设置分割线
   WTabBarConfig divider(double dividerHeight, Color dividerColor) {
     _dividerHeight = dividerHeight;
@@ -150,6 +152,7 @@ class WTabBarConfig {
     Decoration? indicator,
     double? indicatorWeight,
     TabAlignment? tabAlignment,
+    Color? overlayColor,
   }) {
     final copy = WTabBarConfig();
     copy._labelStyle = labelStyle ?? _labelStyle;
@@ -163,6 +166,7 @@ class WTabBarConfig {
     copy._indicator = indicator ?? _indicator;
     copy._indicatorWeight = indicatorWeight ?? _indicatorWeight;
     copy._tabAlignment = tabAlignment ?? _tabAlignment;
+    copy._overlayColor = overlayColor ?? _overlayColor;
     return copy;
   }
 

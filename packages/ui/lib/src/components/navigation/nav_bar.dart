@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/pressable.dart';
 import 'nav_controller.dart';
 
 /// 底部导航栏组件
@@ -64,6 +65,14 @@ class _WNavBarState extends State<WNavBar> {
     super.dispose();
   }
 
+  Future<void> _handleTap(int index) async {
+    final result = await widget.onItemTap?.call(index);
+    if (!mounted) return;
+    if (result != false) {
+      _controller.animateTo(index);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 构建导航项内容
@@ -72,17 +81,14 @@ class _WNavBarState extends State<WNavBar> {
       children: [
         for (int i = 0; i < _controller.length; i++)
           Expanded(
-            child: GestureDetector(
-              onTap: () async {
-                final result = await widget.onItemTap?.call(i);
-                // 等待回调期间组件可能已卸载
-                if (!mounted) return;
-                if (result != false) {
-                  _controller.animateTo(i);
-                }
-              },
-              child: RepaintBoundary(
-                child: widget.itemBuilder(context, i, i == _controller.currentIndex),
+            child: Semantics(
+              button: true,
+              selected: i == _controller.currentIndex,
+              child: WPressable(
+                onTap: () => _handleTap(i),
+                child: RepaintBoundary(
+                  child: widget.itemBuilder(context, i, i == _controller.currentIndex),
+                ),
               ),
             ),
           ),

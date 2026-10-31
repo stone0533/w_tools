@@ -15,6 +15,8 @@ class WNavController extends ChangeNotifier {
   final TickerProvider vsync;
   late AnimationController _animationController;
   Animation<double>? _animation;
+  int _transitionToken = 0;
+  bool _disposed = false;
 
   /// 当前选中索引
   int get currentIndex => _currentIndex;
@@ -35,7 +37,9 @@ class WNavController extends ChangeNotifier {
     int initialIndex = 0,
     required this.length,
     required this.vsync,
-  })  : _currentIndex = initialIndex,
+  })  : assert(length >= 0),
+        assert(length == 0 || (initialIndex >= 0 && initialIndex < length)),
+        _currentIndex = initialIndex,
         _previousIndex = initialIndex {
     _animationController = AnimationController(
       duration: kTabScrollDuration,
@@ -60,10 +64,11 @@ class WNavController extends ChangeNotifier {
     Duration? duration,
     Curve curve = Curves.ease,
   }) async {
-    if (index < 0 || index >= length) {
+    if (_disposed || index < 0 || index >= length || index == _currentIndex) {
       return;
     }
 
+    final token = ++_transitionToken;
     _previousIndex = _currentIndex;
     _currentIndex = index;
     notifyListeners();
@@ -72,12 +77,19 @@ class WNavController extends ChangeNotifier {
     controller.duration = duration ?? kTabScrollDuration;
     // 应用调用方传入的曲线
     _animation = CurvedAnimation(parent: controller, curve: curve);
-    await controller.forward(from: 0.0);
-    await controller.reverse();
+    try {
+      await controller.forward(from: 0.0).orCancel;
+      if (_disposed || token != _transitionToken) return;
+      await controller.reverse().orCancel;
+    } on TickerCanceled {
+      // controller 在过渡期间被释放
+    }
   }
 
   @override
   void dispose() {
+    _disposed = true;
+    _transitionToken++;
     _animationController.dispose();
     super.dispose();
   }

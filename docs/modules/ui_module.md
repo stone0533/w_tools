@@ -1469,7 +1469,7 @@ registerStepFlow.build(current: step)
 底部导航栏，由 `WNavController` 驱动选中态切换动画，`itemBuilder(context, index, isSelected)` 渲染每项。
 
 ```dart
-final controller = WNavController(length: 3);
+final controller = WNavController(length: 3, vsync: this);
 
 WNavBar(
   config: WNavBarConfig(),
@@ -1498,6 +1498,8 @@ controller.currentIndex; // 当前选中索引
 ### WTabBar
 
 增强版标签栏，支持自定义样式、指示器、分割线。
+
+`WTabBarConfig.overlayColor` 控制点击 / hover overlay；默认透明。
 
 ---
 
@@ -1757,7 +1759,13 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final _controller = WNavController(length: 3);
+  late final WNavController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WNavController(length: 3, vsync: this);
+  }
 
   final _pages = const [
     HomeScreen(),
@@ -1778,22 +1786,20 @@ class _MainPageState extends State<MainPage> {
       includeTopSafeArea: true,
       body: ValueListenableBuilder(
         valueListenable: _controller,
-        builder: (ctx, index, _) {
-          return _pages[index];
-        },
+        builder: (ctx, index, _) => _pages[index],
       ),
-      // 可自定义 body 下方的导航栏区域
+      bottomNavigationBar: MainNavBar(controller: _controller),
     );
   }
 }
 
 class MainNavBar extends StatelessWidget {
-  const MainNavBar({super.key});
+  const MainNavBar({super.key, required this.controller});
+
+  final WNavController controller;
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.findAncestorStateOfType<_MainPageState>()!._controller;
-
     return Container(
       padding: EdgeInsets.only(bottom: WScreen.bottomBarHeight),
       color: Colors.white,
