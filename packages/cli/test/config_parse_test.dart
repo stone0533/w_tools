@@ -41,13 +41,15 @@ void main() {
     final config = DoctorConfig().copyWith(
       toolkitEntry: 'lib/x/toolkit.dart',
       palette: const ['#333333'],
+      colorMinCount: 5,
       enabledRules: const {'R1'},
+      ignore: const ['build/'],
     );
     expect(config.toolkitEntry, 'lib/x/toolkit.dart');
     expect(config.palette, ['#333333']);
+    expect(config.colorMinCount, 5);
     expect(config.enabledRules, {'R1'});
-    expect(config.colorMinCount, DoctorConfig().colorMinCount);
-    expect(config.ignore, DoctorConfig().ignore);
+    expect(config.ignore, ['build/']);
   });
 
   test('copyWith 可覆盖 ai 字段', () {

@@ -51,7 +51,9 @@ class DoctorConfig {
     return parse(file.readAsStringSync());
   }
 
-  /// 从 YAML 文本解析；解析不出就退回默认值。
+  /// 从 YAML 文本解析；非 Map 或字段缺失时退回默认值。
+  ///
+  /// YAML 语法错误会抛 [YamlException]，由调用方处理。
   static DoctorConfig parse(String yamlText) {
     final raw = loadYaml(yamlText);
     if (raw is! YamlMap) return DoctorConfig();
@@ -109,16 +111,18 @@ class DoctorConfig {
   DoctorConfig copyWith({
     String? toolkitEntry,
     List<String>? palette,
+    int? colorMinCount,
     Set<String>? enabledRules,
+    List<String>? ignore,
     List<String>? aiTargets,
     String? aiLanguage,
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
       palette: palette ?? this.palette,
-      colorMinCount: colorMinCount,
+      colorMinCount: colorMinCount ?? this.colorMinCount,
       enabledRules: enabledRules ?? this.enabledRules,
-      ignore: ignore,
+      ignore: ignore ?? this.ignore,
       aiTargets: aiTargets ?? this.aiTargets,
       aiLanguage: aiLanguage ?? this.aiLanguage,
     );

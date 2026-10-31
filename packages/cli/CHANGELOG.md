@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.0
 
 ### Changed
 - 消费方 AGENTS 模板补充 Form 直接字段、WImage、弹层与轻提示规则；修正不存在的 `WnnToast` 引用。
@@ -8,6 +8,7 @@
 - 组件目录同步 Form 的 `WForm` / 直接字段 / `WFormFieldStyle` 入口，移除旧 App helper 名称。
 - 升级 `w_tools_cli` 后，消费方需重新执行 `dart run w_tools_cli:init`（或 `--check-drift`）以更新 AGENTS 片段。
 - 修复 `init` 生成的 `w_tools_ui` 约束仍为 `^2.1.0`：同步到 `^3.0.0`，避免新项目解析到旧 UI。
+- `DoctorConfig.copyWith` 支持覆盖 `colorMinCount` / `ignore`。
 
 ## 1.3.0
 
