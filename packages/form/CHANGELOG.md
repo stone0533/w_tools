@@ -3,7 +3,8 @@
 ## 2.0.0
 
 ### Changed
-- 新增 `WForm` 容器与直接字段构造 API（`WFormTextField` / `WFormDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` / `WFormButton` 等）。
+- 新增 `WForm` 容器、`WFormFieldStyle` 默认字段样式与 `validatorSettings` 默认校验设置。
+- 新增直接字段构造 API（`WFormTextField` / `WFormDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` / `WFormButton` 等）。
 - 原字段 Widget 重命名为 `*Core` 作为低层实现；普通页面不再需要 `Config.build`。
 - 新增登录 / 会员资料可运行示例 `example/`。
 - 字段 Config 统一为可变 cascade，继承 `WFormFieldBaseConfig`；`WFormBorderConfig` 保持不可变。

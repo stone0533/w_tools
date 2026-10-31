@@ -36,6 +36,10 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
       body: WForm(
         controller: _form,
         borderConfig: exampleBorderConfig,
+        fieldStyle: const WFormFieldStyle(
+          height: 52,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        ),
         readOnly: _readOnly,
         child: ListView(
           padding: const EdgeInsets.all(20),

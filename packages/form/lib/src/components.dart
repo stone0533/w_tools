@@ -21,6 +21,7 @@ export 'components/field_button.dart';
 export 'components/field_base_config.dart';
 export 'components/form_container.dart';
 export 'components/form_scope.dart';
+export 'components/form_field_style.dart';
 export 'components/form_controller.dart';
 
 // 默认值与工具

@@ -46,6 +46,12 @@ class _LoginFormState extends State<LoginForm> {
     return WForm(
       controller: _form,
       borderConfig: WFormBorderConfig.standard(radius: 12),
+      fieldStyle: const WFormFieldStyle(
+        height: 52,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      validatorSettings: WFormValidatorSettings()
+        ..showBorderError = true,
       child: Column(
         children: [
           WFormTextField(
@@ -74,9 +80,7 @@ class _LoginFormState extends State<LoginForm> {
           ),
           FilledButton(
             onPressed: () {
-              if (_form.validate(
-                settings: WFormValidatorSettings()..showBorderError = true,
-              )) {
+              if (_form.validate()) {
                 debugPrint('submit: ${_form.value}');
               }
             },

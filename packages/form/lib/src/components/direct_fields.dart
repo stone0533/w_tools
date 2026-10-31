@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'field_base_config.dart';
 import 'field_button.dart';
+import 'form_field_style.dart';
 import 'fields/checkbox.dart';
 import 'fields/date_picker.dart';
 import 'fields/dropdown.dart';
 import 'fields/multi_dropdown.dart';
 import 'fields/radio_group.dart';
 import 'fields/text_field.dart';
+
+void _applyBaseStyle(
+  WFormFieldBaseConfig config,
+  WFormFieldStyle? style,
+) {
+  if (style == null) return;
+  if (style.height != null) config.height = style.height;
+  if (style.contentPadding != null) {
+    config.containerPadding = style.contentPadding;
+  }
+}
 
 /// 直接构造的表单字段。
 ///
@@ -69,7 +82,11 @@ class WFormTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormTextFieldConfig();
+    _applyBaseStyle(c, fieldStyle);
+    if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
+    if (fieldStyle?.hintStyle != null) c.hintStyle = fieldStyle!.hintStyle;
     c
       ..enabled = enabled
       ..obscureText = obscureText
@@ -143,7 +160,11 @@ class WFormDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormDropdownConfig();
+    _applyBaseStyle(c, fieldStyle);
+    if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
+    if (fieldStyle?.hintStyle != null) c.hintStyle = fieldStyle!.hintStyle;
     c.enabled = enabled;
     return c.build<T>(
       name: name,
@@ -202,7 +223,10 @@ class WFormMultiDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormMultiDropdownConfig();
+    _applyBaseStyle(c, fieldStyle);
+    if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
     c
       ..enabled = enabled
       ..hintText = label ?? c.hintText;
@@ -265,7 +289,10 @@ class WFormDatePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormDatePickerConfig();
+    _applyBaseStyle(c, fieldStyle);
+    if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
     c
       ..enabled = enabled
       ..decoration = InputDecoration(hintText: label);
@@ -322,7 +349,9 @@ class WFormCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormCheckboxConfig();
+    _applyBaseStyle(c, fieldStyle);
     c.enabled = enabled;
     return c.build(
       name: name,
@@ -378,7 +407,10 @@ class WFormRadioGroup<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormRadioGroupConfig();
+    _applyBaseStyle(c, fieldStyle);
+    if (fieldStyle?.textStyle != null) c.style = fieldStyle!.textStyle;
     c.enabled = enabled;
     return c.build<T>(
       name: name,
@@ -438,7 +470,9 @@ class WFormButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fieldStyle = WFormFieldStyle.of(context);
     final c = config?.copy() ?? WFormFieldButtonConfig();
+    _applyBaseStyle(c, fieldStyle);
     c
       ..enabled = enabled
       ..hintWidget = hintWidget ?? (label == null ? null : Text(label!));

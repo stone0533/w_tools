@@ -35,6 +35,10 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
       body: WForm(
         controller: _form,
         borderConfig: exampleBorderConfig,
+        fieldStyle: const WFormFieldStyle(
+          height: 52,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        ),
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [

@@ -299,6 +299,26 @@ WFormTextField(
 )
 ```
 
+页面级默认样式通过 `WForm.fieldStyle` 统一：
+
+```dart
+WForm(
+  controller: form,
+  fieldStyle: const WFormFieldStyle(
+    height: 52,
+    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+    textStyle: TextStyle(fontSize: 16),
+    hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
+  ),
+  validatorSettings: WFormValidatorSettings()
+    ..showBorderError = true,
+  child: ...,
+)
+```
+
+字段仍可用 `style` / `config` 覆盖单个字段。`WForm.validatorSettings` 会作为
+`form.validate()` / `form.validators()` 的默认设置。
+
 `WFormTextFieldCore` / `WFormDropdownCore` 等是低层核心 Widget，普通业务页面不需要直接使用。完整示例见
 [`packages/form/example`](../../packages/form/example/README.md)。
 

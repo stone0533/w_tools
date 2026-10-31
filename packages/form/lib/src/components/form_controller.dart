@@ -18,6 +18,9 @@ class WFormController {
   /// 表单 key
   final formKey = GlobalKey<FormBuilderState>();
 
+  /// WForm 提供的默认校验设置；未显式传 settings 时使用。
+  WFormValidatorSettings? validatorSettings;
+
   /// 表单字段集合（表单未挂载时为 null）
   FormBuilderFields? get fields => formKey.currentState?.fields;
 
@@ -145,7 +148,7 @@ class WFormController {
     return WFormValidator(
       formData: this,
       validationItems: items ?? [],
-      settings: settings,
+      settings: settings ?? validatorSettings,
     );
   }
 
@@ -161,6 +164,6 @@ class WFormController {
         items ??
         (fields?.keys.map(WFormValidatorItem.field).toList(growable: false) ??
             const <WFormValidatorItem>[]);
-    return validators(items: validationItems, settings: settings).validate();
+    return validators(items: validationItems, settings: settings ?? validatorSettings).validate();
   }
 }
