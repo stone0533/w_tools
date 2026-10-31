@@ -35,4 +35,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('读取 token：demo-token'), findsOneWidget);
   });
+  testWidgets('计数持久化与倒计时', (tester) async {
+    await tester.pumpWidget(const CoreExampleApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('计数 +1'));
+    await tester.pumpAndSettle();
+    expect(find.text('已保存计数：1'), findsOneWidget);
+
+    await tester.tap(find.text('读取计数'));
+    await tester.pumpAndSettle();
+    expect(find.text('读取计数：1'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('开始 5 秒倒计时'));
+    await tester.tap(find.text('开始 5 秒倒计时'));
+    await tester.pump();
+    expect(find.text('剩余：5 秒'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('剩余：4 秒'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+    expect(find.text('剩余：0 秒'), findsOneWidget);
+  });
 }

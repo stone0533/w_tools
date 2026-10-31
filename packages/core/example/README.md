@@ -6,6 +6,7 @@
 - `WHash.sha256`
 - `WEncrypt.aesEncrypt` / `aesDecrypt`
 - `WStorage.init` / `WToken`
+- `WStorage.setInt` / `getInt`
 - `WUx.debounce`
 - `WCountdown`
 - `WPlatform`
@@ -38,6 +39,10 @@ token
 
 防抖输入
   停止输入 300ms 后触发一次
+
+计数
+  计数 +1
+  读取计数
 
 倒计时
   开始 5 秒倒计时

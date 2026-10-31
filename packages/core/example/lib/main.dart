@@ -40,6 +40,7 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
   String _emailResult = '输入邮箱后点击校验';
   String _cryptoResult = '点击生成哈希与加密结果';
   String _storageResult = '尚未读取 token';
+  String _counterResult = '尚未读写计数';
   String _debounceResult = '输入内容观察防抖';
   int _remaining = 0;
   int _debounceCount = 0;
@@ -102,7 +103,8 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
     final encrypted = WEncrypt.aesEncrypt(text, keyStr: key, ivStr: iv);
     final decrypted = WEncrypt.aesDecrypt(encrypted, keyStr: key);
     setState(() {
-      _cryptoResult = 'sha256: ${WHash.sha256(text)}\n'
+      _cryptoResult =
+          'sha256: ${WHash.sha256(text)}\n'
           'encrypted: $encrypted\n'
           'decrypted: $decrypted';
     });
@@ -119,87 +121,128 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
     setState(() => _storageResult = '读取 token：${token ?? 'null'}');
   }
 
+  Future<void> _saveCounter() async {
+    final current = WStorage.getInt('demo_counter', defaultValue: 0) ?? 0;
+    final next = current + 1;
+    await WStorage.setInt('demo_counter', next);
+    if (!mounted) return;
+    setState(() => _counterResult = '已保存计数：$next');
+  }
+
+  void _readCounter() {
+    final value = WStorage.getInt('demo_counter');
+    setState(() => _counterResult = '读取计数：${value ?? 'null'}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('w_tools_core 示例')),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        children: [
-          Text('平台：${WPlatform.platformType.name}'),
-          const SizedBox(height: 16),
-          const Text('校验', style: TextStyle(fontWeight: FontWeight.w600)),
-          TextField(
-            controller: _emailController,
-            decoration: const InputDecoration(
-              labelText: '邮箱 / 待处理文本',
-              border: OutlineInputBorder(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('平台：${WPlatform.platformType.name}'),
+            Text(
+              '平台值：${WPlatform.getPlatformValue(
+                android: 'Android',
+                ios: 'iOS',
+                web: 'Web',
+                desktop: 'Desktop',
+                fallback: 'Other',
+              )}',
             ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              FilledButton(onPressed: _validateEmail, child: const Text('校验邮箱')),
-              OutlinedButton(onPressed: _runCrypto, child: const Text('哈希 + AES')),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(_emailResult),
-          const SizedBox(height: 8),
-          SelectableText(
-            _cryptoResult,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
-          ),
-          const Divider(height: 32),
-          const Text('存储', style: TextStyle(fontWeight: FontWeight.w600)),
-          TextField(
-            controller: _tokenController,
-            decoration: const InputDecoration(
-              labelText: 'token',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              FilledButton(
-                onPressed: _storageReady ? _saveToken : null,
-                child: const Text('保存 token'),
+            const SizedBox(height: 16),
+            const Text('校验', style: TextStyle(fontWeight: FontWeight.w600)),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: '邮箱 / 待处理文本',
+                border: OutlineInputBorder(),
               ),
-              OutlinedButton(
-                onPressed: _storageReady ? _readToken : null,
-                child: const Text('读取 token'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(_storageResult),
-          const Divider(height: 32),
-          const Text('防抖', style: TextStyle(fontWeight: FontWeight.w600)),
-          TextField(
-            controller: _debounceController,
-            decoration: const InputDecoration(
-              labelText: '输入内容',
-              border: OutlineInputBorder(),
             ),
-            onChanged: (_) => _debounced(),
-          ),
-          const SizedBox(height: 8),
-          Text('$_debounceResult（触发 $_debounceCount 次）'),
-          const Divider(height: 32),
-          const Text('倒计时', style: TextStyle(fontWeight: FontWeight.w600)),
-          Text('剩余：$_remaining 秒'),
-          const SizedBox(height: 8),
-          FilledButton.tonal(
-            onPressed: () {
-              _countdown.start(second: 5);
-              setState(() => _remaining = _countdown.remainingSeconds);
-            },
-            child: const Text('开始 5 秒倒计时'),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                FilledButton(onPressed: _validateEmail, child: const Text('校验邮箱')),
+                OutlinedButton(onPressed: _runCrypto, child: const Text('哈希 + AES')),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(_emailResult),
+            const SizedBox(height: 8),
+            SelectableText(
+              _cryptoResult,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+            ),
+            const Divider(height: 32),
+            const Text('存储', style: TextStyle(fontWeight: FontWeight.w600)),
+            TextField(
+              controller: _tokenController,
+              decoration: const InputDecoration(
+                labelText: 'token',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                FilledButton(
+                  onPressed: _storageReady ? _saveToken : null,
+                  child: const Text('保存 token'),
+                ),
+                OutlinedButton(
+                  onPressed: _storageReady ? _readToken : null,
+                  child: const Text('读取 token'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(_storageResult),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: _storageReady ? _saveCounter : null,
+                  child: const Text('计数 +1'),
+                ),
+                OutlinedButton(
+                  onPressed: _storageReady ? _readCounter : null,
+                  child: const Text('读取计数'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(_counterResult),
+            const Divider(height: 32),
+            const Text('防抖', style: TextStyle(fontWeight: FontWeight.w600)),
+            TextField(
+              controller: _debounceController,
+              decoration: const InputDecoration(
+                labelText: '输入内容',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) => _debounced(),
+            ),
+            const SizedBox(height: 8),
+            Text('$_debounceResult（触发 $_debounceCount 次）'),
+            const Divider(height: 32),
+            const Text('倒计时', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text('剩余：$_remaining 秒'),
+            const SizedBox(height: 8),
+            FilledButton.tonal(
+              onPressed: () {
+                _countdown.start(second: 5);
+                setState(() => _remaining = _countdown.remainingSeconds);
+              },
+              child: const Text('开始 5 秒倒计时'),
+            ),
+          ],
+        ),
       ),
     );
   }
