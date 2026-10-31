@@ -73,4 +73,37 @@ void main() {
       expect(text, contains(entry.names.first), reason: 'components.md 缺 ${entry.name}');
     }
   });
+
+  test('catalog 组件名都能在对应子包的公开声明中找到', () {
+    final packagesRoot = Directory('../../packages');
+    if (!packagesRoot.existsSync()) return;
+
+    for (final entry in catalog) {
+      final packageName = entry.package.replaceFirst('w_tools_', '');
+      final packageDir = Directory('${packagesRoot.path}/$packageName/lib');
+      if (!packageDir.existsSync()) {
+        fail('catalog 指向不存在的子包：${entry.package}');
+      }
+
+      final source = packageDir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.dart'))
+          .map((file) => file.readAsStringSync())
+          .join('\n');
+
+      for (final alias in entry.names) {
+        final name = alias.replaceAll('*', '').trim();
+        if (name.isEmpty) continue;
+        final declaration = RegExp(
+          r'\b(?:class|enum|mixin|typedef|extension)\s+' + RegExp.escape(name) + r'\b',
+        );
+        expect(
+          declaration.hasMatch(source),
+          isTrue,
+          reason: 'catalog 引用了不存在的组件：$name（${entry.package}）',
+        );
+      }
+    }
+  });
 }

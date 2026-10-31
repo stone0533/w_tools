@@ -24,6 +24,18 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 - **历史例外**：`w_tools_ui 1.1.0` 删除了 `WNetworkImageWithRetry`，按 semver 应为 2.0.0；
   当时无外部使用者，未回滚、未加兼容垫片。今后破坏性改动一律按 major 发。
 
+## 消费方 AGENTS 更新
+
+`w_tools_cli` 的 AGENTS / 文档模板变更后，消费方不会自动更新已有 `AGENTS.md`。
+发版说明中需要提醒消费方升级 CLI 后重新执行：
+
+```bash
+dart run w_tools_cli:init
+dart run w_tools_cli:init --check-drift
+```
+
+模板变更只影响后续 `init` 生成内容；已有项目必须重新 init 才会拿到新的 Form / UI / Button 规则。
+
 ## 发版步骤
 
 1. 改子包 `version` + 写 `CHANGELOG.md`（`## x.y.z`）。
