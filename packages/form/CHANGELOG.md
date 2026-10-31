@@ -4,6 +4,7 @@
 
 ### Changed
 - `WFormValidatorSettings` 改为公开可变字段，可直接回读 `showBorderError` / `continueOnError` 等配置。
+- 明确 `WFormController.validate`：未挂载返回 false，已挂载空表单返回 true；补空表单测试。
 - 新增 `WForm` 容器、`WFormFieldStyle` 默认字段样式与 `validatorSettings` 默认校验设置；config 优先级高于 fieldStyle。
 - 修复 `WFormDatePicker` 传 config 时 label hint 丢失、`WFormButton` 传 config 时 hintWidget 被清空。
 - 修复直接字段默认值覆盖 config 的 enabled / obscureText / autofocus，以及 label 污染 hintTextList；为 `WFormTextFieldConfig` 增加 hintText / decoration。

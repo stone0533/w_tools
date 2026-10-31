@@ -396,6 +396,13 @@ void main() {
     });
   });
 
+  testWidgets('已挂载空表单 validate 视为无错误', (tester) async {
+    final formData = WFormController();
+    await pumpForm(tester, formData: formData, child: const SizedBox.shrink());
+
+    expect(formData.validate(), isTrue);
+  });
+
   group('WFormValidatorItem.field — 使用字段自身 validator', () {
     testWidgets('执行字段 validator 并汇总 errors', (tester) async {
       final formData = WFormController();

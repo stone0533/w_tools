@@ -157,6 +157,8 @@ class WFormController {
   /// [items] 为 null 时自动使用当前已挂载字段的自身 validator。
   /// 业务表单优先用本方法或 [validators]，避免直接调用 formKey.validate()
   /// 造成两套错误通道。
+  ///
+  /// 表单未挂载时返回 false；已挂载但没有字段时按“无错误”返回 true。
   bool validate({WFormValidatorSettings? settings, List<WFormValidatorItem>? items}) {
     if (formKey.currentState == null) return false;
     pruneFormEntered();
