@@ -93,7 +93,8 @@
 | `WNumExtension` | ui | 数字格式化 / 间距 / 圆角 / BorderSide 糖 | 不要重复手写 toStringAsFixed / SizedBox / EdgeInsets |
 | `WStringExtension` | ui | String 转数字 / 去空格 / hex 颜色 / 资源路径 | 图片组件转换用 `WUiStringExtension` |
 | `WBoxDecorationExtension` | ui | BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影） | 不要每次重写完整 BoxDecoration |
-| `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / 点击糖 | 需要 button 语义用 `WButton` |
+| `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight | 需要 button 语义用 `WButton` |
+| `WUiWidgetExtension` | ui | `toPressable`（任意 child 点击，无 button 语义） | 需要 button 语义用 `WButton` |
 | `HexColor` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
 
 ## 10. 待补（有重复用例，尚未进包）

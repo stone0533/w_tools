@@ -182,7 +182,7 @@ const BoxDecoration()
 | 布局 | `WScaffold` / `WAppBar` / `WListView` |
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
 | 屏幕工具 | `WScreen` / `WSizeBox` / `WPadding` |
-| 扩展 | `ColorExtension` / `StringExtension` / `NumExtension` / `WidgetExtension` 等 |
+| 扩展 | `HexColor` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 
 ## License
 
