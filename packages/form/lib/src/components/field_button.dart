@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/read_only_scope.dart';
+import 'field_chrome.dart';
 import 'field_frame.dart';
 import 'form_scope.dart';
 import 'form_controller.dart';
@@ -76,33 +77,34 @@ class WFormFieldButton extends StatelessWidget {
 
 /// 表单按钮配置类，定义按钮的样式和行为。
 ///
-/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
-class WFormFieldButtonConfig {
-  static WFormFieldButtonConfigBuilder builder() => WFormFieldButtonConfigBuilder();
+/// 可变的字段配置；需要链式构建时为 [builder]。
+class WFormFieldButtonConfig extends WFormFieldChrome {
+  Widget? hintWidget;
 
-  final Widget? hintWidget;
-  final bool enabled;
-  final double? height;
-  final double? width;
-  final double? yOffset;
-  final Widget? leading;
-  final List<Widget>? actions;
-  final Decoration? containerDecoration;
-  final EdgeInsetsGeometry? containerMargin;
-  final EdgeInsetsGeometry? containerPadding;
-
-  const WFormFieldButtonConfig({
+  WFormFieldButtonConfig({
     this.hintWidget,
-    this.enabled = true,
-    this.height,
-    this.width,
-    this.yOffset,
-    this.leading,
-    this.actions,
-    this.containerDecoration,
-    this.containerMargin,
-    this.containerPadding,
-  });
+    bool enabled = true,
+    double? height,
+    double? width,
+    double? yOffset,
+    Widget? leading,
+    List<Widget>? actions,
+    Decoration? containerDecoration,
+    EdgeInsetsGeometry? containerMargin,
+    EdgeInsetsGeometry? containerPadding,
+  }) {
+    this.enabled = enabled;
+    this.height = height;
+    this.width = width;
+    this.yOffset = yOffset;
+    this.leading = leading;
+    this.actions = actions;
+    this.containerDecoration = containerDecoration;
+    this.containerMargin = containerMargin;
+    this.containerPadding = containerPadding;
+  }
+
+  static WFormFieldButtonConfigBuilder builder() => WFormFieldButtonConfigBuilder();
 
   Widget build({
     required String name,
@@ -134,11 +136,9 @@ class WFormFieldButtonConfig {
     }
 
     final baseEnabled = enabled ?? this.enabled;
-    final innerConfig =
-        (WFormFieldButtonConfigBuilder.from(this)
-              ..containerDecoration = null
-              ..enabled = baseEnabled && !readOnly)
-            .buildConfig();
+    final innerConfig = copy()
+      ..containerDecoration = null
+      ..enabled = baseEnabled && !readOnly;
 
     return WFormFieldFrame.border(
       name: name,
@@ -187,47 +187,10 @@ class WFormFieldButtonConfig {
   }
 }
 
-/// [WFormFieldButtonConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
-class WFormFieldButtonConfigBuilder {
-  Widget? hintWidget;
-  bool enabled = true;
-  double? height;
-  double? width;
-  double? yOffset;
-  Widget? leading;
-  List<Widget>? actions;
-  Decoration? containerDecoration;
-  EdgeInsetsGeometry? containerMargin;
-  EdgeInsetsGeometry? containerPadding;
-
+/// [WFormFieldButtonConfig] 的 Builder；返回可变配置副本。
+class WFormFieldButtonConfigBuilder extends WFormFieldButtonConfig {
   WFormFieldButtonConfigBuilder();
-
-  WFormFieldButtonConfigBuilder.from(WFormFieldButtonConfig config)
-    : hintWidget = config.hintWidget,
-      enabled = config.enabled,
-      height = config.height,
-      width = config.width,
-      yOffset = config.yOffset,
-      leading = config.leading,
-      actions = config.actions,
-      containerDecoration = config.containerDecoration,
-      containerMargin = config.containerMargin,
-      containerPadding = config.containerPadding;
-
-  WFormFieldButtonConfig buildConfig() {
-    return WFormFieldButtonConfig(
-      hintWidget: hintWidget,
-      enabled: enabled,
-      height: height,
-      width: width,
-      yOffset: yOffset,
-      leading: leading,
-      actions: actions,
-      containerDecoration: containerDecoration,
-      containerMargin: containerMargin,
-      containerPadding: containerPadding,
-    );
-  }
+  WFormFieldButtonConfig buildConfig() => copy();
 }
 
 /// 内部按钮字段，承载表单值、点击与选中态渲染

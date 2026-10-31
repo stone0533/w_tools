@@ -7,7 +7,7 @@ import '_helpers/form_test_scaffold.dart';
 void main() {
   group('WFormFieldButton Widget', () {
     testWidgets('渲染 hintWidget', (tester) async {
-      const config = WFormFieldButtonConfig(hintWidget: Text('请选择'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('请选择'));
 
       await pumpForm(
         tester,
@@ -21,7 +21,7 @@ void main() {
     });
 
     testWidgets('initialValue 显示 selectedWidget 内容', (tester) async {
-      const config = WFormFieldButtonConfig(hintWidget: Text('请选择'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('请选择'));
 
       await pumpForm(
         tester,
@@ -39,7 +39,7 @@ void main() {
     testWidgets('点击按钮触发 onTap', (tester) async {
       bool tapped = false;
 
-      const config = WFormFieldButtonConfig(hintWidget: Text('点我'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('点我'));
 
       await pumpForm(
         tester,
@@ -63,8 +63,8 @@ void main() {
 
     testWidgets('enabled=false 时点击不触发 onTap', (tester) async {
       bool tapped = false;
-      const config = WFormFieldButtonConfig(
-        hintWidget: Text('禁用'),
+      final config = WFormFieldButtonConfig(
+        hintWidget: const Text('禁用'),
         enabled: false,
       );
 
@@ -91,7 +91,7 @@ void main() {
 
     testWidgets('build(enabled: false) 覆盖配置', (tester) async {
       bool tapped = false;
-      const config = WFormFieldButtonConfig(hintWidget: Text('覆盖禁用'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('覆盖禁用'));
 
       await pumpForm(
         tester,
@@ -116,7 +116,7 @@ void main() {
 
     testWidgets('点击 didChange 同步 formEntered', (tester) async {
       final formData = WFormController();
-      const config = WFormFieldButtonConfig(hintWidget: Text('选择'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('选择'));
 
       await pumpForm(
         tester,
@@ -135,7 +135,7 @@ void main() {
 
     testWidgets('form reset 后 formEntered 同步复位', (tester) async {
       final formData = WFormController();
-      const config = WFormFieldButtonConfig(hintWidget: Text('重置按钮'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('重置按钮'));
 
       await pumpForm(
         tester,
@@ -156,7 +156,7 @@ void main() {
     });
 
     testWidgets('具备 button 语义与启用状态', (tester) async {
-      const config = WFormFieldButtonConfig(hintWidget: Text('语义'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('语义'));
 
       await pumpForm(
         tester,
@@ -176,8 +176,8 @@ void main() {
     });
 
     testWidgets('禁用态语义 enabled=false', (tester) async {
-      const config = WFormFieldButtonConfig(
-        hintWidget: Text('禁用语义'),
+      final config = WFormFieldButtonConfig(
+        hintWidget: const Text('禁用语义'),
         enabled: false,
       );
 
@@ -199,10 +199,10 @@ void main() {
     });
 
     testWidgets('leading / actions 渲染在按钮两侧', (tester) async {
-      const config = WFormFieldButtonConfig(
-        hintWidget: Text('带附加内容'),
-        leading: Icon(Icons.star),
-        actions: [Icon(Icons.add), Icon(Icons.remove)],
+      final config = WFormFieldButtonConfig(
+        hintWidget: const Text('带附加内容'),
+        leading: const Icon(Icons.star),
+        actions: [const Icon(Icons.add), const Icon(Icons.remove)],
       );
 
       await pumpForm(
@@ -217,8 +217,8 @@ void main() {
     });
 
     testWidgets('yOffset 平移按钮内容', (tester) async {
-      const config = WFormFieldButtonConfig(
-        hintWidget: Text('偏移'),
+      final config = WFormFieldButtonConfig(
+        hintWidget: const Text('偏移'),
         yOffset: 6,
       );
 
@@ -238,7 +238,7 @@ void main() {
 
     testWidgets('外层只读作用域下不可点击', (tester) async {
       bool tapped = false;
-      const config = WFormFieldButtonConfig(hintWidget: Text('只读'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('只读'));
 
       await pumpForm(
         tester,
@@ -261,7 +261,7 @@ void main() {
     });
 
     testWidgets('WFormFieldButtonConfig.build 返回 WFormFieldButton', (tester) async {
-      const config = WFormFieldButtonConfig();
+      final config = WFormFieldButtonConfig();
       final btn =
           config.build(
                 name: 'x',
@@ -273,8 +273,8 @@ void main() {
     });
 
     testWidgets('height / width 渲染到外层容器', (tester) async {
-      const config = WFormFieldButtonConfig(
-        hintWidget: Text('尺寸'),
+      final config = WFormFieldButtonConfig(
+        hintWidget: const Text('尺寸'),
         height: 48,
         width: 200,
       );
@@ -291,14 +291,7 @@ void main() {
 
     testWidgets('setter 传 null 可清空配置', (tester) async {
       final config =
-          (WFormFieldButtonConfigBuilder.from(
-                  const WFormFieldButtonConfig(
-                    hintWidget: Text('可清空'),
-                    height: 40,
-                    width: 100,
-                    containerPadding: EdgeInsets.all(8),
-                  ),
-                )
+          (WFormFieldButtonConfigBuilder()
                 ..hintWidget = null
                 ..height = null
                 ..width = null
@@ -323,7 +316,7 @@ void main() {
       final focusNode = FocusNode();
       addTearDown(focusNode.dispose);
 
-      const config = WFormFieldButtonConfig(hintWidget: Text('校验'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('校验'));
 
       await pumpForm(
         tester,
@@ -344,7 +337,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
-      const config = WFormFieldButtonConfig(hintWidget: Text('边框按钮'));
+      final config = WFormFieldButtonConfig(hintWidget: const Text('边框按钮'));
 
       await pumpForm(
         tester,

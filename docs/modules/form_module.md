@@ -212,8 +212,8 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 
 ## 3.5 Config 不可变与 Builder
 
-所有字段 Config 与 `WFormBorderConfig` 已完成不可变化，自行持有 `enabled / height /
-width / yOffset / leading / actions / container*` 等对应字段；不存在共享可变 Config。
+字段 Config 当前处于定向回滚阶段：`WFormFieldButtonConfig` 已恢复为可变配置并
+重新使用 `WFormFieldChrome`；其余字段 Config 与 `WFormBorderConfig` 仍保持不可变。
 
 需要链式构建时使用 Builder：
 

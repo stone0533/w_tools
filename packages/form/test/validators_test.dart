@@ -457,7 +457,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: const WFormFieldButtonConfig().build(
+        child: WFormFieldButtonConfig().build(
           bordered: true,
           name: 'btn',
           validator: (_) => '字段错误',
