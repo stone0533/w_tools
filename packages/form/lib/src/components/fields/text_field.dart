@@ -288,7 +288,6 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
     bool bordered = false,
     List<String>? hintTextList,
     bool? isTransparentBackground,
-    Key? borderKey,
     bool enableFocusBorder = true,
   }) {
     final config = bordered ? (copy()..containerDecoration = null) : this;
@@ -311,7 +310,6 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
     }
     return WFormFieldFrame.border(
       name: name,
-      borderKey: borderKey,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,

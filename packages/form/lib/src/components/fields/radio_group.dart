@@ -236,7 +236,6 @@ class WFormRadioGroupConfig extends WFormFieldBaseConfig {
     bool bordered = false,
     List<String>? hintTextList,
     bool? isTransparentBackground,
-    Key? borderKey,
     bool enableFocusBorder = true,
   }) {
     final baseEnabled = enabled ?? this.enabled;
@@ -257,7 +256,6 @@ class WFormRadioGroupConfig extends WFormFieldBaseConfig {
     }
     return WFormFieldFrame.border(
       name: name,
-      borderKey: borderKey,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,

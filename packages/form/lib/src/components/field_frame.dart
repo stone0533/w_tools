@@ -88,7 +88,6 @@ class WFormFieldFrame extends StatelessWidget {
   static Widget border({
     required String name,
     required Widget child,
-    Key? borderKey,
     List<String>? hintTextList,
     bool? isTransparentBackground,
     bool enableFocusBorder = true,
@@ -98,7 +97,6 @@ class WFormFieldFrame extends StatelessWidget {
       throw ArgumentError.value(name, 'name', '字段名称不能为空');
     }
     return WFormFieldShell(
-      key: borderKey,
       name: name,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,

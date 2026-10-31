@@ -247,4 +247,24 @@ void main() {
     expect(core.config.hintWidget, isNotNull);
     expect(find.text('config hint'), findsOneWidget);
   });
+
+  testWidgets('边框 key 按字段 name 自动注册', (tester) async {
+    final form = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormTextField(name: 'email', label: '邮箱'),
+          ),
+        ),
+      ),
+    );
+
+    expect(form.ensureBorderKey('email').currentState, isNotNull);
+    form.setError('email', errorTextList: const ['邮箱错误']);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
 }

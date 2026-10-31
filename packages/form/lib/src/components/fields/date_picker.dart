@@ -221,7 +221,6 @@ class WFormDatePickerConfig extends WFormFieldBaseConfig {
     bool bordered = false,
     List<String>? hintTextList,
     bool? isTransparentBackground,
-    Key? borderKey,
     bool enableFocusBorder = true,
   }) {
     if (!bordered) {
@@ -243,7 +242,6 @@ class WFormDatePickerConfig extends WFormFieldBaseConfig {
 
     return WFormFieldFrame.border(
       name: name,
-      borderKey: borderKey,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       readOnly: readOnly || !baseEnabled,

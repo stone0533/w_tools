@@ -51,7 +51,6 @@ class WFormTextField extends StatelessWidget {
     this.config,
     this.hintTextList,
     this.isTransparentBackground,
-    this.borderKey,
     this.enableFocusBorder = true,
   });
 
@@ -77,7 +76,6 @@ class WFormTextField extends StatelessWidget {
   final WFormTextFieldConfig? config;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
-  final Key? borderKey;
   final bool enableFocusBorder;
 
   @override
@@ -112,7 +110,6 @@ class WFormTextField extends StatelessWidget {
       bordered: bordered,
       hintTextList: hintTextList ?? _messages,
       isTransparentBackground: isTransparentBackground,
-      borderKey: borderKey,
       enableFocusBorder: enableFocusBorder,
     );
   }
@@ -139,7 +136,6 @@ class WFormDropdown<T> extends StatelessWidget {
     this.bordered = true,
     this.hintTextList,
     this.isTransparentBackground,
-    this.borderKey,
     this.enableFocusBorder = true,
     this.config,
   });
@@ -156,7 +152,6 @@ class WFormDropdown<T> extends StatelessWidget {
   final bool bordered;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
-  final Key? borderKey;
   final bool enableFocusBorder;
   final WFormDropdownConfig? config;
 
@@ -180,7 +175,6 @@ class WFormDropdown<T> extends StatelessWidget {
       bordered: bordered,
       hintTextList: hintTextList ?? _messages,
       isTransparentBackground: isTransparentBackground,
-      borderKey: borderKey,
       enableFocusBorder: enableFocusBorder,
       readOnly: readOnly,
     );
@@ -204,7 +198,6 @@ class WFormMultiDropdown extends StatelessWidget {
     this.bordered = true,
     this.hintTextList,
     this.isTransparentBackground,
-    this.borderKey,
     this.enableFocusBorder = true,
     this.config,
   });
@@ -221,7 +214,6 @@ class WFormMultiDropdown extends StatelessWidget {
   final bool bordered;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
-  final Key? borderKey;
   final bool enableFocusBorder;
   final WFormMultiDropdownConfig? config;
 
@@ -245,7 +237,6 @@ class WFormMultiDropdown extends StatelessWidget {
       bordered: bordered,
       hintTextList: hintTextList ?? _messages,
       isTransparentBackground: isTransparentBackground,
-      borderKey: borderKey,
       enableFocusBorder: enableFocusBorder,
       readOnly: readOnly,
     );
@@ -270,7 +261,6 @@ class WFormDatePicker extends StatelessWidget {
     this.bordered = true,
     this.hintTextList,
     this.isTransparentBackground,
-    this.borderKey,
     this.enableFocusBorder = true,
     this.config,
   });
@@ -288,7 +278,6 @@ class WFormDatePicker extends StatelessWidget {
   final bool bordered;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
-  final Key? borderKey;
   final bool enableFocusBorder;
   final WFormDatePickerConfig? config;
 
@@ -314,7 +303,6 @@ class WFormDatePicker extends StatelessWidget {
       bordered: bordered,
       hintTextList: hintTextList ?? _messages,
       isTransparentBackground: isTransparentBackground,
-      borderKey: borderKey,
       enableFocusBorder: enableFocusBorder,
       readOnly: readOnly,
     );
@@ -336,7 +324,6 @@ class WFormCheckbox extends StatelessWidget {
     this.bordered = false,
     this.hintTextList,
     this.isTransparentBackground,
-    this.borderKey,
     this.enableFocusBorder = true,
     this.config,
   });
@@ -351,7 +338,6 @@ class WFormCheckbox extends StatelessWidget {
   final bool bordered;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
-  final Key? borderKey;
   final bool enableFocusBorder;
   final WFormCheckboxConfig? config;
 
@@ -371,7 +357,6 @@ class WFormCheckbox extends StatelessWidget {
       bordered: bordered,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
-      borderKey: borderKey,
       enableFocusBorder: enableFocusBorder,
     );
   }
@@ -392,7 +377,6 @@ class WFormRadioGroup<T> extends StatelessWidget {
     this.bordered = false,
     this.hintTextList,
     this.isTransparentBackground,
-    this.borderKey,
     this.enableFocusBorder = true,
     this.config,
   });
@@ -409,7 +393,6 @@ class WFormRadioGroup<T> extends StatelessWidget {
   final bool bordered;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
-  final Key? borderKey;
   final bool enableFocusBorder;
   final WFormRadioGroupConfig? config;
 
@@ -434,7 +417,6 @@ class WFormRadioGroup<T> extends StatelessWidget {
       bordered: bordered,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
-      borderKey: borderKey,
       enableFocusBorder: enableFocusBorder,
     );
   }
@@ -456,7 +438,6 @@ class WFormButton extends StatelessWidget {
     this.bordered = true,
     this.hintTextList,
     this.isTransparentBackground,
-    this.borderKey,
     this.enableFocusBorder = true,
     this.config,
   });
@@ -474,7 +455,6 @@ class WFormButton extends StatelessWidget {
   final bool bordered;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
-  final Key? borderKey;
   final bool enableFocusBorder;
   final WFormFieldButtonConfig? config;
 
@@ -498,7 +478,6 @@ class WFormButton extends StatelessWidget {
       bordered: bordered,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
-      borderKey: borderKey,
       enableFocusBorder: enableFocusBorder,
     );
   }
