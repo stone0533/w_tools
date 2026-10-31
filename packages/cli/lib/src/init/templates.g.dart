@@ -138,6 +138,46 @@ const String agentsSnippet = r'''
    **按钮宽度**：`WButtonSize` / `WButtonStyle` 不含 `width`；撑满用
    `SizedBox(width: double.infinity)` 或 `Expanded`，固定宽度用外层 `SizedBox`。
    `WButton` 没有 `variant`；样式用 `style`，`label` 和 `content` 不能同时传。
+   **按钮常用写法**：
+
+   ```dart
+   // 主按钮
+   WButton(
+     style: AppButtons.primary(context),
+     label: '保存',
+     onTap: _save,
+   )
+
+   // loading
+   WButton(
+     style: AppButtons.primary(context),
+     label: '提交',
+     loading: submitting,
+     enabled: !submitting,
+     onTap: _submit,
+   )
+
+   // 全宽（label 自动居中）
+   SizedBox(
+     width: double.infinity,
+     child: WButton(
+       style: AppButtons.primary(context),
+       label: '提交',
+       onTap: _submit,
+     ),
+   )
+
+   // 表单字段选择
+   WFormButton(
+     name: 'coupon',
+     label: '请选择优惠券',
+     onTap: (_, didChange) {
+       _pickCoupon().then((value) {
+         if (value != null) didChange(value);
+       });
+     },
+   )
+   ```
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
    **图片**：网络图 / 资源图用 `WImage`；不要裸用 `Image.network` / `Image.asset`。
@@ -200,6 +240,46 @@ const String agentsSnippetEn = r'''
    **Button width**: `WButtonSize` / `WButtonStyle` do not contain `width`; use
    `SizedBox(width: double.infinity)` or `Expanded` to fill, and an outer `SizedBox` for fixed width.
    `WButton` has no `variant`; use `style`; do not pass both `label` and `content`.
+   **Common button usage**:
+
+   ```dart
+   // primary action
+   WButton(
+     style: AppButtons.primary(context),
+     label: 'Save',
+     onTap: _save,
+   )
+
+   // loading
+   WButton(
+     style: AppButtons.primary(context),
+     label: 'Submit',
+     loading: submitting,
+     enabled: !submitting,
+     onTap: _submit,
+   )
+
+   // full width (label is centered)
+   SizedBox(
+     width: double.infinity,
+     child: WButton(
+       style: AppButtons.primary(context),
+       label: 'Submit',
+       onTap: _submit,
+     ),
+   )
+
+   // form field selection
+   WFormButton(
+     name: 'coupon',
+     label: 'Select a coupon',
+     onTap: (_, didChange) {
+       _pickCoupon().then((value) {
+         if (value != null) didChange(value);
+       });
+     },
+   )
+   ```
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
