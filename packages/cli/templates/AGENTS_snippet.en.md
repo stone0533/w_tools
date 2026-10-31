@@ -33,7 +33,9 @@
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
-   **Images**: use `WImage` for network/asset images; do not use `Image.network` / `Image.asset` directly.
+   **Images**: use `WImage.network` for network images and
+   `WImage.asset(name, prefix: true)` for assets; use `WImageStyle` for visuals and
+   `WImageConfig` for loading/retry/placeholders. Do not use `Image.network` / `Image.asset` directly.
    **Overlays / toasts**: when `w_tools_form` is enabled, use `WFormPopup` for anchored
    selection; when `w_tools_app` is enabled, use `WBottomSheet`; use `WToast` for light
    feedback and Flutter `showDialog` for confirmation.

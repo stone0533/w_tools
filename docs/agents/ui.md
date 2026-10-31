@@ -5,11 +5,12 @@
 ## 图片
 
 ```text
-网络图 / 资源图 → WImage
+网络图 → WImage.network
+资源图 → WImage.asset(name, prefix: true)
 不要裸用 Image.network / Image.asset
 ```
 
-`WImage` 负责缓存、占位、重试等网络图细节；普通图片也优先复用它，避免各页面重复处理加载态。
+`WImageStyle` 管视觉，`WImageConfig` 管加载 / 重试 / 占位；普通图片也优先复用 `WImage`。
 
 ## 扩展方法
 

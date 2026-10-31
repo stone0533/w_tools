@@ -31,7 +31,9 @@
    `disabledOpacity: 1`，避免二次变淡。
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
-   **图片**：网络图 / 资源图用 `WImage`；不要裸用 `Image.network` / `Image.asset`。
+   **图片**：网络图用 `WImage.network`；资源图用 `WImage.asset(name, prefix: true)`；
+   视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageConfig`；不要裸用
+   `Image.network` / `Image.asset`。
    **弹层 / 提示**：若启用 `w_tools_form`，锚定选择用 `WFormPopup`；若启用
    `w_tools_app`，底部面板用 `WBottomSheet`；轻提示用 `WToast`；确认框用 Flutter `showDialog`。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
