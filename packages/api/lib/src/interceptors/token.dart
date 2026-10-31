@@ -131,14 +131,14 @@ class WTokenInterceptor extends Interceptor {
     // 获取请求级别的重试计数
     final retryCount = (err.requestOptions.extra['_retryCount'] as int?) ?? 0;
 
+    // 无论如何先清除失效 token；即使不重试，也不应把旧 token 留在存储里。
+    await tokenClearer?.call();
+
     if (retryCount >= maxAuthRetries) {
       WApiConfig.logErrorHandler?.call('Max authentication retry attempts reached');
       super.onError(err, handler);
       return;
     }
-
-    // 清除失效 token
-    await tokenClearer?.call();
     WApiConfig.logDebugHandler?.call('Unauthorized, token cleared');
 
     await _callAuthErrorCallback(err, handler, retryCount);

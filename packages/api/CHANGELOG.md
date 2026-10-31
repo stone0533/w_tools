@@ -12,3 +12,4 @@
 - 新增 `IApiPath` / `ApiClientId`：基础 URL 契约与客户端标识
 - 修复短 token（长度正好 10）在调试日志中完整输出的问题。
 - 补充响应头脱敏与自定义 `redactedHeaders` 测试。
+- 401 在达到重试上限时也先清除失效 token。

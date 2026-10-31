@@ -401,6 +401,47 @@ void main() {
       expect(authErrorCalled, 1, reason: '401 仍应触发刷新，二者不再互斥');
     });
 
+    test('tokenRefresher 为 null 时仍清除 token 并结束', () async {
+      var clearCount = 0;
+      final dio = Dio()..httpClientAdapter = _MockAdapter(statusCode: 401);
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired',
+          tokenClearer: () async => clearCount++,
+        ),
+      );
+
+      await expectLater(
+        dio.get('https://example.com/api'),
+        throwsA(isA<DioException>()),
+      );
+      expect(clearCount, 1);
+    });
+
+    test('maxAuthRetries=0 时清除 token 但不重试', () async {
+      var clearCount = 0;
+      var refreshCount = 0;
+      final dio = Dio()..httpClientAdapter = _MockAdapter(statusCode: 401);
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired',
+          tokenClearer: () async => clearCount++,
+          tokenRefresher: () async {
+            refreshCount++;
+            return 'new';
+          },
+          maxAuthRetries: 0,
+        ),
+      );
+
+      await expectLater(
+        dio.get('https://example.com/api'),
+        throwsA(isA<DioException>()),
+      );
+      expect(clearCount, 1);
+      expect(refreshCount, 0);
+    });
+
     test('tokenRefresher 抛异常时不逃逸，请求以原错误结束', () async {
       final adapter = _MockAdapter(statusCode: 401);
       final dio = Dio()..httpClientAdapter = adapter;
