@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 
 /// Padding 工具类，提供静态工厂方法
 class WPadding {
+  /// 创建四边相同 padding 的 Padding
+  static Padding all(double padding, {required Widget child}) {
+    return Padding(
+      padding: EdgeInsets.all(padding),
+      child: child,
+    );
+  }
+
   /// 创建只包含水平 padding 的 Padding
   static Padding horizontal(double padding, {required Widget child}) {
     return Padding(

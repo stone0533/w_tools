@@ -363,6 +363,18 @@ void main() {
   });
 
   group('WPadding', () {
+    testWidgets('WPadding.all', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WPadding.all(10, child: const Text('Test')),
+          ),
+        ),
+      );
+      final padding = tester.widget<Padding>(find.byType(Padding));
+      expect(padding.padding, const EdgeInsets.all(10));
+    });
+
     testWidgets('WPadding.horizontal', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
