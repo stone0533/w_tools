@@ -386,7 +386,7 @@ void main() {
     });
 
     test('WSizeBox.size', () {
-      final box = WSizeBox.size(10, 20, null);
+      final box = WSizeBox.size(10, 20);
       expect(box.width, 10);
       expect(box.height, 20);
     });

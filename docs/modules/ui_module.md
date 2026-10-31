@@ -1650,7 +1650,6 @@ Container(
 
 ```dart
 WRow.min(children: [...])
-WRow.iconWithText(icon: ..., spacing: 8, text: ...)
 WColumn.min(children: [...])
 ```
 

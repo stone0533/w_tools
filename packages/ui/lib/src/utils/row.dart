@@ -29,19 +29,4 @@ class WRow {
       children: children,
     );
   }
-
-  /// 创建包含图标、间距和文本的 Row
-  static Row iconWithText({
-    required Widget icon,
-    required double spacing,
-    required Widget text,
-  }) {
-    return Row(
-      children: [
-        icon,
-        SizedBox(width: spacing),
-        text,
-      ],
-    );
-  }
 }

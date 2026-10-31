@@ -13,7 +13,7 @@ class WSizeBox {
   }
 
   /// 创建指定尺寸的 SizedBox
-  static SizedBox size(double width, double height, Widget? child) {
+  static SizedBox size(double width, double height, {Widget? child}) {
     return SizedBox(width: width, height: height, child: child);
   }
 }

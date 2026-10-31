@@ -76,10 +76,10 @@ class WImagePreloader {
   ///
   /// 缩小上限后若已超限，会立即按 LRU 清理。
   void configureLimits({int? maxCacheSize, int? maxCacheMemory}) {
-    if (maxCacheSize != null && maxCacheSize > 0) {
+    if (maxCacheSize != null && maxCacheSize >= 0) {
       _maxCacheSize = maxCacheSize;
     }
-    if (maxCacheMemory != null && maxCacheMemory > 0) {
+    if (maxCacheMemory != null && maxCacheMemory >= 0) {
       _maxCacheMemory = maxCacheMemory;
     }
     if (_cache.length > _maxCacheSize || _currentCacheMemory > _maxCacheMemory) {
@@ -113,27 +113,30 @@ class WImagePreloader {
       return item.data;
     }
 
-    _cacheMisses++;
-    // 检查是否已有请求
+    // 检查是否已有请求；并发请求不应重复计 miss
     if (_pendingRequests.containsKey(assetPath)) {
       return _pendingRequests[assetPath]!.future;
     }
 
+    _cacheMisses++;
     // 创建新的请求
     final completer = Completer<Uint8List>();
     _pendingRequests[assetPath] = completer;
 
     try {
       final byteData = await rootBundle.load(assetPath);
-      final uint8List = byteData.buffer.asUint8List();
+      final uint8List = byteData.buffer.asUint8List(
+        byteData.offsetInBytes,
+        byteData.lengthInBytes,
+      );
       final cacheItem = _CacheItem(uint8List);
 
       // 超过单张图片内存上限时不入缓存，避免缓存被单张图片撑爆
-      if (cacheItem.size <= _maxCacheMemory) {
-        // 检查缓存大小和内存限制
+      if (_maxCacheSize > 0 && cacheItem.size <= _maxCacheMemory) {
+        // 检查缓存大小和内存限制；requiredSlots=1 保证插入后不超数量上限
         if (_cache.length >= _maxCacheSize ||
             _currentCacheMemory + cacheItem.size > _maxCacheMemory) {
-          _cleanCacheUntilAvailable(cacheItem.size);
+          _cleanCacheUntilAvailable(cacheItem.size, requiredSlots: 1);
         }
 
         _currentCacheMemory += cacheItem.size;
@@ -184,9 +187,9 @@ class WImagePreloader {
   ///
   /// 按最近访问时间从旧到新清理，直到同时满足内存与数量上限。
   /// - [requiredSize]：需要的空间大小
-  void _cleanCacheUntilAvailable(int requiredSize) {
+  void _cleanCacheUntilAvailable(int requiredSize, {int requiredSlots = 0}) {
     final targetMemory = _currentCacheMemory + requiredSize - _maxCacheMemory;
-    final targetCount = _cache.length - _maxCacheSize;
+    final targetCount = _cache.length + requiredSlots - _maxCacheSize;
 
     if (targetMemory <= 0 && targetCount <= 0) return;
 
