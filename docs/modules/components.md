@@ -47,20 +47,20 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WFormTextField` / `WForm.textFieldStyle1` | form | 输入框（含校验、清除、密码显隐） | **不要**自己画 `Container + TextField` |
-| `WFormBorder` / `WForm.field` | form | 输入框的框与标签（错误态） | — |
-| `WFormDropdown` / `WFormMultiDropdown` | form | 下拉、多选 | 选择类面板用 `WForm.showBottomSheet`（ADR-0002） |
-| `WFormCheckbox` / `WFormRadioGroup` | form | 复选、单选 | — |
-| `WFormDatePicker` | form | 日期选择 | — |
-| `WFormValidator*` | form | 表单校验 | — |
-| `WFormFieldButton` | form | 带样式的表单按钮（登录/注册/主按钮） | 任意内容点击用 `WPressable` |
+| `WForm` | form | 页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验 | 不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` |
+| `WFormTextField` | form | 直接文本 / 密码字段（label / message / validator） | 不要默认写 `WFormTextFieldConfig().build(...)` |
+| `WFormDropdown` / `WFormMultiDropdown` | form | 直接下拉 / 多选字段 | 选择类弹层用 `WFormPopup` |
+| `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` | form | 直接日期 / 复选 / 单选字段 | — |
+| `WFormButton` | form | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层用 `WFormFieldButtonCore` |
+| `WFormFieldStyle` | form | 页面级字段默认高度 / 内边距 / 文字 / hint 样式 | 字段特殊样式用字段 `config` 覆盖 |
+| `WFormValidatorSettings` | form | 校验行为：边框错误、短路 / 全量、回调 | — |
+| `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
 
 ## 6. 弹层
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WBottomSheet` | app | 底部面板外壳 | — |
-| `WForm.showBottomSheet` | form | 选择类面板（42 高行、无勾选图标） | **不要**自己写 sheet（ADR-0002） |
 | `WFormPopup` | form | **锚定式**下拉弹层（贴在输入框下方） | ⚠️ 它不是居中对话框，别拿来做「确认弹窗」 |
 
 ## 7. 状态与反馈

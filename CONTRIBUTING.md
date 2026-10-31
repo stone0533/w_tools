@@ -24,6 +24,7 @@
 
 ## 3. 文档
 
+- 表单相关改动先看 [`docs/agents/form.md`](docs/agents/form.md)
 - 组件加进 [`docs/modules/components.md`](docs/modules/components.md) 的对应表格：
   **用来做什么 / 不要用在哪 / 引入版本**
 - 「不要用在哪」比「怎么用」更有价值——误用是主要故障源

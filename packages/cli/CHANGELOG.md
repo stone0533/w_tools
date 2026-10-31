@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- 组件目录同步 Form 的 `WForm` / 直接字段 / `WFormFieldStyle` 入口，移除旧 App helper 名称。
+
 ## 1.3.0
 
 ### Added
