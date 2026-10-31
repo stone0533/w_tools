@@ -113,6 +113,55 @@ void main() {
       expect(joined, isNot(contains('key-secret')));
     });
 
+    test('敏感响应头默认脱敏', () async {
+      List<String> logs = [];
+      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
+
+      final adapter = _MockAdapter(
+        responseHeaders: {
+          'set-cookie': ['session=super-secret'],
+          'x-trace-id': ['trace-ok'],
+        },
+      );
+      final dio = Dio()..httpClientAdapter = adapter;
+      dio.interceptors.add(WLogInterceptor(responseHeader: true));
+
+      await dio.get('https://example.com/api');
+      await Future.microtask(() {});
+
+      final joined = logs.join();
+      expect(joined, contains('set-cookie: ***'));
+      expect(joined, contains('x-trace-id: trace-ok'));
+      expect(joined, isNot(contains('super-secret')));
+    });
+
+    test('可自定义脱敏响应头', () async {
+      List<String> logs = [];
+      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
+
+      final adapter = _MockAdapter(
+        responseHeaders: {
+          'x-custom-secret': ['secret'],
+          'x-public': ['ok'],
+        },
+      );
+      final dio = Dio()..httpClientAdapter = adapter;
+      dio.interceptors.add(
+        WLogInterceptor(
+          responseHeader: true,
+          redactedHeaders: {'x-custom-secret'},
+        ),
+      );
+
+      await dio.get('https://example.com/api');
+      await Future.microtask(() {});
+
+      final joined = logs.join();
+      expect(joined, contains('x-custom-secret: ***'));
+      expect(joined, contains('x-public: ok'));
+      expect(joined, isNot(contains('x-custom-secret: secret')));
+    });
+
     test('request=false 时不打印请求详情', () async {
       List<String> logs = [];
       WApiConfig.logDebugHandler = (m) => logs.add(m.toString());

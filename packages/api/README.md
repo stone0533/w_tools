@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/w_tools_api.svg)](https://pub.dev/packages/w_tools_api)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`w_tools_api` 是 w_tools 的网络层，基于 Dio 提供多客户端注册、日志与 Token 拦截器、统一错误处理及 Repository 基类。
+`w_tools_api` 是 w_tools 的网络层，基于 Dio 提供多客户端注册、日志与 Token 拦截器、401 刷新与错误提示，以及 Repository 基类。
 
 ## 特性
 
@@ -12,6 +12,8 @@
 - **配置收敛**：`WApiConfig` 提供默认 `BaseOptions`
 - **Repository 基类**：`BaseRepository` 统一持有本地 / 远程数据源
 - **路径契约**：`IApiPath` 供业务实现基础 URL
+
+`IApiPath` / `ApiClientId` 是业务侧扩展契约，库内部不强制使用；`DioRegistry` 仍按 `baseUrl` 缓存实例。
 
 ## 安装
 
