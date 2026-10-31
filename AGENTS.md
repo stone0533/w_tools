@@ -4,6 +4,10 @@
 
 新页面表单默认使用 `WForm` + 直接字段（`WFormTextField` 等），不要从 `Config.build` 开始；详见 [`docs/agents/form.md`](docs/agents/form.md)。
 
+按钮、图片、页面骨架和弹层的组件选择规则见 [`docs/agents/README.md`](docs/agents/README.md)。
+
+- 普通业务按钮用 `WButton`；任意 child 点击用 `WPressable`；表单字段值选择用 `WFormButton`。
+
 改动 `packages/*` 里的组件前：先读 [`CONTRIBUTING.md`](CONTRIBUTING.md)（新增组件的 4 条硬性要求），
 再查 [`docs/modules/components.md`](docs/modules/components.md)（有没有现成的、别重复造），
 接口设计原则见 [`docs/conventions.md`](docs/conventions.md) §6。
