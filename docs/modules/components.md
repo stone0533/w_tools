@@ -86,7 +86,17 @@
 | `WApiConfig` | api | 请求配置与日志注入 |
 | `WRoute` | app | 路由工具 |
 
-## 9. 待补（有重复用例，尚未进包）
+## 9. 扩展
+
+| 组件 | 子包 | 用来做什么 | **不要用在哪** |
+| --- | --- | --- | --- |
+| `WNumExtension` | ui | 数字格式化 / 间距 / 圆角 / BorderSide 糖 | 不要重复手写 toStringAsFixed / SizedBox / EdgeInsets |
+| `WStringExtension` | ui | String 转数字 / 去空格 / hex 颜色 / 资源路径 | 图片组件转换用 `WUiStringExtension` |
+| `WBoxDecorationExtension` | ui | BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影） | 不要每次重写完整 BoxDecoration |
+| `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / 点击糖 | 需要 button 语义用 `WButton` |
+| `HexColor` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
+
+## 10. 待补（有重复用例，尚未进包）
 
 | 组件 | 现状 | 计划去向 |
 | --- | --- | --- |
@@ -97,7 +107,7 @@
 | **空态**（80 圆 + 图标 + 文案） | 各项目各写一份 | `w_tools_ui` |
 | **语义颜色 token**（`#3F3F3F`/`#545454`/`#EAEAEA`/`#409C35`…） | 全项目硬编码 | `w_tools_core` |
 
-## 10. 版本
+## 11. 版本
 
 版本以各包 `pubspec.yaml` 与 pub.dev 为准，**不要在这里硬编码**（历史上这张表已经漂移过）。
 聚合包 `w_tools` 只做 re-export，消费方不要依赖它（理由见

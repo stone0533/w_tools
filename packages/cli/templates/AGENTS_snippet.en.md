@@ -41,6 +41,9 @@
    in the theme, `WTextConfig` has been removed; do not build styles field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
    Minimal example: `WText(text: 'Title', variant: WTextVariant.title)`.
+   **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
+   `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; `num.heightBox` / `allPadding` for spacing;
+   compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
    **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
    in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme,
    so theme-aware typography must use `builderWrapper`.

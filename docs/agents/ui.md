@@ -11,6 +11,17 @@
 
 `WImage` 负责缓存、占位、重试等网络图细节；普通图片也优先复用它，避免各页面重复处理加载态。
 
+## 扩展方法
+
+```text
+数字格式化 → toThousandsSeparated / toCurrency / toPercent
+hex 颜色 → HexColor.fromHex / '#rrggbb'.toColor()
+间距 → num.heightBox / allPadding
+BoxDecoration → withColor / withBorderRadius / withShadow
+```
+
+新增通用工具前先看 `packages/ui/lib/src/extensions/` 是否已有。
+
 ## 页面骨架
 
 ```text

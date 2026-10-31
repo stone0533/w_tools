@@ -156,6 +156,23 @@ DefaultTabController(
 
 `WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`。
 
+## 扩展方法
+
+```dart
+16.heightBox;                 // SizedBox(height: 16)
+16.allPadding;                // EdgeInsets.all(16)
+1234.toThousandsSeparated;    // 1,234
+1234.56.toCurrency(symbol: '¥'); // ¥1,234.56
+0.125.toPercent;              // 12.5%
+'#FF5733'.toColor();
+
+const BoxDecoration()
+    .withColor(Colors.white)
+    .withBorderRadius(BorderRadius.circular(8));
+```
+
+扩展方法随 `package:w_tools_ui/w_tools_ui.dart` 一起导入。
+
 ## 主要 API
 
 | 能力 | 入口 |
