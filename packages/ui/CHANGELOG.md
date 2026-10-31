@@ -15,6 +15,7 @@
 - `WGradientCircularProgressIndicator` 语义进度与绘制进度统一 clamp；`WBadge` 显示徽章时断言 `badgeContent` 非空。
 - `WBadge` 在 build 时再次校验 `badgeContent`，并防止空角标；`WGradientCircularProgressIndicator` 增加 `value.isFinite` 断言与非有限数兜底。
 - `WRowButtonsController` 删除未使用的 `scrollThreshold`；相同索引不再重复通知；补充 controller dispose 顺序文档。
+- `WRowButtonsController` 首次布局自动居中 `initialIndex`，新增 `ensureVisible`；`overScroll` 增加非负断言；`onCanTap` 文档说明应为轻量纯函数。
 - 重命名：`num.toThousand` → `num.toThousandsSeparated`；`Widget.withBottomSafeSpace` → `Widget.withBottomBarSpace`（后者明确是底部导航栏空间，不是系统 safe area）；`WScreen.bottomBarHeight` → `WScreen.bottomSafeAreaHeight`。
 - Navigation 加固：`WNavController.currentIndex` 会停止进行中的动画并在 dispose 后安全返回；`WNavBar` 增加 button/selected 语义；`WTabBar` 改为无状态并支持 `overlayColor`。
 

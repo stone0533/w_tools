@@ -126,6 +126,35 @@ void main() {
   group('WRowButtons - Widget Test', () {
     const length = 5;
 
+    test('overScroll 不能为负', () {
+      expect(
+        () => WRowButtonsController(length: length, overScroll: -1),
+        throwsAssertionError,
+      );
+    });
+
+    testWidgets('initialIndex 首次布局后居中', (tester) async {
+      final controller = WRowButtonsController(length: length, initialIndex: 4);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 100,
+              height: 50,
+              child: WRowButtons(
+                controller: controller,
+                builder: (_, index, selected) => SizedBox(width: 80, child: Text('btn$index')),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(controller.scrollController.offset, greaterThan(0));
+    });
+
     testWidgets('initialIndex 为 null 时，所有按钮都不被选中', (tester) async {
       final controller = WRowButtonsController(length: length);
       final selectedStates = <bool>[];

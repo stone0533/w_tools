@@ -52,7 +52,7 @@ class WRowButtons extends StatefulWidget {
   /// 控制器
   final WRowButtonsController controller;
 
-  /// 是否可以点击回调
+  /// 是否可以点击回调；应为轻量纯函数
   ///
   /// [index] 按钮索引
   final bool Function(int index)? onCanTap;
@@ -102,6 +102,15 @@ class _WRowButtonsState extends State<WRowButtons> {
     if (widget.onScroll != null) {
       scrollController.addListener(_onScroll);
     }
+
+    // 首次布局后把 initialIndex 移到视口中间
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final index = widget.controller.index;
+      if (index != null) {
+        widget.controller.ensureVisible(index, duration: Duration.zero);
+      }
+    });
   }
 
   @override
@@ -319,6 +328,7 @@ class WRowButtonsController {
     this.overScroll = 0.0,
   })  : _index = initialIndex,
         _indexNotifier = ValueNotifier(initialIndex) {
+    assert(overScroll >= 0, 'overScroll 不能为负');
     // 检查按钮数量是否为正数
     if (length <= 0) {
       throw ArgumentError('按钮数量必须为正数');
@@ -424,6 +434,19 @@ class WRowButtonsController {
     } catch (e) {
       // 忽略尚未完成布局等场景，避免影响点击主流程
     }
+  }
+
+  /// 确保指定索引在视口中间（不改变选中索引）
+  void ensureVisible(
+    int index, {
+    Duration? duration,
+    Curve? curve,
+  }) {
+    _scrollToButton(
+      index,
+      duration: duration ?? animationDuration,
+      curve: curve ?? scrollCurve,
+    );
   }
 
   /// 动画滚动到指定索引
