@@ -116,5 +116,13 @@ WApp createApp() {
 }
 
 Future<void> main() async {
-  await createApp().start();
+  await createApp().start(
+    customTasks: [
+      Future<void>.delayed(
+        const Duration(milliseconds: 120),
+        () => startupEvents.add('custom task: done'),
+      ),
+    ],
+    onLazyInit: () => startupEvents.add('first frame: lazy init'),
+  );
 }
