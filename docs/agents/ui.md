@@ -16,7 +16,7 @@
 ```text
 普通页面 → WScaffold + WAppBar
 底部 tab → WNavBar / WNavController
-顶部 tab → WTabBar
+顶部 tab → WTabBar（依赖 TabController / DefaultTabController）
 步骤流程 → WStep / WStepFlow
 ```
 

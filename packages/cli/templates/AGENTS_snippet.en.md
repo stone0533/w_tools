@@ -20,6 +20,8 @@
    **Bottom navigation**: use `WNavBar` + `WNavController`; `WNavController` needs `vsync`,
    is created in the page State and disposed there; use `WTabBar` for top tabs. Do not hand-roll
    `BottomNavigationBar`.
+   is created in the page State and disposed there; use `WTabBar` for top tabs. It requires
+   `TabController` / `DefaultTabController` and does not own one. Do not hand-roll `BottomNavigationBar`.
    **Buttons** use `AppButtons.primary/secondary/text/danger(context)`; do not write
    `WButtonStyle` in pages unless it is an explicit one-off style.
    **Use `WButton` for real buttons and `WPressable` for arbitrary cards/child taps**;

@@ -43,7 +43,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     package: "w_tools_ui",
     section: "1. 页面骨架与导航",
     useFor: "顶部 tab",
-    dontUseFor: "需要下划线跟随的复杂交互时先看它够不够",
+    dontUseFor: "需要 TabController / DefaultTabController，WTabBar 不自带 controller；需要下划线跟随的复杂交互时先看它够不够",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
   ),

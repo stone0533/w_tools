@@ -18,6 +18,8 @@
    AppBar 默认样式只在 `AppBars.style` 修改。
    **底部导航**：用 `WNavBar` + `WNavController`；`WNavController` 需要 `vsync`，
    在页面 State 创建并 `dispose`；顶部 tab 用 `WTabBar`。不要自己写 `BottomNavigationBar`。
+   在页面 State 创建并 `dispose`；顶部 tab 用 `WTabBar`，它依赖
+   `TabController` / `DefaultTabController`，不自带 controller。不要自己写 `BottomNavigationBar`。
    **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
    `WButtonStyle`，除非是明确的局部一次性样式。
    **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；表单字段值选择用

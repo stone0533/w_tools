@@ -1517,6 +1517,28 @@ _controller.currentIndex; // 当前选中索引
 增强版标签栏，支持自定义样式、指示器、分割线。
 
 `WTabBarConfig.overlayColor` 控制点击 / hover overlay；默认透明。
+`WTabBarConfig.overlayColor` 控制点击 / hover overlay；默认透明。
+
+`WTabBar` 不自带 controller，必须由 `DefaultTabController` 提供，或显式传入 `TabController`：
+
+```dart
+DefaultTabController(
+  length: 2,
+  child: Column(
+    children: [
+      WTabBar(
+        config: WTabBarConfig(),
+        tabs: const [Text('全部'), Text('已完成')],
+      ),
+      const Expanded(
+        child: TabBarView(
+          children: [Text('全部内容'), Text('已完成内容')],
+        ),
+      ),
+    ],
+  ),
+)
+```
 
 ---
 

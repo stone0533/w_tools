@@ -133,6 +133,29 @@ class _NavDemoState extends State<NavDemo> {
 
 `WNavController` 需要页面 State 提供 `vsync`，并由调用方 `dispose`。
 
+顶部 tab：
+
+```dart
+DefaultTabController(
+  length: 2,
+  child: Column(
+    children: [
+      WTabBar(
+        config: WTabBarConfig(),
+        tabs: const [Text('全部'), Text('已完成')],
+      ),
+      const Expanded(
+        child: TabBarView(
+          children: [Text('全部内容'), Text('已完成内容')],
+        ),
+      ),
+    ],
+  ),
+)
+```
+
+`WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`。
+
 ## 主要 API
 
 | 能力 | 入口 |
