@@ -32,6 +32,10 @@ class WAsyncPagedController<T> {
   ValueListenable<bool> get isLoadingMore => _isLoadingMore;
   ValueListenable<Object?> get loadMoreError => _loadMoreError;
 
+  /// 是否还有下一页。
+  ///
+  /// 这是普通 getter，不是 ValueListenable；footer 应同时监听
+  /// [isLoadingMore] / [loadMoreError] / [state]。
   bool get hasMore => _hasMore;
 
   /// 重新加载第一页；失败时保留旧数据。

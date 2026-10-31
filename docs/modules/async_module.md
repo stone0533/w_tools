@@ -402,7 +402,8 @@ await gifts.loadMore();
 - `state`：`WAsyncState<List<T>>`
 - `isLoadingMore`：追加中
 - `loadMoreError`：追加失败，不进入 `state.failed`
-- `hasMore`：是否还有下一页
+- `hasMore`：是否还有下一页；它是普通 getter，不是 `ValueListenable`
+  footer 应同时监听 `isLoadingMore` / `loadMoreError` / `state`，不要只监听 `state`
 
 `initial` 传 `WAsyncState.ready(data)` 表示第一页已经加载，下一次 `loadMore()`
 会从 `initialPage + 1` 开始；`hasMore` 默认仍为 true，若 initial 已是最后一页，
