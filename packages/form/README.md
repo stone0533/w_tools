@@ -93,6 +93,18 @@ class _LoginFormState extends State<LoginForm> {
 }
 ```
 
+## 不推荐的入口写法
+
+普通页面不要从 `Config.build` 开始：
+
+```dart
+// 不推荐
+(WFormTextFieldConfig()..height = 52).build(name: 'email')
+
+// 推荐
+WFormTextField(name: 'email', label: '邮箱')
+```
+
 ## 高级样式
 
 普通页面不需要 Config。需要单独调整样式时再传 `config`：

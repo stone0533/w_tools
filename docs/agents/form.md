@@ -39,6 +39,15 @@ WForm(
 2. 字段直接用 `WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` / `WFormButton`。
 3. 普通页面不要写 `WFormTheme`、`WFormScope`、`WFormReadOnlyScope` 三层嵌套。
 4. 普通页面不要用 `WFormTextFieldConfig().build(...)`；需要特殊样式时传 `config`。
+
+```dart
+// 不推荐作为页面入口
+(WFormTextFieldConfig()..height = 52).build(name: 'email')
+
+// 推荐
+WFormTextField(name: 'email', label: '邮箱')
+```
+
 5. 样式优先级：字段 `config` > `WForm.fieldStyle` > 默认值。
 6. 字段 Config 可变，一个字段一份，不要跨字段共享。
 7. `WForm` 与 `WFormController` 一对一使用。

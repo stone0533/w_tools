@@ -167,6 +167,9 @@ WFormScope(
 
 ## 3. WFormTheme / WFormDefaults — 表单主题
 
+> 普通页面优先使用 §3.6 的 `WForm`，它内部会创建 `WFormTheme` 与 `WFormScope`。
+> 本节说明底层主题能力，供自定义布局使用。
+
 推荐用 `WFormTheme` 做作用域隔离：
 
 ```dart
@@ -420,10 +423,11 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 
 ---
 
-## 5. 字段组件
+## 5. 字段组件（直接用法 / 低层细节）
 
 > 日常业务页面优先使用 §3.6 的 `WForm` + 直接字段（`WFormTextField` 等）。
-> 本节描述低层 `*Core` / `Config` 行为，`Config.build(...)` 示例只用于高级定制。
+> 本节示例默认使用直接字段；只有需要特殊样式时，才在示例中传 `config`。
+> `Config.build(...)` / `*Core` 属于低层实现，不作为页面主入口。
 
 所有字段组件遵循统一模式：
 - `XxxConfig` + `Xxx` 组件 + 单一构建入口 `build(bordered: bool)`
@@ -475,20 +479,23 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 #### 使用示例
 
 ```dart
-(WFormTextFieldConfig()
-  ..style = const TextStyle(fontSize: 16)
-  ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
-  ..inputFormatters = [FilteringTextInputFormatter.digitsOnly])
-    .build(
+WFormTextField(
   name: 'username',
-  hintText: '请输入用户名',
+  label: '用户名',
+  message: '请输入用户名',
+  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
   validator: (v) => (v?.isEmpty ?? true) ? '请输入' : null,
-  bordered: true,
+  config: WFormTextFieldConfig()
+    ..style = const TextStyle(fontSize: 16),
 ),
 
-// 密码字段（带可见性切换 + 清空按钮）
-(WFormTextFieldConfig()..obscureText = true)
-    .build(name: 'password', bordered: true),
+// 密码字段（带可见性切换）
+WFormTextField(
+  name: 'password',
+  label: '密码',
+  obscureText: true,
+  actions: const [WFormTextFieldPasswordToggle()],
+),
 ```
 
 ### 5.2 WFormDropdown\<T\>
@@ -503,13 +510,11 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 ```dart
 enum Gender { male, female }
 
-(WFormDropdownConfig()..style = const TextStyle(fontSize: 16))
-    .build(
+WFormDropdown<Gender>(
   name: 'gender',
+  label: '性别',
   items: const {Gender.male: '男', Gender.female: '女'},
   initialValue: Gender.male,
-  hint: '请选择性别',
-  bordered: true,
 ),
 ```
 
@@ -526,12 +531,11 @@ enum Gender { male, female }
 #### 使用示例
 
 ```dart
-(WFormMultiDropdownConfig()..disabledKeys = const {'music'})
-    .build(
+WFormMultiDropdown(
   name: 'hobbies',
+  label: '爱好',
   items: const {'read': '阅读', 'sport': '运动', 'music': '音乐'},
-  hintText: '请选择爱好',
-  bordered: true,
+  config: WFormMultiDropdownConfig()..disabledKeys = const {'music'},
 ),
 ```
 
@@ -555,12 +559,21 @@ enum Gender { male, female }
 #### 使用示例
 
 ```dart
-(WFormDatePickerConfig()..displayFormat = 'yyyy-MM-dd')
-    .build(
+WFormDatePicker(
   name: 'birthday',
+  label: '生日',
   firstDate: DateTime(1900),
   lastDate: DateTime.now(),
-  bordered: true,
+),
+```
+
+需要自定义显示格式时再传：
+
+```dart
+WFormDatePicker(
+  name: 'birthday',
+  label: '生日',
+  config: WFormDatePickerConfig()..displayFormat = 'yyyy-MM-dd',
 ),
 ```
 
@@ -681,7 +694,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formData = WFormController();
-  bool _obscurePwd = true;
 
   late final WFormBorderConfig _borderConfig = WFormBorderConfig()
     ..defaultDecoration = const WFormBorderDecoration()
@@ -715,41 +727,38 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WFormScope(
-        formData: _formData,
-        formBorderConfig: _borderConfig,
+      body: WForm(
+        controller: _formData,
+        borderConfig: _borderConfig,
+        fieldStyle: const WFormFieldStyle(
+          containerPadding: EdgeInsets.symmetric(horizontal: 12),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              (WFormTextFieldConfig()
-                ..style = const TextStyle(fontSize: 16)
-                ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12))
-                  .build(
+              WFormTextField(
                 name: 'username',
-                hintText: '用户名',
-                validator: (v) => (v?.isEmpty ?? true) ? '请输入用户名' : null,
-                bordered: true,
+                label: '用户名',
+                message: '请输入用户名',
+                validator: (v) =>
+                    (v?.isEmpty ?? true) ? '请输入用户名' : null,
+                config: WFormTextFieldConfig()
+                  ..style = const TextStyle(fontSize: 16),
               ),
-
               const SizedBox(height: 12),
-
-              (WFormTextFieldConfig()
-                ..obscureText = _obscurePwd
-                ..contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12))
-                  .build(
+              WFormTextField(
                 name: 'password',
-                hintText: '密码',
+                label: '密码',
+                message: '密码至少 6 位',
+                obscureText: true,
                 validator: (v) {
                   if (v == null || v.isEmpty) return '请输入密码';
                   if (v.length < 6) return '密码至少 6 位';
                   return null;
                 },
-                bordered: true,
               ),
-
               const SizedBox(height: 24),
-
               ElevatedButton(
                 onPressed: () {
                   if (_validator.validate()) {
