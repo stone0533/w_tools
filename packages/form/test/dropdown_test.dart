@@ -345,6 +345,25 @@ void main() {
     expect(button.onChanged, isNull);
   });
 
+  testWidgets('裸 WFormDropdown 卸载时清理 formEntered', (tester) async {
+    final data = WFormController();
+    await pumpForm(
+      tester,
+      formData: data,
+      child: WFormDropdown<String>(
+        config: WFormDropdownConfig(),
+        name: 'country',
+        items: const {'CN': '中国'},
+      ),
+    );
+
+    data.handleChange('country', 'CN');
+    expect(data.formEntered['country'], isTrue);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(data.formEntered.containsKey('country'), isFalse);
+  });
+
   group('WFormMultiDropdownConfig — 纯 Dart', () {
     test('默认空实例化', () {
       final cfg = WFormMultiDropdownConfig();
@@ -467,6 +486,25 @@ void main() {
         ),
       );
     }
+
+    testWidgets('裸 WFormMultiDropdown 卸载时清理 formEntered', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: WFormMultiDropdown(
+          config: WFormMultiDropdownConfig(),
+          name: 'tags',
+          items: const {'a': 'A'},
+        ),
+      );
+
+      data.handleChange('tags', <String>{'a'});
+      expect(data.formEntered['tags'], isTrue);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(data.formEntered.containsKey('tags'), isFalse);
+    });
 
     testWidgets('基本渲染 — 无初始值显示 ALL', (tester) async {
       final cfg = WFormMultiDropdownConfig();

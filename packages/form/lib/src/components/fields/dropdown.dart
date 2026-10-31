@@ -3,6 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
+import '../field_lifecycle.dart';
 import '../field_chrome.dart';
 import '../form_scope.dart';
 import '../form_defaults.dart';
@@ -84,48 +85,51 @@ class WFormDropdown<T> extends StatelessWidget {
     // 继承外层只读作用域（WFormFieldShell.readOnly）
     final effectiveEnabled = (enabled ?? config.enabled) && !WFormReadOnlyScope.readOnlyOf(context);
 
-    return WFormFieldFrame(
-      height: config.height,
-      width: width ?? config.width,
-      decoration: config.containerDecoration,
-      margin: config.containerMargin,
-      padding: config.containerPadding,
-      yOffset: config.yOffset,
-      leading: config.leading,
-      actions: config.actions,
-      child: FormBuilderDropdown<T>(
-        name: name,
-        items: items.entries
-            .map(
-              (e) => DropdownMenuItem<T>(
-                value: e.key,
-                child: Text(
-                  e.value,
-                  style: config._style,
-                  strutStyle: StrutStyle(
-                    fontFamily: config._style?.fontFamily,
-                    fontSize: config._style?.fontSize,
-                    fontWeight: config._style?.fontWeight,
-                    height: config._style?.height,
-                    forceStrutHeight: true,
+    return WFormFieldCleanup(
+      name: name,
+      child: WFormFieldFrame(
+        height: config.height,
+        width: width ?? config.width,
+        decoration: config.containerDecoration,
+        margin: config.containerMargin,
+        padding: config.containerPadding,
+        yOffset: config.yOffset,
+        leading: config.leading,
+        actions: config.actions,
+        child: FormBuilderDropdown<T>(
+          name: name,
+          items: items.entries
+              .map(
+                (e) => DropdownMenuItem<T>(
+                  value: e.key,
+                  child: Text(
+                    e.value,
+                    style: config._style,
+                    strutStyle: StrutStyle(
+                      fontFamily: config._style?.fontFamily,
+                      fontSize: config._style?.fontSize,
+                      fontWeight: config._style?.fontWeight,
+                      height: config._style?.height,
+                      forceStrutHeight: true,
+                    ),
                   ),
                 ),
-              ),
-            )
-            .toList(),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          contentPadding: config._contentPadding,
+              )
+              .toList(),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            contentPadding: config._contentPadding,
+          ),
+          initialValue: initialValue,
+          validator: validator,
+          icon: config._icon ?? theme?.effectiveDropdownIcon ?? WFormDefaults.dropdownIcon,
+          onChanged: onChangedHandler,
+          hint: hintWidget,
+          enabled: effectiveEnabled,
+          dropdownColor: config._dropdownColor,
         ),
-        initialValue: initialValue,
-        validator: validator,
-        icon: config._icon ?? theme?.effectiveDropdownIcon ?? WFormDefaults.dropdownIcon,
-        onChanged: onChangedHandler,
-        hint: hintWidget,
-        enabled: effectiveEnabled,
-        dropdownColor: config._dropdownColor,
       ),
     );
   }

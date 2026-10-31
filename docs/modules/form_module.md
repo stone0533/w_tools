@@ -26,6 +26,7 @@ form/
     │   ├── form_input_formatters.dart
     │   ├── field_button.dart
     │   ├── field_chrome.dart        # WFormFieldChrome（字段公共配置）
+    │   ├── field_lifecycle.dart     # 无状态字段的 formEntered 清理包装
     │   ├── popup.dart
     │   ├── border/
     │   │   ├── border.dart          # WFormBorder + WFormBorderConfig + WFormBorderDecoration
@@ -665,7 +666,7 @@ class _LoginPageState extends State<LoginPage> {
 | 4 | **Dropdown items 键必须存在** | `WFormDropdown.items` 是 `Map<T, String>`，初始值 / 字段值必须存在于 map 的 keys 中（`FormBuilderDropdown` 内部断言会失败） |
 | 5 | **Scope 管道** | `WFormTextFieldScope`（InheritedWidget）将输入状态下发给插槽 Widget（清空按钮 / 密码切换），无需手动同步 |
 | 6 | **WFormBorderConfig 继承** | 子级显式传入 `WFormBorder.config` 优先；否则继承 `WFormScope.formBorderConfig`；都没配置时 `WFormBorder` 不渲染装饰 |
-| 7 | **formEntered 陈旧过滤** | `isAllEntered(fieldNames)` 用显式字段名判断；有状态字段 dispose 时清理，无状态字段可通过 `pruneFormEntered()` 清理 |
+| 7 | **formEntered 陈旧过滤** | `isAllEntered(fieldNames)` 用显式字段名判断；字段卸载时由 `WFormFieldShell` / 字段生命周期包装清理，`pruneFormEntered()` 可兜底 |
 | 8 | **setError / 字段 name 一致性** | `WFormFieldShell.name` 必须与内部字段 `name` 一致，否则校验红框无法自动联动 |
 | 9 | **PopRoute 不跟随滚动** | `WFormPopup` 位置打开时计算一次，锚点滚动后弹层不跟随，如需跟随请使用其他方案 |
 | 10 | **校验器双通道风险** | `WFormValidatorItem.field` 模式直接执行字段 `validator`，**不**写入字段 `errorText`，只通过 `WFormBorder.setError` 渲染；若同时开 FormBuilder 原生 `validate()` 会走另一通道，建议统一使用 `WFormValidator` |

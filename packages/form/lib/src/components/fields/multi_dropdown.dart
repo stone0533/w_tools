@@ -3,6 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
+import '../field_lifecycle.dart';
 import '../field_chrome.dart';
 import '../form_scope.dart';
 import '../form_defaults.dart';
@@ -70,41 +71,44 @@ class WFormMultiDropdown extends StatelessWidget {
       onChanged?.call(selected);
     }
 
-    return WFormFieldFrame(
-      height: config.height,
-      width: width ?? config.width,
-      decoration: config.containerDecoration,
-      margin: config.containerMargin,
-      padding: config.containerPadding,
-      yOffset: config.yOffset,
-      leading: config.leading,
-      actions: config.actions,
-      child: _WFormMultiDropdown(
-        name: name,
-        items: items,
-        initialValue: initialValue,
-        onChanged: onChangedHandler,
-        validator: validator,
-        enabled: (enabled ?? config.enabled) && !WFormReadOnlyScope.readOnlyOf(context),
-        decoration: config._decoration,
-        icon: config._icon,
-        iconSize: config._iconSize,
-        iconDisabledColor: config._iconDisabledColor,
-        iconEnabledColor: config._iconEnabledColor,
-        checkboxUnselectedIcon: config._checkboxUnselectedIcon,
-        checkboxSelectedIcon: config._checkboxSelectedIcon,
-        checkboxDisabledIcon: config._checkboxDisabledIcon,
-        style: config._style,
-        popUpLayerPadding: config._popUpLayerPadding,
-        popUpLayerElevation: config._popUpLayerElevation,
-        popUpLayerShadowColor: config._popUpLayerShadowColor,
-        hintText: hintText ?? config._hintText,
-        disabledKeys: config._disabledKeys,
-        itemPadding: config._itemPadding,
-        itemStyle: config._itemStyle,
-        itemCheckedStyle: config._itemCheckedStyle,
-        itemDisabledStyle: config._itemDisabledStyle,
-        itemTitlePadding: config._itemTitlePadding,
+    return WFormFieldCleanup(
+      name: name,
+      child: WFormFieldFrame(
+        height: config.height,
+        width: width ?? config.width,
+        decoration: config.containerDecoration,
+        margin: config.containerMargin,
+        padding: config.containerPadding,
+        yOffset: config.yOffset,
+        leading: config.leading,
+        actions: config.actions,
+        child: _WFormMultiDropdown(
+          name: name,
+          items: items,
+          initialValue: initialValue,
+          onChanged: onChangedHandler,
+          validator: validator,
+          enabled: (enabled ?? config.enabled) && !WFormReadOnlyScope.readOnlyOf(context),
+          decoration: config._decoration,
+          icon: config._icon,
+          iconSize: config._iconSize,
+          iconDisabledColor: config._iconDisabledColor,
+          iconEnabledColor: config._iconEnabledColor,
+          checkboxUnselectedIcon: config._checkboxUnselectedIcon,
+          checkboxSelectedIcon: config._checkboxSelectedIcon,
+          checkboxDisabledIcon: config._checkboxDisabledIcon,
+          style: config._style,
+          popUpLayerPadding: config._popUpLayerPadding,
+          popUpLayerElevation: config._popUpLayerElevation,
+          popUpLayerShadowColor: config._popUpLayerShadowColor,
+          hintText: hintText ?? config._hintText,
+          disabledKeys: config._disabledKeys,
+          itemPadding: config._itemPadding,
+          itemStyle: config._itemStyle,
+          itemCheckedStyle: config._itemCheckedStyle,
+          itemDisabledStyle: config._itemDisabledStyle,
+          itemTitlePadding: config._itemTitlePadding,
+        ),
       ),
     );
   }
