@@ -68,6 +68,18 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
             _token = 'fresh-token';
             return _token;
           },
+          configureRequest: (options) {
+            options.headers['X-Demo-Client'] = 'api-example';
+          },
+          configureResponse: (response) {
+            response.extra['demoClient'] = 'w_tools_api';
+          },
+          observeError: (error) {
+            final status = error.response?.statusCode;
+            if (mounted) {
+              setState(() => _logs.insert(0, 'observed: $status'));
+            }
+          },
         ),
         WLogInterceptor(responseHeader: true),
       ],
@@ -98,7 +110,10 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
       );
       if (!mounted) return;
       setState(() {
-        _lastResult = '$path → ${response.statusCode}\n${response.data}';
+        _lastResult =
+            '$path → ${response.statusCode}\n'
+            'client: ${response.extra['demoClient']}\n'
+            '${response.data}';
       });
     } on DioException catch (error) {
       if (!mounted) return;
