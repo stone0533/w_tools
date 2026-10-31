@@ -5,6 +5,7 @@
 - 登录表单：`WForm` 容器、直接字段构造、字段 validator、`WFormValidatorSettings`
 - 会员资料：下拉、日期、单选、多选、复选、自定义 `WFormButton`
 - 只读预览：`WForm(readOnly: true)`
+- 锚定弹层：`WFormPopup` + `WFormButton`
 - 统一边框 / 图标：`WFormBorderConfig` + `WForm`
 
 ## 运行
@@ -31,6 +32,7 @@ lib/
   pages/
     login_page.dart     登录场景
     profile_page.dart   资料编辑 / 只读场景
+    popup_page.dart     WFormPopup 锚定弹层
 test/
   example_smoke_test.dart
 ```

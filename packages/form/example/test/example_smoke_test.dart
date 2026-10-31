@@ -13,5 +13,9 @@ void main() {
     await tester.tap(find.text('会员资料'));
     await tester.pumpAndSettle();
     expect(find.text('编辑资料'), findsOneWidget);
+
+    await tester.tap(find.text('弹层'));
+    await tester.pumpAndSettle();
+    expect(find.text('选择优惠券'), findsOneWidget);
   });
 }

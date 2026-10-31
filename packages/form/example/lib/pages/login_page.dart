@@ -35,10 +35,7 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
       body: WForm(
         controller: _form,
         borderConfig: exampleBorderConfig,
-        fieldStyle: const WFormFieldStyle(
-          height: 52,
-          containerPadding: EdgeInsets.symmetric(horizontal: 16),
-        ),
+        fieldStyle: exampleFieldStyle,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
@@ -59,6 +56,7 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               autofocus: true,
+              actions: const [WFormTextFieldClearButton()],
               validator: (value) {
                 final email = value?.trim() ?? '';
                 if (email.isEmpty) return '请输入邮箱';

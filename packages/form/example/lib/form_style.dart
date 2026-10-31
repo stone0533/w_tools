@@ -14,3 +14,11 @@ WFormTextFieldConfig exampleTextConfig() {
     ..style = const TextStyle(fontSize: 16, color: Color(0xFF111827))
     ..hintStyle = const TextStyle(fontSize: 16, color: Color(0xFF9CA3AF));
 }
+
+/// 页面默认字段样式：高度 / 内边距 / 正文 / hint。
+const exampleFieldStyle = WFormFieldStyle(
+  height: 52,
+  containerPadding: EdgeInsets.symmetric(horizontal: 16),
+  textStyle: TextStyle(fontSize: 16, color: Color(0xFF111827)),
+  hintStyle: TextStyle(fontSize: 16, color: Color(0xFF9CA3AF)),
+);
