@@ -1,0 +1,23 @@
+name: w_tools_api_example
+description: "w_tools_api 真实场景示例：DioRegistry、日志脱敏、Token 401 刷新与重试。"
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  w_tools_api:
+    path: ../
+  dio: ^5.9.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

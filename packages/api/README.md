@@ -76,6 +76,10 @@ final registry = DioRegistry.forBaseUrl(
 | Repository | `BaseRepository` |
 | 路径契约 | `IApiPath` / `ApiClientId` |
 
+## 完整示例
+
+见 [`example/`](example/)：DioRegistry、日志脱敏、401 刷新与重试（使用内存 MockAdapter，不需要网络）。
+
 ## License
 
 MIT
