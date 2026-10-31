@@ -227,7 +227,12 @@ class _WButtonState extends State<WButton> {
       final inner = _buildButtonContent(this, context, style, child);
       final padded = Padding(
         padding: style.padding ?? EdgeInsets.zero,
-        child: inner,
+        child: Align(
+          alignment: style.alignment,
+          widthFactor: 1,
+          heightFactor: 1,
+          child: inner,
+        ),
       );
 
       Widget content = padded;

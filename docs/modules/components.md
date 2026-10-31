@@ -31,7 +31,7 @@
 
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WButton` | ui | 真正的按钮（label/icon + variant/size/loading） | 任意 child 点击用 `WPressable` |
+| `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义时用 `WButton` |
 | `WRowButtons` | ui | 一行多个按钮 | — |
 | `WBadge` | ui | 角标数字 | — |

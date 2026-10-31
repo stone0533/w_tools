@@ -20,6 +20,7 @@ class WButtonStyle {
     this.borderRadius,
     this.boxShadow,
     this.padding,
+    this.alignment = Alignment.center,
     this.clipBehavior = Clip.none,
     this.foregroundColor,
     this.textStyle,
@@ -42,6 +43,10 @@ class WButtonStyle {
   final BorderRadius? borderRadius;
   final WidgetStateProperty<List<BoxShadow>?>? boxShadow;
   final EdgeInsetsGeometry? padding;
+
+  /// 内容在按钮内的对齐方式；全宽按钮默认居中。
+  final AlignmentGeometry alignment;
+
   final Clip clipBehavior;
   final WidgetStateProperty<Color?>? foregroundColor;
   final WidgetStateProperty<TextStyle?>? textStyle;
@@ -163,6 +168,7 @@ class WButtonStyle {
     BorderRadius? borderRadius,
     WidgetStateProperty<List<BoxShadow>?>? boxShadow,
     EdgeInsetsGeometry? padding,
+    AlignmentGeometry? alignment,
     Clip? clipBehavior,
     WidgetStateProperty<Color?>? foregroundColor,
     WidgetStateProperty<TextStyle?>? textStyle,
@@ -184,6 +190,7 @@ class WButtonStyle {
       borderRadius: borderRadius ?? this.borderRadius,
       boxShadow: boxShadow ?? this.boxShadow,
       padding: padding ?? this.padding,
+      alignment: alignment ?? this.alignment,
       clipBehavior: clipBehavior ?? this.clipBehavior,
       foregroundColor: foregroundColor ?? this.foregroundColor,
       textStyle: textStyle ?? this.textStyle,

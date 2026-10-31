@@ -16,6 +16,7 @@ void main() {
       expect(style.motion.pressedScale, 0.95);
       expect(style.motion.duration, const Duration(milliseconds: 100));
       expect(style.semantics.label, isNull);
+      expect(style.alignment, Alignment.center);
 
       final next = style.copyWith(
         motion: const WButtonMotion(
@@ -23,12 +24,14 @@ void main() {
           pressedScale: 0.9,
         ),
         semantics: const WButtonSemantics(label: '提交'),
+        alignment: Alignment.centerLeft,
         minHeight: 60,
         focusColor: Colors.black12,
       );
       expect(next.motion.effect, WButtonEffectType.scale);
       expect(next.motion.pressedScale, 0.9);
       expect(next.semantics.label, '提交');
+      expect(next.alignment, Alignment.centerLeft);
       expect(next.minHeight, 60);
       expect(next.focusColor, Colors.black12);
       expect(style.motion.effect, WButtonEffectType.opacity);
@@ -685,5 +688,20 @@ void main() {
       expect(semantics.properties.hint, '关闭当前弹窗');
       expect(semantics.properties.onTap, isNotNull);
     });
+  });
+
+  testWidgets('全宽 WButton 的 label 居中', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        SizedBox(
+          width: 300,
+          child: WButton(label: 'OK', onTap: () {}),
+        ),
+      ),
+    );
+
+    final button = tester.getRect(find.byType(WButton));
+    final label = tester.getRect(find.text('OK'));
+    expect(label.center.dx, closeTo(button.center.dx, 0.01));
   });
 }

@@ -314,6 +314,7 @@ contentBuilder: (context, style) {
 | `borderRadius` | BorderRadius? | 圆角（静态） |
 | `boxShadow` | `WidgetStateProperty<List<BoxShadow>?>?` | 阴影 |
 | `padding` | EdgeInsetsGeometry? | 内容 padding（静态） |
+| `alignment` | AlignmentGeometry | 内容对齐，默认 `Alignment.center`；全宽按钮居中 |
 | `clipBehavior` | Clip | 背景裁剪（静态） |
 | `foregroundColor` | `WidgetStateProperty<Color?>?` | 文字/图标前景色 |
 | `textStyle` | `WidgetStateProperty<TextStyle?>?` | 文本样式 |

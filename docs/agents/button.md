@@ -57,6 +57,95 @@ width 由父布局决定
 固定宽度用外层 SizedBox(width: ...)
 minWidth 只是最小视觉 / 点击尺寸，不是固定宽度
 ```
+## AI 默认模板
+
+### 主按钮
+
+```dart
+WButton(
+  style: AppButtons.primary(context),
+  label: '保存',
+  onTap: _save,
+)
+```
+
+### 次要按钮
+
+```dart
+WButton(
+  style: AppButtons.secondary(context),
+  label: '取消',
+  onTap: _cancel,
+)
+```
+
+### loading 提交
+
+```dart
+WButton(
+  style: AppButtons.primary(context),
+  label: '提交',
+  loading: submitting,
+  enabled: !submitting,
+  onTap: _submit,
+)
+```
+
+### 全宽按钮
+
+```dart
+SizedBox(
+  width: double.infinity,
+  child: WButton(
+    style: AppButtons.primary(context),
+    label: '提交',
+    onTap: _submit,
+  ),
+)
+```
+
+`WButtonStyle.alignment` 默认居中；需要左对齐时显式设置：
+
+```dart
+WButtonStyle(alignment: Alignment.centerLeft)
+```
+
+### 图标按钮
+
+```dart
+WButton(
+  style: AppButtons.primary(context),
+  label: '添加',
+  icon: Icons.add,
+  onTap: _add,
+)
+```
+
+### 纯图标按钮
+
+```dart
+WButton(
+  style: AppButtons.text(context),
+  icon: Icons.close,
+  semanticLabel: '关闭',
+  onTap: _close,
+)
+```
+
+## 选择规则
+
+```text
+label / label+icon → 最简单，优先
+content            → 静态复杂内容
+contentBuilder     → 需要读取最终 style / state
+```
+
+不要同时传 `label` 和 `content`。
+
+`WButton` 没有 `variant` 参数，也没有 `WButtonVariant`；样式用 `style`。
+
+项目页面统一用 `AppButtons`；组件示例/独立 Demo 才用 `WButtonStyles` 或 `WButtonStyle`。
+
 
 构造约束：
 

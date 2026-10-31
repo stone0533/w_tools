@@ -23,6 +23,9 @@
    use `WFormButton` for form-field value selection; do not wrap arbitrary children with `WButton`.
    **Button width**: `WButtonSize` / `WButtonStyle` do not contain `width`; use
    `SizedBox(width: double.infinity)` or `Expanded` to fill, and an outer `SizedBox` for fixed width.
+   **Button width**: `WButtonSize` / `WButtonStyle` do not contain `width`; use
+   `SizedBox(width: double.infinity)` or `Expanded` to fill, and an outer `SizedBox` for fixed width.
+   `WButton` has no `variant`; use `style`; do not pass both `label` and `content`.
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
