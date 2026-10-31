@@ -178,98 +178,40 @@ class WFormMultiDropdownConfig extends WFormFieldChrome {
 }
 
 /// [WFormMultiDropdownConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
-class WFormMultiDropdownConfigBuilder {
-  bool enabled = true;
-  double? height;
-  double? width;
-  double? yOffset;
-  Widget? leading;
-  List<Widget>? actions;
-  Decoration? containerDecoration;
-  EdgeInsetsGeometry? containerMargin;
-  EdgeInsetsGeometry? containerPadding;
-  InputDecoration? decoration;
-  double? iconSize = 24;
-  Widget? icon;
-  Color? iconDisabledColor;
-  Color? iconEnabledColor;
-  Widget? checkboxUnselectedIcon;
-  Widget? checkboxSelectedIcon;
-  Widget? checkboxDisabledIcon;
-  TextStyle? style;
-  EdgeInsets? popUpLayerPadding;
-  double? popUpLayerElevation;
-  Color? popUpLayerShadowColor;
-  String? hintText;
-  Set<String> disabledKeys = const <String>{};
-  EdgeInsetsGeometry? itemPadding;
-  TextStyle? itemStyle;
-  TextStyle? itemCheckedStyle;
-  TextStyle? itemDisabledStyle;
-  EdgeInsets? itemTitlePadding;
-
+class WFormMultiDropdownConfigBuilder extends WFormMultiDropdownConfig {
   WFormMultiDropdownConfigBuilder();
 
   WFormMultiDropdownConfigBuilder.from(WFormMultiDropdownConfig config)
-    : enabled = config.enabled,
-      height = config.height,
-      width = config.width,
-      yOffset = config.yOffset,
-      leading = config.leading,
-      actions = config.actions,
-      containerDecoration = config.containerDecoration,
-      containerMargin = config.containerMargin,
-      containerPadding = config.containerPadding,
-      decoration = config.decoration,
-      iconSize = config.iconSize,
-      icon = config.icon,
-      iconDisabledColor = config.iconDisabledColor,
-      iconEnabledColor = config.iconEnabledColor,
-      checkboxUnselectedIcon = config.checkboxUnselectedIcon,
-      checkboxSelectedIcon = config.checkboxSelectedIcon,
-      checkboxDisabledIcon = config.checkboxDisabledIcon,
-      style = config.style,
-      popUpLayerPadding = config.popUpLayerPadding,
-      popUpLayerElevation = config.popUpLayerElevation,
-      popUpLayerShadowColor = config.popUpLayerShadowColor,
-      hintText = config.hintText,
-      disabledKeys = config.disabledKeys,
-      itemPadding = config.itemPadding,
-      itemStyle = config.itemStyle,
-      itemCheckedStyle = config.itemCheckedStyle,
-      itemDisabledStyle = config.itemDisabledStyle,
-      itemTitlePadding = config.itemTitlePadding;
+    : super(
+        enabled: config.enabled,
+        height: config.height,
+        width: config.width,
+        yOffset: config.yOffset,
+        leading: config.leading,
+        actions: config.actions,
+        containerDecoration: config.containerDecoration,
+        containerMargin: config.containerMargin,
+        containerPadding: config.containerPadding,
+        decoration: config.decoration,
+        iconSize: config.iconSize,
+        icon: config.icon,
+        iconDisabledColor: config.iconDisabledColor,
+        iconEnabledColor: config.iconEnabledColor,
+        checkboxUnselectedIcon: config.checkboxUnselectedIcon,
+        checkboxSelectedIcon: config.checkboxSelectedIcon,
+        checkboxDisabledIcon: config.checkboxDisabledIcon,
+        style: config.style,
+        popUpLayerPadding: config.popUpLayerPadding,
+        popUpLayerElevation: config.popUpLayerElevation,
+        popUpLayerShadowColor: config.popUpLayerShadowColor,
+        hintText: config.hintText,
+        disabledKeys: config.disabledKeys,
+        itemPadding: config.itemPadding,
+        itemStyle: config.itemStyle,
+        itemCheckedStyle: config.itemCheckedStyle,
+        itemDisabledStyle: config.itemDisabledStyle,
+        itemTitlePadding: config.itemTitlePadding,
+      );
 
-  WFormMultiDropdownConfig buildConfig() {
-    return WFormMultiDropdownConfig(
-      enabled: enabled,
-      height: height,
-      width: width,
-      yOffset: yOffset,
-      leading: leading,
-      actions: actions,
-      containerDecoration: containerDecoration,
-      containerMargin: containerMargin,
-      containerPadding: containerPadding,
-      decoration: decoration,
-      iconSize: iconSize,
-      icon: icon,
-      iconDisabledColor: iconDisabledColor,
-      iconEnabledColor: iconEnabledColor,
-      checkboxUnselectedIcon: checkboxUnselectedIcon,
-      checkboxSelectedIcon: checkboxSelectedIcon,
-      checkboxDisabledIcon: checkboxDisabledIcon,
-      style: style,
-      popUpLayerPadding: popUpLayerPadding,
-      popUpLayerElevation: popUpLayerElevation,
-      popUpLayerShadowColor: popUpLayerShadowColor,
-      hintText: hintText,
-      disabledKeys: disabledKeys,
-      itemPadding: itemPadding,
-      itemStyle: itemStyle,
-      itemCheckedStyle: itemCheckedStyle,
-      itemDisabledStyle: itemDisabledStyle,
-      itemTitlePadding: itemTitlePadding,
-    );
-  }
+  WFormMultiDropdownConfig buildConfig() => copy();
 }

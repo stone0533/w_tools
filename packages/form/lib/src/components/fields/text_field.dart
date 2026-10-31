@@ -378,82 +378,36 @@ class WFormTextFieldConfig extends WFormFieldChrome {
 }
 
 /// [WFormTextFieldConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
-class WFormTextFieldConfigBuilder {
-  bool enabled = true;
-  double? height;
-  double? width;
-  double? yOffset;
-  Widget? leading;
-  List<Widget>? actions;
-  Decoration? containerDecoration;
-  EdgeInsetsGeometry? containerMargin;
-  EdgeInsetsGeometry? containerPadding;
-  TextInputType? keyboardType;
-  List<TextInputFormatter>? inputFormatters;
-  TextStyle? readOnlyStyle;
-  TextStyle? style;
-  EdgeInsetsGeometry? contentPadding;
-  TextStyle? hintStyle;
-  TextAlign? textAlign;
-  bool? autofocus;
-  bool obscureText = false;
-  Widget? prefix;
-  Widget? prefixIcon;
-  int? maxLines;
-  TextInputAction? textInputAction;
-
+class WFormTextFieldConfigBuilder extends WFormTextFieldConfig {
   WFormTextFieldConfigBuilder();
 
   WFormTextFieldConfigBuilder.from(WFormTextFieldConfig config)
-    : enabled = config.enabled,
-      keyboardType = config.keyboardType,
-      inputFormatters = config.inputFormatters,
-      readOnlyStyle = config.readOnlyStyle,
-      height = config.height,
-      width = config.width,
-      style = config.style,
-      contentPadding = config.contentPadding,
-      hintStyle = config.hintStyle,
-      yOffset = config.yOffset,
-      leading = config.leading,
-      actions = config.actions,
-      containerDecoration = config.containerDecoration,
-      containerMargin = config.containerMargin,
-      containerPadding = config.containerPadding,
-      textAlign = config.textAlign,
-      autofocus = config.autofocus,
-      obscureText = config.obscureText,
-      prefix = config.prefix,
-      prefixIcon = config.prefixIcon,
-      maxLines = config.maxLines,
-      textInputAction = config.textInputAction;
+    : super(
+        enabled: config.enabled,
+        keyboardType: config.keyboardType,
+        inputFormatters: config.inputFormatters,
+        readOnlyStyle: config.readOnlyStyle,
+        height: config.height,
+        width: config.width,
+        style: config.style,
+        contentPadding: config.contentPadding,
+        hintStyle: config.hintStyle,
+        yOffset: config.yOffset,
+        leading: config.leading,
+        actions: config.actions,
+        containerDecoration: config.containerDecoration,
+        containerMargin: config.containerMargin,
+        containerPadding: config.containerPadding,
+        textAlign: config.textAlign,
+        autofocus: config.autofocus,
+        obscureText: config.obscureText,
+        prefix: config.prefix,
+        prefixIcon: config.prefixIcon,
+        maxLines: config.maxLines,
+        textInputAction: config.textInputAction,
+      );
 
-  WFormTextFieldConfig buildConfig() {
-    return WFormTextFieldConfig(
-      enabled: enabled,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      readOnlyStyle: readOnlyStyle,
-      height: height,
-      width: width,
-      style: style,
-      contentPadding: contentPadding,
-      hintStyle: hintStyle,
-      yOffset: yOffset,
-      leading: leading,
-      actions: actions,
-      containerDecoration: containerDecoration,
-      containerMargin: containerMargin,
-      containerPadding: containerPadding,
-      textAlign: textAlign,
-      autofocus: autofocus,
-      obscureText: obscureText,
-      prefix: prefix,
-      prefixIcon: prefixIcon,
-      maxLines: maxLines,
-      textInputAction: textInputAction,
-    );
-  }
+  WFormTextFieldConfig buildConfig() => copy();
 }
 
 // ---------------------------------------------------------------------------
