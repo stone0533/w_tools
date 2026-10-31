@@ -13,6 +13,7 @@ class BorderExamplePage extends StatefulWidget {
 
 class _BorderExamplePageState extends State<BorderExamplePage> {
   final _form = WFormController();
+  String? _lastValidation;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +60,11 @@ class _BorderExamplePageState extends State<BorderExamplePage> {
             FilledButton(
               onPressed: _form.validate,
               child: const Text('触发校验'),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _lastValidation ?? '点击校验查看 itemValidationCallback',
+              style: const TextStyle(color: Color(0xFF6B7280)),
             ),
           ],
         ),

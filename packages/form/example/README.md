@@ -7,7 +7,7 @@
 - 只读预览：`WForm(readOnly: true)`
 - 锚定弹层：`WFormPopup` + `WFormButton`
 - 高级字段：leading / maxLines / 禁用下拉 / 自定义勾选 / 单选样式 / controller 读取
-- 自定义边框：`WFormBorderConfig` 的聚焦 / 错误装饰与 hint / error builder
+- 自定义边框：`WFormBorderConfig` 的聚焦 / 错误装饰、hint / error builder、itemValidationCallback
 - 统一边框 / 图标：`WFormBorderConfig` + `WForm` 的 icon 配置
 
 ## 运行
