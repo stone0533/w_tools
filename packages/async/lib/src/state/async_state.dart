@@ -33,7 +33,8 @@ enum WAsyncStatus {
 /// - 首次请求发出前是 [loading]，不能用 [empty] 占位；
 /// - 请求成功但结果为空才是 [empty]；
 /// - 请求失败是 [failed]，与「没有数据」是两种不同状态；
-/// - 已有数据时刷新失败**不要**退回 [failed]（保留旧数据 + 提示即可）。
+/// - 已有数据时刷新失败用 [failed] + [previousData] 保留旧数据；
+///   不要用 data 为 null 的 failed 覆盖已有列表。
 @immutable
 class WAsyncState<T> {
   /// 首次请求进行中；[previousData] 用于刷新时保留旧数据。

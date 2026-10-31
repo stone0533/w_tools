@@ -404,6 +404,9 @@ await gifts.loadMore();
 - `loadMoreError`：追加失败，不进入 `state.failed`
 - `hasMore`：是否还有下一页
 
+`initial` 传 `WAsyncState.ready(data)` 表示第一页已经加载，下一次 `loadMore()`
+会从 `initialPage + 1` 开始；传 loading / empty 时仍从 `initialPage` 开始。
+
 分页失败应该交给 `SmartRefresher` footer（`loadFailed`），不要用 `state.failed` 替换整个列表。
 
 ## 异步列表：WAsyncStateBuilder + SmartRefresher

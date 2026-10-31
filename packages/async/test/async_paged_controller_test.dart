@@ -28,6 +28,22 @@ void main() {
       expect(controller.hasMore, isFalse);
     });
 
+    test('initial.ready 时 loadMore 从下一页开始', () async {
+      final calls = <int>[];
+      final controller = WAsyncPagedController<int>(
+        (page) async {
+          calls.add(page);
+          return page == 2 ? const [3] : const [1, 2];
+        },
+        initial: const WAsyncState<List<int>>.ready([1, 2]),
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadMore();
+      expect(calls, [2]);
+      expect(controller.state.value.data, [1, 2, 3]);
+    });
+
     test('loadMore 初始无数据时回到 refresh', () async {
       var calls = 0;
       final controller = WAsyncPagedController<int>((page) async {

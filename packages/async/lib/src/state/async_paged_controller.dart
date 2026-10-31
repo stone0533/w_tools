@@ -13,7 +13,7 @@ class WAsyncPagedController<T> {
     this._loader, {
     this.initialPage = 1,
     WAsyncState<List<T>>? initial,
-  })  : _page = initialPage,
+  })  : _page = initial?.dataOrNull != null ? initialPage + 1 : initialPage,
         _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading());
 
   final WAsyncPageLoader<T> _loader;
