@@ -3,7 +3,7 @@
 真实场景示例，覆盖：
 
 - 登录表单：`WForm` 容器、直接字段构造、字段 validator、`WFormValidatorSettings`
-- 会员资料：输入格式化、下拉、日期配置、单选、多选、复选、自定义 `WFormButton`
+- 会员资料：输入格式化、下拉、日期配置、多选配置、单选、复选、自定义 `WFormButton`
 - 只读预览：`WForm(readOnly: true)`
 - 锚定弹层：`WFormPopup` + `WFormButton`
 - 高级字段：leading / maxLines / 禁用下拉 / 自定义勾选 / 单选样式 / controller 读取

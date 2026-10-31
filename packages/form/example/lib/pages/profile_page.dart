@@ -132,16 +132,24 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
               ),
             ),
             const SizedBox(height: 16),
-            const WFormMultiDropdown(
+            WFormMultiDropdown(
               name: 'interests',
               label: '兴趣',
               message: '请选择兴趣',
-              items: {
+              items: const {
                 'music': '音乐',
                 'sports': '运动',
                 'travel': '旅行',
               },
-              initialValue: {'travel'},
+              initialValue: const {'travel'},
+              config: WFormMultiDropdownConfig(
+                disabledKeys: const {'music'},
+                itemStyle: const TextStyle(color: Color(0xFF374151)),
+                itemCheckedStyle: const TextStyle(
+                  color: Color(0xFF059669),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             const Card(
