@@ -19,6 +19,11 @@
    **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
    `WButtonStyle`，除非是明确的局部一次性样式。
    **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；不要用 `WButton` 包任意 child。
+   **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
+   不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
+   **图片**：网络图 / 资源图用 `WImage`；不要裸用 `Image.network` / `Image.asset`。
+   **弹层 / 提示**：锚定选择用 `WFormPopup`，底部面板用 `WBottomSheet`，轻提示用
+   `WToast` / `WnnToast`；确认框用 Flutter `showDialog`。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    不要再用 `WTextConfig` 逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
    **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，

@@ -21,6 +21,12 @@
    `WButtonStyle` in pages unless it is an explicit one-off style.
    **Use `WButton` for real buttons, `WPressable` for arbitrary cards/child taps**;
    do not wrap arbitrary children with `WButton`.
+   **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
+   (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
+   / field `config` for styling.
+   **Images**: use `WImage` for network/asset images; do not use `Image.network` / `Image.asset` directly.
+   **Overlays / toasts**: use `WFormPopup` for anchored selection, `WBottomSheet` for bottom
+   sheets, `WToast` / `WnnToast` for light feedback, and Flutter `showDialog` for confirmation.
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, not `WTextConfig` field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.

@@ -7,6 +7,9 @@
 2. **Reuse before writing**: `dart run w_tools_cli:list <keyword>`,
    then `dart run w_tools_cli:explain <Component>`; **do not invent component names**.
    Business code imports `package:{{app}}/app/w/toolkit.dart` only.
+   **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
+   (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
+   / field `config` for styling.
 3. Business layer keeps feature-specific composition only.
 4. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.

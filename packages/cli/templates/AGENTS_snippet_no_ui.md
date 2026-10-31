@@ -7,6 +7,8 @@
 2. **先找现成的**：`dart run w_tools_cli:list <关键词>`，
    需要细节再 `dart run w_tools_cli:explain <组件名>`；**不要凭记忆造组件名**。
    业务代码统一 `import 'package:{{app}}/app/w/toolkit.dart';`（本项目能力清单）。
+   **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
+   不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
 3. **业务层只放这个功能独有的组合**，不放通用组件。
 4. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。

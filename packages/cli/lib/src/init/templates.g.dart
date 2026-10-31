@@ -134,6 +134,11 @@ const String agentsSnippet = r'''
    **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
    `WButtonStyle`，除非是明确的局部一次性样式。
    **真按钮用 `WButton`，任意 child/卡片点击用 `WPressable`**；不要用 `WButton` 包任意 child。
+   **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
+   不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
+   **图片**：网络图 / 资源图用 `WImage`；不要裸用 `Image.network` / `Image.asset`。
+   **弹层 / 提示**：锚定选择用 `WFormPopup`，底部面板用 `WBottomSheet`，轻提示用
+   `WToast` / `WnnToast`；确认框用 Flutter `showDialog`。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    不要再用 `WTextConfig` 逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
    **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
@@ -188,6 +193,12 @@ const String agentsSnippetEn = r'''
    `WButtonStyle` in pages unless it is an explicit one-off style.
    **Use `WButton` for real buttons, `WPressable` for arbitrary cards/child taps**;
    do not wrap arbitrary children with `WButton`.
+   **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
+   (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
+   / field `config` for styling.
+   **Images**: use `WImage` for network/asset images; do not use `Image.network` / `Image.asset` directly.
+   **Overlays / toasts**: use `WFormPopup` for anchored selection, `WBottomSheet` for bottom
+   sheets, `WToast` / `WnnToast` for light feedback, and Flutter `showDialog` for confirmation.
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, not `WTextConfig` field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
@@ -228,6 +239,8 @@ const String agentsSnippetNoUi = r'''
 2. **先找现成的**：`dart run w_tools_cli:list <关键词>`，
    需要细节再 `dart run w_tools_cli:explain <组件名>`；**不要凭记忆造组件名**。
    业务代码统一 `import 'package:{{app}}/app/w/toolkit.dart';`（本项目能力清单）。
+   **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
+   不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
 3. **业务层只放这个功能独有的组合**，不放通用组件。
 4. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
@@ -247,6 +260,9 @@ const String agentsSnippetNoUiEn = r'''
 2. **Reuse before writing**: `dart run w_tools_cli:list <keyword>`,
    then `dart run w_tools_cli:explain <Component>`; **do not invent component names**.
    Business code imports `package:{{app}}/app/w/toolkit.dart` only.
+   **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
+   (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
+   / field `config` for styling.
 3. Business layer keeps feature-specific composition only.
 4. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
