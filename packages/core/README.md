@@ -69,6 +69,18 @@ Future<void> example() async {
 - `WToken` 直接读写 `WStorage`，不维护额外静态缓存。
 - `WEncrypt.aesEncrypt` 未显式传入 IV 时使用安全随机 IV。
 
+## 交互工具示例
+
+```dart
+final debouncedSearch = WUx().debounce(
+  () => loadResults(),
+  duration: 300,
+);
+
+// 页面 dispose 时取消
+debouncedSearch.cancel();
+```
+
 ## License
 
 MIT

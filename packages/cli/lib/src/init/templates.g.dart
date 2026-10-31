@@ -191,6 +191,8 @@ const String agentsSnippet = r'''
    **启动**：入口用 `WApp.start()`，不要手写 runApp + 初始化顺序；插件需要顺序时用
    `WAppPlugin.dependsOn`。`builderWrapper` 在 MaterialApp 内，`wrapApp` 在外且没有
    Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
+   **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
+   是明文存储。`WValidator` 做业务语义校验，纯正则用 `WRegExp`；日志用 `WLogger`。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
@@ -282,6 +284,9 @@ const String agentsSnippetEn = r'''
    sequence; declare plugin order with `WAppPlugin.dependsOn`. `builderWrapper` lives
    inside MaterialApp; `wrapApp` is outside and has no Theme/MediaQuery. `WRouteObserver`
    is appended by WApp automatically; do not add it twice.
+   **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
+   are plaintext storage. Use `WValidator` for semantic validation and `WRegExp` for
+   pure regex; log through `WLogger`.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:
@@ -305,6 +310,8 @@ const String agentsSnippetNoUi = r'''
    **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，
    不要直接 `Dio()`；Token 存 `WToken`，通过 `WTokenInterceptor` 注入。
    **启动**：入口用 `WApp.start()`；插件需要顺序时用 `WAppPlugin.dependsOn`。
+   **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
+   是明文存储；`WValidator` 做业务校验，纯正则用 `WRegExp`。
 3. **业务层只放这个功能独有的组合**，不放通用组件。
 4. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
@@ -330,6 +337,8 @@ const String agentsSnippetNoUiEn = r'''
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`,
    never `Dio()` directly; store tokens with `WToken` and inject via `WTokenInterceptor`.
    **Startup**: use `WApp.start()`; declare plugin order with `WAppPlugin.dependsOn`.
+   **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
+   are plaintext storage; use `WValidator` / `WRegExp` for validation.
 3. Business layer keeps feature-specific composition only.
 4. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.

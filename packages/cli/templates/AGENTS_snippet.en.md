@@ -80,6 +80,9 @@
    sequence; declare plugin order with `WAppPlugin.dependsOn`. `builderWrapper` lives
    inside MaterialApp; `wrapApp` is outside and has no Theme/MediaQuery. `WRouteObserver`
    is appended by WApp automatically; do not add it twice.
+   **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
+   are plaintext storage. Use `WValidator` for semantic validation and `WRegExp` for
+   pure regex; log through `WLogger`.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

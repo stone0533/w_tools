@@ -121,3 +121,11 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - `builderWrapper` 位于 MaterialApp 内；`wrapApp` 位于 MaterialApp 外，没有 Theme / MediaQuery。
 - `WRouteObserver` 由 `WApp` 自动追加，不要重复添加。
 - 多语言用 `WLanguage.changeLanguage`，监听 `languageStream`；语言真源是 `WAppConfig.currentLanguage`。
+
+## 基础工具（w_tools_core）
+
+- `WStorage` 读方法前必须 `await WStorage.init()`；未初始化读取会抛 `StateError`。
+- `WStorage` / `WToken` 使用 SharedPreferences，是明文存储，不是安全存储；高敏感数据用 Keychain / Keystore。
+- `WValidator` 负责业务语义校验；纯正则匹配 / 提取用 `WRegExp`，不要再手写重复正则。
+- 日志统一用 `WLogger.i/d/w/e`；不要直接 `print`。
+- `WEncrypt` 的 AES-CBC 不提供完整性 / 认证；需要防篡改时用 AES-GCM。
