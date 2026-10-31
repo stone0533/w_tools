@@ -85,6 +85,23 @@ void main() {
       expect(text.textScaler, const TextScaler.linear(1.5));
     });
 
+    testWidgets('有显式字体信息时生成 strutStyle', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: WText(
+              text: 'strut',
+              style: TextStyle(fontSize: 40, height: 1.2),
+            ),
+          ),
+        ),
+      );
+      final text = tester.widget<Text>(find.text('strut'));
+      expect(text.strutStyle?.fontSize, 40);
+      expect(text.strutStyle?.height, 1.2);
+      expect(text.strutStyle?.forceStrutHeight, isTrue);
+    });
+
     testWidgets('默认不设置 strutStyle（避免裁切继承字号）', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(

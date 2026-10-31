@@ -659,6 +659,12 @@ ThemeData(
 
 `WText` 只负责文本渲染和覆盖；字体、字号、字重、行高统一定义在
 `WTextStyles` / `TextTheme`。多色或多字重混排使用 Flutter `Text.rich`。
+`WText` 只负责文本渲染和覆盖；字体、字号、字重、行高统一定义在
+`WTextStyles` / `TextTheme`。多色或多字重混排使用 Flutter `Text.rich`。
+
+有字体信息（fontFamily / fontSize / height）时，`WText` 会自动生成
+`StrutStyle(forceStrutHeight: true)`，避免大字号 / 字体回退裁切；显式传
+`strutStyle` 时以显式值为准。
 
 ### 使用示例
 

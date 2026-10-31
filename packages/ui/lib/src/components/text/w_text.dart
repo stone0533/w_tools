@@ -62,10 +62,24 @@ class WText extends StatelessWidget {
       effectiveStyle = (effectiveStyle ?? const TextStyle()).copyWith(color: color);
     }
 
+    // 保留旧 WTextConfig 对 strut 的处理：有字体信息时避免大字号 / 字体回退裁切
+    final autoStrutStyle = strutStyle ??
+        (effectiveStyle != null &&
+                (effectiveStyle.fontFamily != null ||
+                    effectiveStyle.fontSize != null ||
+                    effectiveStyle.height != null)
+            ? StrutStyle(
+                fontFamily: effectiveStyle.fontFamily,
+                fontSize: effectiveStyle.fontSize,
+                height: effectiveStyle.height,
+                forceStrutHeight: true,
+              )
+            : null);
+
     return Text(
       text,
       style: effectiveStyle,
-      strutStyle: strutStyle,
+      strutStyle: autoStrutStyle,
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,
