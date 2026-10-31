@@ -19,8 +19,8 @@
    Change app-bar defaults only in `AppBars.style`.
    **Buttons** use `AppButtons.primary/secondary/text/danger(context)`; do not write
    `WButtonStyle` in pages unless it is an explicit one-off style.
-   **Use `WButton` for real buttons, `WPressable` for arbitrary cards/child taps**;
-   do not wrap arbitrary children with `WButton`.
+   **Use `WButton` for real buttons and `WPressable` for arbitrary cards/child taps**;
+   use `WFormButton` for form-field value selection; do not wrap arbitrary children with `WButton`.
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
