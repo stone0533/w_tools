@@ -75,6 +75,21 @@ void main() {
       loader.dispose();
     });
 
+    testWidgets('失败后修改 retry 配置保留 error 状态', (tester) async {
+      final loader = WImageLoader(retryCount: 0, retryDelay: 1000);
+      loader.handleError(
+        Exception('network'),
+        const WImageNetworkError('x', 'network'),
+      );
+      expect(loader.status, WImageLoadStatus.failed);
+      expect(loader.error, isNotNull);
+
+      loader.syncRetryConfig(retryCount: 1, retryDelay: 200);
+      expect(loader.status, WImageLoadStatus.failed);
+      expect(loader.error, isNotNull);
+      loader.dispose();
+    });
+
     testWidgets('dispose 会取消重试状态', (tester) async {
       final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
       loader.handleError(

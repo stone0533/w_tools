@@ -129,7 +129,7 @@ class WImageLoader extends WImageLoadState {
       _retryDelay = retryDelay;
       _retryTimer?.cancel();
       _retryTimer = null;
-      error = null;
+      // 保留已有 error：失败后修改 retry 配置不应把 failed 状态变成“无错误”
       emit();
     }
     return changed;
