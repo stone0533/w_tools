@@ -95,10 +95,10 @@ void main() {
   // ========= form Config =========
   group('WFormBorderConfig', () {
     test('setter defaultDecoration / errorDecoration 可调用', () {
-      final c = WFormBorderConfig()
+      final c = WFormBorderConfig.builder()
         ..defaultDecoration = const WFormBorderDecoration(color: Colors.grey)
         ..errorDecoration = const WFormBorderDecoration(color: Colors.red);
-      expect(c, isNotNull);
+      expect(c.buildConfig(), isNotNull);
     });
   });
 

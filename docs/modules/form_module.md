@@ -213,9 +213,8 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 
 ## 3.5 WFormFieldChrome — 字段公共配置
 
-截至当前迁移阶段，`WFormDatePickerConfig` / `WFormCheckboxConfig` / `WFormRadioGroupConfig` /
-`WFormDropdownConfig` / `WFormMultiDropdownConfig` / `WFormTextFieldConfig` /
-`WFormFieldButtonConfig` 已完成不可变化，自行持有同名公共字段。
+截至当前迁移阶段，全部字段 Config 和 `WFormBorderConfig` 已完成不可变化，自行持有对应字段；
+不再有可变 Config 版本。
 
 ```dart
 class WFormCheckboxConfig extends WFormFieldChrome { ... }
@@ -263,9 +262,7 @@ final config = builder.buildConfig();
 注意：`build()` 仍然是「生成字段 Widget」的方法；Builder 的终态方法叫
 `buildConfig()`，避免与字段构建冲突。
 
-`WFormDatePickerConfig` / `WFormCheckboxConfig` / `WFormRadioGroupConfig` /
-`WFormDropdownConfig` / `WFormMultiDropdownConfig` / `WFormTextFieldConfig` /
-`WFormFieldButtonConfig` 已完成不可变化；仅剩 `WFormBorderConfig`。
+所有 Config 已完成不可变化；Builder + `buildConfig()` 是唯一链式入口。
 
 ## 4. 边框系统
 
@@ -295,6 +292,7 @@ WFormBorderDecoration decoration = const WFormBorderDecoration()
 ### 4.2 WFormBorderConfig
 
 边框配置类，**不内置任何默认装饰**（全部为 null），外观完全由调用方决定。
+本类不可变；需要链式修改时使用 `WFormBorderConfig.builder()`。
 
 常用场景可直接用工厂：
 
@@ -314,7 +312,7 @@ final config = WFormBorderConfig.standard(radius: 12);
 | `errorBuilder` | `Widget Function(List<String>?)?` | 错误文本构建器 |
 | `layout` | `WFormBorderLayout` | 边框与消息的布局策略（默认 `WFormBorderLayout.column`） |
 
-> **注意**：配置按引用被 `WFormBorder` 捕获。替换实例（`cfg = cfg.copyWith(...)`）立即生效；原地修改（`cfg.errorDecoration = ...`）仅在组件随后重建时生效。清空字段请使用 `cfg.copy()..errorDecoration = null`。
+> **注意**：配置不可变。替换实例（`cfg = cfg.copyWith(...)`）后生效；需要清空字段时使用 `WFormBorderConfig.builder()` 或 `copyWith` 的显式构造，不再支持原地 setter。
 
 ### 4.3 WFormFieldShell
 

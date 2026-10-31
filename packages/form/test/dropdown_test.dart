@@ -268,7 +268,7 @@ void main() {
 
     testWidgets('build(bordered: true) → 返回带 WFormFieldShell', (tester) async {
       const cfg = WFormDropdownConfig();
-      final formBorderCfg = WFormBorderConfig();
+      final formBorderCfg = WFormBorderConfig.builder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
       final formData = WFormController();
@@ -278,7 +278,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: formBorderCfg,
+              formBorderConfig: formBorderCfg.buildConfig(),
               child: cfg.build<String>(
                 bordered: true,
                 name: 'fruit',
@@ -297,7 +297,7 @@ void main() {
 
     testWidgets('build(bordered: true) readOnly → 外层只读 + 内层禁用', (tester) async {
       const cfg = WFormDropdownConfig();
-      final formBorderCfg = WFormBorderConfig();
+      final formBorderCfg = WFormBorderConfig.builder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
 
@@ -306,7 +306,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: WFormController(),
-              formBorderConfig: formBorderCfg,
+              formBorderConfig: formBorderCfg.buildConfig(),
               child: cfg.build<String>(
                 bordered: true,
                 name: 'fruit',
@@ -753,7 +753,7 @@ void main() {
 
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       const cfg = WFormMultiDropdownConfig();
-      final formBorderCfg = WFormBorderConfig();
+      final formBorderCfg = WFormBorderConfig.builder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
       final formData = WFormController();
@@ -763,7 +763,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: formBorderCfg,
+              formBorderConfig: formBorderCfg.buildConfig(),
               child: cfg.build(
                 bordered: true,
                 name: 'tags',
@@ -780,7 +780,7 @@ void main() {
 
     testWidgets('build(bordered: true) readOnly → 外层只读 + 点击不弹出', (tester) async {
       const cfg = WFormMultiDropdownConfig();
-      final formBorderCfg = WFormBorderConfig();
+      final formBorderCfg = WFormBorderConfig.builder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
 
@@ -789,7 +789,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: WFormController(),
-              formBorderConfig: formBorderCfg,
+              formBorderConfig: formBorderCfg.buildConfig(),
               child: cfg.build(
                 bordered: true,
                 name: 'tags',
@@ -822,7 +822,7 @@ void main() {
       const cfg = WFormMultiDropdownConfig(
         containerDecoration: BoxDecoration(color: innerColor),
       );
-      final formBorderCfg = WFormBorderConfig();
+      final formBorderCfg = WFormBorderConfig.builder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
       final formData = WFormController();
@@ -832,7 +832,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: formBorderCfg,
+              formBorderConfig: formBorderCfg.buildConfig(),
               child: cfg.build(bordered: true, name: 'tags', items: const {'a': 'A'}),
             ),
           ),

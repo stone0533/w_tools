@@ -3,13 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 /// 创建带默认 hintBuilder/errorBuilder 的 WFormBorderConfig
-WFormBorderConfig makeCfg({
+WFormBorderConfigBuilder makeCfg({
   WFormBorderDecoration? defaultDecoration,
   WFormBorderDecoration? readOnlyDecoration,
   WFormBorderDecoration? errorDecoration,
   WFormBorderDecoration? focusedDecoration,
 }) {
-  final cfg = WFormBorderConfig();
+  final cfg = WFormBorderConfig.builder();
   cfg.hintBuilder = (_) => const SizedBox.shrink();
   cfg.errorBuilder = (_) => const SizedBox.shrink();
   if (defaultDecoration != null) cfg.defaultDecoration = defaultDecoration;
@@ -18,6 +18,19 @@ WFormBorderConfig makeCfg({
   if (focusedDecoration != null) cfg.focusedDecoration = focusedDecoration;
   return cfg;
 }
+
+/// 直接生成不可变配置，便于传给 WFormBorder
+WFormBorderConfig makeCfgConfig({
+  WFormBorderDecoration? defaultDecoration,
+  WFormBorderDecoration? readOnlyDecoration,
+  WFormBorderDecoration? errorDecoration,
+  WFormBorderDecoration? focusedDecoration,
+}) => makeCfg(
+  defaultDecoration: defaultDecoration,
+  readOnlyDecoration: readOnlyDecoration,
+  errorDecoration: errorDecoration,
+  focusedDecoration: focusedDecoration,
+).buildConfig();
 
 /// 查找 WFormBorder 内部用于绘制边框的 DecoratedBox
 Finder findBorderDecoratedBox() => find.descendant(
@@ -57,7 +70,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WFormBorder(
-              config: makeCfg(),
+              config: makeCfgConfig(),
               child: const Text('my-child'),
             ),
           ),
@@ -76,7 +89,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WFormBorder(
-              config: cfg,
+              config: cfg.buildConfig(),
               hintTextList: const ['至少8位', '包含数字'],
               child: const Text('field'),
             ),
@@ -89,7 +102,7 @@ void main() {
 
     testWidgets('hintTextList 运行期变更 → 提示文本随之更新（回归）', (tester) async {
       final key = GlobalKey<WFormBorderState>();
-      final cfg = WFormBorderConfig();
+      final cfg = WFormBorderConfig.builder();
       cfg.hintBuilder = (list) => Column(
         children: [for (final e in list ?? const <String>[]) Text('hint-$e')],
       );
@@ -98,7 +111,7 @@ void main() {
         home: Scaffold(
           body: WFormBorder(
             key: key,
-            config: cfg,
+            config: cfg.buildConfig(),
             hintTextList: hints,
             child: const Text('field'),
           ),
@@ -115,14 +128,14 @@ void main() {
 
     testWidgets('配置原地修改 / 清空后，组件重建即生效（回归）', (tester) async {
       final key = GlobalKey<WFormBorderState>();
-      final cfg = WFormBorderConfig()
+      final cfg = WFormBorderConfig.builder()
         ..defaultDecoration = const WFormBorderDecoration(color: Color(0xFF111111));
 
       Widget buildWith(List<String> hints) => MaterialApp(
         home: Scaffold(
           body: WFormBorder(
             key: key,
-            config: cfg,
+            config: cfg.buildConfig(),
             hintTextList: hints,
             child: const Text('field'),
           ),
@@ -145,7 +158,7 @@ void main() {
 
     testWidgets('自定义 layout — 消息可放到子组件右侧', (tester) async {
       const childKey = Key('layout-child');
-      final cfg = WFormBorderConfig()
+      final cfg = WFormBorderConfig.builder()
         ..hintBuilder = ((list) => Text(list!.first))
         ..layout = WFormBorderLayout.builder(
           (context, data) => Row(
@@ -160,7 +173,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WFormBorder(
-              config: cfg,
+              config: cfg.buildConfig(),
               hintTextList: const ['侧边提示'],
               child: const SizedBox(key: childKey, height: 40),
             ),
@@ -177,12 +190,12 @@ void main() {
 
     testWidgets('运行期替换 layout 后生效', (tester) async {
       const childKey = Key('layout-child');
-      final cfg = WFormBorderConfig()..hintBuilder = (list) => Text(list!.first);
+      final cfg = WFormBorderConfig.builder()..hintBuilder = (list) => Text(list!.first);
 
       Widget build() => MaterialApp(
         home: Scaffold(
           body: WFormBorder(
-            config: cfg,
+            config: cfg.buildConfig(),
             hintTextList: const ['提示'],
             child: const SizedBox(key: childKey, width: 120, height: 40),
           ),
@@ -226,7 +239,7 @@ void main() {
           home: Scaffold(
             body: WFormBorder(
               key: key,
-              config: cfg,
+              config: cfg.buildConfig(),
               hintTextList: const ['请填写'],
               child: const Text('field'),
             ),
@@ -259,7 +272,7 @@ void main() {
           home: Scaffold(
             body: WFormBorder(
               key: key,
-              config: cfg,
+              config: cfg.buildConfig(),
               hintTextList: const ['字段提示'],
               child: const Text('field'),
             ),
@@ -294,7 +307,7 @@ void main() {
           home: Scaffold(
             body: WFormBorder(
               key: key,
-              config: cfg,
+              config: cfg.buildConfig(),
               hintTextList: const ['提示'],
               child: const Text('field'),
             ),
@@ -324,7 +337,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WFormBorder(
-              config: makeCfg(
+              config: makeCfgConfig(
                 defaultDecoration: const WFormBorderDecoration(color: Colors.red),
               ),
               isTransparentBackground: true,
@@ -342,7 +355,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WFormBorder(
-              config: makeCfg(
+              config: makeCfgConfig(
                 defaultDecoration: const WFormBorderDecoration(color: Colors.white),
                 readOnlyDecoration: const WFormBorderDecoration(color: Colors.grey),
               ),
@@ -361,7 +374,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WFormBorder(
-              config: makeCfg(
+              config: makeCfgConfig(
                 defaultDecoration: const WFormBorderDecoration(color: Colors.white),
                 focusedDecoration: const WFormBorderDecoration(color: Colors.blue),
               ),
@@ -382,7 +395,7 @@ void main() {
           home: Scaffold(
             body: WFormBorder(
               key: key,
-              config: makeCfg(
+              config: makeCfgConfig(
                 defaultDecoration: const WFormBorderDecoration(color: Colors.white),
                 readOnlyDecoration: const WFormBorderDecoration(color: Colors.grey),
                 focusedDecoration: const WFormBorderDecoration(color: Colors.blue),
@@ -406,7 +419,7 @@ void main() {
   group('WFormBorderConfig — copyWith / copy / build', () {
     test('copyWith 默认 builder 缺失时仍可用（新 cfg 也未初始化 → 但 setter 之后 OK）', () {
       final base = makeCfg(); // 已初始化 builder
-      final custom = base.copyWith(
+      final custom = base.buildConfig().copyWith(
         defaultDecoration: const WFormBorderDecoration(color: Colors.red),
       );
       expect(custom, isA<WFormBorderConfig>());
@@ -416,13 +429,13 @@ void main() {
 
     test('copy() 等同于 copyWith()', () {
       final base = makeCfg();
-      final cloned = base.copy();
+      final cloned = base.buildConfig().copy();
       expect(cloned, isA<WFormBorderConfig>());
     });
 
     test('build() 返回 WFormBorder', () {
       final cfg = makeCfg();
-      final border = cfg.build(child: const Text('child'));
+      final border = cfg.buildConfig().build(child: const Text('child'));
       expect(border, isA<WFormBorder>());
     });
 
@@ -435,7 +448,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: base.copy().build(child: const Text('child')),
+            body: base.buildConfig().copy().build(child: const Text('child')),
           ),
         ),
       );
@@ -515,7 +528,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: const WFormFieldShell(
                 name: 'email',
                 readOnly: false,
@@ -541,7 +554,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: cfg,
+              formBorderConfig: cfg.buildConfig(),
               child: const WFormFieldShell(
                 name: 'pwd',
                 readOnly: false,
@@ -566,7 +579,7 @@ void main() {
           home: Scaffold(
             body: WFormBorder(
               key: key,
-              config: makeCfg(
+              config: makeCfgConfig(
                 errorDecoration: const WFormBorderDecoration(
                   border: Border.fromBorderSide(
                     BorderSide(color: Color(0xFFC0061A), width: 1),
@@ -599,7 +612,7 @@ void main() {
         home: Scaffold(
           body: WFormScope(
             formData: formData,
-            formBorderConfig: makeCfg(
+            formBorderConfig: makeCfgConfig(
               defaultDecoration: const WFormBorderDecoration(
                 border: Border.fromBorderSide(
                   BorderSide(color: Color(0xFFEAEAEA), width: 1),
@@ -641,7 +654,9 @@ void main() {
     testWidgets('运行时变更 → 子树内边框装饰随之更新', (tester) async {
       final formData = WFormController();
       final cfgNotifier = ValueNotifier<WFormBorderConfig>(
-        makeCfg(defaultDecoration: const WFormBorderDecoration(color: Color(0xFF111111))),
+        makeCfg(
+          defaultDecoration: const WFormBorderDecoration(color: Color(0xFF111111)),
+        ).buildConfig(),
       );
       addTearDown(cfgNotifier.dispose);
 
@@ -668,7 +683,7 @@ void main() {
 
       cfgNotifier.value = makeCfg(
         defaultDecoration: const WFormBorderDecoration(color: Color(0xFF222222)),
-      );
+      ).buildConfig();
       await tester.pump();
 
       expect(findBorderFillColor(const Color(0xFF222222)), findsOneWidget);
@@ -676,7 +691,7 @@ void main() {
     });
 
     testWidgets('直接使用 WFormBorder 时继承 WFormScope.formBorderConfig', (tester) async {
-      final cfg = WFormBorderConfig();
+      final cfg = WFormBorderConfig.builder();
       cfg.hintBuilder = (list) => Column(
         children: [for (final e in list ?? const <String>[]) Text('hint-$e')],
       );
@@ -687,7 +702,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: cfg,
+              formBorderConfig: cfg.buildConfig(),
               child: const WFormBorder(
                 hintTextList: ['继承成功'],
                 child: Text('c'),
@@ -702,10 +717,10 @@ void main() {
     });
 
     testWidgets('显式 config 优先于 WFormScope.formBorderConfig', (tester) async {
-      final builderCfg = WFormBorderConfig();
+      final builderCfg = WFormBorderConfig.builder();
       builderCfg.hintBuilder = (list) => Text('builder-${list!.first}');
 
-      final borderCfg = WFormBorderConfig();
+      final borderCfg = WFormBorderConfig.builder();
       borderCfg.hintBuilder = (list) => Text('border-${list!.first}');
 
       final formData = WFormController();
@@ -715,9 +730,9 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: builderCfg,
+              formBorderConfig: builderCfg.buildConfig(),
               child: WFormBorder(
-                config: borderCfg,
+                config: borderCfg.buildConfig(),
                 hintTextList: const ['x'],
                 child: const Text('c'),
               ),
@@ -768,7 +783,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: const Row(
                 children: [
                   Expanded(
@@ -808,7 +823,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: const Row(
                 children: [
                   Expanded(
@@ -842,7 +857,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: Row(children: [container]).withFormBorder(name: 'row'),
             ),
           ),
@@ -866,7 +881,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: Row(
                 children: [
                   Expanded(
@@ -898,7 +913,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: (const Row(
                 children: [
                   Expanded(
@@ -932,7 +947,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: (const Row(
                 children: [
                   Expanded(
@@ -965,7 +980,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: Row(
                 children: [
                   Expanded(
@@ -994,7 +1009,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              formBorderConfig: makeCfg(),
+              formBorderConfig: makeCfgConfig(),
               child: const Row(
                 children: [
                   SizedBox(

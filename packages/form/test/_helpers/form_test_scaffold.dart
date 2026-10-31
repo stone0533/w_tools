@@ -38,7 +38,8 @@ WFormBorderConfig terseBorderConfig() {
     ],
   );
 
-  return WFormBorderConfig()
-    ..hintBuilder = buildMessages
-    ..errorBuilder = buildMessages;
+  return (WFormBorderConfig.builder()
+        ..hintBuilder = buildMessages
+        ..errorBuilder = buildMessages)
+      .buildConfig();
 }

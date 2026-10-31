@@ -91,7 +91,7 @@ class WFormBorderState extends State<WFormBorder> {
     super.initState();
     // initState 中不能读取 InheritedWidget：先用显式配置或空配置占位，
     // 继承 WFormScope.formBorderConfig 在 didChangeDependencies 中完成
-    config = widget.config ?? WFormBorderConfig();
+    config = widget.config ?? const WFormBorderConfig();
     _configSnapshot = _snapshotOf(config);
     messageList = widget.hintTextList;
   }
@@ -112,12 +112,10 @@ class WFormBorderState extends State<WFormBorder> {
     }
   }
 
-  /// 同步生效配置：显式传入优先，否则继承 [WFormScope.formBorderConfig]
-  ///
-  /// 比较内容快照而非实例身份，配置被原地修改时只要组件重建即可生效。
+  /// 同步生效配置：显式传入优先，否则继承最近的 [WFormBorderConfigScope]。
   void _syncConfig() {
     final resolved =
-        widget.config ?? WFormBorderConfigScope.maybeOf(context) ?? WFormBorderConfig();
+        widget.config ?? WFormBorderConfigScope.maybeOf(context) ?? const WFormBorderConfig();
     final snapshot = _snapshotOf(resolved);
     if (snapshot == _configSnapshot) return;
     config = resolved;
@@ -125,18 +123,15 @@ class WFormBorderState extends State<WFormBorder> {
     _decorationKey = null; // 失效装饰缓存
   }
 
-  /// 生成配置内容快照
-  ///
-  /// 装饰与构建器都是「整体替换」的不可变值，用引用比较即可；
-  /// 因此能检测出 `config.errorDecoration = ...` 这类原地修改。
+  /// 生成配置内容快照，用于检测配置实例内容变化。
   Object _snapshotOf(WFormBorderConfig c) => (
-    c._defaultDecoration,
-    c._readOnlyDecoration,
-    c._errorDecoration,
-    c._focusedDecoration,
-    c._hintBuilder,
-    c._errorBuilder,
-    c._layout,
+    c.defaultDecoration,
+    c.readOnlyDecoration,
+    c.errorDecoration,
+    c.focusedDecoration,
+    c.hintBuilder,
+    c.errorBuilder,
+    c.layout,
   );
 
   /// 获取当前状态对应的装饰（带缓存，状态未变时复用上次结果）
@@ -156,15 +151,15 @@ class WFormBorderState extends State<WFormBorder> {
     WFormBorderDecoration? decoration;
     if (isError) {
       // 错误态优先于透明背景：校验反馈不应因背景透明而丢失
-      decoration = config._errorDecoration ?? config._defaultDecoration;
+      decoration = config.errorDecoration ?? config.defaultDecoration;
     } else if (widget.isTransparentBackground == true) {
       decoration = null;
     } else if (widget.isReadOnly == true) {
-      decoration = config._readOnlyDecoration ?? config._defaultDecoration;
+      decoration = config.readOnlyDecoration ?? config.defaultDecoration;
     } else if (widget.isFocused == true) {
-      decoration = config._focusedDecoration ?? config._defaultDecoration;
+      decoration = config.focusedDecoration ?? config.defaultDecoration;
     } else {
-      decoration = config._defaultDecoration;
+      decoration = config.defaultDecoration;
     }
 
     _cachedDecoration = decoration;
@@ -206,13 +201,13 @@ class WFormBorderState extends State<WFormBorder> {
     if (!hasMessage) {
       message = const SizedBox.shrink();
     } else if (isError) {
-      message = config._errorBuilder?.call(messageList) ?? const SizedBox.shrink();
+      message = config.errorBuilder?.call(messageList) ?? const SizedBox.shrink();
     } else {
-      message = config._hintBuilder?.call(messageList) ?? const SizedBox.shrink();
+      message = config.hintBuilder?.call(messageList) ?? const SizedBox.shrink();
     }
 
     // 3. 交给布局策略组装
-    return config._layout.build(
+    return config.layout.build(
       context,
       WFormBorderLayoutData(
         child: child,
@@ -226,52 +221,30 @@ class WFormBorderState extends State<WFormBorder> {
   }
 }
 
-/// 表单边框配置类，定义边框的样式和构建器
+/// 表单边框配置类，定义边框的样式和构建器。
 ///
-/// 默认不包含任何装饰与构建器（全部为 null），外观完全由显式配置决定。
-///
-/// 该配置按**引用**被 [WFormBorder] 捕获：
-/// - 替换实例（如 `cfg = cfg.copyWith(...)`）会立即触发更新；
-/// - 原地修改（`cfg.errorDecoration = ...`）只会在组件随后重建时生效，
-///   若要确保立即生效，请替换实例。
-///
-/// [copyWith] 的 null 参数表示「保持不变」；要清空某个装饰，请使用 setter：
-/// `cfg.copy()..errorDecoration = null`。
+/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
 class WFormBorderConfig {
-  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
   static WFormBorderConfigBuilder builder() => WFormBorderConfigBuilder();
 
-  /// 默认状态的装饰
-  WFormBorderDecoration? _defaultDecoration;
+  final WFormBorderDecoration? defaultDecoration;
+  final WFormBorderDecoration? readOnlyDecoration;
+  final WFormBorderDecoration? errorDecoration;
+  final WFormBorderDecoration? focusedDecoration;
+  final Widget Function(List<String>? list)? hintBuilder;
+  final Widget Function(List<String>? list)? errorBuilder;
+  final WFormBorderLayout layout;
 
-  /// 只读状态的装饰
-  WFormBorderDecoration? _readOnlyDecoration;
+  const WFormBorderConfig({
+    this.defaultDecoration,
+    this.readOnlyDecoration,
+    this.errorDecoration,
+    this.focusedDecoration,
+    this.hintBuilder,
+    this.errorBuilder,
+    this.layout = WFormBorderLayout.column,
+  });
 
-  /// 错误状态的装饰
-  WFormBorderDecoration? _errorDecoration;
-
-  /// 聚焦状态的装饰
-  WFormBorderDecoration? _focusedDecoration;
-
-  /// 提示文本构建器（null 表示不渲染提示文本）
-  Widget Function(List<String>? list)? _hintBuilder;
-
-  /// 错误文本构建器（null 表示不渲染错误文本）
-  Widget Function(List<String>? list)? _errorBuilder;
-
-  /// 边框与消息的布局策略
-  WFormBorderLayout _layout = WFormBorderLayout.column;
-
-  /// 创建边框配置
-  ///
-  /// 不内置任何默认值：所有装饰与构建器默认为 null，
-  /// 未配置的状态不渲染装饰，外观完全由调用方配置决定。
-  WFormBorderConfig();
-
-  /// 创建一套常用的表单边框配置。
-  ///
-  /// 提供默认 / 聚焦 / 错误 / 只读四种装饰和提示 / 错误文本布局；
-  /// 需要品牌定制时继续用 setter 覆盖即可。
   factory WFormBorderConfig.standard({
     Color backgroundColor = Colors.white,
     Color borderColor = const Color(0xFFE5E7EB),
@@ -298,56 +271,20 @@ class WFormBorderConfig {
       );
     }
 
-    final config = WFormBorderConfig()
-      ..defaultDecoration = base
-      ..focusedDecoration = base.copyWith(
+    return WFormBorderConfig(
+      defaultDecoration: base,
+      focusedDecoration: base.copyWith(
         border: Border.all(color: focusColor, width: 1.5),
-      )
-      ..errorDecoration = base.copyWith(
+      ),
+      errorDecoration: base.copyWith(
         border: Border.all(color: errorColor),
-      )
-      ..readOnlyDecoration = base.copyWith(color: readOnlyColor)
-      ..hintBuilder = (list) => buildMessages(list, hintTextStyle);
-    config.errorBuilder = (list) => buildMessages(list, errorTextStyle);
-    return config;
+      ),
+      readOnlyDecoration: base.copyWith(color: readOnlyColor),
+      hintBuilder: (list) => buildMessages(list, hintTextStyle),
+      errorBuilder: (list) => buildMessages(list, errorTextStyle),
+    );
   }
 
-  /// 设置默认状态装饰
-  set defaultDecoration(WFormBorderDecoration? value) {
-    _defaultDecoration = value;
-  }
-
-  /// 设置只读状态装饰
-  set readOnlyDecoration(WFormBorderDecoration? value) {
-    _readOnlyDecoration = value;
-  }
-
-  /// 设置错误状态装饰
-  set errorDecoration(WFormBorderDecoration? value) {
-    _errorDecoration = value;
-  }
-
-  /// 设置聚焦状态装饰
-  set focusedDecoration(WFormBorderDecoration? value) {
-    _focusedDecoration = value;
-  }
-
-  /// 设置提示文本构建器（null 表示不渲染提示文本）
-  set hintBuilder(Widget Function(List<String>? list)? value) {
-    _hintBuilder = value;
-  }
-
-  /// 设置错误文本构建器（null 表示不渲染错误文本）
-  set errorBuilder(Widget Function(List<String>? list)? value) {
-    _errorBuilder = value;
-  }
-
-  /// 设置边框与消息的布局策略
-  set layout(WFormBorderLayout value) {
-    _layout = value;
-  }
-
-  /// 构建 [WFormBorder] 组件
   WFormBorder build({
     List<String>? hintTextList,
     bool? isReadOnly,
@@ -363,15 +300,8 @@ class WFormBorderConfig {
     );
   }
 
-  /// 创建当前配置的副本
-  WFormBorderConfig copy() {
-    return copyWith();
-  }
+  WFormBorderConfig copy() => copyWith();
 
-  /// 创建当前配置的副本，并可以选择性地更新某些属性
-  ///
-  /// 参数为 null 表示「保持原值」，无法通过 `copyWith(x: null)` 清空字段；
-  /// 需要清空时请使用 setter，例如 `cfg.copy()..errorDecoration = null`。
   WFormBorderConfig copyWith({
     WFormBorderDecoration? defaultDecoration,
     WFormBorderDecoration? readOnlyDecoration,
@@ -381,15 +311,49 @@ class WFormBorderConfig {
     Widget Function(List<String>? list)? errorBuilder,
     WFormBorderLayout? layout,
   }) {
-    final copyConfig = WFormBorderConfig();
-    copyConfig._defaultDecoration = defaultDecoration ?? _defaultDecoration;
-    copyConfig._readOnlyDecoration = readOnlyDecoration ?? _readOnlyDecoration;
-    copyConfig._errorDecoration = errorDecoration ?? _errorDecoration;
-    copyConfig._focusedDecoration = focusedDecoration ?? _focusedDecoration;
-    copyConfig._hintBuilder = hintBuilder ?? _hintBuilder;
-    copyConfig._errorBuilder = errorBuilder ?? _errorBuilder;
-    copyConfig._layout = layout ?? _layout;
-    return copyConfig;
+    return WFormBorderConfig(
+      defaultDecoration: defaultDecoration ?? this.defaultDecoration,
+      readOnlyDecoration: readOnlyDecoration ?? this.readOnlyDecoration,
+      errorDecoration: errorDecoration ?? this.errorDecoration,
+      focusedDecoration: focusedDecoration ?? this.focusedDecoration,
+      hintBuilder: hintBuilder ?? this.hintBuilder,
+      errorBuilder: errorBuilder ?? this.errorBuilder,
+      layout: layout ?? this.layout,
+    );
+  }
+}
+
+/// [WFormBorderConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
+class WFormBorderConfigBuilder {
+  WFormBorderDecoration? defaultDecoration;
+  WFormBorderDecoration? readOnlyDecoration;
+  WFormBorderDecoration? errorDecoration;
+  WFormBorderDecoration? focusedDecoration;
+  Widget Function(List<String>? list)? hintBuilder;
+  Widget Function(List<String>? list)? errorBuilder;
+  WFormBorderLayout layout = WFormBorderLayout.column;
+
+  WFormBorderConfigBuilder();
+
+  WFormBorderConfigBuilder.from(WFormBorderConfig config)
+    : defaultDecoration = config.defaultDecoration,
+      readOnlyDecoration = config.readOnlyDecoration,
+      errorDecoration = config.errorDecoration,
+      focusedDecoration = config.focusedDecoration,
+      hintBuilder = config.hintBuilder,
+      errorBuilder = config.errorBuilder,
+      layout = config.layout;
+
+  WFormBorderConfig buildConfig() {
+    return WFormBorderConfig(
+      defaultDecoration: defaultDecoration,
+      readOnlyDecoration: readOnlyDecoration,
+      errorDecoration: errorDecoration,
+      focusedDecoration: focusedDecoration,
+      hintBuilder: hintBuilder,
+      errorBuilder: errorBuilder,
+      layout: layout,
+    );
   }
 }
 
@@ -511,11 +475,4 @@ class WFormBorderConfigScope extends InheritedWidget {
   bool updateShouldNotify(WFormBorderConfigScope oldWidget) {
     return config != oldWidget.config;
   }
-}
-
-/// WFormBorderConfig 的 Builder。
-///
-/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
-class WFormBorderConfigBuilder extends WFormBorderConfig {
-  WFormBorderConfig buildConfig() => copy();
 }
