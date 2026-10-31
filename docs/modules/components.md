@@ -90,6 +90,9 @@
 | `WCountdown` | core | 倒计时 |
 | `WStorage` / `WToken` / `WEncrypt` / `WHash` | core | 存储、令牌、加密、摘要 |
 | `WLogger` / `WValidator` / `WRegExp` | core | 日志、校验、正则 |
+| `DioRegistry` | api | 按 baseUrl 创建并复用 Dio | 不要直接 `Dio()`；同一 baseUrl 只配置一次 |
+| `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试 | 不要在拦截器里存 token |
+| `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
 | `WApiConfig` | api | 请求配置与日志注入 |
 | `WRoute` | app | 路由工具 |
 

@@ -49,6 +49,22 @@ final response = await registry.dio.get('/users');
 DioRegistry.dispose('https://api.example.com');
 ```
 
+带 Token 时，存储交给 `w_tools_core` 的 `WToken`，拦截器只注入回调：
+
+```dart
+final registry = DioRegistry.forBaseUrl(
+  'https://api.example.com',
+  interceptors: [
+    WLogInterceptor(enableLog: kDebugMode),
+    WTokenInterceptor(
+      tokenGetter: WToken.getToken,
+      tokenClearer: WToken.clearToken,
+      tokenRefresher: () async => refreshAccessToken(),
+    ),
+  ],
+);
+```
+
 ## 主要 API
 
 | 能力 | 入口 |

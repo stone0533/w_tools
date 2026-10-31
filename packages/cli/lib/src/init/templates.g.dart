@@ -184,6 +184,10 @@ const String agentsSnippet = r'''
    `WAsyncBuilder` 是兼容别名，新代码用 `WAsyncStateBuilder`。
    `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
    `WAsyncStateSliver` 默认不额外显示 refreshing 进度，刷新反馈交给 SmartRefresher。
+   **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接
+   `Dio()`；同一 baseUrl 只初始化一次。Token 存 `w_tools_core` 的 `WToken`，通过
+   `WTokenInterceptor` 的 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入；
+   401 重试依赖 DioRegistry。日志用 `WLogInterceptor`，默认脱敏敏感头。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
@@ -266,6 +270,11 @@ const String agentsSnippetEn = r'''
    `WAsyncBuilder` is a compatibility alias; use `WAsyncStateBuilder` in new code.
    Use `WAsyncStateSliver` for four-state slivers; `readySliverBuilder` must return a sliver.
    It adds no refreshing indicator by default; let SmartRefresher own refresh feedback.
+   **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`, never
+   `Dio()` directly; initialize each baseUrl once. Store tokens with `w_tools_core`'s
+   `WToken` and inject via `WTokenInterceptor` (`tokenGetter` / `tokenClearer` /
+   `tokenRefresher`); 401 retry depends on DioRegistry. Use `WLogInterceptor` for logs;
+   sensitive headers are redacted by default.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:
@@ -286,6 +295,8 @@ const String agentsSnippetNoUi = r'''
    业务代码统一 `import 'package:{{app}}/app/w/toolkit.dart';`（本项目能力清单）。
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
+   **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，
+   不要直接 `Dio()`；Token 存 `WToken`，通过 `WTokenInterceptor` 注入。
 3. **业务层只放这个功能独有的组合**，不放通用组件。
 4. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
@@ -308,6 +319,8 @@ const String agentsSnippetNoUiEn = r'''
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
+   **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`,
+   never `Dio()` directly; store tokens with `WToken` and inject via `WTokenInterceptor`.
 3. Business layer keeps feature-specific composition only.
 4. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.

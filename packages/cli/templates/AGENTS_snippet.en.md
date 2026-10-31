@@ -71,6 +71,11 @@
    `WAsyncBuilder` is a compatibility alias; use `WAsyncStateBuilder` in new code.
    Use `WAsyncStateSliver` for four-state slivers; `readySliverBuilder` must return a sliver.
    It adds no refreshing indicator by default; let SmartRefresher own refresh feedback.
+   **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`, never
+   `Dio()` directly; initialize each baseUrl once. Store tokens with `w_tools_core`'s
+   `WToken` and inject via `WTokenInterceptor` (`tokenGetter` / `tokenClearer` /
+   `tokenRefresher`); 401 retry depends on DioRegistry. Use `WLogInterceptor` for logs;
+   sensitive headers are redacted by default.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:
