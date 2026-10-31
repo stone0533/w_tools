@@ -199,4 +199,26 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('WNavBar onItemTap 返回 false 时阻止切换', (tester) async {
+    final controller = WNavController(length: 2, vsync: tester);
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WNavBar(
+            config: const WNavBarConfig(),
+            controller: controller,
+            onItemTap: (index) async => false,
+            itemBuilder: (_, index, selected) => Text('item-$index'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('item-1'));
+    await tester.pumpAndSettle();
+    expect(controller.currentIndex, 0);
+  });
 }

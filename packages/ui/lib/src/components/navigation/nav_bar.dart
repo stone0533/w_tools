@@ -15,7 +15,10 @@ class WNavBar extends StatefulWidget {
   /// 导航项构建器
   final Widget Function(BuildContext, int, bool) itemBuilder;
 
-  /// 导航项点击回调
+  /// 导航项点击回调。
+  ///
+  /// 返回 `false` 可阻止切换。异步请求期间调用方应自行做防抖 / loading /
+  /// 禁用点击；controller 只保证最终动画以最后一次切换为准。
   final Future<bool?>? Function(int)? onItemTap;
 
   /// 导航栏控制器

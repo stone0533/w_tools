@@ -1467,6 +1467,12 @@ registerStepFlow.build(current: step)
 ### WNavBar / WNavController
 
 底部导航栏，由 `WNavController` 驱动选中态切换动画，`itemBuilder(context, index, isSelected)` 渲染每项。
+### WNavBar / WNavController
+
+底部导航栏，由 `WNavController` 驱动选中态切换动画，`itemBuilder(context, index, isSelected)` 渲染每项。
+
+> `onItemTap` 支持异步拦截；如果内部发请求，调用方需要自己做防抖 / loading / 禁用点击。
+> `WNavController` 只保证最终动画以最后一次切换为准，不会阻止业务回调重复执行。
 
 ```dart
 final controller = WNavController(length: 3, vsync: this);
