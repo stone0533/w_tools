@@ -78,11 +78,14 @@ class WNotificationListenerBuilder<T extends Notification> {
     return this;
   }
 
-  /// 设置是否阻止通知传递
+  /// 是否阻止通知继续向上传递
+  bool get preventsPropagation => _preventNotificationPropagation;
+
+  /// 设置是否阻止通知继续向上传递
   ///
   /// - [prevent]：是否阻止通知传递，默认为 false
   /// 返回：WNotificationListenerBuilder 实例，用于链式调用
-  WNotificationListenerBuilder<T> setPreventNotificationPropagation(bool prevent) {
+  WNotificationListenerBuilder<T> preventNotificationPropagation(bool prevent) {
     _preventNotificationPropagation = prevent;
     return this;
   }
