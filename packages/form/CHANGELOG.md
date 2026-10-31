@@ -16,7 +16,8 @@
 
 ### Changed
 - 拆分 `text_field_actions.dart`，文本框 action 独立维护；
-- 拆分 `multi_dropdown` 的 field / item / config part 文件。
+- 拆分 `multi_dropdown` 的 field / item / config part 文件；
+- 新增 `WFormDefaults.reset()`；`WFormFieldShell` 卸载时同时清理 `formEntered`。
 
 ### Fixed
 - `WFormFieldShell` 卸载时注销 `formBorderKeys`，避免动态字段累积 GlobalKey。

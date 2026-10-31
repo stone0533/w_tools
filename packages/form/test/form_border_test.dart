@@ -750,11 +750,13 @@ void main() {
       ),
     );
 
+    formData.formEntered['dynamic_field'] = true;
     expect(formData.formBorderKeys.containsKey('dynamic_field'), isTrue);
 
     await tester.pumpWidget(const SizedBox.shrink());
 
     expect(formData.formBorderKeys.containsKey('dynamic_field'), isFalse);
+    expect(formData.formEntered.containsKey('dynamic_field'), isFalse);
   });
 
   group('Row.withFormBorder（WFormRowBorderExtension）', () {

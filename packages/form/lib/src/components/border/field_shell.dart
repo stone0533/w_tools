@@ -104,6 +104,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
     final next = WFormScope.requireOf(context);
     if (!identical(_formData, next)) {
       _formData?.removeBorderKey(widget.name);
+      _formData?.removeFormEntered(widget.name);
       _formData = next;
     }
   }
@@ -111,6 +112,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
   @override
   void dispose() {
     _formData?.removeBorderKey(widget.name);
+    _formData?.removeFormEntered(widget.name);
     super.dispose();
   }
 
@@ -128,6 +130,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
     // name 变化后旧 key 不再有意义，避免 formBorderKeys 累积
     if (oldWidget.name != widget.name) {
       _formData?.removeBorderKey(oldWidget.name);
+      _formData?.removeFormEntered(oldWidget.name);
     }
 
     // 关闭焦点边框后回调不再触发，需在此复位，避免边框卡在聚焦装饰

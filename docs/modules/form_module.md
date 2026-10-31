@@ -146,6 +146,8 @@ WFormScope(
 | `validators({config, items})` | `WFormValidator` | 校验器工厂 |
 | `formBorderKeys` | `Map<String, GlobalKey<WFormBorderState>>` | 边框 key 注册表 |
 | `ensureBorderKey(name)` | `GlobalKey<WFormBorderState>` | 获取 / 创建边框 key |
+| `removeBorderKey(name)` | `void` | 注销边框 key（字段卸载） |
+| `removeFormEntered(name)` | `void` | 注销输入状态（字段卸载） |
 
 ### formEntered 判定规则（handleChange）
 
@@ -174,7 +176,7 @@ WFormTheme(
 未配置的项回退到 `WFormDefaults` 静态值。组件显式配置优先于两者。
 
 `WFormDefaults` 仍保留为全局兜底，适合 App 启动时统一设置；多品牌 / 页面隔离使用
-`WFormTheme`。
+`WFormTheme`。测试或品牌切换后可调用 `WFormDefaults.reset()` 恢复默认图标。
 
 ### WFormDefaults — 全局默认图标
 

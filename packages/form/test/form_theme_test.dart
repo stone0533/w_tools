@@ -25,6 +25,15 @@ void main() {
     expect(find.byIcon(Icons.star), findsOneWidget);
   });
 
+  test('WFormDefaults.reset 恢复默认图标', () {
+    WFormDefaults.dropdownIcon = const Icon(Icons.star);
+    addTearDown(WFormDefaults.reset);
+
+    WFormDefaults.reset();
+
+    expect(WFormDefaults.dropdownIcon, isA<Icon>());
+  });
+
   testWidgets('WFormTheme 未配置时回退 WFormDefaults', (tester) async {
     final original = WFormDefaults.checkboxUnselectedIcon;
     addTearDown(() {

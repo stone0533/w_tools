@@ -110,6 +110,11 @@ class WFormController {
     formBorderKeys.remove(name);
   }
 
+  /// 注销指定字段的输入状态；字段卸载时由 WFormFieldShell 调用
+  void removeFormEntered(String name) {
+    formEntered.remove(name);
+  }
+
   /// 关闭键盘
   void closeKeyboard() {
     WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
