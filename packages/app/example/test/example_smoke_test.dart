@@ -27,6 +27,7 @@ void main() {
     expect(find.text('w_tools_app 示例'), findsOneWidget);
     expect(find.text('env: loaded'), findsOneWidget);
     expect(find.text('feature: ready'), findsOneWidget);
+    expect(find.text('presentation: hooks ready'), findsOneWidget);
   });
 
   testWidgets('可以打开详情路由并返回', (tester) async {

@@ -104,6 +104,7 @@ class _HomePageState extends State<HomePage> {
                   Text('WApp.init → 系统设置 → 插件 onInit → run'),
                   Text('插件：FeaturePlugin 依赖 EnvPlugin，先 env 后 feature'),
                   Text('WRouteObserver 由 WApp 自动追加'),
+                  Text('PresentationPlugin: builderWrapper + wrapApp'),
                 ],
               ),
             ),

@@ -38,6 +38,30 @@ class EnvPlugin extends WAppPlugin {
   }
 }
 
+class PresentationPlugin extends WAppPlugin {
+  @override
+  String get name => 'presentation';
+
+  @override
+  Future<void> onInit() async {
+    startupEvents.add('presentation: hooks ready');
+  }
+
+  @override
+  TransitionBuilder? get builderWrapper => (context, child) {
+    final theme = Theme.of(context);
+    return Theme(
+      data: theme.copyWith(
+        colorScheme: theme.colorScheme.copyWith(secondary: Colors.amber),
+      ),
+      child: child ?? const SizedBox.shrink(),
+    );
+  };
+
+  @override
+  Widget wrapApp(Widget child) => RepaintBoundary(child: child);
+}
+
 class RouteObserverPlugin extends WAppPlugin {
   @override
   String get name => 'route-observer';
@@ -76,7 +100,12 @@ WApp createApp() {
       GetPage(name: '/', page: () => const HomePage()),
       GetPage(name: '/detail', page: () => const DetailPage()),
     ]
-    ..addPlugins([RouteObserverPlugin(), FeaturePlugin(), EnvPlugin()]);
+    ..addPlugins([
+      PresentationPlugin(),
+      RouteObserverPlugin(),
+      FeaturePlugin(),
+      EnvPlugin(),
+    ]);
 }
 
 Future<void> main() async {
