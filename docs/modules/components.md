@@ -94,6 +94,9 @@
 | `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试 | 不要在拦截器里存 token |
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
 | `WApiConfig` | api | 请求配置与日志注入 |
+| `WLanguage` | app | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
+| `WAppConfig` | app | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
+| `WRouteObserver` | app | 维护 `WRoute` 路由栈 | 不要重复添加；WApp 已自动追加 |
 | `WRoute` | app | 路由工具 |
 
 ## 9. 扩展

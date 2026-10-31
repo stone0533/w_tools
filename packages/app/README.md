@@ -70,6 +70,25 @@ run()    通常由 start 调用；重复调用会再次 runApp
 
 初始化失败时 `isInitialized` 保持 false；再次调用 `init()` 会重新执行插件 `onInit`。
 
+## 语言与路由
+
+```dart
+WAppConfig.supportedLanguages = {
+  'zh_CN': '简体中文',
+  'en_US': 'English',
+};
+
+WLanguage().changeLanguage('zh_CN');
+WLanguage().languageStream.listen((code) {
+  // 更新 UI
+});
+```
+
+```dart
+// 需要先让 WApp 运行，WRouteObserver 才会维护路由栈
+WRoute.popUntilRoute('/home');
+```
+
 ## 主要 API
 
 | 能力 | 入口 |

@@ -73,6 +73,9 @@
    `Dio()`；同一 baseUrl 只初始化一次。Token 存 `w_tools_core` 的 `WToken`，通过
    `WTokenInterceptor` 的 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入；
    401 重试依赖 DioRegistry。日志用 `WLogInterceptor`，默认脱敏敏感头。
+   **启动**：入口用 `WApp.start()`，不要手写 runApp + 初始化顺序；插件需要顺序时用
+   `WAppPlugin.dependsOn`。`builderWrapper` 在 MaterialApp 内，`wrapApp` 在外且没有
+   Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：

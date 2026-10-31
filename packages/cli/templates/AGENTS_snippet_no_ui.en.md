@@ -12,6 +12,7 @@
    / field `config` for styling.
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`,
    never `Dio()` directly; store tokens with `WToken` and inject via `WTokenInterceptor`.
+   **Startup**: use `WApp.start()`; declare plugin order with `WAppPlugin.dependsOn`.
 3. Business layer keeps feature-specific composition only.
 4. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.

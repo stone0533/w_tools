@@ -188,6 +188,9 @@ const String agentsSnippet = r'''
    `Dio()`；同一 baseUrl 只初始化一次。Token 存 `w_tools_core` 的 `WToken`，通过
    `WTokenInterceptor` 的 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入；
    401 重试依赖 DioRegistry。日志用 `WLogInterceptor`，默认脱敏敏感头。
+   **启动**：入口用 `WApp.start()`，不要手写 runApp + 初始化顺序；插件需要顺序时用
+   `WAppPlugin.dependsOn`。`builderWrapper` 在 MaterialApp 内，`wrapApp` 在外且没有
+   Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
@@ -275,6 +278,10 @@ const String agentsSnippetEn = r'''
    `WToken` and inject via `WTokenInterceptor` (`tokenGetter` / `tokenClearer` /
    `tokenRefresher`); 401 retry depends on DioRegistry. Use `WLogInterceptor` for logs;
    sensitive headers are redacted by default.
+   **Startup**: use `WApp.start()` as the entry point, not a hand-written runApp/init
+   sequence; declare plugin order with `WAppPlugin.dependsOn`. `builderWrapper` lives
+   inside MaterialApp; `wrapApp` is outside and has no Theme/MediaQuery. `WRouteObserver`
+   is appended by WApp automatically; do not add it twice.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:
@@ -297,6 +304,7 @@ const String agentsSnippetNoUi = r'''
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
    **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，
    不要直接 `Dio()`；Token 存 `WToken`，通过 `WTokenInterceptor` 注入。
+   **启动**：入口用 `WApp.start()`；插件需要顺序时用 `WAppPlugin.dependsOn`。
 3. **业务层只放这个功能独有的组合**，不放通用组件。
 4. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
@@ -321,6 +329,7 @@ const String agentsSnippetNoUiEn = r'''
    / field `config` for styling.
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`,
    never `Dio()` directly; store tokens with `WToken` and inject via `WTokenInterceptor`.
+   **Startup**: use `WApp.start()`; declare plugin order with `WAppPlugin.dependsOn`.
 3. Business layer keeps feature-specific composition only.
 4. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.

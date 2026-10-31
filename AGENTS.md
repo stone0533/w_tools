@@ -113,3 +113,11 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - Token 存储用 `w_tools_core` 的 `WToken`；`WTokenInterceptor` 只通过 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入，不负责存储。
 - 401 重试依赖 `DioRegistry`；自行 `Dio()` 创建的实例重试会走另一个 registry 实例。
 - 日志用 `WLogInterceptor`；默认脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `X-Api-Key`，不要依赖它做业务错误处理。
+
+## 启动（w_tools_app）
+
+- 项目入口用 `WApp.start()`，不要手写 `runApp` + 初始化顺序；`start()` = `init()` + `run()`，只调用一次，重复调用会再次 `runApp`。
+- 插件实现 `WAppPlugin`；有初始化顺序要求时用 `dependsOn` 显式声明，不要依赖注册顺序。
+- `builderWrapper` 位于 MaterialApp 内；`wrapApp` 位于 MaterialApp 外，没有 Theme / MediaQuery。
+- `WRouteObserver` 由 `WApp` 自动追加，不要重复添加。
+- 多语言用 `WLanguage.changeLanguage`，监听 `languageStream`；语言真源是 `WAppConfig.currentLanguage`。

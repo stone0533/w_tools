@@ -76,6 +76,10 @@
    `WToken` and inject via `WTokenInterceptor` (`tokenGetter` / `tokenClearer` /
    `tokenRefresher`); 401 retry depends on DioRegistry. Use `WLogInterceptor` for logs;
    sensitive headers are redacted by default.
+   **Startup**: use `WApp.start()` as the entry point, not a hand-written runApp/init
+   sequence; declare plugin order with `WAppPlugin.dependsOn`. `builderWrapper` lives
+   inside MaterialApp; `wrapApp` is outside and has no Theme/MediaQuery. `WRouteObserver`
+   is appended by WApp automatically; do not add it twice.
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:
