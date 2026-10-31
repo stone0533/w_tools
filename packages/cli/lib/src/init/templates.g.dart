@@ -132,7 +132,6 @@ const String agentsSnippet = r'''
    需要 drawer / bottomSheet / 非标准安全区时用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
    AppBar 默认样式只在 `AppBars.style` 修改。
    **底部导航**：用 `WNavBar` + `WNavController`；`WNavController` 需要 `vsync`，
-   在页面 State 创建并 `dispose`；顶部 tab 用 `WTabBar`。不要自己写 `BottomNavigationBar`。
    在页面 State 创建并 `dispose`；顶部 tab 用 `WTabBar`，它依赖
    `TabController` / `DefaultTabController`，不自带 controller。不要自己写 `BottomNavigationBar`。
    **按钮**统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
@@ -202,8 +201,6 @@ const String agentsSnippetEn = r'''
    `Scaffold` for drawers/bottom sheets/non-standard safe areas, and note why in the PR.
    Change app-bar defaults only in `AppBars.style`.
    **Bottom navigation**: use `WNavBar` + `WNavController`; `WNavController` needs `vsync`,
-   is created in the page State and disposed there; use `WTabBar` for top tabs. Do not hand-roll
-   `BottomNavigationBar`.
    is created in the page State and disposed there; use `WTabBar` for top tabs. It requires
    `TabController` / `DefaultTabController` and does not own one. Do not hand-roll `BottomNavigationBar`.
    **Buttons** use `AppButtons.primary/secondary/text/danger(context)`; do not write
