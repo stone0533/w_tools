@@ -90,6 +90,20 @@ void main() {
       loader.dispose();
     });
 
+    testWidgets('reset 会取消已排队的 retry', (tester) async {
+      final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
+      loader.handleError(
+        Exception('network'),
+        const WImageNetworkError('x', 'network'),
+        retry: true,
+      );
+      expect(loader.retryScheduled, isTrue);
+
+      loader.reset(retryCount: 0, retryDelay: 1000);
+      expect(loader.retryScheduled, isFalse);
+      loader.dispose();
+    });
+
     testWidgets('dispose 会取消重试状态', (tester) async {
       final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
       loader.handleError(
@@ -104,6 +118,24 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       expect(loader.retryScheduled, isFalse);
     });
+  });
+
+  testWidgets('WImageController 解绑后状态保留且 retry 安全', (tester) async {
+    final controller = WImageController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WImage.base64('invalid', controller: controller),
+      ),
+    );
+    expect(controller.isAttached, isTrue);
+    final state = controller.state;
+    expect(state, isNotNull);
+
+    await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
+    expect(controller.isAttached, isFalse);
+    expect(controller.state, same(state));
+
+    expect(controller.retry, returnsNormally);
   });
 
   group('WImage', () {
