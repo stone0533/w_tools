@@ -52,7 +52,12 @@ class WNavController extends ChangeNotifier {
   }
 
   set currentIndex(int value) {
+    if (_disposed) return;
     if (_currentIndex != value && value >= 0 && value < length) {
+      _transitionToken++;
+      _animationController
+        ..stop()
+        ..value = 0;
       _previousIndex = _currentIndex;
       _currentIndex = value;
       notifyListeners();

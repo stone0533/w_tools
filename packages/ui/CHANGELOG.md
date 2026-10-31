@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Navigation 加固：`WNavController.currentIndex` 会停止进行中的动画并在 dispose 后安全返回；`WNavBar` 增加 button/selected 语义；`WTabBar` 改为无状态并支持 `overlayColor`。
+
 ### Removed
 - 移除 `WRichText` / `WRichTextConfig`；多色 / 多字重 / 可点击片段统一使用
   Flutter `Text.rich` + `WTextStyles`。

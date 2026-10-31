@@ -48,6 +48,19 @@ void main() {
       ctrl.dispose();
     });
 
+    testWidgets('setter 打断进行中的动画', (tester) async {
+      final ctrl = WNavController(length: 3, vsync: tester);
+      addTearDown(ctrl.dispose);
+
+      final transition = ctrl.animateTo(1);
+      ctrl.currentIndex = 2;
+      expect(ctrl.currentIndex, 2);
+      expect(ctrl.offset, 0);
+      await tester.pumpAndSettle();
+      await transition;
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('out of range 值被拒绝', (tester) async {
       int listenerCount = 0;
       final ctrl = WNavController(length: 3, vsync: tester);
@@ -68,13 +81,12 @@ void main() {
   });
 
   group('WNavController — dispose', () {
-    testWidgets('dispose 后再访问 setter 抛 FlutterError', (tester) async {
+    testWidgets('dispose 后 setter 安全返回', (tester) async {
       final ctrl = WNavController(length: 3, vsync: tester);
       ctrl.dispose();
 
-      // dispose 后 ChangeNotifier.mounted = false
-      // setter 内部调 notifyListeners() → 抛 "not active"
-      expect(() => ctrl.currentIndex = 1, throwsFlutterError);
+      expect(() => ctrl.currentIndex = 1, returnsNormally);
+      expect(ctrl.currentIndex, 0);
     });
   });
 
