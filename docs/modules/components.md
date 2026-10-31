@@ -70,6 +70,7 @@
 | --- | --- | --- | --- |
 | `WAsyncView` / `WAsyncErrorView` / `WAsyncErrorBanner` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
 | `WAsyncStateBuilder` / `WAsyncBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；`WAsyncBuilder` 是兼容别名 |
+| `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore | 普通单请求用 `WAsyncController` |
 | `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据 | 非滚动页面用 `WAsyncView` |
 | `WAsyncSliverDefaults` | async | WAsyncStateSliver 的 sliver 默认视图 | 不要复用 `WAsyncViewDefaults`；状态 builder 必须非滚动 |
@@ -84,7 +85,8 @@
 | 能力 | 子包 | 说明 |
 | --- | --- | --- |
 | `WApp` / `WAppPlugin` | app | 启动器与插件分层初始化 |
-| `WAsync` / `WAsyncState` / `WCancelToken` | async | 异步执行、状态、取消 |
+| `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
+| `WAsync` / `WCancelToken` | async | 异步执行、取消 | — |
 | `WCountdown` | core | 倒计时 |
 | `WStorage` / `WToken` / `WEncrypt` / `WHash` | core | 存储、令牌、加密、摘要 |
 | `WLogger` / `WValidator` / `WRegExp` | core | 日志、校验、正则 |
