@@ -11,6 +11,9 @@
 - `WCountdown`
 - `WPlatform`
 - `WRegExp` / `WLogger` / `WEncrypt.base64Encode`
+- `WMapExtension.sortedByKeys`
+- `WUx.throttle`
+- `WStorage.setObject` / `getObject`
 
 ## 运行
 
@@ -49,6 +52,9 @@ token
   正则匹配
   Base64 往返
   写日志
+  Map 排序
+  节流点击
+  保存 / 读取对象
 
 倒计时
   开始 5 秒倒计时

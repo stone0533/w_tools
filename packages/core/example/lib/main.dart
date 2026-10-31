@@ -36,15 +36,19 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
 
   late final WCountdown _countdown;
   late final WCancellableAction _debounced;
+  late final WCancellableAction _throttled;
 
   String _emailResult = '输入邮箱后点击校验';
   String _cryptoResult = '点击生成哈希与加密结果';
   String _storageResult = '尚未读取 token';
   String _counterResult = '尚未读写计数';
   String _extraResult = '更多工具尚未运行';
+  String _mapResult = '尚未排序 Map';
+  String _objectResult = '尚未读写对象';
   String _debounceResult = '输入内容观察防抖';
   int _remaining = 0;
   int _debounceCount = 0;
+  int _throttleCount = 0;
   bool _storageReady = false;
 
   String? _key;
@@ -71,6 +75,13 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
       },
       duration: 300,
     );
+    _throttled = WUx().throttle(
+      () {
+        if (!mounted) return;
+        setState(() => _throttleCount++);
+      },
+      duration: 500,
+    );
     _prepareStorage();
   }
 
@@ -83,6 +94,7 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
   @override
   void dispose() {
     _debounced.cancel();
+    _throttled.cancel();
     _countdown.dispose();
     _emailController.dispose();
     _debounceController.dispose();
@@ -154,6 +166,22 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
   void _writeLog() {
     WLogger.i('w_tools_core example log');
     setState(() => _extraResult = 'WLogger.i 已写入控制台');
+  }
+
+  void _sortMap() {
+    final sorted = <String, int>{'b': 2, 'c': 3, 'a': 1}.sortedByKeys();
+    setState(() => _mapResult = 'sortedByKeys: $sorted');
+  }
+
+  Future<void> _saveObject() async {
+    await WStorage.setObject('demo_object', {'name': 'w_tools', 'version': 2});
+    if (!mounted) return;
+    setState(() => _objectResult = '对象已保存');
+  }
+
+  void _readObject() {
+    final value = WStorage.getObject<Map>('demo_object');
+    setState(() => _objectResult = '对象：$value');
   }
 
   @override
@@ -268,6 +296,28 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
               _extraResult,
               style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
             ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton(onPressed: _sortMap, child: const Text('Map 排序')),
+                OutlinedButton(
+                  onPressed: _throttled.call,
+                  child: Text('节流点击（$_throttleCount）'),
+                ),
+                OutlinedButton(
+                  onPressed: _storageReady ? _saveObject : null,
+                  child: const Text('保存对象'),
+                ),
+                OutlinedButton(
+                  onPressed: _storageReady ? _readObject : null,
+                  child: const Text('读取对象'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(_mapResult),
+            Text(_objectResult),
             const Divider(height: 32),
             const Text('倒计时', style: TextStyle(fontWeight: FontWeight.w600)),
             Text('剩余：$_remaining 秒'),
