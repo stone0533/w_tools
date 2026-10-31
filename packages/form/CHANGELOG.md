@@ -7,7 +7,7 @@
 - 新增 `WFormController.updateValue`，同时写值并更新输入状态。
 - 新增 `WFormController.validate()`；`isAllEntered` 改为显式字段名集合（空集合返回 false）。
 - 裸字段 `readOnly` 通过 `WFormReadOnlyScope` 生效；无状态下拉也通过 `WFormFieldCleanup` 清理 `formEntered`。
-- `WFormBorder` 可直接读取 `WFormTheme.borderConfig`，不再要求主题必须先于 Scope。
+- `WFormBorder` 可直接读取 `WFormTheme.borderConfig`，不再要求主题必须先于 Scope；改为 `WFormBorderConfigScope`，消除 border / scope / theme 循环 import。
 - 新增 `WFormBorderConfig.standard()`，并提供 `WFormTheme.borderConfig` 作用域继承。
 - `WFormTextFieldConfig.enabled=false` 现在真正禁用文本字段，不再静默失效；新增 `clearValue`。
 - 修复 `WFormMultiDropdownConfig.hintText` 不生效。

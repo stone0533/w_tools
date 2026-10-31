@@ -237,6 +237,15 @@ containerPadding
 
 字段 Config 不再各自重复这些字段；原有 `config..height = ...` 用法保留。
 
+### Config 可变性约定
+
+六个字段和 `WFormFieldButtonConfig` 目前都是**可变配置**：
+
+- 建议一个字段独立创建一份 Config；
+- 跨字段复用时用 `copy()` / `copyWith()`，不要直接共享同一个实例；
+- `copyWith(null)` 表示沿用旧值，清空字段请用 `copy()..field = null`；
+- 共享样式优先放到 `WFormTheme` / `WFormBorderConfig.standard()`，不要靠共享可变 Config。
+
 ## 4. 边框系统
 
 ### 4.1 WFormBorderDecoration
@@ -289,6 +298,8 @@ final config = WFormBorderConfig.standard(radius: 12);
 ### 4.3 WFormFieldShell
 
 自动从祖先 `WFormScope` 获取 `WFormController`，通过 `formData.ensureBorderKey(name)` 注册边框 key，并注入 `WFormReadOnlyScope`。字段 Config 的 `build(bordered: true)` 即调用它。
+
+边框配置通过 `WFormBorderConfigScope` 传递：`WFormTheme` / `WFormScope` 写入，`WFormBorder` 读取最近的 Scope；因此 `border.dart` 不再反向依赖表单 Scope / 主题。
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|

@@ -39,6 +39,27 @@ void main() {
     expect(config.build(child: const Text('x')), isA<WFormBorder>());
   });
 
+  testWidgets('WFormScope.formBorderConfig 优先于 WFormTheme', (tester) async {
+    final themeConfig = WFormBorderConfig.standard(backgroundColor: Colors.blue);
+    final explicitConfig = WFormBorderConfig.standard(backgroundColor: Colors.red);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WFormTheme(
+          borderConfig: themeConfig,
+          child: WFormScope(
+            formData: WFormController(),
+            formBorderConfig: explicitConfig,
+            child: const WFormBorder(child: Text('field')),
+          ),
+        ),
+      ),
+    );
+
+    final state = tester.state<WFormBorderState>(find.byType(WFormBorder));
+    expect(state.config, same(explicitConfig));
+  });
+
   testWidgets('WFormTheme 位于 WFormScope 内时 WFormBorder 仍能读取', (tester) async {
     final borderConfig = WFormBorderConfig.standard();
 

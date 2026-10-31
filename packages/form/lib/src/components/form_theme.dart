@@ -8,7 +8,7 @@ import 'form_defaults.dart';
 /// 优先使用本主题中的图标；对应项为 null 时回退到 [WFormDefaults]。
 /// 相比直接修改 [WFormDefaults] 静态变量，WFormTheme 可以按页面 / 品牌隔离，
 /// 不会造成全局状态串扰。
-class WFormTheme extends InheritedWidget {
+class WFormTheme extends StatelessWidget {
   const WFormTheme({
     super.key,
     this.borderConfig,
@@ -20,8 +20,10 @@ class WFormTheme extends InheritedWidget {
     this.obscureTextIcon,
     this.obscureTextVisibleIcon,
     this.clearButtonIcon,
-    required super.child,
+    required this.child,
   });
+
+  final Widget child;
 
   /// 表单边框配置；WFormScope 未显式传 formBorderConfig 时继承本项
   final WFormBorderConfig? borderConfig;
@@ -36,20 +38,19 @@ class WFormTheme extends InheritedWidget {
   final Widget? clearButtonIcon;
 
   static WFormTheme? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<WFormTheme>();
+    return context.dependOnInheritedWidgetOfExactType<_WFormThemeInherited>()?.theme;
   }
 
   @override
-  bool updateShouldNotify(WFormTheme oldWidget) {
-    return borderConfig != oldWidget.borderConfig ||
-        dropdownIcon != oldWidget.dropdownIcon ||
-        radioUnselectedIcon != oldWidget.radioUnselectedIcon ||
-        radioSelectedIcon != oldWidget.radioSelectedIcon ||
-        checkboxUnselectedIcon != oldWidget.checkboxUnselectedIcon ||
-        checkboxSelectedIcon != oldWidget.checkboxSelectedIcon ||
-        obscureTextIcon != oldWidget.obscureTextIcon ||
-        obscureTextVisibleIcon != oldWidget.obscureTextVisibleIcon ||
-        clearButtonIcon != oldWidget.clearButtonIcon;
+  Widget build(BuildContext context) {
+    final inherited = WFormBorderConfigScope.maybeOf(context);
+    return _WFormThemeInherited(
+      theme: this,
+      child: WFormBorderConfigScope(
+        config: inherited ?? borderConfig,
+        child: child,
+      ),
+    );
   }
 
   Widget get effectiveDropdownIcon => dropdownIcon ?? WFormDefaults.dropdownIcon;
@@ -64,4 +65,27 @@ class WFormTheme extends InheritedWidget {
   Widget get effectiveObscureTextVisibleIcon =>
       obscureTextVisibleIcon ?? WFormDefaults.obscureTextVisibleIcon;
   Widget get effectiveClearButtonIcon => clearButtonIcon ?? WFormDefaults.clearButtonIcon;
+}
+
+/// WFormTheme 的 InheritedWidget 载体。
+class _WFormThemeInherited extends InheritedWidget {
+  const _WFormThemeInherited({
+    required this.theme,
+    required super.child,
+  });
+
+  final WFormTheme theme;
+
+  @override
+  bool updateShouldNotify(_WFormThemeInherited oldWidget) {
+    return theme.borderConfig != oldWidget.theme.borderConfig ||
+        theme.dropdownIcon != oldWidget.theme.dropdownIcon ||
+        theme.radioUnselectedIcon != oldWidget.theme.radioUnselectedIcon ||
+        theme.radioSelectedIcon != oldWidget.theme.radioSelectedIcon ||
+        theme.checkboxUnselectedIcon != oldWidget.theme.checkboxUnselectedIcon ||
+        theme.checkboxSelectedIcon != oldWidget.theme.checkboxSelectedIcon ||
+        theme.obscureTextIcon != oldWidget.theme.obscureTextIcon ||
+        theme.obscureTextVisibleIcon != oldWidget.theme.obscureTextVisibleIcon ||
+        theme.clearButtonIcon != oldWidget.theme.clearButtonIcon;
+  }
 }

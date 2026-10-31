@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 ///
 /// 字段 Config 继承本类，避免 height / width / leading / actions /
 /// containerPadding 等字段在六个字段中重复声明。
+///
+/// 本类是可变的：建议每个字段独立创建一份配置；需要跨字段复用时使用
+/// `copy()/copyWith()`，不要直接共享同一个实例。
 class WFormFieldChrome {
   bool enabled = true;
   double? height;

@@ -3,7 +3,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/border.dart';
 import 'form_controller.dart';
-import 'form_theme.dart';
 
 /// 表单数据继承组件，用于在 widget 树中传递 WFormController 与表单边框配置
 class _WFormControllerInherited extends InheritedWidget {
@@ -78,14 +77,17 @@ class WFormScope extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBorderConfig = formBorderConfig ?? WFormTheme.maybeOf(context)?.borderConfig;
-    return _WFormControllerInherited(
-      formData: formData,
-      formBorderConfig: effectiveBorderConfig,
-      child: FormBuilder(
-        key: formData.formKey,
-        autovalidateMode: autovalidateMode,
-        child: child,
+    final effectiveBorderConfig = formBorderConfig ?? WFormBorderConfigScope.maybeOf(context);
+    return WFormBorderConfigScope(
+      config: effectiveBorderConfig,
+      child: _WFormControllerInherited(
+        formData: formData,
+        formBorderConfig: effectiveBorderConfig,
+        child: FormBuilder(
+          key: formData.formKey,
+          autovalidateMode: autovalidateMode,
+          child: child,
+        ),
       ),
     );
   }
