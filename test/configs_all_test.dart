@@ -127,12 +127,12 @@ void main() {
 
   group('WFormMultiDropdownConfig', () {
     test('所有 setter 可调用', () {
-      final c = WFormMultiDropdownConfig()
+      final c = WFormMultiDropdownConfig.builder()
         ..height = 48
         ..enabled = true
         ..icon = const Icon(Icons.arrow_drop_down)
         ..itemPadding = const EdgeInsets.symmetric(vertical: 8);
-      expect(c, isNotNull);
+      expect(c.buildConfig(), isNotNull);
     });
   });
 

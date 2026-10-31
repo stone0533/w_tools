@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
 import '../field_lifecycle.dart';
-import '../field_chrome.dart';
 import '../form_scope.dart';
 import '../form_defaults.dart';
 import '../form_theme.dart';
@@ -89,25 +88,25 @@ class WFormMultiDropdown extends StatelessWidget {
           onChanged: onChangedHandler,
           validator: validator,
           enabled: (enabled ?? config.enabled) && !WFormReadOnlyScope.readOnlyOf(context),
-          decoration: config._decoration,
-          icon: config._icon,
-          iconSize: config._iconSize,
-          iconDisabledColor: config._iconDisabledColor,
-          iconEnabledColor: config._iconEnabledColor,
-          checkboxUnselectedIcon: config._checkboxUnselectedIcon,
-          checkboxSelectedIcon: config._checkboxSelectedIcon,
-          checkboxDisabledIcon: config._checkboxDisabledIcon,
-          style: config._style,
-          popUpLayerPadding: config._popUpLayerPadding,
-          popUpLayerElevation: config._popUpLayerElevation,
-          popUpLayerShadowColor: config._popUpLayerShadowColor,
-          hintText: hintText ?? config._hintText,
-          disabledKeys: config._disabledKeys,
-          itemPadding: config._itemPadding,
-          itemStyle: config._itemStyle,
-          itemCheckedStyle: config._itemCheckedStyle,
-          itemDisabledStyle: config._itemDisabledStyle,
-          itemTitlePadding: config._itemTitlePadding,
+          decoration: config.decoration,
+          icon: config.icon,
+          iconSize: config.iconSize,
+          iconDisabledColor: config.iconDisabledColor,
+          iconEnabledColor: config.iconEnabledColor,
+          checkboxUnselectedIcon: config.checkboxUnselectedIcon,
+          checkboxSelectedIcon: config.checkboxSelectedIcon,
+          checkboxDisabledIcon: config.checkboxDisabledIcon,
+          style: config.style,
+          popUpLayerPadding: config.popUpLayerPadding,
+          popUpLayerElevation: config.popUpLayerElevation,
+          popUpLayerShadowColor: config.popUpLayerShadowColor,
+          hintText: hintText ?? config.hintText,
+          disabledKeys: config.disabledKeys,
+          itemPadding: config.itemPadding,
+          itemStyle: config.itemStyle,
+          itemCheckedStyle: config.itemCheckedStyle,
+          itemDisabledStyle: config.itemDisabledStyle,
+          itemTitlePadding: config.itemTitlePadding,
         ),
       ),
     );

@@ -360,52 +360,51 @@ void main() {
 
   group('WFormMultiDropdownConfig — 纯 Dart', () {
     test('默认空实例化', () {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       expect(cfg, isNotNull);
     });
 
     test('全部 setter 可赋值', () {
-      final cfg = WFormMultiDropdownConfig();
-      cfg.enabled = false;
-      cfg.height = 48;
-      cfg.width = 200;
-      cfg.yOffset = -2;
-      cfg.leading = const Icon(Icons.pin);
-      cfg.actions = [const Icon(Icons.add)];
-      cfg.containerDecoration = const BoxDecoration();
-      cfg.containerMargin = const EdgeInsets.all(4);
-      cfg.containerPadding = const EdgeInsets.all(8);
-      cfg.decoration = const InputDecoration(hintText: 'h');
-      cfg.iconSize = 20;
-      cfg.icon = const Icon(Icons.keyboard_arrow_down);
-      cfg.iconDisabledColor = Colors.grey;
-      cfg.iconEnabledColor = Colors.blue;
-      cfg.checkboxUnselectedIcon = const Icon(Icons.radio_button_unchecked);
-      cfg.checkboxSelectedIcon = const Icon(Icons.check_circle);
-      cfg.checkboxDisabledIcon = const Icon(Icons.block);
-      cfg.style = const TextStyle(fontSize: 14);
-      cfg.popUpLayerPadding = const EdgeInsets.all(16);
-      cfg.popUpLayerElevation = 20;
-      cfg.popUpLayerShadowColor = Colors.red;
-      cfg.hintText = '请选择';
-      cfg.disabledKeys = {'a', 'b'};
-      cfg.itemPadding = const EdgeInsets.symmetric(vertical: 4);
-      cfg.itemStyle = const TextStyle(color: Colors.grey);
-      cfg.itemCheckedStyle = const TextStyle(color: Colors.green);
-      cfg.itemDisabledStyle = const TextStyle(color: Colors.red);
-      cfg.itemTitlePadding = const EdgeInsets.only(left: 4);
-      expect(cfg, isNotNull);
+      final cfg = WFormMultiDropdownConfig.builder()
+        ..enabled = false
+        ..height = 48
+        ..width = 200
+        ..yOffset = -2
+        ..leading = const Icon(Icons.pin)
+        ..actions = [const Icon(Icons.add)]
+        ..containerDecoration = const BoxDecoration()
+        ..containerMargin = const EdgeInsets.all(4)
+        ..containerPadding = const EdgeInsets.all(8)
+        ..decoration = const InputDecoration(hintText: 'h')
+        ..iconSize = 20
+        ..icon = const Icon(Icons.keyboard_arrow_down)
+        ..iconDisabledColor = Colors.grey
+        ..iconEnabledColor = Colors.blue
+        ..checkboxUnselectedIcon = const Icon(Icons.radio_button_unchecked)
+        ..checkboxSelectedIcon = const Icon(Icons.check_circle)
+        ..checkboxDisabledIcon = const Icon(Icons.block)
+        ..style = const TextStyle(fontSize: 14)
+        ..popUpLayerPadding = const EdgeInsets.all(16)
+        ..popUpLayerElevation = 20
+        ..popUpLayerShadowColor = Colors.red
+        ..hintText = '请选择'
+        ..disabledKeys = {'a', 'b'}
+        ..itemPadding = const EdgeInsets.symmetric(vertical: 4)
+        ..itemStyle = const TextStyle(color: Colors.grey)
+        ..itemCheckedStyle = const TextStyle(color: Colors.green)
+        ..itemDisabledStyle = const TextStyle(color: Colors.red)
+        ..itemTitlePadding = const EdgeInsets.only(left: 4);
+      expect(cfg.buildConfig(), isA<WFormMultiDropdownConfig>());
     });
 
     test('copy() 返回新实例', () {
-      final cfg = WFormMultiDropdownConfig();
-      cfg.height = 50;
+      const cfg = WFormMultiDropdownConfig(height: 50);
       final c = cfg.copy();
       expect(identical(cfg, c), false);
     });
 
     test('copyWith 全部覆盖', () {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       final c = cfg.copyWith(
         enabled: false,
         height: 60,
@@ -440,7 +439,7 @@ void main() {
     });
 
     test('build(bordered: true) — name 空 → 抛 ArgumentError', () {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       expect(
         () => cfg.build(bordered: true, name: '', items: const {'a': 'A'}),
         throwsArgumentError,
@@ -460,14 +459,18 @@ void main() {
       double? width,
       bool? enabled,
     }) {
-      if (disabledKeys != null) config.disabledKeys = disabledKeys;
+      final effectiveConfig = disabledKeys == null
+          ? config
+          : (WFormMultiDropdownConfigBuilder.from(
+              config,
+            )..disabledKeys = disabledKeys).buildConfig();
       final formData = WFormController();
       return MaterialApp(
         home: Scaffold(
           body: WFormScope(
             formData: formData,
             child: WFormMultiDropdown(
-              config: config,
+              config: effectiveConfig,
               name: name,
               items: items,
               initialValue: initialValue,
@@ -486,10 +489,10 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormMultiDropdown(
+        child: const WFormMultiDropdown(
           config: WFormMultiDropdownConfig(),
           name: 'tags',
-          items: const {'a': 'A'},
+          items: {'a': 'A'},
         ),
       );
 
@@ -501,7 +504,7 @@ void main() {
     });
 
     testWidgets('基本渲染 — 无初始值显示 ALL', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -514,14 +517,13 @@ void main() {
     });
 
     testWidgets('无 WFormScope → 抛 Exception', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: WFormMultiDropdown(
-              config: cfg,
+              config: WFormMultiDropdownConfig(),
               name: 'tags',
-              items: const {'a': '美食'},
+              items: {'a': '美食'},
             ),
           ),
         ),
@@ -531,7 +533,7 @@ void main() {
     });
 
     testWidgets('initialValue → 显示逗号分隔文本', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -545,7 +547,7 @@ void main() {
     });
 
     testWidgets('键可包含逗号（值不再使用逗号编码）', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -559,7 +561,7 @@ void main() {
     });
 
     testWidgets('config.hintText 生效（build 路径）', (tester) async {
-      final cfg = WFormMultiDropdownConfig()..hintText = '请选择兴趣';
+      const cfg = WFormMultiDropdownConfig(hintText: '请选择兴趣');
 
       await pumpForm(
         tester,
@@ -573,7 +575,7 @@ void main() {
     });
 
     testWidgets('未选择时显示 hintText 占位', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -588,7 +590,7 @@ void main() {
 
     testWidgets('点击选项 → onChanged 收到 Set', (tester) async {
       Set<String>? changed;
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -607,7 +609,7 @@ void main() {
     });
 
     testWidgets('弹层选项具备 checked / enabled 语义', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -633,7 +635,7 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: formData,
-              child: WFormMultiDropdownConfig().build(
+              child: const WFormMultiDropdownConfig().build(
                 name: 'validated_tags',
                 items: const {'a': 'A'},
                 validator: (value) => value == null || value.isEmpty ? '至少选一项' : null,
@@ -648,9 +650,7 @@ void main() {
     });
 
     testWidgets('config.height / width 生效', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
-      cfg.height = 60;
-      cfg.width = 240;
+      const cfg = WFormMultiDropdownConfig(height: 60, width: 240);
 
       await tester.pumpWidget(
         buildMulti(
@@ -666,8 +666,9 @@ void main() {
     });
 
     testWidgets('custom icon 渲染', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
-      cfg.icon = const Icon(Icons.arrow_forward_ios);
+      const cfg = WFormMultiDropdownConfig(
+        icon: Icon(Icons.arrow_forward_ios),
+      );
 
       await tester.pumpWidget(
         buildMulti(
@@ -681,8 +682,7 @@ void main() {
     });
 
     testWidgets('enabled=false → 点击不弹出', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
-      cfg.enabled = false;
+      const cfg = WFormMultiDropdownConfig(enabled: false);
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -701,7 +701,7 @@ void main() {
     });
 
     testWidgets('点击 → WFormPopup.show 弹出选项', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -720,7 +720,7 @@ void main() {
     });
 
     testWidgets('enabled 参数为 false 时覆盖配置', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -736,7 +736,7 @@ void main() {
     });
 
     testWidgets('具备按钮语义', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
           config: cfg,
@@ -752,7 +752,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
@@ -779,7 +779,7 @@ void main() {
     });
 
     testWidgets('build(bordered: true) readOnly → 外层只读 + 点击不弹出', (tester) async {
-      final cfg = WFormMultiDropdownConfig();
+      const cfg = WFormMultiDropdownConfig();
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
@@ -819,8 +819,9 @@ void main() {
 
     testWidgets('build(bordered: true) 清空内层 containerDecoration（避免与外层边框叠加）', (tester) async {
       const innerColor = Color(0xFF333333);
-      final cfg = WFormMultiDropdownConfig()
-        ..containerDecoration = const BoxDecoration(color: innerColor);
+      const cfg = WFormMultiDropdownConfig(
+        containerDecoration: BoxDecoration(color: innerColor),
+      );
       final formBorderCfg = WFormBorderConfig();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
@@ -845,8 +846,9 @@ void main() {
 
     testWidgets('build() 仍保留 containerDecoration（build(bordered: true) 的副本不污染原配置）', (tester) async {
       const innerColor = Color(0xFF333333);
-      final cfg = WFormMultiDropdownConfig()
-        ..containerDecoration = const BoxDecoration(color: innerColor);
+      const cfg = WFormMultiDropdownConfig(
+        containerDecoration: BoxDecoration(color: innerColor),
+      );
 
       await tester.pumpWidget(
         buildMulti(
