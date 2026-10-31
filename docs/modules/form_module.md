@@ -25,7 +25,6 @@ form/
     │   ├── form_defaults.dart
     │   ├── form_input_formatters.dart
     │   ├── field_button.dart
-    │   ├── field_chrome.dart        # WFormFieldChrome（字段公共配置）
     │   ├── field_lifecycle.dart     # 无状态字段的 formEntered 清理包装
     │   ├── popup.dart
     │   ├── border/
@@ -211,58 +210,24 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 
 ---
 
-## 3.5 WFormFieldChrome — 字段公共配置
+## 3.5 Config 不可变与 Builder
 
-截至当前迁移阶段，全部字段 Config 和 `WFormBorderConfig` 已完成不可变化，自行持有对应字段；
-不再有可变 Config 版本。
+所有字段 Config 与 `WFormBorderConfig` 已完成不可变化，自行持有 `enabled / height /
+width / yOffset / leading / actions / container*` 等对应字段；不存在共享可变 Config。
 
-```dart
-class WFormCheckboxConfig extends WFormFieldChrome { ... }
-class WFormTextFieldConfig extends WFormFieldChrome { ... }
-class WFormFieldButtonConfig extends WFormFieldChrome { ... }
-```
-
-包含：
-
-```text
-enabled
-height
-width
-yOffset
-leading
-actions
-containerDecoration
-containerMargin
-containerPadding
-```
-
-字段 Config 不再各自重复这些字段；原有 `config..height = ...` 用法保留。
-
-### Config 可变性约定
-
-六个字段和 `WFormFieldButtonConfig` 目前都是**可变配置**：
-
-- 建议一个字段独立创建一份 Config；
-- 跨字段复用时用 `copy()` / `copyWith()`，不要直接共享同一个实例；
-- `copyWith(null)` 表示沿用旧值，清空字段请用 `copy()..field = null`；
-- 共享样式优先放到 `WFormTheme` / `WFormBorderConfig.standard()`，不要靠共享可变 Config。
-
-### Config Builder（阶段 1）
-
-所有 Config 已提供 Builder：
+需要链式构建时使用 Builder：
 
 ```dart
-final builder = WFormTextFieldConfig.builder()
-  ..height = 52
-  ..style = const TextStyle(fontSize: 16);
-
-final config = builder.buildConfig();
+final config = (WFormTextFieldConfig.builder()
+      ..height = 52
+      ..style = const TextStyle(fontSize: 16))
+    .buildConfig();
 ```
 
 注意：`build()` 仍然是「生成字段 Widget」的方法；Builder 的终态方法叫
 `buildConfig()`，避免与字段构建冲突。
 
-所有 Config 已完成不可变化；Builder + `buildConfig()` 是唯一链式入口。
+共享样式优先放 `WFormTheme` / `WFormBorderConfig.standard()`。
 
 ## 4. 边框系统
 
@@ -486,7 +451,7 @@ enum Gender { male, female }
 
 - 点击行为完全由 `onTap` 决定：`(value, didChange)` 回调，调用方通过 `didChange` 写值
 - `selectedWidgetBuilder` 渲染当前选中值
-- `WFormFieldButtonConfig` 继承 `WFormFieldChrome`，支持 `bordered: true` / `hintTextList`，可复用统一边框
+- `WFormFieldButtonConfig` 为不可变配置，支持 `bordered: true` / `hintTextList`，可复用统一边框
 
 ---
 

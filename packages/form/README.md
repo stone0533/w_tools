@@ -10,7 +10,7 @@
 - **字段组件**：`WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`
 - **表单容器**：`WFormScope` / `WFormController` / `WFormFieldButton`
 - **边框体系**：`WFormBorder` / `WFormBorderConfig` / `WFormFieldShell` / `WFormReadOnlyScope`
-- **字段公共配置**：`WFormFieldChrome`（enabled / height / width / leading / actions / container）
+- **字段配置**：不可变 Config + `builder()..buildConfig()`（enabled / height / width / leading / actions / container）
 - **校验**：`WFormValidator` / `WFormValidatorItem` / `WFormCustomValidator`
 - **默认值与格式化**：`WFormTheme`（作用域）+ `WFormDefaults`（静态兜底）/ `WFormInputFormatters`
 
