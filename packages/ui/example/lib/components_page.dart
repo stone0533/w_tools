@@ -13,6 +13,7 @@ class ComponentsPage extends StatefulWidget {
 class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStateMixin {
   late final WNavController _navController;
   late final WRowButtonsController _rowButtonsController;
+  late final WImageController _imageController;
   double? _scrollPercent;
 
   @override
@@ -20,6 +21,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
     super.initState();
     _navController = WNavController(length: 3, vsync: this);
     _rowButtonsController = WRowButtonsController(length: 6);
+    _imageController = WImageController();
   }
 
   @override
@@ -95,15 +97,12 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
               width: 48,
               height: 32,
               decoration: const BoxDecoration()
-                  .withColor(Colors.indigo)
+                  .withGradient(WGradients.vertical([
+                    Colors.indigo,
+                    Colors.lightBlue,
+                  ]))
                   .withBorderRadius(const BorderRadius.all(Radius.circular(8)))
-                  .withShadow(const [
-                BoxShadow(
-                  color: Color(0x33000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ]),
+                  .withShadow(WShadows.card),
             ),
           ],
         ),
@@ -181,6 +180,40 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
               ),
             ),
           ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WListViewSliver.grid / WRow / WColumn'),
+        SizedBox(
+          height: 140,
+          child: WListView(
+            sliver: WListViewSliver.grid(
+              itemCount: 6,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+              ),
+              itemBuilder: (context, index) => Container(
+                alignment: Alignment.center,
+                color: Colors.indigo.shade50,
+                child: Text('格 $index'),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        WRow.min(
+          children: [
+            const Icon(Icons.circle, size: 12, color: Colors.indigo),
+            const SizedBox(width: 8),
+            WColumn.min(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                WText(text: 'WRow + WColumn', variant: WTextVariant.bodyStrong),
+                WText(text: 'min 主轴尺寸', variant: WTextVariant.caption),
+              ],
+            ),
+          ],
         ),
         const SizedBox(height: 24),
         const _SectionTitle('WRowButtons 横向按钮'),
@@ -268,6 +301,18 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
         const SizedBox(height: 8),
         Text(
           _scrollPercent == null ? '滚动上面的列表查看百分比' : '滚动百分比：${(_scrollPercent! * 100).round()}%',
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WImageController 手动重试'),
+        WImage.network(
+          'https://example.invalid/controller.png',
+          controller: _imageController,
+          style: const WImageStyle(width: 160, height: 90),
+          config: const WImageConfig(showRetryButton: true),
+        ),
+        TextButton(
+          onPressed: _imageController.retry,
+          child: const Text('controller.retry()'),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('WKeepAliveWrapper 列表保活'),
