@@ -237,6 +237,19 @@ void main() {
     );
   });
 
+  testWidgets('WGradientCircularProgressIndicator — value 非有限数断言', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WGradientCircularProgressIndicator(
+          radius: 40,
+          colors: [Colors.red, Colors.blue],
+          value: double.nan,
+        ),
+      ),
+    );
+    expect(tester.takeException(), isAssertionError);
+  });
+
   testWidgets('WGradientCircularProgressIndicator — colors 为空断言', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

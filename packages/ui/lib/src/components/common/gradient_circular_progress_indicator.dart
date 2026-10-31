@@ -62,13 +62,14 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     assert(colors.isNotEmpty, 'colors 不能为空');
     assert(stops == null || stops!.length == colors.length, 'stops 长度必须与 colors 一致');
+    assert(value.isFinite, 'value 必须是有限数');
 
     double offset = .0;
     // 如果两端为圆角，则需要对起始位置进行调整，否则圆角部分会偏离起始位置
     if (strokeCapRound) {
       offset = asin((strokeWidth / (radius * 2 - strokeWidth)).clamp(-1.0, 1.0));
     }
-    final progress = value.clamp(0.0, 1.0);
+    final progress = value.isFinite ? value.clamp(0.0, 1.0) : 0.0;
     return Semantics(
       label: semanticsLabel,
       value: '${(progress * 100).round()}%',

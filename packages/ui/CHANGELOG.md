@@ -13,6 +13,7 @@
 - `WNotificationListenerBuilder.setPreventNotificationPropagation` 重命名为 `preventNotificationPropagation`，并增加 `preventsPropagation` 只读 getter。
 - 移除 `WKeepAliveWrapper.onDeactivated` / `onRevive`：`AutomaticKeepAlive` 下滚动保活不会触发这些 State 生命周期回调，保留会误导。
 - `WGradientCircularProgressIndicator` 语义进度与绘制进度统一 clamp；`WBadge` 显示徽章时断言 `badgeContent` 非空。
+- `WBadge` 在 build 时再次校验 `badgeContent`，并防止空角标；`WGradientCircularProgressIndicator` 增加 `value.isFinite` 断言与非有限数兜底。
 - 重命名：`num.toThousand` → `num.toThousandsSeparated`；`Widget.withBottomSafeSpace` → `Widget.withBottomBarSpace`（后者明确是底部导航栏空间，不是系统 safe area）；`WScreen.bottomBarHeight` → `WScreen.bottomSafeAreaHeight`。
 - Navigation 加固：`WNavController.currentIndex` 会停止进行中的动画并在 dispose 后安全返回；`WNavBar` 增加 button/selected 语义；`WTabBar` 改为无状态并支持 `overlayColor`。
 

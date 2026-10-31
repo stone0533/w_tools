@@ -30,8 +30,14 @@ class WBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    assert(
+      !config._showBadge || badgeContent != null,
+      'WBadge: 显示徽章时 badgeContent 不能为空',
+    );
+    final showBadge = config._showBadge && badgeContent != null;
+
     return badges.Badge(
-      showBadge: config._showBadge,
+      showBadge: showBadge,
       position: config._position,
       badgeStyle: config._badgeStyle ??
           const badges.BadgeStyle(
