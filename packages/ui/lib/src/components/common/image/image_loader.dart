@@ -245,6 +245,10 @@ class WImageLoader extends WImageLoadState {
   void dispose() {
     _retryTimer?.cancel();
     _retryTimer = null;
+    if (retryScheduled) {
+      retryScheduled = false;
+      emit();
+    }
     // 不 dispose notifier：controller 可能在 WImage 卸载后仍持有它。
     // notifier 会随 loader/controller 一起被 GC。
   }

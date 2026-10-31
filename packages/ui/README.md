@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^2.1.0
+  w_tools_ui: ^3.0.0
 ```
 
 > 本包最低要求 Flutter 3.27.0。
@@ -59,14 +59,27 @@ WImage.network(
   style: const WImageStyle(
     aspectRatio: 16 / 9,
     fit: BoxFit.cover,
-    memCacheWidth: 800,
     borderRadius: BorderRadius.all(Radius.circular(12)),
   ),
-)
+  config: const WImageConfig(memCacheWidth: 800),
+);
 ```
 
 四种来源：`WImage.network` / `WImage.asset` / `WImage.file` / `WImage.base64`，
 需要确定性时用命名构造；动态字符串用 `WImageSource.parse`。
+
+### 入口选择
+
+| 场景 | 入口 |
+|---|---|
+| 已知网络 / 资源 / 文件 / Base64 | `WImage.network/asset/file/base64` |
+| 任意 `ImageProvider` | `WImage.provider` / `WImage.memory` |
+| 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
+| 需要加载配置 | `config: WImageConfig(...)` |
+| 需要视觉样式 | `style: WImageStyle(...)` |
+
+`WImage.asset(name)` 默认 **不**拼 `WAssets.imagePath`；
+需要自动拼前缀时用 `WImage.asset(name, prefix: true)` 或兼容入口 `WImage.assetImage(name)`。
 
 ### 常用配方
 
@@ -77,17 +90,17 @@ WImage.cover(url, aspectRatio: 16 / 9)       // 封面图
 WImage.assetImage('logo.png')                // 自动拼 WAssets.imagePath
 WImage.memory(bytes)                         // Uint8List
 WImage.provider(myProvider)                  // 任意 ImageProvider
-WImage.network(url, style: const WImageStyle(showRetryButton: true)) // 内置重试
+WImage.network(url, config: const WImageConfig(showRetryButton: true)) // 内置重试
 ```
 
 `WImageStyle` 也提供预设与链式糖：
 
 ```dart
 WImageStyle.avatar(40)
-WImageStyle.thumbnail(80, cacheSize: 240)
+WImageStyle.thumbnail(80)
 WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)
 
-const WImageStyle().square(40).rounded(20).decodeSize(120)
+const WImageStyle().square(40).rounded(20)
 ```
 
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见

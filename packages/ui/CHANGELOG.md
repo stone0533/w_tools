@@ -3,6 +3,7 @@
 ## 3.0.0
 
 ### Fixed
+- `WImageLoader.dispose` 会清除排队中的重试状态；新增 retry 配置变化 / dispose 测试。
 - `GlobalKey` 扩展在非 `RenderBox` 上返回 null；`HexColor.fromHex` 拒绝多个 `#`；`toPadLeft` 校验负数长度。
 
 ### Changed

@@ -60,6 +60,37 @@ void main() {
     });
   });
 
+  group('WImageLoader', () {
+    testWidgets('retry 配置变化会取消已排队重试', (tester) async {
+      final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
+      loader.handleError(
+        Exception('network'),
+        const WImageNetworkError('x', 'network'),
+        retry: true,
+      );
+      expect(loader.retryScheduled, isTrue);
+
+      loader.syncRetryConfig(retryCount: 3, retryDelay: 200);
+      expect(loader.retryScheduled, isFalse);
+      loader.dispose();
+    });
+
+    testWidgets('dispose 会取消重试状态', (tester) async {
+      final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
+      loader.handleError(
+        Exception('network'),
+        const WImageNetworkError('x', 'network'),
+        retry: true,
+      );
+      expect(loader.retryScheduled, isTrue);
+
+      loader.dispose();
+      expect(loader.retryScheduled, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+      expect(loader.retryScheduled, isFalse);
+    });
+  });
+
   group('WImage', () {
     test('should build with config', () {
       const style = WImageStyle(width: 100, height: 100);
