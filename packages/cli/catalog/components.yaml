@@ -119,7 +119,7 @@ components:
     section: '6. 弹层'
     useFor: '**锚定式**下拉弹层（贴在输入框下方）'
     dontUseFor: '⚠️ 它不是居中对话框，别拿来做「确认弹窗」'
-  - name: '`WToast` / `WnnToast`'
+  - name: '`WToast`'
     package: 'w_tools_toast'
     section: '7. 状态与反馈'
     useFor: '轻提示'

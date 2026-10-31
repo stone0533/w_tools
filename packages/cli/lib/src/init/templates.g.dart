@@ -138,7 +138,7 @@ const String agentsSnippet = r'''
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
    **图片**：网络图 / 资源图用 `WImage`；不要裸用 `Image.network` / `Image.asset`。
    **弹层 / 提示**：锚定选择用 `WFormPopup`，底部面板用 `WBottomSheet`，轻提示用
-   `WToast` / `WnnToast`；确认框用 Flutter `showDialog`。
+   `WToast`；确认框用 Flutter `showDialog`。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    不要再用 `WTextConfig` 逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
    **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
@@ -198,7 +198,7 @@ const String agentsSnippetEn = r'''
    / field `config` for styling.
    **Images**: use `WImage` for network/asset images; do not use `Image.network` / `Image.asset` directly.
    **Overlays / toasts**: use `WFormPopup` for anchored selection, `WBottomSheet` for bottom
-   sheets, `WToast` / `WnnToast` for light feedback, and Flutter `showDialog` for confirmation.
+   sheets, `WToast` for light feedback, and Flutter `showDialog` for confirmation.
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, not `WTextConfig` field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.

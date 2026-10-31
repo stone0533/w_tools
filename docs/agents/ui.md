@@ -39,7 +39,7 @@
 ## 轻提示
 
 ```text
-轻提示 → WToast / WnnToast
+轻提示 → WToast
 ```
 
 不要在页面里重复实现 toast；需要页面内常驻提示时再用普通 Widget。

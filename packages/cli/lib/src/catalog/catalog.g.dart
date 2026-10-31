@@ -258,8 +258,8 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
   ),
   CatalogEntry(
-    name: "WToast / WnnToast",
-    names: <String>["WToast", "WnnToast"],
+    name: "WToast",
+    names: <String>["WToast"],
     package: "w_tools_toast",
     section: "7. 状态与反馈",
     useFor: "轻提示",

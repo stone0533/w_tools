@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Changed
-- 消费方 AGENTS 模板补充 Form 直接字段、WImage、弹层与轻提示规则。
+- 消费方 AGENTS 模板补充 Form 直接字段、WImage、弹层与轻提示规则；修正不存在的 `WnnToast` 引用。
 - 组件目录同步 Form 的 `WForm` / 直接字段 / `WFormFieldStyle` 入口，移除旧 App helper 名称。
 
 ## 1.3.0

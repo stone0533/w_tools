@@ -26,7 +26,7 @@
    / field `config` for styling.
    **Images**: use `WImage` for network/asset images; do not use `Image.network` / `Image.asset` directly.
    **Overlays / toasts**: use `WFormPopup` for anchored selection, `WBottomSheet` for bottom
-   sheets, `WToast` / `WnnToast` for light feedback, and Flutter `showDialog` for confirmation.
+   sheets, `WToast` for light feedback, and Flutter `showDialog` for confirmation.
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, not `WTextConfig` field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
