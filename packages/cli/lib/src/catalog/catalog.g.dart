@@ -103,7 +103,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     package: "w_tools_ui",
     section: "3. 按钮与操作",
     useFor: "真正的按钮（label/icon + variant/size/loading）",
-    dontUseFor: "任意 child 点击用 `WPressable`；表单按钮用 `WFormFieldButton`",
+    dontUseFor: "任意 child 点击用 `WPressable`；表单按钮用 `WFormButton`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
   ),

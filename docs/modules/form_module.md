@@ -422,6 +422,9 @@ Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
 
 ## 5. 字段组件
 
+> 日常业务页面优先使用 §3.6 的 `WForm` + 直接字段（`WFormTextField` 等）。
+> 本节描述低层 `*Core` / `Config` 行为，`Config.build(...)` 示例只用于高级定制。
+
 所有字段组件遵循统一模式：
 - `XxxConfig` + `Xxx` 组件 + 单一构建入口 `build(bordered: bool)`
 - `bordered: true` 时清空内层 `containerDecoration`，包装 `WFormFieldShell`；`bordered: false` 返回裸字段
@@ -561,11 +564,12 @@ enum Gender { male, female }
 ),
 ```
 
-### 5.7 WFormFieldButton
+### 5.7 WFormButton
 
-- 点击行为完全由 `onTap` 决定：`(value, didChange)` 回调，调用方通过 `didChange` 写值
+- 日常入口是 `WFormButton`；点击行为由 `onTap(value, didChange)` 决定，调用方通过 `didChange` 写值
 - `selectedWidgetBuilder` 渲染当前选中值
-- `WFormFieldButtonConfig` 为不可变配置，支持 `bordered: true` / `hintTextList`，可复用统一边框
+- `WFormFieldButtonCore` 是底层 Widget；`WFormFieldButtonConfig` 是可变的低层配置
+- 普通页面直接使用 `WFormButton`，需要特殊样式时再传 `config`
 
 ---
 
