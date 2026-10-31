@@ -8,6 +8,8 @@
 - `WRoute` / `WRouteObserver`
 - 插件 `navigatorObservers` 路由事件
 - 插件 `builderWrapper` / `wrapApp`
+- `WApp.builder` / `WApp.appWrapper`
+- `WRoute.popUntilRoute`
 - `WLanguage` 语言切换
 - `WBottomSheet`
 

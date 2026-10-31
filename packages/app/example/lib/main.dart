@@ -96,6 +96,13 @@ WApp createApp() {
       colorSchemeSeed: const Color(0xFF0EA5E9),
       useMaterial3: true,
     )
+    ..appWrapper = ((child) => RepaintBoundary(child: child))
+    ..builder = ((context, child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: const TextScaler.linear(1.0),
+      ),
+      child: child ?? const SizedBox.shrink(),
+    ))
     ..getPages = [
       GetPage(name: '/', page: () => const HomePage()),
       GetPage(name: '/detail', page: () => const DetailPage()),

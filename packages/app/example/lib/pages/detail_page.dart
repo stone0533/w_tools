@@ -27,6 +27,10 @@ class DetailPage extends StatelessWidget {
               },
               child: const Text('移除当前路由后返回'),
             ),
+            TextButton(
+              onPressed: () => WRoute.popUntilRoute('/'),
+              child: const Text('回到首页（WRoute.popUntilRoute）'),
+            ),
           ],
         ),
       ),
