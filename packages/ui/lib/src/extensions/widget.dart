@@ -16,7 +16,7 @@ extension WWidgetExtension on Widget {
   /// 添加底部安全空间（适配底部导航栏）。
   ///
   /// 读取 [WScreen.bottomBarHeight]，不读取当前 [MediaQuery]。
-  Widget withBottomSafeSpace() {
+  Widget withBottomBarSpace() {
     return Padding(
       padding: EdgeInsets.only(bottom: WScreen.bottomBarHeight),
       child: this,

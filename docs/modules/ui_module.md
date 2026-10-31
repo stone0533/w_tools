@@ -1583,7 +1583,7 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 | `10.heightBox` / `10.widthBox` / `10.squareBox` | 创建 SizedBox |
 | `10.allPadding` / `horizontalPadding` / `verticalPadding` | 创建 EdgeInsets |
 | `10.borderRadius` | `BorderRadius.circular(10)` |
-| `1234.toThousand` | `1,234` |
+| `1234.toThousandsSeparated` | `1,234` |
 | `1234.toCurrency(symbol: '¥')` | `¥1,234` |
 | `(-1234.56).toCurrency(symbol: '\$')` | `-\$1,234.56` |
 | `0.5.toPercent` | `50%` |
@@ -1607,14 +1607,14 @@ Text('Hello')
 
 可用方法：`expanded`、`withHorizontalPadding`、`withVerticalPadding`、
 `withLeftPadding`、`withRightPadding`、`withTopPadding`、`withBottomPadding`、
-`withTopSafeSpace`、`withBottomSafeSpace`、`withDecoration`、
+`withTopSafeSpace`、`withBottomBarSpace`、`withDecoration`、
 `withIntrinsicHeight`。`withBottomSpace` 已废弃，用 `withBottomPadding`。
 
 `withDecoration` 只包一层 `DecoratedBox`，不提供 padding / margin；
 需要圆角裁剪时用 `Container(clipBehavior: Clip.antiAlias)`。
 
-`withTopSafeSpace` / `withBottomSafeSpace` 读取 `WScreen`，不读取当前 `MediaQuery`；
-`withBottomSafeSpace` 使用的是 `WScreen.bottomBarHeight`，不是系统 safe area。
+`withTopSafeSpace` / `withBottomBarSpace` 读取 `WScreen`，不读取当前 `MediaQuery`；
+`withBottomBarSpace` 使用的是 `WScreen.bottomBarHeight`，不是系统 safe area。
 
 ### WBoxDecorationExtension / WGradients / WShadows
 

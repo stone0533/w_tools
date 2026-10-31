@@ -47,7 +47,7 @@ extension WNumExtension on num {
   ///
   /// 科学计数法（如 `1e+21`、`1.5e-7`）会先展开为普通十进制再分组；
   /// `NaN` / `Infinity` 原样返回。
-  String get toThousand {
+  String get toThousandsSeparated {
     final str = _expandScientificNotation(toString());
     if (str == 'NaN' || str == 'Infinity' || str == '-Infinity') {
       return str;

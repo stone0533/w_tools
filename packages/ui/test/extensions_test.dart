@@ -159,26 +159,26 @@ void main() {
       expect(side.color, Colors.red);
     });
 
-    test('num.toThousand', () {
-      expect(1234.toThousand, '1,234');
-      expect(1234567.toThousand, '1,234,567');
-      expect(1234.56.toThousand, '1,234.56');
-      expect(0.toThousand, '0');
-      expect((-1234).toThousand, '-1,234');
+    test('num.toThousandsSeparated', () {
+      expect(1234.toThousandsSeparated, '1,234');
+      expect(1234567.toThousandsSeparated, '1,234,567');
+      expect(1234.56.toThousandsSeparated, '1,234.56');
+      expect(0.toThousandsSeparated, '0');
+      expect((-1234).toThousandsSeparated, '-1,234');
     });
 
-    test('num.toThousand — 科学计数法展开', () {
+    test('num.toThousandsSeparated — 科学计数法展开', () {
       // 1e21 的 toString() 为 "1e+21"
-      expect(1e21.toThousand, '1,000,000,000,000,000,000,000');
-      expect((-1e21).toThousand, '-1,000,000,000,000,000,000,000');
+      expect(1e21.toThousandsSeparated, '1,000,000,000,000,000,000,000');
+      expect((-1e21).toThousandsSeparated, '-1,000,000,000,000,000,000,000');
       // 1.2345e+22 → 12345000000000000000000
-      expect(1.2345e22.toThousand, '12,345,000,000,000,000,000,000');
+      expect(1.2345e22.toThousandsSeparated, '12,345,000,000,000,000,000,000');
       // 1.5e-7 的 toString() 为 "1.5e-7"
-      expect(1.5e-7.toThousand, '0.00000015');
-      expect(1e-7.toThousand, '0.0000001');
-      expect(double.nan.toThousand, 'NaN');
-      expect(double.infinity.toThousand, 'Infinity');
-      expect((-double.infinity).toThousand, '-Infinity');
+      expect(1.5e-7.toThousandsSeparated, '0.00000015');
+      expect(1e-7.toThousandsSeparated, '0.0000001');
+      expect(double.nan.toThousandsSeparated, 'NaN');
+      expect(double.infinity.toThousandsSeparated, 'Infinity');
+      expect((-double.infinity).toThousandsSeparated, '-Infinity');
     });
 
     test('num.toCurrency', () {
@@ -281,14 +281,14 @@ void main() {
       expect(find.byType(Padding), findsOneWidget);
     });
 
-    testWidgets('Widget.withTopSafeSpace / withBottomSafeSpace', (tester) async {
+    testWidgets('Widget.withTopSafeSpace / withBottomBarSpace', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Column(
               children: [
                 const Text('top').withTopSafeSpace(),
-                const Text('bottom').withBottomSafeSpace(),
+                const Text('bottom').withBottomBarSpace(),
               ],
             ),
           ),
