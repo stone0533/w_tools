@@ -8,6 +8,7 @@
 - `WLogInterceptor`：请求 / 响应日志与敏感头脱敏
 - `WTokenInterceptor`：401 清除、刷新、重试
 - `WApiConfig`：日志回调注入
+- `BaseRepository` / 本地 / 远程数据源组合
 - 响应头脱敏 与 500 错误日志
 - `FormData` / Stream 等重试边界（见包测试）
 
@@ -34,6 +35,8 @@ GET /error（500） 返回 500，观察错误日志
 401 → 刷新 → 重试
                  token 先过期，服务端返回 401；
                  WTokenInterceptor 清除旧 token、刷新、重试成功
+Repository 缓存
+                 通过 BaseRepository 组合本地 / 远程数据源
 清空日志
 ```
 

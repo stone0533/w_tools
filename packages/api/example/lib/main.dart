@@ -38,6 +38,7 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
 
   late final DioRegistry _registry;
   late final _DemoAdapter _adapter;
+  late final _DemoRepository _repository;
   final _logs = <String>[];
 
   String? _token = 'expired-token';
@@ -70,6 +71,10 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
       ],
     );
     _registry.dio.httpClientAdapter = _adapter;
+    _repository = _DemoRepository(
+      localDataSource: _DemoLocalDataSource(),
+      remoteDataSource: _DemoRemoteDataSource(_registry.dio),
+    );
   }
 
   @override
@@ -97,6 +102,17 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
       if (!mounted) return;
       setState(() => _lastResult = '$path → 失败：${error.message}');
     }
+  }
+
+  Future<void> _loadRepository() async {
+    setState(() => _lastResult = 'Repository 加载中');
+    final value = await _repository.load();
+    if (!mounted) return;
+    setState(() {
+      _lastResult =
+          'Repository: $value\n'
+          'local cache: ${_repository.localDataSource?.cached}';
+    });
   }
 
   @override
@@ -137,6 +153,10 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
               OutlinedButton(
                 onPressed: () => _request('/error'),
                 child: const Text('GET /error（500）'),
+              ),
+              OutlinedButton(
+                onPressed: _loadRepository,
+                child: const Text('Repository 缓存'),
               ),
             ],
           ),
@@ -179,6 +199,31 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
         ],
       ),
     );
+  }
+}
+
+class _DemoLocalDataSource extends BaseLocalDataSource {
+  String? cached;
+}
+
+class _DemoRemoteDataSource extends BaseRemoteDataSource {
+  _DemoRemoteDataSource(this.dio);
+
+  final Dio dio;
+
+  Future<String> fetch() async {
+    final response = await dio.get<String>('/public');
+    return response.data ?? '';
+  }
+}
+
+class _DemoRepository extends BaseRepository<_DemoLocalDataSource, _DemoRemoteDataSource> {
+  _DemoRepository({super.localDataSource, super.remoteDataSource});
+
+  Future<String> load() async {
+    final value = await remoteDataSource!.fetch();
+    localDataSource!.cached = value;
+    return value;
   }
 }
 

@@ -23,6 +23,15 @@ void main() {
     expect(find.textContaining('服务器返回错误: 500'), findsOneWidget);
   });
 
+  testWidgets('Repository 会写入本地缓存', (tester) async {
+    await tester.pumpWidget(const ApiExampleApp());
+    await tester.tap(find.text('Repository 缓存'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Repository:'), findsOneWidget);
+    expect(find.textContaining('local cache:'), findsOneWidget);
+  });
+
   testWidgets('401 会刷新 token 并重试成功', (tester) async {
     await tester.pumpWidget(const ApiExampleApp());
     await tester.tap(find.text('401 → 刷新 → 重试'));
