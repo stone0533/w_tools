@@ -306,7 +306,7 @@ WForm(
   controller: form,
   fieldStyle: const WFormFieldStyle(
     height: 52,
-    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+    containerPadding: EdgeInsets.symmetric(horizontal: 16),
     textStyle: TextStyle(fontSize: 16),
     hintStyle: TextStyle(color: Color(0xFF9CA3AF)),
   ),

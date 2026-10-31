@@ -45,7 +45,7 @@ WForm(
   borderConfig: exampleBorderConfig,
   fieldStyle: const WFormFieldStyle(
     height: 52,
-    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+    containerPadding: EdgeInsets.symmetric(horizontal: 16),
   ),
   readOnly: isReadOnly,
   child: ListView(...),

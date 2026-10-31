@@ -60,7 +60,7 @@ class WFormValidator {
     formData.closeKeyboard();
     final formKey = formData.formKey;
     formKey.currentState?.save();
-    final resolvedConfig = settings ??= WFormValidatorSettings();
+    final resolvedConfig = settings ??= formData.validatorSettings ?? WFormValidatorSettings();
     _errors.clear();
 
     // 先筛掉跳过项，并清除参与本次校验字段上一次残留的边框错误

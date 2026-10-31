@@ -78,6 +78,14 @@ class _WFormState extends State<WForm> {
   }
 
   @override
+  void dispose() {
+    if (widget.controller.validatorSettings == widget.validatorSettings) {
+      widget.controller.validatorSettings = null;
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WFormTheme(
       borderConfig: widget.borderConfig,

@@ -48,7 +48,7 @@ class _LoginFormState extends State<LoginForm> {
       borderConfig: WFormBorderConfig.standard(radius: 12),
       fieldStyle: const WFormFieldStyle(
         height: 52,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        containerPadding: EdgeInsets.symmetric(horizontal: 16),
       ),
       validatorSettings: WFormValidatorSettings()
         ..showBorderError = true,

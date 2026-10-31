@@ -7,13 +7,13 @@ import 'package:flutter/material.dart';
 class WFormFieldStyle {
   const WFormFieldStyle({
     this.height,
-    this.contentPadding,
+    this.containerPadding,
     this.textStyle,
     this.hintStyle,
   });
 
   final double? height;
-  final EdgeInsetsGeometry? contentPadding;
+  final EdgeInsetsGeometry? containerPadding;
   final TextStyle? textStyle;
   final TextStyle? hintStyle;
 
