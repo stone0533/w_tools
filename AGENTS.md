@@ -87,7 +87,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`，不要再用 `WTextConfig` 逐字段拼样式。
 - 字体/字号/字重/行高统一放 `WTextStyles` / `TextTheme`。
 - 局部用 `style` / `color` / `maxLines` / `overflow` / `textScaler` 覆盖。
-- 多字体优先 `fontFamilyFallback`；同一段主动混排用 `Text.rich` / `WRichText`。
+- 多字体优先 `fontFamilyFallback`；同一段主动混排用 `Text.rich` + `WTextStyles`。
 
 ## 异步区块（w_tools_async）
 

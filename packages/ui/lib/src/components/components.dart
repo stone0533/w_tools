@@ -12,7 +12,6 @@ export 'common/row_buttons.dart';
 export 'text/w_text.dart';
 export 'text/w_text_styles.dart';
 export 'common/gradient_circular_progress_indicator.dart';
-export 'text/w_rich_text.dart';
 
 // 布局组件
 export 'layout/appbar.dart';

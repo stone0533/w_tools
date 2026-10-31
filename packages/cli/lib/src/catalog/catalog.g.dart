@@ -78,16 +78,6 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
   ),
   CatalogEntry(
-    name: "WRichText",
-    names: <String>["WRichText"],
-    package: "w_tools_ui",
-    section: "2. 文本与图标",
-    useFor: "一段文字里多种颜色/字重",
-    dontUseFor: "单色文本用 `WText` 更省事",
-    importPath: "package:w_tools_ui/w_tools_ui.dart",
-    docs: "docs/modules/ui_module.md",
-  ),
-  CatalogEntry(
     name: "WImage",
     names: <String>["WImage"],
     package: "w_tools_ui",

@@ -21,7 +21,6 @@
 | --- | --- | --- | --- |
 | `WText` / `WTextVariant` / `WTextStyles` | ui | 语义文字样式、overrides、maxLines、textScaler | 新代码不要再用 `WTextConfig` 逐字段拼样式 |
 | `WTextConfig` | ui | 旧版文字配置（兼容保留） | 新代码不用；改用 `WTextStyles` |
-| `WRichText` | ui | 一段文字里多种颜色/字重 | 单色文本用 `WText` 更省事 |
 | `WImage` | ui | 网络图/资源图（缓存、重试、占位） | 不要裸用 `Image.network` |
 
 > **图标 + 文字排成一行**（垂直居中）：目前没有组件，见文末「待补」——

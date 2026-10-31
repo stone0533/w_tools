@@ -3,38 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
-  testWidgets('WRichText — 渲染 RichText（itemBuilder 返回 TextSpan）', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: WRichText(
-          config: WRichTextConfig(),
-          data: const ['hello', 'world'],
-          itemBuilder: (_, idx, s, cfg) => TextSpan(text: '$idx:$s'),
-        ),
-      ),
-    );
-    // RichText 会把 TextSpan.text 渲染到屏幕
-    expect(find.byType(RichText), findsOneWidget);
-  });
-
-  testWidgets('WRichText — 未配置时跟随系统字体缩放', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: MediaQuery(
-          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
-          child: WRichText(
-            config: WRichTextConfig(),
-            data: const ['hello'],
-            itemBuilder: (_, idx, s, cfg) => TextSpan(text: s),
-          ),
-        ),
-      ),
-    );
-
-    final richText = tester.widget<RichText>(find.byType(RichText));
-    expect(richText.textScaler, const TextScaler.linear(2));
-  });
-
   testWidgets('WStep — 默认显示 1 基 label / 状态', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

@@ -55,7 +55,6 @@ ui/
     │   │   ├── text/                  # 文字组件
     │   │   │   ├── w_text.dart                 # WText, WTextConfig
     │   │   │   ├── w_text_styles.dart          # WTextStyles / WTextVariant
-    │   │   │   └── w_rich_text.dart            # WRichText, WRichTextConfig
     │   ├── layout/                 # 布局组件
     │   │   ├── appbar.dart                    # WAppBar / WAppBarStyle
     │   │   ├── list_view.dart                 # WListView / WListViewSliver
@@ -1395,9 +1394,28 @@ Container(
 
 通知监听构建器，便捷封装 `NotificationListener` + `Builder`。
 
-### WRichText
+### 富文本
 
-富文本组件，`RichText` 的增强封装。
+多色 / 多字重 / 可点击片段使用 Flutter 原生 `Text.rich`，基础样式从
+`WTextStyles.of(context).body` 等语义样式获取：
+
+```dart
+Text.rich(
+  TextSpan(
+    style: WTextStyles.of(context).body,
+    children: [
+      const TextSpan(text: '已阅读并同意'),
+      TextSpan(
+        text: '《服务协议》',
+        style: const TextStyle(color: Colors.blue),
+        recognizer: TapGestureRecognizer()..onTap: _openAgreement,
+      ),
+    ],
+  ),
+)
+```
+
+不再提供 `WRichText` / `WRichTextConfig`。
 
 ### WGradientCircularProgressIndicator
 

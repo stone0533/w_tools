@@ -71,27 +71,6 @@ void main() {
     });
   });
 
-  group('WRichTextConfig', () {
-    test('链式方法返回 this', () {
-      final c = WRichTextConfig();
-      expect(c.overflowEllipsis(), same(c));
-      expect(c.textAlignCenter(), same(c));
-      expect(c.decorationUnderline(), same(c));
-      expect(c.familyNotoSansTC(), same(c));
-    });
-
-    test('setter 可调用', () {
-      final c = WRichTextConfig()
-        ..fontSize = 16
-        ..color = Colors.purple
-        ..fontWeight = FontWeight.bold
-        ..maxLines = 3
-        ..softWrap = true
-        ..letterSpacing = 0.5;
-      expect(c, isNotNull);
-    });
-  });
-
   // ========= form Config =========
   group('WFormBorderConfig', () {
     test('setter defaultDecoration / errorDecoration 可调用', () {
