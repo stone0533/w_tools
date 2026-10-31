@@ -84,7 +84,17 @@ class WHash {
     final computedHash = hashPassword(password, salt: salt);
     final computedHashParts = computedHash.split('\$');
 
-    return computedHashParts[2] == expectedHash;
+    return _constantTimeEquals(computedHashParts[2], expectedHash);
+  }
+
+  /// 常量时间比较，降低密码哈希校验的时序侧信道
+  static bool _constantTimeEquals(String a, String b) {
+    if (a.length != b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) {
+      diff |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+    }
+    return diff == 0;
   }
 
   /// 生成 16 字节随机盐（Base64 编码）

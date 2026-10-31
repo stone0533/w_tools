@@ -3,7 +3,8 @@ extension WMapExtension<K, V> on Map<K, V> {
   /// 按键排序并返回新 Map
   ///
   /// 未传 [compare] 时：键实现 [Comparable] 则按 `compareTo` 排序，
-  /// 否则回退为字符串比较。
+  /// 否则回退为字符串比较。混合类型的 [Comparable] 键仍可能无法比较，
+  /// 此时请显式传入 [compare]。
   Map<K, V> sortedByKeys([int Function(K, K)? compare]) {
     final sortedKeys = keys.toList();
     if (compare != null) {

@@ -7,6 +7,14 @@
   `WCancelToken` / `WAsyncState` / `WAsyncController` / 异步视图不再由 core 导出。
   迁移：`import 'package:w_tools_async/w_tools_async.dart';`。
 
+### Fixed
+- `WValidator.isValidUrl` 要求 host 非空，拒绝 `https://` / `https://?q=1`。
+- `WHash.verifyPassword` 使用常量时间比较，降低时序侧信道。
+
+### Docs
+- `WEncrypt` 明确 AES-CBC 只提供机密性，不提供完整性 / 认证。
+- `WMapExtension.sortedByKeys` 说明混合 Comparable 键需显式传 compare。
+
 ## 1.0.1
 
 ### Deprecated

@@ -69,6 +69,8 @@ void main() {
       expect(WValidator.isValidUrl('https://example.com'), true);
       expect(WValidator.isValidUrl('http://example.com/path?q=1'), true);
       expect(WValidator.isValidUrl('not_a_url'), false);
+      expect(WValidator.isValidUrl('https://'), false);
+      expect(WValidator.isValidUrl('https://?q=1'), false);
     });
 
     test('isValidIpv4', () {
