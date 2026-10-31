@@ -224,7 +224,7 @@ class WFormDropdownConfig extends WFormFieldChrome {
     );
 
     if (!bordered) {
-      return dropdown;
+      return readOnly ? WFormReadOnlyScope(readOnly: true, child: dropdown) : dropdown;
     }
 
     return WFormFieldFrame.border(

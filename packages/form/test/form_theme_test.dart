@@ -39,6 +39,25 @@ void main() {
     expect(config.build(child: const Text('x')), isA<WFormBorder>());
   });
 
+  testWidgets('WFormTheme 位于 WFormScope 内时 WFormBorder 仍能读取', (tester) async {
+    final borderConfig = WFormBorderConfig.standard();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WFormScope(
+          formData: WFormController(),
+          child: WFormTheme(
+            borderConfig: borderConfig,
+            child: const WFormBorder(child: Text('field')),
+          ),
+        ),
+      ),
+    );
+
+    final state = tester.state<WFormBorderState>(find.byType(WFormBorder));
+    expect(state.config, same(borderConfig));
+  });
+
   testWidgets('WFormScope 继承 WFormTheme.borderConfig', (tester) async {
     final borderConfig = WFormBorderConfig.standard();
 

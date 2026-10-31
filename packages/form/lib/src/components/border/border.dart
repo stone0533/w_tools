@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../form_scope.dart';
+import '../form_theme.dart';
 import 'border_layout.dart';
 
 /// WFormBorder 组件是一个表单边框容器，用于为表单输入添加统一的边框样式和错误提示
@@ -117,7 +118,11 @@ class WFormBorderState extends State<WFormBorder> {
   ///
   /// 比较内容快照而非实例身份，配置被原地修改时只要组件重建即可生效。
   void _syncConfig() {
-    final resolved = widget.config ?? WFormScope.borderConfigOf(context) ?? WFormBorderConfig();
+    final resolved =
+        widget.config ??
+        WFormScope.borderConfigOf(context) ??
+        WFormTheme.maybeOf(context)?.borderConfig ??
+        WFormBorderConfig();
     final snapshot = _snapshotOf(resolved);
     if (snapshot == _configSnapshot) return;
     config = resolved;

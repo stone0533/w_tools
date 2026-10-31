@@ -109,7 +109,7 @@ class WFormFieldButtonConfig extends WFormFieldChrome {
     bool enableFocusBorder = true,
   }) {
     if (!bordered) {
-      return WFormFieldButton(
+      final field = WFormFieldButton(
         config: this,
         name: name,
         onTap: onTap,
@@ -119,6 +119,7 @@ class WFormFieldButtonConfig extends WFormFieldChrome {
         validator: validator,
         focusNode: focusNode,
       );
+      return readOnly ? WFormReadOnlyScope(readOnly: true, child: field) : field;
     }
 
     final baseEnabled = enabled ?? this.enabled;
@@ -258,5 +259,11 @@ class _WFormScopeButtonState<T> extends FormBuilderFieldState<_WFormScopeButton<
     super.didChange(value);
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
     _formData?.handleChange(widget.name, value);
+  }
+
+  @override
+  void dispose() {
+    _formData?.removeFormEntered(widget.name);
+    super.dispose();
   }
 }

@@ -162,6 +162,12 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePicker, Strin
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
     _formData?.handleChange(widget.name, value);
   }
+
+  @override
+  void dispose() {
+    _formData?.removeFormEntered(widget.name);
+    super.dispose();
+  }
 }
 
 /// 日期选择器配置类，定义日期选择器的样式和行为
@@ -244,7 +250,7 @@ class WFormDatePickerConfig extends WFormFieldChrome {
     bool enableFocusBorder = true,
   }) {
     if (!bordered) {
-      return WFormDatePicker(
+      final field = WFormDatePicker(
         config: this,
         name: name,
         firstDate: firstDate,
@@ -254,6 +260,7 @@ class WFormDatePickerConfig extends WFormFieldChrome {
         onChanged: onChanged,
         enabled: enabled,
       );
+      return readOnly ? WFormReadOnlyScope(readOnly: true, child: field) : field;
     }
 
     final baseEnabled = enabled ?? this.enabled;

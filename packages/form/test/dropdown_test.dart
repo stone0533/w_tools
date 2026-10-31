@@ -331,6 +331,20 @@ void main() {
     });
   });
 
+  testWidgets('WFormDropdownConfig.build — readOnly 在无边框时也生效', (tester) async {
+    await pumpForm(
+      tester,
+      child: WFormDropdownConfig().build<String>(
+        name: 'country',
+        items: const {'CN': '中国'},
+        readOnly: true,
+      ),
+    );
+
+    final button = tester.widget<DropdownButton<String>>(find.byType(DropdownButton<String>));
+    expect(button.onChanged, isNull);
+  });
+
   group('WFormMultiDropdownConfig — 纯 Dart', () {
     test('默认空实例化', () {
       final cfg = WFormMultiDropdownConfig();

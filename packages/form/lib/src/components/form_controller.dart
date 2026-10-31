@@ -29,13 +29,22 @@ class WFormController {
 
   /// 指定字段是否都已输入
   ///
-  /// 用字段名显式表达判断范围，避免传错数量；空集合视为全部满足。
+  /// 用字段名显式表达判断范围，避免传错数量；空集合返回 false。
   /// 字段卸载后 [formEntered] 会被清理，因此动态字段不会残留。
   bool isAllEntered(Iterable<String> fieldNames) {
+    if (fieldNames.isEmpty) return false;
+    pruneFormEntered();
     for (final name in fieldNames) {
       if (formEntered[name] != true) return false;
     }
     return true;
+  }
+
+  /// 清理已卸载字段在 [formEntered] 中的残留记录
+  void pruneFormEntered() {
+    final registered = fields;
+    if (registered == null) return;
+    formEntered.removeWhere((name, _) => !registered.containsKey(name));
   }
 
   /// 按字段名设置字段值
@@ -141,6 +150,8 @@ class WFormController {
   /// 业务表单优先用本方法或 [validators]，避免直接调用 formKey.validate()
   /// 造成两套错误通道。
   bool validate({WFormValidatorConfig? config, List<WFormValidatorItem>? items}) {
+    if (formKey.currentState == null) return false;
+    pruneFormEntered();
     final validationItems =
         items ??
         (fields?.keys.map(WFormValidatorItem.field).toList(growable: false) ??

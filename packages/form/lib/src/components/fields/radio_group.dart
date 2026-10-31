@@ -178,6 +178,12 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroup<T>,
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
     _formData?.handleChange(widget.name, value);
   }
+
+  @override
+  void dispose() {
+    _formData?.removeFormEntered(widget.name);
+    super.dispose();
+  }
 }
 
 /// 单选按钮组配置类，定义单选按钮组的样式和行为
@@ -266,7 +272,7 @@ class WFormRadioGroupConfig extends WFormFieldChrome {
       validator: validator,
     );
     if (!bordered) {
-      return field;
+      return readOnly ? WFormReadOnlyScope(readOnly: true, child: field) : field;
     }
     return WFormFieldFrame.border(
       name: name,

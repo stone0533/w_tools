@@ -126,6 +126,12 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckbox, bool> {
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
     _formData?.handleChange(widget.name, value);
   }
+
+  @override
+  void dispose() {
+    _formData?.removeFormEntered(widget.name);
+    super.dispose();
+  }
 }
 
 /// 复选框配置类，定义复选框的样式和行为
@@ -202,7 +208,7 @@ class WFormCheckboxConfig extends WFormFieldChrome {
       validator: validator,
     );
     if (!bordered) {
-      return field;
+      return readOnly ? WFormReadOnlyScope(readOnly: true, child: field) : field;
     }
     return WFormFieldFrame.border(
       name: name,

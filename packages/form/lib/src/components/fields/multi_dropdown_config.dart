@@ -194,7 +194,7 @@ class WFormMultiDropdownConfig extends WFormFieldChrome {
     );
 
     if (!bordered) {
-      return multiDropdown;
+      return readOnly ? WFormReadOnlyScope(readOnly: true, child: multiDropdown) : multiDropdown;
     }
 
     return WFormFieldFrame.border(

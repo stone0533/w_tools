@@ -424,8 +424,8 @@ void main() {
       expect(data.isAllEntered(const ['a', 'missing']), false);
     });
 
-    testWidgets('isAllEntered — 空字段集合返回 true', (tester) async {
-      expect(WFormController().isAllEntered(const []), true);
+    testWidgets('isAllEntered — 空字段集合返回 false', (tester) async {
+      expect(WFormController().isAllEntered(const []), false);
     });
 
     testWidgets('isAllEntered — 忽略已卸载字段的陈旧记录', (tester) async {
@@ -473,6 +473,25 @@ void main() {
 
       expect(data.getFieldsValue<String>('a'), 'hello');
       expect(data.formEntered['a'], isTrue);
+    });
+
+    testWidgets('裸字段卸载时清理 formEntered', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: WFormTextField(config: WFormTextFieldConfig(), name: 'raw'),
+      );
+
+      data.handleChange('raw', 'x');
+      expect(data.formEntered['raw'], isTrue);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(data.formEntered.containsKey('raw'), isFalse);
+    });
+
+    testWidgets('未挂载时 validate 返回 false', (tester) async {
+      expect(WFormController().validate(), isFalse);
     });
 
     testWidgets('validate 自动使用字段 validator', (tester) async {
