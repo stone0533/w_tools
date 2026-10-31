@@ -152,7 +152,7 @@ void main() {
                 (v) => (v == null || v.toString().isEmpty) ? 'b 必填' : null,
           ),
         ],
-        config: WFormValidatorSettings()
+        settings: WFormValidatorSettings()
           ..continueOnError = true
           ..itemValidationCallback = ((name, ok, err) => visited.add(name)),
       );

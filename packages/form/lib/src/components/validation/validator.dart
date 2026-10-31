@@ -5,7 +5,7 @@ import '../form_controller.dart';
 
 /// 表单验证器类，用于管理和执行表单验证
 ///
-/// 持有表单数据 [formData]、验证项列表 [validationItems] 与 [config]，
+/// 持有表单数据 [formData]、验证项列表 [validationItems] 与 [settings]，
 /// 由 [validate] 按顺序执行校验，行为由 [WFormValidatorSettings] 控制：
 /// 短路 / 全量校验、是否显示边框错误、首个失败项的自动聚焦、
 /// 错误提示回调的触发范围；校验结果可通过只读的 [errors] 获取。
@@ -22,7 +22,7 @@ class WFormValidator {
   List<WFormValidatorItem> validationItems;
 
   /// 验证器配置
-  WFormValidatorSettings? config;
+  WFormValidatorSettings? settings;
 
   /// 最近一次校验的失败项集合（字段名 -> 错误文本），只读快照
   ///
@@ -34,7 +34,7 @@ class WFormValidator {
   final Map<String, String> _errors = {};
 
   /// 创建表单验证器
-  WFormValidator({required this.formData, required this.validationItems, this.config});
+  WFormValidator({required this.formData, required this.validationItems, this.settings});
 
   /// 添加验证项
   void add(WFormValidatorItem item) {
@@ -60,7 +60,7 @@ class WFormValidator {
     formData.closeKeyboard();
     final formKey = formData.formKey;
     formKey.currentState?.save();
-    final resolvedConfig = config ??= WFormValidatorSettings();
+    final resolvedConfig = settings ??= WFormValidatorSettings();
     _errors.clear();
 
     // 先筛掉跳过项，并清除参与本次校验字段上一次残留的边框错误

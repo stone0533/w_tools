@@ -513,7 +513,7 @@ WFormPopup.hide<T>(context, [result, rootNavigator]);
 
 ```dart
 final validator = formData.validators(
-  config: WFormValidatorSettings()
+  settings: WFormValidatorSettings()
     ..showBorderError = true
     ..continueOnError = true
     ..customErrorCallback = (name, err) => showToast(err),
@@ -577,7 +577,7 @@ class _LoginPageState extends State<LoginPage> {
         );
 
   late final _validator = _formData.validators(
-    config: WFormValidatorSettings()
+    settings: WFormValidatorSettings()
       ..showBorderError = true
       ..customErrorCallback = (name, err) {
         debugPrint('[$name] $err');

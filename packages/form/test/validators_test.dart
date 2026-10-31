@@ -31,7 +31,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), failingItem('b'), failingItem('c')],
-        config: config,
+        settings: config,
       );
 
       final result = validators.validate();
@@ -53,7 +53,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), passingItem('b'), failingItem('c')],
-        config: config,
+        settings: config,
       );
 
       final result = validators.validate();
@@ -75,7 +75,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), failingItem('b'), failingItem('c')],
-        config: config,
+        settings: config,
       );
 
       final result = validators.validate();
@@ -95,7 +95,7 @@ void main() {
       final validators = WFormValidator(
         formData: WFormController(),
         validationItems: [failingItem('a'), passingItem('b'), failingItem('c')],
-        config: config,
+        settings: config,
       );
 
       validators.validate();
@@ -134,7 +134,7 @@ void main() {
           ),
           failingItem('b'),
         ],
-        config: config,
+        settings: config,
       );
       validators.validate();
       await tester.pump();
@@ -147,7 +147,7 @@ void main() {
       final validators = WFormValidator(
         formData: WFormController(),
         validationItems: [failingItem('a'), passingItem('b'), failingItem('c')],
-        config: WFormValidatorSettings()..continueOnError = true,
+        settings: WFormValidatorSettings()..continueOnError = true,
       );
 
       validators.validate();
@@ -244,7 +244,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), failingItem('b')],
-        config: WFormValidatorSettings()
+        settings: WFormValidatorSettings()
           ..showBorderError = true
           ..continueOnError = true,
       );
@@ -274,7 +274,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a')],
-        config: WFormValidatorSettings()..showBorderError = false,
+        settings: WFormValidatorSettings()..showBorderError = false,
       );
 
       validators.validate();
@@ -312,7 +312,7 @@ void main() {
           ),
           failingItem('b'),
         ],
-        config: WFormValidatorSettings()
+        settings: WFormValidatorSettings()
           ..showBorderError = true
           ..continueOnError = true,
       );
@@ -340,7 +340,7 @@ void main() {
       final full = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), failingItem('b')],
-        config: WFormValidatorSettings()
+        settings: WFormValidatorSettings()
           ..showBorderError = true
           ..continueOnError = true,
       );
@@ -353,7 +353,7 @@ void main() {
       final short = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), failingItem('b')],
-        config: WFormValidatorSettings()..showBorderError = true,
+        settings: WFormValidatorSettings()..showBorderError = true,
       );
       short.validate();
       await tester.pump();
@@ -378,7 +378,7 @@ void main() {
       final on = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a')],
-        config: WFormValidatorSettings()..showBorderError = true,
+        settings: WFormValidatorSettings()..showBorderError = true,
       );
       on.validate();
       await tester.pump();
@@ -387,7 +387,7 @@ void main() {
       final off = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a')],
-        config: WFormValidatorSettings()..showBorderError = false,
+        settings: WFormValidatorSettings()..showBorderError = false,
       );
       off.validate();
       await tester.pump();
@@ -442,7 +442,7 @@ void main() {
           WFormValidatorItem.field('a'),
           WFormValidatorItem.field('b'),
         ],
-        config: WFormValidatorSettings()
+        settings: WFormValidatorSettings()
           ..itemValidationCallback = (name, isValid, errorText) {
             visited.add(name);
           },
@@ -468,7 +468,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [WFormValidatorItem.field('btn')],
-        config: WFormValidatorSettings()..showBorderError = true,
+        settings: WFormValidatorSettings()..showBorderError = true,
       );
 
       expect(validators.validate(), isFalse);
@@ -493,7 +493,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [WFormValidatorItem.field('name')],
-        config: WFormValidatorSettings()..showBorderError = true,
+        settings: WFormValidatorSettings()..showBorderError = true,
       );
 
       expect(validators.validate(), isFalse);
