@@ -45,6 +45,16 @@ WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate�
 
 不要为了统一把任意叠放布局塞进 `WScaffold`；需要自定义覆盖时在页面层用 `Container` / `Stack`。
 
+## 状态与反馈
+
+```text
+加载指示 → WGradientCircularProgressIndicator
+列表项保活 → WKeepAliveWrapper
+滚动通知 / 百分比 → WNotificationListenerBuilder
+```
+
+WNotificationListenerBuilder 的百分比只在 depth 0 的 ScrollUpdateNotification 上回调。
+
 ## 弹层
 
 ```text

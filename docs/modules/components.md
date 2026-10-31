@@ -75,6 +75,8 @@
 | `WToast` | toast | 轻提示 | — |
 | `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | — |
+| `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
+| `WNotificationListenerBuilder` | ui | 监听滚动通知 / 百分比 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
 
 ## 8. 能力（非 UI）
 

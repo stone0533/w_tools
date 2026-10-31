@@ -192,6 +192,10 @@ WAssets.imagePath = 'assets/icons/';
 |---|---|
 | 文本 / 图片 | `WText` / `WImage` |
 | 按钮 / 徽标 | `WButton` / `WBadge` / `WRowButtons` |
+| 裁剪 | `WClipRRect` |
+| 加载指示 | `WGradientCircularProgressIndicator` |
+| 列表保活 | `WKeepAliveWrapper` |
+| 滚动通知 | `WNotificationListenerBuilder` |
 | 布局 | `WScaffold` / `WAppBar` / `WListView` |
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
 | 屏幕工具 | `WScreen` / `WSizeBox` / `WPadding` / `WColumn` / `WRow` |
