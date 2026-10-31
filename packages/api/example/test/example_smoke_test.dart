@@ -10,6 +10,7 @@ void main() {
     expect(find.textContaining('/public → 200'), findsOneWidget);
     expect(find.textContaining('*** Request ***'), findsWidgets);
     expect(find.textContaining('set-cookie: ***'), findsWidgets);
+    expect(find.textContaining('Authorization: ***'), findsWidgets);
     expect(find.textContaining('session=secret'), findsNothing);
   });
 

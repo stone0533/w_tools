@@ -57,7 +57,6 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
     _registry = DioRegistry.forBaseUrl(
       _baseUrl,
       interceptors: [
-        WLogInterceptor(responseHeader: true),
         WTokenInterceptor(
           tokenGetter: () => _token,
           tokenClearer: () async => _token = null,
@@ -67,6 +66,7 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
             return _token;
           },
         ),
+        WLogInterceptor(responseHeader: true),
       ],
     );
     _registry.dio.httpClientAdapter = _adapter;
@@ -85,7 +85,10 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
     setState(() => _lastResult = '请求中：$path');
 
     try {
-      final response = await _registry.dio.get<String>(path);
+      final response = await _registry.dio.get<String>(
+        path,
+        options: path == '/public' ? Options(headers: {'X-Demo-Secret': 'demo-secret'}) : null,
+      );
       if (!mounted) return;
       setState(() {
         _lastResult = '$path → ${response.statusCode}\n${response.data}';

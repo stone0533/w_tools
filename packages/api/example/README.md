@@ -8,7 +8,7 @@
 - `WLogInterceptor`：请求 / 响应日志与敏感头脱敏
 - `WTokenInterceptor`：401 清除、刷新、重试
 - `WApiConfig`：日志回调注入
-- 响应头脱敏与 500 错误日志
+- 响应头脱敏 与 500 错误日志
 - `FormData` / Stream 等重试边界（见包测试）
 
 ## 运行
