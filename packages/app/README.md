@@ -100,6 +100,10 @@ WRoute.popUntilRoute('/home');
 | 语言 | `WLanguage` |
 | 底部弹窗 | `WBottomSheet` |
 
+## 完整示例
+
+见 [`example/`](example/)：WApp 启动、插件依赖、GetX 路由、语言切换与底部弹窗。
+
 ## License
 
 MIT
