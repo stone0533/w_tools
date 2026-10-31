@@ -32,6 +32,8 @@ BoxDecoration → withColor / withBorderRadius / withShadow
 
 WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate。
 
+`WColumn.left/right` / `WRow.top/bottom` 默认 `MainAxisSize.max`；需要包裹内容时显式传 `MainAxisSize.min`。
+
 ## 页面骨架
 
 ```text

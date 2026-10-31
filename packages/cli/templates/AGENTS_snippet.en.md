@@ -46,6 +46,7 @@
    compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
    **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath`
    for asset prefixes; prefer `WSizeBox` / `WPadding` / `WColumn` / `WRow` for spacing/sizing.
+   `WColumn.left/right` / `WRow.top/bottom` default to `MainAxisSize.max`; pass `MainAxisSize.min` to wrap content.
    **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
    in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme,
    so theme-aware typography must use `builderWrapper`.

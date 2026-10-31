@@ -157,6 +157,7 @@ const String agentsSnippet = r'''
    BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合，不要重复手写。
    **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
    间距 / 尺寸优先 `WSizeBox` / `WPadding` / `WColumn` / `WRow`。
+   `WColumn.left/right` / `WRow.top/bottom` 默认 `MainAxisSize.max`；需要包裹内容时显式传 `MainAxisSize.min`。
    **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
    在 `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper` 的 build 期构建。
    `wrapApp` 没有 Theme；需要 Theme 的排版扩展用 `builderWrapper`。
@@ -234,6 +235,7 @@ const String agentsSnippetEn = r'''
    compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
    **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath`
    for asset prefixes; prefer `WSizeBox` / `WPadding` / `WColumn` / `WRow` for spacing/sizing.
+   `WColumn.left/right` / `WRow.top/bottom` default to `MainAxisSize.max`; pass `MainAxisSize.min` to wrap content.
    **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
    in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme,
    so theme-aware typography must use `builderWrapper`.
