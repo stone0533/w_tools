@@ -1320,7 +1320,10 @@ Container(
 
 ### WRowButtons
 
-行内多个按钮的便捷组合组件。
+横向滚动按钮行，支持选中居中、初始索引和外部 controller。
+
+`WRowButtonsController` 由调用方持有；应先销毁 `WRowButtons`，再调用 controller.dispose。
+相同索引重复点击不会重复通知或滚动。
 
 ### WKeepAliveWrapper
 

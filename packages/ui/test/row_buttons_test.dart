@@ -61,6 +61,17 @@ void main() {
       controller.dispose();
     });
 
+    test('相同索引不重复通知', () {
+      final controller = WRowButtonsController(length: length);
+      var count = 0;
+      controller.addListener(() => count++);
+      controller.jumpTo(2);
+      expect(count, 1);
+      controller.jumpTo(2);
+      expect(count, 1);
+      controller.dispose();
+    });
+
     test('监听 index 变化应正常触发', () {
       final controller = WRowButtonsController(length: length);
       int? lastValue;

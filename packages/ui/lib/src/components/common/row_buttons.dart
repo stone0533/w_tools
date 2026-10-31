@@ -289,9 +289,6 @@ class WRowButtonsController {
   /// 过度滚动量，默认 0.0
   final double overScroll;
 
-  /// 滚动阈值，默认 0.5
-  final double scrollThreshold;
-
   /// 索引变化通知器，用于通知索引变化
   final ValueNotifier<int?> _indexNotifier;
 
@@ -312,7 +309,6 @@ class WRowButtonsController {
   /// [scrollCurve] 滚动曲线，默认 Curves.ease
   /// [animateScroll] 是否启用滚动动画，默认 true
   /// [overScroll] 过度滚动量，默认 0.0
-  /// [scrollThreshold] 滚动阈值，默认 0.5
   WRowButtonsController({
     required this.length,
     int? initialIndex,
@@ -321,7 +317,6 @@ class WRowButtonsController {
     this.scrollCurve = Curves.ease,
     this.animateScroll = true,
     this.overScroll = 0.0,
-    this.scrollThreshold = 0.5,
   })  : _index = initialIndex,
         _indexNotifier = ValueNotifier(initialIndex) {
     // 检查按钮数量是否为正数
@@ -365,7 +360,7 @@ class WRowButtonsController {
     Curve curve = Curves.ease,
   }) {
     // 确保索引在有效范围内
-    if (value < 0 || value >= length) {
+    if (value < 0 || value >= length || value == _index) {
       return;
     }
 
@@ -457,7 +452,9 @@ class WRowButtonsController {
 
   /// 释放资源
   ///
-  /// 调用此方法以释放控制器使用的资源，避免内存泄漏
+  /// 调用此方法以释放控制器使用的资源，避免内存泄漏。
+  /// 应先销毁使用该 controller 的 WRowButtons，再调用 dispose；
+  /// controller 由调用方持有和释放。
   void dispose() {
     scrollController.dispose();
     _indexNotifier.dispose();
