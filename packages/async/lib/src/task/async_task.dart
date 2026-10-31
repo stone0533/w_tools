@@ -118,7 +118,7 @@ class WAsyncConfig {
   /// [onSuccess] 成功回调，接收操作结果
   /// [onError] 错误回调，接收错误信息
   /// [retryCount] 首次执行失败后的最大重试次数（总执行次数为 retryCount + 1），不能为负数
-  /// [retryDelay] 两次尝试之间的等待时间，等待期间可被 [cancelToken] 取消；不能为负数
+  /// [retryDelay] 两次尝试之间的固定等待时间，等待期间可被 [cancelToken] 取消；不能为负数
   /// [retryIf] 判断某个异常是否重试；为空时重试所有 `Exception`，
   ///   返回 false 时立即结束并上报错误
   /// [cancelToken] 取消令牌

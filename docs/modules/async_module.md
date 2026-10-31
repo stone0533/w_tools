@@ -109,7 +109,7 @@ final result = await WAsync.run(
   onError: (e) => print('失败: $e'),
 );
 
-// 带重试（指数退避）
+// 带重试（固定 retryDelay）
 final apiResult = await WAsync.runWithRetry(
   () => unstableApiCall(),
   retryCount: 3,
@@ -405,7 +405,8 @@ await gifts.loadMore();
 - `hasMore`：是否还有下一页
 
 `initial` 传 `WAsyncState.ready(data)` 表示第一页已经加载，下一次 `loadMore()`
-会从 `initialPage + 1` 开始；传 loading / empty 时仍从 `initialPage` 开始。
+会从 `initialPage + 1` 开始；`hasMore` 默认仍为 true，若 initial 已是最后一页，
+调用方需要自行处理或 refresh。传 loading / empty 时仍从 `initialPage` 开始。
 
 分页失败应该交给 `SmartRefresher` footer（`loadFailed`），不要用 `state.failed` 替换整个列表。
 
