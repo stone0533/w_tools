@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:w_tools_qr/w_tools_qr.dart';
 import 'package:w_tools_qr_example/main.dart';
 
 const _viewChannelPrefix = 'net.touchcapture.qr.flutterqrplus/qrview_';
@@ -49,6 +50,19 @@ void main() {
       null,
     );
     _activeViewChannel = null;
+  });
+
+  testWidgets('连续扫描与扫描框开关生效', (tester) async {
+    await tester.pumpWidget(const QrExampleApp());
+    await tester.pump();
+
+    await tester.tap(find.text('连续扫描'));
+    await tester.pump();
+    expect(tester.widget<WQrView>(find.byType(WQrView)).scanOnce, isFalse);
+
+    await tester.tap(find.text('扫描框'));
+    await tester.pump();
+    expect(tester.widget<WQrView>(find.byType(WQrView)).showOverlay, isFalse);
   });
 
   testWidgets('扫码后展示结果并支持继续扫描', (tester) async {

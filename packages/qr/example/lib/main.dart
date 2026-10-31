@@ -34,6 +34,8 @@ class _QrScannerPageState extends State<QrScannerPage> {
   WQrController? _controller;
   String? _result;
   bool _torchOn = false;
+  bool _continuous = false;
+  bool _showOverlay = true;
 
   void _onScanned(Barcode barcode) {
     setState(() => _result = barcode.code);
@@ -99,6 +101,9 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 _controller = controller;
               },
               onError: _report,
+              scanOnce: !_continuous,
+              scanInterval: const Duration(seconds: 1),
+              showOverlay: _showOverlay,
               noPermissionCallback: () {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -110,6 +115,26 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 cutOutWidth: 240,
                 cutOutHeight: 240,
               ),
+            ),
+          ),
+          Positioned(
+            top: 12,
+            left: 12,
+            right: 12,
+            child: Row(
+              children: [
+                FilterChip(
+                  label: const Text('连续扫描'),
+                  selected: _continuous,
+                  onSelected: (value) => setState(() => _continuous = value),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('扫描框'),
+                  selected: _showOverlay,
+                  onSelected: (value) => setState(() => _showOverlay = value),
+                ),
+              ],
             ),
           ),
           if (_result != null)
