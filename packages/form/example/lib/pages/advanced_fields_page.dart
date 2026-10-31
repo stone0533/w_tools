@@ -23,6 +23,9 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
         controller: _form,
         borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
+        dropdownIcon: const Icon(Icons.expand_more_rounded),
+        checkboxUnselectedIcon: const Icon(Icons.check_box_outline_blank),
+        checkboxSelectedIcon: const Icon(Icons.check_box),
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [

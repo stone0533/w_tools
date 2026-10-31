@@ -37,6 +37,11 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
         controller: _form,
         borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
+        dropdownIcon: const Icon(Icons.expand_more_rounded),
+        radioUnselectedIcon: const Icon(Icons.radio_button_off),
+        radioSelectedIcon: const Icon(Icons.radio_button_checked),
+        checkboxUnselectedIcon: const Icon(Icons.check_box_outline_blank),
+        checkboxSelectedIcon: const Icon(Icons.check_box),
         validatorSettings: WFormValidatorSettings()
           ..showBorderError = true
           ..continueOnError = true,
