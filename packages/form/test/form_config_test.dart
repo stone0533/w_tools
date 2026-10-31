@@ -62,8 +62,29 @@ void main() {
       final config = WFormValidatorSettings();
       bool callbackCalled = false;
       config.customErrorCallback = (field, error) => callbackCalled = true;
-      // 无法验证私有字段，但 setter 不应抛异常
       expect(callbackCalled, false);
+    });
+
+    test('getter 可回读所有配置', () {
+      final config = WFormValidatorSettings()
+        ..showBorderError = true
+        ..continueOnError = true
+        ..notifyAllErrors = true
+        ..customErrorCallback = (field, error) {}
+        ..itemValidationCallback = (field, isValid, error) {}
+        ..shouldSkipValidation = (field, values) => true;
+
+      expect(config.showBorderError, isTrue);
+      expect(config.continueOnError, isTrue);
+      expect(config.notifyAllErrors, isTrue);
+      expect(config.customErrorCallback, isNotNull);
+      expect(config.itemValidationCallback, isNotNull);
+      expect(config.shouldSkipValidation, isNotNull);
+
+      final copy = config.copy();
+      expect(copy.showBorderError, isTrue);
+      expect(copy.continueOnError, isTrue);
+      expect(copy.notifyAllErrors, isTrue);
     });
   });
 

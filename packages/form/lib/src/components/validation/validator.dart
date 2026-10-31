@@ -68,7 +68,7 @@ class WFormValidator {
     final items = <WFormValidatorItem>[];
     for (final item in validationItems) {
       final shouldSkip =
-          resolvedConfig._shouldSkipValidation?.call(item.fieldName, formKey.currentState?.value) ??
+          resolvedConfig.shouldSkipValidation?.call(item.fieldName, formKey.currentState?.value) ??
           false;
       if (shouldSkip) continue;
       items.add(item);
@@ -83,7 +83,7 @@ class WFormValidator {
       final String? errorText = _validateItem(item, formKey.currentState);
       final bool isValid = errorText == null;
 
-      resolvedConfig._itemValidationCallback?.call(item.fieldName, isValid, errorText);
+      resolvedConfig.itemValidationCallback?.call(item.fieldName, isValid, errorText);
 
       if (errorText == null) continue;
 
@@ -98,19 +98,19 @@ class WFormValidator {
         }
       }
 
-      if (resolvedConfig._showBorderError == true) {
+      if (resolvedConfig.showBorderError == true) {
         formData.setError(item.fieldName, errorTextList: [errorText]);
       }
 
       // 错误提示：默认只针对第一个失败项（避免全量校验时重复弹 toast）；
       // 配置 notifyAllErrors = true 后，每个失败项都会触发
-      if (resolvedConfig._notifyAllErrors == true || !notifiedFirstError) {
+      if (resolvedConfig.notifyAllErrors == true || !notifiedFirstError) {
         notifiedFirstError = true;
-        resolvedConfig._customErrorCallback?.call(item.fieldName, errorText);
+        resolvedConfig.customErrorCallback?.call(item.fieldName, errorText);
       }
 
       // 短路校验：默认遇第一个失败项即返回；continueOnError = true 时继续校验后续字段
-      if (!resolvedConfig._continueOnError) {
+      if (!resolvedConfig.continueOnError) {
         return false;
       }
     }
@@ -181,60 +181,27 @@ class WFormValidatorItem {
 
 /// 表单验证器配置类，定义验证器的行为
 ///
-/// 各选项通过 setter 配置，可用 [copy] / [copyWith] 生成副本
+/// 各选项通过可变字段配置，可用 [copy] / [copyWith] 生成副本
 class WFormValidatorSettings {
-  bool _showBorderError = false;
-  bool _continueOnError = false;
-  bool _notifyAllErrors = false;
-  void Function(String fieldName, String error)? _customErrorCallback;
-  void Function(String fieldName, bool isValid, String? errorText)? _itemValidationCallback;
-  bool Function(String fieldName, Map<String, dynamic>? formValues)? _shouldSkipValidation;
-
-  /// 设置是否显示边框错误
+  /// 是否显示边框错误
   ///
-  /// 仅控制校验失败时是否设置边框错误；校验开始时的清除不受此开关影响
-  set showBorderError(bool value) {
-    _showBorderError = value;
-  }
+  /// 仅控制校验失败时是否设置边框错误；校验开始时的清除不受此开关影响。
+  bool showBorderError = false;
 
-  /// 设置是否在遇到失败项后继续校验后续字段（默认 false，即短路校验）
-  ///
-  /// 保持默认时遇到第一个失败项立即返回；设为 true 改为全量校验，
-  /// 遍历所有验证项并标记全部失败项
-  set continueOnError(bool value) {
-    _continueOnError = value;
-  }
+  /// 遇到失败项后是否继续校验后续字段（默认 false，即短路校验）
+  bool continueOnError = false;
 
-  /// 设置自定义错误处理函数（回调参数为：失败字段名、错误文本）
-  set customErrorCallback(void Function(String fieldName, String error)? value) {
-    _customErrorCallback = value;
-  }
+  /// 是否对所有失败项触发 [customErrorCallback]
+  bool notifyAllErrors = false;
 
-  /// 设置 [customErrorCallback] 是否对所有失败项触发（默认 false，只对第一个失败项触发）
-  ///
-  /// 设为 true 后，每个失败项都会调用一次 [customErrorCallback]；
-  /// 配合全量校验可用于自行汇总或逐个提示全部错误
-  set notifyAllErrors(bool value) {
-    _notifyAllErrors = value;
-  }
+  /// 自定义错误处理函数（失败字段名、错误文本）
+  void Function(String fieldName, String error)? customErrorCallback;
 
-  /// 设置每一项校验的结果回调函数（回调参数为：字段名、是否通过、错误文本）
-  ///
-  /// 通过时错误文本为 null
-  set itemValidationCallback(
-    void Function(String fieldName, bool isValid, String? errorText)? value,
-  ) {
-    _itemValidationCallback = value;
-  }
+  /// 每一项校验的结果回调（字段名、是否通过、错误文本）
+  void Function(String fieldName, bool isValid, String? errorText)? itemValidationCallback;
 
-  /// 设置在校验前判断是否要跳过当前校验的回调函数（回调参数为：字段名、当前表单值）
-  ///
-  /// 返回 true 即跳过该字段：不校验、不触发回调、不参与边框错误处理
-  set shouldSkipValidation(
-    bool Function(String fieldName, Map<String, dynamic>? formValues)? value,
-  ) {
-    _shouldSkipValidation = value;
-  }
+  /// 校验前判断是否跳过当前字段
+  bool Function(String fieldName, Map<String, dynamic>? formValues)? shouldSkipValidation;
 
   /// 创建当前配置的副本
   WFormValidatorSettings copy() => copyWith();
@@ -251,12 +218,12 @@ class WFormValidatorSettings {
     bool Function(String fieldName, Map<String, dynamic>? formValues)? shouldSkipValidation,
   }) {
     final config = WFormValidatorSettings();
-    config._showBorderError = showBorderError ?? _showBorderError;
-    config._continueOnError = continueOnError ?? _continueOnError;
-    config._notifyAllErrors = notifyAllErrors ?? _notifyAllErrors;
-    config._customErrorCallback = customErrorCallback ?? _customErrorCallback;
-    config._itemValidationCallback = itemValidationCallback ?? _itemValidationCallback;
-    config._shouldSkipValidation = shouldSkipValidation ?? _shouldSkipValidation;
+    config.showBorderError = showBorderError ?? this.showBorderError;
+    config.continueOnError = continueOnError ?? this.continueOnError;
+    config.notifyAllErrors = notifyAllErrors ?? this.notifyAllErrors;
+    config.customErrorCallback = customErrorCallback ?? this.customErrorCallback;
+    config.itemValidationCallback = itemValidationCallback ?? this.itemValidationCallback;
+    config.shouldSkipValidation = shouldSkipValidation ?? this.shouldSkipValidation;
     return config;
   }
 }
