@@ -85,13 +85,16 @@ class StatesPage extends StatelessWidget {
           child: FilledButton.tonal(
             onPressed: () async {
               final messenger = ScaffoldMessenger.of(context);
-              await WImagePreloader().preloadImage('assets/demo.png');
+              await precacheImage(
+                const AssetImage('assets/demo.png'),
+                context,
+              );
               if (!context.mounted) return;
               messenger.showSnackBar(
-                const SnackBar(content: Text('assets/demo.png 已预加载')),
+                const SnackBar(content: Text('assets/demo.png 已预热 ImageCache')),
               );
             },
-            child: const Text('预加载 assets/demo.png'),
+            child: const Text('预热 assets/demo.png'),
           ),
         ),
         const SizedBox(height: 24),

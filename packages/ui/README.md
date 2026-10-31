@@ -106,7 +106,6 @@ const WImageStyle().square(40).rounded(20).decodeSize(120)
 | `cacheEnabled` / `fitCenter` / `size` | 已删除 |
 | `WImageGlobalConfig` 默认占位符 | `WImageTheme` |
 | `WImageGlobalConfig` 缓存预算 | `WImageCachePolicy` |
-| `WImageCacheManager` | `WImagePreloader` |
 
 ## 导航
 

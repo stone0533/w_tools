@@ -6,8 +6,17 @@
 /// WAssets.imagePath = 'images/icons/';
 /// ```
 class WAssets {
+  static String _imagePath = 'assets/images/';
+
   /// 图片资产前置路径，默认 `assets/images/`
-  static String imagePath = 'assets/images/';
+  ///
+  /// 写入时会自动补齐末尾 `/`；空字符串表示不添加前缀。
+  static String get imagePath => _imagePath;
+
+  static set imagePath(String value) {
+    final trimmed = value.trim();
+    _imagePath = trimmed.isEmpty || trimmed.endsWith('/') ? trimmed : '$trimmed/';
+  }
 
   WAssets._();
 }

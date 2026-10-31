@@ -7,13 +7,13 @@
 
 ### Changed
 - 移除已废弃的 `Widget.withBottomSpace`，改用 `withBottomPadding`。
-- `WImagePreloader` 修复缓存数量上限失效、`ByteData` 未按 offset/length 读取、并发请求重复计 miss。
 - 移除 `WRow.iconWithText`（与图标 + 文字光学对齐规范冲突）。
 - `WSizeBox.size` 的 `child` 改为命名参数，与其他 `WSizeBox` 方法一致。
 - 重命名：`num.toThousand` → `num.toThousandsSeparated`；`Widget.withBottomSafeSpace` → `Widget.withBottomBarSpace`（后者明确是底部导航栏空间，不是系统 safe area）。
 - Navigation 加固：`WNavController.currentIndex` 会停止进行中的动画并在 dispose 后安全返回；`WNavBar` 增加 button/selected 语义；`WTabBar` 改为无状态并支持 `overlayColor`。
 
 ### Removed
+- 移除 `WImagePreloader`；`WImage` 使用 Flutter `ImageCache`，预加载用 `precacheImage`。
 - 移除 `WRichText` / `WRichTextConfig`；多色 / 多字重 / 可点击片段统一使用
   Flutter `Text.rich` + `WTextStyles`。
 - 移除 `WTextConfig` 与 `WText.config`；`WText` 统一使用 `WTextVariant` /
@@ -38,7 +38,7 @@
 - `toCurrency` 负数符号改为 `-$1,234.56`；`toPadLeft` 负数补零保留符号；
   `toPercent` 整数结果不再带 `.0`。
 - `HexColor.fromHex` 忽略前后空格；`trimAll` 正则简化。
-- 删除 `WImageExtension`；图片预加载用 `WImagePreloader.preloadImages` 或 `precacheImage`。
+- 删除 `WImageExtension`；图片预加载用 `precacheImage`。
 - `withIntrinsicHeight` 合并到 `WWidgetExtension`，删除 Row/Column 专用扩展。
 - `withBottomSpace` 标记废弃，改用 `withBottomPadding`。
 - 删除 `WStrutStyleExtension` 与 `WUiTextStyleExtension.fromConfig`；使用
@@ -58,7 +58,7 @@
 - `WImageConfigBuild` 扩展删除；用 `WImage.source` / `WImage.network/asset/file/base64`。
 - `toImage(config:)` 改为 `toImage(style:)`；`placeholder` / `errorWidget` 改为构造参数。
 - `WImage.onLoadProgress`、`progressIndicatorBuilder`、`cacheEnabled`、`fitCenter`、`size` 均已删除。
-- `WImageCacheManager` 改名 `WImagePreloader`；`WImageGlobalConfig` 拆为 `WImageDefaultsScope` + `WImageCachePolicy`。
+- `WImageCacheManager` 改名 `WImagePreloader`（3.0 已移除）；`WImageGlobalConfig` 拆为 `WImageDefaultsScope` + `WImageCachePolicy`。
 - `WImageTheme` / `WImageThemeData` 改为 `WImageDefaultsScope` / `WImageDefaults`；
   默认占位/错误/进度统一为 builder。
 - `WImageStyle` 拆为视觉 `WImageStyle` + 加载 `WImageConfig`；`WImage` / 所有命名构造新增

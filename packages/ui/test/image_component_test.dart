@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/image/image.dart';
-import 'package:w_tools_ui/src/utils/image_preloader.dart';
 
 void main() {
   setUpAll(() {
@@ -58,23 +57,6 @@ void main() {
         () => const WImageStyle(aspectRatio: 2, width: 10, height: 10).validate(),
         throwsAssertionError,
       );
-    });
-  });
-
-  group('WImagePreloader', () {
-    test('should initialize correctly', () {
-      final cacheManager = WImagePreloader();
-      expect(cacheManager, isNotNull);
-    });
-
-    test('should handle cache operations', () async {
-      final cacheManager = WImagePreloader();
-
-      // 测试清理缓存
-      cacheManager.clearCache();
-      // 由于 _cache 是私有属性，我们无法直接验证
-      // 但我们可以确保方法调用不会抛出异常
-      expect(() => cacheManager.clearCache(), returnsNormally);
     });
   });
 

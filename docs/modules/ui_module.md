@@ -78,7 +78,6 @@ ui/
     └── utils/                      # 工具类
         ├── assets.dart                        # WAssets
         ├── column.dart                        # WColumn
-        ├── image_preloader.dart              # WImagePreloader
         ├── padding.dart                       # WPadding
         ├── row.dart                           # WRow
         ├── screen.dart                        # WScreen
@@ -879,14 +878,11 @@ WImageCachePolicy.reset();
 `WImage.thumbnail(width)` 默认按 `max(width, height) × 3` 估算 `WImageConfig.memCache`；
 需要精确控制时显式传 `cacheSize`（通常按 `devicePixelRatio` 计算）。
 预设构造和显式 `style` 同时传时，`style` 会完整覆盖预设参数（`size` / `width` / `aspectRatio` 等）。
-`WImageCachePolicy` 只影响 `ImageCache`，与 `WImagePreloader` 的字节缓存互不影响。
 
 ### 缓存
 
 - 资产 / 文件 / Base64 统一走 `Image` + Flutter `ImageCache`；`memCacheWidth` / `memCacheHeight` 通过 `ResizeImage` 生效。
 - 网络图走 `cached_network_image`（内存 + 磁盘），可用 `httpHeaders` / `cacheKey` 定制。
-- `WImagePreloader` 是**独立**的资源字节预加载工具，`WImage` 不使用；
-  `WImageCachePolicy` 只改 Flutter `ImageCache`，不会修改它的上限。
 
 ### 2.0 迁移
 
@@ -1681,9 +1677,16 @@ WSizeBox.height(WScreen.h(20))
 WSizeBox.square(50)
 ```
 
-### WImagePreloader
+### 预加载
 
-1.0 的资产原始字节缓存（LRU + 内存上限 + 命中率统计）。1.1.0 起 `WImage` 不再使用它：资产图片直接走 `Image.asset` + Flutter `ImageCache`。该类保留用于 `preloadImage` 预加载与缓存统计。
+`WImage` 使用 Flutter `ImageCache`；预加载用 `precacheImage`：
+
+```dart
+await precacheImage(
+  AssetImage('${WAssets.imagePath}demo.png'),
+  context,
+);
+```
 
 ### WAssets
 
@@ -1694,6 +1697,8 @@ WSizeBox.square(50)
 WAssets.imagePath = 'assets/icons/';
 'logo.png'.assetImagePath; // → 'assets/icons/logo.png'
 ```
+
+写入时会自动补齐末尾 `/`；空字符串表示不添加前缀。
 
 ---
 

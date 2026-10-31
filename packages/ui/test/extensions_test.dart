@@ -109,7 +109,8 @@ void main() {
 
     test('String.assetImagePath 读 WAssets.imagePath（资源前缀唯一开关）', () {
       final origin = WAssets.imagePath;
-      WAssets.imagePath = 'assets/test/';
+      WAssets.imagePath = 'assets/test';
+      expect(WAssets.imagePath, 'assets/test/');
       expect('logo.png'.assetImagePath, 'assets/test/logo.png');
       WAssets.imagePath = origin;
       expect('logo.png'.assetImagePath, 'assets/images/logo.png');

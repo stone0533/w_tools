@@ -15,7 +15,7 @@
 - 进度、自动重试、手动重试
 - `WImageDefaultsScope` 默认占位符/错误占位
 - `WImageCachePolicy` 缓存预算
-- `WImagePreloader` 预加载
+- `precacheImage` 预热 `ImageCache`
 
 ## 运行
 
@@ -38,4 +38,4 @@ flutter run
 | 进度 + 重试 | `WImage.network(..., config: WImageConfig(retryCount:, progressBuilder:, errorWidgetBuilder:))` |
 | 默认加载 UI | `main()` 里的 `WImageDefaultsScope` |
 | 缓存预算 | `main()` 里的 `WImageCachePolicy.configure` |
-| 预加载 | `states_page.dart` 里的 `WImagePreloader` 示例（可移到 Playground） |
+| 预加载 | `states_page.dart` 里的 `precacheImage` 示例（可移到 Playground） |
