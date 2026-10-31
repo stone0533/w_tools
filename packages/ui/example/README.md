@@ -20,6 +20,7 @@
 - `precacheImage` 预热 `ImageCache`
 - WText / WBadge / WClipRRect / Gradient / WStep / WListView
 - WRowButtons / WTabBar / WNavBar / Notification / KeepAlive
+- WScaffold / WAppBar / WSizeBox / WPadding / extensions
 
 ## 运行
 

@@ -45,6 +45,48 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
           ],
         ),
         const SizedBox(height: 24),
+        const _SectionTitle('WScaffold / WAppBar'),
+        SizedBox(
+          height: 220,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: const WScaffold(
+              title: 'WScaffold',
+              body: Center(
+                child: WText(
+                  text: 'WScaffold + WAppBar',
+                  variant: WTextVariant.body,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WSizeBox / WPadding / 扩展'),
+        Row(
+          children: [
+            WSizeBox.square(32),
+            WPadding.all(
+              8,
+              child: Container(
+                width: 32,
+                height: 32,
+                color: Colors.indigo,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('1234 → '),
+            Text(1234.toThousandsSeparated),
+            const SizedBox(width: 8),
+            const Text(' #FF5733 → '),
+            Container(
+              width: 16,
+              height: 16,
+              color: '#FF5733'.toColor(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
         const _SectionTitle('WBadge 角标'),
         Row(
           children: [
