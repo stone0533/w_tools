@@ -210,23 +210,18 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 
 ---
 
-## 3.5 Config 不可变与 Builder
+## 3.5 Config 使用方式
 
-全部字段 Config 已定向回滚为可变配置，并重新继承 `WFormFieldChrome`；`WFormBorderConfig` 保持不可变。
-
-需要链式构建时使用 Builder：
+字段 Config 可变，直接使用 cascade / 命名构造 / copyWith：
 
 ```dart
-final config = (WFormTextFieldConfig.builder()
-      ..height = 52
-      ..style = const TextStyle(fontSize: 16))
-    .buildConfig();
+final config = WFormTextFieldConfig()
+  ..height = 52
+  ..style = const TextStyle(fontSize: 16);
 ```
 
-注意：`build()` 仍然是「生成字段 Widget」的方法；Builder 的终态方法叫
-`buildConfig()`，避免与字段构建冲突。
-
-共享样式优先放 `WFormTheme` / `WFormBorderConfig.standard()`。
+字段 Config 不再提供 Builder。`WFormBorderConfig` 仍为不可变配置，保留
+`WFormBorderConfigBuilder` 用于清空字段。
 
 ## 4. 边框系统
 

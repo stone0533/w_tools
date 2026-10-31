@@ -209,8 +209,6 @@ class WFormDatePickerConfig extends WFormFieldChrome {
     this.containerPadding = containerPadding;
   }
 
-  static WFormDatePickerConfigBuilder builder() => WFormDatePickerConfigBuilder();
-
   Widget build({
     required String name,
     required DateTime firstDate,
@@ -304,7 +302,3 @@ class WFormDatePickerConfig extends WFormFieldChrome {
 }
 
 /// [WFormDatePickerConfig] 的 Builder；返回可变配置副本。
-class WFormDatePickerConfigBuilder extends WFormDatePickerConfig {
-  WFormDatePickerConfigBuilder();
-  WFormDatePickerConfig buildConfig() => copy();
-}

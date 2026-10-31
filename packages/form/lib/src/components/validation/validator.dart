@@ -183,9 +183,6 @@ class WFormValidatorItem {
 ///
 /// 各选项通过 setter 配置，可用 [copy] / [copyWith] 生成副本
 class WFormValidatorConfig {
-  /// 创建该配置的 Builder（Builder 仍继承当前可变 Config 实现）
-  static WFormValidatorConfigBuilder builder() => WFormValidatorConfigBuilder();
-
   bool _showBorderError = false;
   bool _continueOnError = false;
   bool _notifyAllErrors = false;
@@ -267,6 +264,3 @@ class WFormValidatorConfig {
 /// WFormValidatorConfig 的 Builder。
 ///
 /// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
-class WFormValidatorConfigBuilder extends WFormValidatorConfig {
-  WFormValidatorConfig buildConfig() => copy();
-}

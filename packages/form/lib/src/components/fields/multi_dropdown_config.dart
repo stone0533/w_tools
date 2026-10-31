@@ -1,8 +1,6 @@
 part of 'multi_dropdown.dart';
 
 class WFormMultiDropdownConfig extends WFormFieldChrome {
-  static WFormMultiDropdownConfigBuilder builder() => WFormMultiDropdownConfigBuilder();
-
   InputDecoration? decoration;
   double? iconSize;
   Widget? icon;
@@ -81,9 +79,7 @@ class WFormMultiDropdownConfig extends WFormFieldChrome {
     bool enableFocusBorder = true,
   }) {
     final baseEnabled = enabled ?? this.enabled;
-    final config = bordered
-        ? (WFormMultiDropdownConfigBuilder.from(this)..containerDecoration = null).buildConfig()
-        : this;
+    final config = bordered ? (copy()..containerDecoration = null) : this;
 
     final multiDropdown = WFormMultiDropdown(
       config: config,
@@ -177,41 +173,3 @@ class WFormMultiDropdownConfig extends WFormFieldChrome {
   }
 }
 
-/// [WFormMultiDropdownConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
-class WFormMultiDropdownConfigBuilder extends WFormMultiDropdownConfig {
-  WFormMultiDropdownConfigBuilder();
-
-  WFormMultiDropdownConfigBuilder.from(WFormMultiDropdownConfig config)
-    : super(
-        enabled: config.enabled,
-        height: config.height,
-        width: config.width,
-        yOffset: config.yOffset,
-        leading: config.leading,
-        actions: config.actions,
-        containerDecoration: config.containerDecoration,
-        containerMargin: config.containerMargin,
-        containerPadding: config.containerPadding,
-        decoration: config.decoration,
-        iconSize: config.iconSize,
-        icon: config.icon,
-        iconDisabledColor: config.iconDisabledColor,
-        iconEnabledColor: config.iconEnabledColor,
-        checkboxUnselectedIcon: config.checkboxUnselectedIcon,
-        checkboxSelectedIcon: config.checkboxSelectedIcon,
-        checkboxDisabledIcon: config.checkboxDisabledIcon,
-        style: config.style,
-        popUpLayerPadding: config.popUpLayerPadding,
-        popUpLayerElevation: config.popUpLayerElevation,
-        popUpLayerShadowColor: config.popUpLayerShadowColor,
-        hintText: config.hintText,
-        disabledKeys: config.disabledKeys,
-        itemPadding: config.itemPadding,
-        itemStyle: config.itemStyle,
-        itemCheckedStyle: config.itemCheckedStyle,
-        itemDisabledStyle: config.itemDisabledStyle,
-        itemTitlePadding: config.itemTitlePadding,
-      );
-
-  WFormMultiDropdownConfig buildConfig() => copy();
-}

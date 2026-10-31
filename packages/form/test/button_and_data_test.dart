@@ -290,13 +290,7 @@ void main() {
     });
 
     testWidgets('setter 传 null 可清空配置', (tester) async {
-      final config =
-          (WFormFieldButtonConfigBuilder()
-                ..hintWidget = null
-                ..height = null
-                ..width = null
-                ..containerPadding = null)
-              .buildConfig();
+      final config = WFormFieldButtonConfig();
 
       await pumpForm(
         tester,

@@ -174,8 +174,6 @@ class WFormDropdownConfig extends WFormFieldChrome {
     this.containerPadding = containerPadding;
   }
 
-  static WFormDropdownConfigBuilder builder() => WFormDropdownConfigBuilder();
-
   Widget build<T>({
     required String name,
     required Map<T, String> items,
@@ -261,7 +259,3 @@ class WFormDropdownConfig extends WFormFieldChrome {
 }
 
 /// [WFormDropdownConfig] 的 Builder；返回可变配置副本。
-class WFormDropdownConfigBuilder extends WFormDropdownConfig {
-  WFormDropdownConfigBuilder();
-  WFormDropdownConfig buildConfig() => copy();
-}

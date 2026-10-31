@@ -6,11 +6,11 @@ import 'package:w_tools_form/w_tools_form.dart';
 void main() {
   group('WFormTextFieldConfig copyWith / copy', () {
     test('copyWith 不覆盖时保留原值', () {
-      final config = WFormTextFieldConfig.builder()
+      final config = WFormTextFieldConfig()
         ..height = 50
         ..obscureText = true;
 
-      final copied = config.buildConfig().copyWith();
+      final copied = config.copyWith();
       // 私有字段但通过 build 间接验证不行
       // 只能通过 setter 再次设置验证... 实际上这里很难，
       // 因为私有字段没 getter
@@ -26,7 +26,7 @@ void main() {
 
   group('WFormTextFieldConfig setter', () {
     test('所有 setter 都能正常赋值', () {
-      final config = WFormTextFieldConfig.builder()
+      final config = WFormTextFieldConfig()
         ..keyboardType = TextInputType.emailAddress
         ..inputFormatters = [FilteringTextInputFormatter.digitsOnly]
         ..readOnlyStyle = const TextStyle(color: Colors.grey)
@@ -48,7 +48,7 @@ void main() {
         ..maxLines = 5
         ..textInputAction = TextInputAction.done;
 
-      expect(config.buildConfig(), isA<WFormTextFieldConfig>());
+      expect(config, isA<WFormTextFieldConfig>());
     });
   });
 

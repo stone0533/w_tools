@@ -169,8 +169,6 @@ class WFormCheckboxConfig extends WFormFieldChrome {
     this.containerPadding = containerPadding;
   }
 
-  static WFormCheckboxConfigBuilder builder() => WFormCheckboxConfigBuilder();
-
   Widget build({
     required String name,
     required Widget title,
@@ -246,7 +244,3 @@ class WFormCheckboxConfig extends WFormFieldChrome {
 }
 
 /// [WFormCheckboxConfig] 的 Builder；返回可变配置副本。
-class WFormCheckboxConfigBuilder extends WFormCheckboxConfig {
-  WFormCheckboxConfigBuilder();
-  WFormCheckboxConfig buildConfig() => copy();
-}

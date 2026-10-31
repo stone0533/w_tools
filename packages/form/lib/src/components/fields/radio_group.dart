@@ -223,8 +223,6 @@ class WFormRadioGroupConfig extends WFormFieldChrome {
     this.containerPadding = containerPadding;
   }
 
-  static WFormRadioGroupConfigBuilder builder() => WFormRadioGroupConfigBuilder();
-
   Widget build<T>({
     required String name,
     required Map<T, String> items,
@@ -306,7 +304,3 @@ class WFormRadioGroupConfig extends WFormFieldChrome {
 }
 
 /// [WFormRadioGroupConfig] 的 Builder；返回可变配置副本。
-class WFormRadioGroupConfigBuilder extends WFormRadioGroupConfig {
-  WFormRadioGroupConfigBuilder();
-  WFormRadioGroupConfig buildConfig() => copy();
-}

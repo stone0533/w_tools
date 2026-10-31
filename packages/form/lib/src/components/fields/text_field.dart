@@ -226,8 +226,6 @@ class _WFormTextFieldState extends State<WFormTextField> {
 ///
 /// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
 class WFormTextFieldConfig extends WFormFieldChrome {
-  static WFormTextFieldConfigBuilder builder() => WFormTextFieldConfigBuilder();
-
   TextInputType? keyboardType;
   List<TextInputFormatter>? inputFormatters;
   TextStyle? readOnlyStyle;
@@ -293,9 +291,7 @@ class WFormTextFieldConfig extends WFormFieldChrome {
     Key? borderKey,
     bool enableFocusBorder = true,
   }) {
-    final config = bordered
-        ? (WFormTextFieldConfigBuilder.from(this)..containerDecoration = null).buildConfig()
-        : this;
+    final config = bordered ? (copy()..containerDecoration = null) : this;
     final effectiveReadOnly = readOnly || !enabled;
     final field = WFormTextField(
       config: config,
@@ -375,39 +371,6 @@ class WFormTextFieldConfig extends WFormFieldChrome {
       textInputAction: textInputAction ?? this.textInputAction,
     );
   }
-}
-
-/// [WFormTextFieldConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
-class WFormTextFieldConfigBuilder extends WFormTextFieldConfig {
-  WFormTextFieldConfigBuilder();
-
-  WFormTextFieldConfigBuilder.from(WFormTextFieldConfig config)
-    : super(
-        enabled: config.enabled,
-        keyboardType: config.keyboardType,
-        inputFormatters: config.inputFormatters,
-        readOnlyStyle: config.readOnlyStyle,
-        height: config.height,
-        width: config.width,
-        style: config.style,
-        contentPadding: config.contentPadding,
-        hintStyle: config.hintStyle,
-        yOffset: config.yOffset,
-        leading: config.leading,
-        actions: config.actions,
-        containerDecoration: config.containerDecoration,
-        containerMargin: config.containerMargin,
-        containerPadding: config.containerPadding,
-        textAlign: config.textAlign,
-        autofocus: config.autofocus,
-        obscureText: config.obscureText,
-        prefix: config.prefix,
-        prefixIcon: config.prefixIcon,
-        maxLines: config.maxLines,
-        textInputAction: config.textInputAction,
-      );
-
-  WFormTextFieldConfig buildConfig() => copy();
 }
 
 // ---------------------------------------------------------------------------

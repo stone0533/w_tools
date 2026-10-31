@@ -12,7 +12,7 @@ void main() {
     });
 
     test('全部 setter 可赋值', () {
-      final cfg = WFormDropdownConfig.builder()
+      final cfg = WFormDropdownConfig()
         ..enabled = false
         ..height = 48
         ..width = 160
@@ -28,7 +28,7 @@ void main() {
         ..style = const TextStyle(fontSize: 16)
         ..hintStyle = const TextStyle(color: Colors.grey)
         ..dropdownColor = Colors.amber;
-      expect(cfg.buildConfig(), isA<WFormDropdownConfig>());
+      expect(cfg, isA<WFormDropdownConfig>());
     });
 
     test('copy() 返回新实例', () {
@@ -365,7 +365,7 @@ void main() {
     });
 
     test('全部 setter 可赋值', () {
-      final cfg = WFormMultiDropdownConfig.builder()
+      final cfg = WFormMultiDropdownConfig()
         ..enabled = false
         ..height = 48
         ..width = 200
@@ -394,7 +394,7 @@ void main() {
         ..itemCheckedStyle = const TextStyle(color: Colors.green)
         ..itemDisabledStyle = const TextStyle(color: Colors.red)
         ..itemTitlePadding = const EdgeInsets.only(left: 4);
-      expect(cfg.buildConfig(), isA<WFormMultiDropdownConfig>());
+      expect(cfg, isA<WFormMultiDropdownConfig>());
     });
 
     test('copy() 返回新实例', () {
@@ -461,9 +461,7 @@ void main() {
     }) {
       final effectiveConfig = disabledKeys == null
           ? config
-          : (WFormMultiDropdownConfigBuilder.from(
-              config,
-            )..disabledKeys = disabledKeys).buildConfig();
+          : (config.copy()..disabledKeys = disabledKeys);
       final formData = WFormController();
       return MaterialApp(
         home: Scaffold(

@@ -104,8 +104,6 @@ class WFormFieldButtonConfig extends WFormFieldChrome {
     this.containerPadding = containerPadding;
   }
 
-  static WFormFieldButtonConfigBuilder builder() => WFormFieldButtonConfigBuilder();
-
   Widget build({
     required String name,
     required void Function(String? value, ValueChanged<String> didChange) onTap,
@@ -188,11 +186,6 @@ class WFormFieldButtonConfig extends WFormFieldChrome {
 }
 
 /// [WFormFieldButtonConfig] 的 Builder；返回可变配置副本。
-class WFormFieldButtonConfigBuilder extends WFormFieldButtonConfig {
-  WFormFieldButtonConfigBuilder();
-  WFormFieldButtonConfig buildConfig() => copy();
-}
-
 /// 内部按钮字段，承载表单值、点击与选中态渲染
 class _WFormScopeButton<T> extends FormBuilderField<T> {
   /// 提示 widget

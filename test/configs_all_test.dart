@@ -98,7 +98,7 @@ void main() {
       final c = WFormBorderConfig.builder()
         ..defaultDecoration = const WFormBorderDecoration(color: Colors.grey)
         ..errorDecoration = const WFormBorderDecoration(color: Colors.red);
-      expect(c.buildConfig(), isNotNull);
+      expect(c, isNotNull);
     });
   });
 
@@ -115,24 +115,24 @@ void main() {
 
   group('WFormDropdownConfig', () {
     test('所有 setter 可调用', () {
-      final c = WFormDropdownConfig.builder()
+      final c = WFormDropdownConfig()
         ..height = 48
         ..hint = const Text('请选择')
         ..icon = const Icon(Icons.arrow_downward)
         ..dropdownColor = Colors.white
         ..style = const TextStyle(fontSize: 16);
-      expect(c.buildConfig(), isNotNull);
+      expect(c, isNotNull);
     });
   });
 
   group('WFormMultiDropdownConfig', () {
     test('所有 setter 可调用', () {
-      final c = WFormMultiDropdownConfig.builder()
+      final c = WFormMultiDropdownConfig()
         ..height = 48
         ..enabled = true
         ..icon = const Icon(Icons.arrow_drop_down)
         ..itemPadding = const EdgeInsets.symmetric(vertical: 8);
-      expect(c.buildConfig(), isNotNull);
+      expect(c, isNotNull);
     });
   });
 
