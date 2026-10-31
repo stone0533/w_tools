@@ -10,7 +10,7 @@
 - **字段组件**：`WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`
 - **表单容器**：`WFormScope` / `WFormController` / `WFormFieldButton`
 - **边框体系**：`WFormBorder` / `WFormBorderConfig` / `WFormFieldShell` / `WFormReadOnlyScope`
-- **字段配置**：不可变 Config + `builder()..buildConfig()`（enabled / height / width / leading / actions / container）
+- **字段配置**：可变 Config + `WFormFieldBaseConfig` + cascade（enabled / height / width / leading / actions / container）
 - **校验**：`WFormValidator` / `WFormValidatorItem` / `WFormCustomValidator`
 - **默认值与格式化**：`WFormTheme`（作用域）+ `WFormDefaults`（静态兜底）/ `WFormInputFormatters`
 
@@ -22,6 +22,10 @@ dependencies:
 ```
 
 > 本包最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
+
+## 示例
+
+完整可运行的登录 / 会员资料示例见 [`example/`](example/)。
 
 ## 快速开始
 

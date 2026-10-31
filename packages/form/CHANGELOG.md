@@ -3,9 +3,10 @@
 ## 2.0.0
 
 ### Changed
-- 新增各 Config 的 Builder 基础设施（`builder()..buildConfig()`，阶段 1）。
-- 所有字段 Config 与 `WFormBorderConfig` 已完成不可变化迁移；全部字段 Config 已定向回滚为可变配置并重新继承 `WFormFieldChrome`；`WFormBorderConfig` 保持不可变。
-- 移除 `WFormFieldChrome`；各字段 Config 自行持有不可变公共字段。
+- 新增登录 / 会员资料可运行示例 `example/`。
+- 字段 Config 统一为可变 cascade，继承 `WFormFieldBaseConfig`；`WFormBorderConfig` 保持不可变。
+- 移除字段 Config Builder；边框保留 `WFormBorderConfigBuilder`。
+- `WFormValidatorConfig` 重命名为 `WFormValidatorSettings`，`validators` / `validate` 参数统一为 `settings`。
 - 新增 `WFormController.updateValue`，同时写值并更新输入状态。
 - 新增 `WFormController.validate()`；`isAllEntered` 改为显式字段名集合（空集合返回 false）。
 - 裸字段 `readOnly` 通过 `WFormReadOnlyScope` 生效；无状态下拉也通过 `WFormFieldCleanup` 清理 `formEntered`。

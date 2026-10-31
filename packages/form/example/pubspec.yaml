@@ -1,0 +1,24 @@
+name: w_tools_form_example
+description: "w_tools_form 真实场景示例：登录表单、会员资料编辑、校验、只读、自定义字段按钮。"
+publish_to: none
+version: 1.0.0
+
+# 与 packages/ui/example 一致：示例刻意不声明 resolution: workspace，
+# 要能从发布后的 w_tools_form 独立 flutter pub get。
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  w_tools_form:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
