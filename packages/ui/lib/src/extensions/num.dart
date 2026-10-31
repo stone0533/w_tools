@@ -116,6 +116,7 @@ extension WNumExtension on num {
 
   /// 将数字转换为带前导零的字符串；负数保留符号并计入总长度。
   String toPadLeft(int length) {
+    assert(length >= 0, 'length 不能为负');
     final negative = this < 0;
     final digits = abs().toString();
     final target = length - (negative ? 1 : 0);

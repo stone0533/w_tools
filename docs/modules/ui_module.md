@@ -1560,7 +1560,8 @@ DefaultTabController(
 - `#ARGB`（简写，每字符重复）
 - `#RGB`（简写）
 
-输入前后的空格会被忽略。
+输入前后的空格会被忽略；只允许一个前缀 `#`，其他位置的 `#` 会抛
+`FormatException`。
 
 ```dart
 final c = HexColor.fromHex('#FF5733');    // RRGGBB
@@ -1590,7 +1591,7 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 | `1.toPadLeft(3)` | `001` |
 | `(-1).toPadLeft(3)` | `-01` |
 
-补零时负号计入总长度；`toPercent` 的整数结果不带 `.0`。
+补零时负号计入总长度；`length` 必须为非负数；`toPercent` 的整数结果不带 `.0`。
 
 ### WWidgetExtension
 
@@ -1612,7 +1613,8 @@ Text('Hello')
 `withDecoration` 只包一层 `DecoratedBox`，不提供 padding / margin；
 需要圆角裁剪时用 `Container(clipBehavior: Clip.antiAlias)`。
 
-`withTopSafeSpace` / `withBottomSafeSpace` 读取 `WScreen`，不读取当前 `MediaQuery`。
+`withTopSafeSpace` / `withBottomSafeSpace` 读取 `WScreen`，不读取当前 `MediaQuery`；
+`withBottomSafeSpace` 使用的是 `WScreen.bottomBarHeight`，不是系统 safe area。
 
 ### WBoxDecorationExtension / WGradients / WShadows
 

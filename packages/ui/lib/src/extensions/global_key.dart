@@ -6,16 +6,17 @@ extension WGlobalKeyExtension on GlobalKey {
   ///
   /// 组件不可见时返回 null。
   Offset? offset() {
-    RenderBox? renderBox = currentContext?.findRenderObject() as RenderBox?;
-    return renderBox?.localToGlobal(Offset.zero);
+    final object = currentContext?.findRenderObject();
+    if (object is! RenderBox) return null;
+    return object.localToGlobal(Offset.zero);
   }
 
   /// 获取组件在全局坐标系中的边界矩形
   ///
   /// 与 [offset] 同为全局坐标；组件不可见时返回 null。
   Rect? rect() {
-    final RenderBox? renderBox = currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return null;
-    return renderBox.localToGlobal(Offset.zero) & renderBox.size;
+    final object = currentContext?.findRenderObject();
+    if (object is! RenderBox) return null;
+    return object.localToGlobal(Offset.zero) & object.size;
   }
 }

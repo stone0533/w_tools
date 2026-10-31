@@ -20,7 +20,13 @@ extension HexColor on Color {
   ///
   /// 输入格式无效时抛出 [FormatException]。
   static Color fromHex(String hexString) {
-    String hex = hexString.trim().replaceAll('#', '');
+    var hex = hexString.trim();
+    if (hex.startsWith('#')) {
+      hex = hex.substring(1);
+    }
+    if (hex.contains('#')) {
+      throw FormatException('无效的颜色字符串: $hexString');
+    }
 
     if (hex.isEmpty) {
       throw FormatException('无效的颜色字符串: $hexString');

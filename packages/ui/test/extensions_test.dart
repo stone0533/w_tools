@@ -57,6 +57,8 @@ void main() {
       expect(() => HexColor.fromHex('#FFF'), returnsNormally); // 有效的3位
       expect(() => HexColor.fromHex('#FFFF'), returnsNormally); // 有效的4位
       expect(() => HexColor.fromHex('#FFFFF'), throwsFormatException); // 无效的5位
+      expect(() => HexColor.fromHex('#12#34'), throwsFormatException); // # 只能有一个前缀
+      expect(() => HexColor.fromHex('12#34'), throwsFormatException);
     });
 
     test('Color.toHex', () {
@@ -215,6 +217,28 @@ void main() {
       expect(0.toPadLeft(3), '000');
       expect((-1).toPadLeft(3), '-01');
       expect((-12).toPadLeft(4), '-012');
+      expect(() => 1.toPadLeft(-1), throwsAssertionError);
+    });
+  });
+
+  group('GlobalKey Extensions', () {
+    testWidgets('非 RenderBox 返回 null', (tester) async {
+      final key = GlobalKey();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                key: key,
+                child: const SizedBox(height: 10),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(key.offset(), isNull);
+      expect(key.rect(), isNull);
     });
   });
 

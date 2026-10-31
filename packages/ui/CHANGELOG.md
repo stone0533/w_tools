@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- `GlobalKey` 扩展在非 `RenderBox` 上返回 null；`HexColor.fromHex` 拒绝多个 `#`；`toPadLeft` 校验负数长度。
+
 ### Changed
 - Navigation 加固：`WNavController.currentIndex` 会停止进行中的动画并在 dispose 后安全返回；`WNavBar` 增加 button/selected 语义；`WTabBar` 改为无状态并支持 `overlayColor`。
 
