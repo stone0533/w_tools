@@ -3,7 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_chrome.dart';
+import '../field_base_config.dart';
 import '../field_lifecycle.dart';
 import '../form_scope.dart';
 import '../form_defaults.dart';

@@ -141,7 +141,7 @@ class WFormController {
   }
 
   /// 创建表单校验器（校验项由 [WFormValidator.validate] 按序执行）
-  WFormValidator validators({WFormValidatorConfig? config, List<WFormValidatorItem>? items}) {
+  WFormValidator validators({WFormValidatorSettings? config, List<WFormValidatorItem>? items}) {
     return WFormValidator(
       formData: this,
       validationItems: items ?? [],
@@ -154,7 +154,7 @@ class WFormController {
   /// [items] 为 null 时自动使用当前已挂载字段的自身 validator。
   /// 业务表单优先用本方法或 [validators]，避免直接调用 formKey.validate()
   /// 造成两套错误通道。
-  bool validate({WFormValidatorConfig? config, List<WFormValidatorItem>? items}) {
+  bool validate({WFormValidatorSettings? config, List<WFormValidatorItem>? items}) {
     if (formKey.currentState == null) return false;
     pruneFormEntered();
     final validationItems =

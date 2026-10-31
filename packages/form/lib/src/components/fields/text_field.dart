@@ -5,7 +5,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_chrome.dart';
+import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 
@@ -225,7 +225,7 @@ class _WFormTextFieldState extends State<WFormTextField> {
 /// 文本输入配置类，定义文本输入的样式和行为。
 ///
 /// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
-class WFormTextFieldConfig extends WFormFieldChrome {
+class WFormTextFieldConfig extends WFormFieldBaseConfig {
   TextInputType? keyboardType;
   List<TextInputFormatter>? inputFormatters;
   TextStyle? readOnlyStyle;

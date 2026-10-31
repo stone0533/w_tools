@@ -3,7 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_chrome.dart';
+import '../field_base_config.dart';
 import '../field_lifecycle.dart';
 import '../form_scope.dart';
 import '../form_defaults.dart';
@@ -138,7 +138,7 @@ class WFormDropdown<T> extends StatelessWidget {
 /// 下拉选择配置类，定义下拉选择的样式和行为。
 ///
 /// 可变的字段配置；需要链式构建时为 [builder]。
-class WFormDropdownConfig extends WFormFieldChrome {
+class WFormDropdownConfig extends WFormFieldBaseConfig {
   EdgeInsetsGeometry? contentPadding;
   Widget? hint;
   Widget? icon;

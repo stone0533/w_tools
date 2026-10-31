@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_chrome.dart';
+import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 
@@ -171,7 +171,7 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePicker, Strin
 /// 日期选择器配置类，定义日期选择器的样式和行为。
 ///
 /// 可变的字段配置；需要链式构建时为 [builder]。
-class WFormDatePickerConfig extends WFormFieldChrome {
+class WFormDatePickerConfig extends WFormFieldBaseConfig {
   InputDecoration? decoration;
   Widget? icon;
   double? iconSize;

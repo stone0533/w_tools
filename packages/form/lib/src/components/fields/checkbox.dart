@@ -3,7 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_chrome.dart';
+import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 import '../form_defaults.dart';
@@ -137,7 +137,7 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckbox, bool> {
 /// 复选框配置类，定义复选框的样式和行为。
 ///
 /// 可变的字段配置；需要链式构建时为 [builder]。
-class WFormCheckboxConfig extends WFormFieldChrome {
+class WFormCheckboxConfig extends WFormFieldBaseConfig {
   Widget? unselectedIcon;
   Widget? selectedIcon;
   Widget? disabledIcon;

@@ -50,16 +50,16 @@ void main() {
     });
   });
 
-  group('WFormValidatorConfig', () {
+  group('WFormValidatorSettings', () {
     test('默认值', () {
-      final config = WFormValidatorConfig();
+      final config = WFormValidatorSettings();
       // 私有字段但有公开行为 — 通过 setter 设置后验证
       config.showBorderError = true;
       expect(config, isNotNull); // 只是验证类可实例化
     });
 
     test('setter 可以设置回调', () {
-      final config = WFormValidatorConfig();
+      final config = WFormValidatorSettings();
       bool callbackCalled = false;
       config.customErrorCallback = (field, error) => callbackCalled = true;
       // 无法验证私有字段，但 setter 不应抛异常
@@ -152,7 +152,7 @@ void main() {
                 (v) => (v == null || v.toString().isEmpty) ? 'b 必填' : null,
           ),
         ],
-        config: WFormValidatorConfig()
+        config: WFormValidatorSettings()
           ..continueOnError = true
           ..itemValidationCallback = ((name, ok, err) => visited.add(name)),
       );

@@ -6,7 +6,7 @@ import '../form_controller.dart';
 /// 表单验证器类，用于管理和执行表单验证
 ///
 /// 持有表单数据 [formData]、验证项列表 [validationItems] 与 [config]，
-/// 由 [validate] 按顺序执行校验，行为由 [WFormValidatorConfig] 控制：
+/// 由 [validate] 按顺序执行校验，行为由 [WFormValidatorSettings] 控制：
 /// 短路 / 全量校验、是否显示边框错误、首个失败项的自动聚焦、
 /// 错误提示回调的触发范围；校验结果可通过只读的 [errors] 获取。
 ///
@@ -22,7 +22,7 @@ class WFormValidator {
   List<WFormValidatorItem> validationItems;
 
   /// 验证器配置
-  WFormValidatorConfig? config;
+  WFormValidatorSettings? config;
 
   /// 最近一次校验的失败项集合（字段名 -> 错误文本），只读快照
   ///
@@ -44,15 +44,15 @@ class WFormValidator {
   /// 执行验证，返回是否全部通过
   ///
   /// 默认短路校验：遇到第一个失败项即返回，不再校验后续字段；
-  /// 当 [WFormValidatorConfig.continueOnError] 为 true 时改为全量校验，
+  /// 当 [WFormValidatorSettings.continueOnError] 为 true 时改为全量校验，
   /// 会为所有失败项设置边框错误并触发相应回调。
   /// [WFormValidatorItem.autofocus] 仅作用于第一个失败项：其 autofocus 为 true 则聚焦、
   /// 为 false 则不聚焦（后续失败项一律不聚焦），且与是否显示边框错误无关。
-  /// [WFormValidatorConfig.customErrorCallback] 默认只针对第一个失败项触发
+  /// [WFormValidatorSettings.customErrorCallback] 默认只针对第一个失败项触发
   /// （避免全量校验时重复提示，例如连续弹出多个 toast），
-  /// 可通过 [WFormValidatorConfig.notifyAllErrors] 改为对所有失败项触发。
+  /// 可通过 [WFormValidatorSettings.notifyAllErrors] 改为对所有失败项触发。
   /// 校验开始时会清除本次参与校验字段的边框错误，避免短路提前返回或关闭
-  /// [WFormValidatorConfig.showBorderError] 后残留旧错误。
+  /// [WFormValidatorSettings.showBorderError] 后残留旧错误。
   /// 校验项支持两种模式：`validatorBuilder` 自定义规则，或
   /// [WFormValidatorItem.field] 执行字段自身声明的 validator。
   /// 校验结果会写入 [errors]（字段名 -> 错误文本），可用于汇总展示全部错误。
@@ -60,7 +60,7 @@ class WFormValidator {
     formData.closeKeyboard();
     final formKey = formData.formKey;
     formKey.currentState?.save();
-    final resolvedConfig = config ??= WFormValidatorConfig();
+    final resolvedConfig = config ??= WFormValidatorSettings();
     _errors.clear();
 
     // 先筛掉跳过项，并清除参与本次校验字段上一次残留的边框错误
@@ -182,7 +182,7 @@ class WFormValidatorItem {
 /// 表单验证器配置类，定义验证器的行为
 ///
 /// 各选项通过 setter 配置，可用 [copy] / [copyWith] 生成副本
-class WFormValidatorConfig {
+class WFormValidatorSettings {
   bool _showBorderError = false;
   bool _continueOnError = false;
   bool _notifyAllErrors = false;
@@ -237,12 +237,12 @@ class WFormValidatorConfig {
   }
 
   /// 创建当前配置的副本
-  WFormValidatorConfig copy() => copyWith();
+  WFormValidatorSettings copy() => copyWith();
 
   /// 创建当前配置的副本，并可以选择性地更新某些属性
   ///
   /// 参数为 null 表示沿用原值。
-  WFormValidatorConfig copyWith({
+  WFormValidatorSettings copyWith({
     bool? showBorderError,
     bool? continueOnError,
     bool? notifyAllErrors,
@@ -250,7 +250,7 @@ class WFormValidatorConfig {
     void Function(String fieldName, bool isValid, String? errorText)? itemValidationCallback,
     bool Function(String fieldName, Map<String, dynamic>? formValues)? shouldSkipValidation,
   }) {
-    final config = WFormValidatorConfig();
+    final config = WFormValidatorSettings();
     config._showBorderError = showBorderError ?? _showBorderError;
     config._continueOnError = continueOnError ?? _continueOnError;
     config._notifyAllErrors = notifyAllErrors ?? _notifyAllErrors;
@@ -261,6 +261,6 @@ class WFormValidatorConfig {
   }
 }
 
-/// WFormValidatorConfig 的 Builder。
+/// WFormValidatorSettings 的 Builder。
 ///
 /// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。

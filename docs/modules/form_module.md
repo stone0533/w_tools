@@ -33,7 +33,7 @@ form/
     │   │   ├── field_shell.dart # WFormFieldShell + Row 扩展
     │   │   └── read_only_scope.dart # WFormReadOnlyScope（InheritedWidget）
     │   ├── validation/
-    │   │   ├── validator.dart       # WFormValidator + WFormValidatorItem + WFormValidatorConfig
+    │   │   ├── validator.dart       # WFormValidator + WFormValidatorItem + WFormValidatorSettings
     │   │   └── custom_validator.dart
     │   └── fields/
     │       ├── text_field.dart       # WFormTextField + WFormTextFieldConfig + Scope 管道
@@ -494,7 +494,7 @@ WFormPopup.hide<T>(context, [result, rootNavigator]);
 | `WFormValidatorItem({fieldName, validatorBuilder, autofocus})` | 自定义校验函数（每次校验时调用一次生成器，便于按运行期状态生成动态规则） |
 | `WFormValidatorItem.field(fieldName, {autofocus})` | 执行字段自身声明的 `validator`，错误统一写入 `WFormValidator.errors` 与边框错误 |
 
-### WFormValidatorConfig（默认值）
+### WFormValidatorSettings（默认值）
 
 | 字段 | 默认值 | 说明 |
 |------|--------|------|
@@ -513,7 +513,7 @@ WFormPopup.hide<T>(context, [result, rootNavigator]);
 
 ```dart
 final validator = formData.validators(
-  config: WFormValidatorConfig()
+  config: WFormValidatorSettings()
     ..showBorderError = true
     ..continueOnError = true
     ..customErrorCallback = (name, err) => showToast(err),
@@ -577,7 +577,7 @@ class _LoginPageState extends State<LoginPage> {
         );
 
   late final _validator = _formData.validators(
-    config: WFormValidatorConfig()
+    config: WFormValidatorSettings()
       ..showBorderError = true
       ..customErrorCallback = (name, err) {
         debugPrint('[$name] $err');

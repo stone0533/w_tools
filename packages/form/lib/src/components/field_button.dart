@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/read_only_scope.dart';
-import 'field_chrome.dart';
+import 'field_base_config.dart';
 import 'field_frame.dart';
 import 'form_scope.dart';
 import 'form_controller.dart';
@@ -78,7 +78,7 @@ class WFormFieldButton extends StatelessWidget {
 /// 表单按钮配置类，定义按钮的样式和行为。
 ///
 /// 可变的字段配置；需要链式构建时为 [builder]。
-class WFormFieldButtonConfig extends WFormFieldChrome {
+class WFormFieldButtonConfig extends WFormFieldBaseConfig {
   Widget? hintWidget;
 
   WFormFieldButtonConfig({

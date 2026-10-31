@@ -3,7 +3,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_chrome.dart';
+import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 import '../form_defaults.dart';
@@ -189,7 +189,7 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroup<T>,
 /// 单选按钮组配置类，定义单选按钮组的样式和行为。
 ///
 /// 可变的字段配置；需要链式构建时为 [builder]。
-class WFormRadioGroupConfig extends WFormFieldChrome {
+class WFormRadioGroupConfig extends WFormFieldBaseConfig {
   Widget? unselectedIcon;
   Widget? selectedIcon;
   double? iconSpacing;

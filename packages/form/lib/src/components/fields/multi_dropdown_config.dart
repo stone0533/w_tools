@@ -1,6 +1,6 @@
 part of 'multi_dropdown.dart';
 
-class WFormMultiDropdownConfig extends WFormFieldChrome {
+class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
   InputDecoration? decoration;
   double? iconSize;
   Widget? icon;
@@ -172,4 +172,3 @@ class WFormMultiDropdownConfig extends WFormFieldChrome {
     );
   }
 }
-
