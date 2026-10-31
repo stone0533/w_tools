@@ -15,10 +15,10 @@ extension WWidgetExtension on Widget {
 
   /// 添加底部安全空间（适配底部导航栏）。
   ///
-  /// 读取 [WScreen.bottomBarHeight]，不读取当前 [MediaQuery]。
+  /// 读取 [WScreen.bottomSafeAreaHeight]，不读取当前 [MediaQuery]。
   Widget withBottomBarSpace() {
     return Padding(
-      padding: EdgeInsets.only(bottom: WScreen.bottomBarHeight),
+      padding: EdgeInsets.only(bottom: WScreen.bottomSafeAreaHeight),
       child: this,
     );
   }

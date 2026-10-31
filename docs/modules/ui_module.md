@@ -101,7 +101,7 @@ ui/
 | `screenWidth` | double | 设备屏幕宽度（逻辑像素） |
 | `screenHeight` | double | 设备屏幕高度（逻辑像素） |
 | `statusBarHeight` | double | 状态栏高度（刘海屏会更高） |
-| `bottomBarHeight` | double | 底部安全区高度 |
+| `bottomSafeAreaHeight` | double | 底部安全区高度 |
 
 ### 适配委托
 
@@ -155,7 +155,7 @@ void main() {
 
 // 3. 获取设备信息
 final statusBar = WScreen.statusBarHeight;
-final bottomSafe = WScreen.bottomBarHeight;
+final bottomSafe = WScreen.bottomSafeAreaHeight;
 ```
 
 ---
@@ -1611,7 +1611,7 @@ Text('Hello')
 需要圆角裁剪时用 `Container(clipBehavior: Clip.antiAlias)`。
 
 `withTopSafeSpace` / `withBottomBarSpace` 读取 `WScreen`，不读取当前 `MediaQuery`；
-`withBottomBarSpace` 使用的是 `WScreen.bottomBarHeight`，不是系统 safe area。
+`withBottomBarSpace` 使用的是 `WScreen.bottomSafeAreaHeight`，不是系统 safe area。
 
 ### WBoxDecorationExtension / WGradients / WShadows
 
@@ -1847,7 +1847,7 @@ class MainNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(bottom: WScreen.bottomBarHeight),
+      padding: EdgeInsets.only(bottom: WScreen.bottomSafeAreaHeight),
       color: Colors.white,
       child: WNavBar(
         config: WNavBarConfig(),

@@ -35,7 +35,7 @@ class WScreen {
   static double get statusBarHeight => _mq.padding.top;
 
   /// 底部安全区高度
-  static double get bottomBarHeight => _mq.padding.bottom;
+  static double get bottomSafeAreaHeight => _mq.padding.bottom;
 
   // ──── 适配委托（用户需要屏幕适配时注入） ────
   // 同时使用 flutter_screenutil 时，把 ScreenUtil 的 setWidth/setHeight/setSp 注入进来

@@ -17,7 +17,8 @@ void main() {
   });
 
   group('WScreen 设备信息', () {
-    testWidgets('screenWidth / screenHeight / statusBarHeight / bottomBarHeight', (tester) async {
+    testWidgets('screenWidth / screenHeight / statusBarHeight / bottomSafeAreaHeight',
+        (tester) async {
       // 设置测试设备属性（iPhone 14 Pro 逻辑尺寸）
       const logicalSize = Size(393, 852);
       tester.view.physicalSize = logicalSize;
@@ -29,7 +30,7 @@ void main() {
       expect(WScreen.screenWidth, 393);
       expect(WScreen.screenHeight, 852);
       expect(WScreen.statusBarHeight, 59);
-      expect(WScreen.bottomBarHeight, 34);
+      expect(WScreen.bottomSafeAreaHeight, 34);
 
       // restore — 避免影响后续测试
       addTearDown(() {
@@ -39,7 +40,7 @@ void main() {
       });
     });
 
-    testWidgets('零 padding 时 statusBarHeight 和 bottomBarHeight 为 0', (tester) async {
+    testWidgets('零 padding 时 statusBarHeight 和 bottomSafeAreaHeight 为 0', (tester) async {
       const logicalSize = Size(375, 667);
       tester.view.physicalSize = logicalSize;
       tester.view.devicePixelRatio = 1.0;
@@ -47,7 +48,7 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
 
       expect(WScreen.statusBarHeight, 0);
-      expect(WScreen.bottomBarHeight, 0);
+      expect(WScreen.bottomSafeAreaHeight, 0);
 
       addTearDown(() {
         tester.view.resetPhysicalSize();
