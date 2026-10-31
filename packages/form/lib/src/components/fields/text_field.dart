@@ -5,6 +5,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
+import '../field_chrome.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 
@@ -224,24 +225,15 @@ class _WFormTextFieldState extends State<WFormTextField> {
 /// 文本输入配置类，定义文本输入的样式和行为。
 ///
 /// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
-class WFormTextFieldConfig {
+class WFormTextFieldConfig extends WFormFieldChrome {
   static WFormTextFieldConfigBuilder builder() => WFormTextFieldConfigBuilder();
 
-  bool enabled;
   TextInputType? keyboardType;
   List<TextInputFormatter>? inputFormatters;
   TextStyle? readOnlyStyle;
-  double? height;
-  double? width;
   TextStyle? style;
   EdgeInsetsGeometry? contentPadding;
   TextStyle? hintStyle;
-  double? yOffset;
-  Widget? leading;
-  List<Widget>? actions;
-  Decoration? containerDecoration;
-  EdgeInsetsGeometry? containerMargin;
-  EdgeInsetsGeometry? containerPadding;
   TextAlign? textAlign;
   bool? autofocus;
   bool obscureText;
@@ -251,21 +243,21 @@ class WFormTextFieldConfig {
   TextInputAction? textInputAction;
 
   WFormTextFieldConfig({
-    this.enabled = true,
+    bool enabled = true,
     this.keyboardType,
     this.inputFormatters,
     this.readOnlyStyle,
-    this.height,
-    this.width,
+    double? height,
+    double? width,
     this.style,
     this.contentPadding,
     this.hintStyle,
-    this.yOffset,
-    this.leading,
-    this.actions,
-    this.containerDecoration,
-    this.containerMargin,
-    this.containerPadding,
+    double? yOffset,
+    Widget? leading,
+    List<Widget>? actions,
+    Decoration? containerDecoration,
+    EdgeInsetsGeometry? containerMargin,
+    EdgeInsetsGeometry? containerPadding,
     this.textAlign,
     this.autofocus,
     this.obscureText = false,
@@ -273,7 +265,17 @@ class WFormTextFieldConfig {
     this.prefixIcon,
     this.maxLines,
     this.textInputAction,
-  });
+  }) {
+    this.enabled = enabled;
+    this.height = height;
+    this.width = width;
+    this.yOffset = yOffset;
+    this.leading = leading;
+    this.actions = actions;
+    this.containerDecoration = containerDecoration;
+    this.containerMargin = containerMargin;
+    this.containerPadding = containerPadding;
+  }
 
   Widget build({
     required String name,
@@ -378,20 +380,20 @@ class WFormTextFieldConfig {
 /// [WFormTextFieldConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
 class WFormTextFieldConfigBuilder {
   bool enabled = true;
-  TextInputType? keyboardType;
-  List<TextInputFormatter>? inputFormatters;
-  TextStyle? readOnlyStyle;
   double? height;
   double? width;
-  TextStyle? style;
-  EdgeInsetsGeometry? contentPadding;
-  TextStyle? hintStyle;
   double? yOffset;
   Widget? leading;
   List<Widget>? actions;
   Decoration? containerDecoration;
   EdgeInsetsGeometry? containerMargin;
   EdgeInsetsGeometry? containerPadding;
+  TextInputType? keyboardType;
+  List<TextInputFormatter>? inputFormatters;
+  TextStyle? readOnlyStyle;
+  TextStyle? style;
+  EdgeInsetsGeometry? contentPadding;
+  TextStyle? hintStyle;
   TextAlign? textAlign;
   bool? autofocus;
   bool obscureText = false;

@@ -1,17 +1,8 @@
 part of 'multi_dropdown.dart';
 
-class WFormMultiDropdownConfig {
+class WFormMultiDropdownConfig extends WFormFieldChrome {
   static WFormMultiDropdownConfigBuilder builder() => WFormMultiDropdownConfigBuilder();
 
-  bool enabled;
-  double? height;
-  double? width;
-  double? yOffset;
-  Widget? leading;
-  List<Widget>? actions;
-  Decoration? containerDecoration;
-  EdgeInsetsGeometry? containerMargin;
-  EdgeInsetsGeometry? containerPadding;
   InputDecoration? decoration;
   double? iconSize;
   Widget? icon;
@@ -33,15 +24,15 @@ class WFormMultiDropdownConfig {
   EdgeInsets? itemTitlePadding;
 
   WFormMultiDropdownConfig({
-    this.enabled = true,
-    this.height,
-    this.width,
-    this.yOffset,
-    this.leading,
-    this.actions,
-    this.containerDecoration,
-    this.containerMargin,
-    this.containerPadding,
+    bool enabled = true,
+    double? height,
+    double? width,
+    double? yOffset,
+    Widget? leading,
+    List<Widget>? actions,
+    Decoration? containerDecoration,
+    EdgeInsetsGeometry? containerMargin,
+    EdgeInsetsGeometry? containerPadding,
     this.decoration,
     this.iconSize = 24,
     this.icon,
@@ -61,7 +52,17 @@ class WFormMultiDropdownConfig {
     this.itemCheckedStyle,
     this.itemDisabledStyle,
     this.itemTitlePadding,
-  });
+  }) {
+    this.enabled = enabled;
+    this.height = height;
+    this.width = width;
+    this.yOffset = yOffset;
+    this.leading = leading;
+    this.actions = actions;
+    this.containerDecoration = containerDecoration;
+    this.containerMargin = containerMargin;
+    this.containerPadding = containerPadding;
+  }
 
   Widget build({
     required String name,

@@ -212,7 +212,7 @@ WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Color
 
 ## 3.5 Config 不可变与 Builder
 
-全部字段 Config 已定向回滚为可变配置；`WFormBorderConfig` 保持不可变。
+全部字段 Config 已定向回滚为可变配置，并重新继承 `WFormFieldChrome`；`WFormBorderConfig` 保持不可变。
 
 需要链式构建时使用 Builder：
 
