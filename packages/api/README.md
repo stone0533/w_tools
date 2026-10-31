@@ -19,7 +19,7 @@
 
 ```yaml
 dependencies:
-  w_tools_api: ^1.0.0
+  w_tools_api: ^1.0.1
 ```
 
 ```bash

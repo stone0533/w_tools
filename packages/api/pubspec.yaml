@@ -1,6 +1,6 @@
 name: w_tools_api
 description: "w_tools 的网络层：基于 Dio 提供多客户端注册、日志与 Token 拦截器、401 刷新与错误提示，以及 Repository 基类，可按域名管理多个客户端。"
-version: 1.0.0
+version: 1.0.1
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/api
