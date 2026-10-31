@@ -84,7 +84,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ## 文字（w_tools_ui）
 
-- 新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`，不要再用 `WTextConfig` 逐字段拼样式。
+- 新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；`WTextConfig` 已移除。
 - 字体/字号/字重/行高统一放 `WTextStyles` / `TextTheme`。
 - 局部用 `style` / `color` / `maxLines` / `overflow` / `textScaler` 覆盖。
 - 多字体优先 `fontFamilyFallback`；同一段主动混排用 `Text.rich` + `WTextStyles`。

@@ -4,7 +4,9 @@
 
 ### Removed
 - 移除 `WRichText` / `WRichTextConfig`；多色 / 多字重 / 可点击片段统一使用
-  Flutter `Text.rich` + `WTextStyles`。这是破坏性变更，发布时需按 major 版本处理。
+  Flutter `Text.rich` + `WTextStyles`。
+- 移除 `WTextConfig` 与 `WText.config`；`WText` 统一使用 `WTextVariant` /
+  `WTextStyles`，局部覆盖用 `style` / `color`。这是破坏性变更，发布时需按 major 版本处理。
 
 ## 2.1.0
 

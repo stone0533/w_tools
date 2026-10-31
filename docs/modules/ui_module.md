@@ -53,7 +53,7 @@ ui/
     │   │   ├── row_buttons.dart               # WRowButtons
     │   │   ├── gradient_circular_progress_indicator.dart
     │   │   ├── text/                  # 文字组件
-    │   │   │   ├── w_text.dart                 # WText, WTextConfig
+    │   │   │   ├── w_text.dart                 # WText
     │   │   │   ├── w_text_styles.dart          # WTextStyles / WTextVariant
     │   ├── layout/                 # 布局组件
     │   │   ├── appbar.dart                    # WAppBar / WAppBarStyle
@@ -595,8 +595,7 @@ Semantics(
 
 ## 3. WText - 文本组件
 
-> 新代码推荐 `WText(variant: ...)` + `WTextStyles`。  
-> `WTextConfig` 仅保留兼容。
+> `WText` 使用 `variant` + `WTextStyles`；`WTextConfig` 已移除。
 
 ### 推荐：语义文字样式
 
@@ -636,11 +635,11 @@ ThemeData(
 > 如果 `WTextStyles` 使用 `.sp`，不要写顶层 `final` / `static final`；
 > 在 `ScreenUtilInit` 之后、推荐在 `WAppPlugin.builderWrapper` 中构建。
 
-### WText 新参数
+### WText 参数
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `variant` | `WTextVariant?` | 语义样式；null 时保持旧 config-only 行为 |
+| `variant` | `WTextVariant?` | 语义样式；null 时不额外应用语义样式 |
 | `style` | `TextStyle?` | 一次性样式覆盖 |
 | `color` | `Color?` | 一次性颜色覆盖 |
 | `maxLines` | `int?` | 最大行数 |
@@ -658,116 +657,50 @@ ThemeData(
 
 ### 功能说明
 
-增强文本组件，支持链式配置（`WTextConfig`），自动处理 `StrutStyle` 以避免继承大字号时的裁切问题。提供预设样式工厂方法和便捷字号/粗细快捷方法。
-
-### WText 构造参数
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `text` | String | 必需，文本内容 |
-| `config` | `WTextConfig?` | 文本配置 |
-
-### WTextConfig 配置参数
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `fontFamily` | `String?` | 字体系列 |
-| `fontWeight` | `FontWeight?` | 字体粗细 |
-| `fontSize` | `double?` | 字体大小 |
-| `color` | `Color?` | 文本颜色 |
-| `letterSpacing` | `double?` | 字母间距 |
-| `height` | `double?` | 行高 |
-| `forceStrutHeight` | `bool?` | 是否强制使用行高 |
-| `overflow` | `TextOverflow?` | 溢出处理 |
-| `decoration` | `TextDecoration?` | 文本装饰 |
-| `decorationColor` | `Color?` | 装饰颜色 |
-| `textAlign` | `TextAlign?` | 对齐方式 |
-
-### WTextConfig 快捷方法（链式）
-
-**字体系列：**
-- `familyNotoSansTC()` → `NotoSansTC`
-- `familyZenMaruGothic()` → `ZenMaruGothic`
-
-**字体粗细（w100–w900）：**
-- `w100()` / `w200()` / `w300()` / `w400()` / `w500()` / `w600()` / `w700()` / `w800()` / `w900()`
-
-**字号（sp 适配）：**
-- `fontSize12sp()` / `fontSize14sp()` / `fontSize16sp()` / `fontSize18sp()` / `fontSize20sp()`
-- `fontSize24sp()` / `fontSize26sp()` / `fontSize28sp()` / `fontSize30sp()` / `fontSize32sp()`
-- `fontSize34sp()` / `fontSize36sp()` / `fontSize38sp()`
-
-**溢出：**
-- `overflowEllipsis()` / `overflowClip()` / `overflowFade()` / `overflowVisible()`
-
-**装饰：**
-- `decorationUnderline({decorationColor})` / `decorationOverline({decorationColor})`
-- `decorationLineThrough({decorationColor})` / `decorationNone()`
-
-**对齐：**
-- `textAlignCenter()` / `textAlignLeft()` / `textAlignRight()` / `textAlignJustify()`
-- `textAlignStart()` / `textAlignEnd()`
-
-**其他：**
-- `forceStrutHeightFalse()`
-
-### WTextConfig 预设样式工厂
-
-| 工厂方法 | 默认样式 |
-|----------|----------|
-| `WTextConfig.title()` | fontSize 24, w700, black |
-| `WTextConfig.subtitle()` | fontSize 20, w600, black87 |
-| `WTextConfig.body()` | fontSize 16, w400, black87, height 1.5 |
-| `WTextConfig.small()` | fontSize 14, w400, black54 |
-| `WTextConfig.button()` | fontSize 16, w500, white |
-| `WTextConfig.link()` | fontSize 16, w400, blue, underline |
-
-### WTextConfig 转换方法
-
-| 方法 | 说明 |
-|------|------|
-| `toTextStyle()` | 将配置转换为 Flutter `TextStyle` |
-| `toStrutStyle()` | 将配置转换为 Flutter `StrutStyle` |
-| `copyWith(...)` / `copy()` | 创建副本 |
-| `build(text)` | 构建 WText 组件 |
+`WText` 只负责文本渲染和覆盖；字体、字号、字重、行高统一定义在
+`WTextStyles` / `TextTheme`。多色或多字重混排使用 Flutter `Text.rich`。
 
 ### 使用示例
 
 ```dart
-// 基础用法
 WText(
-  text: 'Hello World',
-  config: WTextConfig()
-    ..fontSize = 16
-    ..color = Colors.black
-    ..fontWeight = FontWeight.w500,
+  text: '标题',
+  variant: WTextVariant.title,
+  maxLines: 1,
+  overflow: TextOverflow.ellipsis,
 )
 
-// 使用预设样式
-WText(text: '标题', config: WTextConfig.title())
-WText(text: '正文内容', config: WTextConfig.body())
-WText(text: '小提示', config: WTextConfig.small())
-
-// 链式快捷方法
 WText(
-  text: '大号粗体居中',
-  config: WTextConfig()
-    ..fontSize32sp()
-    ..w700()
-    ..textAlignCenter()
-    ..color = Colors.black,
+  text: '正文内容',
+  variant: WTextVariant.body,
+  color: Colors.black54,
+  maxLines: 3,
 )
 
-// 溢出省略
 WText(
-  text: '这是一段很长的文本会被省略号截断...',
-  config: WTextConfig()
-    ..fontSize14sp()
-    ..overflowEllipsis(),
+  text: '局部覆盖',
+  variant: WTextVariant.body,
+  style: const TextStyle(fontWeight: FontWeight.w700),
 )
 ```
 
----
+混排：
+
+```dart
+Text.rich(
+  TextSpan(
+    style: WTextStyles.of(context).body,
+    children: [
+      const TextSpan(text: '¥'),
+      TextSpan(
+        text: '100',
+        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+      ),
+      const TextSpan(text: ' 起'),
+    ],
+  ),
+)
+```
 
 ## 4. WImage - 图片组件
 
@@ -1543,7 +1476,7 @@ WNavBar(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(index == 0 ? Icons.home : Icons.message),
-        WText(text: items[index], config: WTextConfig()..fontSize12sp()),
+        WText(text: items[index], variant: WTextVariant.caption),
       ],
     );
   },
@@ -1684,7 +1617,6 @@ Image 相关扩展，便捷创建 CachedNetworkImage、带圆角的图片等。
 ### WTextStyleExtension
 
 `TextStyle` 的便捷扩展：`bold` / `withColor` / `withSize`。
-配置转换仍用 `WTextConfig.toTextStyle()` / `WTextConfig.toStrutStyle()`。
 
 ---
 
@@ -1778,10 +1710,9 @@ class _HomePageState extends State<HomePage> {
           leading: CircleAvatar(child: Text('${i + 1}')),
           title: WText(
             text: _items[i],
-            config: WTextConfig()
-              ..fontSize16sp()
-              ..w500()
-              ..color = Colors.black87,
+            variant: WTextVariant.body,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+            color: Colors.black87,
           ),
           trailing: WButton(
             style: WButtonStyles.danger,
@@ -1792,7 +1723,8 @@ class _HomePageState extends State<HomePage> {
         ),
         header: WText(
           text: '标题',
-          config: WTextConfig.title()..color = Colors.black,
+          variant: WTextVariant.title,
+          color: Colors.black,
         ),
         footer: SizedBox(
           height: WScreen.h(80),
@@ -1886,9 +1818,8 @@ class MainNavBar extends StatelessWidget {
               SizedBox(height: WScreen.h(4)),
               WText(
                 text: item.label,
-                config: WTextConfig()
-                  ..fontSize12sp()
-                  ..color = isSelected ? Colors.blue : Colors.grey,
+                variant: WTextVariant.caption,
+                color: isSelected ? Colors.blue : Colors.grey,
               ),
             ],
           );

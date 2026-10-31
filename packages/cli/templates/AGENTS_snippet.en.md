@@ -35,7 +35,7 @@
    selection; when `w_tools_app` is enabled, use `WBottomSheet`; use `WToast` for light
    feedback and Flutter `showDialog` for confirmation.
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
-   in the theme, not `WTextConfig` field-by-field. Override with `style` / `color` /
+   in the theme, `WTextConfig` has been removed; do not build styles field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
    **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
    in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme,

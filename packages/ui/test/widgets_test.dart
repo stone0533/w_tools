@@ -13,33 +13,7 @@ void main() {
       expect(find.text('Hello'), findsOneWidget);
     });
 
-    testWidgets('config 可设置字体大小', (tester) async {
-      final config = WTextConfig()..fontSize = 20;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WText(text: 'big', config: config),
-          ),
-        ),
-      );
-      final text = tester.widget<Text>(find.text('big'));
-      expect(text.style?.fontSize, 20);
-    });
-
-    testWidgets('config 可设置颜色', (tester) async {
-      final config = WTextConfig()..color = Colors.red;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WText(text: 'red', config: config),
-          ),
-        ),
-      );
-      final text = tester.widget<Text>(find.text('red'));
-      expect(text.style?.color, Colors.red);
-    });
-
-    testWidgets('无 config 时正常渲染', (tester) async {
+    testWidgets('默认渲染', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(body: WText(text: 'default')),
@@ -111,7 +85,7 @@ void main() {
       expect(text.textScaler, const TextScaler.linear(1.5));
     });
 
-    testWidgets('无 config 时不设置 strutStyle（避免裁切继承字号）', (tester) async {
+    testWidgets('默认不设置 strutStyle（避免裁切继承字号）', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(body: WText(text: 'no-strut')),
