@@ -87,6 +87,25 @@ dart run w_tools_cli:init      # 生成到当前项目
 dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 ```
 
+### 配置兼容层说明
+
+根包 `WConfig` 是兼容入口：
+
+```dart
+WConfig.tokenKey = 'token';
+WConfig.assetImagePath = 'assets/images/';
+```
+
+语言切换不要直接赋值：
+
+```dart
+// 只改状态，不通知语言监听
+WConfig.currentLanguage = 'zh_CN';
+
+// 需要通知 UI 时
+WLanguage().changeLanguage('zh_CN');
+```
+
 ### 从 pub.dev 安装
 
 各子包独立发布，可只引入需要的包；根包 `w_tools` 也作为聚合包发布。

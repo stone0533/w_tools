@@ -61,6 +61,11 @@ class WConfig {
   static Map<String, String> get supportedLanguages => WAppConfig.supportedLanguages;
   static set supportedLanguages(Map<String, String> v) => WAppConfig.supportedLanguages = v;
 
+  /// 当前语言码。
+  ///
+  /// 这个 setter 只修改 [WAppConfig.currentLanguage]，**不会更新**
+  /// `WLanguage.languageStream`。需要响应式切换语言请调用：
+  /// `WLanguage().changeLanguage(v)`。
   static String get currentLanguage => WAppConfig.currentLanguage;
   static set currentLanguage(String v) => WAppConfig.currentLanguage = v;
 

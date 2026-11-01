@@ -1,6 +1,7 @@
 ## 3.0.0
 
 - 新增 `w_tools_async`：异步执行、重试、超时、取消、四态状态、Controller 与异步视图。
+- 文档明确根 `WConfig.currentLanguage` 只改状态，不通知 `WLanguage`；响应式切换用 `WLanguage.changeLanguage`。
 - `w_tools_core` 升到 `2.0.0`：异步能力整体迁出 core，迁移到 `w_tools_async`；
   根包新增 `w_tools_async` 聚合。
 - 依赖：`w_tools_ui` 提升到 `^2.0.0`。
