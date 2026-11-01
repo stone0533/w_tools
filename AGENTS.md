@@ -15,6 +15,13 @@
 > 消费方项目的接入方式（聚合入口、暂存层、`AGENTS.md` 片段）**不要**写进本文件 ——
 > 那些由 `dart run w_tools_cli:init` 生成到**对方**仓库里；本文件只管「在本仓库怎么改」。
 
+## 根包（w_tools）
+
+- `w_tools` 根包只用于快速体验 / 旧项目兼容；新业务项目仍只依赖具体子包。
+- 如用户明确要求使用根包：`import 'package:w_tools/w.dart';`。
+- 根包只重导出 9 个子包；不再提供旧 `WConfig` 兼容层。
+- 配置走子包：token 用 `core.WConfig`，资源前缀用 `WAssets`，表单图标用 `WFormDefaults`，语言用 `WAppConfig`。
+
 ## 工具（本仓库维护）
 
 CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
