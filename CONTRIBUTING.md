@@ -39,7 +39,7 @@
   ```bash
   flutter test --update-goldens packages/ui/test/golden/xxx_test.dart
   ```
-- 根 `test/` 只放聚合契约（`w.dart` 的重导出）
+- 根 `test/` 只放聚合契约（`w_tools.dart` 的重导出）
 - `packages/cli` 是纯 Dart 包：用 `dart test`，不要引入 `flutter_test`
 
 ## 5. 发布

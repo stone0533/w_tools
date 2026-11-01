@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 import 'package:w_tools_example/main.dart';
 
 void main() {

@@ -1,5 +1,5 @@
 name: w_tools_example
-description: "w_tools 聚合包最小示例：一个 WForm 表单，验证 package:w_tools/w.dart 的真实用法。"
+description: "w_tools 聚合包最小示例：一个 WForm 表单，验证 package:w_tools/w_tools.dart 的真实用法。"
 publish_to: none
 version: 1.0.0
 

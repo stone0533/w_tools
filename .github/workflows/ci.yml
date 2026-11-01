@@ -22,7 +22,7 @@ env:
   MIN_FLUTTER_VERSION: '3.38.4'
 
 jobs:
-  # 聚合包契约：w.dart 的重导出、WConfig 兼容层。
+  # 聚合包契约：w_tools.dart 的重导出、WConfig 兼容层。
   # 子包的行为测试已移入各自的 packages/<pkg>/test/，由下面的矩阵负责。
   umbrella:
     name: Umbrella (w_tools)

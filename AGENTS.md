@@ -18,7 +18,7 @@
 ## 根包（w_tools）
 
 - `w_tools` 根包只用于快速体验 / 旧项目兼容；新业务项目仍只依赖具体子包。
-- 如用户明确要求使用根包：`import 'package:w_tools/w.dart';`。
+- 如用户明确要求使用根包：`import 'package:w_tools/w_tools.dart';`。
 - 根包只重导出 9 个子包；不再提供旧 `WConfig` 兼容层。
 - 配置走子包：token 用 `core.WConfig`，资源前缀用 `WAssets`，表单图标用 `WFormDefaults`，语言用 `WAppConfig`。
 
@@ -69,7 +69,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ### Tests
 
-每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立 `flutter test` / 发布。根 `test/` 只留聚合契约（`w.dart` 的重导出）。`packages/cli` 是纯 Dart 包，用 `dart test`。CI 用矩阵逐包跑 analyze / test / `pub publish --dry-run`。
+每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立 `flutter test` / 发布。根 `test/` 只留聚合契约（`w_tools.dart` 的重导出）。`packages/cli` 是纯 Dart 包，用 `dart test`。CI 用矩阵逐包跑 analyze / test / `pub publish --dry-run`。
 
 ### 文档
 

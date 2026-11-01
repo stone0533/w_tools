@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 
 void main() {
   runApp(const AggregateExampleApp());
@@ -77,7 +77,7 @@ class _AggregateExamplePageState extends State<AggregateExamplePage> {
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              '一个页面只 import package:w_tools/w.dart',
+              '一个页面只 import package:w_tools/w_tools.dart',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),

@@ -1,10 +1,10 @@
 ## 3.0.0
 
 - 新增 `w_tools_async`：异步执行、重试、超时、取消、四态状态、Controller 与异步视图。
-- 移除根 `WConfig` / `WConfigSetup` 兼容层；`w.dart` 重新导出 `core.WConfig`（仅 token 键名），资源 / 表单 / 语言配置改用子包入口。
-- 移除 `lib/w_tools.dart` 旧入口别名；统一使用 `package:w_tools/w.dart`。
+- 移除根 `WConfig` / `WConfigSetup` 兼容层；`w_tools.dart` 重新导出 `core.WConfig`（仅 token 键名），资源 / 表单 / 语言配置改用子包入口。
+- 根包入口统一为 `lib/w_tools.dart`；删除 `lib/w.dart`。
 - 文档明确根包仅用于快速体验 / 旧项目；新业务项目仍按需依赖子包。
-- 根包 `lib/w.dart` 的 library 名称改为 `w_tools`，避免 pub publish 的 library 名称警告。
+- 根包入口文件名改为 `w_tools.dart`，与包名一致，消除 pub publish 的 library 名称警告。
 - `w_tools_core` 升到 `2.0.0`：异步能力整体迁出 core，迁移到 `w_tools_async`；
   根包新增 `w_tools_async` 聚合。
 - 依赖：`w_tools_ui` 提升到 `^2.0.0`。

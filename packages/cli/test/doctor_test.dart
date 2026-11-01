@@ -72,7 +72,7 @@ void main() {
     test('直接 import 聚合包 → error', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',
-        'lib/app/foo.dart': "import 'package:w_tools/w.dart';\n",
+        'lib/app/foo.dart': "import 'package:w_tools/w_tools.dart';\n",
       });
       final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
       expect(r.issues.single.message, contains('聚合包'));

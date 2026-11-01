@@ -10,7 +10,7 @@ w_tools:
 页面只 import：
 
 ```dart
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 ```
 
 覆盖：

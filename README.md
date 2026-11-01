@@ -92,15 +92,15 @@ dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 新代码统一使用：
 
 ```dart
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 ```
 
 根包不再提供旧 `WConfig` 兼容层。
 
-`w.dart` 重新导出的 `WConfig` 是 `core.WConfig`，只负责 token 键名：
+`w_tools.dart` 重新导出的 `WConfig` 是 `core.WConfig`，只负责 token 键名：
 
 ```dart
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 
 WConfig.tokenKey = 'auth_token';
 ```
@@ -184,7 +184,7 @@ dependencies:
 ```
 
 ```dart
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 ```
 
 > **版本策略**：9 个 Flutter 子包与 `w_tools_cli` 各自独立发版，互不跟随（具体版本以
@@ -201,7 +201,7 @@ import 'package:w_tools/w.dart';
 ```dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 
 void main() async {
   final app = WApp()..title = 'Flutter App';
@@ -362,7 +362,7 @@ class MyAppPlugin extends WAppPlugin {
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 
 class MyPage extends StatelessWidget {
   @override
@@ -395,7 +395,7 @@ class MyPage extends StatelessWidget {
 ### 使用表单组件
 
 ```dart
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 
 // 使用多选下拉框
 final multiDropdownConfig = WFormMultiDropdownConfig()
@@ -418,7 +418,7 @@ WFormMultiDropdown multiDropdown = multiDropdownConfig.build(
 ### 使用工具类
 
 ```dart
-import 'package:w_tools/w.dart';
+import 'package:w_tools/w_tools.dart';
 
 // 加密解密（keyStr 须为 Base64 编码的密钥）
 final key = WEncrypt.generateKey();
@@ -450,7 +450,7 @@ Container(
 
 ## 完整示例
 
-根包最小聚合示例见 [`example/`](example/)：一个 `WForm` 表单，验证 `package:w_tools/w.dart` 的实际用法。
+根包最小聚合示例见 [`example/`](example/)：一个 `WForm` 表单，验证 `package:w_tools/w_tools.dart` 的实际用法。
 
 ## 许可证
 
