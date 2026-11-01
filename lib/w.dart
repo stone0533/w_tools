@@ -1,4 +1,4 @@
-library w;
+library w_tools;
 
 export 'package:w_tools_core/w_tools_core.dart';
 export 'package:w_tools_async/w_tools_async.dart';
