@@ -17,7 +17,7 @@
 ```text
 数字格式化 → toThousandsSeparated / toCurrency / toPercent
 hex 颜色 → HexColor.fromHex / '#rrggbb'.toColor()
-间距 → num.heightBox / allPadding
+EdgeInsets → num.allPadding
 BoxDecoration → withColor / withBorderRadius / withShadow
 ```
 
@@ -28,7 +28,9 @@ BoxDecoration → withColor / withBorderRadius / withShadow
 ```text
 屏幕 / 字体适配 → WScreen.w / h / sp
 资源前缀 → WAssets.imagePath
-间距 / 尺寸 → WSizeBox / WPadding / WColumn / WRow
+SizedBox 间距 → WSizeBox
+Padding → WPadding
+EdgeInsets → num.allPadding
 ```
 
 WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate。

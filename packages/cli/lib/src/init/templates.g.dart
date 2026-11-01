@@ -160,10 +160,11 @@ const String agentsSnippet = r'''
    `variant + style`；项目内重复抽本地 helper；消费方不能自行新增 `WTextVariant` enum，
    稳定跨页面语义再提给 `w_tools_ui`。
    **扩展**：数字格式化用 `toThousandsSeparated` / `toCurrency` / `toPercent`；
-   hex 颜色用 `HexColor.fromHex` 或 `'#rrggbb'.toColor()`；间距用 `num.heightBox` / `allPadding`；
+   hex 颜色用 `HexColor.fromHex` 或 `'#rrggbb'.toColor()`；`EdgeInsets` 值用 `num.allPadding`；
    BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合，不要重复手写。
    **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
-   间距 / 尺寸优先 `WSizeBox` / `WPadding` / `WColumn` / `WRow`。
+   `SizedBox` 间距用 `WSizeBox`，`Padding` 用 `WPadding`；需要 `EdgeInsets` 值时用 `num.allPadding`。
+   不要再用 `num.heightBox` / `widthBox` / `squareBox`，它们与 `WSizeBox` 等价，仅保留兼容。
    `WColumn.left/right` / `WRow.top/bottom` 默认 `MainAxisSize.max`；需要包裹内容时显式传 `MainAxisSize.min`。
    **列表 / 通知**：列表项保活用 `WKeepAliveWrapper`；滚动通知 / 百分比用 `WNotificationListenerBuilder`
    （百分比只处理 depth 0 的 `ScrollUpdateNotification`）。
@@ -260,10 +261,12 @@ const String agentsSnippetEn = r'''
    Consumers cannot add `WTextVariant` enum values; propose a library variant only for stable
    cross-page semantics.
    **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
-   `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; `num.heightBox` / `allPadding` for spacing;
+   `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets` values;
    compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
    **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath`
-   for asset prefixes; prefer `WSizeBox` / `WPadding` / `WColumn` / `WRow` for spacing/sizing.
+   for asset prefixes; use `WSizeBox` for `SizedBox`, `WPadding` for `Padding`, and `num.allPadding`
+   when an `EdgeInsets` value is required. Do not use `num.heightBox` / `widthBox` / `squareBox`;
+   they duplicate `WSizeBox` and remain only for compatibility.
    `WColumn.left/right` / `WRow.top/bottom` default to `MainAxisSize.max`; pass `MainAxisSize.min` to wrap content.
    **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
    `WNotificationListenerBuilder` for scroll notifications/percentage (only depth 0 `ScrollUpdateNotification`).

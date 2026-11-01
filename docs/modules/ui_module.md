@@ -1623,6 +1623,9 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 | `0.5.toPercent` | `50%` |
 | `0.333.toPercentWithFixed(1)` | `33.3%` |
 | `1.toPadLeft(3)` | `001` |
+
+> 新代码中 `SizedBox` / `Padding` 优先 `WSizeBox` / `WPadding`；`num.heightBox` / `widthBox` / `squareBox`
+> 与 `WSizeBox` 等价，仅保留兼容。`num.allPadding` 用于需要 `EdgeInsets` 值的场景。
 | `(-1).toPadLeft(3)` | `-01` |
 
 补零时负号计入总长度；`length` 必须为非负数；`toPercent` 的整数结果不带 `.0`，`NaN` / `Infinity` 原样加 `%`。

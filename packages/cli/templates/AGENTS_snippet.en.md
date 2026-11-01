@@ -49,10 +49,12 @@
    Consumers cannot add `WTextVariant` enum values; propose a library variant only for stable
    cross-page semantics.
    **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
-   `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; `num.heightBox` / `allPadding` for spacing;
+   `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets` values;
    compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
    **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath`
-   for asset prefixes; prefer `WSizeBox` / `WPadding` / `WColumn` / `WRow` for spacing/sizing.
+   for asset prefixes; use `WSizeBox` for `SizedBox`, `WPadding` for `Padding`, and `num.allPadding`
+   when an `EdgeInsets` value is required. Do not use `num.heightBox` / `widthBox` / `squareBox`;
+   they duplicate `WSizeBox` and remain only for compatibility.
    `WColumn.left/right` / `WRow.top/bottom` default to `MainAxisSize.max`; pass `MainAxisSize.min` to wrap content.
    **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
    `WNotificationListenerBuilder` for scroll notifications/percentage (only depth 0 `ScrollUpdateNotification`).
