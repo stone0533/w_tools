@@ -59,9 +59,7 @@ class _MapExamplePageState extends State<MapExamplePage> {
       defaultZoom: 11,
       // 每个门店用不同颜色的图标
       iconBuilder: (shop) => BitmapDescriptor.defaultMarkerWithHue(
-        shop.id == 'hkg'
-            ? BitmapDescriptor.hueRed
-            : BitmapDescriptor.hueAzure,
+        shop.id == 'hkg' ? BitmapDescriptor.hueRed : BitmapDescriptor.hueAzure,
       ),
     );
   }

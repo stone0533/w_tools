@@ -143,8 +143,7 @@ void main() {
     test('iconBuilder：按条目决定图标，优先于 zone.icon', () {
       var calls = 0;
       final red = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
-      final green =
-          BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+      final green = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
       final zone = WMapZone<_TestMapItem>(
         maps: const [
           _TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2),
@@ -379,6 +378,36 @@ void main() {
 
       // dispose 后监听应该被移除
       expect(zone.dataUpdatedListenerCount, 0);
+    });
+
+    testWidgets('WMap 切换 zone → 移除旧 zone listener', (tester) async {
+      const cfg = WMapConfig<_TestMapItem>();
+      final oldZone = WMapZone<_TestMapItem>(
+        maps: const [_TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2)],
+      );
+      final newZone = WMapZone<_TestMapItem>(
+        maps: const [_TestMapItem(id: 'b', name: 'B', latitude: 3, longitude: 4)],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WMap<_TestMapItem>(config: cfg, zone: oldZone),
+          ),
+        ),
+      );
+      expect(oldZone.dataUpdatedListenerCount, 1);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WMap<_TestMapItem>(config: cfg, zone: newZone),
+          ),
+        ),
+      );
+
+      expect(oldZone.dataUpdatedListenerCount, 0);
+      expect(newZone.dataUpdatedListenerCount, 1);
     });
 
     testWidgets('WMapConfig.padding 透传给 GoogleMap', (tester) async {

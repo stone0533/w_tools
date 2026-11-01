@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1
+
+### Fixed
+- `WMap` 切换 `zone` 时移除的是旧 zone 的 listener，避免旧 zone 继续回调已切换的页面。
+- 补充 zone 切换 listener 测试。
+
 ## 1.2.0
 
 ### Added

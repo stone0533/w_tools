@@ -70,8 +70,7 @@ final Map<String, BitmapDescriptor> _assetIconCache = {};
 /// 正在解码中的 key（避免重复解码）
 final Set<String> _loadingIconKeys = {};
 
-String _iconCacheKey(String asset, double imagePixelRatio) =>
-    '$asset@$imagePixelRatio';
+String _iconCacheKey(String asset, double imagePixelRatio) => '$asset@$imagePixelRatio';
 
 /// 加载并缓存资产图标；失败返回 null（调用方降级为默认图标）。
 Future<BitmapDescriptor?> _loadAssetIcon(
@@ -123,10 +122,7 @@ abstract final class WMapIconAssets {
 /// MarkerId 规则见 [WMapItemMapper.id]（id > name > 经纬度，不用 hashCode）。
 bool _sameCamera(CameraPosition? a, CameraPosition? b) {
   if (a == null || b == null) return a == b;
-  return a.target == b.target &&
-      a.zoom == b.zoom &&
-      a.bearing == b.bearing &&
-      a.tilt == b.tilt;
+  return a.target == b.target && a.zoom == b.zoom && a.bearing == b.bearing && a.tilt == b.tilt;
 }
 
 /// 地图区域类
@@ -381,9 +377,11 @@ class _WMapState<T> extends State<WMap<T>> {
     widget.controller?._attach(this);
   }
 
-  void _unwire() {
-    widget.zone.removeMarkerTapListener(_select);
-    widget.zone.removeDataUpdatedListener(_handleDataUpdated);
+  void _unwire() => _unwireZone(widget.zone);
+
+  void _unwireZone(WMapZone<T> zone) {
+    zone.removeMarkerTapListener(_select);
+    zone.removeDataUpdatedListener(_handleDataUpdated);
   }
 
   @override
@@ -396,10 +394,9 @@ class _WMapState<T> extends State<WMap<T>> {
   @override
   void didUpdateWidget(covariant WMap<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.zone != widget.zone ||
-        oldWidget.controller != widget.controller) {
+    if (oldWidget.zone != widget.zone || oldWidget.controller != widget.controller) {
       oldWidget.controller?._detach(this);
-      _unwire();
+      _unwireZone(oldWidget.zone);
       _selected = null;
       _appliedCamera = null;
       _wire();
@@ -464,8 +461,7 @@ class _WMapState<T> extends State<WMap<T>> {
     if (selected == null) return;
     final selectedId = widget.zone.mapper.id(selected);
     final stillExists =
-        widget.zone.maps?.any((a) => widget.zone.mapper.id(a) == selectedId) ??
-            false;
+        widget.zone.maps?.any((a) => widget.zone.mapper.id(a) == selectedId) ?? false;
     if (!stillExists && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() => _selected = null);
@@ -496,8 +492,8 @@ class _WMapState<T> extends State<WMap<T>> {
   Widget build(BuildContext context) {
     final zone = widget.zone;
     return GoogleMap(
-      initialCameraPosition: zone.cameraPosition ??
-          const CameraPosition(target: LatLng(0, 0), zoom: 1),
+      initialCameraPosition:
+          zone.cameraPosition ?? const CameraPosition(target: LatLng(0, 0), zoom: 1),
       onMapCreated: (GoogleMapController controller) {
         zone.googleMapController = controller;
         _appliedCamera = zone.cameraPosition;
