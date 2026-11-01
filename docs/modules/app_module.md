@@ -43,7 +43,7 @@ app/
 | `initialRoute` | `String` | — | **必填**，初始路由 |
 | `getPages` | `List<GetPage<dynamic>>` | — | **必填**，GetX 路由表 |
 | `orientations` | `List<DeviceOrientation>` | `[portraitUp]` | 支持的屏幕方向，默认仅竖屏 |
-| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | null | 系统 UI 样式 |
+| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | 透明状态栏 + 黑色导航栏 | 系统 UI 样式；`null` 表示不干预 |
 | `builder` | `TransitionBuilder?` | null | 业务侧 builder（位于插件 wrapper 之后） |
 | `navigatorObservers` | `List<NavigatorObserver>?` | null | 额外的 navigator observers |
 | `defaultTransition` | `Transition?` | null | GetX 默认转场动画 |
@@ -51,7 +51,7 @@ app/
 | `translations` | `Translations?` | null | GetX 国际化翻译表 |
 | `locale` | `Locale?` | null | 当前语言 |
 | `fallbackLocale` | `Locale?` | null | 兜底语言 |
-| `appWrapper` | `Widget Function(Widget)?` | null | 最外层包裹器（在所有插件 wrapApp 之外） |
+| `appWrapper` | `Widget Function(Widget)?` | null | 包裹 GetMaterialApp；位于插件 wrapApp 之内，插件更外层 |
 
 ### 插件管理方法
 
@@ -66,17 +66,17 @@ app/
 
 | 方法 | 幂等 | 说明 |
 |------|------|------|
-| `init({void Function()? onLazyInit, Future<void> Function()? customTasks})` | ✅ | 初始化阶段：`WidgetsFlutterBinding.ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → `onLazyInit` 首帧后回调 |
+| `init({VoidCallback? onLazyInit, List<Future<void>>? customTasks})` | ✅ | 初始化阶段：`WidgetsFlutterBinding.ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → `onLazyInit` 首帧后回调 |
 | `run({...})` | ❌ | 启动应用。**必须先 `init`**；会校验 `title`、`initialRoute`、`getPages` 非空 |
-| `start({...})` | ❌ | 一站式启动：`start = init + run`，参数合并 |
+| `start({onLazyInit, customTasks, initialRoute, getPages, builder, navigatorObservers, defaultTransition, theme, translations, locale, fallbackLocale})` | ❌ | 一站式启动：`start = init + run`；`title` / `orientations` / `systemUiOverlayStyle` 等仍通过字段设置 |
 
 ### 包裹顺序（由内向外）
 
 ```
 GetMaterialApp
-  → WApp.builder
-    → WApp.appWrapper
-      → 各插件 wrapApp（后注册者在最外层）
+  → WApp.appWrapper
+    → 各插件 wrapApp（后注册者在最外层）
+      → WApp.builder（最外层）
 ```
 
 builder 链（由内向外）：
@@ -132,27 +132,27 @@ final appTheme = AppTheme.data;
 ### 使用示例
 
 ```dart
-void main() {
-  WApp.addPlugin(AuthPlugin());
-  WApp.start(
-    title: 'My App',
-    initialRoute: Routes.home,
-    getPages: Routes.pages,
-    theme: AppTheme.light,
-    translations: AppTranslations(),
-    locale: const Locale('zh', 'CN'),
-    fallbackLocale: const Locale('en', 'US'),
-    onLazyInit: () async {
+Future<void> main() async {
+  final app = WApp()
+    ..title = 'My App'
+    ..initialRoute = Routes.home
+    ..getPages = Routes.pages
+    ..theme = AppTheme.light
+    ..translations = AppTranslations()
+    ..locale = const Locale('zh', 'CN')
+    ..fallbackLocale = const Locale('en', 'US')
+    ..addPlugin(AuthPlugin());
+
+  await app.start(
+    onLazyInit: () {
       // 首帧后执行的轻量任务
-      await WToast.init();
+      WLogger.i('first frame');
     },
-    customTasks: () async {
-      // 必须在 run 前完成的初始化（并行）
-      await Future.wait([
-        WApi.setup(),
-        WStorage.init(),
-      ]);
-    },
+    customTasks: [
+      // 必须在 run 前完成的任务（并行执行）
+      WApi.setup(),
+      WStorage.init(),
+    ],
   );
 }
 ```
@@ -355,51 +355,48 @@ await WBottomSheet.show(
 import 'package:flutter/material.dart';
 import 'package:w_tools_app/w_tools_app.dart';
 
-void main() {
+Future<void> main() async {
   // 1. 语言配置
   WAppConfig.supportedLanguages = {
     'zh_CN': '简体中文',
     'en_US': 'English',
   };
 
-  // 2. 注册插件（可选）
-  WApp.addPlugin(AuthPlugin());
-  WApp.addPlugin(PushPlugin());
-
-  // 3. 一站式启动
-  WApp.start(
-    title: 'My App',
-    initialRoute: '/home',
-    getPages: [
+  // 2. 应用字段与插件（插件也可用 addPlugins 批量注册）
+  final app = WApp()
+    ..title = 'My App'
+    ..initialRoute = '/home'
+    ..getPages = [
       GetPage(name: '/home', page: () => const HomePage()),
       GetPage(name: '/profile', page: () => const ProfilePage()),
-    ],
-    orientations: [
+    ]
+    ..orientations = [
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
-    ],
-    systemUiOverlayStyle: SystemUiOverlayStyle.dark,
-    theme: AppTheme.light,
-    translations: AppTranslations(),
-    locale: const Locale('zh', 'CN'),
-    fallbackLocale: const Locale('en', 'US'),
+    ]
+    ..systemUiOverlayStyle = SystemUiOverlayStyle.dark
+    ..theme = AppTheme.light
+    ..translations = AppTranslations()
+    ..locale = const Locale('zh', 'CN')
+    ..fallbackLocale = const Locale('en', 'US')
+    ..addPlugin(AuthPlugin())
+    ..addPlugin(PushPlugin());
+
+  // 3. 一站式启动
+  await app.start(
     builder: (context, child) {
       // 业务侧额外包裹（比如全局 Loading）
       return GlobalLoading(child: child ?? const SizedBox.shrink());
     },
-    onLazyInit: () async {
-      // 首帧渲染后执行（不阻塞启动）
-      await WBottomSheet.show(
-        const Text('欢迎使用！'),
-      );
+    onLazyInit: () {
+      // 首帧渲染后执行（同步回调，不阻塞启动）
+      WBottomSheet.show(const Text('欢迎使用！'));
     },
-    customTasks: () async {
-      // 启动前必须完成的任务（并行）
-      await Future.wait([
-        AuthService.restoreSession(),
-        Analytics.init(),
-      ]);
-    },
+    customTasks: [
+      // 启动前必须完成的任务（并行执行）
+      AuthService.restoreSession(),
+      Analytics.init(),
+    ],
   );
 }
 ```
