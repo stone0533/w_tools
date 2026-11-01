@@ -49,11 +49,17 @@ qr/
 ```dart
 const overlay = WQrViewOverlayShape(
   borderWidth: 4.0,
-  borderColor: Colors.blue, // 实际颜色由 WQrView.borderColor 控制
   borderRadius: 8,
   cutOutWidth: 300,
   cutOutHeight: 300,
   cutOutBottomOffset: 50,
+);
+
+// 边框颜色属于 WQrView，不在 overlay 里
+WQrView(
+  borderColor: Colors.blue,
+  overlay: overlay,
+  onScanned: (barcode) {},
 );
 ```
 

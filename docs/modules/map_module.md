@@ -71,7 +71,7 @@ class StoreItem implements WMapItem {
 
 持有 `GoogleMapController`、`markers` 集合、地图数据列表 `maps`，支持外部复用、跨组件共享控制器状态及通过 `update` 刷新数据。
 
-泛型 `T` 约束为 `WMapItem`。
+`T` 不要求实现 `WMapItem`；未实现时通过 `WMapItemMapper` 取 id / name / 经纬度。
 
 ### 核心字段
 
@@ -84,8 +84,12 @@ class StoreItem implements WMapItem {
 | `maps` | `List<T>?` | 地图数据列表 |
 | `cameraPosition` | `CameraPosition?` | 初始相机位置（`maps` 为空时为 null） |
 | `icon` | `BitmapDescriptor?` | Marker 图标（为 null 时使用默认图标） |
+| `iconAsset` | `String?` | 包内加载并缓存的资产图标路径 |
+| `imagePixelRatio` | `double` | `iconAsset` 的像素密度 |
+| `iconBuilder` | `BitmapDescriptor Function(T)?` | 按条目决定图标，优先级最高 |
+| `mapper` | `WMapItemMapper<T>` | 从业务模型取地图字段 |
 | `defaultZoom` | `double` | 默认缩放级别，默认 `11` |
-| `onDataUpdated` | `void Function()?` | 数据更新回调（由 `WMap` 内部注册，用于刷新选中态一致性） |
+| `onDataUpdated` | `void Function()?` | 兼容用单回调；新代码用 add/remove listener |
 
 ### 核心方法
 
@@ -96,6 +100,8 @@ class StoreItem implements WMapItem {
 | `update(maps)` | 更新数据并重新初始化 |
 | `addMarkerTapListener(listener)` | 注册 Marker 点击回调（支持多个 `WMap` 共享同一 zone） |
 | `removeMarkerTapListener(listener)` | 移除 Marker 点击回调 |
+| `addDataUpdatedListener(listener)` | 注册数据更新监听 |
+| `removeDataUpdatedListener(listener)` | 移除数据更新监听 |
 
 ### 使用示例
 
@@ -129,12 +135,26 @@ zone.update(newStoreList);
 |------|------|------|
 | `config` | `WMapConfig<T>` | 组件配置 |
 | `zone` | `WMapZone<T>` | 地图区域 |
+| `controller` | `WMapController<T>?` | 可选，业务侧选中 / 关闭选中 |
 
-### 公开方法
+### 业务侧控制
 
-| 方法 | 说明 |
-|------|------|
-| `closeSelection(item)` | 关闭选中（由业务方调用）：清除选中 + 复位相机到 `closeZoom` + 触发 `onItemClosed` |
+`WMap` 本身没有 `closeSelection`；选中和关闭通过 `WMapController`：
+
+```dart
+final mapController = WMapController<StoreItem>();
+
+WMap<StoreItem>(
+  config: mapConfig,
+  zone: zone,
+  controller: mapController,
+);
+
+mapController.select(store);
+mapController.closeSelection(store);
+```
+
+`WMapController.isAttached` 可判断是否已挂载；未挂载时调用无效果。
 
 ### 使用示例
 
@@ -151,7 +171,7 @@ WMap<StoreItem>(
 
 ### 功能说明
 
-配置 `WMap` 的相机行为与事件回调，不包含任何 UI 样式配置。泛型 `<T extends WMapItem>` 保证回调类型安全。
+配置 `WMap` 的相机行为与事件回调，不包含任何 UI 样式配置。`T` 不要求实现 `WMapItem`。
 
 ### 配置字段
 
@@ -207,8 +227,17 @@ final zone = WMapZone<StoreItem>(
   maps: stores,
 );
 
-/// 4. 使用组件
-WMap<StoreItem>(config: mapConfig, zone: zone);
+/// 4. 业务侧控制器
+final mapController = WMapController<StoreItem>();
+
+/// 5. 使用组件
+WMap<StoreItem>(
+  config: mapConfig,
+  zone: zone,
+  controller: mapController,
+);
+
+mapController.select(stores.first);
 ```
 
 ---
