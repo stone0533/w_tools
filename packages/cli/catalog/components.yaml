@@ -30,7 +30,7 @@ components:
     package: 'w_tools_ui'
     section: '2. 文本与图标'
     useFor: '语义文字样式、overrides、maxLines、textScaler'
-    dontUseFor: '不要逐字段拼样式；WTextConfig 已移除，使用 WTextStyles'
+    dontUseFor: '不要逐字段拼样式；WTextConfig 已移除，使用 WTextStyles。variant 不够时先用 variant + style，项目内重复抽本地 helper，不要自行新增 WTextVariant enum'
   - name: '`WImage`'
     package: 'w_tools_ui'
     section: '2. 文本与图标'

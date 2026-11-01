@@ -643,6 +643,24 @@ ThemeData(
 > 如果 `WTextStyles` 使用 `.sp`，不要写顶层 `final` / `static final`；
 > 在 `ScreenUtilInit` 之后、推荐在 `WAppPlugin.builderWrapper` 中构建。
 
+### WTextVariant 不够用时
+
+按顺序处理：
+
+1. 一次性视觉差异：已有 variant + `style` 局部覆盖。
+2. 项目内重复：抽本地 `TextStyle` helper 或包装组件。
+3. 稳定、跨页面、主题级语义：再提给 `w_tools_ui` 新增 variant。
+
+```dart
+WText(
+  text: '¥128.00',
+  variant: WTextVariant.price,
+  style: context.priceHero,
+)
+```
+
+`style` 会合并到 variant 上；颜色仍优先用 `color`。消费方不能自行新增 `WTextVariant` enum。
+
 ### WText 参数
 
 | 参数 | 类型 | 说明 |

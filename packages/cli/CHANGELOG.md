@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1
+
+### Changed
+- 消费方 AGENTS 模板补充 `WTextVariant` 不够用时的处理顺序：先 `variant + style`，项目内重复抽本地 helper，稳定跨页面语义再提库内 variant。
+- 组件目录同步 `WText` 的 variant 边界说明。
+
 ## 1.4.0
 
 ### Changed

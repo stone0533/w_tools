@@ -156,6 +156,9 @@ const String agentsSnippet = r'''
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    `WTextConfig` 已移除；不要逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
    最小示例：`WText(text: '标题', variant: WTextVariant.title)`。
+   先复用已有 variant（含 `price` / `number` / `badge`）。variant 不够时：一次性差异用
+   `variant + style`；项目内重复抽本地 helper；消费方不能自行新增 `WTextVariant` enum，
+   稳定跨页面语义再提给 `w_tools_ui`。
    **扩展**：数字格式化用 `toThousandsSeparated` / `toCurrency` / `toPercent`；
    hex 颜色用 `HexColor.fromHex` 或 `'#rrggbb'.toColor()`；间距用 `num.heightBox` / `allPadding`；
    BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合，不要重复手写。
@@ -252,6 +255,10 @@ const String agentsSnippetEn = r'''
    in the theme, `WTextConfig` has been removed; do not build styles field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
    Minimal example: `WText(text: 'Title', variant: WTextVariant.title)`.
+   Reuse existing variants first (including `price` / `number` / `badge`). If a variant is not
+   enough: use `variant + style` for one-offs; extract a local helper for repeated project styles.
+   Consumers cannot add `WTextVariant` enum values; propose a library variant only for stable
+   cross-page semantics.
    **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
    `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; `num.heightBox` / `allPadding` for spacing;
    compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.

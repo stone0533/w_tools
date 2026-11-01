@@ -5,6 +5,12 @@ import 'package:flutter/material.dart';
 /// Material 的 [TextTheme] 只有 15 个固定角色；业务里的
 /// pageTitle / cardTitle / price / badge 等应该放在这里，而不是继续
 /// 给每个 WText 写一长串 TextStyle。
+/// 语义角色固定。
+///
+/// 不够用时按顺序处理：
+/// 1. 一次性差异用 [WText.style] 局部覆盖；
+/// 2. 项目内重复抽本地 helper / 组件；
+/// 3. 稳定跨页面语义才新增 enum（公开 API 变更）。
 enum WTextVariant {
   display,
   headline,

@@ -44,6 +44,10 @@
    in the theme, `WTextConfig` has been removed; do not build styles field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.
    Minimal example: `WText(text: 'Title', variant: WTextVariant.title)`.
+   Reuse existing variants first (including `price` / `number` / `badge`). If a variant is not
+   enough: use `variant + style` for one-offs; extract a local helper for repeated project styles.
+   Consumers cannot add `WTextVariant` enum values; propose a library variant only for stable
+   cross-page semantics.
    **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
    `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; `num.heightBox` / `allPadding` for spacing;
    compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
