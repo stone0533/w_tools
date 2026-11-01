@@ -11,6 +11,14 @@ UI 模块（`w_tools_ui` 子包）提供了一套基于 Flutter 的 UI 组件层
 - **依赖第三方包**：`badges` ^3.1.2（徽章组件）、`cached_network_image` ^3.3.1（图片缓存）
 - **屏幕适配可选**：`WScreen` 内置设备信息获取，适配函数通过委托注入，可与 `flutter_screenutil` 共存，无 delegate 时返回原始值
 
+## 快速判断
+
+- 普通按钮 → `WButton`；任意 child 点击 → `WPressable`
+- 图片 → `WImage`
+- 页面骨架 → `WScaffold` / `WAppBar`
+- 找组件先看 [`components.md`](components.md)
+- 可运行示例：[packages/ui/example](../../packages/ui/example/README.md)
+
 ---
 
 ## 模块结构

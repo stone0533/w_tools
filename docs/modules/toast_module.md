@@ -17,6 +17,13 @@ toast/
     └── toast_config.dart    # WToastConfig 配置与调用入口
 ```
 
+## 快速判断
+
+- 轻提示 → `WToast`
+- 不要在每个页面重复实现 Toast
+- 页面内常驻提示用普通 Widget，不用 Toast
+- 完整规则见根 [`AGENTS.md`](../../AGENTS.md)
+
 ---
 
 ## 1. WToast - 底层封装静态类

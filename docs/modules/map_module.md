@@ -15,6 +15,14 @@ map/
 └── src/map.dart        # WMap / WMapConfig / WMapZone / WMapItem
 ```
 
+## 快速判断
+
+- 地图 → `WMap` + `WMapZone`
+- 业务侧选中 / 关闭 → `WMapController`
+- 普通模型 → `WMapItemMapper`
+- 不要直接用 `GoogleMap`；需要 Google Maps API Key
+- 可运行示例：[packages/map/example](../../packages/map/example/README.md)
+
 ---
 
 ## 1. WMapItem - 条目抽象基类

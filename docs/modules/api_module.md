@@ -24,6 +24,14 @@ api/
     └── base_repository.dart        # BaseRepository 数据仓库基类
 ```
 
+## 快速判断
+
+- 要发请求 / 配拦截器 → `DioRegistry` + `WApiConfig`
+- Token 401 刷新 → `WTokenInterceptor`
+- 日志 → `WLogInterceptor`（默认脱敏敏感头）
+- 不要直接用 `Dio()` 绕过 registry
+- 可运行示例：[packages/api/example](../../packages/api/example/README.md)
+
 ---
 
 ## 1. DioRegistry - Dio 实例注册表
