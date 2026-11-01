@@ -448,6 +448,10 @@ Container(
 
 欢迎提交 Issue 和 Pull Request 来改进这个库。
 
+## 完整示例
+
+根包最小聚合示例见 [`example/`](example/)：一个 `WForm` 表单，验证 `package:w_tools/w.dart` 的实际用法。
+
 ## 许可证
 
 MIT License
