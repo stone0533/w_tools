@@ -97,24 +97,15 @@ import 'package:w_tools/w.dart';
 
 `package:w_tools/w_tools.dart` 仅保留旧 import 兼容，不再新增导出。
 
-### 配置兼容层说明
-
-根包 `WConfig` 是兼容入口：
+根包不再导出 `WConfig`；配置请直接使用子包入口：
 
 ```dart
-WConfig.tokenKey = 'token';
-WConfig.assetImagePath = 'assets/images/';
+import 'package:w_tools_core/w_tools_core.dart'; // WConfig token key
+import 'package:w_tools_ui/w_tools_ui.dart';     // WAssets.imagePath
+import 'package:w_tools_form/w_tools_form.dart'; // WFormDefaults
+import 'package:w_tools_app/w_tools_app.dart';   // WAppConfig
 ```
 
-语言切换不要直接赋值：
-
-```dart
-// 只改状态，不通知语言监听
-WConfig.currentLanguage = 'zh_CN';
-
-// 需要通知 UI 时
-WLanguage().changeLanguage('zh_CN');
-```
 
 ### 从 pub.dev 安装
 

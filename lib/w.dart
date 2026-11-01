@@ -1,7 +1,5 @@
 library w;
 
-export 'config.dart';
-
 export 'package:w_tools_core/w_tools_core.dart' hide WConfig;
 export 'package:w_tools_async/w_tools_async.dart';
 export 'package:w_tools_api/w_tools_api.dart';
