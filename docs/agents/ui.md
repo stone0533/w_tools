@@ -82,11 +82,6 @@ WNotificationListenerBuilder 的百分比只在 depth 0 的 ScrollUpdateNotifica
 
 异步四态、分页、刷新规则见根目录 `AGENTS.md` 的异步区块规则。
 
-## 文字
-
-文字、字号、行高规则见根目录 `AGENTS.md` 的文字规则；新代码使用 `WText` + `WTextStyles`。
-
-
 ## 文字样式规则
 
 默认：
@@ -94,6 +89,22 @@ WNotificationListenerBuilder 的百分比只在 depth 0 的 ScrollUpdateNotifica
 ```dart
 WText(text: '标题', variant: WTextVariant.title)
 ```
+
+### 现有 variant
+
+| variant | 用途 |
+|---|---|
+| `display` | 超大展示文字 |
+| `headline` | 页面主标题 |
+| `title` | 区块标题 |
+| `body` | 正文 |
+| `bodyStrong` | 强调正文 |
+| `caption` | 辅助说明 |
+| `label` | 标签 |
+| `button` | 按钮文字 |
+| `price` | 价格 |
+| `number` | 数字 / 指标 |
+| `badge` | 角标 |
 
 `style` 是合法的一次性覆盖，但只写需要覆盖的字段：
 
@@ -112,8 +123,16 @@ WText(
 1. 默认用 `variant`，不要从整段 `TextStyle` 开始。
 2. 先查已有 variant：`price` / `number` / `badge` 已覆盖常见价格、数字、角标。
 3. 一次性局部差异允许 `style`，但只写要覆盖的字段。
-4. 语义颜色用主题 / `ColorScheme`；一次性状态色用 `color`；不要写 `style: TextStyle(color: ...)`。
-5. 同一语义角色、同一套样式签名，跨 2 个以上页面重复 3 次以上，才考虑提升为 variant。
+4. 语义颜色用主题 / `ColorScheme`；一次性状态色用 `color`；不要写 `style: TextStyle(color: ...)`。例如：
+
+```dart
+WText(
+  text: '保存失败',
+  variant: WTextVariant.body,
+  color: Theme.of(context).colorScheme.error,
+)
+```
+5. 同一语义角色、同一套样式签名，跨至少 2 个页面、合计出现 3 次以上，才考虑提升为 variant。
 6. 消费方不能自行新增 `WTextVariant` enum；跨页面重复样式先用本地 helper / 常量，确需全局语义再提给 `w_tools_ui`。
 7. 库内新增 variant 必须同步 `WTextVariant` / `WTextStyles` 字段 / `fromTextTheme` / `copyWith` / `lerp` / `resolve` / 测试 / 文档。
 8. 价格、品牌标题、表格数字优先复用已有 variant；现有 variant 表达不了时，才保留局部 `style` 或本地 helper。
@@ -126,15 +145,17 @@ WText(
 fontSize / fontWeight / fontFamily / height / letterSpacing / fontFeatures
 ```
 
-颜色、`maxLines`、`textAlign` 不算语义签名。
+颜色、`maxLines`、`textAlign`、`overflow` 不算语义签名。
 
 新增 variant 时按角色命名，例如：
 
 ```text
-priceLarge
-brandTitle
-tableNumeric
+priceStrong   // 已有 price，但需要更强强调
+brandTitle    // 已有 title，但品牌标题语义不同
+metricValue   // 已有 number，但需要独立指标语义
 ```
+
+已有 `price` / `number` / `badge` 能表达时，不要新增。
 
 不要用：
 
@@ -143,4 +164,4 @@ font18W600
 bigText
 ```
 
-注意：`priceLarge` 等名字只是“若库内确实需要新增 variant”时的命名示例；当前已有 `price` 时先复用它。
+以上名字只是“若库内确实需要新增 variant”时的命名示例；当前已有 `price` 时先复用它。
