@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_map: ^1.1.0
+  w_tools_map: ^1.2.1
 ```
 
 请按 `google_maps_flutter` 文档配置 Android / iOS 的 Google Maps API Key。
