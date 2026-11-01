@@ -2,7 +2,7 @@
 
 | 目录 | 受众 | 内容 |
 |------|------|------|
-| [`modules/`](modules/README.md) | 使用者 | 8 个 Flutter 子包的模块文档、组件目录、依赖矩阵 |
+| [`modules/`](modules/README.md) | 使用者 | 9 个 Flutter 子包的模块文档、组件目录、依赖矩阵 |
 | 本目录顶层 | 维护者 / agent | 接入约定、发版流程、ADR、agent 指令 |
 
 ## 使用者

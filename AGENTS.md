@@ -62,7 +62,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ### Tests
 
-每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立 `flutter test` / 发布。根 `test/` 只留聚合契约（`w.dart` 的重导出、`WConfig` 兼容层）。`packages/cli` 是纯 Dart 包，用 `dart test`。CI 用矩阵逐包跑 analyze / test / `pub publish --dry-run`。
+每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立 `flutter test` / 发布。根 `test/` 只留聚合契约（`w.dart` 的重导出）。`packages/cli` 是纯 Dart 包，用 `dart test`。CI 用矩阵逐包跑 analyze / test / `pub publish --dry-run`。
 
 ### 文档
 

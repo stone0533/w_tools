@@ -18,7 +18,7 @@ Single-context repo (this repo):
 
 ```
 /
-├── packages/            # 8 个 Flutter 子包 + cli
+├── packages/            # 9 个 Flutter 子包 + cli
 ├── docs/
 │   ├── modules/         # 使用者文档（模块 / 组件）
 │   ├── adr/             # 0001 版本策略、0002 依赖子包

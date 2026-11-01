@@ -1,5 +1,8 @@
 # ADR 0001：子包独立版本与 semver 规则
 
+> 注：本 ADR 记录时为 8 个 Flutter 子包；之后新增 `w_tools_async`，当前为 9 个。
+
+
 - 状态：已采纳（2026-10-24）
 - 相关：`docs/releasing.md`、`scripts/publish_package.sh`、`scripts/release_check.sh`
 

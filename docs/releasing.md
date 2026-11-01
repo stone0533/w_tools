@@ -1,6 +1,6 @@
-# 发版流程（8 个 Flutter 子包 + w_tools_cli + 聚合包）
+# 发版流程（9 个 Flutter 子包 + w_tools_cli + 聚合包）
 
-`w_tools` 是 8 个 Flutter 子包 + 1 个纯 Dart 工具包（`w_tools_cli`）+ 1 个聚合包。版本各自演进，所以「仓库里有什么」和
+`w_tools` 是 9 个 Flutter 子包 + 1 个纯 Dart 工具包（`w_tools_cli`）+ 1 个聚合包。版本各自演进，所以「仓库里有什么」和
 「pub.dev 上用户能装到什么」很容易分叉 —— 例如 `w_tools_map` 曾经是仓库 1.1.0、
 pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 

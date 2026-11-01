@@ -1,5 +1,8 @@
 # ADR 0002：消费方依赖**子包**，不依赖聚合包
 
+> 注：本 ADR 记录时为 8 个 Flutter 子包；之后新增 `w_tools_async`，当前为 9 个。
+
+
 - 状态：已采纳（2026-10-24）
 - 相关：[`docs/conventions.md`](../conventions.md)、[`packages/cli/templates/toolkit.dart.tpl`](../../packages/cli/templates/toolkit.dart.tpl)、根 `pubspec.yaml`
 

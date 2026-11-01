@@ -1704,7 +1704,7 @@ await precacheImage(
 ### WAssets
 
 资源前缀的**唯一开关**：`'logo.png'.assetImagePath` 读的就是 `WAssets.imagePath`；
-聚合包中的 `WConfig.assetImagePath` 也是它的转发，两处设置等价。
+根聚合包不再导出 `WConfig`；直接使用这里的 `WAssets.imagePath`。
 
 ```dart
 WAssets.imagePath = 'assets/icons/';
