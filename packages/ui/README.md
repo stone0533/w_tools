@@ -174,7 +174,7 @@ DefaultTabController(
 > `squareBox` 与 `WSizeBox` 等价，仅保留兼容。`allPadding` 用于需要 `EdgeInsets` 值的场景。
 
 ```dart
-16.heightBox;                 // SizedBox(height: 16)
+WSizeBox.height(16);          // SizedBox(height: 16)
 16.allPadding;                // EdgeInsets.all(16)
 1234.toThousandsSeparated;    // 1,234
 1234.56.toCurrency(symbol: '¥'); // ¥1,234.56

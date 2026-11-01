@@ -652,10 +652,14 @@ ThemeData(
 3. 稳定、跨页面、主题级语义：再提给 `w_tools_ui` 新增 variant。
 
 ```dart
+import 'dart:ui' show FontFeature;
+
 WText(
   text: '¥128.00',
   variant: WTextVariant.price,
-  style: context.priceHero,
+  style: WTextStyles.of(context).price.copyWith(
+    fontFeatures: const [FontFeature.tabularFigures()],
+  ),
 )
 ```
 
