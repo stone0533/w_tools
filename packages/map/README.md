@@ -185,6 +185,10 @@ flutter pub get
 flutter run   # 需先按 google_maps_flutter 文档配置 API Key
 ```
 
+## 完整示例
+
+见 [`example/`](example/)：门店地图、列表选中、`WMapController` 与关闭选中。
+
 ## License
 
 MIT

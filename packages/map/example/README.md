@@ -1,6 +1,12 @@
-# w_tools_map example
+# w_tools_map 示例
 
-最小可运行示例：渲染 3 个门店，点 marker 选中并平滑移动相机，底部弹出卡片。
+真实场景示例，覆盖：
+
+- `WMapItem` 业务模型
+- `WMapZone` 数据与 marker
+- `WMapConfig` 选中 / 关闭 / 地图点击
+- `WMapController.select` / `closeSelection`
+- `WMapConfig.padding` 避免底部卡片遮住 marker
 
 ## 运行
 
@@ -10,21 +16,26 @@ flutter pub get
 flutter run
 ```
 
-> **需要配置 Google Maps API Key**，否则地图区域会是空白：
-> - Android：`android/app/src/main/AndroidManifest.xml` 里加
->   `<meta-data android:name="com.google.android.geo.API_KEY" android:value="YOUR_KEY" />`
-> - iOS：`ios/Runner/AppDelegate.swift` 里调用
->   `GMSServices.provideAPIKey("YOUR_KEY")`
->
-> 配置方法见 <https://pub.dev/packages/google_maps_flutter>。
+## Google Maps API Key
 
-## 这个示例演示了什么
+示例本身不包含 API Key，运行前需要按 `google_maps_flutter` 文档配置：
 
-| 能力 | 对应代码 |
-|---|---|
-| 业务模型实现 `WMapItem` | `Shop implements WMapItem` |
-| 用列表构造 `WMapZone` | `WMapZone<Shop>(maps: [...])` |
-| 选中/关闭的缩放与偏移 | `WMapConfig(selectZoom:, closeZoom:, selectLatOffset:)` |
-| 接收选中事件、渲染业务 UI | `onItemSelected` / `onItemClosed` + 底部 `Card` |
+```text
+Android: AndroidManifest.xml meta-data com.google.android.geo.API_KEY
+iOS: AppDelegate / Info.plist 对应配置
+```
 
-注意：示例故意**不内置列表页**，只演示地图与事件的接法——业务 UI 由使用方自己写。
+未配置时地图底图可能空白，但页面与门店卡片仍可交互。
+
+## 页面
+
+```text
+门店地图
+点击 marker 或底部门店按钮 → 选中
+底部卡片 → 关闭选中
+点击地图空白 → 关闭选中
+```
+
+## 测试
+
+测试只验证 widget wiring 与选择流程，不依赖真实 Google Maps 平台视图。

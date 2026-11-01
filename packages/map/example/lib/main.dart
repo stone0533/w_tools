@@ -1,114 +1,187 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:w_tools_map/w_tools_map.dart';
 
-/// 业务模型：只需实现 WMapItem 的四个 getter。
-class Shop implements WMapItem {
-  const Shop({this.id, this.name, this.latitude, this.longitude});
-
-  @override
-  final String? id;
-
-  @override
-  final String? name;
-
-  @override
-  final double? latitude;
-
-  @override
-  final double? longitude;
+void main() {
+  runApp(const MapExampleApp());
 }
 
-void main() => runApp(const ExampleApp());
-
-class ExampleApp extends StatelessWidget {
-  const ExampleApp({super.key});
+class MapExampleApp extends StatelessWidget {
+  const MapExampleApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'w_tools_map example',
-      home: MapExamplePage(),
+    return MaterialApp(
+      title: 'w_tools_map 示例',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: const Color(0xFF0EA5E9),
+        useMaterial3: true,
+      ),
+      home: const ShopMapPage(),
     );
   }
 }
 
-class MapExamplePage extends StatefulWidget {
-  const MapExamplePage({super.key});
+class Shop implements WMapItem {
+  const Shop({
+    required this.id,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+  });
 
   @override
-  State<MapExamplePage> createState() => _MapExamplePageState();
+  final String id;
+
+  @override
+  final String name;
+
+  @override
+  final double latitude;
+
+  @override
+  final double longitude;
 }
 
-class _MapExamplePageState extends State<MapExamplePage> {
-  late final WMapZone<Shop> zone;
-  Shop? _selected;
+class ShopMapPage extends StatefulWidget {
+  const ShopMapPage({super.key});
 
-  /// 业务侧控制器：用来关闭选中（对应 WMapConfig.onItemClosed 的触发）
-  final mapController = WMapController<Shop>();
+  @override
+  State<ShopMapPage> createState() => _ShopMapPageState();
+}
+
+class _ShopMapPageState extends State<ShopMapPage> {
+  static const _shops = <Shop>[
+    Shop(id: 'bund', name: '外滩店', latitude: 31.2400, longitude: 121.4900),
+    Shop(id: 'xintiandi', name: '新天地店', latitude: 31.2190, longitude: 121.4750),
+    Shop(id: 'jingan', name: '静安寺店', latitude: 31.2230, longitude: 121.4450),
+  ];
+
+  late final WMapZone<Shop> _zone;
+  final _controller = WMapController<Shop>();
+  Shop? _selected;
 
   @override
   void initState() {
     super.initState();
-    zone = WMapZone<Shop>(
-      maps: const [
-        Shop(id: 'hkg', name: '香港站', latitude: 22.2849, longitude: 114.1581),
-        Shop(id: 'kowloon', name: '九龍站', latitude: 22.3049, longitude: 114.1616),
-        Shop(id: 'shatin', name: '沙田站', latitude: 22.3826, longitude: 114.1874),
-      ],
-      defaultZoom: 11,
-      // 每个门店用不同颜色的图标
-      iconBuilder: (shop) => BitmapDescriptor.defaultMarkerWithHue(
-        shop.id == 'hkg' ? BitmapDescriptor.hueRed : BitmapDescriptor.hueAzure,
-      ),
-    );
+    _zone = WMapZone<Shop>(maps: _shops, defaultZoom: 12);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('w_tools_map example')),
+      appBar: AppBar(title: const Text('门店地图')),
       body: Stack(
         children: [
-          WMap<Shop>(
-            controller: mapController,
-            config: WMapConfig<Shop>(
-              selectZoom: 16,
-              closeZoom: 11,
-              // 底部卡片会挡住地图，留出 140 的内边距
-              padding: const EdgeInsets.only(bottom: 140, top: 80),
-              // 选中时把相机往上挪一点，给底部卡片留位置
-              selectLatOffset: 0.002,
-              onItemSelected: (item) => setState(() => _selected = item),
-              onItemClosed: (_) => setState(() => _selected = null),
-            ),
-            zone: zone,
-          ),
-          if (_selected != null)
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 24,
-              child: Card(
-                child: ListTile(
-                  title: Text(_selected!.name ?? ''),
-                  subtitle: Text(
-                    '${_selected!.latitude}, ${_selected!.longitude}',
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      // 走控制器关闭：相机动回去 + onItemClosed 回调
-                      final selected = _selected;
-                      if (selected != null) {
-                        mapController.closeSelection(selected);
-                      }
-                    },
-                  ),
-                ),
+          Positioned.fill(
+            child: WMap<Shop>(
+              zone: _zone,
+              controller: _controller,
+              config: WMapConfig<Shop>(
+                selectZoom: 15,
+                closeZoom: 12,
+                selectLatOffset: 0.002,
+                padding: EdgeInsets.only(bottom: _selected == null ? 0 : 150),
+                onItemSelected: (shop) {
+                  setState(() => _selected = shop);
+                },
+                onItemClosed: (shop) {
+                  setState(() => _selected = null);
+                },
+                onMapTap: (_) {
+                  final selected = _selected;
+                  if (selected != null) {
+                    _controller.closeSelection(selected);
+                  }
+                },
               ),
             ),
+          ),
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 12,
+            child: _selected == null
+                ? _ShopPicker(
+                    onSelect: (shop) => _controller.select(shop),
+                  )
+                : _SelectedShopCard(
+                    shop: _selected!,
+                    onClose: () => _controller.closeSelection(_selected!),
+                  ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _ShopPicker extends StatelessWidget {
+  const _ShopPicker({required this.onSelect});
+
+  final ValueChanged<Shop> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('点击 marker 或下方按钮选中门店'),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final shop in _ShopMapPageState._shops)
+                  ActionChip(
+                    label: Text(shop.name),
+                    onPressed: () => onSelect(shop),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectedShopCard extends StatelessWidget {
+  const _SelectedShopCard({required this.shop, required this.onClose});
+
+  final Shop shop;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    shop.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('${shop.latitude}, ${shop.longitude}'),
+                ],
+              ),
+            ),
+            TextButton(onPressed: onClose, child: const Text('关闭')),
+          ],
+        ),
       ),
     );
   }
