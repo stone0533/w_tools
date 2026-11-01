@@ -66,7 +66,9 @@ lib/app/w/toolkit.dart
 .w_tools_doctor.yaml
 ```
 
-`doctor` 应该通过。
+随后脚本执行同参数的 `init --check-drift`，确认生成物与模板一致；`doctor` 应通过。
+
+`demo_project` 里的 `w_tools_core: any` 只用于解析，不代表真实项目的锁定版本；真实项目请以 `init` 输出的版本片段为准。
 
 ## 为什么不是 Flutter example
 

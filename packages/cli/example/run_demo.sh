@@ -25,6 +25,10 @@ echo "== init =="
 dart run bin/init.dart --root="$TMP" --profile=minimal --no-ui --no-instructions
 
 echo
+echo "== init --check-drift =="
+dart run bin/init.dart --root="$TMP" --profile=minimal --no-ui --no-instructions --check-drift
+
+echo
 echo "== doctor =="
 dart run bin/doctor.dart --root="$TMP" --format=markdown
 
