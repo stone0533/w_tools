@@ -128,15 +128,21 @@ WText(
 
 ```dart
 final theme = Theme.of(context);
+
 return Theme(
   data: theme.copyWith(
     extensions: [
+      ...theme.extensions.values.where((e) => e is! WTextStyles),
       WTextStyles.fromTextTheme(theme.textTheme),
     ],
   ),
   child: child,
 );
 ```
+
+如果已有 `WTextStyles`，上面的写法会替换它，而不是重复添加。
+
+`WTextStyles.fromTextTheme` 只用于兜底：`price` / `number` / `badge` 等仍建议按品牌设计稿自定义。
 
 如果 `WTextStyles` 使用 `flutter_screenutil` 的 `.sp`，这段构建必须放在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 中，不能放 `main()` / 顶层 `final`。
 
@@ -154,23 +160,25 @@ WText(
   color: Theme.of(context).colorScheme.error,
 )
 ```
+
+`Theme.of(context)` 只能在 build / builder 内调用，不要放 `main()` 或顶层 `final`。
 5. 同一语义角色、同一套样式签名，跨至少 2 个页面、合计出现 3 次以上，才考虑提升为 variant。
 6. 消费方不能自行新增 `WTextVariant` enum；跨页面重复样式先用本地 helper / 常量，确需全局语义再提给 `w_tools_ui`。
 7. 库内新增 variant 必须同步 `WTextVariant` / `WTextStyles` 字段 / `fromTextTheme` / `copyWith` / `lerp` / `resolve` / 测试 / 文档。
 8. 价格、品牌标题、表格数字优先复用已有 variant；现有 variant 表达不了时，才保留局部 `style` 或本地 helper。
 9. 不要用 `style` 绕过主题字体、暗色模式颜色、ScreenUtil 响应式字号。
 10. 非显然的一次性 `style` 加一行注释说明原因。
-11. 新增 `WTextVariant` 属于公开 API 变更：可能破坏消费方 exhaustive switch；新增 `WTextStyles` 必填字段会破坏手写构造。需要按 breaking change 评估，并在 CHANGELOG 说明。
+11. 新增 `WTextVariant` 属于公开 API 变更：可能破坏消费方 exhaustive switch。新增 `WTextStyles` 字段时，required 字段会破坏手写构造；提供默认值才可能保持兼容。需要按 breaking change 评估，并在 CHANGELOG 说明。
 
 ### 审计方法
 
 不要只按 `WText(style:)` 出现次数判断。按下面建表：
 
-| 位置 | 样式签名 | 页面数 | 次数 | 结论 |
-|---|---|---|---|---|
-| A | 18/w600 | 3 | 5 | 候选 variant |
-| B | 28/w700 + tabular | 1 | 2 | 保留局部 style |
-| C | 13/w400 | 1 | 1 | 保留局部 style |
+| 位置 | 样式签名 | 页面数 | 次数 | 已有 variant | 结论 |
+|---|---|---|---|---|---|
+| A | 18/w600 | 3 | 5 | title | 复用 title |
+| B | 28/w700 + tabular | 1 | 2 | price | 保留局部 style / 复用 price |
+| C | 13/w400 | 1 | 1 | caption | 保留局部 style |
 
 “样式签名”只比较：
 
@@ -180,18 +188,10 @@ fontSize / fontWeight / fontFamily / height / letterSpacing / fontFeatures
 
 颜色、`maxLines`、`textAlign`、`overflow` 不参与签名比较。
 
-样式签名按这些字段判断：
-
-```text
-fontSize / fontWeight / fontFamily / height / letterSpacing / fontFeatures
-```
-
-颜色、`maxLines`、`textAlign`、`overflow` 不算语义签名。
-
 新增 variant 时按角色命名，例如：
 
 ```text
-priceStrong   // 已有 price，但需要更强强调
+priceStrong   // 仅当 price 确实不够时，由库维护者新增 enum
 brandTitle    // 已有 title，但品牌标题语义不同
 metricValue   // 已有 number，但需要独立指标语义
 ```
