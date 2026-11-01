@@ -13,6 +13,15 @@
 - **doctor**：扫描项目，检查是否遵守「只依赖子包、业务代码只 import 聚合入口、
   暂存层不依赖业务」等约定（R1~R8）。
 
+## 示例
+
+命令演示与可复现的最小消费方项目见 [`example/`](example/)：
+
+```bash
+cd packages/cli
+bash example/run_demo.sh
+```
+
 ## 安装
 
 ```yaml
