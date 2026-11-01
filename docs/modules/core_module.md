@@ -46,7 +46,7 @@ core/
 集中管理模块内通用的键名和路径常量。所有字段为可修改的静态变量，建议在应用启动时一次性配置。
 
 > ⚠️ `assetImagePath` 已废弃且**不再产生任何效果**（从未被读取）。资源前缀的唯一开关是
-> `w_tools_ui` 的 `WAssets.imagePath`；根聚合包不再导出 `WConfig`。
+> `w_tools_ui` 的 `WAssets.imagePath`；根聚合包导出的是 `core.WConfig`，仅 token 键名有效。
 
 ### 配置字段
 

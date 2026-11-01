@@ -95,10 +95,19 @@ dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 import 'package:w_tools/w.dart';
 ```
 
-根包不再导出 `WConfig`；配置请直接使用子包入口：
+根包不再提供旧 `WConfig` 兼容层。
+
+`w.dart` 重新导出的 `WConfig` 是 `core.WConfig`，只负责 token 键名：
 
 ```dart
-import 'package:w_tools_core/w_tools_core.dart'; // WConfig token key
+import 'package:w_tools/w.dart';
+
+WConfig.tokenKey = 'auth_token';
+```
+
+其余配置继续使用子包入口：
+
+```dart
 import 'package:w_tools_ui/w_tools_ui.dart';     // WAssets.imagePath
 import 'package:w_tools_form/w_tools_form.dart'; // WFormDefaults
 import 'package:w_tools_app/w_tools_app.dart';   // WAppConfig
