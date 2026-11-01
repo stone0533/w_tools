@@ -203,6 +203,37 @@ final mapConfig = WMapConfig<StoreItem>(
 
 ---
 
+## 5. WMapController - 业务侧控制
+
+### 功能说明
+
+`WMap` 本身没有 `closeSelection`；业务 UI 通过 `WMapController` 选中 / 关闭 marker。
+
+### 方法
+
+| 方法 | 说明 |
+|------|------|
+| `select(item)` | 选中条目：相机移动到该条目、打开 InfoWindow、触发 `onItemSelected` |
+| `closeSelection(item)` | 关闭选中：清除选中、复位相机、触发 `onItemClosed` |
+| `isAttached` | 是否已挂载到 `WMap` |
+
+未挂载时调用 `select` / `closeSelection` 不会抛异常，但也不会产生地图动作。
+
+```dart
+final controller = WMapController<StoreItem>();
+
+WMap<StoreItem>(
+  config: mapConfig,
+  zone: zone,
+  controller: controller,
+);
+
+controller.select(stores.first);
+controller.closeSelection(stores.first);
+```
+
+---
+
 ## 完整使用示例
 
 ```dart

@@ -44,7 +44,7 @@ app/
 | `getPages` | `List<GetPage<dynamic>>` | — | **必填**，GetX 路由表 |
 | `orientations` | `List<DeviceOrientation>` | `[portraitUp]` | 支持的屏幕方向，默认仅竖屏 |
 | `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | 透明状态栏 + 黑色导航栏 | 系统 UI 样式；`null` 表示不干预 |
-| `builder` | `TransitionBuilder?` | null | 业务侧 builder（位于插件 wrapper 之后） |
+| `builder` | `TransitionBuilder?` | null | GetMaterialApp.builder；位于插件 builderWrapper 链之后（更外层） |
 | `navigatorObservers` | `List<NavigatorObserver>?` | null | 额外的 navigator observers |
 | `defaultTransition` | `Transition?` | null | GetX 默认转场动画 |
 | `theme` | `ThemeData?` | null | 主题数据 |
@@ -70,13 +70,13 @@ app/
 | `run({...})` | ❌ | 启动应用。**必须先 `init`**；会校验 `title`、`initialRoute`、`getPages` 非空 |
 | `start({onLazyInit, customTasks, initialRoute, getPages, builder, navigatorObservers, defaultTransition, theme, translations, locale, fallbackLocale})` | ❌ | 一站式启动：`start = init + run`；`title` / `orientations` / `systemUiOverlayStyle` 等仍通过字段设置 |
 
-### 包裹顺序（由内向外）
+### 包裹顺序（由外向内）
 
 ```
-GetMaterialApp
+插件 wrapApp（后注册者更外）
   → WApp.appWrapper
-    → 各插件 wrapApp（后注册者在最外层）
-      → WApp.builder（最外层）
+    → GetMaterialApp
+      → WApp.builder（MaterialApp 内部）
 ```
 
 builder 链（由内向外）：
@@ -84,6 +84,8 @@ builder 链（由内向外）：
 ```
 插件 builderWrapper[0] → 插件 builderWrapper[1] → ... → WApp.builder
 ```
+
+`WApp.builder` 不是最外层：它在 `GetMaterialApp` 内部，插件 `wrapApp` 和 `appWrapper` 都在它外面。
 
 ### 插件初始化流程
 
