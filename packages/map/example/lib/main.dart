@@ -22,7 +22,8 @@ class MapExampleApp extends StatelessWidget {
   }
 }
 
-class Shop implements WMapItem {
+/// 普通业务模型，不实现 WMapItem，模拟 json_serializable 生成的模型。
+class Shop {
   const Shop({
     required this.id,
     required this.name,
@@ -30,16 +31,9 @@ class Shop implements WMapItem {
     required this.longitude,
   });
 
-  @override
   final String id;
-
-  @override
   final String name;
-
-  @override
   final double latitude;
-
-  @override
   final double longitude;
 }
 
@@ -57,20 +51,53 @@ class _ShopMapPageState extends State<ShopMapPage> {
     Shop(id: 'jingan', name: '静安寺店', latitude: 31.2230, longitude: 121.4450),
   ];
 
+  static final _mapper = WMapItemMapper<Shop>(
+    id: (shop) => shop.id,
+    name: (shop) => shop.name,
+    position: (shop) => (
+      latitude: shop.latitude,
+      longitude: shop.longitude,
+    ),
+  );
+
   late final WMapZone<Shop> _zone;
   final _controller = WMapController<Shop>();
   Shop? _selected;
+  bool _onlyJingan = false;
 
   @override
   void initState() {
     super.initState();
-    _zone = WMapZone<Shop>(maps: _shops, defaultZoom: 12);
+    _zone = WMapZone<Shop>(
+      maps: _shops,
+      mapper: _mapper,
+      defaultZoom: 12,
+    );
+  }
+
+  void _toggleFilter() {
+    setState(() {
+      _onlyJingan = !_onlyJingan;
+      _zone.update(
+        _onlyJingan ? _shops.where((shop) => shop.id == 'jingan').toList() : _shops,
+      );
+      _selected = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('门店地图')),
+      appBar: AppBar(
+        title: const Text('门店地图'),
+        actions: [
+          IconButton(
+            tooltip: _onlyJingan ? '显示全部门店' : '只看静安店',
+            onPressed: _toggleFilter,
+            icon: Icon(_onlyJingan ? Icons.filter_alt : Icons.filter_alt_off),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           Positioned.fill(
@@ -103,6 +130,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
             bottom: 12,
             child: _selected == null
                 ? _ShopPicker(
+                    shops: _zone.maps ?? const <Shop>[],
                     onSelect: (shop) => _controller.select(shop),
                   )
                 : _SelectedShopCard(
@@ -117,8 +145,9 @@ class _ShopMapPageState extends State<ShopMapPage> {
 }
 
 class _ShopPicker extends StatelessWidget {
-  const _ShopPicker({required this.onSelect});
+  const _ShopPicker({required this.shops, required this.onSelect});
 
+  final List<Shop> shops;
   final ValueChanged<Shop> onSelect;
 
   @override
@@ -135,7 +164,7 @@ class _ShopPicker extends StatelessWidget {
             Wrap(
               spacing: 8,
               children: [
-                for (final shop in _ShopMapPageState._shops)
+                for (final shop in shops)
                   ActionChip(
                     label: Text(shop.name),
                     onPressed: () => onSelect(shop),
