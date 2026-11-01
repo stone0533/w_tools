@@ -137,3 +137,11 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 单次扫码完成后需要重新扫描时，通过 `GlobalKey<WQrViewState>` 调用 `restartScan()`。
 - 相机权限：Android `CAMERA`，iOS `NSCameraUsageDescription`。
 - `onScanned` 只在 `Barcode.code` 非空时触发。
+
+## 地图（w_tools_map）
+
+- 地图用 `WMap` + `WMapZone`，不要直接使用 `GoogleMap`。
+- Google Maps 需要 Android / iOS API Key；地图只在启用 `--with-map` 时引入。
+- `markerId` 必须稳定；不要用 `hashCode` 生成。
+- `json_serializable` 模型用 `WMapItemMapper` 取字段，避免改生成代码。
+- 业务 UI 选中 / 关闭 marker 用 `WMapController.select` / `closeSelection`。

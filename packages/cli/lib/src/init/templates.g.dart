@@ -195,6 +195,8 @@ const String agentsSnippet = r'''
    是明文存储。`WValidator` 做业务语义校验，纯正则用 `WRegExp`；日志用 `WLogger`。
    **扫码**：用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce=true`， <!-- @optional:qr -->
    重新扫描用 `GlobalKey<WQrViewState>.restartScan()`。 <!-- @optional:qr -->
+   **地图**：用 `WMap` + `WMapZone`，不要直接用 `GoogleMap`；markerId 必须稳定， <!-- @optional:map -->
+   json_serializable 模型用 `WMapItemMapper`；需要 Google Maps API Key。 <!-- @optional:map -->
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：
@@ -291,6 +293,8 @@ const String agentsSnippetEn = r'''
    pure regex; log through `WLogger`.
    **Scanning**: use `WQrView`, not the raw `QRView`; `scanOnce` defaults to true, <!-- @optional:qr -->
    and restart via `GlobalKey<WQrViewState>.restartScan()`. <!-- @optional:qr -->
+   **Maps**: use `WMap` + `WMapZone`, not raw `GoogleMap`; marker ids must be stable, <!-- @optional:map -->
+   and `json_serializable` models should use `WMapItemMapper`; API key required. <!-- @optional:map -->
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:
@@ -317,6 +321,7 @@ const String agentsSnippetNoUi = r'''
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储；`WValidator` 做业务校验，纯正则用 `WRegExp`。
    **扫码**：用 `WQrView`；重新扫描用 `WQrViewState.restartScan()`。 <!-- @optional:qr -->
+   **地图**：用 `WMap` + `WMapZone`；markerId 必须稳定，需要 API Key。 <!-- @optional:map -->
 3. **业务层只放这个功能独有的组合**，不放通用组件。
 4. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
@@ -345,6 +350,7 @@ const String agentsSnippetNoUiEn = r'''
    **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
    are plaintext storage; use `WValidator` / `WRegExp` for validation.
    **Scanning**: use `WQrView`; restart with `WQrViewState.restartScan()`. <!-- @optional:qr -->
+   **Maps**: use `WMap` + `WMapZone`; marker ids must be stable; API key required. <!-- @optional:map -->
 3. Business layer keeps feature-specific composition only.
 4. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.

@@ -80,6 +80,8 @@
    是明文存储。`WValidator` 做业务语义校验，纯正则用 `WRegExp`；日志用 `WLogger`。
    **扫码**：用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce=true`， <!-- @optional:qr -->
    重新扫描用 `GlobalKey<WQrViewState>.restartScan()`。 <!-- @optional:qr -->
+   **地图**：用 `WMap` + `WMapZone`，不要直接用 `GoogleMap`；markerId 必须稳定， <!-- @optional:map -->
+   json_serializable 模型用 `WMapItemMapper`；需要 Google Maps API Key。 <!-- @optional:map -->
 6. **硬规则**：pubspec 只依赖具体子包（禁止聚合包 `w_tools`）；
    业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 7. **完成前必须通过**：

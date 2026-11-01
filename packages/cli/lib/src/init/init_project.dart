@@ -143,6 +143,7 @@ InitReport runInit(
         app: app,
         withUi: features.ui,
         withQr: features.qr,
+        withMap: features.map,
       ),
       createdPrefix: target == 'cursor'
           ? '---\ndescription: w_tools conventions\nglobs:\n---\n\n'

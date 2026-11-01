@@ -104,6 +104,9 @@
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；单次扫码后用 `restartScan` |
 | `WQrController` | qr | 相机控制与广播扫描流 | 不要用它重置 scanOnce |
 | `WQrViewOverlayShape` | qr | 扫描框样式 | 尺寸必须大于 0 |
+| `WMap` / `WMapZone` | map | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
+| `WMapController` | map | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
+| `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
 | `WRoute` | app | 路由工具 |
 
 ## 9. 扩展

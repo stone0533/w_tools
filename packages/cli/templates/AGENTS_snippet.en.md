@@ -85,6 +85,8 @@
    pure regex; log through `WLogger`.
    **Scanning**: use `WQrView`, not the raw `QRView`; `scanOnce` defaults to true, <!-- @optional:qr -->
    and restart via `GlobalKey<WQrViewState>.restartScan()`. <!-- @optional:qr -->
+   **Maps**: use `WMap` + `WMapZone`, not raw `GoogleMap`; marker ids must be stable, <!-- @optional:map -->
+   and `json_serializable` models should use `WMapItemMapper`; API key required. <!-- @optional:map -->
 6. **Hard rules**: depend on subpackages, never the aggregate `w_tools`;
    business code imports only the toolkit entry, never `package:w_tools_*` directly.
 7. **Before done**:

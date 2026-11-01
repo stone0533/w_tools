@@ -63,15 +63,22 @@ class InitTemplates {
     String app = 'app',
     bool withUi = true,
     bool withQr = true,
+    bool withMap = true,
   }) {
     final template = withUi
         ? (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
         : (lang == 'en' ? generated.agentsSnippetNoUiEn : generated.agentsSnippetNoUi);
+    final enabled = <String, bool>{
+      'qr': withQr,
+      'map': withMap,
+    };
+    final marker = RegExp(r'@optional:([a-z]+)');
     final lines = template.split('\n');
     final filtered = <String>[];
     for (final line in lines) {
-      if (!withQr && line.contains('@optional:qr')) continue;
-      filtered.add(line.replaceAll(' <!-- @optional:qr -->', ''));
+      final match = marker.firstMatch(line);
+      if (match != null && enabled[match.group(1)] == false) continue;
+      filtered.add(line.replaceAll(RegExp(r'\s*<!-- @optional:[a-z]+ -->'), ''));
     }
     return filtered.join('\n').replaceAll('{{version}}', cliVersion).replaceAll('{{app}}', app);
   }
