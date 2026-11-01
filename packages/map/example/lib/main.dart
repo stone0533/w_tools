@@ -101,28 +101,24 @@ class _ShopMapPageState extends State<ShopMapPage> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: WMap<Shop>(
-              zone: _zone,
-              controller: _controller,
-              config: WMapConfig<Shop>(
-                selectZoom: 15,
-                closeZoom: 12,
-                selectLatOffset: 0.002,
-                padding: EdgeInsets.only(bottom: _selected == null ? 0 : 150),
-                onItemSelected: (shop) {
-                  setState(() => _selected = shop);
-                },
-                onItemClosed: (shop) {
-                  setState(() => _selected = null);
-                },
-                onMapTap: (_) {
-                  final selected = _selected;
-                  if (selected != null) {
-                    _controller.closeSelection(selected);
-                  }
-                },
-              ),
-            ),
+            child: WMapConfig<Shop>(
+              selectZoom: 15,
+              closeZoom: 12,
+              selectLatOffset: 0.002,
+              padding: EdgeInsets.only(bottom: _selected == null ? 0 : 150),
+              onItemSelected: (shop) {
+                setState(() => _selected = shop);
+              },
+              onItemClosed: (shop) {
+                setState(() => _selected = null);
+              },
+              onMapTap: (_) {
+                final selected = _selected;
+                if (selected != null) {
+                  _controller.closeSelection(selected);
+                }
+              },
+            ).build(zone: _zone, controller: _controller),
           ),
           Positioned(
             left: 12,
