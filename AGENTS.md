@@ -94,7 +94,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；`WTextConfig` 已移除。
 - 字体/字号/字重/行高统一放 `WTextStyles` / `TextTheme`。
 - 局部用 `style` / `color` / `maxLines` / `overflow` / `textScaler` 覆盖。
-- 同一语义角色、同一样式签名跨页面重复 3 次以上才提升为 `WTextStyles` variant；一次性价格 / 品牌标题保留局部 `style` 并注释原因。详见 [`docs/agents/ui.md`](docs/agents/ui.md)。
+- 先复用已有 variant（含 `price` / `number` / `badge`）；同一语义角色跨页面重复 3 次以上才考虑提升为库内 variant；消费方不能自行新增 enum。详见 [`docs/agents/ui.md`](docs/agents/ui.md)。
 - 多字体优先 `fontFamilyFallback`；同一段主动混排用 `Text.rich` + `WTextStyles`。
 
 ## 异步区块（w_tools_async）

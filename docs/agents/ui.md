@@ -100,20 +100,25 @@ WText(text: '标题', variant: WTextVariant.title)
 ```dart
 WText(
   text: '¥128.00',
-  variant: WTextVariant.body,
-  style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
+  variant: WTextVariant.price,
+  style: const TextStyle(
+    fontFeatures: [FontFeature.tabularFigures()],
+  ),
 )
 ```
 
 规则：
 
 1. 默认用 `variant`，不要从整段 `TextStyle` 开始。
-2. 一次性局部差异允许 `style`，但只写要覆盖的字段。
-3. 颜色优先用 `color`，不要写 `style: TextStyle(color: ...)`。
-4. 同一语义角色、同一套样式签名，跨 2 个以上文件 / 页面重复 3 次以上，才提升为 `WTextStyles` variant。
-5. 价格、品牌标题、表格数字等视觉配方，语义未确认时保留局部 `style` 或局部 helper，不要硬塞进 variant。
-6. 不要用 `style` 绕过主题字体、暗色模式颜色、ScreenUtil 响应式字号。
-7. 非显然的一次性 `style` 加一行注释说明原因。
+2. 先查已有 variant：`price` / `number` / `badge` 已覆盖常见价格、数字、角标。
+3. 一次性局部差异允许 `style`，但只写要覆盖的字段。
+4. 语义颜色用主题 / `ColorScheme`；一次性状态色用 `color`；不要写 `style: TextStyle(color: ...)`。
+5. 同一语义角色、同一套样式签名，跨 2 个以上页面重复 3 次以上，才考虑提升为 variant。
+6. 消费方不能自行新增 `WTextVariant` enum；跨页面重复样式先用本地 helper / 常量，确需全局语义再提给 `w_tools_ui`。
+7. 库内新增 variant 必须同步 `WTextVariant` / `WTextStyles` 字段 / `fromTextTheme` / `copyWith` / `lerp` / `resolve` / 测试 / 文档。
+8. 价格、品牌标题、表格数字优先复用已有 variant；现有 variant 表达不了时，才保留局部 `style` 或本地 helper。
+9. 不要用 `style` 绕过主题字体、暗色模式颜色、ScreenUtil 响应式字号。
+10. 非显然的一次性 `style` 加一行注释说明原因。
 
 样式签名按这些字段判断：
 
@@ -137,3 +142,5 @@ tableNumeric
 font18W600
 bigText
 ```
+
+注意：`priceLarge` 等名字只是“若库内确实需要新增 variant”时的命名示例；当前已有 `price` 时先复用它。
