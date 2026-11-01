@@ -14,5 +14,6 @@ void main() {
 
     expect(find.text('提交结果'), findsOneWidget);
     expect(find.text('Ada / 香港'), findsOneWidget);
+    expect(find.text('聚合入口的异步结果'), findsOneWidget);
   });
 }

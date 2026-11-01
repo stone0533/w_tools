@@ -20,6 +20,7 @@ import 'package:w_tools/w.dart';
 - `WFormDropdown`
 - `WButton`
 - `WFormController.validate`
+- `WAsyncController` + `WAsyncView`
 
 ## 运行
 

@@ -31,7 +31,26 @@ class AggregateExamplePage extends StatefulWidget {
 
 class _AggregateExamplePageState extends State<AggregateExamplePage> {
   final _form = WFormController();
+  late final WAsyncController<String> _async;
   String? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    _async = WAsyncController<String>(_loadAsync);
+    _async.load();
+  }
+
+  @override
+  void dispose() {
+    _async.dispose();
+    super.dispose();
+  }
+
+  Future<String> _loadAsync() async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    return '聚合入口的异步结果';
+  }
 
   void _submit() {
     if (!_form.validate()) return;
@@ -102,6 +121,22 @@ class _AggregateExamplePageState extends State<AggregateExamplePage> {
                 ),
               ),
             ],
+            const SizedBox(height: 20),
+            const Text(
+              '异步区块',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 80,
+              child: WAsyncView<String>(
+                state: _async.state,
+                onRetry: _async.load,
+                readyBuilder: (context, value) => Center(
+                  child: Text(value),
+                ),
+              ),
+            ),
           ],
         ),
       ),
