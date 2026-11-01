@@ -134,13 +134,14 @@ cancelToken.cancel('用户主动取消');
 ```
 
 ## 快速判断
-
 - 页面区块 → `WAsyncController` + `WAsyncView`
 - 滚动页 / SmartRefresher → `WAsyncStateBuilder`
 - Sliver → `WAsyncStateSliver`
 - 纯执行 → `WAsync`
 - 不要手写 `ValueNotifier<WAsyncState>`
 - 可运行示例：[packages/async/example](../../packages/async/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

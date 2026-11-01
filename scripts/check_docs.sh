@@ -68,6 +68,11 @@ if grep -q '## 10. 子包版本' docs/modules/components.md; then
   note 'docs/modules/components.md 又出现硬编码版本表（应链接 pub.dev / pubspec）'
 fi
 
+# 5) 文档片段与表格列数
+if ! python3 scripts/check_docs_snippets.py; then
+  errors=$((errors + 1))
+fi
+
 if [ "$errors" -gt 0 ]; then
   printf '\n文档检查失败：%s 项\n' "$errors"
   exit 1

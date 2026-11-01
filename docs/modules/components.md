@@ -82,12 +82,12 @@
 
 ## 8. 能力（非 UI）
 
-| 能力 | 子包 | 说明 |
-| --- | --- | --- |
-| `WApp` / `WAppPlugin` | app | 启动器与插件分层初始化 |
+| 能力 | 子包 | 说明 | **不要用在哪** |
+| --- | --- | --- | --- |
+| `WApp` / `WAppPlugin` | app | 启动器与插件分层初始化 | — |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
 | `WAsync` / `WCancelToken` | async | 异步执行、取消 | — |
-| `WCountdown` | core | 倒计时 |
+| `WCountdown` | core | 倒计时 | — |
 | `WStorage` | core | 本地类型读写 | 读取前必须 `init`；明文存储 |
 | `WToken` | core | token 存取 | 明文存储；高敏感场景用 Keychain / Keystore |
 | `WEncrypt` / `WHash` | core | 加密、摘要 | AES-CBC 不提供完整性 |
@@ -97,7 +97,7 @@
 | `DioRegistry` | api | 按 baseUrl 创建并复用 Dio | 不要直接 `Dio()`；同一 baseUrl 只配置一次 |
 | `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试 | 不要在拦截器里存 token |
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
-| `WApiConfig` | api | 请求配置与日志注入 |
+| `WApiConfig` | api | 请求配置与日志注入 | — |
 | `WLanguage` | app | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
 | `WAppConfig` | app | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
 | `WRouteObserver` | app | 维护 `WRoute` 路由栈 | 不要重复添加；WApp 已自动追加 |
@@ -107,7 +107,7 @@
 | `WMap` / `WMapZone` | map | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
 | `WMapController` | map | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
-| `WRoute` | app | 路由工具 |
+| `WRoute` | app | 路由工具 | — |
 
 ## 9. 扩展
 

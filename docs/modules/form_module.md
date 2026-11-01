@@ -12,12 +12,13 @@ Form 模块（`w_tools_form` 子包）提供了一套基于 `flutter_form_builde
 **最低 Flutter 版本**：3.38（由 `flutter_form_builder` / `form_builder_validators` 传递约束）
 
 ## 快速判断
-
 - 页面表单 → `WForm` + 直接字段
 - 校验 → 字段 `validator` + `WFormValidatorSettings`
 - 特殊样式 → 字段 `config`
 - 不要从 `WFormTextFieldConfig().build(...)` 开始
 - 可运行示例：[packages/form/example](../../packages/form/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

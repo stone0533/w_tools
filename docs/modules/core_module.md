@@ -14,13 +14,14 @@ Core 模块（`w_tools_core` 子包）是整个 `w_tools` 工具库的**零业�
 | **UI** | Flutter Widget 组件（Toast、Dialog、Loading 等）、BuildContext 扩展 | Flutter Widgets |
 
 ## 快速判断
-
 - 存储 / Token → `WStorage` / `WToken`（读取前先 `init`，明文存储）
 - 业务校验 → `WValidator`
 - 纯正则 → `WRegExp`
 - 日志 → `WLogger`
 - 防抖 / 节流 → `WUx`
 - 可运行示例：[packages/core/example](../../packages/core/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

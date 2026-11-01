@@ -24,12 +24,13 @@ app/
 ```
 
 ## 快速判断
-
 - 启动 → `WApp.start()`
 - 插件顺序 → `WAppPlugin.dependsOn`
 - 全局默认视图 → `WAppPlugin.wrapApp` / `WApp.appWrapper`
 - 强依赖 GetX
 - 可运行示例：[packages/app/example](../../packages/app/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

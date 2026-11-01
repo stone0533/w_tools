@@ -25,12 +25,13 @@ api/
 ```
 
 ## 快速判断
-
 - 要发请求 / 配拦截器 → `DioRegistry` + `WApiConfig`
 - Token 401 刷新 → `WTokenInterceptor`
 - 日志 → `WLogInterceptor`（默认脱敏敏感头）
 - 不要直接用 `Dio()` 绕过 registry
 - 可运行示例：[packages/api/example](../../packages/api/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

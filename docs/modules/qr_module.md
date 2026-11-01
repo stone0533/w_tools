@@ -25,12 +25,13 @@ qr/
 ```
 
 ## 快速判断
-
 - 扫码 → `WQrView`
 - 相机控制 → `WQrController`
 - 单次扫码后重扫 → `WQrViewState.restartScan`
 - 不要直接用 `qr_code_scanner_plus` 的 `QRView`
 - 可运行示例：[packages/qr/example](../../packages/qr/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

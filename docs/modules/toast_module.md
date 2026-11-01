@@ -18,11 +18,12 @@ toast/
 ```
 
 ## 快速判断
-
 - 轻提示 → `WToast`
 - 不要在每个页面重复实现 Toast
 - 页面内常驻提示用普通 Widget，不用 Toast
 - 完整规则见根 [`AGENTS.md`](../../AGENTS.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 
