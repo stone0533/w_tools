@@ -109,6 +109,8 @@ WText(text: '标题', variant: WTextVariant.title)
 `style` 是合法的一次性覆盖，但只写需要覆盖的字段：
 
 ```dart
+import 'dart:ui' show FontFeature;
+
 WText(
   text: '¥128.00',
   variant: WTextVariant.price,
@@ -117,6 +119,26 @@ WText(
   ),
 )
 ```
+
+### WTextStyles 安装
+
+`WTextStyles` 是 `ThemeExtension`。未安装时 `WTextStyles.of(context)` 会从当前 `TextTheme` 生成兜底样式。
+
+需要统一品牌字号时，在主题构建处安装：
+
+```dart
+final theme = Theme.of(context);
+return Theme(
+  data: theme.copyWith(
+    extensions: [
+      WTextStyles.fromTextTheme(theme.textTheme),
+    ],
+  ),
+  child: child,
+);
+```
+
+如果 `WTextStyles` 使用 `flutter_screenutil` 的 `.sp`，这段构建必须放在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 中，不能放 `main()` / 顶层 `final`。
 
 规则：
 
@@ -138,6 +160,25 @@ WText(
 8. 价格、品牌标题、表格数字优先复用已有 variant；现有 variant 表达不了时，才保留局部 `style` 或本地 helper。
 9. 不要用 `style` 绕过主题字体、暗色模式颜色、ScreenUtil 响应式字号。
 10. 非显然的一次性 `style` 加一行注释说明原因。
+11. 新增 `WTextVariant` 属于公开 API 变更：可能破坏消费方 exhaustive switch；新增 `WTextStyles` 必填字段会破坏手写构造。需要按 breaking change 评估，并在 CHANGELOG 说明。
+
+### 审计方法
+
+不要只按 `WText(style:)` 出现次数判断。按下面建表：
+
+| 位置 | 样式签名 | 页面数 | 次数 | 结论 |
+|---|---|---|---|---|
+| A | 18/w600 | 3 | 5 | 候选 variant |
+| B | 28/w700 + tabular | 1 | 2 | 保留局部 style |
+| C | 13/w400 | 1 | 1 | 保留局部 style |
+
+“样式签名”只比较：
+
+```text
+fontSize / fontWeight / fontFamily / height / letterSpacing / fontFeatures
+```
+
+颜色、`maxLines`、`textAlign`、`overflow` 不参与签名比较。
 
 样式签名按这些字段判断：
 
