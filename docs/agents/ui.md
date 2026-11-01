@@ -85,3 +85,55 @@ WNotificationListenerBuilder 的百分比只在 depth 0 的 ScrollUpdateNotifica
 ## 文字
 
 文字、字号、行高规则见根目录 `AGENTS.md` 的文字规则；新代码使用 `WText` + `WTextStyles`。
+
+
+## 文字样式规则
+
+默认：
+
+```dart
+WText(text: '标题', variant: WTextVariant.title)
+```
+
+`style` 是合法的一次性覆盖，但只写需要覆盖的字段：
+
+```dart
+WText(
+  text: '¥128.00',
+  variant: WTextVariant.body,
+  style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
+)
+```
+
+规则：
+
+1. 默认用 `variant`，不要从整段 `TextStyle` 开始。
+2. 一次性局部差异允许 `style`，但只写要覆盖的字段。
+3. 颜色优先用 `color`，不要写 `style: TextStyle(color: ...)`。
+4. 同一语义角色、同一套样式签名，跨 2 个以上文件 / 页面重复 3 次以上，才提升为 `WTextStyles` variant。
+5. 价格、品牌标题、表格数字等视觉配方，语义未确认时保留局部 `style` 或局部 helper，不要硬塞进 variant。
+6. 不要用 `style` 绕过主题字体、暗色模式颜色、ScreenUtil 响应式字号。
+7. 非显然的一次性 `style` 加一行注释说明原因。
+
+样式签名按这些字段判断：
+
+```text
+fontSize / fontWeight / fontFamily / height / letterSpacing / fontFeatures
+```
+
+颜色、`maxLines`、`textAlign` 不算语义签名。
+
+新增 variant 时按角色命名，例如：
+
+```text
+priceLarge
+brandTitle
+tableNumeric
+```
+
+不要用：
+
+```text
+font18W600
+bigText
+```
