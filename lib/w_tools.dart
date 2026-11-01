@@ -1,7 +1,6 @@
-/// W Tools Library
+/// W Tools Library（兼容入口）
 ///
-/// 一个功能丰富的 Flutter 工具库，提供了多种实用工具和组件，
-/// 帮助开发者快速构建高质量的 Flutter 应用。
+/// 新代码请使用 `package:w_tools/w.dart`；本文件仅保留旧 import 兼容。
 
 library w_tools;
 

@@ -87,6 +87,16 @@ dart run w_tools_cli:init      # 生成到当前项目
 dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 ```
 
+### 入口约定
+
+新代码统一使用：
+
+```dart
+import 'package:w_tools/w.dart';
+```
+
+`package:w_tools/w_tools.dart` 仅保留旧 import 兼容，不再新增导出。
+
 ### 配置兼容层说明
 
 根包 `WConfig` 是兼容入口：
