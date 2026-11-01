@@ -6,6 +6,15 @@ App 模块（`w_tools_app` 子包）提供了一套一站式的应用启动方�
 
 该子包**强依赖 GetX**（`get` 包），不可替换。`WApp` 本质是对 `GetMaterialApp` 的增强包装：保留 GetX 全部能力的同时，补充了插件生命周期管理、语言 API 和路由栈操作。
 
+## 快速判断
+- 启动 → `WApp.start()`
+- 插件顺序 → `WAppPlugin.dependsOn`
+- 全局默认视图 → `WAppPlugin.wrapApp` / `WApp.appWrapper`
+- 强依赖 GetX
+- 可运行示例：[packages/app/example](../../packages/app/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
+
 ## 模块结构
 
 ```
@@ -23,14 +32,6 @@ app/
         └── router_observer.dart              # WRouteObserver
 ```
 
-## 快速判断
-- 启动 → `WApp.start()`
-- 插件顺序 → `WAppPlugin.dependsOn`
-- 全局默认视图 → `WAppPlugin.wrapApp` / `WApp.appWrapper`
-- 强依赖 GetX
-- 可运行示例：[packages/app/example](../../packages/app/example/README.md)
-
-- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

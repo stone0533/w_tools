@@ -14,6 +14,15 @@ QR 模块（`w_tools_qr` 子包）基于 `qr_code_scanner_plus` 封装，提供�
 
 依赖：`qr_code_scanner_plus`（锁定 `>=2.1.2 <2.2.0`，2.2+ 要求 Flutter 3.44 / iOS 13 / AGP 9，暂不升级）。
 
+## 快速判断
+- 扫码 → `WQrView`
+- 相机控制 → `WQrController`
+- 单次扫码后重扫 → `WQrViewState.restartScan`
+- 不要直接用 `qr_code_scanner_plus` 的 `QRView`
+- 可运行示例：[packages/qr/example](../../packages/qr/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
+
 ## 模块结构
 
 ```
@@ -24,14 +33,6 @@ qr/
     └── qr_overlay_shape.dart  # WQrViewOverlayShape
 ```
 
-## 快速判断
-- 扫码 → `WQrView`
-- 相机控制 → `WQrController`
-- 单次扫码后重扫 → `WQrViewState.restartScan`
-- 不要直接用 `qr_code_scanner_plus` 的 `QRView`
-- 可运行示例：[packages/qr/example](../../packages/qr/example/README.md)
-
-- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

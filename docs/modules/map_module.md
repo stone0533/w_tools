@@ -8,13 +8,6 @@ Map 模块（`w_tools_map` 子包）基于 `google_maps_flutter` 封装，提供
 
 依赖：`google_maps_flutter`。
 
-## 模块结构
-
-```
-map/
-└── src/map.dart        # WMap / WMapConfig / WMapZone / WMapItem
-```
-
 ## 快速判断
 - 地图 → `WMap` + `WMapZone`
 - 业务侧选中 / 关闭 → `WMapController`
@@ -23,6 +16,14 @@ map/
 - 可运行示例：[packages/map/example](../../packages/map/example/README.md)
 
 - 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
+
+## 模块结构
+
+```
+map/
+└── src/map.dart        # WMap / WMapConfig / WMapZone / WMapItem
+```
+
 
 ---
 

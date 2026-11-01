@@ -8,6 +8,14 @@ Toast 模块（`w_tools_toast` 子包）基于 `bot_toast` 提供轻量的提示
 
 依赖：`bot_toast`。
 
+## 快速判断
+- 轻提示 → `WToast`
+- 不要在每个页面重复实现 Toast
+- 页面内常驻提示用普通 Widget，不用 Toast
+- 完整规则见根 [`AGENTS.md`](../../AGENTS.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
+
 ## 模块结构
 
 ```
@@ -17,13 +25,6 @@ toast/
     └── toast_config.dart    # WToastConfig 配置与调用入口
 ```
 
-## 快速判断
-- 轻提示 → `WToast`
-- 不要在每个页面重复实现 Toast
-- 页面内常驻提示用普通 Widget，不用 Toast
-- 完整规则见根 [`AGENTS.md`](../../AGENTS.md)
-
-- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 

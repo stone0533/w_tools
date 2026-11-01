@@ -8,6 +8,15 @@ API 模块（`w_tools_api` 子包）提供了一套基于 Dio 封装的网络请
 
 Cookie 管理未内置，需要时请使用社区包 [`dio_cookie_manager`](https://pub.dev/packages/dio_cookie_manager)。
 
+## 快速判断
+- 要发请求 / 配拦截器 → `DioRegistry` + `WApiConfig`
+- Token 401 刷新 → `WTokenInterceptor`
+- 日志 → `WLogInterceptor`（默认脱敏敏感头）
+- 不要直接用 `Dio()` 绕过 registry
+- 可运行示例：[packages/api/example](../../packages/api/example/README.md)
+
+- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
+
 ## 模块结构
 
 ```
@@ -24,14 +33,6 @@ api/
     └── base_repository.dart        # BaseRepository 数据仓库基类
 ```
 
-## 快速判断
-- 要发请求 / 配拦截器 → `DioRegistry` + `WApiConfig`
-- Token 401 刷新 → `WTokenInterceptor`
-- 日志 → `WLogInterceptor`（默认脱敏敏感头）
-- 不要直接用 `Dio()` 绕过 registry
-- 可运行示例：[packages/api/example](../../packages/api/example/README.md)
-
-- 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
 ---
 
