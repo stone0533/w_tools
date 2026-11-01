@@ -29,6 +29,8 @@ bash example/run_demo.sh
 
 脚本在缺少 `.dart_tool` 时也会自动执行 `dart pub get`。
 
+Windows 请使用 Git Bash 或 WSL；`dart test` 在 Windows 上会跳过依赖 bash 的示例测试。
+
 脚本会：
 
 ```text
