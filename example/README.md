@@ -42,3 +42,9 @@ flutter test
 聚合包会带上 9 个 Flutter 子包及其依赖（包括 map / qr / GetX）。
 
 生产项目建议按需依赖子包；本示例只用于验证聚合入口的实际用法。
+
+异步区块只演示 `loading → ready`；失败 / 重试 / 分页等完整异步能力见：
+
+```text
+packages/async/example/
+```

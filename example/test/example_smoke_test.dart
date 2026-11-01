@@ -16,4 +16,14 @@ void main() {
     expect(find.text('Ada / 香港'), findsOneWidget);
     expect(find.text('聚合入口的异步结果'), findsOneWidget);
   });
+  testWidgets('空表单提交不会产生结果', (tester) async {
+    await tester.pumpWidget(const AggregateExampleApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(WButton, '提交'));
+    await tester.pump();
+
+    expect(find.text('提交结果'), findsNothing);
+    expect(find.text('请输入昵称'), findsWidgets);
+  });
 }

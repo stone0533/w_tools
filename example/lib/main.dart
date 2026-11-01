@@ -127,8 +127,8 @@ class _AggregateExamplePageState extends State<AggregateExamplePage> {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              height: 80,
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 80),
               child: WAsyncView<String>(
                 state: _async.state,
                 onRetry: _async.load,
