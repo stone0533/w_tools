@@ -23,8 +23,11 @@ dart run w_tools_cli:doctor --format=markdown
 
 ```bash
 cd packages/cli
+dart pub get
 bash example/run_demo.sh
 ```
+
+脚本在缺少 `.dart_tool` 时也会自动执行 `dart pub get`。
 
 脚本会：
 
@@ -51,8 +54,10 @@ example/demo_project/
 ```yaml
 name: demo_app
 dependencies:
-  w_tools_core: ^2.0.0
+  w_tools_core: any
 ```
+
+`demo_project` 只用于 CLI 解析，不保证独立 `dart pub get`；核心目的是复现 `init` / `doctor` / `context` 流程。
 
 `init --profile=minimal` 会生成：
 

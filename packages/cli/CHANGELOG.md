@@ -13,7 +13,7 @@
 - 消费方 AGENTS 与组件目录补充 `w_tools_core` 的 `WStorage.init` / 明文存储 / `WValidator` 与 `WRegExp` 分工规则。
 - 消费方 AGENTS 与组件目录补充 `w_tools_qr` 的 `WQrView` / `WQrController` / `restartScan` 扫码规则。
 - 消费方 AGENTS 与组件目录补充 `w_tools_map` 的 `WMap` / `WMapZone` / `WMapItemMapper` 地图规则，仅在 `--with-map` 时生成。
-- 新增 `example/`：命令演示与基于临时 `demo_project` 的可复现 init / doctor / context / list / explain 流程。
+- 新增 `example/`：命令演示与基于临时 `demo_project` 的可复现 init / doctor / context / list / explain 流程；脚本自动准备依赖并清理临时目录。
 - `DoctorConfig.copyWith` 支持覆盖 `colorMinCount` / `ignore`。
 
 ## 1.3.0

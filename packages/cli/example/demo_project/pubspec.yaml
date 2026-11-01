@@ -4,4 +4,4 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  w_tools_core: ^2.0.0
+  w_tools_core: any
