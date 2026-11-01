@@ -218,7 +218,7 @@ class UserRepository extends BaseRepository<UserLocalDataSource, UserRemoteDataS
 ```dart
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:w_tools/w_tools.dart';
+import 'package:w_tools/w.dart';
 
 void setupApi() {
   // 全局 Dio 基础配置（可选）

@@ -95,8 +95,6 @@ dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 import 'package:w_tools/w.dart';
 ```
 
-`package:w_tools/w_tools.dart` 仅保留旧 import 兼容，不再新增导出。
-
 根包不再导出 `WConfig`；配置请直接使用子包入口：
 
 ```dart

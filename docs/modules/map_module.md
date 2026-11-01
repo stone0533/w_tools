@@ -186,7 +186,7 @@ final mapConfig = WMapConfig<StoreItem>(
 ## 完整使用示例
 
 ```dart
-import 'package:w_tools/w_tools.dart';
+import 'package:w_tools/w.dart';
 
 /// 1. 业务数据模型（见 WMapItem 示例）
 

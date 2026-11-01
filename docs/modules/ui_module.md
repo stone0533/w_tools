@@ -1722,7 +1722,7 @@ WAssets.imagePath = 'assets/icons/';
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:w_tools/w_tools.dart';
+import 'package:w_tools/w.dart';
 
 void main() {
   runApp(ScreenUtilInit(

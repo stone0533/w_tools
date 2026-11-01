@@ -2,7 +2,7 @@
 
 - 新增 `w_tools_async`：异步执行、重试、超时、取消、四态状态、Controller 与异步视图。
 - 移除根 `WConfig` / `WConfigSetup` 兼容层；配置改用子包 `WConfig` / `WAssets` / `WFormDefaults` / `WAppConfig`。
-- 文档明确新代码使用 `package:w_tools/w.dart`，`w_tools.dart` 仅保留旧 import 兼容。
+- 移除 `lib/w_tools.dart` 旧入口别名；统一使用 `package:w_tools/w.dart`。
 - `w_tools_core` 升到 `2.0.0`：异步能力整体迁出 core，迁移到 `w_tools_async`；
   根包新增 `w_tools_async` 聚合。
 - 依赖：`w_tools_ui` 提升到 `^2.0.0`。
