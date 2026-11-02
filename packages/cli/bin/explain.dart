@@ -17,6 +17,9 @@ w_tools_cli explain —— 查看某个组件的用途、反例、import 与文�
   dart run w_tools_cli:explain WImage
   dart run w_tools_cli:explain WFormDropdown
 
+说明：
+  项目 .w_tools_doctor.yaml 配置 banned 时，会提示禁用项、替代方案与原因。
+
 选项：
   --format=<fmt>  text | json（默认 text）
   --json          等价于 --format=json

@@ -11,6 +11,7 @@ w_tools_cli list —— 按关键词查组件目录
 用法：dart run w_tools_cli:list [关键词]
 
 示例：
+  dart run w_tools_cli:list          # 列出全部
   dart run w_tools_cli:list 下拉
   dart run w_tools_cli:list WImage
 

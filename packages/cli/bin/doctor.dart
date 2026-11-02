@@ -26,6 +26,15 @@ w_tools_cli doctor —— 扫描消费方项目是否符合 w_tools 的接入约
   --force             配合 --write-config 覆盖已有文件
   --version           显示版本
   --help, -h          显示本帮助
+
+示例：
+  dart run w_tools_cli:doctor
+  dart run w_tools_cli:doctor --format=markdown
+  dart run w_tools_cli:doctor --only=R1,R9 --strict --json
+  dart run w_tools_cli:doctor --print-config
+
+说明：
+  R9 读取 .w_tools_doctor.yaml 的 banned；未配置时跳过。
 ''';
 
 /// 已知规则 id；`--only` 里出现未知 id 直接报错，避免 CI 写错后静默通过。

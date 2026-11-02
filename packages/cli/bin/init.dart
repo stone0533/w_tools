@@ -47,6 +47,15 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --lang=<l>     zh | en（默认取配置 / zh）
   --version      显示版本
   --help, -h     显示本帮助
+
+示例：
+  dart run w_tools_cli:init
+  dart run w_tools_cli:init --profile=ui
+  dart run w_tools_cli:init --targets=agents,claude --lang=en
+  dart run w_tools_cli:init --check-drift
+
+说明：
+  .w_tools_doctor.yaml 的有效 banned 会生成到 AGENTS 的“本项目禁用 API”段落。
 ''';
 
 void main(List<String> argv) {

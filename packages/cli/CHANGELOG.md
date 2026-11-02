@@ -6,6 +6,7 @@
 - 新增 R9 项目禁用 API：`.w_tools_doctor.yaml` 的 `banned` 支持 literal / regex、paths / ignore、use / reason 与 level。
 - 支持 `// w_tools:ignore R9 reason: ...` / `// w_tools:ignore-file R9 reason: ...`，没有 reason 不生效。
 - `init` 会把有效 `banned` 生成到 AGENTS；`explain` 会提示当前项目禁用项。
+- README 增加 5 分钟上手、命令决策表、升级后重新生成、退出码与 R9/banned 说明；`init` / `doctor` / `list` / `explain` 的 `--help` 补示例。
 
 ### Changed
 - 消费方 AGENTS 模板补充 `WTextVariant` 不够用时的处理顺序：先 `variant + style`，项目内重复抽本地 helper，稳定跨页面语义再提库内 variant。
