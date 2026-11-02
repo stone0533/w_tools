@@ -101,6 +101,33 @@ dart run w_tools_cli:init --no-map      # 显式关闭（默认关）
 # --with-map 仍可用，等同 --map
 ```
 
+### Figma 片段
+
+```bash
+dart run w_tools_cli:init --figma
+```
+
+只在 AGENTS 中追加 Figma → Flutter 说明，不会修改 toolkit 或 pubspec。
+
+是否生成按以下优先级：
+
+```text
+--figma / --no-figma
+  > .w_tools_doctor.yaml 的 ai.figma
+  > pubspec 是否依赖 w_tools_figma
+  > false
+```
+
+`ai.figma`：
+
+```yaml
+ai:
+  figma: auto  # auto | true | false
+```
+
+如果 pubspec 已有 `w_tools_figma`，生成的安装命令沿用该约束；path/git 依赖时
+不生成错误的 pub 版本命令。
+
 ### 指令文件目标
 
 ```bash

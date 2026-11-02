@@ -7,6 +7,7 @@
 
 ### Changed
 - `--figma` 片段不再重复 UI / form 组件规则；版本约束收敛到单一常量。
+- `init --figma` 优先使用消费方 pubspec 的 `w_tools_figma` 约束；path/git 依赖不生成 pub 版本。
 
 ## 1.7.1
 

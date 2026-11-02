@@ -69,19 +69,28 @@ String _buildUsage() {
   return _usage.replaceAll('{{features}}', features);
 }
 
-bool _hasFigmaDependency(Directory root) {
+({bool present, String? constraint}) _figmaDependency(Directory root) {
   final file = File('${root.path}/pubspec.yaml');
-  if (!file.existsSync()) return false;
+  if (!file.existsSync()) return (present: false, constraint: null);
   try {
     final raw = loadYaml(file.readAsStringSync());
     for (final key in const <String>['dependencies', 'dev_dependencies']) {
       final deps = raw is YamlMap ? raw[key] : null;
-      if (deps is YamlMap && deps.containsKey('w_tools_figma')) return true;
+      if (deps is! YamlMap || !deps.containsKey('w_tools_figma')) continue;
+      final value = deps['w_tools_figma'];
+      return (present: true, constraint: value is String ? value : null);
     }
   } on YamlException {
-    return false;
+    return (present: false, constraint: null);
   }
-  return false;
+  return (present: false, constraint: null);
+}
+
+String? _figmaInstallLine(Directory root) {
+  final dep = _figmaDependency(root);
+  if (!dep.present) return null;
+  if (dep.constraint == null) return '# w_tools_figma 已通过 path/git 安装';
+  return 'dart pub add dev:w_tools_figma:${dep.constraint}';
 }
 
 bool _resolveFigma(
@@ -94,7 +103,7 @@ bool _resolveFigma(
   return switch (config.aiFigma) {
     'true' => true,
     'false' => false,
-    _ => _hasFigmaDependency(root),
+    _ => _figmaDependency(root).present,
   };
 }
 
@@ -201,6 +210,7 @@ void main(List<String> argv) {
         targets: targets,
         lang: lang,
         figma: figmaEnabled,
+        figmaInstall: _figmaInstallLine(root),
       );
 
       if (args['json'] as bool) {

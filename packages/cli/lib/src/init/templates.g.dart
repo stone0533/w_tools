@@ -256,7 +256,7 @@ const String agentsFigma = r'''
 需要从设计稿取规格 / token 时使用 `w_tools_figma`：
 
 ```bash
-dart pub add dev:w_tools_figma:{{figmaConstraint}}
+{{figmaInstall}}
 dart run w_tools_figma:figma init
 export FIGMA_TOKEN=figd_xxx
 # 或把 token 写入 .figma-token
@@ -426,7 +426,7 @@ const String agentsFigmaEn = r'''
 Use `w_tools_figma` when you need specs or design tokens from Figma:
 
 ```bash
-dart pub add dev:w_tools_figma:{{figmaConstraint}}
+{{figmaInstall}}
 dart run w_tools_figma:figma init
 export FIGMA_TOKEN=figd_xxx
 # or put the token in .figma-token

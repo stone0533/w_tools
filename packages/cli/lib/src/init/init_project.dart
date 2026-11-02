@@ -65,6 +65,7 @@ InitReport runInit(
   Set<String> targets = const <String>{'agents'},
   String lang = 'zh',
   bool figma = false,
+  String? figmaInstall,
 }) {
   final report = InitReport();
   final app = _projectName(root);
@@ -158,6 +159,7 @@ InitReport runInit(
         withQr: features.qr,
         withMap: features.map,
         withFigma: figma,
+        figmaInstall: figmaInstall,
         banned: projectConfig.banned,
       ),
       createdPrefix: target == 'cursor'

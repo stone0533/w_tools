@@ -134,6 +134,33 @@ banned:
     );
   });
 
+  test('init 使用消费方 pubspec 的 figma 约束', () async {
+    final root = _project();
+    final pubspec = File(p.join(root.path, 'pubspec.yaml'));
+    pubspec.writeAsStringSync(
+      '${pubspec.readAsStringSync()}dev_dependencies:\n  w_tools_figma: ^0.4.0\n',
+    );
+    final r = await _run('init.dart', ['--root', root.path]);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+    expect(agents, contains('dart pub add dev:w_tools_figma:^0.4.0'));
+    expect(agents, isNot(contains('dart pub add dev:w_tools_figma:^0.3.0')));
+  });
+
+  test('init 对 path 依赖不生成 pub 版本', () async {
+    final root = _project();
+    final pubspec = File(p.join(root.path, 'pubspec.yaml'));
+    pubspec.writeAsStringSync(
+      '${pubspec.readAsStringSync()}dev_dependencies:\n'
+      '  w_tools_figma:\n    path: ../figma\n',
+    );
+    final r = await _run('init.dart', ['--root', root.path]);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+    expect(agents, contains('已通过 path/git 安装'));
+    expect(agents, isNot(contains('dart pub add dev:w_tools_figma:')));
+  });
+
   test('ai.figma: false 阻止自动生成', () async {
     final root = _project();
     final pubspec = File(p.join(root.path, 'pubspec.yaml'));

@@ -75,6 +75,7 @@ class InitTemplates {
     bool withQr = true,
     bool withMap = true,
     bool withFigma = false,
+    String? figmaInstall,
     List<BannedRule> banned = const <BannedRule>[],
   }) {
     final en = lang == 'en';
@@ -129,7 +130,10 @@ class InitTemplates {
         .join('\n\n')
         .replaceAll('{{version}}', cliVersion)
         .replaceAll('{{app}}', app)
-        .replaceAll('{{figmaConstraint}}', figmaConstraint)
+        .replaceAll(
+          '{{figmaInstall}}',
+          figmaInstall ?? 'dart pub add dev:w_tools_figma:$figmaConstraint',
+        )
         .replaceAll('{{doctorRules}}', _doctorRuleTable(en))
         .trimRight();
   }
