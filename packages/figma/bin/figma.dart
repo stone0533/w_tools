@@ -3,6 +3,23 @@ import 'dart:io';
 
 import 'package:w_tools_figma/w_tools_figma.dart';
 
+/// 写 stdout；管道被 `head` 关闭时静默退出（避免 Broken pipe 崩溃）。
+void _print(String text) {
+  try {
+    stdout.write(text);
+  } on FileSystemException {
+    // 下游已经关闭（如 `| head`），不算错误
+  }
+}
+
+void _printLine(String text) {
+  try {
+    stdout.writeln(text);
+  } on FileSystemException {
+    // 同上
+  }
+}
+
 const _usage = '''
 w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/figma-cli.md）
 
@@ -43,7 +60,7 @@ fetch 专属：
 
 Future<void> main(List<String> args) async {
   if (args.isEmpty || args.contains('-h') || args.contains('--help')) {
-    stdout.write(_usage);
+    _print(_usage);
     exitCode = args.isEmpty ? 2 : 0;
     return;
   }
@@ -69,10 +86,10 @@ Future<void> main(List<String> args) async {
       case 'tokens':
         await _runTokens(rest);
       case 'version':
-        stdout.writeln('w_tools_figma 0.1.0');
+        _printLine('w_tools_figma 0.1.0');
       default:
         stderr.writeln('未知命令：$command\n');
-        stdout.write(_usage);
+        _print(_usage);
         exitCode = 2;
     }
   } on StateError catch (e) {
@@ -149,7 +166,7 @@ Future<void> _runFetch(List<String> args) async {
       );
     }
     if (options.json) {
-      stdout.writeln(jsonEncode({
+      _printLine(jsonEncode({
         'schema': 'w_tools_figma.fetch/1',
         'cacheFile': result.file.path,
         'fromCache': result.fromCache,
@@ -169,7 +186,7 @@ void _runUsage(List<String> args) {
   final store = CacheStore(Directory(options.root));
   final summary = UsageCommand(store).run();
   if (options.json) {
-    stdout.writeln(jsonEncode({
+    _printLine(jsonEncode({
       'schema': 'w_tools_figma.usage/1',
       'month': summary.month,
       'used': summary.used,
@@ -181,16 +198,16 @@ void _runUsage(List<String> args) {
     }));
     return;
   }
-  stdout.writeln('Tier 1 calls this month (${summary.month}): ${summary.used} / ${summary.limit}');
+  _printLine('Tier 1 calls this month (${summary.month}): ${summary.used} / ${summary.limit}');
   if (summary.isNearLimit) {
-    stdout.writeln('⚠️ 已用 ${summary.used}/${summary.limit}，本月剩余 ${summary.remaining} 次');
+    _printLine('⚠️ 已用 ${summary.used}/${summary.limit}，本月剩余 ${summary.remaining} 次');
   }
   if (summary.recent.isEmpty) {
-    stdout.writeln('（本月还没有调用记录）');
+    _printLine('（本月还没有调用记录）');
   } else {
-    stdout.writeln('最近 ${summary.recent.length} 条：');
+    _printLine('最近 ${summary.recent.length} 条：');
     for (final e in summary.recent) {
-      stdout.writeln('  ${e.at}  ${e.kind}  ${e.cacheFile}');
+      _printLine('  ${e.at}  ${e.kind}  ${e.cacheFile}');
     }
   }
 }
@@ -213,7 +230,7 @@ Future<void> _runDiff(List<String> args) async {
       nodeId: nodeId,
     );
     if (options.json) {
-      stdout.writeln(jsonEncode({
+      _printLine(jsonEncode({
         'schema': 'w_tools_figma.diff/1',
         'fileKey': fileKey,
         'nodeId': nodeId,
@@ -235,14 +252,14 @@ Future<void> _runDiff(List<String> args) async {
       return;
     }
     if (result.isEmpty) {
-      stdout.writeln('没有变化（$nodeId）');
+      _printLine('没有变化（$nodeId）');
       return;
     }
     for (final n in result.nodes) {
-      stdout.writeln(n.toString());
+      _printLine(n.toString());
     }
     for (final c in result.changes) {
-      stdout.writeln(c.toString());
+      _printLine(c.toString());
     }
   } finally {
     client.close();
@@ -257,12 +274,12 @@ void _runBudget(List<String> args) {
     store.budgetFile.writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert({'limit': options.budgetSet}),
     );
-    stdout.writeln('月度预算已设为 ${options.budgetSet}');
+    _printLine('月度预算已设为 ${options.budgetSet}');
     return;
   }
   final summary = UsageCommand(store).run();
   if (options.json) {
-    stdout.writeln(jsonEncode({
+    _printLine(jsonEncode({
       'schema': 'w_tools_figma.budget/1',
       'limit': summary.limit,
       'used': summary.used,
@@ -270,7 +287,7 @@ void _runBudget(List<String> args) {
     }));
     return;
   }
-  stdout.writeln('月度预算 ${summary.limit} 次，本月已用 ${summary.used} 次，剩余 ${summary.remaining} 次');
+  _printLine('月度预算 ${summary.limit} 次，本月已用 ${summary.used} 次，剩余 ${summary.remaining} 次');
 }
 
 void _runUrl(List<String> args) {
@@ -280,7 +297,7 @@ void _runUrl(List<String> args) {
     return;
   }
   final target = const UrlCommand().run(args.first);
-  stdout.writeln('fileKey=${target.fileKey}  nodeId=${target.nodeId ?? ''}');
+  _printLine('fileKey=${target.fileKey}  nodeId=${target.nodeId ?? ''}');
 }
 
 String _readToken(CacheStore store) {
@@ -334,7 +351,7 @@ Future<void> _runTokens(List<String> args) async {
     return;
   }
   if (options.json) {
-    stdout.writeln(
+    _printLine(
       jsonEncode({
         'schema': 'w_tools_figma.tokens/1',
         'source': file.path,
@@ -350,7 +367,7 @@ Future<void> _runTokens(List<String> args) async {
     );
     return;
   }
-  stdout.write(markdown);
+  _print(markdown);
 }
 
 Future<void> _runSpec(List<String> args) async {
@@ -370,7 +387,7 @@ Future<void> _runSpec(List<String> args) async {
   const renderer = FigmaSpecRenderer();
   if (options.json) {
     final markdown = renderer.renderMarkdownFromRoot(document, nodeId);
-    stdout.writeln(
+    _printLine(
       jsonEncode({
         'schema': 'w_tools_figma.spec/1',
         'source': file.path,
@@ -381,7 +398,7 @@ Future<void> _runSpec(List<String> args) async {
     return;
   }
   stderr.writeln('> 数据源：${file.path}');
-  stdout.write(renderer.renderMarkdownFromRoot(document, nodeId));
+  _print(renderer.renderMarkdownFromRoot(document, nodeId));
 }
 
 File _pickLargestCache(Directory root) {

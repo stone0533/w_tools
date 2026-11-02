@@ -40,8 +40,7 @@ class FigmaSpecRenderer {
       ..writeln('# ${frame['name']}  ($targetId)')
       ..writeln()
       ..writeln(
-        '画板 ${(fb['width'] as num).toDouble().toStringAsFixed(0)}'
-        '×${(fb['height'] as num).toDouble().toStringAsFixed(0)}'
+        '画板 ${pyFixed(fb['width'], 0)}×${pyFixed(fb['height'], 0)}'
         '，背景 ${figmaFills(frame)}，描边 ${figmaStrokes(frame)}，'
         '阴影 ${figmaEffects(frame)}',
       )
@@ -60,8 +59,8 @@ class FigmaSpecRenderer {
         if (bb is Map && ((bb['width'] as num?) ?? 0) > 0 && ((bb['height'] as num?) ?? 0) > 0) {
           final x = (bb['x'] as num).toDouble() - ox;
           final y = (bb['y'] as num).toDouble() - oy;
-          final w = (bb['width'] as num).toDouble().toStringAsFixed(1);
-          final h = (bb['height'] as num).toDouble().toStringAsFixed(1);
+          final w = pyFixed(bb['width'], 1);
+          final h = pyFixed(bb['height'], 1);
           // Python 里 `c.get('cornerRadius') or ''`：0 也当空
           final corner = c['cornerRadius'];
           final radius = (corner is num && corner != 0) ? '$corner' : '';
@@ -74,7 +73,7 @@ class FigmaSpecRenderer {
           final indent = '  ' * depth;
           final shortName = name.length > 26 ? name.substring(0, 26) : name;
           buf.writeln(
-            '| ${x.toStringAsFixed(1)},${y.toStringAsFixed(1)} | $w×$h | '
+            '| ${pyFixed(x, 1)},${pyFixed(y, 1)} | $w×$h | '
             '${c['type']} | $hidden$indent$shortName | ${figmaFills(c)} | '
             '${figmaStrokes(c)} | ${figmaEffects(c)} | $radius | $chars$text |',
           );

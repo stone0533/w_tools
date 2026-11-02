@@ -129,7 +129,38 @@ Map? findFigmaNode(Map node, String id) {
   return null;
 }
 
-String _fmt1(Object? v) => ((v as num?) ?? 0).toDouble().toStringAsFixed(1);
+String _fmt1(Object? v) => pyFixed(v, 1);
+
+/// 与 Python `f'{x:.1f}'` 一致：**四舍六入五成双**（round-half-even）。
+///
+/// Dart 的 `toStringAsFixed` 是「五一律进」，在 920.25 这种值上会与 Python 差 0.1，
+/// 而我们要和 `scripts/figma_spec.py` 的输出逐字节对齐。
+String pyFixed(Object? value, int digits) {
+  final v = (value as num?)?.toDouble() ?? 0;
+  final factor = _pow10(digits);
+  final scaled = v * factor;
+  final sign = scaled < 0 ? -1.0 : 1.0;
+  final abs = scaled.abs();
+  final floor = abs.floorToDouble();
+  final diff = abs - floor;
+  double rounded;
+  if (diff > 0.5 - 1e-9 && diff < 0.5 + 1e-9) {
+    rounded = (floor % 2 == 0) ? floor : floor + 1;
+  } else if (diff > 0.5) {
+    rounded = floor + 1;
+  } else {
+    rounded = floor;
+  }
+  return (sign * rounded / factor).toStringAsFixed(digits);
+}
+
+double _pow10(int digits) {
+  var f = 1.0;
+  for (var i = 0; i < digits; i++) {
+    f *= 10;
+  }
+  return f;
+}
 
 /// 模拟 Python `round(v, digits)` + `str()`：整数输入原样、浮点保留小数位。
 String _pyRound(Object? v, int digits) {
@@ -137,7 +168,7 @@ String _pyRound(Object? v, int digits) {
   if (v is! num) return '0';
   if (v == 0) return '0';
   if (v is int) return '$v';
-  return double.parse(v.toStringAsFixed(digits)).toString();
+  return double.parse(pyFixed(v, digits)).toString();
 }
 
 /// 与 Python 的 f-string 对齐：缺值打印 `None`，整数不带小数点。
