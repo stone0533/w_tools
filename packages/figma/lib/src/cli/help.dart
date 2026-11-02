@@ -61,6 +61,20 @@ dart run w_tools_figma:figma budget --set 20
 
 默认上限 20 次/月；budget 为本地配置。
 ''',
+  'get': '''
+get — 下载图片 URL
+
+dart run w_tools_figma:figma get <url> <outfile>
+
+下载 fetch images 返回的签名 URL；不访问 Figma API，不消耗额度。
+''',
+  'me': '''
+me — 校验 token
+
+dart run w_tools_figma:figma me [--json]
+
+调用 /v1/me 校验 token 并显示当前用户；不消耗 Tier 1。
+''',
   'url': '''
 url — 解析 Figma 链接
 

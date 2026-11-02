@@ -4,4 +4,5 @@
 
 - 初始内部版本：`init` / `fetch` / `spec` / `tokens` / `url` / `diff` / `usage` / `budget`。
 - 本地缓存、用量日志、预算、Tier 3 stale 检查与 token 保护。
+- `get` 下载图片地址；`me` 校验 token。
 - CLI 拆分、单命令帮助、AI 使用说明与 JSON schema。

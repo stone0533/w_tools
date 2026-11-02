@@ -34,6 +34,9 @@ dart run w_tools_figma:figma tokens <nodeId> --out=docs/design-tokens.md
 
 # 5. 设计稿改版后
 dart run w_tools_figma:figma diff <fileKey> <nodeId>
+
+# 6. 图片地址下载
+dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 ```
 
 ## 写页面时

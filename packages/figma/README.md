@@ -89,6 +89,17 @@ dart run w_tools_figma:figma tokens 1862:9222,1862:9226 --out=docs/design-tokens
 dart run w_tools_figma:figma tokens 1862:9222 --min=3
 ```
 
+## 示例
+
+离线示例（不需要 token）：
+
+```bash
+cd packages/figma
+./example/run_demo.sh
+```
+
+见 [`example/README.md`](example/README.md)。
+
 ## 命令
 
 | 命令 | 作用 | 额度 |
@@ -97,6 +108,8 @@ dart run w_tools_figma:figma tokens 1862:9222 --min=3
 | `fetch file` | 拉文件结构，`--depth` | 1 次 Tier 1 |
 | `fetch nodes` | 拉节点树，批量 ids 只算 1 次 | 1 次 Tier 1 |
 | `fetch images` | 拿图片下载地址，不下载文件 | 1 次 Tier 1 |
+| `get` | 下载图片 URL 到本地文件 | 0 |
+| `me` | 校验 token | 0 |
 | `spec` | 节点 → Markdown / JSON | 0（读缓存） |
 | `tokens` | 颜色 / 文字 / 圆角 / 间距汇总 | 0（读缓存） |
 | `url` | Figma 链接 → fileKey + nodeId | 0 |
@@ -157,6 +170,10 @@ dart run w_tools_figma:figma diff <fileKey> 1862:9222
 # 额度
 dart run w_tools_figma:figma usage
 dart run w_tools_figma:figma budget --set=15
+
+# 图片地址下载 / token 校验
+dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
+dart run w_tools_figma:figma me
 ```
 
 ## 输出

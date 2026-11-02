@@ -36,6 +36,31 @@ void main() {
     expect(unknown.exitCode, 2);
   });
 
+  test('get 下载图片 URL 到本地文件', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    server.listen((request) async {
+      request.response
+        ..statusCode = 200
+        ..add(<int>[1, 2, 3, 4]);
+      await request.response.close();
+    });
+    addTearDown(() => server.close(force: true));
+
+    final out = File('${root.path}/images/demo.png');
+    final result = await run(<String>[
+      'get',
+      'http://${server.address.address}:${server.port}/image',
+      out.path,
+    ]);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect(out.readAsBytesSync(), <int>[1, 2, 3, 4]);
+  });
+
+  test('me 缺少 token 返回 exit 4', () async {
+    final result = await run(<String>['me']);
+    expect(result.exitCode, 4, reason: '${result.stderr}');
+  });
+
   test('缓存命中时不需要 token', () async {
     final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);

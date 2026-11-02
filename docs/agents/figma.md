@@ -34,6 +34,9 @@ dart run w_tools_figma:figma tokens <nodeId> --out=docs/design-tokens.md
 
 # 5. 设计稿改版后（消耗 1 次 Tier 1）
 dart run w_tools_figma:figma diff <fileKey> <nodeId>
+
+# 6. 下载 fetch images 返回的图片地址
+dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 ```
 
 `spec --json`：
@@ -78,7 +81,7 @@ dart run w_tools_cli:explain <组件名>
 - **先读缓存**：`spec` / `tokens` 不联网；只有缓存缺失或明确要更新时才 `fetch`。
 - **不要默认 `--refresh`**：会消耗 Tier 1。
 - **`--check-stale` 只提示，不重拉**；需要更新时再 `--refresh`。
-- **`fetch images` 只返回下载地址**，不下载图片。
+- **`fetch images` 只返回下载地址**；需要文件时用 `get <url> <outfile>`。
 - **`spec --json` 同时包含 `node` 和 `markdown`**；优先读 `node`。
 - token 用 `FIGMA_TOKEN` 环境变量或 `.figma-token`；不要打印、不要提交。
 - 输出 JSON 时用 `--json`，不要解析人读文本。
@@ -93,6 +96,17 @@ diff                          1 次 Tier 1
 spec / tokens / url / usage    0
 budget                         0
 ```
+
+## 示例
+
+离线运行：
+
+```bash
+cd packages/figma
+./example/run_demo.sh
+```
+
+示例映射见 [`packages/figma/example/flutter/demo_page.md`](../../packages/figma/example/flutter/demo_page.md)。
 
 ## 帮助
 

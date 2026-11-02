@@ -20,6 +20,8 @@
 | `fetch file` | 拉文件结构（`depth` 可控）——**v0.1 已实现** | 1 | 1 次（缓存命中 0） |
 | `fetch nodes` | 拉节点树（**批量 ids 只算 1 次**）——**v0.1 已实现** | 1 | 1 次 |
 | `fetch images` | 拿渲图下载地址（批量）——**v0.1 已实现** | 1 | 1 次 |
+| `get <url> <outfile>` | 下载图片地址到本地——**v0.1 已实现** | 0 | 0 |
+| `me` | 校验 token——**v0.1 已实现** | 0 | 0 |
 | `spec <node-id>` | 节点树 → 完整规格（Markdown 或 JSON）——**v0.1 已实现** | 0（读缓存） | 0 |
 | `tokens` | 汇总颜色 / 文字样式 / 间距 → `design-tokens.md`——**v0.1 已实现** | 0（读缓存） | 0 |
 | `url <figma-url>` | 从 Figma 链接解析 `fileKey` + `nodeId`——**v0.1 已实现** | 0 | 0 |
@@ -156,14 +158,24 @@ dart run w_tools_figma:figma tokens <nodeId,nodeId,...> [--out=docs/design-token
 - 设计稿里出现但项目还没有的值，落在「待确认」小节；
 - **0 额度**（只读缓存）。
 
-### 3.5 `url`
+### 3.5 `get` / `me`
+
+```bash
+dart run w_tools_figma:figma get '<signed-image-url>' assets/demo.png
+dart run w_tools_figma:figma me [--json]
+```
+
+`get` 只下载 `fetch images` 返回的签名 URL，不访问 Figma API，不消耗额度。
+`me` 调 `/v1/me` 校验 token，不消耗 Tier 1。
+
+### 3.6 `url`
 
 ```bash
 dart run w_tools_figma:figma url 'https://www.figma.com/design/<key>/...?node-id=1862-9222'
 # → fileKey=<key>  nodeId=1862:9222
 ```
 
-### 3.6 `diff`
+### 3.7 `diff`
 
 ```bash
 dart run w_tools_figma:figma diff <fileKey> <nodeId> [--root=<dir>]
@@ -173,7 +185,7 @@ dart run w_tools_figma:figma diff <fileKey> <nodeId> [--root=<dir>]
 - 输出「改了什么」：`fill #F8F8F5 → #FFFFFF`、`text.size 14 → 16`、`added: DROP_SHADOW` 等；
 - 这正是「设计稿改版后，agent 不知道改了什么」的解法。
 
-### 3.7 `usage` / `budget`
+### 3.8 `usage` / `budget`
 
 ```bash
 dart run w_tools_figma:figma usage          # 本月次数 + 最近记录

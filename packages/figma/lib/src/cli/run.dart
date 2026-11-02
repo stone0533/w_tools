@@ -5,7 +5,9 @@ import '../client/figma_client.dart';
 import 'cli_io.dart';
 import 'diff_command.dart';
 import 'fetch_command.dart';
+import 'get_command.dart';
 import 'help.dart';
+import 'me_command.dart';
 import 'init_command.dart';
 import 'spec_command.dart';
 import 'tokens_command.dart';
@@ -25,6 +27,8 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
   dart run w_tools_figma:figma usage  [--json]
   dart run w_tools_figma:figma diff   <fileKey> <nodeId> [--json]
   dart run w_tools_figma:figma budget [--set=<n>] [--json]
+  dart run w_tools_figma:figma get    <url> <outfile>
+  dart run w_tools_figma:figma me     [--json]
   dart run w_tools_figma:figma url    <figma-url | nodeId>
   dart run w_tools_figma:figma help   [command]
 
@@ -94,6 +98,10 @@ Future<void> runFigmaCli(List<String> args) async {
         await runDiff(rest);
       case 'budget':
         runBudget(rest);
+      case 'get':
+        await runGet(rest);
+      case 'me':
+        await runMe(rest);
       case 'url':
         runUrl(rest);
       case 'spec':
