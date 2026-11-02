@@ -63,9 +63,9 @@ dart run w_tools_cli:explain <组件名>
   - 间距用 `WSizeBox` / `WPadding`
 - `tokens` 只给设计 token，不会自动生成页面代码；组件映射必须结合项目 toolkit。
 
-## 0.4.0 新能力（发布后可用）
+## 0.4.0 能力
 
-当前安装的稳定版是 0.3.0；以下命令需要 0.4.0：
+当前安装的稳定版是 0.4.0；以下命令可直接使用：
 
 ```bash
 figma frames --all
