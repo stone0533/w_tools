@@ -24,6 +24,5 @@ dart run w_tools_cli:list <keyword>
 dart run w_tools_cli:explain <Component>
 ```
 
-- Use `AppScaffold` for page shells, `WText` for text, `WImage` for images,
-  `WForm` + direct fields for forms, and `WSizeBox` / `WPadding` for spacing.
+{{figmaComponentRules}}
 - Do not invent `W*` component names; run `dart run w_tools_cli:doctor` after implementation.

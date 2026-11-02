@@ -24,6 +24,5 @@ dart run w_tools_cli:list <关键词>
 dart run w_tools_cli:explain <组件名>
 ```
 
-- 页面骨架用 `AppScaffold`，文本用 `WText`，图片用 `WImage`，
-  表单用 `WForm` + 直接字段，间距用 `WSizeBox` / `WPadding`。
+{{figmaComponentRules}}
 - 不要凭记忆造 `W*` 组件名；实现后跑 `dart run w_tools_cli:doctor`。

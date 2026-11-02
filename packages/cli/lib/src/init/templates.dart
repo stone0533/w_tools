@@ -60,6 +60,37 @@ class InitTemplates {
     return <String>[header, divider, ...rows].join('\n');
   }
 
+  static String _figmaComponentRules({
+    required bool en,
+    required bool withUi,
+    required bool withForm,
+  }) {
+    final lines = <String>[];
+    if (withUi) {
+      lines.add(
+        en
+            ? '- Use `AppScaffold` for page shells, `WText` for text, `WImage` for images, '
+                  '`WButton` for actions, and `WSizeBox` / `WPadding` for spacing.'
+            : '- 页面骨架用 `AppScaffold`，文本用 `WText`，图片用 `WImage`，'
+                  '动作按钮用 `WButton`，间距用 `WSizeBox` / `WPadding`。',
+      );
+    } else {
+      lines.add(
+        en
+            ? '- Use only components exported by the project toolkit; do not assume '
+                  '`AppScaffold` / `WText` / `WImage` are available in this profile.'
+            : '- 只使用项目 toolkit 已导出的组件；当前 profile 不要假设有 '
+                  '`AppScaffold` / `WText` / `WImage`。',
+      );
+    }
+    if (withForm) {
+      lines.add(
+        en ? '- Use `WForm` + direct fields for forms.' : '- 表单用 `WForm` + 直接字段。',
+      );
+    }
+    return lines.join('\n');
+  }
+
   static String agentsBlock({
     String lang = 'zh',
     String app = 'app',
@@ -127,6 +158,10 @@ class InitTemplates {
         .replaceAll('{{version}}', cliVersion)
         .replaceAll('{{app}}', app)
         .replaceAll('{{doctorRules}}', _doctorRuleTable(en))
+        .replaceAll(
+          '{{figmaComponentRules}}',
+          _figmaComponentRules(en: en, withUi: withUi, withForm: withForm),
+        )
         .trimRight();
   }
 }

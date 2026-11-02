@@ -116,6 +116,34 @@ void main() {
       expect(report.pubspecSnippet, isNot(contains('w_tools_figma')));
     });
 
+    test('--figma 在 no-ui / minimal 下不宣称未导出的组件', () async {
+      final noUiRoot = makeProject();
+      runInit(noUiRoot, features: InitFeatures.full.copyWith(ui: false), figma: true);
+      final noUiAgents = File(p.join(noUiRoot.path, 'AGENTS.md')).readAsStringSync();
+      expect(noUiAgents, contains('当前 profile 不要假设有'));
+      expect(noUiAgents, isNot(contains('页面骨架用 `AppScaffold`')));
+      expect(noUiAgents, contains('表单用 `WForm`'));
+
+      final minimalRoot = makeProject();
+      runInit(
+        minimalRoot,
+        features: InitFeatures.forProfile(InitProfile.minimal),
+        figma: true,
+      );
+      final minimalAgents = File(p.join(minimalRoot.path, 'AGENTS.md')).readAsStringSync();
+      expect(minimalAgents, contains('当前 profile 不要假设有'));
+      expect(minimalAgents, isNot(contains('页面骨架用 `AppScaffold`')));
+      expect(minimalAgents, isNot(contains('表单用 `WForm`')));
+    });
+
+    test('--figma 在 no-form 下不生成 WForm 规则', () async {
+      final root = makeProject();
+      runInit(root, features: InitFeatures.full.copyWith(form: false), figma: true);
+      final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      expect(agents, contains('页面骨架用 `AppScaffold`'));
+      expect(agents, isNot(contains('表单用 `WForm`')));
+    });
+
     test('profile=minimal 只保留 core', () async {
       final root = makeProject();
       runInit(root, features: InitFeatures.forProfile(InitProfile.minimal));
