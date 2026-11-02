@@ -44,8 +44,13 @@ class CacheStore {
   /// 读缓存；不存在返回 null。
   Map<String, dynamic>? read(File file) {
     if (!file.existsSync()) return null;
-    final raw = jsonDecode(file.readAsStringSync());
-    return raw is Map<String, dynamic> ? raw : null;
+    try {
+      final raw = jsonDecode(file.readAsStringSync());
+      return raw is Map<String, dynamic> ? raw : null;
+    } on FormatException {
+      // 损坏的缓存当作未命中，避免 CLI 直接崩在 JSON 解析上。
+      return null;
+    }
   }
 
   /// 写缓存（自动建目录）。

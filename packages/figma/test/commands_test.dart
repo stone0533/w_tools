@@ -96,6 +96,13 @@ void main() {
     });
   });
 
+  test('损坏缓存按未命中处理，不直接抛 FormatException', () {
+    final file = File('${root.path}/.figma-cache/broken.json');
+    file.parent.createSync(recursive: true);
+    file.writeAsStringSync('{not json');
+    expect(store.read(file), isNull);
+  });
+
   group('init', () {
     test('创建 token 模板、补 gitignore、建缓存目录（幂等）', () {
       final first = InitCommand(store).run();

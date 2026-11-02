@@ -49,7 +49,7 @@ class HttpFigmaClient implements FigmaClient {
     final request = await _client.getUrl(url).timeout(timeout);
     request.headers.set('X-Figma-Token', token);
     final response = await request.close().timeout(timeout);
-    final body = await response.transform(utf8.decoder).join();
+    final body = await response.transform(utf8.decoder).join().timeout(timeout);
     if (response.statusCode != 200) {
       final retryHeader = response.headers.value('retry-after');
       throw FigmaHttpException(

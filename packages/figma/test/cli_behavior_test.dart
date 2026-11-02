@@ -85,6 +85,23 @@ void main() {
     expect('${result.stderr}', contains('缺少'));
   });
 
+  test('非 figd_ token 返回 exit 4', () async {
+    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {'id': '1:2', 'type': 'FRAME', 'name': 'demo'},
+        },
+      },
+    }));
+    File('${root.path}/.figma-token').writeAsStringSync('not-a-figma-token');
+
+    final result = await run(<String>['fetch', 'nodes', 'K', '1:2', '--check-stale']);
+    expect(result.exitCode, 4, reason: '${result.stderr}');
+    expect('${result.stderr}', contains('figd_'));
+  });
+
   test('非法参数返回 exit 2', () async {
     final result = await run(<String>['tokens', '1:2', '--min=abc']);
     expect(result.exitCode, 2, reason: '${result.stderr}');

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -104,6 +105,9 @@ Future<void> main(List<String> args) async {
   } on FigmaHttpException catch (e) {
     stderr.writeln(e);
     exitCode = e.isRateLimited ? 3 : (e.statusCode == 401 || e.statusCode == 403 ? 4 : 1);
+  } on TimeoutException {
+    stderr.writeln('网络超时；检查网络或稍后重试');
+    exitCode = 5;
   } on SocketException catch (e) {
     stderr.writeln('网络错误：${e.message}');
     exitCode = 5;
@@ -336,6 +340,9 @@ String _readToken(CacheStore store) {
   if (token.isEmpty || token.contains('REPLACE_ME')) {
     throw _FigmaTokenException('${file.path} 里还是模板内容，请填入真实的 figd_ 令牌');
   }
+  if (!token.startsWith('figd_')) {
+    throw _FigmaTokenException('${file.path} 里的 token 需要 figd_ 开头');
+  }
   return token;
 }
 
@@ -443,7 +450,7 @@ File _pickLargestCache(Directory root) {
   final files = dir
       .listSync()
       .whereType<File>()
-      .where((f) => f.path.split('/').last.startsWith('nodes-'))
+      .where((f) => f.path.split('/').last.startsWith('nodes-') && f.path.endsWith('.json'))
       .toList()
     ..sort((a, b) => b.lengthSync().compareTo(a.lengthSync()));
   if (files.isEmpty) {

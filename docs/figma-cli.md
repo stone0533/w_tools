@@ -187,7 +187,7 @@ dart run w_tools_figma:figma budget --set=20 # 设置月度预算（解决「只
 
 ## 4. 安全
 
-- token 只从 `.figma-token` 读，**任何输出（日志 / 报错）都不打印**；
+- token 只从 `.figma-token` 读，只接受 `figd_` 开头的个人令牌；**任何输出（日志 / 报错）都不打印**；
 - `init` 自动把 `.figma-token`、`.figma-cache/` 写进 `.gitignore`；
 - 只调用 `GET` 接口（不写 Figma）。
 
