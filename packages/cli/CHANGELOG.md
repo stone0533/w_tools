@@ -8,6 +8,7 @@
 - AGENTS base 明确先判断永久 UI 层 / 暂存层；英文 banned 条目使用 use / reason 标签。
 - AGENTS closing 自动生成 doctor 规则速查表；CLI 示例改用真实 `Image.asset` 禁用场景；CONTRIBUTING 补充 grep 检查经验。
 - DoctorRule 内置中英文 summary，AGENTS 规则表与规则定义单一来源；base 去掉 no-ui 下的具体 UI 组件名。
+- base 的 UI 分层说明移回 ui 片段；R3/R4 改用 TextScan，跳过行尾注释。
 
 ## 1.6.0
 

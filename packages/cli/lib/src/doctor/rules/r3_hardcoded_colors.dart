@@ -1,5 +1,6 @@
 import '../config.dart';
 import '../context.dart';
+import '../text_scan.dart';
 import '../rule.dart';
 
 /// R3：硬编码语义色。
@@ -26,20 +27,19 @@ class R3HardcodedColors {
     final palette = config.palette.map(_normalize).toSet();
     final hits = <String, List<({String file, int line})>>{};
 
-    for (final file in ctx.files) {
+    for (final file in TextScan.files(ctx)) {
       // 项目 UI 是样式注册表，暂存层还没上移，允许先固定颜色
-      if (file.startsWith('$projectUiDirPath/') || file.startsWith('$designSystemDirPath/')) {
+      if (file.path.startsWith('$projectUiDirPath/') ||
+          file.path.startsWith('$designSystemDirPath/')) {
         continue;
       }
-      final lines = ctx.read(file).split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        if (lines[i].trimLeft().startsWith('//')) continue;
+      for (final line in file.codeLines) {
         for (final re in <RegExp>[_colorPattern, _hexPattern]) {
-          for (final m in re.allMatches(lines[i])) {
+          for (final m in re.allMatches(line.code)) {
             final hex = _normalize(m.group(1)!);
             if (!palette.contains(hex)) continue;
             final places = hits.putIfAbsent(hex, () => <({String file, int line})>[]);
-            places.add((file: file, line: i + 1));
+            places.add((file: file.path, line: line.lineNumber));
           }
         }
       }

@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 import '../config.dart';
 import '../context.dart';
+import '../text_scan.dart';
 import '../rule.dart';
 
 /// R4：设计系统（`ui/` 与 `design_system/`）不得依赖业务。
@@ -27,18 +28,17 @@ class R4DesignSystemBoundary {
       final dir = Directory(p.join(ctx.root.path, dirPath));
       if (!dir.existsSync()) continue;
       found = true;
-      for (final file in ctx.filesUnder(dirPath)) {
-        final lines = ctx.read(file).split('\n');
-        for (var i = 0; i < lines.length; i++) {
-          if (lines[i].trimLeft().startsWith('//')) continue;
-          if (_forbidden.hasMatch(lines[i])) {
+      for (final file in TextScan.files(ctx)) {
+        if (!file.path.startsWith('$dirPath/')) continue;
+        for (final line in file.codeLines) {
+          if (_forbidden.hasMatch(line.code)) {
             issues.add(
               DoctorIssue(
                 rule: id,
                 level: DoctorLevel.error,
-                file: file,
-                line: i + 1,
-                message: '设计系统组件 import 了业务层：${lines[i].trim()}',
+                file: file.path,
+                line: line.lineNumber,
+                message: '设计系统组件 import 了业务层：${line.code.trim()}',
                 hint: '项目 UI / 暂存层只能依赖 dart/flutter/w_tools/get —— 依赖业务就无法复用或上移',
               ),
             );

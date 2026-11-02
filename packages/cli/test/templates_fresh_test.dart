@@ -103,11 +103,12 @@ void main() {
     expect(enNoForm, contains('WApp.start'));
   });
 
-  test('base 指引先判断 /ui 与 design_system 分层', () {
+  test('base 只指引暂存层，UI 分层由 ui 片段负责', () {
     final block = InitTemplates.agentsBlock();
-    expect(block, contains('先判断层级'));
-    expect(block, contains('项目永久 UI 规范'));
-    expect(block, contains('只有待上移的通用组件'));
+    expect(block, contains('待上移的通用组件'));
+    expect(block, contains('design_system'));
+    expect(block, isNot(contains('项目永久 UI 规范')));
+    expect(InitTemplates.agentsBlock(), contains('项目永久 UI 层'));
   });
 
   test('UI 片段说明 lib/app/ui 是永久 UI 层', () {

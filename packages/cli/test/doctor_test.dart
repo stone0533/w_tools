@@ -187,6 +187,26 @@ void main() {
     });
   });
 
+  test('R3 行尾注释里的颜色不计入阈值', () {
+    final root = makeProject({
+      'lib/a.dart':
+          'const c = Color(0xFF3F3F3F); // Color(0xFF3F3F3F)\n'
+          '// Color(0xFF3F3F3F)\n'
+          '// Color(0xFF3F3F3F)\n',
+    });
+    final config = DoctorConfig.parse('colors:\n  palette: ["#3F3F3F"]\n  min_count: 3\n');
+    final r = R3HardcodedColors.check(ctxOf(root, config), config);
+    expect(r.status, DoctorRuleStatus.pass);
+  });
+
+  test('R4 行尾注释里的业务 import 不算', () {
+    final root = makeProject({
+      'lib/app/ui/a.dart': 'void main() {} // import \'data/x.dart\';\n',
+    });
+    final r = R4DesignSystemBoundary.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+    expect(r.status, DoctorRuleStatus.pass);
+  });
+
   group('R4 / R5 暂存层', () {
     test('暂存层 import data/ → error', () {
       final root = makeProject({
