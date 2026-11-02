@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -96,6 +97,8 @@ void main() {
     );
     expect(result.isEmpty, isTrue);
     expect(result.tierCalls, 1);
+    final target = store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2');
+    expect(File('${target.path}.prev').existsSync(), isFalse);
   });
 
   test('字号与文案变化都能报出来', () async {
@@ -118,6 +121,25 @@ void main() {
       result.changes.any((c) => c.field == 'characters' && c.after == 'Hello!'),
       isTrue,
     );
+  });
+
+  test('位置 / 间距 / padding / 四角圆角变化都能报出来', () {
+    final before = _tree(label: 'Hi', size: 16);
+    final after = jsonDecode(jsonEncode(before)) as Map<String, dynamic>;
+    final doc = (after['nodes'] as Map)['1:2'] as Map;
+    final child = ((doc['document'] as Map)['children'] as List).first as Map;
+    (child['absoluteBoundingBox'] as Map)['x'] = 24;
+    child['itemSpacing'] = 8;
+    child['paddingLeft'] = 12;
+    child['paddingRight'] = 12;
+    child['paddingTop'] = 8;
+    child['paddingBottom'] = 8;
+    child['rectangleCornerRadii'] = [4, 8, 4, 8];
+
+    final beforeDoc = ((before['nodes'] as Map)['1:2'] as Map)['document'] as Map;
+    final afterDoc = ((after['nodes'] as Map)['1:2'] as Map)['document'] as Map;
+    final fields = const SpecDiff().changes(beforeDoc, afterDoc).map((c) => c.field).toSet();
+    expect(fields, containsAll(<String>['position', 'layout', 'radius']));
   });
 
   test('新增节点报为 +', () async {

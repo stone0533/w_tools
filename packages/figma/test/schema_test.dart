@@ -12,6 +12,19 @@ JsonSchema load(String name) {
 
 void main() {
   final cases = <String, Map<String, Object?>>{
+    'frames.v1.json': {
+      'schema': 'w_tools_figma.frames/1',
+      'frames': [
+        {
+          'id': '1:2',
+          'name': 'Demo',
+          'width': 100,
+          'height': 200,
+          'children': 0,
+          'cacheFile': 'nodes-K-1-2.json',
+        },
+      ],
+    },
     'fetch.v1.json': {
       'schema': 'w_tools_figma.fetch/1',
       'cacheFile': 'nodes-K-1-2.json',

@@ -49,3 +49,12 @@ File pickLargestCache(Directory root) {
   }
   return files.first;
 }
+
+/// 当前 .figma-cache 下的全部 nodes 缓存文件。
+List<File> nodesCacheFiles(CacheStore store) {
+  if (!store.dir.existsSync()) return const <File>[];
+  return store.dir.listSync().whereType<File>().where((f) {
+    final name = f.path.split('/').last;
+    return name.startsWith('nodes-') && name.endsWith('.json');
+  }).toList();
+}

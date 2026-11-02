@@ -11,6 +11,13 @@ dart run w_tools_figma:figma init [--force]
 生成 .figma-token、.figma-cache/，并把 token 与缓存目录追加到 .gitignore。
 --force 会覆盖已有 token。
 ''',
+  'frames': '''
+frames — 列出缓存里的 FRAME
+
+dart run w_tools_figma:figma frames [--file=<path>] [--json]
+
+输出 id / name / width×height / children / cacheFile，方便找 nodeId。
+''',
   'fetch': '''
 fetch — 从 Figma 拉取并写缓存
 
@@ -42,9 +49,9 @@ dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [--min=<n>] [--out=<pat
   'diff': '''
 diff — 对比旧缓存与最新节点
 
-dart run w_tools_figma:figma diff <fileKey> <nodeId> [--json]
+dart run w_tools_figma:figma diff <fileKey> <nodeId> [--json] [--if-stale]
 
-会请求 Figma，消耗 1 次 Tier 1；输出属性变化与节点增删。
+会请求 Figma，消耗 1 次 Tier 1；--if-stale 先用 /meta 比较版本，没变则 0 次。
 ''',
   'usage': '''
 usage — 查看本月调用次数

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/stone0533/w_tools/main/packages/figma/schema/frames.v1.json",
+  "title": "w_tools_figma.frames/1",
+  "type": "object",
+  "required": ["schema", "frames"],
+  "properties": {
+    "schema": { "const": "w_tools_figma.frames/1" },
+    "frames": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "width", "height", "children", "cacheFile"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "width": { "type": ["number", "null"] },
+          "height": { "type": ["number", "null"] },
+          "children": { "type": "integer" },
+          "cacheFile": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

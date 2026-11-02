@@ -16,6 +16,7 @@ class CliOptions {
     required this.budgetSet,
     required this.checkStale,
     required this.force,
+    required this.ifStale,
   });
 
   final List<String> positional;
@@ -32,6 +33,7 @@ class CliOptions {
   final int? budgetSet;
   final bool checkStale;
   final bool force;
+  final bool ifStale;
 }
 
 CliOptions parseOptions(List<String> args) {
@@ -49,6 +51,7 @@ CliOptions parseOptions(List<String> args) {
   int? budgetSet;
   var checkStale = false;
   var force = false;
+  var ifStale = false;
   for (var i = 0; i < args.length; i++) {
     final arg = args[i];
     if (arg == '--json') {
@@ -83,6 +86,8 @@ CliOptions parseOptions(List<String> args) {
       budgetSet = _positiveInt('--set', raw);
     } else if (arg == '--check-stale') {
       checkStale = true;
+    } else if (arg == '--if-stale') {
+      ifStale = true;
     } else if (arg.startsWith('--')) {
       throw FormatException('未知选项：$arg');
     } else {
@@ -104,6 +109,7 @@ CliOptions parseOptions(List<String> args) {
     budgetSet: budgetSet,
     checkStale: checkStale,
     force: force,
+    ifStale: ifStale,
   );
 }
 

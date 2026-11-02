@@ -103,6 +103,33 @@ void main() {
     expect((payload['node'] as Map).containsKey('children'), isFalse);
   });
 
+  test('frames 列出缓存里的 FRAME', () async {
+    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'MemberCard',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 375, 'height': 812},
+            'children': [],
+          },
+        },
+      },
+    }));
+
+    final result = await run(<String>['frames', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect(payload['schema'], 'w_tools_figma.frames/1');
+    final frames = payload['frames'] as List;
+    expect(frames, hasLength(1));
+    expect((frames.first as Map)['id'], '1:2');
+    expect((frames.first as Map)['name'], 'MemberCard');
+  });
+
   test('缓存命中时不需要 token', () async {
     final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);

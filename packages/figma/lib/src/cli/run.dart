@@ -5,6 +5,7 @@ import '../client/figma_client.dart';
 import 'cli_io.dart';
 import 'diff_command.dart';
 import 'fetch_command.dart';
+import 'frames_command.dart';
 import 'get_command.dart';
 import 'help.dart';
 import 'me_command.dart';
@@ -21,6 +22,7 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
   dart run w_tools_figma:figma init   [--force]
   dart run w_tools_figma:figma fetch  file   <fileKey> [--depth=3]
   dart run w_tools_figma:figma fetch  nodes  <fileKey> <id[,id...]>
+  dart run w_tools_figma:figma frames [--file=<path>] [--json]
   dart run w_tools_figma:figma fetch  images <fileKey> <id[,id...]> [--scale=2]
   dart run w_tools_figma:figma spec   <nodeId> [选项]
   dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [选项]
@@ -48,6 +50,7 @@ fetch 专属：
   --scale=<n>     images 的倍率（默认 2）
   --refresh       删除缓存并强制重拉（唯一会绕过缓存的开关）
   --check-stale   用 Tier 3 的 file/meta 判断缓存是否过期（不占 20 次/月，只提示不重拉）
+  --if-stale      diff 先用 /meta 比较版本；没变就不拉节点（不再消耗 Tier 1）
   --no-log        本次不写用量日志（调试用）
 
 退出码：0 成功 / 1 一般错误 / 2 参数错误 / 3 额度受限 / 4 token 问题 / 5 网络错误
@@ -91,6 +94,8 @@ Future<void> runFigmaCli(List<String> args) async {
     switch (command) {
       case 'init':
         runInit(rest);
+      case 'frames':
+        await runFrames(rest);
       case 'fetch':
         await runFetch(rest);
       case 'usage':

@@ -1,6 +1,6 @@
 # w_tools_figma
 
-> `v0.1.0` 已发布；`v0.2.0` 待发布。当前安装请用 `^0.1.0`。
+> `v0.2.0` 已发布；`v0.3.0` 待发布。当前安装请用 `^0.2.0`。
 
 只读的 Figma 取数 / 规格导出 CLI。
 
@@ -34,14 +34,14 @@ W* 组件映射
 已发布版本：
 
 ```bash
-dart pub add dev:w_tools_figma:^0.1.0
+dart pub add dev:w_tools_figma:^0.2.0
 ```
 
 等价于：
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.1.0
+  w_tools_figma: ^0.2.0
 ```
 
 开发版使用 path 依赖：
@@ -148,7 +148,7 @@ cd packages/figma
 | `spec` | 节点 → Markdown / JSON | 0（读缓存） |
 | `tokens` | 颜色 / 文字 / 圆角 / 间距汇总 | 0（读缓存） |
 | `url` | Figma 链接 → fileKey + nodeId | 0 |
-| `diff` | 对比旧缓存与最新节点 | 1 次 Tier 1 |
+| `diff` | 对比旧缓存与最新节点；`--if-stale` 可 0 次 | 1 次 Tier 1；`--if-stale` 未变 0 |
 | `usage` | 本月调用次数 / 最近记录 | 0 |
 | `budget` | 查看 / 设置月度预算 | 0 |
 

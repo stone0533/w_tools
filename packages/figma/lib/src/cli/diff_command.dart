@@ -21,10 +21,38 @@ Future<void> runDiff(List<String> args) async {
   final store = CacheStore(Directory(options.root));
   final client = HttpFigmaClient(token: readToken(store));
   try {
+    String? latest;
+    if (options.ifStale) {
+      latest = await _latestVersion(client, fileKey);
+      final meta = store.read(store.metaFile(fileKey));
+      final target = store.cacheFile(kind: 'nodes', fileKey: fileKey, ids: nodeId);
+      if (latest != null && target.existsSync() && meta != null && '${meta['version']}' == latest) {
+        if (options.json) {
+          printLine(jsonEncode({
+            'schema': 'w_tools_figma.diff/1',
+            'fileKey': fileKey,
+            'nodeId': nodeId,
+            'tierCalls': 0,
+            'skipped': true,
+            'changes': <Object?>[],
+            'nodes': <Object?>[],
+          }));
+        } else {
+          printLine('没有变化（$nodeId，版本 $latest）');
+        }
+        return;
+      }
+    }
     final result = await DiffCommand(store: store, client: client).run(
       fileKey: fileKey,
       nodeId: nodeId,
     );
+    if (latest != null) {
+      store.write(store.metaFile(fileKey), <String, dynamic>{
+        'version': latest,
+        'checkedAt': DateTime.now().toIso8601String(),
+      });
+    }
     if (options.json) {
       printLine(jsonEncode({
         'schema': 'w_tools_figma.diff/1',
@@ -60,4 +88,14 @@ Future<void> runDiff(List<String> args) async {
   } finally {
     client.close();
   }
+}
+
+Future<String?> _latestVersion(FigmaClient client, String fileKey) async {
+  final meta = await client.getJson(
+    Uri.parse('https://api.figma.com/v1/files/$fileKey/meta'),
+  );
+  final file = meta['file'];
+  if (file is! Map) return null;
+  final version = '${file['version'] ?? ''}';
+  return version.isEmpty ? null : version;
 }

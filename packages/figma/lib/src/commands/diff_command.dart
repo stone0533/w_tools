@@ -51,6 +51,7 @@ class DiffCommand {
 
     final previous = oldFile ?? (backup.existsSync() ? backup : null);
     if (previous == null || !previous.existsSync()) {
+      _cleanupBackup(backup);
       return DiffResult(
         fileKey: fileKey,
         nodeId: nodeId,
@@ -66,13 +67,19 @@ class DiffCommand {
     }
 
     const differ = SpecDiff();
-    return DiffResult(
+    final result = DiffResult(
       fileKey: fileKey,
       nodeId: nodeId,
       changes: differ.changes(before, after),
       nodes: differ.nodes(before, after),
       tierCalls: 1,
     );
+    _cleanupBackup(backup);
+    return result;
+  }
+
+  void _cleanupBackup(File backup) {
+    if (backup.existsSync()) backup.deleteSync();
   }
 
   Future<File> _fetchFresh({

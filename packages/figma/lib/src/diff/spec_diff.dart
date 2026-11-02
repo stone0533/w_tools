@@ -94,6 +94,8 @@ class SpecDiff {
     }
 
     add('size', _size(before), _size(after));
+    add('position', _position(before), _position(after));
+    add('layout', _layout(before), _layout(after));
     add('visible', '${before['visible'] ?? true}', '${after['visible'] ?? true}');
     add('fills', figmaFills(before), figmaFills(after));
     add('strokes', figmaStrokes(before), figmaStrokes(after));
@@ -132,7 +134,26 @@ class SpecDiff {
 
   String _radius(Map node) {
     final r = node['cornerRadius'];
-    return r == null ? '' : '$r';
+    final radii = node['rectangleCornerRadii'];
+    return '${r ?? ''}|${radii is List ? radii.join(',') : ''}';
+  }
+
+  String _position(Map node) {
+    final bb = node['absoluteBoundingBox'];
+    if (bb is! Map) return '';
+    final x = (bb['x'] as num?)?.toDouble() ?? 0;
+    final y = (bb['y'] as num?)?.toDouble() ?? 0;
+    return '${x.toStringAsFixed(1)},${y.toStringAsFixed(1)}';
+  }
+
+  String _layout(Map node) {
+    final spacing = node['itemSpacing'];
+    final left = node['paddingLeft'];
+    final right = node['paddingRight'];
+    final top = node['paddingTop'];
+    final bottom = node['paddingBottom'];
+    return 'itemSpacing=$spacing '
+        'padding=$left,$right,$top,$bottom';
   }
 
   String _text(Object? v) {

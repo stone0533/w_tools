@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+### Added
+- `frames`：列出缓存里的 FRAME，方便找 nodeId。
+- `diff --if-stale`：先用 `/meta` 比较版本，没变不消耗 Tier 1。
+- diff 比较 position / itemSpacing / padding / rectangleCornerRadii。
+
+### Changed
+- diff 成功后删除 `.prev` 备份。
+
 ## 0.2.0
 
 ### Added

@@ -96,7 +96,15 @@ dart run w_tools_figma:figma init [--force]
 - 建 `.figma-cache/` 与 `_budget.json`；
 - 已存在且未传 `--force` → 不动文件，只报告状态。
 
-### 3.2 `fetch`
+### 3.2 `frames`
+
+```bash
+dart run w_tools_figma:figma frames [--file=<path>] [--json]
+```
+
+从本地 `nodes-*.json` 列出 FRAME：`id / name / width×height / children / cacheFile`，不访问 Figma。
+
+### 3.3 `fetch`
 
 ```bash
 dart run w_tools_figma:figma fetch file   <fileKey> [--depth=3]
@@ -115,7 +123,7 @@ JSON 输出：
   "cachedVersion": null, "latestVersion": null }
 ```
 
-### 3.3 `spec`（**核心命令**）
+### 3.4 `spec`（**核心命令**）
 
 ```bash
 dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-depth=<n>]
@@ -148,7 +156,7 @@ dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--jso
 
 默认（不带 `--json`）输出 **Markdown 表格**，字段与上表一致，便于贴进 PR / 设计稿核对单。
 
-### 3.4 `tokens`
+### 3.5 `tokens`
 
 ```bash
 dart run w_tools_figma:figma tokens <nodeId,nodeId,...> [--out=docs/design-tokens.md]
@@ -159,7 +167,7 @@ dart run w_tools_figma:figma tokens <nodeId,nodeId,...> [--out=docs/design-token
 - 设计稿里出现但项目还没有的值，落在「待确认」小节；
 - **0 额度**（只读缓存）。
 
-### 3.5 `get` / `me`
+### 3.6 `get` / `me`
 
 ```bash
 dart run w_tools_figma:figma get '<signed-image-url>' assets/demo.png
@@ -169,7 +177,7 @@ dart run w_tools_figma:figma me [--json]
 `get` 只下载 `fetch images` 返回的签名 URL，不访问 Figma API，不消耗额度。
 `me` 调 `/v1/me` 校验 token，不消耗 Tier 1。
 
-### 3.6 `url`
+### 3.7 `url`
 
 ```bash
 dart run w_tools_figma:figma url 'https://www.figma.com/design/<key>/...?node-id=1862-9222'
@@ -179,17 +187,18 @@ dart run w_tools_figma:figma url '<link>' --json
 
 `--json` 输出 `{"fileKey":"...","nodeId":"..."}`。
 
-### 3.7 `diff`
+### 3.8 `diff`
 
 ```bash
-dart run w_tools_figma:figma diff <fileKey> <nodeId> [--root=<dir>]
+dart run w_tools_figma:figma diff <fileKey> <nodeId> [--root=<dir>] [--if-stale]
 ```
 
 - 拉最新节点（**消耗 1 次**），与旧缓存逐属性比较；
+- `--if-stale` 先用 Tier 3 的 `/meta` 比较版本；没变直接退出（0 次 Tier 1），变了才拉；
 - 输出「改了什么」：`fill #F8F8F5 → #FFFFFF`、`text.size 14 → 16`、`added: DROP_SHADOW` 等；
 - 这正是「设计稿改版后，agent 不知道改了什么」的解法。
 
-### 3.8 `usage` / `budget`
+### 3.9 `usage` / `budget`
 
 ```bash
 dart run w_tools_figma:figma usage          # 本月次数 + 最近记录
