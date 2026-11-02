@@ -26,6 +26,7 @@ void main() {
       'source': 'nodes-K-1-2.json',
       'nodeId': '1:2',
       'markdown': '# demo  (1:2)\n',
+      'node': {'id': '1:2', 'name': 'demo', 'type': 'FRAME'},
     },
     'tokens.v1.json': {
       'schema': 'w_tools_figma.tokens/1',

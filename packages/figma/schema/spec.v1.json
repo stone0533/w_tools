@@ -21,6 +21,9 @@
     },
     "markdown": {
       "type": "string"
+    },
+    "node": {
+      "type": "object"
     }
   },
   "additionalProperties": true

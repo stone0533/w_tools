@@ -82,6 +82,30 @@ void main() {
     expect('${result.stdout}', contains('# Second  (2:3)'));
   });
 
+  test('spec --json 同时返回原始 node 与 markdown', () async {
+    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'Structured',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+          },
+        },
+      },
+    }));
+
+    final result = await run(<String>['spec', '1:2', '--file=${cache.path}', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect(payload['schema'], 'w_tools_figma.spec/1');
+    expect((payload['node'] as Map)['id'], '1:2');
+    expect('${payload['markdown']}', contains('# Structured'));
+  });
+
   test('缓存命中但 --check-stale 仍需 token', () async {
     final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);

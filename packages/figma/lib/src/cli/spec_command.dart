@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../spec/figma_node.dart';
 import '../spec/spec_renderer.dart';
 import 'args.dart';
 import 'cache_data.dart';
@@ -21,6 +22,7 @@ Future<void> runSpec(List<String> args) async {
   if (document == null) {
     throw StateError('在缓存里找不到节点：$nodeId');
   }
+  final node = findFigmaNode(document, nodeId)!;
 
   const renderer = FigmaSpecRenderer();
   if (options.json) {
@@ -31,6 +33,8 @@ Future<void> runSpec(List<String> args) async {
         'source': file.path,
         'nodeId': nodeId,
         'markdown': markdown,
+        // 原始 Figma 节点；需要结构化字段时直接读它，markdown 仅用于人读。
+        'node': node,
       }),
     );
     return;

@@ -40,7 +40,7 @@ dart run w_tools_figma:figma diff <fileKey> <nodeId>
 - **不要默认 `--refresh`**：会消耗 Tier 1。
 - **`--check-stale` 只提示，不重拉**；需要更新时再 `--refresh`。
 - **`fetch images` 只返回下载地址**，不下载图片。
-- **`spec --json` 是 Markdown 载体**，不是结构化字段树。
+- **`spec --json` 同时包含 `node`（原始结构化节点）和 `markdown`**；优先读 `node`。
 - **token 只放 `.figma-token`**；不要打印、不要提交。
 - 输出 JSON 时用 `--json`，不要解析人读文本。
 - JSON schema 在 `packages/figma/schema/`；schema 名称与 `--json` 输出的 `schema` 字段一致。

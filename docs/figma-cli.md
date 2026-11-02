@@ -133,12 +133,15 @@ dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--jso
 | `children` | 递归子树 |
 | `layout` | auto-layout 间距 / padding / 对齐 |
 
-`--json` 输出 Markdown 承载的完整规格；结构化字段在 Markdown 表格里：
+`--json` 同时输出原始节点和 Markdown：
 
 ```json
 { "schema": "w_tools_figma.spec/1", "source": "test/fixtures/nodes-frame.json",
-  "nodeId": "1862:9222", "markdown": "# 基本資料  (1862:9222)..." }
+  "nodeId": "1862:9222", "markdown": "# 基本資料  (1862:9222)...",
+  "node": { "id": "1862:9222", "type": "FRAME", "children": [] } }
 ```
+
+`node` 是原始 Figma 节点（结构化），`markdown` 是人读表格。
 
 默认（不带 `--json`）输出 **Markdown 表格**，字段与上表一致，便于贴进 PR / 设计稿核对单。
 

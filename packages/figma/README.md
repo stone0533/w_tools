@@ -173,11 +173,13 @@ usage.v1.json
 budget.v1.json
 ```
 
-`spec --json` 当前是：
+`spec --json` 同时返回原始节点和 Markdown：
 
 ```json
-{"schema":"w_tools_figma.spec/1","source":"...","nodeId":"...","markdown":"..."}
+{"schema":"w_tools_figma.spec/1","source":"...","nodeId":"...","markdown":"...","node":{...}}
 ```
+
+`node` 是原始 Figma 节点，适合结构化解析；`markdown` 适合贴 PR / AI 阅读。
 
 ## 退出码
 
