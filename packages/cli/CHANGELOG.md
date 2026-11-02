@@ -21,6 +21,7 @@
 - 命令层统一通过 `ProjectFiles.loadConfig` 读取 `.w_tools_doctor.yaml`，减少重复异常处理。
 - R6 / R9 共用 `TextScan` 文本扫描，统一跳过整行注释与行号计算。
 - R9 预过滤无效 banned 条目，避免每个源文件行重复 validate。
+- R6/R9 跳过行尾 `//` 注释；R2 同时检查 `export package:w_tools_*`。
 
 ### Changed
 - 消费方 AGENTS 模板补充 `WTextVariant` 不够用时的处理顺序：先 `variant + style`，项目内重复抽本地 helper，稳定跨页面语义再提库内 variant。

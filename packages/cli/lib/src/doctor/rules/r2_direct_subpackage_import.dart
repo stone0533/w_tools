@@ -9,7 +9,9 @@ class R2DirectSubpackageImport {
   static const id = 'R2';
   static const title = '直连子包 import';
 
-  static final _importPattern = RegExp(r"""^\s*import\s+['"]package:(w_tools(?:_[a-z]+)?)/""");
+  static final _importPattern = RegExp(
+    r"""^\s*(?:import|export)\s+['"]package:(w_tools(?:_[a-z]+)?)/""",
+  );
 
   static DoctorRuleResult check(ProjectContext ctx, DoctorConfig config) {
     final issues = <DoctorIssue>[];
@@ -36,7 +38,7 @@ class R2DirectSubpackageImport {
             level: DoctorLevel.error,
             file: file,
             line: i + 1,
-            message: isMeta ? '直接 import 了聚合包 w_tools' : '直接 import 了 $pkg',
+            message: isMeta ? '直接 import/export 了聚合包 w_tools' : '直接 import/export 了 $pkg',
             hint: isMeta
                 ? '改用具体子包（w_tools_ui / core / …）+ 聚合入口 ${config.toolkitEntry}'
                 : '改用聚合入口（如 ${config.toolkitEntry}），换依赖方式时只改一处',

@@ -89,7 +89,7 @@ doctor 检查项：
 | id | 级别 | 内容 |
 | --- | --- | --- |
 | R1 | error | `dependencies` 里出现聚合包 `w_tools`（`dev_dependencies` 豁免 —— doctor 自己就靠它；`dependency_overrides` 里出现只 **warn**） |
-| R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
+| R2 | error | 业务代码直接 import / export `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
 | R3 | warn | 业务层硬编码语义色（**调色板默认空**，需声明 `colors.palette`；项目 UI / 暂存层豁免） |
 | R4 | error | 设计系统（`lib/app/ui/`、暂存层）import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
@@ -134,7 +134,7 @@ banned:
 Image.asset('logo.png');
 ```
 
-没有 `reason:` 的豁免不生效；`init` 会把有效 `banned` 生成到 AGENTS。
+没有 `reason:` 的豁免不生效；整行注释和行尾 `//` 注释会跳过，字符串仍可能命中；`init` 会把有效 `banned` 生成到 AGENTS。
 项目 UI 层固定为 `lib/app/ui/`，暂存层固定为 `lib/app/design_system/`；`init` 与 doctor 使用同一套路径。
 
 > 早期这里放的是三条 grep 命令，现在**以 doctor 为唯一事实源** —— 同一份规则不能有两个实现，

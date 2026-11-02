@@ -26,7 +26,7 @@ class R6BannedUnits {
     final issues = <DoctorIssue>[];
     for (final file in TextScan.files(ctx)) {
       for (final line in file.codeLines) {
-        final m = _pattern.firstMatch(line.text);
+        final m = _pattern.firstMatch(line.code);
         if (m == null) continue;
         issues.add(
           DoctorIssue(

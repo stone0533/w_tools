@@ -73,6 +73,13 @@ void main() {
     expect(run(root, [rule()]).status, DoctorRuleStatus.pass);
   });
 
+  test('行尾注释里的禁用 API 不命中', () {
+    final root = makeProject({
+      'lib/a.dart': 'void main() {} // Foo.bar\n',
+    });
+    expect(run(root, [rule()]).status, DoctorRuleStatus.pass);
+  });
+
   test('paths 限制命中范围', () {
     final root = makeProject({
       'lib/app/modules/a.dart': 'Foo.bar();\n',

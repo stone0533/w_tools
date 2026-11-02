@@ -25,6 +25,36 @@ class SourceLine {
   final String text;
 
   int get lineNumber => index + 1;
+
+  /// 去掉行尾 `//` 注释；不处理块注释。
+  String get code => stripLineComment(text);
+}
+
+/// 去掉字符串外的行尾 `//` 注释；简单引号/转义处理，不解析 raw string。
+String stripLineComment(String source) {
+  String? quote;
+  var escaped = false;
+  for (var i = 0; i < source.length; i++) {
+    final char = source[i];
+    if (quote != null) {
+      if (escaped) {
+        escaped = false;
+      } else if (char == '\\') {
+        escaped = true;
+      } else if (char == quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (char == "'" || char == '"') {
+      quote = char;
+      continue;
+    }
+    if (char == '/' && i + 1 < source.length && source[i + 1] == '/') {
+      return source.substring(0, i);
+    }
+  }
+  return source;
 }
 
 /// doctor 规则的轻量文本扫描入口。

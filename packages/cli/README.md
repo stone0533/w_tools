@@ -152,7 +152,7 @@ dart run w_tools_cli:doctor --strict            # warning 也失败
 | id | 级别 | 内容 |
 | --- | --- | --- |
 | R1 | error | `dependencies` 里出现聚合包 `w_tools` |
-| R2 | error | 业务代码直接 import `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
+| R2 | error | 业务代码直接 import / export `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
 | R3 | warn | 业务层硬编码语义色（`colors.palette` 为空时跳过） |
 | R4 | error | 设计系统 import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
@@ -200,7 +200,7 @@ Image.asset('logo.png');
 
 没有 `reason:` 的豁免不生效。
 
-> R9 是文本级检查：整行注释会跳过，但行尾注释 / 字符串仍可能命中；
+> R9 是文本级检查：整行注释和行尾 `//` 注释会跳过，但字符串仍可能命中；
 > 需要精确排除时用 `paths` / `ignore` / inline ignore。
 
 ### 配置

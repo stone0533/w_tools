@@ -57,7 +57,7 @@ class R9BannedApi {
       for (final line in file.codeLines) {
         for (final entry in validEntries) {
           if (!entry.appliesTo(file.path)) continue;
-          if (!entry.matches(line.text)) continue;
+          if (!entry.matches(line.code)) continue;
           if (Suppression.isIgnored(file.lines, line.index, id)) continue;
 
           final use = entry.use?.trim();

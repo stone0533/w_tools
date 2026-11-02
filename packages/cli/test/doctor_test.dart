@@ -78,6 +78,15 @@ void main() {
       expect(r.issues.single.message, contains('聚合包'));
     });
 
+    test('业务文件 export 子包 → error', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/foo.dart': "export 'package:w_tools_ui/w_tools_ui.dart';\n",
+      });
+      final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.issues.single.file, 'lib/app/foo.dart');
+    });
+
     test('注释里的 import 不算', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',
@@ -347,6 +356,15 @@ void main() {
       final r = R6BannedUnits.check(ctxOf(root, config), config);
       expect(r.issues.single.line, 1);
       expect(r.issues.single.level, DoctorLevel.warn);
+    });
+
+    test('行尾注释里的 .h 不算', () {
+      final root = makeProject({
+        'lib/a.dart': 'final x = 10; // 这里只是提到 .h\n',
+      });
+      final config = DoctorConfig.parse('rules:\n  R6: true\n');
+      final r = R6BannedUnits.check(ctxOf(root, config), config);
+      expect(r.status, DoctorRuleStatus.pass);
     });
 
     test('注释里的 .h 不算', () {
