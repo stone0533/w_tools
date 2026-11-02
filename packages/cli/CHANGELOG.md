@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.5.0
+## 1.6.0
 
 ### Added
 - 新增 R9 项目禁用 API：`.w_tools_doctor.yaml` 的 `banned` 支持 literal / regex、paths / ignore、use / reason 与 level。
@@ -26,6 +26,10 @@
 - 消费方 AGENTS 模板补充 `WTextVariant` 不够用时的处理顺序：先 `variant + style`，项目内重复抽本地 helper，稳定跨页面语义再提库内 variant。
 - 组件目录同步 `WText` 的 variant 边界说明。
 - 消费方 AGENTS 模板统一间距入口：`SizedBox` 用 `WSizeBox`，`Padding` 用 `WPadding`，`EdgeInsets` 用 `num.allPadding`；不再推荐 `num.heightBox` / `widthBox` / `squareBox`。
+
+## 1.5.0
+
+- 已发布版本（此前的模板与文档修正；不含 1.6.0 的 R9 / schema / feature registry）。
 
 ## 1.4.0
 
