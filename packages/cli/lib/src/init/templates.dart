@@ -67,23 +67,34 @@ class InitTemplates {
     String part(String zh, String enText) => en ? enText : zh;
 
     final valid = banned.where((entry) => entry.validate() == null).toList();
-    final bannedLines = <String>[
-      if (valid.isNotEmpty) '',
-      if (valid.isNotEmpty) (en ? '### Project-banned APIs' : '### 本项目禁用 API'),
-      if (valid.isNotEmpty)
-        (en
-            ? 'R9 only matches registered patterns; unregistered APIs or new forms still require human review.'
-            : 'R9 只匹配已登记的 pattern；未登记的 API / 新形态仍需人工评审。'),
-      for (final entry in valid)
-        '- `${entry.id}`：`${entry.pattern}`'
-            '${[
-                  if (entry.use?.trim().isNotEmpty == true) '改用 `${entry.use}`',
-                  if (entry.reason?.trim().isNotEmpty == true) '原因：${entry.reason}',
-                ].isEmpty ? '' : '（${[
-                    if (entry.use?.trim().isNotEmpty == true) '改用 `${entry.use}`',
-                    if (entry.reason?.trim().isNotEmpty == true) '原因：${entry.reason}',
-                  ].join('；')}）'}',
-    ];
+    final bannedLines = <String>[];
+    if (valid.isNotEmpty) {
+      bannedLines
+        ..add('')
+        ..add(en ? '### Project-banned APIs' : '### 本项目禁用 API')
+        ..add(
+          en
+              ? 'R9 only matches registered patterns; unregistered APIs or new forms still require human review.'
+              : 'R9 只匹配已登记的 pattern；未登记的 API / 新形态仍需人工评审。',
+        );
+      for (final entry in valid) {
+        final details = <String>[
+          if (entry.use?.trim().isNotEmpty == true) en ? 'use `${entry.use}`' : '改用 `${entry.use}`',
+          if (entry.reason?.trim().isNotEmpty == true)
+            en ? 'reason: ${entry.reason}' : '原因：${entry.reason}',
+        ];
+        final suffix = details.isEmpty
+            ? ''
+            : en
+            ? ' (${details.join('; ')})'
+            : '（${details.join('；')}）';
+        bannedLines.add(
+          en
+              ? '- `${entry.id}`: `${entry.pattern}`$suffix'
+              : '- `${entry.id}`：`${entry.pattern}`$suffix',
+        );
+      }
+    }
 
     final parts = <String>[
       part(generated.agentsBase, generated.agentsBaseEn),

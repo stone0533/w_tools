@@ -5,6 +5,7 @@
 ### Changed
 - AGENTS UI 片段补充 `lib/app/ui/` 是项目永久 UI 层、不走 STAGED、不计划上移。
 - banned 段落增加 R9 只匹配已登记 pattern 的边界说明；英文输出改为英文标题与说明。
+- AGENTS base 明确先判断永久 UI 层 / 暂存层；英文 banned 条目使用 use / reason 标签。
 
 ## 1.6.0
 

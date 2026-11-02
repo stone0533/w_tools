@@ -103,6 +103,13 @@ void main() {
     expect(enNoForm, contains('WApp.start'));
   });
 
+  test('base 指引先判断 /ui 与 design_system 分层', () {
+    final block = InitTemplates.agentsBlock();
+    expect(block, contains('先判断层级'));
+    expect(block, contains('项目永久 UI 规范'));
+    expect(block, contains('只有待上移的通用组件'));
+  });
+
   test('UI 片段说明 lib/app/ui 是永久 UI 层', () {
     final withUi = InitTemplates.agentsBlock();
     expect(withUi, contains('项目永久 UI 层'));
@@ -131,6 +138,9 @@ void main() {
     expect(block, contains('Project-banned APIs'));
     expect(block, isNot(contains('本项目禁用 API')));
     expect(block, contains('R9 only matches registered patterns'));
+    expect(block, contains('use `Bar`'));
+    expect(block, contains('reason: removed'));
+    expect(block, isNot(contains('改用')));
   });
 
   test('AGENTS 片段带标记块（init 靠它幂等替换）', () {

@@ -7,10 +7,12 @@
 2. **先找现成的**：`dart run w_tools_cli:list <关键词>`，
    需要细节再 `dart run w_tools_cli:explain <组件名>`；**不要凭记忆造组件名**。
    业务代码统一 `import 'package:{{app}}/app/w/toolkit.dart';`（本项目能力清单）。
-3. **找不到 → 放暂存层** `lib/app/design_system/`，**不要**直接改 w_tools：
-   - 只允许 import `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
-   - 文件头标 `// STAGED: 待上移到 w_tools_ui`，注释写设计稿实测尺寸
-   - 至少一个测试；是否进包由维护者决定（第二个用例 / 发版窗口）
+3. **找不到 → 先判断层级**：
+   - 项目永久 UI 规范（页面壳 / AppBar / 按钮等）放 `lib/app/ui/`（启用 UI 时）
+   - 只有待上移的通用组件放 `lib/app/design_system/`，**不要**直接改 w_tools：
+     - 只允许 import `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
+     - 文件头标 `// STAGED: 待上移到 w_tools_ui`，注释写设计稿实测尺寸
+     - 至少一个测试；是否进包由维护者决定（第二个用例 / 发版窗口）
 4. **业务层只放这个功能独有的组合**，不放通用组件。
 
 ## 项目规则
