@@ -12,6 +12,7 @@
 - [接入约定](conventions.md)：包 / 暂存层 / 业务层的判定与 doctor 规则
 - [新增/修改组件](../CONTRIBUTING.md)：四条硬性要求
 - [CLI（init / doctor）](../packages/cli/README.md)
+- [Figma 取数 CLI 契约（草案）](figma-cli.md)
 
 ## 维护者 / agent
 
