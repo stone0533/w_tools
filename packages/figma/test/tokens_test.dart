@@ -74,6 +74,38 @@ void main() {
     expect(md, contains('| 新增 |'));
   });
 
+  test('隐藏节点及其子树不进入 token', () {
+    final c = TokenCollector();
+    c.collect({
+      'id': 'root',
+      'type': 'FRAME',
+      'visible': true,
+      'children': [
+        {
+          'id': 'hidden',
+          'type': 'FRAME',
+          'visible': false,
+          'fills': [
+            {
+              'type': 'SOLID',
+              'visible': true,
+              'color': {'r': 1, 'g': 0, 'b': 0}
+            },
+          ],
+          'children': [
+            {
+              'id': 'hidden-child',
+              'type': 'TEXT',
+              'style': {'fontSize': 99},
+            },
+          ],
+        },
+      ],
+    });
+    expect(c.colors, isEmpty);
+    expect(c.texts, isEmpty);
+  });
+
   test('找不到节点时 CLI 报错（collect 前先确认存在）', () {
     expect(findFigmaNode(document(), '999:999'), isNull);
   });

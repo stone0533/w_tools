@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import '../client/figma_client.dart';
+import '../common/version.dart';
 import 'cli_io.dart';
 import 'diff_command.dart';
 import 'fetch_command.dart';
@@ -35,11 +36,12 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
   dart run w_tools_figma:figma help   [command]
 
 选项（spec / tokens 通用）：
-  --file=<path>   指定缓存节点树 JSON（默认取 .figma-cache/nodes-*.json 中最大的一个）
+  --file=<path>   指定缓存节点树 JSON（默认扫描 nodes-*.json 并选含目标节点的文件）
   --root=<dir>    项目根（默认当前目录），用于定位 .figma-cache/
   --json          输出 JSON（默认输出 Markdown）
   --node-depth=<n>  spec --json 限制原始 node 的子节点深度（0 = 不带 children）
   --node-only       spec --json 只输出 node，不带 markdown
+  --no-markdown     等同 --node-only
   -h, --help      显示帮助
 
 tokens 专属：
@@ -50,10 +52,12 @@ tokens 专属：
 fetch 专属：
   --depth=<n>     file 的深度（默认 3）
   --scale=<n>     images 的倍率（默认 2）
-  --refresh       删除缓存并强制重拉（唯一会绕过缓存的开关）
+  --refresh       绕过缓存重新请求（失败时保留旧缓存）
   --check-stale   用 Tier 3 的 file/meta 判断缓存是否过期（不占 20 次/月，只提示不重拉）
-  --if-stale      diff 先用 /meta 比较版本；没变就不拉节点（不再消耗 Tier 1）
   --no-log        本次不写用量日志（调试用）
+
+diff 专属：
+  --if-stale      先用 /meta 比较版本；没变就不拉节点（不再消耗 Tier 1）
 
 退出码：0 成功 / 1 一般错误 / 2 参数错误 / 3 额度受限 / 4 token 问题 / 5 网络错误
 
@@ -117,7 +121,7 @@ Future<void> runFigmaCli(List<String> args) async {
       case 'tokens':
         await runTokens(rest);
       case 'version':
-        printLine('w_tools_figma 0.1.0');
+        printLine('w_tools_figma $figmaVersion');
       default:
         stderr.writeln('未知命令：$command\n');
         printOut(_usage);

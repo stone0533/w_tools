@@ -6,6 +6,7 @@ import 'args.dart';
 
 void runInit(List<String> args) {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'force'});
   final store = CacheStore(Directory(options.root));
   final result = InitCommand(store).run(force: options.force);
   stderr.writeln(result.tokenCreated ? '已创建 .figma-token（记得填入 figd_ 令牌）' : '.figma-token 已存在');

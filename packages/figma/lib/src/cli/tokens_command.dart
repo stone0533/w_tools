@@ -12,6 +12,7 @@ import 'cli_io.dart';
 
 Future<void> runTokens(List<String> args) async {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'file', 'json', 'min', 'out', 'map'});
   final rawIds = options.positional.isEmpty ? null : options.positional.first;
   if (rawIds == null) {
     stderr.writeln('tokens 需要节点 id，例如：tokens 1862:9222,1862:9226');

@@ -63,16 +63,18 @@ class TokenCollector {
   final Map<String, NumberUsage> spacings = {};
 
   /// 统计 [document] 子树（可多次调用，累加）。
-  void collect(Map document) => _walk(document);
+  void collect(Map document) => _walk(document, inheritedVisible: true);
 
-  void _walk(Map node) {
+  void _walk(Map node, {required bool inheritedVisible}) {
+    final visible = inheritedVisible && node['visible'] != false;
+    if (!visible) return;
     _collectFills(node);
     _collectStrokes(node);
     _collectText(node);
     _collectRadius(node);
     _collectSpacing(node);
     for (final c in (node['children'] as List?) ?? const []) {
-      if (c is Map) _walk(c);
+      if (c is Map) _walk(c, inheritedVisible: visible);
     }
   }
 

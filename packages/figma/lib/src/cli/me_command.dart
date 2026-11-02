@@ -10,6 +10,7 @@ import 'cli_io.dart';
 /// 校验 token，打印当前 Figma 用户。
 Future<void> runMe(List<String> args) async {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'json'});
   final store = CacheStore(Directory(options.root));
   final client = HttpFigmaClient(token: readToken(store));
   try {

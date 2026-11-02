@@ -36,6 +36,12 @@ void main() {
     expect(unknown.exitCode, 2);
   });
 
+  test('不支持的选项返回 exit 2', () async {
+    final result = await run(<String>['spec', '1:2', '--min=3']);
+    expect(result.exitCode, 2);
+    expect('${result.stderr}', contains('不支持的选项'));
+  });
+
   test('get 下载图片 URL 到本地文件', () async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((request) async {

@@ -8,6 +8,7 @@ import 'cli_io.dart';
 
 void runUsage(List<String> args) {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'json'});
   final store = CacheStore(Directory(options.root));
   final summary = UsageCommand(store).run();
   if (options.json) {
@@ -39,6 +40,7 @@ void runUsage(List<String> args) {
 
 void runBudget(List<String> args) {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'json', 'set'});
   final store = CacheStore(Directory(options.root));
   if (options.budgetSet != null) {
     store.dir.createSync(recursive: true);

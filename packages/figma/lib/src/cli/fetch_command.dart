@@ -10,6 +10,8 @@ import 'cli_io.dart';
 
 Future<void> runFetch(List<String> args) async {
   final options = parseOptions(args);
+  rejectUnsupported(
+      options, {'root', 'json', 'depth', 'scale', 'refresh', 'no-log', 'check-stale'});
   final positional = options.positional;
   if (positional.length < 2) {
     stderr.writeln('fetch 用法：fetch <file|nodes|images> <fileKey> [ids]');

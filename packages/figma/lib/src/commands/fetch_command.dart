@@ -105,10 +105,7 @@ class FetchCommand {
     required bool refresh,
     required bool checkStale,
   }) async {
-    if (refresh && file.existsSync()) {
-      file.deleteSync();
-    }
-    final cached = store.read(file);
+    final cached = refresh ? null : store.read(file);
     if (cached != null) {
       final stale = checkStale ? await _checkStale(fileKey, updateMeta: false) : null;
       return FetchResult(

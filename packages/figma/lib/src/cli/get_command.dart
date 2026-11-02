@@ -6,6 +6,7 @@ import 'cli_io.dart';
 /// 下载 fetch images 返回的签名 URL；不访问 Figma API，不消耗额度。
 Future<void> runGet(List<String> args) async {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root'});
   final positional = options.positional;
   if (positional.length < 2) {
     stderr.writeln('get 用法：get <url> <outfile>');

@@ -9,6 +9,7 @@ import 'cli_io.dart';
 /// 列出缓存中的 FRAME，默认只列顶层画板。
 Future<void> runFrames(List<String> args) async {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'file', 'json', 'all', 'name', 'page', 'verbose'});
   final root = Directory(options.root);
   final store = CacheStore(root);
   final files = options.file != null ? <File>[File(options.file!)] : nodesCacheFiles(store);

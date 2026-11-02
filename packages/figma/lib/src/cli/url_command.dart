@@ -7,6 +7,7 @@ import 'cli_io.dart';
 
 void runUrl(List<String> args) {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'json'});
   if (options.positional.isEmpty) {
     stderr.writeln('url 需要 Figma 链接或 nodeId');
     exitCode = 2;

@@ -10,6 +10,7 @@ import 'cli_io.dart';
 
 Future<void> runDiff(List<String> args) async {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'json', 'if-stale', 'no-log'});
   final positional = options.positional;
   if (positional.length < 2) {
     stderr.writeln('diff 用法：diff <fileKey> <nodeId>（消耗 1 次 Tier 1）');
@@ -43,7 +44,11 @@ Future<void> runDiff(List<String> args) async {
         return;
       }
     }
-    final result = await DiffCommand(store: store, client: client).run(
+    final result = await DiffCommand(
+      store: store,
+      client: client,
+      log: options.log,
+    ).run(
       fileKey: fileKey,
       nodeId: nodeId,
     );

@@ -140,17 +140,21 @@ Map<String, _IndexEntry> _loadIndex(Directory root, List<File> files) {
     changed = true;
   }
   if (changed || !indexFile.existsSync()) {
-    indexFile.writeAsStringSync(jsonEncode({
-      'version': 1,
-      'files': {
-        for (final entry in out.entries)
-          entry.key: {
-            'mtime': entry.value.mtime,
-            'size': entry.value.size,
-            'ids': entry.value.ids.toList(),
-          },
-      },
-    }));
+    try {
+      indexFile.writeAsStringSync(jsonEncode({
+        'version': 1,
+        'files': {
+          for (final entry in out.entries)
+            entry.key: {
+              'mtime': entry.value.mtime,
+              'size': entry.value.size,
+              'ids': entry.value.ids.toList(),
+            },
+        },
+      }));
+    } on FileSystemException {
+      // 只读缓存目录下仍允许 spec / tokens 工作。
+    }
   }
   return out;
 }

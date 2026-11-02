@@ -9,6 +9,7 @@ import 'cli_io.dart';
 
 Future<void> runSpec(List<String> args) async {
   final options = parseOptions(args);
+  rejectUnsupported(options, {'root', 'file', 'json', 'node-only', 'node-depth'});
   final rawIds = options.positional.isEmpty ? null : options.positional.first;
   if (rawIds == null) {
     stderr.writeln('spec 需要 nodeId，例如：spec 1862:9222');

@@ -25,7 +25,7 @@ dart run w_tools_figma:figma fetch file   <fileKey> [--depth=3]
 dart run w_tools_figma:figma fetch nodes  <fileKey> <id1,id2,...>
 dart run w_tools_figma:figma fetch images <fileKey> <id1,id2,...> [--scale=2]
 
---refresh      删除对应缓存并重新请求
+--refresh      绕过缓存重新请求（失败时保留旧缓存）
 --check-stale  调 file/meta 判断缓存版本，只提示不重拉
 --no-log       本次不写用量日志
 
@@ -36,8 +36,8 @@ spec — 从缓存导出节点规格
 
 dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-only] [--node-depth=<n>]
 
-只读 .figma-cache/nodes-*.json，不访问 Figma。
---json 输出 Markdown 载体，不是结构化字段树。
+只读缓存，不访问 Figma；默认扫描所有 nodes-*.json，选包含目标 nodeId 的文件。
+--json 输出结构化 node；默认同时带 markdown，--node-only / --no-markdown 可只保留 node。
 ''',
   'tokens': '''
 tokens — 汇总设计 token

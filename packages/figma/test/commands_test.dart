@@ -69,6 +69,23 @@ void main() {
       expect(store.usageCountThisMonth(now: DateTime.now()), 1, reason: '缓存命中不写日志');
     });
 
+    test('--refresh 请求失败时保留旧缓存', () async {
+      final first = FetchCommand(store: store, client: FakeClient(payload));
+      final cached = await first.nodes(fileKey: 'K', ids: ['1:2']);
+      final before = cached.file.readAsStringSync();
+
+      final failing = FetchCommand(
+        store: store,
+        client: FailingClient(StateError('network down')),
+      );
+      await expectLater(
+        failing.nodes(fileKey: 'K', ids: ['1:2'], refresh: true),
+        throwsA(isA<StateError>()),
+      );
+      expect(cached.file.existsSync(), isTrue);
+      expect(cached.file.readAsStringSync(), before);
+    });
+
     test('--refresh 删缓存并重新请求（再记一次用量）', () async {
       final client = FakeClient(payload);
       final command = FetchCommand(store: store, client: client);

@@ -27,10 +27,11 @@ class DiffResult {
 
 /// 对比「上次缓存」与「刚拉的最新节点」，列出改动（消耗 1 次 Tier 1）。
 class DiffCommand {
-  DiffCommand({required this.store, required this.client});
+  DiffCommand({required this.store, required this.client, this.log = true});
 
   final CacheStore store;
   final FigmaClient client;
+  final bool log;
 
   /// [oldFile] 是旧缓存文件；没有旧缓存时直接拉新（相当于 fetch）。
   Future<DiffResult> run({
@@ -91,7 +92,9 @@ class DiffCommand {
       Uri.parse('https://api.figma.com/v1/files/$fileKey/nodes?ids=$nodeId'),
     );
     store.write(target, json);
-    store.logUsage(kind: 'nodes', cacheFile: target.uri.pathSegments.last);
+    if (log) {
+      store.logUsage(kind: 'nodes', cacheFile: target.uri.pathSegments.last);
+    }
     return target;
   }
 }
