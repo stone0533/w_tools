@@ -5,9 +5,8 @@ import 'dart:io';
 
 import 'package:w_tools_cli/src/catalog/catalog.dart';
 import 'package:w_tools_cli/src/common/cli.dart';
+import 'package:w_tools_cli/src/common/project_loader.dart';
 import 'package:w_tools_cli/src/doctor/banned_rule.dart';
-import 'package:w_tools_cli/src/doctor/config.dart';
-import 'package:yaml/yaml.dart' show YamlException;
 
 const _usage = '''
 w_tools_cli explain —— 查看某个组件的用途、反例、import 与文档
@@ -53,8 +52,8 @@ void main(List<String> argv) {
       List<BannedRule> banned;
       try {
         banned = _matchingBanned(name, root);
-      } on YamlException catch (e) {
-        stderr.writeln('${DoctorConfig.fileName} 解析失败：${e.message}');
+      } on ProjectLoadException catch (e) {
+        stderr.writeln(e.message);
         exit(2);
       }
       final asJson = (args['json'] as bool) || args['format'] == 'json';
@@ -106,7 +105,7 @@ void main(List<String> argv) {
 }
 
 List<BannedRule> _matchingBanned(String query, Directory root) {
-  final config = DoctorConfig.load(root);
+  final config = ProjectFiles.loadConfig(root);
   return config.banned.where((entry) => entry.validate() == null && entry.matches(query)).toList();
 }
 

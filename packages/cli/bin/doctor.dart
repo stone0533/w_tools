@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:w_tools_cli/src/common/cli.dart';
+import 'package:w_tools_cli/src/common/project_loader.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/doctor/context.dart';
 import 'package:w_tools_cli/src/doctor/reporter.dart';
@@ -102,9 +103,9 @@ void main(List<String> argv) {
 
       DoctorConfig config;
       try {
-        config = DoctorConfig.load(root);
-      } on YamlException catch (e) {
-        stderr.writeln('${DoctorConfig.fileName} 解析失败：${e.message}');
+        config = ProjectFiles.loadConfig(root);
+      } on ProjectLoadException catch (e) {
+        stderr.writeln(e.message);
         exit(2);
       }
       if (only != null) {
