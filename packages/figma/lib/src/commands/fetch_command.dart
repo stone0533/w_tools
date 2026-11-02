@@ -10,12 +10,20 @@ class FetchResult {
     required this.json,
     required this.fromCache,
     required this.tierCalls,
+    this.stale = false,
+    this.cachedVersion,
+    this.latestVersion,
   });
 
   final File file;
   final Map<String, dynamic> json;
   final bool fromCache;
   final int tierCalls;
+
+  /// 缓存命中但线上版本已变（需 `--refresh` 才会重拉）。
+  final bool stale;
+  final String? cachedVersion;
+  final String? latestVersion;
 }
 
 /// 取数：`file` / `nodes` / `images`。
@@ -35,12 +43,15 @@ class FetchCommand {
     required String fileKey,
     int depth = 3,
     bool refresh = false,
+    bool checkStale = false,
   }) {
     return _fetch(
       kind: 'file',
+      fileKey: fileKey,
       file: store.cacheFile(kind: 'file', fileKey: fileKey, scale: depth),
       url: Uri.parse('https://api.figma.com/v1/files/$fileKey?depth=$depth'),
       refresh: refresh,
+      checkStale: checkStale,
     );
   }
 
@@ -48,13 +59,16 @@ class FetchCommand {
     required String fileKey,
     required List<String> ids,
     bool refresh = false,
+    bool checkStale = false,
   }) {
     final joined = ids.join(',');
     return _fetch(
       kind: 'nodes',
+      fileKey: fileKey,
       file: store.cacheFile(kind: 'nodes', fileKey: fileKey, ids: joined),
       url: Uri.parse('https://api.figma.com/v1/files/$fileKey/nodes?ids=$joined'),
       refresh: refresh,
+      checkStale: checkStale,
     );
   }
 
@@ -63,10 +77,12 @@ class FetchCommand {
     required List<String> ids,
     int scale = 2,
     bool refresh = false,
+    bool checkStale = false,
   }) {
     final joined = ids.join(',');
     return _fetch(
       kind: 'images',
+      fileKey: fileKey,
       file: store.cacheFile(
         kind: 'images',
         fileKey: fileKey,
@@ -77,27 +93,72 @@ class FetchCommand {
         'https://api.figma.com/v1/images/$fileKey?ids=$joined&format=png&scale=$scale',
       ),
       refresh: refresh,
+      checkStale: checkStale,
     );
   }
 
   Future<FetchResult> _fetch({
     required String kind,
+    required String fileKey,
     required File file,
     required Uri url,
     required bool refresh,
+    required bool checkStale,
   }) async {
     if (refresh && file.existsSync()) {
       file.deleteSync();
     }
     final cached = store.read(file);
     if (cached != null) {
-      return FetchResult(file: file, json: cached, fromCache: true, tierCalls: 0);
+      final stale = checkStale ? await _checkStale(fileKey) : null;
+      return FetchResult(
+        file: file,
+        json: cached,
+        fromCache: true,
+        tierCalls: 0,
+        stale: stale?.stale ?? false,
+        cachedVersion: stale?.cachedVersion,
+        latestVersion: stale?.latestVersion,
+      );
     }
     final json = await client.getJson(url);
     store.write(file, json);
     if (log) {
       store.logUsage(kind: kind, cacheFile: file.uri.pathSegments.last);
     }
-    return FetchResult(file: file, json: json, fromCache: false, tierCalls: 1);
+    if (checkStale) await _checkStale(fileKey);
+    return FetchResult(
+      file: file,
+      json: json,
+      fromCache: false,
+      tierCalls: 1,
+      stale: false,
+    );
+  }
+
+  /// 用 Tier 3 的 `file/meta`（不占 20 次/月）判断缓存是否过期。
+  ///
+  /// 只提示、不自动重拉：自动重拉会在不知不觉中消耗 Tier 1。
+  Future<({bool stale, String? cachedVersion, String? latestVersion})?> _checkStale(
+    String fileKey,
+  ) async {
+    final metaUrl = Uri.parse('https://api.figma.com/v1/files/$fileKey/meta');
+    final meta = await client.getJson(metaUrl);
+    final fileMeta = meta['file'];
+    final latest = fileMeta is Map ? '${fileMeta['version'] ?? ''}' : '';
+    if (latest.isEmpty) return null;
+
+    final metaFile = store.metaFile(fileKey);
+    final previous = store.read(metaFile);
+    final cachedVersion = previous == null ? null : '${previous['version'] ?? ''}';
+    if (cachedVersion != latest) {
+      store.write(metaFile, {
+        'version': latest,
+        'lastTouchedAt': fileMeta is Map ? '${fileMeta['lastTouchedAt'] ?? ''}' : '',
+        'checkedAt': DateTime.now().toIso8601String(),
+      });
+    }
+    final stale = cachedVersion != null && cachedVersion.isNotEmpty && cachedVersion != latest;
+    return (stale: stale, cachedVersion: cachedVersion, latestVersion: latest);
   }
 }

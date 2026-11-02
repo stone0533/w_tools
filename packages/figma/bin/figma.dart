@@ -32,6 +32,7 @@ fetch 专属：
   --depth=<n>     file 的深度（默认 3）
   --scale=<n>     images 的倍率（默认 2）
   --refresh       删除缓存并强制重拉（唯一会绕过缓存的开关）
+  --check-stale   用 Tier 3 的 file/meta 判断缓存是否过期（不占 20 次/月，只提示不重拉）
 
 退出码：0 成功 / 1 一般错误 / 2 参数错误 / 3 额度受限 / 4 token 问题 / 5 网络错误
 
@@ -141,12 +142,21 @@ Future<void> _runFetch(List<String> args) async {
     } else {
       stderr.writeln('# fetched: ${result.file.path}');
     }
+    if (result.stale) {
+      stderr.writeln(
+        '⚠️ 缓存可能过期：版本 ${result.cachedVersion} → ${result.latestVersion}；'
+        '确认要更新请加 --refresh（会消耗 1 次 Tier 1）',
+      );
+    }
     if (options.json) {
       stdout.writeln(jsonEncode({
         'schema': 'w_tools_figma.fetch/1',
         'cacheFile': result.file.path,
         'fromCache': result.fromCache,
         'tierCalls': result.tierCalls,
+        'stale': result.stale,
+        'cachedVersion': result.cachedVersion,
+        'latestVersion': result.latestVersion,
       }));
     }
   } finally {
@@ -418,6 +428,7 @@ class _Options {
     required this.refresh,
     required this.log,
     required this.budgetSet,
+    required this.checkStale,
   });
 
   final List<String> positional;
@@ -431,6 +442,7 @@ class _Options {
   final bool refresh;
   final bool log;
   final int? budgetSet;
+  final bool checkStale;
 }
 
 _Options _parseOptions(List<String> args) {
@@ -445,6 +457,7 @@ _Options _parseOptions(List<String> args) {
   var refresh = false;
   var log = true;
   int? budgetSet;
+  var checkStale = false;
   for (final arg in args) {
     if (arg == '--json') {
       json = true;
@@ -466,6 +479,8 @@ _Options _parseOptions(List<String> args) {
       log = false;
     } else if (arg.startsWith('--set=')) {
       budgetSet = int.tryParse(arg.substring('--set='.length));
+    } else if (arg == '--check-stale') {
+      checkStale = true;
     } else if (arg.startsWith('--')) {
       throw StateError('未知选项：$arg');
     } else {
@@ -484,5 +499,6 @@ _Options _parseOptions(List<String> args) {
     refresh: refresh,
     log: log,
     budgetSet: budgetSet,
+    checkStale: checkStale,
   );
 }

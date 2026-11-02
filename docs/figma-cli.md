@@ -74,9 +74,9 @@
 
 1. **缓存优先**：命中即返回，不算 Tier 1，不写日志；
 2. **批量**：`nodes` / `images` 一次可传多个 id，只算 1 次；
-3. **自动过期检测**：`fetch` 前用 `GET /v1/files/:key/meta`（Tier 3，不占 20 次/月）读 `version`；
-   与缓存里记录的 `version` 不同 → 标记 `stale`，**默认只提示不自动重拉**（避免误耗额度），
-   `--refresh` 才真正重拉；
+3. **自动过期检测**：`fetch --check-stale` 用 `GET /v1/files/:key/meta`（Tier 3，不占 20 次/月）
+   读 `version`；与 `_meta-<fileKey>.json` 里记录的版本不同 → 标记 `stale`，**只提示不自动重拉**
+   （避免误耗额度），`--refresh` 才真正重拉。不开 `--check-stale` 时不发任何额外请求；
 4. **预算**：`_budget.json` 记录本月已用；超过 `limit` 的 80% 时打印警告；
 5. 429 时按 `Retry-After` 提示，**不自动重试**（View 座位重试会继续烧额度）。
 
@@ -215,7 +215,7 @@ dart run w_tools_figma:figma budget --set 20 # 设置月度预算（解决「只
 | --- | --- | --- |
 | 1 | ✅ **`init` / `fetch` / `usage` / `url` 已实现**（FakeClient 测试覆盖缓存 / 额度 / 幂等） | 0 |
 | 2 | ✅ **`spec` 已实现**（`packages/figma`，Dart 重写 `figma_spec.py`，golden 逐字节一致） | 0（读缓存） |
-| 3 | ✅ **`tokens` / `diff` / `budget` 已实现**；meta 自动失效待做 | 0（缓存 fixture） |
+| 3 | ✅ **`tokens` / `diff` / `budget` / meta 自动失效 已实现** | 0（缓存 fixture） |
 | 4 | 消费方迁移：项目脚本改成薄 wrapper，文档指向 CLI | 0 |
 
 ---

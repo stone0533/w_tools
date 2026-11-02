@@ -33,6 +33,9 @@ class CacheStore {
     return File('${dir.path}/$kind-$fileKey$slug$suffix.json');
   }
 
+  /// 记录文件版本的小文件（Tier 3 的 `file/meta` 结果）。
+  File metaFile(String fileKey) => File('${dir.path}/_meta-$fileKey.json');
+
   /// 读缓存；不存在返回 null。
   Map<String, dynamic>? read(File file) {
     if (!file.existsSync()) return null;
