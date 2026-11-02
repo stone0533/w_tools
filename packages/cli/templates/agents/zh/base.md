@@ -11,7 +11,7 @@
    - 只允许 import `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
    - 文件头标 `// STAGED: 待上移到 w_tools_ui`；有设计稿时把实测尺寸写进注释
    - 默认值要能直接用；至少一个测试
-   - 是否进包由维护者决定；真正进入 w_tools 时由维护者补 CHANGELOG
+   - 是否进包由维护者决定；真正进入 w_tools 时由包维护者补 CHANGELOG
    - API 参数优先 ≤ 3 个；超过 3 个先确认是否职责混合，不要机械拆组件
 4. **业务层只放这个功能独有的组合**，不放通用组件。
 

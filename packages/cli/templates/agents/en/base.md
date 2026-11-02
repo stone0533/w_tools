@@ -12,7 +12,7 @@
    - imports: `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
    - header `// STAGED: move to w_tools_ui`, plus measured specs when a design exists
    - working defaults; at least one test
-   - maintainers decide promotion; when it actually enters w_tools, they add the CHANGELOG entry
+   - maintainers decide promotion; when it actually enters w_tools, the package maintainers add the CHANGELOG entry
    - prefer ≤ 3 API parameters; if more, first check whether responsibilities are mixed
      rather than splitting mechanically
 4. Business layer keeps feature-specific composition only.

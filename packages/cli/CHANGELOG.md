@@ -13,6 +13,7 @@
 - 修正 R9 示例 id 为 `no-raw-image`，文档索引与 AGENTS 维护说明同步为 R1~R9。
 - README / conventions 增加无 CLI 时 grep 与 R1/R2/R4/R9 的映射，明确 `--include-tests` 与 R4 的覆盖边界。
 - AGENTS base 补充上移候选要求（默认值/测试/CHANGELOG）与 API 参数 ≤ 3 的形状建议。
+- base 明确 CHANGELOG 由包维护者在进入 w_tools 时补；文档补充 doctor 文本级/字符串边界说明；补英文模板测试。
 
 ## 1.6.0
 

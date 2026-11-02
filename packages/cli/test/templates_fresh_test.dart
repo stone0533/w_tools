@@ -107,7 +107,12 @@ void main() {
     final block = InitTemplates.agentsBlock();
     expect(block, contains('默认值要能直接用'));
     expect(block, contains('API 参数优先'));
-    expect(block, contains('由维护者补 CHANGELOG'));
+    expect(block, contains('由包维护者补 CHANGELOG'));
+
+    final en = InitTemplates.agentsBlock(lang: 'en');
+    expect(en, contains('working defaults'));
+    expect(en, contains('prefer ≤ 3 API parameters'));
+    expect(en, contains('package maintainers add the CHANGELOG entry'));
   });
 
   test('base 只指引暂存层，UI 分层由 ui 片段负责', () {

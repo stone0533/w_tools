@@ -161,6 +161,8 @@ dart run w_tools_cli:doctor --strict            # warning 也失败
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成 |
 | R9 | 配置 | 项目禁用 API（`banned`；默认空） |
 
+> doctor 规则是文本级检查：整行注释和行尾 `//` 注释会跳过，但字符串内容仍可能命中。
+
 只跑部分规则：
 
 ```bash

@@ -98,6 +98,8 @@ doctor 检查项：
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成（只检查带 w_tools 标记的 target 文件与 toolkit；UI starter 可自定义，不检查；版本标记与 `pubspec.lock` 不一致） |
 | R9 | 配置 | 项目禁用 API（`.w_tools_doctor.yaml` 的 `banned`；默认空，命中按条目 level 报） |
 
+doctor 规则是文本级检查：注释会跳过，字符串内容仍可能命中。
+
 `--strict` 让 warning 也失败（默认关）；`--json` 给 CI 解析，issue 里的 `fix`
 （`run` / `edit`）可直接执行，没有 `fix` 时看 `hint`。
 
