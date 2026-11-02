@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:yaml/yaml.dart';
 import 'dart:io';
 
 import '../spec/figma_node.dart';
@@ -38,10 +40,12 @@ Future<void> runTokens(List<String> args) async {
     throw StateError('在缓存里找不到节点：${missing.join(', ')}；先运行 `figma frames` 查看缓存中的 FRAME');
   }
 
+  final colorNames = _loadColorNames(options.mapFile);
   final markdown = const TokenRenderer().renderMarkdown(
     tokens: collector,
     source: file.path,
     nodeIds: nodeIds,
+    colorNames: colorNames,
   );
   if (options.out != null) {
     File(options.out!).writeAsStringSync(markdown);
@@ -66,4 +70,22 @@ Future<void> runTokens(List<String> args) async {
     return;
   }
   printOut(markdown);
+}
+
+Map<String, String> _loadColorNames(String? path) {
+  if (path == null) return const <String, String>{};
+  YamlNode raw;
+  try {
+    raw = loadYamlNode(File(path).readAsStringSync());
+  } on YamlException catch (e) {
+    throw FormatException('$path 解析失败：${e.message}');
+  }
+  final colors = raw is YamlMap ? raw['colors'] : null;
+  if (colors is! Map) return const <String, String>{};
+  final out = <String, String>{};
+  for (final entry in colors.entries) {
+    final key = '${entry.key}'.replaceAll('#', '').toUpperCase();
+    if (key.isNotEmpty) out[key] = '${entry.value}';
+  }
+  return out;
 }

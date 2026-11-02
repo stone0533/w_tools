@@ -131,6 +131,15 @@ dart run w_tools_figma:figma spec 1862:9222 --json --node-depth=2
 
 dart run w_tools_figma:figma tokens 1862:9222,1862:9226 --out=docs/design-tokens.md
 dart run w_tools_figma:figma tokens 1862:9222 --min=3
+dart run w_tools_figma:figma tokens 1862:9222 --map=figma_tokens.yaml
+```
+
+`figma_tokens.yaml`：
+
+```yaml
+colors:
+  "#3F3F3F": textPrimary
+  "#3366E6": brandBlue
 ```
 
 ## 示例

@@ -17,9 +17,15 @@ Future<void> runFrames(List<String> args) async {
 
   final frames = <String, Map<String, Object?>>{};
   for (final file in files) {
-    final documents = readDocuments(file);
-    for (final document in documents.values) {
-      _collectFrames(document, file, frames);
+    try {
+      final documents = readDocuments(file);
+      for (final document in documents.values) {
+        _collectFrames(document, file, frames);
+      }
+    } on FormatException catch (e) {
+      stderr.writeln('跳过损坏缓存 ${file.path}: ${e.message}');
+    } on StateError catch (e) {
+      stderr.writeln('跳过损坏缓存 ${file.path}: ${e.message}');
     }
   }
   final list = frames.values.toList()..sort((a, b) => '${a['name']}'.compareTo('${b['name']}'));

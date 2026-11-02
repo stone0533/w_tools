@@ -42,7 +42,7 @@ dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--jso
   'tokens': '''
 tokens — 汇总设计 token
 
-dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [--min=<n>] [--out=<path>] [--json]
+dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [--min=<n>] [--out=<path>] [--map=<path>] [--json]
 
 统计 SOLID 颜色、文字样式、圆角、auto-layout 间距；只读缓存。
 ''',

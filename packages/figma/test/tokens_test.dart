@@ -62,6 +62,18 @@ void main() {
     expect(md, contains('| `#3F3F3F` | 14 |'));
   });
 
+  test('颜色语义映射命中与未映射', () {
+    final md = const TokenRenderer().renderMarkdown(
+      tokens: collect(),
+      source: 'test/fixtures/nodes-frame.json',
+      nodeIds: [nodeId],
+      colorNames: <String, String>{'3F3F3F': 'textPrimary'},
+    );
+    expect(md, contains('## 语义色映射'));
+    expect(md, contains('`#3F3F3F` → textPrimary'));
+    expect(md, contains('→ 未映射'));
+  });
+
   test('找不到节点时 CLI 报错（collect 前先确认存在）', () {
     expect(findFigmaNode(document(), '999:999'), isNull);
   });

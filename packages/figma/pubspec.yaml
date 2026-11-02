@@ -7,6 +7,9 @@ resolution: workspace
 environment:
   sdk: ">=3.6.0 <4.0.0"
 
+dependencies:
+  yaml: ^3.1.2
+
 dev_dependencies:
   json_schema: ^5.2.2
   lints: ^4.0.0

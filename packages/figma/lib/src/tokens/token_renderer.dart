@@ -8,6 +8,7 @@ class TokenRenderer {
     required TokenCollector tokens,
     required String source,
     required List<String> nodeIds,
+    Map<String, String> colorNames = const <String, String>{},
   }) {
     final buf = StringBuffer()
       ..writeln('# 设计 token 汇总（Figma 节点统计）')
@@ -21,6 +22,17 @@ class TokenRenderer {
       ..writeln('| --- | --- | --- |');
     for (final c in tokens.colorsSorted()) {
       buf.writeln('| `${c.value}` | ${c.count} | ${c.samples.join(' / ')} |');
+    }
+
+    if (colorNames.isNotEmpty) {
+      buf
+        ..writeln()
+        ..writeln('## 语义色映射')
+        ..writeln();
+      for (final c in tokens.colorsSorted()) {
+        final name = colorNames[c.value.replaceAll('#', '').toUpperCase()];
+        buf.writeln('- `${c.value}` → ${name ?? '未映射'}');
+      }
     }
 
     buf

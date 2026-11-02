@@ -159,7 +159,7 @@ dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--jso
 ### 3.5 `tokens`
 
 ```bash
-dart run w_tools_figma:figma tokens <nodeId,nodeId,...> [--out=docs/design-tokens.md]
+dart run w_tools_figma:figma tokens <nodeId,nodeId,...> [--out=docs/design-tokens.md] [--map=figma_tokens.yaml]
 ```
 
 - 汇总所选节点的「纯色 / 字体组合 / 圆角 / 间距」；

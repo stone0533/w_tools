@@ -18,6 +18,7 @@ class CliOptions {
     required this.force,
     required this.ifStale,
     required this.nodeOnly,
+    required this.mapFile,
   });
 
   final List<String> positional;
@@ -36,6 +37,7 @@ class CliOptions {
   final bool force;
   final bool ifStale;
   final bool nodeOnly;
+  final String? mapFile;
 }
 
 CliOptions parseOptions(List<String> args) {
@@ -55,6 +57,7 @@ CliOptions parseOptions(List<String> args) {
   var force = false;
   var ifStale = false;
   var nodeOnly = false;
+  String? mapFile;
   for (var i = 0; i < args.length; i++) {
     final arg = args[i];
     if (arg == '--json') {
@@ -93,6 +96,8 @@ CliOptions parseOptions(List<String> args) {
       ifStale = true;
     } else if (arg == '--node-only') {
       nodeOnly = true;
+    } else if (arg.startsWith('--map=')) {
+      mapFile = arg.substring('--map='.length);
     } else if (arg.startsWith('--')) {
       throw FormatException('未知选项：$arg');
     } else {
@@ -116,6 +121,7 @@ CliOptions parseOptions(List<String> args) {
     force: force,
     ifStale: ifStale,
     nodeOnly: nodeOnly,
+    mapFile: mapFile,
   );
 }
 

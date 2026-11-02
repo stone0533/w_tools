@@ -45,6 +45,7 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
 tokens 专属：
   --min=<n>       只列出出现次数 >= n 的项（默认 1）
   --out=<path>    写入文件（默认打印到 stdout）
+  --map=<path>    颜色语义映射 YAML（colors: {"#RRGGBB": name}）
 
 fetch 专属：
   --depth=<n>     file 的深度（默认 3）
