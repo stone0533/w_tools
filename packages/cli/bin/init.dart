@@ -57,9 +57,14 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
 ''';
 
 String _buildUsage() {
-  final features = initFeatureSpecs
-      .map((s) => '  --${s.flag} / --no-${s.flag}  ${s.label}')
-      .join('\n');
+  final pairs = <String>[
+    for (final spec in initFeatureSpecs) '--${spec.flag} / --no-${spec.flag}',
+  ];
+  final width = pairs.fold<int>(0, (max, value) => value.length > max ? value.length : max);
+  final features = <String>[
+    for (var i = 0; i < initFeatureSpecs.length; i++)
+      '  ${pairs[i].padRight(width)}  ${initFeatureSpecs[i].label}',
+  ].join('\n');
   return _usage.replaceAll('{{features}}', features);
 }
 
