@@ -73,6 +73,7 @@ AppCard(
 一次性盒子直接用 `Container` + `BoxDecoration`；需要 width / height / constraints /
 transform 时也直接用 `Container`。
 
+`AppScaffold` 内部使用 `WScaffold`；业务页面不要绕过 `AppScaffold` 直接使用 `WScaffold`。
 需要 drawer / bottomSheet / 非标准安全区时，用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
 
 > 待上移的通用组件放 `lib/app/design_system/`，不要混进这里。

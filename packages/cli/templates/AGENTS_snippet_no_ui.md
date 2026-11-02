@@ -11,6 +11,11 @@
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
 <!-- @optional:form:end -->
+<!-- @optional:async:start -->
+   **异步区块**：使用 `w_tools_async` 时，页面统一 `WAsyncController + WAsyncView`；
+   不要手写 `ValueNotifier<WAsyncState>`；每个独立区块一个 Controller；
+   滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`；分页 `loadMore` 自己维护。
+<!-- @optional:async:end -->
 <!-- @optional:api:start -->
    **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，
    不要直接 `Dio()`；Token 存 `WToken`，通过 `WTokenInterceptor` 注入。

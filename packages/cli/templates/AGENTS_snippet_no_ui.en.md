@@ -12,6 +12,11 @@
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
 <!-- @optional:form:end -->
+<!-- @optional:async:start -->
+   **Async blocks**: with `w_tools_async`, use `WAsyncController + WAsyncView`;
+   do not hand-write `ValueNotifier<WAsyncState>`; one Controller per independent block;
+   use `WAsyncStateBuilder` for scroll pages / `SmartRefresher`; keep pagination local.
+<!-- @optional:async:end -->
 <!-- @optional:api:start -->
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`,
    never `Dio()` directly; store tokens with `WToken` and inject via `WTokenInterceptor`.

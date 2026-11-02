@@ -343,6 +343,11 @@ const String agentsSnippetNoUi = r'''
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
 <!-- @optional:form:end -->
+<!-- @optional:async:start -->
+   **异步区块**：使用 `w_tools_async` 时，页面统一 `WAsyncController + WAsyncView`；
+   不要手写 `ValueNotifier<WAsyncState>`；每个独立区块一个 Controller；
+   滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`；分页 `loadMore` 自己维护。
+<!-- @optional:async:end -->
 <!-- @optional:api:start -->
    **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，
    不要直接 `Dio()`；Token 存 `WToken`，通过 `WTokenInterceptor` 注入。
@@ -378,6 +383,11 @@ const String agentsSnippetNoUiEn = r'''
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
 <!-- @optional:form:end -->
+<!-- @optional:async:start -->
+   **Async blocks**: with `w_tools_async`, use `WAsyncController + WAsyncView`;
+   do not hand-write `ValueNotifier<WAsyncState>`; one Controller per independent block;
+   use `WAsyncStateBuilder` for scroll pages / `SmartRefresher`; keep pagination local.
+<!-- @optional:async:end -->
 <!-- @optional:api:start -->
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`,
    never `Dio()` directly; store tokens with `WToken` and inject via `WTokenInterceptor`.
@@ -474,6 +484,7 @@ AppCard(
 一次性盒子直接用 `Container` + `BoxDecoration`；需要 width / height / constraints /
 transform 时也直接用 `Container`。
 
+`AppScaffold` 内部使用 `WScaffold`；业务页面不要绕过 `AppScaffold` 直接使用 `WScaffold`。
 需要 drawer / bottomSheet / 非标准安全区时，用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
 
 > 待上移的通用组件放 `lib/app/design_system/`，不要混进这里。
@@ -522,6 +533,8 @@ WButton(
 ```
 
 Use `WButton` for real buttons and `WPressable` for arbitrary card/child taps.
+`AppScaffold` uses `WScaffold` internally; business pages must not bypass `AppScaffold` and use `WScaffold` directly.
+
 Use `WScaffold` or plain `Scaffold` for drawers/bottom sheets/non-standard safe areas,
 and explain why in the PR.
 

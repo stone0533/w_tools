@@ -40,6 +40,8 @@ WButton(
 ```
 
 Use `WButton` for real buttons and `WPressable` for arbitrary card/child taps.
+`AppScaffold` uses `WScaffold` internally; business pages must not bypass `AppScaffold` and use `WScaffold` directly.
+
 Use `WScaffold` or plain `Scaffold` for drawers/bottom sheets/non-standard safe areas,
 and explain why in the PR.
 

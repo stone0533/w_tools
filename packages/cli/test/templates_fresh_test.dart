@@ -78,6 +78,24 @@ void main() {
     final noApi = InitTemplates.agentsBlock(withApi: false);
     expect(noApi, isNot(contains('DioRegistry')));
     expect(noApi, contains('WApp.start'));
+
+    final noApp = InitTemplates.agentsBlock(withApp: false);
+    expect(noApp, isNot(contains('WApp.start')));
+    expect(noApp, contains('WStorage'));
+
+    final noQr = InitTemplates.agentsBlock(withQr: false);
+    expect(noQr, isNot(contains('WQrView')));
+
+    final noMap = InitTemplates.agentsBlock(withMap: false);
+    expect(noMap, isNot(contains('WMap')));
+
+    final noUi = InitTemplates.agentsBlock(withUi: false);
+    expect(noUi, isNot(contains('WImage')));
+    expect(noUi, isNot(contains('AppScaffold')));
+
+    final enNoForm = InitTemplates.agentsBlock(lang: 'en', withForm: false);
+    expect(enNoForm, isNot(contains('WFormTextField')));
+    expect(enNoForm, contains('WApp.start'));
   });
 
   test('AGENTS 片段带标记块（init 靠它幂等替换）', () {
