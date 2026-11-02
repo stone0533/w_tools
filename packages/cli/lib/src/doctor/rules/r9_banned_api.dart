@@ -1,3 +1,4 @@
+import '../banned_rule.dart';
 import '../config.dart';
 import '../context.dart';
 import '../rule.dart';
@@ -32,9 +33,14 @@ class R9BannedApi {
 
     final issues = <DoctorIssue>[];
     final seenErrors = <String>{};
+    final validEntries = <BannedRule>[];
     for (final entry in config.banned) {
       final error = entry.validate();
-      if (error != null && seenErrors.add(error)) {
+      if (error == null) {
+        validEntries.add(entry);
+        continue;
+      }
+      if (seenErrors.add(error)) {
         issues.add(
           DoctorIssue(
             rule: id,
@@ -49,8 +55,7 @@ class R9BannedApi {
 
     for (final file in TextScan.files(ctx)) {
       for (final line in file.codeLines) {
-        for (final entry in config.banned) {
-          if (entry.validate() != null) continue;
+        for (final entry in validEntries) {
           if (!entry.appliesTo(file.path)) continue;
           if (!entry.matches(line.text)) continue;
           if (Suppression.isIgnored(file.lines, line.index, id)) continue;
