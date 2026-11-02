@@ -7,6 +7,15 @@
 - 契约：https://github.com/stone0533/w_tools/blob/main/docs/figma-cli.md
 - AI / agent 使用说明：https://github.com/stone0533/w_tools/blob/main/docs/agents/figma.md
 
+## Library / CLI
+
+```text
+lib/w_tools_figma.dart   稳定导出：命令类型 / renderer / collector
+lib/src/cli/             CLI 内部实现，可能随版本变化
+```
+
+CLI 用户直接用 `dart run w_tools_figma:figma`；库用户只依赖 `lib/w_tools_figma.dart` 的导出。
+
 ## AI / agent 使用
 
 消费方 AI 需要手动获得入口：

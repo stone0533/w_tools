@@ -17,6 +17,7 @@ class CliOptions {
     required this.checkStale,
     required this.force,
     required this.ifStale,
+    required this.nodeOnly,
   });
 
   final List<String> positional;
@@ -34,6 +35,7 @@ class CliOptions {
   final bool checkStale;
   final bool force;
   final bool ifStale;
+  final bool nodeOnly;
 }
 
 CliOptions parseOptions(List<String> args) {
@@ -52,6 +54,7 @@ CliOptions parseOptions(List<String> args) {
   var checkStale = false;
   var force = false;
   var ifStale = false;
+  var nodeOnly = false;
   for (var i = 0; i < args.length; i++) {
     final arg = args[i];
     if (arg == '--json') {
@@ -88,6 +91,8 @@ CliOptions parseOptions(List<String> args) {
       checkStale = true;
     } else if (arg == '--if-stale') {
       ifStale = true;
+    } else if (arg == '--node-only') {
+      nodeOnly = true;
     } else if (arg.startsWith('--')) {
       throw FormatException('未知选项：$arg');
     } else {
@@ -110,6 +115,7 @@ CliOptions parseOptions(List<String> args) {
     checkStale: checkStale,
     force: force,
     ifStale: ifStale,
+    nodeOnly: nodeOnly,
   );
 }
 

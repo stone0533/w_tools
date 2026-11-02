@@ -34,7 +34,7 @@ dart run w_tools_figma:figma fetch images <fileKey> <id1,id2,...> [--scale=2]
   'spec': '''
 spec — 从缓存导出节点规格
 
-dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-depth=<n>]
+dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-only] [--node-depth=<n>]
 
 只读 .figma-cache/nodes-*.json，不访问 Figma。
 --json 输出 Markdown 载体，不是结构化字段树。

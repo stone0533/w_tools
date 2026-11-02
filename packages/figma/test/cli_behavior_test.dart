@@ -103,6 +103,29 @@ void main() {
     expect((payload['node'] as Map).containsKey('children'), isFalse);
   });
 
+  test('spec --json --node-only 不返回 markdown', () async {
+    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'NodeOnly',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+          },
+        },
+      },
+    }));
+
+    final result = await run(<String>['spec', '1:2', '--json', '--node-only']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect(payload.containsKey('node'), isTrue);
+    expect(payload.containsKey('markdown'), isFalse);
+  });
+
   test('frames 列出缓存里的 FRAME', () async {
     final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);

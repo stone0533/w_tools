@@ -152,7 +152,7 @@ dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--jso
 ```
 
 `node` 是原始 Figma 节点（结构化），`markdown` 是人读表格。
-`--node-depth=<n>` 只限制 `node` 的子节点深度；Markdown 仍输出完整规格。
+`--node-depth=<n>` 只限制 `node` 的子节点深度；`--node-only` 不返回 `markdown`。Markdown 默认仍输出完整规格。
 
 默认（不带 `--json`）输出 **Markdown 表格**，字段与上表一致，便于贴进 PR / 设计稿核对单。
 

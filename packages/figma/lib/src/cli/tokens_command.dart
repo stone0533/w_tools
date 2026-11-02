@@ -35,7 +35,7 @@ Future<void> runTokens(List<String> args) async {
     collector.collect(node);
   }
   if (missing.isNotEmpty) {
-    throw StateError('在缓存里找不到节点：${missing.join(', ')}');
+    throw StateError('在缓存里找不到节点：${missing.join(', ')}；先运行 `figma frames` 查看缓存中的 FRAME');
   }
 
   final markdown = const TokenRenderer().renderMarkdown(

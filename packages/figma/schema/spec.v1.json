@@ -6,8 +6,7 @@
   "required": [
     "schema",
     "source",
-    "nodeId",
-    "markdown"
+    "nodeId"
   ],
   "properties": {
     "schema": {
