@@ -153,8 +153,16 @@ const String agentsSnippet = r'''
    **图片**：网络图用 `WImage.network`；资源图用 `WImage.asset(name, prefix: true)`；
    视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageConfig`；不要裸用
    `Image.network` / `Image.asset`。
-   **弹层 / 提示**：若启用 `w_tools_form`，锚定选择用 `WFormPopup`；若启用
-   `w_tools_app`，底部面板用 `WBottomSheet`；轻提示用 `WToast`；确认框用 Flutter `showDialog`。
+<!-- @optional:form:start -->
+   **表单弹层**：锚定选择用 `WFormPopup`。
+<!-- @optional:form:end -->
+<!-- @optional:app:start -->
+   **底部面板**：用 `WBottomSheet`。
+<!-- @optional:app:end -->
+<!-- @optional:toast:start -->
+   **轻提示**：用 `WToast`。
+<!-- @optional:toast:end -->
+   确认框用 Flutter `showDialog`。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    `WTextConfig` 已移除；不要逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
    最小示例：`WText(text: '标题', variant: WTextVariant.title)`。
@@ -259,9 +267,16 @@ const String agentsSnippetEn = r'''
    **Images**: use `WImage.network` for network images and
    `WImage.asset(name, prefix: true)` for assets; use `WImageStyle` for visuals and
    `WImageConfig` for loading/retry/placeholders. Do not use `Image.network` / `Image.asset` directly.
-   **Overlays / toasts**: when `w_tools_form` is enabled, use `WFormPopup` for anchored
-   selection; when `w_tools_app` is enabled, use `WBottomSheet`; use `WToast` for light
-   feedback and Flutter `showDialog` for confirmation.
+<!-- @optional:form:start -->
+   **Form overlays**: use `WFormPopup` for anchored selection.
+<!-- @optional:form:end -->
+<!-- @optional:app:start -->
+   **Bottom sheet**: use `WBottomSheet`.
+<!-- @optional:app:end -->
+<!-- @optional:toast:start -->
+   **Light feedback**: use `WToast`.
+<!-- @optional:toast:end -->
+   Use Flutter `showDialog` for confirmation.
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, `WTextConfig` has been removed; do not build styles field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.

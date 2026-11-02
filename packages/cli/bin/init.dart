@@ -45,6 +45,7 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --no-form      不导出 w_tools_form，并从 AGENTS 移除表单规则
   --no-app       不导出 w_tools_app，并从 AGENTS 移除启动规则
   --no-api       不导出 w_tools_api，并从 AGENTS 移除网络规则
+  --no-toast     不导出 w_tools_toast，并从 AGENTS 移除轻提示规则
   --no-instructions  不生成/不检查 AGENTS 等 AI 指令文件（优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
@@ -80,6 +81,7 @@ void main(List<String> argv) {
     ..addFlag('form', negatable: true, defaultsTo: true)
     ..addFlag('app', negatable: true, defaultsTo: true)
     ..addFlag('api', negatable: true, defaultsTo: true)
+    ..addFlag('toast', negatable: true, defaultsTo: true)
     ..addFlag('instructions', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
@@ -145,6 +147,9 @@ void main(List<String> argv) {
       }
       if (args.wasParsed('api')) {
         features = features.copyWith(api: args['api'] as bool);
+      }
+      if (args.wasParsed('toast')) {
+        features = features.copyWith(toast: args['toast'] as bool);
       }
       if (args['with-map'] as bool) {
         features = features.copyWith(map: true);

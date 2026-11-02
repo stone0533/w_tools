@@ -39,9 +39,16 @@
    **Images**: use `WImage.network` for network images and
    `WImage.asset(name, prefix: true)` for assets; use `WImageStyle` for visuals and
    `WImageConfig` for loading/retry/placeholders. Do not use `Image.network` / `Image.asset` directly.
-   **Overlays / toasts**: when `w_tools_form` is enabled, use `WFormPopup` for anchored
-   selection; when `w_tools_app` is enabled, use `WBottomSheet`; use `WToast` for light
-   feedback and Flutter `showDialog` for confirmation.
+<!-- @optional:form:start -->
+   **Form overlays**: use `WFormPopup` for anchored selection.
+<!-- @optional:form:end -->
+<!-- @optional:app:start -->
+   **Bottom sheet**: use `WBottomSheet`.
+<!-- @optional:app:end -->
+<!-- @optional:toast:start -->
+   **Light feedback**: use `WToast`.
+<!-- @optional:toast:end -->
+   Use Flutter `showDialog` for confirmation.
    **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
    in the theme, `WTextConfig` has been removed; do not build styles field-by-field. Override with `style` / `color` /
    `maxLines` / `overflow` locally.

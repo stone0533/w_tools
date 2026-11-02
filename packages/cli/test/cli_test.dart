@@ -75,6 +75,15 @@ banned:
     expect(agents, isNot(contains('DioRegistry')));
   });
 
+  test('init --no-toast 不导出 toast，也不生成轻提示规则', () async {
+    final root = _project();
+    expect((await _run('init.dart', ['--root', root.path, '--no-toast'])).exitCode, 0);
+    final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+    expect(toolkit, isNot(contains('package:w_tools_toast')));
+    final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+    expect(agents, isNot(contains('轻提示')));
+  });
+
   test('init --no-ui 不生成 UI 文件', () async {
     final root = _project();
     expect((await _run('init.dart', ['--root', root.path, '--no-ui'])).exitCode, 0);

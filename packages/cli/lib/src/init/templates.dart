@@ -67,6 +67,7 @@ class InitTemplates {
     bool withForm = true,
     bool withApi = true,
     bool withAsync = true,
+    bool withToast = true,
     bool withQr = true,
     bool withMap = true,
     List<BannedRule> banned = const <BannedRule>[],
@@ -79,6 +80,7 @@ class InitTemplates {
       'form': withForm,
       'api': withApi,
       'async': withAsync,
+      'toast': withToast,
       'qr': withQr,
       'map': withMap,
     };

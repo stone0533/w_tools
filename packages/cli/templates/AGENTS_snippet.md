@@ -38,8 +38,16 @@
    **图片**：网络图用 `WImage.network`；资源图用 `WImage.asset(name, prefix: true)`；
    视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageConfig`；不要裸用
    `Image.network` / `Image.asset`。
-   **弹层 / 提示**：若启用 `w_tools_form`，锚定选择用 `WFormPopup`；若启用
-   `w_tools_app`，底部面板用 `WBottomSheet`；轻提示用 `WToast`；确认框用 Flutter `showDialog`。
+<!-- @optional:form:start -->
+   **表单弹层**：锚定选择用 `WFormPopup`。
+<!-- @optional:form:end -->
+<!-- @optional:app:start -->
+   **底部面板**：用 `WBottomSheet`。
+<!-- @optional:app:end -->
+<!-- @optional:toast:start -->
+   **轻提示**：用 `WToast`。
+<!-- @optional:toast:end -->
+   确认框用 Flutter `showDialog`。
    **文字**新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
    `WTextConfig` 已移除；不要逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
    最小示例：`WText(text: '标题', variant: WTextVariant.title)`。

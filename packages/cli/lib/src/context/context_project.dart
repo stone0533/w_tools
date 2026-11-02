@@ -1,10 +1,6 @@
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
-import 'package:yaml/yaml.dart';
-
 import '../catalog/catalog.dart';
-import '../common/pubspec_lock.dart';
 import '../common/version.dart';
 import '../doctor/config.dart';
 import '../doctor/context.dart';
@@ -57,61 +53,19 @@ class ProjectSnapshot {
   static ProjectSnapshot load(Directory root, {DoctorConfig? config}) {
     final cfg = config ?? DoctorConfig.load(root);
     final ctx = ProjectContext.load(root, cfg);
-
-    final locked = readLockedVersions(root);
-    final packages = <String, String>{
-      for (final e in locked.entries)
-        if (e.key.startsWith('w_tools')) e.key: e.value,
-    };
-
-    final deps = <String>[];
-    final depsNode = ctx.pubspec['dependencies'];
-    if (depsNode is YamlMap) {
-      deps.addAll(
-        depsNode.keys.map((e) => '$e').where((e) => e.startsWith('w_tools')).toList(),
-      );
-    }
-    deps.sort();
-
-    String? toolkitPath;
-    var exports = <String>[];
-    final toolkitFile = File(p.join(root.path, cfg.toolkitEntry));
-    if (toolkitFile.existsSync()) {
-      toolkitPath = cfg.toolkitEntry;
-      final pattern = RegExp(r"""export\s+['"]package:(w_tools_[a-z]+)/""");
-      exports =
-          pattern
-              .allMatches(toolkitFile.readAsStringSync())
-              .map((m) => m.group(1)!)
-              .toSet()
-              .toList()
-            ..sort();
-    }
-
-    final designFiles = ctx
-        .filesUnder(designSystemDirPath)
-        .where((file) => file.endsWith('.dart'))
-        .toList();
-    var missingStaged = 0;
-    for (final file in designFiles) {
-      if (!file.endsWith('.dart')) continue;
-      final head = ctx.read(file).split('\n').take(10).join('\n');
-      if (!head.contains('// STAGED:')) missingStaged++;
-    }
-
-    final isFlutter = depsNode is YamlMap && depsNode.containsKey('flutter');
+    final facts = ctx.facts;
 
     return ProjectSnapshot(
       root: root,
       projectName: ctx.name,
-      packages: packages,
-      dependencies: deps,
-      toolkitPath: toolkitPath,
-      toolkitExports: exports,
+      packages: facts.packages,
+      dependencies: facts.dependencies,
+      toolkitPath: facts.toolkitPath,
+      toolkitExports: facts.toolkitExports,
       stagingDir: designSystemDirPath,
-      designSystemFiles: designFiles.length,
-      missingStaged: missingStaged,
-      isFlutter: isFlutter,
+      designSystemFiles: facts.stagingFiles.length,
+      missingStaged: facts.missingStagedFiles.length,
+      isFlutter: facts.isFlutter,
       results: runDoctor(ctx, cfg),
     );
   }

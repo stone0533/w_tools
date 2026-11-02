@@ -89,6 +89,9 @@ void main() {
     final noMap = InitTemplates.agentsBlock(withMap: false);
     expect(noMap, isNot(contains('WMap')));
 
+    final noToast = InitTemplates.agentsBlock(withToast: false);
+    expect(noToast, isNot(contains('WToast')));
+
     final noUi = InitTemplates.agentsBlock(withUi: false);
     expect(noUi, isNot(contains('WImage')));
     expect(noUi, isNot(contains('AppScaffold')));

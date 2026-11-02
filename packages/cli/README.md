@@ -94,6 +94,7 @@ dart run w_tools_cli:init --no-async
 dart run w_tools_cli:init --no-form
 dart run w_tools_cli:init --no-app
 dart run w_tools_cli:init --no-api
+dart run w_tools_cli:init --no-toast
 dart run w_tools_cli:init --no-qr
 dart run w_tools_cli:init --with-map   # 会引入 google_maps_flutter
 ```

@@ -153,6 +153,7 @@ InitReport runInit(
         withForm: features.form,
         withApi: features.api,
         withAsync: features.asyncFeature,
+        withToast: features.toast,
         withQr: features.qr,
         withMap: features.map,
         banned: projectConfig.banned,
