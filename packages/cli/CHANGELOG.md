@@ -12,6 +12,7 @@
 - doctor 规则表 summary 只描述规则；R6/R9 启用状态改由表头说明，避免 summary 混入项目状态。
 - 修正 R9 示例 id 为 `no-raw-image`，文档索引与 AGENTS 维护说明同步为 R1~R9。
 - README / conventions 增加无 CLI 时 grep 与 R1/R2/R4/R9 的映射，明确 `--include-tests` 与 R4 的覆盖边界。
+- AGENTS base 补充上移候选要求（默认值/测试/CHANGELOG）与 API 参数 ≤ 3 的形状建议。
 
 ## 1.6.0
 

@@ -103,6 +103,13 @@ void main() {
     expect(enNoForm, contains('WApp.start'));
   });
 
+  test('base 包含上移候选与 API 形状约束', () {
+    final block = InitTemplates.agentsBlock();
+    expect(block, contains('默认值要能直接用'));
+    expect(block, contains('API 参数优先'));
+    expect(block, contains('由维护者补 CHANGELOG'));
+  });
+
   test('base 只指引暂存层，UI 分层由 ui 片段负责', () {
     final block = InitTemplates.agentsBlock();
     expect(block, contains('待上移的通用组件'));

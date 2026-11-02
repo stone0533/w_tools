@@ -10,8 +10,11 @@
 3. **If missing, stage generic candidates for promotion** in `lib/app/design_system/`
    (do not modify w_tools directly):
    - imports: `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
-   - header `// STAGED: move to w_tools_ui`, plus measured design specs
-   - at least one test; maintainers decide promotion (second use case / release window)
+   - header `// STAGED: move to w_tools_ui`, plus measured specs when a design exists
+   - working defaults; at least one test
+   - maintainers decide promotion; when it actually enters w_tools, they add the CHANGELOG entry
+   - prefer ≤ 3 API parameters; if more, first check whether responsibilities are mixed
+     rather than splitting mechanically
 4. Business layer keeps feature-specific composition only.
 
 ## Project rules
