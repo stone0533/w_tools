@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.0
+
+### Added
+- `init --figma` 生成 Figma → Flutter AGENTS 片段；不引入 `w_tools_figma` 依赖、不影响 toolkit。
+
 ## 1.6.1
 
 ### Changed

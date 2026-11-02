@@ -104,6 +104,18 @@ void main() {
       expect(report.pubspecSnippet, isNot(contains('w_tools_ui:')));
     });
 
+    test('--figma 只追加 AGENTS 片段，不影响 toolkit / 依赖片段', () async {
+      final root = makeProject();
+      final report = runInit(root, figma: true);
+      final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      expect(agents, contains('## Figma → Flutter'));
+      expect(agents, contains('w_tools_figma'));
+      expect(agents, contains('w_tools_figma:figma init'));
+      final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+      expect(toolkit, isNot(contains('w_tools_figma')));
+      expect(report.pubspecSnippet, isNot(contains('w_tools_figma')));
+    });
+
     test('profile=minimal 只保留 core', () async {
       final root = makeProject();
       runInit(root, features: InitFeatures.forProfile(InitProfile.minimal));
@@ -464,7 +476,7 @@ void main() {
           reason: 'packages/$pkg 已到 $version，更新 init_project.dart 里的约束',
         );
       }
-      expect(snippet, contains('w_tools_cli: ^1.6.1'));
+      expect(snippet, contains('w_tools_cli: ^1.7.0'));
     }, skip: repo == null ? '不在 w_tools 仓库内' : false);
   });
 }

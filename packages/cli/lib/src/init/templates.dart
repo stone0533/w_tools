@@ -71,6 +71,7 @@ class InitTemplates {
     bool withToast = true,
     bool withQr = true,
     bool withMap = true,
+    bool withFigma = false,
     List<BannedRule> banned = const <BannedRule>[],
   }) {
     final en = lang == 'en';
@@ -117,6 +118,7 @@ class InitTemplates {
       part(generated.agentsCore, generated.agentsCoreEn),
       if (withQr) part(generated.agentsQr, generated.agentsQrEn),
       if (withMap) part(generated.agentsMap, generated.agentsMapEn),
+      if (withFigma) part(generated.agentsFigma, generated.agentsFigmaEn),
       ...bannedLines,
       part(generated.agentsClosing, generated.agentsClosingEn),
     ];

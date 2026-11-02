@@ -23,7 +23,7 @@ const _subpackageConstraints = <String, String>{
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const _cliConstraint = '^1.6.1';
+const _cliConstraint = '^1.7.0';
 
 /// `init` 的执行结果（供 CLI 打印）。
 class InitReport {
@@ -64,6 +64,7 @@ InitReport runInit(
   InitFeatures features = InitFeatures.full,
   Set<String> targets = const <String>{'agents'},
   String lang = 'zh',
+  bool figma = false,
 }) {
   final report = InitReport();
   final app = _projectName(root);
@@ -156,6 +157,7 @@ InitReport runInit(
         withToast: features.toast,
         withQr: features.qr,
         withMap: features.map,
+        withFigma: figma,
         banned: projectConfig.banned,
       ),
       createdPrefix: target == 'cursor'

@@ -40,6 +40,7 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
                  minimal / api 不生成 lib/app/ui
 {{features}}
   --with-map     兼容别名，等同 --map
+  --figma / --no-figma  生成 Figma 取数与页面开发说明（默认关，不影响 toolkit）
   --no-instructions  不生成/不检查 AGENTS 等 AI 指令文件（优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
@@ -81,6 +82,7 @@ void main(List<String> argv) {
       allowed: <String>['minimal', 'ui', 'api', 'full'],
     )
     ..addFlag('with-map', negatable: false)
+    ..addFlag('figma', negatable: true, defaultsTo: false)
     ..addFlag('instructions', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
@@ -139,6 +141,10 @@ void main(List<String> argv) {
           exit(2);
         }
       }
+      if (argv.contains('--figma') && argv.contains('--no-figma')) {
+        stderr.writeln('--figma 与 --no-figma 不能同时使用');
+        exit(2);
+      }
       var features = InitFeatures.forProfile(profile);
       for (final spec in initFeatureSpecs) {
         if (args.wasParsed(spec.flag)) {
@@ -159,6 +165,7 @@ void main(List<String> argv) {
         features: features,
         targets: targets,
         lang: lang,
+        figma: args['figma'] as bool,
       );
 
       if (args['json'] as bool) {
@@ -170,6 +177,7 @@ void main(List<String> argv) {
             'profile': profile.name,
             'targets': sortedTargets,
             'features': features.toJson(),
+            'figma': args['figma'] as bool,
             'created': report.created,
             'upToDate': report.upToDate,
             'drift': report.drift,
@@ -183,6 +191,7 @@ void main(List<String> argv) {
         print('w_tools_cli init${check ? '（check 模式，不写文件）' : ''} · ${root.path}');
         print('profile: ${profile.name}');
         print('features: ${features.summary}');
+        print('figma: ${args['figma'] as bool ? 'yes' : 'no'}');
         print('targets: ${sortedTargets.isEmpty ? '（无）' : sortedTargets.join(', ')}');
         print('━' * 56);
         for (final f in report.created) {

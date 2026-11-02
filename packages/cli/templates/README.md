@@ -22,6 +22,7 @@ templates/agents/zh/toast.md
 templates/agents/zh/core.md
 templates/agents/zh/qr.md
 templates/agents/zh/map.md
+templates/agents/zh/figma.md
 templates/agents/zh/closing.md
 ```
 

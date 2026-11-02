@@ -102,6 +102,29 @@ banned:
     expect('${conflict.stderr}', contains('不能同时'));
   });
 
+  test('init --figma 生成 AGENTS，JSON 标记 figma=true', () async {
+    final root = _project();
+    final r = await _run('init.dart', ['--root', root.path, '--figma', '--json']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final payload = jsonDecode('${r.stdout}') as Map<String, dynamic>;
+    expect(payload['figma'], isTrue);
+    expect(
+      File(p.join(root.path, 'AGENTS.md')).readAsStringSync(),
+      contains('w_tools_figma'),
+    );
+    expect(
+      File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync(),
+      isNot(contains('w_tools_figma')),
+    );
+  });
+
+  test('init --figma / --no-figma 冲突', () async {
+    final root = _project();
+    final r = await _run('init.dart', ['--root', root.path, '--figma', '--no-figma']);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('不能同时'));
+  });
+
   test('init 正反 feature 参数不能同时使用', () async {
     final root = _project();
     final r = await _run('init.dart', ['--root', root.path, '--ui', '--no-ui']);
@@ -118,6 +141,7 @@ banned:
     expect('${r.stdout}', contains('--map / --no-map'));
     expect('${r.stdout}', contains('--app / --no-app'));
     expect('${r.stdout}', contains('--toast / --no-toast'));
+    expect('${r.stdout}', contains('--figma / --no-figma'));
   });
 
   test('init --no-toast 不导出 toast，也不生成轻提示规则', () async {
