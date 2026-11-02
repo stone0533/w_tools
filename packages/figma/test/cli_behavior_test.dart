@@ -164,6 +164,73 @@ void main() {
     expect(framePayload['frames'], hasLength(2));
   });
 
+  test('spec a,b 支持跨缓存', () async {
+    final dir = Directory('${root.path}/.figma-cache')..createSync(recursive: true);
+    for (final entry in {'a.json': '1:2', 'b.json': '2:3'}.entries) {
+      File('${dir.path}/nodes-${entry.key}').writeAsStringSync(jsonEncode({
+        'nodes': {
+          entry.value: {
+            'document': {
+              'id': entry.value,
+              'type': 'FRAME',
+              'name': entry.key,
+              'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+              'children': <Object?>[],
+            },
+          },
+        },
+      }));
+    }
+    final result = await run(<String>['spec', '1:2,2:3', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect(payload['schema'], 'w_tools_figma.specs/1');
+    expect(payload['items'], hasLength(2));
+    final sources = (payload['items'] as List).map((e) => (e as Map)['source']).toSet();
+    expect(sources, hasLength(2));
+  });
+
+  test('frames page 来自 CANVAS，纯 FRAME 缓存不把画板名当页面', () async {
+    final dir = Directory('${root.path}/.figma-cache')..createSync(recursive: true);
+    File('${dir.path}/nodes-page.json').writeAsStringSync(jsonEncode({
+      'nodes': {
+        'p:1': {
+          'document': {
+            'id': 'p:1',
+            'type': 'CANVAS',
+            'name': 'Home',
+            'children': [
+              {
+                'id': '1:2',
+                'type': 'FRAME',
+                'name': 'Card',
+                'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+              },
+            ],
+          },
+        },
+      },
+    }));
+    File('${dir.path}/nodes-frame.json').writeAsStringSync(jsonEncode({
+      'nodes': {
+        '2:3': {
+          'document': {
+            'id': '2:3',
+            'type': 'FRAME',
+            'name': 'Standalone',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+          },
+        },
+      },
+    }));
+    final result = await run(<String>['frames', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    final frames = (payload['frames'] as List).cast<Map<String, dynamic>>();
+    expect(frames.firstWhere((f) => f['id'] == '1:2')['page'], 'Home');
+    expect(frames.firstWhere((f) => f['id'] == '2:3')['page'], '');
+  });
+
   test('spec 默认选择包含 nodeId 的缓存，而不是最大文件', () async {
     final dir = Directory('${root.path}/.figma-cache')..createSync(recursive: true);
     final target = File('${dir.path}/nodes-old.json');

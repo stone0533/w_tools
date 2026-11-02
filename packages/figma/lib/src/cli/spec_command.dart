@@ -23,14 +23,18 @@ Future<void> runSpec(List<String> args) async {
   }
 
   final root = Directory(options.root);
-  final file = resolveNodesCache(root, nodeIds, explicitFile: options.file);
+  final sources = resolveNodeCaches(root, nodeIds, explicitFile: options.file);
   const renderer = FigmaSpecRenderer();
   final items = <Map<String, Object?>>[];
   final markdowns = <String>[];
+  final documents = <File, Map<String, Map<String, dynamic>>>{};
   final missing = <String>[];
 
   for (final nodeId in nodeIds) {
-    final document = readDocument(file, nodeId);
+    final file = sources[nodeId]!;
+    final docs = documents.putIfAbsent(file, () => readDocuments(file));
+    final document =
+        docs[nodeId] ?? docs.values.where((d) => findFigmaNode(d, nodeId) != null).firstOrNull;
     if (document == null) {
       missing.add(nodeId);
       continue;
@@ -67,7 +71,8 @@ Future<void> runSpec(List<String> args) async {
     return;
   }
 
-  stderr.writeln('> 数据源：${file.path}');
+  final sourcePaths = items.map((item) => '${item['source']}').toSet().join(', ');
+  stderr.writeln('> 数据源：$sourcePaths');
   for (var i = 0; i < markdowns.length; i++) {
     if (i > 0) printLine('');
     printOut(markdowns[i]);

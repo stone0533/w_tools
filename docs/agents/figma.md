@@ -89,7 +89,7 @@ dart run w_tools_cli:explain <组件名>
 `tokens` 只提供设计值，不会自动生成代码。颜色 / 字号 / 间距要落到项目
 `AppColors` / `WTextStyles` / 间距常量，而不是硬编码。
 
-## 0.4.0 能力
+## 0.4.0+ 能力
 
 > 0.5.0 已发布；0.6.0 待发布。
 

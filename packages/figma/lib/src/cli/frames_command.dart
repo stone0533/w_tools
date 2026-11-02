@@ -68,7 +68,8 @@ Future<void> runFrames(List<String> args) async {
   );
   for (final frame in list) {
     final size = '${frame['width']}×${frame['height']}';
-    final line = '${'${frame['page']}'.padRight(pageWidth)}  '
+    final line =
+        '${(('${frame['page']}'.isEmpty) ? '-' : '${frame['page']}').padRight(pageWidth)}  '
         '${'${frame['id']}'.padRight(idWidth)}  '
         '${'${frame['name']}'.padRight(nameWidth)}  '
         '${size.padRight(sizeWidth)}  '
@@ -86,13 +87,14 @@ void _collectDocument(
   Map<String, Map<String, Object?>> out, {
   required bool all,
 }) {
-  final page = '${document['name'] ?? ''}';
   final type = '${document['type']}';
   if (type == 'FRAME') {
-    _addFrame(document, file, root, out, page);
-    if (all) _walkChildren(document, file, root, out, page);
+    // fetch nodes 只拿到一个 FRAME 时，没有 CANVAS 父节点，不能把画板名当页面名。
+    _addFrame(document, file, root, out, '');
+    if (all) _walkChildren(document, file, root, out, '');
     return;
   }
+  final page = '${document['name'] ?? ''}';
   final children = document['children'];
   if (children is! List) return;
   for (final child in children) {
@@ -144,8 +146,15 @@ void _addFrame(
     'cacheFile': cacheFile,
   };
   final existing = out[id];
-  if (existing == null || (next['children'] as int) > (existing['children'] as int)) {
+  if (existing == null) {
     out[id] = next;
+    return;
+  }
+  if ('${existing['page']}'.isEmpty && page.isNotEmpty) {
+    existing['page'] = page;
+  }
+  if ((next['children'] as int) > (existing['children'] as int)) {
+    existing['children'] = next['children'];
   }
 }
 
