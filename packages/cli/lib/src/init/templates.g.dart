@@ -139,6 +139,10 @@ const String agentsClosing = r'''
 - pubspec 只依赖具体子包，禁止聚合包 `w_tools`。
 - 业务代码只 import 聚合入口，禁止直接 import `package:w_tools_*`。
 
+## 检查项
+
+{{doctorRules}}
+
 ## 完成前
 
 - `dart run w_tools_cli:doctor --json` → 0 error（warning 看情况）
@@ -269,6 +273,10 @@ const String agentsClosingEn = r'''
 
 - Depend on subpackages, never the aggregate `w_tools`.
 - Business code imports only the toolkit entry, never `package:w_tools_*` directly.
+
+## Checks
+
+{{doctorRules}}
 
 ## Before done
 

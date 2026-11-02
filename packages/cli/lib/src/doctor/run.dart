@@ -101,3 +101,16 @@ List<DoctorRuleResult> runDoctor(ProjectContext ctx, DoctorConfig config, {Set<S
     for (final rule in selected) rule.check(ctx, config),
   ];
 }
+
+/// AGENTS 规则速查表用的短描述：[zh, en]。
+const Map<String, List<String>> doctorRuleSummaries = <String, List<String>>{
+  'R1': <String>['聚合包依赖', 'Aggregate package dependency'],
+  'R2': <String>['直连子包 import', 'Direct subpackage import'],
+  'R3': <String>['硬编码语义色', 'Hardcoded semantic colors'],
+  'R4': <String>['设计系统边界', 'Design-system boundary'],
+  'R5': <String>['STAGED 标记', 'STAGED marker'],
+  'R6': <String>['禁用 .h / .r（默认关）', 'Banned .h / .r units (opt-in)'],
+  'R7': <String>['toolkit 一致性', 'Toolkit consistency'],
+  'R8': <String>['生成物版本', 'Generated-file version'],
+  'R9': <String>['项目禁用 API（配置驱动）', 'Project-banned APIs (configured)'],
+};

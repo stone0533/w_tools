@@ -119,10 +119,10 @@ dart run w_tools_cli:doctor --write-config    # 写到 .w_tools_doctor.yaml（�
 ```yaml
 banned:
   - id: no-wform-showbottomsheet
-    pattern: 'WForm\.showBottomSheet'
+    pattern: 'Image\.asset\('
     mode: regex
-    use: 'AppForm.showBottomSheet'
-    reason: '包内没有这个 API'
+    use: 'WImage.asset'
+    reason: '项目要求统一图片入口'
     paths: ['lib/app/modules/**']
     ignore: ['lib/app/ui/**']
 ```

@@ -1,5 +1,6 @@
 import '../common/version.dart';
 import '../doctor/banned_rule.dart';
+import '../doctor/run.dart';
 import 'features.dart';
 import 'templates.g.dart' as generated;
 
@@ -49,6 +50,16 @@ class InitTemplates {
       );
 
   static String appButtons() => generated.appButtonsTemplate.replaceAll('{{version}}', cliVersion);
+
+  static String _doctorRuleTable(bool en) {
+    final header = en ? '| Rule | Checks |' : '| 规则 | 检查 |';
+    final divider = '| --- | --- |';
+    final rows = <String>[
+      for (final rule in doctorRules)
+        '| ${rule.id} | ${doctorRuleSummaries[rule.id]?[en ? 1 : 0] ?? rule.title} |',
+    ];
+    return <String>[header, divider, ...rows].join('\n');
+  }
 
   static String agentsBlock({
     String lang = 'zh',
@@ -114,6 +125,7 @@ class InitTemplates {
         .join('\n\n')
         .replaceAll('{{version}}', cliVersion)
         .replaceAll('{{app}}', app)
+        .replaceAll('{{doctorRules}}', _doctorRuleTable(en))
         .trimRight();
   }
 }

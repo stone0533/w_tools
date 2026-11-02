@@ -3,6 +3,10 @@
 - Depend on subpackages, never the aggregate `w_tools`.
 - Business code imports only the toolkit entry, never `package:w_tools_*` directly.
 
+## Checks
+
+{{doctorRules}}
+
 ## Before done
 
 - `dart run w_tools_cli:doctor --json` → 0 error (warnings are contextual)

@@ -143,6 +143,17 @@ void main() {
     expect(block, isNot(contains('改用')));
   });
 
+  test('AGENTS closing 生成 doctor 规则速查表', () {
+    final zh = InitTemplates.agentsBlock();
+    expect(zh, contains('## 检查项'));
+    expect(zh, contains('| R1 | 聚合包依赖 |'));
+    expect(zh, contains('| R9 | 项目禁用 API（配置驱动） |'));
+
+    final en = InitTemplates.agentsBlock(lang: 'en');
+    expect(en, contains('## Checks'));
+    expect(en, contains('| R1 | Aggregate package dependency |'));
+  });
+
   test('AGENTS 片段带标记块（init 靠它幂等替换）', () {
     final block = InitTemplates.agentsBlock();
     expect(block, contains('<!-- w_tools:begin -->'));
