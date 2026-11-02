@@ -37,7 +37,8 @@ Future<void> runTokens(List<String> args) async {
     }
     collector.collect(node);
   }
-  final source = sources.values.map((f) => f.path).toSet().join(', ');
+  final sourceFiles = sources.values.map((f) => f.path).toSet().toList();
+  final source = sourceFiles.join(', ');
 
   final colorNames = _loadColorNames(options.mapFile);
   final markdown = const TokenRenderer().renderMarkdown(
@@ -55,7 +56,8 @@ Future<void> runTokens(List<String> args) async {
     printLine(
       jsonEncode({
         'schema': 'w_tools_figma.tokens/1',
-        'source': source,
+        'source': sourceFiles.first,
+        'sources': sourceFiles,
         'nodeIds': nodeIds,
         'counts': {
           'colors': collector.colorsSorted().length,

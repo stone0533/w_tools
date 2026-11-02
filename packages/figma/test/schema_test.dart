@@ -54,6 +54,7 @@ void main() {
     'tokens.v1.json': {
       'schema': 'w_tools_figma.tokens/1',
       'source': 'nodes-K-1-2.json',
+      'sources': ['nodes-K-1-2.json'],
       'nodeIds': ['1:2'],
       'counts': {'colors': 1, 'texts': 2, 'radii': 0, 'spacings': 3},
       'markdown': '# tokens\n',

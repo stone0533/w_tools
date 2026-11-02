@@ -1,8 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import '../cache/cache_store.dart';
 import '../spec/cache_document.dart';
-import '../spec/figma_node.dart';
 import 'cli_io.dart';
 
 export '../spec/cache_document.dart' show readDocument, readDocuments;
@@ -36,6 +36,9 @@ String _validateToken(String token, String source) {
 }
 
 /// 选择包含这些 nodeId 的缓存；优先内容匹配，再按 mtime / 大小。
+///
+/// 用 `.figma-cache/_nodes-index.json` 记录每个缓存的 nodeId，避免每次
+/// `spec` / `tokens` 都重新解析 19MB 的 JSON。索引按 mtime + size 失效。
 File resolveNodesCache(
   Directory root,
   List<String> nodeIds, {
@@ -46,45 +49,19 @@ File resolveNodesCache(
   if (files.isEmpty) {
     throw StateError('${root.path}/.figma-cache 里没有 nodes-*.json，先拉一次节点树缓存');
   }
-
-  final found = <String, List<File>>{};
-  for (final file in _sortCacheFiles(files)) {
-    Map<String, Map<String, dynamic>> documents;
-    try {
-      documents = readDocuments(file);
-    } on FormatException {
-      continue;
-    } on StateError {
-      continue;
-    }
-    final missing = <String>[];
-    for (final id in nodeIds) {
-      final document =
-          documents[id] ?? documents.values.where((d) => findFigmaNode(d, id) != null).firstOrNull;
-      if (document == null) {
-        missing.add(id);
-      } else {
-        found.putIfAbsent(id, () => <File>[]).add(file);
-      }
-    }
-    if (missing.isEmpty) return file;
+  final index = _loadIndex(root, files);
+  final sorted = _sortCacheFiles(files);
+  for (final file in sorted) {
+    final ids = index[file.path]?.ids ?? const <String>{};
+    if (nodeIds.every(ids.contains)) return file;
   }
-
-  final hints = <String>[];
-  for (final id in nodeIds) {
-    final files = found[id] ?? const <File>[];
-    if (files.isEmpty) continue;
-    final names = files.map((f) => _relative(root, f)).join(', ');
-    hints.add('$id 在 $names');
-  }
-  final detail = hints.isEmpty ? '' : '；${hints.join('；')}';
   throw StateError(
-    '节点 ${nodeIds.join(', ')} 不在默认缓存里$detail。'
+    '节点 ${nodeIds.join(', ')} 不在默认缓存里；'
     '加 --file=<缓存文件> 指定，或先运行 `figma frames --verbose` 查看',
   );
 }
 
-/// 每个 nodeId 对应的缓存文件；用于 tokens 跨缓存汇总。
+/// 每个 nodeId 对应的缓存文件；用于 tokens / spec 跨缓存汇总。
 Map<String, File> resolveNodeCaches(
   Directory root,
   List<String> nodeIds, {
@@ -98,21 +75,13 @@ Map<String, File> resolveNodeCaches(
   if (files.isEmpty) {
     throw StateError('${root.path}/.figma-cache 里没有 nodes-*.json，先拉一次节点树缓存');
   }
+  final index = _loadIndex(root, files);
   final result = <String, File>{};
   for (final file in _sortCacheFiles(files)) {
-    Map<String, Map<String, dynamic>> documents;
-    try {
-      documents = readDocuments(file);
-    } on FormatException {
-      continue;
-    } on StateError {
-      continue;
-    }
+    final ids = index[file.path]?.ids ?? const <String>{};
     for (final id in nodeIds) {
       if (result.containsKey(id)) continue;
-      final document =
-          documents[id] ?? documents.values.where((d) => findFigmaNode(d, id) != null).firstOrNull;
-      if (document != null) result[id] = file;
+      if (ids.contains(id)) result[id] = file;
     }
     if (result.length == nodeIds.length) break;
   }
@@ -122,6 +91,89 @@ Map<String, File> resolveNodeCaches(
   }
   return result;
 }
+
+class _IndexEntry {
+  _IndexEntry({required this.mtime, required this.size, required this.ids});
+
+  final int mtime;
+  final int size;
+  final Set<String> ids;
+}
+
+Map<String, _IndexEntry> _loadIndex(Directory root, List<File> files) {
+  final indexFile = File('${root.path}/.figma-cache/_nodes-index.json');
+  final raw = indexFile.existsSync() ? _tryReadJson(indexFile) : null;
+  final stored = raw is Map && raw['files'] is Map ? raw['files'] as Map : const {};
+  final out = <String, _IndexEntry>{};
+  var changed = false;
+  for (final file in files) {
+    final stat = file.statSync();
+    final cached = stored[file.path];
+    if (cached is Map &&
+        cached['mtime'] == stat.modified.millisecondsSinceEpoch &&
+        cached['size'] == stat.size &&
+        cached['ids'] is List) {
+      out[file.path] = _IndexEntry(
+        mtime: stat.modified.millisecondsSinceEpoch,
+        size: stat.size,
+        ids: (cached['ids'] as List).map((e) => '$e').toSet(),
+      );
+      continue;
+    }
+    final ids = <String>{};
+    try {
+      final documents = readDocuments(file);
+      for (final entry in documents.entries) {
+        ids.add(entry.key);
+        _collectIds(entry.value, ids);
+      }
+    } on FormatException {
+      // 损坏缓存保留空索引，后续 resolver 会跳过。
+    } on StateError {
+      // 同上。
+    }
+    out[file.path] = _IndexEntry(
+      mtime: stat.modified.millisecondsSinceEpoch,
+      size: stat.size,
+      ids: ids,
+    );
+    changed = true;
+  }
+  if (changed || !indexFile.existsSync()) {
+    indexFile.writeAsStringSync(jsonEncode({
+      'version': 1,
+      'files': {
+        for (final entry in out.entries)
+          entry.key: {
+            'mtime': entry.value.mtime,
+            'size': entry.value.size,
+            'ids': entry.value.ids.toList(),
+          },
+      },
+    }));
+  }
+  return out;
+}
+
+dynamic _tryReadJson(File file) {
+  try {
+    return jsonDecode(file.readAsStringSync());
+  } on FormatException {
+    return null;
+  } on FileSystemException {
+    return null;
+  }
+}
+
+void _collectIds(Map node, Set<String> ids) {
+  final id = '${node['id'] ?? ''}';
+  if (id.isNotEmpty) ids.add(id);
+  for (final child in (node['children'] as List?) ?? const []) {
+    if (child is Map) _collectIds(child, ids);
+  }
+}
+
+List<File> nodesCacheFiles(CacheStore store) => _nodesCacheFiles(store.root);
 
 List<File> _nodesCacheFiles(Directory root) {
   final dir = Directory('${root.path}/.figma-cache');
@@ -142,18 +194,4 @@ List<File> _sortCacheFiles(List<File> files) {
     return b.lengthSync().compareTo(a.lengthSync());
   });
   return sorted;
-}
-
-String _relative(Directory root, File file) {
-  final prefix = '${root.path}/';
-  return file.path.startsWith(prefix) ? file.path.substring(prefix.length) : file.path;
-}
-
-/// 当前 .figma-cache 下的全部 nodes 缓存文件。
-List<File> nodesCacheFiles(CacheStore store) {
-  if (!store.dir.existsSync()) return const <File>[];
-  return store.dir.listSync().whereType<File>().where((f) {
-    final name = f.path.split('/').last;
-    return name.startsWith('nodes-') && name.endsWith('.json');
-  }).toList();
 }

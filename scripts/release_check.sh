@@ -12,7 +12,7 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT" || exit 2
 
-PACKAGES="core async ui form api app toast map qr cli"
+PACKAGES="core async ui form api app toast map qr cli figma"
 STRICT=0
 ONLINE=0
 SELECTED=""
@@ -151,8 +151,8 @@ for pkg in $PACKAGES; do
       warn "$pkg: CHANGELOG 有未发版条目（## Unreleased）—— 若是已随旧版本发布的内容，折叠进对应版本；只有真正未发的才留在这里"
   fi
 
-  if [ "$pkg" = "cli" ]; then
-    # CLI 是独立工具包：消费方放 dev_dependencies，不需要根包依赖它
+  if [ "$pkg" = "cli" ] || [ "$pkg" = "figma" ]; then
+    # CLI / figma 是独立工具包：消费方放 dev_dependencies，不需要根包依赖它们
     ok "$name ${version}（独立工具包，不要求根包依赖）"
   else
     constraint="$(sed -n "s/^  w_tools_${pkg}:[[:space:]]*//p" pubspec.yaml | head -n1)"

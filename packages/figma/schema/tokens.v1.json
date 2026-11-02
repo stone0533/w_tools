@@ -49,6 +49,12 @@
     },
     "markdown": {
       "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "additionalProperties": true
