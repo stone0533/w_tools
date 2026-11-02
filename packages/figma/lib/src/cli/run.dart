@@ -49,7 +49,7 @@ fetch 专属：
 
 说明：
   · spec / tokens 只读本地缓存，不访问 Figma，不消耗额度；
-  · fetch 缓存命中不读 token；--check-stale 因访问 /meta 仍需要 token；
+  · token 优先读 FIGMA_TOKEN，其次读 .figma-token；
   · 缓存由 fetch file / nodes / images 生成。
 ''';
 

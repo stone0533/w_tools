@@ -52,7 +52,17 @@ token 从 Figma：
 Settings → Security → Personal access tokens
 ```
 
-只读权限即可。POSIX 上 `init` 会把 token 权限设为 600。
+只读权限即可。token 可以：
+
+```text
+1. CI / agent：export FIGMA_TOKEN=figd_xxx
+2. 本地：写入 .figma-token
+```
+
+环境变量优先于文件。POSIX 上 `init` 会把 `.figma-token` 权限设为 600。
+
+从 Figma 页面到 Flutter 实现的流程见
+[`docs/agents/figma.md`](../../docs/agents/figma.md)。
 
 ### 3. 从链接解析 fileKey / nodeId
 

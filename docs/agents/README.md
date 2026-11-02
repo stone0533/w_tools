@@ -3,6 +3,7 @@
 - [Form 使用规则](form.md)
 - [Button 使用规则](button.md)
 - [UI 组件选择规则](ui.md)
+- [Figma 取数与 Flutter 页面](figma.md)
 - [Async 规则](../modules/async_module.md)
 - [网络规则](../modules/api_module.md)
 - [启动规则](../modules/app_module.md)
