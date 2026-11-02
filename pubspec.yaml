@@ -22,6 +22,7 @@ workspace:
   - packages/qr
   - packages/async
   - packages/cli
+  - packages/figma
 
 environment:
   sdk: ^3.10.0

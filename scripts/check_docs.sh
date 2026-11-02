@@ -59,7 +59,7 @@ fi
 for dir in packages/*/; do
   name="w_tools_$(basename "$dir")"
   if ! grep -q "$name" docs/modules/README.md; then
-    note "docs/modules/README.md 没有提到 $name（新增包要补进文档）"
+    note "docs/modules/README.md 没有提到 ${name}（新增包要补进文档）"
   fi
 done
 

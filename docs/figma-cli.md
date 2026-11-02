@@ -20,7 +20,7 @@
 | `fetch file` | 拉文件结构（`depth` 可控） | 1 | 1 次（缓存命中 0） |
 | `fetch nodes` | 拉节点树（**批量 ids 只算 1 次**） | 1 | 1 次 |
 | `fetch images` | 拿渲图下载地址（批量） | 1 | 1 次 |
-| `spec <node-id>` | 节点树 → 完整规格（Markdown 或 JSON） | 0（读缓存） | 0 |
+| `spec <node-id>` | 节点树 → 完整规格（Markdown 或 JSON）——**v0.1 已实现** | 0（读缓存） | 0 |
 | `tokens` | 汇总颜色 / 文字样式 / 间距 → `design-tokens.md` | 0（读缓存） | 0 |
 | `url <figma-url>` | 从 Figma 链接解析 `fileKey` + `nodeId` | 0 | 0 |
 | `diff <node-id>` | 对比「上次缓存」与「当前线上」，列出改动的属性 | 1（需 refresh） | 1 次 |
@@ -214,7 +214,7 @@ dart run w_tools_figma:figma budget --set 20 # 设置月度预算（解决「只
 | 阶段 | 内容 | 额度 |
 | --- | --- | --- |
 | 1 | `init` / `fetch` / `usage` / `url` + fake client 测试 | 0 |
-| 2 | `spec`（Dart 重写 `figma_spec.py`）+ golden 对比 | 0（读缓存） |
+| 2 | ✅ **`spec` 已实现**（`packages/figma`，Dart 重写 `figma_spec.py`，golden 逐字节一致） | 0（读缓存） |
 | 3 | `tokens` / `diff` / `budget` / meta 自动失效 | 0（缓存 fixture） |
 | 4 | 消费方迁移：项目脚本改成薄 wrapper，文档指向 CLI | 0 |
 
