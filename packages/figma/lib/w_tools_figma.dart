@@ -11,5 +11,5 @@ export 'src/commands/usage_command.dart';
 export 'src/diff/spec_diff.dart';
 export 'src/spec/figma_node.dart';
 export 'src/tokens/token_collector.dart';
-export 'src/tokens/tokens_renderer.dart';
+export 'src/tokens/token_renderer.dart';
 export 'src/spec/spec_renderer.dart';

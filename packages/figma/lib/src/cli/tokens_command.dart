@@ -3,7 +3,7 @@ import 'dart:io';
 
 import '../spec/figma_node.dart';
 import '../tokens/token_collector.dart';
-import '../tokens/tokens_renderer.dart';
+import '../tokens/token_renderer.dart';
 import 'args.dart';
 import 'cache_data.dart';
 import 'cli_io.dart';
@@ -38,7 +38,7 @@ Future<void> runTokens(List<String> args) async {
     throw StateError('在缓存里找不到节点：${missing.join(', ')}');
   }
 
-  final markdown = const TokensRenderer().renderMarkdown(
+  final markdown = const TokenRenderer().renderMarkdown(
     tokens: collector,
     source: file.path,
     nodeIds: nodeIds,

@@ -43,7 +43,8 @@ class DiffCommand {
     if (target.existsSync()) target.copySync(backup.path);
 
     final fetched = await _fetchFresh(fileKey: fileKey, nodeId: nodeId, target: target);
-    final after = findFigmaNode(readDocument(fetched, nodeId)!, nodeId);
+    final fetchedDocument = readDocument(fetched, nodeId);
+    final after = fetchedDocument == null ? null : findFigmaNode(fetchedDocument, nodeId);
     if (after == null) {
       throw StateError('最新数据里找不到节点 $nodeId');
     }
@@ -58,7 +59,8 @@ class DiffCommand {
         tierCalls: 1,
       );
     }
-    final before = findFigmaNode(readDocument(previous, nodeId)!, nodeId);
+    final previousDocument = readDocument(previous, nodeId);
+    final before = previousDocument == null ? null : findFigmaNode(previousDocument, nodeId);
     if (before == null) {
       throw StateError('旧缓存 ${previous.path} 里找不到节点 $nodeId');
     }

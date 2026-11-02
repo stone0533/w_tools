@@ -1,5 +1,7 @@
 # w_tools_figma
 
+> 内部工具包，当前 `publish_to: none`，不发布到 pub.dev。
+
 只读的 Figma 取数 / 规格导出 CLI。契约见 [`docs/figma-cli.md`](../../docs/figma-cli.md)。
 
 当前进度（v0.1）：

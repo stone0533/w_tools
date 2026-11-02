@@ -1,8 +1,8 @@
 import 'token_collector.dart';
 
 /// 把统计结果渲染成 Markdown（与项目里的 `design-tokens.md` 结构对齐）。
-class TokensRenderer {
-  const TokensRenderer();
+class TokenRenderer {
+  const TokenRenderer();
 
   String renderMarkdown({
     required TokenCollector tokens,

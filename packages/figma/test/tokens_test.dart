@@ -49,7 +49,7 @@ void main() {
   });
 
   test('Markdown 渲染包含四个小节', () {
-    final md = const TokensRenderer().renderMarkdown(
+    final md = const TokenRenderer().renderMarkdown(
       tokens: collect(),
       source: 'test/fixtures/nodes-frame.json',
       nodeIds: [nodeId],
