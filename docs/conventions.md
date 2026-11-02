@@ -118,7 +118,7 @@ dart run w_tools_cli:doctor --write-config    # 写到 .w_tools_doctor.yaml（�
 
 ```yaml
 banned:
-  - id: no-wform-showbottomsheet
+  - id: no-raw-image
     pattern: 'Image\.asset\('
     mode: regex
     use: 'WImage.asset'

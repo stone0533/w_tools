@@ -30,7 +30,7 @@ CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
 
 改动它们时必须同步：
 
-- [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R8）
+- [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R9）
 - [`docs/modules/components.md`](docs/modules/components.md)（若涉及组件建议）
 - `packages/cli/test/init_test.dart` / `doctor_test.dart` 的用例
 - `packages/cli/CHANGELOG.md`

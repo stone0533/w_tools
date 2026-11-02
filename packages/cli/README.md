@@ -172,7 +172,7 @@ dart run w_tools_cli:doctor --include-tests
 
 ```yaml
 banned:
-  - id: no-wform-showbottomsheet
+  - id: no-raw-image
     pattern: 'Image\.asset\('
     mode: regex
     use: 'WImage.asset'
