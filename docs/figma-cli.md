@@ -118,7 +118,7 @@ JSON 输出：
 ### 3.3 `spec`（**核心命令**）
 
 ```bash
-dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json]
+dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-depth=<n>]
 ```
 
 从缓存解析单个节点，输出**全部属性**（这是现有 `figma_spec.py` 的 Dart 重写）：
@@ -144,6 +144,7 @@ dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--jso
 ```
 
 `node` 是原始 Figma 节点（结构化），`markdown` 是人读表格。
+`--node-depth=<n>` 只限制 `node` 的子节点深度；Markdown 仍输出完整规格。
 
 默认（不带 `--json`）输出 **Markdown 表格**，字段与上表一致，便于贴进 PR / 设计稿核对单。
 
@@ -172,8 +173,11 @@ dart run w_tools_figma:figma me [--json]
 
 ```bash
 dart run w_tools_figma:figma url 'https://www.figma.com/design/<key>/...?node-id=1862-9222'
+dart run w_tools_figma:figma url '<link>' --json
 # → fileKey=<key>  nodeId=1862:9222
 ```
+
+`--json` 输出 `{"fileKey":"...","nodeId":"..."}`。
 
 ### 3.7 `diff`
 

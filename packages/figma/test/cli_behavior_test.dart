@@ -61,6 +61,48 @@ void main() {
     expect(result.exitCode, 4, reason: '${result.stderr}');
   });
 
+  test('url --json 输出 fileKey / nodeId', () async {
+    final result = await run(<String>[
+      'url',
+      'https://www.figma.com/design/ABC/app?node-id=1-2',
+      '--json',
+    ]);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect(payload['fileKey'], 'ABC');
+    expect(payload['nodeId'], '1:2');
+  });
+
+  test('spec --json --node-depth 限制原始节点层级', () async {
+    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'Root',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+            'children': [
+              {
+                'id': '1:3',
+                'type': 'TEXT',
+                'name': 'Child',
+                'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    final result = await run(<String>['spec', '1:2', '--json', '--node-depth=0']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect((payload['node'] as Map).containsKey('children'), isFalse);
+  });
+
   test('缓存命中时不需要 token', () async {
     final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);

@@ -22,7 +22,8 @@ Future<void> runSpec(List<String> args) async {
   if (document == null) {
     throw StateError('在缓存里找不到节点：$nodeId');
   }
-  final node = findFigmaNode(document, nodeId)!;
+  final rawNode = findFigmaNode(document, nodeId)!;
+  final node = options.nodeDepth == null ? rawNode : _trimNode(rawNode, options.nodeDepth!);
 
   const renderer = FigmaSpecRenderer();
   if (options.json) {
@@ -41,4 +42,21 @@ Future<void> runSpec(List<String> args) async {
   }
   stderr.writeln('> 数据源：${file.path}');
   printOut(renderer.renderMarkdownFromRoot(document, nodeId));
+}
+
+/// 限制 JSON 里的原始节点深度；0 表示只保留当前节点，不带 children。
+Map<String, dynamic> _trimNode(Map node, int depth) {
+  final copy = Map<String, dynamic>.from(node);
+  if (depth <= 0) {
+    copy.remove('children');
+    return copy;
+  }
+  final children = node['children'];
+  if (children is List) {
+    copy['children'] = <Object?>[
+      for (final child in children)
+        if (child is Map) _trimNode(child, depth - 1) else child,
+    ];
+  }
+  return copy;
 }

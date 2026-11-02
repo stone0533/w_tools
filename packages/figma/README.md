@@ -1,6 +1,6 @@
 # w_tools_figma
 
-> `v0.1.0` 已发布；`v0.1.1` 为文档版，待发布。当前安装请用 `^0.1.0`。
+> `v0.1.0` 已发布；`v0.2.0` 待发布。当前安装请用 `^0.1.0`。
 
 只读的 Figma 取数 / 规格导出 CLI。
 
@@ -101,6 +101,7 @@ Settings → Security → Personal access tokens
 
 ```bash
 dart run w_tools_figma:figma url 'https://www.figma.com/design/<key>/app?node-id=1862-9222'
+dart run w_tools_figma:figma url '<link>' --json
 # fileKey=<key>  nodeId=1862:9222
 ```
 
@@ -117,6 +118,7 @@ dart run w_tools_figma:figma fetch nodes <fileKey> 1862:9222
 ```bash
 dart run w_tools_figma:figma spec 1862:9222
 dart run w_tools_figma:figma spec 1862:9222 --json
+dart run w_tools_figma:figma spec 1862:9222 --json --node-depth=2
 
 dart run w_tools_figma:figma tokens 1862:9222,1862:9226 --out=docs/design-tokens.md
 dart run w_tools_figma:figma tokens 1862:9222 --min=3
@@ -257,7 +259,7 @@ budget.v1.json
 ```text
 fetch images 只保存下载地址，不下载图片
 tokens 只统计 SOLID 颜色
-spec --json 返回 Markdown，不是结构化字段树
+spec --json 的 node 可用 --node-depth 控制深度；markdown 仍完整
 diff 只对比指定节点，不对比整个文件
 usage 不含座位类型
 ```

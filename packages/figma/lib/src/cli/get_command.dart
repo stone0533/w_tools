@@ -27,11 +27,17 @@ Future<void> runGet(List<String> args) async {
     if (response.statusCode != 200) {
       throw StateError('下载失败：HTTP ${response.statusCode}');
     }
-    final sink = out.openWrite();
+    final temp = File('${out.path}.tmp');
+    if (temp.existsSync()) temp.deleteSync();
+    final sink = temp.openWrite();
     try {
-      await response.pipe(sink);
-    } finally {
+      await response.timeout(const Duration(seconds: 120)).pipe(sink);
       await sink.close();
+      if (out.existsSync()) out.deleteSync();
+      temp.renameSync(out.path);
+    } catch (_) {
+      if (temp.existsSync()) temp.deleteSync();
+      rethrow;
     }
     printLine('saved: ${out.path}');
   } finally {

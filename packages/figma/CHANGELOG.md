@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+### Added
+- `url --json`。
+- `spec --json --node-depth=<n>`，限制原始节点层级。
+- `get` 下载改为临时文件 + rename，并给 body 读取加超时。
+
 ## 0.1.1
 
 ### Changed

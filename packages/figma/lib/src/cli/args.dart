@@ -10,6 +10,7 @@ class CliOptions {
     required this.out,
     required this.depth,
     required this.scale,
+    required this.nodeDepth,
     required this.refresh,
     required this.log,
     required this.budgetSet,
@@ -25,6 +26,7 @@ class CliOptions {
   final String? out;
   final int depth;
   final int scale;
+  final int? nodeDepth;
   final bool refresh;
   final bool log;
   final int? budgetSet;
@@ -41,6 +43,7 @@ CliOptions parseOptions(List<String> args) {
   String? out;
   var depth = 3;
   var scale = 2;
+  int? nodeDepth;
   var refresh = false;
   var log = true;
   int? budgetSet;
@@ -62,6 +65,8 @@ CliOptions parseOptions(List<String> args) {
       depth = _positiveInt('--depth', arg.substring('--depth='.length));
     } else if (arg.startsWith('--scale=')) {
       scale = _positiveInt('--scale', arg.substring('--scale='.length));
+    } else if (arg.startsWith('--node-depth=')) {
+      nodeDepth = _nonNegativeInt('--node-depth', arg.substring('--node-depth='.length));
     } else if (arg == '--refresh') {
       refresh = true;
     } else if (arg == '--no-log') {
@@ -93,6 +98,7 @@ CliOptions parseOptions(List<String> args) {
     out: out,
     depth: depth,
     scale: scale,
+    nodeDepth: nodeDepth,
     refresh: refresh,
     log: log,
     budgetSet: budgetSet,
@@ -105,6 +111,14 @@ int _positiveInt(String option, String raw) {
   final value = int.tryParse(raw);
   if (value == null || value <= 0) {
     throw FormatException('$option 需要正整数：$raw');
+  }
+  return value;
+}
+
+int _nonNegativeInt(String option, String raw) {
+  final value = int.tryParse(raw);
+  if (value == null || value < 0) {
+    throw FormatException('$option 需要非负整数：$raw');
   }
   return value;
 }
