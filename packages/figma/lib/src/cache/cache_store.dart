@@ -100,8 +100,6 @@ class CacheStore {
     return limit is int && limit > 0 ? limit : 20;
   }
 
-  int monthLimitDefault() => 20;
-
   String _monthKey(DateTime now) =>
       '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
 }

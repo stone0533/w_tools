@@ -1,0 +1,110 @@
+import 'dart:async';
+import 'dart:io';
+
+import '../client/figma_client.dart';
+import 'cli_io.dart';
+import 'diff_command.dart';
+import 'fetch_command.dart';
+import 'init_command.dart';
+import 'spec_command.dart';
+import 'tokens_command.dart';
+import 'url_command.dart';
+import 'usage_command.dart';
+
+const _usage = '''
+w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/figma-cli.md）
+
+用法：
+  dart run w_tools_figma:figma init   [--force]
+  dart run w_tools_figma:figma fetch  file   <fileKey> [--depth=3]
+  dart run w_tools_figma:figma fetch  nodes  <fileKey> <id[,id...]>
+  dart run w_tools_figma:figma fetch  images <fileKey> <id[,id...]> [--scale=2]
+  dart run w_tools_figma:figma spec   <nodeId> [选项]
+  dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [选项]
+  dart run w_tools_figma:figma usage  [--json]
+  dart run w_tools_figma:figma diff   <fileKey> <nodeId> [--json]
+  dart run w_tools_figma:figma budget [--set=<n>] [--json]
+  dart run w_tools_figma:figma url    <figma-url | nodeId>
+
+选项（spec / tokens 通用）：
+  --file=<path>   指定缓存节点树 JSON（默认取 .figma-cache/nodes-*.json 中最大的一个）
+  --root=<dir>    项目根（默认当前目录），用于定位 .figma-cache/
+  --json          输出 JSON（默认输出 Markdown）
+  -h, --help      显示帮助
+
+tokens 专属：
+  --min=<n>       只列出出现次数 >= n 的项（默认 1）
+  --out=<path>    写入文件（默认打印到 stdout）
+
+fetch 专属：
+  --depth=<n>     file 的深度（默认 3）
+  --scale=<n>     images 的倍率（默认 2）
+  --refresh       删除缓存并强制重拉（唯一会绕过缓存的开关）
+  --check-stale   用 Tier 3 的 file/meta 判断缓存是否过期（不占 20 次/月，只提示不重拉）
+  --no-log        本次不写用量日志（调试用）
+
+退出码：0 成功 / 1 一般错误 / 2 参数错误 / 3 额度受限 / 4 token 问题 / 5 网络错误
+
+说明：
+  · spec / tokens 只读本地缓存，不访问 Figma，不消耗额度；
+  · fetch 缓存命中不读 token；--check-stale 因访问 /meta 仍需要 token；
+  · 缓存由 fetch file / nodes / images 生成。
+''';
+
+Future<void> runFigmaCli(List<String> args) async {
+  if (args.isEmpty || args.contains('-h') || args.contains('--help')) {
+    printOut(_usage);
+    exitCode = args.isEmpty ? 2 : 0;
+    return;
+  }
+
+  final command = args.first;
+  final rest = args.sublist(1);
+  try {
+    switch (command) {
+      case 'init':
+        runInit(rest);
+      case 'fetch':
+        await runFetch(rest);
+      case 'usage':
+        runUsage(rest);
+      case 'diff':
+        await runDiff(rest);
+      case 'budget':
+        runBudget(rest);
+      case 'url':
+        runUrl(rest);
+      case 'spec':
+        await runSpec(rest);
+      case 'tokens':
+        await runTokens(rest);
+      case 'version':
+        printLine('w_tools_figma 0.1.0');
+      default:
+        stderr.writeln('未知命令：$command\n');
+        printOut(_usage);
+        exitCode = 2;
+    }
+  } on FigmaTokenException catch (e) {
+    stderr.writeln(e.message);
+    exitCode = 4;
+  } on StateError catch (e) {
+    stderr.writeln(e.message);
+    exitCode = 1;
+  } on FormatException catch (e) {
+    stderr.writeln(e.message);
+    exitCode = 2;
+  } on FigmaHttpException catch (e) {
+    stderr.writeln(e);
+    exitCode = e.isRateLimited ? 3 : (e.statusCode == 401 || e.statusCode == 403 ? 4 : 1);
+  } on TimeoutException {
+    stderr.writeln('网络超时；检查网络或稍后重试');
+    exitCode = 5;
+  } on SocketException catch (e) {
+    stderr.writeln('网络错误：${e.message}');
+    exitCode = 5;
+  } on FileSystemException catch (e) {
+    stderr.writeln('读取失败：${e.message}（${e.path}）');
+    exitCode = 1;
+  }
+}

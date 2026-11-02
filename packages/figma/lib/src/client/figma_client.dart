@@ -69,3 +69,19 @@ class HttpFigmaClient implements FigmaClient {
   @override
   void close() => _client.close(force: true);
 }
+
+/// 惰性创建真实 client：缓存命中时不会读 token / 建连接。
+class LazyFigmaClient implements FigmaClient {
+  LazyFigmaClient(this._factory);
+
+  final FigmaClient Function() _factory;
+  FigmaClient? _client;
+
+  @override
+  Future<Map<String, dynamic>> getJson(Uri url) {
+    return (_client ??= _factory()).getJson(url);
+  }
+
+  @override
+  void close() => _client?.close();
+}

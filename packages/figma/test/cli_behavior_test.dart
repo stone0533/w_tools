@@ -110,6 +110,17 @@ void main() {
     expect(unknown.exitCode, 2, reason: '${unknown.stderr}');
   });
 
+  test('init --force 覆盖已有 token', () async {
+    final first = await run(<String>['init']);
+    expect(first.exitCode, 0, reason: '${first.stderr}');
+    final token = File('${root.path}/.figma-token');
+    token.writeAsStringSync('custom');
+
+    final forced = await run(<String>['init', '--force']);
+    expect(forced.exitCode, 0, reason: '${forced.stderr}');
+    expect(token.readAsStringSync(), contains('figd_REPLACE_ME'));
+  });
+
   test('init 在 POSIX 上把 token 设为 600', () async {
     if (Platform.isWindows) return;
     final result = await run(<String>['init']);

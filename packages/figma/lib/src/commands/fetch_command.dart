@@ -110,7 +110,7 @@ class FetchCommand {
     }
     final cached = store.read(file);
     if (cached != null) {
-      final stale = checkStale ? await _checkStale(fileKey) : null;
+      final stale = checkStale ? await _checkStale(fileKey, updateMeta: false) : null;
       return FetchResult(
         file: file,
         json: cached,
@@ -126,7 +126,7 @@ class FetchCommand {
     if (log) {
       store.logUsage(kind: kind, cacheFile: file.uri.pathSegments.last);
     }
-    if (checkStale) await _checkStale(fileKey);
+    if (checkStale) await _checkStale(fileKey, updateMeta: true);
     return FetchResult(
       file: file,
       json: json,
@@ -140,8 +140,9 @@ class FetchCommand {
   ///
   /// 只提示、不自动重拉：自动重拉会在不知不觉中消耗 Tier 1。
   Future<({bool stale, String? cachedVersion, String? latestVersion})?> _checkStale(
-    String fileKey,
-  ) async {
+    String fileKey, {
+    required bool updateMeta,
+  }) async {
     final metaUrl = Uri.parse('https://api.figma.com/v1/files/$fileKey/meta');
     final meta = await client.getJson(metaUrl);
     final fileMeta = meta['file'];
@@ -151,14 +152,17 @@ class FetchCommand {
     final metaFile = store.metaFile(fileKey);
     final previous = store.read(metaFile);
     final cachedVersion = previous == null ? null : '${previous['version'] ?? ''}';
-    if (cachedVersion != latest) {
+    final stale = cachedVersion != null && cachedVersion.isNotEmpty && cachedVersion != latest;
+    // 缓存命中时不能把 latest 写进 meta，否则第一次报 stale 后，
+    // 下一次检查会误以为缓存已经是最新版本。
+    // 第一次看到该 fileKey 时建立基线；之后缓存命中绝不覆盖已有 meta。
+    if (updateMeta || previous == null) {
       store.write(metaFile, {
         'version': latest,
         'lastTouchedAt': fileMeta is Map ? '${fileMeta['lastTouchedAt'] ?? ''}' : '',
         'checkedAt': DateTime.now().toIso8601String(),
       });
     }
-    final stale = cachedVersion != null && cachedVersion.isNotEmpty && cachedVersion != latest;
     return (stale: stale, cachedVersion: cachedVersion, latestVersion: latest);
   }
 }

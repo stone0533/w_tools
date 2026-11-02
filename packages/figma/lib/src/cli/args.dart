@@ -1,0 +1,110 @@
+import 'dart:io';
+
+class CliOptions {
+  CliOptions({
+    required this.positional,
+    required this.json,
+    required this.root,
+    required this.file,
+    required this.min,
+    required this.out,
+    required this.depth,
+    required this.scale,
+    required this.refresh,
+    required this.log,
+    required this.budgetSet,
+    required this.checkStale,
+    required this.force,
+  });
+
+  final List<String> positional;
+  final bool json;
+  final String root;
+  final String? file;
+  final int min;
+  final String? out;
+  final int depth;
+  final int scale;
+  final bool refresh;
+  final bool log;
+  final int? budgetSet;
+  final bool checkStale;
+  final bool force;
+}
+
+CliOptions parseOptions(List<String> args) {
+  final positional = <String>[];
+  var json = false;
+  var root = Directory.current.path;
+  String? file;
+  var min = 1;
+  String? out;
+  var depth = 3;
+  var scale = 2;
+  var refresh = false;
+  var log = true;
+  int? budgetSet;
+  var checkStale = false;
+  var force = false;
+  for (var i = 0; i < args.length; i++) {
+    final arg = args[i];
+    if (arg == '--json') {
+      json = true;
+    } else if (arg.startsWith('--root=')) {
+      root = arg.substring('--root='.length);
+    } else if (arg.startsWith('--file=')) {
+      file = arg.substring('--file='.length);
+    } else if (arg.startsWith('--min=')) {
+      min = _positiveInt('--min', arg.substring('--min='.length));
+    } else if (arg.startsWith('--out=')) {
+      out = arg.substring('--out='.length);
+    } else if (arg.startsWith('--depth=')) {
+      depth = _positiveInt('--depth', arg.substring('--depth='.length));
+    } else if (arg.startsWith('--scale=')) {
+      scale = _positiveInt('--scale', arg.substring('--scale='.length));
+    } else if (arg == '--refresh') {
+      refresh = true;
+    } else if (arg == '--no-log') {
+      log = false;
+    } else if (arg == '--force') {
+      force = true;
+    } else if (arg == '--set' || arg.startsWith('--set=')) {
+      final raw = arg == '--set'
+          ? (i + 1 < args.length ? args[++i] : null)
+          : arg.substring('--set='.length);
+      if (raw == null || raw.isEmpty) {
+        throw const FormatException('--set 需要正整数');
+      }
+      budgetSet = _positiveInt('--set', raw);
+    } else if (arg == '--check-stale') {
+      checkStale = true;
+    } else if (arg.startsWith('--')) {
+      throw FormatException('未知选项：$arg');
+    } else {
+      positional.add(arg);
+    }
+  }
+  return CliOptions(
+    positional: positional,
+    json: json,
+    root: root,
+    file: file,
+    min: min,
+    out: out,
+    depth: depth,
+    scale: scale,
+    refresh: refresh,
+    log: log,
+    budgetSet: budgetSet,
+    checkStale: checkStale,
+    force: force,
+  );
+}
+
+int _positiveInt(String option, String raw) {
+  final value = int.tryParse(raw);
+  if (value == null || value <= 0) {
+    throw FormatException('$option 需要正整数：$raw');
+  }
+  return value;
+}

@@ -93,5 +93,15 @@ void main() {
     expect(result.latestVersion, 'v2');
     expect(result.tierCalls, 0, reason: '只提示，不自动重拉');
     expect(store.usageCountThisMonth(now: DateTime.now()), 0);
+
+    // 再次检查仍应报 stale：缓存没有被 refresh，meta 不能被 latest 覆盖。
+    final third = _RoutedClient(version: 'v2');
+    final again = await FetchCommand(store: store, client: third).nodes(
+      fileKey: 'K',
+      ids: const ['1:2'],
+      checkStale: true,
+    );
+    expect(again.stale, isTrue);
+    expect(again.cachedVersion, 'v1');
   });
 }
