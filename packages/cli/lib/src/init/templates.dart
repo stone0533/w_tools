@@ -69,7 +69,11 @@ class InitTemplates {
     final valid = banned.where((entry) => entry.validate() == null).toList();
     final bannedLines = <String>[
       if (valid.isNotEmpty) '',
-      if (valid.isNotEmpty) '### 本项目禁用 API',
+      if (valid.isNotEmpty) (en ? '### Project-banned APIs' : '### 本项目禁用 API'),
+      if (valid.isNotEmpty)
+        (en
+            ? 'R9 only matches registered patterns; unregistered APIs or new forms still require human review.'
+            : 'R9 只匹配已登记的 pattern；未登记的 API / 新形态仍需人工评审。'),
       for (final entry in valid)
         '- `${entry.id}`：`${entry.pattern}`'
             '${[

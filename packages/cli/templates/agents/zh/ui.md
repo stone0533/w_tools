@@ -1,3 +1,6 @@
+- **分层**：`lib/app/ui/` 是项目永久 UI 层（AppBar / 按钮 / 页面骨架 / 盒子装饰），
+  由 CLI 生成脚手架，**不走 STAGED、不计划上移**；只有待上移的通用组件才放
+  `lib/app/design_system/`（受 R5 约束）。
 - **页面骨架**：标准页面默认用 `AppScaffold`（`lib/app/ui/app_scaffold.dart`）；
   不要直接使用 `WScaffold` / `WAppBar`。特殊顶部栏用 `AppScaffold(appBar: WAppBar(...))`；
   需要 drawer / bottomSheet / 非标准安全区时用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。

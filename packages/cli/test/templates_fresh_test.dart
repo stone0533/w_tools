@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:path/path.dart' as p;
+import 'package:w_tools_cli/src/doctor/banned_rule.dart';
+import 'package:w_tools_cli/src/doctor/rule.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/templates.dart';
 
@@ -99,6 +101,36 @@ void main() {
     final enNoForm = InitTemplates.agentsBlock(lang: 'en', withForm: false);
     expect(enNoForm, isNot(contains('WFormTextField')));
     expect(enNoForm, contains('WApp.start'));
+  });
+
+  test('UI 片段说明 lib/app/ui 是永久 UI 层', () {
+    final withUi = InitTemplates.agentsBlock();
+    expect(withUi, contains('项目永久 UI 层'));
+    expect(withUi, contains('不走 STAGED'));
+
+    final noUi = InitTemplates.agentsBlock(withUi: false);
+    expect(noUi, isNot(contains('项目永久 UI 层')));
+  });
+
+  test('英文 banned 段落使用英文标题和边界说明', () {
+    final block = InitTemplates.agentsBlock(
+      lang: 'en',
+      banned: const <BannedRule>[
+        BannedRule(
+          id: 'no-foo',
+          pattern: 'Foo',
+          mode: BannedPatternMode.literal,
+          use: 'Bar',
+          reason: 'removed',
+          level: DoctorLevel.warn,
+          paths: <String>[],
+          ignore: <String>[],
+        ),
+      ],
+    );
+    expect(block, contains('Project-banned APIs'));
+    expect(block, isNot(contains('本项目禁用 API')));
+    expect(block, contains('R9 only matches registered patterns'));
   });
 
   test('AGENTS 片段带标记块（init 靠它幂等替换）', () {
