@@ -10,3 +10,5 @@
 - 严格校验器必须允许 `additionalProperties`。
 
 当前版本：`schema = w_tools.context`，`schemaVersion = 1`。
+
+`test/schema_test.dart` 会用 `json_schema` 校验真实 `ProjectSnapshot.toJson()` 输出。
