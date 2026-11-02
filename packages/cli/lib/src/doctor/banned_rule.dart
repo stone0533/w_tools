@@ -43,11 +43,8 @@ class BannedRule {
   bool matches(String sourceLine) {
     if (error != null || pattern.isEmpty) return false;
     if (mode == BannedPatternMode.literal) return sourceLine.contains(pattern);
-    try {
-      return RegExp(pattern).hasMatch(sourceLine);
-    } on FormatException {
-      return false;
-    }
+    final regex = _compiledRegex(pattern);
+    return regex?.hasMatch(sourceLine) ?? false;
   }
 
   /// 配置校验：返回 null 表示可用。
@@ -55,16 +52,23 @@ class BannedRule {
     if (error != null) return error;
     if (id.trim().isEmpty) return 'banned 条目缺少 id';
     if (pattern.isEmpty) return 'banned 条目 `$id` 缺少 pattern';
-    if (mode == BannedPatternMode.regex) {
-      try {
-        RegExp(pattern);
-      } on FormatException catch (e) {
-        return 'banned 条目 `$id` 的 regex 无效：${e.message}';
-      }
+    if (mode == BannedPatternMode.regex && _compiledRegex(pattern) == null) {
+      return 'banned 条目 `$id` 的 regex 无效';
     }
     return null;
   }
 }
+
+final Map<String, RegExp?> _regexCache = <String, RegExp?>{};
+final Map<String, RegExp> _globCache = <String, RegExp>{};
+
+RegExp? _compiledRegex(String pattern) => _regexCache.putIfAbsent(pattern, () {
+  try {
+    return RegExp(pattern);
+  } on FormatException {
+    return null;
+  }
+});
 
 /// 轻量 glob：支持 `*`、`**`、`?`；不含通配符时按文件/目录前缀匹配。
 bool _globMatches(String relPath, String rawPattern) {
@@ -90,5 +94,6 @@ bool _globMatches(String relPath, String rawPattern) {
     }
   }
   buffer.write(r'$');
-  return RegExp(buffer.toString()).hasMatch(relPath);
+  final regex = _globCache.putIfAbsent(pattern, () => RegExp(buffer.toString()));
+  return regex.hasMatch(relPath);
 }

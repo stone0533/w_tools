@@ -194,6 +194,9 @@ Image.asset('logo.png');
 
 没有 `reason:` 的豁免不生效。
 
+> R9 是文本级检查：整行注释会跳过，但行尾注释 / 字符串仍可能命中；
+> 需要精确排除时用 `paths` / `ignore` / inline ignore。
+
 ### 配置
 
 ```bash
@@ -238,6 +241,7 @@ dart run w_tools_cli:explain WFormDropdown
 ```
 
 输出用途、反例、import、文档；项目配置了 `banned` 时会提示禁用项和替代方案。
+`banned` 读取当前工作目录的 `.w_tools_doctor.yaml`。
 
 ---
 
