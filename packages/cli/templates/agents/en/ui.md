@@ -1,0 +1,35 @@
+- **Page shell**: standard pages default to `AppScaffold`
+  (`lib/app/ui/app_scaffold.dart`); do not use `WScaffold` / `WAppBar` directly.
+  Use `AppScaffold(appBar: WAppBar(...))` for a custom app bar; use `WScaffold` or plain
+  `Scaffold` for drawers/bottom sheets/non-standard safe areas, and note why in the PR.
+  Change app-bar defaults only in `AppBars.style`.
+- **Bottom navigation**: use `WNavBar` + `WNavController`; `WNavController` needs `vsync`,
+  is created in the page State and disposed there; use `WTabBar` for top tabs. It requires
+  `TabController` / `DefaultTabController` and does not own one. Do not hand-roll `BottomNavigationBar`.
+- **Buttons**: use `AppButtons.primary/secondary/text/danger(context)`; do not write
+  `WButtonStyle` in pages unless it is an explicit one-off style. Use `WButton` for real buttons
+  and `WPressable` for arbitrary card/child taps; use `WFormButton` for form-field value selection.
+  Button width comes from the parent; `WButtonStyle` has no `width`. `WButton` has no `variant`;
+  use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
+  provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
+- **Images**: use `WImage.network` for network images and `WImage.asset(name, prefix: true)` for
+  assets; use `WImageStyle` for visuals and `WImageConfig` for loading/retry/placeholders.
+  Do not use `Image.network` / `Image.asset` directly.
+- **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
+  in the theme; `WTextConfig` has been removed. Override with `style` / `color` / `maxLines` /
+  `overflow` locally. Reuse existing variants first (`price` / `number` / `badge`). If a variant is
+  not enough: use `variant + style` for one-offs; extract a local helper for repeated styles.
+  Consumers cannot add `WTextVariant` enum values.
+- **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
+  `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`.
+- **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
+  prefixes; use `WSizeBox` for `SizedBox`, `WPadding` for `Padding`, and `num.allPadding` for
+  `EdgeInsets`. Do not use `num.heightBox` / `widthBox` / `squareBox`; they duplicate `WSizeBox`.
+  `WColumn.left/right` / `WRow.top/bottom` default to `MainAxisSize.max`; pass `MainAxisSize.min`
+  to wrap content.
+- **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
+  `WNotificationListenerBuilder` for scroll notifications/percentage (depth 0 only).
+- **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
+  in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme.
+- **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated cards;
+  use `Container` + `BoxDecoration` for one-off boxes. Do not add an `AppBox` / `AppContainer` wrapper.

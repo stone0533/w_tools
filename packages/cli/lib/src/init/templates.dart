@@ -72,58 +72,42 @@ class InitTemplates {
     bool withMap = true,
     List<BannedRule> banned = const <BannedRule>[],
   }) {
-    final template = withUi
-        ? (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
-        : (lang == 'en' ? generated.agentsSnippetNoUiEn : generated.agentsSnippetNoUi);
-    final enabled = <String, bool>{
-      'app': withApp,
-      'form': withForm,
-      'api': withApi,
-      'async': withAsync,
-      'toast': withToast,
-      'qr': withQr,
-      'map': withMap,
-    };
-    final marker = RegExp(r'@optional:([a-z]+)');
-    final blockStart = RegExp(r'<!-- @optional:([a-z]+):start -->');
-    final blockEnd = RegExp(r'<!-- @optional:([a-z]+):end -->');
-    final lines = template.split('\n');
-    final filtered = <String>[];
-    String? activeBlock;
-    for (final line in lines) {
-      final start = blockStart.firstMatch(line);
-      if (start != null) {
-        activeBlock = start.group(1);
-        continue;
-      }
-      final end = blockEnd.firstMatch(line);
-      if (end != null) {
-        activeBlock = null;
-        continue;
-      }
-      if (activeBlock != null && enabled[activeBlock] == false) continue;
+    final en = lang == 'en';
+    String part(String zh, String enText) => en ? enText : zh;
 
-      final match = marker.firstMatch(line);
-      if (match != null && enabled[match.group(1)] == false) continue;
-      filtered.add(line.replaceAll(RegExp(r'\s*<!-- @optional:[a-z]+ -->'), ''));
-    }
-    final base = filtered
-        .join('\n')
-        .replaceAll('{{version}}', cliVersion)
-        .replaceAll('{{app}}', app);
     final valid = banned.where((entry) => entry.validate() == null).toList();
-    if (valid.isEmpty) return base;
-    final buf = StringBuffer(base.trimRight())
-      ..writeln()
-      ..writeln()
-      ..writeln('### 本项目禁用 API');
-    for (final entry in valid) {
-      final suffix = <String>[
-        if (entry.use?.trim().isNotEmpty == true) '改用 `${entry.use}`',
-        if (entry.reason?.trim().isNotEmpty == true) '原因：${entry.reason}',
-      ].join('；');
-      buf.writeln('- `${entry.id}`：`${entry.pattern}`${suffix.isEmpty ? '' : '（$suffix）'}');
-    }
-    return buf.toString();
+    final bannedLines = <String>[
+      if (valid.isNotEmpty) '',
+      if (valid.isNotEmpty) '### 本项目禁用 API',
+      for (final entry in valid)
+        '- `${entry.id}`：`${entry.pattern}`'
+            '${[
+                  if (entry.use?.trim().isNotEmpty == true) '改用 `${entry.use}`',
+                  if (entry.reason?.trim().isNotEmpty == true) '原因：${entry.reason}',
+                ].isEmpty ? '' : '（${[
+                    if (entry.use?.trim().isNotEmpty == true) '改用 `${entry.use}`',
+                    if (entry.reason?.trim().isNotEmpty == true) '原因：${entry.reason}',
+                  ].join('；')}）'}',
+    ];
+
+    final parts = <String>[
+      part(generated.agentsBase, generated.agentsBaseEn),
+      if (withUi) part(generated.agentsUi, generated.agentsUiEn),
+      if (withForm) part(generated.agentsForm, generated.agentsFormEn),
+      if (withApi) part(generated.agentsApi, generated.agentsApiEn),
+      if (withApp) part(generated.agentsApp, generated.agentsAppEn),
+      if (withAsync) part(generated.agentsAsync, generated.agentsAsyncEn),
+      if (withToast) part(generated.agentsToast, generated.agentsToastEn),
+      part(generated.agentsCore, generated.agentsCoreEn),
+      if (withQr) part(generated.agentsQr, generated.agentsQrEn),
+      if (withMap) part(generated.agentsMap, generated.agentsMapEn),
+      ...bannedLines,
+      part(generated.agentsClosing, generated.agentsClosingEn),
+    ];
+    return parts
+        .join('\n\n')
+        .replaceAll('{{version}}', cliVersion)
+        .replaceAll('{{app}}', app)
+        .trimRight();
   }
 }

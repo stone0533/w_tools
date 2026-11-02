@@ -1,0 +1,7 @@
+- **Async blocks**: use `WAsyncController + WAsyncView` for pages; do not hand-write
+  `ValueNotifier<WAsyncState>` or repeat `when + RetryView` per page. One Controller per
+  independent block; use `WAsyncViewDefaults` at the app root. Use `WAsyncView` for normal
+  blocks; use `WAsyncStateBuilder` for scroll pages / `SmartRefresher`, never wrap
+  `SmartRefresher` around `WAsyncView`. `builder` must always return the same
+  `SmartRefresher + CustomScrollView`; loading/empty/error go inside slivers. Use
+  `WAsyncSliverDefaults` / `WAsyncStateSliver` for sliver pages; `readySliverBuilder` returns a sliver.

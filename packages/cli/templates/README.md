@@ -1,4 +1,4 @@
-# CLI 模板标记
+# CLI 模板
 
 `templates/` 是 `init` 生成内容的唯一来源；改完必须运行：
 
@@ -7,9 +7,31 @@ cd packages/cli
 dart run tool/gen_templates.dart
 ```
 
-## 可选能力
+## AGENTS 片段
 
-单行标记：
+AGENTS 已拆成可组合片段：
+
+```text
+templates/agents/zh/base.md
+templates/agents/zh/ui.md
+templates/agents/zh/form.md
+templates/agents/zh/api.md
+templates/agents/zh/app.md
+templates/agents/zh/async.md
+templates/agents/zh/toast.md
+templates/agents/zh/core.md
+templates/agents/zh/qr.md
+templates/agents/zh/map.md
+templates/agents/zh/closing.md
+```
+
+`templates/agents/en/` 是英文对应文件。
+
+`InitTemplates.agentsBlock` 按 feature 拼接；新增能力时新增片段，不要改回 full / no_ui 两套大模板。
+
+## toolkit 可选标记
+
+`toolkit.dart.tpl` 仍使用单行标记：
 
 ```html
 <!-- @optional:qr -->
@@ -17,20 +39,3 @@ dart run tool/gen_templates.dart
 ```
 
 整行会在对应能力关闭时移除。
-
-多行块：
-
-```html
-<!-- @optional:form:start -->
-...
-<!-- @optional:form:end -->
-```
-
-当前支持的能力：
-
-```text
-app / form / api / async / qr / map
-```
-
-`@optional:*` 标记只控制生成文本，不会出现在最终 AGENTS 里。
-不要手工编辑 `lib/src/init/templates.g.dart`。

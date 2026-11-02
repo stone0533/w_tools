@@ -1,0 +1,1 @@
+- **Light feedback**: use `WToast`; use Flutter `showDialog` for confirmation.
