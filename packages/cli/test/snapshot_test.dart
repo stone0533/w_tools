@@ -47,6 +47,7 @@ void main() {
     expect(snap.errorCount, 0);
 
     final json = snap.toJson();
+    expect(json['schema'], 'w_tools.context');
     expect(json['schemaVersion'], 1);
     expect(json['catalogVersion'], isPositive);
     expect((json['project'] as Map)['name'], 'demo_app');

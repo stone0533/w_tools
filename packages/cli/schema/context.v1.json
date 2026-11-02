@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/stone0533/w_tools/blob/main/packages/cli/schema/context.v1.json",
+  "title": "w_tools context v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "cliVersion",
+    "catalogVersion",
+    "project",
+    "packages",
+    "dependencies",
+    "toolkit",
+    "designSystem",
+    "rules",
+    "doctor",
+    "commands"
+  ],
+  "properties": {
+    "schema": { "const": "w_tools.context" },
+    "schemaVersion": { "const": 1 },
+    "cliVersion": { "type": "string" },
+    "catalogVersion": { "type": "integer" },
+    "project": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["name", "root", "isFlutter"],
+      "properties": {
+        "name": { "type": "string" },
+        "root": { "type": "string" },
+        "isFlutter": { "type": "boolean" }
+      }
+    },
+    "packages": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "toolkit": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["path", "exports"],
+      "properties": {
+        "path": { "type": ["string", "null"] },
+        "exports": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "designSystem": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["dir", "files", "missingStaged"],
+      "properties": {
+        "dir": { "type": "string" },
+        "files": { "type": "integer", "minimum": 0 },
+        "missingStaged": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "level"],
+        "properties": {
+          "id": { "type": "string" },
+          "level": { "type": "string" }
+        }
+      }
+    },
+    "doctor": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["error", "warn", "issues"],
+      "properties": {
+        "error": { "type": "integer", "minimum": 0 },
+        "warn": { "type": "integer", "minimum": 0 },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["rule", "level", "file", "line", "message", "hint"],
+            "properties": {
+              "rule": { "type": "string" },
+              "level": { "type": "string" },
+              "file": { "type": ["string", "null"] },
+              "line": { "type": ["integer", "null"] },
+              "message": { "type": "string" },
+              "hint": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "commands": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}

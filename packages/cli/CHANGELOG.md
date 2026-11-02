@@ -15,6 +15,7 @@
 - AGENTS 模板拆成 base + feature 片段（ui / form / api / app / async / toast / core / qr / map / closing），去掉 full / no_ui 两套大模板。
 - init 能力参数统一为 `--<feature>` / `--no-<feature>`；新增 `--map` / `--no-map`，保留 `--with-map` 兼容别名。
 - init 的 feature help 从注册表生成；所有 feature 正反参数冲突统一报错，JSON features 改用 `toJson()`。
+- `context --format=json` 增加 `schema` 标识与 v1 JSON Schema；采用新增字段兼容、破坏性变化才 bump 的策略。
 
 ### Changed
 - 消费方 AGENTS 模板补充 `WTextVariant` 不够用时的处理顺序：先 `variant + style`，项目内重复抽本地 helper，稳定跨页面语义再提库内 variant。

@@ -231,6 +231,22 @@ dart run w_tools_cli:context --format=json
 
 输出项目事实：依赖、toolkit 导出、暂存层、规则与检查结果。
 
+JSON 顶层包含：
+
+```json
+{
+  "schema": "w_tools.context",
+  "schemaVersion": 1
+}
+```
+
+契约策略：
+
+- 新增字段属于兼容变更，不 bump `schemaVersion`。
+- 消费方必须忽略未知字段。
+- 删除 / 重命名 / 改类型 / 改语义才 bump。
+- v1 结构见 [`schema/context.v1.json`](schema/context.v1.json)。
+
 ### list
 
 ```bash

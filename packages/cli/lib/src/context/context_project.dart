@@ -7,6 +7,10 @@ import '../doctor/context.dart';
 import '../doctor/rule.dart';
 import '../doctor/run.dart';
 
+/// context JSON 的契约标识 / 版本。
+const String contextSchema = 'w_tools.context';
+const int contextSchemaVersion = 1;
+
 /// 项目事实快照：给 AI / CI 一份稳定的上下文。
 class ProjectSnapshot {
   ProjectSnapshot({
@@ -71,7 +75,8 @@ class ProjectSnapshot {
   }
 
   Map<String, Object?> toJson() => <String, Object?>{
-    'schemaVersion': 1,
+    'schema': contextSchema,
+    'schemaVersion': contextSchemaVersion,
     'cliVersion': cliVersion,
     'catalogVersion': catalogVersion,
     'project': <String, Object?>{
