@@ -23,8 +23,10 @@
 # 1. 链接 → fileKey / nodeId
 dart run w_tools_figma:figma url '<figma-url>' --json
 
-# 1b. 不知道 nodeId 时列 FRAME
+# 1b. 不知道 nodeId 时列 FRAME（默认只列顶层画板）
 dart run w_tools_figma:figma frames
+dart run w_tools_figma:figma frames --all --verbose
+dart run w_tools_figma:figma frames --name=会员 --page=我的
 
 # 2. 缓存不存在时先取数（消耗 1 次 Tier 1）
 dart run w_tools_figma:figma fetch nodes <fileKey> <nodeId>
@@ -32,6 +34,7 @@ dart run w_tools_figma:figma fetch nodes <fileKey> <nodeId>
 # 3. 读规格
 dart run w_tools_figma:figma spec <nodeId> --json --node-depth=2
 dart run w_tools_figma:figma spec <nodeId> --json --node-only
+dart run w_tools_figma:figma spec <nodeId>,<nodeId> --json
 
 # 4. 汇总设计 token（0 额度）
 dart run w_tools_figma:figma tokens <nodeId> --out=docs/design-tokens.md
@@ -57,6 +60,9 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 - `markdown`：人读规格表，适合贴 PR。
 - 页面很大时，先 `spec` 目标子节点；不要整页 `node` 全量塞进上下文。
 - 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
+- `frames` 默认只列顶层 FRAME，`--all` 才包含嵌套；`cacheFile` 是相对 `--root` 的路径。
+- 多画板 `spec a,b,c` 的 JSON schema 是 `w_tools_figma.specs/1`。
+- `--no-markdown` 等同 `--node-only`，只影响 `--json`。
 
 ## 映射到 Flutter
 
@@ -81,6 +87,30 @@ dart run w_tools_cli:explain <组件名>
 
 `tokens` 只提供设计值，不会自动生成代码。颜色 / 字号 / 间距要落到项目
 `AppColors` / `WTextStyles` / 间距常量，而不是硬编码。
+
+## 0.4.0 新能力
+
+> 0.4.0 发布后使用；0.3.0 不支持多画板和新 frames 过滤。
+
+```bash
+# 默认只列顶层画板
+figma frames
+
+# 包含嵌套 FRAME
+figma frames --all
+
+# 名称 / 页面过滤
+figma frames --name=会员 --page=我的
+
+# 详细信息（cacheFile）
+figma frames --verbose
+
+# 多画板，JSON schema: w_tools_figma.specs/1
+figma spec 1862:9222,1862:9226 --json
+
+# 不要 markdown
+figma spec 1862:9222 --json --no-markdown
+```
 
 ## 规则
 
