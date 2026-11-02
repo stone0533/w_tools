@@ -158,6 +158,7 @@ cd packages/figma
 | 命令 | 作用 | 额度 |
 | --- | --- | --- |
 | `init` | token 模板 / `.gitignore` / 缓存目录 / 预算文件 | 0 |
+| `frames` | 列出缓存里的 FRAME，找 nodeId | 0 |
 | `fetch file` | 拉文件结构，`--depth` | 1 次 Tier 1 |
 | `fetch nodes` | 拉节点树，批量 ids 只算 1 次 | 1 次 Tier 1 |
 | `fetch images` | 拿图片下载地址，不下载文件 | 1 次 Tier 1 |

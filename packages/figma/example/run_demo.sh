@@ -4,6 +4,10 @@ cd "$(dirname "$0")/.."
 
 fixture="example/fixtures/nodes-demo.json"
 
+echo '== frames =='
+dart run bin/figma.dart frames --file="$fixture"
+
+echo
 echo '== spec (Markdown) =='
 dart run bin/figma.dart spec 1:2 --file="$fixture"
 

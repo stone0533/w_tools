@@ -10,6 +10,7 @@ void main() {
       workingDirectory: Directory.current.path,
     );
     expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stdout}', contains('== frames =='));
     expect('${result.stdout}', contains('# Demo Page'));
     expect('${result.stdout}', contains('## 颜色'));
     expect('${result.stdout}', contains('Primary Button'));

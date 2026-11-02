@@ -21,19 +21,22 @@ packages/figma/schema/         # --json 输出契约
 
 ```bash
 # 1. 从 Figma 链接拿 fileKey / nodeId
-dart run w_tools_figma:figma url '<figma-url>'
+dart run w_tools_figma:figma url '<figma-url>' --json
+dart run w_tools_figma:figma frames
 
 # 2. 缓存不存在时取节点（1 次 Tier 1；缓存命中 0）
 dart run w_tools_figma:figma fetch nodes <fileKey> <nodeId>
 
 # 3. 读取规格
-dart run w_tools_figma:figma spec <nodeId> --json
+dart run w_tools_figma:figma spec <nodeId> --json --node-depth=2
+dart run w_tools_figma:figma spec <nodeId> --json --node-only
 
 # 4. 需要设计 token 时
 dart run w_tools_figma:figma tokens <nodeId> --out=docs/design-tokens.md
+dart run w_tools_figma:figma tokens <nodeId> --map=figma_tokens.yaml
 
 # 5. 设计稿改版后
-dart run w_tools_figma:figma diff <fileKey> <nodeId>
+dart run w_tools_figma:figma diff <fileKey> <nodeId> --if-stale
 
 # 6. 图片地址下载
 dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
@@ -43,6 +46,7 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 
 - `spec --json` 的 `node` 用于读结构、尺寸、颜色、文字、间距；`markdown` 只用于人读。
 - 节点很大时，先对子节点执行 `spec`，不要把整页 `node` 全塞进上下文。
+- 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
 - 组件优先用项目 toolkit；先跑：
 
 ```bash

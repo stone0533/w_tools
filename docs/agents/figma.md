@@ -21,20 +21,24 @@
 
 ```bash
 # 1. 链接 → fileKey / nodeId
-dart run w_tools_figma:figma url '<figma-url>'
+dart run w_tools_figma:figma url '<figma-url>' --json
+
+# 1b. 不知道 nodeId 时列 FRAME
+dart run w_tools_figma:figma frames
 
 # 2. 缓存不存在时先取数（消耗 1 次 Tier 1）
 dart run w_tools_figma:figma fetch nodes <fileKey> <nodeId>
 
 # 3. 读规格
-dart run w_tools_figma:figma spec <nodeId> --json
-dart run w_tools_figma:figma spec <nodeId>
+dart run w_tools_figma:figma spec <nodeId> --json --node-depth=2
+dart run w_tools_figma:figma spec <nodeId> --json --node-only
 
 # 4. 汇总设计 token（0 额度）
 dart run w_tools_figma:figma tokens <nodeId> --out=docs/design-tokens.md
+dart run w_tools_figma:figma tokens <nodeId> --map=figma_tokens.yaml
 
-# 5. 设计稿改版后（消耗 1 次 Tier 1）
-dart run w_tools_figma:figma diff <fileKey> <nodeId>
+# 5. 设计稿改版后（--if-stale 版本没变则 0 次 Tier 1）
+dart run w_tools_figma:figma diff <fileKey> <nodeId> --if-stale
 
 # 6. 下载 fetch images 返回的图片地址
 dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
@@ -52,6 +56,7 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 - `node`：结构化数据，用来读层级 / 尺寸 / 颜色 / 文本 / 间距。
 - `markdown`：人读规格表，适合贴 PR。
 - 页面很大时，先 `spec` 目标子节点；不要整页 `node` 全量塞进上下文。
+- 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
 
 ## 映射到 Flutter
 

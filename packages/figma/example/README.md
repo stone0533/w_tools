@@ -22,6 +22,7 @@ example/fixtures/nodes-demo.json
 ## 输出
 
 ```text
+frames              FRAME 列表
 spec 1:2            Markdown 规格表
 spec 1:2 --json     node + markdown
 tokens 1:2          颜色 / 文字 / 圆角 / 间距
