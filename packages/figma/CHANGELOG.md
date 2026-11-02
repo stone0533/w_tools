@@ -1,15 +1,22 @@
 # Changelog
 
-## 0.6.0
+## 0.7.0
 
-### Changed
-- `spec` / `tokens` 默认扫描所有缓存，选择包含目标 nodeId 的文件；不再只取最大文件。
-- 找不到节点时给出候选缓存文件。
+### Fixed
 - `version` 从包版本读取，不再写死 0.1.0。
 - `fetch --refresh` 请求失败时保留旧缓存。
 - `diff` 遵守 `--no-log`。
 - `tokens` 跳过隐藏节点及其子树。
 - 命令级选项校验：spec 不再静默接受 tokens/fetch 专属参数。
+
+## 0.6.0
+
+### Changed
+- `spec` / `tokens` 默认扫描所有缓存，选择包含目标 nodeId 的文件；不再只取最大文件。
+- 找不到节点时给出候选缓存文件。
+- 新增 `.figma-cache/_nodes-index.json` 缓存索引。
+- `spec a,b` / `tokens a,b` 支持跨缓存。
+- `tokens --json` 增加 `sources` 数组。
 
 ## 0.5.0
 
