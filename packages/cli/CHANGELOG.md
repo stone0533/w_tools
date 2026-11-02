@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.1
+
+### Changed
+- `init --figma` 模板升级到 `w_tools_figma ^0.3.0`，补充 frames / spec 深度 / tokens map / diff --if-stale。
+
 ## 1.7.0
 
 ### Added

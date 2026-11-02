@@ -3,15 +3,17 @@
 需要从设计稿取规格 / token 时使用 `w_tools_figma`：
 
 ```bash
-dart pub add dev:w_tools_figma:^0.2.0
+dart pub add dev:w_tools_figma:^0.3.0
 dart run w_tools_figma:figma init
 export FIGMA_TOKEN=figd_xxx
 # 或把 token 写入 .figma-token
 
-dart run w_tools_figma:figma url '<figma-url>'
+dart run w_tools_figma:figma url '<figma-url>' --json
+dart run w_tools_figma:figma frames
 dart run w_tools_figma:figma fetch nodes <fileKey> <nodeId>
-dart run w_tools_figma:figma spec <nodeId> --json
-dart run w_tools_figma:figma tokens <nodeId>
+dart run w_tools_figma:figma spec <nodeId> --json --node-depth=2
+dart run w_tools_figma:figma tokens <nodeId> --map=figma_tokens.yaml
+dart run w_tools_figma:figma diff <fileKey> <nodeId> --if-stale
 ```
 
 - `spec` / `tokens` 只读缓存；缓存缺失才 `fetch`。
