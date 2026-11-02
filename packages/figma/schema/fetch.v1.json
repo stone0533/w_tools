@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/stone0533/w_tools/blob/main/packages/figma/schema/fetch.v1.json",
+  "$id": "https://raw.githubusercontent.com/stone0533/w_tools/main/packages/figma/schema/fetch.v1.json",
   "title": "w_tools_figma.fetch/1",
   "type": "object",
   "required": [

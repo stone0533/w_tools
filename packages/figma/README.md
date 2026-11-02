@@ -19,6 +19,17 @@ dev_dependencies:
     path: ../w_tools/packages/figma
 ```
 
+git 依赖：
+
+```yaml
+dev_dependencies:
+  w_tools_figma:
+    git:
+      url: https://github.com/stone0533/w_tools.git
+      path: packages/figma
+      ref: main
+```
+
 monorepo 内可直接在 `packages/figma/` 下运行命令。
 
 ### 2. 初始化
@@ -101,6 +112,9 @@ dart run w_tools_figma:figma fetch --help
 ```
 
 `--check-stale` 即使用缓存也需要 token，因为会访问 `/meta`。
+第一次 `--check-stale` 只建立版本基线；之后线上版本变化才会报 stale。
+
+旧版本 `file-<key>-s<depth>.json` 缓存不会再命中，升级后可清理一次 `.figma-cache/`。
 
 缓存目录：
 

@@ -74,7 +74,8 @@
 2. **批量**：`nodes` / `images` 一次可传多个 id，只算 1 次；
 3. **自动过期检测**：`fetch --check-stale` 用 `GET /v1/files/:key/meta`（Tier 3，不占 20 次/月）
    读 `version`；与 `_meta-<fileKey>.json` 里记录的版本不同 → 标记 `stale`，**只提示不自动重拉**
-   （避免误耗额度），`--refresh` 才真正重拉。不开 `--check-stale` 时不发任何额外请求；
+   （避免误耗额度），`--refresh` 才真正重拉。第一次检查只建立版本基线；不开 `--check-stale`
+   时不发任何额外请求；
 4. **预算**：`_budget.json` 记录本月已用；超过 `limit` 的 80% 时打印警告；
 5. 429 时按 `Retry-After` 提示，**不自动重试**（View 座位重试会继续烧额度）。
 

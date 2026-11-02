@@ -122,6 +122,9 @@ Future<void> runFigmaCli(List<String> args) async {
   } on TimeoutException {
     stderr.writeln('网络超时；检查网络或稍后重试');
     exitCode = 5;
+  } on HttpException catch (e) {
+    stderr.writeln('网络错误：${e.message}');
+    exitCode = 5;
   } on SocketException catch (e) {
     stderr.writeln('网络错误：${e.message}');
     exitCode = 5;
