@@ -3,6 +3,7 @@ import 'dart:io';
 import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
 import '../diff/spec_diff.dart';
+import '../spec/cache_document.dart';
 import '../spec/figma_node.dart';
 
 /// `diff` 的结果。
@@ -42,7 +43,7 @@ class DiffCommand {
     if (target.existsSync()) target.copySync(backup.path);
 
     final fetched = await _fetchFresh(fileKey: fileKey, nodeId: nodeId, target: target);
-    final after = findFigmaNode(_documentOf(fetched), nodeId);
+    final after = findFigmaNode(readDocument(fetched, nodeId)!, nodeId);
     if (after == null) {
       throw StateError('最新数据里找不到节点 $nodeId');
     }
@@ -57,7 +58,7 @@ class DiffCommand {
         tierCalls: 1,
       );
     }
-    final before = findFigmaNode(_documentOf(previous), nodeId);
+    final before = findFigmaNode(readDocument(previous, nodeId)!, nodeId);
     if (before == null) {
       throw StateError('旧缓存 ${previous.path} 里找不到节点 $nodeId');
     }
@@ -83,15 +84,5 @@ class DiffCommand {
     store.write(target, json);
     store.logUsage(kind: 'nodes', cacheFile: target.uri.pathSegments.last);
     return target;
-  }
-
-  Map<String, dynamic> _documentOf(File file) {
-    final json = store.read(file);
-    if (json == null) throw StateError('读不到 ${file.path}');
-    final nodes = json['nodes'];
-    if (nodes is! Map || nodes.isEmpty) {
-      throw StateError('${file.path} 不是 nodes 缓存');
-    }
-    return ((nodes.values.first as Map)['document'] as Map).cast<String, dynamic>();
   }
 }

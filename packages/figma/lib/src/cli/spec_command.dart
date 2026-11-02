@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../spec/figma_node.dart';
 import '../spec/spec_renderer.dart';
 import 'args.dart';
 import 'cache_data.dart';
@@ -18,9 +17,7 @@ Future<void> runSpec(List<String> args) async {
 
   final root = Directory(options.root);
   final file = options.file != null ? File(options.file!) : pickLargestCache(root);
-  final documents = readDocuments(file);
-  final document = documents[nodeId] ??
-      documents.values.where((d) => findFigmaNode(d, nodeId) != null).firstOrNull;
+  final document = readDocument(file, nodeId);
   if (document == null) {
     throw StateError('在缓存里找不到节点：$nodeId');
   }

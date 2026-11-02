@@ -1,8 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 
 import '../cache/cache_store.dart';
 import 'cli_io.dart';
+
+export '../spec/cache_document.dart' show readDocument, readDocuments;
 
 String readToken(CacheStore store) {
   final file = store.tokenFile;
@@ -34,25 +35,4 @@ File pickLargestCache(Directory root) {
     throw StateError('${dir.path} 里没有 nodes-*.json，先拉一次节点树缓存');
   }
   return files.first;
-}
-
-Map<String, Map<String, dynamic>> readDocuments(File file) {
-  final raw = jsonDecode(file.readAsStringSync());
-  final nodes = (raw is Map) ? raw['nodes'] : null;
-  if (nodes is! Map || nodes.isEmpty) {
-    throw StateError('${file.path} 不是 nodes 缓存（缺少 nodes 字段）');
-  }
-  final documents = <String, Map<String, dynamic>>{};
-  for (final entry in nodes.entries) {
-    final value = entry.value;
-    if (value is! Map) continue;
-    final document = value['document'];
-    if (document is Map) {
-      documents['${entry.key}'] = document.cast<String, dynamic>();
-    }
-  }
-  if (documents.isEmpty) {
-    throw StateError('${file.path} 缺少 document');
-  }
-  return documents;
 }
