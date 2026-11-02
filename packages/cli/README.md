@@ -168,6 +168,19 @@ dart run w_tools_cli:doctor --only=R1,R2,R9
 dart run w_tools_cli:doctor --include-tests
 ```
 
+### 无 CLI 时的手动兜底映射
+
+消费方 AGENTS 里的 grep 只作为无 CLI 环境兜底，对应关系：
+
+| 手动检查 | CLI | 说明 |
+| --- | --- | --- |
+| ① design_system / ui 不依赖业务 | R4 | 只覆盖 `data/` / `modules/` / `routes/` / `services/`；严格 import 白名单是项目特有，不在 CLI |
+| ② 业务代码不直接 import `w_tools_*` | R2 | 默认扫 `lib/`，要覆盖 `test/` / `tool/` 加 `--include-tests` |
+| ③ pubspec 不依赖聚合包 | R1 | 区分 `dependencies`、`dev_dependencies`、`dependency_overrides` |
+| ④ 图片只走 `WImage` | R9 | 用 `banned` 配置，不新增默认 R10；路径白名单按项目配置 |
+
+不要把这四条 grep 直接搬进 CLI：① 含项目特有 import 例外，④ 的允许路径也因项目而异。
+
 ### 项目禁用 API（R9）
 
 ```yaml

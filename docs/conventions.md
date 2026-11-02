@@ -101,6 +101,8 @@ doctor 检查项：
 `--strict` 让 warning 也失败（默认关）；`--json` 给 CI 解析，issue 里的 `fix`
 （`run` / `edit`）可直接执行，没有 `fix` 时看 `hint`。
 
+无 CLI 时的手动 grep 只作兜底：① 对应 R4（仅覆盖已知业务目录，严格 import 白名单仍是项目特有）；② 对应 R2（覆盖 `test/` / `tool/` 需加 `--include-tests`）；③ 对应 R1；④ 对应 R9 的 `banned`。不要把这四条直接实现成默认 CLI 规则。
+
 **配置（可选）**：`.w_tools_doctor.yaml`。不写它 doctor 也按默认值运行；
 把开关摊开用：
 
