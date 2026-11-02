@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.5
+
+### Changed
+- `--figma` 模板补充 frames 过滤、多画板 spec、node-only 和自动缓存选择说明。
+
 ## 1.7.4
 
 ### Changed

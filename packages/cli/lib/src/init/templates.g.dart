@@ -263,13 +263,16 @@ export FIGMA_TOKEN=figd_xxx
 
 dart run w_tools_figma:figma url '<figma-url>' --json
 dart run w_tools_figma:figma frames
+dart run w_tools_figma:figma frames --name=<子串> --page=<页面>
 dart run w_tools_figma:figma fetch nodes <fileKey> <nodeId>
 dart run w_tools_figma:figma spec <nodeId> --json --node-depth=2
+dart run w_tools_figma:figma spec <id1>,<id2> --json
+dart run w_tools_figma:figma spec <nodeId> --json --node-only
 dart run w_tools_figma:figma tokens <nodeId> --map=figma_tokens.yaml
 dart run w_tools_figma:figma diff <fileKey> <nodeId> --if-stale
 ```
 
-- `spec` / `tokens` 只读缓存；缓存缺失才 `fetch`。
+- `spec` / `tokens` 只读缓存；默认会自动选择包含目标 nodeId 的缓存，缓存缺失才 `fetch`。
 - 不要默认 `--refresh`；确认要更新才加。
 - `spec --json` 的 `node` 是结构化节点，`markdown` 只用于人读。
 - 写页面时先查现有组件：
@@ -433,13 +436,16 @@ export FIGMA_TOKEN=figd_xxx
 
 dart run w_tools_figma:figma url '<figma-url>' --json
 dart run w_tools_figma:figma frames
+dart run w_tools_figma:figma frames --name=<substring> --page=<page>
 dart run w_tools_figma:figma fetch nodes <fileKey> <nodeId>
 dart run w_tools_figma:figma spec <nodeId> --json --node-depth=2
+dart run w_tools_figma:figma spec <id1>,<id2> --json
+dart run w_tools_figma:figma spec <nodeId> --json --node-only
 dart run w_tools_figma:figma tokens <nodeId> --map=figma_tokens.yaml
 dart run w_tools_figma:figma diff <fileKey> <nodeId> --if-stale
 ```
 
-- `spec` / `tokens` read the cache; only `fetch` when the cache is missing.
+- `spec` / `tokens` read the cache and auto-select the cache containing the target nodeId; only `fetch` when the cache is missing.
 - Do not use `--refresh` by default; use it only when you intend to update.
 - In `spec --json`, `node` is structured; `markdown` is for humans.
 - Reuse existing components before writing new ones:
