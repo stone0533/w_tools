@@ -102,6 +102,24 @@ banned:
     expect('${conflict.stderr}', contains('不能同时'));
   });
 
+  test('init 正反 feature 参数不能同时使用', () async {
+    final root = _project();
+    final r = await _run('init.dart', ['--root', root.path, '--ui', '--no-ui']);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('不能同时'));
+
+    final app = await _run('init.dart', ['--root', root.path, '--app', '--no-app']);
+    expect(app.exitCode, 2);
+  });
+
+  test('init help 从 feature 注册表生成', () async {
+    final r = await _run('init.dart', ['--help']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('--map / --no-map'));
+    expect('${r.stdout}', contains('--app / --no-app'));
+    expect('${r.stdout}', contains('--toast / --no-toast'));
+  });
+
   test('init --no-toast 不导出 toast，也不生成轻提示规则', () async {
     final root = _project();
     expect((await _run('init.dart', ['--root', root.path, '--no-toast'])).exitCode, 0);

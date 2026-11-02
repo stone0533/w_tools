@@ -18,8 +18,8 @@ const initFeatureSpecs = <InitFeatureSpec>[
   InitFeatureSpec(InitFeature.ui, 'ui', '导出 w_tools_ui 与页面规范'),
   InitFeatureSpec(InitFeature.api, 'api', '导出 w_tools_api'),
   InitFeatureSpec(InitFeature.toast, 'toast', '导出 w_tools_toast'),
-  InitFeatureSpec(InitFeature.qr, 'qr', '导出 w_tools_qr'),
-  InitFeatureSpec(InitFeature.map, 'map', '导出 w_tools_map（原生依赖）'),
+  InitFeatureSpec(InitFeature.qr, 'qr', '导出 w_tools_qr（默认 full 开）'),
+  InitFeatureSpec(InitFeature.map, 'map', '导出 w_tools_map（默认关，原生依赖）'),
   InitFeatureSpec(InitFeature.asyncFeature, 'async', '导出 w_tools_async'),
 ];
 
@@ -48,15 +48,14 @@ class InitFeatures {
 
   List<String> get enabled => <String>[
     if (core) 'core',
-    if (app) 'app',
-    if (form) 'form',
-    if (ui) 'ui',
-    if (api) 'api',
-    if (toast) 'toast',
-    if (qr) 'qr',
-    if (map) 'map',
-    if (asyncFeature) 'async',
+    for (final spec in initFeatureSpecs)
+      if (isEnabled(spec.feature)) spec.flag,
   ];
+
+  Map<String, bool> toJson() => <String, bool>{
+    'core': core,
+    for (final spec in initFeatureSpecs) spec.flag: isEnabled(spec.feature),
+  };
 
   String get summary => enabled.join(', ');
 

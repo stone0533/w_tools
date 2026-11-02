@@ -38,15 +38,8 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --profile=<p>  minimal | ui | api | full（默认 full）
                  profile 决定基础能力；--<feature> / --no-<feature> 覆盖单项
                  minimal / api 不生成 lib/app/ui
-  --no-qr        不导出 w_tools_qr（--profile=full 时默认导出）
-  --map / --no-map   是否引入 w_tools_map（默认关，会引入 google_maps_flutter）
-  --with-map         兼容别名，等同 --map
-  --no-ui        不生成 lib/app/ui 与 design_system 规范，也不导出 w_tools_ui
-  --no-async     不导出 w_tools_async（full profile 默认导出）
-  --no-form      不导出 w_tools_form，并从 AGENTS 移除表单规则
-  --no-app       不导出 w_tools_app，并从 AGENTS 移除启动规则
-  --no-api       不导出 w_tools_api，并从 AGENTS 移除网络规则
-  --no-toast     不导出 w_tools_toast，并从 AGENTS 移除轻提示规则
+{{features}}
+  --with-map     兼容别名，等同 --map
   --no-instructions  不生成/不检查 AGENTS 等 AI 指令文件（优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
@@ -62,6 +55,13 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
 说明：
   .w_tools_doctor.yaml 的有效 banned 会生成到 AGENTS 的“本项目禁用 API”段落。
 ''';
+
+String _buildUsage() {
+  final features = initFeatureSpecs
+      .map((s) => '  --${s.flag} / --no-${s.flag}  ${s.label}')
+      .join('\n');
+  return _usage.replaceAll('{{features}}', features);
+}
 
 void main(List<String> argv) {
   final parser = cliParser()
@@ -85,7 +85,7 @@ void main(List<String> argv) {
 
   runCli(
     argv,
-    usage: _usage,
+    usage: _buildUsage(),
     parser: parser,
     body: (args) {
       final root = Directory(args['root'] as String? ?? Directory.current.path);
@@ -126,9 +126,13 @@ void main(List<String> argv) {
       final profile = InitProfile.values.firstWhere(
         (p) => p.name == args['profile'],
       );
-      if (argv.contains('--map') && argv.contains('--no-map')) {
-        stderr.writeln('--map 与 --no-map 不能同时使用');
-        exit(2);
+      for (final spec in initFeatureSpecs) {
+        final yes = '--${spec.flag}';
+        final no = '--no-${spec.flag}';
+        if (argv.contains(yes) && argv.contains(no)) {
+          stderr.writeln('$yes 与 $no 不能同时使用');
+          exit(2);
+        }
       }
       var features = InitFeatures.forProfile(profile);
       for (final spec in initFeatureSpecs) {
@@ -160,17 +164,7 @@ void main(List<String> argv) {
             'checkDrift': checkDrift,
             'profile': profile.name,
             'targets': sortedTargets,
-            'features': <String, bool>{
-              'core': features.core,
-              'app': features.app,
-              'form': features.form,
-              'ui': features.ui,
-              'api': features.api,
-              'toast': features.toast,
-              'qr': features.qr,
-              'map': features.map,
-              'async': features.asyncFeature,
-            },
+            'features': features.toJson(),
             'created': report.created,
             'upToDate': report.upToDate,
             'drift': report.drift,
