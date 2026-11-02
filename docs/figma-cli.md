@@ -23,9 +23,9 @@
 | `spec <node-id>` | 节点树 → 完整规格（Markdown 或 JSON）——**v0.1 已实现** | 0（读缓存） | 0 |
 | `tokens` | 汇总颜色 / 文字样式 / 间距 → `design-tokens.md`——**v0.1 已实现** | 0（读缓存） | 0 |
 | `url <figma-url>` | 从 Figma 链接解析 `fileKey` + `nodeId`——**v0.1 已实现** | 0 | 0 |
-| `diff <node-id>` | 对比「上次缓存」与「当前线上」，列出改动的属性 | 1（需 refresh） | 1 次 |
+| `diff <node-id>` | 对比「上次缓存」与「当前线上」，列出改动的属性——**v0.1 已实现** | 1 | 1 次 |
 | `usage` | 本月调用次数 / 剩余估算——**v0.1 已实现**（座位类型需额外 `me` 调用，暂未做） | 0（本地日志） | 0 |
-| `budget` | 查看 / 设置月度预算 | 0 | 0 |
+| `budget` | 查看 / 设置月度预算——**v0.1 已实现** | 0 | 0 |
 
 > 规则：**任何会打 Figma 接口的命令，默认先打印「将消耗 1 次 Tier 1」**，
 > `--quiet` / `--json` 时改为在输出里带 `"tierCalls": 1`。
@@ -215,7 +215,7 @@ dart run w_tools_figma:figma budget --set 20 # 设置月度预算（解决「只
 | --- | --- | --- |
 | 1 | ✅ **`init` / `fetch` / `usage` / `url` 已实现**（FakeClient 测试覆盖缓存 / 额度 / 幂等） | 0 |
 | 2 | ✅ **`spec` 已实现**（`packages/figma`，Dart 重写 `figma_spec.py`，golden 逐字节一致） | 0（读缓存） |
-| 3 | ✅ **`tokens` 已实现**（颜色/文字/圆角/间距 + `--min` / `--json` / `--out`）；`diff` / `budget` / meta 自动失效待做 | 0（缓存 fixture） |
+| 3 | ✅ **`tokens` / `diff` / `budget` 已实现**；meta 自动失效待做 | 0（缓存 fixture） |
 | 4 | 消费方迁移：项目脚本改成薄 wrapper，文档指向 CLI | 0 |
 
 ---

@@ -14,6 +14,8 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
   dart run w_tools_figma:figma spec   <nodeId> [选项]
   dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [选项]
   dart run w_tools_figma:figma usage  [--json]
+  dart run w_tools_figma:figma diff   <fileKey> <nodeId> [--json]
+  dart run w_tools_figma:figma budget [--set=<n>] [--json]
   dart run w_tools_figma:figma url    <figma-url | nodeId>
 
 选项（spec / tokens 通用）：
@@ -55,6 +57,10 @@ Future<void> main(List<String> args) async {
         await _runFetch(rest);
       case 'usage':
         _runUsage(rest);
+      case 'diff':
+        await _runDiff(rest);
+      case 'budget':
+        _runBudget(rest);
       case 'url':
         _runUrl(rest);
       case 'spec':
@@ -177,6 +183,84 @@ void _runUsage(List<String> args) {
       stdout.writeln('  ${e.at}  ${e.kind}  ${e.cacheFile}');
     }
   }
+}
+
+Future<void> _runDiff(List<String> args) async {
+  final options = _parseOptions(args);
+  final positional = options.positional;
+  if (positional.length < 2) {
+    stderr.writeln('diff 用法：diff <fileKey> <nodeId>（消耗 1 次 Tier 1）');
+    exitCode = 2;
+    return;
+  }
+  final fileKey = positional[0];
+  final nodeId = positional[1];
+  final store = CacheStore(Directory(options.root));
+  final client = HttpFigmaClient(token: _readToken(store));
+  try {
+    final result = await DiffCommand(store: store, client: client).run(
+      fileKey: fileKey,
+      nodeId: nodeId,
+    );
+    if (options.json) {
+      stdout.writeln(jsonEncode({
+        'schema': 'w_tools_figma.diff/1',
+        'fileKey': fileKey,
+        'nodeId': nodeId,
+        'tierCalls': result.tierCalls,
+        'changes': [
+          for (final c in result.changes)
+            {
+              'nodeId': c.nodeId,
+              'name': c.name,
+              'field': c.field,
+              'before': c.before,
+              'after': c.after
+            },
+        ],
+        'nodes': [
+          for (final n in result.nodes) {'nodeId': n.nodeId, 'name': n.name, 'added': n.added},
+        ],
+      }));
+      return;
+    }
+    if (result.isEmpty) {
+      stdout.writeln('没有变化（$nodeId）');
+      return;
+    }
+    for (final n in result.nodes) {
+      stdout.writeln(n.toString());
+    }
+    for (final c in result.changes) {
+      stdout.writeln(c.toString());
+    }
+  } finally {
+    client.close();
+  }
+}
+
+void _runBudget(List<String> args) {
+  final options = _parseOptions(args);
+  final store = CacheStore(Directory(options.root));
+  if (options.budgetSet != null) {
+    store.dir.createSync(recursive: true);
+    store.budgetFile.writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert({'limit': options.budgetSet}),
+    );
+    stdout.writeln('月度预算已设为 ${options.budgetSet}');
+    return;
+  }
+  final summary = UsageCommand(store).run();
+  if (options.json) {
+    stdout.writeln(jsonEncode({
+      'schema': 'w_tools_figma.budget/1',
+      'limit': summary.limit,
+      'used': summary.used,
+      'remaining': summary.remaining,
+    }));
+    return;
+  }
+  stdout.writeln('月度预算 ${summary.limit} 次，本月已用 ${summary.used} 次，剩余 ${summary.remaining} 次');
 }
 
 void _runUrl(List<String> args) {
@@ -333,6 +417,7 @@ class _Options {
     required this.scale,
     required this.refresh,
     required this.log,
+    required this.budgetSet,
   });
 
   final List<String> positional;
@@ -345,6 +430,7 @@ class _Options {
   final int scale;
   final bool refresh;
   final bool log;
+  final int? budgetSet;
 }
 
 _Options _parseOptions(List<String> args) {
@@ -358,6 +444,7 @@ _Options _parseOptions(List<String> args) {
   var scale = 2;
   var refresh = false;
   var log = true;
+  int? budgetSet;
   for (final arg in args) {
     if (arg == '--json') {
       json = true;
@@ -377,6 +464,8 @@ _Options _parseOptions(List<String> args) {
       refresh = true;
     } else if (arg == '--no-log') {
       log = false;
+    } else if (arg.startsWith('--set=')) {
+      budgetSet = int.tryParse(arg.substring('--set='.length));
     } else if (arg.startsWith('--')) {
       throw StateError('未知选项：$arg');
     } else {
@@ -394,5 +483,6 @@ _Options _parseOptions(List<String> args) {
     scale: scale,
     refresh: refresh,
     log: log,
+    budgetSet: budgetSet,
   );
 }
