@@ -23,6 +23,7 @@ class ProjectSnapshot {
     required this.stagingDir,
     required this.designSystemFiles,
     required this.missingStaged,
+    required this.isFlutter,
     required this.results,
   });
 
@@ -42,6 +43,9 @@ class ProjectSnapshot {
   final int designSystemFiles;
   final int missingStaged;
 
+  /// 项目是否直接依赖 Flutter SDK；决定 analyze / test 命令。
+  final bool isFlutter;
+
   final List<DoctorRuleResult> results;
 
   int get errorCount =>
@@ -50,9 +54,9 @@ class ProjectSnapshot {
   int get warnCount =>
       results.expand((r) => r.issues).where((i) => i.level == DoctorLevel.warn).length;
 
-  static ProjectSnapshot load(Directory root) {
-    final config = DoctorConfig.load(root);
-    final ctx = ProjectContext.load(root, config);
+  static ProjectSnapshot load(Directory root, {DoctorConfig? config}) {
+    final cfg = config ?? DoctorConfig.load(root);
+    final ctx = ProjectContext.load(root, cfg);
 
     final locked = readLockedVersions(root);
     final packages = <String, String>{
@@ -71,10 +75,10 @@ class ProjectSnapshot {
 
     String? toolkitPath;
     var exports = <String>[];
-    final toolkitFile = File(p.join(root.path, config.toolkitEntry));
+    final toolkitFile = File(p.join(root.path, cfg.toolkitEntry));
     if (toolkitFile.existsSync()) {
-      toolkitPath = config.toolkitEntry;
-      final pattern = RegExp(r"""export\s+'package:(w_tools_[a-z]+)/""");
+      toolkitPath = cfg.toolkitEntry;
+      final pattern = RegExp(r"""export\s+['"]package:(w_tools_[a-z]+)/""");
       exports =
           pattern
               .allMatches(toolkitFile.readAsStringSync())
@@ -95,6 +99,8 @@ class ProjectSnapshot {
       if (!head.contains('// STAGED:')) missingStaged++;
     }
 
+    final isFlutter = depsNode is YamlMap && depsNode.containsKey('flutter');
+
     return ProjectSnapshot(
       root: root,
       projectName: ctx.name,
@@ -105,7 +111,8 @@ class ProjectSnapshot {
       stagingDir: designSystemDirPath,
       designSystemFiles: designFiles.length,
       missingStaged: missingStaged,
-      results: runDoctor(ctx, config),
+      isFlutter: isFlutter,
+      results: runDoctor(ctx, cfg),
     );
   }
 
@@ -116,6 +123,7 @@ class ProjectSnapshot {
     'project': <String, Object?>{
       'name': projectName,
       'root': root.path,
+      'isFlutter': isFlutter,
     },
     'packages': packages,
     'dependencies': dependencies,
@@ -154,8 +162,8 @@ class ProjectSnapshot {
     'context': 'dart run w_tools_cli:context --format=json',
     'doctor': 'dart run w_tools_cli:doctor --json',
     'initCheck': 'dart run w_tools_cli:init --check-drift',
-    'analyze': 'flutter analyze',
-    'test': 'flutter test',
+    'analyze': isFlutter ? 'flutter analyze' : 'dart analyze',
+    'test': isFlutter ? 'flutter test' : 'dart test',
   };
 
   String toMarkdown() {

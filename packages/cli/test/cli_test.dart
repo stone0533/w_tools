@@ -212,6 +212,30 @@ banned:
     expect(payload['found'], isTrue);
   });
 
+  test('context 对坏配置报配置文件名', () async {
+    final root = _project();
+    File(p.join(root.path, '.w_tools_doctor.yaml')).writeAsStringSync('banned: [');
+    final r = await _run('context.dart', ['--root', root.path]);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('.w_tools_doctor.yaml'));
+    expect('${r.stderr}', isNot(contains('pubspec.yaml')));
+  });
+
+  test('explain --root 读取项目 banned', () async {
+    final root = _project();
+    File(p.join(root.path, '.w_tools_doctor.yaml')).writeAsStringSync('''
+banned:
+  - id: no-wimage
+    pattern: WImage
+    use: AppImage
+    reason: project ban
+''');
+    final r = await _run('explain.dart', ['WImage', '--root', root.path]);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('本项目禁用'));
+    expect('${r.stdout}', contains('AppImage'));
+  });
+
   test('doctor --print-config 不要求项目目录', () async {
     final empty = Directory.systemTemp.createTempSync('wt_cli_empty_');
     final r = await _run('doctor.dart', ['--root', empty.path, '--print-config']);

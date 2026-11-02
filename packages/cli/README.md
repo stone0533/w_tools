@@ -241,7 +241,7 @@ dart run w_tools_cli:explain WFormDropdown
 ```
 
 输出用途、反例、import、文档；项目配置了 `banned` 时会提示禁用项和替代方案。
-`banned` 读取当前工作目录的 `.w_tools_doctor.yaml`。
+`banned` 读取 `--root` 或当前工作目录的 `.w_tools_doctor.yaml`。
 
 ---
 

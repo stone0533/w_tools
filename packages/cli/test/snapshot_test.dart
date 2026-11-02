@@ -52,6 +52,9 @@ void main() {
     expect((json['project'] as Map)['name'], 'demo_app');
     expect((json['doctor'] as Map)['error'], 0);
     expect(json['commands'], isA<Map>());
+    expect((json['project'] as Map)['isFlutter'], isFalse);
+    expect((json['commands'] as Map)['analyze'], 'dart analyze');
+    expect((json['commands'] as Map)['test'], 'dart test');
   });
 
   test('markdown / prompt 都能生成，prompt 支持截断', () {

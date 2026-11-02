@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/context/context_project.dart';
+import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:yaml/yaml.dart' show YamlException;
 
 const _usage = '''
@@ -48,11 +49,19 @@ void main(List<String> argv) {
         exit(2);
       }
 
+      DoctorConfig config;
+      try {
+        config = DoctorConfig.load(root);
+      } on YamlException catch (e) {
+        stderr.writeln('${DoctorConfig.fileName} 解析失败：${e.message}');
+        exit(2);
+      }
+
       ProjectSnapshot snapshot;
       try {
-        snapshot = ProjectSnapshot.load(root);
+        snapshot = ProjectSnapshot.load(root, config: config);
       } on YamlException catch (e) {
-        stderr.writeln('pubspec 解析失败：${e.message}');
+        stderr.writeln('pubspec.yaml 解析失败：${e.message}');
         exit(2);
       }
 

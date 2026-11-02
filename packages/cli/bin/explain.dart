@@ -7,6 +7,7 @@ import 'package:w_tools_cli/src/catalog/catalog.dart';
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/doctor/banned_rule.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
+import 'package:yaml/yaml.dart' show YamlException;
 
 const _usage = '''
 w_tools_cli explain —— 查看某个组件的用途、反例、import 与文档
@@ -21,6 +22,7 @@ w_tools_cli explain —— 查看某个组件的用途、反例、import 与文�
   项目 .w_tools_doctor.yaml 配置 banned 时，会提示禁用项、替代方案与原因。
 
 选项：
+  --root=<dir>    项目根目录（读取 .w_tools_doctor.yaml；默认当前目录）
   --format=<fmt>  text | json（默认 text）
   --json          等价于 --format=json
   --version       显示版本
@@ -29,6 +31,7 @@ w_tools_cli explain —— 查看某个组件的用途、反例、import 与文�
 
 void main(List<String> argv) {
   final parser = cliParser()
+    ..addOption('root')
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false);
 
@@ -44,9 +47,16 @@ void main(List<String> argv) {
         exit(2);
       }
 
+      final root = Directory(args['root'] as String? ?? Directory.current.path);
       final exact = findComponent(name);
       final matches = exact != null ? <CatalogEntry>[exact] : searchComponents(name);
-      final banned = _matchingBanned(name);
+      List<BannedRule> banned;
+      try {
+        banned = _matchingBanned(name, root);
+      } on YamlException catch (e) {
+        stderr.writeln('${DoctorConfig.fileName} 解析失败：${e.message}');
+        exit(2);
+      }
       final asJson = (args['json'] as bool) || args['format'] == 'json';
 
       if (asJson) {
@@ -95,8 +105,8 @@ void main(List<String> argv) {
   );
 }
 
-List<BannedRule> _matchingBanned(String query) {
-  final config = DoctorConfig.load(Directory.current);
+List<BannedRule> _matchingBanned(String query, Directory root) {
+  final config = DoctorConfig.load(root);
   return config.banned.where((entry) => entry.validate() == null && entry.matches(query)).toList();
 }
 
