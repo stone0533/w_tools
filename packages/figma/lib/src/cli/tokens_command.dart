@@ -20,30 +20,29 @@ Future<void> runTokens(List<String> args) async {
   }
   final nodeIds = rawIds.split(',').where((e) => e.isNotEmpty).toList();
 
-  final file =
-      options.file != null ? File(options.file!) : pickLargestCache(Directory(options.root));
-  final documents = readDocuments(file);
-
+  final sources = resolveNodeCaches(
+    Directory(options.root),
+    nodeIds,
+    explicitFile: options.file,
+  );
+  final documents = <File, Map<String, dynamic>>{};
   final collector = TokenCollector(minCount: options.min);
-  final missing = <String>[];
   for (final id in nodeIds) {
-    final document =
-        documents[id] ?? documents.values.where((d) => findFigmaNode(d, id) != null).firstOrNull;
+    final file = sources[id]!;
+    final docs = documents.putIfAbsent(file, () => readDocuments(file));
+    final document = docs[id] ?? docs.values.where((d) => findFigmaNode(d, id) != null).firstOrNull;
     final node = document == null ? null : findFigmaNode(document, id);
     if (node == null) {
-      missing.add(id);
-      continue;
+      throw StateError('在缓存里找不到节点：$id；先运行 `figma frames --verbose` 查看');
     }
     collector.collect(node);
   }
-  if (missing.isNotEmpty) {
-    throw StateError('在缓存里找不到节点：${missing.join(', ')}；先运行 `figma frames` 查看缓存中的 FRAME');
-  }
+  final source = sources.values.map((f) => f.path).toSet().join(', ');
 
   final colorNames = _loadColorNames(options.mapFile);
   final markdown = const TokenRenderer().renderMarkdown(
     tokens: collector,
-    source: file.path,
+    source: source,
     nodeIds: nodeIds,
     colorNames: colorNames,
   );
@@ -56,7 +55,7 @@ Future<void> runTokens(List<String> args) async {
     printLine(
       jsonEncode({
         'schema': 'w_tools_figma.tokens/1',
-        'source': file.path,
+        'source': source,
         'nodeIds': nodeIds,
         'counts': {
           'colors': collector.colorsSorted().length,

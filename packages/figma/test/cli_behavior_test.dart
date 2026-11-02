@@ -164,6 +164,45 @@ void main() {
     expect(framePayload['frames'], hasLength(2));
   });
 
+  test('spec 默认选择包含 nodeId 的缓存，而不是最大文件', () async {
+    final dir = Directory('${root.path}/.figma-cache')..createSync(recursive: true);
+    final target = File('${dir.path}/nodes-old.json');
+    target.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'Target',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+            'children': <Object?>[],
+          },
+        },
+      },
+    }));
+    final large = File('${dir.path}/nodes-large.json');
+    large.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '9:9': {
+          'document': {
+            'id': '9:9',
+            'type': 'FRAME',
+            'name': 'Other',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+            'children': List.generate(2000, (i) => {'x': i}),
+          },
+        },
+      },
+    }));
+    target.setLastModifiedSync(DateTime(2020));
+    large.setLastModifiedSync(DateTime(2026));
+
+    final result = await run(<String>['spec', '1:2', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect(payload['nodeId'], '1:2');
+  });
+
   test('frames 列出缓存里的 FRAME', () async {
     final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);

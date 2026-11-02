@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.4
+
+### Changed
+- 没有 `w_tools_figma` 依赖时，模板生成 `dart pub add dev:w_tools_figma`，不再写死兜底版本。
+
 ## 1.7.3
 
 ### Changed

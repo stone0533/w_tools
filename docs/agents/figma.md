@@ -1,7 +1,7 @@
 # Figma 取数与 Flutter 页面开发（agent）
 
-工具：`packages/figma`，包名 `w_tools_figma`，0.4.0 已发布；0.5.0 待发布。
-消费方安装：`dart pub add dev:w_tools_figma:^0.4.0`。
+工具：`packages/figma`，包名 `w_tools_figma`，0.5.0 已发布；0.6.0 待发布。
+消费方安装：`dart pub add dev:w_tools_figma:^0.5.0`。
 契约：[`docs/figma-cli.md`](../figma-cli.md)。
 消费方可复制的片段：[`packages/figma/AGENTS.md`](../../packages/figma/AGENTS.md)。
 
@@ -60,6 +60,7 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 - `markdown`：人读规格表，适合贴 PR。
 - 页面很大时，先 `spec` 目标子节点；不要整页 `node` 全量塞进上下文。
 - 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
+- `spec` / `tokens` 默认扫描所有缓存，自动选包含目标 nodeId 的文件；失败时按提示加 `--file=`。
 - `frames` 默认只列顶层 FRAME，`--all` 才包含嵌套；`cacheFile` 是相对 `--root` 的路径。
 - 多画板 `spec a,b,c` 的 JSON schema 是 `w_tools_figma.specs/1`。
 - `--no-markdown` 等同 `--node-only`，只影响 `--json`。
@@ -90,7 +91,7 @@ dart run w_tools_cli:explain <组件名>
 
 ## 0.4.0 能力
 
-> 0.4.0 已发布；0.5.0 待发布。
+> 0.5.0 已发布；0.6.0 待发布。
 
 ```bash
 # 默认只列顶层画板

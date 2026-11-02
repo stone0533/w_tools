@@ -4,7 +4,7 @@
 
 ## 工具
 
-`w_tools_figma`（独立 CLI 包，0.4.0 已发布；0.5.0 待发布）：
+`w_tools_figma`（独立 CLI 包，0.5.0 已发布；0.6.0 待发布）：
 
 ```bash
 dart run w_tools_figma:figma <command>
@@ -47,6 +47,7 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 - `spec --json` 的 `node` 用于读结构、尺寸、颜色、文字、间距；`markdown` 只用于人读。
 - 节点很大时，先对子节点执行 `spec`，不要把整页 `node` 全塞进上下文。
 - 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
+- `spec` / `tokens` 默认扫描所有缓存，自动选包含目标 nodeId 的文件；失败时按提示加 `--file=`。
 - 组件优先用项目 toolkit；先跑：
 
 ```bash

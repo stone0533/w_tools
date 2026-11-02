@@ -13,9 +13,6 @@ import 'templates.g.dart' as generated;
 /// `Isolate.resolvePackageUri` 在 flutter_test 里会抛 `Unsupported operation`，
 /// 消费方执行 `dart run w_tools_cli:init` 时也可能拿不到可靠路径。
 /// 生成物由 `test/templates_fresh_test.dart` 挡住漂移。
-/// 消费方安装 w_tools_figma 的约束；发布 figma 新版本时只改这里。
-const String figmaConstraint = '^0.4.0';
-
 class InitTemplates {
   InitTemplates._();
 
@@ -132,7 +129,7 @@ class InitTemplates {
         .replaceAll('{{app}}', app)
         .replaceAll(
           '{{figmaInstall}}',
-          figmaInstall ?? 'dart pub add dev:w_tools_figma:$figmaConstraint',
+          figmaInstall ?? 'dart pub add dev:w_tools_figma',
         )
         .replaceAll('{{doctorRules}}', _doctorRuleTable(en))
         .trimRight();

@@ -23,7 +23,7 @@ Future<void> runSpec(List<String> args) async {
   }
 
   final root = Directory(options.root);
-  final file = options.file != null ? File(options.file!) : pickLargestCache(root);
+  final file = resolveNodesCache(root, nodeIds, explicitFile: options.file);
   const renderer = FigmaSpecRenderer();
   final items = <Map<String, Object?>>[];
   final markdowns = <String>[];

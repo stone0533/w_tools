@@ -111,6 +111,8 @@ void main() {
       expect(agents, contains('## Figma → Flutter'));
       expect(agents, contains('w_tools_figma'));
       expect(agents, contains('w_tools_figma:figma init'));
+      expect(agents, contains('dart pub add dev:w_tools_figma'));
+      expect(agents, isNot(contains('dart pub add dev:w_tools_figma:')));
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains('w_tools_figma')));
       expect(report.pubspecSnippet, isNot(contains('w_tools_figma')));
@@ -496,7 +498,7 @@ void main() {
           reason: 'packages/$pkg 已到 $version，更新 init_project.dart 里的约束',
         );
       }
-      expect(snippet, contains('w_tools_cli: ^1.7.3'));
+      expect(snippet, contains('w_tools_cli: ^1.7.4'));
     }, skip: repo == null ? '不在 w_tools 仓库内' : false);
   });
 }
