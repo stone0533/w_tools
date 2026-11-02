@@ -139,6 +139,9 @@ const String agentsClosing = r'''
 
 ## 检查项
 
+> R6 需在 `.w_tools_doctor.yaml` 开启；R9 需配置 `banned`。
+> 实际启用状态以项目配置为准。
+
 {{doctorRules}}
 
 ## 完成前
@@ -272,6 +275,9 @@ const String agentsClosingEn = r'''
 - Business code imports only the toolkit entry, never `package:w_tools_*` directly.
 
 ## Checks
+
+> R6 must be enabled in `.w_tools_doctor.yaml`; R9 requires `banned`.
+> The project config is the source of truth for activation.
 
 {{doctorRules}}
 

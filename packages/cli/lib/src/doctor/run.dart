@@ -78,8 +78,8 @@ const List<DoctorRule> doctorRules = <DoctorRule>[
     id: R6BannedUnits.id,
     title: R6BannedUnits.title,
     level: DoctorLevel.warn,
-    summaryZh: '禁用 .h / .r（默认关）',
-    summaryEn: 'Banned .h / .r units (opt-in)',
+    summaryZh: '禁用 .h / .r',
+    summaryEn: 'Banned .h / .r units',
     check: R6BannedUnits.check,
   ),
   DoctorRule(
@@ -102,8 +102,8 @@ const List<DoctorRule> doctorRules = <DoctorRule>[
     id: R9BannedApi.id,
     title: R9BannedApi.title,
     level: DoctorLevel.warn,
-    summaryZh: '项目禁用 API（配置驱动）',
-    summaryEn: 'Project-banned APIs (configured)',
+    summaryZh: '项目禁用 API',
+    summaryEn: 'Project-banned APIs',
     check: R9BannedApi.check,
   ),
 ];

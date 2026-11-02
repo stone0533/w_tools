@@ -5,6 +5,9 @@
 
 ## Checks
 
+> R6 must be enabled in `.w_tools_doctor.yaml`; R9 requires `banned`.
+> The project config is the source of truth for activation.
+
 {{doctorRules}}
 
 ## Before done

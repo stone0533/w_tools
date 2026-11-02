@@ -5,6 +5,9 @@
 
 ## 检查项
 
+> R6 需在 `.w_tools_doctor.yaml` 开启；R9 需配置 `banned`。
+> 实际启用状态以项目配置为准。
+
 {{doctorRules}}
 
 ## 完成前

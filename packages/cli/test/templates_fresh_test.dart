@@ -148,11 +148,13 @@ void main() {
     final zh = InitTemplates.agentsBlock();
     expect(zh, contains('## 检查项'));
     expect(zh, contains('| R1 | 聚合包依赖 |'));
-    expect(zh, contains('| R9 | 项目禁用 API（配置驱动） |'));
+    expect(zh, contains('| R9 | 项目禁用 API |'));
 
     final en = InitTemplates.agentsBlock(lang: 'en');
     expect(en, contains('## Checks'));
     expect(en, contains('| R1 | Aggregate package dependency |'));
+    expect(zh, contains('R6 需在'));
+    expect(en, contains('R6 must be enabled'));
   });
 
   test('AGENTS 片段带标记块（init 靠它幂等替换）', () {
