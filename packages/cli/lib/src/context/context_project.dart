@@ -13,40 +13,24 @@ const int contextSchemaVersion = 1;
 
 /// 项目事实快照：给 AI / CI 一份稳定的上下文。
 class ProjectSnapshot {
-  ProjectSnapshot({
-    required this.root,
-    required this.projectName,
-    required this.packages,
-    required this.dependencies,
-    required this.toolkitPath,
-    required this.toolkitExports,
-    required this.stagingDir,
-    required this.designSystemFiles,
-    required this.missingStaged,
-    required this.isFlutter,
+  const ProjectSnapshot({
+    required this.facts,
     required this.results,
   });
 
-  final Directory root;
-  final String projectName;
-
-  /// `pubspec.lock` 里解析出的 w_tools_* 版本
-  final Map<String, String> packages;
-
-  /// pubspec 里直接依赖的 w_tools_* 子包
-  final List<String> dependencies;
-
-  final String? toolkitPath;
-  final List<String> toolkitExports;
-
-  final String stagingDir;
-  final int designSystemFiles;
-  final int missingStaged;
-
-  /// 项目是否直接依赖 Flutter SDK；决定 analyze / test 命令。
-  final bool isFlutter;
-
+  final ProjectFacts facts;
   final List<DoctorRuleResult> results;
+
+  Directory get root => facts.ctx.root;
+  String get projectName => facts.ctx.name;
+  Map<String, String> get packages => facts.packages;
+  List<String> get dependencies => facts.dependencies;
+  String? get toolkitPath => facts.toolkitPath;
+  List<String> get toolkitExports => facts.toolkitExports;
+  String get stagingDir => designSystemDirPath;
+  int get designSystemFiles => facts.stagingFiles.length;
+  int get missingStaged => facts.missingStagedFiles.length;
+  bool get isFlutter => facts.isFlutter;
 
   int get errorCount =>
       results.expand((r) => r.issues).where((i) => i.level == DoctorLevel.error).length;
@@ -57,19 +41,8 @@ class ProjectSnapshot {
   static ProjectSnapshot load(Directory root, {DoctorConfig? config}) {
     final cfg = config ?? DoctorConfig.load(root);
     final ctx = ProjectContext.load(root, cfg);
-    final facts = ctx.facts;
-
     return ProjectSnapshot(
-      root: root,
-      projectName: ctx.name,
-      packages: facts.packages,
-      dependencies: facts.dependencies,
-      toolkitPath: facts.toolkitPath,
-      toolkitExports: facts.toolkitExports,
-      stagingDir: designSystemDirPath,
-      designSystemFiles: facts.stagingFiles.length,
-      missingStaged: facts.missingStagedFiles.length,
-      isFlutter: facts.isFlutter,
+      facts: ctx.facts,
       results: runDoctor(ctx, cfg),
     );
   }

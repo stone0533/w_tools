@@ -17,6 +17,7 @@
 - init 的 feature help 从注册表生成；所有 feature 正反参数冲突统一报错，JSON features 改用 `toJson()`。
 - `context --format=json` 增加 `schema` 标识与 v1 JSON Schema；采用新增字段兼容、破坏性变化才 bump 的策略。
 - context schema 测试使用 `json_schema` 校验真实 `toJson()` 输出，并用包根定位 schema 文件。
+- 内部模型收敛：InitFeatures 改为 Set<InitFeature>，ProjectSnapshot 持有 ProjectFacts，不再复制字段。
 
 ### Changed
 - 消费方 AGENTS 模板补充 `WTextVariant` 不够用时的处理顺序：先 `variant + style`，项目内重复抽本地 helper，稳定跨页面语义再提库内 variant。

@@ -24,84 +24,65 @@ const initFeatureSpecs = <InitFeatureSpec>[
 ];
 
 class InitFeatures {
-  const InitFeatures({
-    this.core = true,
-    this.app = false,
-    this.form = false,
-    this.ui = false,
-    this.api = false,
-    this.toast = false,
-    this.qr = false,
-    this.map = false,
-    this.asyncFeature = false,
-  });
+  const InitFeatures._(this._values);
 
-  final bool core;
-  final bool app;
-  final bool form;
-  final bool ui;
-  final bool api;
-  final bool toast;
-  final bool qr;
-  final bool map;
-  final bool asyncFeature;
+  final Set<InitFeature> _values;
+
+  bool get core => true;
+  bool get app => _values.contains(InitFeature.app);
+  bool get form => _values.contains(InitFeature.form);
+  bool get ui => _values.contains(InitFeature.ui);
+  bool get api => _values.contains(InitFeature.api);
+  bool get toast => _values.contains(InitFeature.toast);
+  bool get qr => _values.contains(InitFeature.qr);
+  bool get map => _values.contains(InitFeature.map);
+  bool get asyncFeature => _values.contains(InitFeature.asyncFeature);
 
   List<String> get enabled => <String>[
-    if (core) 'core',
+    'core',
     for (final spec in initFeatureSpecs)
       if (isEnabled(spec.feature)) spec.flag,
   ];
 
+  String get summary => enabled.join(', ');
+
   Map<String, bool> toJson() => <String, bool>{
-    'core': core,
+    'core': true,
     for (final spec in initFeatureSpecs) spec.flag: isEnabled(spec.feature),
   };
 
-  String get summary => enabled.join(', ');
-
-  static const full = InitFeatures(
-    app: true,
-    form: true,
-    ui: true,
-    api: true,
-    toast: true,
-    qr: true,
-    asyncFeature: true,
-  );
+  static const full = InitFeatures._(<InitFeature>{
+    InitFeature.app,
+    InitFeature.form,
+    InitFeature.ui,
+    InitFeature.api,
+    InitFeature.toast,
+    InitFeature.qr,
+    InitFeature.asyncFeature,
+  });
 
   factory InitFeatures.forProfile(InitProfile profile) {
     return switch (profile) {
-      InitProfile.minimal => const InitFeatures(),
-      InitProfile.ui => const InitFeatures(ui: true, toast: true),
-      InitProfile.api => const InitFeatures(api: true),
+      InitProfile.minimal => const InitFeatures._(<InitFeature>{}),
+      InitProfile.ui => const InitFeatures._(<InitFeature>{InitFeature.ui, InitFeature.toast}),
+      InitProfile.api => const InitFeatures._(<InitFeature>{InitFeature.api}),
       InitProfile.full => full,
     };
   }
 
-  bool isEnabled(InitFeature feature) => switch (feature) {
-    InitFeature.app => app,
-    InitFeature.form => form,
-    InitFeature.ui => ui,
-    InitFeature.api => api,
-    InitFeature.toast => toast,
-    InitFeature.qr => qr,
-    InitFeature.map => map,
-    InitFeature.asyncFeature => asyncFeature,
-  };
+  bool isEnabled(InitFeature feature) => _values.contains(feature);
 
-  InitFeatures withFeature(InitFeature feature, bool value) => switch (feature) {
-    InitFeature.app => copyWith(app: value),
-    InitFeature.form => copyWith(form: value),
-    InitFeature.ui => copyWith(ui: value),
-    InitFeature.api => copyWith(api: value),
-    InitFeature.toast => copyWith(toast: value),
-    InitFeature.qr => copyWith(qr: value),
-    InitFeature.map => copyWith(map: value),
-    InitFeature.asyncFeature => copyWith(asyncFeature: value),
-  };
+  InitFeatures withFeature(InitFeature feature, bool value) {
+    final next = <InitFeature>{..._values};
+    if (value) {
+      next.add(feature);
+    } else {
+      next.remove(feature);
+    }
+    return InitFeatures._(next);
+  }
 
   InitFeatures copyWith({
-    bool? core,
     bool? app,
     bool? form,
     bool? ui,
@@ -111,16 +92,20 @@ class InitFeatures {
     bool? map,
     bool? asyncFeature,
   }) {
-    return InitFeatures(
-      core: core ?? this.core,
-      app: app ?? this.app,
-      form: form ?? this.form,
-      ui: ui ?? this.ui,
-      api: api ?? this.api,
-      toast: toast ?? this.toast,
-      qr: qr ?? this.qr,
-      map: map ?? this.map,
-      asyncFeature: asyncFeature ?? this.asyncFeature,
-    );
+    var next = this;
+    final values = <InitFeature, bool?>{
+      InitFeature.app: app,
+      InitFeature.form: form,
+      InitFeature.ui: ui,
+      InitFeature.api: api,
+      InitFeature.toast: toast,
+      InitFeature.qr: qr,
+      InitFeature.map: map,
+      InitFeature.asyncFeature: asyncFeature,
+    };
+    for (final entry in values.entries) {
+      if (entry.value != null) next = next.withFeature(entry.key, entry.value!);
+    }
+    return next;
   }
 }
