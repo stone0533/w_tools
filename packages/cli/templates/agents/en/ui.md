@@ -8,7 +8,7 @@
   `TabController` / `DefaultTabController` and does not own one. Do not hand-roll `BottomNavigationBar`.
 - **Buttons**: use `AppButtons.primary/secondary/text/danger(context)`; do not write
   `WButtonStyle` in pages unless it is an explicit one-off style. Use `WButton` for real buttons
-  and `WPressable` for arbitrary card/child taps; use `WFormButton` for form-field value selection.
+  and `WPressable` for arbitrary card/child taps.
   Button width comes from the parent; `WButtonStyle` has no `width`. `WButton` has no `variant`;
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.

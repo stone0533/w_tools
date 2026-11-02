@@ -154,7 +154,7 @@ const String agentsUi = r'''
   `TabController` / `DefaultTabController`，不自带 controller。不要自己写 `BottomNavigationBar`。
 - **按钮**：统一用 `AppButtons.primary/secondary/text/danger(context)`；页面不要直接写
   `WButtonStyle`，除非是明确的局部一次性样式。真按钮用 `WButton`，任意 child/卡片点击用
-  `WPressable`；表单字段值选择用 `WFormButton`；不要用 `WButton` 包任意 child。
+  `WPressable`；不要用 `WButton` 包任意 child。
   按钮宽度由父布局决定，`WButtonStyle` 不含 `width`。`WButton` 没有 `variant`；
   样式用 `style`，`label` 和 `content` 不能同时传。`loading` 时同时设置 `enabled: !loading`；
   纯图标按钮提供 `semanticLabel`。状态色放 `AppButtons`。
@@ -188,6 +188,7 @@ const String agentsForm = r'''
 - **表单**：新页面用 `WForm` + 直接字段（`WFormTextField` 等），不要从 `Config.build` 开始。
   `WForm` 需要 `WFormController`，与 controller 一对一；页面级高度 / 内边距用
   `WForm.fieldStyle`，校验设置用 `WFormValidatorSettings`；字段特殊样式用字段 `config`。
+- **表单字段按钮**：字段值选择用 `WFormButton`，不要用 `WButton` 承担表单字段值。
 - **表单弹层**：锚定选择用 `WFormPopup`，它不是居中确认框。
 ''';
 
@@ -280,7 +281,7 @@ const String agentsUiEn = r'''
   `TabController` / `DefaultTabController` and does not own one. Do not hand-roll `BottomNavigationBar`.
 - **Buttons**: use `AppButtons.primary/secondary/text/danger(context)`; do not write
   `WButtonStyle` in pages unless it is an explicit one-off style. Use `WButton` for real buttons
-  and `WPressable` for arbitrary card/child taps; use `WFormButton` for form-field value selection.
+  and `WPressable` for arbitrary card/child taps.
   Button width comes from the parent; `WButtonStyle` has no `width`. `WButton` has no `variant`;
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
@@ -312,6 +313,7 @@ const String agentsFormEn = r'''
   `Config.build`. `WForm` requires a `WFormController` (one-to-one); use `WForm.fieldStyle`
   for page-level height/padding and `WFormValidatorSettings` for validation; use field `config`
   for special styling.
+- **Form-field buttons**: use `WFormButton` for field value selection; do not use `WButton` for form values.
 - **Form overlays**: use `WFormPopup` for anchored selection; it is not a centered dialog.
 ''';
 
