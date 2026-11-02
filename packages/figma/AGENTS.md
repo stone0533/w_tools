@@ -4,7 +4,7 @@
 
 ## 工具
 
-`w_tools_figma`（内部包，未发布）：
+`w_tools_figma`（独立 CLI 包；发布后用 pub，未发布用 path/git）：
 
 ```bash
 dart run w_tools_figma:figma <command>
@@ -51,7 +51,7 @@ dart run w_tools_cli:explain <组件名>
 ```
 
 - 不要凭记忆造 `W*` 组件名。
-- 按 [`docs/agents/ui.md`](../../docs/agents/ui.md)：
+- 按 [`docs/agents/ui.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/ui.md)：
   - 页面骨架用 `AppScaffold`
   - 文本用 `WText` + `WTextStyles`
   - 图片用 `WImage.asset` / `WImage.network`，禁止裸 `Image.asset`

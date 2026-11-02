@@ -1,17 +1,24 @@
 # w_tools_figma
 
-> 内部工具包，当前 `publish_to: none`，不发布到 pub.dev。
+> 独立 CLI 包，v0.1.0。发布前使用 path / git；发布后使用 `dart pub add dev:w_tools_figma`。
 
-只读的 Figma 取数 / 规格导出 CLI。完整契约见 [`docs/figma-cli.md`](../../docs/figma-cli.md)；
-AI / agent 使用说明见 [`docs/agents/figma.md`](../../docs/agents/figma.md)。
+只读的 Figma 取数 / 规格导出 CLI。
+
+- 契约：https://github.com/stone0533/w_tools/blob/main/docs/figma-cli.md
+- AI / agent 使用说明：https://github.com/stone0533/w_tools/blob/main/docs/agents/figma.md
 
 ## 5 分钟上手
 
 ### 1. 安装
 
-当前未发布，只能使用 path / git 依赖，不能 `dart pub add w_tools_figma`。
+发布后：
 
-path 依赖：
+```yaml
+dev_dependencies:
+  w_tools_figma: ^0.1.0
+```
+
+发布前使用 path 依赖：
 
 ```yaml
 dev_dependencies:
@@ -62,7 +69,7 @@ Settings → Security → Personal access tokens
 环境变量优先于文件。POSIX 上 `init` 会把 `.figma-token` 权限设为 600。
 
 从 Figma 页面到 Flutter 实现的流程见
-[`docs/agents/figma.md`](../../docs/agents/figma.md)。
+[`docs/agents/figma.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/figma.md)。
 
 ### 3. 从链接解析 fileKey / nodeId
 
