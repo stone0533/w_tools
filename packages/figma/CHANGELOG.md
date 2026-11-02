@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+### Added
+- `spec` 输出 strokeAlign、节点 opacity、阴影 spread。
+- `tokens --map` 语义名合并进颜色主表；`frames` 人类输出显示 page 列。
+
 ## 0.4.0
 
 ### Added

@@ -97,6 +97,7 @@ class SpecDiff {
     add('position', _position(before), _position(after));
     add('layout', _layout(before), _layout(after));
     add('visible', '${before['visible'] ?? true}', '${after['visible'] ?? true}');
+    add('opacity', '${before['opacity'] ?? 1}', '${after['opacity'] ?? 1}');
     add('fills', figmaFills(before), figmaFills(after));
     add('strokes', figmaStrokes(before), figmaStrokes(after));
     add('effects', figmaEffects(before), figmaEffects(after));

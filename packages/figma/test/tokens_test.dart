@@ -69,9 +69,9 @@ void main() {
       nodeIds: [nodeId],
       colorNames: <String, String>{'3F3F3F': 'textPrimary'},
     );
-    expect(md, contains('## 语义色映射'));
-    expect(md, contains('`#3F3F3F` → textPrimary'));
-    expect(md, contains('→ 未映射'));
+    expect(md, contains('| 值 | 语义名 | 次数 | 出现位置（示例） |'));
+    expect(md, contains('| `#3F3F3F` | textPrimary | 14 |'));
+    expect(md, contains('| 新增 |'));
   });
 
   test('找不到节点时 CLI 报错（collect 前先确认存在）', () {

@@ -45,8 +45,8 @@ class FigmaSpecRenderer {
         '阴影 ${figmaEffects(frame)}',
       )
       ..writeln()
-      ..writeln('| x,y | w×h | 类型 | 名称 | 填充 | 描边 | 阴影 | 圆角 | 文字 |')
-      ..writeln('| --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+      ..writeln('| x,y | w×h | 类型 | 名称 | 填充 | 描边 | 阴影 | 圆角 | 透明度 | 文字 |')
+      ..writeln('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
 
     void walk(Map n, int depth, bool inheritedVisible) {
       for (final c in (n['children'] as List?) ?? const []) {
@@ -64,6 +64,8 @@ class FigmaSpecRenderer {
           // Python 里 `c.get('cornerRadius') or ''`：0 也当空
           final corner = c['cornerRadius'];
           final radius = (corner is num && corner != 0) ? '$corner' : '';
+          final opacity = (c['opacity'] as num?)?.toDouble();
+          final opacityText = opacity != null && opacity < 1 ? pyFixed(opacity, 2) : '';
           final isText = '${c['type']}' == 'TEXT';
           final text = isText ? figmaTextSpec(c) : '';
           final characters = '${c['characters'] ?? ''}';
@@ -75,7 +77,7 @@ class FigmaSpecRenderer {
           buf.writeln(
             '| ${pyFixed(x, 1)},${pyFixed(y, 1)} | $w×$h | '
             '${c['type']} | $hidden$indent$shortName | ${figmaFills(c)} | '
-            '${figmaStrokes(c)} | ${figmaEffects(c)} | $radius | $chars$text |',
+            '${figmaStrokes(c)} | ${figmaEffects(c)} | $radius | $opacityText | $chars$text |',
           );
         }
         walk(c, depth + 1, visible);

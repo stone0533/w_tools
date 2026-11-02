@@ -58,15 +58,21 @@ Future<void> runFrames(List<String> args) async {
     return;
   }
 
+  final pageWidth = list.map((e) => '${e['page']}'.length).reduce(_max);
   final idWidth = list.map((e) => '${e['id']}'.length).reduce(_max);
   final nameWidth = list.map((e) => '${e['name']}'.length).reduce(_max);
   final sizeWidth = list.map((e) => '${e['width']}×${e['height']}'.length).reduce(_max);
+  printLine(
+    '${'page'.padRight(pageWidth)}  ${'id'.padRight(idWidth)}  '
+    '${'name'.padRight(nameWidth)}  ${'size'.padRight(sizeWidth)}  children',
+  );
   for (final frame in list) {
     final size = '${frame['width']}×${frame['height']}';
-    final line = '${'${frame['id']}'.padRight(idWidth)}  '
+    final line = '${'${frame['page']}'.padRight(pageWidth)}  '
+        '${'${frame['id']}'.padRight(idWidth)}  '
         '${'${frame['name']}'.padRight(nameWidth)}  '
         '${size.padRight(sizeWidth)}  '
-        'children=${frame['children']}';
+        '${frame['children']}';
     printLine(options.verbose ? '$line  ${frame['cacheFile']}' : line);
   }
 }

@@ -102,7 +102,7 @@ dart run w_tools_figma:figma init [--force]
 dart run w_tools_figma:figma frames [--file=<path>] [--json] [--all] [--name=<s>] [--page=<s>] [--verbose]
 ```
 
-从本地 `nodes-*.json` 列出 FRAME：`id / name / page / width×height / children / cacheFile`，不访问 Figma。默认只列顶层 FRAME；`--all` 包含嵌套。
+从本地 `nodes-*.json` 列出 FRAME：`page / id / name / width×height / children / cacheFile`，不访问 Figma。默认只列顶层 FRAME；`--all` 包含嵌套；人类输出包含 page 列。
 
 ### 3.3 `fetch`
 

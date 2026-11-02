@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:w_tools_figma/w_tools_figma.dart' as figma;
 
-/// 与 `scripts/figma_spec.py` 的输出做 golden 对比：
+/// 与最初的 Python golden 做基线对比；Dart 版本已扩展 strokeAlign / opacity / spread。
 /// fixture 是从真实 `.figma-cache` 抽的子画板（148KB），不联网、不消耗额度。
 void main() {
   final fixture = File('test/fixtures/nodes-frame.json');
@@ -21,7 +21,7 @@ void main() {
     expect(markdown, isNotNull);
   });
 
-  test('Markdown 与 Python 版 figma_spec.py 逐字节一致', () {
+  test('Markdown golden 与 spec-expected.md 一致', () {
     final expected = File('test/fixtures/spec-expected.md').readAsStringSync();
     expect(markdown, expected);
   });
@@ -47,7 +47,7 @@ void main() {
     expect(md, contains('# Frame 15720  (1915:58517)'));
     expect(md, contains('画板 375×700'));
     // 表格表头固定
-    expect(md, contains('| x,y | w×h | 类型 | 名称 | 填充 | 描边 | 阴影 | 圆角 | 文字 |'));
+    expect(md, contains('| x,y | w×h | 类型 | 名称 | 填充 | 描边 | 阴影 | 圆角 | 透明度 | 文字 |'));
   });
 }
 

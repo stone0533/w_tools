@@ -43,6 +43,8 @@ String figmaStrokes(Map node) {
     var desc = figmaHex(s['color']);
     if ('${s['type'] ?? ''}' != 'SOLID') desc = '${s['type'] ?? '?'}';
     desc += ' ${_numText(node['strokeWeight'])}px';
+    final align = node['strokeAlign'];
+    if (align is String && align.isNotEmpty) desc += ' align=$align';
     final sides = node['individualStrokeWeights'];
     if (sides is Map && sides.isNotEmpty) {
       final marks = <String>[];
@@ -72,6 +74,8 @@ String figmaEffects(Map node) {
     if (color is Map && color['a'] != null) {
       desc += ' a=${(color['a'] as num).toDouble().toStringAsFixed(2)}';
     }
+    final spread = e['spread'];
+    if (spread is num && spread != 0) desc += ' spread=$spread';
     final offset = e['offset'];
     if (offset is Map) {
       desc += ' off=(${_fmt1(offset['x'])},${_fmt1(offset['y'])})';

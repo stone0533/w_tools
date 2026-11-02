@@ -17,21 +17,22 @@ class TokenRenderer {
       ..writeln('> 只统计 **SOLID** 填充与描边；带透明度的色值以 `@0.20` 形式单列。')
       ..writeln()
       ..writeln('## 颜色')
-      ..writeln()
-      ..writeln('| 值 | 次数 | 出现位置（示例） |')
-      ..writeln('| --- | --- | --- |');
-    for (final c in tokens.colorsSorted()) {
-      buf.writeln('| `${c.value}` | ${c.count} | ${c.samples.join(' / ')} |');
-    }
-
+      ..writeln();
     if (colorNames.isNotEmpty) {
       buf
-        ..writeln()
-        ..writeln('## 语义色映射')
-        ..writeln();
-      for (final c in tokens.colorsSorted()) {
-        final name = colorNames[c.value.replaceAll('#', '').toUpperCase()];
-        buf.writeln('- `${c.value}` → ${name ?? '未映射'}');
+        ..writeln('| 值 | 语义名 | 次数 | 出现位置（示例） |')
+        ..writeln('| --- | --- | --- | --- |');
+    } else {
+      buf
+        ..writeln('| 值 | 次数 | 出现位置（示例） |')
+        ..writeln('| --- | --- | --- |');
+    }
+    for (final c in tokens.colorsSorted()) {
+      if (colorNames.isNotEmpty) {
+        final name = colorNames[c.value.replaceAll('#', '').toUpperCase()] ?? '新增';
+        buf.writeln('| `${c.value}` | $name | ${c.count} | ${c.samples.join(' / ')} |');
+      } else {
+        buf.writeln('| `${c.value}` | ${c.count} | ${c.samples.join(' / ')} |');
       }
     }
 

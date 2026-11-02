@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.3
+
+### Changed
+- `figmaConstraint` 默认值更新为 `^0.4.0`。
+
 ## 1.7.2
 
 ### Added
