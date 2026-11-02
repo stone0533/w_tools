@@ -53,7 +53,7 @@ dart run tool/gen_templates.dart
 
 CLI 是纯 Dart 包：测试用 `dart test`，发布用 `dart pub publish`（`scripts/publish_package.sh` 会自动识别）。
 
-Figma 取数工具在 `packages/figma/`（`w_tools_figma`，独立 CLI 包，已发布 0.1.1）。需要设计稿规格 / token / diff 时，
+Figma 取数工具在 `packages/figma/`（`w_tools_figma`，独立 CLI 包，0.1.0 已发布；0.1.1 待发布）。需要设计稿规格 / token / diff 时，
 先看 [`docs/agents/figma.md`](docs/agents/figma.md)，不要直接手写 Figma API 调用。
 
 ## Agent skills

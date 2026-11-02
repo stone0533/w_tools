@@ -27,7 +27,7 @@
 | 包 | 路径 | 职责 |
 |------|------|------|
 | `w_tools_cli` | `packages/cli/` | 消费方接入工具：`init` 生成聚合入口/暂存层/项目 UI 规范/AGENTS 片段，`doctor` 检查接入约定 |
-| `w_tools_figma` | `packages/figma/` | 只读的 Figma 取数 / 规格 / token / diff CLI（v0.1.1，契约见 [figma-cli.md](../figma-cli.md)） |
+| `w_tools_figma` | `packages/figma/` | 只读的 Figma 取数 / 规格 / token / diff CLI（v0.1.0 已发布；v0.1.1 待发布，契约见 [figma-cli.md](../figma-cli.md)） |
 
 `w_tools_cli` 依赖 `args` / `path` / `yaml`；`w_tools_figma` 只用 Dart 标准库。两者都不依赖 Flutter。
 
