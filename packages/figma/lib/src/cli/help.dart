@@ -14,7 +14,7 @@ dart run w_tools_figma:figma init [--force]
   'frames': '''
 frames — 列出缓存里的 FRAME
 
-dart run w_tools_figma:figma frames [--file=<path>] [--json]
+dart run w_tools_figma:figma frames [--file=<path>] [--json] [--all] [--name=<s>] [--page=<s>] [--verbose]
 
 输出 id / name / width×height / children / cacheFile，方便找 nodeId。
 ''',

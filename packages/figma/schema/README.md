@@ -5,6 +5,7 @@
 | 文件 | schema |
 | --- | --- |
 | `fetch.v1.json` | `w_tools_figma.fetch/1` |
+| `specs.v1.json` | `w_tools_figma.specs/1` |
 | `spec.v1.json` | `w_tools_figma.spec/1` |
 | `tokens.v1.json` | `w_tools_figma.tokens/1` |
 | `diff.v1.json` | `w_tools_figma.diff/1` |

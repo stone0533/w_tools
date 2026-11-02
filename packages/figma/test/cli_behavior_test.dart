@@ -126,6 +126,44 @@ void main() {
     expect(payload.containsKey('markdown'), isFalse);
   });
 
+  test('spec a,b --json 返回 specs/1，默认顶层 frames', () async {
+    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'First',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+            'children': [],
+          },
+        },
+        '2:3': {
+          'document': {
+            'id': '2:3',
+            'type': 'FRAME',
+            'name': 'Second',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 20, 'height': 20},
+            'children': [],
+          },
+        },
+      },
+    }));
+
+    final result = await run(<String>['spec', '1:2,2:3', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect(payload['schema'], 'w_tools_figma.specs/1');
+    expect(payload['items'], hasLength(2));
+
+    final frames = await run(<String>['frames', '--json']);
+    expect(frames.exitCode, 0, reason: '${frames.stderr}');
+    final framePayload = jsonDecode('${frames.stdout}') as Map<String, dynamic>;
+    expect(framePayload['frames'], hasLength(2));
+  });
+
   test('frames 列出缓存里的 FRAME', () async {
     final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);

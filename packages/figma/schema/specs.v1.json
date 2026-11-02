@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/stone0533/w_tools/main/packages/figma/schema/specs.v1.json",
+  "title": "w_tools_figma.specs/1",
+  "type": "object",
+  "required": ["schema", "items"],
+  "properties": {
+    "schema": { "const": "w_tools_figma.specs/1" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "nodeId", "node"],
+        "properties": {
+          "source": { "type": "string" },
+          "nodeId": { "type": "string" },
+          "node": { "type": "object" },
+          "markdown": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

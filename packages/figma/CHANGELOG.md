@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+### Added
+- `frames --all/--name/--page/--verbose`；默认只列顶层 FRAME，cacheFile 改为相对路径。
+- `spec a,b,c` 多画板 Markdown；JSON 使用 `w_tools_figma.specs/1`。
+- `tokens --map` 缺少 `colors:` 时明确报错。
+
 ## 0.3.0
 
 ### Added

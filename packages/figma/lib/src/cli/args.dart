@@ -19,6 +19,10 @@ class CliOptions {
     required this.ifStale,
     required this.nodeOnly,
     required this.mapFile,
+    required this.allFrames,
+    required this.nameFilter,
+    required this.pageFilter,
+    required this.verbose,
   });
 
   final List<String> positional;
@@ -38,6 +42,10 @@ class CliOptions {
   final bool ifStale;
   final bool nodeOnly;
   final String? mapFile;
+  final bool allFrames;
+  final String? nameFilter;
+  final String? pageFilter;
+  final bool verbose;
 }
 
 CliOptions parseOptions(List<String> args) {
@@ -58,6 +66,10 @@ CliOptions parseOptions(List<String> args) {
   var ifStale = false;
   var nodeOnly = false;
   String? mapFile;
+  var allFrames = false;
+  String? nameFilter;
+  String? pageFilter;
+  var verbose = false;
   for (var i = 0; i < args.length; i++) {
     final arg = args[i];
     if (arg == '--json') {
@@ -94,8 +106,16 @@ CliOptions parseOptions(List<String> args) {
       checkStale = true;
     } else if (arg == '--if-stale') {
       ifStale = true;
-    } else if (arg == '--node-only') {
+    } else if (arg == '--node-only' || arg == '--no-markdown') {
       nodeOnly = true;
+    } else if (arg == '--all') {
+      allFrames = true;
+    } else if (arg.startsWith('--name=')) {
+      nameFilter = arg.substring('--name='.length);
+    } else if (arg.startsWith('--page=')) {
+      pageFilter = arg.substring('--page='.length);
+    } else if (arg == '--verbose') {
+      verbose = true;
     } else if (arg.startsWith('--map=')) {
       mapFile = arg.substring('--map='.length);
     } else if (arg.startsWith('--')) {
@@ -122,6 +142,10 @@ CliOptions parseOptions(List<String> args) {
     ifStale: ifStale,
     nodeOnly: nodeOnly,
     mapFile: mapFile,
+    allFrames: allFrames,
+    nameFilter: nameFilter,
+    pageFilter: pageFilter,
+    verbose: verbose,
   );
 }
 

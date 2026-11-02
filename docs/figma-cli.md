@@ -99,10 +99,10 @@ dart run w_tools_figma:figma init [--force]
 ### 3.2 `frames`
 
 ```bash
-dart run w_tools_figma:figma frames [--file=<path>] [--json]
+dart run w_tools_figma:figma frames [--file=<path>] [--json] [--all] [--name=<s>] [--page=<s>] [--verbose]
 ```
 
-从本地 `nodes-*.json` 列出 FRAME：`id / name / width×height / children / cacheFile`，不访问 Figma。
+从本地 `nodes-*.json` 列出 FRAME：`id / name / page / width×height / children / cacheFile`，不访问 Figma。默认只列顶层 FRAME；`--all` 包含嵌套。
 
 ### 3.3 `fetch`
 
@@ -126,7 +126,7 @@ JSON 输出：
 ### 3.4 `spec`（**核心命令**）
 
 ```bash
-dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-depth=<n>]
+dart run w_tools_figma:figma spec <nodeId[,nodeId...]> [--file=<path>] [--root=<dir>] [--json] [--node-only] [--node-depth=<n>]
 ```
 
 从缓存解析单个节点，输出**全部属性**（这是现有 `figma_spec.py` 的 Dart 重写）：
@@ -152,6 +152,7 @@ dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--jso
 ```
 
 `node` 是原始 Figma 节点（结构化），`markdown` 是人读表格。
+多节点时 JSON schema 为 `w_tools_figma.specs/1`，`items` 是数组；Markdown 输出多张表。
 `--node-depth=<n>` 只限制 `node` 的子节点深度；`--node-only` 不返回 `markdown`。Markdown 默认仍输出完整规格。
 
 默认（不带 `--json`）输出 **Markdown 表格**，字段与上表一致，便于贴进 PR / 设计稿核对单。

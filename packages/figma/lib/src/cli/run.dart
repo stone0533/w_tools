@@ -22,7 +22,7 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
   dart run w_tools_figma:figma init   [--force]
   dart run w_tools_figma:figma fetch  file   <fileKey> [--depth=3]
   dart run w_tools_figma:figma fetch  nodes  <fileKey> <id[,id...]>
-  dart run w_tools_figma:figma frames [--file=<path>] [--json]
+  dart run w_tools_figma:figma frames [--file=<path>] [--json] [--all] [--name=<s>] [--page=<s>] [--verbose]
   dart run w_tools_figma:figma fetch  images <fileKey> <id[,id...]> [--scale=2]
   dart run w_tools_figma:figma spec   <nodeId> [选项]
   dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [选项]

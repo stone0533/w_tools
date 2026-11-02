@@ -80,8 +80,13 @@ Map<String, String> _loadColorNames(String? path) {
   } on YamlException catch (e) {
     throw FormatException('$path 解析失败：${e.message}');
   }
-  final colors = raw is YamlMap ? raw['colors'] : null;
-  if (colors is! Map) return const <String, String>{};
+  if (raw is! YamlMap) {
+    throw FormatException('$path 顶层必须是 map');
+  }
+  final colors = raw['colors'];
+  if (colors is! Map || colors.isEmpty) {
+    throw FormatException('$path 缺少 colors: 段');
+  }
   final out = <String, String>{};
   for (final entry in colors.entries) {
     final key = '${entry.key}'.replaceAll('#', '').toUpperCase();

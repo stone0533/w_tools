@@ -34,6 +34,16 @@ void main() {
       'cachedVersion': null,
       'latestVersion': null,
     },
+    'specs.v1.json': {
+      'schema': 'w_tools_figma.specs/1',
+      'items': [
+        {
+          'source': 'nodes-K-1-2.json',
+          'nodeId': '1:2',
+          'node': {'id': '1:2', 'type': 'FRAME'},
+        },
+      ],
+    },
     'spec.v1.json': {
       'schema': 'w_tools_figma.spec/1',
       'source': 'nodes-K-1-2.json',

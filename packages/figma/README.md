@@ -1,6 +1,6 @@
 # w_tools_figma
 
-> `v0.3.0` 已发布，推荐安装 `^0.3.0`。
+> `v0.3.0` 已发布；`v0.4.0` 待发布。当前安装请用 `^0.3.0`。
 
 只读的 Figma 取数 / 规格导出 CLI。
 
@@ -127,6 +127,7 @@ dart run w_tools_figma:figma fetch nodes <fileKey> 1862:9222
 ```bash
 dart run w_tools_figma:figma spec 1862:9222
 dart run w_tools_figma:figma spec 1862:9222 --json
+dart run w_tools_figma:figma spec 1862:9222,1862:9226
 dart run w_tools_figma:figma spec 1862:9222 --json --node-depth=2
 
 dart run w_tools_figma:figma tokens 1862:9222,1862:9226 --out=docs/design-tokens.md
