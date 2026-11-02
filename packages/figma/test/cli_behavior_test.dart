@@ -23,6 +23,19 @@ void main() {
     );
   }
 
+  test('help fetch / fetch --help 输出命令帮助', () async {
+    final byHelp = await run(<String>['help', 'fetch']);
+    expect(byHelp.exitCode, 0, reason: '${byHelp.stderr}');
+    expect('${byHelp.stdout}', contains('fetch —'));
+
+    final byFlag = await run(<String>['fetch', '--help']);
+    expect(byFlag.exitCode, 0, reason: '${byFlag.stderr}');
+    expect('${byFlag.stdout}', contains('--check-stale'));
+
+    final unknown = await run(<String>['help', 'unknown']);
+    expect(unknown.exitCode, 2);
+  });
+
   test('缓存命中时不需要 token', () async {
     final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);

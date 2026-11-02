@@ -5,6 +5,7 @@ import '../client/figma_client.dart';
 import 'cli_io.dart';
 import 'diff_command.dart';
 import 'fetch_command.dart';
+import 'help.dart';
 import 'init_command.dart';
 import 'spec_command.dart';
 import 'tokens_command.dart';
@@ -25,6 +26,7 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
   dart run w_tools_figma:figma diff   <fileKey> <nodeId> [--json]
   dart run w_tools_figma:figma budget [--set=<n>] [--json]
   dart run w_tools_figma:figma url    <figma-url | nodeId>
+  dart run w_tools_figma:figma help   [command]
 
 选项（spec / tokens 通用）：
   --file=<path>   指定缓存节点树 JSON（默认取 .figma-cache/nodes-*.json 中最大的一个）
@@ -52,9 +54,29 @@ fetch 专属：
 ''';
 
 Future<void> runFigmaCli(List<String> args) async {
-  if (args.isEmpty || args.contains('-h') || args.contains('--help')) {
+  if (args.isEmpty) {
     printOut(_usage);
-    exitCode = args.isEmpty ? 2 : 0;
+    exitCode = 2;
+    return;
+  }
+
+  if (args.first == 'help') {
+    if (args.length == 1) {
+      printOut(_usage);
+      exitCode = 0;
+    } else {
+      printCommandHelp(args[1]);
+    }
+    return;
+  }
+
+  if (args.contains('-h') || args.contains('--help')) {
+    if (args.first == '-h' || args.first == '--help') {
+      printOut(_usage);
+      exitCode = 0;
+    } else {
+      printCommandHelp(args.first);
+    }
     return;
   }
 

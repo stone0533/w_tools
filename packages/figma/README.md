@@ -2,42 +2,175 @@
 
 > 内部工具包，当前 `publish_to: none`，不发布到 pub.dev。
 
-只读的 Figma 取数 / 规格导出 CLI。契约见 [`docs/figma-cli.md`](../../docs/figma-cli.md)。
+只读的 Figma 取数 / 规格导出 CLI。完整契约见 [`docs/figma-cli.md`](../../docs/figma-cli.md)；
+AI / agent 使用说明见 [`docs/agents/figma.md`](../../docs/agents/figma.md)。
 
-当前进度（v0.1）：
+## 5 分钟上手
 
-| 命令 | 状态 |
-| --- | --- |
-| `spec <node-id>` | ✅ 已实现（读本地缓存 → Markdown / JSON） |
-| `tokens <node-id[,id...]>` | ✅ 已实现（统计颜色 / 文字 / 圆角 / 间距 → Markdown，可 `--json` / `--out` / `--min=`） |
-| `init` | ✅ 已实现（token 模板 / `.gitignore` / 缓存目录 / 预算文件，幂等） |
-| `fetch file\|nodes\|images` | ✅ 已实现（缓存优先、`--refresh` 强制重拉、真实请求才写用量日志、`--check-stale` 判断缓存是否过期） |
-| `usage` | ✅ 已实现（本月次数 / 上限 / 最近记录，可 `--json`） |
-| `url` | ✅ 已实现（Figma 链接 → fileKey + nodeId） |
-| `diff` | ✅ 已实现（对比上次缓存 vs 最新，列出属性变化 / 增删节点） |
-| `budget` | ✅ 已实现（查看 / `--set=` 调整月度预算） |
+### 1. 安装
 
+当前未发布，只能使用 path / git 依赖，不能 `dart pub add w_tools_figma`。
+
+path 依赖：
+
+```yaml
+dev_dependencies:
+  w_tools_figma:
+    path: ../w_tools/packages/figma
+```
+
+monorepo 内可直接在 `packages/figma/` 下运行命令。
+
+### 2. 初始化
 
 ```bash
-# 从 .figma-cache/nodes-*.json 的缓存里导出一个画板的完整规格
+dart run w_tools_figma:figma init
+```
+
+生成：
+
+```text
+.figma-token         # 填 figd_ 个人令牌
+.figma-cache/        # 节点 / 图片 / 用量 / 预算缓存
+.gitignore           # 自动追加 token 与缓存
+```
+
+token 从 Figma：
+
+```text
+Settings → Security → Personal access tokens
+```
+
+只读权限即可。POSIX 上 `init` 会把 token 权限设为 600。
+
+### 3. 从链接解析 fileKey / nodeId
+
+```bash
+dart run w_tools_figma:figma url 'https://www.figma.com/design/<key>/app?node-id=1862-9222'
+# fileKey=<key>  nodeId=1862:9222
+```
+
+### 4. 先取数
+
+```bash
+dart run w_tools_figma:figma fetch nodes <fileKey> 1862:9222
+```
+
+`spec` / `tokens` 只读缓存，不先 fetch 会失败。
+
+### 5. 读规格 / 汇总 token
+
+```bash
 dart run w_tools_figma:figma spec 1862:9222
 dart run w_tools_figma:figma spec 1862:9222 --json
 
-# 汇总多个节点的颜色 / 文字 / 圆角 / 间距（0 额度，只读缓存）
 dart run w_tools_figma:figma tokens 1862:9222,1862:9226 --out=docs/design-tokens.md
 dart run w_tools_figma:figma tokens 1862:9222 --min=3
+```
 
-# 取数（会消耗 Tier 1 额度；缓存命中不消耗）
+## 命令
+
+| 命令 | 作用 | 额度 |
+| --- | --- | --- |
+| `init` | token 模板 / `.gitignore` / 缓存目录 / 预算文件 | 0 |
+| `fetch file` | 拉文件结构，`--depth` | 1 次 Tier 1 |
+| `fetch nodes` | 拉节点树，批量 ids 只算 1 次 | 1 次 Tier 1 |
+| `fetch images` | 拿图片下载地址，不下载文件 | 1 次 Tier 1 |
+| `spec` | 节点 → Markdown / JSON | 0（读缓存） |
+| `tokens` | 颜色 / 文字 / 圆角 / 间距汇总 | 0（读缓存） |
+| `url` | Figma 链接 → fileKey + nodeId | 0 |
+| `diff` | 对比旧缓存与最新节点 | 1 次 Tier 1 |
+| `usage` | 本月调用次数 / 最近记录 | 0 |
+| `budget` | 查看 / 设置月度预算 | 0 |
+
+完整帮助：
+
+```bash
+dart run w_tools_figma:figma --help
+dart run w_tools_figma:figma help fetch
+dart run w_tools_figma:figma fetch --help
+```
+
+## 缓存与额度
+
+```text
+缓存命中          → 不请求、不写日志、不需要 token
+缓存未命中        → 1 次 Tier 1
+--refresh         → 删除缓存并重拉
+--check-stale     → 调 Tier 3 的 /meta，只提示不自动重拉
+```
+
+`--check-stale` 即使用缓存也需要 token，因为会访问 `/meta`。
+
+缓存目录：
+
+```text
+.figma-cache/
+  file-<key>-d<depth>.json
+  nodes-<key>-<ids>.json
+  images-<key>-<ids>-s<scale>.json
+  _meta-<key>.json
+  _usage.log
+  _budget.json
+```
+
+## 典型工作流
+
+```bash
+# 首次
 dart run w_tools_figma:figma init
-dart run w_tools_figma:figma fetch nodes UpyszH8lFtWYwrIXm1XAWw 1862:9222
-dart run w_tools_figma:figma fetch nodes UpyszH8lFtWYwrIXm1XAWw 1862:9222 --refresh
-# 缓存是否过期？（Tier 3 的 file/meta，不占 20 次/月，只提示不重拉）
-dart run w_tools_figma:figma fetch nodes UpyszH8lFtWYwrIXm1XAWw 1862:9222 --check-stale
-dart run w_tools_figma:figma usage
+dart run w_tools_figma:figma fetch nodes <fileKey> 1862:9222
 
-# 设计稿改版后：看这一页到底改了什么（消耗 1 次 Tier 1）
+# 看规格
+dart run w_tools_figma:figma spec 1862:9222
+
+# 汇总设计 token
+dart run w_tools_figma:figma tokens 1862:9222 --out=docs/design-tokens.md
+
+# 设计稿改版后
 dart run w_tools_figma:figma diff <fileKey> 1862:9222
 
-# 预算调整
+# 额度
+dart run w_tools_figma:figma usage
 dart run w_tools_figma:figma budget --set=15
+```
+
+## 输出
+
+`--json` 输出带 schema：
+
+```text
+w_tools_figma.fetch/1
+w_tools_figma.spec/1
+w_tools_figma.tokens/1
+w_tools_figma.diff/1
+w_tools_figma.usage/1
+w_tools_figma.budget/1
+```
+
+`spec --json` 当前是：
+
+```json
+{"schema":"w_tools_figma.spec/1","source":"...","nodeId":"...","markdown":"..."}
+```
+
+## 退出码
+
+```text
+0 成功
+1 一般错误 / 节点不存在
+2 参数错误
+3 额度受限 429
+4 token 缺失 / 非法
+5 网络错误 / 超时
+```
+
+## 限制
+
+```text
+fetch images 只保存下载地址，不下载图片
+tokens 只统计 SOLID 颜色
+spec --json 返回 Markdown，不是结构化字段树
+diff 只对比指定节点，不对比整个文件
+usage 不含座位类型
 ```
