@@ -41,8 +41,11 @@ class ProjectSnapshot {
   static ProjectSnapshot load(Directory root, {DoctorConfig? config}) {
     final cfg = config ?? DoctorConfig.load(root);
     final ctx = ProjectContext.load(root, cfg);
+    final facts = ctx.facts;
+    // 提前触发 lock 解析，让命令层能在 load 阶段捕获 PubspecLockException。
+    facts.packages;
     return ProjectSnapshot(
-      facts: ctx.facts,
+      facts: facts,
       results: runDoctor(ctx, cfg),
     );
   }
