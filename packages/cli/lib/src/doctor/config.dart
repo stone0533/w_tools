@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:yaml/yaml.dart';
 
+import 'banned_rule.dart';
+import 'rule.dart';
+
 /// doctor 的配置（`.w_tools_doctor.yaml`）。
 ///
 /// 优先级：CLI 参数 > 配置文件 > 内置默认。
@@ -15,8 +18,9 @@ class DoctorConfig {
     this.toolkitEntry = 'lib/app/w/toolkit.dart',
     this.palette = const <String>[],
     this.colorMinCount = 3,
-    this.enabledRules = const <String>{'R1', 'R2', 'R3', 'R4', 'R5'},
+    this.enabledRules = const <String>{'R1', 'R2', 'R3', 'R4', 'R5', 'R9'},
     this.ignore = const <String>[],
+    this.banned = const <BannedRule>[],
     this.aiTargets = const <String>['agents'],
     this.aiLanguage = 'zh',
   });
@@ -35,6 +39,9 @@ class DoctorConfig {
 
   /// 忽略的路径前缀（相对项目根，按 startsWith 匹配）
   final List<String> ignore;
+
+  /// 项目级禁用 API；空列表时 R9 跳过。
+  final List<BannedRule> banned;
 
   /// init 默认生成哪些指令文件：agents / claude / cursor / copilot
   final List<String> aiTargets;
@@ -58,7 +65,7 @@ class DoctorConfig {
     final raw = loadYaml(yamlText);
     if (raw is! YamlMap) return DoctorConfig();
 
-    final rules = <String>{'R1', 'R2', 'R3', 'R4', 'R5'};
+    final rules = <String>{'R1', 'R2', 'R3', 'R4', 'R5', 'R9'};
     final rulesNode = raw['rules'];
     if (rulesNode is YamlMap) {
       rulesNode.forEach((k, v) {
@@ -86,6 +93,62 @@ class DoctorConfig {
       if (m is int) minCount = m;
     }
 
+    final banned = <BannedRule>[];
+    final bannedNode = raw['banned'];
+    if (bannedNode is YamlList) {
+      for (var i = 0; i < bannedNode.length; i++) {
+        final node = bannedNode[i];
+        if (node is! YamlMap) {
+          banned.add(
+            BannedRule(
+              id: 'banned-${i + 1}',
+              pattern: '',
+              mode: BannedPatternMode.literal,
+              use: null,
+              reason: null,
+              level: DoctorLevel.warn,
+              paths: const <String>[],
+              ignore: const <String>[],
+              error: 'banned 第 ${i + 1} 项不是 map',
+            ),
+          );
+          continue;
+        }
+        final modeText = '${node['mode'] ?? 'literal'}';
+        final mode = switch (modeText) {
+          'regex' => BannedPatternMode.regex,
+          'literal' => BannedPatternMode.literal,
+          _ => BannedPatternMode.literal,
+        };
+        final levelText = '${node['level'] ?? 'warn'}';
+        final level = switch (levelText) {
+          'error' => DoctorLevel.error,
+          'info' => DoctorLevel.info,
+          _ => DoctorLevel.warn,
+        };
+        final paths = node['paths'] is YamlList
+            ? (node['paths'] as YamlList).map((e) => '$e').toList()
+            : const <String>[];
+        final ignores = node['ignore'] is YamlList
+            ? (node['ignore'] as YamlList).map((e) => '$e').toList()
+            : const <String>[];
+        final rule = BannedRule(
+          id: '${node['id'] ?? 'banned-${i + 1}'}',
+          pattern: '${node['pattern'] ?? ''}',
+          mode: mode,
+          use: node['use']?.toString(),
+          reason: node['reason']?.toString(),
+          level: level,
+          paths: paths,
+          ignore: ignores,
+          error: modeText != 'literal' && modeText != 'regex'
+              ? 'banned 条目 `${node['id'] ?? i + 1}` 的 mode 必须是 literal 或 regex'
+              : null,
+        );
+        banned.add(rule);
+      }
+    }
+
     final ignoreNode = raw['ignore'];
     var aiTargets = const <String>['agents'];
     var aiLanguage = 'zh';
@@ -103,6 +166,7 @@ class DoctorConfig {
       colorMinCount: minCount,
       enabledRules: rules,
       ignore: ignoreNode is YamlList ? ignoreNode.map((e) => '$e').toList() : const <String>[],
+      banned: banned,
       aiTargets: aiTargets,
       aiLanguage: aiLanguage,
     );
@@ -114,6 +178,7 @@ class DoctorConfig {
     int? colorMinCount,
     Set<String>? enabledRules,
     List<String>? ignore,
+    List<BannedRule>? banned,
     List<String>? aiTargets,
     String? aiLanguage,
   }) {
@@ -123,6 +188,7 @@ class DoctorConfig {
       colorMinCount: colorMinCount ?? this.colorMinCount,
       enabledRules: enabledRules ?? this.enabledRules,
       ignore: ignore ?? this.ignore,
+      banned: banned ?? this.banned,
       aiTargets: aiTargets ?? this.aiTargets,
       aiLanguage: aiLanguage ?? this.aiLanguage,
     );
@@ -160,6 +226,17 @@ String renderDefaultConfig() {
     ..writeln('# 跳过的路径前缀（相对项目根）')
     ..writeln('ignore: []')
     ..writeln('#  - lib/app/generated/')
+    ..writeln()
+    ..writeln('# 项目级禁用 API（可重复；空列表不检查）：')
+    ..writeln('banned: []')
+    ..writeln('#  - id: no-wform-showbottomsheet')
+    ..writeln("#    pattern: 'WForm\\.showBottomSheet'")
+    ..writeln('#    mode: regex')
+    ..writeln("#    use: 'AppForm.showBottomSheet'")
+    ..writeln("#    reason: '包内没有这个 API'")
+    ..writeln('#    level: warn')
+    ..writeln("#    paths: ['lib/app/modules/**']")
+    ..writeln("#    ignore: ['lib/app/ui/**']")
     ..writeln()
     ..writeln('# 未来可继承团队基线（当前版本尚未支持）：')
     ..writeln('# include: ../.w_tools_doctor.yaml');

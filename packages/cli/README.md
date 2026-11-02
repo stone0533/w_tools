@@ -11,7 +11,7 @@
   和 `.w_tools_doctor.yaml`（默认值与内置一致）。`init` 只生成 AGENTS 摘要，不会复制
   w_tools 仓库的 `docs/agents/*.md` 深度文档。
 - **doctor**：扫描项目，检查是否遵守「只依赖子包、业务代码只 import 聚合入口、
-  暂存层不依赖业务」等约定（R1~R8）。
+  暂存层不依赖业务」等约定（R1~R9）。
 
 ## 示例
 
@@ -26,7 +26,7 @@ bash example/run_demo.sh
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.4.0
+  w_tools_cli: ^1.5.0
 ```
 
 ```bash
@@ -113,6 +113,7 @@ dart run w_tools_cli:doctor --json             # 写完自检（0 error 才算�
 | R6 | warn | 禁用单位 `.h` / `.r`（项目专用，默认关，配置 `rules.R6: true` 打开） |
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致 |
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成（只检查带 `<!-- w_tools:begin -->` 的 target 文件与 toolkit；UI starter 不检查） |
+| R9 | 配置 | 项目禁用 API（`banned`；默认空，命中按条目 level 报） |
 
 `--json` 的每条 issue 带可选的 `fix`（`run` 执行命令 / `edit` 改 YAML 字段），
 AI 可以直接执行；没有 `fix` 时用 `hint`：
@@ -121,6 +122,32 @@ AI 可以直接执行；没有 `fix` 时用 `hint`：
 {"kind": "run",  "command": "dart run w_tools_cli:init --force"}
 {"kind": "edit", "file": "pubspec.yaml", "path": "dependencies.w_tools_core", "value": "any"}
 ```
+
+### 项目禁用 API（banned）
+
+`.w_tools_doctor.yaml` 的 `banned` 让项目把“已不存在 / 已迁移 / 禁止使用”的 API 变成可执行规则：
+
+```yaml
+banned:
+  - id: no-wform-showbottomsheet
+    pattern: 'WForm\.showBottomSheet'
+    mode: regex
+    use: 'AppForm.showBottomSheet'
+    reason: '包内没有这个 API'
+    level: warn
+    paths: ['lib/app/modules/**']
+    ignore: ['lib/app/ui/**']
+```
+
+`mode` 支持 `literal` / `regex`；默认 `literal`。`paths` / `ignore` 支持 `*`、`**`。
+行级豁免写法：
+
+```dart
+// w_tools:ignore R9 reason: design-system fallback
+Image.asset('logo.png');
+```
+
+没有 `reason:` 的豁免不生效。R9 未配置 `banned` 时跳过。
 
 `--strict` 让 warning 也失败；`--json` / `--format=markdown` 给 CI / AI 解析；
 `list` / `explain` 也支持 `--format=json`；

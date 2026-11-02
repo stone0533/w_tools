@@ -9,6 +9,7 @@ import 'rules/r5_staged_marker.dart';
 import 'rules/r6_banned_units.dart';
 import 'rules/r7_toolkit_consistency.dart';
 import 'rules/r8_generated_stale.dart';
+import 'rules/r9_banned_api.dart';
 
 /// 一条规则的元数据 + 执行函数。
 ///
@@ -76,6 +77,12 @@ const List<DoctorRule> doctorRules = <DoctorRule>[
     title: R8GeneratedStale.title,
     level: DoctorLevel.warn,
     check: R8GeneratedStale.check,
+  ),
+  DoctorRule(
+    id: R9BannedApi.id,
+    title: R9BannedApi.title,
+    level: DoctorLevel.warn,
+    check: R9BannedApi.check,
   ),
 ];
 

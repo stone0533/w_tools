@@ -1,4 +1,5 @@
 import '../common/version.dart';
+import '../doctor/banned_rule.dart';
 import 'features.dart';
 import 'templates.g.dart' as generated;
 
@@ -64,6 +65,7 @@ class InitTemplates {
     bool withUi = true,
     bool withQr = true,
     bool withMap = true,
+    List<BannedRule> banned = const <BannedRule>[],
   }) {
     final template = withUi
         ? (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
@@ -80,6 +82,23 @@ class InitTemplates {
       if (match != null && enabled[match.group(1)] == false) continue;
       filtered.add(line.replaceAll(RegExp(r'\s*<!-- @optional:[a-z]+ -->'), ''));
     }
-    return filtered.join('\n').replaceAll('{{version}}', cliVersion).replaceAll('{{app}}', app);
+    final base = filtered
+        .join('\n')
+        .replaceAll('{{version}}', cliVersion)
+        .replaceAll('{{app}}', app);
+    final valid = banned.where((entry) => entry.validate() == null).toList();
+    if (valid.isEmpty) return base;
+    final buf = StringBuffer(base.trimRight())
+      ..writeln()
+      ..writeln()
+      ..writeln('### 本项目禁用 API');
+    for (final entry in valid) {
+      final suffix = <String>[
+        if (entry.use?.trim().isNotEmpty == true) '改用 `${entry.use}`',
+        if (entry.reason?.trim().isNotEmpty == true) '原因：${entry.reason}',
+      ].join('；');
+      buf.writeln('- `${entry.id}`：`${entry.pattern}`${suffix.isEmpty ? '' : '（$suffix）'}');
+    }
+    return buf.toString();
   }
 }

@@ -75,7 +75,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.4.0
+  w_tools_cli: ^1.5.0
 ```
 
 ```bash
@@ -96,6 +96,7 @@ doctor 检查项：
 | R6 | warn | 禁用单位 `.h` / `.r`（**项目专用，默认关**，配置 `rules.R6: true` 打开） |
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致（导出未依赖 / 依赖未导出） |
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成（只检查带 w_tools 标记的 target 文件与 toolkit；UI starter 可自定义，不检查；版本标记与 `pubspec.lock` 不一致） |
+| R9 | 配置 | 项目禁用 API（`.w_tools_doctor.yaml` 的 `banned`；默认空，命中按条目 level 报） |
 
 `--strict` 让 warning 也失败（默认关）；`--json` 给 CI 解析，issue 里的 `fix`
 （`run` / `edit`）可直接执行，没有 `fix` 时看 `hint`。
@@ -110,6 +111,30 @@ dart run w_tools_cli:doctor --write-config    # 写到 .w_tools_doctor.yaml（�
 
 `init` 也会顺手生成这个文件（带注释的默认配置，值与内置默认一致）。
 常见调整：`colors.palette` 填项目语义色（不填则 R3 跳过）、`rules.R6: true` 打开禁用单位检查；
+
+### 项目禁用 API（R9）
+
+把“包内已经没有 / 已迁移”的 API 写进 `banned`，doctor 会按配置扫描：
+
+```yaml
+banned:
+  - id: no-wform-showbottomsheet
+    pattern: 'WForm\.showBottomSheet'
+    mode: regex
+    use: 'AppForm.showBottomSheet'
+    reason: '包内没有这个 API'
+    paths: ['lib/app/modules/**']
+    ignore: ['lib/app/ui/**']
+```
+
+`mode: literal | regex`（默认 literal）。行级豁免：
+
+```dart
+// w_tools:ignore R9 reason: design-system fallback
+Image.asset('logo.png');
+```
+
+没有 `reason:` 的豁免不生效；`init` 会把有效 `banned` 生成到 AGENTS。
 项目 UI 层固定为 `lib/app/ui/`，暂存层固定为 `lib/app/design_system/`；`init` 与 doctor 使用同一套路径。
 
 > 早期这里放的是三条 grep 命令，现在**以 doctor 为唯一事实源** —— 同一份规则不能有两个实现，

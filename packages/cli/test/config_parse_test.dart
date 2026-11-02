@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:w_tools_cli/src/doctor/banned_rule.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
 
 void main() {
@@ -44,12 +45,14 @@ void main() {
       colorMinCount: 5,
       enabledRules: const {'R1'},
       ignore: const ['build/'],
+      banned: const <BannedRule>[],
     );
     expect(config.toolkitEntry, 'lib/x/toolkit.dart');
     expect(config.palette, ['#333333']);
     expect(config.colorMinCount, 5);
     expect(config.enabledRules, {'R1'});
     expect(config.ignore, ['build/']);
+    expect(config.banned, isEmpty);
   });
 
   test('copyWith 可覆盖 ai 字段', () {

@@ -23,7 +23,7 @@ const _subpackageConstraints = <String, String>{
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const _cliConstraint = '^1.4.1';
+const _cliConstraint = '^1.5.0';
 
 /// `init` 的执行结果（供 CLI 打印）。
 class InitReport {
@@ -130,6 +130,13 @@ InitReport runInit(
   // doctor 的默认配置：带注释，值与内置默认一致，只是把开关摊开。
   // 它是项目配置而不是生成物：存在就不再比对内容。
   write(DoctorConfig.fileName, renderDefaultConfig(), projectConfig: true);
+  // 读回项目配置：banned 要生成进 AGENTS；配置损坏时不阻塞 init。
+  var projectConfig = DoctorConfig();
+  try {
+    projectConfig = DoctorConfig.load(root);
+  } on Object {
+    report.warnings.add('${DoctorConfig.fileName} 解析失败，本次按空 banned 生成 AGENTS');
+  }
   for (final target in targets) {
     final rel = targetFiles[target];
     if (rel == null) continue;
@@ -144,6 +151,7 @@ InitReport runInit(
         withUi: features.ui,
         withQr: features.qr,
         withMap: features.map,
+        banned: projectConfig.banned,
       ),
       createdPrefix: target == 'cursor'
           ? '---\ndescription: w_tools conventions\nglobs:\n---\n\n'

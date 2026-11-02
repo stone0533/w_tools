@@ -5,6 +5,8 @@ import 'dart:io';
 
 import 'package:w_tools_cli/src/catalog/catalog.dart';
 import 'package:w_tools_cli/src/common/cli.dart';
+import 'package:w_tools_cli/src/doctor/banned_rule.dart';
+import 'package:w_tools_cli/src/doctor/config.dart';
 
 const _usage = '''
 w_tools_cli explain —— 查看某个组件的用途、反例、import 与文档
@@ -41,6 +43,7 @@ void main(List<String> argv) {
 
       final exact = findComponent(name);
       final matches = exact != null ? <CatalogEntry>[exact] : searchComponents(name);
+      final banned = _matchingBanned(name);
       final asJson = (args['json'] as bool) || args['format'] == 'json';
 
       if (asJson) {
@@ -49,15 +52,23 @@ void main(List<String> argv) {
             'query': name,
             'found': matches.isNotEmpty,
             'components': matches.map((e) => e.toJson()).toList(),
+            'banned': banned.map(_bannedJson).toList(),
           }),
         );
-        if (matches.isEmpty) exit(1);
+        if (matches.isEmpty && banned.isEmpty) exit(1);
         return;
       }
 
       if (matches.isEmpty) {
-        print('没有找到 `$name`。试试 `dart run w_tools_cli:list $name`。');
-        exit(1);
+        if (banned.isEmpty) {
+          print('没有找到 `$name`。试试 `dart run w_tools_cli:list $name`。');
+          exit(1);
+        }
+        print('`$name` 不在组件目录中，但命中本项目禁用项：');
+        for (final entry in banned) {
+          print(_bannedText(entry));
+        }
+        return;
       }
       if (matches.length > 1) {
         print('匹配到多个，缩小关键词：');
@@ -74,6 +85,31 @@ void main(List<String> argv) {
       if (e.dontUseFor != null) print('不要用于：${e.dontUseFor}');
       print("import '${e.importPath}';");
       print('文档：${e.docs}');
+      for (final entry in banned) {
+        print(_bannedText(entry));
+      }
     },
   );
 }
+
+List<BannedRule> _matchingBanned(String query) {
+  final config = DoctorConfig.load(Directory.current);
+  return config.banned.where((entry) => entry.validate() == null && entry.matches(query)).toList();
+}
+
+String _bannedText(BannedRule entry) {
+  final lines = <String>['本项目禁用：${entry.id}'];
+  if (entry.use != null && entry.use!.trim().isNotEmpty) {
+    lines.add('  改用：${entry.use}');
+  }
+  if (entry.reason != null && entry.reason!.trim().isNotEmpty) {
+    lines.add('  原因：${entry.reason}');
+  }
+  return lines.join('\n');
+}
+
+Map<String, Object?> _bannedJson(BannedRule entry) => <String, Object?>{
+  'id': entry.id,
+  'use': entry.use,
+  'reason': entry.reason,
+};

@@ -17,6 +17,7 @@ void main() {
     expect(parsed.colorMinCount, defaults.colorMinCount);
     expect(parsed.enabledRules, defaults.enabledRules);
     expect(parsed.ignore, isEmpty);
+    expect(parsed.banned, isEmpty);
     expect(parsed.aiTargets, defaults.aiTargets);
     expect(parsed.aiLanguage, defaults.aiLanguage);
   });
@@ -38,6 +39,7 @@ void main() {
         'colors',
         'rules',
         'ignore',
+        'banned',
       ]),
     );
   });

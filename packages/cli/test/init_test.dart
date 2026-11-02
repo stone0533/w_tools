@@ -464,7 +464,7 @@ void main() {
           reason: 'packages/$pkg 已到 $version，更新 init_project.dart 里的约束',
         );
       }
-      expect(snippet, contains('w_tools_cli: ^1.4.1'));
+      expect(snippet, contains('w_tools_cli: ^1.5.0'));
     }, skip: repo == null ? '不在 w_tools 仓库内' : false);
   });
 }

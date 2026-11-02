@@ -37,6 +37,22 @@ void main() {
     expect(check.exitCode, 0);
   });
 
+  test('init 把 banned 写进 AGENTS 段落', () async {
+    final root = _project();
+    File(p.join(root.path, '.w_tools_doctor.yaml')).writeAsStringSync('''
+banned:
+  - id: no-foo
+    pattern: Foo.bar
+    use: Baz.bar
+    reason: removed
+''');
+    expect((await _run('init.dart', ['--root', root.path])).exitCode, 0);
+    final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+    expect(agents, contains('本项目禁用 API'));
+    expect(agents, contains('no-foo'));
+    expect(agents, contains('Baz.bar'));
+  });
+
   test('init --no-ui 不生成 UI 文件', () async {
     final root = _project();
     expect((await _run('init.dart', ['--root', root.path, '--no-ui'])).exitCode, 0);
@@ -76,7 +92,7 @@ void main() {
 
   test('doctor --only 未知规则返回 2', () async {
     final root = _project();
-    final r = await _run('doctor.dart', ['--root', root.path, '--only=R9']);
+    final r = await _run('doctor.dart', ['--root', root.path, '--only=R99']);
     expect(r.exitCode, 2);
     expect('${r.stderr}', contains('未知规则'));
   });
