@@ -7,11 +7,17 @@
 2. **先找现成的**：`dart run w_tools_cli:list <关键词>`，
    需要细节再 `dart run w_tools_cli:explain <组件名>`；**不要凭记忆造组件名**。
    业务代码统一 `import 'package:{{app}}/app/w/toolkit.dart';`（本项目能力清单）。
+<!-- @optional:form:start -->
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
+<!-- @optional:form:end -->
+<!-- @optional:api:start -->
    **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，
    不要直接 `Dio()`；Token 存 `WToken`，通过 `WTokenInterceptor` 注入。
+<!-- @optional:api:end -->
+<!-- @optional:app:start -->
    **启动**：入口用 `WApp.start()`；插件需要顺序时用 `WAppPlugin.dependsOn`。
+<!-- @optional:app:end -->
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储；`WValidator` 做业务校验，纯正则用 `WRegExp`。
    **扫码**：用 `WQrView`；重新扫描用 `WQrViewState.restartScan()`。 <!-- @optional:qr -->

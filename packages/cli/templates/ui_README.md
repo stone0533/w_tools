@@ -66,7 +66,7 @@ AppCard(
 AppCard(
   clipBehavior: Clip.antiAlias,
   padding: EdgeInsets.zero,
-  child: Image.asset('cover.png', fit: BoxFit.cover),
+  child: WImage.asset('cover.png'),
 )
 ```
 

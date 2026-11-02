@@ -69,7 +69,7 @@ Clip rounded cards when the child is an image or other overflowing content:
 AppCard(
   clipBehavior: Clip.antiAlias,
   padding: EdgeInsets.zero,
-  child: Image.asset('cover.png', fit: BoxFit.cover),
+  child: WImage.asset('cover.png'),
 )
 ```
 

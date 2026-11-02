@@ -49,6 +49,37 @@ void main() {
     expect(minimal, isNot(contains("export 'package:w_tools_ui")));
   });
 
+  test('AGENTS 按能力裁剪未启用的段落', () {
+    final minimal = InitTemplates.agentsBlock(
+      withUi: false,
+      withApp: false,
+      withForm: false,
+      withApi: false,
+      withAsync: false,
+      withQr: false,
+      withMap: false,
+    );
+    expect(minimal, contains('WStorage'));
+    expect(minimal, isNot(contains('WApp.start')));
+    expect(minimal, isNot(contains('WFormTextField')));
+    expect(minimal, isNot(contains('DioRegistry')));
+    expect(minimal, isNot(contains('WAsyncController')));
+    expect(minimal, isNot(contains('WQrView')));
+    expect(minimal, isNot(contains('WMap')));
+
+    final noAsync = InitTemplates.agentsBlock(withAsync: false);
+    expect(noAsync, isNot(contains('WAsyncController')));
+    expect(noAsync, contains('WApp.start'));
+
+    final noForm = InitTemplates.agentsBlock(withForm: false);
+    expect(noForm, isNot(contains('WFormTextField')));
+    expect(noForm, contains('WApp.start'));
+
+    final noApi = InitTemplates.agentsBlock(withApi: false);
+    expect(noApi, isNot(contains('DioRegistry')));
+    expect(noApi, contains('WApp.start'));
+  });
+
   test('AGENTS 片段带标记块（init 靠它幂等替换）', () {
     final block = InitTemplates.agentsBlock();
     expect(block, contains('<!-- w_tools:begin -->'));

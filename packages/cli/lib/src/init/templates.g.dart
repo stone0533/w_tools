@@ -144,10 +144,12 @@ const String agentsSnippet = r'''
    `loading` 时同时设置 `enabled: !loading`；纯图标按钮提供 `semanticLabel`。
    状态色（disabled / pressed / hovered / focused）放 `AppButtons`；显式禁用色时
    `disabledOpacity: 1`，避免二次变淡。
+<!-- @optional:form:start -->
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；`WForm` 需要 `WFormController`，与 controller 一对一；
    页面级高度 / 内边距用 `WForm.fieldStyle`，校验设置用 `WFormValidatorSettings`；
    字段特殊样式用字段 `config`。
+<!-- @optional:form:end -->
    **图片**：网络图用 `WImage.network`；资源图用 `WImage.asset(name, prefix: true)`；
    视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageConfig`；不要裸用
    `Image.network` / `Image.asset`。
@@ -174,6 +176,7 @@ const String agentsSnippet = r'''
    **盒子**：重复 `BoxDecoration` 收进 `AppBoxes`；重复卡片用 `AppCard`；
    一次性盒子用 `Container` + `BoxDecoration`；需要 width/height/constraints/transform
    时直接用 `Container`。不要新增 `AppBox` / `AppContainer` 万能包装。
+<!-- @optional:async:start -->
    **异步区块**：使用 `w_tools_async` 时，页面统一 `WAsyncController + WAsyncView`；
    不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
    每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncViewDefaults`，
@@ -188,13 +191,18 @@ const String agentsSnippet = r'''
    `WAsyncBuilder` 是兼容别名，新代码用 `WAsyncStateBuilder`。
    `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
    `WAsyncStateSliver` 默认不额外显示 refreshing 进度，刷新反馈交给 SmartRefresher。
+<!-- @optional:async:end -->
+<!-- @optional:api:start -->
    **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接
    `Dio()`；同一 baseUrl 只初始化一次。Token 存 `w_tools_core` 的 `WToken`，通过
    `WTokenInterceptor` 的 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入；
    401 重试依赖 DioRegistry。日志用 `WLogInterceptor`，默认脱敏敏感头。
+<!-- @optional:api:end -->
+<!-- @optional:app:start -->
    **启动**：入口用 `WApp.start()`，不要手写 runApp + 初始化顺序；插件需要顺序时用
    `WAppPlugin.dependsOn`。`builderWrapper` 在 MaterialApp 内，`wrapApp` 在外且没有
    Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
+<!-- @optional:app:end -->
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储。`WValidator` 做业务语义校验，纯正则用 `WRegExp`；日志用 `WLogger`。
    **扫码**：用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce=true`， <!-- @optional:qr -->
@@ -242,10 +250,12 @@ const String agentsSnippetEn = r'''
    With `loading`, also set `enabled: !loading`; provide `semanticLabel` for icon-only buttons.
    Put state colors (disabled / pressed / hovered / focused) in `AppButtons`; set
    `disabledOpacity: 1` when explicit disabled colors are used.
+<!-- @optional:form:start -->
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. `WForm` requires a
    `WFormController` (one-to-one); use `WForm.fieldStyle` for page-level height/padding
    and `WFormValidatorSettings` for validation; use field `config` for special styling.
+<!-- @optional:form:end -->
    **Images**: use `WImage.network` for network images and
    `WImage.asset(name, prefix: true)` for assets; use `WImageStyle` for visuals and
    `WImageConfig` for loading/retry/placeholders. Do not use `Image.network` / `Image.asset` directly.
@@ -276,6 +286,7 @@ const String agentsSnippetEn = r'''
    **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated
    cards; use `Container` + `BoxDecoration` for one-off boxes; use `Container` directly
    for width/height/constraints/transform. Do not add an `AppBox` / `AppContainer` god wrapper.
+<!-- @optional:async:start -->
    **Async blocks**: with `w_tools_async`, use `WAsyncController + WAsyncView` for pages;
    do not hand-write `ValueNotifier<WAsyncState>` or repeat `when + RetryView` per page.
    One Controller per independent block; use `WAsyncViewDefaults` for global defaults
@@ -289,15 +300,20 @@ const String agentsSnippetEn = r'''
    `WAsyncBuilder` is a compatibility alias; use `WAsyncStateBuilder` in new code.
    Use `WAsyncStateSliver` for four-state slivers; `readySliverBuilder` must return a sliver.
    It adds no refreshing indicator by default; let SmartRefresher own refresh feedback.
+<!-- @optional:async:end -->
+<!-- @optional:api:start -->
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`, never
    `Dio()` directly; initialize each baseUrl once. Store tokens with `w_tools_core`'s
    `WToken` and inject via `WTokenInterceptor` (`tokenGetter` / `tokenClearer` /
    `tokenRefresher`); 401 retry depends on DioRegistry. Use `WLogInterceptor` for logs;
    sensitive headers are redacted by default.
+<!-- @optional:api:end -->
+<!-- @optional:app:start -->
    **Startup**: use `WApp.start()` as the entry point, not a hand-written runApp/init
    sequence; declare plugin order with `WAppPlugin.dependsOn`. `builderWrapper` lives
    inside MaterialApp; `wrapApp` is outside and has no Theme/MediaQuery. `WRouteObserver`
    is appended by WApp automatically; do not add it twice.
+<!-- @optional:app:end -->
    **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
    are plaintext storage. Use `WValidator` for semantic validation and `WRegExp` for
    pure regex; log through `WLogger`.
@@ -323,11 +339,17 @@ const String agentsSnippetNoUi = r'''
 2. **先找现成的**：`dart run w_tools_cli:list <关键词>`，
    需要细节再 `dart run w_tools_cli:explain <组件名>`；**不要凭记忆造组件名**。
    业务代码统一 `import 'package:{{app}}/app/w/toolkit.dart';`（本项目能力清单）。
+<!-- @optional:form:start -->
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；样式用 `WForm.fieldStyle` / 字段 `config`。
+<!-- @optional:form:end -->
+<!-- @optional:api:start -->
    **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，
    不要直接 `Dio()`；Token 存 `WToken`，通过 `WTokenInterceptor` 注入。
+<!-- @optional:api:end -->
+<!-- @optional:app:start -->
    **启动**：入口用 `WApp.start()`；插件需要顺序时用 `WAppPlugin.dependsOn`。
+<!-- @optional:app:end -->
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储；`WValidator` 做业务校验，纯正则用 `WRegExp`。
    **扫码**：用 `WQrView`；重新扫描用 `WQrViewState.restartScan()`。 <!-- @optional:qr -->
@@ -351,12 +373,18 @@ const String agentsSnippetNoUiEn = r'''
 2. **Reuse before writing**: `dart run w_tools_cli:list <keyword>`,
    then `dart run w_tools_cli:explain <Component>`; **do not invent component names**.
    Business code imports `package:{{app}}/app/w/toolkit.dart` only.
+<!-- @optional:form:start -->
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
+<!-- @optional:form:end -->
+<!-- @optional:api:start -->
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`,
    never `Dio()` directly; store tokens with `WToken` and inject via `WTokenInterceptor`.
+<!-- @optional:api:end -->
+<!-- @optional:app:start -->
    **Startup**: use `WApp.start()`; declare plugin order with `WAppPlugin.dependsOn`.
+<!-- @optional:app:end -->
    **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
    are plaintext storage; use `WValidator` / `WRegExp` for validation.
    **Scanning**: use `WQrView`; restart with `WQrViewState.restartScan()`. <!-- @optional:qr -->
@@ -439,7 +467,7 @@ AppCard(
 AppCard(
   clipBehavior: Clip.antiAlias,
   padding: EdgeInsets.zero,
-  child: Image.asset('cover.png', fit: BoxFit.cover),
+  child: WImage.asset('cover.png'),
 )
 ```
 
@@ -523,7 +551,7 @@ Clip rounded cards when the child is an image or other overflowing content:
 AppCard(
   clipBehavior: Clip.antiAlias,
   padding: EdgeInsets.zero,
-  child: Image.asset('cover.png', fit: BoxFit.cover),
+  child: WImage.asset('cover.png'),
 )
 ```
 

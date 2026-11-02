@@ -30,10 +30,12 @@
    With `loading`, also set `enabled: !loading`; provide `semanticLabel` for icon-only buttons.
    Put state colors (disabled / pressed / hovered / focused) in `AppButtons`; set
    `disabledOpacity: 1` when explicit disabled colors are used.
+<!-- @optional:form:start -->
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. `WForm` requires a
    `WFormController` (one-to-one); use `WForm.fieldStyle` for page-level height/padding
    and `WFormValidatorSettings` for validation; use field `config` for special styling.
+<!-- @optional:form:end -->
    **Images**: use `WImage.network` for network images and
    `WImage.asset(name, prefix: true)` for assets; use `WImageStyle` for visuals and
    `WImageConfig` for loading/retry/placeholders. Do not use `Image.network` / `Image.asset` directly.
@@ -64,6 +66,7 @@
    **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated
    cards; use `Container` + `BoxDecoration` for one-off boxes; use `Container` directly
    for width/height/constraints/transform. Do not add an `AppBox` / `AppContainer` god wrapper.
+<!-- @optional:async:start -->
    **Async blocks**: with `w_tools_async`, use `WAsyncController + WAsyncView` for pages;
    do not hand-write `ValueNotifier<WAsyncState>` or repeat `when + RetryView` per page.
    One Controller per independent block; use `WAsyncViewDefaults` for global defaults
@@ -77,15 +80,20 @@
    `WAsyncBuilder` is a compatibility alias; use `WAsyncStateBuilder` in new code.
    Use `WAsyncStateSliver` for four-state slivers; `readySliverBuilder` must return a sliver.
    It adds no refreshing indicator by default; let SmartRefresher own refresh feedback.
+<!-- @optional:async:end -->
+<!-- @optional:api:start -->
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`, never
    `Dio()` directly; initialize each baseUrl once. Store tokens with `w_tools_core`'s
    `WToken` and inject via `WTokenInterceptor` (`tokenGetter` / `tokenClearer` /
    `tokenRefresher`); 401 retry depends on DioRegistry. Use `WLogInterceptor` for logs;
    sensitive headers are redacted by default.
+<!-- @optional:api:end -->
+<!-- @optional:app:start -->
    **Startup**: use `WApp.start()` as the entry point, not a hand-written runApp/init
    sequence; declare plugin order with `WAppPlugin.dependsOn`. `builderWrapper` lives
    inside MaterialApp; `wrapApp` is outside and has no Theme/MediaQuery. `WRouteObserver`
    is appended by WApp automatically; do not add it twice.
+<!-- @optional:app:end -->
    **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
    are plaintext storage. Use `WValidator` for semantic validation and `WRegExp` for
    pure regex; log through `WLogger`.

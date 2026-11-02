@@ -29,10 +29,12 @@
    `loading` 时同时设置 `enabled: !loading`；纯图标按钮提供 `semanticLabel`。
    状态色（disabled / pressed / hovered / focused）放 `AppButtons`；显式禁用色时
    `disabledOpacity: 1`，避免二次变淡。
+<!-- @optional:form:start -->
    **表单**：若项目启用 `w_tools_form`，新页面用 `WForm` + 直接字段（`WFormTextField` 等），
    不要从 `Config.build` 开始；`WForm` 需要 `WFormController`，与 controller 一对一；
    页面级高度 / 内边距用 `WForm.fieldStyle`，校验设置用 `WFormValidatorSettings`；
    字段特殊样式用字段 `config`。
+<!-- @optional:form:end -->
    **图片**：网络图用 `WImage.network`；资源图用 `WImage.asset(name, prefix: true)`；
    视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageConfig`；不要裸用
    `Image.network` / `Image.asset`。
@@ -59,6 +61,7 @@
    **盒子**：重复 `BoxDecoration` 收进 `AppBoxes`；重复卡片用 `AppCard`；
    一次性盒子用 `Container` + `BoxDecoration`；需要 width/height/constraints/transform
    时直接用 `Container`。不要新增 `AppBox` / `AppContainer` 万能包装。
+<!-- @optional:async:start -->
    **异步区块**：使用 `w_tools_async` 时，页面统一 `WAsyncController + WAsyncView`；
    不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
    每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncViewDefaults`，
@@ -73,13 +76,18 @@
    `WAsyncBuilder` 是兼容别名，新代码用 `WAsyncStateBuilder`。
    `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
    `WAsyncStateSliver` 默认不额外显示 refreshing 进度，刷新反馈交给 SmartRefresher。
+<!-- @optional:async:end -->
+<!-- @optional:api:start -->
    **网络**：使用 `w_tools_api` 时统一 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接
    `Dio()`；同一 baseUrl 只初始化一次。Token 存 `w_tools_core` 的 `WToken`，通过
    `WTokenInterceptor` 的 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入；
    401 重试依赖 DioRegistry。日志用 `WLogInterceptor`，默认脱敏敏感头。
+<!-- @optional:api:end -->
+<!-- @optional:app:start -->
    **启动**：入口用 `WApp.start()`，不要手写 runApp + 初始化顺序；插件需要顺序时用
    `WAppPlugin.dependsOn`。`builderWrapper` 在 MaterialApp 内，`wrapApp` 在外且没有
    Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
+<!-- @optional:app:end -->
    **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
    是明文存储。`WValidator` 做业务语义校验，纯正则用 `WRegExp`；日志用 `WLogger`。
    **扫码**：用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce=true`， <!-- @optional:qr -->

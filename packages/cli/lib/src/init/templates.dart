@@ -63,6 +63,10 @@ class InitTemplates {
     String lang = 'zh',
     String app = 'app',
     bool withUi = true,
+    bool withApp = true,
+    bool withForm = true,
+    bool withApi = true,
+    bool withAsync = true,
     bool withQr = true,
     bool withMap = true,
     List<BannedRule> banned = const <BannedRule>[],
@@ -71,13 +75,32 @@ class InitTemplates {
         ? (lang == 'en' ? generated.agentsSnippetEn : generated.agentsSnippet)
         : (lang == 'en' ? generated.agentsSnippetNoUiEn : generated.agentsSnippetNoUi);
     final enabled = <String, bool>{
+      'app': withApp,
+      'form': withForm,
+      'api': withApi,
+      'async': withAsync,
       'qr': withQr,
       'map': withMap,
     };
     final marker = RegExp(r'@optional:([a-z]+)');
+    final blockStart = RegExp(r'<!-- @optional:([a-z]+):start -->');
+    final blockEnd = RegExp(r'<!-- @optional:([a-z]+):end -->');
     final lines = template.split('\n');
     final filtered = <String>[];
+    String? activeBlock;
     for (final line in lines) {
+      final start = blockStart.firstMatch(line);
+      if (start != null) {
+        activeBlock = start.group(1);
+        continue;
+      }
+      final end = blockEnd.firstMatch(line);
+      if (end != null) {
+        activeBlock = null;
+        continue;
+      }
+      if (activeBlock != null && enabled[activeBlock] == false) continue;
+
       final match = marker.firstMatch(line);
       if (match != null && enabled[match.group(1)] == false) continue;
       filtered.add(line.replaceAll(RegExp(r'\s*<!-- @optional:[a-z]+ -->'), ''));

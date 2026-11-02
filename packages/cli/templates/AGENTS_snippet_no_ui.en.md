@@ -7,12 +7,18 @@
 2. **Reuse before writing**: `dart run w_tools_cli:list <keyword>`,
    then `dart run w_tools_cli:explain <Component>`; **do not invent component names**.
    Business code imports `package:{{app}}/app/w/toolkit.dart` only.
+<!-- @optional:form:start -->
    **Forms**: when `w_tools_form` is enabled, use `WForm` + direct fields
    (`WFormTextField`, etc.); do not start from `Config.build`. Use `WForm.fieldStyle`
    / field `config` for styling.
+<!-- @optional:form:end -->
+<!-- @optional:api:start -->
    **Network**: with `w_tools_api`, use `WApiConfig` + `DioRegistry.forBaseUrl`,
    never `Dio()` directly; store tokens with `WToken` and inject via `WTokenInterceptor`.
+<!-- @optional:api:end -->
+<!-- @optional:app:start -->
    **Startup**: use `WApp.start()`; declare plugin order with `WAppPlugin.dependsOn`.
+<!-- @optional:app:end -->
    **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
    are plaintext storage; use `WValidator` / `WRegExp` for validation.
    **Scanning**: use `WQrView`; restart with `WQrViewState.restartScan()`. <!-- @optional:qr -->
