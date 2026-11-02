@@ -123,7 +123,7 @@ const String agentsBase = r'''
    需要细节再 `dart run w_tools_cli:explain <组件名>`；**不要凭记忆造组件名**。
    业务代码统一 `import 'package:{{app}}/app/w/toolkit.dart';`（本项目能力清单）。
 3. **找不到 → 先判断层级**：
-   - 项目永久 UI 规范（页面壳 / AppBar / 按钮等）放 `lib/app/ui/`（启用 UI 时）
+   - 项目永久 UI 规范放 `lib/app/ui/`（启用 UI 时）
    - 只有待上移的通用组件放 `lib/app/design_system/`，**不要**直接改 w_tools：
      - 只允许 import `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
      - 文件头标 `// STAGED: 待上移到 w_tools_ui`，注释写设计稿实测尺寸
@@ -258,7 +258,7 @@ const String agentsBaseEn = r'''
    then `dart run w_tools_cli:explain <Component>`; **do not invent component names**.
    Business code imports `package:{{app}}/app/w/toolkit.dart` only.
 3. **If missing, decide the layer first**:
-   - Permanent project UI conventions (page shell / app bar / buttons, etc.) go in `lib/app/ui/` (when UI is enabled)
+   - Permanent project UI conventions go in `lib/app/ui/` (when UI is enabled)
    - Only generic candidates for promotion go in `lib/app/design_system/` (do not modify w_tools directly):
      - imports: `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
      - header `// STAGED: move to w_tools_ui`, plus measured design specs

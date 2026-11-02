@@ -20,12 +20,16 @@ class DoctorRule {
     required this.id,
     required this.title,
     required this.level,
+    required this.summaryZh,
+    required this.summaryEn,
     required this.check,
   });
 
   final String id;
   final String title;
   final DoctorLevel level;
+  final String summaryZh;
+  final String summaryEn;
   final DoctorRuleResult Function(ProjectContext, DoctorConfig) check;
 }
 
@@ -34,54 +38,72 @@ const List<DoctorRule> doctorRules = <DoctorRule>[
     id: R1MetaDependency.id,
     title: R1MetaDependency.title,
     level: DoctorLevel.error,
+    summaryZh: '聚合包依赖',
+    summaryEn: 'Aggregate package dependency',
     check: R1MetaDependency.check,
   ),
   DoctorRule(
     id: R2DirectSubpackageImport.id,
     title: R2DirectSubpackageImport.title,
     level: DoctorLevel.error,
+    summaryZh: '直连子包 import',
+    summaryEn: 'Direct subpackage import',
     check: R2DirectSubpackageImport.check,
   ),
   DoctorRule(
     id: R3HardcodedColors.id,
     title: R3HardcodedColors.title,
     level: DoctorLevel.warn,
+    summaryZh: '硬编码语义色',
+    summaryEn: 'Hardcoded semantic colors',
     check: R3HardcodedColors.check,
   ),
   DoctorRule(
     id: R4DesignSystemBoundary.id,
     title: R4DesignSystemBoundary.title,
     level: DoctorLevel.error,
+    summaryZh: '设计系统边界',
+    summaryEn: 'Design-system boundary',
     check: R4DesignSystemBoundary.check,
   ),
   DoctorRule(
     id: R5StagedMarker.id,
     title: R5StagedMarker.title,
     level: DoctorLevel.warn,
+    summaryZh: 'STAGED 标记',
+    summaryEn: 'STAGED marker',
     check: R5StagedMarker.check,
   ),
   DoctorRule(
     id: R6BannedUnits.id,
     title: R6BannedUnits.title,
     level: DoctorLevel.warn,
+    summaryZh: '禁用 .h / .r（默认关）',
+    summaryEn: 'Banned .h / .r units (opt-in)',
     check: R6BannedUnits.check,
   ),
   DoctorRule(
     id: R7ToolkitConsistency.id,
     title: R7ToolkitConsistency.title,
     level: DoctorLevel.error,
+    summaryZh: 'toolkit 一致性',
+    summaryEn: 'Toolkit consistency',
     check: R7ToolkitConsistency.check,
   ),
   DoctorRule(
     id: R8GeneratedStale.id,
     title: R8GeneratedStale.title,
     level: DoctorLevel.warn,
+    summaryZh: '生成物版本',
+    summaryEn: 'Generated-file version',
     check: R8GeneratedStale.check,
   ),
   DoctorRule(
     id: R9BannedApi.id,
     title: R9BannedApi.title,
     level: DoctorLevel.warn,
+    summaryZh: '项目禁用 API（配置驱动）',
+    summaryEn: 'Project-banned APIs (configured)',
     check: R9BannedApi.check,
   ),
 ];
@@ -101,16 +123,3 @@ List<DoctorRuleResult> runDoctor(ProjectContext ctx, DoctorConfig config, {Set<S
     for (final rule in selected) rule.check(ctx, config),
   ];
 }
-
-/// AGENTS 规则速查表用的短描述：[zh, en]。
-const Map<String, List<String>> doctorRuleSummaries = <String, List<String>>{
-  'R1': <String>['聚合包依赖', 'Aggregate package dependency'],
-  'R2': <String>['直连子包 import', 'Direct subpackage import'],
-  'R3': <String>['硬编码语义色', 'Hardcoded semantic colors'],
-  'R4': <String>['设计系统边界', 'Design-system boundary'],
-  'R5': <String>['STAGED 标记', 'STAGED marker'],
-  'R6': <String>['禁用 .h / .r（默认关）', 'Banned .h / .r units (opt-in)'],
-  'R7': <String>['toolkit 一致性', 'Toolkit consistency'],
-  'R8': <String>['生成物版本', 'Generated-file version'],
-  'R9': <String>['项目禁用 API（配置驱动）', 'Project-banned APIs (configured)'],
-};

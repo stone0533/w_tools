@@ -55,8 +55,7 @@ class InitTemplates {
     final header = en ? '| Rule | Checks |' : '| 规则 | 检查 |';
     final divider = '| --- | --- |';
     final rows = <String>[
-      for (final rule in doctorRules)
-        '| ${rule.id} | ${doctorRuleSummaries[rule.id]?[en ? 1 : 0] ?? rule.title} |',
+      for (final rule in doctorRules) '| ${rule.id} | ${en ? rule.summaryEn : rule.summaryZh} |',
     ];
     return <String>[header, divider, ...rows].join('\n');
   }

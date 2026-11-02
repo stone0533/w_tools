@@ -8,7 +8,7 @@
    then `dart run w_tools_cli:explain <Component>`; **do not invent component names**.
    Business code imports `package:{{app}}/app/w/toolkit.dart` only.
 3. **If missing, decide the layer first**:
-   - Permanent project UI conventions (page shell / app bar / buttons, etc.) go in `lib/app/ui/` (when UI is enabled)
+   - Permanent project UI conventions go in `lib/app/ui/` (when UI is enabled)
    - Only generic candidates for promotion go in `lib/app/design_system/` (do not modify w_tools directly):
      - imports: `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
      - header `// STAGED: move to w_tools_ui`, plus measured design specs
