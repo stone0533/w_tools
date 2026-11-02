@@ -1,6 +1,6 @@
-# `w_tools_figma` CLI 契约（v0.1 草案）
+# `w_tools_figma` CLI 契约（v0.1）
 
-- 状态：**草案**（待实现；实现前先评审本文档）
+- 状态：**v0.1 已实现**（契约仍可微调；以当前 CLI 行为为准）
 - 定位：**只读**的 Figma 取数 / 规格导出工具，与 `w_tools` 的 UI 约定无关
 - 包名：`w_tools_figma`（与 `w_tools_*` 命名一致）；入口 `dart run w_tools_figma:figma <command>`
 - 技术栈：**Dart**（Flutter 项目必有 Dart 运行时；跨平台；可测试；不依赖 Python）
@@ -27,8 +27,8 @@
 | `usage` | 本月调用次数 / 剩余估算——**v0.1 已实现**（座位类型需额外 `me` 调用，暂未做） | 0（本地日志） | 0 |
 | `budget` | 查看 / 设置月度预算——**v0.1 已实现** | 0 | 0 |
 
-> 规则：**任何会打 Figma 接口的命令，默认先打印「将消耗 1 次 Tier 1」**，
-> `--quiet` / `--json` 时改为在输出里带 `"tierCalls": 1`。
+> 缓存命中时不读 token、不发请求；只有缓存未命中、`--refresh` 或
+> `--check-stale` 时才需要 token。JSON 输出里的 `tierCalls` 表示本次真实请求次数。
 
 ---
 
@@ -40,11 +40,9 @@
 | --- | --- |
 | `--root=<dir>` | 项目根（默认当前目录）；token / 缓存都相对它解析 |
 | `--json` | 机器可读输出（见 §3 各命令的 schema） |
-| `--refresh` | 删除对应缓存并强制重拉（**唯一会绕过缓存的开关**） |
+| `--refresh` | `fetch` 删除对应缓存并强制重拉（**唯一会绕过缓存的开关**） |
 | `--no-log` | 本次不写用量日志（调试用） |
-| `--raw` | 输出 Figma 原始 JSON（schema 变化时的保底） |
-| `--quiet` | 不打印提示信息（只输出结果） |
-| `--verbose` | 打印请求 URL / 缓存路径（**不打印 token**） |
+| `--file=<path>` | `spec` / `tokens` 指定缓存节点树 JSON；不是 fileKey |
 
 ### 2.2 文件布局
 
@@ -103,17 +101,21 @@ dart run w_tools_figma:figma fetch nodes  <fileKey> <id1,id2,...>
 dart run w_tools_figma:figma fetch images <fileKey> <id1,id2,...> [--scale=2]
 ```
 
+`--check-stale` 用 Tier 3 的 `file/meta` 判断缓存是否过期；缓存命中时仍需要 token
+（因为会访问 `/meta`），只提示不自动重拉。
+
 JSON 输出：
 
 ```json
 { "schema": "w_tools_figma.fetch/1", "cacheFile": "nodes-abcd-1862-9222.json",
-  "tierCalls": 1, "stale": false, "version": "2415310932909825311" }
+  "fromCache": false, "tierCalls": 1, "stale": false,
+  "cachedVersion": null, "latestVersion": null }
 ```
 
 ### 3.3 `spec`（**核心命令**）
 
 ```bash
-dart run w_tools_figma:figma spec <nodeId> [--file=<fileKey>] [--json]
+dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json]
 ```
 
 从缓存解析单个节点，输出**全部属性**（这是现有 `figma_spec.py` 的 Dart 重写）：
@@ -130,18 +132,11 @@ dart run w_tools_figma:figma spec <nodeId> [--file=<fileKey>] [--json]
 | `children` | 递归子树 |
 | `layout` | auto-layout 间距 / padding / 对齐 |
 
-`--json` schema：
+`--json` 输出 Markdown 承载的完整规格；结构化字段在 Markdown 表格里：
 
 ```json
-{ "schema": "w_tools_figma.spec/1", "fileKey": "...", "nodeId": "1862:9222",
-  "name": "基本資料", "size": {"w": 375, "h": 812},
-  "fills": [{"type": "SOLID", "color": "#F8F8F5"}],
-  "strokes": [{"color": "#EAEAEA", "width": 1, "dash": [4, 4], "align": "INSIDE"}],
-  "radius": [10, 10, 10, 10],
-  "effects": [{"type": "DROP_SHADOW", "x": 0, "y": 1, "blur": 4, "color": "#00000014"}],
-  "text": {"characters": "請輸入您的電子郵件", "family": "NotoSansTC", "size": 16,
-           "weight": 400, "lineHeight": 1.6, "align": "LEFT", "color": "#A4A4A4", "runs": []},
-  "visible": true, "children": [] }
+{ "schema": "w_tools_figma.spec/1", "source": "test/fixtures/nodes-frame.json",
+  "nodeId": "1862:9222", "markdown": "# 基本資料  (1862:9222)..." }
 ```
 
 默认（不带 `--json`）输出 **Markdown 表格**，字段与上表一致，便于贴进 PR / 设计稿核对单。
@@ -167,18 +162,18 @@ dart run w_tools_figma:figma url 'https://www.figma.com/design/<key>/...?node-id
 ### 3.6 `diff`
 
 ```bash
-dart run w_tools_figma:figma diff <nodeId> [--file=<fileKey>]
+dart run w_tools_figma:figma diff <fileKey> <nodeId> [--root=<dir>]
 ```
 
-- 先 `--refresh` 拉最新节点（**消耗 1 次**），再与旧缓存逐属性比较；
+- 拉最新节点（**消耗 1 次**），与旧缓存逐属性比较；
 - 输出「改了什么」：`fill #F8F8F5 → #FFFFFF`、`text.size 14 → 16`、`added: DROP_SHADOW` 等；
 - 这正是「设计稿改版后，agent 不知道改了什么」的解法。
 
 ### 3.7 `usage` / `budget`
 
 ```bash
-dart run w_tools_figma:figma usage          # 本月次数 + 最近记录 + 座位类型
-dart run w_tools_figma:figma budget --set 20 # 设置月度预算（解决「只能等 429」）
+dart run w_tools_figma:figma usage          # 本月次数 + 最近记录
+dart run w_tools_figma:figma budget --set=20 # 设置月度预算（解决「只能等 429」）
 ```
 
 `usage --json`：
@@ -192,7 +187,7 @@ dart run w_tools_figma:figma budget --set 20 # 设置月度预算（解决「只
 
 ## 4. 安全
 
-- token 只从 `.figma-token` 读，**任何输出（含 `--verbose` / 日志 / 报错）都不打印**；
+- token 只从 `.figma-token` 读，**任何输出（日志 / 报错）都不打印**；
 - `init` 自动把 `.figma-token`、`.figma-cache/` 写进 `.gitignore`；
 - 只调用 `GET` 接口（不写 Figma）。
 

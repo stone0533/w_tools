@@ -2,7 +2,7 @@
 
 只读的 Figma 取数 / 规格导出 CLI。契约见 [`docs/figma-cli.md`](../../docs/figma-cli.md)。
 
-当前进度（v0.1 草案）：
+当前进度（v0.1）：
 
 | 命令 | 状态 |
 | --- | --- |

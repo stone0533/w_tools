@@ -27,9 +27,14 @@ class CacheStore {
     required String fileKey,
     String? ids,
     int? scale,
+    int? depth,
   }) {
     final slug = ids == null ? '' : '-${ids.replaceAll(RegExp(r'[:,.]'), '-')}';
-    final suffix = scale == null ? '' : '-s$scale';
+    final suffix = depth != null
+        ? '-d$depth'
+        : scale == null
+            ? ''
+            : '-s$scale';
     return File('${dir.path}/$kind-$fileKey$slug$suffix.json');
   }
 
@@ -46,7 +51,16 @@ class CacheStore {
   /// 写缓存（自动建目录）。
   void write(File file, Map<String, dynamic> json) {
     file.parent.createSync(recursive: true);
-    file.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(json));
+    final encoded = const JsonEncoder.withIndent('  ').convert(json);
+    final temp = File('${file.path}.tmp');
+    temp.writeAsStringSync(encoded);
+    try {
+      temp.renameSync(file.path);
+    } on FileSystemException {
+      // Windows 上目标存在时 rename 可能失败；退回直接覆盖。
+      file.writeAsStringSync(encoded);
+      if (temp.existsSync()) temp.deleteSync();
+    }
   }
 
   /// 追加一条用量记录（只在真的打了接口时调用）。

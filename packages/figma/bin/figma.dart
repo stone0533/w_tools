@@ -92,6 +92,9 @@ Future<void> main(List<String> args) async {
         _print(_usage);
         exitCode = 2;
     }
+  } on _FigmaTokenException catch (e) {
+    stderr.writeln(e.message);
+    exitCode = 4;
   } on StateError catch (e) {
     stderr.writeln(e.message);
     exitCode = 1;
@@ -142,16 +145,40 @@ Future<void> _runFetch(List<String> args) async {
   }
 
   final store = CacheStore(Directory(options.root));
-  final token = _readToken(store);
-  final client = HttpFigmaClient(token: token);
+  final target = switch (kind) {
+    'file' => store.cacheFile(kind: 'file', fileKey: fileKey, depth: options.depth),
+    'nodes' => store.cacheFile(kind: 'nodes', fileKey: fileKey, ids: ids.join(',')),
+    'images' =>
+      store.cacheFile(kind: 'images', fileKey: fileKey, ids: ids.join(','), scale: options.scale),
+    _ => throw FormatException('未知的 fetch 类型：$kind（file / nodes / images）'),
+  };
+  final hasCache = !options.refresh && store.read(target) != null;
+  // 缓存命中且不做 stale 检查时不读 token，保证「只读缓存」真的不依赖凭证。
+  final client = hasCache && !options.checkStale
+      ? const _CacheOnlyClient()
+      : HttpFigmaClient(token: _readToken(store));
   final command = FetchCommand(store: store, client: client, log: options.log);
   try {
     final result = switch (kind) {
-      'file' =>
-        await command.file(fileKey: fileKey, depth: options.depth, refresh: options.refresh),
-      'nodes' => await command.nodes(fileKey: fileKey, ids: ids, refresh: options.refresh),
+      'file' => await command.file(
+          fileKey: fileKey,
+          depth: options.depth,
+          refresh: options.refresh,
+          checkStale: options.checkStale,
+        ),
+      'nodes' => await command.nodes(
+          fileKey: fileKey,
+          ids: ids,
+          refresh: options.refresh,
+          checkStale: options.checkStale,
+        ),
       'images' => await command.images(
-          fileKey: fileKey, ids: ids, scale: options.scale, refresh: options.refresh),
+          fileKey: fileKey,
+          ids: ids,
+          scale: options.scale,
+          refresh: options.refresh,
+          checkStale: options.checkStale,
+        ),
       _ => throw FormatException('未知的 fetch 类型：$kind（file / nodes / images）'),
     };
     if (result.fromCache) {
@@ -303,11 +330,11 @@ void _runUrl(List<String> args) {
 String _readToken(CacheStore store) {
   final file = store.tokenFile;
   if (!file.existsSync()) {
-    throw StateError('缺少 ${file.path}，先跑 init 并填入 figd_ 令牌');
+    throw _FigmaTokenException('缺少 ${file.path}，先跑 init 并填入 figd_ 令牌');
   }
   final token = file.readAsStringSync().trim();
   if (token.isEmpty || token.contains('REPLACE_ME')) {
-    throw StateError('${file.path} 里还是模板内容，请填入真实的 figd_ 令牌');
+    throw _FigmaTokenException('${file.path} 里还是模板内容，请填入真实的 figd_ 令牌');
   }
   return token;
 }
@@ -324,12 +351,14 @@ Future<void> _runTokens(List<String> args) async {
 
   final file =
       options.file != null ? File(options.file!) : _pickLargestCache(Directory(options.root));
-  final document = _documentOf(file);
+  final documents = _documentsOf(file);
 
   final collector = TokenCollector(minCount: options.min);
   final missing = <String>[];
   for (final id in nodeIds) {
-    final node = findFigmaNode(document, id);
+    final document =
+        documents[id] ?? documents.values.where((d) => findFigmaNode(d, id) != null).firstOrNull;
+    final node = document == null ? null : findFigmaNode(document, id);
     if (node == null) {
       missing.add(id);
       continue;
@@ -382,7 +411,12 @@ Future<void> _runSpec(List<String> args) async {
   final root = Directory(options.root);
   final file = options.file != null ? File(options.file!) : _pickLargestCache(root);
 
-  final document = _documentOf(file);
+  final documents = _documentsOf(file);
+  final document = documents[nodeId] ??
+      documents.values.where((d) => findFigmaNode(d, nodeId) != null).firstOrNull;
+  if (document == null) {
+    throw StateError('在缓存里找不到节点：$nodeId');
+  }
 
   const renderer = FigmaSpecRenderer();
   if (options.json) {
@@ -418,18 +452,51 @@ File _pickLargestCache(Directory root) {
   return files.first;
 }
 
-/// 读取 nodes 缓存 → 第一个节点的 `document` 子树。
-Map<String, dynamic> _documentOf(File file) {
+/// 读取 nodes 缓存 → 每个节点 id 对应的 `document` 子树。
+///
+/// `fetch nodes` 支持批量 ids，不能只取 `nodes.values.first`。
+Map<String, Map<String, dynamic>> _documentsOf(File file) {
   final raw = jsonDecode(file.readAsStringSync());
   final nodes = (raw is Map) ? raw['nodes'] : null;
   if (nodes is! Map || nodes.isEmpty) {
     throw StateError('${file.path} 不是 nodes 缓存（缺少 nodes 字段）');
   }
-  final document = (nodes.values.first as Map)['document'];
-  if (document is! Map) {
+  final documents = <String, Map<String, dynamic>>{};
+  for (final entry in nodes.entries) {
+    final value = entry.value;
+    if (value is! Map) continue;
+    final document = value['document'];
+    if (document is Map) {
+      documents['${entry.key}'] = document.cast<String, dynamic>();
+    }
+  }
+  if (documents.isEmpty) {
     throw StateError('${file.path} 缺少 document');
   }
-  return document.cast<String, dynamic>();
+  return documents;
+}
+
+/// 缺少或未填写 token；退出码 4。
+class _FigmaTokenException implements Exception {
+  const _FigmaTokenException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+/// 只读缓存路径使用：缓存命中时不允许再发请求。
+class _CacheOnlyClient implements FigmaClient {
+  const _CacheOnlyClient();
+
+  @override
+  Future<Map<String, dynamic>> getJson(Uri url) {
+    throw StateError('缓存命中但只读客户端被调用：$url');
+  }
+
+  @override
+  void close() {}
 }
 
 class _Options {
@@ -475,7 +542,8 @@ _Options _parseOptions(List<String> args) {
   var log = true;
   int? budgetSet;
   var checkStale = false;
-  for (final arg in args) {
+  for (var i = 0; i < args.length; i++) {
+    final arg = args[i];
     if (arg == '--json') {
       json = true;
     } else if (arg.startsWith('--root=')) {
@@ -483,23 +551,29 @@ _Options _parseOptions(List<String> args) {
     } else if (arg.startsWith('--file=')) {
       file = arg.substring('--file='.length);
     } else if (arg.startsWith('--min=')) {
-      min = int.tryParse(arg.substring('--min='.length)) ?? 1;
+      min = _positiveInt('--min', arg.substring('--min='.length));
     } else if (arg.startsWith('--out=')) {
       out = arg.substring('--out='.length);
     } else if (arg.startsWith('--depth=')) {
-      depth = int.tryParse(arg.substring('--depth='.length)) ?? 3;
+      depth = _positiveInt('--depth', arg.substring('--depth='.length));
     } else if (arg.startsWith('--scale=')) {
-      scale = int.tryParse(arg.substring('--scale='.length)) ?? 2;
+      scale = _positiveInt('--scale', arg.substring('--scale='.length));
     } else if (arg == '--refresh') {
       refresh = true;
     } else if (arg == '--no-log') {
       log = false;
-    } else if (arg.startsWith('--set=')) {
-      budgetSet = int.tryParse(arg.substring('--set='.length));
+    } else if (arg == '--set' || arg.startsWith('--set=')) {
+      final raw = arg == '--set'
+          ? (i + 1 < args.length ? args[++i] : null)
+          : arg.substring('--set='.length);
+      if (raw == null || raw.isEmpty) {
+        throw const FormatException('--set 需要正整数');
+      }
+      budgetSet = _positiveInt('--set', raw);
     } else if (arg == '--check-stale') {
       checkStale = true;
     } else if (arg.startsWith('--')) {
-      throw StateError('未知选项：$arg');
+      throw FormatException('未知选项：$arg');
     } else {
       positional.add(arg);
     }
@@ -518,4 +592,12 @@ _Options _parseOptions(List<String> args) {
     budgetSet: budgetSet,
     checkStale: checkStale,
   );
+}
+
+int _positiveInt(String option, String raw) {
+  final value = int.tryParse(raw);
+  if (value == null || value <= 0) {
+    throw FormatException('$option 需要正整数：$raw');
+  }
+  return value;
 }

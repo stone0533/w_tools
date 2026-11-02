@@ -48,7 +48,7 @@ class FetchCommand {
     return _fetch(
       kind: 'file',
       fileKey: fileKey,
-      file: store.cacheFile(kind: 'file', fileKey: fileKey, scale: depth),
+      file: store.cacheFile(kind: 'file', fileKey: fileKey, depth: depth),
       url: Uri.parse('https://api.figma.com/v1/files/$fileKey?depth=$depth'),
       refresh: refresh,
       checkStale: checkStale,

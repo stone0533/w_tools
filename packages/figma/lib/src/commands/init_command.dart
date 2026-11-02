@@ -36,6 +36,7 @@ figd_REPLACE_ME
     if (!token.existsSync() || force) {
       token.parent.createSync(recursive: true);
       token.writeAsStringSync(_tokenTemplate);
+      _restrictTokenPermissions(token);
       tokenCreated = true;
     }
 
@@ -64,5 +65,14 @@ figd_REPLACE_ME
       gitignoreAdded: added,
       cacheDir: store.dir,
     );
+  }
+
+  void _restrictTokenPermissions(File token) {
+    if (Platform.isWindows) return;
+    try {
+      Process.runSync('chmod', <String>['600', token.path]);
+    } on ProcessException {
+      // 无 chmod 的环境不阻塞 init；.gitignore 仍然保护 token 不被提交。
+    }
   }
 }
