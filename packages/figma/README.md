@@ -1,24 +1,50 @@
 # w_tools_figma
 
-> 独立 CLI 包，v0.1.0。发布前使用 path / git；发布后使用 `dart pub add dev:w_tools_figma`。
+> 已发布 `v0.1.1`，推荐用 pub 安装；path / git 仅用于开发版。
 
 只读的 Figma 取数 / 规格导出 CLI。
 
 - 契约：https://github.com/stone0533/w_tools/blob/main/docs/figma-cli.md
 - AI / agent 使用说明：https://github.com/stone0533/w_tools/blob/main/docs/agents/figma.md
 
+## AI / agent 使用
+
+消费方 AI 需要手动获得入口：
+
+```text
+1. 复制本包的 AGENTS.md 到消费方项目
+2. 或让 AI 先读包内 AGENTS.md
+```
+
+本包 `AGENTS.md` 包含：
+
+```text
+Figma -> Flutter 页面流程
+W* 组件映射
+缓存 / 额度 / token 规则
+```
+
+本仓库内的 AI 入口见根 `AGENTS.md` 和
+[`docs/agents/figma.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/figma.md)。
+
 ## 5 分钟上手
 
 ### 1. 安装
 
-发布后：
+已发布版本：
+
+```bash
+dart pub add dev:w_tools_figma:^0.1.1
+```
+
+等价于：
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.1.0
+  w_tools_figma: ^0.1.1
 ```
 
-发布前使用 path 依赖：
+开发版使用 path 依赖：
 
 ```yaml
 dev_dependencies:

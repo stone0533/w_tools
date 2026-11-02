@@ -4,7 +4,7 @@
 
 ## 工具
 
-`w_tools_figma`（独立 CLI 包；发布后用 pub，未发布用 path/git）：
+`w_tools_figma`（独立 CLI 包，已发布 0.1.1）：
 
 ```bash
 dart run w_tools_figma:figma <command>

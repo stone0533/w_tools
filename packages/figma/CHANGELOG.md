@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Changed
+- README 标明 pub 安装方式，并补充消费方 AI 入口说明。
+- 明确 0.1.1 不包含 `page` 命令。
+
 ## 0.1.0
 
 - 初始内部版本：`init` / `fetch` / `spec` / `tokens` / `url` / `diff` / `usage` / `budget`。

@@ -1,6 +1,7 @@
 # Figma 取数与 Flutter 页面开发（agent）
 
-工具：`packages/figma`，包名 `w_tools_figma`。
+工具：`packages/figma`，包名 `w_tools_figma`，已发布 0.1.1。
+消费方安装：`dart pub add dev:w_tools_figma:^0.1.1`。
 契约：[`docs/figma-cli.md`](../figma-cli.md)。
 消费方可复制的片段：[`packages/figma/AGENTS.md`](../../packages/figma/AGENTS.md)。
 
