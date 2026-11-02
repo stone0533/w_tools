@@ -1,5 +1,6 @@
 import '../config.dart';
 import '../context.dart';
+import '../text_scan.dart';
 import '../rule.dart';
 
 /// R6：项目专用 —— 禁用尺寸单位 `.h` / `.r`。
@@ -23,18 +24,16 @@ class R6BannedUnits {
     }
 
     final issues = <DoctorIssue>[];
-    for (final file in ctx.files) {
-      final lines = ctx.read(file).split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        if (lines[i].trimLeft().startsWith('//')) continue;
-        final m = _pattern.firstMatch(lines[i]);
+    for (final file in TextScan.files(ctx)) {
+      for (final line in file.codeLines) {
+        final m = _pattern.firstMatch(line.text);
         if (m == null) continue;
         issues.add(
           DoctorIssue(
             rule: id,
             level: DoctorLevel.warn,
-            file: file,
-            line: i + 1,
+            file: file.path,
+            line: line.lineNumber,
             message: '使用了 .${m.group(2)} 单位',
             hint: '只用 .w / .sp / .sw / .sh',
           ),

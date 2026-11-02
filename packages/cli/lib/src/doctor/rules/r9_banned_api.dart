@@ -2,6 +2,7 @@ import '../config.dart';
 import '../context.dart';
 import '../rule.dart';
 import '../suppression.dart';
+import '../text_scan.dart';
 
 /// R9：项目级禁用 API。
 ///
@@ -46,17 +47,13 @@ class R9BannedApi {
       }
     }
 
-    for (final file in ctx.files) {
-      final lines = ctx.read(file).split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        final line = lines[i];
-        if (line.trimLeft().startsWith('//')) continue;
-
+    for (final file in TextScan.files(ctx)) {
+      for (final line in file.codeLines) {
         for (final entry in config.banned) {
           if (entry.validate() != null) continue;
-          if (!entry.appliesTo(file)) continue;
-          if (!entry.matches(line)) continue;
-          if (Suppression.isIgnored(lines, i, id)) continue;
+          if (!entry.appliesTo(file.path)) continue;
+          if (!entry.matches(line.text)) continue;
+          if (Suppression.isIgnored(file.lines, line.index, id)) continue;
 
           final use = entry.use?.trim();
           final reason = entry.reason?.trim();
@@ -64,8 +61,8 @@ class R9BannedApi {
             DoctorIssue(
               rule: id,
               level: entry.level,
-              file: file,
-              line: i + 1,
+              file: file.path,
+              line: line.lineNumber,
               message: '命中禁用 API：${entry.id}',
               hint: <String>[
                 if (use != null && use.isNotEmpty) '改用：$use',
