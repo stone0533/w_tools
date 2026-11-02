@@ -67,4 +67,16 @@ void main() {
     expect(short.length, lessThan(prompt.length));
     expect(short, contains('已截断'));
   });
+  test('Flutter 项目输出 flutter 命令', () {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync(
+      'name: demo_app\n'
+      'environment:\n  sdk: ^3.10.0\n'
+      'dependencies:\n  flutter:\n    sdk: flutter\n',
+    );
+    final snap = ProjectSnapshot.load(root);
+    expect(snap.isFlutter, isTrue);
+    expect(snap.commands()['analyze'], 'flutter analyze');
+    expect(snap.commands()['test'], 'flutter test');
+  });
 }

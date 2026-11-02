@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/context/context_project.dart';
+import 'package:w_tools_cli/src/common/pubspec_lock.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:yaml/yaml.dart' show YamlException;
 
@@ -60,6 +61,9 @@ void main(List<String> argv) {
       ProjectSnapshot snapshot;
       try {
         snapshot = ProjectSnapshot.load(root, config: config);
+      } on PubspecLockException catch (e) {
+        stderr.writeln(e.message);
+        exit(2);
       } on YamlException catch (e) {
         stderr.writeln('pubspec.yaml 解析失败：${e.message}');
         exit(2);

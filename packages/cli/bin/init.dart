@@ -42,6 +42,9 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --with-map     导出 w_tools_map（会引入 google_maps_flutter）
   --no-ui        不生成 lib/app/ui 与 design_system 规范，也不导出 w_tools_ui
   --no-async     不导出 w_tools_async（full profile 默认导出）
+  --no-form      不导出 w_tools_form，并从 AGENTS 移除表单规则
+  --no-app       不导出 w_tools_app，并从 AGENTS 移除启动规则
+  --no-api       不导出 w_tools_api，并从 AGENTS 移除网络规则
   --no-instructions  不生成/不检查 AGENTS 等 AI 指令文件（优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
@@ -74,6 +77,9 @@ void main(List<String> argv) {
     ..addFlag('with-map', negatable: false)
     ..addFlag('ui', negatable: true, defaultsTo: true)
     ..addFlag('async', negatable: true, defaultsTo: true)
+    ..addFlag('form', negatable: true, defaultsTo: true)
+    ..addFlag('app', negatable: true, defaultsTo: true)
+    ..addFlag('api', negatable: true, defaultsTo: true)
     ..addFlag('instructions', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
@@ -130,6 +136,15 @@ void main(List<String> argv) {
       }
       if (args.wasParsed('async')) {
         features = features.copyWith(asyncFeature: args['async'] as bool);
+      }
+      if (args.wasParsed('form')) {
+        features = features.copyWith(form: args['form'] as bool);
+      }
+      if (args.wasParsed('app')) {
+        features = features.copyWith(app: args['app'] as bool);
+      }
+      if (args.wasParsed('api')) {
+        features = features.copyWith(api: args['api'] as bool);
       }
       if (args['with-map'] as bool) {
         features = features.copyWith(map: true);

@@ -53,6 +53,28 @@ banned:
     expect(agents, contains('Baz.bar'));
   });
 
+  test('init 支持 --no-form / --no-app / --no-api', () async {
+    final root = _project();
+    expect(
+      (await _run('init.dart', [
+        '--root',
+        root.path,
+        '--no-form',
+        '--no-app',
+        '--no-api',
+      ])).exitCode,
+      0,
+    );
+    final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+    expect(toolkit, isNot(contains("package:w_tools_form")));
+    expect(toolkit, isNot(contains("package:w_tools_app")));
+    expect(toolkit, isNot(contains("package:w_tools_api")));
+    final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+    expect(agents, isNot(contains('WFormTextField')));
+    expect(agents, isNot(contains('WApp.start')));
+    expect(agents, isNot(contains('DioRegistry')));
+  });
+
   test('init --no-ui 不生成 UI 文件', () async {
     final root = _project();
     expect((await _run('init.dart', ['--root', root.path, '--no-ui'])).exitCode, 0);
@@ -219,6 +241,14 @@ banned:
     expect(r.exitCode, 2);
     expect('${r.stderr}', contains('.w_tools_doctor.yaml'));
     expect('${r.stderr}', isNot(contains('pubspec.yaml')));
+  });
+
+  test('context 对坏 pubspec.lock 报 lock 文件名', () async {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.lock')).writeAsStringSync('packages: [');
+    final r = await _run('context.dart', ['--root', root.path]);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('pubspec.lock'));
   });
 
   test('explain --root 读取项目 banned', () async {

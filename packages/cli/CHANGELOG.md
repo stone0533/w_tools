@@ -10,6 +10,7 @@
 - R9 预编译 regex / 缓存 glob；banned 文档说明文本级匹配边界。
 - AGENTS 模板按 app / form / api / async 能力裁剪；ui README 图片示例改用 `WImage.asset`。
 - `context` 区分 pubspec / doctor 配置解析错误，并按项目类型输出 `flutter` / `dart` 命令；`explain` 支持 `--root` 并兜底坏配置。
+- 新增 init 单项开关 `--no-form` / `--no-app` / `--no-api`；区分 pubspec.lock 解析错误。
 
 ### Changed
 - 消费方 AGENTS 模板补充 `WTextVariant` 不够用时的处理顺序：先 `variant + style`，项目内重复抽本地 helper，稳定跨页面语义再提库内 variant。
