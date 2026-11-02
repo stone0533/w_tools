@@ -43,6 +43,7 @@ dart run w_tools_figma:figma diff <fileKey> <nodeId>
 - **`spec --json` 是 Markdown 载体**，不是结构化字段树。
 - **token 只放 `.figma-token`**；不要打印、不要提交。
 - 输出 JSON 时用 `--json`，不要解析人读文本。
+- JSON schema 在 `packages/figma/schema/`；schema 名称与 `--json` 输出的 `schema` 字段一致。
 
 ## 额度
 

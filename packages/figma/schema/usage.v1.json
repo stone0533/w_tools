@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/stone0533/w_tools/blob/main/packages/figma/schema/usage.v1.json",
+  "title": "w_tools_figma.usage/1",
+  "type": "object",
+  "required": [
+    "schema",
+    "month",
+    "used",
+    "limit",
+    "remaining",
+    "recent"
+  ],
+  "properties": {
+    "schema": {
+      "const": "w_tools_figma.usage/1"
+    },
+    "month": {
+      "type": "string"
+    },
+    "used": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "remaining": {
+      "type": "integer"
+    },
+    "recent": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "at",
+          "kind",
+          "cache"
+        ],
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "cache": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

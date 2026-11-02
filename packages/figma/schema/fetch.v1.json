@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/stone0533/w_tools/blob/main/packages/figma/schema/fetch.v1.json",
+  "title": "w_tools_figma.fetch/1",
+  "type": "object",
+  "required": [
+    "schema",
+    "cacheFile",
+    "fromCache",
+    "tierCalls"
+  ],
+  "properties": {
+    "schema": {
+      "const": "w_tools_figma.fetch/1"
+    },
+    "cacheFile": {
+      "type": "string"
+    },
+    "fromCache": {
+      "type": "boolean"
+    },
+    "tierCalls": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "stale": {
+      "type": "boolean"
+    },
+    "cachedVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "latestVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

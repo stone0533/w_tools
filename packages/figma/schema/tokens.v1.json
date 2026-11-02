@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/stone0533/w_tools/blob/main/packages/figma/schema/tokens.v1.json",
+  "title": "w_tools_figma.tokens/1",
+  "type": "object",
+  "required": [
+    "schema",
+    "source",
+    "nodeIds",
+    "counts",
+    "markdown"
+  ],
+  "properties": {
+    "schema": {
+      "const": "w_tools_figma.tokens/1"
+    },
+    "source": {
+      "type": "string"
+    },
+    "nodeIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "colors",
+        "texts",
+        "radii",
+        "spacings"
+      ],
+      "properties": {
+        "colors": {
+          "type": "integer"
+        },
+        "texts": {
+          "type": "integer"
+        },
+        "radii": {
+          "type": "integer"
+        },
+        "spacings": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": true
+    },
+    "markdown": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

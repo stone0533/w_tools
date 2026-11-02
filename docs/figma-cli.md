@@ -39,7 +39,7 @@
 | 参数 | 说明 |
 | --- | --- |
 | `--root=<dir>` | 项目根（默认当前目录）；token / 缓存都相对它解析 |
-| `--json` | 机器可读输出（见 §3 各命令的 schema） |
+| `--json` | 机器可读输出（schema 文件见 [`packages/figma/schema/`](../packages/figma/schema/)） |
 | `--refresh` | `fetch` 删除对应缓存并强制重拉（**唯一会绕过缓存的开关**） |
 | `--no-log` | 本次不写用量日志（调试用） |
 | `--file=<path>` | `spec` / `tokens` 指定缓存节点树 JSON；不是 fileKey |

@@ -148,6 +148,17 @@ w_tools_figma.usage/1
 w_tools_figma.budget/1
 ```
 
+schema 文件在 [`schema/`](schema/)，包含：
+
+```text
+fetch.v1.json
+spec.v1.json
+tokens.v1.json
+diff.v1.json
+usage.v1.json
+budget.v1.json
+```
+
 `spec --json` 当前是：
 
 ```json

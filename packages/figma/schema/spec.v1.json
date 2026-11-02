@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/stone0533/w_tools/blob/main/packages/figma/schema/spec.v1.json",
+  "title": "w_tools_figma.spec/1",
+  "type": "object",
+  "required": [
+    "schema",
+    "source",
+    "nodeId",
+    "markdown"
+  ],
+  "properties": {
+    "schema": {
+      "const": "w_tools_figma.spec/1"
+    },
+    "source": {
+      "type": "string"
+    },
+    "nodeId": {
+      "type": "string"
+    },
+    "markdown": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
