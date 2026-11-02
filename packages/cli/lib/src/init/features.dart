@@ -1,6 +1,28 @@
 /// init 的能力组合。profile 只决定默认集合；CLI 参数可以再覆盖单项。
 enum InitProfile { minimal, ui, api, full }
 
+enum InitFeature { app, form, ui, api, toast, qr, map, asyncFeature }
+
+/// feature 的 CLI 元数据；parser / help / 文档都从这里取。
+class InitFeatureSpec {
+  const InitFeatureSpec(this.feature, this.flag, this.label);
+
+  final InitFeature feature;
+  final String flag;
+  final String label;
+}
+
+const initFeatureSpecs = <InitFeatureSpec>[
+  InitFeatureSpec(InitFeature.app, 'app', '导出 w_tools_app'),
+  InitFeatureSpec(InitFeature.form, 'form', '导出 w_tools_form'),
+  InitFeatureSpec(InitFeature.ui, 'ui', '导出 w_tools_ui 与页面规范'),
+  InitFeatureSpec(InitFeature.api, 'api', '导出 w_tools_api'),
+  InitFeatureSpec(InitFeature.toast, 'toast', '导出 w_tools_toast'),
+  InitFeatureSpec(InitFeature.qr, 'qr', '导出 w_tools_qr'),
+  InitFeatureSpec(InitFeature.map, 'map', '导出 w_tools_map（原生依赖）'),
+  InitFeatureSpec(InitFeature.asyncFeature, 'async', '导出 w_tools_async'),
+];
+
 class InitFeatures {
   const InitFeatures({
     this.core = true,
@@ -56,6 +78,28 @@ class InitFeatures {
       InitProfile.full => full,
     };
   }
+
+  bool isEnabled(InitFeature feature) => switch (feature) {
+    InitFeature.app => app,
+    InitFeature.form => form,
+    InitFeature.ui => ui,
+    InitFeature.api => api,
+    InitFeature.toast => toast,
+    InitFeature.qr => qr,
+    InitFeature.map => map,
+    InitFeature.asyncFeature => asyncFeature,
+  };
+
+  InitFeatures withFeature(InitFeature feature, bool value) => switch (feature) {
+    InitFeature.app => copyWith(app: value),
+    InitFeature.form => copyWith(form: value),
+    InitFeature.ui => copyWith(ui: value),
+    InitFeature.api => copyWith(api: value),
+    InitFeature.toast => copyWith(toast: value),
+    InitFeature.qr => copyWith(qr: value),
+    InitFeature.map => copyWith(map: value),
+    InitFeature.asyncFeature => copyWith(asyncFeature: value),
+  };
 
   InitFeatures copyWith({
     bool? core,

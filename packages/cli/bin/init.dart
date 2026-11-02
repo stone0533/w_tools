@@ -36,10 +36,11 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --json         输出机器可读结果（CI / AI 用）
   --force        覆盖已存在的不同文件（默认不动）
   --profile=<p>  minimal | ui | api | full（默认 full）
-                 profile 决定基础能力；--ui/--no-ui/--no-qr/--with-map 覆盖单项
+                 profile 决定基础能力；--<feature> / --no-<feature> 覆盖单项
                  minimal / api 不生成 lib/app/ui
   --no-qr        不导出 w_tools_qr（--profile=full 时默认导出）
-  --with-map     导出 w_tools_map（会引入 google_maps_flutter）
+  --map / --no-map   是否引入 w_tools_map（默认关，会引入 google_maps_flutter）
+  --with-map         兼容别名，等同 --map
   --no-ui        不生成 lib/app/ui 与 design_system 规范，也不导出 w_tools_ui
   --no-async     不导出 w_tools_async（full profile 默认导出）
   --no-form      不导出 w_tools_form，并从 AGENTS 移除表单规则
@@ -74,17 +75,13 @@ void main(List<String> argv) {
       defaultsTo: 'full',
       allowed: <String>['minimal', 'ui', 'api', 'full'],
     )
-    ..addFlag('qr', negatable: true, defaultsTo: true)
     ..addFlag('with-map', negatable: false)
-    ..addFlag('ui', negatable: true, defaultsTo: true)
-    ..addFlag('async', negatable: true, defaultsTo: true)
-    ..addFlag('form', negatable: true, defaultsTo: true)
-    ..addFlag('app', negatable: true, defaultsTo: true)
-    ..addFlag('api', negatable: true, defaultsTo: true)
-    ..addFlag('toast', negatable: true, defaultsTo: true)
     ..addFlag('instructions', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
+  for (final spec in initFeatureSpecs) {
+    parser.addFlag(spec.flag, negatable: true, defaultsTo: false, help: spec.label);
+  }
 
   runCli(
     argv,
@@ -129,30 +126,22 @@ void main(List<String> argv) {
       final profile = InitProfile.values.firstWhere(
         (p) => p.name == args['profile'],
       );
+      if (argv.contains('--map') && argv.contains('--no-map')) {
+        stderr.writeln('--map 与 --no-map 不能同时使用');
+        exit(2);
+      }
       var features = InitFeatures.forProfile(profile);
-      if (args.wasParsed('ui')) {
-        features = features.copyWith(ui: args['ui'] as bool);
-      }
-      if (args.wasParsed('qr')) {
-        features = features.copyWith(qr: args['qr'] as bool);
-      }
-      if (args.wasParsed('async')) {
-        features = features.copyWith(asyncFeature: args['async'] as bool);
-      }
-      if (args.wasParsed('form')) {
-        features = features.copyWith(form: args['form'] as bool);
-      }
-      if (args.wasParsed('app')) {
-        features = features.copyWith(app: args['app'] as bool);
-      }
-      if (args.wasParsed('api')) {
-        features = features.copyWith(api: args['api'] as bool);
-      }
-      if (args.wasParsed('toast')) {
-        features = features.copyWith(toast: args['toast'] as bool);
+      for (final spec in initFeatureSpecs) {
+        if (args.wasParsed(spec.flag)) {
+          features = features.withFeature(spec.feature, args[spec.flag] as bool);
+        }
       }
       if (args['with-map'] as bool) {
-        features = features.copyWith(map: true);
+        if (args.wasParsed('map') && args['map'] == false) {
+          stderr.writeln('--with-map 与 --no-map 不能同时使用');
+          exit(2);
+        }
+        features = features.withFeature(InitFeature.map, true);
       }
       final report = runInit(
         root,

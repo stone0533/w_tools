@@ -18,16 +18,7 @@ class InitTemplates {
   /// 聚合入口模板：剔除带 `@optional:qr` / `@optional:map` 标记的行。
   static String toolkit({required InitFeatures features}) {
     final out = <String>[];
-    final enabled = <String>{
-      if (features.app) 'app',
-      if (features.form) 'form',
-      if (features.ui) 'ui',
-      if (features.api) 'api',
-      if (features.toast) 'toast',
-      if (features.qr) 'qr',
-      if (features.map) 'map',
-      if (features.asyncFeature) 'async',
-    };
+    final enabled = features.enabled.toSet();
     for (final line in generated.toolkitTemplate.split('\n')) {
       final match = RegExp(r'@optional:([a-z]+)').firstMatch(line);
       if (match != null && !enabled.contains(match.group(1))) continue;

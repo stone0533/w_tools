@@ -75,6 +75,33 @@ banned:
     expect(agents, isNot(contains('DioRegistry')));
   });
 
+  test('init map 参数统一为 --map / --no-map / --with-map 别名', () async {
+    final mapRoot = _project();
+    expect((await _run('init.dart', ['--root', mapRoot.path, '--map'])).exitCode, 0);
+    expect(
+      File(p.join(mapRoot.path, 'lib/app/w/toolkit.dart')).readAsStringSync(),
+      contains('package:w_tools_map'),
+    );
+
+    final noMapRoot = _project();
+    expect((await _run('init.dart', ['--root', noMapRoot.path, '--no-map'])).exitCode, 0);
+    expect(
+      File(p.join(noMapRoot.path, 'lib/app/w/toolkit.dart')).readAsStringSync(),
+      isNot(contains('package:w_tools_map')),
+    );
+
+    final aliasRoot = _project();
+    expect((await _run('init.dart', ['--root', aliasRoot.path, '--with-map'])).exitCode, 0);
+    expect(
+      File(p.join(aliasRoot.path, 'lib/app/w/toolkit.dart')).readAsStringSync(),
+      contains('package:w_tools_map'),
+    );
+
+    final conflict = await _run('init.dart', ['--root', aliasRoot.path, '--map', '--no-map']);
+    expect(conflict.exitCode, 2);
+    expect('${conflict.stderr}', contains('不能同时'));
+  });
+
   test('init --no-toast 不导出 toast，也不生成轻提示规则', () async {
     final root = _project();
     expect((await _run('init.dart', ['--root', root.path, '--no-toast'])).exitCode, 0);

@@ -96,7 +96,9 @@ dart run w_tools_cli:init --no-app
 dart run w_tools_cli:init --no-api
 dart run w_tools_cli:init --no-toast
 dart run w_tools_cli:init --no-qr
-dart run w_tools_cli:init --with-map   # 会引入 google_maps_flutter
+dart run w_tools_cli:init --map         # 会引入 google_maps_flutter
+dart run w_tools_cli:init --no-map      # 显式关闭（默认关）
+# --with-map 仍可用，等同 --map
 ```
 
 ### 指令文件目标
