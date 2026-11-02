@@ -75,7 +75,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.7.1
+  w_tools_cli: ^1.7.2
 ```
 
 ```bash
@@ -115,6 +115,7 @@ dart run w_tools_cli:doctor --write-config    # 写到 .w_tools_doctor.yaml（�
 
 `init` 也会顺手生成这个文件（带注释的默认配置，值与内置默认一致）。
 常见调整：`colors.palette` 填项目语义色（不填则 R3 跳过）、`rules.R6: true` 打开禁用单位检查；
+`ai.figma: auto` 让 `init` 根据 pubspec 是否依赖 `w_tools_figma` 自动生成 Figma 片段（也可设 true/false）；
 
 ### 项目禁用 API（R9）
 

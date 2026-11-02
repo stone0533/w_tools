@@ -3,7 +3,7 @@
 需要从设计稿取规格 / token 时使用 `w_tools_figma`：
 
 ```bash
-dart pub add dev:w_tools_figma:^0.3.0
+dart pub add dev:w_tools_figma:{{figmaConstraint}}
 dart run w_tools_figma:figma init
 export FIGMA_TOKEN=figd_xxx
 # 或把 token 写入 .figma-token
@@ -26,5 +26,4 @@ dart run w_tools_cli:list <关键词>
 dart run w_tools_cli:explain <组件名>
 ```
 
-{{figmaComponentRules}}
 - 不要凭记忆造 `W*` 组件名；实现后跑 `dart run w_tools_cli:doctor`。

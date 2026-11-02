@@ -8,7 +8,7 @@ import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
 import 'package:w_tools_cli/src/init/targets.dart';
-import 'package:yaml/yaml.dart' show YamlException;
+import 'package:yaml/yaml.dart' show YamlException, YamlMap, loadYaml;
 
 const _usage = '''
 w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
@@ -67,6 +67,35 @@ String _buildUsage() {
       '  ${pairs[i].padRight(width)}  ${initFeatureSpecs[i].label}',
   ].join('\n');
   return _usage.replaceAll('{{features}}', features);
+}
+
+bool _hasFigmaDependency(Directory root) {
+  final file = File('${root.path}/pubspec.yaml');
+  if (!file.existsSync()) return false;
+  try {
+    final raw = loadYaml(file.readAsStringSync());
+    for (final key in const <String>['dependencies', 'dev_dependencies']) {
+      final deps = raw is YamlMap ? raw[key] : null;
+      if (deps is YamlMap && deps.containsKey('w_tools_figma')) return true;
+    }
+  } on YamlException {
+    return false;
+  }
+  return false;
+}
+
+bool _resolveFigma(
+  Directory root,
+  DoctorConfig config, {
+  required bool explicit,
+  required bool flag,
+}) {
+  if (explicit) return flag;
+  return switch (config.aiFigma) {
+    'true' => true,
+    'false' => false,
+    _ => _hasFigmaDependency(root),
+  };
 }
 
 void main(List<String> argv) {
@@ -158,6 +187,12 @@ void main(List<String> argv) {
         }
         features = features.withFeature(InitFeature.map, true);
       }
+      final figmaEnabled = _resolveFigma(
+        root,
+        config,
+        explicit: args.wasParsed('figma'),
+        flag: args['figma'] as bool,
+      );
       final report = runInit(
         root,
         force: args['force'] as bool,
@@ -165,7 +200,7 @@ void main(List<String> argv) {
         features: features,
         targets: targets,
         lang: lang,
-        figma: args['figma'] as bool,
+        figma: figmaEnabled,
       );
 
       if (args['json'] as bool) {
@@ -177,7 +212,7 @@ void main(List<String> argv) {
             'profile': profile.name,
             'targets': sortedTargets,
             'features': features.toJson(),
-            'figma': args['figma'] as bool,
+            'figma': figmaEnabled,
             'created': report.created,
             'upToDate': report.upToDate,
             'drift': report.drift,
@@ -191,7 +226,7 @@ void main(List<String> argv) {
         print('w_tools_cli init${check ? '（check 模式，不写文件）' : ''} · ${root.path}');
         print('profile: ${profile.name}');
         print('features: ${features.summary}');
-        print('figma: ${args['figma'] as bool ? 'yes' : 'no'}');
+        print('figma: ${figmaEnabled ? 'yes' : 'no'}');
         print('targets: ${sortedTargets.isEmpty ? '（无）' : sortedTargets.join(', ')}');
         print('━' * 56);
         for (final f in report.created) {

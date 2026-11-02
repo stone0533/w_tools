@@ -118,6 +118,41 @@ banned:
     );
   });
 
+  test('init 自动检测 pubspec 的 w_tools_figma', () async {
+    final root = _project();
+    final pubspec = File(p.join(root.path, 'pubspec.yaml'));
+    pubspec.writeAsStringSync(
+      '${pubspec.readAsStringSync()}dev_dependencies:\n  w_tools_figma: ^0.3.0\n',
+    );
+    final r = await _run('init.dart', ['--root', root.path, '--json']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final payload = jsonDecode('${r.stdout}') as Map<String, dynamic>;
+    expect(payload['figma'], isTrue);
+    expect(
+      File(p.join(root.path, 'AGENTS.md')).readAsStringSync(),
+      contains('w_tools_figma'),
+    );
+  });
+
+  test('ai.figma: false 阻止自动生成', () async {
+    final root = _project();
+    final pubspec = File(p.join(root.path, 'pubspec.yaml'));
+    pubspec.writeAsStringSync(
+      '${pubspec.readAsStringSync()}dev_dependencies:\n  w_tools_figma: ^0.3.0\n',
+    );
+    File(p.join(root.path, '.w_tools_doctor.yaml')).writeAsStringSync(
+      'ai:\n  figma: false\n',
+    );
+    final r = await _run('init.dart', ['--root', root.path, '--json']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final payload = jsonDecode('${r.stdout}') as Map<String, dynamic>;
+    expect(payload['figma'], isFalse);
+    expect(
+      File(p.join(root.path, 'AGENTS.md')).readAsStringSync(),
+      isNot(contains('w_tools_figma')),
+    );
+  });
+
   test('init --figma / --no-figma 冲突', () async {
     final root = _project();
     final r = await _run('init.dart', ['--root', root.path, '--figma', '--no-figma']);

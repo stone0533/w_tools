@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.2
+
+### Added
+- `.w_tools_doctor.yaml` 的 `ai.figma: auto|true|false`；`init` 自动检测 pubspec 的 `w_tools_figma`，避免不带 `--figma` 时删除 Figma 片段。
+
+### Changed
+- `--figma` 片段不再重复 UI / form 组件规则；版本约束收敛到单一常量。
+
 ## 1.7.1
 
 ### Changed

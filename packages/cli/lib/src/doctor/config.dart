@@ -23,6 +23,7 @@ class DoctorConfig {
     this.banned = const <BannedRule>[],
     this.aiTargets = const <String>['agents'],
     this.aiLanguage = 'zh',
+    this.aiFigma = 'auto',
   });
 
   /// R2 的白名单：这个文件里允许 import 子包（它就是聚合入口）
@@ -48,6 +49,10 @@ class DoctorConfig {
 
   /// init 默认语言：zh / en
   final String aiLanguage;
+
+  /// init 是否生成 Figma 片段：auto / true / false。
+  /// auto 时由项目 pubspec 是否依赖 w_tools_figma 决定。
+  final String aiFigma;
 
   /// 配置文件名（项目根）
   static const fileName = '.w_tools_doctor.yaml';
@@ -152,12 +157,19 @@ class DoctorConfig {
     final ignoreNode = raw['ignore'];
     var aiTargets = const <String>['agents'];
     var aiLanguage = 'zh';
+    var aiFigma = 'auto';
     final aiNode = raw['ai'];
     if (aiNode is YamlMap) {
       final t = aiNode['targets'];
       if (t is YamlList) aiTargets = t.map((e) => '$e').toList();
       final l = aiNode['language'];
       if (l is String) aiLanguage = l;
+      final f = aiNode['figma'];
+      if (f is bool) {
+        aiFigma = f ? 'true' : 'false';
+      } else if (f is String && const <String>{'auto', 'true', 'false'}.contains(f)) {
+        aiFigma = f;
+      }
     }
 
     return DoctorConfig(
@@ -169,6 +181,7 @@ class DoctorConfig {
       banned: banned,
       aiTargets: aiTargets,
       aiLanguage: aiLanguage,
+      aiFigma: aiFigma,
     );
   }
 
@@ -181,6 +194,7 @@ class DoctorConfig {
     List<BannedRule>? banned,
     List<String>? aiTargets,
     String? aiLanguage,
+    String? aiFigma,
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
@@ -191,6 +205,7 @@ class DoctorConfig {
       banned: banned ?? this.banned,
       aiTargets: aiTargets ?? this.aiTargets,
       aiLanguage: aiLanguage ?? this.aiLanguage,
+      aiFigma: aiFigma ?? this.aiFigma,
     );
   }
 }
@@ -222,6 +237,8 @@ String renderDefaultConfig() {
     ..writeln('  # init 生成哪些指令文件：agents / claude / cursor / copilot')
     ..writeln('  # targets: [agents, claude]')
     ..writeln('  # language: en')
+    ..writeln('  figma: ${defaults.aiFigma}')
+    ..writeln('  # auto: pubspec 依赖 w_tools_figma 时生成 Figma 片段；也可设为 true/false')
     ..writeln()
     ..writeln('# 跳过的路径前缀（相对项目根）')
     ..writeln('ignore: []')

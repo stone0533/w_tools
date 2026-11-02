@@ -13,6 +13,9 @@ import 'templates.g.dart' as generated;
 /// `Isolate.resolvePackageUri` 在 flutter_test 里会抛 `Unsupported operation`，
 /// 消费方执行 `dart run w_tools_cli:init` 时也可能拿不到可靠路径。
 /// 生成物由 `test/templates_fresh_test.dart` 挡住漂移。
+/// 消费方安装 w_tools_figma 的约束；发布 figma 新版本时只改这里。
+const String figmaConstraint = '^0.3.0';
+
 class InitTemplates {
   InitTemplates._();
 
@@ -58,37 +61,6 @@ class InitTemplates {
       for (final rule in doctorRules) '| ${rule.id} | ${en ? rule.summaryEn : rule.summaryZh} |',
     ];
     return <String>[header, divider, ...rows].join('\n');
-  }
-
-  static String _figmaComponentRules({
-    required bool en,
-    required bool withUi,
-    required bool withForm,
-  }) {
-    final lines = <String>[];
-    if (withUi) {
-      lines.add(
-        en
-            ? '- Use `AppScaffold` for page shells, `WText` for text, `WImage` for images, '
-                  '`WButton` for actions, and `WSizeBox` / `WPadding` for spacing.'
-            : '- 页面骨架用 `AppScaffold`，文本用 `WText`，图片用 `WImage`，'
-                  '动作按钮用 `WButton`，间距用 `WSizeBox` / `WPadding`。',
-      );
-    } else {
-      lines.add(
-        en
-            ? '- Use only components exported by the project toolkit; do not assume '
-                  '`AppScaffold` / `WText` / `WImage` are available in this profile.'
-            : '- 只使用项目 toolkit 已导出的组件；当前 profile 不要假设有 '
-                  '`AppScaffold` / `WText` / `WImage`。',
-      );
-    }
-    if (withForm) {
-      lines.add(
-        en ? '- Use `WForm` + direct fields for forms.' : '- 表单用 `WForm` + 直接字段。',
-      );
-    }
-    return lines.join('\n');
   }
 
   static String agentsBlock({
@@ -157,11 +129,8 @@ class InitTemplates {
         .join('\n\n')
         .replaceAll('{{version}}', cliVersion)
         .replaceAll('{{app}}', app)
+        .replaceAll('{{figmaConstraint}}', figmaConstraint)
         .replaceAll('{{doctorRules}}', _doctorRuleTable(en))
-        .replaceAll(
-          '{{figmaComponentRules}}',
-          _figmaComponentRules(en: en, withUi: withUi, withForm: withForm),
-        )
         .trimRight();
   }
 }
