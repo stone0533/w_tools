@@ -31,7 +31,7 @@
 | --- | --- | --- | --- |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义时用 `WButton` |
-| `WRowButtons` | ui | 一行多个按钮 | — |
+| `WRowButtons` | ui | 一排可选中按钮（分段选择，由 controller 维护选中） | 纯动作按钮行（取消/确定）用 `Row` + `WButton`；它点击必选中 |
 | `WBadge` | ui | 角标数字 | — |
 
 ## 4. 布局与容器
