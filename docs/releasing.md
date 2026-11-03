@@ -78,6 +78,9 @@ dart run w_tools_cli:init --check-drift
 - **map**：真机打开地图 → 选中 marker（相机 + InfoWindow）→ 关闭 → 退出页面（无 controller 悬空）；
 - **消费方**：临时 app 用 `path:` 依赖 9 个子包，跑一屏「按钮 + 图片 + 表单 + async + toast」，
   确认 `flutter analyze` 与运行都正常（参考 `docs/migrations/README.md` 的版本约束）。
+- **发布形态冒烟**：`scripts/publish_package.sh packages/<pkg> --stage-only` 生成暂存副本，
+  临时 app 用 `path:` + `dependency_overrides` 指向这些副本（去掉 workspace），
+  `flutter pub get && flutter analyze` —— 验证真正会发布出去的文件，而不是仓库内形态。
 
 ## 为什么用 `publish_package.sh` 而不是直接 `flutter pub publish`
 

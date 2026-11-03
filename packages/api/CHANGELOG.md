@@ -8,6 +8,7 @@
 
 ### Added
 - `WLogPart` + `WLogInterceptor(parts: ...)`：按片段控制日志输出。
+- 重导出公开 API 用到的 dio 类型（`BaseOptions` / `Dio` / `Response` / `Options` / `Interceptor` 等），消费方无需再单独依赖 dio。
 
 ### Deprecated（5.0 移除）
 - `WLogInterceptor` 的 `request` / `requestHeader` / `requestBody` / `responseHeader` /

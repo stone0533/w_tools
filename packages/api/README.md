@@ -65,6 +65,9 @@ final registry = DioRegistry.forBaseUrl(
 );
 ```
 
+> `w_tools_api` 重导出公开 API 用到的 dio 类型（`BaseOptions` / `Dio` / `Response` / `Options` /
+> `Interceptor` 等），不需要再单独依赖 dio。
+
 ## 主要 API
 
 | 能力 | 入口 |
