@@ -39,10 +39,16 @@ class WMapItemMapper<T> {
   /// 换地图实现时只改这个包。
   final ({double latitude, double longitude}) Function(T item) position;
 
+  /// 该条目是否可以渲染（返回 false 时跳过，不生成 Marker）。
+  ///
+  /// 默认 mapper 会跳过经纬度缺失的条目；自定义 mapper 不传时全部渲染。
+  final bool Function(T item)? isValid;
+
   const WMapItemMapper({
     required this.id,
     required this.position,
     this.name,
+    this.isValid,
   });
 }
 
@@ -59,7 +65,25 @@ WMapItemMapper<T> wMapItemMapper<T>() {
       final it = item as WMapItem;
       return (latitude: it.latitude ?? 0.0, longitude: it.longitude ?? 0.0);
     },
+    // 经纬度缺失的条目不要画到 (0,0)，直接跳过
+    isValid: (item) {
+      final it = item as WMapItem;
+      return it.latitude != null && it.longitude != null;
+    },
   );
+}
+
+/// 默认 mapper 的前置校验：`T` 未实现 [WMapItem] 时给出可读错误，
+/// 而不是在首次渲染时抛裸 `_TypeError`。
+WMapItemMapper<T> _defaultMapper<T>() {
+  if (<T>[] is! List<WMapItem>) {
+    throw ArgumentError(
+      'WMapZone<$T> 没有传 mapper，且 $T 未实现 WMapItem。'
+      '请传 WMapZone(mapper: WMapItemMapper(id: ..., position: ...))；'
+      'json_serializable 生成的模型只能用这种方式。',
+    );
+  }
+  return wMapItemMapper<T>();
 }
 
 /// 资产图标缓存：`asset@imagePixelRatio` -> 解码结果。
@@ -150,6 +174,11 @@ class WMapZone<T> {
   /// 初始相机位置（maps 为空时为 null，[WMap] 会提供默认位置）
   CameraPosition? cameraPosition;
 
+  /// 没有可渲染条目时的初始相机（例如先显示城市中心，等数据回来再移动）
+  ///
+  /// 未设置时保持历史行为：[WMap] 回落到 `(0,0)/zoom 1`。
+  final CameraPosition? initialCamera;
+
   /// Marker 图标（为 null 时使用默认图标）
   BitmapDescriptor? icon;
 
@@ -201,8 +230,9 @@ class WMapZone<T> {
     this.imagePixelRatio = 1.0,
     this.iconBuilder,
     this.defaultZoom = 11,
+    this.initialCamera,
     WMapItemMapper<T>? mapper,
-  }) : mapper = mapper ?? wMapItemMapper<T>() {
+  }) : mapper = mapper ?? _defaultMapper<T>() {
     initMap();
   }
 
@@ -261,7 +291,10 @@ class WMapZone<T> {
   /// 若 [maps] 为空，[cameraPosition] 保持为 null。
   void initMap() {
     markers.clear();
+    final renderable = <T>[];
     maps?.forEach((element) {
+      if (mapper.isValid?.call(element) == false) return;
+      renderable.add(element);
       markers.add(
         Marker(
           markerId: MarkerId(mapper.id(element)),
@@ -276,14 +309,14 @@ class WMapZone<T> {
         ),
       );
     });
-    final first = maps?.firstOrNull;
+    final first = renderable.firstOrNull;
     if (first != null) {
       cameraPosition = CameraPosition(
         target: _latLngOf(first),
         zoom: defaultZoom,
       );
     } else {
-      cameraPosition = null;
+      cameraPosition = initialCamera;
     }
     for (final listener in List<void Function()>.of(_onDataUpdatedListeners)) {
       listener();

@@ -189,13 +189,20 @@ void main() {
       expect(zone.markers.first.icon, BitmapDescriptor.defaultMarker);
     });
 
-    test('null lat/lng → Marker position (0.0, 0.0)', () {
+    test('null lat/lng → 跳过该条目，不再落到 (0.0, 0.0)', () {
       const item = _TestMapItem(id: 'nolate', latitude: null, longitude: null);
       final zone = WMapZone<_TestMapItem>(maps: [item]);
-      final marker = zone.markers.first;
-      expect(marker.position.latitude, 0.0);
-      expect(marker.position.longitude, 0.0);
-      expect(zone.cameraPosition!.target.latitude, 0.0);
+      expect(zone.markers, isEmpty);
+      expect(zone.cameraPosition, isNull);
+    });
+
+    test('null lat/lng + initialCamera → 相机落在 initialCamera', () {
+      const item = _TestMapItem(id: 'nolate', latitude: null, longitude: null);
+      const camera = CameraPosition(target: LatLng(31.2, 121.4), zoom: 9);
+      final zone = WMapZone<_TestMapItem>(maps: [item], initialCamera: camera);
+      expect(zone.markers, isEmpty);
+      expect(zone.cameraPosition!.target.latitude, 31.2);
+      expect(zone.cameraPosition!.zoom, 9);
     });
 
     test('icon 为 null → Marker.icon = BitmapDescriptor.defaultMarker', () {
