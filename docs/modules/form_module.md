@@ -247,7 +247,8 @@ final config = WFormTextFieldConfig()
   字段 Config 实现。
 
 字段 Config 不再提供 Builder。`WFormBorderConfig` 仍为不可变配置，保留
-`WFormBorderConfigBuilder` 用于构建和清空边框字段；它不是字段 Config 的
+`WFormBorderConfigBuilder` **已弃用（4.0 移除）**，直接用 `WFormBorderConfig(...)` /
+`copyWith`；它不是字段 Config 的
 Builder，字段侧不要重新引入 `buildConfig()`。
 
 ## 3.6 直接字段与 WForm
@@ -389,7 +390,7 @@ WFormBorderDecoration decoration = const WFormBorderDecoration()
 ### 4.2 WFormBorderConfig
 
 边框配置类，**不内置任何默认装饰**（全部为 null），外观完全由调用方决定。
-本类不可变；需要链式修改时使用 `WFormBorderConfig.builder()`。
+本类不可变；需要链式修改时用 `copyWith`（`builder()` 已弃用，4.0 移除）。
 
 常用场景可直接用工厂：
 
@@ -409,7 +410,7 @@ final config = WFormBorderConfig.standard(radius: 12);
 | `errorBuilder` | `Widget Function(List<String>?)?` | 错误文本构建器 |
 | `layout` | `WFormBorderLayout` | 边框与消息的布局策略（默认 `WFormBorderLayout.column`） |
 
-> **注意**：配置不可变。替换实例（`cfg = cfg.copyWith(...)`）后生效；需要清空字段时使用 `WFormBorderConfig.builder()` 或 `copyWith` 的显式构造，不再支持原地 setter。
+> **注意**：配置不可变。替换实例（`cfg = cfg.copyWith(...)`）后生效；需要清空字段时用 `copyWith` 的显式构造或新建实例，不再支持原地 setter。
 
 ### 4.3 WFormFieldShell
 
@@ -429,7 +430,8 @@ final config = WFormBorderConfig.standard(radius: 12);
 同时提供 `Row` 扩展：
 
 ```dart
-Row(children: [...]).withFormBorder(name: 'username', readOnly: false)
+WFormFieldShell(name: 'username', readOnly: false, child: Row(children: [...]))
+// 旧写法 Row(...).withFormBorder(...) 已弃用，4.0 移除
 ```
 
 ### 4.4 WFormReadOnlyScope

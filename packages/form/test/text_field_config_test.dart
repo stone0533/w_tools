@@ -63,21 +63,38 @@ void main() {
     testWidgets('build 传递 hintText / onChanged / onSubmitted', (tester) async {
       final config = WFormTextFieldConfig();
 
-      final textField =
-          config.build(
-                name: 'test',
-                hintText: '请输入',
-                onChanged: (_) {},
-                onSubmitted: (_) {},
-                initialValue: 'hello',
-                readOnly: true,
-              )
-              as WFormTextFieldCore;
+      final widget = config.build(
+        name: 'test',
+        hintText: '请输入',
+        onChanged: (_) {},
+        onSubmitted: (_) {},
+        initialValue: 'hello',
+        readOnly: true,
+      );
+      // readOnly 时外层包一层只读作用域
+      final textField = (widget as WFormReadOnlyScope).child as WFormTextFieldCore;
 
       expect(textField.name, 'test');
       expect(textField.hintText, '请输入');
       expect(textField.readOnly, true);
       expect(textField.initialValue, 'hello');
+    });
+
+    testWidgets('build(bordered: false, readOnly: true) 下发只读作用域', (tester) async {
+      final config = WFormTextFieldConfig();
+      final widget = config.build(name: 'test', readOnly: true);
+
+      expect(widget, isA<WFormReadOnlyScope>());
+      expect((widget as WFormReadOnlyScope).readOnly, isTrue);
+      expect(widget.child, isA<WFormTextFieldCore>());
+    });
+
+    testWidgets('build(bordered: false) 传 hintTextList 时断言提示', (tester) async {
+      final config = WFormTextFieldConfig();
+      expect(
+        () => config.build(name: 'test', hintTextList: const ['提示']),
+        throwsAssertionError,
+      );
     });
 
     testWidgets('build(bordered: true) 空 name 抛 ArgumentError', (tester) async {

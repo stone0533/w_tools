@@ -84,11 +84,13 @@ void main() {
 
   // ========= form Config =========
   group('WFormBorderConfig', () {
-    test('setter defaultDecoration / errorDecoration 可调用', () {
-      final c = WFormBorderConfig.builder()
-        ..defaultDecoration = const WFormBorderDecoration(color: Colors.grey)
-        ..errorDecoration = const WFormBorderDecoration(color: Colors.red);
-      expect(c, isNotNull);
+    test('defaultDecoration / errorDecoration 可直接构造，并支持 copyWith', () {
+      const c = WFormBorderConfig(
+        defaultDecoration: WFormBorderDecoration(color: Colors.grey),
+        errorDecoration: WFormBorderDecoration(color: Colors.red),
+      );
+      expect(c.defaultDecoration, isNotNull);
+      expect(c.copyWith(errorStyle: const TextStyle(fontSize: 12)).errorStyle, isNotNull);
     });
   });
 

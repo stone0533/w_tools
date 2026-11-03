@@ -51,6 +51,7 @@
 | 4.0d `WForm` 默认 `borderConfig` 切到 `fromTheme` | 完成 | form 3.0.0：默认主题边框 + `showBorderError`；显式 `const WFormBorderConfig()` 关闭外观；`WFormTheme` 优先级改为显式 > 祖先；`WFormBorderConfig`/`Decoration` 补 `==` 并删除快照缓存；根约束 `^3.0.0`、根 example 加 dependency_overrides |
 | 4.1 async 执行核收敛（2.0.0） | 完成 | `WAsyncConfig`→`WAsyncOptions`（纯数据，删 7 个转发）、新增 `WAsyncLoading` 显式合并、方法改名 `retry/timeout/parallel/pool/first/serial`、删除 `WAsyncBuilder`；控制器接 `options` 并取消上次 token |
 | 4.2 async 视图/defaults 合并 | 待做 | `WAsyncViewDefaults` + `WAsyncSliverDefaults` 合成 `WAsyncTheme`；属破坏性改动，留 2.1 |
+| 4.4 form 删 Config 公开层 | 进行中（第一批） | 已弃用 `WFormBorderConfig.builder()` / `WFormBorderConfigBuilder` / `Row.withFormBorder`（4.0 删除）；修掉 `bordered:false` 时 text field 不下发只读作用域、`message` 被静默丢弃。删 7 个 `build()` 与 `*Core` 公开面（需把实现移出 Config，属 4.0 破坏性步骤） |
 
 ## 0. 三条排序原则
 

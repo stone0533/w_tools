@@ -24,26 +24,25 @@ const exampleFieldStyle = WFormFieldStyle(
 );
 
 /// 自定义边框：灰底 + 聚焦绿边 + 错误红边，消息使用自定义前缀。
-final exampleCompactBorderConfig =
-    (WFormBorderConfig.builder()
-          ..defaultDecoration = WFormBorderDecoration(
-            color: const Color(0xFFF9FAFB),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-            borderRadius: BorderRadius.circular(8),
-          )
-          ..focusedDecoration = WFormBorderDecoration(
-            color: Colors.white,
-            border: Border.all(color: const Color(0xFF059669), width: 1.5),
-            borderRadius: BorderRadius.circular(8),
-          )
-          ..errorDecoration = WFormBorderDecoration(
-            color: const Color(0xFFFFF1F2),
-            border: Border.all(color: const Color(0xFFDC2626)),
-            borderRadius: BorderRadius.circular(8),
-          )
-          ..hintBuilder = _buildHint
-          ..errorBuilder = _buildError)
-        .buildConfig();
+final exampleCompactBorderConfig = WFormBorderConfig(
+  defaultDecoration: WFormBorderDecoration(
+    color: const Color(0xFFF9FAFB),
+    border: Border.all(color: const Color(0xFFE5E7EB)),
+    borderRadius: BorderRadius.circular(8),
+  ),
+  focusedDecoration: WFormBorderDecoration(
+    color: Colors.white,
+    border: Border.all(color: const Color(0xFF059669), width: 1.5),
+    borderRadius: BorderRadius.circular(8),
+  ),
+  errorDecoration: WFormBorderDecoration(
+    color: const Color(0xFFFFF1F2),
+    border: Border.all(color: const Color(0xFFDC2626)),
+    borderRadius: BorderRadius.circular(8),
+  ),
+  hintBuilder: _buildHint,
+  errorBuilder: _buildError,
+);
 
 Widget _buildHint(List<String>? list) {
   if (list == null || list.isEmpty) return const SizedBox.shrink();

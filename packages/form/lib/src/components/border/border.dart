@@ -226,6 +226,7 @@ class WFormBorderState extends State<WFormBorder> {
 ///
 /// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
 class WFormBorderConfig {
+  @Deprecated('4.0 移除：直接用 `WFormBorderConfig(...)` 或 `copyWith(...)`')
   static WFormBorderConfigBuilder builder() => WFormBorderConfigBuilder();
 
   final WFormBorderDecoration? defaultDecoration;
@@ -405,6 +406,7 @@ class WFormBorderConfig {
 }
 
 /// [WFormBorderConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
+@Deprecated('4.0 移除：直接用 `WFormBorderConfig(...)` 或 `copyWith(...)`')
 class WFormBorderConfigBuilder {
   WFormBorderDecoration? defaultDecoration;
   WFormBorderDecoration? readOnlyDecoration;

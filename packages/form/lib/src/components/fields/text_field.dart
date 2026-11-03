@@ -315,6 +315,15 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
       focusNode: focusNode,
     );
     if (!bordered) {
+      // 与其它字段一致：无边框时也要下发只读作用域，消费方插槽才能读到
+      if (effectiveReadOnly) {
+        return WFormReadOnlyScope(readOnly: true, child: field);
+      }
+      // message / hintTextList 只由边框渲染；无边框时静默丢弃是陷阱，直接报出来
+      assert(
+        hintTextList == null || hintTextList.isEmpty,
+        'bordered: false 时不会渲染 message / hintTextList；需要提示请保留 bordered，或自行展示。',
+      );
       return field;
     }
     return WFormFieldFrame.border(

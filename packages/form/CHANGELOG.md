@@ -9,6 +9,14 @@
 - `WFormTheme` 的优先级改为「显式参数 > 祖先作用域」：嵌套时里层 `WFormTheme(borderConfig:)`
   或 `WForm(borderConfig:)` 说了算（此前祖先会覆盖显式参数）。
 
+### Deprecated
+- `WFormBorderConfig.builder()` / `WFormBorderConfigBuilder`：4.0 移除，改用 `WFormBorderConfig(...)` / `copyWith`。
+- `Row.withFormBorder(...)`：4.0 移除，改用 `WFormFieldShell(name: ..., child: Row(...))`。
+
+### Fixed
+- `WFormTextFieldConfig.build(bordered: false, readOnly: true)` 现在会插入 `WFormReadOnlyScope`（此前与其它字段不一致，消费方插槽读不到只读态）。
+- `bordered: false` 时传入 `message` / `hintTextList` 会触发断言，不再静默丢弃。
+
 ### Added
 - `WFormBorderConfig` / `WFormBorderDecoration` 实现 `==` / `hashCode`；
   `WFormBorderConfig` 新增 `hintStyle` / `errorStyle` 字段（内置工厂用它渲染默认文案，
