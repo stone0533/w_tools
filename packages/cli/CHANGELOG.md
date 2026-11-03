@@ -13,6 +13,7 @@
 - `--figma` 模板补充 frames 过滤、多画板 spec、node-only 和自动缓存选择说明。
 - doctor R2 / ProjectFacts 的包名正则支持数字（如 `w_tools_e2e`）。
 - doctor 的 `// w_tools:ignore` / `ignore-file` 支持 R2~R9；R3 只在未被忽略的命中上计阈值，R1 暂不支持。
+- `init --force` 不再覆盖 UI / device starter；新增 `--force-starters`（`--force-ui` 别名），覆盖前写 `.bak`。
 
 ## 1.7.4
 

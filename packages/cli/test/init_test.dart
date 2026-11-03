@@ -145,12 +145,12 @@ void main() {
       expect(report.upToDate.any((e) => e.startsWith('tool/device_smoke.dart')), isTrue);
     });
 
-    test('--device --force 会覆盖', () async {
+    test('--device --force-starters 会覆盖', () async {
       final root = makeProject();
       runInit(root, device: true);
       final file = File(p.join(root.path, 'tool/device_smoke.dart'));
       file.writeAsStringSync('// 用户改过\n');
-      final report = runInit(root, device: true, force: true);
+      final report = runInit(root, device: true, forceStarters: true);
       expect(file.readAsStringSync(), isNot('// 用户改过\n'));
       expect(report.created.any((e) => e.contains('已覆盖')), isTrue);
     });
@@ -403,6 +403,22 @@ void main() {
       final report = runInit(root);
       expect(File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync(), '// 我自己写的\n');
       expect(report.drift.any((e) => e.contains('内容不同')), isTrue);
+    });
+
+    test('--force 不覆盖 UI starter；--force-starters 才覆盖并备份', () async {
+      final root = makeProject();
+      runInit(root);
+      final ui = File(p.join(root.path, 'lib/app/ui/app_scaffold.dart'));
+      ui.writeAsStringSync('// 项目自定义 UI\n');
+
+      final plain = runInit(root, force: true);
+      expect(ui.readAsStringSync(), '// 项目自定义 UI\n');
+      expect(plain.upToDate.any((e) => e.startsWith('lib/app/ui/app_scaffold.dart')), isTrue);
+
+      final forced = runInit(root, forceStarters: true);
+      expect(ui.readAsStringSync(), isNot('// 项目自定义 UI\n'));
+      expect(File('${ui.path}.bak').readAsStringSync(), '// 项目自定义 UI\n');
+      expect(forced.warnings.any((e) => e.contains('app_scaffold.dart')), isTrue);
     });
 
     test('--force 才覆盖', () async {

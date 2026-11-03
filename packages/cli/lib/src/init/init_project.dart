@@ -60,6 +60,7 @@ class InitReport {
 InitReport runInit(
   Directory root, {
   bool force = false,
+  bool forceStarters = false,
   bool check = false,
   InitFeatures features = InitFeatures.full,
   Set<String> targets = const <String>{'agents'},
@@ -70,6 +71,18 @@ InitReport runInit(
 }) {
   final report = InitReport();
   final app = _projectName(root);
+
+  String backup(File file) {
+    final base = File('${file.path}.bak');
+    if (!base.existsSync()) {
+      file.copySync(base.path);
+      return p.basename(base.path);
+    }
+    final stamp = DateTime.now().toIso8601String().replaceAll(RegExp(r'[:.]'), '-');
+    final alt = File('${file.path}.bak.$stamp');
+    file.copySync(alt.path);
+    return p.basename(alt.path);
+  }
 
   void write(
     String rel,
@@ -97,8 +110,8 @@ InitReport runInit(
         report.created.add('$rel（已覆盖）');
         return;
       }
-      // 可自定义的起始文件：存在即视为完成；--force 才覆盖
-      if (starter && !force) {
+      // 可自定义的起始文件：存在即视为完成；只有 --force-starters 才覆盖
+      if (starter && !forceStarters) {
         report.upToDate.add(rel);
         return;
       }
@@ -110,14 +123,15 @@ InitReport runInit(
         report.drift.add('$rel（内容不同，未改动）');
         return;
       }
-      if (!force) {
+      if (!force && !(starter && forceStarters)) {
         report.drift.add('$rel（已存在且内容不同，未改动）');
         return;
       }
       if (projectConfig) {
         report.warnings.add('覆盖了 $rel：原有的自定义配置会丢失');
       } else if (starter) {
-        report.warnings.add('覆盖了 $rel：原有的自定义内容会丢失');
+        final name = backup(file);
+        report.warnings.add('覆盖了 $rel：原内容已备份到 $name');
       }
       file.writeAsStringSync(content);
       report.created.add('$rel（已覆盖）');

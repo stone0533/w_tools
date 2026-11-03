@@ -34,7 +34,9 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --check        只报告缺失、不改文件（CI 用）；内容不同只提示，不算失败
   --check-drift  在 --check 基础上，内容与模板不同也算失败（检查模板是否过期）
   --json         输出机器可读结果（CI / AI 用）
-  --force        覆盖已存在的不同文件（默认不动）
+  --force        覆盖生成物 / 配置（配置先 .bak；默认不动）
+  --force-starters 覆盖 UI / device starter（先 .bak）
+  --force-ui     等同 --force-starters（兼容别名）
   --profile=<p>  minimal | ui | api | full（默认 full）
                  profile 决定基础能力；--<feature> / --no-<feature> 覆盖单项
                  minimal / api 不生成 lib/app/ui
@@ -116,6 +118,8 @@ void main(List<String> argv) {
     ..addFlag('check-drift', negatable: false)
     ..addFlag('json', negatable: false)
     ..addFlag('force', negatable: false)
+    ..addFlag('force-starters', negatable: false)
+    ..addFlag('force-ui', negatable: false)
     ..addOption(
       'profile',
       defaultsTo: 'full',
@@ -212,6 +216,7 @@ void main(List<String> argv) {
       final report = runInit(
         root,
         force: args['force'] as bool,
+        forceStarters: (args['force-starters'] as bool) || (args['force-ui'] as bool),
         check: check,
         features: features,
         targets: targets,
@@ -232,6 +237,7 @@ void main(List<String> argv) {
             'features': features.toJson(),
             'figma': figmaEnabled,
             'device': args['device'] as bool,
+            'forceStarters': (args['force-starters'] as bool) || (args['force-ui'] as bool),
             'created': report.created,
             'upToDate': report.upToDate,
             'drift': report.drift,

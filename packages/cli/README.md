@@ -49,6 +49,7 @@ doctor → 0 error / 0 warning 才算通过
 | 只检查不写文件 | `init --check` |
 | 检查模板是否过期 | `init --check-drift` |
 | 升级 CLI 后刷新生成物 | `init --force` |
+| 明确刷新 UI / device starter | `init --force-starters` |
 
 命令入口都是：
 
@@ -340,7 +341,8 @@ dart run w_tools_cli:doctor
 注意：
 
 ```text
---force 会覆盖生成的 AGENTS / toolkit / UI starter
+--force 会覆盖生成的 AGENTS / toolkit / 配置（配置先 .bak）
+--force-starters 才会覆盖 UI / device starter，并先写 .bak
 不会删除当前 profile 不再生成的文件
 ```
 
