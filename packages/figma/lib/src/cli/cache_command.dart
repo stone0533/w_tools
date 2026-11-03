@@ -14,7 +14,7 @@ void runCache(List<String> args) {
     options,
     sub == 'clean' ? {'root', 'json', 'all', 'yes'} : {'root', 'json'},
   );
-  if (sub == 'clean' && options.yes && !options.allFrames) {
+  if (sub == 'clean' && options.yes && !options.all) {
     throw const FormatException('--yes 只与 --all 一起使用');
   }
   final store = CacheStore(Directory(options.root));
@@ -31,12 +31,12 @@ void runCache(List<String> args) {
       }
     case 'clean':
       // 清理后只能重新 fetch，会消耗额度 —— --all 必须显式确认
-      if (options.allFrames && !options.yes) {
+      if (options.all && !options.yes) {
         stderr.writeln('清理所有项目缓存需要 --yes 确认（清理后重新 fetch 会消耗 Figma 额度）');
         exitCode = 2;
         return;
       }
-      final (dirs, bytes) = command.clean(all: options.allFrames);
+      final (dirs, bytes) = command.clean(all: options.all);
       final mb = (bytes / (1024 * 1024)).toStringAsFixed(1);
       if (options.json) {
         printLine(jsonEncode({
@@ -47,7 +47,7 @@ void runCache(List<String> args) {
       } else if (dirs == 0) {
         printLine('没有可清理的缓存');
       } else {
-        printLine('已清理 $dirs 个项目缓存（$mb MB）${options.allFrames ? '' : '：${store.dir.path}'}');
+        printLine('已清理 $dirs 个项目缓存（$mb MB）${options.all ? '' : '：${store.dir.path}'}');
       }
     default:
       stderr.writeln('未知子命令：$sub（可用：stats, clean）');

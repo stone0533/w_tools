@@ -19,7 +19,7 @@ class CliOptions {
     required this.ifStale,
     required this.nodeOnly,
     required this.mapFile,
-    required this.allFrames,
+    required this.all,
     required this.yes,
     required this.nameFilter,
     required this.pageFilter,
@@ -44,7 +44,7 @@ class CliOptions {
   final bool ifStale;
   final bool nodeOnly;
   final String? mapFile;
-  final bool allFrames;
+  final bool all;
 
   /// `--yes`：确认破坏性操作（如 cache clean --all）。
   final bool yes;
@@ -72,7 +72,7 @@ CliOptions parseOptions(List<String> args) {
   var ifStale = false;
   var nodeOnly = false;
   String? mapFile;
-  var allFrames = false;
+  var all = false;
   var yes = false;
   String? nameFilter;
   String? pageFilter;
@@ -135,7 +135,7 @@ CliOptions parseOptions(List<String> args) {
       nodeOnly = true;
       seen.add('node-only');
     } else if (arg == '--all') {
-      allFrames = true;
+      all = true;
       seen.add('all');
     } else if (arg.startsWith('--name=')) {
       nameFilter = arg.substring('--name='.length);
@@ -173,7 +173,7 @@ CliOptions parseOptions(List<String> args) {
     ifStale: ifStale,
     nodeOnly: nodeOnly,
     mapFile: mapFile,
-    allFrames: allFrames,
+    all: all,
     yes: yes,
     nameFilter: nameFilter,
     pageFilter: pageFilter,

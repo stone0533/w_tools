@@ -440,6 +440,28 @@ void main() {
     expect(ok.exitCode, 0, reason: '${ok.stderr}');
   });
 
+  test('tokens --out 自动创建父目录', () async {
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'Tok',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+          },
+        },
+      },
+    }));
+
+    final out = '${root.path}/nested/docs/tokens.md';
+    final result = await run(<String>['tokens', '1:2', '--out=$out']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect(File(out).existsSync(), isTrue);
+  });
+
   test('tokens --json 与 --out 互斥', () async {
     final result = await run(<String>['tokens', '1:2', '--json', '--out=/tmp/x.md']);
     expect(result.exitCode, 2);

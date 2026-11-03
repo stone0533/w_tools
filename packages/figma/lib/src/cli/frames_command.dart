@@ -27,7 +27,7 @@ Future<void> runFrames(List<String> args) async {
           file,
           root,
           frames,
-          all: options.allFrames,
+          all: options.all,
         );
       }
     } on FormatException catch (e) {

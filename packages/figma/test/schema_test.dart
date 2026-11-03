@@ -112,4 +112,17 @@ void main() {
       );
     });
   }
+
+  test('cache clean 输出也符合 cache.v1', () {
+    final result = load('cache.v1.json').validate({
+      'schema': 'w_tools_figma.cache/1',
+      'removedDirs': 1,
+      'bytes': 10,
+    });
+    expect(
+      result.isValid,
+      isTrue,
+      reason: result.errors.map((e) => '${e.instancePath}: ${e.message}').join('\n'),
+    );
+  });
 }

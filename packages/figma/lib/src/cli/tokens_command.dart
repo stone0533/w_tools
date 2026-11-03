@@ -53,7 +53,9 @@ Future<void> runTokens(List<String> args) async {
     colorNames: colorNames,
   );
   if (options.out != null) {
-    File(options.out!).writeAsStringSync(markdown);
+    final out = File(options.out!);
+    out.parent.createSync(recursive: true);
+    out.writeAsStringSync(markdown);
     stderr.writeln('已写入 ${options.out}');
     return;
   }
