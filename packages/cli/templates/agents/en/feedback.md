@@ -6,11 +6,11 @@ When you hit a problem with `w_tools_*`, or a rule does not fit: **record it, do
    To check the library side, resolve its path first:
 
    ```bash
-   dart run w_tools_cli:context --format=json | python3 -c \
-     "import json,sys; print(json.load(sys.stdin)['install']['feedbackDir'] or '')"
+   dart run w_tools_cli:feedback path --package=<package>
    ```
 
-   Empty output means this is not a repo checkout (e.g. pub cache): **local inbox only**.
+   If it prints this project's inbox (`docs/agents/feedback.md`), this is not a repo
+   checkout: **use the inbox only**.
 2. **Append an entry** to `docs/agents/feedback.md` (create it if missing, first line
    `# w_tools usage feedback (local inbox)`):
 

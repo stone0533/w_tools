@@ -1,3 +1,12 @@
+## 1.9.5
+
+### 新增
+- `w_tools_cli:feedback path [--package=<包>]`：输出反馈该写到哪个文件
+  （库侧 `<repo>/docs/feedback/<包>.md`，或本项目收件箱 `docs/agents/feedback.md`）。
+- `w_tools_cli:feedback lint [--include-inbox]`：校验字段齐全、状态合法、已闭环带版本号、
+  索引数量一致；AI 写完反馈可自检。
+- AGENTS 模板改用 `feedback path` 取路径；「完成前」加一条 lint 自检。
+
 ## 1.9.4
 
 ### 新增

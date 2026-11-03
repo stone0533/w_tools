@@ -6,11 +6,10 @@
    有 w_tools 仓库时再查库侧，先拿路径：
 
    ```bash
-   dart run w_tools_cli:context --format=json | python3 -c \
-     "import json,sys; print(json.load(sys.stdin)['install']['feedbackDir'] or '')"
+   dart run w_tools_cli:feedback path --package=<包>
    ```
 
-   输出为空 = 当前不是仓库检出（如 pub cache），**只写本地收件箱**。
+   输出是本项目收件箱（`docs/agents/feedback.md`）= 当前不是仓库检出，**只写收件箱**。
 2. **追加一条**到 `docs/agents/feedback.md`（文件不存在就新建，第一行写
    `# w_tools 使用反馈（本地收件箱）`）：
 

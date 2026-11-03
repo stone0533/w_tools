@@ -145,11 +145,10 @@ const String agentsFeedback = r'''
    有 w_tools 仓库时再查库侧，先拿路径：
 
    ```bash
-   dart run w_tools_cli:context --format=json | python3 -c \
-     "import json,sys; print(json.load(sys.stdin)['install']['feedbackDir'] or '')"
+   dart run w_tools_cli:feedback path --package=<包>
    ```
 
-   输出为空 = 当前不是仓库检出（如 pub cache），**只写本地收件箱**。
+   输出是本项目收件箱（`docs/agents/feedback.md`）= 当前不是仓库检出，**只写收件箱**。
 2. **追加一条**到 `docs/agents/feedback.md`（文件不存在就新建，第一行写
    `# w_tools 使用反馈（本地收件箱）`）：
 
@@ -189,6 +188,7 @@ const String agentsClosing = r'''
 - `dart run w_tools_cli:doctor --json` → 0 error（warning 看情况）
 - `flutter analyze`、`flutter test`
 - 本次用过 `w_tools_*` 且有卡点？→ 写一条到 `docs/agents/feedback.md`（见「使用反馈（给 AI）」）
+- 写了反馈就跑 `dart run w_tools_cli:feedback lint --include-inbox`（字段/状态/版本号自检）
 <!-- w_tools:end -->
 ''';
 
@@ -366,11 +366,11 @@ When you hit a problem with `w_tools_*`, or a rule does not fit: **record it, do
    To check the library side, resolve its path first:
 
    ```bash
-   dart run w_tools_cli:context --format=json | python3 -c \
-     "import json,sys; print(json.load(sys.stdin)['install']['feedbackDir'] or '')"
+   dart run w_tools_cli:feedback path --package=<package>
    ```
 
-   Empty output means this is not a repo checkout (e.g. pub cache): **local inbox only**.
+   If it prints this project's inbox (`docs/agents/feedback.md`), this is not a repo
+   checkout: **use the inbox only**.
 2. **Append an entry** to `docs/agents/feedback.md` (create it if missing, first line
    `# w_tools usage feedback (local inbox)`):
 
@@ -410,6 +410,7 @@ const String agentsClosingEn = r'''
 - `dart run w_tools_cli:doctor --json` → 0 error (warnings are contextual)
 - `flutter analyze`, `flutter test`
 - Used `w_tools_*` and hit a snag? → append one entry to `docs/agents/feedback.md` (see "Usage feedback")
+- After writing feedback run `dart run w_tools_cli:feedback lint --include-inbox`
 <!-- w_tools:end -->
 ''';
 
