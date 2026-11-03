@@ -14,6 +14,8 @@
 
 ### Changed
 - 设备 starter 的 `--force` 语义改为 `--force-starters`。
+- `toolkit.dart` 使用 `w_tools:begin/end` 标记块；`--force` 只更新块内，保留项目追加项。
+- 新增 `.w_tools_init.json` 记录 init flags；`--check` 默认回放上次参数，避免参数不同导致假 drift。
 
 ## 1.7.5
 

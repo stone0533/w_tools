@@ -5,6 +5,7 @@ import 'package:yaml/yaml.dart';
 
 import '../doctor/config.dart';
 import 'features.dart';
+import 'manifest.dart';
 import 'targets.dart';
 import 'templates.dart';
 
@@ -68,6 +69,7 @@ InitReport runInit(
   bool figma = false,
   String? figmaInstall,
   bool device = false,
+  InitManifest? manifest,
 }) {
   final report = InitReport();
   final app = _projectName(root);
@@ -89,9 +91,44 @@ InitReport runInit(
     String content, {
     bool projectConfig = false,
     bool starter = false,
+    bool markedBlock = false,
   }) {
     final file = File(p.join(root.path, rel));
     if (file.existsSync()) {
+      if (markedBlock) {
+        final existing = file.readAsStringSync();
+        final begin = existing.indexOf('// w_tools:begin');
+        final end = existing.indexOf('// w_tools:end');
+        if (begin >= 0 && end > begin) {
+          final next =
+              '${existing.substring(0, begin)}${content.trimRight()}${existing.substring(end + '// w_tools:end'.length)}';
+          if (next == existing) {
+            report.upToDate.add(rel);
+            return;
+          }
+          if (check) {
+            report.drift.add('$rel（内容不同：标记块与模板不同）');
+            return;
+          }
+          if (!force) {
+            report.drift.add('$rel（标记块内容不同，未改动）');
+            return;
+          }
+          file.writeAsStringSync(next);
+          report.created.add('$rel（已覆盖）');
+          return;
+        }
+        // 旧文件没有 marker：--force 前备份，首次迁移为 marker block。
+        if (check || !force) {
+          report.drift.add('$rel（内容不同：缺少 w_tools:begin/end 标记块）');
+          return;
+        }
+        final name = backup(file);
+        report.warnings.add('覆盖了 $rel：旧文件无标记块，原内容已备份到 $name');
+        file.writeAsStringSync(content);
+        report.created.add('$rel（已覆盖）');
+        return;
+      }
       // 项目配置（.w_tools_doctor.yaml）：内容由项目手工维护（palette / banned / ignore），
       // --force 覆盖前先备份，避免把项目配置直接抹掉。
       if (projectConfig) {
@@ -171,6 +208,7 @@ InitReport runInit(
   write(
     'lib/app/w/toolkit.dart',
     InitTemplates.toolkit(features: features),
+    markedBlock: true,
   );
   if (features.ui) {
     write(
@@ -225,6 +263,9 @@ InitReport runInit(
   }
 
   _collectStale(report, root, features, targets);
+  if (manifest != null) {
+    write('.w_tools_init.json', manifest.encode());
+  }
   report.pubspecSnippet = _snippet(
     root,
     report,
@@ -314,7 +355,7 @@ void _upsertBlock(
       return;
     }
     if (check) {
-      report.drift.add('$rel（标记块内容与模板不同）');
+      report.drift.add('$rel（内容不同：标记块与模板不同）');
       return;
     }
     file.writeAsStringSync(next);

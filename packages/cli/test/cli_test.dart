@@ -22,6 +22,18 @@ Future<ProcessResult> _run(String bin, List<String> args) {
 }
 
 void main() {
+  test('init --check 回放上次 --device flags', () async {
+    final root = _project();
+    final first = await _run('init.dart', ['--root', root.path, '--device']);
+    expect(first.exitCode, 0, reason: '${first.stderr}');
+    final check = await _run('init.dart', ['--root', root.path, '--check']);
+    expect(check.exitCode, 0, reason: '${check.stderr}');
+    expect(
+      File(p.join(root.path, '.w_tools_init.json')).readAsStringSync(),
+      contains('"device": true'),
+    );
+  });
+
   test('init --check 对未初始化项目返回 1 并报告缺失', () async {
     final root = _project();
     final r = await _run('init.dart', ['--root', root.path, '--check']);

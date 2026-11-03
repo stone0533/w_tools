@@ -7,6 +7,7 @@ import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
+import 'package:w_tools_cli/src/init/manifest.dart';
 import 'package:w_tools_cli/src/init/targets.dart';
 import 'package:yaml/yaml.dart' show YamlException, YamlMap, loadYaml;
 
@@ -154,11 +155,15 @@ void main(List<String> argv) {
         exit(2);
       }
 
+      final checkDrift = args['check-drift'] as bool;
+      final check = (args['check'] as bool) || checkDrift;
+      final manifest = check ? InitManifest.load(root) : null;
+
       final targetsRaw = args['targets'] as String?;
       final targets = args['instructions'] as bool
-          ? (targetsRaw == null || targetsRaw.trim().isEmpty
-                ? config.aiTargets.toSet()
-                : targetsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet())
+          ? (targetsRaw != null && targetsRaw.trim().isNotEmpty
+                ? targetsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet()
+                : (manifest?.targets.toSet() ?? config.aiTargets.toSet()))
           : <String>{};
       final sortedTargets = targets.toList()..sort();
       final unknown = targets.difference(targetFiles.keys.toSet());
@@ -167,16 +172,19 @@ void main(List<String> argv) {
         exit(2);
       }
 
-      final lang = (args['lang'] as String?) ?? config.aiLanguage;
+      final lang = args.wasParsed('lang')
+          ? args['lang'] as String
+          : (manifest?.lang ?? config.aiLanguage);
       if (lang != 'zh' && lang != 'en') {
         stderr.writeln('未知语言：$lang（可选：zh, en）');
         exit(2);
       }
 
-      final checkDrift = args['check-drift'] as bool;
-      final check = (args['check'] as bool) || checkDrift;
+      final profileName = args.wasParsed('profile')
+          ? args['profile'] as String
+          : (manifest?.profile ?? args['profile'] as String);
       final profile = InitProfile.values.firstWhere(
-        (p) => p.name == args['profile'],
+        (p) => p.name == profileName,
       );
       for (final spec in initFeatureSpecs) {
         final yes = '--${spec.flag}';
@@ -194,7 +202,9 @@ void main(List<String> argv) {
         stderr.writeln('--device 与 --no-device 不能同时使用');
         exit(2);
       }
-      var features = InitFeatures.forProfile(profile);
+      var features = manifest != null && !args.wasParsed('profile')
+          ? InitFeatures.fromJson(manifest.profile, manifest.features)
+          : InitFeatures.forProfile(profile);
       for (final spec in initFeatureSpecs) {
         if (args.wasParsed(spec.flag)) {
           features = features.withFeature(spec.feature, args[spec.flag] as bool);
@@ -207,11 +217,19 @@ void main(List<String> argv) {
         }
         features = features.withFeature(InitFeature.map, true);
       }
-      final figmaEnabled = _resolveFigma(
-        root,
-        config,
-        explicit: args.wasParsed('figma'),
-        flag: args['figma'] as bool,
+      final figmaEnabled = args.wasParsed('figma')
+          ? args['figma'] as bool
+          : (manifest?.figma ?? _resolveFigma(root, config, explicit: false, flag: false));
+      final deviceEnabled = args.wasParsed('device')
+          ? args['device'] as bool
+          : (manifest?.device ?? false);
+      final initManifest = InitManifest(
+        profile: profile.name,
+        features: features.toJson(),
+        targets: sortedTargets,
+        lang: lang,
+        figma: figmaEnabled,
+        device: deviceEnabled,
       );
       final report = runInit(
         root,
@@ -223,7 +241,8 @@ void main(List<String> argv) {
         lang: lang,
         figma: figmaEnabled,
         figmaInstall: _figmaInstallLine(root),
-        device: args['device'] as bool,
+        device: deviceEnabled,
+        manifest: initManifest,
       );
 
       if (args['json'] as bool) {
@@ -236,7 +255,7 @@ void main(List<String> argv) {
             'targets': sortedTargets,
             'features': features.toJson(),
             'figma': figmaEnabled,
-            'device': args['device'] as bool,
+            'device': deviceEnabled,
             'forceStarters': (args['force-starters'] as bool) || (args['force-ui'] as bool),
             'created': report.created,
             'upToDate': report.upToDate,
@@ -252,7 +271,7 @@ void main(List<String> argv) {
         print('profile: ${profile.name}');
         print('features: ${features.summary}');
         print('figma: ${figmaEnabled ? 'yes' : 'no'}');
-        print('device: ${args['device'] as bool ? 'yes' : 'no'}');
+        print('device: ${deviceEnabled ? 'yes' : 'no'}');
         print('targets: ${sortedTargets.isEmpty ? '（无）' : sortedTargets.join(', ')}');
         print('━' * 56);
         for (final f in report.created) {

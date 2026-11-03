@@ -61,6 +61,21 @@ class InitFeatures {
     InitFeature.asyncFeature,
   });
 
+  factory InitFeatures.fromJson(String profile, Map<String, bool> json) {
+    var features = InitFeatures.forProfile(
+      InitProfile.values.firstWhere(
+        (p) => p.name == profile,
+        orElse: () => InitProfile.full,
+      ),
+    );
+    for (final spec in initFeatureSpecs) {
+      if (json.containsKey(spec.flag)) {
+        features = features.withFeature(spec.feature, json[spec.flag] == true);
+      }
+    }
+    return features;
+  }
+
   factory InitFeatures.forProfile(InitProfile profile) {
     return switch (profile) {
       InitProfile.minimal => const InitFeatures._(<InitFeature>{}),
