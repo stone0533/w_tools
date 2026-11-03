@@ -21,10 +21,10 @@ void main() {
     expect(w.WQrView, isNotNull); // qr
     expect(w.WAsyncState<Object>, isNotNull); // async
   });
-  test('WConfig 是 core.WConfig，可配置 token 键名', () {
-    final origin = w.WConfig.tokenKey;
-    w.WConfig.tokenKey = 'umbrella_token';
-    expect(w.WConfig.tokenKey, 'umbrella_token');
-    w.WConfig.tokenKey = origin;
+  test('WToken 可配置 token 键名（WConfig 同名字段为弃用代理）', () {
+    final origin = w.WToken.tokenKey;
+    w.WToken.tokenKey = 'umbrella_token';
+    expect(w.WToken.tokenKey, 'umbrella_token');
+    w.WToken.tokenKey = origin;
   });
 }
