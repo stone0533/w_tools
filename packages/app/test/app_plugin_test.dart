@@ -53,8 +53,10 @@ void main() {
 
   setUp(() {
     // WApp.init() 会调用 SystemChrome（平台通道），测试里置为 no-op
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(SystemChannels.platform, (call) async => null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async => null,
+    );
   });
 
   test('依赖的插件一定先完成 onInit（与注册顺序无关）', () async {
@@ -93,7 +95,7 @@ void main() {
     final log = <String>[];
     await expectLater(
       initPlugins([
-        _RecorderPlugin('a', log: log, dependsOn: ['nope'])
+        _RecorderPlugin('a', log: log, dependsOn: ['nope']),
       ]),
       throwsA(isA<StateError>()),
     );

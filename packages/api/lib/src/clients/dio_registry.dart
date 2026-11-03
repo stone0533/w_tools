@@ -73,8 +73,7 @@ class DioRegistry {
               '如需更换配置请先 DioRegistry.dispose(baseUrl)',
         );
       }
-      if (interceptors != null &&
-          !listEquals(existing._interceptors, interceptors)) {
+      if (interceptors != null && !listEquals(existing._interceptors, interceptors)) {
         throw ArgumentError.value(
           baseUrl,
           'baseUrl',

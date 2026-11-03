@@ -31,7 +31,12 @@ void main() {
         home: DefaultTabController(
           length: 2,
           child: const Scaffold(
-            body: WTabBar(tabs: [Tab(text: 'A'), Tab(text: 'B')]),
+            body: WTabBar(
+              tabs: [
+                Tab(text: 'A'),
+                Tab(text: 'B'),
+              ],
+            ),
           ),
         ),
       ),

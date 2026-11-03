@@ -24,10 +24,11 @@ part 'button_tap_target.dart';
 /// 按钮内容构建器。
 ///
 /// [style] 是已经应用 size 的最终样式。
-typedef WButtonContentBuilder = Widget Function(
-  BuildContext context,
-  WButtonResolvedStyle style,
-);
+typedef WButtonContentBuilder =
+    Widget Function(
+      BuildContext context,
+      WButtonResolvedStyle style,
+    );
 
 /// 真正的按钮组件。
 ///
@@ -50,21 +51,21 @@ class WButton extends StatefulWidget {
     this.loadingBuilder,
     this.focusNode,
     this.autofocus = false,
-  })  : assert(
-          content != null || contentBuilder != null || label != null || icon != null,
-          'WButton: content / contentBuilder / label / icon 至少提供一个',
-        ),
-        assert(
-          (content == null ? 0 : 1) +
-                  (contentBuilder == null ? 0 : 1) +
-                  ((label != null || icon != null) ? 1 : 0) ==
-              1,
-          'WButton: content / contentBuilder / label+icon 只能选择一种',
-        ),
-        assert(
-          !enabled || loading || onTap != null || onLongPress != null,
-          'WButton: 可交互按钮至少提供 onTap 或 onLongPress',
-        );
+  }) : assert(
+         content != null || contentBuilder != null || label != null || icon != null,
+         'WButton: content / contentBuilder / label / icon 至少提供一个',
+       ),
+       assert(
+         (content == null ? 0 : 1) +
+                 (contentBuilder == null ? 0 : 1) +
+                 ((label != null || icon != null) ? 1 : 0) ==
+             1,
+         'WButton: content / contentBuilder / label+icon 只能选择一种',
+       ),
+       assert(
+         !enabled || loading || onTap != null || onLongPress != null,
+         'WButton: 可交互按钮至少提供 onTap 或 onLongPress',
+       );
 
   final WButtonStyle? style;
 
@@ -238,7 +239,8 @@ class _WButtonState extends State<WButton> {
       );
 
       Widget content = padded;
-      final hasDecoration = visual.backgroundColor != null ||
+      final hasDecoration =
+          visual.backgroundColor != null ||
           visual.gradient != null ||
           visual.border != null ||
           style.borderRadius != null ||

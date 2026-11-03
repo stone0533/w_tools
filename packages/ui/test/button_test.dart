@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/button/button.dart';
 
 Widget _wrap(Widget child) => MaterialApp(
-      home: Scaffold(body: Center(child: child)),
-    );
+  home: Scaffold(body: Center(child: child)),
+);
 
 void main() {
   group('WButtonStyle / motion / semantics', () {
@@ -116,9 +116,11 @@ void main() {
       expect(overridden.gradient, isNull);
 
       final withGradient = const WButtonStyle(
-        gradient: WidgetStatePropertyAll(LinearGradient(
-          colors: [Colors.blue, Colors.red],
-        )),
+        gradient: WidgetStatePropertyAll(
+          LinearGradient(
+            colors: [Colors.blue, Colors.red],
+          ),
+        ),
       ).withBackgroundColor(Colors.green);
       expect(withGradient.gradient, isNull);
       expect(withGradient.backgroundColor!.resolve(const {}), Colors.green);
@@ -387,13 +389,13 @@ void main() {
     testWidgets('按下过程中禁用不触发 onTap', (tester) async {
       var taps = 0;
       Widget build(bool enabled) => _wrap(
-            WButton(
-              style: WButtonStyles.primary,
-              label: 'mid-gesture',
-              enabled: enabled,
-              onTap: () => taps++,
-            ),
-          );
+        WButton(
+          style: WButtonStyles.primary,
+          label: 'mid-gesture',
+          enabled: enabled,
+          onTap: () => taps++,
+        ),
+      );
 
       await tester.pumpWidget(build(true));
       final gesture = await tester.startGesture(
@@ -441,8 +443,8 @@ void main() {
 
     testWidgets('loading 保持按钮尺寸', (tester) async {
       Widget build(bool loading) => _wrap(
-            WButton(style: WButtonStyles.primary, label: '提交', loading: loading, onTap: () {}),
-          );
+        WButton(style: WButtonStyles.primary, label: '提交', loading: loading, onTap: () {}),
+      );
 
       await tester.pumpWidget(build(false));
       final normal = tester.getSize(find.byType(WButton));
@@ -712,7 +714,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
-          home: Scaffold(body: WButton(label: '提交', onTap: () {})),
+          home: Scaffold(
+            body: WButton(label: '提交', onTap: () {}),
+          ),
         ),
       );
 
@@ -731,7 +735,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
-          home: Scaffold(body: WButton(label: '提交', onTap: () {})),
+          home: Scaffold(
+            body: WButton(label: '提交', onTap: () {}),
+          ),
         ),
       );
 

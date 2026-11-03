@@ -23,7 +23,7 @@ dependencies:
   w_tools_app: ^1.1.0
 ```
 
-> 本包最低要求 Flutter 3.27.0。
+> 本包最低要求 Flutter 3.38.0。
 
 ## 快速开始
 

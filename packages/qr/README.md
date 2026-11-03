@@ -20,7 +20,7 @@
 - 桌面端由 `qr_code_scanner_plus` 抛出 `UnsupportedError`
 - iOS 最低部署版本 12.0（插件 2.1.2）
 - Android 需声明 `CAMERA` 权限；iOS 需配置 `NSCameraUsageDescription`
-- 本包最低要求 Flutter 3.27.0
+- 本包最低要求 Flutter 3.38.0
 
 ## 安装
 

@@ -31,14 +31,14 @@ class _WLoggerConfig {
 
   // 私有构造函数，初始化日志格式
   _WLoggerConfig._internal()
-      : printer = PrettyPrinter(
-          methodCount: 0, // 不显示方法调用栈
-          errorMethodCount: 5, // 错误时显示 5 行方法调用栈
-          lineLength: 50, // 日志行长度
-          colors: true, // 启用彩色输出
-          printEmojis: false, // 不显示表情符号
-          dateTimeFormat: DateTimeFormat.dateAndTime, // 日期时间格式
-        ) {
+    : printer = PrettyPrinter(
+        methodCount: 0, // 不显示方法调用栈
+        errorMethodCount: 5, // 错误时显示 5 行方法调用栈
+        lineLength: 50, // 日志行长度
+        colors: true, // 启用彩色输出
+        printEmojis: false, // 不显示表情符号
+        dateTimeFormat: DateTimeFormat.dateAndTime, // 日期时间格式
+      ) {
     logger = Logger(printer: printer);
   }
 
@@ -113,13 +113,12 @@ class WLogger {
     Object? error,
     StackTrace? stackTrace,
     String? tag,
-  }) =>
-      _WLoggerConfig.instance.logger.t(
-        _formatMessage(message, tag),
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => _WLoggerConfig.instance.logger.t(
+    _formatMessage(message, tag),
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   /// 输出 Debug 级别日志，参数说明见 [t]
   static void d(
@@ -128,13 +127,12 @@ class WLogger {
     Object? error,
     StackTrace? stackTrace,
     String? tag,
-  }) =>
-      _WLoggerConfig.instance.logger.d(
-        _formatMessage(message, tag),
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => _WLoggerConfig.instance.logger.d(
+    _formatMessage(message, tag),
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   /// 输出 Info 级别日志，参数说明见 [t]
   static void i(
@@ -143,13 +141,12 @@ class WLogger {
     Object? error,
     StackTrace? stackTrace,
     String? tag,
-  }) =>
-      _WLoggerConfig.instance.logger.i(
-        _formatMessage(message, tag),
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => _WLoggerConfig.instance.logger.i(
+    _formatMessage(message, tag),
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   /// 输出 Warning 级别日志，参数说明见 [t]
   static void w(
@@ -158,13 +155,12 @@ class WLogger {
     Object? error,
     StackTrace? stackTrace,
     String? tag,
-  }) =>
-      _WLoggerConfig.instance.logger.w(
-        _formatMessage(message, tag),
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => _WLoggerConfig.instance.logger.w(
+    _formatMessage(message, tag),
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   /// 输出 Error 级别日志，参数说明见 [t]
   static void e(
@@ -173,13 +169,12 @@ class WLogger {
     Object? error,
     StackTrace? stackTrace,
     String? tag,
-  }) =>
-      _WLoggerConfig.instance.logger.e(
-        _formatMessage(message, tag),
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => _WLoggerConfig.instance.logger.e(
+    _formatMessage(message, tag),
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   /// 输出 Fatal 级别日志，参数说明见 [t]
   static void f(
@@ -188,13 +183,12 @@ class WLogger {
     Object? error,
     StackTrace? stackTrace,
     String? tag,
-  }) =>
-      _WLoggerConfig.instance.logger.f(
-        _formatMessage(message, tag),
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => _WLoggerConfig.instance.logger.f(
+    _formatMessage(message, tag),
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   /// 开始性能计时
   static void startPerformanceTimer(String key) {

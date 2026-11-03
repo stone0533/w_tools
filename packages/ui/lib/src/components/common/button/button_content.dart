@@ -40,7 +40,8 @@ Widget _buildButtonLoading(
   BuildContext context,
   WButtonStyle style,
 ) {
-  final child = state.widget.loadingBuilder?.call(context) ??
+  final child =
+      state.widget.loadingBuilder?.call(context) ??
       const SizedBox(
         width: 18,
         height: 18,

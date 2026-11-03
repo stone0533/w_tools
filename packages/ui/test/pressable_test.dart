@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/src/components/common/pressable.dart';
 
 Widget _wrap(Widget child) => MaterialApp(
-      home: Scaffold(body: Center(child: child)),
-    );
+  home: Scaffold(body: Center(child: child)),
+);
 
 void main() {
   testWidgets('点击任意 child 触发 onTap', (tester) async {
@@ -47,10 +47,10 @@ void main() {
 
   testWidgets('禁用时默认保留 child 语义，可选排除', (tester) async {
     Widget child() => Semantics(
-          label: 'child-action',
-          onTap: () {},
-          child: const Text('semantic-child'),
-        );
+      label: 'child-action',
+      onTap: () {},
+      child: const Text('semantic-child'),
+    );
 
     await tester.pumpWidget(
       _wrap(
@@ -138,12 +138,12 @@ void main() {
   testWidgets('按下过程中禁用后不再触发 onTap', (tester) async {
     var taps = 0;
     Widget build(bool enabled) => _wrap(
-          WPressable(
-            enabled: enabled,
-            onTap: () => taps++,
-            child: const Text('mid-gesture'),
-          ),
-        );
+      WPressable(
+        enabled: enabled,
+        onTap: () => taps++,
+        child: const Text('mid-gesture'),
+      ),
+    );
 
     await tester.pumpWidget(build(true));
     final gesture = await tester.startGesture(
@@ -179,13 +179,13 @@ void main() {
 
   testWidgets('按下后禁用再启用时状态复位', (tester) async {
     Widget build(bool enabled) => _wrap(
-          WPressable(
-            enabled: enabled,
-            onTap: () {},
-            pressedOpacity: 0.4,
-            child: const Text('toggle'),
-          ),
-        );
+      WPressable(
+        enabled: enabled,
+        onTap: () {},
+        pressedOpacity: 0.4,
+        child: const Text('toggle'),
+      ),
+    );
 
     await tester.pumpWidget(build(true));
     final gesture = await tester.startGesture(

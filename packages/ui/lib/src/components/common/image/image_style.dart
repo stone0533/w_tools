@@ -135,21 +135,25 @@ class WImageStyle {
       height: identical(height, _unset) ? this.height : (height as num?)?.toDouble(),
       fit: identical(fit, _unset) ? this.fit : fit as BoxFit,
       alignment: identical(alignment, _unset) ? this.alignment : alignment as Alignment,
-      aspectRatio:
-          identical(aspectRatio, _unset) ? this.aspectRatio : (aspectRatio as num?)?.toDouble(),
-      borderRadius:
-          identical(borderRadius, _unset) ? this.borderRadius : borderRadius as BorderRadius?,
+      aspectRatio: identical(aspectRatio, _unset)
+          ? this.aspectRatio
+          : (aspectRatio as num?)?.toDouble(),
+      borderRadius: identical(borderRadius, _unset)
+          ? this.borderRadius
+          : borderRadius as BorderRadius?,
       border: identical(border, _unset) ? this.border : border as BoxBorder?,
       boxShadow: identical(boxShadow, _unset) ? this.boxShadow : boxShadow as List<BoxShadow>?,
       margin: identical(margin, _unset) ? this.margin : margin as EdgeInsets?,
       padding: identical(padding, _unset) ? this.padding : padding as EdgeInsets?,
-      semanticLabel:
-          identical(semanticLabel, _unset) ? this.semanticLabel : semanticLabel as String?,
+      semanticLabel: identical(semanticLabel, _unset)
+          ? this.semanticLabel
+          : semanticLabel as String?,
       excludeFromSemantics: identical(excludeFromSemantics, _unset)
           ? this.excludeFromSemantics
           : excludeFromSemantics as bool,
-      filterQuality:
-          identical(filterQuality, _unset) ? this.filterQuality : filterQuality as FilterQuality,
+      filterQuality: identical(filterQuality, _unset)
+          ? this.filterQuality
+          : filterQuality as FilterQuality,
     );
   }
 }

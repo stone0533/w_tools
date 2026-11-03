@@ -87,8 +87,9 @@ class WImageLoadConfig {
   }) {
     return WImageLoadConfig(
       memCacheWidth: identical(memCacheWidth, _unset) ? this.memCacheWidth : memCacheWidth as int?,
-      memCacheHeight:
-          identical(memCacheHeight, _unset) ? this.memCacheHeight : memCacheHeight as int?,
+      memCacheHeight: identical(memCacheHeight, _unset)
+          ? this.memCacheHeight
+          : memCacheHeight as int?,
       gaplessPlayback: gaplessPlayback ?? this.gaplessPlayback,
       retryCount: retryCount ?? this.retryCount,
       retryDelay: retryDelay ?? this.retryDelay,

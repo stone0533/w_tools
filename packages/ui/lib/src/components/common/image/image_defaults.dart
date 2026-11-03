@@ -28,7 +28,8 @@ class WImageDefaults {
     BuildContext context,
     String data,
     WImageProgress progress,
-  )? progressBuilder;
+  )?
+  progressBuilder;
 }
 
 /// 按子树提供 [WImageDefaults]。
@@ -46,8 +47,7 @@ class WImageDefaultsScope extends InheritedWidget {
   static WImageLoadConfig? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<WImageDefaultsScope>()?.defaults;
 
-  static WImageLoadConfig of(BuildContext context) =>
-      maybeOf(context) ?? const WImageLoadConfig();
+  static WImageLoadConfig of(BuildContext context) => maybeOf(context) ?? const WImageLoadConfig();
 
   @override
   bool updateShouldNotify(WImageDefaultsScope oldWidget) =>

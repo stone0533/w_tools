@@ -35,16 +35,18 @@ class _CountingPlugin extends WAppPlugin {
 }
 
 List<GetPage<dynamic>> _pages() => [
-      GetPage(name: '/', page: () => const SizedBox.shrink()),
-    ];
+  GetPage(name: '/', page: () => const SizedBox.shrink()),
+];
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
     // WApp.init() 会调用 SystemChrome（平台通道），测试里置为 no-op
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(SystemChannels.platform, (call) async => null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async => null,
+    );
   });
 
   test('init() 幂等：重复调用只执行一次插件 onInit', () async {

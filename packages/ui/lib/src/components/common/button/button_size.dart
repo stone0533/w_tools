@@ -116,16 +116,16 @@ class WButtonSize {
 
   @override
   int get hashCode => Object.hash(
-        name,
-        minWidth,
-        minHeight,
-        padding,
-        fontSize,
-        fontWeight,
-        lineHeight,
-        letterSpacing,
-        iconSize,
-        gap,
-        tapTargetSize,
-      );
+    name,
+    minWidth,
+    minHeight,
+    padding,
+    fontSize,
+    fontWeight,
+    lineHeight,
+    letterSpacing,
+    iconSize,
+    gap,
+    tapTargetSize,
+  );
 }

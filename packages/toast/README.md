@@ -22,7 +22,7 @@ dependencies:
 
 同时请按 `bot_toast` 文档完成初始化（`BotToastInit` 与 `BotToastNavigatorObserver`）。
 
-> 本包最低要求 Flutter 3.27.0。
+> 本包最低要求 Flutter 3.38.0。
 
 ## 快速开始
 

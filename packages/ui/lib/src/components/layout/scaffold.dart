@@ -56,9 +56,9 @@ class WScaffold extends StatelessWidget {
     this.includeBottomSafeArea = true,
     this.resizeToAvoidBottomInset = true,
   }) : assert(
-          title == null || titleWidget == null,
-          'WScaffold: title 与 titleWidget 只能选一个',
-        );
+         title == null || titleWidget == null,
+         'WScaffold: title 与 titleWidget 只能选一个',
+       );
 
   bool get _needsDefaultAppBar =>
       (title?.isNotEmpty ?? false) ||
@@ -85,7 +85,8 @@ class WScaffold extends StatelessWidget {
       'WScaffold: 传了 appBar 时不要再传 title/leading/actions/onBack/appBarStyle/appBarBottom；'
       'appBar 必须包含状态栏，且 WScaffold 自身的 leading/centerTitle 参数保持默认',
     );
-    final bar = appBar ??
+    final bar =
+        appBar ??
         (_needsDefaultAppBar
             ? WAppBar(
                 title: title,

@@ -27,9 +27,9 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
     this.totalAngle = 2 * pi,
     this.value = 0,
     this.semanticsLabel,
-  })  : assert(radius > 0, 'radius 必须大于 0'),
-        assert(strokeWidth > 0, 'strokeWidth 必须大于 0'),
-        assert(strokeWidth < radius * 2, 'strokeWidth 必须小于直径');
+  }) : assert(radius > 0, 'radius 必须大于 0'),
+       assert(strokeWidth > 0, 'strokeWidth 必须大于 0'),
+       assert(strokeWidth < radius * 2, 'strokeWidth 必须小于直径');
 
   /// 进度条宽度
   final double strokeWidth;

@@ -17,8 +17,8 @@ class WAsyncController<T> {
     this.options,
     bool Function(T value)? isEmpty,
     WAsyncState<T>? initial,
-  })  : _isEmpty = isEmpty,
-        _state = ValueNotifier(initial ?? WAsyncState<T>.loading());
+  }) : _isEmpty = isEmpty,
+       _state = ValueNotifier(initial ?? WAsyncState<T>.loading());
 
   /// 列表场景：空列表自动归为 empty。
   static WAsyncController<List<E>> list<E>(
@@ -90,8 +90,7 @@ class WAsyncController<T> {
 
     if (result != null) {
       final value = result.$1;
-      _state.value =
-          _isEmpty?.call(value) == true ? WAsyncState.empty() : WAsyncState.ready(value);
+      _state.value = _isEmpty?.call(value) == true ? WAsyncState.empty() : WAsyncState.ready(value);
       return;
     }
 

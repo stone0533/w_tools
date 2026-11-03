@@ -50,15 +50,15 @@ class AsyncExampleApp extends StatelessWidget {
           ],
         ),
       ),
-        child: MaterialApp(
-          title: 'w_tools_async 示例',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            colorSchemeSeed: const Color(0xFF0EA5E9),
-            useMaterial3: true,
-          ),
-          home: const _ExampleHome(),
+      child: MaterialApp(
+        title: 'w_tools_async 示例',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorSchemeSeed: const Color(0xFF0EA5E9),
+          useMaterial3: true,
         ),
+        home: const _ExampleHome(),
+      ),
     );
   }
 }

@@ -5,7 +5,15 @@ import 'package:dio/dio.dart';
 import '../api_config.dart';
 
 /// 日志输出片段。
-enum WLogPart { request, requestHeader, requestBody, responseHeader, responseBody, error, errorHint }
+enum WLogPart {
+  request,
+  requestHeader,
+  requestBody,
+  responseHeader,
+  responseBody,
+  error,
+  errorHint,
+}
 
 /// 日志拦截器，用于记录 HTTP 请求和响应的详细信息。
 ///
@@ -52,26 +60,32 @@ class WLogInterceptor extends Interceptor {
   /// [parts] 非空时，未列出的片段不输出；否则沿用旧 bool 参数。
   WLogInterceptor({
     this.parts,
+
     /// remove-in: 5.0.0
     @Deprecated('2.0 起用 parts: {WLogPart.request}；5.0 移除') bool? request,
+
     /// remove-in: 5.0.0
     @Deprecated('2.0 起用 parts: {WLogPart.requestHeader}；5.0 移除') bool? requestHeader,
+
     /// remove-in: 5.0.0
     @Deprecated('2.0 起用 parts: {WLogPart.requestBody}；5.0 移除') bool? requestBody,
+
     /// remove-in: 5.0.0
     @Deprecated('2.0 起用 parts: {WLogPart.responseHeader}；5.0 移除') bool? responseHeader,
+
     /// remove-in: 5.0.0
     @Deprecated('2.0 起用 parts: {WLogPart.responseBody}；5.0 移除') bool? responseBody,
+
     /// remove-in: 5.0.0
     @Deprecated('2.0 起用 parts: {WLogPart.error}；5.0 移除') bool? error,
     this.enableLog = true,
     this.redactedHeaders = defaultRedactedHeaders,
-  })  : request = parts?.contains(WLogPart.request) ?? request ?? true,
-        requestHeader = parts?.contains(WLogPart.requestHeader) ?? requestHeader ?? true,
-        requestBody = parts?.contains(WLogPart.requestBody) ?? requestBody ?? true,
-        responseHeader = parts?.contains(WLogPart.responseHeader) ?? responseHeader ?? false,
-        responseBody = parts?.contains(WLogPart.responseBody) ?? responseBody ?? true,
-        error = parts?.contains(WLogPart.error) ?? error ?? true;
+  }) : request = parts?.contains(WLogPart.request) ?? request ?? true,
+       requestHeader = parts?.contains(WLogPart.requestHeader) ?? requestHeader ?? true,
+       requestBody = parts?.contains(WLogPart.requestBody) ?? requestBody ?? true,
+       responseHeader = parts?.contains(WLogPart.responseHeader) ?? responseHeader ?? false,
+       responseBody = parts?.contains(WLogPart.responseBody) ?? responseBody ?? true,
+       error = parts?.contains(WLogPart.error) ?? error ?? true;
 
   /// 请求阶段：打印请求详情
   @override

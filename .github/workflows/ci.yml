@@ -51,6 +51,9 @@ jobs:
       - name: Analyze (workspace)
         run: flutter analyze
 
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed packages test example
+
       - name: Check docs
         run: bash scripts/check_docs.sh
 

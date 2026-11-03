@@ -93,11 +93,13 @@ void main() {
 
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-      ));
+      dio.interceptors.add(
+        WLogInterceptor(
+          request: true,
+          requestHeader: true,
+          requestBody: true,
+        ),
+      );
 
       await dio.get('https://example.com/api');
       await Future.microtask(() {});
@@ -189,11 +191,13 @@ void main() {
 
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(
-        request: false,
-        requestHeader: false,
-        requestBody: false,
-      ));
+      dio.interceptors.add(
+        WLogInterceptor(
+          request: false,
+          requestHeader: false,
+          requestBody: false,
+        ),
+      );
 
       await dio.get('https://example.com/api');
       await Future.microtask(() {});
@@ -310,9 +314,11 @@ void main() {
     test('onRequest 添加 Authorization header', () async {
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'my_token_value',
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'my_token_value',
+        ),
+      );
 
       await dio.get('https://example.com/api');
 
@@ -325,9 +331,11 @@ void main() {
     test('onRequest 设置 contentType 为 application/json', () async {
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'token',
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'token',
+        ),
+      );
 
       await dio.get('https://example.com/api');
 
@@ -338,9 +346,11 @@ void main() {
     test('tokenGetter 返回 null 时不添加 Authorization', () async {
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => null,
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => null,
+        ),
+      );
 
       await dio.get('https://example.com/api');
 
@@ -350,9 +360,11 @@ void main() {
     test('tokenGetter 返回空串时不添加 Authorization', () async {
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => '',
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => '',
+        ),
+      );
 
       await dio.get('https://example.com/api');
 
@@ -363,13 +375,15 @@ void main() {
       RequestOptions? captured;
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'token',
-        configureRequest: (opts) {
-          captured = opts;
-          opts.headers['X-Custom'] = 'injected';
-        },
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'token',
+          configureRequest: (opts) {
+            captured = opts;
+            opts.headers['X-Custom'] = 'injected';
+          },
+        ),
+      );
 
       await dio.get('https://example.com/api');
 
@@ -382,13 +396,15 @@ void main() {
 
       final adapter = _MockAdapter(statusCode: 401);
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'expired_token',
-        tokenClearer: () async {
-          clearCount++;
-        },
-        tokenRefresher: () async => null, // 刷新失败 → 不触发重试（避免真实网络）
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired_token',
+          tokenClearer: () async {
+            clearCount++;
+          },
+          tokenRefresher: () async => null, // 刷新失败 → 不触发重试（避免真实网络）
+        ),
+      );
 
       await expectLater(
         dio.get('https://example.com/api'),
@@ -404,14 +420,16 @@ void main() {
 
       final adapter = _MockAdapter(statusCode: 401);
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'expired_token',
-        observeError: (err) => errorHandlerCalled++,
-        tokenRefresher: () async {
-          authErrorCalled++;
-          return null; // 刷新失败 → 不触发重试（避免真实网络）
-        },
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired_token',
+          observeError: (err) => errorHandlerCalled++,
+          tokenRefresher: () async {
+            authErrorCalled++;
+            return null; // 刷新失败 → 不触发重试（避免真实网络）
+          },
+        ),
+      );
 
       await expectLater(
         dio.get('https://example.com/api'),
@@ -466,10 +484,12 @@ void main() {
     test('tokenRefresher 抛异常时不逃逸，请求以原错误结束', () async {
       final adapter = _MockAdapter(statusCode: 401);
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'expired_token',
-        tokenRefresher: () async => throw StateError('refresh failed'),
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired_token',
+          tokenRefresher: () async => throw StateError('refresh failed'),
+        ),
+      );
 
       await expectLater(
         dio.get('https://example.com/api'),
@@ -482,14 +502,16 @@ void main() {
 
       final adapter = _MockAdapter(statusCode: 401);
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'expired_token',
-        tokenRefresher: () async {
-          authErrorCalled++;
-          await Future.delayed(const Duration(milliseconds: 50));
-          return null;
-        },
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired_token',
+          tokenRefresher: () async {
+            authErrorCalled++;
+            await Future.delayed(const Duration(milliseconds: 50));
+            return null;
+          },
+        ),
+      );
 
       Future<void> fire() async {
         try {
@@ -526,10 +548,12 @@ void main() {
       // 首个 Dio：返回 401
       final dio = Dio(BaseOptions(baseUrl: 'https://retry.example.com'))
         ..httpClientAdapter = _MockAdapter(statusCode: 401);
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'expired_token',
-        tokenRefresher: () async => 'new_token',
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired_token',
+          tokenRefresher: () async => 'new_token',
+        ),
+      );
 
       final res = await dio.post(
         '/upload',
@@ -546,10 +570,12 @@ void main() {
 
       final dio = Dio(BaseOptions(baseUrl: 'https://example.com'))
         ..httpClientAdapter = _MockAdapter(statusCode: 401);
-      dio.interceptors.add(WTokenInterceptor(
-        tokenGetter: () => 'expired_token',
-        tokenRefresher: () async => 'new_token',
-      ));
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired_token',
+          tokenRefresher: () async => 'new_token',
+        ),
+      );
 
       await expectLater(
         dio.post('/upload', data: Stream<List<int>>.value([1, 2, 3])),
@@ -578,4 +604,3 @@ class _ErrorAdapter implements HttpClientAdapter {
   @override
   void close({bool force = false}) {}
 }
-

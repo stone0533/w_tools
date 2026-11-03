@@ -7,8 +7,7 @@ import 'package:w_tools_form/w_tools_form.dart';
 
 /// 自定义字段：直接继承 re-export 的基类。
 class _DemoField extends FormBuilderField<String> {
-  _DemoField({required super.name})
-    : super(builder: (field) => const SizedBox.shrink());
+  _DemoField({required super.name}) : super(builder: (field) => const SizedBox.shrink());
 
   @override
   FormBuilderFieldState<_DemoField, String> createState() => _DemoFieldState();
@@ -26,7 +25,7 @@ void main() {
             child: Column(
               children: [
                 WFormTextField(name: 'email', label: '邮箱'),
-                                _DemoField(name: 'demo'),
+                _DemoField(name: 'demo'),
               ],
             ),
           ),

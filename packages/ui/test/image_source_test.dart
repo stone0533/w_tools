@@ -50,7 +50,9 @@ void main() {
 
     test('相等性按内容而不是实例', () {
       expect(
-          WImageSource.network('https://a.com/x.png'), WImageSource.network('https://a.com/x.png'));
+        WImageSource.network('https://a.com/x.png'),
+        WImageSource.network('https://a.com/x.png'),
+      );
       expect(WImageSource.asset('a.png'), isNot(WImageSource.asset('b.png')));
       expect(WImageSource.base64('AAAA'), WImageSource.base64('AAAA'));
     });

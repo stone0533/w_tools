@@ -39,25 +39,20 @@ enum WAsyncStatus {
 class WAsyncState<T> {
   /// 首次请求进行中；[previousData] 用于刷新时保留旧数据。
   const WAsyncState.loading({T? previousData})
-      : status = WAsyncStatus.loading,
-        data = previousData,
-        error = null;
+    : status = WAsyncStatus.loading,
+      data = previousData,
+      error = null;
 
   /// 加载成功且有数据
-  const WAsyncState.ready(T this.data)
-      : status = WAsyncStatus.ready,
-        error = null;
+  const WAsyncState.ready(T this.data) : status = WAsyncStatus.ready, error = null;
 
   /// 加载成功但没有数据
-  const WAsyncState.empty()
-      : status = WAsyncStatus.empty,
-        data = null,
-        error = null;
+  const WAsyncState.empty() : status = WAsyncStatus.empty, data = null, error = null;
 
   /// 加载失败；[previousData] 用于刷新失败时保留旧数据。
   const WAsyncState.failed(Object this.error, {T? previousData})
-      : status = WAsyncStatus.failed,
-        data = previousData;
+    : status = WAsyncStatus.failed,
+      data = previousData;
 
   /// 列表类数据的便捷构造：null 或空列表都视为 [empty]。
   ///
@@ -120,6 +115,7 @@ class WAsyncState<T> {
   int get hashCode => Object.hash(status, data, error);
 
   @override
-  String toString() => 'WAsyncState<$T>(status: ${status.name}, '
+  String toString() =>
+      'WAsyncState<$T>(status: ${status.name}, '
       'hasData: ${data != null}, error: $error)';
 }

@@ -39,9 +39,7 @@ class WAsyncOptions {
   }) {
     return WAsyncOptions(
       loading: identical(loading, _unset) ? this.loading : loading as WAsyncLoading?,
-      onError: identical(onError, _unset)
-          ? this.onError
-          : onError as void Function(Object?)?,
+      onError: identical(onError, _unset) ? this.onError : onError as void Function(Object?)?,
     );
   }
 }

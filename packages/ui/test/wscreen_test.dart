@@ -40,8 +40,9 @@ void main() {
   });
 
   group('WScreen 设备信息', () {
-    testWidgets('screenWidth / screenHeight / statusBarHeight / bottomSafeAreaHeight',
-        (tester) async {
+    testWidgets('screenWidth / screenHeight / statusBarHeight / bottomSafeAreaHeight', (
+      tester,
+    ) async {
       // 设置测试设备属性（iPhone 14 Pro 逻辑尺寸）
       const logicalSize = Size(393, 852);
       tester.view.physicalSize = logicalSize;

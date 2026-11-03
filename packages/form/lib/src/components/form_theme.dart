@@ -59,8 +59,7 @@ class WFormTheme extends StatelessWidget {
     );
   }
 
-  Widget get effectiveDropdownIcon =>
-      dropdownIcon ?? icons?.dropdown ?? WFormDefaults.dropdownIcon;
+  Widget get effectiveDropdownIcon => dropdownIcon ?? icons?.dropdown ?? WFormDefaults.dropdownIcon;
   Widget get effectiveRadioUnselectedIcon =>
       radioUnselectedIcon ?? icons?.radioUnselected ?? WFormDefaults.radioUnselectedIcon;
   Widget get effectiveRadioSelectedIcon =>
@@ -72,9 +71,7 @@ class WFormTheme extends StatelessWidget {
   Widget get effectiveObscureTextIcon =>
       obscureTextIcon ?? icons?.obscureText ?? WFormDefaults.obscureTextIcon;
   Widget get effectiveObscureTextVisibleIcon =>
-      obscureTextVisibleIcon ??
-      icons?.obscureTextVisible ??
-      WFormDefaults.obscureTextVisibleIcon;
+      obscureTextVisibleIcon ?? icons?.obscureTextVisible ?? WFormDefaults.obscureTextVisibleIcon;
   Widget get effectiveClearButtonIcon =>
       clearButtonIcon ?? icons?.clear ?? WFormDefaults.clearButtonIcon;
 }

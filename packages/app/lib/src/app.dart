@@ -125,14 +125,15 @@ class WApp {
     if (pending != null) return pending;
 
     late final Future<void> future;
-    future = _doInit(
-      onLazyInit: onLazyInit,
-      customTasks: customTasks,
-    ).whenComplete(() {
-      if (identical(_initFuture, future)) {
-        _initFuture = null;
-      }
-    });
+    future =
+        _doInit(
+          onLazyInit: onLazyInit,
+          customTasks: customTasks,
+        ).whenComplete(() {
+          if (identical(_initFuture, future)) {
+            _initFuture = null;
+          }
+        });
     _initFuture = future;
     return future;
   }

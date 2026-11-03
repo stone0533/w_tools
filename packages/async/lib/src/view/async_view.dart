@@ -66,7 +66,10 @@ class WAsyncView<T> extends StatelessWidget {
         final data = value.dataOrNull;
 
         if (data != null && value.isRefreshing) {
-          final indicator = (refreshingBuilder ?? theme?.refreshingBuilder ?? legacy?.refreshingBuilder)?.call(context) ??
+          final indicator =
+              (refreshingBuilder ?? theme?.refreshingBuilder ?? legacy?.refreshingBuilder)?.call(
+                context,
+              ) ??
               const LinearProgressIndicator();
 
           return _buildContent(
@@ -84,9 +87,9 @@ class WAsyncView<T> extends StatelessWidget {
         if (data != null && value.isFailed) {
           final error =
               errorBannerBuilder ??
-                  theme?.errorBannerBuilder ??
-                  legacy?.errorBannerBuilder ??
-                  _defaultErrorBannerBuilder;
+              theme?.errorBannerBuilder ??
+              legacy?.errorBannerBuilder ??
+              _defaultErrorBannerBuilder;
           return _buildContent(
             context,
             data: data,
@@ -111,14 +114,12 @@ class WAsyncView<T> extends StatelessWidget {
           empty: () =>
               (emptyBuilder ?? theme?.emptyBuilder ?? legacy?.emptyBuilder)?.call(context) ??
               _defaultEmptyBuilder(context),
-          failed: (error) => (errorBuilder ??
-                  theme?.errorBuilder ??
-                  legacy?.errorBuilder ??
-                  _defaultErrorBuilder)(
-            context,
-            error,
-            () => onRetry(),
-          ),
+          failed: (error) =>
+              (errorBuilder ?? theme?.errorBuilder ?? legacy?.errorBuilder ?? _defaultErrorBuilder)(
+                context,
+                error,
+                () => onRetry(),
+              ),
         );
       },
     );

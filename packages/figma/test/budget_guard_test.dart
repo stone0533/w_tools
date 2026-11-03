@@ -90,6 +90,4 @@ void main() {
     expect(result.fromCache, isFalse);
     expect(client.calls, hasLength(1));
   });
-
-
 }

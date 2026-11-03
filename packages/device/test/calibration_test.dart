@@ -49,14 +49,14 @@ void main() {
     const rect = DRect(20, 100, 402, 874);
 
     Calibration cached({int width = 402, int height = 874}) => Calibration(
-      window: window,
-      deviceRect: rect,
-      deviceWidth: width,
-      deviceHeight: height,
-      screenshotWidth: width * 3,
-      screenshotHeight: height * 3,
-      scale: 3,
-    );
+          window: window,
+          deviceRect: rect,
+          deviceWidth: width,
+          deviceHeight: height,
+          screenshotWidth: width * 3,
+          screenshotHeight: height * 3,
+          scale: 3,
+        );
 
     test('窗口与设备尺寸都没变 → 命中', () {
       expect(

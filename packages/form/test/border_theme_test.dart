@@ -38,7 +38,9 @@ void main() {
       );
     });
 
-    testWidgets('hint / error 文字来自 TextTheme.bodySmall，颜色分别取 onSurfaceVariant / error', (tester) async {
+    testWidgets('hint / error 文字来自 TextTheme.bodySmall，颜色分别取 onSurfaceVariant / error', (
+      tester,
+    ) async {
       final theme = ThemeData(useMaterial3: true);
       final scheme = theme.colorScheme;
       final config = WFormBorderConfig.fromTheme(theme);

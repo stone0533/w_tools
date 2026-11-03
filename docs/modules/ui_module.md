@@ -7,7 +7,7 @@ UI 模块（`w_tools_ui` 子包）提供了一套基于 Flutter 的 UI 组件层
 **模块特点：**
 
 - **零业务框架依赖**：不依赖其他 w_tools 子包；`qr` 和 `toast` 是独立子包，ui 本身不直接依赖它们，根聚合包负责 re-export
-- **最低 Flutter 版本 3.27**：已修复 `ListView cacheExtent` 的版本兼容（Flutter 3.27–3.43 使用 `cacheExtent`，3.44+ 被标记 deprecated，源码已用 `// ignore: deprecated_member_use` 保留兼容性）
+- **最低 Flutter 版本 3.38**：已修复 `ListView cacheExtent` 的版本兼容（Flutter 3.27–3.43 使用 `cacheExtent`，3.44+ 被标记 deprecated，源码已用 `// ignore: deprecated_member_use` 保留兼容性）
 - **依赖第三方包**：`badges` ^3.1.2（徽章组件）、`cached_network_image` ^3.3.1（图片缓存）
 - **屏幕适配可选**：`WScreen` 内置设备信息获取，适配函数通过委托注入，可与 `flutter_screenutil` 共存，无 delegate 时返回原始值
 
@@ -1963,9 +1963,9 @@ class MainNavBar extends StatelessWidget {
 
 | 版本 | 状态 | 说明 |
 |------|------|------|
-| 3.27+ | ✅ 兼容 | `WListViewSliver` 使用 `SliverMainAxisGroup` 与 sliver API |
+| 3.38+ | ✅ 兼容（CI 验证的最低版本） | `WListViewSliver` 使用 `SliverMainAxisGroup` 与 sliver API |
 
-> 最低 Flutter 版本锁定为 3.27。列表不再单独声明 `cacheExtent`，滚动缓存由外层 `CustomScrollView` 决定。
+> 最低 Flutter 版本锁定为 3.38。列表不再单独声明 `cacheExtent`，滚动缓存由外层 `CustomScrollView` 决定。
 
 ### WScreen 委托注入
 

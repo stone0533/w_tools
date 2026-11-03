@@ -55,7 +55,8 @@ class WToast {
             onClose?.call();
           });
         },
-        backgroundColor: backgroundColor ?? Colors.black38, // style-literal-ok: 中性遮罩，Material modal barrier 同为黑色
+        backgroundColor:
+            backgroundColor ?? Colors.black38, // style-literal-ok: 中性遮罩，Material modal barrier 同为黑色
         duration: duration,
         animationDuration: animationDuration,
       );
@@ -146,8 +147,7 @@ class WToast {
     return _show(
       builder: (cancelFunc) => Builder(
         builder: (context) =>
-            resolved.successBuilder?.call(message, cancelFunc) ??
-            _defaultMessage(context, message),
+            resolved.successBuilder?.call(message, cancelFunc) ?? _defaultMessage(context, message),
       ),
       style: resolved,
       duration: duration,
@@ -167,8 +167,7 @@ class WToast {
     return _show(
       builder: (cancelFunc) => Builder(
         builder: (context) =>
-            resolved.errorBuilder?.call(message, cancelFunc) ??
-            _defaultMessage(context, message),
+            resolved.errorBuilder?.call(message, cancelFunc) ?? _defaultMessage(context, message),
       ),
       style: resolved,
       duration: duration,
@@ -188,8 +187,7 @@ class WToast {
     return _show(
       builder: (cancelFunc) => Builder(
         builder: (context) =>
-            resolved.warningBuilder?.call(message, cancelFunc) ??
-            _defaultMessage(context, message),
+            resolved.warningBuilder?.call(message, cancelFunc) ?? _defaultMessage(context, message),
       ),
       style: resolved,
       duration: duration,
@@ -315,8 +313,9 @@ class WToast {
   /// 默认文本内容：跟随主题的正文样式 + 反色
   static Widget _defaultMessage(BuildContext context, Object? message) {
     final theme = Theme.of(context);
-    final style = (theme.textTheme.bodyMedium ?? const TextStyle())
-        .copyWith(color: theme.colorScheme.onInverseSurface);
+    final style = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(
+      color: theme.colorScheme.onInverseSurface,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Text(message?.toString() ?? '', style: style),

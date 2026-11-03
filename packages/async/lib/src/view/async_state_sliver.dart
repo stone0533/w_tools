@@ -56,7 +56,8 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     if (data != null) {
       slivers.add(readySliverBuilder(context, data));
 
-      final refreshing = refreshingSliverBuilder ??
+      final refreshing =
+          refreshingSliverBuilder ??
           theme?.refreshingSliverBuilder ??
           legacy?.refreshingSliverBuilder;
       if (state.isRefreshing && refreshing != null) {
@@ -82,25 +83,28 @@ class WAsyncStateSliver<T> extends StatelessWidget {
         SliverFillRemaining(
           hasScrollBody: hasScrollBody,
           child: switch (state.status) {
-            WAsyncStatus.loading => loadingBuilder?.call(context) ??
-                theme?.sliverLoadingBuilder?.call(context) ??
-                legacy?.loadingBuilder?.call(context) ??
-                const Center(child: CircularProgressIndicator()),
-            WAsyncStatus.empty => emptyBuilder?.call(context) ??
-                theme?.sliverEmptyBuilder?.call(context) ??
-                legacy?.emptyBuilder?.call(context) ??
-                const Center(child: Text('暂无数据')),
-            WAsyncStatus.failed => errorBuilder?.call(context, state.error!, onRetry) ??
-                theme?.sliverErrorBuilder?.call(context, state.error!, onRetry) ??
-                legacy?.errorBuilder?.call(
-                  context,
-                  state.error!,
-                  onRetry,
-                ) ??
-                WAsyncErrorView(
-                  error: state.error!,
-                  onRetry: onRetry,
-                ),
+            WAsyncStatus.loading =>
+              loadingBuilder?.call(context) ??
+                  theme?.sliverLoadingBuilder?.call(context) ??
+                  legacy?.loadingBuilder?.call(context) ??
+                  const Center(child: CircularProgressIndicator()),
+            WAsyncStatus.empty =>
+              emptyBuilder?.call(context) ??
+                  theme?.sliverEmptyBuilder?.call(context) ??
+                  legacy?.emptyBuilder?.call(context) ??
+                  const Center(child: Text('暂无数据')),
+            WAsyncStatus.failed =>
+              errorBuilder?.call(context, state.error!, onRetry) ??
+                  theme?.sliverErrorBuilder?.call(context, state.error!, onRetry) ??
+                  legacy?.errorBuilder?.call(
+                    context,
+                    state.error!,
+                    onRetry,
+                  ) ??
+                  WAsyncErrorView(
+                    error: state.error!,
+                    onRetry: onRetry,
+                  ),
             WAsyncStatus.ready => const SizedBox.shrink(),
           },
         ),

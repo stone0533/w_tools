@@ -34,11 +34,13 @@ class WAppBarStyle {
     Object? systemOverlayStyle = _unset,
   }) {
     return WAppBarStyle(
-      backgroundColor:
-          identical(backgroundColor, _unset) ? this.backgroundColor : backgroundColor as Color?,
+      backgroundColor: identical(backgroundColor, _unset)
+          ? this.backgroundColor
+          : backgroundColor as Color?,
       gradient: identical(gradient, _unset) ? this.gradient : gradient as Gradient?,
-      foregroundColor:
-          identical(foregroundColor, _unset) ? this.foregroundColor : foregroundColor as Color?,
+      foregroundColor: identical(foregroundColor, _unset)
+          ? this.foregroundColor
+          : foregroundColor as Color?,
       titleStyle: identical(titleStyle, _unset) ? this.titleStyle : titleStyle as TextStyle?,
       height: height ?? this.height,
       titleSpacing: identical(titleSpacing, _unset) ? this.titleSpacing : titleSpacing as double?,
@@ -81,9 +83,9 @@ class WAppBar extends StatelessWidget {
     this.includeStatusBar = true,
     this.style = const WAppBarStyle(),
   }) : assert(
-          title == null || titleWidget == null,
-          'WAppBar: title 与 titleWidget 只能选一个',
-        );
+         title == null || titleWidget == null,
+         'WAppBar: title 与 titleWidget 只能选一个',
+       );
 
   final String? title;
   final Widget? titleWidget;
@@ -104,8 +106,9 @@ class WAppBar extends StatelessWidget {
     style.validate();
     final leadingWidget = leading ?? _buildLeading(context);
     final middle = _buildTitle(context);
-    final trailing =
-        actions.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, children: actions);
+    final trailing = actions.isEmpty
+        ? null
+        : Row(mainAxisSize: MainAxisSize.min, children: actions);
 
     final foreground = style.foregroundColor;
     final statusBarHeight = includeStatusBar ? MediaQuery.paddingOf(context).top : 0.0;
@@ -114,9 +117,7 @@ class WAppBar extends StatelessWidget {
       // merge 而不是替换：替换会丢掉 ThemeData.iconTheme / 上层 IconTheme，
       // 默认（foreground 为空）时图标会回落到 Flutter fallback 的黑色。
       child: IconTheme.merge(
-        data: foreground == null
-            ? const IconThemeData()
-            : IconThemeData(color: foreground),
+        data: foreground == null ? const IconThemeData() : IconThemeData(color: foreground),
         child: NavigationToolbar(
           leading: leadingWidget,
           middle: middle,
@@ -172,9 +173,7 @@ class WAppBar extends StatelessWidget {
     // 都没有时不传 style，交给 Text 的默认样式。
     final theme = Theme.of(context);
     final baseStyle =
-        style.titleStyle ??
-        theme.appBarTheme.titleTextStyle ??
-        theme.textTheme.titleLarge;
+        style.titleStyle ?? theme.appBarTheme.titleTextStyle ?? theme.textTheme.titleLarge;
     final foreground = style.foregroundColor;
     final titleStyle = foreground == null
         ? baseStyle

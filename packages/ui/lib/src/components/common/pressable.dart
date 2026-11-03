@@ -35,14 +35,14 @@ class WPressable extends StatefulWidget {
     this.curve = Curves.easeInOut,
     this.behavior = HitTestBehavior.opaque,
     this.excludeChildSemanticsWhenDisabled = false,
-  })  : assert(
-          pressedOpacity >= 0 && pressedOpacity <= 1,
-          'pressedOpacity 必须在 0..1',
-        ),
-        assert(
-          pressedScale >= 0.1 && pressedScale <= 1,
-          'pressedScale 必须在 0.1..1',
-        );
+  }) : assert(
+         pressedOpacity >= 0 && pressedOpacity <= 1,
+         'pressedOpacity 必须在 0..1',
+       ),
+       assert(
+         pressedScale >= 0.1 && pressedScale <= 1,
+         'pressedScale 必须在 0.1..1',
+       );
 
   final Widget child;
   final GestureTapCallback? onTap;

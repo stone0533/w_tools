@@ -43,16 +43,17 @@ class WImageLoadSnapshot {
 
   @override
   int get hashCode => Object.hash(
-        status,
-        progress,
-        attempt,
-        error,
-        retryScheduled,
-        retryDelayMs,
-      );
+    status,
+    progress,
+    attempt,
+    error,
+    retryScheduled,
+    retryDelayMs,
+  );
 
   @override
-  String toString() => 'WImageLoadSnapshot(status: $status, attempt: $attempt, '
+  String toString() =>
+      'WImageLoadSnapshot(status: $status, attempt: $attempt, '
       'progress: $progress, retryScheduled: $retryScheduled)';
 }
 
@@ -67,14 +68,15 @@ class WImageLoader extends WImageLoadState {
     this.onStatus,
     this.onProgress,
     Random? random,
-  })  : _random = random ?? Random(),
-        _retryCount = retryCount,
-        _retryDelay = retryDelay {
+  }) : _random = random ?? Random(),
+       _retryCount = retryCount,
+       _retryDelay = retryDelay {
     reset(retryCount: retryCount, retryDelay: retryDelay);
   }
 
-  final ValueNotifier<WImageLoadSnapshot> _notifier =
-      ValueNotifier<WImageLoadSnapshot>(const WImageLoadSnapshot());
+  final ValueNotifier<WImageLoadSnapshot> _notifier = ValueNotifier<WImageLoadSnapshot>(
+    const WImageLoadSnapshot(),
+  );
 
   /// 状态回调（State 负责切到 post-frame）
   final ValueChanged<WImageLoadStatus>? onStatus;

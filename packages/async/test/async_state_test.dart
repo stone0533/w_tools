@@ -33,11 +33,11 @@ void main() {
 
     test('when 覆盖四态', () {
       String describe(WAsyncState<int> s) => s.when(
-            loading: () => 'loading',
-            ready: (data) => 'ready:$data',
-            empty: () => 'empty',
-            failed: (error) => 'failed:$error',
-          );
+        loading: () => 'loading',
+        ready: (data) => 'ready:$data',
+        empty: () => 'empty',
+        failed: (error) => 'failed:$error',
+      );
 
       expect(describe(const WAsyncState<int>.loading()), 'loading');
       expect(describe(const WAsyncState<int>.ready(7)), 'ready:7');

@@ -40,14 +40,14 @@ class WQrViewOverlayShape {
     this.cutOutWidth = 250,
     double? cutOutHeight,
     this.cutOutBottomOffset = 0,
-  })  : assert(borderWidth > 0, 'borderWidth 必须大于 0'),
-        assert(borderLength > 0, 'borderLength 必须大于 0'),
-        assert(cutOutWidth > 0, 'cutOutWidth 必须大于 0'),
-        assert(
-          (cutOutHeight ?? cutOutWidth) > 0,
-          'cutOutHeight 必须大于 0',
-        ),
-        cutOutHeight = cutOutHeight ?? cutOutWidth;
+  }) : assert(borderWidth > 0, 'borderWidth 必须大于 0'),
+       assert(borderLength > 0, 'borderLength 必须大于 0'),
+       assert(cutOutWidth > 0, 'cutOutWidth 必须大于 0'),
+       assert(
+         (cutOutHeight ?? cutOutWidth) > 0,
+         'cutOutHeight 必须大于 0',
+       ),
+       cutOutHeight = cutOutHeight ?? cutOutWidth;
 
   @override
   bool operator ==(Object other) =>

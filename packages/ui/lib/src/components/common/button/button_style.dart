@@ -207,9 +207,9 @@ class WButtonStyle {
 
   /// 静态改背景色，内部包装为 WidgetStatePropertyAll，并清空 gradient。
   WButtonStyle withBackgroundColor(Color color) => _copyNullable(
-        backgroundColor: WidgetStatePropertyAll(color),
-        gradient: null,
-      );
+    backgroundColor: WidgetStatePropertyAll(color),
+    gradient: null,
+  );
 
   /// 静态改前景色，内部包装为 WidgetStatePropertyAll。
   WButtonStyle withForegroundColor(Color color) =>
@@ -221,13 +221,13 @@ class WButtonStyle {
 
   /// 静态改阴影，内部包装为 WidgetStatePropertyAll。
   WButtonStyle withBoxShadow(List<BoxShadow> shadows) => _copyNullable(
-        boxShadow: WidgetStatePropertyAll(List<BoxShadow>.unmodifiable(shadows)),
-      );
+    boxShadow: WidgetStatePropertyAll(List<BoxShadow>.unmodifiable(shadows)),
+  );
 
   /// 静态改文字样式，内部包装为 WidgetStatePropertyAll。
   WButtonStyle withTextStyle(TextStyle textStyle) => copyWith(
-        textStyle: WidgetStatePropertyAll(textStyle),
-      );
+    textStyle: WidgetStatePropertyAll(textStyle),
+  );
 
   static const Object _unset = Object();
 
@@ -248,11 +248,13 @@ class WButtonStyle {
       backgroundColor: identical(backgroundColor, _unset)
           ? this.backgroundColor
           : backgroundColor as WidgetStateProperty<Color?>?,
-      gradient:
-          identical(gradient, _unset) ? this.gradient : gradient as WidgetStateProperty<Gradient?>?,
+      gradient: identical(gradient, _unset)
+          ? this.gradient
+          : gradient as WidgetStateProperty<Gradient?>?,
       border: identical(border, _unset) ? this.border : border as WidgetStateProperty<BoxBorder?>?,
-      borderRadius:
-          identical(borderRadius, _unset) ? this.borderRadius : borderRadius as BorderRadius?,
+      borderRadius: identical(borderRadius, _unset)
+          ? this.borderRadius
+          : borderRadius as BorderRadius?,
       boxShadow: identical(boxShadow, _unset)
           ? this.boxShadow
           : boxShadow as WidgetStateProperty<List<BoxShadow>?>?,
@@ -276,17 +278,17 @@ class WButtonStyle {
   }
 
   WButtonStyle withoutBackground() => _copyNullable(
-        backgroundColor: null,
-        gradient: null,
-      );
+    backgroundColor: null,
+    gradient: null,
+  );
 
   WButtonStyle withoutDecoration() => _copyNullable(
-        backgroundColor: null,
-        gradient: null,
-        border: null,
-        borderRadius: null,
-        boxShadow: null,
-      );
+    backgroundColor: null,
+    gradient: null,
+    border: null,
+    borderRadius: null,
+    boxShadow: null,
+  );
 
   WButtonStyle withoutBorder() => _copyNullable(border: null);
 
@@ -297,9 +299,9 @@ class WButtonStyle {
 
   /// 清空 textStyle 和 foregroundColor。
   WButtonStyle withoutText() => _copyNullable(
-        textStyle: null,
-        foregroundColor: null,
-      );
+    textStyle: null,
+    foregroundColor: null,
+  );
 
   WButtonStyle withoutForegroundColor() => _copyNullable(foregroundColor: null);
 

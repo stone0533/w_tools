@@ -8,3 +8,9 @@
 
 `WLogPart`：`request` / `requestHeader` / `requestBody` / `responseHeader` / `responseBody` /
 `error` / `errorHint`。
+
+## 注意
+
+- `DioRegistry` 的配置比较里，`validateStatus` 按**引用**比较：默认实现是同一个顶层函数，
+  自定义闭包即使语义相同也会被视为“不同配置”。命中缓存后修改全局 `WApiConfig.baseOptions`
+  再调用 `forBaseUrl` 会抛 `ArgumentError`，请先 `dispose`。

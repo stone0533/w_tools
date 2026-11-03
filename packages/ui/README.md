@@ -20,7 +20,7 @@ dependencies:
   w_tools_ui: ^4.7.0
 ```
 
-> 本包最低要求 Flutter 3.27.0。
+> 本包最低要求 Flutter 3.38.0。
 
 ## 快速开始
 

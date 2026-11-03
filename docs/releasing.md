@@ -70,6 +70,15 @@ dart run w_tools_cli:init --check-drift
 > `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
 > 发布前的门禁是第 4、6 步。
 
+## 发布前真机 / 消费方检查
+
+自动测试覆盖不到的，发布前人工过一遍：
+
+- **qr**：真机扫码一次（单次模式暂停、`restartScan` 后可再扫）、拒绝相机权限走 `noPermissionCallback`；
+- **map**：真机打开地图 → 选中 marker（相机 + InfoWindow）→ 关闭 → 退出页面（无 controller 悬空）；
+- **消费方**：临时 app 用 `path:` 依赖 9 个子包，跑一屏「按钮 + 图片 + 表单 + async + toast」，
+  确认 `flutter analyze` 与运行都正常（参考 `docs/migrations/README.md` 的版本约束）。
+
 ## 为什么用 `publish_package.sh` 而不是直接 `flutter pub publish`
 
 仓库根的 `pubspec.yaml` 为了本地开发写着 `workspace:`，子包写着 `resolution: workspace`。

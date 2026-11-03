@@ -109,9 +109,7 @@ class WToastStyle {
       loadingBuilder: identical(loadingBuilder, _unset)
           ? this.loadingBuilder
           : loadingBuilder as Widget Function(Object?, CancelFunc, bool)?,
-      onError: identical(onError, _unset)
-          ? this.onError
-          : onError as void Function(dynamic)?,
+      onError: identical(onError, _unset) ? this.onError : onError as void Function(dynamic)?,
     );
   }
 }

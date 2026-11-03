@@ -27,9 +27,7 @@ class R2DirectSubpackageImport {
 
   /// 开发目录（只在这些目录里放行 [devOnlyPackages]）
   static bool _isDevPath(String file) =>
-      file.startsWith('test/') ||
-      file.startsWith('tool/') ||
-      file.startsWith('integration_test/');
+      file.startsWith('test/') || file.startsWith('tool/') || file.startsWith('integration_test/');
 
   static DoctorRuleResult check(ProjectContext ctx, DoctorConfig config) {
     final issues = <DoctorIssue>[];

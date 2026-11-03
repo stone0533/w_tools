@@ -199,7 +199,8 @@ final class WImageFileError extends WImageError {
 @Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageUnsupportedError extends WImageError {
   /// 创建错误
-  const WImageUnsupportedError(String data, this.platform) : super(data, WImageErrorKind.unsupported);
+  const WImageUnsupportedError(String data, this.platform)
+    : super(data, WImageErrorKind.unsupported);
 
   /// 不支持的平台描述
   final String platform;

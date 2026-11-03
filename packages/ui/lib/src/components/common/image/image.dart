@@ -284,7 +284,9 @@ class WImage extends StatefulWidget {
   /// [style] 中显式给出的字段覆盖预设；[width] / [height] 作为预设 fallback，
   /// 解码尺寸上限也按合并后的尺寸推导。
   /// remove-in: 5.0.0
-  @Deprecated('用 `WImage(data, style: WImageStyle.thumbnail(...), config: WImageLoadConfig(memCacheWidth: ...))`；5.0 移除')
+  @Deprecated(
+    '用 `WImage(data, style: WImageStyle.thumbnail(...), config: WImageLoadConfig(memCacheWidth: ...))`；5.0 移除',
+  )
   factory WImage.thumbnail(
     String data, {
     Key? key,
@@ -619,7 +621,9 @@ class _WImageState extends State<WImage> {
 
   /// 构建默认错误占位符（defaults 优先，其次内置兜底）
   Widget _buildErrorWidget(BuildContext context, WImageError error) {
-    final themed = WImageDefaultsScope.maybeOf(context)?.errorWidgetBuilder?.call(context, _value, error);
+    final themed = WImageDefaultsScope.maybeOf(
+      context,
+    )?.errorWidgetBuilder?.call(context, _value, error);
     return _sizedSlot(themed ?? _fallbackErrorWidget);
   }
 

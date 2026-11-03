@@ -423,7 +423,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WMap<_TestMapItem>(config: cfg, zone: zone)),
+          home: Scaffold(
+            body: WMap<_TestMapItem>(config: cfg, zone: zone),
+          ),
         ),
       );
 
@@ -479,7 +481,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WMap<_TestMapItem>(config: cfg, zone: zone)),
+          home: Scaffold(
+            body: WMap<_TestMapItem>(config: cfg, zone: zone),
+          ),
         ),
       );
 

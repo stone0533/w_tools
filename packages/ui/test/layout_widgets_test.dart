@@ -299,20 +299,21 @@ void main() {
     var notifications = 0;
     double? percentage;
 
-    final wrapper = WNotificationListenerBuilder<ScrollNotification>(
-      child: SizedBox(
-        height: 100,
-        child: ListView.builder(
-          itemCount: 50,
-          itemBuilder: (_, i) => SizedBox(height: 20, child: Text('row-$i')),
-        ),
-      ),
-    )
-      ..onNotification((_) {
-        notifications++;
-        return false;
-      })
-      ..onNotificationPercentage((value) => percentage = value);
+    final wrapper =
+        WNotificationListenerBuilder<ScrollNotification>(
+            child: SizedBox(
+              height: 100,
+              child: ListView.builder(
+                itemCount: 50,
+                itemBuilder: (_, i) => SizedBox(height: 20, child: Text('row-$i')),
+              ),
+            ),
+          )
+          ..onNotification((_) {
+            notifications++;
+            return false;
+          })
+          ..onNotificationPercentage((value) => percentage = value);
 
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: wrapper.build())));
     await tester.drag(find.byType(ListView), const Offset(0, -100));
@@ -405,7 +406,9 @@ void main() {
 
   testWidgets('WAppBar — 无主题样式时标题用 titleLarge，而不是正文样式', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(body: WAppBar(title: '标题'))),
+      const MaterialApp(
+        home: Scaffold(body: WAppBar(title: '标题')),
+      ),
     );
 
     final element = tester.element(find.text('标题'));

@@ -60,12 +60,12 @@ class WListViewSliver extends StatelessWidget {
     this.empty,
     this.emptyFill = false,
     this.keepAlive = false,
-  })  : _kind = _WListViewKind.list,
-        separatorBuilder = null,
-        gridDelegate = null,
-        overlap = 0,
-        assert(itemCount >= 0),
-        assert(itemExtent == null || itemExtent > 0);
+  }) : _kind = _WListViewKind.list,
+       separatorBuilder = null,
+       gridDelegate = null,
+       overlap = 0,
+       assert(itemCount >= 0),
+       assert(itemExtent == null || itemExtent > 0);
 
   const WListViewSliver.separated({
     super.key,
@@ -78,11 +78,11 @@ class WListViewSliver extends StatelessWidget {
     this.empty,
     this.emptyFill = false,
     this.keepAlive = false,
-  })  : _kind = _WListViewKind.separated,
-        itemExtent = null,
-        gridDelegate = null,
-        overlap = 0,
-        assert(itemCount >= 0);
+  }) : _kind = _WListViewKind.separated,
+       itemExtent = null,
+       gridDelegate = null,
+       overlap = 0,
+       assert(itemCount >= 0);
 
   const WListViewSliver.grid({
     super.key,
@@ -95,11 +95,11 @@ class WListViewSliver extends StatelessWidget {
     this.empty,
     this.emptyFill = false,
     this.keepAlive = false,
-  })  : _kind = _WListViewKind.grid,
-        itemExtent = null,
-        separatorBuilder = null,
-        overlap = 0,
-        assert(itemCount >= 0);
+  }) : _kind = _WListViewKind.grid,
+       itemExtent = null,
+       separatorBuilder = null,
+       overlap = 0,
+       assert(itemCount >= 0);
 
   const WListViewSliver.overlap({
     super.key,
@@ -113,15 +113,15 @@ class WListViewSliver extends StatelessWidget {
     this.empty,
     this.emptyFill = false,
     this.keepAlive = false,
-  })  : _kind = _WListViewKind.overlap,
-        // ignore: prefer_initializing_formals
-        itemExtent = itemExtent,
-        separatorBuilder = null,
-        gridDelegate = null,
-        assert(itemCount >= 0),
-        assert(itemExtent > 0),
-        assert(overlap >= 0),
-        assert(overlap < itemExtent);
+  }) : _kind = _WListViewKind.overlap,
+       // ignore: prefer_initializing_formals
+       itemExtent = itemExtent,
+       separatorBuilder = null,
+       gridDelegate = null,
+       assert(itemCount >= 0),
+       assert(itemExtent > 0),
+       assert(overlap >= 0),
+       assert(overlap < itemExtent);
 
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;

@@ -298,8 +298,10 @@ void main() {
         ),
       );
 
-      final paddings =
-          tester.widgetList<Padding>(find.byType(Padding)).map((e) => e.padding).toList();
+      final paddings = tester
+          .widgetList<Padding>(find.byType(Padding))
+          .map((e) => e.padding)
+          .toList();
       expect(paddings, contains(EdgeInsets.only(top: WScreen.statusBarHeight)));
       expect(paddings, contains(EdgeInsets.only(bottom: WScreen.bottomSafeAreaHeight)));
     });

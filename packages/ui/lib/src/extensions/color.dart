@@ -77,7 +77,8 @@ extension WHexColor on Color {
   ///
   /// - [leadingHashSign]：是否添加前缀 #，默认为 true
   /// 返回：十六进制颜色字符串，格式为 #AARRGGBB
-  String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
+  String toHex({bool leadingHashSign = true}) =>
+      '${leadingHashSign ? '#' : ''}'
       '${(a * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'
       '${(r * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'
       '${(g * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'

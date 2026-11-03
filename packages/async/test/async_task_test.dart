@@ -487,7 +487,8 @@ void main() {
     test('pool should process tasks in batches', () async {
       final results = await WAsync.pool<int, List<int>>(
         [1, 2, 3, 4, 5].map(
-          (i) => () async => i,
+          (i) =>
+              () async => i,
         ),
         onSuccess: (list) => list,
         concurrency: 2,
@@ -498,7 +499,8 @@ void main() {
     test('pool should return null when onSuccess not provided', () async {
       final results = await WAsync.pool(
         [1, 2, 3, 4, 5].map(
-          (i) => () async => i,
+          (i) =>
+              () async => i,
         ),
         concurrency: 2,
       );
@@ -882,7 +884,8 @@ void main() {
     test('serial 支持任意 Iterable', () async {
       final result = await WAsync.serial<int, List<int>>(
         {1, 2, 3}.map(
-          (i) => () async => i,
+          (i) =>
+              () async => i,
         ),
         onSuccess: (list) => list,
       );

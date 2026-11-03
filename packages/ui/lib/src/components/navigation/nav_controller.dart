@@ -37,10 +37,10 @@ class WNavController extends ChangeNotifier {
     int initialIndex = 0,
     required this.length,
     required this.vsync,
-  })  : assert(length >= 0),
-        assert(length == 0 || (initialIndex >= 0 && initialIndex < length)),
-        _currentIndex = initialIndex,
-        _previousIndex = initialIndex {
+  }) : assert(length >= 0),
+       assert(length == 0 || (initialIndex >= 0 && initialIndex < length)),
+       _currentIndex = initialIndex,
+       _previousIndex = initialIndex {
     _animationController = AnimationController(
       duration: kTabScrollDuration,
       vsync: vsync,

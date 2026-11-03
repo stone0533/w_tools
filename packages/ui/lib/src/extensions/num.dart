@@ -95,7 +95,7 @@ extension WNumExtension on num {
     final formatted = dotIndex == -1
         ? group(body)
         : '${group(body.substring(0, dotIndex))}'
-            '$decimalSeparator${body.substring(dotIndex + 1)}';
+              '$decimalSeparator${body.substring(dotIndex + 1)}';
 
     return '${negative ? '-' : ''}$symbol$formatted';
   }

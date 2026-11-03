@@ -16,8 +16,8 @@ class WAsyncPagedController<T> {
     this.initialPage = 1,
     this.options,
     WAsyncState<List<T>>? initial,
-  })  : _page = initial?.dataOrNull != null ? initialPage + 1 : initialPage,
-        _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading());
+  }) : _page = initial?.dataOrNull != null ? initialPage + 1 : initialPage,
+       _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading());
 
   final WAsyncPageLoader<T> _loader;
   final int initialPage;
@@ -103,9 +103,7 @@ class WAsyncPagedController<T> {
     _page = initialPage + 1;
     _hasMore = page.isNotEmpty;
     final items = List<T>.unmodifiable(page);
-    _state.value = items.isEmpty
-        ? WAsyncState<List<T>>.empty()
-        : WAsyncState<List<T>>.ready(items);
+    _state.value = items.isEmpty ? WAsyncState<List<T>>.empty() : WAsyncState<List<T>>.ready(items);
   }
 
   /// 追加下一页；失败只写 [loadMoreError]，不会清空已有列表。

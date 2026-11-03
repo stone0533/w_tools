@@ -2,6 +2,10 @@
 
 按包与版本排列；升级前先读对应大版本条目。
 
+> **最低环境**：Flutter 子包（core / async / ui / form / api / app / toast / map / qr）与根包
+> 统一要求 Dart `^3.10.0`、Flutter `>=3.38.0`（与 CI 唯一验证的最低版本一致）。
+> 纯 Dart 工具包（figma / device / e2e）仍为 Dart `>=3.6.0`；`cli` 为 `^3.10.0`。
+
 ## core
 
 - [2.1](core-2.1.md)：token 键名移入 `WToken`

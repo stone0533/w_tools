@@ -60,17 +60,17 @@
 
 | 包 | Dart SDK | Flutter SDK |
 |------|----------|-------------|
-| `w_tools_core` | ^3.6.0 | >= 3.27 |
-| `w_tools_async` | ^3.6.0 | >= 3.27 |
-| `w_tools_app` | ^3.6.0 | >= 3.27 |
-| `w_tools_ui` | ^3.6.0 | >= 3.27 |
-| `w_tools_api` | ^3.6.0 | >= 3.27 |
-| `w_tools_toast` | ^3.6.0 | >= 3.27 |
-| `w_tools_qr` | ^3.6.0 | >= 3.27 |
-| `w_tools_map` | ^3.6.0 | >= 3.27 |
+| `w_tools_core` | ^3.10.0 | >= 3.38 |
+| `w_tools_async` | ^3.10.0 | >= 3.38 |
+| `w_tools_app` | ^3.10.0 | >= 3.38 |
+| `w_tools_ui` | ^3.10.0 | >= 3.38 |
+| `w_tools_api` | ^3.10.0 | >= 3.38 |
+| `w_tools_toast` | ^3.10.0 | >= 3.38 |
+| `w_tools_qr` | ^3.10.0 | >= 3.38 |
+| `w_tools_map` | ^3.10.0 | >= 3.38 |
 | `w_tools_form` | ^3.10.0 | >= 3.38 |
 | `w_tools_cli` | ^3.10.0 | —（纯 Dart） |
-| `w_tools_figma` | ^3.6.0 | —（纯 Dart） |
+| `w_tools_figma` | >=3.6.0 <4.0.0 | —（纯 Dart） |
 
 ## 文档风格
 

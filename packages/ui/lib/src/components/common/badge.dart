@@ -24,9 +24,9 @@ class WBadge extends StatelessWidget {
     this.badgeContent,
     this.child,
   }) : assert(
-          config == null || !config.isShown || badgeContent != null,
-          'WBadge: 显示徽章时 badgeContent 不能为空',
-        );
+         config == null || !config.isShown || badgeContent != null,
+         'WBadge: 显示徽章时 badgeContent 不能为空',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,8 @@ class WBadge extends StatelessWidget {
     return badges.Badge(
       showBadge: showBadge,
       position: config._position,
-      badgeStyle: config._badgeStyle ??
+      badgeStyle:
+          config._badgeStyle ??
           const badges.BadgeStyle(
             padding: EdgeInsets.zero,
             borderSide: BorderSide(color: Colors.transparent, width: 0),

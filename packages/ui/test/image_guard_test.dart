@@ -40,7 +40,9 @@ void main() {
   group('WImage 空 data 防护', () {
     testWidgets("data = '' 不构建任何 Image（否则会 Image.asset('') 报错）", (tester) async {
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: WImage(data: ''))),
+        MaterialApp(
+          home: Scaffold(body: WImage(data: '')),
+        ),
       );
 
       expect(find.byType(Image), findsNothing);
@@ -51,7 +53,9 @@ void main() {
 
     testWidgets('纯空白同样视为没有图', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: WImage(data: '   '))),
+        MaterialApp(
+          home: Scaffold(body: WImage(data: '   ')),
+        ),
       );
 
       expect(find.byType(Image), findsNothing);
@@ -104,7 +108,9 @@ void main() {
   group('WImage 类型判定', () {
     Future<void> expectNetwork(WidgetTester tester, String data) async {
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: WImage(data: data))),
+        MaterialApp(
+          home: Scaffold(body: WImage(data: data)),
+        ),
       );
       expect(
         find.byType(Image),

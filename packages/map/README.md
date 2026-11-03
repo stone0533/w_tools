@@ -22,7 +22,7 @@ dependencies:
 
 请按 `google_maps_flutter` 文档配置 Android / iOS 的 Google Maps API Key。
 
-> 本包最低要求 Flutter 3.27.0。
+> 本包最低要求 Flutter 3.38.0。
 
 ## 快速开始
 

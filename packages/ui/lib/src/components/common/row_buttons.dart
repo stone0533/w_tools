@@ -331,8 +331,8 @@ class WRowButtonsController {
     this.scrollCurve = Curves.ease,
     this.animateScroll = true,
     this.overScroll = 0.0,
-  })  : _index = initialIndex,
-        _indexNotifier = ValueNotifier(initialIndex) {
+  }) : _index = initialIndex,
+       _indexNotifier = ValueNotifier(initialIndex) {
     assert(overScroll >= 0, 'overScroll 不能为负');
     // 检查按钮数量是否为正数
     if (length <= 0) {

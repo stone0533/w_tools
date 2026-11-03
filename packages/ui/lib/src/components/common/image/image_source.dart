@@ -42,16 +42,14 @@ sealed class WImageSource {
     String url, {
     Map<String, String>? headers,
     String? cacheKey,
-  }) =>
-      WNetworkImageSource(url, headers: headers, cacheKey: cacheKey);
+  }) => WNetworkImageSource(url, headers: headers, cacheKey: cacheKey);
 
   /// 本地资源
   factory WImageSource.asset(
     String name, {
     String? package,
     bool prefix = false,
-  }) =>
-      WAssetImageSource(name, package: package, prefix: prefix);
+  }) => WAssetImageSource(name, package: package, prefix: prefix);
 
   /// 本地文件
   factory WImageSource.file(String path) => WFileImageSource(path);
@@ -131,11 +129,12 @@ final class WNetworkImageSource extends WImageSource {
 
   @override
   int get hashCode => Object.hash(
-      _url,
-      cacheKey,
-      headers == null
-          ? null
-          : Object.hashAllUnordered(headers!.entries.map((e) => Object.hash(e.key, e.value))));
+    _url,
+    cacheKey,
+    headers == null
+        ? null
+        : Object.hashAllUnordered(headers!.entries.map((e) => Object.hash(e.key, e.value))),
+  );
 }
 
 /// 本地资源

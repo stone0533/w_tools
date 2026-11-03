@@ -12,8 +12,7 @@ const String kIdCardPattern =
     r'^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$';
 const String kChineseNamePattern = r'^[\u4e00-\u9fa5]{2,20}$';
 const String kUrlPattern = r'^https?:\/\/[^\s]+$';
-const String kIpv4Pattern =
-    r'^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$';
+const String kIpv4Pattern = r'^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$';
 const String kMacAddressPattern = r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$';
 const String kNumberPattern = r'^-?\d+(\.\d+)?$';
 const String kIntegerPattern = r'^-?\d+$';

@@ -63,7 +63,8 @@ class WText extends StatelessWidget {
     }
 
     // 保留旧 WTextConfig 对 strut 的处理：有字体信息时避免大字号 / 字体回退裁切
-    final autoStrutStyle = strutStyle ??
+    final autoStrutStyle =
+        strutStyle ??
         (effectiveStyle != null &&
                 (effectiveStyle.fontFamily != null ||
                     effectiveStyle.fontSize != null ||

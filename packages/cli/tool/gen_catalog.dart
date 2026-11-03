@@ -104,8 +104,9 @@ String generateDocs(String packageRoot) {
   var text = File(docsPath).readAsStringSync();
 
   for (final section in const <String>['1', '2', '3', '4', '5', '6', '7', '8', '9']) {
-    final rows =
-        components.where((c) => (c['section'] as String).startsWith('$section. ')).toList();
+    final rows = components
+        .where((c) => (c['section'] as String).startsWith('$section. '))
+        .toList();
     final table = buildTable(section, rows);
     final startMarker = '<!-- catalog:$section:start -->';
     final endMarker = '<!-- catalog:$section:end -->';

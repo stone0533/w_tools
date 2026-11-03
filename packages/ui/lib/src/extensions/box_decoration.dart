@@ -74,7 +74,7 @@ extension WBoxDecorationExtension on BoxDecoration {
 
   /// 转为圆形，并清空 borderRadius。
   BoxDecoration circle() => _copy(
-        shape: BoxShape.circle,
-        borderRadius: null,
-      );
+    shape: BoxShape.circle,
+    borderRadius: null,
+  );
 }

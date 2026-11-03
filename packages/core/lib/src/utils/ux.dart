@@ -230,8 +230,8 @@ class WCancellableAction {
   WCancellableAction._({
     required void Function() invoke,
     required void Function() cancel,
-  })  : _invoke = invoke,
-        _cancel = cancel;
+  }) : _invoke = invoke,
+       _cancel = cancel;
 
   final void Function() _invoke;
   final void Function() _cancel;

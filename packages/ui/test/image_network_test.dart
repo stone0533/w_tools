@@ -130,12 +130,12 @@ void main() {
       final controller = WImageController();
 
       Widget build(int retryCount) => _wrap(
-            WImage.network(
-              _url,
-              config: WImageLoadConfig(retryCount: retryCount),
-              controller: controller,
-            ),
-          );
+        WImage.network(
+          _url,
+          config: WImageLoadConfig(retryCount: retryCount),
+          controller: controller,
+        ),
+      );
 
       await tester.pumpWidget(build(3));
       controller.retry();
@@ -182,11 +182,11 @@ void main() {
   group('重试策略', () {
     test('4xx 不重试，5xx / 408 / 429 重试', () {
       bool retryable(int statusCode) => isRetryableNetworkError(
-            NetworkImageLoadException(
-              statusCode: statusCode,
-              uri: Uri.parse(_url),
-            ),
-          );
+        NetworkImageLoadException(
+          statusCode: statusCode,
+          uri: Uri.parse(_url),
+        ),
+      );
 
       expect(retryable(400), isFalse);
       expect(retryable(401), isFalse);
@@ -210,10 +210,10 @@ void main() {
 
     test('退避随 attempt 指数增长并封顶', () {
       Duration delay(int attempt) => retryDelayFor(
-            attempt,
-            base: const Duration(milliseconds: 100),
-            random: Random(1),
-          );
+        attempt,
+        base: const Duration(milliseconds: 100),
+        random: Random(1),
+      );
 
       // 一次重试：80–100ms
       expect(delay(0).inMilliseconds, inInclusiveRange(80, 100));

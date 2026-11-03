@@ -200,11 +200,12 @@ class WFormBorderState extends State<WFormBorder> {
     if (!hasMessage) {
       message = const SizedBox.shrink();
     } else if (isError) {
-      message = config.errorBuilder?.call(messageList) ??
+      message =
+          config.errorBuilder?.call(messageList) ??
           _defaultMessage(messageList!, config.errorStyle);
     } else {
-      message = config.hintBuilder?.call(messageList) ??
-          _defaultMessage(messageList!, config.hintStyle);
+      message =
+          config.hintBuilder?.call(messageList) ?? _defaultMessage(messageList!, config.hintStyle);
     }
 
     // 3. 交给布局策略组装
@@ -278,7 +279,8 @@ class WFormBorderConfig {
       borderRadius: BorderRadius.circular(radius),
     );
     final hintTextStyle =
-        hintStyle ?? const TextStyle(fontSize: 12, color: Color(0xFF6B7280)); // style-literal-ok: 显式浅色预设
+        hintStyle ??
+        const TextStyle(fontSize: 12, color: Color(0xFF6B7280)); // style-literal-ok: 显式浅色预设
     final errorTextStyle = errorStyle ?? TextStyle(fontSize: 12, color: errorColor);
 
     return WFormBorderConfig(
@@ -319,10 +321,12 @@ class WFormBorderConfig {
       border: Border.all(color: scheme.outlineVariant),
       borderRadius: BorderRadius.circular(radius),
     );
-    final hintTextStyle = (hintStyle ?? theme.textTheme.bodySmall ?? const TextStyle())
-        .copyWith(color: hintStyle?.color ?? scheme.onSurfaceVariant);
-    final errorTextStyle = (errorStyle ?? theme.textTheme.bodySmall ?? const TextStyle())
-        .copyWith(color: errorStyle?.color ?? scheme.error);
+    final hintTextStyle = (hintStyle ?? theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
+      color: hintStyle?.color ?? scheme.onSurfaceVariant,
+    );
+    final errorTextStyle = (errorStyle ?? theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
+      color: errorStyle?.color ?? scheme.error,
+    );
 
     return WFormBorderConfig(
       defaultDecoration: base,

@@ -311,11 +311,11 @@ void main() {
     testWidgets('同一 provider 重建时复用', (tester) async {
       final provider = MemoryImage(Uint8List.fromList([9, 9, 9]));
       Widget build() => MaterialApp(
-            home: WImage.provider(
-              provider,
-              style: const WImageStyle(width: 10, height: 10),
-            ),
-          );
+        home: WImage.provider(
+          provider,
+          style: const WImageStyle(width: 10, height: 10),
+        ),
+      );
 
       await tester.pumpWidget(build());
       final first = tester.widget<Image>(find.byType(Image)).image;
@@ -457,12 +457,12 @@ void main() {
       final statuses = <WImageLoadStatus>[];
 
       Widget build() => MaterialApp(
-            home: WImage(
-              data: 'data:image/png;base64,@@invalid@@',
-              config: const WImageLoadConfig(errorWidget: Text('base64-error')),
-              onLoadStatusChanged: statuses.add,
-            ),
-          );
+        home: WImage(
+          data: 'data:image/png;base64,@@invalid@@',
+          config: const WImageLoadConfig(errorWidget: Text('base64-error')),
+          onLoadStatusChanged: statuses.add,
+        ),
+      );
 
       await tester.runAsync(() async {
         await tester.pumpWidget(build());

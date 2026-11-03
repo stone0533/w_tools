@@ -32,8 +32,7 @@ class BudgetGuard {
   }
 
   /// 是否接近上限（CLI 在成功请求后打警告用）。
-  bool isNearLimit({DateTime? now}) =>
-      UsageCommand(store).run(now: now, recent: 0).isNearLimit;
+  bool isNearLimit({DateTime? now}) => UsageCommand(store).run(now: now, recent: 0).isNearLimit;
 
   /// 请求前调用：额度已尽且没放行时抛 [BudgetExceededException]。
   void ensureAllowed({DateTime? now, bool ignoreBudget = false}) {

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-typedef WAsyncErrorWidgetBuilder = Widget Function(
-  BuildContext context,
-  Object error,
-  VoidCallback onRetry,
-);
+typedef WAsyncErrorWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      Object error,
+      VoidCallback onRetry,
+    );
 
 /// 异步视图的显式默认配置。
 ///
