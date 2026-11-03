@@ -725,6 +725,25 @@ void main() {
       );
     });
 
+    testWidgets('深色主题下默认色来自暗色 ColorScheme', (tester) async {
+      final theme = ThemeData(useMaterial3: true, brightness: Brightness.dark);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(body: WButton(label: '提交', onTap: () {})),
+        ),
+      );
+
+      final boxes = tester.widgetList<DecoratedBox>(
+        find.descendant(of: find.byType(WButton), matching: find.byType(DecoratedBox)),
+      );
+      expect(
+        boxes.any((box) => (box.decoration as BoxDecoration?)?.color == theme.colorScheme.primary),
+        isTrue,
+      );
+    });
+
     testWidgets('WButtonStyles.of 按 ThemeData 缓存', (tester) async {
       final theme = ThemeData(useMaterial3: true);
       late BuildContext context;
