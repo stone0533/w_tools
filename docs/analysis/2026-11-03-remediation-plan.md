@@ -237,6 +237,9 @@ P2 进展：core 正则已收敛（`WRegExp.time/dateTime`，validator 不再内
 `icon` 与 `iconBuilder` 重叠；qr `flipCamera` 重建后回退、5 个零调用转发；app 三套配置入口的三重回退
 要到 2.0 收敛；golden 仍未做；feedback 复盘已完成（5 条已闭环，见 `docs/feedback/`）。
 
+**下一大版本准备**：自动生成删除清单 [`2026-11-04-next-major-removals.md`](2026-11-04-next-major-removals.md)
+（`scripts/list_removals.py`，67 项：app 2.0 / core 3.0 / form 4.0 / ui 5.0）。
+
 **发布（A 方案：两段式）**：13 个子包 `publish_package.sh --dry-run` 全通过；根包按预期失败
 （子包未上线）。本次发布 = **弃用版**；下一个大版本再删除弃用符号。
 
