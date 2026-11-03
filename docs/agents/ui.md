@@ -124,27 +124,46 @@ WText(
 
 ### WTextStyles 安装
 
-`WTextStyles` 是 `ThemeExtension`。未安装时 `WTextStyles.of(context)` 会从当前 `TextTheme` 生成兜底样式。
+`WTextStyles` 是 `ThemeExtension`，提供 11 个语义角色。未安装时 `WTextStyles.of(context)`
+会从当前 `TextTheme` 生成兜底样式（按 `TextTheme` 实例缓存，不会每次 build 重建）。
 
-需要统一品牌字号时，在主题构建处安装：
+需要统一品牌字号时，在主题构建处**一次装好**：
 
 ```dart
-final theme = Theme.of(context);
-
-return Theme(
-  data: theme.copyWith(
-    extensions: [
-      ...theme.extensions.values.where((e) => e is! WTextStyles),
-      WTextStyles.fromTextTheme(theme.textTheme),
-    ],
-  ),
-  child: child,
-);
+theme: ThemeData(colorScheme: scheme, useMaterial3: true)
+    .withWTextStyles(myStyles),
 ```
 
-如果已有 `WTextStyles`，上面的写法会替换它，而不是重复添加。
+`withWTextStyles` 同时做两件事：
 
-`WTextStyles.fromTextTheme` 只用于兜底：`price` 回退到 `title`，`number` 回退到 `bodyLarge`，`badge` 回退到 `labelSmall`；品牌设计稿仍应自定义 `WTextStyles`。
+1. 把 11 个角色写进 `ThemeData.textTheme`（`WTextStyles.toTextTheme`）；
+2. 把 `WTextStyles` 注册为 ThemeExtension（供 `WText` 使用）。
+
+**为什么必须两步都有**：form / toast / async 只读 `Theme.of(context).textTheme`
+（不依赖 `w_tools_ui`），所以只装扩展时它们看不到品牌排版；只写 `textTheme` 时
+`WText` 的 `price` / `number` / `badge` 又读不到语义角色。
+
+#### 角色 ↔ TextTheme 槽位（`toTextTheme` / `fromTextTheme` 共用，严格互逆）
+
+| 角色 | TextTheme 槽位 |
+| --- | --- |
+| `display` | `displayLarge` |
+| `headline` | `headlineMedium` |
+| `title` | `titleLarge` |
+| `price` | `headlineSmall` |
+| `bodyStrong` | `titleMedium` |
+| `number` | `bodyLarge` |
+| `body` | `bodyMedium` |
+| `caption` | `bodySmall` |
+| `label` | `labelMedium` |
+| `button` | `labelLarge` |
+| `badge` | `labelSmall` |
+
+每个角色占一个独立槽位：如果两个角色共用一个槽位，Material 组件只会拿到其中一个，
+等于静默丢样式。未涉及的槽位保留原 `TextTheme`。
+
+兜底（未安装扩展）时的取值就是上表：`price` 取 `headlineSmall`、`number` 取 `bodyLarge`、
+`badge` 取 `labelSmall`、`bodyStrong` 取 `titleMedium`；品牌设计稿仍应显式提供 `WTextStyles`。
 
 如果 `WTextStyles` 使用 `flutter_screenutil` 的 `.sp`，这段构建必须放在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 中，不能放 `main()` / 顶层 `final`。
 

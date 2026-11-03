@@ -34,12 +34,13 @@ class WUiExampleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'w_tools_ui · 示例',
+      // 一次装好 TextTheme 与 WTextStyles：Material 组件（form/toast/async）
+      // 与 WText 看到同一套字号。
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
-        extensions: [
-          WTextStyles.fromTextTheme(ThemeData.light().textTheme),
-        ],
+      ).withWTextStyles(
+        WTextStyles.fromTextTheme(ThemeData.light().textTheme),
       ),
       home: const HomeShell(),
     );

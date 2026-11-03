@@ -22,7 +22,8 @@
 | 1.6 map 入口 | 完成 | `initialCamera` / `isValid`、缺失坐标跳过、非 `WMapItem` 可读 `ArgumentError` |
 | 1.7 WButton 默认跟随主题 | 未做 | 属于品牌视觉变更，按评审建议放到 ui 4.0（3.4）一起做 |
 | 1.8 WRowButtons 文档降级 | 完成 | `components.md` / `agents/button.md` 改成「分段选择」，纯动作行用 `Row + WButton` |
-| 子包版本 / CHANGELOG | 完成 | ui 3.1.0、form 2.1.0、api 1.0.2、map 1.3.0；`release_check` 剩 4 条预期提醒（根约束下界低于本地版本） |
+| 子包版本 / CHANGELOG | 完成 | ui 3.2.0、form 2.1.0、api 1.0.2、map 1.3.0；`release_check` 剩 4 条预期提醒（根约束下界低于本地版本） |
+| D1 落地（ui 3.2.0） | 完成 | `WTextStyles.toTextTheme()` / `ThemeData.withWTextStyles()`；11 角色 ↔ 11 槽位严格互逆，兜底按 `TextTheme` 缓存；form/toast 的 Theme 派生留给 4.0 |
 | 根包约束 / 根版本 | 待发布 | **不能提前抬高**：根 `example/` 依赖 `w_tools` path → 未发布的 `^3.1.0` 会让本地解析失败；按 `docs/releasing.md` 在子包发布后再抬 |
 
 阶段 2（工具链，与 Flutter 包零重叠）：
@@ -59,7 +60,7 @@
 
 | # | 决策 | 我的建议 | 影响 |
 | --- | --- | --- | --- |
-| **D1** | form / toast / async 是否允许依赖 ui？ | **允许**，方向 `core←ui←{form,async,toast}`，无环 | 决定 P1-9 是一次修好还是各包加一套主题。若选"不依赖"，每个包都要 `xxxTheme` + 禁 `Color(0x…)`，成本更高 |
+| **D1** | form / toast / async 是否允许依赖 ui？ | **不允许**（2026-11-03 定）：排版通过 `ThemeData.textTheme` 共享，ui 提供 `WTextStyles.toTextTheme` + `ThemeData.withWTextStyles`；三包只读 Theme，`pubspec` 不变 | 避免把 `cached_network_image` 拖进 async / form / toast，也不绑死发布顺序；代价是三包默认样式必须从 `ColorScheme` / `TextTheme` 派生并禁止字面量色值 |
 | **D2** | 断代方式 | **两段式**：2.x/3.x 先弃用 + 迁移文档，下一大版本删 | 一次性破窗只适合 0.x 内部项目；这里是 pub 上的库 |
 | **D3** | form 是否继续基于 `flutter_form_builder` | **继续用，但真封装**：barrel 显式 re-export FFB 类型，README 声明它是公开依赖 | 换掉 FFB 等于重写 form（约 5,000 行）；真暴露是 1 小时的事 |
 | **D4** | cli 是否合并成单入口 | **合并**（`w_tools <subcommand>`），旧 6 个 bin 留一版薄壳 | 决定 `--check` 契约重定与退出码统一的时间点 |
@@ -141,11 +142,12 @@ D1 必须在阶段 3 之前定，D3 在 4.6 之前定，D4 在 2.1 之前定。�
 
 ## 6. 阶段 4：上层 async / toast / form（10–14 人日，大版本）
 
-依赖 D1 的结论。若 D1=允许依赖 ui，则顺序是 **4.0 依赖边 → 4.1/4.2/4.3 各自收敛**。
+D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4.1/4.2/4.3 各自收敛**；
+`ui 3.2.0` 的 `withWTextStyles` 已完成，应用侧装一次即可让三包跟随品牌排版。
 
 | 步 | 关闭 | 动作 | 大小 |
 | --- | --- | --- | --- |
-| **4.0** | P1-9 | 三个包 `pubspec` 加 `w_tools_ui`，样式改为 `WText`/`WButton`/`WTextStyles`；删除硬编码色值 | M |
+| **4.0** | P1-9 | 三个包**不加** `w_tools_ui`：删除默认样式里的 `Color(0x…)` / `Colors.white`，改从 `ColorScheme` 派生；文字改读 `Theme.textTheme`；保留各自 `xxxTheme` 注入点 | M |
 | **4.1** | P2-15 | async：删 `WAsyncConfig`（7 个方法转发 ~300 行），回调作为 `WAsync.run` 参数；`WAsyncController` 接收同一组回调；`wait/any/sequence/...` 改名 `parallel/first/serial/pool` | L |
 | **4.2** | P2-16/17/18 | async：三个视图统一收 `ValueListenable`；`onRetry` 统一类型；两套 defaults 合一个；`WAsyncStrings` | M |
 | **4.3** | P1-12、P2-40/41 | toast：`WToast`（门面）+ `WToastStyle`（不可变）+ `WToastTheme`；success/error/warning 改 `showEnhancedWidget(allowClick:true, crossPage:true)`；`runWithLoading`；评估去 `bot_toast` | L |

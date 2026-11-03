@@ -67,6 +67,9 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
   final TextStyle badge;
 
   /// 从 Flutter TextTheme 生成兜底语义样式。
+  ///
+  /// 映射与 [toTextTheme] 严格互逆（每个角色占一个独立槽位），
+  /// 否则会出现「两个角色抢同一个槽位」→ 转换后 Material 组件拿到错的字号。
   factory WTextStyles.fromTextTheme(TextTheme textTheme) {
     final body = textTheme.bodyMedium ?? const TextStyle();
     final title = textTheme.titleLarge ?? const TextStyle();
@@ -76,19 +79,48 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
       headline: textTheme.headlineMedium ?? title,
       title: title,
       body: body,
-      bodyStrong: body.copyWith(fontWeight: FontWeight.w600),
+      bodyStrong: textTheme.titleMedium ?? body.copyWith(fontWeight: FontWeight.w600),
       caption: textTheme.bodySmall ?? body.copyWith(fontSize: 12),
       label: textTheme.labelMedium ?? body,
       button: textTheme.labelLarge ?? body,
-      price: title,
+      price: textTheme.headlineSmall ?? title,
       number: textTheme.bodyLarge ?? body,
       badge: textTheme.labelSmall ?? body.copyWith(fontSize: 12),
     );
   }
 
+  /// 把语义角色写进 Material [TextTheme]（[fromTextTheme] 的逆运算）。
+  ///
+  /// `TextTheme` 没有的角色（price / bodyStrong / number / badge）各自占用一个
+  /// 独立槽位，保证转换无损；未涉及的槽位保留 [base]。
+  ///
+  /// 应用侧用 [WTextStylesThemeData.withWTextStyles] 一次装好：
+  /// 之后 form / toast / async 只读 `Theme.of(context).textTheme` 即可跟随，
+  /// 不需要依赖 w_tools_ui。
+  TextTheme toTextTheme(TextTheme base) {
+    return base.copyWith(
+      displayLarge: display,
+      headlineMedium: headline,
+      titleLarge: title,
+      headlineSmall: price,
+      titleMedium: bodyStrong,
+      bodyLarge: number,
+      bodyMedium: body,
+      bodySmall: caption,
+      labelMedium: label,
+      labelLarge: button,
+      labelSmall: badge,
+    );
+  }
+
+  /// 兜底样式的缓存：未安装扩展时按 `TextTheme` 实例复用，避免每次 build 重建 11 个样式。
+  static final Expando<WTextStyles> _fallbacks = Expando<WTextStyles>('WTextStyles.fallback');
+
   static WTextStyles of(BuildContext context) {
-    final extension = Theme.of(context).extension<WTextStyles>();
-    return extension ?? WTextStyles.fromTextTheme(Theme.of(context).textTheme);
+    final theme = Theme.of(context);
+    final extension = theme.extension<WTextStyles>();
+    if (extension != null) return extension;
+    return _fallbacks[theme.textTheme] ??= WTextStyles.fromTextTheme(theme.textTheme);
   }
 
   TextStyle resolve(WTextVariant variant) {
@@ -154,6 +186,32 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
       price: lerpStyle(price, other.price)!,
       number: lerpStyle(number, other.number)!,
       badge: lerpStyle(badge, other.badge)!,
+    );
+  }
+}
+
+/// 应用侧的一次性安装入口：让 `TextTheme` 与语义角色同源。
+///
+/// 三个包（form / toast / async）只读 `Theme.of(context).textTheme`，
+/// 因此不需要依赖 w_tools_ui；由应用在构建 ThemeData 时装一次即可。
+extension WTextStylesThemeData on ThemeData {
+  /// 同时写入 [TextTheme]（供 Material 组件）与 [WTextStyles] 扩展（供 [WText]）。
+  ///
+  /// ```dart
+  /// MaterialApp(
+  ///   theme: ThemeData(colorScheme: scheme).withWTextStyles(styles),
+  /// )
+  /// ```
+  ThemeData withWTextStyles(WTextStyles styles) {
+    // 用 Map.of 而不是显式 <Object, ThemeExtension<dynamic>>{}：
+    // ThemeExtension<T extends ThemeExtension<T>> 的边界不允许把 dynamic 写进类型参数，
+    // 显式写会被 CFE 推断成 ThemeExtension<ThemeExtension<dynamic>> 而报错。
+    final next = Map.of(extensions)
+      ..removeWhere((key, value) => value is WTextStyles)
+      ..[WTextStyles] = styles;
+    return copyWith(
+      textTheme: styles.toTextTheme(textTheme),
+      extensions: next.values,
     );
   }
 }
