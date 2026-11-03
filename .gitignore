@@ -37,3 +37,4 @@ coverage/
 
 # Flutter golden failure artifacts
 **/test/failures/
+/example/pubspec.lock
