@@ -110,7 +110,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 不要在 `main()`、顶层 `final` 或 `static final` 中调用 `flutter_screenutil` 的 `.sp`；此时 `ScreenUtil` 还没 `configure`。
 - `WTextStyles` / Theme 扩展如果使用 `.sp`，应在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期构建。
 - `WAppPlugin.wrapApp` 位于 MaterialApp 外，没有 Theme/MediaQuery；需要 Theme 的排版扩展用 `builderWrapper`。
-- `WAsyncViewDefaults` 只存 builder，可以放 `wrapApp`；不要把“放到根节点”套到需要立即计算 `.sp` 的 Theme 对象上。
+- `WAsyncTheme` 只存 builder，可以放 `wrapApp`；不要把“放到根节点”套到需要立即计算 `.sp` 的 Theme 对象上。
 
 ## 文字（w_tools_ui）
 
@@ -125,11 +125,11 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
 - 每个独立区块一个 Controller；不要用一个 `WAsyncLoading` 合并多个独立区块的 Loading。
-- 全局默认 loading / empty / error 用 `WAsyncViewDefaults`；放在 App 根节点（推荐 `WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放 `AppScaffold.body`。
+- 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点（推荐 `WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放 `AppScaffold.body`。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
 - `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；loading / empty / error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
-- `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncSliverDefaults` / `WAsyncStateBuilder`。
-- Sliver 页面默认视图用 `WAsyncSliverDefaults`；loading/empty/error 必须是非滚动 Widget，`refreshingSliverBuilder` 必须返回 sliver。
+- `WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 由调用方自行构建状态 UI，不读默认值。
+- Sliver 页面默认视图用 `WAsyncTheme` 的 `sliver*Builder`；loading/empty/error 必须是非滚动 Widget，`refreshingSliverBuilder` 必须返回 sliver。
 - 分页使用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
 - `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
 - `WAsyncStateSliver` 默认不添加 refreshing 进度条；由外层 SmartRefresher 负责，需要额外进度时显式传 `refreshingSliverBuilder`。

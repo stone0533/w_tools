@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../state/async_state.dart';
 import 'async_error_banner.dart';
 import 'async_error_view.dart';
+import 'async_theme.dart';
 import 'async_view_defaults.dart';
 
 /// 四态异步视图。
@@ -59,11 +60,13 @@ class WAsyncView<T> extends StatelessWidget {
     return ValueListenableBuilder<WAsyncState<T>>(
       valueListenable: state,
       builder: (context, value, _) {
-        final defaults = WAsyncViewDefaults.maybeOf(context);
+        final theme = WAsyncTheme.maybeOf(context);
+        // ignore: deprecated_member_use_from_same_package
+        final legacy = WAsyncViewDefaults.maybeOf(context);
         final data = value.dataOrNull;
 
         if (data != null && value.isRefreshing) {
-          final indicator = (refreshingBuilder ?? defaults?.refreshingBuilder)?.call(context) ??
+          final indicator = (refreshingBuilder ?? theme?.refreshingBuilder ?? legacy?.refreshingBuilder)?.call(context) ??
               const LinearProgressIndicator();
 
           return _buildContent(
@@ -80,7 +83,10 @@ class WAsyncView<T> extends StatelessWidget {
 
         if (data != null && value.isFailed) {
           final error =
-              errorBannerBuilder ?? defaults?.errorBannerBuilder ?? _defaultErrorBannerBuilder;
+              errorBannerBuilder ??
+                  theme?.errorBannerBuilder ??
+                  legacy?.errorBannerBuilder ??
+                  _defaultErrorBannerBuilder;
           return _buildContent(
             context,
             data: data,
@@ -99,13 +105,16 @@ class WAsyncView<T> extends StatelessWidget {
 
         return value.when(
           loading: () =>
-              (loadingBuilder ?? defaults?.loadingBuilder)?.call(context) ??
+              (loadingBuilder ?? theme?.loadingBuilder ?? legacy?.loadingBuilder)?.call(context) ??
               _defaultLoadingBuilder(context),
           ready: (data) => _buildContent(context, data: data),
           empty: () =>
-              (emptyBuilder ?? defaults?.emptyBuilder)?.call(context) ??
+              (emptyBuilder ?? theme?.emptyBuilder ?? legacy?.emptyBuilder)?.call(context) ??
               _defaultEmptyBuilder(context),
-          failed: (error) => (errorBuilder ?? defaults?.errorBuilder ?? _defaultErrorBuilder)(
+          failed: (error) => (errorBuilder ??
+                  theme?.errorBuilder ??
+                  legacy?.errorBuilder ??
+                  _defaultErrorBuilder)(
             context,
             error,
             () => onRetry(),

@@ -7,7 +7,7 @@
 |------|------|
 | 页面展示异步结果 | `WAsyncController` + `WAsyncView` |
 | 只执行、不要 UI | `WAsync` |
-| 全 App 默认 loading / empty / error | `WAsyncViewDefaults` |
+| 全 App 默认 loading / empty / error | `WAsyncTheme`（普通 + sliver 一套） |
 | 刷新失败但保留旧数据 | `WAsyncErrorBanner` |
 
 不要手写 `ValueNotifier<WAsyncState>`，也不要在每个页面重复 `when + RetryView`。
@@ -43,7 +43,8 @@ packages/async/lib/
       async_view_defaults.dart
       async_state_builder.dart # WAsyncStateBuilder
       async_state_sliver.dart # WAsyncStateSliver
-      async_sliver_defaults.dart # WAsyncSliverDefaults
+      async_sliver_defaults.dart # 旧入口（3.0 移除）
+      async_theme.dart      # WAsyncTheme
 ```
 
 ## 1. WAsync - 异步编排
@@ -264,10 +265,10 @@ WAsyncView<List<Gift>>(
 
 `WAsyncView` 为错误条/刷新条约束有界宽度，不强制高度；滚动组件的高度由页面父级提供。
 
-刷新进度条可通过 `WAsyncView.refreshingBuilder` / `WAsyncViewDefaults.refreshingBuilder` 覆盖；
+刷新进度条可通过 `WAsyncView.refreshingBuilder` / `WAsyncTheme.refreshingBuilder` 覆盖；
 默认仍为 `LinearProgressIndicator`。
 
-默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置。
+默认视图可通过 `WAsyncTheme` 在 App 根部统一配置（普通 + sliver）。
 优先放在 `WAppPlugin.wrapApp` 或 `WApp.appWrapper`，不要只放在 `AppScaffold.body`；
 否则 AppBar actions、对话框、bottom sheet、Tab 页面不会继承默认值。
 
@@ -278,9 +279,10 @@ class AsyncDefaultsPlugin with WAppPlugin {
 
   @override
   Widget wrapApp(Widget child) {
-    return WAsyncViewDefaults(
+    return WAsyncTheme(
       errorBuilder: ...,
       errorBannerBuilder: ...,
+      sliverErrorBuilder: ...,
       child: child,
     );
   }
@@ -290,25 +292,27 @@ class AsyncDefaultsPlugin with WAppPlugin {
 
 
 ```dart
-WAsyncViewDefaults(
+WAsyncTheme(
   loadingBuilder: (_) => const AppLoadingView(),
   emptyBuilder: (_) => const AppEmptyView(),
   errorBuilder: (context, error, retry) =>
       AppRetryView(error, retry),
   errorBannerBuilder: (context, error, retry) =>
       AppErrorBanner(error, retry),
+  // sliver 视图用 sliver* 前缀，builder 必须返回非滚动内容
+  sliverLoadingBuilder: (_) => const AppLoadingView(),
   child: MaterialApp(...),
 )
 ```
 
-`WAsyncViewDefaults` 只作用于 `WAsyncView`；`WAsyncStateBuilder` 不会读取它。
+`WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 不会读取它。
 
 优先级：
 
 ```text
 WAsyncView 显式 builder
   ↓
-WAsyncViewDefaults
+WAsyncTheme
   ↓
 包内默认视图
 ```

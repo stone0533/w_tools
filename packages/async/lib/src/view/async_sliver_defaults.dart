@@ -9,6 +9,9 @@ import 'async_view_defaults.dart';
 /// 的普通 Widget；不要把 `AppRefreshable` / `SingleChildScrollView` 放进来。
 ///
 /// [refreshingSliverBuilder] 必须返回 sliver。
+///
+/// 2.2 起推荐 [WAsyncTheme]（`sliver*Builder`）；本类 3.0 移除。
+@Deprecated('2.2 起用 WAsyncTheme 的 sliver*Builder；3.0 移除')
 class WAsyncSliverDefaults extends InheritedWidget {
   const WAsyncSliverDefaults({
     super.key,

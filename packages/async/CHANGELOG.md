@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0
+
+### Added
+- `WAsyncTheme`：把普通视图与 sliver 视图的默认 loading / empty / error / 刷新 builder 合到一个
+  InheritedWidget，放在 App 根部一次装完；显式 builder 仍然优先。
+
+### Deprecated
+- `WAsyncViewDefaults` / `WAsyncSliverDefaults`：3.0 移除，改用 `WAsyncTheme` 的对应字段
+  （`sliver*Builder` 前缀区分 sliver 视图）。旧类仍被识别（优先级低于 `WAsyncTheme`）。
+
 ## 2.0.0
 
 ### Breaking

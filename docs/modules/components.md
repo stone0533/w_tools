@@ -88,7 +88,7 @@
 | `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore | 普通单请求用 `WAsyncController` |
 | `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据 | 非滚动页面用 `WAsyncView` |
-| `WAsyncSliverDefaults` | async | WAsyncStateSliver 的 sliver 默认视图 | 不要复用 `WAsyncViewDefaults`；状态 builder 必须非滚动 |
+| `WAsyncTheme` | async | App 根部统一默认 loading / empty / error（普通 + sliver） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
 | `WToast` | toast | 轻提示 | — |
 | `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | — |

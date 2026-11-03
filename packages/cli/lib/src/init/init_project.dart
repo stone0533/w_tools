@@ -14,7 +14,7 @@ import 'templates.dart';
 /// 由 `test/init_test.dart` 读取仓库 pubspec 校验（防止版本漂移）。
 const _subpackageConstraints = <String, String>{
   'w_tools_core': '^2.0.0',
-  'w_tools_async': '^2.0.0',
+  'w_tools_async': '^2.1.0',
   'w_tools_app': '^1.0.1',
   'w_tools_form': '^3.0.0',
   'w_tools_ui': '^3.2.0',

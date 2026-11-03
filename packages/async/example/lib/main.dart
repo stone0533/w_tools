@@ -16,7 +16,7 @@ class AsyncExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WAsyncViewDefaults(
+    return WAsyncTheme(
       loadingBuilder: (_) => const Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -38,19 +38,18 @@ class AsyncExampleApp extends StatelessWidget {
           ],
         ),
       ),
-      child: WAsyncSliverDefaults(
-        loadingBuilder: (_) => const Center(child: Text('Sliver loading')),
-        emptyBuilder: (_) => const Center(child: Text('Sliver empty')),
-        errorBuilder: (context, error, onRetry) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Sliver error：$error'),
-              const SizedBox(height: 8),
-              FilledButton(onPressed: onRetry, child: const Text('重试')),
-            ],
-          ),
+      sliverLoadingBuilder: (_) => const Center(child: Text('Sliver loading')),
+      sliverEmptyBuilder: (_) => const Center(child: Text('Sliver empty')),
+      sliverErrorBuilder: (context, error, onRetry) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Sliver error：$error'),
+            const SizedBox(height: 8),
+            FilledButton(onPressed: onRetry, child: const Text('重试')),
+          ],
         ),
+      ),
         child: MaterialApp(
           title: 'w_tools_async 示例',
           debugShowCheckedModeBanner: false,
@@ -60,7 +59,6 @@ class AsyncExampleApp extends StatelessWidget {
           ),
           home: const _ExampleHome(),
         ),
-      ),
     );
   }
 }

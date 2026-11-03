@@ -26,7 +26,7 @@
 
 1. **`form` / `toast` / `async` 不新增 `w_tools_ui` 依赖**；三个包的 `pubspec.yaml` 保持不变。
 2. **只通过标准 Flutter 类型共享排版**：`ThemeData.textTheme`、`ColorScheme`、
-   以及各包已有的 `xxxTheme` / 配置入口（`WFormTheme`、`WToastConfig`、`WAsyncViewDefaults`）。
+   以及各包已有的 `xxxTheme` / 配置入口（`WFormTheme`、`WToastConfig`、`WAsyncTheme`）。
 3. **`WTextStyles` 保留为唯一语义真源**（11 个角色），由应用侧一次性投影：
    `ThemeData.withWTextStyles(styles)` 同时写 `textTheme` 与 ThemeExtension。
    投影表按 **Material 的消费点**选取槽位，而不是一一对应：
