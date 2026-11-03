@@ -49,7 +49,7 @@ void main() {
     loader.reset(retryCount: 1, retryDelay: 1);
     loader.handleError(
       StateError('connection reset'),
-      const WImageNetworkError('x', 'cause'),
+      const WImageError('x', WImageErrorKind.network),
       retry: true,
     );
     expect(loader.state.value.retryScheduled, isTrue);
@@ -82,7 +82,7 @@ void main() {
     loader.reset(retryCount: 3, retryDelay: 1);
     loader.handleError(
       StateError('connection reset'),
-      const WImageNetworkError('x', 'cause'),
+      const WImageError('x', WImageErrorKind.network),
       retry: true,
     );
     expect(loader.state.value.retryScheduled, isTrue);

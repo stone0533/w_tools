@@ -143,8 +143,8 @@ class _WImageState extends State<WImage> {
   Widget _buildContent(BuildContext context) {
     Widget result;
     if (_value.isEmpty) {
-      _load.fail(WImageEmptyError(widget.data));
-      result = _errorSlot(context, _load.error ?? WImageEmptyError(widget.data));
+      _load.fail(WImageError(widget.data, WImageErrorKind.empty));
+      result = _errorSlot(context, _load.error ?? WImageError(widget.data, WImageErrorKind.empty));
     } else {
       result = switch (_type) {
         WImageType.network => _buildNetwork(),
@@ -200,8 +200,11 @@ class _WImageState extends State<WImage> {
     }
     if (config.errorWidget != null) return config.errorWidget!;
     if (config.showRetryButton) {
-      final canRetry =
-          error is WImageNetworkError || error is WImageProviderError || error is WImageFileError;
+      final canRetry = const {
+        WImageErrorKind.network,
+        WImageErrorKind.provider,
+        WImageErrorKind.file,
+      }.contains(error.kind);
       return _sizedSlot(
         WImageErrorView(
           error: error,
@@ -241,7 +244,7 @@ class _WImageState extends State<WImage> {
     );
     return _imageWidget(
       provider,
-      errorFactory: (error) => WImageNetworkError(widget.data, error),
+      errorFactory: (error) => WImageError(widget.data, WImageErrorKind.network, cause: error),
       applyDecodeSize: false,
       notifyProgressCompletion: true,
       retryOnError: true,
@@ -255,7 +258,7 @@ class _WImageState extends State<WImage> {
     final provider = _cachedProvider(source.provider, () => source.provider);
     return _imageWidget(
       provider,
-      errorFactory: (error) => WImageProviderError(widget.data, error),
+      errorFactory: (error) => WImageError(widget.data, WImageErrorKind.provider, cause: error),
     );
   }
 
@@ -268,7 +271,7 @@ class _WImageState extends State<WImage> {
     );
     return _imageWidget(
       provider,
-      errorFactory: (error) => WImageAssetError(widget.data, error),
+      errorFactory: (error) => WImageError(widget.data, WImageErrorKind.asset, cause: error),
     );
   }
 
@@ -276,7 +279,7 @@ class _WImageState extends State<WImage> {
   Widget _buildFile(BuildContext context) {
     final provider = buildFileImageProvider(_value);
     if (provider == null) {
-      final error = WImageUnsupportedError(widget.data, 'file://');
+      final error = WImageError(widget.data, WImageErrorKind.unsupported);
       _load.fail(error);
       return _errorSlot(context, error);
     }
@@ -286,7 +289,7 @@ class _WImageState extends State<WImage> {
     );
     return _imageWidget(
       cached,
-      errorFactory: (error) => WImageFileError(widget.data, error),
+      errorFactory: (error) => WImageError(widget.data, WImageErrorKind.file, cause: error),
     );
   }
 
@@ -296,7 +299,7 @@ class _WImageState extends State<WImage> {
       future: _bytesFuture ??= _decodeBase64(_value),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          final error = WImageDecodeError(widget.data, snapshot.error);
+          final error = WImageError(widget.data, WImageErrorKind.decode, cause: snapshot.error);
           _load.fail(error);
           return _errorSlot(context, error);
         }
@@ -311,7 +314,7 @@ class _WImageState extends State<WImage> {
         );
         return _imageWidget(
           provider,
-          errorFactory: (error) => WImageDecodeError(widget.data, error),
+          errorFactory: (error) => WImageError(widget.data, WImageErrorKind.decode, cause: error),
         );
       },
     );

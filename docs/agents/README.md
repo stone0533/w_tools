@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | core | `WStorage` / `WToken` / `WValidator` / `WLogger` / `WDebounce` | `WConfig`、`WUx.debounce/throttle`、`WRegExpPattern`（3.0 已删除） | `packages/core/example` |
 | async | `WAsyncController` + `WAsyncView`；无 UI 用 `WAsync` + `WAsyncOptions` | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults`（3.0 已删除） | `packages/async/example` |
-| ui | `WText` / `WButton` / `WImage` / `WScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（旧名） | `packages/ui/example` |
+| ui | `WText` / `WButton` / `WImage` / `WScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（5.0 已删除） | `packages/ui/example` |
 | form | `WForm` + 直接字段；边框 `WFormBorderConfig.fromTheme` | `Config.build`、`*Core`（`@internal`）、`WFormDefaults`（4.0 已删除） | `packages/form/example` |
 | api | `WApiConfig` + `DioRegistry`；`WLogInterceptor(parts:)` | 直接 `Dio()`、旧 bool 日志参数 | `packages/api/example` |
 | app | `WApp.start()` + `WAppPlugin`；`WBottomSheet` | 手写 `runApp` 初始化顺序 | `packages/app/example` |

@@ -116,14 +116,14 @@
 | `WApiConfig` | api | 请求配置与日志注入 | — |
 | `WLanguage` | app | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
 | `WAppConfig` | app | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
-| `WRouteObserver` | app | 维护 `WRoute` 路由栈 | 不要重复添加；WApp 已自动追加 |
+| `WRouteObserver` | app | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；单次扫码后用 `restartScan` |
 | `WQrController` | qr | 相机控制与广播扫描流 | 不要用它重置 scanOnce |
 | `WQrViewOverlayShape` | qr | 扫描框样式 | 尺寸必须大于 0 |
 | `WMap` / `WMapZone` | map | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
 | `WMapController` | map | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
-| `WRoute` | app | 路由工具 | — |
+| `WRouteStack` | app | 路由栈操作（`WApp.routeStack`） | — |
 <!-- catalog:8:end -->
 
 ## 9. 扩展

@@ -23,6 +23,7 @@
 - [4.4](ui-4.4.md)：`WHexColor`、布局糖弃用、String 扩展合并
 - [4.5](ui-4.5.md)：`WScreen.of(context)`、图片装饰 / 哈希修复
 - [4.6](ui-4.6.md)：`WActionRow` / `WSelectableRow`
+- [5.0](ui-5.0.md)：删除 WRowButtons / 图片预设 / 错误子类 / 布局糖等
 - [4.7](ui-4.7.md)：四个组件的 config 可选
 
 ## form

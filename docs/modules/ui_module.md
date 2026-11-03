@@ -49,7 +49,6 @@ ui/
     │   │   │   ├── image_source.dart           # WImageSource（sealed）
     │   │   │   ├── image_style.dart            # WImageStyle
     │   │   │   ├── image_config.dart           # WImageLoadConfig
-    │   │   │   ├── image_cache_policy.dart     # WImageCachePolicy（弃用）
     │   │   │   ├── image_loader.dart           # 内部加载器（不导出）
     │   │   │   ├── image_load_state.dart       # 内部状态基类
     │   │   │   ├── image_frame.dart            # WImageFrame
@@ -59,7 +58,6 @@ ui/
     │   │   │   └── _image_file_*.dart          # file provider 条件实现
     │   │   ├── keep_alive_wrapper.dart        # WKeepAliveWrapper
     │   │   ├── notification_listener.dart      # WNotificationListenerBuilder
-    │   │   ├── row_buttons.dart               # WRowButtons（弃用）
     │   │   ├── row_actions.dart               # WActionRow / WSelectableRow
     │   │   ├── gradient_circular_progress_indicator.dart
     │   │   ├── text/                  # 文字组件
@@ -87,11 +85,7 @@ ui/
     │   └── shadows.dart                       # WShadows
     └── utils/                      # 工具类
         ├── assets.dart                        # WAssets
-        ├── column.dart                        # WColumn（弃用）
-        ├── padding.dart                       # WPadding（弃用）
-        ├── row.dart                           # WRow（弃用）
         ├── screen.dart                        # WScreen
-        └── size_box.dart                      # WSizeBox（弃用）
 ```
 
 ---
@@ -803,7 +797,6 @@ WImage.source(
 | `WImage.asset(path)` | 资产图；前后的空白会被裁掉 |
 | `WImage.file(path)` | 本地文件；带不带 `file://` 都可以 |
 | `WImage.base64(data)` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
-| ~~`WImage.avatar(data, size:)`~~ | **已弃用（5.0 移除）**：用 `WImage(style: WImageStyle.avatar(size))` |
 | ~~`WImage.thumbnail(data, width:)`~~ | **已弃用（5.0 移除）**：style + `WImageLoadConfig(memCacheWidth: ...)` |
 | ~~`WImage.cover(data, aspectRatio:)`~~ | **已弃用（5.0 移除）**：用 `WImage(style: WImageStyle.cover(...))` |
 | ~~`WImage.assetImage(name)`~~ | **已弃用（5.0 移除）**：用 `WImage.asset(name, prefix: true)` |
@@ -888,10 +881,9 @@ errorWidgetBuilder: (context, url, error) => switch (error.kind) {
 - 自定义 `placeholder` / `placeholderBuilder` / `errorWidget` / `errorWidgetBuilder`
   不会自动套 `SizedBox`；需要自己按 `width` / `height` 或 `AspectRatio` 处理尺寸。
 
-### WImageDefaultsScope / WImageCachePolicy
+### WImageDefaultsScope
 
 - `WImageDefaultsScope`（InheritedWidget）接收 `WImageLoadConfig`，按子树覆盖默认占位/错误/进度；
-- `WImageCachePolicy` 已弃用（5.0 移除），直接配置 `PaintingBinding.instance.imageCache`。
 
 ```dart
 WImageDefaultsScope(
@@ -909,7 +901,7 @@ PaintingBinding.instance.imageCache
 ```
 
 优先级：`WImageLoadConfig.placeholderBuilder` > `WImageLoadConfig.placeholder` > `WImageDefaultsScope.placeholderBuilder` > 内置兜底。
-`WImageDefaults.progressBuilder` 可作为所有网络图的默认进度 UI。
+默认进度 UI 用 `WImageDefaultsScope` / `WImageLoadConfig.progressBuilder`。
 内置错误视图可用 `WImageLoadConfig(showRetryButton: true)` 启用，或直接复用 `WImageErrorView`。
 `WImageErrorView` 尺寸策略：
 
@@ -927,7 +919,6 @@ PaintingBinding.instance.imageCache
 
 `WImage.thumbnail(width)` 默认按 `max(width, height) × 3` 估算 `WImageLoadConfig.memCache`；
 需要精确控制时显式传 `cacheSize`（通常按 `devicePixelRatio` 计算）。
-预设构造和显式 `style` 同时传时，`style` 会完整覆盖预设参数（`size` / `width` / `aspectRatio` 等）。
 
 ### 缓存
 
@@ -1739,9 +1730,9 @@ GlobalKey 扩展，支持查找、定位、获取 Widget 状态等。
 
 ## 10. 工具类
 
-### 布局糖（已弃用）
+### 布局（原生）
 
-`WPadding` / `WSizeBox` / `WRow` / `WColumn` 已弃用（5.0 移除），直接用 Flutter 原生组件：
+`WPadding` / `WSizeBox` / `WRow` / `WColumn` 已在 5.0 删除，直接用 Flutter 原生组件：
 
 ```dart
 Padding(padding: const EdgeInsets.all(16), child: ...)

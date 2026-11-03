@@ -7,6 +7,7 @@
 - 抬高 `w_tools_async` 约束到 `^3.0.0`：删除 `WAsyncViewDefaults` / `WAsyncSliverDefaults`。
 - 抬高 `w_tools_form` 约束到 `^4.0.0`：删除 `WFormDefaults` / `WFormBorderConfigBuilder` / `WFormRowBorderExtension`。
 - 抬高 `w_tools_api` 约束到 `^5.0.0`：删除 `WLogInterceptor` 的旧 bool 参数。
+- 抬高 `w_tools_ui` 约束到 `^5.0.0`：删除 WRowButtons / 图片预设 / 错误子类 / 布局糖等。
 
 ## 4.0.1
 

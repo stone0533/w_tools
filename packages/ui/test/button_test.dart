@@ -7,6 +7,23 @@ Widget _wrap(Widget child) => MaterialApp(
   home: Scaffold(body: Center(child: child)),
 );
 
+/// 测试专用：4.0 删除的旧静态预设的等价副本（用于断言 / 示例 style）。
+class _LegacyButtonStyles {
+  static final primary = WButtonStyle.filled(
+    backgroundColor: const Color(0xFF3949AB),
+    foregroundColor: Colors.white,
+  );
+  static final secondary = WButtonStyle.outlined(
+    foregroundColor: const Color(0xFF3949AB),
+    borderColor: const Color(0xFF3949AB),
+  );
+  static final text = WButtonStyle.text(foregroundColor: const Color(0xFF3949AB));
+  static final danger = WButtonStyle.filled(
+    backgroundColor: const Color(0xFFD32F2F),
+    foregroundColor: Colors.white,
+  );
+}
+
 void main() {
   group('WButtonStyle / motion / semantics', () {
     test('默认值与 copyWith', () {
@@ -56,7 +73,7 @@ void main() {
     });
 
     test('typed copyWith 与 clear helpers', () {
-      final style = WButtonStyles.primary;
+      final style = _LegacyButtonStyles.primary;
       expect(style.backgroundColor, isNotNull);
       expect(style.borderRadius, isNotNull);
       expect(style.withoutBackground().backgroundColor, isNull);
@@ -88,10 +105,10 @@ void main() {
     });
 
     test('静态预设与工厂可用', () {
-      expect(WButtonStyles.primary.backgroundColor, isNotNull);
-      expect(WButtonStyles.secondary.border, isNotNull);
-      expect(WButtonStyles.text.foregroundColor, isNotNull);
-      expect(WButtonStyles.danger.backgroundColor, isNotNull);
+      expect(_LegacyButtonStyles.primary.backgroundColor, isNotNull);
+      expect(_LegacyButtonStyles.secondary.border, isNotNull);
+      expect(_LegacyButtonStyles.text.foregroundColor, isNotNull);
+      expect(_LegacyButtonStyles.danger.backgroundColor, isNotNull);
 
       final filled = WButtonStyle.filled(
         backgroundColor: Colors.red,
@@ -139,8 +156,8 @@ void main() {
     });
 
     test('预设不可变且共享', () {
-      final a = WButtonStyles.primary;
-      final b = WButtonStyles.primary;
+      final a = _LegacyButtonStyles.primary;
+      final b = _LegacyButtonStyles.primary;
       expect(identical(a, b), isTrue);
       expect(identical(a.textStyle, b.textStyle), isTrue);
     });
@@ -220,7 +237,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             content: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -252,7 +269,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             size: const WButtonSize(name: 'custom', iconSize: 32),
             contentBuilder: (context, style) {
               states = style.states;
@@ -279,7 +296,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             enabled: false,
             contentBuilder: (context, style) {
               return Text(
@@ -311,14 +328,14 @@ void main() {
 
     testWidgets('label/icon/content 三选一', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton(style: WButtonStyles.primary, label: '主按钮', onTap: () {})),
+        _wrap(WButton(style: _LegacyButtonStyles.primary, label: '主按钮', onTap: () {})),
       );
       expect(find.text('主按钮'), findsOneWidget);
 
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             icon: Icons.add,
             semanticLabel: '新增',
             onTap: () {},
@@ -330,7 +347,7 @@ void main() {
 
     testWidgets('默认尺寸和 small 都有 48 高点击区域', (tester) async {
       await tester.pumpWidget(
-        _wrap(WButton(style: WButtonStyles.primary, label: '默认', onTap: () {})),
+        _wrap(WButton(style: _LegacyButtonStyles.primary, label: '默认', onTap: () {})),
       );
       expect(
         tester.getSize(find.byType(WButton)).height,
@@ -340,7 +357,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             label: '小按钮',
             size: WButtonSize.small,
             onTap: () {},
@@ -358,7 +375,7 @@ void main() {
     testWidgets('点击触发 onTap', (tester) async {
       var taps = 0;
       await tester.pumpWidget(
-        _wrap(WButton(style: WButtonStyles.primary, label: '点击', onTap: () => taps++)),
+        _wrap(WButton(style: _LegacyButtonStyles.primary, label: '点击', onTap: () => taps++)),
       );
 
       await tester.tap(find.text('点击'));
@@ -377,7 +394,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             label: 'disabled-no-callback',
             enabled: false,
           ),
@@ -390,7 +407,7 @@ void main() {
       var taps = 0;
       Widget build(bool enabled) => _wrap(
         WButton(
-          style: WButtonStyles.primary,
+          style: _LegacyButtonStyles.primary,
           label: 'mid-gesture',
           enabled: enabled,
           onTap: () => taps++,
@@ -414,7 +431,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             label: '禁用',
             enabled: false,
             onTap: () => taps++,
@@ -428,7 +445,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             label: '加载中',
             loading: true,
             onTap: () => taps++,
@@ -443,7 +460,7 @@ void main() {
 
     testWidgets('loading 保持按钮尺寸', (tester) async {
       Widget build(bool loading) => _wrap(
-        WButton(style: WButtonStyles.primary, label: '提交', loading: loading, onTap: () {}),
+        WButton(style: _LegacyButtonStyles.primary, label: '提交', loading: loading, onTap: () {}),
       );
 
       await tester.pumpWidget(build(false));
@@ -459,7 +476,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             label: '长按',
             onLongPress: () => longPressed++,
           ),
@@ -487,7 +504,7 @@ void main() {
           theme: ThemeData.dark(useMaterial3: true),
           home: Scaffold(
             body: Center(
-              child: WButton(style: WButtonStyles.primary, label: '暗色', onTap: () {}),
+              child: WButton(style: _LegacyButtonStyles.primary, label: '暗色', onTap: () {}),
             ),
           ),
         ),
@@ -526,7 +543,7 @@ void main() {
               data: const MediaQueryData(textScaler: TextScaler.linear(2)),
               child: Scaffold(
                 body: Center(
-                  child: WButton(style: WButtonStyles.primary, label: '提交', onTap: () {}),
+                  child: WButton(style: _LegacyButtonStyles.primary, label: '提交', onTap: () {}),
                 ),
               ),
             ),
@@ -600,7 +617,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             label: 'long-only',
             onLongPress: () {},
           ),
@@ -619,7 +636,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           WButton(
-            style: WButtonStyles.primary,
+            style: _LegacyButtonStyles.primary,
             label: 'longpress-only',
             autofocus: true,
             onLongPress: () {},

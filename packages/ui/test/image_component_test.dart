@@ -66,7 +66,7 @@ void main() {
       final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
       loader.handleError(
         Exception('network'),
-        const WImageNetworkError('x', 'network'),
+        const WImageError('x', WImageErrorKind.network),
         retry: true,
       );
       expect(loader.retryScheduled, isTrue);
@@ -80,7 +80,7 @@ void main() {
       final loader = WImageLoader(retryCount: 0, retryDelay: 1000);
       loader.handleError(
         Exception('network'),
-        const WImageNetworkError('x', 'network'),
+        const WImageError('x', WImageErrorKind.network),
       );
       expect(loader.status, WImageLoadStatus.failed);
       expect(loader.error, isNotNull);
@@ -95,7 +95,7 @@ void main() {
       final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
       loader.handleError(
         Exception('network'),
-        const WImageNetworkError('x', 'network'),
+        const WImageError('x', WImageErrorKind.network),
         retry: true,
       );
       expect(loader.retryScheduled, isTrue);
@@ -109,7 +109,7 @@ void main() {
       final loader = WImageLoader(retryCount: 1, retryDelay: 1000);
       loader.handleError(
         Exception('network'),
-        const WImageNetworkError('x', 'network'),
+        const WImageError('x', WImageErrorKind.network),
         retry: true,
       );
       expect(loader.retryScheduled, isTrue);
@@ -209,29 +209,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.textContaining('ERR:WImageDecodeError'), findsOneWidget);
-    });
-
-    test('常用预设构造', () {
-      final avatar = WImage.avatar('a.png', size: 80);
-      expect(avatar.style.width, 80);
-      expect(avatar.style.borderRadius, BorderRadius.circular(40));
-
-      final thumb = WImage.thumbnail('a.png', width: 80, cacheSize: 240);
-      expect(thumb.config.memCacheWidth, 240);
-
-      final defaultThumb = WImage.thumbnail('a.png', width: 80);
-      expect(defaultThumb.config.memCacheWidth, 240);
-      expect(defaultThumb.config.memCacheHeight, 240);
-
-      final cover = WImage.cover('a.png', aspectRatio: 2, radius: 12);
-      expect(cover.style.aspectRatio, 2);
-    });
-
-    test('assetImage 默认拼 WAssets.imagePath', () {
-      final image = WImage.assetImage('logo.png');
-      expect(image.source, isA<WAssetImageSource>());
-      expect((image.source as WAssetImageSource).value, 'assets/images/logo.png');
+      expect(find.textContaining('ERR:WImageError'), findsOneWidget);
     });
 
     test('memory / provider 类型', () {
@@ -369,7 +347,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(captured, isA<WImageProviderError>());
+      expect(captured?.kind, WImageErrorKind.provider);
     });
 
     test('命名构造带显式类型', () {
@@ -377,33 +355,6 @@ void main() {
       expect(WImage.network('https://x/y.png').type, WImageType.network);
       expect(WImage.file('/tmp/a.png').type, WImageType.file);
       expect(WImage.base64('AAAA').type, WImageType.base64);
-    });
-  });
-
-  group('WImageCachePolicy', () {
-    test('configure 同步 Flutter ImageCache 上限，reset 恢复默认', () {
-      final oldMaxSize = PaintingBinding.instance.imageCache.maximumSize;
-      final oldMaxBytes = PaintingBinding.instance.imageCache.maximumSizeBytes;
-      addTearDown(() {
-        WImageCachePolicy.reset();
-        PaintingBinding.instance.imageCache.maximumSize = oldMaxSize;
-        PaintingBinding.instance.imageCache.maximumSizeBytes = oldMaxBytes;
-      });
-
-      WImageCachePolicy.configure(
-        maxSize: 50,
-        maxMemoryBytes: 50 * 1024 * 1024,
-      );
-      expect(WImageCachePolicy.maxSize, 50);
-      expect(PaintingBinding.instance.imageCache.maximumSize, 50);
-      expect(
-        PaintingBinding.instance.imageCache.maximumSizeBytes,
-        50 * 1024 * 1024,
-      );
-
-      WImageCachePolicy.reset();
-      expect(WImageCachePolicy.maxSize, 1000);
-      expect(PaintingBinding.instance.imageCache.maximumSize, 1000);
     });
   });
 
@@ -450,7 +401,7 @@ void main() {
 
       expect(find.text('base64-error'), findsOneWidget);
       expect(status, WImageLoadStatus.failed);
-      expect(capturedError, isA<WImageDecodeError>());
+      expect((capturedError as WImageError?)?.kind, WImageErrorKind.decode);
     });
 
     testWidgets('父级重建不会重复通知同一加载状态', (tester) async {

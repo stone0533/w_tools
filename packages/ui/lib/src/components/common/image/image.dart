@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -19,7 +18,6 @@ import 'image_types.dart';
 import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
 export 'image_frame.dart';
-export 'image_cache_policy.dart';
 export 'image_error_view.dart';
 export 'image_source.dart';
 export 'image_style.dart';
@@ -237,142 +235,6 @@ class WImage extends StatefulWidget {
     return WImage.source(
       key: key,
       source: WImageSource.base64(data),
-      style: style,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 头像：正方形 + 全圆角。
-  ///
-  /// [style] 中显式给出的字段覆盖预设（尺寸、圆角仍保留），
-  /// [size] 只在 [style] 没给 width/height 时生效。
-  /// remove-in: 5.0.0
-  @Deprecated('用 `WImage(data, style: WImageStyle.avatar(size))`；5.0 移除')
-  factory WImage.avatar(
-    String data, {
-    Key? key,
-    double size = 40,
-    WImageStyle? style,
-    WImageLoadConfig config = const WImageLoadConfig(),
-    WImageType? type,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    // 预设是正方形：只覆盖宽度（未给高度）时仍保持正方形。
-    var resolved = WImageStyle.avatar(size).merge(style);
-    if (style?.height == null) {
-      resolved = resolved.copyWith(height: resolved.width);
-    }
-    return WImage(
-      key: key,
-      data: data,
-      type: type,
-      style: resolved,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 缩略图：正方形 + 解码尺寸上限
-  /// 缩略图：正方形 + 解码尺寸上限。
-  ///
-  /// [style] 中显式给出的字段覆盖预设；[width] / [height] 作为预设 fallback，
-  /// 解码尺寸上限也按合并后的尺寸推导。
-  /// remove-in: 5.0.0
-  @Deprecated(
-    '用 `WImage(data, style: WImageStyle.thumbnail(...), config: WImageLoadConfig(memCacheWidth: ...))`；5.0 移除',
-  )
-  factory WImage.thumbnail(
-    String data, {
-    Key? key,
-    double width = 80,
-    double? height,
-    int? cacheSize,
-    WImageStyle? style,
-    WImageLoadConfig config = const WImageLoadConfig(),
-    WImageType? type,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    var resolved = WImageStyle.thumbnail(width, height: height).merge(style);
-    // 预设是正方形：只覆盖宽度（未给高度）时仍保持正方形。
-    if (height == null && style?.height == null) {
-      resolved = resolved.copyWith(height: resolved.width);
-    }
-    final resolvedWidth = resolved.width ?? width;
-    final resolvedHeight = resolved.height ?? resolvedWidth;
-    final defaultCache = cacheSize ?? (math.max(resolvedWidth, resolvedHeight) * 3).round();
-    return WImage(
-      key: key,
-      data: data,
-      type: type,
-      style: resolved,
-      config: config.copyWith(
-        memCacheWidth: config.memCacheWidth ?? defaultCache,
-        memCacheHeight: config.memCacheHeight ?? defaultCache,
-      ),
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 封面图：固定比例 + 可选圆角。
-  ///
-  /// [style] 中显式给出的字段覆盖预设；[aspectRatio] / [radius] 作为 fallback。
-  /// remove-in: 5.0.0
-  @Deprecated('用 `WImage(data, style: WImageStyle.cover(...))`；5.0 移除')
-  factory WImage.cover(
-    String data, {
-    Key? key,
-    double? aspectRatio = 16 / 9,
-    double? radius,
-    WImageStyle? style,
-    WImageLoadConfig config = const WImageLoadConfig(),
-    WImageType? type,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage(
-      key: key,
-      data: data,
-      type: type,
-      style: WImageStyle.cover(aspectRatio: aspectRatio, radius: radius).merge(style),
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 资源图片：默认拼 `WAssets.imagePath`
-  ///
-  /// 兼容入口；新代码优先用 `WImage.asset(name, prefix: true)`。
-  /// remove-in: 5.0.0
-  @Deprecated('用 `WImage.asset(name, prefix: true)`；5.0 移除')
-  factory WImage.assetImage(
-    String name, {
-    Key? key,
-    String? package,
-    WImageStyle style = const WImageStyle(),
-    WImageLoadConfig config = const WImageLoadConfig(),
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.asset(
-      name,
-      key: key,
-      package: package,
-      prefix: true,
       style: style,
       config: config,
       onLoadStatusChanged: onLoadStatusChanged,

@@ -34,7 +34,7 @@ EdgeInsets → num.allPadding
 ```
 
 WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate。
-`WSizeBox` / `WPadding` / `WRow` / `WColumn` 已弃用（5.0 移除），新代码用 Flutter 原生布局组件。
+`WSizeBox` / `WPadding` / `WRow` / `WColumn` 已在 5.0 删除，直接用 Flutter 原生布局组件。
 
 ## 页面骨架
 

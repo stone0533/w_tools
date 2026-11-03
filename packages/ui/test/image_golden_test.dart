@@ -57,9 +57,9 @@ void main() {
   testWidgets('avatar golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
-        WImage.avatar(
-          'data:image/png;base64,$_redPixel',
-          size: 64,
+        WImage(
+          data: 'data:image/png;base64,$_redPixel',
+          style: WImageStyle.avatar(64),
         ),
       ),
     );

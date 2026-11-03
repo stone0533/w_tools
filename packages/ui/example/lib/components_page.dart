@@ -180,7 +180,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
           ),
         ),
         const SizedBox(height: 24),
-        const _SectionTitle('WListViewSliver.grid / WRow / WColumn'),
+        const _SectionTitle('WListViewSliver.grid / Row / Column'),
         SizedBox(
           height: 140,
           child: WListView(
@@ -209,7 +209,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                WText(text: 'WRow + WColumn', variant: WTextVariant.bodyStrong),
+                WText(text: 'Row + Column', variant: WTextVariant.bodyStrong),
                 WText(text: 'min 主轴尺寸', variant: WTextVariant.caption),
               ],
             ),

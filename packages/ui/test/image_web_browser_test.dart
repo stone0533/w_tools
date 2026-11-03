@@ -24,7 +24,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(captured, isA<WImageUnsupportedError>());
+    expect(captured?.kind, WImageErrorKind.unsupported);
     expect(find.text('UNSUPPORTED'), findsOneWidget);
   });
 }

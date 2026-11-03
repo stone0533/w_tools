@@ -15,8 +15,4 @@ export 'src/styles/gradients.dart';
 export 'src/styles/shadows.dart';
 
 export 'src/utils/assets.dart';
-export 'src/utils/column.dart';
-export 'src/utils/padding.dart';
-export 'src/utils/row.dart';
 export 'src/utils/screen.dart';
-export 'src/utils/size_box.dart';

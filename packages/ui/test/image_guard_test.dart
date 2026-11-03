@@ -79,8 +79,8 @@ void main() {
       );
       await tester.pump();
 
-      expect(captured, isA<WImageEmptyError>());
-      expect(captured!.data, '   ');
+      expect(captured?.kind, WImageErrorKind.empty);
+      expect(captured?.data, '   ');
     });
 
     testWidgets('空数据回调的是类型化错误', (tester) async {
@@ -100,7 +100,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(captured, isA<WImageEmptyError>());
+      expect((captured as WImageError?)?.kind, WImageErrorKind.empty);
       expect(find.text('custom-error'), findsOneWidget);
     });
   });

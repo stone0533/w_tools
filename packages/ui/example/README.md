@@ -20,7 +20,7 @@
 - `precacheImage` 预热 `ImageCache`
 - WText / WBadge / WClipRRect / Gradient / WStep / WListView
 - WActionRow / WSelectableRow / WTabBar / WNavBar / Notification / KeepAlive
-- WListViewSliver.grid / WRow / WColumn / WImageController
+- WListViewSliver.grid / Row / Column / WImageController
 - WGradients / WShadows / BoxDecoration 扩展
 - WScaffold / WAppBar / WNavBar / WScreen / extensions
 

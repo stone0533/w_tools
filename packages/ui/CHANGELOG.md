@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0
+
+### Removed
+- `WRowButtons` / `WRowButtonsController`：用 `WActionRow` / `WSelectableRow`。
+- `WImage.avatar` / `thumbnail` / `cover` / `assetImage`：用 `WImage` + `WImageStyle`。
+- `WImageCachePolicy`：直接配置 `PaintingBinding.instance.imageCache`。
+- `WImageConfig` typedef：用 `WImageLoadConfig`。
+- `WImageDefaults`：用 `WImageDefaultsScope`。
+- 7 个 `WImage*Error` 子类：用 `WImageError.kind`。
+- `WRow` / `WColumn` / `WPadding` / `WSizeBox`：用 Flutter 原生布局组件。
+- `WButtonStyles.primary` / `secondary` / `text` / `danger`：用 `WButtonStyles.of(context)`。
+
 ## 4.7.1
 
 - 内部重构：`image.dart`（846 行）拆为 `image.dart` + `image_state.dart`（`part`，公开 API 不变）。

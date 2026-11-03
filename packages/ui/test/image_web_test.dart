@@ -7,10 +7,9 @@ void main() {
     expect(web.buildFileImageProvider('/tmp/a.png'), isNull);
   });
 
-  test('WImageUnsupportedError 暴露 platform 与可读消息', () {
-    const error = WImageUnsupportedError('file:///tmp/a.png', 'file://');
-    expect(error.platform, 'file://');
-    expect(error.message, contains('file://'));
+  test('unsupported 错误带可读消息', () {
+    const error = WImageError('file:///tmp/a.png', WImageErrorKind.unsupported);
+    expect(error.message, contains('当前平台不支持'));
     expect(error.toString(), contains('file:///tmp/a.png'));
   });
 }
