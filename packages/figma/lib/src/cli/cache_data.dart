@@ -156,10 +156,16 @@ List<File> nodesCacheFiles(CacheStore store) => _nodesCacheFiles(store);
 List<File> _nodesCacheFiles(CacheStore store) {
   final dir = store.dir;
   if (!dir.existsSync()) return const <File>[];
-  return dir.listSync().whereType<File>().where((f) {
-    final name = f.path.split('/').last;
-    return name.startsWith('nodes-') && name.endsWith('.json');
-  }).toList();
+  return dir.listSync().whereType<File>().where((f) => isNodesCacheFile(f.path)).toList();
+}
+
+/// 是否是 nodes 缓存文件。
+///
+/// 先把 `\\` 归一化成 `/` 再取文件名：Windows 路径是 `C:\\...`，只按 `/` 切分会得到
+/// 整条路径，导致 `spec` / `tokens` / `frames` 在 Windows 上找不到缓存。
+bool isNodesCacheFile(String path) {
+  final name = path.replaceAll('\\', '/').split('/').last;
+  return name.startsWith('nodes-') && name.endsWith('.json');
 }
 
 List<File> _sortCacheFiles(List<File> files) {

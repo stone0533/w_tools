@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:w_tools_figma/src/cache/cache_store.dart';
+import 'package:w_tools_figma/src/cli/cache_data.dart' show isNodesCacheFile;
 import 'package:w_tools_figma/src/commands/cache_command.dart';
 
 void main() {
@@ -78,5 +79,17 @@ void main() {
     final win = CacheStore(root, home: home.path, windows: true, environment: const {});
     expect(win.cacheRoot.path, '${home.path}/.cache/w_tools/figma');
     expect(win.tokenFile.path, '${home.path}/.config/w_tools/figma-token');
+  });
+
+  group('isNodesCacheFile', () {
+    test('POSIX 与 Windows 路径都能认出 nodes 缓存', () {
+      expect(isNodesCacheFile('/tmp/cache/nodes-abc.json'), isTrue);
+      expect(
+        isNodesCacheFile(r'C:\Users\me\.cache\w_tools\figma\nodes-abc.json'),
+        isTrue,
+      );
+      expect(isNodesCacheFile('/tmp/cache/file-abc.json'), isFalse);
+      expect(isNodesCacheFile('/tmp/cache/nodes-abc.txt'), isFalse);
+    });
   });
 }
