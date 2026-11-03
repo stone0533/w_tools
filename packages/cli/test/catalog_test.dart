@@ -44,10 +44,19 @@ void main() {
     expect(image.map((e) => e.names.first), contains('WImage'));
   });
 
-  test('components.md 里的组件都进了 catalog', () {
+  test('components.md 的 §1~§9 表格由 YAML 生成（不能手改）', () {
     final docs = File('../../docs/modules/components.md');
     if (!docs.existsSync()) return;
-    final aliases = <String>{for (final e in catalog) ...e.names};
+    expect(
+      docs.readAsStringSync(),
+      gen.generateDocs(Directory.current.path),
+      reason: '改了 catalog/components.yaml 之后要跑 `dart run tool/gen_catalog.dart`',
+    );
+  });
+
+  test('components.md 里出现的每个名字都能被 explain 找到', () {
+    final docs = File('../../docs/modules/components.md');
+    if (!docs.existsSync()) return;
     final names = <String>{};
     for (final line in docs.readAsLinesSync()) {
       if (!line.startsWith('|')) continue;
@@ -55,22 +64,17 @@ void main() {
       if (cells.length < 3) continue;
       final first = cells[1].trim();
       if (!first.startsWith('`')) continue;
-      final match = RegExp(r'`([^`]+)`').firstMatch(first);
-      if (match == null) continue;
-      var name = match.group(1)!.split('/').first.trim().replaceAll('*', '');
-      if (name.isNotEmpty) names.add(name);
+      for (final m in RegExp(r'`([^`]+)`').allMatches(first)) {
+        names.add(m.group(1)!.replaceAll('*', '').trim());
+      }
     }
+    expect(names, isNotEmpty);
     for (final name in names) {
-      expect(aliases, contains(name), reason: 'components.md 的 $name 不在 catalog');
-    }
-  });
-
-  test('目录里的组件仍出现在 components.md', () {
-    final docs = File('../../docs/modules/components.md');
-    if (!docs.existsSync()) return;
-    final text = docs.readAsStringSync();
-    for (final entry in catalog) {
-      expect(text, contains(entry.names.first), reason: 'components.md 缺 ${entry.name}');
+      expect(
+        findComponent(name),
+        isNotNull,
+        reason: 'components.md 推荐了 $name，但 catalog / explain 找不到它',
+      );
     }
   });
 

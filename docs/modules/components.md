@@ -2,11 +2,14 @@
 
 > CLI 内置同一份目录：`dart run w_tools_cli:list <关键词>` / `:explain <组件名>`。
 
+> **§1~§9 的表格由 `catalog/components.yaml` 生成**（`dart run tool/gen_catalog.dart`），手改会被覆盖；要改组件说明请改 YAML。
+>
 > 用法：**按用途找**。找到就用，找不到再看文末「待补」清单 —— 待补的东西应该先进消费方的
 > `lib/app/design_system/`，出现第二个用例后再上移进包（见 [`docs/conventions.md`](../conventions.md)）。
 
 ## 1. 页面骨架与导航
 
+<!-- catalog:1:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WScaffold` | ui | 页面壳：默认 WAppBar、body、底部导航/FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
@@ -14,37 +17,45 @@
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 需 vsync 并由页面 State dispose | 不要自己写 `BottomNavigationBar` |
 | `WTabBar` | ui | 顶部 tab；依赖 TabController / DefaultTabController | 需要下划线跟随的复杂交互时先看它够不够 |
 | `WStep` / `WStepFlow` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
+<!-- catalog:1:end -->
 
 ## 2. 文本与图标
 
+<!-- catalog:2:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WText` / `WTextVariant` / `WTextStyles` | ui | 语义文字样式、overrides、maxLines、textScaler | 不要再用 `WTextConfig`；已移除，使用 `WTextStyles` |
 | `WImage` | ui | 网络图/资源图（缓存、重试、占位） | 不要裸用 `Image.network` |
+<!-- catalog:2:end -->
 
 > **图标 + 文字排成一行**（垂直居中）：目前没有组件，见文末「待补」——
 > 不要用 `Row + Icon + Text`，中文字形在行盒里偏下，图标会看着偏高 1.5~2.5px。
 
 ## 3. 按钮与操作
 
+<!-- catalog:3:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义时用 `WButton` |
 | `WRowButtons` | ui | 一排可选中按钮（分段选择，由 controller 维护选中） | 纯动作按钮行（取消/确定）用 `Row` + `WButton`；它点击必选中 |
 | `WBadge` | ui | 角标数字 | — |
+<!-- catalog:3:end -->
 
 ## 4. 布局与容器
 
+<!-- catalog:4:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WRow` / `WColumn` / `WPadding` / `WSizeBox` | ui | 常用布局糖 | — |
 | `WClipRRect` | ui | 裁剪 | — |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
+<!-- catalog:4:end -->
 
 ## 5. 表单
 
+<!-- catalog:5:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WForm` | form | 页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验 | 不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` |
@@ -56,16 +67,20 @@
 | `WFormFieldStyle` | form | 页面级字段默认高度 / 内边距 / 文字 / hint 样式 | 字段特殊样式用字段 `config` 覆盖 |
 | `WFormValidatorSettings` | form | 校验行为：边框错误、短路 / 全量、回调 | — |
 | `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
+<!-- catalog:5:end -->
 
 ## 6. 弹层
 
+<!-- catalog:6:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WBottomSheet` | app | 底部面板外壳 | — |
 | `WFormPopup` | form | **锚定式**下拉弹层（贴在输入框下方） | ⚠️ 它不是居中对话框，别拿来做「确认弹窗」 |
+<!-- catalog:6:end -->
 
 ## 7. 状态与反馈
 
+<!-- catalog:7:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WAsyncView` / `WAsyncErrorView` / `WAsyncErrorBanner` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
@@ -79,9 +94,11 @@
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | — |
 | `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
 | `WNotificationListenerBuilder` | ui | 监听滚动通知 / 百分比 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
+<!-- catalog:7:end -->
 
 ## 8. 能力（非 UI）
 
+<!-- catalog:8:start -->
 | 能力 | 子包 | 说明 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WApp` / `WAppPlugin` | app | 启动器与插件分层初始化 | — |
@@ -93,7 +110,7 @@
 | `WEncrypt` / `WHash` | core | 加密、摘要 | AES-CBC 不提供完整性 |
 | `WLogger` / `WValidator` / `WRegExp` | core | 日志、校验、正则 | — |
 | `WUx` | core | 防抖 / 节流 / 延迟 / 滚动 | duration 必须非负 |
-| `WPlatform` | core | 平台判断 | — |
+| `WPlatform` | core | 平台判断 | 不要用 Platform.isXxx 绕过统一判断 |
 | `DioRegistry` | api | 按 baseUrl 创建并复用 Dio | 不要直接 `Dio()`；同一 baseUrl 只配置一次 |
 | `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试 | 不要在拦截器里存 token |
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
@@ -108,9 +125,11 @@
 | `WMapController` | map | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
 | `WRoute` | app | 路由工具 | — |
+<!-- catalog:8:end -->
 
 ## 9. 扩展
 
+<!-- catalog:9:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WNumExtension` | ui | 数字格式化 / 间距 / 圆角 / BorderSide 糖 | 不要重复手写 toStringAsFixed / SizedBox / EdgeInsets |
@@ -119,6 +138,7 @@
 | `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight | 需要 button 语义用 `WButton` |
 | `WUiWidgetExtension` | ui | `toPressable`（任意 child 点击，无 button 语义） | 需要 button 语义用 `WButton` |
 | `HexColor` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
+<!-- catalog:9:end -->
 
 ## 10. 待补（有重复用例，尚未进包）
 

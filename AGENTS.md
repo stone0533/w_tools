@@ -48,8 +48,8 @@ dart run tool/gen_templates.dart
 这是有意的：模板只允许有一份来源（`templates/`）。
 
 **改了 `packages/cli/catalog/components.yaml` 后必须跑** `dart run tool/gen_catalog.dart`
-（生成 `lib/src/catalog/catalog.g.dart`），否则 `test/catalog_test.dart` 会红 ——
-组件目录同样只允许有一份来源。
+（生成 `lib/src/catalog/catalog.g.dart` 和 `docs/modules/components.md` 的 §1~§9 表格），
+否则 `test/catalog_test.dart` 会红 —— 组件目录同样只允许有一份来源。
 
 CLI 是纯 Dart 包：测试用 `dart test`，发布用 `dart pub publish`（`scripts/publish_package.sh` 会自动识别）。
 
