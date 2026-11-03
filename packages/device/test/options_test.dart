@@ -101,6 +101,17 @@ void main() {
       DeviceOptions.parse(['wait', '--no-cache', '--region=0,0,10,10']).validate();
     });
 
+    test('rejects android no-cache and list --device', () {
+      expect(
+        () => DeviceOptions.parse(['tap', '1', '2', '--android', '--no-cache']).validate(),
+        throwsStateError,
+      );
+      expect(
+        () => DeviceOptions.parse(['list', '--device=ABC']).validate(),
+        throwsStateError,
+      );
+    });
+
     test('valid shot real and wait android', () {
       DeviceOptions.parse(['shot', '--real']).validate();
       DeviceOptions.parse(['wait', '--android', '--region=0,0,100,100']).validate();

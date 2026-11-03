@@ -34,8 +34,9 @@ size --real
 ```
 
 `--scale` 只用于 iOS 模拟器，必须是正整数；非法值会报错而不是静默忽略。
-`--no-cache` 只用于 tap / drag / wait / verify；`--timeout-ms` 和 `--stable-ms` 只用于 wait / verify；
-`--out` 只用于 shot。
+`--no-cache` 只用于 iOS 模拟器的 tap / drag / wait / verify（wait 需同时有 `--region`）；
+`--timeout-ms` 和 `--stable-ms` 只用于 wait / verify；`--out` 只用于 shot。
+`list` 不支持 `--device`；`type` 必须带文本。
 
 真机说明：列表/截图走 `devicectl`；**点击真机需要 idb 或 XCUITest，本工具不支持**。
 锁屏/息屏时 `devicectl` 会返回全黑图，工具会给出 `warning`（`--json` 里也有）。

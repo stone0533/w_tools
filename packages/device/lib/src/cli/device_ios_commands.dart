@@ -243,20 +243,25 @@ Future<String> _fingerprint(
   Calibration? calibration,
   int? pixelWidth,
 }) async {
-  final out = '${Directory.systemTemp.path}/w_tools_device_fp.png';
-  await simctl.screenshot(udid, out);
-  final bytes = File(out).readAsBytesSync();
-  if (region == null || calibration == null || pixelWidth == null) {
-    return ScreenFingerprint.of(bytes);
+  final out = _tempFile('w_tools_device_fp', 'png');
+  try {
+    await simctl.screenshot(udid, out);
+    final bytes = File(out).readAsBytesSync();
+    if (region == null || calibration == null || pixelWidth == null) {
+      return ScreenFingerprint.of(bytes);
+    }
+    final scale = pixelWidth / calibration.deviceWidth; // 截图 px / 设备 point
+    final px = DRect(
+      region.left * scale,
+      region.top * scale,
+      region.width * scale,
+      region.height * scale,
+    );
+    return ScreenFingerprint.ofRegion(bytes, region: px);
+  } finally {
+    final file = File(out);
+    if (file.existsSync()) file.deleteSync();
   }
-  final scale = pixelWidth / calibration.deviceWidth; // 截图 px / 设备 point
-  final px = DRect(
-    region.left * scale,
-    region.top * scale,
-    region.width * scale,
-    region.height * scale,
-  );
-  return ScreenFingerprint.ofRegion(bytes, region: px);
 }
 
 Stability _stability(
@@ -302,21 +307,26 @@ Future<Calibration> _calibrate(
   final deviceScale = o.scale ?? Simctl.guessScale(size.$1);
   final points = (size.$1 ~/ deviceScale, size.$2 ~/ deviceScale);
 
-  final shot = '${Directory.systemTemp.path}/w_tools_device_hub.png';
-  final scale = await hub.capture(window, shot);
-  final image = img.decodePng(File(shot).readAsBytesSync());
-  if (image == null) throw StateError('窗口截图解码失败：$shot');
-  final cal = const CalibrationDetector().detect(
-    image: image,
-    window: window,
-    scale: scale,
-    deviceWidth: points.$1,
-    deviceHeight: points.$2,
-    screenshotWidth: size.$1,
-    screenshotHeight: size.$2,
-  );
-  store.save(udid, cal);
-  return cal;
+  final shot = _tempFile('w_tools_device_hub', 'png');
+  try {
+    final scale = await hub.capture(window, shot);
+    final image = img.decodePng(File(shot).readAsBytesSync());
+    if (image == null) throw StateError('窗口截图解码失败：$shot');
+    final cal = const CalibrationDetector().detect(
+      image: image,
+      window: window,
+      scale: scale,
+      deviceWidth: points.$1,
+      deviceHeight: points.$2,
+      screenshotWidth: size.$1,
+      screenshotHeight: size.$2,
+    );
+    store.save(udid, cal);
+    return cal;
+  } finally {
+    final file = File(shot);
+    if (file.existsSync()) file.deleteSync();
+  }
 }
 
 Future<String> _resolveUdid(

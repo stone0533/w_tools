@@ -189,6 +189,12 @@ class DeviceOptions {
     if (seen.contains('no-cache') && command == 'wait' && region == null) {
       throw StateError('wait 使用 --no-cache 时必须同时指定 --region');
     }
+    if (seen.contains('no-cache') && android) {
+      throw StateError('--no-cache 只用于 iOS 模拟器');
+    }
+    if (seen.contains('device') && command == 'list') {
+      throw StateError('list 不支持 --device；先列出设备再指定');
+    }
     if (seen.contains('timeout-ms') && command != 'wait' && command != 'verify') {
       throw StateError('--timeout-ms 只用于 wait / verify');
     }

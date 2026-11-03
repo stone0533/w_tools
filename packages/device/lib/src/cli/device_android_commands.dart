@@ -84,12 +84,17 @@ Stability _androidStability(Adb adb, String serial, {DRect? region}) => Stabilit
     );
 
 Future<String> _androidFingerprint(Adb adb, String serial, {DRect? region}) async {
-  final out = '${Directory.systemTemp.path}/w_tools_device_fp_android.png';
-  await adb.screenshot(serial, out);
-  final bytes = File(out).readAsBytesSync();
-  return region == null
-      ? ScreenFingerprint.of(bytes)
-      : ScreenFingerprint.ofRegion(bytes, region: region);
+  final out = _tempFile('w_tools_device_fp_android', 'png');
+  try {
+    await adb.screenshot(serial, out);
+    final bytes = File(out).readAsBytesSync();
+    return region == null
+        ? ScreenFingerprint.of(bytes)
+        : ScreenFingerprint.ofRegion(bytes, region: region);
+  } finally {
+    final file = File(out);
+    if (file.existsSync()) file.deleteSync();
+  }
 }
 
 Future<void> _androidWait(DeviceOptions o) async {

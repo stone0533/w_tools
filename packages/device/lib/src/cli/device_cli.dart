@@ -17,6 +17,12 @@ import '../stability.dart';
 part 'device_ios_commands.dart';
 part 'device_android_commands.dart';
 
+var _tempSeq = 0;
+
+/// 内部截图/指纹临时文件；避免并发命令互相覆盖。
+String _tempFile(String prefix, String ext) =>
+    '${Directory.systemTemp.path}/${prefix}_${DateTime.now().microsecondsSinceEpoch}_${_tempSeq++}.$ext';
+
 const _usage = '''
 w_tools_device —— 设备验证小工具（模拟器为主 + 真机截图，读数 + 点击）
 
@@ -37,7 +43,7 @@ w_tools_device —— 设备验证小工具（模拟器为主 + 真机截图，�
 
 可选：
   --device=<udid|名称>   指定设备（默认用已启动的 / 第一台）
-  --no-cache            忽略标定缓存，强制重算
+  --no-cache            忽略标定缓存，强制重算（仅 iOS 模拟器 tap/drag/wait/verify）
   --scale=3             设备像素密度（默认按截图宽度猜 3x/2x）
   --timeout-ms=15000    等待超时
   --stable-ms=600       画面稳定判定窗口
@@ -95,6 +101,7 @@ Future<void> runDeviceCli(List<String> args) async {
           await _drag(simctl, o);
         }
       case 'type':
+        _requireArgs(o, 1, 'type 需要文本');
         if (o.android) {
           final serial = await _androidSerial(o);
           await Adb().text(serial, o.positional.join(' '));
