@@ -94,6 +94,7 @@ class Simctl {
 
   /// 截设备屏（px），返回文件路径。
   Future<String> screenshot(String udid, String out) async {
+    File(out).parent.createSync(recursive: true);
     await _shell.runOrThrow('xcrun', ['simctl', 'io', udid, 'screenshot', out]);
     return out;
   }
@@ -111,9 +112,8 @@ class Simctl {
     return size;
   }
 
-  static Future<(int, int)> _imageSize(String path) async {
-    final r =
-        await const ProcessShell().run('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', path]);
+  Future<(int, int)> _imageSize(String path) async {
+    final r = await _shell.run('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', path]);
     final text = '${r.stdout}';
     final w = RegExp(r'pixelWidth:\s*(\d+)').firstMatch(text);
     final h = RegExp(r'pixelHeight:\s*(\d+)').firstMatch(text);

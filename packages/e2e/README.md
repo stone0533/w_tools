@@ -20,5 +20,6 @@ flutter run -d <device> \
 ```
 
 - 生效条件（三选三）：`E2E=1`（或 `true`）+ 账号/密码非空 + **非 release**
+- `--dart-define` 会进入 debug/profile 构建产物；只用于测试账号，不要复用真实密码
 - `run()` 失败只回调 `onError` / 打日志，不抛异常、不阻塞启动
 - 默认超时 60s（UAT/弱网登录可能 40s 以上）

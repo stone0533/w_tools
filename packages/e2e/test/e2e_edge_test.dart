@@ -52,6 +52,17 @@ void main() {
     });
   });
 
+  group('onError 自身抛错', () {
+    test('不会把 run 变成抛异常', () async {
+      final ok = await E2eLogin.run(
+        config: const E2eConfig(enabled: true, email: 'a', password: 'b'),
+        login: (_, __) async => throw StateError('login boom'),
+        onError: (_, __) => throw StateError('handler boom'),
+      );
+      expect(ok, isFalse);
+    });
+  });
+
   group('afterLogin 出错', () {
     test('登录成功但 afterLogin 同步抛错：仍算登录成功', () async {
       Object? reported;

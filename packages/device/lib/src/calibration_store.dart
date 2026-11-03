@@ -37,8 +37,19 @@ class CalibrationStore {
   }
 
   /// 当前窗口与缓存是否仍然匹配。
-  bool isFresh(String udid, HubWindow window) {
+  ///
+  /// 设备尺寸 / 方向变化（竖屏转横屏、--scale 改变）时也必须失效，
+  /// 否则旧的 deviceRect 会把点击换算到错误位置。
+  bool isFresh(
+    String udid,
+    HubWindow window, {
+    int? deviceWidth,
+    int? deviceHeight,
+  }) {
     final cached = load(udid);
-    return cached != null && cached.matches(window);
+    if (cached == null || !cached.matches(window)) return false;
+    if (deviceWidth != null && cached.deviceWidth != deviceWidth) return false;
+    if (deviceHeight != null && cached.deviceHeight != deviceHeight) return false;
+    return true;
   }
 }

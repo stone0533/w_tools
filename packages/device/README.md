@@ -11,6 +11,7 @@ dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备
 dart run w_tools_device:device tap 200 840          # 用「设备坐标」点，自动换算
 dart run w_tools_device:device drag 200 700 200 300
 dart run w_tools_device:device type "hello"
+dart run w_tools_device:device size                 # 设备尺寸（iOS=point，直接读截图；Android=像素）
 dart run w_tools_device:device wait                 # 等画面稳定（默认 600ms 内不再变）
 dart run w_tools_device:device verify 200 840       # 点一下并确认画面真的变了（坐标自检）
 dart run w_tools_device:device verify 200 840 --region=0,40,402,80
@@ -20,6 +21,19 @@ dart run w_tools_device:device verify 200 840 --region=0,40,402,80
 选项：`--device=<udid|名称>`、`--no-cache`（强制重标定）、`--scale=3`（像素密度）、
 `--timeout-ms=15000`、`--stable-ms=600`、`--region=x,y,w,h`（设备坐标，只看这块区域）、
 `--real`（真机：仅 list / shot）、`--json`（脚本/CI 用，结构化输出）。
+
+平台 / 命令不兼容时会直接报错，例如：
+
+```text
+tap --real
+boot --android
+foreground（未加 --android）
+size --real
+--region 只用于 wait / verify
+--out 只用于 shot
+```
+
+`--scale` 只用于 iOS 模拟器，必须是正整数；非法值会报错而不是静默忽略。
 
 真机说明：列表/截图走 `devicectl`；**点击真机需要 idb 或 XCUITest，本工具不支持**。
 锁屏/息屏时 `devicectl` 会返回全黑图，工具会给出 `warning`（`--json` 里也有）。

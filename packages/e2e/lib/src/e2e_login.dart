@@ -70,6 +70,11 @@ class E2eLogin {
                 : '[E2E] afterLogin failed: $err\n$stack',
           );
         };
-    handler(e, st);
+    try {
+      handler(e, st);
+    } catch (handlerError, handlerStack) {
+      // 用户回调自己抛错时，不能破坏 run() “失败不抛”的契约。
+      debugPrint('[E2E] onError handler failed: $handlerError\n$handlerStack');
+    }
   }
 }

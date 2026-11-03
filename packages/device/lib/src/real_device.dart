@@ -103,6 +103,7 @@ class Devicectl {
 
   /// 真机截图（需要设备已解锁并信任）。
   Future<String> screenshot(String device, String out) async {
+    File(out).parent.createSync(recursive: true);
     await _shell.runOrThrow('xcrun', [
       'devicectl',
       'device',

@@ -68,6 +68,25 @@ void main() {
     });
   });
 
+  group('DeviceOptions.validate（平台/命令矩阵）', () {
+    test('rejects real tap and android boot', () {
+      expect(DeviceOptions.parse(['tap', '1', '2', '--real']).validate, throwsStateError);
+      expect(DeviceOptions.parse(['boot', 'x', '--android']).validate, throwsStateError);
+      expect(DeviceOptions.parse(['foreground']).validate, throwsStateError);
+    });
+
+    test('rejects invalid numbers and region', () {
+      expect(() => DeviceOptions.parse(['size', '--scale=0']), throwsStateError);
+      expect(() => DeviceOptions.parse(['wait', '--timeout-ms=x']), throwsStateError);
+      expect(() => DeviceOptions.parse(['wait', '--region=1,2,0,3']), throwsStateError);
+    });
+
+    test('valid shot real and wait android', () {
+      DeviceOptions.parse(['shot', '--real']).validate();
+      DeviceOptions.parse(['wait', '--android', '--region=0,0,100,100']).validate();
+    });
+  });
+
   group('Devicectl.parseDevices（真机列表）', () {
     // devicectl 会把模拟器也列出来（transportType=sameMachine），必须过滤掉
     const json = '''

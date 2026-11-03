@@ -98,6 +98,7 @@ class Adb {
   /// 截图（PNG）。二进制必须走 `runBytes`（`Process.run` 默认按 UTF-8 解码会毁掉 PNG）。
   Future<String> screenshot(String serial, String out) async {
     final bytes = await _shell.runBytes('adb', _args(serial, ['exec-out', 'screencap', '-p']));
+    File(out).parent.createSync(recursive: true);
     File(out).writeAsBytesSync(bytes);
     return out;
   }

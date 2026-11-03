@@ -26,9 +26,11 @@ class Stability {
     String? last;
     var stableSince = Duration.zero;
     while (sw.elapsed < timeout) {
+      final grabStarted = sw.elapsed;
       final now = await _grab();
+      final grabTook = sw.elapsed - grabStarted;
       if (now == last) {
-        stableSince += interval;
+        stableSince += interval + grabTook;
         if (stableSince >= stableFor) return true;
       } else {
         last = now;

@@ -50,6 +50,7 @@ Future<void> main(List<String> args) async {
   final simctl = Simctl();
   try {
     options = DeviceOptions.parse(args);
+    options.validate();
     final o = options;
     switch (o.command) {
       case 'list':
@@ -95,9 +96,12 @@ Future<void> main(List<String> args) async {
           _emit(o, {'width': size.$1, 'height': size.$2, 'serial': serial, 'android': true},
               '${size.$1} x ${size.$2}（像素）');
         } else {
-          final cal = await _calibrate(simctl, o, force: o.noCache);
-          _emit(o, {'width': cal.deviceWidth, 'height': cal.deviceHeight, 'android': false},
-              '${cal.deviceWidth} x ${cal.deviceHeight}（point）');
+          final udid = await _resolveUdid(simctl, o, bootedOnly: true);
+          final size = await simctl.screenshotSize(udid);
+          final scale = o.scale ?? Simctl.guessScale(size.$1);
+          final width = size.$1 ~/ scale;
+          final height = size.$2 ~/ scale;
+          _emit(o, {'width': width, 'height': height, 'android': false}, '$width x $height（point）');
         }
       case 'foreground':
         if (!o.android) {
@@ -123,6 +127,8 @@ Future<void> main(List<String> args) async {
     }
   } on ProcessException catch (e) {
     _fail(options, '命令执行失败：${e.message}', 1);
+  } on FormatException catch (e) {
+    _fail(options, '参数错误：${e.message}', 1);
   } on StateError catch (e) {
     _fail(options, e.message, 1);
   }
@@ -284,7 +290,19 @@ Future<void> _drag(Simctl simctl, DeviceOptions o) async {
 
 Future<void> _wait(Simctl simctl, DeviceOptions o) async {
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
-  final ok = await _stability(simctl, udid).waitStable(
+  Calibration? calibration;
+  int? pixelWidth;
+  if (o.region != null) {
+    calibration = await _calibrate(simctl, o, force: o.noCache);
+    pixelWidth = (await simctl.screenshotSize(udid)).$1;
+  }
+  final ok = await _stability(
+    simctl,
+    udid,
+    region: o.region,
+    calibration: calibration,
+    pixelWidth: pixelWidth,
+  ).waitStable(
     stableFor: o.stableFor,
     timeout: o.timeout,
   );
@@ -555,14 +573,22 @@ Future<Calibration> _calibrate(
   if (window == null) {
     throw StateError('读不到 DeviceHub 窗口：确认 DeviceHub 已打开，且宿主 App 有「辅助功能」权限');
   }
-  if (!force) {
-    final cached = store.load(udid);
-    if (cached != null && cached.matches(window)) return cached;
-  }
-
   final size = await simctl.screenshotSize(udid);
   final deviceScale = o.scale ?? Simctl.guessScale(size.$1);
   final points = (size.$1 ~/ deviceScale, size.$2 ~/ deviceScale);
+  if (!force) {
+    final cached = store.load(udid);
+    if (cached != null &&
+        store.isFresh(
+          udid,
+          window,
+          deviceWidth: points.$1,
+          deviceHeight: points.$2,
+        )) {
+      return cached;
+    }
+  }
+
   final shot = '${Directory.systemTemp.path}/w_tools_device_hub.png';
   final scale = await hub.capture(window, shot);
   final image = img.decodePng(File(shot).readAsBytesSync());

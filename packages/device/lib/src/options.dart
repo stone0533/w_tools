@@ -68,14 +68,20 @@ class DeviceOptions {
       } else if (a == '--no-cache') {
         noCache = true;
       } else if (a.startsWith('--scale=')) {
-        scale = int.tryParse(a.substring('--scale='.length));
+        scale = _positiveInt('--scale', a.substring('--scale='.length));
       } else if (a.startsWith('--timeout-ms=')) {
         timeout = Duration(
-          milliseconds: int.tryParse(a.substring('--timeout-ms='.length)) ?? 15000,
+          milliseconds: _positiveInt(
+            '--timeout-ms',
+            a.substring('--timeout-ms='.length),
+          ),
         );
       } else if (a.startsWith('--stable-ms=')) {
         stableFor = Duration(
-          milliseconds: int.tryParse(a.substring('--stable-ms='.length)) ?? 600,
+          milliseconds: _positiveInt(
+            '--stable-ms',
+            a.substring('--stable-ms='.length),
+          ),
         );
       } else if (a.startsWith('--region=')) {
         region = _parseRegion(a);
@@ -101,14 +107,83 @@ class DeviceOptions {
     );
   }
 
+  /// 校验平台 / 命令组合，避免 `tap --real` 仍然点模拟器。
+  void validate() {
+    if (real && android) {
+      throw StateError('--real 与 --android 不能同时使用');
+    }
+    const simOnly = <String>{'boot', 'calibrate'};
+    const noReal = <String>{
+      'boot',
+      'calibrate',
+      'tap',
+      'drag',
+      'type',
+      'size',
+      'wait',
+      'verify',
+    };
+    const androidOnly = <String>{'foreground'};
+    const androidCommands = <String>{
+      'list',
+      'shot',
+      'tap',
+      'drag',
+      'type',
+      'size',
+      'wait',
+      'verify',
+      'foreground',
+    };
+    const realCommands = <String>{'list', 'shot'};
+    if (simOnly.contains(command) && (real || android)) {
+      throw StateError('$command 只支持 iOS 模拟器');
+    }
+    if (real && !realCommands.contains(command)) {
+      throw StateError('--real 只支持 list / shot');
+    }
+    if (real && noReal.contains(command)) {
+      throw StateError('$command 不支持真机');
+    }
+    if (android && !androidCommands.contains(command)) {
+      throw StateError('--android 不支持 $command');
+    }
+    if (androidOnly.contains(command) && !android) {
+      throw StateError('$command 需要 --android');
+    }
+    if (region != null && command != 'wait' && command != 'verify') {
+      throw StateError('--region 只支持 wait / verify');
+    }
+    if (out != null && command != 'shot') {
+      throw StateError('--out 只支持 shot');
+    }
+    if (scale != null && !android && !real && command == 'list') {
+      throw StateError('--scale 只用于模拟器截图 / 标定');
+    }
+    if (scale != null && (android || real)) {
+      throw StateError('--scale 只用于 iOS 模拟器');
+    }
+  }
+
+  static int _positiveInt(String option, String value) {
+    final parsed = int.tryParse(value);
+    if (parsed == null || parsed <= 0) {
+      throw StateError('$option 需要正整数：$value');
+    }
+    return parsed;
+  }
+
   static DRect _parseRegion(String arg) {
     final parts = arg.substring('--region='.length).split(',');
     if (parts.length != 4) {
       throw StateError('--region 需要 x,y,w,h（设备坐标，例如 --region=0,0,402,120）');
     }
     final v = parts.map((e) => double.tryParse(e.trim())).toList();
-    if (v.any((e) => e == null)) {
-      throw StateError('--region 的四个值都要是数字：$arg');
+    if (v.any((e) => e == null || !e.isFinite)) {
+      throw StateError('--region 的四个值都要是有限数字：$arg');
+    }
+    if (v[2]! <= 0 || v[3]! <= 0) {
+      throw StateError('--region 的宽高需要大于 0：$arg');
     }
     return DRect(v[0]!, v[1]!, v[2]!, v[3]!);
   }
