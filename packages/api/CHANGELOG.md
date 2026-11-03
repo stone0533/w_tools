@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.0.0
+
+### Removed
+- `WLogInterceptor` 的 6 个旧 bool 参数（`request` / `requestHeader` / `requestBody` /
+  `responseHeader` / `responseBody` / `error`）：统一用 `parts: {WLogPart...}`。
+
 ## 2.1.0
 
 ### Changed

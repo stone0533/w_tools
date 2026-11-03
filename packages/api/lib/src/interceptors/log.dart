@@ -17,7 +17,7 @@ enum WLogPart {
 
 /// 日志拦截器，用于记录 HTTP 请求和响应的详细信息。
 ///
-/// 2.0 起用 [parts] 选择片段；旧 bool 参数保留（5.0 移除）。
+/// 用 [parts] 选择片段。
 class WLogInterceptor extends Interceptor {
   /// 要输出的片段；为 null 时按旧 bool 参数
   final Set<WLogPart>? parts;
@@ -60,35 +60,17 @@ class WLogInterceptor extends Interceptor {
 
   /// 构造函数
   ///
-  /// [parts] 非空时，未列出的片段不输出；否则沿用旧 bool 参数。
+  /// [parts] 非空时，未列出的片段不输出；未传时使用包内默认值。
   WLogInterceptor({
     this.parts,
-
-    /// remove-in: 5.0.0
-    @Deprecated('2.0 起用 parts: {WLogPart.request}；5.0 移除') bool? request,
-
-    /// remove-in: 5.0.0
-    @Deprecated('2.0 起用 parts: {WLogPart.requestHeader}；5.0 移除') bool? requestHeader,
-
-    /// remove-in: 5.0.0
-    @Deprecated('2.0 起用 parts: {WLogPart.requestBody}；5.0 移除') bool? requestBody,
-
-    /// remove-in: 5.0.0
-    @Deprecated('2.0 起用 parts: {WLogPart.responseHeader}；5.0 移除') bool? responseHeader,
-
-    /// remove-in: 5.0.0
-    @Deprecated('2.0 起用 parts: {WLogPart.responseBody}；5.0 移除') bool? responseBody,
-
-    /// remove-in: 5.0.0
-    @Deprecated('2.0 起用 parts: {WLogPart.error}；5.0 移除') bool? error,
     this.enableLog = true,
     this.redactedHeaders = defaultRedactedHeaders,
-  }) : request = parts?.contains(WLogPart.request) ?? request ?? true,
-       requestHeader = parts?.contains(WLogPart.requestHeader) ?? requestHeader ?? true,
-       requestBody = parts?.contains(WLogPart.requestBody) ?? requestBody ?? true,
-       responseHeader = parts?.contains(WLogPart.responseHeader) ?? responseHeader ?? false,
-       responseBody = parts?.contains(WLogPart.responseBody) ?? responseBody ?? true,
-       error = parts?.contains(WLogPart.error) ?? error ?? true,
+  }) : request = parts?.contains(WLogPart.request) ?? true,
+       requestHeader = parts?.contains(WLogPart.requestHeader) ?? true,
+       requestBody = parts?.contains(WLogPart.requestBody) ?? true,
+       responseHeader = parts?.contains(WLogPart.responseHeader) ?? false,
+       responseBody = parts?.contains(WLogPart.responseBody) ?? true,
+       error = parts?.contains(WLogPart.error) ?? true,
        errorHint = parts?.contains(WLogPart.errorHint) ?? true;
 
   /// 请求阶段：打印请求详情

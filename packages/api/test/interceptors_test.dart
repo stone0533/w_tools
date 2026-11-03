@@ -145,9 +145,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WLogInterceptor(
-          request: true,
-          requestHeader: true,
-          requestBody: true,
+          parts: {WLogPart.request, WLogPart.requestHeader, WLogPart.requestBody},
         ),
       );
 
@@ -197,7 +195,7 @@ void main() {
         },
       );
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(responseHeader: true));
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.responseHeader}));
 
       await dio.get('https://example.com/api');
       await Future.microtask(() {});
@@ -221,7 +219,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WLogInterceptor(
-          responseHeader: true,
+          parts: {WLogPart.responseHeader},
           redactedHeaders: {'x-custom-secret'},
         ),
       );
@@ -242,11 +240,7 @@ void main() {
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
-        WLogInterceptor(
-          request: false,
-          requestHeader: false,
-          requestBody: false,
-        ),
+        WLogInterceptor(parts: const {}),
       );
 
       await dio.get('https://example.com/api');
@@ -268,7 +262,7 @@ void main() {
       // 但为了不发真网络请求，我们让 adapter 抛异常
       final adapter = _ErrorAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(error: true));
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.error, WLogPart.errorHint}));
 
       try {
         await dio.get('https://example.com/api');
@@ -278,13 +272,13 @@ void main() {
       expect(logs, isNotEmpty);
     });
 
-    test('error=false 时不输出原始错误 dump，但仍输出友好提示', () async {
+    test('只开 errorHint 时不输出原始错误 dump，但仍输出友好提示', () async {
       List<String> logs = [];
       WApiConfig.logErrorHandler = (m) => logs.add(m.toString());
 
       final adapter = _ErrorAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(error: false));
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.errorHint}));
 
       try {
         await dio.get('https://example.com/api');

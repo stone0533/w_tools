@@ -96,7 +96,7 @@ DioRegistry.dispose('https://api.example.com');
 
 ### 功能说明
 
-按 `parts`（`WLogPart`）打印请求与响应详情，输出经 `WApiConfig.logDebugHandler` / `WApiConfig.logErrorHandler`。`parts` 为 `null` 时才退回旧的 bool 参数；传空集合表示全部关闭。
+按 `parts`（`WLogPart`）打印请求与响应详情，输出经 `WApiConfig.logDebugHandler` / `WApiConfig.logErrorHandler`。`parts` 为 `null` 时使用包内默认值；传空集合表示全部关闭。
 
 ### 配置参数
 
@@ -105,7 +105,6 @@ DioRegistry.dispose('https://api.example.com');
 | `parts` | `Set<WLogPart>?` | 要输出的片段：`request` / `requestHeader` / `requestBody` / `responseHeader` / `responseBody` / `error` / `errorHint` |
 | `enableLog` | bool | 是否启用日志（默认 true） |
 | `redactedHeaders` | `Set<String>` | 脱敏头列表 |
-| `request` / `requestHeader` / `requestBody` / `responseHeader` / `responseBody` / `error` | bool? | **旧参数（5.0 移除）**：不传 `parts` 时生效 |
 
 > 显式传 `parts` 时，未列出的片段不会输出（`error` 是详细错误，`errorHint` 是友好提示，二者独立）；body 是否打印建议用 `kDebugMode` 控制。
 

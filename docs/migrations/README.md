@@ -48,6 +48,7 @@
 
 - [api 2.0](api-2.0.md)：日志片段、注册表配置冲突报错
 - [api 2.1](api-2.1.md)：401 重试不再隐式注册 Dio
+- [api 5.0](api-5.0.md)：删除日志旧 bool 参数
 - [app 1.1](app-1.1.md)：`WBottomSheet` 透传、路由修复
 - [app 1.2](app-1.2.md)：`WAppOptions` / `WLocaleConfig` / `WRouteStack`
 - [app 2.0](app-2.0.md)：删除字段版 `WApp` 与静态 `WRoute`

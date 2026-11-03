@@ -32,7 +32,6 @@ final response = await dio.get('/gifts');
 
 - 直接 `Dio()`（401 重试依赖 `DioRegistry` 的实例）；
 - 同一 `baseUrl` 第二次传不同 `options` / `interceptors`（会抛 `ArgumentError`）；
-- 旧日志 bool 参数（用 `parts:`）；
 - 依赖日志拦截器做业务错误处理。
 
 ## 常见坑
