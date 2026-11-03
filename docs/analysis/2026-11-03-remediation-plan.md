@@ -235,7 +235,7 @@ P2 进展：core 正则已收敛（`WRegExp.time/dateTime`，validator 不再内
 插件断言；map 相机比较复用 `CameraPosition.==`。仍为 P2（不阻塞发布）：api 裸 `Dio` + 401 会隐式注册
 registry 条目；ui `image.dart` 846 行 / `row_buttons.dart` 整类弃用；map `zoneId`/`name` 死字段、
 `icon` 与 `iconBuilder` 重叠；qr `flipCamera` 重建后回退、5 个零调用转发；app 三套配置入口的三重回退
-要到 2.0 收敛；golden 与 feedback 复盘仍未做。
+要到 2.0 收敛；golden 仍未做；feedback 复盘已完成（5 条已闭环，见 `docs/feedback/`）。
 
 **发布（A 方案：两段式）**：13 个子包 `publish_package.sh --dry-run` 全通过；根包按预期失败
 （子包未上线）。本次发布 = **弃用版**；下一个大版本再删除弃用符号。

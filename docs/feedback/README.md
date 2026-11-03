@@ -101,7 +101,11 @@ bash scripts/check_feedback.sh
 | [figma](figma.md) | 0 | 2026-11-03 |
 | [cli](cli.md) | 0 | 2026-11-03 |
 | [device](device.md) | 0 | 2026-11-03 |
-| [e2e](e2e.md) | 0 | 2026-11-03 |
+| [e2e](e2e.md) | 0 | 2026-11-04 |
+| [api](api.md) | 0 | 2026-11-04 |
+| [async](async.md) | 0 | 2026-11-04 |
+| [map](map.md) | 0 | 2026-11-04 |
+| [qr](qr.md) | 0 | 2026-11-04 |
 
 新增条目时**同步这张表**（CI 会核对数量）。
 
