@@ -153,14 +153,21 @@ theme: ThemeData(colorScheme: scheme, useMaterial3: true)
 | `price` | `headlineSmall` |
 | `bodyStrong` | `titleMedium` |
 | `number` | `bodyLarge` |
-| `body` | `bodyMedium` |
+| `body` | `bodyLarge` + `bodyMedium` |
+| `number` | **不投影** |
 | `caption` | `bodySmall` |
 | `label` | `labelMedium` |
 | `button` | `labelLarge` |
 | `badge` | `labelSmall` |
 
-每个角色占一个独立槽位：如果两个角色共用一个槽位，Material 组件只会拿到其中一个，
-等于静默丢样式。未涉及的槽位保留原 `TextTheme`。
+两条规则：
+
+- **按 Material 的消费点投，不追求一一对应**：`TextField` 读 `bodyLarge`、普通正文读
+  `bodyMedium`，所以 `body` 两个槽位都写；
+- **`number` 不投影**：`bodyLarge` 已被 `body` 占用，把 `number` 写进去会让所有表单输入
+  变成数字样式。它是 `WText` 专属语义，Material 组件看不到。
+
+未涉及的槽位保留原 `TextTheme`。
 
 兜底（未安装扩展）时的取值就是上表：`price` 取 `headlineSmall`、`number` 取 `bodyLarge`、
 `badge` 取 `labelSmall`、`bodyStrong` 取 `titleMedium`；品牌设计稿仍应显式提供 `WTextStyles`。

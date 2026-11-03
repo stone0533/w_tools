@@ -68,8 +68,8 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
 
   /// 从 Flutter TextTheme 生成兜底语义样式。
   ///
-  /// 映射与 [toTextTheme] 严格互逆（每个角色占一个独立槽位），
-  /// 否则会出现「两个角色抢同一个槽位」→ 转换后 Material 组件拿到错的字号。
+  /// 与 [toTextTheme] 使用同一张表：`body` 取 `bodyMedium`（toTextTheme 同时写
+  /// bodyLarge / bodyMedium），`number` 不投影、兜底取 `bodyLarge`。
   factory WTextStyles.fromTextTheme(TextTheme textTheme) {
     final body = textTheme.bodyMedium ?? const TextStyle();
     final title = textTheme.titleLarge ?? const TextStyle();
@@ -89,10 +89,13 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
     );
   }
 
-  /// 把语义角色写进 Material [TextTheme]（[fromTextTheme] 的逆运算）。
+  /// 把语义角色写进 Material [TextTheme]。
   ///
-  /// `TextTheme` 没有的角色（price / bodyStrong / number / badge）各自占用一个
-  /// 独立槽位，保证转换无损；未涉及的槽位保留 [base]。
+  /// 映射按 **Material 的消费点**选取，而不是一一对应：
+  /// - `body` 同时写 `bodyLarge`（`TextField` 输入）与 `bodyMedium`（普通正文）；
+  /// - `number` **不投影**：`bodyLarge` 已被 body 占用，若把 number 写进去，
+  ///   所有表单输入会变成数字样式；
+  /// - 未涉及的槽位保留 [base]。
   ///
   /// 应用侧用 [WTextStylesThemeData.withWTextStyles] 一次装好：
   /// 之后 form / toast / async 只读 `Theme.of(context).textTheme` 即可跟随，
@@ -104,7 +107,7 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
       titleLarge: title,
       headlineSmall: price,
       titleMedium: bodyStrong,
-      bodyLarge: number,
+      bodyLarge: body,
       bodyMedium: body,
       bodySmall: caption,
       labelMedium: label,

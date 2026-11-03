@@ -17,7 +17,7 @@ WTextStyles _customStyles() => const WTextStyles(
 );
 
 void main() {
-  test('toTextTheme / fromTextTheme 互逆：11 个角色各占独立槽位', () {
+  test('toTextTheme / fromTextTheme 对 10 个投影角色互逆', () {
     final styles = _customStyles();
     final base = ThemeData(useMaterial3: true).textTheme;
     final back = WTextStyles.fromTextTheme(styles.toTextTheme(base));
@@ -31,8 +31,9 @@ void main() {
     expect(back.label, styles.label);
     expect(back.button, styles.button);
     expect(back.price, styles.price);
-    expect(back.number, styles.number);
     expect(back.badge, styles.badge);
+    // number 不投影到 TextTheme，兜底与 body 同尺寸（WText 仍用扩展里的 number）
+    expect(back.number, back.body);
   });
 
   test('未映射的槽位保留 base', () {
@@ -40,6 +41,17 @@ void main() {
     final mapped = _customStyles().toTextTheme(base);
     expect(mapped.titleSmall, base.titleSmall);
     expect(mapped.headlineLarge, base.headlineLarge);
+  });
+
+  test('body 同时驱动输入框与正文；number 不污染输入框', () {
+    final styles = _customStyles();
+    final mapped = styles.toTextTheme(ThemeData(useMaterial3: true).textTheme);
+
+    // TextField 读 bodyLarge，普通正文读 bodyMedium
+    expect(mapped.bodyLarge, styles.body);
+    expect(mapped.bodyMedium, styles.body);
+    // number 是 WText 专属语义，不投影
+    expect(mapped.bodyLarge, isNot(styles.number));
   });
 
   test('price 不再与 title 共用槽位', () {

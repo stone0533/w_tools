@@ -7,7 +7,7 @@
 - `ThemeData.withWTextStyles()`：一次装好 `TextTheme` 与 ThemeExtension。form / toast / async 只读 `Theme.of(context).textTheme`，因此**不需要依赖 w_tools_ui** 就能跟随品牌排版。
 
 ### Changed
-- `fromTextTheme` 与 `toTextTheme` 改为严格互逆：`price` 从「等于 title」改为 `headlineSmall`，`bodyStrong` 改为 `titleMedium`（此前是 body + w600）。依赖兜底样式的页面外观会略有变化。
+- `toTextTheme` / `fromTextTheme` 按 Material 的消费点映射：`body` 同时写 `bodyLarge`（输入框）与 `bodyMedium`（正文），`number` 不投影（避免表单输入变成数字样式）；`price` 从「等于 title」改为 `headlineSmall`，`bodyStrong` 改为 `titleMedium`。依赖兜底样式的页面外观会略有变化。
 - `WTextStyles.of` 的兜底样式按 `TextTheme` 实例缓存（`Expando`），不再每次 build 重建 11 个 `TextStyle`。
 
 ## 3.1.0
