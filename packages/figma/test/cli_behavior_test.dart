@@ -420,6 +420,13 @@ void main() {
     expect('${result.stderr}', contains('figd_'));
   });
 
+  test('cache stats 拒绝 --all；cache clean --yes 需要 --all', () async {
+    final stats = await run(<String>['cache', 'stats', '--all']);
+    expect(stats.exitCode, 2);
+    final clean = await run(<String>['cache', 'clean', '--yes']);
+    expect(clean.exitCode, 2);
+  });
+
   test('cache clean --all 需要 --yes 确认', () async {
     final refused = await run(<String>['cache', 'clean', '--all']);
     expect(refused.exitCode, 2, reason: '${refused.stderr}');
@@ -427,6 +434,12 @@ void main() {
 
     final ok = await run(<String>['cache', 'clean', '--all', '--yes']);
     expect(ok.exitCode, 0, reason: '${ok.stderr}');
+  });
+
+  test('tokens --json 与 --out 互斥', () async {
+    final result = await run(<String>['tokens', '1:2', '--json', '--out=/tmp/x.md']);
+    expect(result.exitCode, 2);
+    expect('${result.stderr}', contains('不能同时使用'));
   });
 
   test('非法参数返回 exit 2', () async {

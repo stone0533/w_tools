@@ -165,6 +165,7 @@ dart run w_tools_figma:figma spec <nodeId[,nodeId...]> [--file=<path>] [--root=<
 
 ```bash
 dart run w_tools_figma:figma tokens <nodeId,nodeId,...> [--out=docs/design-tokens.md] [--map=figma_tokens.yaml]
+# --json 与 --out 互斥
 ```
 
 - 汇总所选节点的「纯色 / 字体组合 / 圆角 / 间距」；
@@ -214,7 +215,7 @@ dart run w_tools_figma:figma budget --set=20 # 设置月度预算（解决「只
 
 ```json
 { "schema": "w_tools_figma.usage/1", "month": "2026-11", "used": 1,
-  "limit": 20, "seat": "view", "last": [{"at": "...", "kind": "nodes", "cache": "..."}] }
+  "limit": 20, "last": [{"at": "...", "kind": "nodes", "cache": "..."}] }
 ```
 
 ---

@@ -35,32 +35,6 @@ String _validateToken(String token, String source) {
   return token;
 }
 
-/// 选择包含这些 nodeId 的缓存；优先内容匹配，再按 mtime / 大小。
-///
-/// 用 `.figma-cache/_nodes-index.json` 记录每个缓存的 nodeId，避免每次
-/// `spec` / `tokens` 都重新解析 19MB 的 JSON。索引按 mtime + size 失效。
-File resolveNodesCache(
-  CacheStore store,
-  List<String> nodeIds, {
-  String? explicitFile,
-}) {
-  if (explicitFile != null) return File(explicitFile);
-  final files = _nodesCacheFiles(store);
-  if (files.isEmpty) {
-    throw StateError('${store.dir.path} 里没有 nodes-*.json，先拉一次节点树缓存');
-  }
-  final index = _loadIndex(store, files);
-  final sorted = _sortCacheFiles(files);
-  for (final file in sorted) {
-    final ids = index[file.path]?.ids ?? const <String>{};
-    if (nodeIds.every(ids.contains)) return file;
-  }
-  throw StateError(
-    '节点 ${nodeIds.join(', ')} 不在默认缓存里；'
-    '加 --file=<缓存文件> 指定，或先运行 `figma frames --verbose` 查看',
-  );
-}
-
 /// 每个 nodeId 对应的缓存文件；用于 tokens / spec 跨缓存汇总。
 Map<String, File> resolveNodeCaches(
   CacheStore store,

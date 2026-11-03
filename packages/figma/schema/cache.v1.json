@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/stone0533/w_tools/main/packages/figma/schema/cache.v1.json",
+  "title": "w_tools_figma.cache/1",
+  "type": "object",
+  "required": ["schema"],
+  "properties": {
+    "schema": { "const": "w_tools_figma.cache/1" },
+    "dir": { "type": "string" },
+    "files": { "type": "integer", "minimum": 0 },
+    "bytes": { "type": "integer", "minimum": 0 },
+    "megabytes": { "type": "number", "minimum": 0 },
+    "removedDirs": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": true
+}

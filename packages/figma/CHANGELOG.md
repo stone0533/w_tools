@@ -25,6 +25,14 @@
 
 # Changelog
 
+## 0.7.1
+
+### Fixed
+- 新增 `cache.v1.json` schema。
+- `tokens --json` 与 `--out` 改为互斥。
+- `cache stats` 不再接受 `--all/--yes`；`cache clean --yes` 必须搭配 `--all`。
+- 文档移除过时的 usage `seat` 字段。
+
 ## 0.7.0
 
 ### Fixed

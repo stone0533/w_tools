@@ -9,10 +9,16 @@ import 'cli_io.dart';
 /// `figma cache stats|clean`。
 void runCache(List<String> args) {
   final options = parseOptions(args);
-  rejectUnsupported(options, {'root', 'json', 'all', 'yes'});
+  final sub = options.positional.isEmpty ? 'stats' : options.positional.first;
+  rejectUnsupported(
+    options,
+    sub == 'clean' ? {'root', 'json', 'all', 'yes'} : {'root', 'json'},
+  );
+  if (sub == 'clean' && options.yes && !options.allFrames) {
+    throw const FormatException('--yes 只与 --all 一起使用');
+  }
   final store = CacheStore(Directory(options.root));
   final command = CacheCommand(store);
-  final sub = options.positional.isEmpty ? 'stats' : options.positional.first;
 
   switch (sub) {
     case 'stats':

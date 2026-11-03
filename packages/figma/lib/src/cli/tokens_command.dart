@@ -21,6 +21,9 @@ Future<void> runTokens(List<String> args) async {
     return;
   }
   final nodeIds = rawIds.split(',').where((e) => e.isNotEmpty).toList();
+  if (options.json && options.out != null) {
+    throw const FormatException('--json 与 --out 不能同时使用');
+  }
 
   final sources = resolveNodeCaches(
     CacheStore(Directory(options.root)),

@@ -4,6 +4,7 @@
 
 | 文件 | schema |
 | --- | --- |
+| `cache.v1.json` | `w_tools_figma.cache/1` |
 | `fetch.v1.json` | `w_tools_figma.fetch/1` |
 | `specs.v1.json` | `w_tools_figma.specs/1` |
 | `spec.v1.json` | `w_tools_figma.spec/1` |

@@ -25,6 +25,13 @@ void main() {
         },
       ],
     },
+    'cache.v1.json': {
+      'schema': 'w_tools_figma.cache/1',
+      'dir': '/tmp/cache',
+      'files': 1,
+      'bytes': 10,
+      'megabytes': 0.0,
+    },
     'fetch.v1.json': {
       'schema': 'w_tools_figma.fetch/1',
       'cacheFile': 'nodes-K-1-2.json',
