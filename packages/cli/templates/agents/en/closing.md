@@ -14,4 +14,5 @@
 
 - `dart run w_tools_cli:doctor --json` → 0 error (warnings are contextual)
 - `flutter analyze`, `flutter test`
+- Used `w_tools_*` and hit a snag? → append one entry to `docs/agents/feedback.md` (see "Usage feedback")
 <!-- w_tools:end -->

@@ -181,6 +181,7 @@ const String agentsClosing = r'''
 
 - `dart run w_tools_cli:doctor --json` → 0 error（warning 看情况）
 - `flutter analyze`、`flutter test`
+- 本次用过 `w_tools_*` 且有卡点？→ 写一条到 `docs/agents/feedback.md`（见「使用反馈（给 AI）」）
 <!-- w_tools:end -->
 ''';
 
@@ -394,6 +395,7 @@ const String agentsClosingEn = r'''
 
 - `dart run w_tools_cli:doctor --json` → 0 error (warnings are contextual)
 - `flutter analyze`, `flutter test`
+- Used `w_tools_*` and hit a snag? → append one entry to `docs/agents/feedback.md` (see "Usage feedback")
 <!-- w_tools:end -->
 ''';
 
