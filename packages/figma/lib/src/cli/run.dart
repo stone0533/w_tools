@@ -5,6 +5,7 @@ import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
 import '../common/version.dart';
 import 'cli_io.dart';
+import 'cache_command.dart';
 import 'diff_command.dart';
 import 'fetch_command.dart';
 import 'frames_command.dart';
@@ -37,6 +38,7 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
   dart run w_tools_figma:figma spec   <nodeId> [选项]
   dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [选项]
   dart run w_tools_figma:figma usage  [--json]
+  dart run w_tools_figma:figma cache  stats|clean [--all] [--json]
   dart run w_tools_figma:figma diff   <fileKey> <nodeId> [--json]
   dart run w_tools_figma:figma budget [--set=<n>] [--json]
   dart run w_tools_figma:figma get    <url> <outfile>
@@ -128,6 +130,8 @@ Future<void> runFigmaCli(List<String> args) async {
         await runFetch(rest);
       case 'usage':
         runUsage(rest);
+      case 'cache':
+        runCache(rest);
       case 'diff':
         await runDiff(rest);
       case 'budget':

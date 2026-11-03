@@ -233,6 +233,8 @@ dart run w_tools_figma:figma diff <fileKey> 1862:9222
 # 额度
 dart run w_tools_figma:figma usage
 dart run w_tools_figma:figma budget --set=15
+dart run w_tools_figma:figma cache stats            # 缓存位置 / 文件数 / 大小
+dart run w_tools_figma:figma cache clean --all      # 清理所有项目缓存（保留用量）
 
 # 图片地址下载 / token 校验
 dart run w_tools_figma:figma get '<signed-url>' assets/demo.png

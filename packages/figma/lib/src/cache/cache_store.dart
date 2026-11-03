@@ -19,10 +19,19 @@ class UsageEntry {
 ///
 /// 旧路径由 [migrateLegacy] 一次性搬走。
 class CacheStore {
-  CacheStore(this.root, {String? home}) : _home = home ?? defaultHome();
+  CacheStore(
+    this.root, {
+    String? home,
+    bool? windows,
+    Map<String, String>? environment,
+  })  : _home = home ?? defaultHome(),
+        _windows = windows ?? Platform.isWindows,
+        _env = environment ?? Platform.environment;
 
   final Directory root;
   final String _home;
+  final bool _windows;
+  final Map<String, String> _env;
 
   /// 测试用：把 `~` 指到临时目录，避免读真实 `~/.cache/w_tools`。
   static String? homeOverride;
@@ -46,12 +55,31 @@ class CacheStore {
   }
 
   /// 账号级缓存根（用量 / 预算也在这里）。
-  Directory get cacheRoot => Directory('$_home/.cache/w_tools/figma');
+  ///
+  /// Windows 用 `%LOCALAPPDATA%\w_tools\figma`，其它平台 `~/.cache/w_tools/figma`。
+  Directory get cacheRoot {
+    if (_windows) {
+      final local = _env['LOCALAPPDATA'];
+      if (local != null && local.isNotEmpty) {
+        return Directory('$local\\w_tools\\figma');
+      }
+    }
+    return Directory('$_home/.cache/w_tools/figma');
+  }
 
   /// 项目缓存目录。
   Directory get dir => Directory('${cacheRoot.path}/$projectId');
 
-  File get tokenFile => File('$_home/.config/w_tools/figma-token');
+  /// 令牌文件：Windows 用 `%APPDATA%\w_tools\figma-token`，其它平台 `~/.config/w_tools/`。
+  File get tokenFile {
+    if (_windows) {
+      final appData = _env['APPDATA'];
+      if (appData != null && appData.isNotEmpty) {
+        return File('$appData\\w_tools\\figma-token');
+      }
+    }
+    return File('$_home/.config/w_tools/figma-token');
+  }
 
   File get usageFile => File('${cacheRoot.path}/_usage.log');
   File get budgetFile => File('${cacheRoot.path}/_budget.json');

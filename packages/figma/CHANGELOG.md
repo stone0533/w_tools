@@ -1,3 +1,11 @@
+## 0.9.0
+
+### 新增
+- `figma cache stats`：当前项目缓存目录 / 文件数 / 大小（`--json` 给脚本）。
+- `figma cache clean [--all]`：清理当前项目缓存；`--all` 清所有项目缓存（**保留**账号级用量/预算）。
+- Windows 路径：缓存用 `%LOCALAPPDATA%\w_tools\figma`、令牌用 `%APPDATA%\w_tools\figma-token`，
+  环境变量缺失时回落到 `~/.cache` / `~/.config`。
+
 ## 0.8.0
 
 ### Changed（破坏性：路径）
