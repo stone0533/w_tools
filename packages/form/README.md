@@ -24,6 +24,11 @@ dependencies:
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
+>
+> **公开依赖**：`WFormController.formKey` / `fields` 的类型来自 `flutter_form_builder`，
+> 自定义字段也要继承它的 `FormBuilderField` / `FormBuilderFieldState`。这些类型已由
+> `package:w_tools_form/w_tools_form.dart` 一并导出，消费方不需要再自己声明该依赖；
+> 如确需直接 import，请使用与 `w_tools_form` 相同的版本约束。
 
 ## 快速开始
 

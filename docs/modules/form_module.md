@@ -29,6 +29,10 @@ Form 模块（`w_tools_form` 子包）提供了一套基于 `flutter_form_builde
 
 ## 模块结构
 
+> `flutter_form_builder` 是**公开依赖**：`WFormController.formKey` / `fields` 的静态类型，
+> 以及自定义字段的基类都来自它；核心类型已由 `package:w_tools_form/w_tools_form.dart` 导出。
+
+
 ```
 form/
 ├── w_tools_form.dart

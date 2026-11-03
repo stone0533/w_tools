@@ -165,7 +165,7 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 | **4.3** | P1-12、P2-40/41 | toast：`WToast`（门面）+ `WToastStyle`（不可变）+ `WToastTheme`；success/error/warning 改 `showEnhancedWidget(allowClick:true, crossPage:true)`；`runWithLoading`；评估去 `bot_toast` | L |
 | **4.4** | P2-27、P2-29/37/38 | form：删 7 个 Config 的 `build()` 公开面与 `*Core`；7 份 bordered 分支随之消失；删 `WFormBorderConfigBuilder`/`withFormBorder`/`WFormBorderLayout`/`WFormFieldCleanup` | L |
 | **4.5** | P2-28/30/31/32/33 | form：图标三合一（`WFormIcons`）；`WFormBorderConfig` 加 `==` 并删 snapshot 缓存；嵌套 `borderConfig` 优先级修正；日期下划线；`lastDate` 计算时机 | L |
-| **4.6** | P1-7 | form：按 D3 落地——barrel 显式 `export … show FormBuilderState, FormBuilderFields, FormBuilderField`，README 声明；或自建 `WFormKey`/values | L |
+| **4.6** | P1-7 | ~~form：按 D3 落地~~ **完成**：barrel 显式 `export … show FormBuilderField, FormBuilderFieldState, FormBuilderFields, FormBuilderState`；README 声明公开依赖；`ffb_export_test.dart` 契约测试 | L |
 | **4.7** | P1-5、P2-34/35/36 | form：默认 `borderConfig` 换主题派生版本（替换阶段 1 的兜底方案）；`formEntered` 改 `ChangeNotifier`；`autovalidate` 单通道 | M |
 
 > 4.4 是 form 最大的单步，但它让 P2-27 那一整类"两层行为分歧"从根上消失。

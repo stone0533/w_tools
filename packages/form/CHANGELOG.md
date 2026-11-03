@@ -9,6 +9,11 @@
 - `WFormTheme` 的优先级改为「显式参数 > 祖先作用域」：嵌套时里层 `WFormTheme(borderConfig:)`
   或 `WForm(borderConfig:)` 说了算（此前祖先会覆盖显式参数）。
 
+### Changed
+- 显式 re-export `flutter_form_builder` 的核心类型（`FormBuilderField` / `FormBuilderFieldState` /
+  `FormBuilderFields` / `FormBuilderState`）：`WFormController.formKey` / `fields` 与自定义字段
+  的公开类型不再“隐式泄漏”，消费方无需自行声明同版本依赖。
+
 ### Deprecated
 - `WFormBorderConfig.builder()` / `WFormBorderConfigBuilder`：4.0 移除，改用 `WFormBorderConfig(...)` / `copyWith`。
 - `Row.withFormBorder(...)`：4.0 移除，改用 `WFormFieldShell(name: ..., child: Row(...))`。
