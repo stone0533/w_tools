@@ -35,8 +35,8 @@
 | 2.6 figma Windows 路径 | 完成 | `nodes-*.json` 识别改为归一化分隔符；补 POSIX / Windows 用例 |
 | 2.8 device 标定 freshness | 完成 | 先取截图尺寸再判缓存，尺寸 / 方向 / `--scale` 变化都会失效；补 4 个 store 用例 |
 | 2.9 device 进程超时 | 完成 | `ProcessShell(timeout: 120s)`，`run` / `runBytes` 超时抛 `ProcessException`；`Uint8List.fromList` 去掉不安全 cast |
-| 2.1 init/doctor 路径单一来源 + `--check` 契约 | 待做 | 阶段 2 剩余最大件 |
-| 2.5 catalog 单一真相 | 待做 | 生成 docs 表格 + 全别名校验 |
+| 2.1 init/doctor 路径单一来源 + `--check` 契约 | 完成 | 新增 `ProjectLayout`；init 读 `toolkit_entry`；`--check` 不再把内部 manifest / 可选配置当缺失，也不因 CLI 升级假红 |
+| 2.5 catalog 单一真相 | 完成 | `gen_catalog` 同时生成 docs §1~§9 表格；YAML 吸收文档文案；`catalog_test` 校验表格新鲜度 + **每个别名**都能 explain（补上 WStepFlow） |
 | 2.7 figma BudgetGuard | 待做 | fetch / diff 前置额度检查 |
 | 工具包版本 / CHANGELOG | 待收尾 | cli / figma / device 统一 bump；cli 的子包约束表已同步（`init_project.dart`，`init_test` 会校验） |
 
