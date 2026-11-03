@@ -1,3 +1,10 @@
+## 1.9.4
+
+### 新增
+- `context --format=json` 新增 `install` 段：`packageRoot` / `repoRoot` / `isRepoCheckout` /
+  `feedbackDir`。AI 据此判断「库侧 docs/feedback/ 在不在本机」，不用猜路径。
+- AGENTS 的「使用反馈」一节改为先跑上面这条命令取 `feedbackDir`；为空就只写本地收件箱。
+
 ## 1.9.3
 
 ### 改进

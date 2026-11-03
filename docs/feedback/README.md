@@ -32,6 +32,9 @@
 
 > 装了 `w_tools_cli` 的项目，`init` 会把这段流程写进 AGENTS（「使用反馈（给 AI）」一节），
 > 新项目不用手抄；本地收件箱固定为 `docs/agents/feedback.md`。
+>
+> **库侧路径怎么拿**：`dart run w_tools_cli:context --format=json` → `install.feedbackDir`。
+> 为空表示当前不是仓库检出（pub cache 里的副本），只写本地收件箱。
 
 ```bash
 # 1. 查重

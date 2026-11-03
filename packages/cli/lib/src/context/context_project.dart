@@ -6,6 +6,7 @@ import '../doctor/config.dart';
 import '../doctor/context.dart';
 import '../doctor/rule.dart';
 import '../doctor/run.dart';
+import 'install_info.dart';
 
 /// context JSON 的契约标识 / 版本。
 const String contextSchema = 'w_tools.context';
@@ -20,6 +21,9 @@ class ProjectSnapshot {
 
   final ProjectFacts facts;
   final List<DoctorRuleResult> results;
+
+  /// `w_tools_cli` 自身的安装位置（供 AI 判断能否直接写库侧反馈）。
+  InstallInfo get install => InstallInfo.detect(projectRoot: root);
 
   Directory get root => facts.ctx.root;
   String get projectName => facts.ctx.name;
@@ -74,6 +78,7 @@ class ProjectSnapshot {
     'rules': <Map<String, Object?>>[
       for (final id in doctorRuleIds) <String, Object?>{'id': id, 'level': doctorRuleLevels[id]},
     ],
+    'install': install.toJson(),
     'doctor': <String, Object?>{
       'error': errorCount,
       'warn': warnCount,

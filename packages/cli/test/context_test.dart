@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
+import 'package:w_tools_cli/src/context/install_info.dart';
 import 'package:w_tools_cli/src/doctor/context.dart';
 
 Directory _project(Map<String, String> files) {
@@ -81,5 +82,51 @@ void main() {
     });
     final ctx = ProjectContext.load(root, DoctorConfig());
     expect(ctx.filesUnder('lib/app/design_system'), ['lib/app/design_system/x.dart']);
+  });
+  _installTests();
+}
+
+void _installTests() {
+  test('install：从 package_config 解析 w_tools_cli 位置，并识别仓库检出', () {
+    final root = Directory.systemTemp.createTempSync('wt_install_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final pkg = Directory(p.join(root.path, 'repo', 'packages', 'cli'))
+      ..createSync(recursive: true);
+    File(p.join(root.path, 'repo', 'docs', 'feedback', 'README.md')).createSync(recursive: true);
+    File(p.join(pkg.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools_cli\n');
+
+    final project = Directory(p.join(root.path, 'app'))..createSync();
+    File(p.join(project.path, '.dart_tool', 'package_config.json')).createSync(recursive: true);
+    File(p.join(project.path, '.dart_tool', 'package_config.json')).writeAsStringSync(
+      '{"configVersion":2,"packages":[{"name":"w_tools_cli",'
+      '"rootUri":"${pkg.uri}"}]}',
+    );
+
+    final info = InstallInfo.detect(projectRoot: project);
+    expect(info.packageRoot, pkg.path);
+    expect(info.repoRoot, p.join(root.path, 'repo'));
+    expect(info.isRepoCheckout, isTrue);
+    expect(info.feedbackDir, p.join(root.path, 'repo', 'docs', 'feedback'));
+  });
+
+  test('install：不从仓库检出时（如 pub cache）feedbackDir 为 null', () {
+    final root = Directory.systemTemp.createTempSync('wt_install2_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    // 模拟 pub cache：<cache>/w_tools-abc/packages/cli，没有 docs/feedback
+    final pkg = Directory(p.join(root.path, 'cache', 'w_tools-abc', 'packages', 'cli'))
+      ..createSync(recursive: true);
+    File(p.join(pkg.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools_cli\n');
+    final project = Directory(p.join(root.path, 'app'))..createSync();
+    final config = File(p.join(project.path, '.dart_tool', 'package_config.json'))
+      ..createSync(recursive: true);
+    config.writeAsStringSync(
+      '{"configVersion":2,"packages":[{"name":"w_tools_cli",'
+      '"rootUri":"${pkg.uri}"}]}',
+    );
+
+    final info = InstallInfo.detect(projectRoot: project);
+    expect(info.packageRoot, pkg.path);
+    expect(info.isRepoCheckout, isFalse);
+    expect(info.feedbackDir, isNull, reason: '不是仓库检出就不该写库侧');
   });
 }

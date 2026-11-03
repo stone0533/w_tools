@@ -141,8 +141,15 @@ const String agentsFeedback = r'''
 
 用 `w_tools_*` 撞到问题、或某条规则不合用时：**记下来，不要改库**。
 
-1. **先查重**：本项目 `docs/agents/feedback.md`（没有就跳过）；有 w_tools 仓库时
-   再查 `<repo>/docs/feedback/<包>.md`。
+1. **先查重**：本项目 `docs/agents/feedback.md`（没有就跳过）。
+   有 w_tools 仓库时再查库侧，先拿路径：
+
+   ```bash
+   dart run w_tools_cli:context --format=json | python3 -c \
+     "import json,sys; print(json.load(sys.stdin)['install']['feedbackDir'] or '')"
+   ```
+
+   输出为空 = 当前不是仓库检出（如 pub cache），**只写本地收件箱**。
 2. **追加一条**到 `docs/agents/feedback.md`（文件不存在就新建，第一行写
    `# w_tools 使用反馈（本地收件箱）`）：
 
@@ -355,8 +362,15 @@ const String agentsFeedbackEn = r'''
 
 When you hit a problem with `w_tools_*`, or a rule does not fit: **record it, do not patch the library**.
 
-1. **Check for duplicates** first: `docs/agents/feedback.md` in this project (skip if absent);
-   if the w_tools repo is available, also check `<repo>/docs/feedback/<package>.md`.
+1. **Check for duplicates** first: `docs/agents/feedback.md` in this project (skip if absent).
+   To check the library side, resolve its path first:
+
+   ```bash
+   dart run w_tools_cli:context --format=json | python3 -c \
+     "import json,sys; print(json.load(sys.stdin)['install']['feedbackDir'] or '')"
+   ```
+
+   Empty output means this is not a repo checkout (e.g. pub cache): **local inbox only**.
 2. **Append an entry** to `docs/agents/feedback.md` (create it if missing, first line
    `# w_tools usage feedback (local inbox)`):
 

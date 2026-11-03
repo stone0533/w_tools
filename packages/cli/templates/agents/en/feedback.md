@@ -2,8 +2,15 @@
 
 When you hit a problem with `w_tools_*`, or a rule does not fit: **record it, do not patch the library**.
 
-1. **Check for duplicates** first: `docs/agents/feedback.md` in this project (skip if absent);
-   if the w_tools repo is available, also check `<repo>/docs/feedback/<package>.md`.
+1. **Check for duplicates** first: `docs/agents/feedback.md` in this project (skip if absent).
+   To check the library side, resolve its path first:
+
+   ```bash
+   dart run w_tools_cli:context --format=json | python3 -c \
+     "import json,sys; print(json.load(sys.stdin)['install']['feedbackDir'] or '')"
+   ```
+
+   Empty output means this is not a repo checkout (e.g. pub cache): **local inbox only**.
 2. **Append an entry** to `docs/agents/feedback.md` (create it if missing, first line
    `# w_tools usage feedback (local inbox)`):
 
