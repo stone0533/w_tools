@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
+import 'package:w_tools_cli/src/init/manifest.dart';
 import 'package:yaml/yaml.dart';
 
 /// 从当前目录向上找仓库根（含 workspace: 的 pubspec.yaml）。
@@ -116,6 +117,28 @@ void main() {
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains('w_tools_figma')));
       expect(report.pubspecSnippet, isNot(contains('w_tools_figma')));
+    });
+
+    test('--check 不迁移 manifest（只读）', () async {
+      final root = makeProject();
+      final legacy = File(p.join(root.path, '.w_tools_init.json'));
+      legacy.writeAsStringSync('{"schema":"w_tools_cli.init/1"}');
+      final report = runInit(
+        root,
+        check: true,
+        device: true,
+        manifest: const InitManifest(
+          profile: 'full',
+          features: <String, bool>{},
+          targets: <String>['agents'],
+          lang: 'zh',
+          figma: true,
+          device: true,
+        ),
+      );
+      expect(legacy.existsSync(), isTrue, reason: 'check 模式不应移动文件');
+      expect(File(p.join(root.path, '.w_tools', 'init.json')).existsSync(), isFalse);
+      expect(report.missing.any((e) => e.contains('init.json')), isTrue);
     });
 
     test('旧 .w_tools_init.json 自动迁到 .w_tools/init.json', () async {

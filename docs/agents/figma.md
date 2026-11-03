@@ -120,7 +120,7 @@ figma spec 1862:9222 --json --no-markdown
 - **`--check-stale` 只提示，不重拉**；需要更新时再 `--refresh`。
 - **`fetch images` 只返回下载地址**；需要文件时用 `get <url> <outfile>`。
 - **`spec --json` 同时包含 `node` 和 `markdown`**；优先读 `node`。
-- token 用 `FIGMA_TOKEN` 环境变量或 `.figma-token`；不要打印、不要提交。
+- token 用 `FIGMA_TOKEN` 环境变量或 `~/.config/w_tools/figma-token`；不要打印、不要提交。
 - 输出 JSON 时用 `--json`，不要解析人读文本。
 - JSON schema 在 `packages/figma/schema/`；schema 名称与 `--json` 输出的 `schema` 字段一致。
 
@@ -161,8 +161,8 @@ dart run w_tools_figma:figma help spec
 export FIGMA_TOKEN=figd_xxx
 ```
 
-没有环境变量时才读：
+没有环境变量时才读（在用户配置目录，不在项目里）：
 
 ```text
-.figma-token
+~/.config/w_tools/figma-token
 ```

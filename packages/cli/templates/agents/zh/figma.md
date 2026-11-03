@@ -6,7 +6,7 @@
 {{figmaInstall}}
 dart run w_tools_figma:figma init
 export FIGMA_TOKEN=figd_xxx
-# 或把 token 写入 .figma-token
+# 或把 token 写入 ~/.config/w_tools/figma-token（0.8.0 起不在项目里）
 
 dart run w_tools_figma:figma url '<figma-url>' --json
 dart run w_tools_figma:figma frames

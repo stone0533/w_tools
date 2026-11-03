@@ -61,26 +61,68 @@ class CacheStore {
   File get legacyTokenFile => File('${root.path}/.figma-token');
 
   /// 把旧路径搬到新位置；返回人读的迁移说明（空列表 = 无需迁移）。
+  ///
+  /// - 缓存文件 → 项目缓存目录（同名已存在则跳过）
+  /// - `_usage.log` → **并入账号级**（否则额度历史会丢）
+  /// - `_budget.json` → 账号级缺失时复制
+  /// - token → 用户配置目录；新位置是模板而旧位置是真 token 时**覆盖**
   List<String> migrateLegacy() {
     final notes = <String>[];
     if (legacyDir.existsSync()) {
       dir.createSync(recursive: true);
+      cacheRoot.createSync(recursive: true);
       var moved = 0;
+      var mergedUsage = 0;
       for (final entity in legacyDir.listSync()) {
         if (entity is! File) continue;
-        final target = File('${dir.path}/${entity.uri.pathSegments.last}');
+        final name = entity.uri.pathSegments.last;
+        if (name == '_usage.log') {
+          final lines = entity.readAsLinesSync().where((l) => l.trim().isNotEmpty).toList();
+          if (lines.isNotEmpty) {
+            final existing = usageFile.existsSync() ? usageFile.readAsStringSync() : '';
+            final buffer = StringBuffer(existing);
+            if (existing.isNotEmpty && !existing.endsWith('\n')) buffer.writeln();
+            buffer.writeln(lines.join('\n'));
+            usageFile.writeAsStringSync(buffer.toString());
+            mergedUsage = lines.length;
+          }
+          continue; // 不搬进项目目录
+        }
+        if (name == '_budget.json') {
+          if (!budgetFile.existsSync()) {
+            budgetFile.writeAsStringSync(entity.readAsStringSync());
+          }
+          continue;
+        }
+        final target = File('${dir.path}/$name');
         if (target.existsSync()) continue;
         entity.renameSync(target.path);
         moved++;
       }
       legacyDir.deleteSync(recursive: true);
       if (moved > 0) notes.add('已把 $moved 个缓存文件迁到 ${dir.path}');
+      if (mergedUsage > 0) notes.add('已把 $mergedUsage 条用量记录并入 ${usageFile.path}');
     }
-    if (legacyTokenFile.existsSync() && !tokenFile.existsSync()) {
-      tokenFile.parent.createSync(recursive: true);
-      legacyTokenFile.renameSync(tokenFile.path);
-      _restrict(tokenFile);
-      notes.add('已把 .figma-token 迁到 ${tokenFile.path}');
+
+    if (legacyTokenFile.existsSync()) {
+      final legacyContent = legacyTokenFile.readAsStringSync();
+      final legacyIsReal = legacyContent.contains('figd_') && !legacyContent.contains('REPLACE_ME');
+      final newExists = tokenFile.existsSync();
+      final newIsTemplate = newExists && tokenFile.readAsStringSync().contains('REPLACE_ME');
+      if (!newExists || (newIsTemplate && legacyIsReal)) {
+        tokenFile.parent.createSync(recursive: true);
+        tokenFile.writeAsStringSync(legacyContent);
+        _restrict(tokenFile);
+        legacyTokenFile.deleteSync();
+        notes.add('已把 .figma-token 迁到 ${tokenFile.path}');
+      } else if (!legacyIsReal) {
+        legacyTokenFile.deleteSync();
+        notes.add('已删除项目里的模板 .figma-token（真实令牌在 ${tokenFile.path}）');
+      } else {
+        notes.add(
+          '项目里的 .figma-token 保留未动（新位置已有令牌：${tokenFile.path}），确认后可手工删除',
+        );
+      }
     }
     return notes;
   }

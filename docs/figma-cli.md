@@ -16,7 +16,7 @@
 
 | 命令 | 作用 | Figma Tier | 额度消耗 |
 | --- | --- | --- | --- |
-| `init` | 创建 `.figma-token` 模板、写 `.gitignore` 条目、建缓存目录——**v0.1 已实现** | — | 0 |
+| `init` | 建令牌模板（用户配置目录）、建项目缓存目录与账号级额度文件——**已实现**（0.8.0 起不在项目里建文件） | — | 0 |
 | `fetch file` | 拉文件结构（`depth` 可控）——**v0.1 已实现** | 1 | 1 次（缓存命中 0） |
 | `fetch nodes` | 拉节点树（**批量 ids 只算 1 次**）——**v0.1 已实现** | 1 | 1 次 |
 | `fetch images` | 拿渲图下载地址（批量）——**v0.1 已实现** | 1 | 1 次 |
@@ -50,8 +50,9 @@
 
 ```
 <root>/
-  .figma-token                 # figd_ 个人令牌，600，gitignore
-  .figma-cache/                # gitignore
+  ~/.config/w_tools/figma-token          # figd_ 个人令牌，600（不在仓库里）
+  ~/.cache/w_tools/figma/<项目标识>/      # 节点 / 图片缓存
+  ~/.cache/w_tools/figma/_usage.log      # 额度（账号级，跨项目共用）
     file-<fileKey>-d<depth>.json
     nodes-<fileKey>-<idslug>.json
     images-<fileKey>-<idslug>-s<scale>.json
@@ -91,9 +92,11 @@
 dart run w_tools_figma:figma init [--force]
 ```
 
-- 无 `.figma-token` 时创建模板（注释说明 `figd_` 必须走 `X-Figma-Token`）；
-- 向 `.gitignore` 追加 `.figma-token` 与 `.figma-cache/`（已存在则跳过）；
-- 建 `.figma-cache/` 与 `_budget.json`；
+- 无 `~/.config/w_tools/figma-token` 时创建模板（注释说明 `figd_` 必须走 `X-Figma-Token`）；
+- 建 `~/.cache/w_tools/figma/<项目标识>/` 与账号级 `_budget.json`；
+- 老项目的 `.figma-cache/`、`.figma-token` 首次运行时自动迁移：
+  缓存搬进项目缓存目录、`_usage.log` 并入账号级、真 token 覆盖新位置的模板；
+- 新项目**不再**往 `.gitignore` 写条目（新路径都在仓库外）；老项目仍有旧文件时才补；
 - 已存在且未传 `--force` → 不动文件，只报告状态。
 
 ### 3.2 `frames`
@@ -217,8 +220,8 @@ dart run w_tools_figma:figma budget --set=20 # 设置月度预算（解决「只
 
 ## 4. 安全
 
-- token 优先读 `FIGMA_TOKEN` 环境变量，其次读 `.figma-token`；只接受 `figd_` 开头的个人令牌；**任何输出（日志 / 报错）都不打印**；
-- `init` 自动把 `.figma-token`、`.figma-cache/` 写进 `.gitignore`；
+- token 优先读 `FIGMA_TOKEN` 环境变量，其次读 `~/.config/w_tools/figma-token`；只接受 `figd_` 开头的个人令牌；**任何输出（日志 / 报错）都不打印**；
+- 0.8.0 起令牌 / 缓存都在用户目录，不再写 `.gitignore`；
 - 只调用 `GET` 接口（不写 Figma）。
 
 ---

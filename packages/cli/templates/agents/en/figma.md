@@ -6,7 +6,7 @@ Use `w_tools_figma` when you need specs or design tokens from Figma:
 {{figmaInstall}}
 dart run w_tools_figma:figma init
 export FIGMA_TOKEN=figd_xxx
-# or put the token in .figma-token
+# or put the token in ~/.config/w_tools/figma-token (outside the project since 0.8.0)
 
 dart run w_tools_figma:figma url '<figma-url>' --json
 dart run w_tools_figma:figma frames

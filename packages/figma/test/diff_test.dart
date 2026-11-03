@@ -80,12 +80,20 @@ void main() {
   late Directory root;
   late CacheStore store;
 
+  late Directory home;
+
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_diff_');
+    home = Directory.systemTemp.createTempSync('figma_diff_home_');
+    CacheStore.homeOverride = home.path;
     store = CacheStore(root);
   });
 
-  tearDown(() => root.deleteSync(recursive: true));
+  tearDown(() {
+    CacheStore.homeOverride = null;
+    root.deleteSync(recursive: true);
+    home.deleteSync(recursive: true);
+  });
 
   test('无变化时返回空结果', () async {
     final payload = _tree(label: 'Hello', size: 16);

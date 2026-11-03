@@ -46,7 +46,7 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
 
 选项（spec / tokens 通用）：
   --file=<path>   指定缓存节点树 JSON（默认扫描 nodes-*.json 并选含目标节点的文件）
-  --root=<dir>    项目根（默认当前目录），用于定位 .figma-cache/
+  --root=<dir>    项目根（默认当前目录），用于定位项目缓存（~/.cache/w_tools/figma/）
   --json          输出 JSON（默认输出 Markdown）
   --node-depth=<n>  spec --json 限制原始 node 的子节点深度（0 = 不带 children）
   --node-only       spec --json 只输出 node，不带 markdown

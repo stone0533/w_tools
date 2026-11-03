@@ -94,7 +94,8 @@ InitReport runInit(
 }) {
   final report = InitReport();
   final app = _projectName(root);
-  if (InitManifest.migrateLegacy(root)) {
+  // --check 只读：迁移会移动文件，必须跳过（旧文件由 InitManifest.load 回退读取）
+  if (!check && InitManifest.migrateLegacy(root)) {
     report.warnings.add('已把 .w_tools_init.json 迁到 ${InitManifest.fileName}');
   }
 
