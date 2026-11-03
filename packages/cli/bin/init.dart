@@ -41,6 +41,8 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
 {{features}}
   --with-map     兼容别名，等同 --map
   --figma / --no-figma  生成 Figma 取数与页面开发说明（默认关，不影响 toolkit）
+  --device / --no-device  生成设备验证脚手架（integration_test 冒烟 / tool/device_smoke.dart /
+                        docs/agents/device-testing.md / tool/gradle-mirror.init.gradle；默认关）
   --no-instructions  不生成/不检查 AGENTS 等 AI 指令文件（优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
@@ -121,6 +123,7 @@ void main(List<String> argv) {
     )
     ..addFlag('with-map', negatable: false)
     ..addFlag('figma', negatable: true, defaultsTo: false)
+    ..addFlag('device', negatable: true, defaultsTo: false)
     ..addFlag('instructions', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
@@ -183,6 +186,10 @@ void main(List<String> argv) {
         stderr.writeln('--figma 与 --no-figma 不能同时使用');
         exit(2);
       }
+      if (argv.contains('--device') && argv.contains('--no-device')) {
+        stderr.writeln('--device 与 --no-device 不能同时使用');
+        exit(2);
+      }
       var features = InitFeatures.forProfile(profile);
       for (final spec in initFeatureSpecs) {
         if (args.wasParsed(spec.flag)) {
@@ -211,6 +218,7 @@ void main(List<String> argv) {
         lang: lang,
         figma: figmaEnabled,
         figmaInstall: _figmaInstallLine(root),
+        device: args['device'] as bool,
       );
 
       if (args['json'] as bool) {
@@ -223,6 +231,7 @@ void main(List<String> argv) {
             'targets': sortedTargets,
             'features': features.toJson(),
             'figma': figmaEnabled,
+            'device': args['device'] as bool,
             'created': report.created,
             'upToDate': report.upToDate,
             'drift': report.drift,
@@ -237,6 +246,7 @@ void main(List<String> argv) {
         print('profile: ${profile.name}');
         print('features: ${features.summary}');
         print('figma: ${figmaEnabled ? 'yes' : 'no'}');
+        print('device: ${args['device'] as bool ? 'yes' : 'no'}');
         print('targets: ${sortedTargets.isEmpty ? '（无）' : sortedTargets.join(', ')}');
         print('━' * 56);
         for (final f in report.created) {

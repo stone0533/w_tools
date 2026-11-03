@@ -23,7 +23,7 @@ const _subpackageConstraints = <String, String>{
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const _cliConstraint = '^1.7.5';
+const _cliConstraint = '^1.8.0';
 
 /// `init` 的执行结果（供 CLI 打印）。
 class InitReport {
@@ -66,6 +66,7 @@ InitReport runInit(
   String lang = 'zh',
   bool figma = false,
   String? figmaInstall,
+  bool device = false,
 }) {
   final report = InitReport();
   final app = _projectName(root);
@@ -78,8 +79,26 @@ InitReport runInit(
   }) {
     final file = File(p.join(root.path, rel));
     if (file.existsSync()) {
-      // 项目自己的配置 / 可自定义的起始文件：存在即视为完成，内容不做比对
-      if ((projectConfig || starter) && !force) {
+      // 项目配置（.w_tools_doctor.yaml）：内容由项目手工维护（palette / banned / ignore），
+      // --force 覆盖前先备份，避免把项目配置直接抹掉。
+      if (projectConfig) {
+        if (!force) {
+          report.upToDate.add(rel);
+          return;
+        }
+        if (file.readAsStringSync() == content) {
+          report.upToDate.add(rel);
+          return;
+        }
+        final backup = File('${file.path}.bak');
+        backup.writeAsStringSync(file.readAsStringSync());
+        file.writeAsStringSync(content);
+        report.warnings.add('覆盖了 $rel：原内容已备份到 ${p.basename(backup.path)}');
+        report.created.add('$rel（已覆盖）');
+        return;
+      }
+      // 可自定义的起始文件：存在即视为完成；--force 才覆盖
+      if (starter && !force) {
         report.upToDate.add(rel);
         return;
       }
@@ -111,6 +130,28 @@ InitReport runInit(
     file.parent.createSync(recursive: true);
     file.writeAsStringSync(content);
     report.created.add(rel);
+  }
+
+  if (device) {
+    write(
+      'integration_test/app_smoke_test.dart',
+      InitTemplates.deviceAppSmokeTest(),
+      starter: true,
+    );
+    write('tool/device_smoke.dart', InitTemplates.deviceSmokeScript(), starter: true);
+    write(
+      'docs/agents/device-testing.md',
+      InitTemplates.deviceTestingDoc(
+        projectName: app,
+        androidAppId: _androidApplicationId(root),
+      ),
+      starter: true,
+    );
+    write(
+      'tool/gradle-mirror.init.gradle',
+      InitTemplates.deviceGradleMirror(),
+      starter: true,
+    );
   }
 
   write(
@@ -353,4 +394,17 @@ String _snippet(
   addSection('dependencies', depLines, hasDeps);
   addSection('dev_dependencies', devLines, hasDev);
   return buf.toString();
+}
+
+/// 从 `android/app/build.gradle(.kts)` 里读 applicationId（读不到返回 null）。
+String? _androidApplicationId(Directory root) {
+  for (final name in const ['build.gradle', 'build.gradle.kts']) {
+    final file = File(p.join(root.path, 'android', 'app', name));
+    if (!file.existsSync()) continue;
+    final m = RegExp(
+      r'''applicationId\s*=?\s*["']([^"']+)["']''',
+    ).firstMatch(file.readAsStringSync());
+    if (m != null) return m.group(1);
+  }
+  return null;
 }

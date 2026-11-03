@@ -118,6 +118,56 @@ void main() {
       expect(report.pubspecSnippet, isNot(contains('w_tools_figma')));
     });
 
+    test('--device 生成四份脚手架，且不碰 toolkit / 依赖片段', () async {
+      final root = makeProject();
+      final report = runInit(root, device: true);
+      for (final rel in const [
+        'integration_test/app_smoke_test.dart',
+        'tool/device_smoke.dart',
+        'docs/agents/device-testing.md',
+        'tool/gradle-mirror.init.gradle',
+      ]) {
+        expect(File(p.join(root.path, rel)).existsSync(), isTrue, reason: rel);
+        expect(report.created.any((e) => e.startsWith(rel)), isTrue, reason: rel);
+      }
+      final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+      expect(toolkit, isNot(contains('w_tools_device')));
+      expect(report.pubspecSnippet, isNot(contains('w_tools_device')));
+    });
+
+    test('--device 已存在时保留用户改动（starter 语义）', () async {
+      final root = makeProject();
+      runInit(root, device: true);
+      final file = File(p.join(root.path, 'tool/device_smoke.dart'));
+      file.writeAsStringSync('// 用户改过\n');
+      final report = runInit(root, device: true);
+      expect(file.readAsStringSync(), '// 用户改过\n');
+      expect(report.upToDate.any((e) => e.startsWith('tool/device_smoke.dart')), isTrue);
+    });
+
+    test('--device --force 会覆盖', () async {
+      final root = makeProject();
+      runInit(root, device: true);
+      final file = File(p.join(root.path, 'tool/device_smoke.dart'));
+      file.writeAsStringSync('// 用户改过\n');
+      final report = runInit(root, device: true, force: true);
+      expect(file.readAsStringSync(), isNot('// 用户改过\n'));
+      expect(report.created.any((e) => e.contains('已覆盖')), isTrue);
+    });
+
+    test('--device 文档替换项目名与 Android applicationId', () async {
+      final root = makeProject();
+      Directory(p.join(root.path, 'android', 'app')).createSync(recursive: true);
+      File(p.join(root.path, 'android', 'app', 'build.gradle')).writeAsStringSync(
+        'android { defaultConfig { applicationId = "hk.demo.app" } }\n',
+      );
+      runInit(root, device: true);
+      final doc = File(p.join(root.path, 'docs/agents/device-testing.md')).readAsStringSync();
+      expect(doc, contains('hk.demo.app'));
+      expect(doc, isNot(contains('{{androidAppId}}')));
+      expect(doc, isNot(contains('{{projectName}}')));
+    });
+
     test('--figma 不重复 UI / form 组件规则', () async {
       final noUiRoot = makeProject();
       runInit(noUiRoot, features: InitFeatures.full.copyWith(ui: false), figma: true);
@@ -498,7 +548,7 @@ void main() {
           reason: 'packages/$pkg 已到 $version，更新 init_project.dart 里的约束',
         );
       }
-      expect(snippet, contains('w_tools_cli: ^1.7.5'));
+      expect(snippet, contains('w_tools_cli: ^1.8.0'));
     }, skip: repo == null ? '不在 w_tools 仓库内' : false);
   });
 }

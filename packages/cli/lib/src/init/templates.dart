@@ -34,6 +34,22 @@ class InitTemplates {
         cliVersion,
       );
 
+  /// 设备验证相关模板（`init --device`）。
+  ///
+  /// 这些文件生成到消费方后会被用户改，所以写入策略是 **starter**（存在即保留，
+  /// `--force` 才覆盖）。
+  static String deviceAppSmokeTest() => generated.deviceAppSmokeTest;
+
+  static String deviceSmokeScript() => generated.deviceSmokeScript;
+
+  static String deviceGradleMirror() => generated.deviceGradleMirror;
+
+  /// 设备验证文档骨架：替换项目名与 Android applicationId。
+  static String deviceTestingDoc({required String projectName, String? androidAppId}) => generated
+      .deviceTestingDoc
+      .replaceAll('{{projectName}}', projectName)
+      .replaceAll('{{androidAppId}}', androidAppId ?? '<applicationId>');
+
   static String appBars() => generated.appBarsTemplate.replaceAll('{{version}}', cliVersion);
 
   static String appBoxes() => generated.appBoxesTemplate.replaceAll('{{version}}', cliVersion);

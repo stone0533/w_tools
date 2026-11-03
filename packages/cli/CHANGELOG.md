@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.0
+
+### 新增
+
+- `init --device`：生成设备验证脚手架（`integration_test/app_smoke_test.dart`、`tool/device_smoke.dart`、`docs/agents/device-testing.md`、`tool/gradle-mirror.init.gradle`），starter 语义（存在即保留，`--force` 覆盖）；文档里的项目名与 Android `applicationId` 自动替换。
+- `init --force` 覆盖 `.w_tools_doctor.yaml` 前会先备份成 `.w_tools_doctor.yaml.bak`，并在警告里提示（此前会直接抹掉项目的 palette / banned）。
+
 ## 1.7.5
 
 ### Changed
