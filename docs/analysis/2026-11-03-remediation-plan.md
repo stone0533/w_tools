@@ -201,14 +201,16 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 
 **已完成**：阶段 0/1/2 全部；阶段 3 全部（core 2.1–2.4、ui 4.0–4.7）；阶段 4 全部
 （async 2.0/2.1、toast 1.2/1.3、form 3.0–3.2）；阶段 5 的 api 2.0.0、qr 1.1.0、map 1.3.1、
-app 1.1.0（部分）。
+app 1.2.0（`WAppOptions` / `WLocaleConfig` / `WRouteStack`）；map 641 行拆分为 3 个 part 文件；
+阶段 6 的 migrations 总索引、README 版本、catalog/模板、cheat-sheet、recipes、dartdoc 示例。
 
-**显式遗留**（未伪装完成）：
+**显式遗留**（按 ADR-0002 两段式，需下一个大版本）：
 
-- app：`WAppOptions` 单配置面、`WLocaleConfig`、`WRoute` 去全局静态、4 个一等公民插件；
-- map：552 行拆分、`maps` 私有 + `update()` 唯一入口、`config` 可空；
-- 阶段 6：golden 补齐、migrations 总索引、feedback 3–5 条复盘；
-- form 4.0 / ui 5.0 / core 3.0 的「物理删除弃用项」（本仓已按两段式全部弃用）。
+- 54 个弃用符号的物理删除（form 4.0 / ui 5.0 / core 3.0 / async 3.0 / toast 2.0 / api 5.0 / app 2.0）；
+- map：`maps` 私有 + `update()` 唯一入口、`config` 可空；
+- app 字段与静态 `WRoute` 的删除（2.0）；
+- 阶段 6：golden（需固定 CI 渲染环境，暂用结构断言替代）；feedback 3–5 条复盘（未写）；
+- ADR-0005 已撤回“4 个一等公民插件”，改为 `WApp.appWrapper` 组合。
 
 **复审补充（同日）**：
 
@@ -219,8 +221,12 @@ app 1.1.0（部分）。
 - `docs/releasing.md` 增加发布前真机 / 消费方检查；
 - 13 个子包 dry-run 仍全通过。
 
-**发布**：13 个子包 `publish_package.sh --dry-run` 全通过；根包需等子包上线后再发。
-本机无 pub 凭证，正式发布需在有凭证的环境按 releasing.md 执行。
+**发布（A 方案：两段式）**：13 个子包 `publish_package.sh --dry-run` 全通过；根包按预期失败
+（子包未上线）。本次发布 = **弃用版**；下一个大版本再删除弃用符号。
+
+待发版本：core 2.4.0、async 2.1.0、ui 4.7.0、form 3.2.0、api 2.0.0、app 1.2.0、
+toast 1.3.0、map 1.3.1、qr 1.1.0、cli 1.9.10、figma 0.11.0、device 0.1.2，最后根包 3.0.24。
+本机无 pub 凭证，正式发布需在有凭证的环境按 `docs/releasing.md` 执行。
 
 ## 9. 依赖顺序与并行
 
