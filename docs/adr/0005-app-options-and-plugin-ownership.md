@@ -34,7 +34,7 @@ ui / toast / async / form —— 会把 `cached_network_image`（50 个传递包
    - `w_tools_app` 的依赖保持只有 `get`；
    - 插件分两类：
      - **生命周期插件**（初始化顺序 / 原生能力）：由业务方或能力包提供，只要能力包已经依赖 app；
-     - **主题 / 默认视图组合**：用 `WApp.appWrapper` 组合，不需要插件：
+     - **主题 / 默认视图组合**：用 `WAppOptions.appWrapper` 组合，不需要插件：
        ```dart
        WApp.options(
          WAppOptions(

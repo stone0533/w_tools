@@ -177,7 +177,7 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 | --- | --- | --- | --- |
 | **5.1** | P2-9/10/11 | api：删 5 个装饰性类型；`WLogInterceptor` 7 bool → level/parts 且默认走 `WLogger`；`DioRegistry` 命中但配置不同要报错；401 重试复用发起请求的 Dio | L |
 | **5.2** | P1-11、P2-12/13/14 | 完成（app 1.2.0，两段式）：`WAppOptions` / `WLocaleConfig` / `WRouteStack` + `WApp.routeStack`；旧字段与静态 `WRoute` 弃用（2.0 删除）；`WBottomSheet` 透传、死分支修复 | L |
-| **5.3** | P1-9、P7.3 | 撤回“4 个一等公民插件”（[ADR-0005](../adr/0005-app-options-and-plugin-ownership.md)）：app 不反向依赖；主题组合用 `WApp.appWrapper`，见 `docs/recipes/app-shell-theme.md` | M |
+| **5.3** | P1-9、P7.3 | 撤回“4 个一等公民插件”（[ADR-0005](../adr/0005-app-options-and-plugin-ownership.md)）：app 不反向依赖；主题组合用 `WAppOptions.appWrapper`，见 `docs/recipes/app-shell-theme.md` | M |
 | **5.4** | P1-13、P2-44/45/46 | 完成（map 1.3.1 + 拆分）：marker 复用、controller 清理、mounted 判断；`map.dart` 641 行拆为 `map_item.dart` / `map_zone.dart` / `map.dart`（part，公开 API 不变）；剩余：`maps` 私有化、`config` 可空 | L |
 | **5.5** | P2-42/43 | qr：`onScanned` 可空 + assert；`scanInterval` 默认 400ms；`WQrController.restartScan()`；`onError` 走 logger；overlay `==` | S–M |
 
@@ -210,7 +210,7 @@ app 1.2.0（`WAppOptions` / `WLocaleConfig` / `WRouteStack`）；map 641 行拆�
 - map：`maps` 私有 + `update()` 唯一入口、`config` 可空；
 - app 字段与静态 `WRoute` 的删除（2.0）；
 - 阶段 6：golden（需固定 CI 渲染环境，暂用结构断言替代）；feedback 3–5 条复盘（未写）；
-- ADR-0005 已撤回“4 个一等公民插件”，改为 `WApp.appWrapper` 组合。
+- ADR-0005 已撤回“4 个一等公民插件”，改为 `WAppOptions.appWrapper` 组合。
 
 **复审补充（同日）**：
 
@@ -220,6 +220,21 @@ app 1.2.0（`WAppOptions` / `WLocaleConfig` / `WRouteStack`）；map 641 行拆�
 - 补 `api-2.0` 的 `validateStatus` 引用比较说明、`map-1.3.1` 的 `markers` 使用约束；
 - `docs/releasing.md` 增加发布前真机 / 消费方检查；
 - 13 个子包 dry-run 仍全通过。
+
+**全仓二次审计（2026-11-04）**：9 个包 + 文档/AI 两条线并行审计，修复了 P0/P1：
+
+- async 分页 refresh/loadMore 竞态（含回归测试）；qr Web 同步 `UnimplementedError` 吞掉 `onScanned`；
+  app 语言流不同步、options 显式 null 系统栏关不掉、`WBottomSheet` 遮罩绕过 `isDismissible`；
+  map 关闭不隐藏 InfoWindow / 换 zone 丢控制器 / 刷新抢相机 / await 后操作错位；
+  api `errorHint` 死枚举；ui 手动重试消耗自动重试预算；core 身份证校验真实日期；
+- 文档纠正：根 README、6 个包 README/cheat-sheet/module、ADR-0005、migrations 索引、catalog、
+  zh/en 消费方模板（含“照抄会编译失败”的 const GetPage、`implements WAppPlugin`、`WLanguage` 静态调用等）；
+- 示例：async empty 态、map 直接构造、CI 现在跑所有 example 的 smoke test。
+
+仍为 P2（不阻塞发布）：core 正则三套表示/validator 内联重复；api 裸 `Dio` + 401 会隐式注册
+registry 条目；ui `image.dart` 846 行 / `row_buttons.dart` 整类弃用；map `zoneId`/`name` 死字段、
+`icon` 与 `iconBuilder` 重叠；qr `flipCamera` 重建后回退、overlay 断言、5 个零调用转发；
+app 三套配置入口的三重回退要到 2.0 收敛；golden 与 feedback 复盘仍未做。
 
 **发布（A 方案：两段式）**：13 个子包 `publish_package.sh --dry-run` 全通过；根包按预期失败
 （子包未上线）。本次发布 = **弃用版**；下一个大版本再删除弃用符号。
