@@ -57,6 +57,7 @@ class WRoute {
   /// - [page]：路由名称
   static void popUntilRoute(String page) {
     if (!_routes.any((r) => r.settings.name == page)) return;
-    Get.until((_) => Get.currentRoute == page);
+    // 用路由自身的 name 判断，避免 Get.currentRoute 与 settings.name 不一致时一路弹空
+    Get.until((route) => route.settings.name == page);
   }
 }

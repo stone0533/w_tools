@@ -176,9 +176,9 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 | 步 | 关闭 | 动作 | 大小 |
 | --- | --- | --- | --- |
 | **5.1** | P2-9/10/11 | api：删 5 个装饰性类型；`WLogInterceptor` 7 bool → level/parts 且默认走 `WLogger`；`DioRegistry` 命中但配置不同要报错；401 重试复用发起请求的 Dio | L |
-| **5.2** | P1-11、P2-12/13/14 | app：`WApp` 单配置面（字段或 `WAppOptions`）；`WLocaleConfig`；`WBottomSheet` 透传；`WRoute` 去全局静态 | L |
-| **5.3** | P1-9、P7.3 | app：4 个一等公民插件 `WToastPlugin` / `WScreenPlugin` / `WAsyncDefaultsPlugin` / `WFormIconsPlugin` | M |
-| **5.4** | P1-13、P2-44/45/46 | map：552 行拆 4 文件；`config` 可空删 `build()`；`maps` 私有 + `update()` 唯一入口；marker 按 id 复用；`dispose` 清 controller；await 后判 mounted | L |
+| **5.2** | P1-11、P2-12/13/14 | 部分完成（app 1.1.0）：`WBottomSheet` 透传、`WRoute.popUntilRoute` 修复、死分支移除；剩余：`WAppOptions`、`WLocaleConfig`、`WRoute` 去静态 | L |
+| **5.3** | P1-9、P7.3 | 未开始（显式遗留）：4 个一等公民插件 | M |
+| **5.4** | P1-13、P2-44/45/46 | 完成正确性部分（map 1.3.1）：marker 复用、controller 清理、mounted 判断；剩余：552 行拆分、`maps` 私有化、`config` 可空 | L |
 | **5.5** | P2-42/43 | qr：`onScanned` 可空 + assert；`scanInterval` 默认 400ms；`WQrController.restartScan()`；`onError` 走 logger；overlay `==` | S–M |
 
 ## 8. 阶段 6：收口（2–3 人日）
@@ -196,6 +196,22 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 `form 3.2.0`、`api 1.0.2`、`toast 1.3.0`、`map 1.3.0`、`cli 1.9.10`、`figma 0.11.0`、
 `device 0.1.2`，之后发根包 `3.0.7`。本机无 pub 凭证（无 `~/.config/dart/pub-credentials.json`），
 正式发布需在有凭证的环境执行。
+
+## 8.1 收尾快照（2026-11-03）
+
+**已完成**：阶段 0/1/2 全部；阶段 3 全部（core 2.1–2.4、ui 4.0–4.7）；阶段 4 全部
+（async 2.0/2.1、toast 1.2/1.3、form 3.0–3.2）；阶段 5 的 api 2.0.0、qr 1.1.0、map 1.3.1、
+app 1.1.0（部分）。
+
+**显式遗留**（未伪装完成）：
+
+- app：`WAppOptions` 单配置面、`WLocaleConfig`、`WRoute` 去全局静态、4 个一等公民插件；
+- map：552 行拆分、`maps` 私有 + `update()` 唯一入口、`config` 可空；
+- 阶段 6：golden 补齐、migrations 总索引、feedback 3–5 条复盘；
+- form 4.0 / ui 5.0 / core 3.0 的「物理删除弃用项」（本仓已按两段式全部弃用）。
+
+**发布**：13 个子包 `publish_package.sh --dry-run` 全通过；根包需等子包上线后再发。
+本机无 pub 凭证，正式发布需在有凭证的环境按 releasing.md 执行。
 
 ## 9. 依赖顺序与并行
 

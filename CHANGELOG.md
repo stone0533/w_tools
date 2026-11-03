@@ -1,3 +1,7 @@
+## 3.0.23
+
+- 抬高 `w_tools_app` 约束到 `^1.1.0`：`WBottomSheet` 透传参数、`WRoute.popUntilRoute` 修复。
+
 ## 3.0.22
 
 - 抬高 `w_tools_map` 约束到 `^1.3.1`：Marker 复用、控制器清理、closeSelection 挂载判断。

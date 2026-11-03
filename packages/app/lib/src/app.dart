@@ -273,8 +273,9 @@ class WApp {
       throw StateError('run() 之前必须先 await init()，或直接使用 await start()');
     }
 
-    // 参数校验
-    if (title?.isEmpty ?? true) {
+    // 参数校验（title 是公开字段，先取局部变量再判空）
+    final titleValue = title;
+    if (titleValue == null || titleValue.isEmpty) {
       throw StateError('title 不能为空');
     }
 
@@ -289,7 +290,7 @@ class WApp {
       throw StateError('getPages 不能为空且不能为空列表');
     }
 
-    final effectiveTitle = title ?? '';
+    final effectiveTitle = titleValue;
     final effectiveDefaultTransition =
         defaultTransition ?? (this.defaultTransition ?? Transition.topLevel);
     final effectiveTheme = theme ?? this.theme;

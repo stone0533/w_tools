@@ -6,7 +6,19 @@ class WBottomSheet {
   /// 显示一个底部弹窗；点击内容区上方的空白区域可关闭
   ///
   /// - [content]：弹窗内容
-  static void show(Widget content) {
+  /// - 其余参数透传给 `Get.bottomSheet`（背景色 / 遮罩 / 圆角 / 拖拽等）
+  static void show(
+    Widget content, {
+    Color? backgroundColor,
+    Color? barrierColor,
+    bool? isDismissible,
+    bool? enableDrag,
+    ShapeBorder? shape,
+    Clip? clipBehavior,
+    bool? ignoreSafeArea,
+    double? elevation,
+    bool isScrollControlled = true,
+  }) {
     Get.bottomSheet(
       Column(
         children: [
@@ -23,7 +35,15 @@ class WBottomSheet {
           content,
         ],
       ),
-      isScrollControlled: true,
+      backgroundColor: backgroundColor,
+      barrierColor: barrierColor,
+      isDismissible: isDismissible ?? true,
+      enableDrag: enableDrag ?? true,
+      shape: shape,
+      clipBehavior: clipBehavior,
+      ignoreSafeArea: ignoreSafeArea,
+      elevation: elevation,
+      isScrollControlled: isScrollControlled,
     );
   }
 }

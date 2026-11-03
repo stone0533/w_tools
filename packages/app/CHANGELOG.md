@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0
+
+### Added
+- `WBottomSheet.show` 透传 `backgroundColor` / `barrierColor` / `isDismissible` / `enableDrag` /
+  `shape` / `clipBehavior` / `ignoreSafeArea` / `elevation` / `isScrollControlled`。
+
+### Fixed
+- `WRoute.popUntilRoute` 用路由自身 `settings.name` 判断，避免名不一致时一路弹空。
+- `WApp.run()` 移除 `title ?? ''` 死分支。
+
 ## 1.0.1
 
 ### Fixed
