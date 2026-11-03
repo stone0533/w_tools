@@ -29,6 +29,19 @@ class AnalyticsPlugin with WAppPlugin {
 WApp(...).registerPlugin(AnalyticsPlugin());
 ```
 
+## 组合全局主题（不需要插件）
+
+```dart
+WApp(
+  title: 'Demo',
+  appWrapper: (child) => WAsyncTheme(
+    child: WToastTheme(style: WToastStyle.defaults, child: child),
+  ),
+).start();
+```
+
+`appWrapper` 在 MaterialApp 外、插件 `wrapApp` 之内；需要 Theme 的东西放 `builderWrapper`。
+
 ## 不要用
 
 - 手写 `runApp` + 自己的初始化顺序（用 `WApp.start()`）；

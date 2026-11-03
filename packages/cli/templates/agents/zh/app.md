@@ -2,3 +2,5 @@
   `WAppPlugin.dependsOn`。`builderWrapper` 在 MaterialApp 内，`wrapApp` 在外且没有
   Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
 - **底部面板**：用 `WBottomSheet`。
+- **全局主题 / 默认视图**：用 `WApp.appWrapper` 组合对应包的主题 Widget（见该包文档）；
+  不要为此让 app 依赖其它子包，也不需要写插件。
