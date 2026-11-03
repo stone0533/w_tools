@@ -65,7 +65,7 @@ WToast.showSuccess('保存成功', style: style);
 | 关闭全部 | `WToast.hideAll` |
 | 样式复用 | `WToastStyle`（不可变，`copyWith`） |
 
-> `WToastConfig` 是旧门面，已弃用（2.0 移除）；迁移到 `WToastStyle` + `WToast.showXxx`。
+> `WToastConfig` 已在 2.0 删除；用 `WToastStyle` + `WToast.showXxx`。
 
 ## 全局默认样式
 

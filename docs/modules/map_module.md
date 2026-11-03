@@ -99,7 +99,6 @@ class StoreItem implements WMapItem {
 | `iconBuilder` | `BitmapDescriptor Function(T)?` | 按条目决定图标，优先级最高 |
 | `mapper` | `WMapItemMapper<T>` | 从业务模型取地图字段 |
 | `defaultZoom` | `double` | 默认缩放级别，默认 `11` |
-| `onDataUpdated` | `void Function()?` | 兼容用单回调；新代码用 add/remove listener |
 
 ### 核心方法
 

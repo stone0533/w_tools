@@ -130,15 +130,6 @@ class WMapZone<T> {
   /// 业务模型 -> 地图字段的适配器
   final WMapItemMapper<T> mapper;
 
-  /// 数据更新回调（单值，仅保留向后兼容）。
-  ///
-  /// 多个 [WMap] 共享同一 zone 时会互相覆盖，请改用
-  /// [addDataUpdatedListener] / [removeDataUpdatedListener]。
-  ///
-  /// remove-in: 2.0.0
-  @Deprecated('Use addDataUpdatedListener/removeDataUpdatedListener instead')
-  void Function()? onDataUpdated;
-
   /// 构造函数
   WMapZone({
     this.googleMapController,
@@ -278,8 +269,6 @@ class WMapZone<T> {
     for (final listener in List<void Function()>.of(_onDataUpdatedListeners)) {
       listener();
     }
-    // ignore: deprecated_member_use_from_same_package
-    onDataUpdated?.call();
   }
 
   /// 更新地图数据并重新初始化

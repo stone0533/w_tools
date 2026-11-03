@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0
+
+### Removed
+- `WMapZone.onDataUpdated` 单值回调：用 `addDataUpdatedListener` / `removeDataUpdatedListener`。
+
 ## 1.3.1
 
 ### Fixed

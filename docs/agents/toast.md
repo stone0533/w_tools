@@ -37,7 +37,7 @@ WToast.showSuccess('ok', context: context);   // context 用来读 WToastTheme
 
 ## 不要用
 
-- `WToastConfig`（弃用，用 `WToastStyle` + `WToast`）；
+- `WToastConfig`（已在 2.0 删除，用 `WToastStyle` + `WToast`）；
 - Toast 做阻塞确认 / 表单校验错误展示（用对话框 / 字段错误）；
 - 在 `main()` 顶层构造需要 Theme 的样式。
 

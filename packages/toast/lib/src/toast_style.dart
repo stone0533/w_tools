@@ -9,7 +9,7 @@ import 'toast_theme.dart';
 /// `WToast.showError` / `WToast.showWarning` / `WToast.showLoading` /
 /// `WToast.showCustom` / `WToast.showText`。
 ///
-/// 旧版 `WToastConfig` 既当样式又当门面，已弃用；需要复用一组样式时创建一个
+/// 旧版 `WToastConfig` 已在 2.0 删除；需要复用一组样式时创建一个
 /// `WToastStyle` 并反复传入即可。
 @immutable
 class WToastStyle {

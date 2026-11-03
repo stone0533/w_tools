@@ -172,7 +172,7 @@ zone.update(shops);
 ```
 
 多个 `WMap` 共享同一个 zone 时，用 `addDataUpdatedListener` 注册，而不是旧的
-`onDataUpdated` 字段（后者会被后注册的回调覆盖，已标记 deprecated）。
+`addDataUpdatedListener` / `removeDataUpdatedListener`（旧的单值 `onDataUpdated` 已在 2.0 删除）。
 
 ## 示例
 

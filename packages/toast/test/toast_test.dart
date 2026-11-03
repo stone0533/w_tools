@@ -22,179 +22,6 @@ void main() {
   // 因此 builder 已设置时 showXxx 不应向外抛出任何异常，且返回非 null CancelFunc。
   // 注：CancelFunc 即 void Function()，此处直接用类型推导，无需显式 import bot_toast。
 
-  group('WToastConfig 默认值', () {
-    test('构造函数默认字段值', () {
-      final c = WToastConfig();
-      expect(c.duration, const Duration(seconds: 2));
-      // 遮罩 / 气泡底色不再写死：null 表示运行时从主题取
-      expect(c.backgroundColor, isNull);
-      expect(c.align, Alignment.center);
-      expect(c.animationDuration, const Duration(milliseconds: 200));
-    });
-
-    test('四个 builder 默认 null', () {
-      final c = WToastConfig();
-      expect(c.successBuilder, isNull);
-      expect(c.errorBuilder, isNull);
-      expect(c.warningBuilder, isNull);
-      expect(c.loadingBuilder, isNull);
-    });
-  });
-
-  group('WToastConfig 未设置 builder 时使用默认样式', () {
-    test('showSuccess / showError / showWarning 返回可调用 CancelFunc', () {
-      final c = WToastConfig();
-
-      final success = c.showSuccess('ok');
-      final error = c.showError('fail');
-      final warning = c.showWarning('warn');
-
-      expect(success, isNotNull);
-      expect(error, isNotNull);
-      expect(warning, isNotNull);
-      success();
-      error();
-      warning();
-    });
-
-    test('showLoading 使用默认转圈样式', () {
-      final c = WToastConfig();
-
-      final func = c.showLoading(message: 'load');
-      expect(func, isNotNull);
-      func();
-      c.hideLoading();
-    });
-  });
-
-  group('WToastConfig 配置接通', () {
-    Widget noopBuilder(Object? msg, void Function() cancel) => const SizedBox.shrink();
-
-    test('showCustom 使用 toastBuilder', () {
-      final c = WToastConfig()..toastBuilder = (_) => const Text('custom');
-
-      final func = c.showCustom();
-      expect(func, isNotNull);
-      func();
-    });
-
-    test('showCustom 未设置 toastBuilder 时抛 ArgumentError', () {
-      final c = WToastConfig();
-      expect(() => c.showCustom(), throwsA(isA<ArgumentError>()));
-    });
-
-    test('onError 收到 BotToast 异常', () {
-      Object? error;
-      final c = WToastConfig()
-        ..successBuilder = noopBuilder
-        ..onError = (e) => error = e;
-
-      c.showSuccess('ok');
-
-      expect(error, isNotNull);
-    });
-  });
-
-  group('WToastConfig builder 已设置时应正常返回 CancelFunc', () {
-    Widget noopBuilder(Object? msg, void Function() cancel) => const SizedBox.shrink();
-    Widget noopLoadingBuilder(
-      Object? msg,
-      void Function() cancel,
-      bool dismissible,
-    ) => const SizedBox.shrink();
-
-    test('showSuccess 不抛异常并返回 CancelFunc', () {
-      final c = WToastConfig()..successBuilder = noopBuilder;
-      final func = c.showSuccess('ok');
-      expect(func, isNotNull);
-      func(); // 空函数安全调用
-    });
-
-    test('showError 不抛异常并返回 CancelFunc', () {
-      final c = WToastConfig()..errorBuilder = noopBuilder;
-      final func = c.showError('fail');
-      expect(func, isNotNull);
-      func();
-    });
-
-    test('showWarning 不抛异常并返回 CancelFunc', () {
-      final c = WToastConfig()..warningBuilder = noopBuilder;
-      final func = c.showWarning('warn');
-      expect(func, isNotNull);
-      func();
-    });
-
-    test('showLoading 不抛异常并返回 CancelFunc', () {
-      final c = WToastConfig()..loadingBuilder = noopLoadingBuilder;
-      final func = c.showLoading(message: 'load');
-      expect(func, isNotNull);
-      func();
-    });
-
-    test('hideLoading 在无 loading 状态时安全调用', () {
-      final c = WToastConfig();
-      expect(() => c.hideLoading(), returnsNormally);
-    });
-
-    test('showLoading → hideLoading 正常流程', () {
-      final c = WToastConfig()..loadingBuilder = noopLoadingBuilder;
-
-      c.showLoading(message: 'load');
-      expect(() => c.hideLoading(), returnsNormally);
-      // 再次调用也不应抛异常（null check 保护）
-      expect(() => c.hideLoading(), returnsNormally);
-    });
-
-    test('连续调用 showLoading 不抛异常', () {
-      final c = WToastConfig()..loadingBuilder = noopLoadingBuilder;
-
-      final f1 = c.showLoading(message: 'first');
-      final f2 = c.showLoading(message: 'second');
-      expect(f1, isNotNull);
-      expect(f2, isNotNull);
-      // 第一次的 cancelFunc 会被第二次 showLoading 内部自动调用
-      expect(() => f1(), returnsNormally);
-      expect(() => f2(), returnsNormally);
-    });
-  });
-
-  group('WToastConfig duration/align 优先级', () {
-    Widget noop(Object? msg, void Function() cancel) => const SizedBox.shrink();
-
-    test('showSuccess 调用参数覆盖配置 duration', () {
-      final c = WToastConfig()
-        ..duration = const Duration(milliseconds: 500)
-        ..successBuilder = noop;
-
-      final func = c.showSuccess('ok', duration: const Duration(seconds: 3));
-      expect(func, isNotNull);
-    });
-
-    test('showSuccess 调用参数覆盖配置 align', () {
-      final c = WToastConfig()
-        ..align = Alignment.bottomCenter
-        ..successBuilder = noop;
-
-      final func = c.showSuccess('ok', align: Alignment.topCenter);
-      expect(func, isNotNull);
-    });
-
-    test('showError / showWarning 同理支持参数覆盖', () {
-      final c = WToastConfig()
-        ..errorBuilder = noop
-        ..warningBuilder = noop;
-
-      expect(
-        c.showError('fail', duration: const Duration(seconds: 5)),
-        isNotNull,
-      );
-      expect(
-        c.showWarning('warn', align: Alignment.bottomCenter),
-        isNotNull,
-      );
-    });
-  });
-
   group('WToast.showCustomDialog 签名', () {
     test('返回值是 CancelFunc，可安全调用', () {
       // 直接调用 WToast.showCustomDialog，验证在 try-catch 保护下
@@ -215,32 +42,6 @@ void main() {
         },
       );
       expect(func, isNotNull);
-    });
-  });
-
-  group('WToastConfig.copy / copyWith', () {
-    test('copy 生成字段相同但相互独立的副本', () {
-      final c = WToastConfig()..duration = const Duration(seconds: 5);
-      final copied = c.copy();
-
-      expect(copied.duration, const Duration(seconds: 5));
-      expect(copied.backgroundColor, c.backgroundColor);
-
-      copied.duration = const Duration(seconds: 1);
-      expect(c.duration, const Duration(seconds: 5));
-    });
-
-    test('copyWith 覆盖指定字段，未指定的字段沿用原值', () {
-      Widget builder(Object? message, void Function() cancel) => const SizedBox.shrink();
-      final c = WToastConfig()
-        ..align = Alignment.bottomCenter
-        ..successBuilder = builder;
-
-      final copied = c.copyWith(align: Alignment.topCenter);
-
-      expect(copied.align, Alignment.topCenter);
-      expect(copied.backgroundColor, c.backgroundColor);
-      expect(copied.successBuilder, same(builder));
     });
   });
 
@@ -335,11 +136,10 @@ void main() {
       expect(find.text('auto'), findsNothing);
     });
 
-    testWidgets('WToastConfig.showText 用配置的 backgroundColor 作为气泡底色', (tester) async {
+    testWidgets('WToast.showText 用 contentColor 作为气泡底色', (tester) async {
       await tester.pumpWidget(_buildToastApp());
 
-      final config = WToastConfig()..backgroundColor = Colors.red;
-      config.showText('bg');
+      WToast.showText(text: 'bg', contentColor: Colors.red);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -348,26 +148,29 @@ void main() {
       );
       expect((container.decoration as BoxDecoration?)?.color, Colors.red);
 
-      config.hideAll();
+      WToast.hideAll();
       await tester.pumpAndSettle();
     });
   });
 
-  group('WToastConfig 渲染行为', () {
-    testWidgets('showSuccess 渲染消息并按配置对齐', (tester) async {
+  group('WToast 渲染行为', () {
+    testWidgets('showSuccess 渲染消息并按 style 对齐', (tester) async {
       await tester.pumpWidget(_buildToastApp());
 
-      final config = WToastConfig()
-        ..align = Alignment.topCenter
-        ..duration = const Duration(seconds: 10);
-      config.showSuccess('ok');
+      WToast.showSuccess(
+        'ok',
+        style: const WToastStyle(
+          align: Alignment.topCenter,
+          duration: Duration(seconds: 10),
+        ),
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('ok'), findsOneWidget);
       expect(tester.getCenter(find.text('ok')).dy, lessThan(300));
 
-      config.hideAll();
+      WToast.hideAll();
       await tester.pumpAndSettle();
     });
   });

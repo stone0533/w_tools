@@ -1,6 +1,9 @@
 ## 5.0.0
 
-- 抬高 `w_tools_app` 约束到 `^2.0.0`：删除字段版 `WApp` 与静态 `WRoute`（AD迁移见 `app-2.0`）。
+- 抬高 `w_tools_app` 约束到 `^2.0.0`：删除字段版 `WApp` 与静态 `WRoute`（迁移见 `app-2.0`）。
+- 抬高 `w_tools_core` 约束到 `^3.0.0`：删除 `WConfig` / 旧正则 / WUx 防抖节流等（迁移见 `core-3.0`）。
+- 抬高 `w_tools_toast` 约束到 `^2.0.0`：删除 `WToastConfig`。
+- 抬高 `w_tools_map` 约束到 `^2.0.0`：删除 `WMapZone.onDataUpdated`。
 
 ## 4.0.1
 

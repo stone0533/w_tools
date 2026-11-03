@@ -40,6 +40,7 @@
 
 - [1.2](toast-1.2.md)：`WToastStyle` 拆分
 - [1.3](toast-1.3.md)：`WToastTheme` / `runWithLoading`
+- [2.0](toast-2.0.md)：删除 `WToastConfig`
 
 ## api / app / map / qr
 
@@ -49,4 +50,5 @@
 - [app 1.2](app-1.2.md)：`WAppOptions` / `WLocaleConfig` / `WRouteStack`
 - [app 2.0](app-2.0.md)：删除字段版 `WApp` 与静态 `WRoute`
 - [map 1.3.1](map-1.3.1.md)：Marker 复用、控制器清理
+- [map 2.0](map-2.0.md)：删除 `onDataUpdated`
 - [qr 1.1](qr-1.1.md)：`onScanned` 可选、扫描间隔 400ms

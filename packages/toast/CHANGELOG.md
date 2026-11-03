@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0
+
+### Removed
+- `WToastConfig` 旧门面：用 `WToastStyle` + `WToast.showXxx`。
+
 ## 1.3.0
 
 ### Added
