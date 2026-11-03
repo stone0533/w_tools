@@ -4,7 +4,7 @@ import 'package:badges/badges.dart' as badges;
 /// 徽章组件，用于显示角标或标记
 class WBadge extends StatelessWidget {
   /// 徽章配置
-  final WBadgeConfig config;
+  final WBadgeConfig? config;
 
   /// 徽章内容
   final Widget? badgeContent;
@@ -20,16 +20,17 @@ class WBadge extends StatelessWidget {
   /// - [child]：子组件
   WBadge({
     super.key,
-    required this.config,
+    this.config,
     this.badgeContent,
     this.child,
   }) : assert(
-          !config.isShown || badgeContent != null,
+          config == null || !config.isShown || badgeContent != null,
           'WBadge: 显示徽章时 badgeContent 不能为空',
         );
 
   @override
   Widget build(BuildContext context) {
+    final config = this.config ?? WBadgeConfig();
     assert(
       !config._showBadge || badgeContent != null,
       'WBadge: 显示徽章时 badgeContent 不能为空',

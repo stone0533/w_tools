@@ -26,7 +26,7 @@ class WNavBar extends StatefulWidget {
 
   const WNavBar({
     super.key,
-    required this.config,
+    this.config = const WNavBarConfig(),
     required this.itemBuilder,
     this.onItemTap,
     required this.controller,

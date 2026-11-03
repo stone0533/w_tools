@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.7.0
+
+### Changed
+- `WClipRRect` / `WBadge` / `WTabBar` / `WNavBar` 的 `config` 改为可选；省略时使用默认配置，
+  只传 `child` / `tabs` / `badgeContent` 即可渲染。
+
 ## 4.6.0
 
 ### Added

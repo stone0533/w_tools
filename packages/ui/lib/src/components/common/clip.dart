@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 /// 圆角裁剪组件，用于为子组件添加圆角
 class WClipRRect extends StatelessWidget {
   /// 裁剪配置
-  final WClipRRectConfig config;
+  final WClipRRectConfig? config;
 
   /// 子组件
   final Widget child;
@@ -19,13 +19,14 @@ class WClipRRect extends StatelessWidget {
   /// - [clipBehavior]：裁剪行为
   const WClipRRect({
     super.key,
-    required this.config,
+    this.config,
     required this.child,
     this.clipBehavior = Clip.antiAlias,
   });
 
   @override
   Widget build(BuildContext context) {
+    final config = this.config ?? WClipRRectConfig();
     return ClipRRect(
       borderRadius: config._borderRadius,
       clipBehavior: clipBehavior,

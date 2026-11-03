@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 /// 控制器可外部传入，未传入时由外层 [DefaultTabController] 提供。
 class WTabBar extends StatelessWidget {
   /// 标签栏配置
-  final WTabBarConfig config;
+  final WTabBarConfig? config;
 
   /// 标签列表
   final List<Widget> tabs;
@@ -20,7 +20,7 @@ class WTabBar extends StatelessWidget {
   /// 创建标签栏
   const WTabBar({
     super.key,
-    required this.config,
+    this.config,
     required this.tabs,
     this.controller,
     this.onTap,
@@ -28,6 +28,7 @@ class WTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final config = this.config ?? WTabBarConfig();
     return TabBar(
       controller: controller,
       padding: config._padding,

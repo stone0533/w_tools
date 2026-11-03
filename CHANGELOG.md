@@ -1,3 +1,7 @@
+## 3.0.19
+
+- 抬高 `w_tools_ui` 约束到 `^4.7.0`：`WClipRRect` / `WBadge` / `WTabBar` / `WNavBar` 的 config 改为可选。
+
 ## 3.0.18
 
 - 抬高 `w_tools_ui` 约束到 `^4.6.0`：新增 `WActionRow` / `WSelectableRow`，`WRowButtons` 弃用。
