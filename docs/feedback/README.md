@@ -89,7 +89,7 @@ bash scripts/check_feedback.sh
 
 | 包 | 待处理 | 最近更新 |
 | --- | --- | --- |
-| [figma](figma.md) | 1 | 2026-11-03 |
+| [figma](figma.md) | 0 | 2026-11-03 |
 | [cli](cli.md) | 0 | 2026-11-03 |
 | [device](device.md) | 0 | 2026-11-03 |
 | [e2e](e2e.md) | 0 | 2026-11-03 |

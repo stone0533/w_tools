@@ -2,18 +2,7 @@
 
 ## 待处理
 
-### [待处理] figma: `fetch nodes` 没有深度限制，单页缓存 129 MB
-
-- 包/版本：w_tools_figma 0.9.2
-- 环境：macOS 27.2 / Flutter 3.44
-- 命令 / 输入：`dart run w_tools_figma:figma fetch nodes <fileKey> 0:1`
-- 期望：能限制子树深度（像 `fetch file --depth=3` 那样）
-- 实际：一次拉整页子树，单文件 129 MB；`cache stats` 显示 132 MB
-- 影响（我因此做错了什么 / 多花了什么）：误删缓存后重建一次就占了 129 MB；
-  磁盘/备份/CI 缓存都变重，且 `spec` 读大文件更慢
-- 建议：`fetch nodes --depth=<n>`（默认不限），或文档提醒「只拉需要的子节点」
-- 复现数据：`nodes-<fileKey>-0-1.json` 129 MB（页面 27 个顶层容器）
-- 状态变更：2026-11-03 待处理
+（暂无）
 
 ## 已闭环
 
@@ -25,6 +14,7 @@
 | 2026-11-03 | 测试进程写真实额度日志（2 条被污染成 87 条） | ✅ 0.9.0（c6ba2d4）：测试注入 `homeOverride`，`diff_test` 补隔离；再跑测试用量不变 |
 | 2026-11-03 | AGENTS 的 Figma 段仍指向 `.figma-token`（0.8.0 已改路径） | ✅ cli 1.9.0（feccfb1）：模板改为 `~/.config/w_tools/figma-token` |
 | 2026-11-03 | `cache` / `usage` 帮助没有说明新路径与 `--yes` | ✅ 0.9.2（df77851 / c163022）：帮助与 `docs/figma-cli.md` 同步 |
+| 2026-11-03 | `fetch nodes` 无深度限制，单页缓存 129 MB | ✅ 0.10.0（676d28b）：`--depth=<n>`；缓存按深度分文件 |
 | 2026-11-02 | 管道截断（`| head`）崩 Broken pipe | ✅ 1.7.2 修复（`cli_io` 捕获 FileSystemException） |
 | 2026-11-02 | `--figma` 片段被普通 `init` 静默删掉 | ✅ 1.7.2 修复（`ai.figma` 持久化 + 自动检测） |
 | 2026-11-02 | `frames` 输出 4703 行 | ✅ 0.4.0 修好（只列顶层 FRAME，45 行） |
