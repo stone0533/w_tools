@@ -96,7 +96,7 @@ Future<void> _shot(Simctl simctl, DeviceOptions o) async {
     return;
   }
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
-  final out = o.out ?? '${Directory.systemTemp.path}/device_shot.png';
+  final out = o.out ?? _tempFile('w_tools_device_shot', 'png');
   await simctl.screenshot(udid, out);
   _emit(o, {'path': out, 'udid': udid, 'real': false}, out);
 }

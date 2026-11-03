@@ -5,7 +5,7 @@
 ```bash
 dart run w_tools_device:device list                 # 列出模拟器（含 udid / 状态）
 dart run w_tools_device:device boot "iPhone 17 Pro"
-dart run w_tools_device:device shot --out /tmp/a.png
+dart run w_tools_device:device shot --out /tmp/a.png   # 也可省略 --out，自动生成唯一临时文件
 dart run w_tools_device:device shot --real --device=<udid|名称>   # 真机截图（需解锁）
 dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备屏幕的坐标
 dart run w_tools_device:device tap 200 840          # 用「设备坐标」点，自动换算

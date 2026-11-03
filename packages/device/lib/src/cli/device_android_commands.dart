@@ -34,7 +34,7 @@ Future<void> _androidList(DeviceOptions o) async {
 
 Future<void> _androidShot(DeviceOptions o) async {
   final serial = await _androidSerial(o);
-  final out = o.out ?? '${Directory.systemTemp.path}/device_android.png';
+  final out = o.out ?? _tempFile('w_tools_device_android_shot', 'png');
   await Adb().screenshot(serial, out);
   final dark = ScreenStats.isMostlyDark(File(out).readAsBytesSync());
   _emit(
