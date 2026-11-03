@@ -172,10 +172,10 @@ jobs:
           flutter pub get
           flutter analyze
 
-      # ui 的 example 有 smoke test；其它 example 没有测试，保持只 analyze。
-      - name: Test example (ui)
-        if: matrix.package == 'ui'
-        working-directory: packages/ui/example
+      # 各包 example 的 smoke test：有 test 目录就运行，避免示例腐烂。
+      - name: Test example (if present)
+        if: matrix.kind == 'flutter' && hashFiles(format('packages/{0}/example/test/**', matrix.package)) != ''
+        working-directory: packages/${{ matrix.package }}/example
         run: flutter test
 
       # 发布门禁：缺 README/CHANGELOG、版本号问题、未跟踪文件等在这一步暴露。

@@ -826,17 +826,26 @@ WImage.source(
 
 ### 错误类型
 
-`errorWidgetBuilder` 的第三个参数是 `WImageError`，可用 `is` 分支：
+`errorWidgetBuilder` 的第三个参数是 `WImageError`；4.2 起用 `error.kind`（`WImageErrorKind`）区分，
+不要再用已弃用的 `WImageXxxError` 子类：
 
-| 类型 | 场景 |
+| kind | 场景 |
 |------|------|
-| `WImageEmptyError` | 空串 / 纯空白 |
-| `WImageNetworkError` | 网络请求失败（`cause` 为底层异常） |
-| `WImageAssetError` | 资产不存在或解码失败 |
-| `WImageDecodeError` | Base64 解码失败 |
-| `WImageFileError` | 文件读取失败 |
-| `WImageProviderError` | `WImage.provider` / `WImage.memory` 解码失败 |
-| `WImageUnsupportedError` | Web 上的 `file://` |
+| `empty` | 空串 / 纯空白 |
+| `network` | 网络请求失败（`cause` 为底层异常） |
+| `asset` | 资产不存在或解码失败 |
+| `decode` | Base64 解码失败 |
+| `file` | 文件读取失败 |
+| `provider` | `WImage.provider` / `WImage.memory` 解码失败 |
+| `unsupported` | Web 上的 `file://` |
+
+```dart
+errorWidgetBuilder: (context, url, error) => switch (error.kind) {
+  WImageErrorKind.network => const Icon(Icons.wifi_off),
+  WImageErrorKind.empty => const Icon(Icons.image_not_supported),
+  _ => const Icon(Icons.broken_image),
+},
+```
 
 ### WImageStyle 配置
 
@@ -1023,8 +1032,8 @@ WImage.network(
 WImage.network(
   url,
   config: WImageLoadConfig(
-    errorWidgetBuilder: (context, url, error) => switch (error) {
-      WImageNetworkError() => const Icon(Icons.wifi_off),
+    errorWidgetBuilder: (context, url, error) => switch (error.kind) {
+      WImageErrorKind.network => const Icon(Icons.wifi_off),
       _ => const Icon(Icons.broken_image),
     },
   ),
@@ -1640,7 +1649,7 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 
 | 方法 | 说明 |
 |------|------|
-| `10.heightBox` / `10.widthBox` / `10.squareBox` | 创建 SizedBox |
+| `10.heightBox` / `10.widthBox` / `10.squareBox`（弃用，5.0 移除） | 创建 SizedBox；新代码用 `SizedBox` |
 | `10.allPadding` / `horizontalPadding` / `verticalPadding` | 创建 EdgeInsets |
 | `10.borderRadius` | `BorderRadius.circular(10)` |
 | `1234.toThousandsSeparated` | `1,234` |
@@ -1722,10 +1731,6 @@ WColumn.min(children: [...])
 
 GlobalKey 扩展，支持查找、定位、获取 Widget 状态等。
 
-### WImageExtension
-
-Image 相关扩展，便捷创建 CachedNetworkImage、带圆角的图片等。
-
 ### WTextStyleExtension
 
 `TextStyle` 的便捷扩展：`bold` / `withColor` / `withSize`。
@@ -1734,16 +1739,14 @@ Image 相关扩展，便捷创建 CachedNetworkImage、带圆角的图片等。
 
 ## 10. 工具类
 
-### WPadding / WSizeBox
+### 布局糖（已弃用）
 
-便捷创建内边距和尺寸框：
+`WPadding` / `WSizeBox` / `WRow` / `WColumn` 已弃用（5.0 移除），直接用 Flutter 原生组件：
 
 ```dart
-WPadding.all(16)
-WPadding.symmetric(horizontal: 8, vertical: 4, child: ...)
-WSizeBox.width(100)
-WSizeBox.height(WScreen.h(20))
-WSizeBox.square(50)
+Padding(padding: const EdgeInsets.all(16), child: ...)
+SizedBox(width: 100, height: WScreen.h(20))
+SizedBox.square(dimension: 50)
 ```
 
 ### 预加载
@@ -1836,7 +1839,7 @@ class _HomePageState extends State<HomePage> {
             color: Colors.black87,
           ),
           trailing: WButton(
-            style: WButtonStyles.danger,
+            style: WButtonStyles.of(context).danger,
             label: '删除',
             size: WButtonSize.small,
             onTap: () => setState(() => _items.removeAt(i)),
@@ -1851,7 +1854,7 @@ class _HomePageState extends State<HomePage> {
           height: WScreen.h(80),
           child: Center(
             child: WButton(
-              style: WButtonStyles.primary,
+              style: WButtonStyles.of(context).primary,
               label: '提交',
               onTap: () => print('提交'),
             ),
@@ -1899,9 +1902,9 @@ class _MainPageState extends State<MainPage> {
     return WScaffold(
       backgroundColor: Colors.white,
       includeTopSafeArea: true,
-      body: ValueListenableBuilder(
-        valueListenable: _controller,
-        builder: (ctx, index, _) => _pages[index],
+      body: ListenableBuilder(
+        listenable: _controller,
+        builder: (ctx, _) => _pages[_controller.currentIndex],
       ),
       bottomNavigationBar: MainNavBar(controller: _controller),
     );

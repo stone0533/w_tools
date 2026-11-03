@@ -36,7 +36,7 @@ class WAsyncController<T> {
 
   final Future<T> Function() _loader;
 
-  /// 执行选项（错误兜底等）；页面级加载状态由控制器自己维护，不需要 `loading`
+  /// 执行选项（错误兜底等）；页面级加载状态由控制器自己维护，传入的 `loading` 会被忽略
   final WAsyncOptions? options;
 
   final bool Function(T value)? _isEmpty;

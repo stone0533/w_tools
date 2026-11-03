@@ -27,9 +27,8 @@
   hex 颜色用 `WHexColor.fromHex` 或 `'#rrggbb'.toColor()`；`EdgeInsets` 值用 `num.allPadding`；
   BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合。
 - **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
-  `SizedBox` 间距用 `WSizeBox`，`Padding` 用 `WPadding`；需要 `EdgeInsets` 值时用 `num.allPadding`。
-  不要再用 `num.heightBox` / `widthBox` / `squareBox`，它们与 `WSizeBox` 等价，仅保留兼容。
-  `WColumn.left/right` / `WRow.top/bottom` 默认 `MainAxisSize.max`；需要包裹内容时显式传 `MainAxisSize.min`。
+  `SizedBox` / `Padding` / `Row` / `Column` 直接用 Flutter 原生组件；需要 `EdgeInsets` 值时用 `num.allPadding`。
+  `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已弃用（5.0 移除），新代码不要再用。
 - **列表 / 通知**：列表项保活用 `WKeepAliveWrapper`；滚动通知 / 百分比用 `WNotificationListenerBuilder`
   （百分比只处理 depth 0 的 `ScrollUpdateNotification`）。
 - **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，

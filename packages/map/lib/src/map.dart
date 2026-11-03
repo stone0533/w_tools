@@ -5,7 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 part 'map_item.dart';
 part 'map_zone.dart';
 
-/// [WMap] 的控制器：用于从业务 UI 侧触发地图动作（目前只有「关闭选中」）。
+/// [WMap] 的控制器：从业务 UI 侧触发选中 / 关闭。
 ///
 /// 之前 `closeSelection` 定义在私有的 `_WMapState` 里，外部拿不到实例，
 /// 导致 [WMapConfig.onItemClosed] 永远无法触发。把控制器传给 [WMap] 即可。
@@ -92,6 +92,9 @@ class _WMapState<T> extends State<WMap<T>> {
   /// 当前 GoogleMap 的控制器（dispose 时只清理自己创建的那个）
   GoogleMapController? _mapController;
 
+  /// 选中 / 关闭操作序号：await 后只有最后一次操作能生效
+  int _operation = 0;
+
   @override
   void initState() {
     super.initState();
@@ -130,6 +133,11 @@ class _WMapState<T> extends State<WMap<T>> {
       _unwireZone(oldWidget.zone);
       _selected = null;
       _appliedCamera = null;
+      // 控制器只由本 State 持有：迁移给新 zone，避免新 zone 的 select 静默失效
+      if (_mapController != null && !identical(oldWidget.zone, widget.zone)) {
+        oldWidget.zone.googleMapController = null;
+        widget.zone.googleMapController = _mapController;
+      }
       _wire();
       // 换了 zone：把新数据的相机位置同步过去
       _syncCameraIfNeeded();
@@ -139,6 +147,7 @@ class _WMapState<T> extends State<WMap<T>> {
   /// 选中某个条目：更新选中态、通知业务、相机居中
   Future<void> select(T item) async {
     if (!mounted) return;
+    final operation = ++_operation;
     setState(() => _selected = item);
     widget.config.onItemSelected?.call(item);
     final position = widget.zone.mapper.position(item);
@@ -147,7 +156,15 @@ class _WMapState<T> extends State<WMap<T>> {
       position.longitude,
       widget.config.selectZoom,
       item,
+      showInfoWindow: false,
     );
+    // 快速连点 A/B：只有最后一次操作能开窗，避免气泡与业务卡片错位
+    if (!mounted || operation != _operation || _selected != item) return;
+    final controller = _controllerOrZone;
+    final markerId = MarkerId(widget.zone.mapper.id(item));
+    if (controller != null && widget.zone.markers.any((m) => m.markerId == markerId)) {
+      await controller.showMarkerInfoWindow(markerId);
+    }
   }
 
   /// Marker 点击（同步接口，直接交给 [select]）
@@ -156,15 +173,27 @@ class _WMapState<T> extends State<WMap<T>> {
   /// 关闭选中条目（由 [WMapController] 调用）
   Future<void> closeSelection(T item) async {
     if (!mounted) return;
+    final operation = ++_operation;
     setState(() => _selected = null);
+
+    final controller = _controllerOrZone;
+    final markerId = MarkerId(widget.zone.mapper.id(item));
+    if (controller != null) {
+      // 先隐藏气泡，再回位；不能走 _animateTo 的「自动开窗」分支
+      await controller.hideMarkerInfoWindow(markerId);
+    }
+
     final position = widget.zone.mapper.position(item);
     await _animateTo(
       position.latitude,
       position.longitude,
       widget.config.closeZoom,
       item,
+      showInfoWindow: false,
     );
-    if (!mounted) return;
+
+    // 若期间用户又选中了别的条目，旧的关闭回调不能再触发
+    if (!mounted || operation != _operation || _selected != null) return;
     widget.config.onItemClosed?.call(item);
   }
 
@@ -173,13 +202,15 @@ class _WMapState<T> extends State<WMap<T>> {
     if (!mounted) return;
     setState(() {});
     _validateSelected();
-    _syncCameraIfNeeded();
+    // 只有「还没有应用过任何相机」时才补同步；数据刷新 / 图标解码不应抢走
+    // 用户已经选中或手动拖动到的位置。
+    if (_appliedCamera == null) _syncCameraIfNeeded();
   }
 
   /// 数据是异步到达时，`initialCameraPosition` 早就用过了（当时 maps 还是空），
   /// 地图会一直停在默认位置。这里在 zone 有了新相机位置后补一次移动。
   void _syncCameraIfNeeded() {
-    final controller = widget.zone.googleMapController;
+    final controller = _controllerOrZone;
     final target = widget.zone.cameraPosition;
     if (controller == null || target == null) return;
     if (_sameCamera(_appliedCamera, target)) return;
@@ -205,20 +236,29 @@ class _WMapState<T> extends State<WMap<T>> {
   ///
   /// 必须 await 相机动画：动画进行中调用 `showMarkerInfoWindow` 会被随后的
   /// 相机移动覆盖掉，表现为「点了 marker 但 InfoWindow 不弹」。
-  Future<void> _animateTo(double lat, double lng, double zoom, T item) async {
-    final controller = widget.zone.googleMapController;
+  Future<void> _animateTo(
+    double lat,
+    double lng,
+    double zoom,
+    T item, {
+    bool showInfoWindow = true,
+  }) async {
+    final controller = _controllerOrZone;
     if (controller == null) return;
     final markerId = MarkerId(widget.zone.mapper.id(item));
     _appliedCamera = CameraPosition(target: LatLng(lat, lng), zoom: zoom);
     await controller.animateCamera(
       CameraUpdate.newCameraPosition(_appliedCamera!),
     );
-    if (!mounted) return;
+    if (!mounted || !showInfoWindow) return;
     if (widget.zone.markers.any((m) => m.markerId == markerId)) {
       // 校验 marker 是否存在再打开 InfoWindow，避免静默失败
       await controller.showMarkerInfoWindow(markerId);
     }
   }
+
+  /// 优先用本 State 持有的控制器；换 zone 后也能继续工作
+  GoogleMapController? get _controllerOrZone => _mapController ?? widget.zone.googleMapController;
 
   @override
   Widget build(BuildContext context) {

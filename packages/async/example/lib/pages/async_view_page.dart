@@ -17,7 +17,7 @@ class _AsyncViewPageState extends State<AsyncViewPage> {
   @override
   void initState() {
     super.initState();
-    _controller = WAsyncController<List<String>>(_load);
+    _controller = WAsyncController.list(_load);
     _controller.load();
   }
 

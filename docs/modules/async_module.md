@@ -317,7 +317,7 @@ WAsyncTheme
 包内默认视图
 ```
 
-默认视图可通过 `WAsyncViewDefaults` 在 App 根部统一配置；`errorBannerBuilder` 可单独覆盖刷新失败条。
+默认视图通过 `WAsyncTheme` 在 App 根部统一配置；`errorBannerBuilder` 可单独覆盖刷新失败条。
 
 `WAsyncController.state` 是只读的 `ValueListenable`，状态变更必须经过 `load()` / `retry()`；
 可通过 `initial:` 指定初始状态。
@@ -332,7 +332,7 @@ Controller 会把所有异常（包括 `Error`）转为 failed，便于 UI 展�
 ```dart
 WAsyncStateSliver<List<Gift>>(
   state: state,
-  onRetry: controller.refreshGifts,
+  onRetry: controller.load,
   readySliverBuilder: (context, gifts) => WListViewSliver.list(...),
   emptyBuilder: (context) => ...,
   errorBuilder: (context, error, onRetry) => ...,
@@ -353,24 +353,22 @@ refreshing + 旧数据     → ready sliver；默认不添加进度，避免和 
 
 ## Sliver 默认视图
 
-`WAsyncStateSliver` 使用独立的 `WAsyncSliverDefaults`：
+`WAsyncStateSliver` 的默认视图用 `WAsyncTheme` 的 `sliver*Builder`：
 
 ```dart
-WAsyncSliverDefaults(
-  loadingBuilder: (_) => const AppAsyncStatusLoading(),
-  emptyBuilder: (_) => const AppAsyncStatusEmpty(),
-  errorBuilder: (context, error, retry) => AppAsyncStatusError(error, retry),
-  errorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
+WAsyncTheme(
+  sliverLoadingBuilder: (_) => const AppAsyncStatusLoading(),
+  sliverEmptyBuilder: (_) => const AppAsyncStatusEmpty(),
+  sliverErrorBuilder: (context, error, retry) => AppAsyncStatusError(error, retry),
+  sliverErrorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
   child: MaterialApp(...),
 )
 ```
 
-- `loading/empty/error` builder 必须是非滚动 Widget，因为会被放进 `SliverFillRemaining(hasScrollBody: false)`；
+- `sliverLoading/sliverEmpty/sliverError` builder 必须返回非滚动 Widget（会放进 `SliverFillRemaining(hasScrollBody: false)`）；
 - `refreshingSliverBuilder` 必须返回 sliver；
-- 不要复用 `WAsyncViewDefaults`；
+- 普通视图与 sliver 共用同一个 `WAsyncTheme`，不要嵌套两个实例；
 - 不要把 `AppRefreshable` / `SingleChildScrollView` 放进 sliver 状态。
-
-App 根部可以同时安装 `WAsyncViewDefaults` 和 `WAsyncSliverDefaults`。
 
 ## App 层固定滚动壳
 
@@ -504,4 +502,4 @@ loading / empty / error 只能作为 `slivers` 内部的分支，不要在外层
 
 `WAsyncView` 适合普通页面区块；滚动页面用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
 
-`WAsyncBuilder` 是旧名，保留为兼容别名。
+`WAsyncBuilder` 已删除（2.0）；用 `WAsyncStateBuilder`。

@@ -17,11 +17,16 @@ WMap<Store>(
       position: (s) => (latitude: s.lat, longitude: s.lng),
     ),
   ),
-  config: WMapConfig<Store>(onItemSelected: (s) => ..., onItemClosed: ...),
+  config: WMapConfig<Store>(
+    onItemSelected: (s) {},
+    onItemClosed: (s) {},
+  ),
 );
 ```
 
 > `LatLng` / `CameraPosition` 需要 `import 'package:google_maps_flutter/google_maps_flutter.dart';`
+> `initialCamera` 只在**没有可渲染条目**时生效；有数据时默认取首个条目 + `defaultZoom`。
+> `update()` 会重建 marker 但不会抢走当前相机（选中后下拉刷新不会跳回第一个）。`
 
 ## 不要用
 
@@ -33,6 +38,7 @@ WMap<Store>(
 
 - Android / iOS 都要配 Google Maps API Key；
 - `json_serializable` 模型不要改生成代码，用 `WMapItemMapper` 取字段；
-- 业务 UI 选中 / 关闭统一走 `WMapController.select` / `closeSelection`。
+- 业务 UI 选中 / 关闭统一走 `WMapController.select` / `closeSelection`；`closeSelection` 会隐藏 InfoWindow。
+- `WMapConfig.build()` 仍可用，但新代码直接构造 `WMap(config:, zone:)`。
 
 完整说明：[map_module.md](../modules/map_module.md) · 示例：`packages/map/example`

@@ -37,8 +37,11 @@ class WLogInterceptor extends Interceptor {
   /// 是否打印响应头
   final bool responseHeader;
 
-  /// 是否打印错误信息
+  /// 是否打印错误信息（详细）
   final bool error;
+
+  /// 是否打印错误友好提示
+  final bool errorHint;
 
   /// 是否启用日志
   final bool enableLog;
@@ -85,7 +88,8 @@ class WLogInterceptor extends Interceptor {
        requestBody = parts?.contains(WLogPart.requestBody) ?? requestBody ?? true,
        responseHeader = parts?.contains(WLogPart.responseHeader) ?? responseHeader ?? false,
        responseBody = parts?.contains(WLogPart.responseBody) ?? responseBody ?? true,
-       error = parts?.contains(WLogPart.error) ?? error ?? true;
+       error = parts?.contains(WLogPart.error) ?? error ?? true,
+       errorHint = parts?.contains(WLogPart.errorHint) ?? true;
 
   /// 请求阶段：打印请求详情
   @override
@@ -184,7 +188,7 @@ class WLogInterceptor extends Interceptor {
       }
     }
 
-    _handleError(err);
+    if (errorHint) _handleError(err);
     handler.next(err);
   }
 

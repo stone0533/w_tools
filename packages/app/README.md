@@ -33,12 +33,13 @@ import 'package:get/get.dart';
 import 'package:w_tools_app/w_tools_app.dart';
 
 Future<void> main() async {
-  final app = WApp()
-    ..title = 'Demo'
-    ..initialRoute = '/'
-    ..getPages = [
-      GetPage(name: '/', page: () => const HomePage()),
-    ];
+  final app = WApp.options(
+    WAppOptions(
+      title: 'Demo',
+      initialRoute: '/',
+      getPages: [GetPage(name: '/', page: () => const HomePage())],
+    ),
+  );
 
   await app.start();
 }
@@ -86,7 +87,7 @@ WLanguage().languageStream.listen((code) {
 
 ```dart
 // 需要先让 WApp 运行，WRouteObserver 才会维护路由栈
-WRoute.popUntilRoute('/home');
+WApp.routeStack.popUntilRoute('/home');
 ```
 
 ## 主要 API

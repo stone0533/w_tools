@@ -116,13 +116,13 @@ const WImageStyle().square(40).rounded(20)
 |---|---|
 | `WImage(url, config: WImageConfig()..width = 100)` | `WImage.network(url, style: const WImageStyle(width: 100))` |
 | `WImageConfig`（可变 + 链式） | `WImageStyle`（不可变 + `copyWith`） |
-| `WImageConfigBuild` | `WImage.source` / `WImage.network/asset/file/base64` |
+| `WImage` 旧构造（`config:` + builder） | `WImage.source` / `WImage.network/asset/file/base64` |
 | `toImage(config:)` | `toImage(style:)` |
 | `onLoadProgress` | `onProgress` |
 | `progressIndicatorBuilder` | `progressBuilder` |
 | `cacheEnabled` / `fitCenter` / `size` | 已删除 |
-| `WImageGlobalConfig` 默认占位符 | `WImageTheme` |
-| `WImageGlobalConfig` 缓存预算 | `WImageCachePolicy` |
+| `WImageGlobalConfig` 默认占位符 | `WImageDefaultsScope` + `WImageLoadConfig` |
+| `WImageGlobalConfig` 缓存预算 | 直接配置 `PaintingBinding.instance.imageCache` |
 
 ## 导航
 
@@ -174,11 +174,11 @@ DefaultTabController(
 
 ## 扩展方法
 
-> 新代码中 `SizedBox` / `Padding` 优先 `WSizeBox` / `WPadding`；`heightBox` / `widthBox` /
-> `squareBox` 与 `WSizeBox` 等价，仅保留兼容。`allPadding` 用于需要 `EdgeInsets` 值的场景。
+> `WSizeBox` / `WPadding` / `heightBox` / `widthBox` / `squareBox` 已弃用（5.0 移除）；
+> 直接用 `SizedBox` / `EdgeInsets`。`allPadding` 用于需要 `EdgeInsets` 值的场景。
 
 ```dart
-WSizeBox.height(16);          // SizedBox(height: 16)
+const SizedBox(height: 16);
 16.allPadding;                // EdgeInsets.all(16)
 1234.toThousandsSeparated;    // 1,234
 1234.56.toCurrency(symbol: '¥'); // ¥1,234.56

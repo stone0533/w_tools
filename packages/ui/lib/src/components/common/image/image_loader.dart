@@ -7,56 +7,6 @@ import 'image_load_state.dart';
 import 'image_retry_policy.dart';
 import 'image_types.dart';
 
-/// 图片加载快照（供 [WImageController.state] 监听）。
-@immutable
-@internal
-class WImageLoadSnapshot {
-  const WImageLoadSnapshot({
-    this.status,
-    this.progress,
-    this.attempt = 0,
-    this.error,
-    this.retryScheduled = false,
-    this.retryDelayMs,
-  });
-
-  final WImageLoadStatus? status;
-  final WImageProgress? progress;
-  final int attempt;
-  final WImageError? error;
-  final bool retryScheduled;
-  final int? retryDelayMs;
-
-  bool get isLoading => status == WImageLoadStatus.loading;
-  bool get isCompleted => status == WImageLoadStatus.completed;
-  bool get isFailed => status == WImageLoadStatus.failed;
-
-  @override
-  bool operator ==(Object other) =>
-      other is WImageLoadSnapshot &&
-      other.status == status &&
-      other.progress == progress &&
-      other.attempt == attempt &&
-      other.error == error &&
-      other.retryScheduled == retryScheduled &&
-      other.retryDelayMs == retryDelayMs;
-
-  @override
-  int get hashCode => Object.hash(
-    status,
-    progress,
-    attempt,
-    error,
-    retryScheduled,
-    retryDelayMs,
-  );
-
-  @override
-  String toString() =>
-      'WImageLoadSnapshot(status: $status, attempt: $attempt, '
-      'progress: $progress, retryScheduled: $retryScheduled)';
-}
-
 /// 图片加载状态持有者：把 `WImageLoadState` 与 `ValueListenable` 组合。
 ///
 /// 渲染仍由 WImage 的 State 负责；Loader 负责可观察的加载状态。
@@ -109,7 +59,7 @@ class WImageLoader extends WImageLoadState {
     _notifier.value = next;
   }
 
-  bool get hasRetries => attempt < _retryCount;
+  bool get hasRetries => autoRetries < _retryCount;
 
   @override
   void reset({required int retryCount, required int retryDelay}) {
@@ -242,7 +192,7 @@ class WImageLoader extends WImageLoadState {
     retryScheduled = false;
     pendingProgress = null;
     error = null;
-    super.beginAttempt();
+    super.beginManualAttempt();
     emit();
   }
 

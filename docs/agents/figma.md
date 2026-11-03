@@ -82,7 +82,7 @@ dart run w_tools_cli:explain <组件名>
 图片         WImage.asset / WImage.network
 普通按钮     WButton
 表单         WForm + 直接字段
-间距         WSizeBox / WPadding
+间距         原生 SizedBox / EdgeInsets
 异步         WAsyncController + WAsyncView
 ```
 

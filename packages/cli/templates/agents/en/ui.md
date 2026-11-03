@@ -24,12 +24,13 @@
   `overflow` locally. Reuse existing variants first (`price` / `number` / `badge`). If a variant is
   not enough: use `variant + style` for one-offs; extract a local helper for repeated styles.
   Consumers cannot add `WTextVariant` enum values.
+  Minimal: `WText(text: 'Title', variant: WTextVariant.title)`.
 - **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
-  `WHexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`.
+  `WHexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`;
+  compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
 - **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
-  prefixes; use `WSizeBox` for `SizedBox`, `WPadding` for `Padding`, and `num.allPadding` for
-  `EdgeInsets`. Do not use `num.heightBox` / `widthBox` / `squareBox`; they duplicate `WSizeBox`.
-  `WColumn.left/right` / `WRow.top/bottom` default to `MainAxisSize.max`; pass `MainAxisSize.min`
+  prefixes; use native `SizedBox` / `Padding` / `Row` / `Column`, and `num.allPadding` for `EdgeInsets`.
+  `WSizeBox` / `WPadding` / `WRow` / `WColumn` are deprecated (removed in 5.0).
   to wrap content.
 - **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
   `WNotificationListenerBuilder` for scroll notifications/percentage (depth 0 only).

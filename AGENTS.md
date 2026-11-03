@@ -125,7 +125,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
 - 每个独立区块一个 Controller；不要用一个 `WAsyncLoading` 合并多个独立区块的 Loading。
-- 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点（推荐 `WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放 `AppScaffold.body`。
+- 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点（推荐 `WAppPlugin.wrapApp` / `WAppOptions.appWrapper`），不要只放 `AppScaffold.body`。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
 - `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；loading / empty / error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
 - `WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 由调用方自行构建状态 UI，不读默认值。
@@ -151,7 +151,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 插件实现 `WAppPlugin`；有初始化顺序要求时用 `dependsOn` 显式声明，不要依赖注册顺序。
 - `builderWrapper` 位于 MaterialApp 内；`wrapApp` 位于 MaterialApp 外，没有 Theme / MediaQuery。
 - `WRouteObserver` 由 `WApp` 自动追加，不要重复添加。
-- 多语言用 `WLanguage.changeLanguage`，监听 `languageStream`；语言真源是 `WAppConfig.currentLanguage`。
+- 多语言用 `WLanguage().changeLanguage(...)`，监听 `languageStream`；语言真源是 `WAppConfig.currentLanguage`。
 
 ## 基础工具（w_tools_core）
 

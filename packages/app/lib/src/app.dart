@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'options.dart';
 import 'plugins/app_plugin.dart';
 import 'utils/app_config.dart';
+import 'utils/language.dart';
 import 'utils/route.dart';
 import 'utils/router_observer.dart';
 
@@ -27,7 +28,7 @@ import 'utils/router_observer.dart';
 /// }
 /// ```
 class WApp {
-  /// 创建空的 `WApp`（字段版配置，已弃用）
+  /// 创建空的 `WApp`（字段版配置，已弃用；新代码用 [WApp.options]）
   WApp();
 
   /// 用不可变 [WAppOptions] 配置（推荐）
@@ -94,6 +95,8 @@ class WApp {
   ThemeData? theme;
 
   /// 翻译资源
+  /// remove-in: 2.0.0
+  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
   Translations? translations;
 
   /// 当前语言
@@ -185,6 +188,8 @@ class WApp {
           !localeConfig.supportedLanguages.containsKey(WAppConfig.currentLanguage)) {
         WAppConfig.currentLanguage = defaultLanguage;
       }
+      // 让 languageStream 与真源保持一致（订阅者可能早于 init）
+      WLanguage().syncFromConfig();
     }
 
     // 已有初始化在跑：共享同一个 Future，避免插件 onInit 被执行两次
@@ -308,7 +313,8 @@ class WApp {
   /// 读取 [systemUiOverlayStyle]，为 `null` 时不做任何设置。
   /// `SystemChrome.setSystemUIOverlayStyle` 为同步 API，故本方法无需 `async`。
   void _setupSystemUI() {
-    final style = options?.systemUiOverlayStyle ?? systemUiOverlayStyle;
+    // options 非 null 时以 options 为准：显式传 null 表示不干预
+    final style = options != null ? options!.systemUiOverlayStyle : systemUiOverlayStyle;
     if (style == null) return;
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       SystemChrome.setSystemUIOverlayStyle(style);

@@ -22,7 +22,7 @@ class WAsyncPagedController<T> {
   final WAsyncPageLoader<T> _loader;
   final int initialPage;
 
-  /// 执行选项（错误兜底等）；分页的加载状态由本类维护
+  /// 执行选项（错误兜底等）；分页的加载状态由本类维护，传入的 `loading` 会被忽略
   final WAsyncOptions? options;
 
   final ValueNotifier<WAsyncState<List<T>>> _state;
@@ -33,6 +33,7 @@ class WAsyncPagedController<T> {
   bool _hasMore = true;
   bool _disposed = false;
   int _generation = 0;
+  bool _refreshing = false;
   WCancelToken? _token;
 
   ValueListenable<WAsyncState<List<T>>> get state => _state;
@@ -47,8 +48,16 @@ class WAsyncPagedController<T> {
 
   /// 重新加载第一页；失败时保留旧数据。
   Future<void> refresh() async {
-    if (_disposed) return;
+    if (_disposed || _refreshing) return;
+    _refreshing = true;
+    try {
+      await _refresh();
+    } finally {
+      _refreshing = false;
+    }
+  }
 
+  Future<void> _refresh() async {
     _token?.cancel('superseded by a newer refresh');
     final token = _token = WCancelToken();
 
@@ -108,13 +117,20 @@ class WAsyncPagedController<T> {
 
   /// 追加下一页；失败只写 [loadMoreError]，不会清空已有列表。
   Future<void> loadMore() async {
-    if (_disposed || _isLoadingMore.value || !_hasMore) return;
+    // 刷新 / 首屏进行中不要追加：refresh 已把 _page 重置为第一页，
+    // 此时追加会重复请求第一页并污染旧列表。
+    if (_disposed || _isLoadingMore.value || !_hasMore || _refreshing) {
+      return;
+    }
 
     final current = _state.value.dataOrNull;
     if (current == null) {
       await refresh();
       return;
     }
+
+    // 页码在请求前快照，避免请求期间 refresh 修改 _page
+    final requestedPage = _page;
 
     final generation = _generation;
     _isLoadingMore.value = true;
@@ -124,7 +140,7 @@ class WAsyncPagedController<T> {
     (List<T>,)? result;
     try {
       result = await WAsync.run<List<T>, (List<T>,)>(
-        () => _loader(_page),
+        () => _loader(requestedPage),
         options: options?.copyWith(loading: null),
         onSuccess: (value) => (value,),
         onError: (error) => failure = error,

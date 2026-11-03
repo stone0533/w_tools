@@ -23,10 +23,10 @@ class WLocaleConfig {
 ///
 /// ```dart
 /// WApp.options(
-///   const WAppOptions(
+///   WAppOptions(
 ///     title: 'Demo',
 ///     initialRoute: '/',
-///     getPages: [GetPage(name: '/', page: HomePage.new)],
+///     getPages: [GetPage(name: '/', page: () => const HomePage())],
 ///   ),
 /// ).start();
 /// ```

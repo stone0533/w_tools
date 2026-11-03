@@ -1,7 +1,7 @@
 /// 应用层配置（语言）
 ///
 /// [currentLanguage] 是语言的**唯一真源**，但本类**不响应式** ——
-/// 直接赋值不会触发任何通知；需要响应式切换请用 `WLanguage.changeLanguage`。
+/// 直接赋值不会触发任何通知；需要响应式切换请用 `WLanguage().changeLanguage(...)`。
 class WAppConfig {
   /// 支持的语言列表的存储（请通过 [supportedLanguages] 读写）
   static Map<String, String> _supportedLanguages = {'en_US': 'English'};

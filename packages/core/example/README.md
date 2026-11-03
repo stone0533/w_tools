@@ -7,13 +7,13 @@
 - `WEncrypt.aesEncrypt` / `aesDecrypt`
 - `WStorage.init` / `WToken`
 - `WStorage.setInt` / `getInt`
-- `WUx.debounce`
+- `WDebounce`（`WUx` 的同名方法已弃用）
 - `WCountdown`
 - `WPlatform`
 - `WRegExp` / `WLogger` / `WEncrypt.base64Encode`
 - `WMapExtension.sortedByKeys`
-- `WUx.throttle`
-- `WStorage.setObject` / `getObject`
+- `WThrottle`
+- `WStorage.setObject` / `getObject<Map<String, dynamic>>`
 
 ## 运行
 

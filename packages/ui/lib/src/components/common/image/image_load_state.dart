@@ -10,8 +10,11 @@ class WImageLoadState {
   /// 上一次已通知的加载状态
   WImageLoadStatus? status;
 
-  /// 已执行的重试次数
+  /// 已执行的尝试次数（自动 + 手动，作为重建 token）
   int attempt = 0;
+
+  /// 已消耗的自动重试次数（手动重试会清零，不影响 [attempt]）
+  int autoRetries = 0;
 
   /// 加载代际：数据变化 / 手动重试时 +1，用来丢弃过期的延迟重试
   int generation = 0;
@@ -34,6 +37,7 @@ class WImageLoadState {
   void reset({required int retryCount, required int retryDelay}) {
     status = null;
     attempt = 0;
+    autoRetries = 0;
     generation++;
     retryScheduled = false;
     completedProgressSent = false;
@@ -58,6 +62,7 @@ class WImageLoadState {
     retryCountSeen = retryCount;
     retryDelaySeen = retryDelay;
     attempt = 0;
+    autoRetries = 0;
     retryScheduled = false;
     completedProgressSent = false;
     pendingProgress = null;
@@ -66,9 +71,19 @@ class WImageLoadState {
     return true;
   }
 
-  /// 开始新一次尝试（自动重试或手动重试）
+  /// 开始新一次自动重试：消耗自动重试预算
   void beginAttempt() {
     attempt++;
+    autoRetries++;
+    status = null;
+    completedProgressSent = false;
+    pendingProgress = null;
+  }
+
+  /// 开始一次手动重试：重置自动重试预算，但保留 [attempt] 作为重建 token
+  void beginManualAttempt() {
+    attempt++;
+    autoRetries = 0;
     status = null;
     completedProgressSent = false;
     pendingProgress = null;

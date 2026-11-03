@@ -22,15 +22,15 @@ class WBottomSheet {
     Get.bottomSheet(
       Column(
         children: [
-          // 自建遮罩点击区：占满内容之上的剩余空间，点击即关闭弹窗
+          // 自建遮罩点击区：占满内容之上的剩余空间；isDismissible=false 时不接点击
           Expanded(
-            child: GestureDetector(
-              onTap: () {
-                Get.back();
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Container(),
-            ),
+            child: isDismissible == false
+                ? const SizedBox.expand()
+                : GestureDetector(
+                    onTap: () => Get.back(),
+                    behavior: HitTestBehavior.opaque,
+                    child: const SizedBox.expand(),
+                  ),
           ),
           content,
         ],

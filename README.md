@@ -64,10 +64,10 @@ dependencies:
 
 ```yaml
 dependencies:
-  w_tools_core: ^2.0.0
-  w_tools_async: ^1.0.0
-  w_tools_ui: ^3.0.0
-  w_tools_form: ^2.0.0
+  w_tools_core: ^2.4.0
+  w_tools_async: ^2.1.0
+  w_tools_ui: ^4.7.0
+  w_tools_form: ^3.2.0
   # 需要再加 w_tools_app / api / toast / qr / map
 ```
 
@@ -95,22 +95,17 @@ dart run w_tools_cli:doctor    # 之后随时检查是否守约定
 import 'package:w_tools/w_tools.dart';
 ```
 
-根包不再提供旧 `WConfig` 兼容层。
+根包不再提供旧 `WConfig` 兼容层（`WConfig` 的键名字段已弃用）。
 
-`w_tools.dart` 重新导出的 `WConfig` 是 `core.WConfig`，只负责 token 键名：
+配置走子包入口：
 
 ```dart
 import 'package:w_tools/w_tools.dart';
 
-WConfig.tokenKey = 'auth_token';
-```
-
-其余配置继续使用子包入口：
-
-```dart
-import 'package:w_tools_ui/w_tools_ui.dart';     // WAssets.imagePath
-import 'package:w_tools_form/w_tools_form.dart'; // WFormDefaults
-import 'package:w_tools_app/w_tools_app.dart';   // WAppConfig
+WToken.tokenKey = 'auth_token';   // core：token 键名
+WAssets.imagePath = 'assets/images/';  // ui：资源前缀
+WFormIcons.check = Icons.check;   // form：表单图标
+WAppConfig.supportedLanguages = {'zh_CN': '简体中文'}; // app：语言
 ```
 
 
@@ -120,8 +115,8 @@ import 'package:w_tools_app/w_tools_app.dart';   // WAppConfig
 
 ```yaml
 dependencies:
-  w_tools_core: ^2.0.0   # 只引子包
-  w_tools_ui: ^3.0.0
+  w_tools_core: ^2.4.0   # 只引子包
+  w_tools_ui: ^4.7.0
 ```
 
 或一键引入聚合包（会带上全部 9 个 Flutter 子包及其依赖）：
@@ -151,13 +146,13 @@ flutter pub get
 | `w_tools_toast` | 轻量提示（`WToast`） |
 | `w_tools_qr` | 二维码扫描（`WQrView`） |
 | `w_tools_map` | 地图相关 |
-| **`w_tools_app`** | 应用启动器（`WApp`）、插件契约（`WAppPlugin`）、路由观察者、`WRoute` |
+| **`w_tools_app`** | 应用启动器（`WApp`）、插件契约（`WAppPlugin`）、路由观察者、`WRouteStack` / `WApp.routeStack` |
 
 > ⚠️ **`w_tools_app` 强依赖 GetX，且不可替换。**
 >
 > - `WApp.run()` 内部构建的根组件就是 `GetMaterialApp`
 > - `run()` / `start()` 的 `initialRoute` / `getPages` / `translations` / `locale` / `defaultTransition` 参数均为 GetX 类型
-> - `WRoute` 基于 GetX（`WRouteObserver` 本身不依赖 GetX，但与 `WRoute` 配套使用）
+> - `WRouteStack` 记录路由（`WRouteObserver` 本身不依赖 GetX；静态 `WRoute` 已弃用，用 `WApp.routeStack`）
 >
 > **换句话说：使用启动器 = 你的项目必须使用 GetX。**
 
@@ -167,8 +162,8 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_ui: ^3.0.0     # 只用 UI 组件
-  w_tools_core: ^2.0.0   # 只用工具类与扩展
+  w_tools_ui: ^4.7.0     # 只用 UI 组件
+  w_tools_core: ^2.4.0   # 只用工具类与扩展
 ```
 
 ```dart
@@ -291,7 +286,7 @@ class MyAppPlugin extends WAppPlugin {
 - **QrView** (`WQrView`): 二维码扫描组件（来自 `w_tools_qr` 子包）
 - **RowButtons** (`WRowButtons`): 行按钮组件
 - **Text** (`WText`): 增强的文本组件
-- **TextStyle** (`WTextStyleExtension`): 由 `WTextConfig` 创建 `TextStyle` 的扩展
+- **TextStyle** (`WTextStyleExtension`): `TextStyle` 的 `bold` / `withColor` / `withSize` 扩展
 - **RichText** (`WRichText`): 富文本组件，支持复杂文本渲染
 
 #### 输入组件
@@ -337,24 +332,19 @@ class MyAppPlugin extends WAppPlugin {
 - **异步工具** (`WAsync` / `WAsyncState` / `WAsyncView`): 提供执行、四态状态、Controller 与异步视图
 - **平台工具** (`WPlatform`): 提供平台检测和适配功能，支持移动、桌面和 Web 平台的判断，以及平台特定操作的执行
 - **正则工具** (`WRegExp`): 提供常用正则表达式
-- **路由工具** (`WRoute`): 基于 GetX 的路由栈管理（记录、按名称移除/回退）
+- **路由工具** (`WRouteStack` / `WApp.routeStack`): 路由栈记录与回退（静态 `WRoute` 已弃用）
 
 ### 📚 扩展功能
 
 #### 扩展方法
-- **颜色扩展** (`HexColor`): 提供颜色转换、十六进制字符串生成等功能
+- **颜色扩展** (`WHexColor`): 十六进制颜色解析 / 生成
 - **字符串扩展** (`WStringExtension`): 提供字符串格式化、验证、转换等功能
 - **数字扩展** (`WNumExtension`): 提供数字格式化、范围检查等功能
 - **容器扩展** (`WWidgetExtension`): 提供容器装饰、布局调整等功能
 - **映射扩展** (`WMapExtension`): 提供映射操作、转换等功能
-- **行扩展** (`WRow` / `WRowExtension`): 提供行布局的便捷操作
-- **列扩展** (`WColumn` / `WColumnExtension`): 提供列布局的便捷操作
-- **图片扩展** (`WImageExtension`): 提供图片加载、处理等功能
-- **全局键扩展** (`WGlobalKeyExtension`): 提供全局键的便捷操作
-- **尺寸框扩展** (`WSizeBox`): 提供尺寸框的便捷创建
-- **内边距扩展** (`WPadding`): 提供内边距的便捷添加
-- **文本样式扩展** (`WTextStyleExtension`): 提供从 WTextConfig 创建 TextStyle 的方法
-- **行高样式扩展** (`WStrutStyleExtension`): 提供从 WTextConfig 创建 StrutStyle 的方法
+- **全局键扩展** (`WGlobalKeyExtension`): GlobalKey 查找 / 定位
+- **文本样式扩展** (`WTextStyleExtension`): `bold` / `withColor` / `withSize`
+- **布局糖**（`WRow` / `WColumn` / `WSizeBox` / `WPadding`）已弃用（5.0 移除），直接用 Flutter `Row` / `Column` / `SizedBox` / `EdgeInsets`
 
 ## 使用示例
 
@@ -368,24 +358,15 @@ class MyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WScaffold(
-      body: Column(
-        children: [
-          WAppBar(title: '示例页面'),
-          Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  WButton(
-                    onTap: () {},
-                    child: WText(text: '点击我'),
-                  ),
-                  WText(text: '这是一个文本组件'),
-                ],
-              ),
-            ),
-          ),
-        ],
+      title: '示例页面',
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            WButton(label: '点击我', onTap: () {}),
+            const WText(text: '这是一个文本组件'),
+          ],
+        ),
       ),
     );
   }
@@ -397,21 +378,16 @@ class MyPage extends StatelessWidget {
 ```dart
 import 'package:w_tools/w_tools.dart';
 
-// 使用多选下拉框
-final multiDropdownConfig = WFormMultiDropdownConfig()
-  ..height = 50
-  ..width = 200
-  ..itemStyle = TextStyle(fontSize: 16)
-  ..itemCheckedStyle = TextStyle(fontSize: 16, color: Colors.blue)
-  ..itemDisabledStyle = TextStyle(fontSize: 16, color: Colors.grey);
-
-WFormMultiDropdown multiDropdown = multiDropdownConfig.build(
-  name: 'multi_select',
-  items: {'option1': '选项1', 'option2': '选项2', 'option3': '选项3'},
-  initialValue: 'option1',
-  onChanged: (value) {
-    print('选中的值: $value');
-  },
+// 直接把字段放进 WForm（不要从 Config.build / *Core 开始）
+WForm(
+  controller: WFormController(),
+  child: WFormMultiDropdown(
+    name: 'multi_select',
+    label: '多选',
+    items: {'option1': '选项1', 'option2': '选项2', 'option3': '选项3'},
+    initialValue: {'option1'},   // Set<String>
+    onChanged: (value) => debugPrint('选中的值: $value'),
+  ),
 );
 ```
 

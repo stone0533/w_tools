@@ -20,7 +20,15 @@ dependencies:
   w_tools_toast: ^1.3.0
 ```
 
-同时请按 `bot_toast` 文档完成初始化（`BotToastInit` 与 `BotToastNavigatorObserver`）。
+先在 `MaterialApp` 上完成 BotToast 初始化（只做一次）：
+
+```dart
+MaterialApp(
+  builder: BotToastInit(),
+  navigatorObservers: [BotToastNavigatorObserver()],
+  ...
+);
+```
 
 > 本包最低要求 Flutter 3.38.0。
 
@@ -52,7 +60,8 @@ WToast.showSuccess('保存成功', style: style);
 | 文本提示 | `WToast.showText` |
 | 成功 / 错误 / 警告 | `WToast.showSuccess` / `showError` / `showWarning` |
 | 加载 | `WToast.showLoading` / `hideLoading` |
-| 自定义 | `WToast.showCustom` |
+| 自定义 | `WToast.showCustom` / `showCustomDialog` |
+| loading + 结果提示 | `WToast.runWithLoading` |
 | 关闭全部 | `WToast.hideAll` |
 | 样式复用 | `WToastStyle`（不可变，`copyWith`） |
 

@@ -28,6 +28,29 @@ void main() {
       expect(controller.hasMore, isFalse);
     });
 
+    test('refresh 进行中 loadMore 不追加、不请求第一页', () async {
+      final calls = <int>[];
+      final pending = Completer<List<int>>();
+      final controller = WAsyncPagedController<int>((page) async {
+        calls.add(page);
+        if (calls.length == 2) return pending.future;
+        return const [1, 2];
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      expect(calls, [1]);
+
+      final refreshing = controller.refresh();
+      await controller.loadMore();
+
+      // 刷新未完成时 loadMore 直接返回，不会用被重置的 _page 请求第一页
+      expect(calls, [1, 1]);
+      pending.complete(const [9, 9]);
+      await refreshing;
+      expect(controller.state.value.data, [9, 9]);
+    });
+
     test('initial.ready 时 loadMore 从下一页开始', () async {
       final calls = <int>[];
       final controller = WAsyncPagedController<int>(

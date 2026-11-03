@@ -12,7 +12,8 @@ import 'qr_overlay_shape.dart';
 /// 基于 `qr_code_scanner_plus` 封装，支持 Android、iOS 与 Web；桌面端会由
 /// 插件抛出 `UnsupportedError`。
 /// 默认在首次成功扫码后回调 [onScanned] 并暂停相机（[scanOnce] 为 true）；
-/// 需要连续扫描时请将 [scanOnce] 设为 false。
+/// 需要连续扫描时请将 [scanOnce] 设为 false；只监听 [WQrController.scannedDataStream]
+/// 而不传 [onScanned] 时也必须设 `scanOnce: false`，否则第一条码后就会暂停。
 /// 应用退到后台时会自动暂停相机，回到前台时恢复（单次扫描已完成时不恢复）。
 /// 需要重新开始扫描时，可通过 `GlobalKey<WQrViewState>` 调用
 /// [WQrViewState.restartScan]。
@@ -222,10 +223,10 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     super.reassemble();
     // Android 热重载后相机可能黑屏，先暂停再恢复
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      _runCameraAction(_controller?.pauseCamera());
+      _runCameraAction(() => _controller?.pauseCamera());
     }
     if (!_pausedByLifecycle) {
-      _runCameraAction(_controller?.resumeCamera());
+      _runCameraAction(() => _controller?.resumeCamera());
     }
   }
 
@@ -268,7 +269,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
       _lastScannedAt = null;
     });
     if (!_pausedByLifecycle) {
-      await _controller?.resumeCamera();
+      _runCameraAction(() => _controller?.resumeCamera());
     }
   }
 
@@ -306,7 +307,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     final lifecycleState = WidgetsBinding.instance.lifecycleState;
     if (lifecycleState != null && lifecycleState != AppLifecycleState.resumed) {
       _pausedByLifecycle = true;
-      _runCameraAction(wrapper.pauseCamera());
+      _runCameraAction(() => wrapper.pauseCamera());
     }
 
     final callback = widget.onQRViewCreated;
@@ -343,7 +344,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
       _scanHandled = true;
       // 先暂停再回调：调用方在 onScanned 内调用 restartScan 时，
       // resume 会排在 pause 之后，最终状态正确
-      _runCameraAction(_controller?.pauseCamera());
+      _runCameraAction(() => _controller?.pauseCamera());
     }
 
     try {
@@ -383,7 +384,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   void _pauseForLifecycle() {
     if (_controller == null || _pausedByLifecycle) return;
     _pausedByLifecycle = true;
-    _runCameraAction(_controller?.pauseCamera());
+    _runCameraAction(() => _controller?.pauseCamera());
   }
 
   /// 应用回到前台时恢复相机（单次扫描已完成时不恢复）
@@ -391,17 +392,26 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     if (!_pausedByLifecycle) return;
     _pausedByLifecycle = false;
     if (widget.scanOnce && _scanHandled) return;
-    _runCameraAction(_controller?.resumeCamera());
+    _runCameraAction(() => _controller?.resumeCamera());
   }
 
-  /// 执行相机操作并上报异步异常
-  void _runCameraAction(Future<void>? action) {
+  /// 执行相机操作并上报异常（同步 throw 与 Future 失败都走 onError）
+  ///
+  /// 传闭包而不是已求值的 Future：Web 端插件的 [pauseCamera] 是同步抛
+  /// `UnimplementedError`，先求值会绕过这里的护栏。
+  void _runCameraAction(Future<void>? Function()? action) {
     if (action == null) return;
-    unawaited(
-      action.catchError((Object error, StackTrace stackTrace) {
-        _reportError(error, stackTrace);
-      }),
-    );
+    try {
+      final future = action();
+      if (future == null) return;
+      unawaited(
+        future.catchError((Object error, StackTrace stackTrace) {
+          _reportError(error, stackTrace);
+        }),
+      );
+    } catch (error, stackTrace) {
+      _reportError(error, stackTrace);
+    }
   }
 
   /// 上报错误

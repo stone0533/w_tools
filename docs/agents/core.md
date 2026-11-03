@@ -12,7 +12,7 @@ await WStorage.setString('k', 'v');
 await WToken.saveToken(token, expiry);    // 键名由 WToken 持有
 WValidator.isValidEmail(email);           // 业务语义校验
 WRegExp.email.hasMatch(text);             // 纯正则匹配
-WLogger.i('tag', 'message');              // 不要 print
+WLogger.i('message', tag: 'tag');         // 不要 print（tag 是命名参数）
 
 final debounce = WDebounce(() => search(), duration: const Duration(milliseconds: 300));
 debounce();                               // 页面 dispose 时 debounce.cancel()

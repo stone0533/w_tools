@@ -16,7 +16,7 @@
 
 ## 平台支持
 
-- Android、iOS、Web
+- Android、iOS、Web（Web 的相机控制 `pause/resume/flip` 由插件抛 `UnimplementedError`，本包会通过 `onError` 上报，扫码本身可用）
 - 桌面端由 `qr_code_scanner_plus` 抛出 `UnsupportedError`
 - iOS 最低部署版本 12.0（插件 2.1.2）
 - Android 需声明 `CAMERA` 权限；iOS 需配置 `NSCameraUsageDescription`
@@ -51,6 +51,9 @@ class ScanPage extends StatelessWidget {
 }
 ```
 
+> 只监听 `onQRViewCreated` 的 `scannedDataStream`、不传 `onScanned` 时，必须显式 `scanOnce: false`：
+> 单次模式在第一条码后仍会锁定并暂停相机，流不会继续推送。
+
 连续扫描：
 
 ```dart
@@ -70,7 +73,7 @@ final key = GlobalKey<WQrViewState>();
 
 WQrView(key: key, onScanned: (_) {});
 
-// 扫码完成后重新开始
+// 扫码完成后重新开始（失败会走 onError，不会抛给调用方）
 await key.currentState?.restartScan();
 ```
 

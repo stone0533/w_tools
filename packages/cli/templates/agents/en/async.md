@@ -5,3 +5,5 @@
   `SmartRefresher` around `WAsyncView`. `builder` must always return the same
   `SmartRefresher + CustomScrollView`; loading/empty/error go inside slivers. Use
   `WAsyncTheme`'s `sliver*Builder` / `WAsyncStateSliver` for sliver pages; `readySliverBuilder` returns a sliver.
+  Pagination: use `WAsyncPagedController`; on `loadMore` failure write `loadMoreError` / footer,
+  never replace the list with `WAsyncController.failed`.

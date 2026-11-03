@@ -9,7 +9,7 @@
 ## 特性
 
 - **数据校验**：邮箱、手机号、身份证、银行卡（Luhn）、真实日期、数值等
-- **正则工具**：`WRegExpPattern` / `WRegExpPreset` / `WRegExp` 分层使用
+- **正则工具**：`WRegExp`（预编译正则 + 提取方法）
 - **加密与哈希**：AES-CBC、Base64、MD5、SHA 系列、HMAC-SHA256
 - **本地存储**：基于 `shared_preferences` 的 `WStorage` 与 `WToken`
 - **日志与性能**：`WLogger` 支持级别切换、标签、性能计时
@@ -43,7 +43,7 @@ Future<void> example() async {
   await WStorage.init();
   await WStorage.setString('token', 'abc');
 
-  WLogger.i('result: $length');
+  WLogger.i('saved: ${WStorage.getString('token')}');
   WLogger.d('email valid: ${WValidator.isValidEmail('dev@example.com')}');
 }
 ```
@@ -52,15 +52,15 @@ Future<void> example() async {
 
 | 能力 | 入口 |
 |---|---|
-| 全局配置 | `WConfig` |
+| 全局配置 | `WToken`（token 键名）/ `WAssets` 前缀；`WConfig` 已弃用 |
 | 校验 | `WValidator` |
-| 正则 | `WRegExp` / `WRegExpPattern` / `WRegExpPreset` |
+| 正则 | `WRegExp` |
 | 加密 / 哈希 | `WEncrypt` / `WHash` |
 | 存储 / Token | `WStorage` / `WToken` |
 | 日志 | `WLogger` / `WLogger.t` / `d` / `i` / `w` / `e` / `f` |
 | 倒计时 | `WCountdown` |
 | 平台判断 | `WPlatform` / `WPlatformType` |
-| 交互工具 | `WUx` / `WCancellableAction` |
+| 交互工具 | `WDebounce` / `WThrottle`；`WUx` 的同名方法已弃用 |
 | Map 扩展 | `WMapExtension.sortedByKeys` / `merge` |
 
 ## 行为说明
@@ -72,9 +72,9 @@ Future<void> example() async {
 ## 交互工具示例
 
 ```dart
-final debouncedSearch = WUx().debounce(
-  () => loadResults(),
-  duration: 300,
+final debouncedSearch = WDebounce(
+  loadResults,
+  duration: const Duration(milliseconds: 300),
 );
 
 // 页面 dispose 时取消

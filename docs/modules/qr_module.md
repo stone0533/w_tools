@@ -110,7 +110,7 @@ WQrView(
 ### 注意事项
 
 - `resumeCamera` 只恢复相机运行态，不会重置 `scanOnce` 的已扫码锁定；若 `scanOnce=true` 且已扫码一次，调用 `resumeCamera` 后相机恢复但不会再触发 `onScanned`。
-- 底层控制器抛出的 `CameraException` 由调用方处理，本类不捕获。
+- 相机操作失败（含 Web 上的 `UnimplementedError`）统一通过 `onError` 上报，不会抛给调用方。
 - 控制器通过 `WQrView.onQRViewCreated` 回调获得，**每次回调都是新实例**；平台视图重建（`cameraFacing` / `formatsAllowed` 变化）后旧 controller 会被 `dispose()`。
 
 ### 使用示例
@@ -161,13 +161,13 @@ await _cameraController?.pauseCamera();
 | `overlay` | `WQrViewOverlayShape?` | `null` | 扫描框样式；为 null 时使用 `WQrViewOverlayShape` 默认值 |
 | `overlayMargin` | `EdgeInsetsGeometry` | `EdgeInsets.zero` | 扫描框外边距 |
 | `noPermissionCallback` | `VoidCallback?` | `null` | 无相机权限回调。权限状态可能被插件多次上报，因此回调也可能多次触发 |
-| `onScanned` | `void Function(Barcode)` | **必填** | 扫描到有效内容时的回调。仅在 `Barcode.code` 非空时触发；`scanOnce=true` 时最多触发一次 |
+| `onScanned` | `void Function(Barcode)?` | 可空（与 `onQRViewCreated` 至少一个） | 扫描到有效内容时的回调。仅在 `Barcode.code` 非空时触发；`scanOnce=true` 时最多触发一次 |
 | `onQRViewCreated` | `void Function(WQrController)?` | `null` | 相机控制器创建回调。平台视图重建后再次回调新 controller，旧的不再可用 |
 | `cameraFacing` | `CameraFacing` | `CameraFacing.back` | 摄像头方向。运行期修改会**重建平台视图**并重置扫描状态 |
 | `formatsAllowed` | `List<BarcodeFormat>` | `[]` | 允许识别的条码格式；为空表示使用平台默认值。运行期修改会重建平台视图 |
 | `scanOnce` | `bool` | `true` | 是否只扫描一次。为 true 时首次成功后暂停相机；为 false 时持续回调 |
-| `scanInterval` | `Duration` | `Duration.zero` | 连续扫描模式下相同内容的最小回调间隔；仅在 `scanOnce=false` 时生效 |
-| `onError` | `void Function(Object, StackTrace)?` | `null` | 错误回调，用于上报相机操作失败、扫描流错误与 `onScanned` 自身抛出的异常；未提供时通过 `FlutterError.reportError` 上报 |
+| `scanInterval` | `Duration` | `400ms` | 连续扫描模式下相同内容的最小回调间隔；仅在 `scanOnce=false` 时生效 |
+| `onError` | `void Function(Object, StackTrace)?` | `null` | 错误回调，用于上报相机操作失败、扫描流错误与 `onScanned` 自身抛出的异常；未提供时 debug 下 `debugPrint`，release 静默 |
 
 ### WQrViewState 公开方法
 
@@ -409,7 +409,7 @@ class _QrScanPageState extends State<QrScanPage> {
 |------|----------|
 | Android | ✅ 完整支持 |
 | iOS | ✅ 完整支持 |
-| Web | ✅ 支持 |
+| Web | ⚠️ 扫码可用；`pause/resume/flip` 由插件抛 `UnimplementedError`（本包经 `onError` 上报） |
 | Windows / macOS / Linux | ❌ 插件抛 `UnsupportedError` |
 
 ### 版本锁定
@@ -425,13 +425,13 @@ class _QrScanPageState extends State<QrScanPage> {
 
 ### 错误处理
 
-- `onScanned` 自身抛出的异常会被捕获并通过 `onError`（或 `FlutterError.reportError`）上报，不会导致组件崩溃。
+- `onScanned` 自身抛出的异常会被捕获并通过 `onError` 上报（未提供时 debug 下 `debugPrint`，release 静默），不会导致组件崩溃。
 - 底层控制器抛出的 `CameraException` 会通过 `onError` 上报，由调用方决定如何处理。
 - `onError` 自身抛出的异常会被忽略，避免形成未处理异常。
 
 ### 其他
 
-- `scanInterval` 仅在 `scanOnce=false` 时生效，默认 `Duration.zero` 表示不去重。
+- `scanInterval` 仅在 `scanOnce=false` 时生效，默认 `400ms`：同一内容最快每 400ms 回调一次；持续对着同一码会持续回调，需要“一码一次”请自行去重或改用 `scanOnce` / `restartScan`。
 - `showOverlay=false` 时 `borderColor` / `checkedBorderColor` / `overlay` 均不生效，组件进入全屏扫描模式。
 - `formatsAllowed` 为空列表时使用平台默认识别格式，显式指定可提升识别速度。
 - 桌面端（Windows/macOS/Linux）运行会在插件层抛 `UnsupportedError`，请在使用前做平台判断。

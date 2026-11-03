@@ -34,7 +34,7 @@ await WAsync.retry(() => api.gifts(), options: options, retryCount: 3);
 ## 常见坑
 
 - 每个区块一个 Controller；页面 `dispose` 时 `controller.dispose()`；
-- 控制器自己管四态，不要再给 `options.loading`（会双份 loading）；
+- 控制器自己管四态；给控制器传 `options.loading` 会被**静默忽略**（不要用它做加载态）；
 - 取消是协作式的：loader 要接收 `WCancelToken` 并检查；
 - 全局默认视图用 `WAsyncTheme`（放 App 根节点），不是 `WAsyncViewDefaults`。
 

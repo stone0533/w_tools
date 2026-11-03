@@ -208,3 +208,52 @@ final class WImageUnsupportedError extends WImageError {
   @override
   String get message => '当前平台不支持 $platform 图片';
 }
+
+/// 图片加载快照（供 [WImageController.state] 监听）。
+@immutable
+class WImageLoadSnapshot {
+  const WImageLoadSnapshot({
+    this.status,
+    this.progress,
+    this.attempt = 0,
+    this.error,
+    this.retryScheduled = false,
+    this.retryDelayMs,
+  });
+
+  final WImageLoadStatus? status;
+  final WImageProgress? progress;
+  final int attempt;
+  final WImageError? error;
+  final bool retryScheduled;
+  final int? retryDelayMs;
+
+  bool get isLoading => status == WImageLoadStatus.loading;
+  bool get isCompleted => status == WImageLoadStatus.completed;
+  bool get isFailed => status == WImageLoadStatus.failed;
+
+  @override
+  bool operator ==(Object other) =>
+      other is WImageLoadSnapshot &&
+      other.status == status &&
+      other.progress == progress &&
+      other.attempt == attempt &&
+      other.error == error &&
+      other.retryScheduled == retryScheduled &&
+      other.retryDelayMs == retryDelayMs;
+
+  @override
+  int get hashCode => Object.hash(
+    status,
+    progress,
+    attempt,
+    error,
+    retryScheduled,
+    retryDelayMs,
+  );
+
+  @override
+  String toString() =>
+      'WImageLoadSnapshot(status: $status, attempt: $attempt, '
+      'progress: $progress, retryScheduled: $retryScheduled)';
+}

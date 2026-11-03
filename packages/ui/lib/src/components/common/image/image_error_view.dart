@@ -4,7 +4,8 @@ import 'image_types.dart';
 
 /// 内置的错误占位：图标 + 文案 + 可选重试按钮。
 ///
-/// 通过 `WImageStyle(showRetryButton: true)` 启用；业务也可以直接复用它。
+/// 通过 `WImageLoadConfig(showRetryButton: true)` 启用（`WImageStyle` 没有该参数）；
+/// 业务也可以直接复用它。
 class WImageErrorView extends StatelessWidget {
   const WImageErrorView({
     super.key,

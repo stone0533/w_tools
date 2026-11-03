@@ -20,7 +20,8 @@ WQrView(
 key.currentState?.restartScan();
 ```
 
-只监听流时可不传 `onScanned`（与 `onQRViewCreated` 至少提供一个）。
+只监听流时可不传 `onScanned`（与 `onQRViewCreated` 至少提供一个），但**必须同时传 `scanOnce: false`**：
+单次模式在第一条码后仍会锁定并暂停相机，流不会继续推送。
 
 ## 不要用
 
@@ -31,7 +32,7 @@ key.currentState?.restartScan();
 
 - Android 配 `CAMERA`；iOS 配 `NSCameraUsageDescription`；
 - 默认 `scanOnce = true`，扫完暂停，再扫要 `restartScan()`；
-- 连续扫描默认 `scanInterval = 400ms`，同一内容不会每秒重复回调；
+- 连续扫描默认 `scanInterval = 400ms`：同一内容最快每 400ms 回调一次，持续对着同一码会持续回调；需要“一码一次”请自行去重；
 - 用 `GlobalKey<WQrViewState>` 才能调用 `restartScan()`。
 
 完整说明：[qr_module.md](../modules/qr_module.md) · 示例：`packages/qr/example`

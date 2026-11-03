@@ -71,7 +71,7 @@ class MapPage extends StatelessWidget {
 | 地图区域 | `WMapZone` / `initMap` / `update` |
 | 地图组件 | `WMap` |
 | 配置 | `WMapConfig` / `onItemSelected` / `onItemClosed` / `onMapTap` |
-| 业务侧控制地图 | `WMapController`（目前提供 `closeSelection`） |
+| 业务侧控制地图 | `WMapController`（`select` / `closeSelection`） |
 | 多地图共享数据 | `WMapZone.addDataUpdatedListener` / `removeDataUpdatedListener` |
 
 ## 模型不实现 WMapItem（推荐用于生成模型）

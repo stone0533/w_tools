@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 /// 倒计时工具
 ///
 /// 基于 `Timer.periodic` 每秒回调一次；支持暂停 / 恢复 / 停止。
-/// [dispose] 等同于 [stop]，实例仍可再次 [start] 复用。
+/// [dispose] 会停止并释放资源；dispose 后不可再 [start]（会抛 [StateError]）。
 class WCountdown implements ValueListenable<int> {
   /// 总秒数（只读，由 [start] 设置）
   int get totalSeconds => _totalSeconds;

@@ -3,6 +3,18 @@ import 'package:w_tools_ui/src/components/common/image/image_load_state.dart';
 import 'package:w_tools_ui/src/components/common/image/image_types.dart';
 
 void main() {
+  test('手动重试清零自动重试预算，但 attempt 继续递增', () {
+    final state = WImageLoadState()..reset(retryCount: 3, retryDelay: 1000);
+    state.beginAttempt();
+    state.beginAttempt();
+    state.beginAttempt();
+    expect(state.autoRetries, 3);
+
+    state.beginManualAttempt();
+    expect(state.attempt, 4);
+    expect(state.autoRetries, 0);
+  });
+
   test('syncRetryConfig 变化时取消已排队的重试', () {
     final state = WImageLoadState()
       ..reset(retryCount: 3, retryDelay: 1000)

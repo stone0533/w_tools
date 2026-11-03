@@ -58,6 +58,16 @@ void main() {
     });
   });
 
+  test('syncFromConfig 把 WAppConfig 回写到 languageStream', () {
+    WAppConfig.currentLanguage = 'en_US';
+    WLanguage().syncFromConfig();
+    expect(WLanguage().languageStream.value, 'en_US');
+
+    WAppConfig.currentLanguage = 'zh_CN';
+    WLanguage().syncFromConfig();
+    expect(WLanguage().languageStream.value, 'zh_CN');
+  });
+
   group('WRouteStack', () {
     test('add / remove / clear', () {
       final stack = WRouteStack();

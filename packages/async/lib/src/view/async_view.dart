@@ -17,7 +17,7 @@ import 'async_view_defaults.dart';
 /// - refreshing：保留内容，展示线性进度。
 ///
 /// 默认 loading / empty / error 文案只是 fallback；正式项目应通过
-/// [WAsyncViewDefaults] 或显式 builder 覆盖。
+/// [WAsyncTheme] 或显式 builder 覆盖。
 ///
 /// [WAsyncView] 适合页面主体、Column 或 ListView item；
 /// 为错误条/刷新条约束有界宽度，不强制高度。

@@ -192,12 +192,14 @@ WMap<StoreItem>(
 | `selectLatOffset` | `0.0` | 选中条目时的纬度偏移（向上偏移；0 表示 Marker 居中） |
 | `onItemSelected` | `null` | 选中条目回调 `ValueChanged<T>?` |
 | `onItemClosed` | `null` | 关闭选中条目回调 `ValueChanged<T>?` |
+| `onMapTap` | `null` | 点击地图空白回调 `VoidCallback?` |
+| `padding` | `null` | 地图内边距（`EdgeInsets`，用于避开面板 / 底部卡片） |
 
 ### 构建方法
 
 | 方法 | 说明 |
 |------|------|
-| `build({required WMapZone<T> zone})` | 构建 `WMap` 组件 |
+| `build({required WMapZone<T> zone, WMapController<T>? controller})` | 构建 `WMap` 组件（新代码建议直接 `WMap(config:, zone:)`） |
 
 ### 使用示例
 
@@ -224,7 +226,7 @@ final mapConfig = WMapConfig<StoreItem>(
 | 方法 | 说明 |
 |------|------|
 | `select(item)` | 选中条目：相机移动到该条目、打开 InfoWindow、触发 `onItemSelected` |
-| `closeSelection(item)` | 关闭选中：清除选中、复位相机、触发 `onItemClosed` |
+| `closeSelection(item)` | 关闭选中：清除选中、隐藏 InfoWindow、复位相机、触发 `onItemClosed` |
 | `isAttached` | 是否已挂载到 `WMap` |
 
 未挂载时调用 `select` / `closeSelection` 不会抛异常，但也不会产生地图动作。
@@ -311,7 +313,8 @@ mapController.select(stores.first);
 - `WMap` 在 `initState` 注册 `zone` 的 Marker 点击回调，在 `dispose` 时移除。
 - 选中态一致性：数据更新后若选中条目不在当前 `maps` 列表，会自动清除选中。
 - Marker 图标默认使用 `BitmapDescriptor.defaultMarker`；`icon` 为 null 时生效。
-- `latitude`/`longitude` 为 `double?`，为 null 时兜底为 `0.0`。
+- `latitude`/`longitude` 为 `double?`：默认 mapper 会跳过该条目（不再落到 `(0,0)`）；自定义 mapper 不传 `isValid` 时全部渲染。
+- `closeSelection` 会先隐藏该 marker 的 InfoWindow，再复位相机并触发 `onItemClosed`。
 
 ---
 

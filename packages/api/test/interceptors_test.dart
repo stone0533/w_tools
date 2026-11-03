@@ -43,6 +43,31 @@ class _MockAdapter implements HttpClientAdapter {
 }
 
 void main() {
+  test('parts 里 errorHint 可独立开关', () async {
+    final logs = <String>[];
+    WApiConfig.logErrorHandler = (dynamic message) => logs.add('$message');
+
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.com'))
+      ..httpClientAdapter = _ErrorAdapter();
+    dio.interceptors.add(
+      WLogInterceptor(parts: {WLogPart.error}),
+    );
+
+    await expectLater(dio.get('/x'), throwsA(isA<DioException>()));
+    expect(logs.any((l) => l.contains('网络连接失败')), isFalse);
+
+    logs.clear();
+    final dio2 = Dio(BaseOptions(baseUrl: 'https://example.com'))
+      ..httpClientAdapter = _ErrorAdapter();
+    dio2.interceptors.add(
+      WLogInterceptor(parts: {WLogPart.errorHint}),
+    );
+    await expectLater(dio2.get('/x'), throwsA(isA<DioException>()));
+    expect(logs.any((l) => l.contains('网络连接失败')), isTrue);
+
+    WApiConfig.logErrorHandler = null;
+  });
+
   group('WLogInterceptor parts', () {
     test('parts 选择输出片段', () {
       final interceptor = WLogInterceptor(

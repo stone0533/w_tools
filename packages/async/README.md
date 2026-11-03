@@ -5,7 +5,7 @@ w_tools 的异步层：执行、四态状态、Controller 与可复用异步视�
 ```text
 页面展示异步结果  → WAsyncController + WAsyncView
 只执行、不要 UI   → WAsync
-全 App 默认视图   → WAsyncViewDefaults
+全 App 默认视图   → WAsyncTheme
 ```
 
 ## 安装
@@ -103,7 +103,7 @@ coupons.load();
 ## 全局默认视图
 
 ```dart
-WAsyncViewDefaults(
+WAsyncTheme(
   errorBuilder: (context, error, retry) => AppRetryView(error, retry),
   errorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
   loadingBuilder: (_) => const AppLoadingView(),
@@ -117,14 +117,14 @@ WAsyncViewDefaults(
 // bottom sheet、Tab 页面不会继承默认值。
 ```
 
-`WAsyncViewDefaults` 只作用于 `WAsyncView`；`WAsyncStateBuilder` 不会读取它。
+`WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 由调用方自行构建状态 UI，不读取默认值。
 
 优先级：
 
 ```text
 WAsyncView 显式 builder
   ↓
-WAsyncViewDefaults
+WAsyncTheme
   ↓
 包内默认视图
 ```
@@ -183,7 +183,7 @@ final result = await WAsync.retry<List<Gift>, List<Gift>>(
 - 默认 loading / empty / error 文案只是 fallback；
 - `WAsyncView` 为错误条/刷新条约束宽度，不强制高度；滚动组件的高度由页面父级提供。
 - `onRetry` 应自行处理异常；推荐直接传 `WAsyncController.load`。
-- 刷新进度条可通过 `refreshingBuilder` 或 `WAsyncViewDefaults.refreshingBuilder` 覆盖。
+- 刷新进度条可通过 `refreshingBuilder` 或 `WAsyncTheme.refreshingBuilder` 覆盖。
 
 ## 异步列表：WAsyncStateBuilder + SmartRefresher
 
@@ -256,7 +256,7 @@ loading / empty / error 只能作为 `slivers` 内部的分支，不要在外层
 ```dart
 WAsyncStateSliver<List<Gift>>(
   state: state,
-  onRetry: controller.refreshGifts,
+  onRetry: controller.load,
   readySliverBuilder: (context, gifts) {
     return WListViewSliver.list(
       itemCount: gifts.length,
@@ -283,14 +283,14 @@ refreshing + 旧数据    → ready sliver（默认不额外加速进度，避�
 
 ## Sliver 页面的全局默认
 
-`WAsyncStateSliver` 使用独立的 `WAsyncSliverDefaults`，不要复用 `WAsyncViewDefaults`：
+`WAsyncStateSliver` 的默认视图用 `WAsyncTheme` 的 `sliver*Builder`（同一实例即可，不必嵌套两套）：
 
 ```dart
-WAsyncSliverDefaults(
-  loadingBuilder: (_) => const AppAsyncStatusLoading(), // 非滚动
-  emptyBuilder: (_) => const AppAsyncStatusEmpty(),     // 非滚动
-  errorBuilder: (context, error, retry) => AppAsyncStatusError(error, retry),
-  errorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
+WAsyncTheme(
+  sliverLoadingBuilder: (_) => const AppAsyncStatusLoading(), // 非滚动
+  sliverEmptyBuilder: (_) => const AppAsyncStatusEmpty(),     // 非滚动
+  sliverErrorBuilder: (context, error, retry) => AppAsyncStatusError(error, retry),
+  sliverErrorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
   child: MaterialApp(...),
 )
 ```
@@ -304,17 +304,8 @@ refreshingSliverBuilder 必须返回 sliver
 
 不要放 `AppRefreshable` / `SingleChildScrollView` 到 `SliverFillRemaining(hasScrollBody: false)` 里。
 
-App 根部可以同时安装两套：
-
-```dart
-WAsyncViewDefaults(
-  ...,
-  child: WAsyncSliverDefaults(
-    ...,
-    child: MaterialApp(...),
-  ),
-)
-```
+普通视图与 sliver 的 builder 都在同一个 `WAsyncTheme` 上配置，不要嵌套两个实例
+（内层会整体遮蔽外层）。
 
 ## App 层固定滚动壳
 
@@ -419,7 +410,7 @@ SmartRefresher / 滚动页面  → WAsyncStateBuilder
 `WAsyncView` 的 ready / refreshing / failed + 旧数据使用稳定内容容器，
 但滚动页面仍应使用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 长期塞进 `WAsyncView.readyBuilder`。
 
-`WAsyncBuilder` 是旧名，保留为兼容别名；新代码使用 `WAsyncStateBuilder`。
+`WAsyncBuilder` 已删除（2.0）；用 `WAsyncStateBuilder`。
 
 ## 示例
 

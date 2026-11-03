@@ -44,6 +44,16 @@ class WLanguage {
     }
   }
 
+  /// 把运行期配置回写到响应式流
+  ///
+  /// 供 `WApp.init` 应用 `WLocaleConfig` 后调用；直接写 `WAppConfig` 的旧代码
+  /// 也可用它手动同步（否则 `languageStream` 不会通知）。
+  void syncFromConfig() {
+    if (_currentLanguageRx.value != WAppConfig.currentLanguage) {
+      _currentLanguageRx.value = WAppConfig.currentLanguage;
+    }
+  }
+
   /// 监听语言变更
   ///
   /// 返回 [StreamSubscription]，调用方可在合适时机取消订阅以避免内存泄漏。

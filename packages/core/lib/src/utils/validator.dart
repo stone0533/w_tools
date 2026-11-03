@@ -63,9 +63,14 @@ class WValidator {
 
   /// 是否为有效身份证号
   ///
-  /// 仅校验 18 位格式与出生年月日的数字范围，不校验真实日期与校验位。
+  /// 校验 18 位格式与出生日期是否真实存在（如 2 月 30 日会被拒绝）；
+  /// 不校验末位校验码。
   static bool isValidIdCard(String idCard) {
-    return WRegExp.idCard.hasMatch(idCard);
+    if (!WRegExp.idCard.hasMatch(idCard)) return false;
+    final birthday = idCard.substring(6, 14);
+    final date =
+        '${birthday.substring(0, 4)}-${birthday.substring(4, 6)}-${birthday.substring(6, 8)}';
+    return isValidDate(date);
   }
 
   /// 是否为有效银行卡号

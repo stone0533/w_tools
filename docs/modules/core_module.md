@@ -104,7 +104,7 @@ void main() {
 | `resume()` | void | 恢复 |
 | `stop()` | void | 停止 |
 | `dispose()` | void | 释放资源（停止并清空监听） |
-| `formatRemaining({type})` | String | `MM:SS`（默认）或纯 `SS` 格式 |
+| `formatRemaining({type})` | String | 默认纯 `SS`；传 `WCountdownRemainingType.minutesSeconds` 得 `MM:SS` |
 
 ### 使用示例
 
@@ -112,12 +112,12 @@ void main() {
 final countdown = WCountdown(
   callback: (remaining) {
     print('剩余 $remaining 秒');
-    print('格式化: ${countdown.formatRemaining()}'); // MM:SS
+    print('格式化: ${countdown.formatRemaining()}'); // 默认 SS（秒）
   },
   onComplete: () => print('倒计时结束'),
 );
 
-countdown.start(60);  // 60 秒倒计时
+countdown.start(second: 60);  // 60 秒倒计时
 // countdown.pause();
 // countdown.resume();
 // countdown.dispose();
@@ -208,17 +208,13 @@ final bad = WHash.verifyPassword('wrong_password', stored); // false
 | `setLevel(Level)` | 设置日志级别 |
 | `turnOff()` | 关闭日志输出 |
 | `t/d/i/w/e/f(message, {time, error, stackTrace, tag})` | Trace/Debug/Info/Warning/Error/Fatal 日志 |
-| `startPerformance(name)` | 开始性能计时 |
-| `stopPerformance(name)` | 停止并输出计时 |
-| `cancelPerformance(name)` | 取消计时 |
+| `startPerformanceTimer(key)` | 开始性能计时 |
+| `stopPerformanceTimer(key, {message})` | 停止并返回/输出耗时（毫秒） |
+| `cancelPerformanceTimer(key)` | 取消计时 |
 | `getActivePerformanceTimers()` | 获取活跃计时器名称 |
-| `measureSync(name, fn)` | 同步函数计时（自动 start+stop） |
+| `measureSync(key, fn, {message})` | 同步函数计时（自动 start+stop） |
 
-### 顶层便捷函数
-
-| 函数 | 对应级别 |
-|------|----------|
-| `logT / logD / logI / logW / logE / logF` | Trace → Fatal |
+> 没有顶层 `logT/logD/...` 函数；统一用 `WLogger.t/d/i/w/e/f`。
 
 ### 使用示例
 
@@ -230,12 +226,12 @@ WLogger.setLevel(Level.verbose);
 // 常规日志
 WLogger.i('应用启动', tag: 'APP');
 WLogger.w('配置项缺失', tag: 'CONFIG');
-logE('网络请求失败', error: exception, tag: 'API');
+WLogger.e('网络请求失败', error: exception, tag: 'API');
 
 // 性能计时
-WLogger.startPerformance('heavy_op');
+WLogger.startPerformanceTimer('heavy_op');
 await heavyOperation();
-WLogger.stopPerformance('heavy_op'); // 自动输出耗时
+WLogger.stopPerformanceTimer('heavy_op'); // 输出耗时并返回毫秒
 
 // 同步快捷计时
 final result = WLogger.measureSync('sync_op', () {
@@ -346,7 +342,7 @@ WPlatform.runForPlatform(
 
 | 方法 | 说明 |
 |------|------|
-| `firstXxxMatch(input)` | 返回第一个匹配的字符串（如 `firstEmailMatch`、`firstPhoneMatch`） |
+| `firstXxxMatch(input)` | 返回 `Match?`（如 `firstEmailMatch`；等价于 `WRegExp.email.firstMatch(input)`） |
 | `extractBirthdayFromIdCard(idCard)` | 从身份证号提取出生日期 |
 | `extractGenderFromIdCard(idCard)` | 从身份证号提取性别 |
 | `maskPhone(phone)` | 手机号脱敏：`XXX****XXXX` |
@@ -396,7 +392,7 @@ final formatted = WRegExp.formatPhone('13812345678'); // "138-1234-5678"
 | `getBool(key)` | `setBool(key, value)` | bool |
 | `getDouble(key)` | `setDouble(key, value)` | double |
 | `getStringList(key)` | `setStringList(key, value)` | `List<String>` |
-| `getObject<T>(key, fromJson)` | `setObject(key, value)` | JSON 对象 |
+| `getObject<T>(key, {defaultValue})` | `setObject(key, value)` | JSON 可解码类型（`Map<String, dynamic>` / `List<dynamic>`） |
 
 ### 其他方法
 
@@ -422,9 +418,9 @@ await WStorage.init();
 await WStorage.setString('username', 'zhangsan');
 final name = WStorage.getString('username');
 
-// 对象存取（JSON 编解码）
-await WStorage.setObject('profile', user);
-final user = WStorage.getObject<User>('profile', User.fromJson);
+// 对象存取（JSON 编解码；自定义模型请自己 fromJson）
+await WStorage.setObject('profile', {'name': '张三'});
+final profile = WStorage.getObject<Map<String, dynamic>>('profile');
 
 // 查询与清理
 final keys = WStorage.allKeys();
@@ -476,11 +472,11 @@ await WStorage.clear();
 ### 使用示例
 
 ```dart
-// 启动时先 init WStorage + 配置 WConfig
+// 启动时先 init WStorage + 配置 token 键名（WConfig 的键名字段已弃用）
 await WStorage.init();
-WConfig.tokenKey = 'auth_token';
-WConfig.refreshTokenKey = 'auth_refresh_token';
-WConfig.tokenExpiryKey = 'auth_token_expiry';
+WToken.tokenKey = 'auth_token';
+WToken.refreshTokenKey = 'auth_refresh_token';
+WToken.tokenExpiryKey = 'auth_token_expiry';
 
 // 登录成功后保存
 final expiresAt = DateTime.now().add(const Duration(hours: 2));
@@ -539,28 +535,18 @@ await WToken.clearAllTokens();
 ### 使用示例
 
 ```dart
-// 搜索框防抖
-final search = WUx.instance.debounce((keyword) {
+// 防抖 / 节流用独立类；WUx 的同名方法已弃用（3.0 移除）
+final search = WDebounce((keyword) {
   api.search(keyword);
 }, duration: const Duration(milliseconds: 300));
-
 search('flutter');
-search('dart'); // 上一个被取消，只执行最后一次
+search('dart'); // 只执行最后一次
 
-// 按钮节流
-final onTap = WUx.instance.throttle(() {
-  submitForm();
-}, duration: const Duration(seconds: 1));
-
-// 延迟 + 取消
-final delayed = WUx.instance.delay(() {
-  print('3 秒后执行');
-}, duration: const Duration(seconds: 3));
-// delayed.cancel(); // 需要时取消
-
-// 滚动
-await WUx.instance.smoothScrollToTop(scrollController);
+final onTap = WThrottle(() => submitForm(), duration: const Duration(seconds: 1));
+onTap();
 ```
+
+> `WUx` 仍提供 `delay` / `nextFrame` / `smoothScrollTo*`（实例方法：`WUx().xxx`），没有 `WUx.instance`。
 
 ---
 
@@ -580,7 +566,7 @@ await WUx.instance.smoothScrollToTop(scrollController);
 | `isValidUsername(input)` | 3-20 位字母/数字/下划线 |
 | `isValidUrl(input)` | URL |
 | `isValidIPv4(input)` | IPv4 |
-| `isValidIdCard(input)` | 18 位身份证号（带真实日期校验） |
+| `isValidIdCard(input)` | 18 位身份证号（校验真实出生日期，不校验末位校验码） |
 | `isValidBankCard(input)` | 16-19 位 + Luhn 校验 |
 | `isValidChineseName(input)` | 2-20 汉字 |
 | `isValidPostalCode(input)` | 6 位邮编 |
@@ -674,9 +660,9 @@ import 'package:w_tools_core/w_tools_core.dart';
 
 Future<void> initializeApp() async {
   // 1. 静态配置（资源前缀请用 w_tools_ui 的 WAssets.imagePath）
-  WConfig.tokenKey = 'app_auth_token';
-  WConfig.refreshTokenKey = 'app_refresh_token';
-  WConfig.tokenExpiryKey = 'app_token_expiry';
+  WToken.tokenKey = 'app_auth_token';
+  WToken.refreshTokenKey = 'app_refresh_token';
+  WToken.tokenExpiryKey = 'app_token_expiry';
 
   // 2. 存储初始化（幂等）
   await WStorage.init();

@@ -222,9 +222,8 @@ const String agentsUi = r'''
   hex 颜色用 `WHexColor.fromHex` 或 `'#rrggbb'.toColor()`；`EdgeInsets` 值用 `num.allPadding`；
   BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合。
 - **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
-  `SizedBox` 间距用 `WSizeBox`，`Padding` 用 `WPadding`；需要 `EdgeInsets` 值时用 `num.allPadding`。
-  不要再用 `num.heightBox` / `widthBox` / `squareBox`，它们与 `WSizeBox` 等价，仅保留兼容。
-  `WColumn.left/right` / `WRow.top/bottom` 默认 `MainAxisSize.max`；需要包裹内容时显式传 `MainAxisSize.min`。
+  `SizedBox` / `Padding` / `Row` / `Column` 直接用 Flutter 原生组件；需要 `EdgeInsets` 值时用 `num.allPadding`。
+  `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已弃用（5.0 移除），新代码不要再用。
 - **列表 / 通知**：列表项保活用 `WKeepAliveWrapper`；滚动通知 / 百分比用 `WNotificationListenerBuilder`
   （百分比只处理 depth 0 的 `ScrollUpdateNotification`）。
 - **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
@@ -263,7 +262,7 @@ const String agentsAsync = r'''
 - **异步区块**：页面统一 `WAsyncController + WAsyncView`；不要手写
   `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
   每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncTheme`，
-  放在 App 根节点（`WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放页面 body。
+  放在 App 根节点（`WAppPlugin.wrapApp` / `WAppOptions.appWrapper`），不要只放页面 body。
   普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，
   不要把 `SmartRefresher` 包在 `WAsyncView` 外面；分页 `loadMore` 自己维护，
   `loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
@@ -443,12 +442,13 @@ const String agentsUiEn = r'''
   `overflow` locally. Reuse existing variants first (`price` / `number` / `badge`). If a variant is
   not enough: use `variant + style` for one-offs; extract a local helper for repeated styles.
   Consumers cannot add `WTextVariant` enum values.
+  Minimal: `WText(text: 'Title', variant: WTextVariant.title)`.
 - **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
-  `WHexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`.
+  `WHexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`;
+  compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
 - **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
-  prefixes; use `WSizeBox` for `SizedBox`, `WPadding` for `Padding`, and `num.allPadding` for
-  `EdgeInsets`. Do not use `num.heightBox` / `widthBox` / `squareBox`; they duplicate `WSizeBox`.
-  `WColumn.left/right` / `WRow.top/bottom` default to `MainAxisSize.max`; pass `MainAxisSize.min`
+  prefixes; use native `SizedBox` / `Padding` / `Row` / `Column`, and `num.allPadding` for `EdgeInsets`.
+  `WSizeBox` / `WPadding` / `WRow` / `WColumn` are deprecated (removed in 5.0).
   to wrap content.
 - **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
   `WNotificationListenerBuilder` for scroll notifications/percentage (depth 0 only).
@@ -491,6 +491,8 @@ const String agentsAsyncEn = r'''
   `SmartRefresher` around `WAsyncView`. `builder` must always return the same
   `SmartRefresher + CustomScrollView`; loading/empty/error go inside slivers. Use
   `WAsyncTheme`'s `sliver*Builder` / `WAsyncStateSliver` for sliver pages; `readySliverBuilder` returns a sliver.
+  Pagination: use `WAsyncPagedController`; on `loadMore` failure write `loadMoreError` / footer,
+  never replace the list with `WAsyncController.failed`.
 ''';
 
 const String agentsToastEn = r'''

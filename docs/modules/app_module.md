@@ -28,7 +28,8 @@ app/
         ├── app_config.dart                   # WAppConfig 语言配置
         ├── bottom_sheet.dart                 # WBottomSheet
         ├── language.dart                     # WLanguage
-        ├── route.dart                        # WRoute 路由管理
+        ├── route.dart                        # WRouteStack / WRoute（静态已弃用）
+        ├── options.dart                      # WAppOptions / WLocaleConfig
         └── router_observer.dart              # WRouteObserver
 ```
 
@@ -49,10 +50,10 @@ app/
 
 ```dart
 WApp.options(
-  const WAppOptions(
+  WAppOptions(
     title: 'Demo',
     initialRoute: '/',
-    getPages: [GetPage(name: '/', page: HomePage.new)],
+    getPages: [GetPage(name: '/', page: () => const HomePage())],
   ),
 ).start();
 ```
@@ -93,7 +94,7 @@ WApp.options(
 |------|------|------|
 | `init({VoidCallback? onLazyInit, List<Future<void>>? customTasks})` | ✅ | 初始化阶段：`WidgetsFlutterBinding.ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → `onLazyInit` 首帧后回调 |
 | `run({...})` | ❌ | 启动应用。**必须先 `init`**；会校验 `title`、`initialRoute`、`getPages` 非空 |
-| `start({onLazyInit, customTasks, initialRoute, getPages, builder, navigatorObservers, defaultTransition, theme, translations, locale, fallbackLocale})` | ❌ | 一站式启动：`start = init + run`；`title` / `orientations` / `systemUiOverlayStyle` 等仍通过字段设置 |
+| `start({onLazyInit, customTasks, initialRoute, getPages, builder, navigatorObservers, defaultTransition, theme, translations, locale, fallbackLocale})` | ❌ | 一站式启动：`start = init + run`；`title` / `orientations` / `systemUiOverlayStyle` 等放 `WAppOptions`（start 只覆盖列出的 9 个参数） |
 
 ### 包裹顺序（由外向内）
 
@@ -153,7 +154,7 @@ final appTheme = AppTheme.data;
 ```
 
 `wrapApp` 在 MaterialApp 外，没有 Theme；需要 Theme/`.sp` 的排版扩展用
-`builderWrapper`。`WAsyncViewDefaults` 这类只存 builder、不立即计算 `.sp`
+`builderWrapper`。`WAsyncTheme` 这类只存 builder、不立即计算 `.sp`
 的配置仍可放在 `wrapApp`。
 
 ### 使用示例
@@ -220,13 +221,12 @@ Future<void> main() async {
 ### 使用示例
 
 ```dart
-mixin class AuthPlugin implements WAppPlugin {
+class AuthPlugin with WAppPlugin {
   @override
   String get name => 'auth';
 
   @override
-  void Function(Widget)? get wrapApp =>
-      (child) => AuthProvider(child: child);
+  Widget wrapApp(Widget child) => AuthProvider(child: child);
 
   @override
   Future<void> onInit() async {
@@ -284,22 +284,22 @@ WAppConfig.currentLanguage = 'zh_CN';
 | `changeLanguage(String languageCode)` | 方法 | 切换语言 |
 | `listenLanguageChange(void Function(String) callback)` | 方法 | 注册语言变更监听（返回可调用对象用于取消） |
 | `languageStream` | `RxString` | 当前语言的响应式流 |
-| `currentLocale` | `Locale?` | 将当前 `languageCode` 转为 `Locale`（需代码形如 `zh_CN` 下划线分隔） |
-| `currentLanguageName` | `String?` | 当前语言在 `WAppConfig.supportedLanguages` 中的展示名 |
+| `currentLocale` | `Locale` | 将当前 `languageCode` 转为 `Locale`（支持 `zh_CN` 或 `en`） |
+| `currentLanguageName` | `String` | 当前语言的展示名（未收录时回退为语言代码） |
 
 ### 使用示例
 
 ```dart
-// 切换
-WLanguage.changeLanguage('en_US');
+// 切换（WLanguage 是单例，用 WLanguage() 取实例）
+WLanguage().changeLanguage('en_US');
 
-// 监听（返回 dispose 函数）
-final dispose = WLanguage.listenLanguageChange((code) {
+// 监听（返回 StreamSubscription）
+final subscription = WLanguage().listenLanguageChange((code) {
   debugPrint('语言已切换为 $code');
 });
 
-// 在 State.dispose 中记得调用
-dispose();
+// 在 State.dispose 中取消
+await subscription.cancel();
 ```
 
 ---
@@ -320,18 +320,18 @@ dispose();
 
 | 方法 | 说明 |
 |------|------|
-| `removeRouteIfExists(PageRoute page)` | 栈中存在该路由则移除（`Navigator.removeRoute`） |
-| `removeRoutesAfter(PageRoute page)` | 移除该路由**上方**的所有路由（直到 `page` 为止，但保留 `page`） |
-| `popUntilRoute(PageRoute page)` | 反复 `pop` 直到栈顶为 `page` |
+| `removeRouteIfExists(String page)` | 栈中存在该路由名则移除（`Navigator.removeRoute`） |
+| `removeRoutesAfter(String page)` | 移除该路由名**上方**的所有路由（保留 `page`） |
+| `popUntilRoute(String page)` | 反复 `pop` 直到栈顶为 `page` |
 
 > `addRoute` / `removeRoute` 是**内部方法**，由 `WRouteObserver` 在 `didPush` / `didPop` / `didRemove` / `didReplace` 中自动调用。
 
 ### 使用示例
 
 ```dart
-// 假设我们要在栈中间的某个路由上「截断」后续路由
-final middleRoute = WRoute.routes.firstWhere((r) => r.settings.name == '/profile');
-WRoute.removeRoutesAfter(middleRoute as PageRoute);
+// 按路由名截断（静态 WRoute 已弃用，2.0 移除）
+WApp.routeStack.removeRoutesAfter('/profile');
+WApp.routeStack.popUntilRoute('/profile');
 ```
 
 ---
@@ -340,16 +340,16 @@ WRoute.removeRoutesAfter(middleRoute as PageRoute);
 
 ### 功能说明
 
-实现 `NavigatorObserver`，自动把根 Navigator 的路由变化同步到 `WRoute.routes`。**通常不需要手动实例化**——`WApp` 会自动将其加入 `GetMaterialApp.navigatorObservers`。
+实现 `NavigatorObserver`，自动把根 Navigator 的路由变化同步到 `WApp.routeStack`（默认 `WRouteStack.defaultStack`）。**通常不需要手动实例化**——`WApp` 会自动将其加入 `GetMaterialApp.navigatorObservers`。
 
 ### 观察的事件
 
 | 方法 | 行为 |
 |------|------|
-| `didPush(route, previousRoute)` | 追加到 `WRoute.routes` |
-| `didPop(route, previousRoute)` | 从 `WRoute.routes` 移除 |
-| `didReplace(newRoute, oldRoute)` | 替换 `WRoute.routes` 中的对应条目 |
-| `didRemove(route, previousRoute)` | 从 `WRoute.routes` 移除 |
+| `didPush(route, previousRoute)` | 追加到 `WApp.routeStack.routes` |
+| `didPop(route, previousRoute)` | 从 `WApp.routeStack.routes` 移除 |
+| `didReplace(newRoute, oldRoute)` | 替换 `WApp.routeStack.routes` 中的对应条目 |
+| `didRemove(route, previousRoute)` | 从 `WApp.routeStack.routes` 移除 |
 
 ---
 
@@ -359,14 +359,14 @@ WRoute.removeRoutesAfter(middleRoute as PageRoute);
 
 基于 `Get.bottomSheet` 的便捷封装。特点：
 
-- 自建遮罩点击区（点击遮罩可关闭）。
-- 始终 `isScrollControlled: true`，内容区支持 `ListView` / `SingleChildScrollView` 等滚动控件。
+- 自建遮罩点击区（点击遮罩可关闭；`isDismissible: false` 时不接点击）。
+- 默认 `isScrollControlled: true`，内容区支持 `ListView` / `SingleChildScrollView` 等滚动控件。
 - 依赖 GetX。
 
 ### 使用示例
 
 ```dart
-await WBottomSheet.show(
+WBottomSheet.show(
   Container(
     height: 300,
     child: const Center(child: Text('这是底部弹窗内容')),
@@ -433,11 +433,11 @@ Future<void> main() async {
 ## 注意事项
 
 - **强依赖 GetX**：整个子包（包括 `WBottomSheet`）基于 `get` 包实现，无法替换为其他状态管理/路由方案。
-- **`init` 必须在 `run` 之前调用**：直接调用 `run` 而未先 `init` 会触发断言失败。`start` 方法会自动处理这个顺序。
+- **`init` 必须在 `run` 之前调用**：直接调用 `run` 而未先 `init` 会抛 `StateError`。`start` 方法会自动处理这个顺序。
 - **插件依赖是声明式的**：`WAppPlugin.dependsOn` 决定初始化顺序，而非 `addPlugin` 的调用顺序。
 - **`run` 会校验非空参数**：`title`、`initialRoute`、`getPages` 任一为空会在运行时抛出错误。
 - **路由栈仅覆盖根 Navigator**：嵌套 Navigator 的路由变化不会进入 `WRoute.routes`。
-- **`WLanguage.currentLocale` 解析约定**：语言代码必须形如 `zh_CN`（下划线分隔），否则 `currentLocale` 会返回 null。
+- **`WLanguage.currentLocale` 解析约定**：语言代码用下划线分隔（`zh_CN`）或仅语言码（`en`）；非法代码会退化为只取第一段，不会返回 null。
 - **`WAppConfig.supportedLanguages` 是整体赋值**：使用 `=` 覆盖，不提供 `.add` 增量 API。
 - **`WAppPlugin.onInit` 可返回 Future**：若返回 `Future<void>`，`WApp.init` 会等待它完成再进入下一层。
 

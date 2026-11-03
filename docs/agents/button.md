@@ -18,8 +18,8 @@
 一排普通动作按钮（取消 / 确定、工具栏）
   → WActionRow
 
-底层自定义表单字段按钮
-  → WFormFieldButtonCore
+完全自定义字段
+  → FormBuilderField + WFormReadOnlyScope（不要用内部 *Core）
 ```
 
 不要用：
