@@ -308,7 +308,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
           'https://example.invalid/controller.png',
           controller: _imageController,
           style: const WImageStyle(width: 160, height: 90),
-          config: const WImageConfig(showRetryButton: true),
+          config: const WImageLoadConfig(showRetryButton: true),
         ),
         TextButton(
           onPressed: _imageController.retry,

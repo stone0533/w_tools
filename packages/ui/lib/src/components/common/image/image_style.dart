@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// 不可变的图片视觉样式。
 ///
 /// 只负责尺寸、布局、装饰与语义；加载/重试/占位/进度由
-/// `WImageConfig` 负责。
+/// `WImageLoadConfig` 负责。
 @immutable
 class WImageStyle {
   const WImageStyle({
@@ -39,7 +39,7 @@ class WImageStyle {
     );
   }
 
-  /// 常用预设：列表缩略图（正方形视觉占位；解码尺寸由 WImageConfig 控制）
+  /// 常用预设：列表缩略图（正方形视觉占位；解码尺寸由 WImageLoadConfig 控制）
   factory WImageStyle.thumbnail(
     double width, {
     double? height,

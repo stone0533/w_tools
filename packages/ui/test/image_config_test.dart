@@ -4,7 +4,7 @@ import 'package:w_tools_ui/src/components/common/image/image_config.dart';
 
 void main() {
   test('copyWith 支持清空可空字段', () {
-    const config = WImageConfig(
+    const config = WImageLoadConfig(
       memCacheWidth: 100,
       retryCount: 2,
       placeholder: Text('p'),
@@ -16,19 +16,19 @@ void main() {
 
   test('validate 校验加载约束', () {
     expect(
-      () => const WImageConfig(retryCount: -1).validate(),
+      () => const WImageLoadConfig(retryCount: -1).validate(),
       throwsAssertionError,
     );
     expect(
-      () => const WImageConfig(retryDelay: -1).validate(),
+      () => const WImageLoadConfig(retryDelay: -1).validate(),
       throwsAssertionError,
     );
     expect(
-      () => const WImageConfig(memCacheWidth: 0).validate(),
+      () => const WImageLoadConfig(memCacheWidth: 0).validate(),
       throwsAssertionError,
     );
     expect(
-      () => WImageConfig(
+      () => WImageLoadConfig(
         placeholder: const Text('p'),
         placeholderBuilder: (_, __) => const Text('b'),
       ).validate(),
@@ -37,7 +37,7 @@ void main() {
   });
 
   test('默认值', () {
-    const config = WImageConfig();
+    const config = WImageLoadConfig();
     expect(config.retryCount, 0);
     expect(config.retryDelay, 1000);
     expect(config.gaplessPlayback, isFalse);

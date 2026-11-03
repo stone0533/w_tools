@@ -49,7 +49,7 @@ extension WUiStringExtension on String {
   WImage toImage({
     Key? key,
     WImageStyle style = const WImageStyle(),
-    WImageConfig config = const WImageConfig(),
+    WImageLoadConfig config = const WImageLoadConfig(),
     WImageType? type,
     double? width,
     double? height,
@@ -91,7 +91,7 @@ extension WUiStringExtension on String {
     bool prefix = true,
     Key? key,
     WImageStyle style = const WImageStyle(),
-    WImageConfig config = const WImageConfig(),
+    WImageLoadConfig config = const WImageLoadConfig(),
     double? width,
     double? height,
     double? size,
@@ -116,7 +116,7 @@ extension WUiStringExtension on String {
   WImage toBase64Image({
     Key? key,
     WImageStyle style = const WImageStyle(),
-    WImageConfig config = const WImageConfig(),
+    WImageLoadConfig config = const WImageLoadConfig(),
     double? width,
     double? height,
     double? size,
@@ -140,7 +140,7 @@ extension WUiStringExtension on String {
   WImage toFileImage({
     Key? key,
     WImageStyle style = const WImageStyle(),
-    WImageConfig config = const WImageConfig(),
+    WImageLoadConfig config = const WImageLoadConfig(),
     double? width,
     double? height,
     double? size,
@@ -164,7 +164,7 @@ extension WUiStringExtension on String {
   WImage toNetworkImage({
     Key? key,
     WImageStyle style = const WImageStyle(),
-    WImageConfig config = const WImageConfig(),
+    WImageLoadConfig config = const WImageLoadConfig(),
     double? width,
     double? height,
     double? size,

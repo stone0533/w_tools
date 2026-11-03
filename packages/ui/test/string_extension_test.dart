@@ -43,7 +43,7 @@ void main() {
     });
 
     test('config 透传', () {
-      final w = 'x'.toImage(config: const WImageConfig(retryCount: 2));
+      final w = 'x'.toImage(config: const WImageLoadConfig(retryCount: 2));
       expect(w.config.retryCount, 2);
     });
 

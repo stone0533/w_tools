@@ -28,19 +28,19 @@ void main() {
 
     test('非法配置触发 assert', () {
       expect(
-        () => WImage(data: 'x', config: const WImageConfig(retryCount: -1)),
+        () => WImage(data: 'x', config: const WImageLoadConfig(retryCount: -1)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', config: const WImageConfig(retryDelay: -1)),
+        () => WImage(data: 'x', config: const WImageLoadConfig(retryDelay: -1)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', config: const WImageConfig(memCacheWidth: 0)),
+        () => WImage(data: 'x', config: const WImageLoadConfig(memCacheWidth: 0)),
         throwsAssertionError,
       );
       expect(
-        () => WImage(data: 'x', config: const WImageConfig(memCacheHeight: 0)),
+        () => WImage(data: 'x', config: const WImageLoadConfig(memCacheHeight: 0)),
         throwsAssertionError,
       );
       expect(
@@ -169,7 +169,7 @@ void main() {
             home: Scaffold(
               body: WImage(
                 data: 'data:image/png;base64,@@bad@@',
-                config: const WImageConfig(placeholder: Text('style')),
+                config: const WImageLoadConfig(placeholder: Text('style')),
               ),
             ),
           ),
@@ -265,7 +265,7 @@ void main() {
             Uint8List.fromList([1, 2, 3]),
             controller: controller,
             style: const WImageStyle(width: 160, height: 120),
-            config: const WImageConfig(showRetryButton: true),
+            config: const WImageLoadConfig(showRetryButton: true),
           ),
         ),
       );
@@ -283,7 +283,7 @@ void main() {
           home: WImage(
             data: 'data:image/png;base64,@@bad@@',
             style: const WImageStyle(width: 160, height: 120),
-            config: const WImageConfig(showRetryButton: true),
+            config: const WImageLoadConfig(showRetryButton: true),
           ),
         ),
       );
@@ -298,7 +298,7 @@ void main() {
           home: WImage(
             data: 'data:image/png;base64,@@bad@@',
             style: const WImageStyle(width: 40, height: 40),
-            config: const WImageConfig(showRetryButton: true),
+            config: const WImageLoadConfig(showRetryButton: true),
           ),
         ),
       );
@@ -330,7 +330,7 @@ void main() {
           home: WImage(
             data: 'data:image/png;base64,@@bad@@',
             style: const WImageStyle(width: 100, height: 100),
-            config: const WImageConfig(showRetryButton: true),
+            config: const WImageLoadConfig(showRetryButton: true),
           ),
         ),
       );
@@ -359,7 +359,7 @@ void main() {
           home: WImage.memory(
             Uint8List.fromList([4, 5, 6]),
             style: const WImageStyle(width: 64, height: 64),
-            config: WImageConfig(
+            config: WImageLoadConfig(
               errorWidgetBuilder: (context, url, error) {
                 captured = error;
                 return const SizedBox.shrink();
@@ -431,7 +431,7 @@ void main() {
           MaterialApp(
             home: WImage(
               data: 'data:image/png;base64,@@invalid@@',
-              config: WImageConfig(
+              config: WImageLoadConfig(
                 errorWidgetBuilder: (context, url, error) {
                   capturedError = error;
                   return const Text('base64-error');
@@ -459,7 +459,7 @@ void main() {
       Widget build() => MaterialApp(
             home: WImage(
               data: 'data:image/png;base64,@@invalid@@',
-              config: const WImageConfig(errorWidget: Text('base64-error')),
+              config: const WImageLoadConfig(errorWidget: Text('base64-error')),
               onLoadStatusChanged: statuses.add,
             ),
           );

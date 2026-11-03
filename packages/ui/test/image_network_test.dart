@@ -17,7 +17,7 @@ void main() {
         _wrap(
           WImage.network(
             _url,
-            config: const WImageConfig(placeholder: Text('LOAD')),
+            config: const WImageLoadConfig(placeholder: Text('LOAD')),
           ),
         ),
       );
@@ -33,7 +33,7 @@ void main() {
             _url,
             headers: const {'Authorization': 'Bearer token'},
             cacheKey: 'home-hero',
-            config: const WImageConfig(memCacheWidth: 240, memCacheHeight: 120),
+            config: const WImageLoadConfig(memCacheWidth: 240, memCacheHeight: 120),
           ),
         ),
       );
@@ -51,7 +51,7 @@ void main() {
         _wrap(
           WImage.network(
             _url,
-            config: WImageConfig(
+            config: WImageLoadConfig(
               progressBuilder: (_, __, ___) => const Text('PROG'),
             ),
           ),
@@ -132,7 +132,7 @@ void main() {
       Widget build(int retryCount) => _wrap(
             WImage.network(
               _url,
-              config: WImageConfig(retryCount: retryCount),
+              config: WImageLoadConfig(retryCount: retryCount),
               controller: controller,
             ),
           );

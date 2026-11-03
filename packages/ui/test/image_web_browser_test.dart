@@ -13,7 +13,7 @@ void main() {
       MaterialApp(
         home: WImage.file(
           '/tmp/a.png',
-          config: WImageConfig(
+          config: WImageLoadConfig(
             errorWidgetBuilder: (context, url, error) {
               captured = error;
               return const Text('UNSUPPORTED');

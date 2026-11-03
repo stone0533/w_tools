@@ -87,14 +87,14 @@ class RecipesPage extends StatelessWidget {
           child: WImage(
             data: 'https://example.invalid/retry.png',
             style: const WImageStyle(width: 160, height: 90),
-            config: const WImageConfig(
+            config: const WImageLoadConfig(
               showRetryButton: true,
               retryCount: 1,
             ),
           ),
         ),
         const _Code(
-            'WImageStyle(width: 160, height: 90) + WImageConfig(showRetryButton: true, retryCount: 1)'),
+            'WImageStyle(width: 160, height: 90) + WImageLoadConfig(showRetryButton: true, retryCount: 1)'),
       ],
     );
   }

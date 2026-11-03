@@ -69,16 +69,42 @@ class WImageProgress {
   }
 }
 
+/// 图片加载错误的分类
+enum WImageErrorKind {
+  /// 数据为空
+  empty,
+
+  /// 网络加载失败
+  network,
+
+  /// 本地资源加载失败
+  asset,
+
+  /// Base64 解码失败
+  decode,
+
+  /// 任意 ImageProvider 解码失败
+  provider,
+
+  /// 本地文件读取失败
+  file,
+
+  /// 当前平台不支持
+  unsupported,
+}
+
 /// 图片加载错误
 ///
-/// `WImageStyle.errorWidgetBuilder` 的第三个参数会收到它的子类型，
-/// 调用方可以按类型分支处理。
+/// 4.2 起用 [kind] 区分错误类型；子类已弃用（5.0 移除）。
 sealed class WImageError implements Exception {
   /// 创建错误
-  const WImageError(this.data);
+  const WImageError(this.data, this.kind);
 
   /// 触发错误的原始数据（调用方传给 `WImage` 的 `data`）
   final String data;
+
+  /// 错误分类
+  final WImageErrorKind kind;
 
   /// 可读的原因
   String get message;
@@ -88,18 +114,20 @@ sealed class WImageError implements Exception {
 }
 
 /// 数据为空（空串 / 纯空白）
+@Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageEmptyError extends WImageError {
   /// 创建错误
-  const WImageEmptyError(super.data);
+  const WImageEmptyError(String data) : super(data, WImageErrorKind.empty);
 
   @override
   String get message => '图片数据为空';
 }
 
 /// 网络加载失败
+@Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageNetworkError extends WImageError {
   /// 创建错误
-  const WImageNetworkError(super.data, this.cause);
+  const WImageNetworkError(String data, this.cause) : super(data, WImageErrorKind.network);
 
   /// 底层异常（通常是 `NetworkImageLoadException` / `HttpException`）
   final Object? cause;
@@ -109,9 +137,10 @@ final class WImageNetworkError extends WImageError {
 }
 
 /// 本地资源加载失败
+@Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageAssetError extends WImageError {
   /// 创建错误
-  const WImageAssetError(super.data, this.cause);
+  const WImageAssetError(String data, this.cause) : super(data, WImageErrorKind.asset);
 
   /// 底层异常
   final Object? cause;
@@ -121,9 +150,10 @@ final class WImageAssetError extends WImageError {
 }
 
 /// Base64 解码失败
+@Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageDecodeError extends WImageError {
   /// 创建错误
-  const WImageDecodeError(super.data, this.cause);
+  const WImageDecodeError(String data, this.cause) : super(data, WImageErrorKind.decode);
 
   /// 底层异常
   final Object? cause;
@@ -133,9 +163,10 @@ final class WImageDecodeError extends WImageError {
 }
 
 /// 任意 [ImageProvider] / 内存图片解码失败
+@Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageProviderError extends WImageError {
   /// 创建错误
-  const WImageProviderError(super.data, this.cause);
+  const WImageProviderError(String data, this.cause) : super(data, WImageErrorKind.provider);
 
   /// 底层异常
   final Object? cause;
@@ -145,9 +176,10 @@ final class WImageProviderError extends WImageError {
 }
 
 /// 本地文件读取失败
+@Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageFileError extends WImageError {
   /// 创建错误
-  const WImageFileError(super.data, this.cause);
+  const WImageFileError(String data, this.cause) : super(data, WImageErrorKind.file);
 
   /// 底层异常
   final Object? cause;
@@ -157,9 +189,10 @@ final class WImageFileError extends WImageError {
 }
 
 /// 当前平台不支持该来源（例如 Web 上的 `file://`）
+@Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageUnsupportedError extends WImageError {
   /// 创建错误
-  const WImageUnsupportedError(super.data, this.platform);
+  const WImageUnsupportedError(String data, this.platform) : super(data, WImageErrorKind.unsupported);
 
   /// 不支持的平台描述
   final String platform;

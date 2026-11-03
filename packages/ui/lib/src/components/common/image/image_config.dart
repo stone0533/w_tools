@@ -7,10 +7,10 @@ import 'image_types.dart';
 /// 负责解码尺寸、重试、占位/错误/进度 UI 与 gaplessPlayback；
 /// 视觉样式由 [WImageStyle] 负责。
 ///
-/// 这是 2.0 新增的不可变配置，不是旧版可变 `WImageConfig` 的回归。
+/// 4.2 起由 `WImageLoadConfig` 更名而来，职责不变。
 @immutable
-class WImageConfig {
-  const WImageConfig({
+class WImageLoadConfig {
+  const WImageLoadConfig({
     this.memCacheWidth,
     this.memCacheHeight,
     this.gaplessPlayback = false,
@@ -71,7 +71,7 @@ class WImageConfig {
 
   static const Object _unset = Object();
 
-  WImageConfig copyWith({
+  WImageLoadConfig copyWith({
     Object? memCacheWidth = _unset,
     Object? memCacheHeight = _unset,
     bool? gaplessPlayback,
@@ -85,7 +85,7 @@ class WImageConfig {
     bool? showRetryButton,
     String? retryLabel,
   }) {
-    return WImageConfig(
+    return WImageLoadConfig(
       memCacheWidth: identical(memCacheWidth, _unset) ? this.memCacheWidth : memCacheWidth as int?,
       memCacheHeight:
           identical(memCacheHeight, _unset) ? this.memCacheHeight : memCacheHeight as int?,
@@ -108,3 +108,7 @@ class WImageConfig {
     );
   }
 }
+
+/// 旧名（4.2 起弃用，5.0 移除）：用 [WImageLoadConfig]。
+@Deprecated('5.0 移除：用 WImageLoadConfig')
+typedef WImageConfig = WImageLoadConfig;

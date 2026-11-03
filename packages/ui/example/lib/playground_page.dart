@@ -29,7 +29,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
         borderRadius: BorderRadius.circular(_radius),
       );
 
-  WImageConfig get _config => WImageConfig(
+  WImageLoadConfig get _config => WImageLoadConfig(
         memCacheWidth: _memCache,
         memCacheHeight: _memCache,
         retryCount: _retryCount,
@@ -73,7 +73,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
       '    borderRadius: BorderRadius.circular(${_radius.toStringAsFixed(0)}),',
     );
     buffer.writeln('  ),');
-    buffer.writeln('  config: WImageConfig(');
+    buffer.writeln('  config: WImageLoadConfig(');
     buffer.writeln('    memCacheWidth: $_memCache,');
     buffer.writeln('    memCacheHeight: $_memCache,');
     buffer.writeln('    retryCount: $_retryCount,');

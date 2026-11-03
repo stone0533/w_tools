@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.2.0
+
+### Changed
+- `WImageConfig` 更名 `WImageLoadConfig`（字段不变）；旧名保留为弃用 typedef，5.0 移除。
+- `WImageError` 新增 `kind`（`WImageErrorKind`）；7 个错误子类弃用（5.0 移除）。
+
 ## 4.1.0
 
 ### Changed

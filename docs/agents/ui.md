@@ -10,7 +10,7 @@
 不要裸用 Image.network / Image.asset
 ```
 
-`WImageStyle` 管视觉，`WImageConfig` 管加载 / 重试 / 占位；普通图片也优先复用 `WImage`。
+`WImageStyle` 管视觉，`WImageLoadConfig` 管加载 / 重试 / 占位；普通图片也优先复用 `WImage`。
 
 ## 扩展方法
 

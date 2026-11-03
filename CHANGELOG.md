@@ -1,3 +1,7 @@
+## 3.0.14
+
+- 抬高 `w_tools_ui` 约束到 `^4.2.0`：`WImageConfig` 更名 `WImageLoadConfig`，图片错误增加 `kind`。
+
 ## 3.0.13
 
 - 抬高 `w_tools_ui` 约束到 `^4.1.0`：图片加载器不再导出，缓存策略 API 弃用。
