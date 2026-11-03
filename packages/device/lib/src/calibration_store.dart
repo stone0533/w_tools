@@ -45,11 +45,29 @@ class CalibrationStore {
     HubWindow window, {
     int? deviceWidth,
     int? deviceHeight,
+    double? scale,
   }) {
-    final cached = load(udid);
+    return isFreshCalibration(
+      load(udid),
+      window,
+      deviceWidth: deviceWidth,
+      deviceHeight: deviceHeight,
+      scale: scale,
+    );
+  }
+
+  /// 不重复读文件的缓存判断；CLI 已经 load 过缓存时使用。
+  static bool isFreshCalibration(
+    Calibration? cached,
+    HubWindow window, {
+    int? deviceWidth,
+    int? deviceHeight,
+    double? scale,
+  }) {
     if (cached == null || !cached.matches(window)) return false;
     if (deviceWidth != null && cached.deviceWidth != deviceWidth) return false;
     if (deviceHeight != null && cached.deviceHeight != deviceHeight) return false;
+    if (scale != null && cached.scale != scale) return false;
     return true;
   }
 }

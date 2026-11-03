@@ -155,6 +155,19 @@ void main() {
       );
     });
 
+    test('scale 变化 → 缓存失效', () {
+      final store = CalibrationStore(home: home.path);
+      store.save('UDID1', sample(const HubWindow(100, 50, 872, 1084)));
+      expect(
+        store.isFresh(
+          'UDID1',
+          const HubWindow(100, 50, 872, 1084),
+          scale: 2,
+        ),
+        isFalse,
+      );
+    });
+
     test('缓存文件损坏 → 当作没有缓存', () {
       final store = CalibrationStore(home: home.path);
       store.dir.createSync(recursive: true);

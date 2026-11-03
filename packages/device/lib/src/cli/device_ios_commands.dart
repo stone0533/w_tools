@@ -293,9 +293,8 @@ Future<Calibration> _calibrate(
   }
   if (!force) {
     final cached = store.load(udid);
-    if (cached != null && cached.matches(window)) {
-      final scaleMatches = o.scale == null || cached.scale == o.scale;
-      if (scaleMatches) return cached;
+    if (CalibrationStore.isFreshCalibration(cached, window, scale: o.scale?.toDouble())) {
+      return cached!;
     }
   }
 
