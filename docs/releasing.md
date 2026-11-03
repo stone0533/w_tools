@@ -1,6 +1,13 @@
 # 发版流程（9 个 Flutter 子包 + w_tools_cli + 聚合包）
 
 > 最近一次门禁记录：[2026-11-04](release/2026-11-04-preflight.md)。
+
+发布前一条命令跑门禁：
+
+```bash
+bash scripts/preflight.sh --all     # 静态检查 + 全部测试 + 13 个子包 dry-run
+bash scripts/preflight.sh           # 只跑静态检查（最快）
+```
 >
 > **镜像滞后**：如果本机 / CI 设置了 `PUB_HOSTED_URL` 指向镜像（如 `pub.flutter-io.cn`），
 > 刚发布的版本可能暂时不可见。验证时显式 `PUB_HOSTED_URL=https://pub.dev`，并换一个全新的
