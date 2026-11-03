@@ -123,7 +123,7 @@ dependencies:
 
 ```yaml
 dependencies:
-  w_tools: ^3.0.0
+  w_tools: ^3.1.0
 ```
 
 然后运行：
@@ -175,7 +175,7 @@ import 'package:w_tools_core/w_tools_core.dart';
 
 ```yaml
 dependencies:
-  w_tools: ^3.0.0
+  w_tools: ^3.1.0
 ```
 
 ```dart

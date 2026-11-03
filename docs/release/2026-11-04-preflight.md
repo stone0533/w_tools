@@ -1,7 +1,7 @@
 # 发布前门禁记录（2026-11-04）
 
 - 范围：13 个子包 + 根包 `w_tools`（A 方案：本次发布为“弃用版”）
-- 代码状态：`main`，提交 `a71e023`，工作树干净
+- 代码状态：`main`，提交 `94ad2fb`，工作树干净
 - 结论：**门禁通过，可发布**；仅缺 pub 凭证
 
 ## 版本
@@ -14,7 +14,7 @@
 | form | 3.2.0 | qr | 1.1.0 |
 | api | 2.0.0 | cli | 1.9.10 |
 | figma | 0.11.0 | device | 0.1.2 |
-| e2e | 0.1.0 | 根包 | 3.0.24 |
+| e2e | 0.1.1 | 根包 | 3.1.0 |
 
 ## 门禁结果
 
@@ -31,10 +31,17 @@
 | example 测试（8 个包） | 全绿 |
 | 根契约 | 14 ✓ |
 | 13 个子包 `publish --dry-run` | 全 OK |
-| 根包 dry-run | 预期失败（子包未发布，`w_tools_async ^2.1.0` 无匹配版本） |
+| 根包 dry-run | 子包上线后已通过（0 warning） |
 | LICENSE / README / CHANGELOG | 13 个包齐全；CHANGELOG 顶部版本与 pubspec 一致 |
 | 暂存副本 | `workspace` / `resolution` 已移除；`test/`、`docs/` 排除；`example/` 保留 |
 | pub 凭证 | 本机缺失（`~/.config/dart/pub-credentials.json`） |
+
+## 发布进度（检查时 pub.dev）
+
+| 状态 | 包 |
+| --- | --- |
+| 已发布到目标版本 | core 2.4.0、async 2.1.0、ui 4.7.0、form 3.2.0、api 2.0.0、app 1.2.0、toast 1.3.0、map 1.3.1、qr 1.1.0、cli 1.9.10、figma 0.11.0、device 0.1.2 |
+| 待发布 | e2e 0.1.1（0.1.0 已存在，本次有修复）、根包 3.1.0 |
 
 ## 发布形态冒烟
 

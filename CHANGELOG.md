@@ -1,6 +1,15 @@
-## 3.0.24
+## 3.1.0
 
-- 抬高 `w_tools_app` 约束到 `^1.2.0`：新增 `WAppOptions` / `WLocaleConfig` / `WRouteStack`（字段与静态 `WRoute` 弃用）。
+聚合包同步本轮子包大版本（新增 API，非破坏性）：
+
+- core `^2.4.0`：`WDebounce` / `WThrottle`，`WToken` 配置；
+- ui `^4.7.0`：`WTextStyles` / `WImageLoadConfig` / `WHexColor` / `WActionRow`；
+- form `^3.2.0`：`WForm` 默认主题边框、`WFormIcons`；
+- async `^2.1.0`：`WAsyncOptions` / `WAsyncTheme`；
+- toast `^1.3.0`：`WToastStyle` / `WToastTheme`；
+- api `^2.0.0`：`WLogPart` / `DioRegistry` 冲突报错；
+- app `^1.2.0`：`WAppOptions` / `WLocaleConfig` / `WRouteStack`；
+- map `^1.3.1`、qr `^1.1.0`。
 
 ## 3.0.23
 
