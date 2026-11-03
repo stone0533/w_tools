@@ -273,6 +273,13 @@ class _FakeShell implements Shell {
     if (r.exitCode != 0) throw ProcessException(exe, args, 'fake', r.exitCode);
     return r;
   }
+
+  @override
+  Future<Uint8List> runBytes(String exe, List<String> args) async {
+    final r = await run(exe, args);
+    if (r.exitCode != 0) throw ProcessException(exe, args, 'fake', r.exitCode);
+    return Uint8List.fromList(r.stdout.codeUnits);
+  }
 }
 
 class _Frames {

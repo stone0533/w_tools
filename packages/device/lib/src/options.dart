@@ -14,6 +14,7 @@ class DeviceOptions {
     required this.region,
     required this.json,
     required this.real,
+    required this.android,
   });
 
   final String command;
@@ -37,6 +38,9 @@ class DeviceOptions {
   /// 操作物理真机（需要 devicectl；点击不支持）。
   final bool real;
 
+  /// 走 Android（adb）：坐标是**截图像素**，不需要标定。
+  final bool android;
+
   String? get deviceOrFirst => device;
 
   static DeviceOptions parse(List<String> args) {
@@ -44,6 +48,7 @@ class DeviceOptions {
     var noCache = false;
     var json = false;
     var real = false;
+    var android = false;
     int? scale;
     var timeout = const Duration(seconds: 15);
     var stableFor = const Duration(milliseconds: 600);
@@ -54,6 +59,8 @@ class DeviceOptions {
         json = true;
       } else if (a == '--real') {
         real = true;
+      } else if (a == '--android') {
+        android = true;
       } else if (a.startsWith('--device=')) {
         device = a.substring('--device='.length);
       } else if (a.startsWith('--out=')) {
@@ -90,6 +97,7 @@ class DeviceOptions {
       region: region,
       json: json,
       real: real,
+      android: android,
     );
   }
 

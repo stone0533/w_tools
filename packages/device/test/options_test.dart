@@ -109,6 +109,45 @@ void main() {
     });
   });
 
+  group('Adb（Android）', () {
+    test('解析 adb devices -l', () {
+      const text = '''List of devices attached
+0B241FDD4008T1         device usb:1179648X product:redfin model:Pixel_5 device:redfin transport_id:7
+emulator-5554          offline transport_id:3
+
+''';
+      final list = Adb.parseDevices(text);
+      expect(list.length, 2);
+      expect(list.first.serial, '0B241FDD4008T1');
+      expect(list.first.model, 'Pixel_5');
+      expect(list.first.isReady, isTrue);
+      expect(list.last.isReady, isFalse);
+    });
+
+    test('resolve 只挑就绪设备', () {
+      const text = 'List of devices attached\nAAA offline\nBBB device model:Pixel_5\n';
+      final list = Adb.parseDevices(text);
+      expect(Adb.resolve(list, null)!.serial, 'BBB');
+      expect(Adb.resolve(list, 'AAA')!.serial, 'AAA');
+      expect(Adb.resolve(list, 'pixel')!.serial, 'BBB');
+      expect(Adb.resolve(const [], null), isNull);
+    });
+
+    test('前台包名：优先 mCurrentFocus，回落 topResumedActivity', () {
+      const withFocus = '''
+  mCurrentFocus=Window{46d41f6 u0 com.android.settings/com.android.settings.SubSettings}
+  mFocusedApp=ActivityRecord{5700d8b u0 com.android.settings/.SubSettings t2099}
+''';
+      expect(Adb.parseCurrentPackage(withFocus), 'com.android.settings');
+
+      const onlyResumed = '''
+  topResumedActivity=ActivityRecord{5700d8b u0 hk.ureward.app/.MainActivity t1}
+''';
+      expect(Adb.parseCurrentPackage(onlyResumed), 'hk.ureward.app');
+      expect(Adb.parseCurrentPackage(''), isEmpty);
+    });
+  });
+
   group('ScreenStats（真机锁屏会返回全黑图）', () {
     Uint8List solid(int r, int g, int b) {
       final image = img.Image(width: 40, height: 40);

@@ -31,6 +31,24 @@ dart run w_tools_device:device verify 200 840 --region=0,40,402,80
 - macOS + Xcode（模拟器 GUI 是 **Device Hub**，Xcode 27 起取代 Simulator.app）
 - `brew install cliclick`（真 CGEvent 点击；`osascript click at` 点不到模拟器画面）
 - 给运行它的宿主 App 开「辅助功能」与「屏幕录制」
+- **Android 不需要** cliclick / 屏幕录制 / 标定：`adb` 的 `input tap` 直接用截图像素
+
+### Android（adb）
+
+```bash
+dart run w_tools_device:device list --android          # 列设备（serial / model / state）
+dart run w_tools_device:device size --android          # 分辨率（像素）
+dart run w_tools_device:device shot --android --out=/tmp/a.png
+dart run w_tools_device:device tap --android 540 1200  # **截图像素**
+dart run w_tools_device:device drag --android 540 1600 540 800
+dart run w_tools_device:device type --android "hello"
+dart run w_tools_device:device wait --android
+dart run w_tools_device:device verify --android 540 300 --region=0,300,1080,1500
+dart run w_tools_device:device foreground --android    # 前台包名（冒烟前置校验）
+```
+
+> Android 没有「窗口标定」这回事：`adb shell input tap <x> <y>` 直接吃屏幕像素，
+> 所以 `tap`/`drag`/`verify --region` 的坐标一律是**截图像素**（用 `size --android` 看）。
 
 坐标标定原理：截 DeviceHub 窗口 → 找最外层黑色机身（连通域）→ 内缩得到设备屏幕矩形 →
 按设备分辨率换算成「设备坐标 ↔ 屏幕坐标」。结果缓存在 `~/.cache/w_tools_device/`，

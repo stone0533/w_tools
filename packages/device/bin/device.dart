@@ -10,12 +10,15 @@ w_tools_device —— 设备验证小工具（模拟器为主 + 真机截图，�
 用法：
   dart run w_tools_device:device list                 # 列出模拟器（udid / 名称 / 状态）
   dart run w_tools_device:device list --real          # 列出物理真机（devicectl）
+  dart run w_tools_device:device list --android       # 列出 Android 设备（adb）
   dart run w_tools_device:device boot <名称|udid>      # 启动并等待可用
   dart run w_tools_device:device shot --out=<path>    # 截设备屏（--real 走 devicectl）
   dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备屏幕的坐标
   dart run w_tools_device:device tap <x> <y>          # 用设备坐标点（自动换算成屏幕坐标）
   dart run w_tools_device:device drag <x1> <y1> <x2> <y2>
   dart run w_tools_device:device type <text>          # 输入文本（先点中输入框）
+  dart run w_tools_device:device size                 # 设备分辨率（iOS=point，Android=像素）
+  dart run w_tools_device:device foreground --android # 前台 App 包名（仅 Android）
   dart run w_tools_device:device wait                 # 等画面稳定
   dart run w_tools_device:device verify <x> <y>       # 点一下并确认画面有变化（坐标自检）
 
@@ -27,6 +30,8 @@ w_tools_device —— 设备验证小工具（模拟器为主 + 真机截图，�
   --stable-ms=600       画面稳定判定窗口
   --region=x,y,w,h      只看这块区域（设备坐标）；verify/wait 用
   --real                操作物理真机（仅 list / shot；点击需要 idb，本工具不支持）
+  --android             走 Android（adb）：list/shot/tap/drag/type/wait/verify 都支持，
+                        坐标是**截图像素**（不需要标定，也不需要 cliclick）
   --json                输出 JSON（给脚本 / CI 用）
 
 退出码：0 成功 · 1 参数/执行错误 · 2 verify 画面没变化（坐标可能失效）
@@ -48,24 +53,71 @@ Future<void> main(List<String> args) async {
     final o = options;
     switch (o.command) {
       case 'list':
-        await _list(o, simctl);
+        if (o.android) {
+          await _androidList(o);
+        } else {
+          await _list(o, simctl);
+        }
       case 'boot':
         await _boot(simctl, o);
       case 'shot':
-        await _shot(simctl, o);
+        if (o.android) {
+          await _androidShot(o);
+        } else {
+          await _shot(simctl, o);
+        }
       case 'calibrate':
         _emitCalibration(o, await _calibrate(simctl, o, force: true));
       case 'tap':
-        await _tap(simctl, o);
+        if (o.android) {
+          await _androidTap(o);
+        } else {
+          await _tap(simctl, o);
+        }
       case 'drag':
-        await _drag(simctl, o);
+        if (o.android) {
+          await _androidDrag(o);
+        } else {
+          await _drag(simctl, o);
+        }
       case 'type':
-        await Input().type(o.positional.join(' '));
+        if (o.android) {
+          final serial = await _androidSerial(o);
+          await Adb().text(serial, o.positional.join(' '));
+        } else {
+          await Input().type(o.positional.join(' '));
+        }
         _emit(o, {'text': o.positional.join(' ')}, '已输入：${o.positional.join(' ')}');
+      case 'size':
+        if (o.android) {
+          final serial = await _androidSerial(o);
+          final size = await Adb().screenSize(serial);
+          _emit(o, {'width': size.$1, 'height': size.$2, 'serial': serial, 'android': true},
+              '${size.$1} x ${size.$2}（像素）');
+        } else {
+          final cal = await _calibrate(simctl, o, force: o.noCache);
+          _emit(o, {'width': cal.deviceWidth, 'height': cal.deviceHeight, 'android': false},
+              '${cal.deviceWidth} x ${cal.deviceHeight}（point）');
+        }
+      case 'foreground':
+        if (!o.android) {
+          throw StateError('foreground 只支持 --android（iOS 请用 flutter run 的日志判断）');
+        }
+        final serial = await _androidSerial(o);
+        final pkg = await Adb().currentPackage(serial);
+        _emit(o, {'package': pkg, 'serial': serial}, pkg.isEmpty ? '（取不到前台包名）' : pkg);
       case 'wait':
-        await _wait(simctl, o);
+        if (o.android) {
+          await _androidWait(o);
+        } else {
+          await _wait(simctl, o);
+        }
       case 'verify':
-        await _verify(simctl, o);
+        if (o.android) {
+          await _androidVerify(o);
+        } else {
+          await _verify(simctl, o);
+        }
       default:
         throw StateError('未知命令：${o.command}\n\n$_usage');
     }
@@ -284,6 +336,140 @@ Future<void> _verify(Simctl simctl, DeviceOptions o) async {
       },
       'tap device($x, $y) → screen(${screen.x.round()}, ${screen.y.round()})：'
       '${changed ? '画面有变化 ✅' : '画面无变化 ⚠️（坐标可能失效）'}');
+  if (!changed) exitCode = 2;
+}
+
+Future<String> _androidSerial(DeviceOptions o) async {
+  final devices = await Adb().devices();
+  final target = Adb.resolve(devices, o.deviceOrFirst);
+  if (target == null) {
+    throw StateError('没有就绪的 Android 设备（检查数据线 / 调试授权：adb devices -l）');
+  }
+  return target.serial;
+}
+
+Future<void> _androidList(DeviceOptions o) async {
+  final devices = await Adb().devices();
+  if (o.json) {
+    _emit(
+        o,
+        {
+          'android': true,
+          'devices': [for (final d in devices) d.toJson()],
+        },
+        '');
+    return;
+  }
+  if (devices.isEmpty) {
+    stdout.writeln('（没有 Android 设备）');
+    return;
+  }
+  final b = StringBuffer('状态\t型号\t序列号\n');
+  for (final d in devices) {
+    b.writeln('${d.state}\t${d.model}\t${d.serial}');
+  }
+  stdout.writeln(b.toString().trimRight());
+}
+
+Future<void> _androidShot(DeviceOptions o) async {
+  final serial = await _androidSerial(o);
+  final out = o.out ?? '${Directory.systemTemp.path}/device_android.png';
+  await Adb().screenshot(serial, out);
+  final dark = ScreenStats.isMostlyDark(File(out).readAsBytesSync());
+  _emit(
+    o,
+    {
+      'path': out,
+      'serial': serial,
+      'android': true,
+      if (dark) 'warning': '截图几乎全黑：设备可能息屏/锁屏，请点亮解锁后重试',
+    },
+    dark ? '$out\n⚠️ 截图几乎全黑：设备可能息屏/锁屏' : out,
+  );
+}
+
+Future<void> _androidTap(DeviceOptions o) async {
+  _requireArgs(o, 2, 'tap 需要 <x> <y>（Android 用截图像素）');
+  final serial = await _androidSerial(o);
+  final x = int.parse(o.positional[0]);
+  final y = int.parse(o.positional[1]);
+  await Adb().tap(serial, x, y);
+  _emit(
+      o,
+      {
+        'device': {'x': x, 'y': y},
+        'serial': serial,
+      },
+      'tap $x, $y（像素）');
+}
+
+Future<void> _androidDrag(DeviceOptions o) async {
+  _requireArgs(o, 4, 'drag 需要 <x1> <y1> <x2> <y2>（Android 用截图像素）');
+  final serial = await _androidSerial(o);
+  final v = o.positional.take(4).map(int.parse).toList();
+  await Adb().swipe(serial, v[0], v[1], v[2], v[3]);
+  _emit(
+      o,
+      {
+        'from': {'x': v[0], 'y': v[1]},
+        'to': {'x': v[2], 'y': v[3]},
+        'serial': serial,
+      },
+      'swipe ${v[0]},${v[1]} → ${v[2]},${v[3]}（像素）');
+}
+
+Stability _androidStability(Adb adb, String serial, {DRect? region}) => Stability(
+      grab: () => _androidFingerprint(adb, serial, region: region),
+    );
+
+Future<String> _androidFingerprint(Adb adb, String serial, {DRect? region}) async {
+  final out = '${Directory.systemTemp.path}/w_tools_device_fp_android.png';
+  await adb.screenshot(serial, out);
+  final bytes = File(out).readAsBytesSync();
+  return region == null
+      ? ScreenFingerprint.of(bytes)
+      : ScreenFingerprint.ofRegion(bytes, region: region);
+}
+
+Future<void> _androidWait(DeviceOptions o) async {
+  final serial = await _androidSerial(o);
+  final ok = await _androidStability(Adb(), serial, region: o.region).waitStable(
+    stableFor: o.stableFor,
+    timeout: o.timeout,
+  );
+  _emit(o, {'stable': ok, 'serial': serial}, ok ? '画面已稳定' : '等待超时（画面仍在变化）');
+  if (!ok) exitCode = 3;
+}
+
+Future<void> _androidVerify(DeviceOptions o) async {
+  _requireArgs(o, 2, 'verify 需要 <x> <y>（Android 用截图像素）');
+  final serial = await _androidSerial(o);
+  final adb = Adb();
+  final x = int.parse(o.positional[0]);
+  final y = int.parse(o.positional[1]);
+  final changed = await TapVerifier.verify(
+    stability: _androidStability(adb, serial, region: o.region),
+    fingerprint: () => _androidFingerprint(adb, serial, region: o.region),
+    tap: () => adb.tap(serial, x, y),
+    stableFor: o.stableFor,
+    timeout: o.timeout,
+  );
+  _emit(
+      o,
+      {
+        'changed': changed,
+        'device': {'x': x, 'y': y},
+        'serial': serial,
+        'region': o.region == null
+            ? null
+            : {
+                'x': o.region!.left,
+                'y': o.region!.top,
+                'w': o.region!.width,
+                'h': o.region!.height,
+              },
+      },
+      'tap $x, $y（像素）：${changed ? '画面有变化 ✅' : '画面无变化 ⚠️（坐标可能失效）'}');
   if (!changed) exitCode = 2;
 }
 
