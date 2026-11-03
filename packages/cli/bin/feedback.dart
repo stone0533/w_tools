@@ -3,6 +3,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/context/install_info.dart';
 import 'package:w_tools_cli/src/feedback/feedback_lint.dart';
@@ -22,7 +24,8 @@ w_tools_cli feedback —— 反馈该写到哪 / 写对没有
 选项：
   --root=<dir>        项目根（默认当前目录）
   --package=<包>      path 用：库侧单包文件名（figma / cli / device / e2e …）
-  --include-inbox     lint 用：连同 docs/agents/feedback.md 一起校验
+  --include-inbox     lint 用：连同 docs/agents/feedback.md 一起校验（仓库检出时也查）
+  --stale-days=<n>    lint 用：待处理超过 n 天给警告（默认 30，0 = 关闭）
   --json              机器可读输出
   -h, --help          显示本帮助
 
@@ -36,6 +39,7 @@ void main(List<String> argv) {
     ..addOption('root')
     ..addOption('package')
     ..addFlag('include-inbox', negatable: false)
+    ..addOption('stale-days', defaultsTo: '30')
     ..addFlag('json', negatable: false);
 
   runCli(
@@ -50,9 +54,14 @@ void main(List<String> argv) {
 
       switch (sub) {
         case 'path':
+          final package = args['package'] as String?;
+          if (package != null && !RegExp(r'^[a-z0-9_]+$').hasMatch(package)) {
+            stderr.writeln('--package 只允许小写字母/数字/下划线：$package');
+            exit(2);
+          }
           final target = FeedbackTarget.resolve(
             projectRoot: root,
-            package: args['package'] as String?,
+            package: package,
           );
           if (asJson) {
             print(jsonEncode(target.toJson()));
@@ -65,8 +74,9 @@ void main(List<String> argv) {
             }
           }
         case 'lint':
+          final staleDays = int.tryParse(args['stale-days'] as String) ?? 30;
           final install = InstallInfo.detect(projectRoot: root);
-          final linter = const FeedbackLinter();
+          final linter = FeedbackLinter(staleDays: staleDays);
           final paths = <String>[];
           FeedbackLintResult result;
           if (install.feedbackDir != null) {
@@ -80,14 +90,16 @@ void main(List<String> argv) {
             );
           }
           if (args['include-inbox'] as bool) {
-            final inbox = FeedbackTarget.resolve(projectRoot: root);
-            if (!inbox.isLibrary) paths.add(inbox.path);
+            // 无条件检查收件箱：仓库检出时它同样可能存在待同步条目
+            final inboxPath = p.join(root.path, 'docs', 'agents', 'feedback.md');
+            if (File(inboxPath).existsSync()) paths.add(inboxPath);
             final inboxResult = linter.lintFiles(paths);
             result = FeedbackLintResult(
               files: [...result.files, ...inboxResult.files],
               pending: result.pending + inboxResult.pending,
               closed: result.closed + inboxResult.closed,
               issues: [...result.issues, ...inboxResult.issues],
+              warnings: [...result.warnings, ...inboxResult.warnings],
             );
           }
           if (asJson) {
@@ -99,12 +111,15 @@ void main(List<String> argv) {
             for (final i in result.issues) {
               stderr.writeln('✗ $i');
             }
+            for (final w in result.warnings) {
+              stderr.writeln('! $w');
+            }
             for (final f in result.files) {
               stdout.writeln('· $f');
             }
             print(
               '${result.ok ? '✓' : '✗'} 待处理 ${result.pending} 条，已闭环 ${result.closed} 条，'
-              '问题 ${result.issues.length} 个',
+              '问题 ${result.issues.length} 个，警告 ${result.warnings.length} 个',
             );
           }
           if (!result.ok) exit(1);

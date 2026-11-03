@@ -95,6 +95,55 @@ void main() {
       expect(result.issues.any((i) => i.message.contains('版本号')), isTrue);
     });
 
+    test('字段只在正文出现、没有「- 字段：」行 → 报缺字段', () {
+      final root = _tmp('wt_fbl4_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'cli.md'))
+        ..writeAsStringSync('''
+### [待处理] cli: 只有正文提到环境
+这条里提到了环境和命令，但没有字段行。
+''');
+      final result = const FeedbackLinter().lintFiles([file.path]);
+      expect(result.issues.where((i) => i.message.contains('缺字段')).length, 8);
+    });
+
+    test('待处理超过 stale-days 给警告，不影响 ok', () {
+      final root = _tmp('wt_fbl5_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'cli.md'))
+        ..writeAsStringSync('''
+### [待处理] cli: 挂了很久
+- 包/版本：w_tools_cli 1.9.5
+- 环境：macOS
+- 命令 / 输入：x
+- 期望：快
+- 实际：慢
+- 影响：等 10 分钟
+- 建议：加缓存
+- 复现数据：-
+- 状态变更：2026-01-01 待处理
+''');
+      final result = const FeedbackLinter(
+        staleDays: 30,
+      ).lintFiles([file.path], now: DateTime(2026, 3, 1));
+      expect(result.ok, isTrue);
+      expect(result.warnings.single.message, contains('没动'));
+    });
+
+    test('索引列了不存在的文件 → 报错', () {
+      final root = _tmp('wt_fbl6_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final dir = p.join(root.path, 'feedback');
+      Directory(dir).createSync();
+      File(p.join(dir, 'README.md')).writeAsStringSync('''
+| 包 | 待处理 |
+| --- | --- |
+| [map](map.md) | 0 |
+''');
+      final result = const FeedbackLinter().lintLibrary(Directory(dir));
+      expect(result.issues.any((i) => i.message.contains('没有 map.md')), isTrue);
+    });
+
     test('索引数量不一致会报错', () {
       final root = _tmp('wt_fbl3_');
       addTearDown(() => root.deleteSync(recursive: true));

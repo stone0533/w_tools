@@ -30,13 +30,19 @@ class FeedbackLintResult {
     required this.files,
     required this.pending,
     required this.closed,
-    required this.issues,
+    this.issues = const <FeedbackIssue>[],
+    this.warnings = const <FeedbackIssue>[],
   });
 
   final List<String> files;
   final int pending;
   final int closed;
+
+  /// 必须修的问题（退出码 1）。
   final List<FeedbackIssue> issues;
+
+  /// 建议处理（stale 等），不影响退出码。
+  final List<FeedbackIssue> warnings;
 
   bool get ok => issues.isEmpty;
 
@@ -47,12 +53,16 @@ class FeedbackLintResult {
     'pending': pending,
     'closed': closed,
     'issues': <Map<String, Object?>>[for (final i in issues) i.toJson()],
+    'warnings': <Map<String, Object?>>[for (final i in warnings) i.toJson()],
   };
 }
 
-/// 校验反馈文件的格式：字段齐全、状态合法、已闭环带版本号。
+/// 校验反馈文件的格式：字段齐全、状态合法、已闭环带版本号、待处理不 stale。
 class FeedbackLinter {
-  const FeedbackLinter();
+  const FeedbackLinter({this.staleDays = 30});
+
+  /// `待处理` 超过这么多天没动 → 警告（默认 30）。
+  final int staleDays;
 
   static const _statuses = <String>{
     '待处理',
@@ -65,7 +75,7 @@ class FeedbackLinter {
     'wontfix',
   };
 
-  /// 待处理条目必须出现的字段（中英文均可）。
+  /// 待处理条目必须出现的字段（中英文均可）；按行首 `- 字段：` 匹配。
   static const _requiredFields = <List<String>>[
     ['包/版本', 'package/version'],
     ['环境', 'environment'],
@@ -80,12 +90,16 @@ class FeedbackLinter {
   static final _heading = RegExp(r'^###\s*\[([^\]]+)\]\s*(.*)$');
   static final _closedRow = RegExp(r'^\|\s*\d{4}-\d{2}-\d{2}\s*\|');
   static final _version = RegExp(r'✅\s*(?:[A-Za-z_]+\s+)?\d+\.\d+\.\d+');
+  static final _fieldLine = RegExp(r'^\s*-\s*(.+?)\s*[：:]');
+  static final _statusDate = RegExp(r'状态变更[：:]\s*(\d{4}-\d{2}-\d{2})');
 
-  FeedbackLintResult lintFiles(List<String> paths) {
+  FeedbackLintResult lintFiles(List<String> paths, {DateTime? now}) {
     final issues = <FeedbackIssue>[];
+    final warnings = <FeedbackIssue>[];
     var pending = 0;
     var closed = 0;
     final checked = <String>[];
+    final today = now ?? DateTime.now();
 
     for (final path in paths) {
       final file = File(path);
@@ -93,8 +107,7 @@ class FeedbackLinter {
       checked.add(path);
       final lines = file.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
-        final rowMatch = _closedRow.firstMatch(lines[i]);
-        if (rowMatch != null) {
+        if (_closedRow.firstMatch(lines[i]) != null) {
           closed++;
           if (!_version.hasMatch(lines[i])) {
             issues.add(
@@ -122,7 +135,7 @@ class FeedbackLinter {
         }
         if (status != '待处理' && status != 'pending') continue;
         pending++;
-        // 收集本条正文，直到下一个 ### / ## 或文件结束
+
         final body = <String>[];
         var end = i + 1;
         while (end < lines.length &&
@@ -131,10 +144,19 @@ class FeedbackLinter {
           body.add(lines[end]);
           end++;
         }
-        final text = body.join('\n');
+
+        // 字段：按行首 `- 字段：` 收集，避免正文里偶然出现关键词就过关
+        final present = <String>{};
+        for (final line in body) {
+          final m = _fieldLine.firstMatch(line);
+          if (m != null) present.add(m.group(1)!.trim());
+        }
         for (final aliases in _requiredFields) {
-          final ok = aliases.any((a) => text.contains(a));
-          if (!ok) {
+          // 允许「命令 / 输入」「影响（我因此…）」这类带后缀的写法
+          final filled = aliases.any(
+            (a) => present.any((key) => key.startsWith(a)),
+          );
+          if (!filled) {
             issues.add(
               FeedbackIssue(
                 file: path,
@@ -144,6 +166,25 @@ class FeedbackLinter {
             );
           }
         }
+
+        // stale：看「状态变更：YYYY-MM-DD」
+        final text = body.join('\n');
+        final dateMatch = _statusDate.firstMatch(text);
+        if (dateMatch != null) {
+          final date = DateTime.tryParse(dateMatch.group(1)!);
+          if (date != null) {
+            final age = today.difference(date).inDays;
+            if (age > staleDays) {
+              warnings.add(
+                FeedbackIssue(
+                  file: path,
+                  line: i + 1,
+                  message: '待处理已 $age 天没动（状态变更 ${dateMatch.group(1)}），考虑 triage',
+                ),
+              );
+            }
+          }
+        }
       }
     }
     return FeedbackLintResult(
@@ -151,11 +192,12 @@ class FeedbackLinter {
       pending: pending,
       closed: closed,
       issues: issues,
+      warnings: warnings,
     );
   }
 
   /// 库侧：所有 `docs/feedback/*.md`（排除 README / TEMPLATE）+ 索引数量核对。
-  FeedbackLintResult lintLibrary(Directory feedbackDir) {
+  FeedbackLintResult lintLibrary(Directory feedbackDir, {DateTime? now}) {
     final files = <String>[];
     if (feedbackDir.existsSync()) {
       for (final entity in feedbackDir.listSync()) {
@@ -166,42 +208,71 @@ class FeedbackLinter {
         files.add(entity.path);
       }
     }
-    final result = lintFiles(files);
-    final issues = [...result.issues, ..._checkIndex(feedbackDir, result)];
+    final result = lintFiles(files, now: now);
+    final issues = [...result.issues, ..._checkIndex(feedbackDir)];
     return FeedbackLintResult(
       files: result.files,
       pending: result.pending,
       closed: result.closed,
       issues: issues,
+      warnings: result.warnings,
     );
   }
 
-  /// 索引表里的「待处理」数量必须与实际一致。
-  List<FeedbackIssue> _checkIndex(Directory dir, FeedbackLintResult result) {
+  /// 索引表与文件必须一一对应：数量一致，且不能列出不存在的文件。
+  List<FeedbackIssue> _checkIndex(Directory dir) {
     final readme = File(p.join(dir.path, 'README.md'));
     if (!readme.existsSync()) return const [];
     final counts = <String, int>{};
-    for (final path in result.files) {
-      final lines = File(path).readAsLinesSync();
-      counts[p.basenameWithoutExtension(path)] = lines
-          .where((l) => l.startsWith('### [待处理]'))
+    for (final entity in dir.listSync()) {
+      if (entity is! File) continue;
+      final name = p.basename(entity.path);
+      if (!name.endsWith('.md') || name == 'README.md' || name == 'TEMPLATE.md') {
+        continue;
+      }
+      final pending = File(entity.path)
+          .readAsLinesSync()
+          .where((l) => l.startsWith('### [待处理]') || l.startsWith('### [pending]'))
           .length;
+      counts[p.basenameWithoutExtension(name)] = pending;
     }
-    final row = RegExp(r'^\|\s*\[([a-z_]+)\]\([^)]+\)\s*\|\s*(\d+)\s*\|');
+
+    final row = RegExp(r'^\|\s*\[([a-z0-9_]+)\]\([^)]+\)\s*\|\s*(\d+)\s*\|');
     final issues = <FeedbackIssue>[];
+    final listed = <String>{};
     final lines = readme.readAsLinesSync();
     for (var i = 0; i < lines.length; i++) {
       final m = row.firstMatch(lines[i]);
       if (m == null) continue;
       final pkg = m.group(1)!;
       final indexed = int.parse(m.group(2)!);
+      listed.add(pkg);
       final actual = counts[pkg];
-      if (actual != null && actual != indexed) {
+      if (actual == null) {
+        issues.add(
+          FeedbackIssue(
+            file: readme.path,
+            line: i + 1,
+            message: '索引列了 $pkg，但没有 $pkg.md（删文件要同步删索引，或写 0 条）',
+          ),
+        );
+      } else if (actual != indexed) {
         issues.add(
           FeedbackIssue(
             file: readme.path,
             line: i + 1,
             message: '索引写「$indexed」条待处理，实际 $actual 条',
+          ),
+        );
+      }
+    }
+    for (final pkg in counts.keys) {
+      if (!listed.contains(pkg)) {
+        issues.add(
+          FeedbackIssue(
+            file: readme.path,
+            line: 1,
+            message: '有 $pkg.md 但索引里没有它',
           ),
         );
       }

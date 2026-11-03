@@ -35,7 +35,9 @@
 >
 > **库侧路径怎么拿**：`dart run w_tools_cli:feedback path --package=<包>`
 > 输出本项目收件箱（`docs/agents/feedback.md`）= 不是仓库检出，只写收件箱。
-> 写完可跑 `dart run w_tools_cli:feedback lint --include-inbox` 自检字段/状态/版本号。
+> 写完可跑 `dart run w_tools_cli:feedback lint --include-inbox` 自检：
+> 字段齐全 / 状态合法 / 已闭环带版本号 / 索引与文件一致 / 待处理超 30 天给 stale 警告。
+> CI 里的 `scripts/check_feedback.sh` 就是这条命令的薄包装（规则只实现一次）。
 
 ```bash
 # 1. 查重
