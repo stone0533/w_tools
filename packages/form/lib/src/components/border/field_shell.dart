@@ -103,7 +103,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
     super.didChangeDependencies();
     final next = WFormScope.requireOf(context);
     if (!identical(_formData, next)) {
-      _formData?.removeBorderKey(widget.name);
+      _formData?.removeBorderKey(widget.name, owner: this);
       _formData?.removeFormEntered(widget.name);
       _formData = next;
     }
@@ -111,7 +111,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
 
   @override
   void dispose() {
-    _formData?.removeBorderKey(widget.name);
+    _formData?.removeBorderKey(widget.name, owner: this);
     _formData?.removeFormEntered(widget.name);
     super.dispose();
   }
@@ -129,7 +129,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
 
     // name 变化后旧 key 不再有意义，避免 formBorderKeys 累积
     if (oldWidget.name != widget.name) {
-      _formData?.removeBorderKey(oldWidget.name);
+      _formData?.removeBorderKey(oldWidget.name, owner: this);
       _formData?.removeFormEntered(oldWidget.name);
     }
 
@@ -157,7 +157,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
     child = WFormReadOnlyScope(readOnly: isReadOnly, child: child);
 
     return WFormBorder(
-      key: formData.ensureBorderKey(widget.name),
+      key: formData.ensureBorderKey(widget.name, owner: this),
       config: WFormScope.borderConfigOf(context),
       hintTextList: widget.hintTextList,
       isReadOnly: isReadOnly,

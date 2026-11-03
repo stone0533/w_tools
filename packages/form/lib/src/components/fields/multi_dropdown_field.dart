@@ -160,6 +160,8 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                                          disabledIcon: checkboxDisabledIcon,
                                          status: status,
                                          onTap: (v, isChecked) {
+                                           // 弹层挂在 Navigator 上，可能比字段活得久
+                                           if (!state.mounted) return;
                                            final selected = <String>{...?state.value};
                                            if (isChecked) {
                                              selected.add(v);

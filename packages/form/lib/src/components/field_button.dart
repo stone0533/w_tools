@@ -228,6 +228,9 @@ class _WFormScopeButton<T> extends FormBuilderField<T> {
                child: InkWell(
                  onTap: state.enabled
                      ? () => onTap.call(state.value, (a) {
+                         // 消费方通常在 await 选择器后调用 didChange；
+                         // 期间字段可能已卸载，直接写会 setState after dispose。
+                         if (!state.mounted) return;
                          state.didChange(a);
                        })
                      : null,

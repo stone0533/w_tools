@@ -123,13 +123,32 @@ class WFormController {
   /// 表单边框 key 映射（由 [ensureBorderKey] 按需登记）
   final Map<String, GlobalKey<WFormBorderState>> formBorderKeys = {};
 
+  /// 各字段名当前的宿主 State（仅用于重名检测）
+  final Map<String, Object> _borderKeyOwners = {};
+
   /// 获取指定字段的边框 key，不存在时创建
-  GlobalKey<WFormBorderState> ensureBorderKey(String name) {
+  ///
+  /// [owner] 为调用方 State。同名被两个仍挂载的字段注册时，debug 期给出可读错误 ——
+  /// Flutter 自己的 "Multiple widgets used the same GlobalKey" 看不出是哪个 `name`。
+  GlobalKey<WFormBorderState> ensureBorderKey(String name, {Object? owner}) {
+    if (owner != null) {
+      final existing = _borderKeyOwners[name];
+      assert(
+        existing == null || identical(existing, owner),
+        '字段 name 重复：$name。同一 WForm 内 name 必须唯一'
+        '（检查是否同时挂载了两个 name 相同的字段，或 withFormBorder 用了子字段的名字）。',
+      );
+      _borderKeyOwners[name] = owner;
+    }
     return formBorderKeys.putIfAbsent(name, () => GlobalKey<WFormBorderState>());
   }
 
   /// 注销指定字段的边框 key；字段卸载时由 WFormFieldShell 调用
-  void removeBorderKey(String name) {
+  ///
+  /// [owner] 用于避免「同名字段 A 卸载时把 B 的 key 也删掉」。
+  void removeBorderKey(String name, {Object? owner}) {
+    if (owner != null && !identical(_borderKeyOwners[name], owner)) return;
+    _borderKeyOwners.remove(name);
     formBorderKeys.remove(name);
   }
 
