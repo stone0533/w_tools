@@ -1,3 +1,7 @@
+## 3.0.21
+
+- 抬高 `w_tools_qr` 约束到 `^1.1.0`：`onScanned` 可选、默认扫描间隔 400ms、overlay 值相等。
+
 ## 3.0.20
 
 - 抬高 `w_tools_api` 约束到 `^2.0.0`：日志改用 `WLogPart`，`DioRegistry` 配置冲突改为报错。

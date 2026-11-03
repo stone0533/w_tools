@@ -95,7 +95,26 @@ void main() {
   });
 
   group('WQrView — 构造 & 渲染（Tier 1）', () {
-    testWidgets('默认构造 — onScanned 必填 + 默认参数', (tester) async {
+    test('onScanned 与 onQRViewCreated 都为空时断言', () {
+      expect(() => WQrView(), throwsA(isA<AssertionError>()));
+    });
+
+    test('WQrViewOverlayShape 值相等', () {
+      expect(
+        const WQrViewOverlayShape(borderWidth: 4),
+        const WQrViewOverlayShape(borderWidth: 4),
+      );
+      expect(
+        const WQrViewOverlayShape(borderWidth: 4).hashCode,
+        const WQrViewOverlayShape(borderWidth: 4).hashCode,
+      );
+      expect(
+        const WQrViewOverlayShape(borderWidth: 4),
+        isNot(const WQrViewOverlayShape(borderWidth: 5)),
+      );
+    });
+
+    testWidgets('默认构造 — onScanned 可选 + 默认参数', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -109,6 +128,7 @@ void main() {
       expect(wqr.checkedBorderColor, Colors.green);
       expect(wqr.showOverlay, isTrue);
       expect(wqr.scanOnce, isTrue);
+      expect(wqr.scanInterval, const Duration(milliseconds: 400));
       expect(wqr.cameraFacing, CameraFacing.back);
       expect(wqr.formatsAllowed, isEmpty);
       expect(wqr.overlayMargin, EdgeInsets.zero);

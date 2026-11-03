@@ -46,7 +46,9 @@ class WQrView extends StatefulWidget {
   /// 扫描到有效内容时的回调
   ///
   /// 仅在 `Barcode.code` 非空时触发；[scanOnce] 为 true 时最多触发一次。
-  final void Function(Barcode scanData) onScanned;
+  ///
+  /// 与 [onQRViewCreated] 至少提供一个；只监听流时可省略。
+  final void Function(Barcode scanData)? onScanned;
 
   /// 相机控制器创建回调
   ///
@@ -74,18 +76,18 @@ class WQrView extends StatefulWidget {
 
   /// 连续扫描模式下相同内容的最小回调间隔
   ///
-  /// 默认 [Duration.zero]，表示不去重；仅在 [scanOnce] 为 false 时生效。
+  /// 默认 400ms；仅在 [scanOnce] 为 false 时生效。
   final Duration scanInterval;
 
   /// 错误回调
   ///
   /// 用于上报相机操作失败、扫描流错误与 [onScanned] 自身抛出的异常；
-  /// 未提供时会通过 [FlutterError.reportError] 上报。
+  /// 未提供时 debug 下通过 `debugPrint` 输出。
   final void Function(Object error, StackTrace stackTrace)? onError;
 
   /// 创建二维码扫描组件
   ///
-  /// [onScanned] 为必填项，其余参数均有默认值。
+  /// [onScanned] 与 [onQRViewCreated] 至少提供一个，其余参数均有默认值。
   const WQrView({
     super.key,
     this.borderColor = Colors.red,
@@ -94,14 +96,17 @@ class WQrView extends StatefulWidget {
     this.overlay,
     this.overlayMargin = EdgeInsets.zero,
     this.noPermissionCallback,
-    required this.onScanned,
+    this.onScanned,
     this.onQRViewCreated,
     this.cameraFacing = CameraFacing.back,
     this.formatsAllowed = const <BarcodeFormat>[],
     this.scanOnce = true,
-    this.scanInterval = Duration.zero,
+    this.scanInterval = const Duration(milliseconds: 400),
     this.onError,
-  });
+  }) : assert(
+         onScanned != null || onQRViewCreated != null,
+         'WQrView: onScanned 与 onQRViewCreated 至少提供一个',
+       );
 
   @override
   State<WQrView> createState() => WQrViewState();
@@ -332,7 +337,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     }
 
     try {
-      widget.onScanned(scanData);
+      widget.onScanned?.call(scanData);
     } catch (error, stackTrace) {
       _reportError(error, stackTrace);
     }
@@ -405,12 +410,8 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
       }
       return;
     }
-    FlutterError.reportError(
-      FlutterErrorDetails(
-        exception: error,
-        stack: stackTrace,
-        library: 'w_tools_qr',
-      ),
-    );
+    if (kDebugMode) {
+      debugPrint('WQrView error: $error\n$stackTrace');
+    }
   }
 }

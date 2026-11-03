@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+### Changed
+- `WQrView.onScanned` 改为可选（与 `onQRViewCreated` 至少提供一个，否则断言）。
+- `scanInterval` 默认值改为 400ms（连续扫码默认去重）。
+- 未传 `onError` 时不再 `FlutterError.reportError`，改为 debug 下 `debugPrint`。
+- `WQrViewOverlayShape` 实现 `==` / `hashCode`。
+
 ## 1.0.1
 
 ### Fixed

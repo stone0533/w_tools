@@ -48,4 +48,26 @@ class WQrViewOverlayShape {
           'cutOutHeight 必须大于 0',
         ),
         cutOutHeight = cutOutHeight ?? cutOutWidth;
+
+  @override
+  bool operator ==(Object other) =>
+      other is WQrViewOverlayShape &&
+      other.borderWidth == borderWidth &&
+      other.overlayColor == overlayColor &&
+      other.borderRadius == borderRadius &&
+      other.borderLength == borderLength &&
+      other.cutOutWidth == cutOutWidth &&
+      other.cutOutHeight == cutOutHeight &&
+      other.cutOutBottomOffset == cutOutBottomOffset;
+
+  @override
+  int get hashCode => Object.hash(
+    borderWidth,
+    overlayColor,
+    borderRadius,
+    borderLength,
+    cutOutWidth,
+    cutOutHeight,
+    cutOutBottomOffset,
+  );
 }

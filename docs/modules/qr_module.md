@@ -7,7 +7,7 @@ QR 模块（`w_tools_qr` 子包）基于 `qr_code_scanner_plus` 封装，提供�
 **核心特性**：
 - 支持 Android、iOS 与 Web（桌面端插件抛 `UnsupportedError`）
 - 默认单次扫描模式（`scanOnce=true`），首次成功扫码后自动暂停相机
-- 连续扫描模式下可配置 `scanInterval` 按内容+时间窗去重
+- 连续扫描模式下可配置 `scanInterval`（默认 400ms）按内容+时间窗去重
 - 应用退后台自动暂停、回前台恢复（单次扫描完成时不恢复）
 - `scannedDataStream` 为广播流，可多监听（与 `onScanned` 同时使用）
 - Android 热重载自动 pause/resume 防黑屏
@@ -69,7 +69,7 @@ const overlay = WQrViewOverlayShape(
 WQrView(
   borderColor: Colors.blue,
   overlay: overlay,
-  onScanned: (barcode) {},
+  onScanned: (barcode) {}, // 可省略：只监听 onQRViewCreated 的流
 );
 ```
 
@@ -278,7 +278,7 @@ WQrView(
   ),
   borderColor: Colors.blue,
   checkedBorderColor: Colors.greenAccent,
-  onScanned: (barcode) {},
+  onScanned: (barcode) {}, // 可省略：只监听 onQRViewCreated 的流
 );
 ```
 
