@@ -140,7 +140,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ## 网络（w_tools_api）
 
-- 统一用 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接 `Dio()`；同一 `baseUrl` 只初始化一次，后续传入的 options / interceptors 会被忽略。
+- 统一用 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接 `Dio()`；同一 `baseUrl` 只初始化一次，命中后传入**不同** options / interceptors 会抛 `ArgumentError`（需要换配置先 `dispose`）。
 - Token 存储用 `w_tools_core` 的 `WToken`；`WTokenInterceptor` 只通过 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入，不负责存储。
 - 401 重试依赖 `DioRegistry`；自行 `Dio()` 创建的实例重试会走另一个 registry 实例。
 - 日志用 `WLogInterceptor`；默认脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `X-Api-Key`，不要依赖它做业务错误处理。
