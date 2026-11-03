@@ -36,6 +36,19 @@ failed   → 错误页 + 重试
 ready    → readyBuilder
 ```
 
+## 主要 API
+
+| 场景 | 入口 |
+| --- | --- |
+| 页面区块四态 | `WAsyncController` / `WAsyncView` |
+| 滚动页 / `SmartRefresher` | `WAsyncStateBuilder` |
+| `CustomScrollView` 的 sliver 四态 | `WAsyncStateSliver` |
+| 分页 | `WAsyncPagedController` |
+| 全局默认 loading / empty / error | `WAsyncTheme` |
+| 无 UI 状态执行（重试 / 超时 / 并发 / 取消） | `WAsync` + `WAsyncOptions` |
+| 并发 loading 合并 | `WAsyncLoading` |
+| 状态与异常 | `WAsyncState` / `WAsyncStatus` |
+
 ## 完整页面
 
 ```dart
@@ -407,3 +420,7 @@ SmartRefresher / 滚动页面  → WAsyncStateBuilder
 但滚动页面仍应使用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 长期塞进 `WAsyncView.readyBuilder`。
 
 `WAsyncBuilder` 是旧名，保留为兼容别名；新代码使用 `WAsyncStateBuilder`。
+
+## 示例
+
+完整示例见 [`example/`](example/)。

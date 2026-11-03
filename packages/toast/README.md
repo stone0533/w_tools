@@ -82,3 +82,7 @@ await WToast.runWithLoading(
 ## License
 
 MIT
+
+## 示例
+
+最小可运行示例见 [`example/`](example/)。

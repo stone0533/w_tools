@@ -20,12 +20,13 @@
 - [Button 使用规则](button.md)
 - [UI 组件选择规则](ui.md)
 - [Figma 取数与 Flutter 页面](figma.md)
-- [Async 规则](../modules/async_module.md)
-- [网络规则](../modules/api_module.md)
-- [启动规则](../modules/app_module.md)
-- [基础工具](../modules/core_module.md)
-- [扫码规则](../modules/qr_module.md)
-- [地图规则](../modules/map_module.md)
+- [Async 规则](async.md)（深入：[async_module](../modules/async_module.md)）
+- [网络规则](api.md)（深入：[api_module](../modules/api_module.md)）
+- [启动规则](app.md)（深入：[app_module](../modules/app_module.md)）
+- [基础工具](core.md)（深入：[core_module](../modules/core_module.md)）
+- [扫码规则](qr.md)（深入：[qr_module](../modules/qr_module.md)）
+- [地图规则](map.md)（深入：[map_module](../modules/map_module.md)）
+- [Toast 规则](toast.md)（深入：[toast_module](../modules/toast_module.md)）
 - [使用反馈](../feedback/README.md)：用 w_tools 撞到的问题按模板记录（`docs/feedback/<包>.md`）
 - [Issue tracker](issue-tracker.md)
 - [Triage labels](triage-labels.md)
