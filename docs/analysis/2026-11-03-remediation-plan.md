@@ -9,9 +9,18 @@
 | 步 | 状态 | 落点 |
 | --- | --- | --- |
 | 0.1 CI 补齐 async / figma / device / e2e | 完成 | `.github/workflows/ci.yml`：`matrix.include` + `kind` |
-| 0.2 首次基线 | 进行中 | 本地通过：cli 201、figma 82、device 52；async / e2e 需 Flutter 环境 |
-| 0.3 弃用到期守护 | 完成 | `scripts/check_deprecations.py`，由 `release_check.sh` 调用；3 处弃用已补 `remove-in` |
-| 0.4 文档版本守护 | 完成 | `scripts/check_docs_versions.py`，由 `check_docs.sh` 调用；修掉 6 处漂移 |
+| 0.2 首次基线 | 完成 | 本地全绿：ui 358、form 285、api 45、map 34、async 110、e2e 14、cli 201、figma 82、device 52；期间清掉了 Flutter 升级后残留的 `build/unit_test_assets` 旧 shader |
+| 0.3 弃用到期守护 | 完成 | `scripts/check_deprecations.py` + 3 处 `remove-in` |
+| 0.4 文档版本守护 | 完成 | `scripts/check_docs_versions.py` + 修掉 6 处漂移 |
+| 1.1 表单校验错误默认可见 | 完成（改为契约修复） | 只传 `borderConfig` 时默认 `showBorderError = true`；显式 settings 完全优先。原计划的「默认 `borderConfig = standard()`」涉及视觉变更，留到 4.7 |
+| 1.2 WAppBar 默认图标 / 标题 | 完成 | `IconTheme.merge` + `AppBarTheme.titleTextStyle → titleLarge` 回退；3 个回归用例（红→绿） |
+| 1.3 WImage 预设改为合并 | 完成 | `WImageStyle.merge`；`avatar`/`thumbnail`/`cover` 不再丢尺寸与圆角；8 个用例 |
+| 1.4 form 所有权 | 完成 | `didChange` 卸载保护（有红→绿用例）、多选弹层 mounted 保护、重名字段可读报错 + `removeBorderKey(owner:)` |
+| 1.5 401 竞态 | 完成 | 晚到 401 直接用新 token 重试，不清不刷；并发用例（修复前 `[200,-1]`） |
+| 1.6 map 入口 | 完成 | `initialCamera` / `isValid`、缺失坐标跳过、非 `WMapItem` 可读 `ArgumentError` |
+| 1.7 WButton 默认跟随主题 | 未做 | 属于品牌视觉变更，按评审建议放到 ui 4.0（3.4）一起做 |
+| 1.8 WRowButtons 文档降级 | 完成 | `components.md` / `agents/button.md` 改成「分段选择」，纯动作行用 `Row + WButton` |
+| 版本号 / CHANGELOG | 待发版 | 已有修复对应的 CHANGELOG 文案待写入。**提前 bump 会让本地 example 解析失败**（根包 `^3.1.0` 还没发布），所以 bump 与发布放在同一步 |
 
 ## 0. 三条排序原则
 
