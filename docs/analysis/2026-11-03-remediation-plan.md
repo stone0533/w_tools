@@ -41,6 +41,15 @@
 | 2.7 figma BudgetGuard | 完成 | `fetch` / `diff` 请求前检查本月额度；用尽默认拒绝（退出码 3），`--ignore-budget` 放行；缓存命中与 spec/tokens 不受影响 |
 | 工具包版本 / CHANGELOG | 完成 | cli 1.9.10 / figma 0.11.0 / device 0.1.2，CHANGELOG 已写；`release_check` 只剩 4 条 Flutter 子包的预期提醒 |
 
+阶段 4（进行中，D1 = 不引入 ui）：
+
+| 步 | 状态 | 落点 |
+| --- | --- | --- |
+| 4.0a form 主题派生 | 完成 | `WFormBorderConfig.fromTheme(ThemeData)`：边框/背景/聚焦/错误/只读取 `ColorScheme`，hint/error 取 `bodySmall`；`standard()` 标注为显式浅色预设 |
+| 4.0b toast 主题派生 | 完成 | 文本气泡 `inverseSurface` + `onInverseSurface`，默认内容取 `textTheme.bodyMedium`；`backgroundColor` 默认改 `null`；文本提示改 `showCustomText` 以便在 Overlay 里取 Theme |
+| 4.0c 字面量守卫 | 完成 | `scripts/check_style_literals.py` 扫 form/toast/async，CI umbrella job 已接入；历史预设行内标 `style-literal-ok` |
+| 4.0d `WForm` 默认 `borderConfig` 切到 `fromTheme` | 待做 | 视觉变更，按 ADR-0001 进 form 3.0；做完才算完整关闭 P1-5 |
+
 ## 0. 三条排序原则
 
 评审列了 13 个运行时 P1 + 9 个工具 P1 + 30 多条 P2。**按严重度排序是错的**，按下面三条排：

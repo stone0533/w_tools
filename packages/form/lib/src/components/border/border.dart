@@ -245,12 +245,15 @@ class WFormBorderConfig {
     this.layout = WFormBorderLayout.column,
   });
 
+  /// 显式浅色预设（历史入口）。
+  ///
+  /// 颜色写死，不跟随深色主题；新代码请用 [WFormBorderConfig.fromTheme]。
   factory WFormBorderConfig.standard({
-    Color backgroundColor = Colors.white,
-    Color borderColor = const Color(0xFFE5E7EB),
-    Color focusColor = const Color(0xFF10B981),
-    Color errorColor = const Color(0xFFEF4444),
-    Color readOnlyColor = const Color(0xFFF9FAFB),
+    Color backgroundColor = Colors.white, // style-literal-ok: 显式浅色预设
+    Color borderColor = const Color(0xFFE5E7EB), // style-literal-ok: 显式浅色预设
+    Color focusColor = const Color(0xFF10B981), // style-literal-ok: 显式浅色预设
+    Color errorColor = const Color(0xFFEF4444), // style-literal-ok: 显式浅色预设
+    Color readOnlyColor = const Color(0xFFF9FAFB), // style-literal-ok: 显式浅色预设
     double radius = 12,
     TextStyle? hintStyle,
     TextStyle? errorStyle,
@@ -260,7 +263,8 @@ class WFormBorderConfig {
       border: Border.all(color: borderColor),
       borderRadius: BorderRadius.circular(radius),
     );
-    final hintTextStyle = hintStyle ?? const TextStyle(fontSize: 12, color: Color(0xFF6B7280));
+    final hintTextStyle =
+        hintStyle ?? const TextStyle(fontSize: 12, color: Color(0xFF6B7280)); // style-literal-ok: 显式浅色预设
     final errorTextStyle = errorStyle ?? TextStyle(fontSize: 12, color: errorColor);
 
     Widget buildMessages(List<String>? list, TextStyle style) {
@@ -280,6 +284,57 @@ class WFormBorderConfig {
         border: Border.all(color: errorColor),
       ),
       readOnlyDecoration: base.copyWith(color: readOnlyColor),
+      hintBuilder: (list) => buildMessages(list, hintTextStyle),
+      errorBuilder: (list) => buildMessages(list, errorTextStyle),
+    );
+  }
+
+  /// 从当前主题派生（推荐）：颜色全部来自 [ColorScheme]，跟随明暗与品牌色。
+  ///
+  /// 与 [standard] 的区别：边框 / 背景 / 聚焦 / 错误 / 只读底色都取自主题，
+  /// hint / error 文字取 [TextTheme.bodySmall] 并分别用 `onSurfaceVariant` / `error`。
+  ///
+  /// ```dart
+  /// WForm(
+  ///   controller: form,
+  ///   borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+  ///   child: ...,
+  /// )
+  /// ```
+  factory WFormBorderConfig.fromTheme(
+    ThemeData theme, {
+    double radius = 12,
+    TextStyle? hintStyle,
+    TextStyle? errorStyle,
+  }) {
+    final scheme = theme.colorScheme;
+    final base = WFormBorderDecoration(
+      color: scheme.surface,
+      border: Border.all(color: scheme.outlineVariant),
+      borderRadius: BorderRadius.circular(radius),
+    );
+    final hintTextStyle = (hintStyle ?? theme.textTheme.bodySmall ?? const TextStyle())
+        .copyWith(color: hintStyle?.color ?? scheme.onSurfaceVariant);
+    final errorTextStyle = (errorStyle ?? theme.textTheme.bodySmall ?? const TextStyle())
+        .copyWith(color: errorStyle?.color ?? scheme.error);
+
+    Widget buildMessages(List<String>? list, TextStyle style) {
+      if (list == null || list.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: 6, left: 4),
+        child: Text(list.join('；'), style: style),
+      );
+    }
+
+    return WFormBorderConfig(
+      defaultDecoration: base,
+      focusedDecoration: base.copyWith(
+        border: Border.all(color: scheme.primary, width: 1.5),
+      ),
+      errorDecoration: base.copyWith(
+        border: Border.all(color: scheme.error),
+      ),
+      readOnlyDecoration: base.copyWith(color: scheme.surfaceContainerLow),
       hintBuilder: (list) => buildMessages(list, hintTextStyle),
       errorBuilder: (list) => buildMessages(list, errorTextStyle),
     );

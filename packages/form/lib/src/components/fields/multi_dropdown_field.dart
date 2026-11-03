@@ -124,7 +124,8 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                            WFormPopup.show(
                              context: state.context,
                              elevation: popUpLayerElevation ?? 10,
-                             shadowColor: popUpLayerShadowColor ?? Colors.grey,
+                             shadowColor:
+                                 popUpLayerShadowColor ?? Theme.of(state.context).colorScheme.shadow,
                              builder: (context) {
                                return Container(
                                  width: double.infinity,

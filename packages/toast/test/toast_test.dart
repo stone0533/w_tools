@@ -25,7 +25,8 @@ void main() {
     test('构造函数默认字段值', () {
       final c = WToastConfig();
       expect(c.duration, const Duration(seconds: 2));
-      expect(c.backgroundColor, Colors.black38);
+      // 遮罩 / 气泡底色不再写死：null 表示运行时从主题取
+      expect(c.backgroundColor, isNull);
       expect(c.align, Alignment.center);
       expect(c.animationDuration, const Duration(milliseconds: 200));
     });
@@ -251,15 +252,42 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('hello'), findsOneWidget);
-      // 默认气泡底色为 black54
+      // 默认气泡底色来自主题的 inverseSurface（不写死 black54）
       final container = tester.widget<Container>(
         find.ancestor(of: find.text('hello'), matching: find.byType(Container)).first,
       );
-      expect((container.decoration as BoxDecoration?)?.color, Colors.black54);
+      expect(
+        (container.decoration as BoxDecoration?)?.color,
+        ThemeData().colorScheme.inverseSurface,
+      );
 
       WToast.hideAll();
       await tester.pumpAndSettle();
       expect(find.text('hello'), findsNothing);
+    });
+
+    testWidgets('深色主题下文字取 onInverseSurface，气泡取 inverseSurface', (tester) async {
+      final theme = ThemeData(useMaterial3: true, brightness: Brightness.dark);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          builder: BotToastInit(),
+          navigatorObservers: [BotToastNavigatorObserver()],
+          home: const Scaffold(body: SizedBox.expand()),
+        ),
+      );
+
+      WToast.showText(text: 'dark');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final text = tester.widget<Text>(find.text('dark'));
+      expect(text.style?.color, theme.colorScheme.onInverseSurface);
+
+      final container = tester.widget<Container>(
+        find.ancestor(of: find.text('dark'), matching: find.byType(Container)).first,
+      );
+      expect((container.decoration as BoxDecoration?)?.color, theme.colorScheme.inverseSurface);
     });
 
     testWidgets('align 控制显示位置', (tester) async {

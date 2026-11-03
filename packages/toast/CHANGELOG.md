@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0
+
+### Changed
+- 默认样式跟随主题：文本气泡取 `colorScheme.inverseSurface`、文字取 `textTheme.bodyMedium` +
+  `onInverseSurface`；成功 / 错误 / 警告 / 加载的默认内容同样从主题取色与字号。
+- `WToastConfig.backgroundColor` 默认值改为 `null`：遮罩仍用中性半透明黑，文本气泡取主题反色
+  （原先固定 `Colors.black38` / `Colors.black54` / 白字 17sp / 14sp）。
+- 文本提示改用 `BotToast.showCustomText`（原生 `showText` 不接受 Builder，拿不到 Overlay 里的 Theme）。
+
 ## 1.0.0
 
 首次发布。

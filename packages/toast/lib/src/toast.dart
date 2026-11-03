@@ -12,14 +12,11 @@ import 'package:flutter/material.dart';
 /// 通过 `onError` 上报并返回一个空取消函数，调用方无需判空；[hideAll]
 /// 同样通过 `onError` 上报。
 class WToast {
-  /// 文本提示的默认样式（与 BotToast `TextOption` 的默认值保持一致）
+  /// 文本提示的默认布局（颜色不写死，全部从当前主题取）
   ///
   /// 注意：`backgroundColor` 是提示层背景，`contentColor` 才是气泡底色。
   static const Alignment _textAlign = Alignment(0, 0.8);
-  static const Color _textBackgroundColor = Colors.transparent;
-  static const Color _textContentColor = Colors.black54;
   static const BorderRadius _textBorderRadius = BorderRadius.all(Radius.circular(8));
-  static const TextStyle _textStyle = TextStyle(fontSize: 17, color: Colors.white);
   static const EdgeInsets _textPadding = EdgeInsets.only(left: 14, right: 14, top: 5, bottom: 7);
   static const Duration _textDuration = Duration(seconds: 2);
 
@@ -56,7 +53,7 @@ class WToast {
             onClose?.call();
           });
         },
-        backgroundColor: backgroundColor ?? Colors.black38,
+        backgroundColor: backgroundColor ?? Colors.black38, // style-literal-ok: 中性遮罩，Material modal barrier 同为黑色
         duration: duration,
         animationDuration: animationDuration,
       );
@@ -71,9 +68,9 @@ class WToast {
   /// - [text]：提示内容
   /// - [align]：提示位置，默认位于屏幕下方（`Alignment(0, 0.8)`）
   /// - [backgroundColor]：提示层背景色，默认透明
-  /// - [contentColor]：文本气泡底色，默认 `Colors.black54`
-  /// - [borderRadius] / [textStyle] / [contentPadding]：气泡圆角、文字样式、
-  ///   内边距，未指定时沿用 BotToast 默认值
+  /// - [contentColor]：文本气泡底色，默认取 `colorScheme.inverseSurface`
+  /// - [textStyle]：文字样式，默认取 `textTheme.bodyMedium` + `onInverseSurface`
+  /// - [borderRadius] / [contentPadding]：气泡圆角与内边距
   /// - [duration]：显示时长，默认 2 秒
   /// - [onClose]：提示关闭后的回调
   /// - [clickClose]：为 true 时点击提示区域即可关闭，默认 false
@@ -98,19 +95,34 @@ class WToast {
     void Function(dynamic error)? onError,
   }) {
     try {
-      return BotToast.showText(
-        text: text,
+      // 用 customText 而不是原生 showText：原生入口不接受 Builder，
+      // 拿不到 Overlay 里的 Theme，颜色只能写死。
+      return BotToast.showCustomText(
         align: align ?? _textAlign,
-        backgroundColor: backgroundColor ?? _textBackgroundColor,
-        contentColor: contentColor ?? _textContentColor,
-        borderRadius: borderRadius ?? _textBorderRadius,
-        textStyle: textStyle ?? _textStyle,
-        contentPadding: contentPadding ?? _textPadding,
+        backgroundColor: backgroundColor ?? Colors.transparent,
         duration: duration ?? _textDuration,
         onClose: onClose,
         clickClose: clickClose,
         crossPage: crossPage,
         onlyOne: onlyOne,
+        // 与 BotToast 原生 showText 一致：内容点击不额外拦截
+        ignoreContentClick: true,
+        toastBuilder: (_) => Builder(
+          builder: (context) {
+            final theme = Theme.of(context);
+            final scheme = theme.colorScheme;
+            final resolved = (textStyle ?? theme.textTheme.bodyMedium ?? const TextStyle())
+                .copyWith(color: textStyle?.color ?? scheme.onInverseSurface);
+            return Container(
+              padding: contentPadding ?? _textPadding,
+              decoration: BoxDecoration(
+                color: contentColor ?? scheme.inverseSurface,
+                borderRadius: borderRadius ?? _textBorderRadius,
+              ),
+              child: Text(text, style: resolved),
+            );
+          },
+        ),
       );
     } catch (e) {
       onError?.call(e);

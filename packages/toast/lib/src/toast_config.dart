@@ -23,7 +23,9 @@ class WToastConfig {
   ///
   /// 成功 / 错误 / 警告 / 加载 / 自定义提示中作为全屏遮罩色；
   /// [showText] 中没有遮罩，该值作为文本气泡底色。
-  Color? backgroundColor = Colors.black38;
+  ///
+  /// 为 null 时：遮罩用中性半透明黑，文本气泡用 `colorScheme.inverseSurface`。
+  Color? backgroundColor;
 
   /// 提示对齐方式
   Alignment? align = Alignment.center;
@@ -126,8 +128,10 @@ class WToastConfig {
     Alignment? align,
   }) {
     return _show(
-      builder: (cancelFunc) =>
-          successBuilder?.call(message, cancelFunc) ?? _defaultMessage(message),
+      builder: (cancelFunc) => Builder(
+        builder: (context) =>
+            successBuilder?.call(message, cancelFunc) ?? _defaultMessage(context, message),
+      ),
       duration: duration,
       align: align,
     );
@@ -145,7 +149,10 @@ class WToastConfig {
     Alignment? align,
   }) {
     return _show(
-      builder: (cancelFunc) => errorBuilder?.call(message, cancelFunc) ?? _defaultMessage(message),
+      builder: (cancelFunc) => Builder(
+        builder: (context) =>
+            errorBuilder?.call(message, cancelFunc) ?? _defaultMessage(context, message),
+      ),
       duration: duration,
       align: align,
     );
@@ -163,8 +170,10 @@ class WToastConfig {
     Alignment? align,
   }) {
     return _show(
-      builder: (cancelFunc) =>
-          warningBuilder?.call(message, cancelFunc) ?? _defaultMessage(message),
+      builder: (cancelFunc) => Builder(
+        builder: (context) =>
+            warningBuilder?.call(message, cancelFunc) ?? _defaultMessage(context, message),
+      ),
       duration: duration,
       align: align,
     );
@@ -227,8 +236,11 @@ class WToastConfig {
     _loadingCancelFunc?.call();
 
     _loadingCancelFunc = WToast.showCustomDialog(
-      toastBuilder: (cancelFunc) =>
-          loadingBuilder?.call(message, cancelFunc, dismissible) ?? _defaultLoading(message),
+      toastBuilder: (cancelFunc) => Builder(
+        builder: (context) =>
+            loadingBuilder?.call(message, cancelFunc, dismissible) ??
+            _defaultLoading(context, message),
+      ),
       align: align ?? Alignment.center,
       // 加载提示不自动关闭
       duration: null,
@@ -279,39 +291,39 @@ class WToastConfig {
     );
   }
 
-  /// 默认文本内容：白字 14 号
-  Widget _defaultMessage(Object? message) {
+  /// 默认文本内容：跟随主题的正文样式 + 反色
+  Widget _defaultMessage(BuildContext context, Object? message) {
+    final theme = Theme.of(context);
+    final style = (theme.textTheme.bodyMedium ?? const TextStyle())
+        .copyWith(color: theme.colorScheme.onInverseSurface);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Text(
-        message?.toString() ?? '',
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-      ),
+      child: Text(message?.toString() ?? '', style: style),
     );
   }
 
-  /// 默认加载内容：白色转圈 + 可选文本
-  Widget _defaultLoading(Object? message) {
+  /// 默认加载内容：转圈 + 可选文本，颜色跟随主题
+  Widget _defaultLoading(BuildContext context, Object? message) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onInverseSurface;
+    final style = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(color: color);
     final text = message?.toString() ?? '';
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
           if (text.isNotEmpty) ...[
             const SizedBox(width: 8),
-            Text(
-              text,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            ),
+            Text(text, style: style),
           ],
         ],
       ),

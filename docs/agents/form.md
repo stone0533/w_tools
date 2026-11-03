@@ -6,7 +6,8 @@
 ```dart
 WForm(
   controller: form,
-  borderConfig: WFormBorderConfig.standard(radius: 12),
+  // 跟随明暗与品牌色；standard() 是显式浅色预设，只适合固定浅色页
+  borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
   fieldStyle: const WFormFieldStyle(height: 52),
   validatorSettings: WFormValidatorSettings()
     ..showBorderError = true,

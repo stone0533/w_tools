@@ -1,5 +1,10 @@
 # Toast 模块文档
 
+
+> **默认样式跟随主题**：文本气泡取 `colorScheme.inverseSurface`、文字取
+> `textTheme.bodyMedium` + `onInverseSurface`；`WToastConfig.backgroundColor` 默认 `null`
+> （遮罩用中性半透明黑，气泡取主题反色）。深色主题下颜色自动反转。
+
 ## 概述
 
 Toast 模块（`w_tools_toast` 子包）基于 `bot_toast` 提供轻量的提示层，包含底层封装类 `WToast` 和上层配置+入口类 `WToastConfig`。

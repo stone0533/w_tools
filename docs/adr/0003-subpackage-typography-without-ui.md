@@ -36,7 +36,8 @@
      `label→labelMedium`、`button→labelLarge`、`badge→labelSmall`、`price→headlineSmall` 等）。
 4. **三包的默认样式禁止字面量色值**：不得出现 `Color(0x…)` / `Colors.white|black*`
    （`Colors.transparent` 除外），必须从 `ColorScheme` / `TextTheme` 派生；
-   同时保留显式覆盖参数。
+   同时保留显式覆盖参数。由 `scripts/check_style_literals.py` 在 CI 检查，
+   历史浅色预设可在行内标 `// style-literal-ok: <理由>`。
 5. **兜底**：应用没有调用 `withWTextStyles` 时，三包回退到纯 Material 主题（可用，但不是品牌排版）。
 
 ## 后果

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.0
+
+### Added
+- `WFormBorderConfig.fromTheme(ThemeData)`：边框 / 背景 / 聚焦 / 错误 / 只读底色全部来自 `ColorScheme`，
+  hint / error 文字取 `TextTheme.bodySmall`（颜色用 `onSurfaceVariant` / `error`）。深色主题不再白底。
+- `WFormBorderConfig.standard()` 的注释明确为「显式浅色预设」，新代码请用 `fromTheme`。
+
+### Changed
+- 多选弹层的阴影色默认取 `colorScheme.shadow`，不再写死 `Colors.grey`。
+
 ## 2.1.0
 
 ### Changed
