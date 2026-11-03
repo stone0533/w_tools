@@ -1,0 +1,44 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'calibration.dart';
+import 'device_hub.dart';
+
+/// 标定结果缓存：`~/.cache/w_tools_device/<udid>.json`。
+///
+/// 命中条件：窗口位置/大小没变。变了就重算（DeviceHub 被移动/缩放时）。
+class CalibrationStore {
+  CalibrationStore({String? home})
+      : _home = home ?? Platform.environment['HOME'] ?? Directory.systemTemp.path;
+
+  final String _home;
+
+  Directory get dir => Directory('$_home/.cache/w_tools_device');
+
+  File fileFor(String udid) => File('${dir.path}/$udid.json');
+
+  Calibration? load(String udid) {
+    final f = fileFor(udid);
+    if (!f.existsSync()) return null;
+    try {
+      final json = jsonDecode(f.readAsStringSync());
+      if (json is! Map<String, dynamic>) return null;
+      return Calibration.fromJson(json);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void save(String udid, Calibration c) {
+    dir.createSync(recursive: true);
+    fileFor(udid).writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert(c.toJson()),
+    );
+  }
+
+  /// 当前窗口与缓存是否仍然匹配。
+  bool isFresh(String udid, HubWindow window) {
+    final cached = load(udid);
+    return cached != null && cached.matches(window);
+  }
+}

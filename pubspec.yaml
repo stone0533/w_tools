@@ -23,6 +23,7 @@ workspace:
   - packages/async
   - packages/cli
   - packages/figma
+  - packages/device
 
 environment:
   sdk: ^3.10.0
