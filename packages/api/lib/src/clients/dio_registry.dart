@@ -11,6 +11,14 @@ import '../api_config.dart';
 /// import 'package:dio/io.dart' if (dart.library.html) '';
 /// ```
 /// 然后在 `!kIsWeb` 分支里 cast `dio.httpClientAdapter as IOHttpClientAdapter`。
+///
+/// ```dart
+/// final dio = DioRegistry.forBaseUrl(
+///   'https://api.example.com',
+///   interceptors: [WLogInterceptor(parts: {WLogPart.request})],
+/// ).dio;
+/// final response = await dio.get('/gifts');
+/// ```
 class DioRegistry {
   /// Dio 实例
   late Dio _dio;

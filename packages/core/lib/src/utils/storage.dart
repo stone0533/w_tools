@@ -19,6 +19,12 @@ import 'logger.dart';
 /// 写方法返回 `bool`，表示是否写入成功。
 /// 使用前需先调用 [init]（写方法会自动初始化）；读取方法在未初始化时会
 /// 抛出 [StateError]，避免把「未初始化」误判为「没有数据」。
+///
+/// ```dart
+/// await WStorage.init();
+/// await WStorage.setString('city', 'shanghai');
+/// final city = WStorage.getString('city'); // 'shanghai'
+/// ```
 class WStorage {
   // 纯静态工具类，禁止实例化
   WStorage._();

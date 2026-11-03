@@ -19,6 +19,16 @@ import 'qr_overlay_shape.dart';
 ///
 /// 接入前请确保已配置相机权限：Android 的 `CAMERA` 权限、iOS 的
 /// `NSCameraUsageDescription`。
+///
+/// ```dart
+/// final key = GlobalKey<WQrViewState>();
+/// WQrView(
+///   key: key,
+///   onScanned: (barcode) => debugPrint(barcode.code),
+/// );
+/// // 单次扫码完成后需要再扫：
+/// key.currentState?.restartScan();
+/// ```
 class WQrView extends StatefulWidget {
   /// 扫描框边框颜色
   final Color borderColor;

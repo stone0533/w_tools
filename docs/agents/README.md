@@ -27,6 +27,7 @@
 - [扫码规则](qr.md)（深入：[qr_module](../modules/qr_module.md)）
 - [地图规则](map.md)（深入：[map_module](../modules/map_module.md)）
 - [Toast 规则](toast.md)（深入：[toast_module](../modules/toast_module.md)）
+- [组合用法](../recipes/README.md)：分页 / 登录刷新 / App 根装配
 - [使用反馈](../feedback/README.md)：用 w_tools 撞到的问题按模板记录（`docs/feedback/<包>.md`）
 - [Issue tracker](issue-tracker.md)
 - [Triage labels](triage-labels.md)

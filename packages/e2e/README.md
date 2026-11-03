@@ -15,6 +15,12 @@ dev_dependencies:
 flutter pub add dev:w_tools_e2e
 ```
 
+## 5 分钟上手
+
+1. `dev_dependencies` 加 `w_tools_e2e`；
+2. 按下面的「推荐结构」建 `tool/main_e2e.dart`（唯一 import 入口）；
+3. `flutter run -t tool/main_e2e.dart --dart-define=E2E=1 --dart-define=E2E_EMAIL=... --dart-define=E2E_PASSWORD=...`。
+
 ## 推荐结构
 
 ```text

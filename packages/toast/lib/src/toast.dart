@@ -13,6 +13,16 @@ import 'toast_style.dart';
 /// 所有入口在显示失败时（例如 BotToast 未初始化）不会抛异常：显示类入口
 /// 通过 `onError` 上报并返回一个空取消函数，调用方无需判空；[hideAll]
 /// 同样通过 `onError` 上报。
+///
+/// ```dart
+/// // MaterialApp(builder: BotToastInit(), navigatorObservers: [BotToastNavigatorObserver()])
+/// WToast.showSuccess('保存成功');
+/// await WToast.runWithLoading(
+///   () => api.save(),
+///   message: '保存中...',
+///   successMessage: '保存成功',
+/// );
+/// ```
 class WToast {
   /// 文本提示的默认布局（颜色不写死，全部从当前主题取）
   ///

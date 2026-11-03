@@ -11,6 +11,16 @@ import 'utils/router_observer.dart';
 /// WApp 自身只依赖 GetX；第三方能力通过两种方式注入：
 /// - **字段版**（单处配置）：[appWrapper]、[builder]、[navigatorObservers]
 /// - **插件版**（可复用/可组合）：[addPlugin] / [addPlugins] + [WAppPlugin]
+///
+/// ```dart
+/// void main() {
+///   WApp(
+///     title: 'Demo',
+///     initialRoute: '/',
+///     getPages: [GetPage(name: '/', page: () => const HomePage())],
+///   ).start();
+/// }
+/// ```
 class WApp {
   // ──── 配置 ────
 
