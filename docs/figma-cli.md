@@ -26,7 +26,7 @@
 | `tokens` | 汇总颜色 / 文字样式 / 间距 → `design-tokens.md`——**v0.1 已实现** | 0（读缓存） | 0 |
 | `url <figma-url>` | 从 Figma 链接解析 `fileKey` + `nodeId`——**v0.1 已实现** | 0 | 0 |
 | `diff <node-id>` | 对比「上次缓存」与「当前线上」，列出改动的属性——**v0.1 已实现** | 1 | 1 次 |
-| `cache` | `cache stats|clean [--all --yes]`：查看/清理机器缓存（不影响用量记录；`--all` 必须 `--yes`） | — | 0 |
+| `cache` | `cache stats [--json]` / `cache clean [--all --yes]`：查看/清理机器缓存（不影响用量记录） | — | 0 |
 | `usage` | 本月调用次数 / 剩余估算——**v0.1 已实现**（座位类型需额外 `me` 调用，暂未做） | 0（本地日志） | 0 |
 | `budget` | 查看 / 设置月度预算——**v0.1 已实现** | 0 | 0 |
 
@@ -168,7 +168,7 @@ dart run w_tools_figma:figma tokens <nodeId,nodeId,...> [--out=docs/design-token
 # --json 与 --out 互斥
 ```
 
-- 汇总所选节点的「纯色 / 字体组合 / 圆角 / 间距」；
+- 汇总所选节点的「纯色 / 字体组合 / 圆角 / 间距」；圆角按角累计，不按节点累计；
 - 生成与项目现有 `design-tokens.md` 同结构的 Markdown（颜色表 / 文字表 / 组件尺寸表）；
 - 设计稿里出现但项目还没有的值，落在「待确认」小节；
 - **0 额度**（只读缓存）。
@@ -204,7 +204,17 @@ dart run w_tools_figma:figma diff <fileKey> <nodeId> [--root=<dir>] [--if-stale]
 - 输出「改了什么」：`fill #F8F8F5 → #FFFFFF`、`text.size 14 → 16`、`added: DROP_SHADOW` 等；
 - 这正是「设计稿改版后，agent 不知道改了什么」的解法。
 
-### 3.9 `usage` / `budget`
+### 3.9 `cache`
+
+```bash
+dart run w_tools_figma:figma cache stats [--json]
+dart run w_tools_figma:figma cache clean [--all --yes] [--json]
+```
+
+`stats` 只统计当前项目缓存；`clean` 默认清当前项目，`--all` 清所有项目缓存。
+`--all` 必须同时给 `--yes`；不会清理账号级 `_usage.log` / `_budget.json`。
+
+### 3.10 `usage` / `budget`
 
 ```bash
 dart run w_tools_figma:figma usage          # 本月次数 + 最近记录

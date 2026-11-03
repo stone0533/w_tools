@@ -46,6 +46,10 @@ void main() {
     expect(byFlag.exitCode, 0, reason: '${byFlag.stderr}');
     expect('${byFlag.stdout}', contains('--check-stale'));
 
+    final cacheHelp = await run(<String>['help', 'cache']);
+    expect(cacheHelp.exitCode, 0, reason: '${cacheHelp.stderr}');
+    expect('${cacheHelp.stdout}', contains('cache clean'));
+
     final unknown = await run(<String>['help', 'unknown']);
     expect(unknown.exitCode, 2);
   });

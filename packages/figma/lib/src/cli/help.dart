@@ -45,6 +45,16 @@ tokens — 汇总设计 token
 dart run w_tools_figma:figma tokens <nodeId[,nodeId...]> [--min=<n>] [--out=<path>] [--map=<path>] [--json]
 
 统计 SOLID 颜色、文字样式、圆角、auto-layout 间距；只读缓存。
+--json 与 --out 不能同时使用。
+''',
+  'cache': '''
+cache — 查看 / 清理本机缓存
+
+dart run w_tools_figma:figma cache stats [--json]
+dart run w_tools_figma:figma cache clean [--all --yes] [--json]
+
+stats 只统计当前项目缓存；clean 默认清当前项目，--all 清所有项目缓存。
+--all 必须同时给 --yes；不会清理 _usage.log / _budget.json。
 ''',
   'diff': '''
 diff — 对比旧缓存与最新节点
