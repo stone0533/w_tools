@@ -22,7 +22,7 @@ errors: list[str] = []
 warns: list[str] = []
 today = datetime.date.today()
 
-closed_version = re.compile(r'✅\s*(?:[a-z_]+\s+)?\d+\.\d+\.\d+')
+closed_version = re.compile(r'✅\s*(?:[A-Za-z_]+\s+)?\d+\.\d+\.\d+')
 index_row = re.compile(r'^\|\s*\[([a-z_]+)\]\([^)]+\)\s*\|\s*(\d+)\s*\|', re.M)
 
 readme = (base / 'README.md').read_text()
