@@ -90,6 +90,31 @@ class WImageStyle {
 
   static const Object _unset = Object();
 
+  /// 合并样式：以本样式为底，[other] 中显式给出的字段覆盖。
+  ///
+  /// 用于「预设 + 局部覆盖」（[WImage.avatar] / [WImage.thumbnail] /
+  /// [WImage.cover]）。`fit` / `alignment` / `excludeFromSemantics` /
+  /// `filterQuality` 有非空默认值，无法区分「没传」，因此总是取 [other]；
+  /// 预设本身不使用这四个字段，所以合并结果符合预期。
+  WImageStyle merge(WImageStyle? other) {
+    if (other == null) return this;
+    return WImageStyle(
+      width: other.width ?? width,
+      height: other.height ?? height,
+      fit: other.fit,
+      alignment: other.alignment,
+      aspectRatio: other.aspectRatio ?? aspectRatio,
+      borderRadius: other.borderRadius ?? borderRadius,
+      border: other.border ?? border,
+      boxShadow: other.boxShadow ?? boxShadow,
+      margin: other.margin ?? margin,
+      padding: other.padding ?? padding,
+      semanticLabel: other.semanticLabel ?? semanticLabel,
+      excludeFromSemantics: other.excludeFromSemantics,
+      filterQuality: other.filterQuality,
+    );
+  }
+
   WImageStyle copyWith({
     Object? width = _unset,
     Object? height = _unset,

@@ -103,7 +103,7 @@ class WAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     style.validate();
     final leadingWidget = leading ?? _buildLeading(context);
-    final middle = _buildTitle();
+    final middle = _buildTitle(context);
     final trailing =
         actions.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, children: actions);
 
@@ -111,8 +111,12 @@ class WAppBar extends StatelessWidget {
     final statusBarHeight = includeStatusBar ? MediaQuery.paddingOf(context).top : 0.0;
     Widget toolbar = SizedBox(
       height: style.height,
-      child: IconTheme(
-        data: foreground == null ? const IconThemeData() : IconThemeData(color: foreground),
+      // merge 而不是替换：替换会丢掉 ThemeData.iconTheme / 上层 IconTheme，
+      // 默认（foreground 为空）时图标会回落到 Flutter fallback 的黑色。
+      child: IconTheme.merge(
+        data: foreground == null
+            ? const IconThemeData()
+            : IconThemeData(color: foreground),
         child: NavigationToolbar(
           leading: leadingWidget,
           middle: middle,
@@ -157,17 +161,24 @@ class WAppBar extends StatelessWidget {
     return const BackButton();
   }
 
-  Widget? _buildTitle() {
+  Widget? _buildTitle(BuildContext context) {
     final titleWidget = this.titleWidget;
     if (titleWidget != null) return titleWidget;
 
     final title = this.title;
     if (title == null || title.isEmpty) return null;
 
+    // 与 Material AppBar 对齐：显式 style > AppBarTheme > 主题 titleLarge。
+    // 都没有时不传 style，交给 Text 的默认样式。
+    final theme = Theme.of(context);
+    final baseStyle =
+        style.titleStyle ??
+        theme.appBarTheme.titleTextStyle ??
+        theme.textTheme.titleLarge;
     final foreground = style.foregroundColor;
     final titleStyle = foreground == null
-        ? style.titleStyle
-        : (style.titleStyle ?? const TextStyle()).copyWith(color: foreground);
+        ? baseStyle
+        : (baseStyle ?? const TextStyle()).copyWith(color: foreground);
 
     return Text(
       title,

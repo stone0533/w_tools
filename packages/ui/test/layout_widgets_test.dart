@@ -386,6 +386,47 @@ void main() {
     expect(find.byIcon(Icons.search), findsOneWidget);
   });
 
+  testWidgets('WAppBar — 标题跟随 AppBarTheme.titleTextStyle', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          appBarTheme: const AppBarTheme(
+            titleTextStyle: TextStyle(fontSize: 26, color: Colors.green),
+          ),
+        ),
+        home: const Scaffold(body: WAppBar(title: '标题')),
+      ),
+    );
+
+    final title = tester.widget<Text>(find.text('标题'));
+    expect(title.style?.fontSize, 26);
+    expect(title.style?.color, Colors.green);
+  });
+
+  testWidgets('WAppBar — 无主题样式时标题用 titleLarge，而不是正文样式', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: WAppBar(title: '标题'))),
+    );
+
+    final element = tester.element(find.text('标题'));
+    final title = tester.widget<Text>(find.text('标题'));
+    expect(title.style, Theme.of(element).textTheme.titleLarge);
+  });
+
+  testWidgets('WAppBar — 图标继承 ThemeData.iconTheme', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(iconTheme: const IconThemeData(color: Colors.red)),
+        home: Scaffold(
+          body: WAppBar(title: '标题', onBack: () {}),
+        ),
+      ),
+    );
+
+    final backButton = tester.element(find.byType(BackButton));
+    expect(IconTheme.of(backButton).color, Colors.red);
+  });
+
   test('WAppBar — contentHeight 不含状态栏', () {
     const bar = WAppBar(title: '标题');
     expect(bar.contentHeight, 56);

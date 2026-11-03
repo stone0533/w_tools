@@ -245,7 +245,10 @@ class WImage extends StatefulWidget {
     );
   }
 
-  /// 头像：正方形 + 全圆角
+  /// 头像：正方形 + 全圆角。
+  ///
+  /// [style] 中显式给出的字段覆盖预设（尺寸、圆角仍保留），
+  /// [size] 只在 [style] 没给 width/height 时生效。
   factory WImage.avatar(
     String data, {
     Key? key,
@@ -257,15 +260,16 @@ class WImage extends StatefulWidget {
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
-    assert(
-      style == null || size == 40,
-      '传了 style 时 size 会被忽略；需要自定义请直接写 WImageStyle',
-    );
+    // 预设是正方形：只覆盖宽度（未给高度）时仍保持正方形。
+    var resolved = WImageStyle.avatar(size).merge(style);
+    if (style?.height == null) {
+      resolved = resolved.copyWith(height: resolved.width);
+    }
     return WImage(
       key: key,
       data: data,
       type: type,
-      style: style ?? WImageStyle.avatar(size),
+      style: resolved,
       config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
@@ -274,6 +278,10 @@ class WImage extends StatefulWidget {
   }
 
   /// 缩略图：正方形 + 解码尺寸上限
+  /// 缩略图：正方形 + 解码尺寸上限。
+  ///
+  /// [style] 中显式给出的字段覆盖预设；[width] / [height] 作为预设 fallback，
+  /// 解码尺寸上限也按合并后的尺寸推导。
   factory WImage.thumbnail(
     String data, {
     Key? key,
@@ -287,17 +295,19 @@ class WImage extends StatefulWidget {
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
-    assert(
-      style == null || (width == 80 && height == null && cacheSize == null),
-      '传了 style 时 width/height/cacheSize 会被忽略',
-    );
-    final side = height ?? width;
-    final defaultCache = cacheSize ?? (math.max(width, side) * 3).round();
+    var resolved = WImageStyle.thumbnail(width, height: height).merge(style);
+    // 预设是正方形：只覆盖宽度（未给高度）时仍保持正方形。
+    if (height == null && style?.height == null) {
+      resolved = resolved.copyWith(height: resolved.width);
+    }
+    final resolvedWidth = resolved.width ?? width;
+    final resolvedHeight = resolved.height ?? resolvedWidth;
+    final defaultCache = cacheSize ?? (math.max(resolvedWidth, resolvedHeight) * 3).round();
     return WImage(
       key: key,
       data: data,
       type: type,
-      style: style ?? WImageStyle.thumbnail(width, height: height),
+      style: resolved,
       config: config.copyWith(
         memCacheWidth: config.memCacheWidth ?? defaultCache,
         memCacheHeight: config.memCacheHeight ?? defaultCache,
@@ -308,7 +318,9 @@ class WImage extends StatefulWidget {
     );
   }
 
-  /// 封面图：固定比例 + 可选圆角
+  /// 封面图：固定比例 + 可选圆角。
+  ///
+  /// [style] 中显式给出的字段覆盖预设；[aspectRatio] / [radius] 作为 fallback。
   factory WImage.cover(
     String data, {
     Key? key,
@@ -321,15 +333,11 @@ class WImage extends StatefulWidget {
     ValueChanged<WImageProgress>? onProgress,
     WImageController? controller,
   }) {
-    assert(
-      style == null || (aspectRatio == 16 / 9 && radius == null),
-      '传了 style 时 aspectRatio/radius 会被忽略',
-    );
     return WImage(
       key: key,
       data: data,
       type: type,
-      style: style ?? WImageStyle.cover(aspectRatio: aspectRatio, radius: radius),
+      style: WImageStyle.cover(aspectRatio: aspectRatio, radius: radius).merge(style),
       config: config,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
