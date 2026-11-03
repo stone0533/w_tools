@@ -73,6 +73,11 @@ if ! python3 scripts/check_docs_snippets.py; then
   errors=$((errors + 1))
 fi
 
+# 6) 反馈日志（docs/feedback/）
+if ! bash scripts/check_feedback.sh; then
+  errors=$((errors + 1))
+fi
+
 if [ "$errors" -gt 0 ]; then
   printf '\n文档检查失败：%s 项\n' "$errors"
   exit 1

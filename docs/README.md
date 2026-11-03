@@ -18,6 +18,7 @@
 ## 维护者 / agent
 
 - [conventions.md](conventions.md)：接入约定与 doctor 的 R1~R9
+- [使用反馈](feedback/README.md)：消费方问题汇总与闭环状态（`docs/feedback/<包>.md`）
 - [releasing.md](releasing.md)：发版流程、`publish_package.sh`、版本规则
 - [adr/0001-package-versioning.md](adr/0001-package-versioning.md)：子包独立版本与 semver
 - [adr/0002-consumers-depend-on-subpackages.md](adr/0002-consumers-depend-on-subpackages.md)：依赖子包而非聚合包

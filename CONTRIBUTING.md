@@ -65,3 +65,23 @@
 2. 把消费方 `lib/app/design_system/` 里的文件删掉，引用改成 `package:w_tools_ui`
 3. 该消费方的 `toolkit.dart`（聚合入口）里加一行 `export`
 4. 在消费方的 issue/PR 里注明「已上移」，并更新它的 `docs/agents/w_tools.md` 待上移清单
+
+## 8. 使用反馈（`docs/feedback/`）
+
+消费方撞到的问题按固定格式汇总在 [`docs/feedback/`](docs/feedback/README.md)：
+
+- **有反馈才建文件**（`docs/feedback/<包>.md`），不要预建 13 个空文件；
+- 消费方只追加 `待处理`；`已确认` / `已修复` / `不修` 由维护者写；
+- `已修复` **必须带版本号**（+ commit），并在 CHANGELOG 对应版本写一句；
+- 确认后必须链 issue，反馈日志不替代 issue tracker；
+- 已闭环压成表格一行，不复制 CHANGELOG 细节；
+- `待处理` 超 30 天没动 → 标 `stale`。
+
+### 放哪里（容易搞错）
+
+| 内容 | 位置 | 理由 |
+| --- | --- | --- |
+| 反馈、契约、ADR、agent 指南 | `docs/` | 人读、需评审、不可再生成 |
+| manifest、缓存、索引 | 消费方 `.w_tools/` 或 `~/.cache/w_tools/` | 机器本地、删了能重建 |
+
+> 一句话：**`.w_tools/` 只放「删了能重建」的东西。**
