@@ -214,6 +214,7 @@ InitReport runInit(
         withQr: features.qr,
         withMap: features.map,
         withFigma: figma,
+        withDevice: device,
         figmaInstall: figmaInstall,
         banned: projectConfig.banned,
       ),

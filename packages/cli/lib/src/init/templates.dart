@@ -88,6 +88,7 @@ class InitTemplates {
     bool withQr = true,
     bool withMap = true,
     bool withFigma = false,
+    bool withDevice = false,
     String? figmaInstall,
     List<BannedRule> banned = const <BannedRule>[],
   }) {
@@ -136,6 +137,7 @@ class InitTemplates {
       if (withQr) part(generated.agentsQr, generated.agentsQrEn),
       if (withMap) part(generated.agentsMap, generated.agentsMapEn),
       if (withFigma) part(generated.agentsFigma, generated.agentsFigmaEn),
+      if (withDevice) part(generated.agentsDevice, generated.agentsDeviceEn),
       ...bannedLines,
       part(generated.agentsClosing, generated.agentsClosingEn),
     ];
