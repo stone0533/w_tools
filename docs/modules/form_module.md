@@ -183,7 +183,7 @@ WFormScope(
 
 ---
 
-## 3. WFormTheme / WFormDefaults — 表单主题
+## 3. WFormTheme / WFormIcons — 表单主题
 
 > 普通页面优先使用 §3.6 的 `WForm`，它内部会创建 `WFormTheme` 与 `WFormScope`。
 > 本节说明底层主题能力，供自定义布局使用。
@@ -192,42 +192,35 @@ WFormScope(
 
 ```dart
 WFormTheme(
-  borderConfig: WFormBorderConfig.standard(),
-  dropdownIcon: const Icon(Icons.expand_more),
-  checkboxSelectedIcon: const Icon(Icons.check_circle),
+  borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+  icons: WFormIcons.defaults.copyWith(
+    dropdown: const Icon(Icons.expand_more),
+    checkboxSelected: const Icon(Icons.check_circle),
+  ),
   child: WFormScope(...),
 )
 ```
 
 `WFormTheme.borderConfig` 会被 `WFormScope` 继承；`WFormScope.formBorderConfig` 显式传入时优先。
 
-未配置的图标回退到 `WFormDefaults` 静态值。组件显式配置优先于两者。
+优先级：单个字段的 `xxxIcon` 参数 > `WFormTheme.icons`（或 `WForm.icons`）> 包内默认。
 
-`WFormDefaults` 仍保留为全局兜底，适合 App 启动时统一设置；多品牌 / 页面隔离使用
-`WFormTheme`。测试或品牌切换后可调用 `WFormDefaults.reset()` 恢复默认图标。
+### WFormIcons — 图标集合
 
-### WFormDefaults — 全局默认图标
-
-静态可替换变量，修改后对之后构建的表单组件生效；组件显式配置优先。
+不可变；8 个图标一名一个字段，用 `copyWith` 替换需要的项：
 
 ```dart
-class WFormDefaults {
-  static Widget dropdownIcon = const Icon(Icons.keyboard_arrow_down);
-  static Widget radioUnselectedIcon = const Icon(Icons.radio_button_off);
-  static Widget radioSelectedIcon = const Icon(Icons.radio_button_checked);
-  static Widget checkboxUnselectedIcon = const Icon(Icons.check_box_outline_blank);
-  static Widget checkboxSelectedIcon = const Icon(Icons.check_box);
-  static Widget obscureTextIcon = const Icon(Icons.visibility_off);
-  static Widget obscureTextVisibleIcon = const Icon(Icons.visibility);
-  static Widget clearButtonIcon = const Icon(Icons.clear, size: 18);
-}
+const icons = WFormIcons(
+  dropdown: Icon(Icons.expand_more),
+  checkboxSelected: Icon(Icons.check_circle),
+);
 ```
 
-### 全局替换示例
+`WForm(icons: icons)` 只影响该表单；需要整个 App 统一时放到 `WFormTheme` 外层。
+`WFormIcons.defaults` 是包内默认值。
 
-```dart
-WFormDefaults.checkboxSelectedIcon = const Icon(Icons.check_circle, color: Colors.blue);
-```
+> `WFormDefaults`（全局静态可变变量）已弃用，4.0 移除；它只在没有显式
+> `WFormTheme.icons` / `WForm.icons` 时作为兜底，保留是为了过渡兼容。
 
 ---
 
@@ -497,7 +490,7 @@ WFormFieldShell(name: 'username', readOnly: false, child: Row(children: [...]))
 
 #### 预置 Action
 
-- `WFormTextFieldPasswordToggle` — 密码可见性切换按钮（图标从 `WFormDefaults` 取）
+- `WFormTextFieldPasswordToggle` — 密码可见性切换按钮（图标从 `WFormTheme.icons` 取）
 - `WFormTextFieldClearButton` — 清空按钮（有内容才显示，只读下不触发）
 - `WFormTextFieldAction` — 通用 `IconButton`
 
@@ -843,7 +836,7 @@ class _LoginPageState extends State<LoginPage> {
 | 9 | **PopRoute 不跟随滚动** | `WFormPopup` 位置打开时计算一次，锚点滚动后弹层不跟随，如需跟随请使用其他方案 |
 | 10 | **校验器双通道风险** | `WFormValidatorItem.field` 模式直接执行字段 `validator`，**不**写入字段 `errorText`，只通过 `WFormBorder.setError` 渲染；若同时开 FormBuilder 原生 `validate()` 会走另一通道，建议统一使用 `WFormValidator` |
 | 11 | **copyWith(null) 不代表清空** | `WFormBorderConfig.copyWith(errorDecoration: null)` 保持原值；清空请用 `cfg.copy()..errorDecoration = null` |
-| 12 | **默认图标替换** | `WFormTheme` 优先，未配置项回退到 `WFormDefaults`；组件显式配置最高优先 |
+| 12 | **默认图标替换** | `WFormTheme.icons` / `WForm.icons` 优先，未配置项回退到包内默认；`WFormDefaults` 已弃用 |
 
 ---
 

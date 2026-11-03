@@ -1,3 +1,7 @@
+## 3.0.5
+
+- 抬高 `w_tools_form` 约束到 `^3.1.0`：新增 `WFormIcons`（图标集合），`WFormDefaults` 弃用。
+
 ## 3.0.4
 
 - 抬高 `w_tools_toast` 约束到 `^1.2.0`：toast 拆分出 `WToastStyle`，`WToastConfig` 弃用。

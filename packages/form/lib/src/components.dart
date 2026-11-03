@@ -1,5 +1,8 @@
 // 统一导出全部公开 API：
 
+// 图标
+export 'components/form_icons.dart';
+
 // 边框与布局
 export 'components/border/border.dart';
 export 'components/border/border_layout.dart';

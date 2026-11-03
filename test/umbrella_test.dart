@@ -12,7 +12,7 @@ import 'package:w_tools/w_tools.dart' as w;
 void main() {
   test('w_tools.dart 汇总 9 个子包的公开类型', () {
     expect(w.WConfig, isNotNull); // core.WConfig
-    expect(w.WFormDefaults, isNotNull); // form
+    expect(w.WFormIcons, isNotNull); // form
     expect(w.WAppConfig, isNotNull); // app
     expect(w.WApiConfig, isNotNull); // api
     expect(w.WToast, isNotNull); // toast

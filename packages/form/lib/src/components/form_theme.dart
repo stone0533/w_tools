@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'border/border.dart';
 import 'form_defaults.dart';
+import 'form_icons.dart';
 
 /// 表单图标默认值的作用域版本。
 ///
@@ -12,6 +13,7 @@ class WFormTheme extends StatelessWidget {
   const WFormTheme({
     super.key,
     this.borderConfig,
+    this.icons,
     this.dropdownIcon,
     this.radioUnselectedIcon,
     this.radioSelectedIcon,
@@ -27,6 +29,9 @@ class WFormTheme extends StatelessWidget {
 
   /// 表单边框配置；WFormScope 未显式传 formBorderConfig 时继承本项
   final WFormBorderConfig? borderConfig;
+
+  /// 图标集合；单个 `xxxIcon` 参数优先于它
+  final WFormIcons? icons;
 
   final Widget? dropdownIcon;
   final Widget? radioUnselectedIcon;
@@ -54,18 +59,24 @@ class WFormTheme extends StatelessWidget {
     );
   }
 
-  Widget get effectiveDropdownIcon => dropdownIcon ?? WFormDefaults.dropdownIcon;
+  Widget get effectiveDropdownIcon =>
+      dropdownIcon ?? icons?.dropdown ?? WFormDefaults.dropdownIcon;
   Widget get effectiveRadioUnselectedIcon =>
-      radioUnselectedIcon ?? WFormDefaults.radioUnselectedIcon;
-  Widget get effectiveRadioSelectedIcon => radioSelectedIcon ?? WFormDefaults.radioSelectedIcon;
+      radioUnselectedIcon ?? icons?.radioUnselected ?? WFormDefaults.radioUnselectedIcon;
+  Widget get effectiveRadioSelectedIcon =>
+      radioSelectedIcon ?? icons?.radioSelected ?? WFormDefaults.radioSelectedIcon;
   Widget get effectiveCheckboxUnselectedIcon =>
-      checkboxUnselectedIcon ?? WFormDefaults.checkboxUnselectedIcon;
+      checkboxUnselectedIcon ?? icons?.checkboxUnselected ?? WFormDefaults.checkboxUnselectedIcon;
   Widget get effectiveCheckboxSelectedIcon =>
-      checkboxSelectedIcon ?? WFormDefaults.checkboxSelectedIcon;
-  Widget get effectiveObscureTextIcon => obscureTextIcon ?? WFormDefaults.obscureTextIcon;
+      checkboxSelectedIcon ?? icons?.checkboxSelected ?? WFormDefaults.checkboxSelectedIcon;
+  Widget get effectiveObscureTextIcon =>
+      obscureTextIcon ?? icons?.obscureText ?? WFormDefaults.obscureTextIcon;
   Widget get effectiveObscureTextVisibleIcon =>
-      obscureTextVisibleIcon ?? WFormDefaults.obscureTextVisibleIcon;
-  Widget get effectiveClearButtonIcon => clearButtonIcon ?? WFormDefaults.clearButtonIcon;
+      obscureTextVisibleIcon ??
+      icons?.obscureTextVisible ??
+      WFormDefaults.obscureTextVisibleIcon;
+  Widget get effectiveClearButtonIcon =>
+      clearButtonIcon ?? icons?.clear ?? WFormDefaults.clearButtonIcon;
 }
 
 /// WFormTheme 的 InheritedWidget 载体。

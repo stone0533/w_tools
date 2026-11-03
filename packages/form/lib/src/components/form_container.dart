@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'border/border.dart';
+import 'form_icons.dart';
 import 'border/read_only_scope.dart';
 import 'form_scope.dart';
 import 'form_field_style.dart';
@@ -34,6 +35,7 @@ class WForm extends StatefulWidget {
     this.validatorSettings,
     this.readOnly = false,
     this.autovalidateMode,
+    this.icons,
     this.dropdownIcon,
     this.radioUnselectedIcon,
     this.radioSelectedIcon,
@@ -51,6 +53,9 @@ class WForm extends StatefulWidget {
   final WFormValidatorSettings? validatorSettings;
   final bool readOnly;
   final AutovalidateMode? autovalidateMode;
+
+  /// 图标集合（单个 `xxxIcon` 参数优先）
+  final WFormIcons? icons;
 
   final Widget? dropdownIcon;
   final Widget? radioUnselectedIcon;
@@ -123,6 +128,7 @@ class _WFormState extends State<WForm> {
   @override
   Widget build(BuildContext context) {
     return WFormTheme(
+      icons: widget.icons,
       borderConfig: _resolveBorderConfig(context),
       dropdownIcon: widget.dropdownIcon,
       radioUnselectedIcon: widget.radioUnselectedIcon,

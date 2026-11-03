@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.0
+
+### Added
+- `WFormIcons`（不可变）：8 个表单图标一名一个字段，`copyWith` 替换；
+  `WForm(icons:)` / `WFormTheme(icons:)` 统一替换，单个 `xxxIcon` 参数仍优先。
+- `WFormIcons == / hashCode`，值相等。
+
+### Deprecated
+- `WFormDefaults`：4.0 移除；改用 `WFormIcons` / `WForm.icons`。它仍作为兜底
+  （低于 `WFormTheme.icons`），保留一版用于过渡。
+
 ## 3.0.0
 
 ### Breaking

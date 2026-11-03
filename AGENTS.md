@@ -20,7 +20,7 @@
 - `w_tools` 根包只用于快速体验 / 旧项目兼容；新业务项目仍只依赖具体子包。
 - 如用户明确要求使用根包：`import 'package:w_tools/w_tools.dart';`。
 - 根包只重导出 9 个子包；不再提供旧 `WConfig` 兼容层。
-- 配置走子包：token 用 `core.WConfig`，资源前缀用 `WAssets`，表单图标用 `WFormDefaults`，语言用 `WAppConfig`。
+- 配置走子包：token 用 `core.WConfig`，资源前缀用 `WAssets`，表单图标用 `WFormIcons`，语言用 `WAppConfig`。
 
 ## 工具（本仓库维护）
 
