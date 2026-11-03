@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^3.0.0
+  w_tools_ui: ^4.7.0
 ```
 
 > 本包最低要求 Flutter 3.27.0。

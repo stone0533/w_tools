@@ -38,7 +38,7 @@
 | --- | --- | --- | --- |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义时用 `WButton` |
-| `WRowButtons` | ui | 一排可选中按钮（分段选择，由 controller 维护选中） | 纯动作按钮行（取消/确定）用 `Row` + `WButton`；它点击必选中 |
+| `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已弃用（5.0 移除）；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 | — |
 <!-- catalog:3:end -->
 
@@ -47,7 +47,6 @@
 <!-- catalog:4:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WRow` / `WColumn` / `WPadding` / `WSizeBox` | ui | 常用布局糖 | — |
 | `WClipRRect` | ui | 裁剪 | — |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
@@ -63,7 +62,7 @@
 | `WFormTextField` | form | 直接文本 / 密码字段（label / message / validator） | 不要默认写 `WFormTextFieldConfig().build(...)` |
 | `WFormDropdown` / `WFormMultiDropdown` | form | 直接下拉 / 多选字段 | 选择类弹层用 `WFormPopup` |
 | `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` | form | 直接日期 / 复选 / 单选字段 | — |
-| `WFormButton` | form | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层用 `WFormFieldButtonCore` |
+| `WFormButton` | form | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用 |
 | `WFormFieldStyle` | form | 页面级字段默认高度 / 内边距 / 文字 / hint 样式 | 字段特殊样式用字段 `config` 覆盖 |
 | `WFormValidatorSettings` | form | 校验行为：边框错误、短路 / 全量、回调 | — |
 | `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |

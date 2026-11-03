@@ -25,7 +25,7 @@
 
 ```yaml
 dependencies:
-  w_tools_core: ^2.0.0
+  w_tools_core: ^2.4.0
 ```
 
 ```bash

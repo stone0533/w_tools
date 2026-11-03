@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_toast: ^1.0.0
+  w_tools_toast: ^1.3.0
 ```
 
 同时请按 `bot_toast` 文档完成初始化（`BotToastInit` 与 `BotToastNavigatorObserver`）。
