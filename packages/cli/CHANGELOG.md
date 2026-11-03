@@ -1,3 +1,9 @@
+## 1.9.7
+
+### 改进
+- `feedback lint`：`已确认` 条目必须链 issue（`#123` 或链接），否则报错
+- `packages/cli/README.md` 新增 `feedback` 命令说明（命令怎么选表 + 子命令表）
+
 ## 1.9.6
 
 ### 修复

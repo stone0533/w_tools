@@ -92,6 +92,7 @@ class FeedbackLinter {
   static final _version = RegExp(r'✅\s*(?:[A-Za-z_]+\s+)?\d+\.\d+\.\d+');
   static final _fieldLine = RegExp(r'^\s*-\s*(.+?)\s*[：:]');
   static final _statusDate = RegExp(r'状态变更[：:]\s*(\d{4}-\d{2}-\d{2})');
+  static final _issueLink = RegExp(r'#\d+|https?://');
 
   FeedbackLintResult lintFiles(List<String> paths, {DateTime? now}) {
     final issues = <FeedbackIssue>[];
@@ -133,7 +134,29 @@ class FeedbackLinter {
           );
           continue;
         }
-        if (status != '待处理' && status != 'pending') continue;
+        if (status != '待处理' && status != 'pending') {
+          // 已确认必须链 issue（#123 或 http 链接），否则没法追踪
+          if (status == '已确认' || status == 'confirmed') {
+            final body = <String>[];
+            var end = i + 1;
+            while (end < lines.length &&
+                !lines[end].startsWith('### ') &&
+                !lines[end].startsWith('## ')) {
+              body.add(lines[end]);
+              end++;
+            }
+            if (!_issueLink.hasMatch(body.join('\n'))) {
+              issues.add(
+                FeedbackIssue(
+                  file: path,
+                  line: i + 1,
+                  message: '已确认条目要链 issue（#123 或链接），否则无法追踪',
+                ),
+              );
+            }
+          }
+          continue;
+        }
         pending++;
 
         final body = <String>[];

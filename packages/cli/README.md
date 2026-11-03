@@ -46,6 +46,7 @@ doctor → 0 error / 0 warning 才算通过
 | 找现成组件 | `list` |
 | 看某个组件怎么用 | `explain` |
 | 给 AI 项目上下文 | `context --format=prompt` |
+| 用 w_tools 撞到问题，要记一条反馈 | `feedback path --package=<包>` |
 | 只检查不写文件 | `init --check` |
 | 检查模板是否过期 | `init --check-drift` |
 | 升级 CLI 后刷新生成物 | `init --force` |
@@ -261,6 +262,27 @@ dart run w_tools_cli:doctor --write-config    # 写入 .w_tools_doctor.yaml
 {"kind": "run",  "command": "dart run w_tools_cli:init --force"}
 {"kind": "edit", "file": "pubspec.yaml", "path": "dependencies.w_tools_core", "value": "any"}
 ```
+
+---
+
+## feedback
+
+给 AI / 开发者的反馈入口：**记录 w_tools 本身的问题**（不是业务代码问题）。
+
+```bash
+dart run w_tools_cli:feedback path --package=figma   # 该写哪个文件
+dart run w_tools_cli:feedback path --json            # 脚本用
+dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
+```
+
+| 子命令 | 作用 |
+|---|---|
+| `path` | 有 w_tools 仓库 → `<repo>/docs/feedback/<包>.md`；否则 → 本项目收件箱 `docs/agents/feedback.md` |
+| `lint` | 字段齐全 / 状态合法 / 已闭环带版本号 / 已确认链 issue / 索引与文件一致 / 待处理 stale 警告 |
+
+- `lint --stale-days=<n>`：待处理超过 n 天给警告（默认 30，0 关闭），不影响退出码
+- 规则与文件格式见仓库 `docs/feedback/README.md`；CI 的 `scripts/check_feedback.sh` 就是这条命令的包装
+- `--package` 只接受小写字母/数字/下划线（防路径穿越）
 
 ---
 

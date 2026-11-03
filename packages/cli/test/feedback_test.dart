@@ -130,6 +130,25 @@ void main() {
       expect(result.warnings.single.message, contains('没动'));
     });
 
+    test('已确认条目必须链 issue', () {
+      final root = _tmp('wt_fbl7_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'cli.md'))
+        ..writeAsStringSync('''
+### [已确认] cli: 没链 issue
+- 包/版本：w_tools_cli 1.9.6
+- 状态变更：2026-11-03 已确认
+
+### [已确认] cli: 链了 issue
+- 包/版本：w_tools_cli 1.9.6
+- 状态变更：2026-11-03 已确认 → #42
+''');
+      final result = const FeedbackLinter().lintFiles([file.path]);
+      expect(result.issues, hasLength(1));
+      expect(result.issues.single.line, 1);
+      expect(result.issues.single.message, contains('issue'));
+    });
+
     test('索引列了不存在的文件 → 报错', () {
       final root = _tmp('wt_fbl6_');
       addTearDown(() => root.deleteSync(recursive: true));
