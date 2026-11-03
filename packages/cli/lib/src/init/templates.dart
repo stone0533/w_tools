@@ -139,6 +139,7 @@ class InitTemplates {
       if (withFigma) part(generated.agentsFigma, generated.agentsFigmaEn),
       if (withDevice) part(generated.agentsDevice, generated.agentsDeviceEn),
       ...bannedLines,
+      part(generated.agentsFeedback, generated.agentsFeedbackEn),
       part(generated.agentsClosing, generated.agentsClosingEn),
     ];
     return parts

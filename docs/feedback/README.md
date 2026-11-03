@@ -30,6 +30,9 @@
 
 ## 怎么用（消费方）
 
+> 装了 `w_tools_cli` 的项目，`init` 会把这段流程写进 AGENTS（「使用反馈（给 AI）」一节），
+> 新项目不用手抄；本地收件箱固定为 `docs/agents/feedback.md`。
+
 ```bash
 # 1. 查重
 grep -rn "<关键词>" docs/feedback/
