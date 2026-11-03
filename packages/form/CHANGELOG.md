@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.0.0
+
+### Breaking
+- `WForm` 未传 `borderConfig` 时，默认使用 `WFormBorderConfig.fromTheme(Theme.of(context))`：
+  字段会有主题边框 / 背景，`message` 与校验错误默认可见（未显式传 `validatorSettings` 时
+  `showBorderError = true`）。需要保持「无外观」的页面请显式传 `const WFormBorderConfig()`。
+- `WFormTheme` 的优先级改为「显式参数 > 祖先作用域」：嵌套时里层 `WFormTheme(borderConfig:)`
+  或 `WForm(borderConfig:)` 说了算（此前祖先会覆盖显式参数）。
+
+### Added
+- `WFormBorderConfig` / `WFormBorderDecoration` 实现 `==` / `hashCode`；
+  `WFormBorderConfig` 新增 `hintStyle` / `errorStyle` 字段（内置工厂用它渲染默认文案，
+  不再创建闭包，配置可比较）。
+
+### Changed
+- `WFormBorder` 的配置同步改用 `==`，删除内容快照缓存；值相等的配置不会触发重建。
+
 ## 2.2.0
 
 ### Added

@@ -29,31 +29,68 @@ void main() {
       );
     });
 
-    test('hint / error 文字来自 TextTheme.bodySmall，颜色分别取 onSurfaceVariant / error', () {
+    test('同一主题派生出的配置值相等（避免每帧重建）', () {
+      final theme = ThemeData(useMaterial3: true);
+      expect(WFormBorderConfig.fromTheme(theme), WFormBorderConfig.fromTheme(theme));
+      expect(
+        WFormBorderConfig.fromTheme(theme).hashCode,
+        WFormBorderConfig.fromTheme(theme).hashCode,
+      );
+    });
+
+    testWidgets('hint / error 文字来自 TextTheme.bodySmall，颜色分别取 onSurfaceVariant / error', (tester) async {
       final theme = ThemeData(useMaterial3: true);
       final scheme = theme.colorScheme;
       final config = WFormBorderConfig.fromTheme(theme);
+      final key = GlobalKey<WFormBorderState>();
 
-      final hint = config.hintBuilder!(['请输入']) as Padding;
-      final hintText = hint.child! as Text;
-      expect(hintText.style?.color, scheme.onSurfaceVariant);
-      expect(hintText.style?.fontSize, theme.textTheme.bodySmall?.fontSize);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: WFormBorder(
+              key: key,
+              config: config,
+              hintTextList: const ['请输入'],
+              child: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
 
-      final error = config.errorBuilder!(['格式不对']) as Padding;
-      final errorText = error.child! as Text;
-      expect(errorText.style?.color, scheme.error);
+      final hint = tester.widget<Text>(find.text('请输入'));
+      expect(hint.style?.color, scheme.onSurfaceVariant);
+      expect(hint.style?.fontSize, theme.textTheme.bodySmall?.fontSize);
+
+      key.currentState!.setError(true, errorTextList: const ['格式不对']);
+      await tester.pump();
+      final error = tester.widget<Text>(find.text('格式不对'));
+      expect(error.style?.color, scheme.error);
     });
 
-    test('显式 hintStyle 的颜色优先', () {
+    testWidgets('显式 hintStyle 的颜色优先', (tester) async {
       final theme = ThemeData(useMaterial3: true);
       final config = WFormBorderConfig.fromTheme(
         theme,
         hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF112233)),
       );
 
-      final hint = config.hintBuilder!(['x']) as Padding;
-      expect((hint.child! as Text).style?.color, const Color(0xFF112233));
-      expect((hint.child! as Text).style?.fontSize, 13);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: WFormBorder(
+              config: config,
+              hintTextList: const ['x'],
+              child: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+
+      final hint = tester.widget<Text>(find.text('x'));
+      expect(hint.style?.color, const Color(0xFF112233));
+      expect(hint.style?.fontSize, 13);
     });
 
     testWidgets('深色主题下 WFormBorder 渲染的是深色可读文字', (tester) async {

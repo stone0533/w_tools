@@ -67,8 +67,11 @@ class WForm extends StatefulWidget {
 
 class _WFormState extends State<WForm> {
   /// 实际生效的校验设置：显式传入优先；只传了 borderConfig 时默认显示边框错误，
-  /// 否则 `validate()` 失败不会有任何可见反馈（默认 WFormValidatorSettings 是关的）。
   WFormValidatorSettings? _settings;
+
+  /// 主题派生的默认边框配置（按 ThemeData 实例缓存，避免每帧重建）
+  WFormBorderConfig? _defaultBorderConfig;
+  ThemeData? _defaultBorderTheme;
 
   @override
   void initState() {
@@ -77,12 +80,26 @@ class _WFormState extends State<WForm> {
   }
 
   void _syncSettings() {
-    _settings =
-        widget.validatorSettings ??
-        (widget.borderConfig == null
-            ? null
-            : (WFormValidatorSettings()..showBorderError = true));
+    // 现在默认边框一定存在（显式 / 祖先主题 / fromTheme），
+    // 未显式配置校验设置时默认把错误显示在边框上。
+    _settings = widget.validatorSettings ?? (WFormValidatorSettings()..showBorderError = true);
     widget.controller.validatorSettings = _settings;
+  }
+
+  /// 边框配置解析：显式参数 > 祖先 [WFormBorderConfigScope] > 主题派生默认值。
+  WFormBorderConfig? _resolveBorderConfig(BuildContext context) {
+    final explicit = widget.borderConfig;
+    if (explicit != null) return explicit;
+
+    final inherited = WFormBorderConfigScope.maybeOf(context);
+    if (inherited != null) return inherited;
+
+    final theme = Theme.of(context);
+    if (!identical(_defaultBorderTheme, theme) || _defaultBorderConfig == null) {
+      _defaultBorderTheme = theme;
+      _defaultBorderConfig = WFormBorderConfig.fromTheme(theme);
+    }
+    return _defaultBorderConfig;
   }
 
   @override
@@ -106,7 +123,7 @@ class _WFormState extends State<WForm> {
   @override
   Widget build(BuildContext context) {
     return WFormTheme(
-      borderConfig: widget.borderConfig,
+      borderConfig: _resolveBorderConfig(context),
       dropdownIcon: widget.dropdownIcon,
       radioUnselectedIcon: widget.radioUnselectedIcon,
       radioSelectedIcon: widget.radioSelectedIcon,

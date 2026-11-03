@@ -18,5 +18,18 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
+# example 始终用 workspace 里的子包：否则子包版本领先 pub.dev 时
+# （发版前的正常状态）根包的 ^x.y.z 约束会在这里解析失败。
+dependency_overrides:
+  w_tools_core: { path: ../packages/core }
+  w_tools_async: { path: ../packages/async }
+  w_tools_ui: { path: ../packages/ui }
+  w_tools_form: { path: ../packages/form }
+  w_tools_api: { path: ../packages/api }
+  w_tools_app: { path: ../packages/app }
+  w_tools_toast: { path: ../packages/toast }
+  w_tools_map: { path: ../packages/map }
+  w_tools_qr: { path: ../packages/qr }
+
 flutter:
   uses-material-design: true

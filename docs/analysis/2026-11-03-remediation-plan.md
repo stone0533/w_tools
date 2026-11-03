@@ -14,7 +14,7 @@
 | 0.2 首次基线 | 完成 | 本地全绿：ui 358、form 285、api 45、map 34、async 110、e2e 14、cli 205、figma 83、device 58；期间清掉了 Flutter 升级后残留的 `build/unit_test_assets` 旧 shader |
 | 0.3 弃用到期守护 | 完成 | `scripts/check_deprecations.py` + 3 处 `remove-in` |
 | 0.4 文档版本守护 | 完成 | `scripts/check_docs_versions.py` + 修掉 6 处漂移 |
-| 1.1 表单校验错误默认可见 | 完成（改为契约修复） | 只传 `borderConfig` 时默认 `showBorderError = true`；显式 settings 完全优先。原计划的「默认 `borderConfig = standard()`」涉及视觉变更，留到 4.7 |
+| 1.1 表单校验错误默认可见 | 完成 | 先做契约修复（只传 borderConfig 时默认 `showBorderError`），4.0d 再把默认 `borderConfig` 切到 `fromTheme`，P1-5 完整关闭 |
 | 1.2 WAppBar 默认图标 / 标题 | 完成 | `IconTheme.merge` + `AppBarTheme.titleTextStyle → titleLarge` 回退；3 个回归用例（红→绿） |
 | 1.3 WImage 预设改为合并 | 完成 | `WImageStyle.merge`；`avatar`/`thumbnail`/`cover` 不再丢尺寸与圆角；8 个用例 |
 | 1.4 form 所有权 | 完成 | `didChange` 卸载保护（有红→绿用例）、多选弹层 mounted 保护、重名字段可读报错 + `removeBorderKey(owner:)` |
@@ -48,7 +48,7 @@
 | 4.0a form 主题派生 | 完成 | `WFormBorderConfig.fromTheme(ThemeData)`：边框/背景/聚焦/错误/只读取 `ColorScheme`，hint/error 取 `bodySmall`；`standard()` 标注为显式浅色预设 |
 | 4.0b toast 主题派生 | 完成 | 文本气泡 `inverseSurface` + `onInverseSurface`，默认内容取 `textTheme.bodyMedium`；`backgroundColor` 默认改 `null`；文本提示改 `showCustomText` 以便在 Overlay 里取 Theme |
 | 4.0c 字面量守卫 | 完成 | `scripts/check_style_literals.py` 扫 form/toast/async，CI umbrella job 已接入；历史预设行内标 `style-literal-ok` |
-| 4.0d `WForm` 默认 `borderConfig` 切到 `fromTheme` | 待做 | 视觉变更，按 ADR-0001 进 form 3.0；做完才算完整关闭 P1-5 |
+| 4.0d `WForm` 默认 `borderConfig` 切到 `fromTheme` | 完成 | form 3.0.0：默认主题边框 + `showBorderError`；显式 `const WFormBorderConfig()` 关闭外观；`WFormTheme` 优先级改为显式 > 祖先；`WFormBorderConfig`/`Decoration` 补 `==` 并删除快照缓存；根约束 `^3.0.0`、根 example 加 dependency_overrides |
 
 ## 0. 三条排序原则
 

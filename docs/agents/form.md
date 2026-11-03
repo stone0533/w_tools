@@ -51,6 +51,9 @@ WFormTextField(name: 'email', label: '邮箱')
 ```
 
 5. 样式优先级：字段 `config` > `WForm.fieldStyle` > 默认值。
+5.1 边框配置优先级：`WForm.borderConfig` > 祖先 `WFormTheme(borderConfig:)` > 主题派生默认值
+   （`WFormBorderConfig.fromTheme`）。**不传也能用**：默认有主题边框，`message` / 校验错误可见。
+   想要「无边框、不显示文案」时显式传 `const WFormBorderConfig()`。
 6. 字段 Config 可变，一个字段一份，不要跨字段共享。
 7. `WForm` 与 `WFormController` 一对一使用。
 8. `WFormTextFieldCore` 等 `*Core` 只用于底层封装或特殊布局。

@@ -11,6 +11,11 @@ Form 模块（`w_tools_form` 子包）提供了一套基于 `flutter_form_builde
 
 **最低 Flutter 版本**：3.38（由 `flutter_form_builder` / `form_builder_validators` 传递约束）
 
+
+> **默认边框（3.0.0+）**：`WForm` 不传 `borderConfig` 时使用
+> `WFormBorderConfig.fromTheme(Theme.of(context))`；字段有主题边框，`message` 与校验错误默认可见。
+> 显式传 `const WFormBorderConfig()` 可关闭外观与文案。
+
 ## 快速判断
 - 页面表单 → `WForm` + 直接字段
 - 校验 → 字段 `validator` + `WFormValidatorSettings`

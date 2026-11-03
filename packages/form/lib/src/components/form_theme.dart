@@ -44,10 +44,11 @@ class WFormTheme extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final inherited = WFormBorderConfigScope.maybeOf(context);
+    // 显式参数优先于祖先作用域（嵌套 WForm / WFormTheme 时，里层的配置说了算）
     return _WFormThemeInherited(
       theme: this,
       child: WFormBorderConfigScope(
-        config: inherited ?? borderConfig,
+        config: borderConfig ?? inherited,
         child: child,
       ),
     );

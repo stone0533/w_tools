@@ -71,8 +71,8 @@ class WFormBorderState extends State<WFormBorder> {
   /// 缓存的边框圆角
   BorderRadius? _cachedBorderRadius;
 
-  /// 配置内容快照（用于检测同一实例的原地修改）
-  late Object _configSnapshot;
+  /// 配置是否已同步过（首次同步必须执行）
+  bool _configReady = false;
 
   /// 设置错误状态
   ///
@@ -92,7 +92,7 @@ class WFormBorderState extends State<WFormBorder> {
     // initState 中不能读取 InheritedWidget：先用显式配置或空配置占位，
     // 继承 WFormScope.formBorderConfig 在 didChangeDependencies 中完成
     config = widget.config ?? const WFormBorderConfig();
-    _configSnapshot = _snapshotOf(config);
+    _configReady = true;
     messageList = widget.hintTextList;
   }
 
@@ -113,26 +113,25 @@ class WFormBorderState extends State<WFormBorder> {
   }
 
   /// 同步生效配置：显式传入优先，否则继承最近的 [WFormBorderConfigScope]。
+  ///
+  /// 用 `==`（值比较）而不是快照：内置工厂不再产生闭包，值相等的配置不会触发重建。
   void _syncConfig() {
     final resolved =
         widget.config ?? WFormBorderConfigScope.maybeOf(context) ?? const WFormBorderConfig();
-    final snapshot = _snapshotOf(resolved);
-    if (snapshot == _configSnapshot) return;
+    if (_configReady && resolved == config) return;
     config = resolved;
-    _configSnapshot = snapshot;
+    _configReady = true;
     _decorationKey = null; // 失效装饰缓存
   }
 
-  /// 生成配置内容快照，用于检测配置实例内容变化。
-  Object _snapshotOf(WFormBorderConfig c) => (
-    c.defaultDecoration,
-    c.readOnlyDecoration,
-    c.errorDecoration,
-    c.focusedDecoration,
-    c.hintBuilder,
-    c.errorBuilder,
-    c.layout,
-  );
+  /// 默认文案：`Text(list.join('；'))`，样式为空表示该配置不展示文案。
+  Widget _defaultMessage(List<String> list, TextStyle? style) {
+    if (style == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Text(list.join('；'), style: style),
+    );
+  }
 
   /// 获取当前状态对应的装饰（带缓存，状态未变时复用上次结果）
   WFormBorderDecoration? _getDecoration() {
@@ -201,9 +200,11 @@ class WFormBorderState extends State<WFormBorder> {
     if (!hasMessage) {
       message = const SizedBox.shrink();
     } else if (isError) {
-      message = config.errorBuilder?.call(messageList) ?? const SizedBox.shrink();
+      message = config.errorBuilder?.call(messageList) ??
+          _defaultMessage(messageList!, config.errorStyle);
     } else {
-      message = config.hintBuilder?.call(messageList) ?? const SizedBox.shrink();
+      message = config.hintBuilder?.call(messageList) ??
+          _defaultMessage(messageList!, config.hintStyle);
     }
 
     // 3. 交给布局策略组装
@@ -231,6 +232,15 @@ class WFormBorderConfig {
   final WFormBorderDecoration? readOnlyDecoration;
   final WFormBorderDecoration? errorDecoration;
   final WFormBorderDecoration? focusedDecoration;
+
+  /// hint / error 文案的默认文字样式。
+  ///
+  /// [hintBuilder] / [errorBuilder] 为空时用它渲染 `Text(list.join('；'))`。
+  /// 内置工厂（[WFormBorderConfig.standard] / [WFormBorderConfig.fromTheme]）走这两个字段
+  /// 而不是闭包，因此配置之间可以做 `==` 比较（避免每帧重建）。
+  final TextStyle? hintStyle;
+  final TextStyle? errorStyle;
+
   final Widget Function(List<String>? list)? hintBuilder;
   final Widget Function(List<String>? list)? errorBuilder;
   final WFormBorderLayout layout;
@@ -240,6 +250,8 @@ class WFormBorderConfig {
     this.readOnlyDecoration,
     this.errorDecoration,
     this.focusedDecoration,
+    this.hintStyle,
+    this.errorStyle,
     this.hintBuilder,
     this.errorBuilder,
     this.layout = WFormBorderLayout.column,
@@ -267,14 +279,6 @@ class WFormBorderConfig {
         hintStyle ?? const TextStyle(fontSize: 12, color: Color(0xFF6B7280)); // style-literal-ok: 显式浅色预设
     final errorTextStyle = errorStyle ?? TextStyle(fontSize: 12, color: errorColor);
 
-    Widget buildMessages(List<String>? list, TextStyle style) {
-      if (list == null || list.isEmpty) return const SizedBox.shrink();
-      return Padding(
-        padding: const EdgeInsets.only(top: 6, left: 4),
-        child: Text(list.join('；'), style: style),
-      );
-    }
-
     return WFormBorderConfig(
       defaultDecoration: base,
       focusedDecoration: base.copyWith(
@@ -284,8 +288,8 @@ class WFormBorderConfig {
         border: Border.all(color: errorColor),
       ),
       readOnlyDecoration: base.copyWith(color: readOnlyColor),
-      hintBuilder: (list) => buildMessages(list, hintTextStyle),
-      errorBuilder: (list) => buildMessages(list, errorTextStyle),
+      hintStyle: hintTextStyle,
+      errorStyle: errorTextStyle,
     );
   }
 
@@ -318,14 +322,6 @@ class WFormBorderConfig {
     final errorTextStyle = (errorStyle ?? theme.textTheme.bodySmall ?? const TextStyle())
         .copyWith(color: errorStyle?.color ?? scheme.error);
 
-    Widget buildMessages(List<String>? list, TextStyle style) {
-      if (list == null || list.isEmpty) return const SizedBox.shrink();
-      return Padding(
-        padding: const EdgeInsets.only(top: 6, left: 4),
-        child: Text(list.join('；'), style: style),
-      );
-    }
-
     return WFormBorderConfig(
       defaultDecoration: base,
       focusedDecoration: base.copyWith(
@@ -335,8 +331,8 @@ class WFormBorderConfig {
         border: Border.all(color: scheme.error),
       ),
       readOnlyDecoration: base.copyWith(color: scheme.surfaceContainerLow),
-      hintBuilder: (list) => buildMessages(list, hintTextStyle),
-      errorBuilder: (list) => buildMessages(list, errorTextStyle),
+      hintStyle: hintTextStyle,
+      errorStyle: errorTextStyle,
     );
   }
 
@@ -362,6 +358,8 @@ class WFormBorderConfig {
     WFormBorderDecoration? readOnlyDecoration,
     WFormBorderDecoration? errorDecoration,
     WFormBorderDecoration? focusedDecoration,
+    TextStyle? hintStyle,
+    TextStyle? errorStyle,
     Widget Function(List<String>? list)? hintBuilder,
     Widget Function(List<String>? list)? errorBuilder,
     WFormBorderLayout? layout,
@@ -371,11 +369,39 @@ class WFormBorderConfig {
       readOnlyDecoration: readOnlyDecoration ?? this.readOnlyDecoration,
       errorDecoration: errorDecoration ?? this.errorDecoration,
       focusedDecoration: focusedDecoration ?? this.focusedDecoration,
+      hintStyle: hintStyle ?? this.hintStyle,
+      errorStyle: errorStyle ?? this.errorStyle,
       hintBuilder: hintBuilder ?? this.hintBuilder,
       errorBuilder: errorBuilder ?? this.errorBuilder,
       layout: layout ?? this.layout,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is WFormBorderConfig &&
+      other.defaultDecoration == defaultDecoration &&
+      other.readOnlyDecoration == readOnlyDecoration &&
+      other.errorDecoration == errorDecoration &&
+      other.focusedDecoration == focusedDecoration &&
+      other.hintStyle == hintStyle &&
+      other.errorStyle == errorStyle &&
+      other.hintBuilder == hintBuilder &&
+      other.errorBuilder == errorBuilder &&
+      other.layout == layout;
+
+  @override
+  int get hashCode => Object.hash(
+    defaultDecoration,
+    readOnlyDecoration,
+    errorDecoration,
+    focusedDecoration,
+    hintStyle,
+    errorStyle,
+    hintBuilder,
+    errorBuilder,
+    layout,
+  );
 }
 
 /// [WFormBorderConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
@@ -384,6 +410,8 @@ class WFormBorderConfigBuilder {
   WFormBorderDecoration? readOnlyDecoration;
   WFormBorderDecoration? errorDecoration;
   WFormBorderDecoration? focusedDecoration;
+  TextStyle? hintStyle;
+  TextStyle? errorStyle;
   Widget Function(List<String>? list)? hintBuilder;
   Widget Function(List<String>? list)? errorBuilder;
   WFormBorderLayout layout = WFormBorderLayout.column;
@@ -395,6 +423,8 @@ class WFormBorderConfigBuilder {
       readOnlyDecoration = config.readOnlyDecoration,
       errorDecoration = config.errorDecoration,
       focusedDecoration = config.focusedDecoration,
+      hintStyle = config.hintStyle,
+      errorStyle = config.errorStyle,
       hintBuilder = config.hintBuilder,
       errorBuilder = config.errorBuilder,
       layout = config.layout;
@@ -405,6 +435,8 @@ class WFormBorderConfigBuilder {
       readOnlyDecoration: readOnlyDecoration,
       errorDecoration: errorDecoration,
       focusedDecoration: focusedDecoration,
+      hintStyle: hintStyle,
+      errorStyle: errorStyle,
       hintBuilder: hintBuilder,
       errorBuilder: errorBuilder,
       layout: layout,
@@ -467,6 +499,24 @@ class WFormBorderDecoration {
       gradient: gradient ?? this.gradient,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is WFormBorderDecoration &&
+      other.border == border &&
+      other.color == color &&
+      other.borderRadius == borderRadius &&
+      listEquals(other.boxShadow, boxShadow) &&
+      other.gradient == gradient;
+
+  @override
+  int get hashCode => Object.hash(
+    border,
+    color,
+    borderRadius,
+    boxShadow == null ? null : Object.hashAll(boxShadow!),
+    gradient,
+  );
 }
 
 /// WFormBorderDecoration 扩展，提供链式调用方法
