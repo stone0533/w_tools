@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0
+
+### Changed
+- 校验设置：`WForm` 只传 `borderConfig` 而未传 `validatorSettings` 时，默认 `showBorderError = true`；此前 `validate()` 失败时界面没有任何反馈。显式传 `validatorSettings` 时完全以显式为准。
+
+### Fixed
+- `WFormButton.onTap` 的 `didChange` 在字段已卸载时直接返回，不再对已销毁的字段 `setState`。
+- 多选弹层的选项点击同样跳过已卸载字段（弹层挂在 Navigator 上，可能比字段活得久）。
+- 同名字段：debug 期先报「字段 name 重复：x」并给出排查方向，不再只剩框架的 GlobalKey 冲突；`WFormController.removeBorderKey` 支持 `owner`，避免同名字段互相删 key。
+
 ## 2.0.0
 
 ### Changed

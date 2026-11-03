@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.1.0
+
+### Changed
+- `WAppBar` 的图标改为 `IconTheme.merge`：默认不再丢失 `ThemeData.iconTheme`（此前会回落到黑色）；标题按 `style.titleStyle` → `AppBarTheme.titleTextStyle` → `TextTheme.titleLarge` 回退，不再显示为正文样式。
+- `WImage.avatar` / `thumbnail` / `cover` 的 `style` 改为与预设合并（原来整体替换）：显式字段覆盖预设，尺寸 / 圆角不再被静默丢掉；正方形预设只覆盖宽度时仍保持正方形。
+- 新增 `WImageStyle.merge`。
+
+### Fixed
+- `WImage.thumbnail` 的解码上限按合并后的尺寸推导，只覆盖宽度时不再沿用旧宽度的缓存尺寸。
+
 ## 3.0.0
 
 ### Fixed

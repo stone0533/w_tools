@@ -20,7 +20,8 @@
 | 1.6 map 入口 | 完成 | `initialCamera` / `isValid`、缺失坐标跳过、非 `WMapItem` 可读 `ArgumentError` |
 | 1.7 WButton 默认跟随主题 | 未做 | 属于品牌视觉变更，按评审建议放到 ui 4.0（3.4）一起做 |
 | 1.8 WRowButtons 文档降级 | 完成 | `components.md` / `agents/button.md` 改成「分段选择」，纯动作行用 `Row + WButton` |
-| 版本号 / CHANGELOG | 待发版 | 已有修复对应的 CHANGELOG 文案待写入。**提前 bump 会让本地 example 解析失败**（根包 `^3.1.0` 还没发布），所以 bump 与发布放在同一步 |
+| 子包版本 / CHANGELOG | 完成 | ui 3.1.0、form 2.1.0、api 1.0.2、map 1.3.0；`release_check` 剩 4 条预期提醒（根约束下界低于本地版本） |
+| 根包约束 / 根版本 | 待发布 | **不能提前抬高**：根 `example/` 依赖 `w_tools` path → 未发布的 `^3.1.0` 会让本地解析失败；按 `docs/releasing.md` 在子包发布后再抬 |
 
 ## 0. 三条排序原则
 

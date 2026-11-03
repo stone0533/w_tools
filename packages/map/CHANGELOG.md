@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0
+
+### Added
+- `WMapZone.initialCamera`：没有可渲染条目时的初始相机（未设置时保持原行为）。
+- `WMapItemMapper.isValid`：为 false 的条目不生成 Marker；默认 mapper 会跳过经纬度缺失的条目。
+
+### Changed
+- 经纬度缺失的条目不再落到 `(0,0)`，改为跳过（此前会在地图角落生成错误 Marker）。
+- `T` 未实现 `WMapItem` 且没传 `mapper` 时，构造期抛可读的 `ArgumentError`，不再在首次渲染时抛裸 `_TypeError`。
+
 ## 1.2.1
 
 ### Fixed
