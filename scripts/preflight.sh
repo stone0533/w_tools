@@ -49,6 +49,7 @@ run() {
 run "format" dart format --output=none --set-exit-if-changed packages test example
 run "analyze" flutter analyze
 run "docs" bash scripts/check_docs.sh
+run "doc symbols" python3 scripts/check_doc_symbols.py
 run "style literals" python3 scripts/check_style_literals.py
 run "deprecations" python3 scripts/check_deprecations.py
 run "feedback" bash scripts/check_feedback.sh

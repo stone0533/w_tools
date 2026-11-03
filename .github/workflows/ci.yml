@@ -57,6 +57,9 @@ jobs:
       - name: Check docs
         run: bash scripts/check_docs.sh
 
+      - name: Check doc symbols
+        run: python3 scripts/check_doc_symbols.py
+
       # ADR-0003：form / toast / async 的默认样式必须从 Theme 派生
       - name: Check style literals (form/toast/async)
         run: python3 scripts/check_style_literals.py
