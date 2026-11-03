@@ -21,6 +21,7 @@ class WUx {
   ///
   /// [duration] 必须为非负毫秒数。连续调用时只在停止调用 [duration] 毫秒后执行最后一次；返回值可通过
   /// [WCancellableAction.cancel] 取消尚未触发的回调（例如页面 dispose 时）。
+  @Deprecated('2.3 起用 WDebounce；3.0 移除')
   WCancellableAction debounce(Function() function, {int duration = 300}) {
     if (duration < 0) {
       throw ArgumentError.value(duration, 'duration', 'duration 必须为非负毫秒数');
@@ -42,6 +43,7 @@ class WUx {
   ///
   /// [duration] 必须为非负毫秒数。[duration] 毫秒内只执行第一次调用；返回值可通过
   /// [WCancellableAction.cancel] 提前结束当前节流窗口。
+  @Deprecated('2.3 起用 WThrottle；3.0 移除')
   WCancellableAction throttle(Function() function, {int duration = 300}) {
     if (duration < 0) {
       throw ArgumentError.value(duration, 'duration', 'duration 必须为非负毫秒数');
@@ -138,6 +140,80 @@ class WUx {
 
   /// 常用慢速动画时长（供调用方复用）
   static const Duration slowDuration = Duration(milliseconds: 500);
+}
+
+/// 防抖器：连续调用只在停止调用 [duration] 后执行最后一次。
+///
+/// 实例可直接调用（`debounce()`）；页面 dispose 时调用 [cancel]。
+/// 替代已弃用的 `WUx().debounce(...)`。
+class WDebounce {
+  WDebounce(this._action, {this.duration = const Duration(milliseconds: 300)}) {
+    if (duration.isNegative) {
+      throw ArgumentError.value(duration, 'duration', 'duration 必须为非负时长');
+    }
+  }
+
+  final void Function() _action;
+
+  /// 静默时长
+  final Duration duration;
+
+  Timer? _timer;
+
+  /// 是否还有未触发的调用
+  bool get isPending => _timer?.isActive ?? false;
+
+  /// 触发一次（重置计时）
+  void call() {
+    _timer?.cancel();
+    _timer = Timer(duration, _action);
+  }
+
+  /// 取消尚未触发的调用
+  void cancel() {
+    _timer?.cancel();
+    _timer = null;
+  }
+}
+
+/// 节流器：[duration] 内只执行第一次调用。
+///
+/// 替代已弃用的 `WUx().throttle(...)`。
+class WThrottle {
+  WThrottle(this._action, {this.duration = const Duration(milliseconds: 300)}) {
+    if (duration.isNegative) {
+      throw ArgumentError.value(duration, 'duration', 'duration 必须为非负时长');
+    }
+  }
+
+  final void Function() _action;
+
+  /// 节流窗口
+  final Duration duration;
+
+  bool _active = false;
+  Timer? _timer;
+
+  /// 是否处于节流窗口内
+  bool get isThrottled => _active;
+
+  /// 触发一次（窗口内忽略）
+  void call() {
+    if (_active) return;
+    _active = true;
+    _action();
+    _timer = Timer(duration, () {
+      _active = false;
+      _timer = null;
+    });
+  }
+
+  /// 提前结束当前节流窗口
+  void cancel() {
+    _timer?.cancel();
+    _timer = null;
+    _active = false;
+  }
 }
 
 /// 可取消的防抖 / 节流函数包装

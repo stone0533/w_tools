@@ -35,8 +35,8 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
   final _tokenController = TextEditingController(text: 'demo-token');
 
   late final WCountdown _countdown;
-  late final WCancellableAction _debounced;
-  late final WCancellableAction _throttled;
+  late final WDebounce _debounced;
+  late final WThrottle _throttled;
 
   String _emailResult = '输入邮箱后点击校验';
   String _cryptoResult = '点击生成哈希与加密结果';
@@ -65,7 +65,7 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
         if (mounted) setState(() => _remaining = value);
       },
     );
-    _debounced = WUx().debounce(
+    _debounced = WDebounce(
       () {
         if (!mounted) return;
         setState(() {
@@ -73,14 +73,14 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
           _debounceResult = '防抖触发：${_debounceController.text}';
         });
       },
-      duration: 300,
+      duration: const Duration(milliseconds: 300),
     );
-    _throttled = WUx().throttle(
+    _throttled = WThrottle(
       () {
         if (!mounted) return;
         setState(() => _throttleCount++);
       },
-      duration: 500,
+      duration: const Duration(milliseconds: 500),
     );
     _prepareStorage();
   }

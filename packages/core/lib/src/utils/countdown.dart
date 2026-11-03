@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 /// 倒计时工具
 ///
 /// 基于 `Timer.periodic` 每秒回调一次；支持暂停 / 恢复 / 停止。
@@ -10,8 +12,11 @@ class WCountdown {
 
   int _totalSeconds = 0;
 
-  /// 剩余秒数
-  int _remainingSeconds = 0;
+  /// 剩余秒数（响应式）
+  ValueNotifier<int> _remaining = ValueNotifier<int>(0);
+
+  /// 是否已 dispose
+  bool _disposed = false;
 
   /// 是否正在运行
   bool isRunning = false;
@@ -31,6 +36,11 @@ class WCountdown {
   /// 定时器实例
   Timer? _timer;
 
+  /// 剩余秒数的响应式视图（每秒更新）
+  ///
+  /// `dispose()` 会释放它；之后再次 `start` 会重建。
+  ValueListenable<int> get remaining => _remaining;
+
   /// 开始倒计时
   ///
   /// [second] 小于等于 0 时立即完成，并回调 `callback(0)` / `onComplete(0)`。
@@ -38,9 +48,14 @@ class WCountdown {
     _timer?.cancel();
     _timer = null;
 
+    if (_disposed) {
+      _remaining = ValueNotifier<int>(0);
+      _disposed = false;
+    }
+
     final total = second < 0 ? 0 : second;
     _totalSeconds = total;
-    _remainingSeconds = total;
+    _remaining.value = total;
     isRunning = total > 0;
     isPaused = false;
 
@@ -76,7 +91,7 @@ class WCountdown {
     _timer = null;
     isRunning = false;
     isPaused = false;
-    _remainingSeconds = 0;
+    _remaining.value = 0;
   }
 
   /// 启动周期定时器
@@ -87,10 +102,10 @@ class WCountdown {
 
   /// 每秒回调与完成处理
   void _tick(Timer timer) {
-    _remainingSeconds--;
-    callback?.call(_remainingSeconds);
+    _remaining.value = _remaining.value - 1;
+    callback?.call(_remaining.value);
 
-    if (_remainingSeconds > 0) return;
+    if (_remaining.value > 0) return;
 
     isRunning = false;
     isPaused = false;
@@ -100,18 +115,18 @@ class WCountdown {
   }
 
   /// 剩余秒数
-  int get remainingSeconds => _remainingSeconds;
+  int get remainingSeconds => _remaining.value;
 
   /// 格式化剩余时间
   ///
   /// [type] 为 [WCountdownRemainingType.minutesSeconds] 时返回 `MM:SS`，
   /// 否则返回两位秒数 `SS`；剩余秒数不大于 0 时返回 `00` / `00:00`。
   String formatRemaining({WCountdownRemainingType type = WCountdownRemainingType.seconds}) {
-    if (_remainingSeconds <= 0) {
+    if (_remaining.value <= 0) {
       return type == WCountdownRemainingType.minutesSeconds ? '00:00' : '00';
     }
 
-    final duration = Duration(seconds: _remainingSeconds);
+    final duration = Duration(seconds: _remaining.value);
 
     if (type == WCountdownRemainingType.minutesSeconds) {
       // 分:秒（MM:SS）
@@ -126,9 +141,11 @@ class WCountdown {
 
   /// 销毁倒计时实例
   ///
-  /// 等同于 [stop]；实例仍可再次 [start] 复用。
+  /// 停止计时并释放 [remaining]；之后仍可再次 [start] 复用（会重建监听视图）。
   void dispose() {
     stop();
+    _remaining.dispose();
+    _disposed = true;
   }
 }
 

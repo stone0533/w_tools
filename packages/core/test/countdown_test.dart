@@ -3,6 +3,35 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_core/src/utils/countdown.dart';
 
 void main() {
+  group('WCountdown 响应式剩余时间', () {
+    test('remaining 每秒通知并最终归零', () async {
+      final countdown = WCountdown();
+      final values = <int>[];
+      countdown.remaining.addListener(() => values.add(countdown.remainingSeconds));
+
+      countdown.start(second: 1);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+
+      expect(values, isNotEmpty);
+      expect(values.last, 0);
+      expect(countdown.remainingSeconds, 0);
+      countdown.dispose();
+    });
+
+    test('dispose 后再次 start 可重建监听视图', () async {
+      final countdown = WCountdown();
+      countdown.start(second: 1);
+      countdown.dispose();
+
+      countdown.start(second: 2);
+      var notified = 0;
+      countdown.remaining.addListener(() => notified++);
+      countdown.stop();
+      expect(notified, greaterThan(0));
+      countdown.dispose();
+    });
+  });
+
   group('WCountdown', () {
     test('构造函数初始状态', () {
       final countdown = WCountdown();

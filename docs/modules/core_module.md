@@ -18,7 +18,7 @@ Core 模块（`w_tools_core` 子包）是整个 `w_tools` 工具库的**零业�
 - 业务校验 → `WValidator`
 - 纯正则 → `WRegExp`
 - 日志 → `WLogger`
-- 防抖 / 节流 → `WUx`
+- 防抖 / 节流 → `WDebounce` / `WThrottle`（`WUx` 的同名方法已弃用）
 - 可运行示例：[packages/core/example](../../packages/core/example/README.md)
 
 - 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
@@ -43,7 +43,7 @@ core/
         ├── reg_exp.dart     # WRegExp（WRegExpPattern / WRegExpPreset 已弃用）
         ├── storage.dart     # WStorage
         ├── token.dart       # WToken
-        ├── ux.dart          # WUx, WCancellableAction
+        ├── ux.dart          # WUx（弃用中）, WDebounce, WThrottle, WCancellableAction
         └── validator.dart   # WValidator
 ```
 
@@ -98,7 +98,7 @@ void main() {
 
 | 成员 | 类型 | 说明 |
 |------|------|------|
-| `WCountdown({callback, onComplete})` | 构造函数 | `callback` 每秒触发，`onComplete` 结束触发 |
+| `WCountdown({callback, onComplete})` | 构造函数 | `callback` 每秒触发，`onComplete` 结束触发；`remaining` 是 `ValueListenable<int>` |
 | `start(second)` | void | 开始倒计时 |
 | `pause()` | void | 暂停 |
 | `resume()` | void | 恢复 |
@@ -500,7 +500,9 @@ await WToken.clearAllTokens();
 
 ---
 
-## 10. WUx - UX 辅助（单例）
+## 10. WUx - UX 辅助（单例，debounce / throttle 已弃用）
+
+> 防抖 / 节流用 `WDebounce` / `WThrottle`（支持 `isPending` / `isThrottled`、`Duration` 参数）。
 
 ### 功能说明
 
@@ -519,8 +521,8 @@ await WToken.clearAllTokens();
 
 | 方法 | 签名 | 返回 | 说明 |
 |------|------|------|------|
-| `debounce` | `(function, {duration=300})` | `WCancellableAction` | 防抖 |
-| `throttle` | `(function, {duration=300})` | `WCancellableAction` | 节流 |
+| ~~`debounce`~~ | **已弃用（3.0 移除）** | 用 `WDebounce` | 防抖 |
+| ~~`throttle`~~ | **已弃用（3.0 移除）** | 用 `WThrottle` | 节流 |
 | `delay` | `(function, {duration=0})` | `Future<void>` | 延迟执行 |
 | `nextFrame` | `(function)` | void | 下一帧执行 |
 | `smoothScrollTo` | `(controller, offset, {...})` | `Future<void>` | 平滑滚动到指定位置 |

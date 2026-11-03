@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.3.0
+
+### Added
+- `WDebounce` / `WThrottle`：`Duration` 参数、`isPending` / `isThrottled`、`cancel()`。
+- `WCountdown.remaining`：`ValueListenable<int>`，每秒通知；`dispose()` 后再次 `start` 会重建。
+
+### Deprecated（3.0 移除）
+- `WUx.debounce` / `WUx.throttle`：改用 `WDebounce` / `WThrottle`。
+
 ## 2.2.0
 
 ### Changed
