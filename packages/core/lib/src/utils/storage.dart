@@ -128,11 +128,12 @@ class WStorage {
 
   /// 存储对象
   ///
-  /// 非字符串对象会先 `jsonEncode`；编码失败时记录日志并返回 false。
+  /// 所有值（包括 `String`）都会 `jsonEncode`，与 [getObject] 的 `jsonDecode`
+  /// 形成对称；编码失败时记录日志并返回 false。
   static Future<bool> setObject(String key, dynamic value) async {
     await _ensureInitialized();
     try {
-      final jsonString = value is String ? value : jsonEncode(value);
+      final jsonString = jsonEncode(value);
       return _prefs!.setString(key, jsonString);
     } catch (e) {
       WLogger.e('WStorage.setObject($key) failed: $e');

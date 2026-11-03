@@ -98,7 +98,7 @@ void main() {
 
 | 成员 | 类型 | 说明 |
 |------|------|------|
-| `WCountdown({callback, onComplete})` | 构造函数 | `callback` 每秒触发，`onComplete` 结束触发；`remaining` 是 `ValueListenable<int>` |
+| `WCountdown({callback, onComplete})` | 构造函数 | `callback` 每秒触发，`onComplete` 结束触发；`remaining` 是 `ValueListenable<int>`；`dispose()` 后不可复用 |
 | `start(second)` | void | 开始倒计时 |
 | `pause()` | void | 暂停 |
 | `resume()` | void | 恢复 |
@@ -267,8 +267,8 @@ final result = WLogger.measureSync('sync_op', () {
 
 | 方法 | 签名 | 说明 |
 |------|------|------|
-| `getPlatformValue<T>` | `({android, ios, web, desktop, fallback}) → T` | 按平台返回对应值 |
-| `runForPlatform` | `({android, ios, web, desktop, fallback}) → void` | 按平台执行对应回调 |
+| ~~`getPlatformValue<T>`~~ | **已弃用（3.0 移除）** | 用 `platformType` / `isX` 组合判断 |
+| ~~`runForPlatform`~~ | **已弃用（3.0 移除）** | 用 `platformType` / `isX` 组合判断 |
 
 ### 使用示例
 

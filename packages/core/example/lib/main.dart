@@ -195,13 +195,15 @@ class _CoreDemoPageState extends State<CoreDemoPage> {
           children: [
             Text('平台：${WPlatform.platformType.name}'),
             Text(
-              '平台值：${WPlatform.getPlatformValue(
-                android: 'Android',
-                ios: 'iOS',
-                web: 'Web',
-                desktop: 'Desktop',
-                fallback: 'Other',
-              )}',
+              '平台值：${WPlatform.isWeb
+                  ? 'Web'
+                  : WPlatform.isAndroid
+                  ? 'Android'
+                  : WPlatform.isIOS
+                  ? 'iOS'
+                  : WPlatform.isDesktop
+                  ? 'Desktop'
+                  : 'Other'}',
             ),
             const SizedBox(height: 16),
             const Text('校验', style: TextStyle(fontWeight: FontWeight.w600)),

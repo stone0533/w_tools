@@ -6,23 +6,27 @@ import 'package:flutter/foundation.dart';
 ///
 /// 基于 `Timer.periodic` 每秒回调一次；支持暂停 / 恢复 / 停止。
 /// [dispose] 等同于 [stop]，实例仍可再次 [start] 复用。
-class WCountdown {
+class WCountdown implements ValueListenable<int> {
   /// 总秒数（只读，由 [start] 设置）
   int get totalSeconds => _totalSeconds;
 
   int _totalSeconds = 0;
 
   /// 剩余秒数（响应式）
-  ValueNotifier<int> _remaining = ValueNotifier<int>(0);
+  final ValueNotifier<int> _remaining = ValueNotifier<int>(0);
 
   /// 是否已 dispose
   bool _disposed = false;
 
+  bool _isRunning = false;
+
+  bool _isPaused = false;
+
   /// 是否正在运行
-  bool isRunning = false;
+  bool get isRunning => _isRunning;
 
   /// 是否已暂停
-  bool isPaused = false;
+  bool get isPaused => _isPaused;
 
   /// 每秒回调，参数为剩余秒数（结束后回调 0）
   final WCountdownCallback? callback;
@@ -36,6 +40,16 @@ class WCountdown {
   /// 定时器实例
   Timer? _timer;
 
+  /// 剩余秒数（实现 [ValueListenable] 的 value）
+  @override
+  int get value => _remaining.value;
+
+  @override
+  void addListener(void Function() listener) => _remaining.addListener(listener);
+
+  @override
+  void removeListener(void Function() listener) => _remaining.removeListener(listener);
+
   /// 剩余秒数的响应式视图（每秒更新）
   ///
   /// `dispose()` 会释放它；之后再次 `start` 会重建。
@@ -45,19 +59,17 @@ class WCountdown {
   ///
   /// [second] 小于等于 0 时立即完成，并回调 `callback(0)` / `onComplete(0)`。
   void start({required int second}) {
+    if (_disposed) {
+      throw StateError('WCountdown 已 dispose，不能复用；请创建新实例');
+    }
     _timer?.cancel();
     _timer = null;
-
-    if (_disposed) {
-      _remaining = ValueNotifier<int>(0);
-      _disposed = false;
-    }
 
     final total = second < 0 ? 0 : second;
     _totalSeconds = total;
     _remaining.value = total;
-    isRunning = total > 0;
-    isPaused = false;
+    _isRunning = total > 0;
+    _isPaused = false;
 
     if (total == 0) {
       callback?.call(0);
@@ -72,16 +84,16 @@ class WCountdown {
   ///
   /// 暂停期间会取消内部定时器，不再每秒空转。
   void pause() {
-    if (!isRunning || isPaused) return;
-    isPaused = true;
+    if (!_isRunning || _isPaused) return;
+    _isPaused = true;
     _timer?.cancel();
     _timer = null;
   }
 
   /// 恢复倒计时
   void resume() {
-    if (!isRunning || !isPaused) return;
-    isPaused = false;
+    if (!_isRunning || !_isPaused) return;
+    _isPaused = false;
     _startTimer();
   }
 
@@ -89,8 +101,8 @@ class WCountdown {
   void stop() {
     _timer?.cancel();
     _timer = null;
-    isRunning = false;
-    isPaused = false;
+    _isRunning = false;
+    _isPaused = false;
     _remaining.value = 0;
   }
 
@@ -107,8 +119,8 @@ class WCountdown {
 
     if (_remaining.value > 0) return;
 
-    isRunning = false;
-    isPaused = false;
+    _isRunning = false;
+    _isPaused = false;
     timer.cancel();
     _timer = null;
     onComplete?.call(0);
@@ -141,11 +153,12 @@ class WCountdown {
 
   /// 销毁倒计时实例
   ///
-  /// 停止计时并释放 [remaining]；之后仍可再次 [start] 复用（会重建监听视图）。
+  /// 停止计时并释放监听视图；**dispose 后不可再 `start`**（会抛 [StateError]），
+  /// 需要继续使用请创建新实例。
   void dispose() {
     stop();
-    _remaining.dispose();
     _disposed = true;
+    _remaining.dispose();
   }
 }
 

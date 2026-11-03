@@ -201,11 +201,15 @@ class WThrottle {
   void call() {
     if (_active) return;
     _active = true;
-    _action();
-    _timer = Timer(duration, () {
-      _active = false;
-      _timer = null;
-    });
+    try {
+      _action();
+    } finally {
+      // 回调抛异常时也要在窗口结束后解锁，避免永久卡死
+      _timer = Timer(duration, () {
+        _active = false;
+        _timer = null;
+      });
+    }
   }
 
   /// 提前结束当前节流窗口

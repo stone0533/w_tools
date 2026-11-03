@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.4.0
+
+### Changed
+- `WStorage.setObject` 统一 `jsonEncode`（含 `String`），与 `getObject` 的 `jsonDecode` 对称。
+- `WThrottle` 回调抛异常时，窗口结束后仍会解锁，不再永久卡死。
+- `WCountdown.dispose()` 后不可再 `start`（抛 `StateError`）；`isRunning` / `isPaused` 改为只读 getter，
+  并实现 `ValueListenable<int>`（`value` / `addListener` / `removeListener`）。
+
+### Deprecated（3.0 移除）
+- `WPlatform.getPlatformValue` / `runForPlatform`：改用 `platformType` / `isX` 组合判断。
+
 ## 2.3.0
 
 ### Added

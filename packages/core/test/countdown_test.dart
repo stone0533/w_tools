@@ -18,16 +18,23 @@ void main() {
       countdown.dispose();
     });
 
-    test('dispose 后再次 start 可重建监听视图', () async {
+    test('dispose 后不能复用，start 抛 StateError', () {
       final countdown = WCountdown();
       countdown.start(second: 1);
       countdown.dispose();
+      expect(() => countdown.start(second: 2), throwsStateError);
+    });
 
-      countdown.start(second: 2);
+    test('实现 ValueListenable<int>', () {
+      final countdown = WCountdown();
       var notified = 0;
-      countdown.remaining.addListener(() => notified++);
+      void listener() => notified++;
+      countdown.addListener(listener);
+      countdown.start(second: 2);
+      expect(countdown.value, 2);
       countdown.stop();
       expect(notified, greaterThan(0));
+      countdown.removeListener(listener);
       countdown.dispose();
     });
   });

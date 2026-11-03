@@ -96,9 +96,13 @@ class WPlatform {
 
   /// 获取当前平台对应的值
   ///
+  /// 已弃用（3.0 移除）：5 个必填参数容易漏分支；直接用 [platformType] 或
+  /// [isAndroid] / [isIOS] / [isWeb] / [isDesktop] 组合判断。
+  ///
   /// - [android] / [ios] / [web]：对应平台的返回值
   /// - [desktop]：Linux / macOS / Windows 共用的返回值
   /// - [fallback]：Fuchsia 等其他平台的返回值
+  @Deprecated('3.0 移除：用 platformType / isX 组合判断')
   static T getPlatformValue<T>({
     required T android,
     required T ios,
@@ -124,7 +128,10 @@ class WPlatform {
 
   /// 执行当前平台对应的操作
   ///
+  /// 已弃用（3.0 移除）：用 [platformType] / [isX] 组合判断。
+  ///
   /// 参数含义与 [getPlatformValue] 一致。
+  @Deprecated('3.0 移除：用 platformType / isX 组合判断')
   static void runForPlatform({
     required void Function() android,
     required void Function() ios,

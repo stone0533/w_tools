@@ -3,6 +3,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:w_tools_core/src/utils/storage.dart';
 
 void main() {
+  test('setObject / getObject 对 String 也是 JSON 往返', () async {
+    SharedPreferences.setMockInitialValues({});
+    await WStorage.init();
+    final key = 'obj_string_${DateTime.now().microsecondsSinceEpoch}';
+    await WStorage.setObject(key, 'a');
+    expect(WStorage.getString(key), '"a"');
+    expect(WStorage.getObject<String>(key), 'a');
+    await WStorage.remove(key);
+  });
+
   group('WStorage', () {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
