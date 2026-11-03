@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.1
+
+### Changed
+- device/E2E AI 入口明确：`w_tools_e2e` 只放 `tool/main_e2e.dart`，生产 `main.dart` 不 import。
+
 ## 1.8.0
 
 ### 新增

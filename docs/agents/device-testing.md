@@ -48,19 +48,81 @@ Android：截图像素，adb 直接 tap，不需要标定
 
 ## e2e
 
-先读 [`packages/e2e/README.md`](../../packages/e2e/README.md)。
+`w_tools_e2e` 只放在 `tool/main_e2e.dart`，**不要 import 到 `lib/main.dart`**。
+
+推荐结构：
+
+```text
+lib/main.dart              → bootstrap()，不 import w_tools_e2e
+lib/app/bootstrap.dart     → 提供 afterStart 钩子
+tool/main_e2e.dart         → 唯一 import w_tools_e2e 的入口
+```
+
+`lib/main.dart`：
 
 ```dart
-if (E2eConfig.fromEnvironment().canAutoLogin) {
-  await E2eLogin.run(
-    login: (email, password) => repository.login({'email': email, 'password': password}),
-    afterLogin: () => Get.offAllNamed(Routes.NAV),
+import 'app/bootstrap.dart';
+
+Future<void> main() => bootstrap();
+```
+
+`lib/app/bootstrap.dart`：
+
+```dart
+import 'dart:async';
+
+typedef AfterStart = FutureOr<void> Function();
+
+Future<void> bootstrap({AfterStart? afterStart}) async {
+  await initializeApp();
+  await afterStart?.call();
+}
+```
+
+`tool/main_e2e.dart`：
+
+```dart
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:my_app/app/bootstrap.dart';
+import 'package:my_app/app/router.dart';
+import 'package:my_app/features/auth/auth_repository.dart';
+import 'package:w_tools_e2e/w_tools_e2e.dart';
+
+Future<void> main() async {
+  await bootstrap(
+    afterStart: () async {
+      final config = E2eConfig.fromEnvironment();
+
+      if (!config.canAutoLogin) {
+        debugPrint('[E2E] skipped: missing E2E=1 / email / password');
+        return;
+      }
+
+      final ok = await E2eLogin.run(
+        config: config,
+        login: (email, password) async {
+          await AuthRepository.instance.login(email, password);
+        },
+        afterLogin: () async {
+          await AppRouter.instance.goHome();
+        },
+        onError: (error, stack) async {
+          debugPrint('[E2E] error: $error\n$stack');
+        },
+      );
+
+      debugPrint('[E2E] login ok: $ok');
+    },
   );
 }
 ```
 
+运行：
+
 ```bash
-flutter run -d <device> \
+flutter run -d <device> -t tool/main_e2e.dart \
   --dart-define=E2E=1 \
   --dart-define=E2E_EMAIL=qa@example.com \
   --dart-define=E2E_PASSWORD=secret
@@ -71,9 +133,21 @@ flutter run -d <device> \
 ```text
 E2E 只在非 release 生效
 凭证只用于测试账号，不要复用真实密码
-run() 失败返回 false，不阻塞启动
-afterLogin 不阻塞 run 的结果
+run() 返回 false：未启用 / 缺账号密码 / 登录失败 / 超时
+afterLogin 不阻塞 run()，不要在 run 返回后立刻断言页面
+onError 可同步或异步；回调自身抛错不会让 run 抛出
+```
+
+集成测试要等待页面：
+
+```dart
+testWidgets('E2E auto login reaches home', (tester) async {
+  await tester.pump(const Duration(seconds: 1));
+  await tester.pumpAndSettle();
+  expect(find.text('Home'), findsOneWidget);
+});
 ```
 
 `init --device` 会生成 `docs/agents/device-testing.md` 和 `tool/device_smoke.dart`；
-`tool/main_e2e.dart` 需要按 e2e README 手动创建。
+`tool/main_e2e.dart` 需手动创建。完整宿主接入片段见
+[`packages/e2e/example/README.md`](../../packages/e2e/example/README.md)。

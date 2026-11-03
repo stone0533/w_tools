@@ -2,6 +2,8 @@
 
 This is an integration snippet, not a standalone app.
 
+Put the import and call in `tool/main_e2e.dart`; production `lib/main.dart` must not import `w_tools_e2e`.
+
 ```dart
 import 'package:w_tools_e2e/w_tools_e2e.dart';
 
