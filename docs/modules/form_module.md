@@ -219,8 +219,7 @@ const icons = WFormIcons(
 `WForm(icons: icons)` 只影响该表单；需要整个 App 统一时放到 `WFormTheme` 外层。
 `WFormIcons.defaults` 是包内默认值。
 
-> `WFormDefaults`（全局静态可变变量）已弃用，4.0 移除；它只在没有显式
-> `WFormTheme.icons` / `WForm.icons` 时作为兜底，保留是为了过渡兼容。
+> `WFormDefaults` 已在 4.0 删除；未配置 `WFormTheme.icons` / `WForm.icons` 时用 `WFormIcons.defaults`。
 
 ---
 
@@ -243,10 +242,8 @@ final config = WFormTextFieldConfig()
 - 跨字段共享的边框 / 主题样式放 `WFormTheme` 或 `WFormBorderConfig`，不要靠共享
   字段 Config 实现。
 
-字段 Config 不再提供 Builder。`WFormBorderConfig` 仍为不可变配置，保留
-`WFormBorderConfigBuilder` **已弃用（4.0 移除）**，直接用 `WFormBorderConfig(...)` /
-`copyWith`；它不是字段 Config 的
-Builder，字段侧不要重新引入 `buildConfig()`。
+字段 Config 不再提供 Builder。`WFormBorderConfig` 为不可变配置；
+`WFormBorderConfigBuilder` 已在 4.0 删除，直接用 `WFormBorderConfig(...)` / `copyWith`。
 
 ## 3.6 直接字段与 WForm
 
@@ -428,7 +425,7 @@ final config = WFormBorderConfig.standard(radius: 12);
 
 ```dart
 WFormFieldShell(name: 'username', readOnly: false, child: Row(children: [...]))
-// 旧写法 Row(...).withFormBorder(...) 已弃用，4.0 移除
+// 旧写法 Row(...).withFormBorder(...) 已在 4.0 删除
 ```
 
 ### 4.4 WFormReadOnlyScope
@@ -838,7 +835,7 @@ class _LoginPageState extends State<LoginPage> {
 | 9 | **PopRoute 不跟随滚动** | `WFormPopup` 位置打开时计算一次，锚点滚动后弹层不跟随，如需跟随请使用其他方案 |
 | 10 | **校验器双通道风险** | `WFormValidatorItem.field` 模式直接执行字段 `validator`，**不**写入字段 `errorText`，只通过 `WFormBorder.setError` 渲染；若同时开 FormBuilder 原生 `validate()` 会走另一通道，建议统一使用 `WFormValidator` |
 | 11 | **copyWith(null) 不代表清空** | `WFormBorderConfig.copyWith(errorDecoration: null)` 保持原值；清空请用 `cfg.copy()..errorDecoration = null` |
-| 12 | **默认图标替换** | `WFormTheme.icons` / `WForm.icons` 优先，未配置项回退到包内默认；`WFormDefaults` 已弃用 |
+| 12 | **默认图标替换** | `WFormTheme.icons` / `WForm.icons` 优先，未配置项回退到 `WFormIcons.defaults`；`WFormDefaults` 已在 4.0 删除 |
 
 ---
 

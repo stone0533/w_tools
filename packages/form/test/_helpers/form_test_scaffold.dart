@@ -39,8 +39,65 @@ WFormBorderConfig terseBorderConfig() {
     ],
   );
 
-  return (WFormBorderConfig.builder()
-        ..hintBuilder = buildMessages
-        ..errorBuilder = buildMessages)
-      .buildConfig();
+  return WFormBorderConfig(
+    hintBuilder: buildMessages,
+    errorBuilder: buildMessages,
+  );
+}
+
+/// 测试专用：用可变字段拼装不可变 [WFormBorderConfig]。
+///
+/// 生产 API 的 `WFormBorderConfigBuilder` 已在 4.0 删除；测试保留一个等价 helper，
+/// 避免每个用例重复写构造参数。
+class TestFormBorderBuilder {
+  WFormBorderDecoration? defaultDecoration;
+  WFormBorderDecoration? readOnlyDecoration;
+  WFormBorderDecoration? errorDecoration;
+  WFormBorderDecoration? focusedDecoration;
+  TextStyle? hintStyle;
+  TextStyle? errorStyle;
+  Widget Function(List<String>? list)? hintBuilder;
+  Widget Function(List<String>? list)? errorBuilder;
+  WFormBorderLayout layout = WFormBorderLayout.column;
+
+  WFormBorderConfig buildConfig() => WFormBorderConfig(
+    defaultDecoration: defaultDecoration,
+    readOnlyDecoration: readOnlyDecoration,
+    errorDecoration: errorDecoration,
+    focusedDecoration: focusedDecoration,
+    hintStyle: hintStyle,
+    errorStyle: errorStyle,
+    hintBuilder: hintBuilder,
+    errorBuilder: errorBuilder,
+    layout: layout,
+  );
+}
+
+/// 测试专用：4.0 删除的 `Row.withFormBorder` 的等价实现。
+///
+/// 生产代码直接用 `WFormFieldShell(child: Row(...))`；测试保留糖，避免逐处改。
+extension TestRowBorder on Row {
+  Widget withFormBorder({
+    required String name,
+    List<String>? hintTextList,
+    bool? isTransparentBackground,
+    bool readOnly = false,
+    bool enableFocusBorder = true,
+    bool useIntrinsicHeight = false,
+    Key? key,
+  }) {
+    if (name.isEmpty) {
+      throw ArgumentError.value(name, 'name', '字段名称不能为空');
+    }
+    return WFormFieldShell(
+      key: key,
+      name: name,
+      hintTextList: hintTextList,
+      isTransparentBackground: isTransparentBackground,
+      readOnly: readOnly,
+      enableFocusBorder: enableFocusBorder,
+      useIntrinsicHeight: useIntrinsicHeight,
+      child: this,
+    );
+  }
 }

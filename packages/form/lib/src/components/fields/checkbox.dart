@@ -7,7 +7,7 @@ import '../field_frame.dart';
 import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
-import '../form_defaults.dart';
+import '../form_icons.dart';
 import '../form_theme.dart';
 
 /// 单个复选框字段组件
@@ -57,11 +57,11 @@ class WFormCheckboxCore extends FormBuilderField<bool> {
              if (state.value == true) {
                return config.selectedIcon ??
                    theme?.effectiveCheckboxSelectedIcon ??
-                   WFormDefaults.checkboxSelectedIcon;
+                   WFormIcons.defaults.checkboxSelected;
              }
              return config.unselectedIcon ??
                  theme?.effectiveCheckboxUnselectedIcon ??
-                 WFormDefaults.checkboxUnselectedIcon;
+                 WFormIcons.defaults.checkboxUnselected;
            }
 
            return Semantics(

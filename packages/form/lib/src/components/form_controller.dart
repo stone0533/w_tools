@@ -101,7 +101,7 @@ class WFormController {
 
   /// 设置指定字段的错误样式
   ///
-  /// 需要该字段已通过 `WFormFieldShell` / `withFormBorder` 注册边框；
+  /// 需要该字段已通过 `WFormFieldShell` 注册边框；
   /// [errorTextList] 会交给边框的 `errorBuilder` 渲染。
   void setError(
     String name, {
@@ -136,7 +136,7 @@ class WFormController {
       assert(
         existing == null || identical(existing, owner),
         '字段 name 重复：$name。同一 WForm 内 name 必须唯一'
-        '（检查是否同时挂载了两个 name 相同的字段，或 withFormBorder 用了子字段的名字）。',
+        '（检查是否同时挂载了两个 name 相同的字段，或边框用了子字段的名字）。',
       );
       _borderKeyOwners[name] = owner;
     }

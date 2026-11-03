@@ -271,7 +271,7 @@ void main() {
 
     testWidgets('build(bordered: true) → 返回带 WFormFieldShell', (tester) async {
       final cfg = WFormDropdownConfig();
-      final formBorderCfg = WFormBorderConfig.builder();
+      final formBorderCfg = TestFormBorderBuilder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
       final formData = WFormController();
@@ -300,7 +300,7 @@ void main() {
 
     testWidgets('build(bordered: true) readOnly → 外层只读 + 内层禁用', (tester) async {
       final cfg = WFormDropdownConfig();
-      final formBorderCfg = WFormBorderConfig.builder();
+      final formBorderCfg = TestFormBorderBuilder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
 
@@ -754,7 +754,7 @@ void main() {
 
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       final cfg = WFormMultiDropdownConfig();
-      final formBorderCfg = WFormBorderConfig.builder();
+      final formBorderCfg = TestFormBorderBuilder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
       final formData = WFormController();
@@ -781,7 +781,7 @@ void main() {
 
     testWidgets('build(bordered: true) readOnly → 外层只读 + 点击不弹出', (tester) async {
       final cfg = WFormMultiDropdownConfig();
-      final formBorderCfg = WFormBorderConfig.builder();
+      final formBorderCfg = TestFormBorderBuilder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
 
@@ -823,7 +823,7 @@ void main() {
       final cfg = WFormMultiDropdownConfig(
         containerDecoration: const BoxDecoration(color: innerColor),
       );
-      final formBorderCfg = WFormBorderConfig.builder();
+      final formBorderCfg = TestFormBorderBuilder();
       formBorderCfg.hintBuilder = (_) => const SizedBox.shrink();
       formBorderCfg.errorBuilder = (_) => const SizedBox.shrink();
       final formData = WFormController();

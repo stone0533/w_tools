@@ -6,14 +6,16 @@ import 'package:w_tools_form/src/components/fields/text_field.dart';
 import 'package:w_tools_form/src/components/fields/dropdown.dart';
 import 'package:w_tools_form/src/components/fields/checkbox.dart';
 
+import '_helpers/form_test_scaffold.dart';
+
 /// 创建带默认 hintBuilder/errorBuilder 的 WFormBorderConfig
-WFormBorderConfigBuilder makeCfg({
+TestFormBorderBuilder makeCfg({
   WFormBorderDecoration? defaultDecoration,
   WFormBorderDecoration? readOnlyDecoration,
   WFormBorderDecoration? errorDecoration,
   WFormBorderDecoration? focusedDecoration,
 }) {
-  final cfg = WFormBorderConfig.builder();
+  final cfg = TestFormBorderBuilder();
   cfg.hintBuilder = (_) => const SizedBox.shrink();
   cfg.errorBuilder = (_) => const SizedBox.shrink();
   if (defaultDecoration != null) cfg.defaultDecoration = defaultDecoration;
@@ -106,7 +108,7 @@ void main() {
 
     testWidgets('hintTextList 运行期变更 → 提示文本随之更新（回归）', (tester) async {
       final key = GlobalKey<WFormBorderState>();
-      final cfg = WFormBorderConfig.builder();
+      final cfg = TestFormBorderBuilder();
       cfg.hintBuilder = (list) => Column(
         children: [for (final e in list ?? const <String>[]) Text('hint-$e')],
       );
@@ -132,7 +134,7 @@ void main() {
 
     testWidgets('配置原地修改 / 清空后，组件重建即生效（回归）', (tester) async {
       final key = GlobalKey<WFormBorderState>();
-      final cfg = WFormBorderConfig.builder()
+      final cfg = TestFormBorderBuilder()
         ..defaultDecoration = const WFormBorderDecoration(color: Color(0xFF111111));
 
       Widget buildWith(List<String> hints) => MaterialApp(
@@ -162,7 +164,7 @@ void main() {
 
     testWidgets('自定义 layout — 消息可放到子组件右侧', (tester) async {
       const childKey = Key('layout-child');
-      final cfg = WFormBorderConfig.builder()
+      final cfg = TestFormBorderBuilder()
         ..hintBuilder = ((list) => Text(list!.first))
         ..layout = WFormBorderLayout.builder(
           (context, data) => Row(
@@ -194,7 +196,7 @@ void main() {
 
     testWidgets('运行期替换 layout 后生效', (tester) async {
       const childKey = Key('layout-child');
-      final cfg = WFormBorderConfig.builder()..hintBuilder = (list) => Text(list!.first);
+      final cfg = TestFormBorderBuilder()..hintBuilder = (list) => Text(list!.first);
 
       Widget build() => MaterialApp(
         home: Scaffold(
@@ -695,7 +697,7 @@ void main() {
     });
 
     testWidgets('直接使用 WFormBorder 时继承 WFormScope.formBorderConfig', (tester) async {
-      final cfg = WFormBorderConfig.builder();
+      final cfg = TestFormBorderBuilder();
       cfg.hintBuilder = (list) => Column(
         children: [for (final e in list ?? const <String>[]) Text('hint-$e')],
       );
@@ -721,10 +723,10 @@ void main() {
     });
 
     testWidgets('显式 config 优先于 WFormScope.formBorderConfig', (tester) async {
-      final builderCfg = WFormBorderConfig.builder();
+      final builderCfg = TestFormBorderBuilder();
       builderCfg.hintBuilder = (list) => Text('builder-${list!.first}');
 
-      final borderCfg = WFormBorderConfig.builder();
+      final borderCfg = TestFormBorderBuilder();
       borderCfg.hintBuilder = (list) => Text('border-${list!.first}');
 
       final formData = WFormController();

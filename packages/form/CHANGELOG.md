@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.0.0
+
+### Removed
+- `WFormDefaults`：默认图标改用 `WFormIcons.defaults` / `WFormTheme.icons`。
+- `WFormBorderConfigBuilder` + `WFormBorderConfig.builder()`：直接用 `WFormBorderConfig(...)` / `copyWith`。
+- `WFormRowBorderExtension`（`Row.withFormBorder`）：直接用 `WFormFieldShell(child: Row(...))`。
+
 ## 3.2.0
 
 ### Changed

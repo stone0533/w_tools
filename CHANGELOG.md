@@ -5,6 +5,7 @@
 - 抬高 `w_tools_toast` 约束到 `^2.0.0`：删除 `WToastConfig`。
 - 抬高 `w_tools_map` 约束到 `^2.0.0`：删除 `WMapZone.onDataUpdated`。
 - 抬高 `w_tools_async` 约束到 `^3.0.0`：删除 `WAsyncViewDefaults` / `WAsyncSliverDefaults`。
+- 抬高 `w_tools_form` 约束到 `^4.0.0`：删除 `WFormDefaults` / `WFormBorderConfigBuilder` / `WFormRowBorderExtension`。
 
 ## 4.0.1
 

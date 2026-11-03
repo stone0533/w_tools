@@ -227,10 +227,6 @@ class WFormBorderState extends State<WFormBorder> {
 ///
 /// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
 class WFormBorderConfig {
-  /// remove-in: 4.0.0
-  @Deprecated('4.0 移除：直接用 `WFormBorderConfig(...)` 或 `copyWith(...)`')
-  static WFormBorderConfigBuilder builder() => WFormBorderConfigBuilder();
-
   final WFormBorderDecoration? defaultDecoration;
   final WFormBorderDecoration? readOnlyDecoration;
   final WFormBorderDecoration? errorDecoration;
@@ -408,48 +404,6 @@ class WFormBorderConfig {
     errorBuilder,
     layout,
   );
-}
-
-/// [WFormBorderConfig] 的 Builder，最后通过 [buildConfig] 产出不可变配置。
-/// remove-in: 4.0.0
-@Deprecated('4.0 移除：直接用 `WFormBorderConfig(...)` 或 `copyWith(...)`')
-class WFormBorderConfigBuilder {
-  WFormBorderDecoration? defaultDecoration;
-  WFormBorderDecoration? readOnlyDecoration;
-  WFormBorderDecoration? errorDecoration;
-  WFormBorderDecoration? focusedDecoration;
-  TextStyle? hintStyle;
-  TextStyle? errorStyle;
-  Widget Function(List<String>? list)? hintBuilder;
-  Widget Function(List<String>? list)? errorBuilder;
-  WFormBorderLayout layout = WFormBorderLayout.column;
-
-  WFormBorderConfigBuilder();
-
-  WFormBorderConfigBuilder.from(WFormBorderConfig config)
-    : defaultDecoration = config.defaultDecoration,
-      readOnlyDecoration = config.readOnlyDecoration,
-      errorDecoration = config.errorDecoration,
-      focusedDecoration = config.focusedDecoration,
-      hintStyle = config.hintStyle,
-      errorStyle = config.errorStyle,
-      hintBuilder = config.hintBuilder,
-      errorBuilder = config.errorBuilder,
-      layout = config.layout;
-
-  WFormBorderConfig buildConfig() {
-    return WFormBorderConfig(
-      defaultDecoration: defaultDecoration,
-      readOnlyDecoration: readOnlyDecoration,
-      errorDecoration: errorDecoration,
-      focusedDecoration: focusedDecoration,
-      hintStyle: hintStyle,
-      errorStyle: errorStyle,
-      hintBuilder: hintBuilder,
-      errorBuilder: errorBuilder,
-      layout: layout,
-    );
-  }
 }
 
 /// 表单边框装饰类，定义边框、背景色、圆角、阴影和渐变等样式

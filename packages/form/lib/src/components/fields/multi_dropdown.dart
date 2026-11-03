@@ -7,7 +7,7 @@ import '../field_frame.dart';
 import '../field_base_config.dart';
 import '../field_lifecycle.dart';
 import '../form_scope.dart';
-import '../form_defaults.dart';
+import '../form_icons.dart';
 import '../form_theme.dart';
 import '../popup.dart';
 

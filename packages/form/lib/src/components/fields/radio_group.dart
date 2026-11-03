@@ -7,7 +7,7 @@ import '../field_frame.dart';
 import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
-import '../form_defaults.dart';
+import '../form_icons.dart';
 import '../form_theme.dart';
 
 /// 表单单选按钮组组件
@@ -99,10 +99,10 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
                                  child: isSelected
                                      ? config.selectedIcon ??
                                            theme?.effectiveRadioSelectedIcon ??
-                                           WFormDefaults.radioSelectedIcon
+                                           WFormIcons.defaults.radioSelected
                                      : config.unselectedIcon ??
                                            theme?.effectiveRadioUnselectedIcon ??
-                                           WFormDefaults.radioUnselectedIcon,
+                                           WFormIcons.defaults.radioUnselected,
                                ),
                              ),
                            ),

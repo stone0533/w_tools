@@ -29,7 +29,8 @@
 
 - [3.0](form-3.0.md)：默认边框主题派生、错误默认可见
 - [3.1](form-3.1.md)：`WFormIcons`
-- [3.2](form-3.2.md)：`Config.build` / `*Core` 内部化
+- [3.2](form-3.2.md)
+- [4.0](form-4.0.md)：删除 `WFormDefaults` / Builder / Row 扩展：`Config.build` / `*Core` 内部化
 
 ## async
 

@@ -7,7 +7,7 @@ import '../field_frame.dart';
 import '../field_base_config.dart';
 import '../field_lifecycle.dart';
 import '../form_scope.dart';
-import '../form_defaults.dart';
+import '../form_icons.dart';
 import '../form_theme.dart';
 
 /// 表单下拉选择组件
@@ -127,7 +127,7 @@ class WFormDropdownCore<T> extends StatelessWidget {
           ),
           initialValue: initialValue,
           validator: validator,
-          icon: config.icon ?? theme?.effectiveDropdownIcon ?? WFormDefaults.dropdownIcon,
+          icon: config.icon ?? theme?.effectiveDropdownIcon ?? WFormIcons.defaults.dropdown,
           onChanged: onChangedHandler,
           hint: hintWidget,
           enabled: effectiveEnabled,

@@ -154,11 +154,11 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                                          icon:
                                              checkboxUnselectedIcon ??
                                              theme?.effectiveCheckboxUnselectedIcon ??
-                                             WFormDefaults.checkboxUnselectedIcon,
+                                             WFormIcons.defaults.checkboxUnselected,
                                          checkedIcon:
                                              checkboxSelectedIcon ??
                                              theme?.effectiveCheckboxSelectedIcon ??
-                                             WFormDefaults.checkboxSelectedIcon,
+                                             WFormIcons.defaults.checkboxSelected,
                                          disabledIcon: checkboxDisabledIcon,
                                          status: status,
                                          onTap: (v, isChecked) {
@@ -210,7 +210,8 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                            size: iconSize,
                            color: enabled ? iconEnabledColor : iconDisabledColor,
                          ),
-                         child: icon ?? theme?.effectiveDropdownIcon ?? WFormDefaults.dropdownIcon,
+                         child:
+                             icon ?? theme?.effectiveDropdownIcon ?? WFormIcons.defaults.dropdown,
                        ),
                      ],
                    ),

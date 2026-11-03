@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../form_defaults.dart';
+import '../form_icons.dart';
 import '../form_theme.dart';
 import 'text_field.dart';
 
@@ -64,7 +64,7 @@ class WFormTextFieldAction extends StatelessWidget {
 /// 密码可见/隐藏切换按钮（预置 action）
 ///
 /// 放入 [WFormTextFieldConfig.actions] 列表即可。图标从
-/// [WFormDefaults.obscureTextIcon] / [WFormDefaults.obscureTextVisibleIcon] 取全局默认。
+/// [WFormIcons.defaults.obscureText] / [WFormIcons.defaults.obscureTextVisible] 取全局默认。
 ///
 /// ```dart
 /// WFormTextFieldCore(
@@ -84,8 +84,8 @@ class WFormTextFieldPasswordToggle extends StatelessWidget {
       iconBuilder: (data) {
         final theme = WFormTheme.maybeOf(context);
         return data.isPasswordVisible
-            ? theme?.effectiveObscureTextVisibleIcon ?? WFormDefaults.obscureTextVisibleIcon
-            : theme?.effectiveObscureTextIcon ?? WFormDefaults.obscureTextIcon;
+            ? theme?.effectiveObscureTextVisibleIcon ?? WFormIcons.defaults.obscureTextVisible
+            : theme?.effectiveObscureTextIcon ?? WFormIcons.defaults.obscureText;
       },
       onPressed: (data) => data.togglePasswordVisibility(),
     );
@@ -102,7 +102,7 @@ class WFormTextFieldClearButton extends StatelessWidget {
   /// 仅按钮点击触发；通过 `data.clear()` 等编程式方式清空不会触发。
   final VoidCallback? onCleared;
 
-  /// 自定义图标，默认取 [WFormDefaults.clearButtonIcon]
+  /// 自定义图标，默认取 [WFormIcons.defaults.clear]
   ///
   /// 点击热区与图标的渲染尺寸一致；需要更大热区请传入更大的图标，
   /// 或用 SizedBox 包裹图标来扩大点击区域。
@@ -120,7 +120,7 @@ class WFormTextFieldClearButton extends StatelessWidget {
       visibleWhen: (data) => data.hasText && !data.readOnly,
       iconBuilder: (_) {
         final theme = WFormTheme.maybeOf(context);
-        return icon ?? theme?.effectiveClearButtonIcon ?? WFormDefaults.clearButtonIcon;
+        return icon ?? theme?.effectiveClearButtonIcon ?? WFormIcons.defaults.clear;
       },
       onPressed: (data) {
         data.clear();

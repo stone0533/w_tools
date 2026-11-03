@@ -27,15 +27,6 @@ void main() {
     expect(find.byIcon(Icons.star), findsOneWidget);
   });
 
-  test('WFormDefaults.reset 恢复默认图标', () {
-    WFormDefaults.dropdownIcon = const Icon(Icons.star);
-    addTearDown(WFormDefaults.reset);
-
-    WFormDefaults.reset();
-
-    expect(WFormDefaults.dropdownIcon, isA<Icon>());
-  });
-
   test('WFormBorderConfig.standard 可创建', () {
     final config = WFormBorderConfig.standard();
     expect(config.build(child: const Text('x')), isA<WFormBorder>());
@@ -102,13 +93,7 @@ void main() {
     );
   });
 
-  testWidgets('WFormTheme 未配置时回退 WFormDefaults', (tester) async {
-    final original = WFormDefaults.checkboxUnselectedIcon;
-    addTearDown(() {
-      WFormDefaults.checkboxUnselectedIcon = original;
-    });
-    WFormDefaults.checkboxUnselectedIcon = const Icon(Icons.favorite);
-
+  testWidgets('WFormTheme 未配置时回退 WFormIcons.defaults', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -126,6 +111,6 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(find.byIcon(Icons.check_box_outline_blank), findsOneWidget);
   });
 }

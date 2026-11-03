@@ -8,28 +8,6 @@ import '_helpers/form_test_scaffold.dart';
 import 'package:w_tools_form/src/components/fields/text_field.dart';
 
 void main() {
-  group('WFormDefaults', () {
-    testWidgets('所有静态图标字段都是 Widget 类型', (tester) async {
-      // 这些字段是在 WConfig 拆分时迁移过来的
-      expect(WFormDefaults.dropdownIcon, isA<Widget>());
-      expect(WFormDefaults.radioUnselectedIcon, isA<Widget>());
-      expect(WFormDefaults.radioSelectedIcon, isA<Widget>());
-      expect(WFormDefaults.checkboxUnselectedIcon, isA<Widget>());
-      expect(WFormDefaults.checkboxSelectedIcon, isA<Widget>());
-      expect(WFormDefaults.obscureTextIcon, isA<Widget>());
-      expect(WFormDefaults.obscureTextVisibleIcon, isA<Widget>());
-    });
-
-    testWidgets('可以替换图标为自定义 Widget', (tester) async {
-      const custom = Text('▼');
-      final original = WFormDefaults.dropdownIcon;
-      WFormDefaults.dropdownIcon = custom;
-      expect(WFormDefaults.dropdownIcon, same(custom));
-      // restore
-      WFormDefaults.dropdownIcon = original;
-    });
-  });
-
   group('WFormValidatorItem', () {
     test('构造函数初始化字段', () {
       final item = WFormValidatorItem(

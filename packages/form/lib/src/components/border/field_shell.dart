@@ -5,55 +5,6 @@ import '../form_controller.dart';
 import 'border.dart';
 import 'read_only_scope.dart';
 
-/// Row 扩展，为 Row 附加表单边框（[WFormFieldShell]）及内部只读下发能力
-///
-/// 4.0 移除：直接用 [WFormFieldShell]（`child:` 传 Row 即可），行为一致。
-/// remove-in: 4.0.0
-@Deprecated('4.0 移除：直接用 `WFormFieldShell(name: ..., child: Row(...))`')
-extension WFormRowBorderExtension on Row {
-  /// 为 Row 添加表单边框装饰，并把内部输入组件统一为只读 / 可编辑
-  ///
-  /// 同时作为错误展示的唯一出口：内部字段的错误由 [WFormBorder] 渲染。
-  ///
-  /// [name] 为边框注册键（需全局唯一）：单字段场景应与内部输入组件的 `name`
-  /// 一致，否则校验红框无法自动联动；复合容器场景可取其组名，此时需手动
-  /// `setError(组名)` 驱动边框错误态。
-  ///
-  /// [readOnly] 通过 [WFormReadOnlyScope] 下发给内部所有表单输入组件，
-  /// 可穿透 `Padding` / `Center` / 自定义组件等任意包装。
-  Widget withFormBorder({
-    required String name,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    bool readOnly = false,
-    bool enableFocusBorder = true,
-    bool useIntrinsicHeight = false,
-    Key? key,
-  }) {
-    if (name.isEmpty) {
-      throw ArgumentError.value(name, 'name', '字段名称不能为空');
-    }
-
-    return WFormFieldShell(
-      key: key,
-      name: name,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      readOnly: readOnly,
-      enableFocusBorder: enableFocusBorder,
-      useIntrinsicHeight: useIntrinsicHeight,
-      child: this,
-    );
-  }
-}
-
-/// 自动从祖先 [WFormScope] 获取表单数据、并复用同一个边框 key 的 WFormBorder
-///
-/// 同时负责：
-/// - 通过 [WFormReadOnlyScope] 向内部下发只读状态；
-/// - 聚焦追踪（[enableFocusBorder]）与可选 [IntrinsicHeight]；
-/// - 作为错误展示的唯一出口：校验错误通过 `WFormController.setError` 设置 /
-///   清除后由 [WFormBorder] 渲染，内部字段不再重复展示。
 class WFormFieldShell extends StatefulWidget {
   /// 子组件
   final Widget child;

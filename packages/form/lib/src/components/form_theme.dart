@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'border/border.dart';
-import 'form_defaults.dart';
 import 'form_icons.dart';
 
 /// 表单图标默认值的作用域版本。
@@ -59,21 +58,22 @@ class WFormTheme extends StatelessWidget {
     );
   }
 
-  Widget get effectiveDropdownIcon => dropdownIcon ?? icons?.dropdown ?? WFormDefaults.dropdownIcon;
+  Widget get effectiveDropdownIcon =>
+      dropdownIcon ?? icons?.dropdown ?? WFormIcons.defaults.dropdown;
   Widget get effectiveRadioUnselectedIcon =>
-      radioUnselectedIcon ?? icons?.radioUnselected ?? WFormDefaults.radioUnselectedIcon;
+      radioUnselectedIcon ?? icons?.radioUnselected ?? WFormIcons.defaults.radioUnselected;
   Widget get effectiveRadioSelectedIcon =>
-      radioSelectedIcon ?? icons?.radioSelected ?? WFormDefaults.radioSelectedIcon;
+      radioSelectedIcon ?? icons?.radioSelected ?? WFormIcons.defaults.radioSelected;
   Widget get effectiveCheckboxUnselectedIcon =>
-      checkboxUnselectedIcon ?? icons?.checkboxUnselected ?? WFormDefaults.checkboxUnselectedIcon;
+      checkboxUnselectedIcon ?? icons?.checkboxUnselected ?? WFormIcons.defaults.checkboxUnselected;
   Widget get effectiveCheckboxSelectedIcon =>
-      checkboxSelectedIcon ?? icons?.checkboxSelected ?? WFormDefaults.checkboxSelectedIcon;
+      checkboxSelectedIcon ?? icons?.checkboxSelected ?? WFormIcons.defaults.checkboxSelected;
   Widget get effectiveObscureTextIcon =>
-      obscureTextIcon ?? icons?.obscureText ?? WFormDefaults.obscureTextIcon;
+      obscureTextIcon ?? icons?.obscureText ?? WFormIcons.defaults.obscureText;
   Widget get effectiveObscureTextVisibleIcon =>
-      obscureTextVisibleIcon ?? icons?.obscureTextVisible ?? WFormDefaults.obscureTextVisibleIcon;
+      obscureTextVisibleIcon ?? icons?.obscureTextVisible ?? WFormIcons.defaults.obscureTextVisible;
   Widget get effectiveClearButtonIcon =>
-      clearButtonIcon ?? icons?.clear ?? WFormDefaults.clearButtonIcon;
+      clearButtonIcon ?? icons?.clear ?? WFormIcons.defaults.clear;
 }
 
 /// WFormTheme 的 InheritedWidget 载体。
