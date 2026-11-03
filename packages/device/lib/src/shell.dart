@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -11,19 +12,38 @@ abstract class Shell {
 }
 
 class ProcessShell implements Shell {
-  const ProcessShell();
+  /// [timeout] 是每条外部命令的上限：`xcrun` / `adb` 卡死时不能把整个 CI 拖住。
+  /// 默认 120 秒（模拟器冷启动 + `bootstatus` 可能比较久）。
+  const ProcessShell({this.timeout = const Duration(seconds: 120)});
+
+  final Duration timeout;
 
   @override
-  Future<ProcessResult> run(String exe, List<String> args) =>
-      Process.run(exe, args, runInShell: false);
+  Future<ProcessResult> run(String exe, List<String> args) async {
+    try {
+      return await Process.run(exe, args, runInShell: false).timeout(timeout);
+    } on TimeoutException {
+      throw ProcessException(exe, args, '命令超时（${timeout.inSeconds}s）', -1);
+    }
+  }
 
   @override
   Future<Uint8List> runBytes(String exe, List<String> args) async {
-    final r = await Process.run(exe, args, runInShell: false, stdoutEncoding: null);
+    final ProcessResult r;
+    try {
+      r = await Process.run(
+        exe,
+        args,
+        runInShell: false,
+        stdoutEncoding: null,
+      ).timeout(timeout);
+    } on TimeoutException {
+      throw ProcessException(exe, args, '命令超时（${timeout.inSeconds}s）', -1);
+    }
     if (r.exitCode != 0) {
       throw ProcessException(exe, args, '${r.stderr}'.trim(), r.exitCode);
     }
-    return r.stdout as Uint8List;
+    return Uint8List.fromList(r.stdout as List<int>);
   }
 
   @override

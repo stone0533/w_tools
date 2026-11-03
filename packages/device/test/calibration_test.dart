@@ -44,6 +44,79 @@ void main() {
     });
   });
 
+  group('CalibrationStore.isFreshCalibration', () {
+    const window = HubWindow(100, 50, 872, 1084);
+    const rect = DRect(20, 100, 402, 874);
+
+    Calibration cached({int width = 402, int height = 874}) => Calibration(
+      window: window,
+      deviceRect: rect,
+      deviceWidth: width,
+      deviceHeight: height,
+      screenshotWidth: width * 3,
+      screenshotHeight: height * 3,
+      scale: 3,
+    );
+
+    test('窗口与设备尺寸都没变 → 命中', () {
+      expect(
+        CalibrationStore.isFreshCalibration(
+          cached(),
+          window,
+          deviceWidth: 402,
+          deviceHeight: 874,
+        ),
+        isTrue,
+      );
+    });
+
+    test('设备宽高变化（旋转 / 换机型）→ 失效', () {
+      expect(
+        CalibrationStore.isFreshCalibration(
+          cached(),
+          window,
+          deviceWidth: 874,
+          deviceHeight: 402,
+        ),
+        isFalse,
+      );
+      expect(
+        CalibrationStore.isFreshCalibration(
+          cached(),
+          window,
+          deviceHeight: 999,
+        ),
+        isFalse,
+      );
+    });
+
+    test('--scale 变化导致逻辑分辨率变化 → 失效', () {
+      // 同一张截图换了 scale，deviceWidth 会变，从而被判定失效
+      expect(
+        CalibrationStore.isFreshCalibration(
+          cached(),
+          window,
+          deviceWidth: 134,
+          deviceHeight: 291,
+        ),
+        isFalse,
+      );
+    });
+
+    test('窗口移动 / 无缓存 → 失效', () {
+      expect(CalibrationStore.isFreshCalibration(null, window), isFalse);
+      expect(
+        CalibrationStore.isFreshCalibration(
+          cached(),
+          const HubWindow(0, 0, 872, 1084),
+          deviceWidth: 402,
+          deviceHeight: 874,
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('CalibrationDetector', () {
     /// 造一张「白底 + 黑色机身块」的窗口图，块内是亮色屏幕。
     img.Image synthetic({

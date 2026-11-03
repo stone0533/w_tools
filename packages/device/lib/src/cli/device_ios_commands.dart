@@ -296,16 +296,23 @@ Future<Calibration> _calibrate(
   if (window == null) {
     throw StateError('读不到 DeviceHub 窗口：确认 DeviceHub 已打开，且宿主 App 有「辅助功能」权限');
   }
-  if (!force) {
-    final cached = store.load(udid);
-    if (CalibrationStore.isFreshCalibration(cached, window, scale: o.scale?.toDouble())) {
-      return cached!;
-    }
-  }
-
+  // 先取当前设备分辨率：尺寸 / 方向 / --scale 变化时旧标定必须失效，
+  // 否则 deviceRect 会把点击换算到错误位置（旧实现只比对窗口，查不出旋转）。
   final size = await simctl.screenshotSize(udid);
   final deviceScale = o.scale ?? Simctl.guessScale(size.$1);
   final points = (size.$1 ~/ deviceScale, size.$2 ~/ deviceScale);
+
+  if (!force) {
+    final cached = store.load(udid);
+    if (CalibrationStore.isFreshCalibration(
+      cached,
+      window,
+      deviceWidth: points.$1,
+      deviceHeight: points.$2,
+    )) {
+      return cached!;
+    }
+  }
 
   final shot = _tempFile('w_tools_device_hub', 'png');
   try {
