@@ -156,6 +156,63 @@ void main() {
     });
   });
 
+  group('ScreenFingerprint.ofRegion（只看局部）', () {
+    // 造一张 PNG：左半黑、右半白；[paintLeft] 决定左边是否被改
+    Uint8List png({required bool paintLeft, required bool paintRight}) {
+      final image = img.Image(width: 100, height: 100);
+      img.fillRect(
+        image,
+        x1: 0,
+        y1: 0,
+        x2: 49,
+        y2: 99,
+        color: paintLeft ? img.ColorRgb8(255, 0, 0) : img.ColorRgb8(0, 0, 0),
+      );
+      img.fillRect(
+        image,
+        x1: 50,
+        y1: 0,
+        x2: 99,
+        y2: 99,
+        color: paintRight ? img.ColorRgb8(255, 0, 0) : img.ColorRgb8(255, 255, 255),
+      );
+      return Uint8List.fromList(img.encodePng(image));
+    }
+
+    test('区域外变化不影响该区域指纹', () {
+      final a = png(paintLeft: false, paintRight: false);
+      final b = png(paintLeft: false, paintRight: true); // 只改右半
+      const leftRegion = DRect(0, 0, 50, 100);
+      expect(
+        ScreenFingerprint.ofRegion(a, region: leftRegion),
+        ScreenFingerprint.ofRegion(b, region: leftRegion),
+      );
+      expect(ScreenFingerprint.of(a), isNot(ScreenFingerprint.of(b)));
+    });
+
+    test('区域内的变化能被识别', () {
+      final a = png(paintLeft: false, paintRight: false);
+      final b = png(paintLeft: true, paintRight: false); // 只改左半
+      const leftRegion = DRect(0, 0, 50, 100);
+      expect(
+        ScreenFingerprint.ofRegion(a, region: leftRegion),
+        isNot(ScreenFingerprint.ofRegion(b, region: leftRegion)),
+      );
+    });
+
+    test('区域越界时自动裁剪，不抛', () {
+      final a = png(paintLeft: false, paintRight: false);
+      expect(
+        () => ScreenFingerprint.ofRegion(a, region: const DRect(-50, -50, 500, 500)),
+        returnsNormally,
+      );
+      expect(
+        ScreenFingerprint.ofRegion(a, region: const DRect(90, 90, 100, 100)),
+        ScreenFingerprint.ofRegion(a, region: const DRect(90, 90, 100, 100)),
+      );
+    });
+  });
+
   group('TapVerifier（点按自检）', () {
     test('画面变了 → true；没变 → false', () async {
       Future<bool> run(List<String> frames) {

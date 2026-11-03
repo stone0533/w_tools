@@ -16,6 +16,7 @@ w_tools_device —— 设备验证小工具（模拟器为主，读数 + 点击�
   dart run w_tools_device:device type <text>          # 输入文本（先点中输入框）
   dart run w_tools_device:device wait                 # 等画面稳定
   dart run w_tools_device:device verify <x> <y>       # 点一下并确认画面有变化（坐标自检）
+                                                      # 只看某区域时加 --region=x,y,w,h（设备坐标）
 
 可选：
   --device=<udid|名称>   指定设备（默认用已启动的 / 第一台）
@@ -129,14 +130,47 @@ Future<void> _drag(Simctl simctl, _Options o) async {
 }
 
 /// 设备截图指纹（用于判断画面是否变化）。
-Future<String> _fingerprint(Simctl simctl, String udid) async {
+///
+/// [region] 是设备坐标（point）；内部换算成截图像素再裁剪。
+Future<String> _fingerprint(
+  Simctl simctl,
+  String udid, {
+  DRect? region,
+  Calibration? calibration,
+  int? pixelWidth,
+}) async {
   final out = '${Directory.systemTemp.path}/w_tools_device_fp.png';
   await simctl.screenshot(udid, out);
-  return ScreenFingerprint.of(File(out).readAsBytesSync());
+  final bytes = File(out).readAsBytesSync();
+  if (region == null || calibration == null || pixelWidth == null) {
+    return ScreenFingerprint.of(bytes);
+  }
+  final scale = pixelWidth / calibration.deviceWidth; // 截图 px / 设备 point
+  final px = DRect(
+    region.left * scale,
+    region.top * scale,
+    region.width * scale,
+    region.height * scale,
+  );
+  return ScreenFingerprint.ofRegion(bytes, region: px);
 }
 
-Stability _stability(Simctl simctl, String udid) =>
-    Stability(grab: () => _fingerprint(simctl, udid));
+Stability _stability(
+  Simctl simctl,
+  String udid, {
+  DRect? region,
+  Calibration? calibration,
+  int? pixelWidth,
+}) =>
+    Stability(
+      grab: () => _fingerprint(
+        simctl,
+        udid,
+        region: region,
+        calibration: calibration,
+        pixelWidth: pixelWidth,
+      ),
+    );
 
 Future<void> _wait(Simctl simctl, _Options o) async {
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
@@ -157,9 +191,16 @@ Future<void> _verify(Simctl simctl, _Options o) async {
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
   final cal = await _calibrate(simctl, o, force: o.noCache);
   final screen = cal.toScreen(DPoint(x, y));
+  final pixelWidth = (await simctl.screenshotSize(udid)).$1;
   final changed = await TapVerifier.verify(
-    stability: _stability(simctl, udid),
-    fingerprint: () => _fingerprint(simctl, udid),
+    stability: _stability(simctl, udid, region: o.region, calibration: cal, pixelWidth: pixelWidth),
+    fingerprint: () => _fingerprint(
+      simctl,
+      udid,
+      region: o.region,
+      calibration: cal,
+      pixelWidth: pixelWidth,
+    ),
     tap: () => Input().tap(screen.x, screen.y),
     stableFor: o.stableFor,
     timeout: o.timeout,
@@ -244,6 +285,7 @@ class _Options {
     required this.scale,
     required this.timeout,
     required this.stableFor,
+    required this.region,
   });
 
   final String command;
@@ -258,6 +300,9 @@ class _Options {
   final Duration timeout;
   final Duration stableFor;
 
+  /// 只看这块区域（设备坐标，point）；null = 整屏。
+  final DRect? region;
+
   String? get deviceOrFirst => device;
 
   static _Options parse(List<String> args) {
@@ -266,6 +311,7 @@ class _Options {
     int? scale;
     var timeout = const Duration(seconds: 15);
     var stableFor = const Duration(milliseconds: 600);
+    DRect? region;
     final rest = <String>[];
     for (final a in args) {
       if (a.startsWith('--device=')) {
@@ -279,6 +325,16 @@ class _Options {
       } else if (a.startsWith('--timeout-ms=')) {
         timeout =
             Duration(milliseconds: int.tryParse(a.substring('--timeout-ms='.length)) ?? 15000);
+      } else if (a.startsWith('--region=')) {
+        final parts = a.substring('--region='.length).split(',');
+        if (parts.length != 4) {
+          throw StateError('--region 需要 x,y,w,h（设备坐标，例如 --region=0,0,402,120）');
+        }
+        final v = parts.map((e) => double.tryParse(e.trim())).toList();
+        if (v.any((e) => e == null)) {
+          throw StateError('--region 的四个值都要是数字：$a');
+        }
+        region = DRect(v[0]!, v[1]!, v[2]!, v[3]!);
       } else if (a.startsWith('--stable-ms=')) {
         stableFor = Duration(milliseconds: int.tryParse(a.substring('--stable-ms='.length)) ?? 600);
       } else if (a.startsWith('--')) {
@@ -296,6 +352,7 @@ class _Options {
       scale: scale,
       timeout: timeout,
       stableFor: stableFor,
+      region: region,
     );
   }
 }

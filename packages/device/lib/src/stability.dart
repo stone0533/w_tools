@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:image/image.dart' as img;
+
+import 'geometry.dart';
+
 /// 等画面「稳定」：连续 [stableFor] 内截图不再变化。
 ///
 /// 用一个可注入的 `grab()` 取指纹（生产里是截图 bytes 的哈希），便于单测。
@@ -60,6 +64,32 @@ class ScreenFingerprint {
     var acc = bytes.length;
     for (var i = 0; i < bytes.length; i += step) {
       acc = (acc * 31 + bytes[i]) & 0x7fffffff;
+    }
+    return '$acc';
+  }
+
+  /// 只对图片的 [region]（px）取指纹：局部变化（弹 Toast / 改一行字）才看得见，
+  /// 不会被 banner 轮播、页面滚动之类的无关变化干扰。
+  ///
+  /// 解码失败时退化成整图指纹（不抛）。
+  static String ofRegion(
+    Uint8List pngBytes, {
+    required DRect region,
+    int step = 2,
+  }) {
+    final image = img.decodePng(pngBytes);
+    if (image == null) return of(pngBytes);
+    final left = region.left.round().clamp(0, image.width - 1);
+    final top = region.top.round().clamp(0, image.height - 1);
+    final right = (region.left + region.width).round().clamp(left + 1, image.width);
+    final bottom = (region.top + region.height).round().clamp(top + 1, image.height);
+
+    var acc = (right - left) * (bottom - top);
+    for (var y = top; y < bottom; y += step) {
+      for (var x = left; x < right; x += step) {
+        final p = image.getPixel(x, y);
+        acc = (acc * 31 + p.r.toInt() + p.g.toInt() * 3 + p.b.toInt() * 7) & 0x7fffffff;
+      }
     }
     return '$acc';
   }

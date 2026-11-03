@@ -12,10 +12,12 @@ dart run w_tools_device:device drag 200 700 200 300
 dart run w_tools_device:device type "hello"
 dart run w_tools_device:device wait                 # 等画面稳定（默认 600ms 内不再变）
 dart run w_tools_device:device verify 200 840       # 点一下并确认画面真的变了（坐标自检）
+dart run w_tools_device:device verify 200 840 --region=0,40,402,80
+                                                    # 只看标题区：局部变化才认，避开轮播/滚动
 ```
 
 选项：`--device=<udid|名称>`、`--no-cache`（强制重标定）、`--scale=3`（像素密度）、
-`--timeout-ms=15000`、`--stable-ms=600`。
+`--timeout-ms=15000`、`--stable-ms=600`、`--region=x,y,w,h`（设备坐标，只看这块区域）。
 
 退出码：`0` 成功 · `1` 参数/执行错误 · `2` `verify` 点下去画面没变化（坐标可能失效）。
 
