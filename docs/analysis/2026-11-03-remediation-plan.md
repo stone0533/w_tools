@@ -162,7 +162,7 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 | **4.0** | P1-9 | 三个包**不加** `w_tools_ui`：删除默认样式里的 `Color(0x…)` / `Colors.white`，改从 `ColorScheme` 派生；文字改读 `Theme.textTheme`；保留各自 `xxxTheme` 注入点 | M |
 | **4.1** | P2-15 | async：删 `WAsyncConfig`（7 个方法转发 ~300 行），回调作为 `WAsync.run` 参数；`WAsyncController` 接收同一组回调；`wait/any/sequence/...` 改名 `parallel/first/serial/pool` | L |
 | **4.2** | P2-16/17/18 | async：三个视图统一收 `ValueListenable`；`onRetry` 统一类型；两套 defaults 合一个；`WAsyncStrings` | M |
-| **4.3** | P1-12、P2-40/41 | ~~toast 门面/样式拆分~~ **完成（1.2.0）**：`WToast` 静态门面 + `WToastStyle`（不可变，`copyWith` 可清空）；`WToastConfig` 弃用保留一版；`showLoading` 用 `style.align`。剩余：`WToastTheme`、`runWithLoading`、评估去 `bot_toast` | L |
+| **4.3** | P1-12、P2-40/41 | ~~toast 门面/样式拆分~~ **完成（1.2.0）**：`WToast` 静态门面 + `WToastStyle`（不可变，`copyWith` 可清空）；`WToastConfig` 弃用保留一版；`showLoading` 用 `style.align`。剩余：~~`WToastTheme` / `runWithLoading`~~ 已完成（1.3.0）；评估去 `bot_toast` | L |
 | **4.4** | P2-27、P2-29/37/38 | form：删 7 个 Config 的 `build()` 公开面与 `*Core`；7 份 bordered 分支随之消失；删 `WFormBorderConfigBuilder`/`withFormBorder`/`WFormBorderLayout`/`WFormFieldCleanup` | L |
 | **4.5** | P2-28/30/31/32/33 | form：图标三合一（`WFormIcons`）；`WFormBorderConfig` 加 `==` 并删 snapshot 缓存；嵌套 `borderConfig` 优先级修正；日期下划线；`lastDate` 计算时机 | L |
 | **4.6** | P1-7 | ~~form：按 D3 落地~~ **完成**：barrel 显式 `export … show FormBuilderField, FormBuilderFieldState, FormBuilderFields, FormBuilderState`；README 声明公开依赖；`ffb_export_test.dart` 契约测试 | L |

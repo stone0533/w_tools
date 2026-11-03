@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.0
+
+### Added
+- `WToastTheme`：在 App 根部设置默认 `WToastStyle`；`WToast.showXxx(..., context: context)`
+  自动解析（显式 `style:` 仍最高优先）。`WToastStyle.of(context)` 直接读取。
+- `WToast.runWithLoading(task, {message, successMessage, errorMessage})`：
+  显示 loading → 执行 → 关闭 → 结果提示；失败先提示再 `rethrow`。
+
+### Changed
+- `WToast.showXxx` 的 `style` 参数改为可空（不传时按 context / 默认解析），调用方代码不变。
+
 ## 1.2.0
 
 ### Added

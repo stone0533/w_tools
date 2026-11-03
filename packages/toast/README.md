@@ -58,6 +58,27 @@ WToast.showSuccess('保存成功', style: style);
 
 > `WToastConfig` 是旧门面，已弃用（2.0 移除）；迁移到 `WToastStyle` + `WToast.showXxx`。
 
+## 全局默认样式
+
+```dart
+WToastTheme(
+  style: WToastStyle.defaults.copyWith(duration: const Duration(seconds: 3)),
+  child: MaterialApp(...),
+)
+
+WToast.showSuccess('保存成功', context: context);
+```
+
+`runWithLoading` 可把「loading → 执行 → 结果提示」收成一行：
+
+```dart
+await WToast.runWithLoading(
+  () => api.save(),
+  message: '保存中...',
+  successMessage: '保存成功',
+);
+```
+
 ## License
 
 MIT

@@ -141,6 +141,36 @@ WToast.hideAll(onError: (e) => debugPrint('清理失败: $e'));
 | 加载 | 全屏遮罩 + 主题反色转圈（20x20, strokeWidth=2）+ 可选主题文本（`Padding(16)`） |
 | 自定义 | 由 `toastBuilder` 决定 |
 
+### 全局默认样式（WToastTheme）
+
+```dart
+WToastTheme(
+  style: WToastStyle.defaults.copyWith(
+    successBuilder: (message, cancel) => AppToast.success(message),
+  ),
+  child: MaterialApp(...),
+)
+```
+
+调用处传 `context:` 时解析 `WToastTheme`；显式 `style:` 优先级最高：
+
+```dart
+WToast.showSuccess('保存成功', context: context);
+```
+
+### runWithLoading
+
+```dart
+final result = await WToast.runWithLoading(
+  () => api.save(),
+  message: '保存中...',
+  successMessage: '保存成功',
+  errorMessage: (e) => '保存失败：$e',
+);
+```
+
+失败时会先弹错误提示，再原样 `rethrow`，调用方仍需处理异常。
+
 ### 使用示例
 
 ```dart

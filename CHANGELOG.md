@@ -1,3 +1,7 @@
+## 3.0.6
+
+- 抬高 `w_tools_toast` 约束到 `^1.3.0`：新增 `WToastTheme` 与 `WToast.runWithLoading`。
+
 ## 3.0.5
 
 - 抬高 `w_tools_form` 约束到 `^3.1.0`：新增 `WFormIcons`（图标集合），`WFormDefaults` 弃用。

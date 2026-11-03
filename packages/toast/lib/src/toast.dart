@@ -137,17 +137,19 @@ class WToast {
   /// 未设置 [WToastStyle.successBuilder] 时使用默认文本样式（跟随主题）。
   static CancelFunc showSuccess(
     Object? message, {
-    WToastStyle style = WToastStyle.defaults,
+    WToastStyle? style,
+    BuildContext? context,
     Duration? duration,
     Alignment? align,
   }) {
+    final resolved = _resolveStyle(style, context);
     return _show(
       builder: (cancelFunc) => Builder(
         builder: (context) =>
-            style.successBuilder?.call(message, cancelFunc) ??
+            resolved.successBuilder?.call(message, cancelFunc) ??
             _defaultMessage(context, message),
       ),
-      style: style,
+      style: resolved,
       duration: duration,
       align: align,
     );
@@ -156,17 +158,19 @@ class WToast {
   /// 显示错误提示
   static CancelFunc showError(
     Object? message, {
-    WToastStyle style = WToastStyle.defaults,
+    WToastStyle? style,
+    BuildContext? context,
     Duration? duration,
     Alignment? align,
   }) {
+    final resolved = _resolveStyle(style, context);
     return _show(
       builder: (cancelFunc) => Builder(
         builder: (context) =>
-            style.errorBuilder?.call(message, cancelFunc) ??
+            resolved.errorBuilder?.call(message, cancelFunc) ??
             _defaultMessage(context, message),
       ),
-      style: style,
+      style: resolved,
       duration: duration,
       align: align,
     );
@@ -175,17 +179,19 @@ class WToast {
   /// 显示警告提示
   static CancelFunc showWarning(
     Object? message, {
-    WToastStyle style = WToastStyle.defaults,
+    WToastStyle? style,
+    BuildContext? context,
     Duration? duration,
     Alignment? align,
   }) {
+    final resolved = _resolveStyle(style, context);
     return _show(
       builder: (cancelFunc) => Builder(
         builder: (context) =>
-            style.warningBuilder?.call(message, cancelFunc) ??
+            resolved.warningBuilder?.call(message, cancelFunc) ??
             _defaultMessage(context, message),
       ),
-      style: style,
+      style: resolved,
       duration: duration,
       align: align,
     );
@@ -195,16 +201,18 @@ class WToast {
   ///
   /// 两者都为空时抛出 [ArgumentError]。
   static CancelFunc showCustom({
-    WToastStyle style = WToastStyle.defaults,
+    WToastStyle? style,
+    BuildContext? context,
     Duration? duration,
     Alignment? align,
     Widget Function(CancelFunc cancelFunc)? toastBuilder,
   }) {
-    final builder = toastBuilder ?? style.toastBuilder;
+    final resolved = _resolveStyle(style, context);
+    final builder = toastBuilder ?? resolved.toastBuilder;
     if (builder == null) {
       throw ArgumentError('toastBuilder 不能为空，请先设置 toastBuilder');
     }
-    return _show(builder: builder, style: style, duration: duration, align: align);
+    return _show(builder: builder, style: resolved, duration: duration, align: align);
   }
 
   /// 显示加载提示（全局唯一，不会自动关闭）
@@ -213,23 +221,25 @@ class WToast {
   static CancelFunc showLoading({
     Object? message,
     bool dismissible = false,
-    WToastStyle style = WToastStyle.defaults,
+    WToastStyle? style,
+    BuildContext? context,
   }) {
+    final resolved = _resolveStyle(style, context);
     _loadingCancelFunc?.call();
 
     _loadingCancelFunc = showCustomDialog(
       toastBuilder: (cancelFunc) => Builder(
         builder: (context) =>
-            style.loadingBuilder?.call(message, cancelFunc, dismissible) ??
+            resolved.loadingBuilder?.call(message, cancelFunc, dismissible) ??
             _defaultLoading(context, message),
       ),
-      align: style.align,
+      align: resolved.align,
       // 加载提示不自动关闭
       duration: null,
-      backgroundColor: style.backgroundColor,
-      onClose: style.onClose,
-      animationDuration: style.animationDuration,
-      onError: style.onError,
+      backgroundColor: resolved.backgroundColor,
+      onClose: resolved.onClose,
+      animationDuration: resolved.animationDuration,
+      onError: resolved.onError,
     );
 
     return _loadingCancelFunc!;
@@ -243,6 +253,46 @@ class WToast {
 
   /// 全局加载提示的取消函数（跨调用共享）
   static CancelFunc? _loadingCancelFunc;
+
+  /// 解析样式：显式 style > WToastTheme（有 context 时）> defaults
+  static WToastStyle _resolveStyle(WToastStyle? style, BuildContext? context) {
+    if (style != null) return style;
+    if (context != null) return WToastStyle.of(context);
+    return WToastStyle.defaults;
+  }
+
+  /// 显示 loading → 执行任务 → 关闭 loading → 按结果提示
+  ///
+  /// 任务抛出的异常会先以错误提示展示，然后原样 rethrow（调用方仍需处理）。
+  /// [successMessage] 为空时不显示成功提示；[errorMessage] 可自定义错误文案。
+  static Future<T> runWithLoading<T>(
+    Future<T> Function() task, {
+    Object? message,
+    bool dismissible = false,
+    WToastStyle? style,
+    BuildContext? context,
+    Object? successMessage,
+    Object? Function(Object error)? errorMessage,
+  }) async {
+    final resolved = _resolveStyle(style, context);
+    final cancel = showLoading(
+      message: message,
+      dismissible: dismissible,
+      style: resolved,
+    );
+    try {
+      final result = await task();
+      cancel();
+      if (successMessage != null) {
+        showSuccess(successMessage, style: resolved);
+      }
+      return result;
+    } catch (error) {
+      cancel();
+      showError(errorMessage?.call(error) ?? error, style: resolved);
+      rethrow;
+    }
+  }
 
   /// 统一的提示展示入口
   static CancelFunc _show({

@@ -1,6 +1,8 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 
+import 'toast_theme.dart';
+
 /// 提示的样式与回调（不可变）。
 ///
 /// 只描述「怎么显示」，不负责「怎么调用」——调用入口是 `WToast.showSuccess` /
@@ -62,6 +64,11 @@ class WToastStyle {
 
   /// 显示失败时的回调（例如 BotToast 未初始化）
   final void Function(dynamic error)? onError;
+
+  /// 读取最近的 [WToastTheme]，没有则用 [defaults]
+  static WToastStyle of(BuildContext context) {
+    return WToastTheme.maybeOf(context)?.style ?? defaults;
+  }
 
   static const Object _unset = Object();
 
