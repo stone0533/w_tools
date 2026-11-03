@@ -5,7 +5,6 @@ import '../state/async_state.dart';
 import 'async_error_banner.dart';
 import 'async_error_view.dart';
 import 'async_theme.dart';
-import 'async_view_defaults.dart';
 
 /// 四态异步视图。
 ///
@@ -61,13 +60,11 @@ class WAsyncView<T> extends StatelessWidget {
       valueListenable: state,
       builder: (context, value, _) {
         final theme = WAsyncTheme.maybeOf(context);
-        // ignore: deprecated_member_use_from_same_package
-        final legacy = WAsyncViewDefaults.maybeOf(context);
         final data = value.dataOrNull;
 
         if (data != null && value.isRefreshing) {
           final indicator =
-              (refreshingBuilder ?? theme?.refreshingBuilder ?? legacy?.refreshingBuilder)?.call(
+              (refreshingBuilder ?? theme?.refreshingBuilder)?.call(
                 context,
               ) ??
               const LinearProgressIndicator();
@@ -86,10 +83,7 @@ class WAsyncView<T> extends StatelessWidget {
 
         if (data != null && value.isFailed) {
           final error =
-              errorBannerBuilder ??
-              theme?.errorBannerBuilder ??
-              legacy?.errorBannerBuilder ??
-              _defaultErrorBannerBuilder;
+              errorBannerBuilder ?? theme?.errorBannerBuilder ?? _defaultErrorBannerBuilder;
           return _buildContent(
             context,
             data: data,
@@ -108,18 +102,16 @@ class WAsyncView<T> extends StatelessWidget {
 
         return value.when(
           loading: () =>
-              (loadingBuilder ?? theme?.loadingBuilder ?? legacy?.loadingBuilder)?.call(context) ??
+              (loadingBuilder ?? theme?.loadingBuilder)?.call(context) ??
               _defaultLoadingBuilder(context),
           ready: (data) => _buildContent(context, data: data),
           empty: () =>
-              (emptyBuilder ?? theme?.emptyBuilder ?? legacy?.emptyBuilder)?.call(context) ??
-              _defaultEmptyBuilder(context),
-          failed: (error) =>
-              (errorBuilder ?? theme?.errorBuilder ?? legacy?.errorBuilder ?? _defaultErrorBuilder)(
-                context,
-                error,
-                () => onRetry(),
-              ),
+              (emptyBuilder ?? theme?.emptyBuilder)?.call(context) ?? _defaultEmptyBuilder(context),
+          failed: (error) => (errorBuilder ?? theme?.errorBuilder ?? _defaultErrorBuilder)(
+            context,
+            error,
+            () => onRetry(),
+          ),
         );
       },
     );

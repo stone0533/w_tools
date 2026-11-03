@@ -4,6 +4,7 @@
 - 抬高 `w_tools_core` 约束到 `^3.0.0`：删除 `WConfig` / 旧正则 / WUx 防抖节流等（迁移见 `core-3.0`）。
 - 抬高 `w_tools_toast` 约束到 `^2.0.0`：删除 `WToastConfig`。
 - 抬高 `w_tools_map` 约束到 `^2.0.0`：删除 `WMapZone.onDataUpdated`。
+- 抬高 `w_tools_async` 约束到 `^3.0.0`：删除 `WAsyncViewDefaults` / `WAsyncSliverDefaults`。
 
 ## 4.0.1
 

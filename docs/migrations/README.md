@@ -34,6 +34,7 @@
 ## async
 
 - [2.0](async-2.0.md)：执行核收敛（`WAsyncOptions` / `WAsyncLoading` / 方法改名）
+- [3.0](async-3.0.md)：删除 `WAsyncViewDefaults` / `WAsyncSliverDefaults`
 - [2.1](async-2.1.md)：`WAsyncTheme`
 
 ## toast

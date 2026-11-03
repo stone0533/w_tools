@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.0
+
+### Removed
+- `WAsyncViewDefaults` / `WAsyncSliverDefaults`：统一用 `WAsyncTheme` 的普通 builder 与 `sliver*Builder`。
+
 ## 2.1.0
 
 ### Added

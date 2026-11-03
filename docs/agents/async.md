@@ -27,7 +27,7 @@ await WAsync.retry(() => api.gifts(), options: options, retryCount: 3);
 
 ## 不要用
 
-- `WAsyncConfig` / `WAsyncBuilder` / `WAsyncViewDefaults`（已移除或弃用）；
+- `WAsyncConfig` / `WAsyncBuilder` / `WAsyncViewDefaults` / `WAsyncSliverDefaults`（3.0 已删除）；
 - 手写 `ValueNotifier<WAsyncState>`，或每页重复 `when + RetryView`；
 - 用一个 `WAsyncLoading` 合并多个独立区块的 loading。
 
@@ -36,6 +36,6 @@ await WAsync.retry(() => api.gifts(), options: options, retryCount: 3);
 - 每个区块一个 Controller；页面 `dispose` 时 `controller.dispose()`；
 - 控制器自己管四态；给控制器传 `options.loading` 会被**静默忽略**（不要用它做加载态）；
 - 取消是协作式的：loader 要接收 `WCancelToken` 并检查；
-- 全局默认视图用 `WAsyncTheme`（放 App 根节点），不是 `WAsyncViewDefaults`。
+- 全局默认视图只用 `WAsyncTheme`（放 App 根节点）。
 
 完整说明：[async_module.md](../modules/async_module.md) · 示例：`packages/async/example`

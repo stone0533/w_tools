@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'async_view_defaults.dart';
+typedef WAsyncErrorWidgetBuilder =
+    Widget Function(
+      BuildContext context,
+      Object error,
+      VoidCallback onRetry,
+    );
 
 /// 异步视图的全局默认主题（普通视图 + sliver 视图合在一处）。
 ///
@@ -12,7 +17,7 @@ import 'async_view_defaults.dart';
 /// - `sliver*Builder` 作用于 `WAsyncStateSliver`，loading / empty / error 必须是
 ///   **非滚动** Widget；`refreshingSliverBuilder` 必须返回 sliver。
 ///
-/// 旧入口 `WAsyncViewDefaults` / `WAsyncSliverDefaults` 仍被识别（优先级低于本类），
+/// 旧入口已在 3.0 删除；本类为唯一的全局默认视图入口。
 /// 已弃用，3.0 移除。
 class WAsyncTheme extends InheritedWidget {
   const WAsyncTheme({

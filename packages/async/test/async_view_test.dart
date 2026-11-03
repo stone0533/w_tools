@@ -159,7 +159,7 @@ void main() {
     expect(find.text('value-1'), findsOneWidget);
   });
 
-  testWidgets('WAsyncViewDefaults 可覆盖错误视图', (tester) async {
+  testWidgets('WAsyncTheme 可覆盖错误视图', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom'),
     );
@@ -167,7 +167,7 @@ void main() {
 
     await tester.pumpWidget(
       _host(
-        WAsyncViewDefaults(
+        WAsyncTheme(
           errorBuilder: (context, error, retry) => const Text('default-error'),
           child: WAsyncView<int>(
             state: state,
@@ -189,7 +189,7 @@ void main() {
 
     await tester.pumpWidget(
       _host(
-        WAsyncViewDefaults(
+        WAsyncTheme(
           errorBannerBuilder: (context, error, retry) => const Text('default-banner'),
           child: WAsyncView<int>(
             state: state,
@@ -277,14 +277,14 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('WAsyncViewDefaults 可放在 MaterialApp 外层', (tester) async {
+  testWidgets('WAsyncTheme 可放在 MaterialApp 外层', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom'),
     );
     addTearDown(state.dispose);
 
     await tester.pumpWidget(
-      WAsyncViewDefaults(
+      WAsyncTheme(
         errorBuilder: (context, error, retry) => const Text('root-default-error'),
         child: MaterialApp(
           home: Scaffold(
@@ -301,7 +301,7 @@ void main() {
     expect(find.text('root-default-error'), findsOneWidget);
   });
 
-  testWidgets('WAsyncViewDefaults.refreshingBuilder 生效', (tester) async {
+  testWidgets('WAsyncTheme.refreshingBuilder 生效', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.loading(previousData: 1),
     );
@@ -309,7 +309,7 @@ void main() {
 
     await tester.pumpWidget(
       _host(
-        WAsyncViewDefaults(
+        WAsyncTheme(
           refreshingBuilder: (context) => const Text('default-refreshing'),
           child: WAsyncView<int>(
             state: state,
@@ -323,7 +323,7 @@ void main() {
     expect(find.text('default-refreshing'), findsOneWidget);
   });
 
-  testWidgets('WAsyncViewDefaults.errorBannerBuilder 覆盖刷新错误条', (tester) async {
+  testWidgets('WAsyncTheme.errorBannerBuilder 覆盖刷新错误条', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom', previousData: 1),
     );
@@ -331,7 +331,7 @@ void main() {
 
     await tester.pumpWidget(
       _host(
-        WAsyncViewDefaults(
+        WAsyncTheme(
           errorBannerBuilder: (context, error, retry) => const Text('banner-error'),
           child: WAsyncView<int>(
             state: state,

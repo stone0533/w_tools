@@ -5,7 +5,7 @@
 - 四态视图：`WAsyncController` + `WAsyncView`
 - 分页：`WAsyncPagedController`、`loadMore`、`hasMore`、追加失败
 - Sliver：`WAsyncStateSliver`
-- 全局默认：`WAsyncViewDefaults` / `WAsyncSliverDefaults`
+- 全局默认：`WAsyncTheme`（普通 + sliver 一套）
 - 状态构建器：`WAsyncStateBuilder` / `WAsyncErrorView`
 - 执行编排：`WAsync` / `WAsyncOptions` / `WAsyncLoading` / `WCancelToken`
 
