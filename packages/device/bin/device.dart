@@ -31,9 +31,9 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  final options = _Options.parse(args);
   final simctl = Simctl();
   try {
+    final options = _Options.parse(args);
     switch (options.command) {
       case 'list':
         _list(await simctl.devices());
@@ -132,13 +132,7 @@ Future<void> _drag(Simctl simctl, _Options o) async {
 Future<String> _fingerprint(Simctl simctl, String udid) async {
   final out = '${Directory.systemTemp.path}/w_tools_device_fp.png';
   await simctl.screenshot(udid, out);
-  final bytes = File(out).readAsBytesSync();
-  // 轻量指纹：长度 + 采样字节（够判断「是否变了」，不追求加密强度）
-  var acc = bytes.length;
-  for (var i = 0; i < bytes.length; i += 4096) {
-    acc = (acc * 31 + bytes[i]) & 0x7fffffff;
-  }
-  return '$acc';
+  return ScreenFingerprint.of(File(out).readAsBytesSync());
 }
 
 Stability _stability(Simctl simctl, String udid) =>
@@ -163,8 +157,13 @@ Future<void> _verify(Simctl simctl, _Options o) async {
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
   final cal = await _calibrate(simctl, o, force: o.noCache);
   final screen = cal.toScreen(DPoint(x, y));
-  final changed =
-      await _stability(simctl, udid).changedAfter(() => Input().tap(screen.x, screen.y));
+  final changed = await TapVerifier.verify(
+    stability: _stability(simctl, udid),
+    fingerprint: () => _fingerprint(simctl, udid),
+    tap: () => Input().tap(screen.x, screen.y),
+    stableFor: o.stableFor,
+    timeout: o.timeout,
+  );
   stdout.writeln(
     'tap device($x, $y) → screen(${screen.x.round()}, ${screen.y.round()})：'
     '${changed ? '画面有变化 ✅' : '画面无变化 ⚠️（坐标可能失效）'}',

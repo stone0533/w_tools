@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 /// 等画面「稳定」：连续 [stableFor] 内截图不再变化。
 ///
@@ -46,5 +47,41 @@ class Stability {
       await Future<void>.delayed(interval);
     }
     return false;
+  }
+}
+
+/// 截图指纹：相等即「画面没变」。
+///
+/// 用长度 + 每隔 [step] 字节采样，足够判断变化，不追求加密强度。
+class ScreenFingerprint {
+  const ScreenFingerprint._();
+
+  static String of(Uint8List bytes, {int step = 4096}) {
+    var acc = bytes.length;
+    for (var i = 0; i < bytes.length; i += step) {
+      acc = (acc * 31 + bytes[i]) & 0x7fffffff;
+    }
+    return '$acc';
+  }
+}
+
+/// 点按自检：先等稳定 → 取指纹 → 点 → 等稳定 → 比指纹。
+///
+/// 直接比「点击前后一帧」会把水波纹/动画当成页面变化，所以中间要等稳定。
+class TapVerifier {
+  const TapVerifier._();
+
+  static Future<bool> verify({
+    required Stability stability,
+    required Future<String> Function() fingerprint,
+    required Future<void> Function() tap,
+    Duration stableFor = const Duration(milliseconds: 600),
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    await stability.waitStable(stableFor: stableFor, timeout: timeout);
+    final before = await fingerprint();
+    await tap();
+    await stability.waitStable(stableFor: stableFor, timeout: timeout);
+    return before != await fingerprint();
   }
 }

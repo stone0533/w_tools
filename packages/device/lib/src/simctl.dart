@@ -42,7 +42,13 @@ class Simctl {
 
   /// 解析 simctl 的 JSON（单独暴露，方便单测）。
   static List<SimDevice> parseDevices(String jsonText) {
-    final root = jsonDecode(jsonText);
+    final Object? root;
+    try {
+      root = jsonDecode(jsonText);
+    } on FormatException {
+      // simctl 输出异常（被截断 / 非 JSON）时不要炸，按「没有设备」处理
+      return const [];
+    }
     if (root is! Map) return const [];
     final devices = root['devices'];
     if (devices is! Map) return const [];

@@ -10,7 +10,14 @@ dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备
 dart run w_tools_device:device tap 200 840          # 用「设备坐标」点，自动换算
 dart run w_tools_device:device drag 200 700 200 300
 dart run w_tools_device:device type "hello"
+dart run w_tools_device:device wait                 # 等画面稳定（默认 600ms 内不再变）
+dart run w_tools_device:device verify 200 840       # 点一下并确认画面真的变了（坐标自检）
 ```
+
+选项：`--device=<udid|名称>`、`--no-cache`（强制重标定）、`--scale=3`（像素密度）、
+`--timeout-ms=15000`、`--stable-ms=600`。
+
+退出码：`0` 成功 · `1` 参数/执行错误 · `2` `verify` 点下去画面没变化（坐标可能失效）。
 
 依赖（一次性）：
 
