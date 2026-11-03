@@ -43,6 +43,16 @@
 | 已发布到目标版本 | core 2.4.0、async 2.1.0、ui 4.7.0、form 3.2.0、api 2.0.0、app 1.2.0、toast 1.3.0、map 1.3.1、qr 1.1.0、cli 1.9.10、figma 0.11.0、device 0.1.2 |
 | 待发布 | e2e 0.1.1（0.1.0 已存在，本次有修复）、根包 4.0.0 |
 
+## 发布后验证（已完成）
+
+| 检查 | 结果 |
+| --- | --- |
+| e2e / 根包版本 | pub.dev：e2e 0.1.1、w_tools 4.0.0（其余 12 包均到目标版本） |
+| 子包消费方（pub.dev 依赖） | `flutter pub get` ✓，`flutter analyze` 0 issue |
+| 根包消费方（`w_tools: ^4.0.0`） | 解析到 w_tools 4.0.0 + 9 个子包目标版本，`analyze` 0 issue |
+| `dart pub deps` | 无 `workspace` 残留 |
+| 缓存问题 | 本机 `PUB_HOSTED_URL` 指向镜像，首次验证看不到新版本；显式 pub.dev + 新 `PUB_CACHE` 后通过 |
+
 ## 发布形态冒烟
 
 用 `scripts/publish_package.sh <pkg> --stage-only` 生成 9 个包的暂存副本，临时 app 以
