@@ -18,7 +18,7 @@ dart pub add dev:w_tools_device
 ```bash
 dart run w_tools_device:device list                 # 列出模拟器（含 udid / 状态）
 dart run w_tools_device:device boot "iPhone 17 Pro"
-dart run w_tools_device:device shot --out /tmp/a.png   # 也可省略 --out，自动生成唯一临时文件
+dart run w_tools_device:device shot --out=/tmp/a.png   # 必须用 =；也可省略，自动生成唯一临时文件
 dart run w_tools_device:device shot --real --device=<udid|名称>   # 真机截图（需解锁）
 dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备屏幕的坐标
 dart run w_tools_device:device tap 200 840          # 用「设备坐标」点，自动换算
@@ -29,6 +29,14 @@ dart run w_tools_device:device wait                 # 等画面稳定（默认 6
 dart run w_tools_device:device verify 200 840       # 点一下并确认画面真的变了（坐标自检）
 dart run w_tools_device:device verify 200 840 --region=0,40,402,80
                                                     # 只看标题区：局部变化才认，避开轮播/滚动
+```
+
+坐标体系：
+
+```text
+iOS 模拟器  point
+Android     截图像素
+真机        list / shot only
 ```
 
 选项：`--device=<udid|名称>`、`--no-cache`（强制重标定）、`--scale=3`（像素密度）、
@@ -50,6 +58,7 @@ size --real
 `--no-cache` 只用于 iOS 模拟器的 tap / drag / wait / verify（wait 需同时有 `--region`）；
 `--timeout-ms` 和 `--stable-ms` 只用于 wait / verify；`--out` 只用于 shot。
 `list` 不支持 `--device`；`type` 必须带文本。
+`--out` 必须写成 `--out=/path`，不能写成 `--out /path`。
 
 真机说明：列表/截图走 `devicectl`；**点击真机需要 idb 或 XCUITest，本工具不支持**。
 锁屏/息屏时 `devicectl` 会返回全黑图，工具会给出 `warning`（`--json` 里也有）。
