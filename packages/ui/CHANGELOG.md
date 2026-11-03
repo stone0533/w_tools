@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.7.1
+
+- 内部重构：`image.dart`（846 行）拆为 `image.dart` + `image_state.dart`（`part`，公开 API 不变）。
+
 ## 4.7.0
 
 ### Changed
