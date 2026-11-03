@@ -13,6 +13,8 @@ import '../clients/dio_registry.dart';
 ///
 /// 说明：
 /// - 本类不负责 token 的存储，读写/清除均通过 [tokenGetter] / [tokenClearer] 注入。
+/// - 并发 401：刷新是 single-flight 的；晚到的 401 若发现当前 token 已与本次请求带出去的
+///   不同，会直接用新 token 重试，既不清理也不二次刷新（否则可能把新 token 清掉）。
 /// - 刷新契约：[tokenRefresher] 取得新 token 后应自行持久化，使 [tokenGetter] 随后返回新 token；
 ///   若提供 [tokenClearer]，须保证清除后 [tokenGetter] 不再返回旧 token（返回 null 亦可，
 ///   此时重试会使用本拦截器显式写入的新 token）。任一处仍返回旧 token，都会导致重试再次 401。
@@ -131,17 +133,50 @@ class WTokenInterceptor extends Interceptor {
     // 获取请求级别的重试计数
     final retryCount = (err.requestOptions.extra['_retryCount'] as int?) ?? 0;
 
-    // 无论如何先清除失效 token；即使不重试，也不应把旧 token 留在存储里。
-    await tokenClearer?.call();
+    // 本次请求带出去的是哪个 token：晚到的 401 可能发生在别的请求已经刷新之后。
+    final usedToken = _bearerTokenOf(err.requestOptions);
+    final currentToken = tokenGetter?.call();
+    final refreshedByOthers =
+        usedToken != null &&
+        currentToken != null &&
+        currentToken.isNotEmpty &&
+        currentToken != usedToken;
+
+    if (!refreshedByOthers) {
+      // 清除失效 token；即使不重试，也不应把旧 token 留在存储里。
+      // 已经在别处刷新成功时不能清 —— 那会把刚写入的新 token 抹掉。
+      await tokenClearer?.call();
+    }
 
     if (retryCount >= maxAuthRetries) {
       WApiConfig.logErrorHandler?.call('Max authentication retry attempts reached');
       super.onError(err, handler);
       return;
     }
+
+    if (refreshedByOthers) {
+      // 直接拿当前（新）token 重试，不再刷新，避免二次刷新把用户登出。
+      WApiConfig.logDebugHandler?.call('Unauthorized, token already refreshed by another request');
+      try {
+        await _retryRequestWithNewToken(err, handler, currentToken, retryCount);
+      } catch (e) {
+        WApiConfig.logErrorHandler?.call('Retry with refreshed token failed: $e');
+        super.onError(err, handler);
+      }
+      return;
+    }
+
     WApiConfig.logDebugHandler?.call('Unauthorized, token cleared');
 
     await _callAuthErrorCallback(err, handler, retryCount);
+  }
+
+  /// 取请求头里的 bearer token（没有则返回 null）
+  static String? _bearerTokenOf(RequestOptions options) {
+    final header = options.headers['Authorization'];
+    if (header is! String) return null;
+    const prefix = 'Bearer ';
+    return header.startsWith(prefix) ? header.substring(prefix.length) : null;
   }
 
   /// 调用认证错误处理回调
