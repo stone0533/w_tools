@@ -210,7 +210,7 @@ const String agentsUi = r'''
   样式用 `style`，`label` 和 `content` 不能同时传。`loading` 时同时设置 `enabled: !loading`；
   纯图标按钮提供 `semanticLabel`。状态色放 `AppButtons`。
 - **图片**：网络图用 `WImage.network`；资源图用 `WImage.asset(name, prefix: true)`；
-  视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageConfig`；不要裸用
+  视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageLoadConfig`；不要裸用
   `Image.network` / `Image.asset`。
 - **文字**：新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
   `WTextConfig` 已移除；不要逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
@@ -260,13 +260,13 @@ const String agentsApp = r'''
 const String agentsAsync = r'''
 - **异步区块**：页面统一 `WAsyncController + WAsyncView`；不要手写
   `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
-  每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncViewDefaults`，
+  每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncTheme`，
   放在 App 根节点（`WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放页面 body。
   普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，
   不要把 `SmartRefresher` 包在 `WAsyncView` 外面；分页 `loadMore` 自己维护，
   `loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
   `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；
-  loading/empty/error 只能作为 slivers 分支。Sliver 页面默认视图用 `WAsyncSliverDefaults`，
+  loading/empty/error 只能作为 slivers 分支。Sliver 页面默认视图用 `WAsyncTheme` 的 `sliver*Builder`，
   `CustomScrollView` 四态用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
 ''';
 
@@ -434,7 +434,7 @@ const String agentsUiEn = r'''
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
 - **Images**: use `WImage.network` for network images and `WImage.asset(name, prefix: true)` for
-  assets; use `WImageStyle` for visuals and `WImageConfig` for loading/retry/placeholders.
+  assets; use `WImageStyle` for visuals and `WImageLoadConfig` for loading/retry/placeholders.
   Do not use `Image.network` / `Image.asset` directly.
 - **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
   in the theme; `WTextConfig` has been removed. Override with `style` / `color` / `maxLines` /
@@ -482,11 +482,11 @@ const String agentsAppEn = r'''
 const String agentsAsyncEn = r'''
 - **Async blocks**: use `WAsyncController + WAsyncView` for pages; do not hand-write
   `ValueNotifier<WAsyncState>` or repeat `when + RetryView` per page. One Controller per
-  independent block; use `WAsyncViewDefaults` at the app root. Use `WAsyncView` for normal
+  independent block; use `WAsyncTheme` at the app root. Use `WAsyncView` for normal
   blocks; use `WAsyncStateBuilder` for scroll pages / `SmartRefresher`, never wrap
   `SmartRefresher` around `WAsyncView`. `builder` must always return the same
   `SmartRefresher + CustomScrollView`; loading/empty/error go inside slivers. Use
-  `WAsyncSliverDefaults` / `WAsyncStateSliver` for sliver pages; `readySliverBuilder` returns a sliver.
+  `WAsyncTheme`'s `sliver*Builder` / `WAsyncStateSliver` for sliver pages; `readySliverBuilder` returns a sliver.
 ''';
 
 const String agentsToastEn = r'''

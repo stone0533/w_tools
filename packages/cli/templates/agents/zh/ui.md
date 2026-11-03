@@ -15,7 +15,7 @@
   样式用 `style`，`label` 和 `content` 不能同时传。`loading` 时同时设置 `enabled: !loading`；
   纯图标按钮提供 `semanticLabel`。状态色放 `AppButtons`。
 - **图片**：网络图用 `WImage.network`；资源图用 `WImage.asset(name, prefix: true)`；
-  视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageConfig`；不要裸用
+  视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageLoadConfig`；不要裸用
   `Image.network` / `Image.asset`。
 - **文字**：新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
   `WTextConfig` 已移除；不要逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。

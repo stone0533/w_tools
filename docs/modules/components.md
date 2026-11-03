@@ -102,13 +102,13 @@
 | --- | --- | --- | --- |
 | `WApp` / `WAppPlugin` | app | 启动器与插件分层初始化 | — |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
-| `WAsync` / `WCancelToken` | async | 异步执行、取消 | — |
+| `WAsync` / `WAsyncOptions` / `WAsyncLoading` / `WCancelToken` | async | 无 UI 状态的异步执行、并发 loading 合并、取消 | — |
 | `WCountdown` | core | 倒计时 | — |
 | `WStorage` | core | 本地类型读写 | 读取前必须 `init`；明文存储 |
 | `WToken` | core | token 存取 | 明文存储；高敏感场景用 Keychain / Keystore |
 | `WEncrypt` / `WHash` | core | 加密、摘要 | AES-CBC 不提供完整性 |
 | `WLogger` / `WValidator` / `WRegExp` | core | 日志、校验、正则 | — |
-| `WUx` | core | 防抖 / 节流 / 延迟 / 滚动 | duration 必须非负 |
+| `WDebounce` / `WThrottle` | core | 防抖 / 节流（`WUx` 的同名方法已弃用） | 不要每次 build 新建实例；页面 dispose 时 cancel |
 | `WPlatform` | core | 平台判断 | 不要用 Platform.isXxx 绕过统一判断 |
 | `DioRegistry` | api | 按 baseUrl 创建并复用 Dio | 不要直接 `Dio()`；同一 baseUrl 只配置一次 |
 | `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试 | 不要在拦截器里存 token |

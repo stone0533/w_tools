@@ -1,5 +1,21 @@
 # Agent 文档索引
 
+## 各包首选入口（给人和 AI 的速查）
+
+| 包 | 首选入口 | 不要用（已弃用 / 内部） | 示例 |
+| --- | --- | --- | --- |
+| core | `WStorage` / `WToken` / `WValidator` / `WLogger` / `WDebounce` | `WConfig` 的键名字段、`WUx.debounce/throttle`、`WRegExpPattern` | `packages/core/example` |
+| async | `WAsyncController` + `WAsyncView`；无 UI 用 `WAsync` + `WAsyncOptions` | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults` | `packages/async/example` |
+| ui | `WText` / `WButton` / `WImage` / `AppScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（旧名） | `packages/ui/example` |
+| form | `WForm` + 直接字段；边框 `WFormBorderConfig.fromTheme` | `Config.build`、`*Core`（`@internal`）、`WFormDefaults` | `packages/form/example` |
+| api | `WApiConfig` + `DioRegistry`；`WLogInterceptor(parts:)` | 直接 `Dio()`、旧 bool 日志参数 | `packages/api/example` |
+| app | `WApp.start()` + `WAppPlugin`；`WBottomSheet` | 手写 `runApp` 初始化顺序 | `packages/app/example` |
+| toast | `WToast.showXxx` + `WToastStyle` + `WToastTheme` | `WToastConfig` | `packages/toast/example` |
+| map | `WMap` + `WMapZone` + `WMapItemMapper` | 直接 `GoogleMap`；手改 `zone.markers` | `packages/map/example` |
+| qr | `WQrView`（`onScanned` 或 `onQRViewCreated` 二选一） | 直接 `QRView` | `packages/qr/example` |
+
+> 新项目只依赖具体子包（ADR-0002）；根包 `w_tools` 只用于快速体验。
+
 - [Form 使用规则](form.md)
 - [Button 使用规则](button.md)
 - [UI 组件选择规则](ui.md)

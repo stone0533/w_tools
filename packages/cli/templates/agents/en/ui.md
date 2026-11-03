@@ -17,7 +17,7 @@
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
 - **Images**: use `WImage.network` for network images and `WImage.asset(name, prefix: true)` for
-  assets; use `WImageStyle` for visuals and `WImageConfig` for loading/retry/placeholders.
+  assets; use `WImageStyle` for visuals and `WImageLoadConfig` for loading/retry/placeholders.
   Do not use `Image.network` / `Image.asset` directly.
 - **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
   in the theme; `WTextConfig` has been removed. Override with `style` / `color` / `maxLines` /
