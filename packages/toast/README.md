@@ -29,32 +29,34 @@ dependencies:
 ```dart
 import 'package:w_tools_toast/w_tools_toast.dart';
 
-final toast = WToastConfig();
-
-toast.showSuccess('保存成功');
-toast.showError('网络异常');
-toast.showLoading();
-toast.hideAll();
+WToast.showSuccess('保存成功');
+WToast.showError('网络异常');
+WToast.showLoading();
+WToast.hideAll();
 ```
 
-自定义样式：
+自定义样式（可复用）：
 
 ```dart
-final toast = WToastConfig()
-  ..duration = const Duration(seconds: 3)
-  ..align = Alignment.bottomCenter;
+final style = WToastStyle.defaults.copyWith(
+  duration: const Duration(seconds: 3),
+  align: Alignment.bottomCenter,
+);
+WToast.showSuccess('保存成功', style: style);
 ```
 
 ## 主要 API
 
 | 能力 | 入口 |
 |---|---|
-| 文本提示 | `WToast.showText` / `WToastConfig.showText` |
-| 成功 / 错误 / 警告 | `WToastConfig.showSuccess` / `showError` / `showWarning` |
-| 加载 | `WToastConfig.showLoading` |
-| 自定义 | `WToastConfig.showCustom` |
-| 关闭全部 | `WToast.hideAll` / `WToastConfig.hideAll` |
-| 配置复制 | `WToastConfig.copy` / `copyWith` |
+| 文本提示 | `WToast.showText` |
+| 成功 / 错误 / 警告 | `WToast.showSuccess` / `showError` / `showWarning` |
+| 加载 | `WToast.showLoading` / `hideLoading` |
+| 自定义 | `WToast.showCustom` |
+| 关闭全部 | `WToast.hideAll` |
+| 样式复用 | `WToastStyle`（不可变，`copyWith`） |
+
+> `WToastConfig` 是旧门面，已弃用（2.0 移除）；迁移到 `WToastStyle` + `WToast.showXxx`。
 
 ## License
 

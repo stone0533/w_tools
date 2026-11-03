@@ -1,6 +1,8 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 
+import 'toast_style.dart';
+
 /// BotToast 的轻量封装
 ///
 /// 提供三类入口：
@@ -130,11 +132,181 @@ class WToast {
     }
   }
 
+  /// 显示成功提示
+  ///
+  /// 未设置 [WToastStyle.successBuilder] 时使用默认文本样式（跟随主题）。
+  static CancelFunc showSuccess(
+    Object? message, {
+    WToastStyle style = WToastStyle.defaults,
+    Duration? duration,
+    Alignment? align,
+  }) {
+    return _show(
+      builder: (cancelFunc) => Builder(
+        builder: (context) =>
+            style.successBuilder?.call(message, cancelFunc) ??
+            _defaultMessage(context, message),
+      ),
+      style: style,
+      duration: duration,
+      align: align,
+    );
+  }
+
+  /// 显示错误提示
+  static CancelFunc showError(
+    Object? message, {
+    WToastStyle style = WToastStyle.defaults,
+    Duration? duration,
+    Alignment? align,
+  }) {
+    return _show(
+      builder: (cancelFunc) => Builder(
+        builder: (context) =>
+            style.errorBuilder?.call(message, cancelFunc) ??
+            _defaultMessage(context, message),
+      ),
+      style: style,
+      duration: duration,
+      align: align,
+    );
+  }
+
+  /// 显示警告提示
+  static CancelFunc showWarning(
+    Object? message, {
+    WToastStyle style = WToastStyle.defaults,
+    Duration? duration,
+    Alignment? align,
+  }) {
+    return _show(
+      builder: (cancelFunc) => Builder(
+        builder: (context) =>
+            style.warningBuilder?.call(message, cancelFunc) ??
+            _defaultMessage(context, message),
+      ),
+      style: style,
+      duration: duration,
+      align: align,
+    );
+  }
+
+  /// 显示自定义提示（使用 [WToastStyle.toastBuilder] 或显式 [toastBuilder]）
+  ///
+  /// 两者都为空时抛出 [ArgumentError]。
+  static CancelFunc showCustom({
+    WToastStyle style = WToastStyle.defaults,
+    Duration? duration,
+    Alignment? align,
+    Widget Function(CancelFunc cancelFunc)? toastBuilder,
+  }) {
+    final builder = toastBuilder ?? style.toastBuilder;
+    if (builder == null) {
+      throw ArgumentError('toastBuilder 不能为空，请先设置 toastBuilder');
+    }
+    return _show(builder: builder, style: style, duration: duration, align: align);
+  }
+
+  /// 显示加载提示（全局唯一，不会自动关闭）
+  ///
+  /// 再次调用会先关闭上一个；[dismissible] 仅供自定义 loadingBuilder 使用。
+  static CancelFunc showLoading({
+    Object? message,
+    bool dismissible = false,
+    WToastStyle style = WToastStyle.defaults,
+  }) {
+    _loadingCancelFunc?.call();
+
+    _loadingCancelFunc = showCustomDialog(
+      toastBuilder: (cancelFunc) => Builder(
+        builder: (context) =>
+            style.loadingBuilder?.call(message, cancelFunc, dismissible) ??
+            _defaultLoading(context, message),
+      ),
+      align: style.align,
+      // 加载提示不自动关闭
+      duration: null,
+      backgroundColor: style.backgroundColor,
+      onClose: style.onClose,
+      animationDuration: style.animationDuration,
+      onError: style.onError,
+    );
+
+    return _loadingCancelFunc!;
+  }
+
+  /// 关闭当前加载提示（全局唯一）
+  static void hideLoading() {
+    _loadingCancelFunc?.call();
+    _loadingCancelFunc = null;
+  }
+
+  /// 全局加载提示的取消函数（跨调用共享）
+  static CancelFunc? _loadingCancelFunc;
+
+  /// 统一的提示展示入口
+  static CancelFunc _show({
+    required Widget Function(CancelFunc cancelFunc) builder,
+    required WToastStyle style,
+    Duration? duration,
+    Alignment? align,
+  }) {
+    return showCustomDialog(
+      toastBuilder: builder,
+      align: align ?? style.align,
+      duration: duration ?? style.duration,
+      backgroundColor: style.backgroundColor,
+      onClose: style.onClose,
+      animationDuration: style.animationDuration,
+      onError: style.onError,
+    );
+  }
+
+  /// 默认文本内容：跟随主题的正文样式 + 反色
+  static Widget _defaultMessage(BuildContext context, Object? message) {
+    final theme = Theme.of(context);
+    final style = (theme.textTheme.bodyMedium ?? const TextStyle())
+        .copyWith(color: theme.colorScheme.onInverseSurface);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Text(message?.toString() ?? '', style: style),
+    );
+  }
+
+  /// 默认加载内容：转圈 + 可选文本，颜色跟随主题
+  static Widget _defaultLoading(BuildContext context, Object? message) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onInverseSurface;
+    final style = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(color: color);
+    final text = message?.toString() ?? '';
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+          if (text.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text(text, style: style),
+          ],
+        ],
+      ),
+    );
+  }
+
   /// 立即关闭并清理所有提示（文本 / 加载 / 自定义）
   ///
   /// 与单个提示返回的取消函数不同，本方法会移除全部提示分组，
   /// 且不播放关闭动画。
   static void hideAll({void Function(dynamic error)? onError}) {
+    _loadingCancelFunc = null;
     try {
       BotToast.cleanAll();
     } catch (e) {

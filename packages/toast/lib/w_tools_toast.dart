@@ -3,5 +3,8 @@ library w_tools_toast;
 // 底层封装
 export 'src/toast.dart';
 
-// 配置与调用入口
+// 样式与调用入口
+export 'src/toast_style.dart';
+
+// 旧门面（2.0 移除）
 export 'src/toast_config.dart';

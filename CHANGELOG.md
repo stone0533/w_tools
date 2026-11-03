@@ -1,3 +1,7 @@
+## 3.0.4
+
+- 抬高 `w_tools_toast` 约束到 `^1.2.0`：toast 拆分出 `WToastStyle`，`WToastConfig` 弃用。
+
 ## 3.0.3
 
 - 抬高 `w_tools_async` 约束到 `^2.1.0`：新增 `WAsyncTheme`（普通 + sliver 默认视图合并），旧 `WAsyncViewDefaults` / `WAsyncSliverDefaults` 弃用。

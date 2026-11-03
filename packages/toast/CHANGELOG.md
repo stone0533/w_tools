@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0
+
+### Added
+- `WToastStyle`：不可变样式（时长 / 对齐 / 背景 / 动画 / 5 个 builder / 回调），
+  `copyWith` 传 `null` 可清空。
+- `WToast.showSuccess` / `showError` / `showWarning` / `showCustom` / `showLoading` /
+  `hideLoading` 静态入口，统一接受 `style:`。
+
+### Changed
+- `WToast.showLoading` 使用 `style.align`，不再硬编码居中。
+
+### Deprecated
+- `WToastConfig`：1.2 起用 `WToastStyle` + `WToast.showXxx`；2.0 移除。旧类内部已改为
+  转成 `WToastStyle` 后调用 `WToast`。
+
 ## 1.1.0
 
 ### Changed

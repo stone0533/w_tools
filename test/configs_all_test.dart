@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
@@ -128,31 +129,29 @@ void main() {
     });
   });
 
-  // ========= toast Config =========
-  group('WToastConfig', () {
+  // ========= toast Style =========
+  group('WToastStyle', () {
     test('默认字段值', () {
-      final c = WToastConfig();
-      expect(c.duration, const Duration(seconds: 2));
+      const s = WToastStyle.defaults;
+      expect(s.duration, const Duration(seconds: 2));
       // 默认 null：遮罩运行时用中性半透明黑，文本气泡取主题反色
-      expect(c.backgroundColor, isNull);
-      expect(c.align, Alignment.center);
-      expect(c.animationDuration, const Duration(milliseconds: 200));
+      expect(s.backgroundColor, isNull);
+      expect(s.align, Alignment.center);
+      expect(s.animationDuration, const Duration(milliseconds: 200));
     });
 
-    test('所有 setter 可调用', () {
-      final c = WToastConfig()
-        ..duration = const Duration(seconds: 2)
-        ..backgroundColor = Colors.white
-        ..align = Alignment.bottomCenter
-        ..animationDuration = const Duration(milliseconds: 300);
-      // builder / callback 字段返回 Widget 或 void，不能放在级联链中
-      c.toastBuilder = (cancel) => const SizedBox.shrink();
-      c.onClose = () {};
-      c.successBuilder = (msg, cancel) => const SizedBox.shrink();
-      c.errorBuilder = (msg, cancel) => const SizedBox.shrink();
-      c.warningBuilder = (msg, cancel) => const SizedBox.shrink();
-      c.loadingBuilder = (msg, cancel, dismissible) => const SizedBox.shrink();
-      expect(c, isNotNull);
+    test('copyWith 保留字段并支持清空', () {
+      final s = WToastStyle.defaults.copyWith(
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.white,
+      );
+      expect(s.duration, const Duration(seconds: 3));
+      expect(s.backgroundColor, Colors.white);
+
+      final cleared = s.copyWith(backgroundColor: null);
+      expect(cleared.backgroundColor, isNull);
+      // 原对象不受影响
+      expect(s.backgroundColor, Colors.white);
     });
   });
 }

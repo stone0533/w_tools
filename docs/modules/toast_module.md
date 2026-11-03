@@ -2,12 +2,12 @@
 
 
 > **默认样式跟随主题**：文本气泡取 `colorScheme.inverseSurface`、文字取
-> `textTheme.bodyMedium` + `onInverseSurface`；`WToastConfig.backgroundColor` 默认 `null`
+> `textTheme.bodyMedium` + `onInverseSurface`；`WToastStyle.backgroundColor` 默认 `null`
 > （遮罩用中性半透明黑，气泡取主题反色）。深色主题下颜色自动反转。
 
 ## 概述
 
-Toast 模块（`w_tools_toast` 子包）基于 `bot_toast` 提供轻量的提示层，包含底层封装类 `WToast` 和上层配置+入口类 `WToastConfig`。
+Toast 模块（`w_tools_toast` 子包）基于 `bot_toast` 提供轻量的提示层，入口是 `WToast` 的静态方法，样式是 `WToastStyle`（不可变）；旧 `WToastConfig` 已弃用（2.0 移除）。
 
 模块将提示分为三类：**全屏遮罩类**（成功 / 错误 / 警告 / 加载 / 自定义）、**纯文本气泡类**（无遮罩、可跨页面）、**全局清理**。所有入口在显示失败时（例如 BotToast 未初始化）都**不会抛异常**：显示类入口通过 `onError` 上报并返回一个空取消函数 `() {}`，调用方无需判空。
 
@@ -26,8 +26,9 @@ Toast 模块（`w_tools_toast` 子包）基于 `bot_toast` 提供轻量的提示
 ```
 toast/
 └── lib/src/
-    ├── toast.dart           # WToast 底层封装
-    └── toast_config.dart    # WToastConfig 配置与调用入口
+    ├── toast.dart           # WToast 入口（静态方法）
+    ├── toast_style.dart     # WToastStyle 样式（不可变）
+    └── toast_config.dart    # 旧门面（弃用，2.0 移除）
 ```
 
 
@@ -37,7 +38,7 @@ toast/
 
 ### 功能说明
 
-直接对 `BotToast` 的薄封装，将所有失败路径收敛到 `onError` 回调。业务方通常不直接调用 `WToast`，而是通过 `WToastConfig` 的入口方法间接触达。
+对 `BotToast` 的薄封装，并把业务入口统一成静态方法（`showSuccess` / `showError` / `showWarning` / `showLoading` / `showCustom`），所有失败路径收敛到 `onError`。
 
 ### 核心方法
 
@@ -83,20 +84,20 @@ WToast.hideAll(onError: (e) => debugPrint('清理失败: $e'));
 
 ---
 
-## 2. WToastConfig - 配置类 + 调用入口
+## 2. WToastStyle + WToast 静态入口
 
 ### 功能说明
 
-持有一组可复用的样式配置（时长、对齐、背景色、自定义 builder 等），并提供六个入口方法（`showSuccess` / `showError` / `showWarning` / `showLoading` / `showText` / `showCustom`）。所有字段均可通过 `copy()` / `copyWith()` 生成副本。
+`WToastStyle` 只描述样式（时长、对齐、背景色、自定义 builder），通过 `WToast.showSuccess(message, style: style)` 这类静态方法使用；需要复用一组样式时创建一个 `WToastStyle` 反复传入即可。所有字段不可变，用 `copyWith` 生成副本（传 `null` 可清空）。
 
-加载提示为**全局唯一**（跨 `WToastConfig` 实例共享同一个 `static CancelFunc? _loadingCancelFunc`）：再次 `showLoading` 会先关闭上一个，且不会自动关闭。
+加载提示为**全局唯一**（`WToast._loadingCancelFunc`）：再次 `WToast.showLoading` 会先关闭上一个，且不会自动关闭。
 
 ### 配置字段
 
 | 字段 | 默认值 | 说明 |
 |------|--------|------|
 | `duration` | `Duration(seconds: 2)` | 提示显示时长（加载提示固定不自动关闭，不受此值影响） |
-| `backgroundColor` | `Colors.black38` | 成功/错误/警告/加载/自定义中作为**全屏遮罩色**；`showText` 中没有遮罩，该值作为**文本气泡底色** |
+| `backgroundColor` | `null`（主题派生） | 成功/错误/警告/加载/自定义中作为**全屏遮罩色**；`showText` 中没有遮罩，该值作为**文本气泡底色** |
 | `align` | `Alignment.center` | 提示对齐方式（`showText` 仍使用 BotToast 默认的屏幕下方） |
 | `animationDuration` | `Duration(milliseconds: 200)` | 进出场动画时长（`showText` 使用 BotToast 自带动画，不受此值影响） |
 | `toastBuilder` | `null` | 自定义提示构建器，供 `showCustom` 使用；未设置时 `showCustom` 抛 `ArgumentError` |
@@ -114,49 +115,48 @@ WToast.hideAll(onError: (e) => debugPrint('清理失败: $e'));
 | `copy()` | 创建当前配置的副本（等同 `copyWith()`） |
 | `copyWith({...})` | 创建副本并选择性更新属性；参数为 null 表示沿用原值 |
 
-### 入口方法
+### 入口方法（WToast 静态）
 
 | 方法 | 说明 |
 |------|------|
-| `showSuccess(message, {duration, align})` | 成功提示。全屏遮罩 + 默认白字 14 号文本（或 `successBuilder` 自定义），自动关闭。返回 `CancelFunc` |
-| `showError(message, {duration, align})` | 错误提示。行为同 `showSuccess` |
-| `showWarning(message, {duration, align})` | 警告提示。行为同 `showSuccess` |
-| `showText(text, {duration, align})` | 纯文本气泡模式。**无遮罩**，默认位置屏幕下方，`backgroundColor` 作为气泡底色，自动关闭。返回 `CancelFunc` |
-| `showCustom({duration, align})` | 自定义提示。需先设置 `toastBuilder`，否则抛 `ArgumentError`。返回 `CancelFunc` |
-| `showLoading({message, dismissible=false})` | 全局唯一加载提示。调用前先关闭上一个，不自动关闭。返回 `CancelFunc` |
-| `hideLoading()` | 关闭全局 loading（跨实例共享） |
-| `hideAll()` | 关闭全部提示 + 清理全局 loading 状态 |
+| `WToast.showSuccess(message, {style, duration, align})` | 成功提示。全屏遮罩 + 默认主题文本（或 `style.successBuilder`），自动关闭。返回 `CancelFunc` |
+| `WToast.showError(message, {style, duration, align})` | 错误提示。行为同 `showSuccess` |
+| `WToast.showWarning(message, {style, duration, align})` | 警告提示。行为同 `showSuccess` |
+| `WToast.showText(text, {...})` | 纯文本气泡模式（底层封装）。**无遮罩**，默认位置屏幕下方，`contentColor` 作为气泡底色 |
+| `WToast.showCustom({style, duration, align, toastBuilder})` | 自定义提示。`style.toastBuilder` 与 `toastBuilder` 都为空时抛 `ArgumentError` |
+| `WToast.showLoading({message, dismissible=false, style})` | 全局唯一加载提示。调用前先关闭上一个，不自动关闭 |
+| `WToast.hideLoading()` | 关闭全局 loading |
+| `WToast.hideAll()` | 关闭全部提示 + 清理全局 loading 状态 |
 
 ### duration / align 优先级
 
-- `duration`：调用参数 > `WToastConfig.duration` > 2 秒
-- `align`：调用参数 > `WToastConfig.align` > 居中
+- `duration`：调用参数 > `style.duration` > 2 秒
+- `align`：调用参数 > `style.align` > 居中
 
 ### 默认样式
 
 | 场景 | 默认 UI |
 |------|---------|
-| 成功 / 错误 / 警告 | 全屏遮罩（`backgroundColor`）+ 白色 `CircularProgressIndicator` + 白字 14 号（`Padding(16, 10)`） |
-| 加载 | 全屏遮罩 + 白色转圈（20x20, strokeWidth=2）+ 可选白字 14 号（`Padding(16)`） |
+| 成功 / 错误 / 警告 | 全屏遮罩（`backgroundColor`）+ 主题 `bodyMedium` + `onInverseSurface`（`Padding(16, 10)`） |
+| 加载 | 全屏遮罩 + 主题反色转圈（20x20, strokeWidth=2）+ 可选主题文本（`Padding(16)`） |
 | 自定义 | 由 `toastBuilder` 决定 |
 
 ### 使用示例
 
 ```dart
-// 基础用法（默认配置）
-final toast = WToastConfig();
-toast.showSuccess('保存成功');
-toast.showError('网络异常，请重试');
-toast.showWarning('当前为只读模式');
-toast.showText('已复制到剪贴板');
+// 基础用法（默认样式）
+WToast.showSuccess('保存成功');
+WToast.showError('网络异常，请重试');
+WToast.showWarning('当前为只读模式');
+WToast.showText(text: '已复制到剪贴板');
 
 // 全局 loading
-final loading = toast.showLoading(message: '加载中...');
+final loading = WToast.showLoading(message: '加载中...');
 // ... 业务逻辑
-loading(); // 或 toast.hideLoading()
+loading(); // 或 WToast.hideLoading()
 
-// 自定义样式副本
-final primaryToast = toast.copyWith(
+// 可复用的样式
+final primaryStyle = WToastStyle.defaults.copyWith(
   backgroundColor: Colors.black54,
   duration: const Duration(seconds: 3),
   onError: (e) => debugPrint('Toast 错误: $e'),
@@ -175,10 +175,10 @@ final primaryToast = toast.copyWith(
     );
   },
 );
-primaryToast.showSuccess('操作成功');
+WToast.showSuccess('操作成功', style: primaryStyle);
 
-// 自定义提示（需先设置 toastBuilder）
-final customToast = toast.copyWith(
+// 自定义提示（style.toastBuilder）
+final customStyle = WToastStyle.defaults.copyWith(
   toastBuilder: (cancelFunc) {
     return GestureDetector(
       onTap: cancelFunc,
@@ -186,10 +186,10 @@ final customToast = toast.copyWith(
     );
   },
 );
-customToast.showCustom();
+WToast.showCustom(style: customStyle);
 
 // 一次性清理全部
-toast.hideAll();
+WToast.hideAll();
 ```
 
 ---
@@ -207,23 +207,25 @@ class MyPage extends StatefulWidget {
 }
 
 class _MyPageState extends State<MyPage> {
-  // 页面级共享配置
-  final WToastConfig toast = WToastConfig();
+  // 页面级复用样式（可选）
+  final WToastStyle style = WToastStyle.defaults.copyWith(
+    duration: const Duration(seconds: 2),
+  );
 
   Future<void> _save() async {
-    final cancel = toast.showLoading(message: '保存中...');
+    final cancel = WToast.showLoading(message: '保存中...');
     try {
       await api.save();
       cancel();
-      toast.showSuccess('保存成功');
+      WToast.showSuccess('保存成功', style: style);
     } catch (e) {
       cancel();
-      toast.showError('保存失败: $e');
+      WToast.showError('保存失败: $e');
     }
   }
 
   void _copy() {
-    toast.showText('已复制');
+    WToast.showText(text: '已复制', duration: style.duration);
   }
 
   @override
@@ -245,11 +247,11 @@ class _MyPageState extends State<MyPage> {
 ## 注意事项
 
 - **BotToast 必须先初始化**：在应用入口调用 `BotToastInit()` + `MaterialApp.builder: botToastBuilder`，否则所有 Toast 入口都会通过 `onError` 上报并返回空函数。
-- **加载提示全局唯一**：所有 `WToastConfig` 实例共享同一个 loading 状态。再次调用 `showLoading` 会先关闭上一个，切换页面或组件销毁时 loading 仍会保留（除非显式 `hideLoading` / `hideAll`）。
+- **加载提示全局唯一**：`WToast` 全局共享同一个 loading 状态。再次调用 `showLoading` 会先关闭上一个，切换页面或组件销毁时 loading 仍会保留（除非显式 `hideLoading` / `hideAll`）。
 - **全屏遮罩 vs 文本气泡**：`backgroundColor` 在两类提示中含义不同——遮罩类用作全屏底色，气泡类用作气泡底色（且无遮罩）。
 - **`onClose` 延迟回调**：全屏遮罩类（成功/错误/警告/加载/自定义）的 `onClose` 会延迟 1ms 执行，避免在组件树销毁期间 `setState`。文本提示的 `onClose` 由 BotToast 直接回调，无延迟。
 - **`_guardBuilder` 兜底**：`WToast.showCustomDialog` 的 `toastBuilder` 在 build 阶段执行，其异常由内部 `_guardBuilder` 兜底上报 `onError`，不会逃逸出 try-catch。
-- **`showCustom` 必须先设置 `toastBuilder`**：未设置时会抛 `ArgumentError`，不走 `onError` 兜底。
+- **`showCustom` 必须先设置 `toastBuilder`**：`style.toastBuilder` 与调用参数都为空时抛 `ArgumentError`，不走 `onError` 兜底。
 - **`WToast.hideAll` vs `cancelFunc()`**：前者一次性清理所有提示且不播放关闭动画；后者只关闭单个提示。调用 `hideAll` 后 `_loadingCancelFunc` 会被置为 null。
 
 ---
