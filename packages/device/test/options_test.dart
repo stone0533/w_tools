@@ -81,6 +81,26 @@ void main() {
       expect(() => DeviceOptions.parse(['wait', '--region=1,2,0,3']), throwsStateError);
     });
 
+    test('explicit default values still count as unsupported flags', () {
+      expect(
+        () => DeviceOptions.parse(['tap', '1', '2', '--timeout-ms=15000']).validate(),
+        throwsStateError,
+      );
+      expect(
+        () => DeviceOptions.parse(['tap', '1', '2', '--stable-ms=600']).validate(),
+        throwsStateError,
+      );
+      expect(
+        () => DeviceOptions.parse(['wait', '--scale=2']).validate(),
+        throwsStateError,
+      );
+      expect(
+        () => DeviceOptions.parse(['wait', '--no-cache']).validate(),
+        throwsStateError,
+      );
+      DeviceOptions.parse(['wait', '--no-cache', '--region=0,0,10,10']).validate();
+    });
+
     test('valid shot real and wait android', () {
       DeviceOptions.parse(['shot', '--real']).validate();
       DeviceOptions.parse(['wait', '--android', '--region=0,0,100,100']).validate();

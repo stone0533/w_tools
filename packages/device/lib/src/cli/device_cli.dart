@@ -47,7 +47,7 @@ w_tools_device —— 设备验证小工具（模拟器为主 + 真机截图，�
                         坐标是**截图像素**（不需要标定，也不需要 cliclick）
   --json                输出 JSON（给脚本 / CI 用）
 
-退出码：0 成功 · 1 参数/执行错误 · 2 verify 画面没变化（坐标可能失效）
+退出码：0 成功 · 1 参数/执行错误 · 2 verify 画面没变化（坐标可能失效） · 3 wait 超时
 
 依赖：macOS + Xcode；`brew install cliclick`；给宿主 App 开「辅助功能」+「屏幕录制」。
 ''';

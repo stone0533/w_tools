@@ -15,6 +15,7 @@ class DeviceOptions {
     required this.json,
     required this.real,
     required this.android,
+    required this.seen,
   });
 
   final String command;
@@ -41,6 +42,9 @@ class DeviceOptions {
   /// 走 Android（adb）：坐标是**截图像素**，不需要标定。
   final bool android;
 
+  /// 用户显式传入的选项名；用于拒绝“值等于默认值”的无关参数。
+  final Set<String> seen;
+
   String? get deviceOrFirst => device;
 
   static DeviceOptions parse(List<String> args) {
@@ -53,22 +57,30 @@ class DeviceOptions {
     var timeout = const Duration(seconds: 15);
     var stableFor = const Duration(milliseconds: 600);
     DRect? region;
+    final seen = <String>{};
     final rest = <String>[];
     for (final a in args) {
       if (a == '--json') {
         json = true;
+        seen.add('json');
       } else if (a == '--real') {
         real = true;
+        seen.add('real');
       } else if (a == '--android') {
         android = true;
+        seen.add('android');
       } else if (a.startsWith('--device=')) {
         device = a.substring('--device='.length);
+        seen.add('device');
       } else if (a.startsWith('--out=')) {
         out = a.substring('--out='.length);
+        seen.add('out');
       } else if (a == '--no-cache') {
         noCache = true;
+        seen.add('no-cache');
       } else if (a.startsWith('--scale=')) {
         scale = _positiveInt('--scale', a.substring('--scale='.length));
+        seen.add('scale');
       } else if (a.startsWith('--timeout-ms=')) {
         timeout = Duration(
           milliseconds: _positiveInt(
@@ -76,6 +88,7 @@ class DeviceOptions {
             a.substring('--timeout-ms='.length),
           ),
         );
+        seen.add('timeout-ms');
       } else if (a.startsWith('--stable-ms=')) {
         stableFor = Duration(
           milliseconds: _positiveInt(
@@ -83,8 +96,10 @@ class DeviceOptions {
             a.substring('--stable-ms='.length),
           ),
         );
+        seen.add('stable-ms');
       } else if (a.startsWith('--region=')) {
         region = _parseRegion(a);
+        seen.add('region');
       } else if (a.startsWith('--')) {
         throw StateError('未知选项：$a');
       } else {
@@ -104,6 +119,7 @@ class DeviceOptions {
       json: json,
       real: real,
       android: android,
+      seen: seen,
     );
   }
 
@@ -163,20 +179,24 @@ class DeviceOptions {
     if (scale != null && (android || real)) {
       throw StateError('--scale 只用于 iOS 模拟器');
     }
-    if (noCache &&
+    if (seen.contains('no-cache') &&
         command != 'tap' &&
         command != 'drag' &&
         command != 'wait' &&
         command != 'verify') {
       throw StateError('--no-cache 只用于 tap / drag / wait / verify');
     }
-    if (timeout != const Duration(seconds: 15) && command != 'wait' && command != 'verify') {
+    if (seen.contains('no-cache') && command == 'wait' && region == null) {
+      throw StateError('wait 使用 --no-cache 时必须同时指定 --region');
+    }
+    if (seen.contains('timeout-ms') && command != 'wait' && command != 'verify') {
       throw StateError('--timeout-ms 只用于 wait / verify');
     }
-    if (stableFor != const Duration(milliseconds: 600) &&
-        command != 'wait' &&
-        command != 'verify') {
+    if (seen.contains('stable-ms') && command != 'wait' && command != 'verify') {
       throw StateError('--stable-ms 只用于 wait / verify');
+    }
+    if (seen.contains('scale') && command == 'wait' && region == null) {
+      throw StateError('wait 使用 --scale 时必须同时指定 --region');
     }
   }
 

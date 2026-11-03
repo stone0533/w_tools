@@ -19,49 +19,42 @@ class E2eLogin {
     E2eConfig? config,
     required E2eLoginCallback login,
     FutureOr<void> Function()? afterLogin,
-    void Function(Object error, StackTrace stack)? onError,
+    FutureOr<void> Function(Object error, StackTrace stack)? onError,
   }) async {
     final cfg = config ?? E2eConfig.fromEnvironment();
     if (!cfg.canAutoLogin) return false;
     try {
       await login(cfg.email, cfg.password).timeout(cfg.timeout);
       debugPrint('[E2E] auto login ok: ${cfg.email}');
-      _runAfterLogin(afterLogin, onError);
+      unawaited(_runAfterLogin(afterLogin, onError));
       return true;
     } catch (e, st) {
-      _report(onError, e, st, failed: true);
+      await _report(onError, e, st, failed: true);
       return false;
     }
   }
 
-  /// 导航这类善后动作：不 await（GetX 的 offAllNamed 有时不 resolve），
-  /// 出错也不影响「登录成功」的结论。
-  static void _runAfterLogin(
+  /// 导航这类善后动作：不阻塞 [run]（GetX 的 offAllNamed 有时不 resolve），
+  /// 但内部会 await 异步 afterLogin，确保异常能被安全处理。
+  static Future<void> _runAfterLogin(
     FutureOr<void> Function()? afterLogin,
-    void Function(Object, StackTrace)? onError,
-  ) {
+    FutureOr<void> Function(Object, StackTrace)? onError,
+  ) async {
     if (afterLogin == null) return;
     try {
       final after = afterLogin();
-      if (after is Future<void>) {
-        unawaited(
-          after.then(
-            (_) {},
-            onError: (Object e, StackTrace st) => _report(onError, e, st, failed: false),
-          ),
-        );
-      }
+      if (after is Future) await after;
     } catch (e, st) {
-      _report(onError, e, st, failed: false);
+      await _report(onError, e, st, failed: false);
     }
   }
 
-  static void _report(
-    void Function(Object, StackTrace)? onError,
+  static Future<void> _report(
+    FutureOr<void> Function(Object, StackTrace)? onError,
     Object e,
     StackTrace st, {
     required bool failed,
-  }) {
+  }) async {
     final handler = onError ??
         (Object err, StackTrace stack) {
           debugPrint(
@@ -71,9 +64,9 @@ class E2eLogin {
           );
         };
     try {
-      handler(e, st);
+      await handler(e, st);
     } catch (handlerError, handlerStack) {
-      // 用户回调自己抛错时，不能破坏 run() “失败不抛”的契约。
+      // 用户回调自己抛错（包括 async 回调）时，不能破坏 run() “失败不抛”的契约。
       debugPrint('[E2E] onError handler failed: $handlerError\n$handlerStack');
     }
   }
