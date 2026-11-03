@@ -7,12 +7,13 @@ class Suppression {
   );
 
   static bool isIgnored(List<String> lines, int zeroBasedLine, String ruleId) {
-    if (_isFileIgnored(lines, ruleId)) return true;
+    if (isFileIgnored(lines, ruleId)) return true;
     return _isLineIgnored(lines, zeroBasedLine, ruleId) ||
         (zeroBasedLine > 0 && _isLineIgnored(lines, zeroBasedLine - 1, ruleId));
   }
 
-  static bool _isFileIgnored(List<String> lines, String ruleId) {
+  /// 文件级屏蔽；供 R5/R7/R8 等没有行号的规则使用。
+  static bool isFileIgnored(List<String> lines, String ruleId) {
     final end = lines.length < 20 ? lines.length : 20;
     for (var i = 0; i < end; i++) {
       if (_matches(lines[i], ruleId) && _isFileMarker(lines[i])) return true;

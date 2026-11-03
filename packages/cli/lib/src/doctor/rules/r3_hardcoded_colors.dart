@@ -1,5 +1,6 @@
 import '../config.dart';
 import '../context.dart';
+import '../suppression.dart';
 import '../text_scan.dart';
 import '../rule.dart';
 
@@ -38,6 +39,7 @@ class R3HardcodedColors {
           for (final m in re.allMatches(line.code)) {
             final hex = _normalize(m.group(1)!);
             if (!palette.contains(hex)) continue;
+            if (Suppression.isIgnored(file.lines, line.index, id)) continue;
             final places = hits.putIfAbsent(hex, () => <({String file, int line})>[]);
             places.add((file: file.path, line: line.lineNumber));
           }

@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 import '../config.dart';
 import '../context.dart';
+import '../suppression.dart';
 import '../text_scan.dart';
 import '../rule.dart';
 
@@ -31,7 +32,8 @@ class R4DesignSystemBoundary {
       for (final file in TextScan.files(ctx)) {
         if (!file.path.startsWith('$dirPath/')) continue;
         for (final line in file.codeLines) {
-          if (_forbidden.hasMatch(line.code)) {
+          if (_forbidden.hasMatch(line.code) &&
+              !Suppression.isIgnored(file.lines, line.index, id)) {
             issues.add(
               DoctorIssue(
                 rule: id,

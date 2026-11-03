@@ -230,7 +230,8 @@ banned:
 行级豁免：
 
 ```dart
-// w_tools:ignore R9 reason: design-system fallback
+// w_tools:ignore R2 reason: migration bridge
+// w_tools:ignore-file R7 reason: legacy toolkit
 Image.asset('logo.png');
 ```
 

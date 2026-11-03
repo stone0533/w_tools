@@ -7,6 +7,7 @@ import '../../init/targets.dart';
 import '../config.dart';
 import '../context.dart';
 import '../rule.dart';
+import '../suppression.dart';
 
 /// R8：生成物（toolkit / AGENTS 片段）由旧版 w_tools_cli 生成。
 ///
@@ -58,6 +59,7 @@ class R8GeneratedStale {
       final file = File(p.join(ctx.root.path, rel));
       if (!file.existsSync()) continue;
       final content = file.readAsStringSync();
+      if (Suppression.isFileIgnored(content.split('\n'), id)) continue;
       // 用户自己写的 CLAUDE.md / copilot 文件不应该被当成生成物
       if (rel != config.toolkitEntry && !content.contains('<!-- w_tools:begin -->')) {
         continue;

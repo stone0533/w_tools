@@ -1,5 +1,6 @@
 import '../config.dart';
 import '../context.dart';
+import '../suppression.dart';
 import '../text_scan.dart';
 import '../rule.dart';
 
@@ -28,6 +29,7 @@ class R6BannedUnits {
       for (final line in file.codeLines) {
         final m = _pattern.firstMatch(line.code);
         if (m == null) continue;
+        if (Suppression.isIgnored(file.lines, line.index, id)) continue;
         issues.add(
           DoctorIssue(
             rule: id,

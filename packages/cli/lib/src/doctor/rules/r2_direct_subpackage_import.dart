@@ -1,4 +1,5 @@
 import '../config.dart';
+import '../suppression.dart';
 import '../context.dart';
 import '../rule.dart';
 
@@ -30,6 +31,7 @@ class R2DirectSubpackageImport {
         if (lines[i].trimLeft().startsWith('//')) continue;
         final m = _importPattern.firstMatch(lines[i]);
         if (m == null) continue;
+        if (Suppression.isIgnored(lines, i, id)) continue;
         final pkg = m.group(1)!;
         final isMeta = pkg == 'w_tools';
         issues.add(

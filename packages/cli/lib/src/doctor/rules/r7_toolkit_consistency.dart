@@ -1,6 +1,7 @@
 import '../config.dart';
 import '../context.dart';
 import '../rule.dart';
+import '../suppression.dart';
 
 /// R7：toolkit 入口的 export 与 pubspec 依赖不一致。
 ///
@@ -49,11 +50,23 @@ class R7ToolkitConsistency {
         ),
     ];
 
+    final visible = <DoctorIssue>[];
+    for (final issue in issues) {
+      final path = issue.file;
+      if (path == null) {
+        visible.add(issue);
+        continue;
+      }
+      final lines = ctx.read(path).split('\n');
+      if (Suppression.isFileIgnored(lines, id)) continue;
+      visible.add(issue);
+    }
+
     return DoctorRuleResult(
       ruleId: id,
       title: title,
-      status: issues.isEmpty ? DoctorRuleStatus.pass : DoctorRuleStatus.fail,
-      issues: issues,
+      status: visible.isEmpty ? DoctorRuleStatus.pass : DoctorRuleStatus.fail,
+      issues: visible,
     );
   }
 }
