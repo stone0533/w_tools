@@ -420,6 +420,15 @@ void main() {
     expect('${result.stderr}', contains('figd_'));
   });
 
+  test('cache clean --all 需要 --yes 确认', () async {
+    final refused = await run(<String>['cache', 'clean', '--all']);
+    expect(refused.exitCode, 2, reason: '${refused.stderr}');
+    expect('${refused.stderr}', contains('--yes'));
+
+    final ok = await run(<String>['cache', 'clean', '--all', '--yes']);
+    expect(ok.exitCode, 0, reason: '${ok.stderr}');
+  });
+
   test('非法参数返回 exit 2', () async {
     final result = await run(<String>['tokens', '1:2', '--min=abc']);
     expect(result.exitCode, 2, reason: '${result.stderr}');

@@ -20,6 +20,7 @@ class CliOptions {
     required this.nodeOnly,
     required this.mapFile,
     required this.allFrames,
+    required this.yes,
     required this.nameFilter,
     required this.pageFilter,
     required this.verbose,
@@ -44,6 +45,9 @@ class CliOptions {
   final bool nodeOnly;
   final String? mapFile;
   final bool allFrames;
+
+  /// `--yes`：确认破坏性操作（如 cache clean --all）。
+  final bool yes;
   final String? nameFilter;
   final String? pageFilter;
   final bool verbose;
@@ -69,6 +73,7 @@ CliOptions parseOptions(List<String> args) {
   var nodeOnly = false;
   String? mapFile;
   var allFrames = false;
+  var yes = false;
   String? nameFilter;
   String? pageFilter;
   var verbose = false;
@@ -99,6 +104,9 @@ CliOptions parseOptions(List<String> args) {
     } else if (arg.startsWith('--node-depth=')) {
       nodeDepth = _nonNegativeInt('--node-depth', arg.substring('--node-depth='.length));
       seen.add('node-depth');
+    } else if (arg == '--yes' || arg == '-y') {
+      yes = true;
+      seen.add('yes');
     } else if (arg == '--refresh') {
       refresh = true;
       seen.add('refresh');
@@ -166,6 +174,7 @@ CliOptions parseOptions(List<String> args) {
     nodeOnly: nodeOnly,
     mapFile: mapFile,
     allFrames: allFrames,
+    yes: yes,
     nameFilter: nameFilter,
     pageFilter: pageFilter,
     verbose: verbose,

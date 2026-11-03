@@ -9,7 +9,7 @@ import 'cli_io.dart';
 /// `figma cache stats|clean`。
 void runCache(List<String> args) {
   final options = parseOptions(args);
-  rejectUnsupported(options, {'root', 'json', 'all'});
+  rejectUnsupported(options, {'root', 'json', 'all', 'yes'});
   final store = CacheStore(Directory(options.root));
   final command = CacheCommand(store);
   final sub = options.positional.isEmpty ? 'stats' : options.positional.first;
@@ -24,6 +24,12 @@ void runCache(List<String> args) {
         printLine('文件数：${s.files}（${s.megabytes.toStringAsFixed(1)} MB）');
       }
     case 'clean':
+      // 清理后只能重新 fetch，会消耗额度 —— --all 必须显式确认
+      if (options.allFrames && !options.yes) {
+        stderr.writeln('清理所有项目缓存需要 --yes 确认（清理后重新 fetch 会消耗 Figma 额度）');
+        exitCode = 2;
+        return;
+      }
       final (dirs, bytes) = command.clean(all: options.allFrames);
       final mb = (bytes / (1024 * 1024)).toStringAsFixed(1);
       if (options.json) {
