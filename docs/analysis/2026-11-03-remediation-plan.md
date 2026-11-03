@@ -210,6 +210,15 @@ app 1.1.0（部分）。
 - 阶段 6：golden 补齐、migrations 总索引、feedback 3–5 条复盘；
 - form 4.0 / ui 5.0 / core 3.0 的「物理删除弃用项」（本仓已按两段式全部弃用）。
 
+**复审补充（同日）**：
+
+- `dart format` 全仓统一（语言版本抬到 3.10 后切到 tall style），CI umbrella 增加 format 检查；
+- Flutter 子包的 `environment` 统一为 `sdk ^3.10.0` / `flutter >=3.38.0`（与 CI 唯一验证的下界一致，
+  此前 8 个包声明 3.27 但从未验证）；
+- 补 `api-2.0` 的 `validateStatus` 引用比较说明、`map-1.3.1` 的 `markers` 使用约束；
+- `docs/releasing.md` 增加发布前真机 / 消费方检查；
+- 13 个子包 dry-run 仍全通过。
+
 **发布**：13 个子包 `publish_package.sh --dry-run` 全通过；根包需等子包上线后再发。
 本机无 pub 凭证，正式发布需在有凭证的环境按 releasing.md 执行。
 
