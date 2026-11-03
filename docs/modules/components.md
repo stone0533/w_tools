@@ -137,7 +137,7 @@
 | `WBoxDecorationExtension` | ui | BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影） | 不要每次重写完整 BoxDecoration |
 | `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight | 需要 button 语义用 `WButton` |
 | `WUiWidgetExtension` | ui | `toPressable`（任意 child 点击，无 button 语义） | 需要 button 语义用 `WButton` |
-| `HexColor` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
+| `WHexColor` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
 <!-- catalog:9:end -->
 
 ## 10. 待补（有重复用例，尚未进包）

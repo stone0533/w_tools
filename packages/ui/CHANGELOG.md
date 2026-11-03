@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.4.0
+
+### Breaking
+- `HexColor` 扩展更名 `WHexColor`（`fromHex` / `toHex` 成员不变）；旧名不保留。
+- `WStringExtension` 与 `WUiStringExtension` 合并为一个 `WStringExtension`（成员不变）。
+
+### Deprecated（5.0 移除）
+- `WRow` / `WColumn` / `WSizeBox` / `WPadding`：改用 Flutter 原生组件与 num 扩展。
+
 ## 4.3.0
 
 ### Breaking

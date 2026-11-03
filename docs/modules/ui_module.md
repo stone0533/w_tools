@@ -75,7 +75,7 @@ ui/
     │       └── tab_bar.dart                   # WTabBar
     ├── extensions/                 # 扩展方法
     │   ├── box_decoration.dart                # WBoxDecorationExtension
-    │   ├── color.dart                         # HexColor（Color 扩展）
+    │   ├── color.dart                         # WHexColor（Color 扩展）
     │   ├── global_key.dart                    # WGlobalKeyExtension
     │   ├── num.dart                           # WNumExtension
     │   ├── string.dart                        # WStringExtension
@@ -86,11 +86,11 @@ ui/
     │   └── shadows.dart                       # WShadows
     └── utils/                      # 工具类
         ├── assets.dart                        # WAssets
-        ├── column.dart                        # WColumn
-        ├── padding.dart                       # WPadding
-        ├── row.dart                           # WRow
+        ├── column.dart                        # WColumn（弃用）
+        ├── padding.dart                       # WPadding（弃用）
+        ├── row.dart                           # WRow（弃用）
         ├── screen.dart                        # WScreen
-        └── size_box.dart                      # WSizeBox
+        └── size_box.dart                      # WSizeBox（弃用）
 ```
 
 ---
@@ -1583,13 +1583,13 @@ DefaultTabController(
 
 ## 9. 扩展方法
 
-### HexColor（Color 扩展）
+### WHexColor（Color 扩展）
 
 十六进制颜色转换，兼容多种格式：
 
 | 方法 | 说明 |
 |------|------|
-| `HexColor.fromHex(String)` | 静态方法，从十六进制字符串创建 Color |
+| `WHexColor.fromHex(String)` | 静态方法，从十六进制字符串创建 Color（旧名 `HexColor` 已移除） |
 | `color.toHex({leadingHashSign: true})` | Color → 十六进制字符串 |
 
 **支持的输入格式：**
@@ -1603,8 +1603,8 @@ DefaultTabController(
 `FormatException`。
 
 ```dart
-final c = HexColor.fromHex('#FF5733');    // RRGGBB
-final c2 = HexColor.fromHex('#80FF5733'); // AARRGGBB
+final c = WHexColor.fromHex('#FF5733');    // RRGGBB
+final c2 = WHexColor.fromHex('#80FF5733'); // AARRGGBB
 final hex = c.toHex();                    // '#ffff5733'
 final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 ```

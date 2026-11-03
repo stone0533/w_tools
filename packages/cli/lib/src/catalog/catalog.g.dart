@@ -668,8 +668,8 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
   ),
   CatalogEntry(
-    name: "HexColor",
-    names: <String>["HexColor"],
+    name: "WHexColor",
+    names: <String>["WHexColor"],
     package: "w_tools_ui",
     section: "9. 扩展",
     useFor: "十六进制颜色解析 / 输出",

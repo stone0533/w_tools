@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 /// Column 便捷工厂
+@Deprecated('5.0 移除：直接用 `Column`')
 class WColumn {
   /// 创建主轴尺寸最小的 Column
   static Column min({

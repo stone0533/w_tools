@@ -24,7 +24,7 @@
   `variant + style`；项目内重复抽本地 helper；消费方不能自行新增 `WTextVariant` enum，
   稳定跨页面语义再提给 `w_tools_ui`。
 - **扩展**：数字格式化用 `toThousandsSeparated` / `toCurrency` / `toPercent`；
-  hex 颜色用 `HexColor.fromHex` 或 `'#rrggbb'.toColor()`；`EdgeInsets` 值用 `num.allPadding`；
+  hex 颜色用 `WHexColor.fromHex` 或 `'#rrggbb'.toColor()`；`EdgeInsets` 值用 `num.allPadding`；
   BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合。
 - **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
   `SizedBox` 间距用 `WSizeBox`，`Padding` 用 `WPadding`；需要 `EdgeInsets` 值时用 `num.allPadding`。

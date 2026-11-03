@@ -4,7 +4,7 @@ import '../components/common/image/image.dart';
 import '../utils/assets.dart';
 import 'color.dart';
 
-/// String 扩展（纯 Dart 工具方法 + hex→Color 转换）
+/// String 扩展（纯 Dart 工具 + hex→Color + 图片快捷构造）
 extension WStringExtension on String {
   /// 将字符串转换为 int
   int? toInt() => int.tryParse(this);
@@ -19,7 +19,7 @@ extension WStringExtension on String {
   String trimAll() => replaceAll(RegExp(r'\s+'), '');
 
   /// 将十六进制字符串转换为颜色（如 '#FF0000' → Colors.red）
-  Color toColor() => HexColor.fromHex(this);
+  Color toColor() => WHexColor.fromHex(this);
 
   /// 文件名对应的完整资产图片路径
   ///
@@ -28,10 +28,7 @@ extension WStringExtension on String {
   /// 'logo.png'.assetImagePath; // → 'assets/images/logo.png'
   /// ```
   String get assetImagePath => '${WAssets.imagePath}$this';
-}
 
-/// String 扩展（ui 组件相关，依赖 WImage）
-extension WUiStringExtension on String {
   /// 将字符串转换为 [WImage] 组件。
   ///
   /// 默认按内容自动判定类型（`http(s)` / `//` → 网络，`file:` → 文件，

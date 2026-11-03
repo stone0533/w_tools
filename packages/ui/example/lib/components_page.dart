@@ -67,9 +67,9 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
         const _SectionTitle('WScreen / BoxDecoration / 扩展'),
         Row(
           children: [
-            WSizeBox.square(32),
-            WPadding.all(
-              8,
+            const SizedBox(width: 32, height: 32),
+            Padding(
+              padding: const EdgeInsets.all(8),
               child: Container(
                 width: 32,
                 height: 32,
@@ -202,13 +202,15 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
           ),
         ),
         const SizedBox(height: 8),
-        WRow.min(
+        const Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.circle, size: 12, color: Colors.indigo),
-            const SizedBox(width: 8),
-            WColumn.min(
+            Icon(Icons.circle, size: 12, color: Colors.indigo),
+            SizedBox(width: 8),
+            Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 WText(text: 'WRow + WColumn', variant: WTextVariant.bodyStrong),
                 WText(text: 'min 主轴尺寸', variant: WTextVariant.caption),
               ],

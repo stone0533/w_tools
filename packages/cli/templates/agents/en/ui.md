@@ -25,7 +25,7 @@
   not enough: use `variant + style` for one-offs; extract a local helper for repeated styles.
   Consumers cannot add `WTextVariant` enum values.
 - **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
-  `HexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`.
+  `WHexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`.
 - **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
   prefixes; use `WSizeBox` for `SizedBox`, `WPadding` for `Padding`, and `num.allPadding` for
   `EdgeInsets`. Do not use `num.heightBox` / `widthBox` / `squareBox`; they duplicate `WSizeBox`.

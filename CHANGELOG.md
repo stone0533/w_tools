@@ -1,3 +1,7 @@
+## 3.0.16
+
+- 抬高 `w_tools_ui` 约束到 `^4.4.0`：`HexColor` 更名 `WHexColor`，布局糖弃用，String 扩展合并。
+
 ## 3.0.15
 
 - 抬高 `w_tools_ui` 约束到 `^4.3.0`：图片预设构造弃用，`WImageDefaultsScope` 改收 `WImageLoadConfig`。

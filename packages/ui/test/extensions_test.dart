@@ -4,8 +4,8 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
   group('Color Extensions', () {
-    test('HexColor.fromHex - 6位颜色', () {
-      final color = HexColor.fromHex('#FF5733');
+    test('WHexColor.fromHex - 6位颜色', () {
+      final color = WHexColor.fromHex('#FF5733');
       final value = color.toARGB32();
       expect((value >> 24) & 0xFF, 255); // alpha
       expect((value >> 16) & 0xFF, 255); // red
@@ -13,8 +13,8 @@ void main() {
       expect(value & 0xFF, 51); // blue
     });
 
-    test('HexColor.fromHex - 8位颜色（带透明度）', () {
-      final color = HexColor.fromHex('#80FF5733');
+    test('WHexColor.fromHex - 8位颜色（带透明度）', () {
+      final color = WHexColor.fromHex('#80FF5733');
       final value = color.toARGB32();
       expect((value >> 24) & 0xFF, 128); // alpha
       expect((value >> 16) & 0xFF, 255); // red
@@ -22,16 +22,16 @@ void main() {
       expect(value & 0xFF, 51); // blue
     });
 
-    test('HexColor.fromHex - 3位简写', () {
-      final color = HexColor.fromHex('#F00');
+    test('WHexColor.fromHex - 3位简写', () {
+      final color = WHexColor.fromHex('#F00');
       final value = color.toARGB32();
       expect((value >> 16) & 0xFF, 255); // red
       expect((value >> 8) & 0xFF, 0); // green
       expect(value & 0xFF, 0); // blue
     });
 
-    test('HexColor.fromHex - 4位简写（带透明度）', () {
-      final color = HexColor.fromHex('#8F00');
+    test('WHexColor.fromHex - 4位简写（带透明度）', () {
+      final color = WHexColor.fromHex('#8F00');
       final value = color.toARGB32();
       expect((value >> 24) & 0xFF, 136); // alpha ('8' * 17 = 136)
       expect((value >> 16) & 0xFF, 255); // red
@@ -39,26 +39,26 @@ void main() {
       expect(value & 0xFF, 0); // blue
     });
 
-    test('HexColor.fromHex - 前后空格', () {
-      final color = HexColor.fromHex(' #FF5733 ');
+    test('WHexColor.fromHex - 前后空格', () {
+      final color = WHexColor.fromHex(' #FF5733 ');
       expect(color.toARGB32(), const Color(0xFFFF5733).toARGB32());
     });
 
-    test('HexColor.fromHex - 不带#前缀', () {
-      final color = HexColor.fromHex('FF5733');
+    test('WHexColor.fromHex - 不带#前缀', () {
+      final color = WHexColor.fromHex('FF5733');
       final value = color.toARGB32();
       expect((value >> 16) & 0xFF, 255); // red
       expect((value >> 8) & 0xFF, 87); // green
       expect(value & 0xFF, 51); // blue
     });
 
-    test('HexColor.fromHex - 无效格式抛出异常', () {
-      expect(() => HexColor.fromHex(''), throwsFormatException);
-      expect(() => HexColor.fromHex('#FFF'), returnsNormally); // 有效的3位
-      expect(() => HexColor.fromHex('#FFFF'), returnsNormally); // 有效的4位
-      expect(() => HexColor.fromHex('#FFFFF'), throwsFormatException); // 无效的5位
-      expect(() => HexColor.fromHex('#12#34'), throwsFormatException); // # 只能有一个前缀
-      expect(() => HexColor.fromHex('12#34'), throwsFormatException);
+    test('WHexColor.fromHex - 无效格式抛出异常', () {
+      expect(() => WHexColor.fromHex(''), throwsFormatException);
+      expect(() => WHexColor.fromHex('#FFF'), returnsNormally); // 有效的3位
+      expect(() => WHexColor.fromHex('#FFFF'), returnsNormally); // 有效的4位
+      expect(() => WHexColor.fromHex('#FFFFF'), throwsFormatException); // 无效的5位
+      expect(() => WHexColor.fromHex('#12#34'), throwsFormatException); // # 只能有一个前缀
+      expect(() => WHexColor.fromHex('12#34'), throwsFormatException);
     });
 
     test('Color.toHex', () {
