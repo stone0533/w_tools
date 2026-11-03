@@ -233,8 +233,7 @@ app 1.2.0（`WAppOptions` / `WLocaleConfig` / `WRouteStack`）；map 641 行拆�
 
 P2 进展：core 正则已收敛（`WRegExp.time/dateTime`，validator 不再内联重复）；qr overlay 约束已镜像
 插件断言；map 相机比较复用 `CameraPosition.==`；api 401 重试所有权已修（2.1.0：registry 自动绑定，
-裸 `Dio()` 需传 `dio:`，不再隐式注册）。仍为 P2（不阻塞发布）：api 裸 `Dio` + 401 会隐式注册
-registry 条目；ui `image.dart` 846 行 / `row_buttons.dart` 整类弃用；map `zoneId`/`name` 死字段、
+裸 `Dio()` 需传 `dio:`，不再隐式注册）；ui `image.dart` 已拆分（4.7.1，`part`，公开 API 不变）。仍为 P2（不阻塞发布）：ui `row_buttons.dart` 整类弃用；map `zoneId`/`name` 死字段、
 `icon` 与 `iconBuilder` 重叠；qr `flipCamera` 重建后回退、5 个零调用转发；app 三套配置入口的三重回退
 要到 2.0 收敛；golden 仍未做；feedback 复盘已完成（5 条已闭环，见 `docs/feedback/`）。
 
