@@ -11,6 +11,7 @@ import 'package:flutter/rendering.dart';
 /// - 支持滚动回调和自定义滚动物理特性
 /// - 支持自定义滚动曲线和动画持续时间
 /// - 支持按钮选择状态管理
+@Deprecated('5.0 移除：无选中用 WActionRow，单选高亮用 WSelectableRow')
 class WRowButtons extends StatefulWidget {
   /// 构造函数
   ///
@@ -258,6 +259,7 @@ class _ButtonItem extends StatelessWidget {
 /// - 处理滚动动画逻辑
 /// - 提供索引变化通知机制
 /// - 支持自定义滚动曲线和对齐方式
+@Deprecated('5.0 移除：随 WRowButtons 一起移除，改用 WActionRow / WSelectableRow')
 class WRowButtonsController {
   /// 默认动画持续时间
   static const Duration _defaultAnimationDuration = Duration(milliseconds: 600);

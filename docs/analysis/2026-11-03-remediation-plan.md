@@ -147,7 +147,7 @@ D1 必须在阶段 3 之前定，D3 在 4.6 之前定，D4 在 2.1 之前定。�
 | **3.4** | P1-2/P1-9 | 完成（ui 4.0.0）：`WButtonStyles.of(context)` 从 ColorScheme 派生并缓存；`WButton` 默认跟随主题；静态预设弃用（5.0 移除） | `WButtonStyle.withoutX()` 迁移到 `copyWith` | L |
 | **3.5** | P2-25/26、P1-9 | 完成（4.3.0）：加载器/快照内部化、缓存策略弃用、`WImageLoadConfig` 更名、错误 `kind`、预设构造弃用、`WImageDefaultsScope` 收 `WImageLoadConfig` | 迁移表 `ui-4.1~4.3.md` | L |
 | **3.6** | P2-21/22 | 完成（4.4.0）：布局糖 4 类弃用；`HexColor`→`WHexColor`；String 扩展合并；剩余：必填 Config 改可选（4 个组件） | 迁移表 `ui-4.4.md` | M |
-| **3.7** | P1-4、P2-19/20/23/24 | 进行中（4.5.0）：`WScreen.of(context)`、`WImageFrame` padding 顺序、source hashCode、删死代码；剩余：`WRowButtons` 拆分、`WTextStyles` 缓存 | 迁移表 `ui-4.5.md` | M |
+| **3.7** | P1-4、P2-19/20/23/24 | 完成（4.6.0）：`WScreen.of(context)`、`WImageFrame` padding 顺序、source hashCode、删死代码、`WRowButtons`→`WActionRow`/`WSelectableRow`；`WTextStyles` 缓存已在 3.2 加 Expando | 迁移表 `ui-4.5.md` / `ui-4.6.md` | M |
 
 > 阶段 3 完成后单独发 `core 3.0` + `ui 4.0`，并在阶段 4 之前让上层先"改依赖、不改代码"，
 > 这样上层重构时 ui 已经是稳定的。

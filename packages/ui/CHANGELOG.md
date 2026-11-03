@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.6.0
+
+### Added
+- `WActionRow`：横向滚动操作行（无选中语义）。
+- `WSelectableRow`：单选高亮行，默认把选中项滚到视口中间。
+
+### Deprecated（5.0 移除）
+- `WRowButtons` / `WRowButtonsController`：改用 `WActionRow` / `WSelectableRow`。
+
 ## 4.5.0
 
 ### Added

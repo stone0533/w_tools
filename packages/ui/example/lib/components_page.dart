@@ -12,7 +12,7 @@ class ComponentsPage extends StatefulWidget {
 
 class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStateMixin {
   late final WNavController _navController;
-  late final WRowButtonsController _rowButtonsController;
+  int _selectedTag = 0;
   late final WImageController _imageController;
   double? _scrollPercent;
 
@@ -20,13 +20,11 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
   void initState() {
     super.initState();
     _navController = WNavController(length: 3, vsync: this);
-    _rowButtonsController = WRowButtonsController(length: 6);
     _imageController = WImageController();
   }
 
   @override
   void dispose() {
-    _rowButtonsController.dispose();
     _navController.dispose();
     super.dispose();
   }
@@ -218,9 +216,11 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
           ],
         ),
         const SizedBox(height: 24),
-        const _SectionTitle('WRowButtons 横向按钮'),
-        WRowButtons(
-          controller: _rowButtonsController,
+        const _SectionTitle('WSelectableRow 横向单选'),
+        WSelectableRow(
+          itemCount: 6,
+          selectedIndex: _selectedTag,
+          onSelected: (index) => setState(() => _selectedTag = index),
           spacing: 8,
           builder: (context, index, selected) => Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

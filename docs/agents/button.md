@@ -13,10 +13,10 @@
   → WFormButton
 
 一排「选中态」按钮（分段选择；点击会改变选中）
-  → WRowButtons
+  → WSelectableRow
 
 一排普通动作按钮（取消 / 确定、工具栏）
-  → Row + WButton（WRowButtons 会强制维护选中态，不适合）
+  → WActionRow
 
 底层自定义表单字段按钮
   → WFormFieldButtonCore

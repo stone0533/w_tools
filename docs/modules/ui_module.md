@@ -59,7 +59,8 @@ ui/
     │   │   │   └── _image_file_*.dart          # file provider 条件实现
     │   │   ├── keep_alive_wrapper.dart        # WKeepAliveWrapper
     │   │   ├── notification_listener.dart      # WNotificationListenerBuilder
-    │   │   ├── row_buttons.dart               # WRowButtons
+    │   │   ├── row_buttons.dart               # WRowButtons（弃用）
+    │   │   ├── row_actions.dart               # WActionRow / WSelectableRow
     │   │   ├── gradient_circular_progress_indicator.dart
     │   │   ├── text/                  # 文字组件
     │   │   │   ├── w_text.dart                 # WText
@@ -1358,13 +1359,25 @@ Container(
 
 圆角裁剪组件，`ClipRRect` 的便捷封装；支持 `borderRadius` 与 `clipBehavior`。
 
-### WRowButtons
+### WActionRow / WSelectableRow
 
-横向滚动按钮行，支持选中居中、初始索引和外部 controller。
+- `WActionRow`：横向滚动的操作按钮行，无选中语义（`children` + `onTap` 由子项自己处理）；
+- `WSelectableRow`：单选高亮行，`selectedIndex` + `onSelected`，默认把选中项滚到视口中间。
 
-`WRowButtonsController` 由调用方持有；应先销毁 `WRowButtons`，再调用 controller.dispose。
-`selectedIndexNotifier` 是只读 `ValueListenable<int?>`；相同索引重复点击不会重复通知或滚动；`scrollToCenter` 为 true 时，首次布局会把
-`initialIndex` 移到视口中间，也可手动调用 `ensureVisible(index)`。
+```dart
+WSelectableRow(
+  itemCount: tabs.length,
+  selectedIndex: current,
+  onSelected: (index) => setState(() => current = index),
+  builder: (context, index, selected) =>
+      WButton(label: tabs[index], style: selected ? primary : secondary, onTap: () {}),
+)
+```
+
+### WRowButtons（弃用，5.0 移除）
+
+旧的横向滚动按钮行，选中态与滚动耦合在一起；用 `WActionRow` / `WSelectableRow` 替代。
+`WRowButtonsController` 也一并弃用。
 
 ### WKeepAliveWrapper
 
