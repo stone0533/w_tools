@@ -80,13 +80,17 @@ monorepo 内可直接在 `packages/figma/` 下运行命令。
 dart run w_tools_figma:figma init
 ```
 
-生成：
+生成（**都不在项目仓库里**）：
 
 ```text
-.figma-token         # 填 figd_ 个人令牌
-.figma-cache/        # 节点 / 图片 / 用量 / 预算缓存
-.gitignore           # 自动追加 token 与缓存
+~/.config/w_tools/figma-token              # 填 figd_ 个人令牌（权限 600）
+~/.cache/w_tools/figma/<项目标识>/          # 节点 / 图片 缓存
+~/.cache/w_tools/figma/_usage.log          # 本月调用次数（按账号，跨项目共用）
+~/.cache/w_tools/figma/_budget.json        # 额度上限
 ```
+
+老项目的 `<项目>/.figma-cache/`、`<项目>/.figma-token` 会在下次运行时**自动迁移**
+到上述位置（迁移后旧文件删除）。
 
 token 从 Figma：
 
@@ -98,10 +102,10 @@ Settings → Security → Personal access tokens
 
 ```text
 1. CI / agent：export FIGMA_TOKEN=figd_xxx
-2. 本地：写入 .figma-token
+2. 本地：写入 ~/.config/w_tools/figma-token
 ```
 
-环境变量优先于文件。POSIX 上 `init` 会把 `.figma-token` 权限设为 600。
+环境变量优先于文件。POSIX 上 `init` 会把 token 文件权限设为 600。
 
 从 Figma 页面到 Flutter 实现的流程见
 [`docs/agents/figma.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/figma.md)。
@@ -192,18 +196,22 @@ dart run w_tools_figma:figma fetch --help
 `--check-stale` 即使用缓存也需要 token，因为会访问 `/meta`。
 第一次 `--check-stale` 只建立版本基线；之后线上版本变化才会报 stale。
 
-旧版本 `file-<key>-s<depth>.json` 缓存不会再命中，升级后可清理一次 `.figma-cache/`。
+旧版本 `file-<key>-s<depth>.json` 缓存不会再命中，升级后可清理一次缓存目录。
 
-缓存目录：
+缓存目录（`~/.cache/w_tools/figma/<项目标识>/`）：
 
 ```text
-.figma-cache/
-  file-<key>-d<depth>.json
-  nodes-<key>-<ids>.json
-  images-<key>-<ids>-s<scale>.json
-  _meta-<key>.json
-  _usage.log
-  _budget.json
+file-<key>-d<depth>.json
+nodes-<key>-<ids>.json
+images-<key>-<ids>-s<scale>.json
+_meta-<key>.json
+```
+
+账号级（`~/.cache/w_tools/figma/`，跨项目共用）：
+
+```text
+_usage.log
+_budget.json
 ```
 
 ## 典型工作流

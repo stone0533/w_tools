@@ -1,3 +1,4 @@
+import 'package:w_tools_figma/src/cache/cache_store.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,8 +8,14 @@ import 'package:test/test.dart';
 void main() {
   late Directory root;
 
+  late Directory home;
+  late CacheStore store;
+
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_cli_');
+    home = Directory.systemTemp.createTempSync('figma_cli_home_');
+    CacheStore.homeOverride = home.path;
+    store = CacheStore(root, home: home.path);
   });
 
   tearDown(() {
@@ -16,10 +23,17 @@ void main() {
   });
 
   Future<ProcessResult> run(List<String> args) {
+    // 子进程也要隔离 HOME，否则会读到真实的 ~/.cache/w_tools 与 token
     return Process.run(
       Platform.resolvedExecutable,
       <String>['run', 'bin/figma.dart', ...args, '--root=${root.path}'],
       workingDirectory: Directory.current.path,
+      environment: <String, String>{
+        ...Platform.environment,
+        'HOME': home.path,
+        'USERPROFILE': home.path,
+        'FIGMA_TOKEN': '',
+      },
     );
   }
 
@@ -80,7 +94,7 @@ void main() {
   });
 
   test('spec --json --node-depth 限制原始节点层级', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -110,7 +124,7 @@ void main() {
   });
 
   test('spec --json --node-only 不返回 markdown', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -133,7 +147,7 @@ void main() {
   });
 
   test('spec a,b --json 返回 specs/1，默认顶层 frames', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -171,7 +185,7 @@ void main() {
   });
 
   test('spec a,b 支持跨缓存', () async {
-    final dir = Directory('${root.path}/.figma-cache')..createSync(recursive: true);
+    final dir = Directory(store.dir.path)..createSync(recursive: true);
     for (final entry in {'a.json': '1:2', 'b.json': '2:3'}.entries) {
       File('${dir.path}/nodes-${entry.key}').writeAsStringSync(jsonEncode({
         'nodes': {
@@ -197,7 +211,7 @@ void main() {
   });
 
   test('frames page 来自 CANVAS，纯 FRAME 缓存不把画板名当页面', () async {
-    final dir = Directory('${root.path}/.figma-cache')..createSync(recursive: true);
+    final dir = Directory(store.dir.path)..createSync(recursive: true);
     File('${dir.path}/nodes-page.json').writeAsStringSync(jsonEncode({
       'nodes': {
         'p:1': {
@@ -238,7 +252,7 @@ void main() {
   });
 
   test('spec 默认选择包含 nodeId 的缓存，而不是最大文件', () async {
-    final dir = Directory('${root.path}/.figma-cache')..createSync(recursive: true);
+    final dir = Directory(store.dir.path)..createSync(recursive: true);
     final target = File('${dir.path}/nodes-old.json');
     target.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -277,7 +291,7 @@ void main() {
   });
 
   test('frames 列出缓存里的 FRAME', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -304,7 +318,7 @@ void main() {
   });
 
   test('缓存命中时不需要 token', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -321,7 +335,7 @@ void main() {
   });
 
   test('多节点缓存下 spec 能命中第二个节点', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -350,7 +364,7 @@ void main() {
   });
 
   test('spec --json 同时返回原始 node 与 markdown', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -374,7 +388,7 @@ void main() {
   });
 
   test('缓存命中但 --check-stale 仍需 token', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -390,7 +404,7 @@ void main() {
   });
 
   test('非 figd_ token 返回 exit 4', () async {
-    final cache = File('${root.path}/.figma-cache/nodes-K-1-2.json');
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
       'nodes': {
@@ -417,7 +431,7 @@ void main() {
   test('init --force 覆盖已有 token', () async {
     final first = await run(<String>['init']);
     expect(first.exitCode, 0, reason: '${first.stderr}');
-    final token = File('${root.path}/.figma-token');
+    final token = CacheStore(root).tokenFile;
     token.writeAsStringSync('custom');
 
     final forced = await run(<String>['init', '--force']);
@@ -429,7 +443,7 @@ void main() {
     if (Platform.isWindows) return;
     final result = await run(<String>['init']);
     expect(result.exitCode, 0, reason: '${result.stderr}');
-    final token = File('${root.path}/.figma-token');
+    final token = CacheStore(root).tokenFile;
     expect(token.existsSync(), isTrue);
     expect(token.statSync().mode & 0x1FF, 0x180);
   });

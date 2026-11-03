@@ -33,6 +33,7 @@ class _RoutedClient implements FigmaClient {
 
 void main() {
   late Directory root;
+  late Directory home;
   late CacheStore store;
   const payload = {
     'nodes': {
@@ -44,11 +45,17 @@ void main() {
 
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_stale_');
+    home = Directory.systemTemp.createTempSync('figma_stale_home_');
+    CacheStore.homeOverride = home.path;
     store = CacheStore(root);
     store.write(store.cacheFile(kind: 'nodes', fileKey: 'K', ids: '1:2'), payload);
   });
 
-  tearDown(() => root.deleteSync(recursive: true));
+  tearDown(() {
+    CacheStore.homeOverride = null;
+    root.deleteSync(recursive: true);
+    home.deleteSync(recursive: true);
+  });
 
   test('未开 checkStale 时不发 meta 请求', () async {
     final client = _RoutedClient(version: 'v2');

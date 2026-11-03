@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
 import '../common/version.dart';
 import 'cli_io.dart';
@@ -15,6 +16,14 @@ import 'spec_command.dart';
 import 'tokens_command.dart';
 import 'url_command.dart';
 import 'usage_command.dart';
+
+/// 取 `--root=<dir>`（默认当前目录）；只用于定位项目缓存。
+String _rootOption(List<String> args) {
+  for (final arg in args) {
+    if (arg.startsWith('--root=')) return arg.substring('--root='.length);
+  }
+  return Directory.current.path;
+}
 
 const _usage = '''
 w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/figma-cli.md）
@@ -96,6 +105,19 @@ Future<void> runFigmaCli(List<String> args) async {
 
   final command = args.first;
   final rest = args.sublist(1);
+
+  // 老项目的 .figma-cache / .figma-token 一次性搬到用户缓存/配置目录。
+  // 迁移失败不应该挡住命令本身。
+  try {
+    final root = _rootOption(rest);
+    final notes = CacheStore(Directory(root)).migrateLegacy();
+    for (final note in notes) {
+      stderr.writeln(note);
+    }
+  } on FileSystemException catch (e) {
+    stderr.writeln('迁移旧缓存失败（忽略）：${e.message}');
+  }
+
   try {
     switch (command) {
       case 'init':

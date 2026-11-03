@@ -8,8 +8,15 @@ void runInit(List<String> args) {
   final options = parseOptions(args);
   rejectUnsupported(options, {'root', 'force'});
   final store = CacheStore(Directory(options.root));
+  for (final note in store.migrateLegacy()) {
+    stderr.writeln(note);
+  }
   final result = InitCommand(store).run(force: options.force);
-  stderr.writeln(result.tokenCreated ? '已创建 .figma-token（记得填入 figd_ 令牌）' : '.figma-token 已存在');
+  stderr.writeln(
+    result.tokenCreated
+        ? '已创建 ${store.tokenFile.path}（记得填入 figd_ 令牌）'
+        : '${store.tokenFile.path} 已存在',
+  );
   if (result.gitignoreAdded.isNotEmpty) {
     stderr.writeln('.gitignore 已追加：${result.gitignoreAdded.join(', ')}');
   }

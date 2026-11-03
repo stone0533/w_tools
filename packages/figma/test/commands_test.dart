@@ -44,12 +44,20 @@ void main() {
     },
   };
 
+  late Directory home;
+
   setUp(() {
     root = Directory.systemTemp.createTempSync('figma_test_');
+    home = Directory.systemTemp.createTempSync('figma_home_');
+    CacheStore.homeOverride = home.path;
     store = CacheStore(root);
   });
 
-  tearDown(() => root.deleteSync(recursive: true));
+  tearDown(() {
+    CacheStore.homeOverride = null;
+    root.deleteSync(recursive: true);
+    home.deleteSync(recursive: true);
+  });
 
   group('fetch', () {
     test('首次请求写缓存与用量日志，第二次命中缓存不再请求', () async {
@@ -114,24 +122,31 @@ void main() {
   });
 
   test('损坏缓存按未命中处理，不直接抛 FormatException', () {
-    final file = File('${root.path}/.figma-cache/broken.json');
+    final file = File('${store.dir.path}/broken.json');
     file.parent.createSync(recursive: true);
     file.writeAsStringSync('{not json');
     expect(store.read(file), isNull);
   });
 
   group('init', () {
-    test('创建 token 模板、补 gitignore、建缓存目录（幂等）', () {
+    test('创建 token 模板、建缓存目录（幂等）；新项目不动 .gitignore', () {
       final first = InitCommand(store).run();
       expect(first.tokenCreated, isTrue);
-      expect(first.gitignoreAdded, containsAll(['.figma-token', '.figma-cache/']));
+      // 新路径都在仓库外，不需要往 .gitignore 里加东西
+      expect(first.gitignoreAdded, isEmpty);
+      expect(store.tokenFile.existsSync(), isTrue);
       expect(store.budgetFile.existsSync(), isTrue);
 
       final second = InitCommand(store).run();
       expect(second.tokenCreated, isFalse);
       expect(second.gitignoreAdded, isEmpty);
-      final gitignore = File('${root.path}/.gitignore').readAsStringSync();
-      expect('.figma-token'.allMatches(gitignore).length, 1);
+    });
+
+    test('老项目还留着 .figma-cache/.figma-token 时补 .gitignore（防误提交）', () {
+      store.legacyDir.createSync(recursive: true);
+      store.legacyTokenFile.writeAsStringSync('figd_x');
+      final result = InitCommand(store).run();
+      expect(result.gitignoreAdded, containsAll(['.figma-token', '.figma-cache/']));
     });
   });
 

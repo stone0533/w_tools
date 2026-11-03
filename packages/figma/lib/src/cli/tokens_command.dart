@@ -7,6 +7,7 @@ import '../spec/figma_node.dart';
 import '../tokens/token_collector.dart';
 import '../tokens/token_renderer.dart';
 import 'args.dart';
+import '../cache/cache_store.dart';
 import 'cache_data.dart';
 import 'cli_io.dart';
 
@@ -22,7 +23,7 @@ Future<void> runTokens(List<String> args) async {
   final nodeIds = rawIds.split(',').where((e) => e.isNotEmpty).toList();
 
   final sources = resolveNodeCaches(
-    Directory(options.root),
+    CacheStore(Directory(options.root)),
     nodeIds,
     explicitFile: options.file,
   );

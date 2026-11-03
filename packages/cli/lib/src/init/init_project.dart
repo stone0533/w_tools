@@ -24,7 +24,7 @@ const _subpackageConstraints = <String, String>{
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const _cliConstraint = '^1.8.0';
+const _cliConstraint = '^1.9.0';
 
 /// `init` 的执行结果（供 CLI 打印）。
 class InitReport {
@@ -94,6 +94,9 @@ InitReport runInit(
 }) {
   final report = InitReport();
   final app = _projectName(root);
+  if (InitManifest.migrateLegacy(root)) {
+    report.warnings.add('已把 .w_tools_init.json 迁到 ${InitManifest.fileName}');
+  }
 
   String backup(File file) {
     final base = File('${file.path}.bak');
@@ -310,7 +313,7 @@ InitReport runInit(
 
   _collectStale(report, root, features, targets);
   if (manifest != null) {
-    write('.w_tools_init.json', manifest.encode(), metadata: true);
+    write(InitManifest.fileName, manifest.encode(), metadata: true);
   }
   report.pubspecSnippet = _snippet(
     root,

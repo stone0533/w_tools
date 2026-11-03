@@ -26,7 +26,7 @@ class InitCommand {
 # Figma 个人访问令牌（figd_ 开头）
 # 1. Figma → Settings → Security → Personal access tokens → 生成
 # 2. 只读权限即可（本工具只调用 GET 接口）
-# 3. 该文件已在 .gitignore 里，不要提交
+# 3. 这个文件在用户配置目录（~/.config/w_tools/），权限 600，不要提交/外传
 figd_REPLACE_ME
 ''';
 
@@ -40,11 +40,16 @@ figd_REPLACE_ME
       tokenCreated = true;
     }
 
+    // 新路径都在仓库外；只有老项目还留着旧文件时才补 .gitignore，避免误提交。
     final added = <String>[];
     final gitignore = File('${store.root.path}/.gitignore');
     final existing = gitignore.existsSync() ? gitignore.readAsStringSync() : '';
     final lines = existing.split('\n');
-    for (final entry in const ['.figma-token', '.figma-cache/']) {
+    final legacy = <String>[
+      if (store.legacyTokenFile.existsSync()) '.figma-token',
+      if (store.legacyDir.existsSync()) '.figma-cache/',
+    ];
+    for (final entry in legacy) {
       if (!lines.contains(entry)) added.add(entry);
     }
     if (added.isNotEmpty) {

@@ -1,3 +1,15 @@
+## 0.8.0
+
+### Changed（破坏性：路径）
+- 缓存 / 令牌 / 额度记录**移出项目仓库**：
+  - 缓存：`~/.cache/w_tools/figma/<项目标识>/`（原 `<project>/.figma-cache/`）
+  - 令牌：`~/.config/w_tools/figma-token`（原 `<project>/.figma-token`，权限 600）
+  - 额度/预算：`~/.cache/w_tools/figma/_usage.log` / `_budget.json`（按账号，跨项目共用）
+- 旧路径首次运行时**自动迁移**（缓存移动、令牌移动），之后旧文件删除。
+- `init` 不再往 `.gitignore` 加 `.figma-cache/` / `.figma-token`（新路径在仓库外）；
+  只有老项目还留着旧文件时才补，防止误提交。
+- `spec` / `tokens` / `frames` 的缓存定位改用项目缓存目录（不再硬编码 `.figma-cache`）。
+
 # Changelog
 
 ## 0.7.0

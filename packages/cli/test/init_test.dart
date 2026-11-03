@@ -118,6 +118,17 @@ void main() {
       expect(report.pubspecSnippet, isNot(contains('w_tools_figma')));
     });
 
+    test('旧 .w_tools_init.json 自动迁到 .w_tools/init.json', () async {
+      final root = makeProject();
+      File(
+        p.join(root.path, '.w_tools_init.json'),
+      ).writeAsStringSync('{"schema":"w_tools_cli.init/1"}');
+      final report = runInit(root, device: true);
+      expect(File(p.join(root.path, '.w_tools_init.json')).existsSync(), isFalse);
+      expect(File(p.join(root.path, '.w_tools', 'init.json')).existsSync(), isTrue);
+      expect(report.warnings.any((e) => e.contains('.w_tools_init.json')), isTrue);
+    });
+
     test('--device 生成四份脚手架，且不碰 toolkit / 依赖片段', () async {
       final root = makeProject();
       final report = runInit(root, device: true);
@@ -585,7 +596,7 @@ void main() {
           reason: 'packages/$pkg 已到 $version，更新 init_project.dart 里的约束',
         );
       }
-      expect(snippet, contains('w_tools_cli: ^1.8.0'));
+      expect(snippet, contains('w_tools_cli: ^1.9.0'));
     }, skip: repo == null ? '不在 w_tools 仓库内' : false);
   });
 }

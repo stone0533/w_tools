@@ -69,7 +69,7 @@ dart run w_tools_cli:init
 
 ```text
 lib/app/w/toolkit.dart             本项目能力清单（w_tools:begin/end 标记块，块外追加项不会被 --force 覆盖）
-.w_tools_init.json                 上次 init 的 flags；--check 用它回放参数
+.w_tools/init.json                  上次 init 的 flags；--check 用它回放参数
 .w_tools_doctor.yaml               doctor 配置（默认值与内置一致）
 AGENTS.md / CLAUDE.md / ...        w_tools 指令片段（标记块）
 lib/app/ui/                        页面规范（AppBars / AppBoxes / AppButtons / AppCard / AppScaffold）
@@ -344,7 +344,7 @@ dart run w_tools_cli:doctor
 ```text
 --force 会覆盖生成的 AGENTS / toolkit 标记块 / 配置（配置先 .bak）
 toolkit 标记块外的项目追加项会保留
-`.w_tools_init.json` 记录本次 init flags，普通 init 总是更新；--check 只比对不写
+`.w_tools/init.json` 记录本次 init flags，普通 init 总是更新；--check 只比对不写
 --force-starters 才会覆盖 UI / device starter，并先写 .bak
 不会删除当前 profile 不再生成的文件
 

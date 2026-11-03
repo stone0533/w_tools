@@ -1,3 +1,11 @@
+## 1.9.0
+
+### Changed（破坏性：路径）
+- `init` 的 manifest 从 `.w_tools_init.json` 迁到 **`.w_tools/init.json`**（工具元数据收敛到 `.w_tools/`）。
+  老项目首次 `init` 会自动迁移旧文件并提示。
+- 其它生成物不变：`lib/app/w/toolkit.dart`、`lib/app/ui/*`、`AGENTS.md`、`.w_tools_doctor.yaml`
+  仍在约定路径（它们必须可被 Dart / agent / Flutter 直接发现）。
+
 # Changelog
 
 ## 1.8.1

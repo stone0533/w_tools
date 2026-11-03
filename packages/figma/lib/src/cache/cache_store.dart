@@ -10,16 +10,89 @@ class UsageEntry {
   final String cacheFile;
 }
 
-/// `.figma-token` / `.figma-cache/` 的读写与用量记录。
+/// 缓存、令牌与用量记录的读写。
+///
+/// 路径分三类（都不在项目仓库里）：
+/// - 缓存：`~/.cache/w_tools/figma/<项目标识>/`（原 `<project>/.figma-cache/`）
+/// - 令牌：`~/.config/w_tools/figma-token`（原 `<project>/.figma-token`）
+/// - 额度：`~/.cache/w_tools/figma/_usage.log` / `_budget.json`（按账号，跨项目共用）
+///
+/// 旧路径由 [migrateLegacy] 一次性搬走。
 class CacheStore {
-  CacheStore(this.root);
+  CacheStore(this.root, {String? home}) : _home = home ?? defaultHome();
 
   final Directory root;
+  final String _home;
 
-  Directory get dir => Directory('${root.path}/.figma-cache');
-  File get tokenFile => File('${root.path}/.figma-token');
-  File get usageFile => File('${dir.path}/_usage.log');
-  File get budgetFile => File('${dir.path}/_budget.json');
+  /// 测试用：把 `~` 指到临时目录，避免读真实 `~/.cache/w_tools`。
+  static String? homeOverride;
+
+  static String defaultHome() {
+    if (homeOverride != null) return homeOverride!;
+    final env = Platform.environment;
+    return env['HOME'] ?? env['USERPROFILE'] ?? Directory.systemTemp.path;
+  }
+
+  /// 项目在缓存里的稳定标识：`<目录名>-<hash8>`（FNV-1a，跨进程稳定）。
+  String get projectId {
+    final path = root.absolute.path;
+    var hash = 0x811c9dc5;
+    for (final unit in path.codeUnits) {
+      hash ^= unit;
+      hash = (hash * 0x01000193) & 0xffffffff;
+    }
+    final name = path.split(Platform.pathSeparator).where((e) => e.isNotEmpty).lastOrNull;
+    return '${name ?? 'project'}-${hash.toRadixString(16).padLeft(8, '0')}';
+  }
+
+  /// 账号级缓存根（用量 / 预算也在这里）。
+  Directory get cacheRoot => Directory('$_home/.cache/w_tools/figma');
+
+  /// 项目缓存目录。
+  Directory get dir => Directory('${cacheRoot.path}/$projectId');
+
+  File get tokenFile => File('$_home/.config/w_tools/figma-token');
+
+  File get usageFile => File('${cacheRoot.path}/_usage.log');
+  File get budgetFile => File('${cacheRoot.path}/_budget.json');
+
+  /// 旧路径（只用于迁移）。
+  Directory get legacyDir => Directory('${root.path}/.figma-cache');
+  File get legacyTokenFile => File('${root.path}/.figma-token');
+
+  /// 把旧路径搬到新位置；返回人读的迁移说明（空列表 = 无需迁移）。
+  List<String> migrateLegacy() {
+    final notes = <String>[];
+    if (legacyDir.existsSync()) {
+      dir.createSync(recursive: true);
+      var moved = 0;
+      for (final entity in legacyDir.listSync()) {
+        if (entity is! File) continue;
+        final target = File('${dir.path}/${entity.uri.pathSegments.last}');
+        if (target.existsSync()) continue;
+        entity.renameSync(target.path);
+        moved++;
+      }
+      legacyDir.deleteSync(recursive: true);
+      if (moved > 0) notes.add('已把 $moved 个缓存文件迁到 ${dir.path}');
+    }
+    if (legacyTokenFile.existsSync() && !tokenFile.existsSync()) {
+      tokenFile.parent.createSync(recursive: true);
+      legacyTokenFile.renameSync(tokenFile.path);
+      _restrict(tokenFile);
+      notes.add('已把 .figma-token 迁到 ${tokenFile.path}');
+    }
+    return notes;
+  }
+
+  static void _restrict(File file) {
+    if (Platform.isWindows) return;
+    try {
+      Process.runSync('chmod', ['600', file.path]);
+    } on ProcessException {
+      // 权限收紧失败不影响功能
+    }
+  }
 
   /// 缓存文件名：`<kind>-<fileKey>-<idslug>[-s<scale>].json`。
   File cacheFile({

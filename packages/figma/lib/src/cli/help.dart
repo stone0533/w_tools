@@ -8,7 +8,7 @@ init — 初始化 token / 缓存 / 预算文件
 
 dart run w_tools_figma:figma init [--force]
 
-生成 .figma-token、.figma-cache/，并把 token 与缓存目录追加到 .gitignore。
+建 token（~/.config/w_tools/figma-token）与缓存目录（~/.cache/w_tools/figma/），都不在项目仓库里。
 --force 会覆盖已有 token。
 ''',
   'frames': '''

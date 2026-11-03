@@ -40,16 +40,16 @@ String _validateToken(String token, String source) {
 /// 用 `.figma-cache/_nodes-index.json` 记录每个缓存的 nodeId，避免每次
 /// `spec` / `tokens` 都重新解析 19MB 的 JSON。索引按 mtime + size 失效。
 File resolveNodesCache(
-  Directory root,
+  CacheStore store,
   List<String> nodeIds, {
   String? explicitFile,
 }) {
   if (explicitFile != null) return File(explicitFile);
-  final files = _nodesCacheFiles(root);
+  final files = _nodesCacheFiles(store);
   if (files.isEmpty) {
-    throw StateError('${root.path}/.figma-cache 里没有 nodes-*.json，先拉一次节点树缓存');
+    throw StateError('${store.dir.path} 里没有 nodes-*.json，先拉一次节点树缓存');
   }
-  final index = _loadIndex(root, files);
+  final index = _loadIndex(store, files);
   final sorted = _sortCacheFiles(files);
   for (final file in sorted) {
     final ids = index[file.path]?.ids ?? const <String>{};
@@ -63,7 +63,7 @@ File resolveNodesCache(
 
 /// 每个 nodeId 对应的缓存文件；用于 tokens / spec 跨缓存汇总。
 Map<String, File> resolveNodeCaches(
-  Directory root,
+  CacheStore store,
   List<String> nodeIds, {
   String? explicitFile,
 }) {
@@ -71,11 +71,11 @@ Map<String, File> resolveNodeCaches(
     final file = File(explicitFile);
     return {for (final id in nodeIds) id: file};
   }
-  final files = _nodesCacheFiles(root);
+  final files = _nodesCacheFiles(store);
   if (files.isEmpty) {
-    throw StateError('${root.path}/.figma-cache 里没有 nodes-*.json，先拉一次节点树缓存');
+    throw StateError('${store.dir.path} 里没有 nodes-*.json，先拉一次节点树缓存');
   }
-  final index = _loadIndex(root, files);
+  final index = _loadIndex(store, files);
   final result = <String, File>{};
   for (final file in _sortCacheFiles(files)) {
     final ids = index[file.path]?.ids ?? const <String>{};
@@ -100,8 +100,8 @@ class _IndexEntry {
   final Set<String> ids;
 }
 
-Map<String, _IndexEntry> _loadIndex(Directory root, List<File> files) {
-  final indexFile = File('${root.path}/.figma-cache/_nodes-index.json');
+Map<String, _IndexEntry> _loadIndex(CacheStore store, List<File> files) {
+  final indexFile = File('${store.dir.path}/_nodes-index.json');
   final raw = indexFile.existsSync() ? _tryReadJson(indexFile) : null;
   final stored = raw is Map && raw['files'] is Map ? raw['files'] as Map : const {};
   final out = <String, _IndexEntry>{};
@@ -177,10 +177,10 @@ void _collectIds(Map node, Set<String> ids) {
   }
 }
 
-List<File> nodesCacheFiles(CacheStore store) => _nodesCacheFiles(store.root);
+List<File> nodesCacheFiles(CacheStore store) => _nodesCacheFiles(store);
 
-List<File> _nodesCacheFiles(Directory root) {
-  final dir = Directory('${root.path}/.figma-cache');
+List<File> _nodesCacheFiles(CacheStore store) {
+  final dir = store.dir;
   if (!dir.existsSync()) return const <File>[];
   return dir.listSync().whereType<File>().where((f) {
     final name = f.path.split('/').last;

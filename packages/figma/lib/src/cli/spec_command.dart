@@ -4,6 +4,7 @@ import 'dart:io';
 import '../spec/figma_node.dart';
 import '../spec/spec_renderer.dart';
 import 'args.dart';
+import '../cache/cache_store.dart';
 import 'cache_data.dart';
 import 'cli_io.dart';
 
@@ -23,8 +24,8 @@ Future<void> runSpec(List<String> args) async {
     return;
   }
 
-  final root = Directory(options.root);
-  final sources = resolveNodeCaches(root, nodeIds, explicitFile: options.file);
+  final store = CacheStore(Directory(options.root));
+  final sources = resolveNodeCaches(store, nodeIds, explicitFile: options.file);
   const renderer = FigmaSpecRenderer();
   final items = <Map<String, Object?>>[];
   final markdowns = <String>[];

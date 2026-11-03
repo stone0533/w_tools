@@ -19,15 +19,46 @@ class InitManifest {
   final bool figma;
   final bool device;
 
-  static const fileName = '.w_tools_init.json';
+  /// 新位置：`.w_tools/init.json`（工具元数据统一收敛在 `.w_tools/`）。
+  static const fileName = '.w_tools/init.json';
+
+  /// 旧位置（1.8.x 及以前），只用于迁移。
+  static const legacyFileName = '.w_tools_init.json';
 
   static File fileFor(Directory root) => File('${root.path}/$fileName');
 
+  static File legacyFileFor(Directory root) => File('${root.path}/$legacyFileName');
+
+  /// 把旧的 `.w_tools_init.json` 搬到 `.w_tools/init.json`；返回是否发生了迁移。
+  static bool migrateLegacy(Directory root) {
+    final legacy = legacyFileFor(root);
+    if (!legacy.existsSync()) return false;
+    final target = fileFor(root);
+    target.parent.createSync(recursive: true);
+    if (!target.existsSync()) {
+      legacy.renameSync(target.path);
+    } else {
+      legacy.deleteSync();
+    }
+    return true;
+  }
+
   static InitManifest? load(Directory root) {
     final file = fileFor(root);
-    if (!file.existsSync()) return null;
+    if (!file.existsSync()) {
+      final legacy = legacyFileFor(root);
+      if (legacy.existsSync()) {
+        // 老项目直接读旧文件，写回时（init）会顺手迁移
+        return _decode(legacy.readAsStringSync());
+      }
+      return null;
+    }
+    return _decode(file.readAsStringSync());
+  }
+
+  static InitManifest? _decode(String text) {
     try {
-      final raw = jsonDecode(file.readAsStringSync());
+      final raw = jsonDecode(text);
       if (raw is! Map) return null;
       final features = raw['features'];
       return InitManifest(
