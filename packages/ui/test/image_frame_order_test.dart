@@ -5,15 +5,15 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 void main() {
   testWidgets('WImageFrame：margin 在外、padding 在装饰层内', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: WImageFrame(
-          style: const WImageStyle(
+          style: WImageStyle(
             margin: EdgeInsets.all(8),
             padding: EdgeInsets.all(4),
             borderRadius: BorderRadius.all(Radius.circular(8)),
             border: Border.fromBorderSide(BorderSide(color: Colors.black12)),
           ),
-          child: const SizedBox(width: 10, height: 10),
+          child: SizedBox(width: 10, height: 10),
         ),
       ),
     );
