@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,8 @@ import '../form_controller.dart';
 /// 字段值以 ISO `yyyy-MM-dd` 存储（与 locale 无关），显示时按
 /// [WFormDatePickerConfig.displayFormat] 与当前 locale 格式化；
 /// 点击后弹出 [showDatePicker] 选择日期。
+/// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
+@internal
 class WFormDatePickerCore extends FormBuilderField<String> {
   /// 日期选择器配置
   final WFormDatePickerConfig config;
@@ -209,6 +212,8 @@ class WFormDatePickerConfig extends WFormFieldBaseConfig {
     this.containerPadding = containerPadding;
   }
 
+  /// 框架内部使用（直接字段 / Core 组装），4.0 物理移出 Config。
+  @internal
   Widget build({
     required String name,
     required DateTime firstDate,

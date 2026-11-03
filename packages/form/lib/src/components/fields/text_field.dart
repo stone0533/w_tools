@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/foundation.dart' show ValueListenable, internal;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -15,6 +15,8 @@ import '../form_controller.dart';
 /// 只读状态会合并自身 [readOnly] 与外层 [WFormReadOnlyScope]。
 /// 插槽中的控件可通过 [WFormTextFieldScope.of] 读取输入状态并触发清空、
 /// 密码可见性切换等操作。
+/// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
+@internal
 class WFormTextFieldCore extends StatefulWidget {
   /// 文本输入配置
   final WFormTextFieldConfig config;
@@ -284,6 +286,8 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
     this.containerPadding = containerPadding;
   }
 
+  /// 框架内部使用（直接字段 / Core 组装），4.0 物理移出 Config。
+  @internal
   Widget build({
     required String name,
     ValueChanged<String?>? onChanged,

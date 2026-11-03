@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
@@ -14,6 +15,8 @@ import '../form_theme.dart';
 /// 以单列布局渲染所有选项，支持自定义标题（[titleBuilder]）与选项下方
 /// 附加内容（[itemExtraBuilder]）；选中状态、间距与图标可通过
 /// [WFormRadioGroupConfig] 配置，只读状态会合并外层 [WFormReadOnlyScope]。
+/// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
+@internal
 class WFormRadioGroupCore<T> extends FormBuilderField<T> {
   /// 单选按钮组配置
   final WFormRadioGroupConfig config;

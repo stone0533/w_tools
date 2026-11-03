@@ -1,3 +1,7 @@
+## 3.0.7
+
+- 抬高 `w_tools_form` 约束到 `^3.2.0`：`Config.build()` 与 `*Core` 标记 `@internal` 并移出公共导出（4.0 物理移除）。
+
 ## 3.0.6
 
 - 抬高 `w_tools_toast` 约束到 `^1.3.0`：新增 `WToastTheme` 与 `WToast.runWithLoading`。

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
@@ -12,6 +13,8 @@ import 'form_controller.dart';
 /// 按钮本身不展示选项，点击行为由 [onTap] 决定：调用方通过 `didChange`
 /// 写入新值，`selectedWidgetBuilder` 负责渲染当前值。
 /// 禁用或位于只读作用域时不响应点击，并以半透明样式呈现。
+/// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
+@internal
 class WFormFieldButtonCore extends StatelessWidget {
   /// 按钮配置
   final WFormFieldButtonConfig config;
@@ -104,6 +107,8 @@ class WFormFieldButtonConfig extends WFormFieldBaseConfig {
     this.containerPadding = containerPadding;
   }
 
+  /// 框架内部使用（直接字段 / Core 组装），4.0 物理移出 Config。
+  @internal
   Widget build({
     required String name,
     required void Function(String? value, ValueChanged<String> didChange) onTap,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
@@ -14,6 +15,8 @@ import '../form_theme.dart';
 /// 选项由 [items] 提供（键为值、值为展示文本），选中值必须存在于 [items]；
 /// 容器、提示、图标与弹层背景色等可通过 [WFormDropdownConfig] 配置，
 /// 只读状态会合并外层 [WFormReadOnlyScope]。
+/// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
+@internal
 class WFormDropdownCore<T> extends StatelessWidget {
   /// 下拉选择配置
   final WFormDropdownConfig config;

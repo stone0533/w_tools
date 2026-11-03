@@ -2,7 +2,7 @@
 
 ## 组件约定
 
-新页面表单默认使用 `WForm` + 直接字段（`WFormTextField` 等），不要从 `Config.build` 开始；详见 [`docs/agents/form.md`](docs/agents/form.md)。
+新页面表单默认使用 `WForm` + 直接字段（`WFormTextField` 等），不要从 `Config.build` 开始（3.2 起 `build` / `*Core` 为 `@internal`，不导出）；详见 [`docs/agents/form.md`](docs/agents/form.md)。
 
 按钮、图片、页面骨架和弹层的组件选择规则见 [`docs/agents/README.md`](docs/agents/README.md)。
 

@@ -62,6 +62,8 @@ class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
     this.containerPadding = containerPadding;
   }
 
+  /// 框架内部使用（直接字段 / Core 组装），4.0 物理移出 Config。
+  @internal
   Widget build({
     required String name,
     required Map<String, String> items,

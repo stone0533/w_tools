@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 import '_helpers/form_test_scaffold.dart';
+import 'package:w_tools_form/src/components/fields/text_field.dart';
 
 void main() {
   group('WFormDefaults', () {

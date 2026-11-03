@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
@@ -13,6 +14,8 @@ import '../form_theme.dart';
 ///
 /// 点击图标或标题切换选中状态；选中 / 未选中 / 禁用图标、间距与图标偏移可通过
 /// [WFormCheckboxConfig] 配置，未配置时取 [WFormDefaults] 的默认图标。
+/// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
+@internal
 class WFormCheckboxCore extends FormBuilderField<bool> {
   /// 复选框配置
   final WFormCheckboxConfig config;
@@ -169,6 +172,8 @@ class WFormCheckboxConfig extends WFormFieldBaseConfig {
     this.containerPadding = containerPadding;
   }
 
+  /// 框架内部使用（直接字段 / Core 组装），4.0 物理移出 Config。
+  @internal
   Widget build({
     required String name,
     required Widget title,

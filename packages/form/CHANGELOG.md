@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.2.0
+
+### Changed
+- `WFormTextFieldConfig.build()` 等 5 个 `build()` 与 7 个 `*Core` 类标记 `@internal`，
+  并从 `components.dart` 的公共导出中 `hide`：消费方使用会在 `analyze` 报
+  `invalid_use_of_internal_member` / 找不到符号。直接字段（`WFormTextField` 等）不受影响。
+  4.0 会把组装逻辑物理移出 Config、删除这些符号。
+
 ## 3.1.0
 
 ### Added

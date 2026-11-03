@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 import '_helpers/form_test_scaffold.dart';
+import 'package:w_tools_form/src/components/fields/dropdown.dart';
+import 'package:w_tools_form/src/components/fields/multi_dropdown.dart';
 
 void main() {
   group('WFormDropdownConfig — 纯 Dart', () {

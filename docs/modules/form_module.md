@@ -356,7 +356,7 @@ WForm(
 `WFormController` 与 `WForm` 建议一对一使用：`WForm` 会写入 controller 的默认校验设置，
 多个 `WForm` 共用同一个 controller 时，后挂载的会覆盖前一个的默认设置。
 
-`WFormTextFieldCore` / `WFormDropdownCore` 等是低层核心 Widget，普通业务页面不需要直接使用。完整示例见
+`WFormTextFieldCore` / `WFormDropdownCore` 等是低层核心 Widget（`@internal`，不从公共面导出），普通业务页面不需要直接使用。完整示例见
 [`packages/form/example`](../../packages/form/example/README.md)。
 
 ## 4. 边框系统
@@ -442,6 +442,8 @@ WFormFieldShell(name: 'username', readOnly: false, child: Row(children: [...]))
 > 日常业务页面优先使用 §3.6 的 `WForm` + 直接字段（`WFormTextField` 等）。
 > 本节示例默认使用直接字段；只有需要特殊样式时，才在示例中传 `config`。
 > `Config.build(...)` / `*Core` 属于低层实现，不作为页面主入口。
+> 3.2 起它们标了 `@internal` 并从公共导出中 `hide`：消费方在 `analyze` 会得到
+> `invalid_use_of_internal_member` / 找不到符号的提示；4.0 物理移出 public 面。
 
 所有字段组件遵循统一模式：
 - `XxxConfig` + `Xxx` 组件 + 单一构建入口 `build(bordered: bool)`

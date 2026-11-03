@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
@@ -19,6 +20,8 @@ part 'multi_dropdown_config.dart';
 /// 点击后在锚点下方弹出可多选的选项列表，字段值为 `Set<String>`；
 /// 未选择时的占位文本、禁用项、弹层外观与选项样式可通过
 /// [WFormMultiDropdownConfig] 配置，只读状态会合并外层 [WFormReadOnlyScope]。
+/// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
+@internal
 class WFormMultiDropdownCore extends StatelessWidget {
   /// 多选下拉框配置
   final WFormMultiDropdownConfig config;
