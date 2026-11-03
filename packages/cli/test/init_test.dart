@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
+import 'package:w_tools_cli/src/common/version.dart';
 import 'package:w_tools_cli/src/init/manifest.dart';
 import 'package:yaml/yaml.dart';
 
@@ -117,6 +118,26 @@ void main() {
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains('w_tools_figma')));
       expect(report.pubspecSnippet, isNot(contains('w_tools_figma')));
+    });
+
+    test('manifest 记录生成器版本，老的没有该字段也能读', () {
+      final root = makeProject();
+      final manifest = InitManifest(
+        profile: 'full',
+        features: const <String, bool>{'core': true},
+        targets: const <String>['agents'],
+        lang: 'zh',
+        figma: true,
+        device: false,
+        generator: cliVersion,
+      );
+      final file = InitManifest.fileFor(root)..parent.createSync(recursive: true);
+      file.writeAsStringSync(manifest.encode());
+      expect(InitManifest.load(root)?.generator, cliVersion);
+
+      // 老文件（没有 generator）
+      file.writeAsStringSync('{"schema":"w_tools_cli.init/1","profile":"full"}');
+      expect(InitManifest.load(root)?.generator, isNull);
     });
 
     test('--check 不迁移 manifest（只读）', () async {

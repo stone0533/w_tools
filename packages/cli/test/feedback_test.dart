@@ -49,6 +49,27 @@ void main() {
     });
   });
 
+  group('feedback path 的入参校验', () {
+    test('合法包名原样返回；空 / null 视为不指定', () {
+      expect(validatePackageName('figma'), 'figma');
+      expect(validatePackageName('e2e'), 'e2e');
+      expect(validatePackageName(null), isNull);
+      expect(validatePackageName(''), isNull);
+    });
+
+    test('带 .. 或大小写的包名抛 FormatException', () {
+      expect(() => validatePackageName('../evil'), throwsFormatException);
+      expect(() => validatePackageName('Fig'), throwsFormatException);
+      expect(() => validatePackageName('a/b'), throwsFormatException);
+    });
+
+    test('收件箱路径固定为 docs/agents/feedback.md', () {
+      final root = Directory.systemTemp.createTempSync('wt_fb_inbox_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      expect(inboxFile(root).path, endsWith('docs/agents/feedback.md'));
+    });
+  });
+
   group('feedback lint', () {
     test('字段齐全的待处理条目通过', () {
       final root = _tmp('wt_fbl_');

@@ -1,3 +1,10 @@
+## 1.9.9
+
+### 新增
+- `.w_tools/init.json` 记录 `generator`（写这份 manifest 的 CLI 版本）；老文件没有该字段也能读。
+- `validatePackageName` / `inboxFile` 提出为可测函数，补 bin 层入参校验测试
+  （`../evil` / 大小写 / 空值；收件箱路径固定）。
+
 ## 1.9.8
 
 ### 改进

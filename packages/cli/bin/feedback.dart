@@ -3,8 +3,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
-
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/context/install_info.dart';
 import 'package:w_tools_cli/src/feedback/feedback_lint.dart';
@@ -54,9 +52,11 @@ void main(List<String> argv) {
 
       switch (sub) {
         case 'path':
-          final package = args['package'] as String?;
-          if (package != null && !RegExp(r'^[a-z0-9_]+$').hasMatch(package)) {
-            stderr.writeln('--package 只允许小写字母/数字/下划线：$package');
+          String? package;
+          try {
+            package = validatePackageName(args['package'] as String?);
+          } on FormatException catch (e) {
+            stderr.writeln(e.message);
             exit(2);
           }
           final target = FeedbackTarget.resolve(
@@ -91,8 +91,8 @@ void main(List<String> argv) {
           }
           if (args['include-inbox'] as bool) {
             // 无条件检查收件箱：仓库检出时它同样可能存在待同步条目
-            final inboxPath = p.join(root.path, 'docs', 'agents', 'feedback.md');
-            if (File(inboxPath).existsSync()) paths.add(inboxPath);
+            final inbox = inboxFile(root);
+            if (inbox.existsSync()) paths.add(inbox.path);
             final inboxResult = linter.lintFiles(paths);
             result = FeedbackLintResult(
               files: [...result.files, ...inboxResult.files],

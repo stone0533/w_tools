@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:w_tools_cli/src/common/cli.dart';
+import 'package:w_tools_cli/src/common/version.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
@@ -230,6 +231,7 @@ void main(List<String> argv) {
         lang: lang,
         figma: figmaEnabled,
         device: deviceEnabled,
+        generator: cliVersion,
       );
       final report = runInit(
         root,

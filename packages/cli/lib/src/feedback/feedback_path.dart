@@ -4,6 +4,21 @@ import 'package:path/path.dart' as p;
 
 import '../context/install_info.dart';
 
+/// 校验 `--package`：只允许小写字母/数字/下划线，防止 `../` 穿越到反馈目录之外。
+///
+/// 返回规范化后的包名；`null` / 空串视为「不指定包」，返回 null。
+String? validatePackageName(String? package) {
+  if (package == null || package.isEmpty) return null;
+  if (!RegExp(r'^[a-z0-9_]+$').hasMatch(package)) {
+    throw FormatException('--package 只允许小写字母/数字/下划线：$package');
+  }
+  return package;
+}
+
+/// 本项目收件箱：`docs/agents/feedback.md`（无论是否检出仓库，都可能存在）。
+File inboxFile(Directory projectRoot) =>
+    File(p.join(projectRoot.path, 'docs', 'agents', 'feedback.md'));
+
 /// 反馈该写到哪个文件（或目录）。
 class FeedbackTarget {
   const FeedbackTarget({
