@@ -6,7 +6,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_e2e: ^0.1.0
+  w_tools_e2e: ^0.1.1
 ```
 
 或：

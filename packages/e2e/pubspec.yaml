@@ -3,7 +3,7 @@ description: 端到端验证用的免登录入口（编译期开关，release �
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/e2e
 issue_tracker: https://github.com/stone0533/w_tools/issues
-version: 0.1.0
+version: 0.1.1
 resolution: workspace
 
 environment:
