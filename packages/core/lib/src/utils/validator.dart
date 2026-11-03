@@ -172,7 +172,7 @@ class WValidator {
 
   /// 是否为有效中文姓名（2-20 个汉字）
   static bool isValidChineseName(String input) {
-    return RegExp(r'^[\u4e00-\u9fa5]{2,20}$').hasMatch(input);
+    return WRegExp.chineseName.hasMatch(input);
   }
 
   /// 是否为正整数（大于 0）
@@ -183,7 +183,7 @@ class WValidator {
 
   /// 是否为小数（必须包含小数部分，可带负号）
   static bool isValidDecimal(String input) {
-    return RegExp(r'^-?\d+\.\d+$').hasMatch(input);
+    return WRegExp.decimal.hasMatch(input);
   }
 
   /// 是否为正小数（必须包含小数部分且大于 0）
@@ -197,12 +197,12 @@ class WValidator {
 
   /// 是否为有效邮政编码（6 位数字）
   static bool isValidPostalCode(String input) {
-    return RegExp(r'^\d{6}$').hasMatch(input);
+    return WRegExp.postalCode.hasMatch(input);
   }
 
   /// 是否为有效 MAC 地址（`:` 或 `-` 分隔）
   static bool isValidMacAddress(String input) {
-    return RegExp(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$').hasMatch(input);
+    return WRegExp.macAddress.hasMatch(input);
   }
 
   /// 是否为有效日期（YYYY-MM-DD）
@@ -210,8 +210,7 @@ class WValidator {
   /// 除格式外还会校验真实日期范围，例如 `2023-02-30`、`2023-13-01`
   /// 都会返回 false。
   static bool isValidDate(String date) {
-    final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-    if (!dateRegex.hasMatch(date)) {
+    if (!WRegExp.date.hasMatch(date)) {
       return false;
     }
     final parsed = DateTime.tryParse(date);
@@ -228,16 +227,14 @@ class WValidator {
 
   /// 是否为有效时间（`H:MM:SS` 或 `HH:MM:SS`，24 小时制）
   static bool isValidTime(String time) {
-    final timeRegex = RegExp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$');
-    return timeRegex.hasMatch(time);
+    return WRegExp.time.hasMatch(time);
   }
 
   /// 是否为有效日期时间（`YYYY-MM-DD H:MM:SS` 或 `YYYY-MM-DD HH:MM:SS`）
   ///
   /// 日期部分会做真实日期校验，时间部分由正则限定在合法范围内。
   static bool isValidDateTime(String dateTime) {
-    final dateTimeRegex = RegExp(r'^\d{4}-\d{2}-\d{2} ([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$');
-    if (!dateTimeRegex.hasMatch(dateTime)) {
+    if (!WRegExp.dateTime.hasMatch(dateTime)) {
       return false;
     }
     return isValidDate(dateTime.split(' ').first);

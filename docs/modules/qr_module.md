@@ -431,6 +431,7 @@ class _QrScanPageState extends State<QrScanPage> {
 
 ### 其他
 
+- `borderLength` 需 `<= min(cutOutWidth, cutOutHeight) / 2 + borderWidth * 2`，否则构造时断言失败。
 - `scanInterval` 仅在 `scanOnce=false` 时生效，默认 `400ms`：同一内容最快每 400ms 回调一次；持续对着同一码会持续回调，需要“一码一次”请自行去重或改用 `scanOnce` / `restartScan`。
 - `showOverlay=false` 时 `borderColor` / `checkedBorderColor` / `overlay` 均不生效，组件进入全屏扫描模式。
 - `formatsAllowed` 为空列表时使用平台默认识别格式，显式指定可提升识别速度。

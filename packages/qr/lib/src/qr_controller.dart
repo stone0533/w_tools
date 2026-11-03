@@ -52,6 +52,9 @@ class WQrController {
   Future<void> stopCamera() => _controller.stopCamera();
 
   /// 翻转前后摄像头，返回翻转后的方向
+  ///
+  /// 翻转结果只存在于插件侧：若随后因 `cameraFacing` / `formatsAllowed` 变化
+  /// 触发平台视图重建，会回到 `WQrView.cameraFacing` 的取值。
   Future<CameraFacing> flipCamera() => _controller.flipCamera();
 
   /// 获取闪光灯状态

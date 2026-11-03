@@ -57,18 +57,15 @@ abstract final class WMapIconAssets {
   }
 }
 
-/// MarkerId 规则见 [WMapItemMapper.id]（id > name > 经纬度，不用 hashCode）。
-bool _sameCamera(CameraPosition? a, CameraPosition? b) {
-  if (a == null || b == null) return a == b;
-  return a.target == b.target && a.zoom == b.zoom && a.bearing == b.bearing && a.tilt == b.tilt;
-}
+/// 比较相机位置（[CameraPosition] 已按 target / zoom / bearing / tilt 实现 `==`）
+bool _sameCamera(CameraPosition? a, CameraPosition? b) => a == b;
 
 /// 地图区域类
 ///
 /// 持有 [GoogleMapController]、[markers] 集合、地图数据列表 [maps]，
 /// 支持外部复用、跨组件共享控制器状态及通过 [update] 刷新数据。
 ///
-/// 泛型 [T] 约束为 [WMapItem]，业务方传入自己的数据模型类型。
+/// 泛型 [T] 无约束：实现 [WMapItem] 可直接用默认 mapper，否则必须传 [WMapItemMapper]。
 class WMapZone<T> {
   /// Google 地图控制器
   GoogleMapController? googleMapController;

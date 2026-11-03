@@ -85,6 +85,10 @@ void main() {
 
   test('非法尺寸在 debug 下断言失败', () {
     expect(
+      () => WQrViewOverlayShape(cutOutWidth: 60), // borderLength 40 > 30 + 6
+      throwsA(isA<AssertionError>()),
+    );
+    expect(
       () => WQrViewOverlayShape(cutOutWidth: 0),
       throwsA(isA<AssertionError>()),
     );

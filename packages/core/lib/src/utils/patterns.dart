@@ -21,5 +21,7 @@ const String kPositiveIntegerPattern = r'^(?!0+$)\d+$';
 const String kDecimalPattern = r'^-?\d+\.\d+$';
 const String kPositiveDecimalPattern = r'^(?!0+\.0+$)\d+\.\d+$';
 const String kDatePattern = r'^\d{4}-\d{2}-\d{2}$';
+const String kTimePattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$';
+const String kDateTimePattern = r'^\d{4}-\d{2}-\d{2} ([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$';
 const String kBankCardPattern = r'^\d{16,19}$';
 const String kPostalCodePattern = r'^\d{6}$';

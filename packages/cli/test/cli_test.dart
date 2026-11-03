@@ -1,3 +1,6 @@
+@Timeout(Duration(minutes: 2))
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -21,7 +24,6 @@ Future<ProcessResult> _run(String bin, List<String> args) {
   );
 }
 
-@Timeout(Duration(minutes: 2))
 void main() {
   test('普通 init 会更新 manifest，即使没带 --force', () async {
     final root = _project();

@@ -66,6 +66,12 @@ class WRegExpPattern {
   /// 日期格式（YYYY-MM-DD，仅校验格式；真实日期请用 [WValidator.isValidDate]）
   static const String date = kDatePattern;
 
+  /// 时间格式（H:MM:SS 或 HH:MM:SS，24 小时制）
+  static const String time = kTimePattern;
+
+  /// 日期时间格式（YYYY-MM-DD H:MM:SS）
+  static const String dateTime = kDateTimePattern;
+
   /// 银行卡号（16-19 位数字，仅校验位数）
   static const String bankCard = kBankCardPattern;
 
@@ -179,6 +185,12 @@ class WRegExp {
 
   /// 日期格式正则
   static final RegExp date = RegExp(kDatePattern);
+
+  /// 时间（H:MM:SS / HH:MM:SS，24 小时制）
+  static final RegExp time = RegExp(kTimePattern);
+
+  /// 日期时间（YYYY-MM-DD H:MM:SS）
+  static final RegExp dateTime = RegExp(kDateTimePattern);
 
   /// 银行卡号正则
   static final RegExp bankCard = RegExp(kBankCardPattern);

@@ -25,6 +25,9 @@ class WQrViewOverlayShape {
 
   /// 创建扫描框样式
   ///
+  /// 约束：`borderLength <= min(cutOutWidth, cutOutHeight) / 2 + borderWidth * 2`
+  /// （与插件 `QrScannerOverlayShape` 的断言一致）。
+  ///
   /// - [borderWidth]：默认 3.0
   /// - [overlayColor]：默认半透明黑色
   /// - [borderRadius]：默认 0
@@ -47,7 +50,16 @@ class WQrViewOverlayShape {
          (cutOutHeight ?? cutOutWidth) > 0,
          'cutOutHeight 必须大于 0',
        ),
-       cutOutHeight = cutOutHeight ?? cutOutWidth;
+       cutOutHeight = cutOutHeight ?? cutOutWidth,
+       assert(
+         borderLength <=
+             (((cutOutHeight ?? cutOutWidth) < cutOutWidth)
+                         ? (cutOutHeight ?? cutOutWidth)
+                         : cutOutWidth) /
+                     2 +
+                 borderWidth * 2,
+         'borderLength 过大：需 <= min(cutOutWidth, cutOutHeight) / 2 + borderWidth * 2',
+       );
 
   @override
   bool operator ==(Object other) =>
