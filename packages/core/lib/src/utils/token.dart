@@ -1,19 +1,19 @@
-import '../config.dart';
 import 'storage.dart';
 
 /// Token 管理
 ///
-/// 键名来自 [WConfig]；读写直接走 [WStorage]（SharedPreferences 自身已有内存
-/// 缓存），因此调用 [WStorage.clear] 后 token 状态会同步清空。
+/// 键名由本类持有（`WConfig` 的同名字段已弃用，仅代理到这里）；读写直接走
+/// [WStorage]（SharedPreferences 自身已有内存缓存），因此调用 [WStorage.clear]
+/// 后 token 状态会同步清空。
 class WToken {
-  /// token 存储键名（来自 [WConfig.tokenKey]）
-  static String get tokenKey => WConfig.tokenKey;
+  /// token 存储键名
+  static String tokenKey = 'token';
 
-  /// refresh token 存储键名（来自 [WConfig.refreshTokenKey]）
-  static String get refreshTokenKey => WConfig.refreshTokenKey;
+  /// refresh token 存储键名
+  static String refreshTokenKey = 'refresh_token';
 
-  /// token 过期时间存储键名（来自 [WConfig.tokenExpiryKey]）
-  static String get tokenExpiryKey => WConfig.tokenExpiryKey;
+  /// token 过期时间存储键名
+  static String tokenExpiryKey = 'token_expiry';
 
   // 纯静态工具类，禁止实例化
   WToken._();

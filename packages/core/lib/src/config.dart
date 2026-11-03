@@ -1,6 +1,11 @@
 /// 基础配置
 ///
-/// 通过静态字段统一配置资源路径与 token 存储键名，修改后对所有使用方立即生效。
+/// token 键名已迁到 [WToken]，这里的同名字段只作弃用代理；`assetImagePath` 仅为
+/// 源码兼容保留，不再有任何效果。
+library;
+
+import 'utils/token.dart';
+
 class WConfig {
   /// 资产图片路径（以 `/` 结尾）
   ///
@@ -15,14 +20,29 @@ class WConfig {
   )
   static String assetImagePath = 'assets/images/';
 
-  /// token 存储键名（由 WToken 使用）
-  static String tokenKey = 'token';
+  /// token 存储键名（代理到 [WToken.tokenKey]）
+  @Deprecated('用 WToken.tokenKey；3.0 移除')
+  static String get tokenKey => WToken.tokenKey;
 
-  /// refresh token 存储键名（由 WToken 使用）
-  static String refreshTokenKey = 'refresh_token';
+  /// token 存储键名（代理到 [WToken.tokenKey]）
+  @Deprecated('用 WToken.tokenKey；3.0 移除')
+  static set tokenKey(String value) => WToken.tokenKey = value;
 
-  /// token 过期时间存储键名（由 WToken 使用）
-  static String tokenExpiryKey = 'token_expiry';
+  /// refresh token 存储键名（代理到 [WToken.refreshTokenKey]）
+  @Deprecated('用 WToken.refreshTokenKey；3.0 移除')
+  static String get refreshTokenKey => WToken.refreshTokenKey;
+
+  /// refresh token 存储键名（代理到 [WToken.refreshTokenKey]）
+  @Deprecated('用 WToken.refreshTokenKey；3.0 移除')
+  static set refreshTokenKey(String value) => WToken.refreshTokenKey = value;
+
+  /// token 过期时间存储键名（代理到 [WToken.tokenExpiryKey]）
+  @Deprecated('用 WToken.tokenExpiryKey；3.0 移除')
+  static String get tokenExpiryKey => WToken.tokenExpiryKey;
+
+  /// token 过期时间存储键名（代理到 [WToken.tokenExpiryKey]）
+  @Deprecated('用 WToken.tokenExpiryKey；3.0 移除')
+  static set tokenExpiryKey(String value) => WToken.tokenExpiryKey = value;
 
   // 纯静态配置类，禁止实例化
   WConfig._();

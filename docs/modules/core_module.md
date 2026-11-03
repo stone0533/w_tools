@@ -31,7 +31,7 @@ Core 模块（`w_tools_core` 子包）是整个 `w_tools` 工具库的**零业�
 core/
 ├── w_tools_core.dart        # barrel 导出
 └── src/
-    ├── config.dart          # WConfig 静态配置
+    ├── config.dart          # WConfig 弃用代理（键名已迁到 WToken）
     ├── extensions/
     │   └── map.dart         # WMapExtension
     └── utils/
@@ -49,7 +49,7 @@ core/
 
 ---
 
-## 1. WConfig - 全局静态配置
+## 1. WToken 键名 / WConfig（弃用）
 
 ### 功能说明
 
@@ -71,9 +71,9 @@ core/
 
 ```dart
 void main() {
-  WConfig.tokenKey = 'auth_token';
-  WConfig.refreshTokenKey = 'auth_refresh_token';
-  WConfig.tokenExpiryKey = 'auth_token_expiry';
+  WToken.tokenKey = 'auth_token';
+  WToken.refreshTokenKey = 'auth_refresh_token';
+  WToken.tokenExpiryKey = 'auth_token_expiry';
 }
 ```
 
@@ -434,7 +434,7 @@ await WStorage.clear();
 
 ### 功能说明
 
-基于 `WStorage` 的 Token 便捷管理。键名从 `WConfig` 读取，无需硬编码。
+基于 `WStorage` 的 Token 便捷管理。键名由 `WToken` 持有（默认 `token` / `refresh_token` / `token_expiry`），无需硬编码。
 
 ### 保存方法
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+
+### Changed
+- token 键名移入 `WToken`（`tokenKey` / `refreshTokenKey` / `tokenExpiryKey`），成为唯一真源；
+  `WConfig` 的同名字段改为弃用代理（3.0 移除），行为不变。
+
 ## 2.0.0
 
 ### Breaking

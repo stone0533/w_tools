@@ -1,3 +1,7 @@
+## 3.0.8
+
+- 抬高 `w_tools_core` 约束到 `^2.1.0`：token 键名移入 `WToken`，`WConfig` 同名字段弃用。
+
 ## 3.0.7
 
 - 抬高 `w_tools_form` 约束到 `^3.2.0`：`Config.build()` 与 `*Core` 标记 `@internal` 并移出公共导出（4.0 物理移除）。

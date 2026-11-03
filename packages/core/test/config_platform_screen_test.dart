@@ -1,19 +1,28 @@
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_core/w_tools_core.dart';
 
 void main() {
-  group('WConfig', () {
+  group('WToken 键名', () {
     test('默认值正确', () {
-      expect(WConfig.tokenKey, 'token');
-      expect(WConfig.refreshTokenKey, 'refresh_token');
-      expect(WConfig.tokenExpiryKey, 'token_expiry');
+      expect(WToken.tokenKey, 'token');
+      expect(WToken.refreshTokenKey, 'refresh_token');
+      expect(WToken.tokenExpiryKey, 'token_expiry');
     });
 
     test('可赋值修改', () {
-      final oldTokenKey = WConfig.tokenKey;
-      WConfig.tokenKey = 'my_custom_token';
-      expect(WConfig.tokenKey, 'my_custom_token');
-      WConfig.tokenKey = oldTokenKey;
+      final oldTokenKey = WToken.tokenKey;
+      WToken.tokenKey = 'my_custom_token';
+      expect(WToken.tokenKey, 'my_custom_token');
+      WToken.tokenKey = oldTokenKey;
+    });
+
+    test('WConfig 同名字段是弃用代理', () {
+      final oldTokenKey = WToken.tokenKey;
+      WConfig.tokenKey = 'proxy_token';
+      expect(WToken.tokenKey, 'proxy_token');
+      expect(WConfig.tokenKey, 'proxy_token');
+      WToken.tokenKey = oldTokenKey;
     });
   });
 
