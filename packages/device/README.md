@@ -34,6 +34,8 @@ size --real
 ```
 
 `--scale` 只用于 iOS 模拟器，必须是正整数；非法值会报错而不是静默忽略。
+`--no-cache` 只用于 tap / drag / wait / verify；`--timeout-ms` 和 `--stable-ms` 只用于 wait / verify；
+`--out` 只用于 shot。
 
 真机说明：列表/截图走 `devicectl`；**点击真机需要 idb 或 XCUITest，本工具不支持**。
 锁屏/息屏时 `devicectl` 会返回全黑图，工具会给出 `warning`（`--json` 里也有）。
@@ -66,4 +68,4 @@ dart run w_tools_device:device foreground --android    # 前台包名（冒烟�
 
 坐标标定原理：截 DeviceHub 窗口 → 找最外层黑色机身（连通域）→ 内缩得到设备屏幕矩形 →
 按设备分辨率换算成「设备坐标 ↔ 屏幕坐标」。结果缓存在 `~/.cache/w_tools_device/`，
-窗口位置或尺寸变化时自动重算。
+窗口位置或尺寸变化时自动重算；旋转设备后缓存不一定能自动识别，必要时用 `--no-cache`。

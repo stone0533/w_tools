@@ -163,6 +163,21 @@ class DeviceOptions {
     if (scale != null && (android || real)) {
       throw StateError('--scale 只用于 iOS 模拟器');
     }
+    if (noCache &&
+        command != 'tap' &&
+        command != 'drag' &&
+        command != 'wait' &&
+        command != 'verify') {
+      throw StateError('--no-cache 只用于 tap / drag / wait / verify');
+    }
+    if (timeout != const Duration(seconds: 15) && command != 'wait' && command != 'verify') {
+      throw StateError('--timeout-ms 只用于 wait / verify');
+    }
+    if (stableFor != const Duration(milliseconds: 600) &&
+        command != 'wait' &&
+        command != 'verify') {
+      throw StateError('--stable-ms 只用于 wait / verify');
+    }
   }
 
   static int _positiveInt(String option, String value) {

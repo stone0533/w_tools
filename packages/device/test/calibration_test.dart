@@ -112,6 +112,22 @@ void main() {
       expect(topLeft.y, closeTo(260, 0.01));
     });
 
+    test('JSON 保留截图尺寸与 scale，便于缓存复用', () {
+      const cal = Calibration(
+        window: HubWindow(100, 50, 872, 1084),
+        deviceRect: DRect(300, 60, 430, 934),
+        deviceWidth: 402,
+        deviceHeight: 874,
+        screenshotWidth: 1206,
+        screenshotHeight: 2622,
+        scale: 2,
+      );
+      final back = Calibration.fromJson(cal.toJson())!;
+      expect(back.screenshotWidth, 1206);
+      expect(back.screenshotHeight, 2622);
+      expect(back.scale, 2);
+    });
+
     test('窗口变了，缓存的标定应失效', () {
       const cal = Calibration(
         window: HubWindow(10, 20, 872, 1084),

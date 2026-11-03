@@ -13,6 +13,9 @@ class Calibration {
     required this.deviceRect,
     required this.deviceWidth,
     required this.deviceHeight,
+    this.screenshotWidth = 0,
+    this.screenshotHeight = 0,
+    this.scale = 0,
   });
 
   final HubWindow window;
@@ -23,6 +26,13 @@ class Calibration {
   /// 设备逻辑分辨率（point），例如 402 × 874
   final int deviceWidth;
   final int deviceHeight;
+
+  /// 标定时设备截图的像素尺寸；缓存命中时可直接复用，避免重复截图。
+  final int screenshotWidth;
+  final int screenshotHeight;
+
+  /// 标定时的 px / point；`--scale` 变化时缓存应失效。
+  final double scale;
 
   bool matches(HubWindow w) => window.sameAs(w);
 
@@ -46,6 +56,9 @@ class Calibration {
         },
         'deviceWidth': deviceWidth,
         'deviceHeight': deviceHeight,
+        'screenshotWidth': screenshotWidth,
+        'screenshotHeight': screenshotHeight,
+        'scale': scale,
       };
 
   static Calibration? fromJson(Map<String, dynamic>? json) {
@@ -60,11 +73,17 @@ class Calibration {
     if (x == null || y == null || w == null || h == null || dw == null || dh == null) {
       return null;
     }
+    final sw = json['screenshotWidth'] as num?;
+    final sh = json['screenshotHeight'] as num?;
+    final scale = json['scale'] as num?;
     return Calibration(
       window: window,
       deviceRect: DRect(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble()),
       deviceWidth: dw.toInt(),
       deviceHeight: dh.toInt(),
+      screenshotWidth: sw?.toInt() ?? 0,
+      screenshotHeight: sh?.toInt() ?? 0,
+      scale: scale?.toDouble() ?? 0,
     );
   }
 }
@@ -84,6 +103,8 @@ class CalibrationDetector {
     required double scale,
     required int deviceWidth,
     required int deviceHeight,
+    int? screenshotWidth,
+    int? screenshotHeight,
   }) {
     final targetAspect = deviceWidth / deviceHeight;
     final bbox = _largestDarkBBox(image);
@@ -121,6 +142,9 @@ class CalibrationDetector {
       deviceRect: inPoints,
       deviceWidth: deviceWidth,
       deviceHeight: deviceHeight,
+      screenshotWidth: screenshotWidth ?? image.width,
+      screenshotHeight: screenshotHeight ?? image.height,
+      scale: scale,
     );
   }
 

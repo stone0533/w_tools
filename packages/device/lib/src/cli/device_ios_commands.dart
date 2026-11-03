@@ -142,7 +142,9 @@ Future<void> _wait(Simctl simctl, DeviceOptions o) async {
   int? pixelWidth;
   if (o.region != null) {
     calibration = await _calibrate(simctl, o, force: o.noCache);
-    pixelWidth = (await simctl.screenshotSize(udid)).$1;
+    pixelWidth = calibration.screenshotWidth > 0
+        ? calibration.screenshotWidth
+        : (await simctl.screenshotSize(udid)).$1;
   }
   final ok = await _stability(
     simctl,
@@ -165,7 +167,8 @@ Future<void> _verify(Simctl simctl, DeviceOptions o) async {
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
   final cal = await _calibrate(simctl, o, force: o.noCache);
   final screen = cal.toScreen(DPoint(x, y));
-  final pixelWidth = (await simctl.screenshotSize(udid)).$1;
+  final pixelWidth =
+      cal.screenshotWidth > 0 ? cal.screenshotWidth : (await simctl.screenshotSize(udid)).$1;
   final changed = await TapVerifier.verify(
     stability: _stability(
       simctl,
@@ -217,6 +220,11 @@ void _emitCalibration(DeviceOptions o, Calibration c) {
           'h': c.deviceRect.height,
         },
         'device': {'width': c.deviceWidth, 'height': c.deviceHeight},
+        'screenshot': {
+          'width': c.screenshotWidth,
+          'height': c.screenshotHeight,
+          'scale': c.scale,
+        },
       },
       '窗口：(${c.window.x}, ${c.window.y}) ${c.window.width}×${c.window.height}\n'
       '设备屏幕（窗口内）：(${c.deviceRect.left.toStringAsFixed(1)}, '
@@ -283,21 +291,17 @@ Future<Calibration> _calibrate(
   if (window == null) {
     throw StateError('读不到 DeviceHub 窗口：确认 DeviceHub 已打开，且宿主 App 有「辅助功能」权限');
   }
+  if (!force) {
+    final cached = store.load(udid);
+    if (cached != null && cached.matches(window)) {
+      final scaleMatches = o.scale == null || cached.scale == o.scale;
+      if (scaleMatches) return cached;
+    }
+  }
+
   final size = await simctl.screenshotSize(udid);
   final deviceScale = o.scale ?? Simctl.guessScale(size.$1);
   final points = (size.$1 ~/ deviceScale, size.$2 ~/ deviceScale);
-  if (!force) {
-    final cached = store.load(udid);
-    if (cached != null &&
-        store.isFresh(
-          udid,
-          window,
-          deviceWidth: points.$1,
-          deviceHeight: points.$2,
-        )) {
-      return cached;
-    }
-  }
 
   final shot = '${Directory.systemTemp.path}/w_tools_device_hub.png';
   final scale = await hub.capture(window, shot);
@@ -309,6 +313,8 @@ Future<Calibration> _calibrate(
     scale: scale,
     deviceWidth: points.$1,
     deviceHeight: points.$2,
+    screenshotWidth: size.$1,
+    screenshotHeight: size.$2,
   );
   store.save(udid, cal);
   return cal;

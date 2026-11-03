@@ -40,15 +40,21 @@ class Devicectl {
   final Shell _shell;
 
   Future<List<RealDevice>> devices() async {
-    final out = '${Directory.systemTemp.path}/w_tools_device_devicectl.json';
-    await _shell.runOrThrow('xcrun', [
-      'devicectl',
-      'list',
-      'devices',
-      '--json-output',
-      out,
-    ]);
-    return parseDevices(File(out).readAsStringSync());
+    final out = File(
+      '${Directory.systemTemp.path}/w_tools_device_devicectl_${DateTime.now().microsecondsSinceEpoch}.json',
+    );
+    try {
+      await _shell.runOrThrow('xcrun', [
+        'devicectl',
+        'list',
+        'devices',
+        '--json-output',
+        out.path,
+      ]);
+      return parseDevices(out.readAsStringSync());
+    } finally {
+      if (out.existsSync()) out.deleteSync();
+    }
   }
 
   /// 只保留物理设备。

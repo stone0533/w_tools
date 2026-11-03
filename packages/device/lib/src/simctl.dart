@@ -101,15 +101,24 @@ class Simctl {
 
   /// 设备逻辑尺寸（point）。iPhone 常见 3x，其余按 2x 粗略判断；
   /// 需要精确时用 `--scale=` 覆盖。
-  static int guessScale(int pixelWidth) => pixelWidth >= 1080 ? 3 : 2;
+  static int guessScale(int pixelWidth) {
+    // iPad 常见 1536 / 1620 / 2048 / 2732 都是 2x；
+    // iPhone 1080+ 多数是 3x。需要精确时用 --scale。
+    if (pixelWidth >= 1536) return 2;
+    return pixelWidth >= 1080 ? 3 : 2;
+  }
 
   /// 读取截图尺寸（px），用于标定时确定设备宽高比。
   Future<(int width, int height)> screenshotSize(String udid) async {
-    final tmp = '${Directory.systemTemp.path}/w_tools_device_size.png';
-    await screenshot(udid, tmp);
-    final size = await _imageSize(tmp);
-    File(tmp).deleteSync();
-    return size;
+    final tmp = File(
+      '${Directory.systemTemp.path}/w_tools_device_size_${DateTime.now().microsecondsSinceEpoch}.png',
+    );
+    try {
+      await screenshot(udid, tmp.path);
+      return await _imageSize(tmp.path);
+    } finally {
+      if (tmp.existsSync()) tmp.deleteSync();
+    }
   }
 
   Future<(int, int)> _imageSize(String path) async {

@@ -42,7 +42,8 @@ void main() {
       expect(Simctl.guessScale(1206), 3);
       expect(Simctl.guessScale(1170), 3);
       expect(Simctl.guessScale(750), 2);
-      expect(Simctl.guessScale(1620), 3);
+      expect(Simctl.guessScale(1620), 2);
+      expect(Simctl.guessScale(2048), 2);
     });
 
     test('resolve 找不到时返回 null（而不是抛）', () {
