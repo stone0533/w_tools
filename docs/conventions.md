@@ -89,7 +89,7 @@ doctor 检查项：
 | id | 级别 | 内容 |
 | --- | --- | --- |
 | R1 | error | `dependencies` 里出现聚合包 `w_tools`（`dev_dependencies` 豁免 —— doctor 自己就靠它；`dependency_overrides` 里出现只 **warn**） |
-| R2 | error | 业务代码直接 import / export `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外） |
+| R2 | error | 业务代码直接 import / export `package:w_tools_*`（聚合入口、`lib/app/ui/`、暂存层除外；`test/` / `tool/` / `integration_test/` 里 `w_tools_cli` / `figma` / `device` / `e2e` 这类 dev-only 工具包放行） |
 | R3 | warn | 业务层硬编码语义色（**调色板默认空**，需声明 `colors.palette`；项目 UI / 暂存层豁免） |
 | R4 | error | 设计系统（`lib/app/ui/`、暂存层）import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
