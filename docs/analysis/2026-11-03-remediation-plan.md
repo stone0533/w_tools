@@ -6,10 +6,12 @@
 
 ## 进度
 
+阶段 0 / 1：
+
 | 步 | 状态 | 落点 |
 | --- | --- | --- |
 | 0.1 CI 补齐 async / figma / device / e2e | 完成 | `.github/workflows/ci.yml`：`matrix.include` + `kind` |
-| 0.2 首次基线 | 完成 | 本地全绿：ui 358、form 285、api 45、map 34、async 110、e2e 14、cli 201、figma 82、device 52；期间清掉了 Flutter 升级后残留的 `build/unit_test_assets` 旧 shader |
+| 0.2 首次基线 | 完成 | 本地全绿：ui 358、form 285、api 45、map 34、async 110、e2e 14、cli 205、figma 83、device 58；期间清掉了 Flutter 升级后残留的 `build/unit_test_assets` 旧 shader |
 | 0.3 弃用到期守护 | 完成 | `scripts/check_deprecations.py` + 3 处 `remove-in` |
 | 0.4 文档版本守护 | 完成 | `scripts/check_docs_versions.py` + 修掉 6 处漂移 |
 | 1.1 表单校验错误默认可见 | 完成（改为契约修复） | 只传 `borderConfig` 时默认 `showBorderError = true`；显式 settings 完全优先。原计划的「默认 `borderConfig = standard()`」涉及视觉变更，留到 4.7 |
@@ -22,6 +24,21 @@
 | 1.8 WRowButtons 文档降级 | 完成 | `components.md` / `agents/button.md` 改成「分段选择」，纯动作行用 `Row + WButton` |
 | 子包版本 / CHANGELOG | 完成 | ui 3.1.0、form 2.1.0、api 1.0.2、map 1.3.0；`release_check` 剩 4 条预期提醒（根约束下界低于本地版本） |
 | 根包约束 / 根版本 | 待发布 | **不能提前抬高**：根 `example/` 依赖 `w_tools` path → 未发布的 `^3.1.0` 会让本地解析失败；按 `docs/releasing.md` 在子包发布后再抬 |
+
+阶段 2（工具链，与 Flutter 包零重叠）：
+
+| 步 | 状态 | 落点 |
+| --- | --- | --- |
+| 2.2 `doctor --write-config --force` 备份 | 完成 | 覆盖前写 `.bak` 并提示；有进程级用例 |
+| 2.3 R2 放行 dev-only 工具包 | 完成 | `test/` `tool/` `integration_test/` 放行 `w_tools_{cli,figma,device,e2e}`；`lib/` 仍报错 |
+| 2.4 `--stale-days=0` 真正关闭 | 完成 | 规则改为 `staleDays > 0` 才检查；非法值 exit 2（不再静默回退 30） |
+| 2.6 figma Windows 路径 | 完成 | `nodes-*.json` 识别改为归一化分隔符；补 POSIX / Windows 用例 |
+| 2.8 device 标定 freshness | 完成 | 先取截图尺寸再判缓存，尺寸 / 方向 / `--scale` 变化都会失效；补 4 个 store 用例 |
+| 2.9 device 进程超时 | 完成 | `ProcessShell(timeout: 120s)`，`run` / `runBytes` 超时抛 `ProcessException`；`Uint8List.fromList` 去掉不安全 cast |
+| 2.1 init/doctor 路径单一来源 + `--check` 契约 | 待做 | 阶段 2 剩余最大件 |
+| 2.5 catalog 单一真相 | 待做 | 生成 docs 表格 + 全别名校验 |
+| 2.7 figma BudgetGuard | 待做 | fetch / diff 前置额度检查 |
+| 工具包版本 / CHANGELOG | 待收尾 | cli / figma / device 统一 bump；cli 的子包约束表已同步（`init_project.dart`，`init_test` 会校验） |
 
 ## 0. 三条排序原则
 
