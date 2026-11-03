@@ -241,7 +241,7 @@ registry 条目；ui `image.dart` 846 行 / `row_buttons.dart` 整类弃用；ma
 （子包未上线）。本次发布 = **弃用版**；下一个大版本再删除弃用符号。
 
 待发版本：core 2.4.0、async 2.1.0、ui 4.7.0、form 3.2.0、api 2.0.0、app 1.2.0、
-toast 1.3.0、map 1.3.1、qr 1.1.0、cli 1.9.10、figma 0.11.0、device 0.1.2、e2e 0.1.1，最后根包 3.1.0。
+toast 1.3.0、map 1.3.1、qr 1.1.0、cli 1.9.10、figma 0.11.0、device 0.1.2、e2e 0.1.1，最后根包 4.0.0。
 本机无 pub 凭证，正式发布需在有凭证的环境按 `docs/releasing.md` 执行。
 
 ## 9. 依赖顺序与并行

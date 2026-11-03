@@ -1,6 +1,14 @@
-## 3.1.0
+## 4.0.0
 
-聚合包同步本轮子包大版本（新增 API，非破坏性）：
+### Breaking
+
+- 聚合包升级到子包新大版本：`ui ^4.7`、`form ^3.2`、`api ^2.0`、`async ^2.1`，
+  旧 API 可能已移除 / 改名 / 弃用（如 `HexColor`→`WHexColor`、`WImageConfig`→`WImageLoadConfig`、
+  `WToastConfig`→`WToastStyle`、`WRowButtons`→`WActionRow`）。
+  迁移见各子包 `docs/migrations/`。
+- 根包旧 `WConfig` 兼容层不再推荐：token 键名用 `WToken`，资源前缀用 `WAssets`。
+
+### Added
 
 - core `^2.4.0`：`WDebounce` / `WThrottle`，`WToken` 配置；
 - ui `^4.7.0`：`WTextStyles` / `WImageLoadConfig` / `WHexColor` / `WActionRow`；
