@@ -22,13 +22,17 @@ class E2eLogin {
     if (!cfg.canAutoLogin) return false;
     try {
       await login(cfg.email, cfg.password).timeout(cfg.timeout);
-      await afterLogin?.call();
       debugPrint('[E2E] auto login ok: ${cfg.email}');
+      // 导航这类善后动作不阻塞：GetX 的 offAllNamed 在某些情况下不 resolve，
+      // 若 await 它，成功日志会永远打不出来。
+      final after = afterLogin?.call();
+      if (after is Future<void>) unawaited(after);
       return true;
     } catch (e, st) {
-      (onError ?? (Object err, StackTrace stack) {
-        debugPrint('[E2E] auto login failed: $err\n$stack');
-      })(e, st);
+      (onError ??
+          (Object err, StackTrace stack) {
+            debugPrint('[E2E] auto login failed: $err\n$stack');
+          })(e, st);
       return false;
     }
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_e2e/w_tools_e2e.dart';
 
@@ -64,6 +66,15 @@ void main() {
       );
       expect(ok, isFalse);
       expect(captured, isA<StateError>());
+    });
+
+    test('afterLogin 永不 resolve 时也能返回 true（导航不阻塞）', () async {
+      final ok = await E2eLogin.run(
+        config: const E2eConfig(enabled: true, email: 'a', password: 'b'),
+        login: (_, __) async {},
+        afterLogin: () => Completer<void>().future,
+      );
+      expect(ok, isTrue);
     });
 
     test('超时：返回 false', () async {
