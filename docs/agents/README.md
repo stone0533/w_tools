@@ -10,6 +10,7 @@
 - [基础工具](../modules/core_module.md)
 - [扫码规则](../modules/qr_module.md)
 - [地图规则](../modules/map_module.md)
+- [使用反馈](../feedback/README.md)：用 w_tools 撞到的问题按模板记录（`docs/feedback/<包>.md`）
 - [Issue tracker](issue-tracker.md)
 - [Triage labels](triage-labels.md)
 - [Domain docs](domain.md)

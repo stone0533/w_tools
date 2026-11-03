@@ -60,6 +60,22 @@ CLI 是纯 Dart 包：测试用 `dart test`，发布用 `dart pub publish`（`sc
 Figma 取数工具在 `packages/figma/`（`w_tools_figma`，独立 CLI 包，0.9.2 已发布）。需要设计稿规格 / token / diff 时，
 先看 [`docs/agents/figma.md`](docs/agents/figma.md)，不要直接手写 Figma API 调用。
 
+## 使用反馈（遇到问题先查再记）
+
+用 `w_tools_*` 时撞到问题，**先查有没有人报过，再按模板记下来** —— 这是完善 w_tools 的主要输入。
+
+1. **先查**：`grep -rn "<关键词>" docs/feedback/`（按包分文件，`figma` / `cli` / `device` / `e2e` …）
+2. **没报过**：按 [`docs/feedback/TEMPLATE.md`](docs/feedback/TEMPLATE.md) 追加到
+   [`docs/feedback/<包>.md`](docs/feedback/README.md)：
+   - 必填：包/版本、环境、命令、期望、实际、影响、复现数据
+   - 状态写 `待处理`；**不要自己标「已修复」**（由维护者发布后补版本号）
+3. **消费方项目里**：先写该项目的 `docs/agents/<包>-feedback.md`（本地、只追加），
+   再由维护者同步进本仓库 `docs/feedback/`（**库侧是唯一真相**）
+4. **不要因为某个包不好用就改包 / fork**；先记录，由维护者决定
+5. 提交前跑 `bash scripts/check_feedback.sh`（已闭环必须带版本号、索引数量一致）
+
+> 一次会话最多记 3–5 条，只记**真正卡住你**的；「我觉得可以更好」不是反馈。
+
 ## Agent skills
 
 ### Issue tracker
