@@ -3,17 +3,22 @@
 ## 1.8.0
 
 ### 新增
+- `init --device`：生成设备验证脚手架（`integration_test/app_smoke_test.dart`、`tool/device_smoke.dart`、`docs/agents/device-testing.md`、`tool/gradle-mirror.init.gradle`）。
+- `init --force-starters`（`--force-ui` 别名）：显式覆盖 UI / device starter，覆盖前写 `.bak`。
 
-- `init --device`：生成设备验证脚手架（`integration_test/app_smoke_test.dart`、`tool/device_smoke.dart`、`docs/agents/device-testing.md`、`tool/gradle-mirror.init.gradle`），starter 语义（存在即保留，`--force` 覆盖）；文档里的项目名与 Android `applicationId` 自动替换。
-- `init --force` 覆盖 `.w_tools_doctor.yaml` 前会先备份成 `.w_tools_doctor.yaml.bak`，并在警告里提示（此前会直接抹掉项目的 palette / banned）。
+### 修复
+- `init --force` 不再覆盖 UI / device starter；只刷新生成物与配置。
+- `init --force` 覆盖 `.w_tools_doctor.yaml` 前先备份 `.bak`。
+- doctor R2 / ProjectFacts 的包名正则支持数字（如 `w_tools_e2e`）。
+- doctor 的 `// w_tools:ignore` / `ignore-file` 支持 R2~R9；R3 只在未被忽略的命中上计阈值，R1 暂不支持。
+
+### Changed
+- 设备 starter 的 `--force` 语义改为 `--force-starters`。
 
 ## 1.7.5
 
 ### Changed
 - `--figma` 模板补充 frames 过滤、多画板 spec、node-only 和自动缓存选择说明。
-- doctor R2 / ProjectFacts 的包名正则支持数字（如 `w_tools_e2e`）。
-- doctor 的 `// w_tools:ignore` / `ignore-file` 支持 R2~R9；R3 只在未被忽略的命中上计阈值，R1 暂不支持。
-- `init --force` 不再覆盖 UI / device starter；新增 `--force-starters`（`--force-ui` 别名），覆盖前写 `.bak`。
 
 ## 1.7.4
 

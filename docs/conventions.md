@@ -142,7 +142,7 @@ Image.asset('logo.png');
 ```
 
 `R2`~`R9` 支持豁免；`R1` 暂不支持。行级规则用 `// w_tools:ignore`，文件级规则（R5/R7/R8）用 `// w_tools:ignore-file`。没有 `reason:` 的豁免不生效；整行注释和行尾 `//` 注释会跳过，字符串仍可能命中；`init` 会把有效 `banned` 生成到 AGENTS。
-`init --force` 只刷新生成物；UI starter 需显式 `--force-starters`，覆盖前会写 `.bak`。
+`init --force` 只刷新生成物；UI starter 需显式 `--force-starters`（1.8.0+），覆盖前会写 `.bak`。
 项目 UI 层固定为 `lib/app/ui/`，暂存层固定为 `lib/app/design_system/`；`init` 与 doctor 使用同一套路径。
 
 > 早期这里放的是三条 grep 命令，现在**以 doctor 为唯一事实源** —— 同一份规则不能有两个实现，

@@ -344,6 +344,9 @@ dart run w_tools_cli:doctor
 --force 会覆盖生成的 AGENTS / toolkit / 配置（配置先 .bak）
 --force-starters 才会覆盖 UI / device starter，并先写 .bak
 不会删除当前 profile 不再生成的文件
+
+> 1.8.0 起 --force 不再覆盖 starter；1.7.5 及更早版本仍会覆盖。
+> 当前 pub 最新是 1.7.5，使用 --force-starters 前先升级到 1.8.0。
 ```
 
 ---
