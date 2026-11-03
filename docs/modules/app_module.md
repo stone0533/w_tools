@@ -7,7 +7,7 @@ App 模块（`w_tools_app` 子包）提供了一套一站式的应用启动方�
 该子包**强依赖 GetX**（`get` 包），不可替换。`WApp` 本质是对 `GetMaterialApp` 的增强包装：保留 GetX 全部能力的同时，补充了插件生命周期管理、语言 API 和路由栈操作。
 
 ## 快速判断
-- 启动 → `WApp.options(WAppOptions(...)).start()`（1.2+；字段版已弃用）
+- 启动 → `WApp.options(WAppOptions(...)).start()`（2.0+）
 - 插件顺序 → `WAppPlugin.dependsOn`
 - 全局默认视图 → `WAppPlugin.wrapApp` / `WAppOptions.appWrapper`
 - 强依赖 GetX
@@ -28,7 +28,7 @@ app/
         ├── app_config.dart                   # WAppConfig 语言配置
         ├── bottom_sheet.dart                 # WBottomSheet
         ├── language.dart                     # WLanguage
-        ├── route.dart                        # WRouteStack / WRoute（静态已弃用）
+        ├── route.dart                        # WRouteStack
         ├── options.dart                      # WAppOptions / WLocaleConfig
         └── router_observer.dart              # WRouteObserver
 ```
@@ -58,10 +58,10 @@ WApp.options(
 ).start();
 ```
 
-优先级：`start()` 参数 > `WAppOptions` > 已弃用字段 > 默认值。
+优先级：`start()` 参数 > `WAppOptions` > 默认值。
 语言支持列表用 `WLocaleConfig`；运行期当前语言仍以 `WLanguage` 为唯一真源。
 
-### 配置字段（已弃用，2.0 移除）
+### WAppOptions 字段
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -161,15 +161,18 @@ final appTheme = AppTheme.data;
 
 ```dart
 Future<void> main() async {
-  final app = WApp()
-    ..title = 'My App'
-    ..initialRoute = Routes.home
-    ..getPages = Routes.pages
-    ..theme = AppTheme.light
-    ..translations = AppTranslations()
-    ..locale = const Locale('zh', 'CN')
-    ..fallbackLocale = const Locale('en', 'US')
-    ..addPlugin(AuthPlugin());
+  final app = WApp.options(
+    WAppOptions(
+      title: 'My App',
+      initialRoute: Routes.home,
+      getPages: Routes.pages,
+      theme: AppTheme.light,
+      translations: AppTranslations(),
+      locale: const Locale('zh', 'CN'),
+      fallbackLocale: const Locale('en', 'US'),
+      plugins: [AuthPlugin()],
+    ),
+  );
 
   await app.start(
     onLazyInit: () {
@@ -304,11 +307,11 @@ await subscription.cancel();
 
 ---
 
-## 5. WRoute - 路由栈管理
+## 5. WRouteStack - 路由栈管理
 
 ### 功能说明
 
-维护**根 Navigator** 的路由栈（由 `WRouteObserver` 记录），并提供几种常用的栈操作。仅覆盖根路由；嵌套 Navigator 需要自行管理。
+维护**根 Navigator** 的路由栈（由 `WRouteObserver` 记录），通过 `WApp.routeStack` 访问。仅覆盖根路由；嵌套 Navigator 需要自行管理。
 
 ### 只读成员
 
@@ -329,7 +332,7 @@ await subscription.cancel();
 ### 使用示例
 
 ```dart
-// 按路由名截断（静态 WRoute 已弃用，2.0 移除）
+// 按路由名截断
 WApp.routeStack.removeRoutesAfter('/profile');
 WApp.routeStack.popUntilRoute('/profile');
 ```

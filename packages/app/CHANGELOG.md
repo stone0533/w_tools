@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking
+- 删除 `WApp` 的可变配置字段（`title` / `initialRoute` / `getPages` / `theme` / `translations` /
+  `locale` / `fallbackLocale` / `builder` / `navigatorObservers` / `defaultTransition` /
+  `systemUiOverlayStyle` / `orientations` / `appWrapper`）：改用 `WApp.options(WAppOptions(...))`。
+- 删除静态 `WRoute`：改用 `WApp.routeStack` / `WRouteStack`。
+- `WApp` 不再有无参构造函数。
+
 ## 1.2.0
 
 ### Added

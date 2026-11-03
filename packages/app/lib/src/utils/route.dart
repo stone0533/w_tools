@@ -56,34 +56,3 @@ class WRouteStack {
     Get.until((route) => route.settings.name == page);
   }
 }
-
-/// 旧的路由工具类（静态）。
-///
-/// 已弃用（2.0 移除）：路由栈改由 [WApp.routeStack] 持有。
-@Deprecated('2.0 移除：用 WApp.routeStack / WRouteStack')
-class WRoute {
-  /// remove-in: 2.0.0
-  static WRouteStack get stack => WRouteStack.defaultStack;
-
-  /// 当前路由栈的只读快照
-  static List<Route<dynamic>> get routes => WRouteStack.defaultStack.routes;
-
-  /// 记录一条已入栈路由
-  static void addRoute(Route<dynamic> route) => WRouteStack.defaultStack.addRoute(route);
-
-  /// 移除一条已出栈路由
-  static void removeRoute(Route<dynamic> route) => WRouteStack.defaultStack.removeRoute(route);
-
-  /// 清空路由记录
-  static void clearRoutes() => WRouteStack.defaultStack.clearRoutes();
-
-  /// 按路由名称移除指定路由
-  static void removeRouteIfExists(String page) =>
-      WRouteStack.defaultStack.removeRouteIfExists(page);
-
-  /// 移除指定路由之上的所有路由
-  static void removeRoutesAfter(String page) => WRouteStack.defaultStack.removeRoutesAfter(page);
-
-  /// 返回到指定名称的路由
-  static void popUntilRoute(String page) => WRouteStack.defaultStack.popUntilRoute(page);
-}

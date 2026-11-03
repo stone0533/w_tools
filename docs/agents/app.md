@@ -68,7 +68,7 @@ WApp.options(
 
 ## 不要用
 
-- 继续用可变字段（`app.title = ...` 等，2.0 移除）；新代码用 `WAppOptions`；
+- 用可变字段（`app.title = ...` 已在 2.0 删除）；统一 `WAppOptions`；
 - 手写 `runApp` + 自己的初始化顺序（用 `WApp.start()`）；
 - 重复添加 `WRouteObserver`（`WApp` 已自动追加）；
 - 在 `wrapApp` 里读 Theme / MediaQuery（它在 MaterialApp 外）。

@@ -51,9 +51,9 @@ void main() {
 
   test('init() 幂等：重复调用只执行一次插件 onInit', () async {
     final plugin = _CountingPlugin('p');
-    final app = WApp()
-      ..title = 'test'
-      ..addPlugins([plugin]);
+    final app = WApp.options(
+      const WAppOptions(title: 'test'),
+    )..addPlugins([plugin]);
 
     await app.init();
     await app.init();
@@ -63,7 +63,7 @@ void main() {
 
   test('并发 init() 共享同一次初始化', () async {
     final plugin = _BlockingPlugin('p');
-    final app = WApp()..addPlugin(plugin);
+    final app = WApp.options(const WAppOptions(title: 'test'))..addPlugin(plugin);
 
     final first = app.init();
     final second = app.init();
@@ -78,7 +78,7 @@ void main() {
   });
 
   test('未 init 就 run() 抛 StateError（避免遗漏 init）', () {
-    final app = WApp()..title = 'test';
+    final app = WApp.options(const WAppOptions(title: 'test'));
 
     expect(
       () => app.run(initialRoute: '/', getPages: _pages()),
@@ -89,9 +89,9 @@ void main() {
   // runApp 只能在 testWidgets 的测试上下文里调用，故此处用 testWidgets
   testWidgets('start() 等价于 init() + run()：插件被初始化且不再抛错', (tester) async {
     final plugin = _CountingPlugin('p');
-    final app = WApp()
-      ..title = 'test'
-      ..addPlugins([plugin]);
+    final app = WApp.options(
+      const WAppOptions(title: 'test'),
+    )..addPlugins([plugin]);
 
     await app.start(initialRoute: '/', getPages: _pages());
 

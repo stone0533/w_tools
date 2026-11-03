@@ -28,98 +28,13 @@ import 'utils/router_observer.dart';
 /// }
 /// ```
 class WApp {
-  /// 创建空的 `WApp`（字段版配置，已弃用；新代码用 [WApp.options]）
-  WApp();
-
-  /// 用不可变 [WAppOptions] 配置（推荐）
-  WApp.options(WAppOptions options) : options = options {
+  /// 用不可变 [WAppOptions] 配置
+  WApp.options(this.options) {
     _plugins.addAll(options.plugins);
   }
 
-  /// 不可变配置；非 null 时优先于下面的字段
-  WAppOptions? options;
-
-  // ──── 配置 ────
-
-  /// 应用标题
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  String? title;
-
-  /// 初始路由
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  String? initialRoute;
-
-  /// 路由页面列表
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  List<GetPage<dynamic>>? getPages;
-
-  /// 屏幕方向列表，默认仅支持竖屏
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  List<DeviceOrientation> orientations = [DeviceOrientation.portraitUp];
-
-  /// 系统栏（状态栏 / 导航栏）样式，仅 Android 且非 Web 生效
-  ///
-  /// 默认值为透明状态栏 + 黑色导航栏；置为 `null` 表示不干预，
-  /// 交由调用方或页面自行控制。
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  SystemUiOverlayStyle? systemUiOverlayStyle = const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarBrightness: Brightness.dark,
-    systemNavigationBarColor: Colors.black,
-    systemNavigationBarIconBrightness: Brightness.light,
-  );
-
-  /// 应用构建器（自定义 builder，在插件 builderWrapper 链之后叠加；两者同机制，见 [WAppPlugin.builderWrapper]）
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  TransitionBuilder? builder;
-
-  /// 导航观察者列表（自定义 observers，与插件 observers 合并）
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  List<NavigatorObserver>? navigatorObservers;
-
-  /// 默认过渡动画
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  Transition? defaultTransition;
-
-  /// 应用主题
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  ThemeData? theme;
-
-  /// 翻译资源
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  Translations? translations;
-
-  /// 当前语言
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  Locale? locale;
-
-  /// 回退语言
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  Locale? fallbackLocale;
-
-  /// 应用外层包装器
-  ///
-  /// 在 GetMaterialApp 之外包裹整个 app Widget，适用于需要在其外再套一层的场景
-  /// （如 ScreenUtilInit、MediaQuery 覆盖等）。
-  ///
-  /// 叠加顺序：**先执行本字段**，之后各插件的 `wrapApp` 由内向外逐层包裹 ——
-  /// 即插件位于**更外层**（多个插件时后注册者最外）。
-  /// 与 [WAppPlugin.wrapApp] 是同一机制的两种入口。
-  /// remove-in: 2.0.0
-  @Deprecated('2.0 起用 WAppOptions；字段版仅保留到 2.0')
-  Widget Function(Widget child)? appWrapper;
+  /// 不可变配置
+  final WAppOptions options;
 
   // ──── 内部状态 ────
 
@@ -180,7 +95,7 @@ class WApp {
     if (_initialized) return Future<void>.value();
 
     // 语言配置：只写支持列表与默认值，运行期真源仍是 WLanguage
-    final localeConfig = options?.localeConfig;
+    final localeConfig = options.localeConfig;
     if (localeConfig != null) {
       WAppConfig.supportedLanguages = localeConfig.supportedLanguages;
       final defaultLanguage = localeConfig.defaultLanguage;
@@ -313,8 +228,8 @@ class WApp {
   /// 读取 [systemUiOverlayStyle]，为 `null` 时不做任何设置。
   /// `SystemChrome.setSystemUIOverlayStyle` 为同步 API，故本方法无需 `async`。
   void _setupSystemUI() {
-    // options 非 null 时以 options 为准：显式传 null 表示不干预
-    final style = options != null ? options!.systemUiOverlayStyle : systemUiOverlayStyle;
+    // 显式传 null 表示不干预
+    final style = options.systemUiOverlayStyle;
     if (style == null) return;
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       SystemChrome.setSystemUIOverlayStyle(style);
@@ -323,7 +238,7 @@ class WApp {
 
   /// 设置屏幕方向（读取 [orientations] 字段）
   Future<void> _setupOrientation() async {
-    await SystemChrome.setPreferredOrientations(options?.orientations ?? orientations);
+    await SystemChrome.setPreferredOrientations(options.orientations);
   }
 
   /// 运行应用
@@ -347,33 +262,29 @@ class WApp {
       throw StateError('run() 之前必须先 await init()，或直接使用 await start()');
     }
 
-    // 参数校验（title 是公开字段，先取局部变量再判空）
-    final titleValue = options?.title ?? title;
-    if (titleValue == null || titleValue.isEmpty) {
+    // 参数校验
+    final titleValue = options.title;
+    if (titleValue.isEmpty) {
       throw StateError('title 不能为空');
     }
 
-    // 入参与字段同名，故用 this.xxx 访问字段本身
-    final opts = options;
-    final effectiveInitialRoute = initialRoute ?? opts?.initialRoute ?? this.initialRoute;
+    final effectiveInitialRoute = initialRoute ?? options.initialRoute;
     if (effectiveInitialRoute == null || effectiveInitialRoute.isEmpty) {
       throw StateError('initialRoute 不能为空');
     }
 
-    final effectiveGetPages = getPages ?? opts?.getPages ?? this.getPages;
+    final effectiveGetPages = getPages ?? options.getPages;
     if (effectiveGetPages == null || effectiveGetPages.isEmpty) {
       throw StateError('getPages 不能为空且不能为空列表');
     }
 
     final effectiveTitle = titleValue;
     final effectiveDefaultTransition =
-        defaultTransition ??
-        opts?.defaultTransition ??
-        (this.defaultTransition ?? Transition.topLevel);
-    final effectiveTheme = theme ?? opts?.theme ?? this.theme;
-    final effectiveTranslations = translations ?? opts?.translations ?? this.translations;
-    final effectiveLocale = locale ?? opts?.locale ?? this.locale;
-    final effectiveFallbackLocale = fallbackLocale ?? opts?.fallbackLocale ?? this.fallbackLocale;
+        defaultTransition ?? options.defaultTransition ?? Transition.topLevel;
+    final effectiveTheme = theme ?? options.theme;
+    final effectiveTranslations = translations ?? options.translations;
+    final effectiveLocale = locale ?? options.locale;
+    final effectiveFallbackLocale = fallbackLocale ?? options.fallbackLocale;
 
     // 构建 builder 链：插件 builderWrapper × N → 用户自定义 builder（后者更靠外）
     // ignore: prefer_function_declarations_over_variables
@@ -385,7 +296,7 @@ class WApp {
           result = b(context, result);
         }
       }
-      final customBuilder = builder ?? options?.builder ?? this.builder;
+      final customBuilder = builder ?? options.builder;
       if (customBuilder != null) {
         result = customBuilder(context, result);
       }
@@ -394,7 +305,7 @@ class WApp {
 
     // 合并所有 navigatorObservers
     final allObservers = <NavigatorObserver>[
-      ...(navigatorObservers ?? options?.navigatorObservers ?? this.navigatorObservers ?? []),
+      ...(navigatorObservers ?? options.navigatorObservers ?? []),
       ..._plugins.expand((p) => p.navigatorObservers ?? []),
       WRouteObserver(stack: routeStack),
     ];
@@ -415,7 +326,7 @@ class WApp {
     );
 
     // 由内向外逐层包裹：先 appWrapper，再由各插件的 wrapApp 在外层叠加
-    final wrapper = options?.appWrapper ?? appWrapper;
+    final wrapper = options.appWrapper;
     app = wrapper?.call(app) ?? app;
     for (final plugin in _plugins) {
       app = plugin.wrapApp(app);

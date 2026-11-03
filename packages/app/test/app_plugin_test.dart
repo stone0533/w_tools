@@ -43,7 +43,7 @@ class _MixinPlugin extends _BaseService with WAppPlugin {
 }
 
 Future<void> initPlugins(List<WAppPlugin> plugins) async {
-  final app = WApp()..title = 'test';
+  final app = WApp.options(const WAppOptions(title: 'test'));
   app.addPlugins(plugins);
   await app.init();
 }
