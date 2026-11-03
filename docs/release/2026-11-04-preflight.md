@@ -113,14 +113,12 @@ flutter analyze
 
 | 包 | 版本 | 内容 |
 | --- | --- | --- |
-| api | 2.1.0 | 401 重试只复用已知 Dio：registry 自动绑定；裸 `Dio()` 需传 `dio:`，不再隐式注册 |
-| ui | 4.7.1 | 内部重构：`image.dart` 拆分（公开 API 不变） |
-| 根包 | 4.0.1 | 抬高 `w_tools_api` 约束到 `^2.1.0` |
+| api | 2.1.0 | 401 重试只复用已知 Dio：registry 自动绑定；裸 `Dio()` 需传 `dio:`，不再隐式注册（✅ 已发布） |
+| ui | 4.7.1 | 内部重构：`image.dart` 拆分（公开 API 不变，✅ 已发布） |
+| 根包 | 4.0.1 | 抬高 `w_tools_api` 约束到 `^2.1.0`（待发布） |
 
 发布命令：
 
 ```bash
-bash scripts/publish_package.sh packages/api
-bash scripts/publish_package.sh packages/ui
-bash scripts/publish_package.sh .
+bash scripts/publish_package.sh .   # 根包 4.0.1；api/ui 已上线
 ```

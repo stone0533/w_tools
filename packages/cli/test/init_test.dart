@@ -637,7 +637,7 @@ void main() {
 
   group('pubspec 片段版本', () {
     final repo = tryRepoRoot();
-    test('与仓库当前子包版本一致（防漂移）', () async {
+    test('仓库版本满足生成的 caret 约束（防主版本漂移）', () async {
       final root = repo!;
       final snippet = runInit(
         makeProject(),
@@ -659,10 +659,23 @@ void main() {
                 )
                 as YamlMap;
         final version = pubspec['version'] as String;
+        final match = RegExp(
+          'w_tools_$pkg: \\^(\\d+)\\.(\\d+)\\.(\\d+)',
+        ).firstMatch(snippet);
+        expect(match, isNotNull, reason: '片段缺少 w_tools_$pkg 约束');
+        final cMajor = int.parse(match!.group(1)!);
+        final cMinor = int.parse(match.group(2)!);
+        final cPatch = int.parse(match.group(3)!);
+        final parts = version.split('.').map(int.parse).toList();
+        final ok =
+            parts[0] == cMajor &&
+            (parts[0] > cMajor || parts[1] > cMinor || (parts[1] == cMinor && parts[2] >= cPatch));
         expect(
-          snippet,
-          contains('w_tools_$pkg: ^$version'),
-          reason: 'packages/$pkg 已到 $version，更新 init_project.dart 里的约束',
+          ok,
+          isTrue,
+          reason:
+              'packages/$pkg 版本 $version 不满足片段约束 ^$cMajor.$cMinor.$cPatch；'
+              '请更新 init_project.dart',
         );
       }
       expect(snippet, contains('w_tools_cli: ^1.9.0'));
