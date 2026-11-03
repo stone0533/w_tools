@@ -7,7 +7,7 @@
 - Sliver：`WAsyncStateSliver`
 - 全局默认：`WAsyncViewDefaults` / `WAsyncSliverDefaults`
 - 状态构建器：`WAsyncStateBuilder` / `WAsyncErrorView`
-- 执行编排：`WAsync` / `WAsyncConfig` / `WCancelToken`
+- 执行编排：`WAsync` / `WAsyncOptions` / `WAsyncLoading` / `WCancelToken`
 
 ## 运行
 

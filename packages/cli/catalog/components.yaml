@@ -131,7 +131,7 @@ components:
     section: '7. 状态与反馈'
     useFor: '普通页面异步四态视图、默认重试页与刷新错误条'
     dontUseFor: '滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController`'
-  - name: '`WAsyncStateBuilder` / `WAsyncBuilder`'
+  - name: '`WAsyncStateBuilder`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
     useFor: '滚动页面 / `SmartRefresher` / 自定义状态布局'

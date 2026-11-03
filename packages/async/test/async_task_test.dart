@@ -1,6 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
+WAsyncOptions optionsWith({
+  void Function()? start,
+  void Function()? end,
+  void Function(Object?)? onError,
+}) {
+  return WAsyncOptions(
+    loading: (start == null && end == null) ? null : WAsyncLoading(onStart: start, onEnd: end),
+    onError: onError,
+  );
+}
+
 void main() {
   group('WAsync Tests', () {
     // ─── run ───
@@ -54,15 +65,12 @@ void main() {
     test('Error 向上抛出时仍会结束 loading', () async {
       var startCount = 0;
       var endCount = 0;
-      final config = WAsyncConfig(
-        onLoadingStart: () => startCount++,
-        onLoadingEnd: () => endCount++,
-      );
+      final options = optionsWith(start: () => startCount++, end: () => endCount++);
 
       await expectLater(
         WAsync.run<int, int>(
           () async => throw StateError('bug'),
-          config: config,
+          options: options,
         ),
         throwsStateError,
       );
@@ -71,11 +79,11 @@ void main() {
       expect(endCount, 1);
     });
 
-    // ─── runWithRetry ───
+    // ─── retry ───
 
-    test('runWithRetry should retry on error', () async {
+    test('retry should retry on error', () async {
       int attempt = 0;
-      final result = await WAsync.runWithRetry<String, String>(
+      final result = await WAsync.retry<String, String>(
         () async {
           attempt++;
           if (attempt < 3) {
@@ -91,9 +99,9 @@ void main() {
       expect(attempt, 3);
     });
 
-    test('runWithRetry 最终失败时 onError 只调用一次', () async {
+    test('retry 最终失败时 onError 只调用一次', () async {
       var errorCount = 0;
-      final result = await WAsync.runWithRetry<int, int>(
+      final result = await WAsync.retry<int, int>(
         () async => throw 'fail',
         onSuccess: (value) => value,
         onError: (_) => errorCount++,
@@ -105,11 +113,11 @@ void main() {
       expect(errorCount, 1);
     });
 
-    test('runWithRetry 在重试等待期间取消会立即结束', () async {
+    test('retry 在重试等待期间取消会立即结束', () async {
       final cancelToken = WCancelToken();
       final stopwatch = Stopwatch()..start();
 
-      final future = WAsync.runWithRetry<int, int>(
+      final future = WAsync.retry<int, int>(
         () async => throw 'fail',
         onSuccess: (value) => value,
         retryCount: 3,
@@ -135,18 +143,16 @@ void main() {
       expect(result, isNull);
     });
 
-    test('fallbackOnError 仅在未传 onError 时调用', () async {
+    test('options.onError 仅在未传 onError 时调用', () async {
       var fallbackCount = 0;
-      final config = WAsyncConfig(
-        showLoading: false,
-        fallbackOnError: (_) => fallbackCount++,
-      );
+      final options = optionsWith(onError: (_) => fallbackCount++);
 
-      await config.run<int, int>(() async => throw 'fail');
+      await WAsync.run<int, int>(() async => throw 'fail', options: options);
       expect(fallbackCount, 1);
 
-      await config.run<int, int>(
+      await WAsync.run<int, int>(
         () async => throw 'fail',
+        options: options,
         onError: (_) {},
       );
       expect(fallbackCount, 1);
@@ -162,9 +168,9 @@ void main() {
       );
     });
 
-    test('runWithRetry 不对 onSuccess 异常重试', () async {
+    test('retry 不对 onSuccess 异常重试', () async {
       var calls = 0;
-      final result = await WAsync.runWithRetry<int, int>(
+      final result = await WAsync.retry<int, int>(
         () async {
           calls++;
           return 1;
@@ -178,11 +184,11 @@ void main() {
       expect(calls, 1);
     });
 
-    test('runWithRetry 不重试编程错误（Error）', () async {
+    test('retry 不重试编程错误（Error）', () async {
       var attempts = 0;
       Object? reported;
       await expectLater(
-        WAsync.runWithRetry<int, int>(
+        WAsync.retry<int, int>(
           () async {
             attempts++;
             throw StateError('bug');
@@ -198,9 +204,9 @@ void main() {
       expect(reported, isNull);
     });
 
-    test('runWithRetry retryCount 为 0 时只执行一次', () async {
+    test('retry retryCount 为 0 时只执行一次', () async {
       var attempts = 0;
-      final result = await WAsync.runWithRetry<int, int>(
+      final result = await WAsync.retry<int, int>(
         () async {
           attempts++;
           throw 'fail';
@@ -213,13 +219,13 @@ void main() {
       expect(attempts, 1);
     });
 
-    test('runWithRetry 负数参数抛出 ArgumentError', () async {
+    test('retry 负数参数抛出 ArgumentError', () async {
       await expectLater(
-        WAsync.runWithRetry<int, int>(() async => 1, retryCount: -1),
+        WAsync.retry<int, int>(() async => 1, retryCount: -1),
         throwsArgumentError,
       );
       await expectLater(
-        WAsync.runWithRetry<int, int>(
+        WAsync.retry<int, int>(
           () async => 1,
           retryDelay: const Duration(seconds: -1),
         ),
@@ -227,11 +233,11 @@ void main() {
       );
     });
 
-    test('runWithRetry retryIf 返回 false 时不重试', () async {
+    test('retry retryIf 返回 false 时不重试', () async {
       var attempts = 0;
       var errorCount = 0;
 
-      final result = await WAsync.runWithRetry<int, int>(
+      final result = await WAsync.retry<int, int>(
         () async {
           attempts++;
           throw const FormatException('fatal');
@@ -248,10 +254,10 @@ void main() {
       expect(errorCount, 1);
     });
 
-    test('runWithRetry 按 retryIf 过滤后再重试', () async {
+    test('retry 按 retryIf 过滤后再重试', () async {
       var attempts = 0;
 
-      final result = await WAsync.runWithRetry<int, int>(
+      final result = await WAsync.retry<int, int>(
         () async {
           attempts++;
           if (attempts == 1) {
@@ -269,11 +275,10 @@ void main() {
       expect(attempts, 2);
     });
 
-    test('WAsyncConfig.runWithRetry 透传 retryIf', () async {
+    test('retry 透传 retryIf', () async {
       var attempts = 0;
-      final config = WAsyncConfig(showLoading: false);
 
-      final result = await config.runWithRetry<int, int>(
+      final result = await WAsync.retry<int, int>(
         () async {
           attempts++;
           throw const FormatException('fatal');
@@ -287,19 +292,19 @@ void main() {
       expect(attempts, 1);
     });
 
-    // ─── runWithTimeout ───
+    // ─── timeout ───
 
-    test('runWithTimeout should return null on timeout', () async {
-      final result = await WAsync.runWithTimeout(
+    test('timeout should return null on timeout', () async {
+      final result = await WAsync.timeout(
         () async => Future.delayed(const Duration(seconds: 1)),
         const Duration(milliseconds: 100),
       );
       expect(result, null);
     });
 
-    test('runWithTimeout should complete within timeout', () async {
+    test('timeout should complete within timeout', () async {
       final startTime = DateTime.now();
-      await WAsync.runWithTimeout(
+      await WAsync.timeout(
         () async {
           await Future.delayed(const Duration(milliseconds: 100));
           return 'delayed result';
@@ -310,10 +315,10 @@ void main() {
       expect(duration.inMilliseconds, greaterThanOrEqualTo(100));
     });
 
-    test('runWithTimeout 超时后底层任务仍会继续执行', () async {
+    test('timeout 超时后底层任务仍会继续执行', () async {
       var completed = false;
 
-      final result = await WAsync.runWithTimeout<int, int>(
+      final result = await WAsync.timeout<int, int>(
         () async {
           await Future.delayed(const Duration(milliseconds: 100));
           completed = true;
@@ -330,12 +335,12 @@ void main() {
       expect(completed, isTrue);
     });
 
-    test('runWithTimeout 等待期间取消会立即返回 null', () async {
+    test('timeout 等待期间取消会立即返回 null', () async {
       final cancelToken = WCancelToken();
       final stopwatch = Stopwatch()..start();
       var errorCount = 0;
 
-      final future = WAsync.runWithTimeout<int, int>(
+      final future = WAsync.timeout<int, int>(
         () async {
           await Future.delayed(const Duration(seconds: 5));
           return 1;
@@ -355,11 +360,11 @@ void main() {
       expect(stopwatch.elapsed, lessThan(const Duration(seconds: 1)));
     });
 
-    test('runWithTimeout 取消后底层任务仍继续执行', () async {
+    test('timeout 取消后底层任务仍继续执行', () async {
       var completed = false;
       final cancelToken = WCancelToken();
 
-      final future = WAsync.runWithTimeout<int, int>(
+      final future = WAsync.timeout<int, int>(
         () async {
           await Future.delayed(const Duration(milliseconds: 100));
           completed = true;
@@ -378,9 +383,9 @@ void main() {
       expect(completed, isTrue);
     });
 
-    test('runWithTimeout 负数超时抛出 ArgumentError', () async {
+    test('timeout 负数超时抛出 ArgumentError', () async {
       await expectLater(
-        WAsync.runWithTimeout<int, int>(
+        WAsync.timeout<int, int>(
           () async => 1,
           const Duration(seconds: -1),
         ),
@@ -391,7 +396,7 @@ void main() {
     // ─── wait ───
 
     test('wait should return converted results via onSuccess', () async {
-      final results = await WAsync.wait<int, List<int>>(
+      final results = await WAsync.parallel<int, List<int>>(
         [Future.value(1), Future.value(2), Future.value(3)],
         onSuccess: (list) => list,
       );
@@ -399,7 +404,7 @@ void main() {
     });
 
     test('wait should return null when onSuccess not provided', () async {
-      final results = await WAsync.wait([
+      final results = await WAsync.parallel([
         Future.value(1),
         Future.value(2),
         Future.value(3),
@@ -411,7 +416,7 @@ void main() {
       var allCompleted = false;
       var errorCount = 0;
 
-      final result = await WAsync.wait<int, int>(
+      final result = await WAsync.parallel<int, int>(
         [
           Future.value(1),
           Future<int>.error('fail'),
@@ -432,7 +437,7 @@ void main() {
 
     test('wait 遇到编程错误（Error）时向上抛出', () async {
       await expectLater(
-        WAsync.wait<int, int>([
+        WAsync.parallel<int, int>([
           Future.value(1),
           Future<int>.error(StateError('bug')),
         ]),
@@ -443,14 +448,11 @@ void main() {
     test('wait 空集合视为成功空结果并触发 Loading', () async {
       var startCount = 0;
       var endCount = 0;
-      final config = WAsyncConfig(
-        onLoadingStart: () => startCount++,
-        onLoadingEnd: () => endCount++,
-      );
+      final options = optionsWith(start: () => startCount++, end: () => endCount++);
 
-      final result = await WAsync.wait<int, int>(
+      final result = await WAsync.parallel<int, int>(
         <Future<int>>[],
-        config: config,
+        options: options,
         onSuccess: (list) => list.length,
       );
 
@@ -464,7 +466,7 @@ void main() {
       final stopwatch = Stopwatch()..start();
       var errorCount = 0;
 
-      final future = WAsync.wait<int, int>(
+      final future = WAsync.parallel<int, int>(
         [Future.delayed(const Duration(milliseconds: 300), () => 1)],
         onError: (_) => errorCount++,
         cancelToken: cancelToken,
@@ -480,10 +482,10 @@ void main() {
       expect(stopwatch.elapsed, lessThan(const Duration(milliseconds: 250)));
     });
 
-    // ─── runAllWithConcurrency ───
+    // ─── pool ───
 
-    test('runAllWithConcurrency should process tasks in batches', () async {
-      final results = await WAsync.runAllWithConcurrency<int, List<int>>(
+    test('pool should process tasks in batches', () async {
+      final results = await WAsync.pool<int, List<int>>(
         [1, 2, 3, 4, 5].map(
           (i) => () async => i,
         ),
@@ -493,8 +495,8 @@ void main() {
       expect(results, [1, 2, 3, 4, 5]);
     });
 
-    test('runAllWithConcurrency should return null when onSuccess not provided', () async {
-      final results = await WAsync.runAllWithConcurrency(
+    test('pool should return null when onSuccess not provided', () async {
+      final results = await WAsync.pool(
         [1, 2, 3, 4, 5].map(
           (i) => () async => i,
         ),
@@ -503,9 +505,9 @@ void main() {
       expect(results, null);
     });
 
-    test('runAllWithConcurrency 并发数小于 1 时抛出 ArgumentError', () async {
+    test('pool 并发数小于 1 时抛出 ArgumentError', () async {
       await expectLater(
-        WAsync.runAllWithConcurrency<int, List<int>>(
+        WAsync.pool<int, List<int>>(
           [() async => 1],
           onSuccess: (list) => list,
           concurrency: 0,
@@ -514,7 +516,7 @@ void main() {
       );
     });
 
-    test('runAllWithConcurrency 真正限制同时在执行的任务数', () async {
+    test('pool 真正限制同时在执行的任务数', () async {
       var running = 0;
       var maxRunning = 0;
 
@@ -530,7 +532,7 @@ void main() {
         };
       });
 
-      final results = await WAsync.runAllWithConcurrency<int, List<int>>(
+      final results = await WAsync.pool<int, List<int>>(
         tasks,
         onSuccess: (list) => list,
         concurrency: 3,
@@ -540,7 +542,7 @@ void main() {
       expect(results, List.generate(10, (i) => i));
     });
 
-    test('runAllWithConcurrency 任务失败时停止启动新任务并上报一次错误', () async {
+    test('pool 任务失败时停止启动新任务并上报一次错误', () async {
       var started = 0;
       var errorCount = 0;
 
@@ -555,7 +557,7 @@ void main() {
         };
       });
 
-      final result = await WAsync.runAllWithConcurrency<int, List<int>>(
+      final result = await WAsync.pool<int, List<int>>(
         tasks,
         onSuccess: (list) => list,
         onError: (_) => errorCount++,
@@ -567,8 +569,8 @@ void main() {
       expect(started, lessThan(10));
     });
 
-    test('runAllWithConcurrency 空任务列表返回空结果', () async {
-      final result = await WAsync.runAllWithConcurrency<int, List<int>>(
+    test('pool 空任务列表返回空结果', () async {
+      final result = await WAsync.pool<int, List<int>>(
         <Future<int> Function()>[],
         onSuccess: (list) => list,
       );
@@ -576,20 +578,20 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('runAllWithConcurrency 不吞掉编程错误（Error）', () async {
+    test('pool 不吞掉编程错误（Error）', () async {
       await expectLater(
-        WAsync.runAllWithConcurrency<int, int>([
+        WAsync.pool<int, int>([
           () async => throw StateError('bug'),
         ]),
         throwsStateError,
       );
     });
 
-    test('runAllWithConcurrency 取消后不再启动新任务', () async {
+    test('pool 取消后不再启动新任务', () async {
       final cancelToken = WCancelToken();
       var secondStarted = false;
 
-      final future = WAsync.runAllWithConcurrency<int, int>(
+      final future = WAsync.pool<int, int>(
         [
           () async {
             await Future.delayed(const Duration(milliseconds: 100));
@@ -612,9 +614,8 @@ void main() {
       expect(secondStarted, isFalse);
     });
 
-    test('WAsyncConfig.any 委托执行并返回第一个完成结果', () async {
-      final config = WAsyncConfig(showLoading: false);
-      final result = await config.any<int, int>(
+    test('first 委托执行并返回第一个完成结果', () async {
+      final result = await WAsync.first<int, int>(
         [
           Future.delayed(const Duration(milliseconds: 50), () => 1),
           Future.delayed(const Duration(milliseconds: 10), () => 2),
@@ -624,86 +625,93 @@ void main() {
       expect(result, 2);
     });
 
-    test('WAsyncConfig.copyWith 保留未指定的回调', () {
-      void onStart() {}
-      final config = WAsyncConfig(onLoadingStart: onStart);
-      final copy = config.copyWith(showLoading: false);
-
-      expect(copy.showLoading, isFalse);
-      expect(copy.onLoadingStart, same(onStart));
-      expect(copy.onLoadingEnd, isNull);
-      expect(copy.fallbackOnError, isNull);
-    });
-
-    test('WAsyncConfig 并发执行时合并加载状态', () async {
-      var startCount = 0;
-      var completeCount = 0;
-      final config = WAsyncConfig(
-        onLoadingStart: () => startCount++,
-        onLoadingEnd: () => completeCount++,
+    test('copyWith 保留未指定的字段，传 null 可清空', () {
+      void onError(Object? _) {}
+      final options = WAsyncOptions(
+        loading: WAsyncLoading(onStart: () {}),
+        onError: onError,
       );
 
-      final first = config.run<int, int>(
+      final copy = options.copyWith();
+      expect(copy.loading, same(options.loading));
+      expect(copy.onError, same(onError));
+
+      final cleared = options.copyWith(loading: null, onError: null);
+      expect(cleared.loading, isNull);
+      expect(cleared.onError, isNull);
+      // 原对象不受影响
+      expect(options.loading, isNotNull);
+    });
+
+    test('共享 WAsyncLoading 时并发执行只触发一次开始 / 结束', () async {
+      var startCount = 0;
+      var completeCount = 0;
+      final options = optionsWith(start: () => startCount++, end: () => completeCount++);
+
+      final first = WAsync.run<int, int>(
         () async {
           await Future.delayed(const Duration(milliseconds: 50));
           return 1;
         },
+        options: options,
         onSuccess: (value) => value,
       );
-      final second = config.run<int, int>(
+      final second = WAsync.run<int, int>(
         () async {
           await Future.delayed(const Duration(milliseconds: 200));
           return 2;
         },
+        options: options,
         onSuccess: (value) => value,
       );
 
-      // 两个操作共享同一个 config，开始回调只触发一次
       expect(startCount, 1);
 
       await Future.delayed(const Duration(milliseconds: 100));
-      // 第一个已结束，但第二个仍在执行，完成回调不应触发
       expect(completeCount, 0);
 
       await Future.wait([first, second]);
       expect(completeCount, 1);
     });
 
-    test('WAsyncConfig 顺序执行时每次都触发开始与结束', () async {
+    test('顺序执行时每次都触发开始与结束', () async {
       var startCount = 0;
       var completeCount = 0;
-      final config = WAsyncConfig(
-        onLoadingStart: () => startCount++,
-        onLoadingEnd: () => completeCount++,
-      );
+      final options = optionsWith(start: () => startCount++, end: () => completeCount++);
 
-      await config.run<int, int>(() async => 1, onSuccess: (value) => value);
-      await config.run<int, int>(() async => 2, onSuccess: (value) => value);
+      await WAsync.run<int, int>(() async => 1, options: options, onSuccess: (v) => v);
+      await WAsync.run<int, int>(() async => 2, options: options, onSuccess: (v) => v);
 
       expect(startCount, 2);
       expect(completeCount, 2);
     });
 
-    test('WAsyncConfig.showLoading 为 false 时不触发加载回调', () async {
+    test('不传 loading 时不跟踪加载状态（不再有 showLoading 开关）', () async {
       var startCount = 0;
       var completeCount = 0;
-      final config = WAsyncConfig(
-        showLoading: false,
-        onLoadingStart: () => startCount++,
-        onLoadingEnd: () => completeCount++,
+      final options = optionsWith(onError: (_) {});
+
+      expect(options.loading, isNull);
+
+      final result = await WAsync.run<int, int>(
+        () async => 1,
+        options: options,
+        onSuccess: (value) => value,
       );
 
-      await config.run<int, int>(() async => 1, onSuccess: (value) => value);
-
+      expect(result, 1);
       expect(startCount, 0);
       expect(completeCount, 0);
     });
 
-    test('onLoadingStart 抛异常时业务仍正常执行', () async {
-      final config = WAsyncConfig(onLoadingStart: () => throw 'loading failed');
+    test('onStart 抛异常时业务仍正常执行', () async {
+      final options = WAsyncOptions(
+        loading: WAsyncLoading(onStart: () => throw 'loading failed'),
+      );
 
-      final result = await config.run<int, int>(
+      final result = await WAsync.run<int, int>(
         () async => 1,
+        options: options,
         onSuccess: (value) => value,
       );
 
@@ -713,14 +721,12 @@ void main() {
     test('已取消的操作不触发加载回调', () async {
       var startCount = 0;
       var completeCount = 0;
-      final config = WAsyncConfig(
-        onLoadingStart: () => startCount++,
-        onLoadingEnd: () => completeCount++,
-      );
+      final options = optionsWith(start: () => startCount++, end: () => completeCount++);
       final cancelToken = WCancelToken()..cancel('before start');
 
-      final result = await config.run<int, int>(
+      final result = await WAsync.run<int, int>(
         () async => 1,
+        options: options,
         onSuccess: (value) => value,
         cancelToken: cancelToken,
       );
@@ -733,7 +739,7 @@ void main() {
     // ─── any ───
 
     test('any should return first completed result', () async {
-      final result = await WAsync.any<int, int>(
+      final result = await WAsync.first<int, int>(
         [
           Future.delayed(const Duration(milliseconds: 100), () => 1),
           Future.delayed(const Duration(milliseconds: 50), () => 2),
@@ -749,7 +755,7 @@ void main() {
       final stopwatch = Stopwatch()..start();
       var errorCount = 0;
 
-      final future = WAsync.any<int, int>(
+      final future = WAsync.first<int, int>(
         [Future.delayed(const Duration(milliseconds: 300), () => 1)],
         onError: (_) => errorCount++,
         cancelToken: cancelToken,
@@ -766,23 +772,21 @@ void main() {
     });
 
     test('any 空集合返回 null', () async {
-      final result = await WAsync.any<int, int>(
+      final result = await WAsync.first<int, int>(
         <Future<int>>[],
         onSuccess: (value) => value,
       );
       expect(result, isNull);
     });
 
-    test('any 空集合不触发加载回调', () async {
+    test('first 空集合不触发加载回调', () async {
       var startCount = 0;
       var endCount = 0;
-      final config = WAsyncConfig(
-        onLoadingStart: () => startCount++,
-        onLoadingEnd: () => endCount++,
-      );
+      final options = optionsWith(start: () => startCount++, end: () => endCount++);
 
-      final result = await config.any<int, int>(
+      final result = await WAsync.first<int, int>(
         <Future<int>>[],
+        options: options,
         onSuccess: (value) => value,
       );
 
@@ -791,11 +795,11 @@ void main() {
       expect(endCount, 0);
     });
 
-    // ─── sequence ───
+    // ─── serial ───
 
-    test('sequence should execute in order', () async {
+    test('serial should execute in order', () async {
       final executionOrder = <int>[];
-      await WAsync.sequence([
+      await WAsync.serial([
         () async {
           await Future.delayed(const Duration(milliseconds: 50));
           executionOrder.add(1);
@@ -815,8 +819,8 @@ void main() {
       expect(executionOrder, [1, 2, 3]);
     });
 
-    test('sequence should return null when onSuccess not provided', () async {
-      final result = await WAsync.sequence<int, List<int>>([
+    test('serial should return null when onSuccess not provided', () async {
+      final result = await WAsync.serial<int, List<int>>([
         () async => 1,
         () async => 2,
         () async => 3,
@@ -824,19 +828,19 @@ void main() {
       expect(result, null);
     });
 
-    test('sequence with onSuccess should return collected results', () async {
-      final result = await WAsync.sequence<int, List<int>>(
+    test('serial with onSuccess should return collected results', () async {
+      final result = await WAsync.serial<int, List<int>>(
         [() async => 1, () async => 2, () async => 3],
         onSuccess: (list) => list,
       );
       expect(result, [1, 2, 3]);
     });
 
-    test('sequence 遇错后不再执行后续任务', () async {
+    test('serial 遇错后不再执行后续任务', () async {
       var secondCalled = false;
       var errorCount = 0;
 
-      final result = await WAsync.sequence<int, int>(
+      final result = await WAsync.serial<int, int>(
         [
           () async => throw 'fail',
           () async {
@@ -852,11 +856,11 @@ void main() {
       expect(errorCount, 1);
     });
 
-    test('sequence 取消会等当前任务结束后返回 null', () async {
+    test('serial 取消会等当前任务结束后返回 null', () async {
       final cancelToken = WCancelToken();
       var completed = false;
 
-      final future = WAsync.sequence<int, int>(
+      final future = WAsync.serial<int, int>(
         [
           () async {
             await Future.delayed(const Duration(milliseconds: 60));
@@ -875,8 +879,8 @@ void main() {
       expect(completed, isTrue);
     });
 
-    test('sequence 支持任意 Iterable', () async {
-      final result = await WAsync.sequence<int, List<int>>(
+    test('serial 支持任意 Iterable', () async {
+      final result = await WAsync.serial<int, List<int>>(
         {1, 2, 3}.map(
           (i) => () async => i,
         ),

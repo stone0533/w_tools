@@ -396,25 +396,6 @@ void main() {
     expect(find.text('status-failed'), findsOneWidget);
   });
 
-  testWidgets('WAsyncBuilder 兼容别名仍可用', (tester) async {
-    final state = ValueNotifier<WAsyncState<int>>(
-      const WAsyncState.ready(1),
-    );
-    addTearDown(state.dispose);
-
-    await tester.pumpWidget(
-      _host(
-        // ignore: deprecated_member_use_from_same_package
-        WAsyncBuilder<int>(
-          state: state,
-          builder: (context, value) => Text('alias-${value.data}'),
-        ),
-      ),
-    );
-
-    expect(find.text('alias-1'), findsOneWidget);
-  });
-
   testWidgets('默认错误视图重试回调可用', (tester) async {
     var retries = 0;
     final state = ValueNotifier<WAsyncState<int>>(

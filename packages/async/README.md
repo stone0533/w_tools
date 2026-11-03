@@ -85,7 +85,7 @@ profile.load();
 coupons.load();
 ```
 
-不要用一个 `WAsyncConfig` 管理多个独立区块的 Loading；它会把并发请求合并成一次。
+不要用一个 `WAsyncLoading` 管理多个独立区块的 Loading；它会把并发请求合并成一次。
 
 ## 全局默认视图
 
@@ -153,7 +153,7 @@ WAsyncView<List<Gift>>(
 只需要执行、不需要 View 时：
 
 ```dart
-final result = await WAsync.runWithRetry<List<Gift>, List<Gift>>(
+final result = await WAsync.retry<List<Gift>, List<Gift>>(
   () => api.gifts(),
   retryCount: 2,
   retryDelay: const Duration(milliseconds: 300),

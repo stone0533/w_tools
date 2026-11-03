@@ -49,6 +49,8 @@
 | 4.0b toast 主题派生 | 完成 | 文本气泡 `inverseSurface` + `onInverseSurface`，默认内容取 `textTheme.bodyMedium`；`backgroundColor` 默认改 `null`；文本提示改 `showCustomText` 以便在 Overlay 里取 Theme |
 | 4.0c 字面量守卫 | 完成 | `scripts/check_style_literals.py` 扫 form/toast/async，CI umbrella job 已接入；历史预设行内标 `style-literal-ok` |
 | 4.0d `WForm` 默认 `borderConfig` 切到 `fromTheme` | 完成 | form 3.0.0：默认主题边框 + `showBorderError`；显式 `const WFormBorderConfig()` 关闭外观；`WFormTheme` 优先级改为显式 > 祖先；`WFormBorderConfig`/`Decoration` 补 `==` 并删除快照缓存；根约束 `^3.0.0`、根 example 加 dependency_overrides |
+| 4.1 async 执行核收敛（2.0.0） | 完成 | `WAsyncConfig`→`WAsyncOptions`（纯数据，删 7 个转发）、新增 `WAsyncLoading` 显式合并、方法改名 `retry/timeout/parallel/pool/first/serial`、删除 `WAsyncBuilder`；控制器接 `options` 并取消上次 token |
+| 4.2 async 视图/defaults 合并 | 待做 | `WAsyncViewDefaults` + `WAsyncSliverDefaults` 合成 `WAsyncTheme`；属破坏性改动，留 2.1 |
 
 ## 0. 三条排序原则
 

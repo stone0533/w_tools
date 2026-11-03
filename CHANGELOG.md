@@ -1,3 +1,7 @@
+## 3.0.2
+
+- 抬高 `w_tools_async` 约束到 `^2.0.0`：async 2.0 删除 `WAsyncConfig` 门面、合并加载改为显式 `WAsyncLoading`、方法改名（详见其 CHANGELOG）。
+
 ## 3.0.1
 
 - 抬高 `w_tools_form` 约束到 `^3.0.0`。

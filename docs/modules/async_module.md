@@ -29,7 +29,8 @@ packages/async/lib/
   w_tools_async.dart
   src/
     task/
-      async_task.dart       # WAsync / WAsyncConfig
+      async_task.dart       # WAsync / WAsyncOptions
+      async_loading.dart    # WAsyncLoading（并发 loading 合并）
       cancel_token.dart     # WCancelToken / WCancellationException
     state/
       async_state.dart      # WAsyncState / WAsyncStatus
@@ -43,7 +44,6 @@ packages/async/lib/
       async_state_builder.dart # WAsyncStateBuilder
       async_state_sliver.dart # WAsyncStateSliver
       async_sliver_defaults.dart # WAsyncSliverDefaults
-      async_builder.dart    # deprecated alias
 ```
 
 ## 1. WAsync - 异步编排
@@ -54,19 +54,26 @@ packages/async/lib/
 
 ### 类与成员概览
 
-#### WAsyncConfig（执行配置）
+#### WAsyncOptions（执行选项，纯数据）
 
 | 成员 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `showLoading` | bool | true | 是否显示 Loading |
-| `onLoadingStart` | VoidCallback? | null | Loading 开始回调 |
-| `onLoadingEnd` | VoidCallback? | null | Loading 结束回调 |
-| `fallbackOnError` | `void Function(Object?)?` | null | 未传 `onError` 时的兜底错误回调 |
-| `run / runWithRetry / runWithTimeout / wait / runAllWithConcurrency / any / sequence` | 委托方法 | — | 均转发给 WAsync 静态方法 |
+| `loading` | `WAsyncLoading?` | null | 需要合并并发 Loading 时传入；不传就不跟踪 |
+| `onError` | `void Function(Object?)?` | null | 未传 `onError` 时的兜底错误回调 |
 
-`WAsyncConfig` 只管执行期 Loading 回调与兜底错误，不是 UI 默认视图配置。
+`copyWith` 用哨兵实现：传 `null` 可以清空字段。`WAsyncOptions` 没有转发方法，
+执行入口只有 `WAsync`。
 
-内部维护 `_activeCount` 计数器，**并发任务的 Loading 状态会自动合并**（多任务共享一次 start/end）。
+#### WAsyncLoading（并发 Loading 合并）
+
+| 成员 | 说明 |
+|------|------|
+| `onStart` / `onEnd` | 活动数 0→1 / 1→0 时各触发一次 |
+| `isLoading` | 当前是否有操作在执行 |
+| `begin()` / `end()` | 框架内部使用，业务不要直接调用 |
+
+把同一个实例放进 `WAsyncOptions.loading` 并传给多个调用，即可合并成一次 start/end；
+**合并是显式的**，不再因为“共享配置”而隐式发生。
 
 #### WAsyncState（四态快照）
 
@@ -90,37 +97,44 @@ WAsyncState.failed(error, previousData: oldData)
 
 | 方法 | 签名 | 说明 |
 |------|------|------|
-| `run<T,R>` | `(task, {config, onSuccess, onError, cancelToken})` | 执行单个任务 |
-| `runWithRetry<T,R>` | `(task, {config, onSuccess, onError, retryCount=3, retryDelay=1s, retryIf, cancelToken})` | 带重试执行 |
-| `runWithTimeout<T,R>` | `(task, timeout, {...})` | 带超时执行 |
-| `wait<T,R>` | `(futures, {config, onSuccess, onError, eagerError=true, cancelToken})` | 等待多个 Future 完成 |
-| `runAllWithConcurrency<T,R>` | `(tasks, {config, onSuccess, onError, concurrency=4, cancelToken})` | 限制并发数执行 |
-| `any<T,R>` | `(futures, {...})` | 返回第一个完成的结果，空集合返回 null |
-| `sequence<T,R>` | `(tasks, {...})` | 顺序串行执行 |
+| `run<T,R>` | `(task, {options, onSuccess, onError, cancelToken})` | 执行单个任务 |
+| `retry<T,R>` | `(task, {options, onSuccess, onError, retryCount=3, retryDelay=1s, retryIf, cancelToken})` | 带重试执行 |
+| `timeout<T,R>` | `(task, timeout, {options, ...})` | 带超时执行 |
+| `parallel<T,R>` | `(futures, {options, onSuccess, onError, eagerError=true, cancelToken})` | 等待多个已启动的 Future |
+| `pool<T,R>` | `(tasks, {options, onSuccess, onError, concurrency=4, cancelToken})` | 按并发上限执行任务工厂 |
+| `first<T,R>` | `(futures, {options, ...})` | 返回第一个完成的结果，空集合返回 null |
+| `serial<T,R>` | `(tasks, {options, ...})` | 顺序串行执行 |
 
 ### 行为说明
 
 - **业务异常 vs 编程错误**：`Exception` 被捕获并回调 `onError`；`Error`（`TypeError`、`StateError` 等）向上抛出不拦截。
 - **取消语义**：`WCancelToken.cancel()` 后任务返回 `null`，**不回调 onError**；取消是协作式的，任务内部需主动检查。
-  `wait` / `any` / `runWithTimeout` 在等待期间取消会立即返回；`run` / `sequence` 在当前任务结束后响应。
-- **Loading 合并**：多个并发任务共享同一个 `WAsyncConfig` 时，`showLoading=true` 只会触发一次 start/end。
-- **空集合**：`any([])` 直接返回 null，不进入 Loading；`wait([])` / `sequence([])` /
-  `runAllWithConcurrency([])` 视为成功空结果，会触发 Loading。
-- **并发取消**：`runAllWithConcurrency` 取消后不再启动新任务，但会等待当前在途任务结束后返回。
+  `parallel` / `first` / `timeout` 在等待期间取消会立即返回；`run` / `serial` 在当前任务结束后响应。
+- **Loading 合并**：多个并发任务共享同一个 `WAsyncLoading` 时只会触发一次 start/end；不传
+  `options.loading` 就完全不跟踪。控制器自己维护四态，不会再触发 options 的 loading。
+- **空集合**：`first([])` 直接返回 null，不进入 Loading；`parallel([])` / `serial([])` /
+  `pool([])` 视为成功空结果，会触发 Loading。
+- **并发取消**：`pool` 取消后不再启动新任务，但会等待当前在途任务结束后返回。
 
 ### 使用示例
 
 ```dart
 // 基础执行
+final loading = WAsyncLoading(
+  onStart: () => setState(() => _loading = true),
+  onEnd: () => setState(() => _loading = false),
+);
+final options = WAsyncOptions(loading: loading);
+
 final result = await WAsync.run(
   () => fetchUserData(),
-  config: WAsyncConfig(showLoading: true),
+  options: options,
   onSuccess: (data) => print('成功: $data'),
   onError: (e) => print('失败: $e'),
 );
 
 // 带重试（固定 retryDelay）
-final apiResult = await WAsync.runWithRetry(
+final apiResult = await WAsync.retry(
   () => unstableApiCall(),
   retryCount: 3,
   retryDelay: const Duration(seconds: 1),
@@ -128,7 +142,7 @@ final apiResult = await WAsync.runWithRetry(
 );
 
 // 并发限流（最多 4 个同时运行）
-final results = await WAsync.runAllWithConcurrency(
+final results = await WAsync.pool(
   [task1, task2, task3, task4, task5, task6],
   concurrency: 4,
 );

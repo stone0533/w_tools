@@ -278,8 +278,8 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
   ),
   CatalogEntry(
-    name: "WAsyncStateBuilder / WAsyncBuilder",
-    names: <String>["WAsyncStateBuilder", "WAsyncBuilder"],
+    name: "WAsyncStateBuilder",
+    names: <String>["WAsyncStateBuilder"],
     package: "w_tools_async",
     section: "7. 状态与反馈",
     useFor: "滚动页面 / `SmartRefresher` / 自定义状态布局",

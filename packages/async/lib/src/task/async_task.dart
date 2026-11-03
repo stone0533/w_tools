@@ -1,333 +1,77 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
+import 'async_loading.dart';
 import 'cancel_token.dart';
 
+export 'async_loading.dart';
 export 'cancel_token.dart';
 
-// ============== 异步操作配置 ==============
-
-/// 执行配置（不是 UI 默认视图配置）。
+/// 执行选项（纯数据）。
 ///
-/// 供 [WAsync] 各执行方法复用加载状态与错误回调配置。
-/// 各执行方法的 `onSuccess` 未传时，即使操作成功也会返回 null；
-/// 需要拿到结果时请显式传入 `onSuccess`。
-/// [fallbackOnError] 仅在调用方法时未单独传 `onError` 的情况下生效。
-/// 业务异常（`Exception`）会被上报并返回 null；编程错误（`Error`，如
-/// `TypeError` / `StateError`）不会被拦截，会向上抛出。
-class WAsyncConfig {
-  /// 是否跟踪加载状态
+/// 只负责「加载状态怎么合并」与「没传 onError 时的兜底回调」；
+/// 不含运行时状态，也没有转发方法——执行入口只有 [WAsync]。
+///
+/// - 业务异常（`Exception`）会被捕获并通过 onError / [onError] 上报；
+/// - 编程错误（`Error`，如 `TypeError` / `StateError`）原样向上抛；
+/// - 取消属于正常结束，不回调错误。
+@immutable
+class WAsyncOptions {
+  /// 创建执行选项
   ///
-  /// 为 true 时，执行期间会触发 [onLoadingStart] / [onLoadingEnd]；默认 true。
-  bool showLoading;
+  /// [loading] 需要合并并发加载状态时传入（显式 opt-in），否则不跟踪。
+  /// [onError] 只在调用处没有单独传 `onError` 时生效。
+  const WAsyncOptions({this.loading, this.onError});
 
-  /// 开始执行时的回调（用于展示加载状态）
-  ///
-  /// 并发执行时仅在活动操作数 0→1 时触发一次。
-  void Function()? onLoadingStart;
-
-  /// 执行结束时的回调
-  ///
-  /// 并发执行时仅在全部操作结束（活动数 1→0）时触发一次。
-  void Function()? onLoadingEnd;
+  /// 并发加载状态合并器；为空表示不跟踪加载状态
+  final WAsyncLoading? loading;
 
   /// 兜底错误回调
-  ///
-  /// 仅在调用具体方法时未传 `onError` 的情况下才会被调用。
-  void Function(Object? error)? fallbackOnError;
+  final void Function(Object? error)? onError;
 
-  /// 当前正在执行的操作数，用于合并并发操作的加载状态
-  int _activeCount = 0;
+  static const Object _unset = Object();
 
-  /// 标记一次操作开始：活动数 0→1 时触发 [onLoadingStart]
-  void _beginLoading() {
-    _activeCount++;
-    if (_activeCount == 1) {
-      try {
-        onLoadingStart?.call();
-      } catch (e) {
-        // 加载回调异常不影响业务操作
-      }
-    }
-  }
-
-  /// 标记一次操作结束：活动数 1→0 时触发 [onLoadingEnd]
-  void _endLoading() {
-    if (_activeCount == 0) return;
-    _activeCount--;
-    if (_activeCount == 0) {
-      try {
-        onLoadingEnd?.call();
-      } catch (e) {
-        // 加载回调异常不影响业务操作
-      }
-    }
-  }
-
-  /// 创建异步操作配置
-  WAsyncConfig({
-    this.showLoading = true,
-    this.onLoadingStart,
-    this.onLoadingEnd,
-    this.fallbackOnError,
-  });
-
-  /// 创建当前配置的副本
-  ///
-  /// 未指定的参数沿用当前值；传入 null 不会把回调清空，
-  /// 如需清空请重新创建 [WAsyncConfig]。
-  WAsyncConfig copyWith({
-    bool? showLoading,
-    void Function()? onLoadingStart,
-    void Function()? onLoadingEnd,
-    void Function(Object? error)? fallbackOnError,
+  /// 创建副本；传 `null` 可以清空 `loading` / `onError`
+  WAsyncOptions copyWith({
+    Object? loading = _unset,
+    Object? onError = _unset,
   }) {
-    return WAsyncConfig(
-      showLoading: showLoading ?? this.showLoading,
-      onLoadingStart: onLoadingStart ?? this.onLoadingStart,
-      onLoadingEnd: onLoadingEnd ?? this.onLoadingEnd,
-      fallbackOnError: fallbackOnError ?? this.fallbackOnError,
-    );
-  }
-
-  /// 执行单个异步操作
-  ///
-  /// [task] 要执行的异步函数
-  /// [onSuccess] 成功回调，接收操作结果
-  /// [onError] 错误回调，接收错误信息
-  /// [cancelToken] 取消令牌
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  Future<R?> run<T, R>(
-    Future<T> Function() task, {
-    R? Function(T)? onSuccess,
-    void Function(Object?)? onError,
-    WCancelToken? cancelToken,
-  }) async {
-    return WAsync.run<T, R>(
-      task,
-      config: this,
-      onSuccess: onSuccess,
-      onError: onError,
-      cancelToken: cancelToken,
-    );
-  }
-
-  /// 执行单个异步操作并支持重试
-  ///
-  /// [task] 要执行的异步函数
-  /// [onSuccess] 成功回调，接收操作结果
-  /// [onError] 错误回调，接收错误信息
-  /// [retryCount] 首次执行失败后的最大重试次数（总执行次数为 retryCount + 1），不能为负数
-  /// [retryDelay] 两次尝试之间的固定等待时间，等待期间可被 [cancelToken] 取消；不能为负数
-  /// [retryIf] 判断某个异常是否重试；为空时重试所有 `Exception`，
-  ///   返回 false 时立即结束并上报错误
-  /// [cancelToken] 取消令牌
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  Future<R?> runWithRetry<T, R>(
-    Future<T> Function() task, {
-    R? Function(T)? onSuccess,
-    void Function(Object?)? onError,
-    int retryCount = 3,
-    Duration retryDelay = const Duration(seconds: 1),
-    bool Function(Object error)? retryIf,
-    WCancelToken? cancelToken,
-  }) async {
-    return WAsync.runWithRetry<T, R>(
-      task,
-      config: this,
-      onSuccess: onSuccess,
-      onError: onError,
-      retryCount: retryCount,
-      retryDelay: retryDelay,
-      retryIf: retryIf,
-      cancelToken: cancelToken,
-    );
-  }
-
-  /// 执行单个异步操作并支持超时
-  ///
-  /// 超时只会结束本次等待，[task] 返回的 Future 不会被取消，仍可能继续执行。
-  ///
-  /// [task] 要执行的异步函数
-  /// [timeout] 超时时间
-  /// [onSuccess] 成功回调，接收操作结果
-  /// [onError] 错误回调，接收错误信息
-  /// [cancelToken] 取消令牌
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或超时返回 null
-  Future<R?> runWithTimeout<T, R>(
-    Future<T> Function() task,
-    Duration timeout, {
-    R? Function(T)? onSuccess,
-    void Function(Object?)? onError,
-    WCancelToken? cancelToken,
-  }) async {
-    return WAsync.runWithTimeout<T, R>(
-      task,
-      timeout,
-      config: this,
-      onSuccess: onSuccess,
-      onError: onError,
-      cancelToken: cancelToken,
-    );
-  }
-
-  /// 执行多个异步操作（并行）
-  ///
-  /// 传入的 Future 在调用时已全部启动，本方法只负责等待结果；
-  /// 需要限制并发数请使用 [runAllWithConcurrency]。
-  /// 等待期间取消会立即返回 null，已启动的 Future 仍会继续执行。
-  ///
-  /// [futures] Future 列表
-  /// [onSuccess] 成功回调，接收按输入顺序排列的所有结果
-  /// [onError] 错误回调，接收错误信息
-  /// [eagerError] 为 true 时任一 Future 失败立即结束；
-  ///   为 false 时等待全部完成后再上报第一个错误
-  /// [cancelToken] 取消令牌
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  Future<R?> wait<T, R>(
-    Iterable<Future<T>> futures, {
-    R? Function(List<T>)? onSuccess,
-    void Function(Object?)? onError,
-    bool eagerError = true,
-    WCancelToken? cancelToken,
-  }) async {
-    return WAsync.wait<T, R>(
-      futures,
-      config: this,
-      onSuccess: onSuccess,
-      onError: onError,
-      eagerError: eagerError,
-      cancelToken: cancelToken,
-    );
-  }
-
-  /// 执行多个异步操作（并行，带并发控制）
-  ///
-  /// [tasks] 为异步任务工厂列表，只有并发槽位可用时才会调用，
-  /// 因此能真正限制同时执行的任务数。
-  /// [onSuccess] 成功回调，接收按任务顺序排列的所有结果
-  /// [onError] 错误回调，接收错误信息
-  /// [concurrency] 同时执行的最大任务数，必须大于 0
-  /// [cancelToken] 取消令牌
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  Future<R?> runAllWithConcurrency<T, R>(
-    Iterable<Future<T> Function()> tasks, {
-    R? Function(List<T>)? onSuccess,
-    void Function(Object?)? onError,
-    int concurrency = 4,
-    WCancelToken? cancelToken,
-  }) async {
-    return WAsync.runAllWithConcurrency<T, R>(
-      tasks,
-      config: this,
-      onSuccess: onSuccess,
-      onError: onError,
-      concurrency: concurrency,
-      cancelToken: cancelToken,
-    );
-  }
-
-  /// 执行多个异步操作并返回第一个完成的结果
-  ///
-  /// 其余 Future 不会被取消，仍会继续执行。
-  /// 等待期间取消会立即返回 null。
-  ///
-  /// [futures] Future 列表
-  /// [onSuccess] 成功回调，接收最先完成的结果
-  /// [onError] 错误回调，接收错误信息
-  /// [cancelToken] 取消令牌
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果；空集合、失败或取消返回 null
-  Future<R?> any<T, R>(
-    Iterable<Future<T>> futures, {
-    R? Function(T)? onSuccess,
-    void Function(Object?)? onError,
-    WCancelToken? cancelToken,
-  }) async {
-    return WAsync.any<T, R>(
-      futures,
-      config: this,
-      onSuccess: onSuccess,
-      onError: onError,
-      cancelToken: cancelToken,
-    );
-  }
-
-  /// 按顺序执行多个异步操作
-  ///
-  /// 任一任务失败后立即停止，后续任务不再执行。
-  ///
-  /// [tasks] 异步函数列表
-  /// [onSuccess] 成功回调，接收按顺序排列的所有结果
-  /// [onError] 错误回调，接收错误信息
-  /// [cancelToken] 取消令牌
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  Future<R?> sequence<T, R>(
-    Iterable<Future<T> Function()> tasks, {
-    R? Function(List<T>)? onSuccess,
-    void Function(Object?)? onError,
-    WCancelToken? cancelToken,
-  }) async {
-    return WAsync.sequence<T, R>(
-      tasks,
-      config: this,
-      onSuccess: onSuccess,
-      onError: onError,
-      cancelToken: cancelToken,
+    return WAsyncOptions(
+      loading: identical(loading, _unset) ? this.loading : loading as WAsyncLoading?,
+      onError: identical(onError, _unset)
+          ? this.onError
+          : onError as void Function(Object?)?,
     );
   }
 }
 
-// ============== 异步操作助手 ==============
-
-/// 异步操作助手
+/// 异步执行助手。
 ///
-/// 统一处理加载回调、错误回调与取消：业务异常（`Exception`）会被捕获，
-/// 并通过方法参数 `onError` 或 [WAsyncConfig.fallbackOnError] 上报，
-/// 方法返回 null，不向调用方抛出。
-/// 编程错误（`Error`，如 `TypeError` / `StateError`）不属于业务异常，
-/// 不会被拦截，会原样向上抛出。
-/// 加载回调与错误回调自身抛出的异常会被忽略；`onSuccess` 抛出的 `Exception`
-/// 按业务异常处理（上报错误并返回 null），抛出的 `Error` 同样向上抛出。
-/// 取消是协作式的：[wait] / [any] 在等待期间收到取消会立即返回 null；
-/// 正在执行的 Future 不会被中止，仍会继续运行。
-/// 参数错误（如 `concurrency < 1`、负数的 `retryCount` / `retryDelay` /
-/// `timeout`）会以失败的 Future 返回 [ArgumentError]。
+/// 统一处理加载回调、错误回调与协作式取消：业务异常被捕获并通过
+/// `onError`（或 [WAsyncOptions.onError]）上报，方法返回 null；
+/// 编程错误（`Error`）原样抛出。取消不会中止底层 Future，只让后续检查点提前结束。
+/// 参数错误（`concurrency < 1`、负数的 `retryCount` / `retryDelay` / `timeout`）
+/// 以失败的 Future 返回 [ArgumentError]。
 class WAsync {
   // 纯静态工具类，禁止实例化
   WAsync._();
 
   /// 执行单个异步操作
-  ///
-  /// 任务开始前与结束后都会检查取消状态。
-  ///
-  /// [task] 要执行的异步函数
-  /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收操作结果并返回处理后的结果
-  /// [onError] 错误回调，接收错误信息
-  /// [cancelToken] 取消令牌，用于取消操作
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
   static Future<R?> run<T, R>(
     Future<T> Function() task, {
-    WAsyncConfig? config,
+    WAsyncOptions? options,
     R? Function(T)? onSuccess,
     void Function(Object?)? onError,
     WCancelToken? cancelToken,
-  }) async {
+  }) {
     return _executeWithLoading<R?>(
-      config,
+      options,
       () async {
         cancelToken?.throwIfCancelled();
         final result = await task();
         cancelToken?.throwIfCancelled();
-        final processedResult = onSuccess?.call(result);
-        return processedResult;
+        return onSuccess?.call(result);
       },
       onError,
       cancelToken: cancelToken,
@@ -336,41 +80,33 @@ class WAsync {
 
   /// 执行单个异步操作并支持重试
   ///
-  /// 仅对 [task] 抛出的业务异常（`Exception`）重试，且可通过 [retryIf]
-  /// 进一步过滤；重试次数用尽后交给统一的错误处理。
-  /// [onSuccess] 抛出的异常不会触发重试。
-  /// 取消与编程错误（`Error`）不重试，直接向上抛出。
-  ///
-  /// [task] 要执行的异步函数
-  /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收操作结果并返回处理后的结果
-  /// [onError] 错误回调，接收错误信息
-  /// [retryCount] 首次执行失败后的最大重试次数（总执行次数为 retryCount + 1），不能为负数
-  /// [retryDelay] 两次尝试之间的等待时间，等待期间可被 [cancelToken] 取消
-  /// [cancelToken] 取消令牌，用于取消操作
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  static Future<R?> runWithRetry<T, R>(
+  /// 只对 `Exception` 重试，可用 [retryIf] 过滤；取消与 `Error` 不重试。
+  /// `onSuccess` 抛出的异常不会触发重试。
+  static Future<R?> retry<T, R>(
     Future<T> Function() task, {
-    WAsyncConfig? config,
+    WAsyncOptions? options,
     R? Function(T)? onSuccess,
     void Function(Object?)? onError,
     int retryCount = 3,
     Duration retryDelay = const Duration(seconds: 1),
     bool Function(Object error)? retryIf,
     WCancelToken? cancelToken,
-  }) async {
+  }) {
     if (retryCount < 0) {
-      throw ArgumentError.value(retryCount, 'retryCount', '重试次数不能为负数');
+      return Future<R?>.error(
+        ArgumentError.value(retryCount, 'retryCount', '重试次数不能为负数'),
+      );
     }
     if (retryDelay.isNegative) {
-      throw ArgumentError.value(retryDelay, 'retryDelay', '重试间隔不能为负数');
+      return Future<R?>.error(
+        ArgumentError.value(retryDelay, 'retryDelay', '重试间隔不能为负数'),
+      );
     }
 
-    int attempt = 0;
+    var attempt = 0;
 
     return _executeWithLoading<R?>(
-      config,
+      options,
       () async {
         late T result;
         while (true) {
@@ -380,22 +116,16 @@ class WAsync {
             result = await task();
             break;
           } catch (e) {
-            // 取消与编程错误（Error）不重试，直接向上抛出
-            if (e is WCancellationException || e is Error) {
-              rethrow;
-            }
+            if (e is WCancellationException || e is Error) rethrow;
             if (attempt <= retryCount && (retryIf?.call(e) ?? true)) {
               await _cancelableDelay(retryDelay, cancelToken);
               continue;
             }
-            // 此处不直接调用 onError：最终失败统一由 _executeWithLoading 上报，
-            // 保证每次最终失败只回调一次（在此调用会重复上报）。
             rethrow;
           }
         }
 
         cancelToken?.throwIfCancelled();
-        // onSuccess 的异常不触发重试，交由统一错误处理上报
         return onSuccess?.call(result);
       },
       onError,
@@ -405,32 +135,23 @@ class WAsync {
 
   /// 执行单个异步操作并支持超时
   ///
-  /// 超时只会结束本次等待，[task] 返回的 Future 不会被取消，仍可能继续执行；
-  /// 超时以 [TimeoutException] 上报给 `onError`。
-  /// 等待期间取消会立即以取消结束，不会等到底层任务超时。
-  ///
-  /// [task] 要执行的异步函数
-  /// [timeout] 超时时间
-  /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收操作结果并返回处理后的结果
-  /// [onError] 错误回调，接收错误信息
-  /// [cancelToken] 取消令牌，用于取消操作
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或超时返回 null
-  static Future<R?> runWithTimeout<T, R>(
+  /// 超时只结束本次等待，底层 Future 不会被取消，会以 [TimeoutException] 上报。
+  static Future<R?> timeout<T, R>(
     Future<T> Function() task,
     Duration timeout, {
-    WAsyncConfig? config,
+    WAsyncOptions? options,
     R? Function(T)? onSuccess,
     void Function(Object?)? onError,
     WCancelToken? cancelToken,
-  }) async {
+  }) {
     if (timeout.isNegative) {
-      throw ArgumentError.value(timeout, 'timeout', '超时时间不能为负数');
+      return Future<R?>.error(
+        ArgumentError.value(timeout, 'timeout', '超时时间不能为负数'),
+      );
     }
 
     return _executeWithLoading<R?>(
-      config,
+      options,
       () async {
         cancelToken?.throwIfCancelled();
         final timeoutFuture = task().timeout(
@@ -441,39 +162,26 @@ class WAsync {
             ? await timeoutFuture
             : await _awaitWithCancellation(timeoutFuture, cancelToken);
         cancelToken?.throwIfCancelled();
-        final processedResult = onSuccess?.call(result);
-        return processedResult;
+        return onSuccess?.call(result);
       },
       onError,
       cancelToken: cancelToken,
     );
   }
 
-  /// 执行多个异步操作（并行）
+  /// 等待多个 Future（并行）
   ///
-  /// 传入的 Future 在调用时已全部启动，本方法只负责等待结果；
-  /// 需要限制并发数请使用 [runAllWithConcurrency]。
-  /// 等待期间取消会立即返回 null，已启动的 Future 仍会继续执行。
-  ///
-  /// [futures] Future 列表
-  /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收按输入顺序排列的所有结果并返回处理后的结果
-  /// [onError] 错误回调，接收错误信息
-  /// [eagerError] 为 true 时任一 Future 失败立即结束；
-  ///   为 false 时等待全部完成后再上报第一个错误
-  /// [cancelToken] 取消令牌，用于取消操作
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  static Future<R?> wait<T, R>(
+  /// 传入的 Future 在调用时已启动；需要限制并发用 [pool]。
+  static Future<R?> parallel<T, R>(
     Iterable<Future<T>> futures, {
-    WAsyncConfig? config,
+    WAsyncOptions? options,
     R? Function(List<T>)? onSuccess,
     void Function(Object?)? onError,
     bool eagerError = true,
     WCancelToken? cancelToken,
-  }) async {
+  }) {
     return _executeWithLoading<R?>(
-      config,
+      options,
       () async {
         cancelToken?.throwIfCancelled();
         final waitFuture = Future.wait(futures, eagerError: eagerError);
@@ -481,40 +189,29 @@ class WAsync {
             ? await waitFuture
             : await _awaitWithCancellation(waitFuture, cancelToken);
         cancelToken?.throwIfCancelled();
-        final processedResults = onSuccess?.call(results);
-        return processedResults;
+        return onSuccess?.call(results);
       },
       onError,
       cancelToken: cancelToken,
     );
   }
 
-  /// 执行多个异步操作（并行，带并发控制）
+  /// 按并发上限执行任务工厂（只有槽位可用时才调用工厂）
   ///
-  /// [tasks] 为异步任务工厂列表，只有并发槽位可用时才会调用，
-  /// 因此能真正限制同时在执行的任务数（不会预先创建全部 Future）；
-  /// 传入的 Iterable 会立即转换为列表。
-  /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收按任务顺序排列的所有结果
-  /// [onError] 错误回调，接收第一个错误
-  /// [concurrency] 同时执行的最大任务数，必须大于 0
-  /// [cancelToken] 取消令牌，用于取消操作
-  ///
-  /// 任一任务失败后会停止启动新任务，并以第一个错误结束；
-  /// 此时需等待当前在途任务结束后才会返回。
-  /// 取消后同样不会中止在途任务，会等它们结束后返回 null。
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  static Future<R?> runAllWithConcurrency<T, R>(
+  /// 任一任务失败后停止启动新任务，并以第一个错误结束；
+  /// 取消不会中止在途任务，会等它们结束后返回 null。
+  static Future<R?> pool<T, R>(
     Iterable<Future<T> Function()> tasks, {
-    WAsyncConfig? config,
+    WAsyncOptions? options,
     R? Function(List<T>)? onSuccess,
     void Function(Object?)? onError,
     int concurrency = 4,
     WCancelToken? cancelToken,
-  }) async {
+  }) {
     if (concurrency < 1) {
-      throw ArgumentError.value(concurrency, 'concurrency', '并发数必须大于 0');
+      return Future<R?>.error(
+        ArgumentError.value(concurrency, 'concurrency', '并发数必须大于 0'),
+      );
     }
 
     final taskList = tasks.toList();
@@ -522,14 +219,13 @@ class WAsync {
     final results = List<T?>.filled(taskList.length, null);
 
     return _executeWithLoading<R?>(
-      config,
+      options,
       () async {
-        int nextIndex = 0;
-        bool hasError = false;
+        var nextIndex = 0;
+        var hasError = false;
         Object? firstError;
         StackTrace? firstStackTrace;
 
-        // 每个 worker 持续领取下一个任务下标，直到任务耗尽或出现错误
         Future<void> worker() async {
           while (!hasError) {
             final index = nextIndex++;
@@ -567,33 +263,19 @@ class WAsync {
     );
   }
 
-  /// 执行多个异步操作并返回第一个完成的结果
-  ///
-  /// 其余 Future 不会被取消，仍会继续执行；
-  /// 空集合直接返回 null（不触发 `onError`）；等待期间取消会立即返回 null。
-  ///
-  /// [futures] Future 列表
-  /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收最先完成的结果并返回处理后的结果
-  /// [onError] 错误回调，接收错误信息
-  /// [cancelToken] 取消令牌，用于取消操作
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果；空集合、失败或取消返回 null
-  static Future<R?> any<T, R>(
+  /// 返回最先完成的结果；空集合直接返回 null（不触发 onError）
+  static Future<R?> first<T, R>(
     Iterable<Future<T>> futures, {
-    WAsyncConfig? config,
+    WAsyncOptions? options,
     R? Function(T)? onSuccess,
     void Function(Object?)? onError,
     WCancelToken? cancelToken,
-  }) async {
+  }) {
     final futureList = futures.toList();
-    // Future.any 对空集合不会完成；空集合也不应触发无意义的 loading 回调
-    if (futureList.isEmpty) {
-      return null;
-    }
+    if (futureList.isEmpty) return Future<R?>.value();
 
     return _executeWithLoading<R?>(
-      config,
+      options,
       () async {
         cancelToken?.throwIfCancelled();
         final anyFuture = Future.any(futureList);
@@ -601,35 +283,23 @@ class WAsync {
             ? await anyFuture
             : await _awaitWithCancellation(anyFuture, cancelToken);
         cancelToken?.throwIfCancelled();
-        final processedResult = onSuccess?.call(result);
-        return processedResult;
+        return onSuccess?.call(result);
       },
       onError,
       cancelToken: cancelToken,
     );
   }
 
-  /// 按顺序执行多个异步操作
-  ///
-  /// 任一任务失败后立即停止，后续任务不再执行。
-  /// 取消不会中止当前已启动的 Future，会在当前任务结束后响应。
-  ///
-  /// [tasks] 异步函数列表，按顺序执行
-  /// [config] 配置对象，控制加载状态和回调
-  /// [onSuccess] 成功回调，接收按顺序排列的所有结果并返回处理后的结果
-  /// [onError] 错误回调，接收错误信息
-  /// [cancelToken] 取消令牌，用于取消操作
-  ///
-  /// 返回值：成功返回 [onSuccess] 的结果，失败或取消返回 null
-  static Future<R?> sequence<T, R>(
+  /// 按顺序执行；任一任务失败后停止
+  static Future<R?> serial<T, R>(
     Iterable<Future<T> Function()> tasks, {
-    WAsyncConfig? config,
+    WAsyncOptions? options,
     R? Function(List<T>)? onSuccess,
     void Function(Object?)? onError,
     WCancelToken? cancelToken,
-  }) async {
+  }) {
     return _executeWithLoading<R?>(
-      config,
+      options,
       () async {
         final results = <T>[];
         for (final task in tasks) {
@@ -637,8 +307,7 @@ class WAsync {
           results.add(await task());
         }
         cancelToken?.throwIfCancelled();
-        final processedResults = onSuccess?.call(results);
-        return processedResults;
+        return onSuccess?.call(results);
       },
       onError,
       cancelToken: cancelToken,
@@ -646,9 +315,6 @@ class WAsync {
   }
 
   /// 等待 [future] 完成，同时响应取消（内部使用）
-  ///
-  /// 若 [cancelToken] 在等待期间被取消，会立即以 [WCancellationException] 结束，
-  /// 不再等待 [future]；[future] 本身不会被中止，仍会继续执行。
   static Future<T> _awaitWithCancellation<T>(
     Future<T> future,
     WCancelToken cancelToken,
@@ -675,9 +341,6 @@ class WAsync {
   }
 
   /// 可被取消的延迟（内部使用）
-  ///
-  /// 若 [cancelToken] 在等待期间被取消，会立即以 [WCancellationException] 结束，
-  /// 不再等待完整时长。
   static Future<void> _cancelableDelay(Duration delay, WCancelToken? cancelToken) async {
     if (cancelToken == null) {
       await Future.delayed(delay);
@@ -708,72 +371,43 @@ class WAsync {
   }
 
   /// 带加载状态的统一执行入口
-  ///
-  /// 负责触发加载回调、统一处理错误与取消，并在结束时回调加载完成。
-  /// 同一 [WAsyncConfig] 上的并发操作会合并加载状态：首个操作开始时回调
-  /// [WAsyncConfig.onLoadingStart]，最后一个操作结束时回调
-  /// [WAsyncConfig.onLoadingEnd]。
-  ///
-  /// [config] 配置对象；为空时不做加载跟踪，也不触发兜底错误回调
-  /// [executeFunc] 实际执行的异步操作
-  /// [onError] 错误回调；为空时改用 [WAsyncConfig.fallbackOnError]
-  /// [cancelToken] 取消令牌；若在操作开始前已取消，直接返回 null 且不触发加载回调
-  ///
-  /// 返回值：成功返回 [executeFunc] 的结果，业务失败或取消返回 null；
-  /// 编程错误（[Error]）会原样向上抛出。
   static Future<T?> _executeWithLoading<T>(
-    WAsyncConfig? config,
+    WAsyncOptions? options,
     Future<T> Function() executeFunc,
     void Function(Object?)? onError, {
     WCancelToken? cancelToken,
   }) async {
     // 已取消的操作直接结束，避免 loading 回调出现 0→1→0 的闪烁
-    if (cancelToken?.isCancelled == true) {
-      return null;
-    }
+    if (cancelToken?.isCancelled == true) return null;
 
-    // 在本次调用开始时就确定是否跟踪加载状态，避免执行期间
-    // showLoading 被修改导致 begin/end 不配对。
-    final trackLoading = config?.showLoading == true;
+    final loading = options?.loading;
 
     try {
-      if (trackLoading) {
-        config!._beginLoading();
-      }
-
-      final result = await executeFunc();
-      return result;
+      loading?.begin();
+      return await executeFunc();
     } catch (e) {
-      // 编程错误（Error，如 TypeError / StateError）不属于业务异常，
-      // 直接向上抛出，避免被静默吞掉后难以定位。
-      if (e is Error) {
-        rethrow;
-      }
-
-      // 取消属于正常结束：不回调 onError，直接返回 null
-      if (e is WCancellationException) {
-        return null;
-      }
+      // 编程错误不属于业务异常，原样向上抛
+      if (e is Error) rethrow;
+      // 取消属于正常结束：不回调 onError
+      if (e is WCancellationException) return null;
 
       try {
         onError?.call(e);
       } catch (_) {
-        // 忽略错误回调自身的异常，保持「不向调用方抛出」的约定
+        // 忽略错误回调自身的异常
       }
 
       // 未提供 onError 时改用兜底回调
       if (onError == null) {
         try {
-          config?.fallbackOnError?.call(e);
+          options?.onError?.call(e);
         } catch (_) {
           // 忽略兜底错误回调自身的异常
         }
       }
       return null;
     } finally {
-      if (trackLoading) {
-        config!._endLoading();
-      }
+      loading?.end();
     }
   }
 }

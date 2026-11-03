@@ -9,21 +9,32 @@ import 'package:w_tools_toast/w_tools_toast.dart';
 
 void main() {
   // ========= core =========
-  group('WAsyncConfig', () {
-    test('copyWith 传递参数', () {
-      final cfg = WAsyncConfig(showLoading: false);
-      final copy = cfg.copyWith(showLoading: true);
-      expect(copy.showLoading, true);
+  group('WAsyncOptions', () {
+    test('copyWith 保留 / 清空字段', () {
+      final options = WAsyncOptions(
+        loading: WAsyncLoading(onStart: () {}),
+        onError: (_) {},
+      );
+      final copy = options.copyWith();
+      expect(copy.loading, same(options.loading));
+      expect(copy.onError, same(options.onError));
+
+      final cleared = options.copyWith(loading: null, onError: null);
+      expect(cleared.loading, isNull);
+      expect(cleared.onError, isNull);
     });
 
-    test('fallbackOnError / onLoadingStart 可设置', () {
-      void onLoadingStart() {}
-      final cfg = WAsyncConfig(
-        showLoading: true,
-        onLoadingStart: onLoadingStart,
-        fallbackOnError: (e) {},
-      );
-      expect(cfg.showLoading, true);
+    test('WAsyncLoading 合并 0→1 / 1→0', () {
+      var starts = 0;
+      var ends = 0;
+      final loading = WAsyncLoading(onStart: () => starts++, onEnd: () => ends++);
+      loading.begin();
+      loading.begin();
+      expect(starts, 1);
+      loading.end();
+      expect(ends, 0);
+      loading.end();
+      expect(ends, 1);
     });
   });
 

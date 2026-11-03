@@ -124,19 +124,19 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
-- 每个独立区块一个 Controller；不要用一个 `WAsyncConfig` 合并多个独立区块的 Loading。
+- 每个独立区块一个 Controller；不要用一个 `WAsyncLoading` 合并多个独立区块的 Loading。
 - 全局默认 loading / empty / error 用 `WAsyncViewDefaults`；放在 App 根节点（推荐 `WAppPlugin.wrapApp` / `WApp.appWrapper`），不要只放 `AppScaffold.body`。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
 - `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；loading / empty / error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
 - `WAsyncViewDefaults` 只作用于 `WAsyncView`，不作用于 `WAsyncSliverDefaults` / `WAsyncStateBuilder`。
 - Sliver 页面默认视图用 `WAsyncSliverDefaults`；loading/empty/error 必须是非滚动 Widget，`refreshingSliverBuilder` 必须返回 sliver。
-- `WAsyncBuilder` 是 `WAsyncStateBuilder` 的兼容别名，新代码使用后者。
 - 分页使用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
 - `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
 - `WAsyncStateSliver` 默认不添加 refreshing 进度条；由外层 SmartRefresher 负责，需要额外进度时显式传 `refreshingSliverBuilder`。
-- `WAsyncController` 会把所有异常转为 failed；只丢弃旧请求，不中止底层 Future。
-- 需要中止请求时，由 loader 接收 `WCancelToken`。
-- `WAsync` / `WAsyncConfig` / `WCancelToken` 只在不需要 UI 状态时直接使用。
+- `WAsyncController` / `WAsyncPagedController` 会把所有异常转为 failed；`load()` / `refresh()` 会取消上一次的 `WCancelToken`，`dispose()` 也会取消。
+- 取消是协作式的：loader 需要接收 `WCancelToken` 并主动检查，底层 Future 才会真正停止。
+- `WAsync` / `WAsyncOptions` / `WAsyncLoading` / `WCancelToken` 只在不需要 UI 状态时直接使用；
+  控制器的四态与 `options.loading` 不要同时用来表示同一个 Loading。
 
 ## 网络（w_tools_api）
 

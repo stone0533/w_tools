@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking
+- `WAsyncConfig` 改名为 `WAsyncOptions` 并改为纯数据：删除 `showLoading` / `onLoadingStart` / `onLoadingEnd` / `fallbackOnError` 字段和 7 个转发方法（`config.run(...)` 等），统一用 `WAsync.xxx(options: ...)`。
+- 加载状态合并改为显式 `WAsyncLoading`（放进 `WAsyncOptions.loading`）：不传就完全不跟踪，不再“共享配置即隐式合并”。
+- 方法改名：`runWithRetry → retry`、`runWithTimeout → timeout`、`wait → parallel`、`runAllWithConcurrency → pool`、`any → first`、`sequence → serial`。
+- 删除 `WAsyncBuilder` 兼容别名（使用 `WAsyncStateBuilder`）。
+- `WAsyncController` / `WAsyncPagedController` 新增 `options` 参数，内部改走 `WAsync`；`load` / `refresh` 会取消上一次的 `WCancelToken`，`dispose` 也会取消（取消仍是协作式的）。
+
+### Added
+- `WAsyncLoading`：`onStart` / `onEnd` / `isLoading` / `begin()` / `end()`。
+- `WAsyncOptions.copyWith` 用哨兵实现，传 `null` 可清空 `loading` / `onError`。
+
+### Fixed
+- 非法参数（负数 `retryCount` / `retryDelay` / `timeout`、`concurrency < 1`）以失败的 Future 返回 `ArgumentError`，与旧行为一致。
+
 ## 1.0.0
 
 首次发布。

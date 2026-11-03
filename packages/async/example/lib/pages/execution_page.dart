@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
-/// 四、WAsync / WAsyncConfig / WCancelToken：不需要 UI 状态时的执行入口。
+/// 四、WAsync / WAsyncOptions / WAsyncLoading / WCancelToken：不需要 UI 状态时的执行入口。
 class ExecutionPage extends StatefulWidget {
   const ExecutionPage({super.key});
 
@@ -14,13 +14,15 @@ class _ExecutionPageState extends State<ExecutionPage> {
   bool _loading = false;
   int _retryAttempt = 0;
 
-  WAsyncConfig get _config => WAsyncConfig(
-    onLoadingStart: () {
-      if (mounted) setState(() => _loading = true);
-    },
-    onLoadingEnd: () {
-      if (mounted) setState(() => _loading = false);
-    },
+  WAsyncOptions get _options => WAsyncOptions(
+    loading: WAsyncLoading(
+      onStart: () {
+        if (mounted) setState(() => _loading = true);
+      },
+      onEnd: () {
+        if (mounted) setState(() => _loading = false);
+      },
+    ),
   );
 
   void _log(String message) {
@@ -33,7 +35,7 @@ class _ExecutionPageState extends State<ExecutionPage> {
         await Future<void>.delayed(const Duration(milliseconds: 250));
         return '执行成功';
       },
-      config: _config,
+      options: _options,
       onSuccess: (value) => value,
       onError: (error) => _log('run error: $error'),
     );
@@ -42,7 +44,7 @@ class _ExecutionPageState extends State<ExecutionPage> {
 
   Future<void> _retry() async {
     _retryAttempt = 0;
-    final result = await WAsync.runWithRetry<String, String>(
+    final result = await WAsync.retry<String, String>(
       () async {
         _retryAttempt++;
         if (_retryAttempt < 3) {
@@ -50,7 +52,7 @@ class _ExecutionPageState extends State<ExecutionPage> {
         }
         return '第 $_retryAttempt 次成功';
       },
-      config: _config,
+      options: _options,
       retryCount: 3,
       retryDelay: const Duration(milliseconds: 150),
       onSuccess: (value) => value,
@@ -60,13 +62,13 @@ class _ExecutionPageState extends State<ExecutionPage> {
   }
 
   Future<void> _timeout() async {
-    final result = await WAsync.runWithTimeout<String, String>(
+    final result = await WAsync.timeout<String, String>(
       () async {
         await Future<void>.delayed(const Duration(seconds: 1));
         return '不会返回';
       },
       const Duration(milliseconds: 200),
-      config: _config,
+      options: _options,
       onSuccess: (value) => value,
       onError: (error) => _log('timeout: $error'),
     );
@@ -80,7 +82,7 @@ class _ExecutionPageState extends State<ExecutionPage> {
         await Future<void>.delayed(const Duration(milliseconds: 800));
         return '已取消，不会回调 onError';
       },
-      config: _config,
+      options: _options,
       cancelToken: token,
       onSuccess: (value) => value,
       onError: (error) => _log('cancel error: $error'),
