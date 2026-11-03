@@ -56,7 +56,7 @@ api/
 | `DioRegistry.dispose(baseUrl)` | 关闭并移除指定 `baseUrl` 的实例 |
 | `DioRegistry.clearCache()` | 关闭并清空所有缓存实例 |
 
-> 注意：同一 `baseUrl` 命中缓存后会**直接返回已有实例**，此时传入的 `options` / `interceptors` 会被忽略；如需更换配置，请先 `DioRegistry.dispose(baseUrl)`。
+> 注意：同一 `baseUrl` 命中缓存后返回已有实例；如果这次显式传入了**不同**的 `options` / `interceptors`，会抛 `ArgumentError`（不再静默忽略）。需要更换配置请先 `DioRegistry.dispose(baseUrl)`。
 
 ### 使用示例
 
@@ -96,26 +96,32 @@ DioRegistry.dispose('https://api.example.com');
 
 ### 功能说明
 
-按开关打印请求与响应详情，输出经 `WApiConfig.logDebugHandler` / `WApiConfig.logErrorHandler`。
+按 `parts`（`WLogPart`）打印请求与响应详情，输出经 `WApiConfig.logDebugHandler` / `WApiConfig.logErrorHandler`。`parts` 为空时退回旧的 bool 参数。
 
 ### 配置参数
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `request` | bool | true | 打印请求信息 |
-| `requestHeader` | bool | true | 打印请求头 |
-| `requestBody` | bool | true | 打印请求体 |
-| `responseHeader` | bool | false | 打印响应头 |
-| `responseBody` | bool | true | 打印响应体 |
-| `error` | bool | true | 打印错误信息 |
-| `enableLog` | bool | true | 是否启用日志 |
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `parts` | `Set<WLogPart>?` | 要输出的片段：`request` / `requestHeader` / `requestBody` / `responseHeader` / `responseBody` / `error` / `errorHint` |
+| `enableLog` | bool | 是否启用日志（默认 true） |
+| `redactedHeaders` | `Set<String>` | 脱敏头列表 |
+| `request` / `requestHeader` / `requestBody` / `responseHeader` / `responseBody` / `error` | bool? | **旧参数（5.0 移除）**：不传 `parts` 时生效 |
+
+> 显式传 `parts` 时，未列出的片段不会输出；body 默认是否打印由调用方决定（建议 `kDebugMode`）。
 
 ### 使用示例
 
 ```dart
 final logInterceptor = WLogInterceptor(
-  responseBody: true,
-  enableLog: kDebugMode,
+  parts: {
+    WLogPart.request,
+    WLogPart.requestHeader,
+    if (kDebugMode) WLogPart.requestBody,
+    if (kDebugMode) WLogPart.responseBody,
+    WLogPart.error,
+    WLogPart.errorHint,
+  },
+  enableLog: true,
 );
 ```
 

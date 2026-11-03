@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking
+- `DioRegistry.forBaseUrl` 命中缓存时，若显式传入不同的 `options` / `interceptors` 会抛
+  `ArgumentError`（此前静默忽略）。需要更换配置请先 `dispose(baseUrl)`。
+
+### Added
+- `WLogPart` + `WLogInterceptor(parts: ...)`：按片段控制日志输出。
+
+### Deprecated（5.0 移除）
+- `WLogInterceptor` 的 `request` / `requestHeader` / `requestBody` / `responseHeader` /
+  `responseBody` / `error` 六个 bool 参数：改用 `parts`。
+
 ## 1.0.2
 
 ### Fixed

@@ -7,6 +7,48 @@ void main() {
     DioRegistry.clearCache();
   });
 
+  group('DioRegistry 配置冲突', () {
+    test('命中缓存但 BaseOptions 不同时报错', () {
+      DioRegistry.forBaseUrl(
+        'https://conflict.example.com',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 1)),
+      );
+
+      expect(
+        () => DioRegistry.forBaseUrl(
+          'https://conflict.example.com',
+          options: BaseOptions(connectTimeout: const Duration(seconds: 2)),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('相同 BaseOptions 命中缓存不报错', () {
+      final first = DioRegistry.forBaseUrl(
+        'https://same.example.com',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 1)),
+      );
+      final second = DioRegistry.forBaseUrl(
+        'https://same.example.com',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 1)),
+      );
+      expect(first, same(second));
+    });
+
+    test('命中缓存但 interceptors 不同时报错', () {
+      final log = WLogInterceptor(enableLog: false);
+      DioRegistry.forBaseUrl('https://interceptor-conflict.example.com', interceptors: [log]);
+
+      expect(
+        () => DioRegistry.forBaseUrl(
+          'https://interceptor-conflict.example.com',
+          interceptors: [WLogInterceptor(enableLog: false)],
+        ),
+        throwsArgumentError,
+      );
+    });
+  });
+
   group('DioRegistry', () {
     test('同一个 baseUrl 返回同一个实例', () {
       final util1 = DioRegistry.forBaseUrl('https://api.example.com');

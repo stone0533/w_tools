@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../api_config.dart';
 
@@ -13,6 +14,12 @@ import '../api_config.dart';
 class DioRegistry {
   /// Dio 实例
   late Dio _dio;
+
+  /// 创建时的配置（用于命中缓存时检测冲突）
+  late final BaseOptions _options;
+
+  /// 创建时的拦截器（用于命中缓存时检测冲突）
+  late final List<Interceptor> _interceptors;
 
   /// 获取 Dio 实例
   Dio get dio {
@@ -29,9 +36,11 @@ class DioRegistry {
     BaseOptions options,
     List<Interceptor> interceptors,
   ) {
-    _dio = Dio(options.copyWith(baseUrl: baseUrl));
+    _options = options.copyWith(baseUrl: baseUrl);
+    _interceptors = List.unmodifiable(interceptors);
+    _dio = Dio(_options);
 
-    for (final element in interceptors) {
+    for (final element in _interceptors) {
       _dio.interceptors.add(element);
     }
   }
@@ -41,8 +50,9 @@ class DioRegistry {
 
   /// 获取或创建指定 baseUrl 的实例（按 baseUrl 缓存）
   ///
-  /// 注意：同一 [baseUrl] 命中缓存后会**直接返回已有实例**，此时传入的
-  /// [options] / [interceptors] 会被忽略；如需更换配置请先 [dispose]。
+  /// 同一 [baseUrl] 命中缓存时返回已有实例；如果这次显式传入了**不同**的
+  /// [options] / [interceptors]，会抛 [ArgumentError]，不再静默忽略。
+  /// 需要换配置请先 [dispose]。
   ///
   /// @param baseUrl 基础 URL
   /// @param options Dio 基础配置，缺省使用 [WApiConfig.baseOptions]
@@ -53,13 +63,46 @@ class DioRegistry {
     BaseOptions? options,
     List<Interceptor>? interceptors,
   }) {
-    return _instances.putIfAbsent(baseUrl, () {
-      return DioRegistry._internal(
-        baseUrl,
-        options ?? WApiConfig.baseOptions,
-        List.unmodifiable(interceptors ?? const []),
-      );
-    });
+    final existing = _instances[baseUrl];
+    if (existing != null) {
+      if (options != null && !_sameOptions(existing._options, options)) {
+        throw ArgumentError.value(
+          baseUrl,
+          'baseUrl',
+          'DioRegistry 已存在同一 baseUrl 的不同 BaseOptions；'
+              '如需更换配置请先 DioRegistry.dispose(baseUrl)',
+        );
+      }
+      if (interceptors != null &&
+          !listEquals(existing._interceptors, interceptors)) {
+        throw ArgumentError.value(
+          baseUrl,
+          'baseUrl',
+          'DioRegistry 已存在同一 baseUrl 的不同 interceptors；'
+              '如需更换配置请先 DioRegistry.dispose(baseUrl)',
+        );
+      }
+      return existing;
+    }
+
+    return _instances[baseUrl] = DioRegistry._internal(
+      baseUrl,
+      options ?? WApiConfig.baseOptions,
+      List.unmodifiable(interceptors ?? const []),
+    );
+  }
+
+  /// 比较两个 BaseOptions 的关键网络配置
+  static bool _sameOptions(BaseOptions a, BaseOptions b) {
+    return a.connectTimeout == b.connectTimeout &&
+        a.receiveTimeout == b.receiveTimeout &&
+        a.sendTimeout == b.sendTimeout &&
+        a.responseType == b.responseType &&
+        a.contentType == b.contentType &&
+        a.followRedirects == b.followRedirects &&
+        a.receiveDataWhenStatusError == b.receiveDataWhenStatusError &&
+        mapEquals(a.headers, b.headers) &&
+        mapEquals(a.extra, b.extra);
   }
 
   /// 释放指定 baseUrl 的实例及其 Dio 资源

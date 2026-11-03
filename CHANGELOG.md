@@ -1,3 +1,7 @@
+## 3.0.20
+
+- 抬高 `w_tools_api` 约束到 `^2.0.0`：日志改用 `WLogPart`，`DioRegistry` 配置冲突改为报错。
+
 ## 3.0.19
 
 - 抬高 `w_tools_ui` 约束到 `^4.7.0`：`WClipRRect` / `WBadge` / `WTabBar` / `WNavBar` 的 config 改为可选。

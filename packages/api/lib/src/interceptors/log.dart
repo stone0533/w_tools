@@ -4,8 +4,16 @@ import 'package:dio/dio.dart';
 
 import '../api_config.dart';
 
-/// 日志拦截器，用于记录 HTTP 请求和响应的详细信息
+/// 日志输出片段。
+enum WLogPart { request, requestHeader, requestBody, responseHeader, responseBody, error, errorHint }
+
+/// 日志拦截器，用于记录 HTTP 请求和响应的详细信息。
+///
+/// 2.0 起用 [parts] 选择片段；旧 bool 参数保留（5.0 移除）。
 class WLogInterceptor extends Interceptor {
+  /// 要输出的片段；为 null 时按旧 bool 参数
+  final Set<WLogPart>? parts;
+
   /// 是否打印请求信息
   final bool request;
 
@@ -40,16 +48,24 @@ class WLogInterceptor extends Interceptor {
   };
 
   /// 构造函数
+  ///
+  /// [parts] 非空时，未列出的片段不输出；否则沿用旧 bool 参数。
   WLogInterceptor({
-    this.request = true,
-    this.requestHeader = true,
-    this.requestBody = true,
-    this.responseHeader = false,
-    this.responseBody = true,
-    this.error = true,
+    this.parts,
+    bool? request,
+    bool? requestHeader,
+    bool? requestBody,
+    bool? responseHeader,
+    bool? responseBody,
+    bool? error,
     this.enableLog = true,
     this.redactedHeaders = defaultRedactedHeaders,
-  });
+  })  : request = parts?.contains(WLogPart.request) ?? request ?? true,
+        requestHeader = parts?.contains(WLogPart.requestHeader) ?? requestHeader ?? true,
+        requestBody = parts?.contains(WLogPart.requestBody) ?? requestBody ?? true,
+        responseHeader = parts?.contains(WLogPart.responseHeader) ?? responseHeader ?? false,
+        responseBody = parts?.contains(WLogPart.responseBody) ?? responseBody ?? true,
+        error = parts?.contains(WLogPart.error) ?? error ?? true;
 
   /// 请求阶段：打印请求详情
   @override

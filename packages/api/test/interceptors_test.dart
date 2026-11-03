@@ -43,6 +43,27 @@ class _MockAdapter implements HttpClientAdapter {
 }
 
 void main() {
+  group('WLogInterceptor parts', () {
+    test('parts 选择输出片段', () {
+      final interceptor = WLogInterceptor(
+        parts: {WLogPart.request, WLogPart.error},
+      );
+      expect(interceptor.request, isTrue);
+      expect(interceptor.requestHeader, isFalse);
+      expect(interceptor.requestBody, isFalse);
+      expect(interceptor.responseBody, isFalse);
+      expect(interceptor.error, isTrue);
+    });
+
+    test('不传 parts 时沿用旧 bool 默认值', () {
+      final interceptor = WLogInterceptor();
+      expect(interceptor.request, isTrue);
+      expect(interceptor.requestHeader, isTrue);
+      expect(interceptor.responseHeader, isFalse);
+      expect(interceptor.error, isTrue);
+    });
+  });
+
   // === 测试后清理 DioRegistry 缓存 ===
   tearDown(() {
     WApiConfig.logDebugHandler = null;
@@ -557,3 +578,4 @@ class _ErrorAdapter implements HttpClientAdapter {
   @override
   void close({bool force = false}) {}
 }
+
