@@ -2,36 +2,40 @@ import 'package:flutter/widgets.dart';
 
 import 'route.dart';
 
-/// 路由观察者：监听路由变化并维护 [WRoute] 中的路由列表
+/// 维护路由栈的观察者。
+///
+/// 默认记录到 [WRouteStack.defaultStack]（兼容旧静态 `WRoute`）；
+/// 传 [stack] 时记录到指定实例（`WApp` 会自动传 `WApp.routeStack`）。
 class WRouteObserver extends NavigatorObserver {
-  /// 路由入栈时记录
+  WRouteObserver({WRouteStack? stack}) : _stack = stack ?? WRouteStack.defaultStack;
+
+  final WRouteStack _stack;
+
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    WRoute.addRoute(route);
+    super.didPush(route, previousRoute);
+    // 记录**根 Navigator 中实际入栈**的路由；嵌套 Navigator 不会经过这里
+    _stack.addRoute(route);
   }
 
-  /// 路由出栈时移除记录
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    WRoute.removeRoute(route);
+    super.didPop(route, previousRoute);
+    _stack.removeRoute(route);
   }
 
-  /// 路由被替换时调用（如 `Navigator.pushReplacement`）
-  ///
-  /// 该场景**不会**触发 [didPush]，若不处理会导致路由记录漂移（旧路由残留、新路由缺失），
-  /// 进而使基于 [WRoute.routes] 的操作定位错误。
-  ///
-  /// - [newRoute]：新路由；为 null 表示无新路由
-  /// - [oldRoute]：被替换的路由；为 null 表示无旧路由
-  @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (oldRoute != null) WRoute.removeRoute(oldRoute);
-    if (newRoute != null) WRoute.addRoute(newRoute);
-  }
-
-  /// 路由被直接移除时调用（如 `Navigator.removeRoute`）
   @override
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    WRoute.removeRoute(route);
+    super.didRemove(route, previousRoute);
+    // 被 remove（而非 pop）的路由同样要清理，否则栈记录会残留失效路由，
+    // 进而使基于 routes 的操作定位错误。
+    _stack.removeRoute(route);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    if (oldRoute != null) _stack.removeRoute(oldRoute);
+    if (newRoute != null) _stack.addRoute(newRoute);
   }
 }

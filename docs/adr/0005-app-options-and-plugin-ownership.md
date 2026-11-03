@@ -36,10 +36,12 @@ ui / toast / async / form —— 会把 `cached_network_image`（50 个传递包
      - **生命周期插件**（初始化顺序 / 原生能力）：由业务方或能力包提供，只要能力包已经依赖 app；
      - **主题 / 默认视图组合**：用 `WApp.appWrapper` 组合，不需要插件：
        ```dart
-       WApp(
-         title: 'Demo',
-         appWrapper: (child) => WAsyncTheme(
-           child: WToastTheme(style: WToastStyle.defaults, child: child),
+       WApp.options(
+         WAppOptions(
+           title: 'Demo',
+           appWrapper: (child) => WAsyncTheme(
+             child: WToastTheme(style: WToastStyle.defaults, child: child),
+           ),
          ),
        ).start();
        ```

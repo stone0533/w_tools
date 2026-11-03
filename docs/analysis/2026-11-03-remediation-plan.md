@@ -176,7 +176,7 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 | 步 | 关闭 | 动作 | 大小 |
 | --- | --- | --- | --- |
 | **5.1** | P2-9/10/11 | api：删 5 个装饰性类型；`WLogInterceptor` 7 bool → level/parts 且默认走 `WLogger`；`DioRegistry` 命中但配置不同要报错；401 重试复用发起请求的 Dio | L |
-| **5.2** | P1-11、P2-12/13/14 | 部分完成（app 1.1.0）：`WBottomSheet` 透传、`WRoute.popUntilRoute` 修复、死分支移除；方案已定（[ADR-0005](../adr/0005-app-options-and-plugin-ownership.md)）：`WAppOptions` / `WLocaleConfig` / `WRouteStack`，发布后按两段式做 | L |
+| **5.2** | P1-11、P2-12/13/14 | 完成（app 1.2.0，两段式）：`WAppOptions` / `WLocaleConfig` / `WRouteStack` + `WApp.routeStack`；旧字段与静态 `WRoute` 弃用（2.0 删除）；`WBottomSheet` 透传、死分支修复 | L |
 | **5.3** | P1-9、P7.3 | 撤回“4 个一等公民插件”（[ADR-0005](../adr/0005-app-options-and-plugin-ownership.md)）：app 不反向依赖；主题组合用 `WApp.appWrapper`，见 `docs/recipes/app-shell-theme.md` | M |
 | **5.4** | P1-13、P2-44/45/46 | 完成（map 1.3.1 + 拆分）：marker 复用、controller 清理、mounted 判断；`map.dart` 641 行拆为 `map_item.dart` / `map_zone.dart` / `map.dart`（part，公开 API 不变）；剩余：`maps` 私有化、`config` 可空 | L |
 | **5.5** | P2-42/43 | qr：`onScanned` 可空 + assert；`scanInterval` 默认 400ms；`WQrController.restartScan()`；`onError` 走 logger；overlay `==` | S–M |

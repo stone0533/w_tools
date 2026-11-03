@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
               OutlinedButton(
                 onPressed: () {
                   setState(() {
-                    _routeSnapshot = WRoute.routes
+                    _routeSnapshot = WRouteStack.defaultStack.routes
                         .map((route) => route.settings.name ?? '(unnamed)')
                         .join(' → ');
                   });

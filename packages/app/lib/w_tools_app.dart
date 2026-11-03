@@ -1,5 +1,6 @@
 // 启动器与插件契约
 export 'src/app.dart';
+export 'src/options.dart';
 export 'src/plugins/app_plugin.dart';
 
 // 配置、路由、语言与弹窗

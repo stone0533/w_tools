@@ -7,7 +7,7 @@ App 模块（`w_tools_app` 子包）提供了一套一站式的应用启动方�
 该子包**强依赖 GetX**（`get` 包），不可替换。`WApp` 本质是对 `GetMaterialApp` 的增强包装：保留 GetX 全部能力的同时，补充了插件生命周期管理、语言 API 和路由栈操作。
 
 ## 快速判断
-- 启动 → `WApp.start()`
+- 启动 → `WApp.options(WAppOptions(...)).start()`（1.2+；字段版已弃用）
 - 插件顺序 → `WAppPlugin.dependsOn`
 - 全局默认视图 → `WAppPlugin.wrapApp` / `WApp.appWrapper`
 - 强依赖 GetX
@@ -45,7 +45,22 @@ app/
 2. **插件生命周期**：维护插件注册表，按 `dependsOn` 声明构建分层依赖图，分层初始化。
 3. **启动流程**：提供 `init`、`run`、`start` 三个入口，幂等且带非空校验。
 
-### 配置字段
+### 配置方式（1.2+）
+
+```dart
+WApp.options(
+  const WAppOptions(
+    title: 'Demo',
+    initialRoute: '/',
+    getPages: [GetPage(name: '/', page: HomePage.new)],
+  ),
+).start();
+```
+
+优先级：`start()` 参数 > `WAppOptions` > 已弃用字段 > 默认值。
+语言支持列表用 `WLocaleConfig`；运行期当前语言仍以 `WLanguage` 为唯一真源。
+
+### 配置字段（已弃用，2.0 移除）
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|

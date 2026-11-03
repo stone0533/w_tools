@@ -22,14 +22,14 @@ class DetailPage extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () {
-                WRoute.removeRouteIfExists('/detail');
+                WRouteStack.defaultStack.removeRouteIfExists('/detail');
                 Get.back();
               },
               child: const Text('移除当前路由后返回'),
             ),
             TextButton(
-              onPressed: () => WRoute.popUntilRoute('/'),
-              child: const Text('回到首页（WRoute.popUntilRoute）'),
+              onPressed: () => WRouteStack.defaultStack.popUntilRoute('/'),
+              child: const Text('回到首页（WRouteStack.defaultStack.popUntilRoute）'),
             ),
           ],
         ),

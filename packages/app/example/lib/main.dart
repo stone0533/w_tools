@@ -84,35 +84,36 @@ class FeaturePlugin extends WAppPlugin {
 }
 
 WApp createApp() {
-  WAppConfig.supportedLanguages = {
-    'zh_CN': '简体中文',
-    'en_US': 'English',
-  };
-
-  return WApp()
-    ..title = 'w_tools_app 示例'
-    ..initialRoute = '/'
-    ..theme = ThemeData(
-      colorSchemeSeed: const Color(0xFF0EA5E9),
-      useMaterial3: true,
-    )
-    ..appWrapper = ((child) => RepaintBoundary(child: child))
-    ..builder = ((context, child) => MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        textScaler: const TextScaler.linear(1.0),
+  return WApp.options(
+    WAppOptions(
+      title: 'w_tools_app 示例',
+      initialRoute: '/',
+      theme: ThemeData(
+        colorSchemeSeed: const Color(0xFF0EA5E9),
+        useMaterial3: true,
       ),
-      child: child ?? const SizedBox.shrink(),
-    ))
-    ..getPages = [
-      GetPage(name: '/', page: () => const HomePage()),
-      GetPage(name: '/detail', page: () => const DetailPage()),
-    ]
-    ..addPlugins([
-      PresentationPlugin(),
-      RouteObserverPlugin(),
-      FeaturePlugin(),
-      EnvPlugin(),
-    ]);
+      appWrapper: (child) => RepaintBoundary(child: child),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: const TextScaler.linear(1.0),
+        ),
+        child: child ?? const SizedBox.shrink(),
+      ),
+      getPages: [
+        GetPage(name: '/', page: () => const HomePage()),
+        GetPage(name: '/detail', page: () => const DetailPage()),
+      ],
+      plugins: [
+        PresentationPlugin(),
+        RouteObserverPlugin(),
+        FeaturePlugin(),
+        EnvPlugin(),
+      ],
+      localeConfig: const WLocaleConfig(
+        supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+      ),
+    ),
+  );
 }
 
 Future<void> main() async {

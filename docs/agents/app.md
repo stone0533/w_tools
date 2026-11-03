@@ -8,11 +8,13 @@
 
 ```dart
 void main() {
-  WApp(
-    title: 'Demo',
-    initialRoute: '/',
-    getPages: [GetPage(name: '/', page: () => const HomePage())],
-    theme: ThemeData(useMaterial3: true),
+  WApp.options(
+    WAppOptions(
+      title: 'Demo',
+      initialRoute: '/',
+      getPages: [GetPage(name: '/', page: () => const HomePage())],
+      theme: ThemeData(useMaterial3: true),
+    ),
   ).start();   // = init() + run()，只调用一次
 }
 ```
@@ -26,16 +28,20 @@ class AnalyticsPlugin with WAppPlugin {
   @override
   Future<void> onInit() async { ... }
 }
-WApp(...).registerPlugin(AnalyticsPlugin());
+WApp.options(
+  WAppOptions(title: 'Demo', plugins: [AnalyticsPlugin()]),
+).start();
 ```
 
 ## 组合全局主题（不需要插件）
 
 ```dart
-WApp(
-  title: 'Demo',
-  appWrapper: (child) => WAsyncTheme(
-    child: WToastTheme(style: WToastStyle.defaults, child: child),
+WApp.options(
+  WAppOptions(
+    title: 'Demo',
+    appWrapper: (child) => WAsyncTheme(
+      child: WToastTheme(style: WToastStyle.defaults, child: child),
+    ),
   ),
 ).start();
 ```
@@ -43,6 +49,8 @@ WApp(
 `appWrapper` 在 MaterialApp 外、插件 `wrapApp` 之内；需要 Theme 的东西放 `builderWrapper`。
 
 ## 不要用
+
+- 继续用可变字段（`app.title = ...` 等，2.0 移除）；新代码用 `WAppOptions`。
 
 - 手写 `runApp` + 自己的初始化顺序（用 `WApp.start()`）；
 - 重复添加 `WRouteObserver`（`WApp` 已自动追加）；

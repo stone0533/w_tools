@@ -1,31 +1,32 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
-/// 路由工具类：维护路由栈并按名称操作路由
+/// 路由栈（实例）。
 ///
-/// 路由记录由 [WRouteObserver] 维护，**仅覆盖根 Navigator**
-/// （observer 只挂在 GetMaterialApp.navigatorObservers，嵌套 Navigator 的栈不计入）；
-/// 未接入该 observer 的导航方式也不会反映到 [routes]。
-class WRoute {
-  /// 路由栈记录，由 [WRouteObserver] 维护，外部请通过 [routes] 只读访问
-  static final List<Route<dynamic>> _routes = [];
+/// 由 [WApp] 持有（`WApp.routeStack`），[WRouteObserver] 把 push/pop 记录到它。
+/// 旧代码里的静态 `WRoute` 已弃用，委托到 [WRouteStack.defaultStack]。
+class WRouteStack {
+  WRouteStack();
+
+  /// 全局默认栈（旧静态 [WRoute] 的落点；新代码请用 `WApp.routeStack`）
+  static final WRouteStack defaultStack = WRouteStack();
+
+  final List<Route<dynamic>> _routes = [];
 
   /// 当前路由栈的只读快照
-  static List<Route<dynamic>> get routes => List.unmodifiable(_routes);
+  List<Route<dynamic>> get routes => List.unmodifiable(_routes);
 
   /// 记录一条已入栈路由（供 [WRouteObserver.didPush] 调用）
-  static void addRoute(Route<dynamic> route) => _routes.add(route);
+  void addRoute(Route<dynamic> route) => _routes.add(route);
 
   /// 移除一条已出栈路由（供 [WRouteObserver.didPop] 调用）
-  static void removeRoute(Route<dynamic> route) => _routes.remove(route);
+  void removeRoute(Route<dynamic> route) => _routes.remove(route);
 
   /// 清空路由记录
-  static void clearRoutes() => _routes.clear();
+  void clearRoutes() => _routes.clear();
 
   /// 按路由名称移除指定路由（不存在则不执行任何操作）
-  ///
-  /// - [page]：路由名称
-  static void removeRouteIfExists(String page) {
+  void removeRouteIfExists(String page) {
     final route = _routes.where((a) => a.settings.name == page).firstOrNull;
     if (route != null) {
       _routes.remove(route);
@@ -34,11 +35,7 @@ class WRoute {
   }
 
   /// 移除指定路由之上的所有路由（保留该路由本身）
-  ///
-  /// 若 [page] 不在当前路由栈中，则不执行任何操作。
-  ///
-  /// - [page]：路由名称
-  static void removeRoutesAfter(String page) {
+  void removeRoutesAfter(String page) {
     final index = _routes.lastIndexWhere((r) => r.settings.name == page);
     if (index < 0) return;
     for (int i = _routes.length - 1; i > index; i--) {
@@ -52,12 +49,41 @@ class WRoute {
   ///
   /// 若 [page] 不在当前路由栈中，则不执行任何操作 ——
   /// `Get.until` 委托给 `Navigator.popUntil`，条件永不满足时会**一路弹到栈空**，
-  /// 故此处先行校验（与 [removeRoutesAfter] 的"无匹配不动作"语义保持一致）。
-  ///
-  /// - [page]：路由名称
-  static void popUntilRoute(String page) {
+  /// 故此处先行校验。
+  void popUntilRoute(String page) {
     if (!_routes.any((r) => r.settings.name == page)) return;
     // 用路由自身的 name 判断，避免 Get.currentRoute 与 settings.name 不一致时一路弹空
     Get.until((route) => route.settings.name == page);
   }
+}
+
+/// 旧的路由工具类（静态）。
+///
+/// 已弃用（2.0 移除）：路由栈改由 [WApp.routeStack] 持有。
+@Deprecated('2.0 移除：用 WApp.routeStack / WRouteStack')
+class WRoute {
+  /// remove-in: 2.0.0
+  static WRouteStack get stack => WRouteStack.defaultStack;
+
+  /// 当前路由栈的只读快照
+  static List<Route<dynamic>> get routes => WRouteStack.defaultStack.routes;
+
+  /// 记录一条已入栈路由
+  static void addRoute(Route<dynamic> route) => WRouteStack.defaultStack.addRoute(route);
+
+  /// 移除一条已出栈路由
+  static void removeRoute(Route<dynamic> route) => WRouteStack.defaultStack.removeRoute(route);
+
+  /// 清空路由记录
+  static void clearRoutes() => WRouteStack.defaultStack.clearRoutes();
+
+  /// 按路由名称移除指定路由
+  static void removeRouteIfExists(String page) =>
+      WRouteStack.defaultStack.removeRouteIfExists(page);
+
+  /// 移除指定路由之上的所有路由
+  static void removeRoutesAfter(String page) => WRouteStack.defaultStack.removeRoutesAfter(page);
+
+  /// 返回到指定名称的路由
+  static void popUntilRoute(String page) => WRouteStack.defaultStack.popUntilRoute(page);
 }

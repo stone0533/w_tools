@@ -1,3 +1,7 @@
+## 3.0.24
+
+- 抬高 `w_tools_app` 约束到 `^1.2.0`：新增 `WAppOptions` / `WLocaleConfig` / `WRouteStack`（字段与静态 `WRoute` 弃用）。
+
 ## 3.0.23
 
 - 抬高 `w_tools_app` 约束到 `^1.1.0`：`WBottomSheet` 透传参数、`WRoute.popUntilRoute` 修复。

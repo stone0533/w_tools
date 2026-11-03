@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.0
+
+### Added
+- `WAppOptions`（不可变）+ `WApp.options(...)`；`start()` 参数 > options > 字段 > 默认值。
+- `WLocaleConfig`：支持语言列表 + 当前语言不支持时的回退默认值。
+- `WRouteStack` + `WApp.routeStack`；`WRouteObserver(stack:)` 可写入指定实例。
+
+### Deprecated（2.0 移除）
+- `WApp` 的可变配置字段（`title` / `initialRoute` / `getPages` / `theme` / `locale` /
+  `fallbackLocale` / `builder` / `navigatorObservers` / `defaultTransition` /
+  `systemUiOverlayStyle` / `orientations` / `appWrapper`）。
+- 静态 `WRoute`：改用 `WApp.routeStack` / `WRouteStack`。
+
 ## 1.1.0
 
 ### Added
