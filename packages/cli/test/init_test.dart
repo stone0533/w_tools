@@ -140,7 +140,7 @@ void main() {
       expect(InitManifest.load(root)?.generator, isNull);
     });
 
-    test('--check 不迁移 manifest（只读）', () async {
+    test('--check 不迁移 manifest，也不把内部 manifest 当缺失', () async {
       final root = makeProject();
       final legacy = File(p.join(root.path, '.w_tools_init.json'));
       legacy.writeAsStringSync('{"schema":"w_tools_cli.init/1"}');
@@ -159,7 +159,32 @@ void main() {
       );
       expect(legacy.existsSync(), isTrue, reason: 'check 模式不应移动文件');
       expect(File(p.join(root.path, '.w_tools', 'init.json')).existsSync(), isFalse);
-      expect(report.missing.any((e) => e.contains('init.json')), isTrue);
+      expect(
+        report.missing.any((e) => e.contains('init.json')),
+        isFalse,
+        reason: '--check 只检查用户可见生成物，内部 manifest 不算缺失',
+      );
+    });
+
+    test('--check 不把可选的 .w_tools_doctor.yaml 当缺失', () async {
+      final root = makeProject();
+      // 项目里没有 .w_tools_doctor.yaml，也没跑过 init
+      final report = runInit(root, check: true);
+      expect(report.missing.any((e) => e.contains('.w_tools_doctor.yaml')), isFalse);
+      expect(report.missing.any((e) => e.contains('toolkit.dart')), isTrue);
+    });
+
+    test('init 生成的聚合入口跟随 .w_tools_doctor.yaml 的 toolkit_entry', () async {
+      final root = makeProject();
+      File(p.join(root.path, '.w_tools_doctor.yaml')).writeAsStringSync(
+        'toolkit_entry: lib/app/w/custom_toolkit.dart\n',
+      );
+      runInit(root, features: InitFeatures.full);
+      expect(
+        File(p.join(root.path, 'lib/app/w/custom_toolkit.dart')).existsSync(),
+        isTrue,
+      );
+      expect(File(p.join(root.path, 'lib/app/w/toolkit.dart')).existsSync(), isFalse);
     });
 
     test('旧 .w_tools_init.json 自动迁到 .w_tools/init.json', () async {

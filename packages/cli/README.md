@@ -380,7 +380,8 @@ toolkit 标记块外的项目追加项会保留
 
 | 命令 | 0 | 1 | 2 |
 |---|---|---|---|
-| `init --check` | 没有缺失 / drift | 有缺失或 drift | 参数错误 |
+| `init --check` | 没有缺失（内容不同只提示） | 有缺失 | 参数错误 |
+| `init --check-drift` | 没有缺失且内容一致 | 有缺失或 drift | 参数错误 |
 | `doctor` | 无 error（`--strict` 时也无 warning） | 有失败 | 参数 / 项目错误 |
 | `list` / `explain` | 找到 | 未找到 | 参数错误 |
 | `context` | 成功 | — | 参数 / 项目错误 |

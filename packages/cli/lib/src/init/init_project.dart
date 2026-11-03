@@ -7,6 +7,7 @@ import '../doctor/config.dart';
 import 'features.dart';
 import 'manifest.dart';
 import 'targets.dart';
+import '../layout.dart';
 import 'templates.dart';
 
 /// 子包版本约束。必须与仓库 `packages/*/pubspec.yaml` 的当前版本一致，
@@ -225,7 +226,10 @@ InitReport runInit(
       return;
     }
     if (check) {
-      report.missing.add(rel);
+      // `--check` 只检查用户可见的生成物：
+      // - `.w_tools/init.json` 是内部运行记录，不是项目产物；
+      // - `.w_tools_doctor.yaml` 是可选配置（不写也按默认运行）。
+      if (!metadata && !projectConfig) report.missing.add(rel);
       return;
     }
     file.parent.createSync(recursive: true);
@@ -255,33 +259,47 @@ InitReport runInit(
     );
   }
 
-  write(
-    'lib/app/w/toolkit.dart',
-    InitTemplates.toolkit(features: features),
-    markedBlock: true,
-  );
-  if (features.ui) {
-    write(
-      'lib/app/design_system/README.md',
-      InitTemplates.designSystemReadme(lang: lang),
-    );
-    write('lib/app/ui/README.md', InitTemplates.uiReadme(lang: lang), starter: true);
-    write('lib/app/ui/app_bars.dart', InitTemplates.appBars(), starter: true);
-    write('lib/app/ui/app_boxes.dart', InitTemplates.appBoxes(), starter: true);
-    write('lib/app/ui/app_buttons.dart', InitTemplates.appButtons(), starter: true);
-    write('lib/app/ui/app_card.dart', InitTemplates.appCard(), starter: true);
-    write('lib/app/ui/app_scaffold.dart', InitTemplates.appScaffold(), starter: true);
-  }
-  // doctor 的默认配置：带注释，值与内置默认一致，只是把开关摊开。
-  // 它是项目配置而不是生成物：存在就不再比对内容。
-  write(DoctorConfig.fileName, renderDefaultConfig(), projectConfig: true);
-  // 读回项目配置：banned 要生成进 AGENTS；配置损坏时不阻塞 init。
+  // 读回项目配置：banned 要生成进 AGENTS，toolkit 路径也可能被项目改过。
+  // 配置损坏时不阻塞 init。
   var projectConfig = DoctorConfig();
   try {
     projectConfig = DoctorConfig.load(root);
   } on Object {
     report.warnings.add('${DoctorConfig.fileName} 解析失败，本次按空 banned 生成 AGENTS');
   }
+
+  write(
+    projectConfig.toolkitEntry,
+    InitTemplates.toolkit(features: features),
+    markedBlock: true,
+  );
+  if (features.ui) {
+    write(
+      '${ProjectLayout.designSystemDir}/README.md',
+      InitTemplates.designSystemReadme(lang: lang),
+    );
+    write(
+      '${ProjectLayout.projectUiDir}/README.md',
+      InitTemplates.uiReadme(lang: lang),
+      starter: true,
+    );
+    write('${ProjectLayout.projectUiDir}/app_bars.dart', InitTemplates.appBars(), starter: true);
+    write('${ProjectLayout.projectUiDir}/app_boxes.dart', InitTemplates.appBoxes(), starter: true);
+    write(
+      '${ProjectLayout.projectUiDir}/app_buttons.dart',
+      InitTemplates.appButtons(),
+      starter: true,
+    );
+    write('${ProjectLayout.projectUiDir}/app_card.dart', InitTemplates.appCard(), starter: true);
+    write(
+      '${ProjectLayout.projectUiDir}/app_scaffold.dart',
+      InitTemplates.appScaffold(),
+      starter: true,
+    );
+  }
+  // doctor 的默认配置：带注释，值与内置默认一致，只是把开关摊开。
+  // 它是项目配置而不是生成物：存在就不再比对内容。
+  write(DoctorConfig.fileName, renderDefaultConfig(), projectConfig: true);
   for (final target in targets) {
     final rel = targetFiles[target];
     if (rel == null) continue;
@@ -313,7 +331,9 @@ InitReport runInit(
   }
 
   _collectStale(report, root, features, targets);
-  if (manifest != null) {
+  // --check 只读：manifest 是本次 init 的运行记录，check 模式下不写、也不参与 drift
+  // （否则 CLI 升级后 generator 版本变化会让 --check-drift 永远红）。
+  if (!check && manifest != null) {
     write(InitManifest.fileName, manifest.encode(), metadata: true);
   }
   report.pubspecSnippet = _snippet(
@@ -325,13 +345,13 @@ InitReport runInit(
 }
 
 const _uiStarterFiles = <String>[
-  'lib/app/design_system/README.md',
-  'lib/app/ui/README.md',
-  'lib/app/ui/app_bars.dart',
-  'lib/app/ui/app_boxes.dart',
-  'lib/app/ui/app_buttons.dart',
-  'lib/app/ui/app_card.dart',
-  'lib/app/ui/app_scaffold.dart',
+  '${ProjectLayout.designSystemDir}/README.md',
+  '${ProjectLayout.projectUiDir}/README.md',
+  '${ProjectLayout.projectUiDir}/app_bars.dart',
+  '${ProjectLayout.projectUiDir}/app_boxes.dart',
+  '${ProjectLayout.projectUiDir}/app_buttons.dart',
+  '${ProjectLayout.projectUiDir}/app_card.dart',
+  '${ProjectLayout.projectUiDir}/app_scaffold.dart',
 ];
 
 void _collectStale(

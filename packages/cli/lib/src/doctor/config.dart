@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:yaml/yaml.dart';
 
+import '../layout.dart';
 import 'banned_rule.dart';
 import 'rule.dart';
 
@@ -10,12 +11,12 @@ import 'rule.dart';
 /// 优先级：CLI 参数 > 配置文件 > 内置默认。
 /// 内置默认**不含调色板**（R3 需要项目自己声明语义色，避免把某个项目的色值当通用规则）。
 /// 固定路径：init 生成物与 doctor 检查必须使用同一套目录。
-const String projectUiDirPath = 'lib/app/ui';
-const String designSystemDirPath = 'lib/app/design_system';
+const String projectUiDirPath = ProjectLayout.projectUiDir;
+const String designSystemDirPath = ProjectLayout.designSystemDir;
 
 class DoctorConfig {
   DoctorConfig({
-    this.toolkitEntry = 'lib/app/w/toolkit.dart',
+    this.toolkitEntry = ProjectLayout.toolkitEntry,
     this.palette = const <String>[],
     this.colorMinCount = 3,
     this.enabledRules = const <String>{'R1', 'R2', 'R3', 'R4', 'R5', 'R9'},
