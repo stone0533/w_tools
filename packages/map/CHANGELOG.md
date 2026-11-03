@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1
+
+### Fixed
+- `WMapZone.update()` 按 id 复用未变化的 `Marker` 实例，减少地图重建闪烁。
+- `WMap` dispose 时清理自己创建的 `googleMapController` 引用。
+- `WMapController.closeSelection` 在相机动画后判 `mounted` 再回调。
+
 ## 1.3.0
 
 ### Added
