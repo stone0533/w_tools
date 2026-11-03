@@ -1,16 +1,12 @@
 # 下一个大版本的删除清单（2026-11-04）
 
 > 由 `python3 scripts/list_removals.py --md` 生成；执行前重跑。
-> 已删除：app 2.0、core 3.0、map 2.0、toast 2.0、async 3.0（分支 `next-major-app2`）。
+> 已删除：app 2.0、core 3.0、map 2.0、toast 2.0、async 3.0、form 4.0。
 
-## 明细（剩余）
+## 剩余明细
 
 | 到期 | 包 | 位置 | 声明 |
 | --- | --- | --- | --- |
-| 4.0.0 | form | `packages/form/lib/src/components/border/border.dart:230` | `static WFormBorderConfigBuilder builder() => WFormBorderConfigBuilder();` |
-| 4.0.0 | form | `packages/form/lib/src/components/border/border.dart:414` | `class WFormBorderConfigBuilder {` |
-| 4.0.0 | form | `packages/form/lib/src/components/border/field_shell.dart:11` | `extension WFormRowBorderExtension on Row {` |
-| 4.0.0 | form | `packages/form/lib/src/components/form_defaults.dart:9` | `class WFormDefaults {` |
 | 5.0.0 | api | `packages/api/lib/src/interceptors/log.dart:67` | `(unknown)` |
 | 5.0.0 | api | `packages/api/lib/src/interceptors/log.dart:70` | `(unknown)` |
 | 5.0.0 | api | `packages/api/lib/src/interceptors/log.dart:73` | `this.enableLog = true,` |
