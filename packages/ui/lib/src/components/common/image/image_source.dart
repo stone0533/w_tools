@@ -135,7 +135,7 @@ final class WNetworkImageSource extends WImageSource {
       cacheKey,
       headers == null
           ? null
-          : Object.hashAll(headers!.entries.map((e) => Object.hash(e.key, e.value))));
+          : Object.hashAllUnordered(headers!.entries.map((e) => Object.hash(e.key, e.value))));
 }
 
 /// 本地资源

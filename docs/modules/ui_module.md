@@ -105,10 +105,18 @@ ui/
 
 ### 设备信息
 
+推荐用 `WScreen.of(context)`（跟随树内 `MediaQuery`，分屏 / 多窗口 / 测试都正确）：
+
+```dart
+final screen = WScreen.of(context);
+screen.width / screen.height / screen.statusBarHeight / screen.bottomSafeAreaHeight;
+```
+
 | 成员 | 类型 | 说明 |
 |------|------|------|
-| `screenWidth` | double | 设备屏幕宽度（逻辑像素） |
-| `screenHeight` | double | 设备屏幕高度（逻辑像素） |
+| `of(context)` | `WScreenData` | 树内屏幕信息（推荐） |
+| `screenWidth` | double | 设备屏幕宽度（逻辑像素，来自平台 view） |
+| `screenHeight` | double | 设备屏幕高度（逻辑像素，来自平台 view） |
 | `statusBarHeight` | double | 状态栏高度（刘海屏会更高） |
 | `bottomSafeAreaHeight` | double | 底部安全区高度 |
 

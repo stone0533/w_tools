@@ -1,3 +1,7 @@
+## 3.0.17
+
+- 抬高 `w_tools_ui` 约束到 `^4.5.0`：新增 `WScreen.of(context)`，修正 `WImageFrame` padding 顺序。
+
 ## 3.0.16
 
 - 抬高 `w_tools_ui` 约束到 `^4.4.0`：`HexColor` 更名 `WHexColor`，布局糖弃用，String 扩展合并。

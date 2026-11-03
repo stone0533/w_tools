@@ -16,6 +16,29 @@ void main() {
     WScreen.delegateFont = null;
   });
 
+  group('WScreen.of(context)', () {
+    testWidgets('跟随树内 MediaQuery', (tester) async {
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(412, 915),
+            padding: EdgeInsets.only(top: 24, bottom: 12),
+          ),
+          child: Builder(
+            builder: (context) {
+              final data = WScreen.of(context);
+              expect(data.width, 412);
+              expect(data.height, 915);
+              expect(data.statusBarHeight, 24);
+              expect(data.bottomSafeAreaHeight, 12);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+    });
+  });
+
   group('WScreen 设备信息', () {
     testWidgets('screenWidth / screenHeight / statusBarHeight / bottomSafeAreaHeight',
         (tester) async {

@@ -22,7 +22,30 @@ import 'package:flutter/widgets.dart';
 ///   },
 /// ));
 /// ```
+/// 树内屏幕信息（来自最近的 [MediaQuery]）。
+@immutable
+class WScreenData {
+  const WScreenData({required this.size, required this.padding});
+
+  final Size size;
+  final EdgeInsets padding;
+
+  double get width => size.width;
+  double get height => size.height;
+  double get statusBarHeight => padding.top;
+  double get bottomSafeAreaHeight => padding.bottom;
+}
+
 class WScreen {
+  /// 读取当前子树的屏幕信息（推荐）。
+  ///
+  /// 与下面的静态 getter 不同，它跟随最近的 `MediaQuery`，分屏 / 桌面多窗口 /
+  /// 测试里注入的尺寸都能正确反映。
+  static WScreenData of(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    return WScreenData(size: mq.size, padding: mq.padding);
+  }
+
   // ──── 设备信息（永远可用，和 ScreenUtil 无关） ────
 
   /// 设备屏幕宽度（逻辑像素）

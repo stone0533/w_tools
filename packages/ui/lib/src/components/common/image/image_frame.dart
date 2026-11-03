@@ -32,6 +32,11 @@ class WImageFrame extends StatelessWidget {
 
     Widget result = child;
 
+    // padding 在装饰层内（内容与边框之间的留白），margin 在最外
+    if (padding != null) {
+      result = Padding(padding: padding, child: result);
+    }
+
     if (borderRadius != null) {
       result = ClipRRect(borderRadius: borderRadius, child: result);
     }
@@ -49,9 +54,6 @@ class WImageFrame extends StatelessWidget {
 
     if (margin != null) {
       result = Padding(padding: margin, child: result);
-    }
-    if (padding != null) {
-      result = Padding(padding: padding, child: result);
     }
 
     return result;

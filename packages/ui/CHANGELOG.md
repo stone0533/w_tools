@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.5.0
+
+### Added
+- `WScreen.of(context)` / `WScreenData`：读取树内 `MediaQuery` 的宽高与安全区。
+
+### Fixed
+- `WImageFrame`：`padding` 移入装饰层内、`margin` 留在最外（与 `Container` 语义一致）。
+- `WNetworkImageSource.hashCode` 改为与 `==` 一致的顺序无关。
+
+### Removed
+- 未导出的死代码 `WImageStyleIO.buildFile`。
+
 ## 4.4.0
 
 ### Breaking
