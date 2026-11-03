@@ -1,6 +1,6 @@
 # w_tools_figma
 
-> `v0.7.0` 已发布；`v0.9.2` 待发布。当前安装请用 `^0.7.0`。
+> `v0.9.2` 已发布。
 
 只读的 Figma 取数 / 规格导出 CLI。
 
@@ -43,14 +43,14 @@ W* 组件映射
 已发布版本：
 
 ```bash
-dart pub add dev:w_tools_figma:^0.7.0
+dart pub add dev:w_tools_figma:^0.9.2
 ```
 
 等价于：
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.7.0
+  w_tools_figma: ^0.9.2
 ```
 
 开发版使用 path 依赖：
