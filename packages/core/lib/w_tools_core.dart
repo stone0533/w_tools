@@ -2,7 +2,6 @@
 library w_tools_core;
 
 // 配置
-export 'src/config.dart';
 
 // 工具类
 export 'src/utils/encrypt.dart';

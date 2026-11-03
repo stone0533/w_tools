@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart' as crypto;
-import 'dart:math';
 
 /// 哈希工具类
 ///
@@ -61,48 +60,4 @@ class WHash {
   ///
   /// 返回格式为 `sha256$盐值$哈希值`；未传 [salt] 时随机生成。
   ///
-  /// 注意：单轮 SHA-256 属于快速哈希，仅适用于轻量场景，不适用于高安全
-  /// 要求的密码存储；高安全场景请使用 bcrypt / Argon2 等慢哈希算法。
-  /// remove-in: 3.0.0
-  @Deprecated('3.0 移除：密码哈希应在服务端用 bcrypt/argon2 完成')
-  static String hashPassword(String password, {String? salt}) {
-    final saltStr = salt ?? _generateRandomSalt();
-    final combined = '$password$saltStr';
-    final hash = sha256(combined);
-    return 'sha256\$$saltStr\$$hash';
-  }
-
-  /// 校验密码是否与 [hash] 匹配
-  ///
-  /// [hash] 格式不合法（不是 `算法$盐值$哈希值` 三段式）时返回 false。
-  static bool verifyPassword(String password, String hash) {
-    final parts = hash.split('\$');
-    if (parts.length != 3) {
-      return false;
-    }
-
-    final salt = parts[1];
-    final expectedHash = parts[2];
-    final computedHash = hashPassword(password, salt: salt);
-    final computedHashParts = computedHash.split('\$');
-
-    return _constantTimeEquals(computedHashParts[2], expectedHash);
-  }
-
-  /// 常量时间比较，降低密码哈希校验的时序侧信道
-  static bool _constantTimeEquals(String a, String b) {
-    if (a.length != b.length) return false;
-    var diff = 0;
-    for (var i = 0; i < a.length; i++) {
-      diff |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
-    }
-    return diff == 0;
-  }
-
-  /// 生成 16 字节随机盐（Base64 编码）
-  static String _generateRandomSalt() {
-    final random = Random.secure();
-    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Encode(bytes);
-  }
 }

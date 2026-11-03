@@ -93,18 +93,6 @@ void main() {
       expect(WValidator.isValidPositiveDecimal('-123.45'), false);
       expect(WValidator.isValidPositiveDecimal('0.0'), false);
     });
-
-    test('escapeSql should sanitize input', () {
-      const input = "' OR 1=1; --";
-      final sanitized = WValidator.escapeSql(input);
-      expect(sanitized, "'' OR 1=1 --");
-    });
-
-    test('stripHtml should sanitize input', () {
-      const input = '<script>alert("XSS")</script>';
-      final sanitized = WValidator.stripHtml(input);
-      expect(sanitized, '');
-    });
   });
 
   group('WLogger Tests', () {

@@ -31,7 +31,6 @@ Core 模块（`w_tools_core` 子包）是整个 `w_tools` 工具库的**零业�
 core/
 ├── w_tools_core.dart        # barrel 导出
 └── src/
-    ├── config.dart          # WConfig 弃用代理（键名已迁到 WToken）
     ├── extensions/
     │   └── map.dart         # WMapExtension
     └── utils/
@@ -40,32 +39,28 @@ core/
         ├── hash.dart        # WHash
         ├── logger.dart      # WLogger + 顶层函数 logT/logD/logI/logW/logE/logF
         ├── platform.dart    # WPlatform, WPlatformType
-        ├── reg_exp.dart     # WRegExp（WRegExpPattern / WRegExpPreset 已弃用）
+        ├── reg_exp.dart     # WRegExp
         ├── storage.dart     # WStorage
         ├── token.dart       # WToken
-        ├── ux.dart          # WUx（弃用中）, WDebounce, WThrottle, WCancellableAction
+        ├── ux.dart          # WUx, WDebounce, WThrottle, WCancellableAction
         └── validator.dart   # WValidator
 ```
 
 ---
 
-## 1. WToken 键名 / WConfig（弃用）
+## 1. WToken - token 键名
 
 ### 功能说明
 
-集中管理模块内通用的键名和路径常量。所有字段为可修改的静态变量，建议在应用启动时一次性配置。
-
-> ⚠️ `assetImagePath` 已废弃且**不再产生任何效果**（从未被读取）。资源前缀的唯一开关是
-> `w_tools_ui` 的 `WAssets.imagePath`；根聚合包导出的是 `core.WConfig`，仅 token 键名有效。
+集中管理 token / refresh token / 过期时间的存储键名；资源前缀用 `w_tools_ui` 的 `WAssets.imagePath`。
 
 ### 配置字段
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `assetImagePath` | String | `'assets/images/'` | **已废弃**，无效；请用 `WAssets.imagePath` |
-| `tokenKey` | String | — | Token 存储键名 |
-| `refreshTokenKey` | String | — | 刷新 Token 存储键名 |
-| `tokenExpiryKey` | String | — | Token 过期时间存储键名 |
+| `tokenKey` | String | `'access_token'` | Token 存储键名 |
+| `refreshTokenKey` | String | `'refresh_token'` | 刷新 Token 存储键名 |
+| `tokenExpiryKey` | String | `'token_expiry'` | Token 过期时间存储键名 |
 
 ### 使用示例
 
@@ -176,8 +171,6 @@ print(decrypted); // "hello world"
 | `sha256(input)` | String | SHA-256 |
 | `sha512(input)` | String | SHA-512 |
 | `hmacSha256(data, key)` | String | HMAC-SHA256 |
-| `hashPassword(password, {salt})` | String | **已弃用（3.0 移除）**：密码哈希应在服务端用 bcrypt/argon2 |
-| `verifyPassword(password, hash)` | bool | 密码验证 |
 
 ### 使用示例
 
@@ -186,11 +179,6 @@ print(decrypted); // "hello world"
 final digest = WHash.md5('hello');
 final sha = WHash.sha256('hello');
 final hmac = WHash.hmacSha256('data', 'secret_key');
-
-// 密码安全存储
-final stored = WHash.hashPassword('my_password'); // "sha256$Ab12...$xxx"
-final ok = WHash.verifyPassword('my_password', stored); // true
-final bad = WHash.verifyPassword('wrong_password', stored); // false
 ```
 
 ---
@@ -259,12 +247,6 @@ final result = WLogger.measureSync('sync_op', () {
 | `isMobile` / `isDesktop` / `isWeb` | bool | 平台大类判断 |
 | `isAndroid` / `isIOS` / `isLinux` / `isMacOS` / `isWindows` | bool | 具体平台判断 |
 
-### 方法列表
-
-| 方法 | 签名 | 说明 |
-|------|------|------|
-| ~~`getPlatformValue<T>`~~ | **已弃用（3.0 移除）** | 用 `platformType` / `isX` 组合判断 |
-| ~~`runForPlatform`~~ | **已弃用（3.0 移除）** | 用 `platformType` / `isX` 组合判断 |
 
 ### 使用示例
 
@@ -273,24 +255,6 @@ final result = WLogger.measureSync('sync_op', () {
 if (WPlatform.isWeb) {
   print('运行在浏览器');
 }
-
-// 值分发
-final fontSize = WPlatform.getPlatformValue<double>(
-  android: 14,
-  ios: 15,
-  web: 16,
-  desktop: 14,
-  fallback: 14,
-);
-
-// 行为分发
-WPlatform.runForPlatform(
-  android: () => print('Android 特定逻辑'),
-  ios: () => print('iOS 特定逻辑'),
-  web: () => print('Web 特定逻辑'),
-  desktop: () => print('桌面端逻辑'),
-  fallback: () => print('兜底逻辑'),
-);
 ```
 
 ---
@@ -300,41 +264,6 @@ WPlatform.runForPlatform(
 ### 功能说明
 
 提供预置的正则模式常量、预编译实例、以及身份证/手机号/银行卡等业务数据的提取与格式化。
-
-### WRegExpPattern（静态常量字符串，已弃用）
-
-> 2.2 起用 `WRegExp`（预编译 RegExp）；本类 3.0 移除，字符串形式的规则请自行维护。
-
-| 分类 | 模式 | 说明 |
-|------|------|------|
-| 身份 | `password` | 密码（≥8位+大小写数字） |
-| 身份 | `email` | 邮箱 |
-| 身份 | `phone` | 大陆手机号 |
-| 身份 | `idCard` | 18 位身份证号 |
-| 身份 | `chineseName` | 2-20 汉字 |
-| 网络 | `url` | URL |
-| 网络 | `ipv4` | IPv4 地址 |
-| 网络 | `mac` | MAC 地址 |
-| 数字 | `number` | 数字 |
-| 数字 | `integer` | 整数 |
-| 数字 | `positive` | 正数 |
-| 数字 | `positiveInteger` | 正整数 |
-| 数字 | `decimal` | 小数 |
-| 数字 | `positiveDecimal` | 正小数 |
-| 其他 | `date` | 日期 |
-| 其他 | `bankCard` | 银行卡号 |
-| 其他 | `postalCode` | 邮政编码 |
-
-### WRegExpPreset（按分类的 Map，已弃用）
-
-> 2.2 起用 `WRegExp`；本类 3.0 移除。
-
-| 分类键 | 包含模式 |
-|--------|----------|
-| `personal` | password / email / phone / idCard / chineseName |
-| `network` | url / ipv4 / mac |
-| `number` | number / integer / positive / positiveInteger / decimal / positiveDecimal |
-| `misc` | date / bankCard / postalCode |
 
 ### WRegExp（预编译实例 + 便捷方法）
 
@@ -472,7 +401,7 @@ await WStorage.clear();
 ### 使用示例
 
 ```dart
-// 启动时先 init WStorage + 配置 token 键名（WConfig 的键名字段已弃用）
+// 启动时先 init WStorage + 配置 token 键名
 await WStorage.init();
 WToken.tokenKey = 'auth_token';
 WToken.refreshTokenKey = 'auth_refresh_token';
@@ -496,7 +425,7 @@ await WToken.clearAllTokens();
 
 ---
 
-## 10. WUx - UX 辅助（单例，debounce / throttle 已弃用）
+## 10. WUx - UX 辅助（单例）
 
 > 防抖 / 节流用 `WDebounce` / `WThrottle`（支持 `isPending` / `isThrottled`、`Duration` 参数）。
 
@@ -517,8 +446,6 @@ await WToken.clearAllTokens();
 
 | 方法 | 签名 | 返回 | 说明 |
 |------|------|------|------|
-| ~~`debounce`~~ | **已弃用（3.0 移除）** | 用 `WDebounce` | 防抖 |
-| ~~`throttle`~~ | **已弃用（3.0 移除）** | 用 `WThrottle` | 节流 |
 | `delay` | `(function, {duration=0})` | `Future<void>` | 延迟执行 |
 | `nextFrame` | `(function)` | void | 下一帧执行 |
 | `smoothScrollTo` | `(controller, offset, {...})` | `Future<void>` | 平滑滚动到指定位置 |
@@ -535,7 +462,7 @@ await WToken.clearAllTokens();
 ### 使用示例
 
 ```dart
-// 防抖 / 节流用独立类；WUx 的同名方法已弃用（3.0 移除）
+// 防抖 / 节流用独立类
 final search = WDebounce((keyword) {
   api.search(keyword);
 }, duration: const Duration(milliseconds: 300));
@@ -589,17 +516,6 @@ onTap();
 | `isNotBlank(input)` | 非空且不全为空白 |
 | `isLengthValid(input, min, max)` | 长度区间校验 |
 
-### 安全清洗
-
-| 方法 | 说明 |
-|------|------|
-| `escapeSql(input)` | **已弃用（3.0 移除）**：基础 SQL 特殊字符替换，不能替代参数化查询 |
-| `stripHtml(input)` | **已弃用（3.0 移除）**：移除标签，不能替代 HTML 转义 |
-
-### 注意事项
-
-`escapeSql` 仅作**基础字符替换**，不替代参数化查询。涉及数据库操作请使用预编译语句。
-
 ### 使用示例
 
 ```dart
@@ -610,10 +526,6 @@ if (!WValidator.isValidPassword(pwd)) {
 if (!WValidator.isValidIdCard(idCard)) {
   return '身份证号不合法';
 }
-
-// 安全清洗
-final safeSql = WValidator.escapeSql(userInput);
-final cleanHtml = WValidator.stripHtml(dirtyHtml);
 
 // 链式校验
 final ok = WValidator.isNotBlank(name) && WValidator.isLengthValid(name, 3, 20);
@@ -719,17 +631,6 @@ Future<void> logout() async {
 ### 2. WEncrypt 的 Key/IV 须 Base64
 
 `WEncrypt.aesEncrypt` / `aesDecrypt` 传入的 `keyStr` 和 `ivStr` **必须是 Base64 编码字符串**。直接传明文会导致解密失败。使用 `WEncrypt.generateKey()` 和 `WEncrypt.generateIv()` 生成的就是符合要求的 Base64 格式。
-
-### 3. WValidator 安全方法仅基础清洗
-
-`escapeSql` 和 `stripHtml` 是**基础防护**，不替代：
-
-- SQL：必须使用参数化查询 / ORM 预编译；
-- HTML：生产环境请使用专业包（如 `vader` / `html_whitelist`）做严格白名单过滤。
-
-### 4. WConfig 是全局可变单例
-
-`WConfig` 的字段在运行时可被重新赋值。如果你的应用存在多入口或测试场景，请注意隔离：测试前先重置配置。
 
 ---
 

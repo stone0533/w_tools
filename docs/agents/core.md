@@ -20,9 +20,9 @@ debounce();                               // 页面 dispose 时 debounce.cancel(
 
 ## 不要用
 
-- `WConfig` 的 token 键名字段（弃用，用 `WToken`）；
-- `WUx().debounce/throttle`（弃用，用 `WDebounce` / `WThrottle`）；
-- `WRegExpPattern` / `escapeSql` / `stripHtml` / `WHash.hashPassword`（弃用且不安全）；
+- `WConfig`（3.0 已删除，用 `WToken`）；
+- `WUx().debounce/throttle`（3.0 已删除，用 `WDebounce` / `WThrottle`）；
+- `WRegExpPattern` / `WRegExpPreset` / `escapeSql` / `stripHtml` / `WHash.hashPassword`（3.0 已删除）；
 - `WStorage` 存密码 / 密钥（明文存储，不是 Keychain）。
 
 ## 常见坑

@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.0.0
+
+### Removed
+- `WConfig`（token 键名走 `WToken`；`assetImagePath` 从未生效）。
+- `WRegExpPattern` / `WRegExpPreset`（用 `WRegExp`）。
+- `WUx.debounce` / `WUx.throttle`（用 `WDebounce` / `WThrottle`）。
+- `WHash.hashPassword` / `verifyPassword`（密码哈希应放服务端 bcrypt/Argon2）。
+- `WPlatform.getPlatformValue` / `runForPlatform`（用 `platformType` / `isX`）。
+- `WValidator.escapeSql` / `stripHtml`（用参数化查询 / 输出侧转义）。
+
 ## 2.4.0
 
 ### Changed

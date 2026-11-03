@@ -4,7 +4,7 @@
 
 | 包 | 首选入口 | 不要用（已弃用 / 内部） | 示例 |
 | --- | --- | --- | --- |
-| core | `WStorage` / `WToken` / `WValidator` / `WLogger` / `WDebounce` | `WConfig` 的键名字段、`WUx.debounce/throttle`、`WRegExpPattern` | `packages/core/example` |
+| core | `WStorage` / `WToken` / `WValidator` / `WLogger` / `WDebounce` | `WConfig`、`WUx.debounce/throttle`、`WRegExpPattern`（3.0 已删除） | `packages/core/example` |
 | async | `WAsyncController` + `WAsyncView`；无 UI 用 `WAsync` + `WAsyncOptions` | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults` | `packages/async/example` |
 | ui | `WText` / `WButton` / `WImage` / `WScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（旧名） | `packages/ui/example` |
 | form | `WForm` + 直接字段；边框 `WFormBorderConfig.fromTheme` | `Config.build`、`*Core`（`@internal`）、`WFormDefaults` | `packages/form/example` |

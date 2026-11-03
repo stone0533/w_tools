@@ -16,14 +16,6 @@ void main() {
       expect(WToken.tokenKey, 'my_custom_token');
       WToken.tokenKey = oldTokenKey;
     });
-
-    test('WConfig 同名字段是弃用代理', () {
-      final oldTokenKey = WToken.tokenKey;
-      WConfig.tokenKey = 'proxy_token';
-      expect(WToken.tokenKey, 'proxy_token');
-      expect(WConfig.tokenKey, 'proxy_token');
-      WToken.tokenKey = oldTokenKey;
-    });
   });
 
   group('WPlatform', () {
@@ -47,17 +39,6 @@ void main() {
 
     test('包含 fuchsia 平台类型', () {
       expect(WPlatformType.values, contains(WPlatformType.fuchsia));
-    });
-
-    test('getPlatformValue 返回对应平台值', () {
-      final value = WPlatform.getPlatformValue<String>(
-        android: 'android',
-        ios: 'ios',
-        web: 'web',
-        desktop: 'desktop',
-        fallback: 'fallback',
-      );
-      expect(value, isA<String>());
     });
   });
 
@@ -95,11 +76,6 @@ void main() {
       expect(WValidator.isValidPassword('abcdefgh'), false); // 缺大写
     });
 
-    test('escapeSql / stripHtml', () {
-      expect(WValidator.escapeSql("' OR '1'='1"), isA<String>());
-      expect(WValidator.stripHtml('<script>alert(1)</script>'), isA<String>());
-    });
-
     test('isNumeric / isInteger / isPositive', () {
       expect(WValidator.isNumeric('123.45'), true);
       expect(WValidator.isNumeric('1e3'), true);
@@ -124,23 +100,6 @@ void main() {
   });
 
   group('WRegExp', () {
-    test('WRegExpPattern 返回 String 类型正则', () {
-      expect(WRegExpPattern.email, isA<String>());
-      expect(WRegExpPattern.phone, isA<String>());
-      expect(WRegExpPattern.url, isA<String>());
-      expect(WRegExpPattern.ipv4, isA<String>());
-      expect(WRegExpPattern.password, isA<String>());
-      expect(WRegExpPattern.idCard, isA<String>());
-      expect(WRegExpPattern.bankCard, isA<String>());
-    });
-
-    test('WRegExpPreset 返回 Map', () {
-      expect(WRegExpPreset.personal, isA<Map<String, String>>());
-      expect(WRegExpPreset.network, isA<Map<String, String>>());
-      expect(WRegExpPreset.number, isA<Map<String, String>>());
-      expect(WRegExpPreset.misc, isA<Map<String, String>>());
-    });
-
     test('WRegExp 是 RegExp 实例', () {
       expect(WRegExp.email, isA<RegExp>());
       expect(WRegExp.phone, isA<RegExp>());

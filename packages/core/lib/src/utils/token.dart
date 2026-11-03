@@ -2,7 +2,7 @@ import 'storage.dart';
 
 /// Token 管理
 ///
-/// 键名由本类持有（`WConfig` 的同名字段已弃用，仅代理到这里）；读写直接走
+/// 键名由本类持有；读写直接走
 /// [WStorage]（SharedPreferences 自身已有内存缓存），因此调用 [WStorage.clear]
 /// 后 token 状态会同步清空。
 class WToken {

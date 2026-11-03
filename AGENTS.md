@@ -20,7 +20,7 @@
 - `w_tools` 根包只用于快速体验 / 旧项目兼容；新业务项目仍只依赖具体子包。
 - 如用户明确要求使用根包：`import 'package:w_tools/w_tools.dart';`。
 - 根包只重导出 9 个子包；不再提供旧 `WConfig` 兼容层。
-- 配置走子包：token 键名用 `WToken`（`WConfig` 的键名字段已弃用），资源前缀用 `WAssets`，表单图标用 `WFormIcons`，语言用 `WAppConfig`。
+- 配置走子包：token 键名用 `WToken`（`WConfig` 已在 3.0 删除），资源前缀用 `WAssets`，表单图标用 `WFormIcons`，语言用 `WAppConfig`。
 
 ## 工具（本仓库维护）
 
@@ -142,7 +142,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 - 统一用 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接 `Dio()`；同一 `baseUrl` 只初始化一次，命中后传入**不同** options / interceptors 会抛 `ArgumentError`（需要换配置先 `dispose`）。
 - Token 存储用 `w_tools_core` 的 `WToken`；`WTokenInterceptor` 只通过 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入，不负责存储。
-- 401 重试依赖 `DioRegistry`；自行 `Dio()` 创建的实例重试会走另一个 registry 实例。
+- 401 重试只复用已知 Dio：`DioRegistry` 自动绑定；自行 `Dio()` 必须构造传 `dio: dio`，否则不会重试（也不会隐式注册实例）。
 - 日志用 `WLogInterceptor`；默认脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `X-Api-Key`，不要依赖它做业务错误处理。
 
 ## 启动（w_tools_app）

@@ -52,7 +52,7 @@ Future<void> example() async {
 
 | 能力 | 入口 |
 |---|---|
-| 全局配置 | `WToken`（token 键名）/ `WAssets` 前缀；`WConfig` 已弃用 |
+| 配置 | `WToken`（token 键名）/ `WAssets` 前缀；`WConfig` 已在 3.0 删除 |
 | 校验 | `WValidator` |
 | 正则 | `WRegExp` |
 | 加密 / 哈希 | `WEncrypt` / `WHash` |

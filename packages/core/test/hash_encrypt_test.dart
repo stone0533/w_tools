@@ -50,35 +50,6 @@ void main() {
       final h2 = WHash.hmacSha256('data', 'key2');
       expect(h1, isNot(h2));
     });
-
-    test('hashPassword 自动生成 salt', () {
-      final h1 = WHash.hashPassword('password');
-      final h2 = WHash.hashPassword('password');
-      // salt 是随机的，所以不同调用产生不同 hash
-      expect(h1, isNot(h2));
-      expect(h1.split('\$').length, 3);
-    });
-
-    test('hashPassword 指定 salt', () {
-      final h1 = WHash.hashPassword('password', salt: 'fixed_salt');
-      final h2 = WHash.hashPassword('password', salt: 'fixed_salt');
-      expect(h1, h2); // 相同 salt 产生相同 hash
-    });
-
-    test('verifyPassword - 正确密码', () {
-      final hash = WHash.hashPassword('mypassword', salt: 'salt123');
-      expect(WHash.verifyPassword('mypassword', hash), isTrue);
-    });
-
-    test('verifyPassword - 错误密码', () {
-      final hash = WHash.hashPassword('mypassword');
-      expect(WHash.verifyPassword('wrongpassword', hash), isFalse);
-    });
-
-    test('verifyPassword - 格式错误', () {
-      expect(WHash.verifyPassword('pwd', 'invalid_format'), isFalse);
-      expect(WHash.verifyPassword('pwd', 'sha256\$only_two'), isFalse);
-    });
   });
 
   group('WEncrypt', () {

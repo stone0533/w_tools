@@ -38,87 +38,9 @@ void main() {
 
   final wux = WUx();
 
-  group('WUx - debounce 防抖', () {
-    test('连续调用只执行最后一次', () async {
-      int callCount = 0;
-      final debounced = wux.debounce(
-        () => callCount++,
-        duration: 50,
-      );
+  group('WUx - debounce 防抖', () {});
 
-      debounced();
-      debounced();
-      debounced();
-
-      await Future.delayed(const Duration(milliseconds: 100));
-      expect(callCount, 1);
-    });
-
-    test('防抖后再次调用正常执行', () async {
-      int callCount = 0;
-      final debounced = wux.debounce(
-        () => callCount++,
-        duration: 30,
-      );
-
-      debounced();
-      await Future.delayed(const Duration(milliseconds: 60));
-      debounced();
-      await Future.delayed(const Duration(milliseconds: 60));
-
-      expect(callCount, 2);
-    });
-
-    test('cancel 可取消尚未触发的回调', () async {
-      int callCount = 0;
-      final debounced = wux.debounce(
-        () => callCount++,
-        duration: 50,
-      );
-
-      debounced();
-      debounced.cancel();
-      await Future.delayed(const Duration(milliseconds: 80));
-
-      expect(callCount, 0);
-    });
-  });
-
-  group('WUx - throttle 节流', () {
-    test('节流窗口内只执行一次', () async {
-      int callCount = 0;
-      final throttled = wux.throttle(
-        () => callCount++,
-        duration: 50,
-      );
-
-      throttled();
-      throttled();
-      throttled();
-
-      expect(callCount, 1);
-
-      await Future.delayed(const Duration(milliseconds: 100));
-      throttled();
-      expect(callCount, 2);
-    });
-
-    test('cancel 可提前结束节流窗口', () {
-      int callCount = 0;
-      final throttled = wux.throttle(
-        () => callCount++,
-        duration: 1000,
-      );
-
-      throttled();
-      throttled();
-      expect(callCount, 1);
-
-      throttled.cancel();
-      throttled();
-      expect(callCount, 2);
-    });
-  });
+  group('WUx - throttle 节流', () {});
 
   group('WUx - delay 延迟执行', () {
     test('延迟后执行', () async {
@@ -129,17 +51,6 @@ void main() {
   });
 
   group('WUx - duration 校验', () {
-    test('debounce / throttle 负数 duration 抛 ArgumentError', () {
-      expect(
-        () => WUx().debounce(() {}, duration: -1),
-        throwsArgumentError,
-      );
-      expect(
-        () => WUx().throttle(() {}, duration: -1),
-        throwsArgumentError,
-      );
-    });
-
     test('delay 负数 duration 返回失败的 Future', () async {
       await expectLater(
         WUx().delay(() {}, duration: -1),

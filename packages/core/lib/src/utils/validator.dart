@@ -101,41 +101,6 @@ class WValidator {
     return sum % 10 == 0;
   }
 
-  /// 对输入做基础的 SQL 注入字符清洗
-  ///
-  /// 仅做转义与危险字符移除，不能替代参数化查询。
-  /// remove-in: 3.0.0
-  @Deprecated('3.0 移除：用参数化查询，不要靠字符替换防注入')
-  static String escapeSql(String input) {
-    return input
-        .replaceAll(RegExp(r"'"), "''")
-        .replaceAll(RegExp(r'"'), '\\"')
-        .replaceAll(RegExp(r";"), "")
-        .replaceAll(RegExp(r"\\"), "\\\\")
-        .replaceAll(RegExp(r"\x00"), "")
-        .replaceAll(RegExp(r"\n"), "")
-        .replaceAll(RegExp(r"\r"), "")
-        .replaceAll(RegExp(r"\x1a"), "");
-  }
-
-  /// 对输入做基础的 XSS 字符清洗
-  ///
-  /// 移除常见标签与事件属性，不能替代输出侧的 HTML 转义。
-  /// remove-in: 3.0.0
-  @Deprecated('3.0 移除：展示前用 HTML 转义 / 渲染器处理，不要靠正则剥标签')
-  static String stripHtml(String input) {
-    return input
-        .replaceAll(RegExp(r"<script[^>]*>.*?</script>", caseSensitive: false, multiLine: true), "")
-        .replaceAll(RegExp(r"<iframe[^>]*>.*?</iframe>", caseSensitive: false, multiLine: true), "")
-        .replaceAll(RegExp(r"<object[^>]*>.*?</object>", caseSensitive: false, multiLine: true), "")
-        .replaceAll(RegExp(r"<embed[^>]*>.*?</embed>", caseSensitive: false, multiLine: true), "")
-        .replaceAll(RegExp(r"<link[^>]*>.*?</link>", caseSensitive: false, multiLine: true), "")
-        .replaceAll(RegExp(r"<style[^>]*>.*?</style>", caseSensitive: false, multiLine: true), "")
-        .replaceAll(RegExp(r"javascript:"), "")
-        .replaceAll(RegExp(r"on\w+=", caseSensitive: false), "")
-        .replaceAll(RegExp(r"<[^>]*>", multiLine: true), "");
-  }
-
   /// 去除首尾空白后是否非空
   static bool isNotBlank(String input) {
     return input.trim().isNotEmpty;

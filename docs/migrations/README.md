@@ -11,6 +11,7 @@
 - [2.1](core-2.1.md)：token 键名移入 `WToken`
 - [2.2](core-2.2.md)：`WValidator` 走 `WRegExp`；旧正则 / 清洗 / 密码哈希弃用
 - [2.3](core-2.3.md)：`WDebounce` / `WThrottle`；`WCountdown.remaining`
+- [3.0](core-3.0.md)：删除 WConfig / 旧正则 / WUx 防抖节流 / 密码哈希 / 平台分发 / 字符串清洗
 - [2.4](core-2.4.md)：`setObject` 对称、节流解锁、倒计时监听、平台多参 API 弃用
 
 ## ui
