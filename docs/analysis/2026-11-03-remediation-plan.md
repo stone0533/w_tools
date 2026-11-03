@@ -191,6 +191,12 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 6. 发布顺序：`core → ui → async/toast/form → api/app → map/qr → 根包`，每步
    `bash scripts/publish_package.sh packages/<pkg>`，不要直接 `flutter pub publish`。
 
+**6.x 进度（本次）**：14 个包全部 `publish_package.sh --dry-run` 通过（root 除外——它依赖
+尚未发布的子包版本，属预期）；`pub.dev` 上仍落后的 9 个包：`async 2.1.0`、`ui 3.2.0`、
+`form 3.2.0`、`api 1.0.2`、`toast 1.3.0`、`map 1.3.0`、`cli 1.9.10`、`figma 0.11.0`、
+`device 0.1.2`，之后发根包 `3.0.7`。本机无 pub 凭证（无 `~/.config/dart/pub-credentials.json`），
+正式发布需在有凭证的环境执行。
+
 ## 9. 依赖顺序与并行
 
 ```text
