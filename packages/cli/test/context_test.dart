@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
+import 'package:w_tools_cli/src/context/context_project.dart';
 import 'package:w_tools_cli/src/context/install_info.dart';
 import 'package:w_tools_cli/src/doctor/context.dart';
 
@@ -30,6 +31,15 @@ void main() {
     expect(ctx.files, isNot(contains('lib/app/generated/b.dart')));
     // 只是前缀相同，不是同一目录
     expect(ctx.files, contains('lib/app/generated2/c.dart'));
+  });
+
+  test('commands 里包含 feedback 入口（AI 通过 context 能发现）', () {
+    final root = _project({'pubspec.yaml': 'name: demo\n'});
+    addTearDown(() => root.deleteSync(recursive: true));
+    final json = ProjectSnapshot.load(root).toJson();
+    final commands = json['commands'] as Map<String, String>;
+    expect(commands['feedback'], contains('feedback path'));
+    expect(commands['feedbackLint'], contains('feedback lint'));
   });
 
   test('默认跳过 .g.dart / .freezed.dart', () {

@@ -102,6 +102,8 @@ class ProjectSnapshot {
     'context': 'dart run w_tools_cli:context --format=json',
     'doctor': 'dart run w_tools_cli:doctor --json',
     'initCheck': 'dart run w_tools_cli:init --check-drift',
+    'feedback': 'dart run w_tools_cli:feedback path --package=<包>',
+    'feedbackLint': 'dart run w_tools_cli:feedback lint --include-inbox',
     'analyze': isFlutter ? 'flutter analyze' : 'dart analyze',
     'test': isFlutter ? 'flutter test' : 'dart test',
   };

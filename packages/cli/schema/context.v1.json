@@ -19,45 +19,92 @@
     "commands"
   ],
   "properties": {
-    "schema": { "const": "w_tools.context" },
-    "schemaVersion": { "const": 1 },
-    "cliVersion": { "type": "string" },
-    "catalogVersion": { "type": "integer" },
+    "schema": {
+      "const": "w_tools.context"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "cliVersion": {
+      "type": "string"
+    },
+    "catalogVersion": {
+      "type": "integer"
+    },
     "project": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["name", "root", "isFlutter"],
+      "required": [
+        "name",
+        "root",
+        "isFlutter"
+      ],
       "properties": {
-        "name": { "type": "string" },
-        "root": { "type": "string" },
-        "isFlutter": { "type": "boolean" }
+        "name": {
+          "type": "string"
+        },
+        "root": {
+          "type": "string"
+        },
+        "isFlutter": {
+          "type": "boolean"
+        }
       }
     },
     "packages": {
       "type": "object",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "dependencies": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "toolkit": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["path", "exports"],
+      "required": [
+        "path",
+        "exports"
+      ],
       "properties": {
-        "path": { "type": ["string", "null"] },
-        "exports": { "type": "array", "items": { "type": "string" } }
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "designSystem": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["dir", "files", "missingStaged"],
+      "required": [
+        "dir",
+        "files",
+        "missingStaged"
+      ],
       "properties": {
-        "dir": { "type": "string" },
-        "files": { "type": "integer", "minimum": 0 },
-        "missingStaged": { "type": "integer", "minimum": 0 }
+        "dir": {
+          "type": "string"
+        },
+        "files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missingStaged": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "rules": {
@@ -65,33 +112,78 @@
       "items": {
         "type": "object",
         "additionalProperties": true,
-        "required": ["id", "level"],
+        "required": [
+          "id",
+          "level"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "level": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          }
         }
       }
     },
     "doctor": {
       "type": "object",
       "additionalProperties": true,
-      "required": ["error", "warn", "issues"],
+      "required": [
+        "error",
+        "warn",
+        "issues"
+      ],
       "properties": {
-        "error": { "type": "integer", "minimum": 0 },
-        "warn": { "type": "integer", "minimum": 0 },
+        "error": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warn": {
+          "type": "integer",
+          "minimum": 0
+        },
         "issues": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": true,
-            "required": ["rule", "level", "file", "line", "message", "hint"],
+            "required": [
+              "rule",
+              "level",
+              "file",
+              "line",
+              "message",
+              "hint"
+            ],
             "properties": {
-              "rule": { "type": "string" },
-              "level": { "type": "string" },
-              "file": { "type": ["string", "null"] },
-              "line": { "type": ["integer", "null"] },
-              "message": { "type": "string" },
-              "hint": { "type": ["string", "null"] }
+              "rule": {
+                "type": "string"
+              },
+              "level": {
+                "type": "string"
+              },
+              "file": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "line": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "hint": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
             }
           }
         }
@@ -99,7 +191,44 @@
     },
     "commands": {
       "type": "object",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "install": {
+      "type": "object",
+      "description": "w_tools_cli 自身的安装位置；AI 用它判断能否直接写库侧 docs/feedback/",
+      "properties": {
+        "packageRoot": {
+          "type": "string",
+          "description": "w_tools_cli 包目录"
+        },
+        "repoRoot": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "仓库根；不在仓库布局下为 null"
+        },
+        "isRepoCheckout": {
+          "type": "boolean",
+          "description": "是否指向仓库检出（pub cache 副本为 false）"
+        },
+        "feedbackDir": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "库侧 docs/feedback 目录；非仓库检出为 null"
+        }
+      },
+      "required": [
+        "packageRoot",
+        "repoRoot",
+        "isRepoCheckout",
+        "feedbackDir"
+      ],
+      "additionalProperties": true
     }
   }
 }

@@ -12,8 +12,9 @@ if ! command -v dart >/dev/null 2>&1; then
   exit 0
 fi
 if [ ! -f .dart_tool/package_config.json ]; then
-  echo '（没有 .dart_tool/package_config.json，先 dart pub get；本次跳过）'
-  exit 0
+  echo '✗ 没有 .dart_tool/package_config.json —— 反馈检查无法运行。' >&2
+  echo '  先执行 `dart pub get`（CI 里请把 pub get 放在本检查之前）。' >&2
+  exit 2
 fi
 
 exec dart run w_tools_cli:feedback lint --stale-days=30

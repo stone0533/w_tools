@@ -1,3 +1,14 @@
+## 1.9.8
+
+### 改进
+- `context.commands` 新增 `feedback` / `feedbackLint`：AI 走「先拿事实」时也能发现反馈入口
+- `schema/context.v1.json` 补 `install` 属性（此前 additionalProperties 让它不报错但契约缺失）
+- `scripts/check_feedback.sh`：缺 `.dart_tool/package_config.json` 时 **exit 2**（原来 exit 0 静默跳过，
+  等于 CI 假绿）；提示先跑 `dart pub get`
+
+### 发布
+- 首次打 tag `v1.9.8`；消费方可用 `ref: v1.9.8` 代替 40 位 sha
+
 ## 1.9.7
 
 ### 改进
