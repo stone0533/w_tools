@@ -20,6 +20,10 @@ import 'form_controller.dart';
 ///   child: ListView(...),
 /// )
 /// ```
+///
+/// 校验设置：显式传 [validatorSettings] 时完全以它为准；只传 [borderConfig]
+/// 时默认 `showBorderError = true` —— 否则 `validate()` 失败时界面没有任何反馈。
+/// 两者都不传时不注入默认值（保持"没有边框就没有错误展示"的历史语义）。
 class WForm extends StatefulWidget {
   const WForm({
     super.key,
@@ -62,24 +66,38 @@ class WForm extends StatefulWidget {
 }
 
 class _WFormState extends State<WForm> {
+  /// 实际生效的校验设置：显式传入优先；只传了 borderConfig 时默认显示边框错误，
+  /// 否则 `validate()` 失败不会有任何可见反馈（默认 WFormValidatorSettings 是关的）。
+  WFormValidatorSettings? _settings;
+
   @override
   void initState() {
     super.initState();
-    widget.controller.validatorSettings = widget.validatorSettings;
+    _syncSettings();
+  }
+
+  void _syncSettings() {
+    _settings =
+        widget.validatorSettings ??
+        (widget.borderConfig == null
+            ? null
+            : (WFormValidatorSettings()..showBorderError = true));
+    widget.controller.validatorSettings = _settings;
   }
 
   @override
   void didUpdateWidget(covariant WForm oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller ||
-        oldWidget.validatorSettings != widget.validatorSettings) {
-      widget.controller.validatorSettings = widget.validatorSettings;
+        oldWidget.validatorSettings != widget.validatorSettings ||
+        oldWidget.borderConfig != widget.borderConfig) {
+      _syncSettings();
     }
   }
 
   @override
   void dispose() {
-    if (widget.controller.validatorSettings == widget.validatorSettings) {
+    if (widget.controller.validatorSettings == _settings) {
       widget.controller.validatorSettings = null;
     }
     super.dispose();

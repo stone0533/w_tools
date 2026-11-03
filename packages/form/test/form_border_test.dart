@@ -1039,4 +1039,23 @@ void main() {
       );
     });
   });
+
+  group('WFormBorder 消息兜底', () {
+    testWidgets('WFormBorderConfig.standard() 渲染 hint', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WFormBorder(
+              config: WFormBorderConfig.standard(),
+              hintTextList: const ['请输入'],
+              child: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('请输入'), findsOneWidget);
+    });
+  });
 }

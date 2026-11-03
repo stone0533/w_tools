@@ -358,4 +358,53 @@ void main() {
     expect(core.config.height, 52);
     expect(core.config.style?.fontSize, 18);
   });
+
+  testWidgets('只传 borderConfig 时，validate 失败默认可见错误文案', (tester) async {
+    final form = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            borderConfig: WFormBorderConfig.standard(),
+            child: WFormTextField(
+              name: 'email',
+              label: '邮箱',
+              validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(form.validate(), isFalse);
+    await tester.pump();
+    expect(find.text('请输入邮箱'), findsWidgets);
+  });
+
+  testWidgets('显式 validatorSettings 优先：showBorderError=false 时不渲染错误', (tester) async {
+    final form = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            borderConfig: WFormBorderConfig.standard(),
+            validatorSettings: WFormValidatorSettings(),
+            child: WFormTextField(
+              name: 'email',
+              label: '邮箱',
+              validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(form.validate(), isFalse);
+    await tester.pump();
+    expect(find.text('请输入邮箱'), findsNothing);
+  });
 }
