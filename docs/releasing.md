@@ -1,5 +1,7 @@
 # 发版流程（9 个 Flutter 子包 + w_tools_cli + 聚合包）
 
+> 最近一次门禁记录：[2026-11-04](release/2026-11-04-preflight.md)。
+
 `w_tools` 是 9 个 Flutter 子包 + 1 个纯 Dart 工具包（`w_tools_cli`）+ 1 个聚合包。版本各自演进，所以「仓库里有什么」和
 「pub.dev 上用户能装到什么」很容易分叉 —— 例如 `w_tools_map` 曾经是仓库 1.1.0、
 pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
