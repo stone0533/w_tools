@@ -17,9 +17,9 @@ void main() {
 
   runApp(
     WImageDefaultsScope(
-      defaults: WImageDefaults(
+      defaults: WImageLoadConfig(
         placeholderBuilder: (context, data) => const Center(child: CircularProgressIndicator()),
-        errorBuilder: (context, data, error) => const Icon(Icons.broken_image),
+        errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
       ),
       child: const WUiExampleApp(),
     ),

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import 'image_config.dart';
 import 'image_types.dart';
 
 /// 图片默认加载 UI 作用域。
@@ -7,6 +8,7 @@ import 'image_types.dart';
 /// 只负责默认占位符、错误占位和进度 UI；图片颜色/圆角/边框等视觉样式
 /// 仍由 [WImageStyle] 决定。
 @immutable
+@Deprecated('5.0 移除：WImageDefaultsScope 直接接收 WImageLoadConfig')
 class WImageDefaults {
   const WImageDefaults({
     this.placeholderBuilder,
@@ -38,16 +40,17 @@ class WImageDefaultsScope extends InheritedWidget {
     required super.child,
   });
 
-  final WImageDefaults defaults;
+  final WImageLoadConfig defaults;
 
-  static WImageDefaults? maybeOf(BuildContext context) =>
+  static WImageLoadConfig? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<WImageDefaultsScope>()?.defaults;
 
-  static WImageDefaults of(BuildContext context) => maybeOf(context) ?? const WImageDefaults();
+  static WImageLoadConfig of(BuildContext context) =>
+      maybeOf(context) ?? const WImageLoadConfig();
 
   @override
   bool updateShouldNotify(WImageDefaultsScope oldWidget) =>
       defaults.placeholderBuilder != oldWidget.defaults.placeholderBuilder ||
-      defaults.errorBuilder != oldWidget.defaults.errorBuilder ||
+      defaults.errorWidgetBuilder != oldWidget.defaults.errorWidgetBuilder ||
       defaults.progressBuilder != oldWidget.defaults.progressBuilder;
 }

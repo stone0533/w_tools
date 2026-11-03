@@ -162,7 +162,7 @@ void main() {
     testWidgets('style 固定占位符优先于 defaults', (tester) async {
       await tester.pumpWidget(
         WImageDefaultsScope(
-          defaults: WImageDefaults(
+          defaults: WImageLoadConfig(
             placeholderBuilder: (context, data) => const Text('theme'),
           ),
           child: MaterialApp(
@@ -182,7 +182,7 @@ void main() {
     testWidgets('WImageDefaultsScope 覆盖默认占位符', (tester) async {
       await tester.pumpWidget(
         WImageDefaultsScope(
-          defaults: WImageDefaults(
+          defaults: WImageLoadConfig(
             placeholderBuilder: (context, data) => const Text('themed'),
           ),
           child: MaterialApp(
@@ -198,8 +198,8 @@ void main() {
     testWidgets('WImageDefaultsScope.errorBuilder 接收错误类型', (tester) async {
       await tester.pumpWidget(
         WImageDefaultsScope(
-          defaults: WImageDefaults(
-            errorBuilder: (context, data, error) => Text('ERR:${error.runtimeType}'),
+          defaults: WImageLoadConfig(
+            errorWidgetBuilder: (context, data, error) => Text('ERR:${error.runtimeType}'),
           ),
           child: MaterialApp(
             home: Scaffold(

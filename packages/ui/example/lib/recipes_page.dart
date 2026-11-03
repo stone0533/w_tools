@@ -17,40 +17,39 @@ class RecipesPage extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const _SectionTitle('头像：WImage.avatar'),
+        const _SectionTitle('头像：WImage + WImageStyle.avatar'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.avatar(
-            'assets/demo.png',
+          child: WImage(
+            data: 'assets/demo.png',
             type: WImageType.asset,
-            size: 72,
+            style: WImageStyle.avatar(72),
           ),
         ),
-        const _Code("WImage.avatar('assets/demo.png', type: WImageType.asset, size: 72)"),
+        const _Code("WImage(data: 'assets/demo.png', style: WImageStyle.avatar(72))"),
         const SizedBox(height: 24),
-        const _SectionTitle('缩略图：WImage.thumbnail'),
+        const _SectionTitle('缩略图：WImage + WImageStyle.thumbnail'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.thumbnail(
-            'assets/demo.png',
+          child: WImage(
+            data: 'assets/demo.png',
             type: WImageType.asset,
-            width: 96,
-            cacheSize: 288,
+            style: WImageStyle.thumbnail(96),
+            config: const WImageLoadConfig(memCacheWidth: 288, memCacheHeight: 288),
           ),
         ),
-        const _Code('WImage.thumbnail(..., width: 96, cacheSize: 288)'),
+        const _Code('WImage(..., style: WImageStyle.thumbnail(96), config: WImageLoadConfig(...))'),
         const SizedBox(height: 24),
-        const _SectionTitle('封面：WImage.cover'),
+        const _SectionTitle('封面：WImage + WImageStyle.cover'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.cover(
-            'assets/demo.png',
+          child: WImage(
+            data: 'assets/demo.png',
             type: WImageType.asset,
-            aspectRatio: 16 / 9,
-            radius: 12,
+            style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12),
           ),
         ),
-        const _Code('WImage.cover(..., aspectRatio: 16 / 9, radius: 12)'),
+        const _Code('WImage(..., style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12))'),
         const SizedBox(height: 24),
         const _SectionTitle('自动拼接资源路径：WImage.asset(prefix: true)'),
         const SizedBox(height: 8),

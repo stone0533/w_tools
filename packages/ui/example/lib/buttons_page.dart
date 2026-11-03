@@ -268,8 +268,9 @@ class _ButtonsPageState extends State<ButtonsPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  WImage.assetImage(
+                  WImage.asset(
                     'demo.png',
+                    prefix: true,
                     style: const WImageStyle(
                       width: 56,
                       height: 56,

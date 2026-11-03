@@ -145,7 +145,7 @@ D1 必须在阶段 3 之前定，D3 在 4.6 之前定，D4 在 2.1 之前定。�
 | **3.2** | P2-1/2/3 | core：`WValidator` 全部改用 `WRegExp`；删 `WRegExpPattern/Preset`、`escapeSql`、`stripHtml`、`hashPassword` | 迁移表（含"服务端做密码哈希"的理由） | M |
 | **3.3** | P2-4/5/6/7 | core：`WStorage` 读写语义统一；`WUx` 拆 `WDebounce/WThrottle` 并把滚动移 ui；`WCountdown` → `ValueListenable`；`WPlatform` 收窄 | L | L |
 | **3.4** | P1-2/P1-9 | 完成（ui 4.0.0）：`WButtonStyles.of(context)` 从 ColorScheme 派生并缓存；`WButton` 默认跟随主题；静态预设弃用（5.0 移除） | `WButtonStyle.withoutX()` 迁移到 `copyWith` | L |
-| **3.5** | P2-25/26、P1-9 | 进行中（4.2.0）：加载器/快照内部化、缓存策略弃用、`WImageLoadConfig` 更名、错误 `kind` + 子类弃用；剩余：9 个命名构造收敛、`WImageDefaults` 合并 | 迁移表 `ui-4.1.md` / `ui-4.2.md` | L |
+| **3.5** | P2-25/26、P1-9 | 完成（4.3.0）：加载器/快照内部化、缓存策略弃用、`WImageLoadConfig` 更名、错误 `kind`、预设构造弃用、`WImageDefaultsScope` 收 `WImageLoadConfig` | 迁移表 `ui-4.1~4.3.md` | L |
 | **3.6** | P2-21/22 | ui：删布局糖 4 类；5 个必填 Config 改可选；`HexColor`→`WHexColor`；两个 String 扩展合并 | 迁移表（`WRow`→`Row`、`WSizeBox.height(8)`→`8.verticalSpace`） | M |
 | **3.7** | P1-4、P2-19/20/23/24 | ui：`WRowButtons` 拆 `WActionRow` + `WSelectableRow`；`WScreen` 改读树内 `MediaQuery`；`WTextStyles` 缓存；`WImageFrame` padding 语义修正 | — | M |
 

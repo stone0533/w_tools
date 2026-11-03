@@ -53,7 +53,7 @@ ui/
     │   │   │   ├── image_loader.dart           # 内部加载器（不导出）
     │   │   │   ├── image_load_state.dart       # 内部状态基类
     │   │   │   ├── image_frame.dart            # WImageFrame
-    │   │   │   ├── image_defaults.dart         # WImageDefaultsScope
+    │   │   │   ├── image_defaults.dart         # WImageDefaultsScope（接收 WImageLoadConfig）
     │   │   │   ├── image_types.dart            # WImageType / WImageProgress / WImageError
     │   │   │   ├── image_retry_policy.dart     # 重试判定与退避（内部）
     │   │   │   └── _image_file_*.dart          # file provider 条件实现
@@ -794,10 +794,10 @@ WImage.source(
 | `WImage.asset(path)` | 资产图；前后的空白会被裁掉 |
 | `WImage.file(path)` | 本地文件；带不带 `file://` 都可以 |
 | `WImage.base64(data)` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
-| `WImage.avatar(data, size:)` | 正方形 + 全圆角 |
-| `WImage.thumbnail(data, width:)` | 缩略图；`cacheSize` 会写入 `WImageLoadConfig.memCache` |
-| `WImage.cover(data, aspectRatio:)` | 固定比例封面 |
-| `WImage.assetImage(name)` | 兼容入口；优先用 `WImage.asset(name, prefix: true)` |
+| ~~`WImage.avatar(data, size:)`~~ | **已弃用（5.0 移除）**：用 `WImage(style: WImageStyle.avatar(size))` |
+| ~~`WImage.thumbnail(data, width:)`~~ | **已弃用（5.0 移除）**：style + `WImageLoadConfig(memCacheWidth: ...)` |
+| ~~`WImage.cover(data, aspectRatio:)`~~ | **已弃用（5.0 移除）**：用 `WImage(style: WImageStyle.cover(...))` |
+| ~~`WImage.assetImage(name)`~~ | **已弃用（5.0 移除）**：用 `WImage.asset(name, prefix: true)` |
 | `WImage.memory(bytes)` | `Uint8List` → `MemoryImage` |
 | `WImage.provider(provider)` | 任意 `ImageProvider` |
 
@@ -872,21 +872,22 @@ WImage.source(
 
 ### WImageDefaultsScope / WImageCachePolicy
 
-- `WImageDefaultsScope`（InheritedWidget）按子树覆盖默认占位符/错误占位/默认进度构建器；
-- `WImageCachePolicy` 是进程级缓存预算，直接同步 Flutter `ImageCache`：
+- `WImageDefaultsScope`（InheritedWidget）接收 `WImageLoadConfig`，按子树覆盖默认占位/错误/进度；
+- `WImageCachePolicy` 已弃用（5.0 移除），直接配置 `PaintingBinding.instance.imageCache`。
 
 ```dart
 WImageDefaultsScope(
-  defaults: WImageDefaults(
-    placeholderBuilder: (context, data) => const CircularProgressIndicator(),
-    errorBuilder: (context, data, error) => const Icon(Icons.broken_image),
-    progressBuilder: (context, data, progress) => _defaultProgress(progress),
+  defaults: const WImageLoadConfig(
+    placeholderBuilder: _placeholder,
+    errorWidgetBuilder: _error,
+    progressBuilder: _progress,
   ),
   child: ...,
 )
 
-WImageCachePolicy.configure(maxSize: 200, maxMemoryBytes: 200 * 1024 * 1024);
-WImageCachePolicy.reset();
+PaintingBinding.instance.imageCache
+  ..maximumSize = 200
+  ..maximumSizeBytes = 200 * 1024 * 1024;
 ```
 
 优先级：`WImageLoadConfig.placeholderBuilder` > `WImageLoadConfig.placeholder` > `WImageDefaultsScope.placeholderBuilder` > 内置兜底。

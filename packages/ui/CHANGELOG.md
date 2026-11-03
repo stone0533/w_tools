@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.3.0
+
+### Breaking
+- `WImageDefaultsScope.defaults` 类型改为 `WImageLoadConfig`（`errorBuilder` → `errorWidgetBuilder`）；
+  `WImageDefaults` 弃用（5.0 移除）。
+
+### Deprecated（5.0 移除）
+- `WImage.avatar` / `WImage.thumbnail` / `WImage.cover` / `WImage.assetImage`：
+  改用 `WImage` + `WImageStyle` 预设 / `WImage.asset(prefix: true)`。
+
 ## 4.2.0
 
 ### Changed

@@ -59,7 +59,7 @@ void main() {
 
     await tester.pumpWidget(
       WImageDefaultsScope(
-        defaults: WImageDefaults(
+        defaults: WImageLoadConfig(
           progressBuilder: (context, url, progress) => const Text('THEME_PROGRESS'),
         ),
         child: MaterialApp(

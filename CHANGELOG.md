@@ -1,3 +1,7 @@
+## 3.0.15
+
+- 抬高 `w_tools_ui` 约束到 `^4.3.0`：图片预设构造弃用，`WImageDefaultsScope` 改收 `WImageLoadConfig`。
+
 ## 3.0.14
 
 - 抬高 `w_tools_ui` 约束到 `^4.2.0`：`WImageConfig` 更名 `WImageLoadConfig`，图片错误增加 `kind`。
