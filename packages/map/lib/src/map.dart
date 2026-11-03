@@ -417,6 +417,23 @@ class WMapController<T> {
 /// 不内置任何业务 UI（列表面板、选中浮起、空状态等），
 /// 业务方通过 [WMapConfig.onItemSelected] / [WMapConfig.onItemClosed]
 /// 接收事件，自行构建业务 UI。
+///
+/// ```dart
+/// final zone = WMapZone<Store>(
+///   maps: stores,
+///   initialCamera: const CameraPosition(target: LatLng(31.2, 121.5), zoom: 11),
+///   mapper: WMapItemMapper<Store>(
+///     id: (s) => s.id,
+///     name: (s) => s.name,
+///     position: (s) => (latitude: s.lat, longitude: s.lng),
+///   ),
+/// );
+///
+/// WMap<Store>(
+///   zone: zone,
+///   config: WMapConfig<Store>(onItemSelected: (store) {}),
+/// );
+/// ```
 class WMap<T> extends StatefulWidget {
   /// 组件配置
   final WMapConfig<T> config;
