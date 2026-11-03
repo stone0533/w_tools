@@ -120,7 +120,8 @@ void main() {
     test('默认字段值', () {
       final c = WToastConfig();
       expect(c.duration, const Duration(seconds: 2));
-      expect(c.backgroundColor, Colors.black38);
+      // 默认 null：遮罩运行时用中性半透明黑，文本气泡取主题反色
+      expect(c.backgroundColor, isNull);
       expect(c.align, Alignment.center);
       expect(c.animationDuration, const Duration(milliseconds: 200));
     });
