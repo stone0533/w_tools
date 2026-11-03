@@ -37,8 +37,8 @@
 | 2.9 device 进程超时 | 完成 | `ProcessShell(timeout: 120s)`，`run` / `runBytes` 超时抛 `ProcessException`；`Uint8List.fromList` 去掉不安全 cast |
 | 2.1 init/doctor 路径单一来源 + `--check` 契约 | 完成 | 新增 `ProjectLayout`；init 读 `toolkit_entry`；`--check` 不再把内部 manifest / 可选配置当缺失，也不因 CLI 升级假红 |
 | 2.5 catalog 单一真相 | 完成 | `gen_catalog` 同时生成 docs §1~§9 表格；YAML 吸收文档文案；`catalog_test` 校验表格新鲜度 + **每个别名**都能 explain（补上 WStepFlow） |
-| 2.7 figma BudgetGuard | 待做 | fetch / diff 前置额度检查 |
-| 工具包版本 / CHANGELOG | 待收尾 | cli / figma / device 统一 bump；cli 的子包约束表已同步（`init_project.dart`，`init_test` 会校验） |
+| 2.7 figma BudgetGuard | 完成 | `fetch` / `diff` 请求前检查本月额度；用尽默认拒绝（退出码 3），`--ignore-budget` 放行；缓存命中与 spec/tokens 不受影响 |
+| 工具包版本 / CHANGELOG | 完成 | cli 1.9.10 / figma 0.11.0 / device 0.1.2，CHANGELOG 已写；`release_check` 只剩 4 条 Flutter 子包的预期提醒 |
 
 ## 0. 三条排序原则
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../cache/budget_guard.dart';
 import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
 import '../diff/spec_diff.dart';
@@ -27,11 +28,19 @@ class DiffResult {
 
 /// 对比「上次缓存」与「刚拉的最新节点」，列出改动（消耗 1 次 Tier 1）。
 class DiffCommand {
-  DiffCommand({required this.store, required this.client, this.log = true});
+  DiffCommand({
+    required this.store,
+    required this.client,
+    this.log = true,
+    this.ignoreBudget = false,
+  });
 
   final CacheStore store;
   final FigmaClient client;
   final bool log;
+
+  /// 为 true 时即使本月额度已尽也继续（`--ignore-budget`）。
+  final bool ignoreBudget;
 
   /// [oldFile] 是旧缓存文件；没有旧缓存时直接拉新（相当于 fetch）。
   Future<DiffResult> run({
@@ -88,6 +97,7 @@ class DiffCommand {
     required String nodeId,
     required File target,
   }) async {
+    BudgetGuard(store).ensureAllowed(ignoreBudget: ignoreBudget);
     final json = await client.getJson(
       Uri.parse('https://api.figma.com/v1/files/$fileKey/nodes?ids=$nodeId'),
     );

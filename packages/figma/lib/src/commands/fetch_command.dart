@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../cache/budget_guard.dart';
 import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
 
@@ -33,11 +34,19 @@ class FetchResult {
 /// - `refresh` 才删除缓存并重新请求；
 /// - 只有真的打了接口才写用量日志。
 class FetchCommand {
-  FetchCommand({required this.store, required this.client, this.log = true});
+  FetchCommand({
+    required this.store,
+    required this.client,
+    this.log = true,
+    this.ignoreBudget = false,
+  });
 
   final CacheStore store;
   final FigmaClient client;
   final bool log;
+
+  /// 为 true 时即使本月额度已尽也继续（`--ignore-budget`）。
+  final bool ignoreBudget;
 
   Future<FetchResult> file({
     required String fileKey,
@@ -123,6 +132,8 @@ class FetchCommand {
         latestVersion: stale?.latestVersion,
       );
     }
+    // 只有真的要走网络才检查额度（缓存命中在上面已经返回）
+    BudgetGuard(store).ensureAllowed(ignoreBudget: ignoreBudget);
     final json = await client.getJson(url);
     store.write(file, json);
     if (log) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import '../cache/budget_guard.dart';
 import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
 import '../common/version.dart';
@@ -154,6 +155,9 @@ Future<void> runFigmaCli(List<String> args) async {
         printOut(_usage);
         exitCode = 2;
     }
+  } on BudgetExceededException catch (e) {
+    stderr.writeln(e.reason);
+    exitCode = 3;
   } on FigmaTokenException catch (e) {
     stderr.writeln(e.message);
     exitCode = 4;

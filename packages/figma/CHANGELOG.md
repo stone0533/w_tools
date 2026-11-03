@@ -31,6 +31,14 @@
 
 # Changelog
 
+## 0.11.0
+
+### Added
+- `fetch` / `diff` 增加额度护栏：本月 Tier 1 达到预算上限时默认拒绝（退出码 3），`--ignore-budget` 放行；缓存命中与 `spec` / `tokens` 不触发检查。
+
+### Fixed
+- Windows 下能识别 `nodes-*.json` 缓存（原先按 `/` 切分会得到整条路径，导致 `spec` / `tokens` / `frames` 找不到缓存）。
+
 ## 0.9.2
 
 ### Fixed

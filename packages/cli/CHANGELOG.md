@@ -82,6 +82,19 @@
 
 # Changelog
 
+## 1.9.10
+
+### Fixed
+- `init` 与 doctor 共用 `ProjectLayout`（唯一路径来源）；`init` 现在会读 `.w_tools_doctor.yaml` 的 `toolkit_entry`，不再与 doctor 的检查路径分叉。
+- `init --check` 只把用户可见生成物算作缺失：内部 `.w_tools/init.json` 与可选的 `.w_tools_doctor.yaml` 不再让 CI 假红；`--check` 也不再写 manifest，`--check-drift` 不会因 CLI 升级而永久失败。
+- `doctor --write-config --force` 覆盖前写 `.bak`（此前会静默抹掉项目维护的 palette / banned / ignore）。
+- `feedback lint --stale-days=0` 真正关闭 stale 检查；非法值 exit 2 而不是静默回退 30。
+- R2 在 `test/` / `tool/` / `integration_test/` 放行 `w_tools_{cli,figma,device,e2e}`：`tool/main_e2e.dart` 按文档必须直接 import `w_tools_e2e`；`lib/` 仍报错。`--include-tests` 一并扫描 `integration_test/`。
+
+### Changed
+- `catalog/components.yaml` 成为唯一来源：`gen_catalog` 同时生成 `catalog.g.dart` 与 `docs/modules/components.md` 的 §1~§9 表格；`catalog_test` 校验表格新鲜度与**每个别名**可被 `explain` 找到（补上 `WStepFlow`）。
+- 子包约束表同步 `ui 3.1.0` / `form 2.1.0` / `api 1.0.2` / `map 1.3.0`。
+
 ## 1.8.1
 
 ### Changed

@@ -11,7 +11,9 @@ import 'cli_io.dart';
 Future<void> runFetch(List<String> args) async {
   final options = parseOptions(args);
   rejectUnsupported(
-      options, {'root', 'json', 'depth', 'scale', 'refresh', 'no-log', 'check-stale'});
+    options,
+    {'root', 'json', 'depth', 'scale', 'refresh', 'no-log', 'check-stale', 'ignore-budget'},
+  );
   final positional = options.positional;
   if (positional.length < 2) {
     stderr.writeln('fetch 用法：fetch <file|nodes|images> <fileKey> [ids]');
@@ -32,7 +34,12 @@ Future<void> runFetch(List<String> args) async {
   final store = CacheStore(Directory(options.root));
   // 只有真正需要请求时才读 token；缓存命中不会触发 factory。
   final client = LazyFigmaClient(() => HttpFigmaClient(token: readToken(store)));
-  final command = FetchCommand(store: store, client: client, log: options.log);
+  final command = FetchCommand(
+    store: store,
+    client: client,
+    log: options.log,
+    ignoreBudget: options.ignoreBudget,
+  );
   try {
     final result = switch (kind) {
       'file' => await command.file(

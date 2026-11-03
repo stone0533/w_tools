@@ -28,6 +28,7 @@ dart run w_tools_figma:figma fetch images <fileKey> <id1,id2,...> [--scale=2]
 --refresh      绕过缓存重新请求（失败时保留旧缓存）
 --check-stale  调 file/meta 判断缓存版本，只提示不重拉
 --no-log       本次不写用量日志
+--ignore-budget 本月额度已尽时仍然请求（默认拒绝，退出码 3）
 
 缓存命中不读 token、不消耗 Tier 1；未命中 / refresh / check-stale 需要 token。
 ''',
@@ -62,6 +63,7 @@ diff — 对比旧缓存与最新节点
 dart run w_tools_figma:figma diff <fileKey> <nodeId> [--json] [--if-stale]
 
 会请求 Figma，消耗 1 次 Tier 1；--if-stale 先用 /meta 比较版本，没变则 0 次。
+额度用尽时默认拒绝（退出码 3），--ignore-budget 放行。
 ''',
   'usage': '''
 usage — 查看本月调用次数

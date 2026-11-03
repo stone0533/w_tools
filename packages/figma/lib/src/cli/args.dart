@@ -17,6 +17,7 @@ class CliOptions {
     required this.checkStale,
     required this.force,
     required this.ifStale,
+    required this.ignoreBudget,
     required this.nodeOnly,
     required this.mapFile,
     required this.all,
@@ -44,6 +45,9 @@ class CliOptions {
   final bool checkStale;
   final bool force;
   final bool ifStale;
+
+  /// `--ignore-budget`：本月额度已尽时仍然请求。
+  final bool ignoreBudget;
   final bool nodeOnly;
   final String? mapFile;
   final bool all;
@@ -72,6 +76,7 @@ CliOptions parseOptions(List<String> args) {
   var checkStale = false;
   var force = false;
   var ifStale = false;
+  var ignoreBudget = false;
   var nodeOnly = false;
   String? mapFile;
   var all = false;
@@ -133,6 +138,9 @@ CliOptions parseOptions(List<String> args) {
     } else if (arg == '--if-stale') {
       ifStale = true;
       seen.add('if-stale');
+    } else if (arg == '--ignore-budget') {
+      ignoreBudget = true;
+      seen.add('ignore-budget');
     } else if (arg == '--node-only' || arg == '--no-markdown') {
       nodeOnly = true;
       seen.add('node-only');
@@ -173,6 +181,7 @@ CliOptions parseOptions(List<String> args) {
     checkStale: checkStale,
     force: force,
     ifStale: ifStale,
+    ignoreBudget: ignoreBudget,
     nodeOnly: nodeOnly,
     mapFile: mapFile,
     all: all,

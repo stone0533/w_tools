@@ -177,6 +177,8 @@ cd packages/figma
 | `usage` | 本月调用次数 / 最近记录 | 0 |
 | `budget` | 查看 / 设置月度预算 | 0 |
 
+`fetch` / `diff` 在额度用尽时默认拒绝（退出码 3），加 `--ignore-budget` 继续。
+
 完整帮助：
 
 ```bash
