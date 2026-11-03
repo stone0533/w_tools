@@ -27,9 +27,9 @@
 | 包 | 路径 | 职责 |
 |------|------|------|
 | `w_tools_cli` | `packages/cli/` | 消费方接入工具：`init` 生成聚合入口/暂存层/项目 UI 规范/AGENTS 片段，`doctor` 检查接入约定 |
-| `w_tools_figma` | `packages/figma/` | 只读的 Figma 取数 / 规格 / token / diff CLI（v0.6.0 已发布；v0.7.0 待发布，契约见 [figma-cli.md](../figma-cli.md)） |
-| `w_tools_device` | `packages/device/` | 设备验证：列模拟器 / 启动 / 截图 / 在 DeviceHub 里按设备坐标点击（自动标定；v0.1.0 待发布） |
-| `w_tools_e2e` | `packages/e2e/` | 设备验证的免登录入口（编译期开关，release 天然失效；v0.1.0 待发布） |
+| `w_tools_figma` | `packages/figma/` | 只读的 Figma 取数 / 规格 / token / diff CLI（v0.7.0 已发布，契约见 [figma-cli.md](../figma-cli.md)） |
+| `w_tools_device` | `packages/device/` | 设备验证：列模拟器 / 启动 / 截图 / 在 DeviceHub 里按设备坐标点击（自动标定；v0.1.0 已发布） |
+| `w_tools_e2e` | `packages/e2e/` | 设备验证的免登录入口（编译期开关，release 天然失效；v0.1.0 已发布） |
 
 `w_tools_cli` 依赖 `args` / `path` / `yaml`；`w_tools_figma` 只用 Dart 标准库；`w_tools_device` 依赖 `image`；`w_tools_e2e` 是 Flutter 包。
 
