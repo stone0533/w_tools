@@ -57,7 +57,7 @@ CLI 是纯 Dart 包：测试用 `dart test`，发布用 `dart pub publish`（`sc
 需要模拟器 / Android / 真机截图、点击、稳定等待或 E2E 自动登录时，先读
 [`docs/agents/device-testing.md`](docs/agents/device-testing.md)，不要手写 adb / DeviceHub 标定。
 
-Figma 取数工具在 `packages/figma/`（`w_tools_figma`，独立 CLI 包，0.7.0 已发布；0.7.1 待发布）。需要设计稿规格 / token / diff 时，
+Figma 取数工具在 `packages/figma/`（`w_tools_figma`，独立 CLI 包，0.7.0 已发布；0.9.2 待发布）。需要设计稿规格 / token / diff 时，
 先看 [`docs/agents/figma.md`](docs/agents/figma.md)，不要直接手写 Figma API 调用。
 
 ## Agent skills

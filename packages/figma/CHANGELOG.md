@@ -25,7 +25,7 @@
 
 # Changelog
 
-## 0.7.1
+## 0.9.2
 
 ### Fixed
 - 新增 `cache.v1.json` schema。

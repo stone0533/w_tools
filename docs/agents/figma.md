@@ -1,6 +1,6 @@
 # Figma 取数与 Flutter 页面开发（agent）
 
-工具：`packages/figma`，包名 `w_tools_figma`，0.7.0 已发布；0.7.1 待发布。
+工具：`packages/figma`，包名 `w_tools_figma`，0.7.0 已发布；0.9.2 待发布。
 消费方安装：`dart pub add dev:w_tools_figma:^0.7.0`。
 契约：[`docs/figma-cli.md`](../figma-cli.md)。
 消费方可复制的片段：[`packages/figma/AGENTS.md`](../../packages/figma/AGENTS.md)。
@@ -91,7 +91,7 @@ dart run w_tools_cli:explain <组件名>
 
 ## 0.4.0+ 能力
 
-> 0.7.0 已发布；0.7.1 待发布。
+> 0.7.0 已发布；0.9.2 待发布。
 
 ```bash
 # 默认只列顶层画板
