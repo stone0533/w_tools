@@ -1,9 +1,11 @@
+import 'patterns.dart';
 import 'validator.dart';
 
 /// 常用正则表达式字符串常量
 ///
 /// 供需要「字符串形式正则」的场景使用（如后端下发校验规则）；
 /// 需要直接匹配时请使用 [WRegExp]。
+@Deprecated('2.2 起用 WRegExp；3.0 移除')
 class WRegExpPattern {
   // 纯静态常量类，禁止实例化
   WRegExpPattern._();
@@ -13,67 +15,67 @@ class WRegExpPattern {
   /// 密码：至少 8 位，且同时包含小写字母、大写字母与数字
   ///
   /// 与 [WValidator.isValidPassword] 同源（引用 `WValidator.passwordPattern`）。
-  static const String password = WValidator.passwordPattern;
+  static const String password = kPasswordPattern;
 
   /// 邮箱地址（整串匹配，TLD 至少 2 位）
-  static const String email = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+  static const String email = kEmailPattern;
 
   /// 中国大陆手机号（1 开头，第二位 3-9，共 11 位）
-  static const String phone = r'^1[3-9]\d{9}$';
+  static const String phone = kPhonePattern;
 
   /// 二代身份证号（18 位，末位可为 X/x）
-  static const String idCard =
-      r'^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$';
+  static const String idCard = kIdCardPattern;
 
   /// 中文姓名（2-20 个汉字）
-  static const String chineseName = r'^[\u4e00-\u9fa5]{2,20}$';
+  static const String chineseName = kChineseNamePattern;
 
   // ---------- 网络 ----------
 
   /// 网络 URL（仅 http / https）
-  static const String url = r'^https?:\/\/[^\s]+$';
+  static const String url = kUrlPattern;
 
   /// IPv4 地址
-  static const String ipv4 = r'^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$';
+  static const String ipv4 = kIpv4Pattern;
 
   /// MAC 地址（`:` 或 `-` 分隔）
-  static const String macAddress = r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$';
+  static const String macAddress = kMacAddressPattern;
 
   // ---------- 数字 ----------
 
   /// 数字（可带负号与小数部分）
-  static const String number = r'^-?\d+(\.\d+)?$';
+  static const String number = kNumberPattern;
 
   /// 整数（可带负号）
-  static const String integer = r'^-?\d+$';
+  static const String integer = kIntegerPattern;
 
   /// 正数（可带小数部分，不含 0）
-  static const String positiveNumber = r'^(?!0+(\.0+)?$)\d+(\.\d+)?$';
+  static const String positiveNumber = kPositiveNumberPattern;
 
   /// 正整数（不含 0）
-  static const String positiveInteger = r'^(?!0+$)\d+$';
+  static const String positiveInteger = kPositiveIntegerPattern;
 
   /// 小数（可带负号，必须有小数部分）
-  static const String decimal = r'^-?\d+\.\d+$';
+  static const String decimal = kDecimalPattern;
 
   /// 正小数（必须有小数部分，不含 0）
-  static const String positiveDecimal = r'^(?!0+\.0+$)\d+\.\d+$';
+  static const String positiveDecimal = kPositiveDecimalPattern;
 
   // ---------- 其他 ----------
 
   /// 日期格式（YYYY-MM-DD，仅校验格式；真实日期请用 [WValidator.isValidDate]）
-  static const String date = r'^\d{4}-\d{2}-\d{2}$';
+  static const String date = kDatePattern;
 
   /// 银行卡号（16-19 位数字，仅校验位数）
-  static const String bankCard = r'^\d{16,19}$';
+  static const String bankCard = kBankCardPattern;
 
   /// 邮政编码（6 位数字）
-  static const String postalCode = r'^\d{6}$';
+  static const String postalCode = kPostalCodePattern;
 }
 
 /// 按分类组织的正则表达式字符串
 ///
 /// 便于按类别遍历或批量下发校验规则；键名与 [WRegExpPattern] 字段同名。
+@Deprecated('2.2 起用 WRegExp；3.0 移除')
 class WRegExpPreset {
   // 纯静态常量类，禁止实例化
   WRegExpPreset._();
@@ -123,61 +125,64 @@ class WRegExp {
   // ---------- 个人信息 ----------
 
   /// 密码正则
-  static final RegExp password = RegExp(WRegExpPattern.password);
+  static final RegExp password = RegExp(kPasswordPattern);
 
   /// 邮箱地址正则
-  static final RegExp email = RegExp(WRegExpPattern.email);
+  static final RegExp email = RegExp(kEmailPattern);
 
   /// 手机号正则
-  static final RegExp phone = RegExp(WRegExpPattern.phone);
+  static final RegExp phone = RegExp(kPhonePattern);
+
+  /// 用户名正则（3-20 位字母、数字或下划线）
+  static final RegExp username = RegExp(kUsernamePattern);
 
   /// 身份证号正则
-  static final RegExp idCard = RegExp(WRegExpPattern.idCard);
+  static final RegExp idCard = RegExp(kIdCardPattern);
 
   /// 中文姓名正则
-  static final RegExp chineseName = RegExp(WRegExpPattern.chineseName);
+  static final RegExp chineseName = RegExp(kChineseNamePattern);
 
   // ---------- 网络 ----------
 
   /// 网络 URL 正则
-  static final RegExp url = RegExp(WRegExpPattern.url);
+  static final RegExp url = RegExp(kUrlPattern);
 
   /// IPv4 地址正则
-  static final RegExp ipv4 = RegExp(WRegExpPattern.ipv4);
+  static final RegExp ipv4 = RegExp(kIpv4Pattern);
 
   /// MAC 地址正则
-  static final RegExp macAddress = RegExp(WRegExpPattern.macAddress);
+  static final RegExp macAddress = RegExp(kMacAddressPattern);
 
   // ---------- 数字 ----------
 
   /// 数字正则
-  static final RegExp number = RegExp(WRegExpPattern.number);
+  static final RegExp number = RegExp(kNumberPattern);
 
   /// 整数正则
-  static final RegExp integer = RegExp(WRegExpPattern.integer);
+  static final RegExp integer = RegExp(kIntegerPattern);
 
   /// 正数正则
-  static final RegExp positiveNumber = RegExp(WRegExpPattern.positiveNumber);
+  static final RegExp positiveNumber = RegExp(kPositiveNumberPattern);
 
   /// 正整数正则
-  static final RegExp positiveInteger = RegExp(WRegExpPattern.positiveInteger);
+  static final RegExp positiveInteger = RegExp(kPositiveIntegerPattern);
 
   /// 小数正则
-  static final RegExp decimal = RegExp(WRegExpPattern.decimal);
+  static final RegExp decimal = RegExp(kDecimalPattern);
 
   /// 正小数正则
-  static final RegExp positiveDecimal = RegExp(WRegExpPattern.positiveDecimal);
+  static final RegExp positiveDecimal = RegExp(kPositiveDecimalPattern);
 
   // ---------- 其他 ----------
 
   /// 日期格式正则
-  static final RegExp date = RegExp(WRegExpPattern.date);
+  static final RegExp date = RegExp(kDatePattern);
 
   /// 银行卡号正则
-  static final RegExp bankCard = RegExp(WRegExpPattern.bankCard);
+  static final RegExp bankCard = RegExp(kBankCardPattern);
 
   /// 邮政编码正则
-  static final RegExp postalCode = RegExp(WRegExpPattern.postalCode);
+  static final RegExp postalCode = RegExp(kPostalCodePattern);
 
   // ---------- 匹配结果 ----------
 

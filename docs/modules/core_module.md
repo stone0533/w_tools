@@ -40,7 +40,7 @@ core/
         ├── hash.dart        # WHash
         ├── logger.dart      # WLogger + 顶层函数 logT/logD/logI/logW/logE/logF
         ├── platform.dart    # WPlatform, WPlatformType
-        ├── reg_exp.dart     # WRegExp, WRegExpPattern, WRegExpPreset
+        ├── reg_exp.dart     # WRegExp（WRegExpPattern / WRegExpPreset 已弃用）
         ├── storage.dart     # WStorage
         ├── token.dart       # WToken
         ├── ux.dart          # WUx, WCancellableAction
@@ -176,7 +176,7 @@ print(decrypted); // "hello world"
 | `sha256(input)` | String | SHA-256 |
 | `sha512(input)` | String | SHA-512 |
 | `hmacSha256(data, key)` | String | HMAC-SHA256 |
-| `hashPassword(password, {salt})` | String | 密码哈希，返回 `"sha256$盐$哈希"` |
+| `hashPassword(password, {salt})` | String | **已弃用（3.0 移除）**：密码哈希应在服务端用 bcrypt/argon2 |
 | `verifyPassword(password, hash)` | bool | 密码验证 |
 
 ### 使用示例
@@ -305,7 +305,9 @@ WPlatform.runForPlatform(
 
 提供预置的正则模式常量、预编译实例、以及身份证/手机号/银行卡等业务数据的提取与格式化。
 
-### WRegExpPattern（静态常量字符串）
+### WRegExpPattern（静态常量字符串，已弃用）
+
+> 2.2 起用 `WRegExp`（预编译 RegExp）；本类 3.0 移除，字符串形式的规则请自行维护。
 
 | 分类 | 模式 | 说明 |
 |------|------|------|
@@ -327,7 +329,9 @@ WPlatform.runForPlatform(
 | 其他 | `bankCard` | 银行卡号 |
 | 其他 | `postalCode` | 邮政编码 |
 
-### WRegExpPreset（按分类的 Map）
+### WRegExpPreset（按分类的 Map，已弃用）
+
+> 2.2 起用 `WRegExp`；本类 3.0 移除。
 
 | 分类键 | 包含模式 |
 |--------|----------|
@@ -601,8 +605,8 @@ await WUx.instance.smoothScrollToTop(scrollController);
 
 | 方法 | 说明 |
 |------|------|
-| `escapeSql(input)` | 基础 SQL 特殊字符替换 |
-| `stripHtml(input)` | 移除 script/iframe/object/embed/link/style/javascript:/onXxx=/HTML 标签 |
+| `escapeSql(input)` | **已弃用（3.0 移除）**：基础 SQL 特殊字符替换，不能替代参数化查询 |
+| `stripHtml(input)` | **已弃用（3.0 移除）**：移除标签，不能替代 HTML 转义 |
 
 ### 注意事项
 

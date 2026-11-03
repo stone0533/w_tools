@@ -13,7 +13,7 @@ import 'templates.dart';
 /// 子包版本约束。必须与仓库 `packages/*/pubspec.yaml` 的当前版本一致，
 /// 由 `test/init_test.dart` 读取仓库 pubspec 校验（防止版本漂移）。
 const _subpackageConstraints = <String, String>{
-  'w_tools_core': '^2.1.0',
+  'w_tools_core': '^2.2.0',
   'w_tools_async': '^2.1.0',
   'w_tools_app': '^1.0.1',
   'w_tools_form': '^3.2.0',

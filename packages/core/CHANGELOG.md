@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.2.0
+
+### Changed
+- `WValidator` 的格式校验全部改走 `WRegExp`（邮箱 / 手机号 / 用户名 / 密码 / IPv4 / 身份证 / 银行卡），
+  正则字符串集中到包内唯一来源；`WRegExp` 新增 `username`。
+
+### Deprecated（3.0 移除）
+- `WRegExpPattern` / `WRegExpPreset`：用 `WRegExp`；字符串形式请自行维护。
+- `WValidator.escapeSql` / `stripHtml`：不能替代参数化查询与 HTML 转义。
+- `WHash.hashPassword` / `verifyPassword`：密码哈希应在服务端用 bcrypt / argon2。
+
 ## 2.1.0
 
 ### Changed

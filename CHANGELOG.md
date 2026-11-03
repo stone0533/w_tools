@@ -1,3 +1,7 @@
+## 3.0.9
+
+- 抬高 `w_tools_core` 约束到 `^2.2.0`：`WValidator` 全部改用 `WRegExp`，旧正则/清洗/密码哈希 API 弃用。
+
 ## 3.0.8
 
 - 抬高 `w_tools_core` 约束到 `^2.1.0`：token 键名移入 `WToken`，`WConfig` 同名字段弃用。

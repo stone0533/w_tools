@@ -1,8 +1,28 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_core/src/utils/validator.dart';
 import 'package:w_tools_core/src/utils/logger.dart';
+import 'package:w_tools_core/src/utils/reg_exp.dart';
 
 void main() {
+  group('WRegExp.username', () {
+    test('3-20 位字母数字下划线', () {
+      expect(WRegExp.username.hasMatch('abc_123'), isTrue);
+      expect(WRegExp.username.hasMatch('ab'), isFalse);
+      expect(WRegExp.username.hasMatch('a' * 21), isFalse);
+      expect(WRegExp.username.hasMatch('bad-name'), isFalse);
+    });
+
+    test('与 WValidator.isValidUsername 一致', () {
+      for (final value in ['abc', 'a' * 20, 'a' * 21, '中文', 'a_b']) {
+        expect(
+          WRegExp.username.hasMatch(value),
+          WValidator.isValidUsername(value),
+          reason: value,
+        );
+      }
+    });
+  });
+
   group('WValidator Tests', () {
     test('isValidEmail should return true for valid email', () {
       expect(WValidator.isValidEmail('test@example.com'), true);
@@ -97,3 +117,4 @@ void main() {
     });
   });
 }
+

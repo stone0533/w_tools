@@ -1,3 +1,6 @@
+import 'patterns.dart';
+import 'reg_exp.dart';
+
 /// 数据校验工具类
 ///
 /// 提供常见格式校验（邮箱、手机号、身份证、银行卡等）与基础字符清洗。
@@ -12,36 +15,33 @@ class WValidator {
 
   /// 是否为有效邮箱地址
   static bool isValidEmail(String email) {
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    return emailRegex.hasMatch(email);
+    return WRegExp.email.hasMatch(email);
   }
 
   /// 是否为中国大陆手机号
   static bool isValidPhone(String phone) {
-    final phoneRegex = RegExp(r'^1[3-9]\d{9}$');
-    return phoneRegex.hasMatch(phone);
+    return WRegExp.phone.hasMatch(phone);
   }
 
   /// 密码规则的唯一真相
   ///
   /// 规则：至少 8 位，且同时包含小写字母、大写字母与数字（允许符号）。
   /// [WRegExpPattern.password] 直接引用本常量，两个公开入口不会再各写一套。
-  static const String passwordPattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$';
+  static const String passwordPattern = kPasswordPattern;
 
   /// 是否为强密码
   ///
   /// 规则：至少 8 位，且同时包含小写字母、大写字母与数字。
   /// 规则定义见 [passwordPattern]。
   static bool isValidPassword(String password) {
-    return RegExp(passwordPattern).hasMatch(password);
+    return WRegExp.password.hasMatch(password);
   }
 
   /// 是否为有效用户名
   ///
   /// 规则：3-20 位字母、数字或下划线。
   static bool isValidUsername(String username) {
-    final usernameRegex = RegExp(r'^[a-zA-Z0-9_]{3,20}$');
-    return usernameRegex.hasMatch(username);
+    return WRegExp.username.hasMatch(username);
   }
 
   /// 是否为有效的网络 URL（仅 http / https）
@@ -58,28 +58,21 @@ class WValidator {
 
   /// 是否为有效 IPv4 地址
   static bool isValidIpv4(String ip) {
-    final ipRegex = RegExp(
-      r'^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$',
-    );
-    return ipRegex.hasMatch(ip);
+    return WRegExp.ipv4.hasMatch(ip);
   }
 
   /// 是否为有效身份证号
   ///
   /// 仅校验 18 位格式与出生年月日的数字范围，不校验真实日期与校验位。
   static bool isValidIdCard(String idCard) {
-    final idCardRegex = RegExp(
-      r'^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$',
-    );
-    return idCardRegex.hasMatch(idCard);
+    return WRegExp.idCard.hasMatch(idCard);
   }
 
   /// 是否为有效银行卡号
   ///
   /// 先校验 16-19 位数字，再通过 Luhn 算法校验。
   static bool isValidBankCard(String bankCard) {
-    final bankCardRegex = RegExp(r'^\d{16,19}$');
-    if (!bankCardRegex.hasMatch(bankCard)) {
+    if (!WRegExp.bankCard.hasMatch(bankCard)) {
       return false;
     }
     return _luhnCheck(bankCard);
@@ -106,6 +99,7 @@ class WValidator {
   /// 对输入做基础的 SQL 注入字符清洗
   ///
   /// 仅做转义与危险字符移除，不能替代参数化查询。
+  @Deprecated('3.0 移除：用参数化查询，不要靠字符替换防注入')
   static String escapeSql(String input) {
     return input
         .replaceAll(RegExp(r"'"), "''")
@@ -121,6 +115,7 @@ class WValidator {
   /// 对输入做基础的 XSS 字符清洗
   ///
   /// 移除常见标签与事件属性，不能替代输出侧的 HTML 转义。
+  @Deprecated('3.0 移除：展示前用 HTML 转义 / 渲染器处理，不要靠正则剥标签')
   static String stripHtml(String input) {
     return input
         .replaceAll(RegExp(r"<script[^>]*>.*?</script>", caseSensitive: false, multiLine: true), "")
