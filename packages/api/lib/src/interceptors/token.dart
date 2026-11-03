@@ -19,8 +19,8 @@ import '../clients/dio_registry.dart';
 ///   若提供 [tokenClearer]，须保证清除后 [tokenGetter] 不再返回旧 token（返回 null 亦可，
 ///   此时重试会使用本拦截器显式写入的新 token）。任一处仍返回旧 token，都会导致重试再次 401。
 /// - [observeError] 与 401 刷新逻辑相互独立、可同时使用（前者仅用于观测/埋点）。
-/// - 重试依赖 **经 [DioRegistry.forBaseUrl] 创建的 Dio**；若自行 `Dio()` 创建实例，
-///   重试会走 `DioRegistry` 中的另一实例，可能导致配置不一致。
+/// - 重试必须知道「当前 Dio」：经 [DioRegistry.forBaseUrl] 创建的实例会自动绑定；
+///   自行 `Dio()` 创建时请构造传 `dio: dio`，否则 401 刷新后无法重试（不会隐式注册新实例）。
 class WTokenInterceptor extends Interceptor {
   /// Token 获取回调
   final String? Function()? tokenGetter;
@@ -50,6 +50,9 @@ class WTokenInterceptor extends Interceptor {
   /// 进行中的刷新任务：并发 401 共享同一次刷新，避免重复请求
   Future<String?>? _refreshFuture;
 
+  /// 所属 Dio（registry 创建时自动绑定；裸 Dio 请构造时传 `dio:`）
+  Dio? _dio;
+
   /// 构造函数
   ///
   /// @param tokenGetter Token 获取回调（不依赖外部存储库，由调用方决定 token 存在哪）
@@ -69,7 +72,11 @@ class WTokenInterceptor extends Interceptor {
     this.observeError,
     this.unauthorizedStatusCode = 401,
     this.maxAuthRetries = 1,
-  });
+    Dio? dio,
+  }) : _dio = dio;
+
+  /// 绑定所属 Dio（一般不用手动调用；[DioRegistry] 会为传入的拦截器自动绑定）
+  void bindDio(Dio dio) => _dio = dio;
 
   @override
   void onRequest(
@@ -250,8 +257,16 @@ class WTokenInterceptor extends Interceptor {
       return;
     }
 
-    // 见类文档：重试依赖经 DioRegistry 创建的 Dio
-    final dio = DioRegistry.forBaseUrl(requestOptions.baseUrl).dio;
+    // 只用已知的 Dio 重试：绑定实例 > 已注册的 registry；绝不隐式创建新实例
+    final dio = _dio ?? DioRegistry.maybeForBaseUrl(requestOptions.baseUrl);
+    if (dio == null) {
+      WApiConfig.logErrorHandler?.call(
+        'Cannot retry ${requestOptions.uri}: WTokenInterceptor 未绑定 Dio。'
+        '请用 DioRegistry.forBaseUrl 创建，或构造时传 dio: dio。',
+      );
+      super.onError(err, handler);
+      return;
+    }
     requestOptions.headers['Authorization'] = 'Bearer $newToken';
     requestOptions.extra['_retryCount'] = retryCount + 1;
     final responseNew = await dio.fetch(requestOptions);

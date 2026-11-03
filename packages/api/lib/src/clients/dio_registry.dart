@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../api_config.dart';
+import '../interceptors/token.dart';
 
 /// Dio 实例注册表：按 `baseUrl` 缓存并复用 [Dio] 实例
 ///
@@ -50,6 +51,7 @@ class DioRegistry {
 
     for (final element in _interceptors) {
       _dio.interceptors.add(element);
+      if (element is WTokenInterceptor) element.bindDio(_dio);
     }
   }
 
@@ -98,6 +100,11 @@ class DioRegistry {
       List.unmodifiable(interceptors ?? const []),
     );
   }
+
+  /// 已注册的 Dio（不创建新实例）；未注册返回 null。
+  ///
+  /// 供 [WTokenInterceptor] 在重试时复用当前实例，避免隐式注册污染缓存。
+  static Dio? maybeForBaseUrl(String baseUrl) => _instances[baseUrl]?.dio;
 
   /// 比较两个 BaseOptions 的关键网络配置。
   ///

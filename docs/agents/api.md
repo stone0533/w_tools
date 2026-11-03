@@ -41,6 +41,6 @@ final response = await dio.get('/gifts');
 - `WTokenInterceptor` 只注入 token，不负责存储（存储用 `WToken`）；
 - release 下请求 / 响应体默认不应输出（用 `parts` + `kDebugMode` 控制）；
 - `validateStatus` 按引用比较：自定义闭包会被视为“不同配置”；
-- 别用裸 `Dio()` 创建拦截器链路：401 重试会隐式注册一个零拦截器的 registry 条目。
+- 裸 `Dio()` 必须构造传 `dio: dio`，否则 401 后无法重试（会报错，不再隐式注册）；推荐用 `DioRegistry`。
 
 完整说明：[api_module.md](../modules/api_module.md) · 示例：`packages/api/example`

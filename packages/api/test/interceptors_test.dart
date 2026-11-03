@@ -7,6 +7,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_api/w_tools_api.dart';
 
 /// 最简单的 mock HttpClientAdapter — 返回固定响应
+class _First401ThenOkAdapter implements HttpClientAdapter {
+  int calls = 0;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    calls++;
+    return ResponseBody.fromString(
+      '{"ok":true}',
+      calls == 1 ? 401 : 200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 class _MockAdapter implements HttpClientAdapter {
   final int statusCode;
   final String responseBody;
@@ -43,6 +66,8 @@ class _MockAdapter implements HttpClientAdapter {
 }
 
 void main() {
+  tearDown(DioRegistry.clearCache);
+
   test('parts 里 errorHint 可独立开关', () async {
     final logs = <String>[];
     WApiConfig.logErrorHandler = (dynamic message) => logs.add('$message');
@@ -341,6 +366,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'my_token_value',
         ),
       );
@@ -358,6 +384,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'token',
         ),
       );
@@ -373,6 +400,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => null,
         ),
       );
@@ -387,6 +415,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => '',
         ),
       );
@@ -402,6 +431,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'token',
           configureRequest: (opts) {
             captured = opts;
@@ -423,6 +453,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'expired_token',
           tokenClearer: () async {
             clearCount++;
@@ -447,6 +478,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'expired_token',
           observeError: (err) => errorHandlerCalled++,
           tokenRefresher: () async {
@@ -470,6 +502,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = _MockAdapter(statusCode: 401);
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'expired',
           tokenClearer: () async => clearCount++,
         ),
@@ -488,6 +521,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = _MockAdapter(statusCode: 401);
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'expired',
           tokenClearer: () async => clearCount++,
           tokenRefresher: () async {
@@ -511,6 +545,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'expired_token',
           tokenRefresher: () async => throw StateError('refresh failed'),
         ),
@@ -529,6 +564,7 @@ void main() {
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'expired_token',
           tokenRefresher: () async {
             authErrorCalled++;
@@ -566,15 +602,13 @@ void main() {
     });
 
     test('FormData 请求 401 后能成功重放（不再因 finalize 抛错）', () async {
-      // 重放目标：DioRegistry 缓存的实例，adapter 返回 200
-      final retryTarget = DioRegistry.forBaseUrl('https://retry.example.com');
-      retryTarget.dio.httpClientAdapter = _MockAdapter();
-
-      // 首个 Dio：返回 401
+      // 同一个 Dio：第一次 401，重放时 200
+      final adapter = _First401ThenOkAdapter();
       final dio = Dio(BaseOptions(baseUrl: 'https://retry.example.com'))
-        ..httpClientAdapter = _MockAdapter(statusCode: 401);
+        ..httpClientAdapter = adapter;
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'expired_token',
           tokenRefresher: () async => 'new_token',
         ),
@@ -587,6 +621,43 @@ void main() {
 
       // 修复前：重放时 FormData 已 finalize → StateError → 请求以 401 失败
       expect(res.statusCode, 200);
+      expect(adapter.calls, 2);
+    });
+
+    test('registry 创建时自动绑定 WTokenInterceptor，401 重试成功', () async {
+      final adapter = _First401ThenOkAdapter();
+      final registry = DioRegistry.forBaseUrl(
+        'https://auto-bind.example.com',
+        interceptors: [
+          WTokenInterceptor(
+            tokenGetter: () => 'expired',
+            tokenRefresher: () async => 'new',
+          ),
+        ],
+      );
+      registry.dio.httpClientAdapter = adapter;
+
+      final res = await registry.dio.post('/x', data: {'a': 1});
+      expect(res.statusCode, 200);
+      expect(adapter.calls, 2);
+    });
+
+    test('未绑定 Dio 且未注册 registry 时不再隐式创建实例', () async {
+      final logs = <String>[];
+      WApiConfig.logErrorHandler = (dynamic message) => logs.add('$message');
+
+      final dio = Dio(BaseOptions(baseUrl: 'https://unbound.example.com'))
+        ..httpClientAdapter = _MockAdapter(statusCode: 401);
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'expired',
+          tokenRefresher: () async => 'new',
+        ),
+      );
+
+      await expectLater(dio.post('/x'), throwsA(isA<DioException>()));
+      expect(DioRegistry.maybeForBaseUrl('https://unbound.example.com'), isNull);
+      expect(logs.join(), contains('未绑定 Dio'));
     });
 
     test('body 为 Stream 时放弃重放，按原错误结束', () async {
@@ -597,6 +668,7 @@ void main() {
         ..httpClientAdapter = _MockAdapter(statusCode: 401);
       dio.interceptors.add(
         WTokenInterceptor(
+          dio: dio,
           tokenGetter: () => 'expired_token',
           tokenRefresher: () async => 'new_token',
         ),

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.0
+
+### Changed
+- 401 重试不再隐式创建 `DioRegistry` 实例：只复用已知 Dio（registry 自动绑定，或构造时传 `dio:`）。
+  未绑定且未注册时记录错误并结束重试；裸 `Dio()` 需要显式 `dio: dio` 才能重试。
+
+### Added
+- `WTokenInterceptor(dio: ...)` / `bindDio(...)`；`DioRegistry.maybeForBaseUrl(...)`。
+
 ## 2.0.0
 
 ### Breaking

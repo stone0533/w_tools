@@ -49,6 +49,7 @@ void main() {
     registry.dio.httpClientAdapter = _RaceAdapter('new-1');
     registry.dio.interceptors.add(
       WTokenInterceptor(
+        dio: registry.dio,
         tokenGetter: () => token,
         tokenClearer: () async => token = '',
         tokenRefresher: () async {

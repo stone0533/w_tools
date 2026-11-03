@@ -108,3 +108,17 @@ flutter analyze
 - golden 基础设施、feedback 复盘。
 
 详见 [`docs/analysis/2026-11-03-remediation-plan.md`](../analysis/2026-11-03-remediation-plan.md) §8.1。
+
+## 增量（发布后 P2）
+
+| 包 | 版本 | 内容 |
+| --- | --- | --- |
+| api | 2.1.0 | 401 重试只复用已知 Dio：registry 自动绑定；裸 `Dio()` 需传 `dio:`，不再隐式注册 |
+| 根包 | 4.0.1 | 抬高 `w_tools_api` 约束到 `^2.1.0` |
+
+发布命令：
+
+```bash
+bash scripts/publish_package.sh packages/api
+bash scripts/publish_package.sh .
+```

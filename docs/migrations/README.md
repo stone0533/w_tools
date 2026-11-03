@@ -43,6 +43,7 @@
 ## api / app / map / qr
 
 - [api 2.0](api-2.0.md)：日志片段、注册表配置冲突报错
+- [api 2.1](api-2.1.md)：401 重试不再隐式注册 Dio
 - [app 1.1](app-1.1.md)：`WBottomSheet` 透传、路由修复
 - [app 1.2](app-1.2.md)：`WAppOptions` / `WLocaleConfig` / `WRouteStack`
 - [map 1.3.1](map-1.3.1.md)：Marker 复用、控制器清理
