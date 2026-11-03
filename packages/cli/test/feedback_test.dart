@@ -151,6 +151,29 @@ void main() {
       expect(result.warnings.single.message, contains('没动'));
     });
 
+    test('stale-days=0 关闭 stale 检查（与 --help 一致）', () {
+      final root = _tmp('wt_fbl5b_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'cli.md'))
+        ..writeAsStringSync('''
+### [待处理] cli: 挂了很久
+- 包/版本：w_tools_cli 1.9.5
+- 环境：macOS
+- 命令 / 输入：x
+- 期望：快
+- 实际：慢
+- 影响：等 10 分钟
+- 建议：加缓存
+- 复现数据：-
+- 状态变更：2026-01-01 待处理
+''');
+      final result = const FeedbackLinter(
+        staleDays: 0,
+      ).lintFiles([file.path], now: DateTime(2026, 3, 1));
+      expect(result.ok, isTrue);
+      expect(result.warnings, isEmpty);
+    });
+
     test('已确认条目必须链 issue', () {
       final root = _tmp('wt_fbl7_');
       addTearDown(() => root.deleteSync(recursive: true));

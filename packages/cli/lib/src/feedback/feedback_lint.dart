@@ -61,7 +61,7 @@ class FeedbackLintResult {
 class FeedbackLinter {
   const FeedbackLinter({this.staleDays = 30});
 
-  /// `待处理` 超过这么多天没动 → 警告（默认 30）。
+  /// `待处理` 超过这么多天没动 → 警告（默认 30）；`<= 0` 关闭该检查。
   final int staleDays;
 
   static const _statuses = <String>{
@@ -197,7 +197,8 @@ class FeedbackLinter {
           final date = DateTime.tryParse(dateMatch.group(1)!);
           if (date != null) {
             final age = today.difference(date).inDays;
-            if (age > staleDays) {
+            // staleDays <= 0 表示关闭该检查（与 --help / README 一致）
+            if (staleDays > 0 && age > staleDays) {
               warnings.add(
                 FeedbackIssue(
                   file: path,

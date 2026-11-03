@@ -14,6 +14,23 @@ class R2DirectSubpackageImport {
     r"""^\s*(?:import|export)\s+['"]package:(w_tools(?:_[a-z0-9_]+)?)/""",
   );
 
+  /// 只用于开发 / 验证的工具包：在 `test/` `tool/` `integration_test/` 里 import 是正常的。
+  ///
+  /// 典型场景：`tool/main_e2e.dart` 必须直接 import `package:w_tools_e2e/…`
+  /// （见 docs/agents/device-testing.md），它不该由 toolkit 导出。
+  static const devOnlyPackages = <String>{
+    'w_tools_cli',
+    'w_tools_figma',
+    'w_tools_device',
+    'w_tools_e2e',
+  };
+
+  /// 开发目录（只在这些目录里放行 [devOnlyPackages]）
+  static bool _isDevPath(String file) =>
+      file.startsWith('test/') ||
+      file.startsWith('tool/') ||
+      file.startsWith('integration_test/');
+
   static DoctorRuleResult check(ProjectContext ctx, DoctorConfig config) {
     final issues = <DoctorIssue>[];
     for (final file in ctx.files) {
@@ -33,6 +50,7 @@ class R2DirectSubpackageImport {
         if (m == null) continue;
         if (Suppression.isIgnored(lines, i, id)) continue;
         final pkg = m.group(1)!;
+        if (_isDevPath(file) && devOnlyPackages.contains(pkg)) continue;
         final isMeta = pkg == 'w_tools';
         issues.add(
           DoctorIssue(

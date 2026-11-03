@@ -305,6 +305,24 @@ banned:
     expect(config.readAsStringSync(), contains('toolkit_entry'));
   });
 
+  test('doctor --write-config --force 覆盖前备份为 .bak', () async {
+    final root = Directory.systemTemp.createTempSync('wt_wcfg_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: demo\n');
+    final cfg = File(p.join(root.path, '.w_tools_doctor.yaml'));
+
+    expect((await _run('doctor.dart', ['--root', root.path, '--write-config'])).exitCode, 0);
+    cfg.writeAsStringSync('banned:\n  - id: mine\n    pattern: x\n');
+
+    final forced = await _run('doctor.dart', ['--root', root.path, '--write-config', '--force']);
+    expect(forced.exitCode, 0);
+    expect(forced.stderr, contains('.bak'));
+    final backup = File('${cfg.path}.bak');
+    expect(backup.existsSync(), isTrue);
+    expect(backup.readAsStringSync(), contains('mine'));
+    expect(cfg.readAsStringSync(), isNot(contains('mine')));
+  });
+
   test('doctor --json 的 exitCode 与进程退出码一致', () async {
     final bad = _project();
     File(p.join(bad.path, 'pubspec.yaml')).writeAsStringSync(

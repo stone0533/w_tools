@@ -24,7 +24,7 @@ w_tools_cli doctor —— 扫描消费方项目是否符合 w_tools 的接入约
   --include-tests     同时扫描 test/ 与 tool/
   --print-config      打印带注释的默认配置（可直接粘贴成 .w_tools_doctor.yaml）
   --write-config      把默认配置写到 <root>/.w_tools_doctor.yaml（已存在则跳过）
-  --force             配合 --write-config 覆盖已有文件
+  --force             配合 --write-config 覆盖已有文件（覆盖前写 .bak）
   --version           显示版本
   --help, -h          显示本帮助
 
@@ -73,9 +73,16 @@ void main(List<String> argv) {
 
       if (args['write-config'] as bool) {
         final target = File('${root.path}/${DoctorConfig.fileName}');
-        if (target.existsSync() && !(args['force'] as bool)) {
+        final exists = target.existsSync();
+        if (exists && !(args['force'] as bool)) {
           stderr.writeln('${DoctorConfig.fileName} 已存在（加 --force 覆盖）');
           exit(1);
+        }
+        // 这个文件是项目手工维护的 palette / banned / ignore，覆盖前必须留底。
+        if (exists) {
+          final backup = File('${target.path}.bak');
+          backup.writeAsStringSync(target.readAsStringSync());
+          stderr.writeln('已备份原配置到 ${DoctorConfig.fileName}.bak');
         }
         target.writeAsStringSync(renderDefaultConfig());
         print('已写入 ${DoctorConfig.fileName}');

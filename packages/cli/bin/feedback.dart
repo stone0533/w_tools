@@ -74,7 +74,12 @@ void main(List<String> argv) {
             }
           }
         case 'lint':
-          final staleDays = int.tryParse(args['stale-days'] as String) ?? 30;
+          final staleDaysRaw = args['stale-days'] as String;
+          final staleDays = int.tryParse(staleDaysRaw);
+          if (staleDays == null) {
+            stderr.writeln('--stale-days 需要整数：$staleDaysRaw');
+            exit(2);
+          }
           final install = InstallInfo.detect(projectRoot: root);
           final linter = FeedbackLinter(staleDays: staleDays);
           final paths = <String>[];

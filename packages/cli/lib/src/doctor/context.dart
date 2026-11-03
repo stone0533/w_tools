@@ -42,7 +42,7 @@ class ProjectContext {
     }
 
     final roots = <String>['lib'];
-    if (includeTests) roots.addAll(<String>['test', 'tool']);
+    if (includeTests) roots.addAll(<String>['test', 'tool', 'integration_test']);
 
     final files = <String>[];
     for (final dir in roots) {

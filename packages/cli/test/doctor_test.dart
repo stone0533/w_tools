@@ -69,6 +69,26 @@ void main() {
       expect(r.issues.single.file, 'lib/app/foo.dart');
     });
 
+    test('tool/ 里 import dev-only 工具包不报 R2', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'tool/main_e2e.dart': "import 'package:w_tools_e2e/w_tools_e2e.dart';\n",
+        'test/x_test.dart': "import 'package:w_tools_device/w_tools_device.dart';\n",
+        'integration_test/app_test.dart': "import 'package:w_tools_e2e/w_tools_e2e.dart';\n",
+      });
+      final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.status, DoctorRuleStatus.pass);
+    });
+
+    test('lib/ 里 import dev-only 工具包仍然报 R2', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/tool.dart': "import 'package:w_tools_device/w_tools_device.dart';\n",
+      });
+      final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.status, DoctorRuleStatus.fail);
+    });
+
     test('行级 ignore R2 生效', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',
