@@ -144,7 +144,7 @@ D1 必须在阶段 3 之前定，D3 在 4.6 之前定，D4 在 2.1 之前定。�
 | **3.1** | P2-8 | core：`WConfig` 三个键名并入 `WToken`，删 `assetImagePath` | 迁移表 | M |
 | **3.2** | P2-1/2/3 | core：`WValidator` 全部改用 `WRegExp`；删 `WRegExpPattern/Preset`、`escapeSql`、`stripHtml`、`hashPassword` | 迁移表（含"服务端做密码哈希"的理由） | M |
 | **3.3** | P2-4/5/6/7 | core：`WStorage` 读写语义统一；`WUx` 拆 `WDebounce/WThrottle` 并把滚动移 ui；`WCountdown` → `ValueListenable`；`WPlatform` 收窄 | L | L |
-| **3.4** | P1-2/P1-9 | ui：按钮 10 文件收敛为 `WButton` + `WButtonStyle` + `WButtonStyles.of(context)`；默认完全跟随主题 | `WButtonStyle.withoutX()` 迁移到 `copyWith` | L |
+| **3.4** | P1-2/P1-9 | 完成（ui 4.0.0）：`WButtonStyles.of(context)` 从 ColorScheme 派生并缓存；`WButton` 默认跟随主题；静态预设弃用（5.0 移除） | `WButtonStyle.withoutX()` 迁移到 `copyWith` | L |
 | **3.5** | P2-25/26、P1-9 | ui：图片 31 个公开类型 → 约 8 个（`WImage` + `WImageStyle` + `WImageLoadConfig` + `WImageSource` + 错误基类）；12 个命名构造 → 4 个 | 旧构造 `@Deprecated` 一版 | L |
 | **3.6** | P2-21/22 | ui：删布局糖 4 类；5 个必填 Config 改可选；`HexColor`→`WHexColor`；两个 String 扩展合并 | 迁移表（`WRow`→`Row`、`WSizeBox.height(8)`→`8.verticalSpace`） | M |
 | **3.7** | P1-4、P2-19/20/23/24 | ui：`WRowButtons` 拆 `WActionRow` + `WSelectableRow`；`WScreen` 改读树内 `MediaQuery`；`WTextStyles` 缓存；`WImageFrame` padding 语义修正 | — | M |

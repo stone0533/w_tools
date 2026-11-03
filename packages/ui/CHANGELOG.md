@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.0.0
+
+### Breaking
+- `WButton` 未传 `style` 时默认使用 `WButtonStyles.of(context).primary`，颜色来自
+  `ColorScheme`（`primary` / `onPrimary`、`error` / `onError`、`outline`）；不再使用写死的
+  `#3949AB` / `#D32F2F`。依赖旧默认色的页面请显式传 `WButtonStyle`。
+- `WButtonStyles.primary` / `secondary` / `text` / `danger` 静态预设弃用（5.0 移除），
+  改用 `WButtonStyles.of(context)`。
+
+### Added
+- `WButtonStyles.of(context)`：按 `ThemeData` 缓存的主题派生样式组。
+
 ## 3.2.0
 
 ### Added

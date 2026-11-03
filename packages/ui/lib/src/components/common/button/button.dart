@@ -129,8 +129,10 @@ class _WButtonState extends State<WButton> {
     }
   }
 
-  WButtonStyle _resolveStyle() {
+  WButtonStyle _resolveStyle(BuildContext context) {
+    final theme = Theme.of(context);
     final key = Object.hash(
+      theme,
       widget.style,
       widget.size,
       widget.semanticLabel,
@@ -139,7 +141,7 @@ class _WButtonState extends State<WButton> {
     );
     if (_cachedStyle != null && _cachedStyleKey == key) return _cachedStyle!;
 
-    final base = widget.style ?? WButtonStyles.primary;
+    final base = widget.style ?? WButtonStyles.of(context).primary;
     final semantic = widget.semanticLabel;
     final resolved = semantic == null
         ? base
@@ -209,7 +211,7 @@ class _WButtonState extends State<WButton> {
 
   @override
   Widget build(BuildContext context) {
-    final style = _resolveStyle();
+    final style = _resolveStyle(context);
     style.validate();
     final interactive = _interactive;
     final keyboardInteractive = interactive && widget.onTap != null;

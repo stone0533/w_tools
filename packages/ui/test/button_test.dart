@@ -704,4 +704,47 @@ void main() {
     final label = tester.getRect(find.text('OK'));
     expect(label.center.dx, closeTo(button.center.dx, 0.01));
   });
+
+  group('WButton 默认样式跟随主题', () {
+    testWidgets('未传 style 时使用 colorScheme.primary', (tester) async {
+      final theme = ThemeData(useMaterial3: true, colorSchemeSeed: Colors.green);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(body: WButton(label: '提交', onTap: () {})),
+        ),
+      );
+
+      final boxes = tester.widgetList<DecoratedBox>(
+        find.descendant(of: find.byType(WButton), matching: find.byType(DecoratedBox)),
+      );
+      expect(
+        boxes.any((box) => (box.decoration as BoxDecoration?)?.color == theme.colorScheme.primary),
+        isTrue,
+      );
+    });
+
+    testWidgets('WButtonStyles.of 按 ThemeData 缓存', (tester) async {
+      final theme = ThemeData(useMaterial3: true);
+      late BuildContext context;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Builder(
+            builder: (inner) {
+              context = inner;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final first = WButtonStyles.of(context);
+      final second = WButtonStyles.of(context);
+      expect(identical(first.primary, second.primary), isTrue);
+      expect(first.danger.backgroundColor, isNotNull);
+    });
+  });
 }

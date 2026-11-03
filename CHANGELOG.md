@@ -1,3 +1,7 @@
+## 3.0.12
+
+- 抬高 `w_tools_ui` 约束到 `^4.0.0`：`WButton` 默认样式改为从 `ColorScheme` 派生。
+
 ## 3.0.11
 
 - 抬高 `w_tools_core` 约束到 `^2.4.0`：`setObject` 统一 JSON 编码、`WThrottle` 异常解锁、`WCountdown` 禁止 dispose 后复用、平台多参 API 弃用。

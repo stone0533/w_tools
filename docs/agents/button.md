@@ -148,6 +148,10 @@ contentBuilder     → 需要读取最终 style / state
 `WButton` 没有 `variant` 参数，也没有 `WButtonVariant`；样式用 `style`。
 
 项目页面统一用 `AppButtons`；组件示例/独立 Demo 才用 `WButtonStyles` 或 `WButtonStyle`。
+
+> 4.0 起 `WButton` 不传 `style` 时默认用 `WButtonStyles.of(context).primary`，颜色来自
+> `ColorScheme`（`primary` / `onPrimary`、`error` / `onError`、`outline`），不再写死品牌色。
+> 旧静态预设 `WButtonStyles.primary` 等已弃用，5.0 移除。
 状态色：
 
 ```text
@@ -158,6 +162,10 @@ foregroundColor 会覆盖 textStyle.color
 ```
 
 项目页面统一用 `AppButtons`；组件示例/独立 Demo 才用 `WButtonStyles` 或 `WButtonStyle`。
+
+> 4.0 起 `WButton` 不传 `style` 时默认用 `WButtonStyles.of(context).primary`，颜色来自
+> `ColorScheme`（`primary` / `onPrimary`、`error` / `onError`、`outline`），不再写死品牌色。
+> 旧静态预设 `WButtonStyles.primary` 等已弃用，5.0 移除。
 
 
 构造约束：
