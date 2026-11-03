@@ -344,6 +344,7 @@ dart run w_tools_cli:doctor
 ```text
 --force 会覆盖生成的 AGENTS / toolkit 标记块 / 配置（配置先 .bak）
 toolkit 标记块外的项目追加项会保留
+`.w_tools_init.json` 记录本次 init flags，普通 init 总是更新；--check 只比对不写
 --force-starters 才会覆盖 UI / device starter，并先写 .bak
 不会删除当前 profile 不再生成的文件
 

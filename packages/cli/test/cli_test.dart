@@ -22,6 +22,17 @@ Future<ProcessResult> _run(String bin, List<String> args) {
 }
 
 void main() {
+  test('普通 init 会更新 manifest，即使没带 --force', () async {
+    final root = _project();
+    expect((await _run('init.dart', ['--root', root.path])).exitCode, 0);
+    final changed = await _run('init.dart', ['--root', root.path, '--device']);
+    expect(changed.exitCode, 0, reason: '${changed.stderr}');
+    expect(
+      File(p.join(root.path, '.w_tools_init.json')).readAsStringSync(),
+      contains('"device": true'),
+    );
+  });
+
   test('init --check 回放上次 --device flags', () async {
     final root = _project();
     final first = await _run('init.dart', ['--root', root.path, '--device']);

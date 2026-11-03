@@ -421,6 +421,27 @@ void main() {
       expect(forced.warnings.any((e) => e.contains('app_scaffold.dart')), isTrue);
     });
 
+    test('旧版 toolkit --force 自动迁移自定义 export', () async {
+      final root = makeProject(
+        extra: {
+          'lib/app/w/toolkit.dart':
+              '// 旧版\n'
+              "library;\n"
+              "export 'package:w_tools_core/w_tools_core.dart';\n"
+              "export 'package:foo/foo.dart';\n",
+        },
+      );
+      runInit(root, force: true);
+      final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
+      expect(toolkit, contains('// w_tools:begin'));
+      expect(toolkit, contains('// w_tools:end'));
+      expect(
+        toolkit.indexOf("export 'package:foo/foo.dart';"),
+        greaterThan(toolkit.indexOf('// w_tools:end')),
+      );
+      expect(File(p.join(root.path, 'lib/app/w/toolkit.dart.bak')).existsSync(), isTrue);
+    });
+
     test('--force 才覆盖', () async {
       final root = makeProject(
         extra: {

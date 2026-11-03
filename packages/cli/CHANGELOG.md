@@ -4,6 +4,8 @@
 
 ### Changed
 - device/E2E AI 入口明确：`w_tools_e2e` 只放 `tool/main_e2e.dart`，生产 `main.dart` 不 import。
+- `.w_tools_init.json` 在普通 init 时始终更新（不受 --force 限制）；--check 只比对。
+- 旧版无 marker toolkit 首次 --force 迁移时，自动把模板外的 export 追加到 `w_tools:end` 之后，并保留 `.bak`。
 
 ## 1.8.0
 

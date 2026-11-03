@@ -51,6 +51,27 @@ class InitReport {
   String pubspecSnippet = '';
 }
 
+String _normalizeExport(String line) =>
+    line.trim().replaceAll('"', "'").replaceAll(RegExp(r'\s+'), ' ');
+
+/// 旧版 toolkit 没有 marker：只自动迁移模板之外的 export 行。
+List<String> _extraExports(String existing, String generated) {
+  final generatedLines = generated
+      .split('\n')
+      .where((line) => line.trim().startsWith('export '))
+      .map(_normalizeExport)
+      .toSet();
+  final extras = <String>[];
+  for (final line in existing.split('\n')) {
+    final trimmed = line.trim();
+    if (!trimmed.startsWith('export ')) continue;
+    final normalized = _normalizeExport(trimmed);
+    if (generatedLines.contains(normalized) || extras.contains(normalized)) continue;
+    extras.add(trimmed);
+  }
+  return extras;
+}
+
 /// 就地初始化一个消费方项目：生成聚合入口、暂存层 README、AGENTS 片段。
 ///
 /// 原则：
@@ -92,9 +113,25 @@ InitReport runInit(
     bool projectConfig = false,
     bool starter = false,
     bool markedBlock = false,
+    bool metadata = false,
   }) {
     final file = File(p.join(root.path, rel));
     if (file.existsSync()) {
+      if (metadata) {
+        final same = file.readAsStringSync() == content;
+        if (same) {
+          report.upToDate.add(rel);
+          return;
+        }
+        if (check) {
+          report.drift.add('$rel（内容不同，未改动）');
+          return;
+        }
+        // manifest 是本次 init 的运行记录，不受 --force 限制。
+        file.writeAsStringSync(content);
+        report.created.add('$rel（已更新）');
+        return;
+      }
       if (markedBlock) {
         final existing = file.readAsStringSync();
         final begin = existing.indexOf('// w_tools:begin');
@@ -123,9 +160,18 @@ InitReport runInit(
           report.drift.add('$rel（内容不同：缺少 w_tools:begin/end 标记块）');
           return;
         }
+        final extras = _extraExports(existing, content);
         final name = backup(file);
-        report.warnings.add('覆盖了 $rel：旧文件无标记块，原内容已备份到 $name');
-        file.writeAsStringSync(content);
+        final migrated = extras.isEmpty
+            ? content
+            : '${content.trimRight()}\n\n// migrated from legacy toolkit\n${extras.join('\n')}\n';
+        file.writeAsStringSync(migrated);
+        report.warnings.add(
+          extras.isEmpty
+              ? '覆盖了 $rel：旧文件无标记块，原内容已备份到 $name'
+              : '覆盖了 $rel：旧文件无标记块，已迁移 ${extras.length} 个自定义 export；'
+                    '其余自定义代码仍在 $name',
+        );
         report.created.add('$rel（已覆盖）');
         return;
       }
@@ -264,7 +310,7 @@ InitReport runInit(
 
   _collectStale(report, root, features, targets);
   if (manifest != null) {
-    write('.w_tools_init.json', manifest.encode());
+    write('.w_tools_init.json', manifest.encode(), metadata: true);
   }
   report.pubspecSnippet = _snippet(
     root,
