@@ -178,7 +178,7 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 | **5.1** | P2-9/10/11 | api：删 5 个装饰性类型；`WLogInterceptor` 7 bool → level/parts 且默认走 `WLogger`；`DioRegistry` 命中但配置不同要报错；401 重试复用发起请求的 Dio | L |
 | **5.2** | P1-11、P2-12/13/14 | 部分完成（app 1.1.0）：`WBottomSheet` 透传、`WRoute.popUntilRoute` 修复、死分支移除；剩余：`WAppOptions`、`WLocaleConfig`、`WRoute` 去静态 | L |
 | **5.3** | P1-9、P7.3 | 未开始（显式遗留）：4 个一等公民插件 | M |
-| **5.4** | P1-13、P2-44/45/46 | 完成正确性部分（map 1.3.1）：marker 复用、controller 清理、mounted 判断；剩余：552 行拆分、`maps` 私有化、`config` 可空 | L |
+| **5.4** | P1-13、P2-44/45/46 | 完成（map 1.3.1 + 拆分）：marker 复用、controller 清理、mounted 判断；`map.dart` 641 行拆为 `map_item.dart` / `map_zone.dart` / `map.dart`（part，公开 API 不变）；剩余：`maps` 私有化、`config` 可空 | L |
 | **5.5** | P2-42/43 | qr：`onScanned` 可空 + assert；`scanInterval` 默认 400ms；`WQrController.restartScan()`；`onError` 走 logger；overlay `==` | S–M |
 
 ## 8. 阶段 6：收口（2–3 人日）
