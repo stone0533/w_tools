@@ -1,7 +1,7 @@
 # Figma 取数与 Flutter 页面开发（agent）
 
-工具：`packages/figma`，包名 `w_tools_figma`，0.9.2 已发布。
-消费方安装：`dart pub add dev:w_tools_figma:^0.9.2`。
+工具：`packages/figma`，包名 `w_tools_figma`（版本以 pub.dev 为准）。
+消费方安装：`dart pub add dev:w_tools_figma`（装最新版；要锁定版本时再手写约束）。
 契约：[`docs/figma-cli.md`](../figma-cli.md)。
 消费方可复制的片段：[`packages/figma/AGENTS.md`](../../packages/figma/AGENTS.md)。
 
@@ -90,8 +90,6 @@ dart run w_tools_cli:explain <组件名>
 `AppColors` / `WTextStyles` / 间距常量，而不是硬编码。
 
 ## 0.4.0+ 能力
-
-> 0.9.2 已发布。
 
 ```bash
 # 默认只列顶层画板

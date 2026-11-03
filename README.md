@@ -189,7 +189,7 @@ import 'package:w_tools/w_tools.dart';
 
 > **版本策略**：9 个 Flutter 子包与 `w_tools_cli` 各自独立发版，互不跟随（具体版本以
 > 各包 `pubspec.yaml` 与 pub.dev 为准，不在本文硬编码）；根包按聚合层版本独立发布，
-> 其依赖约束为各子包 `^1.x`。发版流程与自动校验见 `docs/releasing.md`。
+> 其依赖约束以根 `pubspec.yaml` 为准（随子包主版本同步）。发版流程与自动校验见 `docs/releasing.md`。
 
 ## 快速开始
 

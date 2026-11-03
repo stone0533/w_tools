@@ -6,7 +6,9 @@ class WConfig {
   ///
   /// **已失效**：本字段不再被任何代码读取。资源前缀的实际开关是
   /// `w_tools_ui` 的 `WAssets.imagePath`；聚合包里的 `WConfig.assetImagePath`
-  /// 代理的也是后者。字段仅为源码兼容保留，将在下个大版本移除。
+  /// 代理的也是后者。字段仅为源码兼容保留。
+  ///
+  /// remove-in: 3.0.0
   @Deprecated(
     '该字段没有任何效果；请改用 w_tools_ui 的 WAssets.imagePath'
     '（聚合包的 WConfig.assetImagePath 已是它的代理）。',

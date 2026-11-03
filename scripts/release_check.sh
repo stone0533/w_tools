@@ -202,6 +202,13 @@ else
   ok "README 未硬编码版本号"
 fi
 
+section '弃用到期（remove-in）'
+# 每个 @Deprecated 都要写 remove-in；到期（包版本 >= remove-in）必须删除或改期。
+# 规则只在 scripts/check_deprecations.py 里实现一次。
+if ! python3 scripts/check_deprecations.py; then
+  errors=$((errors + 1))
+fi
+
 if [ "$STRICT" = 1 ]; then
   section '工作区状态（--strict）'
   if git diff --quiet HEAD -- 2>/dev/null; then

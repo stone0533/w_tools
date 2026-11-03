@@ -185,6 +185,8 @@ class WMapZone<T> {
   ///
   /// 多个 [WMap] 共享同一 zone 时会互相覆盖，请改用
   /// [addDataUpdatedListener] / [removeDataUpdatedListener]。
+  ///
+  /// remove-in: 2.0.0
   @Deprecated('Use addDataUpdatedListener/removeDataUpdatedListener instead')
   void Function()? onDataUpdated;
 

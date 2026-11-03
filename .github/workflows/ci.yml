@@ -22,7 +22,7 @@ env:
   MIN_FLUTTER_VERSION: '3.38.4'
 
 jobs:
-  # 聚合包契约：w_tools.dart 的重导出、WConfig 兼容层。
+  # 聚合包契约：w_tools.dart 的重导出（只做 re-export，配置走子包）。
   # 子包的行为测试已移入各自的 packages/<pkg>/test/，由下面的矩阵负责。
   umbrella:
     name: Umbrella (w_tools)
@@ -91,6 +91,9 @@ jobs:
 
   # 每个子包独立跑：analyze / test / 发布前校验。
   # 这一步保证「子包能独立发布」不是口号 —— 缺依赖、缺导出、缺发布物料都会在这里失败。
+  #
+  # 用 `kind` 区分 Flutter / 纯 Dart，而不是靠包名特判：加新包时只需补一行 include，
+  # 不会出现「新加的包悄悄走错分支」。
   packages:
     name: Package / ${{ matrix.package }}
     runs-on: ubuntu-24.04
@@ -98,7 +101,33 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [core, ui, form, api, app, toast, map, qr, cli]
+        include:
+          - package: core
+            kind: flutter
+          - package: ui
+            kind: flutter
+          - package: form
+            kind: flutter
+          - package: api
+            kind: flutter
+          - package: app
+            kind: flutter
+          - package: toast
+            kind: flutter
+          - package: map
+            kind: flutter
+          - package: qr
+            kind: flutter
+          - package: async
+            kind: flutter
+          - package: e2e
+            kind: flutter
+          - package: cli
+            kind: dart
+          - package: figma
+            kind: dart
+          - package: device
+            kind: dart
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -115,12 +144,12 @@ jobs:
         run: flutter pub get
 
       - name: Analyze (Flutter package)
-        if: matrix.package != 'cli'
+        if: matrix.kind == 'flutter'
         run: flutter analyze packages/${{ matrix.package }}
 
       - name: Analyze (pure Dart package)
-        if: matrix.package == 'cli'
-        working-directory: packages/cli
+        if: matrix.kind == 'dart'
+        working-directory: packages/${{ matrix.package }}
         run: dart analyze
 
       - name: Compile generated UI templates
@@ -130,7 +159,7 @@ jobs:
 
       # example 会随包一起发布，必须能脱离 workspace 独立解析
       - name: Analyze example (published with package)
-        if: matrix.package != 'cli' && hashFiles(format('packages/{0}/example/pubspec.yaml', matrix.package)) != ''
+        if: matrix.kind == 'flutter' && hashFiles(format('packages/{0}/example/pubspec.yaml', matrix.package)) != ''
         working-directory: packages/${{ matrix.package }}/example
         run: |
           flutter pub get
@@ -148,15 +177,16 @@ jobs:
         run: bash scripts/publish_package.sh packages/${{ matrix.package }} --dry-run
 
       - name: Test (Flutter package)
-        if: matrix.package != 'cli'
+        if: matrix.kind == 'flutter'
         working-directory: packages/${{ matrix.package }}
         run: flutter test --coverage
 
       - name: Test (pure Dart package)
-        if: matrix.package == 'cli'
-        working-directory: packages/cli
+        if: matrix.kind == 'dart'
+        working-directory: packages/${{ matrix.package }}
         run: dart test --coverage=coverage
 
+      # 只有 cli 声明了 coverage 依赖；其它纯 Dart 包的 raw coverage 不转 lcov。
       - name: Format coverage (pure Dart package)
         if: matrix.package == 'cli'
         working-directory: packages/cli

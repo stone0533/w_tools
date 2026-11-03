@@ -73,7 +73,12 @@ if ! python3 scripts/check_docs_snippets.py; then
   errors=$((errors + 1))
 fi
 
-# 6) 反馈日志（docs/feedback/）
+# 6) 文档不得声明「已发布 / 待发布」的具体版本号
+if ! python3 scripts/check_docs_versions.py; then
+  errors=$((errors + 1))
+fi
+
+# 7) 反馈日志（docs/feedback/）
 if ! bash scripts/check_feedback.sh; then
   errors=$((errors + 1))
 fi
