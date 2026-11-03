@@ -58,6 +58,7 @@ class FetchCommand {
   Future<FetchResult> nodes({
     required String fileKey,
     required List<String> ids,
+    int? depth,
     bool refresh = false,
     bool checkStale = false,
   }) {
@@ -65,8 +66,12 @@ class FetchCommand {
     return _fetch(
       kind: 'nodes',
       fileKey: fileKey,
-      file: store.cacheFile(kind: 'nodes', fileKey: fileKey, ids: joined),
-      url: Uri.parse('https://api.figma.com/v1/files/$fileKey/nodes?ids=$joined'),
+      // 不同 depth 用不同缓存文件，避免 `--depth=1` 的结果覆盖完整缓存
+      file: store.cacheFile(kind: 'nodes', fileKey: fileKey, ids: joined, depth: depth),
+      url: Uri.parse(
+        'https://api.figma.com/v1/files/$fileKey/nodes?ids=$joined'
+        '${depth == null ? '' : '&depth=$depth'}',
+      ),
       refresh: refresh,
       checkStale: checkStale,
     );

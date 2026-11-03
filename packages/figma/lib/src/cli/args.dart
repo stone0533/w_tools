@@ -33,7 +33,9 @@ class CliOptions {
   final String? file;
   final int min;
   final String? out;
-  final int depth;
+
+  /// `--depth`：不传时 `fetch file` 用 3，`fetch nodes` 不带 depth（保持旧行为）。
+  final int? depth;
   final int scale;
   final int? nodeDepth;
   final bool refresh;
@@ -61,7 +63,7 @@ CliOptions parseOptions(List<String> args) {
   String? file;
   var min = 1;
   String? out;
-  var depth = 3;
+  int? depth;
   var scale = 2;
   int? nodeDepth;
   var refresh = false;

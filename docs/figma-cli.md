@@ -18,7 +18,7 @@
 | --- | --- | --- | --- |
 | `init` | 建令牌模板（用户配置目录）、建项目缓存目录与账号级额度文件——**已实现**（0.8.0 起不在项目里建文件） | — | 0 |
 | `fetch file` | 拉文件结构（`depth` 可控）——**v0.1 已实现** | 1 | 1 次（缓存命中 0） |
-| `fetch nodes` | 拉节点树（**批量 ids 只算 1 次**）——**v0.1 已实现** | 1 | 1 次 |
+| `fetch nodes` | 拉节点树（**批量 ids 只算 1 次**）；`--depth=<n>` 限制层数（默认不限，深页面会很大） | 1 | 1 次 |
 | `fetch images` | 拿渲图下载地址（批量）——**v0.1 已实现** | 1 | 1 次 |
 | `get <url> <outfile>` | 下载图片地址到本地——**v0.1 已实现** | 0 | 0 |
 | `me` | 校验 token——**v0.1 已实现** | 0 | 0 |
@@ -112,7 +112,7 @@ dart run w_tools_figma:figma frames [--file=<path>] [--json] [--all] [--name=<s>
 
 ```bash
 dart run w_tools_figma:figma fetch file   <fileKey> [--depth=3]
-dart run w_tools_figma:figma fetch nodes  <fileKey> <id1,id2,...>
+dart run w_tools_figma:figma fetch nodes  <fileKey> <id1,id2,...> [--depth=<n>]
 dart run w_tools_figma:figma fetch images <fileKey> <id1,id2,...> [--scale=2]
 ```
 

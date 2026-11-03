@@ -77,6 +77,21 @@ void main() {
       expect(store.usageCountThisMonth(now: DateTime.now()), 1, reason: '缓存命中不写日志');
     });
 
+    test('nodes --depth 会带上 depth 且缓存文件名区分深度', () async {
+      final client = FakeClient(payload);
+      final command = FetchCommand(store: store, client: client);
+
+      final shallow = await command.nodes(fileKey: 'K', ids: ['1:2'], depth: 1);
+      expect(client.calls.single.queryParameters['depth'], '1');
+      expect(shallow.file.path, endsWith('-d1.json'));
+
+      final full = await command.nodes(fileKey: 'K', ids: ['1:2']);
+      expect(client.calls.last.queryParameters.containsKey('depth'), isFalse,
+          reason: '不传 depth 时不应带参数（保持旧行为）');
+      expect(full.file.path, isNot(endsWith('-d1.json')));
+      expect(full.file.existsSync(), isTrue);
+    });
+
     test('--refresh 请求失败时保留旧缓存', () async {
       final first = FetchCommand(store: store, client: FakeClient(payload));
       final cached = await first.nodes(fileKey: 'K', ids: ['1:2']);

@@ -37,13 +37,14 @@ Future<void> runFetch(List<String> args) async {
     final result = switch (kind) {
       'file' => await command.file(
           fileKey: fileKey,
-          depth: options.depth,
+          depth: options.depth ?? 3,
           refresh: options.refresh,
           checkStale: options.checkStale,
         ),
       'nodes' => await command.nodes(
           fileKey: fileKey,
           ids: ids,
+          depth: options.depth,
           refresh: options.refresh,
           checkStale: options.checkStale,
         ),
