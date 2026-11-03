@@ -49,7 +49,7 @@ const _templates = <String, String>{
   'device/app_smoke_test.dart.tpl': 'deviceAppSmokeTest',
   'device/device_smoke.dart.tpl': 'deviceSmokeScript',
   'device/device-testing.md.tpl': 'deviceTestingDoc',
-  'device/gradle-mirror.init.gradle.tpl': 'deviceGradleMirror',
+  'device/gradle-mirror.init.gradle.example.tpl': 'deviceGradleMirror',
   'app_bars.dart.tpl': 'appBarsTemplate',
   'app_boxes.dart.tpl': 'appBoxesTemplate',
   'app_buttons.dart.tpl': 'appButtonsTemplate',

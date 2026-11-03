@@ -159,7 +159,7 @@ void main() {
         'integration_test/app_smoke_test.dart',
         'tool/device_smoke.dart',
         'docs/agents/device-testing.md',
-        'tool/gradle-mirror.init.gradle',
+        'tool/gradle-mirror.init.gradle.example',
       ]) {
         expect(File(p.join(root.path, rel)).existsSync(), isTrue, reason: rel);
         expect(report.created.any((e) => e.startsWith(rel)), isTrue, reason: rel);

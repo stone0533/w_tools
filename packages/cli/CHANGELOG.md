@@ -1,3 +1,10 @@
+## 1.9.1
+
+### 改进
+- `init --device` 生成的镜像示例改名为 `tool/gradle-mirror.init.gradle.example`：
+  它是「复制到 `~/.gradle/init.gradle` 才生效」的示例，原名容易被误认为已自动生效。
+  文档里的旧路径 `docs/templates/…` 一并修正。
+
 ## 1.9.0
 
 ### Changed（破坏性：路径）

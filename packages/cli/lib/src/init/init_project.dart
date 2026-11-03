@@ -249,7 +249,7 @@ InitReport runInit(
       starter: true,
     );
     write(
-      'tool/gradle-mirror.init.gradle',
+      'tool/gradle-mirror.init.gradle.example',
       InitTemplates.deviceGradleMirror(),
       starter: true,
     );

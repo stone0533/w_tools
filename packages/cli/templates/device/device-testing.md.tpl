@@ -34,7 +34,7 @@ flutter test integration_test -d <DEVICE_UDID>             # 跑集成测试（�
 
 #### Gradle 镜像（JVM 到 dl.google.com 握手被拦时）
 
-用 `docs/templates/gradle-mirror.init.gradle` 覆盖到 `~/.gradle/init.gradle`，
+用 `tool/gradle-mirror.init.gradle.example` 覆盖到 `~/.gradle/init.gradle`，
 把 `google()`/`mavenCentral()` 换成 aliyun 镜像（只影响本机，不改项目配置）。
 
 ```bash
@@ -171,6 +171,6 @@ dart run tool/device_smoke.dart --android --device=emulator-5554 --package={{and
 ```
 
 > JVM 到 `dl.google.com` 握手被拦（`curl` 能通、Java 不通）时，先按
-> `docs/templates/gradle-mirror.init.gradle` 配镜像，否则 Android 构建会卡在下载依赖。
+> `tool/gradle-mirror.init.gradle.example` 配镜像，否则 Android 构建会卡在下载依赖。
 
 - [ ] 保留本文档第 3 节「坑」（通用），其余替换成项目信息
