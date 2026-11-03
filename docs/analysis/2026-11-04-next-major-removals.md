@@ -1,55 +1,12 @@
 # 下一个大版本的删除清单（2026-11-04）
 
-> 由 `python3 scripts/list_removals.py --md` 生成；执行前重跑，避免清单过期。
-> 删除前提：对应的目标版本已经发布（用户已有一版弃用警告）；删除后跑
-> `python3 scripts/check_deprecations.py` + `bash scripts/preflight.sh`。
+> 由 `python3 scripts/list_removals.py --md` 生成；执行前重跑。
+> 已删除：app 2.0、core 3.0、map 2.0、toast 2.0、async 3.0（分支 `next-major-app2`）。
 
-## 汇总
-
-| 目标版本 | 数量 | 包 |
-| --- | --- | --- |
-| 2.0.0 | 16 | app（字段版配置） |
-| 3.0.0 | 17 | core（WConfig / WRegExpPattern / WUx / 旧清理函数） |
-| 4.0.0 | 4 | form（自定义边框 builder / WFormDefaults） |
-| 5.0.0 | 30 | ui（WRowButtons / 图片预设 / 布局糖 / HexColor / WSizeBox 等） |
-
-## 明细
+## 明细（剩余）
 
 | 到期 | 包 | 位置 | 声明 |
 | --- | --- | --- | --- |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:103` | `Locale? locale;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:108` | `Locale? fallbackLocale;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:120` | `Widget Function(Widget child)? appWrapper;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:45` | `String? title;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:50` | `String? initialRoute;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:55` | `List<GetPage<dynamic>>? getPages;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:60` | `List<DeviceOrientation> orientations = [DeviceOrientation.portraitUp];` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:68` | `SystemUiOverlayStyle? systemUiOverlayStyle = const SystemUiOverlayStyle(` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:78` | `TransitionBuilder? builder;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:83` | `List<NavigatorObserver>? navigatorObservers;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:88` | `Transition? defaultTransition;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:93` | `ThemeData? theme;` |
-| 2.0.0 | app | `packages/app/lib/src/app.dart:98` | `Translations? translations;` |
-| 2.0.0 | app | `packages/app/lib/src/utils/route.dart:65` | `class WRoute {` |
-| 2.0.0 | map | `packages/map/lib/src/map_zone.dart:138` | `void Function()? onDataUpdated;` |
-| 2.0.0 | toast | `packages/toast/lib/src/toast_config.dart:15` | `class WToastConfig {` |
-| 3.0.0 | async | `packages/async/lib/src/view/async_sliver_defaults.dart:14` | `class WAsyncSliverDefaults extends InheritedWidget {` |
-| 3.0.0 | async | `packages/async/lib/src/view/async_view_defaults.dart:23` | `class WAsyncViewDefaults extends InheritedWidget {` |
-| 3.0.0 | core | `packages/core/lib/src/config.dart:16` | `'该字段没有任何效果；请改用 w_tools_ui 的 WAssets.imagePath'` |
-| 3.0.0 | core | `packages/core/lib/src/config.dart:28` | `static set tokenKey(String value) => WToken.tokenKey = value;` |
-| 3.0.0 | core | `packages/core/lib/src/config.dart:33` | `static String get refreshTokenKey => WToken.refreshTokenKey;` |
-| 3.0.0 | core | `packages/core/lib/src/config.dart:38` | `static set refreshTokenKey(String value) => WToken.refreshTokenKey = value;` |
-| 3.0.0 | core | `packages/core/lib/src/config.dart:43` | `static String get tokenExpiryKey => WToken.tokenExpiryKey;` |
-| 3.0.0 | core | `packages/core/lib/src/config.dart:48` | `static set tokenExpiryKey(String value) => WToken.tokenExpiryKey = value;` |
-| 3.0.0 | core | `packages/core/lib/src/utils/hash.dart:66` | `static String hashPassword(String password, {String? salt}) {` |
-| 3.0.0 | core | `packages/core/lib/src/utils/platform.dart:105` | `static T getPlatformValue<T>({` |
-| 3.0.0 | core | `packages/core/lib/src/utils/platform.dart:135` | `static void runForPlatform({` |
-| 3.0.0 | core | `packages/core/lib/src/utils/reg_exp.dart:8` | `class WRegExpPattern {` |
-| 3.0.0 | core | `packages/core/lib/src/utils/reg_exp.dart:85` | `class WRegExpPreset {` |
-| 3.0.0 | core | `packages/core/lib/src/utils/ux.dart:24` | `WCancellableAction debounce(Function() function, {int duration = 300}) {` |
-| 3.0.0 | core | `packages/core/lib/src/utils/ux.dart:47` | `WCancellableAction throttle(Function() function, {int duration = 300}) {` |
-| 3.0.0 | core | `packages/core/lib/src/utils/validator.dart:107` | `static String escapeSql(String input) {` |
-| 3.0.0 | core | `packages/core/lib/src/utils/validator.dart:124` | `static String stripHtml(String input) {` |
 | 4.0.0 | form | `packages/form/lib/src/components/border/border.dart:230` | `static WFormBorderConfigBuilder builder() => WFormBorderConfigBuilder();` |
 | 4.0.0 | form | `packages/form/lib/src/components/border/border.dart:414` | `class WFormBorderConfigBuilder {` |
 | 4.0.0 | form | `packages/form/lib/src/components/border/field_shell.dart:11` | `extension WFormRowBorderExtension on Row {` |
