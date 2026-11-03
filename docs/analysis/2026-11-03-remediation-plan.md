@@ -60,7 +60,7 @@
 
 | # | 决策 | 我的建议 | 影响 |
 | --- | --- | --- | --- |
-| **D1** | form / toast / async 是否允许依赖 ui？ | **不允许**（2026-11-03 定）：排版通过 `ThemeData.textTheme` 共享，ui 提供 `WTextStyles.toTextTheme` + `ThemeData.withWTextStyles`；三包只读 Theme，`pubspec` 不变 | 避免把 `cached_network_image` 拖进 async / form / toast，也不绑死发布顺序；代价是三包默认样式必须从 `ColorScheme` / `TextTheme` 派生并禁止字面量色值 |
+| **D1** | form / toast / async 是否允许依赖 ui？ | **已定：不依赖**，见 [ADR-0003](../adr/0003-subpackage-typography-without-ui.md)。排版通过 `ThemeData.textTheme` 共享，ui 提供 `WTextStyles.toTextTheme` + `ThemeData.withWTextStyles`；三包只读 Theme，`pubspec` 不变 | 避免把 50 个传递依赖 / 10 个原生插件拖进 async / form / toast，也不绑死发布顺序；代价是三包默认样式必须从 `ColorScheme` / `TextTheme` 派生并禁止字面量色值 |
 | **D2** | 断代方式 | **两段式**：2.x/3.x 先弃用 + 迁移文档，下一大版本删 | 一次性破窗只适合 0.x 内部项目；这里是 pub 上的库 |
 | **D3** | form 是否继续基于 `flutter_form_builder` | **继续用，但真封装**：barrel 显式 re-export FFB 类型，README 声明它是公开依赖 | 换掉 FFB 等于重写 form（约 5,000 行）；真暴露是 1 小时的事 |
 | **D4** | cli 是否合并成单入口 | **合并**（`w_tools <subcommand>`），旧 6 个 bin 留一版薄壳 | 决定 `--check` 契约重定与退出码统一的时间点 |
@@ -122,8 +122,8 @@ D1 必须在阶段 3 之前定，D3 在 4.6 之前定，D4 在 2.1 之前定。�
 ## 5. 阶段 3：基座重构 core + ui（8–12 人日，大版本）
 
 先落两个 ADR（各 S）：
-**ADR-0003 组件配置模型**（不可变 + `copyWith` + 后缀 `Style`/`Options` + 布尔改 enum）；
-**ADR-0004 子包依赖方向**（`core←ui←{form,async,toast}`，并说明为什么值得放弃"完全独立"）。
+**ADR-0004 组件配置模型**（不可变 + `copyWith` + 后缀 `Style`/`Options` + 布尔改 enum）。
+依赖方向已由 [ADR-0003](../adr/0003-subpackage-typography-without-ui.md) 定案（不引入 ui），无需再写。
 
 然后按"弃用 → 删除"两段走。**先只加弃用与迁移表（一个小版本），下一版再删**：
 
@@ -172,7 +172,7 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
 ## 8. 阶段 6：收口（2–3 人日）
 
 1. 根包 `4.0.0`，抬高 9 个 `^` 约束（`release_check.sh` 会挡漂移）。
-2. `docs/conventions.md` 增补一条"库内自查"：本仓库组件同样受 §6 约束，`WForm*` 的参数数需在 ADR-0003 里豁免说明。
+2. `docs/conventions.md` 增补一条"库内自查"：本仓库组件同样受 §6 约束，`WForm*` 的参数数需在 ADR-0004 里豁免说明。
 3. `components.md` 改为生成物（2.5 已完成）；`docs/migrations/` 收齐各包迁移表。
 4. golden 补齐：AppBar / Button / Step / FormBorder（对应 P3-5）。
 5. 把本次评审 + 修复过程按 `docs/feedback/` 模板记 3–5 条真正卡住的点，形成闭环。
@@ -186,7 +186,7 @@ D1 已定为「不依赖 ui」。顺序是 **4.0 去硬编码/改读 Theme → 4
          │                                        │
          └─► 2.1 ─ 2.2 ─ 2.3 ─ 2.4 ─ 2.5 ─ 2.6 ─ 2.7 ─ 2.8 ─ 2.9
                                                   │
-    ADR-0003/0004 ─► 3.1..3.7 ──► 4.0 ─► 4.1..4.7 ──► 5.1..5.5 ─► 6.x
+    ADR-0004 / ADR-0003(已定) ─► 3.1..3.7 ──► 4.0 ─► 4.1..4.7 ──► 5.1..5.5 ─► 6.x
 ```
 
 可并行的三条线（互不碰同一包）：

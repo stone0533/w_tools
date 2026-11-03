@@ -36,6 +36,8 @@
 ## 依赖约束矩阵（Flutter 子包）
 
 > ✅ 表示该子包强依赖外部包（不可替换）。具体约束以各包 `pubspec.yaml` 为准。
+> 子包之间**不新增相互依赖**（含不依赖 `w_tools_ui`）：排版通过 `ThemeData.textTheme` 共享，
+> 见 [ADR-0003](../adr/0003-subpackage-typography-without-ui.md)。
 
 | 子包 | 强依赖外部包 |
 |------|--------------|
