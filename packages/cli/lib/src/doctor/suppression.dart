@@ -1,6 +1,9 @@
-/// 解析 `// w_tools:ignore R9 reason: ...` / `// w_tools:ignore-file R9 reason: ...`。
+/// 解析规则级豁免：
+///   // w_tools:ignore R2 reason: ...
+///   // w_tools:ignore-file R5 reason: ...
 ///
-/// 只有带非空 `reason:` 的标记才生效，避免无说明地屏蔽规则。
+/// 支持 R2~R9；R1 暂不支持。只有带非空 `reason:` 的标记才生效，
+/// 避免无说明地屏蔽规则。
 class Suppression {
   static final _marker = RegExp(
     r'w_tools:ignore(?:-file)?\s+([A-Za-z0-9_,\s]+?)(?:\s+reason:\s*(.+))?$',

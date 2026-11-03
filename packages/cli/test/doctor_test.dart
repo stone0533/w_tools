@@ -80,6 +80,17 @@ void main() {
       expect(r.status, DoctorRuleStatus.pass);
     });
 
+    test('ignore 缺 reason 不生效（R2）', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/foo.dart':
+            '// w_tools:ignore R2\n'
+            "import 'package:w_tools_ui/w_tools_ui.dart';\n",
+      });
+      final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.status, DoctorRuleStatus.fail);
+    });
+
     test('文件级 ignore-file R2 生效', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',
@@ -238,6 +249,19 @@ void main() {
           'const b = Color(0xFF3F3F3F);\n',
     });
     final config = DoctorConfig.parse('colors:\n  palette: ["#3F3F3F"]\n  min_count: 2\n');
+    final r = R3HardcodedColors.check(ctxOf(root, config), config);
+    expect(r.status, DoctorRuleStatus.pass);
+  });
+
+  test('R3 单处命中 + 行级 ignore 不报', () {
+    final root = makeProject({
+      'lib/a.dart':
+          '// w_tools:ignore R3 reason: legacy color\n'
+          'const a = Color(0xFF3F3F3F);\n',
+    });
+    final config = DoctorConfig.parse(
+      'colors:\n  palette: ["#3F3F3F"]\n  min_count: 1\n',
+    );
     final r = R3HardcodedColors.check(ctxOf(root, config), config);
     expect(r.status, DoctorRuleStatus.pass);
   });
