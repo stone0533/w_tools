@@ -8,3 +8,4 @@ export 'src/geometry.dart';
 export 'src/input.dart';
 export 'src/shell.dart';
 export 'src/simctl.dart';
+export 'src/stability.dart';

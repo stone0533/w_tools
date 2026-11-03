@@ -24,6 +24,7 @@ workspace:
   - packages/cli
   - packages/figma
   - packages/device
+  - packages/e2e
 
 environment:
   sdk: ^3.10.0

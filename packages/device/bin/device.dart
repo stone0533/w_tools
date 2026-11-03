@@ -14,6 +14,8 @@ w_tools_device —— 设备验证小工具（模拟器为主，读数 + 点击�
   dart run w_tools_device:device tap <x> <y>          # 用设备坐标点（自动换算成屏幕坐标）
   dart run w_tools_device:device drag <x1> <y1> <x2> <y2>
   dart run w_tools_device:device type <text>          # 输入文本（先点中输入框）
+  dart run w_tools_device:device wait                 # 等画面稳定
+  dart run w_tools_device:device verify <x> <y>       # 点一下并确认画面有变化（坐标自检）
 
 可选：
   --device=<udid|名称>   指定设备（默认用已启动的 / 第一台）
@@ -44,6 +46,10 @@ Future<void> main(List<String> args) async {
         _printCalibration(cal);
       case 'tap':
         await _tap(simctl, options);
+      case 'wait':
+        await _wait(simctl, options);
+      case 'verify':
+        await _verify(simctl, options);
       case 'drag':
         await _drag(simctl, options);
       case 'type':
@@ -122,6 +128,50 @@ Future<void> _drag(Simctl simctl, _Options o) async {
   stdout.writeln('drag screen(${a.x.round()},${a.y.round()}) → (${b.x.round()},${b.y.round()})');
 }
 
+/// 设备截图指纹（用于判断画面是否变化）。
+Future<String> _fingerprint(Simctl simctl, String udid) async {
+  final out = '${Directory.systemTemp.path}/w_tools_device_fp.png';
+  await simctl.screenshot(udid, out);
+  final bytes = File(out).readAsBytesSync();
+  // 轻量指纹：长度 + 采样字节（够判断「是否变了」，不追求加密强度）
+  var acc = bytes.length;
+  for (var i = 0; i < bytes.length; i += 4096) {
+    acc = (acc * 31 + bytes[i]) & 0x7fffffff;
+  }
+  return '$acc';
+}
+
+Stability _stability(Simctl simctl, String udid) =>
+    Stability(grab: () => _fingerprint(simctl, udid));
+
+Future<void> _wait(Simctl simctl, _Options o) async {
+  final udid = await _resolveUdid(simctl, o, bootedOnly: true);
+  final ok = await _stability(simctl, udid).waitStable(
+    stableFor: o.stableFor,
+    timeout: o.timeout,
+  );
+  stdout.writeln(ok ? '画面已稳定' : '等待超时（画面仍在变化）');
+  if (!ok) exitCode = 3;
+}
+
+Future<void> _verify(Simctl simctl, _Options o) async {
+  if (o.positional.length < 2) {
+    throw StateError('verify 需要 <x> <y>（设备坐标）');
+  }
+  final x = double.parse(o.positional[0]);
+  final y = double.parse(o.positional[1]);
+  final udid = await _resolveUdid(simctl, o, bootedOnly: true);
+  final cal = await _calibrate(simctl, o, force: o.noCache);
+  final screen = cal.toScreen(DPoint(x, y));
+  final changed =
+      await _stability(simctl, udid).changedAfter(() => Input().tap(screen.x, screen.y));
+  stdout.writeln(
+    'tap device($x, $y) → screen(${screen.x.round()}, ${screen.y.round()})：'
+    '${changed ? '画面有变化 ✅' : '画面无变化 ⚠️（坐标可能失效）'}',
+  );
+  if (!changed) exitCode = 2;
+}
+
 /// 拿标定（缓存命中且窗口没变就复用）。
 Future<Calibration> _calibrate(
   Simctl simctl,
@@ -193,6 +243,8 @@ class _Options {
     required this.out,
     required this.noCache,
     required this.scale,
+    required this.timeout,
+    required this.stableFor,
   });
 
   final String command;
@@ -204,12 +256,17 @@ class _Options {
   /// 设备像素密度（3 = iPhone 常见，2 = SE/iPad）。
   final int? scale;
 
+  final Duration timeout;
+  final Duration stableFor;
+
   String? get deviceOrFirst => device;
 
   static _Options parse(List<String> args) {
     String? device, out;
     var noCache = false;
     int? scale;
+    var timeout = const Duration(seconds: 15);
+    var stableFor = const Duration(milliseconds: 600);
     final rest = <String>[];
     for (final a in args) {
       if (a.startsWith('--device=')) {
@@ -220,6 +277,11 @@ class _Options {
         noCache = true;
       } else if (a.startsWith('--scale=')) {
         scale = int.tryParse(a.substring('--scale='.length));
+      } else if (a.startsWith('--timeout-ms=')) {
+        timeout =
+            Duration(milliseconds: int.tryParse(a.substring('--timeout-ms='.length)) ?? 15000);
+      } else if (a.startsWith('--stable-ms=')) {
+        stableFor = Duration(milliseconds: int.tryParse(a.substring('--stable-ms='.length)) ?? 600);
       } else if (a.startsWith('--')) {
         throw StateError('未知选项：$a');
       } else {
@@ -233,6 +295,8 @@ class _Options {
       out: out,
       noCache: noCache,
       scale: scale,
+      timeout: timeout,
+      stableFor: stableFor,
     );
   }
 }
