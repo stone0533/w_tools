@@ -21,6 +21,7 @@ class WUx {
   ///
   /// [duration] 必须为非负毫秒数。连续调用时只在停止调用 [duration] 毫秒后执行最后一次；返回值可通过
   /// [WCancellableAction.cancel] 取消尚未触发的回调（例如页面 dispose 时）。
+  /// remove-in: 3.0.0
   @Deprecated('2.3 起用 WDebounce；3.0 移除')
   WCancellableAction debounce(Function() function, {int duration = 300}) {
     if (duration < 0) {
@@ -43,6 +44,7 @@ class WUx {
   ///
   /// [duration] 必须为非负毫秒数。[duration] 毫秒内只执行第一次调用；返回值可通过
   /// [WCancellableAction.cancel] 提前结束当前节流窗口。
+  /// remove-in: 3.0.0
   @Deprecated('2.3 起用 WThrottle；3.0 移除')
   WCancellableAction throttle(Function() function, {int duration = 300}) {
     if (duration < 0) {

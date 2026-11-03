@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 /// Row 便捷工厂
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：直接用 `Row`')
 class WRow {
   /// 创建主轴尺寸最小的 Row

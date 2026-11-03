@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 /// 若某个组件显式配置了对应项，则优先使用组件自身的配置。
 ///
 /// 需要按页面 / 品牌隔离时，优先使用 `WFormTheme`；本类只作为最终回退。
+/// remove-in: 4.0.0
 @Deprecated('4.0 用 WFormIcons / WForm.icons；全局静态字段不再推荐')
 class WFormDefaults {
   static const _dropdownIcon = Icon(Icons.keyboard_arrow_down);

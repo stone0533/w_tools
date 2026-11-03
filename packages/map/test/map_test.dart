@@ -100,6 +100,25 @@ void main() {
       expect(identical(first[1], second[1]), isTrue);
     });
 
+    test('同内容的新实例也复用 Marker（onTap 取最新实例）', () {
+      final zone = WMapZone<_TestMapItem>(
+        maps: [const _TestMapItem(id: 'a', name: 'A', latitude: 31, longitude: 121)],
+      );
+      final first = zone.markers.first;
+
+      var tappedName = '';
+      zone.addMarkerTapListener((item) => tappedName = item.name ?? '');
+
+      zone.update([
+        const _TestMapItem(id: 'a', name: 'A', latitude: 31, longitude: 121),
+      ]);
+      final second = zone.markers.first;
+
+      expect(identical(first, second), isTrue);
+      second.onTap!();
+      expect(tappedName, 'A');
+    });
+
     test('条目内容变化时重建对应 Marker', () {
       final items = <_TestMapItem>[
         const _TestMapItem(id: 'a', name: 'A', latitude: 31, longitude: 121),

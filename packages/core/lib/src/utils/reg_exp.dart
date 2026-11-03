@@ -5,6 +5,7 @@ import 'validator.dart';
 ///
 /// 供需要「字符串形式正则」的场景使用（如后端下发校验规则）；
 /// 需要直接匹配时请使用 [WRegExp]。
+/// remove-in: 3.0.0
 @Deprecated('2.2 起用 WRegExp；3.0 移除')
 class WRegExpPattern {
   // 纯静态常量类，禁止实例化
@@ -75,6 +76,7 @@ class WRegExpPattern {
 /// 按分类组织的正则表达式字符串
 ///
 /// 便于按类别遍历或批量下发校验规则；键名与 [WRegExpPattern] 字段同名。
+/// remove-in: 3.0.0
 @Deprecated('2.2 起用 WRegExp；3.0 移除')
 class WRegExpPreset {
   // 纯静态常量类，禁止实例化

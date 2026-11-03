@@ -174,6 +174,9 @@ class WMapZone<T> {
   /// 上次生成 Marker 时的内容签名（id -> 签名）
   final Map<String, Object> _markerSignatures = {};
 
+  /// 当前条目索引（id -> 最新实例），Marker onTap 回调时取最新数据
+  final Map<String, T> _itemsById = {};
+
   /// 地图数据列表
   List<T>? maps;
 
@@ -300,6 +303,7 @@ class WMapZone<T> {
     final nextMarkers = <Marker>{};
     final nextCache = <String, Marker>{};
     final nextSignatures = <String, Object>{};
+    final nextItems = <String, T>{};
 
     maps?.forEach((element) {
       if (mapper.isValid?.call(element) == false) return;
@@ -310,7 +314,6 @@ class WMapZone<T> {
       final name = mapper.name?.call(element);
       final icon = _iconFor(element);
       final signature = Object.hash(
-        identityHashCode(element),
         name,
         position.latitude,
         position.longitude,
@@ -326,8 +329,10 @@ class WMapZone<T> {
               infoWindow: InfoWindow(title: name),
               icon: icon,
               onTap: () {
+                // 复用 Marker 时指向最新实例，避免点击拿到旧数据
+                final current = _itemsById[id] ?? element;
                 for (final listener in List<void Function(T)>.of(_onMarkerTaps)) {
-                  listener(element);
+                  listener(current);
                 }
               },
             );
@@ -335,6 +340,7 @@ class WMapZone<T> {
       nextMarkers.add(marker);
       nextCache[id] = marker;
       nextSignatures[id] = signature;
+      nextItems[id] = element;
     });
 
     _markerCache
@@ -343,6 +349,9 @@ class WMapZone<T> {
     _markerSignatures
       ..clear()
       ..addAll(nextSignatures);
+    _itemsById
+      ..clear()
+      ..addAll(nextItems);
     markers
       ..clear()
       ..addAll(nextMarkers);

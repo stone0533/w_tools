@@ -102,6 +102,7 @@ class WPlatform {
   /// - [android] / [ios] / [web]：对应平台的返回值
   /// - [desktop]：Linux / macOS / Windows 共用的返回值
   /// - [fallback]：Fuchsia 等其他平台的返回值
+  /// remove-in: 3.0.0
   @Deprecated('3.0 移除：用 platformType / isX 组合判断')
   static T getPlatformValue<T>({
     required T android,
@@ -131,6 +132,7 @@ class WPlatform {
   /// 已弃用（3.0 移除）：用 [platformType] / [isX] 组合判断。
   ///
   /// 参数含义与 [getPlatformValue] 一致。
+  /// remove-in: 3.0.0
   @Deprecated('3.0 移除：用 platformType / isX 组合判断')
   static void runForPlatform({
     required void Function() android,

@@ -6,7 +6,7 @@
     /// remove-in: 4.0.0
     @Deprecated('Use WTextStyles instead')
 
-- 缺 `remove-in`：警告（不阻断），提醒补上到期版本；
+- 缺 `remove-in`：错误（阻断），必须补上到期版本；
 - 包当前版本 >= remove-in：错误（阻断），该删除或改期。
 
 为什么需要它：`WConfig.assetImagePath` 的注释写「下个大版本移除」，跨过 3.0 仍在
@@ -77,7 +77,7 @@ for pubspec in sorted(packages.glob('*/pubspec.yaml')):
             member = declaration_after(lines, index)
 
             if target is None:
-                warnings.append(f'{rel}:{index + 1} 缺 remove-in（{member or "?"}）')
+                errors.append(f'{rel}:{index + 1} 缺 remove-in（{member or "?"}）')
             elif version >= target:
                 wanted = '.'.join(str(part) for part in target)
                 current = '.'.join(str(part) for part in version)

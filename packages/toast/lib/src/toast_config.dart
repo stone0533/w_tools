@@ -12,6 +12,7 @@ import 'toast_style.dart';
 ///
 /// 本类保留为兼容门面：字段仍可变，`showXxx` 内部转成 [WToastStyle] 后调用
 /// [WToast]。2.0 移除。
+/// remove-in: 2.0.0
 @Deprecated('1.2 起用 WToastStyle + WToast.showXxx；2.0 移除')
 class WToastConfig {
   WToastConfig();

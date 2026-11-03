@@ -25,22 +25,27 @@ class WConfig {
   static String get tokenKey => WToken.tokenKey;
 
   /// token 存储键名（代理到 [WToken.tokenKey]）
+  /// remove-in: 3.0.0
   @Deprecated('用 WToken.tokenKey；3.0 移除')
   static set tokenKey(String value) => WToken.tokenKey = value;
 
   /// refresh token 存储键名（代理到 [WToken.refreshTokenKey]）
+  /// remove-in: 3.0.0
   @Deprecated('用 WToken.refreshTokenKey；3.0 移除')
   static String get refreshTokenKey => WToken.refreshTokenKey;
 
   /// refresh token 存储键名（代理到 [WToken.refreshTokenKey]）
+  /// remove-in: 3.0.0
   @Deprecated('用 WToken.refreshTokenKey；3.0 移除')
   static set refreshTokenKey(String value) => WToken.refreshTokenKey = value;
 
   /// token 过期时间存储键名（代理到 [WToken.tokenExpiryKey]）
+  /// remove-in: 3.0.0
   @Deprecated('用 WToken.tokenExpiryKey；3.0 移除')
   static String get tokenExpiryKey => WToken.tokenExpiryKey;
 
   /// token 过期时间存储键名（代理到 [WToken.tokenExpiryKey]）
+  /// remove-in: 3.0.0
   @Deprecated('用 WToken.tokenExpiryKey；3.0 移除')
   static set tokenExpiryKey(String value) => WToken.tokenExpiryKey = value;
 

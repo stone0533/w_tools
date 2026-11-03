@@ -63,6 +63,7 @@ class WHash {
   ///
   /// 注意：单轮 SHA-256 属于快速哈希，仅适用于轻量场景，不适用于高安全
   /// 要求的密码存储；高安全场景请使用 bcrypt / Argon2 等慢哈希算法。
+  /// remove-in: 3.0.0
   @Deprecated('3.0 移除：密码哈希应在服务端用 bcrypt/argon2 完成')
   static String hashPassword(String password, {String? salt}) {
     final saltStr = salt ?? _generateRandomSalt();

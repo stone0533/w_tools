@@ -16,7 +16,7 @@
 
 ```text
 数字格式化 → toThousandsSeparated / toCurrency / toPercent
-hex 颜色 → HexColor.fromHex / '#rrggbb'.toColor()
+hex 颜色 → WHexColor.fromHex / '#rrggbb'.toColor()
 EdgeInsets → num.allPadding
 BoxDecoration → withColor / withBorderRadius / withShadow
 ```

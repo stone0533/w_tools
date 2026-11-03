@@ -110,5 +110,6 @@ class WImageLoadConfig {
 }
 
 /// 旧名（4.2 起弃用，5.0 移除）：用 [WImageLoadConfig]。
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 WImageLoadConfig')
 typedef WImageConfig = WImageLoadConfig;

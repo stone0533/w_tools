@@ -63,23 +63,27 @@ abstract final class WButtonStyles {
     );
   }
 
+  /// remove-in: 5.0.0
   @Deprecated('4.0 起用 WButtonStyles.of(context)；5.0 移除硬编码预设')
   static final primary = WButtonStyle.filled(
     backgroundColor: const Color(0xFF3949AB), // style-literal-ok: 兼容预设
     foregroundColor: Colors.white,
   );
 
+  /// remove-in: 5.0.0
   @Deprecated('4.0 起用 WButtonStyles.of(context)；5.0 移除硬编码预设')
   static final secondary = WButtonStyle.outlined(
     foregroundColor: const Color(0xFF3949AB), // style-literal-ok: 兼容预设
     borderColor: const Color(0xFF3949AB), // style-literal-ok: 兼容预设
   );
 
+  /// remove-in: 5.0.0
   @Deprecated('4.0 起用 WButtonStyles.of(context)；5.0 移除硬编码预设')
   static final text = WButtonStyle.text(
     foregroundColor: const Color(0xFF3949AB), // style-literal-ok: 兼容预设
   );
 
+  /// remove-in: 5.0.0
   @Deprecated('4.0 起用 WButtonStyles.of(context)；5.0 移除硬编码预设')
   static final danger = WButtonStyle.filled(
     backgroundColor: const Color(0xFFD32F2F), // style-literal-ok: 兼容预设

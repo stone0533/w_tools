@@ -85,7 +85,15 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
             }
           },
         ),
-        WLogInterceptor(responseHeader: true),
+        WLogInterceptor(
+          parts: {
+            WLogPart.request,
+            WLogPart.requestHeader,
+            WLogPart.responseHeader,
+            WLogPart.error,
+            WLogPart.errorHint,
+          },
+        ),
       ],
     );
     _registry.dio.httpClientAdapter = _adapter;

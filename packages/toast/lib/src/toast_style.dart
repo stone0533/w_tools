@@ -74,10 +74,10 @@ class WToastStyle {
 
   /// 创建副本；传 `null` 可以清空 [backgroundColor] / builder / 回调
   WToastStyle copyWith({
-    Object? duration = _unset,
-    Object? align = _unset,
+    Duration? duration,
+    Alignment? align,
     Object? backgroundColor = _unset,
-    Object? animationDuration = _unset,
+    Duration? animationDuration,
     Object? toastBuilder = _unset,
     Object? onClose = _unset,
     Object? successBuilder = _unset,
@@ -87,14 +87,12 @@ class WToastStyle {
     Object? onError = _unset,
   }) {
     return WToastStyle(
-      duration: identical(duration, _unset) ? this.duration : duration as Duration,
-      align: identical(align, _unset) ? this.align : align as Alignment,
+      duration: duration ?? this.duration,
+      align: align ?? this.align,
       backgroundColor: identical(backgroundColor, _unset)
           ? this.backgroundColor
           : backgroundColor as Color?,
-      animationDuration: identical(animationDuration, _unset)
-          ? this.animationDuration
-          : animationDuration as Duration,
+      animationDuration: animationDuration ?? this.animationDuration,
       toastBuilder: identical(toastBuilder, _unset)
           ? this.toastBuilder
           : toastBuilder as Widget Function(CancelFunc)?,

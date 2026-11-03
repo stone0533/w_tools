@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// SizedBox 工具类，提供便捷的创建方法
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 `8.verticalSpace` / `SizedBox`')
 class WSizeBox {
   /// 创建指定高度的 SizedBox

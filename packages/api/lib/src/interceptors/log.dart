@@ -52,12 +52,18 @@ class WLogInterceptor extends Interceptor {
   /// [parts] 非空时，未列出的片段不输出；否则沿用旧 bool 参数。
   WLogInterceptor({
     this.parts,
-    bool? request,
-    bool? requestHeader,
-    bool? requestBody,
-    bool? responseHeader,
-    bool? responseBody,
-    bool? error,
+    /// remove-in: 5.0.0
+    @Deprecated('2.0 起用 parts: {WLogPart.request}；5.0 移除') bool? request,
+    /// remove-in: 5.0.0
+    @Deprecated('2.0 起用 parts: {WLogPart.requestHeader}；5.0 移除') bool? requestHeader,
+    /// remove-in: 5.0.0
+    @Deprecated('2.0 起用 parts: {WLogPart.requestBody}；5.0 移除') bool? requestBody,
+    /// remove-in: 5.0.0
+    @Deprecated('2.0 起用 parts: {WLogPart.responseHeader}；5.0 移除') bool? responseHeader,
+    /// remove-in: 5.0.0
+    @Deprecated('2.0 起用 parts: {WLogPart.responseBody}；5.0 移除') bool? responseBody,
+    /// remove-in: 5.0.0
+    @Deprecated('2.0 起用 parts: {WLogPart.error}；5.0 移除') bool? error,
     this.enableLog = true,
     this.redactedHeaders = defaultRedactedHeaders,
   })  : request = parts?.contains(WLogPart.request) ?? request ?? true,

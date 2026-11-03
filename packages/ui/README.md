@@ -61,7 +61,7 @@ WImage.network(
     fit: BoxFit.cover,
     borderRadius: BorderRadius.all(Radius.circular(12)),
   ),
-  config: const WImageConfig(memCacheWidth: 800),
+  config: const WImageLoadConfig(memCacheWidth: 800),
 );
 ```
 
@@ -75,22 +75,26 @@ WImage.network(
 | 已知网络 / 资源 / 文件 / Base64 | `WImage.network/asset/file/base64` |
 | 任意 `ImageProvider` | `WImage.provider` / `WImage.memory` |
 | 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
-| 需要加载配置 | `config: WImageConfig(...)` |
+| 需要加载配置 | `config: WImageLoadConfig(...)` |
 | 需要视觉样式 | `style: WImageStyle(...)` |
 
 `WImage.asset(name)` 默认 **不**拼 `WAssets.imagePath`；
-需要自动拼前缀时用 `WImage.asset(name, prefix: true)` 或兼容入口 `WImage.assetImage(name)`。
+需要自动拼前缀时用 `WImage.asset(name, prefix: true)`。
 
 ### 常用配方
 
 ```dart
-WImage.avatar(url, size: 40)                 // 圆形头像
-WImage.thumbnail(url, width: 80)             // 缩略图 + 解码尺寸上限
-WImage.cover(url, aspectRatio: 16 / 9)       // 封面图
+WImage(data: url, style: WImageStyle.avatar(40))              // 圆形头像
+WImage(
+  data: url,
+  style: WImageStyle.thumbnail(80),
+  config: const WImageLoadConfig(memCacheWidth: 240, memCacheHeight: 240),
+)                                                              // 缩略图
+WImage(data: url, style: WImageStyle.cover(aspectRatio: 16 / 9)) // 封面图
 WImage.asset('logo.png', prefix: true)       // 自动拼 WAssets.imagePath
 WImage.memory(bytes)                         // Uint8List
 WImage.provider(myProvider)                  // 任意 ImageProvider
-WImage.network(url, config: const WImageConfig(showRetryButton: true)) // 内置重试
+WImage.network(url, config: const WImageLoadConfig(showRetryButton: true)) // 内置重试
 ```
 
 `WImageStyle` 也提供预设与链式糖：
@@ -207,16 +211,16 @@ WAssets.imagePath = 'assets/icons/';
 | 能力 | 入口 |
 |---|---|
 | 文本 / 图片 | `WText` / `WImage` |
-| 按钮 / 徽标 | `WButton` / `WBadge` / `WRowButtons` |
+| 按钮 / 徽标 | `WButton` / `WBadge` / `WActionRow` / `WSelectableRow` |
 | 裁剪 | `WClipRRect` |
 | 加载指示 | `WGradientCircularProgressIndicator` |
 | 列表保活 | `WKeepAliveWrapper` |
 | 滚动通知 | `WNotificationListenerBuilder` |
 | 布局 | `WScaffold` / `WAppBar` / `WListView` |
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
-| 屏幕工具 | `WScreen` / `WSizeBox` / `WPadding` / `WColumn` / `WRow` |
+| 屏幕工具 | `WScreen` |
 | 资源 | `WAssets` |
-| 扩展 | `HexColor` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
+| 扩展 | `WHexColor` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 
 ## License
 

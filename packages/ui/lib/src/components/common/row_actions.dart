@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 ///
 /// 用于工具栏 / 筛选 Chip / 快捷操作等只关心点击的场景；
 /// 需要「单选高亮」时用 [WSelectableRow]。
-class WActionRow extends StatelessWidget {
+class WActionRow extends StatefulWidget {
   const WActionRow({
     super.key,
     required this.children,
@@ -31,25 +31,49 @@ class WActionRow extends StatelessWidget {
   final ScrollController? controller;
 
   /// 滚动回调（偏移量）
+  ///
+  /// 未传 [controller] 时会自建一个内部 controller 来接收滚动事件。
   final ValueChanged<double>? onScroll;
 
   @override
+  State<WActionRow> createState() => _WActionRowState();
+}
+
+class _WActionRowState extends State<WActionRow> {
+  ScrollController? _internalController;
+
+  ScrollController get _effectiveController {
+    if (widget.controller != null) return widget.controller!;
+    return _internalController ??= ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _internalController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final needsScrollEvents = widget.onScroll != null;
     Widget scroll = SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      controller: controller,
-      physics: physics,
+      controller: needsScrollEvents ? _effectiveController : widget.controller,
+      physics: widget.physics,
       child: Padding(
-        padding: padding ?? EdgeInsets.zero,
-        child: Wrap(spacing: spacing, children: children),
+        padding: widget.padding ?? EdgeInsets.zero,
+        child: Wrap(spacing: widget.spacing, children: widget.children),
       ),
     );
 
-    final onScroll = this.onScroll;
-    if (onScroll == null || controller == null) return scroll;
+    final onScroll = widget.onScroll;
+    if (onScroll == null) return scroll;
 
-    // 仅当调用方传了 controller 时才挂滚动监听（避免自建 controller 泄漏）
-    return _ScrollListener(controller: controller!, onScroll: onScroll, child: scroll);
+    return _ScrollListener(
+      controller: _effectiveController,
+      onScroll: onScroll,
+      child: scroll,
+    );
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Padding 工具类，提供静态工厂方法
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 `EdgeInsets` / num 扩展')
 class WPadding {
   /// 创建四边相同 padding 的 Padding

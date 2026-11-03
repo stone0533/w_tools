@@ -248,6 +248,7 @@ class WImage extends StatefulWidget {
   ///
   /// [style] 中显式给出的字段覆盖预设（尺寸、圆角仍保留），
   /// [size] 只在 [style] 没给 width/height 时生效。
+  /// remove-in: 5.0.0
   @Deprecated('用 `WImage(data, style: WImageStyle.avatar(size))`；5.0 移除')
   factory WImage.avatar(
     String data, {
@@ -282,6 +283,7 @@ class WImage extends StatefulWidget {
   ///
   /// [style] 中显式给出的字段覆盖预设；[width] / [height] 作为预设 fallback，
   /// 解码尺寸上限也按合并后的尺寸推导。
+  /// remove-in: 5.0.0
   @Deprecated('用 `WImage(data, style: WImageStyle.thumbnail(...), config: WImageLoadConfig(memCacheWidth: ...))`；5.0 移除')
   factory WImage.thumbnail(
     String data, {
@@ -322,6 +324,7 @@ class WImage extends StatefulWidget {
   /// 封面图：固定比例 + 可选圆角。
   ///
   /// [style] 中显式给出的字段覆盖预设；[aspectRatio] / [radius] 作为 fallback。
+  /// remove-in: 5.0.0
   @Deprecated('用 `WImage(data, style: WImageStyle.cover(...))`；5.0 移除')
   factory WImage.cover(
     String data, {
@@ -350,6 +353,7 @@ class WImage extends StatefulWidget {
   /// 资源图片：默认拼 `WAssets.imagePath`
   ///
   /// 兼容入口；新代码优先用 `WImage.asset(name, prefix: true)`。
+  /// remove-in: 5.0.0
   @Deprecated('用 `WImage.asset(name, prefix: true)`；5.0 移除')
   factory WImage.assetImage(
     String name, {

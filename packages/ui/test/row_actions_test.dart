@@ -25,6 +25,32 @@ void main() {
     expect(taps, 1);
   });
 
+  testWidgets('WActionRow 不传 controller 时 onScroll 仍回调', (tester) async {
+    final offsets = <double>[];
+
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          width: 200,
+          child: WActionRow(
+            spacing: 8,
+            onScroll: offsets.add,
+            children: List.generate(
+              20,
+              (index) => SizedBox(width: 80, child: Text('item-$index')),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.drag(find.byType(WActionRow), const Offset(-200, 0));
+    await tester.pumpAndSettle();
+
+    expect(offsets, isNotEmpty);
+    expect(offsets.last, greaterThan(0));
+  });
+
   testWidgets('WSelectableRow 点击回调与选中态', (tester) async {
     var selected = 0;
     late StateSetter setState;

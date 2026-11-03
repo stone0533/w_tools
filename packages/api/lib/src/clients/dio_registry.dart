@@ -92,7 +92,10 @@ class DioRegistry {
     );
   }
 
-  /// 比较两个 BaseOptions 的关键网络配置
+  /// 比较两个 BaseOptions 的关键网络配置。
+  ///
+  /// `validateStatus` 按引用比较（默认实现是同一个顶层函数；自定义闭包即使语义
+  /// 相同也会被视为不同配置）。
   static bool _sameOptions(BaseOptions a, BaseOptions b) {
     return a.connectTimeout == b.connectTimeout &&
         a.receiveTimeout == b.receiveTimeout &&
@@ -101,6 +104,9 @@ class DioRegistry {
         a.contentType == b.contentType &&
         a.followRedirects == b.followRedirects &&
         a.receiveDataWhenStatusError == b.receiveDataWhenStatusError &&
+        a.persistentConnection == b.persistentConnection &&
+        a.listFormat == b.listFormat &&
+        identical(a.validateStatus, b.validateStatus) &&
         mapEquals(a.headers, b.headers) &&
         mapEquals(a.extra, b.extra);
   }

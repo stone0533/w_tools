@@ -8,6 +8,7 @@ import 'read_only_scope.dart';
 /// Row 扩展，为 Row 附加表单边框（[WFormFieldShell]）及内部只读下发能力
 ///
 /// 4.0 移除：直接用 [WFormFieldShell]（`child:` 传 Row 即可），行为一致。
+/// remove-in: 4.0.0
 @Deprecated('4.0 移除：直接用 `WFormFieldShell(name: ..., child: Row(...))`')
 extension WFormRowBorderExtension on Row {
   /// 为 Row 添加表单边框装饰，并把内部输入组件统一为只读 / 可编辑

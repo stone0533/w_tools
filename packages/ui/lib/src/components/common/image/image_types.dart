@@ -114,6 +114,7 @@ sealed class WImageError implements Exception {
 }
 
 /// 数据为空（空串 / 纯空白）
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageEmptyError extends WImageError {
   /// 创建错误
@@ -124,6 +125,7 @@ final class WImageEmptyError extends WImageError {
 }
 
 /// 网络加载失败
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageNetworkError extends WImageError {
   /// 创建错误
@@ -137,6 +139,7 @@ final class WImageNetworkError extends WImageError {
 }
 
 /// 本地资源加载失败
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageAssetError extends WImageError {
   /// 创建错误
@@ -150,6 +153,7 @@ final class WImageAssetError extends WImageError {
 }
 
 /// Base64 解码失败
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageDecodeError extends WImageError {
   /// 创建错误
@@ -163,6 +167,7 @@ final class WImageDecodeError extends WImageError {
 }
 
 /// 任意 [ImageProvider] / 内存图片解码失败
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageProviderError extends WImageError {
   /// 创建错误
@@ -176,6 +181,7 @@ final class WImageProviderError extends WImageError {
 }
 
 /// 本地文件读取失败
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageFileError extends WImageError {
   /// 创建错误
@@ -189,6 +195,7 @@ final class WImageFileError extends WImageError {
 }
 
 /// 当前平台不支持该来源（例如 Web 上的 `file://`）
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：用 WImageError.kind')
 final class WImageUnsupportedError extends WImageError {
   /// 创建错误

@@ -8,6 +8,7 @@ import 'image_types.dart';
 /// 只负责默认占位符、错误占位和进度 UI；图片颜色/圆角/边框等视觉样式
 /// 仍由 [WImageStyle] 决定。
 @immutable
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：WImageDefaultsScope 直接接收 WImageLoadConfig')
 class WImageDefaults {
   const WImageDefaults({

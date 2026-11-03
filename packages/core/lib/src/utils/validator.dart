@@ -99,6 +99,7 @@ class WValidator {
   /// 对输入做基础的 SQL 注入字符清洗
   ///
   /// 仅做转义与危险字符移除，不能替代参数化查询。
+  /// remove-in: 3.0.0
   @Deprecated('3.0 移除：用参数化查询，不要靠字符替换防注入')
   static String escapeSql(String input) {
     return input
@@ -115,6 +116,7 @@ class WValidator {
   /// 对输入做基础的 XSS 字符清洗
   ///
   /// 移除常见标签与事件属性，不能替代输出侧的 HTML 转义。
+  /// remove-in: 3.0.0
   @Deprecated('3.0 移除：展示前用 HTML 转义 / 渲染器处理，不要靠正则剥标签')
   static String stripHtml(String input) {
     return input

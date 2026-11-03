@@ -11,6 +11,7 @@ import 'async_view_defaults.dart';
 /// [refreshingSliverBuilder] 必须返回 sliver。
 ///
 /// 2.2 起推荐 [WAsyncTheme]（`sliver*Builder`）；本类 3.0 移除。
+/// remove-in: 3.0.0
 @Deprecated('2.2 起用 WAsyncTheme 的 sliver*Builder；3.0 移除')
 class WAsyncSliverDefaults extends InheritedWidget {
   const WAsyncSliverDefaults({

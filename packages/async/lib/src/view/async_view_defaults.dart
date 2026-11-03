@@ -19,6 +19,7 @@ typedef WAsyncErrorWidgetBuilder = Widget Function(
 /// 不会读取这些默认值。
 ///
 /// 2.2 起推荐 [WAsyncTheme]（普通 + sliver 一套装完）；本类 3.0 移除。
+/// remove-in: 3.0.0
 @Deprecated('2.2 起用 WAsyncTheme；3.0 移除')
 class WAsyncViewDefaults extends InheritedWidget {
   const WAsyncViewDefaults({

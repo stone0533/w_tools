@@ -36,6 +36,13 @@ void main() {
       expect(style.backgroundColor, Colors.blue);
     });
 
+    test('copyWith 对非空字段传 null 表示保留', () {
+      final style = WToastStyle.defaults.copyWith(duration: const Duration(seconds: 5));
+      final kept = style.copyWith(duration: null, align: null, animationDuration: null);
+      expect(kept.duration, const Duration(seconds: 5));
+      expect(kept.align, WToastStyle.defaults.align);
+    });
+
     test('defaults 是 2 秒居中', () {
       expect(WToastStyle.defaults.duration, const Duration(seconds: 2));
       expect(WToastStyle.defaults.align, Alignment.center);

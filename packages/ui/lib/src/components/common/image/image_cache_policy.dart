@@ -7,6 +7,7 @@ import 'package:flutter/painting.dart';
 ///
 /// 直接作用于 Flutter 的 [ImageCache]，对 asset / 网络 / Base64 解码后的位图统一生效。
 /// 这是**无 context** 的进程级配置；占位符默认值请用 `WImageDefaultsScope`。
+/// remove-in: 5.0.0
 @Deprecated('5.0 移除：直接配置 PaintingBinding.instance.imageCache')
 class WImageCachePolicy {
   WImageCachePolicy._();
