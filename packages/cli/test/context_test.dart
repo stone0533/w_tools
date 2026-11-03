@@ -62,6 +62,17 @@ void main() {
     expect(ProjectContext.load(bare, DoctorConfig()).name, p.basename(bare.path));
   });
 
+  test('toolkitExports 支持带数字的包名', () {
+    final root = _project({
+      'pubspec.yaml': 'name: demo\n',
+      'lib/app/w/toolkit.dart':
+          "export 'package:w_tools_e2e/e2e.dart';\n"
+          "export 'package:w_tools_ui/w_tools_ui.dart';\n",
+    });
+    final ctx = ProjectContext.load(root, DoctorConfig());
+    expect(ctx.facts.toolkitExports, containsAll(<String>['w_tools_e2e', 'w_tools_ui']));
+  });
+
   test('filesUnder 只返回指定前缀', () {
     final root = _project({
       'pubspec.yaml': 'name: demo\n',

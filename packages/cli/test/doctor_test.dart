@@ -69,6 +69,15 @@ void main() {
       expect(r.issues.single.file, 'lib/app/foo.dart');
     });
 
+    test('包名带数字的子包也能命中（w_tools_e2e）', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/app/foo.dart': "import 'package:w_tools_e2e/e2e.dart';\n",
+      });
+      final r = R2DirectSubpackageImport.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.issues.single.message, contains('w_tools_e2e'));
+    });
+
     test('直接 import 聚合包 → error', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',

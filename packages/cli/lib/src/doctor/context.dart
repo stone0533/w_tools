@@ -124,7 +124,7 @@ class ProjectFacts {
     String? actualToolkitPath;
     if (toolkitFile.existsSync()) {
       actualToolkitPath = ctx.config.toolkitEntry;
-      final pattern = RegExp(r"""export\s+['"]package:(w_tools_[a-z]+)/""");
+      final pattern = RegExp(r"""export\s+['"]package:(w_tools_[a-z0-9_]+)/""");
       exports =
           pattern
               .allMatches(toolkitFile.readAsStringSync())

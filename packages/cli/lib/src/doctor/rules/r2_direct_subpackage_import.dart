@@ -10,7 +10,7 @@ class R2DirectSubpackageImport {
   static const title = '直连子包 import';
 
   static final _importPattern = RegExp(
-    r"""^\s*(?:import|export)\s+['"]package:(w_tools(?:_[a-z]+)?)/""",
+    r"""^\s*(?:import|export)\s+['"]package:(w_tools(?:_[a-z0-9_]+)?)/""",
   );
 
   static DoctorRuleResult check(ProjectContext ctx, DoctorConfig config) {

@@ -4,6 +4,7 @@
 
 ### Changed
 - `--figma` 模板补充 frames 过滤、多画板 spec、node-only 和自动缓存选择说明。
+- doctor R2 / ProjectFacts 的包名正则支持数字（如 `w_tools_e2e`）。
 
 ## 1.7.4
 
