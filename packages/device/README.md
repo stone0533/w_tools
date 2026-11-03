@@ -6,6 +6,7 @@
 dart run w_tools_device:device list                 # 列出模拟器（含 udid / 状态）
 dart run w_tools_device:device boot "iPhone 17 Pro"
 dart run w_tools_device:device shot --out /tmp/a.png
+dart run w_tools_device:device shot --real --device=<udid|名称>   # 真机截图（需解锁）
 dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备屏幕的坐标
 dart run w_tools_device:device tap 200 840          # 用「设备坐标」点，自动换算
 dart run w_tools_device:device drag 200 700 200 300
@@ -17,7 +18,11 @@ dart run w_tools_device:device verify 200 840 --region=0,40,402,80
 ```
 
 选项：`--device=<udid|名称>`、`--no-cache`（强制重标定）、`--scale=3`（像素密度）、
-`--timeout-ms=15000`、`--stable-ms=600`、`--region=x,y,w,h`（设备坐标，只看这块区域）。
+`--timeout-ms=15000`、`--stable-ms=600`、`--region=x,y,w,h`（设备坐标，只看这块区域）、
+`--real`（真机：仅 list / shot）、`--json`（脚本/CI 用，结构化输出）。
+
+真机说明：列表/截图走 `devicectl`；**点击真机需要 idb 或 XCUITest，本工具不支持**。
+锁屏/息屏时 `devicectl` 会返回全黑图，工具会给出 `warning`（`--json` 里也有）。
 
 退出码：`0` 成功 · `1` 参数/执行错误 · `2` `verify` 点下去画面没变化（坐标可能失效）。
 

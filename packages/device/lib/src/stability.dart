@@ -115,3 +115,25 @@ class TapVerifier {
     return before != await fingerprint();
   }
 }
+
+/// 截图健康检查：真机锁屏/息屏时 devicectl 会吐一张全黑图。
+class ScreenStats {
+  const ScreenStats._();
+
+  /// 采样判断是否「几乎全黑」（亮度均值 < [threshold]）。
+  static bool isMostlyDark(Uint8List pngBytes, {int threshold = 12, int step = 8}) {
+    final image = img.decodePng(pngBytes);
+    if (image == null) return false;
+    var sum = 0;
+    var count = 0;
+    for (var y = 0; y < image.height; y += step) {
+      for (var x = 0; x < image.width; x += step) {
+        final p = image.getPixel(x, y);
+        sum += (p.r.toInt() + p.g.toInt() + p.b.toInt()) ~/ 3;
+        count++;
+      }
+    }
+    if (count == 0) return false;
+    return sum / count < threshold;
+  }
+}

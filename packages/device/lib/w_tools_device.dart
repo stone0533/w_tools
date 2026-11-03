@@ -6,6 +6,8 @@ export 'src/calibration_store.dart';
 export 'src/device_hub.dart';
 export 'src/geometry.dart';
 export 'src/input.dart';
+export 'src/options.dart';
+export 'src/real_device.dart';
 export 'src/shell.dart';
 export 'src/simctl.dart';
 export 'src/stability.dart';
