@@ -1097,7 +1097,7 @@ flutter run -d <SIM_UDID> -t tool/main_e2e.dart \
 实现建议（照本项目抄）：
 - `lib/app/bootstrap.dart`：启动流程 + 可选 `afterStart` 钩子（生产入口传 null）
 - `lib/main.dart`：`bootstrap()`，**不 import 任何测试包**
-- `tool/main_e2e.dart`：`bootstrap(afterStart: ...)`，在这里调 `w_tools_e2e` 的 `E2eLogin.run`
+- `tool/main_e2e.dart`（需手动创建）：`bootstrap(afterStart: ...)`，在这里调 `w_tools_e2e` 的 `E2eLogin.run`
 
 生效条件：`E2E=1` + 账号密码非空 + 非 release。凭证不进仓库（编译期常量）。
 若项目还没实现，参考 `lib/app/w/e2e.dart` 的写法（`E2eLogin.run()` + 启动后调用）。
@@ -1114,7 +1114,8 @@ n0=$(grep -c "<接口路径片段>" /tmp/run.log)
 一次性依赖：
 
 ```bash
-dart pub add dev:w_tools_device dev:w_tools_e2e
+dart pub add dev:w_tools_device
+flutter pub add dev:w_tools_e2e
 brew install cliclick            # 点模拟器用
 # 系统设置 → 隐私与安全性 → 给「运行 agent 的宿主 App」开：辅助功能 + 屏幕录制
 ```

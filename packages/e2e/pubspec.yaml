@@ -1,7 +1,9 @@
 name: w_tools_e2e
 description: 端到端验证用的免登录入口（编译期开关，release 天然失效）。
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/e2e
+issue_tracker: https://github.com/stone0533/w_tools/issues
 version: 0.1.0
-publish_to: none
 resolution: workspace
 
 environment:

@@ -2,6 +2,19 @@
 
 设备验证小工具（模拟器为主）。**只读 + 点击**，不改 App 代码。
 
+## 安装
+
+```yaml
+dev_dependencies:
+  w_tools_device: ^0.1.0
+```
+
+或：
+
+```bash
+dart pub add dev:w_tools_device
+```
+
 ```bash
 dart run w_tools_device:device list                 # 列出模拟器（含 udid / 状态）
 dart run w_tools_device:device boot "iPhone 17 Pro"

@@ -1,7 +1,9 @@
 name: w_tools_device
 description: 设备验证小工具：列模拟器 / 启动 / 截图 / 在 DeviceHub 里点击（自动标定坐标）。
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/device
+issue_tracker: https://github.com/stone0533/w_tools/issues
 version: 0.1.0
-publish_to: none
 resolution: workspace
 
 environment:

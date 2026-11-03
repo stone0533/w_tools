@@ -2,6 +2,19 @@
 
 设备/集成验证用的**免登录入口**。编译期开关，凭证不进仓库，release 包天然失效。
 
+## 安装
+
+```yaml
+dev_dependencies:
+  w_tools_e2e: ^0.1.0
+```
+
+或：
+
+```bash
+flutter pub add dev:w_tools_e2e
+```
+
 ```dart
 // main.dart：app.start() 之后
 if (E2eConfig.fromEnvironment().canAutoLogin) {
