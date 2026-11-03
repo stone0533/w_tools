@@ -11,10 +11,9 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 进程级缓存预算；占位符/错误占位默认值交给 WImageDefaultsScope。
-  WImageCachePolicy.configure(
-    maxSize: 300,
-    maxMemoryBytes: 300 * 1024 * 1024,
-  );
+  PaintingBinding.instance.imageCache
+    ..maximumSize = 300
+    ..maximumSizeBytes = 300 * 1024 * 1024;
 
   runApp(
     WImageDefaultsScope(

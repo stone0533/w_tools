@@ -24,7 +24,6 @@ import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 export 'image_frame.dart';
 export 'image_cache_policy.dart';
 export 'image_error_view.dart';
-export 'image_loader.dart';
 export 'image_source.dart';
 export 'image_style.dart';
 export 'image_config.dart';

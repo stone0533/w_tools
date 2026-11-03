@@ -9,6 +9,7 @@ import 'image_types.dart';
 
 /// 图片加载快照（供 [WImageController.state] 监听）。
 @immutable
+@internal
 class WImageLoadSnapshot {
   const WImageLoadSnapshot({
     this.status,
@@ -58,6 +59,7 @@ class WImageLoadSnapshot {
 /// 图片加载状态持有者：把 `WImageLoadState` 与 `ValueListenable` 组合。
 ///
 /// 渲染仍由 WImage 的 State 负责；Loader 负责可观察的加载状态。
+@internal
 class WImageLoader extends WImageLoadState {
   WImageLoader({
     required int retryCount,

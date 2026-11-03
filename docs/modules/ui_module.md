@@ -49,8 +49,8 @@ ui/
     │   │   │   ├── image_source.dart           # WImageSource（sealed）
     │   │   │   ├── image_style.dart            # WImageStyle
     │   │   │   ├── image_config.dart           # WImageConfig
-    │   │   │   ├── image_cache_policy.dart     # WImageCachePolicy
-    │   │   │   ├── image_loader.dart           # WImageLoader / WImageLoadSnapshot
+    │   │   │   ├── image_cache_policy.dart     # WImageCachePolicy（弃用）
+    │   │   │   ├── image_loader.dart           # 内部加载器（不导出）
     │   │   │   ├── image_load_state.dart       # 内部状态基类
     │   │   │   ├── image_frame.dart            # WImageFrame
     │   │   │   ├── image_defaults.dart         # WImageDefaultsScope
@@ -769,7 +769,7 @@ WImage.source(
 - `WImageStyle` 不可变，只管视觉/布局/语义；`WImageConfig` 不可变，管加载/重试/占位/进度；
 - `WImageDefaultsScope`（InheritedWidget）可按子树覆盖默认占位符/错误占位/进度 UI；
 - `WImageController.state` 暴露 `ValueListenable<WImageLoadSnapshot>`（status / progress / attempt）；
-- 重试定时器、错误分类、进度上报与状态去重都在 `WImageLoader` 内，`WImage` 的 State 只负责构建与渲染；
+- 重试定时器、错误分类、进度上报与状态去重都在内部加载器内（不对外导出），`WImage` 的 State 只负责构建与渲染；
 - 网络图统一走 `CachedNetworkImageProvider` + `Image`：磁盘缓存仍由 `cached_network_image` 负责，
   进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`；
 - 字符串入口 `WImage(data:, style:, config:)` 与命名构造仍保留，内部会转换成 `WImageSource` + `WImageStyle` + `WImageConfig`；

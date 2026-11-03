@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.1.0
+
+### Changed
+- `WImageLoader` / `WImageLoadSnapshot` 不再从公共 barrel 导出（内部实现）；测试改用 src 导入。
+- `WImageCachePolicy` 弃用（5.0 移除）：直接配置 `PaintingBinding.instance.imageCache`。
+
 ## 4.0.0
 
 ### Breaking
