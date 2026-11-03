@@ -165,8 +165,14 @@ class WMapZone<T> {
   /// 区域名称
   String? name;
 
-  /// Marker 集合
+  /// Marker 集合（按 [initMap] 的结果重建，未变化的条目复用同一实例）
   Set<Marker> markers = {};
+
+  /// 上一次生成的 Marker（按 id 缓存，减少 Google Maps 重建闪烁）
+  final Map<String, Marker> _markerCache = {};
+
+  /// 上次生成 Marker 时的内容签名（id -> 签名）
+  final Map<String, Object> _markerSignatures = {};
 
   /// 地图数据列表
   List<T>? maps;
@@ -290,25 +296,56 @@ class WMapZone<T> {
   /// 依据 [maps] 生成 [markers]，并以首个条目作为初始相机位置。
   /// 若 [maps] 为空，[cameraPosition] 保持为 null。
   void initMap() {
-    markers.clear();
     final renderable = <T>[];
+    final nextMarkers = <Marker>{};
+    final nextCache = <String, Marker>{};
+    final nextSignatures = <String, Object>{};
+
     maps?.forEach((element) {
       if (mapper.isValid?.call(element) == false) return;
       renderable.add(element);
-      markers.add(
-        Marker(
-          markerId: MarkerId(mapper.id(element)),
-          position: _latLngOf(element),
-          infoWindow: InfoWindow(title: mapper.name?.call(element)),
-          icon: _iconFor(element),
-          onTap: () {
-            for (final listener in List<void Function(T)>.of(_onMarkerTaps)) {
-              listener(element);
-            }
-          },
-        ),
+
+      final id = mapper.id(element);
+      final position = _latLngOf(element);
+      final name = mapper.name?.call(element);
+      final icon = _iconFor(element);
+      final signature = Object.hash(
+        identityHashCode(element),
+        name,
+        position.latitude,
+        position.longitude,
+        identityHashCode(icon),
       );
+
+      final cached = _markerCache[id];
+      final marker = cached != null && _markerSignatures[id] == signature
+          ? cached
+          : Marker(
+              markerId: MarkerId(id),
+              position: position,
+              infoWindow: InfoWindow(title: name),
+              icon: icon,
+              onTap: () {
+                for (final listener in List<void Function(T)>.of(_onMarkerTaps)) {
+                  listener(element);
+                }
+              },
+            );
+
+      nextMarkers.add(marker);
+      nextCache[id] = marker;
+      nextSignatures[id] = signature;
     });
+
+    _markerCache
+      ..clear()
+      ..addAll(nextCache);
+    _markerSignatures
+      ..clear()
+      ..addAll(nextSignatures);
+    markers
+      ..clear()
+      ..addAll(nextMarkers);
     final first = renderable.firstOrNull;
     if (first != null) {
       cameraPosition = CameraPosition(
@@ -399,6 +436,9 @@ class _WMapState<T> extends State<WMap<T>> {
   /// 最近一次应用到地图的相机位置（避免每次数据刷新都重置用户的手势）
   CameraPosition? _appliedCamera;
 
+  /// 当前 GoogleMap 的控制器（dispose 时只清理自己创建的那个）
+  GoogleMapController? _mapController;
+
   @override
   void initState() {
     super.initState();
@@ -423,6 +463,9 @@ class _WMapState<T> extends State<WMap<T>> {
   void dispose() {
     _unwire();
     widget.controller?._detach(this);
+    if (identical(widget.zone.googleMapController, _mapController)) {
+      widget.zone.googleMapController = null;
+    }
     super.dispose();
   }
 
@@ -468,6 +511,7 @@ class _WMapState<T> extends State<WMap<T>> {
       widget.config.closeZoom,
       item,
     );
+    if (!mounted) return;
     widget.config.onItemClosed?.call(item);
   }
 
@@ -531,6 +575,7 @@ class _WMapState<T> extends State<WMap<T>> {
           zone.cameraPosition ?? const CameraPosition(target: LatLng(0, 0), zoom: 1),
       onMapCreated: (GoogleMapController controller) {
         zone.googleMapController = controller;
+        _mapController = controller;
         _appliedCamera = zone.cameraPosition;
       },
       onTap: widget.config.onMapTap == null

@@ -85,6 +85,37 @@ void main() {
   });
 
   group('WMapZone<T> — 纯 Dart', () {
+    test('同一批条目 update 时复用 Marker 实例', () {
+      final items = <_TestMapItem>[
+        const _TestMapItem(id: 'a', name: 'A', latitude: 31, longitude: 121),
+        const _TestMapItem(id: 'b', name: 'B', latitude: 32, longitude: 122),
+      ];
+      final zone = WMapZone<_TestMapItem>(maps: items);
+      final first = zone.markers.toList();
+
+      zone.update(items);
+      final second = zone.markers.toList();
+
+      expect(identical(first[0], second[0]), isTrue);
+      expect(identical(first[1], second[1]), isTrue);
+    });
+
+    test('条目内容变化时重建对应 Marker', () {
+      final items = <_TestMapItem>[
+        const _TestMapItem(id: 'a', name: 'A', latitude: 31, longitude: 121),
+      ];
+      final zone = WMapZone<_TestMapItem>(maps: items);
+      final first = zone.markers.first;
+
+      zone.update(<_TestMapItem>[
+        const _TestMapItem(id: 'a', name: 'A2', latitude: 31, longitude: 121),
+      ]);
+      final second = zone.markers.first;
+
+      expect(identical(first, second), isFalse);
+      expect(second.infoWindow.title, 'A2');
+    });
+
     test('空 maps → markers 为空, cameraPosition null', () {
       final zone = WMapZone<_TestMapItem>();
       expect(zone.markers, isEmpty);

@@ -21,7 +21,7 @@ const _subpackageConstraints = <String, String>{
   'w_tools_api': '^2.0.0',
   'w_tools_toast': '^1.3.0',
   'w_tools_qr': '^1.1.0',
-  'w_tools_map': '^1.3.0',
+  'w_tools_map': '^1.3.1',
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）

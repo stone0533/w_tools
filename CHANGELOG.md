@@ -1,3 +1,7 @@
+## 3.0.22
+
+- 抬高 `w_tools_map` 约束到 `^1.3.1`：Marker 复用、控制器清理、closeSelection 挂载判断。
+
 ## 3.0.21
 
 - 抬高 `w_tools_qr` 约束到 `^1.1.0`：`onScanned` 可选、默认扫描间隔 400ms、overlay 值相等。
