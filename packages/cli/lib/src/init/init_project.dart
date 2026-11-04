@@ -295,6 +295,13 @@ InitReport runInit(
     );
   }
 
+  final oldDeviceDoc = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
+  if (oldDeviceDoc.existsSync() && oldDeviceDoc.readAsStringSync().contains('--device-test')) {
+    report.warnings.add(
+      'docs/agents/device-testing.md 仍包含已移除的 --device-test；运行 init --force-starters 更新',
+    );
+  }
+
   _collectStale(report, root, features, targets, device: device);
   // --check 只读：manifest 是本次 init 的运行记录，check 模式下不写、也不参与 drift
   // （否则 CLI 升级后 generator 版本变化会让 --check-drift 永远红）。
@@ -341,7 +348,9 @@ void _collectStale(
     }
   }
   // 旧版 init --device-test 生成过这个文件；现在不再生成，只提示，不自动删。
-  if (File(p.join(root.path, _legacyDeviceTestFile)).existsSync()) {
+  // 只认旧 starter 的固定文件头，避免把用户自己复制的新示例当成生成物。
+  final legacy = File(p.join(root.path, _legacyDeviceTestFile));
+  if (legacy.existsSync() && legacy.readAsStringSync().startsWith('// 复制到新项目的 integration_test/')) {
     report.stale.add('$_legacyDeviceTestFile（旧版 device-test 生成物，未删除）');
   }
 

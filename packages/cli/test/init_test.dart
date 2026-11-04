@@ -218,6 +218,15 @@ void main() {
       expect(report.pubspecSnippet, contains('w_tools_device'));
     });
 
+    test('旧 device 文档含 --device-test 时提示 force-starters', () async {
+      final root = makeProject();
+      final file = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync('run init --device-test\n');
+      final report = runInit(root);
+      expect(report.warnings.any((w) => w.contains('force-starters')), isTrue);
+    });
+
     test('--device 已存在时保留用户改动（starter 语义）', () async {
       final root = makeProject();
       runInit(root, device: true);

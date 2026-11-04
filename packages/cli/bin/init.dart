@@ -128,6 +128,7 @@ void main(List<String> argv) {
     ..addFlag('with-map', negatable: false)
     ..addFlag('figma', negatable: true, defaultsTo: false)
     ..addFlag('device', negatable: true, defaultsTo: false)
+    ..addFlag('device-test', negatable: false, hide: true, defaultsTo: false)
     ..addFlag('instructions', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
@@ -169,6 +170,11 @@ void main(List<String> argv) {
       final figmaEnabled = options.figma;
       final deviceEnabled = options.device;
 
+      if (args.wasParsed('device-test')) {
+        stderr.writeln(
+          '--device-test 已移除；本次按 --device 生成设备工具，不再生成 UI keep-alive 示例。',
+        );
+      }
       final report = runInit(
         root,
         force: options.force,

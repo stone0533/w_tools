@@ -110,7 +110,9 @@ class InitOptions {
     final figma = args.wasParsed('figma')
         ? args['figma'] as bool
         : (manifest?.figma ?? _resolveFigma(root, config));
-    var device = args.wasParsed('device')
+    final device = (args['device-test'] as bool)
+        ? true
+        : args.wasParsed('device')
         ? args['device'] as bool
         : (manifest?.device ?? _hasDependency(root, 'w_tools_device'));
     return InitOptions(

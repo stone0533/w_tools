@@ -23,11 +23,4 @@ flutter test integration_test/app_keepalive_smoke_test.dart -d <device>
 - `w_tools_ui` 内部已有 `WKeepAliveWrapper` 的 widget 测试；这个示例只用于真实引擎/设备冒烟；
 - `init --device` 只生成设备工具，不生成这个测试。
 
-连接设备（mock）：
-
-```dart
-void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  // 用真实 App 入口替换 _Harness
-}
-```
+> 该测试需要 macOS + 真机/模拟器，普通 Linux CI 不跑；发布前或有设备时手动执行。
