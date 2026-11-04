@@ -8,6 +8,7 @@
 - 全局默认：`WAsyncTheme`（普通 + sliver 一套）
 - 状态构建器：`WAsyncStateBuilder` / `WAsyncErrorView`
 - 执行编排：`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`
+- 执行入口补充：`map` / `serial` / `first`
 - 真实场景：提交重试+取消、启动并行、限流上传、搜索竞态
 
 ## 运行
@@ -43,7 +44,7 @@ test/
 
 ## 真实场景页
 
-底部导航的「场景」页把 `WAsync` 放进了四类真实用法：
+底部导航的「真实场景」页把 `WAsync` 放进了四类真实用法：
 
 ### 提交订单
 
@@ -63,7 +64,8 @@ await WAsync.retry(
 
 - 失败自动重试；
 - 超时抛 `TimeoutException`；
-- 页面销毁 / 用户取消时 token 取消，抛 `WCancellationException`。
+- 页面销毁 / 用户取消时 token 取消，抛 `WCancellationException`；
+- 页面提供「取消提交」按钮。
 
 ### App 启动
 
@@ -98,7 +100,7 @@ final result = await WAsync.tryRun(
 );
 ```
 
-每次搜索取消旧 token；旧结果返回时用 `identical` 丢弃。
+页面上可输入关键词；每次搜索取消旧 token；旧结果返回时用 `identical` 丢弃。
 
 ## 示例说明
 

@@ -31,7 +31,7 @@ void main() {
 
   testWidgets('执行页面可以运行 WAsync.run', (tester) async {
     await tester.pumpWidget(const AsyncExampleApp());
-    await tester.tap(find.text('执行').last);
+    await tester.tap(find.text('执行 API'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(FilledButton, '执行'));
@@ -41,9 +41,9 @@ void main() {
 
   testWidgets('场景页可以提交订单（重试后成功）', (tester) async {
     await tester.pumpWidget(const AsyncExampleApp());
-    await tester.tap(find.text('场景'));
+    await tester.tap(find.text('真实场景'));
     await tester.pumpAndSettle();
-    expect(find.text('真实场景'), findsOneWidget);
+    expect(find.text('真实场景'), findsWidgets);
 
     await tester.tap(find.widgetWithText(FilledButton, '提交'));
     await tester.pump();
@@ -51,6 +51,24 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpAndSettle();
     expect(find.textContaining('提交成功'), findsOneWidget);
+  });
+
+  testWidgets('执行页覆盖 map / serial / first', (tester) async {
+    await tester.pumpWidget(const AsyncExampleApp());
+    await tester.tap(find.text('执行 API'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'map'));
+    await tester.pumpAndSettle();
+    expect(find.text('map: answer=42'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'serial'));
+    await tester.pumpAndSettle();
+    expect(find.text('serial: step 1 -> step 2'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'first'));
+    await tester.pumpAndSettle();
+    expect(find.text('first: fast'), findsOneWidget);
   });
 
   testWidgets('Sliver 页面展示四态 sliver', (tester) async {

@@ -20,7 +20,9 @@ class _ScenariosPageState extends State<ScenariosPage> {
   bool _bootstrapping = false;
   int _submitAttempt = 0;
   int _searchSeq = 0;
+  final _searchController = TextEditingController();
   WCancelToken? _submitToken;
+  WCancelToken? _uploadToken;
   WCancelToken? _searchToken;
 
   void _log(String message) {
@@ -98,7 +100,8 @@ class _ScenariosPageState extends State<ScenariosPage> {
   }
 
   Future<void> _upload() async {
-    final token = WCancelToken();
+    _uploadToken?.cancel('superseded');
+    final token = _uploadToken = WCancelToken();
     try {
       final results = await WAsync.pool<String>(
         List.generate(6, (index) {
@@ -116,10 +119,17 @@ class _ScenariosPageState extends State<ScenariosPage> {
       _log('上传已取消');
     } catch (error) {
       _log('上传失败：$error');
+    } finally {
+      if (identical(_uploadToken, token)) _uploadToken = null;
     }
   }
 
+  void _cancelUpload() {
+    _uploadToken?.cancel('用户取消上传');
+  }
+
   Future<void> _search() async {
+    final query = _searchController.text.trim().isEmpty ? 'flutter' : _searchController.text.trim();
     _searchToken?.cancel('superseded');
     final token = _searchToken = WCancelToken();
     final seq = ++_searchSeq;
@@ -128,7 +138,7 @@ class _ScenariosPageState extends State<ScenariosPage> {
       () async {
         await Future<void>.delayed(const Duration(milliseconds: 300));
         token.throwIfCancelled();
-        return '搜索结果 #$seq';
+        return '搜索“$query”结果 #$seq';
       },
       cancelToken: token,
     );
@@ -150,6 +160,8 @@ class _ScenariosPageState extends State<ScenariosPage> {
   void dispose() {
     _submitToken?.cancel('page disposed');
     _searchToken?.cancel('page disposed');
+    _uploadToken?.cancel('page disposed');
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -225,12 +237,27 @@ class _ScenariosPageState extends State<ScenariosPage> {
                 onPressed: _upload,
                 child: const Text('开始上传'),
               ),
+              OutlinedButton(
+                onPressed: _cancelUpload,
+                child: const Text('取消上传'),
+              ),
             ],
           ),
           _ScenarioCard(
             title: '搜索',
             subtitle: 'tryRun + 旧请求取消',
             actions: [
+              SizedBox(
+                width: 180,
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    hintText: '关键词（默认 flutter）',
+                    isDense: true,
+                  ),
+                  onSubmitted: (_) => _search(),
+                ),
+              ),
               FilledButton.tonal(
                 onPressed: _search,
                 child: const Text('搜索'),

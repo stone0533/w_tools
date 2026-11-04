@@ -110,11 +110,11 @@ class _ExampleHomeState extends State<_ExampleHome> {
           ),
           NavigationDestination(
             icon: Icon(Icons.play_circle_outline_rounded),
-            label: '执行',
+            label: '执行 API',
           ),
           NavigationDestination(
             icon: Icon(Icons.auto_awesome_rounded),
-            label: '场景',
+            label: '真实场景',
           ),
         ],
       ),

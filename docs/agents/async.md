@@ -25,6 +25,8 @@
 | 分页 | `WAsyncPagedController` |
 | 观测自定义 retry 失败 | `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError` |
 
+`WAsync.map` 做结果映射，`serial` 做同类型顺序任务，`first` 做多源竞速。
+
 `onRetry == null` 时不调用自定义 error / banner builder（它们要求可用的 retry）。
 
 `tryRun` 结果：

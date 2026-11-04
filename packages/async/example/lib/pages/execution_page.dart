@@ -101,6 +101,49 @@ class _ExecutionPageState extends State<ExecutionPage> {
     }
   }
 
+  Future<void> _map() async {
+    try {
+      final result = await WAsync.map<int, String>(
+        () async => 42,
+        onSuccess: (value) => 'answer=$value',
+        options: _options,
+      );
+      _log('map: $result');
+    } catch (error) {
+      _log('map error: $error');
+    }
+  }
+
+  Future<void> _serial() async {
+    try {
+      final results = await WAsync.serial<String>(
+        [
+          () async => 'step 1',
+          () async => 'step 2',
+        ],
+        options: _options,
+      );
+      _log('serial: ${results.join(' -> ')}');
+    } catch (error) {
+      _log('serial error: $error');
+    }
+  }
+
+  Future<void> _first() async {
+    try {
+      final result = await WAsync.first<String>(
+        [
+          Future.delayed(const Duration(milliseconds: 250), () => 'slow'),
+          Future.delayed(const Duration(milliseconds: 50), () => 'fast'),
+        ],
+        options: _options,
+      );
+      _log('first: $result');
+    } catch (error) {
+      _log('first error: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,6 +187,18 @@ class _ExecutionPageState extends State<ExecutionPage> {
               OutlinedButton(
                 onPressed: _cancel,
                 child: const Text('执行并取消'),
+              ),
+              FilledButton.tonal(
+                onPressed: _map,
+                child: const Text('map'),
+              ),
+              FilledButton.tonal(
+                onPressed: _serial,
+                child: const Text('serial'),
+              ),
+              FilledButton.tonal(
+                onPressed: _first,
+                child: const Text('first'),
               ),
             ],
           ),
