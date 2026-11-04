@@ -111,7 +111,10 @@ void _path(ArgResults args, Directory root, bool asJson) {
   } on FormatException catch (e) {
     _usageError(e.message);
   }
-  final target = FeedbackTarget.resolve(projectRoot: root, package: package);
+  final target = FeedbackTarget.resolve(
+    projectRoot: root,
+    package: package == null ? null : feedbackLedgerName(package),
+  );
   if (asJson) {
     print(jsonEncode(target.toJson()));
     return;
@@ -335,7 +338,8 @@ void _status(Directory root, bool asJson) {
 void _search(ArgResults args, Directory root, bool asJson) {
   final query = args.rest.skip(1).join(' ').trim();
   if (query.isEmpty) _usageError('search 需要一个关键词');
-  final package = _packageArg(args, required: false);
+  final rawPackage = _packageArg(args, required: false);
+  final package = rawPackage == null ? null : feedbackLedgerName(rawPackage);
 
   final local = searchLocal(root, package: package, query: query);
   final github = <Map<String, Object?>>[];

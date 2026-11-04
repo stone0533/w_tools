@@ -635,4 +635,13 @@ banned:
     expect(r.exitCode, 0);
     expect('${r.stdout}', contains('"channel":"disabled"'));
   });
+  test('feedback status 在仓库内输出 ledger', () async {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools\n');
+    Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
+    Directory(p.join(root.path, 'docs', 'feedback')).createSync(recursive: true);
+    final r = await _run('feedback.dart', ['status', '--root', root.path, '--json']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('"channel":"ledger"'));
+  });
 }

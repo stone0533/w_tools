@@ -107,11 +107,11 @@ Uri createGitHubIssue(
 }) {
   final gh = Process.runSync('gh', const <String>['--version']);
   if (gh.exitCode != 0) {
-    throw const FeedbackSubmitException('找不到 gh CLI；先安装并登录 gh，或使用默认的预填链接');
+    throw const FeedbackSubmitException('找不到 gh CLI；先安装并登录 gh，或在 w_tools 仓库内使用 --ledger');
   }
   final auth = Process.runSync('gh', const <String>['auth', 'status']);
   if (auth.exitCode != 0) {
-    throw const FeedbackSubmitException('gh 未登录；先运行 gh auth login，或使用默认的预填链接');
+    throw const FeedbackSubmitException('gh 未登录；先运行 gh auth login，或在 w_tools 仓库内使用 --ledger');
   }
 
   final temp = File(
