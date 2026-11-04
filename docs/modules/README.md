@@ -2,14 +2,14 @@
 
 ## 概述
 
-`w_tools` 是一个 Flutter Monorepo：**11 个 Flutter 子包** + **聚合包 `w_tools`** +
-**纯 Dart 工具包 [`w_tools_cli`](../../packages/cli/README.md)**。
+`w_tools` 是一个 Flutter Monorepo：**11 个库子包**（10 个 Flutter + 1 个纯 Dart 地图接口）
++ **聚合包 `w_tools`** + **工具包（`w_tools_cli` / `figma` / `device` / `e2e`）**。
 
-11 个 Flutter 子包中，只有 `core` / `async` / `ui` / `form` / `api` / `toast` 由根包
+11 个库子包中，只有 `core` / `async` / `ui` / `form` / `api` / `toast` 由根包
 `w_tools` 聚合导出；`app` / `app_getx` / `map` / `map_google` / `qr` 按需直接依赖。
 `w_tools_cli` 是独立的开发工具（`init` / `doctor`），只放 `dev_dependencies`，不参与聚合、也不进构建。
 
-## Flutter 子包职责
+## 库子包职责
 
 | 子包 | 路径 | 职责 |
 |------|------|------|
@@ -36,7 +36,7 @@
 
 `w_tools_cli` 依赖 `args` / `path` / `yaml`；`w_tools_figma` 只用 Dart 标准库；`w_tools_device` 依赖 `image`；`w_tools_e2e` 是 Flutter 包。
 
-## 依赖约束矩阵（Flutter 子包）
+## 依赖约束矩阵（库子包）
 
 > ✅ 表示该子包强依赖外部包（不可替换）。具体约束以各包 `pubspec.yaml` 为准。
 > 子包之间**不新增相互依赖**（含不依赖 `w_tools_ui`）：排版通过 `ThemeData.textTheme` 共享，

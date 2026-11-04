@@ -1,6 +1,6 @@
 # 发版流程（Flutter 子包 + 工具包 + 聚合包）
 
-> 历史门禁记录：[2026-11-04](release/2026-11-04-preflight.md)（旧版本，仅历史参考）。
+> 发布记录索引：[docs/release/](release/README.md)。
 >
 > 当前大版本发布清单：[2026-11-04 根包 9.0.0](release/2026-11-04-major-5.0.md)。
 
@@ -15,7 +15,7 @@ bash scripts/preflight.sh           # 只跑静态检查（最快）
 > 刚发布的版本可能暂时不可见。验证时显式 `PUB_HOSTED_URL=https://pub.dev`，并换一个全新的
 > `PUB_CACHE`，否则 pub 会复用旧的版本元数据。
 
-`w_tools` 是 11 个 Flutter 子包 + 工具包（`w_tools_cli` / `w_tools_figma` / `w_tools_device` / `w_tools_e2e`）+ 1 个聚合包。版本各自演进，所以「仓库里有什么」和
+`w_tools` 是 11 个库子包（10 个 Flutter + 1 个纯 Dart 地图接口）+ 工具包（`w_tools_cli` / `w_tools_figma` / `w_tools_device` / `w_tools_e2e`）+ 1 个聚合包。版本各自演进，所以「仓库里有什么」和
 「pub.dev 上用户能装到什么」很容易分叉 —— 例如 `w_tools_map` 曾经是仓库 1.1.0、
 pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 

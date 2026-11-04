@@ -1,3 +1,5 @@
+> 迁移记录：只描述从旧版本升级的步骤，不代表当前公开 API。
+
 # api 5.0 迁移
 
 `WLogInterceptor` 的 6 个旧 bool 参数已删除，只用 `parts`：

@@ -1,3 +1,5 @@
+> 迁移记录：只描述从旧版本升级的步骤，不代表当前公开 API。
+
 # map 1.3.1 修复：Marker 复用 / 控制器清理
 
 - `WMapZone.update()` / `initMap()` 现在按 id 缓存 Marker：条目未变化时复用同一 `Marker`

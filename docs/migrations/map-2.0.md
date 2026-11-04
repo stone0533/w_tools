@@ -1,3 +1,5 @@
+> 迁移记录：只描述从旧版本升级的步骤，不代表当前公开 API。
+
 # map 2.0 迁移
 
 `WMapZone.onDataUpdated` 已删除（多个 WMap 共享 zone 时会互相覆盖）：

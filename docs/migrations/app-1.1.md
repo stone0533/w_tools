@@ -1,3 +1,5 @@
+> 迁移记录：只描述从旧版本升级的步骤，不代表当前公开 API。
+
 # app 1.1 迁移：底部弹窗参数 / 路由回退
 
 - `WBottomSheet.show` 新增透传参数：`backgroundColor` / `barrierColor` / `isDismissible` /
