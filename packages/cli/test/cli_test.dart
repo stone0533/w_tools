@@ -644,4 +644,24 @@ banned:
     expect(r.exitCode, 0);
     expect('${r.stdout}', contains('"channel":"ledger"'));
   });
+
+  test('init 自动检测 w_tools_device 并生成设备脚手架', () async {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync(
+      'name: demo_app\n'
+      'environment:\n  sdk: ^3.10.0\n'
+      'dev_dependencies:\n  w_tools_device: ^0.1.2\n',
+    );
+    final r = await _run('init.dart', ['--root', root.path, '--profile=minimal']);
+    expect(r.exitCode, 0);
+    expect(File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(), isTrue);
+    expect(
+      File(p.join(root.path, 'docs', 'agents', 'device-testing.md')).existsSync(),
+      isTrue,
+    );
+    expect(
+      File(p.join(root.path, '.w_tools', 'init.json')).readAsStringSync(),
+      contains('"device": true'),
+    );
+  });
 }

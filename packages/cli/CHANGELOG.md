@@ -8,6 +8,11 @@
 - 新增 `feedback status` 查看 ledger / issue / disabled。
 - 错误提示改为 `feedback submit --template`（不再指向消费方不存在的仓库文件）。
 - `--issue` 文档明确需要已安装 gh（gh 读取 token 或登录态）。
+- `init` 检测到 `w_tools_device` 依赖时自动生成设备 starter / `docs/agents/device-testing.md`；
+  `--no-device` 可关闭，禁用时给出提示。
+- `context.commands` 暴露 `deviceList` / `deviceShot` / `deviceForeground`（安装 device 时），
+  并把 feedback 命令改为 `feedbackStatus` / `feedbackSubmit`。
+- device README / pubspec 描述增加平台支持矩阵（iOS 真机仅 list/shot）。
 
 ## 1.9.13
 

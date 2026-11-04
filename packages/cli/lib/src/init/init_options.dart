@@ -110,7 +110,9 @@ class InitOptions {
     final figma = args.wasParsed('figma')
         ? args['figma'] as bool
         : (manifest?.figma ?? _resolveFigma(root, config));
-    final device = args.wasParsed('device') ? args['device'] as bool : (manifest?.device ?? false);
+    final device = args.wasParsed('device')
+        ? args['device'] as bool
+        : (manifest?.device ?? _hasDependency(root, 'w_tools_device'));
 
     return InitOptions(
       profile: profile,
@@ -146,6 +148,22 @@ class InitOptionsException implements Exception {
 
   @override
   String toString() => message;
+}
+
+bool _hasDependency(Directory root, String name) {
+  final file = File('${root.path}/pubspec.yaml');
+  if (!file.existsSync()) return false;
+  try {
+    final raw = loadYaml(file.readAsStringSync());
+    if (raw is! YamlMap) return false;
+    for (final key in const <String>['dependencies', 'dev_dependencies']) {
+      final deps = raw[key];
+      if (deps is YamlMap && deps.containsKey(name)) return true;
+    }
+  } on YamlException {
+    return false;
+  }
+  return false;
 }
 
 ({bool present, String? constraint}) _figmaDependency(Directory root) {

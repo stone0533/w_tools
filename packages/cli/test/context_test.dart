@@ -38,8 +38,30 @@ void main() {
     addTearDown(() => root.deleteSync(recursive: true));
     final json = ProjectSnapshot.load(root).toJson();
     final commands = json['commands'] as Map<String, String>;
-    expect(commands['feedback'], contains('feedback path'));
+    expect(commands['feedbackStatus'], contains('feedback status'));
+    expect(commands['feedbackSubmit'], contains('feedback submit'));
     expect(commands['feedbackLint'], contains('feedback lint'));
+  });
+
+  test('安装 w_tools_device 时 context 暴露设备命令', () {
+    final root = _project({
+      'pubspec.yaml': 'name: demo\ndev_dependencies:\n  w_tools_device: ^0.1.2\n',
+      'pubspec.lock': '''
+packages:
+  w_tools_device:
+    dependency: "direct dev"
+    description:
+      name: w_tools_device
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
+''',
+    });
+    addTearDown(() => root.deleteSync(recursive: true));
+    final commands = ProjectSnapshot.load(root).commands();
+    expect(commands['deviceList'], contains('w_tools_device:device list'));
+    expect(commands['deviceShot'], contains('device shot'));
+    expect(commands['deviceForeground'], contains('foreground --android'));
   });
 
   test('默认跳过 .g.dart / .freezed.dart', () {

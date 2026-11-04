@@ -79,6 +79,11 @@ InitReport runInit(
 }) {
   final report = InitReport();
   final app = _projectName(root);
+  if (!device && _hasDeviceDependency(root)) {
+    report.warnings.add(
+      '检测到 w_tools_device，但设备脚手架未启用；运行 init --device 生成 device starter / docs',
+    );
+  }
   // --check 只读：迁移会移动文件，必须跳过（旧文件由 InitManifest.load 回退读取）
   if (!check && InitManifest.migrateLegacy(root)) {
     report.warnings.add('已把 .w_tools_init.json 迁到 ${InitManifest.fileName}');
@@ -405,6 +410,22 @@ void _upsertBlock(
   }
   file.writeAsStringSync('${content.trimRight()}\n\n$blockText\n');
   report.created.add('$rel（已追加 w_tools 片段）');
+}
+
+bool _hasDeviceDependency(Directory root) {
+  final file = File(p.join(root.path, 'pubspec.yaml'));
+  if (!file.existsSync()) return false;
+  try {
+    final raw = loadYaml(file.readAsStringSync());
+    if (raw is! YamlMap) return false;
+    for (final key in const <String>['dependencies', 'dev_dependencies']) {
+      final deps = raw[key];
+      if (deps is YamlMap && deps.containsKey('w_tools_device')) return true;
+    }
+  } on YamlException {
+    return false;
+  }
+  return false;
 }
 
 String _snippet(

@@ -22,6 +22,10 @@ flutter pub add dev:w_tools_e2e
 
 `w_tools_device` 是纯 Dart CLI；`w_tools_e2e` 是 Flutter 库。
 
+> 支持矩阵：iOS 模拟器可 list/shot/tap/drag/verify；iOS 真机仅 list/shot（点击需 idb/XCUITest，本工具不支持）；
+> Android 模拟器/真机走 adb，可 list/shot/tap/drag/verify/foreground。
+
+
 ## device
 
 先读 [`packages/device/README.md`](../../packages/device/README.md)。

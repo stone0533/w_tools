@@ -1,5 +1,5 @@
 name: w_tools_device
-description: 设备验证小工具：列模拟器 / 启动 / 截图 / 在 DeviceHub 里点击（自动标定坐标）。
+description: iOS/Android 模拟器设备验证（list/boot/shot/tap/drag/verify）；iOS 真机仅 list/shot。
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/device
 issue_tracker: https://github.com/stone0533/w_tools/issues

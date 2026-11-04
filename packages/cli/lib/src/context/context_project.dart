@@ -99,15 +99,26 @@ class ProjectSnapshot {
     'commands': commands(),
   };
 
-  Map<String, String> commands() => <String, String>{
-    'context': 'dart run w_tools_cli:context --format=json',
-    'doctor': 'dart run w_tools_cli:doctor --json',
-    'initCheck': 'dart run w_tools_cli:init --check-drift',
-    'feedback': 'dart run w_tools_cli:feedback path --package=<包>',
-    'feedbackLint': 'dart run w_tools_cli:feedback lint --include-inbox',
-    'analyze': isFlutter ? 'flutter analyze' : 'dart analyze',
-    'test': isFlutter ? 'flutter test' : 'dart test',
-  };
+  Map<String, String> commands() {
+    final result = <String, String>{
+      'context': 'dart run w_tools_cli:context --format=json',
+      'doctor': 'dart run w_tools_cli:doctor --json',
+      'initCheck': 'dart run w_tools_cli:init --check-drift',
+      'feedbackStatus': 'dart run w_tools_cli:feedback status',
+      'feedbackSubmit': 'dart run w_tools_cli:feedback submit --package=<包> --title=<标题> --stdin',
+      'feedbackLint': 'dart run w_tools_cli:feedback lint --include-inbox',
+      'analyze': isFlutter ? 'flutter analyze' : 'dart analyze',
+      'test': isFlutter ? 'flutter test' : 'dart test',
+    };
+    if (packages.containsKey('w_tools_device')) {
+      result.addAll(<String, String>{
+        'deviceList': 'dart run w_tools_device:device list',
+        'deviceShot': 'dart run w_tools_device:device shot --out=/tmp/shot.png',
+        'deviceForeground': 'dart run w_tools_device:device foreground --android',
+      });
+    }
+    return result;
+  }
 
   String toMarkdown() {
     final b = StringBuffer()

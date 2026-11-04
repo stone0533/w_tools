@@ -1,6 +1,14 @@
 # w_tools_device
 
-设备验证小工具（模拟器为主）。**只读 + 点击**，不改 App 代码。
+设备验证小工具：**iOS / Android 模拟器可交互；iOS 真机只读（list / shot）**。不改 App 代码。
+
+| 平台 | list | shot | tap / drag / verify | foreground |
+| --- | --- | --- | --- | --- |
+| iOS 模拟器 | ✅ | ✅ | ✅ | ❌ |
+| iOS 真机 | ✅ | ✅ | ❌（需 idb / XCUITest） | ❌ |
+| Android 模拟器 / 真机 | ✅ | ✅ | ✅（adb） | ✅ |
+
+> iOS 真机点击本工具不支持；安装 App 仍用 `flutter run` / Xcode / adb。Android 的 tap 坐标是截图像素。
 
 ## 安装
 
