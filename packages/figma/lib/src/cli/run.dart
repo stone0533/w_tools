@@ -160,7 +160,7 @@ Future<void> runFigmaCli(List<String> args) async {
     exitCode = 3;
   } on FigmaTokenException catch (e) {
     stderr.writeln(e.message);
-    exitCode = 4;
+    exitCode = 2;
   } on StateError catch (e) {
     stderr.writeln(e.message);
     exitCode = 1;

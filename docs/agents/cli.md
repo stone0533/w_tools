@@ -5,7 +5,7 @@
 ## 先记三步
 
 ```bash
-dart run w_tools_cli:init                 # 写入 toolkit / AGENTS / doctor 配置
+dart run w_tools_cli:w_tools init                 # 写入 toolkit / AGENTS / doctor 配置
 # 把 init 打印的 pubspec 片段加入项目，然后 dart pub get
 dart run w_tools_cli:doctor               # 0 error 才算接入完成
 ```

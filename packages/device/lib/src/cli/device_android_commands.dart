@@ -136,5 +136,5 @@ Future<void> _androidVerify(DeviceOptions o) async {
               },
       },
       'tap $x, $y（像素）：${changed ? '画面有变化 ✅' : '画面无变化 ⚠️（坐标可能失效）'}');
-  if (!changed) exitCode = 2;
+  if (!changed) exitCode = 1;
 }

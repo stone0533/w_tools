@@ -15,7 +15,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_device: ^0.1.3
+  w_tools_device: ^0.1.4
 ```
 
 或：
@@ -73,7 +73,7 @@ size --real
 iOS 真机说明：列表/截图走 `devicectl`；**点击真机需要 idb 或 XCUITest，本工具不支持**。
 锁屏/息屏时 `devicectl` 会返回全黑图，工具会给出 `warning`（`--json` 里也有）。
 
-退出码：`0` 成功 · `1` 参数/执行错误 · `2` `verify` 点下去画面没变化（坐标可能失效） · `3` `wait` 超时。
+退出码：`0` 成功 · `1` `verify` 画面没变化（findings） · `2` 参数/配置错误 · `3` 外部不可用 / 超时。
 
 依赖（一次性）：
 

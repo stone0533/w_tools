@@ -53,11 +53,22 @@ doctor → 0 error / 0 warning 才算通过
 | 回到默认 profile/targets/lang | `init --reset` |
 | 明确刷新 UI / device starter | `init --force-starters` |
 
-命令入口都是：
+退出码约定：`0` 成功 · `1` findings · `2` 参数/配置错误 · `3` 外部不可用。
+
+命令入口：
 
 ```bash
-dart run w_tools_cli:<command> --help
+# 统一入口（推荐）
+dart run w_tools_cli:w_tools <command>
+
+# 兼容入口（仍保留）
+dart run w_tools_cli:<command>
 ```
+
+```bash
+dart run w_tools_cli:w_tools doctor --help
+```
+
 
 ---
 

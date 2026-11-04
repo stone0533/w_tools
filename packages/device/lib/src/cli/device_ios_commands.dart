@@ -205,7 +205,7 @@ Future<void> _verify(Simctl simctl, DeviceOptions o) async {
       },
       'tap device($x, $y) → screen(${screen.x.round()}, ${screen.y.round()})：'
       '${changed ? '画面有变化 ✅' : '画面无变化 ⚠️（坐标可能失效）'}');
-  if (!changed) exitCode = 2;
+  if (!changed) exitCode = 1;
 }
 
 void _emitCalibration(DeviceOptions o, Calibration c) {

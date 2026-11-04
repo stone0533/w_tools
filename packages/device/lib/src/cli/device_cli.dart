@@ -146,13 +146,13 @@ Future<void> runDeviceCli(List<String> args) async {
         throw StateError('未知命令：${o.command}\n\n$_usage');
     }
   } on ProcessException catch (e) {
-    _fail(options, '命令执行失败：${e.message}', 1);
+    _fail(options, '命令执行失败：${e.message}', 3);
   } on FormatException catch (e) {
-    _fail(options, '参数错误：${e.message}', 1);
+    _fail(options, '参数错误：${e.message}', 2);
   } on StateError catch (e) {
-    _fail(options, e.message, 1);
+    _fail(options, e.message, 2);
   } on FileSystemException catch (e) {
-    _fail(options, '文件操作失败：${e.message}', 1);
+    _fail(options, '文件操作失败：${e.message}', 3);
   } on Exception catch (e) {
     _fail(options, '执行失败：$e', 1);
   }

@@ -1,6 +1,9 @@
 ## 1.9.17
 
 ### Fixed
+- 新增统一入口 `dart run w_tools_cli:w_tools <command>`；旧的 6 个 bin 保留兼容。
+- `init` 的 app/map 依赖片段更新为 `w_tools_app_getx` + `w_tools_map_google`。
+- 统一退出码约定：`0` 成功 · `1` findings · `2` 参数/配置 · `3` 外部不可用。
 - `init --check --force` 不再写 `.w_tools_doctor.yaml` / 生成 `.bak`；只报 drift。
 - 自定义 `toolkit_entry` 现在会同步进 AGENTS 的 import 路径。
 - `feedback --json` 的缺字段/参数错误也输出 JSON（`ok:false`）。

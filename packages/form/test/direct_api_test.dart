@@ -87,75 +87,6 @@ void main() {
     expect(valid, isFalse);
   });
 
-  testWidgets('config 优先于 WForm.fieldStyle', (tester) async {
-    final config = WFormTextFieldConfig()..height = 80;
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: WFormController(),
-            fieldStyle: const WFormFieldStyle(height: 52),
-            child: WFormTextField(
-              name: 'email',
-              config: config,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    final core = tester.widget<WFormTextFieldCore>(
-      find.byType(WFormTextFieldCore),
-    );
-    expect(core.config.height, 80);
-  });
-
-  testWidgets('DatePicker config 的 decoration 不被 label 覆盖', (tester) async {
-    final config = WFormDatePickerConfig()..decoration = const InputDecoration(hintText: '自定义日期');
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: WForm(
-          controller: WFormController(),
-          child: WFormDatePicker(
-            name: 'birthday',
-            label: '生日',
-            config: config,
-          ),
-        ),
-      ),
-    );
-
-    final core = tester.widget<WFormDatePickerCore>(
-      find.byType(WFormDatePickerCore),
-    );
-    expect(core.config.decoration?.hintText, '自定义日期');
-  });
-
-  testWidgets('MultiDropdown config 的 hintText 不被 label 覆盖', (tester) async {
-    final config = WFormMultiDropdownConfig()..hintText = '自定义提示';
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: WForm(
-          controller: WFormController(),
-          child: WFormMultiDropdown(
-            name: 'tags',
-            label: '兴趣',
-            items: const {'a': 'A'},
-            config: config,
-          ),
-        ),
-      ),
-    );
-
-    final core = tester.widget<WFormMultiDropdownCore>(
-      find.byType(WFormMultiDropdownCore),
-    );
-    expect(core.config.hintText, '自定义提示');
-  });
-
   testWidgets('提前创建的 validators 也能使用 WForm.validatorSettings', (tester) async {
     final form = WFormController();
     final validators = form.validators(
@@ -221,55 +152,6 @@ void main() {
     expect(core.config.height, 60);
   });
 
-  testWidgets('DatePicker 传 config 时 label 仍作为 hint 兜底', (tester) async {
-    final config = WFormDatePickerConfig()..displayFormat = 'yyyy-MM-dd';
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: WFormController(),
-            child: WFormDatePicker(
-              name: 'birthday',
-              label: '生日',
-              config: config,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    final core = tester.widget<WFormDatePickerCore>(
-      find.byType(WFormDatePickerCore),
-    );
-    expect(core.config.decoration?.hintText, '生日');
-  });
-
-  testWidgets('Button 传 config 时保留 config 的 hintWidget', (tester) async {
-    final config = WFormFieldButtonConfig()..hintWidget = const Text('config hint');
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: WFormController(),
-            child: WFormButton(
-              name: 'coupon',
-              config: config,
-              onTap: (_, didChange) {},
-            ),
-          ),
-        ),
-      ),
-    );
-
-    final core = tester.widget<WFormFieldButtonCore>(
-      find.byType(WFormFieldButtonCore),
-    );
-    expect(core.config.hintWidget, isNotNull);
-    expect(find.text('config hint'), findsOneWidget);
-  });
-
   testWidgets('边框 key 按字段 name 自动注册', (tester) async {
     final form = WFormController();
 
@@ -290,31 +172,6 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('直接字段不覆盖 config 的 enabled / obscureText / autofocus', (tester) async {
-    final config = WFormTextFieldConfig()
-      ..enabled = false
-      ..obscureText = true
-      ..autofocus = true;
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: WFormController(),
-            child: WFormTextField(name: 'password', config: config),
-          ),
-        ),
-      ),
-    );
-
-    final core = tester.widget<WFormTextFieldCore>(
-      find.byType(WFormTextFieldCore),
-    );
-    expect(core.config.enabled, isFalse);
-    expect(core.config.obscureText, isTrue);
-    expect(core.config.autofocus, isTrue);
-  });
-
   testWidgets('label 不进入 hintTextList', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -331,54 +188,6 @@ void main() {
       find.byType(WFormFieldShell),
     );
     expect(shell.hintTextList, isNull);
-  });
-
-  testWidgets('TextFieldConfig 的 hintText / decoration 生效', (tester) async {
-    final config = WFormTextFieldConfig()
-      ..hintText = '配置提示'
-      ..decoration = const InputDecoration(suffixIcon: Icon(Icons.clear));
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: WFormController(),
-            child: WFormTextField(name: 'email', config: config),
-          ),
-        ),
-      ),
-    );
-
-    final field = tester.widget<TextField>(find.byType(TextField));
-    expect(field.decoration?.hintText, '配置提示');
-    expect(field.decoration?.suffixIcon, isNotNull);
-  });
-
-  testWidgets('config 只覆盖自己设置的字段，fieldStyle 填充其余项', (tester) async {
-    final config = WFormTextFieldConfig()..obscureText = true;
-    const fieldStyle = WFormFieldStyle(
-      height: 52,
-      textStyle: TextStyle(fontSize: 18),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: WFormController(),
-            fieldStyle: fieldStyle,
-            child: WFormTextField(name: 'password', config: config),
-          ),
-        ),
-      ),
-    );
-
-    final core = tester.widget<WFormTextFieldCore>(
-      find.byType(WFormTextFieldCore),
-    );
-    expect(core.config.obscureText, isTrue);
-    expect(core.config.height, 52);
-    expect(core.config.style?.fontSize, 18);
   });
 
   testWidgets('只传 borderConfig 时，validate 失败默认可见错误文案', (tester) async {

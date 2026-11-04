@@ -3,7 +3,7 @@ description: iOS/Android 模拟器与 Android 真机设备验证（list/boot/sho
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/device
 issue_tracker: https://github.com/stone0533/w_tools/issues
-version: 0.1.3
+version: 0.1.4
 resolution: workspace
 
 environment:

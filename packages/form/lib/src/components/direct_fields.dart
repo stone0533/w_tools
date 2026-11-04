@@ -49,7 +49,6 @@ class WFormTextField extends StatelessWidget {
     this.inputFormatters,
     this.actions,
     this.leading,
-    this.config,
     this.hintTextList,
     this.isTransparentBackground,
     this.enableFocusBorder = true,
@@ -80,7 +79,6 @@ class WFormTextField extends StatelessWidget {
 
   /// 文本输入框左侧插槽；优先于 config.leading。
   final Widget? leading;
-  final WFormTextFieldConfig? config;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
@@ -88,7 +86,7 @@ class WFormTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
-    final c = config?.copy() ?? WFormTextFieldConfig();
+    final c = WFormTextFieldConfig();
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
     c.hintStyle ??= fieldStyle?.hintStyle;
@@ -145,7 +143,6 @@ class WFormDropdown<T> extends StatelessWidget {
     this.icon,
     this.dropdownColor,
     this.contentPadding,
-    this.config,
   });
 
   final String name;
@@ -167,12 +164,11 @@ class WFormDropdown<T> extends StatelessWidget {
   final Widget? icon;
   final Color? dropdownColor;
   final EdgeInsetsGeometry? contentPadding;
-  final WFormDropdownConfig? config;
 
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
-    final c = config?.copy() ?? WFormDropdownConfig();
+    final c = WFormDropdownConfig();
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
     c.hintStyle ??= fieldStyle?.hintStyle;
@@ -224,7 +220,6 @@ class WFormMultiDropdown extends StatelessWidget {
     this.itemStyle,
     this.itemCheckedStyle,
     this.itemDisabledStyle,
-    this.config,
   });
 
   final String name;
@@ -252,15 +247,14 @@ class WFormMultiDropdown extends StatelessWidget {
   final TextStyle? itemStyle;
   final TextStyle? itemCheckedStyle;
   final TextStyle? itemDisabledStyle;
-  final WFormMultiDropdownConfig? config;
 
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
-    final c = config?.copy() ?? WFormMultiDropdownConfig();
+    final c = WFormMultiDropdownConfig();
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
-    if (config == null) c.hintText = label ?? c.hintText;
+    c.hintText = label ?? c.hintText;
     if (enabled != null) c.enabled = enabled!;
     if (icon != null) c.icon = icon;
     if (iconSize != null) c.iconSize = iconSize;
@@ -310,7 +304,6 @@ class WFormDatePicker extends StatelessWidget {
     this.hintTextList,
     this.isTransparentBackground,
     this.enableFocusBorder = true,
-    this.config,
   });
 
   final String name;
@@ -335,12 +328,11 @@ class WFormDatePicker extends StatelessWidget {
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
-  final WFormDatePickerConfig? config;
 
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
-    final c = config?.copy() ?? WFormDatePickerConfig();
+    final c = WFormDatePickerConfig();
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
     if (displayFormat != null) c.displayFormat = displayFormat!;
@@ -389,7 +381,6 @@ class WFormCheckbox extends StatelessWidget {
     this.disabledIcon,
     this.iconSpacing,
     this.iconYOffset,
-    this.config,
   });
 
   final String name;
@@ -408,12 +399,11 @@ class WFormCheckbox extends StatelessWidget {
   final Widget? disabledIcon;
   final double? iconSpacing;
   final double? iconYOffset;
-  final WFormCheckboxConfig? config;
 
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
-    final c = config?.copy() ?? WFormCheckboxConfig();
+    final c = WFormCheckboxConfig();
     _applyBaseStyle(c, fieldStyle);
     if (enabled != null) c.enabled = enabled!;
     if (unselectedIcon != null) c.unselectedIcon = unselectedIcon;
@@ -458,7 +448,6 @@ class WFormRadioGroup<T> extends StatelessWidget {
     this.lineSpacing,
     this.iconYOffset,
     this.style,
-    this.config,
   });
 
   final String name;
@@ -480,12 +469,11 @@ class WFormRadioGroup<T> extends StatelessWidget {
   final double? lineSpacing;
   final double? iconYOffset;
   final TextStyle? style;
-  final WFormRadioGroupConfig? config;
 
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
-    final c = config?.copy() ?? WFormRadioGroupConfig();
+    final c = WFormRadioGroupConfig();
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
     if (enabled != null) c.enabled = enabled!;
@@ -530,7 +518,6 @@ class WFormButton extends StatelessWidget {
     this.isTransparentBackground,
     this.enableFocusBorder = true,
     this.leading,
-    this.config,
   });
 
   final String name;
@@ -548,12 +535,11 @@ class WFormButton extends StatelessWidget {
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
   final Widget? leading;
-  final WFormFieldButtonConfig? config;
 
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
-    final c = config?.copy() ?? WFormFieldButtonConfig();
+    final c = WFormFieldButtonConfig();
     _applyBaseStyle(c, fieldStyle);
     if (enabled != null) c.enabled = enabled!;
     if (leading != null) c.leading = leading;

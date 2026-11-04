@@ -47,7 +47,7 @@ dart run w_tools_device:device shot --real --device=<名称>
 - Android 的 tap 坐标是截图像素，不需要标定；
 - `verify` 默认比较整屏，动画/轮播会误判，用 `--region`；
 - `--scale` 只用于 iOS 模拟器 calibrate/tap/drag/size/wait/verify；
-- 退出码：`0` 成功 · `1` 参数/执行错误 · `2` verify 没变化 · `3` wait 超时。
+- 退出码：`0` 成功 · `1` verify 没变化 · `2` 参数/配置错误 · `3` 外部不可用 / 超时。
 
 ## 可选示例
 

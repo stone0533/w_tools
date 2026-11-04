@@ -18,4 +18,4 @@ const subpackageConstraints = <String, String>{
 const cliConstraint = '^1.9.0';
 
 /// 设备验证工具（dev_dependencies，独立包）
-const wToolsDeviceConstraint = '^0.1.3';
+const wToolsDeviceConstraint = '^0.1.4';
