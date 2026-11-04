@@ -175,8 +175,6 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePickerCore, S
 /// 日期选择器配置类，定义日期选择器的样式和行为。
 ///
 /// 可变的字段配置；用命名构造 / copyWith。
-/// remove-in: 5.0.0
-@Deprecated('Use direct field parameters / WFormFieldStyle; removed in form 5.0')
 class WFormDatePickerConfig extends WFormFieldBaseConfig {
   InputDecoration? decoration;
   Widget? icon;

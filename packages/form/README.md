@@ -9,7 +9,7 @@
 
 - **WForm 容器**：一次组合主题、表单作用域和只读作用域
 - **直接字段构造**：`WFormTextField` / `WFormDropdown` / `WFormDatePicker` 等直接使用
-- **可变字段 Config**：特殊样式通过可选 `config` 覆盖，不再要求 `Config.build`
+- **直接字段参数**：常用样式/插槽直接传参；可变字段 Config 已在 5.0 移除
 - **边框体系**：`WFormBorderConfig`（不可变）+ `WFormBorder`
 - **只读与校验**：`WFormReadOnlyScope` / `WFormValidatorSettings`
 - **字段按钮**：`WFormButton` 自定义选择、弹层等交互
@@ -98,44 +98,18 @@ class _LoginFormState extends State<LoginForm> {
 }
 ```
 
-## 不推荐的入口写法
-
-普通页面不要从 `Config.build` 开始：
-
-```dart
-// 不推荐
-(WFormTextFieldConfig()..height = 52).build(name: 'email')
-
-// 推荐
-WFormTextField(name: 'email', label: '邮箱')
-```
-
 ## 高级样式
 
-普通页面不需要 Config。需要单独调整样式时再传 `config`：
+普通页面优先用直接字段参数；跨字段默认值放 `WForm.fieldStyle`。
+可变 `WForm*Config` / `Config.build` 已在 form 5.0 移除。
 
 ```dart
-final emailConfig = WFormTextFieldConfig()
-  ..height = 64
-  ..style = const TextStyle(fontSize: 18);
-
 WFormTextField(
   name: 'email',
-  label: '邮箱',
-  config: emailConfig,
-);
+  hintText: '邮箱',
+  leading: const Icon(Icons.mail_outline),
+)
 ```
-
-优先级（按属性合并）：
-
-```text
-字段 config > WForm.fieldStyle > 默认值
-```
-
-config 只覆盖自己设置的属性，未设置项继续继承 `WForm.fieldStyle`。
-
-字段 Config 可变，**一个字段一份 Config**，不要跨字段共享同一个实例。
-`WForm` 与 `WFormController` 建议一对一使用。
 
 ## 主要 API
 

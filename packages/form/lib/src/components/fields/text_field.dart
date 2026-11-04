@@ -233,8 +233,6 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
 /// 文本输入配置类，定义文本输入的样式和行为。
 ///
 /// 可变字段配置（legacy）；新代码优先用直接字段参数，后续大版本移除。
-/// remove-in: 5.0.0
-@Deprecated('Use direct field parameters / WFormFieldStyle; removed in form 5.0')
 class WFormTextFieldConfig extends WFormFieldBaseConfig {
   TextInputType? keyboardType;
   List<TextInputFormatter>? inputFormatters;

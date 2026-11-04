@@ -193,8 +193,6 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroupCore
 /// 单选按钮组配置类，定义单选按钮组的样式和行为。
 ///
 /// 可变的字段配置；用命名构造 / copyWith。
-/// remove-in: 5.0.0
-@Deprecated('Use direct field parameters / WFormFieldStyle; removed in form 5.0')
 class WFormRadioGroupConfig extends WFormFieldBaseConfig {
   Widget? unselectedIcon;
   Widget? selectedIcon;

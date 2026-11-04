@@ -1,3 +1,10 @@
+## 5.0.0
+
+### Breaking
+- 公开入口移除 8 个可变字段 Config；使用直接字段参数 / `WFormFieldStyle`。
+- `WForm*Core` 与 `Config.build` 继续作为包内实现，不再属于公开 API。
+- 迁移见 `docs/migrations/form-5.0.md`。
+
 ## 4.5.0
 
 ### Added

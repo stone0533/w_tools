@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 import '_helpers/form_test_scaffold.dart';
-import 'package:w_tools_form/src/components/fields/date_picker.dart';
+import '_helpers/config_exports.dart';
 
 void main() {
   group('字段卸载清理 formEntered', () {

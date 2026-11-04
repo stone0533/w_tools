@@ -1,8 +1,6 @@
 // ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 part of 'multi_dropdown.dart';
 
-/// remove-in: 5.0.0
-@Deprecated('Use direct field parameters / WFormFieldStyle; removed in form 5.0')
 class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
   InputDecoration? decoration;
   double? iconSize;

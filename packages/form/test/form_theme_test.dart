@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 import 'package:w_tools_form/src/components/fields/checkbox.dart';
+import '_helpers/config_exports.dart';
 
 void main() {
   testWidgets('WFormTheme 覆盖复选框未选中图标', (tester) async {

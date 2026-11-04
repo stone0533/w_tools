@@ -65,7 +65,6 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
               message: '密码至少 8 位',
               obscureText: true,
               textInputAction: TextInputAction.done,
-              config: exampleTextConfig(),
               actions: const [WFormTextFieldPasswordToggle()],
               validator: (value) {
                 final password = value ?? '';

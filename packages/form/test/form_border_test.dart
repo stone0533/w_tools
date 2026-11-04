@@ -2,11 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
-import 'package:w_tools_form/src/components/fields/text_field.dart';
-import 'package:w_tools_form/src/components/fields/dropdown.dart';
-import 'package:w_tools_form/src/components/fields/checkbox.dart';
 
 import '_helpers/form_test_scaffold.dart';
+import '_helpers/config_exports.dart';
 
 /// 创建带默认 hintBuilder/errorBuilder 的 WFormBorderConfig
 TestFormBorderBuilder makeCfg({

@@ -5,6 +5,8 @@ import 'package:w_tools_async/w_tools_async.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 import 'package:w_tools_toast/w_tools_toast.dart';
+import 'package:w_tools_form/src/components/fields/dropdown.dart';
+import 'package:w_tools_form/src/components/fields/multi_dropdown.dart';
 
 /// 批量测试所有 Config 类的 setter 链式调用
 

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 import '_helpers/form_test_scaffold.dart';
+import '_helpers/config_exports.dart';
 
 /// 构造一个总是校验失败的校验项
 WFormValidatorItem failingItem(String name) => WFormValidatorItem(

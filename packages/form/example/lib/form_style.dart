@@ -7,15 +7,6 @@ final WFormBorderConfig exampleBorderConfig = WFormBorderConfig.standard(
   radius: 12,
 );
 
-/// 高级样式覆盖示例：普通页面直接使用 WFormTextField 的 label 即可。
-WFormTextFieldConfig exampleTextConfig() {
-  return WFormTextFieldConfig()
-    ..height = 52
-    ..containerPadding = const EdgeInsets.symmetric(horizontal: 16)
-    ..style = const TextStyle(fontSize: 16, color: Color(0xFF111827))
-    ..hintStyle = const TextStyle(fontSize: 16, color: Color(0xFF9CA3AF));
-}
-
 /// 页面默认字段样式：高度 / 内边距 / 正文 / hint。
 const exampleFieldStyle = WFormFieldStyle(
   height: 52,
