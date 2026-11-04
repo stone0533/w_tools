@@ -24,8 +24,11 @@ class WFormController {
   /// 表单字段集合（表单未挂载时为 null）
   FormBuilderFields? get fields => formKey.currentState?.fields;
 
-  /// 表单值（表单未挂载时返回空表）
-  Map<String, dynamic> get value => formKey.currentState?.value ?? const <String, dynamic>{};
+  /// 表单实时值（字段 `didChange` 后立即反映；表单未挂载时返回空表）
+  Map<String, dynamic> get value => formKey.currentState?.instantValue ?? const <String, dynamic>{};
+
+  /// 上次 `validate()` / `save()` 时的快照（旧 `value` 语义）
+  Map<String, dynamic> get savedValue => formKey.currentState?.value ?? const <String, dynamic>{};
 
   /// 各字段是否已输入的映射
   final Map<String, bool> formEntered = {};

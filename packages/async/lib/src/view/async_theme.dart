@@ -9,7 +9,7 @@ typedef WAsyncErrorWidgetBuilder =
 
 /// 异步视图的全局默认主题（普通视图 + sliver 视图合在一处）。
 ///
-/// 放在 App 根部（推荐 `WAppPlugin.wrapApp` / `WApp.appWrapper`）即可让多个页面共享
+/// 放在 App 根部（推荐 `WAppPlugin.wrapApp` / `WAppOptions.appWrapper`）即可让多个页面共享
 /// 默认 loading / empty / error / 刷新视图；单个 `WAsyncView` / `WAsyncStateSliver`
 /// 的显式 builder 仍然优先。
 ///
@@ -18,7 +18,6 @@ typedef WAsyncErrorWidgetBuilder =
 ///   **非滚动** Widget；`refreshingSliverBuilder` 必须返回 sliver。
 ///
 /// 旧入口已在 3.0 删除；本类为唯一的全局默认视图入口。
-/// 已弃用，3.0 移除。
 class WAsyncTheme extends InheritedWidget {
   const WAsyncTheme({
     super.key,

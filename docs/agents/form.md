@@ -56,7 +56,7 @@ WFormTextField(name: 'email', label: '邮箱')
    想要「无边框、不显示文案」时显式传 `const WFormBorderConfig()`。
 6. 字段 Config 可变，一个字段一份，不要跨字段共享。
 7. `WForm` 与 `WFormController` 一对一使用。
-8. `WFormTextFieldCore` 等 `*Core` 只用于底层封装或特殊布局。
+8. `WFormTextFieldCore` 等 `*Core` 已内部化（不导出），不要直接使用；特殊布局用 `WForm` + 字段 `config`。
 9. 提交校验优先：
 
 ```dart

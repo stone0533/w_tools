@@ -80,7 +80,7 @@ class WFormFieldButtonCore extends StatelessWidget {
 
 /// 表单按钮配置类，定义按钮的样式和行为。
 ///
-/// 可变的字段配置；需要链式构建时为 [builder]。
+/// 可变的字段配置；用命名构造 / copyWith。
 class WFormFieldButtonConfig extends WFormFieldBaseConfig {
   Widget? hintWidget;
 
@@ -188,7 +188,6 @@ class WFormFieldButtonConfig extends WFormFieldBaseConfig {
   }
 }
 
-/// [WFormFieldButtonConfig] 的 Builder；返回可变配置副本。
 /// 内部按钮字段，承载表单值、点击与选中态渲染
 class _WFormScopeButton<T> extends FormBuilderField<T> {
   /// 提示 widget

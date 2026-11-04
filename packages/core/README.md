@@ -13,7 +13,7 @@
 - **加密与哈希**：AES-CBC、Base64、MD5、SHA 系列、HMAC-SHA256
 - **本地存储**：基于 `shared_preferences` 的 `WStorage` 与 `WToken`
 - **日志与性能**：`WLogger` 支持级别切换、标签、性能计时
-- **其他工具**：倒计时、平台判断、防抖/节流、Map 扩展与全局配置
+- **其他工具**：倒计时、平台判断、防抖/节流、Map 扩展
 
 ## 安全说明
 
@@ -25,7 +25,7 @@
 
 ```yaml
 dependencies:
-  w_tools_core: ^2.4.0
+  w_tools_core: ^3.0.0
 ```
 
 ```bash
@@ -52,7 +52,7 @@ Future<void> example() async {
 
 | 能力 | 入口 |
 |---|---|
-| 配置 | `WToken`（token 键名）/ `WAssets` 前缀；`WConfig` 已在 3.0 删除 |
+| 配置 | `WToken`（token 键名）；`WConfig` 已在 3.0 删除（资源前缀在 w_tools_ui 的 `WAssets`） |
 | 校验 | `WValidator` |
 | 正则 | `WRegExp` |
 | 加密 / 哈希 | `WEncrypt` / `WHash` |
@@ -60,7 +60,7 @@ Future<void> example() async {
 | 日志 | `WLogger` / `WLogger.t` / `d` / `i` / `w` / `e` / `f` |
 | 倒计时 | `WCountdown` |
 | 平台判断 | `WPlatform` / `WPlatformType` |
-| 交互工具 | `WDebounce` / `WThrottle`；`WUx` 的同名方法已弃用 |
+| 交互工具 | `WDebounce` / `WThrottle`；`WUx` 的同名方法已在 3.0 删除 |
 | Map 扩展 | `WMapExtension.sortedByKeys` / `merge` |
 
 ## 行为说明

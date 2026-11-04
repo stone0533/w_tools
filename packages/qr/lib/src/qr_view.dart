@@ -153,11 +153,8 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   /// 是否因应用进入后台而暂停了相机
   bool _pausedByLifecycle = false;
 
-  /// 上一次回调的条码内容（用于 [WQrView.scanInterval] 去重）
-  String? _lastScannedCode;
-
-  /// 上一次回调的时间（用于 [WQrView.scanInterval] 去重）
-  DateTime? _lastScannedAt;
+  /// 每个条码内容上次回调的时间（用于 [WQrView.scanInterval] 去重）
+  final Map<String, DateTime> _lastScanTimes = {};
 
   /// 条码格式的不可变快照，用于检测原地修改
   late List<BarcodeFormat> _formatsAllowed;
@@ -192,9 +189,13 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     }
     // 扫描模式切换时重置一次状态，避免沿用上一次的锁定 / 去重记录
     if (oldWidget.scanOnce != widget.scanOnce) {
+      final wasHandled = _scanHandled;
       _scanHandled = false;
-      _lastScannedCode = null;
-      _lastScannedAt = null;
+      _lastScanTimes.clear();
+      // true → false：单次扫码已把相机 pause 了，必须恢复，否则连续扫描静默失效
+      if (oldWidget.scanOnce && !widget.scanOnce && wasHandled && !_pausedByLifecycle) {
+        _runCameraAction(() => _controller?.resumeCamera());
+      }
     }
   }
 
@@ -225,7 +226,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       _runCameraAction(() => _controller?.pauseCamera());
     }
-    if (!_pausedByLifecycle) {
+    if (!_pausedByLifecycle && !(widget.scanOnce && _scanHandled)) {
       _runCameraAction(() => _controller?.resumeCamera());
     }
   }
@@ -265,11 +266,10 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
       _scanHandled = false;
       _borderHighlighted = false;
       _borderColor = widget.borderColor;
-      _lastScannedCode = null;
-      _lastScannedAt = null;
+      _lastScanTimes.clear();
     });
     if (!_pausedByLifecycle) {
-      _runCameraAction(() => _controller?.resumeCamera());
+      await _runCameraActionAsync(() => _controller?.resumeCamera());
     }
   }
 
@@ -283,8 +283,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     _scanHandled = false;
     _borderHighlighted = false;
     _borderColor = widget.borderColor;
-    _lastScannedCode = null;
-    _lastScannedAt = null;
+    _lastScanTimes.clear();
   }
 
   /// 包装底层控制器，并把扫描流转换为广播流
@@ -354,20 +353,23 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     }
   }
 
-  /// 连续扫描模式下按内容与时间窗去重
+  /// 连续扫描模式下按内容与时间窗去重（每个 code 独立窗口）
   bool _isDuplicateScan(String code) {
     if (widget.scanOnce || widget.scanInterval <= Duration.zero) {
       return false;
     }
     final now = DateTime.now();
-    final lastAt = _lastScannedAt;
-    if (code == _lastScannedCode &&
-        lastAt != null &&
-        now.difference(lastAt) < widget.scanInterval) {
+    final lastAt = _lastScanTimes[code];
+    if (lastAt != null && now.difference(lastAt) < widget.scanInterval) {
       return true;
     }
-    _lastScannedCode = code;
-    _lastScannedAt = now;
+    _lastScanTimes[code] = now;
+    // 简单容量控制：超过 64 个码时清掉过期项
+    if (_lastScanTimes.length > 64) {
+      _lastScanTimes.removeWhere(
+        (_, time) => now.difference(time) >= widget.scanInterval * 2,
+      );
+    }
     return false;
   }
 
@@ -401,14 +403,15 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   /// `UnimplementedError`，先求值会绕过这里的护栏。
   void _runCameraAction(Future<void>? Function()? action) {
     if (action == null) return;
+    unawaited(_runCameraActionAsync(action));
+  }
+
+  /// 可等待版本：供 restartScan 等需要“完成语义”的调用点使用
+  Future<void> _runCameraActionAsync(Future<void>? Function()? action) async {
+    if (action == null) return;
     try {
       final future = action();
-      if (future == null) return;
-      unawaited(
-        future.catchError((Object error, StackTrace stackTrace) {
-          _reportError(error, stackTrace);
-        }),
-      );
+      if (future != null) await future;
     } catch (error, stackTrace) {
       _reportError(error, stackTrace);
     }

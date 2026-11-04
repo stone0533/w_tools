@@ -38,7 +38,7 @@
 | --- | --- | --- | --- |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义时用 `WButton` |
-| `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已弃用（5.0 移除）；纯静态排列直接用 `Row` |
+| `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 | — |
 <!-- catalog:3:end -->
 
@@ -123,7 +123,7 @@
 | `WMap` / `WMapZone` | map | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
 | `WMapController` | map | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
-| `WRouteStack` | app | 路由栈操作（`WApp.routeStack`） | — |
+| `WRouteStack` | app | 路由栈操作（`WRouteStack.defaultStack` / `app.routeStack`） | — |
 <!-- catalog:8:end -->
 
 ## 9. 扩展

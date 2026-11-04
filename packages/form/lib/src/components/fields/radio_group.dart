@@ -191,7 +191,7 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroupCore
 
 /// 单选按钮组配置类，定义单选按钮组的样式和行为。
 ///
-/// 可变的字段配置；需要链式构建时为 [builder]。
+/// 可变的字段配置；用命名构造 / copyWith。
 class WFormRadioGroupConfig extends WFormFieldBaseConfig {
   Widget? unselectedIcon;
   Widget? selectedIcon;
@@ -303,5 +303,3 @@ class WFormRadioGroupConfig extends WFormFieldBaseConfig {
     );
   }
 }
-
-/// [WFormRadioGroupConfig] 的 Builder；返回可变配置副本。

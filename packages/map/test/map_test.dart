@@ -264,12 +264,6 @@ void main() {
       expect(marker.icon, BitmapDescriptor.defaultMarker);
     });
 
-    test('zoneId / name 字段可赋值', () {
-      final zone = WMapZone<_TestMapItem>(zoneId: 'z1', name: '虹桥区域');
-      expect(zone.zoneId, 'z1');
-      expect(zone.name, '虹桥区域');
-    });
-
     test('defaultZoom 自定义', () {
       const items = [
         _TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2),

@@ -223,17 +223,14 @@ class WApp {
     }
   }
 
-  /// 应用系统栏样式（仅 Android 且非 Web 生效）
+  /// 应用系统栏样式（非 Web；iOS 使用 statusBarBrightness，Android 用其余字段）
   ///
-  /// 读取 [systemUiOverlayStyle]，为 `null` 时不做任何设置。
-  /// `SystemChrome.setSystemUIOverlayStyle` 为同步 API，故本方法无需 `async`。
+  /// 读取 [WAppOptions.systemUiOverlayStyle]，为 `null` 时不做任何设置。
   void _setupSystemUI() {
     // 显式传 null 表示不干预
     final style = options.systemUiOverlayStyle;
-    if (style == null) return;
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      SystemChrome.setSystemUIOverlayStyle(style);
-    }
+    if (style == null || kIsWeb) return;
+    SystemChrome.setSystemUIOverlayStyle(style);
   }
 
   /// 设置屏幕方向（读取 [orientations] 字段）
@@ -283,7 +280,11 @@ class WApp {
         defaultTransition ?? options.defaultTransition ?? Transition.topLevel;
     final effectiveTheme = theme ?? options.theme;
     final effectiveTranslations = translations ?? options.translations;
-    final effectiveLocale = locale ?? options.locale;
+    // 配置了 WLocaleConfig 时，首帧语言必须跟随它，而不是系统语言
+    final effectiveLocale =
+        locale ??
+        options.locale ??
+        (options.localeConfig != null ? WLanguage().currentLocale : null);
     final effectiveFallbackLocale = fallbackLocale ?? options.fallbackLocale;
 
     // 构建 builder 链：插件 builderWrapper × N → 用户自定义 builder（后者更靠外）

@@ -2,7 +2,7 @@
 
 `w_tools_ui` 的可运行示例，页面壳使用 `WScaffold` + `WAppBar` + `WNavBar`；包含五个页面：
 
-- **Playground**：实时调整 width / height / aspectRatio / fit / memCache / borderRadius / retryCount / placeholder，并显示对应 `WImageStyle` / `WImageLoadConfig` 代码；
+- **Playground**：实时调整 width / height / aspectRatio / fit / memCacheWidth / memCacheHeight / borderRadius / retryCount / placeholder，并显示对应 `WImageStyle` / `WImageLoadConfig` 代码；
 - **状态矩阵**：加载成功、失败、空数据、加载中占位、主题默认错误占位、文件/Web 不支持；
 - **常用配方**：`WImageStyle` 圆形头像 / 缩略图 / 封面 / asset / memory / provider / `showRetryButton`；
 - **按钮**：`WButton` / `WButtonSize` / `WButtonStyle` / loading / tap target；
@@ -42,7 +42,7 @@ flutter run
 | Playground 参数与代码生成 | `lib/playground_page.dart` |
 | 状态矩阵 | `lib/states_page.dart` |
 | 常用配方 | `lib/recipes_page.dart` |
-| 进度 + 重试 | `WImage.network(..., config: WImageLoadConfig(retryCount:, progressBuilder:, errorBuilder:))` |
+| 进度 + 重试 | `WImage.network(..., config: WImageLoadConfig(retryCount:, progressBuilder:, errorWidgetBuilder:))` |
 | 默认加载 UI | `main()` 里的 `WImageDefaultsScope` |
 | 缓存预算 | `main()` 里直接配置 `PaintingBinding.instance.imageCache` |
 | 预加载 | `states_page.dart` 里的 `precacheImage` 示例（可移到 Playground） |

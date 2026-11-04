@@ -284,8 +284,8 @@ if (WPlatform.isWeb) {
 ```dart
 // 预编译匹配
 final isPhone = WRegExp.phone.hasMatch('13812345678'); // true
-final phone = WRegExp.firstPhoneMatch('联系我 13812345678 或 13987654321');
-print(phone); // "13812345678"（第一个匹配）
+final phone = WRegExp.firstPhoneMatch('13812345678')?.group(0);
+print(phone); // "13812345678"（模式是整串锚定）
 
 // 身份证提取
 final birthday = WRegExp.extractBirthdayFromIdCard('110101199001011234');
@@ -452,22 +452,15 @@ await WToken.clearAllTokens();
 | `smoothScrollToTop` | `(controller, {...})` | `Future<void>` | 滚到顶部 |
 | `smoothScrollToBottom` | `(controller, {...})` | `Future<void>` | 滚到底部 |
 
-### WCancellableAction
-
-| 方法 | 说明 |
-|------|------|
-| `call()` | 执行原始函数 |
-| `cancel()` | 取消挂起的执行 |
-
 ### 使用示例
 
 ```dart
 // 防抖 / 节流用独立类
-final search = WDebounce((keyword) {
-  api.search(keyword);
+final search = WDebounce(() {
+  api.search(keywordController.text);
 }, duration: const Duration(milliseconds: 300));
-search('flutter');
-search('dart'); // 只执行最后一次
+search();
+search(); // 只执行最后一次
 
 final onTap = WThrottle(() => submitForm(), duration: const Duration(seconds: 1));
 onTap();
@@ -477,22 +470,22 @@ onTap();
 
 ---
 
-## 11. WValidator - 表单验证与安全清洗
+## 11. WValidator - 数据校验
 
 ### 功能说明
 
-集合了格式校验、密码强度、身份证合法性、以及基础的 SQL/HTML 清洗工具。
+集合了格式校验、密码强度、身份证合法性等业务校验。
 
 ### 格式校验
 
 | 方法 | 说明 |
 |------|------|
-| `isEmail(input)` | 邮箱格式 |
-| `isPhone(input)` | 大陆手机号 |
+| `isValidEmail(input)` | 邮箱格式 |
+| `isValidPhone(input)` | 大陆手机号 |
 | `isValidPassword(input)` | ≥8 位 + 大写 + 小写 + 数字 |
 | `isValidUsername(input)` | 3-20 位字母/数字/下划线 |
 | `isValidUrl(input)` | URL |
-| `isValidIPv4(input)` | IPv4 |
+| `isValidIpv4(input)` | IPv4 |
 | `isValidIdCard(input)` | 18 位身份证号（校验真实出生日期，不校验末位校验码） |
 | `isValidBankCard(input)` | 16-19 位 + Luhn 校验 |
 | `isValidChineseName(input)` | 2-20 汉字 |

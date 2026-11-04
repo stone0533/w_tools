@@ -5,12 +5,12 @@
 - `WApp.start()` 一站式启动
 - `WAppPlugin` / `dependsOn` 插件分层
 - GetX 路由
-- `WRoute` / `WRouteObserver`
+- `WRouteStack` / `WRouteObserver`
 - 插件 `navigatorObservers` 路由事件
 - 插件 `builderWrapper` / `wrapApp`
 - `WApp.builder` / `WApp.appWrapper`
 - `customTasks` / `onLazyInit`
-- `WRoute.popUntilRoute`
+- `WRouteStack.defaultStack.popUntilRoute`
 - `WLanguage` 语言切换
 - `WBottomSheet`
 
@@ -66,4 +66,4 @@ FeaturePlugin dependsOn ['env']
 
 示例使用 GetX；这是 `w_tools_app` 的强依赖。
 
-`WRouteObserver` 由 `WApp.run()` 自动追加，示例没有手工添加。
+`WRouteObserver` 由 `WApp` 自动追加，示例没有手工添加。

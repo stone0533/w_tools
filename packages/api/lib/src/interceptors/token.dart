@@ -5,6 +5,9 @@ import 'package:dio/dio.dart';
 import '../api_config.dart';
 import '../clients/dio_registry.dart';
 
+/// 标记「当前异步链是 tokenRefresher 发起的刷新请求」
+final Object _refreshZoneKey = Object();
+
 /// Token 拦截器，用于处理 token 的添加、更新和错误处理
 ///
 /// 功能：
@@ -83,7 +86,10 @@ class WTokenInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) {
-    options.contentType ??= 'application/json';
+    // 只对 Map/String 推断 json；Uint8List/Stream 等交给 dio 的原生推断
+    if (options.data is Map || options.data is String) {
+      options.contentType ??= 'application/json';
+    }
 
     // 配置请求
     configureRequest?.call(options);
@@ -107,6 +113,12 @@ class WTokenInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
+    // 刷新请求自身返回 401：不能再走刷新（会 await 自己的 single-flight future）
+    if (Zone.current[_refreshZoneKey] == true) {
+      WApiConfig.logErrorHandler?.call('Token refresh request failed; skip auto-refresh');
+      super.onError(err, handler);
+      return;
+    }
     // 错误观测：与 401 刷新相互独立，先无条件执行
     observeError?.call(err);
 
@@ -220,9 +232,13 @@ class WTokenInterceptor extends Interceptor {
     final pending = _refreshFuture;
     if (pending != null) return pending;
 
-    final future = tokenRefresher!().whenComplete(() {
-      _refreshFuture = null;
-    });
+    final future =
+        runZoned(
+          tokenRefresher!,
+          zoneValues: {_refreshZoneKey: true},
+        ).whenComplete(() {
+          _refreshFuture = null;
+        });
     _refreshFuture = future;
     return future;
   }

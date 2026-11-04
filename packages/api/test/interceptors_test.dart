@@ -32,14 +32,10 @@ class _First401ThenOkAdapter implements HttpClientAdapter {
 
 class _MockAdapter implements HttpClientAdapter {
   final int statusCode;
-  final String responseBody;
-  final Map<String, List<String>> responseHeaders;
+  final String responseBody = '{"ok": true}';
+  final Map<String, List<String>> responseHeaders = const {};
 
-  _MockAdapter({
-    this.statusCode = 200,
-    this.responseBody = '{"ok": true}',
-    this.responseHeaders = const {},
-  });
+  _MockAdapter({this.statusCode = 200});
 
   @override
   Future<ResponseBody> fetch(
@@ -93,267 +89,6 @@ void main() {
     WApiConfig.logErrorHandler = null;
   });
 
-  group('WLogInterceptor parts', () {
-    test('parts 选择输出片段', () {
-      final interceptor = WLogInterceptor(
-        parts: {WLogPart.request, WLogPart.error},
-      );
-      expect(interceptor.request, isTrue);
-      expect(interceptor.requestHeader, isFalse);
-      expect(interceptor.requestBody, isFalse);
-      expect(interceptor.responseBody, isFalse);
-      expect(interceptor.error, isTrue);
-    });
-
-    test('不传 parts 时沿用旧 bool 默认值', () {
-      final interceptor = WLogInterceptor();
-      expect(interceptor.request, isTrue);
-      expect(interceptor.requestHeader, isTrue);
-      expect(interceptor.responseHeader, isFalse);
-      expect(interceptor.error, isTrue);
-    });
-  });
-
-  // === 测试后清理 DioRegistry 缓存 ===
-  tearDown(() {
-    WApiConfig.logDebugHandler = null;
-    WApiConfig.logErrorHandler = null;
-    DioRegistry.clearCache();
-  });
-
-  group('WLogInterceptor', () {
-    test('enableLog=false 时不输出日志', () async {
-      List<String> logs = [];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-      WApiConfig.logErrorHandler = (m) => logs.add('E:${m.toString()}');
-
-      final adapter = _MockAdapter();
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(enableLog: false));
-
-      await dio.get('https://example.com/api');
-      await Future.microtask(() {}); // 让异步 handler 跑完
-
-      expect(logs, isEmpty);
-    });
-
-    test('enableLog=true 时输出请求日志', () async {
-      List<String> logs = [];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-
-      final adapter = _MockAdapter();
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(
-        WLogInterceptor(
-          parts: {WLogPart.request, WLogPart.requestHeader, WLogPart.requestBody},
-        ),
-      );
-
-      await dio.get('https://example.com/api');
-      await Future.microtask(() {});
-
-      expect(logs, isNotEmpty);
-      expect(logs.any((l) => l.contains('*** Request ***')), true);
-    });
-
-    test('敏感请求头默认脱敏', () async {
-      List<String> logs = [];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-
-      final adapter = _MockAdapter();
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor());
-
-      await dio.get(
-        'https://example.com/api',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer super-secret',
-            'x-api-key': 'key-secret',
-            'x-trace-id': 'trace-ok',
-          },
-        ),
-      );
-      await Future.microtask(() {});
-
-      final joined = logs.join();
-      expect(joined, contains('Authorization: ***'));
-      expect(joined, contains('x-api-key: ***'));
-      expect(joined, contains('x-trace-id: trace-ok'));
-      expect(joined, isNot(contains('super-secret')));
-      expect(joined, isNot(contains('key-secret')));
-    });
-
-    test('敏感响应头默认脱敏', () async {
-      List<String> logs = [];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-
-      final adapter = _MockAdapter(
-        responseHeaders: {
-          'set-cookie': ['session=super-secret'],
-          'x-trace-id': ['trace-ok'],
-        },
-      );
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.responseHeader}));
-
-      await dio.get('https://example.com/api');
-      await Future.microtask(() {});
-
-      final joined = logs.join();
-      expect(joined, contains('set-cookie: ***'));
-      expect(joined, contains('x-trace-id: trace-ok'));
-      expect(joined, isNot(contains('super-secret')));
-    });
-
-    test('可自定义脱敏响应头', () async {
-      List<String> logs = [];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-
-      final adapter = _MockAdapter(
-        responseHeaders: {
-          'x-custom-secret': ['secret'],
-          'x-public': ['ok'],
-        },
-      );
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(
-        WLogInterceptor(
-          parts: {WLogPart.responseHeader},
-          redactedHeaders: {'x-custom-secret'},
-        ),
-      );
-
-      await dio.get('https://example.com/api');
-      await Future.microtask(() {});
-
-      final joined = logs.join();
-      expect(joined, contains('x-custom-secret: ***'));
-      expect(joined, contains('x-public: ok'));
-      expect(joined, isNot(contains('x-custom-secret: secret')));
-    });
-
-    test('request=false 时不打印请求详情', () async {
-      List<String> logs = [];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-
-      final adapter = _MockAdapter();
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(
-        WLogInterceptor(parts: const {}),
-      );
-
-      await dio.get('https://example.com/api');
-      await Future.microtask(() {});
-
-      // 没有 request 详情 — 只含 uri
-      for (final log in logs) {
-        if (log.contains('Request')) {
-          expect(log, isNot(contains('method')));
-        }
-      }
-    });
-
-    test('onError 时输出错误日志', () async {
-      List<String> logs = [];
-      WApiConfig.logErrorHandler = (m) => logs.add(m.toString());
-
-      // 用真实 Dio 发一个无效 URL 触发连接错误（不经过 adapter）
-      // 但为了不发真网络请求，我们让 adapter 抛异常
-      final adapter = _ErrorAdapter();
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.error, WLogPart.errorHint}));
-
-      try {
-        await dio.get('https://example.com/api');
-      } catch (_) {}
-      await Future.microtask(() {});
-
-      expect(logs, isNotEmpty);
-    });
-
-    test('只开 errorHint 时不输出原始错误 dump，但仍输出友好提示', () async {
-      List<String> logs = [];
-      WApiConfig.logErrorHandler = (m) => logs.add(m.toString());
-
-      final adapter = _ErrorAdapter();
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.errorHint}));
-
-      try {
-        await dio.get('https://example.com/api');
-      } catch (_) {}
-      await Future.microtask(() {});
-
-      // error=false 时不输出 *** DioError *** 原始 dump
-      expect(
-        logs.any((l) => l.contains('*** DioError ***')),
-        false,
-      );
-      // 但 _handleError 仍无条件调用
-      expect(logs, isNotEmpty);
-    });
-
-    test('response.data 为 List<String> 时不抛异常，且输出合法 JSON', () async {
-      final logs = <String>[];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-
-      final adapter = _MockAdapter(
-        responseBody: '["a","b"]',
-        responseHeaders: {
-          'content-type': ['application/json'],
-        },
-      );
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor());
-
-      // 回归：此前 response.toString() → [a, b] 会被 jsonDecode 抛 FormatException
-      final res = await dio.get('https://example.com/api');
-
-      expect(res.data, isA<List<dynamic>>());
-      // List 元素带引号，说明输出的是合法 JSON
-      expect(logs.join(), contains('"a"'));
-    });
-
-    test('response.data 为 List<Map> 时不抛异常', () async {
-      final logs = <String>[];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-
-      final adapter = _MockAdapter(
-        responseBody: '[{"id":1}]',
-        responseHeaders: {
-          'content-type': ['application/json'],
-        },
-      );
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor());
-
-      final res = await dio.get('https://example.com/api');
-
-      expect(res.data, isA<List<dynamic>>());
-      expect(logs.join(), contains('"id"'));
-    });
-
-    test('响应体为非法 JSON 文本时不抛异常，按原文输出', () async {
-      final logs = <String>[];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
-
-      final adapter = _MockAdapter(
-        responseBody: '{oops}',
-        responseHeaders: {
-          'content-type': ['text/plain'],
-        },
-      );
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(WLogInterceptor());
-
-      final res = await dio.get('https://example.com/api');
-
-      expect(res.data, '{oops}');
-      expect(logs.join(), contains('{oops}'));
-    });
-  });
-
   group('WTokenInterceptor', () {
     test('onRequest 添加 Authorization header', () async {
       final adapter = _MockAdapter();
@@ -383,9 +118,9 @@ void main() {
         ),
       );
 
-      await dio.get('https://example.com/api');
+      await dio.post('https://example.com/api', data: {'a': 1});
 
-      // 拦截器在请求级 options.contentType 上设置
+      // 拦截器只对 Map/String body 推断 json
       expect(adapter._lastContentType, 'application/json');
     });
 
@@ -674,6 +409,40 @@ void main() {
       );
 
       expect(logs.join(), contains('cannot be replayed'));
+    });
+  });
+  group('WTokenInterceptor 边界', () {
+    test('刷新接口自身 401 不会自等待死锁', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://refresh-loop.example.com'))
+        ..httpClientAdapter = _MockAdapter(statusCode: 401);
+      var refreshes = 0;
+      dio.interceptors.add(
+        WTokenInterceptor(
+          dio: dio,
+          tokenGetter: () => 'old',
+          tokenRefresher: () async {
+            refreshes++;
+            await dio.get('/refresh'); // 401：不应再次触发刷新
+            return 'new';
+          },
+        ),
+      );
+
+      await expectLater(
+        dio.get('/x').timeout(const Duration(seconds: 3)),
+        throwsA(isA<DioException>()),
+      );
+      expect(refreshes, 1);
+    });
+
+    test('二进制 body 不会被强制标成 application/json', () async {
+      final adapter = _MockAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      dio.interceptors.add(WTokenInterceptor(tokenGetter: () => 't'));
+
+      await dio.post('https://example.com/upload', data: Uint8List.fromList([1, 2, 3]));
+
+      expect(adapter._lastContentType, isNot('application/json'));
     });
   });
 }

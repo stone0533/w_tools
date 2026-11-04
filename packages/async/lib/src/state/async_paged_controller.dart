@@ -143,7 +143,14 @@ class WAsyncPagedController<T> {
         () => _loader(requestedPage),
         options: options?.copyWith(loading: null),
         onSuccess: (value) => (value,),
-        onError: (error) => failure = error,
+        onError: (error) {
+          failure = error;
+          try {
+            options?.onError?.call(error);
+          } catch (_) {
+            // 兜底回调自身异常不影响分页状态
+          }
+        },
       );
     } catch (error) {
       failure = error;

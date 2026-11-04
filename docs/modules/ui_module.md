@@ -188,7 +188,7 @@ loading、button 语义、键盘焦点、48×48 点击区域。
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `style` | `WButtonStyle?` | null | 样式；null 时使用 `WButtonStyles.primary` fallback |
+| `style` | `WButtonStyle?` | null | 样式；null 时使用 `WButtonStyles.of(context).primary` |
 | `label` / `icon` | String? / IconData? | null | 简单内容 |
 | `content` | Widget? | null | 静态复杂内容 |
 | `contentBuilder` | `WButtonContentBuilder?` | null | 需要最终 style 的复杂内容 |
@@ -797,9 +797,9 @@ WImage.source(
 | `WImage.asset(path)` | 资产图；前后的空白会被裁掉 |
 | `WImage.file(path)` | 本地文件；带不带 `file://` 都可以 |
 | `WImage.base64(data)` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
-| ~~`WImage.thumbnail(data, width:)`~~ | **已弃用（5.0 移除）**：style + `WImageLoadConfig(memCacheWidth: ...)` |
-| ~~`WImage.cover(data, aspectRatio:)`~~ | **已弃用（5.0 移除）**：用 `WImage(style: WImageStyle.cover(...))` |
-| ~~`WImage.assetImage(name)`~~ | **已弃用（5.0 移除）**：用 `WImage.asset(name, prefix: true)` |
+| ~~`WImage.thumbnail(data, width:)`~~ | **已删除（5.0）**：style + `WImageLoadConfig(memCacheWidth: ...)` |
+| ~~`WImage.cover(data, aspectRatio:)`~~ | **已删除（5.0）**：用 `WImage(style: WImageStyle.cover(...))` |
+| ~~`WImage.assetImage(name)`~~ | **已删除（5.0）**：用 `WImage.asset(name, prefix: true)` |
 | `WImage.memory(bytes)` | `Uint8List` → `MemoryImage` |
 | `WImage.provider(provider)` | 任意 `ImageProvider` |
 
@@ -820,7 +820,7 @@ WImage.source(
 ### 错误类型
 
 `errorWidgetBuilder` 的第三个参数是 `WImageError`；4.2 起用 `error.kind`（`WImageErrorKind`）区分，
-不要再用已弃用的 `WImageXxxError` 子类：
+`WImageXxxError` 子类已在 5.0 删除：
 
 | kind | 场景 |
 |------|------|
@@ -912,13 +912,12 @@ PaintingBinding.instance.imageCache
 | `96–120` | ✅ | ✅ | ❌ |
 | `>= 120×112` | ✅ | ✅ | ✅（仅可重试错误） |
 
-- 仅 `WImageNetworkError` / `WImageProviderError` / `WImageFileError` 显示重试按钮；
+- 仅 `WImageErrorKind.network` / `provider` / `file` 显示重试按钮；
 - 空数据、Base64 解码失败、asset 不存在、平台不支持不显示重试；
 - 也可显式传 `compact: true` / `showAction: false`。
 优先级：`WImageLoadConfig.errorWidgetBuilder` > `WImageLoadConfig.errorWidget` > `showRetryButton` > `WImageDefaultsScope` > 兜底。
 
-`WImage.thumbnail(width)` 默认按 `max(width, height) × 3` 估算 `WImageLoadConfig.memCache`；
-需要精确控制时显式传 `cacheSize`（通常按 `devicePixelRatio` 计算）。
+需要缩略图解码上限时自行传入 `WImageLoadConfig(memCacheWidth: ..., memCacheHeight: ...)`（通常按 `max(width, height) × devicePixelRatio` 计算）。
 
 ### 缓存
 
@@ -1640,7 +1639,7 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 
 | 方法 | 说明 |
 |------|------|
-| `10.heightBox` / `10.widthBox` / `10.squareBox`（弃用，5.0 移除） | 创建 SizedBox；新代码用 `SizedBox` |
+| `10.heightBox` / `10.widthBox` / `10.squareBox` | 创建 SizedBox（保留；不要与已删除的 `WSizeBox` 混淆） |
 | `10.allPadding` / `horizontalPadding` / `verticalPadding` | 创建 EdgeInsets |
 | `10.borderRadius` | `BorderRadius.circular(10)` |
 | `1234.toThousandsSeparated` | `1,234` |
@@ -1649,9 +1648,6 @@ final hex2 = c.toHex(leadingHashSign: false); // 'ffff5733'
 | `0.5.toPercent` | `50%` |
 | `0.333.toPercentWithFixed(1)` | `33.3%` |
 | `1.toPadLeft(3)` | `001` |
-
-> 新代码中 `SizedBox` / `Padding` 优先 `WSizeBox` / `WPadding`；`num.heightBox` / `widthBox` / `squareBox`
-> 与 `WSizeBox` 等价，仅保留兼容。`num.allPadding` 用于需要 `EdgeInsets` 值的场景。
 | `(-1).toPadLeft(3)` | `-01` |
 
 补零时负号计入总长度；`length` 必须为非负数；`toPercent` 的整数结果不带 `.0`，`NaN` / `Infinity` 原样加 `%`。
@@ -1706,17 +1702,14 @@ Container(
 - `WGradients` 只提供方向，不绑定品牌色；
 - `WShadows` 提供 `none` / `card` / `elevated` / `floating` 中性预设。
 
-### WRow / WColumn
+### 布局（原生）
 
-便捷创建 Row / Column 的工厂类：
+`WRow` / `WColumn` / `WPadding` / `WSizeBox` 已在 5.0 删除，直接用 Flutter 原生组件：
 
 ```dart
-WRow.min(children: [...])
-WColumn.min(children: [...])
+Row(mainAxisSize: MainAxisSize.min, children: [...])
+Column(mainAxisSize: MainAxisSize.min, children: [...])
 ```
-
-`WRow.top` / `WRow.bottom` / `WColumn.left` / `WColumn.right` 默认
-`MainAxisSize.max`；需要包裹内容时显式传 `mainAxisSize: MainAxisSize.min`。
 
 ### WGlobalKeyExtension
 
@@ -1975,7 +1968,7 @@ class MainNavBar extends StatelessWidget {
 
 ### WImage 平台差异
 
-- 文件图片使用条件导入（`_image_file_native.dart` vs `_image_file_web.dart`）；判断条件是 `dart.library.io`，Web/WASM 都走 Web 实现并返回 `WImageUnsupportedError`
+- 文件图片使用条件导入（`_image_file_native.dart` vs `_image_file_web.dart`）；判断条件是 `dart.library.io`，Web/WASM 都走 Web 实现并返回 `WImageErrorKind.unsupported`
 - Base64：≤64KB 在主 isolate 解码，超过 64KB 才用 `compute()`
 - 网络进度与重试依赖 `cached_network_image`
 

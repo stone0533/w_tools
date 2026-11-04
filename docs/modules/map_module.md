@@ -21,7 +21,10 @@ Map 模块（`w_tools_map` 子包）基于 `google_maps_flutter` 封装，提供
 
 ```
 map/
-└── src/map.dart        # WMap / WMapConfig / WMapZone / WMapItem
+└── src/
+    ├── map.dart        # WMap / WMapConfig / WMapController
+    ├── map_zone.dart   # WMapZone / WMapIconAssets
+    └── map_item.dart   # WMapItem / WMapItemMapper
 ```
 
 
@@ -88,8 +91,6 @@ class StoreItem implements WMapItem {
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `googleMapController` | `GoogleMapController?` | Google 地图控制器（由 `WMap` 在 onMapCreated 时写入） |
-| `zoneId` | `String?` | 区域 ID |
-| `name` | `String?` | 区域名称 |
 | `markers` | `Set<Marker>` | Marker 集合 |
 | `maps` | `List<T>?` | 地图数据列表 |
 | `cameraPosition` | `CameraPosition?` | 初始相机位置（`maps` 为空时为 null） |
@@ -99,6 +100,7 @@ class StoreItem implements WMapItem {
 | `iconBuilder` | `BitmapDescriptor Function(T)?` | 按条目决定图标，优先级最高 |
 | `mapper` | `WMapItemMapper<T>` | 从业务模型取地图字段 |
 | `defaultZoom` | `double` | 默认缩放级别，默认 `11` |
+| `initialCamera` | `CameraPosition?` | 无可用条目时的占位相机；有数据仍取首条目 + `defaultZoom` |
 
 ### 核心方法
 
@@ -191,8 +193,8 @@ WMap<StoreItem>(
 | `selectLatOffset` | `0.0` | 选中条目时的纬度偏移（向上偏移；0 表示 Marker 居中） |
 | `onItemSelected` | `null` | 选中条目回调 `ValueChanged<T>?` |
 | `onItemClosed` | `null` | 关闭选中条目回调 `ValueChanged<T>?` |
-| `onMapTap` | `null` | 点击地图空白回调 `VoidCallback?` |
-| `padding` | `null` | 地图内边距（`EdgeInsets`，用于避开面板 / 底部卡片） |
+| `onMapTap` | `null` | 点击地图回调 `ValueChanged<LatLng>?`（参数是点击坐标） |
+| `padding` | `EdgeInsets.zero` | 地图内边距（用于避开面板 / 底部卡片） |
 
 ### 构建方法
 

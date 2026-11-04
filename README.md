@@ -64,7 +64,7 @@ dependencies:
 
 ```yaml
 dependencies:
-  w_tools_core: ^2.4.0
+  w_tools_core: ^3.0.0
   w_tools_async: ^2.1.0
   w_tools_ui: ^4.7.0
   w_tools_form: ^3.2.0
@@ -115,7 +115,7 @@ WAppConfig.supportedLanguages = {'zh_CN': '简体中文'}; // app：语言
 
 ```yaml
 dependencies:
-  w_tools_core: ^2.4.0   # 只引子包
+  w_tools_core: ^3.0.0   # 只引子包
   w_tools_ui: ^4.7.0
 ```
 
@@ -163,7 +163,7 @@ flutter pub get
 ```yaml
 dependencies:
   w_tools_ui: ^4.7.0     # 只用 UI 组件
-  w_tools_core: ^2.4.0   # 只用工具类与扩展
+  w_tools_core: ^3.0.0   # 只用工具类与扩展
 ```
 
 ```dart

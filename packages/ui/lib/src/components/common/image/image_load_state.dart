@@ -26,7 +26,6 @@ class WImageLoadState {
   bool completedProgressSent = false;
 
   /// 是否有待上报的进度（同一帧内的多次进度只上报最后一次）
-  bool progressScheduled = false;
   WImageProgress? pendingProgress;
 
   /// 上一次见到的重试配置（config 可变，只能靠快照检测变化）
@@ -41,7 +40,6 @@ class WImageLoadState {
     generation++;
     retryScheduled = false;
     completedProgressSent = false;
-    progressScheduled = false;
     pendingProgress = null;
     retryCountSeen = retryCount;
     retryDelaySeen = retryDelay;

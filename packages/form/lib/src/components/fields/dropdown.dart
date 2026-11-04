@@ -140,7 +140,7 @@ class WFormDropdownCore<T> extends StatelessWidget {
 
 /// 下拉选择配置类，定义下拉选择的样式和行为。
 ///
-/// 可变的字段配置；需要链式构建时为 [builder]。
+/// 可变的字段配置；用命名构造 / copyWith。
 class WFormDropdownConfig extends WFormFieldBaseConfig {
   EdgeInsetsGeometry? contentPadding;
   Widget? hint;
@@ -258,5 +258,3 @@ class WFormDropdownConfig extends WFormFieldBaseConfig {
     );
   }
 }
-
-/// [WFormDropdownConfig] 的 Builder；返回可变配置副本。

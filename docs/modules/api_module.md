@@ -149,20 +149,20 @@ final logInterceptor = WLogInterceptor(
 
 ### 行为说明
 
-- 请求时仅当 `contentType` 为空才补 `application/json`，不覆盖 `multipart/form-data` 等自定义类型。
+- 仅对 `Map` / `String` body 补 `application/json`；`Uint8List` / `Stream` / `FormData` 等保持 dio 的推断，不强制 json。
 - `observeError` 与 401 刷新**相互独立、可同时使用**：错误观测回调先无条件执行，之后再独立判断 401 走刷新流程。
 - **并发 401 共享同一次刷新（single-flight）**，不会重复调用 `tokenRefresher`。
 - `tokenRefresher` 抛出的异常会被捕获并记录日志，请求以原错误结束，不会逃逸出拦截器链。
 - 刷新契约：`tokenRefresher` 取得新 token 后应自行持久化，使 `tokenGetter` 随后返回新 token；若提供 `tokenClearer`，须保证清除后 `tokenGetter` 不再返回旧 token（返回 null 亦可，此时重试会使用拦截器显式写入的新 token）。
 - 重试会**重新经过整条请求拦截器链**（请保证 `onRequest` 逻辑幂等）；`FormData` 请求体会在重放前被 `clone()`，`Stream` 请求体无法重放，此时放弃重试并记录日志。
-- 重试依赖**经 `DioRegistry.forBaseUrl` 创建的 Dio**；若自行 `Dio()` 创建实例，重试会走 `DioRegistry` 中的另一实例，可能导致配置不一致。
+- 重试只复用已知 Dio：`DioRegistry` 自动绑定；裸 `Dio()` 需构造传 `dio:`。若同 `baseUrl` 已有 registry，裸 Dio 的 401 会落到该实例（配置可能不一致）；否则不重试并记录错误。
 
 ### 使用示例
 
 ```dart
 final tokenInterceptor = WTokenInterceptor(
   tokenGetter: () => WToken.getToken(),
-  tokenClearer: () async => WToken.clearAllTokens(),
+  tokenClearer: WToken.clearToken,   // 只清 access token；clearAllTokens 会删掉 refresher 依赖的 refresh token
   tokenRefresher: () async => await refreshToken(),
   unauthorizedStatusCode: 401,
 );
@@ -293,7 +293,7 @@ void setupApi() {
 
 - [w_tools_core — WToken / WStorage](core_module.md)：Token 的持久化存储（`WToken` + `WStorage`）在 core 子包，`WTokenInterceptor` 通过 `tokenGetter` / `tokenClearer` 回调与它们解耦。
 - [w_tools_core — WLogger](core_module.md)：`WApiConfig.logDebugHandler` / `logErrorHandler` 通常对接 `WLogger.d` / `WLogger.e`。
-- [w_tools_async — WAsync](async_module.md)：网络请求的加载状态管理可配合 `WAsync` 的 `showLoading` / `onLoadingStart` / `onLoadingEnd`。
+- [w_tools_async — WAsync](async_module.md)：网络请求的加载状态管理可配合 `WAsync` / `WAsyncController` 与 `WAsyncOptions.loading`。
 
 ---
 

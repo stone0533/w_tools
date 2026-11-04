@@ -19,29 +19,29 @@ enum WLogPart {
 ///
 /// 用 [parts] 选择片段。
 class WLogInterceptor extends Interceptor {
-  /// 要输出的片段；为 null 时按旧 bool 参数
+  /// 要输出的片段；为 null 时使用包内默认值；空集表示全部关闭
   final Set<WLogPart>? parts;
 
   /// 是否打印请求信息
-  final bool request;
+  final bool _request;
 
   /// 是否打印请求头
-  final bool requestHeader;
+  final bool _requestHeader;
 
   /// 是否打印请求体
-  final bool requestBody;
+  final bool _requestBody;
 
   /// 是否打印响应体
-  final bool responseBody;
+  final bool _responseBody;
 
   /// 是否打印响应头
-  final bool responseHeader;
+  final bool _responseHeader;
 
   /// 是否打印错误信息（详细）
-  final bool error;
+  final bool _error;
 
   /// 是否打印错误友好提示
-  final bool errorHint;
+  final bool _errorHint;
 
   /// 是否启用日志
   final bool enableLog;
@@ -65,13 +65,13 @@ class WLogInterceptor extends Interceptor {
     this.parts,
     this.enableLog = true,
     this.redactedHeaders = defaultRedactedHeaders,
-  }) : request = parts?.contains(WLogPart.request) ?? true,
-       requestHeader = parts?.contains(WLogPart.requestHeader) ?? true,
-       requestBody = parts?.contains(WLogPart.requestBody) ?? true,
-       responseHeader = parts?.contains(WLogPart.responseHeader) ?? false,
-       responseBody = parts?.contains(WLogPart.responseBody) ?? true,
-       error = parts?.contains(WLogPart.error) ?? true,
-       errorHint = parts?.contains(WLogPart.errorHint) ?? true;
+  }) : _request = parts?.contains(WLogPart.request) ?? true,
+       _requestHeader = parts?.contains(WLogPart.requestHeader) ?? true,
+       _requestBody = parts?.contains(WLogPart.requestBody) ?? true,
+       _responseHeader = parts?.contains(WLogPart.responseHeader) ?? false,
+       _responseBody = parts?.contains(WLogPart.responseBody) ?? true,
+       _error = parts?.contains(WLogPart.error) ?? true,
+       _errorHint = parts?.contains(WLogPart.errorHint) ?? true;
 
   /// 请求阶段：打印请求详情
   @override
@@ -84,10 +84,15 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
+    if (parts != null && parts!.isEmpty) {
+      handler.next(options);
+      return;
+    }
+
     var builder = StringBuffer('*** Request *** \n');
     builder.write(_printKV('uri', options.uri));
 
-    if (request) {
+    if (_request) {
       builder.write(_printKV('method', options.method));
       builder.write(_printKV('responseType', options.responseType.toString()));
       builder.write(_printKV('followRedirects', options.followRedirects));
@@ -102,7 +107,7 @@ class WLogInterceptor extends Interceptor {
       );
       builder.write(_printKV('extra', options.extra));
     }
-    if (requestHeader) {
+    if (_requestHeader) {
       builder.write('headers:\n');
       options.headers.forEach(
         (key, v) => builder.write(
@@ -110,7 +115,7 @@ class WLogInterceptor extends Interceptor {
         ),
       );
     }
-    if (requestBody) {
+    if (_requestBody) {
       var res = options.data;
       builder.write('data:\n');
       builder.write(_message(res));
@@ -137,7 +142,7 @@ class WLogInterceptor extends Interceptor {
   /// 响应阶段：打印响应详情
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (!enableLog) {
+    if (!enableLog || (parts != null && parts!.isEmpty)) {
       handler.next(response);
       return;
     }
@@ -157,7 +162,12 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
-    if (error) {
+    if (parts != null && parts!.isEmpty) {
+      handler.next(err);
+      return;
+    }
+
+    if (_error) {
       var builder = StringBuffer('*** DioError *** \n');
       builder.write('uri: ${err.requestOptions.uri}\n');
       builder.write('$err');
@@ -170,7 +180,7 @@ class WLogInterceptor extends Interceptor {
       }
     }
 
-    if (errorHint) _handleError(err);
+    if (_errorHint) _handleError(err);
     handler.next(err);
   }
 
@@ -206,7 +216,7 @@ class WLogInterceptor extends Interceptor {
       builder.write(_printKV('redirect', response.realUri));
     }
 
-    if (responseHeader) {
+    if (_responseHeader) {
       builder.write('headers:\n');
       response.headers.forEach(
         (key, v) => builder.write(
@@ -217,7 +227,7 @@ class WLogInterceptor extends Interceptor {
         ),
       );
     }
-    if (responseBody) {
+    if (_responseBody) {
       builder.write('Response Text:\r\n');
       // 直接使用 response.data，交由 _message 安全格式化。
       // 不再用 response.toString() + 手动 jsonDecode：List 的 toString()（如 ["a","b"] → [a, b]）

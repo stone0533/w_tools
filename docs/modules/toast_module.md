@@ -57,7 +57,7 @@ toast/
 
 - `showCustomDialog` 的 `onClose` 回调会**延迟 1ms** 执行：BotToast 在移除提示的过程中同步触发 `onClose`，此时组件树仍处于销毁流程中，延后回调可避免用户在回调里执行 `setState` / 导航等操作时触发框架断言。
 - `showCustomDialog` 的 `toastBuilder` 在 Flutter 的 build 阶段才执行，其抛出的异常不会被外层 `try-catch` 捕获，因此 `_guardBuilder` 会单独兜底：构建失败时上报 `onError` 并返回 `SizedBox.shrink()`。
-- `showText` 的 `backgroundColor` 是**提示层背景色**（默认透明），`contentColor` 才是**气泡底色**（默认 `Colors.black54`）。
+- `showText` 的 `backgroundColor` 是**提示层背景色**（默认透明），`contentColor` 才是**气泡底色**（默认 `colorScheme.inverseSurface`）。
 
 ### 使用示例
 
@@ -97,7 +97,7 @@ WToast.hideAll(onError: (e) => debugPrint('清理失败: $e'));
 | 字段 | 默认值 | 说明 |
 |------|--------|------|
 | `duration` | `Duration(seconds: 2)` | 提示显示时长（加载提示固定不自动关闭，不受此值影响） |
-| `backgroundColor` | `null`（主题派生） | 成功/错误/警告/加载/自定义中作为**全屏遮罩色**；`showText` 中没有遮罩，该值作为**文本气泡底色** |
+| `backgroundColor` | `null`（theme 派生） | 成功/错误/警告/加载/自定义中作为**全屏遮罩色**；`showText` 不读取 style |
 | `align` | `Alignment.center` | 提示对齐方式（`showText` 仍使用 BotToast 默认的屏幕下方） |
 | `animationDuration` | `Duration(milliseconds: 200)` | 进出场动画时长（`showText` 使用 BotToast 自带动画，不受此值影响） |
 | `toastBuilder` | `null` | 自定义提示构建器，供 `showCustom` 使用；未设置时 `showCustom` 抛 `ArgumentError` |
@@ -112,8 +112,7 @@ WToast.hideAll(onError: (e) => debugPrint('清理失败: $e'));
 
 | 方法 | 说明 |
 |------|------|
-| `copy()` | 创建当前配置的副本（等同 `copyWith()`） |
-| `copyWith({...})` | 创建副本并选择性更新属性；参数为 null 表示沿用原值 |
+| `copyWith({...})` | 创建副本；可空字段传 null 表示清空，非空字段传 null 沿用 |
 
 ### 入口方法（WToast 静态）
 
@@ -276,7 +275,7 @@ class _MyPageState extends State<MyPage> {
 
 ## 注意事项
 
-- **BotToast 必须先初始化**：在应用入口调用 `BotToastInit()` + `MaterialApp.builder: botToastBuilder`，否则所有 Toast 入口都会通过 `onError` 上报并返回空函数。
+- **BotToast 必须先初始化**：`MaterialApp(builder: BotToastInit(), navigatorObservers: [BotToastNavigatorObserver()])`，否则成功/错误/加载类会静默失败（`onError` 上报）。
 - **加载提示全局唯一**：`WToast` 全局共享同一个 loading 状态。再次调用 `showLoading` 会先关闭上一个，切换页面或组件销毁时 loading 仍会保留（除非显式 `hideLoading` / `hideAll`）。
 - **全屏遮罩 vs 文本气泡**：`backgroundColor` 在两类提示中含义不同——遮罩类用作全屏底色，气泡类用作气泡底色（且无遮罩）。
 - **`onClose` 延迟回调**：全屏遮罩类（成功/错误/警告/加载/自定义）的 `onClose` 会延迟 1ms 执行，避免在组件树销毁期间 `setState`。文本提示的 `onClose` 由 BotToast 直接回调，无延迟。

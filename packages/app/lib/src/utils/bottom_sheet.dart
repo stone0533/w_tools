@@ -1,13 +1,14 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
-/// 底部弹窗工具（基于 GetX 的 `Get.bottomSheet` / `Get.back`）
+/// 底部弹窗工具（基于 GetX 的 `Get.bottomSheet`）
 class WBottomSheet {
-  /// 显示一个底部弹窗；点击内容区上方的空白区域可关闭
+  /// 显示一个底部弹窗；点击遮罩关闭由 Get 的 barrier 负责
   ///
-  /// - [content]：弹窗内容
+  /// - [content]：弹窗内容（按自身高度布局，不会被强制撑满全屏）
+  /// - 返回 `Get.back(result: ...)` 的结果
   /// - 其余参数透传给 `Get.bottomSheet`（背景色 / 遮罩 / 圆角 / 拖拽等）
-  static void show(
+  static Future<T?> show<T>(
     Widget content, {
     Color? backgroundColor,
     Color? barrierColor,
@@ -19,22 +20,8 @@ class WBottomSheet {
     double? elevation,
     bool isScrollControlled = true,
   }) {
-    Get.bottomSheet(
-      Column(
-        children: [
-          // 自建遮罩点击区：占满内容之上的剩余空间；isDismissible=false 时不接点击
-          Expanded(
-            child: isDismissible == false
-                ? const SizedBox.expand()
-                : GestureDetector(
-                    onTap: () => Get.back(),
-                    behavior: HitTestBehavior.opaque,
-                    child: const SizedBox.expand(),
-                  ),
-          ),
-          content,
-        ],
-      ),
+    return Get.bottomSheet<T>(
+      content,
       backgroundColor: backgroundColor,
       barrierColor: barrierColor,
       isDismissible: isDismissible ?? true,

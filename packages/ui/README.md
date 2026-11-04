@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^4.7.0
+  w_tools_ui: ^5.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -174,7 +174,7 @@ DefaultTabController(
 
 ## 扩展方法
 
-> `WSizeBox` / `WPadding` / `heightBox` / `widthBox` / `squareBox` 已弃用（5.0 移除）；
+> `WSizeBox` / `WPadding` / `heightBox` / `widthBox` / `squareBox` 已在 5.0 删除；
 > 直接用 `SizedBox` / `EdgeInsets`。`allPadding` 用于需要 `EdgeInsets` 值的场景。
 
 ```dart

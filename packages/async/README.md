@@ -112,7 +112,7 @@ WAsyncTheme(
 )
 
 // 推荐放在 App 根节点：
-// WAppPlugin.wrapApp / WApp.appWrapper
+// WAppPlugin.wrapApp / WAppOptions.appWrapper
 // 不要只放在 AppScaffold.body，否则 appBar actions、对话框、
 // bottom sheet、Tab 页面不会继承默认值。
 ```

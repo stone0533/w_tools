@@ -120,6 +120,12 @@ class DioRegistry {
         a.receiveDataWhenStatusError == b.receiveDataWhenStatusError &&
         a.persistentConnection == b.persistentConnection &&
         a.listFormat == b.listFormat &&
+        a.method == b.method &&
+        mapEquals(a.queryParameters, b.queryParameters) &&
+        a.maxRedirects == b.maxRedirects &&
+        a.preserveHeaderCase == b.preserveHeaderCase &&
+        identical(a.requestEncoder, b.requestEncoder) &&
+        identical(a.responseDecoder, b.responseDecoder) &&
         identical(a.validateStatus, b.validateStatus) &&
         mapEquals(a.headers, b.headers) &&
         mapEquals(a.extra, b.extra);

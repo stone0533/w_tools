@@ -5,8 +5,8 @@ import 'form_icons.dart';
 
 /// 表单图标默认值的作用域版本。
 ///
-/// 优先使用本主题中的图标；对应项为 null 时回退到 [WFormDefaults]。
-/// 相比直接修改 [WFormDefaults] 静态变量，WFormTheme 可以按页面 / 品牌隔离，
+/// 优先使用本主题中的图标；对应项为 null 时回退到 [WFormIcons.defaults]。
+/// WFormTheme 可以按页面 / 品牌隔离，
 /// 不会造成全局状态串扰。
 class WFormTheme extends StatelessWidget {
   const WFormTheme({
@@ -88,6 +88,7 @@ class _WFormThemeInherited extends InheritedWidget {
   @override
   bool updateShouldNotify(_WFormThemeInherited oldWidget) {
     return theme.borderConfig != oldWidget.theme.borderConfig ||
+        theme.icons != oldWidget.theme.icons ||
         theme.dropdownIcon != oldWidget.theme.dropdownIcon ||
         theme.radioUnselectedIcon != oldWidget.theme.radioUnselectedIcon ||
         theme.radioSelectedIcon != oldWidget.theme.radioSelectedIcon ||

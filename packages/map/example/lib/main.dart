@@ -76,6 +76,11 @@ class _ShopMapPageState extends State<ShopMapPage> {
   }
 
   void _toggleFilter() {
+    final selected = _selected;
+    if (selected != null) {
+      // 先让地图关闭选中（隐藏 InfoWindow / 复位相机），再更新数据
+      _controller.closeSelection(selected);
+    }
     setState(() {
       _onlyJingan = !_onlyJingan;
       _zone.update(

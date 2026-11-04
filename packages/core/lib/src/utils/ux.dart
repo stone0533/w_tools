@@ -168,28 +168,3 @@ class WThrottle {
     _active = false;
   }
 }
-
-/// 可取消的防抖 / 节流函数包装
-///
-/// 实例可直接像函数一样调用；不再需要时调用 [cancel] 取消尚未触发的回调，
-/// 避免页面销毁后仍执行 `setState` 等操作。
-class WCancellableAction {
-  WCancellableAction._({
-    required void Function() invoke,
-    required void Function() cancel,
-  }) : _invoke = invoke,
-       _cancel = cancel;
-
-  final void Function() _invoke;
-  final void Function() _cancel;
-
-  /// 执行包装后的函数
-  void call() {
-    _invoke();
-  }
-
-  /// 取消尚未触发的回调并恢复初始状态
-  void cancel() {
-    _cancel();
-  }
-}

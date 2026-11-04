@@ -110,7 +110,7 @@ WQrView(
 ### 注意事项
 
 - `resumeCamera` 只恢复相机运行态，不会重置 `scanOnce` 的已扫码锁定；若 `scanOnce=true` 且已扫码一次，调用 `resumeCamera` 后相机恢复但不会再触发 `onScanned`。
-- 相机操作失败（含 Web 上的 `UnimplementedError`）统一通过 `onError` 上报，不会抛给调用方。
+- `WQrView` 内部发出的相机调用失败会走 `onError`；直接调用 `WQrController` 成员（含 Web 上同步抛 `UnimplementedError` 的 `hasPermissions` / `stopCamera` / `scanInvert` / `getSystemFeatures`）会抛给调用方，请自行 `try/catch`。
 - 控制器通过 `WQrView.onQRViewCreated` 回调获得，**每次回调都是新实例**；平台视图重建（`cameraFacing` / `formatsAllowed` 变化）后旧 controller 会被 `dispose()`。
 
 ### 使用示例
@@ -409,7 +409,7 @@ class _QrScanPageState extends State<QrScanPage> {
 |------|----------|
 | Android | ✅ 完整支持 |
 | iOS | ✅ 完整支持 |
-| Web | ⚠️ 扫码可用；`pause/resume/flip` 由插件抛 `UnimplementedError`（本包经 `onError` 上报） |
+| Web | ⚠️ 扫码可用；`pause/resume/flip` 经 WQrView 调用会走 `onError`，直接调用 controller 的 4 个成员同步抛 `UnimplementedError` |
 | Windows / macOS / Linux | ❌ 插件抛 `UnsupportedError` |
 
 ### 版本锁定

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// 表单图标集合（不可变）。
 ///
 /// 通过 `WForm(icons: ...)` 或 `WFormTheme(icons: ...)` 统一替换；单个字段的
-/// 显式图标参数仍优先。旧 `WFormDefaults` 的全局静态字段已弃用。
+/// 显式图标参数仍优先。旧 `WFormDefaults` 已在 4.0 删除。
 @immutable
 class WFormIcons {
   const WFormIcons({

@@ -13,7 +13,7 @@ import '../form_theme.dart';
 /// 单个复选框字段组件
 ///
 /// 点击图标或标题切换选中状态；选中 / 未选中 / 禁用图标、间距与图标偏移可通过
-/// [WFormCheckboxConfig] 配置，未配置时取 [WFormDefaults] 的默认图标。
+/// [WFormCheckboxConfig] 配置，未配置时取 [WFormIcons.defaults] 的默认图标。
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
 class WFormCheckboxCore extends FormBuilderField<bool> {
@@ -139,7 +139,7 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckboxCore, bool>
 
 /// 复选框配置类，定义复选框的样式和行为。
 ///
-/// 可变的字段配置；需要链式构建时为 [builder]。
+/// 可变的字段配置；用命名构造 / copyWith。
 class WFormCheckboxConfig extends WFormFieldBaseConfig {
   Widget? unselectedIcon;
   Widget? selectedIcon;
@@ -245,5 +245,3 @@ class WFormCheckboxConfig extends WFormFieldBaseConfig {
     );
   }
 }
-
-/// [WFormCheckboxConfig] 的 Builder；返回可变配置副本。

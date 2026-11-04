@@ -11,7 +11,7 @@
 
 - **一站式启动**：`WApp.start()` = `init()` + `run()`
 - **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层并行、跨层串行）
-- **路由工具**：`WRoute` / `WRouteObserver` 记录与操作 GetX 路由
+- **路由工具**：`WRouteStack` / `WRouteObserver` 记录与操作 GetX 路由
 - **语言切换**：`WLanguage` 统一管理当前语言与支持语言
 - **底部弹窗**：`WBottomSheet.show()`
 - **全局配置**：`WAppConfig`
@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_app: ^1.1.0
+  w_tools_app: ^2.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -58,7 +58,7 @@ class AnalyticsPlugin with WAppPlugin {
   }
 }
 
-final app = WApp()..addPlugin(AnalyticsPlugin());
+final app = WApp.options(const WAppOptions(title: 'Demo'))..addPlugin(AnalyticsPlugin());
 ```
 
 ## 生命周期
@@ -86,8 +86,8 @@ WLanguage().languageStream.listen((code) {
 ```
 
 ```dart
-// 需要先让 WApp 运行，WRouteObserver 才会维护路由栈
-WApp.routeStack.popUntilRoute('/home');
+// WApp 运行后，WRouteObserver 会维护 WRouteStack.defaultStack
+WRouteStack.defaultStack.popUntilRoute('/home');
 ```
 
 ## 主要 API
@@ -97,7 +97,7 @@ WApp.routeStack.popUntilRoute('/home');
 | 应用启动 | `WApp` / `WApp.start()` |
 | 插件契约 | `WAppPlugin` / `WAppPlugin.dependsOn` |
 | 配置 | `WAppConfig` |
-| 路由 | `WRoute` / `WRouteObserver` |
+| 路由 | `WRouteStack` / `WRouteObserver` |
 | 语言 | `WLanguage` |
 | 底部弹窗 | `WBottomSheet` |
 

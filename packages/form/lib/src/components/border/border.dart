@@ -225,7 +225,7 @@ class WFormBorderState extends State<WFormBorder> {
 
 /// 表单边框配置类，定义边框的样式和构建器。
 ///
-/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
+/// 本类为不可变配置；修改实例用 copyWith。
 class WFormBorderConfig {
   final WFormBorderDecoration? defaultDecoration;
   final WFormBorderDecoration? readOnlyDecoration;

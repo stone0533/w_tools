@@ -57,9 +57,6 @@ abstract final class WMapIconAssets {
   }
 }
 
-/// 比较相机位置（[CameraPosition] 已按 target / zoom / bearing / tilt 实现 `==`）
-bool _sameCamera(CameraPosition? a, CameraPosition? b) => a == b;
-
 /// 地图区域类
 ///
 /// 持有 [GoogleMapController]、[markers] 集合、地图数据列表 [maps]，
@@ -69,12 +66,6 @@ bool _sameCamera(CameraPosition? a, CameraPosition? b) => a == b;
 class WMapZone<T> {
   /// Google 地图控制器
   GoogleMapController? googleMapController;
-
-  /// 区域 ID
-  String? zoneId;
-
-  /// 区域名称
-  String? name;
 
   /// Marker 集合（按 [initMap] 的结果重建，未变化的条目复用同一实例）
   Set<Marker> markers = {};
@@ -133,8 +124,6 @@ class WMapZone<T> {
   /// 构造函数
   WMapZone({
     this.googleMapController,
-    this.zoneId,
-    this.name,
     this.maps,
     this.icon,
     this.iconAsset,

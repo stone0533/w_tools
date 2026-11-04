@@ -142,7 +142,7 @@ theme: ThemeData(colorScheme: scheme, useMaterial3: true)
 （不依赖 `w_tools_ui`），所以只装扩展时它们看不到品牌排版；只写 `textTheme` 时
 `WText` 的 `price` / `number` / `badge` 又读不到语义角色。
 
-#### 角色 ↔ TextTheme 槽位（`toTextTheme` / `fromTextTheme` 共用，严格互逆）
+#### 角色 ↔ TextTheme 槽位（`fromTextTheme` 兜底 / `toTextTheme` 投影）
 
 | 角色 | TextTheme 槽位 |
 | --- | --- |
@@ -151,9 +151,8 @@ theme: ThemeData(colorScheme: scheme, useMaterial3: true)
 | `title` | `titleLarge` |
 | `price` | `headlineSmall` |
 | `bodyStrong` | `titleMedium` |
-| `number` | `bodyLarge` |
 | `body` | `bodyLarge` + `bodyMedium` |
-| `number` | **不投影** |
+| `number` | **不投影**（兜底取 `bodyLarge`） |
 | `caption` | `bodySmall` |
 | `label` | `labelMedium` |
 | `button` | `labelLarge` |

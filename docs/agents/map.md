@@ -7,8 +7,8 @@ Google Maps 展示、marker 选中 / 关闭、自定义 marker 图标。
 ## 最小用法
 
 ```dart
-WMap<Store>(
-  zone: WMapZone<Store>(
+// zone / controller 必须建在 State 字段或页面级单例，不要每次 build new
+final zone = WMapZone<Store>(
     maps: stores,
     initialCamera: const CameraPosition(target: LatLng(31.2, 121.5), zoom: 11),
     mapper: WMapItemMapper<Store>(
@@ -16,7 +16,10 @@ WMap<Store>(
       name: (s) => s.name,
       position: (s) => (latitude: s.lat, longitude: s.lng),
     ),
-  ),
+);
+
+WMap<Store>(
+  zone: zone,
   config: WMapConfig<Store>(
     onItemSelected: (s) {},
     onItemClosed: (s) {},
@@ -26,7 +29,7 @@ WMap<Store>(
 
 > `LatLng` / `CameraPosition` 需要 `import 'package:google_maps_flutter/google_maps_flutter.dart';`
 > `initialCamera` 只在**没有可渲染条目**时生效；有数据时默认取首个条目 + `defaultZoom`。
-> `update()` 会重建 marker 但不会抢走当前相机（选中后下拉刷新不会跳回第一个）。`
+> `update()` 会重建 marker 但不会抢走当前相机（选中后下拉刷新不会跳回第一个）。
 
 ## 不要用
 

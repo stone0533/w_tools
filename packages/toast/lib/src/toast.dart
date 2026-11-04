@@ -51,6 +51,8 @@ class WToast {
     Duration? duration,
     Color? backgroundColor,
     Duration? animationDuration = const Duration(milliseconds: 200),
+    bool allowClick = true,
+    bool clickClose = false,
     void Function(dynamic error)? onError,
   }) {
     try {
@@ -69,6 +71,8 @@ class WToast {
             backgroundColor ?? Colors.black38, // style-literal-ok: 中性遮罩，Material modal barrier 同为黑色
         duration: duration,
         animationDuration: animationDuration,
+        allowClick: allowClick,
+        clickClose: clickClose,
       );
     } catch (e) {
       onError?.call(e);
@@ -247,6 +251,7 @@ class WToast {
       backgroundColor: resolved.backgroundColor,
       onClose: resolved.onClose,
       animationDuration: resolved.animationDuration,
+      allowClick: false,
       onError: resolved.onError,
     );
 
@@ -265,8 +270,13 @@ class WToast {
   /// 解析样式：显式 style > WToastTheme（有 context 时）> defaults
   static WToastStyle _resolveStyle(WToastStyle? style, BuildContext? context) {
     if (style != null) return style;
-    if (context != null) return WToastStyle.of(context);
-    return WToastStyle.defaults;
+    if (context == null || !context.mounted) return WToastStyle.defaults;
+    try {
+      return WToastStyle.of(context);
+    } catch (_) {
+      // 页面销毁 / 非 build 阶段查祖先失败：回退默认样式，不抛给调用方
+      return WToastStyle.defaults;
+    }
   }
 
   /// 显示 loading → 执行任务 → 关闭 loading → 按结果提示
@@ -308,6 +318,8 @@ class WToast {
     required WToastStyle style,
     Duration? duration,
     Alignment? align,
+    bool allowClick = true,
+    bool clickClose = false,
   }) {
     return showCustomDialog(
       toastBuilder: builder,
@@ -316,6 +328,8 @@ class WToast {
       backgroundColor: style.backgroundColor,
       onClose: style.onClose,
       animationDuration: style.animationDuration,
+      allowClick: allowClick,
+      clickClose: clickClose,
       onError: style.onError,
     );
   }

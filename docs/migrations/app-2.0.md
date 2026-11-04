@@ -3,7 +3,7 @@
 | 旧 | 新 |
 | --- | --- |
 | `WApp()` + 可变字段（`..title =` 等） | `WApp.options(WAppOptions(...))` |
-| 静态 `WRoute.*` | `WApp.routeStack.*` / `WRouteStack.defaultStack.*` |
+| 静态 `WRoute.*` | `WRouteStack.defaultStack.*`；持有 `WApp` 实例时用 `app.routeStack.*` |
 
 `WApp.options` 的配置项与旧字段一一对应；`start()` 仍可覆盖 `initialRoute` / `getPages` /
 `theme` / `translations` / `locale` / `fallbackLocale` / `builder` / `navigatorObservers` /

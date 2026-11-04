@@ -14,7 +14,7 @@ class WNavController extends ChangeNotifier {
   /// 创建内部动画控制器所需的 vsync
   final TickerProvider vsync;
   late AnimationController _animationController;
-  Animation<double>? _animation;
+  late final CurvedAnimation _animation;
   int _transitionToken = 0;
   bool _disposed = false;
 
@@ -25,7 +25,7 @@ class WNavController extends ChangeNotifier {
   int get previousIndex => _previousIndex;
 
   /// 切换过渡动画
-  Animation<double> get animation => _animation!;
+  Animation<double> get animation => _animation;
 
   /// 是否正在播放切换动画
   bool get indexIsChanging => _animationController.isAnimating;
@@ -80,8 +80,8 @@ class WNavController extends ChangeNotifier {
 
     final AnimationController controller = _animationController;
     controller.duration = duration ?? kTabScrollDuration;
-    // 应用调用方传入的曲线
-    _animation = CurvedAnimation(parent: controller, curve: curve);
+    // 复用同一个 CurvedAnimation，只更新曲线（避免每次切换都挂一个 status listener）
+    _animation.curve = curve;
     try {
       await controller.forward(from: 0.0).orCancel;
       if (_disposed || token != _transitionToken) return;
@@ -95,6 +95,7 @@ class WNavController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _transitionToken++;
+    _animation.dispose();
     _animationController.dispose();
     super.dispose();
   }

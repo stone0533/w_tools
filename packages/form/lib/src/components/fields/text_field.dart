@@ -231,7 +231,7 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
 
 /// 文本输入配置类，定义文本输入的样式和行为。
 ///
-/// 本类已迁移为不可变配置；需要链式构建时使用 [builder]。
+/// 本类为不可变配置；修改实例用 copyWith。
 class WFormTextFieldConfig extends WFormFieldBaseConfig {
   TextInputType? keyboardType;
   List<TextInputFormatter>? inputFormatters;

@@ -122,9 +122,10 @@ WFormValidator
 
 ```dart
 final formData = WFormController();
-final borderConfig = WFormBorderConfig()
-  ..defaultDecoration = WFormBorderDecoration(color: Colors.white)
-  ..errorDecoration = WFormBorderDecoration(border: Border.all(color: Colors.red));
+final borderConfig = WFormBorderConfig(
+  defaultDecoration: const WFormBorderDecoration(color: Colors.white),
+  errorDecoration: WFormBorderDecoration(border: Border.all(color: Colors.red)),
+);
 
 WFormScope(
   formData: formData,
@@ -577,7 +578,7 @@ WFormMultiDropdown(
 
 - 存储格式：ISO `yyyy-MM-dd`（与 locale 无关）
 - 显示格式：`DateFormat(config.displayFormat, locale)`，默认 `'yMMMMd'`
-- 使用系统 `showDatePicker`，`firstDate` / `lastDate` 必填
+- 使用系统 `showDatePicker`；直接字段的 `firstDate` / `lastDate` 可选，默认 `DateTime(1900)` / `DateTime.now()`（建议显式传值，尤其是允许未来日期时）
 
 #### 使用示例
 
@@ -736,22 +737,23 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formData = WFormController();
 
-  late final WFormBorderConfig _borderConfig = WFormBorderConfig()
-    ..defaultDecoration = const WFormBorderDecoration()
+  late final WFormBorderConfig _borderConfig = WFormBorderConfig(
+    defaultDecoration: const WFormBorderDecoration()
         .withUniformBorder(1, Colors.grey)
         .withUniformBorderRadius(8)
-        .withColor(Colors.white)
-    ..focusedDecoration = const WFormBorderDecoration()
+        .withColor(Colors.white),
+    focusedDecoration: const WFormBorderDecoration()
         .withUniformBorder(1.5, Colors.blue)
-        .withUniformBorderRadius(8)
-    ..errorDecoration = const WFormBorderDecoration()
+        .withUniformBorderRadius(8),
+    errorDecoration: const WFormBorderDecoration()
         .withUniformBorder(1.5, Colors.red)
-        .withUniformBorderRadius(8)
-    ..errorBuilder = (list) => Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(list?.first ?? '',
-              style: const TextStyle(color: Colors.red, fontSize: 12)),
-        );
+        .withUniformBorderRadius(8),
+    errorBuilder: (list) => Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(list?.first ?? '',
+          style: const TextStyle(color: Colors.red, fontSize: 12)),
+    ),
+  );
 
   late final _validator = _formData.validators(
     settings: WFormValidatorSettings()
@@ -825,7 +827,7 @@ class _LoginPageState extends State<LoginPage> {
 | # | 事项 | 说明 |
 |---|------|------|
 | 1 | **Flutter 版本锁定** | 依赖链 `flutter_form_builder:10.3.0+2` / `form_builder_validators:11.3.0` 传递最低 Flutter 3.38，请确保项目约束 ≥ 3.38 |
-| 2 | **Config 私有字段** | `WFormBorderConfig._*` / `WFormTextFieldConfig._*` 等私有字段通过 setter / builder 方法配置，直接赋值会触发静态错误 |
+| 2 | **Config 两种形态** | `WFormBorderConfig` 全字段 final：用构造 / `copyWith`；字段 Config（如 `WFormTextFieldConfig`）可变：用 cascade / `copyWith` |
 | 3 | **bordered 构建清空内层装饰** | 调用 `build(bordered: true)` 后，字段自身 `containerDecoration` 会被清空；必须依赖外层 `WFormFieldShell` 提供边框 |
 | 4 | **Dropdown items 键必须存在** | `WFormDropdown.items` 是 `Map<T, String>`，初始值 / 字段值必须存在于 map 的 keys 中（`FormBuilderDropdown` 内部断言会失败） |
 | 5 | **Scope 管道** | `WFormTextFieldScope`（InheritedWidget）将输入状态下发给插槽 Widget（清空按钮 / 密码切换），无需手动同步 |

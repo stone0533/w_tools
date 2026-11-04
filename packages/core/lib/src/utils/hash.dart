@@ -55,9 +55,4 @@ class WHash {
     final digest = hmac.convert(utf8.encode(data));
     return hex.encode(digest.bytes);
   }
-
-  /// 密码哈希（加盐单轮 SHA-256）
-  ///
-  /// 返回格式为 `sha256$盐值$哈希值`；未传 [salt] 时随机生成。
-  ///
 }

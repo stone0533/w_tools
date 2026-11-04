@@ -16,7 +16,7 @@
 
 ## 平台支持
 
-- Android、iOS、Web（Web 的相机控制 `pause/resume/flip` 由插件抛 `UnimplementedError`，本包会通过 `onError` 上报，扫码本身可用）
+- Android、iOS、Web（Web 上 `pause/resume/flip` 经 `WQrView` 内部调用时会走 `onError`；直接调用 `WQrController` 的 `hasPermissions` / `stopCamera` / `scanInvert` / `getSystemFeatures` 会同步抛 `UnimplementedError`）
 - 桌面端由 `qr_code_scanner_plus` 抛出 `UnsupportedError`
 - iOS 最低部署版本 12.0（插件 2.1.2）
 - Android 需声明 `CAMERA` 权限；iOS 需配置 `NSCameraUsageDescription`

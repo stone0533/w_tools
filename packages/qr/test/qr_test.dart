@@ -537,6 +537,25 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('scanOnce true→false 会恢复相机并可继续扫码', (tester) async {
+      final scanned = <String>[];
+      await pumpQrView(tester, onScanned: (b) => scanned.add(b.code ?? ''));
+      await _emitBarcode(tester, 'first');
+      expect(scanned, ['first']);
+      expect(platformCalls, contains('pauseCamera'));
+
+      platformCalls.clear();
+      await pumpQrView(
+        tester,
+        onScanned: (b) => scanned.add(b.code ?? ''),
+        scanOnce: false,
+      );
+      expect(platformCalls, contains('resumeCamera'));
+
+      await _emitBarcode(tester, 'second');
+      expect(scanned, ['first', 'second']);
+    });
+
     testWidgets('WQrView 无 onQRViewCreated → 正常渲染不崩', (tester) async {
       await pumpQrView(tester, onScanned: (_) {});
       expect(find.byType(WQrView), findsOneWidget);

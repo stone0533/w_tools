@@ -59,7 +59,7 @@ WApp.options(
 ```
 
 优先级：`start()` 参数 > `WAppOptions` > 默认值。
-语言支持列表用 `WLocaleConfig`；运行期当前语言仍以 `WLanguage` 为唯一真源。
+语言支持列表用 `WLocaleConfig`；运行期当前语言真源是 `WAppConfig.currentLanguage`，`WLanguage` 是它的响应式包装。
 
 ### WAppOptions 字段
 
@@ -219,7 +219,7 @@ Future<void> main() async {
 | `onInit()` | `Future<void>` / `void` | 初始化阶段被调用，可返回 Future 参与分层编排 |
 | `builderWrapper` | `TransitionBuilder?` | 对 `MaterialApp.builder` 的再次包裹；**后注册的插件在 builder 链更外层**。需要 Theme/MediaQuery/`.sp` 的主题扩展应在这里构建 |
 | `wrapApp` | `Widget Function(Widget)` | 对根 Widget 的包裹（如 Provider、最外层手势）；**后注册者最外**。位于 MaterialApp 之外，没有 Theme/MediaQuery |
-| `navigatorObservers` | `List<NavigatorObserver>?` | 额外的 `NavigatorObserver`，会与 `WApp.navigatorObservers` 合并 |
+| `navigatorObservers` | `List<NavigatorObserver>?` | 额外的 `NavigatorObserver`，会与 `WAppOptions.navigatorObservers` 合并 |
 
 ### 使用示例
 
@@ -238,7 +238,7 @@ class AuthPlugin with WAppPlugin {
 }
 
 // 另一个插件依赖 auth
-mixin class PushPlugin implements WAppPlugin {
+class PushPlugin with WAppPlugin {
   @override
   String get name => 'push';
 
@@ -311,7 +311,7 @@ await subscription.cancel();
 
 ### 功能说明
 
-维护**根 Navigator** 的路由栈（由 `WRouteObserver` 记录），通过 `WApp.routeStack` 访问。仅覆盖根路由；嵌套 Navigator 需要自行管理。
+维护**根 Navigator** 的路由栈（由 `WRouteObserver` 记录），通过 `WRouteStack.defaultStack` 访问（持有 `WApp` 实例时也可用 `app.routeStack`）。仅覆盖根路由；嵌套 Navigator 需要自行管理。
 
 ### 只读成员
 
@@ -333,8 +333,8 @@ await subscription.cancel();
 
 ```dart
 // 按路由名截断
-WApp.routeStack.removeRoutesAfter('/profile');
-WApp.routeStack.popUntilRoute('/profile');
+WRouteStack.defaultStack.removeRoutesAfter('/profile');
+WRouteStack.defaultStack.popUntilRoute('/profile');
 ```
 
 ---
@@ -343,16 +343,16 @@ WApp.routeStack.popUntilRoute('/profile');
 
 ### 功能说明
 
-实现 `NavigatorObserver`，自动把根 Navigator 的路由变化同步到 `WApp.routeStack`（默认 `WRouteStack.defaultStack`）。**通常不需要手动实例化**——`WApp` 会自动将其加入 `GetMaterialApp.navigatorObservers`。
+实现 `NavigatorObserver`，自动把根 Navigator 的路由变化同步到 `WRouteStack.defaultStack`（`WApp` 实例的 `routeStack`）。**通常不需要手动实例化**——`WApp` 会自动将其加入 `GetMaterialApp.navigatorObservers`。
 
 ### 观察的事件
 
 | 方法 | 行为 |
 |------|------|
-| `didPush(route, previousRoute)` | 追加到 `WApp.routeStack.routes` |
-| `didPop(route, previousRoute)` | 从 `WApp.routeStack.routes` 移除 |
-| `didReplace(newRoute, oldRoute)` | 替换 `WApp.routeStack.routes` 中的对应条目 |
-| `didRemove(route, previousRoute)` | 从 `WApp.routeStack.routes` 移除 |
+| `didPush(route, previousRoute)` | 追加到 `WRouteStack.defaultStack.routes` |
+| `didPop(route, previousRoute)` | 从 `WRouteStack.defaultStack.routes` 移除 |
+| `didReplace(newRoute, oldRoute)` | 替换 `WRouteStack.defaultStack.routes` 中的对应条目 |
+| `didRemove(route, previousRoute)` | 从 `WRouteStack.defaultStack.routes` 移除 |
 
 ---
 
@@ -362,9 +362,9 @@ WApp.routeStack.popUntilRoute('/profile');
 
 基于 `Get.bottomSheet` 的便捷封装。特点：
 
-- 自建遮罩点击区（点击遮罩可关闭；`isDismissible: false` 时不接点击）。
-- 默认 `isScrollControlled: true`，内容区支持 `ListView` / `SingleChildScrollView` 等滚动控件。
-- 依赖 GetX。
+- 遮罩点击由 Get 的 barrier 负责（`isDismissible: false` 时不可点遮罩关闭）。
+- 内容按自身高度布局，不会被强制撑满全屏；`isScrollControlled` 默认 true。
+- 返回 `Get.back(result:)` 的结果（`Future<T?>`）。
 
 ### 使用示例
 
@@ -392,25 +392,24 @@ Future<void> main() async {
     'en_US': 'English',
   };
 
-  // 2. 应用字段与插件（插件也可用 addPlugins 批量注册）
-  final app = WApp()
-    ..title = 'My App'
-    ..initialRoute = '/home'
-    ..getPages = [
-      GetPage(name: '/home', page: () => const HomePage()),
-      GetPage(name: '/profile', page: () => const ProfilePage()),
-    ]
-    ..orientations = [
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]
-    ..systemUiOverlayStyle = SystemUiOverlayStyle.dark
-    ..theme = AppTheme.light
-    ..translations = AppTranslations()
-    ..locale = const Locale('zh', 'CN')
-    ..fallbackLocale = const Locale('en', 'US')
-    ..addPlugin(AuthPlugin())
-    ..addPlugin(PushPlugin());
+  // 2. 应用配置与插件
+  final app = WApp.options(
+    WAppOptions(
+      title: 'My App',
+      initialRoute: '/home',
+      getPages: [
+        GetPage(name: '/home', page: () => const HomePage()),
+        GetPage(name: '/profile', page: () => const ProfilePage()),
+      ],
+      orientations: [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
+      systemUiOverlayStyle: SystemUiOverlayStyle.dark,
+      theme: AppTheme.light,
+      translations: AppTranslations(),
+      locale: const Locale('zh', 'CN'),
+      fallbackLocale: const Locale('en', 'US'),
+      plugins: [AuthPlugin(), PushPlugin()],
+    ),
+  );
 
   // 3. 一站式启动
   await app.start(

@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^3.2.0
+  w_tools_form: ^4.0.0
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
@@ -149,10 +149,6 @@ config 只覆盖自己设置的属性，未设置项继续继承 `WForm.fieldSty
 | 自定义字段按钮 | `WFormButton` |
 | 边框 | `WFormBorder` / `WFormBorderConfig` |
 | 校验 | `WFormValidator` / `WFormValidatorItem` / `WFormValidatorSettings` |
-
-## 低层 API
-
-既有 `WFormTextFieldCore` / `WFormDropdownCore` 等核心 Widget 仍保留，供边框、自定义字段或特殊布局使用。普通业务页面优先使用直接字段构造。
 
 ## License
 

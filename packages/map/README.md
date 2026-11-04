@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_map: ^1.3.1
+  w_tools_map: ^2.0.0
 ```
 
 请按 `google_maps_flutter` 文档配置 Android / iOS 的 Google Maps API Key。
@@ -171,8 +171,8 @@ final zone = WMapZone<Shop>(maps: const []);
 zone.update(shops);
 ```
 
-多个 `WMap` 共享同一个 zone 时，用 `addDataUpdatedListener` 注册，而不是旧的
-`addDataUpdatedListener` / `removeDataUpdatedListener`（旧的单值 `onDataUpdated` 已在 2.0 删除）。
+多个 `WMap` 共享同一个 zone 时用 `addDataUpdatedListener` / `removeDataUpdatedListener`；
+旧的单值 `onDataUpdated` 已在 2.0 删除。
 
 ## 示例
 

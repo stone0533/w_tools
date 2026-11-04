@@ -173,7 +173,7 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePickerCore, S
 
 /// 日期选择器配置类，定义日期选择器的样式和行为。
 ///
-/// 可变的字段配置；需要链式构建时为 [builder]。
+/// 可变的字段配置；用命名构造 / copyWith。
 class WFormDatePickerConfig extends WFormFieldBaseConfig {
   InputDecoration? decoration;
   Widget? icon;
@@ -303,5 +303,3 @@ class WFormDatePickerConfig extends WFormFieldBaseConfig {
     );
   }
 }
-
-/// [WFormDatePickerConfig] 的 Builder；返回可变配置副本。

@@ -48,7 +48,10 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     final theme = WAsyncTheme.maybeOf(context);
     final slivers = <Widget>[];
 
-    if (data != null) {
+    if (state.isReady) {
+      // ready 的 data 允许为 null（T 可空），不能再用 data != null 判 ready
+      slivers.add(readySliverBuilder(context, state.data as T));
+    } else if (data != null) {
       slivers.add(readySliverBuilder(context, data));
 
       final refreshing = refreshingSliverBuilder ?? theme?.refreshingSliverBuilder;
@@ -65,8 +68,6 @@ class WAsyncStateSliver<T> extends StatelessWidget {
           ),
         );
       }
-    } else if (state.isReady) {
-      slivers.add(const SliverToBoxAdapter(child: SizedBox.shrink()));
     } else {
       slivers.add(
         SliverFillRemaining(

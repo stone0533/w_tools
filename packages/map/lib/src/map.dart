@@ -92,6 +92,9 @@ class _WMapState<T> extends State<WMap<T>> {
   /// 当前 GoogleMap 的控制器（dispose 时只清理自己创建的那个）
   GoogleMapController? _mapController;
 
+  /// 是否已经拿到过可渲染数据（用于 initialCamera → 首条数据的相机补同步）
+  bool _hasRenderableData = false;
+
   /// 选中 / 关闭操作序号：await 后只有最后一次操作能生效
   int _operation = 0;
 
@@ -133,6 +136,7 @@ class _WMapState<T> extends State<WMap<T>> {
       _unwireZone(oldWidget.zone);
       _selected = null;
       _appliedCamera = null;
+      _hasRenderableData = false;
       // 控制器只由本 State 持有：迁移给新 zone，避免新 zone 的 select 静默失效
       if (_mapController != null && !identical(oldWidget.zone, widget.zone)) {
         oldWidget.zone.googleMapController = null;
@@ -202,8 +206,12 @@ class _WMapState<T> extends State<WMap<T>> {
     if (!mounted) return;
     setState(() {});
     _validateSelected();
-    // 只有「还没有应用过任何相机」时才补同步；数据刷新 / 图标解码不应抢走
-    // 用户已经选中或手动拖动到的位置。
+    // initialCamera 占位时 _appliedCamera 一开始就非 null；只有首次拿到可渲染
+    // 数据时才允许补一次同步，之后的数据刷新不再抢相机。
+    if (!_hasRenderableData && widget.zone.markers.isNotEmpty) {
+      _hasRenderableData = true;
+      _appliedCamera = null;
+    }
     if (_appliedCamera == null) _syncCameraIfNeeded();
   }
 
@@ -213,7 +221,7 @@ class _WMapState<T> extends State<WMap<T>> {
     final controller = _controllerOrZone;
     final target = widget.zone.cameraPosition;
     if (controller == null || target == null) return;
-    if (_sameCamera(_appliedCamera, target)) return;
+    if (_appliedCamera == target) return;
     _appliedCamera = target;
     controller.moveCamera(CameraUpdate.newCameraPosition(target));
   }
@@ -223,11 +231,13 @@ class _WMapState<T> extends State<WMap<T>> {
     final selected = _selected;
     if (selected == null) return;
     final selectedId = widget.zone.mapper.id(selected);
-    final stillExists =
-        widget.zone.maps?.any((a) => widget.zone.mapper.id(a) == selectedId) ?? false;
+    // marker 是按 isValid 过滤后生成的，必须用它判断“还画着没有”
+    final stillExists = widget.zone.markers.any((m) => m.markerId.value == selectedId);
     if (!stillExists && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _selected = null);
+        if (!mounted) return;
+        setState(() => _selected = null);
+        widget.config.onItemClosed?.call(selected);
       });
     }
   }
@@ -263,13 +273,15 @@ class _WMapState<T> extends State<WMap<T>> {
   @override
   Widget build(BuildContext context) {
     final zone = widget.zone;
+    final initialCamera =
+        zone.cameraPosition ?? const CameraPosition(target: LatLng(0, 0), zoom: 1);
     return GoogleMap(
-      initialCameraPosition:
-          zone.cameraPosition ?? const CameraPosition(target: LatLng(0, 0), zoom: 1),
+      initialCameraPosition: initialCamera,
       onMapCreated: (GoogleMapController controller) {
         zone.googleMapController = controller;
         _mapController = controller;
-        _appliedCamera = zone.cameraPosition;
+        _appliedCamera = initialCamera;
+        _hasRenderableData = zone.markers.isNotEmpty;
       },
       onTap: widget.config.onMapTap == null
           ? null
