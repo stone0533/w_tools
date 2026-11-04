@@ -62,6 +62,8 @@ class WAsyncPagedController<T> {
   /// 初始状态为空列表时视为没有更多；null / 未提供时仍允许加载。
   static bool _hasMoreFromInitial<T>(WAsyncState<List<T>>? initial) {
     if (initial == null) return true;
+    // empty 与 ready([]) 都表示“已加载且没有数据”，不应再请求下一页。
+    if (initial.isEmpty) return false;
     return initial.data?.isNotEmpty ?? true;
   }
 

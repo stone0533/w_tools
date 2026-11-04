@@ -23,6 +23,9 @@
 | 映射成功值 | `WAsync.map` |
 | 重试 / 超时 / 并发 | `WAsync.retry` / `timeout` / `parallel` / `pool` / `serial` / `first` |
 | 分页 | `WAsyncPagedController` |
+| 观测自定义 retry 失败 | `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError` |
+
+`onRetry == null` 时不调用自定义 error / banner builder（它们要求可用的 retry）。
 
 `tryRun` 结果：
 

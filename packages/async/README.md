@@ -8,6 +8,14 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 全 App 默认视图   → WAsyncTheme
 ```
 
+选择执行入口：
+
+```text
+页面区块             → WAsyncController + WAsyncView
+纯逻辑，想 try/catch → WAsync.run
+纯逻辑，想显式分支   → WAsync.tryRun + WAsyncResult
+```
+
 ## 安装
 
 ```yaml
@@ -79,6 +87,7 @@ ready    → readyBuilder
 | 并发活动回调 | `WAsyncActivity`（只传给 `WAsyncOptions`，不要手动 begin/end） |
 | 让 loader 感知取消 | `WAsyncController.withToken` / `WAsyncPagedController.withToken` |
 | 四态快照 | `WAsyncState` / `WAsyncStatus` |
+| 观测自定义 retry 失败 | `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError` |
 
 ## 执行结果
 
@@ -117,7 +126,8 @@ final name = await WAsync.map<String, String>(
 - 取消抛 `WCancellationException`；
 - `WAsync` 不再用 `null` 表示失败或取消；
 - `onSuccess` / `map` 的映射异常由调用方处理，不会回调 `options.onError`；
-- 只有 token 取消才算 `WAsyncCancelled`；任务自己抛 `WCancellationException` 仍算失败。
+- 只有 token 取消才算 `WAsyncCancelled`；任务自己抛 `WCancellationException` 仍算失败；
+- `onRetry == null` 时不会调用自定义 `errorBuilder` / `errorBannerBuilder`（它们需要可用的 retry）。
 
 自定义重试失败时，View 默认用 `FlutterError.reportError` 上报；需要自己记录时传：
 
@@ -166,6 +176,8 @@ class _GiftPageState extends State<GiftPage> {
 ```
 
 每个独立区块一个 Controller。
+
+给 Controller 传 `WAsyncOptions.activity` 只会在 debug 断言失败；Controller 自己维护四态。
 
 ## 取消
 
