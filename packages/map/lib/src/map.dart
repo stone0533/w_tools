@@ -329,9 +329,4 @@ class WMapConfig<T> {
     this.onMapTap,
     this.padding = EdgeInsets.zero,
   });
-
-  /// 构建 WMap 组件
-  WMap<T> build({required WMapZone<T> zone, WMapController<T>? controller}) {
-    return WMap<T>(config: this, zone: zone, controller: controller);
-  }
 }

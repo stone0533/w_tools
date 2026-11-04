@@ -110,19 +110,7 @@ const WImageStyle().square(40).rounded(20)
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
-## 1.x → 2.0 迁移
-
-| 1.x | 2.0 |
-|---|---|
-| `WImage(url, config: WImageConfig()..width = 100)` | `WImage.network(url, style: const WImageStyle(width: 100))` |
-| `WImageConfig`（可变 + 链式） | `WImageStyle`（不可变 + `copyWith`） |
-| `WImage` 旧构造（`config:` + builder） | `WImage.source` / `WImage.network/asset/file/base64` |
-| `toImage(config:)` | `toImage(style:)` |
-| `onLoadProgress` | `onProgress` |
-| `progressIndicatorBuilder` | `progressBuilder` |
-| `cacheEnabled` / `fitCenter` / `size` | 已删除 |
-| `WImageGlobalConfig` 默认占位符 | `WImageDefaultsScope` + `WImageLoadConfig` |
-| `WImageGlobalConfig` 缓存预算 | 直接配置 `PaintingBinding.instance.imageCache` |
+> 历史迁移见 [`docs/migrations/`](../../docs/migrations/README.md)。
 
 ## 导航
 

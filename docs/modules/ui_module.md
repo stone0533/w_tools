@@ -1376,7 +1376,7 @@ WSelectableRow(
 ### WRowButtons（弃用，5.0 移除）
 
 旧的横向滚动按钮行，选中态与滚动耦合在一起；用 `WActionRow` / `WSelectableRow` 替代。
-`WRowButtonsController` 也一并弃用。
+`WRowButtonsController` 也一并删除。
 
 ### WKeepAliveWrapper
 
@@ -1747,7 +1747,7 @@ await precacheImage(
 ### WAssets
 
 资源前缀的**唯一开关**：`'logo.png'.assetImagePath` 读的就是 `WAssets.imagePath`；
-根包导出的 `WConfig` 是 `core.WConfig`，`assetImagePath` 已废弃；资源前缀直接使用这里的 `WAssets.imagePath`。
+聚合包不再提供 `WConfig`（core 3.0 已删除）；资源前缀直接使用这里的 `WAssets.imagePath`。
 
 ```dart
 WAssets.imagePath = 'assets/icons/';

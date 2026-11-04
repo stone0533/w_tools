@@ -42,6 +42,6 @@ WMap<Store>(
 - Android / iOS 都要配 Google Maps API Key；
 - `json_serializable` 模型不要改生成代码，用 `WMapItemMapper` 取字段；
 - 业务 UI 选中 / 关闭统一走 `WMapController.select` / `closeSelection`；`closeSelection` 会隐藏 InfoWindow。
-- `WMapConfig.build()` 仍可用，但新代码直接构造 `WMap(config:, zone:)`。
+- 直接构造 `WMap(config:, zone:)`；`WMapConfig.build()` 已在 5.0 删除。
 
 完整说明：[map_module.md](../modules/map_module.md) · 示例：`packages/map/example`

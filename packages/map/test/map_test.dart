@@ -75,13 +75,6 @@ void main() {
       expect(cfg.onItemSelected, same(onSelect));
       expect(cfg.onItemClosed, same(onClose));
     });
-
-    test('build() 返回 WMap<T>', () {
-      const cfg = WMapConfig<_TestMapItem>();
-      final zone = WMapZone<_TestMapItem>();
-      final wMap = cfg.build(zone: zone);
-      expect(wMap, isA<WMap<_TestMapItem>>());
-    });
   });
 
   group('WMapZone<T> — 纯 Dart', () {

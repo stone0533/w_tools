@@ -30,7 +30,7 @@
   compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
 - **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
   prefixes; use native `SizedBox` / `Padding` / `Row` / `Column`, and `num.allPadding` for `EdgeInsets`.
-  `WSizeBox` / `WPadding` / `WRow` / `WColumn` are deprecated (removed in 5.0).
+  `WSizeBox` / `WPadding` / `WRow` / `WColumn` were removed in 5.0.
   to wrap content.
 - **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
   `WNotificationListenerBuilder` for scroll notifications/percentage (depth 0 only).

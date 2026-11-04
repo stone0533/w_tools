@@ -55,6 +55,27 @@ class _HomePage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           FilledButton(
+            onPressed: () => WToast.showText(text: '纯文本提示'),
+            child: const Text('文本'),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: () => WToast.showCustom(
+              toastBuilder: (cancel) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.star, color: Colors.amber),
+                  const SizedBox(width: 8),
+                  const Text('自定义内容'),
+                  IconButton(onPressed: cancel, icon: const Icon(Icons.close, size: 16)),
+                ],
+              ),
+              context: context,
+            ),
+            child: const Text('自定义'),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
             onPressed: () => _runLoading(context),
             child: const Text('loading + 结果提示'),
           ),

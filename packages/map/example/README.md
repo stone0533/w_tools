@@ -4,7 +4,6 @@
 
 - `WMapItemMapper` 适配普通业务模型
 - `WMapZone` 数据与 marker
-- `WMapConfig.build`
 - `WMapConfig` 选中 / 关闭 / 地图点击
 - `WMapController.select` / `closeSelection`
 - `WMapZone.update` 筛选门店

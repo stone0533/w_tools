@@ -438,7 +438,7 @@ Future<void> main() async {
 - **`init` 必须在 `run` 之前调用**：直接调用 `run` 而未先 `init` 会抛 `StateError`。`start` 方法会自动处理这个顺序。
 - **插件依赖是声明式的**：`WAppPlugin.dependsOn` 决定初始化顺序，而非 `addPlugin` 的调用顺序。
 - **`run` 会校验非空参数**：`title`、`initialRoute`、`getPages` 任一为空会在运行时抛出错误。
-- **路由栈仅覆盖根 Navigator**：嵌套 Navigator 的路由变化不会进入 `WRoute.routes`。
+- **路由栈仅覆盖根 Navigator**：嵌套 Navigator 的路由变化不会进入 `WRouteStack.defaultStack.routes`。
 - **`WLanguage.currentLocale` 解析约定**：语言代码用下划线分隔（`zh_CN`）或仅语言码（`en`）；非法代码会退化为只取第一段，不会返回 null。
 - **`WAppConfig.supportedLanguages` 是整体赋值**：使用 `=` 覆盖，不提供 `.add` 增量 API。
 - **`WAppPlugin.onInit` 可返回 Future**：若返回 `Future<void>`，`WApp.init` 会等待它完成再进入下一层。

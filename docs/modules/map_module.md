@@ -196,12 +196,6 @@ WMap<StoreItem>(
 | `onMapTap` | `null` | 点击地图回调 `ValueChanged<LatLng>?`（参数是点击坐标） |
 | `padding` | `EdgeInsets.zero` | 地图内边距（用于避开面板 / 底部卡片） |
 
-### 构建方法
-
-| 方法 | 说明 |
-|------|------|
-| `build({required WMapZone<T> zone, WMapController<T>? controller})` | 构建 `WMap` 组件（新代码建议直接 `WMap(config:, zone:)`） |
-
 ### 使用示例
 
 ```dart
