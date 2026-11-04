@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../state/async_state.dart';
-import 'async_error_banner.dart';
-import 'async_error_view.dart';
 import 'async_theme.dart';
+import 'async_theme_views.dart';
 
 /// 四态异步视图。
 ///
@@ -32,7 +33,7 @@ class WAsyncView<T> extends StatelessWidget {
   const WAsyncView({
     super.key,
     required this.state,
-    required this.onRetry,
+    this.onRetry,
     required this.readyBuilder,
     this.loadingBuilder,
     this.emptyBuilder,
@@ -42,7 +43,9 @@ class WAsyncView<T> extends StatelessWidget {
   });
 
   final ValueListenable<WAsyncState<T>> state;
-  final Future<void> Function() onRetry;
+
+  /// 重试回调；为 null 时错误态不渲染重试按钮。
+  final Future<void> Function()? onRetry;
   final Widget Function(BuildContext context, T data) readyBuilder;
   final WidgetBuilder? loadingBuilder;
   final WidgetBuilder? emptyBuilder;
@@ -59,16 +62,10 @@ class WAsyncView<T> extends StatelessWidget {
     return ValueListenableBuilder<WAsyncState<T>>(
       valueListenable: state,
       builder: (context, value, _) {
-        final theme = WAsyncTheme.maybeOf(context);
-        final data = value.dataOrNull;
+        final views = WAsyncThemeViews.of(context);
+        final data = value.data;
 
         if (data != null && value.isRefreshing) {
-          final indicator =
-              (refreshingBuilder ?? theme?.refreshingBuilder)?.call(
-                context,
-              ) ??
-              const LinearProgressIndicator();
-
           return _buildContent(
             context,
             data: data,
@@ -76,14 +73,12 @@ class WAsyncView<T> extends StatelessWidget {
               left: 0,
               right: 0,
               top: 0,
-              child: indicator,
+              child: views.refreshing(context, explicit: refreshingBuilder),
             ),
           );
         }
 
         if (data != null && value.isFailed) {
-          final error =
-              errorBannerBuilder ?? theme?.errorBannerBuilder ?? _defaultErrorBannerBuilder;
           return _buildContent(
             context,
             data: data,
@@ -91,30 +86,42 @@ class WAsyncView<T> extends StatelessWidget {
               left: 0,
               right: 0,
               bottom: 0,
-              child: error(
+              child: views.errorBanner(
                 context,
                 value.error!,
-                () => onRetry(),
+                _retry(),
+                explicit: errorBannerBuilder,
               ),
             ),
           );
         }
 
         return value.when(
-          loading: () =>
-              (loadingBuilder ?? theme?.loadingBuilder)?.call(context) ??
-              _defaultLoadingBuilder(context),
+          loading: () => views.loading(context, explicit: loadingBuilder),
           ready: (data) => _buildContent(context, data: data),
-          empty: () =>
-              (emptyBuilder ?? theme?.emptyBuilder)?.call(context) ?? _defaultEmptyBuilder(context),
-          failed: (error) => (errorBuilder ?? theme?.errorBuilder ?? _defaultErrorBuilder)(
+          empty: () => views.empty(context, explicit: emptyBuilder),
+          failed: (error) => views.error(
             context,
             error,
-            () => onRetry(),
+            _retry(),
+            explicit: errorBuilder,
           ),
         );
       },
     );
+  }
+
+  /// 把异步重试包装成安全的 VoidCallback；没有 retry 时返回 null。
+  VoidCallback? _retry() {
+    final retry = onRetry;
+    if (retry == null) return null;
+    return () {
+      try {
+        unawaited(retry());
+      } catch (_) {
+        // 重试入口自身的同步异常不破坏 UI
+      }
+    };
   }
 
   /// ready / refreshing / failed+data 都使用同一层 Stack，
@@ -138,36 +145,6 @@ class WAsyncView<T> extends StatelessWidget {
         if (!constraints.hasBoundedWidth) return stack;
         return SizedBox(width: constraints.maxWidth, child: stack);
       },
-    );
-  }
-
-  static Widget _defaultLoadingBuilder(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
-  }
-
-  static Widget _defaultEmptyBuilder(BuildContext context) {
-    return const Center(child: Text('暂无数据'));
-  }
-
-  static Widget _defaultErrorBuilder(
-    BuildContext context,
-    Object error,
-    VoidCallback onRetry,
-  ) {
-    return WAsyncErrorView(
-      error: error,
-      onRetry: onRetry,
-    );
-  }
-
-  static Widget _defaultErrorBannerBuilder(
-    BuildContext context,
-    Object error,
-    VoidCallback onRetry,
-  ) {
-    return WAsyncErrorBanner(
-      error: error,
-      onRetry: onRetry,
     );
   }
 }

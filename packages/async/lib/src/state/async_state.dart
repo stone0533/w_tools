@@ -91,9 +91,6 @@ class WAsyncState<T> {
     }
   }
 
-  /// 最近一次可用数据；loading / failed 时也可能是刷新前的旧数据。
-  T? get dataOrNull => data;
-
   /// 是否是在保留旧数据的前提下刷新。
   bool get isRefreshing => isLoading && data != null;
 

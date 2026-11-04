@@ -59,7 +59,7 @@ void main() {
       await controller.retry();
 
       expect(controller.state.value.isFailed, isTrue);
-      expect(controller.state.value.dataOrNull, 1);
+      expect(controller.state.value.data, 1);
     });
 
     test('旧请求返回不覆盖新请求', () async {
@@ -101,6 +101,74 @@ void main() {
       await controller.load();
 
       expect(controller.state.value.isLoading, isTrue);
+    });
+
+    test('withToken：新 load 会取消上一个 token', () async {
+      final tokens = <WCancelToken>[];
+      final completers = <Completer<int>>[];
+      final controller = WAsyncController.withToken((token) {
+        tokens.add(token);
+        final completer = Completer<int>();
+        completers.add(completer);
+        return completer.future;
+      });
+      addTearDown(controller.dispose);
+
+      final first = controller.load();
+      final second = controller.load();
+
+      expect(tokens, hasLength(2));
+      expect(tokens.first.isCancelled, isTrue);
+      expect(tokens.last.isCancelled, isFalse);
+
+      completers.last.complete(2);
+      await second;
+      completers.first.complete(1);
+      await first;
+
+      expect(controller.state.value.data, 2);
+    });
+
+    test('withToken：dispose 会取消当前 token', () async {
+      WCancelToken? seen;
+      final completer = Completer<int>();
+      final controller = WAsyncController.withToken((token) {
+        seen = token;
+        return completer.future;
+      });
+
+      final loading = controller.load();
+      controller.dispose();
+
+      expect(seen, isNotNull);
+      expect(seen!.isCancelled, isTrue);
+
+      completer.complete(1);
+      await loading;
+    });
+
+    test('Error 也会回调 options.onError', () async {
+      Object? reported;
+      final controller = WAsyncController<int>(
+        () async => throw StateError('bug'),
+        options: WAsyncOptions(onError: (error) => reported = error),
+      );
+      addTearDown(controller.dispose);
+
+      await controller.load();
+
+      expect(controller.state.value.isFailed, isTrue);
+      expect(reported, isA<StateError>());
+    });
+
+    test('传 options.activity 会触发断言（控制器自己管四态）', () {
+      expect(
+        () => WAsyncController<int>(
+          () async => 1,
+          options: WAsyncOptions(activity: WAsyncActivity()),
+        ),
+        throwsAssertionError,
+      );
     });
   });
 }

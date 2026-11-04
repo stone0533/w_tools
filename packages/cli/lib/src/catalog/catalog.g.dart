@@ -398,8 +398,8 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
   ),
   CatalogEntry(
-    name: "WAsync / WAsyncOptions / WAsyncLoading / WCancelToken",
-    names: <String>["WAsync", "WAsyncOptions", "WAsyncLoading", "WCancelToken"],
+    name: "WAsync / WAsyncOptions / WAsyncActivity / WCancelToken",
+    names: <String>["WAsync", "WAsyncOptions", "WAsyncActivity", "WCancelToken"],
     package: "w_tools_async",
     section: "8. 能力（非 UI）",
     useFor: "无 UI 状态的异步执行、并发 loading 合并、取消",

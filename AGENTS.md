@@ -148,19 +148,20 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
-- 每个独立区块一个 Controller；不要用一个 `WAsyncLoading` 合并多个独立区块的 Loading。
+- 每个独立区块一个 Controller；不要用一个 `WAsyncActivity` 合并多个独立区块的 Loading。
 - 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点（推荐 `WAppOptions.appWrapper`，或消费方自建插件的 `wrapApp`），不要只放 `AppScaffold.body`。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
 - `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；loading / empty / error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
-- `WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 由调用方自行构建状态 UI，不读默认值。
+- `WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 由调用方自行构建状态 UI，不读默认值 —— 需要默认值时用 `WAsyncThemeViews.of(context)`。
 - Sliver 页面默认视图用 `WAsyncTheme` 的 `sliver*Builder`；loading/empty/error 必须是非滚动 Widget，`refreshingSliverBuilder` 必须返回 sliver。
-- 分页使用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
+- 分页使用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表；footer 用 `hasMoreListenable` 判断「加载更多 / 没有更多」。
 - `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
 - `WAsyncStateSliver` 默认不添加 refreshing 进度条；由外层 SmartRefresher 负责，需要额外进度时显式传 `refreshingSliverBuilder`。
-- `WAsyncController` / `WAsyncPagedController` 会把所有异常转为 failed；`load()` / `refresh()` 会取消上一次的 `WCancelToken`，`dispose()` 也会取消。
-- 取消是协作式的：loader 需要接收 `WCancelToken` 并主动检查，底层 Future 才会真正停止。
-- `WAsync` / `WAsyncOptions` / `WAsyncLoading` / `WCancelToken` 只在不需要 UI 状态时直接使用；
-  控制器的四态与 `options.loading` 不要同时用来表示同一个 Loading。
+- `WAsyncStateSliver.onRetry` 为 null 时失败态不渲染重试按钮，也不调用自定义 error / banner builder（它们的契约要求可用的 retry）。
+- `WAsyncController` / `WAsyncPagedController` 会把所有异常转为 failed，并统一回调 `options.onError`；`load()` / `refresh()` 会取消上一次的 `WCancelToken`，`dispose()` 也会取消。
+- 取消是协作式的：只有 `withToken` 构造的 loader 能拿到 `WCancelToken` 并主动检查；取消会让等待尽快结束（返回 null），但不中止底层 Future。
+- `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` 只在不需要 UI 状态时直接使用；
+  要结果用 `WAsync.tryRun`（返回 `WAsyncResult`）或 `WAsync.run`（失败抛异常）；控制器的四态与 `options.activity` 不要同时用来表示同一个 Loading（控制器会断言）。
 
 ## 网络（w_tools_api）
 

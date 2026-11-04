@@ -155,5 +155,87 @@ void main() {
       expect(controller.isLoadingMore.value, isFalse);
       expect(controller.state.value.data, [1, 2]);
     });
+
+    test('hasMoreListenable 跟随 hasMore 变化', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const <int>[],
+      );
+      addTearDown(controller.dispose);
+      final seen = <bool>[];
+      controller.hasMoreListenable.addListener(() => seen.add(controller.hasMore));
+
+      await controller.refresh();
+      await controller.loadMore();
+
+      expect(seen, contains(false));
+      expect(controller.hasMoreListenable.value, isFalse);
+    });
+
+    test('refresh 会取消在途 loadMore 的 token', () async {
+      final loadMoreStarted = Completer<WCancelToken>();
+      final page2 = Completer<List<int>>();
+      final controller = WAsyncPagedController.withToken((page, token) {
+        if (page == 1) return Future.value(const [1]);
+        loadMoreStarted.complete(token);
+        return page2.future;
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      final loadMore = controller.loadMore();
+      final token = await loadMoreStarted.future;
+
+      final refreshing = controller.refresh();
+      expect(token.isCancelled, isTrue);
+
+      page2.complete(const [2]);
+      await loadMore;
+      await refreshing;
+
+      // 在途结果被丢弃，列表只剩刷新后的第一页
+      expect(controller.state.value.data, [1]);
+    });
+
+    test('dispose 会取消 refresh 的 token', () async {
+      WCancelToken? seen;
+      final pending = Completer<List<int>>();
+      final controller = WAsyncPagedController.withToken((page, token) {
+        seen = token;
+        return pending.future;
+      });
+
+      final loading = controller.refresh();
+      controller.dispose();
+
+      expect(seen, isNotNull);
+      expect(seen!.isCancelled, isTrue);
+
+      pending.complete(const [1]);
+      await loading;
+    });
+
+    test('Error 也会回调 options.onError', () async {
+      Object? reported;
+      final controller = WAsyncPagedController<int>(
+        (page) async => throw StateError('bug'),
+        options: WAsyncOptions(onError: (error) => reported = error),
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+
+      expect(controller.state.value.isFailed, isTrue);
+      expect(reported, isA<StateError>());
+    });
+
+    test('传 options.activity 会触发断言（分页自己管加载状态）', () {
+      expect(
+        () => WAsyncPagedController<int>(
+          (page) async => const <int>[],
+          options: WAsyncOptions(activity: WAsyncActivity()),
+        ),
+        throwsAssertionError,
+      );
+    });
   });
 }

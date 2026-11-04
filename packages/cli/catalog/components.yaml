@@ -187,7 +187,7 @@ components:
     section: '8. 能力（非 UI）'
     useFor: '四态快照与 `when`'
     dontUseFor: '不要手写 `ValueNotifier<WAsyncState>`'
-  - name: '`WAsync` / `WAsyncOptions` / `WAsyncLoading` / `WCancelToken`'
+  - name: '`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`'
     package: 'w_tools_async'
     section: '8. 能力（非 UI）'
     useFor: '无 UI 状态的异步执行、并发 loading 合并、取消'

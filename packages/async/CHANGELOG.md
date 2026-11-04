@@ -1,11 +1,49 @@
+## 5.0.0
+
+### Breaking
+- `WAsync.run` / `map` / `retry` / `timeout` / `parallel` / `pool` / `first` / `serial` 现在直接返回成功值；失败抛异常，取消抛 `WCancellationException`，不再用 `null` 吞错。
+- 新增 `WAsyncResult` / `WAsyncSuccess` / `WAsyncFailure` / `WAsyncCancelled`；`WAsync.tryRun` 返回结果对象。
+- 删除 `WAsync.runValue`；用 `WAsync.run`。
+- `WAsyncLoading` 改名 `WAsyncActivity`；`WAsyncOptions.loading` 改名 `activity`，`withoutLoading` 改名 `withoutActivity`。
+- 删除 `WAsyncOptions.copyWith`；直接构造 options。
+- 删除 `WAsyncState.dataOrNull`；统一用 `data`。
+- `WAsyncView.onRetry` 改为可选；无 retry 时不渲染重试按钮。
+- 默认文案改由 `WAsyncStrings` 提供（默认为中性英文），可通过 `WAsyncTheme.strings` 注入。
+- 分页 `initialPage` 必须 >= 1。
+
+# Changelog
+
+## 4.1.0
+
+### Added
+- `WAsyncThemeViews`：四态视图的统一解析入口（显式 builder > `WAsyncTheme` > 包内默认）。
+  `WAsyncStateBuilder` 这类自建滚动壳也能复用全局默认，不必每页重写 loading / empty / error。
+- `WAsyncTokenLoader` + `WAsyncController.withToken`、
+  `WAsyncTokenPageLoader` + `WAsyncPagedController.withToken`：loader 能拿到
+  `WCancelToken`，取消真正能传到请求层。
+- `WAsync.runValue`：直接返回结果，不写 `onSuccess` 映射。
+- `WAsyncPagedController.hasMoreListenable`：footer 可单独监听「加载更多 / 没有更多」。
+- `WAsyncOptions.withoutLoading()`；`copyWith` 传错类型抛 `ArgumentError`，不再留到调用时炸。
+
+### Changed
+- `WAsyncStateSliver` 在 `onRetry == null` 时使用**不带重试按钮**的默认视图，不再渲染
+  点了没反应的按钮；该配置下不调用自定义 error / banner builder（它们要求可用的 retry）。
+- `WAsync.run` / `retry` / `serial` / `pool` 取消时会尽快返回 null，与
+  `timeout` / `parallel` / `first` 对齐；底层任务仍继续执行，结果被丢弃。
+- 控制器把失败（含 `Error`）统一回调 `options.onError`，编程错误不再完全静默。
+- 控制器构造时断言 `options.loading == null`（控制器自己维护四态，传了会被忽略）。
+- `WAsyncPagedController.refresh()` 会取消在途 `loadMore` 的 token；`loadMore` 同样传入 token。
+- `WAsyncLoading.begin` / `end` 保持公开（聚合包 API 契约），文档明确为框架内部使用。
+
+### Docs
+- 修正 `docs/modules/async_module.md` 模块结构里的已删除文件，README 安装版本同步。
+
 ## 4.0.0
 
 ### Breaking
 - `WAsyncStateSliver.state` 改为 `ValueListenable<WAsyncState<T>>`，与 `WAsyncView` /
   `WAsyncStateBuilder` 一致；`onRetry` 改为 `Future<void> Function()?`。
   迁移：`state: state` → `state: controller.state`，`onRetry: () {}` → `onRetry: controller.load`。
-
-# Changelog
 
 ## 3.0.0
 

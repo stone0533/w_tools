@@ -21,7 +21,7 @@ void main() {
 
       expect(failed.isFailed, isTrue);
       expect(failed.error, isA<Exception>());
-      expect(failed.dataOrNull, isNull);
+      expect(failed.data, isNull);
     });
 
     test('ofList：null 与空列表都是 empty，非空才是 ready', () {
@@ -49,14 +49,14 @@ void main() {
       const refreshing = WAsyncState<int>.loading(previousData: 5);
       expect(refreshing.isLoading, isTrue);
       expect(refreshing.isRefreshing, isTrue);
-      expect(refreshing.dataOrNull, 5);
+      expect(refreshing.data, 5);
 
       final failed = WAsyncState<int>.failed(
         Exception('e'),
         previousData: 5,
       );
       expect(failed.isFailed, isTrue);
-      expect(failed.dataOrNull, 5);
+      expect(failed.data, 5);
     });
 
     test('errorMessage 截断过长错误', () {

@@ -41,7 +41,7 @@ void main() {
     await tester.pumpWidget(
       _host(_scroll(ValueNotifier(const WAsyncState.empty()))),
     );
-    expect(find.text('暂无数据'), findsOneWidget);
+    expect(find.text('No data'), findsOneWidget);
 
     await tester.pumpWidget(
       _host(_scroll(ValueNotifier(const WAsyncState.failed('boom')))),
@@ -94,7 +94,7 @@ void main() {
     expect(find.text('custom-refreshing'), findsOneWidget);
   });
 
-  testWidgets('重试回调可用', (tester) async {
+  testWidgets('Retry回调可用', (tester) async {
     var retries = 0;
 
     await tester.pumpWidget(
@@ -108,7 +108,80 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('重试'));
+    await tester.tap(find.text('Retry'));
     expect(retries, 1);
+  });
+
+  testWidgets('未传 onRetry 时不显示Retry按钮', (tester) async {
+    await tester.pumpWidget(
+      _host(_scroll(ValueNotifier(const WAsyncState.failed('boom')))),
+    );
+
+    expect(find.byType(WAsyncErrorView), findsOneWidget);
+    expect(find.text('Retry'), findsNothing);
+  });
+
+  testWidgets('未传 onRetry 时 failed + 旧数据的 banner 也不显示Retry按钮', (tester) async {
+    await tester.pumpWidget(
+      _host(_scroll(ValueNotifier(const WAsyncState.failed('boom', previousData: 1)))),
+    );
+
+    expect(find.byType(WAsyncErrorBanner), findsOneWidget);
+    expect(find.text('Retry'), findsNothing);
+  });
+
+  testWidgets('未传 onRetry 时不调用自定义 error / banner builder', (tester) async {
+    var errorBuilderCalls = 0;
+    var bannerBuilderCalls = 0;
+
+    Widget build(WAsyncState<int> state) {
+      return CustomScrollView(
+        slivers: [
+          WAsyncStateSliver<int>(
+            state: ValueNotifier(state),
+            readySliverBuilder: (context, value) => SliverToBoxAdapter(child: Text('ready-$value')),
+            errorBuilder: (context, error, retry) {
+              errorBuilderCalls++;
+              return const Text('custom-error');
+            },
+            errorBannerBuilder: (context, error, retry) {
+              bannerBuilderCalls++;
+              return const Text('custom-banner');
+            },
+          ),
+        ],
+      );
+    }
+
+    await tester.pumpWidget(_host(build(const WAsyncState.failed('boom'))));
+    expect(find.text('custom-error'), findsNothing);
+    expect(errorBuilderCalls, 0);
+
+    await tester.pumpWidget(
+      _host(build(const WAsyncState.failed('boom', previousData: 1))),
+    );
+    expect(find.text('custom-banner'), findsNothing);
+    expect(bannerBuilderCalls, 0);
+  });
+
+  testWidgets('传了 onRetry 时自定义 error builder 优先于默认视图', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        CustomScrollView(
+          slivers: [
+            WAsyncStateSliver<int>(
+              state: ValueNotifier(const WAsyncState.failed('boom')),
+              onRetry: () async {},
+              readySliverBuilder: (context, value) =>
+                  SliverToBoxAdapter(child: Text('ready-$value')),
+              errorBuilder: (context, error, retry) => const Text('custom-error'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('custom-error'), findsOneWidget);
+    expect(find.byType(WAsyncErrorView), findsNothing);
   });
 }

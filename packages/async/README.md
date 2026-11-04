@@ -1,10 +1,10 @@
 # w_tools_async
 
-w_tools 的异步层：执行、四态状态、Controller 与可复用异步视图。
+w_tools 的异步层：执行、四态状态、Controller、分页与可复用异步视图。
 
 ```text
 页面展示异步结果  → WAsyncController + WAsyncView
-只执行、不要 UI   → WAsync
+只执行、不要 UI   → WAsync + WAsyncResult
 全 App 默认视图   → WAsyncTheme
 ```
 
@@ -12,8 +12,10 @@ w_tools 的异步层：执行、四态状态、Controller 与可复用异步视�
 
 ```yaml
 dependencies:
-  w_tools_async: ^3.0.0
+  w_tools_async: ^5.0.0
 ```
+
+要求 Flutter 3.38+。
 
 ## 快速开始
 
@@ -22,7 +24,7 @@ final controller = WAsyncController.list(() => api.gifts());
 
 WAsyncView<List<Gift>>(
   state: controller.state,
-  onRetry: controller.load,
+  onRetry: controller.load, // 可选；不传错误态不显示重试按钮
   readyBuilder: (context, gifts) => GiftList(gifts),
 )
 ```
@@ -31,8 +33,8 @@ WAsyncView<List<Gift>>(
 
 ```text
 loading  → 转圈
-empty    → 暂无数据
-failed   → 错误页 + 重试
+empty    → WAsyncStrings.empty
+failed   → 错误页（有 onRetry 才显示重试）
 ready    → readyBuilder
 ```
 
@@ -42,14 +44,49 @@ ready    → readyBuilder
 | --- | --- |
 | 页面区块四态 | `WAsyncController` / `WAsyncView` |
 | 滚动页 / `SmartRefresher` | `WAsyncStateBuilder` |
+| 滚动页复用全局默认视图 | `WAsyncThemeViews.of(context)` |
 | `CustomScrollView` 的 sliver 四态 | `WAsyncStateSliver` |
 | 分页 | `WAsyncPagedController` |
-| 全局默认 loading / empty / error | `WAsyncTheme` |
-| 无 UI 状态执行（重试 / 超时 / 并发 / 取消） | `WAsync` + `WAsyncOptions` |
-| 并发 loading 合并 | `WAsyncLoading` |
-| 状态与异常 | `WAsyncState` / `WAsyncStatus` |
+| 全局默认视图 / 文案 | `WAsyncTheme` / `WAsyncStrings` |
+| 无 UI 执行，不抛异常 | `WAsync.tryRun` + `WAsyncResult` |
+| 无 UI 执行，失败抛异常 | `WAsync.run` / `map` / `retry` / `timeout` |
+| 并发执行 | `WAsync.parallel` / `pool` / `serial` / `first` |
+| 并发活动计数 | `WAsyncActivity` |
+| 让 loader 感知取消 | `WAsyncController.withToken` / `WAsyncPagedController.withToken` |
+| 四态快照 | `WAsyncState` / `WAsyncStatus` |
 
-## 完整页面
+## 执行结果
+
+`tryRun` 不抛业务异常，返回显式结果：
+
+```dart
+final result = await WAsync.tryRun(() => api.gift(id));
+
+switch (result) {
+  case WAsyncSuccess(:final value):
+    print(value);
+  case WAsyncFailure(:final error, :final stackTrace):
+    logger.e(error, stackTrace: stackTrace);
+  case WAsyncCancelled(:final reason):
+    print('cancelled: $reason');
+}
+```
+
+需要失败直接抛异常时：
+
+```dart
+final gift = await WAsync.run(() => api.gift(id));
+final name = await WAsync.map<String, String>(
+  () => api.gift(id),
+  onSuccess: (gift) => gift.name,
+);
+```
+
+- 失败抛原始 error / stack；
+- 取消抛 `WCancellationException`；
+- `WAsync` 不再用 `null` 表示失败或取消。
+
+## Controller
 
 ```dart
 class GiftPage extends StatefulWidget {
@@ -86,332 +123,108 @@ class _GiftPageState extends State<GiftPage> {
 }
 ```
 
-## 多区块
+每个独立区块一个 Controller。
 
-每个区块一个独立 Controller：
+## 取消
+
+控制器默认不接收 token；需要请求层感知取消时用 `withToken`：
 
 ```dart
-final profile = WAsyncController<Profile>(() => api.profile());
-final coupons = WAsyncController.list(() => api.coupons());
-
-profile.load();
-coupons.load();
+final controller = WAsyncController.withToken(
+  (token) => api.gifts(cancelToken: token),
+);
 ```
 
-不要用一个 `WAsyncLoading` 管理多个独立区块的 Loading；它会把并发请求合并成一次。
+`load()` 被新请求取代或 `dispose()` 时 token 会被取消；取消是协作式的，底层 Future 是否中止由 loader 决定。
 
-## 全局默认视图
+分页同理：
+
+```dart
+WAsyncPagedController.withToken((page, token) => api.gifts(page, token));
+```
+
+## 分页
+
+```dart
+final controller = WAsyncPagedController<Gift>((page) => api.gifts(page: page));
+
+await controller.refresh();
+await controller.loadMore();
+```
+
+监听：
+
+```text
+controller.state
+controller.isLoadingMore
+controller.loadMoreError
+controller.hasMoreListenable
+```
+
+`loadMore` 失败只写 `loadMoreError`，不会清空已有列表。
+
+## 全局默认视图与文案
 
 ```dart
 WAsyncTheme(
+  strings: const WAsyncStrings(
+    empty: '暂无数据',
+    errorTitle: '加载失败',
+    retry: '重试',
+  ),
   errorBuilder: (context, error, retry) => AppRetryView(error, retry),
   errorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
   loadingBuilder: (_) => const AppLoadingView(),
   emptyBuilder: (_) => const AppEmptyView(),
   child: MaterialApp(...),
 )
-
-// 推荐放在 App 根节点：
-// WAppOptions.appWrapper（或消费方自建插件的 wrapApp）
-// 不要只放在 AppScaffold.body，否则 appBar actions、对话框、
-// bottom sheet、Tab 页面不会继承默认值。
 ```
 
-`WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 由调用方自行构建状态 UI，不读取默认值。
-
-优先级：
-
-```text
-WAsyncView 显式 builder
-  ↓
-WAsyncTheme
-  ↓
-包内默认视图
-```
-
-## 刷新和旧数据
+推荐放在 App 根节点。`WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；自建滚动壳用 `WAsyncThemeViews` 复用：
 
 ```dart
-await controller.load();
-```
+final views = WAsyncThemeViews.of(context);
 
-如果已有数据：
-
-```text
-loading(previousData: oldData)
-→ WAsyncView 保留旧内容 + 线性进度
-
-failed + oldData
-→ 保留旧内容 + WAsyncErrorBanner
-```
-
-## 自定义重试视图
-
-```dart
-WAsyncView<List<Gift>>(
+WAsyncStateBuilder<List<Gift>>(
   state: controller.state,
-  onRetry: controller.load,
-  readyBuilder: (context, gifts) => GiftList(gifts),
-  errorBuilder: (context, error, retry) {
-    return BrandRetryView(error: error, onRetry: retry);
-  },
-  errorBannerBuilder: (context, error, retry) {
-    return BrandErrorBanner(error: error, onRetry: retry);
-  },
-)
-```
-
-## 低层 WAsync
-
-只需要执行、不需要 View 时：
-
-```dart
-final result = await WAsync.retry<List<Gift>, List<Gift>>(
-  () => api.gifts(),
-  retryCount: 2,
-  retryDelay: const Duration(milliseconds: 300),
-  onSuccess: (data) => data,
-  onError: (error) => logger.e(error),
+  builder: (context, state) => SmartRefresher(
+    onRefresh: controller.load,
+    child: CustomScrollView(
+      slivers: [
+        ...state.when(
+          loading: () => [SliverFillRemaining(child: views.loading(context))],
+          empty: () => [SliverFillRemaining(child: views.empty(context))],
+          failed: (error) => [
+            SliverFillRemaining(
+              child: views.error(context, error, controller.load),
+            ),
+          ],
+          ready: (gifts) => [SliverList.builder(...)],
+        ),
+      ],
+    ),
+  ),
 );
 ```
 
-## 约定
-
-- Controller 会把所有异常（包括 `Error`）转为 `failed`，方便 UI 展示；
-- Controller 只丢弃旧请求结果，不会中止底层 Future；
-- 需要中止请求时，由 loader 自己接收 `WCancelToken`；
-- 默认 loading / empty / error 文案只是 fallback；
-- `WAsyncView` 为错误条/刷新条约束宽度，不强制高度；滚动组件的高度由页面父级提供。
-- `onRetry` 应自行处理异常；推荐直接传 `WAsyncController.load`。
-- 刷新进度条可通过 `refreshingBuilder` 或 `WAsyncTheme.refreshingBuilder` 覆盖。
-
-## 异步列表：WAsyncStateBuilder + SmartRefresher
-
-滚动页面不要用 `WAsyncView` 包 `SmartRefresher`。用 `WAsyncStateBuilder` 把状态交给调用方，
-让 `SmartRefresher` 的直接子节点始终是 `CustomScrollView`：
-
-```dart
-WAsyncStateBuilder<List<Gift>>(
-  state: controller.state,
-  builder: (context, state) {
-    final gifts = state.dataOrNull ?? const <Gift>[];
-
-    return SmartRefresher(
-      controller: refreshController,
-      onRefresh: controller.load,
-      onLoading: loadMore,
-      child: CustomScrollView(
-        slivers: [
-          if (state.isLoading && gifts.isEmpty)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (state.isEmpty)
-            const SliverFillRemaining(
-              child: Center(child: Text('暂无数据')),
-            )
-          else if (state.isFailed && gifts.isEmpty)
-            SliverFillRemaining(
-              child: WAsyncErrorView(
-                error: state.error!,
-                onRetry: controller.load,
-              ),
-            )
-          else
-            SliverList.builder(
-              itemCount: gifts.length,
-              itemBuilder: (context, index) => GiftTile(gift: gifts[index]),
-            ),
-          if (state.isFailed && gifts.isNotEmpty)
-            SliverToBoxAdapter(
-              child: WAsyncErrorBanner(
-                error: state.error!,
-                onRetry: controller.load,
-              ),
-            ),
-        ],
-      ),
-    );
-  },
-)
-```
-
-`loadMore` 的追加与 footer 状态由业务侧维护，不要用 `WAsyncController.failed` 表示分页失败。
-
-`WAsyncStateBuilder.builder` 必须始终返回同一个滚动壳：
-
-```text
-WAsyncStateBuilder
-  → SmartRefresher
-      → CustomScrollView
-```
-
-loading / empty / error 只能作为 `slivers` 内部的分支，不要在外层直接 return `Center` / `WAsyncErrorView`，否则 `SmartRefresher` 会被重新挂载。
-
-## 用 WAsyncStateSliver 收口 sliver 状态
-
-如果页面已经在 `CustomScrollView` 里，不需要自己写 `if (items.isEmpty)` 和
-`SliverFillRemaining`：
+## Sliver
 
 ```dart
 WAsyncStateSliver<List<Gift>>(
   state: controller.state,
-  onRetry: controller.load,
-  readySliverBuilder: (context, gifts) {
-    return WListViewSliver.list(
-      itemCount: gifts.length,
-      itemBuilder: (context, index) => GiftTile(gift: gifts[index]),
-    );
-  },
-  emptyBuilder: (context) => const Center(child: Text('暂无数据')),
-  errorBuilder: (context, error, onRetry) {
-    return WAsyncErrorView(error: error, onRetry: onRetry);
-  },
+  onRetry: controller.load, // 可选
+  readySliverBuilder: (context, gifts) => SliverList.builder(...),
 )
 ```
 
-它会自动处理：
+- 失败 + 旧数据：保留 ready sliver，追加错误条；
+- 刷新 + 旧数据：默认不额外加进度，避免和 `SmartRefresher` 重复；
+- `onRetry == null`：不显示重试按钮，也不调用要求 retry 的自定义 error / banner builder。
 
-```text
-ready                  → readySliverBuilder
-loading / empty / failed（无数据）→ SliverFillRemaining
-failed + 旧数据        → ready sliver + WAsyncErrorBanner
-refreshing + 旧数据    → ready sliver（默认不额外加速进度，避免和 SmartRefresher 重复）
-```
+## 约定
 
-`readySliverBuilder` 必须返回 sliver，例如 `WListViewSliver.list` / `SliverList`。
-
-## Sliver 页面的全局默认
-
-`WAsyncStateSliver` 的默认视图用 `WAsyncTheme` 的 `sliver*Builder`（同一实例即可，不必嵌套两套）：
-
-```dart
-WAsyncTheme(
-  sliverLoadingBuilder: (_) => const AppAsyncStatusLoading(), // 非滚动
-  sliverEmptyBuilder: (_) => const AppAsyncStatusEmpty(),     // 非滚动
-  sliverErrorBuilder: (context, error, retry) => AppAsyncStatusError(error, retry),
-  sliverErrorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
-  child: MaterialApp(...),
-)
-```
-
-约束：
-
-```text
-loading / empty / error builder 必须是非滚动 Widget
-refreshingSliverBuilder 必须返回 sliver
-```
-
-不要放 `AppRefreshable` / `SingleChildScrollView` 到 `SliverFillRemaining(hasScrollBody: false)` 里。
-
-普通视图与 sliver 的 builder 都在同一个 `WAsyncTheme` 上配置，不要嵌套两个实例
-（内层会整体遮蔽外层）。
-
-## App 层固定滚动壳
-
-为了避免每个页面都重复 `WAsyncStateBuilder → SmartRefresher → CustomScrollView`，
-建议在 App 层封装一个 helper（不要放进 `w_tools_async`，因为它依赖 `pull_to_refresh`）：
-
-```dart
-class AsyncRefreshShell<T> extends StatelessWidget {
-  const AsyncRefreshShell({
-    super.key,
-    required this.state,
-    required this.controller,
-    required this.onRefresh,
-    required this.onLoading,
-    required this.slivers,
-  });
-
-  final ValueListenable<WAsyncState<T>> state;
-  final RefreshController controller;
-  final Future<void> Function() onRefresh;
-  final Future<void> Function() onLoading;
-  final List<Widget> Function(BuildContext, WAsyncState<T>) slivers;
-
-  @override
-  Widget build(BuildContext context) {
-    return WAsyncStateBuilder<T>(
-      state: controller.state,
-      builder: (context, value) {
-        return SmartRefresher(
-          controller: controller,
-          onRefresh: onRefresh,
-          onLoading: onLoading,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: slivers(context, value),
-          ),
-        );
-      },
-    );
-  }
-}
-```
-
-这样页面只负责 `slivers`，不会被允许把 `SmartRefresher` 包到错误的位置。
-
-## 分页列表
-
-分页使用独立的 `WAsyncPagedController`，不要把它塞进普通 `WAsyncController`：
-
-```dart
-final gifts = WAsyncPagedController<Gift>(
-  (page) => api.gifts(page: page),
-);
-
-await gifts.refresh();   // 第一页
-await gifts.loadMore();  // 下一页
-```
-
-可用状态：
-
-```text
-gifts.state           WAsyncState<List<Gift>>
-gifts.isLoadingMore   ValueListenable<bool>
-gifts.loadMoreError   ValueListenable<Object?>
-gifts.hasMore         bool
-```
-
-`loadMore` 失败只写 `loadMoreError`，不会清空已有列表；`SmartRefresher` 的 footer 状态：
-
-```dart
-Future<void> _loadMore() async {
-  await gifts.loadMore();
-
-  if (gifts.loadMoreError.value != null) {
-    refreshController.loadFailed();
-  } else if (!gifts.hasMore) {
-    refreshController.loadNoData();
-  } else {
-    refreshController.loadComplete();
-  }
-}
-```
-
-`WAsyncStateBuilder` 可以直接消费：
-
-```dart
-WAsyncStateBuilder<List<Gift>>(
-  state: gifts.state,
-  builder: (context, state) {
-    ...
-  },
-)
-```
-
-## 选择哪个入口
-
-```text
-普通页面区块 / 非滚动内容  → WAsyncView
-SmartRefresher / 滚动页面  → WAsyncStateBuilder
-```
-
-`WAsyncView` 的 ready / refreshing / failed + 旧数据使用稳定内容容器，
-但滚动页面仍应使用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 长期塞进 `WAsyncView.readyBuilder`。
-
-`WAsyncBuilder` 已删除（2.0）；用 `WAsyncStateBuilder`。
-
-## 示例
-
-完整示例见 [`example/`](example/)。
+- Controller 会把所有异常（含 `Error`）转为 `failed`，并回调 `WAsyncOptions.onError`；
+- `WAsyncActivity` 只做并发活动计数，不是加载视图；
+- `WAsyncOptions.activity` 只用于 `WAsync` 直接执行；Controller 自己维护四态，传了会断言；
+- 默认文案来自 `WAsyncStrings`，项目应注入自己的本地化文案；
+- 取消不会中止底层 Future，只是让等待尽快结束。

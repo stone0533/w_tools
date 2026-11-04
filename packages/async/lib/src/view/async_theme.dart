@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'async_strings.dart';
+
 typedef WAsyncErrorWidgetBuilder =
     Widget Function(
       BuildContext context,
@@ -31,6 +33,7 @@ class WAsyncTheme extends InheritedWidget {
     this.sliverErrorBuilder,
     this.sliverErrorBannerBuilder,
     this.refreshingSliverBuilder,
+    this.strings = const WAsyncStrings(),
     required super.child,
   });
 
@@ -64,6 +67,9 @@ class WAsyncTheme extends InheritedWidget {
   /// sliver：刷新中，必须返回 sliver
   final WidgetBuilder? refreshingSliverBuilder;
 
+  /// UI 文案；默认中性英文，可注入项目本地化文案。
+  final WAsyncStrings strings;
+
   static WAsyncTheme? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<WAsyncTheme>();
   }
@@ -79,6 +85,7 @@ class WAsyncTheme extends InheritedWidget {
         sliverEmptyBuilder != oldWidget.sliverEmptyBuilder ||
         sliverErrorBuilder != oldWidget.sliverErrorBuilder ||
         sliverErrorBannerBuilder != oldWidget.sliverErrorBannerBuilder ||
-        refreshingSliverBuilder != oldWidget.refreshingSliverBuilder;
+        refreshingSliverBuilder != oldWidget.refreshingSliverBuilder ||
+        strings != oldWidget.strings;
   }
 }

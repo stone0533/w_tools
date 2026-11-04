@@ -13,30 +13,26 @@ import 'package:w_tools_form/src/components/fields/multi_dropdown.dart';
 void main() {
   // ========= core =========
   group('WAsyncOptions', () {
-    test('copyWith 保留 / 清空字段', () {
+    test('withoutActivity 只清空 activity', () {
       final options = WAsyncOptions(
-        loading: WAsyncLoading(onStart: () {}),
+        activity: WAsyncActivity(onStart: () {}),
         onError: (_) {},
       );
-      final copy = options.copyWith();
-      expect(copy.loading, same(options.loading));
+      final copy = options.withoutActivity();
+      expect(copy.activity, isNull);
       expect(copy.onError, same(options.onError));
-
-      final cleared = options.copyWith(loading: null, onError: null);
-      expect(cleared.loading, isNull);
-      expect(cleared.onError, isNull);
     });
 
-    test('WAsyncLoading 合并 0→1 / 1→0', () {
+    test('WAsyncActivity 合并 0→1 / 1→0', () {
       var starts = 0;
       var ends = 0;
-      final loading = WAsyncLoading(onStart: () => starts++, onEnd: () => ends++);
-      loading.begin();
-      loading.begin();
+      final activity = WAsyncActivity(onStart: () => starts++, onEnd: () => ends++);
+      activity.begin();
+      activity.begin();
       expect(starts, 1);
-      loading.end();
+      activity.end();
       expect(ends, 0);
-      loading.end();
+      activity.end();
       expect(ends, 1);
     });
   });

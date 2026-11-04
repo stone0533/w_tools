@@ -2,7 +2,7 @@
 /// 由 `test/init_test.dart` 读取仓库 pubspec 校验（防止版本漂移）。
 const subpackageConstraints = <String, String>{
   'w_tools_core': '^3.1.0',
-  'w_tools_async': '^4.0.0',
+  'w_tools_async': '^5.0.0',
   'w_tools_app': '^3.0.0',
   'w_tools_app_getx': '^1.0.0',
   'w_tools_form': '^5.0.0',

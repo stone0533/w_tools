@@ -6,8 +6,8 @@ class WAsyncErrorBanner extends StatelessWidget {
     super.key,
     required this.error,
     this.onRetry,
-    this.title = '加载失败',
-    this.retryText = '重试',
+    this.title = 'Something went wrong',
+    this.retryText = 'Retry',
   });
 
   final Object error;

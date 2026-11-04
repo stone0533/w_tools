@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../state/async_state.dart';
-import 'async_error_banner.dart';
-import 'async_error_view.dart';
 import 'async_theme.dart';
+import 'async_theme_views.dart';
 
 /// 把 [WAsyncState] 渲染成 sliver：
 ///
@@ -19,6 +20,10 @@ import 'async_theme.dart';
 /// [readySliverBuilder] 必须返回 sliver（例如 `SliverList`），不能返回 box。
 ///
 /// loading / empty / error 的默认值来自 `WAsyncTheme` 的 `sliver*Builder`；这些 builder 必须返回非滚动内容。
+///
+/// 没有重试入口时（[onRetry] 为 null）失败态使用**不带重试按钮**的默认视图，
+/// 并且不调用 [errorBuilder] / [errorBannerBuilder]：它们的契约要求一个可用的
+/// retry 回调，传 no-op 会渲染出点了没反应的按钮。
 class WAsyncStateSliver<T> extends StatelessWidget {
   const WAsyncStateSliver({
     super.key,
@@ -52,12 +57,16 @@ class WAsyncStateSliver<T> extends StatelessWidget {
   }
 
   Widget _buildSlivers(BuildContext context, WAsyncState<T> value) {
-    final data = value.dataOrNull;
-    final theme = WAsyncTheme.maybeOf(context);
+    final data = value.data;
+    final views = WAsyncThemeViews.of(context);
     final slivers = <Widget>[];
-    void retry() {
-      onRetry?.call();
-    }
+    // 没有重试入口时传 null：自定义 builder 的契约要求一个可用的 retry 回调，
+    // 传 no-op 会渲染出「点了没反应」的按钮。
+    final VoidCallback? retry = onRetry == null
+        ? null
+        : () {
+            unawaited(onRetry!());
+          };
 
     if (value.isReady) {
       // ready 的 data 允许为 null（T 可空），不能再用 data != null 判 ready
@@ -65,17 +74,23 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     } else if (data != null) {
       slivers.add(readySliverBuilder(context, data));
 
-      final refreshing = refreshingSliverBuilder ?? theme?.refreshingSliverBuilder;
-      if (value.isRefreshing && refreshing != null) {
-        slivers.add(refreshing(context));
+      if (value.isRefreshing) {
+        final refreshing = views.maybeRefreshingSliver(
+          context,
+          explicit: refreshingSliverBuilder,
+        );
+        if (refreshing != null) slivers.add(refreshing);
       }
 
       if (value.isFailed) {
-        final banner =
-            errorBannerBuilder ?? theme?.sliverErrorBannerBuilder ?? _defaultErrorBannerBuilder;
         slivers.add(
           SliverToBoxAdapter(
-            child: banner(context, value.error!, retry),
+            child: views.sliverErrorBanner(
+              context,
+              value.error!,
+              retry,
+              explicit: errorBannerBuilder,
+            ),
           ),
         );
       }
@@ -84,21 +99,20 @@ class WAsyncStateSliver<T> extends StatelessWidget {
         SliverFillRemaining(
           hasScrollBody: hasScrollBody,
           child: switch (value.status) {
-            WAsyncStatus.loading =>
-              loadingBuilder?.call(context) ??
-                  theme?.sliverLoadingBuilder?.call(context) ??
-                  const Center(child: CircularProgressIndicator()),
-            WAsyncStatus.empty =>
-              emptyBuilder?.call(context) ??
-                  theme?.sliverEmptyBuilder?.call(context) ??
-                  const Center(child: Text('暂无数据')),
-            WAsyncStatus.failed =>
-              errorBuilder?.call(context, value.error!, retry) ??
-                  theme?.sliverErrorBuilder?.call(context, value.error!, retry) ??
-                  WAsyncErrorView(
-                    error: value.error!,
-                    onRetry: retry,
-                  ),
+            WAsyncStatus.loading => views.sliverLoading(
+              context,
+              explicit: loadingBuilder,
+            ),
+            WAsyncStatus.empty => views.sliverEmpty(
+              context,
+              explicit: emptyBuilder,
+            ),
+            WAsyncStatus.failed => views.sliverError(
+              context,
+              value.error!,
+              retry,
+              explicit: errorBuilder,
+            ),
             WAsyncStatus.ready => const SizedBox.shrink(),
           },
         ),
@@ -106,16 +120,5 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     }
 
     return SliverMainAxisGroup(slivers: slivers);
-  }
-
-  static Widget _defaultErrorBannerBuilder(
-    BuildContext context,
-    Object error,
-    VoidCallback onRetry,
-  ) {
-    return WAsyncErrorBanner(
-      error: error,
-      onRetry: onRetry,
-    );
   }
 }

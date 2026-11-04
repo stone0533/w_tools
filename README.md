@@ -64,7 +64,7 @@ dependencies:
 ```yaml
 dependencies:
   w_tools_core: ^3.1.0
-  w_tools_async: ^4.0.0
+  w_tools_async: ^5.0.0
   w_tools_ui: ^6.0.0
   w_tools_form: ^5.0.0
   # 需要再加 w_tools_app_getx / api / toast / qr / map / map_google

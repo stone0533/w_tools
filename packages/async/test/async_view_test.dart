@@ -58,11 +58,11 @@ void main() {
 
     state.value = const WAsyncState.empty();
     await tester.pump();
-    expect(find.text('暂无数据'), findsOneWidget);
+    expect(find.text('No data'), findsOneWidget);
 
     state.value = const WAsyncState.failed('boom');
     await tester.pump();
-    expect(find.text('重试'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
   });
 
   testWidgets('ready → refreshing 保留 readyBuilder 子树状态', (tester) async {
@@ -217,8 +217,8 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('加载失败'), findsOneWidget);
-    await tester.tap(find.text('重试'));
+    expect(find.textContaining('Something went wrong'), findsOneWidget);
+    await tester.tap(find.text('Retry'));
     expect(retries, 1);
   });
 
@@ -229,7 +229,7 @@ void main() {
       ),
     );
 
-    expect(find.text('重试'), findsNothing);
+    expect(find.text('Retry'), findsNothing);
   });
 
   testWidgets('自定义 refreshingBuilder 生效', (tester) async {
@@ -396,7 +396,7 @@ void main() {
     expect(find.text('status-failed'), findsOneWidget);
   });
 
-  testWidgets('默认错误视图重试回调可用', (tester) async {
+  testWidgets('默认错误视图Retry回调可用', (tester) async {
     var retries = 0;
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom'),
@@ -413,7 +413,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('重试'));
+    await tester.tap(find.text('Retry'));
     await tester.pump();
 
     expect(retries, 1);
