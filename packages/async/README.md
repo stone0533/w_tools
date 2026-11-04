@@ -67,6 +67,8 @@ switch (result) {
     print(value);
   case WAsyncFailure(:final error, :final stackTrace):
     logger.e(error, stackTrace: stackTrace);
+    if (result.isProgrammingError) throw error;
+
   case WAsyncCancelled(:final reason):
     print('cancelled: $reason');
 }

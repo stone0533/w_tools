@@ -51,3 +51,7 @@ WAsyncState.dataOrNull → WAsyncState.data
 ## 分页
 
 `initialPage` 必须 >= 1。
+
+## first([])
+
+旧版 `first([])` 返回 null；5.0 抛 `StateError`。需要空集合返回 null 时，先判断集合是否为空。
