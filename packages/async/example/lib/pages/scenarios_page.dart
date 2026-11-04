@@ -180,6 +180,19 @@ class _ScenariosPageState extends State<ScenariosPage> {
             style: TextStyle(color: Color(0xFF6B7280)),
           ),
           const SizedBox(height: 16),
+          if (_logs.isEmpty)
+            const Text('点击按钮查看场景结果')
+          else
+            ..._logs.map(
+              (log) => Card(
+                child: ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.terminal_rounded),
+                  title: Text(log),
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
           _ScenarioCard(
             title: '提交订单',
             subtitle: 'retry + timeout + cancel',
@@ -224,19 +237,6 @@ class _ScenariosPageState extends State<ScenariosPage> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          if (_logs.isEmpty)
-            const Text('点击按钮查看场景结果')
-          else
-            ..._logs.map(
-              (log) => Card(
-                child: ListTile(
-                  dense: true,
-                  leading: const Icon(Icons.terminal_rounded),
-                  title: Text(log),
-                ),
-              ),
-            ),
         ],
       ),
     );

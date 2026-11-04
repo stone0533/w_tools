@@ -50,8 +50,6 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView).last, const Offset(0, -500));
-    await tester.pumpAndSettle();
     expect(find.textContaining('提交成功'), findsOneWidget);
   });
 
