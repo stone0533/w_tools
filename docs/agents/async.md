@@ -61,4 +61,4 @@ if (result is WAsyncSuccess<Gift>) {
 }
 ```
 
-完整说明：[async_module.md](../modules/async_module.md)
+完整说明：[async_module.md](../modules/async_module.md) · 示例：[packages/async/example](../../packages/async/example/README.md)

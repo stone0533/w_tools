@@ -71,8 +71,12 @@ class _ScenariosPageState extends State<ScenariosPage> {
   Future<void> _bootstrap() async {
     if (_bootstrapping) return;
     final activity = WAsyncActivity(
-      onStart: () => setState(() => _bootstrapping = true),
-      onEnd: () => setState(() => _bootstrapping = false),
+      onStart: () {
+        if (mounted) setState(() => _bootstrapping = true);
+      },
+      onEnd: () {
+        if (mounted) setState(() => _bootstrapping = false);
+      },
     );
     final options = WAsyncOptions(activity: activity);
 
@@ -140,6 +144,13 @@ class _ScenariosPageState extends State<ScenariosPage> {
       case WAsyncCancelled():
         _log('搜索已取消');
     }
+  }
+
+  @override
+  void dispose() {
+    _submitToken?.cancel('page disposed');
+    _searchToken?.cancel('page disposed');
+    super.dispose();
   }
 
   @override

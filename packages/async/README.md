@@ -71,6 +71,8 @@ failed   → 错误页（有 onRetry 才显示重试）
 ready    → readyBuilder
 ```
 
+完整可运行示例：[`example/`](example/README.md)（四态、分页、Sliver、执行、真实场景）。
+
 ## 主要 API
 
 | 场景 | 入口 |
