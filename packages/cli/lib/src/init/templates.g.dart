@@ -139,35 +139,42 @@ const String agentsBase = r'''
 const String agentsFeedback = r'''
 ## 使用反馈（给 AI）
 
-用 `w_tools_*` 撞到问题、或某条规则不合用时：**记下来，不要改库**。
+用 `w_tools_*` 撞到问题、或对能力有改进建议：**先查重，再提交，不要改库**。
 
-1. **先查重**：本项目 `docs/agents/feedback.md`（没有就跳过）。
-   有 w_tools 仓库时再查库侧，先拿路径：
+### 什么算反馈
+
+- 文档 / 示例照抄不能编译，或行为与文档不一致
+- API 缺能力，导致你重复写 workaround
+- 规则 / 组件明显不适配真实页面（不是个人风格偏好）
+
+### 三步
+
+1. **查重**
 
    ```bash
-   dart run w_tools_cli:feedback path --package=<包>
+   dart run w_tools_cli:feedback search "<关键词>" --package=<包>
+   # 有 gh 登录时可加 --gh 同时搜 GitHub issues
    ```
 
-   输出是本项目收件箱（`docs/agents/feedback.md`）= 当前不是仓库检出，**只写收件箱**。
-2. **追加一条**到 `docs/agents/feedback.md`（文件不存在就新建，第一行写
-   `# w_tools 使用反馈（本地收件箱）`）：
+2. **写正文**（按 `docs/feedback/TEMPLATE.md` 的字段，存到临时文件；也可 `--stdin`）
 
-   ```md
-   ### [待处理] <包>: <一句话现象>
-   - 包/版本：
-   - 环境：
-   - 命令 / 输入：
-   - 期望：
-   - 实际：
-   - 影响（我因此做错了什么 / 多花了什么）：
-   - 建议：
-   - 复现数据：
+3. **提交**
+
+   ```bash
+   dart run w_tools_cli:feedback submit \
+     --package=<包> --title="<一句话现象>" --body-file=/tmp/feedback.md
    ```
 
-3. 状态只写 `待处理`；**不要自己标「已修复」**（版本号由库维护者发布后补）。
-4. 一次会话最多 3–5 条，只记**真正卡住你**的；「我觉得可以更好」不算。
-5. 维护者会把条目同步到 `w_tools/docs/feedback/<包>.md`（**唯一真相**，含状态与版本）。
-   反馈是知识产物，放 `docs/`；不要放 `.w_tools/`（那是机器本地状态）。
+   - 默认：打印 GitHub 预填 issue 链接，**不会自动上传**；
+   - `--gh`：直接 `gh issue create`（需已登录）；
+   - 离线：`--local` 写入本地 `docs/agents/feedback.md`，之后手动提交。
+
+### 边界
+
+- 状态只写 `待处理`；**不要自己标「已修复」**（版本号由维护者发布后补）；
+- 一次会话最多 3–5 条，只记**真正卡住你**的；
+- 不要把反馈写进业务代码或 `.w_tools/`；
+- 维护者 triage 后才进入 `w_tools/docs/feedback/<包>.md`（唯一真相）。
 ''';
 
 const String agentsClosing = r'''
@@ -187,8 +194,8 @@ const String agentsClosing = r'''
 
 - `dart run w_tools_cli:doctor --json` → 0 error（warning 看情况）
 - `flutter analyze`、`flutter test`
-- 本次用过 `w_tools_*` 且有卡点？→ 写一条到 `docs/agents/feedback.md`（见「使用反馈（给 AI）」）
-- 写了反馈就跑 `dart run w_tools_cli:feedback lint --include-inbox`（字段/状态/版本号自检）
+- 本次用过 `w_tools_*` 且被卡住？→ 先 `feedback search` 查重，再 `feedback submit`（见「使用反馈（给 AI）」）；
+  不要改库、不要直接写台账。
 <!-- w_tools:end -->
 ''';
 
@@ -364,36 +371,42 @@ const String agentsBaseEn = r'''
 const String agentsFeedbackEn = r'''
 ## Usage feedback (for AI)
 
-When you hit a problem with `w_tools_*`, or a rule does not fit: **record it, do not patch the library**.
+When `w_tools_*` blocks you, or a capability could be better: **search first, submit, do not patch the library**.
 
-1. **Check for duplicates** first: `docs/agents/feedback.md` in this project (skip if absent).
-   To check the library side, resolve its path first:
+### What counts
+
+- Docs/examples do not compile, or behavior contradicts docs
+- Missing API forces repeated workarounds
+- A rule/component clearly does not fit real screens (not personal style)
+
+### Three steps
+
+1. **Search**
 
    ```bash
-   dart run w_tools_cli:feedback path --package=<package>
+   dart run w_tools_cli:feedback search "<keywords>" --package=<package>
+   # add --gh to also search GitHub issues when gh is authenticated
    ```
 
-   If it prints this project's inbox (`docs/agents/feedback.md`), this is not a repo
-   checkout: **use the inbox only**.
-2. **Append an entry** to `docs/agents/feedback.md` (create it if missing, first line
-   `# w_tools usage feedback (local inbox)`):
+2. **Write the body** following `docs/feedback/TEMPLATE.md` fields into a temp file (or use `--stdin`).
 
-   ```md
-   ### [pending] <package>: <one-line symptom>
-   - package/version:
-   - environment:
-   - command / input:
-   - expected:
-   - actual:
-   - impact (what it cost you):
-   - suggestion:
-   - repro data:
+3. **Submit**
+
+   ```bash
+   dart run w_tools_cli:feedback submit \
+     --package=<package> --title="<one-line symptom>" --body-file=/tmp/feedback.md
    ```
 
-3. Status is only `pending`; **never mark it fixed yourself** (the maintainer adds the version).
-4. At most 3–5 entries per session; record only what **actually blocked you**.
-5. The maintainer syncs entries into `w_tools/docs/feedback/<package>.md` (**single source of truth**).
-   Feedback is knowledge: keep it under `docs/`, never in `.w_tools/` (machine state).
+   - Default: print a prefilled GitHub issue URL, **no automatic upload**;
+   - `--gh`: create the issue via `gh` (must be logged in);
+   - Offline: `--local` appends to `docs/agents/feedback.md` for later submission.
+
+### Boundaries
+
+- Status is only `pending`; **never mark it fixed yourself**;
+- At most 3–5 entries per session, only what **actually blocked you**;
+- Do not put feedback in business code or `.w_tools/`;
+- Maintainers triage into `w_tools/docs/feedback/<package>.md` (single source of truth).
 ''';
 
 const String agentsClosingEn = r'''
@@ -413,8 +426,8 @@ const String agentsClosingEn = r'''
 
 - `dart run w_tools_cli:doctor --json` → 0 error (warnings are contextual)
 - `flutter analyze`, `flutter test`
-- Used `w_tools_*` and hit a snag? → append one entry to `docs/agents/feedback.md` (see "Usage feedback")
-- After writing feedback run `dart run w_tools_cli:feedback lint --include-inbox`
+- Used `w_tools_*` and got blocked? → `feedback search` for duplicates, then `feedback submit` (see "Usage feedback");
+  do not patch the library or write the ledger directly.
 <!-- w_tools:end -->
 ''';
 

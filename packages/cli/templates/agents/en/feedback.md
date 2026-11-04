@@ -1,32 +1,38 @@
 ## Usage feedback (for AI)
 
-When you hit a problem with `w_tools_*`, or a rule does not fit: **record it, do not patch the library**.
+When `w_tools_*` blocks you, or a capability could be better: **search first, submit, do not patch the library**.
 
-1. **Check for duplicates** first: `docs/agents/feedback.md` in this project (skip if absent).
-   To check the library side, resolve its path first:
+### What counts
+
+- Docs/examples do not compile, or behavior contradicts docs
+- Missing API forces repeated workarounds
+- A rule/component clearly does not fit real screens (not personal style)
+
+### Three steps
+
+1. **Search**
 
    ```bash
-   dart run w_tools_cli:feedback path --package=<package>
+   dart run w_tools_cli:feedback search "<keywords>" --package=<package>
+   # add --gh to also search GitHub issues when gh is authenticated
    ```
 
-   If it prints this project's inbox (`docs/agents/feedback.md`), this is not a repo
-   checkout: **use the inbox only**.
-2. **Append an entry** to `docs/agents/feedback.md` (create it if missing, first line
-   `# w_tools usage feedback (local inbox)`):
+2. **Write the body** following `docs/feedback/TEMPLATE.md` fields into a temp file (or use `--stdin`).
 
-   ```md
-   ### [pending] <package>: <one-line symptom>
-   - package/version:
-   - environment:
-   - command / input:
-   - expected:
-   - actual:
-   - impact (what it cost you):
-   - suggestion:
-   - repro data:
+3. **Submit**
+
+   ```bash
+   dart run w_tools_cli:feedback submit \
+     --package=<package> --title="<one-line symptom>" --body-file=/tmp/feedback.md
    ```
 
-3. Status is only `pending`; **never mark it fixed yourself** (the maintainer adds the version).
-4. At most 3–5 entries per session; record only what **actually blocked you**.
-5. The maintainer syncs entries into `w_tools/docs/feedback/<package>.md` (**single source of truth**).
-   Feedback is knowledge: keep it under `docs/`, never in `.w_tools/` (machine state).
+   - Default: print a prefilled GitHub issue URL, **no automatic upload**;
+   - `--gh`: create the issue via `gh` (must be logged in);
+   - Offline: `--local` appends to `docs/agents/feedback.md` for later submission.
+
+### Boundaries
+
+- Status is only `pending`; **never mark it fixed yourself**;
+- At most 3–5 entries per session, only what **actually blocked you**;
+- Do not put feedback in business code or `.w_tools/`;
+- Maintainers triage into `w_tools/docs/feedback/<package>.md` (single source of truth).

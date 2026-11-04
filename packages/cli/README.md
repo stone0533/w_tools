@@ -271,16 +271,29 @@ dart run w_tools_cli:doctor --write-config    # 写入 .w_tools_doctor.yaml
 给 AI / 开发者的反馈入口：**记录 w_tools 本身的问题**（不是业务代码问题）。
 
 ```bash
+# 先查重
+dart run w_tools_cli:feedback search "WImage 缓存" --package=ui
+
+# 生成预填 GitHub issue（默认只打印链接，不上传）
+dart run w_tools_cli:feedback submit --package=ui --title="WImage 缓存不生效" --stdin
+
+# 直接建 issue（需 gh 登录）/ 离线写本地收件箱
+dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --gh
+dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --local
+
 dart run w_tools_cli:feedback path --package=figma   # 该写哪个文件
-dart run w_tools_cli:feedback path --json            # 脚本用
 dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
 ```
 
 | 子命令 | 作用 |
 |---|---|
+| `submit` | 校验字段并生成 GitHub 预填链接；`--gh` 直接建 issue，`--local` 写本地收件箱 |
+| `search` | 本地台账/收件箱查重；`--gh` 同时搜 GitHub issues |
 | `path` | 有 w_tools 仓库 → `<repo>/docs/feedback/<包>.md`；否则 → 本项目收件箱 `docs/agents/feedback.md` |
 | `lint` | 字段齐全 / 状态合法 / 已闭环带版本号 / 已确认链 issue / 索引与文件一致 / 待处理 stale 警告 |
 
+- `submit` 默认**不联网、不上传**；`--gh` / `--local` 必须显式选择
+- 反馈入口是 GitHub Issue（`.github/ISSUE_TEMPLATE/feedback.md`），`docs/feedback/` 是 triage 后的台账
 - `lint --stale-days=<n>`：待处理超过 n 天给警告（默认 30，0 关闭），不影响退出码
 - 规则与文件格式见仓库 `docs/feedback/README.md`；CI 的 `scripts/check_feedback.sh` 就是这条命令的包装
 - `--package` 只接受小写字母/数字/下划线（防路径穿越）
@@ -387,6 +400,8 @@ toolkit 标记块外的项目追加项会保留
 | `list` / `explain` | 找到 | 未找到 | 参数错误 |
 | `context` | 成功 | — | 参数 / 项目错误 |
 | `feedback path` / `lint` | 成功 / 无问题 | lint 有问题 | 参数 / 子命令错误 |
+| `feedback submit` | 生成链接 / 写入 / 创建成功 | `--gh` 提交失败 | 参数 / 字段缺失 |
+| `feedback search` | 找到 | 未找到 | 参数错误 |
 
 ---
 

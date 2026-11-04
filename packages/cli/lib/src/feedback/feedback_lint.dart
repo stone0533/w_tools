@@ -57,6 +57,40 @@ class FeedbackLintResult {
   };
 }
 
+/// 待处理 / 提交反馈必须出现的字段（中英文均可）。
+const feedbackRequiredFields = <List<String>>[
+  ['包/版本', 'package/version'],
+  ['环境', 'environment'],
+  ['命令', 'command'],
+  ['期望', 'expected'],
+  ['实际', 'actual'],
+  ['影响', 'impact'],
+  ['建议', 'suggestion'],
+  ['复现数据', 'repro'],
+];
+
+/// 按行首 `- 字段：` 提取字段名。
+final feedbackFieldLine = RegExp(r'^\s*-\s*(.+?)\s*[：:]');
+
+/// 从一段 Markdown 中提取已填写的字段名。
+Set<String> feedbackFieldsIn(String text) {
+  final present = <String>{};
+  for (final line in text.split('\n')) {
+    final m = feedbackFieldLine.firstMatch(line);
+    if (m != null) present.add(m.group(1)!.trim());
+  }
+  return present;
+}
+
+/// 返回缺失的必填字段（展示第一个别名）。
+List<String> missingFeedbackFields(String text) {
+  final present = feedbackFieldsIn(text);
+  return [
+    for (final aliases in feedbackRequiredFields)
+      if (!aliases.any((a) => present.any((key) => key.startsWith(a)))) aliases.first,
+  ];
+}
+
 /// 校验反馈文件的格式：字段齐全、状态合法、已闭环带版本号、待处理不 stale。
 class FeedbackLinter {
   const FeedbackLinter({this.staleDays = 30});
@@ -75,22 +109,10 @@ class FeedbackLinter {
     'wontfix',
   };
 
-  /// 待处理条目必须出现的字段（中英文均可）；按行首 `- 字段：` 匹配。
-  static const _requiredFields = <List<String>>[
-    ['包/版本', 'package/version'],
-    ['环境', 'environment'],
-    ['命令', 'command'],
-    ['期望', 'expected'],
-    ['实际', 'actual'],
-    ['影响', 'impact'],
-    ['建议', 'suggestion'],
-    ['复现数据', 'repro'],
-  ];
-
   static final _heading = RegExp(r'^###\s*\[([^\]]+)\]\s*(.*)$');
   static final _closedRow = RegExp(r'^\|\s*\d{4}-\d{2}-\d{2}\s*\|');
   static final _version = RegExp(r'✅\s*(?:[A-Za-z_]+\s+)?\d+\.\d+\.\d+');
-  static final _fieldLine = RegExp(r'^\s*-\s*(.+?)\s*[：:]');
+  static final _fieldLine = feedbackFieldLine;
   static final _statusDate = RegExp(r'状态变更[：:]\s*(\d{4}-\d{2}-\d{2})');
   static final _issueLink = RegExp(r'#\d+|https?://');
   static final _releaseVersion = RegExp(
@@ -194,7 +216,7 @@ class FeedbackLinter {
           final m = _fieldLine.firstMatch(line);
           if (m != null) present.add(m.group(1)!.trim());
         }
-        for (final aliases in _requiredFields) {
+        for (final aliases in feedbackRequiredFields) {
           // 允许「命令 / 输入」「影响（我因此…）」这类带后缀的写法
           final filled = aliases.any((a) => present.any((key) => key.startsWith(a)));
           if (!filled) {

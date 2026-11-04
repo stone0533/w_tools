@@ -1,3 +1,12 @@
+## 1.9.12
+
+### 新增
+- `feedback submit`：校验必填字段，默认生成 GitHub 预填 issue 链接（不上传）；
+  `--gh` 直接建 issue，`--local` 离线写收件箱，`--json` 机器可读。
+- `feedback search`：本地台账/收件箱查重；`--gh` 同时搜 GitHub issues。
+- `templates/agents` 的使用反馈改为 `search → submit` 闭环，收尾必查。
+- 新增 `.github/ISSUE_TEMPLATE/feedback.md`；`docs/agents/cli.md` / feedback 台账说明同步。
+
 ## 1.9.11
 
 ### 改进

@@ -11,6 +11,14 @@ void main() {
       expect(text, isNot(contains('WApp.appWrapper')));
     });
 
+    test('$lang feedback 模板要求 submit', () {
+      final text = File('templates/agents/$lang/feedback.md').readAsStringSync();
+      expect(text, contains('feedback submit'));
+      expect(text, contains('--local'));
+      expect(text, contains('--gh'));
+      expect(text, isNot(contains('直接写台账')));
+    });
+
     test('$lang toast 模板包含初始化', () {
       final text = File('templates/agents/$lang/toast.md').readAsStringSync();
       expect(text, contains('BotToastInit'));
