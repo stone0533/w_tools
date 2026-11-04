@@ -72,7 +72,7 @@ Future<void> _boot(Simctl simctl, DeviceOptions o) async {
 Future<void> _shot(Simctl simctl, DeviceOptions o) async {
   if (o.real) {
     final devices = await Devicectl().devices();
-    final target = Devicectl.resolve(devices, o.deviceOrFirst);
+    final target = Devicectl.resolve(devices, o.deviceOrFirst ?? o.positional.firstOrNull);
     if (target == null) {
       throw StateError('找不到真机（先 device list --real；确认已连接并信任）');
     }

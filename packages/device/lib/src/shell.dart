@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -18,44 +19,50 @@ class ProcessShell implements Shell {
 
   final Duration timeout;
 
-  @override
-  Future<ProcessResult> run(String exe, List<String> args) async {
+  Future<(int, List<int>, List<int>)> _run(String exe, List<String> args) async {
+    final process = await Process.start(exe, args, runInShell: false);
+    final outFuture = process.stdout.fold<List<int>>(
+      <int>[],
+      (all, chunk) => all..addAll(chunk),
+    );
+    final errFuture = process.stderr.fold<List<int>>(
+      <int>[],
+      (all, chunk) => all..addAll(chunk),
+    );
     try {
-      return await Process.run(exe, args, runInShell: false).timeout(timeout);
+      final code = await process.exitCode.timeout(timeout);
+      return (code, await outFuture, await errFuture);
     } on TimeoutException {
+      process.kill();
       throw ProcessException(exe, args, '命令超时（${timeout.inSeconds}s）', -1);
     }
   }
 
   @override
+  Future<ProcessResult> run(String exe, List<String> args) async {
+    final (code, out, err) = await _run(exe, args);
+    return ProcessResult(
+      0,
+      code,
+      utf8.decode(out, allowMalformed: true),
+      utf8.decode(err, allowMalformed: true),
+    );
+  }
+
+  @override
   Future<Uint8List> runBytes(String exe, List<String> args) async {
-    final ProcessResult r;
-    try {
-      r = await Process.run(
-        exe,
-        args,
-        runInShell: false,
-        stdoutEncoding: null,
-      ).timeout(timeout);
-    } on TimeoutException {
-      throw ProcessException(exe, args, '命令超时（${timeout.inSeconds}s）', -1);
+    final (code, out, err) = await _run(exe, args);
+    if (code != 0) {
+      throw ProcessException(exe, args, utf8.decode(err, allowMalformed: true).trim(), code);
     }
-    if (r.exitCode != 0) {
-      throw ProcessException(exe, args, '${r.stderr}'.trim(), r.exitCode);
-    }
-    return Uint8List.fromList(r.stdout as List<int>);
+    return Uint8List.fromList(out);
   }
 
   @override
   Future<ProcessResult> runOrThrow(String exe, List<String> args) async {
     final r = await run(exe, args);
     if (r.exitCode != 0) {
-      throw ProcessException(
-        exe,
-        args,
-        '${r.stderr}'.trim(),
-        r.exitCode,
-      );
+      throw ProcessException(exe, args, '${r.stderr}'.trim(), r.exitCode);
     }
     return r;
   }

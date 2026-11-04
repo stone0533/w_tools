@@ -63,7 +63,8 @@ size --real
 --out 只用于 shot
 ```
 
-`--scale` 只用于 iOS 模拟器，必须是正整数；非法值会报错而不是静默忽略。
+`--scale` 只用于 iOS 模拟器的 `calibrate` / `tap` / `drag` / `size` / `wait` / `verify`；必须是正整数。
+传给它命令（如 `boot` / `type` / `shot`）会直接报错，而不是静默忽略。
 `--no-cache` 只用于 iOS 模拟器的 tap / drag / wait / verify（wait 需同时有 `--region`）；
 `--timeout-ms` 和 `--stable-ms` 只用于 wait / verify；`--out` 只用于 shot。
 `list` 不支持 `--device`；`type` 必须带文本。

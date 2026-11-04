@@ -123,12 +123,25 @@ class Adb {
     );
   }
 
-  /// 输入文本（先点中输入框；空格要转义成 %s）。
+  /// 输入文本（先点中输入框）。
+  ///
+  /// Android 的 `input text` 用 `%s` 表示空格；这里用单引号包住整段，
+  /// 避免 `& | ; ( ) < >` 被远端 shell 解释。换行/控制字符无法可靠输入，直接报错。
+  /// 中文/emoji 取决于设备输入法，不保证可用。
   Future<void> text(String serial, String text) async {
     await _shell.runOrThrow(
       'adb',
-      _args(serial, ['shell', 'input', 'text', text.replaceAll(' ', '%s')]),
+      _args(serial, ['shell', 'input', 'text', escapeTextArgument(text)]),
     );
+  }
+
+  /// 供单测：把文本转成传给 `adb shell input text` 的单个参数。
+  static String escapeTextArgument(String text) {
+    if (RegExp(r'[\x00-\x1F\x7F]').hasMatch(text)) {
+      throw StateError('type 不支持换行/控制字符；换行请用 keyevent');
+    }
+    final escaped = text.replaceAll(' ', '%s').replaceAll("'", "'\\''");
+    return "'$escaped'";
   }
 
   /// 前台 App 的包名（空 = 取不到）。
@@ -138,6 +151,14 @@ class Adb {
   Future<String> currentPackage(String serial) async {
     final r = await _shell.run('adb', _args(serial, ['shell', 'dumpsys', 'window']));
     return parseCurrentPackage('${r.stdout}');
+  }
+
+  /// 前台包名必须非空；供 CLI 把“取不到”转成明确失败。
+  static String requirePackage(String pkg) {
+    if (pkg.isEmpty) {
+      throw StateError('取不到 Android 前台包名（设备可能锁屏 / 无 Activity）');
+    }
+    return pkg;
   }
 
   /// 从 `dumpsys window` 输出里取前台包名；取不到回落到 `topResumedActivity`。

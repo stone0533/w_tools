@@ -94,6 +94,13 @@ void main() {
         () => DeviceOptions.parse(['wait', '--scale=2']).validate(),
         throwsStateError,
       );
+      for (final args in <List<String>>[
+        ['boot', 'x', '--scale=2'],
+        ['type', 'hi', '--scale=2'],
+        ['shot', '--scale=2'],
+      ]) {
+        expect(() => DeviceOptions.parse(args).validate(), throwsStateError);
+      }
       expect(
         () => DeviceOptions.parse(['wait', '--no-cache']).validate(),
         throwsStateError,

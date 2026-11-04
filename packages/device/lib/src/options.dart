@@ -173,8 +173,9 @@ class DeviceOptions {
     if (out != null && command != 'shot') {
       throw StateError('--out 只支持 shot');
     }
-    if (scale != null && !android && !real && command == 'list') {
-      throw StateError('--scale 只用于模拟器截图 / 标定');
+    const scaleCommands = <String>{'calibrate', 'tap', 'drag', 'size', 'wait', 'verify'};
+    if (scale != null && !scaleCommands.contains(command)) {
+      throw StateError('--scale 只用于 calibrate/tap/drag/size/wait/verify');
     }
     if (scale != null && (android || real)) {
       throw StateError('--scale 只用于 iOS 模拟器');

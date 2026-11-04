@@ -292,6 +292,20 @@ void main() {
       );
     });
   });
+  group('Adb.requirePackage', () {
+    test('空包名抛错，正常包名返回', () {
+      expect(() => Adb.requirePackage(''), throwsStateError);
+      expect(Adb.requirePackage('com.example.app'), 'com.example.app');
+    });
+  });
+
+  group('Adb.escapeTextArgument', () {
+    test('空格转 %s，单引号安全，换行拒绝', () {
+      expect(Adb.escapeTextArgument('hello world'), "'hello%sworld'");
+      expect(Adb.escapeTextArgument("it's"), "'it'\\''s'");
+      expect(() => Adb.escapeTextArgument('a\nb'), throwsStateError);
+    });
+  });
 }
 
 class _FakeShell implements Shell {

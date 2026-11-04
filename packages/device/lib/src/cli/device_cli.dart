@@ -24,7 +24,7 @@ String _tempFile(String prefix, String ext) =>
     '${Directory.systemTemp.path}/${prefix}_${DateTime.now().microsecondsSinceEpoch}_${_tempSeq++}.$ext';
 
 const _usage = '''
-w_tools_device —— 设备验证小工具（模拟器为主 + 真机截图，读数 + 点击）
+w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 list/shot
 
 用法：
   dart run w_tools_device:device list                 # 列出模拟器（udid / 名称 / 状态）
@@ -44,7 +44,7 @@ w_tools_device —— 设备验证小工具（模拟器为主 + 真机截图，�
 可选：
   --device=<udid|名称>   指定设备（默认用已启动的 / 第一台）
   --no-cache            忽略标定缓存，强制重算（仅 iOS 模拟器 tap/drag/wait/verify）
-  --scale=3             设备像素密度（默认按截图宽度猜 3x/2x）
+  --scale=3             设备像素密度；仅 calibrate/tap/drag/size/wait/verify
   --timeout-ms=15000    等待超时
   --stable-ms=600       画面稳定判定窗口
   --region=x,y,w,h      只看这块区域（设备坐标）；verify/wait 用
@@ -128,8 +128,8 @@ Future<void> runDeviceCli(List<String> args) async {
           throw StateError('foreground 只支持 --android（iOS 请用 flutter run 的日志判断）');
         }
         final serial = await _androidSerial(o);
-        final pkg = await Adb().currentPackage(serial);
-        _emit(o, {'package': pkg, 'serial': serial}, pkg.isEmpty ? '（取不到前台包名）' : pkg);
+        final pkg = Adb.requirePackage(await Adb().currentPackage(serial));
+        _emit(o, {'package': pkg, 'serial': serial}, pkg);
       case 'wait':
         if (o.android) {
           await _androidWait(o);
@@ -151,6 +151,10 @@ Future<void> runDeviceCli(List<String> args) async {
     _fail(options, '参数错误：${e.message}', 1);
   } on StateError catch (e) {
     _fail(options, e.message, 1);
+  } on FileSystemException catch (e) {
+    _fail(options, '文件操作失败：${e.message}', 1);
+  } on Exception catch (e) {
+    _fail(options, '执行失败：$e', 1);
   }
 }
 
