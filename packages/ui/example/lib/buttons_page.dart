@@ -269,15 +269,13 @@ class _ButtonsPageState extends State<ButtonsPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  WImage.asset(
-                    'demo.png',
-                    prefix: true,
-                    style: const WImageStyle(
-                      width: 56,
-                      height: 56,
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
-                  ),
+                  WImage.source(
+                      source: WImageSource.asset('demo.png', prefix: true),
+                      style: const WImageStyle(
+                        width: 56,
+                        height: 56,
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                      )),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(

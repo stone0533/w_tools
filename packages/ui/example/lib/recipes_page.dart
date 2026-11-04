@@ -21,77 +21,68 @@ class RecipesPage extends StatelessWidget {
         const _SectionTitle('头像：WImage + WImageStyle.avatar'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage(
-            data: 'assets/demo.png',
-            type: WImageType.asset,
-            style: WImageStyle.avatar(72),
-          ),
+          child: WImage.source(
+              source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
+              style: WImageStyle.avatar(72)),
         ),
-        const _Code("WImage(data: 'assets/demo.png', style: WImageStyle.avatar(72))"),
+        const _Code(
+            "WImage.source(source: WImageSource.parse('assets/demo.png'), style: WImageStyle.avatar(72))"),
         const SizedBox(height: 24),
         const _SectionTitle('缩略图：WImage + WImageStyle.thumbnail'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage(
-            data: 'assets/demo.png',
-            type: WImageType.asset,
-            style: WImageStyle.thumbnail(96),
-            config: const WImageLoadConfig(memCacheWidth: 288, memCacheHeight: 288),
-          ),
+          child: WImage.source(
+              source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
+              style: WImageStyle.thumbnail(96),
+              config: const WImageLoadConfig(memCacheWidth: 288, memCacheHeight: 288)),
         ),
         const _Code('WImage(..., style: WImageStyle.thumbnail(96), config: WImageLoadConfig(...))'),
         const SizedBox(height: 24),
         const _SectionTitle('封面：WImage + WImageStyle.cover'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage(
-            data: 'assets/demo.png',
-            type: WImageType.asset,
-            style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12),
-          ),
+          child: WImage.source(
+              source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
+              style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)),
         ),
         const _Code('WImage(..., style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12))'),
         const SizedBox(height: 24),
-        const _SectionTitle('自动拼接资源路径：WImage.asset(prefix: true)'),
+        const _SectionTitle('自动拼接资源路径：WImage.source(source: WImageSource.asset(), prefix: true))'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.asset(
-            'demo.png',
-            prefix: true,
-            style: const WImageStyle(width: 120, height: 68),
-          ),
+          child: WImage.source(
+              source: WImageSource.asset('demo.png', prefix: true),
+              style: const WImageStyle(width: 120, height: 68)),
         ),
-        const _Code("WAssets.imagePath = 'assets/' 后：WImage.asset('demo.png', prefix: true)"),
+        const _Code(
+            "WAssets.imagePath = 'assets/' 后：WImage.source(source: WImageSource.asset('demo.png', prefix: true))"),
         const SizedBox(height: 24),
         const _SectionTitle('内存字节：WImage.memory'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.memory(
-            bytes,
-            style: const WImageStyle(width: 64, height: 64),
-          ),
+          child: WImage.source(
+              source: WImageSource.provider(MemoryImage(bytes)),
+              style: const WImageStyle(width: 64, height: 64)),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('任意 provider：WImage.provider'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage.provider(
-            provider,
-            style: const WImageStyle(width: 64, height: 64),
-          ),
+          child: WImage.source(
+              source: WImageSource.provider(provider),
+              style: const WImageStyle(width: 64, height: 64)),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('内置错误 + 重试'),
         const SizedBox(height: 8),
         _Card(
-          child: WImage(
-            data: 'https://example.invalid/retry.png',
-            style: const WImageStyle(width: 160, height: 90),
-            config: const WImageLoadConfig(
-              showRetryButton: true,
-              retryCount: 1,
-            ),
-          ),
+          child: WImage.source(
+              source: WImageSource.parse('https://example.invalid/retry.png'),
+              style: const WImageStyle(width: 160, height: 90),
+              config: const WImageLoadConfig(
+                showRetryButton: true,
+                retryCount: 1,
+              )),
         ),
         const _Code(
             'WImageStyle(width: 160, height: 90) + WImageLoadConfig(showRetryButton: true, retryCount: 1)'),

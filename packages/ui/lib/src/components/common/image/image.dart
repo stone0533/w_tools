@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'dart:async';
 import 'dart:convert';
 
@@ -76,9 +75,7 @@ class WImageController {
 
 /// 图片组件
 ///
-/// 默认按 `data` 自动判定类型（网络 URL、本地资源、`file://` 路径、`data:` Base64）；
-/// 需要确定性时用命名构造：[WImage.network] / [WImage.asset] / [WImage.file] /
-/// [WImage.base64]，它们跳过判定，也不会被“看起来像 URL 的 asset 名”影响。
+/// 统一使用 [WImage.source] + [WImageSource]；不再提供按字符串自动判定的旧构造器。
 ///
 /// 提供占位符、错误处理、加载进度、网络重试（自动 + 手动）与图片变换
 /// （圆角、边框、阴影、margin/padding）。
@@ -107,35 +104,6 @@ class WImage extends StatefulWidget {
   /// 显式类型；默认构造自动判定时为 null（历史语义）
   final WImageType? type;
 
-  /// 按字符串自动判定来源（便利入口；新代码建议用 [WImage.source]）
-  /// remove-in: 6.0.0
-  @Deprecated('Use WImage.source(WImageSource...) instead')
-  factory WImage({
-    Key? key,
-    WImageStyle style = const WImageStyle(),
-    WImageLoadConfig config = const WImageLoadConfig(),
-    required String data,
-    WImageType? type,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    assert(
-      type != WImageType.provider,
-      'provider 来源请使用 WImage.provider(...) / WImage.memory(...)',
-    );
-    return WImage._(
-      key: key,
-      type: type,
-      source: WImageSource.parse(data, type: type),
-      style: style,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
   /// 显式来源 + 不可变样式（推荐入口）
   factory WImage.source({
     Key? key,
@@ -150,148 +118,6 @@ class WImage extends StatefulWidget {
       key: key,
       type: source.type,
       source: source,
-      style: style,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 网络图片（`http` / `https`，或以 `//` 开头的协议相对地址）
-  /// remove-in: 6.0.0
-  @Deprecated('Use WImage.source(WImageSource...) instead')
-  factory WImage.network(
-    String data, {
-    Key? key,
-    WImageStyle style = const WImageStyle(),
-    WImageLoadConfig config = const WImageLoadConfig(),
-    Map<String, String>? headers,
-    String? cacheKey,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.source(
-      key: key,
-      source: WImageSource.network(data, headers: headers, cacheKey: cacheKey),
-      style: style,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 本地资源图片（`assets/...` 或 `packages/<pkg>/...`）
-  /// remove-in: 6.0.0
-  @Deprecated('Use WImage.source(WImageSource...) instead')
-  factory WImage.asset(
-    String data, {
-    Key? key,
-    WImageStyle style = const WImageStyle(),
-    WImageLoadConfig config = const WImageLoadConfig(),
-    String? package,
-    bool prefix = false,
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.source(
-      key: key,
-      source: WImageSource.asset(data, package: package, prefix: prefix),
-      style: style,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 本地文件图片（带不带 `file://` 前缀都可以）
-  /// remove-in: 6.0.0
-  @Deprecated('Use WImage.source(WImageSource...) instead')
-  factory WImage.file(
-    String data, {
-    Key? key,
-    WImageStyle style = const WImageStyle(),
-    WImageLoadConfig config = const WImageLoadConfig(),
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.source(
-      key: key,
-      source: WImageSource.file(data),
-      style: style,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// Base64 图片（可以带 `data:...;base64,` 前缀，也可以直接给 Base64 串）
-  /// remove-in: 6.0.0
-  @Deprecated('Use WImage.source(WImageSource...) instead')
-  factory WImage.base64(
-    String data, {
-    Key? key,
-    WImageStyle style = const WImageStyle(),
-    WImageLoadConfig config = const WImageLoadConfig(),
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.source(
-      key: key,
-      source: WImageSource.base64(data),
-      style: style,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 任意 [ImageProvider]（高级入口）
-  /// remove-in: 6.0.0
-  @Deprecated('Use WImage.source(WImageSource...) instead')
-  factory WImage.provider(
-    ImageProvider provider, {
-    Key? key,
-    WImageStyle style = const WImageStyle(),
-    WImageLoadConfig config = const WImageLoadConfig(),
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.source(
-      key: key,
-      source: WImageSource.provider(provider),
-      style: style,
-      config: config,
-      onLoadStatusChanged: onLoadStatusChanged,
-      onProgress: onProgress,
-      controller: controller,
-    );
-  }
-
-  /// 内存字节（内部转成 `MemoryImage`）
-  /// remove-in: 6.0.0
-  @Deprecated('Use WImage.source(WImageSource...) instead')
-  factory WImage.memory(
-    Uint8List bytes, {
-    Key? key,
-    WImageStyle style = const WImageStyle(),
-    WImageLoadConfig config = const WImageLoadConfig(),
-    ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
-    ValueChanged<WImageProgress>? onProgress,
-    WImageController? controller,
-  }) {
-    return WImage.provider(
-      MemoryImage(bytes),
-      key: key,
       style: style,
       config: config,
       onLoadStatusChanged: onLoadStatusChanged,

@@ -522,7 +522,7 @@ WButton(
   semanticLabel: '订单 A123，3 件商品，待支付，共 128 元',
   content: Row(
     children: [
-      WImage.asset('demo.png', prefix: true),
+      WImage.source(source: WImageSource.asset('demo.png', prefix: true)),
       const SizedBox(width: 12),
       const Expanded(
         child: Column(
@@ -745,8 +745,8 @@ Text.rich(
 
 图片组件，支持网络 URL、本地资源、本地文件、Base64 与任意 `ImageProvider`。
 
-**新代码优先使用 `WImage.source(...)` 或命名构造**（`WImage.network` / `WImage.asset` /
-`WImage.file` / `WImage.base64`）；`WImage(data: ...)` 的自动判定只作为便利入口。
+**新代码优先使用 `WImage.source(...)` 或命名构造**（`WImageSource.network` / `WImageSource.asset` /
+`WImageSource.file` / `WImageSource.base64`）；`WImage.source(source: WImageSource.parse(...))` 的自动判定只作为便利入口。
 提供占位符、错误处理、加载进度、网络重试、解码尺寸限制与图片变换。
 
 ### 新 API（推荐）
@@ -775,7 +775,7 @@ WImage.source(
 - 重试定时器、错误分类、进度上报与状态去重都在内部加载器内（不对外导出），`WImage` 的 State 只负责构建与渲染；
 - 网络图统一走 `CachedNetworkImageProvider` + `Image`：磁盘缓存仍由 `cached_network_image` 负责，
   进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`；
-- 字符串入口 `WImage(data:, style:, config:)` 与命名构造仍保留，内部会转换成 `WImageSource` + `WImageStyle` + `WImageLoadConfig`；
+- 字符串入口 `WImage.source(source: WImageSource.parse(), style: , config: )` 与命名构造仍保留，内部会转换成 `WImageSource` + `WImageStyle` + `WImageLoadConfig`；
 - 旧的可变 `WImageLoadConfig` / `WImageLoadConfigBuild` 已移除；新的 `WImageLoadConfig` 是不可变配置。
 
 ### 构造参数
@@ -793,15 +793,15 @@ WImage.source(
 
 | 构造 | 说明 |
 |------|------|
-| `WImage.network(url)` | 网络图；`//` 开头的协议相对地址会补 `https:` |
-| `WImage.asset(path)` | 资产图；前后的空白会被裁掉 |
-| `WImage.file(path)` | 本地文件；带不带 `file://` 都可以 |
-| `WImage.base64(data)` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
+| `WImage.source(source: WImageSource.network(url))` | 网络图；`//` 开头的协议相对地址会补 `https:` |
+| `WImage.source(source: WImageSource.asset(path))` | 资产图；前后的空白会被裁掉 |
+| `WImage.source(source: WImageSource.file(path))` | 本地文件；带不带 `file://` 都可以 |
+| `WImage.source(source: WImageSource.base64(data))` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
 | ~~`WImage.thumbnail(data, width:)`~~ | **已删除（5.0）**：style + `WImageLoadConfig(memCacheWidth: ...)` |
 | ~~`WImage.cover(data, aspectRatio:)`~~ | **已删除（5.0）**：用 `WImage(style: WImageStyle.cover(...))` |
-| ~~`WImage.assetImage(name)`~~ | **已删除（5.0）**：用 `WImage.asset(name, prefix: true)` |
-| `WImage.memory(bytes)` | `Uint8List` → `MemoryImage` |
-| `WImage.provider(provider)` | 任意 `ImageProvider` |
+| ~~`WImageSource.assetImage(name)`~~ | **已删除（5.0）**：用 `WImage.source(source: WImageSource.asset(name, prefix: true))` |
+| `WImage.source(source: WImageSource.provider(MemoryImage(bytes)))` | `Uint8List` → `MemoryImage` |
+| `WImage.source(source: WImageSource.provider(provider))` | 任意 `ImageProvider` |
 
 ### WImageType 与自动判定
 
@@ -810,7 +810,7 @@ WImage.source(
 | `network` | `Uri` 解析出的 scheme 为 `http`/`https`（大小写无关）且 host 非空；或 `//` 开头 |
 | `file` | scheme 为 `file` |
 | `base64` | `data:` 开头（不限于 `data:image/`） |
-| `provider` | 任意 `ImageProvider`（`WImage.provider` / `WImage.memory`） |
+| `provider` | 任意 `ImageProvider`（`WImageSource.provider` / `WImageSource.provider(MemoryImage(...))`） |
 
 `data:` / `file:` 前缀大小写不敏感（`DATA:` / `FILE:` 同样识别）。
 | `asset` | 其余；空串/纯空白会直接渲染错误占位 |
@@ -829,7 +829,7 @@ WImage.source(
 | `asset` | 资产不存在或解码失败 |
 | `decode` | Base64 解码失败 |
 | `file` | 文件读取失败 |
-| `provider` | `WImage.provider` / `WImage.memory` 解码失败 |
+| `provider` | `WImageSource.provider` / `WImageSource.provider(MemoryImage(...))` 解码失败 |
 | `unsupported` | Web 上的 `file://` |
 
 ```dart
@@ -928,7 +928,7 @@ PaintingBinding.instance.imageCache
 
 - 旧的可变 `WImageLoadConfig` 删除；2.0 的 `WImageLoadConfig` 是**新的不可变加载配置**；
   视觉样式由 `WImageStyle` 负责。
-- `WImageLoadConfigBuild` 删除，用 `WImage.source` / `WImage.network/asset/file/base64`；
+- `WImageLoadConfigBuild` 删除，用 `WImage.source` / `WImageSource.network/asset/file/base64`；
 - `WImage.onLoadProgress` 删除，用 `onProgress`；
 - `cacheEnabled` / `fitCenter` / `size` 均已删除。
 
@@ -960,16 +960,12 @@ flutter run
 ```dart
 final controller = WImageController();
 
-WImage.network(
-  url,
-  controller: controller,
-  config: WImageLoadConfig(
+WImage.source(source: WImageSource.network(url), controller: controller, config: WImageLoadConfig(
     errorWidgetBuilder: (context, url, error) => TextButton(
       onPressed: controller.retry,
       child: const Text('重试'),
     ),
-  ),
-)
+  ))
 ```
 
 `retry()` 会立即发起新请求（不等待自动重试的退避时间），对网络 / 资产 / 文件 / Base64 四种来源都有效；
@@ -979,55 +975,41 @@ WImage.network(
 
 ```dart
 // 网络图片 + 固定宽高比 + 解码尺寸
-WImage.network(
-  'https://example.com/image.jpg',
-  style: const WImageStyle(
+WImage.source(source: WImageSource.network('https://example.com/image.jpg'), style: const WImageStyle(
     aspectRatio: 16 / 9,
     borderRadius: BorderRadius.all(Radius.circular(12)),
-  ),
-  config: const WImageLoadConfig(memCacheWidth: 480),
-)
+  ), config: const WImageLoadConfig(memCacheWidth: 480))
 
 // 列表缩略图：限制解码尺寸（大图按原尺寸解码很吃内存）
-WImage.network(url, config: const WImageLoadConfig(memCacheWidth: 240))
+WImage.source(source: WImageSource.network(url), config: const WImageLoadConfig(memCacheWidth: 240))
 
 // 带重试与进度
-WImage.network(
-  url,
-  config: WImageLoadConfig(
+WImage.source(source: WImageSource.network(url), config: WImageLoadConfig(
     retryCount: 3,
     retryDelay: 1500,
     progressBuilder: (context, url, progress) =>
         CircularProgressIndicator(value: progress.fraction),
-  ),
-  onProgress: (p) => debugPrint('${p.downloadedBytes}/${p.totalBytes}'),
-)
+  ), onProgress: (p) => debugPrint('${p.downloadedBytes}/${p.totalBytes}'))
 
 // 本地资源 / 文件 / Base64
-WImage.asset('assets/images/logo.png')
-WImage.file('/tmp/a.png')
-WImage.base64(base64String)
+WImage.source(source: WImageSource.asset('assets/images/logo.png'))
+WImage.source(source: WImageSource.file('/tmp/a.png'))
+WImage.source(source: WImageSource.base64(base64String))
 
 // 圆形头像
-WImage.network(
-  avatarUrl,
-  style: const WImageStyle(
+WImage.source(source: WImageSource.network(avatarUrl), style: const WImageStyle(
     width: 100,
     height: 100,
     borderRadius: BorderRadius.all(Radius.circular(50)),
-  ),
-)
+  ))
 
 // 错误分支
-WImage.network(
-  url,
-  config: WImageLoadConfig(
+WImage.source(source: WImageSource.network(url), config: WImageLoadConfig(
     errorWidgetBuilder: (context, url, error) => switch (error.kind) {
       WImageErrorKind.network => const Icon(Icons.wifi_off),
       _ => const Icon(Icons.broken_image),
     },
-  ),
-)
+  ))
 ```
 
 ### String 扩展：`toImage`

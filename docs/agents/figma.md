@@ -79,7 +79,7 @@ dart run w_tools_cli:explain <组件名>
 ```text
 页面骨架     AppScaffold
 文本         WText + WTextStyles
-图片         WImage.asset / WImage.network
+图片         WImageSource.asset / WImageSource.network
 普通按钮     WButton
 表单         WForm + 直接字段
 间距         原生 SizedBox / EdgeInsets

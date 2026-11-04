@@ -1,3 +1,10 @@
+## 6.0.0
+
+### Removed
+- 移除 `WImage(data:)` / `WImage.network` / `asset` / `file` / `base64` / `provider` / `memory`。
+- 移除 `String.toImage` / `toAssetImage` / `toBase64Image` / `toFileImage` / `toNetworkImage`。
+- 统一使用 `WImage.source(source: WImageSource...)`；迁移见 `docs/migrations/ui-6.0.md`。
+
 ## 5.1.0
 
 ### Deprecated

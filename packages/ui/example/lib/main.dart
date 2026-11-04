@@ -76,7 +76,7 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // 让 WImage.asset('demo.png', prefix: true) 指向 example/assets/demo.png。
+    // 让 WImage.source(source: WImageSource.asset('demo.png', prefix: true)) 指向 example/assets/demo.png。
     WAssets.imagePath = 'assets/';
     _navController = WNavController(
       length: _destinations.length,

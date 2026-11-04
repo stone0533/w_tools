@@ -16,8 +16,8 @@ void main() {
     testWidgets('渲染 Image 并显示占位符', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WImage.network(
-            _url,
+          WImage.source(
+            source: WImageSource.network(_url),
             config: const WImageLoadConfig(placeholder: Text('LOAD')),
           ),
         ),
@@ -30,10 +30,12 @@ void main() {
     testWidgets('httpHeaders / cacheKey / memCache 透传', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WImage.network(
-            _url,
-            headers: const {'Authorization': 'Bearer token'},
-            cacheKey: 'home-hero',
+          WImage.source(
+            source: WImageSource.network(
+              _url,
+              headers: const {'Authorization': 'Bearer token'},
+              cacheKey: 'home-hero',
+            ),
             config: const WImageLoadConfig(memCacheWidth: 240, memCacheHeight: 120),
           ),
         ),
@@ -50,8 +52,8 @@ void main() {
     testWidgets('进度指示器分支正常构建', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          WImage.network(
-            _url,
+          WImage.source(
+            source: WImageSource.network(_url),
             config: WImageLoadConfig(
               progressBuilder: (_, __, ___) => const Text('PROG'),
             ),
@@ -64,17 +66,17 @@ void main() {
     });
 
     testWidgets('同一 source 重建复用 provider', (tester) async {
-      await tester.pumpWidget(_wrap(WImage.network(_url)));
+      await tester.pumpWidget(_wrap(WImage.source(source: WImageSource.network(_url))));
       final first = tester.widget<Image>(find.byType(Image)).image;
 
-      await tester.pumpWidget(_wrap(WImage.network(_url)));
+      await tester.pumpWidget(_wrap(WImage.source(source: WImageSource.network(_url))));
       final second = tester.widget<Image>(find.byType(Image)).image;
 
       expect(identical(first, second), isTrue);
     });
 
     testWidgets('重试计数体现在 ValueKey 上', (tester) async {
-      await tester.pumpWidget(_wrap(WImage.network(_url)));
+      await tester.pumpWidget(_wrap(WImage.source(source: WImageSource.network(_url))));
 
       expect(
         find.byKey(const ValueKey('$_url#attempt=0')),
@@ -87,7 +89,7 @@ void main() {
     testWidgets('retry() 重建并递增 attempt', (tester) async {
       final controller = WImageController();
       await tester.pumpWidget(
-        _wrap(WImage.network(_url, controller: controller)),
+        _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
       );
 
       expect(controller.isAttached, isTrue);
@@ -102,7 +104,7 @@ void main() {
     testWidgets('controller.state 暴露加载快照', (tester) async {
       final controller = WImageController();
       await tester.pumpWidget(
-        _wrap(WImage.network(_url, controller: controller)),
+        _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
       );
       expect(controller.state, isNotNull);
       expect(controller.state!.value.attempt, 0);
@@ -115,7 +117,7 @@ void main() {
     testWidgets('卸载后自动解绑，retry() 不抛异常', (tester) async {
       final controller = WImageController();
       await tester.pumpWidget(
-        _wrap(WImage.network(_url, controller: controller)),
+        _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
       );
       expect(controller.isAttached, isTrue);
 
@@ -131,8 +133,8 @@ void main() {
       final controller = WImageController();
 
       Widget build(int retryCount) => _wrap(
-        WImage.network(
-          _url,
+        WImage.source(
+          source: WImageSource.network(_url),
           config: WImageLoadConfig(retryCount: retryCount),
           controller: controller,
         ),
@@ -152,7 +154,7 @@ void main() {
     testWidgets('retry() 对资产图同样生效（换 key 重建）', (tester) async {
       final controller = WImageController();
       await tester.pumpWidget(
-        _wrap(WImage.asset('assets/none.png', controller: controller)),
+        _wrap(WImage.source(source: WImageSource.asset('assets/none.png'), controller: controller)),
       );
 
       expect(
@@ -172,11 +174,11 @@ void main() {
 
   group('WImage 构造快捷入口', () {
     test('base64 生成显式 base64 类型', () {
-      expect(WImage.base64('AAAA').type, WImageType.base64);
+      expect(WImage.source(source: WImageSource.base64('AAAA')).type, WImageType.base64);
     });
 
     test('file 生成显式 file 类型', () {
-      expect(WImage.file('/tmp/a.png').type, WImageType.file);
+      expect(WImage.source(source: WImageSource.file('/tmp/a.png')).type, WImageType.file);
     });
   });
 

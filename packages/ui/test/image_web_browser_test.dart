@@ -12,8 +12,8 @@ void main() {
     WImageError? captured;
     await tester.pumpWidget(
       MaterialApp(
-        home: WImage.file(
-          '/tmp/a.png',
+        home: WImage.source(
+          source: WImageSource.file('/tmp/a.png'),
           config: WImageLoadConfig(
             errorWidgetBuilder: (context, url, error) {
               captured = error;

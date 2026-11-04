@@ -64,8 +64,8 @@ void main() {
           progressBuilder: (context, url, progress) => const Text('THEME_PROGRESS'),
         ),
         child: MaterialApp(
-          home: WImage.provider(
-            provider,
+          home: WImage.source(
+            source: WImageSource.provider(provider),
             style: const WImageStyle(width: 64, height: 64),
           ),
         ),

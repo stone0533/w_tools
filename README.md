@@ -65,7 +65,7 @@ dependencies:
 dependencies:
   w_tools_core: ^3.1.0
   w_tools_async: ^4.0.0
-  w_tools_ui: ^5.1.0
+  w_tools_ui: ^6.0.0
   w_tools_form: ^5.0.0
   # 需要再加 w_tools_app_getx / api / toast / qr / map / map_google
 ```
@@ -117,7 +117,7 @@ WToken.tokenKey = 'token'; // core：token 键名
 ```yaml
 dependencies:
   w_tools_core: ^3.1.0   # 只引子包
-  w_tools_ui: ^5.1.0
+  w_tools_ui: ^6.0.0
 ```
 
 或一键引入聚合包（会带上全部 6 个基础子包及其依赖）：

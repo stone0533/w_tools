@@ -42,7 +42,7 @@ void main() {
     testWidgets("data = '' 不构建任何 Image（否则会 Image.asset('') 报错）", (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage(data: '')),
+          home: Scaffold(body: WImage.source(source: WImageSource.parse(''))),
         ),
       );
 
@@ -55,7 +55,7 @@ void main() {
     testWidgets('纯空白同样视为没有图', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage(data: '   ')),
+          home: Scaffold(body: WImage.source(source: WImageSource.parse('   '))),
         ),
       );
 
@@ -67,8 +67,8 @@ void main() {
       WImageError? captured;
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage(
-            data: '   ',
+          home: WImage.source(
+            source: WImageSource.parse('   '),
             config: WImageLoadConfig(
               errorWidgetBuilder: (context, url, error) {
                 captured = error;
@@ -88,8 +88,8 @@ void main() {
       Object? captured;
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage(
-            data: '',
+          home: WImage.source(
+            source: WImageSource.parse(''),
             config: WImageLoadConfig(
               errorWidgetBuilder: (context, url, error) {
                 captured = error;
@@ -110,7 +110,7 @@ void main() {
     Future<void> expectNetwork(WidgetTester tester, String data) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage(data: data)),
+          home: Scaffold(body: WImage.source(source: WImageSource.parse(data))),
         ),
       );
       expect(
@@ -129,7 +129,9 @@ void main() {
     testWidgets('协议相对地址会补 https，而不是把 // 原样丢给网络层', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage(data: '//cdn.example.com/a.png')),
+          home: Scaffold(
+            body: WImage.source(source: WImageSource.parse('//cdn.example.com/a.png')),
+          ),
         ),
       );
       final image = tester.widget<Image>(find.byType(Image));
@@ -141,8 +143,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage(
-              data: 'data:application/octet-stream;base64,$_pngBase64',
+            body: WImage.source(
+              source: WImageSource.parse('data:application/octet-stream;base64,$_pngBase64'),
             ),
           ),
         ),
@@ -158,7 +160,9 @@ void main() {
     testWidgets('asset 路径前后的空白会被裁掉', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.asset('  assets/images/logo.png  ')),
+          home: Scaffold(
+            body: WImage.source(source: WImageSource.asset('  assets/images/logo.png  ')),
+          ),
         ),
       );
       final image = tester.widget<Image>(find.byType(Image));
@@ -172,7 +176,9 @@ void main() {
     testWidgets('WImage.asset 不会被 http 前缀带跑偏', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.asset('https://cdn.example.com/a.png')),
+          home: Scaffold(
+            body: WImage.source(source: WImageSource.asset('https://cdn.example.com/a.png')),
+          ),
         ),
       );
 
@@ -184,7 +190,7 @@ void main() {
     testWidgets('WImage.base64 接受不带 data: 前缀的裸串', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.base64(_pngBase64)),
+          home: Scaffold(body: WImage.source(source: WImageSource.base64(_pngBase64))),
         ),
       );
       await _settle(tester);
@@ -195,7 +201,9 @@ void main() {
 
     testWidgets('WImage.file 读取真实文件', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: WImage.file(pngFile.path))),
+        MaterialApp(
+          home: Scaffold(body: WImage.source(source: WImageSource.file(pngFile.path))),
+        ),
       );
       await _settle(tester);
 
@@ -211,9 +219,9 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage(
+            body: WImage.source(
+              source: WImageSource.parse('https://cdn.example.com/a.png'),
               config: config,
-              data: 'https://cdn.example.com/a.png',
             ),
           ),
         ),
@@ -229,8 +237,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.asset(
-              'assets/images/logo.png',
+            body: WImage.source(
+              source: WImageSource.asset('assets/images/logo.png'),
               config: const WImageLoadConfig(memCacheWidth: 120),
             ),
           ),
@@ -249,8 +257,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage(
-              data: 'data:image/png;base64,$_pngBase64',
+            body: WImage.source(
+              source: WImageSource.parse('data:image/png;base64,$_pngBase64'),
               style: WImageStyle(
                 width: 10,
                 height: 10,
@@ -277,8 +285,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage(
-              data: 'data:image/png;base64,$_pngBase64',
+            body: WImage.source(
+              source: WImageSource.parse('data:image/png;base64,$_pngBase64'),
               style: const WImageStyle(
                 width: 10,
                 height: 10,
@@ -304,8 +312,8 @@ void main() {
           home: Scaffold(
             body: SizedBox(
               width: 200,
-              child: WImage.asset(
-                'assets/images/logo.png',
+              child: WImage.source(
+                source: WImageSource.asset('assets/images/logo.png'),
                 style: const WImageStyle(aspectRatio: 2),
               ),
             ),
@@ -320,8 +328,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.asset(
-              'assets/images/logo.png',
+            body: WImage.source(
+              source: WImageSource.asset('assets/images/logo.png'),
               style: const WImageStyle(
                 semanticLabel: '门店照片',
                 excludeFromSemantics: true,

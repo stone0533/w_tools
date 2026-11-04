@@ -307,12 +307,11 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
         ),
         const SizedBox(height: 24),
         const _SectionTitle('WImageController 手动重试'),
-        WImage.network(
-          'https://example.invalid/controller.png',
-          controller: _imageController,
-          style: const WImageStyle(width: 160, height: 90),
-          config: const WImageLoadConfig(showRetryButton: true),
-        ),
+        WImage.source(
+            source: WImageSource.network('https://example.invalid/controller.png'),
+            controller: _imageController,
+            style: const WImageStyle(width: 160, height: 90),
+            config: const WImageLoadConfig(showRetryButton: true)),
         TextButton(
           onPressed: _imageController.retry,
           child: const Text('controller.retry()'),

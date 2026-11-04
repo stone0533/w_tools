@@ -54,8 +54,8 @@ class DemoPage extends StatelessWidget {
 ```dart
 import 'package:w_tools_ui/w_tools_ui.dart';
 
-WImage.network(
-  'https://example.com/cover.jpg',
+WImage.source(
+  source: WImageSource.network('https://example.com/cover.jpg'),
   style: const WImageStyle(
     aspectRatio: 16 / 9,
     fit: BoxFit.cover,
@@ -65,36 +65,36 @@ WImage.network(
 );
 ```
 
-四种来源：`WImage.network` / `WImage.asset` / `WImage.file` / `WImage.base64`，
-需要确定性时用命名构造；动态字符串用 `WImageSource.parse`。
+所有来源统一走 `WImage.source` + `WImageSource`。
 
 ### 入口选择
 
 | 场景 | 入口 |
 |---|---|
-| 已知网络 / 资源 / 文件 / Base64 | `WImage.network/asset/file/base64` |
-| 任意 `ImageProvider` | `WImage.provider` / `WImage.memory` |
+| 已知网络 / 资源 / 文件 / Base64 | `WImageSource.network/asset/file/base64` |
+| 任意 `ImageProvider` / 内存字节 | `WImageSource.provider` / `ImageProvider` + `MemoryImage` |
 | 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
 | 需要加载配置 | `config: WImageLoadConfig(...)` |
 | 需要视觉样式 | `style: WImageStyle(...)` |
 
-`WImage.asset(name)` 默认 **不**拼 `WAssets.imagePath`；
-需要自动拼前缀时用 `WImage.asset(name, prefix: true)`。
+`WImageSource.asset(name)` 默认 **不**拼 `WAssets.imagePath`；
+需要自动拼前缀时用 `WImageSource.asset(name, prefix: true)`。
 
 ### 常用配方
 
 ```dart
-WImage(data: url, style: WImageStyle.avatar(40))              // 圆形头像
-WImage(
-  data: url,
+WImage.source(source: WImageSource.parse(url), style: WImageStyle.avatar(40))
+WImage.source(
+  source: WImageSource.parse(url),
   style: WImageStyle.thumbnail(80),
   config: const WImageLoadConfig(memCacheWidth: 240, memCacheHeight: 240),
-)                                                              // 缩略图
-WImage(data: url, style: WImageStyle.cover(aspectRatio: 16 / 9)) // 封面图
-WImage.asset('logo.png', prefix: true)       // 自动拼 WAssets.imagePath
-WImage.memory(bytes)                         // Uint8List
-WImage.provider(myProvider)                  // 任意 ImageProvider
-WImage.network(url, config: const WImageLoadConfig(showRetryButton: true)) // 内置重试
+)
+WImage.source(
+  source: WImageSource.network(url),
+  config: const WImageLoadConfig(showRetryButton: true),
+)
+WImage.source(source: WImageSource.asset('logo.png', prefix: true))
+WImage.source(source: WImageSource.provider(MemoryImage(bytes)))
 ```
 
 `WImageStyle` 也提供预设与链式糖：

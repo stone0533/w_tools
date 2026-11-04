@@ -126,7 +126,7 @@ banned:
   - id: no-raw-image
     pattern: 'Image\.asset\('
     mode: regex
-    use: 'WImage.asset'
+    use: 'WImageSource.asset'
     reason: '项目要求统一图片入口'
     paths: ['lib/app/modules/**']
     ignore: ['lib/app/ui/**']

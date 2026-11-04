@@ -16,68 +16,63 @@ class StatesPage extends StatelessWidget {
         const _SectionTitle('加载成功'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.base64(
-            _pixelBase64,
-            style: const WImageStyle(width: 160, height: 90, fit: BoxFit.contain),
-          ),
+          child: WImage.source(
+              source: WImageSource.base64(_pixelBase64),
+              style: const WImageStyle(width: 160, height: 90, fit: BoxFit.contain)),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('加载失败（自定义错误占位）'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.base64(
-            '@@invalid@@',
-            style: const WImageStyle(width: 160, height: 90),
-            config: const WImageLoadConfig(
-              errorWidget: ColoredBox(
-                color: Color(0xFFFFEBEE),
-                child: Center(child: Icon(Icons.broken_image_outlined)),
-              ),
-            ),
-          ),
+          child: WImage.source(
+              source: WImageSource.base64('@@invalid@@'),
+              style: const WImageStyle(width: 160, height: 90),
+              config: const WImageLoadConfig(
+                errorWidget: ColoredBox(
+                  color: Color(0xFFFFEBEE),
+                  child: Center(child: Icon(Icons.broken_image_outlined)),
+                ),
+              )),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('空数据'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.base64(
-            '',
-            style: const WImageStyle(width: 160, height: 90),
-            config: const WImageLoadConfig(
-              errorWidget: ColoredBox(
-                color: Color(0xFFFFF3E0),
-                child: Center(child: Icon(Icons.image_not_supported_outlined)),
-              ),
-            ),
-          ),
+          child: WImage.source(
+              source: WImageSource.base64(''),
+              style: const WImageStyle(width: 160, height: 90),
+              config: const WImageLoadConfig(
+                errorWidget: ColoredBox(
+                  color: Color(0xFFFFF3E0),
+                  child: Center(child: Icon(Icons.image_not_supported_outlined)),
+                ),
+              )),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('加载中（placeholder）'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.network(
-            'https://example.invalid/loading.png',
-            style: const WImageStyle(width: 160, height: 90),
-            config: const WImageLoadConfig(
-              placeholder: ColoredBox(
-                color: Color(0xFFE8EAF6),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              errorWidget: ColoredBox(
-                color: Color(0xFFFFEBEE),
-                child: Center(child: Icon(Icons.broken_image_outlined)),
-              ),
-            ),
-          ),
+          child: WImage.source(
+              source: WImageSource.network('https://example.invalid/loading.png'),
+              style: const WImageStyle(width: 160, height: 90),
+              config: const WImageLoadConfig(
+                placeholder: ColoredBox(
+                  color: Color(0xFFE8EAF6),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                errorWidget: ColoredBox(
+                  color: Color(0xFFFFEBEE),
+                  child: Center(child: Icon(Icons.broken_image_outlined)),
+                ),
+              )),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('主题默认错误占位'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.base64(
-            '@@invalid@@',
-            style: const WImageStyle(width: 160, height: 90),
-          ),
+          child: WImage.source(
+              source: WImageSource.base64('@@invalid@@'),
+              style: const WImageStyle(width: 160, height: 90)),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('预加载'),
@@ -102,16 +97,15 @@ class StatesPage extends StatelessWidget {
         const _SectionTitle('Web 上的 file://（其它平台为文件错误）'),
         const SizedBox(height: 8),
         _StateCard(
-          child: WImage.file(
-            'file:///definitely/not/here.png',
-            style: const WImageStyle(width: 160, height: 90),
-            config: const WImageLoadConfig(
-              errorWidget: ColoredBox(
-                color: Color(0xFFE0F2F1),
-                child: Center(child: Icon(Icons.folder_off_outlined)),
-              ),
-            ),
-          ),
+          child: WImage.source(
+              source: WImageSource.file('file:///definitely/not/here.png'),
+              style: const WImageStyle(width: 160, height: 90),
+              config: const WImageLoadConfig(
+                errorWidget: ColoredBox(
+                  color: Color(0xFFE0F2F1),
+                  child: Center(child: Icon(Icons.folder_off_outlined)),
+                ),
+              )),
         ),
       ],
     );

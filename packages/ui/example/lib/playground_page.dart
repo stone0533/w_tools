@@ -41,17 +41,14 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
 
   Widget _preview() {
     return switch (_source) {
-      _Source.asset => WImage.asset(
-          'assets/demo.png',
-          prefix: false,
+      _Source.asset => WImage.source(
+          source: WImageSource.asset('assets/demo.png', prefix: false),
           style: _style,
-          config: _config,
-        ),
-      _Source.network => WImage.network(
-          'https://picsum.photos/seed/wtools-playground/640/360',
+          config: _config),
+      _Source.network => WImage.source(
+          source: WImageSource.network('https://picsum.photos/seed/wtools-playground/640/360'),
           style: _style,
-          config: _config,
-        ),
+          config: _config),
     };
   }
 

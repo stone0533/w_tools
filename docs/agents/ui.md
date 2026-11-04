@@ -5,8 +5,8 @@
 ## 图片
 
 ```text
-网络图 → WImage.network
-资源图 → WImage.asset(name, prefix: true)
+网络图 → WImageSource.network
+资源图 → WImage.source(source: WImageSource.asset(name, prefix: true))
 不要裸用 Image.network / Image.asset
 ```
 

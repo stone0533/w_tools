@@ -34,8 +34,8 @@ void main() {
   testWidgets('loaded golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
-        WImage.base64(
-          _redPixel,
+        WImage.source(
+          source: WImageSource.base64(_redPixel),
           style: const WImageStyle(
             width: 64,
             height: 64,
@@ -58,8 +58,8 @@ void main() {
   testWidgets('avatar golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
-        WImage(
-          data: 'data:image/png;base64,$_redPixel',
+        WImage.source(
+          source: WImageSource.parse('data:image/png;base64,$_redPixel'),
           style: WImageStyle.avatar(64),
         ),
       ),
@@ -75,8 +75,8 @@ void main() {
   testWidgets('retry error golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
-        WImage(
-          data: 'data:image/png;base64,@@invalid@@',
+        WImage.source(
+          source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
           style: const WImageStyle(width: 160, height: 120),
           config: const WImageLoadConfig(showRetryButton: true),
         ),
@@ -93,8 +93,8 @@ void main() {
   testWidgets('error golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
-        WImage(
-          data: 'data:image/png;base64,@@invalid@@',
+        WImage.source(
+          source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
           style: const WImageStyle(width: 64, height: 64),
           config: const WImageLoadConfig(errorWidget: _errorBox),
         ),
@@ -111,8 +111,8 @@ void main() {
   testWidgets('empty golden', skip: _goldenSkip, (tester) async {
     await tester.pumpWidget(
       _wrap(
-        WImage(
-          data: '',
+        WImage.source(
+          source: WImageSource.parse(''),
           style: const WImageStyle(width: 64, height: 64),
           config: const WImageLoadConfig(errorWidget: _errorBox),
         ),
