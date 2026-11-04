@@ -116,7 +116,7 @@ void main() {
 
   group('WClipRRect Widget', () {
     testWidgets('ClipRRect 正确包裹 child', (tester) async {
-      final config = WClipRRectConfig()..borderRadiusAll(12);
+      final config = WClipRRectConfig.all(12);
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -133,12 +133,12 @@ void main() {
 
     testWidgets('WClipRRect 支持 clipBehavior', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: WClipRRect(
               config: WClipRRectConfig(),
               clipBehavior: Clip.hardEdge,
-              child: const SizedBox.shrink(),
+              child: SizedBox.shrink(),
             ),
           ),
         ),
@@ -149,11 +149,11 @@ void main() {
 
     testWidgets('WClipRRect 默认 clipBehavior 为 antiAlias', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: WClipRRect(
               config: WClipRRectConfig(),
-              child: const SizedBox.shrink(),
+              child: SizedBox.shrink(),
             ),
           ),
         ),
@@ -162,18 +162,21 @@ void main() {
       expect(clip.clipBehavior, Clip.antiAlias);
     });
 
-    testWidgets('WClipRRectConfig.borderRadiusAll 设置圆角', (tester) async {
-      final config = WClipRRectConfig();
-      final returned = config.borderRadiusAll(8);
-      expect(returned, same(config)); // 链式返回 this
+    test('WClipRRectConfig.all / copyWith 设置圆角', () {
+      final config = WClipRRectConfig.all(8);
+      expect(config.borderRadius, BorderRadius.circular(8));
+      expect(
+        config.copyWith(borderRadius: BorderRadius.circular(4)).borderRadius,
+        BorderRadius.circular(4),
+      );
     });
 
     testWidgets('config 默认 borderRadius 为 BorderRadius.zero', (tester) async {
-      final config = WClipRRectConfig();
+      const config = WClipRRectConfig();
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: WClipRRect(config: config, child: const SizedBox.shrink()),
+            body: WClipRRect(config: config, child: SizedBox.shrink()),
           ),
         ),
       );
@@ -184,7 +187,7 @@ void main() {
 
   group('WBadge Widget', () {
     testWidgets('渲染 badgeContent', (tester) async {
-      final config = WBadgeConfig();
+      const config = WBadgeConfig();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -203,49 +206,33 @@ void main() {
     testWidgets('显示徽章时 badgeContent 不能为空', (tester) async {
       expect(
         () => WBadge(
-          config: WBadgeConfig(),
+          config: const WBadgeConfig(),
           child: const Icon(Icons.notifications),
         ),
         throwsAssertionError,
       );
       expect(
         () => WBadge(
-          config: WBadgeConfig().hideBadge(),
+          config: const WBadgeConfig(showBadge: false),
           child: const Icon(Icons.notifications),
         ),
         returnsNormally,
       );
     });
 
-    testWidgets('showBadge() 可恢复显示', (tester) async {
-      final config = WBadgeConfig()..hideBadge();
+    test('copyWith 可恢复显示', () {
+      const config = WBadgeConfig(showBadge: false);
       expect(config.isShown, isFalse);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WBadge(
-              config: config,
-              badgeContent: const Text('3'),
-              child: const Icon(Icons.notifications),
-            ),
-          ),
-        ),
-      );
-
-      config.showBadge();
-      await tester.pump();
-      expect(config.isShown, isTrue);
+      expect(config.copyWith(showBadge: true).isShown, isTrue);
     });
 
     testWidgets('badgeStyle 可配置', (tester) async {
-      final config = WBadgeConfig()
-        ..badgeStyle(
-          const badges.BadgeStyle(
-            badgeColor: Colors.red,
-            padding: EdgeInsets.all(4),
-          ),
-        );
+      const config = WBadgeConfig(
+        badgeStyle: badges.BadgeStyle(
+          badgeColor: Colors.red,
+          padding: EdgeInsets.all(4),
+        ),
+      );
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -261,7 +248,7 @@ void main() {
     });
 
     testWidgets('hideBadge() 隐藏徽章', (tester) async {
-      final config = WBadgeConfig().hideBadge();
+      const config = WBadgeConfig(showBadge: false);
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

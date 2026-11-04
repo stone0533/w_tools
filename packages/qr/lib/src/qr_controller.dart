@@ -20,7 +20,12 @@ import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 class WQrController {
   /// 包装底层控制器，订阅其单订阅流并转发到广播流
   @internal
-  WQrController.internal(this._controller) {
+  WQrController.internal(
+    this._controller, {
+    CameraFacing? initialFacing,
+    void Function(CameraFacing facing)? onFacingChanged,
+  }) : _facing = initialFacing,
+       _onFacingChanged = onFacingChanged {
     _scanSubscription = _controller.scannedDataStream.listen(
       _scanController.add,
       onError: _scanController.addError,
@@ -30,11 +35,16 @@ class WQrController {
   /// 底层控制器
   final QRViewController _controller;
 
+  /// 最近一次已知的相机方向（flip / getCameraInfo 更新）
+  CameraFacing? _facing;
+
   /// 广播版扫描数据流
   final StreamController<Barcode> _scanController = StreamController<Barcode>.broadcast();
 
   /// 底层扫描流的订阅
   late final StreamSubscription<Barcode> _scanSubscription;
+
+  final void Function(CameraFacing facing)? _onFacingChanged;
 
   /// 扫描数据流（广播，可多监听）
   Stream<Barcode> get scannedDataStream => _scanController.stream;
@@ -51,11 +61,19 @@ class WQrController {
   /// 停止相机
   Future<void> stopCamera() => _controller.stopCamera();
 
+  /// 最近一次已知的相机方向（可能为 null，尚未查询）
+  CameraFacing? get facing => _facing;
+
   /// 翻转前后摄像头，返回翻转后的方向
   ///
-  /// 翻转结果只存在于插件侧：若随后因 `cameraFacing` / `formatsAllowed` 变化
-  /// 触发平台视图重建，会回到 `WQrView.cameraFacing` 的取值。
-  Future<CameraFacing> flipCamera() => _controller.flipCamera();
+  /// 方向会同步给 [WQrView] 的状态，之后因条码格式变化重建平台视图时
+  /// 仍保持翻转后的方向，不会回到初始 `cameraFacing`。
+  Future<CameraFacing> flipCamera() async {
+    final facing = await _controller.flipCamera();
+    _facing = facing;
+    _onFacingChanged?.call(facing);
+    return facing;
+  }
 
   /// 获取闪光灯状态
   Future<bool?> getFlashStatus() => _controller.getFlashStatus();
@@ -64,7 +82,12 @@ class WQrController {
   Future<void> toggleFlash() => _controller.toggleFlash();
 
   /// 获取当前摄像头方向
-  Future<CameraFacing> getCameraInfo() => _controller.getCameraInfo();
+  Future<CameraFacing> getCameraInfo() async {
+    final facing = await _controller.getCameraInfo();
+    _facing = facing;
+    _onFacingChanged?.call(facing);
+    return facing;
+  }
 
   /// 获取设备可用能力
   Future<SystemFeatures> getSystemFeatures() => _controller.getSystemFeatures();

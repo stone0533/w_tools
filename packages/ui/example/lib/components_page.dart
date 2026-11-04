@@ -109,7 +109,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
         Row(
           children: [
             WBadge(
-              config: WBadgeConfig().positionTopRight(0, 0),
+              config: WBadgeConfig.topRight(top: 0, end: 0),
               badgeContent: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: const BoxDecoration(
@@ -128,7 +128,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
         const SizedBox(height: 24),
         const _SectionTitle('WClipRRect 圆角裁剪'),
         WClipRRect(
-          config: WClipRRectConfig()..borderRadiusAll(16),
+          config: WClipRRectConfig.all(16),
           clipBehavior: Clip.antiAlias,
           child: Container(
             width: 120,
@@ -238,7 +238,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
         ),
         const SizedBox(height: 24),
         const _SectionTitle('WTabBar 顶部 Tab'),
-        SizedBox(
+        const SizedBox(
           height: 180,
           child: DefaultTabController(
             length: 3,
@@ -246,13 +246,13 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
               children: [
                 WTabBar(
                   config: WTabBarConfig(),
-                  tabs: const [
+                  tabs: [
                     Tab(text: '全部'),
                     Tab(text: '进行中'),
                     Tab(text: '已完成'),
                   ],
                 ),
-                const Expanded(
+                Expanded(
                   child: TabBarView(
                     children: [
                       Center(child: Text('全部内容')),

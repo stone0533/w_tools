@@ -3,6 +3,8 @@
 ## 2.0.0
 
 ### Removed
+- `WMapConfig.build()`：直接构造 `WMap(config:, zone:)`。
+- `WMapZone.zoneId` / `name` 死字段。
 - `WMapZone.onDataUpdated` 单值回调：用 `addDataUpdatedListener` / `removeDataUpdatedListener`。
 
 ## 1.3.1

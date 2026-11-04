@@ -156,6 +156,9 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   /// 每个条码内容上次回调的时间（用于 [WQrView.scanInterval] 去重）
   final Map<String, DateTime> _lastScanTimes = {};
 
+  /// 当前实际相机方向（flip / getCameraInfo 会更新，重建时沿用）
+  late CameraFacing _effectiveFacing = widget.cameraFacing;
+
   /// 条码格式的不可变快照，用于检测原地修改
   late List<BarcodeFormat> _formatsAllowed;
 
@@ -172,6 +175,9 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(covariant WQrView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.cameraFacing != widget.cameraFacing) {
+      _effectiveFacing = widget.cameraFacing;
+    }
     if (oldWidget.cameraFacing != widget.cameraFacing ||
         !listEquals(_formatsAllowed, widget.formatsAllowed)) {
       _formatsAllowed = List<BarcodeFormat>.unmodifiable(widget.formatsAllowed);
@@ -249,7 +255,7 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
             )
           : null,
       overlayMargin: widget.overlayMargin,
-      cameraFacing: widget.cameraFacing,
+      cameraFacing: _effectiveFacing,
       formatsAllowed: _formatsAllowed,
       onPermissionSet: _onPermissionSet,
     );
@@ -295,7 +301,11 @@ class WQrViewState extends State<WQrView> with WidgetsBindingObserver {
     unawaited(_scanSubscription?.cancel());
     unawaited(_controller?.dispose());
 
-    final wrapper = WQrController.internal(controller);
+    final wrapper = WQrController.internal(
+      controller,
+      initialFacing: _effectiveFacing,
+      onFacingChanged: (facing) => _effectiveFacing = facing,
+    );
     _controller = wrapper;
     _scanSubscription = wrapper.scannedDataStream.listen(
       _handleBarcode,

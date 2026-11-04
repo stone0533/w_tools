@@ -12,6 +12,10 @@
 - `WRow` / `WColumn` / `WPadding` / `WSizeBox`：用 Flutter 原生布局组件。
 - `WButtonStyles.primary` / `secondary` / `text` / `danger`：用 `WButtonStyles.of(context)`。
 
+### Changed（破坏性）
+- `WTabBarConfig` / `WBadgeConfig` / `WClipRRectConfig` 改为不可变：setter / 链式方法移除，
+  用 `const` 构造、factory 或 `copyWith`。`WClipRRectConfig.borderRadiusAll(12)` → `WClipRRectConfig.all(12)`。
+
 ## 4.7.1
 
 - 内部重构：`image.dart`（846 行）拆为 `image.dart` + `image_state.dart`（`part`，公开 API 不变）。

@@ -30,18 +30,18 @@ class WBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = this.config ?? WBadgeConfig();
+    final config = this.config ?? const WBadgeConfig();
     assert(
-      !config._showBadge || badgeContent != null,
+      !config.showBadge || badgeContent != null,
       'WBadge: 显示徽章时 badgeContent 不能为空',
     );
-    final showBadge = config._showBadge && badgeContent != null;
+    final showBadge = config.showBadge && badgeContent != null;
 
     return badges.Badge(
       showBadge: showBadge,
-      position: config._position,
+      position: config.position,
       badgeStyle:
-          config._badgeStyle ??
+          config.badgeStyle ??
           const badges.BadgeStyle(
             padding: EdgeInsets.zero,
             borderSide: BorderSide(color: Colors.transparent, width: 0),
@@ -56,80 +56,54 @@ class WBadge extends StatelessWidget {
   }
 }
 
-/// 徽章配置类，用于配置徽章的位置和显示状态
+/// 徽章配置类（不可变；用构造 / [copyWith] 派生）
+@immutable
 class WBadgeConfig {
+  /// 创建配置
+  const WBadgeConfig({
+    this.position,
+    this.showBadge = true,
+    this.badgeStyle,
+  });
+
   /// 徽章位置
-  badges.BadgePosition? _position;
+  final badges.BadgePosition? position;
 
   /// 是否显示徽章
-  bool _showBadge = true;
+  final bool showBadge;
 
   /// 自定义徽章样式；为 null 时使用透明样式，由 badgeContent 自带视觉
-  badges.BadgeStyle? _badgeStyle;
+  final badges.BadgeStyle? badgeStyle;
 
-  /// 设置徽章的自定义位置
-  ///
-  /// - [start]：左侧距离
-  /// - [end]：右侧距离
-  /// - [top]：顶部距离
-  /// - [bottom]：底部距离
-  /// - [isCenter]：是否居中
-  /// 返回：WBadgeConfig 实例，用于链式调用
-  WBadgeConfig position({
-    double? start,
-    double? end,
-    double? top,
-    double? bottom,
-    bool isCenter = false,
-  }) {
-    _position = badges.BadgePosition.custom(
-      start: start,
-      end: end,
-      top: top,
-      bottom: bottom,
-      isCenter: isCenter,
+  /// 右上角位置（常用场景的便捷构造）
+  factory WBadgeConfig.topRight({double? top, double? end}) {
+    return WBadgeConfig(
+      position: badges.BadgePosition.topEnd(top: top ?? 0, end: end ?? 0),
     );
-    return this;
   }
 
-  /// 设置徽章位置为右上角
-  ///
-  /// - [top]：顶部距离
-  /// - [right]：右侧距离
-  /// 返回：WBadgeConfig 实例，用于链式调用
-  WBadgeConfig positionTopRight(double top, double right) {
-    _position = badges.BadgePosition.topEnd(top: top, end: right);
-    return this;
-  }
-
-  /// 设置徽章位置为中心
-  ///
-  /// 返回：WBadgeConfig 实例，用于链式调用
-  WBadgeConfig positionCenter() {
-    _position = badges.BadgePosition.center();
-    return this;
+  /// 居中位置
+  factory WBadgeConfig.center() {
+    return WBadgeConfig(position: badges.BadgePosition.center());
   }
 
   /// 是否显示徽章
-  bool get isShown => _showBadge;
+  bool get isShown => showBadge;
 
-  /// 显示徽章
-  WBadgeConfig showBadge() {
-    _showBadge = true;
-    return this;
-  }
-
-  /// 隐藏徽章
-  ///
-  /// 返回：WBadgeConfig 实例，用于链式调用
-  WBadgeConfig hideBadge() {
-    _showBadge = false;
-    return this;
-  }
-
-  /// 设置徽章样式；不设置时使用透明样式，由 badgeContent 自带视觉
-  WBadgeConfig badgeStyle(badges.BadgeStyle style) {
-    _badgeStyle = style;
-    return this;
+  /// 创建副本并选择性更新（可空字段传 null 表示清空）
+  WBadgeConfig copyWith({
+    Object? position = _unset,
+    bool? showBadge,
+    Object? badgeStyle = _unset,
+  }) {
+    return WBadgeConfig(
+      position: identical(position, _unset) ? this.position : position as badges.BadgePosition?,
+      showBadge: showBadge ?? this.showBadge,
+      badgeStyle: identical(badgeStyle, _unset)
+          ? this.badgeStyle
+          : badgeStyle as badges.BadgeStyle?,
+    );
   }
 }
+
+const Object _unset = Object();

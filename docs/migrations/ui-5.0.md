@@ -10,3 +10,11 @@
 | `WImageXxxError` 子类 | `WImageError.kind` |
 | `WRow` / `WColumn` / `WPadding` / `WSizeBox` | 原生 `Row` / `Column` / `Padding` / `SizedBox` |
 | `WButtonStyles.primary/secondary/text/danger` | `WButtonStyles.of(context).{primary,...}` |
+
+## 配置类改为不可变
+
+| 旧 | 新 |
+| --- | --- |
+| `WTabBarConfig()..labelStyle = ...` / `divider(...)` / `indicatorWithHeightAndColor(...)` | `const WTabBarConfig(...)` / `copyWith(...)` |
+| `WBadgeConfig().positionTopRight(...)` / `hideBadge()` / `badgeStyle(...)` | `WBadgeConfig.topRight(...)` / `const WBadgeConfig(showBadge: false)` / `copyWith(...)` |
+| `WClipRRectConfig()..borderRadiusAll(12)` | `WClipRRectConfig.all(12)` |

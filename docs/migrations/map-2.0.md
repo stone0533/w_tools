@@ -6,3 +6,10 @@
 zone.addDataUpdatedListener(onUpdated);
 // 不再需要时：zone.removeDataUpdatedListener(onUpdated);
 ```
+
+## 其他删除
+
+| 旧 | 新 |
+| --- | --- |
+| `WMapConfig.build(zone:)` | 直接 `WMap(config:, zone:)` |
+| `WMapZone.zoneId` / `name` | 由业务层自己持有（地图只关心条目与相机） |

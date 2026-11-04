@@ -72,14 +72,15 @@ void main() {
   });
 
   group('WTabBarConfig', () {
-    test('所有 setter 可调用', () {
-      final c = WTabBarConfig()
-        ..labelStyle = const TextStyle(fontSize: 16)
-        ..indicatorColor = Colors.red
-        ..padding = const EdgeInsets.symmetric(horizontal: 16)
-        ..indicatorSize = TabBarIndicatorSize.label
-        ..tabAlignment = TabAlignment.center;
-      expect(c, isNotNull);
+    test('不可变构造 / copyWith', () {
+      const c = WTabBarConfig(
+        labelStyle: TextStyle(fontSize: 16),
+        indicatorColor: Colors.red,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        indicatorSize: TabBarIndicatorSize.label,
+        tabAlignment: TabAlignment.center,
+      );
+      expect(c.copyWith(indicatorColor: Colors.blue).indicatorColor, Colors.blue);
     });
   });
 

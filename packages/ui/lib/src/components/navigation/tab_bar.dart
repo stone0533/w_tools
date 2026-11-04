@@ -28,158 +28,126 @@ class WTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = this.config ?? WTabBarConfig();
+    final config = this.config ?? const WTabBarConfig();
     return TabBar(
       controller: controller,
-      padding: config._padding,
-      isScrollable: config._isScrollable,
+      padding: config.padding,
+      isScrollable: config.isScrollable,
       tabs: tabs,
-      labelStyle: config._labelStyle,
-      unselectedLabelStyle: config._unselectedLabelStyle,
-      indicatorSize: config._indicatorSize,
-      indicatorColor: config._indicatorColor,
-      indicator: config._indicator,
-      indicatorWeight: config._indicatorWeight,
-      dividerColor: config._dividerColor,
-      dividerHeight: config._dividerHeight,
+      labelStyle: config.labelStyle,
+      unselectedLabelStyle: config.unselectedLabelStyle,
+      indicatorSize: config.indicatorSize,
+      indicatorColor: config.indicatorColor,
+      indicator: config.indicator,
+      indicatorWeight: config.indicatorWeight,
+      dividerColor: config.dividerColor,
+      dividerHeight: config.dividerHeight,
       overlayColor: WidgetStateProperty.all(
-        config._overlayColor ?? Colors.transparent,
+        config.overlayColor ?? Colors.transparent,
       ),
-      tabAlignment: config._tabAlignment,
+      tabAlignment: config.tabAlignment,
       onTap: onTap,
     );
   }
 }
 
-/// 标签栏配置类
-///
-/// 所有字段均可通过 setter 配置，也可用 [copy] / [copyWith] 生成副本。
+/// 标签栏配置类（不可变；用构造 / [copyWith] 派生）
+@immutable
 class WTabBarConfig {
-  TextStyle? _labelStyle;
-  TextStyle? _unselectedLabelStyle;
-  Color? _dividerColor;
-  double? _dividerHeight;
-  EdgeInsetsGeometry? _padding;
-  bool _isScrollable = false;
-  TabBarIndicatorSize? _indicatorSize;
-  Color? _indicatorColor;
-  Decoration? _indicator;
-  double _indicatorWeight = 2.0;
-  TabAlignment? _tabAlignment;
-  Color? _overlayColor;
+  /// 创建配置
+  const WTabBarConfig({
+    this.labelStyle,
+    this.unselectedLabelStyle,
+    this.dividerColor,
+    this.dividerHeight,
+    this.padding,
+    this.isScrollable = false,
+    this.indicatorSize,
+    this.indicatorColor,
+    this.indicator,
+    this.indicatorWeight = 2.0,
+    this.tabAlignment,
+    this.overlayColor,
+  });
 
-  /// 设置选中标签样式
-  set labelStyle(TextStyle? value) {
-    _labelStyle = value;
-  }
+  /// 选中标签样式
+  final TextStyle? labelStyle;
 
-  /// 设置未选中标签样式
-  set unselectedLabelStyle(TextStyle? value) {
-    _unselectedLabelStyle = value;
-  }
+  /// 未选中标签样式
+  final TextStyle? unselectedLabelStyle;
 
-  /// 设置分割线颜色
-  set dividerColor(Color? value) {
-    _dividerColor = value;
-  }
+  /// 分割线颜色
+  final Color? dividerColor;
 
-  /// 设置分割线高度
-  set dividerHeight(double? value) {
-    _dividerHeight = value;
-  }
+  /// 分割线高度
+  final double? dividerHeight;
 
-  /// 设置内边距
-  set padding(EdgeInsetsGeometry? value) {
-    _padding = value;
-  }
+  /// 内边距
+  final EdgeInsetsGeometry? padding;
 
-  /// 设置是否可滚动
-  set isScrollable(bool value) {
-    _isScrollable = value;
-  }
+  /// 是否可滚动
+  final bool isScrollable;
 
-  /// 设置指示器大小
-  set indicatorSize(TabBarIndicatorSize? value) {
-    _indicatorSize = value;
-  }
+  /// 指示器大小
+  final TabBarIndicatorSize? indicatorSize;
 
-  /// 设置指示器颜色
-  set indicatorColor(Color? value) {
-    _indicatorColor = value;
-  }
+  /// 指示器颜色
+  final Color? indicatorColor;
 
-  /// 设置指示器
-  set indicator(Decoration? value) {
-    _indicator = value;
-  }
+  /// 指示器
+  final Decoration? indicator;
 
-  /// 设置指示器权重
-  set indicatorWeight(double value) {
-    _indicatorWeight = value;
-  }
+  /// 指示器权重
+  final double indicatorWeight;
 
-  /// 设置标签对齐方式
-  set tabAlignment(TabAlignment? value) {
-    _tabAlignment = value;
-  }
+  /// 标签对齐方式
+  final TabAlignment? tabAlignment;
 
-  /// 设置点击 / hover overlay 颜色；null 时透明
-  set overlayColor(Color? value) {
-    _overlayColor = value;
-  }
-
-  /// 设置分割线
-  WTabBarConfig divider(double dividerHeight, Color dividerColor) {
-    _dividerHeight = dividerHeight;
-    _dividerColor = dividerColor;
-    return this;
-  }
+  /// 点击 / hover overlay 颜色；null 时透明
+  final Color? overlayColor;
 
   /// 创建当前配置的副本
   WTabBarConfig copy() => copyWith();
 
-  /// 创建当前配置的副本，并可以选择性地更新某些属性
-  ///
-  /// 参数为 null 表示沿用原值。
+  /// 创建副本并选择性更新（可空字段传 null 表示清空）
   WTabBarConfig copyWith({
-    TextStyle? labelStyle,
-    TextStyle? unselectedLabelStyle,
-    Color? dividerColor,
-    double? dividerHeight,
-    EdgeInsetsGeometry? padding,
+    Object? labelStyle = _unset,
+    Object? unselectedLabelStyle = _unset,
+    Object? dividerColor = _unset,
+    Object? dividerHeight = _unset,
+    Object? padding = _unset,
     bool? isScrollable,
-    TabBarIndicatorSize? indicatorSize,
-    Color? indicatorColor,
-    Decoration? indicator,
+    Object? indicatorSize = _unset,
+    Object? indicatorColor = _unset,
+    Object? indicator = _unset,
     double? indicatorWeight,
-    TabAlignment? tabAlignment,
-    Color? overlayColor,
+    Object? tabAlignment = _unset,
+    Object? overlayColor = _unset,
   }) {
-    final copy = WTabBarConfig();
-    copy._labelStyle = labelStyle ?? _labelStyle;
-    copy._unselectedLabelStyle = unselectedLabelStyle ?? _unselectedLabelStyle;
-    copy._dividerColor = dividerColor ?? _dividerColor;
-    copy._dividerHeight = dividerHeight ?? _dividerHeight;
-    copy._padding = padding ?? _padding;
-    copy._isScrollable = isScrollable ?? _isScrollable;
-    copy._indicatorSize = indicatorSize ?? _indicatorSize;
-    copy._indicatorColor = indicatorColor ?? _indicatorColor;
-    copy._indicator = indicator ?? _indicator;
-    copy._indicatorWeight = indicatorWeight ?? _indicatorWeight;
-    copy._tabAlignment = tabAlignment ?? _tabAlignment;
-    copy._overlayColor = overlayColor ?? _overlayColor;
-    return copy;
-  }
-
-  /// 设置带高度和颜色的指示器
-  WTabBarConfig indicatorWithHeightAndColor(double height, Color color) {
-    _indicator = BoxDecoration(
-      borderRadius: BorderRadius.zero,
-      border: Border(
-        bottom: BorderSide(width: height, color: color),
-      ),
+    return WTabBarConfig(
+      labelStyle: identical(labelStyle, _unset) ? this.labelStyle : labelStyle as TextStyle?,
+      unselectedLabelStyle: identical(unselectedLabelStyle, _unset)
+          ? this.unselectedLabelStyle
+          : unselectedLabelStyle as TextStyle?,
+      dividerColor: identical(dividerColor, _unset) ? this.dividerColor : dividerColor as Color?,
+      dividerHeight: identical(dividerHeight, _unset)
+          ? this.dividerHeight
+          : dividerHeight as double?,
+      padding: identical(padding, _unset) ? this.padding : padding as EdgeInsetsGeometry?,
+      isScrollable: isScrollable ?? this.isScrollable,
+      indicatorSize: identical(indicatorSize, _unset)
+          ? this.indicatorSize
+          : indicatorSize as TabBarIndicatorSize?,
+      indicatorColor: identical(indicatorColor, _unset)
+          ? this.indicatorColor
+          : indicatorColor as Color?,
+      indicator: identical(indicator, _unset) ? this.indicator : indicator as Decoration?,
+      indicatorWeight: indicatorWeight ?? this.indicatorWeight,
+      tabAlignment: identical(tabAlignment, _unset)
+          ? this.tabAlignment
+          : tabAlignment as TabAlignment?,
+      overlayColor: identical(overlayColor, _unset) ? this.overlayColor : overlayColor as Color?,
     );
-    return this;
   }
 
   /// 构建标签栏
@@ -196,3 +164,5 @@ class WTabBarConfig {
     );
   }
 }
+
+const Object _unset = Object();

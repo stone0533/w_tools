@@ -5,29 +5,34 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 void main() {
   group('WTabBarConfig — 纯 Dart', () {
     test('默认构造', () {
-      expect(WTabBarConfig(), isNotNull);
+      expect(const WTabBarConfig(), isNotNull);
     });
 
-    test('全部 setter + 链式方法', () {
-      final cfg = WTabBarConfig();
-      cfg.labelStyle = const TextStyle(fontSize: 16);
-      cfg.unselectedLabelStyle = const TextStyle(fontSize: 14);
-      cfg.dividerColor = Colors.grey;
-      cfg.dividerHeight = 1.0;
-      cfg.padding = const EdgeInsets.all(8);
-      cfg.isScrollable = true;
-      cfg.indicatorSize = TabBarIndicatorSize.label;
-      cfg.indicatorColor = Colors.blue;
-      cfg.indicatorWeight = 3.0;
-      cfg.tabAlignment = TabAlignment.center;
+    test('构造字段与 copyWith', () {
+      const cfg = WTabBarConfig(
+        labelStyle: TextStyle(fontSize: 16),
+        unselectedLabelStyle: TextStyle(fontSize: 14),
+        dividerColor: Colors.grey,
+        dividerHeight: 1.0,
+        padding: EdgeInsets.all(8),
+        isScrollable: true,
+        indicatorSize: TabBarIndicatorSize.label,
+        indicatorColor: Colors.blue,
+        indicatorWeight: 3.0,
+        tabAlignment: TabAlignment.center,
+      );
+      expect(cfg.isScrollable, isTrue);
+      expect(cfg.indicatorWeight, 3.0);
+      expect(cfg.dividerHeight, 1.0);
 
-      // 链式方法
-      cfg.divider(2, Colors.red).indicatorWithHeightAndColor(4, Colors.green);
-      expect(cfg, isNotNull);
+      final updated = cfg.copyWith(dividerHeight: 2.0, dividerColor: Colors.red);
+      expect(updated.dividerHeight, 2.0);
+      expect(updated.dividerColor, Colors.red);
+      expect(updated.labelStyle, cfg.labelStyle);
     });
 
     test('build 返回 WTabBar', () {
-      final cfg = WTabBarConfig();
+      const cfg = WTabBarConfig();
       final tab = cfg.build(tabs: const [Text('A'), Text('B')]);
       expect(tab, isA<WTabBar>());
     });
@@ -35,10 +40,11 @@ void main() {
 
   group('WTabBarConfig — copy', () {
     test('copy / copyWith 返回新实例', () {
-      final cfg = WTabBarConfig()
-        ..labelStyle = const TextStyle(fontSize: 14)
-        ..isScrollable = true
-        ..indicatorWeight = 3;
+      const cfg = WTabBarConfig(
+        labelStyle: TextStyle(fontSize: 14),
+        isScrollable: true,
+        indicatorWeight: 3,
+      );
 
       final copy = cfg.copy();
       expect(copy, isA<WTabBarConfig>());
@@ -58,7 +64,7 @@ void main() {
             body: Column(
               children: [
                 WTabBar(
-                  config: WTabBarConfig(),
+                  config: const WTabBarConfig(),
                   tabs: List.generate(tabCount, (i) => Text('Tab $i')),
                   onTap: onTap,
                 ),
@@ -109,11 +115,12 @@ void main() {
     });
 
     testWidgets('自定义 config.indicatorColor / indicatorWeight', (tester) async {
-      final cfg = WTabBarConfig();
-      cfg.indicatorColor = Colors.orange;
-      cfg.indicatorWeight = 4;
+      const cfg = WTabBarConfig(
+        indicatorColor: Colors.orange,
+        indicatorWeight: 4,
+      );
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: DefaultTabController(
             length: 2,
             child: Scaffold(
@@ -121,9 +128,9 @@ void main() {
                 children: [
                   WTabBar(
                     config: cfg,
-                    tabs: const [Text('A'), Text('B')],
+                    tabs: [Text('A'), Text('B')],
                   ),
-                  const Expanded(
+                  Expanded(
                     child: TabBarView(children: [Text('a'), Text('b')]),
                   ),
                 ],
@@ -139,15 +146,15 @@ void main() {
   });
 
   testWidgets('WTabBar overlayColor 可配置', (tester) async {
-    final cfg = WTabBarConfig()..overlayColor = Colors.red;
+    const cfg = WTabBarConfig(overlayColor: Colors.red);
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: DefaultTabController(
           length: 2,
           child: Scaffold(
             body: WTabBar(
               config: cfg,
-              tabs: const [Text('A'), Text('B')],
+              tabs: [Text('A'), Text('B')],
             ),
           ),
         ),

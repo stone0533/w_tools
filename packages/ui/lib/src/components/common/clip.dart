@@ -26,31 +26,29 @@ class WClipRRect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = this.config ?? WClipRRectConfig();
+    final config = this.config ?? const WClipRRectConfig();
     return ClipRRect(
-      borderRadius: config._borderRadius,
+      borderRadius: config.borderRadius,
       clipBehavior: clipBehavior,
       child: child,
     );
   }
 }
 
-/// 圆角裁剪配置类，用于配置裁剪的圆角
+/// 圆角裁剪配置类（不可变；用构造 / [copyWith] 派生）
+@immutable
 class WClipRRectConfig {
+  /// 创建配置
+  const WClipRRectConfig({this.borderRadius = BorderRadius.zero});
+
+  /// 所有角统一圆角
+  WClipRRectConfig.all(double radius) : borderRadius = BorderRadius.all(Radius.circular(radius));
+
   /// 圆角半径
-  BorderRadiusGeometry _borderRadius = BorderRadius.zero;
+  final BorderRadiusGeometry borderRadius;
 
-  /// 设置圆角半径
-  set borderRadius(BorderRadiusGeometry value) {
-    _borderRadius = value;
-  }
-
-  /// 设置所有角的圆角半径
-  ///
-  /// - [radius]：圆角半径
-  /// 返回：WClipRRectConfig 实例，用于链式调用
-  WClipRRectConfig borderRadiusAll(double radius) {
-    _borderRadius = BorderRadius.all(Radius.circular(radius));
-    return this;
+  /// 创建副本
+  WClipRRectConfig copyWith({BorderRadiusGeometry? borderRadius}) {
+    return WClipRRectConfig(borderRadius: borderRadius ?? this.borderRadius);
   }
 }

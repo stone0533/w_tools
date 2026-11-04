@@ -1063,34 +1063,36 @@ base64String.toBase64Image();
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `config` | WBadgeConfig | 必需，徽章配置 |
+| `config` | `WBadgeConfig?` | 可选，默认 `const WBadgeConfig()` |
 | `badgeContent` | `Widget?` | 徽章内容；显示徽章时不能为空 |
 | `child` | `Widget?` | 子组件 |
 
-### WBadgeConfig 链式方法
+### WBadgeConfig
 
-| 方法 | 说明 |
+不可变配置：直接构造 / factory，或用 `copyWith` 派生。
+
+| 入口 | 说明 |
 |------|------|
-| `position({start, end, top, bottom, isCenter})` | 自定义位置 |
-| `positionTopRight(top, right)` | 右上角位置 |
-| `positionCenter()` | 居中位置 |
-| `showBadge()` | 显示徽章 |
-| `hideBadge()` | 隐藏徽章 |
-| `badgeStyle(style)` | 自定义 `badges.BadgeStyle`；默认透明，由 badgeContent 自带视觉 |
+| `WBadgeConfig({position, showBadge, badgeStyle})` | 完整构造 |
+| `WBadgeConfig.topRight({top, end})` | 右上角位置 |
+| `WBadgeConfig.center()` | 居中位置 |
+| `copyWith({position, showBadge, badgeStyle})` | 派生；可空字段传 null 表示清空 |
 
 ### 使用示例
 
 ```dart
 // 右上角显示数字角标
 WBadge(
-  config: WBadgeConfig().positionTopRight(-5, -5),
+  config: WBadgeConfig.topRight(top: -5, end: -5),
   badgeContent: const Text('3', style: TextStyle(color: Colors.white, fontSize: 12)),
   child: Icon(Icons.notifications),
 )
 
 // 自定义位置
 WBadge(
-  config: WBadgeConfig().position(top: 10, end: 10),
+  config: WBadgeConfig(
+    position: badges.BadgePosition.custom(top: 10, end: 10),
+  ),
   badgeContent: Container(
     width: 8, height: 8,
     decoration: const BoxDecoration(
@@ -1575,8 +1577,7 @@ _controller.currentIndex; // 当前选中索引
 
 增强版标签栏，支持自定义样式、指示器、分割线。
 
-`WTabBarConfig.overlayColor` 控制点击 / hover overlay；默认透明。
-`WTabBarConfig.overlayColor` 控制点击 / hover overlay；默认透明。
+`WTabBarConfig` 是不可变配置，用构造 / `copyWith` 派生；`overlayColor` 控制点击 / hover overlay，默认透明。
 
 `WTabBar` 不自带 controller，必须由 `DefaultTabController` 提供，或显式传入 `TabController`：
 
