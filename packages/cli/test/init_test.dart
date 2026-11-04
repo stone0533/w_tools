@@ -198,11 +198,10 @@ void main() {
       expect(report.warnings.any((e) => e.contains('.w_tools_init.json')), isTrue);
     });
 
-    test('--device 生成四份脚手架，且不碰 toolkit / 依赖片段', () async {
+    test('--device 只生成设备工具，不生成 integration_test', () async {
       final root = makeProject();
       final report = runInit(root, device: true);
       for (final rel in const [
-        'integration_test/app_smoke_test.dart',
         'tool/device_smoke.dart',
         'docs/agents/device-testing.md',
         'tool/gradle-mirror.init.gradle.example',
@@ -210,9 +209,39 @@ void main() {
         expect(File(p.join(root.path, rel)).existsSync(), isTrue, reason: rel);
         expect(report.created.any((e) => e.startsWith(rel)), isTrue, reason: rel);
       }
+      expect(
+        File(p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart')).existsSync(),
+        isFalse,
+      );
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains('w_tools_device')));
-      expect(report.pubspecSnippet, isNot(contains('w_tools_device')));
+      expect(report.pubspecSnippet, contains('w_tools_device'));
+    });
+
+    test('--device --device-test 生成集成测试并补依赖', () async {
+      final root = makeProject();
+      final report = runInit(root, device: true, deviceTest: true);
+      final file = File(
+        p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart'),
+      );
+      expect(file.existsSync(), isTrue);
+      expect(report.pubspecSnippet, contains('integration_test:'));
+      expect(report.pubspecSnippet, contains('sdk: flutter'));
+    });
+
+    test('--device-test 在未启用 ui 时跳过并提示', () async {
+      final root = makeProject();
+      final report = runInit(
+        root,
+        device: true,
+        deviceTest: true,
+        features: InitFeatures.forProfile(InitProfile.api),
+      );
+      expect(
+        File(p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart')).existsSync(),
+        isFalse,
+      );
+      expect(report.warnings.any((w) => w.contains('需要启用 ui')), isTrue);
     });
 
     test('--device 已存在时保留用户改动（starter 语义）', () async {

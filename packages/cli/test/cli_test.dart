@@ -34,6 +34,10 @@ void main() {
       File(p.join(root.path, '.w_tools', 'init.json')).readAsStringSync(),
       contains('"device": true'),
     );
+    expect(
+      File(p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart')).existsSync(),
+      isFalse,
+    );
   });
 
   test('init --check 回放上次 --device flags', () async {

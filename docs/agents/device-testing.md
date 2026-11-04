@@ -152,6 +152,8 @@ testWidgets('E2E auto login reaches home', (tester) async {
 });
 ```
 
-`init --device` 会生成 `docs/agents/device-testing.md` 和 `tool/device_smoke.dart`；
+`init --device` 会生成 `docs/agents/device-testing.md`、`tool/device_smoke.dart` 和 Gradle 镜像示例；
+`--device-test`（需同时启用 `ui`）才额外生成 `integration_test/app_keepalive_smoke_test.dart`，
+并提示补 `integration_test` SDK 依赖。
 `tool/main_e2e.dart` 需手动创建。完整宿主接入片段见
 [`packages/e2e/example/README.md`](../../packages/e2e/example/README.md)。

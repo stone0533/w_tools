@@ -10,8 +10,12 @@
 - `--issue` 文档明确需要已安装 gh（gh 读取 token 或登录态）。
 - `init` 检测到 `w_tools_device` 依赖时自动生成设备 starter / `docs/agents/device-testing.md`；
   `--no-device` 可关闭，禁用时给出提示。
+- `--device` 只生成设备工具；`--device-test` 才生成 `integration_test/app_keepalive_smoke_test.dart`
+  （需 ui，补 `integration_test` SDK 依赖）；`--device` 的 pubspec 片段补 `w_tools_device`。
 - `context.commands` 暴露 `deviceList` / `deviceShot` / `deviceForeground`（安装 device 时），
   并把 feedback 命令改为 `feedbackStatus` / `feedbackSubmit`。
+- `init --device` 只生成设备工具；`--device-test` 才生成 `integration_test/app_keepalive_smoke_test.dart`
+  （要求启用 ui，且 pubspec 片段补 `integration_test` SDK 依赖）；关闭时提示 stale 文件。
 - device README / pubspec 描述增加平台支持矩阵（iOS 真机仅 list/shot）。
 
 ## 1.9.13

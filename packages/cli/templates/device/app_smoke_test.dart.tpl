@@ -1,5 +1,5 @@
-// 复制到新项目的 integration_test/app_smoke_test.dart。
-// 依赖：dev_dependencies 加 `integration_test: {sdk: flutter}`；
+// 复制到新项目的 integration_test/app_keepalive_smoke_test.dart。
+// 依赖：dev_dependencies 加 `integration_test`（SDK）；项目需启用 w_tools_ui；
 //       运行时代码依赖 w_tools_ui（WKeepAliveWrapper）。
 //
 // 只验证「组件机制在真实引擎上成立」，不依赖项目业务：

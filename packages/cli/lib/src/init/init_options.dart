@@ -17,6 +17,7 @@ class InitOptions {
     required this.lang,
     required this.figma,
     required this.device,
+    required this.deviceTest,
     required this.check,
     required this.checkDrift,
     required this.force,
@@ -31,6 +32,7 @@ class InitOptions {
   final String lang;
   final bool figma;
   final bool device;
+  final bool deviceTest;
   final bool check;
   final bool checkDrift;
   final bool force;
@@ -110,9 +112,19 @@ class InitOptions {
     final figma = args.wasParsed('figma')
         ? args['figma'] as bool
         : (manifest?.figma ?? _resolveFigma(root, config));
-    final device = args.wasParsed('device')
+    var device = args.wasParsed('device')
         ? args['device'] as bool
         : (manifest?.device ?? _hasDependency(root, 'w_tools_device'));
+    var deviceTest = args.wasParsed('device-test')
+        ? args['device-test'] as bool
+        : (manifest?.deviceTest ?? false);
+    if (args.wasParsed('device') && !device) {
+      if (deviceTest) {
+        throw const InitOptionsException('--device-test 与 --no-device 不能同时使用');
+      }
+      deviceTest = false;
+    }
+    if (deviceTest) device = true;
 
     return InitOptions(
       profile: profile,
@@ -121,6 +133,7 @@ class InitOptions {
       lang: lang,
       figma: figma,
       device: device,
+      deviceTest: deviceTest,
       check: check,
       checkDrift: checkDrift,
       force: args['force'] as bool,
@@ -137,6 +150,7 @@ class InitOptions {
     lang: lang,
     figma: figma,
     device: device,
+    deviceTest: deviceTest,
     generator: generator,
   );
 }

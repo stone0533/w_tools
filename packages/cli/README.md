@@ -105,6 +105,20 @@ dart run w_tools_cli:init --no-map      # 显式关闭（默认关）
 # --with-map 仍可用，等同 --map
 ```
 
+### 设备验证
+
+```bash
+# 只生成设备工具：tool/device_smoke.dart + docs/agents/device-testing.md + Gradle 镜像
+dart run w_tools_cli:init --device
+
+# 额外生成 UI keep-alive 集成测试（需要启用 ui）
+dart run w_tools_cli:init --device --device-test
+```
+
+`--device-test` 会启用 device，但 `--device` 本身不生成集成测试；没有 `ui` 时 `--device-test` 会跳过并提示。
+显式 `--device` 时，pubspec 片段会补 `w_tools_device`；`--device-test` 再补 `integration_test`。
+生成集成测试时，pubspec 片段会额外包含 `integration_test`（SDK 依赖）。
+
 ### Figma 片段
 
 ```bash

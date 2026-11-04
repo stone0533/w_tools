@@ -782,8 +782,8 @@ need width / height / constraints / transform.
 ''';
 
 const String deviceAppSmokeTest = r'''
-// 复制到新项目的 integration_test/app_smoke_test.dart。
-// 依赖：dev_dependencies 加 `integration_test: {sdk: flutter}`；
+// 复制到新项目的 integration_test/app_keepalive_smoke_test.dart。
+// 依赖：dev_dependencies 加 `integration_test`（SDK）；项目需启用 w_tools_ui；
 //       运行时代码依赖 w_tools_ui（WKeepAliveWrapper）。
 //
 // 只验证「组件机制在真实引擎上成立」，不依赖项目业务：
@@ -1150,6 +1150,8 @@ const String deviceTestingDoc = r'''
 > 项目：`{{projectName}}`（Android applicationId：`{{androidAppId}}`）。
 > 本文件由 `dart run w_tools_cli:init --device` 生成；把 `<...>` 换成实际值后再提交。
 > 目的：让「保活 / 刷新策略 / 渲染」这类只有真实引擎才成立的验证**可重复执行**。
+> `integration_test/app_keepalive_smoke_test.dart` 只在 `init --device-test` 时生成；
+> 没有该文件时，请补自己的 `integration_test` 或跳过对应步骤。
 
 ## 1. 固定设备与命令
 
@@ -1277,7 +1279,7 @@ brew install cliclick            # 点模拟器用
 # 系统设置 → 隐私与安全性 → 给「运行 agent 的宿主 App」开：辅助功能 + 屏幕录制
 ```
 
-- [ ] `integration_test/app_smoke_test.dart`（复制模板，一般不用改）
+- [ ] 使用 `--device-test` 时：`integration_test/app_keepalive_smoke_test.dart`（starter，一般不用改）
 - [ ] 启动三件套：`lib/app/bootstrap.dart`（含 `afterStart` 钩子）/ `lib/main.dart`（只调 bootstrap）/
       `tool/main_e2e.dart`（在这里调 `E2eLogin.run`）
 - [ ] 记录模拟器 / iOS 真机 UDID 到本文件

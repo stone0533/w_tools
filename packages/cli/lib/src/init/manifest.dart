@@ -10,6 +10,7 @@ class InitManifest {
     required this.lang,
     required this.figma,
     required this.device,
+    this.deviceTest = false,
     this.generator,
   });
 
@@ -19,6 +20,9 @@ class InitManifest {
   final String lang;
   final bool figma;
   final bool device;
+
+  /// 是否生成 UI keep-alive 集成测试示例。
+  final bool deviceTest;
 
   /// 写这份 manifest 的 CLI 版本（老文件可能没有）。
   final String? generator;
@@ -78,6 +82,7 @@ class InitManifest {
         lang: '${raw['lang'] ?? 'zh'}',
         figma: raw['figma'] == true,
         device: raw['device'] == true,
+        deviceTest: raw['deviceTest'] == true,
         generator: raw['generator'] is String ? '${raw['generator']}' : null,
       );
     } on FormatException {
@@ -96,6 +101,7 @@ class InitManifest {
         'lang': lang,
         'figma': figma,
         'device': device,
+        'deviceTest': deviceTest,
         if (generator != null) 'generator': generator,
       })}\n';
 }
