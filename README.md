@@ -21,6 +21,7 @@
 | [docs/conventions.md](docs/conventions.md) | 接入约定：包 / 暂存层 / 业务层判定与 doctor 规则 |
 | [docs/ai-contract.md](docs/ai-contract.md) | AI 使用契约：catalog / explain / AGENTS 的更新与完整性检查 |
 | [docs/ai-maintainer-prompts.md](docs/ai-maintainer-prompts.md) | 维护者 AI 提示词：按场景复制 |
+| [scripts/README.md](scripts/README.md) | scripts 运行手册：何时跑哪个检查 / 发布脚本 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 新增/修改组件的硬性要求 |
 | [docs/releasing.md](docs/releasing.md) | 发版流程与发布脚本 |
 | [docs/adr/](docs/adr/) | 架构决策（版本策略、依赖子包） |

@@ -22,7 +22,7 @@ import re
 import sys
 
 out = pathlib.Path(sys.argv[1])
-roots = ['docs', 'README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'packages/cli/README.md']
+roots = ['docs', 'README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'packages/cli/README.md', 'scripts/README.md']
 files = []
 for root in roots:
     p = pathlib.Path(root)
