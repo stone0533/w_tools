@@ -41,11 +41,11 @@
 
 ```bash
 # 仓库内：直接维护台账
-dart run w_tools_cli:feedback submit \
+dart run w_tools_cli:w_tools feedback submit \
   --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger --linked-issue=123
 
 # 消费方（已开启 feedback.issue）：
-dart run w_tools_cli:feedback submit \
+dart run w_tools_cli:w_tools feedback submit \
   --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --issue
 ```
 
@@ -58,7 +58,7 @@ dart run w_tools_cli:feedback submit \
 
 ```bash
 # 0. 在仓库内直接追加一条（自动建档 / 更新索引）
-dart run w_tools_cli:feedback submit \
+dart run w_tools_cli:w_tools feedback submit \
   --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger --linked-issue=123
 
 # 1. 看待处理

@@ -30,5 +30,5 @@
 ## 检查
 
 ```bash
-dart run w_tools_cli:doctor      # R4 / R5 会检查这一层
+dart run w_tools_cli:w_tools doctor      # R4 / R5 会检查这一层
 ```

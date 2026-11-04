@@ -79,9 +79,9 @@ dev_dependencies:
 ```
 
 ```bash
-dart run w_tools_cli:doctor            # 本项目是否遵守接入约定
-dart run w_tools_cli:init --check      # 只检查缺失、不写文件（CI 用；内容不同只提示）
-dart run w_tools_cli:init --check-drift # 连「模板已过期」也判失败（CI 想追踪模板更新时）
+dart run w_tools_cli:w_tools doctor            # 本项目是否遵守接入约定
+dart run w_tools_cli:w_tools init --check      # 只检查缺失、不写文件（CI 用；内容不同只提示）
+dart run w_tools_cli:w_tools init --check-drift # 连「模板已过期」也判失败（CI 想追踪模板更新时）
 ```
 
 doctor 检查项：
@@ -109,8 +109,8 @@ doctor 规则是文本级检查：注释会跳过，字符串内容仍可能命�
 把开关摊开用：
 
 ```bash
-dart run w_tools_cli:doctor --print-config    # 打印带注释的默认配置
-dart run w_tools_cli:doctor --write-config    # 写到 .w_tools_doctor.yaml（已存在则跳过，--force 覆盖）
+dart run w_tools_cli:w_tools doctor --print-config    # 打印带注释的默认配置
+dart run w_tools_cli:w_tools doctor --write-config    # 写到 .w_tools_doctor.yaml（已存在则跳过，--force 覆盖）
 ```
 
 `init` 也会顺手生成这个文件（带注释的默认配置，值与内置默认一致）。

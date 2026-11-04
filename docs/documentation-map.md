@@ -320,6 +320,7 @@ scripts/README.md
 | `scripts/check_removed_api.py` | 已删除 API 残留 |
 | `scripts/check_public_catalog.py` | 公开类型 → catalog |
 | `scripts/check_package_docs.py` | README 版本 / example |
+| `scripts/check_docs_facts.py` | 当前文档事实（包数量 / 旧命令） |
 | `scripts/check_async_docs.py` | async 旧 API |
 | `packages/cli/test/ai_contract_test.dart` | teach / prompt / AGENTS feature |
 | `tool/gen_catalog.dart --check` | catalog 生成物 |

@@ -4,7 +4,9 @@
 
 App 模块（`w_tools_app` 契约 + `w_tools_app_getx` GetX 实现）提供了一套一站式的应用启动方案，核心类 `WApp` 封装了 `GetMaterialApp` 的配置、插件系统、语言切换、路由管理和底部弹窗。
 
-该子包**强依赖 GetX**（`get` 包），不可替换。`WApp` 本质是对 `GetMaterialApp` 的增强包装：保留 GetX 全部能力的同时，补充了插件生命周期管理、语言 API 和路由栈操作。
+`w_tools_app` 只提供 `WAppPlugin` 契约，**不依赖 GetX**；
+`w_tools_app_getx` 强依赖 GetX（`get` 包），提供 `WApp` / `WAppOptions` /
+语言 / 路由 / 底部弹窗。`WApp` 本质是对 `GetMaterialApp` 的增强包装。
 
 ## 快速判断
 - 启动 → `WApp.options(WAppOptions(...)).start()`（2.0+）
@@ -17,20 +19,22 @@ App 模块（`w_tools_app` 契约 + `w_tools_app_getx` GetX 实现）提供了�
 
 ## 模块结构
 
-```
-app/
-├── w_tools_app.dart                          # 统一导出文件
-└── src/
-    ├── app.dart                              # WApp 启动器
-    ├── plugins/
-    │   └── app_plugin.dart                   # WAppPlugin 插件接口
-    └── utils/
-        ├── app_config.dart                   # WAppConfig 语言配置
-        ├── bottom_sheet.dart                 # WBottomSheet
-        ├── language.dart                     # WLanguage
-        ├── route.dart                        # WRouteStack
-        ├── options.dart                      # WAppOptions / WLocaleConfig
-        └── router_observer.dart              # WRouteObserver
+```text
+packages/app/                         # 契约层（GetX 无关）
+└── lib/src/plugins/app_plugin.dart    # WAppPlugin
+
+packages/app_getx/                    # GetX 实现层
+└── lib/
+    ├── w_tools_app_getx.dart          # 统一导出
+    └── src/
+        ├── app.dart                  # WApp 启动器
+        ├── options.dart              # WAppOptions / WLocaleConfig
+        └── utils/
+            ├── app_config.dart       # WAppConfig 语言配置
+            ├── bottom_sheet.dart     # WBottomSheet
+            ├── language.dart         # WLanguage
+            ├── route.dart            # WRouteStack
+            └── router_observer.dart  # WRouteObserver
 ```
 
 

@@ -22,8 +22,8 @@ dev_dependencies:
 ```
 
 ```bash
-dart run w_tools_cli:init       # 1. 生成 toolkit / UI 规范 / AGENTS / doctor 配置
-dart run w_tools_cli:doctor     # 2. 检查是否遵守接入约定
+dart run w_tools_cli:w_tools init       # 1. 生成 toolkit / UI 规范 / AGENTS / doctor 配置
+dart run w_tools_cli:w_tools doctor     # 2. 检查是否遵守接入约定
 dart run w_tools_cli:w_tools list 表单   # 3. 找现成组件
 dart run w_tools_cli:w_tools context --format=prompt   # 4. 给 AI 项目事实
 ```
@@ -75,7 +75,7 @@ dart run w_tools_cli:w_tools doctor --help
 ## init
 
 ```bash
-dart run w_tools_cli:init
+dart run w_tools_cli:w_tools init
 ```
 
 生成：
@@ -103,16 +103,16 @@ lib/app/design_system/README.md    暂存层规则
 单项覆盖：
 
 ```bash
-dart run w_tools_cli:init --profile=ui
-dart run w_tools_cli:init --no-ui
-dart run w_tools_cli:init --no-async
-dart run w_tools_cli:init --no-form
-dart run w_tools_cli:init --no-app
-dart run w_tools_cli:init --no-api
-dart run w_tools_cli:init --no-toast
-dart run w_tools_cli:init --no-qr
-dart run w_tools_cli:init --map         # 会引入 google_maps_flutter
-dart run w_tools_cli:init --no-map      # 显式关闭（默认关）
+dart run w_tools_cli:w_tools init --profile=ui
+dart run w_tools_cli:w_tools init --no-ui
+dart run w_tools_cli:w_tools init --no-async
+dart run w_tools_cli:w_tools init --no-form
+dart run w_tools_cli:w_tools init --no-app
+dart run w_tools_cli:w_tools init --no-api
+dart run w_tools_cli:w_tools init --no-toast
+dart run w_tools_cli:w_tools init --no-qr
+dart run w_tools_cli:w_tools init --map         # 会引入 google_maps_flutter
+dart run w_tools_cli:w_tools init --no-map      # 显式关闭（默认关）
 # --with-map 仍可用，等同 --map
 ```
 
@@ -120,7 +120,7 @@ dart run w_tools_cli:init --no-map      # 显式关闭（默认关）
 
 ```bash
 # 生成通用设备文档 + Gradle 镜像（不再生成 device_smoke）
-dart run w_tools_cli:init --device
+dart run w_tools_cli:w_tools init --device
 ```
 
 `--device` 的 pubspec 片段会补 `w_tools_device`。
@@ -130,7 +130,7 @@ dart run w_tools_cli:init --device
 ### Figma 片段
 
 ```bash
-dart run w_tools_cli:init --figma
+dart run w_tools_cli:w_tools init --figma
 ```
 
 只在 AGENTS 中追加 Figma → Flutter 说明，不会修改 toolkit 或 pubspec。
@@ -157,7 +157,7 @@ ai:
 ### 指令文件目标
 
 ```bash
-dart run w_tools_cli:init --targets=agents,claude --lang=en
+dart run w_tools_cli:w_tools init --targets=agents,claude --lang=en
 ```
 
 支持：
@@ -178,8 +178,8 @@ copilot  .github/copilot-instructions.md
 ### 检查模式
 
 ```bash
-dart run w_tools_cli:init --check         # 只报告缺失；内容不同提示但不失败
-dart run w_tools_cli:init --check-drift   # 模板过期也失败
+dart run w_tools_cli:w_tools init --check         # 只报告缺失；内容不同提示但不失败
+dart run w_tools_cli:w_tools init --check-drift   # 模板过期也失败
 ```
 
 CI 想追踪模板更新时用 `--check-drift`。
@@ -189,15 +189,15 @@ CI 想追踪模板更新时用 `--check-drift`。
 ## doctor
 
 ```bash
-dart run w_tools_cli:doctor
+dart run w_tools_cli:w_tools doctor
 ```
 
 常见格式：
 
 ```bash
-dart run w_tools_cli:doctor --format=markdown   # 贴 PR / AI
-dart run w_tools_cli:doctor --json              # CI
-dart run w_tools_cli:doctor --strict            # warning 也失败
+dart run w_tools_cli:w_tools doctor --format=markdown   # 贴 PR / AI
+dart run w_tools_cli:w_tools doctor --json              # CI
+dart run w_tools_cli:w_tools doctor --strict            # warning 也失败
 ```
 
 规则：
@@ -219,8 +219,8 @@ dart run w_tools_cli:doctor --strict            # warning 也失败
 只跑部分规则：
 
 ```bash
-dart run w_tools_cli:doctor --only=R1,R2,R9
-dart run w_tools_cli:doctor --include-tests
+dart run w_tools_cli:w_tools doctor --only=R1,R2,R9
+dart run w_tools_cli:w_tools doctor --include-tests
 ```
 
 ### 无 CLI 时的手动兜底映射
@@ -275,14 +275,14 @@ Image.asset('logo.png');
 ### 配置
 
 ```bash
-dart run w_tools_cli:doctor --print-config    # 打印默认配置
-dart run w_tools_cli:doctor --write-config    # 写入 .w_tools_doctor.yaml
+dart run w_tools_cli:w_tools doctor --print-config    # 打印默认配置
+dart run w_tools_cli:w_tools doctor --write-config    # 写入 .w_tools_doctor.yaml
 ```
 
 `--json` 的 issue 带可选 `fix`：
 
 ```json
-{"kind": "run",  "command": "dart run w_tools_cli:init --force"}
+{"kind": "run",  "command": "dart run w_tools_cli:w_tools init --force"}
 {"kind": "edit", "file": "pubspec.yaml", "path": "dependencies.w_tools_core", "value": "any"}
 ```
 
@@ -296,20 +296,20 @@ dart run w_tools_cli:doctor --write-config    # 写入 .w_tools_doctor.yaml
 
 ```bash
 # 先查重
-dart run w_tools_cli:feedback search "WImage 缓存" --package=ui
+dart run w_tools_cli:w_tools feedback search "WImage 缓存" --package=ui
 
 # 打印字段骨架（可选）
-dart run w_tools_cli:feedback submit --template > /tmp/feedback.md
+dart run w_tools_cli:w_tools feedback submit --template > /tmp/feedback.md
 
 # 默认：仓库检出 → 写 docs/feedback；消费方 feedback.issue=true → 建 Issue；否则跳过
-dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md
+dart run w_tools_cli:w_tools feedback submit --package=ui --title="..." --body-file=/tmp/f.md
 
 # 显式覆盖
-dart run w_tools_cli:feedback submit ... --ledger   # 仓库内直接维护台账 + 索引
-dart run w_tools_cli:feedback submit ... --issue    # 显式建 Issue（需已安装 gh）
+dart run w_tools_cli:w_tools feedback submit ... --ledger   # 仓库内直接维护台账 + 索引
+dart run w_tools_cli:w_tools feedback submit ... --issue    # 显式建 Issue（需已安装 gh）
 
-dart run w_tools_cli:feedback path --package=figma   # 该写哪个文件
-dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
+dart run w_tools_cli:w_tools feedback path --package=figma   # 该写哪个文件
+dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
 ```
 
 | 子命令 | 作用 |
@@ -403,10 +403,10 @@ CLI 模板会随版本变化。升级后执行：
 ```bash
 flutter pub upgrade w_tools_cli
 
-dart run w_tools_cli:init --check-drift
+dart run w_tools_cli:w_tools init --check-drift
 # 有 drift 时再覆盖生成物
-dart run w_tools_cli:init --force
-dart run w_tools_cli:doctor
+dart run w_tools_cli:w_tools init --force
+dart run w_tools_cli:w_tools doctor
 ```
 
 注意：

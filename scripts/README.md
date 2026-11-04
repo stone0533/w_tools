@@ -52,6 +52,7 @@ feedback / release check
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
 | `check_package_docs.py` | 子包 README 版本 / example 链接 | check_docs |
+| `check_docs_facts.py` | 当前文档事实（包数量 / 旧命令） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查 | preflight |
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档 | preflight |
 

@@ -13,7 +13,7 @@
 接口设计原则见 [`docs/conventions.md`](docs/conventions.md) §6。
 
 > 消费方项目的接入方式（聚合入口、暂存层、`AGENTS.md` 片段）**不要**写进本文件 ——
-> 那些由 `dart run w_tools_cli:init` 生成到**对方**仓库里；本文件只管「在本仓库怎么改」。
+> 那些由 `dart run w_tools_cli:w_tools init` 生成到**对方**仓库里；本文件只管「在本仓库怎么改」。
 
 ## 根包（w_tools）
 
@@ -31,7 +31,7 @@ CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
 
 改动它们时必须同步：
 
-- 本仓库内反馈用 `dart run w_tools_cli:feedback submit ... --ledger`（自动维护 `docs/feedback/` 与索引）；消费方用 issue 入口
+- 本仓库内反馈用 `dart run w_tools_cli:w_tools feedback submit ... --ledger`（自动维护 `docs/feedback/` 与索引）；消费方用 issue 入口
 - [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R9）
 - [`docs/modules/components.md`](docs/modules/components.md)（若涉及组件建议）
 - `packages/cli/test/init_test.dart` / `doctor_test.dart` 的用例
@@ -69,8 +69,8 @@ Figma 取数工具在 `packages/figma/`（`w_tools_figma`，独立 CLI 包）。
 ### 本仓库内（维护者 / 仓库 AI）
 
 ```bash
-dart run w_tools_cli:feedback search "<关键词>" --package=<包>
-dart run w_tools_cli:feedback submit \
+dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>
+dart run w_tools_cli:w_tools feedback submit \
   --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger
 ```
 
@@ -87,7 +87,7 @@ dart run w_tools_cli:feedback submit \
   ```
 - 然后：
   ```bash
-  dart run w_tools_cli:feedback submit \
+  dart run w_tools_cli:w_tools feedback submit \
     --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --issue
   ```
 - `--issue` 需要已安装 gh（gh 读取 `GH_TOKEN` / `GITHUB_TOKEN`，或 `gh auth login`）；

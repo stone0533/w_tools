@@ -51,8 +51,8 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 - 组件优先用项目 toolkit；先跑：
 
 ```bash
-dart run w_tools_cli:list <关键词>
-dart run w_tools_cli:explain <组件名>
+dart run w_tools_cli:w_tools list <关键词>
+dart run w_tools_cli:w_tools explain <组件名>
 ```
 
 - 不要凭记忆造 `W*` 组件名。
@@ -84,4 +84,4 @@ figma spec 1862:9222 --json --no-markdown
 - 不要默认 `--refresh`；会消耗 Tier 1。
 - `--check-stale` 只提示，不重拉；需要更新时再 `--refresh`。
 - token 走 `FIGMA_TOKEN` 环境变量或 `.figma-token`；不要提交、不要打印。
-- 实现后跑 `dart run w_tools_cli:doctor` 和项目测试。
+- 实现后跑 `dart run w_tools_cli:w_tools doctor` 和项目测试。

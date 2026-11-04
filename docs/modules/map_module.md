@@ -6,7 +6,8 @@ Map 模块由 `w_tools_map`（接口）+ `w_tools_map_google`（Google 实现）
 
 **不内置任何业务 UI**（列表面板、选中浮起、空状态等）。业务方通过 `WMapConfig.onItemSelected` / `WMapConfig.onItemClosed` 接收事件后自行构建业务 UI。
 
-依赖：`google_maps_flutter`。
+依赖：只有 `w_tools_map_google` 依赖 `google_maps_flutter`；
+`w_tools_map` 只包含平台无关模型。
 
 ## 快速判断
 - 地图 → `WMap` + `WMapZone`
@@ -19,12 +20,14 @@ Map 模块由 `w_tools_map`（接口）+ `w_tools_map_google`（Google 实现）
 
 ## 模块结构
 
-```
-map/
-└── src/
-    ├── map.dart        # WMap / WMapConfig / WMapController
-    ├── map_zone.dart   # WMapZone / WMapIconAssets
-    └── map_item.dart   # WMapItem / WMapItemMapper
+```text
+packages/map/                         # 接口层
+└── lib/src/map_item.dart             # WMapItem / WMapItemMapper
+
+packages/map_google/                  # Google 实现
+└── lib/src/
+    ├── map.dart                      # WMap / WMapConfig / WMapController
+    └── map_zone.dart                 # WMapZone / WMapIconAssets
 ```
 
 

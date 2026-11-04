@@ -1,7 +1,8 @@
 # ADR 0002：消费方依赖**子包**，不依赖聚合包
 
 > 注：本 ADR 记录时为 8 个 Flutter 子包；之后新增 `w_tools_async`。
-> 2026-11 根包 7.0 起不再聚合 `w_tools_app` / `w_tools_map` / `w_tools_qr`；后续 app 拆为 `w_tools_app` + `w_tools_app_getx`，map 拆为 `w_tools_map` + `w_tools_map_google`，根包当前为 9.0。
+> 2026-11 根包 7.0 起不再聚合 `w_tools_app` / `w_tools_map` / `w_tools_qr`；后续 app 拆为 `w_tools_app` + `w_tools_app_getx`，map 拆为 `w_tools_map` + `w_tools_map_google`。
+> 根包版本以根 `pubspec.yaml` 为准，ADR 不写死当前版本。
 
 
 - 状态：已采纳（2026-10-24）

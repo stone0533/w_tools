@@ -71,7 +71,7 @@ const String designSystemReadme = r'''
 ## 检查
 
 ```bash
-dart run w_tools_cli:doctor      # R4 / R5 会检查这一层
+dart run w_tools_cli:w_tools doctor      # R4 / R5 会检查这一层
 ```
 ''';
 
@@ -112,7 +112,7 @@ membership tiers) — keep them in `lib/app/modules/`.
 ## Check
 
 ```bash
-dart run w_tools_cli:doctor      # R4 / R5 check this layer
+dart run w_tools_cli:w_tools doctor      # R4 / R5 check this layer
 ```
 ''';
 

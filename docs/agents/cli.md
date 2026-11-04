@@ -63,7 +63,7 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
 | `init --check` 一直失败 | 文件缺失或 drift；按输出运行 `init` / `init --force` |
 | toast 全部静默 | 没挂 `BotToastInit()` / `BotToastNavigatorObserver()`；见 [toast.md](toast.md) |
 | 反馈没有提交 | 默认关闭：仓库内用 `--ledger`；消费方开启 `feedback.issue: true` 后 `--issue`；否则跳过 |
-| 不确定当前通道 | `dart run w_tools_cli:feedback status --json` |
+| 不确定当前通道 | `dart run w_tools_cli:w_tools feedback status --json` |
 | 不想保留上次选择 | `init --reset` |
 
 ## 维护者

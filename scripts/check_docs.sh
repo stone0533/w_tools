@@ -93,6 +93,11 @@ if ! python3 scripts/check_package_docs.py; then
   errors=$((errors + 1))
 fi
 
+# 10) 当前文档的事实一致性（排除历史目录）
+if ! python3 scripts/check_docs_facts.py; then
+  errors=$((errors + 1))
+fi
+
 if [ "$errors" -gt 0 ]; then
   printf '\n文档检查失败：%s 项\n' "$errors"
   exit 1

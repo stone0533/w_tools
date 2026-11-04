@@ -1,13 +1,13 @@
-# 发版流程（9 个 Flutter 子包 + w_tools_cli + 聚合包）
+# 发版流程（Flutter 子包 + 工具包 + 聚合包）
 
-> 最近一次门禁记录：[2026-11-04](release/2026-11-04-preflight.md)。
+> 历史门禁记录：[2026-11-04](release/2026-11-04-preflight.md)（旧版本，仅历史参考）。
 >
-> 大版本发布清单：[2026-11-04 根包 5.0.0](release/2026-11-04-major-5.0.md)。
+> 当前大版本发布清单：[2026-11-04 根包 9.0.0](release/2026-11-04-major-5.0.md)。
 
 发布前一条命令跑门禁：
 
 ```bash
-bash scripts/preflight.sh --all     # 静态检查 + 全部测试 + 13 个子包 dry-run
+bash scripts/preflight.sh --all     # 静态检查 + 全部测试 + 全部子包 dry-run
 bash scripts/preflight.sh           # 只跑静态检查（最快）
 ```
 >
@@ -15,7 +15,7 @@ bash scripts/preflight.sh           # 只跑静态检查（最快）
 > 刚发布的版本可能暂时不可见。验证时显式 `PUB_HOSTED_URL=https://pub.dev`，并换一个全新的
 > `PUB_CACHE`，否则 pub 会复用旧的版本元数据。
 
-`w_tools` 是 9 个 Flutter 子包 + 1 个纯 Dart 工具包（`w_tools_cli`）+ 1 个聚合包。版本各自演进，所以「仓库里有什么」和
+`w_tools` 是 11 个 Flutter 子包 + 工具包（`w_tools_cli` / `w_tools_figma` / `w_tools_device` / `w_tools_e2e`）+ 1 个聚合包。版本各自演进，所以「仓库里有什么」和
 「pub.dev 上用户能装到什么」很容易分叉 —— 例如 `w_tools_map` 曾经是仓库 1.1.0、
 pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 
@@ -45,8 +45,8 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 发版说明中需要提醒消费方升级 CLI 后重新执行：
 
 ```bash
-dart run w_tools_cli:init
-dart run w_tools_cli:init --check-drift
+dart run w_tools_cli:w_tools init
+dart run w_tools_cli:w_tools init --check-drift
 ```
 
 模板变更只影响后续 `init` 生成内容；已有项目必须重新 init 才会拿到新的 Form / UI / Button 规则。
@@ -91,7 +91,7 @@ dart run w_tools_cli:init --check-drift
 
 - **qr**：真机扫码一次（单次模式暂停、`restartScan` 后可再扫）、拒绝相机权限走 `noPermissionCallback`；
 - **map**：真机打开地图 → 选中 marker（相机 + InfoWindow）→ 关闭 → 退出页面（无 controller 悬空）；
-- **消费方**：临时 app 用 `path:` 依赖 9 个子包，跑一屏「按钮 + 图片 + 表单 + async + toast」，
+- **消费方**：临时 app 用 `path:` 依赖子包，跑一屏「按钮 + 图片 + 表单 + async + toast」，
   确认 `flutter analyze` 与运行都正常（参考 `docs/migrations/README.md` 的版本约束）。
 - **发布形态冒烟**：`scripts/publish_package.sh packages/<pkg> --stage-only` 生成暂存副本，
   临时 app 用 `path:` + `dependency_overrides` 指向这些副本（去掉 workspace），
