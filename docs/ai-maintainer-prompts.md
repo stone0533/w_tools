@@ -37,6 +37,7 @@ packages/<pkg>/README.md，再开始。
 | 新增包 | E |
 | 只整理 catalog / AGENTS / 文档 | F |
 | 只让 AI 审查，不要改 | G |
+| 全仓审计 / 全量整理 | I（先审计，再分批） |
 | AI 不能访问仓库 / 不能跑命令 | H |
 
 ---
@@ -221,6 +222,154 @@ packages/<pkg>/README.md，再开始。
 - 相关 catalog 条目
 - 相关 README 段落
 - 测试输出
+```
+
+---
+
+## I. 全仓审计 / 全量整理
+
+不要直接说：
+
+```text
+请分析全部代码，重新整理所有 catalog、AGENTS、README 和 example。
+```
+
+这会让 AI 一次改几十个包、几百个文件，风险很高。
+
+正确方式是两阶段：
+
+```text
+阶段 1：只审计，不改文件
+阶段 2：按包 / 按 feature 分批整理
+阶段 3：全仓验证
+```
+
+### I-1. 审计提示词（只读）
+
+```text
+你是 w_tools 的维护者。现在只做全仓审计，不要修改任何文件。
+
+先读：
+- docs/ai-contract.md
+- docs/ai-maintainer-prompts.md
+- AGENTS.md
+- packages/cli/catalog/components.yaml
+- packages/cli/templates/agents/
+
+请检查：
+1. 公开类型是否都进入 catalog 或 uncataloged 基线；
+2. teach 入口是否覆盖所有库包；
+3. teach 组件的 usage / pitfalls / related 是否完整；
+4. related 是否都能解析；
+5. AGENTS 是否覆盖所有 InitFeature；
+6. AGENTS 是否还在推荐旧命令 / 旧 API；
+7. README 安装版本 / example 链接是否正确；
+8. gen_catalog / gen_templates 是否 drift；
+9. 关键 explain prompt 是否真的可执行。
+
+只运行不会写文件的命令，例如：
+- python3 scripts/check_public_catalog.py
+- python3 scripts/check_package_docs.py
+- dart run tool/gen_catalog.dart --check
+- dart run tool/gen_templates.dart --check
+- bash scripts/check_docs.sh
+
+不要运行会改文件的生成器或 init。
+
+输出：
+- 按包列出：catalog 缺口 / teach 缺口 / AGENTS 缺口 / README 或 example 缺口 / 风险等级
+- 需要新增或修改的文件
+- 建议的批次划分（每批一个包或一个 feature）
+- 每批的验收命令
+- 明确说明“本次没有修改文件”
+```
+
+### I-2. 分批计划提示词
+
+```text
+基于上面的审计，给我一个分批整理计划。
+
+要求：
+- 每批只处理一个包或一个 feature；
+- 每批列出要改的 catalog / AGENTS / README / example / 测试；
+- 每批给出验收命令；
+- 先做风险低、收益高的批次；
+- 不要一次列出全仓改写；
+- 不要开始改文件，等我确认批次。
+```
+
+### I-3. 单批执行提示词
+
+```text
+只执行批次：<批次名>。
+
+范围：
+- 包：<pkg>
+- 组件：<...>
+- 允许改的文件：<...>
+
+要求：
+1. 不改变本批之外的公开 API / 行为；
+2. 先改 catalog / templates 源文件，再跑生成器；
+3. 不手改生成物；
+4. 更新 README / example（仅本批相关）；
+5. 跑本批验收 + preflight；
+6. 如果发现需要跨批改动，停下来说明，不要顺手改；
+7. 报告 changed files、命令结果、explain 输出。
+```
+
+### I-4. 全仓最终验证提示词
+
+```text
+只做验证，不要修改文件。
+
+请运行：
+- python3 scripts/check_public_catalog.py
+- python3 scripts/check_package_docs.py
+- bash scripts/check_docs.sh
+- cd packages/cli && dart run tool/gen_catalog.dart --check
+- cd packages/cli && dart run tool/gen_templates.dart --check
+- bash scripts/preflight.sh --with-tests
+
+然后检查：
+1. catalog 是否覆盖所有公开类型或基线；
+2. 每个库包是否有 teach 入口；
+3. 每个 InitFeature 是否有 zh/en AGENTS；
+4. README 版本 / example 链接；
+5. explain prompt 是否包含用法 / 注意 / 相关；
+6. 是否还有旧命令 / 旧 API。
+
+输出：
+- 通过项
+- 失败项
+- 仍需人工判断的项
+- 不要声称通过；以实际命令输出为准
+```
+
+### I-5. 全仓整理时的边界
+
+```text
+代码重构 ≠ 文档整理
+```
+
+不要在同一条提示词里同时要求：
+
+```text
+重构全部代码
++ 重写全部 catalog
++ 重写全部 AGENTS
++ 重写全部 README
++ 重写全部 example
+```
+
+推荐顺序：
+
+```text
+1. 只审计
+2. 只整理文档 / catalog（不改代码行为）
+3. 按包做小重构
+4. 每批更新教学资产
+5. 全仓验证
 ```
 
 ---
