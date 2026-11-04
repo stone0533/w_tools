@@ -1,3 +1,12 @@
+## 5.0.1
+
+- 仅文档修正，无 API / 行为变化。
+- 根 README 的启动示例改为 `WApp.options(WAppOptions(...)).start()`；ui 安装约束改为 `^5.0.0`；
+  补充 Dart `^3.10.0` / Flutter `>=3.38.0` 环境要求。
+- 根 README 中旧的 `WRoute` / `WRowButtons` / `WApp.routeStack` 引用改为
+  `WRouteStack` / `WActionRow` / 实例 `app.routeStack`。
+- 根 README 纳入“已删除 API”文档守卫。
+
 ## 5.0.0
 
 - 抬高 `w_tools_app` 约束到 `^2.0.0`：删除字段版 `WApp` 与静态 `WRoute`（迁移见 `app-2.0`）。
