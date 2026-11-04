@@ -18,11 +18,11 @@ may you create a GitHub Issue. Without it (or false) → **do nothing**: no loca
 1. **Search**
 
    ```bash
-   dart run w_tools_cli:feedback search "<keywords>" --package=<package>
+   dart run w_tools_cli:w_tools feedback search "<keywords>" --package=<package>
    ```
 
 2. **Write the body** (fields are validated; run
-   `dart run w_tools_cli:feedback submit --template` to print the skeleton)
+   `dart run w_tools_cli:w_tools feedback submit --template` to print the skeleton)
 
    ```md
    - package/version:
@@ -40,7 +40,7 @@ may you create a GitHub Issue. Without it (or false) → **do nothing**: no loca
 3. **Submit** (`--issue` explicitly overrides the config)
 
    ```bash
-   dart run w_tools_cli:feedback submit \
+   dart run w_tools_cli:w_tools feedback submit \
      --package=<package> --title="<one-line symptom>" --body-file=/tmp/w_tools_feedback.md --issue
    ```
 

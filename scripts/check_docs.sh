@@ -88,6 +88,11 @@ if ! python3 scripts/check_async_docs.py; then
   errors=$((errors + 1))
 fi
 
+# 9) 子包 README 版本 / example 链接
+if ! python3 scripts/check_package_docs.py; then
+  errors=$((errors + 1))
+fi
+
 if [ "$errors" -gt 0 ]; then
   printf '\n文档检查失败：%s 项\n' "$errors"
   exit 1

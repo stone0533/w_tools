@@ -29,4 +29,4 @@ dart run w_tools_cli:w_tools list <keyword>
 dart run w_tools_cli:w_tools explain <Component>
 ```
 
-- Do not invent `W*` component names; run `dart run w_tools_cli:doctor` after implementation.
+- Do not invent `W*` component names; run `dart run w_tools_cli:w_tools doctor` after implementation.

@@ -56,6 +56,17 @@ components:
     related: ["`WImageSource`"]
     teach: true
 
+  - name: '`WImageSource`'
+    package: 'w_tools_ui'
+    section: '2. 文本与图标'
+    useFor: 'WImage 的来源：network / asset / file / base64 / provider / parse'
+    dontUseFor: '不要用已删除的 WImage.network / asset / file / data'
+    usage: 'WImage.source(source: WImageSource.network(url))'
+    pitfalls:
+      - '旧 WImage.network/asset/file 已删除'
+      - '未知字符串用 WImageSource.parse'
+    related: ['`WImage`']
+    teach: true
   - name: '`WButton`'
     package: 'w_tools_ui'
     section: '3. 按钮与操作'
@@ -262,6 +273,16 @@ components:
     related: ["`WToastStyle`"]
     teach: true
 
+  - name: '`WToastStyle`'
+    package: 'w_tools_toast'
+    section: '7. 状态与反馈'
+    useFor: 'Toast 的时长 / 对齐 / 背景 / 动画等样式'
+    dontUseFor: '不要为单条 toast 重复造主题；全局用 WToastTheme'
+    usage: "WToast.showSuccess('保存成功', style: WToastStyle(duration: Duration(seconds: 2)))"
+    pitfalls:
+      - '先初始化 BotToastInit / BotToastNavigatorObserver'
+    related: ['`WToast`']
+    teach: true
   - name: '`WGradientCircularProgressIndicator`'
     package: 'w_tools_ui'
     section: '7. 状态与反馈'
@@ -291,6 +312,16 @@ components:
     related: ["`WAppPlugin`", "`WAppOptions`"]
     teach: true
 
+  - name: '`WAppOptions`'
+    package: 'w_tools_app_getx'
+    section: '8. 能力（非 UI）'
+    useFor: 'WApp 的标题 / 主题 / GetX 路由 / 语言 / 包装器配置'
+    dontUseFor: '不要手写 runApp；入口用 WApp.options(...).start()'
+    usage: "await WApp.options(WAppOptions(title: 'Demo')).start();"
+    pitfalls:
+      - 'getPages / translations 属于 GetX 路由与语言配置'
+    related: ['`WApp`']
+    teach: true
   - name: '`WAppPlugin`'
     package: 'w_tools_app'
     section: '8. 能力（非 UI）'

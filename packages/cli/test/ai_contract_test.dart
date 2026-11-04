@@ -25,6 +25,26 @@ void main() {
       );
     });
 
+    test('related 必须能解析到组件名 / 别名', () {
+      final names = <String>{
+        for (final entry in catalog) ...entry.names,
+        for (final entry in catalog) ...entry.aliases,
+      };
+      for (final entry in teachEntries) {
+        for (final related in entry.related) {
+          for (final name in related.split('/')) {
+            final normalized = name.replaceAll('`', '').trim();
+            if (normalized.isEmpty) continue;
+            expect(
+              names,
+              contains(normalized),
+              reason: '${entry.name} 的 related 无法解析：$related',
+            );
+          }
+        }
+      }
+    });
+
     for (final entry in teachEntries) {
       test('${entry.name} 具备 usage / pitfalls / related', () {
         expect(entry.usage, isNotNull);
@@ -50,6 +70,33 @@ void main() {
       expect(templates.agentsAsync, contains('c.load()'));
       expect(templates.agentsAsync, contains('explain WAsync --format=prompt'));
       expect(templates.agentsAsyncEn, contains('c.load()'));
+    });
+
+    test('所有 AGENTS 模板非空且使用统一命令', () {
+      final all = <String, String>{
+        'base': templates.agentsBase,
+        'feedback': templates.agentsFeedback,
+        'closing': templates.agentsClosing,
+        'ui': templates.agentsUi,
+        'form': templates.agentsForm,
+        'api': templates.agentsApi,
+        'app': templates.agentsApp,
+        'async': templates.agentsAsync,
+        'toast': templates.agentsToast,
+        'core': templates.agentsCore,
+        'qr': templates.agentsQr,
+        'map': templates.agentsMap,
+        'figma': templates.agentsFigma,
+        'device': templates.agentsDevice,
+        'baseEn': templates.agentsBaseEn,
+        'asyncEn': templates.agentsAsyncEn,
+      };
+      for (final entry in all.entries) {
+        expect(entry.value.trim(), isNotEmpty, reason: entry.key);
+        expect(entry.value, isNot(contains('w_tools_cli:context')), reason: entry.key);
+        expect(entry.value, isNot(contains('w_tools_cli:list')), reason: entry.key);
+        expect(entry.value, isNot(contains('w_tools_cli:explain')), reason: entry.key);
+      }
     });
 
     test('生成的 AGENTS 使用统一命令入口', () {

@@ -18,11 +18,11 @@ feedback:
 1. **查重**
 
    ```bash
-   dart run w_tools_cli:feedback search "<关键词>" --package=<包>
+   dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>
    ```
 
 2. **写正文**（字段固定，缺字段会被拒绝；可先运行
-   `dart run w_tools_cli:feedback submit --template` 打印骨架）
+   `dart run w_tools_cli:w_tools feedback submit --template` 打印骨架）
 
    ```md
    - 包/版本：
@@ -40,7 +40,7 @@ feedback:
 3. **提交**（`--issue` 可显式覆盖配置）
 
    ```bash
-   dart run w_tools_cli:feedback submit \
+   dart run w_tools_cli:w_tools feedback submit \
      --package=<包> --title="<一句话现象>" --body-file=/tmp/w_tools_feedback.md --issue
    ```
 

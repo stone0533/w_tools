@@ -29,4 +29,4 @@ dart run w_tools_cli:w_tools list <关键词>
 dart run w_tools_cli:w_tools explain <组件名>
 ```
 
-- 不要凭记忆造 `W*` 组件名；实现后跑 `dart run w_tools_cli:doctor`。
+- 不要凭记忆造 `W*` 组件名；实现后跑 `dart run w_tools_cli:w_tools doctor`。

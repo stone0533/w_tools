@@ -102,3 +102,7 @@ dart run w_tools_device:device foreground --android    # 前台包名（冒烟�
 坐标标定原理：截 DeviceHub 窗口 → 找最外层黑色机身（连通域）→ 内缩得到设备屏幕矩形 →
 按设备分辨率换算成「设备坐标 ↔ 屏幕坐标」。结果缓存在 `~/.cache/w_tools_device/`，
 窗口位置或尺寸变化时自动重算；旋转设备后缓存不一定能自动识别，必要时用 `--no-cache`。
+
+## 示例
+
+可运行示例见 [`example/`](example/)。
