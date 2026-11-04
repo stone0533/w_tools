@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 
 /// 表单字段共用的外框配置。

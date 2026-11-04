@@ -1,3 +1,9 @@
+## 4.2.0
+
+### Deprecated
+- 8 个可变字段 Config 标记 deprecated，form 5.0 移除；新代码用直接字段参数 / `WFormFieldStyle`。
+  迁移见 `docs/migrations/form-5.0.md`。
+
 ## 4.1.0
 
 ### Added

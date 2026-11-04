@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -81,6 +82,8 @@ class WFormFieldButtonCore extends StatelessWidget {
 /// 表单按钮配置类，定义按钮的样式和行为。
 ///
 /// 可变的字段配置；用命名构造 / copyWith。
+/// remove-in: 5.0.0
+@Deprecated('Use direct field parameters / WFormFieldStyle; removed in form 5.0')
 class WFormFieldButtonConfig extends WFormFieldBaseConfig {
   Widget? hintWidget;
 
