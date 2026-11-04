@@ -31,6 +31,7 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   --title=<标题>      submit 用：一句话现象
   --body-file=<file>  submit 用：Markdown 正文（也可用 --stdin）
   --stdin             submit 用：从标准输入读 Markdown 正文
+  --template          submit 用：只打印正文骨架，不提交
   --gh                submit：直接 gh issue create；search：搜 GitHub issues
   --local             submit：只写 docs/agents/feedback.md，不联网
   --repo=<owner/repo> submit/search 的仓库（默认 stone0533/w_tools）
@@ -55,6 +56,7 @@ void main(List<String> argv) {
     ..addOption('title')
     ..addOption('body-file')
     ..addFlag('stdin', negatable: false)
+    ..addFlag('template', negatable: false)
     ..addFlag('gh', negatable: false)
     ..addFlag('local', negatable: false)
     ..addOption('repo', defaultsTo: 'stone0533/w_tools')
@@ -176,6 +178,10 @@ void _lint(ArgResults args, Directory root, bool asJson) {
 }
 
 void _submit(ArgResults args, Directory root, bool asJson) {
+  if (args['template'] as bool) {
+    print(feedbackBodyTemplate);
+    return;
+  }
   final package = _packageArg(args)!;
   final title = (args['title'] as String?)?.trim() ?? '';
   if (title.isEmpty) _usageError('submit 需要 --title=<一句话现象>');

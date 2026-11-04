@@ -39,7 +39,7 @@
 # 1. 查重（本地台账/收件箱；有 gh 时加 --gh 搜 GitHub）
 dart run w_tools_cli:feedback search "<关键词>" --package=<包>
 
-# 2. 按 TEMPLATE 写正文到临时文件，然后提交：
+# 2. 打印正文骨架 / 按 TEMPLATE 写正文到临时文件，然后提交：
 dart run w_tools_cli:feedback submit \
   --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md
 #   默认只打印 GitHub 预填链接，不会自动上传

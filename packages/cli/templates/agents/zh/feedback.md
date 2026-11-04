@@ -17,13 +17,27 @@
    # 有 gh 登录时可加 --gh 同时搜 GitHub issues
    ```
 
-2. **写正文**（按 `docs/feedback/TEMPLATE.md` 的字段，存到临时文件；也可 `--stdin`）
+2. **写正文**（字段固定；缺字段会被拒绝。可先运行
+   `dart run w_tools_cli:feedback submit --template` 打印骨架）
+
+   ```md
+   - 包/版本：
+   - 环境：
+   - 命令 / 输入：
+   - 期望：
+   - 实际：
+   - 影响：
+   - 建议：
+   - 复现数据：
+   ```
+
+   保存为 `/tmp/w_tools_feedback.md`。
 
 3. **提交**
 
    ```bash
    dart run w_tools_cli:feedback submit \
-     --package=<包> --title="<一句话现象>" --body-file=/tmp/feedback.md
+     --package=<包> --title="<一句话现象>" --body-file=/tmp/w_tools_feedback.md
    ```
 
    - 默认：打印 GitHub 预填 issue 链接，**不会自动上传**；

@@ -16,6 +16,8 @@ void main() {
       expect(text, contains('feedback submit'));
       expect(text, contains('--local'));
       expect(text, contains('--gh'));
+      expect(text, anyOf(contains('包/版本'), contains('package/version')));
+      expect(text, isNot(contains('docs/feedback/TEMPLATE.md')));
       expect(text, isNot(contains('直接写台账')));
     });
 

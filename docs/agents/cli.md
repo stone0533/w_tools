@@ -36,7 +36,8 @@ dart run w_tools_cli:doctor --format=json      # 4. 写完自检
 
 # 被 w_tools 卡住 / 有改进建议：
 dart run w_tools_cli:feedback search "关键词" --package=<包>
-dart run w_tools_cli:feedback submit --package=<包> --title="<现象>" --stdin
+dart run w_tools_cli:feedback submit --template > /tmp/feedback.md   # 可选：打印骨架
+dart run w_tools_cli:feedback submit --package=<包> --title="<现象>" --body-file=/tmp/feedback.md
 ```
 
 ## 关键边界

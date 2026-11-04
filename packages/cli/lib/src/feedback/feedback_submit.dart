@@ -14,6 +14,28 @@ class FeedbackSubmitException implements Exception {
   String toString() => message;
 }
 
+/// 提交反馈的正文骨架（中文）；字段名必须与 lint 的别名一致。
+const feedbackBodyTemplate = '''- 包/版本：
+- 环境：
+- 命令 / 输入：
+- 期望：
+- 实际：
+- 影响：
+- 建议：
+- 复现数据：
+''';
+
+/// 提交反馈的正文骨架（英文）。
+const feedbackBodyTemplateEn = '''- package/version:
+- environment:
+- command / input:
+- expected:
+- actual:
+- impact:
+- suggestion:
+- repro data:
+''';
+
 /// 一条准备提交的反馈（不涉及网络）。
 class FeedbackDraft {
   FeedbackDraft({

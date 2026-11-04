@@ -274,6 +274,9 @@ dart run w_tools_cli:doctor --write-config    # 写入 .w_tools_doctor.yaml
 # 先查重
 dart run w_tools_cli:feedback search "WImage 缓存" --package=ui
 
+# 打印字段骨架（可选）
+dart run w_tools_cli:feedback submit --template > /tmp/feedback.md
+
 # 生成预填 GitHub issue（默认只打印链接，不上传）
 dart run w_tools_cli:feedback submit --package=ui --title="WImage 缓存不生效" --stdin
 
