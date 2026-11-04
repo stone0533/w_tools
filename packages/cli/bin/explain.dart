@@ -105,6 +105,11 @@ CommandResult run(List<String> argv) {
       print('分组：${e.section}');
       print('用途：${e.useFor}');
       if (e.dontUseFor != null) print('不要用于：${e.dontUseFor}');
+      if (e.usage != null) {
+        print('用法：');
+        print(e.usage);
+      }
+      if (e.related.isNotEmpty) print('相关：${e.related.join(' / ')}');
       if (aggregateImport != null) {
         print("import '$aggregateImport';");
         print('说明：业务代码统一走聚合入口；子包 import 仅限 lib/app/ui、lib/app/design_system、toolkit 内。');

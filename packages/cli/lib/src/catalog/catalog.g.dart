@@ -16,6 +16,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "任意顶部叠放用页面层 Container/Stack",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAppBar",
@@ -26,6 +29,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "任意叠放/覆盖布局在页面层用 Container/Stack",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WNavBar / WNavController",
@@ -36,6 +42,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要自己写 `BottomNavigationBar`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WTabBar",
@@ -46,6 +55,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "需要下划线跟随的复杂交互时先看它够不够",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WStep / WStepFlow",
@@ -56,6 +68,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "背景/高度用外层 Container；多步骤注意横向空间",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WText / WTextVariant / WTextStyles",
@@ -66,6 +81,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要再用 `WTextConfig`；已移除，使用 `WTextStyles`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WImage",
@@ -76,6 +94,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要裸用 `Image.network`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WButton",
@@ -86,6 +107,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "任意 child 点击用 `WPressable`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WPressable",
@@ -96,6 +120,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "需要 button 语义时用 `WButton`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WActionRow / WSelectableRow",
@@ -106,6 +133,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WBadge",
@@ -116,6 +146,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WClipRRect",
@@ -126,6 +159,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WScreen",
@@ -136,6 +172,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要重复用 MediaQuery 手写全局适配",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAssets",
@@ -146,6 +185,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要硬编码 `assets/images/`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WForm",
@@ -156,6 +198,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope`",
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormController",
@@ -166,6 +211,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "多个 WForm 不要共用一个 controller",
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormTextField",
@@ -176,6 +224,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要默认写 `WFormTextFieldConfig().build(...)`",
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormDropdown / WFormMultiDropdown",
@@ -186,6 +237,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "选择类弹层用 `WFormPopup`",
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormDatePicker / WFormCheckbox / WFormRadioGroup",
@@ -196,6 +250,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormButton",
@@ -206,6 +263,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用",
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormFieldStyle",
@@ -216,6 +276,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "字段特殊样式用字段 `config` 覆盖",
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormValidatorSettings",
@@ -226,6 +289,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormBorder",
@@ -236,6 +302,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "普通字段不要手写 `WFormBorder`",
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WBottomSheet",
@@ -246,6 +315,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_app_getx/w_tools_app_getx.dart",
     docs: "docs/modules/app_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WFormPopup",
@@ -256,6 +328,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "⚠️ 它不是居中对话框，别拿来做「确认弹窗」",
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAsyncView / WAsyncErrorView / WAsyncErrorBanner",
@@ -266,6 +341,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController`",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: "WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (context, data) => ...)",
+    related: <String>["WAsyncController", "WAsyncTheme", "WAsyncStateBuilder"],
   ),
   CatalogEntry(
     name: "WAsyncStateBuilder",
@@ -276,6 +354,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAsyncController",
@@ -286,6 +367,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "分页用 `WAsyncPagedController`；纯执行用 `WAsync`",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: "final c = WAsyncController.list(() => api.list()); c.load();",
+    related: <String>["WAsyncView", "WAsyncState", "WAsyncPagedController"],
   ),
   CatalogEntry(
     name: "WAsyncPagedController",
@@ -296,6 +380,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "普通单请求用 `WAsyncController`",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAsyncStateSliver",
@@ -306,6 +393,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "非滚动页面用 `WAsyncView`",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAsyncTheme",
@@ -316,6 +406,22 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>["WAsyncThemeViews", "WAsyncView", "WAsyncStateSliver"],
+  ),
+  CatalogEntry(
+    name: "WAsyncThemeViews",
+    names: <String>["WAsyncThemeViews"],
+    package: "w_tools_async",
+    section: "7. 状态与反馈",
+    useFor: "自建滚动壳复用 WAsyncTheme 的默认四态视图",
+    dontUseFor: "普通页面直接用 WAsyncView，不要重复搭状态分支",
+    importPath: "package:w_tools_async/w_tools_async.dart",
+    docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: "final views = WAsyncThemeViews.of(context);",
+    related: <String>["WAsyncTheme", "WAsyncStateBuilder"],
   ),
   CatalogEntry(
     name: "WToast",
@@ -326,6 +432,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_toast/w_tools_toast.dart",
     docs: "docs/modules/toast_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WGradientCircularProgressIndicator",
@@ -336,6 +445,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WListView / WListViewSliver",
@@ -346,6 +458,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WKeepAliveWrapper",
@@ -356,6 +471,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要用它做滚动回调；只负责 keepAlive",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WNotificationListenerBuilder",
@@ -366,6 +484,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "百分比只处理 depth 0 的 ScrollUpdateNotification",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WApp",
@@ -376,6 +497,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_app_getx/w_tools_app_getx.dart",
     docs: "docs/modules/app_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAppPlugin",
@@ -386,6 +510,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_app/w_tools_app.dart",
     docs: "docs/modules/app_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAsyncState",
@@ -396,6 +523,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要手写 `ValueNotifier<WAsyncState>`",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAsyncResult",
@@ -406,6 +536,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "需要失败抛异常时用 `WAsync.run`",
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>[],
+    usage: "switch (result) { case WAsyncSuccess(:final value): ... }",
+    related: <String>["WAsync", "WAsyncController"],
   ),
   CatalogEntry(
     name: "WAsync / WAsyncOptions / WAsyncActivity / WCancelToken",
@@ -416,6 +549,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
+    aliases: <String>["tryRun", "run", "map", "retry", "timeout", "parallel", "pool", "serial", "first"],
+    usage: "final result = await WAsync.tryRun(() => api.fetch());",
+    related: <String>["WAsyncResult", "WAsyncOptions", "WCancelToken"],
   ),
   CatalogEntry(
     name: "WCountdown",
@@ -426,6 +562,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WStorage",
@@ -436,6 +575,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "读取前必须 `init`；明文存储",
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WToken",
@@ -446,6 +588,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "明文存储；高敏感场景用 Keychain / Keystore",
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WEncrypt / WHash",
@@ -456,6 +601,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "AES-CBC 不提供完整性",
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WLogger / WValidator / WRegExp",
@@ -466,6 +614,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WDebounce / WThrottle",
@@ -476,6 +627,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要每次 build 新建实例；页面 dispose 时 cancel",
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WPlatform",
@@ -486,6 +640,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要用 Platform.isXxx 绕过统一判断",
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "DioRegistry",
@@ -496,6 +653,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要直接 `Dio()`；同一 baseUrl 只配置一次",
     importPath: "package:w_tools_api/w_tools_api.dart",
     docs: "docs/modules/api_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WTokenInterceptor",
@@ -506,6 +666,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要在拦截器里存 token",
     importPath: "package:w_tools_api/w_tools_api.dart",
     docs: "docs/modules/api_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WLogInterceptor",
@@ -516,6 +679,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不做业务错误处理；敏感头默认脱敏",
     importPath: "package:w_tools_api/w_tools_api.dart",
     docs: "docs/modules/api_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WApiConfig",
@@ -526,6 +692,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_api/w_tools_api.dart",
     docs: "docs/modules/api_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WLanguage",
@@ -536,6 +705,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要直接改 `WAppConfig.currentLanguage` 后期待通知",
     importPath: "package:w_tools_app_getx/w_tools_app_getx.dart",
     docs: "docs/modules/app_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WAppConfig",
@@ -546,6 +718,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "非响应式；切换用 `WLanguage`",
     importPath: "package:w_tools_app_getx/w_tools_app_getx.dart",
     docs: "docs/modules/app_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WRouteObserver",
@@ -556,6 +731,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要重复添加；WApp 已自动追加",
     importPath: "package:w_tools_app_getx/w_tools_app_getx.dart",
     docs: "docs/modules/app_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WQrView",
@@ -566,6 +744,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要直接用 `QRView`；单次扫码后用 `restartScan`",
     importPath: "package:w_tools_qr/w_tools_qr.dart",
     docs: "docs/modules/qr_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WQrController",
@@ -576,6 +757,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要用它重置 scanOnce",
     importPath: "package:w_tools_qr/w_tools_qr.dart",
     docs: "docs/modules/qr_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WQrViewOverlayShape",
@@ -586,6 +770,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "尺寸必须大于 0",
     importPath: "package:w_tools_qr/w_tools_qr.dart",
     docs: "docs/modules/qr_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WMap / WMapZone",
@@ -596,6 +783,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要直接用 `GoogleMap`；需要 API Key",
     importPath: "package:w_tools_map_google/w_tools_map_google.dart",
     docs: "docs/modules/map_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WMapController",
@@ -606,6 +796,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "未挂载时无效果",
     importPath: "package:w_tools_map_google/w_tools_map_google.dart",
     docs: "docs/modules/map_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WMapItemMapper",
@@ -616,6 +809,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要在 build 内重复创建",
     importPath: "package:w_tools_map/w_tools_map.dart",
     docs: "docs/modules/map_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WRouteStack",
@@ -626,6 +822,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: null,
     importPath: "package:w_tools_app_getx/w_tools_app_getx.dart",
     docs: "docs/modules/app_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WNumExtension",
@@ -636,6 +835,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要重复手写 toStringAsFixed / SizedBox / EdgeInsets",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WStringExtension",
@@ -646,6 +848,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "图片组件转换用 `WStringExtension` 的路径方法",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WBoxDecorationExtension",
@@ -656,6 +861,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要每次重写完整 BoxDecoration",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WWidgetExtension",
@@ -666,6 +874,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "需要 button 语义用 `WButton`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WUiWidgetExtension",
@@ -676,6 +887,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "需要 button 语义用 `WButton`",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
   CatalogEntry(
     name: "WHexColor",
@@ -686,6 +900,9 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     dontUseFor: "不要手写 Color(int.parse(...))",
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
+    aliases: <String>[],
+    usage: null,
+    related: <String>[],
   ),
 ];
 

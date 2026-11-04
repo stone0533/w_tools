@@ -101,12 +101,13 @@ class ProjectSnapshot {
 
   Map<String, String> commands() {
     final result = <String, String>{
-      'context': 'dart run w_tools_cli:context --format=json',
-      'doctor': 'dart run w_tools_cli:doctor --json',
-      'initCheck': 'dart run w_tools_cli:init --check-drift',
-      'feedbackStatus': 'dart run w_tools_cli:feedback status',
-      'feedbackSubmit': 'dart run w_tools_cli:feedback submit --package=<包> --title=<标题> --stdin',
-      'feedbackLint': 'dart run w_tools_cli:feedback lint --include-inbox',
+      'context': 'dart run w_tools_cli:w_tools context --format=json',
+      'doctor': 'dart run w_tools_cli:w_tools doctor --json',
+      'initCheck': 'dart run w_tools_cli:w_tools init --check-drift',
+      'feedbackStatus': 'dart run w_tools_cli:w_tools feedback status',
+      'feedbackSubmit':
+          'dart run w_tools_cli:w_tools feedback submit --package=<包> --title=<标题> --stdin',
+      'feedbackLint': 'dart run w_tools_cli:w_tools feedback lint --include-inbox',
       'analyze': isFlutter ? 'flutter analyze' : 'dart analyze',
       'test': isFlutter ? 'flutter test' : 'dart test',
     };
@@ -150,8 +151,8 @@ class ProjectSnapshot {
       ..writeln('## 组件目录')
       ..writeln()
       ..writeln(
-        'catalog v$catalogVersion 共 ${catalog.length} 条；用 `dart run w_tools_cli:list <关键词>` 或 '
-        '`dart run w_tools_cli:explain <组件名>` 查询。',
+        'catalog v$catalogVersion 共 ${catalog.length} 条；用 `dart run w_tools_cli:w_tools list <关键词>` 或 '
+        '`dart run w_tools_cli:w_tools explain <组件名>` 查询。',
       );
     return b.toString();
   }

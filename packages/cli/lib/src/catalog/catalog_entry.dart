@@ -9,6 +9,9 @@ class CatalogEntry {
     required this.importPath,
     required this.docs,
     this.dontUseFor,
+    this.aliases = const <String>[],
+    this.usage,
+    this.related = const <String>[],
   });
 
   /// 展示名（可能包含多个组件，如 `WText / WTextConfig`）
@@ -26,6 +29,15 @@ class CatalogEntry {
   /// 仓库内文档路径（消费方可按需拼接仓库 URL）
   final String docs;
 
+  /// 方法名 / 旧名等补充别名；不参与展示名。
+  final List<String> aliases;
+
+  /// 最短用法，给 explain / AI 查询使用。
+  final String? usage;
+
+  /// 相关组件名。
+  final List<String> related;
+
   Map<String, Object?> toJson() => <String, Object?>{
     'name': name,
     'names': names,
@@ -35,5 +47,8 @@ class CatalogEntry {
     if (dontUseFor != null) 'dontUseFor': dontUseFor,
     'import': importPath,
     'docs': docs,
+    'aliases': aliases,
+    if (usage != null) 'usage': usage,
+    'related': related,
   };
 }

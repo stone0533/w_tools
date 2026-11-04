@@ -55,6 +55,9 @@ String generate(String packageRoot) {
       throw StateError('catalog/components.yaml: 未知 package $package');
     }
     final dont = c['dontUseFor'] as String?;
+    final aliases = ((c['aliases'] as YamlList?)?.cast<String>() ?? const <String>[]);
+    final related = ((c['related'] as YamlList?)?.cast<String>() ?? const <String>[]);
+    final usage = c['usage'] as String?;
     buf
       ..writeln('  CatalogEntry(')
       ..writeln('    name: ${jsonEncode(name)},')
@@ -65,6 +68,9 @@ String generate(String packageRoot) {
       ..writeln('    dontUseFor: ${dont == null ? 'null' : jsonEncode(dont)},')
       ..writeln('    importPath: ${jsonEncode('package:$package/$package.dart')},')
       ..writeln('    docs: ${jsonEncode(docs)},')
+      ..writeln('    aliases: <String>[${aliases.map(jsonEncode).join(', ')}],')
+      ..writeln('    usage: ${usage == null ? 'null' : jsonEncode(usage)},')
+      ..writeln('    related: <String>[${related.map(jsonEncode).join(', ')}],')
       ..writeln('  ),');
   }
   buf

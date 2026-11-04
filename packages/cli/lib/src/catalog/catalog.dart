@@ -14,6 +14,7 @@ CatalogEntry? findComponent(String name) {
   final q = name.toLowerCase();
   for (final entry in catalogEntries) {
     if (entry.names.any((n) => n.toLowerCase() == q)) return entry;
+    if (entry.aliases.any((n) => n.toLowerCase() == q)) return entry;
   }
   return null;
 }
@@ -24,6 +25,7 @@ List<CatalogEntry> searchComponents(String query) {
   if (q.isEmpty) return catalogEntries;
   return catalogEntries.where((entry) {
     if (entry.names.any((n) => n.toLowerCase().contains(q))) return true;
+    if (entry.aliases.any((n) => n.toLowerCase().contains(q))) return true;
     if (entry.name.toLowerCase().contains(q)) return true;
     if (entry.useFor.toLowerCase().contains(q)) return true;
     if (entry.section.toLowerCase().contains(q)) return true;

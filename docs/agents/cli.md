@@ -29,9 +29,9 @@ dart run w_tools_cli:doctor               # 0 error 才算接入完成
 ## AI 闭环
 
 ```bash
-dart run w_tools_cli:context --format=prompt   # 1. 项目事实
-dart run w_tools_cli:list 表单                  # 2. 找组件
-dart run w_tools_cli:explain WFormDropdown     # 3. 用法/反例/import
+dart run w_tools_cli:w_tools context --format=prompt   # 1. 项目事实
+dart run w_tools_cli:w_tools list 表单                  # 2. 找组件
+dart run w_tools_cli:w_tools explain WFormDropdown     # 3. 用法/反例/import
 dart run w_tools_cli:doctor --format=json      # 4. 写完自检
 
 # 被 w_tools 卡住 / 有改进建议（默认关闭，先看 feedback.issue）：

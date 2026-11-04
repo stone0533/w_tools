@@ -25,8 +25,8 @@ dart run w_tools_figma:figma diff <fileKey> <nodeId> --if-stale
 - Reuse existing components before writing new ones:
 
 ```bash
-dart run w_tools_cli:list <keyword>
-dart run w_tools_cli:explain <Component>
+dart run w_tools_cli:w_tools list <keyword>
+dart run w_tools_cli:w_tools explain <Component>
 ```
 
 - Do not invent `W*` component names; run `dart run w_tools_cli:doctor` after implementation.

@@ -24,8 +24,8 @@ dev_dependencies:
 ```bash
 dart run w_tools_cli:init       # 1. 生成 toolkit / UI 规范 / AGENTS / doctor 配置
 dart run w_tools_cli:doctor     # 2. 检查是否遵守接入约定
-dart run w_tools_cli:list 表单   # 3. 找现成组件
-dart run w_tools_cli:context --format=prompt   # 4. 给 AI 项目事实
+dart run w_tools_cli:w_tools list 表单   # 3. 找现成组件
+dart run w_tools_cli:w_tools context --format=prompt   # 4. 给 AI 项目事实
 ```
 
 典型结果：
@@ -336,9 +336,9 @@ dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
 ### context
 
 ```bash
-dart run w_tools_cli:context
-dart run w_tools_cli:context --format=prompt --max-tokens=1500
-dart run w_tools_cli:context --format=json
+dart run w_tools_cli:w_tools context
+dart run w_tools_cli:w_tools context --format=prompt --max-tokens=1500
+dart run w_tools_cli:w_tools context --format=json
 ```
 
 输出项目事实：依赖、toolkit 导出、暂存层、规则与检查结果。
@@ -362,16 +362,16 @@ JSON 顶层包含：
 ### list
 
 ```bash
-dart run w_tools_cli:list             # 列出全部组件
-dart run w_tools_cli:list 下拉        # 按关键词搜索
-dart run w_tools_cli:list --format=json
+dart run w_tools_cli:w_tools list             # 列出全部组件
+dart run w_tools_cli:w_tools list 下拉        # 按关键词搜索
+dart run w_tools_cli:w_tools list --format=json
 ```
 
 ### explain
 
 ```bash
-dart run w_tools_cli:explain WImage
-dart run w_tools_cli:explain WFormDropdown
+dart run w_tools_cli:w_tools explain WImage
+dart run w_tools_cli:w_tools explain WFormDropdown
 ```
 
 输出用途、反例、import、文档；项目配置了 `banned` 时会提示禁用项和替代方案。
@@ -382,9 +382,9 @@ dart run w_tools_cli:explain WFormDropdown
 ## 给 AI 的工作流
 
 ```bash
-dart run w_tools_cli:context --format=prompt   # 先拿事实
-dart run w_tools_cli:list <关键词>              # 找组件
-dart run w_tools_cli:explain <组件名>           # 看用法 / 反例
+dart run w_tools_cli:w_tools context --format=prompt   # 先拿事实
+dart run w_tools_cli:w_tools list <关键词>              # 找组件
+dart run w_tools_cli:w_tools explain <组件名>           # 看用法 / 反例
 dart run w_tools_cli:doctor --json             # 写完自检
 ```
 

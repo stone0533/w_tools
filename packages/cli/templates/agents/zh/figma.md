@@ -25,8 +25,8 @@ dart run w_tools_figma:figma diff <fileKey> <nodeId> --if-stale
 - 写页面时先查现有组件：
 
 ```bash
-dart run w_tools_cli:list <关键词>
-dart run w_tools_cli:explain <组件名>
+dart run w_tools_cli:w_tools list <关键词>
+dart run w_tools_cli:w_tools explain <组件名>
 ```
 
 - 不要凭记忆造 `W*` 组件名；实现后跑 `dart run w_tools_cli:doctor`。

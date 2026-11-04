@@ -127,6 +127,8 @@ components:
     section: '7. 状态与反馈'
     useFor: '普通页面异步四态视图、默认重试页与刷新错误条'
     dontUseFor: '滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController`'
+    usage: 'WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (context, data) => ...)'
+    related: ['WAsyncController', 'WAsyncTheme', 'WAsyncStateBuilder']
   - name: '`WAsyncStateBuilder`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
@@ -137,6 +139,8 @@ components:
     section: '7. 状态与反馈'
     useFor: '单区块异步状态、load / retry / 旧请求丢弃'
     dontUseFor: '分页用 `WAsyncPagedController`；纯执行用 `WAsync`'
+    usage: 'final c = WAsyncController.list(() => api.list()); c.load();'
+    related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
   - name: '`WAsyncPagedController`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
@@ -152,6 +156,14 @@ components:
     section: '7. 状态与反馈'
     useFor: 'App 根部统一默认 loading / empty / error（普通 + sliver）'
     dontUseFor: '不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先'
+    related: ['WAsyncThemeViews', 'WAsyncView', 'WAsyncStateSliver']
+  - name: '`WAsyncThemeViews`'
+    package: 'w_tools_async'
+    section: '7. 状态与反馈'
+    useFor: '自建滚动壳复用 WAsyncTheme 的默认四态视图'
+    dontUseFor: '普通页面直接用 WAsyncView，不要重复搭状态分支'
+    usage: 'final views = WAsyncThemeViews.of(context);'
+    related: ['WAsyncTheme', 'WAsyncStateBuilder']
   - name: '`WToast`'
     package: 'w_tools_toast'
     section: '7. 状态与反馈'
@@ -192,10 +204,15 @@ components:
     section: '8. 能力（非 UI）'
     useFor: '`WAsync.tryRun` 的成功 / 失败 / 取消结果'
     dontUseFor: '需要失败抛异常时用 `WAsync.run`'
+    usage: 'switch (result) { case WAsyncSuccess(:final value): ... }'
+    related: ['WAsync', 'WAsyncController']
   - name: '`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`'
     package: 'w_tools_async'
     section: '8. 能力（非 UI）'
     useFor: '无 UI 异步执行（tryRun/run）、取消与活动计数'
+    aliases: ['tryRun', 'run', 'map', 'retry', 'timeout', 'parallel', 'pool', 'serial', 'first']
+    usage: 'final result = await WAsync.tryRun(() => api.fetch());'
+    related: ['WAsyncResult', 'WAsyncOptions', 'WCancelToken']
   - name: '`WCountdown`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'

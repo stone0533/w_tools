@@ -426,6 +426,22 @@ banned:
     expect(payload['found'], isTrue);
   });
 
+  test('explain WAsync 输出 usage / related，tryRun 可精确命中', () async {
+    final json = await _run('explain.dart', ['WAsync', '--format=json']);
+    final payload = jsonDecode('${json.stdout}') as Map<String, Object?>;
+    final component = (payload['components'] as List).single as Map<String, Object?>;
+    expect(component['usage'], contains('WAsync.tryRun'));
+    expect(component['related'], contains('WAsyncResult'));
+
+    final alias = await _run('explain.dart', ['tryRun']);
+    expect(alias.exitCode, 0);
+    expect('${alias.stdout}', contains('WAsync / WAsyncOptions'));
+
+    final themeViews = await _run('explain.dart', ['WAsyncThemeViews']);
+    expect(themeViews.exitCode, 0);
+    expect('${themeViews.stdout}', contains('WAsyncThemeViews.of(context)'));
+  });
+
   test('context 对坏配置报配置文件名', () async {
     final root = _project();
     File(p.join(root.path, '.w_tools_doctor.yaml')).writeAsStringSync('banned: [');

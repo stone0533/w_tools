@@ -70,8 +70,8 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 先查项目已有组件，不要凭记忆造：
 
 ```bash
-dart run w_tools_cli:list <关键词>
-dart run w_tools_cli:explain <组件名>
+dart run w_tools_cli:w_tools list <关键词>
+dart run w_tools_cli:w_tools explain <组件名>
 ```
 
 按 [`docs/agents/ui.md`](ui.md)：
