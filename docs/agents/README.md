@@ -33,6 +33,7 @@
 - [Toast 规则](toast.md)（深入：[toast_module](../modules/toast_module.md)）
 - [组合用法](../recipes/README.md)：分页 / 登录刷新 / App 根装配
 - [使用反馈](../feedback/README.md)：用 w_tools 撞到的问题按模板记录（`docs/feedback/<包>.md`）
+- [文档地图](../documentation-map.md)：每个文档写什么、信息该放哪
 - [AI 使用契约](../ai-contract.md)：catalog / explain / AGENTS 的更新、检查与完整性边界
 - [维护者 AI 提示词](../ai-maintainer-prompts.md)：按场景复制
 - [Issue tracker](issue-tracker.md)

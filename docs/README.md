@@ -2,13 +2,14 @@
 
 | 目录 | 受众 | 内容 |
 |------|------|------|
-| [`modules/`](modules/README.md) | 使用者 | 9 个 Flutter 子包的模块文档、组件目录、依赖矩阵 |
-| 本目录顶层 | 维护者 / agent | 接入约定、发版流程、ADR、agent 指令 |
+| [`modules/`](modules/README.md) | 使用者 | 11 个 Flutter 子包的模块文档、组件目录、依赖矩阵 |
+| 本目录顶层 | 维护者 / agent | 接入约定、文档地图、发版流程、ADR、agent 指令 |
 
 ## 使用者
 
 - [模块文档索引](modules/README.md)：包职责、依赖矩阵、SDK 速查
 - [组件目录](modules/components.md)：按用途找现成组件，含「不要用在哪」
+- [文档地图](documentation-map.md)：每个文档写什么、AI 应该把信息放哪
 - [接入约定](conventions.md)：包 / 暂存层 / 业务层的判定与 doctor 规则
 - [新增/修改组件](../CONTRIBUTING.md)：四条硬性要求
 - [CLI（init / doctor）](../packages/cli/README.md)

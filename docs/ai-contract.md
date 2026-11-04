@@ -423,5 +423,6 @@ bash scripts/preflight.sh --with-tests
 - [模块索引](modules/README.md)
 - [Agent 文档索引](agents/README.md)
 - [Async 5.0 迁移](migrations/async-5.0.md)
+- [文档地图](documentation-map.md)
 - [scripts 运行手册](../scripts/README.md)
 - [根 AGENTS](../AGENTS.md)

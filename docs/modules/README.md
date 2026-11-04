@@ -2,10 +2,10 @@
 
 ## 概述
 
-`w_tools` 是一个 Flutter Monorepo：**9 个 Flutter 子包** + **聚合包 `w_tools`** +
+`w_tools` 是一个 Flutter Monorepo：**11 个 Flutter 子包** + **聚合包 `w_tools`** +
 **纯 Dart 工具包 [`w_tools_cli`](../../packages/cli/README.md)**。
 
-9 个 Flutter 子包通过顶层 `w_tools` 聚合导出，业务工程可按需引入；`w_tools_cli` 是
+11 个 Flutter 子包通过顶层 `w_tools` 聚合导出，业务工程可按需引入；`w_tools_cli` 是
 独立的开发工具（`init` / `doctor`），只放 `dev_dependencies`，不参与聚合、也不进构建。
 
 ## Flutter 子包职责
