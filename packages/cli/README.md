@@ -270,6 +270,8 @@ dart run w_tools_cli:doctor --write-config    # 写入 .w_tools_doctor.yaml
 
 给 AI / 开发者的反馈入口：**记录 w_tools 本身的问题**（不是业务代码问题）。
 
+**默认策略：本地台账优先；Issue 默认关闭；都不满足就跳过。**
+
 ```bash
 # 先查重
 dart run w_tools_cli:feedback search "WImage 缓存" --package=ui
@@ -277,15 +279,12 @@ dart run w_tools_cli:feedback search "WImage 缓存" --package=ui
 # 打印字段骨架（可选）
 dart run w_tools_cli:feedback submit --template > /tmp/feedback.md
 
-# 生成预填 GitHub issue（默认只打印链接，不上传）
-dart run w_tools_cli:feedback submit --package=ui --title="WImage 缓存不生效" --stdin
+# 默认：仓库检出 → 写 docs/feedback；消费方 feedback.issue=true → 建 Issue；否则跳过
+dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md
 
-# 直接建 issue（需 gh 登录）/ 离线写本地收件箱
-dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --gh
-dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --local
-
-# 仅 w_tools 仓库检出：直接维护台账并同步索引
-dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --ledger
+# 显式覆盖
+dart run w_tools_cli:feedback submit ... --ledger   # 仓库内直接维护台账 + 索引
+dart run w_tools_cli:feedback submit ... --issue    # 显式建 Issue（需 token/gh）
 
 dart run w_tools_cli:feedback path --package=figma   # 该写哪个文件
 dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
@@ -293,13 +292,14 @@ dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
 
 | 子命令 | 作用 |
 |---|---|
-| `submit` | 校验字段并生成 GitHub 预填链接；`--gh` 直接建 issue，`--local` 写本地收件箱；`--ledger`（仅仓库检出）直接写 `docs/feedback` 并更新索引 |
-| `search` | 本地台账/收件箱查重；`--gh` 同时搜 GitHub issues |
-| `path` | 有 w_tools 仓库 → `<repo>/docs/feedback/<包>.md`；否则 → 本项目收件箱 `docs/agents/feedback.md` |
+| `submit` | 本地台账优先；`--ledger` 强制台账，`--issue` 强制 Issue；无通道时跳过（exit 0） |
+| `search` | 本地台账查重；`--gh` 同时搜 GitHub issues |
+| `path` | 仓库检出 → `docs/feedback/<包>.md`；消费方默认不写文件，提示用 `--issue` |
 | `lint` | 字段齐全 / 状态合法 / 已闭环带版本号 / 已确认链 issue / 索引与文件一致 / 待处理 stale 警告 |
 
-- `submit` 默认**不联网、不上传**；`--gh` / `--local` 必须显式选择
-- 反馈入口是 GitHub Issue（`.github/ISSUE_TEMPLATE/feedback.md`），`docs/feedback/` 是 triage 后的台账
+- 本地台账存在时**不联网**；Issue 需 `.w_tools_doctor.yaml` 的 `feedback.issue: true` 或显式 `--issue`
+- `feedback.issue` 默认 `false`；无 token/gh 时 `--issue` 会失败，不会生成人工链接
+- 反馈 Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`；`docs/feedback/` 是 triage 后的台账
 - `lint --stale-days=<n>`：待处理超过 n 天给警告（默认 30，0 关闭），不影响退出码
 - 规则与文件格式见仓库 `docs/feedback/README.md`；CI 的 `scripts/check_feedback.sh` 就是这条命令的包装
 - `--package` 只接受小写字母/数字/下划线（防路径穿越）

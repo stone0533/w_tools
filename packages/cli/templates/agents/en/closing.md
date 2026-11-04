@@ -14,6 +14,6 @@
 
 - `dart run w_tools_cli:doctor --json` → 0 error (warnings are contextual)
 - `flutter analyze`, `flutter test`
-- Used `w_tools_*` and got blocked? → `feedback search` for duplicates, then `feedback submit` (see "Usage feedback");
-  do not patch the library or write the ledger directly.
+- Used `w_tools_*` and got blocked? → check `feedback.issue` in `.w_tools_doctor.yaml`;
+  if off, skip (default); if on, follow "Usage feedback" (search → submit).
 <!-- w_tools:end -->

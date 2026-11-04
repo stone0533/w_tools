@@ -27,6 +27,12 @@ void main() {
     expect(DoctorConfig.parse('rules:\n  R1: false\n').enabledRules, isNot(contains('R1')));
   });
 
+  test('feedback.issue 默认 false，可显式开启', () {
+    expect(DoctorConfig().feedbackIssue, isFalse);
+    expect(DoctorConfig.parse('feedback:\n  issue: true\n').feedbackIssue, isTrue);
+    expect(DoctorConfig.parse('feedback:\n  issue: false\n').feedbackIssue, isFalse);
+  });
+
   test('ignore 解析为列表', () {
     final config = DoctorConfig.parse('ignore:\n  - lib/app/generated/\n  - build/\n');
     expect(config.ignore, ['lib/app/generated/', 'build/']);

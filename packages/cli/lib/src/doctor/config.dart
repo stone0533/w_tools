@@ -25,6 +25,7 @@ class DoctorConfig {
     this.aiTargets = const <String>['agents'],
     this.aiLanguage = 'zh',
     this.aiFigma = 'auto',
+    this.feedbackIssue = false,
   });
 
   /// R2 的白名单：这个文件里允许 import 子包（它就是聚合入口）
@@ -54,6 +55,9 @@ class DoctorConfig {
   /// init 是否生成 Figma 片段：auto / true / false。
   /// auto 时由项目 pubspec 是否依赖 w_tools_figma 决定。
   final String aiFigma;
+
+  /// 是否允许 `feedback submit` 创建 GitHub Issue；默认关闭。
+  final bool feedbackIssue;
 
   /// 配置文件名（项目根）
   static const fileName = '.w_tools_doctor.yaml';
@@ -159,6 +163,12 @@ class DoctorConfig {
     var aiTargets = const <String>['agents'];
     var aiLanguage = 'zh';
     var aiFigma = 'auto';
+    var feedbackIssue = false;
+    final feedbackNode = raw['feedback'];
+    if (feedbackNode is YamlMap && feedbackNode['issue'] is bool) {
+      feedbackIssue = feedbackNode['issue'] as bool;
+    }
+
     final aiNode = raw['ai'];
     if (aiNode is YamlMap) {
       final t = aiNode['targets'];
@@ -183,6 +193,7 @@ class DoctorConfig {
       aiTargets: aiTargets,
       aiLanguage: aiLanguage,
       aiFigma: aiFigma,
+      feedbackIssue: feedbackIssue,
     );
   }
 
@@ -196,6 +207,7 @@ class DoctorConfig {
     List<String>? aiTargets,
     String? aiLanguage,
     String? aiFigma,
+    bool? feedbackIssue,
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
@@ -207,6 +219,7 @@ class DoctorConfig {
       aiTargets: aiTargets ?? this.aiTargets,
       aiLanguage: aiLanguage ?? this.aiLanguage,
       aiFigma: aiFigma ?? this.aiFigma,
+      feedbackIssue: feedbackIssue ?? this.feedbackIssue,
     );
   }
 }
@@ -240,6 +253,10 @@ String renderDefaultConfig() {
     ..writeln('  # language: en')
     ..writeln('  figma: ${defaults.aiFigma}')
     ..writeln('  # auto: pubspec 依赖 w_tools_figma 时生成 Figma 片段；也可设为 true/false')
+    ..writeln()
+    ..writeln('feedback:')
+    ..writeln('  # 默认关闭；true 才允许 feedback submit 在没有本地台账时创建 GitHub Issue')
+    ..writeln('  issue: ${defaults.feedbackIssue}')
     ..writeln()
     ..writeln('# 跳过的路径前缀（相对项目根）')
     ..writeln('ignore: []')

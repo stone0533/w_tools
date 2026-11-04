@@ -31,31 +31,28 @@
 ## 怎么用（消费方）
 
 > 装了 `w_tools_cli` 的项目，`init` 会把这段流程写进 AGENTS（「使用反馈（给 AI）」一节），
-> 新项目不用手抄；本地收件箱固定为 `docs/agents/feedback.md`。
+> 新项目不用手抄；默认不提交，只有项目显式开启 `feedback.issue` 才建 Issue。
 
-**反馈入口是 GitHub Issue**，不是本地文件；AI 用 CLI 生成预填 issue：
+**默认策略：本地台账优先；Issue 默认关闭；都不满足就跳过。**
+
+- 在 w_tools 仓库检出内：`feedback submit` 自动写 `docs/feedback/<包>.md` 并更新索引；
+- 消费方：只有 `.w_tools_doctor.yaml` 的 `feedback.issue: true` 时才创建 Issue；
+- 没有本地台账且 Issue 未开启：**什么都不做**（不写本地收件箱、不生成链接）。
 
 ```bash
-# 1. 查重（本地台账/收件箱；有 gh 时加 --gh 搜 GitHub）
-dart run w_tools_cli:feedback search "<关键词>" --package=<包>
-
-# 2. 打印正文骨架 / 按 TEMPLATE 写正文到临时文件，然后提交：
+# 仓库内：直接维护台账
 dart run w_tools_cli:feedback submit \
-  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md
-#   默认只打印 GitHub 预填链接，不会自动上传
-#   --gh    直接 gh issue create（需 gh auth login）
-#   --local 离线写 docs/agents/feedback.md，之后手动提交
+  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger
+
+# 消费方（已开启 feedback.issue）：
+dart run w_tools_cli:feedback submit \
+  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --issue
 ```
 
-- `submit` 会校验 TEMPLATE 的必填字段；缺字段直接退出 2；
-- 没有 w_tools 仓库权限也能提交：GitHub Issue 是公开入口；
-- 维护者 triage 后才写入 `docs/feedback/<包>.md`，消费方不要直接改台账 / 索引；
-- `feedback lint --include-inbox` 仍可用于本地自检；CI 的 `scripts/check_feedback.sh` 是库侧包装；
-- GitHub 模板：`.github/ISSUE_TEMPLATE/feedback.md`。
-
-- 状态只写 `待处理`，**不要自己标「已修复」**；
-- 一次会话最多 3–5 条，只记**真正卡住你**的；「我觉得可以更好」不算；
-- 没有网络 / gh 时：用 `--local` 写消费方 `docs/agents/feedback.md`，之后用 `--gh` 或打开预填链接提交；不要直接改库侧台账。
+- `submit` 会校验必填字段；缺字段退出 2；
+- `--issue` 需要 `GH_TOKEN` / `GITHUB_TOKEN` 或已登录 `gh`；失败会明确报错；
+- 维护者 triage 后才把外部 issue 写入台账；消费方不要直接改 `docs/feedback/`；
+- Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`。
 
 ## 怎么用（维护者）
 

@@ -14,6 +14,6 @@
 
 - `dart run w_tools_cli:doctor --json` → 0 error（warning 看情况）
 - `flutter analyze`、`flutter test`
-- 本次用过 `w_tools_*` 且被卡住？→ 先 `feedback search` 查重，再 `feedback submit`（见「使用反馈（给 AI）」）；
-  不要改库、不要直接写台账。
+- 本次用过 `w_tools_*` 且被卡住？→ 先看 `.w_tools_doctor.yaml` 的 `feedback.issue`；
+  未开启就跳过（这是默认）；开启后按「使用反馈」search → submit。
 <!-- w_tools:end -->

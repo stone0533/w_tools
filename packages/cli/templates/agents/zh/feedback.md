@@ -1,23 +1,27 @@
-## 使用反馈（给 AI）
+## 使用反馈（默认关闭）
 
-用 `w_tools_*` 撞到问题、或对能力有改进建议：**先查重，再提交，不要改库**。
+用 `w_tools_*` 撞到问题、或对能力有改进建议：**先查重；默认不提交，只有项目显式开启时才发。**
 
-### 什么算反馈
+### 第一步：看项目是否开启
 
-- 文档 / 示例照抄不能编译，或行为与文档不一致
-- API 缺能力，导致你重复写 workaround
-- 规则 / 组件明显不适配真实页面（不是个人风格偏好）
+只有 `.w_tools_doctor.yaml` 里：
 
-### 三步
+```yaml
+feedback:
+  issue: true
+```
+
+才允许创建 GitHub Issue。没有这个配置（或为 false）→ **什么都不做**，不要写本地文件、不要打开链接。
+
+### 已开启时
 
 1. **查重**
 
    ```bash
    dart run w_tools_cli:feedback search "<关键词>" --package=<包>
-   # 有 gh 登录时可加 --gh 同时搜 GitHub issues
    ```
 
-2. **写正文**（字段固定；缺字段会被拒绝。可先运行
+2. **写正文**（字段固定，缺字段会被拒绝；可先运行
    `dart run w_tools_cli:feedback submit --template` 打印骨架）
 
    ```md
@@ -33,20 +37,19 @@
 
    保存为 `/tmp/w_tools_feedback.md`。
 
-3. **提交**
+3. **提交**（`--issue` 可显式覆盖配置）
 
    ```bash
    dart run w_tools_cli:feedback submit \
-     --package=<包> --title="<一句话现象>" --body-file=/tmp/w_tools_feedback.md
+     --package=<包> --title="<一句话现象>" --body-file=/tmp/w_tools_feedback.md --issue
    ```
 
-   - 默认：打印 GitHub 预填 issue 链接，**不会自动上传**；
-   - `--gh`：直接 `gh issue create`（需已登录）；
-   - 离线：`--local` 写入本地 `docs/agents/feedback.md`，之后手动提交。
+   - 需要 `GH_TOKEN` / `GITHUB_TOKEN`，或已登录的 `gh`；
+   - 提交成功会输出 issue URL；失败会明确报错，不生成人工链接。
 
 ### 边界
 
-- 状态只写 `待处理`；**不要自己标「已修复」**（版本号由维护者发布后补）；
 - 一次会话最多 3–5 条，只记**真正卡住你**的；
+- 状态只写 `待处理`，**不要自己标「已修复」**；
 - 不要把反馈写进业务代码或 `.w_tools/`；
-- 维护者 triage 后才进入 `w_tools/docs/feedback/<包>.md`（唯一真相）。
+- 维护者 triage 后才进入 `w_tools/docs/feedback/<包>.md`。

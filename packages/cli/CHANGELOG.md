@@ -1,8 +1,12 @@
 ## 1.9.13
 
 ### 新增
+- `feedback submit` 默认策略：本地 `docs/feedback/` 存在 → 直接写台账；否则
+  `.w_tools_doctor.yaml` 的 `feedback.issue: true` → 建 Issue；都不满足 → 跳过（exit 0）。
 - `feedback submit --ledger`：仅 w_tools 仓库检出可用，直接追加 `docs/feedback/<包>.md`，
-  自动创建缺失包的台账并更新索引待处理数量；消费方仍走 issue / `--local`。
+  自动创建缺失包的台账并更新索引待处理数量。
+- `feedback submit --issue`：显式创建 Issue（覆盖配置）；`--gh` 保留为别名。
+- `.w_tools_doctor.yaml` 新增 `feedback.issue`（默认 false）；生成 AGENTS 改为“默认关闭”。
 
 ## 1.9.12
 

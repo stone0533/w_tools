@@ -505,7 +505,7 @@ banned:
     expect('${r.stderr}', contains('冲突'));
   });
 
-  test('feedback submit 默认只输出 GitHub 链接，不写文件', () async {
+  test('feedback submit 默认无通道时跳过', () async {
     final root = _project();
     final body = File(p.join(root.path, 'body.md'))
       ..writeAsStringSync('''
@@ -528,8 +528,60 @@ banned:
       body.path,
     ]);
     expect(r.exitCode, 0);
-    expect('${r.stdout}', contains('https://github.com/stone0533/w_tools/issues/new'));
+    expect('${r.stdout}', contains('反馈未提交'));
     expect(File(p.join(root.path, 'docs', 'agents', 'feedback.md')).existsSync(), isFalse);
+    expect(File(p.join(root.path, 'docs', 'feedback')).existsSync(), isFalse);
+  });
+
+  test('feedback submit 默认优先写本地台账', () async {
+    final root = _project();
+    Directory(p.join(root.path, 'docs', 'feedback')).createSync(recursive: true);
+    File(p.join(root.path, 'docs', 'feedback', 'README.md')).writeAsStringSync('''
+| 包 | 待处理 | 最近更新 |
+| --- | --- | --- |
+| [ui](ui.md) | 0 | 2026-11-04 |
+''');
+    File(p.join(root.path, 'docs', 'feedback', 'ui.md')).writeAsStringSync('''
+# w_tools_ui 反馈
+
+## 待处理
+
+（暂无）
+
+## 已闭环
+
+| 日期 | 问题 | 结果 |
+| --- | --- | --- |
+''');
+    final body = File(p.join(root.path, 'body.md'))
+      ..writeAsStringSync('''
+- 包/版本：w_tools_ui 5.0.0
+- 环境：macOS
+- 命令 / 输入：WImage
+- 期望：显示
+- 实际：空白
+- 影响：无
+- 建议：补提示
+- 复现数据：无
+''');
+    final r = await _run('feedback.dart', [
+      'submit',
+      '--root',
+      root.path,
+      '--package=ui',
+      '--title=WImage 空白',
+      '--body-file',
+      body.path,
+    ]);
+    expect(r.exitCode, 0);
+    expect(
+      File(p.join(root.path, 'docs', 'feedback', 'ui.md')).readAsStringSync(),
+      contains('### [待处理] ui: WImage 空白'),
+    );
+    expect(
+      File(p.join(root.path, 'docs', 'feedback', 'README.md')).readAsStringSync(),
+      contains('| [ui](ui.md) | 1 |'),
+    );
   });
 
   test('feedback submit --local 写入收件箱', () async {
