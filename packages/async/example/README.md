@@ -8,6 +8,7 @@
 - 全局默认：`WAsyncTheme`（普通 + sliver 一套）
 - 状态构建器：`WAsyncStateBuilder` / `WAsyncErrorView`
 - 执行编排：`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`
+- 真实场景：提交重试+取消、启动并行、限流上传、搜索竞态
 
 ## 运行
 
@@ -35,9 +36,69 @@ lib/
     sliver_page.dart        WAsyncStateSliver
     state_builder_page.dart WAsyncStateBuilder
     execution_page.dart     WAsync / 重试 / 超时 / 取消
+    scenarios_page.dart     提交 / 启动 / 上传 / 搜索竞态
 test/
   example_smoke_test.dart
 ```
+
+## 真实场景页
+
+底部导航的「场景」页把 `WAsync` 放进了四类真实用法：
+
+### 提交订单
+
+```dart
+await WAsync.retry(
+  () => WAsync.timeout(
+    () => api.createOrder(token: token),
+    const Duration(seconds: 2),
+    cancelToken: token,
+  ),
+  retryCount: 2,
+  retryDelay: const Duration(milliseconds: 200),
+  retryIf: (error) => error is Exception,
+  cancelToken: token,
+);
+```
+
+- 失败自动重试；
+- 超时抛 `TimeoutException`；
+- 页面销毁 / 用户取消时 token 取消，抛 `WCancellationException`。
+
+### App 启动
+
+```dart
+await WAsync.parallel<String>(
+  [loadConfig(), loadProfile(), loadNotifications()],
+  options: WAsyncOptions(activity: activity),
+);
+```
+
+多个任务共享 `WAsyncActivity`，loading 只触发一次 0→1→0。
+
+### 上传文件
+
+```dart
+await WAsync.pool<String>(
+  files.map((file) => () => upload(file)),
+  concurrency: 2,
+  cancelToken: token,
+);
+```
+
+限制并发数，结果顺序与输入一致。
+
+### 搜索竞态
+
+```dart
+final token = WCancelToken();
+final result = await WAsync.tryRun(
+  () => api.search(keyword, cancelToken: token),
+  cancelToken: token,
+);
+```
+
+每次搜索取消旧 token；旧结果返回时用 `identical` 丢弃。
 
 ## 示例说明
 

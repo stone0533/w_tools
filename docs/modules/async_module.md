@@ -60,7 +60,7 @@ packages/async/lib/
 | `activity` | `WAsyncActivity?` | 需要合并并发活动时传入 |
 | `onError` | `void Function(Object?)?` | 失败兜底回调 |
 
-直接构造 options；5.0 删除 `copyWith`。`withoutActivity()` 仅去掉 activity。
+直接构造 options；5.0 删除 `copyWith`。`withoutActivity()` / `withoutOnError()` 分别只去掉 activity / onError。
 
 ### WAsyncActivity
 

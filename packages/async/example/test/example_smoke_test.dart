@@ -39,6 +39,22 @@ void main() {
     expect(find.text('run: 执行成功'), findsOneWidget);
   });
 
+  testWidgets('场景页可以提交订单（重试后成功）', (tester) async {
+    await tester.pumpWidget(const AsyncExampleApp());
+    await tester.tap(find.text('场景'));
+    await tester.pumpAndSettle();
+    expect(find.text('真实场景'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, '提交'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).last, const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('提交成功'), findsOneWidget);
+  });
+
   testWidgets('Sliver 页面展示四态 sliver', (tester) async {
     await tester.pumpWidget(const AsyncExampleApp());
     await tester.tap(find.text('Sliver'));

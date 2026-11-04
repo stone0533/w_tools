@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
 import 'pages/execution_page.dart';
+import 'pages/scenarios_page.dart';
 import 'pages/paged_page.dart';
 import 'pages/sliver_page.dart';
 import 'pages/state_builder_page.dart';
@@ -84,6 +85,7 @@ class _ExampleHomeState extends State<_ExampleHome> {
           SliverPage(),
           StateBuilderPage(),
           ExecutionPage(),
+          ScenariosPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -109,6 +111,10 @@ class _ExampleHomeState extends State<_ExampleHome> {
           NavigationDestination(
             icon: Icon(Icons.play_circle_outline_rounded),
             label: '执行',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.auto_awesome_rounded),
+            label: '场景',
           ),
         ],
       ),

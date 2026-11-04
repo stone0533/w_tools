@@ -26,6 +26,11 @@ class WAsyncOptions {
 
   /// 去掉并发活动计数器，保留错误回调。
   WAsyncOptions withoutActivity() => WAsyncOptions(onError: onError);
+
+  /// 去掉错误兜底回调，保留并发活动计数器。
+  ///
+  /// 调用点自己处理错误时用它，避免 `onError` 与调用点重复上报。
+  WAsyncOptions withoutOnError() => WAsyncOptions(activity: activity);
 }
 
 /// 异步执行助手。

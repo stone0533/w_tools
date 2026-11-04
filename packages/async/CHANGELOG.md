@@ -11,6 +11,9 @@
 - 默认文案改由 `WAsyncStrings` 提供（默认为中性英文），可通过 `WAsyncTheme.strings` 注入。
 - 分页 `initialPage` 必须 >= 1。
 
+### Added
+- `WAsyncOptions.withoutOnError()`：调用点自己处理错误时去掉兜底 onError，避免重复上报。
+
 # Changelog
 
 ## 4.1.0

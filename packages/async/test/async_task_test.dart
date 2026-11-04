@@ -308,5 +308,13 @@ void main() {
       expect(copy.activity, isNull);
       expect(copy.onError, same(options.onError));
     });
+
+    test('withoutOnError 保留 activity', () {
+      final activity = WAsyncActivity();
+      final options = WAsyncOptions(activity: activity, onError: (_) {});
+      final copy = options.withoutOnError();
+      expect(copy.activity, same(activity));
+      expect(copy.onError, isNull);
+    });
   });
 }
