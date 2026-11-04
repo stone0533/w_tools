@@ -15,6 +15,62 @@ AI 改代码后，应该把信息放到哪个文档？
 
 ---
 
+## 0. 读者模型
+
+不要把“AI”当成与“包使用者 / 维护者”并列的单一读者。
+
+更准确的是 **4 类读者**：
+
+| 读者 | 典型任务 | 主要入口 |
+|---|---|---|
+| 包使用者（人） | 选包、安装、使用、升级、排错 | 根 README、包 README、modules、recipes、migrations |
+| 包使用者（AI） | 找组件、生成代码、检查 API | 生成的 AGENTS、`context/list/explain --format=prompt`、pub.dev README |
+| 包维护者（人） | 设计、改代码、review、发布 | CONTRIBUTING、conventions、releasing、ADR、scripts/README |
+| 仓库内 AI | 改代码、补 catalog、改 AGENTS、跑门禁 | AGENTS、docs/agents、ai-contract、ai-maintainer-prompts、catalog、example |
+
+`贡献者` 可以归入“包维护者”，不必单独成类。
+
+### 包使用者 AI ≠ 仓库内 AI
+
+消费方 AI 通常只能看到：
+
+```text
+init 生成的 AGENTS.md
+pub.dev README
+CLI context / list / explain 输出
+```
+
+它**看不到**：
+
+```text
+packages/<pkg>/example/
+docs/agents/
+docs/analysis/
+scripts/
+```
+
+仓库内 AI 才能读源码、example、catalog、templates 和全部 docs。
+
+所以：
+
+```text
+消费方 AI  → 依赖 AGENTS + CLI 查询
+仓库内 AI  → 依赖 AGENTS + docs/ai-contract + catalog + example
+维护者     → 依赖 docs + scripts/README
+```
+
+### 三个 surface
+
+| surface | 面向 | 内容 |
+|---|---|---|
+| 使用面 | 包使用者（人 + AI） | 安装、API、组合场景、迁移、示例 |
+| 维护面 | 维护者（人 + 仓库 AI） | 规范、ADR、发布、检查、反馈 |
+| AI 检索面 | 消费方 AI + 仓库 AI | 组件事实、最短用法、坑、入口规则、查询命令 |
+
+AI 检索面不是第三份完整文档，而是使用面 / 维护面的**可查询投影**。
+
+---
+
 ## 1. 一张图
 
 ```text
@@ -58,32 +114,53 @@ scripts/README.md         scripts 运行手册
 
 ## 2. 文档定位表
 
-| 文档 | 受众 | 作用 | 什么时候改 | 不要放什么 |
+| 文档 | 主要读者 | 作用 | 什么时候改 | 不要放什么 |
 |---|---|---|---|---|
-| 根 `README.md` | 新用户 | 第一入口、安装、子包选择 | 改安装方式 / 包边界 / 快速开始 | 完整 API 表、包内部实现 |
-| `CONTRIBUTING.md` | 贡献者 | 新增 / 修改组件的硬要求 | 组件规范变化 | 具体组件 API |
+| 根 `README.md` | 包使用者（人/AI） | 第一入口、安装、子包选择 | 改安装方式 / 包边界 / 快速开始 | 完整 API 表、包内部实现 |
+| `CONTRIBUTING.md` | 维护者（人/AI） | 新增 / 修改组件的硬要求 | 组件规范变化 | 具体组件 API |
 | `docs/README.md` | 所有人 | 文档总索引 | 新增文档目录 | 具体规则 |
-| `docs/documentation-map.md` | 维护者 / AI | 文档定位与整理规则 | 文档结构变化 | 包 API 细节 |
-| `docs/conventions.md` | 消费方 / 维护者 | 接入方式与 doctor 规则 | 接入规则 / R1~R9 变化 | 组件目录 |
-| `docs/ai-contract.md` | 维护者 / AI | AI 分层、更新流程、完整性 | catalog / AGENTS 机制变化 | 单个组件教程 |
-| `docs/ai-maintainer-prompts.md` | 维护者 | 按场景复制的提示词 | 工作流变化 | 完整规则副本 |
-| `docs/modules/*.md` | 使用者 | 包职责、API、用法 | 包的公开行为变化 | 维护者内部流程 |
-| `docs/modules/components.md` | 使用者 / AI | 组件目录 | **只由生成器改** | 手写内容 |
+| `docs/documentation-map.md` | 维护者（人/仓库 AI） | 文档定位与整理规则 | 文档结构变化 | 包 API 细节 |
+| `docs/conventions.md` | 接入者 / 维护者 | 接入方式与 doctor 规则 | 接入规则 / R1~R9 变化 | 组件目录 |
+| `docs/ai-contract.md` | 维护者 / 仓库 AI | AI 分层、更新流程、完整性 | catalog / AGENTS 机制变化 | 单个组件教程 |
+| `docs/ai-maintainer-prompts.md` | 维护者（人/仓库 AI） | 按场景复制的提示词 | 工作流变化 | 完整规则副本 |
+| `docs/modules/*.md` | 包使用者（人/AI） | 包职责、API、用法 | 包的公开行为变化 | 维护者内部流程 |
+| `docs/modules/components.md` | 包使用者（人/AI） | 组件目录 | **只由生成器改** | 手写内容 |
 | `docs/agents/*.md` | 仓库 AI | 首选入口、硬规则、禁止项 | 规则 / 入口变化 | 完整教程、历史 |
-| `docs/recipes/*.md` | 使用者 / AI | 跨包组合用法 | 多包协作方式变化 | 单包 API 全表 |
-| `docs/migrations/*.md` | 升级用户 | 版本迁移 | 发布 breaking change 时新增 | 当前用法教程 |
-| `docs/adr/*.md` | 维护者 | 架构决策记录 | 新决策时新增，旧决策不改 | 操作手册 |
+| `docs/recipes/*.md` | 包使用者（人/AI） | 跨包组合用法 | 多包协作方式变化 | 单包 API 全表 |
+| `docs/migrations/*.md` | 升级用户（人/AI） | 版本迁移 | 发布 breaking change 时新增 | 当前用法教程 |
+| `docs/adr/*.md` | 维护者（人/仓库 AI） | 架构决策记录 | 新决策时新增，旧决策不改 | 操作手册 |
 | `docs/release/*.md` | 维护者 | 某次发布记录 | 发布时新增 | 当前版本声明 |
 | `docs/analysis/*.md` | 维护者 | 某次评审记录 | 评审时新增 | 当前事实源 |
 | `docs/feedback/*.md` | 维护者 / 用户 | 问题台账 | 通过 CLI 追加 | 当前 API 文档 |
-| `docs/releasing.md` | 维护者 | 发布流程 | 发布流程变化 | 具体版本号 |
+| `docs/releasing.md` | 维护者（人/仓库 AI） | 发布流程 | 发布流程变化 | 具体版本号 |
 | `docs/figma-cli.md` | 工具使用者 | Figma CLI 契约 | 命令/输出契约变化 | 页面实现教程 |
-| `packages/<pkg>/README.md` | 该包用户 | 安装、API、最小用法、限制 | 公开 API / 行为变化 | 跨包组合大全 |
-| `packages/<pkg>/example/` | 该包用户 | 可运行场景 | 用法变化 / 新场景 | 隐藏内部实现 |
-| `scripts/README.md` | 维护者 | 何时跑哪个脚本 | 脚本增删 / 流程变化 | 脚本内部实现 |
-| `packages/cli/catalog/components.yaml` | 维护者 / AI | 组件事实源 | 组件新增/修改/删除 | 长教程 |
-| `packages/cli/templates/agents/` | 维护者 / AI | AGENTS 唯一源 | 规则/入口变化 | 完整文档 |
+| `packages/<pkg>/README.md` | 包使用者（人/AI） | 安装、API、最小用法、限制 | 公开 API / 行为变化 | 跨包组合大全 |
+| `packages/<pkg>/example/` | 包使用者（人）/ 仓库 AI | 可运行场景 | 用法变化 / 新场景 | 隐藏内部实现 |
+| `scripts/README.md` | 维护者（人/仓库 AI） | 何时跑哪个脚本 | 脚本增删 / 流程变化 | 脚本内部实现 |
+| `packages/cli/catalog/components.yaml` | 维护者 / 仓库 AI | 组件事实源 | 组件新增/修改/删除 | 长教程 |
+| `packages/cli/templates/agents/` | 维护者 / 仓库 AI | AGENTS 唯一源 | 规则/入口变化 | 完整文档 |
 | `packages/cli/catalog/uncataloged.yaml` | 维护者 | 有意不登记公开类型 | 新增子 API 时 | 逃逸登记 |
+
+---
+
+### 读者矩阵
+
+| 文档组 | 包使用者(人) | 包使用者(AI) | 维护者(人) | 仓库 AI |
+|---|---|---|---|---|
+| 根 README / 包 README | ✅ | ✅ | ✅ | ✅ |
+| modules / recipes / migrations | ✅ | ✅ | 参考 | 参考 |
+| CONTRIBUTING / conventions | 贡献者 | 部分 | ✅ | ✅ |
+| agents / ai-contract / prompts | ❌ | 生成摘要 | ✅ | ✅ |
+| ADR / analysis / release | ❌ | ❌ | ✅ | 参考 |
+| scripts / catalog / templates | ❌ | 查询结果 | ✅ | ✅ |
+
+### 判断规则
+
+```text
+先问“谁在什么任务下需要这条信息”
+再问“这条信息应该由谁维护”
+最后问“它是事实源，还是生成物 / 投影”
+```
 
 ---
 
