@@ -42,12 +42,12 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
               style: TextStyle(color: Color(0xFF6B7280)),
             ),
             const SizedBox(height: 24),
-            WFormTextField(
+            const WFormTextField(
               name: 'bio',
               label: '个人简介',
               message: '最多三行',
               maxLines: 3,
-              config: WFormTextFieldConfig()..leading = const Icon(Icons.notes_rounded),
+              leading: Icon(Icons.notes_rounded),
             ),
             const SizedBox(height: 16),
             WFormDropdown<String>(

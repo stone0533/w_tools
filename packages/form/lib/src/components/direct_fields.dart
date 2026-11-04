@@ -48,6 +48,7 @@ class WFormTextField extends StatelessWidget {
     this.maxLines,
     this.inputFormatters,
     this.actions,
+    this.leading,
     this.config,
     this.hintTextList,
     this.isTransparentBackground,
@@ -76,6 +77,9 @@ class WFormTextField extends StatelessWidget {
   final int? maxLines;
   final List<TextInputFormatter>? inputFormatters;
   final List<Widget>? actions;
+
+  /// 文本输入框左侧插槽；优先于 config.leading。
+  final Widget? leading;
   final WFormTextFieldConfig? config;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
@@ -96,6 +100,7 @@ class WFormTextField extends StatelessWidget {
     if (maxLines != null) c.maxLines = maxLines;
     if (inputFormatters != null) c.inputFormatters = inputFormatters;
     if (actions != null) c.actions = actions;
+    if (leading != null) c.leading = leading;
 
     return c.build(
       name: name,

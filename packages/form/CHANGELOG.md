@@ -1,3 +1,8 @@
+## 4.3.0
+
+### Added
+- `WFormTextField.leading`：直接字段覆盖左侧插槽，减少对可变 Config 的依赖。
+
 ## 4.2.0
 
 ### Deprecated

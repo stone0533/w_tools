@@ -1,3 +1,7 @@
+## 7.0.3
+
+- 抬高 `w_tools_form` 到 `^4.3.0`：直接字段新增 `WFormTextField.leading`。
+
 ## 7.0.2
 
 - 抬高 `w_tools_form` 到 `^4.2.0`：可变字段 Config 进入 deprecated 迁移期。
