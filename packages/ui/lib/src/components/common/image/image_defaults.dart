@@ -25,8 +25,5 @@ class WImageDefaultsScope extends InheritedWidget {
   static WImageLoadConfig of(BuildContext context) => maybeOf(context) ?? const WImageLoadConfig();
 
   @override
-  bool updateShouldNotify(WImageDefaultsScope oldWidget) =>
-      defaults.placeholderBuilder != oldWidget.defaults.placeholderBuilder ||
-      defaults.errorWidgetBuilder != oldWidget.defaults.errorWidgetBuilder ||
-      defaults.progressBuilder != oldWidget.defaults.progressBuilder;
+  bool updateShouldNotify(WImageDefaultsScope oldWidget) => defaults != oldWidget.defaults;
 }

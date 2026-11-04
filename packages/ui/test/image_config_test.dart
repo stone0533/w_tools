@@ -14,6 +14,14 @@ void main() {
     expect(config.copyWith(retryCount: 3).retryCount, 3);
   });
 
+  test('值相等可用于 InheritedWidget 比较', () {
+    const a = WImageLoadConfig(retryCount: 2, retryLabel: '重试');
+    const b = WImageLoadConfig(retryCount: 2, retryLabel: '重试');
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(a, isNot(const WImageLoadConfig(retryCount: 3)));
+  });
+
   test('validate 校验加载约束', () {
     expect(
       () => const WImageLoadConfig(retryCount: -1).validate(),

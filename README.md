@@ -66,7 +66,7 @@ dependencies:
 dependencies:
   w_tools_core: ^3.1.0
   w_tools_async: ^4.0.0
-  w_tools_ui: ^5.0.0
+  w_tools_ui: ^5.0.1
   w_tools_form: ^4.1.0
   # 需要再加 w_tools_app / api / toast / qr / map
 ```
@@ -118,7 +118,7 @@ WAppConfig.supportedLanguages = {'zh_CN': '简体中文'}; // app：语言
 ```yaml
 dependencies:
   w_tools_core: ^3.1.0   # 只引子包
-  w_tools_ui: ^5.0.0
+  w_tools_ui: ^5.0.1
 ```
 
 或一键引入聚合包（会带上全部 9 个 Flutter 子包及其依赖）：
@@ -164,7 +164,7 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_ui: ^5.0.0     # 只用 UI 组件
+  w_tools_ui: ^5.0.1     # 只用 UI 组件
   w_tools_core: ^3.1.0   # 只用工具类与扩展
 ```
 

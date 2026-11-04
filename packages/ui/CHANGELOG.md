@@ -1,3 +1,9 @@
+## 5.0.1
+
+### Fixed
+- `WImageLoadConfig` 实现 `==` / `hashCode`，`WImageDefaultsScope.updateShouldNotify`
+  现在比较完整配置；修改 placeholder/errorWidget/retryLabel 等会通知。
+
 # Changelog
 
 ## 5.0.0

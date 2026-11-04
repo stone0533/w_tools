@@ -71,6 +71,39 @@ class WImageLoadConfig {
 
   static const Object _unset = Object();
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WImageLoadConfig &&
+          other.memCacheWidth == memCacheWidth &&
+          other.memCacheHeight == memCacheHeight &&
+          other.gaplessPlayback == gaplessPlayback &&
+          other.retryCount == retryCount &&
+          other.retryDelay == retryDelay &&
+          other.placeholderBuilder == placeholderBuilder &&
+          other.errorWidgetBuilder == errorWidgetBuilder &&
+          other.progressBuilder == progressBuilder &&
+          other.placeholder == placeholder &&
+          other.errorWidget == errorWidget &&
+          other.showRetryButton == showRetryButton &&
+          other.retryLabel == retryLabel;
+
+  @override
+  int get hashCode => Object.hash(
+    memCacheWidth,
+    memCacheHeight,
+    gaplessPlayback,
+    retryCount,
+    retryDelay,
+    placeholderBuilder,
+    errorWidgetBuilder,
+    progressBuilder,
+    placeholder,
+    errorWidget,
+    showRetryButton,
+    retryLabel,
+  );
+
   WImageLoadConfig copyWith({
     Object? memCacheWidth = _unset,
     Object? memCacheHeight = _unset,

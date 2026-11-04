@@ -1,3 +1,7 @@
+## 5.0.5
+
+- 抬高 `w_tools_ui` 到 `^5.0.1`：修复 `WImageDefaultsScope` 配置变更不通知。
+
 ## 5.0.4
 
 - 抬高 `w_tools_async` 到 `^4.0.0`：`WAsyncStateSliver` 统一为 `ValueListenable`。
