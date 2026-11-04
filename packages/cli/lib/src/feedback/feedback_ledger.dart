@@ -33,7 +33,7 @@ FeedbackLedgerResult addToLedger(Directory projectRoot, FeedbackDraft draft) {
   if (!Directory(dir).existsSync()) {
     throw const FeedbackLedgerException(
       '--ledger 只能在 w_tools 仓库检出中使用（--root 下未找到 docs/feedback/）；'
-      '消费方请用默认链接 / --gh，或 --local 写本地收件箱',
+      '消费方开启 feedback.issue 后用 --issue，否则跳过',
     );
   }
 

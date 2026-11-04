@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 ///
 /// 用途：AI 需要知道「库侧 `docs/feedback/` 在不在本机」。
 /// - 路径依赖 / 仓库内运行时：`repoRoot` 是仓库根，`feedbackDir` 可用；
-/// - 从 pub cache 运行时：不是仓库，`isRepoCheckout = false`，只能写消费方的本地收件箱。
+/// - 从 pub cache 运行时：不是仓库，`isRepoCheckout = false`，只能走 Issue（若项目开启）。
 class InstallInfo {
   const InstallInfo({
     required this.packageRoot,

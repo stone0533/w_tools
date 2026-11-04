@@ -24,7 +24,7 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   dart run w_tools_cli:feedback search <关键词> [--package=<包>] [--gh]
 
 子命令：
-  path    输出反馈该写到的文件（库侧台账 / 本地收件箱）
+  path    输出库侧台账路径（消费方默认不写文件）
   lint    校验字段、状态、版本号、索引
   submit  默认：本地 docs/feedback 存在 → 写台账；否则 feedback.issue=true → 建 Issue；否则跳过
   search  先查重：本地台账/收件箱；加 --gh 同时搜 GitHub issues
@@ -38,7 +38,6 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   --template          submit 用：只打印正文骨架，不提交
   --issue             submit：显式创建 GitHub Issue（默认关闭，需 feedback.issue 或本 flag）
   --gh                submit：--issue 的别名；search：搜 GitHub issues
-  --local             submit：legacy，仅写 docs/agents/feedback.md（不参与默认策略）
   --ledger            submit：仅 w_tools 仓库检出，直接写入 docs/feedback/<包>.md 并更新索引
   --repo=<owner/repo> submit/search 的仓库（默认 stone0533/w_tools）
   --include-inbox     lint 用：连同本地收件箱一起校验
@@ -51,7 +50,6 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   dart run w_tools_cli:feedback search "WImage 缓存" --package=ui
   dart run w_tools_cli:feedback submit --package=ui --title="WImage 缓存不生效" --stdin
   dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --gh
-  dart run w_tools_cli:feedback submit --package=ui --title="..." --stdin --local
   dart run w_tools_cli:feedback lint --include-inbox
 ''';
 
@@ -65,7 +63,6 @@ void main(List<String> argv) {
     ..addFlag('template', negatable: false)
     ..addFlag('issue', negatable: false)
     ..addFlag('gh', negatable: false)
-    ..addFlag('local', negatable: false)
     ..addFlag('ledger', negatable: false)
     ..addOption('repo', defaultsTo: 'stone0533/w_tools')
     ..addFlag('include-inbox', negatable: false)
@@ -194,9 +191,9 @@ void _submit(ArgResults args, Directory root, bool asJson) {
   final title = (args['title'] as String?)?.trim() ?? '';
   if (title.isEmpty) _usageError('submit 需要 --title=<一句话现象>');
   final explicitIssue = (args['issue'] as bool) || (args['gh'] as bool);
-  final modes = [args['local'], explicitIssue, args['ledger']].where((v) => v == true).length;
+  final modes = [explicitIssue, args['ledger']].where((v) => v == true).length;
   if (modes > 1) {
-    _usageError('--local / --issue / --ledger 只能选一个');
+    _usageError('--issue / --ledger 只能选一个');
   }
 
   final bodyFile = args['body-file'] as String?;
@@ -228,16 +225,11 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     _usageError('.w_tools_doctor.yaml 解析失败：${e.message}');
   }
   final ledgerAvailable = Directory('${root.path}/docs/feedback').existsSync();
-  final wantLedger =
-      args['ledger'] as bool || (!explicitIssue && !(args['local'] as bool) && ledgerAvailable);
+  final wantLedger = (args['ledger'] as bool) || (!explicitIssue && ledgerAvailable);
   final wantIssue =
-      explicitIssue ||
-      (!(args['ledger'] as bool) &&
-          !(args['local'] as bool) &&
-          !ledgerAvailable &&
-          config.feedbackIssue);
+      explicitIssue || (!(args['ledger'] as bool) && !ledgerAvailable && config.feedbackIssue);
 
-  if (!wantLedger && !wantIssue && !(args['local'] as bool)) {
+  if (!wantLedger && !wantIssue) {
     if (asJson) {
       print(jsonEncode({...draft.toJson(), 'mode': 'skipped', 'reason': 'no_channel'}));
     } else {
@@ -269,17 +261,6 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     return;
   }
 
-  if (args['local'] as bool) {
-    final file = writeLocalInbox(root, draft);
-    if (asJson) {
-      print(jsonEncode({...draft.toJson(), 'mode': 'local', 'localPath': file.path}));
-    } else {
-      print('已写入本地收件箱：${file.path}');
-      print('它不会自动发送；用 feedback submit --gh 或按模板提交到 GitHub。');
-    }
-    return;
-  }
-
   if (wantIssue) {
     try {
       final url = createGitHubIssue(draft, repo: args['repo'] as String);
@@ -294,18 +275,6 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     }
     return;
   }
-
-  if (asJson) {
-    print(jsonEncode({...draft.toJson(), 'mode': 'url'}));
-    return;
-  }
-  print('反馈已准备（不会自动上传）。');
-  print('标题：${draft.issueTitle}');
-  print('GitHub 预填：${draft.issueUrl}');
-  print('直接创建：${draft.ghCommand}');
-  print('离线保存：加 --local；创建 issue：加 --gh。');
-  print('');
-  print(draft.body);
 }
 
 void _search(ArgResults args, Directory root, bool asJson) {

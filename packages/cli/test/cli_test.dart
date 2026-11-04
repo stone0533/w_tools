@@ -583,33 +583,4 @@ banned:
       contains('| [ui](ui.md) | 1 |'),
     );
   });
-
-  test('feedback submit --local 写入收件箱', () async {
-    final root = _project();
-    final body = File(p.join(root.path, 'body.md'))
-      ..writeAsStringSync('''
-- 包/版本：w_tools_ui 5.0.0
-- 环境：macOS
-- 命令 / 输入：WImage
-- 期望：显示
-- 实际：空白
-- 影响：无
-- 建议：补提示
-- 复现数据：无
-''');
-    final r = await _run('feedback.dart', [
-      'submit',
-      '--root',
-      root.path,
-      '--package=ui',
-      '--title=WImage 空白',
-      '--body-file',
-      body.path,
-      '--local',
-    ]);
-    expect(r.exitCode, 0);
-    final inbox = File(p.join(root.path, 'docs', 'agents', 'feedback.md'));
-    expect(inbox.existsSync(), isTrue);
-    expect(inbox.readAsStringSync(), contains('### [待处理] ui: WImage 空白'));
-  });
 }

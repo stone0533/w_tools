@@ -31,17 +31,6 @@ void main() {
     expect(draft.issueUrl.queryParameters['body'], contains('w_tools_ui 5.0.0'));
   });
 
-  test('local 追加到收件箱', () {
-    final root = Directory.systemTemp.createTempSync('wt_fb_submit_');
-    addTearDown(() => root.deleteSync(recursive: true));
-    final draft = FeedbackDraft(package: 'ui', title: '空白', body: _body);
-    final file = writeLocalInbox(root, draft);
-    expect(file.path, endsWith('docs/agents/feedback.md'));
-    expect(file.readAsStringSync(), contains('### [待处理] ui: 空白'));
-    writeLocalInbox(root, FeedbackDraft(package: 'ui', title: '第二次', body: _body));
-    expect('### [待处理] ui: 第二次'.allMatches(file.readAsStringSync()).length, 1);
-  });
-
   test('searchLocal 搜台账与收件箱', () {
     final root = Directory.systemTemp.createTempSync('wt_fb_search_');
     addTearDown(() => root.deleteSync(recursive: true));

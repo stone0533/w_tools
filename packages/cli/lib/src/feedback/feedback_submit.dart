@@ -100,19 +100,6 @@ class FeedbackDraft {
   static String _shell(String value) => "'${value.replaceAll("'", "'\\''")}'";
 }
 
-/// 把反馈追加到消费方收件箱（`docs/agents/feedback.md`）。
-File writeLocalInbox(Directory projectRoot, FeedbackDraft draft) {
-  final file = File(p.join(projectRoot.path, 'docs', 'agents', 'feedback.md'));
-  file.parent.createSync(recursive: true);
-  if (!file.existsSync()) {
-    file.writeAsStringSync('# w_tools 使用反馈（本地收件箱）\n');
-  }
-  final existing = file.readAsStringSync();
-  final prefix = existing.endsWith('\n') ? '' : '\n';
-  file.writeAsStringSync('$existing$prefix\n${draft.body}\n');
-  return file;
-}
-
 /// 通过已登录的 `gh` 创建 GitHub issue；失败时抛 [FeedbackSubmitException]。
 Uri createGitHubIssue(
   FeedbackDraft draft, {
