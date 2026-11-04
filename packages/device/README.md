@@ -1,12 +1,13 @@
 # w_tools_device
 
-设备验证小工具：**iOS / Android 模拟器可交互；iOS 真机只读（list / shot）**。不改 App 代码。
+设备验证小工具：**iOS/Android 模拟器可交互；Android 真机经 adb 可交互；iOS 真机只读（list / shot）**。工具本身不修改 App 业务代码。
 
 | 平台 | list | shot | tap / drag / verify | foreground |
 | --- | --- | --- | --- | --- |
 | iOS 模拟器 | ✅ | ✅ | ✅ | ❌ |
 | iOS 真机 | ✅ | ✅ | ❌（需 idb / XCUITest） | ❌ |
-| Android 模拟器 / 真机 | ✅ | ✅ | ✅（adb） | ✅ |
+| Android 模拟器 | ✅ | ✅ | ✅ | ✅ |
+| Android 真机 | ✅ | ✅ | ✅（adb） | ✅ |
 
 > iOS 真机点击本工具不支持；安装 App 仍用 `flutter run` / Xcode / adb。Android 的 tap 坐标是截图像素。
 
@@ -14,7 +15,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_device: ^0.1.0
+  w_tools_device: ^0.1.3
 ```
 
 或：
@@ -44,12 +45,12 @@ dart run w_tools_device:device verify 200 840 --region=0,40,402,80
 ```text
 iOS 模拟器  point
 Android     截图像素
-真机        list / shot only
+iOS 真机    list / shot only
 ```
 
 选项：`--device=<udid|名称>`、`--no-cache`（强制重标定）、`--scale=3`（像素密度）、
 `--timeout-ms=15000`、`--stable-ms=600`、`--region=x,y,w,h`（设备坐标，只看这块区域）、
-`--real`（真机：仅 list / shot）、`--json`（脚本/CI 用，结构化输出）。
+`--real`（iOS 真机：仅 list / shot）、`--json`（脚本/CI 用，结构化输出）。
 
 平台 / 命令不兼容时会直接报错，例如：
 
@@ -68,7 +69,7 @@ size --real
 `list` 不支持 `--device`；`type` 必须带文本。
 `--out` 必须写成 `--out=/path`，不能写成 `--out /path`。
 
-真机说明：列表/截图走 `devicectl`；**点击真机需要 idb 或 XCUITest，本工具不支持**。
+iOS 真机说明：列表/截图走 `devicectl`；**点击真机需要 idb 或 XCUITest，本工具不支持**。
 锁屏/息屏时 `devicectl` 会返回全黑图，工具会给出 `warning`（`--json` 里也有）。
 
 退出码：`0` 成功 · `1` 参数/执行错误 · `2` `verify` 点下去画面没变化（坐标可能失效） · `3` `wait` 超时。

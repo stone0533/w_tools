@@ -1,4 +1,4 @@
-/// 设备验证小工具：列模拟器 / 启动 / 截图 / 在 DeviceHub 里点击。
+/// 设备验证小工具：iOS/Android 模拟器可交互；Android 真机经 adb；iOS 真机仅 list/shot。
 library;
 
 export 'src/android.dart';

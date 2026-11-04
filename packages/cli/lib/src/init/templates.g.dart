@@ -1156,7 +1156,7 @@ const String deviceTestingDoc = r'''
 | 设备 | UDID | 用途 |
 | --- | --- | --- |
 | <模拟器名称> | `<SIM_UDID>` | 日常自动化 |
-| <真机名称> | `<DEVICE_UDID>` | 手感/真机差异（需解锁并信任） |
+| <iOS 真机名称> | `<DEVICE_UDID>` | 手感/真机差异（需解锁并信任） |
 
 ```bash
 # 跑设备上的集成测试
@@ -1167,15 +1167,15 @@ flutter run -d <SIM_UDID>
 xcrun simctl io <SIM_UDID> screenshot /tmp/shot.png
 ```
 
-### 真机（物理设备）
+### iOS 真机（物理设备）
 
 ```bash
-dart run w_tools_device:device list --real                 # 列真机（wired = 数据线）
+dart run w_tools_device:device list --real                 # 列 iOS 真机（wired = 数据线）
 dart run w_tools_device:device shot --real --device=<名称>  # 截图（必须解锁，锁屏是全黑图）
 flutter test integration_test -d <DEVICE_UDID>             # 跑集成测试（解锁 + 允许 Xcode 控制）
 ```
 
-真机**点击不支持**（需 `idb ui tap` 或 XCUITest）——所以验证逻辑优先写进 `integration_test`。
+iOS 真机**点击不支持**（需 `idb ui tap` 或 XCUITest）——所以验证逻辑优先写进 `integration_test`。
 
 ### Android（可选，adb）
 
@@ -1193,7 +1193,7 @@ dart run tool/device_smoke.dart --android --package={{androidAppId}}
 ```
 
 > Xcode 27 起模拟器 GUI 是 **Device Hub**（`/Applications/Xcode.app/Contents/Applications/DeviceHub.app`），
-> `Simulator.app` 已移除；`simctl` 管脚本、`devicectl` 管真机。
+> `Simulator.app` 已移除；`simctl` 管模拟器脚本、`devicectl` 管 iOS 真机。
 
 ## 2. 在 DeviceHub 里点模拟器（用 w_tools_device，不要手工标定）
 
@@ -1280,8 +1280,8 @@ brew install cliclick            # 点模拟器用
 - [ ] `integration_test/app_smoke_test.dart`（复制模板，一般不用改）
 - [ ] 启动三件套：`lib/app/bootstrap.dart`（含 `afterStart` 钩子）/ `lib/main.dart`（只调 bootstrap）/
       `tool/main_e2e.dart`（在这里调 `E2eLogin.run`）
-- [ ] 记录模拟器 / 真机 UDID 到本文件
-- [ ] 真机自检：`device list --real` 能看到设备；`device shot --real` 出非全黑图
+- [ ] 记录模拟器 / iOS 真机 UDID 到本文件
+- [ ] iOS 真机自检：`device list --real` 能看到设备；`device shot --real` 出非全黑图
 - [ ] 复制冒烟脚本 `docs/templates/tool/device_smoke.dart.tpl` → `tool/device_smoke.dart`
 
 **iOS 自检**（需要 DeviceHub 打开 + 上面两个权限）：
@@ -1293,7 +1293,7 @@ dart run w_tools_device:device verify <tab_x> <tab_y> --region=<标题区>
 dart run tool/device_smoke.dart                          # 归位→逐 tab→回到 tab0→同 tab 应无变化
 ```
 
-**真机自检**：
+**iOS 真机自检**：
 
 ```bash
 dart run w_tools_device:device list --real                # wired = 数据线

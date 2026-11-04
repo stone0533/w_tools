@@ -1,3 +1,10 @@
+## 0.1.3
+
+### Docs
+- README 顶部拆开 iOS/Android 模拟器与真机支持矩阵：Android 真机经 adb 可交互，iOS 真机仅 list/shot。
+- 修正“真机只读”的泛化表述，明确 `devicectl` / 点击限制只针对 iOS 真机。
+- pubspec 描述与库注释同步。
+
 # Changelog
 
 ## 0.1.2

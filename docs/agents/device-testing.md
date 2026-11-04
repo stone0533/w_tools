@@ -11,8 +11,8 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_device: ^0.1.0
-  w_tools_e2e: ^0.1.0
+  w_tools_device: ^0.1.3
+  w_tools_e2e: ^0.1.1
 ```
 
 ```bash
@@ -23,7 +23,7 @@ flutter pub add dev:w_tools_e2e
 `w_tools_device` 是纯 Dart CLI；`w_tools_e2e` 是 Flutter 库。
 
 > 支持矩阵：iOS 模拟器可 list/shot/tap/drag/verify；iOS 真机仅 list/shot（点击需 idb/XCUITest，本工具不支持）；
-> Android 模拟器/真机走 adb，可 list/shot/tap/drag/verify/foreground。
+> Android 模拟器/真机走 adb，可 list/shot/tap/drag/verify/foreground；iOS 真机仅 list/shot。
 
 
 ## device
@@ -46,7 +46,7 @@ dart run w_tools_device:device verify <x> <y> --region=x,y,w,h
 ```text
 iOS 模拟器：设备坐标（point），需要 DeviceHub + cliclick + 辅助功能/屏幕录制
 Android：截图像素，adb 直接 tap，不需要标定
-真机：只支持 list / shot，点击需 idb / XCUITest
+iOS 真机：只支持 list / shot，点击需 idb / XCUITest
 坐标不生效时先用 verify --region 自检，再考虑 --no-cache
 ```
 
