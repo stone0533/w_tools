@@ -79,4 +79,4 @@ WApp.options(
 - 需要 Theme 的插件生命周期用 `builderWrapper`，不是 `wrapApp`；
 - 多语言用 `WLanguage().changeLanguage(...)` 监听变化，不要直接写 `WAppConfig.currentLanguage`。
 
-完整说明：[app_module.md](../modules/app_module.md) · 示例：`packages/app/example`
+完整说明：[app_module.md](../modules/app_module.md) · 示例：`packages/app_getx/example`

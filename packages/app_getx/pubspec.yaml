@@ -1,0 +1,30 @@
+name: w_tools_app_getx
+description: "w_tools 的 GetX 应用启动层：WApp、GetX 路由、语言切换、底部弹窗与路由观察者。"
+version: 1.0.0
+
+homepage: https://github.com/stone0533/w_tools
+repository: https://github.com/stone0533/w_tools/tree/main/packages/app_getx
+issue_tracker: https://github.com/stone0533/w_tools/issues
+
+topics:
+  - flutter
+  - getx
+  - routing
+  - app-starter
+
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.7.3
+  w_tools_app: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0

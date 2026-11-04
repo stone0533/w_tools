@@ -14,12 +14,14 @@ import 'package:yaml/yaml.dart';
 const _docsByPackage = <String, String>{
   'w_tools_core': 'docs/modules/core_module.md',
   'w_tools_app': 'docs/modules/app_module.md',
+  'w_tools_app_getx': 'docs/modules/app_module.md',
   'w_tools_ui': 'docs/modules/ui_module.md',
   'w_tools_form': 'docs/modules/form_module.md',
   'w_tools_api': 'docs/modules/api_module.md',
   'w_tools_toast': 'docs/modules/toast_module.md',
   'w_tools_qr': 'docs/modules/qr_module.md',
   'w_tools_map': 'docs/modules/map_module.md',
+  'w_tools_map_google': 'docs/modules/map_module.md',
   'w_tools_async': 'docs/modules/async_module.md',
 };
 

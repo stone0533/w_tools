@@ -506,12 +506,14 @@ String _snippet(
   final pkgs = <String>[
     'w_tools_core',
     if (features.app) 'w_tools_app',
+    if (features.app) 'w_tools_app_getx',
     if (features.form) 'w_tools_form',
     if (features.ui) 'w_tools_ui',
     if (features.api) 'w_tools_api',
     if (features.toast) 'w_tools_toast',
     if (features.qr) 'w_tools_qr',
     if (features.map) 'w_tools_map',
+    if (features.map) 'w_tools_map_google',
     if (features.asyncFeature) 'w_tools_async',
   ];
 

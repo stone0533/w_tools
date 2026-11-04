@@ -1,3 +1,9 @@
+## 3.0.0
+
+### Breaking
+- `w_tools_map` 改为纯接口层，只保留地图条目/mapper 模型。
+- `WMap` / `WMapZone` / `WMapConfig` / Google 类型移到 `w_tools_map_google`。
+
 # Changelog
 
 ## 2.0.0

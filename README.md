@@ -67,7 +67,7 @@ dependencies:
   w_tools_async: ^4.0.0
   w_tools_ui: ^5.1.0
   w_tools_form: ^5.0.0
-  # 需要再加 w_tools_app / api / toast / qr / map
+  # 需要再加 w_tools_app_getx / api / toast / qr / map / map_google
 ```
 
 模板与理由：[`packages/cli/templates/`](packages/cli/templates/)、[`docs/conventions.md`](docs/conventions.md)、
@@ -152,14 +152,14 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_app: ^2.1.0
+  w_tools_app_getx: ^1.0.0
 ```
 
 ```dart
-import 'package:w_tools_app/w_tools_app.dart';
+import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 ```
 
-完整用法见 [`packages/app/README.md`](packages/app/README.md)。
+完整用法见 [`packages/app_getx/README.md`](packages/app_getx/README.md)。
 
 ## 核心功能
 

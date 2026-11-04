@@ -4,4 +4,4 @@
   appended automatically.
 - **Bottom sheet**: use `WBottomSheet`.
 - **Global theme / defaults**: compose theme widgets with `WAppOptions.appWrapper`; do not make
-  `w_tools_app` depend on other subpackages.
+  `w_tools_app_getx` depend on other subpackages.

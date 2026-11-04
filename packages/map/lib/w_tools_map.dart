@@ -1,13 +1,6 @@
-export 'src/map.dart';
+/// w_tools 地图接口层：只包含平台无关的数据模型。
+///
+/// Google Maps 实现见 `package:w_tools_map_google/w_tools_map_google.dart`。
+library w_tools_map;
 
-// 公开 API 里出现的地图类型由本包统一转出，消费方无需再直接依赖 google_maps_flutter。
-export 'package:google_maps_flutter/google_maps_flutter.dart'
-    show
-        BitmapDescriptor,
-        CameraPosition,
-        CameraUpdate,
-        GoogleMapController,
-        InfoWindow,
-        LatLng,
-        Marker,
-        MarkerId;
+export 'src/map_item.dart';

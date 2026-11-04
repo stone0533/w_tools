@@ -14,11 +14,13 @@ topics:
 workspace:
   - packages/core
   - packages/app
+  - packages/app_getx
   - packages/form
   - packages/ui
   - packages/api
   - packages/toast
   - packages/map
+  - packages/map_google
   - packages/qr
   - packages/async
   - packages/cli

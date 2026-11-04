@@ -169,7 +169,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 401 重试只复用已知 Dio：`DioRegistry` 自动绑定；自行 `Dio()` 必须构造传 `dio: dio`，否则不会重试（也不会隐式注册实例）。
 - 日志用 `WLogInterceptor`；默认脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `X-Api-Key`，不要依赖它做业务错误处理。
 
-## 启动（w_tools_app）
+## 启动（w_tools_app_getx）
 
 - 项目入口用 `WApp.options(WAppOptions(...)).start()`，不要手写 `runApp` + 初始化顺序；`start()` = `init()` + `run()`，只调用一次，重复调用会再次 `runApp`。
 - 插件实现 `WAppPlugin`（消费方自建；子包不自带插件）；有初始化顺序要求时用 `dependsOn` 显式声明，不要依赖注册顺序。
@@ -193,9 +193,9 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 相机权限：Android `CAMERA`，iOS `NSCameraUsageDescription`。
 - `onScanned` 只在 `Barcode.code` 非空时触发。
 
-## 地图（w_tools_map）
+## 地图（w_tools_map + w_tools_map_google）
 
-- 地图用 `WMap` + `WMapZone`，不要直接使用 `GoogleMap`。
+- 地图用 `WMap` + `WMapZone`（来自 `w_tools_map_google`），数据模型用 `w_tools_map`；不要直接使用 `GoogleMap`。
 - Google Maps 需要 Android / iOS API Key；地图只在启用 `--with-map` 时引入。
 - `markerId` 必须稳定；不要用 `hashCode` 生成。
 - `json_serializable` 模型用 `WMapItemMapper` 取字段，避免改生成代码。

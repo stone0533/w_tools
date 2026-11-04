@@ -57,20 +57,20 @@ run "feedback" bash scripts/check_feedback.sh
 run "release check" bash scripts/release_check.sh
 
 if [ -n "$with_tests" ]; then
-  for p in core async ui form api app toast map qr e2e; do
+  for p in core async ui form api app app_getx toast map map_google qr e2e; do
     run "test packages/$p" bash -c "cd packages/$p && flutter test --reporter=compact"
   done
   for p in cli figma device; do
     run "test packages/$p" bash -c "cd packages/$p && dart test --reporter=compact"
   done
   run "test root" flutter test
-  for p in api app async core form map qr ui; do
+  for p in api app_getx async core form map_google qr ui; do
     run "test packages/$p/example" bash -c "cd packages/$p/example && flutter test --reporter=compact"
   done
 fi
 
 if [ -n "$with_dry_run" ]; then
-  for p in core async ui form api app toast map qr cli figma device e2e; do
+  for p in core async ui form api app app_getx toast map map_google qr cli figma device e2e; do
     run "publish dry-run packages/$p" bash scripts/publish_package.sh "packages/$p" --dry-run
   done
   echo "==> publish dry-run 根包（子包未发布时失败是预期）"

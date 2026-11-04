@@ -465,7 +465,7 @@ void main() {
           'pubspec.yaml':
               'name: demo_app\n'
               'dependencies:\n'
-              '  w_tools_core: any\n  w_tools_app: any\n  w_tools_form: any\n'
+              '  w_tools_core: any\n  w_tools_app: any\n  w_tools_app_getx: any\n  w_tools_form: any\n'
               '  w_tools_ui: any\n  w_tools_api: any\n  w_tools_toast: any\n'
               '  w_tools_qr: any\n  w_tools_async: any\n'
               'dev_dependencies:\n'

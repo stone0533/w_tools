@@ -2,7 +2,7 @@
 
 ## 概述
 
-App 模块（`w_tools_app` 子包）提供了一套一站式的应用启动方案，核心类 `WApp` 封装了 `GetMaterialApp` 的配置、插件系统、语言切换、路由管理和底部弹窗。
+App 模块（`w_tools_app` 契约 + `w_tools_app_getx` GetX 实现）提供了一套一站式的应用启动方案，核心类 `WApp` 封装了 `GetMaterialApp` 的配置、插件系统、语言切换、路由管理和底部弹窗。
 
 该子包**强依赖 GetX**（`get` 包），不可替换。`WApp` 本质是对 `GetMaterialApp` 的增强包装：保留 GetX 全部能力的同时，补充了插件生命周期管理、语言 API 和路由栈操作。
 
@@ -11,7 +11,7 @@ App 模块（`w_tools_app` 子包）提供了一套一站式的应用启动方�
 - 插件顺序 → `WAppPlugin.dependsOn`
 - 全局默认视图 → `WAppOptions.appWrapper`；`WAppPlugin` 是消费方自建插件的扩展点，子包不自带插件
 - 强依赖 GetX
-- 可运行示例：[packages/app/example](../../packages/app/example/README.md)
+- 可运行示例：[packages/app/example](../../packages/app_getx/example/README.md)
 
 - 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 
@@ -383,7 +383,7 @@ WBottomSheet.show(
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:w_tools_app/w_tools_app.dart';
+import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 Future<void> main() async {
   // 1. 语言配置

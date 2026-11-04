@@ -1,5 +1,3 @@
-part of 'map.dart';
-
 /// 地图条目抽象基类
 ///
 /// 业务数据模型实现此接口，提供地图渲染所需的必需字段。
@@ -73,7 +71,7 @@ WMapItemMapper<T> wMapItemMapper<T>() {
 
 /// 默认 mapper 的前置校验：`T` 未实现 [WMapItem] 时给出可读错误，
 /// 而不是在首次渲染时抛裸 `_TypeError`。
-WMapItemMapper<T> _defaultMapper<T>() {
+WMapItemMapper<T> defaultMapItemMapper<T>() {
   if (<T>[] is! List<WMapItem>) {
     throw ArgumentError(
       'WMapZone<$T> 没有传 mapper，且 $T 未实现 WMapItem。'

@@ -13,18 +13,19 @@ const String toolkitTemplate = r'''
 // 业务代码统一 import 这里，不要直接 import 各个子包 ——
 // 将来换依赖方式（分包 / 精简聚合）只改这一个文件。
 //
-// 为什么不用聚合包 w_tools：它会把 w_tools_map 的 google_maps_flutter
-// 原生 SDK 一起拖进构建（Android registrant + iOS pod）。理由见 https://github.com/stone0533/w_tools/blob/main/docs/adr/0002-consumers-depend-on-subpackages.md 。
+// 为什么不用聚合包 w_tools：根包已移除 app/map/qr，能力按需依赖，
+// 原生地图/扫码不会被无关项目带入。理由见 https://github.com/stone0533/w_tools/blob/main/docs/adr/0002-consumers-depend-on-subpackages.md 。
 library;
 
 export 'package:w_tools_core/w_tools_core.dart';
-export 'package:w_tools_app/w_tools_app.dart'; // @optional:app
+export 'package:w_tools_app_getx/w_tools_app_getx.dart'; // @optional:app
 export 'package:w_tools_form/w_tools_form.dart'; // @optional:form
 export 'package:w_tools_ui/w_tools_ui.dart'; // @optional:ui
 export 'package:w_tools_api/w_tools_api.dart'; // @optional:api
 export 'package:w_tools_toast/w_tools_toast.dart'; // @optional:toast
 export 'package:w_tools_qr/w_tools_qr.dart'; // @optional:qr
 export 'package:w_tools_map/w_tools_map.dart'; // @optional:map
+export 'package:w_tools_map_google/w_tools_map_google.dart'; // @optional:map
 export 'package:w_tools_async/w_tools_async.dart'; // @optional:async
 
 // 项目级页面规范
@@ -531,7 +532,7 @@ const String agentsAppEn = r'''
   appended automatically.
 - **Bottom sheet**: use `WBottomSheet`.
 - **Global theme / defaults**: compose theme widgets with `WAppOptions.appWrapper`; do not make
-  `w_tools_app` depend on other subpackages.
+  `w_tools_app_getx` depend on other subpackages.
 ''';
 
 const String agentsAsyncEn = r'''

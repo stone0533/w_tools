@@ -73,7 +73,7 @@
 <!-- catalog:6:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WBottomSheet` | app | 底部面板外壳 | — |
+| `WBottomSheet` | app_getx | 底部面板外壳 | — |
 | `WFormPopup` | form | **锚定式**下拉弹层（贴在输入框下方） | ⚠️ 它不是居中对话框，别拿来做「确认弹窗」 |
 <!-- catalog:6:end -->
 
@@ -100,7 +100,8 @@
 <!-- catalog:8:start -->
 | 能力 | 子包 | 说明 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WApp` / `WAppPlugin` | app | 启动器与插件分层初始化 | — |
+| `WApp` | app_getx | GetX 启动器 | — |
+| `WAppPlugin` | app | 插件分层初始化 | — |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
 | `WAsync` / `WAsyncOptions` / `WAsyncLoading` / `WCancelToken` | async | 无 UI 状态的异步执行、并发 loading 合并、取消 | — |
 | `WCountdown` | core | 倒计时 | — |
@@ -114,16 +115,16 @@
 | `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试（recipe: docs/recipes/login-refresh.md） | 不要在拦截器里存 token |
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
 | `WApiConfig` | api | 请求配置与日志注入 | — |
-| `WLanguage` | app | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
-| `WAppConfig` | app | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
-| `WRouteObserver` | app | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
+| `WLanguage` | app_getx | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
+| `WAppConfig` | app_getx | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
+| `WRouteObserver` | app_getx | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；单次扫码后用 `restartScan` |
 | `WQrController` | qr | 相机控制与广播扫描流 | 不要用它重置 scanOnce |
 | `WQrViewOverlayShape` | qr | 扫描框样式 | 尺寸必须大于 0 |
-| `WMap` / `WMapZone` | map | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
-| `WMapController` | map | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
+| `WMap` / `WMapZone` | map_google | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
+| `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
-| `WRouteStack` | app | 路由栈操作（`WRouteStack.defaultStack` / `app.routeStack`） | — |
+| `WRouteStack` | app_getx | 路由栈操作（`WRouteStack.defaultStack` / `app.routeStack`） | — |
 <!-- catalog:8:end -->
 
 ## 9. 扩展
