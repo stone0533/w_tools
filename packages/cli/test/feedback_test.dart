@@ -41,11 +41,12 @@ void main() {
       expect(target.kind, 'library-dir');
     });
 
-    test('非仓库检出 → 本项目收件箱', () {
+    test('非仓库检出 → disabled，不返回本地收件箱', () {
       final project = _project(repoCheckout: false);
       final target = FeedbackTarget.resolve(projectRoot: project, package: 'figma');
-      expect(target.kind, 'inbox');
-      expect(target.path, endsWith('docs/agents/feedback.md'));
+      expect(target.kind, 'disabled');
+      expect(target.path, isNull);
+      expect(target.exists, isFalse);
     });
   });
 

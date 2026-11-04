@@ -32,7 +32,7 @@ dart run w_tools_device:device shot --real --device=<udid|名称>   # 真机截�
 dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备屏幕的坐标
 dart run w_tools_device:device tap 200 840          # 用「设备坐标」点，自动换算
 dart run w_tools_device:device drag 200 700 200 300
-dart run w_tools_device:device type "hello"
+dart run w_tools_device:device type "hello"   # 中文/emoji 取决于设备输入法；换行/控制字符会报错
 dart run w_tools_device:device size                 # 设备尺寸（iOS=point，直接读截图；Android=像素）
 dart run w_tools_device:device wait                 # 等画面稳定（默认 600ms 内不再变）
 dart run w_tools_device:device verify 200 840       # 点一下并确认画面真的变了（坐标自检）

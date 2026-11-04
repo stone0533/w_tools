@@ -170,11 +170,6 @@ void main(List<String> argv) {
       final figmaEnabled = options.figma;
       final deviceEnabled = options.device;
 
-      if (args.wasParsed('device-test')) {
-        stderr.writeln(
-          '--device-test 已移除；本次按 --device 生成设备工具，不再生成 UI keep-alive 示例。',
-        );
-      }
       final report = runInit(
         root,
         force: options.force,
@@ -188,6 +183,11 @@ void main(List<String> argv) {
         device: options.device,
         manifest: options.toManifest(generator: cliVersion),
       );
+      if (args.wasParsed('device-test')) {
+        report.warnings.add(
+          '--device-test 已移除；本次按 --device 生成设备工具，不再生成 UI keep-alive 示例。',
+        );
+      }
 
       if (outputFormat(args) == 'json') {
         print(

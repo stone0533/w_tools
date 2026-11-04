@@ -15,7 +15,7 @@ String? validatePackageName(String? package) {
   return package;
 }
 
-/// 本项目收件箱：`docs/agents/feedback.md`（无论是否检出仓库，都可能存在）。
+/// 旧版本地收件箱：`docs/agents/feedback.md`。仅用于 lint/search 的只读兼容，不再作为提交目标。
 File inboxFile(Directory projectRoot) =>
     File(p.join(projectRoot.path, 'docs', 'agents', 'feedback.md'));
 
@@ -27,14 +27,14 @@ class FeedbackTarget {
     required this.exists,
   });
 
-  /// 库侧单包文件，或消费方收件箱文件，或库侧反馈目录。
-  final String path;
+  /// 库侧单包文件 / 目录；消费方禁用时为 null。
+  final String? path;
 
-  /// `library-package` / `inbox` / `library-dir`
+  /// `library-package` / `library-dir` / `disabled`
   final String kind;
   final bool exists;
 
-  bool get isLibrary => kind != 'inbox';
+  bool get isLibrary => kind == 'library-package' || kind == 'library-dir';
 
   Map<String, Object?> toJson() => <String, Object?>{
     'path': path,
@@ -43,7 +43,7 @@ class FeedbackTarget {
   };
 
   /// - 有库仓库时：`<repo>/docs/feedback/<包>.md`（不给 `--package` 则是目录）
-  /// - 否则：项目里的收件箱 `docs/agents/feedback.md`
+  /// - 否则：disabled，不返回本地收件箱路径
   static FeedbackTarget resolve({
     required Directory projectRoot,
     String? package,
@@ -65,11 +65,10 @@ class FeedbackTarget {
         exists: Directory(dir).existsSync(),
       );
     }
-    final inbox = p.join(projectRoot.path, 'docs', 'agents', 'feedback.md');
-    return FeedbackTarget(
-      path: inbox,
-      kind: 'inbox',
-      exists: File(inbox).existsSync(),
+    return const FeedbackTarget(
+      path: null,
+      kind: 'disabled',
+      exists: false,
     );
   }
 }

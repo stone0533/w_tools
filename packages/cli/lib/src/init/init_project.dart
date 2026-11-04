@@ -297,8 +297,9 @@ InitReport runInit(
 
   final oldDeviceDoc = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
   if (oldDeviceDoc.existsSync() && oldDeviceDoc.readAsStringSync().contains('--device-test')) {
+    final hint = device ? 'init --force-starters' : 'init --device --force-starters';
     report.warnings.add(
-      'docs/agents/device-testing.md 仍包含已移除的 --device-test；运行 init --force-starters 更新',
+      'docs/agents/device-testing.md 仍包含已移除的 --device-test；运行 $hint 更新',
     );
   }
 

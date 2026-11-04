@@ -125,7 +125,7 @@ void _path(ArgResults args, Directory root, bool asJson) {
     print('仓库内用 feedback submit --ledger；消费方开启 feedback.issue 后用 --issue。');
     return;
   }
-  print(target.path);
+  print(target.path!);
   if (target.kind == 'library-dir') {
     print('# 库侧反馈目录；按包选文件，如 --package=cli');
   } else if (!target.exists) {

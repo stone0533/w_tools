@@ -79,8 +79,18 @@ dart run w_tools_cli:feedback submit \
 
 ### 消费方项目
 
-- 默认：`feedback submit` 生成 GitHub Issue 预填链接（不上传）；
-- `--gh` 直接建 issue；离线 `--local` 写 `docs/agents/feedback.md`；
+- 默认关闭：不写文件、不生成链接、不建 Issue；
+- 需要反馈时在 `.w_tools_doctor.yaml` 设置：
+  ```yaml
+  feedback:
+    issue: true
+  ```
+- 然后：
+  ```bash
+  dart run w_tools_cli:feedback submit \
+    --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --issue
+  ```
+- `--issue` 需要已安装 gh（gh 读取 `GH_TOKEN` / `GITHUB_TOKEN`，或 `gh auth login`）；
 - 消费方**不要**直接改 `docs/feedback/`（没有索引维护能力）。
 
 ### 规则

@@ -1,3 +1,11 @@
+## 1.9.16
+
+### 修复
+- `feedback path --json` 在消费方返回 `kind=disabled` / `path=null`，不再返回旧本地收件箱路径。
+- 根 `AGENTS.md` 的消费方反馈说明改为“默认关闭；`feedback.issue: true` 后 `--issue`”，移除 `--local` / 预填链接。
+- `init` 旧设备文档提示按当前 device 状态给出 `--device --force-starters` 或 `--force-starters`。
+- `--device-test` deprecation 警告进入 `warnings`（JSON 可见），不再只写 stderr。
+
 ## 1.9.15
 
 ### 变更
