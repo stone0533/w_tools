@@ -56,17 +56,28 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     );
   }
 
+  void _fireRetry() {
+    try {
+      unawaited(
+        onRetry!().then<void>(
+          (_) {},
+          onError: (Object _, StackTrace __) {
+            // 重试失败交给 Controller / 业务日志
+          },
+        ),
+      );
+    } catch (_) {
+      // 同步异常不破坏 UI
+    }
+  }
+
   Widget _buildSlivers(BuildContext context, WAsyncState<T> value) {
     final data = value.data;
     final views = WAsyncThemeViews.of(context);
     final slivers = <Widget>[];
     // 没有重试入口时传 null：自定义 builder 的契约要求一个可用的 retry 回调，
     // 传 no-op 会渲染出「点了没反应」的按钮。
-    final VoidCallback? retry = onRetry == null
-        ? null
-        : () {
-            unawaited(onRetry!());
-          };
+    final VoidCallback? retry = onRetry == null ? null : _fireRetry;
 
     if (value.isReady) {
       // ready 的 data 允许为 null（T 可空），不能再用 data != null 判 ready

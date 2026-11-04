@@ -228,6 +228,16 @@ void main() {
       expect(reported, isA<StateError>());
     });
 
+    test('initialPage 必须大于 0（release 也校验）', () {
+      expect(
+        () => WAsyncPagedController<int>(
+          (page) async => const <int>[],
+          initialPage: 0,
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('传 options.activity 会触发断言（分页自己管加载状态）', () {
       expect(
         () => WAsyncPagedController<int>(

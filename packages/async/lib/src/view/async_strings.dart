@@ -14,4 +14,14 @@ class WAsyncStrings {
   final String empty;
   final String errorTitle;
   final String retry;
+
+  @override
+  bool operator ==(Object other) =>
+      other is WAsyncStrings &&
+      other.empty == empty &&
+      other.errorTitle == errorTitle &&
+      other.retry == retry;
+
+  @override
+  int get hashCode => Object.hash(empty, errorTitle, retry);
 }

@@ -22,6 +22,13 @@ void main() {
       expect(reported, isA<StateError>());
     });
 
+    test('WAsyncFailure 能区分编程错误', () async {
+      final error = await WAsync.tryRun<int>(() async => throw StateError('bug'));
+      final exception = await WAsync.tryRun<int>(() async => throw Exception('api'));
+      expect((error as WAsyncFailure<int>).isProgrammingError, isTrue);
+      expect((exception as WAsyncFailure<int>).isProgrammingError, isFalse);
+    });
+
     test('tryRun 取消返回 WAsyncCancelled', () async {
       final token = WCancelToken();
       final future = WAsync.tryRun<int>(

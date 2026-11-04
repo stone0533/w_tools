@@ -23,17 +23,18 @@ void main() {
       expect(copy.onError, same(options.onError));
     });
 
-    test('WAsyncActivity 合并 0→1 / 1→0', () {
+    test('WAsyncActivity 合并 0→1 / 1→0', () async {
       var starts = 0;
       var ends = 0;
       final activity = WAsyncActivity(onStart: () => starts++, onEnd: () => ends++);
-      activity.begin();
-      activity.begin();
+      final options = WAsyncOptions(activity: activity);
+      await Future.wait([
+        WAsync.run<void>(() async {}, options: options),
+        WAsync.run<void>(() async {}, options: options),
+      ]);
       expect(starts, 1);
-      activity.end();
-      expect(ends, 0);
-      activity.end();
       expect(ends, 1);
+      expect(activity.isLoading, isFalse);
     });
   });
 

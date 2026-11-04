@@ -25,6 +25,17 @@ void main() {
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
+    test('WAsyncStrings 按值相等', () {
+      expect(
+        const WAsyncStrings(empty: 'a'),
+        const WAsyncStrings(empty: 'a'),
+      );
+      expect(
+        const WAsyncStrings(empty: 'a'),
+        isNot(const WAsyncStrings(empty: 'b')),
+      );
+    });
+
     testWidgets('默认 error：有 retry 显示按钮，无 retry 不显示', (tester) async {
       await tester.pumpWidget(
         _probe((context, views) => views.error(context, Exception('boom'), () {})),

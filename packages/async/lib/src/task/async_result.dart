@@ -27,6 +27,9 @@ final class WAsyncFailure<T> extends WAsyncResult<T> {
 
   final Object error;
   final StackTrace stackTrace;
+
+  /// 是否为编程错误（`Error`，如 TypeError / StateError）。
+  bool get isProgrammingError => error is Error;
 }
 
 /// 执行被取消（协作式取消，不代表底层 Future 已中止）。

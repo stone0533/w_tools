@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// 并发活动的加载状态合并器（显式 opt-in）。
 ///
 /// 把同一个实例传给多个 [WAsync] 调用，活动数 `0→1` 时回调 [onStart]，
@@ -20,6 +22,7 @@ class WAsyncActivity {
   bool get isLoading => _active > 0;
 
   /// 框架内部使用；业务代码不要直接调用。
+  @internal
   void begin() {
     if (_active == 0) {
       _active = 1;
@@ -30,6 +33,7 @@ class WAsyncActivity {
   }
 
   /// 框架内部使用；与 [begin] 配对，业务代码不要直接调用。
+  @internal
   void end() {
     if (_active == 0) return;
     _active--;

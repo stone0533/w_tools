@@ -40,14 +40,23 @@ class WAsyncPagedController<T> {
     this.initialPage = 1,
     this.options,
     WAsyncState<List<T>>? initial,
-  }) : assert(initialPage >= 1, 'initialPage 必须大于 0'),
-       assert(
+  }) : assert(
          options == null || options.activity == null,
          'WAsyncPagedController 自己维护加载状态，options.activity 会被忽略；'
          '并发活动计数请直接用 WAsync。',
        ),
-       _page = initial?.data != null ? initialPage + 1 : initialPage,
+       _page = _resolvePage(initialPage, initial),
        _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading());
+
+  static int _resolvePage<T>(
+    int initialPage,
+    WAsyncState<List<T>>? initial,
+  ) {
+    if (initialPage < 1) {
+      throw ArgumentError.value(initialPage, 'initialPage', '必须大于 0');
+    }
+    return initial?.data != null ? initialPage + 1 : initialPage;
+  }
 
   final WAsyncTokenPageLoader<T> _loader;
   final int initialPage;

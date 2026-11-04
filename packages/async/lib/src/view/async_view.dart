@@ -115,13 +115,22 @@ class WAsyncView<T> extends StatelessWidget {
   VoidCallback? _retry() {
     final retry = onRetry;
     if (retry == null) return null;
-    return () {
-      try {
-        unawaited(retry());
-      } catch (_) {
-        // 重试入口自身的同步异常不破坏 UI
-      }
-    };
+    return () => _fireRetry(retry);
+  }
+
+  void _fireRetry(Future<void> Function() retry) {
+    try {
+      unawaited(
+        retry().then<void>(
+          (_) {},
+          onError: (Object _, StackTrace __) {
+            // 重试失败交给 Controller / 业务日志，不让 UI 抛出未处理异常
+          },
+        ),
+      );
+    } catch (_) {
+      // 同步异常同样不破坏 UI
+    }
   }
 
   /// ready / refreshing / failed+data 都使用同一层 Stack，
