@@ -31,6 +31,7 @@ CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
 
 改动它们时必须同步：
 
+- 本仓库内反馈用 `dart run w_tools_cli:feedback submit ... --ledger`（自动维护 `docs/feedback/` 与索引）；消费方用 issue 入口
 - [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R9）
 - [`docs/modules/components.md`](docs/modules/components.md)（若涉及组件建议）
 - `packages/cli/test/init_test.dart` / `doctor_test.dart` 的用例
@@ -63,19 +64,31 @@ Figma 取数工具在 `packages/figma/`（`w_tools_figma`，独立 CLI 包）。
 
 ## 使用反馈（遇到问题先查再记）
 
-用 `w_tools_*` 时撞到问题，**先查有没有人报过，再按模板记下来** —— 这是完善 w_tools 的主要输入。
+用 `w_tools_*` 时撞到问题，**先查重，再提交** —— 这是完善 w_tools 的主要输入。
 
-1. **先查**：`grep -rn "<关键词>" docs/feedback/`（按包分文件，`figma` / `cli` / `device` / `e2e` …）
-2. **没报过**：按 [`docs/feedback/TEMPLATE.md`](docs/feedback/TEMPLATE.md) 追加到
-   [`docs/feedback/<包>.md`](docs/feedback/README.md)：
-   - 必填：包/版本、环境、命令、期望、实际、影响、复现数据
-   - 状态写 `待处理`；**不要自己标「已修复」**（由维护者发布后补版本号）
-3. **消费方项目里**：先写该项目的 `docs/agents/<包>-feedback.md`（本地、只追加），
-   再由维护者同步进本仓库 `docs/feedback/`（**库侧是唯一真相**）
-4. **不要因为某个包不好用就改包 / fork**；先记录，由维护者决定
-5. 提交前跑 `bash scripts/check_feedback.sh`（已闭环必须带版本号、索引数量一致）
+### 本仓库内（维护者 / 仓库 AI）
 
-> 一次会话最多记 3–5 条，只记**真正卡住你**的；「我觉得可以更好」不是反馈。
+```bash
+dart run w_tools_cli:feedback search "<关键词>" --package=<包>
+dart run w_tools_cli:feedback submit \
+  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger
+```
+
+`--ledger` 只在仓库检出可用：自动追加 `docs/feedback/<包>.md`、缺失包建档、同步索引；
+不要手改索引，不要标 `已修复`（发布后由维护者补版本号）。
+
+### 消费方项目
+
+- 默认：`feedback submit` 生成 GitHub Issue 预填链接（不上传）；
+- `--gh` 直接建 issue；离线 `--local` 写 `docs/agents/feedback.md`；
+- 消费方**不要**直接改 `docs/feedback/`（没有索引维护能力）。
+
+### 规则
+
+- 必填：包/版本、环境、命令、期望、实际、影响、建议、复现数据；
+- 状态只写 `待处理`，不要自己标「已修复」；
+- 一次会话最多 3–5 条，只记真正卡住的；
+- 提交前跑 `bash scripts/check_feedback.sh`（已闭环版本号、索引数量一致）。
 
 ## Agent skills
 

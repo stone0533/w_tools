@@ -60,6 +60,10 @@ dart run w_tools_cli:feedback submit \
 ## 怎么用（维护者）
 
 ```bash
+# 0. 在仓库内直接追加一条（自动建档 / 更新索引）
+dart run w_tools_cli:feedback submit \
+  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger
+
 # 1. 看待处理
 grep -rn "\[待处理\]" docs/feedback/
 
@@ -109,9 +113,10 @@ bash scripts/check_feedback.sh
 | [async](async.md) | 0 | 2026-11-04 |
 | [map](map.md) | 0 | 2026-11-04 |
 | [qr](qr.md) | 0 | 2026-11-04 |
+| [ui](ui.md) | 2 | 2026-11-04 |
 
-新增条目时**同步这张表**（CI 会核对数量）。未列出的包（core/ui/form/toast/app）用
-`feedback submit` 提交，维护者 triage 后再建档并补索引；消费方不要直接改这张表。
+新增条目时**同步这张表**（CI 会核对数量）。未列出的包（core/ui/form/toast/app）首次用 `feedback submit --ledger` 建档时自动补索引；
+消费方用默认 issue 入口，不要直接改这张表。
 
 ## 模板
 

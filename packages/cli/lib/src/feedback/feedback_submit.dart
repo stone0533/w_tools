@@ -36,13 +36,24 @@ const feedbackBodyTemplateEn = '''- package/version:
 - repro data:
 ''';
 
+/// `w_tools_ui` / `ui` 都归一成台账包名 `ui`。
+String normalizeFeedbackPackage(String package) {
+  final name = package.startsWith('w_tools_') ? package.substring('w_tools_'.length) : package;
+  return name.replaceAll('-', '_');
+}
+
 /// 一条准备提交的反馈（不涉及网络）。
 class FeedbackDraft {
   FeedbackDraft({
-    required this.package,
+    required String package,
     required this.title,
     required String body,
-  }) : body = _normalizeBody(package: package, title: title, body: body);
+  }) : package = normalizeFeedbackPackage(package),
+       body = _normalizeBody(
+         package: normalizeFeedbackPackage(package),
+         title: title,
+         body: body,
+       );
 
   final String package;
   final String title;

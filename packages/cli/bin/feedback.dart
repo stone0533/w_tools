@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/context/install_info.dart';
 import 'package:w_tools_cli/src/feedback/feedback_lint.dart';
+import 'package:w_tools_cli/src/feedback/feedback_ledger.dart';
 import 'package:w_tools_cli/src/feedback/feedback_path.dart';
 import 'package:w_tools_cli/src/feedback/feedback_submit.dart';
 
@@ -34,6 +35,7 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   --template          submit 用：只打印正文骨架，不提交
   --gh                submit：直接 gh issue create；search：搜 GitHub issues
   --local             submit：只写 docs/agents/feedback.md，不联网
+  --ledger            submit：仅 w_tools 仓库检出，直接写入 docs/feedback/<包>.md 并更新索引
   --repo=<owner/repo> submit/search 的仓库（默认 stone0533/w_tools）
   --include-inbox     lint 用：连同本地收件箱一起校验
   --stale-days=<n>    lint 用：待处理超过 n 天给警告（默认 30，0 = 关闭）
@@ -59,6 +61,7 @@ void main(List<String> argv) {
     ..addFlag('template', negatable: false)
     ..addFlag('gh', negatable: false)
     ..addFlag('local', negatable: false)
+    ..addFlag('ledger', negatable: false)
     ..addOption('repo', defaultsTo: 'stone0533/w_tools')
     ..addFlag('include-inbox', negatable: false)
     ..addOption('stale-days', defaultsTo: '30')
@@ -112,8 +115,8 @@ void _path(ArgResults args, Directory root, bool asJson) {
       print('# 库侧反馈目录；按包选文件，如 --package=cli');
     } else if (!target.exists) {
       stderr.writeln(
-        '# 该包还没有库侧台账；用 feedback submit --package=${package ?? '<包>'} 提交，'
-        '维护者 triage 后建档（不要直接改索引）',
+        '# 该包还没有库侧台账；在仓库内用 feedback submit --package=${package ?? '<包>'} --ledger 建档，'
+        '消费方用默认 issue 入口（不要直接改索引）',
       );
     }
   } else {
@@ -185,8 +188,9 @@ void _submit(ArgResults args, Directory root, bool asJson) {
   final package = _packageArg(args)!;
   final title = (args['title'] as String?)?.trim() ?? '';
   if (title.isEmpty) _usageError('submit 需要 --title=<一句话现象>');
-  if ((args['local'] as bool) && (args['gh'] as bool)) {
-    _usageError('--local 与 --gh 不能同时使用');
+  final modes = [args['local'], args['gh'], args['ledger']].where((v) => v == true).length;
+  if (modes > 1) {
+    _usageError('--local / --gh / --ledger 只能选一个');
   }
 
   final bodyFile = args['body-file'] as String?;
@@ -209,6 +213,28 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     stderr.writeln('反馈缺少必填字段：${missing.join('、')}');
     stderr.writeln('按 docs/feedback/TEMPLATE.md 补全后重试。');
     exit(2);
+  }
+
+  if (args['ledger'] as bool) {
+    try {
+      final result = addToLedger(root, draft);
+      if (asJson) {
+        print(
+          jsonEncode({
+            ...draft.toJson(),
+            'mode': 'ledger',
+            'ledgerPath': result.file.path,
+            'pending': result.pending,
+          }),
+        );
+      } else {
+        print('已写入库侧台账：${result.file.path}（待处理 ${result.pending} 条）');
+      }
+    } on FeedbackLedgerException catch (e) {
+      stderr.writeln(e.message);
+      exit(2);
+    }
+    return;
   }
 
   if (args['local'] as bool) {

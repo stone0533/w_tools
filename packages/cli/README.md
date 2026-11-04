@@ -284,13 +284,16 @@ dart run w_tools_cli:feedback submit --package=ui --title="WImage 缓存不生�
 dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --gh
 dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --local
 
+# 仅 w_tools 仓库检出：直接维护台账并同步索引
+dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --ledger
+
 dart run w_tools_cli:feedback path --package=figma   # 该写哪个文件
 dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
 ```
 
 | 子命令 | 作用 |
 |---|---|
-| `submit` | 校验字段并生成 GitHub 预填链接；`--gh` 直接建 issue，`--local` 写本地收件箱 |
+| `submit` | 校验字段并生成 GitHub 预填链接；`--gh` 直接建 issue，`--local` 写本地收件箱；`--ledger`（仅仓库检出）直接写 `docs/feedback` 并更新索引 |
 | `search` | 本地台账/收件箱查重；`--gh` 同时搜 GitHub issues |
 | `path` | 有 w_tools 仓库 → `<repo>/docs/feedback/<包>.md`；否则 → 本项目收件箱 `docs/agents/feedback.md` |
 | `lint` | 字段齐全 / 状态合法 / 已闭环带版本号 / 已确认链 issue / 索引与文件一致 / 待处理 stale 警告 |

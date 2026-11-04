@@ -1,3 +1,9 @@
+## 1.9.13
+
+### 新增
+- `feedback submit --ledger`：仅 w_tools 仓库检出可用，直接追加 `docs/feedback/<包>.md`，
+  自动创建缺失包的台账并更新索引待处理数量；消费方仍走 issue / `--local`。
+
 ## 1.9.12
 
 ### 新增
