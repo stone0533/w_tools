@@ -1,3 +1,15 @@
+## 6.0.0
+
+### Breaking
+- 根聚合包不再包含 `w_tools_map` / `w_tools_qr`：避免 Google Maps 与相机原生 SDK
+  被所有根包用户被动引入。需要地图/扫码时改为直接依赖对应子包。
+
+## 6.0.0
+
+### Breaking
+- 根聚合包不再包含 `w_tools_map` / `w_tools_qr`：避免 Google Maps 与相机原生 SDK
+  被所有根包用户被动引入。需要地图/扫码时改为直接依赖对应子包。
+
 ## 5.0.5
 
 - 抬高 `w_tools_ui` 到 `^5.0.1`：修复 `WImageDefaultsScope` 配置变更不通知。

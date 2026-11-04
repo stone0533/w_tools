@@ -56,7 +56,7 @@
 ## 5. 依赖策略
 
 - 消费方**只依赖用到的子包**，不要依赖聚合包 `w_tools`
-  （聚合包会把 `w_tools_map` 的 `google_maps_flutter` 一起拖进构建）
+  （根包 6.0 起已移除 map/qr，但仍会带上 app/GetX；按需依赖更可控）
 - 业务代码**只 import 项目自己的聚合入口**（如 `lib/app/w/toolkit.dart`），不直接 import 子包
 - 开发期要现场改子包：用 `dependency_overrides` 指向本地 workspace，**不要**改回聚合包
 

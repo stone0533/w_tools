@@ -29,9 +29,9 @@
 
 ## 安装
 
-> ℹ️ **发布状态**：9 个 Flutter 子包与聚合包 `w_tools` 已发布到 pub.dev；
+> ℹ️ **发布状态**：7 个基础子包与聚合包 `w_tools` 已发布到 pub.dev；
 > `w_tools_cli` 是独立的纯 Dart 工具包，发布状态见 pub.dev。
-> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 9 个 Flutter 子包，只 re-export 子包能力；
+> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 7 个基础子包，只 re-export 子包能力；
 > 各包按其当前主版本约束（见根 `pubspec.yaml`，本文不硬编码版本号）。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
@@ -59,8 +59,7 @@ dependencies:
 
 ### 推荐：只依赖用到的子包（不要依赖聚合包）
 
-聚合包会把 `w_tools_map` 的 `google_maps_flutter` 原生 SDK 一起拖进构建。
-不用地图的项目请直接依赖子包，并在项目里放一个聚合入口：
+聚合包仍会带上 `w_tools_app` 的 GetX；地图/扫码已从根包移除，需要时直接依赖子包：
 
 ```yaml
 dependencies:
@@ -121,11 +120,11 @@ dependencies:
   w_tools_ui: ^5.0.1
 ```
 
-或一键引入聚合包（会带上全部 9 个 Flutter 子包及其依赖）：
+或一键引入聚合包（会带上全部 7 个基础子包及其依赖）：
 
 ```yaml
 dependencies:
-  w_tools: ^5.0.0
+  w_tools: ^6.0.0
 ```
 
 然后运行：
@@ -136,7 +135,7 @@ flutter pub get
 
 ### 依赖与子包说明（选依赖前请先读）
 
-`w_tools` 是**聚合包**，直接依赖以下 9 个 Flutter 子包，方便一键引入：
+`w_tools` 是**聚合包**，直接依赖以下 7 个基础子包，方便一键引入：
 
 | 子包 | 职责 |
 |---|---|
@@ -146,9 +145,7 @@ flutter pub get
 | `w_tools_form` | 表单组件（`WFormTextField` / `WFormDropdown` / `WFormCheckbox` / `WFormBorder` 等） |
 | `w_tools_api` | 网络请求（`DioRegistry` / `BaseOptions` / 各类拦截器 / `BaseRepository`） |
 | `w_tools_toast` | 轻量提示（`WToast`） |
-| `w_tools_qr` | 二维码扫描（`WQrView`） |
-| `w_tools_map` | 地图相关 |
-| **`w_tools_app`** | 应用启动器（`WApp`）、插件契约（`WAppPlugin`）、路由观察者、`WRouteStack` / 实例 `app.routeStack` |
+| `w_tools_app` | 应用启动器（`WApp`）、插件契约（`WAppPlugin`）、路由观察者、`WRouteStack` / 实例 `app.routeStack` |
 
 > ⚠️ **`w_tools_app` 强依赖 GetX，且不可替换。**
 >
@@ -177,14 +174,14 @@ import 'package:w_tools_core/w_tools_core.dart';
 
 ```yaml
 dependencies:
-  w_tools: ^5.0.0
+  w_tools: ^6.0.0
 ```
 
 ```dart
 import 'package:w_tools/w_tools.dart';
 ```
 
-> **版本策略**：9 个 Flutter 子包与 `w_tools_cli` 各自独立发版，互不跟随（具体版本以
+> **版本策略**：7 个基础子包与 `w_tools_cli` 各自独立发版，互不跟随（具体版本以
 > 各包 `pubspec.yaml` 与 pub.dev 为准，不在本文硬编码）；根包按聚合层版本独立发布，
 > 其依赖约束以根 `pubspec.yaml` 为准（随子包主版本同步）。发版流程与自动校验见 `docs/releasing.md`。
 
