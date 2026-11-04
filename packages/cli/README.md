@@ -372,9 +372,11 @@ dart run w_tools_cli:w_tools list --format=json
 ```bash
 dart run w_tools_cli:w_tools explain WImage
 dart run w_tools_cli:w_tools explain WFormDropdown
+dart run w_tools_cli:w_tools explain WAsync --format=prompt
 ```
 
-输出用途、反例、import、文档；项目配置了 `banned` 时会提示禁用项和替代方案。
+输出用途、反例、import、用法、注意项、相关组件、文档；`--format=prompt` 是给 AI 的紧凑格式。
+项目配置了 `banned` 时会提示禁用项和替代方案。
 `banned` 读取 `--root` 或当前工作目录的 `.w_tools_doctor.yaml`。
 
 ---
@@ -385,7 +387,7 @@ dart run w_tools_cli:w_tools explain WFormDropdown
 dart run w_tools_cli:w_tools context --format=prompt   # 先拿事实
 dart run w_tools_cli:w_tools list <关键词>              # 找组件
 dart run w_tools_cli:w_tools explain <组件名>           # 看用法 / 反例
-dart run w_tools_cli:doctor --json             # 写完自检
+dart run w_tools_cli:w_tools doctor --json           # 写完自检
 ```
 
 `init` 生成的 `AGENTS.md` 已包含这条闭环。生成物头部带

@@ -18,6 +18,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -31,6 +32,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -44,6 +46,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -57,6 +60,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -70,6 +74,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -83,6 +88,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -96,6 +102,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -109,6 +116,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -122,6 +130,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -135,6 +144,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -148,6 +158,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -161,6 +172,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -174,6 +186,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -187,6 +200,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -200,6 +214,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -213,6 +228,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -226,6 +242,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -239,6 +256,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -252,6 +270,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -265,6 +284,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -278,6 +298,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -291,6 +312,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -304,6 +326,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -317,6 +340,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -330,6 +354,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -343,6 +368,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: "WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (context, data) => ...)",
+    pitfalls: <String>["Controller 必须先 load()，否则一直是 loading", "onRetry 为 null 时不渲染重试按钮"],
     related: <String>["WAsyncController", "WAsyncTheme", "WAsyncStateBuilder"],
   ),
   CatalogEntry(
@@ -356,6 +382,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -369,6 +396,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: "final c = WAsyncController.list(() => api.list()); c.load();",
+    pitfalls: <String>["页面 dispose 时 controller.dispose()", "不要给 Controller 传 options.activity"],
     related: <String>["WAsyncView", "WAsyncState", "WAsyncPagedController"],
   ),
   CatalogEntry(
@@ -382,6 +410,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -395,6 +424,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -408,6 +438,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>["WAsyncThemeViews", "WAsyncView", "WAsyncStateSliver"],
   ),
   CatalogEntry(
@@ -421,6 +452,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: "final views = WAsyncThemeViews.of(context);",
+    pitfalls: <String>["普通页面直接用 WAsyncView，不要重复搭四态分支"],
     related: <String>["WAsyncTheme", "WAsyncStateBuilder"],
   ),
   CatalogEntry(
@@ -434,6 +466,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/toast_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -447,6 +480,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -460,6 +494,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -473,6 +508,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -486,6 +522,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -499,6 +536,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -512,6 +550,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -525,6 +564,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -538,6 +578,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
     usage: "switch (result) { case WAsyncSuccess(:final value): ... }",
+    pitfalls: <String>["需要失败抛异常时用 WAsync.run", "isProgrammingError 只存在于 WAsyncFailure"],
     related: <String>["WAsync", "WAsyncController"],
   ),
   CatalogEntry(
@@ -550,7 +591,8 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
     aliases: <String>["tryRun", "run", "map", "retry", "timeout", "parallel", "pool", "serial", "first"],
-    usage: "final result = await WAsync.tryRun(() => api.fetch());",
+    usage: "final result = await WAsync.tryRun(() => api.fetch());\nswitch (result) {\n  case WAsyncSuccess(:final value): use(value);\n  case WAsyncFailure(:final error): log(error);\n  case WAsyncCancelled(): log('cancelled');\n}\nfinal value = await WAsync.run(() => api.fetch()); // 失败抛异常\nfinal name = await WAsync.map(() => api.fetch(), onSuccess: (v) => v.name);\n",
+    pitfalls: <String>["run 失败抛异常；tryRun 不抛异常", "onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess", "取消需要 WCancelToken；取消不中止底层 Future"],
     related: <String>["WAsyncResult", "WAsyncOptions", "WCancelToken"],
   ),
   CatalogEntry(
@@ -564,6 +606,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -577,6 +620,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -590,6 +634,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -603,6 +648,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -616,6 +662,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -629,6 +676,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -642,6 +690,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -655,6 +704,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/api_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -668,6 +718,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/api_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -681,6 +732,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/api_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -694,6 +746,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/api_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -707,6 +760,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -720,6 +774,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -733,6 +788,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -746,6 +802,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/qr_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -759,6 +816,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/qr_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -772,6 +830,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/qr_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -785,6 +844,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/map_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -798,6 +858,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/map_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -811,6 +872,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/map_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -824,6 +886,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -837,6 +900,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -850,6 +914,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -863,6 +928,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -876,6 +942,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -889,6 +956,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
   CatalogEntry(
@@ -902,6 +970,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
     usage: null,
+    pitfalls: <String>[],
     related: <String>[],
   ),
 ];

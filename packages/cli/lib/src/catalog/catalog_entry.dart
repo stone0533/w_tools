@@ -11,6 +11,7 @@ class CatalogEntry {
     this.dontUseFor,
     this.aliases = const <String>[],
     this.usage,
+    this.pitfalls = const <String>[],
     this.related = const <String>[],
   });
 
@@ -35,6 +36,9 @@ class CatalogEntry {
   /// 最短用法，给 explain / AI 查询使用。
   final String? usage;
 
+  /// 常见坑，explain --format=prompt 使用。
+  final List<String> pitfalls;
+
   /// 相关组件名。
   final List<String> related;
 
@@ -49,6 +53,7 @@ class CatalogEntry {
     'docs': docs,
     'aliases': aliases,
     if (usage != null) 'usage': usage,
+    'pitfalls': pitfalls,
     'related': related,
   };
 }

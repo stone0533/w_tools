@@ -7,7 +7,7 @@
 ```bash
 dart run w_tools_cli:w_tools init                 # 写入 toolkit / AGENTS / doctor 配置
 # 把 init 打印的 pubspec 片段加入项目，然后 dart pub get
-dart run w_tools_cli:doctor               # 0 error 才算接入完成
+dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 ```
 
 `init` 不会改 `pubspec.yaml`；它保留上次 `.w_tools/init.json` 的 profile/targets/lang，
@@ -21,7 +21,7 @@ dart run w_tools_cli:doctor               # 0 error 才算接入完成
 | CI 检查接入约定 | `doctor --format=json`（warning 也失败加 `--strict`） |
 | 给 AI 项目事实 | `context --format=prompt` |
 | 找组件 | `list <关键词>` |
-| 看组件怎么用 | `explain <组件名>` |
+| 看组件怎么用 | `explain <组件名>`；给 AI 加 `--format=prompt` |
 | 记录 w_tools 问题 | `feedback search` 查重 → `feedback submit --package=<包>` |
 
 所有命令：`dart run w_tools_cli:<command> --help`。
@@ -32,12 +32,12 @@ dart run w_tools_cli:doctor               # 0 error 才算接入完成
 dart run w_tools_cli:w_tools context --format=prompt   # 1. 项目事实
 dart run w_tools_cli:w_tools list 表单                  # 2. 找组件
 dart run w_tools_cli:w_tools explain WFormDropdown     # 3. 用法/反例/import
-dart run w_tools_cli:doctor --format=json      # 4. 写完自检
+dart run w_tools_cli:w_tools doctor --format=json  # 4. 写完自检
 
 # 被 w_tools 卡住 / 有改进建议（默认关闭，先看 feedback.issue）：
-dart run w_tools_cli:feedback search "关键词" --package=<包>
-dart run w_tools_cli:feedback submit --template > /tmp/feedback.md   # 可选：打印骨架
-dart run w_tools_cli:feedback submit --package=<包> --title="<现象>" --body-file=/tmp/feedback.md
+dart run w_tools_cli:w_tools feedback search "关键词" --package=<包>
+dart run w_tools_cli:w_tools feedback submit --template > /tmp/feedback.md   # 可选：打印骨架
+dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" --body-file=/tmp/feedback.md
 ```
 
 ## 关键边界

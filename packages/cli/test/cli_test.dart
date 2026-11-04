@@ -432,6 +432,12 @@ banned:
     final component = (payload['components'] as List).single as Map<String, Object?>;
     expect(component['usage'], contains('WAsync.tryRun'));
     expect(component['related'], contains('WAsyncResult'));
+    expect(component['pitfalls'], contains('run 失败抛异常；tryRun 不抛异常'));
+
+    final prompt = await _run('explain.dart', ['WAsync', '--format=prompt']);
+    expect(prompt.exitCode, 0);
+    expect('${prompt.stdout}', contains('WAsync.tryRun'));
+    expect('${prompt.stdout}', contains('注意：'));
 
     final alias = await _run('explain.dart', ['tryRun']);
     expect(alias.exitCode, 0);

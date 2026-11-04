@@ -22,7 +22,7 @@ w_tools_cli explain —— 查看某个组件的用途、反例、import 与文�
 
 选项：
   --root=<dir>    项目根目录（读取 .w_tools_doctor.yaml；默认当前目录）
-  --format=<fmt>  text | json（默认 text）
+  --format=<fmt>  text | json | prompt（默认 text）
   --json          等价于 --format=json
   --version       显示版本
   --help, -h      显示本帮助
@@ -31,7 +31,7 @@ w_tools_cli explain —— 查看某个组件的用途、反例、import 与文�
 CommandResult run(List<String> argv) {
   final parser = cliParser()
     ..addOption('root')
-    ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
+    ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json', 'prompt'])
     ..addFlag('json', negatable: false);
 
   final result = Command(
@@ -66,6 +66,7 @@ CommandResult run(List<String> argv) {
         throw CliExit(2);
       }
       final asJson = (args['json'] as bool) || args['format'] == 'json';
+      final asPrompt = args['format'] == 'prompt';
 
       if (asJson) {
         print(
@@ -93,7 +94,7 @@ CommandResult run(List<String> argv) {
         return;
       }
       if (matches.length > 1) {
-        print('匹配到多个，缩小关键词：');
+        print(asPrompt ? '匹配到多个，请缩小关键词：' : '匹配到多个，缩小关键词：');
         for (final e in matches) {
           print('  ${e.name}  [${e.package}]');
         }
@@ -101,6 +102,13 @@ CommandResult run(List<String> argv) {
       }
 
       final e = matches.single;
+      if (asPrompt) {
+        print(_promptEntry(e, importPath: aggregateImport ?? e.importPath));
+        for (final entry in banned) {
+          print(_bannedText(entry));
+        }
+        return;
+      }
       print('${e.name}  (${e.package})');
       print('分组：${e.section}');
       print('用途：${e.useFor}');
@@ -108,6 +116,12 @@ CommandResult run(List<String> argv) {
       if (e.usage != null) {
         print('用法：');
         print(e.usage);
+      }
+      if (e.pitfalls.isNotEmpty) {
+        print('注意：');
+        for (final pitfall in e.pitfalls) {
+          print('  - $pitfall');
+        }
       }
       if (e.related.isNotEmpty) print('相关：${e.related.join(' / ')}');
       if (aggregateImport != null) {
@@ -127,6 +141,37 @@ CommandResult run(List<String> argv) {
 
 void main(List<String> argv) {
   exitCode = run(argv).exitCode;
+}
+
+String _promptEntry(CatalogEntry entry, {required String importPath}) {
+  final b = StringBuffer()
+    ..writeln('# ${entry.name} (${entry.package})')
+    ..writeln(entry.useFor)
+    ..writeln()
+    ..writeln("import '$importPath';");
+  if (entry.usage != null) {
+    b
+      ..writeln()
+      ..writeln('用法：')
+      ..writeln(entry.usage);
+  }
+  if (entry.pitfalls.isNotEmpty) {
+    b
+      ..writeln()
+      ..writeln('注意：');
+    for (final pitfall in entry.pitfalls) {
+      b.writeln('- $pitfall');
+    }
+  }
+  if (entry.related.isNotEmpty) {
+    b
+      ..writeln()
+      ..writeln('相关：${entry.related.join(' / ')}');
+  }
+  b
+    ..writeln()
+    ..writeln('文档：${docsUrl(entry.docs)}');
+  return b.toString().trimRight();
 }
 
 List<BannedRule> _matchingBanned(String query, Directory root) {

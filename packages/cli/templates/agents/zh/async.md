@@ -10,3 +10,13 @@
   `CustomScrollView` 四态用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
   纯执行、不要 UI 用 `WAsync.tryRun` + `WAsyncResult`，或 `WAsync.run`（失败抛异常）；
   不要用旧 `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading`。
+
+  最小页面：
+
+  ```dart
+  final c = WAsyncController.list(() => api.list());
+  c.load();
+  WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (_, data) => ...);
+  ```
+
+  查用法：`dart run w_tools_cli:w_tools explain WAsync --format=prompt`。

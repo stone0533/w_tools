@@ -9,3 +9,13 @@
   never replace the list with `WAsyncController.failed`.
   For pure execution without UI use `WAsync.tryRun` + `WAsyncResult`, or `WAsync.run` (throws on failure);
   do not use old `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading`.
+
+  Minimal page:
+
+  ```dart
+  final c = WAsyncController.list(() => api.list());
+  c.load();
+  WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (_, data) => ...);
+  ```
+
+  Look up usage: `dart run w_tools_cli:w_tools explain WAsync --format=prompt`.
