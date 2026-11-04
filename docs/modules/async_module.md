@@ -169,7 +169,7 @@ await paged.loadMore();
 state / isLoadingMore / loadMoreError / hasMoreListenable
 ```
 
-`initialPage` 必须 >= 1；`loadMore` 失败只写 `loadMoreError`，不清空列表。
+`initialPage` 必须 >= 1；`initial: WAsyncState.ready([])` 视为没有更多；`loadMore` 失败只写 `loadMoreError`，不清空列表。
 
 ## 4. View
 
@@ -181,7 +181,7 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 | `WAsyncErrorView` | 默认整块错误 |
 | `WAsyncErrorBanner` | 保留旧数据时的错误条 |
 
-- `WAsyncView.onRetry` 可选；无 retry 时不渲染按钮；
+- `WAsyncView.onRetry` 可选；无 retry 时不渲染按钮；自定义 retry 失败用 `onRetryError` 观测；
 - `WAsyncStateSliver.onRetry` 可选；无 retry 时不调用要求 retry 的自定义 builder；
 - 默认文案由 `WAsyncStrings` 提供，通过 `WAsyncTheme.strings` 注入本地化。
 

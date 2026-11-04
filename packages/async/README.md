@@ -115,7 +115,18 @@ final name = await WAsync.map<String, String>(
 
 - 失败抛原始 error / stack；
 - 取消抛 `WCancellationException`；
-- `WAsync` 不再用 `null` 表示失败或取消。
+- `WAsync` 不再用 `null` 表示失败或取消；
+- `onSuccess` / `map` 的映射异常由调用方处理，不会回调 `options.onError`；
+- 只有 token 取消才算 `WAsyncCancelled`；任务自己抛 `WCancellationException` 仍算失败。
+
+自定义重试失败时，View 默认用 `FlutterError.reportError` 上报；需要自己记录时传：
+
+```dart
+WAsyncView(
+  // ...
+  onRetryError: (error, stackTrace) => logger.e(error, stackTrace: stackTrace),
+)
+```
 
 ## Controller
 
@@ -193,6 +204,8 @@ controller.hasMoreListenable
 ```
 
 `loadMore` 失败只写 `loadMoreError`，不会清空已有列表。
+
+`initial: WAsyncState.ready([])` 视为没有更多：不会请求 `initialPage + 1`。
 
 ## 全局默认视图与文案
 

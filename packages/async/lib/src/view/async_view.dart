@@ -34,6 +34,7 @@ class WAsyncView<T> extends StatelessWidget {
     super.key,
     required this.state,
     this.onRetry,
+    this.onRetryError,
     required this.readyBuilder,
     this.loadingBuilder,
     this.emptyBuilder,
@@ -46,6 +47,9 @@ class WAsyncView<T> extends StatelessWidget {
 
   /// 重试回调；为 null 时错误态不渲染重试按钮。
   final Future<void> Function()? onRetry;
+
+  /// retry 失败时的观测出口；不传时走 `FlutterError.reportError`。
+  final WAsyncRetryErrorHandler? onRetryError;
   final Widget Function(BuildContext context, T data) readyBuilder;
   final WidgetBuilder? loadingBuilder;
   final WidgetBuilder? emptyBuilder;
@@ -123,14 +127,32 @@ class WAsyncView<T> extends StatelessWidget {
       unawaited(
         retry().then<void>(
           (_) {},
-          onError: (Object _, StackTrace __) {
-            // 重试失败交给 Controller / 业务日志，不让 UI 抛出未处理异常
-          },
+          onError: _reportRetryError,
         ),
       );
-    } catch (_) {
-      // 同步异常同样不破坏 UI
+    } catch (error, stackTrace) {
+      _reportRetryError(error, stackTrace);
     }
+  }
+
+  void _reportRetryError(Object error, StackTrace stackTrace) {
+    final handler = onRetryError;
+    if (handler != null) {
+      try {
+        handler(error, stackTrace);
+      } catch (_) {
+        // 观测回调自身异常不破坏 UI
+      }
+      return;
+    }
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'w_tools_async',
+        context: ErrorDescription('while retrying WAsyncView'),
+      ),
+    );
   }
 
   /// ready / refreshing / failed+data 都使用同一层 Stack，

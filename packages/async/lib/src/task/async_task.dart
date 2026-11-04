@@ -63,8 +63,12 @@ class WAsync {
           : await _awaitWithCancellation(future, cancelToken);
       cancelToken?.throwIfCancelled();
       return WAsyncSuccess<T>(result);
-    } on WCancellationException catch (e) {
-      return WAsyncCancelled<T>(e.reason);
+    } on WCancellationException catch (e, stackTrace) {
+      if (cancelToken?.isCancelled == true) {
+        return WAsyncCancelled<T>(e.reason);
+      }
+      _notifyError(options, e);
+      return WAsyncFailure<T>(e, stackTrace);
     } catch (e, stackTrace) {
       _notifyError(options, e);
       return WAsyncFailure<T>(e, stackTrace);

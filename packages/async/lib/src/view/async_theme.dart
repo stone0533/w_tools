@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'async_strings.dart';
 
+typedef WAsyncRetryErrorHandler = void Function(Object error, StackTrace stackTrace);
+
 typedef WAsyncErrorWidgetBuilder =
     Widget Function(
       BuildContext context,

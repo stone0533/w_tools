@@ -46,6 +46,7 @@ class WAsyncPagedController<T> {
          '并发活动计数请直接用 WAsync。',
        ),
        _page = _resolvePage(initialPage, initial),
+       _hasMore = ValueNotifier(_hasMoreFromInitial(initial)),
        _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading());
 
   static int _resolvePage<T>(
@@ -55,7 +56,13 @@ class WAsyncPagedController<T> {
     if (initialPage < 1) {
       throw ArgumentError.value(initialPage, 'initialPage', '必须大于 0');
     }
-    return initial?.data != null ? initialPage + 1 : initialPage;
+    return (initial?.data?.isNotEmpty ?? false) ? initialPage + 1 : initialPage;
+  }
+
+  /// 初始状态为空列表时视为没有更多；null / 未提供时仍允许加载。
+  static bool _hasMoreFromInitial<T>(WAsyncState<List<T>>? initial) {
+    if (initial == null) return true;
+    return initial.data?.isNotEmpty ?? true;
   }
 
   final WAsyncTokenPageLoader<T> _loader;
@@ -65,7 +72,7 @@ class WAsyncPagedController<T> {
   final ValueNotifier<WAsyncState<List<T>>> _state;
   final ValueNotifier<bool> _isLoadingMore = ValueNotifier(false);
   final ValueNotifier<Object?> _loadMoreError = ValueNotifier(null);
-  final ValueNotifier<bool> _hasMore = ValueNotifier(true);
+  final ValueNotifier<bool> _hasMore;
 
   int _page;
   bool _disposed = false;

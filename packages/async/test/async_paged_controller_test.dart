@@ -67,6 +67,30 @@ void main() {
       expect(controller.state.value.data, [1, 2, 3]);
     });
 
+    test('initial.ready 为空列表时没有更多，不请求下一页', () async {
+      var calls = 0;
+      final controller = WAsyncPagedController<int>(
+        (page) async {
+          calls++;
+          return const [1];
+        },
+        initial: const WAsyncState<List<int>>.ready([]),
+      );
+      addTearDown(controller.dispose);
+
+      expect(controller.hasMore, isFalse);
+      await controller.loadMore();
+      expect(calls, 0);
+    });
+
+    test('refresh 空页进入 empty', () async {
+      final controller = WAsyncPagedController<int>((page) async => const []);
+      addTearDown(controller.dispose);
+      await controller.refresh();
+      expect(controller.state.value.isEmpty, isTrue);
+      expect(controller.hasMore, isFalse);
+    });
+
     test('loadMore 初始无数据时回到 refresh', () async {
       var calls = 0;
       final controller = WAsyncPagedController<int>((page) async {

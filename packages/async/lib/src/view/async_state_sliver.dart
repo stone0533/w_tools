@@ -30,6 +30,7 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     required this.state,
     required this.readySliverBuilder,
     this.onRetry,
+    this.onRetryError,
     this.loadingBuilder,
     this.emptyBuilder,
     this.errorBuilder,
@@ -41,6 +42,9 @@ class WAsyncStateSliver<T> extends StatelessWidget {
   final ValueListenable<WAsyncState<T>> state;
   final Widget Function(BuildContext context, T data) readySliverBuilder;
   final Future<void> Function()? onRetry;
+
+  /// retry 失败时的观测出口；不传时走 `FlutterError.reportError`。
+  final WAsyncRetryErrorHandler? onRetryError;
   final WidgetBuilder? loadingBuilder;
   final WidgetBuilder? emptyBuilder;
   final WAsyncErrorWidgetBuilder? errorBuilder;
@@ -61,14 +65,32 @@ class WAsyncStateSliver<T> extends StatelessWidget {
       unawaited(
         onRetry!().then<void>(
           (_) {},
-          onError: (Object _, StackTrace __) {
-            // 重试失败交给 Controller / 业务日志
-          },
+          onError: _reportRetryError,
         ),
       );
-    } catch (_) {
-      // 同步异常不破坏 UI
+    } catch (error, stackTrace) {
+      _reportRetryError(error, stackTrace);
     }
+  }
+
+  void _reportRetryError(Object error, StackTrace stackTrace) {
+    final handler = onRetryError;
+    if (handler != null) {
+      try {
+        handler(error, stackTrace);
+      } catch (_) {
+        // 观测回调自身异常不破坏 UI
+      }
+      return;
+    }
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'w_tools_async',
+        context: ErrorDescription('while retrying WAsyncStateSliver'),
+      ),
+    );
   }
 
   Widget _buildSlivers(BuildContext context, WAsyncState<T> value) {

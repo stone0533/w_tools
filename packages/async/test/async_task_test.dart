@@ -32,6 +32,14 @@ void main() {
       }
     });
 
+    test('无 token 时任务抛 WCancellationException 仍算失败', () async {
+      final result = await WAsync.tryRun<int>(
+        () async => throw WCancellationException('not a token cancel'),
+      );
+      expect(result, isA<WAsyncFailure<int>>());
+      expect((result as WAsyncFailure<int>).error, isA<WCancellationException>());
+    });
+
     test('WAsyncFailure 能区分编程错误', () async {
       final error = await WAsync.tryRun<int>(() async => throw StateError('bug'));
       final exception = await WAsync.tryRun<int>(() async => throw Exception('api'));

@@ -65,7 +65,8 @@ class WAsyncController<T> {
 
   final WAsyncTokenLoader<T> _loader;
 
-  /// 执行选项；页面级状态由控制器维护，传入 [WAsyncOptions.activity] 会断言。
+  /// 执行选项；页面级状态由控制器维护。
+  /// 传入 [WAsyncOptions.activity] 只在 debug 断言，release 下会被忽略。
   final WAsyncOptions? options;
 
   final bool Function(T value)? _isEmpty;

@@ -34,6 +34,53 @@ class _CounterState extends State<_Counter> {
 }
 
 void main() {
+  testWidgets('retry 同步抛错也能被 onRetryError 观测', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      WAsyncState<int>.failed(Exception('load')),
+    );
+    addTearDown(state.dispose);
+    Object? reported;
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () => throw Exception('sync retry'),
+          onRetryError: (error, _) => reported = error,
+          readyBuilder: (_, value) => Text('$value'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+
+    expect(reported, isA<Exception>());
+  });
+
+  testWidgets('自定义 retry 失败可通过 onRetryError 观测', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      WAsyncState<int>.failed(Exception('load')),
+    );
+    addTearDown(state.dispose);
+    Object? reported;
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async => throw Exception('retry failed'),
+          onRetryError: (error, _) => reported = error,
+          readyBuilder: (_, value) => Text('$value'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(reported, isA<Exception>());
+  });
+
   testWidgets('loading / ready / empty / failed', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.loading(),
