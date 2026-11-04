@@ -42,22 +42,19 @@ void main(List<String> argv) {
       final rawMaxTokens = args['max-tokens'] as String;
       final maxTokens = int.tryParse(rawMaxTokens);
       if (maxTokens == null || maxTokens < 0) {
-        stderr.writeln('--max-tokens 需要非负整数：$rawMaxTokens');
-        exit(2);
+        failCli(args, '--max-tokens 需要非负整数：$rawMaxTokens');
       }
 
       final root = Directory(args['root'] as String? ?? Directory.current.path);
       if (!File('${root.path}/pubspec.yaml').existsSync()) {
-        stderr.writeln('找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
-        exit(2);
+        failCli(args, '找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
       }
 
       DoctorConfig config;
       try {
         config = ProjectFiles.loadConfig(root);
       } on ProjectLoadException catch (e) {
-        stderr.writeln(e.message);
-        exit(2);
+        failCli(args, e.message);
       }
 
       ProjectSnapshot snapshot;
@@ -67,8 +64,7 @@ void main(List<String> argv) {
         stderr.writeln(e.message);
         exit(2);
       } on YamlException catch (e) {
-        stderr.writeln('pubspec.yaml 解析失败：${e.message}');
-        exit(2);
+        failCli(args, 'pubspec.yaml 解析失败：${e.message}');
       }
 
       switch (outputFormat(args, fallback: 'markdown')) {

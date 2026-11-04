@@ -66,16 +66,14 @@ void main(List<String> argv) {
       }
 
       if (!File('${root.path}/pubspec.yaml').existsSync()) {
-        stderr.writeln('找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
-        exit(2);
+        failCli(args, '找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
       }
 
       if (args['write-config'] as bool) {
         final target = File('${root.path}/${DoctorConfig.fileName}');
         final exists = target.existsSync();
         if (exists && !(args['force'] as bool)) {
-          stderr.writeln('${DoctorConfig.fileName} 已存在（加 --force 覆盖）');
-          exit(2);
+          failCli(args, '${DoctorConfig.fileName} 已存在（加 --force 覆盖）');
         }
         // 这个文件是项目手工维护的 palette / banned / ignore，覆盖前必须留底。
         if (exists) {
@@ -92,8 +90,7 @@ void main(List<String> argv) {
       final onlyRaw = args['only'] as String?;
       if (onlyRaw != null) {
         if (onlyRaw.trim().isEmpty) {
-          stderr.writeln('--only 需要至少一个规则 id（如 --only=R1,R2）');
-          exit(2);
+          failCli(args, '--only 需要至少一个规则 id（如 --only=R1,R2）');
         }
         only = onlyRaw
             .split(',')
@@ -102,8 +99,7 @@ void main(List<String> argv) {
             .toSet();
         final unknown = only.difference(_knownRuleIds);
         if (unknown.isNotEmpty) {
-          stderr.writeln('未知规则：${unknown.join(', ')}（可选：${_knownRuleIds.join(', ')}）');
-          exit(2);
+          failCli(args, '未知规则：${unknown.join(', ')}（可选：${_knownRuleIds.join(', ')}）');
         }
       }
 
@@ -111,8 +107,7 @@ void main(List<String> argv) {
       try {
         config = ProjectFiles.loadConfig(root);
       } on ProjectLoadException catch (e) {
-        stderr.writeln(e.message);
-        exit(2);
+        failCli(args, e.message);
       }
       if (only != null) {
         // --only=R6 时也要真的打开 R6，否则它的开关逻辑会把它跳过
@@ -123,8 +118,7 @@ void main(List<String> argv) {
       try {
         ctx = ProjectContext.load(root, config, includeTests: args['include-tests'] as bool);
       } on YamlException catch (e) {
-        stderr.writeln('pubspec.yaml 解析失败：${e.message}');
-        exit(2);
+        failCli(args, 'pubspec.yaml 解析失败：${e.message}');
       }
 
       final results = runDoctor(ctx, config, only: only);

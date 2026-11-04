@@ -57,6 +57,25 @@ void runCli(
   body(args);
 }
 
+/// 命令体统一的失败出口：`--json` 时输出 JSON，而不是只写 stderr。
+Never failCli(ArgResults args, String message, {int code = 2}) {
+  final json =
+      (args.options.contains('json') && args['json'] == true) ||
+      (args.options.contains('format') && args['format'] == 'json');
+  if (json) {
+    stdout.writeln(
+      jsonEncode({
+        'schema': 'w_tools_cli.error/1',
+        'ok': false,
+        'error': message,
+      }),
+    );
+  } else {
+    stderr.writeln(message);
+  }
+  exit(code);
+}
+
 /// 统一的机器输出格式：`--json` 是 `--format=json` 的别名。
 String outputFormat(ArgResults args, {String fallback = 'text'}) {
   if (args.options.contains('json') && args['json'] == true) return 'json';

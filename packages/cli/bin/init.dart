@@ -142,24 +142,21 @@ void main(List<String> argv) {
     body: (args) {
       final root = Directory(args['root'] as String? ?? Directory.current.path);
       if (!File('${root.path}/pubspec.yaml').existsSync()) {
-        stderr.writeln('找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
-        exit(2);
+        failCli(args, '找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
       }
 
       DoctorConfig config;
       try {
         config = DoctorConfig.load(root);
       } on YamlException catch (e) {
-        stderr.writeln('.w_tools_doctor.yaml 解析失败：${e.message}');
-        exit(2);
+        failCli(args, '.w_tools_doctor.yaml 解析失败：${e.message}');
       }
 
       InitOptions options;
       try {
         options = InitOptions.resolve(root: root, args: args, argv: argv, config: config);
       } on InitOptionsException catch (e) {
-        stderr.writeln(e.message);
-        exit(2);
+        failCli(args, e.message);
       }
       final check = options.check;
       final checkDrift = options.checkDrift;

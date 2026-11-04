@@ -497,6 +497,14 @@ banned:
     expect('${r.stderr}', contains('lint'));
   });
 
+  test('init 命令体错误也输出 JSON', () async {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.yaml')).deleteSync();
+    final r = await _run('init.dart', ['--root', root.path, '--json']);
+    expect(r.exitCode, 2);
+    expect('${r.stdout}', contains('"ok":false'));
+  });
+
   test('--json 与 --format 冲突时退出码 2', () async {
     final root = _project();
     final r = await _run('doctor.dart', [
