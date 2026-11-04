@@ -20,13 +20,38 @@ dependencies:
 ## 快速开始
 
 ```dart
-final controller = WAsyncController.list(() => api.gifts());
+class GiftPage extends StatefulWidget {
+  const GiftPage({super.key});
 
-WAsyncView<List<Gift>>(
-  state: controller.state,
-  onRetry: controller.load, // 可选；不传错误态不显示重试按钮
-  readyBuilder: (context, gifts) => GiftList(gifts),
-)
+  @override
+  State<GiftPage> createState() => _GiftPageState();
+}
+
+class _GiftPageState extends State<GiftPage> {
+  late final WAsyncController<List<Gift>> _gifts;
+
+  @override
+  void initState() {
+    super.initState();
+    _gifts = WAsyncController.list(() => api.gifts());
+    _gifts.load();
+  }
+
+  @override
+  void dispose() {
+    _gifts.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WAsyncView<List<Gift>>(
+      state: _gifts.state,
+      onRetry: _gifts.load, // 可选；不传错误态不显示重试按钮
+      readyBuilder: (context, gifts) => GiftList(gifts),
+    );
+  }
+}
 ```
 
 `WAsyncView` 自动处理：
@@ -51,7 +76,7 @@ ready    → readyBuilder
 | 无 UI 执行，不抛异常 | `WAsync.tryRun` + `WAsyncResult` |
 | 无 UI 执行，失败抛异常 | `WAsync.run` / `map` / `retry` / `timeout` |
 | 并发执行 | `WAsync.parallel` / `pool` / `serial` / `first` |
-| 并发活动计数 | `WAsyncActivity` |
+| 并发活动回调 | `WAsyncActivity`（只传给 `WAsyncOptions`，不要手动 begin/end） |
 | 让 loader 感知取消 | `WAsyncController.withToken` / `WAsyncPagedController.withToken` |
 | 四态快照 | `WAsyncState` / `WAsyncStatus` |
 
@@ -65,9 +90,13 @@ final result = await WAsync.tryRun(() => api.gift(id));
 switch (result) {
   case WAsyncSuccess(:final value):
     print(value);
-  case WAsyncFailure(:final error, :final stackTrace):
+  case WAsyncFailure(
+    :final error,
+    :final stackTrace,
+    :final isProgrammingError,
+  ):
     logger.e(error, stackTrace: stackTrace);
-    if (result.isProgrammingError) throw error;
+    if (isProgrammingError) throw error;
 
   case WAsyncCancelled(:final reason):
     print('cancelled: $reason');

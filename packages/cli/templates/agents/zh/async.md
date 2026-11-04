@@ -8,3 +8,5 @@
   `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；
   loading/empty/error 只能作为 slivers 分支。Sliver 页面默认视图用 `WAsyncTheme` 的 `sliver*Builder`，
   `CustomScrollView` 四态用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
+  纯执行、不要 UI 用 `WAsync.tryRun` + `WAsyncResult`，或 `WAsync.run`（失败抛异常）；
+  不要用旧 `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading`。

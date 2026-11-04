@@ -22,6 +22,16 @@ void main() {
       expect(reported, isA<StateError>());
     });
 
+    test('result pattern 可解构 isProgrammingError', () async {
+      final result = await WAsync.tryRun<int>(() async => throw StateError('x'));
+      switch (result) {
+        case WAsyncFailure(:final isProgrammingError):
+          expect(isProgrammingError, isTrue);
+        default:
+          fail('expected failure');
+      }
+    });
+
     test('WAsyncFailure 能区分编程错误', () async {
       final error = await WAsync.tryRun<int>(() async => throw StateError('bug'));
       final exception = await WAsync.tryRun<int>(() async => throw Exception('api'));

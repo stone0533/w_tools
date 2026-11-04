@@ -103,7 +103,8 @@
 | `WApp` | app_getx | GetX 启动器 | — |
 | `WAppPlugin` | app | 插件分层初始化 | — |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
-| `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` | async | 无 UI 状态的异步执行、并发 loading 合并、取消 | — |
+| `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
+| `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` | async | 无 UI 异步执行（tryRun/run）、取消与活动计数 | — |
 | `WCountdown` | core | 倒计时 | — |
 | `WStorage` | core | 本地类型读写 | 读取前必须 `init`；明文存储 |
 | `WToken` | core | token 存取 | 明文存储；高敏感场景用 Keychain / Keystore |

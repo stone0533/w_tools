@@ -8,13 +8,37 @@
 - Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮。
 - 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
 - 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常。
-- 不要用 `WAsync.run` 的旧写法（不再有 `onSuccess` / `runValue` / `WAsyncLoading`）。
+- `WAsync.run` 不再接受 `onSuccess`；需要映射用 `WAsync.map`。`runValue` / `WAsyncLoading` 已删除。
 - 取消用 `WCancelToken`；`withToken` 让 loader 感知取消；取消不中止底层 Future。
+
+选择入口：
+
+| 需求 | 用 |
+| --- | --- |
+| 页面区块 | `WAsyncController` + `WAsyncView` |
+| 滚动页 | `WAsyncStateBuilder` |
+| Sliver | `WAsyncStateSliver` |
+| 纯执行，不抛异常 | `WAsync.tryRun` |
+| 纯执行，失败抛异常 | `WAsync.run` |
+| 映射成功值 | `WAsync.map` |
+| 重试 / 超时 / 并发 | `WAsync.retry` / `timeout` / `parallel` / `pool` / `serial` / `first` |
+| 分页 | `WAsyncPagedController` |
+
+`tryRun` 结果：
+
+```dart
+switch (result) {
+  case WAsyncSuccess(:final value): use(value);
+  case WAsyncFailure(:final error, :final stackTrace): log(error, stackTrace);
+  case WAsyncCancelled(:final reason): log('cancelled: $reason');
+}
+```
 
 最小用法：
 
 ```dart
 final gifts = WAsyncController.list(() => api.gifts());
+gifts.load();
 
 WAsyncView<List<Gift>>(
   state: gifts.state,

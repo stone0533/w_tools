@@ -5,7 +5,7 @@
 | 包 | 首选入口 | 不要用（已弃用 / 内部） | 示例 |
 | --- | --- | --- | --- |
 | core | `WStorage` / `WToken` / `WValidator` / `WLogger` / `WDebounce` | `WConfig`、`WUx.debounce/throttle`、`WRegExpPattern`（3.0 已删除） | `packages/core/example` |
-| async | `WAsyncController` + `WAsyncView`；滚动壳用 `WAsyncThemeViews` 取默认；无 UI 用 `WAsync` + `WAsyncOptions` | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults`（3.0 已删除） | `packages/async/example` |
+| async | 页面用 `WAsyncController` + `WAsyncView`；滚动壳用 `WAsyncThemeViews`；无 UI 用 `WAsync.tryRun` + `WAsyncResult`，或 `WAsync.run`（失败抛异常） | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults`（3.0 已删除）；旧 `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading` | `packages/async/example` |
 | ui | `WText` / `WButton` / `WImage` / `WScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（5.0 已删除） | `packages/ui/example` |
 | form | `WForm` + 直接字段；边框 `WFormBorderConfig.fromTheme` | `Config.build`、`*Core`（`@internal`）、`WFormDefaults`（4.0 已删除） | `packages/form/example` |
 | api | `WApiConfig` + `DioRegistry`；`WLogInterceptor(parts:)` | 直接 `Dio()`、旧 bool 日志参数 | `packages/api/example` |
