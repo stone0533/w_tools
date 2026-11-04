@@ -1,3 +1,8 @@
+## 4.4.0
+
+### Added
+- `WFormDatePicker.displayFormat/icon/iconSize` 直接参数，减少对可变 Config 的依赖。
+
 ## 4.3.0
 
 ### Added

@@ -263,6 +263,9 @@ class WFormDatePicker extends StatelessWidget {
     this.initialValue,
     this.firstDate,
     this.lastDate,
+    this.displayFormat,
+    this.icon,
+    this.iconSize,
     this.validator,
     this.onChanged,
     this.enabled,
@@ -283,6 +286,11 @@ class WFormDatePicker extends StatelessWidget {
   final String? initialValue;
   final DateTime? firstDate;
   final DateTime? lastDate;
+
+  /// 日期格式，默认 `yMMMMd`。
+  final String? displayFormat;
+  final Widget? icon;
+  final double? iconSize;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String?>? onChanged;
   final bool? enabled;
@@ -299,6 +307,9 @@ class WFormDatePicker extends StatelessWidget {
     final c = config?.copy() ?? WFormDatePickerConfig();
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
+    if (displayFormat != null) c.displayFormat = displayFormat!;
+    if (icon != null) c.icon = icon;
+    if (iconSize != null) c.iconSize = iconSize;
     if (label != null && c.decoration?.hintText == null) {
       c.decoration = (c.decoration ?? const InputDecoration()).copyWith(
         hintText: hintText ?? label,

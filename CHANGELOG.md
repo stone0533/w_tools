@@ -1,3 +1,7 @@
+## 7.0.4
+
+- 抬高 `w_tools_form` 到 `^4.4.0`：日期字段直接参数。
+
 ## 7.0.3
 
 - 抬高 `w_tools_form` 到 `^4.3.0`：直接字段新增 `WFormTextField.leading`。
