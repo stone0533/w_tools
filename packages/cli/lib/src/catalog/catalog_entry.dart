@@ -13,6 +13,7 @@ class CatalogEntry {
     this.usage,
     this.pitfalls = const <String>[],
     this.related = const <String>[],
+    this.teach = false,
   });
 
   /// 展示名（可能包含多个组件，如 `WText / WTextConfig`）
@@ -42,6 +43,9 @@ class CatalogEntry {
   /// 相关组件名。
   final List<String> related;
 
+  /// 是否属于 AI 必须掌握的入口组件。
+  final bool teach;
+
   Map<String, Object?> toJson() => <String, Object?>{
     'name': name,
     'names': names,
@@ -55,5 +59,6 @@ class CatalogEntry {
     if (usage != null) 'usage': usage,
     'pitfalls': pitfalls,
     'related': related,
+    'teach': teach,
   };
 }

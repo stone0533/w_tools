@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:w_tools_cli/src/catalog/catalog.dart';
+import 'package:w_tools_cli/src/explain/render_explain.dart';
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/common/project_loader.dart';
 import 'package:w_tools_cli/src/doctor/banned_rule.dart';
@@ -103,7 +104,13 @@ CommandResult run(List<String> argv) {
 
       final e = matches.single;
       if (asPrompt) {
-        print(_promptEntry(e, importPath: aggregateImport ?? e.importPath));
+        print(
+          renderExplainPrompt(
+            e,
+            importPath: aggregateImport ?? e.importPath,
+            docsUrl: docsUrl(e.docs),
+          ),
+        );
         for (final entry in banned) {
           print(_bannedText(entry));
         }
@@ -141,37 +148,6 @@ CommandResult run(List<String> argv) {
 
 void main(List<String> argv) {
   exitCode = run(argv).exitCode;
-}
-
-String _promptEntry(CatalogEntry entry, {required String importPath}) {
-  final b = StringBuffer()
-    ..writeln('# ${entry.name} (${entry.package})')
-    ..writeln(entry.useFor)
-    ..writeln()
-    ..writeln("import '$importPath';");
-  if (entry.usage != null) {
-    b
-      ..writeln()
-      ..writeln('用法：')
-      ..writeln(entry.usage);
-  }
-  if (entry.pitfalls.isNotEmpty) {
-    b
-      ..writeln()
-      ..writeln('注意：');
-    for (final pitfall in entry.pitfalls) {
-      b.writeln('- $pitfall');
-    }
-  }
-  if (entry.related.isNotEmpty) {
-    b
-      ..writeln()
-      ..writeln('相关：${entry.related.join(' / ')}');
-  }
-  b
-    ..writeln()
-    ..writeln('文档：${docsUrl(entry.docs)}');
-  return b.toString().trimRight();
 }
 
 List<BannedRule> _matchingBanned(String query, Directory root) {

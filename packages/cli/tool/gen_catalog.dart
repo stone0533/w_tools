@@ -59,6 +59,7 @@ String generate(String packageRoot) {
     final related = ((c['related'] as YamlList?)?.cast<String>() ?? const <String>[]);
     final usage = c['usage'] as String?;
     final pitfalls = ((c['pitfalls'] as YamlList?)?.cast<String>() ?? const <String>[]);
+    final teach = c['teach'] == true;
     buf
       ..writeln('  CatalogEntry(')
       ..writeln('    name: ${jsonEncode(name)},')
@@ -73,6 +74,7 @@ String generate(String packageRoot) {
       ..writeln('    usage: ${usage == null ? 'null' : jsonEncode(usage)},')
       ..writeln('    pitfalls: <String>[${pitfalls.map(jsonEncode).join(', ')}],')
       ..writeln('    related: <String>[${related.map(jsonEncode).join(', ')}],')
+      ..writeln('    teach: $teach,')
       ..writeln('  ),');
   }
   buf

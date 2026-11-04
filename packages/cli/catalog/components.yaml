@@ -7,6 +7,12 @@ components:
     section: '1. 页面骨架与导航'
     useFor: '页面壳：默认 WAppBar、body、底部导航/FAB、安全区'
     dontUseFor: '任意顶部叠放用页面层 Container/Stack'
+    usage: "WScaffold(appBar: WAppBar(title: Text('\u9996\u9875')), body: ...)"
+    pitfalls:
+      - "\u4e0d\u8981\u624b\u62fc Scaffold + SafeArea\uff1b\u9875\u9762\u58f3\u7edf\u4e00\u7528 WScaffold"
+    related: ["`WAppBar`", "`WNavBar`"]
+    teach: true
+
   - name: '`WAppBar`'
     package: 'w_tools_ui'
     section: '1. 页面骨架与导航'
@@ -32,16 +38,35 @@ components:
     section: '2. 文本与图标'
     useFor: '语义文字样式、overrides、maxLines、textScaler'
     dontUseFor: '不要再用 `WTextConfig`；已移除，使用 `WTextStyles`'
+    usage: "WText('\u5185\u5bb9', variant: WTextVariant.body)"
+    pitfalls:
+      - "\u4e0d\u8981\u518d\u7528 WTextConfig\uff1b\u6837\u5f0f\u7edf\u4e00 WTextStyles"
+    related: ["`WTextStyles`"]
+    teach: true
+
   - name: '`WImage`'
     package: 'w_tools_ui'
     section: '2. 文本与图标'
     useFor: '网络图/资源图（缓存、重试、占位）'
     dontUseFor: '不要裸用 `Image.network`'
+    usage: "WImage.source(source: WImageSource.network(url))"
+    pitfalls:
+      - "\u65e7 WImage.network/asset/data \u5df2\u5728 6.0 \u5220\u9664"
+      - "\u672a\u77e5\u6765\u6e90\u7528 WImageSource.parse"
+    related: ["`WImageSource`"]
+    teach: true
+
   - name: '`WButton`'
     package: 'w_tools_ui'
     section: '3. 按钮与操作'
     useFor: '真正的按钮（label/icon + style/size/loading）'
     dontUseFor: '任意 child 点击用 `WPressable`'
+    usage: "WButton(label: '\u4fdd\u5b58', onPressed: save)"
+    pitfalls:
+      - "\u4efb\u610f child \u70b9\u51fb\u7528 WPressable\uff0c\u4e0d\u8981\u5957 WButton"
+    related: ["`WPressable`"]
+    teach: true
+
   - name: '`WPressable`'
     package: 'w_tools_ui'
     section: '3. 按钮与操作'
@@ -75,6 +100,13 @@ components:
     section: '5. 表单'
     useFor: '页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验'
     dontUseFor: '不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope`'
+    usage: "WForm(controller: form, child: WFormTextField(name: 'email'))"
+    pitfalls:
+      - "\u4e00\u4e2a WForm \u5bf9\u5e94\u4e00\u4e2a WFormController"
+      - "\u8868\u5355\u5b57\u6bb5\u7528\u76f4\u63a5\u53c2\u6570\uff0c\u4e0d\u8981\u4ece Config.build \u5f00\u59cb"
+    related: ["`WFormController`", "`WFormTextField`"]
+    teach: true
+
   - name: '`WFormController`'
     package: 'w_tools_form'
     section: '5. 表单'
@@ -85,15 +117,33 @@ components:
     section: '5. 表单'
     useFor: '直接文本 / 密码字段（label / message / validator）'
     dontUseFor: '不要默认写 `WFormTextFieldConfig().build(...)`'
+    usage: "WFormTextField(name: 'email', hintText: '\u90ae\u7bb1', validator: ...)"
+    pitfalls:
+      - "\u4e0d\u8981\u518d\u4f20 config: WFormTextFieldConfig"
+    related: ["`WForm`", "`WFormFieldStyle`"]
+    teach: true
+
   - name: '`WFormDropdown` / `WFormMultiDropdown`'
     package: 'w_tools_form'
     section: '5. 表单'
     useFor: '直接下拉 / 多选字段'
     dontUseFor: '选择类弹层用 `WFormPopup`'
+    usage: "WFormDropdown<String>(name: 'city', items: {'sh': '\u4e0a\u6d77'})"
+    pitfalls:
+      - "items \u7684 key \u5fc5\u987b\u7a33\u5b9a\uff1b\u7528\u76f4\u63a5\u53c2\u6570\u8bbe icon/padding"
+    related: ["`WFormTextField`"]
+    teach: true
+
   - name: '`WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`'
     package: 'w_tools_form'
     section: '5. 表单'
     useFor: '直接日期 / 复选 / 单选字段'
+    usage: "WFormDatePicker(name: 'birthday', displayFormat: 'yyyy-MM-dd')"
+    pitfalls:
+      - "\u65e5\u671f\u683c\u5f0f\u7528 displayFormat\uff0c\u4e0d\u8981\u4f20 Config"
+    related: ["`WFormTextField`"]
+    teach: true
+
   - name: '`WFormButton`'
     package: 'w_tools_form'
     section: '5. 表单'
@@ -132,11 +182,19 @@ components:
       - 'Controller 必须先 load()，否则一直是 loading'
       - 'onRetry 为 null 时不渲染重试按钮'
     related: ['WAsyncController', 'WAsyncTheme', 'WAsyncStateBuilder']
+    teach: true
+
   - name: '`WAsyncStateBuilder`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
     useFor: '滚动页面 / `SmartRefresher` / 自定义状态布局'
     dontUseFor: '普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除'
+    usage: "WAsyncStateBuilder(state: c.state, builder: (context, state) => ...)"
+    pitfalls:
+      - "builder \u5fc5\u987b\u59cb\u7ec8\u8fd4\u56de\u540c\u4e00\u4e2a\u6eda\u52a8\u58f3\uff0c\u4e0d\u8981\u5728\u5916\u5c42\u5207 Center"
+    related: ["`WAsyncView`", "`WAsyncThemeViews`"]
+    teach: true
+
   - name: '`WAsyncController`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
@@ -147,22 +205,42 @@ components:
       - '页面 dispose 时 controller.dispose()'
       - '不要给 Controller 传 options.activity'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
+    teach: true
+
   - name: '`WAsyncPagedController`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
     useFor: '分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md）'
     dontUseFor: '普通单请求用 `WAsyncController`'
+    usage: "final c = WAsyncPagedController<Item>((page) => api.list(page: page)); await c.refresh();"
+    pitfalls:
+      - "loadMore \u5931\u8d25\u53ea\u5199 loadMoreError\uff0c\u4e0d\u8981\u6e05\u7a7a\u5217\u8868"
+      - "initial: ready([]) / empty \u89c6\u4e3a\u6ca1\u6709\u66f4\u591a"
+    related: ["`WAsyncView`", "`WAsyncController`"]
+    teach: true
+
   - name: '`WAsyncStateSliver`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
     useFor: 'CustomScrollView 的四态 sliver、failed+旧数据'
     dontUseFor: '非滚动页面用 `WAsyncView`'
+    usage: "WAsyncStateSliver(state: c.state, onRetry: c.load, readySliverBuilder: ...)"
+    pitfalls:
+      - "readySliverBuilder \u5fc5\u987b\u8fd4\u56de sliver\uff1b\u4e0d\u8981\u5305\u5728 WAsyncView \u91cc"
+    related: ["`WAsyncStateBuilder`", "`WAsyncTheme`"]
+    teach: true
+
   - name: '`WAsyncTheme`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
     useFor: 'App 根部统一默认 loading / empty / error（普通 + sliver）'
     dontUseFor: '不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先'
     related: ['WAsyncThemeViews', 'WAsyncView', 'WAsyncStateSliver']
+    usage: "WAsyncTheme(strings: const WAsyncStrings(empty: '\u6682\u65e0\u6570\u636e'), child: app)"
+    pitfalls:
+      - "\u666e\u901a builder \u53ea\u4f5c\u7528\u4e8e WAsyncView\uff1bsliver \u7528 sliver*Builder"
+    teach: true
+
   - name: '`WAsyncThemeViews`'
     package: 'w_tools_async'
     section: '7. 状态与反馈'
@@ -172,10 +250,18 @@ components:
     pitfalls:
       - '普通页面直接用 WAsyncView，不要重复搭四态分支'
     related: ['WAsyncTheme', 'WAsyncStateBuilder']
+    teach: true
+
   - name: '`WToast`'
     package: 'w_tools_toast'
     section: '7. 状态与反馈'
     useFor: '轻提示'
+    usage: "WToast.showSuccess('\u4fdd\u5b58\u6210\u529f');"
+    pitfalls:
+      - "\u5148\u6302 BotToastInit / BotToastNavigatorObserver"
+    related: ["`WToastStyle`"]
+    teach: true
+
   - name: '`WGradientCircularProgressIndicator`'
     package: 'w_tools_ui'
     section: '7. 状态与反馈'
@@ -198,15 +284,34 @@ components:
     package: 'w_tools_app_getx'
     section: '8. 能力（非 UI）'
     useFor: 'GetX 启动器'
+    usage: "await WApp.options(WAppOptions(title: 'Demo')).start();"
+    pitfalls:
+      - "WApp \u5728 w_tools_app_getx\uff0c\u4e0d\u5728 core w_tools_app"
+      - "start() \u53ea\u8c03\u7528\u4e00\u6b21"
+    related: ["`WAppPlugin`", "`WAppOptions`"]
+    teach: true
+
   - name: '`WAppPlugin`'
     package: 'w_tools_app'
     section: '8. 能力（非 UI）'
     useFor: '插件分层初始化'
+    usage: "class AppPlugin extends WAppPlugin { @override String get name => 'app'; }"
+    pitfalls:
+      - "\u6709\u987a\u5e8f\u8981\u6c42\u5fc5\u987b\u5199 dependsOn\uff0c\u4e0d\u80fd\u4f9d\u8d56\u6ce8\u518c\u987a\u5e8f"
+    related: ["`WApp`"]
+    teach: true
+
   - name: '`WAsyncState`'
     package: 'w_tools_async'
     section: '8. 能力（非 UI）'
     useFor: '四态快照与 `when`'
     dontUseFor: '不要手写 `ValueNotifier<WAsyncState>`'
+    usage: "state.when(loading: ..., ready: ..., empty: ..., failed: ...)"
+    pitfalls:
+      - "\u4e0d\u8981\u624b\u5199 ValueNotifier<WAsyncState>"
+    related: ["`WAsyncController`"]
+    teach: true
+
   - name: '`WAsyncResult`'
     package: 'w_tools_async'
     section: '8. 能力（非 UI）'
@@ -217,6 +322,8 @@ components:
       - '需要失败抛异常时用 WAsync.run'
       - 'isProgrammingError 只存在于 WAsyncFailure'
     related: ['WAsync', 'WAsyncController']
+    teach: true
+
   - name: '`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`'
     package: 'w_tools_async'
     section: '8. 能力（非 UI）'
@@ -236,6 +343,8 @@ components:
       - 'onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess'
       - '取消需要 WCancelToken；取消不中止底层 Future'
     related: ['WAsyncResult', 'WAsyncOptions', 'WCancelToken']
+    teach: true
+
   - name: '`WCountdown`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
@@ -245,11 +354,24 @@ components:
     section: '8. 能力（非 UI）'
     useFor: '本地类型读写'
     dontUseFor: '读取前必须 `init`；明文存储'
+    usage: "await WStorage.init(); await WStorage.setString('token', 'abc');"
+    pitfalls:
+      - "\u8bfb\u4e4b\u524d\u5fc5\u987b init"
+      - "\u660e\u6587\u5b58\u50a8\uff0c\u4e0d\u662f\u5b89\u5168\u5b58\u50a8"
+    related: ["`WToken`"]
+    teach: true
+
   - name: '`WToken`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
     useFor: 'token 存取'
     dontUseFor: '明文存储；高敏感场景用 Keychain / Keystore'
+    usage: "await WToken.saveToken(token); final t = WToken.getToken();"
+    pitfalls:
+      - "WToken \u5e95\u5c42\u662f SharedPreferences\uff0c\u4e0d\u662f Keychain"
+    related: ["`WStorage`", "`WTokenInterceptor`"]
+    teach: true
+
   - name: '`WEncrypt` / `WHash`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
@@ -259,6 +381,12 @@ components:
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
     useFor: '日志、校验、正则'
+    usage: "WLogger.i('saved'); WValidator.isValidEmail(email);"
+    pitfalls:
+      - "\u7eaf\u6b63\u5219\u5339\u914d\u7528 WRegExp\uff0c\u4e0d\u8981\u624b\u5199\u91cd\u590d\u6b63\u5219"
+    related: ["`WValidator`"]
+    teach: true
+
   - name: '`WDebounce` / `WThrottle`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
@@ -274,6 +402,12 @@ components:
     section: '8. 能力（非 UI）'
     useFor: '按 baseUrl 创建并复用 Dio'
     dontUseFor: '不要直接 `Dio()`；同一 baseUrl 只配置一次'
+    usage: "final r = DioRegistry.forBaseUrl('https://api.example.com'); await r.dio.get('/users');"
+    pitfalls:
+      - "\u540c\u4e00 baseUrl \u53ea\u80fd\u521d\u59cb\u5316\u4e00\u6b21\uff1b\u6362\u914d\u7f6e\u5148 dispose"
+    related: ["`WApiConfig`", "`WLogInterceptor`"]
+    teach: true
+
   - name: '`WTokenInterceptor`'
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
@@ -288,6 +422,12 @@ components:
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
     useFor: '请求配置与日志注入'
+    usage: "final options = WApiConfig.baseOptions(baseUrl: 'https://api.example.com');"
+    pitfalls:
+      - "\u4e0d\u8981\u76f4\u63a5 Dio()\uff1b\u7edf\u4e00\u8d70 DioRegistry"
+    related: ["`DioRegistry`"]
+    teach: true
+
   - name: '`WLanguage`'
     package: 'w_tools_app_getx'
     section: '8. 能力（非 UI）'
@@ -308,6 +448,13 @@ components:
     section: '8. 能力（非 UI）'
     useFor: '二维码 / 条形码扫描'
     dontUseFor: '不要直接用 `QRView`；单次扫码后用 `restartScan`'
+    usage: "WQrView(onScanned: (code) => ...)"
+    pitfalls:
+      - "\u5355\u6b21\u626b\u7801\u9ed8\u8ba4 scanOnce=true\uff1b\u8fde\u7eed\u626b\u63cf\u663e\u5f0f false"
+      - "\u9700\u8981\u76f8\u673a\u6743\u9650"
+    related: ["`WQrController`"]
+    teach: true
+
   - name: '`WQrController`'
     package: 'w_tools_qr'
     section: '8. 能力（非 UI）'
@@ -323,11 +470,24 @@ components:
     section: '8. 能力（非 UI）'
     useFor: 'Google Maps 地图与数据区域'
     dontUseFor: '不要直接用 `GoogleMap`；需要 API Key'
+    usage: "WMap(zone: WMapZone<Shop>(maps: shops), config: const WMapConfig<Shop>())"
+    pitfalls:
+      - "WMap/WMapZone \u6765\u81ea w_tools_map_google\uff0c\u4e0d\u662f w_tools_map"
+      - "markerId \u5fc5\u987b\u7a33\u5b9a"
+    related: ["`WMapController`", "`WMapItemMapper`"]
+    teach: true
+
   - name: '`WMapController`'
     package: 'w_tools_map_google'
     section: '8. 能力（非 UI）'
     useFor: '业务侧选中 / 关闭 marker'
     dontUseFor: '未挂载时无效果'
+    usage: "mapController.closeSelection(shop);"
+    pitfalls:
+      - "\u672a\u6302\u8f7d\u65f6\u65e0\u6548\u679c\uff1b\u4e0d\u8981\u7528 WMap.closeSelection"
+    related: ["`WMap` / `WMapZone`"]
+    teach: true
+
   - name: '`WMapItemMapper`'
     package: 'w_tools_map'
     section: '8. 能力（非 UI）'

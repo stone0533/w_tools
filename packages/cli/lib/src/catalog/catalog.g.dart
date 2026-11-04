@@ -17,9 +17,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WScaffold(appBar: WAppBar(title: Text('首页')), body: ...)",
+    pitfalls: <String>["不要手拼 Scaffold + SafeArea；页面壳统一用 WScaffold"],
+    related: <String>["`WAppBar`", "`WNavBar`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAppBar",
@@ -34,6 +35,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WNavBar / WNavController",
@@ -48,6 +50,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WTabBar",
@@ -62,6 +65,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WStep / WStepFlow",
@@ -76,6 +80,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WText / WTextVariant / WTextStyles",
@@ -87,9 +92,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WText('内容', variant: WTextVariant.body)",
+    pitfalls: <String>["不要再用 WTextConfig；样式统一 WTextStyles"],
+    related: <String>["`WTextStyles`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WImage",
@@ -101,9 +107,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WImage.source(source: WImageSource.network(url))",
+    pitfalls: <String>["旧 WImage.network/asset/data 已在 6.0 删除", "未知来源用 WImageSource.parse"],
+    related: <String>["`WImageSource`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WButton",
@@ -115,9 +122,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_ui/w_tools_ui.dart",
     docs: "docs/modules/ui_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WButton(label: '保存', onPressed: save)",
+    pitfalls: <String>["任意 child 点击用 WPressable，不要套 WButton"],
+    related: <String>["`WPressable`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WPressable",
@@ -132,6 +140,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WActionRow / WSelectableRow",
@@ -146,6 +155,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WBadge",
@@ -160,6 +170,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WClipRRect",
@@ -174,6 +185,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WScreen",
@@ -188,6 +200,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WAssets",
@@ -202,6 +215,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WForm",
@@ -213,9 +227,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WForm(controller: form, child: WFormTextField(name: 'email'))",
+    pitfalls: <String>["一个 WForm 对应一个 WFormController", "表单字段用直接参数，不要从 Config.build 开始"],
+    related: <String>["`WFormController`", "`WFormTextField`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WFormController",
@@ -230,6 +245,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WFormTextField",
@@ -241,9 +257,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WFormTextField(name: 'email', hintText: '邮箱', validator: ...)",
+    pitfalls: <String>["不要再传 config: WFormTextFieldConfig"],
+    related: <String>["`WForm`", "`WFormFieldStyle`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WFormDropdown / WFormMultiDropdown",
@@ -255,9 +272,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WFormDropdown<String>(name: 'city', items: {'sh': '上海'})",
+    pitfalls: <String>["items 的 key 必须稳定；用直接参数设 icon/padding"],
+    related: <String>["`WFormTextField`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WFormDatePicker / WFormCheckbox / WFormRadioGroup",
@@ -269,9 +287,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_form/w_tools_form.dart",
     docs: "docs/modules/form_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WFormDatePicker(name: 'birthday', displayFormat: 'yyyy-MM-dd')",
+    pitfalls: <String>["日期格式用 displayFormat，不要传 Config"],
+    related: <String>["`WFormTextField`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WFormButton",
@@ -286,6 +305,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WFormFieldStyle",
@@ -300,6 +320,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WFormValidatorSettings",
@@ -314,6 +335,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WFormBorder",
@@ -328,6 +350,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WBottomSheet",
@@ -342,6 +365,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WFormPopup",
@@ -356,6 +380,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WAsyncView / WAsyncErrorView / WAsyncErrorBanner",
@@ -370,6 +395,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: "WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (context, data) => ...)",
     pitfalls: <String>["Controller 必须先 load()，否则一直是 loading", "onRetry 为 null 时不渲染重试按钮"],
     related: <String>["WAsyncController", "WAsyncTheme", "WAsyncStateBuilder"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsyncStateBuilder",
@@ -381,9 +407,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WAsyncStateBuilder(state: c.state, builder: (context, state) => ...)",
+    pitfalls: <String>["builder 必须始终返回同一个滚动壳，不要在外层切 Center"],
+    related: <String>["`WAsyncView`", "`WAsyncThemeViews`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsyncController",
@@ -398,6 +425,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: "final c = WAsyncController.list(() => api.list()); c.load();",
     pitfalls: <String>["页面 dispose 时 controller.dispose()", "不要给 Controller 传 options.activity"],
     related: <String>["WAsyncView", "WAsyncState", "WAsyncPagedController"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsyncPagedController",
@@ -409,9 +437,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "final c = WAsyncPagedController<Item>((page) => api.list(page: page)); await c.refresh();",
+    pitfalls: <String>["loadMore 失败只写 loadMoreError，不要清空列表", "initial: ready([]) / empty 视为没有更多"],
+    related: <String>["`WAsyncView`", "`WAsyncController`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsyncStateSliver",
@@ -423,9 +452,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WAsyncStateSliver(state: c.state, onRetry: c.load, readySliverBuilder: ...)",
+    pitfalls: <String>["readySliverBuilder 必须返回 sliver；不要包在 WAsyncView 里"],
+    related: <String>["`WAsyncStateBuilder`", "`WAsyncTheme`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsyncTheme",
@@ -437,9 +467,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
+    usage: "WAsyncTheme(strings: const WAsyncStrings(empty: '暂无数据'), child: app)",
+    pitfalls: <String>["普通 builder 只作用于 WAsyncView；sliver 用 sliver*Builder"],
     related: <String>["WAsyncThemeViews", "WAsyncView", "WAsyncStateSliver"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsyncThemeViews",
@@ -454,6 +485,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: "final views = WAsyncThemeViews.of(context);",
     pitfalls: <String>["普通页面直接用 WAsyncView，不要重复搭四态分支"],
     related: <String>["WAsyncTheme", "WAsyncStateBuilder"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WToast",
@@ -465,9 +497,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_toast/w_tools_toast.dart",
     docs: "docs/modules/toast_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WToast.showSuccess('保存成功');",
+    pitfalls: <String>["先挂 BotToastInit / BotToastNavigatorObserver"],
+    related: <String>["`WToastStyle`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WGradientCircularProgressIndicator",
@@ -482,6 +515,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WListView / WListViewSliver",
@@ -496,6 +530,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WKeepAliveWrapper",
@@ -510,6 +545,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WNotificationListenerBuilder",
@@ -524,6 +560,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WApp",
@@ -535,9 +572,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_app_getx/w_tools_app_getx.dart",
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "await WApp.options(WAppOptions(title: 'Demo')).start();",
+    pitfalls: <String>["WApp 在 w_tools_app_getx，不在 core w_tools_app", "start() 只调用一次"],
+    related: <String>["`WAppPlugin`", "`WAppOptions`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAppPlugin",
@@ -549,9 +587,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_app/w_tools_app.dart",
     docs: "docs/modules/app_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "class AppPlugin extends WAppPlugin { @override String get name => 'app'; }",
+    pitfalls: <String>["有顺序要求必须写 dependsOn，不能依赖注册顺序"],
+    related: <String>["`WApp`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsyncState",
@@ -563,9 +602,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "state.when(loading: ..., ready: ..., empty: ..., failed: ...)",
+    pitfalls: <String>["不要手写 ValueNotifier<WAsyncState>"],
+    related: <String>["`WAsyncController`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsyncResult",
@@ -580,6 +620,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: "switch (result) { case WAsyncSuccess(:final value): ... }",
     pitfalls: <String>["需要失败抛异常时用 WAsync.run", "isProgrammingError 只存在于 WAsyncFailure"],
     related: <String>["WAsync", "WAsyncController"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WAsync / WAsyncOptions / WAsyncActivity / WCancelToken",
@@ -594,6 +635,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: "final result = await WAsync.tryRun(() => api.fetch());\nswitch (result) {\n  case WAsyncSuccess(:final value): use(value);\n  case WAsyncFailure(:final error): log(error);\n  case WAsyncCancelled(): log('cancelled');\n}\nfinal value = await WAsync.run(() => api.fetch()); // 失败抛异常\nfinal name = await WAsync.map(() => api.fetch(), onSuccess: (v) => v.name);\n",
     pitfalls: <String>["run 失败抛异常；tryRun 不抛异常", "onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess", "取消需要 WCancelToken；取消不中止底层 Future"],
     related: <String>["WAsyncResult", "WAsyncOptions", "WCancelToken"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WCountdown",
@@ -608,6 +650,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WStorage",
@@ -619,9 +662,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "await WStorage.init(); await WStorage.setString('token', 'abc');",
+    pitfalls: <String>["读之前必须 init", "明文存储，不是安全存储"],
+    related: <String>["`WToken`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WToken",
@@ -633,9 +677,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "await WToken.saveToken(token); final t = WToken.getToken();",
+    pitfalls: <String>["WToken 底层是 SharedPreferences，不是 Keychain"],
+    related: <String>["`WStorage`", "`WTokenInterceptor`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WEncrypt / WHash",
@@ -650,6 +695,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WLogger / WValidator / WRegExp",
@@ -661,9 +707,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_core/w_tools_core.dart",
     docs: "docs/modules/core_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WLogger.i('saved'); WValidator.isValidEmail(email);",
+    pitfalls: <String>["纯正则匹配用 WRegExp，不要手写重复正则"],
+    related: <String>["`WValidator`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WDebounce / WThrottle",
@@ -678,6 +725,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WPlatform",
@@ -692,6 +740,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "DioRegistry",
@@ -703,9 +752,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_api/w_tools_api.dart",
     docs: "docs/modules/api_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "final r = DioRegistry.forBaseUrl('https://api.example.com'); await r.dio.get('/users');",
+    pitfalls: <String>["同一 baseUrl 只能初始化一次；换配置先 dispose"],
+    related: <String>["`WApiConfig`", "`WLogInterceptor`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WTokenInterceptor",
@@ -720,6 +770,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WLogInterceptor",
@@ -734,6 +785,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WApiConfig",
@@ -745,9 +797,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_api/w_tools_api.dart",
     docs: "docs/modules/api_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "final options = WApiConfig.baseOptions(baseUrl: 'https://api.example.com');",
+    pitfalls: <String>["不要直接 Dio()；统一走 DioRegistry"],
+    related: <String>["`DioRegistry`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WLanguage",
@@ -762,6 +815,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WAppConfig",
@@ -776,6 +830,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WRouteObserver",
@@ -790,6 +845,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WQrView",
@@ -801,9 +857,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_qr/w_tools_qr.dart",
     docs: "docs/modules/qr_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WQrView(onScanned: (code) => ...)",
+    pitfalls: <String>["单次扫码默认 scanOnce=true；连续扫描显式 false", "需要相机权限"],
+    related: <String>["`WQrController`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WQrController",
@@ -818,6 +875,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WQrViewOverlayShape",
@@ -832,6 +890,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WMap / WMapZone",
@@ -843,9 +902,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_map_google/w_tools_map_google.dart",
     docs: "docs/modules/map_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "WMap(zone: WMapZone<Shop>(maps: shops), config: const WMapConfig<Shop>())",
+    pitfalls: <String>["WMap/WMapZone 来自 w_tools_map_google，不是 w_tools_map", "markerId 必须稳定"],
+    related: <String>["`WMapController`", "`WMapItemMapper`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WMapController",
@@ -857,9 +917,10 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_map_google/w_tools_map_google.dart",
     docs: "docs/modules/map_module.md",
     aliases: <String>[],
-    usage: null,
-    pitfalls: <String>[],
-    related: <String>[],
+    usage: "mapController.closeSelection(shop);",
+    pitfalls: <String>["未挂载时无效果；不要用 WMap.closeSelection"],
+    related: <String>["`WMap` / `WMapZone`"],
+    teach: true,
   ),
   CatalogEntry(
     name: "WMapItemMapper",
@@ -874,6 +935,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WRouteStack",
@@ -888,6 +950,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WNumExtension",
@@ -902,6 +965,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WStringExtension",
@@ -916,6 +980,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WBoxDecorationExtension",
@@ -930,6 +995,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WWidgetExtension",
@@ -944,6 +1010,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WUiWidgetExtension",
@@ -958,6 +1025,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
   CatalogEntry(
     name: "WHexColor",
@@ -972,6 +1040,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     usage: null,
     pitfalls: <String>[],
     related: <String>[],
+    teach: false,
   ),
 ];
 
