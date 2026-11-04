@@ -3,7 +3,6 @@ library w_tools;
 export 'package:w_tools_core/w_tools_core.dart';
 export 'package:w_tools_async/w_tools_async.dart';
 export 'package:w_tools_api/w_tools_api.dart';
-export 'package:w_tools_app/w_tools_app.dart';
 export 'package:w_tools_toast/w_tools_toast.dart';
 export 'package:w_tools_form/w_tools_form.dart';
 export 'package:w_tools_ui/w_tools_ui.dart';

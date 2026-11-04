@@ -154,7 +154,7 @@ for pkg in $PACKAGES; do
   if [ "$pkg" = "cli" ] || [ "$pkg" = "figma" ] || [ "$pkg" = "device" ] || [ "$pkg" = "e2e" ]; then
     # CLI / figma 是独立工具包：消费方放 dev_dependencies，不需要根包依赖它们
     ok "$name ${version}（独立工具包，不要求根包依赖）"
-  elif [ "$pkg" = "map" ] || [ "$pkg" = "qr" ]; then
+  elif [ "$pkg" = "app" ] || [ "$pkg" = "map" ] || [ "$pkg" = "qr" ]; then
     # 6.0 起根聚合包不再包含原生 map/qr，按需直接依赖子包
     ok "$name ${version}（根包不聚合，按需依赖）"
   else

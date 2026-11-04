@@ -29,9 +29,9 @@
 
 ## 安装
 
-> ℹ️ **发布状态**：7 个基础子包与聚合包 `w_tools` 已发布到 pub.dev；
+> ℹ️ **发布状态**：6 个基础子包与聚合包 `w_tools` 已发布到 pub.dev；
 > `w_tools_cli` 是独立的纯 Dart 工具包，发布状态见 pub.dev。
-> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 7 个基础子包，只 re-export 子包能力；
+> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 6 个基础子包，只 re-export 子包能力；
 > 各包按其当前主版本约束（见根 `pubspec.yaml`，本文不硬编码版本号）。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
@@ -59,7 +59,7 @@ dependencies:
 
 ### 推荐：只依赖用到的子包（不要依赖聚合包）
 
-聚合包仍会带上 `w_tools_app` 的 GetX；地图/扫码已从根包移除，需要时直接依赖子包：
+根包只保留 core/async/ui/form/api/toast；`app` / `map` / `qr` 一律按需直接依赖对应子包：
 
 ```yaml
 dependencies:
@@ -104,7 +104,7 @@ import 'package:w_tools/w_tools.dart';
 WToken.tokenKey = 'auth_token';   // core：token 键名
 WAssets.imagePath = 'assets/images/';  // ui：资源前缀
 WFormIcons.check = Icons.check;   // form：表单图标
-WAppConfig.supportedLanguages = {'zh_CN': '简体中文'}; // app：语言
+WToken.tokenKey = 'token'; // core：token 键名
 ```
 
 
@@ -120,11 +120,11 @@ dependencies:
   w_tools_ui: ^5.0.1
 ```
 
-或一键引入聚合包（会带上全部 7 个基础子包及其依赖）：
+或一键引入聚合包（会带上全部 6 个基础子包及其依赖）：
 
 ```yaml
 dependencies:
-  w_tools: ^6.0.0
+  w_tools: ^7.0.0
 ```
 
 然后运行：
@@ -135,7 +135,7 @@ flutter pub get
 
 ### 依赖与子包说明（选依赖前请先读）
 
-`w_tools` 是**聚合包**，直接依赖以下 7 个基础子包，方便一键引入：
+`w_tools` 是**聚合包**，直接依赖以下 6 个基础子包，方便一键引入：
 
 | 子包 | 职责 |
 |---|---|
@@ -145,129 +145,21 @@ flutter pub get
 | `w_tools_form` | 表单组件（`WFormTextField` / `WFormDropdown` / `WFormCheckbox` / `WFormBorder` 等） |
 | `w_tools_api` | 网络请求（`DioRegistry` / `BaseOptions` / 各类拦截器 / `BaseRepository`） |
 | `w_tools_toast` | 轻量提示（`WToast`） |
-| `w_tools_app` | 应用启动器（`WApp`）、插件契约（`WAppPlugin`）、路由观察者、`WRouteStack` / 实例 `app.routeStack` |
-
-> ⚠️ **`w_tools_app` 强依赖 GetX，且不可替换。**
->
-> - `WApp.run()` 内部构建的根组件就是 `GetMaterialApp`
-> - `run()` / `start()` 的 `initialRoute` / `getPages` / `translations` / `locale` / `defaultTransition` 参数均为 GetX 类型
-> - `WRouteStack` 记录路由（`WRouteObserver` 本身不依赖 GetX；默认栈是 `WRouteStack.defaultStack`）
->
-> **换句话说：使用启动器 = 你的项目必须使用 GetX。**
-
-因此请按需选择引入方式（下例为**发布后**的版本约束写法；发布前请改用上面的 path / git 写法）：
-
-**① 只用组件 / 工具，且不想引入 GetX** —— 按需导入子包，不要用根包 `w_tools`：
-
-```yaml
-dependencies:
-  w_tools_ui: ^5.0.1     # 只用 UI 组件
-  w_tools_core: ^3.1.0   # 只用工具类与扩展
-```
-
-```dart
-import 'package:w_tools_ui/w_tools_ui.dart';
-import 'package:w_tools_core/w_tools_core.dart';
-```
-
-**② 要用 `WApp` 启动器，或想一键使用聚合能力** —— 导入根包，并接受 GetX 作为依赖：
-
-```yaml
-dependencies:
-  w_tools: ^6.0.0
-```
-
-```dart
-import 'package:w_tools/w_tools.dart';
-```
-
-> **版本策略**：7 个基础子包与 `w_tools_cli` 各自独立发版，互不跟随（具体版本以
-> 各包 `pubspec.yaml` 与 pub.dev 为准，不在本文硬编码）；根包按聚合层版本独立发布，
-> 其依赖约束以根 `pubspec.yaml` 为准（随子包主版本同步）。发版流程与自动校验见 `docs/releasing.md`。
 
 ## 快速开始
 
-### 初始化应用
+根包只包含基础能力。应用启动器 `WApp` 需要单独依赖：
 
-使用**一站式入口 `start()`**（等价于 `init()` + `run()`），它保证 `runApp` 之前的所有准备
-（系统设置、插件初始化）都已完成：
+```yaml
+dependencies:
+  w_tools_app: ^2.1.0
+```
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:w_tools/w_tools.dart';
-
-void main() async {
-  final app = WApp.options(
-    WAppOptions(
-      title: 'Flutter App',
-      initialRoute: '/',
-      getPages: [GetPage(name: '/', page: () => HomePage())],
-      // 可选：在最外层包裹 app（ScreenUtilInit / MediaQuery / 全局手势）
-      // w_tools 不内置 ScreenUtil，需要时请自行引入 flutter_screenutil：
-      // appWrapper: (child) => ScreenUtilInit(
-      //   designSize: const Size(375, 0),
-      //   child: child,
-      // ),
-    ),
-  );
-
-  // 一站式启动：内部先 init()（系统设置 + 插件 onInit），再 run()
-  await app.start();
-}
+import 'package:w_tools_app/w_tools_app.dart';
 ```
 
-> `start()` 的等价写法是 `await app.init(); app.run();`。
-> 但请注意 **`run()` 之前必须先 `init()`**，否则会抛 `StateError` ——
-> 插件初始化（`.env` 加载、业务服务、原生闪屏保留等）都在 `init()` 里完成，
-> 遗漏会导致难以定位的启动时序问题（数据未加载、首屏拿不到实例、闪屏异常等）。
-
-### 生命周期与插件
-
-启动阶段的执行顺序：
-
-```text
-WidgetsFlutterBinding.ensureInitialized()
-→ 系统设置（状态栏、屏幕方向）
-→ 插件 onInit（按 dependsOn 分层：同层并行、跨层串行）
-→ 首帧后 onLazyInit 回调
-→ runApp(appWrapper(插件 wrapApp 链 → GetMaterialApp))
-```
-
-自定义插件：
-
-```dart
-class MyAppPlugin extends WAppPlugin {
-  @override
-  String get name => 'my-plugin';
-
-  /// 声明依赖：本插件会在名为 'env' 的插件之后初始化
-  @override
-  List<String> get dependsOn => const ['env'];
-
-  /// 初始化阶段（ensureInitialized 之后、runApp 之前）
-  @override
-  Future<void> onInit() async {
-    await MyService.init();
-  }
-
-  /// 包裹 GetMaterialApp 的 builder（如 BotToastInit）
-  @override
-  TransitionBuilder? get builderWrapper => null;
-
-  /// 包裹整个 app（如 ScreenUtilInit、全局手势）
-  @override
-  Widget wrapApp(Widget child) => child;
-
-  /// 追加路由观察者
-  @override
-  List<NavigatorObserver> get navigatorObservers => [];
-}
-```
-
-> **插件间有依赖时请用 `dependsOn` 声明，不要依赖 `addPlugins` 的注册顺序** ——
-> 同一层的插件是**并行**执行的，注册顺序不产生任何顺序保证。
-> 依赖了未注册的插件名或存在循环依赖时，`init()` 会抛出 `StateError` 并指出问题插件。
+完整用法见 [`packages/app/README.md`](packages/app/README.md)。
 
 ## 核心功能
 

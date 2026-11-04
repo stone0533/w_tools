@@ -1,3 +1,9 @@
+## 7.0.0
+
+### Breaking
+- 根聚合包不再包含 `w_tools_app`：GetX 不再被所有根包用户被动引入。
+  需要 `WApp` 时直接依赖 `w_tools_app`。
+
 ## 6.0.0
 
 ### Breaking
