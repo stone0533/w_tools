@@ -46,7 +46,7 @@ doctor → 0 error / 0 warning 才算通过
 | 找现成组件 | `list` |
 | 看某个组件怎么用 | `explain` |
 | 给 AI 项目上下文 | `context --format=prompt` |
-| 用 w_tools 撞到问题，要记一条反馈 | `feedback path --package=<包>` |
+| 用 w_tools 撞到问题，要记一条反馈 | `feedback submit --package=<包>` |
 | 只检查不写文件 | `init --check` |
 | 检查模板是否过期 | `init --check-drift` |
 | 升级 CLI 后刷新生成物 | `init --force` |

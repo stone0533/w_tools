@@ -6,7 +6,7 @@
    (installed versions, toolkit exports, checks to run)
 2. **Reuse before writing**: `dart run w_tools_cli:list <keyword>`,
    then `dart run w_tools_cli:explain <Component>`; **do not invent component names**.
-   Business code imports `package:{{app}}/app/w/toolkit.dart` only.
+   Business code imports `package:{{toolkitImport}}` only.
 3. **If missing, stage generic candidates for promotion** in `lib/app/design_system/`
    (do not modify w_tools directly):
    - imports: `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`

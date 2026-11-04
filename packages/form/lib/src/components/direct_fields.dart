@@ -29,6 +29,7 @@ class WFormTextField extends StatelessWidget {
     super.key,
     required this.name,
     this.label,
+    this.hintText,
     this.message,
     this.initialValue,
     this.validator,
@@ -54,6 +55,9 @@ class WFormTextField extends StatelessWidget {
 
   final String name;
   final String? label;
+
+  /// 占位符；优先于历史参数 [label]。
+  final String? hintText;
   final String? message;
   final String? initialValue;
   final FormFieldValidator<String>? validator;
@@ -95,7 +99,7 @@ class WFormTextField extends StatelessWidget {
     return c.build(
       name: name,
       initialValue: initialValue,
-      hintText: label,
+      hintText: hintText ?? label,
       validator: validator,
       onChanged: onChanged,
       onSubmitted: onSubmitted,
@@ -121,6 +125,7 @@ class WFormDropdown<T> extends StatelessWidget {
     required this.name,
     required this.items,
     this.label,
+    this.hintText,
     this.message,
     this.initialValue,
     this.validator,
@@ -137,6 +142,9 @@ class WFormDropdown<T> extends StatelessWidget {
   final String name;
   final Map<T, String> items;
   final String? label;
+
+  /// 占位符；优先于历史参数 [label]。
+  final String? hintText;
   final String? message;
   final T? initialValue;
   final FormFieldValidator<T>? validator;
@@ -163,7 +171,7 @@ class WFormDropdown<T> extends StatelessWidget {
       initialValue: initialValue,
       validator: validator,
       onChanged: onChanged,
-      hintText: label,
+      hintText: hintText ?? label,
       bordered: bordered,
       hintTextList: hintTextList ?? _messages,
       isTransparentBackground: isTransparentBackground,
@@ -181,6 +189,7 @@ class WFormMultiDropdown extends StatelessWidget {
     required this.name,
     required this.items,
     this.label,
+    this.hintText,
     this.message,
     this.initialValue,
     this.validator,
@@ -197,6 +206,9 @@ class WFormMultiDropdown extends StatelessWidget {
   final String name;
   final Map<String, String> items;
   final String? label;
+
+  /// 占位符；优先于历史参数 [label]。
+  final String? hintText;
   final String? message;
   final Set<String>? initialValue;
   final FormFieldValidator<Set<String>>? validator;
@@ -223,7 +235,7 @@ class WFormMultiDropdown extends StatelessWidget {
       initialValue: initialValue,
       validator: validator,
       onChanged: onChanged,
-      hintText: label,
+      hintText: hintText ?? label,
       bordered: bordered,
       hintTextList: hintTextList ?? _messages,
       isTransparentBackground: isTransparentBackground,
@@ -240,6 +252,7 @@ class WFormDatePicker extends StatelessWidget {
     super.key,
     required this.name,
     this.label,
+    this.hintText,
     this.message,
     this.initialValue,
     this.firstDate,
@@ -257,6 +270,9 @@ class WFormDatePicker extends StatelessWidget {
 
   final String name;
   final String? label;
+
+  /// 占位符；优先于历史参数 [label]。
+  final String? hintText;
   final String? message;
   final String? initialValue;
   final DateTime? firstDate;
@@ -278,7 +294,9 @@ class WFormDatePicker extends StatelessWidget {
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
     if (label != null && c.decoration?.hintText == null) {
-      c.decoration = (c.decoration ?? const InputDecoration()).copyWith(hintText: label);
+      c.decoration = (c.decoration ?? const InputDecoration()).copyWith(
+        hintText: hintText ?? label,
+      );
     }
     if (enabled != null) c.enabled = enabled!;
     return c.build(

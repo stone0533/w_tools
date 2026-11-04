@@ -1,3 +1,12 @@
+## 5.0.3
+
+- 抬高 `w_tools_form` 到 `^4.1.0`（直接字段新增 `hintText`）。
+
+## 5.0.2
+
+- 抬高 `w_tools_core` 到 `^3.1.0`（`WStorage.getList`），`w_tools_app` 到 `^2.1.0`
+  （`WAppOptions.applyOrientations` 默认不干预屏幕方向）。
+
 ## 5.0.1
 
 - 仅文档修正，无 API / 行为变化。

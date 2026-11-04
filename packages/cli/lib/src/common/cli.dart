@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -16,21 +17,34 @@ void runCli(
   required ArgParser parser,
   required void Function(ArgResults args) body,
 }) {
+  final wantsJson = argv.contains('--json') || argv.contains('--format=json');
+  Never usageError(String message) {
+    if (wantsJson) {
+      stdout.writeln(
+        jsonEncode({
+          'schema': 'w_tools_cli.error/1',
+          'ok': false,
+          'error': message,
+        }),
+      );
+    } else {
+      stderr.writeln('参数错误：$message\n');
+      stderr.writeln(usage);
+    }
+    exit(2);
+  }
+
   ArgResults args;
   try {
     args = parser.parse(argv);
   } on FormatException catch (e) {
-    stderr.writeln('参数错误：${e.message}\n');
-    stderr.writeln(usage);
-    exit(2);
+    usageError(e.message);
   }
   if (parser.options.containsKey('format') &&
       args.wasParsed('json') &&
       args.wasParsed('format') &&
       args['format'] != 'json') {
-    stderr.writeln('参数错误：--json 与 --format=${args['format']} 冲突\n');
-    stderr.writeln(usage);
-    exit(2);
+    usageError('--json 与 --format=${args['format']} 冲突');
   }
   if (args['version'] as bool) {
     print(cliVersion);

@@ -1,3 +1,9 @@
+## 2.1.0
+
+### Added
+- `WAppOptions.applyOrientations`：默认 `false`，启动时不再擅自设置屏幕方向；
+  需要固定方向时显式传 `applyOrientations: true` 和 `orientations`。
+
 # Changelog
 
 ## 2.0.0

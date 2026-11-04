@@ -102,6 +102,7 @@ class InitTemplates {
     bool withFigma = false,
     bool withDevice = false,
     String? figmaInstall,
+    String toolkitEntry = 'lib/app/w/toolkit.dart',
     List<BannedRule> banned = const <BannedRule>[],
   }) {
     final en = lang == 'en';
@@ -158,6 +159,10 @@ class InitTemplates {
         .join('\n\n')
         .replaceAll('{{version}}', cliVersion)
         .replaceAll('{{app}}', app)
+        .replaceAll(
+          '{{toolkitImport}}',
+          '$app/${toolkitEntry.startsWith('lib/') ? toolkitEntry.substring(4) : toolkitEntry}',
+        )
         .replaceAll(
           '{{figmaInstall}}',
           figmaInstall ?? 'dart pub add dev:w_tools_figma',

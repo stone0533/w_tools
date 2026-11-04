@@ -233,8 +233,9 @@ class WApp {
     SystemChrome.setSystemUIOverlayStyle(style);
   }
 
-  /// 设置屏幕方向（读取 [orientations] 字段）
+  /// 设置屏幕方向（读取 [orientations] 字段）；null = 不干预
   Future<void> _setupOrientation() async {
+    if (!options.applyOrientations) return;
     await SystemChrome.setPreferredOrientations(options.orientations);
   }
 

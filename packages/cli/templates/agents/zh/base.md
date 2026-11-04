@@ -6,7 +6,7 @@
    （项目装了什么版本、toolkit 导出了什么、该跑哪些检查）
 2. **先找现成的**：`dart run w_tools_cli:list <关键词>`，
    需要细节再 `dart run w_tools_cli:explain <组件名>`；**不要凭记忆造组件名**。
-   业务代码统一 `import 'package:{{app}}/app/w/toolkit.dart';`（本项目能力清单）。
+   业务代码统一 `import 'package:{{toolkitImport}}';`（本项目能力清单）。
 3. **找不到 → 放待上移的通用组件** `lib/app/design_system/`，**不要**直接改 w_tools：
    - 只允许 import `dart:*` / `package:flutter*` / `package:w_tools*` / `package:get`
    - 文件头标 `// STAGED: 待上移到 w_tools_ui`；有设计稿时把实测尺寸写进注释

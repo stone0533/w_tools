@@ -1,3 +1,9 @@
+## 4.1.0
+
+### Added
+- 直接字段新增 `hintText`，明确表示占位符；历史 `label` 继续兼容，`hintText` 优先。
+- 修正 `WFormTextFieldConfig` 的“不可变”错误注释（实际为 legacy 可变 Config）。
+
 # Changelog
 
 ## 4.0.0

@@ -1,3 +1,9 @@
+## 3.1.0
+
+### Added
+- `WStorage.getList<T>`：读取一维 JSON 数组并逐项转换；`getObject<List<T>>`
+  不会把 `List<dynamic>` 当作 `List<String>`，避免静默回落默认值。
+
 # Changelog
 
 ## 3.0.0

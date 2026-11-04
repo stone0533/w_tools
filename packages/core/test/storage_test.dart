@@ -126,6 +126,14 @@ void main() {
       expect(result, equals(defaultValue));
     });
 
+    test('getList 对 JSON 数组做逐项转换', () async {
+      const key = 'test_list_strings';
+      await WStorage.setObject(key, ['a', 'b']);
+
+      expect(WStorage.getList<String>(key), ['a', 'b']);
+      expect(WStorage.getList<int>(key, defaultValue: [1]), [1]);
+    });
+
     test('删除测试', () async {
       const key = 'test_delete';
       const value = 'to be deleted';

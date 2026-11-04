@@ -1,7 +1,5 @@
 # w_tools_figma
 
-> `v0.9.2` 已发布。
-
 只读的 Figma 取数 / 规格导出 CLI。
 
 - 契约：https://github.com/stone0533/w_tools/blob/main/docs/figma-cli.md
@@ -43,14 +41,14 @@ W* 组件映射
 已发布版本：
 
 ```bash
-dart pub add dev:w_tools_figma:^0.9.2
+dart pub add dev:w_tools_figma:^0.11.0
 ```
 
 等价于：
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.9.2
+  w_tools_figma: ^0.11.0
 ```
 
 开发版使用 path 依赖：

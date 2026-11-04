@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_app/w_tools_app.dart';
 
@@ -30,6 +31,18 @@ void main() {
       final cleared = options.copyWith(initialRoute: null, locale: null);
       expect(cleared.initialRoute, isNull);
       expect(cleared.locale, isNull);
+    });
+
+    test('orientations 默认不应用，显式开启才生效', () {
+      const options = WAppOptions(title: 'Demo');
+      expect(options.applyOrientations, isFalse);
+      expect(options.orientations, const [DeviceOrientation.portraitUp]);
+      final explicit = options.copyWith(
+        orientations: const [DeviceOrientation.landscapeLeft],
+        applyOrientations: true,
+      );
+      expect(explicit.orientations, const [DeviceOrientation.landscapeLeft]);
+      expect(explicit.applyOrientations, isTrue);
     });
 
     test('WApp.options 注册 options 里的插件', () {

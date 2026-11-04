@@ -1,3 +1,12 @@
+## 1.9.17
+
+### Fixed
+- `init --check --force` 不再写 `.w_tools_doctor.yaml` / 生成 `.bak`；只报 drift。
+- 自定义 `toolkit_entry` 现在会同步进 AGENTS 的 import 路径。
+- `feedback --json` 的缺字段/参数错误也输出 JSON（`ok:false`）。
+- 参数解析错误在 `--json` 下输出 JSON，而不是只写 stderr。
+- 修正 `init --help` / README 的 device 生成物描述与反馈命令表。
+
 ## 1.9.16
 
 ### 修复

@@ -167,6 +167,21 @@ class WStorage {
     }
   }
 
+  /// 读取一维 JSON 数组并逐项转换为 `List<T>`。
+  ///
+  /// `jsonDecode` 得到的是 `List<dynamic>`，不能直接当作 `List<String>` 等
+  /// 泛型集合返回；需要集合时用本方法，而不是 `getObject<List<T>>`。
+  static List<T>? getList<T>(String key, {List<T>? defaultValue}) {
+    final raw = getObject<List<dynamic>>(key);
+    if (raw == null) return defaultValue;
+    try {
+      return raw.map((e) => e as T).toList();
+    } on Object catch (e) {
+      WLogger.w('WStorage.getList($key): element type mismatch, expected $T: $e');
+      return defaultValue;
+    }
+  }
+
   // ============== 管理操作 ==============
 
   /// 删除指定键的数据

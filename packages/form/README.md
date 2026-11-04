@@ -61,7 +61,7 @@ class _LoginFormState extends State<LoginForm> {
         children: [
           WFormTextField(
             name: 'email',
-            label: '邮箱',
+            hintText: '邮箱',
             message: '请输入邮箱',
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
@@ -73,7 +73,7 @@ class _LoginFormState extends State<LoginForm> {
           ),
           WFormTextField(
             name: 'password',
-            label: '密码',
+            hintText: '密码',
             message: '密码至少 8 位',
             obscureText: true,
             actions: const [WFormTextFieldPasswordToggle()],

@@ -172,11 +172,19 @@ InitReport runInit(
       // 项目配置（.w_tools_doctor.yaml）：内容由项目手工维护（palette / banned / ignore），
       // --force 覆盖前先备份，避免把项目配置直接抹掉。
       if (projectConfig) {
-        if (!force) {
+        if (file.readAsStringSync() == content) {
           report.upToDate.add(rel);
           return;
         }
-        if (file.readAsStringSync() == content) {
+        if (check) {
+          if (force) {
+            report.drift.add('$rel（内容不同，未改动）');
+          } else {
+            report.upToDate.add(rel);
+          }
+          return;
+        }
+        if (!force) {
           report.upToDate.add(rel);
           return;
         }
@@ -283,6 +291,7 @@ InitReport runInit(
         withFigma: figma,
         withDevice: device,
         figmaInstall: figmaInstall,
+        toolkitEntry: projectConfig.toolkitEntry,
         banned: projectConfig.banned,
       ),
       createdPrefix: target == 'cursor'

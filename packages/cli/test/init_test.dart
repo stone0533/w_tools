@@ -197,6 +197,9 @@ void main() {
         isTrue,
       );
       expect(File(p.join(root.path, 'lib/app/w/toolkit.dart')).existsSync(), isFalse);
+      final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      expect(agents, contains('package:demo_app/app/w/custom_toolkit.dart'));
+      expect(agents, isNot(contains('package:demo_app/app/w/toolkit.dart')));
     });
 
     test('旧 .w_tools_init.json 自动迁到 .w_tools/init.json', () async {
@@ -208,6 +211,17 @@ void main() {
       expect(File(p.join(root.path, '.w_tools_init.json')).existsSync(), isFalse);
       expect(File(p.join(root.path, '.w_tools', 'init.json')).existsSync(), isTrue);
       expect(report.warnings.any((e) => e.contains('.w_tools_init.json')), isTrue);
+    });
+
+    test('--check --force 不写项目配置', () async {
+      final root = makeProject();
+      final config = File(p.join(root.path, '.w_tools_doctor.yaml'));
+      config.writeAsStringSync('banned: []\n');
+      final before = config.readAsStringSync();
+      final report = runInit(root, check: true, force: true);
+      expect(config.readAsStringSync(), before);
+      expect(report.drift.any((e) => e.contains('.w_tools_doctor.yaml')), isTrue);
+      expect(File('${config.path}.bak').existsSync(), isFalse);
     });
 
     test('--device 只生成设备工具，不生成 integration_test', () async {

@@ -64,10 +64,10 @@ dependencies:
 
 ```yaml
 dependencies:
-  w_tools_core: ^3.0.0
-  w_tools_async: ^2.1.0
+  w_tools_core: ^3.1.0
+  w_tools_async: ^3.0.0
   w_tools_ui: ^5.0.0
-  w_tools_form: ^3.2.0
+  w_tools_form: ^4.1.0
   # 需要再加 w_tools_app / api / toast / qr / map
 ```
 
@@ -79,7 +79,7 @@ CLI 在独立的纯 Dart 包里，不需要先引入聚合包：
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.8.0
+  w_tools_cli: ^1.9.0
 ```
 
 ```bash
@@ -117,7 +117,7 @@ WAppConfig.supportedLanguages = {'zh_CN': '简体中文'}; // app：语言
 
 ```yaml
 dependencies:
-  w_tools_core: ^3.0.0   # 只引子包
+  w_tools_core: ^3.1.0   # 只引子包
   w_tools_ui: ^5.0.0
 ```
 
@@ -165,7 +165,7 @@ flutter pub get
 ```yaml
 dependencies:
   w_tools_ui: ^5.0.0     # 只用 UI 组件
-  w_tools_core: ^3.0.0   # 只用工具类与扩展
+  w_tools_core: ^3.1.0   # 只用工具类与扩展
 ```
 
 ```dart

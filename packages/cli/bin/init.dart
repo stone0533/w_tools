@@ -46,7 +46,7 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
 {{features}}
   --with-map     兼容别名，等同 --map
   --figma / --no-figma  生成 Figma 取数与页面开发说明（默认关，不影响 toolkit）
-  --device / --no-device  生成设备验证工具（tool/device_smoke.dart / docs/agents/device-testing.md /
+  --device / --no-device  生成通用设备文档 / Gradle 镜像（docs/agents/device-testing.md /
                         tool/gradle-mirror.init.gradle.example；检测到 w_tools_device 时默认开）
   --no-instructions  不生成/不检查 AGENTS 等 AI 指令文件（优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）

@@ -506,7 +506,8 @@ banned:
       '--format=markdown',
     ]);
     expect(r.exitCode, 2);
-    expect('${r.stderr}', contains('冲突'));
+    expect('${r.stdout}', contains('冲突'));
+    expect('${r.stdout}', contains('"ok":false'));
   });
 
   test('feedback submit 默认无通道时跳过', () async {
@@ -535,6 +536,27 @@ banned:
     expect('${r.stdout}', contains('反馈未提交'));
     expect(File(p.join(root.path, 'docs', 'agents', 'feedback.md')).existsSync(), isFalse);
     expect(File(p.join(root.path, 'docs', 'feedback')).existsSync(), isFalse);
+  });
+
+  test('feedback submit --json 缺字段也输出 JSON', () async {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools\n');
+    Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
+    Directory(p.join(root.path, 'docs', 'feedback')).createSync(recursive: true);
+    final body = File(p.join(root.path, 'body.md'))..writeAsStringSync('- 包/版本：ui\n');
+    final r = await _run('feedback.dart', [
+      'submit',
+      '--root',
+      root.path,
+      '--package=ui',
+      '--title=t',
+      '--body-file',
+      body.path,
+      '--json',
+    ]);
+    expect(r.exitCode, 2);
+    expect('${r.stdout}', contains('"ok":false'));
+    expect('${r.stdout}', contains('反馈缺少必填字段'));
   });
 
   test('feedback submit 默认优先写本地台账', () async {

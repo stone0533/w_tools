@@ -12,7 +12,7 @@ w_tools 的异步层：执行、四态状态、Controller 与可复用异步视�
 
 ```yaml
 dependencies:
-  w_tools_async: ^2.1.0
+  w_tools_async: ^3.0.0
 ```
 
 ## 快速开始

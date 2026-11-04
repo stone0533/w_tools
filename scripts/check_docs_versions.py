@@ -16,6 +16,8 @@ import sys
 root = pathlib.Path(__file__).resolve().parent.parent
 
 files = [root / 'README.md', root / 'AGENTS.md', root / 'CONTRIBUTING.md']
+files += sorted((root / 'packages').glob('*/README.md'))
+files += sorted((root / 'packages').glob('*/AGENTS.md'))
 files += sorted((root / 'docs').rglob('*.md'))
 
 pattern = re.compile(r'v?\d+\.\d+\.\d+\s*(?:已发布|待发布)')

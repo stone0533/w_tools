@@ -4,7 +4,7 @@
 
 ## 工具
 
-`w_tools_figma`（独立 CLI 包，0.9.2 已发布）：
+`w_tools_figma`（独立 CLI 包）：
 
 ```bash
 dart run w_tools_figma:figma <command>
@@ -66,7 +66,7 @@ dart run w_tools_cli:explain <组件名>
 
 ## 0.4.0+ 能力
 
-当前安装的稳定版是 0.9.2；以下命令可直接使用：
+当前安装的稳定版见 pub.dev；以下命令可直接使用：
 
 ```bash
 figma frames --all

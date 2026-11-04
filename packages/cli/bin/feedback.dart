@@ -14,6 +14,8 @@ import 'package:w_tools_cli/src/feedback/feedback_ledger.dart';
 import 'package:w_tools_cli/src/feedback/feedback_path.dart';
 import 'package:w_tools_cli/src/feedback/feedback_submit.dart';
 
+var _jsonMode = false;
+
 const _usage = '''
 w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
 
@@ -78,9 +80,10 @@ void main(List<String> argv) {
     usage: _usage,
     parser: parser,
     body: (args) {
+      _jsonMode = outputFormat(args) == 'json';
       final rest = args.rest;
       if (rest.isEmpty) {
-        _usageError('缺少子命令（path / lint / submit / search）');
+        _usageError('缺少子命令（path / lint / submit / search / status）');
       }
       final sub = rest.first;
       final root = Directory(args['root'] as String? ?? Directory.current.path);
@@ -98,7 +101,7 @@ void main(List<String> argv) {
         case 'status':
           _status(root, asJson);
         default:
-          _usageError('未知子命令：$sub（可用：path / lint / submit / search）');
+          _usageError('未知子命令：$sub（可用：path / lint / submit / search / status）');
       }
     },
   ).run(argv);
@@ -264,8 +267,20 @@ void _submit(ArgResults args, Directory root, bool asJson) {
   final draft = FeedbackDraft(package: name, title: title, body: body);
   final missing = draft.missingFields;
   if (missing.isNotEmpty) {
-    stderr.writeln('反馈缺少必填字段：${missing.join('、')}');
-    stderr.writeln('按 `feedback submit --template` 的字段补全后重试。');
+    final message =
+        '反馈缺少必填字段：${missing.join('、')}；'
+        '按 `feedback submit --template` 的字段补全后重试。';
+    if (asJson) {
+      stdout.writeln(
+        jsonEncode({
+          'schema': 'w_tools_cli.feedback/1',
+          'ok': false,
+          'error': message,
+        }),
+      );
+      exit(2);
+    }
+    stderr.writeln(message);
     exit(2);
   }
 
@@ -430,7 +445,17 @@ String _readStdin() {
 }
 
 Never _usageError(String message) {
-  stderr.writeln('参数错误：$message\n');
-  stderr.writeln(_usage);
+  if (_jsonMode) {
+    stdout.writeln(
+      jsonEncode({
+        'schema': 'w_tools_cli.feedback/1',
+        'ok': false,
+        'error': message,
+      }),
+    );
+  } else {
+    stderr.writeln('参数错误：$message\n');
+    stderr.writeln(_usage);
+  }
   exit(2);
 }

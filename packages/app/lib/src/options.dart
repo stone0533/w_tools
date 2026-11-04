@@ -52,6 +52,7 @@ class WAppOptions {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
     this.orientations = const [DeviceOrientation.portraitUp],
+    this.applyOrientations = false,
     this.appWrapper,
     this.localeConfig,
     this.plugins = const [],
@@ -69,6 +70,9 @@ class WAppOptions {
   final Transition? defaultTransition;
   final SystemUiOverlayStyle? systemUiOverlayStyle;
   final List<DeviceOrientation> orientations;
+
+  /// 是否在启动时设置 [orientations]；默认 false，避免通用启动器篡改宿主方向。
+  final bool applyOrientations;
   final Widget Function(Widget child)? appWrapper;
   final WLocaleConfig? localeConfig;
   final List<WAppPlugin> plugins;
@@ -89,6 +93,7 @@ class WAppOptions {
     Object? defaultTransition = _unset,
     Object? systemUiOverlayStyle = _unset,
     List<DeviceOrientation>? orientations,
+    bool? applyOrientations,
     Object? appWrapper = _unset,
     Object? localeConfig = _unset,
     List<WAppPlugin>? plugins,
@@ -116,6 +121,7 @@ class WAppOptions {
           ? this.systemUiOverlayStyle
           : systemUiOverlayStyle as SystemUiOverlayStyle?,
       orientations: orientations ?? this.orientations,
+      applyOrientations: applyOrientations ?? this.applyOrientations,
       appWrapper: identical(appWrapper, _unset)
           ? this.appWrapper
           : appWrapper as Widget Function(Widget child)?,

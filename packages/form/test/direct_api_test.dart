@@ -45,6 +45,26 @@ void main() {
     expect(find.text('选择优惠券'), findsOneWidget);
   });
 
+  testWidgets('hintText 优先于历史 label', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormTextField(
+              name: 'email',
+              label: '旧占位符',
+              hintText: '新占位符',
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('新占位符'), findsWidgets);
+    expect(find.text('旧占位符'), findsNothing);
+  });
+
   testWidgets('WForm 直接 API 走字段 validator', (tester) async {
     final form = WFormController();
 
