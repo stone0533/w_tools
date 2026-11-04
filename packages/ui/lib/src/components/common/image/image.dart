@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'dart:async';
 import 'dart:convert';
 
@@ -107,6 +108,8 @@ class WImage extends StatefulWidget {
   final WImageType? type;
 
   /// 按字符串自动判定来源（便利入口；新代码建议用 [WImage.source]）
+  /// remove-in: 6.0.0
+  @Deprecated('Use WImage.source(WImageSource...) instead')
   factory WImage({
     Key? key,
     WImageStyle style = const WImageStyle(),
@@ -156,6 +159,8 @@ class WImage extends StatefulWidget {
   }
 
   /// 网络图片（`http` / `https`，或以 `//` 开头的协议相对地址）
+  /// remove-in: 6.0.0
+  @Deprecated('Use WImage.source(WImageSource...) instead')
   factory WImage.network(
     String data, {
     Key? key,
@@ -179,6 +184,8 @@ class WImage extends StatefulWidget {
   }
 
   /// 本地资源图片（`assets/...` 或 `packages/<pkg>/...`）
+  /// remove-in: 6.0.0
+  @Deprecated('Use WImage.source(WImageSource...) instead')
   factory WImage.asset(
     String data, {
     Key? key,
@@ -202,6 +209,8 @@ class WImage extends StatefulWidget {
   }
 
   /// 本地文件图片（带不带 `file://` 前缀都可以）
+  /// remove-in: 6.0.0
+  @Deprecated('Use WImage.source(WImageSource...) instead')
   factory WImage.file(
     String data, {
     Key? key,
@@ -223,6 +232,8 @@ class WImage extends StatefulWidget {
   }
 
   /// Base64 图片（可以带 `data:...;base64,` 前缀，也可以直接给 Base64 串）
+  /// remove-in: 6.0.0
+  @Deprecated('Use WImage.source(WImageSource...) instead')
   factory WImage.base64(
     String data, {
     Key? key,
@@ -244,6 +255,8 @@ class WImage extends StatefulWidget {
   }
 
   /// 任意 [ImageProvider]（高级入口）
+  /// remove-in: 6.0.0
+  @Deprecated('Use WImage.source(WImageSource...) instead')
   factory WImage.provider(
     ImageProvider provider, {
     Key? key,
@@ -265,6 +278,8 @@ class WImage extends StatefulWidget {
   }
 
   /// 内存字节（内部转成 `MemoryImage`）
+  /// remove-in: 6.0.0
+  @Deprecated('Use WImage.source(WImageSource...) instead')
   factory WImage.memory(
     Uint8List bytes, {
     Key? key,

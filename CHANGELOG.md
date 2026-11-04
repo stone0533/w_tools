@@ -1,3 +1,7 @@
+## 7.0.1
+
+- 抬高 `w_tools_ui` 到 `^5.1.0`：WImage 旧入口进入 deprecated 迁移期。
+
 ## 7.0.0
 
 ### Breaking

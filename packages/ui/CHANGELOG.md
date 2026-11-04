@@ -1,3 +1,9 @@
+## 5.1.0
+
+### Deprecated
+- `WImage(data:)` 与 `WImage.network/asset/file/base64/provider/memory` 标记 deprecated，
+  统一迁移到 `WImage.source(WImageSource...)`；计划在 ui 6.0 移除。
+
 ## 5.0.1
 
 ### Fixed
