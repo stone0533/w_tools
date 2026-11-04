@@ -1,3 +1,9 @@
+## 4.5.0
+
+### Added
+- Dropdown/Checkbox/Radio/Multi/Button 直接字段补齐 icon/style/leading 等常用参数，
+  高级示例已迁移，减少对可变 Config 的依赖。
+
 ## 4.4.0
 
 ### Added

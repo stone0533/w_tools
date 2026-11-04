@@ -142,6 +142,9 @@ class WFormDropdown<T> extends StatelessWidget {
     this.hintTextList,
     this.isTransparentBackground,
     this.enableFocusBorder = true,
+    this.icon,
+    this.dropdownColor,
+    this.contentPadding,
     this.config,
   });
 
@@ -161,6 +164,9 @@ class WFormDropdown<T> extends StatelessWidget {
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
+  final Widget? icon;
+  final Color? dropdownColor;
+  final EdgeInsetsGeometry? contentPadding;
   final WFormDropdownConfig? config;
 
   @override
@@ -171,6 +177,9 @@ class WFormDropdown<T> extends StatelessWidget {
     c.style ??= fieldStyle?.textStyle;
     c.hintStyle ??= fieldStyle?.hintStyle;
     if (enabled != null) c.enabled = enabled!;
+    if (icon != null) c.icon = icon;
+    if (dropdownColor != null) c.dropdownColor = dropdownColor;
+    if (contentPadding != null) c.contentPadding = contentPadding;
     return c.build<T>(
       name: name,
       items: items,
@@ -206,6 +215,15 @@ class WFormMultiDropdown extends StatelessWidget {
     this.hintTextList,
     this.isTransparentBackground,
     this.enableFocusBorder = true,
+    this.icon,
+    this.iconSize,
+    this.checkboxUnselectedIcon,
+    this.checkboxSelectedIcon,
+    this.checkboxDisabledIcon,
+    this.disabledKeys = const <String>{},
+    this.itemStyle,
+    this.itemCheckedStyle,
+    this.itemDisabledStyle,
     this.config,
   });
 
@@ -225,6 +243,15 @@ class WFormMultiDropdown extends StatelessWidget {
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
+  final Widget? icon;
+  final double? iconSize;
+  final Widget? checkboxUnselectedIcon;
+  final Widget? checkboxSelectedIcon;
+  final Widget? checkboxDisabledIcon;
+  final Set<String> disabledKeys;
+  final TextStyle? itemStyle;
+  final TextStyle? itemCheckedStyle;
+  final TextStyle? itemDisabledStyle;
   final WFormMultiDropdownConfig? config;
 
   @override
@@ -235,6 +262,15 @@ class WFormMultiDropdown extends StatelessWidget {
     c.style ??= fieldStyle?.textStyle;
     if (config == null) c.hintText = label ?? c.hintText;
     if (enabled != null) c.enabled = enabled!;
+    if (icon != null) c.icon = icon;
+    if (iconSize != null) c.iconSize = iconSize;
+    if (checkboxUnselectedIcon != null) c.checkboxUnselectedIcon = checkboxUnselectedIcon;
+    if (checkboxSelectedIcon != null) c.checkboxSelectedIcon = checkboxSelectedIcon;
+    if (checkboxDisabledIcon != null) c.checkboxDisabledIcon = checkboxDisabledIcon;
+    if (disabledKeys.isNotEmpty) c.disabledKeys = disabledKeys;
+    if (itemStyle != null) c.itemStyle = itemStyle;
+    if (itemCheckedStyle != null) c.itemCheckedStyle = itemCheckedStyle;
+    if (itemDisabledStyle != null) c.itemDisabledStyle = itemDisabledStyle;
     return c.build(
       name: name,
       items: items,
@@ -348,6 +384,11 @@ class WFormCheckbox extends StatelessWidget {
     this.hintTextList,
     this.isTransparentBackground,
     this.enableFocusBorder = true,
+    this.unselectedIcon,
+    this.selectedIcon,
+    this.disabledIcon,
+    this.iconSpacing,
+    this.iconYOffset,
     this.config,
   });
 
@@ -362,6 +403,11 @@ class WFormCheckbox extends StatelessWidget {
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
+  final Widget? unselectedIcon;
+  final Widget? selectedIcon;
+  final Widget? disabledIcon;
+  final double? iconSpacing;
+  final double? iconYOffset;
   final WFormCheckboxConfig? config;
 
   @override
@@ -370,6 +416,11 @@ class WFormCheckbox extends StatelessWidget {
     final c = config?.copy() ?? WFormCheckboxConfig();
     _applyBaseStyle(c, fieldStyle);
     if (enabled != null) c.enabled = enabled!;
+    if (unselectedIcon != null) c.unselectedIcon = unselectedIcon;
+    if (selectedIcon != null) c.selectedIcon = selectedIcon;
+    if (disabledIcon != null) c.disabledIcon = disabledIcon;
+    if (iconSpacing != null) c.iconSpacing = iconSpacing;
+    if (iconYOffset != null) c.iconYOffset = iconYOffset;
     return c.build(
       name: name,
       title: title,
@@ -401,6 +452,12 @@ class WFormRadioGroup<T> extends StatelessWidget {
     this.hintTextList,
     this.isTransparentBackground,
     this.enableFocusBorder = true,
+    this.unselectedIcon,
+    this.selectedIcon,
+    this.iconSpacing,
+    this.lineSpacing,
+    this.iconYOffset,
+    this.style,
     this.config,
   });
 
@@ -417,6 +474,12 @@ class WFormRadioGroup<T> extends StatelessWidget {
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
+  final Widget? unselectedIcon;
+  final Widget? selectedIcon;
+  final double? iconSpacing;
+  final double? lineSpacing;
+  final double? iconYOffset;
+  final TextStyle? style;
   final WFormRadioGroupConfig? config;
 
   @override
@@ -426,6 +489,12 @@ class WFormRadioGroup<T> extends StatelessWidget {
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
     if (enabled != null) c.enabled = enabled!;
+    if (unselectedIcon != null) c.unselectedIcon = unselectedIcon;
+    if (selectedIcon != null) c.selectedIcon = selectedIcon;
+    if (iconSpacing != null) c.iconSpacing = iconSpacing;
+    if (lineSpacing != null) c.lineSpacing = lineSpacing;
+    if (iconYOffset != null) c.iconYOffset = iconYOffset;
+    if (style != null) c.style = style;
     return c.build<T>(
       name: name,
       items: items,
@@ -460,6 +529,7 @@ class WFormButton extends StatelessWidget {
     this.hintTextList,
     this.isTransparentBackground,
     this.enableFocusBorder = true,
+    this.leading,
     this.config,
   });
 
@@ -477,6 +547,7 @@ class WFormButton extends StatelessWidget {
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
+  final Widget? leading;
   final WFormFieldButtonConfig? config;
 
   @override
@@ -485,6 +556,7 @@ class WFormButton extends StatelessWidget {
     final c = config?.copy() ?? WFormFieldButtonConfig();
     _applyBaseStyle(c, fieldStyle);
     if (enabled != null) c.enabled = enabled!;
+    if (leading != null) c.leading = leading;
     if (hintWidget != null || label != null) {
       c.hintWidget = hintWidget ?? Text(label!);
     }

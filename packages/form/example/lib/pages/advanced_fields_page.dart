@@ -50,36 +50,30 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
               leading: Icon(Icons.notes_rounded),
             ),
             const SizedBox(height: 16),
-            WFormDropdown<String>(
+            const WFormDropdown<String>(
               name: 'city',
               label: '城市',
               initialValue: 'HK',
               enabled: false,
-              items: const {'HK': '香港', 'SZ': '深圳', 'SH': '上海'},
-              config: WFormDropdownConfig(
-                icon: const Icon(Icons.lock_outline_rounded),
-              ),
+              items: {'HK': '香港', 'SZ': '深圳', 'SH': '上海'},
+              icon: Icon(Icons.lock_outline_rounded),
             ),
             const SizedBox(height: 16),
-            WFormCheckbox(
+            const WFormCheckbox(
               name: 'agree',
-              title: const Text('接收产品更新'),
+              title: Text('接收产品更新'),
               initialValue: true,
-              config: WFormCheckboxConfig(
-                unselectedIcon: const Icon(Icons.check_box_outline_blank),
-                selectedIcon: const Icon(Icons.check_box),
-              ),
+              unselectedIcon: Icon(Icons.check_box_outline_blank),
+              selectedIcon: Icon(Icons.check_box),
             ),
             const SizedBox(height: 16),
-            WFormRadioGroup<String>(
+            const WFormRadioGroup<String>(
               name: 'level',
-              items: const {'basic': '基础', 'pro': '专业'},
+              items: {'basic': '基础', 'pro': '专业'},
               initialValue: 'basic',
-              config: WFormRadioGroupConfig(
-                style: const TextStyle(fontWeight: FontWeight.w500),
-                selectedIcon: const Icon(Icons.radio_button_checked),
-                unselectedIcon: const Icon(Icons.radio_button_off),
-              ),
+              style: TextStyle(fontWeight: FontWeight.w500),
+              selectedIcon: Icon(Icons.radio_button_checked),
+              unselectedIcon: Icon(Icons.radio_button_off),
             ),
             const SizedBox(height: 24),
             Wrap(
