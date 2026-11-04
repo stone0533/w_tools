@@ -12,7 +12,7 @@
 ## 运行
 
 ```bash
-cd packages/map/example
+cd packages/map_google/example
 flutter pub get
 flutter run
 ```

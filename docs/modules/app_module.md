@@ -11,7 +11,7 @@ App 模块（`w_tools_app` 契约 + `w_tools_app_getx` GetX 实现）提供了�
 - 插件顺序 → `WAppPlugin.dependsOn`
 - 全局默认视图 → `WAppOptions.appWrapper`；`WAppPlugin` 是消费方自建插件的扩展点，子包不自带插件
 - 强依赖 GetX
-- 可运行示例：[packages/app/example](../../packages/app_getx/example/README.md)
+- 可运行示例：[packages/app_getx/example](../../packages/app_getx/example/README.md)
 
 - 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 

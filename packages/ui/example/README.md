@@ -42,7 +42,7 @@ flutter run
 | Playground 参数与代码生成 | `lib/playground_page.dart` |
 | 状态矩阵 | `lib/states_page.dart` |
 | 常用配方 | `lib/recipes_page.dart` |
-| 进度 + 重试 | `WImage.network(..., config: WImageLoadConfig(retryCount:, progressBuilder:, errorWidgetBuilder:))` |
+| 进度 + 重试 | `WImage.source(source: WImageSource.network(...), config: WImageLoadConfig(...))` |
 | 默认加载 UI | `main()` 里的 `WImageDefaultsScope` |
 | 缓存预算 | `main()` 里直接配置 `PaintingBinding.instance.imageCache` |
 | 预加载 | `states_page.dart` 里的 `precacheImage` 示例（可移到 Playground） |

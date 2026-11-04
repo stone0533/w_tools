@@ -1,7 +1,7 @@
 # ADR 0002：消费方依赖**子包**，不依赖聚合包
 
 > 注：本 ADR 记录时为 8 个 Flutter 子包；之后新增 `w_tools_async`。
-> 2026-11 根包 7.0 起不再聚合 `w_tools_app` / `w_tools_map` / `w_tools_qr`，三者仍作为独立子包发布。
+> 2026-11 根包 7.0 起不再聚合 `w_tools_app` / `w_tools_map` / `w_tools_qr`；后续 app 拆为 `w_tools_app` + `w_tools_app_getx`，map 拆为 `w_tools_map` + `w_tools_map_google`，根包当前为 9.0。
 
 
 - 状态：已采纳（2026-10-24）
@@ -30,15 +30,15 @@
 ```yaml
 dependencies:
   w_tools_core: ^1.0.0
-  w_tools_app: ^1.0.0
+  w_tools_app_getx: ^1.0.0
   w_tools_form: ^2.0.0
   w_tools_ui: ^2.1.0
   w_tools_api: ^1.0.0
   w_tools_toast: ^1.0.0
-  # 需要再加 w_tools_qr / w_tools_map
+  # 需要再加 w_tools_qr / w_tools_map / w_tools_map_google
 ```
 
-业务代码只 import 项目自己的聚合入口（`lib/app/w/toolkit.dart`，由 `dart run w_tools_cli:init` 生成），
+业务代码只 import 项目自己的聚合入口（`lib/app/w/toolkit.dart`，由 `dart run w_tools_cli:w_tools init` 生成），
 不直接 import 子包 —— 换依赖方式时只改一个文件。
 
 ## 后果
@@ -52,11 +52,11 @@ dependencies:
 
 - **删掉聚合包**：对「什么都用」的项目不友好，且破坏已有用户的升级路径。不采纳。
 - **让 `w_tools_map` 的 google_maps 变成可选依赖**：Dart/pub 不支持可选依赖；
-  真正可行的是拆成 `w_tools_map`（纯接口）+ `w_tools_map_google`（实现）。**长期建议走这条**，
-  拆完后聚合包就能安全地重新推荐。
+  已拆成 `w_tools_map`（模型/接口）+ `w_tools_map_google`（Google 实现）；聚合包仍不重新纳入 map，
+  需要地图的项目显式依赖两个包。
 - **消费方在 app 里包一层 re-export 聚合包**：只换 import 路径，不改变依赖图，等于没解决。否决。
 
 ## 工具支持
 
-- `dart run w_tools_cli:init`：生成 `toolkit.dart` + 暂存层 README + `lib/app/ui/` 页面规范 + `AGENTS.md` 片段
-- `dart run w_tools_cli:doctor`：R1（禁止聚合包）/ R2（禁止直连子包）等 6 条检查
+- `dart run w_tools_cli:w_tools init`：生成 `toolkit.dart` + 暂存层 README + `lib/app/ui/` 页面规范 + `AGENTS.md` 片段
+- `dart run w_tools_cli:w_tools doctor`：R1（禁止聚合包）/ R2（禁止直连子包）等 6 条检查

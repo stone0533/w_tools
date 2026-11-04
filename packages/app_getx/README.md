@@ -1,6 +1,6 @@
 # w_tools_app_getx
 
-[![pub package](https://img.shields.io/pub/v/w_tools_app.svg)](https://pub.dev/packages/w_tools_app)
+[![pub package](https://img.shields.io/pub/v/w_tools_app_getx.svg)](https://pub.dev/packages/w_tools_app_getx)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 `w_tools_app_getx` 是 w_tools 的 GetX 应用启动层，提供 `WApp` 启动器、插件依赖编排、GetX 路由与语言切换、底部弹窗与路由观察者。

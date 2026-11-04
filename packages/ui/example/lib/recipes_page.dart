@@ -36,7 +36,8 @@ class RecipesPage extends StatelessWidget {
               style: WImageStyle.thumbnail(96),
               config: const WImageLoadConfig(memCacheWidth: 288, memCacheHeight: 288)),
         ),
-        const _Code('WImage(..., style: WImageStyle.thumbnail(96), config: WImageLoadConfig(...))'),
+        const _Code(
+            'WImage.source(source: ..., style: WImageStyle.thumbnail(96), config: WImageLoadConfig(...))'),
         const SizedBox(height: 24),
         const _SectionTitle('封面：WImage + WImageStyle.cover'),
         const SizedBox(height: 8),
@@ -45,7 +46,8 @@ class RecipesPage extends StatelessWidget {
               source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
               style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)),
         ),
-        const _Code('WImage(..., style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12))'),
+        const _Code(
+            'WImage.source(source: ..., style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12))'),
         const SizedBox(height: 24),
         const _SectionTitle('自动拼接资源路径：WImage.source(source: WImageSource.asset(), prefix: true))'),
         const SizedBox(height: 8),
@@ -57,7 +59,7 @@ class RecipesPage extends StatelessWidget {
         const _Code(
             "WAssets.imagePath = 'assets/' 后：WImage.source(source: WImageSource.asset('demo.png', prefix: true))"),
         const SizedBox(height: 24),
-        const _SectionTitle('内存字节：WImage.memory'),
+        const _SectionTitle('内存字节：WImageSource.provider(MemoryImage(...))'),
         const SizedBox(height: 8),
         _Card(
           child: WImage.source(
@@ -65,7 +67,7 @@ class RecipesPage extends StatelessWidget {
               style: const WImageStyle(width: 64, height: 64)),
         ),
         const SizedBox(height: 24),
-        const _SectionTitle('任意 provider：WImage.provider'),
+        const _SectionTitle('任意 provider：WImageSource.provider(...)'),
         const SizedBox(height: 8),
         _Card(
           child: WImage.source(

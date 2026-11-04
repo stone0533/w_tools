@@ -82,8 +82,8 @@ dev_dependencies:
 ```
 
 ```bash
-dart run w_tools_cli:init      # 生成到当前项目
-dart run w_tools_cli:doctor    # 之后随时检查是否守约定
+dart run w_tools_cli:w_tools init      # 生成到当前项目
+dart run w_tools_cli:w_tools doctor    # 之后随时检查是否守约定
 ```
 
 ### 入口约定

@@ -45,4 +45,4 @@ WMap<Store>(
 - 业务 UI 选中 / 关闭统一走 `WMapController.select` / `closeSelection`；`closeSelection` 会隐藏 InfoWindow。
 - 直接构造 `WMap(config:, zone:)`；`WMapConfig.build()` 已在 5.0 删除。
 
-完整说明：[map_module.md](../modules/map_module.md) · 示例：`packages/map/example`
+完整说明：[map_module.md](../modules/map_module.md) · 示例：`packages/map_google/example`

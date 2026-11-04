@@ -3,7 +3,7 @@ description: "w_tools_ui 的 WImage 使用示例：网络、资源、Base64、�
 publish_to: none
 version: 1.0.0
 
-# 与 packages/map/example 一致：不声明 resolution: workspace，
+# 与 packages/map_google/example 一致：不声明 resolution: workspace，
 # 示例要能从发布后的 w_tools_ui 独立 pub get。
 environment:
   sdk: ^3.6.0

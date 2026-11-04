@@ -13,7 +13,7 @@ Map 模块由 `w_tools_map`（接口）+ `w_tools_map_google`（Google 实现）
 - 业务侧选中 / 关闭 → `WMapController`
 - 普通模型 → `WMapItemMapper`
 - 不要直接用 `GoogleMap`；需要 Google Maps API Key
-- 可运行示例：[packages/map/example](../../packages/map/example/README.md)
+- 可运行示例：[packages/map_google/example](../../packages/map_google/example/README.md)
 
 - 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
 

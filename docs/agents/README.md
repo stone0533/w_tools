@@ -11,7 +11,7 @@
 | api | `WApiConfig` + `DioRegistry`；`WLogInterceptor(parts:)` | 直接 `Dio()`、旧 bool 日志参数 | `packages/api/example` |
 | app | `WApp.options(WAppOptions(...)).start()` + `WAppPlugin`；`WBottomSheet` | 手写 `runApp` 初始化顺序；`WApp.appWrapper`（字段在 `WAppOptions`） | `packages/app_getx/example` |
 | toast | `WToast.showXxx` + `WToastStyle` + `WToastTheme` | `WToastConfig`（已删除） | `packages/toast/example` |
-| map | `WMap` + `WMapZone` + `WMapItemMapper` | 直接 `GoogleMap`；手改 `zone.markers` | `packages/map/example` |
+| map | `WMap` + `WMapZone` + `WMapItemMapper` | 直接 `GoogleMap`；手改 `zone.markers` | `packages/map_google/example` |
 | qr | `WQrView`（`onScanned` 或 `onQRViewCreated` 二选一） | 直接 `QRView` | `packages/qr/example` |
 | cli | `init` → 补依赖 → `doctor`；AI 用 `context` / `list` / `explain` | 手改生成物；业务代码按 `explain` 的子包 import 写 | [cli.md](cli.md) |
 | device | `dart run w_tools_device:device ...` | 手写 adb / DeviceHub 标定 | [device-testing.md](device-testing.md) |

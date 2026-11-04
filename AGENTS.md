@@ -19,13 +19,13 @@
 
 - `w_tools` 根包只用于快速体验 / 旧项目兼容；新业务项目仍只依赖具体子包。
 - 如用户明确要求使用根包：`import 'package:w_tools/w_tools.dart';`。
-- 根包只重导出 9 个子包；不再提供旧 `WConfig` 兼容层。
+- 根包只重导出 6 个基础子包（core / async / ui / form / api / toast）；app / map / qr 不聚合；不再提供旧 `WConfig` 兼容层。
 - 配置走子包：token 键名用 `WToken`（`WConfig` 已在 3.0 删除），资源前缀用 `WAssets`，表单图标用 `WFormIcons`，语言用 `WAppConfig`。
 
 ## 工具（本仓库维护）
 
 CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
-入口 `packages/cli/bin/{init,doctor,context,list,explain,feedback}.dart`，
+入口 `packages/cli/bin/w_tools.dart`（统一 dispatcher）与 `packages/cli/bin/{init,doctor,context,list,explain,feedback}.dart`（兼容），
 使用规则见 [`docs/agents/cli.md`](docs/agents/cli.md)，
 实现分别在 `packages/cli/lib/src/init/`、`lib/src/doctor/`、`lib/src/context/`、`lib/src/catalog/`。
 

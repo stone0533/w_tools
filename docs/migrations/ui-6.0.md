@@ -1,17 +1,32 @@
-# ui 6.0 迁移预告：WImage 单入口
+# ui 6.0 迁移：WImage 单入口
 
-6.0 已移除旧入口：
+6.0 已删除所有旧构造器与 String 图片扩展。
+
+## 旧写法
 
 ```dart
-// before
-WImage.source(source: WImageSource.network(url), style: style)
-WImage.source(source: WImageSource.asset('assets/logo.png'))
-WImage.source(source: WImageSource.parse('https://x/y.png'))
+WImage.network(url, style: style)
+WImage.asset('assets/logo.png')
+WImage.file('/tmp/a.png')
+WImage.base64(data)
+WImage(data: 'https://x/y.png')
+WImage.memory(bytes)
+WImage.provider(provider)
 
-// after
-WImage.source(source: WImageSource.network(url), style: style)
-WImage.source(source: WImageSource.asset('assets/logo.png'))
-WImage.source(source: WImageSource.parse('https://x/y.png'))
+'https://x/y.png'.toImage()
+'logo.png'.toAssetImage()
 ```
 
-`WImage.source` 是唯一推荐入口；`WImageSource` 已覆盖网络/资源/文件/Base64/provider/memory。
+## 新写法
+
+```dart
+WImage.source(source: WImageSource.network(url), style: style)
+WImage.source(source: WImageSource.asset('assets/logo.png'))
+WImage.source(source: WImageSource.file('/tmp/a.png'))
+WImage.source(source: WImageSource.base64(data))
+WImage.source(source: WImageSource.parse('https://x/y.png'))
+WImage.source(source: WImageSource.provider(MemoryImage(bytes)))
+WImage.source(source: WImageSource.provider(provider))
+```
+
+`WImage.source` 是唯一入口；`WImageSource` 覆盖网络 / 资源 / 文件 / Base64 / 任意 provider。

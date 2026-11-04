@@ -17,7 +17,7 @@
 ## 运行
 
 ```bash
-cd packages/app/example
+cd packages/app_getx/example
 flutter pub get
 flutter run
 ```
