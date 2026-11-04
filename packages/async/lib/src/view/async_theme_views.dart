@@ -62,7 +62,7 @@ class WAsyncThemeViews {
         const Center(child: CircularProgressIndicator());
   }
 
-  /// 空数据：默认「暂无数据」。
+  /// 空数据：默认使用 `WAsyncStrings.empty`。
   Widget empty(BuildContext context, {WidgetBuilder? explicit}) {
     return explicit?.call(context) ??
         _theme?.emptyBuilder?.call(context) ??
@@ -76,7 +76,9 @@ class WAsyncThemeViews {
     VoidCallback? retry, {
     WAsyncErrorWidgetBuilder? explicit,
   }) {
-    if (retry == null) return WAsyncErrorView(error: error);
+    if (retry == null) {
+      return WAsyncErrorView(error: error, title: _strings.errorTitle);
+    }
     return explicit?.call(context, error, retry) ??
         _theme?.errorBuilder?.call(context, error, retry) ??
         WAsyncErrorView(
@@ -94,7 +96,9 @@ class WAsyncThemeViews {
     VoidCallback? retry, {
     WAsyncErrorWidgetBuilder? explicit,
   }) {
-    if (retry == null) return WAsyncErrorBanner(error: error);
+    if (retry == null) {
+      return WAsyncErrorBanner(error: error, title: _strings.errorTitle);
+    }
     return explicit?.call(context, error, retry) ??
         _theme?.errorBannerBuilder?.call(context, error, retry) ??
         WAsyncErrorBanner(
@@ -121,7 +125,7 @@ class WAsyncThemeViews {
         const Center(child: CircularProgressIndicator());
   }
 
-  /// sliver 空数据：默认「暂无数据」（非滚动 Widget）。
+  /// sliver 空数据：默认使用 `WAsyncStrings.empty`（非滚动 Widget）。
   Widget sliverEmpty(BuildContext context, {WidgetBuilder? explicit}) {
     return explicit?.call(context) ??
         _theme?.sliverEmptyBuilder?.call(context) ??
@@ -135,7 +139,9 @@ class WAsyncThemeViews {
     VoidCallback? retry, {
     WAsyncErrorWidgetBuilder? explicit,
   }) {
-    if (retry == null) return WAsyncErrorView(error: error);
+    if (retry == null) {
+      return WAsyncErrorView(error: error, title: _strings.errorTitle);
+    }
     return explicit?.call(context, error, retry) ??
         _theme?.sliverErrorBuilder?.call(context, error, retry) ??
         WAsyncErrorView(
@@ -153,7 +159,9 @@ class WAsyncThemeViews {
     VoidCallback? retry, {
     WAsyncErrorWidgetBuilder? explicit,
   }) {
-    if (retry == null) return WAsyncErrorBanner(error: error);
+    if (retry == null) {
+      return WAsyncErrorBanner(error: error, title: _strings.errorTitle);
+    }
     return explicit?.call(context, error, retry) ??
         _theme?.sliverErrorBannerBuilder?.call(context, error, retry) ??
         WAsyncErrorBanner(

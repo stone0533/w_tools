@@ -39,6 +39,18 @@ void main() {
       expect(find.text('Retry'), findsNothing);
     });
 
+    testWidgets('无 retry 时仍使用主题文案', (tester) async {
+      await tester.pumpWidget(
+        WAsyncTheme(
+          strings: const WAsyncStrings(errorTitle: '加载失败'),
+          child: _probe(
+            (context, views) => views.error(context, Exception('boom'), null),
+          ),
+        ),
+      );
+      expect(find.text('加载失败'), findsOneWidget);
+    });
+
     testWidgets('无 retry 时不调用 explicit / theme builder', (tester) async {
       var calls = 0;
 

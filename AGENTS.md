@@ -159,7 +159,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - `WAsyncStateSliver` 默认不添加 refreshing 进度条；由外层 SmartRefresher 负责，需要额外进度时显式传 `refreshingSliverBuilder`。
 - `WAsyncStateSliver.onRetry` 为 null 时失败态不渲染重试按钮，也不调用自定义 error / banner builder（它们的契约要求可用的 retry）。
 - `WAsyncController` / `WAsyncPagedController` 会把所有异常转为 failed，并统一回调 `options.onError`；`load()` / `refresh()` 会取消上一次的 `WCancelToken`，`dispose()` 也会取消。
-- 取消是协作式的：只有 `withToken` 构造的 loader 能拿到 `WCancelToken` 并主动检查；取消会让等待尽快结束（返回 null），但不中止底层 Future。
+- 取消是协作式的：只有 `withToken` 构造的 loader 能拿到 `WCancelToken` 并主动检查；取消会让等待尽快结束（`tryRun` 返回 `WAsyncCancelled`，`run` 抛 `WCancellationException`），但不中止底层 Future。
 - `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` 只在不需要 UI 状态时直接使用；
   要结果用 `WAsync.tryRun`（返回 `WAsyncResult`）或 `WAsync.run`（失败抛异常）；控制器的四态与 `options.activity` 不要同时用来表示同一个 Loading（控制器会断言）。
 
