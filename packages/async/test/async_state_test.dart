@@ -2,6 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
 void main() {
+  test('toString 包含状态与数据信息', () {
+    const text = WAsyncState<int>.ready(1);
+    expect(text.toString(), contains('ready'));
+    expect(text.toString(), contains('hasData: true'));
+  });
+
   group('WAsyncState', () {
     test('四态构造与判定', () {
       const loading = WAsyncState<int>.loading();

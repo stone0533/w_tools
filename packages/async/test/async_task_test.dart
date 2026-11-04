@@ -179,6 +179,92 @@ void main() {
     });
   });
 
+  group('取消边界', () {
+    test('retry 在重试等待期间取消', () async {
+      final token = WCancelToken();
+      final future = WAsync.retry<int>(
+        () async => throw Exception('fail'),
+        retryCount: 10,
+        retryDelay: const Duration(seconds: 1),
+        cancelToken: token,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      token.cancel('stop');
+      await expectLater(future, throwsA(isA<WCancellationException>()));
+    });
+
+    test('timeout 等待期间取消', () async {
+      final token = WCancelToken();
+      final completer = Completer<int>();
+      final future = WAsync.timeout<int>(
+        () => completer.future,
+        const Duration(seconds: 10),
+        cancelToken: token,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      token.cancel('stop');
+      await expectLater(future, throwsA(isA<WCancellationException>()));
+    });
+
+    test('pool 取消后停止', () async {
+      final token = WCancelToken();
+      final future = WAsync.pool<int>(
+        List.generate(
+          2,
+          (_) => () async {
+            await Future<void>.delayed(const Duration(seconds: 1));
+            return 1;
+          },
+        ),
+        cancelToken: token,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      token.cancel('stop');
+      await expectLater(future, throwsA(isA<WCancellationException>()));
+    });
+
+    test('first 等待期间取消', () async {
+      final token = WCancelToken();
+      final future = WAsync.first<int>(
+        [Future.delayed(const Duration(seconds: 1), () => 1)],
+        cancelToken: token,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      token.cancel('stop');
+      await expectLater(future, throwsA(isA<WCancellationException>()));
+    });
+
+    test('serial 等待期间取消', () async {
+      final token = WCancelToken();
+      final future = WAsync.serial<int>(
+        [() => Future.delayed(const Duration(seconds: 1), () => 1)],
+        cancelToken: token,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      token.cancel('stop');
+      await expectLater(future, throwsA(isA<WCancellationException>()));
+    });
+  });
+
+  group('WCancelToken 边界', () {
+    test('取消后注册监听立即回调', () {
+      var reason = Object();
+      final token = WCancelToken()..cancel('stop');
+      token.addListener((value) => reason = value!);
+      expect(reason, 'stop');
+    });
+
+    test('clearListeners / 异常 toString', () {
+      final token = WCancelToken();
+      var called = false;
+      token.addListener((_) => called = true);
+      token.clearListeners();
+      token.cancel('stop');
+      expect(called, isFalse);
+      expect(WCancellationException('stop').toString(), contains('stop'));
+    });
+  });
+
   group('WAsyncActivity', () {
     test('并发活动只触发一次开始 / 结束', () async {
       var starts = 0;
@@ -194,6 +280,14 @@ void main() {
       ]);
       expect(starts, 1);
       expect(ends, 1);
+      expect(activity.isLoading, isFalse);
+    });
+
+    test('未 begin 时 end 是空操作', () {
+      var ends = 0;
+      final activity = WAsyncActivity(onEnd: () => ends++);
+      activity.end();
+      expect(ends, 0);
       expect(activity.isLoading, isFalse);
     });
 

@@ -83,6 +83,11 @@ if ! bash scripts/check_feedback.sh; then
   errors=$((errors + 1))
 fi
 
+# 8) async 公开文档不得出现已删除 / 已改名 API
+if ! python3 scripts/check_async_docs.py; then
+  errors=$((errors + 1))
+fi
+
 if [ "$errors" -gt 0 ]; then
   printf '\n文档检查失败：%s 项\n' "$errors"
   exit 1
