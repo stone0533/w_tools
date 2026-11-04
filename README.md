@@ -19,6 +19,7 @@
 | [docs/modules/README.md](docs/modules/README.md) | 模块文档索引、依赖矩阵、SDK 速查 |
 | [docs/modules/components.md](docs/modules/components.md) | 组件目录（先查这里），含「不要用在哪」 |
 | [docs/conventions.md](docs/conventions.md) | 接入约定：包 / 暂存层 / 业务层判定与 doctor 规则 |
+| [docs/ai-contract.md](docs/ai-contract.md) | AI 使用契约：catalog / explain / AGENTS 的更新与完整性检查 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 新增/修改组件的硬性要求 |
 | [docs/releasing.md](docs/releasing.md) | 发版流程与发布脚本 |
 | [docs/adr/](docs/adr/) | 架构决策（版本策略、依赖子包） |
