@@ -411,7 +411,11 @@ bash scripts/preflight.sh --with-tests
 
 ---
 
-## 11. 相关文档
+## 11. 维护者提示词
+
+按场景复制的提示词见 [`ai-maintainer-prompts.md`](ai-maintainer-prompts.md)。
+
+## 12. 相关文档
 
 - [CLI 使用规则](agents/cli.md)
 - [Async 使用规则](agents/async.md)
