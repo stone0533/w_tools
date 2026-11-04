@@ -34,7 +34,28 @@
    bash scripts/preflight.sh --with-tests
    ```
 
-不要手改 `catalog.g.dart` / `templates.g.dart` / `docs/modules/components.md`。
+不要手改这些生成物：
+
+```text
+catalog.g.dart
+templates.g.dart
+docs/modules/components.md
+```
+
+
+## 测试
+
+每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立测试 / 发布。Flutter 子包用 `flutter test`；纯 Dart 包（`map` / `cli` / `figma` / `device`）用 `dart test`；`e2e` 以 pubspec 为准。根 `test/` 只留聚合契约（`w_tools.dart` 的重导出）。
+
+## 文档
+
+改 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、包清单、README、事实一致性；CI 也会跑）；公开 API 变化还要跑 `python3 scripts/check_public_catalog.py`。
+
+## 发布
+
+改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。子包与聚合包版本独立，根包的 `^x.y.z` 约束必须覆盖子包当前版本（`w_tools_cli` 是独立工具包，根包不依赖它，不在此列）。
+
+实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。
 
 ## 组件约定
 
@@ -150,93 +171,68 @@ Default five-role vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `
 
 single-context — one root `GLOSSARY.md` shared by the app and all packages, with architecture decisions in `docs/adr/`. See `docs/agents/domain.md`.
 
-### Tests
-
-每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立测试 / 发布。Flutter 子包用 `flutter test`；纯 Dart 包（`map` / `cli` / `figma` / `device`）用 `dart test`；`e2e` 以 pubspec 为准。根 `test/` 只留聚合契约（`w_tools.dart` 的重导出）。
-
-### 文档
-
-改 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、包清单、README、事实一致性；CI 也会跑）；公开 API 变化还要跑 `python3 scripts/check_public_catalog.py`。
-
-### Release
-
-改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。子包与聚合包版本独立，根包的 `^x.y.z` 约束必须覆盖子包当前版本（`w_tools_cli` 是独立工具包，根包不依赖它，不在此列）。
-
-实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。
-
-
 ## 启动与主题（ScreenUtil / WTextStyles）
 
-- 不要在 `main()`、顶层 `final` 或 `static final` 中调用 `flutter_screenutil` 的 `.sp`；此时 `ScreenUtil` 还没 `configure`。
-- `WTextStyles` / Theme 扩展如果使用 `.sp`，应在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期构建。
-- `WAppPlugin.wrapApp` 位于 MaterialApp 外，没有 Theme/MediaQuery；需要 Theme 的排版扩展用 `builderWrapper`。
-- `WAsyncTheme` 只存 builder，可以放 `wrapApp`；不要把“放到根节点”套到需要立即计算 `.sp` 的 Theme 对象上。
+- 不要在 `main()` / 顶层 `final` 计算 `.sp`；在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期构建。
+- `WAppPlugin.wrapApp` 在 MaterialApp 外，没有 Theme / MediaQuery；需要 Theme 用 `builderWrapper`。
+- `WAsyncTheme` 只存 builder，可放 `wrapApp`。
 
 ## 文字（w_tools_ui）
 
-- 新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；`WTextConfig` 已移除。
-- 字体/字号/字重/行高统一放 `WTextStyles` / `TextTheme`。
-- 局部用 `style` / `color` / `maxLines` / `overflow` / `textScaler` 覆盖。
-- 先复用已有 variant（含 `price` / `number` / `badge`）；同一语义角色跨至少 2 个页面、合计 3 次以上才考虑提升为库内 variant；消费方不能自行新增 enum；新增 variant 需按 breaking change 评估。详见 [`docs/agents/ui.md`](docs/agents/ui.md)。
-- 多字体优先 `fontFamilyFallback`；同一段主动混排用 `Text.rich` + `WTextStyles`。
+- 新代码用 `WText(variant:)` + `WTextStyles`；`WTextConfig` 已移除。
+- 局部用 `style` / `maxLines` / `overflow` / `textScaler` 覆盖；字体统一放 `WTextStyles`。
+- 先复用已有 variant；新增 variant 按 breaking change 评估。
+
+详见 [`docs/agents/ui.md`](docs/agents/ui.md)。
 
 ## 异步区块（w_tools_async）
 
-- 页面展示异步结果：`WAsyncController` + `WAsyncView`。
-- 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
-- 每个独立区块一个 Controller；不要用一个 `WAsyncActivity` 合并多个独立区块的 Loading。
-- 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点（推荐 `WAppOptions.appWrapper`，或消费方自建插件的 `wrapApp`），不要只放 `AppScaffold.body`。
-- 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
-- `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；loading / empty / error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
-- `WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 由调用方自行构建状态 UI，不读默认值 —— 需要默认值时用 `WAsyncThemeViews.of(context)`。
-- Sliver 页面默认视图用 `WAsyncTheme` 的 `sliver*Builder`；loading/empty/error 必须是非滚动 Widget，`refreshingSliverBuilder` 必须返回 sliver。
-- 分页使用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表；footer 用 `hasMoreListenable` 判断「加载更多 / 没有更多」。
-- `CustomScrollView` 的四态填充优先用 `WAsyncStateSliver`；`readySliverBuilder` 必须返回 sliver。
-- `WAsyncStateSliver` 默认不添加 refreshing 进度条；由外层 SmartRefresher 负责，需要额外进度时显式传 `refreshingSliverBuilder`。
-- `WAsyncStateSliver.onRetry` 为 null 时失败态不渲染重试按钮，也不调用自定义 error / banner builder（它们的契约要求可用的 retry）。
-- `WAsyncController` / `WAsyncPagedController` 会把所有异常转为 failed，并统一回调 `options.onError`；`load()` / `refresh()` 会取消上一次的 `WCancelToken`，`dispose()` 也会取消。
-- 取消是协作式的：只有 `withToken` 构造的 loader 能拿到 `WCancelToken` 并主动检查；取消会让等待尽快结束（`tryRun` 返回 `WAsyncCancelled`，`run` 抛 `WCancellationException`），但不中止底层 Future。
-- `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` 只在不需要 UI 状态时直接使用；
-  要结果用 `WAsync.tryRun`（返回 `WAsyncResult`）或 `WAsync.run`（失败抛异常）；控制器的四态与 `options.activity` 不要同时用来表示同一个 Loading（控制器会断言）。
+- 页面用 `WAsyncController` + `WAsyncView`；每个区块一个 Controller，不要手写 `ValueNotifier`。
+- `WAsyncTheme` 放 App 根节点；滚动壳用 `WAsyncStateBuilder`，Sliver 用 `WAsyncStateSliver`。
+- 分页用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError`，不要替换列表。
+- 纯执行用 `WAsync.tryRun`（`WAsyncResult`）或 `WAsync.run`（失败抛异常）；取消用 `WCancelToken`。
+- Controller 自己维护四态，不要传 `options.activity`。
+
+详见 [`docs/agents/async.md`](docs/agents/async.md)。
 
 ## 网络（w_tools_api）
 
-- 统一用 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接 `Dio()`；同一 `baseUrl` 只初始化一次，命中后传入**不同** options / interceptors 会抛 `ArgumentError`（需要换配置先 `dispose`）。
-- Token 存储用 `w_tools_core` 的 `WToken`；`WTokenInterceptor` 只通过 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入，不负责存储。
-- 401 重试只复用已知 Dio：`DioRegistry` 自动绑定；自行 `Dio()` 必须构造传 `dio: dio`，否则不会重试（也不会隐式注册实例）。
-- 日志用 `WLogInterceptor`；默认脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `X-Api-Key`，不要依赖它做业务错误处理。
+- 统一 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接 `Dio()`；同一 baseUrl 只初始化一次，换配置先 `dispose`。
+- Token 用 `WToken`；拦截器只注入回调。日志用 `WLogInterceptor`，不要依赖它做业务错误处理。
+
+详见 [`docs/agents/api.md`](docs/agents/api.md)。
 
 ## 启动（w_tools_app_getx）
 
-- 项目入口用 `WApp.options(WAppOptions(...)).start()`，不要手写 `runApp` + 初始化顺序；`start()` = `init()` + `run()`，只调用一次，重复调用会再次 `runApp`。
-- 插件实现 `WAppPlugin`（消费方自建；子包不自带插件）；有初始化顺序要求时用 `dependsOn` 显式声明，不要依赖注册顺序。
-- `builderWrapper` 位于 MaterialApp 内；`wrapApp` 位于 MaterialApp 外，没有 Theme / MediaQuery。
-- `WRouteObserver` 由 `WApp` 自动追加，不要重复添加。
-- 多语言用 `WLanguage().changeLanguage(...)`，监听 `languageStream`；语言真源是 `WAppConfig.currentLanguage`。
+- 入口用 `WApp.options(WAppOptions(...)).start()`；不要手写 `runApp` 初始化顺序。
+- 插件用 `WAppPlugin`；有顺序要求用 `dependsOn`。`WRouteObserver` 由 `WApp` 自动追加。
+- 多语言用 `WLanguage().changeLanguage(...)`。
+
+详见 [`docs/agents/app.md`](docs/agents/app.md)。
 
 ## 基础工具（w_tools_core）
 
-- `WStorage` 读方法前必须 `await WStorage.init()`；未初始化读取会抛 `StateError`。
-- `WStorage` / `WToken` 使用 SharedPreferences，是明文存储，不是安全存储；高敏感数据用 Keychain / Keystore。
-- `WValidator` 负责业务语义校验；纯正则匹配 / 提取用 `WRegExp`，不要再手写重复正则。
-- 日志统一用 `WLogger.i/d/w/e`；不要直接 `print`。
-- `WEncrypt` 的 AES-CBC 不提供完整性 / 认证；需要防篡改时用 AES-GCM。
+- `WStorage` 读之前必须 `await WStorage.init()`；`WStorage` / `WToken` 是明文存储，不是安全存储。
+- 校验用 `WValidator`，正则用 `WRegExp`，日志用 `WLogger`，不要 `print`。
+- `WEncrypt` 的 AES-CBC 不提供完整性；需要防篡改用 AES-GCM。
+
+详见 [`docs/agents/core.md`](docs/agents/core.md)。
 
 ## 扫码（w_tools_qr）
 
-- 扫码用 `WQrView`，不要直接使用 `qr_code_scanner_plus` 的 `QRView`。
-- 默认 `scanOnce = true`；需要连续扫描显式传 `false`。只监听数据流 / 用 `onQRViewCreated` 时必须 `scanOnce: false`（构造有 assert）。
-- 单次扫码完成后需要重新扫描时，通过 `GlobalKey<WQrViewState>` 调用 `restartScan()`。
-- 相机权限：Android `CAMERA`，iOS `NSCameraUsageDescription`。
+- 用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce = true`，连续扫描显式 `false`。
+- 重扫用 `GlobalKey<WQrViewState>.restartScan()`；配置相机权限。
 - `onScanned` 只在 `Barcode.code` 非空时触发。
+
+详见 [`docs/agents/qr.md`](docs/agents/qr.md)。
 
 ## 地图（w_tools_map + w_tools_map_google）
 
-- 地图用 `WMap` + `WMapZone`（来自 `w_tools_map_google`），数据模型用 `w_tools_map`；不要直接使用 `GoogleMap`。
-- Google Maps 需要 Android / iOS API Key；地图默认关闭，需要时用 `init --map` 引入。
-- `markerId` 必须稳定；不要用 `hashCode` 生成。
-- `json_serializable` 模型用 `WMapItemMapper` 取字段，避免改生成代码。
-- 业务 UI 选中 / 关闭 marker 用 `WMapController.select` / `closeSelection`。
+- `WMap` / `WMapZone` 来自 `w_tools_map_google`，模型 / mapper 来自 `w_tools_map`；不要直接用 `GoogleMap`。
+- Google Maps 需要 API Key；地图默认关闭，用 `init --map`。
+- `markerId` 必须稳定；生成模型用 `WMapItemMapper`；选中/关闭用 `WMapController`。
+
+详见 [`docs/agents/map.md`](docs/agents/map.md)。
 
 ## 包级规则入口
 
