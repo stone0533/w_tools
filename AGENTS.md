@@ -1,8 +1,44 @@
 # Agent instructions
 
+## 先读
+
+- 文档定位：[`docs/documentation-map.md`](docs/documentation-map.md)
+- AI 契约：[`docs/ai-contract.md`](docs/ai-contract.md)
+- 维护者提示词：[`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md)
+- 脚本手册：[`scripts/README.md`](scripts/README.md)
+
+## 改动前先分类
+
+1. **内部重构**：公开 API / 默认行为不变 → 只改代码 + 测试。
+2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；必要时 migration。
+3. **删除 / 废弃**：额外清理 aliases / related / migration，并跑 removed API 检查。
+4. **新增包**：额外更新 workspace / README / example / feature 模板 / context capabilities / release。
+
+## 改代码后更新 AI 资产
+
+公开变化时：
+
+1. 先改 [`packages/cli/catalog/components.yaml`](packages/cli/catalog/components.yaml)；
+2. 规则变化改 [`packages/cli/templates/agents/`](packages/cli/templates/agents/)；
+3. 跑生成器：
+   ```bash
+   cd packages/cli
+   dart run tool/gen_catalog.dart
+   dart run tool/gen_templates.dart
+   ```
+4. 更新 README / example；
+5. 跑：
+   ```bash
+   python3 scripts/check_public_catalog.py
+   python3 scripts/check_package_docs.py
+   bash scripts/preflight.sh --with-tests
+   ```
+
+不要手改 `catalog.g.dart` / `templates.g.dart` / `docs/modules/components.md`。
+
 ## 组件约定
 
-新页面表单默认使用 `WForm` + 直接字段（`WFormTextField` 等），不要从 `Config.build` 开始（3.2 起 `build` / `*Core` 为 `@internal`，不导出）；详见 [`docs/agents/form.md`](docs/agents/form.md)。
+新页面表单默认使用 `WForm` + 直接字段（`WFormTextField` 等），不要从 `Config.build` 开始（form 5.0 起 Config / Core 仅内部实现，直接字段不再接受 `config` 参数）；详见 [`docs/agents/form.md`](docs/agents/form.md)。
 
 按钮、图片、页面骨架和弹层的组件选择规则，以及各包「首选入口 / 不要用」速查，见 [`docs/agents/README.md`](docs/agents/README.md)。
 
@@ -53,7 +89,7 @@ dart run tool/gen_templates.dart
 （生成 `lib/src/catalog/catalog.g.dart` 和 `docs/modules/components.md` 的 §1~§9 表格），
 否则 `test/catalog_test.dart` 会红 —— 组件目录同样只允许有一份来源。
 
-CLI 是纯 Dart 包：测试用 `dart test`，发布用 `dart pub publish`（`scripts/publish_package.sh` 会自动识别）。
+CLI 是纯 Dart 包：测试用 `dart test`；发布统一用 `bash scripts/publish_package.sh packages/cli`，不要直接 `dart pub publish`。
 
 设备验证工具：`packages/device`（`w_tools_device`）与 `packages/e2e`（`w_tools_e2e`）。
 需要模拟器 / Android / 真机截图、点击、稳定等待或 E2E 自动登录时，先读
@@ -116,11 +152,11 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ### Tests
 
-每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立 `flutter test` / 发布。根 `test/` 只留聚合契约（`w_tools.dart` 的重导出）。`packages/cli` 是纯 Dart 包，用 `dart test`。CI 用矩阵逐包跑 analyze / test / `pub publish --dry-run`。
+每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立测试 / 发布。Flutter 子包用 `flutter test`；纯 Dart 包（`map` / `cli` / `figma` / `device`）用 `dart test`；`e2e` 以 pubspec 为准。根 `test/` 只留聚合契约（`w_tools.dart` 的重导出）。
 
 ### 文档
 
-改 `docs/` 后跑 `bash scripts/check_docs.sh`（检查相对链接、旧命令、包清单；CI 也会跑）。
+改 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、包清单、README、事实一致性；CI 也会跑）；公开 API 变化还要跑 `python3 scripts/check_public_catalog.py`。
 
 ### Release
 
@@ -197,7 +233,13 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 ## 地图（w_tools_map + w_tools_map_google）
 
 - 地图用 `WMap` + `WMapZone`（来自 `w_tools_map_google`），数据模型用 `w_tools_map`；不要直接使用 `GoogleMap`。
-- Google Maps 需要 Android / iOS API Key；地图只在启用 `--with-map` 时引入。
+- Google Maps 需要 Android / iOS API Key；地图默认关闭，需要时用 `init --map` 引入。
 - `markerId` 必须稳定；不要用 `hashCode` 生成。
 - `json_serializable` 模型用 `WMapItemMapper` 取字段，避免改生成代码。
 - 业务 UI 选中 / 关闭 marker 用 `WMapController.select` / `closeSelection`。
+
+## 包级规则入口
+
+- core / ui / form / async / api / app / qr / map 的详细规则分别在 [`docs/agents/`](docs/agents/)；
+- 组件目录由 [`catalog/components.yaml`](packages/cli/catalog/components.yaml) 生成；
+- README / example 是该包的用户事实源与可运行场景。
