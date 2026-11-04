@@ -28,13 +28,13 @@ w_tools_cli explain —— 查看某个组件的用途、反例、import 与文�
   --help, -h      显示本帮助
 ''';
 
-void main(List<String> argv) {
+CommandResult run(List<String> argv) {
   final parser = cliParser()
     ..addOption('root')
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false);
 
-  CliCommand(
+  final result = Command(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -42,7 +42,7 @@ void main(List<String> argv) {
       if (name.isEmpty) {
         stderr.writeln('用法：dart run w_tools_cli:explain <组件名>\n');
         stderr.writeln(_usage);
-        exit(2);
+        throw CliExit(2);
       }
 
       final root = Directory(args['root'] as String? ?? Directory.current.path);
@@ -63,7 +63,7 @@ void main(List<String> argv) {
         banned = _matchingBanned(name, root);
       } on ProjectLoadException catch (e) {
         stderr.writeln(e.message);
-        exit(2);
+        throw CliExit(2);
       }
       final asJson = (args['json'] as bool) || args['format'] == 'json';
 
@@ -77,14 +77,14 @@ void main(List<String> argv) {
             'banned': banned.map(_bannedJson).toList(),
           }),
         );
-        if (matches.isEmpty && banned.isEmpty) exit(1);
+        if (matches.isEmpty && banned.isEmpty) throw CliExit(1);
         return;
       }
 
       if (matches.isEmpty) {
         if (banned.isEmpty) {
           print('没有找到 `$name`。试试 `dart run w_tools_cli:list $name`。');
-          exit(1);
+          throw CliExit(1);
         }
         print('`$name` 不在组件目录中，但命中本项目禁用项：');
         for (final entry in banned) {
@@ -117,6 +117,11 @@ void main(List<String> argv) {
       }
     },
   ).run(argv);
+  return result;
+}
+
+void main(List<String> argv) {
+  exitCode = run(argv).exitCode;
 }
 
 List<BannedRule> _matchingBanned(String query, Directory root) {

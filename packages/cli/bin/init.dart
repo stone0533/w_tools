@@ -109,7 +109,7 @@ List<String> _nextActions(InitReport report) {
   return actions;
 }
 
-void main(List<String> argv) {
+CommandResult run(List<String> argv) {
   final parser = cliParser()
     ..addOption('root')
     ..addFlag('check', negatable: false)
@@ -136,7 +136,7 @@ void main(List<String> argv) {
     parser.addFlag(spec.flag, negatable: true, defaultsTo: false, help: spec.label);
   }
 
-  CliCommand(
+  final result = Command(
     usage: _buildUsage(),
     parser: parser,
     body: (args) {
@@ -251,8 +251,13 @@ void main(List<String> argv) {
         }
       }
       if (check && (report.missing.isNotEmpty || (checkDrift && report.drift.isNotEmpty))) {
-        exit(1);
+        throw CliExit(1);
       }
     },
   ).run(argv);
+  return result;
+}
+
+void main(List<String> argv) {
+  exitCode = run(argv).exitCode;
 }

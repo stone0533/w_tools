@@ -22,12 +22,12 @@ w_tools_cli list —— 按关键词查组件目录
   --help, -h      显示本帮助
 ''';
 
-void main(List<String> argv) {
+CommandResult run(List<String> argv) {
   final parser = cliParser()
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false);
 
-  CliCommand(
+  final result = Command(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -43,14 +43,14 @@ void main(List<String> argv) {
             'components': results.map((e) => e.toJson()).toList(),
           }),
         );
-        if (results.isEmpty) exit(1);
+        if (results.isEmpty) throw CliExit(1);
         return;
       }
 
       print('w_tools_cli list · catalog v$catalogVersion · ${results.length} 个结果');
       if (results.isEmpty) {
         print('没有匹配。换个关键词，或运行 `dart run w_tools_cli:list` 看全部。');
-        exit(1);
+        throw CliExit(1);
       }
       for (final entry in results) {
         print('${entry.name}  [${entry.package}]  ${entry.useFor}');
@@ -59,4 +59,9 @@ void main(List<String> argv) {
       print('用 `dart run w_tools_cli:explain <组件名>` 看用法和反例。');
     },
   ).run(argv);
+  return result;
+}
+
+void main(List<String> argv) {
+  exitCode = run(argv).exitCode;
 }

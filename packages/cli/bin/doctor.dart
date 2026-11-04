@@ -41,7 +41,7 @@ w_tools_cli doctor —— 扫描消费方项目是否符合 w_tools 的接入约
 /// 已知规则 id；`--only` 里出现未知 id 直接报错，避免 CI 写错后静默通过。
 final Set<String> _knownRuleIds = doctorRuleIds.toSet();
 
-void main(List<String> argv) {
+CommandResult run(List<String> argv) {
   final parser = cliParser()
     ..addOption('root')
     ..addFlag('json', negatable: false)
@@ -53,7 +53,7 @@ void main(List<String> argv) {
     ..addFlag('write-config', negatable: false)
     ..addFlag('force', negatable: false);
 
-  CliCommand(
+  final result = Command(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -136,7 +136,12 @@ void main(List<String> argv) {
         default:
           reporter.printHuman(results);
       }
-      exit(reporter.exitCode(results));
+      throw CliExit(reporter.exitCode(results));
     },
   ).run(argv);
+  return result;
+}
+
+void main(List<String> argv) {
+  exitCode = run(argv).exitCode;
 }

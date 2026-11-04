@@ -42,17 +42,17 @@ void main(List<String> argv) {
   final rest = argv.sublist(1);
   switch (command) {
     case 'init':
-      init.main(rest);
+      exitCode = init.run(rest).exitCode;
     case 'doctor':
-      doctor.main(rest);
+      exitCode = doctor.run(rest).exitCode;
     case 'context':
-      context.main(rest);
+      exitCode = context.run(rest).exitCode;
     case 'list':
-      list.main(rest);
+      exitCode = list.run(rest).exitCode;
     case 'explain':
-      explain.main(rest);
+      exitCode = explain.run(rest).exitCode;
     case 'feedback':
-      feedback.main(rest);
+      exitCode = feedback.run(rest).exitCode;
     default:
       stderr.writeln('未知命令：$command\n');
       stderr.write(_usage);

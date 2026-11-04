@@ -58,7 +58,7 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   dart run w_tools_cli:feedback lint --include-inbox
 ''';
 
-void main(List<String> argv) {
+CommandResult run(List<String> argv) {
   final parser = cliParser()
     ..addOption('root')
     ..addOption('package')
@@ -76,7 +76,7 @@ void main(List<String> argv) {
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false);
 
-  CliCommand(
+  final result = Command(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -105,6 +105,11 @@ void main(List<String> argv) {
       }
     },
   ).run(argv);
+  return result;
+}
+
+void main(List<String> argv) {
+  exitCode = run(argv).exitCode;
 }
 
 void _path(ArgResults args, Directory root, bool asJson) {
@@ -191,7 +196,7 @@ void _lint(ArgResults args, Directory root, bool asJson) {
       '问题 ${result.issues.length} 个，警告 ${result.warnings.length} 个',
     );
   }
-  if (!result.ok) exit(1);
+  if (!result.ok) throw CliExit(1);
 }
 
 void _submit(ArgResults args, Directory root, bool asJson) {
@@ -278,10 +283,10 @@ void _submit(ArgResults args, Directory root, bool asJson) {
           'error': message,
         }),
       );
-      exit(2);
+      throw CliExit(2);
     }
     stderr.writeln(message);
-    exit(2);
+    throw CliExit(2);
   }
 
   if (wantLedger) {
@@ -301,7 +306,7 @@ void _submit(ArgResults args, Directory root, bool asJson) {
       }
     } on FeedbackLedgerException catch (e) {
       stderr.writeln(e.message);
-      exit(2);
+      throw CliExit(2);
     }
     return;
   }
@@ -315,7 +320,7 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     }
   } on FeedbackSubmitException catch (e) {
     stderr.writeln(e.message);
-    exit(1);
+    throw CliExit(1);
   }
 }
 
@@ -389,7 +394,7 @@ void _search(ArgResults args, Directory root, bool asJson) {
     }
     if (githubError != null) stderr.writeln('GitHub 搜索失败：$githubError');
   }
-  if (local.isEmpty && github.isEmpty && githubError == null) exit(1);
+  if (local.isEmpty && github.isEmpty && githubError == null) throw CliExit(1);
 }
 
 String? _packageArg(ArgResults args, {bool required = true}) {
@@ -457,5 +462,5 @@ Never _usageError(String message) {
     stderr.writeln('参数错误：$message\n');
     stderr.writeln(_usage);
   }
-  exit(2);
+  throw CliExit(2);
 }

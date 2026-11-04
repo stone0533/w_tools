@@ -28,14 +28,14 @@ w_tools_cli context —— 输出项目事实（给 AI / CI 的一份稳定上�
   dart run w_tools_cli:context --format=json
 ''';
 
-void main(List<String> argv) {
+CommandResult run(List<String> argv) {
   final parser = cliParser()
     ..addOption('root')
     ..addOption('format', defaultsTo: 'markdown', allowed: <String>['json', 'markdown', 'prompt'])
     ..addFlag('json', negatable: false)
     ..addOption('max-tokens', defaultsTo: '0');
 
-  CliCommand(
+  final result = Command(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -62,7 +62,7 @@ void main(List<String> argv) {
         snapshot = ProjectSnapshot.load(root, config: config);
       } on PubspecLockException catch (e) {
         stderr.writeln(e.message);
-        exit(2);
+        throw CliExit(2);
       } on YamlException catch (e) {
         failCli(args, 'pubspec.yaml 解析失败：${e.message}');
       }
@@ -77,4 +77,9 @@ void main(List<String> argv) {
       }
     },
   ).run(argv);
+  return result;
+}
+
+void main(List<String> argv) {
+  exitCode = run(argv).exitCode;
 }
