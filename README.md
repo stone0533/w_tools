@@ -66,7 +66,7 @@ dependencies:
 dependencies:
   w_tools_core: ^3.0.0
   w_tools_async: ^2.1.0
-  w_tools_ui: ^4.7.0
+  w_tools_ui: ^5.0.0
   w_tools_form: ^3.2.0
   # 需要再加 w_tools_app / api / toast / qr / map
 ```
@@ -113,10 +113,12 @@ WAppConfig.supportedLanguages = {'zh_CN': '简体中文'}; // app：语言
 
 各子包独立发布，可只引入需要的包；根包 `w_tools` 也作为聚合包发布。
 
+> 环境：Dart `^3.10.0`、Flutter `>=3.38.0`。
+
 ```yaml
 dependencies:
   w_tools_core: ^3.0.0   # 只引子包
-  w_tools_ui: ^4.7.0
+  w_tools_ui: ^5.0.0
 ```
 
 或一键引入聚合包（会带上全部 9 个 Flutter 子包及其依赖）：
@@ -146,13 +148,13 @@ flutter pub get
 | `w_tools_toast` | 轻量提示（`WToast`） |
 | `w_tools_qr` | 二维码扫描（`WQrView`） |
 | `w_tools_map` | 地图相关 |
-| **`w_tools_app`** | 应用启动器（`WApp`）、插件契约（`WAppPlugin`）、路由观察者、`WRouteStack` / `WApp.routeStack` |
+| **`w_tools_app`** | 应用启动器（`WApp`）、插件契约（`WAppPlugin`）、路由观察者、`WRouteStack` / 实例 `app.routeStack` |
 
 > ⚠️ **`w_tools_app` 强依赖 GetX，且不可替换。**
 >
 > - `WApp.run()` 内部构建的根组件就是 `GetMaterialApp`
 > - `run()` / `start()` 的 `initialRoute` / `getPages` / `translations` / `locale` / `defaultTransition` 参数均为 GetX 类型
-> - `WRouteStack` 记录路由（`WRouteObserver` 本身不依赖 GetX；静态 `WRoute` 已弃用，用 `WApp.routeStack`）
+> - `WRouteStack` 记录路由（`WRouteObserver` 本身不依赖 GetX；默认栈是 `WRouteStack.defaultStack`）
 >
 > **换句话说：使用启动器 = 你的项目必须使用 GetX。**
 
@@ -162,7 +164,7 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_ui: ^4.7.0     # 只用 UI 组件
+  w_tools_ui: ^5.0.0     # 只用 UI 组件
   w_tools_core: ^3.0.0   # 只用工具类与扩展
 ```
 
@@ -199,23 +201,22 @@ import 'package:get/get.dart';
 import 'package:w_tools/w_tools.dart';
 
 void main() async {
-  final app = WApp()..title = 'Flutter App';
-
-  // 可选：声明式注入第三方能力（自定义插件见下方「生命周期与插件」）
-  // app.addPlugins([MyAppPlugin()]);
-
-  // 可选：在最外层包裹 app（例如 ScreenUtilInit、MediaQuery 覆盖、全局手势）
-  // 注意 w_tools 不内置 ScreenUtil，需要时请自行引入 flutter_screenutil：
-  // app.appWrapper = (child) => ScreenUtilInit(
-  //       designSize: const Size(375, 0),
-  //       child: child,
-  //     );
+  final app = WApp.options(
+    WAppOptions(
+      title: 'Flutter App',
+      initialRoute: '/',
+      getPages: [GetPage(name: '/', page: () => HomePage())],
+      // 可选：在最外层包裹 app（ScreenUtilInit / MediaQuery / 全局手势）
+      // w_tools 不内置 ScreenUtil，需要时请自行引入 flutter_screenutil：
+      // appWrapper: (child) => ScreenUtilInit(
+      //   designSize: const Size(375, 0),
+      //   child: child,
+      // ),
+    ),
+  );
 
   // 一站式启动：内部先 init()（系统设置 + 插件 onInit），再 run()
-  await app.start(
-    initialRoute: '/',
-    getPages: [GetPage(name: '/', page: () => HomePage())],
-  );
+  await app.start();
 }
 ```
 
@@ -284,7 +285,7 @@ class MyAppPlugin extends WAppPlugin {
 - **KeepAliveWrapper** (`WKeepAliveWrapper`): 保持组件状态的包装器
 - **NotificationListener** (`WNotificationListenerBuilder`): 通知监听器构建器
 - **QrView** (`WQrView`): 二维码扫描组件（来自 `w_tools_qr` 子包）
-- **RowButtons** (`WRowButtons`): 行按钮组件
+- **RowButtons** (`WActionRow` / `WSelectableRow`): 行按钮组件
 - **Text** (`WText`): 增强的文本组件
 - **TextStyle** (`WTextStyleExtension`): `TextStyle` 的 `bold` / `withColor` / `withSize` 扩展
 - **RichText** (`WRichText`): 富文本组件，支持复杂文本渲染
@@ -332,7 +333,7 @@ class MyAppPlugin extends WAppPlugin {
 - **异步工具** (`WAsync` / `WAsyncState` / `WAsyncView`): 提供执行、四态状态、Controller 与异步视图
 - **平台工具** (`WPlatform`): 提供平台检测和适配功能，支持移动、桌面和 Web 平台的判断，以及平台特定操作的执行
 - **正则工具** (`WRegExp`): 提供常用正则表达式
-- **路由工具** (`WRouteStack` / `WApp.routeStack`): 路由栈记录与回退（静态 `WRoute` 已弃用）
+- **路由工具** (`WRouteStack` / `WRouteStack.defaultStack`): 路由栈记录与回退
 
 ### 📚 扩展功能
 

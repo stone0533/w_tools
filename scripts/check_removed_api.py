@@ -27,6 +27,7 @@ allow = re.compile(r'删除|移除|不再提供|迁移|removed', re.IGNORECASE)
 targets = []
 for sub in ('docs/agents', 'docs/recipes', 'docs/modules'):
     targets += sorted((root / sub).glob('*.md'))
+targets += [root / 'README.md']
 targets += sorted((root / 'packages').glob('*/README.md'))
 targets += sorted((root / 'packages').glob('*/example/README.md'))
 targets += sorted((root / 'packages').glob('*/example/lib/**/*.dart'))
