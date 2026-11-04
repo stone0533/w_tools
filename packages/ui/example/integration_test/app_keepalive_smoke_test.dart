@@ -1,13 +1,15 @@
-// 复制到新项目的 integration_test/app_keepalive_smoke_test.dart。
-// 依赖：dev_dependencies 加 `integration_test`（SDK）；项目需启用 w_tools_ui；
-//       运行时代码依赖 w_tools_ui（WKeepAliveWrapper）。
+// w_tools_ui 示例：在真实引擎上验证 keep-alive / TickerMode。
 //
-// 只验证「组件机制在真实引擎上成立」，不依赖项目业务：
+// 这是"参考示例"，不是 init 生成物，也不代表你的 App 页面结构：
 //   1. WKeepAliveWrapper：切走再回来，State 与滚动位置保留
 //   2. 不可见页的 TickerMode 关闭（生产里由项目的 WPageActivity 负责，这里内联等价实现）
 //
-// 刷新 TTL 属于业务策略（TabRefreshMixin 的触发入口是私有 Worker），
-// 放在项目自己的 test/ 里用 NavController 驱动验证。
+// 需要 dev_dependencies:
+//   integration_test:
+//     sdk: flutter
+//
+// 用法（从 packages/ui/example 目录）：
+//   flutter test integration_test/app_keepalive_smoke_test.dart -d <device>
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -32,8 +34,7 @@ void main() {
 
     _HarnessState.switchTo(1);
     await tester.pump(const Duration(milliseconds: 300));
-    expect(_HarnessState.tickerEnabled(0), isFalse,
-        reason: 'inactive tab must stop ticker');
+    expect(_HarnessState.tickerEnabled(0), isFalse, reason: 'inactive tab must stop ticker');
 
     _HarnessState.switchTo(0);
     await tester.pump(const Duration(milliseconds: 300));
@@ -151,11 +152,9 @@ class _OnceAnimation extends StatefulWidget {
   State<_OnceAnimation> createState() => _OnceAnimationState();
 }
 
-class _OnceAnimationState extends State<_OnceAnimation>
-    with SingleTickerProviderStateMixin {
+class _OnceAnimationState extends State<_OnceAnimation> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 200))
-        ..forward();
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 200))..forward();
 
   @override
   void dispose() {

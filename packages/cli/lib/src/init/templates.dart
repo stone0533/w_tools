@@ -39,8 +39,6 @@ class InitTemplates {
   ///
   /// 这些文件生成到消费方后会被用户改，所以写入策略是 **starter**（存在即保留，
   /// `--force` 才覆盖）。
-  static String deviceAppSmokeTest() => generated.deviceAppSmokeTest;
-
   static String deviceSmokeScript() => generated.deviceSmokeScript;
 
   static String deviceGradleMirror() => generated.deviceGradleMirror;

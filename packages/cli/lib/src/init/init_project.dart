@@ -75,12 +75,10 @@ InitReport runInit(
   bool figma = false,
   String? figmaInstall,
   bool device = false,
-  bool deviceTest = false,
   InitManifest? manifest,
 }) {
   final report = InitReport();
   final app = _projectName(root);
-  final effectiveDeviceTest = device && deviceTest && features.ui;
   if (!device && _hasDeviceDependency(root)) {
     report.warnings.add(
       '检测到 w_tools_device，但设备脚手架未启用；运行 init --device 生成 device starter / docs',
@@ -243,19 +241,6 @@ InitReport runInit(
       InitTemplates.deviceGradleMirror(),
       starter: true,
     );
-    if (effectiveDeviceTest) {
-      write(
-        'integration_test/app_keepalive_smoke_test.dart',
-        InitTemplates.deviceAppSmokeTest(),
-        starter: true,
-      );
-    } else if (deviceTest && !features.ui) {
-      report.warnings.add(
-        '--device-test 需要启用 ui（w_tools_ui）；已跳过 integration_test 示例',
-      );
-    }
-  } else if (deviceTest) {
-    report.warnings.add('--device-test 需要同时启用 --device；已跳过集成测试示例');
   }
 
   // 读回项目配置：banned 要生成进 AGENTS，toolkit 路径也可能被项目改过。
@@ -310,7 +295,7 @@ InitReport runInit(
     );
   }
 
-  _collectStale(report, root, features, targets, device: device, deviceTest: effectiveDeviceTest);
+  _collectStale(report, root, features, targets, device: device);
   // --check 只读：manifest 是本次 init 的运行记录，check 模式下不写、也不参与 drift
   // （否则 CLI 升级后 generator 版本变化会让 --check-drift 永远红）。
   if (!check && manifest != null) {
@@ -321,7 +306,6 @@ InitReport runInit(
     report,
     features: features,
     device: device,
-    deviceTest: effectiveDeviceTest,
   );
   return report;
 }
@@ -332,7 +316,7 @@ const _deviceFiles = <String>[
   'tool/gradle-mirror.init.gradle.example',
 ];
 
-const _deviceTestFile = 'integration_test/app_keepalive_smoke_test.dart';
+const _legacyDeviceTestFile = 'integration_test/app_keepalive_smoke_test.dart';
 
 void _collectStale(
   InitReport report,
@@ -340,7 +324,6 @@ void _collectStale(
   InitFeatures features,
   Set<String> targets, {
   required bool device,
-  required bool deviceTest,
 }) {
   if (!features.ui) {
     for (final rel in InitTemplates.uiStarters().keys) {
@@ -357,9 +340,9 @@ void _collectStale(
       }
     }
   }
-  if ((!device || !deviceTest || !features.ui) &&
-      File(p.join(root.path, _deviceTestFile)).existsSync()) {
-    report.stale.add('$_deviceTestFile（当前未启用 device-test，未删除）');
+  // 旧版 init --device-test 生成过这个文件；现在不再生成，只提示，不自动删。
+  if (File(p.join(root.path, _legacyDeviceTestFile)).existsSync()) {
+    report.stale.add('$_legacyDeviceTestFile（旧版 device-test 生成物，未删除）');
   }
 
   for (final entry in targetFiles.entries) {
@@ -467,7 +450,6 @@ String _snippet(
   InitReport report, {
   required InitFeatures features,
   required bool device,
-  required bool deviceTest,
 }) {
   final pubspecFile = File(p.join(root.path, 'pubspec.yaml'));
   var name = 'app';
@@ -516,8 +498,6 @@ String _snippet(
     if (!existingDev.contains('w_tools_cli')) 'w_tools_cli: $cliConstraint',
     if (device && !existingDev.contains('w_tools_device'))
       'w_tools_device: $wToolsDeviceConstraint',
-    if (deviceTest && features.ui && !existingDev.contains('integration_test'))
-      'integration_test:\n    sdk: flutter',
   ];
   if (depLines.isEmpty && devLines.isEmpty) {
     return '# 依赖已齐全，无需修改 pubspec.yaml\n';

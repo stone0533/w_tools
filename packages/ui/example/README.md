@@ -48,3 +48,15 @@ flutter run
 | 预加载 | `states_page.dart` 里的 `precacheImage` 示例（可移到 Playground） |
 | 通用组件 | `lib/components_page.dart` |
 | 按钮样式 | `lib/buttons_page.dart` |
+
+## 真实引擎 keep-alive / TickerMode 测试
+
+`integration_test/app_keepalive_smoke_test.dart` 是参考示例，验证 `WKeepAliveWrapper`
+在真实引擎上的 State/滚动保留与不可见页 TickerMode 关闭：
+
+```bash
+cd packages/ui/example
+flutter test integration_test/app_keepalive_smoke_test.dart -d <device>
+```
+
+它使用固定 `_Harness`，不能替代业务 App 自己的页面测试；只需在需要时复制/改写。

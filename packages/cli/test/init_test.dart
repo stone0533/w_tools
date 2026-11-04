@@ -218,32 +218,6 @@ void main() {
       expect(report.pubspecSnippet, contains('w_tools_device'));
     });
 
-    test('--device --device-test 生成集成测试并补依赖', () async {
-      final root = makeProject();
-      final report = runInit(root, device: true, deviceTest: true);
-      final file = File(
-        p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart'),
-      );
-      expect(file.existsSync(), isTrue);
-      expect(report.pubspecSnippet, contains('integration_test:'));
-      expect(report.pubspecSnippet, contains('sdk: flutter'));
-    });
-
-    test('--device-test 在未启用 ui 时跳过并提示', () async {
-      final root = makeProject();
-      final report = runInit(
-        root,
-        device: true,
-        deviceTest: true,
-        features: InitFeatures.forProfile(InitProfile.api),
-      );
-      expect(
-        File(p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart')).existsSync(),
-        isFalse,
-      );
-      expect(report.warnings.any((w) => w.contains('需要启用 ui')), isTrue);
-    });
-
     test('--device 已存在时保留用户改动（starter 语义）', () async {
       final root = makeProject();
       runInit(root, device: true);
