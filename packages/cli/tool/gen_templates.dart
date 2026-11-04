@@ -48,7 +48,6 @@ const _templates = <String, String>{
   'agents/en/device.md': 'agentsDeviceEn',
   'ui_README.md': 'uiReadme',
   'ui_README.en.md': 'uiReadmeEn',
-  'device/device_smoke.dart.tpl': 'deviceSmokeScript',
   'device/device-testing.md.tpl': 'deviceTestingDoc',
   'device/gradle-mirror.init.gradle.example.tpl': 'deviceGradleMirror',
   'app_bars.dart.tpl': 'appBarsTemplate',

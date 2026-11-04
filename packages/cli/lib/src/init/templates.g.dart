@@ -781,375 +781,78 @@ need width / height / constraints / transform.
 > Components waiting for promotion belong in `lib/app/design_system/`, not here.
 ''';
 
-const String deviceSmokeScript = r'''
-// 复制到新项目的 tool/device_smoke.dart（一般不用改）。
-//
-// 前置：宿主 App 有「辅助功能 + 屏幕录制」、装了 cliclick、模拟器已启动且 App 在前台。
-// 依赖：`dev_dependencies: w_tools_device`（本脚本通过 `dart run w_tools_device:device` 调用）。
-//
-// 用法：
-//   dart run tool/device_smoke.dart [--json] [--tabs=5] [--device=<udid>]
-// 退出码：0 全通过 · 1 有步骤失败 · 2 参数/环境错误
-
-import 'dart:convert';
-import 'dart:io';
-
-Future<void> main(List<String> args) async {
-  final opts = _Opts.parse(args);
-  final runner = _Runner(json: opts.json);
-  try {
-    await runner.run(opts);
-  } on _SmokeFailure catch (e) {
-    runner.fail(e.message);
-  }
-  exitCode = runner.exitCode;
-}
-
-class _SmokeFailure implements Exception {
-  _SmokeFailure(this.message);
-  final String message;
-}
-
-class _Opts {
-  const _Opts({required this.device, required this.tabs, required this.json});
-
-  final String? device;
-  final int tabs;
-  final bool json;
-
-  static _Opts parse(List<String> args) {
-    String? device;
-    var tabs = 5;
-    var json = false;
-    for (final a in args) {
-      if (a == '--help' || a == '-h') {
-        stdout.write('dart run tool/device_smoke.dart [--device=<udid>] [--tabs=5] [--json]\n');
-        exit(0);
-      } else if (a == '--json') {
-        json = true;
-      } else if (a.startsWith('--device=')) {
-        device = a.substring('--device='.length);
-      } else if (a.startsWith('--tabs=')) {
-        tabs = int.tryParse(a.substring('--tabs='.length)) ?? 5;
-      } else {
-        throw _SmokeFailure('未知参数：$a');
-      }
-    }
-    if (tabs < 2) throw _SmokeFailure('--tabs 至少为 2');
-    return _Opts(device: device, tabs: tabs, json: json);
-  }
-}
-
-class _Runner {
-  _Runner({required this.json});
-
-  final bool json;
-  int exitCode = 0;
-  final _steps = <Map<String, Object?>>[];
-
-  Future<void> run(_Opts o) async {
-    // 1) 有已启动的模拟器
-    final list = await _device(['list'], 'list');
-    final devices = (list['devices'] as List).cast<Map<String, Object?>>();
-    final booted = devices.where((d) => d['booted'] == true).toList();
-    if (booted.isEmpty) {
-      throw _SmokeFailure('没有已启动的模拟器：先 `dart run w_tools_device:device boot "<名称>"`');
-    }
-    final deviceLabel = o.device ?? '${booted.first['name']}';
-    _ok('list', {'booted': booted.length, 'device': deviceLabel});
-
-    // 2) 标定（坐标链路可用）
-    final cal =
-        await _device(['calibrate', if (o.device != null) '--device=${o.device}'], 'calibrate');
-    final dev = cal['device'] as Map<String, Object?>;
-    final w = (dev['width'] as num).toDouble();
-    final h = (dev['height'] as num).toDouble();
-    _ok('calibrate', {'device': '$w x $h'});
-
-    // 3) 逐个 tab 点：位置按 tab 数等分，只看顶部标题区
-    final region = '0,${(h * 0.04).round()},${w.round()},${(h * 0.08).round()}';
-    final y = (h * 0.94).round();
-    for (var i = 0; i < o.tabs; i++) {
-      final x = ((i + 0.5) / o.tabs * w).round();
-      // 点击偶尔会被动画/焦点打断，允许一次重试，避免 CI 抖动
-      final r = await _tryVerify(
-        o,
-        x,
-        y,
-        region,
-        label: 'tab $i',
-        expectExit: <int>[0],
-      );
-      _ok('tab $i', {'x': x, 'y': y, 'changed': r['changed']});
-    }
-
-    // 4) 再点当前 tab：应当没变化（验证 verify 不是永远返回 true）
-    final lastX = ((o.tabs - 1 + 0.5) / o.tabs * w).round();
-    final same = await _tryVerify(
-      o,
-      lastX,
-      y,
-      region,
-      label: 'same tab',
-      expectExit: <int>[2],
-    );
-    _ok('same tab', {'changed': same['changed']});
-
-    _finish(ok: true);
-  }
-
-  /// verify 的重试包装：失败（退出码不符合预期）就稍等再试一次。
-  Future<Map<String, Object?>> _tryVerify(
-    _Opts o,
-    int x,
-    int y,
-    String region, {
-    required String label,
-    required List<int> expectExit,
-  }) async {
-    for (var attempt = 0;; attempt++) {
-      try {
-        return await _device(
-          ['verify', '$x', '$y', '--region=$region', if (o.device != null) '--device=${o.device}'],
-          label,
-          expectExit: expectExit,
-        );
-      } on _SmokeFailure {
-        if (attempt >= 1) rethrow;
-        await Future<void>.delayed(const Duration(milliseconds: 800));
-      }
-    }
-  }
-
-  Future<Map<String, Object?>> _device(
-    List<String> args,
-    String label, {
-    List<int> expectExit = const [0],
-  }) async {
-    final r = await Process.run('dart', ['run', 'w_tools_device:device', ...args, '--json']);
-    final out =
-        '${r.stdout}'.trim().split('\n').lastWhere((l) => l.startsWith('{'), orElse: () => '');
-    Map<String, Object?> body;
-    try {
-      body = out.isEmpty ? {} : (jsonDecode(out) as Map).cast<String, Object?>();
-    } on FormatException {
-      body = {};
-    }
-    if (!expectExit.contains(r.exitCode)) {
-      _steps.add({
-        'step': label,
-        'ok': false,
-        'exit': r.exitCode,
-        'error': body['error'] ?? '${r.stderr}'.trim()
-      });
-      throw _SmokeFailure('$label 失败（exit=${r.exitCode}）：${body['error'] ?? '${r.stderr}'.trim()}');
-    }
-    if (body['ok'] != true && r.exitCode == 0) {
-      throw _SmokeFailure('$label 输出不是 ok=true');
-    }
-    return body;
-  }
-
-  void _ok(String step, Map<String, Object?> detail) {
-    _steps.add({'step': step, 'ok': true, ...detail});
-    if (!json) stdout.writeln('✔ $step ${detail.isEmpty ? '' : detail}');
-  }
-
-  void fail(String message) {
-    exitCode = 1;
-    _steps.add({'step': 'failed', 'ok': false, 'error': message});
-    if (!json) stderr.writeln('✘ $message');
-    _finish(ok: false, error: message);
-  }
-
-  void _finish({required bool ok, String? error}) {
-    if (json) {
-      stdout.writeln(jsonEncode({'ok': ok, if (error != null) 'error': error, 'steps': _steps}));
-    } else {
-      stdout.writeln(ok ? '\n设备冒烟通过 ✅' : '\n设备冒烟失败 ❌');
-    }
-  }
-}
-''';
-
 const String deviceTestingDoc = r'''
-# 设备上验证（模拟器 / 真机）
+# 设备验证（w_tools_device）
 
-> 项目：`{{projectName}}`（Android applicationId：`{{androidAppId}}`）。
-> 本文件由 `dart run w_tools_cli:init --device` 生成；把 `<...>` 换成实际值后再提交。
-> 目的：让「保活 / 刷新策略 / 渲染」这类只有真实引擎才成立的验证**可重复执行**。
-> 通用 UI keep-alive 集成测试不由 init 生成；需要时参考
-> `https://github.com/stone0533/w_tools/blob/main/docs/recipes/keepalive-integration-test.md`。
+> 项目：`{{projectName}}`
+> 本文件由 `dart run w_tools_cli:init --device` 生成，只包含通用设备命令；项目自己的
+> 设备、账号、tab 布局请写到项目文档，不要改这份通用说明。
+> 完整参数以 [`packages/device/README.md`](https://github.com/stone0533/w_tools/blob/main/packages/device/README.md) 为准。
 
-## 1. 固定设备与命令
+## 平台支持
 
-| 设备 | UDID | 用途 |
-| --- | --- | --- |
-| <模拟器名称> | `<SIM_UDID>` | 日常自动化 |
-| <iOS 真机名称> | `<DEVICE_UDID>` | 手感/真机差异（需解锁并信任） |
+| 平台 | list | shot | tap / drag / verify | foreground |
+| --- | --- | --- | --- | --- |
+| iOS 模拟器 | ✅ | ✅ | ✅ | ❌ |
+| iOS 真机 | ✅ | ✅ | ❌（需 idb / XCUITest） | ❌ |
+| Android 模拟器 / 真机 | ✅ | ✅ | ✅（adb） | ✅ |
 
-```bash
-# 跑设备上的集成测试
-flutter test integration_test -d <SIM_UDID>
-
-# 起 App 并截图（模拟器无 GUI 窗口也能用）
-flutter run -d <SIM_UDID>
-xcrun simctl io <SIM_UDID> screenshot /tmp/shot.png
-```
-
-### iOS 真机（物理设备）
-
-```bash
-dart run w_tools_device:device list --real                 # 列 iOS 真机（wired = 数据线）
-dart run w_tools_device:device shot --real --device=<名称>  # 截图（必须解锁，锁屏是全黑图）
-flutter test integration_test -d <DEVICE_UDID>             # 跑集成测试（解锁 + 允许 Xcode 控制）
-```
-
-iOS 真机**点击不支持**（需 `idb ui tap` 或 XCUITest）——所以验证逻辑优先写进 `integration_test`。
-
-### Android（可选，adb）
-
-#### Gradle 镜像（JVM 到 dl.google.com 握手被拦时）
-
-用 `tool/gradle-mirror.init.gradle.example` 覆盖到 `~/.gradle/init.gradle`，
-把 `google()`/`mavenCentral()` 换成 aliyun 镜像（只影响本机，不改项目配置）。
-
-```bash
-dart run w_tools_device:device list --android
-dart run w_tools_device:device size --android          # 像素
-dart run w_tools_device:device tap --android <x> <y>   # **截图像素**，不需要标定/cliclick
-dart run w_tools_device:device verify --android <x> <y> --region=<像素区域>
-dart run tool/device_smoke.dart --android --package={{androidAppId}}
-```
-
-> Xcode 27 起模拟器 GUI 是 **Device Hub**（`/Applications/Xcode.app/Contents/Applications/DeviceHub.app`），
-> `Simulator.app` 已移除；`simctl` 管模拟器脚本、`devicectl` 管 iOS 真机。
-
-## 2. 在 DeviceHub 里点模拟器（用 w_tools_device，不要手工标定）
+## 安装
 
 ```bash
 dart pub add dev:w_tools_device
-brew install cliclick        # 一次性
-# 权限：辅助功能 + 屏幕录制，都要给「运行 agent 的宿主 App」
 ```
 
-> `osascript ... click at` **点不到模拟器画面**（AX press 无效），必须 cliclick。
+## 常用命令
 
 ```bash
-dart run w_tools_device:device list                  # 列模拟器（状态/运行时/UDID）
-dart run w_tools_device:device boot "iPhone 17 Pro"
-dart run w_tools_device:device shot --out=/tmp/a.png
-dart run w_tools_device:device calibrate             # 自动标定（置前 DeviceHub + 遮挡检测）
-dart run w_tools_device:device tap <x> <y>           # **设备坐标**（point），自动换算
+# 模拟器
+dart run w_tools_device:device list
+dart run w_tools_device:device boot "<名称>"
+dart run w_tools_device:device shot --out=/tmp/shot.png
+dart run w_tools_device:device calibrate
+dart run w_tools_device:device tap <x> <y>
 dart run w_tools_device:device drag <x1> <y1> <x2> <y2>
-dart run w_tools_device:device type "hello"
-dart run w_tools_device:device wait                  # 等画面稳定
-dart run w_tools_device:device verify <x> <y>        # 点一下并确认画面变了（坐标自检）
-```
+dart run w_tools_device:device verify <x> <y> --region=<x,y,w,h>
+dart run w_tools_device:device wait --region=<x,y,w,h>
 
-**推荐**：`verify` 加 `--region=x,y,w,h`（设备坐标），只看真正会变的区域，
-避开 banner 轮播 / 列表自动刷新造成的假阳性：
+# iOS 真机（只读）
+dart run w_tools_device:device list --real
+dart run w_tools_device:device shot --real --device=<名称>
 
-```bash
-# 例：只有标题区变化才算成功（切 tab 场景）
-dart run w_tools_device:device verify 121 821 --region=0,40,402,80
-```
-
-退出码：`0` 成功 · `1` 参数/执行错误 · `2` `verify` 画面没变化（坐标可能失效）。
-
-标定缓存：`~/.cache/w_tools_device/<udid>.json`，窗口位置/大小变了自动重算。
-
-## 3. 写设备测试的坑
-
-1. **`pumpAndSettle` 不能碰无限动画**（`CircularProgressIndicator` / `..repeat()`）→ 用 `pump(Duration)`；
-2. 多个 `ListView` 共享 `PrimaryScrollController` 会抛错 → 每个列表独立 controller；
-3. 不要在 `dispose()` 里才第一次初始化 `late final` 的 controller（会在 deactivated element 上建 ticker）；
-4. TTL / 时间断言要真等（`DateTime.now()` + `Future.delayed`），`pump(时长)` 不推进墙钟；
-5. 集成测试会跑 `pod install`，可能改写 `ios/Podfile.lock` / `project.pbxproj`（验证完 `git checkout`）。
-6. **`verify` 默认比整屏指纹**：banner 轮播、列表自动刷新会让它误判 → 用 `--region` 只看会变的区域；
-7. `bool.fromEnvironment('E2E')` **只认 "true"**，`--dart-define=E2E=1` 会得到 false
-   （`w_tools_e2e` 已按字符串解析，自己写请照做）；
-8. 登录成功后 `Get.offAllNamed` 可能**永不 resolve**：别 `await` 它，否则成功日志都打不出来；
-   导航失败也不要判成「登录失败」。
-
-## 4. 免登录入口（E2E 测试账号）
-
-```bash
-flutter run -d <SIM_UDID> -t tool/main_e2e.dart \
-  --dart-define=E2E=1 \
-  --dart-define=E2E_EMAIL=<账号> \
-  --dart-define=E2E_PASSWORD=<密码>
-```
-
-实现建议（照本项目抄）：
-- `lib/app/bootstrap.dart`：启动流程 + 可选 `afterStart` 钩子（生产入口传 null）
-- `lib/main.dart`：`bootstrap()`，**不 import 任何测试包**
-- `tool/main_e2e.dart`（需手动创建）：`bootstrap(afterStart: ...)`，在这里调 `w_tools_e2e` 的 `E2eLogin.run`
-
-生效条件：`E2E=1` + 账号密码非空 + 非 release。凭证不进仓库（编译期常量）。
-若项目还没实现，参考 `lib/app/w/e2e.dart` 的写法（`E2eLogin.run()` + 启动后调用）。
-
-## 5. 用日志验证刷新策略
-
-```bash
-n0=$(grep -c "<接口路径片段>" /tmp/run.log)
-# 切走再切回（TTL 内）→ 计数不变；超过 TTL 再切回 → 计数增加
-```
-
-## 6. 新项目接入清单
-
-一次性依赖：
-
-```bash
-dart pub add dev:w_tools_device
-flutter pub add dev:w_tools_e2e
-brew install cliclick            # 点模拟器用
-# 系统设置 → 隐私与安全性 → 给「运行 agent 的宿主 App」开：辅助功能 + 屏幕录制
-```
-
-- [ ] 启动三件套：`lib/app/bootstrap.dart`（含 `afterStart` 钩子）/ `lib/main.dart`（只调 bootstrap）/
-      `tool/main_e2e.dart`（在这里调 `E2eLogin.run`）
-- [ ] 记录模拟器 / iOS 真机 UDID 到本文件
-- [ ] iOS 真机自检：`device list --real` 能看到设备；`device shot --real` 出非全黑图
-- [ ] 复制冒烟脚本 `docs/templates/tool/device_smoke.dart.tpl` → `tool/device_smoke.dart`
-
-**iOS 自检**（需要 DeviceHub 打开 + 上面两个权限）：
-
-```bash
-dart run w_tools_device:device calibrate                 # 得到设备逻辑尺寸
-dart run w_tools_device:device verify <tab_x> <tab_y> --region=<标题区>
-# 期望：切 tab 时「画面有变化」exit 0；再点同 tab「无变化」exit 2
-dart run tool/device_smoke.dart                          # 归位→逐 tab→回到 tab0→同 tab 应无变化
-```
-
-**iOS 真机自检**：
-
-```bash
-dart run w_tools_device:device list --real                # wired = 数据线
-dart run w_tools_device:device shot --real --device=<名称> # 锁屏会给「几乎全黑」warning
-flutter test integration_test -d <DEVICE_UDID>            # 解锁 + 允许 Xcode 控制
-```
-
-**Android 自检**（不需要 cliclick / 屏幕录制 / 标定，坐标就是像素）：
-
-```bash
+# Android（坐标 = 截图像素）
 dart run w_tools_device:device list --android
-dart run w_tools_device:device size --android              # 例如 1080x2340（px）
-dart run w_tools_device:device shot --android --out=/tmp/a.png
-dart run w_tools_device:device verify --android <x> <y> --region=<像素区域>
-dart run tool/device_smoke.dart --android --package={{androidAppId}}
-# 冒烟要求 App 已登录且在 tab 页：游客态点「会员卡」会跳登錄頁，后续 tab 就点不动
-
-# 模拟器：无窗口启动即可；多设备时显式 --device
-emulator -avd <AVD名> -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
-dart run tool/device_smoke.dart --android --device=emulator-5554 --package={{androidAppId}}
-# 首次启动若弹通知权限框，先：adb shell pm grant <包名> android.permission.POST_NOTIFICATIONS
+dart run w_tools_device:device size --android
+dart run w_tools_device:device shot --android --out=/tmp/shot.png
+dart run w_tools_device:device tap --android <x> <y>
+dart run w_tools_device:device foreground --android
 ```
 
-> JVM 到 `dl.google.com` 握手被拦（`curl` 能通、Java 不通）时，先按
-> `tool/gradle-mirror.init.gradle.example` 配镜像，否则 Android 构建会卡在下载依赖。
+## 注意事项
 
-- [ ] 保留本文档第 3 节「坑」（通用），其余替换成项目信息
+- iOS 模拟器点击需要 cliclick，并给宿主 App 开「辅助功能」+「屏幕录制」；
+- iOS 真机只能 list/shot，点击需要 idb/XCUITest；
+- Android 不需要 cliclick/标定，`tap` 坐标就是截图像素；
+- `verify` 默认比较整屏，动画/轮播会误判；用 `--region` 只看会变的区域；
+- `--scale` 只用于 iOS 模拟器的 calibrate/tap/drag/size/wait/verify；
+- 退出码：`0` 成功 · `1` 参数/执行错误 · `2` verify 没变化 · `3` wait 超时；
+- 标定缓存：`~/.cache/w_tools_device/<udid>.json`。
+
+## 可选 recipe
+
+- Tab 型 App 的冒烟示例（不是 init 生成物）：
+  <https://github.com/stone0533/w_tools/blob/main/packages/device/example/tool/device_smoke.dart>
+- Keep-alive / TickerMode 集成测试：
+  <https://github.com/stone0533/w_tools/blob/main/docs/recipes/keepalive-integration-test.md>
+- E2E 免登录：
+  <https://github.com/stone0533/w_tools/blob/main/docs/recipes/e2e-login.md>
+
+## 项目自检清单
+
+- [ ] 能列出至少一台已启动设备
+- [ ] 能截图，且不是全黑
+- [ ] 能用 `verify --region` 确认一次真实 UI 变化
+- [ ] iOS 真机已解锁并信任；Android 已授权调试
 ''';
 
 const String deviceGradleMirror = r'''

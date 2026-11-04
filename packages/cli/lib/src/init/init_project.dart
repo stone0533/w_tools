@@ -227,13 +227,9 @@ InitReport runInit(
   }
 
   if (device) {
-    write('tool/device_smoke.dart', InitTemplates.deviceSmokeScript(), starter: true);
     write(
       'docs/agents/device-testing.md',
-      InitTemplates.deviceTestingDoc(
-        projectName: app,
-        androidAppId: _androidApplicationId(root),
-      ),
+      InitTemplates.deviceTestingDoc(projectName: app),
       starter: true,
     );
     write(
@@ -296,11 +292,14 @@ InitReport runInit(
   }
 
   final oldDeviceDoc = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
-  if (oldDeviceDoc.existsSync() && oldDeviceDoc.readAsStringSync().contains('--device-test')) {
-    final hint = device ? 'init --force-starters' : 'init --device --force-starters';
-    report.warnings.add(
-      'docs/agents/device-testing.md 仍包含已移除的 --device-test；运行 $hint 更新',
-    );
+  if (oldDeviceDoc.existsSync()) {
+    final text = oldDeviceDoc.readAsStringSync();
+    if (text.contains('--device-test') || text.contains('dart run tool/device_smoke.dart')) {
+      final hint = device ? 'init --force-starters' : 'init --device --force-starters';
+      report.warnings.add(
+        'docs/agents/device-testing.md 仍包含旧 device 内容；运行 $hint 更新',
+      );
+    }
   }
 
   _collectStale(report, root, features, targets, device: device);
@@ -319,12 +318,12 @@ InitReport runInit(
 }
 
 const _deviceFiles = <String>[
-  'tool/device_smoke.dart',
   'docs/agents/device-testing.md',
   'tool/gradle-mirror.init.gradle.example',
 ];
 
 const _legacyDeviceTestFile = 'integration_test/app_keepalive_smoke_test.dart';
+const _legacyDeviceSmokeFile = 'tool/device_smoke.dart';
 
 void _collectStale(
   InitReport report,
@@ -353,6 +352,13 @@ void _collectStale(
   final legacy = File(p.join(root.path, _legacyDeviceTestFile));
   if (legacy.existsSync() && legacy.readAsStringSync().startsWith('// 复制到新项目的 integration_test/')) {
     report.stale.add('$_legacyDeviceTestFile（旧版 device-test 生成物，未删除）');
+  }
+  final oldSmoke = File(p.join(root.path, _legacyDeviceSmokeFile));
+  if (oldSmoke.existsSync() &&
+      oldSmoke.readAsStringSync().startsWith('// 复制到新项目的 tool/device_smoke.dart')) {
+    report.stale.add(
+      '$_legacyDeviceSmokeFile（旧版 device 生成物，未删除；示例见 packages/device/example）',
+    );
   }
 
   for (final entry in targetFiles.entries) {
@@ -526,17 +532,4 @@ String _snippet(
   addSection('dependencies', depLines, hasDeps);
   addSection('dev_dependencies', devLines, hasDev);
   return buf.toString();
-}
-
-/// 从 `android/app/build.gradle(.kts)` 里读 applicationId（读不到返回 null）。
-String? _androidApplicationId(Directory root) {
-  for (final name in const ['build.gradle', 'build.gradle.kts']) {
-    final file = File(p.join(root.path, 'android', 'app', name));
-    if (!file.existsSync()) continue;
-    final m = RegExp(
-      r'''applicationId\s*=?\s*["']([^"']+)["']''',
-    ).firstMatch(file.readAsStringSync());
-    if (m != null) return m.group(1);
-  }
-  return null;
 }

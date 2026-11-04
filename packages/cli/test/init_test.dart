@@ -50,6 +50,10 @@ void main() {
       expect(report.created, contains('lib/app/ui/app_scaffold.dart'));
       expect(report.created.any((e) => e.startsWith('AGENTS.md')), isTrue);
 
+      expect(
+        File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(),
+        isFalse,
+      );
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, contains("export 'package:w_tools_ui/w_tools_ui.dart';"));
       expect(toolkit, contains("export '../ui/app_boxes.dart';"));
@@ -96,6 +100,10 @@ void main() {
         isFalse,
       );
 
+      expect(
+        File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(),
+        isFalse,
+      );
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains("export 'package:w_tools_ui")));
       expect(toolkit, isNot(contains("export '../ui/")));
@@ -115,6 +123,10 @@ void main() {
       expect(agents, contains('w_tools_figma:figma init'));
       expect(agents, contains('dart pub add dev:w_tools_figma'));
       expect(agents, isNot(contains('dart pub add dev:w_tools_figma:')));
+      expect(
+        File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(),
+        isFalse,
+      );
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains('w_tools_figma')));
       expect(report.pubspecSnippet, isNot(contains('w_tools_figma')));
@@ -202,7 +214,6 @@ void main() {
       final root = makeProject();
       final report = runInit(root, device: true);
       for (final rel in const [
-        'tool/device_smoke.dart',
         'docs/agents/device-testing.md',
         'tool/gradle-mirror.init.gradle.example',
       ]) {
@@ -213,9 +224,27 @@ void main() {
         File(p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart')).existsSync(),
         isFalse,
       );
+      expect(
+        File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(),
+        isFalse,
+      );
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains('w_tools_device')));
       expect(report.pubspecSnippet, contains('w_tools_device'));
+      final doc = File(p.join(root.path, 'docs', 'agents', 'device-testing.md')).readAsStringSync();
+      expect(doc, isNot(contains('Get.offAllNamed')));
+      expect(doc, isNot(contains('会员卡')));
+      expect(doc, isNot(contains('dart run tool/device_smoke.dart')));
+    });
+
+    test('旧 tool/device_smoke.dart 只提示 stale', () async {
+      final root = makeProject();
+      final file = File(p.join(root.path, 'tool', 'device_smoke.dart'));
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync('// 复制到新项目的 tool/device_smoke.dart\n');
+      final report = runInit(root, device: true);
+      expect(report.stale.any((e) => e.contains('tool/device_smoke.dart')), isTrue);
+      expect(file.existsSync(), isTrue);
     });
 
     test('旧 device 文档含 --device-test 时提示 force-starters', () async {
@@ -227,37 +256,23 @@ void main() {
       expect(report.warnings.any((w) => w.contains('force-starters')), isTrue);
     });
 
-    test('--device 已存在时保留用户改动（starter 语义）', () async {
+    test('--device 文档替换项目名，且保留 starter 语义', () async {
       final root = makeProject();
-      runInit(root, device: true);
-      final file = File(p.join(root.path, 'tool/device_smoke.dart'));
-      file.writeAsStringSync('// 用户改过\n');
       final report = runInit(root, device: true);
-      expect(file.readAsStringSync(), '// 用户改过\n');
-      expect(report.upToDate.any((e) => e.startsWith('tool/device_smoke.dart')), isTrue);
-    });
-
-    test('--device --force-starters 会覆盖', () async {
-      final root = makeProject();
-      runInit(root, device: true);
-      final file = File(p.join(root.path, 'tool/device_smoke.dart'));
+      final file = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
+      final original = file.readAsStringSync();
+      expect(original, contains('demo_app'));
+      expect(original, isNot(contains('{{projectName}}')));
+      expect(original, isNot(contains('--device-test')));
       file.writeAsStringSync('// 用户改过\n');
-      final report = runInit(root, device: true, forceStarters: true);
+      final again = runInit(root, device: true);
+      expect(file.readAsStringSync(), '// 用户改过\n');
+      expect(again.upToDate.any((e) => e.contains('device-testing.md')), isTrue);
+      expect(again.warnings.any((w) => w.contains('旧 device 内容')), isFalse);
+      final forced = runInit(root, device: true, forceStarters: true);
       expect(file.readAsStringSync(), isNot('// 用户改过\n'));
-      expect(report.created.any((e) => e.contains('已覆盖')), isTrue);
-    });
-
-    test('--device 文档替换项目名与 Android applicationId', () async {
-      final root = makeProject();
-      Directory(p.join(root.path, 'android', 'app')).createSync(recursive: true);
-      File(p.join(root.path, 'android', 'app', 'build.gradle')).writeAsStringSync(
-        'android { defaultConfig { applicationId = "hk.demo.app" } }\n',
-      );
-      runInit(root, device: true);
-      final doc = File(p.join(root.path, 'docs/agents/device-testing.md')).readAsStringSync();
-      expect(doc, contains('hk.demo.app'));
-      expect(doc, isNot(contains('{{androidAppId}}')));
-      expect(doc, isNot(contains('{{projectName}}')));
+      expect(forced.created.any((e) => e.contains('已覆盖')), isTrue);
+      expect(report.created.any((e) => e.contains('device-testing.md')), isTrue);
     });
 
     test('--figma 不重复 UI / form 组件规则', () async {
@@ -284,6 +299,10 @@ void main() {
       final root = makeProject();
       runInit(root, features: InitFeatures.forProfile(InitProfile.minimal));
 
+      expect(
+        File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(),
+        isFalse,
+      );
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, contains("export 'package:w_tools_core"));
       expect(toolkit, isNot(contains("export 'package:w_tools_ui")));
@@ -381,6 +400,10 @@ void main() {
     test('--no-qr / --with-map 影响导出', () async {
       final root = makeProject();
       runInit(root, features: InitFeatures.full.copyWith(qr: false, map: true));
+      expect(
+        File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(),
+        isFalse,
+      );
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, isNot(contains("export 'package:w_tools_qr")));
       expect(toolkit, contains("export 'package:w_tools_map"));
@@ -524,6 +547,10 @@ void main() {
         },
       );
       runInit(root, force: true);
+      expect(
+        File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(),
+        isFalse,
+      );
       final toolkit = File(p.join(root.path, 'lib/app/w/toolkit.dart')).readAsStringSync();
       expect(toolkit, contains('// w_tools:begin'));
       expect(toolkit, contains('// w_tools:end'));

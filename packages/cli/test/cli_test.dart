@@ -658,11 +658,11 @@ banned:
     );
     final r = await _run('init.dart', ['--root', root.path, '--profile=minimal']);
     expect(r.exitCode, 0);
-    expect(File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(), isTrue);
     expect(
       File(p.join(root.path, 'docs', 'agents', 'device-testing.md')).existsSync(),
       isTrue,
     );
+    expect(File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(), isFalse);
     expect(
       File(p.join(root.path, '.w_tools', 'init.json')).readAsStringSync(),
       contains('"device": true'),
@@ -674,7 +674,10 @@ banned:
     final r = await _run('init.dart', ['--root', root.path, '--device-test']);
     expect(r.exitCode, 0);
     expect('${r.stdout}', contains('--device-test 已移除'));
-    expect(File(p.join(root.path, 'tool', 'device_smoke.dart')).existsSync(), isTrue);
+    expect(
+      File(p.join(root.path, 'docs', 'agents', 'device-testing.md')).existsSync(),
+      isTrue,
+    );
     expect(
       File(p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart')).existsSync(),
       isFalse,

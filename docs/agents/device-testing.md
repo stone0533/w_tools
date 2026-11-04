@@ -1,159 +1,56 @@
-# 设备验证（w_tools_device / w_tools_e2e）
+# 设备验证（w_tools_device）
 
-## 什么时候用
+需要模拟器 / Android / 真机截图、点击、稳定等待或 E2E 自动登录时先读本文，不要手写 adb / DeviceHub 标定。
 
-```text
-需要在模拟器 / Android / 真机上截图、点击、等稳定、验证坐标
-需要 E2E 测试账号自动登录
-```
+## 平台支持
 
-## 安装
+| 平台 | list | shot | tap / drag / verify | foreground |
+| --- | --- | --- | --- | --- |
+| iOS 模拟器 | ✅ | ✅ | ✅ | ❌ |
+| iOS 真机 | ✅ | ✅ | ❌（需 idb / XCUITest） | ❌ |
+| Android 模拟器 / 真机 | ✅ | ✅ | ✅（adb） | ✅ |
 
-```yaml
-dev_dependencies:
-  w_tools_device: ^0.1.3
-  w_tools_e2e: ^0.1.1
-```
+## 安装与命令
 
 ```bash
 dart pub add dev:w_tools_device
-flutter pub add dev:w_tools_e2e
-```
-
-`w_tools_device` 是纯 Dart CLI；`w_tools_e2e` 是 Flutter 库。
-
-> 支持矩阵：iOS 模拟器可 list/shot/tap/drag/verify；iOS 真机仅 list/shot（点击需 idb/XCUITest，本工具不支持）；
-> Android 模拟器/真机走 adb，可 list/shot/tap/drag/verify/foreground；iOS 真机仅 list/shot。
-
-
-## device
-
-先读 [`packages/device/README.md`](../../packages/device/README.md)。
-
-最小流程：
-
-```bash
 dart run w_tools_device:device list
-dart run w_tools_device:device boot "iPhone 17 Pro"
+dart run w_tools_device:device boot "<名称>"
 dart run w_tools_device:device shot --out=/tmp/shot.png
 dart run w_tools_device:device calibrate
 dart run w_tools_device:device tap <x> <y>
-dart run w_tools_device:device verify <x> <y> --region=x,y,w,h
+dart run w_tools_device:device verify <x> <y> --region=<x,y,w,h>
+dart run w_tools_device:device wait --region=<x,y,w,h>
 ```
 
-规则：
-
-```text
-iOS 模拟器：设备坐标（point），需要 DeviceHub + cliclick + 辅助功能/屏幕录制
-Android：截图像素，adb 直接 tap，不需要标定
-iOS 真机：只支持 list / shot，点击需 idb / XCUITest
-坐标不生效时先用 verify --region 自检，再考虑 --no-cache
-```
-
-## e2e
-
-`w_tools_e2e` 只放在 `tool/main_e2e.dart`，**不要 import 到 `lib/main.dart`**。
-
-推荐结构：
-
-```text
-lib/main.dart              → bootstrap()，不 import w_tools_e2e
-lib/app/bootstrap.dart     → 提供 afterStart 钩子
-tool/main_e2e.dart         → 唯一 import w_tools_e2e 的入口
-```
-
-`lib/main.dart`：
-
-```dart
-import 'app/bootstrap.dart';
-
-Future<void> main() => bootstrap();
-```
-
-`lib/app/bootstrap.dart`：
-
-```dart
-import 'dart:async';
-
-typedef AfterStart = FutureOr<void> Function();
-
-Future<void> bootstrap({AfterStart? afterStart}) async {
-  await initializeApp();
-  await afterStart?.call();
-}
-```
-
-`tool/main_e2e.dart`：
-
-```dart
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
-import 'package:my_app/app/bootstrap.dart';
-import 'package:my_app/app/router.dart';
-import 'package:my_app/features/auth/auth_repository.dart';
-import 'package:w_tools_e2e/w_tools_e2e.dart';
-
-Future<void> main() async {
-  await bootstrap(
-    afterStart: () async {
-      final config = E2eConfig.fromEnvironment();
-
-      if (!config.canAutoLogin) {
-        debugPrint('[E2E] skipped: missing E2E=1 / email / password');
-        return;
-      }
-
-      final ok = await E2eLogin.run(
-        config: config,
-        login: (email, password) async {
-          await AuthRepository.instance.login(email, password);
-        },
-        afterLogin: () async {
-          await AppRouter.instance.goHome();
-        },
-        onError: (error, stack) async {
-          debugPrint('[E2E] error: $error\n$stack');
-        },
-      );
-
-      debugPrint('[E2E] login ok: $ok');
-    },
-  );
-}
-```
-
-运行：
+Android：
 
 ```bash
-flutter run -d <device> -t tool/main_e2e.dart \
-  --dart-define=E2E=1 \
-  --dart-define=E2E_EMAIL=qa@example.com \
-  --dart-define=E2E_PASSWORD=secret
+dart run w_tools_device:device list --android
+dart run w_tools_device:device size --android
+dart run w_tools_device:device shot --android --out=/tmp/shot.png
+dart run w_tools_device:device tap --android <x> <y>
+dart run w_tools_device:device foreground --android
 ```
 
-规则：
+iOS 真机只读：
 
-```text
-E2E 只在非 release 生效
-凭证只用于测试账号，不要复用真实密码
-run() 返回 false：未启用 / 缺账号密码 / 登录失败 / 超时
-afterLogin 不阻塞 run()，不要在 run 返回后立刻断言页面
-onError 可同步或异步；回调自身抛错不会让 run 抛出
+```bash
+dart run w_tools_device:device list --real
+dart run w_tools_device:device shot --real --device=<名称>
 ```
 
-集成测试要等待页面：
+## 规则
 
-```dart
-testWidgets('E2E auto login reaches home', (tester) async {
-  await tester.pump(const Duration(seconds: 1));
-  await tester.pumpAndSettle();
-  expect(find.text('Home'), findsOneWidget);
-});
-```
+- iOS 模拟器点击需要 cliclick + 辅助功能/屏幕录制；
+- iOS 真机点击需要 idb/XCUITest，本工具不支持；
+- Android 的 tap 坐标是截图像素，不需要标定；
+- `verify` 默认比较整屏，动画/轮播会误判，用 `--region`；
+- `--scale` 只用于 iOS 模拟器 calibrate/tap/drag/size/wait/verify；
+- 退出码：`0` 成功 · `1` 参数/执行错误 · `2` verify 没变化 · `3` wait 超时。
 
-`init --device` 会生成 `docs/agents/device-testing.md`、`tool/device_smoke.dart` 和 Gradle 镜像示例；
-它不生成 UI keep-alive 集成测试。真实引擎验证示例见
-[keepalive-integration-test](../recipes/keepalive-integration-test.md)。
-`tool/main_e2e.dart` 需手动创建。完整宿主接入片段见
-[`packages/e2e/example/README.md`](../../packages/e2e/example/README.md)。
+## 可选示例
+
+- Tab 冒烟：[`docs/recipes/device-tab-smoke.md`](../recipes/device-tab-smoke.md)
+- Keep-alive 集成测试：[`docs/recipes/keepalive-integration-test.md`](../recipes/keepalive-integration-test.md)
+- E2E 免登录：[`docs/recipes/e2e-login.md`](../recipes/e2e-login.md)

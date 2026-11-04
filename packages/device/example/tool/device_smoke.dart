@@ -1,7 +1,12 @@
-// 复制到新项目的 tool/device_smoke.dart（一般不用改）。
+// 示例：Tab 型 App 的 iOS 模拟器冒烟（不是通用脚本，按自己的 App 调整）。
 //
-// 前置：宿主 App 有「辅助功能 + 屏幕录制」、装了 cliclick、模拟器已启动且 App 在前台。
-// 依赖：`dev_dependencies: w_tools_device`（本脚本通过 `dart run w_tools_device:device` 调用）。
+// 前置：宿主 App 有「辅助功能 + 屏幕录制」、装了 cliclick、模拟器已启动且 App 在
+// 已登录的 tab 页前台。
+// 依赖：在目标项目 `dev_dependencies` 加 w_tools_device；本脚本通过
+// `dart run w_tools_device:device` 调用。
+//
+// 位置：packages/device/example/tool/device_smoke.dart；复制到消费方后按实际
+// tab 数 / tab bar 高度 / 标题区调整。
 //
 // 用法：
 //   dart run tool/device_smoke.dart [--json] [--tabs=5] [--device=<udid>]
