@@ -8,15 +8,15 @@ import 'package:w_tools_cli/src/common/cli.dart';
 const _usage = '''
 w_tools_cli list —— 按关键词查组件目录
 
-用法：dart run w_tools_cli:list [关键词]
+用法：dart run w_tools_cli:w_tools list [关键词]
 
 示例：
-  dart run w_tools_cli:list          # 列出全部
-  dart run w_tools_cli:list 下拉
-  dart run w_tools_cli:list WImage
+  dart run w_tools_cli:w_tools list          # 列出全部
+  dart run w_tools_cli:w_tools list 下拉
+  dart run w_tools_cli:w_tools list WImage
 
 选项：
-  --format=<fmt>  text | json（默认 text）
+  --format=<fmt>  text | json | prompt（默认 text）
   --json          等价于 --format=json
   --version       显示版本
   --help, -h      显示本帮助
@@ -24,7 +24,7 @@ w_tools_cli list —— 按关键词查组件目录
 
 CommandResult run(List<String> argv) {
   final parser = cliParser()
-    ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
+    ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json', 'prompt'])
     ..addFlag('json', negatable: false);
 
   final result = Command(
@@ -34,6 +34,7 @@ CommandResult run(List<String> argv) {
       final query = args.rest.join(' ').trim();
       final results = searchComponents(query);
       final asJson = (args['json'] as bool) || args['format'] == 'json';
+      final asPrompt = args['format'] == 'prompt';
 
       if (asJson) {
         print(
@@ -47,16 +48,28 @@ CommandResult run(List<String> argv) {
         return;
       }
 
+      if (asPrompt) {
+        print('# w_tools catalog v$catalogVersion · query=${query.isEmpty ? '*' : query}');
+        for (final entry in results) {
+          print('- ${entry.name} [${entry.package}]: ${entry.useFor}');
+          if (entry.usage != null) {
+            print('  ${entry.usage!.split('\n').first}');
+          }
+        }
+        if (results.isEmpty) throw CliExit(1);
+        return;
+      }
+
       print('w_tools_cli list · catalog v$catalogVersion · ${results.length} 个结果');
       if (results.isEmpty) {
-        print('没有匹配。换个关键词，或运行 `dart run w_tools_cli:list` 看全部。');
+        print('没有匹配。换个关键词，或运行 `dart run w_tools_cli:w_tools list` 看全部。');
         throw CliExit(1);
       }
       for (final entry in results) {
         print('${entry.name}  [${entry.package}]  ${entry.useFor}');
       }
       print('');
-      print('用 `dart run w_tools_cli:explain <组件名>` 看用法和反例。');
+      print('用 `dart run w_tools_cli:w_tools explain <组件名>` 看用法和反例。');
     },
   ).run(argv);
   return result;

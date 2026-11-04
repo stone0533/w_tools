@@ -426,6 +426,14 @@ banned:
     expect(payload['found'], isTrue);
   });
 
+  test('list --format=prompt 输出紧凑目录', () async {
+    final r = await _run('list.dart', ['async', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('# w_tools catalog'));
+    expect('${r.stdout}', contains('WAsyncController'));
+    expect('${r.stdout}', contains('c.load()'));
+  });
+
   test('explain WAsync 输出 usage / related，tryRun 可精确命中', () async {
     final json = await _run('explain.dart', ['WAsync', '--format=json']);
     final payload = jsonDecode('${json.stdout}') as Map<String, Object?>;

@@ -66,6 +66,7 @@ class ProjectSnapshot {
     },
     'packages': packages,
     'dependencies': dependencies,
+    'capabilities': capabilities(),
     'toolkit': <String, Object?>{
       'path': toolkitPath,
       'exports': toolkitExports,
@@ -98,6 +99,27 @@ class ProjectSnapshot {
     },
     'commands': commands(),
   };
+
+  /// 已安装 w_tools 能力的轻量摘要；空列表表示没有可识别包。
+  List<Map<String, String>> capabilities() {
+    final installed = <String>{...packages.keys, ...dependencies};
+    const summaries = <String, String>{
+      'w_tools_core': 'WStorage / WToken / WValidator / WLogger',
+      'w_tools_async': 'WAsyncController + WAsyncView；纯执行 WAsync.tryRun/run',
+      'w_tools_ui': 'WText / WImage / WButton / WScaffold',
+      'w_tools_form': 'WForm + 直接字段（WFormTextField 等）',
+      'w_tools_api': 'WApiConfig + DioRegistry + WLogInterceptor',
+      'w_tools_toast': 'WToast.showXxx + WToastStyle',
+      'w_tools_app_getx': 'WApp + WAppPlugin + GetX 路由',
+      'w_tools_map_google': 'WMap + WMapZone',
+      'w_tools_qr': 'WQrView / WQrController',
+    };
+    return [
+      for (final entry in summaries.entries)
+        if (installed.contains(entry.key))
+          <String, String>{'package': entry.key, 'summary': entry.value},
+    ];
+  }
 
   Map<String, String> commands() {
     final result = <String, String>{
@@ -139,7 +161,18 @@ class ProjectSnapshot {
         '- 暂存层：`$stagingDir`（$designSystemFiles 个文件，$missingStaged 个缺 `// STAGED:`）',
       )
       ..writeln('- 规则：${doctorRuleIds.map((id) => '`$id ${doctorRuleLevels[id]}`').join(' ')}')
-      ..writeln('- 当前检查：$errorCount error / $warnCount warning')
+      ..writeln('- 当前检查：$errorCount error / $warnCount warning');
+    final caps = capabilities();
+    if (caps.isNotEmpty) {
+      b
+        ..writeln()
+        ..writeln('## 能力')
+        ..writeln();
+      for (final cap in caps) {
+        b.writeln('- `${cap['package']}`：${cap['summary']}');
+      }
+    }
+    b
       ..writeln()
       ..writeln('## 命令')
       ..writeln()
@@ -171,6 +204,8 @@ class ProjectSnapshot {
       '规则: ${doctorRuleIds.map((id) => '$id=${doctorRuleLevels[id]}').join(' ')}',
       '暂存层: $stagingDir（$designSystemFiles 个文件，$missingStaged 个缺 STAGED）',
       '已装(w_tools/直接依赖): ${_installed()}',
+      if (capabilities().isNotEmpty)
+        '能力: ${capabilities().map((e) => '${e['package']}=${e['summary']}').join(' | ')}',
       '组件: ${catalog.length} 条，用 list/explain 查，不要凭记忆造组件名',
     ];
     if (maxTokens <= 0) return lines.join('\n');

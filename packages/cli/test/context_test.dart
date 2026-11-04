@@ -43,6 +43,31 @@ void main() {
     expect(commands['feedbackLint'], contains('feedback lint'));
   });
 
+  test('context 暴露已安装能力摘要', () {
+    final root = _project({
+      'pubspec.yaml': 'name: demo\ndependencies:\n  w_tools_async: ^5.0.0\n',
+      'pubspec.lock': '''
+packages:
+  w_tools_async:
+    dependency: "direct main"
+    description:
+      name: w_tools_async
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.0"
+''',
+    });
+    addTearDown(() => root.deleteSync(recursive: true));
+    final snapshot = ProjectSnapshot.load(root);
+    final caps = snapshot.toJson()['capabilities'] as List;
+    expect(caps, isNotEmpty);
+    expect(
+      caps.any((e) => (e as Map)['package'] == 'w_tools_async'),
+      isTrue,
+    );
+    expect(snapshot.toPrompt(), contains('WAsyncController'));
+  });
+
   test('安装 w_tools_device 时 context 暴露设备命令', () {
     final root = _project({
       'pubspec.yaml': 'name: demo\ndev_dependencies:\n  w_tools_device: ^0.1.2\n',

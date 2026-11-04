@@ -365,6 +365,7 @@ JSON 顶层包含：
 dart run w_tools_cli:w_tools list             # 列出全部组件
 dart run w_tools_cli:w_tools list 下拉        # 按关键词搜索
 dart run w_tools_cli:w_tools list --format=json
+dart run w_tools_cli:w_tools list async --format=prompt
 ```
 
 ### explain
