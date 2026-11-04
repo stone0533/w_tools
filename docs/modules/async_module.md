@@ -331,7 +331,7 @@ Controller 会把所有异常（包括 `Error`）转为 failed，便于 UI 展�
 
 ```dart
 WAsyncStateSliver<List<Gift>>(
-  state: state,
+  state: controller.state,
   onRetry: controller.load,
   readySliverBuilder: (context, gifts) => WListViewSliver.list(...),
   emptyBuilder: (context) => ...,
@@ -394,7 +394,7 @@ class AsyncRefreshShell<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WAsyncStateBuilder<T>(
-      state: state,
+      state: controller.state,
       builder: (context, value) {
         return SmartRefresher(
           controller: controller,

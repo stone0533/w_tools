@@ -1,3 +1,7 @@
+## 5.0.4
+
+- 抬高 `w_tools_async` 到 `^4.0.0`：`WAsyncStateSliver` 统一为 `ValueListenable`。
+
 ## 5.0.3
 
 - 抬高 `w_tools_form` 到 `^4.1.0`（直接字段新增 `hintText`）。

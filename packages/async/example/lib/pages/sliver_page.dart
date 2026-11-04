@@ -62,7 +62,7 @@ class _SliverPageState extends State<SliverPage> {
                 ],
               ),
               WAsyncStateSliver<List<String>>(
-                state: state,
+                state: _controller.state,
                 onRetry: _controller.load,
                 readySliverBuilder: (context, items) => SliverList.separated(
                   itemCount: items.length,

@@ -84,7 +84,7 @@ state
 
 ```dart
 WAsyncStateSliver<List<String>>(
-  state: state,
+  state: controller.state,
   onRetry: controller.load,
   readySliverBuilder: (context, items) => SliverList(...),
 )

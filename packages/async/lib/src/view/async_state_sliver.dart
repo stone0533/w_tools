@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../state/async_state.dart';
@@ -23,7 +24,7 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     super.key,
     required this.state,
     required this.readySliverBuilder,
-    required this.onRetry,
+    this.onRetry,
     this.loadingBuilder,
     this.emptyBuilder,
     this.errorBuilder,
@@ -32,9 +33,9 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     this.hasScrollBody = false,
   });
 
-  final WAsyncState<T> state;
+  final ValueListenable<WAsyncState<T>> state;
   final Widget Function(BuildContext context, T data) readySliverBuilder;
-  final VoidCallback onRetry;
+  final Future<void> Function()? onRetry;
   final WidgetBuilder? loadingBuilder;
   final WidgetBuilder? emptyBuilder;
   final WAsyncErrorWidgetBuilder? errorBuilder;
@@ -44,27 +45,37 @@ class WAsyncStateSliver<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = state.dataOrNull;
+    return ValueListenableBuilder<WAsyncState<T>>(
+      valueListenable: state,
+      builder: (context, value, _) => _buildSlivers(context, value),
+    );
+  }
+
+  Widget _buildSlivers(BuildContext context, WAsyncState<T> value) {
+    final data = value.dataOrNull;
     final theme = WAsyncTheme.maybeOf(context);
     final slivers = <Widget>[];
+    void retry() {
+      onRetry?.call();
+    }
 
-    if (state.isReady) {
+    if (value.isReady) {
       // ready 的 data 允许为 null（T 可空），不能再用 data != null 判 ready
-      slivers.add(readySliverBuilder(context, state.data as T));
+      slivers.add(readySliverBuilder(context, value.data as T));
     } else if (data != null) {
       slivers.add(readySliverBuilder(context, data));
 
       final refreshing = refreshingSliverBuilder ?? theme?.refreshingSliverBuilder;
-      if (state.isRefreshing && refreshing != null) {
+      if (value.isRefreshing && refreshing != null) {
         slivers.add(refreshing(context));
       }
 
-      if (state.isFailed) {
+      if (value.isFailed) {
         final banner =
             errorBannerBuilder ?? theme?.sliverErrorBannerBuilder ?? _defaultErrorBannerBuilder;
         slivers.add(
           SliverToBoxAdapter(
-            child: banner(context, state.error!, onRetry),
+            child: banner(context, value.error!, retry),
           ),
         );
       }
@@ -72,7 +83,7 @@ class WAsyncStateSliver<T> extends StatelessWidget {
       slivers.add(
         SliverFillRemaining(
           hasScrollBody: hasScrollBody,
-          child: switch (state.status) {
+          child: switch (value.status) {
             WAsyncStatus.loading =>
               loadingBuilder?.call(context) ??
                   theme?.sliverLoadingBuilder?.call(context) ??
@@ -82,11 +93,11 @@ class WAsyncStateSliver<T> extends StatelessWidget {
                   theme?.sliverEmptyBuilder?.call(context) ??
                   const Center(child: Text('暂无数据')),
             WAsyncStatus.failed =>
-              errorBuilder?.call(context, state.error!, onRetry) ??
-                  theme?.sliverErrorBuilder?.call(context, state.error!, onRetry) ??
+              errorBuilder?.call(context, value.error!, retry) ??
+                  theme?.sliverErrorBuilder?.call(context, value.error!, retry) ??
                   WAsyncErrorView(
-                    error: state.error!,
-                    onRetry: onRetry,
+                    error: value.error!,
+                    onRetry: retry,
                   ),
             WAsyncStatus.ready => const SizedBox.shrink(),
           },

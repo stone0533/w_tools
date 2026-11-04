@@ -1,3 +1,10 @@
+## 4.0.0
+
+### Breaking
+- `WAsyncStateSliver.state` 改为 `ValueListenable<WAsyncState<T>>`，与 `WAsyncView` /
+  `WAsyncStateBuilder` 一致；`onRetry` 改为 `Future<void> Function()?`。
+  迁移：`state: state` → `state: controller.state`，`onRetry: () {}` → `onRetry: controller.load`。
+
 # Changelog
 
 ## 3.0.0

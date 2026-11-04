@@ -15,8 +15,8 @@ Widget _scroll(WAsyncState<int> state) {
   return CustomScrollView(
     slivers: [
       WAsyncStateSliver<int>(
-        state: state,
-        onRetry: () {},
+        state: ValueNotifier(state),
+        onRetry: () async {},
         readySliverBuilder: (context, value) => SliverToBoxAdapter(child: Text('ready-$value')),
       ),
     ],

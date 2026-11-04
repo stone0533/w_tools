@@ -32,7 +32,7 @@ Widget build(BuildContext context) {
       child: CustomScrollView(
         slivers: [
           WAsyncStateSliver<List<Gift>>(
-            state: state,
+            state: controller.state,
             onRetry: controller.refresh,
             readySliverBuilder: (context, gifts) => SliverList(
               delegate: SliverChildBuilderDelegate(

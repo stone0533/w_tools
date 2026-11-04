@@ -255,7 +255,7 @@ loading / empty / error 只能作为 `slivers` 内部的分支，不要在外层
 
 ```dart
 WAsyncStateSliver<List<Gift>>(
-  state: state,
+  state: controller.state,
   onRetry: controller.load,
   readySliverBuilder: (context, gifts) {
     return WListViewSliver.list(
@@ -332,7 +332,7 @@ class AsyncRefreshShell<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WAsyncStateBuilder<T>(
-      state: state,
+      state: controller.state,
       builder: (context, value) {
         return SmartRefresher(
           controller: controller,
