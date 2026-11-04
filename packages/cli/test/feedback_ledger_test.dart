@@ -18,6 +18,7 @@ const _body = '''- 包/版本：w_tools_ui 5.0.0
 
 Directory _repo() {
   final root = Directory.systemTemp.createTempSync('wt_fb_ledger_');
+  File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools\n');
   Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
   File(
     p.join(root.path, 'packages', 'cli', 'pubspec.yaml'),
@@ -74,6 +75,20 @@ void main() {
     expect(
       File(p.join(root.path, 'docs', 'feedback', 'README.md')).readAsStringSync(),
       contains('| [api](api.md) | 2 |'),
+    );
+  });
+
+  test('linkedIssue 写入条目', () {
+    final root = _repo();
+    addTearDown(() => root.deleteSync(recursive: true));
+    addToLedger(
+      root,
+      FeedbackDraft(package: 'api', title: '超时', body: _body),
+      linkedIssue: 123,
+    );
+    expect(
+      File(p.join(root.path, 'docs', 'feedback', 'api.md')).readAsStringSync(),
+      contains('关联 issue：#123'),
     );
   });
 

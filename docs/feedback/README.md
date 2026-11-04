@@ -42,7 +42,7 @@
 ```bash
 # 仓库内：直接维护台账
 dart run w_tools_cli:feedback submit \
-  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger
+  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger --linked-issue=123
 
 # 消费方（已开启 feedback.issue）：
 dart run w_tools_cli:feedback submit \
@@ -50,7 +50,7 @@ dart run w_tools_cli:feedback submit \
 ```
 
 - `submit` 会校验必填字段；缺字段退出 2；
-- `--issue` 需要 `GH_TOKEN` / `GITHUB_TOKEN` 或已登录 `gh`；失败会明确报错；
+- `--issue` 需要已安装 `gh`；gh 会读取 `GH_TOKEN` / `GITHUB_TOKEN`，或使用 `gh auth login`；失败会明确报错；
 - 维护者 triage 后才把外部 issue 写入台账；消费方不要直接改 `docs/feedback/`；
 - Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`。
 
@@ -59,7 +59,7 @@ dart run w_tools_cli:feedback submit \
 ```bash
 # 0. 在仓库内直接追加一条（自动建档 / 更新索引）
 dart run w_tools_cli:feedback submit \
-  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger
+  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger --linked-issue=123
 
 # 1. 看待处理
 grep -rn "\[待处理\]" docs/feedback/

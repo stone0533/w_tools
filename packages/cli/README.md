@@ -284,7 +284,7 @@ dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp
 
 # 显式覆盖
 dart run w_tools_cli:feedback submit ... --ledger   # 仓库内直接维护台账 + 索引
-dart run w_tools_cli:feedback submit ... --issue    # 显式建 Issue（需 token/gh）
+dart run w_tools_cli:feedback submit ... --issue    # 显式建 Issue（需已安装 gh）
 
 dart run w_tools_cli:feedback path --package=figma   # 该写哪个文件
 dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
@@ -294,11 +294,14 @@ dart run w_tools_cli:feedback lint --include-inbox   # 写完自检
 |---|---|
 | `submit` | 本地台账优先；`--ledger` 强制台账，`--issue` 强制 Issue；无通道时跳过（exit 0） |
 | `search` | 本地台账查重；`--gh` 同时搜 GitHub issues |
+| `status` | 查看当前反馈通道（ledger / issue / disabled） |
 | `path` | 仓库检出 → `docs/feedback/<包>.md`；消费方默认不写文件，提示用 `--issue` |
 | `lint` | 字段齐全 / 状态合法 / 已闭环带版本号 / 已确认链 issue / 索引与文件一致 / 待处理 stale 警告 |
 
 - 本地台账存在时**不联网**；Issue 需 `.w_tools_doctor.yaml` 的 `feedback.issue: true` 或显式 `--issue`
-- `feedback.issue` 默认 `false`；无 token/gh 时 `--issue` 会失败，不会生成人工链接
+- `feedback.issue` 默认 `false`；`--issue` 需要已安装 `gh`（gh 会读取 `GH_TOKEN`/`GITHUB_TOKEN`，或 `gh auth login`）
+- `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`
+- `--ledger --linked-issue=123` 会在条目里写「关联 issue：#123」
 - 反馈 Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`；`docs/feedback/` 是 triage 后的台账
 - `lint --stale-days=<n>`：待处理超过 n 天给警告（默认 30，0 关闭），不影响退出码
 - 规则与文件格式见仓库 `docs/feedback/README.md`；CI 的 `scripts/check_feedback.sh` 就是这条命令的包装

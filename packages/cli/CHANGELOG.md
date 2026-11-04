@@ -1,3 +1,14 @@
+## 1.9.14
+
+### 修复
+- 严格判定 w_tools 仓库：必须 `pubspec name=w_tools` + `packages/cli` + `docs/feedback/`；
+  消费方自带 `docs/feedback/` 不再被误写。
+- 包名白名单：拒绝 `foo` 等未知包，避免污染台账索引。
+- `feedback submit` 无通道时在读取正文前直接跳过；`--linked-issue=<n>` 写台账关联 issue。
+- 新增 `feedback status` 查看 ledger / issue / disabled。
+- 错误提示改为 `feedback submit --template`（不再指向消费方不存在的仓库文件）。
+- `--issue` 文档明确需要已安装 gh（gh 读取 token 或登录态）。
+
 ## 1.9.13
 
 ### 新增

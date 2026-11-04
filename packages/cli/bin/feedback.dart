@@ -22,12 +22,14 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   dart run w_tools_cli:feedback lint [--include-inbox]
   dart run w_tools_cli:feedback submit --package=<包> --title=<标题> (--stdin | --body-file=<file>) [--ledger | --issue]
   dart run w_tools_cli:feedback search <关键词> [--package=<包>] [--gh]
+  dart run w_tools_cli:feedback status
 
 子命令：
   path    输出库侧台账路径（消费方默认不写文件）
   lint    校验字段、状态、版本号、索引
   submit  默认：本地 docs/feedback 存在 → 写台账；否则 feedback.issue=true → 建 Issue；否则跳过
   search  先查重：本地台账/收件箱；加 --gh 同时搜 GitHub issues
+  status  输出当前反馈通道：ledger / issue / disabled
 
 选项：
   --root=<dir>        项目根（默认当前目录）
@@ -39,6 +41,7 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   --issue             submit：显式创建 GitHub Issue（默认关闭，需 feedback.issue 或本 flag）
   --gh                submit：--issue 的别名；search：搜 GitHub issues
   --ledger            submit：仅 w_tools 仓库检出，直接写入 docs/feedback/<包>.md 并更新索引
+  --linked-issue=<n>  ledger 用：在条目里写「关联 issue：#n」
   --repo=<owner/repo> submit/search 的仓库（默认 stone0533/w_tools）
   --include-inbox     lint 用：连同本地收件箱一起校验
   --stale-days=<n>    lint 用：待处理超过 n 天给警告（默认 30，0 = 关闭）
@@ -65,6 +68,7 @@ void main(List<String> argv) {
     ..addFlag('gh', negatable: false)
     ..addFlag('ledger', negatable: false)
     ..addOption('repo', defaultsTo: 'stone0533/w_tools')
+    ..addOption('linked-issue')
     ..addFlag('include-inbox', negatable: false)
     ..addOption('stale-days', defaultsTo: '30')
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
@@ -91,6 +95,8 @@ void main(List<String> argv) {
           _submit(args, root, asJson);
         case 'search':
           _search(args, root, asJson);
+        case 'status':
+          _status(root, asJson);
         default:
           _usageError('未知子命令：$sub（可用：path / lint / submit / search）');
       }
@@ -188,13 +194,55 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     return;
   }
   final package = _packageArg(args)!;
-  final title = (args['title'] as String?)?.trim() ?? '';
-  if (title.isEmpty) _usageError('submit 需要 --title=<一句话现象>');
+  final name = feedbackLedgerName(package);
+  if (!feedbackPackages.contains(name)) {
+    _usageError('未知反馈包：$name（可选：${feedbackPackages.join(', ')}）');
+  }
+
   final explicitIssue = (args['issue'] as bool) || (args['gh'] as bool);
   final modes = [explicitIssue, args['ledger']].where((v) => v == true).length;
   if (modes > 1) {
     _usageError('--issue / --ledger 只能选一个');
   }
+
+  DoctorConfig config;
+  try {
+    config = DoctorConfig.load(root);
+  } on YamlException catch (e) {
+    _usageError('.w_tools_doctor.yaml 解析失败：${e.message}');
+  }
+  final repo = isWtoolsRepo(root);
+  final wantLedger = (args['ledger'] as bool) || (!explicitIssue && repo);
+  final wantIssue = explicitIssue || (!(args['ledger'] as bool) && !repo && config.feedbackIssue);
+
+  if (!wantLedger && !wantIssue) {
+    if (asJson) {
+      print(
+        jsonEncode({
+          'package': name,
+          'mode': 'skipped',
+          'reason': 'no_channel',
+        }),
+      );
+    } else {
+      print('反馈未提交：当前不是 w_tools 仓库，且 feedback.issue=false。');
+      print('在 w_tools 仓库内用 --ledger；或项目开启 feedback.issue: true 后重试。');
+    }
+    return;
+  }
+
+  final linkedRaw = (args['linked-issue'] as String?)?.trim();
+  int? linkedIssue;
+  if (linkedRaw != null && linkedRaw.isNotEmpty) {
+    linkedIssue = int.tryParse(linkedRaw.replaceFirst('#', ''));
+    if (linkedIssue == null || linkedIssue <= 0) {
+      _usageError('--linked-issue 需要正整数：$linkedRaw');
+    }
+    if (!wantLedger) _usageError('--linked-issue 只能配合 --ledger 使用');
+  }
+
+  final title = (args['title'] as String?)?.trim() ?? '';
+  if (title.isEmpty) _usageError('submit 需要 --title=<一句话现象>');
 
   final bodyFile = args['body-file'] as String?;
   final useStdin = args['stdin'] as bool;
@@ -210,38 +258,17 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     body = _readStdin();
   }
 
-  final draft = FeedbackDraft(package: package, title: title, body: body);
+  final draft = FeedbackDraft(package: name, title: title, body: body);
   final missing = draft.missingFields;
   if (missing.isNotEmpty) {
     stderr.writeln('反馈缺少必填字段：${missing.join('、')}');
-    stderr.writeln('按 docs/feedback/TEMPLATE.md 补全后重试。');
+    stderr.writeln('按 `feedback submit --template` 的字段补全后重试。');
     exit(2);
-  }
-
-  DoctorConfig config;
-  try {
-    config = DoctorConfig.load(root);
-  } on YamlException catch (e) {
-    _usageError('.w_tools_doctor.yaml 解析失败：${e.message}');
-  }
-  final ledgerAvailable = Directory('${root.path}/docs/feedback').existsSync();
-  final wantLedger = (args['ledger'] as bool) || (!explicitIssue && ledgerAvailable);
-  final wantIssue =
-      explicitIssue || (!(args['ledger'] as bool) && !ledgerAvailable && config.feedbackIssue);
-
-  if (!wantLedger && !wantIssue) {
-    if (asJson) {
-      print(jsonEncode({...draft.toJson(), 'mode': 'skipped', 'reason': 'no_channel'}));
-    } else {
-      print('反馈未提交：未发现 docs/feedback/，且 feedback.issue=false。');
-      print('在 w_tools 仓库内用 --ledger；或项目开启 feedback.issue: true 后重试。');
-    }
-    return;
   }
 
   if (wantLedger) {
     try {
-      final result = addToLedger(root, draft);
+      final result = addToLedger(root, draft, linkedIssue: linkedIssue);
       if (asJson) {
         print(
           jsonEncode({
@@ -261,19 +288,47 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     return;
   }
 
-  if (wantIssue) {
-    try {
-      final url = createGitHubIssue(draft, repo: args['repo'] as String);
-      if (asJson) {
-        print(jsonEncode({...draft.toJson(), 'mode': 'gh', 'issueUrl': url.toString()}));
-      } else {
-        print('已创建 GitHub issue：$url');
-      }
-    } on FeedbackSubmitException catch (e) {
-      stderr.writeln(e.message);
-      exit(1);
+  try {
+    final url = createGitHubIssue(draft, repo: args['repo'] as String);
+    if (asJson) {
+      print(jsonEncode({...draft.toJson(), 'mode': 'gh', 'issueUrl': url.toString()}));
+    } else {
+      print('已创建 GitHub issue：$url');
     }
+  } on FeedbackSubmitException catch (e) {
+    stderr.writeln(e.message);
+    exit(1);
+  }
+}
+
+void _status(Directory root, bool asJson) {
+  DoctorConfig config;
+  try {
+    config = DoctorConfig.load(root);
+  } on YamlException catch (e) {
+    _usageError('.w_tools_doctor.yaml 解析失败：${e.message}');
+  }
+  final repo = isWtoolsRepo(root);
+  final channel = repo ? 'ledger' : (config.feedbackIssue ? 'issue' : 'disabled');
+  if (asJson) {
+    print(
+      jsonEncode({
+        'channel': channel,
+        'isWtoolsRepo': repo,
+        'feedbackIssue': config.feedbackIssue,
+        'ledger': repo ? '${root.path}/docs/feedback' : null,
+      }),
+    );
     return;
+  }
+  switch (channel) {
+    case 'ledger':
+      print('反馈通道：ledger（${root.path}/docs/feedback）');
+    case 'issue':
+      print('反馈通道：issue（feedback.issue=true；需要 gh 登录/令牌）');
+    default:
+      print('反馈通道：disabled（默认不提交）');
+      print('w_tools 仓库内自动用 ledger；消费方在 .w_tools_doctor.yaml 设置 feedback.issue: true');
   }
 }
 

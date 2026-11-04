@@ -535,6 +535,8 @@ banned:
 
   test('feedback submit 默认优先写本地台账', () async {
     final root = _project();
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools\n');
+    Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
     Directory(p.join(root.path, 'docs', 'feedback')).createSync(recursive: true);
     File(p.join(root.path, 'docs', 'feedback', 'README.md')).writeAsStringSync('''
 | 包 | 待处理 | 最近更新 |
@@ -582,5 +584,55 @@ banned:
       File(p.join(root.path, 'docs', 'feedback', 'README.md')).readAsStringSync(),
       contains('| [ui](ui.md) | 1 |'),
     );
+  });
+  test('消费方自带 docs/feedback 不会被误写', () async {
+    final root = _project();
+    Directory(p.join(root.path, 'docs', 'feedback')).createSync(recursive: true);
+    File(p.join(root.path, 'docs', 'feedback', 'README.md')).writeAsStringSync(
+      '| 包 | 待处理 | 最近更新 |\n| --- | --- | --- |\n',
+    );
+    final body = File(p.join(root.path, 'body.md'))
+      ..writeAsStringSync('''
+- 包/版本：w_tools_ui 5.0.0
+- 环境：macOS
+- 命令 / 输入：WImage
+- 期望：显示
+- 实际：空白
+- 影响：无
+- 建议：补提示
+- 复现数据：无
+''');
+    final r = await _run('feedback.dart', [
+      'submit',
+      '--root',
+      root.path,
+      '--package=ui',
+      '--title=WImage 空白',
+      '--body-file',
+      body.path,
+    ]);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('反馈未提交'));
+    expect(File(p.join(root.path, 'docs', 'feedback', 'ui.md')).existsSync(), isFalse);
+  });
+
+  test('未知包名直接拒绝', () async {
+    final root = _project();
+    final r = await _run('feedback.dart', [
+      'submit',
+      '--root',
+      root.path,
+      '--package=foo',
+      '--title=x',
+    ]);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('未知反馈包'));
+  });
+
+  test('feedback status 输出通道', () async {
+    final root = _project();
+    final r = await _run('feedback.dart', ['status', '--root', root.path, '--json']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('"channel":"disabled"'));
   });
 }

@@ -44,7 +44,7 @@ may you create a GitHub Issue. Without it (or false) → **do nothing**: no loca
      --package=<package> --title="<one-line symptom>" --body-file=/tmp/w_tools_feedback.md --issue
    ```
 
-   - Requires `GH_TOKEN` / `GITHUB_TOKEN`, or an authenticated `gh`;
+   - Requires `gh` installed; gh reads `GH_TOKEN` / `GITHUB_TOKEN` or uses `gh auth login`;
    - Prints the issue URL on success; fails loudly otherwise (no manual-link fallback).
 
 ### Boundaries

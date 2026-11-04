@@ -25,21 +25,61 @@ class FeedbackLedgerResult {
 /// 包名 → 台账文件名（接受 `ui` 或 `w_tools_ui`）。
 String feedbackLedgerName(String package) => normalizeFeedbackPackage(package);
 
+/// 反馈支持的包名（归一后）。
+const feedbackPackages = <String>{
+  'w_tools',
+  'core',
+  'async',
+  'ui',
+  'form',
+  'api',
+  'app',
+  'toast',
+  'map',
+  'qr',
+  'cli',
+  'figma',
+  'device',
+  'e2e',
+};
+
+/// 是否是 w_tools 仓库检出（而不是消费方恰好有一个 docs/feedback 目录）。
+bool isWtoolsRepo(Directory root) {
+  final pubspec = File(p.join(root.path, 'pubspec.yaml'));
+  if (!pubspec.existsSync()) return false;
+  final named = RegExp(
+    r'^name:\s*w_tools\s*$',
+    multiLine: true,
+  ).hasMatch(pubspec.readAsStringSync());
+  return named &&
+      Directory(p.join(root.path, 'docs', 'feedback')).existsSync() &&
+      Directory(p.join(root.path, 'packages', 'cli')).existsSync();
+}
+
 /// 把反馈追加到库侧台账（`docs/feedback/<包>.md`）并同步索引。
 ///
-/// 只允许在 w_tools 仓库检出（存在 `docs/feedback/`）时调用；消费方走 issue/local。
-FeedbackLedgerResult addToLedger(Directory projectRoot, FeedbackDraft draft) {
+/// 只允许在 w_tools 仓库检出（name=w_tools + packages/cli + docs/feedback）时调用；消费方走 issue。
+FeedbackLedgerResult addToLedger(
+  Directory projectRoot,
+  FeedbackDraft draft, {
+  int? linkedIssue,
+}) {
   final dir = p.join(projectRoot.path, 'docs', 'feedback');
-  if (!Directory(dir).existsSync()) {
+  if (!isWtoolsRepo(projectRoot)) {
     throw const FeedbackLedgerException(
-      '--ledger 只能在 w_tools 仓库检出中使用（--root 下未找到 docs/feedback/）；'
+      '--ledger 只能在 w_tools 仓库检出中使用（需要 pubspec name=w_tools、packages/cli、docs/feedback）；'
       '消费方开启 feedback.issue 后用 --issue，否则跳过',
     );
   }
 
   final name = feedbackLedgerName(draft.package);
+  if (!feedbackPackages.contains(name)) {
+    throw FeedbackLedgerException('未知反馈包：$name（可选：${feedbackPackages.join(', ')}）');
+  }
   final file = File(p.join(dir, '$name.md'));
-  final entry = draft.body.trim();
+  final entry = linkedIssue == null
+      ? draft.body.trim()
+      : '${draft.body.trim()}\n- 关联 issue：#$linkedIssue';
   if (!file.existsSync()) {
     file.writeAsStringSync(_newLedger(name, entry));
   } else {

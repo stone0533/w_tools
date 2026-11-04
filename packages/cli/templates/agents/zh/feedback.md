@@ -44,7 +44,7 @@ feedback:
      --package=<包> --title="<一句话现象>" --body-file=/tmp/w_tools_feedback.md --issue
    ```
 
-   - 需要 `GH_TOKEN` / `GITHUB_TOKEN`，或已登录的 `gh`；
+   - 需要已安装 `gh`；gh 会读取 `GH_TOKEN` / `GITHUB_TOKEN`，或使用 `gh auth login`；
    - 提交成功会输出 issue URL；失败会明确报错，不生成人工链接。
 
 ### 边界
