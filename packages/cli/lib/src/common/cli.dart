@@ -24,6 +24,14 @@ void runCli(
     stderr.writeln(usage);
     exit(2);
   }
+  if (parser.options.containsKey('format') &&
+      args.wasParsed('json') &&
+      args.wasParsed('format') &&
+      args['format'] != 'json') {
+    stderr.writeln('参数错误：--json 与 --format=${args['format']} 冲突\n');
+    stderr.writeln(usage);
+    exit(2);
+  }
   if (args['version'] as bool) {
     print(cliVersion);
     return;
@@ -33,4 +41,27 @@ void runCli(
     return;
   }
   body(args);
+}
+
+/// 统一的机器输出格式：`--json` 是 `--format=json` 的别名。
+String outputFormat(ArgResults args, {String fallback = 'text'}) {
+  if (args.options.contains('json') && args['json'] == true) return 'json';
+  return (args['format'] as String?) ?? fallback;
+}
+
+/// 一个子命令的声明：usage + parser + body，入口只负责选择命令。
+///
+/// 保留 [runCli] 作为执行器；后续可让 body 返回退出码、在进程内组合命令。
+class CliCommand {
+  const CliCommand({
+    required this.usage,
+    required this.parser,
+    required this.body,
+  });
+
+  final String usage;
+  final ArgParser parser;
+  final void Function(ArgResults) body;
+
+  void run(List<String> argv) => runCli(argv, usage: usage, parser: parser, body: body);
 }

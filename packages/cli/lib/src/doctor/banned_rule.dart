@@ -1,3 +1,4 @@
+import '../common/glob.dart';
 import 'rule.dart';
 
 /// `banned` 配置里的匹配方式。
@@ -33,10 +34,10 @@ class BannedRule {
   final String? error;
 
   bool appliesTo(String relPath) {
-    if (paths.isNotEmpty && !paths.any((pattern) => _globMatches(relPath, pattern))) {
+    if (paths.isNotEmpty && !paths.any((pattern) => globMatches(relPath, pattern))) {
       return false;
     }
-    if (ignore.any((pattern) => _globMatches(relPath, pattern))) return false;
+    if (ignore.any((pattern) => globMatches(relPath, pattern))) return false;
     return true;
   }
 
@@ -60,7 +61,6 @@ class BannedRule {
 }
 
 final Map<String, RegExp?> _regexCache = <String, RegExp?>{};
-final Map<String, RegExp> _globCache = <String, RegExp>{};
 
 RegExp? _compiledRegex(String pattern) => _regexCache.putIfAbsent(pattern, () {
   try {
@@ -69,31 +69,3 @@ RegExp? _compiledRegex(String pattern) => _regexCache.putIfAbsent(pattern, () {
     return null;
   }
 });
-
-/// 轻量 glob：支持 `*`、`**`、`?`；不含通配符时按文件/目录前缀匹配。
-bool _globMatches(String relPath, String rawPattern) {
-  final pattern = rawPattern.replaceAll('\\', '/').replaceFirst(RegExp(r'/+$'), '');
-  if (!pattern.contains('*') && !pattern.contains('?')) {
-    return relPath == pattern || relPath.startsWith('$pattern/');
-  }
-
-  final buffer = StringBuffer('^');
-  for (var i = 0; i < pattern.length; i++) {
-    final char = pattern[i];
-    if (char == '*') {
-      if (i + 1 < pattern.length && pattern[i + 1] == '*') {
-        buffer.write('.*');
-        i++;
-      } else {
-        buffer.write('[^/]*');
-      }
-    } else if (char == '?') {
-      buffer.write('.');
-    } else {
-      buffer.write(RegExp.escape(char));
-    }
-  }
-  buffer.write(r'$');
-  final regex = _globCache.putIfAbsent(pattern, () => RegExp(buffer.toString()));
-  return regex.hasMatch(relPath);
-}

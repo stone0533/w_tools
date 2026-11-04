@@ -11,7 +11,7 @@ Toast 模块（`w_tools_toast` 子包）基于 `bot_toast` 提供轻量的提示
 
 模块将提示分为三类：**全屏遮罩类**（成功 / 错误 / 警告 / 加载 / 自定义）、**纯文本气泡类**（无遮罩、可跨页面）、**全局清理**。所有入口在显示失败时（例如 BotToast 未初始化）都**不会抛异常**：显示类入口通过 `onError` 上报并返回一个空取消函数 `() {}`，调用方无需判空。
 
-依赖：`bot_toast`。
+依赖：`bot_toast`（`BotToastInit` / `BotToastNavigatorObserver` / `CancelFunc` 由 `w_tools_toast` 转出）。
 
 ## 快速判断
 - 轻提示 → `WToast`

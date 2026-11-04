@@ -1,5 +1,4 @@
 // ignore_for_file: deprecated_member_use_from_same_package
-import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_toast/w_tools_toast.dart';

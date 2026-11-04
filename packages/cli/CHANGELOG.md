@@ -2,8 +2,18 @@
 
 ### 改进
 - `init` 生成的子包约束同步本轮大版本：core ^3.0、ui ^5.0、form ^4.0、api ^5.0、
-  app ^2.0、map ^2.0、toast ^2.0、async ^3.0。
+  app ^2.0、map ^2.0、toast ^2.0、async ^3.0；新增 `--reset`。
+- `init` 始终沿用 `.w_tools/init.json` 的 profile/targets/lang，`--force` 不再静默重置；
+  收尾按状态给 next actions，不再无条件 `doctor`。
+- `init --json` 带 schema/schemaVersion/needsPubspec/nextActions，文件条目改为 `{path, note}`。
+- `doctor` 的 `rules:` 开关对 R1–R5/R7/R8 真正生效；R7 fix 使用真实版本约束；
+  `--write-config` 冲突退出码改为 2。
+- `list` 无匹配退出码改为 1；`feedback` 缺子命令给出用法并退出 2；统一 `--format` / `--json`。
+- `context --json`；doctor issue 带 `fix`；prompt 只列 w_tools/直接依赖并按优先级截断。
+- 文本扫描统一去掉块注释 / raw string；`ignore` 支持 `**`；R3 识别 8 位 alpha 颜色。
+- `feedback lint` 校验已修复版本号 / 不修理由。
 - 组件目录：`WRoute` 条目改为 `WRouteStack`，移除已删除的 UI 组件引用。
+- 新增 `docs/agents/cli.md`。
 
 ## 1.9.9
 

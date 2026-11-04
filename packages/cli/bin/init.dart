@@ -7,10 +7,9 @@ import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/common/version.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/init/features.dart';
+import 'package:w_tools_cli/src/init/init_options.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
-import 'package:w_tools_cli/src/init/manifest.dart';
-import 'package:w_tools_cli/src/init/targets.dart';
-import 'package:yaml/yaml.dart' show YamlException, YamlMap, loadYaml;
+import 'package:yaml/yaml.dart' show YamlException;
 
 const _usage = '''
 w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
@@ -35,8 +34,10 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --root=<dir>   项目根目录（默认当前目录）
   --check        只报告缺失、不改文件（CI 用）；内容不同只提示，不算失败
   --check-drift  在 --check 基础上，内容与模板不同也算失败（检查模板是否过期）
-  --json         输出机器可读结果（CI / AI 用）
+  --format=<fmt> text | json（默认 text）
+  --json         等价于 --format=json
   --force        覆盖生成物 / 配置（配置先 .bak；默认不动）
+  --reset        忽略 .w_tools/init.json，按本次参数与默认值重来
   --force-starters 覆盖 UI / device starter（先 .bak）
   --force-ui     等同 --force-starters（兼容别名）
   --profile=<p>  minimal | ui | api | full（默认 full）
@@ -75,42 +76,37 @@ String _buildUsage() {
   return _usage.replaceAll('{{features}}', features);
 }
 
-({bool present, String? constraint}) _figmaDependency(Directory root) {
-  final file = File('${root.path}/pubspec.yaml');
-  if (!file.existsSync()) return (present: false, constraint: null);
-  try {
-    final raw = loadYaml(file.readAsStringSync());
-    for (final key in const <String>['dependencies', 'dev_dependencies']) {
-      final deps = raw is YamlMap ? raw[key] : null;
-      if (deps is! YamlMap || !deps.containsKey('w_tools_figma')) continue;
-      final value = deps['w_tools_figma'];
-      return (present: true, constraint: value is String ? value : null);
-    }
-  } on YamlException {
-    return (present: false, constraint: null);
+/// 把内部带中文说明的条目拆成 `{path, note}`，方便 CI/AI 消费。
+List<Map<String, String>> _jsonEntries(List<String> items) {
+  return [
+    for (final item in items)
+      if (item.contains('（'))
+        <String, String>{
+          'path': item.substring(0, item.indexOf('（')),
+          'note': item.substring(item.indexOf('（') + 1, item.length - 1),
+        }
+      else
+        <String, String>{'path': item, 'note': ''},
+  ];
+}
+
+/// 根据本次结果给出可执行的下一步，而不是无条件 doctor。
+List<String> _nextActions(InitReport report) {
+  final actions = <String>[];
+  final needsDeps = !report.pubspecSnippet.trimLeft().startsWith('# 依赖已齐全');
+  if (needsDeps && report.pubspecSnippet.trim().isNotEmpty) {
+    actions.add('把 pubspecSnippet 的依赖加入 pubspec.yaml，然后运行 dart pub get');
   }
-  return (present: false, constraint: null);
-}
-
-String? _figmaInstallLine(Directory root) {
-  final dep = _figmaDependency(root);
-  if (!dep.present) return null;
-  if (dep.constraint == null) return '# w_tools_figma 已通过 path/git 安装';
-  return 'dart pub add dev:w_tools_figma:${dep.constraint}';
-}
-
-bool _resolveFigma(
-  Directory root,
-  DoctorConfig config, {
-  required bool explicit,
-  required bool flag,
-}) {
-  if (explicit) return flag;
-  return switch (config.aiFigma) {
-    'true' => true,
-    'false' => false,
-    _ => _figmaDependency(root).present,
-  };
+  if (report.missing.isNotEmpty) {
+    actions.add('dart run w_tools_cli:init');
+  }
+  if (report.drift.isNotEmpty) {
+    actions.add('dart run w_tools_cli:init --force');
+  }
+  if (actions.isEmpty) {
+    actions.add('dart run w_tools_cli:doctor');
+  }
+  return actions;
 }
 
 void main(List<String> argv) {
@@ -118,10 +114,12 @@ void main(List<String> argv) {
     ..addOption('root')
     ..addFlag('check', negatable: false)
     ..addFlag('check-drift', negatable: false)
+    ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false)
     ..addFlag('force', negatable: false)
     ..addFlag('force-starters', negatable: false)
     ..addFlag('force-ui', negatable: false)
+    ..addFlag('reset', negatable: false)
     ..addOption(
       'profile',
       defaultsTo: 'full',
@@ -137,8 +135,7 @@ void main(List<String> argv) {
     parser.addFlag(spec.flag, negatable: true, defaultsTo: false, help: spec.label);
   }
 
-  runCli(
-    argv,
+  CliCommand(
     usage: _buildUsage(),
     parser: parser,
     body: (args) {
@@ -156,116 +153,60 @@ void main(List<String> argv) {
         exit(2);
       }
 
-      final checkDrift = args['check-drift'] as bool;
-      final check = (args['check'] as bool) || checkDrift;
-      final manifest = check ? InitManifest.load(root) : null;
+      InitOptions options;
+      try {
+        options = InitOptions.resolve(root: root, args: args, argv: argv, config: config);
+      } on InitOptionsException catch (e) {
+        stderr.writeln(e.message);
+        exit(2);
+      }
+      final check = options.check;
+      final checkDrift = options.checkDrift;
+      final sortedTargets = options.targets.toList()..sort();
+      final profile = options.profile;
+      final features = options.features;
+      final lang = options.lang;
+      final figmaEnabled = options.figma;
+      final deviceEnabled = options.device;
 
-      final targetsRaw = args['targets'] as String?;
-      final targets = args['instructions'] as bool
-          ? (targetsRaw != null && targetsRaw.trim().isNotEmpty
-                ? targetsRaw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet()
-                : (manifest?.targets.toSet() ?? config.aiTargets.toSet()))
-          : <String>{};
-      final sortedTargets = targets.toList()..sort();
-      final unknown = targets.difference(targetFiles.keys.toSet());
-      if (unknown.isNotEmpty) {
-        stderr.writeln('未知 targets：${unknown.join(', ')}（可选：${targetFiles.keys.join(', ')}）');
-        exit(2);
-      }
-
-      final lang = args.wasParsed('lang')
-          ? args['lang'] as String
-          : (manifest?.lang ?? config.aiLanguage);
-      if (lang != 'zh' && lang != 'en') {
-        stderr.writeln('未知语言：$lang（可选：zh, en）');
-        exit(2);
-      }
-
-      final profileName = args.wasParsed('profile')
-          ? args['profile'] as String
-          : (manifest?.profile ?? args['profile'] as String);
-      final profile = InitProfile.values.firstWhere(
-        (p) => p.name == profileName,
-      );
-      for (final spec in initFeatureSpecs) {
-        final yes = '--${spec.flag}';
-        final no = '--no-${spec.flag}';
-        if (argv.contains(yes) && argv.contains(no)) {
-          stderr.writeln('$yes 与 $no 不能同时使用');
-          exit(2);
-        }
-      }
-      if (argv.contains('--figma') && argv.contains('--no-figma')) {
-        stderr.writeln('--figma 与 --no-figma 不能同时使用');
-        exit(2);
-      }
-      if (argv.contains('--device') && argv.contains('--no-device')) {
-        stderr.writeln('--device 与 --no-device 不能同时使用');
-        exit(2);
-      }
-      var features = manifest != null && !args.wasParsed('profile')
-          ? InitFeatures.fromJson(manifest.profile, manifest.features)
-          : InitFeatures.forProfile(profile);
-      for (final spec in initFeatureSpecs) {
-        if (args.wasParsed(spec.flag)) {
-          features = features.withFeature(spec.feature, args[spec.flag] as bool);
-        }
-      }
-      if (args['with-map'] as bool) {
-        if (args.wasParsed('map') && args['map'] == false) {
-          stderr.writeln('--with-map 与 --no-map 不能同时使用');
-          exit(2);
-        }
-        features = features.withFeature(InitFeature.map, true);
-      }
-      final figmaEnabled = args.wasParsed('figma')
-          ? args['figma'] as bool
-          : (manifest?.figma ?? _resolveFigma(root, config, explicit: false, flag: false));
-      final deviceEnabled = args.wasParsed('device')
-          ? args['device'] as bool
-          : (manifest?.device ?? false);
-      final initManifest = InitManifest(
-        profile: profile.name,
-        features: features.toJson(),
-        targets: sortedTargets,
-        lang: lang,
-        figma: figmaEnabled,
-        device: deviceEnabled,
-        generator: cliVersion,
-      );
       final report = runInit(
         root,
-        force: args['force'] as bool,
-        forceStarters: (args['force-starters'] as bool) || (args['force-ui'] as bool),
-        check: check,
-        features: features,
-        targets: targets,
-        lang: lang,
-        figma: figmaEnabled,
-        figmaInstall: _figmaInstallLine(root),
-        device: deviceEnabled,
-        manifest: initManifest,
+        force: options.force,
+        forceStarters: options.forceStarters,
+        check: options.check,
+        features: options.features,
+        targets: options.targets,
+        lang: options.lang,
+        figma: options.figma,
+        figmaInstall: options.figmaInstall,
+        device: options.device,
+        manifest: options.toManifest(generator: cliVersion),
       );
 
-      if (args['json'] as bool) {
+      if (outputFormat(args) == 'json') {
         print(
           const JsonEncoder.withIndent('  ').convert(<String, Object?>{
             'root': root.path,
             'check': check,
             'checkDrift': checkDrift,
+            'schema': 'w_tools_cli.init/1',
+            'schemaVersion': 1,
             'profile': profile.name,
+            'lang': lang,
             'targets': sortedTargets,
             'features': features.toJson(),
             'figma': figmaEnabled,
             'device': deviceEnabled,
-            'forceStarters': (args['force-starters'] as bool) || (args['force-ui'] as bool),
-            'created': report.created,
-            'upToDate': report.upToDate,
-            'drift': report.drift,
-            'stale': report.stale,
-            'missing': report.missing,
+            'forceStarters': options.forceStarters,
+            'created': _jsonEntries(report.created),
+            'upToDate': _jsonEntries(report.upToDate),
+            'drift': _jsonEntries(report.drift),
+            'stale': _jsonEntries(report.stale),
+            'missing': _jsonEntries(report.missing),
+            'needsPubspec': !report.pubspecSnippet.trimLeft().startsWith('# 依赖已齐全'),
             'warnings': report.warnings,
             'pubspecSnippet': report.pubspecSnippet,
+            'nextActions': _nextActions(report),
           }),
         );
       } else {
@@ -294,14 +235,21 @@ void main(List<String> argv) {
         for (final w in report.warnings) {
           print('! $w');
         }
+        if (report.drift.isNotEmpty) {
+          print('→ 覆盖上述 drift：dart run w_tools_cli:init --force');
+        }
         print('');
         print('需要在 pubspec.yaml 里加入：');
         print(report.pubspecSnippet);
-        print('下一步：dart run w_tools_cli:doctor');
+
+        final nextActions = _nextActions(report);
+        for (final action in nextActions) {
+          print('下一步：$action');
+        }
       }
       if (check && (report.missing.isNotEmpty || (checkDrift && report.drift.isNotEmpty))) {
         exit(1);
       }
     },
-  );
+  ).run(argv);
 }

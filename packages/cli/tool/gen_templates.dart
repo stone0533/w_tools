@@ -60,6 +60,19 @@ const _templates = <String, String>{
 };
 
 String generate(String repoRoot) {
+  // 模板目录与注册表必须一一对应：新增文件忘记登记会在这里失败。
+  final templatesDir = Directory(p.join(repoRoot, 'templates'));
+  final actual = templatesDir
+      .listSync(recursive: true)
+      .whereType<File>()
+      .map((f) => p.relative(f.path, from: templatesDir.path).replaceAll(r'\\', '/'))
+      .where((rel) => rel != 'README.md')
+      .toSet();
+  final missing = actual.difference(_templates.keys.toSet());
+  if (missing.isNotEmpty) {
+    throw StateError('模板未登记到 _templates：${missing.join(', ')}');
+  }
+
   final buf = StringBuffer()
     ..writeln('// 由 tool/gen_templates.dart 生成，不要手改。')
     ..writeln('// 模板源文件在 templates/（唯一来源）；改完跑 `dart run tool/gen_templates.dart`。')

@@ -19,7 +19,7 @@ class DoctorConfig {
     this.toolkitEntry = ProjectLayout.toolkitEntry,
     this.palette = const <String>[],
     this.colorMinCount = 3,
-    this.enabledRules = const <String>{'R1', 'R2', 'R3', 'R4', 'R5', 'R9'},
+    this.enabledRules = doctorDefaultEnabledRules,
     this.ignore = const <String>[],
     this.banned = const <BannedRule>[],
     this.aiTargets = const <String>['agents'],
@@ -71,7 +71,7 @@ class DoctorConfig {
     final raw = loadYaml(yamlText);
     if (raw is! YamlMap) return DoctorConfig();
 
-    final rules = <String>{'R1', 'R2', 'R3', 'R4', 'R5', 'R9'};
+    final rules = <String>{...doctorDefaultEnabledRules};
     final rulesNode = raw['rules'];
     if (rulesNode is YamlMap) {
       rulesNode.forEach((k, v) {

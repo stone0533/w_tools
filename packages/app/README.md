@@ -10,7 +10,7 @@
 ## 特性
 
 - **一站式启动**：`WApp.start()` = `init()` + `run()`
-- **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层并行、跨层串行）
+- **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层并行、跨层串行）；它是**消费方自建插件**的扩展点，子包不自带插件，包级主题用 `WAppOptions.appWrapper` / `builder`
 - **路由工具**：`WRouteStack` / `WRouteObserver` 记录与操作 GetX 路由
 - **语言切换**：`WLanguage` 统一管理当前语言与支持语言
 - **底部弹窗**：`WBottomSheet.show()`

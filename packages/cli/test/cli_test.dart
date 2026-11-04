@@ -285,7 +285,7 @@ banned:
     expect('${r.stderr}', contains('未知规则'));
   });
 
-  test('doctor --write-config：已存在返回 1，--force 才覆盖', () async {
+  test('doctor --write-config：已存在返回 2，--force 才覆盖', () async {
     final root = _project();
     final config = File(p.join(root.path, '.w_tools_doctor.yaml'));
 
@@ -294,7 +294,7 @@ banned:
     expect(config.existsSync(), isTrue);
 
     final second = await _run('doctor.dart', ['--root', root.path, '--write-config']);
-    expect(second.exitCode, 1);
+    expect(second.exitCode, 2);
     expect('${second.stderr}', contains('已存在'));
 
     config.writeAsStringSync('# 我改过\n');
@@ -369,7 +369,11 @@ banned:
     final r = await _run('init.dart', ['--root', root.path, '--json']);
     expect(r.exitCode, 0);
     final json = jsonDecode('${r.stdout}') as Map<String, Object?>;
+    expect(json['schemaVersion'], 1);
+    expect(json['needsPubspec'], isTrue);
+    expect(json['nextActions'], isNotEmpty);
     expect(json['created'], isA<List<Object?>>());
+    expect((json['created'] as List).first, isA<Map>());
     expect(json['missing'], isA<List<Object?>>());
   });
 
@@ -455,5 +459,49 @@ banned:
     final r = await _run('doctor.dart', ['--root', empty.path, '--print-config']);
     expect(r.exitCode, 0);
     expect('${r.stdout}', contains('toolkit_entry'));
+  });
+
+  test('init 保留上次 profile / targets / lang', () async {
+    final root = _project();
+    final first = await _run('init.dart', [
+      '--root',
+      root.path,
+      '--profile=minimal',
+      '--targets=claude',
+      '--lang=en',
+    ]);
+    expect(first.exitCode, 0);
+
+    final second = await _run('init.dart', ['--root', root.path]);
+    expect(second.exitCode, 0);
+    expect('${second.stdout}', contains('profile: minimal'));
+    expect('${second.stdout}', contains('targets: claude'));
+    expect(File(p.join(root.path, 'CLAUDE.md')).existsSync(), isTrue);
+    expect(File(p.join(root.path, 'AGENTS.md')).existsSync(), isFalse);
+  });
+
+  test('list 无匹配时退出码 1', () async {
+    final r = await _run('list.dart', ['绝对不存在的组件']);
+    expect(r.exitCode, 1);
+  });
+
+  test('feedback 缺少子命令时退出码 2', () async {
+    final root = _project();
+    final r = await _run('feedback.dart', ['--root', root.path]);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('path'));
+    expect('${r.stderr}', contains('lint'));
+  });
+
+  test('--json 与 --format 冲突时退出码 2', () async {
+    final root = _project();
+    final r = await _run('doctor.dart', [
+      '--root',
+      root.path,
+      '--json',
+      '--format=markdown',
+    ]);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('冲突'));
   });
 }

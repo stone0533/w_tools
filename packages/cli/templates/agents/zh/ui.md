@@ -32,7 +32,7 @@
 - **列表 / 通知**：列表项保活用 `WKeepAliveWrapper`；滚动通知 / 百分比用 `WNotificationListenerBuilder`
   （百分比只处理 depth 0 的 `ScrollUpdateNotification`）。
 - **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
-  在 `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper` 的 build 期构建。
+  在 `ScreenUtilInit.builder` / `WAppOptions.builder`（或自建插件的 `builderWrapper`）的 build 期构建。
   `wrapApp` 没有 Theme；需要 Theme 的排版扩展用 `builderWrapper`。
 - **盒子**：重复 `BoxDecoration` 收进 `AppBoxes`；重复卡片用 `AppCard`；
   一次性盒子用 `Container` + `BoxDecoration`；需要 width/height/constraints/transform

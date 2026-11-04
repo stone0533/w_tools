@@ -9,7 +9,7 @@ App 模块（`w_tools_app` 子包）提供了一套一站式的应用启动方�
 ## 快速判断
 - 启动 → `WApp.options(WAppOptions(...)).start()`（2.0+）
 - 插件顺序 → `WAppPlugin.dependsOn`
-- 全局默认视图 → `WAppPlugin.wrapApp` / `WAppOptions.appWrapper`
+- 全局默认视图 → `WAppOptions.appWrapper`；`WAppPlugin` 是消费方自建插件的扩展点，子包不自带插件
 - 强依赖 GetX
 - 可运行示例：[packages/app/example](../../packages/app/example/README.md)
 

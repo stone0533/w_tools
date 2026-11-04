@@ -21,6 +21,9 @@
   （教训：一个 311 宽的弹窗壳，因为要塞内容/按钮/内边距/标题色，最后变成 4 个参数——
   正确的做法是「只共用壳，内容和按钮各自组装」）
 - **布尔参数**要么全部默认 `false`，要么用一个 enum（避免 `type: true, compact: false` 这种调用点）
+- **第三方类型**只要出现在公开签名里，就由本包 `w_tools_*.dart` barrel `export ... show` 转出
+  （反例：map 暴露 CameraPosition 却不转出 google_maps_flutter；toast 要求 BotToastInit 却不转出 bot_toast）。
+  例外必须在 README 安装段写清“需自行添加的包 + 约束”。
 
 ## 3. 文档
 

@@ -13,6 +13,7 @@ import 'package:w_tools_cli/src/doctor/rules/r5_staged_marker.dart';
 import 'package:w_tools_cli/src/doctor/rules/r6_banned_units.dart';
 import 'package:w_tools_cli/src/doctor/rules/r7_toolkit_consistency.dart';
 import 'package:w_tools_cli/src/doctor/rules/r8_generated_stale.dart';
+import 'package:w_tools_cli/src/doctor/run.dart';
 
 /// 每个用例在临时目录里造一个最小「消费方项目」。
 Directory makeProject(Map<String, String> files) {
@@ -416,7 +417,7 @@ void main() {
       expect(error.message, contains('w_tools_core'));
       expect(error.fix?.kind, 'edit');
       expect(error.fix?.path, 'dependencies.w_tools_core');
-      expect(error.fix?.value, 'any');
+      expect(error.fix?.value, '^3.0.0');
     });
 
     test('文件级 ignore-file R7 生效', () {
@@ -537,6 +538,68 @@ void main() {
       final config = DoctorConfig(enabledRules: <String>{'R6'});
       final r = R6BannedUnits.check(ctxOf(root, config), config);
       expect(r.status, DoctorRuleStatus.pass);
+    });
+  });
+
+  group('配置与文本扫描边界', () {
+    test('rules: R2 false 真正关闭 R2', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/a.dart': "import 'package:w_tools_ui/w_tools_ui.dart';\n",
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig.parse('rules:\n  R2: false\n');
+      final results = runDoctor(ctxOf(root, config), config);
+      expect(results.where((r) => r.ruleId == 'R2'), isEmpty);
+    });
+
+    test('块注释里的 import 不算 R2', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/a.dart': "/*\nimport 'package:w_tools_ui/w_tools_ui.dart';\n*/\nvoid main() {}\n",
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig();
+      final result = R2DirectSubpackageImport.check(ctxOf(root, config), config);
+      expect(result.status, DoctorRuleStatus.pass);
+    });
+
+    test('raw string 里的 import 不算 R2', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/a.dart': "const s = r'''import 'package:w_tools_ui/w_tools_ui.dart';''';\n",
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig();
+      final result = R2DirectSubpackageImport.check(ctxOf(root, config), config);
+      expect(result.status, DoctorRuleStatus.pass);
+    });
+
+    test('ignore 支持 **/generated/**', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/a/generated/x.dart': "import 'package:w_tools_ui/w_tools_ui.dart';\n",
+        'lib/b.dart': 'void main() {}\n',
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig(ignore: const ['**/generated/**']);
+      final ctx = ctxOf(root, config);
+      expect(ctx.files, isNot(contains('lib/a/generated/x.dart')));
+      expect(ctx.files, contains('lib/b.dart'));
+    });
+
+    test('R3 识别 8 位 alpha 颜色', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/a.dart':
+            'final a = Color(0x803F3F3F);\n'
+            'final b = Color(0x803F3F3F);\n'
+            'final c = Color(0x803F3F3F);\n',
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig(palette: const ['#3F3F3F'], colorMinCount: 3);
+      final result = R3HardcodedColors.check(ctxOf(root, config), config);
+      expect(result.issues, isNotEmpty);
     });
   });
 }

@@ -225,4 +225,37 @@ void main() {
       expect(result.issues.any((i) => i.message.contains('索引')), isTrue);
     });
   });
+
+  group('feedback 状态机', () {
+    test('已修复必须带版本，不修必须带理由', () {
+      final dir = _tmp('wt_fb_state_');
+      final file = File(p.join(dir.path, 'cli.md'))
+        ..writeAsStringSync('''
+### [已修复] cli: 缺版本
+- 影响：用户看不到修复版本
+
+### [不修] cli: 缺理由
+- 包/版本：w_tools_cli 1.9.5
+''');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final result = const FeedbackLinter().lintFiles([file.path]);
+      expect(result.ok, isFalse);
+      expect(result.issues.any((i) => i.message.contains('已修复条目缺少版本号')), isTrue);
+      expect(result.issues.any((i) => i.message.contains('不修条目缺少理由')), isTrue);
+    });
+
+    test('已修复带版本、不修带理由时通过', () {
+      final dir = _tmp('wt_fb_state_ok_');
+      final file = File(p.join(dir.path, 'cli.md'))
+        ..writeAsStringSync('''
+### [已修复] cli: 有版本
+- 版本：1.9.5
+
+### [不修] cli: 有理由
+- 理由：与 5.0 设计冲突
+''');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      expect(const FeedbackLinter().lintFiles([file.path]).ok, isTrue);
+    });
+  });
 }

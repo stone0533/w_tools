@@ -1,3 +1,10 @@
+## 1.1.1
+
+### 修复
+- 只监听 `scannedDataStream` / 使用 `onQRViewCreated` 却沿用默认 `scanOnce: true` 时，
+  首码后相机会暂停；构造增加 assert，必须显式传 `scanOnce: false`（文档已同步）。
+- `flipCamera` / `getCameraInfo` 记录当前方向，平台视图重建后保持翻转结果。
+
 # Changelog
 
 ## 1.1.0

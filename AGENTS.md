@@ -25,7 +25,8 @@
 ## 工具（本仓库维护）
 
 CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
-入口 `packages/cli/bin/{init,doctor,context,list,explain}.dart`，
+入口 `packages/cli/bin/{init,doctor,context,list,explain,feedback}.dart`，
+使用规则见 [`docs/agents/cli.md`](docs/agents/cli.md)，
 实现分别在 `packages/cli/lib/src/init/`、`lib/src/doctor/`、`lib/src/context/`、`lib/src/catalog/`。
 
 改动它们时必须同步：
@@ -125,7 +126,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
 - 每个独立区块一个 Controller；不要用一个 `WAsyncLoading` 合并多个独立区块的 Loading。
-- 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点（推荐 `WAppPlugin.wrapApp` / `WAppOptions.appWrapper`），不要只放 `AppScaffold.body`。
+- 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点（推荐 `WAppOptions.appWrapper`，或消费方自建插件的 `wrapApp`），不要只放 `AppScaffold.body`。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，不要把 `SmartRefresher` 包在 `WAsyncView` 外面。
 - `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；loading / empty / error 只能作为 slivers 分支，不能在外层切换成 `Center` / `WAsyncErrorView`。
 - `WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；`WAsyncStateBuilder` 由调用方自行构建状态 UI，不读默认值。
@@ -147,8 +148,8 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ## 启动（w_tools_app）
 
-- 项目入口用 `WApp.start()`，不要手写 `runApp` + 初始化顺序；`start()` = `init()` + `run()`，只调用一次，重复调用会再次 `runApp`。
-- 插件实现 `WAppPlugin`；有初始化顺序要求时用 `dependsOn` 显式声明，不要依赖注册顺序。
+- 项目入口用 `WApp.options(WAppOptions(...)).start()`，不要手写 `runApp` + 初始化顺序；`start()` = `init()` + `run()`，只调用一次，重复调用会再次 `runApp`。
+- 插件实现 `WAppPlugin`（消费方自建；子包不自带插件）；有初始化顺序要求时用 `dependsOn` 显式声明，不要依赖注册顺序。
 - `builderWrapper` 位于 MaterialApp 内；`wrapApp` 位于 MaterialApp 外，没有 Theme / MediaQuery。
 - `WRouteObserver` 由 `WApp` 自动追加，不要重复添加。
 - 多语言用 `WLanguage().changeLanguage(...)`，监听 `languageStream`；语言真源是 `WAppConfig.currentLanguage`。
@@ -164,7 +165,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 ## 扫码（w_tools_qr）
 
 - 扫码用 `WQrView`，不要直接使用 `qr_code_scanner_plus` 的 `QRView`。
-- 默认 `scanOnce = true`；需要连续扫描显式传 `false`。
+- 默认 `scanOnce = true`；需要连续扫描显式传 `false`。只监听数据流 / 用 `onQRViewCreated` 时必须 `scanOnce: false`（构造有 assert）。
 - 单次扫码完成后需要重新扫描时，通过 `GlobalKey<WQrViewState>` 调用 `restartScan()`。
 - 相机权限：Android `CAMERA`，iOS `NSCameraUsageDescription`。
 - `onScanned` 只在 `Barcode.code` 非空时触发。

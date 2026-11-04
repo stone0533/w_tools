@@ -7,25 +7,9 @@ import '../doctor/config.dart';
 import 'features.dart';
 import 'manifest.dart';
 import 'targets.dart';
-import '../layout.dart';
 import 'templates.dart';
 
-/// 子包版本约束。必须与仓库 `packages/*/pubspec.yaml` 的当前版本一致，
-/// 由 `test/init_test.dart` 读取仓库 pubspec 校验（防止版本漂移）。
-const _subpackageConstraints = <String, String>{
-  'w_tools_core': '^3.0.0',
-  'w_tools_async': '^3.0.0',
-  'w_tools_app': '^2.0.0',
-  'w_tools_form': '^4.0.0',
-  'w_tools_ui': '^5.0.0',
-  'w_tools_api': '^5.0.0',
-  'w_tools_toast': '^2.0.0',
-  'w_tools_qr': '^1.1.0',
-  'w_tools_map': '^2.0.0',
-};
-
-/// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const _cliConstraint = '^1.9.0';
+import 'versions.dart';
 
 /// `init` 的执行结果（供 CLI 打印）。
 class InitReport {
@@ -274,28 +258,9 @@ InitReport runInit(
     markedBlock: true,
   );
   if (features.ui) {
-    write(
-      '${ProjectLayout.designSystemDir}/README.md',
-      InitTemplates.designSystemReadme(lang: lang),
-    );
-    write(
-      '${ProjectLayout.projectUiDir}/README.md',
-      InitTemplates.uiReadme(lang: lang),
-      starter: true,
-    );
-    write('${ProjectLayout.projectUiDir}/app_bars.dart', InitTemplates.appBars(), starter: true);
-    write('${ProjectLayout.projectUiDir}/app_boxes.dart', InitTemplates.appBoxes(), starter: true);
-    write(
-      '${ProjectLayout.projectUiDir}/app_buttons.dart',
-      InitTemplates.appButtons(),
-      starter: true,
-    );
-    write('${ProjectLayout.projectUiDir}/app_card.dart', InitTemplates.appCard(), starter: true);
-    write(
-      '${ProjectLayout.projectUiDir}/app_scaffold.dart',
-      InitTemplates.appScaffold(),
-      starter: true,
-    );
+    for (final entry in InitTemplates.uiStarters(lang: lang).entries) {
+      write(entry.key, entry.value.content, starter: entry.value.starter);
+    }
   }
   // doctor 的默认配置：带注释，值与内置默认一致，只是把开关摊开。
   // 它是项目配置而不是生成物：存在就不再比对内容。
@@ -344,16 +309,6 @@ InitReport runInit(
   return report;
 }
 
-const _uiStarterFiles = <String>[
-  '${ProjectLayout.designSystemDir}/README.md',
-  '${ProjectLayout.projectUiDir}/README.md',
-  '${ProjectLayout.projectUiDir}/app_bars.dart',
-  '${ProjectLayout.projectUiDir}/app_boxes.dart',
-  '${ProjectLayout.projectUiDir}/app_buttons.dart',
-  '${ProjectLayout.projectUiDir}/app_card.dart',
-  '${ProjectLayout.projectUiDir}/app_scaffold.dart',
-];
-
 void _collectStale(
   InitReport report,
   Directory root,
@@ -361,7 +316,7 @@ void _collectStale(
   Set<String> targets,
 ) {
   if (!features.ui) {
-    for (final rel in _uiStarterFiles) {
+    for (final rel in InitTemplates.uiStarters().keys) {
       if (File(p.join(root.path, rel)).existsSync()) {
         report.stale.add('$rel（当前 profile 不生成，未删除）');
       }
@@ -498,10 +453,10 @@ String _snippet(
 
   final depLines = <String>[
     for (final pkg in pkgs)
-      if (!existing.contains(pkg)) '$pkg: ${_subpackageConstraints[pkg]}',
+      if (!existing.contains(pkg)) '$pkg: ${subpackageConstraints[pkg]}',
   ];
   final devLines = <String>[
-    if (!existingDev.contains('w_tools_cli')) 'w_tools_cli: $_cliConstraint',
+    if (!existingDev.contains('w_tools_cli')) 'w_tools_cli: $cliConstraint',
   ];
   if (depLines.isEmpty && devLines.isEmpty) {
     return '# 依赖已齐全，无需修改 pubspec.yaml\n';

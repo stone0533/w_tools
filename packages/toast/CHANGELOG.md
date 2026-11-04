@@ -14,6 +14,7 @@
   显示 loading → 执行 → 关闭 → 结果提示；失败先提示再 `rethrow`。
 
 ### Changed
+- 转出 `BotToastInit` / `BotToastNavigatorObserver` / `CancelFunc`，消费方无需直接依赖 bot_toast。
 - `WToast.showXxx` 的 `style` 参数改为可空（不传时按 context / 默认解析），调用方代码不变。
 
 ## 1.2.0

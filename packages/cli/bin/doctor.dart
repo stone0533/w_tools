@@ -53,8 +53,7 @@ void main(List<String> argv) {
     ..addFlag('write-config', negatable: false)
     ..addFlag('force', negatable: false);
 
-  runCli(
-    argv,
+  CliCommand(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -76,7 +75,7 @@ void main(List<String> argv) {
         final exists = target.existsSync();
         if (exists && !(args['force'] as bool)) {
           stderr.writeln('${DoctorConfig.fileName} 已存在（加 --force 覆盖）');
-          exit(1);
+          exit(2);
         }
         // 这个文件是项目手工维护的 palette / banned / ignore，覆盖前必须留底。
         if (exists) {
@@ -134,7 +133,7 @@ void main(List<String> argv) {
         fileCount: ctx.files.length,
         strict: args['strict'] as bool,
       );
-      final format = (args['json'] as bool) ? 'json' : (args['format'] as String);
+      final format = outputFormat(args, fallback: 'human');
       switch (format) {
         case 'json':
           reporter.printJson(results);
@@ -145,5 +144,5 @@ void main(List<String> argv) {
       }
       exit(reporter.exitCode(results));
     },
-  );
+  ).run(argv);
 }

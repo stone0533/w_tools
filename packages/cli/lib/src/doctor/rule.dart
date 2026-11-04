@@ -1,3 +1,15 @@
+/// 默认启用的规则（R6 默认关；R7/R8 默认开）。
+const doctorDefaultEnabledRules = <String>{
+  'R1',
+  'R2',
+  'R3',
+  'R4',
+  'R5',
+  'R7',
+  'R8',
+  'R9',
+};
+
 /// doctor 的问题级别。
 enum DoctorLevel { error, warn, info }
 

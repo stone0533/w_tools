@@ -62,7 +62,7 @@ void main() {
       withMap: false,
     );
     expect(minimal, contains('WStorage'));
-    expect(minimal, isNot(contains('WApp.start')));
+    expect(minimal, isNot(contains('WApp.options')));
     expect(minimal, isNot(contains('WFormTextField')));
     expect(minimal, isNot(contains('DioRegistry')));
     expect(minimal, isNot(contains('WAsyncController')));
@@ -71,18 +71,18 @@ void main() {
 
     final noAsync = InitTemplates.agentsBlock(withAsync: false);
     expect(noAsync, isNot(contains('WAsyncController')));
-    expect(noAsync, contains('WApp.start'));
+    expect(noAsync, contains('WApp.options'));
 
     final noForm = InitTemplates.agentsBlock(withForm: false);
     expect(noForm, isNot(contains('WFormTextField')));
-    expect(noForm, contains('WApp.start'));
+    expect(noForm, contains('WApp.options'));
 
     final noApi = InitTemplates.agentsBlock(withApi: false);
     expect(noApi, isNot(contains('DioRegistry')));
-    expect(noApi, contains('WApp.start'));
+    expect(noApi, contains('WApp.options'));
 
     final noApp = InitTemplates.agentsBlock(withApp: false);
-    expect(noApp, isNot(contains('WApp.start')));
+    expect(noApp, isNot(contains('WApp.options')));
     expect(noApp, contains('WStorage'));
 
     final noQr = InitTemplates.agentsBlock(withQr: false);
@@ -100,7 +100,7 @@ void main() {
 
     final enNoForm = InitTemplates.agentsBlock(lang: 'en', withForm: false);
     expect(enNoForm, isNot(contains('WFormTextField')));
-    expect(enNoForm, contains('WApp.start'));
+    expect(enNoForm, contains('WApp.options'));
   });
 
   test('base 包含上移候选与 API 形状约束', () {

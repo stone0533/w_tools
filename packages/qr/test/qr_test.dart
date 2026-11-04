@@ -45,6 +45,10 @@ Future<void> _emitBarcode(WidgetTester tester, String code) {
 }
 
 void main() {
+  test('只提供 onQRViewCreated 时不能沿用默认 scanOnce=true', () {
+    expect(() => WQrView(onQRViewCreated: (_) {}), throwsAssertionError);
+  });
+
   group('WQrViewOverlayShape — 纯 Dart', () {
     test('默认构造参数', () {
       const overlay = WQrViewOverlayShape();

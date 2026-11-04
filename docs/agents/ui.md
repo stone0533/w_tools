@@ -170,7 +170,7 @@ theme: ThemeData(colorScheme: scheme, useMaterial3: true)
 兜底（未安装扩展）时的取值就是上表：`price` 取 `headlineSmall`、`number` 取 `bodyLarge`、
 `badge` 取 `labelSmall`、`bodyStrong` 取 `titleMedium`；品牌设计稿仍应显式提供 `WTextStyles`。
 
-如果 `WTextStyles` 使用 `flutter_screenutil` 的 `.sp`，这段构建必须放在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 中，不能放 `main()` / 顶层 `final`。
+如果 `WTextStyles` 使用 `flutter_screenutil` 的 `.sp`，这段构建必须放在 `ScreenUtilInit.builder` 或 `WAppOptions.builder`（或消费方自建插件的 `builderWrapper`）中，不能放 `main()` / 顶层 `final`。
 
 规则：
 

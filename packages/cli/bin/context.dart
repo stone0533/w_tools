@@ -18,6 +18,7 @@ w_tools_cli context —— 输出项目事实（给 AI / CI 的一份稳定上�
 选项：
   --root=<dir>        项目根目录（默认当前目录）
   --format=<fmt>      json | markdown | prompt（默认 markdown）
+  --json              等价于 --format=json
   --max-tokens=<n>    prompt 格式的近似 token 上限（0 = 不截断）
   --version           显示版本
   --help, -h          显示本帮助
@@ -31,10 +32,10 @@ void main(List<String> argv) {
   final parser = cliParser()
     ..addOption('root')
     ..addOption('format', defaultsTo: 'markdown', allowed: <String>['json', 'markdown', 'prompt'])
+    ..addFlag('json', negatable: false)
     ..addOption('max-tokens', defaultsTo: '0');
 
-  runCli(
-    argv,
+  CliCommand(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -70,7 +71,7 @@ void main(List<String> argv) {
         exit(2);
       }
 
-      switch (args['format'] as String) {
+      switch (outputFormat(args, fallback: 'markdown')) {
         case 'json':
           print(const JsonEncoder.withIndent('  ').convert(snapshot.toJson()));
         case 'prompt':
@@ -79,5 +80,5 @@ void main(List<String> argv) {
           print(snapshot.toMarkdown());
       }
     },
-  );
+  ).run(argv);
 }

@@ -35,6 +35,6 @@
 - **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
   `WNotificationListenerBuilder` for scroll notifications/percentage (depth 0 only).
 - **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
-  in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme.
+  in `ScreenUtilInit.builder` / `WAppOptions.builder` (or a custom plugin's `builderWrapper`); `wrapApp` has no Theme.
 - **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated cards;
   use `Container` + `BoxDecoration` for one-off boxes. Do not add an `AppBox` / `AppContainer` wrapper.

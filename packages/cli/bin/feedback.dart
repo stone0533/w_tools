@@ -24,7 +24,8 @@ w_tools_cli feedback —— 反馈该写到哪 / 写对没有
   --package=<包>      path 用：库侧单包文件名（figma / cli / device / e2e …）
   --include-inbox     lint 用：连同 docs/agents/feedback.md 一起校验（仓库检出时也查）
   --stale-days=<n>    lint 用：待处理超过 n 天给警告（默认 30，0 = 关闭）
-  --json              机器可读输出
+  --format=<fmt>      text | json（默认 text）
+  --json              等价于 --format=json
   -h, --help          显示本帮助
 
 示例：
@@ -38,17 +39,24 @@ void main(List<String> argv) {
     ..addOption('package')
     ..addFlag('include-inbox', negatable: false)
     ..addOption('stale-days', defaultsTo: '30')
+    ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false);
 
-  runCli(
-    argv,
+  CliCommand(
     usage: _usage,
     parser: parser,
     body: (args) {
       final rest = args.rest;
-      final sub = rest.isEmpty ? 'path' : rest.first;
+      if (rest.isEmpty) {
+        stderr.writeln(
+          '用法：dart run w_tools_cli:feedback path [--package=<包>] | lint [--include-inbox]\n',
+        );
+        stderr.writeln(_usage);
+        exit(2);
+      }
+      final sub = rest.first;
       final root = Directory(args['root'] as String? ?? Directory.current.path);
-      final asJson = args['json'] as bool;
+      final asJson = outputFormat(args) == 'json';
 
       switch (sub) {
         case 'path':
@@ -67,10 +75,13 @@ void main(List<String> argv) {
             print(jsonEncode(target.toJson()));
           } else {
             print(target.path);
-            if (!target.isLibrary) {
+            if (target.isLibrary) {
+              print('# 这是库侧反馈目录；按包选文件，如 --package=cli');
+              if (!target.exists) {
+                stderr.writeln('# 文件还不存在，首次反馈时新建（可照 docs/feedback/TEMPLATE.md）');
+              }
+            } else {
               stderr.writeln('# 不是仓库检出：反馈写本项目收件箱（docs/agents/feedback.md）');
-            } else if (!target.exists) {
-              stderr.writeln('# 文件还不存在，首次反馈时新建（可照 docs/feedback/TEMPLATE.md）');
             }
           }
         case 'lint':
@@ -133,5 +144,5 @@ void main(List<String> argv) {
           exit(2);
       }
     },
-  );
+  ).run(argv);
 }

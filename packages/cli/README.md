@@ -18,7 +18,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.8.0
+  w_tools_cli: ^1.9.0
 ```
 
 ```bash
@@ -50,6 +50,7 @@ doctor → 0 error / 0 warning 才算通过
 | 只检查不写文件 | `init --check` |
 | 检查模板是否过期 | `init --check-drift` |
 | 升级 CLI 后刷新生成物 | `init --force` |
+| 回到默认 profile/targets/lang | `init --reset` |
 | 明确刷新 UI / device starter | `init --force-starters` |
 
 命令入口都是：
@@ -370,8 +371,7 @@ toolkit 标记块外的项目追加项会保留
 --force-starters 才会覆盖 UI / device starter，并先写 .bak
 不会删除当前 profile 不再生成的文件
 
-> 1.8.0 起 --force 不再覆盖 starter；1.7.5 及更早版本仍会覆盖。
-> 当前 pub 最新是 1.7.5，使用 --force-starters 前先升级到 1.8.0。
+> `--force` 不覆盖 UI / device starter；需要覆盖 starter 用 `--force-starters`（先写 .bak）。
 ```
 
 ---
@@ -380,11 +380,13 @@ toolkit 标记块外的项目追加项会保留
 
 | 命令 | 0 | 1 | 2 |
 |---|---|---|---|
+| `init` | 成功（含“未覆盖 drift”提示） | — | 参数错误 |
 | `init --check` | 没有缺失（内容不同只提示） | 有缺失 | 参数错误 |
 | `init --check-drift` | 没有缺失且内容一致 | 有缺失或 drift | 参数错误 |
-| `doctor` | 无 error（`--strict` 时也无 warning） | 有失败 | 参数 / 项目错误 |
+| `doctor` | 无 error（`--strict` 时也无 warning） | 有失败 | 参数 / 项目错误；`--write-config` 冲突 |
 | `list` / `explain` | 找到 | 未找到 | 参数错误 |
 | `context` | 成功 | — | 参数 / 项目错误 |
+| `feedback path` / `lint` | 成功 / 无问题 | lint 有问题 | 参数 / 子命令错误 |
 
 ---
 

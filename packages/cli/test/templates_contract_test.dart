@@ -1,0 +1,20 @@
+import 'dart:io';
+
+import 'package:test/test.dart';
+
+void main() {
+  for (final lang in ['zh', 'en']) {
+    test('$lang app 模板只教真实入口', () {
+      final text = File('templates/agents/$lang/app.md').readAsStringSync();
+      expect(text, contains('WApp.options'));
+      expect(text, isNot(contains('WApp.start()')));
+      expect(text, isNot(contains('WApp.appWrapper')));
+    });
+
+    test('$lang toast 模板包含初始化', () {
+      final text = File('templates/agents/$lang/toast.md').readAsStringSync();
+      expect(text, contains('BotToastInit'));
+      expect(text, contains('BotToastNavigatorObserver'));
+    });
+  }
+}

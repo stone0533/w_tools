@@ -1,3 +1,4 @@
+import '../../init/versions.dart';
 import '../config.dart';
 import '../context.dart';
 import '../rule.dart';
@@ -33,11 +34,12 @@ class R7ToolkitConsistency {
           level: DoctorLevel.error,
           file: toolkitEntry,
           message: 'toolkit 导出了 $exported，但 pubspec 没有依赖它',
-          hint: '在 pubspec.yaml 的 dependencies 里加 $exported，或删掉这行 export',
+          hint:
+              '在 pubspec.yaml 的 dependencies 里加 $exported: ${subpackageConstraints[exported] ?? '^x.y.z'}，或删掉这行 export',
           fix: DoctorFix.edit(
             file: 'pubspec.yaml',
             path: 'dependencies.$exported',
-            value: 'any',
+            value: subpackageConstraints[exported] ?? 'any',
           ),
         ),
       for (final dep in deps.difference(exports))

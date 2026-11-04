@@ -12,8 +12,8 @@ class R3HardcodedColors {
   static const id = 'R3';
   static const title = '硬编码语义色';
 
-  static final _colorPattern = RegExp(r'Color\(0x(?:FF)?([0-9A-Fa-f]{6})\)');
-  static final _hexPattern = RegExp(r"""fromHex\(\s*['"]#([0-9A-Fa-f]{6})['"]""");
+  static final _colorPattern = RegExp(r'Color\(0x([0-9A-Fa-f]{8}|[0-9A-Fa-f]{6})\)');
+  static final _hexPattern = RegExp(r"""fromHex\(\s*['"]#([0-9A-Fa-f]{8}|[0-9A-Fa-f]{6})['"]""");
 
   static DoctorRuleResult check(ProjectContext ctx, DoctorConfig config) {
     if (config.palette.isEmpty) {

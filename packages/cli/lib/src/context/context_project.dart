@@ -92,6 +92,7 @@ class ProjectSnapshot {
               'line': i.line,
               'message': i.message,
               'hint': i.hint,
+              if (i.fix != null) 'fix': i.fix!.toJson(),
             },
       ],
     },
@@ -138,41 +139,58 @@ class ProjectSnapshot {
       ..writeln('## 组件目录')
       ..writeln()
       ..writeln(
-        '$catalogVersion 版共 ${catalog.length} 条；用 `dart run w_tools_cli:list <关键词>` 或 '
+        'catalog v$catalogVersion 共 ${catalog.length} 条；用 `dart run w_tools_cli:list <关键词>` 或 '
         '`dart run w_tools_cli:explain <组件名>` 查询。',
       );
     return b.toString();
   }
 
   String toPrompt({int maxTokens = 0}) {
+    // 优先级：标题/项目/入口/检查/命令最高；已装包和目录最容易被截
     final lines = <String>[
       '# w_tools 项目上下文（给 AI）',
       '项目: $projectName',
       'w_tools_cli: $cliVersion / catalog v$catalogVersion',
-      '已装: ${_installed()}',
-      '直接依赖: ${dependencies.isEmpty ? '（无）' : dependencies.join(', ')}',
       'toolkit: ${toolkitPath ?? '（未初始化）'}'
           '${toolkitExports.isEmpty ? '' : '（导出 ${toolkitExports.join(', ')}）'}',
-      '暂存层: $stagingDir（$designSystemFiles 个文件，$missingStaged 个缺 STAGED）',
-      '规则: ${doctorRuleIds.map((id) => '$id=${doctorRuleLevels[id]}').join(' ')}',
       '当前: $errorCount error / $warnCount warning',
       '命令: ${commands().entries.map((e) => '${e.key}=${e.value}').join(' | ')}',
+      '直接依赖: ${dependencies.isEmpty ? '（无）' : dependencies.join(', ')}',
+      '规则: ${doctorRuleIds.map((id) => '$id=${doctorRuleLevels[id]}').join(' ')}',
+      '暂存层: $stagingDir（$designSystemFiles 个文件，$missingStaged 个缺 STAGED）',
+      '已装(w_tools/直接依赖): ${_installed()}',
       '组件: ${catalog.length} 条，用 list/explain 查，不要凭记忆造组件名',
     ];
     if (maxTokens <= 0) return lines.join('\n');
-    final budget = maxTokens * 4;
+    // 中文约 1 字/token，按 2 字符/token 留余量，而不是 4
+    final budget = maxTokens * 2;
     final out = StringBuffer();
+    var truncated = false;
     for (final line in lines) {
-      if (out.length + line.length + 1 > budget) break;
+      final remaining = budget - out.length;
+      if (remaining <= 1) {
+        truncated = true;
+        break;
+      }
+      if (line.length + 1 > remaining) {
+        out.writeln('${line.substring(0, remaining - 1)}…');
+        truncated = true;
+        break;
+      }
       out.writeln(line);
     }
-    if (out.length < lines.join('\n').length) out.writeln('…（已截断，完整内容用 --format=json）');
+    if (truncated) out.writeln('…（已截断，完整内容用 --format=json）');
     return out.toString();
   }
 
   String _installed() {
     if (packages.isEmpty) return '（未解析到 pubspec.lock）';
-    final entries = packages.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+    final direct = dependencies.toSet();
+    final entries =
+        packages.entries
+            .where((e) => e.key.startsWith('w_tools_') || direct.contains(e.key))
+            .toList()
+          ..sort((a, b) => a.key.compareTo(b.key));
     return entries.map((e) => '`${e.key} ${e.value}`').join('、');
   }
 }

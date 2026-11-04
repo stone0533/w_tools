@@ -116,9 +116,10 @@ final Map<String, String> doctorRuleLevels = <String, String>{
 
 /// 跑全部规则，或只跑 [only]。
 List<DoctorRuleResult> runDoctor(ProjectContext ctx, DoctorConfig config, {Set<String>? only}) {
-  final selected = only == null
-      ? doctorRules
-      : doctorRules.where((r) => only.contains(r.id)).toList();
+  final enabled = config.enabledRules;
+  final selected = doctorRules.where(
+    (r) => enabled.contains(r.id) && (only == null || only.contains(r.id)),
+  );
   return <DoctorRuleResult>[
     for (final rule in selected) rule.check(ctx, config),
   ];

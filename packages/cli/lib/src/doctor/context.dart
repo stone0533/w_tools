@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import '../common/glob.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
@@ -65,14 +67,8 @@ class ProjectContext {
     () => File(p.join(root.path, relPath)).readAsStringSync(),
   );
 
-  /// 忽略项按路径前缀匹配：`lib/app/generated` 只命中该目录及其子文件，
-  /// 不会误伤 `lib/app/generated2/`。
-  static bool _matchesIgnore(String rel, String raw) {
-    final prefix = raw.replaceAll('*', '');
-    if (rel == prefix) return true;
-    final withSlash = prefix.endsWith('/') ? prefix : '$prefix/';
-    return rel.startsWith(withSlash);
-  }
+  /// 忽略项与 banned 的 paths/ignore 共用同一套 glob（支持 `*` / `**` / `?`）。
+  static bool _matchesIgnore(String rel, String raw) => globMatches(rel, raw);
 
   /// 只取 `lib/` 或 `test/` 等前缀下的文件。
   Iterable<String> filesUnder(String prefix) =>

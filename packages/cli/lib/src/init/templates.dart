@@ -1,6 +1,7 @@
 import '../common/version.dart';
 import '../doctor/banned_rule.dart';
 import '../doctor/run.dart';
+import '../layout.dart';
 import 'features.dart';
 import 'templates.g.dart' as generated;
 
@@ -66,6 +67,27 @@ class InitTemplates {
       );
 
   static String appButtons() => generated.appButtonsTemplate.replaceAll('{{version}}', cliVersion);
+
+  /// UI / 暂存层生成物：路径 → (内容, 是否 starter)。
+  ///
+  /// 写入与 stale 检测都从这里派生，避免两处各列一遍文件。
+  static Map<String, ({String content, bool starter})> uiStarters({String lang = 'zh'}) {
+    return <String, ({String content, bool starter})>{
+      '${ProjectLayout.designSystemDir}/README.md': (
+        content: designSystemReadme(lang: lang),
+        starter: false,
+      ),
+      '${ProjectLayout.projectUiDir}/README.md': (
+        content: uiReadme(lang: lang),
+        starter: true,
+      ),
+      '${ProjectLayout.projectUiDir}/app_bars.dart': (content: appBars(), starter: true),
+      '${ProjectLayout.projectUiDir}/app_boxes.dart': (content: appBoxes(), starter: true),
+      '${ProjectLayout.projectUiDir}/app_buttons.dart': (content: appButtons(), starter: true),
+      '${ProjectLayout.projectUiDir}/app_card.dart': (content: appCard(), starter: true),
+      '${ProjectLayout.projectUiDir}/app_scaffold.dart': (content: appScaffold(), starter: true),
+    };
+  }
 
   static String _doctorRuleTable(bool en) {
     final header = en ? '| Rule | Checks |' : '| 规则 | 检查 |';

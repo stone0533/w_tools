@@ -2,6 +2,7 @@ import '../config.dart';
 import '../suppression.dart';
 import '../context.dart';
 import '../rule.dart';
+import '../text_scan.dart';
 
 /// R2：业务代码直接 `import 'package:w_tools_*'`。
 ///
@@ -41,12 +42,11 @@ class R2DirectSubpackageImport {
           file.startsWith('$designSystemDirPath/')) {
         continue;
       }
-      final lines = ctx.read(file).split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        if (lines[i].trimLeft().startsWith('//')) continue;
-        final m = _importPattern.firstMatch(lines[i]);
+      final source = SourceFile(file, ctx.read(file).split('\n'));
+      for (final line in source.codeLines) {
+        final m = _importPattern.firstMatch(line.code);
         if (m == null) continue;
-        if (Suppression.isIgnored(lines, i, id)) continue;
+        if (Suppression.isIgnored(source.lines, line.index, id)) continue;
         final pkg = m.group(1)!;
         if (_isDevPath(file) && devOnlyPackages.contains(pkg)) continue;
         final isMeta = pkg == 'w_tools';
@@ -55,7 +55,7 @@ class R2DirectSubpackageImport {
             rule: id,
             level: DoctorLevel.error,
             file: file,
-            line: i + 1,
+            line: line.lineNumber,
             message: isMeta ? '直接 import/export 了聚合包 w_tools' : '直接 import/export 了 $pkg',
             hint: isMeta
                 ? '改用具体子包（w_tools_ui / core / …）+ 聚合入口 ${config.toolkitEntry}'

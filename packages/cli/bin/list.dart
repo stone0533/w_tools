@@ -1,6 +1,6 @@
-// ignore_for_file: avoid_print
-
 import 'dart:convert';
+import 'dart:io';
+// ignore_for_file: avoid_print
 
 import 'package:w_tools_cli/src/catalog/catalog.dart';
 import 'package:w_tools_cli/src/common/cli.dart';
@@ -27,8 +27,7 @@ void main(List<String> argv) {
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false);
 
-  runCli(
-    argv,
+  CliCommand(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -44,13 +43,14 @@ void main(List<String> argv) {
             'components': results.map((e) => e.toJson()).toList(),
           }),
         );
+        if (results.isEmpty) exit(1);
         return;
       }
 
       print('w_tools_cli list · catalog v$catalogVersion · ${results.length} 个结果');
       if (results.isEmpty) {
         print('没有匹配。换个关键词，或运行 `dart run w_tools_cli:list` 看全部。');
-        return;
+        exit(1);
       }
       for (final entry in results) {
         print('${entry.name}  [${entry.package}]  ${entry.useFor}');
@@ -58,5 +58,5 @@ void main(List<String> argv) {
       print('');
       print('用 `dart run w_tools_cli:explain <组件名>` 看用法和反例。');
     },
-  );
+  ).run(argv);
 }

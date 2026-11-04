@@ -27,7 +27,8 @@ WMap<Store>(
 );
 ```
 
-> `LatLng` / `CameraPosition` 需要 `import 'package:google_maps_flutter/google_maps_flutter.dart';`
+> `LatLng` / `CameraPosition` 由 `package:w_tools_map/w_tools_map.dart` 转出，无需额外 import；
+> 使用其它 google_maps 类型时再直接依赖 google_maps_flutter。
 > `initialCamera` 只在**没有可渲染条目**时生效；有数据时默认取首个条目 + `defaultZoom`。
 > `update()` 会重建 marker 但不会抢走当前相机（选中后下拉刷新不会跳回第一个）。
 

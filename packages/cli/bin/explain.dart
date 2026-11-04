@@ -34,8 +34,7 @@ void main(List<String> argv) {
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false);
 
-  runCli(
-    argv,
+  CliCommand(
     usage: _usage,
     parser: parser,
     body: (args) {
@@ -47,6 +46,16 @@ void main(List<String> argv) {
       }
 
       final root = Directory(args['root'] as String? ?? Directory.current.path);
+      // 聚合入口只在“真实消费方项目”里生成；仓库自身/无 pubspec 时退回 catalog import
+      String? aggregateImport;
+      try {
+        final project = ProjectFiles.loadProject(root);
+        if (File('${root.path}/${project.toolkitEntry}').existsSync()) {
+          aggregateImport = project.packageImport;
+        }
+      } on ProjectLoadException {
+        // explain 不应因为当前目录不是 Dart 项目而失败
+      }
       final exact = findComponent(name);
       final matches = exact != null ? <CatalogEntry>[exact] : searchComponents(name);
       List<BannedRule> banned;
@@ -63,6 +72,7 @@ void main(List<String> argv) {
           jsonEncode(<String, Object?>{
             'query': name,
             'found': matches.isNotEmpty,
+            'import': aggregateImport,
             'components': matches.map((e) => e.toJson()).toList(),
             'banned': banned.map(_bannedJson).toList(),
           }),
@@ -95,18 +105,28 @@ void main(List<String> argv) {
       print('分组：${e.section}');
       print('用途：${e.useFor}');
       if (e.dontUseFor != null) print('不要用于：${e.dontUseFor}');
-      print("import '${e.importPath}';");
-      print('文档：${e.docs}');
+      if (aggregateImport != null) {
+        print("import '$aggregateImport';");
+        print('说明：业务代码统一走聚合入口；子包 import 仅限 lib/app/ui、lib/app/design_system、toolkit 内。');
+      } else {
+        print("import '${e.importPath}';");
+      }
+      print('文档：${docsUrl(e.docs)}');
       for (final entry in banned) {
         print(_bannedText(entry));
       }
     },
-  );
+  ).run(argv);
 }
 
 List<BannedRule> _matchingBanned(String query, Directory root) {
   final config = ProjectFiles.loadConfig(root);
   return config.banned.where((entry) => entry.validate() == null && entry.matches(query)).toList();
+}
+
+String docsUrl(String docs) {
+  if (docs.startsWith('http://') || docs.startsWith('https://')) return docs;
+  return 'https://github.com/stone0533/w_tools/blob/main/${docs.replaceFirst(RegExp(r'^/'), '')}';
 }
 
 String _bannedText(BannedRule entry) {

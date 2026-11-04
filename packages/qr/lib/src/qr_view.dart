@@ -117,6 +117,10 @@ class WQrView extends StatefulWidget {
   }) : assert(
          onScanned != null || onQRViewCreated != null,
          'WQrView: onScanned 与 onQRViewCreated 至少提供一个',
+       ),
+       assert(
+         onScanned != null || !scanOnce,
+         'WQrView: 只监听数据流 / 使用 onQRViewCreated 时必须 scanOnce: false，否则首码后相机会暂停',
        );
 
   @override

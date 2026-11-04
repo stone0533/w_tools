@@ -227,7 +227,7 @@ const String agentsUi = r'''
 - **列表 / 通知**：列表项保活用 `WKeepAliveWrapper`；滚动通知 / 百分比用 `WNotificationListenerBuilder`
   （百分比只处理 depth 0 的 `ScrollUpdateNotification`）。
 - **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
-  在 `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper` 的 build 期构建。
+  在 `ScreenUtilInit.builder` / `WAppOptions.builder`（或自建插件的 `builderWrapper`）的 build 期构建。
   `wrapApp` 没有 Theme；需要 Theme 的排版扩展用 `builderWrapper`。
 - **盒子**：重复 `BoxDecoration` 收进 `AppBoxes`；重复卡片用 `AppCard`；
   一次性盒子用 `Container` + `BoxDecoration`；需要 width/height/constraints/transform
@@ -250,19 +250,19 @@ const String agentsApi = r'''
 ''';
 
 const String agentsApp = r'''
-- **启动**：入口用 `WApp.start()`，不要手写 runApp + 初始化顺序；插件需要顺序时用
-  `WAppPlugin.dependsOn`。`builderWrapper` 在 MaterialApp 内，`wrapApp` 在外且没有
-  Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
+- **启动**：入口用 `WApp.options(WAppOptions(...)).start()`，不要手写 runApp + 初始化顺序；
+  插件需要顺序时用 `WAppPlugin.dependsOn`。`builderWrapper` 在 MaterialApp 内，`wrapApp`
+  在外且没有 Theme / MediaQuery；`WRouteObserver` 已由 WApp 自动追加，不要重复添加。
 - **底部面板**：用 `WBottomSheet`。
-- **全局主题 / 默认视图**：用 `WApp.appWrapper` 组合对应包的主题 Widget（见该包文档）；
-  不要为此让 app 依赖其它子包，也不需要写插件。
+- **全局主题 / 默认视图**：用 `WAppOptions.appWrapper` 组合对应包的主题 Widget（见该包文档）；
+  不要为此让 app 依赖其它子包。
 ''';
 
 const String agentsAsync = r'''
 - **异步区块**：页面统一 `WAsyncController + WAsyncView`；不要手写
   `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
   每个独立区块一个 Controller；全局默认 loading/empty/error 用 `WAsyncTheme`，
-  放在 App 根节点（`WAppPlugin.wrapApp` / `WAppOptions.appWrapper`），不要只放页面 body。
+  放在 App 根节点（`WAppOptions.appWrapper`；或消费方自建插件的 `wrapApp`），不要只放页面 body。
   普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，
   不要把 `SmartRefresher` 包在 `WAsyncView` 外面；分页 `loadMore` 自己维护，
   `loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
@@ -272,7 +272,10 @@ const String agentsAsync = r'''
 ''';
 
 const String agentsToast = r'''
-- **轻提示**：用 `WToast`；确认框用 Flutter `showDialog`。
+- **初始化**：`MaterialApp(builder: BotToastInit(), navigatorObservers: [BotToastNavigatorObserver()])`；
+  未初始化时所有提示会静默失败。
+- **轻提示**：用 `WToast.showSuccess/showError/showWarning/showText`；确认框用 Flutter `showDialog`。
+- **加载**：用 `WToast.runWithLoading`；不要手写遮罩。
 ''';
 
 const String agentsCore = r'''
@@ -453,7 +456,7 @@ const String agentsUiEn = r'''
 - **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
   `WNotificationListenerBuilder` for scroll notifications/percentage (depth 0 only).
 - **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
-  in `ScreenUtilInit.builder` / `WAppPlugin.builderWrapper`; `wrapApp` has no Theme.
+  in `ScreenUtilInit.builder` / `WAppOptions.builder` (or a custom plugin's `builderWrapper`); `wrapApp` has no Theme.
 - **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated cards;
   use `Container` + `BoxDecoration` for one-off boxes. Do not add an `AppBox` / `AppContainer` wrapper.
 ''';
@@ -475,12 +478,13 @@ const String agentsApiEn = r'''
 ''';
 
 const String agentsAppEn = r'''
-- **Startup**: use `WApp.start()` as the entry point, not a hand-written runApp/init sequence;
-  declare plugin order with `WAppPlugin.dependsOn`. `builderWrapper` lives inside MaterialApp;
-  `wrapApp` is outside and has no Theme/MediaQuery. `WRouteObserver` is appended automatically.
+- **Startup**: use `WApp.options(WAppOptions(...)).start()` as the entry point, not a hand-written
+  runApp/init sequence; declare plugin order with `WAppPlugin.dependsOn`. `builderWrapper` lives
+  inside MaterialApp; `wrapApp` is outside and has no Theme/MediaQuery. `WRouteObserver` is
+  appended automatically.
 - **Bottom sheet**: use `WBottomSheet`.
-- **Global theme / defaults**: compose the theme widgets of the packages you use with
-  `WApp.appWrapper`; do not make `w_tools_app` depend on other subpackages, and no plugin is needed.
+- **Global theme / defaults**: compose theme widgets with `WAppOptions.appWrapper`; do not make
+  `w_tools_app` depend on other subpackages.
 ''';
 
 const String agentsAsyncEn = r'''
@@ -496,7 +500,11 @@ const String agentsAsyncEn = r'''
 ''';
 
 const String agentsToastEn = r'''
-- **Light feedback**: use `WToast`; use Flutter `showDialog` for confirmation.
+- **Setup**: `MaterialApp(builder: BotToastInit(), navigatorObservers: [BotToastNavigatorObserver()])`;
+  without it every toast fails silently.
+- **Light feedback**: use `WToast.showSuccess/showError/showWarning/showText`; use Flutter
+  `showDialog` for confirmations.
+- **Loading**: use `WToast.runWithLoading`; do not hand-roll an overlay.
 ''';
 
 const String agentsCoreEn = r'''

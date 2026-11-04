@@ -93,6 +93,11 @@ class FeedbackLinter {
   static final _fieldLine = RegExp(r'^\s*-\s*(.+?)\s*[：:]');
   static final _statusDate = RegExp(r'状态变更[：:]\s*(\d{4}-\d{2}-\d{2})');
   static final _issueLink = RegExp(r'#\d+|https?://');
+  static final _releaseVersion = RegExp(
+    r'(版本|version)\s*[：:]\s*[A-Za-z_]*\s*\d+\.\d+\.\d+',
+    caseSensitive: false,
+  );
+  static final _reason = RegExp(r'(理由|原因|reason)\s*[：:]', caseSensitive: false);
 
   FeedbackLintResult lintFiles(List<String> paths, {DateTime? now}) {
     final issues = <FeedbackIssue>[];
@@ -134,18 +139,20 @@ class FeedbackLinter {
           );
           continue;
         }
+        final body = <String>[];
+        var end = i + 1;
+        while (end < lines.length &&
+            !lines[end].startsWith('### ') &&
+            !lines[end].startsWith('## ')) {
+          body.add(lines[end]);
+          end++;
+        }
+        final text = '${heading.group(2)}\n${body.join('\n')}';
+
         if (status != '待处理' && status != 'pending') {
           // 已确认必须链 issue（#123 或 http 链接），否则没法追踪
           if (status == '已确认' || status == 'confirmed') {
-            final body = <String>[];
-            var end = i + 1;
-            while (end < lines.length &&
-                !lines[end].startsWith('### ') &&
-                !lines[end].startsWith('## ')) {
-              body.add(lines[end]);
-              end++;
-            }
-            if (!_issueLink.hasMatch(body.join('\n'))) {
+            if (!_issueLink.hasMatch(text)) {
               issues.add(
                 FeedbackIssue(
                   file: path,
@@ -155,18 +162,31 @@ class FeedbackLinter {
               );
             }
           }
+          if (status == '已修复' || status == 'fixed') {
+            if (!_version.hasMatch(text) && !_releaseVersion.hasMatch(text)) {
+              issues.add(
+                FeedbackIssue(
+                  file: path,
+                  line: i + 1,
+                  message: '已修复条目缺少版本号（应为「✅ x.y.z」或「版本：x.y.z」）',
+                ),
+              );
+            }
+          }
+          if (status == '不修' || status == 'wontfix') {
+            if (!_reason.hasMatch(text)) {
+              issues.add(
+                FeedbackIssue(
+                  file: path,
+                  line: i + 1,
+                  message: '不修条目缺少理由（应为「理由：…」或「原因：…」）',
+                ),
+              );
+            }
+          }
           continue;
         }
         pending++;
-
-        final body = <String>[];
-        var end = i + 1;
-        while (end < lines.length &&
-            !lines[end].startsWith('### ') &&
-            !lines[end].startsWith('## ')) {
-          body.add(lines[end]);
-          end++;
-        }
 
         // 字段：按行首 `- 字段：` 收集，避免正文里偶然出现关键词就过关
         final present = <String>{};
@@ -176,9 +196,7 @@ class FeedbackLinter {
         }
         for (final aliases in _requiredFields) {
           // 允许「命令 / 输入」「影响（我因此…）」这类带后缀的写法
-          final filled = aliases.any(
-            (a) => present.any((key) => key.startsWith(a)),
-          );
+          final filled = aliases.any((a) => present.any((key) => key.startsWith(a)));
           if (!filled) {
             issues.add(
               FeedbackIssue(
@@ -191,7 +209,6 @@ class FeedbackLinter {
         }
 
         // stale：看「状态变更：YYYY-MM-DD」
-        final text = body.join('\n');
         final dateMatch = _statusDate.firstMatch(text);
         if (dateMatch != null) {
           final date = DateTime.tryParse(dateMatch.group(1)!);
