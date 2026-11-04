@@ -1,0 +1,119 @@
+# 公开类型中，有意不进入 catalog 的子 API。
+# 新增公开类型时：要么登记 catalog，要么在这里显式登记。
+# 生成：python3 scripts/check_public_catalog.py --write
+version: 1
+packages:
+  w_tools_api:
+    - ApiClientId
+    - BaseLocalDataSource
+    - BaseRemoteDataSource
+    - BaseRepository
+    - IApiPath
+    - WLogPart
+  w_tools_app:
+    - AppServicePlugin
+    - MyPlugin
+  w_tools_app_getx:
+    - WLocaleConfig
+  w_tools_async:
+    - WAsyncCancelled
+    - WAsyncErrorWidgetBuilder
+    - WAsyncFailure
+    - WAsyncPageLoader
+    - WAsyncRetryErrorHandler
+    - WAsyncStatus
+    - WAsyncStrings
+    - WAsyncSuccess
+    - WAsyncTokenLoader
+    - WAsyncTokenPageLoader
+    - WCancellationException
+  w_tools_core:
+    - WCountdownCallback
+    - WCountdownRemainingType
+    - WMapExtension
+    - WPlatformType
+    - WUx
+  w_tools_form:
+    - MyCustomSearchAction
+    - WCardNumberInputFormatter
+    - WDividerInputFormatter
+    - WFormBorderBuilderLayout
+    - WFormBorderColumnLayout
+    - WFormBorderConfig
+    - WFormBorderConfigScope
+    - WFormBorderDecoration
+    - WFormBorderDecorationExtension
+    - WFormBorderLayout
+    - WFormBorderLayoutBuilder
+    - WFormBorderLayoutData
+    - WFormBorderState
+    - WFormCustomValidator
+    - WFormFieldShell
+    - WFormFieldStyleScope
+    - WFormIcons
+    - WFormInputFormatters
+    - WFormPopupRoute
+    - WFormReadOnlyScope
+    - WFormScope
+    - WFormTextFieldAction
+    - WFormTextFieldClearButton
+    - WFormTextFieldData
+    - WFormTextFieldPasswordToggle
+    - WFormTextFieldScope
+    - WFormTheme
+    - WFormValidator
+    - WFormValidatorItem
+  w_tools_map:
+    - WMapItem
+  w_tools_map_google:
+    - WMapConfig
+    - WMapIconAssets
+  w_tools_qr:
+    - WQrViewState
+  w_tools_toast:
+    - WToastTheme
+  w_tools_ui:
+    - WAppBarStyle
+    - WAssetImageSource
+    - WBadgeConfig
+    - WBase64ImageSource
+    - WButtonContentBuilder
+    - WButtonEffectType
+    - WButtonMotion
+    - WButtonResolvedStyle
+    - WButtonSemantics
+    - WButtonSize
+    - WButtonStyle
+    - WButtonStyles
+    - WClipRRectConfig
+    - WFileImageSource
+    - WGlobalKeyExtension
+    - WGradients
+    - WImageController
+    - WImageDefaultsScope
+    - WImageError
+    - WImageErrorKind
+    - WImageErrorView
+    - WImageFrame
+    - WImageLoadConfig
+    - WImageLoadSnapshot
+    - WImageLoadStatus
+    - WImageProgress
+    - WImageStyle
+    - WImageStyleX
+    - WImageType
+    - WNavBarConfig
+    - WNetworkImageSource
+    - WNotificationListenerBuilderExtension
+    - WPressEffect
+    - WProviderImageSource
+    - WScreenData
+    - WShadows
+    - WStepItemBuilder
+    - WStepSemanticLabelBuilder
+    - WStepSeparatorBuilder
+    - WStepState
+    - WStepStyle
+    - WTabBarConfig
+    - WTextStyleExtension
+    - WTextStylesThemeData

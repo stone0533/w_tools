@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 import 'package:w_tools_cli/src/catalog/catalog.dart';
 import 'package:w_tools_cli/src/explain/render_explain.dart';
 import 'package:w_tools_cli/src/init/templates.g.dart' as templates;
@@ -23,6 +26,25 @@ void main() {
           'w_tools_qr',
         ]),
       );
+    });
+
+    test('所有库包至少有一个 teach 入口', () {
+      final excluded = <String>{
+        'w_tools_cli',
+        'w_tools_device',
+        'w_tools_e2e',
+        'w_tools_figma',
+      };
+      final packages = <String>{
+        for (final pubspec in Directory('../../packages').listSync().whereType<Directory>())
+          if (File('${pubspec.path}/pubspec.yaml').existsSync())
+            (loadYaml(File('${pubspec.path}/pubspec.yaml').readAsStringSync()) as Map)['name']
+                as String,
+      };
+      final taught = teachEntries.map((e) => e.package).toSet();
+      for (final package in packages.difference(excluded)) {
+        expect(taught, contains(package), reason: '$package 没有 teach 入口');
+      }
     });
 
     test('related 必须能解析到组件名 / 别名', () {
@@ -96,6 +118,23 @@ void main() {
         expect(entry.value, isNot(contains('w_tools_cli:context')), reason: entry.key);
         expect(entry.value, isNot(contains('w_tools_cli:list')), reason: entry.key);
         expect(entry.value, isNot(contains('w_tools_cli:explain')), reason: entry.key);
+      }
+    });
+
+    test('每个 InitFeature 都有 zh/en AGENTS 模板', () {
+      final features = <String, (String, String)>{
+        'app': (templates.agentsApp, templates.agentsAppEn),
+        'form': (templates.agentsForm, templates.agentsFormEn),
+        'ui': (templates.agentsUi, templates.agentsUiEn),
+        'api': (templates.agentsApi, templates.agentsApiEn),
+        'toast': (templates.agentsToast, templates.agentsToastEn),
+        'qr': (templates.agentsQr, templates.agentsQrEn),
+        'map': (templates.agentsMap, templates.agentsMapEn),
+        'async': (templates.agentsAsync, templates.agentsAsyncEn),
+      };
+      for (final entry in features.entries) {
+        expect(entry.value.$1.trim(), isNotEmpty, reason: '${entry.key} zh');
+        expect(entry.value.$2.trim(), isNotEmpty, reason: '${entry.key} en');
       }
     });
 

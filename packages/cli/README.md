@@ -461,7 +461,18 @@ dart run tool/gen_catalog.dart
 dart run tool/gen_templates.dart --check
 dart run tool/gen_catalog.dart --check
 dart test
+python3 ../../scripts/check_public_catalog.py
 ```
+
+`catalog/uncataloged.yaml` 记录有意不进入 catalog 的公开子 API；
+新增公开类型时，要么登记 catalog，要么更新基线：
+
+```bash
+python3 ../../scripts/check_public_catalog.py --write
+```
+
+AI 教学契约由 `test/ai_contract_test.dart` 检查：teach 组件必须有
+usage / pitfalls / related，所有 AGENTS feature 必须有 zh/en 模板。
 
 > 改 CLI 版本号时同步 `lib/src/common/version.dart` 的 `cliVersion`；
 > `test/version_test.dart` 会拦住漂移。
