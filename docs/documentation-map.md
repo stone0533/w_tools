@@ -122,7 +122,7 @@ scripts/README.md         scripts 运行手册
 | `docs/documentation-map.md` | 维护者（人/仓库 AI） | 文档定位与整理规则 | 文档结构变化 | 包 API 细节 |
 | `docs/conventions.md` | 接入者 / 维护者 | 接入方式与 doctor 规则 | 接入规则 / R1~R9 变化 | 组件目录 |
 | `docs/ai-contract.md` | 维护者 / 仓库 AI | AI 分层、更新流程、完整性 | catalog / AGENTS 机制变化 | 单个组件教程 |
-| `docs/ai-maintainer-prompts.md` | 维护者（人/仓库 AI） | 按场景复制的提示词 | 工作流变化 | 完整规则副本 |
+| `docs/ai-maintainer-prompts.md` | 维护者（人/仓库 AI） | 按场景复制的提示词 | 工作流变化 | 完整规则副本；命令由 `check_prompt_docs.py` 守 |
 | `docs/modules/*.md` | 包使用者（人/AI） | 包职责、API、用法 | 包的公开行为变化 | 维护者内部流程 |
 | `docs/modules/components.md` | 包使用者（人/AI） | 组件目录 | **只由生成器改** | 手写内容 |
 | `docs/agents/*.md` | 仓库 AI | 首选入口、硬规则、禁止项 | 规则 / 入口变化 | 完整教程、历史 |
@@ -314,6 +314,8 @@ scripts/README.md
 8. 规则变化必须同步 AGENTS 模板。
 9. 至少更新一个可运行 example 或测试，避免只写文档。
 10. 改完跑 check_docs / preflight。
+11. 新增顶层文档 / 子目录 README / ADR，必须加进 `docs/README.md` 索引（check_docs_facts 会拦）。
+12. 在 `docs/agents/README.md` 写的首选入口，必须能在该包规则页找到（check_agents_consistency 会拦）。
 ```
 
 ---
@@ -336,19 +338,22 @@ scripts/README.md
 
 ## 7. 自动检查
 
-| 检查 | 覆盖 |
-|---|---|
-| `scripts/check_docs.sh` | 链接 / 旧命令 / 片段 / README / 版本声明 |
-| `scripts/check_doc_symbols.py` | 文档里的 W* 符号 |
-| `scripts/check_removed_api.py` | 已删除 API 残留 |
-| `scripts/check_public_catalog.py` | 公开类型 → catalog |
-| `scripts/check_package_docs.py` | README 版本 / example |
-| `scripts/check_docs_facts.py` | 当前文档事实（包数量 / 旧命令） |
-| `scripts/check_async_docs.py` | async 旧 API |
-| `packages/cli/test/ai_contract_test.dart` | teach / prompt / AGENTS feature |
-| `tool/gen_catalog.dart --check` | catalog 生成物 |
-| `tool/gen_templates.dart --check` | AGENTS 生成物 |
-| `scripts/preflight.sh --with-tests` | 全仓最终门禁 |
+**门禁清单的唯一来源是 [`scripts/README.md`](../scripts/README.md)** —— 这里只列入口与边界，
+不重复维护第三份清单。历史上这张表漏过 `check_feedback.sh` / `check_deprecations.py` /
+`check_style_literals.py`，于是“文档说有哪些检查”和“CI 实际跑什么”分叉了。
+
+| 入口 | 覆盖 | 何时跑 |
+|---|---|---|
+| `scripts/preflight.sh --with-tests` | 全部静态门禁 + 全部包 / example / 根包测试 | 提交前 / 合并前；CI 的 umbrella job 直接调用它 |
+| `scripts/check_docs.sh` | 只改文档：链接 / 旧命令 / 版本声明 / 反馈台账 / 提示词 / docs/agents 一致性 | 改 docs |
+| `scripts/check_docs_facts.py` | 规模数字（从 pubspec 推导）与文档索引完整性 | check_docs |
+| `scripts/check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名一致 | check_docs |
+| `scripts/ci_matrix.py --check` | CI 包矩阵 / 门禁步骤与 manifest、preflight 一致 | preflight |
+| `packages/cli/tool/gen_catalog.dart --check` | catalog 生成物 | 改 catalog |
+| `packages/cli/tool/gen_templates.dart --check` | AGENTS 生成物 | 改 templates |
+| `packages/cli/test/ai_contract_test.dart` | teach / prompt / AGENTS feature | 改 catalog / templates |
+
+`check_docs.sh` 是 `preflight` 的子集，**不要只跑它就说全仓通过**。
 
 ---
 

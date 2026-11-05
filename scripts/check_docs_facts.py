@@ -2,6 +2,14 @@
 """当前文档的事实一致性检查。
 
 只检查“当前文档”，历史目录（migrations/adr/analysis/release）允许旧版本和旧数量。
+
+检查四类事实：
+1. 规模类数字（N 个库子包 / N 个 Flutter）从 pubspec 推导后与正文比对；
+2. `docs/README.md` 必须索引每个顶层文档、子目录 README，以及没有 README 的目录下的文档；
+3. 每个带 README 的 docs 子目录，它的 README 必须索引本目录下所有文档；
+4. 当前文档不得再使用旧命令入口。
+
+第 1 条用推导而不是“记住几个过期数字”：包数量变化时这里不需要改代码。
 """
 from __future__ import annotations
 
@@ -30,14 +38,15 @@ packages = {}
 for pubspec in (root / 'packages').glob('*/pubspec.yaml'):
     data = yaml.safe_load(pubspec.read_text())
     packages[data['name']] = data
-flutter_packages = {
-    name for name, data in packages.items()
-    if data.get('environment', {}).get('flutter') and name not in TOOLS
+library_packages = set(packages) - TOOLS
+flutter_library = {
+    name for name in library_packages
+    if packages[name].get('environment', {}).get('flutter')
 }
+
 modules_readme = root / 'docs/modules/README.md'
 if modules_readme.exists():
     text = modules_readme.read_text()
-    library_packages = set(packages) - TOOLS
     expected = f'**{len(library_packages)} 个库子包**'
     if expected not in text:
         errors.append(f'docs/modules/README.md: 缺少当前包数量 {expected}')
@@ -55,18 +64,62 @@ if modules_readme.exists():
     for name in sorted(root_aggregate):
         if name not in text:
             errors.append(f'docs/modules/README.md: 根聚合包 {name} 未说明')
-patterns = {
-    r'9 个 Flutter': '当前文档仍写 9 个 Flutter 子包（实际 11）',
-    r'8 个 Flutter': '当前文档仍写 8 个 Flutter 子包（实际 11）',
-    r'13 个子包': '当前文档仍写 13 个子包（实际更多）',
-    r'11 个 Flutter 子包通过[^\n]*聚合': '当前文档错误声称 11 个全部由根包聚合',
-    r'dart run w_tools_cli:(context|list|explain|doctor|init|feedback)': '当前文档仍用旧命令入口',
-}
+
+# 1) 规模类数字必须与推导值一致（不再维护“哪些数字算过期”的清单）。
+scale = {'库子包': len(library_packages), 'Flutter': len(flutter_library)}
 for path in files:
-    text = path.read_text()
-    for pattern, message in patterns.items():
-        if re.search(pattern, text):
-            errors.append(f'{path.relative_to(root)}: {message}')
+    for number, line in enumerate(path.read_text().splitlines(), start=1):
+        for label, expected in scale.items():
+            for match in re.finditer(rf'(\d+)\s*个\s*{label}', line):
+                actual = int(match.group(1))
+                if actual != expected:
+                    errors.append(
+                        f'{path.relative_to(root)}:{number}: 写「{actual} 个 {label}」，'
+                        f'按 pubspec 推导应为 {expected}',
+                    )
+
+# 2) docs/README.md 是文档索引：顶层文档 / 子目录 README / 无 README 目录下的文档都要有链接。
+link_re = re.compile(r'!?\[[^\]]*\]\(([^)]+)\)')
+
+
+def linked_targets(path: pathlib.Path) -> set[pathlib.Path]:
+    targets: set[pathlib.Path] = set()
+    for match in link_re.finditer(path.read_text()):
+        target = match.group(1).strip().split('#')[0].strip()
+        if not target or target.startswith(('http://', 'https://', 'mailto:')):
+            continue
+        targets.add((path.parent / target).resolve())
+    return targets
+
+
+docs_index = root / 'docs/README.md'
+if docs_index.exists():
+    indexed = linked_targets(docs_index)
+    for path in sorted((root / 'docs').rglob('*.md')):
+        rel = path.relative_to(root / 'docs')
+        if rel == pathlib.Path('README.md'):
+            continue
+        indexed_by_dir = (path.parent / 'README.md').exists()
+        if len(rel.parts) > 1 and rel.name != 'README.md' and indexed_by_dir:
+            continue  # 子目录文档由该目录 README 负责
+        if path.resolve() not in indexed:
+            errors.append(f'docs/README.md: 没有索引 docs/{rel.as_posix()}')
+else:
+    errors.append('缺少 docs/README.md')
+
+# 3) 每个子目录的 README 必须索引本目录下的所有文档。
+for readme in sorted((root / 'docs').glob('*/README.md')):
+    indexed = linked_targets(readme)
+    for path in sorted(readme.parent.glob('*.md')):
+        if path.name == 'README.md':
+            continue
+        if path.resolve() not in indexed:
+            errors.append(f'{readme.relative_to(root)}: 没有索引 {path.name}')
+
+# 4) 当前文档不得再使用旧命令入口。
+for path in files:
+    if re.search(r'dart run w_tools_cli:(context|list|explain|doctor|init|feedback)', path.read_text()):
+        errors.append(f'{path.relative_to(root)}: 仍用旧命令入口（应为 w_tools_cli:w_tools ...）')
 
 if errors:
     for error in errors:

@@ -86,6 +86,8 @@ targets: list[pathlib.Path] = []
 for sub in ('docs/agents', 'docs/recipes', 'docs/modules'):
     targets.extend(sorted((root / sub).glob('*.md')))
 targets.extend(sorted((root / 'packages').glob('*/README.md')))
+# 根 AGENTS.md 是仓库 AI 的主入口，代码块同样要对着源码校验。
+targets.append(root / 'AGENTS.md')
 
 call_re = re.compile(r'\b(W[A-Z][A-Za-z0-9_]*)\s*\(')
 member_access_re = re.compile(r'\b(W[A-Z][A-Za-z0-9_]*)\.([a-zA-Z_]\w*)')

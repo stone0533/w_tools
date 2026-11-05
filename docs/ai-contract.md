@@ -282,7 +282,7 @@ python3 scripts/check_public_catalog.py --write
 由 [`scripts/check_package_docs.py`](../scripts/check_package_docs.py) 检查：
 
 - 每个子包有 README；
-- README 安装主版本与 pubspec 一致；
+- README 安装约束按 caret 语义接受 pubspec 当前版本（不是只比 major）；
 - 有 `example/` 的包必须在 README 提到示例。
 
 ### 5.5 生成物新鲜度
@@ -307,6 +307,23 @@ dart run tool/gen_templates.dart --check
 - 别名精确命中；
 - context capabilities；
 - README 快速开始。
+
+### 5.7 文档入口一致性
+
+- [`scripts/check_docs_facts.py`](../scripts/check_docs_facts.py)：规模数字从 pubspec 推导；
+  `docs/README.md` 必须索引每个顶层文档 / 子目录 README / ADR；子目录 README 必须索引本目录文档；
+- [`scripts/check_agents_consistency.py`](../scripts/check_agents_consistency.py)：
+  `docs/agents/README.md` 写的首选入口必须在该包规则页出现；
+- root [`AGENTS.md`](../AGENTS.md) 的代码块与已删除 API 同样纳入
+  `check_doc_symbols.py` / `check_removed_api.py`；
+- [`scripts/check_prompt_docs.py`](../scripts/check_prompt_docs.py)：维护者提示词引用的脚本 / flag /
+  `cd packages/cli` / 占位符 / 场景编号都必须存在且可解析。
+
+### 5.8 清单同源
+
+- [`scripts/ci_matrix.py`](../scripts/ci_matrix.py)：CI 包矩阵从 `packages.manifest` 生成，
+  `--check` 保证 manifest / 目录 / workflow 不变形，且 CI 的静态门禁调用 `preflight.sh`；
+- `preflight.sh` 是静态门禁的唯一入口，CI 不再手抄步骤。
 
 ---
 

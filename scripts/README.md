@@ -27,8 +27,12 @@ bash scripts/preflight.sh --with-tests
 format / analyze / docs / AI 契约（含 feedback）
 公开类型 catalog / 弃用 / 风格
 release check
+CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
 全部包 + example + root 测试 + root example 测试 + 模板编译
 ```
+
+CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩阵由
+`scripts/ci_matrix.py` 从 `packages.manifest` 生成。两边不再各维护一份清单。
 
 ---
 
@@ -38,26 +42,29 @@ release check
 
 | 脚本 | 作用 | 何时跑 |
 |---|---|---|
-| `preflight.sh` | 全仓门禁总入口 | 提交前 / 合并前 |
-| `check_docs.sh` | 文档与 AI 资产检查总入口 | 只改文档时可单独跑 |
+| `preflight.sh` | 全仓门禁总入口（CI 直接调用它） | 提交前 / 合并前 |
+| `check_docs.sh` | 文档与 AI 资产检查总入口（每步会打名字） | 只改文档时可单独跑 |
+| `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移 | preflight / CI matrix job |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
 
 `check_docs.sh` 是 `preflight` 的子集，**不要只跑它就说全仓通过**。
 
-`packages.manifest` 是 preflight / release_check 的包清单来源；新增包时先改它。
+`packages.manifest` 是 CI 矩阵、preflight、release_check 的共同来源；新增包时先改它。
 
 ### 文档 / AI 契约
 
 | 脚本 | 作用 | 调用方 |
 |---|---|---|
-| `check_doc_symbols.py` | 文档 `W*` 符号是否存在 | preflight |
+| `check_doc_symbols.py` | 文档 `W*` 符号是否存在（含 root `AGENTS.md`） | preflight |
 | `check_docs_snippets.py` | 已证伪 API / components 表格列数 | check_docs |
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
-| `check_package_docs.py` | 子包 README 版本 / example 链接 | check_docs |
-| `check_docs_facts.py` | 当前文档事实（包数量 / 旧命令） | check_docs |
+| `check_package_docs.py` | 子包 README 安装约束（caret 语义）/ example 链接 | check_docs |
+| `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性 / 旧命令 | check_docs |
+| `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名一致 | check_docs |
+| `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查 | preflight |
-| `check_removed_api.py` | 已删除 API 是否还在推荐文档 | preflight |
+| `check_removed_api.py` | 已删除 API 是否还在推荐文档（含 root `AGENTS.md`） | preflight |
 
 ### API / 风格
 
@@ -86,10 +93,12 @@ release check
 
 这些是启发式检查，不是完整编译器/analyzer：
 
-- `check_doc_symbols.py`：正则匹配符号和成员；
+- `check_doc_symbols.py`：正则匹配符号和成员（只扫 ```dart 代码块）；
 - `check_docs_snippets.py`：只拦截已知错误写法；
 - `check_public_catalog.py`：基于 export/part 的静态扫描 + `uncataloged.yaml` 基线；
-- `check_docs_facts.py`：只校验当前文档的包数量/聚合/旧命令规则。
+- `check_docs_facts.py`：规模数字与索引完整性，不校验 API 细节；
+- `check_agents_consistency.py`：只比入口名，不比措辞；
+- `ci_matrix.py --check`：查清单是否同源，不查 workflow 语义。
 
 发布前：
 

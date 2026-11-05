@@ -1,28 +1,55 @@
 #!/usr/bin/env bash
-# 文档自检：相对链接、旧命令、包清单、硬编码版本表。
-# 用法：bash scripts/check_docs.sh（CI 的 umbrella job 也会跑）
-set -euo pipefail
+# 文档自检：相对链接、旧命令、包清单、硬编码版本表、docs/agents 一致性、子检查汇总。
+# 用法：bash scripts/check_docs.sh（preflight 与 CI 都会跑）
+#
+# 每一步都会打出自己的名字：失败时能直接看出是哪一步，而不是只看到子脚本的堆栈。
+# 只有显式标了 step_optional 的步骤，退出码 2 才会按“环境不可用”跳过。
+set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
 errors=0
-note() {
-  printf '✗ %s\n' "$*" >&2
-  errors=$((errors + 1))
+_step() {
+  local allow_skip="$1" label="$2"
+  shift 2
+  local output status
+  output="$("$@" 2>&1)"
+  status=$?
+  if [ "$status" -eq 0 ]; then
+    printf '✓ %s\n' "$label"
+  elif [ "$allow_skip" -eq 1 ] && [ "$status" -eq 2 ]; then
+    printf '! %s（环境不可用，跳过）\n' "$label"
+    [ -n "$output" ] && printf '%s\n' "$output" | sed 's/^/    /'
+  else
+    printf '✗ %s\n' "$label" >&2
+    [ -n "$output" ] && printf '%s\n' "$output" | sed 's/^/    /' >&2
+    errors=$((errors + 1))
+  fi
 }
 
-tmp="$(mktemp)"
-trap 'rm -f "$tmp"' EXIT
+step() { _step 0 "$@"; }
+# 依赖 dart 运行时的检查：环境不可用（退出码 2）时跳过，不把环境问题算成文档失败。
+step_optional() { _step 1 "$@"; }
 
 # 1) 相对链接必须存在
-python3 - "$tmp" <<'PY'
+check_links() {
+  local tmp bad=0 python_status=0
+  tmp="$(mktemp)"
+  python3 - "$tmp" <<'PY' || python_status=$?
 import pathlib
 import re
 import sys
 
 out = pathlib.Path(sys.argv[1])
-roots = ['docs', 'README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'packages/cli/README.md', 'scripts/README.md']
+roots = [
+    'docs',
+    'README.md',
+    'CONTRIBUTING.md',
+    'AGENTS.md',
+    'packages/cli/README.md',
+    'scripts/README.md',
+]
 files = []
 for root in roots:
     p = pathlib.Path(root)
@@ -30,6 +57,10 @@ for root in roots:
         files.append(p)
     elif p.is_dir():
         files.extend(p.rglob('*.md'))
+# 包 README / 包 AGENTS / example README 也属于推荐阅读路径，链接同样要能点开。
+for pattern in ('packages/*/README.md', 'packages/*/AGENTS.md', 'packages/*/example/README.md'):
+    files.extend(pathlib.Path('.').glob(pattern))
+files = sorted(set(files))
 
 pat = re.compile(r'!?\[[^\]]*\]\(([^)]+)\)')
 bad = []
@@ -45,58 +76,63 @@ for f in files:
             bad.append(f'{f} -> {target}')
 out.write_text('\n'.join(bad))
 PY
-while IFS= read -r line; do
-  [ -n "$line" ] && note "失效链接：$line"
-done < "$tmp"
+  if [ "$python_status" -ne 0 ]; then
+    printf '链接检查脚本执行失败（python 退出 %s）\n' "$python_status" >&2
+    rm -f "$tmp"
+    return 1
+  fi
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    printf '✗ 失效链接：%s\n' "$line" >&2
+    bad=1
+  done < "$tmp"
+  rm -f "$tmp"
+  return "$bad"
+}
 
 # 2) 不允许旧命令（CLI 已拆到 w_tools_cli）
-if grep -rnE 'w_tools:(init|doctor)' doc docs README.md CONTRIBUTING.md AGENTS.md packages/cli/README.md >/dev/null 2>&1; then
-  note '文档里还有旧命令 w_tools:init / w_tools:doctor（应为 w_tools_cli:...）'
-  grep -rnE 'w_tools:(init|doctor)' doc docs README.md CONTRIBUTING.md AGENTS.md packages/cli/README.md >&2
-fi
+check_old_commands() {
+  local hits
+  hits="$(grep -rnE 'w_tools:(init|doctor)' docs README.md CONTRIBUTING.md AGENTS.md packages/cli/README.md 2>/dev/null || true)"
+  [ -z "$hits" ] && return 0
+  printf '文档里还有旧命令 w_tools:init / w_tools:doctor（应为 w_tools_cli:...）\n' >&2
+  printf '%s\n' "$hits" >&2
+  return 1
+}
 
 # 3) 新增包要出现在模块文档索引里
-for dir in packages/*/; do
-  name="w_tools_$(basename "$dir")"
-  if ! grep -q "$name" docs/modules/README.md; then
-    note "docs/modules/README.md 没有提到 ${name}（新增包要补进文档）"
-  fi
-done
+check_package_index() {
+  local dir name missing=0
+  for dir in packages/*/; do
+    name="w_tools_$(basename "$dir")"
+    if ! grep -q "$name" docs/modules/README.md; then
+      printf 'docs/modules/README.md 没有提到 %s（新增包要补进文档）\n' "$name" >&2
+      missing=1
+    fi
+  done
+  return "$missing"
+}
 
 # 4) 不再维护硬编码版本表
-if grep -q '## 10. 子包版本' docs/modules/components.md; then
-  note 'docs/modules/components.md 又出现硬编码版本表（应链接 pub.dev / pubspec）'
-fi
+check_no_version_table() {
+  if grep -q '## 10. 子包版本' docs/modules/components.md; then
+    printf 'docs/modules/components.md 又出现硬编码版本表（应链接 pub.dev / pubspec）\n' >&2
+    return 1
+  fi
+}
 
-# 5) 文档片段与表格列数
-if ! python3 scripts/check_docs_snippets.py; then
-  errors=$((errors + 1))
-fi
-
-# 6) 文档不得声明「已发布 / 待发布」的具体版本号
-if ! python3 scripts/check_docs_versions.py; then
-  errors=$((errors + 1))
-fi
-
-# 7) 反馈日志（docs/feedback/）
-if ! bash scripts/check_feedback.sh; then
-  errors=$((errors + 1))
-fi
-
-# 8) async 公开文档不得出现已删除 / 已改名 API
-if ! python3 scripts/check_async_docs.py; then
-  errors=$((errors + 1))
-fi
-
-# 9) 子包 README 版本 / example 链接
-if ! python3 scripts/check_package_docs.py; then
-  errors=$((errors + 1))
-fi
-
-# 10) 当前文档的事实一致性（排除历史目录）
-if ! python3 scripts/check_docs_facts.py; then
-  errors=$((errors + 1))
-fi
+step '相对链接' check_links
+step '旧命令' check_old_commands
+step '模块索引包覆盖' check_package_index
+step '组件目录版本表' check_no_version_table
+step '文档片段与表格列数' python3 scripts/check_docs_snippets.py
+step '版本声明' python3 scripts/check_docs_versions.py
+step_optional '反馈台账' bash scripts/check_feedback.sh
+step 'async 旧 API' python3 scripts/check_async_docs.py
+step '子包 README 版本 / 示例' python3 scripts/check_package_docs.py
+step '当前文档事实' python3 scripts/check_docs_facts.py
+step '维护者提示词' python3 scripts/check_prompt_docs.py
+step 'docs/agents 索引与入口' python3 scripts/check_agents_consistency.py
 
 if [ "$errors" -gt 0 ]; then
   printf '\n文档检查失败：%s 项\n' "$errors"

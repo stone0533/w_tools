@@ -22,6 +22,23 @@ env:
   MIN_FLUTTER_VERSION: '3.38.4'
 
 jobs:
+  # 包矩阵由 scripts/packages.manifest 生成，不再手抄。
+  # 以前手写列表漏过 app_getx / map_google：它们的测试只在本地跑；
+  # `scripts/ci_matrix.py --check`（preflight 里）会挡住再手抄一份。
+  matrix:
+    name: Package matrix
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      include: ${{ steps.emit.outputs.include }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Emit matrix from packages.manifest
+        id: emit
+        run: python3 scripts/ci_matrix.py --github-output >> "$GITHUB_OUTPUT"
+
   # 聚合包契约：w_tools.dart 的重导出（只做 re-export，配置走子包）。
   # 子包的行为测试已移入各自的 packages/<pkg>/test/，由下面的矩阵负责。
   umbrella:
@@ -34,10 +51,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # 版本 / CHANGELOG / 根包依赖约束 / README 版本声明的一致性检查（不需要 Flutter）
-      - name: Release readiness
-        run: bash scripts/release_check.sh
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -48,24 +61,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze (workspace)
-        run: flutter analyze
-
-      - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed packages test example
-
-      - name: Check docs
-        run: bash scripts/check_docs.sh
-
-      - name: Check doc symbols
-        run: python3 scripts/check_doc_symbols.py
-
-      - name: Check removed API
-        run: python3 scripts/check_removed_api.py
-
-      # ADR-0003：form / toast / async 的默认样式必须从 Theme 派生
-      - name: Check style literals (form/toast/async)
-        run: python3 scripts/check_style_literals.py
+      # 静态门禁只有一份定义：scripts/preflight.sh。
+      # 它覆盖 format / analyze / docs（链接、旧命令、反馈台账）/ 文档符号 /
+      # 已删除 API / 公开类型 → catalog / 弃用到期 / 默认样式字面量 /
+      # release check / CI 与包清单一致性。
+      # 以前 CI 手抄了其中一部分，导致 check_public_catalog 与 check_deprecations
+      # 在 CI 里根本没跑。
+      - name: Static gates (preflight)
+        run: bash scripts/preflight.sh
 
       - name: Test (umbrella contract)
         run: flutter test
@@ -108,42 +111,17 @@ jobs:
   # 每个子包独立跑：analyze / test / 发布前校验。
   # 这一步保证「子包能独立发布」不是口号 —— 缺依赖、缺导出、缺发布物料都会在这里失败。
   #
-  # 用 `kind` 区分 Flutter / 纯 Dart，而不是靠包名特判：加新包时只需补一行 include，
-  # 不会出现「新加的包悄悄走错分支」。
+  # 矩阵来自 packages.manifest（含 app_getx / map_google），`kind` 用 manifest 的
+  # runner 列区分 Flutter / 纯 Dart；加新包时只改 manifest，不用动这个文件。
   packages:
     name: Package / ${{ matrix.package }}
+    needs: matrix
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - package: core
-            kind: flutter
-          - package: ui
-            kind: flutter
-          - package: form
-            kind: flutter
-          - package: api
-            kind: flutter
-          - package: app
-            kind: flutter
-          - package: toast
-            kind: flutter
-          - package: map
-            kind: flutter
-          - package: qr
-            kind: flutter
-          - package: async
-            kind: flutter
-          - package: e2e
-            kind: flutter
-          - package: cli
-            kind: dart
-          - package: figma
-            kind: dart
-          - package: device
-            kind: dart
+        include: ${{ fromJSON(needs.matrix.outputs.include) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

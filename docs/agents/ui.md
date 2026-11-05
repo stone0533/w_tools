@@ -2,6 +2,11 @@
 
 高风险的组件选择先看这里；完整目录见 [`docs/modules/components.md`](../modules/components.md)。
 
+## 按钮
+
+普通业务按钮用 `WButton`，任意 child 点击用 `WPressable`，表单里的值选择用 `WFormButton`；
+什么时候用哪个见 [Button 选择](button.md)。
+
 ## 图片
 
 ```text

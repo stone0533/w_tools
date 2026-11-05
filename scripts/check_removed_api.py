@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""检查 5.0 已删除的 API 是否仍出现在文档/示例（迁移/历史文档除外）。
+"""检查已删除的 API 是否仍出现在文档/示例（迁移/历史文档除外）。
 
-推荐路径（docs/agents、docs/recipes、docs/modules、各包 README、消费方模板、example）
-里如果出现已删除符号，除非同一行明确写“已删除/已移除/不再提供/迁移”，否则失败。
+推荐路径（root AGENTS.md、docs/agents、docs/recipes、docs/modules、各包 README、
+消费方模板、example）里如果出现已删除符号，除非**同一条目**明确写
+“已删除 / 已移除 / 不再提供 / 迁移”，否则失败。
+
+“同一条目”不是整行：表格按单元格、正文按就近 40 字判断。
+以前只要整行出现“删除”两个字就放行，导致“前半句推荐、后半句提一句删除”也能过。
 """
 from __future__ import annotations
 
@@ -21,32 +25,53 @@ names = [
     r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'\bWConfig\b', r'\bWRoute\b',
     r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
 ]
-patterns = [re.compile(r'\b' + n + r'\b') for n in names]
-allow = re.compile(r'删除|移除|不再提供|迁移|removed', re.IGNORECASE)
+patterns = [re.compile(r'\b' + name + r'\b') for name in names]
+removal = re.compile(r'删除|移除|不再提供|迁移|removed', re.IGNORECASE)
 
 targets = []
 for sub in ('docs/agents', 'docs/recipes', 'docs/modules'):
     targets += sorted((root / sub).glob('*.md'))
-targets += [root / 'README.md']
+targets += [root / 'README.md', root / 'AGENTS.md']
 targets += sorted((root / 'packages').glob('*/README.md'))
 targets += sorted((root / 'packages').glob('*/example/README.md'))
 targets += sorted((root / 'packages').glob('*/example/lib/**/*.dart'))
 targets += sorted((root / 'packages/cli/templates/agents').rglob('*.md'))
 
-bad = []
+
+def marked_as_removed(line: str, start: int) -> bool:
+    """true 表示该符号所在单元格 / 所在句子已经写明“已删除”。"""
+    if line.lstrip().startswith('|'):
+        cell_start = line.rfind('|', 0, start) + 1
+        cell_end = line.find('|', start)
+        cell = line[cell_start:cell_end if cell_end >= 0 else len(line)]
+        return removal.search(cell) is not None
+    sentence_start = max(
+        (line.rfind(stop, 0, start) for stop in '。；;'),
+        default=-1,
+    ) + 1
+    sentence_end = min(
+        (index for index in (line.find(stop, start) for stop in '。；;') if index >= 0),
+        default=len(line),
+    )
+    return removal.search(line, sentence_start, sentence_end + 1) is not None
+
+
+bad: list[str] = []
 for path in targets:
     if not path.is_file():
         continue
-    for i, line in enumerate(path.read_text().splitlines(), 1):
-        if allow.search(line):
-            continue
+    for number, line in enumerate(path.read_text().splitlines(), start=1):
         for pattern in patterns:
-            if pattern.search(line):
-                bad.append(f'{path.relative_to(root)}:{i}: {line.strip()[:100]}')
+            hit = next(
+                (match for match in pattern.finditer(line) if not marked_as_removed(line, match.start())),
+                None,
+            )
+            if hit is not None:
+                bad.append(f'{path.relative_to(root)}:{number}: {line.strip()[:100]}')
                 break
 
 if bad:
-    print('文档/示例仍引用 5.0 已删除 API：', file=sys.stderr)
+    print('文档/示例仍引用已删除 API：', file=sys.stderr)
     for item in bad:
         print(f'  ✗ {item}', file=sys.stderr)
     sys.exit(1)

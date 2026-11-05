@@ -46,7 +46,7 @@ run() {
   fi
 }
 
-run "format" dart format --output=none --set-exit-if-changed packages test example
+run "format" dart --suppress-analytics format --output=none --set-exit-if-changed packages test example
 run "analyze" flutter analyze
 run "docs" bash scripts/check_docs.sh
 run "doc symbols" python3 scripts/check_doc_symbols.py
@@ -55,6 +55,8 @@ run "public catalog" python3 scripts/check_public_catalog.py
 run "style literals" python3 scripts/check_style_literals.py
 run "deprecations" python3 scripts/check_deprecations.py
 run "release check" bash scripts/release_check.sh
+# CI 的包矩阵与静态门禁必须从 manifest / preflight 派生，不能手抄一份。
+run "ci parity" python3 scripts/ci_matrix.py --check
 
 if [ -n "$with_tests" ]; then
   while IFS='|' read -r name path runner aggregate example; do

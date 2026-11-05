@@ -5,7 +5,7 @@
 | 包 | 首选入口 | 不要用（已弃用 / 内部） | 示例 |
 | --- | --- | --- | --- |
 | core | `WStorage` / `WToken` / `WValidator` / `WLogger` / `WDebounce` | `WConfig`、`WUx.debounce/throttle`、`WRegExpPattern`（3.0 已删除） | `packages/core/example` |
-| async | 页面用 `WAsyncController` + `WAsyncView`；滚动壳用 `WAsyncThemeViews`；无 UI 用 `WAsync.tryRun` + `WAsyncResult`，或 `WAsync.run`（失败抛异常） | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults`（3.0 已删除）；旧 `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading` | `packages/async/example` |
+| async | 页面用 `WAsyncController` + `WAsyncView`；滚动页 / `SmartRefresher` 用 `WAsyncStateBuilder`；无 UI 用 `WAsync.tryRun` + `WAsyncResult`，或 `WAsync.run`（失败抛异常） | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults`（3.0 已删除）；旧 `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading` | `packages/async/example` |
 | ui | `WText` / `WButton` / `WImage` / `WScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（5.0 已删除） | `packages/ui/example` |
 | form | `WForm` + 直接字段；边框 `WFormBorderConfig.fromTheme` | `Config.build`、`*Core`（`@internal`）、字段 `config` 参数、`WFormDefaults`（4.0 已删除） | `packages/form/example` |
 | api | `WApiConfig` + `DioRegistry`；`WLogInterceptor(parts:)` | 直接 `Dio()`、旧 bool 日志参数 | `packages/api/example` |
@@ -19,6 +19,7 @@
 
 > 本表只做包级入口；具体组件 / 参数查 [`components.md`](../modules/components.md) 或 catalog。
 > 新项目只依赖具体子包（ADR-0002）；根包 `w_tools` 只用于快速体验。
+> 本表写的入口名必须能在该包规则页找到 —— `scripts/check_agents_consistency.py` 会检查。
 
 ## 包级规则
 

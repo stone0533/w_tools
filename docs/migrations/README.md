@@ -25,6 +25,7 @@
 - [4.6](ui-4.6.md)：`WActionRow` / `WSelectableRow`
 - [5.0](ui-5.0.md)：删除 WRowButtons / 图片预设 / 错误子类 / 布局糖等
 - [4.7](ui-4.7.md)：四个组件的 config 可选
+- [6.0](ui-6.0.md)：`WImage` 单入口，删除旧构造器与 String 图片扩展
 
 ## form
 
@@ -40,7 +41,9 @@
 - [2.0](async-2.0.md)：执行核收敛（`WAsyncOptions` / `WAsyncLoading` / 方法改名）
 - [3.0](async-3.0.md)：删除 `WAsyncViewDefaults` / `WAsyncSliverDefaults`
 - [2.1](async-2.1.md)：`WAsyncTheme`
+- [4.0](async-4.0.md)：`WAsyncStateSliver.state` 改为 `ValueListenable`
 - [4.1](async-4.1.md)：取消立即返回、`options.onError` 覆盖 `Error`、`WAsyncThemeViews` / `withToken` / `runValue`
+- [5.0](async-5.0.md)：不再用 null 表示失败 / 取消，改 `WAsyncSuccess` / `WAsyncFailure` / `WAsyncCancelled`
 
 ## toast
 
@@ -56,6 +59,8 @@
 - [app 1.1](app-1.1.md)：`WBottomSheet` 透传、路由修复
 - [app 1.2](app-1.2.md)：`WAppOptions` / `WLocaleConfig` / `WRouteStack`
 - [app 2.0](app-2.0.md)：删除字段版 `WApp` 与静态 `WRoute`
+- [app 3.0](app-3.0.md)：拆成 `w_tools_app`（插件契约）+ `w_tools_app_getx`（GetX 启动器）
 - [map 1.3.1](map-1.3.1.md)：Marker 复用、控制器清理
 - [map 2.0](map-2.0.md)：删除 `onDataUpdated`
+- [map 3.0](map-3.0.md)：拆成 `w_tools_map`（模型）+ `w_tools_map_google`（实现）
 - [qr 1.1](qr-1.1.md)：`onScanned` 可选、扫描间隔 400ms
