@@ -21,6 +21,12 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   double _radius = 12;
   int _retryCount = 0;
   bool _customPlaceholder = true;
+  bool _withBorder = false;
+  bool _withShadow = false;
+  bool _withMargin = false;
+  String? _status;
+  double? _progress;
+  final WImageController _controller = WImageController();
 
   WImageStyle get _style => WImageStyle(
         width: _aspectRatio == null ? _width : null,
@@ -28,6 +34,10 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
         aspectRatio: _aspectRatio,
         fit: _fit,
         borderRadius: BorderRadius.circular(_radius),
+        border: _withBorder ? Border.all(color: const Color(0xFF4F46E5), width: 2) : null,
+        boxShadow: _withShadow ? WShadows.card : null,
+        margin: _withMargin ? const EdgeInsets.all(8) : null,
+        semanticLabel: 'playground image',
       );
 
   WImageLoadConfig get _config => WImageLoadConfig(
@@ -44,20 +54,32 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
       _Source.asset => WImage.source(
           source: WImageSource.asset('assets/demo.png', prefix: false),
           style: _style,
-          config: _config),
+          config: _config,
+          controller: _controller,
+          onLoadStatusChanged: (status) => setState(() => _status = status.name),
+          onProgress: (progress) => setState(() => _progress = progress.fraction),
+        ),
       _Source.network => WImage.source(
-          source: WImageSource.network('https://picsum.photos/seed/wtools-playground/640/360'),
+          source: WImageSource.network(
+            'https://picsum.photos/seed/wtools-playground/640/360',
+            headers: const {'X-Demo': 'playground'},
+            cacheKey: 'wtools-playground',
+          ),
           style: _style,
-          config: _config),
+          config: _config,
+          controller: _controller,
+          onLoadStatusChanged: (status) => setState(() => _status = status.name),
+          onProgress: (progress) => setState(() => _progress = progress.fraction),
+        ),
     };
   }
 
   String _snippet() {
-    final buffer = StringBuffer('WImage.');
+    final buffer = StringBuffer('WImage.source(\n');
     if (_source == _Source.network) {
-      buffer.writeln("network('https://…',");
+      buffer.writeln("  source: WImageSource.network('https://…'),");
     } else {
-      buffer.writeln("asset('assets/demo.png', prefix: false,");
+      buffer.writeln("  source: WImageSource.asset('assets/demo.png', prefix: false),");
     }
     buffer.writeln('  style: WImageStyle(');
     if (_aspectRatio == null) {
@@ -70,6 +92,9 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     buffer.writeln(
       '    borderRadius: BorderRadius.circular(${_radius.toStringAsFixed(0)}),',
     );
+    if (_withBorder) buffer.writeln('    border: Border.all(...),');
+    if (_withShadow) buffer.writeln('    boxShadow: WShadows.card,');
+    if (_withMargin) buffer.writeln('    margin: const EdgeInsets.all(8),');
     buffer.writeln('  ),');
     buffer.writeln('  config: WImageLoadConfig(');
     buffer.writeln('    memCacheWidth: $_memCache,');
@@ -77,6 +102,9 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     buffer.writeln('    retryCount: $_retryCount,');
     if (_customPlaceholder) buffer.writeln('    placeholder: const _Placeholder(),');
     buffer.writeln('  ),');
+    buffer.writeln('  controller: controller,');
+    buffer.writeln('  onLoadStatusChanged: (status) => ...,');
+    buffer.writeln('  onProgress: (progress) => ...,');
     buffer.write(')');
     return buffer.toString();
   }
@@ -186,6 +214,39 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
           subtitle: const Text('关闭后使用 WImageDefaultsScope 的默认占位符'),
           value: _customPlaceholder,
           onChanged: (value) => setState(() => _customPlaceholder = value),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('WImageStyle.border'),
+          value: _withBorder,
+          onChanged: (value) => setState(() => _withBorder = value),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('WImageStyle.boxShadow'),
+          value: _withShadow,
+          onChanged: (value) => setState(() => _withShadow = value),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('WImageStyle.margin'),
+          value: _withMargin,
+          onChanged: (value) => setState(() => _withMargin = value),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'status: ${_status ?? '-'} · progress: ${_progress?.toStringAsFixed(2) ?? '-'}',
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _controller.retry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('controller.retry()'),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Text('当前代码', style: Theme.of(context).textTheme.titleMedium),

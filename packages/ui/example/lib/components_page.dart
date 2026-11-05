@@ -16,6 +16,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
   int _selectedTag = 0;
   late final WImageController _imageController;
   double? _scrollPercent;
+  double _actionOffset = 0;
 
   @override
   void initState() {
@@ -126,6 +127,30 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        const _SectionTitle('WBadge：center / showBadge:false / 空内容'),
+        Wrap(
+          spacing: 24,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            WBadge(
+              config: WBadgeConfig.center(),
+              badgeContent: const Text('NEW'),
+              child: const Icon(Icons.mail_outline, size: 32),
+            ),
+            const WBadge(
+              config: WBadgeConfig(showBadge: false),
+              badgeContent: Text('hidden'),
+              child: Icon(Icons.inbox_outlined, size: 32),
+            ),
+            const WBadge(
+              child: Icon(Icons.notifications_none, size: 32),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        const Text('badgeContent 为空时静默不渲染（不报错）'),
         const SizedBox(height: 24),
         const _SectionTitle('WClipRRect 圆角裁剪'),
         WClipRRect(
@@ -148,6 +173,34 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        const _SectionTitle('WClipRRect 配置变体'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            WClipRRect(
+              config: WClipRRectConfig.all(8).copyWith(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                ),
+              ),
+              child: const SizedBox(
+                width: 96,
+                height: 64,
+                child: ColoredBox(color: Colors.indigo),
+              ),
+            ),
+            const WClipRRect(
+              child: SizedBox(
+                width: 96,
+                height: 64,
+                child: ColoredBox(color: Colors.indigo),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 24),
         const _SectionTitle('WGradientCircularProgressIndicator'),
         const Center(
@@ -157,6 +210,26 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
             semanticsLabel: '加载中',
             colors: [Colors.indigo, Colors.lightBlue],
           ),
+        ),
+        const SizedBox(height: 12),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            WGradientCircularProgressIndicator(
+              radius: 24,
+              value: 0.35,
+              strokeWidth: 4,
+              strokeCapRound: true,
+              colors: [Colors.deepOrange, Colors.orangeAccent],
+            ),
+            WGradientCircularProgressIndicator(
+              radius: 24,
+              value: 0.7,
+              totalAngle: 4.7,
+              backgroundColor: Color(0xFFE0E7FF),
+              colors: [Colors.indigo, Colors.lightBlue],
+            ),
+          ],
         ),
         const SizedBox(height: 24),
         const _SectionTitle('WStep 步骤'),
@@ -237,6 +310,21 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
             ),
           ),
         ),
+        const SizedBox(height: 24),
+        const _SectionTitle('WActionRow 横向滚动操作行'),
+        WActionRow(
+          spacing: 8,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          onScroll: (offset) => setState(() => _actionOffset = offset),
+          children: [
+            for (var i = 0; i < 12; i++)
+              ActionChip(
+                label: Text('动作 $i'),
+                onPressed: () {},
+              ),
+          ],
+        ),
+        Text('onScroll offset: ${_actionOffset.toStringAsFixed(1)}'),
         const SizedBox(height: 24),
         const _SectionTitle('WTabBar 顶部 Tab'),
         const SizedBox(

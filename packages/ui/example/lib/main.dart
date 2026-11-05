@@ -4,6 +4,7 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'buttons_page.dart';
 import 'components_page.dart';
+import 'more_page.dart';
 import 'playground_page.dart';
 import 'recipes_page.dart';
 import 'states_page.dart';
@@ -32,15 +33,16 @@ class WUiExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+      useMaterial3: true,
+    );
     return MaterialApp(
       title: 'w_tools_ui · 示例',
       // 一次装好 TextTheme 与 WTextStyles：Material 组件（form/toast/async）
       // 与 WText 看到同一套字号。
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ).withWTextStyles(
-        WTextStyles.fromTextTheme(ThemeData.light().textTheme),
+      theme: base.withWTextStyles(
+        WTextStyles.fromTextTheme(base.textTheme),
       ),
       home: const HomeShell(),
     );
@@ -63,6 +65,7 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
     RecipesPage(),
     ButtonsPage(),
     ComponentsPage(),
+    MorePage(),
   ];
 
   static const _destinations = <({IconData icon, String label})>[
@@ -71,6 +74,7 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
     (icon: Icons.receipt_long, label: '常用配方'),
     (icon: Icons.smart_button, label: '按钮'),
     (icon: Icons.widgets, label: '组件'),
+    (icon: Icons.more_horiz, label: '更多'),
   ];
 
   @override
