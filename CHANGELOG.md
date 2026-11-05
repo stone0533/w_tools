@@ -1,3 +1,8 @@
+## 9.0.1
+
+- README：文档索引补齐 ai-contract / ai-maintainer-prompts / scripts / documentation-map；
+  示例依赖对齐 `w_tools_async ^5.0.0` / `w_tools_cli ^1.10.0`。
+
 ## 9.0.0
 
 - 抬高 `w_tools_ui` 到 `^6.0.0`：WImage 旧入口与 String 图片扩展已移除。

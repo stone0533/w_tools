@@ -1,3 +1,8 @@
+## 0.1.5
+
+### Changed
+- README 补「示例」小节，指向 `example/`。
+
 ## 0.1.4
 
 ### Changed

@@ -1,3 +1,9 @@
+## 0.11.2
+
+### Changed
+- `AGENTS.md`：查询 / 诊断命令改为 `dart run w_tools_cli:w_tools list|explain|doctor`，
+  不再推荐旧入口。
+
 ## 0.11.1
 
 ### Changed
