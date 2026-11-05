@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^5.1.0
+  w_tools_form: ^5.1.1
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
@@ -109,6 +109,68 @@ WFormTextField(
   hintText: '邮箱',
   leading: const Icon(Icons.mail_outline),
 )
+```
+
+## 表单字段
+
+```dart
+WFormDropdown<String>(name: 'city', items: const {'sh': '上海'}, initialValue: 'sh');
+WFormMultiDropdown(name: 'tags', items: const {'a': 'A'}, disabledKeys: const {'b'});
+WFormDatePicker(name: 'birthday', label: '生日', displayFormat: 'yyyy-MM-dd');
+WFormCheckbox(name: 'agree', title: Text('同意'), bordered: true);
+WFormRadioGroup<String>(name: 'gender', items: const {'male': '男'}, bordered: true);
+WFormButton(
+  name: 'coupon',
+  label: '请选择优惠券',
+  onTap: (value, didChange) => didChange('new_user'),
+);
+```
+
+## 只读与字段级样式
+
+```dart
+WForm(controller: form, readOnly: true, child: ...);
+
+WFormFieldStyleScope(
+  style: const WFormFieldStyle(height: 72),
+  child: WFormTextField(name: 'bio', maxLines: 3),
+);
+```
+
+## 弹层与输入格式化
+
+```dart
+final value = await WFormPopup.show<String>(
+  context: context,
+  anchorContext: fieldKey.currentContext,
+  builder: (context) => ...,
+);
+
+WFormTextField(
+  name: 'phone',
+  inputFormatters: WFormInputFormatters.phone(),
+);
+```
+
+## 图标
+
+```dart
+WForm(
+  controller: form,
+  icons: const WFormIcons(dropdown: Icon(Icons.expand_more)),
+  child: ...,
+);
+```
+
+## 统一校验与 controller
+
+```dart
+form.validators(items: [WFormValidatorItem.field('email')]).validate();
+form.validate(settings: WFormValidatorSettings()..continueOnError = true);
+
+form.value; form.savedValue;
+form.setValue('email', 'a@b.com');
+form.reset();
 ```
 
 ## 主要 API

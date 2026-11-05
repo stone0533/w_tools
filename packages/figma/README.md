@@ -41,14 +41,14 @@ W* 组件映射
 已发布版本：
 
 ```bash
-dart pub add dev:w_tools_figma:^0.11.1
+dart pub add dev:w_tools_figma:^0.11.3
 ```
 
 等价于：
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.11.1
+  w_tools_figma: ^0.11.3
 ```
 
 开发版使用 path 依赖：

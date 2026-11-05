@@ -832,12 +832,19 @@ const String agentsUi = r'''
 ''';
 
 const String agentsForm = r'''
-- **表单**：新页面用 `WForm` + 直接字段（`WFormTextField` 等），不要从 `Config.build` 开始。
+- **表单**：新页面用 `WForm` + 直接字段（`WFormTextField` / `WFormDropdown` /
+  `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`），
+  不要从 `Config.build` 开始。
   `WForm` 需要 `WFormController`，与 controller 一对一；页面级高度 / 内边距用
-  `WForm.fieldStyle`，校验设置用 `WFormValidatorSettings`；字段差异用直接参数，
-  不要传字段 `config`。
+  `WForm.fieldStyle`（`WFormFieldStyle`），校验设置用 `WFormValidatorSettings` /
+  `WFormValidator`；字段差异用直接参数，不要传字段 `config`。
+- **只读**：整页只读用 `WForm(readOnly: true)`；单字段只读用字段的 `readOnly`，
+  不要手写只读作用域。
 - **表单字段按钮**：字段值选择用 `WFormButton`，不要用 `WButton` 承担表单字段值。
 - **表单弹层**：锚定选择用 `WFormPopup`，它不是居中确认框。
+- **边框**：默认用 `WFormBorderConfig.fromTheme(Theme.of(context))`；不要手写 `WFormBorder`。
+- **输入格式化 / 插槽动作**：`WFormInputFormatters.phone()`；文本插槽用
+  `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton`。
 ''';
 
 const String agentsApi = r'''
@@ -854,6 +861,14 @@ const String agentsApp = r'''
 - **底部面板**：用 `WBottomSheet`。
 - **全局主题 / 默认视图**：用 `WAppOptions.appWrapper` 组合对应包的主题 Widget（见该包文档）；
   不要为此让 app 依赖其它子包。
+
+- **多语言**：支持语言列表用 `WLocaleConfig`（`WAppOptions.localeConfig`）；运行期切换用
+  `WLanguage().changeLanguage(...)`，监听 `languageStream`；不要直接改
+  `WAppConfig.currentLanguage` 后期待通知。
+- **路由栈**：`WRouteStack` / `WRouteObserver` 由 WApp 自动维护；操作栈用
+  `WRouteStack.defaultStack.popUntilRoute(...)` 或 `app.routeStack`。
+- **底部面板**：用 `WBottomSheet.show(...)`，不要直接用 `showModalBottomSheet`。
+- **插件顺序**：有依赖的插件必须声明 `WAppPlugin.dependsOn`，不要依赖注册顺序。
 ''';
 
 const String agentsAsync = r'''
@@ -877,6 +892,20 @@ const String agentsAsync = r'''
   c.load();
   WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (_, data) => ...);
   ```
+
+  结果分支与取消：
+
+  ```dart
+  switch (result) {
+    case WAsyncSuccess(:final value): use(value);
+    case WAsyncFailure(:final error, :final stackTrace): log(error, stackTrace);
+    case WAsyncCancelled(:final reason): log(reason);
+  }
+  ```
+
+  `WAsyncStatus`（`state.status`）是四态枚举；`WAsyncStrings` 通过
+  `WAsyncTheme(strings: ...)` 注入默认文案；取消异常用 `WCancellationException`。
+  `WAsyncActivity` 只用于同一批并行任务，不要拿它合并多个独立区块。
 
   查用法：`dart run w_tools_cli:w_tools explain WAsync --format=prompt`。
 ''';
@@ -946,6 +975,22 @@ const String agentsDevice = r'''
 - 设备操作使用 `w_tools_device`；不要手写 adb / DeviceHub 标定。
 - E2E 自动登录使用 `w_tools_e2e`；只使用测试账号，凭证不要复用真实密码。
 - `w_tools_e2e` 只能放 `tool/main_e2e.dart`；不要把测试依赖 import 到生产 `lib/main.dart`。
+
+常用命令（完整参数见 `docs/agents/device-testing.md`）：
+
+```bash
+dart run w_tools_device:device list
+dart run w_tools_device:device boot "<名称|udid>"
+dart run w_tools_device:device shot --out=/tmp/a.png
+dart run w_tools_device:device calibrate
+dart run w_tools_device:device tap <x> <y>
+dart run w_tools_device:device drag <x1> <y1> <x2> <y2>
+dart run w_tools_device:device type "hello"
+dart run w_tools_device:device size
+dart run w_tools_device:device foreground --android
+dart run w_tools_device:device wait
+dart run w_tools_device:device verify <x> <y>
+```
 ''';
 
 const String agentsBaseEn = r'''
@@ -1105,12 +1150,21 @@ const String agentsUiEn = r'''
 ''';
 
 const String agentsFormEn = r'''
-- **Forms**: use `WForm` + direct fields (`WFormTextField`, etc.); do not start from
-  `Config.build`. `WForm` requires a `WFormController` (one-to-one); use `WForm.fieldStyle`
-  for page-level height/padding and `WFormValidatorSettings` for validation; use direct field
-  parameters for field-specific differences, not field `config`.
-- **Form-field buttons**: use `WFormButton` for field value selection; do not use `WButton` for form values.
-- **Form overlays**: use `WFormPopup` for anchored selection; it is not a centered dialog.
+- **Forms**: use `WForm` + direct fields (`WFormTextField` / `WFormDropdown` /
+  `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`);
+  do not start from `Config.build`.
+  `WForm` requires a `WFormController` (one-to-one); page-level height/padding use
+  `WForm.fieldStyle` (`WFormFieldStyle`); validation uses `WFormValidatorSettings` /
+  `WFormValidator`; field differences use direct parameters, never a field `config`.
+- **Read-only**: use `WForm(readOnly: true)` for a whole form; use the field's
+  `readOnly` for a single field; do not hand-write the read-only scope.
+- **Field buttons**: use `WFormButton` for field value selection; do not use `WButton`
+  to hold a form field value.
+- **Form popups**: use `WFormPopup` for anchored selection; it is not a centered dialog.
+- **Borders**: default to `WFormBorderConfig.fromTheme(Theme.of(context))`; do not
+  hand-write `WFormBorder`.
+- **Input formatters / slot actions**: `WFormInputFormatters.phone()`; text slots use
+  `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton`.
 ''';
 
 const String agentsApiEn = r'''
@@ -1128,6 +1182,15 @@ const String agentsAppEn = r'''
 - **Bottom sheet**: use `WBottomSheet`.
 - **Global theme / defaults**: compose theme widgets with `WAppOptions.appWrapper`; do not make
   `w_tools_app_getx` depend on other subpackages.
+
+- **Localization**: use `WLocaleConfig` for supported languages
+  (`WAppOptions.localeConfig`); switch at runtime with `WLanguage().changeLanguage(...)` and
+  listen to `languageStream`; do not mutate `WAppConfig.currentLanguage` and expect a notify.
+- **Route stack**: `WRouteStack` / `WRouteObserver` are maintained by WApp; use
+  `WRouteStack.defaultStack.popUntilRoute(...)` or `app.routeStack`.
+- **Bottom sheet**: use `WBottomSheet.show(...)`, not `showModalBottomSheet`.
+- **Plugin order**: declare `WAppPlugin.dependsOn` for dependent plugins; never rely on
+  registration order.
 ''';
 
 const String agentsAsyncEn = r'''
@@ -1150,6 +1213,21 @@ const String agentsAsyncEn = r'''
   c.load();
   WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (_, data) => ...);
   ```
+
+  Result branches and cancellation:
+
+  ```dart
+  switch (result) {
+    case WAsyncSuccess(:final value): use(value);
+    case WAsyncFailure(:final error, :final stackTrace): log(error, stackTrace);
+    case WAsyncCancelled(:final reason): log(reason);
+  }
+  ```
+
+  `WAsyncStatus` (`state.status`) is the four-state enum; inject default copy with
+  `WAsyncStrings` via `WAsyncTheme(strings: ...)`; cancellation throws
+  `WCancellationException`. `WAsyncActivity` is only for one batch of parallel
+  tasks, never for merging independent blocks.
 
   Look up usage: `dart run w_tools_cli:w_tools explain WAsync --format=prompt`.
 ''';
@@ -1221,6 +1299,22 @@ When you need simulator / Android / real-device screenshots, taps, stability wai
 - Use `w_tools_device`; do not hand-roll adb or DeviceHub calibration.
 - Use `w_tools_e2e` for E2E auto-login; test accounts only, never real passwords.
 - Keep `w_tools_e2e` in `tool/main_e2e.dart`; never import test dependencies into production `lib/main.dart`.
+
+Common commands (full flags: `docs/agents/device-testing.md`):
+
+```bash
+dart run w_tools_device:device list
+dart run w_tools_device:device boot "<name|udid>"
+dart run w_tools_device:device shot --out=/tmp/a.png
+dart run w_tools_device:device calibrate
+dart run w_tools_device:device tap <x> <y>
+dart run w_tools_device:device drag <x1> <y1> <x2> <y2>
+dart run w_tools_device:device type "hello"
+dart run w_tools_device:device size
+dart run w_tools_device:device foreground --android
+dart run w_tools_device:device wait
+dart run w_tools_device:device verify <x> <y>
+```
 ''';
 
 const String uiReadme = r'''

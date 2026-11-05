@@ -176,6 +176,272 @@ void main() {
     });
   });
 
+  group('FORM 教学覆盖', () {
+    final form = catalog.where((e) => e.package == 'w_tools_form').toList();
+
+    test('form 每个 catalog 条目都有 usage', () {
+      for (final entry in form) {
+        expect(entry.usage, isNotNull, reason: '${entry.name} 缺少 usage');
+        expect(entry.usage!.trim(), isNotEmpty);
+      }
+    });
+
+    test('form 的 teach usage 覆盖多种场景（不是单行）', () {
+      for (final entry in form.where((e) => e.teach)) {
+        expect(entry.usage, contains('\n'), reason: '${entry.name} usage 只有一行');
+      }
+    });
+
+    test('form 关键类型都能通过 explain 查到', () {
+      const names = <String>[
+        'WFormController',
+        'WFormFieldStyle',
+        'WFormValidatorSettings',
+        'WFormBorder',
+        'WFormBorderDecoration',
+        'WFormIcons',
+        'WFormFieldStyleScope',
+        'WFormValidatorItem',
+        'WFormPopup',
+        'WFormTheme',
+        'WFormScope',
+        'WFormReadOnlyScope',
+        'WFormTextFieldData',
+        'WFormTextFieldScope',
+        'WFormInputFormatters',
+        'WCardNumberInputFormatter',
+        'WDividerInputFormatter',
+        'WFormCustomValidator',
+        'WFormPopupRoute',
+        'WFormFieldShell',
+        'WFormBorderState',
+        'WFormBorderLayout',
+      ];
+      for (final name in names) {
+        expect(findComponent(name), isNotNull, reason: '$name 未登记到 catalog');
+      }
+    });
+
+    test('form 模板包含字段与 readOnly 规则', () {
+      for (final template in <String>[templates.agentsForm, templates.agentsFormEn]) {
+        for (final name in <String>[
+          'WFormTextField',
+          'WFormDropdown',
+          'WFormMultiDropdown',
+          'WFormDatePicker',
+          'WFormCheckbox',
+          'WFormRadioGroup',
+          'readOnly',
+          'WFormValidator',
+        ]) {
+          expect(template, contains(name), reason: '模板缺少 $name');
+        }
+      }
+    });
+
+    test('form docsAnchor 都能在 form_module.md 找到', () {
+      final text = File('../../docs/modules/form_module.md').readAsStringSync();
+      String slug(String heading) {
+        var h = heading.trim().toLowerCase().replaceAll('`', '');
+        h = h.replaceAll(RegExp(r'[^\w\u4e00-\u9fff\- ]'), '');
+        return h.trim().replaceAll(' ', '-');
+      }
+
+      final slugs = RegExp(
+        r'^#{1,6} (.+)$',
+        multiLine: true,
+      ).allMatches(text).map((m) => slug(m.group(1)!)).toSet();
+      for (final entry in form) {
+        expect(
+          slugs,
+          contains(entry.docsAnchor),
+          reason: '${entry.name} 的 docsAnchor 不在 form_module.md：${entry.docsAnchor}',
+        );
+      }
+    });
+  });
+
+  group('ASYNC 教学覆盖', () {
+    final asyncs = catalog.where((e) => e.package == 'w_tools_async').toList();
+
+    test('async 每个 catalog 条目都有 usage', () {
+      for (final entry in asyncs) {
+        expect(entry.usage, isNotNull, reason: '${entry.name} 缺少 usage');
+        expect(entry.usage!.trim(), isNotEmpty);
+      }
+    });
+
+    test('async 关键类型都能通过 explain 查到', () {
+      const names = <String>[
+        'WAsyncStrings',
+        'WAsyncStatus',
+        'WAsyncSuccess',
+        'WAsyncFailure',
+        'WAsyncCancelled',
+        'WCancellationException',
+        'WAsyncPageLoader',
+        'WAsyncTokenLoader',
+        'WAsyncTokenPageLoader',
+        'WAsyncErrorWidgetBuilder',
+        'WAsyncRetryErrorHandler',
+      ];
+      for (final name in names) {
+        expect(findComponent(name), isNotNull, reason: '$name 未登记到 catalog');
+      }
+    });
+
+    test('async teach usage 覆盖 View / Paged / Sliver / State 关键参数', () {
+      CatalogEntry byName(String name) => asyncs.firstWhere((e) => e.names.contains(name));
+      expect(byName('WAsyncView').usage, contains('errorBuilder'));
+      expect(byName('WAsyncView').usage, contains('onRetryError'));
+      expect(byName('WAsyncPagedController').usage, contains('loadMore'));
+      expect(byName('WAsyncStateSliver').usage, contains('onRetry'));
+      expect(byName('WAsyncState').usage, contains('status'));
+    });
+
+    test('WAsyncErrorView 有独立条目', () {
+      final entry = findComponent('WAsyncErrorView');
+      expect(entry, isNotNull);
+      expect(entry!.name, contains('WAsyncErrorView'));
+    });
+
+    test('async 模板包含 strings / status / result 分支', () {
+      for (final template in <String>[templates.agentsAsync, templates.agentsAsyncEn]) {
+        for (final name in <String>[
+          'WAsyncStrings',
+          'WAsyncStatus',
+          'WAsyncSuccess',
+          'WAsyncFailure',
+          'WAsyncCancelled',
+          'WCancellationException',
+        ]) {
+          expect(template, contains(name), reason: '模板缺少 $name');
+        }
+      }
+    });
+
+    test('async docsAnchor 都能在 async_module.md 找到', () {
+      final text = File('../../docs/modules/async_module.md').readAsStringSync();
+      String slug(String heading) {
+        var h = heading.trim().toLowerCase().replaceAll('`', '');
+        h = h.replaceAll(RegExp(r'[^\w\u4e00-\u9fff\- ]'), '');
+        return h.trim().replaceAll(' ', '-');
+      }
+
+      final slugs = RegExp(
+        r'^#{1,6} (.+)$',
+        multiLine: true,
+      ).allMatches(text).map((m) => slug(m.group(1)!)).toSet();
+      for (final entry in asyncs) {
+        expect(
+          slugs,
+          contains(entry.docsAnchor),
+          reason: '${entry.name} 的 docsAnchor 不在 async_module.md：${entry.docsAnchor}',
+        );
+      }
+    });
+  });
+
+  group('APP 教学覆盖', () {
+    final apps = catalog
+        .where((e) => e.package == 'w_tools_app' || e.package == 'w_tools_app_getx')
+        .toList();
+
+    test('app 家族每个 catalog 条目都有 usage', () {
+      for (final entry in apps) {
+        expect(entry.usage, isNotNull, reason: '${entry.name} 缺少 usage');
+        expect(entry.usage!.trim(), isNotEmpty);
+      }
+    });
+
+    test('app 家族 teach usage 覆盖启动/插件配置', () {
+      for (final entry in apps.where((e) => e.teach)) {
+        expect(entry.usage, contains('\n'), reason: '${entry.name} usage 只有一行');
+      }
+      CatalogEntry byName(String name) => apps.firstWhere((e) => e.names.contains(name));
+      expect(byName('WAppOptions').usage, contains('appWrapper'));
+      expect(byName('WAppOptions').usage, contains('localeConfig'));
+      expect(byName('WAppPlugin').usage, contains('dependsOn'));
+      expect(byName('WAppPlugin').usage, contains('onInit'));
+    });
+
+    test('app 家族关键类型都能通过 explain 查到', () {
+      const names = <String>[
+        'WApp',
+        'WAppOptions',
+        'WAppPlugin',
+        'WBottomSheet',
+        'WLanguage',
+        'WAppConfig',
+        'WRouteObserver',
+        'WRouteStack',
+        'WLocaleConfig',
+      ];
+      for (final name in names) {
+        expect(findComponent(name), isNotNull, reason: '$name 未登记到 catalog');
+      }
+    });
+
+    test('app 模板包含语言 / locale / 路由栈 / 弹窗 / dependsOn', () {
+      for (final template in <String>[templates.agentsApp, templates.agentsAppEn]) {
+        for (final name in <String>[
+          'WLanguage',
+          'WLocaleConfig',
+          'WAppConfig',
+          'WRouteStack',
+          'WBottomSheet',
+          'dependsOn',
+        ]) {
+          expect(template, contains(name), reason: '模板缺少 $name');
+        }
+      }
+    });
+
+    test('app docsAnchor 都能在 app_module.md 找到', () {
+      final text = File('../../docs/modules/app_module.md').readAsStringSync();
+      String slug(String heading) {
+        var h = heading.trim().toLowerCase().replaceAll('`', '');
+        h = h.replaceAll(RegExp(r'[^\w\u4e00-\u9fff\- ]'), '');
+        return h.trim().replaceAll(' ', '-');
+      }
+
+      final slugs = RegExp(
+        r'^#{1,6} (.+)$',
+        multiLine: true,
+      ).allMatches(text).map((m) => slug(m.group(1)!)).toSet();
+      for (final entry in apps) {
+        expect(
+          slugs,
+          contains(entry.docsAnchor),
+          reason: '${entry.name} 的 docsAnchor 不在 app_module.md：${entry.docsAnchor}',
+        );
+      }
+    });
+  });
+
+  group('DEVICE 教学覆盖', () {
+    test('device 模板包含命令表', () {
+      const commands = <String>[
+        'list',
+        'boot',
+        'shot',
+        'calibrate',
+        'tap',
+        'drag',
+        'type',
+        'size',
+        'foreground',
+        'wait',
+        'verify',
+      ];
+      for (final template in <String>[templates.agentsDevice, templates.agentsDeviceEn]) {
+        for (final command in commands) {
+          expect(template, contains('device $command'), reason: '模板漏 device $command');
+        }
+      }
+    });
+  });
+
   group('AGENTS 教学契约', () {
     test('async 模板包含 load 与查询命令', () {
       expect(templates.agentsAsync, contains('c.load()'));

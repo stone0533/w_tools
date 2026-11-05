@@ -1,3 +1,9 @@
+## 5.1.1
+
+### Fixed
+- README 补充表单字段 / 只读 / 弹层 / 输入格式化 / 图标 / 统一校验与 controller 用法；
+  example README 移除不存在的 `WFormFieldStyleScope` 示例。
+
 ## 5.1.0
 
 ### Added

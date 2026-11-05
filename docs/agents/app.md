@@ -28,6 +28,15 @@ class AnalyticsPlugin with WAppPlugin {
   @override
   Future<void> onInit() async { ... }
 }
+
+class ServicePlugin with WAppPlugin {
+  @override
+  String get name => 'service';
+  @override
+  List<String> get dependsOn => const ['analytics'];
+  @override
+  Future<void> onInit() async { ... }
+}
 WApp.options(
   WAppOptions(title: 'Demo', plugins: [AnalyticsPlugin()]),
 ).start();
@@ -78,5 +87,20 @@ WApp.options(
 - `start()` 只能调一次（重复调用会再次 `runApp`）；
 - 需要 Theme 的插件生命周期用 `builderWrapper`，不是 `wrapApp`；
 - 多语言用 `WLanguage().changeLanguage(...)` 监听变化，不要直接写 `WAppConfig.currentLanguage`。
+
+## 语言与路由栈
+
+```dart
+WAppConfig.supportedLanguages = {'zh_CN': '简体中文', 'en_US': 'English'};
+WLanguage().changeLanguage('zh_CN');
+WLanguage().languageStream.listen((code) { ... });
+
+WRouteStack.defaultStack.popUntilRoute('/home');
+WApp.routeStack.routes; // 或 app.routeStack
+
+final result = await WBottomSheet.show<String>(const MySheetContent());
+```
+
+示例页：`example/lib/pages` 覆盖插件顺序、语言切换、路由栈与底部弹窗。
 
 完整说明：[app_module.md](../modules/app_module.md) · 示例：`packages/app_getx/example`

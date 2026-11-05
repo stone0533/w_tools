@@ -89,14 +89,10 @@ WFormTextField(
   leading: const Icon(Icons.mail_outline),
 )
 
-// 单个字段需要不同高度 / 文字样式时，用 WFormFieldStyleScope 包裹
-WFormFieldStyleScope(
-  style: const WFormFieldStyle(height: 72),
-  child: WFormTextField(name: 'bio', label: '简介', maxLines: 3),
-)
 ```
 
 5.0 起直接字段没有 `config` 参数；`WFormFieldStyle` 不可变，可跨字段共享。
+单字段样式用 `WFormFieldStyleScope` 包裹，示例见 package README。
 
 样式优先级：
 

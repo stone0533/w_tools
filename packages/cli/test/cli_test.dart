@@ -487,6 +487,88 @@ banned:
     expect(count, greaterThanOrEqualTo(30), reason: 'list ui 仍按关键词搜索');
   });
 
+  test('explain WLanguage 覆盖 changeLanguage', () async {
+    final r = await _run('explain.dart', ['WLanguage', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('用法：'));
+    expect('${r.stdout}', contains('changeLanguage'));
+  });
+
+  test('explain WLocaleConfig 命中自身', () async {
+    final r = await _run('explain.dart', ['WLocaleConfig', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', startsWith('# WLocaleConfig '));
+  });
+
+  test('explain WAppOptions 覆盖 appWrapper / localeConfig', () async {
+    final r = await _run('explain.dart', ['WAppOptions', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('appWrapper'));
+    expect('${r.stdout}', contains('localeConfig'));
+  });
+
+  test('explain WBottomSheet 覆盖 show', () async {
+    final r = await _run('explain.dart', ['WBottomSheet', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('show'));
+  });
+
+  test('explain WApp 的文档带章节锚点', () async {
+    final r = await _run('explain.dart', ['WApp', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', matches(RegExp(r'文档：.*#1-wapp')));
+  });
+
+  test('explain WAsyncView 覆盖 per-view builder', () async {
+    final r = await _run('explain.dart', ['WAsyncView', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('errorBuilder'));
+    expect('${r.stdout}', contains('onRetryError'));
+  });
+
+  test('explain WAsyncPagedController 覆盖 loadMore', () async {
+    final r = await _run('explain.dart', ['WAsyncPagedController', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('loadMore'));
+  });
+
+  test('explain WAsyncState 覆盖 status', () async {
+    final r = await _run('explain.dart', ['WAsyncState', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('status'));
+  });
+
+  test('explain WAsyncStrings 命中自身', () async {
+    final r = await _run('explain.dart', ['WAsyncStrings', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', startsWith('# WAsyncStrings '));
+  });
+
+  test('explain WAsync 的文档带章节锚点', () async {
+    final r = await _run('explain.dart', ['WAsync', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', matches(RegExp(r'文档：.*#1-wasync')));
+  });
+
+  test('explain WFormController 有用法与 reset', () async {
+    final r = await _run('explain.dart', ['WFormController', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('用法：'));
+    expect('${r.stdout}', contains('reset'));
+  });
+
+  test('explain WFormScope 命中自身而不是 WForm', () async {
+    final r = await _run('explain.dart', ['WFormScope', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', startsWith('# WFormScope '));
+  });
+
+  test('explain WForm 的文档带章节锚点', () async {
+    final r = await _run('explain.dart', ['WForm', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', matches(RegExp(r'文档：.*#36-直接字段与-wform')));
+  });
+
   test('explain 文档链接带章节锚点', () async {
     final r = await _run('explain.dart', ['WImage', '--format=prompt']);
     expect(r.exitCode, 0);

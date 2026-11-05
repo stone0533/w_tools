@@ -59,7 +59,8 @@ class DeviceOptions {
     DRect? region;
     final seen = <String>{};
     final rest = <String>[];
-    for (final a in args) {
+    for (var i = 0; i < args.length; i++) {
+      final a = args[i];
       if (a == '--json') {
         json = true;
         seen.add('json');
@@ -72,6 +73,12 @@ class DeviceOptions {
       } else if (a.startsWith('--device=')) {
         device = a.substring('--device='.length);
         seen.add('device');
+      } else if (a == '--out') {
+        if (i + 1 >= args.length || args[i + 1].startsWith('--')) {
+          throw StateError('--out 需要路径：--out <path>');
+        }
+        out = args[++i];
+        seen.add('out');
       } else if (a.startsWith('--out=')) {
         out = a.substring('--out='.length);
         seen.add('out');

@@ -1,3 +1,8 @@
+## 5.0.1
+
+### Changed
+- README 补充 `WAsyncView` 的 per-view builder、`WAsyncStatus` 与 `WAsyncActivity` 适用边界。
+
 ## 5.0.0
 
 ### Breaking

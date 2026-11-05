@@ -1,3 +1,12 @@
+## 0.2.0
+
+### Added
+- `--out` 支持 `--out <path>` 空格写法（仍支持 `--out=<path>`）。
+
+### Changed
+- 未分类执行错误退出码 1→4，与 verify findings（1）/ 参数（2）/ 外部或超时（3）区分。
+- README / `--help` 同步平台矩阵、完整命令表、实验命令 `type`、`boot` 默认设备与真机验证清单。
+
 ## 0.1.5
 
 ### Changed

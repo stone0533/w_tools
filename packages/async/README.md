@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^5.0.0
+  w_tools_async: ^5.0.1
 ```
 
 要求 Flutter 3.38+。
@@ -70,6 +70,10 @@ empty    → WAsyncStrings.empty
 failed   → 错误页（有 onRetry 才显示重试）
 ready    → readyBuilder
 ```
+
+单个 `WAsyncView` 还可覆盖 `loadingBuilder` / `emptyBuilder` / `errorBuilder` /
+`errorBannerBuilder` / `refreshingBuilder`；`onRetryError` 用于观测自定义 retry 失败。
+未传时回退到 `WAsyncTheme` 的默认视图。
 
 完整可运行示例：[`example/`](example/README.md)（四态、分页、Sliver、执行、真实场景）。
 
@@ -283,6 +287,8 @@ WAsyncStateSliver<List<Gift>>(
 
 - Controller 会把所有异常（含 `Error`）转为 `failed`，并回调 `WAsyncOptions.onError`；
 - `WAsyncActivity` 只做并发活动计数，不是加载视图；
+- 同一批并行任务可以共享 `WAsyncActivity`；不要用它合并多个独立区块。
 - `WAsyncOptions.activity` 只用于 `WAsync` 直接执行；Controller 自己维护四态，传了会断言；
 - 默认文案来自 `WAsyncStrings`，项目应注入自己的本地化文案；
+- `WAsyncState.status` 的类型是 `WAsyncStatus`（loading / ready / empty / failed）；优先 `when`，需要分支时直接 switch。
 - 取消不会中止底层 Future，只是让等待尽快结束。

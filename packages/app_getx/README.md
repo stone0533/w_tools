@@ -9,7 +9,7 @@
 
 ## 特性
 
-- **一站式启动**：`WApp.start()` = `init()` + `run()`
+- **一站式启动**：`app.start()` = `init()` + `run()`；入口是 `WApp.options(...)`
 - **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层并行、跨层串行）；它是**消费方自建插件**的扩展点，子包不自带插件，包级主题用 `WAppOptions.appWrapper` / `builder`
 - **路由工具**：`WRouteStack` / `WRouteObserver` 记录与操作 GetX 路由
 - **语言切换**：`WLanguage` 统一管理当前语言与支持语言
@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^1.0.0
+  w_tools_app_getx: ^1.0.1
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -79,6 +79,16 @@ WAppConfig.supportedLanguages = {
   'en_US': 'English',
 };
 
+WApp.options(
+  WAppOptions(
+    title: 'Demo',
+    localeConfig: const WLocaleConfig(
+      supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+      defaultLanguage: 'zh_CN', // 当前语言不在列表时回退
+    ),
+  ),
+).start();
+
 WLanguage().changeLanguage('zh_CN');
 WLanguage().languageStream.listen((code) {
   // 更新 UI
@@ -88,13 +98,19 @@ WLanguage().languageStream.listen((code) {
 ```dart
 // WApp 运行后，WRouteObserver 会维护 WRouteStack.defaultStack
 WRouteStack.defaultStack.popUntilRoute('/home');
+WApp.routeStack.routes; // 或 app.routeStack
+
+final result = await WBottomSheet.show<String>(const MySheetContent());
 ```
+
+`appWrapper` 在 MaterialApp 外（没有 Theme / MediaQuery）；需要 Theme 的插件生命周期用
+`builderWrapper`。完整示例见 [`example/`](example/) 的插件顺序、语言、路由栈与底部弹窗页面。
 
 ## 主要 API
 
 | 能力 | 入口 |
 |---|---|
-| 应用启动 | `WApp` / `WApp.start()` |
+| 应用启动 | `WApp` / `app.start()` |
 | 插件契约 | `WAppPlugin` / `WAppPlugin.dependsOn` |
 | 配置 | `WAppConfig` |
 | 路由 | `WRouteStack` / `WRouteObserver` |

@@ -1,3 +1,9 @@
+## 6.1.1
+
+### Fixed
+- 补齐 6.1.0 发布归档遗漏的示例与 README 同步：新增 6 个二级页，
+  Playground 代码面板改用 `WImage.source`，并补充 WText / WPressable / 布局 / 状态章节。
+
 ## 6.1.0
 
 ### Added
@@ -7,8 +13,6 @@
 ### Changed
 - `WStepStyle.copyWith` / `WButtonSize.copyWith` 支持传 `null` 清空可空字段
   （与 ADR-0004 的哨兵约定一致；数值字段仍接受 `int` 字面量）。
-- 示例覆盖扩展到全部公开组件与参数（新增 6 个二级页）；Playground 代码面板改用
-  `WImage.source`，不再展示 6.0 已删除的旧构造器。
 
 ### Fixed
 - `WBadge` 的 `badgeContent` 为空时不再断言崩溃，改为不渲染徽章。

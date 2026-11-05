@@ -19,4 +19,18 @@
   WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (_, data) => ...);
   ```
 
+  结果分支与取消：
+
+  ```dart
+  switch (result) {
+    case WAsyncSuccess(:final value): use(value);
+    case WAsyncFailure(:final error, :final stackTrace): log(error, stackTrace);
+    case WAsyncCancelled(:final reason): log(reason);
+  }
+  ```
+
+  `WAsyncStatus`（`state.status`）是四态枚举；`WAsyncStrings` 通过
+  `WAsyncTheme(strings: ...)` 注入默认文案；取消异常用 `WCancellationException`。
+  `WAsyncActivity` 只用于同一批并行任务，不要拿它合并多个独立区块。
+
   查用法：`dart run w_tools_cli:w_tools explain WAsync --format=prompt`。

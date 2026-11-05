@@ -51,11 +51,16 @@ void main() {
       );
     });
 
-    test('未知选项 → StateError（CLI 里转成友好提示 + exit 1）', () {
+    test('未知选项 → StateError（CLI 里转成友好提示 + exit 2）', () {
       expect(
         () => DeviceOptions.parse(['tap', '1', '2', '--bogus']),
         throwsA(isA<StateError>().having((e) => e.message, 'message', contains('--bogus'))),
       );
+    });
+
+    test('--out 支持空格形式', () {
+      final o = DeviceOptions.parse(<String>['shot', '--out', '/tmp/a.png']);
+      expect(o.out, '/tmp/a.png');
     });
 
     test('--timeout-ms / --stable-ms / --scale', () {

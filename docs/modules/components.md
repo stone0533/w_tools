@@ -21,8 +21,18 @@
 | `WTabBarConfig` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式 | WTabBar 不自带 controller，不要在这里塞状态 |
 | `WStep` / `WStepFlow` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
 | `WStepStyle` | ui | 步骤条颜色 / 尺寸 / 间距 / 标签样式 | 不要靠改 WStep 内部布局实现视觉；优先用 itemBuilder |
+| `WApp` | app_getx | GetX 启动器 | — |
+| `WAppOptions` | app_getx | WApp 的标题 / 主题 / GetX 路由 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
+| `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
+| `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` | async | 无 UI 异步执行（tryRun/run）、取消与活动计数 | — |
 | `WStepState` | ui | 步骤项状态（completed / current / upcoming） | — |
 | `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | — |
+| `WFormScope` | form | 表单 InheritedWidget 管道（由 WForm 组合） | — |
+| `WAsyncSuccess` | async | tryRun 成功结果 | — |
+| `WAsyncFailure` | async | tryRun 失败结果（error / stackTrace / isProgrammingError） | — |
+| `WAsyncCancelled` | async | tryRun 取消结果（reason） | — |
+| `WCancellationException` | async | run 被取消时抛出的异常（reason） | — |
+| `WLocaleConfig` | app_getx | 语言支持列表与默认回退语言（WAppOptions.localeConfig） | — |
 <!-- catalog:1:end -->
 
 ## 2. 文本与图标
@@ -36,6 +46,8 @@
 | `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 加载 / 重试 / 占位用 `WImageLoadConfig`，不要混在 style 里 |
 | `WImageLoadConfig` | ui | 图片加载：解码尺寸 / 重试 / 占位 / 错误 / 进度 | 视觉样式用 `WImageStyle` |
 | `WImageController` | ui | 手动重试与加载状态（retry / state） | 一个 controller 只能绑定一张 WImage |
+| `WAppPlugin` | app | 插件分层初始化 | — |
+| `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
 | `WImageDefaultsScope` | ui | App 级图片占位 / 错误 / 进度默认配置 | — |
 | `WImageErrorKind` | ui | 图片错误分类（WImageError.kind） | — |
 | `WImageError` | ui | 图片加载错误（data / kind / cause / message） | — |
@@ -52,6 +64,7 @@
 | `WProviderImageSource` | ui | WImageSource 的 ImageProvider 实现（通常用 WImageSource.provider） | — |
 | `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / compact） | — |
 | `WImageFrame` | ui | 把 WImageStyle 的圆角 / 边框 / 阴影应用到任意 child | — |
+| `WAsyncStatus` | async | 四态枚举：loading / ready / empty / failed | — |
 <!-- catalog:2:end -->
 
 > **图标 + 文字排成一行**（垂直居中）：目前没有组件，见文末「待补」——
@@ -68,6 +81,10 @@
 | `WButtonStyles` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要硬编码颜色；页面统一样式用项目 AppButtons 注册表 |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 | — |
+| `WFormIcons` | form | 表单图标集合（下拉 / 勾选 / 单选 / 密码 / 清空） | `WFormDefaults` 已删除；单字段 icon 参数优先于它 |
+| `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
+| `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
+| `WAppConfig` | app_getx | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
 | `WButtonSize` | ui | 按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap） | — |
 | `WButtonMotion` / `WButtonEffectType` | ui | 按钮按压动效（opacity / scale / none） | — |
 | `WButtonSemantics` | ui | 按钮无障碍语义（label / hint） | — |
@@ -75,6 +92,10 @@
 | `WBadgeConfig` | ui | WBadge 位置 / 显隐 / 自定义样式 | — |
 | `WButtonContentBuilder` | ui | WButton.contentBuilder 的类型：拿到最终样式自己排版 | — |
 | `WButtonResolvedStyle` | ui | contentBuilder 拿到的最终样式（states / 背景 / 文字样式等） | — |
+| `WFormTheme` | form | WForm 内部的主题 InheritedWidget（由 WForm 组合） | — |
+| `WAsyncPageLoader` | async | 分页 loader 的类型：(page) => Future<List<T>> | — |
+| `WAsyncTokenLoader` | async | 可感知取消的 loader 类型：(token) => Future<T> | — |
+| `WAsyncTokenPageLoader` | async | 可感知取消的分页 loader 类型：(page, token) => Future<List<T>> | — |
 <!-- catalog:3:end -->
 
 ## 4. 布局与容器
@@ -85,8 +106,21 @@
 | `WClipRRect` | ui | 裁剪 | — |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
+| `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
+| `WFormBorderConfig` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式 | 普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderConfig: ...)` 下发 |
+| `WFormBorderDecoration` | form | 边框装饰值对象：border / color / borderRadius / boxShadow / gradient | 不要用 `Container(decoration:)` 代替 `WFormBorder` |
+| `WAsyncView` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
+| `WAsyncStateBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除 |
+| `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据 | 非滚动页面用 `WAsyncView` |
+| `WLanguage` | app_getx | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
 | `WClipRRectConfig` | ui | WClipRRect 圆角配置（all / copyWith） | — |
 | `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | — |
+| `WFormReadOnlyScope` | form | 只读作用域：由 WForm / 字段自动注入，穿透任意包装 | — |
+| `WFormBorderLayout` / `WFormBorderBuilderLayout` / `WFormBorderColumnLayout` / `WFormBorderLayoutBuilder` / `WFormBorderLayoutData` | form | 边框与消息的布局策略（column / builder） | — |
+| `WFormFieldShell` / `WFormBorderState` | form | 字段外框装配与边框 State（内置字段自动使用） | — |
+| `WFormBorderConfigScope` / `WFormBorderDecorationExtension` | form | 边框配置的 InheritedWidget 与装饰扩展（内部使用） | — |
+| `WAsyncErrorView` / `WAsyncErrorBanner` | async | 默认整块错误视图 / 保留旧数据时的错误条 | — |
+| `WAsyncRetryErrorHandler` | async | onRetryError 回调的类型 | — |
 <!-- catalog:4:end -->
 
 ## 5. 表单
@@ -104,15 +138,15 @@
 | `WFormRadioGroup` | form | 直接单选字段（items / titleBuilder / lineSpacing） | 多选用 `WFormMultiDropdown` |
 | `WFormButton` | form | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用 |
 | `WFormFieldStyle` | form | 页面级字段默认高度 / 内边距 / 文字 / hint 样式 | 字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹 |
-| `WFormValidatorSettings` | form | 校验行为：边框错误、短路 / 全量、回调 | — |
-| `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
-| `WFormBorderConfig` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式 | 普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderConfig: ...)` 下发 |
-| `WFormBorderDecoration` | form | 边框装饰值对象：border / color / borderRadius / boxShadow / gradient | 不要用 `Container(decoration:)` 代替 `WFormBorder` |
-| `WFormIcons` | form | 表单图标集合（下拉 / 勾选 / 单选 / 密码 / 清空） | `WFormDefaults` 已删除；单字段 icon 参数优先于它 |
 | `WFormFieldStyleScope` | form | 单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / hint） | 整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层 |
-| `WFormValidator` | form | 统一校验入口：短路 / 全量、边框错误、错误汇总 | 不要同时用 `formKey.validate()`，会形成两套错误通道 |
-| `WFormValidatorItem` | form | 单个校验项：自定义规则或复用字段自身 validator | 字段自带 validator 已够用时不要重复声明规则 |
 | `WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton` | form | 文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空 | 不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldScope.of` |
+| `WAsyncTheme` | async | App 根部统一默认 loading / empty / error（普通 + sliver） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
+| `WAsyncThemeViews` | async | 自建滚动壳复用 WAsyncTheme 的默认四态视图 | 普通页面直接用 WAsyncView，不要重复搭状态分支 |
+| `WRouteStack` | app_getx | 路由栈操作（`WRouteStack.defaultStack` / `app.routeStack`） | — |
+| `WFormTextFieldData` | form | 文本字段插槽可读的数据（isPasswordVisible / readOnly 等） | — |
+| `WFormTextFieldScope` | form | 文本字段插槽的 InheritedWidget 入口（actions / suffix 用） | — |
+| `WAsyncStrings` | async | 全局默认文案：empty / errorTitle / retry | — |
+| `WAsyncErrorWidgetBuilder` | async | error / errorBanner builder 的类型 | — |
 <!-- catalog:5:end -->
 
 ## 6. 弹层
@@ -120,8 +154,9 @@
 <!-- catalog:6:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WBottomSheet` | app_getx | 底部面板外壳 | — |
 | `WFormPopup` | form | **锚定式**下拉弹层（贴在输入框下方） | ⚠️ 它不是居中对话框，别拿来做「确认弹窗」 |
+| `WRouteObserver` | app_getx | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
+| `WFormPopupRoute` | form | WFormPopup 使用的 PopupRoute（由 show 创建） | — |
 <!-- catalog:6:end -->
 
 ## 7. 状态与反馈
@@ -129,13 +164,10 @@
 <!-- catalog:7:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WAsyncView` / `WAsyncErrorView` / `WAsyncErrorBanner` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
-| `WAsyncStateBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除 |
-| `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
-| `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
-| `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据 | 非滚动页面用 `WAsyncView` |
-| `WAsyncTheme` | async | App 根部统一默认 loading / empty / error（普通 + sliver） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
-| `WAsyncThemeViews` | async | 自建滚动壳复用 WAsyncTheme 的默认四态视图 | 普通页面直接用 WAsyncView，不要重复搭状态分支 |
+| `WFormValidatorSettings` | form | 校验行为：边框错误、短路 / 全量、回调 | — |
+| `WFormValidator` | form | 统一校验入口：短路 / 全量、边框错误、错误汇总 | 不要同时用 `formKey.validate()`，会形成两套错误通道 |
+| `WFormValidatorItem` | form | 单个校验项：自定义规则或复用字段自身 validator | 字段自带 validator 已够用时不要重复声明规则 |
+| `WBottomSheet` | app_getx | 底部面板外壳 | — |
 | `WToast` | toast | 轻提示 | — |
 | `WToastStyle` | toast | Toast 的时长 / 对齐 / 背景 / 动画等样式 | 不要为单条 toast 重复造主题；全局用 WToastTheme |
 | `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
@@ -143,6 +175,7 @@
 | `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
 | `WNotificationListenerBuilder` | ui | 监听滚动通知 / 百分比 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
 | `WNotificationListenerBuilderExtension` | ui | 任意 Widget 转 WNotificationListenerBuilder 的扩展 getter | — |
+| `WFormCustomValidator` | form | 把自定义校验函数包成 FormFieldValidator | — |
 <!-- catalog:7:end -->
 
 ## 8. 能力（非 UI）
@@ -150,12 +183,6 @@
 <!-- catalog:8:start -->
 | 能力 | 子包 | 说明 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WApp` | app_getx | GetX 启动器 | — |
-| `WAppOptions` | app_getx | WApp 的标题 / 主题 / GetX 路由 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
-| `WAppPlugin` | app | 插件分层初始化 | — |
-| `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
-| `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
-| `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` | async | 无 UI 异步执行（tryRun/run）、取消与活动计数 | — |
 | `WCountdown` | core | 倒计时 | — |
 | `WStorage` | core | 本地类型读写 | 读取前必须 `init`；明文存储 |
 | `WToken` | core | token 存取 | 明文存储；高敏感场景用 Keychain / Keystore |
@@ -167,16 +194,15 @@
 | `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试（recipe: docs/recipes/login-refresh.md） | 不要在拦截器里存 token |
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
 | `WApiConfig` | api | 请求配置与日志注入 | — |
-| `WLanguage` | app_getx | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
-| `WAppConfig` | app_getx | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
-| `WRouteObserver` | app_getx | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；单次扫码后用 `restartScan` |
 | `WQrController` | qr | 相机控制与广播扫描流 | 不要用它重置 scanOnce |
 | `WQrViewOverlayShape` | qr | 扫描框样式 | 尺寸必须大于 0 |
 | `WMap` / `WMapZone` | map_google | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
 | `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
-| `WRouteStack` | app_getx | 路由栈操作（`WRouteStack.defaultStack` / `app.routeStack`） | — |
+| `WFormInputFormatters` | form | 常用输入格式化器工厂（电话号码等） | — |
+| `WCardNumberInputFormatter` | form | 每 4 位插入空格的卡号格式化器 | — |
+| `WDividerInputFormatter` | form | 通用分隔符输入格式化器（first / rear / pattern） | — |
 <!-- catalog:8:end -->
 
 ## 9. 扩展

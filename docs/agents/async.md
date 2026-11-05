@@ -63,4 +63,12 @@ if (result is WAsyncSuccess<Gift>) {
 }
 ```
 
+`WAsyncView` 还支持按页面覆盖 `loadingBuilder` / `emptyBuilder` / `errorBuilder` /
+`errorBannerBuilder` / `refreshingBuilder`，以及 `onRetryError`；未传时回退到
+`WAsyncTheme`。`WAsyncStrings` 注入默认文案，`WAsyncStatus` 是 `state.status` 的枚举，
+取消抛 `WCancellationException`，`tryRun` 的结果分支是 `WAsyncSuccess` /
+`WAsyncFailure` / `WAsyncCancelled`。
+
+`WAsyncActivity` 只用于同一批并行任务（如 `WAsync.parallel`），不要合并多个独立区块。
+
 完整说明：[async_module.md](../modules/async_module.md) · 示例：[packages/async/example](../../packages/async/example/README.md)

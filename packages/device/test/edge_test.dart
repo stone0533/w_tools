@@ -255,8 +255,8 @@ void main() {
       Future<bool> run(List<String> frames) {
         final f = _Frames(frames);
         return TapVerifier.verify(
-          stability:
-              Stability(grab: () async => f.next(), interval: const Duration(milliseconds: 5)),
+          // 稳定等待由 stability_test 单独覆盖；这里只验证前后指纹比较。
+          stability: _NoWaitStability(),
           fingerprint: () async => f.next(),
           tap: () async {},
           stableFor: const Duration(milliseconds: 10),
@@ -264,15 +264,8 @@ void main() {
         );
       }
 
-      // 稳定阶段的帧 + 点前指纹 + 稳定阶段帧 + 点后指纹
-      expect(
-        await run(['a', 'a', 'a', 'BEFORE', 'b', 'b', 'b', 'AFTER']),
-        isTrue,
-      );
-      expect(
-        await run(['a', 'a', 'a', 'SAME', 'b', 'b', 'b', 'SAME']),
-        isFalse,
-      );
+      expect(await run(['BEFORE', 'AFTER']), isTrue);
+      expect(await run(['SAME', 'SAME']), isFalse);
     });
   });
 
@@ -333,9 +326,20 @@ class _FakeShell implements Shell {
   }
 }
 
+class _NoWaitStability extends Stability {
+  _NoWaitStability() : super(grab: () async => '');
+
+  @override
+  Future<bool> waitStable({
+    Duration stableFor = const Duration(milliseconds: 600),
+    Duration timeout = const Duration(seconds: 15),
+  }) async =>
+      true;
+}
+
 class _Frames {
   _Frames(this._values);
   final List<String> _values;
   int _i = 0;
-  String next() => _values[_i++];
+  String next() => _values[_i < _values.length ? _i++ : _values.length - 1];
 }

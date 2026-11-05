@@ -1,6 +1,6 @@
 name: w_tools_app_getx
 description: "w_tools 的 GetX 应用启动层：WApp、GetX 路由、语言切换、底部弹窗与路由观察者。"
-version: 1.0.0
+version: 1.0.1
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/app_getx

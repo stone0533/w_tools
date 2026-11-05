@@ -400,260 +400,469 @@ components:
     teach: false
   - name: '`WForm`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '36-直接字段与-wform'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验'
     dontUseFor: '不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope`'
-    usage: "WForm(controller: form, child: WFormTextField(name: 'email'))"
+    usage: |
+      WForm(
+        controller: form,
+        borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+        fieldStyle: const WFormFieldStyle(height: 52),
+        validatorSettings: WFormValidatorSettings()..showBorderError = true,
+        readOnly: false,
+        icons: WFormIcons.defaults,
+        child: WFormTextField(name: 'email'),
+      )
     pitfalls:
-      - "\u4e00\u4e2a WForm \u5bf9\u5e94\u4e00\u4e2a WFormController"
-      - "\u8868\u5355\u5b57\u6bb5\u7528\u76f4\u63a5\u53c2\u6570\uff0c\u4e0d\u8981\u4ece Config.build \u5f00\u59cb"
-    related: ["`WFormController`", "`WFormTextField`"]
+      - '一个 WForm 对应一个 WFormController'
+      - '表单字段用直接参数，不要从 Config.build 开始'
+      - 'readOnly 只在 WForm 上传；不要逐字段传'
+    related: ['`WFormController`', '`WFormTextField`']
     teach: true
-
   - name: '`WFormController`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '2-wformcontroller--表单状态管理'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '表单数据 / 字段值 / 校验入口'
     dontUseFor: '多个 WForm 不要共用一个 controller'
+    usage: |
+      final form = WFormController();
+      WForm(controller: form, child: ...);
+      form.value; form.savedValue;
+      form.setValue('email', 'a@b.com');
+      form.reset();
+      if (!form.validate()) return;
+    pitfalls:
+      - '与 WForm 一对一'
+      - 'controller 由页面持有，不需要每帧重建'
+    related: ['`WForm`']
+    teach: true
   - name: '`WFormTextField`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '51-wformtextfield'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '直接文本 / 密码字段（label / message / validator）'
     dontUseFor: '不要默认写 `WFormTextFieldConfig().build(...)`'
-    usage: "WFormTextField(name: 'email', hintText: '\u90ae\u7bb1', validator: ...)"
+    usage: |
+      WFormTextField(
+        name: 'email',
+        hintText: '邮箱',
+        message: '请输入邮箱',
+        keyboardType: TextInputType.emailAddress,
+        obscureText: false,
+        actions: const [WFormTextFieldPasswordToggle()],
+        validator: (value) => value == null || value.isEmpty ? '请输入邮箱' : null,
+      )
     pitfalls:
-      - "\u4e0d\u8981\u518d\u4f20 config: WFormTextFieldConfig"
-    related: ["`WForm`", "`WFormFieldStyle`"]
+      - '不要再传 config: WFormTextFieldConfig'
+    related: ['`WForm`', '`WFormFieldStyle`']
     teach: true
-
   - name: '`WFormDropdown`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '52-wformdropdownt'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '直接下拉字段（items / 初始值 / icon / contentPadding）'
     dontUseFor: '多选用 `WFormMultiDropdown`；自定义弹层用 `WFormPopup`'
-    usage: "WFormDropdown<String>(name: 'city', items: {'sh': '上海'})"
+    usage: |
+      WFormDropdown<String>(
+        name: 'city',
+        items: const {'sh': '上海', 'bj': '北京'},
+        initialValue: 'sh',
+        icon: const Icon(Icons.location_city),
+        contentPadding: EdgeInsets.zero,
+      )
     pitfalls:
       - '初始值与回填值必须存在于 items，否则 FormBuilderDropdown 断言失败'
       - 'hintText 优先于历史参数 label'
-    related: ['WFormTextField', 'WFormMultiDropdown']
+    related: ['`WFormTextField`', '`WFormMultiDropdown`']
     teach: true
-
   - name: '`WFormMultiDropdown`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '53-wformmultidropdown'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '直接多选字段（items / disabledKeys / 选项样式）'
     dontUseFor: '单选用 `WFormDropdown`'
-    usage: "WFormMultiDropdown(name: 'tags', items: {'a': 'A'}, disabledKeys: {'b'})"
+    usage: |
+      WFormMultiDropdown(
+        name: 'tags',
+        items: const {'a': 'A', 'b': 'B'},
+        initialValue: const {'a'},
+        disabledKeys: const {'b'},
+      )
     pitfalls:
       - '字段值是 Set<String>；已选中且被 disabled 的项显示选中态但不可取消'
       - '未配置 hintText 时不显示占位（与 WFormDropdown 一致）；建议总是传业务文案'
-    related: ['WFormDropdown', 'WFormPopup']
+    related: ['`WFormDropdown`', '`WFormPopup`']
     teach: true
-
   - name: '`WFormDatePicker`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '56-wformdatepicker'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '直接日期字段（displayFormat / firstDate / lastDate）'
     dontUseFor: '时间选择不在本组件范围；自定义弹层用 `WFormPopup`'
-    usage: "WFormDatePicker(name: 'birthday', label: '生日', displayFormat: 'yyyy-MM-dd')"
+    usage: |
+      WFormDatePicker(
+        name: 'birthday',
+        label: '生日',
+        displayFormat: 'yyyy-MM-dd',
+        firstDate: DateTime(1900),
+        lastDate: DateTime(2100),
+      )
     pitfalls:
       - 'firstDate / lastDate 默认 1900 到当天；需要未来日期必须显式传 lastDate'
       - 'hintText 与 label 都作为占位符，hintText 优先'
-    related: ['WFormTextField', 'WFormFieldStyle']
+    related: ['`WFormTextField`', '`WFormFieldStyle`']
     teach: true
-
   - name: '`WFormCheckbox`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '54-wformcheckbox'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '直接复选字段（title 必填，默认 bordered: false）'
     dontUseFor: '多选用 `WFormMultiDropdown`'
-    usage: "WFormCheckbox(name: 'agree', title: Text('同意'))"
+    usage: |
+      WFormCheckbox(
+        name: 'agree',
+        title: Text('同意'),
+        bordered: true,
+        validator: (value) => value == true ? null : '请先同意',
+      )
     pitfalls:
       - 'title 必填；需要边框 / message 时显式传 bordered: true'
-    related: ['WFormRadioGroup', 'WFormFieldStyle']
+    related: ['`WFormRadioGroup`', '`WFormFieldStyle`']
     teach: true
-
   - name: '`WFormRadioGroup`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '55-wformradiogroupt'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '直接单选字段（items / titleBuilder / lineSpacing）'
     dontUseFor: '多选用 `WFormMultiDropdown`'
-    usage: "WFormRadioGroup<String>(name: 'gender', items: {'male': '男'})"
+    usage: |
+      WFormRadioGroup<String>(
+        name: 'gender',
+        items: const {'male': '男', 'female': '女'},
+        lineSpacing: 4,
+        bordered: true,
+      )
     pitfalls:
       - 'titleBuilder 是每个选项的标题，不是分组标题'
       - '默认 bordered: false；需要边框 / message 时显式传 bordered: true'
-    related: ['WFormCheckbox', 'WFormFieldStyle']
+    related: ['`WFormCheckbox`', '`WFormFieldStyle`']
     teach: true
-
   - name: '`WFormButton`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '57-wformbutton'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '直接自定义字段按钮（选择、弹层触发）'
     dontUseFor: '普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用'
-    usage: "WFormButton(name: 'coupon', label: '请选择优惠券', onTap: (value, didChange) => didChange('new_user'))"
+    usage: |
+      WFormButton(
+        name: 'coupon',
+        label: '请选择优惠券',
+        hintWidget: Text('未选择'),
+        selectedWidgetBuilder: (value) => Text(value),
+        onTap: (value, didChange) => didChange('new_user'),
+      )
     pitfalls:
       - '写值只能通过 onTap 拿到的 didChange；字段卸载后再调会被包内保护忽略'
       - '显示已选值用 selectedWidgetBuilder，不要在外面再维护一份状态'
-    related: ['WForm', 'WFormPopup']
+    related: ['`WForm`', '`WFormPopup`']
     teach: true
-
   - name: '`WFormFieldStyle`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '36-直接字段与-wform'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '页面级字段默认高度 / 内边距 / 文字 / hint 样式'
     dontUseFor: '字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹'
+    usage: |
+      const WFormFieldStyle(
+        height: 52,
+        containerPadding: EdgeInsets.symmetric(horizontal: 16),
+        textStyle: TextStyle(fontSize: 15),
+        hintStyle: TextStyle(color: Colors.grey),
+      )
+      // 传给 WForm(fieldStyle: ...)
+    related: ['`WForm`']
+    teach: false
   - name: '`WFormValidatorSettings`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: 'wformvalidatorsettings默认值'
+    section: '7. 校验系统'
     useFor: '校验行为：边框错误、短路 / 全量、回调'
+    usage: |
+      final settings = WFormValidatorSettings()
+        ..showBorderError = true
+        ..continueOnError = true
+        ..itemValidationCallback = (name, ok, error) { ... };
+      form.validate(settings: settings);
+    related: ['`WFormValidator`']
+    teach: false
   - name: '`WFormBorder`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '4-边框系统'
+    section: '4. 边框系统'
     useFor: '低层边框 / 错误展示；普通页面由 `WForm` 统一提供'
     dontUseFor: '普通字段不要手写 `WFormBorder`'
-
+    usage: |
+      // 由字段自动装配；自定义外观用 WFormBorderConfig
+      WForm(
+        borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+        child: ...,
+      )
+    related: ['`WFormBorderConfig`']
+    teach: false
   - name: '`WFormBorderConfig`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '42-wformborderconfig'
+    section: '4. 边框系统'
     useFor: '不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式'
     dontUseFor: '普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderConfig: ...)` 下发'
-    usage: 'WFormBorderConfig.fromTheme(Theme.of(context))'
+    usage: |
+      final border = WFormBorderConfig.fromTheme(Theme.of(context));
+      WForm(borderConfig: border, child: ...);
+      // 显式浅色预设：WFormBorderConfig.standard()
     pitfalls:
       - '`standard()` 是显式浅色预设，不跟随深色主题；新代码用 `fromTheme`'
       - '`copyWith(null)` 不会清空字段；清空要重新构造配置'
-    related: ['WForm', 'WFormBorder']
+    related: ['`WForm`', '`WFormBorder`']
     teach: true
-
   - name: '`WFormBorderDecoration`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '41-wformborderdecoration'
+    section: '4. 边框系统'
     useFor: '边框装饰值对象：border / color / borderRadius / boxShadow / gradient'
     dontUseFor: '不要用 `Container(decoration:)` 代替 `WFormBorder`'
-
+    usage: |
+      const WFormBorderDecoration(
+        border: Border.fromBorderSide(BorderSide(color: Colors.grey)),
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black12)],
+      )
+    related: ['`WFormBorderConfig`']
+    teach: false
   - name: '`WFormIcons`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: 'wformicons--图标集合'
+    section: '3. WFormTheme / WFormIcons — 表单主题'
     useFor: '表单图标集合（下拉 / 勾选 / 单选 / 密码 / 清空）'
     dontUseFor: '`WFormDefaults` 已删除；单字段 icon 参数优先于它'
-
+    usage: |
+      WForm(
+        icons: const WFormIcons(dropdown: Icon(Icons.expand_more)),
+        child: ...,
+      )
+    related: ['`WForm`']
+    teach: false
   - name: '`WFormFieldStyleScope`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '36-直接字段与-wform'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / hint）'
     dontUseFor: '整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层'
-
+    usage: |
+      WFormFieldStyleScope(
+        style: const WFormFieldStyle(height: 72),
+        child: WFormTextField(name: 'bio', maxLines: 3),
+      )
+    related: ['`WFormFieldStyle`']
+    teach: false
   - name: '`WFormValidator`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '7-校验系统'
+    section: '7. 校验系统'
     useFor: '统一校验入口：短路 / 全量、边框错误、错误汇总'
     dontUseFor: '不要同时用 `formKey.validate()`，会形成两套错误通道'
-    usage: "form.validators(items: [WFormValidatorItem.field('email')]).validate()"
+    usage: |
+      form.validators(items: [WFormValidatorItem.field('email')]).validate();
+      form.validate(); // 默认校验所有字段
+      form.validators(...).errors;
     pitfalls:
       - '错误默认只走边框；关掉 `showBorderError` 就只剩 `errors` 汇总'
       - '字段 validator 的错误不会写入 `errorText`（避免双通道）'
-    related: ['WFormController', 'WFormValidatorItem']
+    related: ['`WFormController`', '`WFormValidatorItem`']
     teach: true
-
   - name: '`WFormValidatorItem`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: 'wformvalidatoritem'
+    section: '7. 校验系统'
     useFor: '单个校验项：自定义规则或复用字段自身 validator'
     dontUseFor: '字段自带 validator 已够用时不要重复声明规则'
-
+    usage: |
+      WFormValidatorItem.field('email')
+      WFormValidatorItem(
+        fieldName: 'age',
+        validatorBuilder: () => (value) => value == null ? '必填' : null,
+      )
+    related: ['`WFormValidator`']
+    teach: false
   - name: '`WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton`'
     package: 'w_tools_form'
-    section: '5. 表单'
+    docsAnchor: '51-wformtextfield'
+    section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空'
     dontUseFor: '不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldScope.of`'
+    usage: |
+      WFormTextField(
+        name: 'password',
+        actions: const [WFormTextFieldPasswordToggle(), WFormTextFieldClearButton()],
+      )
+      // 自定义 action：WFormTextFieldScope.of(context).isPasswordVisible
+    related: ['`WFormTextField`']
+    teach: false
   - name: '`WBottomSheet`'
     package: 'w_tools_app_getx'
-    section: '6. 弹层'
+    docsAnchor: '7-wbottomsheet---底部弹窗'
+    section: '7. WBottomSheet - 底部弹窗'
     useFor: '底部面板外壳'
+    usage: |
+      final result = await WBottomSheet.show<String>(
+        const MySheetContent(),
+        backgroundColor: Colors.white,
+      );
+    pitfalls:
+      - '基于 Get.bottomSheet；需要 GetX 运行时'
+    related: ['`WApp`']
+    teach: false
   - name: '`WFormPopup`'
     package: 'w_tools_form'
-    section: '6. 弹层'
+    docsAnchor: '6-wformpopup--弹出层'
+    section: '6. WFormPopup — 弹出层'
     useFor: '**锚定式**下拉弹层（贴在输入框下方）'
     dontUseFor: '⚠️ 它不是居中对话框，别拿来做「确认弹窗」'
-  - name: '`WAsyncView` / `WAsyncErrorView` / `WAsyncErrorBanner`'
+    usage: |
+      final value = await WFormPopup.show<String>(
+        context: context,
+        anchorContext: fieldKey.currentContext,
+        builder: (context) => ...,
+      );
+    pitfalls:
+      - '同一 Navigator 同时只允许一个 WFormPopup'
+    related: ['`WFormButton`']
+    teach: false
+  - name: '`WAsyncView`'
     package: 'w_tools_async'
-    section: '7. 状态与反馈'
+    docsAnchor: '4-view'
+    section: '4. View'
     useFor: '普通页面异步四态视图、默认重试页与刷新错误条'
     dontUseFor: '滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController`'
-    usage: 'WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (context, data) => ...)'
+    usage: |
+      WAsyncView<List<Gift>>(
+        state: c.state,
+        onRetry: c.load,
+        onRetryError: (error, stackTrace) => ...,
+        readyBuilder: (context, data) => ...,
+        loadingBuilder: (context) => ...,
+        emptyBuilder: (context) => ...,
+        errorBuilder: (context, error, retry) => ...,
+        errorBannerBuilder: (context, error, retry) => ...,
+      )
     pitfalls:
       - 'Controller 必须先 load()，否则一直是 loading'
       - 'onRetry 为 null 时不渲染重试按钮'
     related: ['WAsyncController', 'WAsyncTheme', 'WAsyncStateBuilder']
     teach: true
-
   - name: '`WAsyncStateBuilder`'
     package: 'w_tools_async'
-    section: '7. 状态与反馈'
+    docsAnchor: '4-view'
+    section: '4. View'
     useFor: '滚动页面 / `SmartRefresher` / 自定义状态布局'
     dontUseFor: '普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除'
-    usage: "WAsyncStateBuilder(state: c.state, builder: (context, state) => ...)"
+    usage: |
+      WAsyncStateBuilder<List<Gift>>(
+        state: c.state,
+        builder: (context, state) => SmartRefresher(
+          onRefresh: c.load,
+          child: CustomScrollView(slivers: [...state.when(...)]),
+        ),
+      )
     pitfalls:
-      - "builder \u5fc5\u987b\u59cb\u7ec8\u8fd4\u56de\u540c\u4e00\u4e2a\u6eda\u52a8\u58f3\uff0c\u4e0d\u8981\u5728\u5916\u5c42\u5207 Center"
-    related: ["`WAsyncView`", "`WAsyncThemeViews`"]
+      - 'builder 必须始终返回同一个滚动壳，不要在外层切 Center'
+    related: ['WAsyncView', 'WAsyncThemeViews']
     teach: true
-
   - name: '`WAsyncController`'
     package: 'w_tools_async'
-    section: '7. 状态与反馈'
+    docsAnchor: 'wasynccontroller'
+    section: '3. Controller'
     useFor: '单区块异步状态、load / retry / 旧请求丢弃'
     dontUseFor: '分页用 `WAsyncPagedController`；纯执行用 `WAsync`'
-    usage: 'final c = WAsyncController.list(() => api.list()); c.load();'
+    usage: |
+      final c = WAsyncController.list(() => api.list()); c.load();
+      c.retry();
+      @override
+      void dispose() { c.dispose(); super.dispose(); }
     pitfalls:
       - '页面 dispose 时 controller.dispose()'
       - '不要给 Controller 传 options.activity'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
     teach: true
-
   - name: '`WAsyncPagedController`'
     package: 'w_tools_async'
-    section: '7. 状态与反馈'
+    docsAnchor: 'wasyncpagedcontroller'
+    section: '3. Controller'
     useFor: '分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md）'
     dontUseFor: '普通单请求用 `WAsyncController`'
-    usage: "final c = WAsyncPagedController<Item>((page) => api.list(page: page)); await c.refresh();"
+    usage: |
+      final c = WAsyncPagedController<Item>((page) => api.list(page: page));
+      await c.refresh();
+      await c.loadMore();
+      c.hasMoreListenable.addListener(() { ... });
+      c.loadMoreError.addListener(() { ... });
     pitfalls:
-      - "loadMore \u5931\u8d25\u53ea\u5199 loadMoreError\uff0c\u4e0d\u8981\u6e05\u7a7a\u5217\u8868"
-      - "initial: ready([]) / empty \u89c6\u4e3a\u6ca1\u6709\u66f4\u591a"
-    related: ["`WAsyncView`", "`WAsyncController`"]
+      - 'loadMore 失败只写 loadMoreError，不要清空列表'
+      - 'initial: ready([]) / empty 视为没有更多'
+    related: ['WAsyncView', 'WAsyncController']
     teach: true
-
   - name: '`WAsyncStateSliver`'
     package: 'w_tools_async'
-    section: '7. 状态与反馈'
+    docsAnchor: '4-view'
+    section: '4. View'
     useFor: 'CustomScrollView 的四态 sliver、failed+旧数据'
     dontUseFor: '非滚动页面用 `WAsyncView`'
-    usage: "WAsyncStateSliver(state: c.state, onRetry: c.load, readySliverBuilder: ...)"
+    usage: |
+      WAsyncStateSliver<List<Gift>>(
+        state: c.state,
+        onRetry: c.load,
+        readySliverBuilder: (context, data) => SliverList.builder(...),
+      )
     pitfalls:
-      - "readySliverBuilder \u5fc5\u987b\u8fd4\u56de sliver\uff1b\u4e0d\u8981\u5305\u5728 WAsyncView \u91cc"
-    related: ["`WAsyncStateBuilder`", "`WAsyncTheme`"]
+      - 'readySliverBuilder 必须返回 sliver；不要包在 WAsyncView 里'
+      - 'failed + 旧数据时保留 ready sliver，追加错误条'
+    related: ['WAsyncStateBuilder', 'WAsyncTheme']
     teach: true
-
   - name: '`WAsyncTheme`'
     package: 'w_tools_async'
-    section: '7. 状态与反馈'
+    docsAnchor: '5-theme'
+    section: '5. Theme'
     useFor: 'App 根部统一默认 loading / empty / error（普通 + sliver）'
     dontUseFor: '不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先'
-    related: ['WAsyncThemeViews', 'WAsyncView', 'WAsyncStateSliver']
-    usage: "WAsyncTheme(strings: const WAsyncStrings(empty: '\u6682\u65e0\u6570\u636e'), child: app)"
+    usage: |
+      WAsyncTheme(
+        strings: const WAsyncStrings(empty: '暂无数据'),
+        loadingBuilder: (_) => const AppLoadingView(),
+        errorBuilder: (context, error, retry) => AppRetryView(error, retry),
+        sliverLoadingBuilder: (_) => const SliverFillRemaining(child: AppLoadingView()),
+        child: app,
+      )
     pitfalls:
-      - "\u666e\u901a builder \u53ea\u4f5c\u7528\u4e8e WAsyncView\uff1bsliver \u7528 sliver*Builder"
+      - '普通 builder 只作用于 WAsyncView；sliver 用 sliver*Builder'
+    related: ['WAsyncThemeViews', 'WAsyncView', 'WAsyncStateSliver']
     teach: true
-
   - name: '`WAsyncThemeViews`'
     package: 'w_tools_async'
-    section: '7. 状态与反馈'
+    docsAnchor: '5-theme'
+    section: '5. Theme'
     useFor: '自建滚动壳复用 WAsyncTheme 的默认四态视图'
     dontUseFor: '普通页面直接用 WAsyncView，不要重复搭状态分支'
-    usage: 'final views = WAsyncThemeViews.of(context);'
+    usage: |
+      final views = WAsyncThemeViews.of(context);
+      views.loading(context);
+      views.empty(context);
+      views.error(context, error, retry);
     pitfalls:
       - '普通页面直接用 WAsyncView，不要重复搭四态分支'
     related: ['WAsyncTheme', 'WAsyncStateBuilder']
     teach: true
-
   - name: '`WToast`'
     package: 'w_tools_toast'
     section: '7. 状态与反馈'
@@ -737,63 +946,107 @@ components:
     teach: false
   - name: '`WApp`'
     package: 'w_tools_app_getx'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '1-wapp---启动器'
+    section: '1. WApp - 启动器'
     useFor: 'GetX 启动器'
-    usage: "await WApp.options(WAppOptions(title: 'Demo')).start();"
+    usage: |
+      final app = WApp.options(
+        WAppOptions(
+          title: 'Demo',
+          initialRoute: '/',
+          getPages: [GetPage(name: '/', page: () => const HomePage())],
+          localeConfig: const WLocaleConfig(
+            supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+            defaultLanguage: 'zh_CN',
+          ),
+          appWrapper: (child) => WAsyncTheme(child: child),
+        ),
+      );
+      await app.start();
     pitfalls:
-      - "WApp \u5728 w_tools_app_getx\uff0c\u4e0d\u5728 core w_tools_app"
-      - "start() \u53ea\u8c03\u7528\u4e00\u6b21"
-    related: ["`WAppPlugin`", "`WAppOptions`"]
+      - 'WApp 在 w_tools_app_getx，不在 core w_tools_app'
+      - 'start() 只调用一次'
+      - 'title / orientations / systemUiOverlayStyle / appWrapper 只能放 WAppOptions，start() 参数改不了'
+    related: ['`WAppPlugin`', '`WAppOptions`']
     teach: true
-
   - name: '`WAppOptions`'
     package: 'w_tools_app_getx'
-    section: '8. 能力（非 UI）'
+    docsAnchor: 'wappoptions-字段'
+    section: '1. WApp - 启动器'
     useFor: 'WApp 的标题 / 主题 / GetX 路由 / 语言 / 包装器配置'
     dontUseFor: '不要手写 runApp；入口用 WApp.options(...).start()'
-    usage: "await WApp.options(WAppOptions(title: 'Demo')).start();"
+    usage: |
+      const options = WAppOptions(
+        title: 'Demo',
+        getPages: [GetPage(name: '/', page: () => const HomePage())],
+        localeConfig: WLocaleConfig(
+          supportedLanguages: {'zh_CN': '简体中文'},
+          defaultLanguage: 'zh_CN',
+        ),
+        plugins: [AnalyticsPlugin()],
+        appWrapper: (child) => WAsyncTheme(child: child),
+      );
     pitfalls:
       - 'getPages / translations 属于 GetX 路由与语言配置'
+      - 'start() 只覆盖 initialRoute / getPages / builder / navigatorObservers / defaultTransition / theme / translations / locale / fallbackLocale；其余字段只能放 WAppOptions'
     related: ['`WApp`']
     teach: true
   - name: '`WAppPlugin`'
     package: 'w_tools_app'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '2-wappplugin---插件接口'
+    section: '2. WAppPlugin - 插件接口'
     useFor: '插件分层初始化'
-    usage: "class AppPlugin extends WAppPlugin { @override String get name => 'app'; }"
+    usage: |
+      class EnvPlugin extends WAppPlugin {
+        @override String get name => 'env';
+        @override Future<void> onInit() async { ... }
+      }
+      class ServicePlugin extends WAppPlugin {
+        @override String get name => 'service';
+        @override List<String> get dependsOn => ['env'];
+        @override Future<void> onInit() async { ... }
+      }
     pitfalls:
-      - "\u6709\u987a\u5e8f\u8981\u6c42\u5fc5\u987b\u5199 dependsOn\uff0c\u4e0d\u80fd\u4f9d\u8d56\u6ce8\u518c\u987a\u5e8f"
-    related: ["`WApp`"]
+      - '有顺序要求必须写 dependsOn，不能依赖注册顺序'
+      - 'onInit 抛错会中断启动（fail-fast）'
+      - 'wrapApp 在 MaterialApp 外，没有 Theme / MediaQuery'
+    related: ['`WApp`']
     teach: true
-
   - name: '`WAsyncState`'
     package: 'w_tools_async'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '2-wasyncstate'
+    section: '2. WAsyncState'
     useFor: '四态快照与 `when`'
     dontUseFor: '不要手写 `ValueNotifier<WAsyncState>`'
-    usage: "state.when(loading: ..., ready: ..., empty: ..., failed: ...)"
+    usage: |
+      state.when(loading: ..., ready: ..., empty: ..., failed: ...);
+      state.status; state.data; state.error;
     pitfalls:
-      - "\u4e0d\u8981\u624b\u5199 ValueNotifier<WAsyncState>"
-    related: ["`WAsyncController`"]
+      - '不要手写 ValueNotifier<WAsyncState>'
+    related: ['WAsyncController']
     teach: true
-
   - name: '`WAsyncResult`'
     package: 'w_tools_async'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
     useFor: '`WAsync.tryRun` 的成功 / 失败 / 取消结果'
     dontUseFor: '需要失败抛异常时用 `WAsync.run`'
-    usage: 'switch (result) { case WAsyncSuccess(:final value): ... }'
+    usage: |
+      switch (result) {
+        case WAsyncSuccess(:final value): use(value);
+        case WAsyncFailure(:final error, :final stackTrace): log(error, stackTrace);
+        case WAsyncCancelled(:final reason): log(reason);
+      }
     pitfalls:
       - '需要失败抛异常时用 WAsync.run'
       - 'isProgrammingError 只存在于 WAsyncFailure'
     related: ['WAsync', 'WAsyncController']
     teach: true
-
   - name: '`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`'
     package: 'w_tools_async'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
     useFor: '无 UI 异步执行（tryRun/run）、取消与活动计数'
-    aliases: ['tryRun', 'run', 'map', 'retry', 'timeout', 'parallel', 'pool', 'serial', 'first']
     usage: |
       final result = await WAsync.tryRun(() => api.fetch());
       switch (result) {
@@ -801,7 +1054,7 @@ components:
         case WAsyncFailure(:final error): log(error);
         case WAsyncCancelled(): log('cancelled');
       }
-      final value = await WAsync.run(() => api.fetch()); // 失败抛异常
+      final value = await WAsync.run(() => api.fetch());
       final name = await WAsync.map(() => api.fetch(), onSuccess: (v) => v.name);
     pitfalls:
       - 'run 失败抛异常；tryRun 不抛异常'
@@ -809,7 +1062,6 @@ components:
       - '取消需要 WCancelToken；取消不中止底层 Future'
     related: ['WAsyncResult', 'WAsyncOptions', 'WCancelToken']
     teach: true
-
   - name: '`WCountdown`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
@@ -895,19 +1147,44 @@ components:
 
   - name: '`WLanguage`'
     package: 'w_tools_app_getx'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '4-wlanguage---语言管理'
+    section: '4. WLanguage - 语言管理'
     useFor: '语言切换 / `languageStream`'
     dontUseFor: '不要直接改 `WAppConfig.currentLanguage` 后期待通知'
+    usage: |
+      WLanguage().changeLanguage('zh_CN');
+      WLanguage().languageStream.listen((code) { ... });
+      WLanguage().currentLanguageName;
+    pitfalls:
+      - '未在 supportedLanguages 中的语言会被忽略'
+    related: ['`WAppConfig`', '`WLocaleConfig`']
+    teach: false
   - name: '`WAppConfig`'
     package: 'w_tools_app_getx'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '3-wappconfig---应用配置'
+    section: '3. WAppConfig - 应用配置'
     useFor: '语言列表与当前语言真源'
     dontUseFor: '非响应式；切换用 `WLanguage`'
+    usage: |
+      WAppConfig.supportedLanguages = {'zh_CN': '简体中文', 'en_US': 'English'};
+      WAppConfig.currentLanguage;
+    pitfalls:
+      - '直接改 currentLanguage 不会通知；响应式切换用 WLanguage'
+    related: ['`WLanguage`']
+    teach: false
   - name: '`WRouteObserver`'
     package: 'w_tools_app_getx'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '6-wrouteobserver---路由观察者'
+    section: '6. WRouteObserver - 路由观察者'
     useFor: '维护 `WRouteStack` 路由栈'
     dontUseFor: '不要重复添加；WApp 已自动追加'
+    usage: |
+      // 默认由 WApp 自动追加；只有自定义栈时才手动创建
+      final observer = WRouteObserver();
+    pitfalls:
+      - 'WApp 已自动追加，重复添加会让路由栈重复记录'
+    related: ['`WRouteStack`']
+    teach: false
   - name: '`WQrView`'
     package: 'w_tools_qr'
     section: '8. 能力（非 UI）'
@@ -966,8 +1243,16 @@ components:
     teach: true
   - name: '`WRouteStack`'
     package: 'w_tools_app_getx'
-    section: '8. 能力（非 UI）'
+    docsAnchor: '5-wroutestack---路由栈管理'
+    section: '5. WRouteStack - 路由栈管理'
     useFor: '路由栈操作（`WRouteStack.defaultStack` / `app.routeStack`）'
+    usage: |
+      WRouteStack.defaultStack.popUntilRoute('/home');
+      WRouteStack.defaultStack.routes;
+    pitfalls:
+      - '新代码优先用 app.routeStack；defaultStack 是旧静态入口'
+    related: ['`WRouteObserver`', '`WApp`']
+    teach: false
   - name: '`WNumExtension`'
     package: 'w_tools_ui'
     docsAnchor: 'wnumextension'
@@ -1396,4 +1681,291 @@ components:
     usage: |
       WImageFrame(style: style, child: child)
     related: ['`WImageStyle`']
+    teach: false
+
+  - name: '`WFormTheme`'
+    package: 'w_tools_form'
+    docsAnchor: '3-wformtheme--wformicons--表单主题'
+    section: '3. WFormTheme / WFormIcons — 表单主题'
+    useFor: 'WForm 内部的主题 InheritedWidget（由 WForm 组合）'
+    usage: |
+      // 由 WForm 组合，不要手写
+      WForm(controller: form, child: ...)
+    pitfalls:
+      - '不要直接实例化；用 WForm 的 icons / borderConfig 等参数'
+    related: ['`WForm`']
+    teach: false
+  - name: '`WFormScope`'
+    package: 'w_tools_form'
+    docsAnchor: '1-wformscope--表单容器'
+    section: '1. WFormScope — 表单容器'
+    useFor: '表单 InheritedWidget 管道（由 WForm 组合）'
+    usage: |
+      // 由 WForm 组合，不要手写
+      WForm(controller: form, child: ...)
+    pitfalls:
+      - '不要直接实例化；controller 通过 WForm 传入'
+    related: ['`WForm`', '`WFormController`']
+    teach: false
+  - name: '`WFormReadOnlyScope`'
+    package: 'w_tools_form'
+    docsAnchor: '44-wformreadonlyscope'
+    section: '4. 边框系统'
+    useFor: '只读作用域：由 WForm / 字段自动注入，穿透任意包装'
+    usage: |
+      WForm(readOnly: true, child: ...)
+    pitfalls:
+      - '不要手写；需要局部只读时用 WForm(readOnly: true) 或字段 readOnly'
+    related: ['`WForm`']
+    teach: false
+  - name: '`WFormTextFieldData`'
+    package: 'w_tools_form'
+    docsAnchor: '51-wformtextfield'
+    section: '5. 字段组件（直接用法 / 低层细节）'
+    useFor: '文本字段插槽可读的数据（isPasswordVisible / readOnly 等）'
+    usage: |
+      final data = WFormTextFieldScope.of(context);
+      data.isPasswordVisible; data.readOnly;
+    related: ['`WFormTextFieldScope`']
+    teach: false
+  - name: '`WFormTextFieldScope`'
+    package: 'w_tools_form'
+    docsAnchor: '51-wformtextfield'
+    section: '5. 字段组件（直接用法 / 低层细节）'
+    useFor: '文本字段插槽的 InheritedWidget 入口（actions / suffix 用）'
+    usage: |
+      final data = WFormTextFieldScope.of(context);
+    pitfalls:
+      - '只能在 WFormTextField 的 actions / suffix 子树里读'
+    related: ['`WFormTextFieldAction`']
+    teach: false
+  - name: '`WFormInputFormatters`'
+    package: 'w_tools_form'
+    docsAnchor: '8-form_input_formattersdart'
+    section: '8. form_input_formatters.dart'
+    useFor: '常用输入格式化器工厂（电话号码等）'
+    usage: |
+      WFormTextField(name: 'phone', inputFormatters: WFormInputFormatters.phone())
+    related: ['`WFormTextField`']
+    teach: false
+  - name: '`WCardNumberInputFormatter`'
+    package: 'w_tools_form'
+    docsAnchor: '8-form_input_formattersdart'
+    section: '8. form_input_formatters.dart'
+    useFor: '每 4 位插入空格的卡号格式化器'
+    usage: |
+      WCardNumberInputFormatter()
+    pitfalls:
+      - '只处理数字分组；长度限制需另配 LengthLimitingTextInputFormatter'
+    teach: false
+  - name: '`WDividerInputFormatter`'
+    package: 'w_tools_form'
+    docsAnchor: '8-form_input_formattersdart'
+    section: '8. form_input_formatters.dart'
+    useFor: '通用分隔符输入格式化器（first / rear / pattern）'
+    usage: |
+      WDividerInputFormatter(first: 4, rear: 4, pattern: '-')
+    teach: false
+  - name: '`WFormCustomValidator`'
+    package: 'w_tools_form'
+    docsAnchor: '7-校验系统'
+    section: '7. 校验系统'
+    useFor: '把自定义校验函数包成 FormFieldValidator'
+    usage: |
+      WFormTextField(
+        name: 'code',
+        validator: WFormCustomValidator.custom<String>(validator: (value) => ...),
+      )
+    related: ['`WFormValidator`']
+    teach: false
+  - name: '`WFormBorderLayout` / `WFormBorderBuilderLayout` / `WFormBorderColumnLayout` / `WFormBorderLayoutBuilder` / `WFormBorderLayoutData`'
+    package: 'w_tools_form'
+    docsAnchor: '4-边框系统'
+    section: '4. 边框系统'
+    useFor: '边框与消息的布局策略（column / builder）'
+    usage: |
+      WForm(borderConfig: const WFormBorderConfig(layout: WFormBorderLayout.column), child: ...)
+    pitfalls:
+      - '通常不用直接构造；自定义布局用 WFormBorderLayout.builder(...)'
+    related: ['`WFormBorderConfig`']
+    teach: false
+  - name: '`WFormFieldShell` / `WFormBorderState`'
+    package: 'w_tools_form'
+    docsAnchor: '43-wformfieldshell'
+    section: '4. 边框系统'
+    useFor: '字段外框装配与边框 State（内置字段自动使用）'
+    usage: |
+      WFormFieldShell(name: 'x', readOnly: false, child: ...)
+    pitfalls:
+      - '普通字段不要手写；自定义字段可参考 form_module.md §4.3'
+    related: ['`WFormBorder`']
+    teach: false
+  - name: '`WFormBorderConfigScope` / `WFormBorderDecorationExtension`'
+    package: 'w_tools_form'
+    docsAnchor: '4-边框系统'
+    section: '4. 边框系统'
+    useFor: '边框配置的 InheritedWidget 与装饰扩展（内部使用）'
+    usage: |
+      WForm(borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)), child: ...)
+    pitfalls:
+      - '业务用 WFormBorderConfig；不要直接依赖 Scope'
+    related: ['`WFormBorderConfig`']
+    teach: false
+  - name: '`WFormPopupRoute`'
+    package: 'w_tools_form'
+    docsAnchor: '6-wformpopup--弹出层'
+    section: '6. WFormPopup — 弹出层'
+    useFor: 'WFormPopup 使用的 PopupRoute（由 show 创建）'
+    usage: |
+      WFormPopup.show(context: context, builder: (context) => ...)
+    pitfalls:
+      - '不要自己 push 这个 Route；用 WFormPopup.show'
+    related: ['`WFormPopup`']
+    teach: false
+
+  - name: '`WAsyncErrorView` / `WAsyncErrorBanner`'
+    package: 'w_tools_async'
+    docsAnchor: '4-view'
+    section: '4. View'
+    useFor: '默认整块错误视图 / 保留旧数据时的错误条'
+    usage: |
+      WAsyncErrorView(error: error, onRetry: retry);
+      WAsyncErrorBanner(error: error, onRetry: retry);
+    pitfalls:
+      - 'onRetry 为 null 时不显示重试按钮'
+    related: ['WAsyncView']
+    teach: false
+  - name: '`WAsyncStrings`'
+    package: 'w_tools_async'
+    docsAnchor: '5-theme'
+    section: '5. Theme'
+    useFor: '全局默认文案：empty / errorTitle / retry'
+    usage: |
+      const WAsyncStrings(empty: '暂无数据', errorTitle: '加载失败', retry: '重试')
+    pitfalls:
+      - '项目应注入本地化文案；默认是英文'
+    related: ['WAsyncTheme']
+    teach: false
+  - name: '`WAsyncStatus`'
+    package: 'w_tools_async'
+    docsAnchor: '2-wasyncstate'
+    section: '2. WAsyncState'
+    useFor: '四态枚举：loading / ready / empty / failed'
+    usage: |
+      switch (state.status) {
+        case WAsyncStatus.loading: ...
+        case WAsyncStatus.ready: ...
+        case WAsyncStatus.empty: ...
+        case WAsyncStatus.failed: ...
+      }
+    related: ['WAsyncState']
+    teach: false
+  - name: '`WAsyncSuccess`'
+    package: 'w_tools_async'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: 'tryRun 成功结果'
+    usage: |
+      case WAsyncSuccess<Gift>(:final value): use(value);
+    related: ['WAsyncResult']
+    teach: false
+  - name: '`WAsyncFailure`'
+    package: 'w_tools_async'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: 'tryRun 失败结果（error / stackTrace / isProgrammingError）'
+    usage: |
+      case WAsyncFailure<Gift>(:final error, :final stackTrace): log(error, stackTrace);
+    pitfalls:
+      - 'isProgrammingError 只存在于 WAsyncFailure'
+    related: ['WAsyncResult']
+    teach: false
+  - name: '`WAsyncCancelled`'
+    package: 'w_tools_async'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: 'tryRun 取消结果（reason）'
+    usage: |
+      case WAsyncCancelled<Gift>(:final reason): log(reason);
+    related: ['WAsyncResult']
+    teach: false
+  - name: '`WCancellationException`'
+    package: 'w_tools_async'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: 'run 被取消时抛出的异常（reason）'
+    usage: |
+      try {
+        await WAsync.run(() => api.gift());
+      } on WCancellationException catch (e) {
+        log(e.reason);
+      }
+    related: ['WAsync']
+    teach: false
+  - name: '`WAsyncPageLoader`'
+    package: 'w_tools_async'
+    docsAnchor: 'wasyncpagedcontroller'
+    section: '3. Controller'
+    useFor: '分页 loader 的类型：(page) => Future<List<T>>'
+    usage: |
+      final WAsyncPageLoader<Gift> loader = (page) => api.gifts(page: page);
+      WAsyncPagedController<Gift>(loader);
+    related: ['WAsyncPagedController']
+    teach: false
+  - name: '`WAsyncTokenLoader`'
+    package: 'w_tools_async'
+    docsAnchor: 'wasynccontroller'
+    section: '3. Controller'
+    useFor: '可感知取消的 loader 类型：(token) => Future<T>'
+    usage: |
+      final WAsyncTokenLoader<Gift> loader = (token) => api.gift(token: token);
+      WAsyncController<Gift>.withToken(loader);
+    related: ['WAsyncController', 'WCancelToken']
+    teach: false
+  - name: '`WAsyncTokenPageLoader`'
+    package: 'w_tools_async'
+    docsAnchor: 'wasyncpagedcontroller'
+    section: '3. Controller'
+    useFor: '可感知取消的分页 loader 类型：(page, token) => Future<List<T>>'
+    usage: |
+      final WAsyncTokenPageLoader<Gift> loader = (page, token) => api.gifts(page, token);
+      WAsyncPagedController<Gift>.withToken(loader);
+    related: ['WAsyncPagedController']
+    teach: false
+  - name: '`WAsyncErrorWidgetBuilder`'
+    package: 'w_tools_async'
+    docsAnchor: '5-theme'
+    section: '5. Theme'
+    useFor: 'error / errorBanner builder 的类型'
+    usage: |
+      WAsyncView<Gift>(
+        errorBuilder: (context, error, retry) => ...,
+      )
+    related: ['WAsyncView']
+    teach: false
+  - name: '`WAsyncRetryErrorHandler`'
+    package: 'w_tools_async'
+    docsAnchor: '4-view'
+    section: '4. View'
+    useFor: 'onRetryError 回调的类型'
+    usage: |
+      WAsyncView<Gift>(
+        onRetryError: (error, stackTrace) => ...,
+      )
+    related: ['WAsyncView']
+    teach: false
+
+  - name: '`WLocaleConfig`'
+    package: 'w_tools_app_getx'
+    docsAnchor: 'wappoptions-字段'
+    section: '1. WApp - 启动器'
+    useFor: '语言支持列表与默认回退语言（WAppOptions.localeConfig）'
+    usage: |
+      const WLocaleConfig(
+        supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+        defaultLanguage: 'zh_CN',
+      )
+    pitfalls:
+      - '当前语言不在 supportedLanguages 时回退到 defaultLanguage；defaultLanguage 为 null 时不回退'
+    related: ['`WAppOptions`', '`WLanguage`']
     teach: false

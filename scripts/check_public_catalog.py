@@ -18,6 +18,12 @@ BASELINE = ROOT / 'packages/cli/catalog/uncataloged.yaml'
 SKIP = {'w_tools_cli', 'w_tools_device', 'w_tools_e2e', 'w_tools_figma'}
 
 DECL = re.compile(r'\b(?:class|enum|mixin|typedef|extension)\s+([A-Z][A-Za-z0-9_]*)')
+BLOCK_COMMENT = re.compile(r'/\*.*?\*/', re.S)
+LINE_COMMENT = re.compile(r'//[^\n]*')
+
+
+def strip_comments(text: str) -> str:
+    return LINE_COMMENT.sub('', BLOCK_COMMENT.sub('', text))
 EXPORT = re.compile(r"^\s*export\s+'([^']+)'(?:\s+show\s+([^;]+)|\s+hide\s+([^;]+))?;", re.M)
 PART = re.compile(r"^\s*part\s+'([^']+)'", re.M)
 
@@ -34,6 +40,7 @@ def exported_types(package_dir: pathlib.Path) -> set[str]:
             return
         seen.add(path)
         text = path.read_text()
+        code = strip_comments(text)
         for m in PART.finditer(text):
             visit(path.parent / m.group(1), show, hide)
         for m in EXPORT.finditer(text):
@@ -41,7 +48,7 @@ def exported_types(package_dir: pathlib.Path) -> set[str]:
             child_show = set(x.strip() for x in m.group(2).split(',')) if m.group(2) else show
             child_hide = set(x.strip() for x in m.group(3).split(',')) if m.group(3) else hide
             visit(target, child_show, child_hide)
-        for m in DECL.finditer(text):
+        for m in DECL.finditer(code):
             name = m.group(1)
             if show is not None and name not in show:
                 continue

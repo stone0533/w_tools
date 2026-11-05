@@ -30,12 +30,12 @@ w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 li
   dart run w_tools_device:device list                 # 列出模拟器（udid / 名称 / 状态）
   dart run w_tools_device:device list --real          # 列出物理真机（devicectl）
   dart run w_tools_device:device list --android       # 列出 Android 设备（adb）
-  dart run w_tools_device:device boot <名称|udid>      # 启动并等待可用
-  dart run w_tools_device:device shot --out=<path>    # 截设备屏（--real 走 devicectl）
+  dart run w_tools_device:device boot <名称|udid>      # 启动并等待可用（省略时用第一台/已启动）
+  dart run w_tools_device:device shot --out=<path>    # 截设备屏（也支持 --out <path>；--real 走 devicectl）
   dart run w_tools_device:device calibrate            # 标定 DeviceHub 里设备屏幕的坐标
   dart run w_tools_device:device tap <x> <y>          # 用设备坐标点（自动换算成屏幕坐标）
   dart run w_tools_device:device drag <x1> <y1> <x2> <y2>
-  dart run w_tools_device:device type <text>          # 输入文本（先点中输入框）
+  dart run w_tools_device:device type <text>          # 实验：输入文本（先点中输入框）
   dart run w_tools_device:device size                 # 设备分辨率（iOS=point，Android=像素）
   dart run w_tools_device:device foreground --android # 前台 App 包名（仅 Android）
   dart run w_tools_device:device wait                 # 等画面稳定
@@ -53,7 +53,7 @@ w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 li
                         坐标是**截图像素**（不需要标定，也不需要 cliclick）
   --json                输出 JSON（给脚本 / CI 用）
 
-退出码：0 成功 · 1 参数/执行错误 · 2 verify 画面没变化（坐标可能失效） · 3 wait 超时
+退出码：0 成功 · 1 verify 画面没变化（坐标可能失效） · 2 参数/配置错误 · 3 外部不可用/超时 · 4 未分类执行错误
 
 依赖：macOS + Xcode；`brew install cliclick`；给宿主 App 开「辅助功能」+「屏幕录制」。
 ''';
@@ -154,7 +154,7 @@ Future<void> runDeviceCli(List<String> args) async {
   } on FileSystemException catch (e) {
     _fail(options, '文件操作失败：${e.message}', 3);
   } on Exception catch (e) {
-    _fail(options, '执行失败：$e', 1);
+    _fail(options, '执行失败：$e', 4);
   }
 }
 

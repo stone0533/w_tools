@@ -59,5 +59,47 @@ WForm(
 if (!form.validate()) return;
 ```
 
+9. 只读与字段级样式：
+
+```dart
+WForm(controller: form, readOnly: true, child: ...);
+
+WFormFieldStyleScope(
+  style: const WFormFieldStyle(height: 72),
+  child: WFormTextField(name: 'bio', maxLines: 3),
+);
+```
+
+10. 其他字段与弹层：
+
+```dart
+WFormMultiDropdown(name: 'tags', items: const {'a': 'A'}, disabledKeys: const {'b'});
+WFormDatePicker(name: 'birthday', label: '生日', displayFormat: 'yyyy-MM-dd');
+WFormCheckbox(name: 'agree', title: Text('同意'), bordered: true);
+WFormRadioGroup<String>(name: 'gender', items: const {'male': '男'}, bordered: true);
+WFormButton(
+  name: 'coupon',
+  label: '请选择优惠券',
+  onTap: (value, didChange) => didChange('new_user'),
+);
+
+final value = await WFormPopup.show<String>(
+  context: context,
+  anchorContext: fieldKey.currentContext,
+  builder: (context) => ...,
+);
+```
+
+11. 输入格式化 / 图标 / 统一校验：
+
+```dart
+WFormTextField(name: 'phone', inputFormatters: WFormInputFormatters.phone());
+WForm(controller: form, icons: const WFormIcons(dropdown: Icon(Icons.expand_more)), child: ...);
+
+form.validators(items: [WFormValidatorItem.field('email')]).validate();
+form.validate(settings: WFormValidatorSettings()..continueOnError = true);
+form.reset();
+```
+
 完整说明：[form_module.md](../modules/form_module.md)  
 可运行示例：[packages/form/example](../../packages/form/example/README.md)

@@ -4,11 +4,11 @@
 
 ## 平台支持
 
-| 平台 | list | shot | tap / drag / verify | foreground |
-| --- | --- | --- | --- | --- |
-| iOS 模拟器 | ✅ | ✅ | ✅ | ❌ |
-| iOS 真机 | ✅ | ✅ | ❌（需 idb / XCUITest） | ❌ |
-| Android 模拟器 / 真机 | ✅ | ✅ | ✅（adb） | ✅ |
+| 平台 | list | shot | tap / drag / verify | type / size / wait | foreground |
+| --- | --- | --- | --- | --- | --- |
+| iOS 模拟器 | ✅ | ✅ | ✅ | ✅ | ❌ |
+| iOS 真机 | ✅ | ✅ | ❌（需 idb / XCUITest） | ❌ | ❌ |
+| Android 模拟器 / 真机 | ✅ | ✅ | ✅（adb） | ✅ | ✅ |
 
 ## 安装与命令
 
@@ -19,6 +19,10 @@ dart run w_tools_device:device boot "<名称>"
 dart run w_tools_device:device shot --out=/tmp/shot.png
 dart run w_tools_device:device calibrate
 dart run w_tools_device:device tap <x> <y>
+dart run w_tools_device:device drag <x1> <y1> <x2> <y2>
+dart run w_tools_device:device type "hello"        # 实验：输入法/控制字符不可控
+dart run w_tools_device:device size                 # iOS=point，Android=像素
+dart run w_tools_device:device boot "<名称>"        # 省略时用第一台/已启动
 dart run w_tools_device:device verify <x> <y> --region=<x,y,w,h>
 dart run w_tools_device:device wait --region=<x,y,w,h>
 ```
@@ -30,6 +34,8 @@ dart run w_tools_device:device list --android
 dart run w_tools_device:device size --android
 dart run w_tools_device:device shot --android --out=/tmp/shot.png
 dart run w_tools_device:device tap --android <x> <y>
+dart run w_tools_device:device drag --android <x1> <y1> <x2> <y2>
+dart run w_tools_device:device type --android "hello"
 dart run w_tools_device:device foreground --android
 ```
 
@@ -47,7 +53,7 @@ dart run w_tools_device:device shot --real --device=<名称>
 - Android 的 tap 坐标是截图像素，不需要标定；
 - `verify` 默认比较整屏，动画/轮播会误判，用 `--region`；
 - `--scale` 只用于 iOS 模拟器 calibrate/tap/drag/size/wait/verify；
-- 退出码：`0` 成功 · `1` verify 没变化 · `2` 参数/配置错误 · `3` 外部不可用 / 超时。
+- 退出码：`0` 成功 · `1` verify 没变化 · `2` 参数/配置错误 · `3` 外部不可用 / 超时 · `4` 未分类执行错误。
 
 ## 可选示例
 

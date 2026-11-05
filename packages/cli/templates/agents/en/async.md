@@ -18,4 +18,19 @@
   WAsyncView(state: c.state, onRetry: c.load, readyBuilder: (_, data) => ...);
   ```
 
+  Result branches and cancellation:
+
+  ```dart
+  switch (result) {
+    case WAsyncSuccess(:final value): use(value);
+    case WAsyncFailure(:final error, :final stackTrace): log(error, stackTrace);
+    case WAsyncCancelled(:final reason): log(reason);
+  }
+  ```
+
+  `WAsyncStatus` (`state.status`) is the four-state enum; inject default copy with
+  `WAsyncStrings` via `WAsyncTheme(strings: ...)`; cancellation throws
+  `WCancellationException`. `WAsyncActivity` is only for one batch of parallel
+  tasks, never for merging independent blocks.
+
   Look up usage: `dart run w_tools_cli:w_tools explain WAsync --format=prompt`.
