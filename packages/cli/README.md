@@ -184,7 +184,7 @@ copilot  .github/copilot-instructions.md
 .w_tools/AI_PROMPTS.md
 ```
 
-包含消费者版：
+包含消费者版；文件开头有“先选场景”速查表和新手元提示词。
 
 ```text
 固定前缀

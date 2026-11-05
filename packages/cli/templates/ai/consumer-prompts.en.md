@@ -8,6 +8,41 @@
 - this project's `AGENTS.md`
 - this project's `pubspec.yaml`
 
+## Choose a scenario (beginner)
+
+If you are unsure which prompt to use, start here:
+
+| What I need | Use |
+|---|---|
+| A new page / feature | C-A |
+| A list / pagination / refresh | C-B |
+| A form / validation / submit | C-C |
+| An API / login / 401 flow | C-D |
+| Audit existing usage | C-E |
+| Upgrade w_tools | C-F |
+| Overflow / performance issues | C-G |
+| Add tests | C-H |
+| Review AI changes only | C-I |
+| AI cannot read the repo / run commands | C-J |
+
+If still unsure, send this to the AI:
+
+```text
+I do not know whether to use C-A through C-J.
+
+Read first:
+- AGENTS.md
+- pubspec.yaml
+- .w_tools/AI_PROMPTS.md
+
+My task: <one sentence>.
+Scope: <page / file / feature>.
+
+Decide which scenario fits and explain why.
+Do not write code yet.
+Then fill that scenario's prompt with my project name, page, and scope and give it to me.
+```
+
 ## Fixed prefix (paste first)
 
 ```text

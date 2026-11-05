@@ -15,6 +15,41 @@ const String aiPrompts = r'''
 - 本项目的 `AGENTS.md`
 - 本项目的 `pubspec.yaml`
 
+## 先选场景（新手）
+
+不知道用哪个提示词时，先看这张表：
+
+| 我要做什么 | 用哪个 |
+|---|---|
+| 写一个新页面 / 功能 | C-A |
+| 写列表 / 分页 / 刷新 | C-B |
+| 写表单 / 校验 / 提交 | C-C |
+| 写接口 / 登录 / 401 | C-D |
+| 检查现有代码有没有用错 | C-E |
+| 升级 w_tools | C-F |
+| 页面 overflow / 性能问题 | C-G |
+| 补测试 | C-H |
+| 只审查 AI 改动 | C-I |
+| AI 不能读仓库 / 不能跑命令 | C-J |
+
+还是不确定，直接把这段发给 AI：
+
+```text
+我不知道该用 C-A 到 C-J 哪个场景。
+
+请先读：
+- AGENTS.md
+- pubspec.yaml
+- .w_tools/AI_PROMPTS.md
+
+我的任务是：<用一句话描述>。
+范围是：<页面 / 文件 / 功能>。
+
+请先判断应该用哪个场景，并说明原因。
+不要写代码；
+确认后，把该场景的提示词填好项目名、页面和范围，再给我。
+```
+
 ## 固定前缀（每次先贴）
 
 ```text
@@ -257,6 +292,41 @@ const String aiPromptsEn = r'''
 
 - this project's `AGENTS.md`
 - this project's `pubspec.yaml`
+
+## Choose a scenario (beginner)
+
+If you are unsure which prompt to use, start here:
+
+| What I need | Use |
+|---|---|
+| A new page / feature | C-A |
+| A list / pagination / refresh | C-B |
+| A form / validation / submit | C-C |
+| An API / login / 401 flow | C-D |
+| Audit existing usage | C-E |
+| Upgrade w_tools | C-F |
+| Overflow / performance issues | C-G |
+| Add tests | C-H |
+| Review AI changes only | C-I |
+| AI cannot read the repo / run commands | C-J |
+
+If still unsure, send this to the AI:
+
+```text
+I do not know whether to use C-A through C-J.
+
+Read first:
+- AGENTS.md
+- pubspec.yaml
+- .w_tools/AI_PROMPTS.md
+
+My task: <one sentence>.
+Scope: <page / file / feature>.
+
+Decide which scenario fits and explain why.
+Do not write code yet.
+Then fill that scenario's prompt with my project name, page, and scope and give it to me.
+```
 
 ## Fixed prefix (paste first)
 

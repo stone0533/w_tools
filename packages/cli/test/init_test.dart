@@ -95,6 +95,7 @@ void main() {
       final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md'));
       expect(prompt.existsSync(), isTrue);
       expect(report.created.any((e) => e.contains('AI_PROMPTS.md')), isTrue);
+      expect(prompt.readAsStringSync(), contains('先选场景'));
       expect(prompt.readAsStringSync(), contains('C-A 新页面'));
       expect(prompt.readAsStringSync(), contains('w_tools_cli'));
 
@@ -122,6 +123,14 @@ void main() {
       ).readAsStringSync();
       expect(full, contains('C-C 表单'));
       expect(full, contains('C-D 接口'));
+    });
+
+    test('AI_PROMPTS 英文版包含场景选择', () async {
+      final root = makeProject();
+      runInit(root, lang: 'en');
+      final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).readAsStringSync();
+      expect(prompt, contains('Choose a scenario'));
+      expect(prompt, contains('C-A'));
     });
 
     test('--no-instructions 同时关闭 AI_PROMPTS', () async {
