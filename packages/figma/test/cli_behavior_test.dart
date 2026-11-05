@@ -54,6 +54,19 @@ void main() {
     expect(unknown.exitCode, 2);
   });
 
+  test('顶层 --help 列出 --ignore-budget 与 version', () async {
+    final result = await run(<String>['--help']);
+    expect(result.exitCode, 0);
+    expect('${result.stdout}', contains('--ignore-budget'));
+    expect('${result.stdout}', contains('version'));
+  });
+
+  test('version 输出版本号', () async {
+    final result = await run(<String>['version']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stdout}', contains('w_tools_figma 0.11.3'));
+  });
+
   test('不支持的选项返回 exit 2', () async {
     final result = await run(<String>['spec', '1:2', '--min=3']);
     expect(result.exitCode, 2);
@@ -80,9 +93,9 @@ void main() {
     expect(out.readAsBytesSync(), <int>[1, 2, 3, 4]);
   });
 
-  test('me 缺少 token 返回 exit 2', () async {
+  test('me 缺少 token 返回 exit 4', () async {
     final result = await run(<String>['me']);
-    expect(result.exitCode, 2, reason: '${result.stderr}');
+    expect(result.exitCode, 4, reason: '${result.stderr}');
   });
 
   test('url --json 输出 fileKey / nodeId', () async {
@@ -403,11 +416,11 @@ void main() {
     }));
 
     final result = await run(<String>['fetch', 'nodes', 'K', '1:2', '--check-stale']);
-    expect(result.exitCode, 2, reason: '${result.stderr}');
+    expect(result.exitCode, 4, reason: '${result.stderr}');
     expect('${result.stderr}', contains('缺少'));
   });
 
-  test('非 figd_ token 返回 exit 2', () async {
+  test('非 figd_ token 返回 exit 4', () async {
     final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
@@ -420,7 +433,7 @@ void main() {
     File('${root.path}/.figma-token').writeAsStringSync('not-a-figma-token');
 
     final result = await run(<String>['fetch', 'nodes', 'K', '1:2', '--check-stale']);
-    expect(result.exitCode, 2, reason: '${result.stderr}');
+    expect(result.exitCode, 4, reason: '${result.stderr}');
     expect('${result.stderr}', contains('figd_'));
   });
 

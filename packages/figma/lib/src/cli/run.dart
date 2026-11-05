@@ -47,6 +47,7 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/fig
   dart run w_tools_figma:figma me     [--json]
   dart run w_tools_figma:figma url    <figma-url | nodeId>
   dart run w_tools_figma:figma help   [command]
+  dart run w_tools_figma:figma version
 
 选项（spec / tokens 通用）：
   --file=<path>   指定缓存节点树 JSON（默认扫描 nodes-*.json 并选含目标节点的文件）
@@ -68,6 +69,7 @@ fetch 专属：
   --refresh       绕过缓存重新请求（失败时保留旧缓存）
   --check-stale   用 Tier 3 的 file/meta 判断缓存是否过期（不占 20 次/月，只提示不重拉）
   --no-log        本次不写用量日志（调试用）
+  --ignore-budget 本月额度已尽时仍然请求（默认拒绝，退出码 3）
 
 diff 专属：
   --if-stale      先用 /meta 比较版本；没变就不拉节点（不再消耗 Tier 1）
@@ -160,7 +162,7 @@ Future<void> runFigmaCli(List<String> args) async {
     exitCode = 3;
   } on FigmaTokenException catch (e) {
     stderr.writeln(e.message);
-    exitCode = 2;
+    exitCode = 4;
   } on StateError catch (e) {
     stderr.writeln(e.message);
     exitCode = 1;

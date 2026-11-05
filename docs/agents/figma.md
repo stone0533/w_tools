@@ -151,6 +151,27 @@ dart run w_tools_figma:figma help fetch
 dart run w_tools_figma:figma help spec
 ```
 
+## 完整命令
+
+| 命令 | 作用 |
+| --- | --- |
+| `init` | token 模板 / 缓存 / 预算文件 |
+| `fetch file` | 拉文件结构，`--depth` |
+| `fetch nodes` | 拉节点树，批量 id 只算 1 次 |
+| `fetch images` | 拿图片下载地址 |
+| `frames` | 列出缓存里的 FRAME |
+| `spec` | 节点 → Markdown / JSON |
+| `tokens` | 颜色 / 文字 / 圆角 / 间距 |
+| `get` | 下载图片 URL 到本地 |
+| `me` | 校验 token |
+| `usage` | 本月调用次数 |
+| `cache stats` / `cache clean` | 查看 / 清理缓存（`--all` 必须 `--yes`） |
+| `diff` | 旧缓存 vs 线上节点 |
+| `budget` | 查看 / 设置月度预算 |
+| `url` | 链接 → fileKey / nodeId |
+| `help` | 命令帮助 |
+| `version` | 显示版本 |
+
 ## CI / agent token
 
 优先：

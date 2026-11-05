@@ -30,3 +30,18 @@ dart run w_tools_cli:w_tools explain <Component>
 ```
 
 - Do not invent `W*` component names; run `dart run w_tools_cli:w_tools doctor` after implementation.
+
+Full command list (quota / exit codes: `docs/figma-cli.md`):
+
+```bash
+dart run w_tools_figma:figma fetch file <fileKey> --depth=3
+dart run w_tools_figma:figma fetch images <fileKey> <nodeId> --scale=2
+dart run w_tools_figma:figma get '<signed-url>' <outfile>
+dart run w_tools_figma:figma me
+dart run w_tools_figma:figma usage
+dart run w_tools_figma:figma cache stats
+dart run w_tools_figma:figma cache clean --all --yes
+dart run w_tools_figma:figma budget --set=15
+dart run w_tools_figma:figma help fetch
+dart run w_tools_figma:figma version
+```

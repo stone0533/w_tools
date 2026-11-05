@@ -442,6 +442,35 @@ void main() {
     });
   });
 
+  group('FIGMA 教学覆盖', () {
+    test('figma 模板包含全部公开命令', () {
+      const commands = <String>[
+        'init',
+        'fetch file',
+        'fetch nodes',
+        'fetch images',
+        'frames',
+        'spec',
+        'tokens',
+        'usage',
+        'cache stats',
+        'cache clean',
+        'diff',
+        'budget',
+        'get',
+        'me',
+        'url',
+        'help',
+        'version',
+      ];
+      for (final template in <String>[templates.agentsFigma, templates.agentsFigmaEn]) {
+        for (final command in commands) {
+          expect(template, contains('figma $command'), reason: '模板漏 figma $command');
+        }
+      }
+    });
+  });
+
   group('AGENTS 教学契约', () {
     test('async 模板包含 load 与查询命令', () {
       expect(templates.agentsAsync, contains('c.load()'));

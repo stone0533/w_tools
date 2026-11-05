@@ -1,6 +1,6 @@
 # `w_tools_figma` CLI 契约（v0.1）
 
-- 状态：**v0.1 已实现**（契约仍可微调；以当前 CLI 行为为准）
+- 状态：**v0.1 契约已实现；当前实现 0.11.3**（契约仍可微调；以当前 CLI 行为为准）
 - 定位：**只读**的 Figma 取数 / 规格导出工具，与 `w_tools` 的 UI 约定无关
 - 包名：`w_tools_figma`（与 `w_tools_*` 命名一致）；入口 `dart run w_tools_figma:figma <command>`
 - 技术栈：**Dart**（Flutter 项目必有 Dart 运行时；跨平台；可测试；不依赖 Python）
@@ -25,10 +25,11 @@
 | `spec <node-id>` | 节点树 → 完整规格（Markdown 或 JSON）——**v0.1 已实现** | 0（读缓存） | 0 |
 | `tokens` | 汇总颜色 / 文字样式 / 间距 → `design-tokens.md`——**v0.1 已实现** | 0（读缓存） | 0 |
 | `url <figma-url>` | 从 Figma 链接解析 `fileKey` + `nodeId`——**v0.1 已实现** | 0 | 0 |
-| `diff <node-id>` | 对比「上次缓存」与「当前线上」，列出改动的属性——**v0.1 已实现** | 1 | 1 次 |
+| `diff <fileKey> <nodeId>` | 对比「上次缓存」与「当前线上」，列出改动的属性——**v0.1 已实现** | 1 | 1 次 |
 | `cache` | `cache stats [--json]` / `cache clean [--all --yes]`：查看/清理机器缓存（不影响用量记录） | — | 0 |
 | `usage` | 本月调用次数 / 剩余估算——**v0.1 已实现**（座位类型需额外 `me` 调用，暂未做） | 0（本地日志） | 0 |
 | `budget` | 查看 / 设置月度预算——**v0.1 已实现** | 0 | 0 |
+| `version` | 显示当前版本 | — | 0 |
 
 > 缓存命中时不读 token、不发请求；只有缓存未命中、`--refresh` 或
 > `--check-stale` 时才需要 token。JSON 输出里的 `tierCalls` 表示本次真实请求次数。
@@ -41,7 +42,7 @@
 
 | 参数 | 说明 |
 | --- | --- |
-| `--root=<dir>` | 项目根（默认当前目录）；token / 缓存都相对它解析 |
+| `--root=<dir>` | 项目根（默认当前目录）；只用于定位项目缓存标识，token 固定在用户配置目录或 `FIGMA_TOKEN` |
 | `--json` | 机器可读输出（schema 文件见 [`packages/figma/schema/`](../packages/figma/schema/)） |
 | `--refresh` | `fetch` 删除对应缓存并强制重拉（**唯一会绕过缓存的开关**） |
 | `--no-log` | 本次不写用量日志（调试用） |

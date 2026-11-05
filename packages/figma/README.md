@@ -14,6 +14,19 @@ lib/src/cli/             CLI 内部实现，可能随版本变化
 
 CLI 用户直接用 `dart run w_tools_figma:figma`；库用户只依赖 `lib/w_tools_figma.dart` 的导出。
 
+## 库 API
+
+`lib/w_tools_figma.dart` 是稳定导出的边界；`lib/src/cli/` 是 CLI 内部实现，不承诺稳定。
+
+| 导出 | 用途 |
+| --- | --- |
+| `FigmaClient` / `HttpFigmaClient` | REST 客户端；`HttpFigmaClient(token: ...)` 走 `X-Figma-Token` |
+| `CacheStore` / `UsageEntry` | 缓存、用量、预算文件读写 |
+| `FetchCommand` / `FetchResult` | `file` / `nodes` / `images` 取数 |
+| `InitCommand` / `UrlCommand` / `UsageCommand` / `DiffCommand` | 对应 CLI 命令 |
+| `FigmaSpecRenderer` / `TokenCollector` / `TokenRenderer` | 规格与 token 渲染 |
+| `SpecDiff` / `FigmaUrlTarget` / `findFigmaNode` / `pyFixed` | diff / URL / 节点工具 |
+
 ## AI / agent 使用
 
 消费方 AI 需要手动获得入口：
@@ -38,18 +51,20 @@ W* 组件映射
 
 ### 1. 安装
 
-已发布版本：
+当前已发布（pub.dev）：`0.11.2`；`0.11.3` 待发布。
 
 ```bash
-dart pub add dev:w_tools_figma:^0.11.3
+dart pub add dev:w_tools_figma:^0.11.2
 ```
 
 等价于：
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.11.3
+  w_tools_figma: ^0.11.2
 ```
+
+`0.11.3` 发布后，把上面的约束改为 `^0.11.3`。
 
 开发版使用 path 依赖：
 
@@ -161,7 +176,7 @@ cd packages/figma
 
 | 命令 | 作用 | 额度 |
 | --- | --- | --- |
-| `init` | token 模板 / `.gitignore` / 缓存目录 / 预算文件 | 0 |
+| `init` | token 模板 / 缓存目录 / 预算文件（老项目迁移时补 `.gitignore`） | 0 |
 | `frames` | 列出缓存里的 FRAME，找 nodeId | 0 |
 | `fetch file` | 拉文件结构，`--depth` | 1 次 Tier 1 |
 | `fetch nodes` | 拉节点树，批量 ids 只算 1 次；`--depth=<n>` 限制层数（默认不限） | 1 次 Tier 1 |
@@ -174,6 +189,9 @@ cd packages/figma
 | `diff` | 对比旧缓存与最新节点；`--if-stale` 可 0 次 | 1 次 Tier 1；`--if-stale` 未变 0 |
 | `usage` | 本月调用次数 / 最近记录 | 0 |
 | `budget` | 查看 / 设置月度预算 | 0 |
+| `cache` | 查看 / 清理本机缓存；`clean --all` 必须 `--yes` | 0 |
+| `help` | 显示命令帮助 | 0 |
+| `version` | 显示版本 | 0 |
 
 `fetch` / `diff` 在额度用尽时默认拒绝（退出码 3），加 `--ignore-budget` 继续。
 
