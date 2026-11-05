@@ -145,6 +145,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 | 只让 AI 审查，不要改 | G |
 | 全仓审计 / 全量整理 | I（先审计，再分批） |
 | 单包全面审计（只读） | J |
+| 发布 Pub / 发布前检查 | K（默认只读或 dry-run） |
 | AI 不能访问仓库 / 不能跑命令 | H |
 
 ---
@@ -676,6 +677,175 @@ G. 维护与发布
 代码是事实源，文档冲突单独列问题，不要反向改代码迁就文档。
 覆盖率是参考，不是“测试完整”的证明。
 ```
+
+---
+
+## K. 发布 Pub
+
+发布是高风险操作，必须拆成：
+
+```text
+审计 → 准备版本 → dry-run → 人工确认 → 发布 → 发布后验证
+```
+
+不要用一条“帮我发布”的提示词完成全部步骤。
+
+### K-1 发布前审计（只读）
+
+```text
+任务：审计 <pkg> 是否可以发布到 pub.dev。
+不要修改文件，不要执行真实发布。
+
+先读：
+- docs/releasing.md
+- packages/<pkg>/CHANGELOG.md
+- packages/<pkg>/pubspec.yaml
+- packages/<pkg>/README.md
+
+运行：
+- bash scripts/release_check.sh --package <pkg> --online
+- bash scripts/release_check.sh --strict
+- bash scripts/preflight.sh --with-tests
+- bash scripts/publish_package.sh packages/<pkg> --dry-run
+
+检查：
+1. 版本号与 CHANGELOG 是否一致；
+2. 是否还有未发布的 breaking change；
+3. README 安装版本 / 示例是否过期；
+4. 根包约束是否覆盖新版本（仅聚合包）；
+5. 依赖包是否已先发布；
+6. dry-run 是否通过；
+7. 是否需要 migration。
+
+输出：
+- 通过项
+- 阻断项
+- 建议发布顺序
+- 不要执行真实发布
+- 不要修改文件
+```
+
+### K-2 版本 / CHANGELOG 准备
+
+```text
+任务：为 <pkg> 准备发布。
+
+允许改：
+- packages/<pkg>/pubspec.yaml
+- packages/<pkg>/CHANGELOG.md
+- packages/<pkg>/README.md
+- 根包约束（仅发根包时）
+- 必要的 migration
+
+不允许：
+- 执行 pub publish
+- 手改生成物
+- 改无关包
+
+要求：
+1. 先说明版本号依据（major / minor / patch）；
+2. 版本号必须与 CHANGELOG 一致；
+3. 更新 README 安装版本；
+4. 跑 release_check / preflight；
+5. 报告 changed files 和检查结果。
+```
+
+版本决策交给维护者确认，不要让 AI 自动决定 major / minor / patch。
+
+### K-3 Dry-run
+
+```text
+任务：对 <pkg> 执行发布 dry-run。
+
+运行：
+- bash scripts/release_check.sh --package <pkg> --online
+- bash scripts/publish_package.sh packages/<pkg> --dry-run
+
+不要执行真实 publish。
+
+输出：
+- dry-run 结果
+- 包大小 / 文件清单（如果有）
+- 依赖解析是否正常
+- 是否还有阻断项
+```
+
+### K-4 实际发布（人工确认）
+
+```text
+任务：发布 <pkg>。
+
+前置条件：
+1. 人已确认版本号和发布范围；
+2. K-1 ~ K-3 已通过；
+3. 工作区干净；
+4. 已确认发布顺序。
+
+执行：
+bash scripts/publish_package.sh packages/<pkg>
+
+禁止：
+- 直接在包目录 flutter pub publish
+- 直接在包目录 dart pub publish
+- 一次同时发多个包
+- 未确认版本号就发布
+- 在 dry-run 未通过时发布
+```
+
+发布顺序：
+
+```text
+1. 先发被依赖的核心包
+2. 再发依赖它们的包
+3. app_getx / map_google 在 app / map 之后
+4. 全部子包上线后，再发根包
+5. w_tools_cli 独立发布
+```
+
+发根包：
+
+```bash
+bash scripts/publish_package.sh .
+```
+
+### K-5 发布后验证
+
+```text
+任务：验证 <pkg> 发布结果。
+
+运行：
+- bash scripts/release_check.sh --package <pkg> --online
+- 确认 pub.dev 上的版本与 CHANGELOG 一致
+
+检查：
+1. pub.dev 版本可见；
+2. 依赖包版本可解析；
+3. 根包约束（如适用）可解析；
+4. 发布记录 / release 文档是否需要更新。
+
+不要修改代码；只报告验证结果。
+```
+
+### K 的硬边界
+
+```text
+不要执行 flutter pub publish
+不要执行 dart pub publish
+不要在包目录直接发布
+不要在未跑 dry-run 时发布
+不要一次发多个包
+不要自动决定 major / minor / patch
+不要把 pub 凭证写进提示词
+```
+
+必须使用：
+
+```bash
+bash scripts/publish_package.sh <包目录>
+```
+
+原因见 [`docs/releasing.md`](releasing.md)：仓库的 `workspace:` / `resolution: workspace`
+不能直接发布。
 
 ---
 
