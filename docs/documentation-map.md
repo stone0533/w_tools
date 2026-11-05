@@ -92,7 +92,7 @@ docs/
   recipes/                跨包组合场景
   migrations/             版本迁移（历史）
   adr/                    架构决策（历史）
-  release/                发布记录（历史）
+  releases/               发布记录（历史）
   analysis/               评审分析（历史）
   feedback/               使用反馈台账
 
@@ -129,7 +129,7 @@ scripts/README.md         scripts 运行手册
 | `docs/recipes/*.md` | 包使用者（人/AI） | 跨包组合用法 | 多包协作方式变化 | 单包 API 全表 |
 | `docs/migrations/*.md` | 升级用户（人/AI） | 版本迁移 | 发布 breaking change 时新增 | 当前用法教程 |
 | `docs/adr/*.md` | 维护者（人/仓库 AI） | 架构决策记录 | 新决策时新增，旧决策不改 | 操作手册 |
-| `docs/release/*.md` | 维护者 | 某次发布记录 | 发布时新增 | 当前版本声明 |
+| `docs/releases/*.md` | 维护者 | 某次发布记录 | 发布时新增 | 当前版本声明 |
 | `docs/analysis/*.md` | 维护者 | 某次评审记录 | 评审时新增 | 当前事实源 |
 | `docs/feedback/*.md` | 维护者 / 用户 | 问题台账 | 通过 CLI 追加 | 当前 API 文档 |
 | `docs/releasing.md` | 维护者（人/仓库 AI） | 发布流程 | 发布流程变化 | 具体版本号 |
@@ -151,7 +151,7 @@ scripts/README.md         scripts 运行手册
 | modules / recipes / migrations | ✅ | ✅ | 参考 | 参考 |
 | CONTRIBUTING / conventions | 贡献者 | 部分 | ✅ | ✅ |
 | agents / ai-contract / prompts | ❌ | 生成摘要 | ✅ | ✅ |
-| ADR / analysis / release | ❌ | ❌ | ✅ | 参考 |
+| ADR / analysis / releases | ❌ | ❌ | ✅ | 参考 |
 | scripts / catalog / templates | ❌ | 查询结果 | ✅ | ✅ |
 
 ### 判断规则
@@ -251,7 +251,7 @@ docs/migrations/
 放：
 
 ```text
-docs/release/
+docs/releases/
 ```
 
 不要改写历史发布记录。
@@ -284,7 +284,7 @@ scripts/README.md
 1. 先判断信息类型，再选文档。
 2. 能用 catalog / explain 表达的事实，不要复制成长篇。
 3. 不重复维护第二份组件清单。
-4. 不改历史迁移 / ADR / release / analysis，除非修链接或错字。
+4. 不改历史迁移 / ADR / releases / analysis，除非修链接或错字。
 5. 不写“已发布 / 待发布 x.y.z”；版本以 pubspec 为准。
 6. 不手改生成物。
 7. 新增公开 API 必须判断：catalog 还是 uncataloged。

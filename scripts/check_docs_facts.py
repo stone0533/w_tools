@@ -11,7 +11,7 @@ import sys
 import yaml
 
 root = pathlib.Path(__file__).resolve().parent.parent
-historical = {'migrations', 'adr', 'analysis', 'release'}
+historical = {'migrations', 'adr', 'analysis', 'releases'}
 files: list[pathlib.Path] = [root / 'README.md', root / 'AGENTS.md', root / 'CONTRIBUTING.md', root / 'scripts/README.md']
 for base in ['docs', 'packages']:
     for path in (root / base).rglob('*.md'):

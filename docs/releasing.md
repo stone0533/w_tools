@@ -1,8 +1,8 @@
 # 发版流程（Flutter 子包 + 工具包 + 聚合包）
 
-> 发布记录索引：[docs/release/](release/README.md)。
+> 发布记录索引：[docs/releases/](releases/README.md)。
 >
-> 当前大版本发布清单：[2026-11-04 根包 9.0.0](release/2026-11-04-major-5.0.md)。
+> 当前大版本发布清单：[2026-11-04 根包 9.0.0](releases/2026-11-04-major-5.0.md)。
 
 发布前一条命令跑门禁：
 
