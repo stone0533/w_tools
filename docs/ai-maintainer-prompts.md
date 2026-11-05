@@ -8,7 +8,7 @@
 
 ## 新手先看这里
 
-你不需要先读完 A~K。
+你不需要先读完 A~M。
 
 ### 只需三步
 
@@ -18,17 +18,17 @@
 
 ### 让 AI 帮你选场景
 
-不确定选 A~K 时，先发这段：
+不确定选 A~M 时，先发这段：
 
 ```text
 我是 w_tools 维护者，但不熟悉这些提示词。
 
 请先读 docs/ai-maintainer-prompts.md 和 docs/ai-contract.md。
 
-我的任务是：<用一句话描述>。
-范围是：<包/组件/文件>。
+我的任务是：<原因>。
+范围是：<包> / <组件> / <文件>。
 
-请先判断应该用 A~K 哪个场景，并说明原因；
+请先判断应该用 A~M 哪个场景，并说明原因；
 不要改代码；
 确认后，给我一份已经填好包名、组件和范围的提示词。
 ```
@@ -49,15 +49,7 @@
 
 ### AI 完成后先看
 
-```text
-[ ] 真的运行了命令吗？
-[ ] 有没有手改生成物？
-[ ] 有没有改测试来“通过”？
-[ ] explain 输出是否正确？
-[ ] teach / 非 teach / 基线类型三类都查过吗？
-[ ] 发布时：git status 干净？pub 归档 diff 看过？
-[ ] 有没有改无关文件？
-```
+按本文 §3「AI 完成后你必须检查」逐条核对 —— 全文只有这一份清单，不在这里另抄一份。
 
 ---
 
@@ -73,8 +65,10 @@ packages/<pkg>/README.md，再开始。
 3. 不要为了让检查通过而降低测试、契约或文档标准。
 4. 新增公开类型优先登记 catalog；不要直接塞进 uncataloged.yaml，除非说明它只是子 API。
 5. 必须实际运行命令并贴结果；不能运行就明确说没运行，不要声称通过。
-6. 不要改无关包、无关文档、无关测试。
-7. 最后报告 changed files、实际命令结果、explain 输出、剩余风险。
+6. 命令在正确目录跑：`dart run tool/*`、`dart test test/*` 只在 `packages/cli` 下成立；
+   `scripts/*.sh` 会自己 cd 到仓库根。贴命令时带上 cd，别让下一个人复现失败。
+7. 不要改无关包、无关文档、无关测试。
+8. 最后报告 changed files、实际命令结果、explain 输出、剩余风险。
 ```
 
 然后从下面选一个任务块贴在后面。
@@ -83,14 +77,26 @@ packages/<pkg>/README.md，再开始。
 
 | 占位符 | 填什么 | 示例 |
 |---|---|---|
-| `<pkg>` | 包目录名 | `form` |
-| `<包>` | 包名或目录 | `w_tools_form` |
+| `<pkg>` | 包目录名（`packages/` 下） | `form`、`app_getx` |
+| `<包>` | 包名或目录 | `w_tools_form` / `form` |
 | `<组件>` | 公开类名 | `WFormTextField` |
-| `<API>` | 方法 / 构造 | `WForm.validate` |
+| `<API>` | 方法 / 构造 / 成员 | `WForm.validate`、`WImage.network` |
 | `<文件>` | 具体路径 | `packages/form/lib/src/...` |
 | `<原因>` | 一句话目标 | 移除字段 `config` |
+| `<用途>` | 包 / 组件要解决的问题 | 地图围栏模型 |
+| `<替代>` | 替代入口 | `WImageSource.network` |
+| `<新包>` | 新包名 | `w_tools_geo` |
+| `<feature>` | init 能力名 | `map`、`form` |
+| `<批次名>` | 审计后的批次名 | `form-p0-validator` |
+| `<PKG>` | 审计 ID 前缀（大写） | `FORM` → `FORM-001` |
+| `<标题>` | 反馈 / 条目标题 | `cache clean --all 无确认` |
+| `<关键词>` | 搜索词 | `cache` |
+
+`<runner>` 不用手填：查 [`scripts/packages.manifest`](../scripts/packages.manifest) 第 3 列（`flutter` / `dart`）。
+`<包目录>` 指 `packages/<pkg>`（根包用 `.`）；`<pkg1>` / `<pkg2>` 就是多个 `<pkg>`。
 
 新手最容易漏的是 `<包>` 和 `<文件>`；能填具体路径就不要只写包名。
+正文只认上表这些占位符；出现表外的占位符说明模板没填完，按上下文换成对应的一行。
 
 ### 一个填好的例子：审计 form
 
@@ -128,14 +134,16 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 
 ## 1. 场景选择
 
-先问三个问题：
+先问这几个问题：
 
 ```text
-我只是想检查，不想改？        → G / J-0
-我想确认“教全了吗”？          → J-4
-我要发布 / 批量发布？          → K / K-1M
-我要改已有代码 / API？        → A / B
-我要新增 / 删除 / 加包？      → C / D / E
+我只是想检查，不想改？           → G / J-0
+我想确认“教全了吗”？             → J-4
+我要发布 / 批量发布？             → K / K-1M
+我要改已有代码 / API？           → A / B
+我要新增 / 删除 / 加包？         → C / D / E
+我要改 CLI / doctor / init 模板？ → L
+我要闭环一条用户反馈？            → M
 ```
 
 | 你的改动 | 用哪个 |
@@ -147,13 +155,20 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 | 新增包 | E |
 | 只整理 catalog / AGENTS / 文档 | F |
 | 只让 AI 审查，不要改 | G |
-| 全仓审计 / 全量整理 | I（先审计，再分批） |
-| 单包全面审计（只读） | J |
+| AI 不能访问仓库 / 不能跑命令 | H |
+| 全仓审计 / 全量整理 | I（I-1 审计 → I-2 分批 → I-3 单批 → I-4 最终验证） |
+| 单包全面审计（只读） | J-0 / J-1（按 J-1E 补领域维度） |
 | 审计“所有使用方式是否教给 AI” | J-4 |
 | 审计多个包 / 包家族 | J-5 |
-| 发布 Pub / 发布前检查 | K（默认只读或 dry-run） |
+| 把审计结果交给修复 | J-2 |
+| 发布 Pub / 发布前检查 | K-1（审计） |
+| 准备版本 / CHANGELOG | K-2（批量用 K-2M） |
+| 发布 dry-run | K-3 |
+| 实际发布（人工确认后） | K-4 |
+| 发布后验证 | K-5 |
 | 批量发布多个包 | K-1M / K-2M |
-| AI 不能访问仓库 / 不能跑命令 | H |
+| 改 w_tools_cli / doctor / init 模板 | L |
+| 处理 / 闭环反馈条目 | M |
 
 ---
 
@@ -167,7 +182,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 ```
 
 ```text
-任务：对 <包/文件> 做内部重构 / 修 bug。
+任务：对 <包> 的 <文件> 做内部重构 / 修 bug。
 
 要求：
 1. 先说明为什么这是内部改动：哪些 public API 和默认行为没有变。
@@ -193,7 +208,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 ```
 
 ```text
-任务：修改 <包/组件/API>，原因是 <...>。
+任务：修改 <包> 的 <组件> / <API>，原因是 <原因>。
 
 要求：
 1. 先列清楚公开变化：API、默认行为、错误语义。
@@ -220,7 +235,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 ## C. 新增公开组件
 
 ```text
-任务：新增组件 <WXxx>，包是 <pkg>。
+任务：新增组件 <组件>，包是 <pkg>。
 
 要求：
 1. 先判断它是 teach 入口还是普通组件，并说明理由。
@@ -234,8 +249,12 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 4. related 优先指向已有 catalog 组件；子 API 才考虑 uncataloged 基线。
 5. 如果影响包级规则，更新 AGENTS 模板。
 6. 更新 README；有真实场景就更新 example。
-7. 跑生成器、ai_contract、cli 测试、preflight。
-8. 用 explain <WXxx> --format=prompt 自测。
+7. 跑生成器与契约测试，再跑全仓 preflight：
+   cd packages/cli
+   dart run tool/gen_catalog.dart
+   dart run tool/gen_templates.dart
+   dart test test/ai_contract_test.dart
+8. 用 explain <组件> --format=prompt 自测。
 ```
 
 ---
@@ -243,7 +262,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 ## D. 删除 / 废弃公开 API
 
 ```text
-任务：删除或废弃 <包/API>，替代方案是 <...>。
+任务：删除或废弃 <包> 的 <API>，替代方案是 <替代>。
 
 要求：
 1. 代码层删除或加 deprecated，写清 remove-in。
@@ -252,7 +271,10 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
    - 清理 related 中指向旧 API 的引用。
 3. AGENTS 不能继续推荐旧入口。
 4. README / migration / example 更新。
-5. 运行 check_removed_api / check_public_catalog / preflight。
+5. 在仓库根运行：
+   python3 scripts/check_removed_api.py
+   python3 scripts/check_public_catalog.py
+   bash scripts/preflight.sh --with-tests
 6. 如果只是 deprecated，明确告诉 AI 现在应该用什么。
 ```
 
@@ -261,7 +283,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 ## E. 新增包
 
 ```text
-任务：新增包 <w_tools_xxx>，用途是 <...>。
+任务：新增包 <新包>，用途是 <用途>。
 
 要求：
 1. 在 scripts/packages.manifest 加一行：name / path / runner / root_aggregate / example_test。
@@ -270,8 +292,15 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 4. 有真实入口就加 example，并加 smoke test。
 5. catalog 增加入口组件；入口组件 teach: true。
 6. 如果是 init feature，加 templates/agents/{zh,en}/<feature>.md 和 features.dart 映射。
-7. 更新 context.capabilities、docs/modules/README.md、docs/releases。
-8. 跑 gen_templates / gen_catalog / check_public_catalog / preflight。
+7. 更新 context.capabilities（packages/cli/lib/src/context/context_project.dart）、
+   docs/modules/README.md、docs/releases。
+8. 跑（生成器在 packages/cli 下）：
+   cd packages/cli
+   dart run tool/gen_templates.dart
+   dart run tool/gen_catalog.dart
+   cd ../..
+   python3 scripts/check_public_catalog.py
+   bash scripts/preflight.sh --with-tests
 9. 报告发布顺序和依赖关系。
 ```
 
@@ -289,12 +318,14 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
    - templates/agents/**
    - README / docs
 3. 不要手改生成物。
-4. 跑：
-   - gen_catalog
-   - gen_templates
-   - ai_contract
-   - check_docs
-   - check_public_catalog
+4. 跑（生成器只认 packages/cli 目录）：
+   cd packages/cli
+   dart run tool/gen_catalog.dart
+   dart run tool/gen_templates.dart
+   dart test test/ai_contract_test.dart
+   cd ../..
+   bash scripts/check_docs.sh
+   python3 scripts/check_public_catalog.py
 5. 报告改了哪些事实、哪些是生成结果。
 ```
 
@@ -386,11 +417,12 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 只运行不会写文件的命令，例如：
 - python3 scripts/check_public_catalog.py
 - python3 scripts/check_package_docs.py
-- dart run tool/gen_catalog.dart --check
-- dart run tool/gen_templates.dart --check
 - bash scripts/check_docs.sh
+- cd packages/cli && dart run tool/gen_catalog.dart --check
+- cd packages/cli && dart run tool/gen_templates.dart --check
 
-不要运行会改文件的生成器或 init。
+`gen_*` 只在 `packages/cli` 下找得到（在仓库根直接跑会报 `Could not find file`）；
+`--check` 是只读模式，不加才会写文件。不要运行会改文件的生成器或 init。
 
 输出：
 - 按包列出：catalog 缺口 / teach 缺口 / AGENTS 缺口 / README 或 example 缺口 / 风险等级
@@ -421,8 +453,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 
 范围：
 - 包：<pkg>
-- 组件：<...>
-- 允许改的文件：<...>
+- 组件：<组件>（没有就写「无」）
+- 允许改的文件：<文件>
 
 要求：
 1. 不改变本批之外的公开 API / 行为；
@@ -648,13 +680,21 @@ G. 维护与发布
 
 ### J-1E. 领域补充清单（按包补充 J-1 的 A~G）
 
+下表覆盖所有包，每行只列最常见的额外检查，不替代 J-1 的 A~G 通用维度。
+
 | 包 | 额外检查 |
 |---|---|
 | ui | WImage 尺寸/来源、WText variant、WScaffold/WAppBar、WButton/WPressable、WListView、WScreen |
 | form | WForm/WFormController 生命周期、validator、readOnly、border、字段矩阵、WFormPopup |
 | async | 四态、分页 loadMore/loadMoreError、刷新、取消、WAsyncTheme、sliver |
 | app / app_getx | 启动顺序、插件 dependsOn、wrapApp/builderWrapper、路由、语言、底部弹窗 |
+| core | WStorage.init 前置、明文存储边界、WEncrypt AES-CBC 无完整性、WValidator/WRegExp、WLogger |
+| api | WApiConfig + DioRegistry.forBaseUrl 单例与 dispose、WToken 注入、WLogInterceptor 职责边界 |
+| toast | BotToastInit / BotToastNavigatorObserver 挂载、WToast.showXxx、样式覆盖 |
+| qr | WQrView scanOnce 默认 true、restartScan、相机权限、onScanned 仅在 code 非空时触发 |
+| map / map_google | 模型与实现分层、markerId 稳定性、WMapItemMapper、WMapController、Google key 与 init --map 默认关 |
 | device | 平台矩阵、坐标/标定、退出码、CLI flag、真机不可测边界 |
+| cli / figma / e2e | 工具包：教学走 docs/agents 与模板，不走 catalog explain（check_public_catalog 对它们 SKIP） |
 
 ### J-2. 把审计结果交给修复 AI
 
@@ -749,6 +789,9 @@ J-5 多包/家族
 
 ### K-1. 发布前审计（只读，单包）
 
+`--package` 只认 `scripts/packages.manifest` 里的裸名（`map` / `form` / `cli`…），
+**不接受根包**；审根包时去掉 `--package`，做全量比对。
+
 ```text
 任务：审计 <pkg> 是否可以发布到 pub.dev。
 不要修改文件，不要执行真实发布，不要跑 dry-run（dry-run 是 K-3）。
@@ -769,6 +812,11 @@ J-5 多包/家族
 - 从 pub.dev API 取 latest.archive_url，下载归档到 /tmp，解压后与本地比较：
   pubspec.yaml / lib/** / README.md / CHANGELOG.md / LICENSE / example/**
   （排除 test / docs / scripts 等仓库专用内容）
+
+审根包时换成：
+- bash scripts/release_check.sh
+- bash scripts/release_check.sh --online
+（根包版本 ↔ CHANGELOG ↔ 子包 caret 约束都在这一轮看，K-1M 会把它们并进总表）
 
 检查：
 1. 版本号与 CHANGELOG 是否一致；
@@ -794,7 +842,8 @@ J-5 多包/家族
 ```text
 任务：审计所有待发布包（或指定列表），回答哪些包有未发布内容、能否发布、按什么顺序发。
 
-范围：scripts/packages.manifest 中的包 + 根包（按需）。
+范围：scripts/packages.manifest 中的包 + 根包。
+（根包不在 manifest 里：子包用 `--package <pkg>`，根包用不带 `--package` 的全量比对。）
 对每个包执行 K-1 的检查；
 额外输出：
 1. 发布状态总表：包 | 本地版本 | pub 版本 | CHANGELOG | README | 归档 diff | 工作区受影响 | 结论 | 建议版本
@@ -949,6 +998,69 @@ bash scripts/publish_package.sh <包目录>
 原因见 [`docs/releasing.md`](releasing.md)：仓库的 `workspace:` / `resolution: workspace`
 不能直接发布。
 
+## L. 改 w_tools_cli / doctor / init 模板
+
+适用：
+
+```text
+改 CLI 子命令 / flag
+改 doctor 规则（R1~R9）或默认配置
+改 init 生成的模板 / AGENTS 片段
+```
+
+这不是“在消费方项目里用 CLI”——那部分看 [`docs/agents/cli.md`](agents/cli.md)。
+
+```text
+任务：修改 w_tools_cli 的 <文件>，原因是 <原因>。
+
+先读：
+- docs/agents/cli.md（维护者一节）
+- docs/conventions.md §7（doctor 的 R1~R9 规则表）
+- packages/cli/README.md
+
+要求：
+1. 规则只实现一次：检查逻辑写在 lib/，文档只描述；不要两边各写一份。
+2. 改 DoctorConfig 默认值 → 同步 renderDefaultConfig()（doctor --print-config），
+   packages/cli/test/config_render_test.dart 会挡住漂移。
+3. 改 templates/agents/** → cd packages/cli && dart run tool/gen_templates.dart。
+4. 改 catalog/components.yaml → cd packages/cli && dart run tool/gen_catalog.dart。
+5. 同步：packages/cli/test/init_test.dart 或 doctor_test.dart、
+   docs/conventions.md §7、docs/agents/cli.md、packages/cli/CHANGELOG.md。
+6. 在 packages/cli 跑 dart test；再回仓库根跑 bash scripts/preflight.sh --with-tests。
+7. 报告 changed files、命令结果、消费方会感知到的行为变化。
+```
+
+完成判据：`dart test` 全绿；`doctor --print-config` 与默认值一致；
+模板 / catalog 重新生成后 `git diff` 只包含你改的源文件。
+
+## M. 处理 / 闭环反馈条目
+
+适用：
+
+```text
+docs/feedback/<包>.md 里有 [待处理] / [已确认] 条目要修、要定状态
+```
+
+```text
+任务：处理 <包> 的反馈条目「<标题>」。
+
+先读：
+- docs/feedback/README.md（状态机与索引规则）
+- docs/feedback/<包>.md 中的该条目
+
+要求：
+1. 先查重与现状：
+   dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>
+2. 先复现，再修；修代码走 A / B，不要顺手改公开 API。
+3. 状态只由维护者改：待处理 → 已确认（链 issue）→ 已修复（版本 + commit）/ 不修（写理由）。
+4. 已修复必须带版本号；闭环后压成「## 已闭环」一行，细节写 CHANGELOG。
+5. 同步 docs/feedback/README.md 索引表的待处理数量，不要新建第二张表。
+6. 提交前跑 bash scripts/check_feedback.sh。
+7. 报告：条目、改动文件、版本、验证命令。
+```
+
+完成判据：条目状态合法、`check_feedback.sh` 通过、CHANGELOG 里有一句对应说明。
+
 ## 2. 提示词使用示例
 
 ### 改 WAsync 的超时行为
@@ -956,8 +1068,9 @@ bash scripts/publish_package.sh <包目录>
 固定前缀 + 场景 B，把：
 
 ```text
-<包/组件/API> → w_tools_async / WAsync.timeout
-<...> → 超时错误需要显式区分
+<包> → w_tools_async
+<API> → WAsync.timeout
+<原因> → 超时错误需要显式区分
 ```
 
 ### 新增 WAsync 的 retry 辅助
@@ -965,8 +1078,8 @@ bash scripts/publish_package.sh <包目录>
 固定前缀 + 场景 C，把：
 
 ```text
-<WXxx> → WAsyncRetry
-<pkg> → w_tools_async
+<组件> → WAsyncRetry
+<pkg> → async
 ```
 
 ### 删除 WImage 旧构造器
@@ -974,8 +1087,9 @@ bash scripts/publish_package.sh <包目录>
 固定前缀 + 场景 D，把：
 
 ```text
-<包/API> → w_tools_ui / WImage.network
-<...> → WImageSource.network
+<包> → w_tools_ui
+<API> → WImage.network
+<替代> → WImageSource.network
 ```
 
 ### 审计 ui 的所有使用方式是否教给 AI
@@ -1003,14 +1117,16 @@ K-1 → K-2（确认版本）→ 提交并 push → K-3 → K-4 → K-5，逐包
 ## 3. AI 完成后你必须检查
 
 ```text
+[ ] 报告里的每条命令都真的跑过；没跑就写明没跑
 [ ] git diff 没有大范围无关改动
 [ ] catalog 改的是 components.yaml，不是 catalog.g.dart
 [ ] AGENTS 改的是 templates，不是 templates.g.dart
 [ ] 新公开类型已进 catalog 或 uncataloged 基线（并说明理由）
 [ ] teach 组件有 usage / pitfalls / related
-[ ] 非 teach / 基线类型也查过 explain
+[ ] teach / 非 teach / 基线类型三类都查过 explain
 [ ] explain <组件> --format=prompt 输出正确
 [ ] README / example 已更新
+[ ] docs/README.md 已索引新增文档；docs/agents 的首选入口能在该包规则页找到
 [ ] 发布时：git status 干净、归档 diff 看过、版本常量已同步
 [ ] preflight --with-tests 实际通过
 [ ] 没有削弱测试
@@ -1042,14 +1158,7 @@ K-1 → K-2（确认版本）→ 提交并 push → K-3 → K-4 → K-5，逐包
 + 一次只做一类任务
 ```
 
-复杂改动拆成：
-
-```text
-第 1 轮：代码 + 测试
-第 2 轮：catalog + AGENTS
-第 3 轮：README + example
-第 4 轮：preflight + 审查
-```
+复杂改动的轮次顺序见本文开头的「默认工作流」，不要另记一套。
 
 ---
 
@@ -1084,12 +1193,21 @@ preflight
 
 当以下内容变化时，更新本文件：
 
-- CLI 命令；
+- CLI 命令 / flag；
 - catalog 字段；
 - AGENTS 模板规则；
 - 完整性检查命令；
 - 发布 / migration 流程；
-- 新增场景（J-4 / J-5 / K-1M / K-2M）或 CLI 命令（list --package、explain 锚点）。
+- 新增场景（J-4 / J-5 / L / M / K-1M / K-2M）或 CLI 命令（list --package、explain 锚点）。
+
+改完在仓库根跑：
+
+```bash
+bash scripts/check_docs.sh
+```
+
+它除了链接和旧命令，还会用 `check_prompt_docs.py` 核对本文引用脚本、flag、`cd packages/cli`、
+占位符与场景编号（§1 提到的 A~M / X-n 必须有对应标题）。
 
 保持它和 [`docs/ai-contract.md`](ai-contract.md) 一致。
 
