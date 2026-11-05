@@ -6,6 +6,59 @@
 
 ---
 
+## 新手先看这里
+
+你不需要先读完 A~J。
+
+### 只需三步
+
+1. 用一句话说明任务；
+2. 不知道该用哪个场景，先让 AI 帮你选；
+3. AI 判断后，只复制对应场景块。
+
+### 让 AI 帮你选场景
+
+不确定选 A~J 时，先发这段：
+
+```text
+我是 w_tools 维护者，但不熟悉这些提示词。
+
+请先读 docs/ai-maintainer-prompts.md 和 docs/ai-contract.md。
+
+我的任务是：<用一句话描述>。
+范围是：<包/组件/文件>。
+
+请先判断应该用 A~J 哪个场景，并说明原因；
+不要改代码；
+确认后，给我一份已经填好包名、组件和范围的提示词。
+```
+
+### 默认工作流
+
+```text
+第 1 轮：只审计（G 或 J-0），不改文件
+第 2 轮：只修 P0/P1（B 或 A）
+第 3 轮：跑 preflight，检查 explain 输出
+```
+
+不要第一轮就：
+
+```text
+审计 + 修复 + 改文档 + 跑全仓
+```
+
+### AI 完成后先看
+
+```text
+[ ] 真的运行了命令吗？
+[ ] 有没有手改生成物？
+[ ] 有没有改测试来“通过”？
+[ ] explain 输出是否正确？
+[ ] 有没有改无关文件？
+```
+
+---
+
 ## 0. 固定前缀（每次先贴）
 
 ```text
@@ -24,9 +77,62 @@ packages/<pkg>/README.md，再开始。
 
 然后从下面选一个任务块贴在后面。
 
+## 填空说明
+
+| 占位符 | 填什么 | 示例 |
+|---|---|---|
+| `<pkg>` | 包目录名 | `form` |
+| `<包>` | 包名或目录 | `w_tools_form` |
+| `<组件>` | 公开类名 | `WFormTextField` |
+| `<API>` | 方法 / 构造 | `WForm.validate` |
+| `<文件>` | 具体路径 | `packages/form/lib/src/...` |
+| `<原因>` | 一句话目标 | 移除字段 `config` |
+
+新手最容易漏的是 `<包>` 和 `<文件>`；能填具体路径就不要只写包名。
+
+### 一个填好的例子：审计 form
+
+```text
+我是 w_tools 维护者。
+
+任务：检查 packages/form 的功能是否合适、测试是否完整、
+example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
+
+范围：
+- 只审计 packages/form
+- 不修改任何文件
+- 输出 FORM-001 格式的问题清单
+
+请先读：
+- docs/ai-contract.md
+- docs/agents/form.md
+- docs/modules/form_module.md
+- packages/form/README.md
+
+然后运行：
+- cd packages/form && flutter test
+- cd packages/form/example && flutter test
+- bash scripts/check_docs.sh
+- python3 scripts/check_public_catalog.py
+
+不要修改文件。
+不要为了让测试通过而改测试。
+输出每条问题的文件:行、证据、修复建议、验收命令。
+```
+
+
+
 ---
 
 ## 1. 场景选择
+
+先问三个问题：
+
+```text
+我只是想检查，不想改？        → G / J-0
+我要改已有代码 / API？        → A / B
+我要新增 / 删除 / 加包？      → C / D / E
+```
 
 | 你的改动 | 用哪个 |
 |---|---|
@@ -390,7 +496,35 @@ example 是否覆盖真实场景
 
 输出必须能直接交给另一个 AI 修复。
 
-### J-1. 审计提示词
+### J-0. 快速审计（默认）
+
+日常先用这个，不要一上来复制完整 J-1。
+
+```text
+只读审计 <pkg>，不修改任何文件。
+
+检查：
+1. 功能是否正确、API 是否一致；
+2. 测试是否覆盖主要行为；
+3. example 是否覆盖真实场景；
+4. README / modules / agents / catalog 是否一致；
+5. explain --format=prompt 是否能让 AI 写对代码。
+
+运行：
+- cd packages/<pkg> && flutter test
+- cd packages/<pkg>/example && flutter test
+- bash scripts/check_docs.sh
+- python3 scripts/check_public_catalog.py
+
+输出：
+| ID | 级别 | 文件:行 | 证据 | 问题 | 建议修复 | 验收命令 |
+
+不要修改文件；不要为了让测试通过而改测试。
+```
+
+如果发现需要深入审计，再使用下面的 J-1；日常先用 J-0。
+
+### J-1. 完整审计提示词（高级）
 
 ```text
 任务：对 packages/form 做只读全面审计。
