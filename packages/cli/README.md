@@ -188,12 +188,16 @@ copilot  .github/copilot-instructions.md
 
 ```text
 固定前缀
-C-A 实现页面
-C-B 审计现有代码
-C-C 升级 w_tools
-C-D 排查问题
-C-E 只审查
-C-F AI 不能跑命令
+C-A 新页面：先计划，再实现
+C-B 列表 / 分页 / 刷新
+C-C 表单 / 校验 / 提交（启用 form 时）
+C-D 接口 / 登录 / 401（启用 api 时）
+C-E 审计现有代码
+C-F 升级 w_tools
+C-G 调试 UI / 性能
+C-H 补测试
+C-I 只审查
+C-J AI 不能跑命令
 ```
 
 关闭：

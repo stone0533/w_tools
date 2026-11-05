@@ -24,27 +24,98 @@ Rules:
    dart run w_tools_cli:w_tools explain <Component> --format=prompt
 4. Do not guess w_tools APIs; follow explain output.
 5. Only use packages installed in this project; follow project import rules.
-6. Do not edit generated AGENTS.md.
-7. Run flutter analyze / flutter test and paste actual output.
-8. If you cannot run commands, say so; do not claim they passed.
+6. Inspect existing similar pages / routes / state management first; do not invent a new architecture.
+7. Do not edit generated AGENTS.md.
+8. Run flutter analyze / flutter test and paste actual output.
+9. If you cannot run commands, say so; do not claim they passed.
 ```
 
-## C-A Implement a page / feature
+## C-A New page: plan first, then implement
 
 ```text
-Task: implement <page/feature> with w_tools.
+Task: implement <page/feature>.
 
-Requirements:
-1. Run context first to confirm installed capabilities and versions.
-2. Use list / explain to find existing components; do not reinvent them.
-3. Only import packages installed in this project.
-4. If no shared component exists, put it in lib/app/design_system/ and mark STAGED.
-5. Do not modify w_tools packages.
-6. Run flutter analyze + flutter test.
-7. Report which w_tools components you used and why, with explain evidence.
+Do not write code yet. First read:
+- AGENTS.md / pubspec.yaml
+- lib/app/ui/ / lib/app/design_system/
+- 2-3 similar pages
+- route registration
+
+Output first:
+1. reusable existing pages / components
+2. page states: loading / empty / error / ready
+3. route and arguments
+4. data source
+5. w_tools components to explain
+6. file change plan
+7. test plan
+
+Wait for confirmation before coding.
+
+Implementation requirements:
+- run context, then list / explain;
+- do not invent a new directory / state architecture;
+- do not modify w_tools packages;
+- requests need cancel / dispose protection;
+- forms need validation, submitting state, and input preservation;
+- lists need refresh and load-more behavior;
+- run flutter analyze + flutter test.
 ```
 
-## C-B Audit existing code
+## C-B List / pagination / refresh
+
+```text
+Task: implement <list page>.
+
+Confirm first:
+- data API and pagination params
+- pull-to-refresh
+- empty / error / load-more failure
+- whether the project uses WAsyncPagedController
+
+Requirements:
+1. Follow existing list pages.
+2. First-screen loading / empty / error is complete.
+3. Load-more failure updates footer only; do not replace the list.
+4. Use stable keys for list items.
+5. Limit image decode size.
+6. Run analyze + test; add a list-state widget test.
+```
+
+<!-- @if:form -->
+## C-C Form / validation / submit
+
+```text
+Task: implement <form page>.
+
+Requirements:
+1. Use WForm + direct fields; do not pass field config.
+2. Use field validator + WFormValidatorSettings.
+3. Disable duplicate submit while submitting.
+4. Preserve user input on API failure.
+5. Keep fields visible when the keyboard opens.
+6. Handle readOnly / edit mode correctly.
+7. Add validation + submit tests.
+```
+<!-- @endif -->
+
+<!-- @if:api -->
+## C-D API / login / 401
+
+```text
+Task: implement <API / login flow>.
+
+Requirements:
+1. Use WApiConfig + DioRegistry; do not create Dio directly.
+2. Store tokens with WToken.
+3. Refresh on 401 and retry only once.
+4. Show business errors on failure.
+5. Do not setState after page switch / dispose.
+6. Run analyze + test.
+```
+<!-- @endif -->
+
+## C-E Audit existing code
 
 ```text
 Audit only; do not modify files.
@@ -62,7 +133,7 @@ Output:
 Do not modify files.
 ```
 
-## C-C Upgrade w_tools
+## C-F Upgrade w_tools
 
 ```text
 Task: upgrade w_tools from <old version> to <new version>.
@@ -77,23 +148,48 @@ Requirements:
 7. Report remaining outdated APIs.
 ```
 
-## C-D Diagnose a problem
+## C-G Debug UI / performance
 
 ```text
-Task: diagnose <page/feature>.
+Task: diagnose <page> UI / performance issues.
 
 Collect first:
-- w_tools version
-- involved components
+- reproduction steps
+- device and Flutter version
+- error / overflow logs
+- relevant page code
 - explain output
-- stack trace
-- minimal reproduction
 
-Do not guess first.
-Decide whether this is project usage, a w_tools bug, or a version mismatch.
+Check:
+1. overflow / keyboard obstruction / SafeArea;
+2. dark mode / TextScaler;
+3. unnecessary rebuilds;
+4. image decode size and cache;
+5. list keys / controller disposal;
+6. whether this is a w_tools usage issue.
+
+Do not guess; provide reproduction and evidence first.
 ```
 
-## C-E Review changes only
+## C-H Add tests
+
+```text
+Task: add tests for <page/component>.
+
+Prioritize:
+1. loading / empty / error / ready;
+2. form validation and submit;
+3. list refresh / load more / footer;
+4. 401 / request failure;
+5. key interactions and callbacks.
+
+Requirements:
+- follow existing test style;
+- do not weaken assertions to pass;
+- run flutter test.
+```
+
+## C-I Review changes only
 
 ```text
 Review this change only; do not edit code.
@@ -108,7 +204,7 @@ Check:
 Output blockers, suggestions, and acceptable risks.
 ```
 
-## C-F AI cannot read the repo / run commands
+## C-J AI cannot read the repo / run commands
 
 ```text
 You cannot access the repository or run commands.
@@ -123,4 +219,22 @@ I provide:
 - relevant pubspec snippet
 - explain output
 - error / test output
+```
+
+## Page completion self-check
+
+```text
+[ ] loading / empty / error / ready complete
+[ ] requests have cancel / dispose protection
+[ ] forms have validation, submitting state, input preservation
+[ ] lists have refresh / pagination / footer
+[ ] images use WImage.source with decode limits
+[ ] route arguments and results are correct
+[ ] keyboard / SafeArea / overflow checked
+[ ] dark mode and TextScaler do not overflow
+[ ] no direct w_tools_* imports
+[ ] no outdated APIs
+[ ] flutter analyze passes
+[ ] flutter test passes
+[ ] new/changed widgets have tests
 ```

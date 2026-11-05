@@ -23,28 +23,99 @@
 3. 查用法运行：
    dart run w_tools_cli:w_tools explain <组件名> --format=prompt
 4. 不要凭记忆猜 w_tools API；以 explain 输出为准。
-5. 只用项目已安装的子包；业务代码按项目约定 import。
-6. 不要手改生成的 AGENTS.md。
-7. 完成后运行 flutter analyze / flutter test，并贴实际输出。
-8. 不能运行命令就明确说没运行，不要声称通过。
+5. 只使用项目已安装的包；业务代码按项目约定 import。
+6. 先看项目现有相似页面 / 路由 / 状态管理，不要发明新架构。
+7. 不要手改生成的 AGENTS.md。
+8. 完成后运行 flutter analyze / flutter test，并贴实际输出。
+9. 不能运行命令就明确说没运行，不要声称通过。
 ```
 
-## C-A 实现页面 / 功能
+## C-A 新页面：先计划，再实现
 
 ```text
-任务：用 w_tools 实现 <页面/功能>。
+任务：实现 <页面/功能>。
 
-要求：
-1. 先运行 context，确认已安装能力和版本；
-2. 先 list / explain 找现成组件，不要重复造；
-3. 只 import 项目已安装的子包；
-4. 找不到通用组件时放 lib/app/design_system/，并标 STAGED；
-5. 不修改 w_tools 子包；
-6. 完成后 flutter analyze + flutter test；
-7. 报告：用了哪些 w_tools 组件、为什么、explain 依据。
+先不要写代码。先读：
+- AGENTS.md / pubspec.yaml
+- lib/app/ui/ / lib/app/design_system/
+- 2~3 个相似页面
+- 路由注册文件
+
+先输出：
+1. 可复用的现有页面 / 组件
+2. 页面状态：loading / empty / error / ready
+3. 路由与参数
+4. 数据来源
+5. 需要 explain 的 w_tools 组件
+6. 文件改动计划
+7. 测试计划
+
+等我确认后再写代码。
+
+实现要求：
+- 先运行 context，再用 list / explain 找组件；
+- 不发明新的目录 / 状态管理方案；
+- 不修改 w_tools 子包；
+- 有请求就要有取消 / dispose 保护；
+- 有表单就要有校验、提交中、错误保留；
+- 有列表就要考虑刷新和加载更多；
+- 完成后 flutter analyze + flutter test。
 ```
 
-## C-B 审计现有代码
+## C-B 列表 / 分页 / 刷新
+
+```text
+任务：实现 <列表页>。
+
+先确认：
+- 数据接口与分页参数
+- 是否支持下拉刷新
+- 空态 / 错误态 / 加载更多失败
+- 项目是否已使用 WAsyncPagedController
+
+要求：
+1. 先看项目现有列表页写法；
+2. 首屏 loading / empty / error 必须完整；
+3. 加载更多失败只更新 footer，不替换列表；
+4. 列表项使用稳定 key；
+5. 图片按需限制解码尺寸；
+6. 完成后 analyze + test，并补一个列表状态 widget test。
+```
+
+<!-- @if:form -->
+## C-C 表单 / 校验 / 提交
+
+```text
+任务：实现 <表单页>。
+
+要求：
+1. 用 WForm + 直接字段，不传字段 config；
+2. 校验用字段 validator + WFormValidatorSettings；
+3. 提交中禁用重复提交；
+4. 接口失败保留用户输入；
+5. 键盘弹出时字段可见；
+6. readOnly / 编辑态正确；
+7. 补一个校验 + 提交测试。
+```
+<!-- @endif -->
+
+<!-- @if:api -->
+## C-D 接口 / 登录 / 401
+
+```text
+任务：实现 <接口 / 登录流程>。
+
+要求：
+1. 用 WApiConfig + DioRegistry，不直接 new Dio；
+2. token 用 WToken；
+3. 401 刷新只重试一次；
+4. 请求失败要有业务错误提示；
+5. 页面切换 / dispose 后不要 setState；
+6. 完成后 analyze + test。
+```
+<!-- @endif -->
+
+## C-E 审计现有代码
 
 ```text
 只审计，不要修改。
@@ -62,7 +133,7 @@
 不要修改文件。
 ```
 
-## C-C 升级 w_tools
+## C-F 升级 w_tools
 
 ```text
 任务：把 w_tools 从 <旧版本> 升到 <新版本>。
@@ -77,23 +148,48 @@
 7. 报告旧 API 残留。
 ```
 
-## C-D 排查问题
+## C-G 调试 UI / 性能
 
 ```text
-任务：排查 <页面/功能> 的问题。
+任务：排查 <页面> 的 UI / 性能问题。
 
 先收集：
-- w_tools 版本
-- 相关组件
+- 复现步骤
+- 设备与 Flutter 版本
+- 报错 / overflow 日志
+- 相关页面代码
 - explain 输出
-- 报错堆栈
-- 最小复现
 
-不要先猜。
-先判断是项目用法问题、w_tools bug，还是版本不匹配。
+重点检查：
+1. overflow / 键盘遮挡 / SafeArea；
+2. 暗色模式 / TextScaler；
+3. 不必要的 rebuild；
+4. 图片解码尺寸和缓存；
+5. 列表 key / controller dispose；
+6. 是否是 w_tools 用法问题。
+
+不要靠猜；先给复现和证据。
 ```
 
-## C-E 只审查改动
+## C-H 补测试
+
+```text
+任务：为 <页面/组件> 补测试。
+
+优先覆盖：
+1. loading / empty / error / ready；
+2. 表单校验与提交；
+3. 列表刷新 / 加载更多 / footer；
+4. 401 / 请求失败；
+5. 关键交互和回调。
+
+要求：
+- 先读项目现有 test 写法；
+- 不为了通过而降低断言；
+- 完成后 flutter test。
+```
+
+## C-I 只审查改动
 
 ```text
 只审查本次改动，不要改代码。
@@ -108,7 +204,7 @@
 输出阻断项、建议项、可保留风险。
 ```
 
-## C-F AI 不能读仓库 / 不能跑命令
+## C-J AI 不能读仓库 / 不能跑命令
 
 ```text
 你不能直接访问仓库或运行命令。
@@ -123,4 +219,22 @@
 - 相关 pubspec 片段
 - explain 输出
 - 报错 / 测试输出
+```
+
+## 页面完成自检
+
+```text
+[ ] loading / empty / error / ready 四态完整
+[ ] 请求有取消 / dispose 保护
+[ ] 表单有校验、提交中、错误保留
+[ ] 列表有刷新 / 分页 / footer
+[ ] 图片用 WImage.source，限制解码尺寸
+[ ] 路由参数和返回结果正确
+[ ] 键盘 / SafeArea / overflow 检查
+[ ] 暗色模式和 TextScaler 不溢出
+[ ] 没有直接 import w_tools_*
+[ ] 没有旧 API
+[ ] flutter analyze 通过
+[ ] flutter test 通过
+[ ] 新增/修改的 widget 有测试
 ```

@@ -4,6 +4,8 @@
 - `init` 默认生成 `.w_tools/AI_PROMPTS.md`：消费者版 AI 任务提示词。
 - 新增 `--ai-prompts / --no-ai-prompts`；`--no-instructions` 时自动关闭。
 - AI 提示词纳入 `--check` / `--check-drift` / manifest，升级后可发现缺失或漂移。
+- 消费者提示词覆盖新页面计划、列表分页、表单、接口、审计、升级、调试、测试与自检；
+  form / api 场景按项目启用能力条件生成。
 
 ### Fixed
 - 消费方 form AGENTS 模板移除已删除的字段 `config` 说明。

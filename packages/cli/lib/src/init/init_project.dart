@@ -304,7 +304,7 @@ InitReport runInit(
   if (aiPrompts && targets.isNotEmpty) {
     write(
       '.w_tools/AI_PROMPTS.md',
-      InitTemplates.aiPrompts(lang: lang),
+      InitTemplates.aiPrompts(lang: lang, features: features),
     );
   }
 

@@ -95,13 +95,33 @@ void main() {
       final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md'));
       expect(prompt.existsSync(), isTrue);
       expect(report.created.any((e) => e.contains('AI_PROMPTS.md')), isTrue);
-      expect(prompt.readAsStringSync(), contains('C-A 实现页面'));
+      expect(prompt.readAsStringSync(), contains('C-A 新页面'));
       expect(prompt.readAsStringSync(), contains('w_tools_cli'));
 
       final offRoot = makeProject();
       final off = runInit(offRoot, aiPrompts: false);
       expect(File(p.join(offRoot.path, '.w_tools', 'AI_PROMPTS.md')).existsSync(), isFalse);
       expect(off.created.any((e) => e.contains('AI_PROMPTS.md')), isFalse);
+    });
+
+    test('AI_PROMPTS 按已启用能力裁剪表单 / 接口场景', () async {
+      final root = makeProject();
+      runInit(
+        root,
+        features: InitFeatures.full.copyWith(form: false, api: false),
+      );
+      final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).readAsStringSync();
+      expect(prompt, isNot(contains('C-C 表单')));
+      expect(prompt, isNot(contains('C-D 接口')));
+      expect(prompt, contains('C-B 列表'));
+
+      final fullRoot = makeProject();
+      runInit(fullRoot);
+      final full = File(
+        p.join(fullRoot.path, '.w_tools', 'AI_PROMPTS.md'),
+      ).readAsStringSync();
+      expect(full, contains('C-C 表单'));
+      expect(full, contains('C-D 接口'));
     });
 
     test('--no-instructions 同时关闭 AI_PROMPTS', () async {

@@ -59,11 +59,27 @@ class InitTemplates {
   static String appButtons() => generated.appButtonsTemplate.replaceAll('{{version}}', cliVersion);
 
   /// 消费方 AI 任务提示词；生成到 `.w_tools/AI_PROMPTS.md`。
-  static String aiPrompts({String lang = 'zh'}) =>
-      (lang == 'en' ? generated.aiPromptsEn : generated.aiPrompts).replaceAll(
-        '{{version}}',
-        cliVersion,
-      );
+  static String aiPrompts({
+    String lang = 'zh',
+    InitFeatures features = InitFeatures.full,
+  }) {
+    final enabled = features.enabled.toSet();
+    final out = <String>[];
+    var include = true;
+    for (final line in (lang == 'en' ? generated.aiPromptsEn : generated.aiPrompts).split('\n')) {
+      final start = RegExp(r'^<!-- @if:([a-z]+) -->$').firstMatch(line);
+      if (start != null) {
+        include = enabled.contains(start.group(1));
+        continue;
+      }
+      if (line == '<!-- @endif -->') {
+        include = true;
+        continue;
+      }
+      if (include) out.add(line);
+    }
+    return out.join('\n').replaceAll('{{version}}', cliVersion);
+  }
 
   /// UI / 暂存层生成物：路径 → (内容, 是否 starter)。
   ///
