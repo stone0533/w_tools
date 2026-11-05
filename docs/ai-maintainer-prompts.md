@@ -38,6 +38,7 @@ packages/<pkg>/README.md，再开始。
 | 只整理 catalog / AGENTS / 文档 | F |
 | 只让 AI 审查，不要改 | G |
 | 全仓审计 / 全量整理 | I（先审计，再分批） |
+| 单包全面审计（只读） | J |
 | AI 不能访问仓库 / 不能跑命令 | H |
 
 ---
@@ -371,6 +372,175 @@ packages/<pkg>/README.md，再开始。
 3. 按包做小重构
 4. 每批更新教学资产
 5. 全仓验证
+```
+
+---
+
+## J. 单包全面审计（只读）
+
+适用：
+
+```text
+想确认某个包的功能是否合适
+测试用例是否完整
+example 是否覆盖真实场景
+用户文档和 AI 教学是否准确
+但暂时不想改任何文件
+```
+
+输出必须能直接交给另一个 AI 修复。
+
+### J-1. 审计提示词
+
+```text
+任务：对 packages/form 做只读全面审计。
+
+不要修改任何代码、测试、文档或生成物。
+目标是输出一份“可交给另一个 AI 直接修复”的问题清单。
+
+先读：
+- AGENTS.md
+- docs/ai-contract.md
+- docs/ai-maintainer-prompts.md
+- packages/form/README.md
+- packages/form/pubspec.yaml
+- packages/form/lib/
+- packages/form/test/
+- packages/form/example/
+- docs/modules/form_module.md
+- docs/agents/form.md
+- packages/cli/catalog/components.yaml 中 package: w_tools_form 的条目
+- docs/modules/components.md
+
+必须运行并贴实际输出：
+- cd packages/form && flutter test
+- cd packages/form && flutter test --coverage
+- cd packages/form/example && flutter test
+- flutter analyze
+- bash scripts/check_docs.sh
+- python3 scripts/check_public_catalog.py
+- dart run w_tools_cli:w_tools list form --format=prompt
+- 对 form 的入口组件运行 explain --format=prompt
+
+审计维度：
+
+A. 功能与正确性
+- 公开 API 的行为是否和注释 / README 一致？
+- 直接字段是否覆盖真实表单场景？
+- WForm / WFormController 生命周期、reset、validate、readOnly 是否正确？
+- border / validator / fieldStyle / error 展示是否一致？
+- 下拉、多选、日期、复选、单选、按钮的边界行为是否正确？
+- 是否存在已删除 API 仍被文档 / example / test 使用？
+- 是否有异常被吞掉、状态不同步、dispose 后仍更新等问题？
+
+B. API 设计与一致性
+- 字段命名、参数命名、默认值是否一致？
+- 直接字段是否暴露了不该暴露的内部 Config / Core？
+- 是否有缺失的高频参数，或低频参数污染入口？
+- 同类字段的 readOnly / bordered / enabled / validator 语义是否一致？
+- 是否存在只能通过内部实现才能完成的常见需求？
+
+C. 测试完整性
+- 不要只看覆盖率数字。
+- 建立“行为 → 测试”矩阵，至少覆盖：
+  - 基础输入 / 初始值 / 清空
+  - validator / form.validate / 错误展示
+  - readOnly / enabled
+  - borderConfig / fieldStyle
+  - 下拉 items / 初始值 / 空值
+  - 多选 disabledKeys / 选择 / 清空
+  - 日期 firstDate / lastDate / displayFormat
+  - checkbox / radio 状态变化
+  - WFormButton onTap / didChange
+  - WFormController reset / dispose / 多表单复用
+  - 动态字段 / 条件显示
+- 明确列出：已有测试、缺失测试、仅 example 覆盖、完全没有覆盖。
+
+D. 示例完整性
+- example 是否能独立运行？
+- 是否覆盖真实场景：基础表单、校验、动态字段、只读、样式、日期、下拉、多选、自定义按钮？
+- example 是否仍使用旧 API / config？
+- 是否有“文档写了但 example 没有”的场景？
+
+E. 用户文档准确性
+- README 的安装、最小用法、API 说明是否和代码一致？
+- docs/modules/form_module.md 是否有旧 API、内部 Config、错误示例？
+- 是否存在“文档说可以传 config，但代码不接受”？
+- 版本 / 导入路径 / 示例链接是否正确？
+
+F. AI 可用性
+- catalog 是否覆盖 form 的入口组件？
+- teach 组件是否有 usage / pitfalls / related？
+- explain --format=prompt 是否能让人/AI 直接写出正确代码？
+- AGENTS / docs/agents/form.md 是否还有旧写法？
+- 对同一问题，AGENTS、agents/form、modules/form_module、catalog 是否互相矛盾？
+
+G. 维护与发布
+- 是否有生成物漂移？
+- 是否有未登记的公开类型？
+- 是否有过期废弃项？
+- 是否有文档声明了不存在的参数 / 类型 / 成员？
+
+输出格式：
+
+1. 审计概览
+   - 实际运行的命令和结果
+   - 测试数量 / 覆盖率
+   - catalog 条目数
+   - 公开字段 / 组件清单
+
+2. 问题清单
+   | ID | 级别 | 类型 | 文件:行 | 证据 | 问题 | 建议修复 | 验收命令 |
+   - ID: FORM-001
+   - 级别: P0 / P1 / P2
+   - 类型: bug / API 设计 / 测试缺口 / 示例缺口 / 文档漂移 / AI 可用性
+   - 每条必须有文件位置或命令输出
+   - 不要写“建议完善测试”，要写“缺少 X 场景，建议加 Y 测试”
+
+3. 覆盖矩阵
+   | 能力 | 代码 | 测试 | example | 用户文档 | AI 文档 |
+
+4. 建议修复批次
+   - 每批只处理一个主题
+   - 标出依赖顺序
+   - 每批给出验收命令
+
+5. 不确定项
+   - 标 NEEDS-VERIFY
+   - 不要猜 API 行为
+
+硬规则：
+- 不要修改任何文件。
+- 不要为了让测试通过而改测试。
+- 以代码和实际命令输出为准，不以文档为准。
+- 不要把“风格偏好”写成 P0；设计建议标 P2。
+- 发现文档和代码冲突时，代码是事实源，但要把文档冲突单独列为问题。
+```
+
+### J-2. 把审计结果交给修复 AI
+
+```text
+只处理以下审计发现，不要扩展范围：
+
+<粘贴 FORM-001 ~ FORM-00N>
+
+要求：
+1. 每条先复现，再修。
+2. 先加失败测试，再改代码。
+3. 不改变未列入问题的公开行为。
+4. 不手改生成物。
+5. 每条完成后跑对应验收命令。
+6. 最后跑 preflight --with-tests。
+7. 报告：问题 ID、改动文件、测试结果、未解决项。
+```
+
+### J-3. 单包审计的边界
+
+```text
+只审计 packages/form，不顺手改其他包。
+只输出问题，不在同一轮修复。
+代码是事实源，文档冲突单独列问题，不要反向改代码迁就文档。
+覆盖率是参考，不是“测试完整”的证明。
 ```
 
 ---
