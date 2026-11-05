@@ -4,6 +4,9 @@
 >
 > 当前大版本发布清单：[2026-11-04 根包 9.0.0](releases/2026-11-04-major-5.0.md)。
 
+包清单的唯一来源是 [`scripts/packages.manifest`](../scripts/packages.manifest)；
+`preflight.sh` / `release_check.sh` 都从这里取包名、路径、runner 和 example 测试。
+
 发布前一条命令跑门禁：
 
 ```bash

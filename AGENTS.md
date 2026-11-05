@@ -12,7 +12,7 @@
 1. **内部重构**：公开 API / 默认行为不变 → 只改代码 + 测试。
 2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；必要时 migration。
 3. **删除 / 废弃**：额外清理 aliases / related / migration，并跑 removed API 检查。
-4. **新增包**：额外更新 workspace / README / example / feature 模板 / context capabilities / release。
+4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities / release。
 
 ## 改代码后更新 AI 资产
 

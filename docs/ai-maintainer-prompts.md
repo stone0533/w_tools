@@ -149,14 +149,15 @@ packages/<pkg>/README.md，再开始。
 任务：新增包 <w_tools_xxx>，用途是 <...>。
 
 要求：
-1. 加入根 workspace 和根约束（如果属于聚合范围）。
-2. pubspec / CHANGELOG / README / LICENSE / .pubignore。
-3. 有真实入口就加 example，并加 smoke test。
-4. catalog 增加入口组件；入口组件 teach: true。
-5. 如果是 init feature，加 templates/agents/{zh,en}/<feature>.md 和 features.dart 映射。
-6. 更新 context.capabilities、docs/modules/README.md、docs/release。
-7. 跑 gen_templates / gen_catalog / check_public_catalog / preflight。
-8. 报告发布顺序和依赖关系。
+1. 在 scripts/packages.manifest 加一行：name / path / runner / root_aggregate / example_test。
+2. 加入根 workspace 和根约束（如果属于聚合范围）。
+3. pubspec / CHANGELOG / README / LICENSE / .pubignore。
+4. 有真实入口就加 example，并加 smoke test。
+5. catalog 增加入口组件；入口组件 teach: true。
+6. 如果是 init feature，加 templates/agents/{zh,en}/<feature>.md 和 features.dart 映射。
+7. 更新 context.capabilities、docs/modules/README.md、docs/releases。
+8. 跑 gen_templates / gen_catalog / check_public_catalog / preflight。
+9. 报告发布顺序和依赖关系。
 ```
 
 ---

@@ -182,6 +182,29 @@ scripts/README.md         scripts 运行手册
 
 ## 4. AI 应该把新信息放哪
 
+### 新增包
+
+先改：
+
+```text
+scripts/packages.manifest
+  → name / path / runner / root_aggregate / example_test
+```
+
+再补：
+
+```text
+workspace
+pubspec / README / CHANGELOG / LICENSE / .pubignore
+example（有真实入口时）
+templates/agents/{zh,en}/<feature>.md（init feature）
+context.capabilities
+docs/modules/README.md
+release 约束 / 版本
+```
+
+`preflight` / `release_check` 都从 `scripts/packages.manifest` 取包列表。
+
 ### 新增组件
 
 ```text

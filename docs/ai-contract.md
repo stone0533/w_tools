@@ -328,6 +328,7 @@ dart run tool/gen_templates.dart --check
 
 除了上面步骤，还要：
 
+- 在 `scripts/packages.manifest` 加一行：包名 / 路径 / runner / 根聚合 / example 测试；
 - 加入根 workspace；
 - 补 README；
 - 有 example 则补 example；
