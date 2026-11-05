@@ -1,3 +1,17 @@
+## 6.1.0
+
+### Added
+- `WImage` 在没有 `width` / `height` / `aspectRatio` 且父级约束无界时，debug 下输出一次性提示
+  （加载前占位为 0 尺寸，会表现为空白）；release 无行为变化。
+
+### Changed
+- `WStepStyle.copyWith` / `WButtonSize.copyWith` 支持传 `null` 清空可空字段
+  （与 ADR-0004 的哨兵约定一致；数值字段仍接受 `int` 字面量）。
+
+### Fixed
+- `WBadge` 的 `badgeContent` 为空时不再断言崩溃，改为不渲染徽章。
+- README 安装约束同步为 `^6.1.0`，并补充 `WImage` 尺寸要求。
+
 ## 6.0.1
 
 ### Fixed
