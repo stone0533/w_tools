@@ -65,8 +65,14 @@ class FeedbackDraft {
     required String body,
   }) {
     final trimmed = body.trim();
-    if (trimmed.startsWith('### [')) return trimmed;
-    return '### [待处理] $package: $title\n\n$trimmed';
+    final withHeading = trimmed.startsWith('### [')
+        ? trimmed
+        : '### [待处理] $package: $title\n\n$trimmed';
+    if (RegExp(r'^\s*-\s*状态变更\s*[：:]', multiLine: true).hasMatch(withHeading)) {
+      return withHeading;
+    }
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    return '$withHeading\n- 状态变更：$today 待处理';
   }
 
   /// 缺失的必填字段（空表示可提交）。

@@ -78,6 +78,22 @@ void main() {
     );
   });
 
+  test('完全相同的反馈默认拒绝，--allow-duplicate 可覆盖', () {
+    final root = _repo();
+    addTearDown(() => root.deleteSync(recursive: true));
+    final draft = FeedbackDraft(package: 'api', title: '超时', body: _body);
+    addToLedger(root, draft);
+    expect(
+      () => addToLedger(root, draft),
+      throwsA(isA<FeedbackLedgerException>()),
+    );
+    addToLedger(root, draft, allowDuplicate: true);
+    expect(
+      File(p.join(root.path, 'docs', 'feedback', 'api.md')).readAsStringSync(),
+      contains('### [待处理] api: 超时'),
+    );
+  });
+
   test('linkedIssue 写入条目', () {
     final root = _repo();
     addTearDown(() => root.deleteSync(recursive: true));

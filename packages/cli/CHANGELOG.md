@@ -12,6 +12,9 @@
 
 ### Fixed
 - 消费方 form AGENTS 模板移除已删除的字段 `config` 说明。
+- `feedback --ledger` 拒绝完全相同的反馈；确认重复时用 `--allow-duplicate`。
+- `feedback lint` 增加重复条目、占位标题 / 命令 / 复现数据检查。
+- `feedback submit` 自动补 `状态变更：<今天> 待处理`。
 
 ## 1.9.17
 

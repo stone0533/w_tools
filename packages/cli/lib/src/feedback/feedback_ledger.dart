@@ -63,6 +63,7 @@ FeedbackLedgerResult addToLedger(
   Directory projectRoot,
   FeedbackDraft draft, {
   int? linkedIssue,
+  bool allowDuplicate = false,
 }) {
   final dir = p.join(projectRoot.path, 'docs', 'feedback');
   if (!isWtoolsRepo(projectRoot)) {
@@ -77,6 +78,11 @@ FeedbackLedgerResult addToLedger(
     throw FeedbackLedgerException('未知反馈包：$name（可选：${feedbackPackages.join(', ')}）');
   }
   final file = File(p.join(dir, '$name.md'));
+  if (!allowDuplicate && file.existsSync() && _hasSameEntry(file, draft)) {
+    throw FeedbackLedgerException(
+      '相同反馈已存在：${file.path}；确认要重复记录时加 --allow-duplicate',
+    );
+  }
   final entry = linkedIssue == null
       ? draft.body.trim()
       : '${draft.body.trim()}\n- 关联 issue：#$linkedIssue';
@@ -89,6 +95,54 @@ FeedbackLedgerResult addToLedger(
   final pending = _pendingCount(file);
   _updateIndex(Directory(dir), name, pending);
   return FeedbackLedgerResult(file: file, pending: pending);
+}
+
+bool _hasSameEntry(File file, FeedbackDraft draft) {
+  final targetTitle = draft.title.trim();
+  final targetBody = _signature(draft.body);
+  for (final entry in _entries(file.readAsStringSync())) {
+    if (entry.title.trim() == targetTitle && _signature(entry.body) == targetBody) {
+      return true;
+    }
+  }
+  return false;
+}
+
+List<({String title, String body})> _entries(String content) {
+  final lines = content.split('\n');
+  final result = <({String title, String body})>[];
+  String? title;
+  final body = <String>[];
+  void flush() {
+    final current = title;
+    if (current == null) return;
+    result.add((title: current, body: body.join('\n')));
+  }
+
+  for (final line in lines) {
+    if (line.startsWith('### ')) {
+      flush();
+      final m = RegExp(r'^###\s*\[[^\]]+\]\s*[^:]+:\s*(.*)$').firstMatch(line);
+      title = m?.group(1) ?? '';
+      body.clear();
+    } else if (line.startsWith('## ')) {
+      flush();
+      title = null;
+      body.clear();
+    } else if (title != null) {
+      body.add(line);
+    }
+  }
+  flush();
+  return result;
+}
+
+String _signature(String text) {
+  return text
+      .replaceFirst(RegExp(r'^###\s*\[[^\]]+\]\s*[^:]+:\s*.*$', multiLine: true), '')
+      .replaceAll(RegExp(r'^\s*-\s*状态变更.*$', multiLine: true), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }
 
 String _newLedger(String name, String entry) =>

@@ -29,7 +29,7 @@ dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 | 给 AI 项目事实 | `context --format=prompt` |
 | 找组件 | `list <关键词>`；给 AI 加 `--format=prompt` |
 | 看组件怎么用 | `explain <组件名>`；给 AI 加 `--format=prompt` |
-| 记录 w_tools 问题 | `feedback search` 查重 → `feedback submit --package=<包>` |
+| 记录 w_tools 问题 | `feedback search` 查重 → `feedback submit --package=<包>`；ledger 默认拒绝重复，确认重复加 `--allow-duplicate` |
 
 所有命令：`dart run w_tools_cli:<command> --help`。
 

@@ -44,6 +44,7 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   --gh                submit：--issue 的别名；search：搜 GitHub issues
   --ledger            submit：仅 w_tools 仓库检出，直接写入 docs/feedback/<包>.md 并更新索引
   --linked-issue=<n>  ledger 用：在条目里写「关联 issue：#n」
+  --allow-duplicate   ledger 用：允许写入完全相同的反馈（默认拒绝）
   --repo=<owner/repo> submit/search 的仓库（默认 stone0533/w_tools）
   --include-inbox     lint 用：连同本地收件箱一起校验
   --stale-days=<n>    lint 用：待处理超过 n 天给警告（默认 30，0 = 关闭）
@@ -71,6 +72,7 @@ CommandResult run(List<String> argv) {
     ..addFlag('ledger', negatable: false)
     ..addOption('repo', defaultsTo: 'stone0533/w_tools')
     ..addOption('linked-issue')
+    ..addFlag('allow-duplicate', negatable: false)
     ..addFlag('include-inbox', negatable: false)
     ..addOption('stale-days', defaultsTo: '30')
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
@@ -291,7 +293,12 @@ void _submit(ArgResults args, Directory root, bool asJson) {
 
   if (wantLedger) {
     try {
-      final result = addToLedger(root, draft, linkedIssue: linkedIssue);
+      final result = addToLedger(
+        root,
+        draft,
+        linkedIssue: linkedIssue,
+        allowDuplicate: args['allow-duplicate'] as bool,
+      );
       if (asJson) {
         print(
           jsonEncode({

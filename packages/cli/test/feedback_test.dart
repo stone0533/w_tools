@@ -137,12 +137,12 @@ void main() {
 ### [待处理] cli: 挂了很久
 - 包/版本：w_tools_cli 1.9.5
 - 环境：macOS
-- 命令 / 输入：x
+- 命令 / 输入：flutter test
 - 期望：快
 - 实际：慢
 - 影响：等 10 分钟
 - 建议：加缓存
-- 复现数据：-
+- 复现数据：日志片段
 - 状态变更：2026-01-01 待处理
 ''');
       final result = const FeedbackLinter(
@@ -160,12 +160,12 @@ void main() {
 ### [待处理] cli: 挂了很久
 - 包/版本：w_tools_cli 1.9.5
 - 环境：macOS
-- 命令 / 输入：x
+- 命令 / 输入：flutter test
 - 期望：快
 - 实际：慢
 - 影响：等 10 分钟
 - 建议：加缓存
-- 复现数据：-
+- 复现数据：日志片段
 - 状态变更：2026-01-01 待处理
 ''');
       final result = const FeedbackLinter(
@@ -192,6 +192,37 @@ void main() {
       expect(result.issues, hasLength(1));
       expect(result.issues.single.line, 1);
       expect(result.issues.single.message, contains('issue'));
+    });
+
+    test('重复反馈与占位内容会报错', () {
+      final root = _tmp('wt_fbl_quality_');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final file = File(p.join(root.path, 'ui.md'))
+        ..writeAsStringSync('''
+### [待处理] ui: x
+- 包/版本：w_tools_ui 6.0.0
+- 环境：macOS
+- 命令 / 输入：WImage(...)
+- 期望：显示
+- 实际：空白
+- 影响：页面不可用
+- 建议：补提示
+- 复现数据：见附件
+
+### [待处理] ui: x
+- 包/版本：w_tools_ui 6.0.0
+- 环境：macOS
+- 命令 / 输入：WImage(...)
+- 期望：显示
+- 实际：空白
+- 影响：页面不可用
+- 建议：补提示
+- 复现数据：见附件
+''');
+      final result = const FeedbackLinter().lintFiles([file.path]);
+      expect(result.issues.any((i) => i.message.contains('重复反馈')), isTrue);
+      expect(result.issues.any((i) => i.message.contains('标题不能是占位内容')), isTrue);
+      expect(result.issues.any((i) => i.message.contains('不能是占位内容')), isTrue);
     });
 
     test('索引列了不存在的文件 → 报错', () {

@@ -92,6 +92,33 @@ List<String> missingFeedbackFields(String text) {
 }
 
 /// 校验反馈文件的格式：字段齐全、状态合法、已闭环带版本号、待处理不 stale。
+String _feedbackTitle(String heading) {
+  final m = RegExp(r'^[^:]+:\s*(.*)$').firstMatch(heading);
+  return (m?.group(1) ?? heading).trim();
+}
+
+String _feedbackSignature(String text) {
+  return text
+      .replaceFirst(RegExp(r'^[^\n]*\n'), '')
+      .replaceAll(RegExp(r'^\s*-\s*状态变更.*$', multiLine: true), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+}
+
+bool _placeholder(String value) {
+  final s = value.trim().toLowerCase();
+  return s.isEmpty ||
+      s == '-' ||
+      s == '...' ||
+      s == 'x' ||
+      s == 'test' ||
+      s == 'todo' ||
+      s == 'n/a' ||
+      s == '见附件' ||
+      s.contains('...') ||
+      s.startsWith('<');
+}
+
 class FeedbackLinter {
   const FeedbackLinter({this.staleDays = 30});
 
@@ -127,6 +154,7 @@ class FeedbackLinter {
     var pending = 0;
     var closed = 0;
     final checked = <String>[];
+    final seen = <String, int>{};
     final today = now ?? DateTime.now();
 
     for (final path in paths) {
@@ -170,6 +198,27 @@ class FeedbackLinter {
           end++;
         }
         final text = '${heading.group(2)}\n${body.join('\n')}';
+        final signature = '${heading.group(2)!.trim()}|${_feedbackSignature(text)}';
+        final previous = seen.putIfAbsent(signature, () => i + 1);
+        if (previous != i + 1) {
+          issues.add(
+            FeedbackIssue(
+              file: path,
+              line: i + 1,
+              message: '重复反馈：与第 $previous 行内容相同',
+            ),
+          );
+        }
+        final title = _feedbackTitle(heading.group(2)!);
+        if (_placeholder(title)) {
+          issues.add(
+            FeedbackIssue(
+              file: path,
+              line: i + 1,
+              message: '标题不能是占位内容（如 x / test / <...>）',
+            ),
+          );
+        }
 
         if (status != '待处理' && status != 'pending') {
           // 已确认必须链 issue（#123 或 http 链接），否则没法追踪
@@ -225,6 +274,29 @@ class FeedbackLinter {
                 file: path,
                 line: i + 1,
                 message: '待处理条目缺字段「${aliases.first}」',
+              ),
+            );
+          }
+        }
+
+        final values = <String, String>{};
+        for (final line in body) {
+          final m = RegExp(r'^\s*-\s*(.+?)\s*[：:]\s*(.*)$').firstMatch(line);
+          if (m != null) values[m.group(1)!.trim()] = m.group(2)!.trim();
+        }
+        for (final aliases in const <List<String>>[
+          ['命令', 'command'],
+          ['复现数据', 'repro'],
+        ]) {
+          final entry = values.entries
+              .where((e) => aliases.any((a) => e.key.startsWith(a)))
+              .firstOrNull;
+          if (entry != null && _placeholder(entry.value)) {
+            issues.add(
+              FeedbackIssue(
+                file: path,
+                line: i + 1,
+                message: '「${entry.key}」不能是占位内容（如 x / - / 见附件）',
               ),
             );
           }

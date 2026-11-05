@@ -342,6 +342,7 @@ dart run w_tools_cli:w_tools feedback submit --package=ui --title="..." --body-f
 
 # 显式覆盖
 dart run w_tools_cli:w_tools feedback submit ... --ledger   # 仓库内直接维护台账 + 索引
+# 相同标题 + 正文默认拒绝；确认重复时加 --allow-duplicate
 dart run w_tools_cli:w_tools feedback submit ... --issue    # 显式建 Issue（需已安装 gh）
 
 dart run w_tools_cli:w_tools feedback path --package=figma   # 该写哪个文件

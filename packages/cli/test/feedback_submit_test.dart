@@ -25,6 +25,7 @@ void main() {
     final draft = FeedbackDraft(package: 'ui', title: 'WImage 空白', body: _body);
     expect(draft.missingFields, isEmpty);
     expect(draft.body, startsWith('### [待处理] ui: WImage 空白'));
+    expect(draft.body, contains('- 状态变更：'));
     expect(draft.issueTitle, '[feedback][ui] WImage 空白');
     expect(draft.issueUrl.host, 'github.com');
     expect(draft.issueUrl.queryParameters['title'], draft.issueTitle);
