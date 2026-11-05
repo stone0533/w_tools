@@ -57,17 +57,12 @@ docs/modules/components.md
 
 实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。
 
-## 组件约定
+## 改代码时的组件硬规则
 
-新页面表单默认使用 `WForm` + 直接字段（`WFormTextField` 等），不要从 `Config.build` 开始（form 5.0 起 Config / Core 仅内部实现，直接字段不再接受 `config` 参数）；详见 [`docs/agents/form.md`](docs/agents/form.md)。
-
-按钮、图片、页面骨架和弹层的组件选择规则，以及各包「首选入口 / 不要用」速查，见 [`docs/agents/README.md`](docs/agents/README.md)。
-
+- 新页面表单用 `WForm` + 直接字段（`WFormTextField` 等）；不要从 `Config.build` 开始，直接字段不要传 `config`。
 - 普通业务按钮用 `WButton`；任意 child 点击用 `WPressable`；表单字段值选择用 `WFormButton`。
-
-改动 `packages/*` 里的组件前：先读 [`CONTRIBUTING.md`](CONTRIBUTING.md)（新增组件的 4 条硬性要求），
-再查 [`docs/modules/components.md`](docs/modules/components.md)（有没有现成的、别重复造），
-接口设计原则见 [`docs/conventions.md`](docs/conventions.md) §6。
+- 新增/修改组件前先读 [`CONTRIBUTING.md`](CONTRIBUTING.md) 和 [`docs/modules/components.md`](docs/modules/components.md)，不要重复造。
+- 详细选择规则见 [`docs/agents/README.md`](docs/agents/README.md)。
 
 > 消费方项目的接入方式（聚合入口、暂存层、`AGENTS.md` 片段）**不要**写进本文件 ——
 > 那些由 `dart run w_tools_cli:w_tools init` 生成到**对方**仓库里；本文件只管「在本仓库怎么改」。
