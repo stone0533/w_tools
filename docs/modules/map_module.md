@@ -2,7 +2,9 @@
 
 ## 概述
 
-Map 模块由 `w_tools_map`（接口）+ `w_tools_map_google`（Google 实现）组成；Google 实现基于 `google_maps_flutter` 封装，提供通用地图组件 `WMap`。组件职责仅限：渲染地图与 Marker、管理相机动画（选中/关闭时的平滑移动）、暴露 `GoogleMapController` 供外部控制。
+Map 模块由 `w_tools_map`（接口 / 模型）+ `w_tools_map_google`（Google 实现）组成：
+`WMapItem` / `WMapItemMapper` 在 `w_tools_map`，`WMap` / `WMapZone` / `WMapConfig` /
+`WMapController` 在 `w_tools_map_google`。Google 实现基于 `google_maps_flutter`。组件职责仅限：渲染地图与 Marker、管理相机动画（选中/关闭时的平滑移动）、暴露 `GoogleMapController` 供外部控制。
 
 **不内置任何业务 UI**（列表面板、选中浮起、空状态等）。业务方通过 `WMapConfig.onItemSelected` / `WMapConfig.onItemClosed` 接收事件后自行构建业务 UI。
 

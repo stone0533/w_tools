@@ -436,7 +436,9 @@ WFormFieldShell(name: 'username', readOnly: false, child: Row(children: [...]))
 - 只读 = `build` 的 `readOnly` 参数 ∨ `WFormReadOnlyScope.readOnlyOf(context)`（部分字段还会与 `enabled` 合并）
 - 变更回调 → `FormBuilderFieldState.didChange` → `WFormController.handleChange`
 
-### 5.0 Config.build 的 readOnly
+### 5.0 内部 Config.build 的 readOnly
+
+> 以下 `Config` / `Core` 说明只用于源码维护，不是业务 API。
 
 `Config.build(readOnly: true)` 在 `bordered: false` 时也会插入
 `WFormReadOnlyScope`，因此裸字段同样只读；不会再被忽略。

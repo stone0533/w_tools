@@ -17,6 +17,7 @@
 | device | `dart run w_tools_device:device ...` | 手写 adb / DeviceHub 标定 | [device-testing.md](device-testing.md) |
 | e2e | `tool/main_e2e.dart` + `--dart-define=E2E=1` | 把 E2E 入口 import 进 `lib/main.dart` | [device-testing.md](device-testing.md) |
 
+> 本表只做包级入口；具体组件 / 参数查 [`components.md`](../modules/components.md) 或 catalog。
 > 新项目只依赖具体子包（ADR-0002）；根包 `w_tools` 只用于快速体验。
 
 ## 包级规则

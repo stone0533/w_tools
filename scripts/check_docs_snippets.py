@@ -26,6 +26,15 @@ for path in docs.rglob('*.md'):
     if re.search(r'WQrViewOverlayShape\s*\((?:[^)]|\n)*?borderColor', text):
         errors.append(f'{path}: WQrViewOverlayShape 包含 borderColor')
 
+    # WImage 6.0：旧构造器 / String 扩展已删除；允许“已删除”说明行。
+    for i, line in enumerate(text.splitlines()):
+        if any(word in line for word in ('已删除', '删除', '不要用', '不再', '移除')):
+            continue
+        if re.search(r'WImage\.(?:thumbnail|cover|network|asset|file|base64|provider|memory)\s*\(', line):
+            errors.append(f'{path}:{i + 1}: WImage 旧构造器已删除，改用 WImage.source')
+        if re.search(r'\.to(?:Image|AssetImage|Base64Image|FileImage)\s*\(', line):
+            errors.append(f'{path}:{i + 1}: String 图片扩展已删除，改用 WImage.source')
+
     # form 5.0：直接字段不接受 config；只提示当前业务文档，内部实现说明不误伤。
     lines = text.splitlines()
     for i, line in enumerate(lines):

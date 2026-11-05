@@ -745,8 +745,9 @@ Text.rich(
 
 图片组件，支持网络 URL、本地资源、本地文件、Base64 与任意 `ImageProvider`。
 
-**新代码优先使用 `WImage.source(...)` 或命名构造**（`WImageSource.network` / `WImageSource.asset` /
-`WImageSource.file` / `WImageSource.base64`）；`WImage.source(source: WImageSource.parse(...))` 的自动判定只作为便利入口。
+**新代码只用 `WImage.source(...)`**；来源用 `WImageSource.network` / `WImageSource.asset` /
+`WImageSource.file` / `WImageSource.base64` / `WImageSource.provider`。
+`WImage.source(source: WImageSource.parse(...))` 的自动判定只作为便利入口。
 提供占位符、错误处理、加载进度、网络重试、解码尺寸限制与图片变换。
 
 ### 新 API（推荐）
@@ -775,19 +776,19 @@ WImage.source(
 - 重试定时器、错误分类、进度上报与状态去重都在内部加载器内（不对外导出），`WImage` 的 State 只负责构建与渲染；
 - 网络图统一走 `CachedNetworkImageProvider` + `Image`：磁盘缓存仍由 `cached_network_image` 负责，
   进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`；
-- 字符串入口 `WImage.source(source: WImageSource.parse(), style: , config: )` 与命名构造仍保留，内部会转换成 `WImageSource` + `WImageStyle` + `WImageLoadConfig`；
+- `WImage.network/asset/file/base64/provider` 等命名构造已在 5.0/6.0 删除；只用 `WImage.source`。
 - 旧的可变 `WImageLoadConfig` / `WImageLoadConfigBuild` 已移除；新的 `WImageLoadConfig` 是不可变配置。
 
 ### 构造参数
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `data` | String | 必需，图片数据 |
+| `source` | `WImageSource` | 必需，图片来源 |
 | `style` | `WImageStyle` | 视觉样式（默认 `const WImageStyle()`） |
 | `config` | `WImageLoadConfig` | 加载配置（默认 `const WImageLoadConfig()`） |
 | `onLoadStatusChanged` | `ValueChanged<WImageLoadStatus>?` | 加载状态回调 |
 | `onProgress` | `ValueChanged<WImageProgress>?` | 类型化进度回调（仅网络） |
-| `type` | `WImageType?` | 显式类型；null 表示按 data 自动判定 |
+| `controller` | `WImageController?` | 手动重试 / 状态监听 |
 
 ### 显式构造
 
@@ -797,13 +798,13 @@ WImage.source(
 | `WImage.source(source: WImageSource.asset(path))` | 资产图；前后的空白会被裁掉 |
 | `WImage.source(source: WImageSource.file(path))` | 本地文件；带不带 `file://` 都可以 |
 | `WImage.source(source: WImageSource.base64(data))` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
-| ~~`WImage.thumbnail(data, width:)`~~ | **已删除（5.0）**：style + `WImageLoadConfig(memCacheWidth: ...)` |
-| ~~`WImage.cover(data, aspectRatio:)`~~ | **已删除（5.0）**：用 `WImage(style: WImageStyle.cover(...))` |
-| ~~`WImageSource.assetImage(name)`~~ | **已删除（5.0）**：用 `WImage.source(source: WImageSource.asset(name, prefix: true))` |
 | `WImage.source(source: WImageSource.provider(MemoryImage(bytes)))` | `Uint8List` → `MemoryImage` |
 | `WImage.source(source: WImageSource.provider(provider))` | 任意 `ImageProvider` |
 
-### WImageType 与自动判定
+`WImage.thumbnail` / `WImage.cover` / `WImageSource.assetImage` 已在 5.0 删除；
+字符串图片扩展已在 6.0 删除。
+
+### WImageSource.parse 自动判定
 
 | 类型 | 识别条件 |
 |------|----------|
@@ -815,7 +816,8 @@ WImage.source(
 `data:` / `file:` 前缀大小写不敏感（`DATA:` / `FILE:` 同样识别）。
 | `asset` | 其余；空串/纯空白会直接渲染错误占位 |
 
-判定只在 `initState` / `didUpdateWidget` 执行一次，不使用跨实例的全局缓存。
+`WImageSource.parse` 的判定只在 `initState` / `didUpdateWidget` 执行一次，不使用跨实例的全局缓存。
+显式构造来源时不要依赖自动判定。
 
 ### 错误类型
 
@@ -1012,26 +1014,18 @@ WImage.source(source: WImageSource.network(url), config: WImageLoadConfig(
   ))
 ```
 
-### String 扩展：`toImage`
+### 字符串入口已删除
 
-`'...'.toImage(...)` 是 `WImage` 的便捷入口，适合 URL / 资源路径直接从字符串来的场景。
+`String.toImage` / `toAssetImage` / `toBase64Image` / `toFileImage` 已在 6.0 删除。
+
+改用：
 
 ```dart
-'https://example.com/a.png'.toImage(width: 40);
-'logo.png'.toAssetImage();                 // → assets/images/logo.png
-'logo.png'.toAssetImage(width: 40, fit: BoxFit.cover);
-'assets/icons/logo.png'.toAssetImage(prefix: false);
-base64String.toBase64Image();
-'/tmp/a.png'.toFileImage();
+WImage.source(source: WImageSource.parse(url))
+WImage.source(source: WImageSource.asset('logo.png', prefix: true))
+WImage.source(source: WImageSource.base64(base64String))
+WImage.source(source: WImageSource.file('/tmp/a.png'))
 ```
-
-规则：
-
-- 默认按内容自动判定类型（同 [WImageType]）；需要确定性时传 `type:`；
-- `size` 只作为 `width` / `height` 的 fallback，**显式宽高优先**；
-- `config:` 透传 `WImageLoadConfig`，会被复制，`toImage` 内的覆盖不会修改调用方传入的配置；
-- 支持 `key` / `controller` / `onProgress` / `semanticLabel`；
-- 本地资源**不会**自动拼 `WAssets.imagePath`，需要时用 `toAssetImage()` 或其 `prefix: false`。
 
 ---
 
