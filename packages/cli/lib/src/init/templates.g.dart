@@ -23,8 +23,12 @@ const String aiPrompts = r'''
 |---|---|
 | 写一个新页面 / 功能 | C-A |
 | 写列表 / 分页 / 刷新 | C-B |
+<!-- @if:form -->
 | 写表单 / 校验 / 提交 | C-C |
+<!-- @endif -->
+<!-- @if:api -->
 | 写接口 / 登录 / 401 | C-D |
+<!-- @endif -->
 | 检查现有代码有没有用错 | C-E |
 | 升级 w_tools | C-F |
 | 页面 overflow / 性能问题 | C-G |
@@ -301,8 +305,12 @@ If you are unsure which prompt to use, start here:
 |---|---|
 | A new page / feature | C-A |
 | A list / pagination / refresh | C-B |
+<!-- @if:form -->
 | A form / validation / submit | C-C |
+<!-- @endif -->
+<!-- @if:api -->
 | An API / login / 401 flow | C-D |
+<!-- @endif -->
 | Audit existing usage | C-E |
 | Upgrade w_tools | C-F |
 | Overflow / performance issues | C-G |

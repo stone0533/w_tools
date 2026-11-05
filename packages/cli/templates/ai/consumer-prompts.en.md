@@ -16,8 +16,12 @@ If you are unsure which prompt to use, start here:
 |---|---|
 | A new page / feature | C-A |
 | A list / pagination / refresh | C-B |
+<!-- @if:form -->
 | A form / validation / submit | C-C |
+<!-- @endif -->
+<!-- @if:api -->
 | An API / login / 401 flow | C-D |
+<!-- @endif -->
 | Audit existing usage | C-E |
 | Upgrade w_tools | C-F |
 | Overflow / performance issues | C-G |

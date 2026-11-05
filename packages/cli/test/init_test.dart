@@ -114,6 +114,9 @@ void main() {
       final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).readAsStringSync();
       expect(prompt, isNot(contains('C-C 表单')));
       expect(prompt, isNot(contains('C-D 接口')));
+      expect(prompt, isNot(contains('| 写表单')));
+      expect(prompt, isNot(contains('| 写接口')));
+      expect(prompt, isNot(contains('@if:')));
       expect(prompt, contains('C-B 列表'));
 
       final fullRoot = makeProject();
@@ -138,6 +141,15 @@ void main() {
       final report = runInit(root, targets: const <String>{});
       expect(File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).existsSync(), isFalse);
       expect(report.created.any((e) => e.contains('AI_PROMPTS.md')), isFalse);
+    });
+
+    test('--check-drift 检测 AI_PROMPTS 内容变化', () async {
+      final root = makeProject();
+      runInit(root);
+      final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md'));
+      prompt.writeAsStringSync('${prompt.readAsStringSync()}\n<!-- edited -->\n');
+      final report = runInit(root, check: true);
+      expect(report.drift.any((e) => e.contains('AI_PROMPTS.md')), isTrue);
     });
 
     test('--check 检测 AI_PROMPTS 缺失', () async {
@@ -799,7 +811,7 @@ void main() {
               '请更新 init_project.dart',
         );
       }
-      expect(snippet, contains('w_tools_cli: ^1.9.0'));
+      expect(snippet, contains('w_tools_cli: ^1.10.0'));
     }, skip: repo == null ? '不在 w_tools 仓库内' : false);
   });
 }

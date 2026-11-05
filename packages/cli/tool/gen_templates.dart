@@ -83,6 +83,7 @@ String generate(String repoRoot) {
 
   _templates.forEach((file, symbol) {
     final content = File(p.join(repoRoot, 'templates', file)).readAsStringSync();
+    _validateConditionalMarkers(file, content);
     buf
       ..writeln('const String $symbol = r\'\'\'')
       ..write(content)
@@ -90,6 +91,26 @@ String generate(String repoRoot) {
       ..writeln();
   });
   return buf.toString();
+}
+
+void _validateConditionalMarkers(String file, String content) {
+  var depth = 0;
+  for (final line in content.split('\n')) {
+    if (RegExp(r'^<!-- @if:[a-z]+ -->$').hasMatch(line)) {
+      if (depth != 0) {
+        throw StateError('模板 $file: @if 不支持嵌套');
+      }
+      depth++;
+    } else if (line == '<!-- @endif -->') {
+      if (depth == 0) {
+        throw StateError('模板 $file: 多余的 @endif');
+      }
+      depth--;
+    }
+  }
+  if (depth != 0) {
+    throw StateError('模板 $file: @if 未闭合');
+  }
 }
 
 void main(List<String> argv) {

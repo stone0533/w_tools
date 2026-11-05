@@ -268,6 +268,30 @@ banned:
     expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
   });
 
+  test('init 的 ai-prompts 相反 flag 冲突退出 2', () async {
+    final root = _project();
+    final both = await _run('init.dart', [
+      '--root',
+      root.path,
+      '--ai-prompts',
+      '--no-ai-prompts',
+    ]);
+    expect(both.exitCode, 2);
+    expect('${both.stderr}', contains('不能同时使用'));
+  });
+
+  test('init --no-instructions 与 --ai-prompts 冲突退出 2', () async {
+    final root = _project();
+    final r = await _run('init.dart', [
+      '--root',
+      root.path,
+      '--no-instructions',
+      '--ai-prompts',
+    ]);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('不能同时使用'));
+  });
+
   test('init --no-ai-prompts 不生成 AI_PROMPTS', () async {
     final root = _project();
     expect(

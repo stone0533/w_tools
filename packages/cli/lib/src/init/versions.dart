@@ -15,7 +15,7 @@ const subpackageConstraints = <String, String>{
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const cliConstraint = '^1.9.0';
+const cliConstraint = '^1.10.0';
 
 /// 设备验证工具（dev_dependencies，独立包）
 const wToolsDeviceConstraint = '^0.1.4';

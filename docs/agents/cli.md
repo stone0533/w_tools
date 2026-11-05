@@ -13,6 +13,10 @@ dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 `init` 默认生成 `.w_tools/AI_PROMPTS.md`（消费者版 AI 任务提示词）；
 不需要时用 `--no-ai-prompts`，`--no-instructions` 会一并关闭。
 
+升级到 1.10+ 后，已有项目首次 `init --check` 会因缺少 `.w_tools/AI_PROMPTS.md` 报缺失；
+运行一次 `init` 补上，或用 `init --no-ai-prompts` 关闭。`--no-instructions` 与 `--ai-prompts`
+不能同时显式使用。
+
 `init` 不会改 `pubspec.yaml`；它保留上次 `.w_tools/init.json` 的 profile/targets/lang，
 只有显式参数才覆盖。`--force` 只覆盖文件，不重置参数；要回到默认用 `--reset`。
 

@@ -90,6 +90,12 @@ class InitOptions {
     if (argv.contains('--figma') && argv.contains('--no-figma')) {
       throw const InitOptionsException('--figma 与 --no-figma 不能同时使用');
     }
+    if (argv.contains('--ai-prompts') && argv.contains('--no-ai-prompts')) {
+      throw const InitOptionsException('--ai-prompts 与 --no-ai-prompts 不能同时使用');
+    }
+    if (argv.contains('--no-instructions') && argv.contains('--ai-prompts')) {
+      throw const InitOptionsException('--no-instructions 与 --ai-prompts 不能同时使用');
+    }
     if (argv.contains('--device') && argv.contains('--no-device')) {
       throw const InitOptionsException('--device 与 --no-device 不能同时使用');
     }

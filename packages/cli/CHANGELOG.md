@@ -7,6 +7,8 @@
 - 消费者提示词覆盖新页面计划、列表分页、表单、接口、审计、升级、调试、测试与自检；
   form / api 场景按项目启用能力条件生成。
 - 文件开头增加“先选场景”速查表与“让 AI 帮我选场景”的新手元提示词。
+- 场景表随 form / api 能力裁剪；`--ai-prompts` 与 `--no-ai-prompts` 冲突时报错。
+- 已有项目升级后 `init --check` 会报告 AI_PROMPTS 缺失；运行一次 init 或用 `--no-ai-prompts` 关闭。
 
 ### Fixed
 - 消费方 form AGENTS 模板移除已删除的字段 `config` 说明。

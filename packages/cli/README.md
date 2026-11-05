@@ -18,7 +18,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.9.0
+  w_tools_cli: ^1.10.0
 ```
 
 ```bash
@@ -206,7 +206,10 @@ C-J AI 不能跑命令
 dart run w_tools_cli:w_tools init --no-ai-prompts
 ```
 
-`--no-instructions` 会同时关闭 AGENTS 与 AI_PROMPTS。
+`--no-instructions` 会同时关闭 AGENTS 与 AI_PROMPTS；两者不能同时显式开启。
+
+升级注意：1.10.0 起默认生成 AI_PROMPTS。已有项目升级后 `init --check` 会报告缺失，
+运行一次 `init` 即可；不想保留该文件时用 `init --no-ai-prompts`。
 
 ### 检查模式
 
