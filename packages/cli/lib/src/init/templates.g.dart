@@ -32,9 +32,10 @@ const String aiPrompts = r'''
 | 检查现有代码有没有用错 | C-E |
 | 升级 w_tools | C-F |
 | 页面 overflow / 性能问题 | C-G |
-| 补测试 | C-H |
-| 只审查 AI 改动 | C-I |
-| AI 不能读仓库 / 不能跑命令 | C-J |
+| 补白盒测试 | C-H |
+| 补黑盒测试 | C-I |
+| 只审查 AI 改动 | C-J |
+| AI 不能读仓库 / 不能跑命令 | C-K |
 
 还是不确定，直接把这段发给 AI：
 
@@ -217,25 +218,44 @@ const String aiPrompts = r'''
 不要靠猜；先给复现和证据。
 ```
 
-## C-H 补测试
+## C-H 白盒测试
 
 ```text
-任务：为 <页面/组件> 补测试。
+任务：为 <页面/组件> 补白盒测试。
 
 优先覆盖：
 1. loading / empty / error / ready；
-2. 表单校验与提交；
-3. 列表刷新 / 加载更多 / footer；
-4. 401 / 请求失败；
-5. 关键交互和回调。
+2. 表单校验、提交、只读；
+3. Controller dispose / 请求取消；
+4. 列表刷新 / 加载更多 / footer；
+5. 401 / 请求失败。
 
 要求：
+- 用 flutter_test / widget test；
 - 先读项目现有 test 写法；
 - 不为了通过而降低断言；
+- 不启动真实网络；
 - 完成后 flutter test。
 ```
 
-## C-I 只审查改动
+## C-I 黑盒测试
+
+```text
+任务：为 <核心流程> 补黑盒测试。
+
+要求：
+1. 从用户入口进入：启动 → 登录 → 页面 → 返回；
+2. 用 Key / Semantics 定位，不依赖坐标和随机文案；
+3. 使用测试账号 / 测试数据，不提交真实凭证；
+4. 失败保留截图 / 日志；
+5. 能用 integration_test 时优先，坐标点击只作为兜底。
+
+运行：
+- flutter test integration_test/...
+- 需要设备时用 w_tools_device
+```
+
+## C-J 只审查改动
 
 ```text
 只审查本次改动，不要改代码。
@@ -250,7 +270,7 @@ const String aiPrompts = r'''
 输出阻断项、建议项、可保留风险。
 ```
 
-## C-J AI 不能读仓库 / 不能跑命令
+## C-K AI 不能读仓库 / 不能跑命令
 
 ```text
 你不能直接访问仓库或运行命令。
@@ -314,9 +334,10 @@ If you are unsure which prompt to use, start here:
 | Audit existing usage | C-E |
 | Upgrade w_tools | C-F |
 | Overflow / performance issues | C-G |
-| Add tests | C-H |
-| Review AI changes only | C-I |
-| AI cannot read the repo / run commands | C-J |
+| Add white-box tests | C-H |
+| Add black-box tests | C-I |
+| Review AI changes only | C-J |
+| AI cannot read the repo / run commands | C-K |
 
 If still unsure, send this to the AI:
 
@@ -499,25 +520,44 @@ Check:
 Do not guess; provide reproduction and evidence first.
 ```
 
-## C-H Add tests
+## C-H White-box tests
 
 ```text
-Task: add tests for <page/component>.
+Task: add white-box tests for <page/component>.
 
 Prioritize:
 1. loading / empty / error / ready;
-2. form validation and submit;
-3. list refresh / load more / footer;
-4. 401 / request failure;
-5. key interactions and callbacks.
+2. form validation, submit, read-only;
+3. controller disposal / request cancellation;
+4. list refresh / load more / footer;
+5. 401 / request failure.
 
 Requirements:
+- use flutter_test / widget tests;
 - follow existing test style;
 - do not weaken assertions to pass;
+- do not use real network;
 - run flutter test.
 ```
 
-## C-I Review changes only
+## C-I Black-box tests
+
+```text
+Task: add black-box tests for <core flow>.
+
+Requirements:
+1. enter through user-facing flow: launch -> login -> page -> back;
+2. locate by Key / Semantics, not coordinates or random text;
+3. use test accounts/data; never commit real credentials;
+4. keep screenshots / logs on failure;
+5. prefer integration_test; coordinate taps only as fallback.
+
+Run:
+- flutter test integration_test/...
+- use w_tools_device when a device is required.
+```
+
+## C-J Review changes only
 
 ```text
 Review this change only; do not edit code.
@@ -532,7 +572,7 @@ Check:
 Output blockers, suggestions, and acceptable risks.
 ```
 
-## C-J AI cannot read the repo / run commands
+## C-K AI cannot read the repo / run commands
 
 ```text
 You cannot access the repository or run commands.

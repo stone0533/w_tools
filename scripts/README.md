@@ -27,7 +27,7 @@ bash scripts/preflight.sh --with-tests
 format / analyze / docs / AI 契约（含 feedback）
 公开类型 catalog / 弃用 / 风格
 release check
-全部包 + example + root 测试 + 模板编译
+全部包 + example + root 测试 + root example 测试 + 模板编译
 ```
 
 ---

@@ -25,9 +25,10 @@ If you are unsure which prompt to use, start here:
 | Audit existing usage | C-E |
 | Upgrade w_tools | C-F |
 | Overflow / performance issues | C-G |
-| Add tests | C-H |
-| Review AI changes only | C-I |
-| AI cannot read the repo / run commands | C-J |
+| Add white-box tests | C-H |
+| Add black-box tests | C-I |
+| Review AI changes only | C-J |
+| AI cannot read the repo / run commands | C-K |
 
 If still unsure, send this to the AI:
 
@@ -210,25 +211,44 @@ Check:
 Do not guess; provide reproduction and evidence first.
 ```
 
-## C-H Add tests
+## C-H White-box tests
 
 ```text
-Task: add tests for <page/component>.
+Task: add white-box tests for <page/component>.
 
 Prioritize:
 1. loading / empty / error / ready;
-2. form validation and submit;
-3. list refresh / load more / footer;
-4. 401 / request failure;
-5. key interactions and callbacks.
+2. form validation, submit, read-only;
+3. controller disposal / request cancellation;
+4. list refresh / load more / footer;
+5. 401 / request failure.
 
 Requirements:
+- use flutter_test / widget tests;
 - follow existing test style;
 - do not weaken assertions to pass;
+- do not use real network;
 - run flutter test.
 ```
 
-## C-I Review changes only
+## C-I Black-box tests
+
+```text
+Task: add black-box tests for <core flow>.
+
+Requirements:
+1. enter through user-facing flow: launch -> login -> page -> back;
+2. locate by Key / Semantics, not coordinates or random text;
+3. use test accounts/data; never commit real credentials;
+4. keep screenshots / logs on failure;
+5. prefer integration_test; coordinate taps only as fallback.
+
+Run:
+- flutter test integration_test/...
+- use w_tools_device when a device is required.
+```
+
+## C-J Review changes only
 
 ```text
 Review this change only; do not edit code.
@@ -243,7 +263,7 @@ Check:
 Output blockers, suggestions, and acceptable risks.
 ```
 
-## C-J AI cannot read the repo / run commands
+## C-K AI cannot read the repo / run commands
 
 ```text
 You cannot access the repository or run commands.

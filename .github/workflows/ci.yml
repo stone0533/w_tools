@@ -70,6 +70,9 @@ jobs:
       - name: Test (umbrella contract)
         run: flutter test
 
+      - name: Test root example
+        run: cd example && flutter test
+
       # 发布必须在去掉 workspace 字段的暂存副本里做，否则消费方 `pub deps` 会去缓存里找
       # `packages/core` 而失败（2.0.0 踩过，见 docs/releasing.md）。
       - name: Publish dry-run (root, staged)

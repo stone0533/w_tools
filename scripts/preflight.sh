@@ -66,6 +66,7 @@ if [ -n "$with_tests" ]; then
     esac
   done < "$root/scripts/packages.manifest"
   run "test root" flutter test
+  run "test example" bash -c "cd example && flutter test --reporter=compact"
   while IFS='|' read -r name path runner aggregate example; do
     case "$name" in ''|'#'*) continue ;; esac
     if [ "$example" = "example" ]; then
