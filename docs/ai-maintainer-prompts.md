@@ -8,7 +8,7 @@
 
 ## 新手先看这里
 
-你不需要先读完 A~J。
+你不需要先读完 A~K。
 
 ### 只需三步
 
@@ -18,7 +18,7 @@
 
 ### 让 AI 帮你选场景
 
-不确定选 A~J 时，先发这段：
+不确定选 A~K 时，先发这段：
 
 ```text
 我是 w_tools 维护者，但不熟悉这些提示词。
@@ -28,7 +28,7 @@
 我的任务是：<用一句话描述>。
 范围是：<包/组件/文件>。
 
-请先判断应该用 A~J 哪个场景，并说明原因；
+请先判断应该用 A~K 哪个场景，并说明原因；
 不要改代码；
 确认后，给我一份已经填好包名、组件和范围的提示词。
 ```
@@ -36,9 +36,9 @@
 ### 默认工作流
 
 ```text
-第 1 轮：只审计（G 或 J-0），不改文件
-第 2 轮：只修 P0/P1（B 或 A）
-第 3 轮：跑 preflight，检查 explain 输出
+第 1 轮：只审计（G / J-0 / J-4 / K-1），不改文件
+第 2 轮：只修 P0/P1（B / A / J-2）
+第 3 轮：跑 preflight，检查 explain 输出 / 发布归档
 ```
 
 不要第一轮就：
@@ -54,6 +54,8 @@
 [ ] 有没有手改生成物？
 [ ] 有没有改测试来“通过”？
 [ ] explain 输出是否正确？
+[ ] teach / 非 teach / 基线类型三类都查过吗？
+[ ] 发布时：git status 干净？pub 归档 diff 看过？
 [ ] 有没有改无关文件？
 ```
 
@@ -130,6 +132,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 
 ```text
 我只是想检查，不想改？        → G / J-0
+我想确认“教全了吗”？          → J-4
+我要发布 / 批量发布？          → K / K-1M
 我要改已有代码 / API？        → A / B
 我要新增 / 删除 / 加包？      → C / D / E
 ```
@@ -145,7 +149,10 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 | 只让 AI 审查，不要改 | G |
 | 全仓审计 / 全量整理 | I（先审计，再分批） |
 | 单包全面审计（只读） | J |
+| 审计“所有使用方式是否教给 AI” | J-4 |
+| 审计多个包 / 包家族 | J-5 |
 | 发布 Pub / 发布前检查 | K（默认只读或 dry-run） |
+| 批量发布多个包 | K-1M / K-2M |
 | AI 不能访问仓库 / 不能跑命令 | H |
 
 ---
@@ -507,28 +514,31 @@ example 是否覆盖真实场景
 检查：
 1. 功能是否正确、API 是否一致；
 2. 测试是否覆盖主要行为；
-3. example 是否覆盖真实场景；
+3. example 是否覆盖真实场景（有 example 才跑）；
 4. README / modules / agents / catalog 是否一致；
 5. explain --format=prompt 是否能让 AI 写对代码。
 
-运行：
-- cd packages/<pkg> && flutter test
-- cd packages/<pkg>/example && flutter test
+运行（runner 以 scripts/packages.manifest 为准：flutter / dart）：
+- cd packages/<pkg> && <runner> test
+- cd packages/<pkg> && <runner> analyze
+- example 存在时：cd packages/<pkg>/example && <runner> test
 - bash scripts/check_docs.sh
 - python3 scripts/check_public_catalog.py
+  （cli / device / e2e / figma 在 SKIP 中：注明“不适用”，改查模板 / agents）
 
 输出：
 | ID | 级别 | 文件:行 | 证据 | 问题 | 建议修复 | 验收命令 |
 
 不要修改文件；不要为了让测试通过而改测试。
+如果问题是“所有使用方式是否教给 AI”，直接用 J-4，不要硬套 J-0。
 ```
 
 如果发现需要深入审计，再使用下面的 J-1；日常先用 J-0。
 
-### J-1. 完整审计提示词（高级）
+### J-1. 完整审计提示词（通用）
 
 ```text
-任务：对 packages/form 做只读全面审计。
+任务：对 packages/<pkg> 做只读全面审计。
 
 不要修改任何代码、测试、文档或生成物。
 目标是输出一份“可交给另一个 AI 直接修复”的问题清单。
@@ -537,78 +547,62 @@ example 是否覆盖真实场景
 - AGENTS.md
 - docs/ai-contract.md
 - docs/ai-maintainer-prompts.md
-- packages/form/README.md
-- packages/form/pubspec.yaml
-- packages/form/lib/
-- packages/form/test/
-- packages/form/example/
-- docs/modules/form_module.md
-- docs/agents/form.md
-- packages/cli/catalog/components.yaml 中 package: w_tools_form 的条目
-- docs/modules/components.md
+- packages/<pkg>/README.md
+- packages/<pkg>/pubspec.yaml
+- packages/<pkg>/lib/
+- packages/<pkg>/test/
+- packages/<pkg>/example/（存在时）
+- 对应的 modules 文档（ui/form/async/app/device 等；app 与 app_getx 共用 app_module.md）
+- 对应的 agents 文档（ui.md / form.md / async.md / app.md / device-testing.md 等）
+- packages/cli/catalog/components.yaml 中 package: w_tools_<pkg> 的条目
+- packages/cli/catalog/uncataloged.yaml 中该包的基线
+- packages/cli/templates/agents/{zh,en}/ 下对应模板（app 与 app_getx 共用 app.md）
 
-必须运行并贴实际输出：
-- cd packages/form && flutter test
-- cd packages/form && flutter test --coverage
-- cd packages/form/example && flutter test
-- flutter analyze
+必须运行并贴实际输出（runner 以 manifest 为准）：
+- cd packages/<pkg> && <runner> test
+- cd packages/<pkg> && <runner> analyze
+- example 存在时：cd packages/<pkg>/example && <runner> test
 - bash scripts/check_docs.sh
 - python3 scripts/check_public_catalog.py
-- dart run w_tools_cli:w_tools list form --format=prompt
-- 对 form 的入口组件运行 explain --format=prompt
+- dart run w_tools_cli:w_tools list --package=<pkg> --format=prompt
+- 对该包入口组件逐个运行 explain --format=prompt
 
 审计维度：
 
 A. 功能与正确性
 - 公开 API 的行为是否和注释 / README 一致？
-- 直接字段是否覆盖真实表单场景？
-- WForm / WFormController 生命周期、reset、validate、readOnly 是否正确？
-- border / validator / fieldStyle / error 展示是否一致？
-- 下拉、多选、日期、复选、单选、按钮的边界行为是否正确？
+- 是否覆盖该包的真实使用场景（按 J-1E 的领域清单补充）？
 - 是否存在已删除 API 仍被文档 / example / test 使用？
 - 是否有异常被吞掉、状态不同步、dispose 后仍更新等问题？
 
 B. API 设计与一致性
-- 字段命名、参数命名、默认值是否一致？
-- 直接字段是否暴露了不该暴露的内部 Config / Core？
+- 命名、参数、默认值是否一致？
+- 是否暴露了不该暴露的内部 Config / Core？
 - 是否有缺失的高频参数，或低频参数污染入口？
-- 同类字段的 readOnly / bordered / enabled / validator 语义是否一致？
 - 是否存在只能通过内部实现才能完成的常见需求？
 
 C. 测试完整性
 - 不要只看覆盖率数字。
-- 建立“行为 → 测试”矩阵，至少覆盖：
-  - 基础输入 / 初始值 / 清空
-  - validator / form.validate / 错误展示
-  - readOnly / enabled
-  - borderConfig / fieldStyle
-  - 下拉 items / 初始值 / 空值
-  - 多选 disabledKeys / 选择 / 清空
-  - 日期 firstDate / lastDate / displayFormat
-  - checkbox / radio 状态变化
-  - WFormButton onTap / didChange
-  - WFormController reset / dispose / 多表单复用
-  - 动态字段 / 条件显示
-- 明确列出：已有测试、缺失测试、仅 example 覆盖、完全没有覆盖。
+- 建立“行为 → 测试”矩阵；明确已有 / 缺失 / 仅 example 覆盖 / 完全没覆盖。
+- 区分可在 CI 跑的单元测试与必须真机验证的行为。
 
 D. 示例完整性
 - example 是否能独立运行？
-- 是否覆盖真实场景：基础表单、校验、动态字段、只读、样式、日期、下拉、多选、自定义按钮？
-- example 是否仍使用旧 API / config？
+- 是否覆盖真实场景？
+- 是否仍使用旧 API？
 - 是否有“文档写了但 example 没有”的场景？
 
 E. 用户文档准确性
 - README 的安装、最小用法、API 说明是否和代码一致？
-- docs/modules/form_module.md 是否有旧 API、内部 Config、错误示例？
-- 是否存在“文档说可以传 config，但代码不接受”？
+- docs/modules/<pkg>_module.md 是否有旧 API、内部 Config、错误示例？
 - 版本 / 导入路径 / 示例链接是否正确？
 
 F. AI 可用性
-- catalog 是否覆盖 form 的入口组件？
-- teach 组件是否有 usage / pitfalls / related？
-- explain --format=prompt 是否能让人/AI 直接写出正确代码？
-- AGENTS / docs/agents/form.md 是否还有旧写法？
-- 对同一问题，AGENTS、agents/form、modules/form_module、catalog 是否互相矛盾？
+- catalog 是否覆盖入口组件？
+- teach 是否有 usage / pitfalls / related？
+- explain --format=prompt 是否能直接写出正确代码？
+- AGENTS / 对应的 docs/agents 文档是否还有旧写法？
+- 对同一问题，AGENTS、agents 文档、modules 文档、catalog 是否互相矛盾？
 
 G. 维护与发布
 - 是否有生成物漂移？
@@ -621,13 +615,13 @@ G. 维护与发布
 1. 审计概览
    - 实际运行的命令和结果
    - 测试数量 / 覆盖率
-   - catalog 条目数
+   - catalog 条目数 / 基线数
    - 公开字段 / 组件清单
 
 2. 问题清单
    | ID | 级别 | 类型 | 文件:行 | 证据 | 问题 | 建议修复 | 验收命令 |
-   - ID: FORM-001
-   - 级别: P0 / P1 / P2
+   - ID: <PKG>-001
+   - 级别: P0 / P1 / P2 / P3
    - 类型: bug / API 设计 / 测试缺口 / 示例缺口 / 文档漂移 / AI 可用性
    - 每条必须有文件位置或命令输出
    - 不要写“建议完善测试”，要写“缺少 X 场景，建议加 Y 测试”
@@ -652,12 +646,22 @@ G. 维护与发布
 - 发现文档和代码冲突时，代码是事实源，但要把文档冲突单独列为问题。
 ```
 
+### J-1E. 领域补充清单（按包补充 J-1 的 A~G）
+
+| 包 | 额外检查 |
+|---|---|
+| ui | WImage 尺寸/来源、WText variant、WScaffold/WAppBar、WButton/WPressable、WListView、WScreen |
+| form | WForm/WFormController 生命周期、validator、readOnly、border、字段矩阵、WFormPopup |
+| async | 四态、分页 loadMore/loadMoreError、刷新、取消、WAsyncTheme、sliver |
+| app / app_getx | 启动顺序、插件 dependsOn、wrapApp/builderWrapper、路由、语言、底部弹窗 |
+| device | 平台矩阵、坐标/标定、退出码、CLI flag、真机不可测边界 |
+
 ### J-2. 把审计结果交给修复 AI
 
 ```text
 只处理以下审计发现，不要扩展范围：
 
-<粘贴 FORM-001 ~ FORM-00N>
+<粘贴 <PKG>-001 ~ <PKG>-00N>
 
 要求：
 1. 每条先复现，再修。
@@ -672,13 +676,66 @@ G. 维护与发布
 ### J-3. 单包审计的边界
 
 ```text
-只审计 packages/form，不顺手改其他包。
+只审计 packages/<pkg>，不顺手改其他包。
 只输出问题，不在同一轮修复。
 代码是事实源，文档冲突单独列问题，不要反向改代码迁就文档。
 覆盖率是参考，不是“测试完整”的证明。
 ```
 
----
+### J-4. AI 教学覆盖审计（只读）
+
+适用：回答“<pkg> 的所有使用方式，都教给 AI 了吗”。
+
+```text
+任务：只读审计 <pkg> 的 AI 教学覆盖。
+
+范围：
+- <pkg> 的全部 catalog 条目与公开导出类型
+- catalog / uncataloged / AGENTS zh|en / README / example / explain
+
+运行：
+- dart run w_tools_cli:w_tools list --package=<pkg> --format=prompt
+- 对全部 teach 入口运行 explain --format=prompt
+- 对非 teach 抽样 explain
+- 对 uncataloged 基线抽查 explain
+- 运行该包测试 / check_docs / check_public_catalog（SKIP 包注明不适用）
+
+检查：
+1. teach 的 usage 是否覆盖主要变体（不是单行）；
+2. 非 teach 是否只有 useFor；
+3. 基线类型是否可 explain；
+4. AGENTS/README/example 是否覆盖真实用法；
+5. catalog / AGENTS / README 是否互相矛盾；
+6. CLI 工具包（SKIP）是否走了 docs/templates 教学。
+
+输出：
+- 问题表（<PKG>-001）
+- 覆盖矩阵：公开类型 | catalog | teach | AGENTS zh | AGENTS en | explain | README | example
+- 已教 / 只教一半 / 完全没教
+
+不要修改文件；不要为了让检查通过而改测试。
+```
+
+### J-5. 多包 / 包家族审计（只读）
+
+适用：app + app_getx、map + map_google，或“所有分包”的一次性教学审计。
+
+```text
+任务：只读审计以下包（列出）：<pkg1>, <pkg2>, ...
+每个包按 J-4 输出一张矩阵；最后给跨包一致性结论。
+不要合并成一个“平均覆盖”结论；按包分节。
+范围、命令、边界同 J-4；runner 以 manifest 为准。
+```
+
+J 的边界：
+
+```text
+J-0 快速看功能/测试/文档
+J-4 只回答“教全了吗”
+J-1 设计/API/测试/文档/教学的全维度审计
+J-5 多包/家族
+不要用 J-0 回答“所有使用方式都教了吗”。
+```
 
 ## K. 发布 Pub
 
@@ -690,45 +747,71 @@ G. 维护与发布
 
 不要用一条“帮我发布”的提示词完成全部步骤。
 
-### K-1 发布前审计（只读）
+### K-1. 发布前审计（只读，单包）
 
 ```text
 任务：审计 <pkg> 是否可以发布到 pub.dev。
-不要修改文件，不要执行真实发布。
+不要修改文件，不要执行真实发布，不要跑 dry-run（dry-run 是 K-3）。
 
 先读：
 - docs/releasing.md
 - packages/<pkg>/CHANGELOG.md
 - packages/<pkg>/pubspec.yaml
 - packages/<pkg>/README.md
+- scripts/release_check.sh
+- scripts/publish_package.sh
 
 运行：
+- git status --porcelain（必须干净；不干净先停）
+- bash scripts/release_check.sh --package <pkg>
 - bash scripts/release_check.sh --package <pkg> --online
-- bash scripts/release_check.sh --strict
 - bash scripts/preflight.sh --with-tests
-- bash scripts/publish_package.sh packages/<pkg> --dry-run
+- 从 pub.dev API 取 latest.archive_url，下载归档到 /tmp，解压后与本地比较：
+  pubspec.yaml / lib/** / README.md / CHANGELOG.md / LICENSE / example/**
+  （排除 test / docs / scripts 等仓库专用内容）
 
 检查：
 1. 版本号与 CHANGELOG 是否一致；
-2. 是否还有未发布的 breaking change；
-3. README 安装版本 / 示例是否过期；
-4. 根包约束是否覆盖新版本（仅聚合包）；
-5. 依赖包是否已先发布；
-6. dry-run 是否通过；
-7. 是否需要 migration。
+2. --online 是否只证明“版本存在”，不能证明内容已发布；
+3. 同版本归档与本地是否有差异（有差异 = 同版本漂移，必须 K-2 升版本）；
+4. README 安装版本 / 示例是否过期；
+5. 根包约束是否覆盖新版本（仅聚合包）；
+6. 依赖包是否已先发布；
+7. 是否需要 migration；
+8. 工作区是否干净、是否已 push（--strict 只查干净，不查 push）。
 
 输出：
 - 通过项
-- 阻断项
+- 阻断项（必须修 / 建议修）
+- 建议版本号与依据
 - 建议发布顺序
 - 不要执行真实发布
 - 不要修改文件
 ```
 
-### K-2 版本 / CHANGELOG 准备
+### K-1M. 多包 / 全量发布审计（只读）
+
+```text
+任务：审计所有待发布包（或指定列表），回答哪些包有未发布内容、能否发布、按什么顺序发。
+
+范围：scripts/packages.manifest 中的包 + 根包（按需）。
+对每个包执行 K-1 的检查；
+额外输出：
+1. 发布状态总表：包 | 本地版本 | pub 版本 | CHANGELOG | README | 归档 diff | 工作区受影响 | 结论 | 建议版本
+2. 未发布内容清单（按包）
+3. 同版本漂移清单（这些包不能按当前版本发布）
+4. 发布顺序（无依赖 → 有依赖 → 根包；工具包独立）
+5. 明确哪些包进 K-2，哪些跳过
+不要修改文件、不要 dry-run、不要发布。
+```
+
+### K-2. 版本 / CHANGELOG 准备（单包）
 
 ```text
 任务：为 <pkg> 准备发布。
+
+先输出“版本提案表”（旧版本 → 新版本、major/minor/patch、依据），
+等维护者确认后再改文件。不要自动决定版本号。
 
 允许改：
 - packages/<pkg>/pubspec.yaml
@@ -736,6 +819,7 @@ G. 维护与发布
 - packages/<pkg>/README.md
 - 根包约束（仅发根包时）
 - 必要的 migration
+- 版本常量（cli/figma 的 version.dart 等，仅用于版本一致性测试）
 
 不允许：
 - 执行 pub publish
@@ -743,22 +827,31 @@ G. 维护与发布
 - 改无关包
 
 要求：
-1. 先说明版本号依据（major / minor / patch）；
-2. 版本号必须与 CHANGELOG 一致；
-3. 更新 README 安装版本；
-4. 跑 release_check / preflight；
+1. 版本号必须与 CHANGELOG 的 ## 段一致；
+2. 更新 README 安装版本；
+3. 跑 release_check / preflight；
+4. 完成后提交并 push（K-3 需要干净工作区）；
 5. 报告 changed files 和检查结果。
 ```
 
-版本决策交给维护者确认，不要让 AI 自动决定 major / minor / patch。
+### K-2M. 批量版本准备
 
-### K-3 Dry-run
+```text
+任务：为以下包批量准备发布：<pkg1>, <pkg2>, ...
+
+第一步只输出版本提案表（包 | 旧版本 | 新版本 | 级别 | 依据），等维护者确认。
+确认后按 K-2 逐包改 pubspec / CHANGELOG / README；
+版本常量按需同步；不要改无关包。
+最后统一跑 release_check / preflight，提交并 push。
+```
+
+### K-3. Dry-run（单包）
 
 ```text
 任务：对 <pkg> 执行发布 dry-run。
 
 运行：
-- bash scripts/release_check.sh --package <pkg> --online
+- bash scripts/release_check.sh --strict --package <pkg>
 - bash scripts/publish_package.sh packages/<pkg> --dry-run
 
 不要执行真实 publish。
@@ -770,7 +863,9 @@ G. 维护与发布
 - 是否还有阻断项
 ```
 
-### K-4 实际发布（人工确认）
+批量时逐包执行 K-3；不要并行 publish。
+
+### K-4. 实际发布（人工确认）
 
 ```text
 任务：发布 <pkg>。
@@ -787,9 +882,15 @@ bash scripts/publish_package.sh packages/<pkg>
 禁止：
 - 直接在包目录 flutter pub publish
 - 直接在包目录 dart pub publish
-- 一次同时发多个包
 - 未确认版本号就发布
 - 在 dry-run 未通过时发布
+```
+
+批量发布：
+
+```text
+一次只执行一个 publish 命令；每个包发布后做 K-5，再发下一个。
+不要用一个命令/一个进程同时发多个包。
 ```
 
 发布顺序：
@@ -799,7 +900,7 @@ bash scripts/publish_package.sh packages/<pkg>
 2. 再发依赖它们的包
 3. app_getx / map_google 在 app / map 之后
 4. 全部子包上线后，再发根包
-5. w_tools_cli 独立发布
+5. w_tools_cli / figma / device / e2e 独立
 ```
 
 发根包：
@@ -808,20 +909,21 @@ bash scripts/publish_package.sh packages/<pkg>
 bash scripts/publish_package.sh .
 ```
 
-### K-5 发布后验证
+### K-5. 发布后验证
 
 ```text
 任务：验证 <pkg> 发布结果。
 
 运行：
 - bash scripts/release_check.sh --package <pkg> --online
-- 确认 pub.dev 上的版本与 CHANGELOG 一致
+- 下载 pub.dev 最新归档，确认 README / CHANGELOG / lib 与仓库一致
 
 检查：
 1. pub.dev 版本可见；
-2. 依赖包版本可解析；
-3. 根包约束（如适用）可解析；
-4. 发布记录 / release 文档是否需要更新。
+2. 归档内容与仓库一致（不是只看版本）；
+3. 依赖包版本可解析；
+4. 根包约束（如适用）可解析；
+5. 发布记录 / release 文档是否需要更新。
 
 不要修改代码；只报告验证结果。
 ```
@@ -833,9 +935,9 @@ bash scripts/publish_package.sh .
 不要执行 dart pub publish
 不要在包目录直接发布
 不要在未跑 dry-run 时发布
-不要一次发多个包
 不要自动决定 major / minor / patch
 不要把 pub 凭证写进提示词
+同版本内容漂移必须升版本，不能重发
 ```
 
 必须使用：
@@ -846,8 +948,6 @@ bash scripts/publish_package.sh <包目录>
 
 原因见 [`docs/releasing.md`](releasing.md)：仓库的 `workspace:` / `resolution: workspace`
 不能直接发布。
-
----
 
 ## 2. 提示词使用示例
 
@@ -878,7 +978,27 @@ bash scripts/publish_package.sh <包目录>
 <...> → WImageSource.network
 ```
 
----
+### 审计 ui 的所有使用方式是否教给 AI
+
+固定前缀 + 场景 J-4：
+
+```text
+任务：只读审计 w_tools_ui 的 AI 教学覆盖。
+按 J-4 输出覆盖矩阵（公开类型 | catalog | teach | AGENTS zh | AGENTS en | explain | README | example）。
+```
+
+### 发布所有未发布包
+
+固定前缀 + 场景 K-1M：
+
+```text
+任务：审计所有包的发布状态，输出状态总表、同版本漂移清单、建议版本与发布顺序。
+不要修改文件、不要 dry-run、不要发布。
+```
+
+### 单包发布
+
+K-1 → K-2（确认版本）→ 提交并 push → K-3 → K-4 → K-5，逐包执行。
 
 ## 3. AI 完成后你必须检查
 
@@ -888,15 +1008,15 @@ bash scripts/publish_package.sh <包目录>
 [ ] AGENTS 改的是 templates，不是 templates.g.dart
 [ ] 新公开类型已进 catalog 或 uncataloged 基线（并说明理由）
 [ ] teach 组件有 usage / pitfalls / related
+[ ] 非 teach / 基线类型也查过 explain
 [ ] explain <组件> --format=prompt 输出正确
 [ ] README / example 已更新
+[ ] 发布时：git status 干净、归档 diff 看过、版本常量已同步
 [ ] preflight --with-tests 实际通过
 [ ] 没有削弱测试
 ```
 
-重点看 `explain` 输出，而不是只看“preflight 通过”。
-
----
+重点看 `explain` 输出与发布归档，而不是只看“preflight 通过”。
 
 ## 4. 为什么不是一条万能提示词
 
@@ -968,7 +1088,8 @@ preflight
 - catalog 字段；
 - AGENTS 模板规则；
 - 完整性检查命令；
-- 发布 / migration 流程。
+- 发布 / migration 流程；
+- 新增场景（J-4 / J-5 / K-1M / K-2M）或 CLI 命令（list --package、explain 锚点）。
 
 保持它和 [`docs/ai-contract.md`](ai-contract.md) 一致。
 
