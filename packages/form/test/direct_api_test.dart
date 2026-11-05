@@ -238,4 +238,284 @@ void main() {
     await tester.pump();
     expect(find.text('请输入邮箱'), findsNothing);
   });
+
+  testWidgets('WFormDatePicker 仅传 hintText 也显示占位符（回归：曾只认 label）', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            borderConfig: WFormBorderConfig.standard(),
+            child: const WFormDatePicker(name: 'birthday', hintText: '请选择生日'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('请选择生日'), findsOneWidget);
+    final decoration = tester.widget<InputDecorator>(find.byType(InputDecorator).first).decoration;
+    expect(decoration.hintText, '请选择生日');
+  });
+
+  testWidgets('WFormDatePicker 传 label 时显示占位符', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            borderConfig: WFormBorderConfig.standard(),
+            child: const WFormDatePicker(name: 'birthday', label: '生日'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('生日'), findsOneWidget);
+  });
+
+  testWidgets('WFormDropdown hintText 优先于历史 label', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            borderConfig: WFormBorderConfig.standard(),
+            child: const WFormDropdown<String>(
+              name: 'city',
+              label: '旧占位符',
+              hintText: '新占位符',
+              items: {'sh': '上海'},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('新占位符'), findsWidgets);
+    expect(find.text('旧占位符'), findsNothing);
+  });
+
+  testWidgets('WFormMultiDropdown hintText 为空字符串时不显示占位', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            borderConfig: WFormBorderConfig.standard(),
+            child: const WFormMultiDropdown(
+              name: 'tags',
+              hintText: '',
+              items: {'a': 'A'},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('ALL'), findsNothing);
+  });
+
+  testWidgets('WFormMultiDropdown 未配置 hintText 时不显示占位（与 Dropdown 一致）', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            borderConfig: WFormBorderConfig.standard(),
+            child: const WFormMultiDropdown(
+              name: 'tags',
+              items: {'a': 'A'},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('ALL'), findsNothing);
+  });
+
+  testWidgets('7 个直接字段都支持 leading / actions 插槽', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            borderConfig: WFormBorderConfig.standard(),
+            child: const Column(
+              children: [
+                WFormTextField(
+                  name: 'a',
+                  leading: Icon(Icons.abc, key: ValueKey('lead-a')),
+                ),
+                WFormDropdown<String>(
+                  name: 'b',
+                  items: {'x': 'X'},
+                  leading: Icon(Icons.abc, key: ValueKey('lead-b')),
+                  actions: [Icon(Icons.star, key: ValueKey('act-b'))],
+                ),
+                WFormMultiDropdown(
+                  name: 'c',
+                  items: {'x': 'X'},
+                  leading: Icon(Icons.abc, key: ValueKey('lead-c')),
+                  actions: [Icon(Icons.star, key: ValueKey('act-c'))],
+                ),
+                WFormDatePicker(
+                  name: 'd',
+                  leading: Icon(Icons.abc, key: ValueKey('lead-d')),
+                  actions: [Icon(Icons.star, key: ValueKey('act-d'))],
+                ),
+                WFormCheckbox(
+                  name: 'e',
+                  title: Text('E'),
+                  leading: Icon(Icons.abc, key: ValueKey('lead-e')),
+                  actions: [Icon(Icons.star, key: ValueKey('act-e'))],
+                ),
+                WFormRadioGroup<String>(
+                  name: 'f',
+                  items: {'x': 'X'},
+                  leading: Icon(Icons.abc, key: ValueKey('lead-f')),
+                  actions: [Icon(Icons.star, key: ValueKey('act-f'))],
+                ),
+                WFormButton(
+                  name: 'g',
+                  onTap: _noopTap,
+                  leading: Icon(Icons.abc, key: ValueKey('lead-g')),
+                  actions: [Icon(Icons.star, key: ValueKey('act-g'))],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    for (final key in ['lead-a', 'lead-b', 'lead-c', 'lead-d', 'lead-e', 'lead-f', 'lead-g']) {
+      expect(find.byKey(ValueKey(key)), findsOneWidget, reason: '缺少 $key');
+    }
+    for (final key in ['act-b', 'act-c', 'act-d', 'act-e', 'act-f', 'act-g']) {
+      expect(find.byKey(ValueKey(key)), findsOneWidget, reason: '缺少 $key');
+    }
+  });
+
+  testWidgets('bordered:false + message 不再静默丢弃（与文本字段一致）', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormDropdown<String>(
+              name: 'city',
+              items: {'sh': '上海'},
+              bordered: false,
+              message: '请选择城市',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isAssertionError);
+  });
+
+  testWidgets('WFormController.reset 重置字段值与输入状态', (tester) async {
+    final form = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            borderConfig: WFormBorderConfig.standard(),
+            child: const Column(
+              children: [
+                WFormTextField(name: 'email', initialValue: 'seed'),
+                WFormCheckbox(name: 'agree', title: Text('同意')),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    form.setValue<String>('email', 'changed');
+    form.updateValue<bool>('agree', true);
+    await tester.pump();
+    expect(form.getFieldsValue<String>('email'), 'changed');
+    expect(form.formEntered['agree'], isTrue);
+
+    form.reset();
+    await tester.pump();
+    expect(form.getFieldsValue<String>('email'), 'seed');
+    expect(form.formEntered['email'], isTrue);
+    expect(form.getFieldsValue<bool>('agree'), isFalse);
+    expect(form.formEntered['agree'], isFalse);
+  });
+
+  testWidgets('直接字段可交互写值：checkbox / radio / button', (tester) async {
+    final form = WFormController();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            borderConfig: WFormBorderConfig.standard(),
+            child: Column(
+              children: [
+                const WFormCheckbox(name: 'agree', title: Text('同意')),
+                const WFormRadioGroup<String>(
+                  name: 'gender',
+                  items: {'female': '女', 'male': '男'},
+                ),
+                WFormButton(
+                  name: 'coupon',
+                  label: '选择优惠券',
+                  selectedWidgetBuilder: (value) => Text('已选 $value'),
+                  onTap: (_, didChange) => didChange('new_user'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('同意'));
+    await tester.tap(find.text('男'));
+    await tester.tap(find.text('选择优惠券'));
+    await tester.pump();
+
+    expect(form.getFieldsValue<bool>('agree'), isTrue);
+    expect(form.getFieldsValue<String>('gender'), 'male');
+    expect(form.getFieldsValue<String>('coupon'), 'new_user');
+    expect(find.text('已选 new_user'), findsOneWidget);
+  });
+
+  testWidgets('WFormFieldStyleScope 可覆盖单个字段的样式', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            fieldStyle: const WFormFieldStyle(height: 52),
+            borderConfig: WFormBorderConfig.standard(),
+            child: const WFormFieldStyleScope(
+              style: WFormFieldStyle(height: 70),
+              child: WFormDropdown<String>(
+                name: 'city',
+                items: {'sh': '上海'},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final core = tester.widget<WFormDropdownCore<String>>(
+      find.byType(WFormDropdownCore<String>),
+    );
+    expect(core.config.height, 70);
+  });
 }
+
+void _noopTap(String? value, ValueChanged<String> didChange) {}

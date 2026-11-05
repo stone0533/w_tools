@@ -100,8 +100,8 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
            final selectedValues = state.value ?? const <String>{};
            final title = selectedValues.map((key) => items[key]).whereType<String>().join(', ');
 
-           // 未选择任何项时显示占位文本
-           final displayText = title.isEmpty ? hintText ?? 'ALL' : title;
+           // 未选择任何项时显示占位文本（未配置 hintText 就不显示）
+           final displayText = title.isEmpty ? hintText ?? '' : title;
 
            return Semantics(
              container: true,

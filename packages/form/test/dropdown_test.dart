@@ -503,7 +503,7 @@ void main() {
       expect(data.formEntered.containsKey('tags'), isFalse);
     });
 
-    testWidgets('基本渲染 — 无初始值显示 ALL', (tester) async {
+    testWidgets('基本渲染 — 未配置 hintText 不显示占位', (tester) async {
       final cfg = WFormMultiDropdownConfig();
       await tester.pumpWidget(
         buildMulti(
@@ -513,7 +513,7 @@ void main() {
         ),
       );
 
-      expect(find.text('ALL'), findsOneWidget);
+      expect(find.text('ALL'), findsNothing);
     });
 
     testWidgets('无 WFormScope → 抛 Exception', (tester) async {
@@ -693,11 +693,9 @@ void main() {
 
       await tester.tap(find.byType(InputDecorator));
       await tester.pumpAndSettle();
-      // 只有 'ALL'，不弹出 items
-      expect(find.text('ALL'), findsOneWidget);
-      // 弹出层不该出现 → 'A' 'B' 只在 widget 初始，不在 overlay
-      // （但 items 是 widget 内常量，始终显示在 items map）
-      // 简化验证：enabled Icon 颜色不同
+      // 禁用时不弹出 overlay：items 文案不应出现（字段本身也不显示占位）
+      expect(find.text('A'), findsNothing);
+      expect(find.text('B'), findsNothing);
     });
 
     testWidgets('点击 → WFormPopup.show 弹出选项', (tester) async {

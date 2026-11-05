@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^5.0.0
+  w_tools_form: ^5.1.0
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
@@ -50,7 +50,7 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     return WForm(
       controller: _form,
-      borderConfig: WFormBorderConfig.standard(radius: 12),
+      borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
       fieldStyle: const WFormFieldStyle(
         height: 52,
         containerPadding: EdgeInsets.symmetric(horizontal: 16),

@@ -35,7 +35,7 @@ lib/
     login_page.dart     登录场景
     profile_page.dart   资料编辑 / 只读场景
     popup_page.dart     WFormPopup 锚定弹层
-    advanced_fields_page.dart 字段 Config / controller 读取
+    advanced_fields_page.dart 字段参数 / controller 读取
     border_page.dart   自定义 WFormBorderConfig
 test/
   example_smoke_test.dart
@@ -86,16 +86,22 @@ WFormTextField(
 WFormTextField(
   name: 'email',
   label: '邮箱',
-  config: exampleTextConfig(),
+  leading: const Icon(Icons.mail_outline),
+)
+
+// 单个字段需要不同高度 / 文字样式时，用 WFormFieldStyleScope 包裹
+WFormFieldStyleScope(
+  style: const WFormFieldStyle(height: 72),
+  child: WFormTextField(name: 'bio', label: '简介', maxLines: 3),
 )
 ```
 
-字段 Config 可变，**一个字段一份 Config**，不要跨字段共享同一实例。
+5.0 起直接字段没有 `config` 参数；`WFormFieldStyle` 不可变，可跨字段共享。
 
 样式优先级：
 
 ```text
-字段 config > WForm.fieldStyle > 默认值
+字段直接参数 > WForm.fieldStyle > 默认值
 ```
 
 ### 自定义字段按钮

@@ -23,7 +23,8 @@ void _applyBaseStyle(
 
 /// 直接构造的表单字段。
 ///
-/// 这些 Widget 是日常业务入口：常用参数直接传入，样式通过可选 config 覆盖。
+/// 这些 Widget 是日常业务入口：常用参数直接传入；页面级样式用
+/// `WForm.fieldStyle`，单个字段的特殊样式用 `WFormFieldStyleScope` 包裹。
 /// 字段仍由既有 Config.build 实现，边框 / 校验 / 只读等能力保持不变。
 class WFormTextField extends StatelessWidget {
   const WFormTextField({
@@ -77,7 +78,7 @@ class WFormTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final List<Widget>? actions;
 
-  /// 文本输入框左侧插槽；优先于 config.leading。
+  /// 文本输入框左侧插槽。
   final Widget? leading;
   final List<String>? hintTextList;
   final bool? isTransparentBackground;
@@ -143,6 +144,8 @@ class WFormDropdown<T> extends StatelessWidget {
     this.icon,
     this.dropdownColor,
     this.contentPadding,
+    this.leading,
+    this.actions,
   });
 
   final String name;
@@ -165,6 +168,12 @@ class WFormDropdown<T> extends StatelessWidget {
   final Color? dropdownColor;
   final EdgeInsetsGeometry? contentPadding;
 
+  /// 字段左侧插槽。
+  final Widget? leading;
+
+  /// 字段右侧操作插槽。
+  final List<Widget>? actions;
+
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
@@ -176,6 +185,8 @@ class WFormDropdown<T> extends StatelessWidget {
     if (icon != null) c.icon = icon;
     if (dropdownColor != null) c.dropdownColor = dropdownColor;
     if (contentPadding != null) c.contentPadding = contentPadding;
+    if (leading != null) c.leading = leading;
+    if (actions != null) c.actions = actions;
     return c.build<T>(
       name: name,
       items: items,
@@ -220,6 +231,8 @@ class WFormMultiDropdown extends StatelessWidget {
     this.itemStyle,
     this.itemCheckedStyle,
     this.itemDisabledStyle,
+    this.leading,
+    this.actions,
   });
 
   final String name;
@@ -248,6 +261,12 @@ class WFormMultiDropdown extends StatelessWidget {
   final TextStyle? itemCheckedStyle;
   final TextStyle? itemDisabledStyle;
 
+  /// 字段左侧插槽。
+  final Widget? leading;
+
+  /// 字段右侧操作插槽。
+  final List<Widget>? actions;
+
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
@@ -256,6 +275,8 @@ class WFormMultiDropdown extends StatelessWidget {
     c.style ??= fieldStyle?.textStyle;
     c.hintText = label ?? c.hintText;
     if (enabled != null) c.enabled = enabled!;
+    if (leading != null) c.leading = leading;
+    if (actions != null) c.actions = actions;
     if (icon != null) c.icon = icon;
     if (iconSize != null) c.iconSize = iconSize;
     if (checkboxUnselectedIcon != null) c.checkboxUnselectedIcon = checkboxUnselectedIcon;
@@ -304,6 +325,8 @@ class WFormDatePicker extends StatelessWidget {
     this.hintTextList,
     this.isTransparentBackground,
     this.enableFocusBorder = true,
+    this.leading,
+    this.actions,
   });
 
   final String name;
@@ -329,6 +352,12 @@ class WFormDatePicker extends StatelessWidget {
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
 
+  /// 字段左侧插槽。
+  final Widget? leading;
+
+  /// 字段右侧操作插槽。
+  final List<Widget>? actions;
+
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
@@ -338,7 +367,9 @@ class WFormDatePicker extends StatelessWidget {
     if (displayFormat != null) c.displayFormat = displayFormat!;
     if (icon != null) c.icon = icon;
     if (iconSize != null) c.iconSize = iconSize;
-    if (label != null && c.decoration?.hintText == null) {
+    if (leading != null) c.leading = leading;
+    if (actions != null) c.actions = actions;
+    if (hintText != null || label != null) {
       c.decoration = (c.decoration ?? const InputDecoration()).copyWith(
         hintText: hintText ?? label,
       );
@@ -381,6 +412,8 @@ class WFormCheckbox extends StatelessWidget {
     this.disabledIcon,
     this.iconSpacing,
     this.iconYOffset,
+    this.leading,
+    this.actions,
   });
 
   final String name;
@@ -400,12 +433,20 @@ class WFormCheckbox extends StatelessWidget {
   final double? iconSpacing;
   final double? iconYOffset;
 
+  /// 字段左侧插槽。
+  final Widget? leading;
+
+  /// 字段右侧操作插槽。
+  final List<Widget>? actions;
+
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
     final c = WFormCheckboxConfig();
     _applyBaseStyle(c, fieldStyle);
     if (enabled != null) c.enabled = enabled!;
+    if (leading != null) c.leading = leading;
+    if (actions != null) c.actions = actions;
     if (unselectedIcon != null) c.unselectedIcon = unselectedIcon;
     if (selectedIcon != null) c.selectedIcon = selectedIcon;
     if (disabledIcon != null) c.disabledIcon = disabledIcon;
@@ -448,6 +489,8 @@ class WFormRadioGroup<T> extends StatelessWidget {
     this.lineSpacing,
     this.iconYOffset,
     this.style,
+    this.leading,
+    this.actions,
   });
 
   final String name;
@@ -470,6 +513,12 @@ class WFormRadioGroup<T> extends StatelessWidget {
   final double? iconYOffset;
   final TextStyle? style;
 
+  /// 字段左侧插槽。
+  final Widget? leading;
+
+  /// 字段右侧操作插槽。
+  final List<Widget>? actions;
+
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
@@ -477,6 +526,8 @@ class WFormRadioGroup<T> extends StatelessWidget {
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
     if (enabled != null) c.enabled = enabled!;
+    if (leading != null) c.leading = leading;
+    if (actions != null) c.actions = actions;
     if (unselectedIcon != null) c.unselectedIcon = unselectedIcon;
     if (selectedIcon != null) c.selectedIcon = selectedIcon;
     if (iconSpacing != null) c.iconSpacing = iconSpacing;
@@ -518,6 +569,7 @@ class WFormButton extends StatelessWidget {
     this.isTransparentBackground,
     this.enableFocusBorder = true,
     this.leading,
+    this.actions,
   });
 
   final String name;
@@ -536,6 +588,9 @@ class WFormButton extends StatelessWidget {
   final bool enableFocusBorder;
   final Widget? leading;
 
+  /// 字段右侧操作插槽。
+  final List<Widget>? actions;
+
   @override
   Widget build(BuildContext context) {
     final fieldStyle = WFormFieldStyle.of(context);
@@ -543,6 +598,7 @@ class WFormButton extends StatelessWidget {
     _applyBaseStyle(c, fieldStyle);
     if (enabled != null) c.enabled = enabled!;
     if (leading != null) c.leading = leading;
+    if (actions != null) c.actions = actions;
     if (hintWidget != null || label != null) {
       c.hintWidget = hintWidget ?? Text(label!);
     }

@@ -125,6 +125,11 @@ class WFormFieldButtonConfig extends WFormFieldBaseConfig {
     bool enableFocusBorder = true,
   }) {
     if (!bordered) {
+      // message / hintTextList 只由边框渲染；无边框时静默丢弃是陷阱，直接报出来
+      assert(
+        hintTextList == null || hintTextList.isEmpty,
+        'bordered: false 时不会渲染 message / hintTextList；需要提示请保留 bordered，或自行展示。',
+      );
       final field = WFormFieldButtonCore(
         config: this,
         name: name,

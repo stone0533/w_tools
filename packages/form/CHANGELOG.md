@@ -1,3 +1,18 @@
+## 5.1.0
+
+### Added
+- 直接字段补齐统一外框插槽：`WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` /
+  `WFormCheckbox` / `WFormRadioGroup` 新增 `leading` / `actions`，`WFormButton` 新增 `actions`。
+- `WFormController.reset()`：重置全部字段到初始值（内部走 `formKey.currentState.reset()`）。
+
+### Changed
+- `WFormMultiDropdown` 未配置 `hintText` 时不再显示 `ALL`，与 `WFormDropdown` 一致。
+  需要旧文案请显式传 `hintText: 'ALL'`。迁移见 `docs/migrations/form-5.1.md`。
+
+### Fixed
+- `WFormDatePicker.hintText` 之前只有同时传 `label` 才生效；现在只传 `hintText` 也作为占位符。
+- `bordered: false` + `message` / `hintTextList` 在各字段统一断言提示，不再静默丢弃。
+
 ## 5.0.0
 
 ### Breaking

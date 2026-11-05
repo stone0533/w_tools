@@ -23,7 +23,7 @@ void main() {
       expect(data.formEntered.containsKey(name), isFalse);
     }
 
-    testWidgets('WFormCheckboxCore', (tester) async {
+    testWidgets('WFormCheckbox 卸载后清理输入状态', (tester) async {
       await expectCleanup(
         tester,
         WFormCheckboxConfig().build(
@@ -34,7 +34,7 @@ void main() {
       );
     });
 
-    testWidgets('WFormDatePickerCore', (tester) async {
+    testWidgets('WFormDatePicker 卸载后清理输入状态', (tester) async {
       await expectCleanup(
         tester,
         WFormDatePickerConfig().build(
@@ -46,7 +46,7 @@ void main() {
       );
     });
 
-    testWidgets('WFormRadioGroupCore', (tester) async {
+    testWidgets('WFormRadioGroup 卸载后清理输入状态', (tester) async {
       await expectCleanup(
         tester,
         WFormRadioGroupConfig().build<String>(
@@ -57,7 +57,7 @@ void main() {
       );
     });
 
-    testWidgets('WFormFieldButtonCore', (tester) async {
+    testWidgets('WFormButton 卸载后清理输入状态', (tester) async {
       final config = WFormFieldButtonConfig(hintWidget: const Text('选择'));
       await expectCleanup(
         tester,
@@ -68,7 +68,7 @@ void main() {
   });
 
   group('裸字段 readOnly 生效', () {
-    testWidgets('WFormCheckboxCore', (tester) async {
+    testWidgets('WFormCheckbox 裸字段只读', (tester) async {
       var changed = false;
       await pumpForm(
         tester,
@@ -85,7 +85,7 @@ void main() {
       expect(changed, isFalse);
     });
 
-    testWidgets('WFormDatePickerCore', (tester) async {
+    testWidgets('WFormDatePicker 裸字段只读', (tester) async {
       await pumpForm(
         tester,
         child: WFormDatePickerConfig().build(
@@ -101,7 +101,7 @@ void main() {
       expect(find.byType(DatePickerDialog), findsNothing);
     });
 
-    testWidgets('WFormRadioGroupCore', (tester) async {
+    testWidgets('WFormRadioGroup 裸字段只读', (tester) async {
       String? changed;
       await pumpForm(
         tester,
@@ -118,7 +118,7 @@ void main() {
       expect(changed, isNull);
     });
 
-    testWidgets('WFormFieldButtonCore', (tester) async {
+    testWidgets('WFormButton 裸字段只读', (tester) async {
       var tapped = false;
       final config = WFormFieldButtonConfig(hintWidget: const Text('选择'));
       await pumpForm(

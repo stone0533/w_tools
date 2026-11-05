@@ -134,25 +134,63 @@ components:
     related: ["`WForm`", "`WFormFieldStyle`"]
     teach: true
 
-  - name: '`WFormDropdown` / `WFormMultiDropdown`'
+  - name: '`WFormDropdown`'
     package: 'w_tools_form'
     section: '5. 表单'
-    useFor: '直接下拉 / 多选字段'
-    dontUseFor: '选择类弹层用 `WFormPopup`'
-    usage: "WFormDropdown<String>(name: 'city', items: {'sh': '\u4e0a\u6d77'})"
+    useFor: '直接下拉字段（items / 初始值 / icon / contentPadding）'
+    dontUseFor: '多选用 `WFormMultiDropdown`；自定义弹层用 `WFormPopup`'
+    usage: "WFormDropdown<String>(name: 'city', items: {'sh': '上海'})"
     pitfalls:
-      - "items \u7684 key \u5fc5\u987b\u7a33\u5b9a\uff1b\u7528\u76f4\u63a5\u53c2\u6570\u8bbe icon/padding"
-    related: ["`WFormTextField`"]
+      - '初始值与回填值必须存在于 items，否则 FormBuilderDropdown 断言失败'
+      - 'hintText 优先于历史参数 label'
+    related: ['WFormTextField', 'WFormMultiDropdown']
     teach: true
 
-  - name: '`WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`'
+  - name: '`WFormMultiDropdown`'
     package: 'w_tools_form'
     section: '5. 表单'
-    useFor: '直接日期 / 复选 / 单选字段'
-    usage: "WFormDatePicker(name: 'birthday', displayFormat: 'yyyy-MM-dd')"
+    useFor: '直接多选字段（items / disabledKeys / 选项样式）'
+    dontUseFor: '单选用 `WFormDropdown`'
+    usage: "WFormMultiDropdown(name: 'tags', items: {'a': 'A'}, disabledKeys: {'b'})"
     pitfalls:
-      - "\u65e5\u671f\u683c\u5f0f\u7528 displayFormat\uff0c\u4e0d\u8981\u4f20 Config"
-    related: ["`WFormTextField`"]
+      - '字段值是 Set<String>；已选中且被 disabled 的项显示选中态但不可取消'
+      - '未配置 hintText 时不显示占位（与 WFormDropdown 一致）；建议总是传业务文案'
+    related: ['WFormDropdown', 'WFormPopup']
+    teach: true
+
+  - name: '`WFormDatePicker`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '直接日期字段（displayFormat / firstDate / lastDate）'
+    dontUseFor: '时间选择不在本组件范围；自定义弹层用 `WFormPopup`'
+    usage: "WFormDatePicker(name: 'birthday', label: '生日', displayFormat: 'yyyy-MM-dd')"
+    pitfalls:
+      - 'firstDate / lastDate 默认 1900 到当天；需要未来日期必须显式传 lastDate'
+      - 'hintText 与 label 都作为占位符，hintText 优先'
+    related: ['WFormTextField', 'WFormFieldStyle']
+    teach: true
+
+  - name: '`WFormCheckbox`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '直接复选字段（title 必填，默认 bordered: false）'
+    dontUseFor: '多选用 `WFormMultiDropdown`'
+    usage: "WFormCheckbox(name: 'agree', title: Text('同意'))"
+    pitfalls:
+      - 'title 必填；需要边框 / message 时显式传 bordered: true'
+    related: ['WFormRadioGroup', 'WFormFieldStyle']
+    teach: true
+
+  - name: '`WFormRadioGroup`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '直接单选字段（items / titleBuilder / lineSpacing）'
+    dontUseFor: '多选用 `WFormMultiDropdown`'
+    usage: "WFormRadioGroup<String>(name: 'gender', items: {'male': '男'})"
+    pitfalls:
+      - 'titleBuilder 是每个选项的标题，不是分组标题'
+      - '默认 bordered: false；需要边框 / message 时显式传 bordered: true'
+    related: ['WFormCheckbox', 'WFormFieldStyle']
     teach: true
 
   - name: '`WFormButton`'
@@ -160,11 +198,18 @@ components:
     section: '5. 表单'
     useFor: '直接自定义字段按钮（选择、弹层触发）'
     dontUseFor: '普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用'
+    usage: "WFormButton(name: 'coupon', label: '请选择优惠券', onTap: (value, didChange) => didChange('new_user'))"
+    pitfalls:
+      - '写值只能通过 onTap 拿到的 didChange；字段卸载后再调会被包内保护忽略'
+      - '显示已选值用 selectedWidgetBuilder，不要在外面再维护一份状态'
+    related: ['WForm', 'WFormPopup']
+    teach: true
+
   - name: '`WFormFieldStyle`'
     package: 'w_tools_form'
     section: '5. 表单'
     useFor: '页面级字段默认高度 / 内边距 / 文字 / hint 样式'
-    dontUseFor: '字段特殊样式用字段 `config` 覆盖'
+    dontUseFor: '字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹'
   - name: '`WFormValidatorSettings`'
     package: 'w_tools_form'
     section: '5. 表单'
@@ -174,6 +219,60 @@ components:
     section: '5. 表单'
     useFor: '低层边框 / 错误展示；普通页面由 `WForm` 统一提供'
     dontUseFor: '普通字段不要手写 `WFormBorder`'
+
+  - name: '`WFormBorderConfig`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式'
+    dontUseFor: '普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderConfig: ...)` 下发'
+    usage: 'WFormBorderConfig.fromTheme(Theme.of(context))'
+    pitfalls:
+      - '`standard()` 是显式浅色预设，不跟随深色主题；新代码用 `fromTheme`'
+      - '`copyWith(null)` 不会清空字段；清空要重新构造配置'
+    related: ['WForm', 'WFormBorder']
+    teach: true
+
+  - name: '`WFormBorderDecoration`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '边框装饰值对象：border / color / borderRadius / boxShadow / gradient'
+    dontUseFor: '不要用 `Container(decoration:)` 代替 `WFormBorder`'
+
+  - name: '`WFormIcons`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '表单图标集合（下拉 / 勾选 / 单选 / 密码 / 清空）'
+    dontUseFor: '`WFormDefaults` 已删除；单字段 icon 参数优先于它'
+
+  - name: '`WFormFieldStyleScope`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / hint）'
+    dontUseFor: '整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层'
+
+  - name: '`WFormValidator`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '统一校验入口：短路 / 全量、边框错误、错误汇总'
+    dontUseFor: '不要同时用 `formKey.validate()`，会形成两套错误通道'
+    usage: "form.validators(items: [WFormValidatorItem.field('email')]).validate()"
+    pitfalls:
+      - '错误默认只走边框；关掉 `showBorderError` 就只剩 `errors` 汇总'
+      - '字段 validator 的错误不会写入 `errorText`（避免双通道）'
+    related: ['WFormController', 'WFormValidatorItem']
+    teach: true
+
+  - name: '`WFormValidatorItem`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '单个校验项：自定义规则或复用字段自身 validator'
+    dontUseFor: '字段自带 validator 已够用时不要重复声明规则'
+
+  - name: '`WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton`'
+    package: 'w_tools_form'
+    section: '5. 表单'
+    useFor: '文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空'
+    dontUseFor: '不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldScope.of`'
   - name: '`WBottomSheet`'
     package: 'w_tools_app_getx'
     section: '6. 弹层'

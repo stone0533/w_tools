@@ -55,8 +55,9 @@ class WFormController {
 
   /// 按字段名设置字段值
   ///
-  /// 仅写入字段状态，不会更新 [formEntered]；需要同步输入状态时
-  /// 请改用 [handleChange]。
+  /// 直接调用字段的 `didChange`：值会写入，但不保证更新 [formEntered] ——
+  /// 包内字段实现了 `onChanged`（会同步），自定义字段不一定。
+  /// 需要确保输入状态同步时用 [updateValue]。
   void setValue<T>(String name, T value) {
     formKey.currentState?.fields[name]?.didChange(value);
   }
@@ -73,6 +74,15 @@ class WFormController {
   /// 清空指定字段并更新输入状态
   void clearValue(String name) {
     updateValue<String?>(name, null);
+  }
+
+  /// 重置表单：所有字段回到各自初始值
+  ///
+  /// 等价于 `formKey.currentState?.reset()`，封装以避免业务代码直接操作
+  /// [formKey]。字段的 `formEntered` 会随各字段的 `didChange` 复位；
+  /// 未实现 `onChanged` 的自定义字段不保证同步，可用 [pruneFormEntered] 兜底。
+  void reset() {
+    formKey.currentState?.reset();
   }
 
   /// 处理字段内容变更：清除该字段的错误样式并更新输入状态

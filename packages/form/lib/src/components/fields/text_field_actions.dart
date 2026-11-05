@@ -64,15 +64,14 @@ class WFormTextFieldAction extends StatelessWidget {
 
 /// 密码可见/隐藏切换按钮（预置 action）
 ///
-/// 放入 [WFormTextFieldConfig.actions] 列表即可。图标从
+/// 放入直接字段的 `actions` 列表即可。图标从
 /// [WFormIcons.defaults.obscureText] / [WFormIcons.defaults.obscureTextVisible] 取全局默认。
 ///
 /// ```dart
-/// WFormTextFieldCore(
-///   config: WFormTextFieldConfig()
-///     ..obscureText = true
-///     ..actions = const [WFormTextFieldPasswordToggle()],
+/// WFormTextField(
 ///   name: 'password',
+///   obscureText: true,
+///   actions: const [WFormTextFieldPasswordToggle()],
 /// )
 /// ```
 class WFormTextFieldPasswordToggle extends StatelessWidget {

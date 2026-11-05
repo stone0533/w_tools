@@ -39,9 +39,7 @@ packages:
     - WDividerInputFormatter
     - WFormBorderBuilderLayout
     - WFormBorderColumnLayout
-    - WFormBorderConfig
     - WFormBorderConfigScope
-    - WFormBorderDecoration
     - WFormBorderDecorationExtension
     - WFormBorderLayout
     - WFormBorderLayoutBuilder
@@ -49,20 +47,13 @@ packages:
     - WFormBorderState
     - WFormCustomValidator
     - WFormFieldShell
-    - WFormFieldStyleScope
-    - WFormIcons
     - WFormInputFormatters
     - WFormPopupRoute
     - WFormReadOnlyScope
     - WFormScope
-    - WFormTextFieldAction
-    - WFormTextFieldClearButton
     - WFormTextFieldData
-    - WFormTextFieldPasswordToggle
     - WFormTextFieldScope
     - WFormTheme
-    - WFormValidator
-    - WFormValidatorItem
   w_tools_map:
     - WMapItem
   w_tools_map_google:

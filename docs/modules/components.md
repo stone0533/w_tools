@@ -61,12 +61,22 @@
 | `WForm` | form | 页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验 | 不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` |
 | `WFormController` | form | 表单数据 / 字段值 / 校验入口 | 多个 WForm 不要共用一个 controller |
 | `WFormTextField` | form | 直接文本 / 密码字段（label / message / validator） | 不要默认写 `WFormTextFieldConfig().build(...)` |
-| `WFormDropdown` / `WFormMultiDropdown` | form | 直接下拉 / 多选字段 | 选择类弹层用 `WFormPopup` |
-| `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` | form | 直接日期 / 复选 / 单选字段 | — |
+| `WFormDropdown` | form | 直接下拉字段（items / 初始值 / icon / contentPadding） | 多选用 `WFormMultiDropdown`；自定义弹层用 `WFormPopup` |
+| `WFormMultiDropdown` | form | 直接多选字段（items / disabledKeys / 选项样式） | 单选用 `WFormDropdown` |
+| `WFormDatePicker` | form | 直接日期字段（displayFormat / firstDate / lastDate） | 时间选择不在本组件范围；自定义弹层用 `WFormPopup` |
+| `WFormCheckbox` | form | 直接复选字段（title 必填，默认 bordered: false） | 多选用 `WFormMultiDropdown` |
+| `WFormRadioGroup` | form | 直接单选字段（items / titleBuilder / lineSpacing） | 多选用 `WFormMultiDropdown` |
 | `WFormButton` | form | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用 |
-| `WFormFieldStyle` | form | 页面级字段默认高度 / 内边距 / 文字 / hint 样式 | 字段特殊样式用字段 `config` 覆盖 |
+| `WFormFieldStyle` | form | 页面级字段默认高度 / 内边距 / 文字 / hint 样式 | 字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹 |
 | `WFormValidatorSettings` | form | 校验行为：边框错误、短路 / 全量、回调 | — |
 | `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
+| `WFormBorderConfig` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式 | 普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderConfig: ...)` 下发 |
+| `WFormBorderDecoration` | form | 边框装饰值对象：border / color / borderRadius / boxShadow / gradient | 不要用 `Container(decoration:)` 代替 `WFormBorder` |
+| `WFormIcons` | form | 表单图标集合（下拉 / 勾选 / 单选 / 密码 / 清空） | `WFormDefaults` 已删除；单字段 icon 参数优先于它 |
+| `WFormFieldStyleScope` | form | 单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / hint） | 整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层 |
+| `WFormValidator` | form | 统一校验入口：短路 / 全量、边框错误、错误汇总 | 不要同时用 `formKey.validate()`，会形成两套错误通道 |
+| `WFormValidatorItem` | form | 单个校验项：自定义规则或复用字段自身 validator | 字段自带 validator 已够用时不要重复声明规则 |
+| `WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton` | form | 文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空 | 不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldScope.of` |
 <!-- catalog:5:end -->
 
 ## 6. 弹层

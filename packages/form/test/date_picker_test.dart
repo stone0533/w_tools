@@ -248,7 +248,7 @@ void main() {
           .firstWhere((s) => s.properties.button == true);
       expect(buttonSemantics.properties.enabled, isFalse);
 
-      await tester.tap(find.text('只读日期'));
+      await tester.tap(find.byType(InputDecorator));
       await tester.pumpAndSettle();
       expect(find.byType(DatePickerDialog), findsNothing);
     });
@@ -311,7 +311,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('点击选日期'));
+      await tester.tap(find.byType(InputDecorator));
       await tester.pumpAndSettle();
 
       expect(find.byType(DatePickerDialog), findsOneWidget);

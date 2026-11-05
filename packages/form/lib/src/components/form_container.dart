@@ -22,9 +22,10 @@ import 'form_controller.dart';
 /// )
 /// ```
 ///
-/// 校验设置：显式传 [validatorSettings] 时完全以它为准；只传 [borderConfig]
-/// 时默认 `showBorderError = true` —— 否则 `validate()` 失败时界面没有任何反馈。
-/// 两者都不传时不注入默认值（保持"没有边框就没有错误展示"的历史语义）。
+/// 校验设置：显式传 [validatorSettings] 时完全以它为准；未传时注入
+/// `WFormValidatorSettings()..showBorderError = true`，保证 `validate()` 失败时
+/// 至少有边框错误可看。没有边框样式（例如显式 `const WFormBorderConfig()`）时
+/// 不会渲染文案，效果等同“没有错误展示”。
 class WForm extends StatefulWidget {
   const WForm({
     super.key,

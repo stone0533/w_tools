@@ -40,33 +40,40 @@ Form 模块（`w_tools_form` 子包）提供了一套基于 `flutter_form_builde
 form/
 ├── w_tools_form.dart
 └── lib/src/
-    ├── components/
-    │   ├── form_scope.dart
-    │   ├── form_controller.dart
-    │   ├── form_defaults.dart
-    │   ├── form_input_formatters.dart
-    │   ├── field_button.dart
-    │   ├── field_lifecycle.dart     # 无状态字段的 formEntered 清理包装
-    │   ├── popup.dart
-    │   ├── border/
-    │   │   ├── border.dart          # WFormBorder + WFormBorderConfig + WFormBorderDecoration
-    │   │   ├── border_layout.dart   # 边框与消息的布局策略（column / row / 内联等）
-    │   │   ├── field_shell.dart # WFormFieldShell + Row 扩展
-    │   │   └── read_only_scope.dart # WFormReadOnlyScope（InheritedWidget）
-    │   ├── validation/
-    │   │   ├── validator.dart       # WFormValidator + WFormValidatorItem + WFormValidatorSettings
-    │   │   └── custom_validator.dart
-    │   └── fields/
-    │       ├── text_field.dart       # WFormTextField + WFormTextFieldConfig + Scope 管道
-    │       ├── text_field_actions.dart # WFormTextFieldAction / PasswordToggle / ClearButton
-    │       ├── dropdown.dart         # WFormDropdown + WFormDropdownConfig
-    │       ├── multi_dropdown.dart   # WFormMultiDropdown
-    │       ├── multi_dropdown_field.dart  # 内部字段实现
-    │       ├── multi_dropdown_item.dart   # 选项项
-    │       ├── multi_dropdown_config.dart # WFormMultiDropdownConfig
-    │       ├── checkbox.dart         # WFormCheckbox + WFormCheckboxConfig
-    │       ├── radio_group.dart      # WFormRadioGroup + WFormRadioGroupConfig
-    │       └── date_picker.dart      # WFormDatePicker + WFormDatePickerConfig
+    ├── components.dart              # 统一导出 + hide 内部 Core / 字段 Config
+    └── components/
+        ├── direct_fields.dart       # 7 个直接字段入口
+        ├── form_container.dart      # WForm
+        ├── form_scope.dart          # WFormScope
+        ├── form_controller.dart     # WFormController
+        ├── form_theme.dart          # WFormTheme
+        ├── form_icons.dart          # WFormIcons
+        ├── form_field_style.dart    # WFormFieldStyle / WFormFieldStyleScope
+        ├── form_input_formatters.dart
+        ├── field_base_config.dart   # 字段 Config 公共基类（包内）
+        ├── field_button.dart        # WFormButton 底层
+        ├── field_frame.dart         # 统一外框装配
+        ├── field_lifecycle.dart     # 无状态字段的 formEntered 清理包装
+        ├── popup.dart               # WFormPopup + WFormPopupRoute
+        ├── border/
+        │   ├── border.dart          # WFormBorder + WFormBorderConfig + WFormBorderDecoration
+        │   ├── border_layout.dart   # 边框与消息的布局策略（column / builder）
+        │   ├── field_shell.dart     # WFormFieldShell
+        │   └── read_only_scope.dart # WFormReadOnlyScope（InheritedWidget）
+        ├── validation/
+        │   ├── validator.dart       # WFormValidator + WFormValidatorItem + WFormValidatorSettings
+        │   └── custom_validator.dart
+        └── fields/
+            ├── text_field.dart      # WFormTextFieldCore + WFormTextFieldConfig + Scope 管道
+            ├── text_field_actions.dart # WFormTextFieldAction / PasswordToggle / ClearButton
+            ├── dropdown.dart        # WFormDropdownCore + WFormDropdownConfig
+            ├── multi_dropdown.dart  # WFormMultiDropdownCore
+            ├── multi_dropdown_field.dart  # 内部字段实现
+            ├── multi_dropdown_item.dart   # 选项项
+            ├── multi_dropdown_config.dart # WFormMultiDropdownConfig
+            ├── checkbox.dart        # WFormCheckboxCore + WFormCheckboxConfig
+            ├── radio_group.dart     # WFormRadioGroupCore + WFormRadioGroupConfig
+            └── date_picker.dart     # WFormDatePickerCore + WFormDatePickerConfig
 ```
 
 ---
@@ -85,7 +92,7 @@ WFormScope (StatelessWidget)
                       └─ WFormBorder（边框绘制 + 错误展示）
 
 WFormValidator
-  └─ WFormController.validators({config, items}) 工厂创建
+  └─ WFormController.validators({settings, items}) 工厂创建
       └─ 按序执行 WFormValidatorItem 列表
 ```
 
@@ -167,11 +174,12 @@ WFormScope(
 | `handleChange<T>(name, value, {callback})` | `void` | 清除错误 + 更新 `formEntered` + 回调；不写字段值 |
 | `updateValue<T>(name, value)` | `void` | `setValue` + `handleChange`，业务代码优先用这个 |
 | `clearValue(name)` | `void` | 清空值并复位输入状态 |
+| `reset()` | `void` | 重置全部字段到初始值（内部走 `formKey.currentState.reset()`） |
 | `getFieldsValue<T>(name)` | `T?` | 无需先 `save` 即可获取即时值 |
 | `setError(name, {errorTextList, callback})` | `void` | 触发边框 `errorBuilder` |
 | `clearError(name)` | `void` | 清除边框错误 |
 | `closeKeyboard()` | `void` | unfocus |
-| `validators({config, items})` | `WFormValidator` | 校验器工厂 |
+| `validators({settings, items})` | `WFormValidator` | 校验器工厂 |
 | `validate({config, items})` | `bool` | 一步校验；未挂载返回 false；items 为 null 时使用已挂载字段的自身 validator |
 | `formBorderKeys` | `Map<String, GlobalKey<WFormBorderState>>` | 边框 key 注册表 |
 | `ensureBorderKey(name)` | `GlobalKey<WFormBorderState>` | 获取 / 创建边框 key |
@@ -233,8 +241,11 @@ const icons = WFormIcons(
 
 ## 3.5 内部 Config
 
-`WForm*Config` / `WForm*Core` 是包内实现，不从 `w_tools_form.dart` 导出。
-业务代码不要实例化、不要 `Config.build(...)`、不要 import `src/`。
+字段 Config（`WFormTextFieldConfig` 等）与 `WForm*Core` 是包内实现，不从
+`w_tools_form.dart` 导出。业务代码不要实例化、不要 `Config.build(...)`、不要 import `src/`。
+
+公开的配置类只有 `WFormBorderConfig` / `WFormBorderDecoration` /
+`WFormValidatorSettings` / `WFormFieldStyle` / `WFormIcons`。
 
 需要字段样式时：
 
@@ -253,7 +264,7 @@ const icons = WFormIcons(
 ```dart
 WForm(
   controller: form,
-  borderConfig: WFormBorderConfig.standard(radius: 12),
+  borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
   readOnly: false,
   child: ListView(
     children: [
@@ -335,6 +346,15 @@ WForm.fieldStyle > 框架默认
 复选和单选默认 `bordered: false`，文本 / 下拉 / 多选 / 日期 / 按钮默认 `bordered: true`。
 需要边框时显式传 `bordered: true`。
 
+7 个直接字段都提供 `leading` / `actions` 两个外框插槽。以下能力只到页面级，
+5.0 起没有单字段入口：
+
+| 需求 | 做法 |
+|---|---|
+| 单字段高度 / 内边距 / 文字 / hint 样式 | 用 `WFormFieldStyleScope` 包裹该字段 |
+| 单字段宽度 / 上下微调 / 自定义外框装饰 | 用 `SizedBox` / `Transform` / 外层容器包裹字段 |
+| 输入框 `decoration` / `contentPadding` / `prefix` / `textAlign` | 用 `WFormFieldShell` + `FormBuilderTextField` 组合自定义字段（见 §4.3） |
+
 `WForm.validatorSettings` 会作为 `form.validate()` / `form.validators()` 的默认设置；
 即使 validator 在 `WForm` 之前创建，也会在 `validate()` 时读取该默认值。
 
@@ -409,11 +429,22 @@ final config = WFormBorderConfig.standard(radius: 12);
 | `hintTextList` | `List<String>?` | | 提示文本 |
 | `isTransparentBackground` | `bool?` | | 透明背景时装饰为 null（错误态除外） |
 
-同时提供 `Row` 扩展：
+需要输入框内部细节（`contentPadding` / `prefix` / `prefixIcon` / `textAlign` / 自定义
+`decoration`）时，用它包住 `flutter_form_builder` 字段即可，边框 / 错误 / 只读仍走同一套：
 
 ```dart
-WFormFieldShell(name: 'username', readOnly: false, child: Row(children: [...]))
-// 旧写法 Row(...).withFormBorder(...) 已在 4.0 删除
+WFormFieldShell(
+  name: 'amount',
+  readOnly: false,
+  child: FormBuilderField<String>(
+    name: 'amount',
+    builder: (field) => TextField(
+      textAlign: TextAlign.right,
+      decoration: const InputDecoration(prefixIcon: Icon(Icons.attach_money)),
+      onChanged: field.didChange,
+    ),
+  ),
+)
 ```
 
 ### 4.4 WFormReadOnlyScope
@@ -481,7 +512,7 @@ WFormFieldShell(name: 'username', readOnly: false, child: Row(children: [...]))
 
 - `WFormTextFieldPasswordToggle` — 密码可见性切换按钮（图标从 `WFormTheme.icons` 取）
 - `WFormTextFieldClearButton` — 清空按钮（有内容才显示，只读下不触发）
-- `WFormTextFieldAction` — 通用 `IconButton`
+- `WFormTextFieldAction` — 通用 action（`iconBuilder` + `visibleWhen` + `onPressed`，内部是 `GestureDetector`，不是 `IconButton`）
 
 #### 使用示例
 
@@ -534,7 +565,7 @@ WFormDropdown<Gender>(
 - 值类型 `Set<String>`
 - 点击通过 `WFormPopup.show` 在锚点下方弹出多选列表（Wrap 布局）
 - `disabledKeys: Set<String>` — 已选中禁用项显示选中态但不可点击
-- 显示文本：已选项按选中顺序拼接；未选时显示 `hintText` 或 `'ALL'`
+- 显示文本：已选项按选中顺序拼接；未选时显示 `hintText`；未配置则不显示占位（5.1 起，与 `WFormDropdown` 一致）
 - 弹出层空间不足自动向上翻转，位置打开时计算一次（滚动不跟随）
 
 #### 使用示例
@@ -556,7 +587,7 @@ WFormMultiDropdown(
 ### 5.5 WFormRadioGroup\<T\>
 
 - `Map<T, String> items`，单列 `Column` 布局
-- 可选 `titleBuilder`（组标题）/ `itemExtraBuilder`（每项下方附加）
+- 可选 `titleBuilder`（自定义**每个选项**的标题，参数含 key / label / 是否选中）/ `itemExtraBuilder`（每项下方附加）
 - `lineSpacing` 控制行间距
 
 ### 5.6 WFormDatePicker
@@ -650,7 +681,7 @@ WFormPopup.hide<T>(context, [result, rootNavigator]);
 
 ### 概述
 
-`WFormValidator` 由 `WFormController.validators({config, items})` 创建，按序执行校验项，支持短路 / 全量校验、边框错误渲染、自动聚焦与错误提示回调。
+`WFormValidator` 由 `WFormController.validators({settings, items})` 创建，按序执行校验项，支持短路 / 全量校验、边框错误渲染、自动聚焦与错误提示回调。
 
 ### WFormValidatorItem
 
@@ -701,9 +732,14 @@ if (validator.validate()) {
 
 ## 8. form_input_formatters.dart
 
-输入格式化器集合，常见内置项（按项目实际导出）：
-- `FilteringTextInputFormatter.digitsOnly`
-- 自定义货币 / 手机号 / 邮箱 formatter
+输入格式化器集合：
+
+- `WFormInputFormatters.phone()`：香港号码，最多 8 位，每 4 位空格分隔
+- `WCardNumberInputFormatter`：每 4 位加一个空格（卡号）
+- `WDividerInputFormatter({first, rear, pattern})`：按自定义段长插入分隔符
+
+`FilteringTextInputFormatter.digitsOnly` / `LengthLimitingTextInputFormatter`
+来自 `flutter/services`，不是本包提供。
 
 ---
 
@@ -820,7 +856,7 @@ class _LoginPageState extends State<LoginPage> {
 | 8 | **setError / 字段 name 一致性** | `WFormFieldShell.name` 必须与内部字段 `name` 一致，否则校验红框无法自动联动 |
 | 9 | **PopRoute 不跟随滚动** | `WFormPopup` 位置打开时计算一次，锚点滚动后弹层不跟随，如需跟随请使用其他方案 |
 | 10 | **校验器双通道风险** | `WFormValidatorItem.field` 模式直接执行字段 `validator`，**不**写入字段 `errorText`，只通过 `WFormBorder.setError` 渲染；若同时开 FormBuilder 原生 `validate()` 会走另一通道，建议统一使用 `WFormValidator` |
-| 11 | **copyWith(null) 不代表清空** | `WFormBorderConfig.copyWith(errorDecoration: null)` 保持原值；清空请用 `cfg.copy()..errorDecoration = null` |
+| 11 | **copyWith(null) 不代表清空** | `WFormBorderConfig.copyWith(errorDecoration: null)` 保持原值；`WFormBorderConfig` 全字段 `final`，没有 setter。清空要重新构造：`WFormBorderConfig(defaultDecoration: ...)` |
 | 12 | **默认图标替换** | `WFormTheme.icons` / `WForm.icons` 优先，未配置项回退到 `WFormIcons.defaults`；`WFormDefaults` 已在 4.0 删除 |
 
 ---

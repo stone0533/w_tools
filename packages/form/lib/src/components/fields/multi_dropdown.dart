@@ -42,7 +42,7 @@ class WFormMultiDropdownCore extends StatelessWidget {
   /// 校验器
   final FormFieldValidator<Set<String>>? validator;
 
-  /// 未选择时的展示文本（null 时使用 config.hintText，仍未配置则显示 `ALL`）
+  /// 未选择时的展示文本（null 时使用 config.hintText；仍未配置则不显示占位）
   final String? hintText;
 
   /// 宽度（null 时使用 config.width）
