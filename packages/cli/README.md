@@ -18,10 +18,8 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.11.1
+  w_tools_cli: ^1.12.0
 ```
-
-> `1.11.1` 待发布；当前 pub.dev 稳定版为 `1.11.0`。
 
 ```bash
 dart run w_tools_cli:w_tools init       # 1. 生成 toolkit / UI 规范 / AGENTS / doctor 配置

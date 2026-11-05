@@ -811,7 +811,7 @@ void main() {
               '请更新 init_project.dart',
         );
       }
-      expect(snippet, contains('w_tools_cli: ^1.10.0'));
+      expect(snippet, contains('w_tools_cli: ^1.12.0'));
     }, skip: repo == null ? '不在 w_tools 仓库内' : false);
   });
 }
