@@ -135,8 +135,12 @@ WFormScope(
   formBorderConfig: borderConfig,
   child: Column(
     children: [
-      WFormTextField(name: 'name', config: nameConfig),
-      WFormDropdown(name: 'gender', config: genderConfig, items: {Gender.male: '男', Gender.female: '女'}),
+      WFormTextField(name: 'name', label: '姓名'),
+      WFormDropdown<String>(
+        name: 'gender',
+        label: '性别',
+        items: const {'male': '男', 'female': '女'},
+      ),
     ],
   ),
 )
@@ -227,27 +231,20 @@ const icons = WFormIcons(
 
 ---
 
-## 3.5 Config 使用方式
+## 3.5 内部 Config
 
-字段 Config 可变，直接使用 cascade / 命名构造 / copyWith：
+`WForm*Config` / `WForm*Core` 是包内实现，不从 `w_tools_form.dart` 导出。
+业务代码不要实例化、不要 `Config.build(...)`、不要 import `src/`。
 
-```dart
-final config = WFormTextFieldConfig()
-  ..height = 52
-  ..style = const TextStyle(fontSize: 16);
+需要字段样式时：
+
+```text
+页面级样式 → WForm.fieldStyle / WFormFieldStyle
+字段级差异 → 直接字段参数（label / message / validator / ...）
+边框 / 校验 / 只读 → WForm
 ```
 
-约定：
-
-- **一个字段一份 Config**，不要把同一个实例同时交给多个字段；
-- 需要跨字段复用字段样式时，用 `copy() / copyWith()` 复制新实例；
-- `copyWith(null)` 表示沿用原值，不清空字段；清空请直接对可变字段赋值，
-  例如 `config.height = null`；
-- 跨字段共享的边框 / 主题样式放 `WFormTheme` 或 `WFormBorderConfig`，不要靠共享
-  字段 Config 实现。
-
-字段 Config 不再提供 Builder。`WFormBorderConfig` 为不可变配置；
-`WFormBorderConfigBuilder` 已在 4.0 删除，直接用 `WFormBorderConfig(...)` / `copyWith`。
+---
 
 ## 3.6 直接字段与 WForm
 
@@ -301,21 +298,8 @@ WForm(
 | 单选 | `WFormRadioGroup<T>` |
 | 自定义按钮 | `WFormButton` |
 
-需要特殊样式时传可选 `config`；字段 Config 可变，一个字段一份：
-
-```dart
-final config = WFormTextFieldConfig()
-  ..height = 64
-  ..style = const TextStyle(fontSize: 18);
-
-WFormTextField(
-  name: 'email',
-  label: '邮箱',
-  config: config,
-)
-```
-
-页面级默认样式通过 `WForm.fieldStyle` 统一：
+字段不接受 `config`。样式差异优先用直接参数；页面级默认样式通过
+`WForm.fieldStyle` 统一：
 
 ```dart
 WForm(
@@ -332,14 +316,14 @@ WForm(
 )
 ```
 
-样式优先级（按属性合并）：
+样式来源：
 
 ```text
-字段 config > WForm.fieldStyle > 框架默认
+WForm.fieldStyle > 框架默认
 ```
 
-传了 `config` 时，config 只覆盖自己设置的属性；未设置的属性继续由
-`WForm.fieldStyle` 填充，而不是整个字段跳过 fieldStyle。`WFormFieldStyle` 目前覆盖：
+直接字段只把自己支持的参数写进内部 Config；未设置的属性继续由
+`WForm.fieldStyle` 填充。`WFormFieldStyle` 目前覆盖：
 
 | 属性 | 生效范围 |
 |---|---|
@@ -441,7 +425,7 @@ WFormFieldShell(name: 'username', readOnly: false, child: Row(children: [...]))
 ## 5. 字段组件（直接用法 / 低层细节）
 
 > 日常业务页面优先使用 §3.6 的 `WForm` + 直接字段（`WFormTextField` 等）。
-> 本节示例默认使用直接字段；只有需要特殊样式时，才在示例中传 `config`。
+> 本节示例默认使用直接字段；`WForm*Config` 仅为源码内部说明。
 > `Config.build(...)` / `*Core` 属于低层实现，不作为页面主入口。
 > 3.2 起它们标了 `@internal` 并从公共导出中 `hide`：消费方在 `analyze` 会得到
 > `invalid_use_of_internal_member` / 找不到符号的提示；4.0 物理移出 public 面。
@@ -506,8 +490,6 @@ WFormTextField(
   message: '请输入用户名',
   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
   validator: (v) => (v?.isEmpty ?? true) ? '请输入' : null,
-  config: WFormTextFieldConfig()
-    ..style = const TextStyle(fontSize: 16),
 ),
 
 // 密码字段（带可见性切换）
@@ -526,7 +508,7 @@ WFormTextField(
 #### 特性
 
 - `items: Map<T, String>`，**初始值 / 字段值必须存在于 items 中**（`FormBuilderDropdown` 内部断言）
-- `hintWidget` 优先级：`hint` > `config.hint`
+- 占位提示：`hintText` 优先于 `label`
 
 #### 使用示例
 
@@ -560,7 +542,7 @@ WFormMultiDropdown(
   name: 'hobbies',
   label: '爱好',
   items: const {'read': '阅读', 'sport': '运动', 'music': '音乐'},
-  config: WFormMultiDropdownConfig()..disabledKeys = const {'music'},
+  disabledKeys: const {'music'},
 ),
 ```
 
@@ -580,7 +562,7 @@ WFormMultiDropdown(
 > 低层说明：普通页面使用本节的 `WFormXxx` 直接入口；下方 Config 字段 / 构建细节仅供高级定制。
 
 - 存储格式：ISO `yyyy-MM-dd`（与 locale 无关）
-- 显示格式：`DateFormat(config.displayFormat, locale)`，默认 `'yMMMMd'`
+- 显示格式：`DateFormat(displayFormat, locale)`，默认 `'yMMMMd'`
 - 使用系统 `showDatePicker`；直接字段的 `firstDate` / `lastDate` 可选，默认 `DateTime(1900)` / `DateTime.now()`（建议显式传值，尤其是允许未来日期时）
 
 #### 使用示例
@@ -594,13 +576,13 @@ WFormDatePicker(
 ),
 ```
 
-需要自定义显示格式时再传：
+需要自定义显示格式时直接传 `displayFormat`：
 
 ```dart
 WFormDatePicker(
   name: 'birthday',
   label: '生日',
-  config: WFormDatePickerConfig()..displayFormat = 'yyyy-MM-dd',
+  displayFormat: 'yyyy-MM-dd',
 ),
 ```
 
@@ -609,7 +591,7 @@ WFormDatePicker(
 - 日常入口是 `WFormButton`；点击行为由 `onTap(value, didChange)` 决定，调用方通过 `didChange` 写值
 - `selectedWidgetBuilder` 渲染当前选中值
 - `WFormFieldButtonCore` 是底层 Widget；`WFormFieldButtonConfig` 是可变的低层配置
-- 普通页面直接使用 `WFormButton`，需要特殊样式时再传 `config`
+- 普通页面直接使用 `WFormButton`；字段差异用 `label` / `hintWidget` / `leading`
 
 ```dart
 WFormButton(
@@ -620,11 +602,10 @@ WFormButton(
   },
 )
 
-// config 自带 hintWidget 时，不传 label 也会保留
+// 直接传 hintWidget，不写 label 也可以
 WFormButton(
   name: 'coupon',
-  config: WFormFieldButtonConfig()
-    ..hintWidget = const Text('请选择优惠券'),
+  hintWidget: const Text('请选择优惠券'),
   onTap: (_, didChange) {},
 )
 ```
@@ -789,8 +770,6 @@ class _LoginPageState extends State<LoginPage> {
                 message: '请输入用户名',
                 validator: (v) =>
                     (v?.isEmpty ?? true) ? '请输入用户名' : null,
-                config: WFormTextFieldConfig()
-                  ..style = const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 12),
               WFormTextField(

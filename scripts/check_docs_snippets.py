@@ -9,8 +9,11 @@ import sys
 root = pathlib.Path(__file__).resolve().parent.parent
 docs = root / 'docs'
 errors: list[str] = []
+historical = {'migrations', 'adr', 'analysis', 'releases'}
 
 for path in docs.rglob('*.md'):
+    if any(part in historical for part in path.relative_to(docs).parts):
+        continue
     text = path.read_text()
     for pattern, label in (
         (r'WApp\.addPlugin\(', 'WApp.addPlugin 静态调用'),
@@ -22,6 +25,15 @@ for path in docs.rglob('*.md'):
 
     if re.search(r'WQrViewOverlayShape\s*\((?:[^)]|\n)*?borderColor', text):
         errors.append(f'{path}: WQrViewOverlayShape 包含 borderColor')
+
+    # form 5.0：直接字段不接受 config；只提示当前业务文档，内部实现说明不误伤。
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if not re.match(r'\s*config\s*:', line):
+            continue
+        window = '\n'.join(lines[max(0, i - 25) : i])
+        if re.search(r'WForm(?:TextField|Dropdown|MultiDropdown|DatePicker|Checkbox|RadioGroup|Button)\s*\(', window):
+            errors.append(f'{path}:{i + 1}: 直接表单字段不应传 config')
 
 components = docs / 'modules' / 'components.md'
 lines = components.read_text().splitlines()

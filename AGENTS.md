@@ -231,6 +231,6 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ## 包级规则入口
 
-- core / ui / form / async / api / app / qr / map 的详细规则分别在 [`docs/agents/`](docs/agents/)；
+- core / ui / form / async / api / app / toast / qr / map 的详细规则分别在 [`docs/agents/`](docs/agents/)；
 - 组件目录由 [`catalog/components.yaml`](packages/cli/catalog/components.yaml) 生成；
 - README / example 是该包的用户事实源与可运行场景。

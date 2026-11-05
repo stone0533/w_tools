@@ -1,7 +1,7 @@
 # Form 使用规则
 
-新页面默认使用 `WForm` + 直接字段，不要从 `Config.build` 开始写。
-`WForm` 需要 `WFormController`，且建议一对一；页面级高度 / 内边距用 `fieldStyle`，校验用 `validatorSettings`。
+新页面默认使用 `WForm` + 直接字段（`WFormTextField` / `WFormDropdown` 等），
+不要从 `Config.build` 开始写。
 
 ```dart
 WForm(
@@ -37,27 +37,23 @@ WForm(
 
 规则：
 
-1. 页面容器用 `WForm`。
-2. 字段直接用 `WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` / `WFormButton`。
-3. 普通页面不要写 `WFormTheme`、`WFormScope`、`WFormReadOnlyScope` 三层嵌套。
-4. 普通页面不要用 `WFormTextFieldConfig().build(...)`；需要特殊样式时传 `config`。
-
-```dart
-// 不推荐作为页面入口
-(WFormTextFieldConfig()..height = 52).build(name: 'email')
-
-// 推荐
-WFormTextField(name: 'email', label: '邮箱')
-```
-
-5. 样式优先级：字段 `config` > `WForm.fieldStyle` > 默认值。
-5.1 边框配置优先级：`WForm.borderConfig` > 祖先 `WFormTheme(borderConfig:)` > 主题派生默认值
-   （`WFormBorderConfig.fromTheme`）。**不传也能用**：默认有主题边框，`message` / 校验错误可见。
-   想要「无边框、不显示文案」时显式传 `const WFormBorderConfig()`。
-6. 字段 Config 可变，一个字段一份，不要跨字段共享。
+1. 页面容器用 `WForm`，字段直接用 `WFormTextField` / `WFormDropdown` /
+   `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` /
+   `WFormRadioGroup` / `WFormButton`。
+2. 直接字段不接受 `config` 参数；不要写 `WFormTextField(config: ...)`。
+3. 不要用 `WFormTextFieldConfig().build(...)`；`WFormTextFieldCore` 等 `*Core`
+   已内部化，不导出。
+4. 页面级高度 / 内边距 / 文本样式用 `WForm.fieldStyle`（`WFormFieldStyle`）。
+5. 字段级差异用直接参数，例如：
+   - 文本：`label` / `message` / `validator` / `obscureText` / `actions`
+   - 下拉：`items` / `initialValue` / `icon` / `contentPadding`
+   - 多选：`disabledKeys` / `itemStyle` / `itemCheckedStyle`
+   - 日期：`firstDate` / `lastDate` / `displayFormat`
+   - 按钮：`label` / `hintWidget` / `selectedWidgetBuilder`
+6. 边框 / 校验 / 只读由 `WForm` 统一提供，不要在页面里堆
+   `WFormTheme`、`WFormScope`、`WFormReadOnlyScope`。
 7. `WForm` 与 `WFormController` 一对一使用。
-8. `WFormTextFieldCore` 等 `*Core` 已内部化（不导出），不要直接使用；特殊布局用 `WForm` + 字段 `config`。
-9. 提交校验优先：
+8. 提交校验优先：
 
 ```dart
 if (!form.validate()) return;
