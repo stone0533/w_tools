@@ -717,4 +717,148 @@ void main() {
       expect(key.rect(), isNull);
     });
   });
+
+  group('WStepStyle copyWith', () {
+    test('传 null 可清空文字样式，未传则保留', () {
+      const style = WStepStyle(
+        labelStyle: TextStyle(fontSize: 12),
+        completedLabelStyle: TextStyle(fontWeight: FontWeight.w700),
+      );
+
+      final cleared = style.copyWith(labelStyle: null, completedLabelStyle: null);
+      expect(cleared.labelStyle, isNull);
+      expect(cleared.completedLabelStyle, isNull);
+
+      final kept = style.copyWith(itemSize: 32);
+      expect(kept.labelStyle, style.labelStyle);
+      expect(kept.completedLabelStyle, style.completedLabelStyle);
+      expect(kept.itemSize, 32);
+    });
+  });
+
+  group('WNotificationListenerBuilder 语义', () {
+    FixedScrollMetrics metrics({double max = 100, double pixels = 10}) {
+      return FixedScrollMetrics(
+        minScrollExtent: 0,
+        maxScrollExtent: max,
+        pixels: pixels,
+        viewportDimension: 100,
+        axisDirection: AxisDirection.down,
+        devicePixelRatio: 1,
+      );
+    }
+
+    testWidgets('非 ScrollUpdateNotification 不回调百分比', (tester) async {
+      double? percentage;
+      late BuildContext inner;
+      final wrapper = WNotificationListenerBuilder<ScrollNotification>(
+        child: Builder(
+          builder: (context) {
+            inner = context;
+            return const SizedBox();
+          },
+        ),
+      )..onNotificationPercentage((value) => percentage = value);
+
+      await tester.pumpWidget(MaterialApp(home: wrapper.build()));
+      ScrollStartNotification(metrics: metrics(), context: inner).dispatch(inner);
+
+      expect(percentage, isNull);
+    });
+
+    testWidgets('depth > 0 的 ScrollUpdate 不回调百分比', (tester) async {
+      double? percentage;
+      late BuildContext inner;
+      final wrapper = WNotificationListenerBuilder<ScrollNotification>(
+        child: Builder(
+          builder: (context) {
+            inner = context;
+            return const SizedBox();
+          },
+        ),
+      )..onNotificationPercentage((value) => percentage = value);
+
+      await tester.pumpWidget(MaterialApp(home: wrapper.build()));
+      ScrollUpdateNotification(metrics: metrics(), context: inner, depth: 1).dispatch(inner);
+
+      expect(percentage, isNull);
+    });
+
+    testWidgets('maxScrollExtent 为 0 时回调 0.0', (tester) async {
+      double? percentage;
+      late BuildContext inner;
+      final wrapper = WNotificationListenerBuilder<ScrollNotification>(
+        child: Builder(
+          builder: (context) {
+            inner = context;
+            return const SizedBox();
+          },
+        ),
+      )..onNotificationPercentage((value) => percentage = value);
+
+      await tester.pumpWidget(MaterialApp(home: wrapper.build()));
+      ScrollUpdateNotification(metrics: metrics(max: 0), context: inner).dispatch(inner);
+
+      expect(percentage, 0.0);
+    });
+
+    testWidgets('onNotification 返回值优先于 preventNotificationPropagation', (tester) async {
+      var bubbled = false;
+      late BuildContext inner;
+      final wrapper =
+          WNotificationListenerBuilder<ScrollNotification>(
+              child: Builder(
+                builder: (context) {
+                  inner = context;
+                  return const SizedBox();
+                },
+              ),
+            )
+            ..preventNotificationPropagation(true)
+            ..onNotification((_) => false);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NotificationListener<ScrollNotification>(
+            onNotification: (_) {
+              bubbled = true;
+              return false;
+            },
+            child: wrapper.build(),
+          ),
+        ),
+      );
+      ScrollUpdateNotification(metrics: metrics(), context: inner).dispatch(inner);
+
+      expect(bubbled, isTrue);
+    });
+
+    testWidgets('无 onNotification 且 prevent=true 时阻止向上传递', (tester) async {
+      var bubbled = false;
+      late BuildContext inner;
+      final wrapper = WNotificationListenerBuilder<ScrollNotification>(
+        child: Builder(
+          builder: (context) {
+            inner = context;
+            return const SizedBox();
+          },
+        ),
+      )..preventNotificationPropagation(true);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NotificationListener<ScrollNotification>(
+            onNotification: (_) {
+              bubbled = true;
+              return false;
+            },
+            child: wrapper.build(),
+          ),
+        ),
+      );
+      ScrollUpdateNotification(metrics: metrics(), context: inner).dispatch(inner);
+
+      expect(bubbled, isFalse);
+    });
+  });
 }

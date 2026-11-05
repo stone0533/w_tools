@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 /// 步骤状态。
 enum WStepState { completed, current, upcoming }
 
+const Object _unset = Object();
+
 /// 步骤项构建器。
 ///
 /// [index] 从 1 开始，等于 [WStep.labels] 中的位置。
@@ -67,10 +69,10 @@ class WStepStyle {
     double? labelSpacing,
     double? separatorHeight,
     double? separatorIndent,
-    TextStyle? labelStyle,
-    TextStyle? completedLabelStyle,
-    TextStyle? currentLabelStyle,
-    TextStyle? upcomingLabelStyle,
+    Object? labelStyle = _unset,
+    Object? completedLabelStyle = _unset,
+    Object? currentLabelStyle = _unset,
+    Object? upcomingLabelStyle = _unset,
   }) {
     return WStepStyle(
       completedColor: completedColor ?? this.completedColor,
@@ -80,10 +82,16 @@ class WStepStyle {
       labelSpacing: labelSpacing ?? this.labelSpacing,
       separatorHeight: separatorHeight ?? this.separatorHeight,
       separatorIndent: separatorIndent ?? this.separatorIndent,
-      labelStyle: labelStyle ?? this.labelStyle,
-      completedLabelStyle: completedLabelStyle ?? this.completedLabelStyle,
-      currentLabelStyle: currentLabelStyle ?? this.currentLabelStyle,
-      upcomingLabelStyle: upcomingLabelStyle ?? this.upcomingLabelStyle,
+      labelStyle: identical(labelStyle, _unset) ? this.labelStyle : labelStyle as TextStyle?,
+      completedLabelStyle: identical(completedLabelStyle, _unset)
+          ? this.completedLabelStyle
+          : completedLabelStyle as TextStyle?,
+      currentLabelStyle: identical(currentLabelStyle, _unset)
+          ? this.currentLabelStyle
+          : currentLabelStyle as TextStyle?,
+      upcomingLabelStyle: identical(upcomingLabelStyle, _unset)
+          ? this.upcomingLabelStyle
+          : upcomingLabelStyle as TextStyle?,
     );
   }
 }

@@ -878,6 +878,9 @@ errorWidgetBuilder: (context, url, error) => switch (error.kind) {
 
 - `width` / `height` 是**图片内容尺寸**；`padding` / `margin` 在外部叠加，
   实际总尺寸 = 内容尺寸 + 间距。
+- 没有 `width` / `height` / `aspectRatio` 时，必须由父级给确定约束（`SizedBox` /
+  `Expanded` / `AspectRatio`）。在 `Row` / `Column` / `ListView` 的无界轴上，默认占位是
+  0 尺寸，表现为空白；debug 下 `WImage` 会打印提示。
 - `aspectRatio` 不要和固定的 `width` + `height` 同时设置（debug 下会 assert，约束会冲突）。
 - `borderRadius` 同时作用于图片本体、`border` 与 `boxShadow`。
 - 自定义 `placeholder` / `placeholderBuilder` / `errorWidget` / `errorWidgetBuilder`
@@ -1040,7 +1043,7 @@ WImage.source(source: WImageSource.file('/tmp/a.png'))
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `config` | `WBadgeConfig?` | 可选，默认 `const WBadgeConfig()` |
-| `badgeContent` | `Widget?` | 徽章内容；显示徽章时不能为空 |
+| `badgeContent` | `Widget?` | 徽章内容；为 null 时不渲染徽章（不报错） |
 | `child` | `Widget?` | 子组件 |
 
 ### WBadgeConfig
@@ -1362,7 +1365,7 @@ WSelectableRow(
 
 ### WNotificationListenerBuilder
 
-通知监听构建器，便捷封装 `NotificationListener` + `Builder`。
+通知监听构建器，便捷封装 `NotificationListener`（链式配置回调）。
 
 `onNotificationPercentage` 只在 `depth == 0` 的 `ScrollUpdateNotification` 上回调；
 滚动开始 / 结束不会触发。`preventNotificationPropagation(true)` 可阻止通知继续向上传递。
@@ -1700,9 +1703,9 @@ GlobalKey 扩展，支持查找、定位、获取 Widget 状态等。
 
 ## 10. 工具类
 
-### 布局（原生）
+### 尺寸与间距（原生）
 
-`WPadding` / `WSizeBox` / `WRow` / `WColumn` 已在 5.0 删除，直接用 Flutter 原生组件：
+`WPadding` / `WSizeBox` 已在 5.0 删除，直接用 Flutter 原生组件：
 
 ```dart
 Padding(padding: const EdgeInsets.all(16), child: ...)

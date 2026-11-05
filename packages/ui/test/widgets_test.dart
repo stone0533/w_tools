@@ -189,12 +189,12 @@ void main() {
     testWidgets('渲染 badgeContent', (tester) async {
       const config = WBadgeConfig();
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: WBadge(
               config: config,
-              badgeContent: const Text('3'),
-              child: const Icon(Icons.email),
+              badgeContent: Text('3'),
+              child: Icon(Icons.email),
             ),
           ),
         ),
@@ -203,21 +203,30 @@ void main() {
       expect(find.byIcon(Icons.email), findsOneWidget);
     });
 
-    testWidgets('显示徽章时 badgeContent 不能为空', (tester) async {
-      expect(
-        () => WBadge(
-          config: const WBadgeConfig(),
-          child: const Icon(Icons.notifications),
+    testWidgets('badgeContent 为空时不渲染徽章（不报错）', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: WBadge(
+              config: WBadgeConfig(),
+              child: Icon(Icons.notifications),
+            ),
+          ),
         ),
-        throwsAssertionError,
       );
-      expect(
-        () => WBadge(
-          config: const WBadgeConfig(showBadge: false),
-          child: const Icon(Icons.notifications),
+      expect(tester.takeException(), isNull);
+      expect(find.byIcon(Icons.notifications), findsOneWidget);
+      expect(find.byType(badges.Badge), findsOneWidget);
+    });
+
+    testWidgets('最简构造 WBadge(child:) 不崩溃', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: WBadge(child: Icon(Icons.mail))),
         ),
-        returnsNormally,
       );
+      expect(tester.takeException(), isNull);
+      expect(find.byIcon(Icons.mail), findsOneWidget);
     });
 
     test('copyWith 可恢复显示', () {
@@ -234,12 +243,12 @@ void main() {
         ),
       );
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: WBadge(
               config: config,
-              badgeContent: const Text('3'),
-              child: const Icon(Icons.notifications),
+              badgeContent: Text('3'),
+              child: Icon(Icons.notifications),
             ),
           ),
         ),
@@ -250,12 +259,12 @@ void main() {
     testWidgets('hideBadge() 隐藏徽章', (tester) async {
       const config = WBadgeConfig(showBadge: false);
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: WBadge(
               config: config,
-              badgeContent: const Text('hidden'),
-              child: const Icon(Icons.notifications),
+              badgeContent: Text('hidden'),
+              child: Icon(Icons.notifications),
             ),
           ),
         ),
@@ -321,6 +330,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(disposeCount, 1);
       expect(find.byType(_KeepAliveProbe, skipOffstage: false), findsNothing);
+    });
+  });
+
+  group('WBadgeConfig copyWith', () {
+    test('可清空 position / badgeStyle，工厂可用', () {
+      final config = WBadgeConfig.topRight(top: 2, end: 3);
+      expect(config.position, isNotNull);
+      final cleared = config.copyWith(position: null, badgeStyle: null);
+      expect(cleared.position, isNull);
+      expect(cleared.badgeStyle, isNull);
+      expect(WBadgeConfig.center().position, isNotNull);
+      expect(config.isShown, isTrue);
     });
   });
 }

@@ -55,6 +55,22 @@ void main() {
       expect(() => style.validate(), returnsNormally);
     });
 
+    test('WButtonMotion.copyWith 替换字段并保留其余', () {
+      const motion = WButtonMotion(effect: WButtonEffectType.scale, pressedScale: 0.9);
+      final next = motion.copyWith(
+        effect: WButtonEffectType.none,
+        pressedOpacity: 0.5,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+      expect(next.effect, WButtonEffectType.none);
+      expect(next.pressedOpacity, 0.5);
+      expect(next.pressedScale, 0.9);
+      expect(next.duration, const Duration(milliseconds: 200));
+      expect(next.curve, Curves.easeOut);
+      expect(motion.effect, WButtonEffectType.scale);
+    });
+
     test('非法值触发 assert', () {
       expect(
         () => const WButtonMotion(pressedOpacity: 1.5).validate(),
@@ -206,6 +222,32 @@ void main() {
       expect(custom.minHeight, 28);
       expect(custom.lineHeight, 1.2);
       expect(custom.letterSpacing, 0.3);
+    });
+
+    test('copyWith 可清空可空字段，且仍接受 int 字面量', () {
+      final sized = WButtonSize.small.copyWith(minHeight: 40, iconSize: 20);
+      expect(sized.minHeight, 40.0);
+      expect(sized.iconSize, 20.0);
+
+      final cleared = sized.copyWith(
+        minHeight: null,
+        iconSize: null,
+        padding: null,
+        fontSize: null,
+        fontWeight: null,
+        lineHeight: null,
+        letterSpacing: null,
+        gap: null,
+      );
+      expect(cleared.minHeight, isNull);
+      expect(cleared.iconSize, isNull);
+      expect(cleared.padding, isNull);
+      expect(cleared.fontSize, isNull);
+      expect(cleared.fontWeight, isNull);
+      expect(cleared.lineHeight, isNull);
+      expect(cleared.letterSpacing, isNull);
+      expect(cleared.gap, isNull);
+      expect(cleared.tapTargetSize, 48);
     });
 
     test('非法值触发 assert', () {

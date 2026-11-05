@@ -28,6 +28,9 @@ class _WImageState extends State<WImage> {
   Object? _providerKey;
   Widget? _lastFrame;
 
+  /// debug 下“无尺寸 + 无界父级”提示是否已排过（每个 State 只提示一次）
+  bool _sizeHintScheduled = false;
+
   /// 加载 / 重试 / 进度状态
   late final WImageLoader _load;
 
@@ -95,6 +98,10 @@ class _WImageState extends State<WImage> {
     if (oldWidget.style != widget.style || oldWidget.config != widget.config) {
       _lastFrame = null;
     }
+    if (oldWidget.style != widget.style) {
+      // 尺寸配置可能从“有”变“无”，允许重新检查
+      _sizeHintScheduled = false;
+    }
     if (oldWidget.source != widget.source) {
       _reset();
     }
@@ -137,7 +144,37 @@ class _WImageState extends State<WImage> {
       _providerKey = null;
       _lastFrame = null;
     }
+    _debugScheduleSizeHint();
     return _buildContent(context);
+  }
+
+  /// debug-only：无尺寸 + 父级无界时，加载前占位是 0 尺寸（表现为空白）。
+  ///
+  /// 只在首次布局后检查一次；用 debugPrint 而不是断言，避免误伤
+  /// `IntrinsicHeight` / 故意 0 尺寸的调用方，也不影响 release。
+  void _debugScheduleSizeHint() {
+    if (!kDebugMode || _sizeHintScheduled) return;
+    if (style.width != null || style.height != null || style.aspectRatio != null) {
+      return;
+    }
+    _sizeHintScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _debugCheckSizeHint());
+  }
+
+  void _debugCheckSizeHint() {
+    if (!mounted) return;
+    final renderObject = context.findRenderObject();
+    if (renderObject is! RenderBox || !renderObject.hasSize) return;
+    final constraints = renderObject.constraints;
+    final unboundedWidth = constraints.maxWidth.isInfinite;
+    final unboundedHeight = constraints.maxHeight.isInfinite;
+    if (!unboundedWidth && !unboundedHeight) return;
+    final axis = unboundedWidth && unboundedHeight ? '宽高' : (unboundedWidth ? '宽度' : '高度');
+    debugPrint(
+      '[w_tools_ui] WImage 没有 width/height/aspectRatio，且父级在$axis轴上无界：'
+      '加载前占位是 0 尺寸，会表现为空白。请给 WImageStyle 设置尺寸或 aspectRatio，'
+      '或用 SizedBox / Expanded / AspectRatio 约束。',
+    );
   }
 
   Widget _buildContent(BuildContext context) {

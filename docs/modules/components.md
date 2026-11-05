@@ -14,9 +14,13 @@
 | --- | --- | --- | --- |
 | `WScaffold` | ui | 页面壳：默认 WAppBar、body、底部导航/FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
 | `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom） | 任意叠放/覆盖布局在页面层用 Container/Stack |
+| `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 | backgroundColor 与 gradient 只能选一个 |
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 需 vsync 并由页面 State dispose | 不要自己写 `BottomNavigationBar` |
+| `WNavBarConfig` | ui | WNavBar 的外层装饰 / padding | 选中态与切换动画由 `WNavController` 管，不要放进 config |
 | `WTabBar` | ui | 顶部 tab；依赖 TabController / DefaultTabController | 需要下划线跟随的复杂交互时先看它够不够 |
+| `WTabBarConfig` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式 | WTabBar 不自带 controller，不要在这里塞状态 |
 | `WStep` / `WStepFlow` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
+| `WStepStyle` | ui | 步骤条颜色 / 尺寸 / 间距 / 标签样式 | 不要靠改 WStep 内部布局实现视觉；优先用 itemBuilder |
 <!-- catalog:1:end -->
 
 ## 2. 文本与图标
@@ -27,6 +31,9 @@
 | `WText` / `WTextVariant` / `WTextStyles` | ui | 语义文字样式、overrides、maxLines、textScaler | 不要再用 `WTextConfig`；已移除，使用 `WTextStyles` |
 | `WImage` | ui | 网络图/资源图（缓存、重试、占位） | 不要裸用 `Image.network` |
 | `WImageSource` | ui | WImage 的来源：network / asset / file / base64 / provider / parse | 不要用已删除的 WImage.network / asset / file / data |
+| `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 加载 / 重试 / 占位用 `WImageLoadConfig`，不要混在 style 里 |
+| `WImageLoadConfig` | ui | 图片加载：解码尺寸 / 重试 / 占位 / 错误 / 进度 | 视觉样式用 `WImageStyle` |
+| `WImageController` | ui | 手动重试与加载状态（retry / state） | 一个 controller 只能绑定一张 WImage |
 <!-- catalog:2:end -->
 
 > **图标 + 文字排成一行**（垂直居中）：目前没有组件，见文末「待补」——
@@ -37,8 +44,10 @@
 <!-- catalog:3:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
+| `WButtonStyle` | ui | 按钮视觉：颜色 / 边框 / 圆角 / 内边距 / 尺寸 / 动效 / 语义 | 按钮宽度由父布局决定，`WButtonStyle` 不含 width |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
-| `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义时用 `WButton` |
+| `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义 / 键盘焦点 / 最小点击区域时用 `WButton` |
+| `WButtonStyles` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要硬编码颜色；页面统一样式用项目 AppButtons 注册表 |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 | — |
 <!-- catalog:3:end -->
@@ -103,7 +112,7 @@
 | `WToast` | toast | 轻提示 | — |
 | `WToastStyle` | toast | Toast 的时长 / 对齐 / 背景 / 动画等样式 | 不要为单条 toast 重复造主题；全局用 WToastTheme |
 | `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
-| `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | — |
+| `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
 | `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
 | `WNotificationListenerBuilder` | ui | 监听滚动通知 / 百分比 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
 <!-- catalog:7:end -->

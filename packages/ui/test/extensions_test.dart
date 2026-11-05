@@ -375,4 +375,55 @@ void main() {
       expect(key.rect(), isNull);
     });
   });
+
+  group('WWidgetExtension', () {
+    testWidgets('padding 系列返回对应 Padding', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: [
+              Container(key: const ValueKey('h'), child: const SizedBox().withHorizontalPadding(8)),
+              Container(key: const ValueKey('v'), child: const SizedBox().withVerticalPadding(10)),
+              Container(key: const ValueKey('l'), child: const SizedBox().withLeftPadding(4)),
+              Container(key: const ValueKey('r'), child: const SizedBox().withRightPadding(6)),
+              Container(key: const ValueKey('t'), child: const SizedBox().withTopPadding(12)),
+              Container(key: const ValueKey('b'), child: const SizedBox().withBottomPadding(14)),
+            ],
+          ),
+        ),
+      );
+      EdgeInsets paddingOf(String key) {
+        final widget = tester.widget<Padding>(
+          find.descendant(of: find.byKey(ValueKey(key)), matching: find.byType(Padding)).first,
+        );
+        return widget.padding as EdgeInsets;
+      }
+
+      expect(paddingOf('h'), const EdgeInsets.symmetric(horizontal: 8));
+      expect(paddingOf('v'), const EdgeInsets.symmetric(vertical: 10));
+      expect(paddingOf('l'), const EdgeInsets.only(left: 4));
+      expect(paddingOf('r'), const EdgeInsets.only(right: 6));
+      expect(paddingOf('t'), const EdgeInsets.only(top: 12));
+      expect(paddingOf('b'), const EdgeInsets.only(bottom: 14));
+    });
+
+    test('withIntrinsicHeight / expanded 包装正确', () {
+      const child = SizedBox();
+      expect(child.withIntrinsicHeight(), isA<IntrinsicHeight>());
+      final expanded = child.expanded(2);
+      expect(expanded, isA<Expanded>());
+      expect((expanded as Expanded).flex, 2);
+    });
+
+    testWidgets('toPressable 触发 onTap', (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: const Text('卡片').toPressable(onTap: () => taps++),
+        ),
+      );
+      await tester.tap(find.text('卡片'));
+      expect(taps, 1);
+    });
+  });
 }

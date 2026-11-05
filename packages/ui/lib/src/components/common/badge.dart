@@ -18,23 +18,18 @@ class WBadge extends StatelessWidget {
   /// - [config]：徽章配置
   /// - [badgeContent]：徽章内容
   /// - [child]：子组件
-  WBadge({
+  const WBadge({
     super.key,
     this.config,
     this.badgeContent,
     this.child,
-  }) : assert(
-         config == null || !config.isShown || badgeContent != null,
-         'WBadge: 显示徽章时 badgeContent 不能为空',
-       );
+  });
 
   @override
   Widget build(BuildContext context) {
     final config = this.config ?? const WBadgeConfig();
-    assert(
-      !config.showBadge || badgeContent != null,
-      'WBadge: 显示徽章时 badgeContent 不能为空',
-    );
+    // badgeContent 为空时静默不渲染：showBadge 只是开关，内容为空没有可显示的东西。
+    // （旧实现会 assert，导致最简单的 WBadge(child: ...) 在 debug 下直接崩溃。）
     final showBadge = config.showBadge && badgeContent != null;
 
     return badges.Badge(

@@ -6,7 +6,7 @@ import 'image_types.dart';
 
 /// 图片来源。
 ///
-/// 绿field 设计里 `WImage` 接收 [WImageSource]，不再用 `String data` 猜类型；
+/// 6.0 起 `WImage` 只接收 [WImageSource]，不再用 `String data` 猜类型；
 /// 需要字符串入口时用 [WImageSource.parse]。
 sealed class WImageSource {
   const WImageSource();

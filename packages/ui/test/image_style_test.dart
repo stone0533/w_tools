@@ -54,4 +54,31 @@ void main() {
     expect(style.alignment, Alignment.center);
     expect(style.filterQuality, FilterQuality.low);
   });
+
+  test('copyWith(null) 可清空可空字段', () {
+    const style = WImageStyle(
+      width: 10,
+      height: 20,
+      borderRadius: BorderRadius.all(Radius.circular(4)),
+      border: Border.fromBorderSide(BorderSide(color: Color(0xFF000000))),
+      semanticLabel: 'avatar',
+    );
+
+    final cleared = style.copyWith(
+      width: null,
+      height: null,
+      borderRadius: null,
+      border: null,
+      semanticLabel: null,
+    );
+    expect(cleared.width, isNull);
+    expect(cleared.height, isNull);
+    expect(cleared.borderRadius, isNull);
+    expect(cleared.border, isNull);
+    expect(cleared.semanticLabel, isNull);
+
+    final kept = style.copyWith(fit: BoxFit.contain);
+    expect(kept.width, 10);
+    expect(kept.fit, BoxFit.contain);
+  });
 }

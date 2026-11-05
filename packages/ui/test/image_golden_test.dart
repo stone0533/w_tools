@@ -1,4 +1,6 @@
 // ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,7 +30,9 @@ const _errorBox = ColoredBox(
   ),
 );
 
-final _goldenSkip = defaultTargetPlatform != TargetPlatform.macOS || kIsWeb;
+// 用 dart:io 的平台判断：`flutter test` 里 defaultTargetPlatform 固定为 android，
+// 用它判断会导致 golden 在所有平台（包括 macOS）都被跳过。
+final _goldenSkip = !Platform.isMacOS || kIsWeb;
 
 void main() {
   testWidgets('loaded golden', skip: _goldenSkip, (tester) async {

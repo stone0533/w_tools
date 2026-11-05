@@ -798,9 +798,13 @@ const String agentsUi = r'''
   按钮宽度由父布局决定，`WButtonStyle` 不含 `width`。`WButton` 没有 `variant`；
   样式用 `style`，`label` 和 `content` 不能同时传。`loading` 时同时设置 `enabled: !loading`；
   纯图标按钮提供 `semanticLabel`。状态色放 `AppButtons`。
-- **图片**：网络图用 `WImage.network`；资源图用 `WImage.asset(name, prefix: true)`；
+- **图片**：统一用 `WImage.source` + `WImageSource`——网络图
+  `WImage.source(source: WImageSource.network(url))`，资源图
+  `WImage.source(source: WImageSource.asset(name, prefix: true))`；
+  `WImage.network` / `WImage.asset` / `WImage(data:)` 已在 6.0 删除。
   视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageLoadConfig`；不要裸用
-  `Image.network` / `Image.asset`。
+  `Image.network` / `Image.asset`。没有 `width` / `height` / `aspectRatio` 时必须由父级
+  给约束（`SizedBox` / `Expanded` / `AspectRatio`），否则加载前是 0 尺寸（空白）。
 - **文字**：新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
   `WTextConfig` 已移除；不要逐字段拼样式。局部用 `style` / `color` / `maxLines` / `overflow` 覆盖。
   最小示例：`WText(text: '标题', variant: WTextVariant.title)`。
@@ -1062,9 +1066,14 @@ const String agentsUiEn = r'''
   Button width comes from the parent; `WButtonStyle` has no `width`. `WButton` has no `variant`;
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
-- **Images**: use `WImage.network` for network images and `WImage.asset(name, prefix: true)` for
-  assets; use `WImageStyle` for visuals and `WImageLoadConfig` for loading/retry/placeholders.
-  Do not use `Image.network` / `Image.asset` directly.
+- **Images**: always use `WImage.source` + `WImageSource` —
+  `WImage.source(source: WImageSource.network(url))` for network images and
+  `WImage.source(source: WImageSource.asset(name, prefix: true))` for assets;
+  `WImage.network` / `WImage.asset` / `WImage(data:)` were removed in 6.0.
+  Use `WImageStyle` for visuals and `WImageLoadConfig` for loading/retry/placeholders.
+  Do not use `Image.network` / `Image.asset` directly. Without `width` / `height` /
+  `aspectRatio`, the parent must constrain it (`SizedBox` / `Expanded` / `AspectRatio`);
+  otherwise it is 0-sized before load (blank).
 - **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
   in the theme; `WTextConfig` has been removed. Override with `style` / `color` / `maxLines` /
   `overflow` locally. Reuse existing variants first (`price` / `number` / `badge`). If a variant is

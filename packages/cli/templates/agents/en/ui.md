@@ -16,9 +16,14 @@
   Button width comes from the parent; `WButtonStyle` has no `width`. `WButton` has no `variant`;
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
-- **Images**: use `WImage.network` for network images and `WImage.asset(name, prefix: true)` for
-  assets; use `WImageStyle` for visuals and `WImageLoadConfig` for loading/retry/placeholders.
-  Do not use `Image.network` / `Image.asset` directly.
+- **Images**: always use `WImage.source` + `WImageSource` —
+  `WImage.source(source: WImageSource.network(url))` for network images and
+  `WImage.source(source: WImageSource.asset(name, prefix: true))` for assets;
+  `WImage.network` / `WImage.asset` / `WImage(data:)` were removed in 6.0.
+  Use `WImageStyle` for visuals and `WImageLoadConfig` for loading/retry/placeholders.
+  Do not use `Image.network` / `Image.asset` directly. Without `width` / `height` /
+  `aspectRatio`, the parent must constrain it (`SizedBox` / `Expanded` / `AspectRatio`);
+  otherwise it is 0-sized before load (blank).
 - **Text**: use `WText(variant: WTextVariant.xxx)` + `WTextStyles`; keep fonts/sizes/line heights
   in the theme; `WTextConfig` has been removed. Override with `style` / `color` / `maxLines` /
   `overflow` locally. Reuse existing variants first (`price` / `number` / `badge`). If a variant is

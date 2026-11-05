@@ -10,7 +10,7 @@
 - **通用组件**：`WText` / `WImage` / `WButton` / `WBadge` 等
 - **布局组件**：`WScaffold` / `WAppBar` / `WListView` / `WStep`
 - **导航组件**：`WNavBar` / `WNavController` / `WTabBar`
-- **扩展方法**：颜色、字符串、数字、Row / Column、TextStyle、Widget、BoxDecoration 等
+- **扩展方法**：颜色、字符串、数字、TextStyle、Widget、BoxDecoration 等
 - **屏幕适配**：`WScreen`、间距与尺寸工具
 
 ## 安装
@@ -33,16 +33,12 @@ class DemoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WScaffold(
-      body: Column(
-        children: const [
-          WAppBar(title: 'Demo'),
-          Expanded(
-            child: WText(
-              text: 'Hello w_tools_ui',
-              variant: WTextVariant.body,
-            ),
-          ),
-        ],
+      title: 'Demo',
+      body: const Center(
+        child: WText(
+          text: 'Hello w_tools_ui',
+          variant: WTextVariant.body,
+        ),
       ),
     );
   }
@@ -66,6 +62,10 @@ WImage.source(
 ```
 
 所有来源统一走 `WImage.source` + `WImageSource`。
+
+> `WImage` 不会自动给尺寸：没有 `width` / `height` / `aspectRatio` 时，必须由父级
+> （`SizedBox` / `Expanded` / `AspectRatio`）约束；否则在 `Row` / `Column` / `ListView`
+> 里加载前占位是 0 尺寸，表现为空白（debug 下会打印提示）。
 
 ### 入口选择
 
@@ -162,8 +162,9 @@ DefaultTabController(
 
 ## 扩展方法
 
-> `WSizeBox` / `WPadding` / `heightBox` / `widthBox` / `squareBox` 已在 5.0 删除；
-> 直接用 `SizedBox` / `EdgeInsets`。`allPadding` 用于需要 `EdgeInsets` 值的场景。
+> `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已在 5.0 删除，直接用 Flutter 原生组件；
+> `heightBox` / `widthBox` / `squareBox` 仍保留，是 `SizedBox` 的简写；
+> `allPadding` 用于需要 `EdgeInsets` 值的场景。
 
 ```dart
 const SizedBox(height: 16);

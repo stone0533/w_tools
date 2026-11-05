@@ -449,4 +449,110 @@ void main() {
       expect(statuses.where((s) => s == WImageLoadStatus.failed).length, 1);
     });
   });
+
+  group('WImageDefaultsScope', () {
+    testWidgets('of 在无 scope 时返回默认配置，maybeOf 返回 null', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              expect(WImageDefaultsScope.maybeOf(context), isNull);
+              expect(WImageDefaultsScope.of(context), isA<WImageLoadConfig>());
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+    });
+  });
+
+  group('WImage 尺寸提示（debug）', () {
+    testWidgets('无尺寸且父级在高度方向无界 → 提示', (tester) async {
+      final logs = <String>[];
+      final original = debugPrint;
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logs.add(message);
+      };
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Column(
+                children: [
+                  WImage.source(source: WImageSource.network('https://example.com/a.png')),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(
+          logs.any((line) => line.contains('WImage 没有 width/height/aspectRatio')),
+          isTrue,
+          reason: '应提示加载前 0 尺寸会导致空白',
+        );
+      } finally {
+        debugPrint = original;
+      }
+    });
+
+    testWidgets('有界父级不提示', (tester) async {
+      final logs = <String>[];
+      final original = debugPrint;
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logs.add(message);
+      };
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 100,
+                height: 100,
+                child: WImage.source(source: WImageSource.network('https://example.com/a.png')),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(
+          logs.any((line) => line.contains('WImage 没有 width/height/aspectRatio')),
+          isFalse,
+        );
+      } finally {
+        debugPrint = original;
+      }
+    });
+
+    testWidgets('有 aspectRatio 时不提示', (tester) async {
+      final logs = <String>[];
+      final original = debugPrint;
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logs.add(message);
+      };
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Column(
+                children: [
+                  WImage.source(
+                    source: WImageSource.network('https://example.com/a.png'),
+                    style: const WImageStyle(aspectRatio: 16 / 9),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(
+          logs.any((line) => line.contains('WImage 没有 width/height/aspectRatio')),
+          isFalse,
+        );
+      } finally {
+        debugPrint = original;
+      }
+    });
+  });
 }

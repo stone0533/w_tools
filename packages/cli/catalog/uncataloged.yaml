@@ -64,7 +64,6 @@ packages:
   w_tools_toast:
     - WToastTheme
   w_tools_ui:
-    - WAppBarStyle
     - WAssetImageSource
     - WBadgeConfig
     - WBase64ImageSource
@@ -74,26 +73,20 @@ packages:
     - WButtonResolvedStyle
     - WButtonSemantics
     - WButtonSize
-    - WButtonStyle
-    - WButtonStyles
     - WClipRRectConfig
     - WFileImageSource
     - WGlobalKeyExtension
     - WGradients
-    - WImageController
     - WImageDefaultsScope
     - WImageError
     - WImageErrorKind
     - WImageErrorView
     - WImageFrame
-    - WImageLoadConfig
     - WImageLoadSnapshot
     - WImageLoadStatus
     - WImageProgress
-    - WImageStyle
     - WImageStyleX
     - WImageType
-    - WNavBarConfig
     - WNetworkImageSource
     - WNotificationListenerBuilderExtension
     - WPressEffect
@@ -104,7 +97,5 @@ packages:
     - WStepSemanticLabelBuilder
     - WStepSeparatorBuilder
     - WStepState
-    - WStepStyle
-    - WTabBarConfig
     - WTextStyleExtension
     - WTextStylesThemeData
