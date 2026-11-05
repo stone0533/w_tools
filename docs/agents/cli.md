@@ -5,10 +5,13 @@
 ## 先记三步
 
 ```bash
-dart run w_tools_cli:w_tools init                 # 写入 toolkit / AGENTS / doctor 配置
+dart run w_tools_cli:w_tools init                 # 写入 toolkit / AGENTS / AI_PROMPTS / doctor 配置
 # 把 init 打印的 pubspec 片段加入项目，然后 dart pub get
 dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 ```
+
+`init` 默认生成 `.w_tools/AI_PROMPTS.md`（消费者版 AI 任务提示词）；
+不需要时用 `--no-ai-prompts`，`--no-instructions` 会一并关闭。
 
 `init` 不会改 `pubspec.yaml`；它保留上次 `.w_tools/init.json` 的 profile/targets/lang，
 只有显式参数才覆盖。`--force` 只覆盖文件，不重置参数；要回到默认用 `--reset`。

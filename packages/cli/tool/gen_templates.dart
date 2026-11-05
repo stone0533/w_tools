@@ -15,6 +15,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 const _templates = <String, String>{
+  'ai/consumer-prompts.md': 'aiPrompts',
+  'ai/consumer-prompts.en.md': 'aiPromptsEn',
   'toolkit.dart.tpl': 'toolkitTemplate',
   'design_system_README.md': 'designSystemReadme',
   'design_system_README.en.md': 'designSystemReadmeEn',

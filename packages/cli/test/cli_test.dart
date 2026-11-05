@@ -268,10 +268,20 @@ banned:
     expect(File(p.join(root.path, 'lib/app/ui/app_scaffold.dart')).existsSync(), isFalse);
   });
 
+  test('init --no-ai-prompts 不生成 AI_PROMPTS', () async {
+    final root = _project();
+    expect(
+      (await _run('init.dart', ['--root', root.path, '--no-ai-prompts'])).exitCode,
+      0,
+    );
+    expect(File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).existsSync(), isFalse);
+  });
+
   test('init --no-instructions 不生成 AGENTS', () async {
     final root = _project();
     expect((await _run('init.dart', ['--root', root.path, '--no-instructions'])).exitCode, 0);
     expect(File(p.join(root.path, 'AGENTS.md')).existsSync(), isFalse);
+    expect(File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).existsSync(), isFalse);
   });
 
   test('init --check-drift 对改过的产物返回 1', () async {

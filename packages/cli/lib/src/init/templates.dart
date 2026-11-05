@@ -58,6 +58,13 @@ class InitTemplates {
 
   static String appButtons() => generated.appButtonsTemplate.replaceAll('{{version}}', cliVersion);
 
+  /// 消费方 AI 任务提示词；生成到 `.w_tools/AI_PROMPTS.md`。
+  static String aiPrompts({String lang = 'zh'}) =>
+      (lang == 'en' ? generated.aiPromptsEn : generated.aiPrompts).replaceAll(
+        '{{version}}',
+        cliVersion,
+      );
+
   /// UI / 暂存层生成物：路径 → (内容, 是否 starter)。
   ///
   /// 写入与 stale 检测都从这里派生，避免两处各列一遍文件。

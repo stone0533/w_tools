@@ -31,6 +31,16 @@ templates/agents/zh/closing.md
 
 `InitTemplates.agentsBlock` 按 feature 拼接；新增能力时新增片段，不要改回 full / no_ui 两套大模板。
 
+## 消费方 AI 提示词
+
+`templates/ai/consumer-prompts.md` / `.en.md` 生成到消费方：
+
+```text
+.w_tools/AI_PROMPTS.md
+```
+
+内容只面向使用 w_tools 的项目，不复用维护者 A~J。
+
 ## toolkit 可选标记
 
 `toolkit.dart.tpl` 仍使用单行标记：

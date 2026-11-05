@@ -83,6 +83,7 @@ dart run w_tools_cli:w_tools init
 ```text
 lib/app/w/toolkit.dart             本项目能力清单（w_tools:begin/end 标记块，块外追加项不会被 --force 覆盖）
 .w_tools/init.json                  上次 init 的 flags；--check 用它回放参数
+.w_tools/AI_PROMPTS.md             消费方 AI 任务提示词（默认生成）
 .w_tools_doctor.yaml               doctor 配置（默认值与内置一致）
 AGENTS.md / CLAUDE.md / ...        w_tools 指令片段（标记块）
 lib/app/ui/                        页面规范（AppBars / AppBoxes / AppButtons / AppCard / AppScaffold）
@@ -174,6 +175,34 @@ copilot  .github/copilot-instructions.md
 `--no-instructions` 优先于 `--targets`；`--no-ui` 只关闭页面 UI 与 `w_tools_ui`，不会自动移除 `w_tools_toast`。
 
 切换 profile / targets 后，不再生成的旧文件会在 `stale` 中提示，但不会自动删除。
+
+### AI 任务提示词
+
+默认生成：
+
+```text
+.w_tools/AI_PROMPTS.md
+```
+
+包含消费者版：
+
+```text
+固定前缀
+C-A 实现页面
+C-B 审计现有代码
+C-C 升级 w_tools
+C-D 排查问题
+C-E 只审查
+C-F AI 不能跑命令
+```
+
+关闭：
+
+```bash
+dart run w_tools_cli:w_tools init --no-ai-prompts
+```
+
+`--no-instructions` 会同时关闭 AGENTS 与 AI_PROMPTS。
 
 ### 检查模式
 

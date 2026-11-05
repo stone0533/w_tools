@@ -20,6 +20,7 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   lib/app/w/toolkit.dart            本项目用到的能力清单（聚合入口）
   .w_tools_doctor.yaml              doctor 的可选配置（默认值与内置一致）
   AGENTS.md / CLAUDE.md / ...       w_tools 指令片段（标记块，重复执行原地更新）
+  .w_tools/AI_PROMPTS.md            消费方 AI 任务提示词（默认生成）
 
   以下仅在 ui / full profile 且未传 --no-ui 时生成：
   lib/app/design_system/README.md   通用组件暂存层规则
@@ -48,6 +49,7 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --figma / --no-figma  生成 Figma 取数与页面开发说明（默认关，不影响 toolkit）
   --device / --no-device  生成通用设备文档 / Gradle 镜像（docs/agents/device-testing.md /
                         tool/gradle-mirror.init.gradle.example；检测到 w_tools_device 时默认开）
+  --ai-prompts / --no-ai-prompts  生成消费方 AI 任务提示词（默认开；--no-instructions 时关闭）
   --no-instructions  不生成/不检查 AGENTS 等 AI 指令文件（优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
@@ -129,6 +131,7 @@ CommandResult run(List<String> argv) {
     ..addFlag('figma', negatable: true, defaultsTo: false)
     ..addFlag('device', negatable: true, defaultsTo: false)
     ..addFlag('device-test', negatable: false, hide: true, defaultsTo: false)
+    ..addFlag('ai-prompts', negatable: true, defaultsTo: true)
     ..addFlag('instructions', negatable: true, defaultsTo: true)
     ..addOption('targets')
     ..addOption('lang');
@@ -178,6 +181,7 @@ CommandResult run(List<String> argv) {
         figma: options.figma,
         figmaInstall: options.figmaInstall,
         device: options.device,
+        aiPrompts: options.aiPrompts,
         manifest: options.toManifest(generator: cliVersion),
       );
       if (args.wasParsed('device-test')) {
@@ -200,6 +204,7 @@ CommandResult run(List<String> argv) {
             'features': features.toJson(),
             'figma': figmaEnabled,
             'device': deviceEnabled,
+            'aiPrompts': options.aiPrompts,
             'forceStarters': options.forceStarters,
             'created': _jsonEntries(report.created),
             'upToDate': _jsonEntries(report.upToDate),
@@ -218,6 +223,7 @@ CommandResult run(List<String> argv) {
         print('features: ${features.summary}');
         print('figma: ${figmaEnabled ? 'yes' : 'no'}');
         print('device: ${deviceEnabled ? 'yes' : 'no'}');
+        print('ai-prompts: ${options.aiPrompts ? 'yes' : 'no'}');
         print('targets: ${sortedTargets.isEmpty ? '（无）' : sortedTargets.join(', ')}');
         print('━' * 56);
         for (final f in report.created) {

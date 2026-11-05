@@ -89,6 +89,44 @@ void main() {
       expect(appCard, contains('AppBoxes.card'));
     });
 
+    test('默认生成 .w_tools/AI_PROMPTS.md，--no-ai-prompts 关闭', () async {
+      final root = makeProject();
+      final report = runInit(root);
+      final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md'));
+      expect(prompt.existsSync(), isTrue);
+      expect(report.created.any((e) => e.contains('AI_PROMPTS.md')), isTrue);
+      expect(prompt.readAsStringSync(), contains('C-A 实现页面'));
+      expect(prompt.readAsStringSync(), contains('w_tools_cli'));
+
+      final offRoot = makeProject();
+      final off = runInit(offRoot, aiPrompts: false);
+      expect(File(p.join(offRoot.path, '.w_tools', 'AI_PROMPTS.md')).existsSync(), isFalse);
+      expect(off.created.any((e) => e.contains('AI_PROMPTS.md')), isFalse);
+    });
+
+    test('--no-instructions 同时关闭 AI_PROMPTS', () async {
+      final root = makeProject();
+      final report = runInit(root, targets: const <String>{});
+      expect(File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).existsSync(), isFalse);
+      expect(report.created.any((e) => e.contains('AI_PROMPTS.md')), isFalse);
+    });
+
+    test('--check 检测 AI_PROMPTS 缺失', () async {
+      final root = makeProject();
+      runInit(root);
+      File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).deleteSync();
+      final report = runInit(root, check: true);
+      expect(report.missing.any((e) => e.contains('AI_PROMPTS.md')), isTrue);
+    });
+
+    test('--no-ai-prompts 对已有 AI_PROMPTS 只报告 stale', () async {
+      final root = makeProject();
+      runInit(root);
+      final report = runInit(root, aiPrompts: false);
+      expect(report.stale.any((e) => e.contains('AI_PROMPTS.md')), isTrue);
+      expect(File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).existsSync(), isTrue);
+    });
+
     test('--no-ui 不生成 ui 文件，也不导出 w_tools_ui', () async {
       final root = makeProject();
       final report = runInit(root, features: InitFeatures.full.copyWith(ui: false));
@@ -146,6 +184,7 @@ void main() {
       final file = InitManifest.fileFor(root)..parent.createSync(recursive: true);
       file.writeAsStringSync(manifest.encode());
       expect(InitManifest.load(root)?.generator, cliVersion);
+      expect(InitManifest.load(root)?.aiPrompts, isTrue);
 
       // 老文件（没有 generator）
       file.writeAsStringSync('{"schema":"w_tools_cli.init/1","profile":"full"}');

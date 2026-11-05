@@ -75,6 +75,7 @@ InitReport runInit(
   bool figma = false,
   String? figmaInstall,
   bool device = false,
+  bool aiPrompts = true,
   InitManifest? manifest,
 }) {
   final report = InitReport();
@@ -300,6 +301,13 @@ InitReport runInit(
     );
   }
 
+  if (aiPrompts && targets.isNotEmpty) {
+    write(
+      '.w_tools/AI_PROMPTS.md',
+      InitTemplates.aiPrompts(lang: lang),
+    );
+  }
+
   final oldDeviceDoc = File(p.join(root.path, 'docs', 'agents', 'device-testing.md'));
   if (oldDeviceDoc.existsSync()) {
     final text = oldDeviceDoc.readAsStringSync();
@@ -311,7 +319,14 @@ InitReport runInit(
     }
   }
 
-  _collectStale(report, root, features, targets, device: device);
+  _collectStale(
+    report,
+    root,
+    features,
+    targets,
+    device: device,
+    aiPrompts: aiPrompts,
+  );
   // --check 只读：manifest 是本次 init 的运行记录，check 模式下不写、也不参与 drift
   // （否则 CLI 升级后 generator 版本变化会让 --check-drift 永远红）。
   if (!check && manifest != null) {
@@ -340,6 +355,7 @@ void _collectStale(
   InitFeatures features,
   Set<String> targets, {
   required bool device,
+  required bool aiPrompts,
 }) {
   if (!features.ui) {
     for (final rel in InitTemplates.uiStarters().keys) {
@@ -354,6 +370,13 @@ void _collectStale(
       if (File(p.join(root.path, rel)).existsSync()) {
         report.stale.add('$rel（当前未启用 device，未删除）');
       }
+    }
+  }
+
+  if (!aiPrompts) {
+    const rel = '.w_tools/AI_PROMPTS.md';
+    if (File(p.join(root.path, rel)).existsSync()) {
+      report.stale.add('$rel（当前未启用 ai-prompts，未删除）');
     }
   }
   // 旧版 init --device-test 生成过这个文件；现在不再生成，只提示，不自动删。

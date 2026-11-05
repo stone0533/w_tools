@@ -10,6 +10,7 @@ class InitManifest {
     required this.lang,
     required this.figma,
     required this.device,
+    this.aiPrompts = true,
     this.generator,
   });
 
@@ -19,6 +20,7 @@ class InitManifest {
   final String lang;
   final bool figma;
   final bool device;
+  final bool aiPrompts;
 
   /// 写这份 manifest 的 CLI 版本（老文件可能没有）。
   final String? generator;
@@ -78,6 +80,7 @@ class InitManifest {
         lang: '${raw['lang'] ?? 'zh'}',
         figma: raw['figma'] == true,
         device: raw['device'] == true,
+        aiPrompts: raw['aiPrompts'] != false,
         generator: raw['generator'] is String ? '${raw['generator']}' : null,
       );
     } on FormatException {
@@ -96,6 +99,7 @@ class InitManifest {
         'lang': lang,
         'figma': figma,
         'device': device,
+        'aiPrompts': aiPrompts,
         if (generator != null) 'generator': generator,
       })}\n';
 }

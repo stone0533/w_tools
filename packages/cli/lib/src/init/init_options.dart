@@ -17,6 +17,7 @@ class InitOptions {
     required this.lang,
     required this.figma,
     required this.device,
+    required this.aiPrompts,
     required this.check,
     required this.checkDrift,
     required this.force,
@@ -31,6 +32,7 @@ class InitOptions {
   final String lang;
   final bool figma;
   final bool device;
+  final bool aiPrompts;
   final bool check;
   final bool checkDrift;
   final bool force;
@@ -110,6 +112,11 @@ class InitOptions {
     final figma = args.wasParsed('figma')
         ? args['figma'] as bool
         : (manifest?.figma ?? _resolveFigma(root, config));
+    final aiPrompts = targets.isEmpty
+        ? false
+        : args.wasParsed('ai-prompts')
+        ? args['ai-prompts'] as bool
+        : (manifest?.aiPrompts ?? true);
     final device = (args['device-test'] as bool)
         ? true
         : args.wasParsed('device')
@@ -122,6 +129,7 @@ class InitOptions {
       lang: lang,
       figma: figma,
       device: device,
+      aiPrompts: aiPrompts,
       check: check,
       checkDrift: checkDrift,
       force: args['force'] as bool,
@@ -138,6 +146,7 @@ class InitOptions {
     lang: lang,
     figma: figma,
     device: device,
+    aiPrompts: aiPrompts,
     generator: generator,
   );
 }
