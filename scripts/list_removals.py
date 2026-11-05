@@ -4,6 +4,7 @@
 用法：
     python3 scripts/list_removals.py          # 文本，按到期版本分组
     python3 scripts/list_removals.py --md     # Markdown 表格
+    python3 scripts/list_removals.py --package async
 
 约定与 check_deprecations.py 一致：`/// remove-in: x.y.z` 必须在 `@Deprecated`
 前后 10 行内；声明取 @Deprecated 之后第一条非注释/非注解行。
@@ -35,9 +36,20 @@ def declaration_after(lines: list[str], index: int) -> str:
     return '(unknown)'
 
 
+args = sys.argv[1:]
+wanted = None
+if '--package' in args:
+    i = args.index('--package')
+    if i + 1 >= len(args):
+        print('--package 需要包名', file=sys.stderr)
+        raise SystemExit(2)
+    wanted = args[i + 1]
+
 rows: list[tuple[str, str, str, str]] = []
 for pubspec in sorted(packages.glob('*/pubspec.yaml')):
     package = pubspec.parent.name
+    if wanted and wanted not in {package, f'w_tools_{package}'}:
+        continue
     current = parse_version((version_re.search(pubspec.read_text()) or [None, '0.0.0'])[1])
     for path in sorted((pubspec.parent / 'lib').rglob('*.dart')):
         lines = path.read_text().splitlines()
@@ -66,7 +78,7 @@ for pubspec in sorted(packages.glob('*/pubspec.yaml')):
             rows.append((target.group(1), package, f'{rel}:{i + 1}', decl))
 
 rows.sort(key=lambda r: (tuple(int(x) for x in r[0].split('.')), r[1], r[2]))
-if '--md' in sys.argv:
+if '--md' in args:
     print('| 到期 | 包 | 位置 | 声明 |')
     print('| --- | --- | --- | --- |')
     for target, package, loc, decl in rows:

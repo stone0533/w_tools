@@ -1,0 +1,16 @@
+# name|path|runner|root_aggregate|example_test
+w_tools_core|packages/core|flutter|root|example
+w_tools_async|packages/async|flutter|root|example
+w_tools_ui|packages/ui|flutter|root|example
+w_tools_form|packages/form|flutter|root|example
+w_tools_api|packages/api|flutter|root|example
+w_tools_toast|packages/toast|flutter|root|-
+w_tools_app|packages/app|flutter|-|-
+w_tools_app_getx|packages/app_getx|flutter|-|example
+w_tools_map|packages/map|dart|-|-
+w_tools_map_google|packages/map_google|flutter|-|example
+w_tools_qr|packages/qr|flutter|-|example
+w_tools_cli|packages/cli|dart|-|-
+w_tools_figma|packages/figma|dart|-|-
+w_tools_device|packages/device|dart|-|-
+w_tools_e2e|packages/e2e|flutter|-|-

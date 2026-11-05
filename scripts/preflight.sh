@@ -3,9 +3,9 @@
 # 发布前门禁（静态检查默认全跑；测试 / dry-run 按需开启）。
 #
 # 用法：
-#   bash scripts/preflight.sh                 # format / analyze / docs / 弃用 / feedback / release
-#   bash scripts/preflight.sh --with-tests    # 再加所有包 + example + 根包测试
-#   bash scripts/preflight.sh --with-dry-run  # 再加 13 个子包 + 根包 publish dry-run
+#   bash scripts/preflight.sh                 # format / analyze / docs（含 feedback）/ 弃用 / catalog / release
+#   bash scripts/preflight.sh --with-tests    # 再加所有包 + example + 根包测试 + 模板编译
+#   bash scripts/preflight.sh --with-dry-run  # 再加全部子包 + 根包 publish dry-run
 #   bash scripts/preflight.sh --all           # 全部
 #
 # 退出码：任一步失败即非 0；dry-run 根包失败在子包未发布时是预期行为，
@@ -54,31 +54,37 @@ run "removed API" python3 scripts/check_removed_api.py
 run "public catalog" python3 scripts/check_public_catalog.py
 run "style literals" python3 scripts/check_style_literals.py
 run "deprecations" python3 scripts/check_deprecations.py
-run "feedback" bash scripts/check_feedback.sh
 run "release check" bash scripts/release_check.sh
 
 if [ -n "$with_tests" ]; then
-  for p in core async ui form api app app_getx toast map map_google qr e2e; do
-    run "test packages/$p" bash -c "cd packages/$p && flutter test --reporter=compact"
-  done
-  for p in cli figma device; do
-    run "test packages/$p" bash -c "cd packages/$p && dart test --reporter=compact"
-  done
+  while IFS='|' read -r name path runner aggregate example; do
+    case "$name" in ''|'#'*) continue ;; esac
+    case "$runner" in
+      flutter) run "test $name" bash -c "cd $path && flutter test --reporter=compact" ;;
+      dart) run "test $name" bash -c "cd $path && dart test --reporter=compact" ;;
+      *) echo "未知 runner: $name=$runner" >&2; failed=1 ;;
+    esac
+  done < "$root/scripts/packages.manifest"
   run "test root" flutter test
-  for p in api app_getx async core form map_google qr ui; do
-    run "test packages/$p/example" bash -c "cd packages/$p/example && flutter test --reporter=compact"
-  done
+  while IFS='|' read -r name path runner aggregate example; do
+    case "$name" in ''|'#'*) continue ;; esac
+    if [ "$example" = "example" ]; then
+      run "test $name/example" bash -c "cd $path/example && flutter test --reporter=compact"
+    fi
+  done < "$root/scripts/packages.manifest"
+  run "template compile" bash -c "cd packages/cli && dart run tool/check_templates_compile.dart"
 fi
 
 if [ -n "$with_dry_run" ]; then
-  for p in core async ui form api app app_getx toast map map_google qr cli figma device e2e; do
-    run "publish dry-run packages/$p" bash scripts/publish_package.sh "packages/$p" --dry-run
-  done
+  while IFS='|' read -r name path runner aggregate example; do
+    case "$name" in ''|'#'*) continue ;; esac
+    run "publish dry-run $name" bash scripts/publish_package.sh "$path" --dry-run
+  done < "$root/scripts/packages.manifest"
   echo "==> publish dry-run 根包（子包未发布时失败是预期）"
   if bash scripts/publish_package.sh . --dry-run; then
     echo "    ✓ 根包 dry-run"
   else
-    echo "    ! 根包 dry-run 失败：仅在 13 个子包已上线后才应通过"
+    echo "    ! 根包 dry-run 失败：仅在全部子包已上线后才应通过"
   fi
 fi
 

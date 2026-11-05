@@ -12,7 +12,7 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT" || exit 2
 
-PACKAGES="core async ui form api app app_getx toast map map_google qr cli figma device e2e"
+PACKAGES="$(awk -F'|' '!/^[[:space:]]*#/ && NF {name=$1; sub(/^w_tools_/,"",name); printf "%s ",name}' "$REPO_ROOT/scripts/packages.manifest")"
 STRICT=0
 ONLINE=0
 SELECTED=""

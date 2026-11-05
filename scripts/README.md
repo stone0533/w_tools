@@ -24,10 +24,10 @@ bash scripts/preflight.sh --with-tests
 这一条覆盖：
 
 ```text
-format / analyze / docs / AI 契约
+format / analyze / docs / AI 契约（含 feedback）
 公开类型 catalog / 弃用 / 风格
-feedback / release check
-全部包 + example + root 测试
+release check
+全部包 + example + root 测试 + 模板编译
 ```
 
 ---
@@ -40,8 +40,11 @@ feedback / release check
 |---|---|---|
 | `preflight.sh` | 全仓门禁总入口 | 提交前 / 合并前 |
 | `check_docs.sh` | 文档与 AI 资产检查总入口 | 只改文档时可单独跑 |
+| `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
 
 `check_docs.sh` 是 `preflight` 的子集，**不要只跑它就说全仓通过**。
+
+`packages.manifest` 是 preflight / release_check 的包清单来源；新增包时先改它。
 
 ### 文档 / AI 契约
 
@@ -63,7 +66,7 @@ feedback / release check
 | `check_deprecations.py` | `@Deprecated` 的 `remove-in` 是否到期 | preflight |
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
-| `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs / preflight |
+| `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
 ### 发布
 
@@ -72,6 +75,21 @@ feedback / release check
 | `release_check.sh` | 版本 / CHANGELOG / 根约束 / README / pub.dev 漂移 | 发布前先跑 `--strict` |
 | `publish_package.sh` | 在去掉 workspace 的暂存副本里发布 | **真正发布会执行，不是 dry-run** |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
+
+### 包内检查
+
+| 工具 | 作用 | 何时跑 |
+|---|---|---|
+| `packages/cli/tool/check_templates_compile.dart` | init 模板生成后能否通过 Flutter analyze | `preflight --with-tests` |
+
+### 检查边界
+
+这些是启发式检查，不是完整编译器/analyzer：
+
+- `check_doc_symbols.py`：正则匹配符号和成员；
+- `check_docs_snippets.py`：只拦截已知错误写法；
+- `check_public_catalog.py`：基于 export/part 的静态扫描 + `uncataloged.yaml` 基线；
+- `check_docs_facts.py`：只校验当前文档的包数量/聚合/旧命令规则。
 
 发布前：
 
