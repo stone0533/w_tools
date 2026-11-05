@@ -468,6 +468,38 @@ banned:
     expect('${r.stdout}', contains('c.load()'));
   });
 
+  test('list --package 只输出目标包', () async {
+    final r = await _run('list.dart', ['--package', 'w_tools_ui', '--format=prompt']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final out = '${r.stdout}';
+    expect(out, contains('[w_tools_ui]'));
+    expect(out, isNot(contains('[w_tools_form]')));
+    final count = RegExp(r'^- ', multiLine: true).allMatches(out).length;
+    expect(count, greaterThanOrEqualTo(30), reason: 'ui 目录没有列全');
+  });
+
+  test('list 位置参数 ui 按包名过滤', () async {
+    final r = await _run('list.dart', ['ui', '--format=prompt']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final out = '${r.stdout}';
+    expect(out, isNot(contains('[w_tools_form]')));
+    final count = RegExp(r'^- ', multiLine: true).allMatches(out).length;
+    expect(count, greaterThanOrEqualTo(30), reason: 'list ui 仍按关键词搜索');
+  });
+
+  test('explain 文档链接带章节锚点', () async {
+    final r = await _run('explain.dart', ['WImage', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', matches(RegExp(r'文档：.*#4-wimage')));
+  });
+
+  test('explain prompt 带示例链接', () async {
+    final r = await _run('explain.dart', ['WImage', '--format=prompt']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('示例：'));
+    expect('${r.stdout}', contains('packages/ui/example'));
+  });
+
   test('explain WAsync 输出 usage / related，tryRun 可精确命中', () async {
     final json = await _run('explain.dart', ['WAsync', '--format=json']);
     final payload = jsonDecode('${json.stdout}') as Map<String, Object?>;

@@ -87,6 +87,95 @@ void main() {
     }
   });
 
+  group('UI 教学覆盖', () {
+    final ui = catalog.where((e) => e.package == 'w_tools_ui').toList();
+
+    test('ui 每个 catalog 条目都有 usage（explain 能给出用法）', () {
+      for (final entry in ui) {
+        expect(entry.usage, isNotNull, reason: '${entry.name} 缺少 usage');
+        expect(entry.usage!.trim(), isNotEmpty, reason: '${entry.name} usage 为空');
+      }
+    });
+
+    test('ui 的 teach usage 覆盖多种变体（不是单行）', () {
+      for (final entry in ui.where((e) => e.teach)) {
+        expect(
+          entry.usage,
+          contains('\n'),
+          reason: '${entry.name} 的 usage 只有一行，AI 学不到变体',
+        );
+      }
+    });
+
+    test('ui 每条都有 docsAnchor（explain 能带章节锚点）', () {
+      for (final entry in ui) {
+        expect(entry.docsAnchor, isNotNull, reason: '${entry.name} 缺少 docsAnchor');
+        expect(entry.docsAnchor!.trim(), isNotEmpty);
+        expect(entry.docsAnchor!.startsWith('#'), isFalse);
+      }
+    });
+
+    test('ui docsAnchor 都能在 ui_module.md 找到', () {
+      final text = File('../../docs/modules/ui_module.md').readAsStringSync();
+      String slug(String heading) {
+        var h = heading.trim().toLowerCase().replaceAll('`', '');
+        h = h.replaceAll(RegExp(r'[^\w\u4e00-\u9fff\- ]'), '');
+        return h.trim().replaceAll(' ', '-');
+      }
+
+      final slugs = RegExp(
+        r'^#{1,6} (.+)$',
+        multiLine: true,
+      ).allMatches(text).map((m) => slug(m.group(1)!)).toSet();
+      for (final entry in ui) {
+        expect(
+          slugs,
+          contains(entry.docsAnchor),
+          reason: '${entry.name} 的 docsAnchor 不在 ui_module.md：${entry.docsAnchor}',
+        );
+      }
+    });
+
+    test('ui 高频子 API 能通过 explain 查到', () {
+      const names = <String>[
+        'WButtonSize',
+        'WButtonMotion',
+        'WButtonEffectType',
+        'WButtonSemantics',
+        'WBadgeConfig',
+        'WClipRRectConfig',
+        'WImageDefaultsScope',
+        'WScreenData',
+        'WStepState',
+        'WGradients',
+        'WShadows',
+        'WTextStyleExtension',
+        'WGlobalKeyExtension',
+        'WPressEffect',
+        'WAssetImageSource',
+        'WBase64ImageSource',
+        'WFileImageSource',
+        'WNetworkImageSource',
+        'WProviderImageSource',
+        'WButtonContentBuilder',
+        'WButtonResolvedStyle',
+        'WImageErrorView',
+        'WImageFrame',
+      ];
+      for (final name in names) {
+        expect(findComponent(name), isNotNull, reason: '$name 未登记到 catalog');
+      }
+    });
+
+    test('ui 模板包含 WBadge/WClipRRect/WActionRow/WStep 的选择规则', () {
+      for (final template in <String>[templates.agentsUi, templates.agentsUiEn]) {
+        for (final name in <String>['WBadge', 'WClipRRect', 'WActionRow', 'WStep']) {
+          expect(template, contains(name), reason: '模板缺少 $name');
+        }
+      }
+    });
+  });
+
   group('AGENTS 教学契约', () {
     test('async 模板包含 load 与查询命令', () {
       expect(templates.agentsAsync, contains('c.load()'));

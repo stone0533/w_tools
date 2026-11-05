@@ -8,6 +8,7 @@ class CatalogEntry {
     required this.useFor,
     required this.importPath,
     required this.docs,
+    this.docsAnchor,
     this.dontUseFor,
     this.aliases = const <String>[],
     this.usage,
@@ -30,6 +31,9 @@ class CatalogEntry {
 
   /// 仓库内文档路径（消费方可按需拼接仓库 URL）
   final String docs;
+
+  /// 文档章节锚点（不含 #）；为空时指向整篇文档。
+  final String? docsAnchor;
 
   /// 方法名 / 旧名等补充别名；不参与展示名。
   final List<String> aliases;
@@ -55,6 +59,7 @@ class CatalogEntry {
     if (dontUseFor != null) 'dontUseFor': dontUseFor,
     'import': importPath,
     'docs': docs,
+    if (docsAnchor != null) 'docsAnchor': docsAnchor,
     'aliases': aliases,
     if (usage != null) 'usage': usage,
     'pitfalls': pitfalls,

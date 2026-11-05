@@ -27,7 +27,7 @@ dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 | 第一次接入 / 升级后刷新 | `init`；有 drift 时按输出用 `init --force` |
 | CI 检查接入约定 | `doctor --format=json`（warning 也失败加 `--strict`） |
 | 给 AI 项目事实 | `context --format=prompt` |
-| 找组件 | `list <关键词>`；给 AI 加 `--format=prompt` |
+| 找组件 | `list <关键词>` 或 `list --package=<包>`；给 AI 加 `--format=prompt` |
 | 看组件怎么用 | `explain <组件名>`；给 AI 加 `--format=prompt` |
 | 记录 w_tools 问题 | `feedback search` 查重 → `feedback submit --package=<包>`；ledger 默认拒绝重复，确认重复加 `--allow-duplicate` |
 

@@ -786,7 +786,7 @@ const String agentsUi = r'''
   由 CLI 生成脚手架，**不走 STAGED、不计划上移**；只有待上移的通用组件才放
   `lib/app/design_system/`（受 R5 约束）。
 - **页面骨架**：标准页面默认用 `AppScaffold`（`lib/app/ui/app_scaffold.dart`）；
-  不要直接使用 `WScaffold` / `WAppBar`。特殊顶部栏用 `AppScaffold(appBar: WAppBar(...))`；
+  不要直接使用 `WScaffold` / `WAppBar`（本规则针对消费方项目；仓库内 example / 库测试可直接用 `WScaffold`）。特殊顶部栏用 `AppScaffold(appBar: WAppBar(...))`；
   需要 drawer / bottomSheet / 非标准安全区时用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
   AppBar 默认样式只在 `AppBars.style` 修改。
 - **底部导航**：用 `WNavBar` + `WNavController`；`WNavController` 需要 `vsync`，
@@ -798,6 +798,10 @@ const String agentsUi = r'''
   按钮宽度由父布局决定，`WButtonStyle` 不含 `width`。`WButton` 没有 `variant`；
   样式用 `style`，`label` 和 `content` 不能同时传。`loading` 时同时设置 `enabled: !loading`；
   纯图标按钮提供 `semanticLabel`。状态色放 `AppButtons`。
+- **徽标 / 裁剪 / 横向操作 / 步骤**：角标用 `WBadge(badgeContent:, child:)`；圆角裁剪用
+  `WClipRRect(config: WClipRRectConfig.all(12), child: ...)`；横向操作行用 `WActionRow`；
+  步骤条用 `WStep(labels:, current:)`，复用流程用 `WStepFlow`。App 级图片占位/错误用
+  `WImageDefaultsScope`；自定义按钮尺寸用 `WButtonSize`。
 - **图片**：统一用 `WImage.source` + `WImageSource`——网络图
   `WImage.source(source: WImageSource.network(url))`，资源图
   `WImage.source(source: WImageSource.asset(name, prefix: true))`；
@@ -1053,7 +1057,7 @@ const String agentsUiEn = r'''
   a staging area and is not planned for promotion. Only generic candidates for
   promotion belong in `lib/app/design_system/` (R5 applies there).
 - **Page shell**: standard pages default to `AppScaffold`
-  (`lib/app/ui/app_scaffold.dart`); do not use `WScaffold` / `WAppBar` directly.
+  (`lib/app/ui/app_scaffold.dart`); do not use `WScaffold` / `WAppBar` directly (this rule targets consumer apps; the repo's example/library tests may use `WScaffold` directly).
   Use `AppScaffold(appBar: WAppBar(...))` for a custom app bar; use `WScaffold` or plain
   `Scaffold` for drawers/bottom sheets/non-standard safe areas, and note why in the PR.
   Change app-bar defaults only in `AppBars.style`.
@@ -1066,6 +1070,11 @@ const String agentsUiEn = r'''
   Button width comes from the parent; `WButtonStyle` has no `width`. `WButton` has no `variant`;
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
+- **Badges / clipping / action rows / steps**: use `WBadge(badgeContent:, child:)` for badges,
+  `WClipRRect(config: WClipRRectConfig.all(12), child: ...)` for rounded clipping,
+  `WActionRow` for horizontal action rows, and `WStep(labels:, current:)` (or `WStepFlow`
+  for reuse) for steps. Use `WImageDefaultsScope` for app-level image placeholders/errors
+  and `WButtonSize` for custom button sizes.
 - **Images**: always use `WImage.source` + `WImageSource` —
   `WImage.source(source: WImageSource.network(url))` for network images and
   `WImage.source(source: WImageSource.asset(name, prefix: true))` for assets;

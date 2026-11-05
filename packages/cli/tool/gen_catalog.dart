@@ -58,6 +58,7 @@ String generate(String packageRoot) {
     final aliases = ((c['aliases'] as YamlList?)?.cast<String>() ?? const <String>[]);
     final related = ((c['related'] as YamlList?)?.cast<String>() ?? const <String>[]);
     final usage = c['usage'] as String?;
+    final docsAnchor = c['docsAnchor'] as String?;
     final pitfalls = ((c['pitfalls'] as YamlList?)?.cast<String>() ?? const <String>[]);
     final teach = c['teach'] == true;
     buf
@@ -70,6 +71,7 @@ String generate(String packageRoot) {
       ..writeln('    dontUseFor: ${dont == null ? 'null' : jsonEncode(dont)},')
       ..writeln('    importPath: ${jsonEncode('package:$package/$package.dart')},')
       ..writeln('    docs: ${jsonEncode(docs)},')
+      ..writeln('    docsAnchor: ${docsAnchor == null ? 'null' : jsonEncode(docsAnchor)},')
       ..writeln('    aliases: <String>[${aliases.map(jsonEncode).join(', ')}],')
       ..writeln('    usage: ${usage == null ? 'null' : jsonEncode(usage)},')
       ..writeln('    pitfalls: <String>[${pitfalls.map(jsonEncode).join(', ')}],')

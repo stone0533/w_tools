@@ -5,6 +5,7 @@ String renderExplainPrompt(
   CatalogEntry entry, {
   required String importPath,
   required String docsUrl,
+  String? exampleUrl,
 }) {
   final b = StringBuffer()
     ..writeln('# ${entry.name} (${entry.package})')
@@ -29,6 +30,11 @@ String renderExplainPrompt(
     b
       ..writeln()
       ..writeln('相关：${entry.related.join(' / ')}');
+  }
+  if (exampleUrl != null) {
+    b
+      ..writeln()
+      ..writeln('示例：$exampleUrl');
   }
   b
     ..writeln()

@@ -112,6 +112,82 @@ const WImageStyle().square(40).rounded(20)
 
 > 历史迁移见 [`docs/migrations/`](../../docs/migrations/README.md)。
 
+## 文本
+
+```dart
+WText(text: '标题', variant: WTextVariant.title);
+WText(text: '正文', variant: WTextVariant.body, maxLines: 2, overflow: TextOverflow.ellipsis);
+WText(
+  text: '价格',
+  variant: WTextVariant.price,
+  style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
+);
+```
+
+11 个 variant：`display/headline/title/price/body/bodyStrong/number/caption/label/button/badge`。
+品牌样式在主题构建处装一次：
+
+```dart
+final base = ThemeData(colorScheme: scheme, useMaterial3: true);
+theme: base.withWTextStyles(WTextStyles.fromTextTheme(base.textTheme)),
+```
+
+`WTextConfig` 已移除；局部只覆盖需要的字段（`style/color/maxLines/overflow/textScaler`）。
+
+## 按钮与点击
+
+```dart
+WButton(label: '保存', onTap: save);
+WButton(label: '提交', loading: true, enabled: false, onTap: submit);
+WButton(icon: Icons.add, label: '新增', style: WButtonStyles.of(context).primary, onTap: add);
+WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
+```
+
+任意 child / 卡片点击用 `WPressable`；需要键盘、最小点击区域或 button 语义时用 `WButton`。
+
+## 页面骨架与布局
+
+```dart
+WScaffold(
+  title: '首页',
+  actions: [IconButton(onPressed: ..., icon: const Icon(Icons.search))],
+  floatingActionButton: FloatingActionButton(onPressed: ..., child: const Icon(Icons.add)),
+  body: ...,
+);
+
+// 自定义顶栏
+WScaffold(appBar: WAppBar(title: '详情'), body: ...);
+
+WStep(labels: const ['下单', '付款', '完成'], current: 2);
+```
+
+列表：
+
+```dart
+WListView(sliver: WListViewSliver.list(itemCount: n, itemBuilder: ...));
+WListView(sliver: WListViewSliver.separated(itemCount: n, itemBuilder: ..., separatorBuilder: ...));
+WListView(sliver: WListViewSliver.grid(itemCount: n, gridDelegate: ..., itemBuilder: ...));
+WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap: 24, itemBuilder: ...));
+```
+
+角标 / 裁剪 / 横向操作：
+
+```dart
+WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
+WClipRRect(config: const WClipRRectConfig.all(12), child: image);
+WActionRow(children: [WButton(...), WButton(...)]);
+```
+
+## 状态与反馈
+
+```dart
+WGradientCircularProgressIndicator(radius: 24, value: 0.6, colors: const [Colors.indigo, Colors.lightBlue]);
+WKeepAliveWrapper(child: item);
+WNotificationListenerBuilder<ScrollNotification>(child: list)
+  ..onNotificationPercentage((p) { ... })
+  ..build();
+```
+
 ## 导航
 
 ```dart
@@ -192,7 +268,13 @@ WAssets.imagePath = 'assets/icons/';
 'logo.png'.assetImagePath;
 ```
 
-`WScreen` 无 delegate 时返回原始值；需要 `ScreenUtil` 时注入 delegate。
+`WScreen` 无 delegate 时返回原始值；需要 `ScreenUtil` 时注入 delegate：
+
+```dart
+WScreen.delegateWidth = (v) => ScreenUtil().setWidth(v);
+WScreen.delegateHeight = (v) => ScreenUtil().setHeight(v);
+WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
+```
 
 
 ## 主要 API
@@ -200,7 +282,8 @@ WAssets.imagePath = 'assets/icons/';
 | 能力 | 入口 |
 |---|---|
 | 文本 / 图片 | `WText` / `WImage` |
-| 按钮 / 徽标 | `WButton` / `WBadge` / `WActionRow` / `WSelectableRow` |
+| 按钮 / 点击 | `WButton` / `WPressable` |
+| 徽标 / 横向操作 | `WBadge` / `WActionRow` / `WSelectableRow` |
 | 裁剪 | `WClipRRect` |
 | 加载指示 | `WGradientCircularProgressIndicator` |
 | 列表保活 | `WKeepAliveWrapper` |

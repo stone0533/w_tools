@@ -16,6 +16,7 @@ w_tools_cli list —— 按关键词查组件目录
   dart run w_tools_cli:w_tools list WImage
 
 选项：
+  --package=<pkg> 只列该包，可写 w_tools_ui 或 ui
   --format=<fmt>  text | json | prompt（默认 text）
   --json          等价于 --format=json
   --version       显示版本
@@ -24,6 +25,7 @@ w_tools_cli list —— 按关键词查组件目录
 
 CommandResult run(List<String> argv) {
   final parser = cliParser()
+    ..addOption('package')
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json', 'prompt'])
     ..addFlag('json', negatable: false);
 
@@ -32,7 +34,12 @@ CommandResult run(List<String> argv) {
     parser: parser,
     body: (args) {
       final query = args.rest.join(' ').trim();
-      final results = searchComponents(query);
+      final packageOpt = args['package'] as String?;
+      final package = packageOpt != null ? _normalizePackage(packageOpt) : _packageFromQuery(query);
+      final results = package != null
+          ? catalog.where((entry) => entry.package == package).toList()
+          : searchComponents(query);
+      final label = package != null ? 'package=$package' : 'query=${query.isEmpty ? '*' : query}';
       final asJson = (args['json'] as bool) || args['format'] == 'json';
       final asPrompt = args['format'] == 'prompt';
 
@@ -40,6 +47,7 @@ CommandResult run(List<String> argv) {
         print(
           jsonEncode(<String, Object?>{
             'query': query,
+            'package': package,
             'count': results.length,
             'components': results.map((e) => e.toJson()).toList(),
           }),
@@ -49,7 +57,7 @@ CommandResult run(List<String> argv) {
       }
 
       if (asPrompt) {
-        print('# w_tools catalog v$catalogVersion · query=${query.isEmpty ? '*' : query}');
+        print('# w_tools catalog v$catalogVersion · $label');
         for (final entry in results) {
           print('- ${entry.name} [${entry.package}]: ${entry.useFor}');
           if (entry.usage != null) {
@@ -60,7 +68,7 @@ CommandResult run(List<String> argv) {
         return;
       }
 
-      print('w_tools_cli list · catalog v$catalogVersion · ${results.length} 个结果');
+      print('w_tools_cli list · catalog v$catalogVersion · $label · ${results.length} 个结果');
       if (results.isEmpty) {
         print('没有匹配。换个关键词，或运行 `dart run w_tools_cli:w_tools list` 看全部。');
         throw CliExit(1);
@@ -77,4 +85,16 @@ CommandResult run(List<String> argv) {
 
 void main(List<String> argv) {
   exitCode = run(argv).exitCode;
+}
+
+String _normalizePackage(String value) {
+  final v = value.trim();
+  return v.startsWith('w_tools_') ? v : 'w_tools_$v';
+}
+
+/// 位置参数是包名时按包过滤（`list ui` / `list form`），否则按关键词搜索。
+String? _packageFromQuery(String query) {
+  if (query.isEmpty || query.contains(' ')) return null;
+  final normalized = _normalizePackage(query);
+  return catalog.any((entry) => entry.package == normalized) ? normalized : null;
 }

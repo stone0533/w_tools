@@ -3,7 +3,7 @@
   a staging area and is not planned for promotion. Only generic candidates for
   promotion belong in `lib/app/design_system/` (R5 applies there).
 - **Page shell**: standard pages default to `AppScaffold`
-  (`lib/app/ui/app_scaffold.dart`); do not use `WScaffold` / `WAppBar` directly.
+  (`lib/app/ui/app_scaffold.dart`); do not use `WScaffold` / `WAppBar` directly (this rule targets consumer apps; the repo's example/library tests may use `WScaffold` directly).
   Use `AppScaffold(appBar: WAppBar(...))` for a custom app bar; use `WScaffold` or plain
   `Scaffold` for drawers/bottom sheets/non-standard safe areas, and note why in the PR.
   Change app-bar defaults only in `AppBars.style`.
@@ -16,6 +16,11 @@
   Button width comes from the parent; `WButtonStyle` has no `width`. `WButton` has no `variant`;
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
+- **Badges / clipping / action rows / steps**: use `WBadge(badgeContent:, child:)` for badges,
+  `WClipRRect(config: WClipRRectConfig.all(12), child: ...)` for rounded clipping,
+  `WActionRow` for horizontal action rows, and `WStep(labels:, current:)` (or `WStepFlow`
+  for reuse) for steps. Use `WImageDefaultsScope` for app-level image placeholders/errors
+  and `WButtonSize` for custom button sizes.
 - **Images**: always use `WImage.source` + `WImageSource` —
   `WImage.source(source: WImageSource.network(url))` for network images and
   `WImage.source(source: WImageSource.asset(name, prefix: true))` for assets;

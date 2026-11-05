@@ -34,12 +34,14 @@ EdgeInsets → num.allPadding
 ```
 
 WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate。
+可运行示例：`packages/ui/example/README.md`。
 `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已在 5.0 删除，直接用 Flutter 原生布局组件。
 
 ## 页面骨架
 
 ```text
 普通页面 → WScaffold + WAppBar
+（消费方项目的标准页面默认用 CLI 生成的 AppScaffold；本文件是库 / 仓库内用法）
 底部 tab → WNavBar / WNavController
 顶部 tab → WTabBar（依赖 TabController / DefaultTabController）
 步骤流程 → WStep / WStepFlow

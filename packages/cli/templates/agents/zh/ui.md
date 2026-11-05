@@ -2,7 +2,7 @@
   由 CLI 生成脚手架，**不走 STAGED、不计划上移**；只有待上移的通用组件才放
   `lib/app/design_system/`（受 R5 约束）。
 - **页面骨架**：标准页面默认用 `AppScaffold`（`lib/app/ui/app_scaffold.dart`）；
-  不要直接使用 `WScaffold` / `WAppBar`。特殊顶部栏用 `AppScaffold(appBar: WAppBar(...))`；
+  不要直接使用 `WScaffold` / `WAppBar`（本规则针对消费方项目；仓库内 example / 库测试可直接用 `WScaffold`）。特殊顶部栏用 `AppScaffold(appBar: WAppBar(...))`；
   需要 drawer / bottomSheet / 非标准安全区时用 `WScaffold` 或原生 `Scaffold`，并在 PR 说明。
   AppBar 默认样式只在 `AppBars.style` 修改。
 - **底部导航**：用 `WNavBar` + `WNavController`；`WNavController` 需要 `vsync`，
@@ -14,6 +14,10 @@
   按钮宽度由父布局决定，`WButtonStyle` 不含 `width`。`WButton` 没有 `variant`；
   样式用 `style`，`label` 和 `content` 不能同时传。`loading` 时同时设置 `enabled: !loading`；
   纯图标按钮提供 `semanticLabel`。状态色放 `AppButtons`。
+- **徽标 / 裁剪 / 横向操作 / 步骤**：角标用 `WBadge(badgeContent:, child:)`；圆角裁剪用
+  `WClipRRect(config: WClipRRectConfig.all(12), child: ...)`；横向操作行用 `WActionRow`；
+  步骤条用 `WStep(labels:, current:)`，复用流程用 `WStepFlow`。App 级图片占位/错误用
+  `WImageDefaultsScope`；自定义按钮尺寸用 `WButtonSize`。
 - **图片**：统一用 `WImage.source` + `WImageSource`——网络图
   `WImage.source(source: WImageSource.network(url))`，资源图
   `WImage.source(source: WImageSource.asset(name, prefix: true))`；

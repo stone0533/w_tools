@@ -108,7 +108,8 @@ CommandResult run(List<String> argv) {
           renderExplainPrompt(
             e,
             importPath: aggregateImport ?? e.importPath,
-            docsUrl: docsUrl(e.docs),
+            docsUrl: docsUrlFor(e),
+            exampleUrl: exampleUrl(e.package),
           ),
         );
         for (final entry in banned) {
@@ -137,7 +138,9 @@ CommandResult run(List<String> argv) {
       } else {
         print("import '${e.importPath}';");
       }
-      print('文档：${docsUrl(e.docs)}');
+      final example = exampleUrl(e.package);
+      if (example != null) print('示例：$example');
+      print('文档：${docsUrlFor(e)}');
       for (final entry in banned) {
         print(_bannedText(entry));
       }
@@ -153,6 +156,13 @@ void main(List<String> argv) {
 List<BannedRule> _matchingBanned(String query, Directory root) {
   final config = ProjectFiles.loadConfig(root);
   return config.banned.where((entry) => entry.validate() == null && entry.matches(query)).toList();
+}
+
+String docsUrlFor(CatalogEntry entry) {
+  final base = docsUrl(entry.docs);
+  final anchor = entry.docsAnchor;
+  if (anchor == null || anchor.trim().isEmpty) return base;
+  return '$base#${anchor.trim()}';
 }
 
 String docsUrl(String docs) {
@@ -176,3 +186,26 @@ Map<String, Object?> _bannedJson(BannedRule entry) => <String, Object?>{
   'use': entry.use,
   'reason': entry.reason,
 };
+
+/// 有 example/ 的包；新增包时在这里补一条。
+const _examplePackages = <String, String>{
+  'w_tools_ui': 'packages/ui/example',
+  'w_tools_form': 'packages/form/example',
+  'w_tools_async': 'packages/async/example',
+  'w_tools_core': 'packages/core/example',
+  'w_tools_api': 'packages/api/example',
+  'w_tools_toast': 'packages/toast/example',
+  'w_tools_qr': 'packages/qr/example',
+  'w_tools_map_google': 'packages/map_google/example',
+  'w_tools_app_getx': 'packages/app_getx/example',
+  'w_tools_cli': 'packages/cli/example',
+  'w_tools_device': 'packages/device/example',
+  'w_tools_figma': 'packages/figma/example',
+  'w_tools_e2e': 'packages/e2e/example',
+};
+
+String? exampleUrl(String package) {
+  final path = _examplePackages[package];
+  if (path == null) return null;
+  return 'https://github.com/stone0533/w_tools/tree/main/$path';
+}

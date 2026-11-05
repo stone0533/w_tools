@@ -21,6 +21,8 @@
 | `WTabBarConfig` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式 | WTabBar 不自带 controller，不要在这里塞状态 |
 | `WStep` / `WStepFlow` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
 | `WStepStyle` | ui | 步骤条颜色 / 尺寸 / 间距 / 标签样式 | 不要靠改 WStep 内部布局实现视觉；优先用 itemBuilder |
+| `WStepState` | ui | 步骤项状态（completed / current / upcoming） | — |
+| `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | — |
 <!-- catalog:1:end -->
 
 ## 2. 文本与图标
@@ -34,6 +36,22 @@
 | `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 加载 / 重试 / 占位用 `WImageLoadConfig`，不要混在 style 里 |
 | `WImageLoadConfig` | ui | 图片加载：解码尺寸 / 重试 / 占位 / 错误 / 进度 | 视觉样式用 `WImageStyle` |
 | `WImageController` | ui | 手动重试与加载状态（retry / state） | 一个 controller 只能绑定一张 WImage |
+| `WImageDefaultsScope` | ui | App 级图片占位 / 错误 / 进度默认配置 | — |
+| `WImageErrorKind` | ui | 图片错误分类（WImageError.kind） | — |
+| `WImageError` | ui | 图片加载错误（data / kind / cause / message） | — |
+| `WImageProgress` | ui | 图片加载进度（downloadedBytes / totalBytes / fraction） | — |
+| `WImageType` | ui | 图片来源类型（asset / network / file / base64 / provider） | — |
+| `WImageLoadStatus` | ui | 图片加载状态（loading / completed / failed） | — |
+| `WImageLoadSnapshot` | ui | 图片加载快照（status / progress / attempt / error / retryScheduled） | — |
+| `WImageStyleX` | ui | WImageStyle 链式糖：square / rounded | — |
+| `WTextStylesThemeData` | ui | ThemeData.withWTextStyles：同时写 TextTheme 与 WTextStyles | — |
+| `WNetworkImageSource` | ui | WImageSource 的网络实现（通常用 WImageSource.network） | — |
+| `WAssetImageSource` | ui | WImageSource 的资源实现（通常用 WImageSource.asset） | — |
+| `WFileImageSource` | ui | WImageSource 的本地文件实现（通常用 WImageSource.file） | — |
+| `WBase64ImageSource` | ui | WImageSource 的 Base64 实现（通常用 WImageSource.base64） | — |
+| `WProviderImageSource` | ui | WImageSource 的 ImageProvider 实现（通常用 WImageSource.provider） | — |
+| `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / compact） | — |
+| `WImageFrame` | ui | 把 WImageStyle 的圆角 / 边框 / 阴影应用到任意 child | — |
 <!-- catalog:2:end -->
 
 > **图标 + 文字排成一行**（垂直居中）：目前没有组件，见文末「待补」——
@@ -50,6 +68,13 @@
 | `WButtonStyles` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要硬编码颜色；页面统一样式用项目 AppButtons 注册表 |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 | — |
+| `WButtonSize` | ui | 按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap） | — |
+| `WButtonMotion` / `WButtonEffectType` | ui | 按钮按压动效（opacity / scale / none） | — |
+| `WButtonSemantics` | ui | 按钮无障碍语义（label / hint） | — |
+| `WPressEffect` | ui | WPressable 按压效果（opacity / scale / none） | — |
+| `WBadgeConfig` | ui | WBadge 位置 / 显隐 / 自定义样式 | — |
+| `WButtonContentBuilder` | ui | WButton.contentBuilder 的类型：拿到最终样式自己排版 | — |
+| `WButtonResolvedStyle` | ui | contentBuilder 拿到的最终样式（states / 背景 / 文字样式等） | — |
 <!-- catalog:3:end -->
 
 ## 4. 布局与容器
@@ -60,6 +85,8 @@
 | `WClipRRect` | ui | 裁剪 | — |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
+| `WClipRRectConfig` | ui | WClipRRect 圆角配置（all / copyWith） | — |
+| `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | — |
 <!-- catalog:4:end -->
 
 ## 5. 表单
@@ -115,6 +142,7 @@
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
 | `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
 | `WNotificationListenerBuilder` | ui | 监听滚动通知 / 百分比 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
+| `WNotificationListenerBuilderExtension` | ui | 任意 Widget 转 WNotificationListenerBuilder 的扩展 getter | — |
 <!-- catalog:7:end -->
 
 ## 8. 能力（非 UI）
@@ -162,6 +190,10 @@
 | `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight | 需要 button 语义用 `WButton` |
 | `WUiWidgetExtension` | ui | `toPressable`（任意 child 点击，无 button 语义） | 需要 button 语义用 `WButton` |
 | `WHexColor` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
+| `WGradients` | ui | 预设渐变（vertical / horizontal / diagonal / radial） | — |
+| `WShadows` | ui | 预设阴影（none / card / elevated / floating） | — |
+| `WTextStyleExtension` | ui | TextStyle 快捷修改（bold / withColor / withSize） | — |
+| `WGlobalKeyExtension` | ui | GlobalKey 位置 / 边界（offset / rect） | — |
 <!-- catalog:9:end -->
 
 ## 10. 待补（有重复用例，尚未进包）
