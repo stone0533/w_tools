@@ -1,3 +1,13 @@
+## 0.11.4
+
+### Fixed
+- token 缺失 / 非法时退出码从 2 改为 4，与契约和 `--help` 一致。
+- README / 契约：安装约束、`--root` 说明、`diff <fileKey> <nodeId>` 签名同步。
+
+### Changed
+- `version` 命令进入顶层 `--help`、README 命令表和 CLI 契约。
+- README 补 `cache` / `help` / `version` 命令与库 API 说明。
+
 ## 0.11.3
 
 ### Fixed

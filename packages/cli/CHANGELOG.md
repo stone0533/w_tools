@@ -1,3 +1,9 @@
+## 1.11.1
+
+### Fixed
+- Figma AGENTS 模板补全 `fetch file` / `fetch images` / `get` / `me` / `usage` /
+  `cache` / `budget` / `help` / `version` 命令，并同步 `templates.g.dart`。
+
 ## 1.11.0
 
 ### Added

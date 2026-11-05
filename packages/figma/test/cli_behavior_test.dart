@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:w_tools_figma/src/common/version.dart';
 
 /// CLI 层行为：不联网，只使用临时缓存。
 void main() {
@@ -64,7 +65,7 @@ void main() {
   test('version 输出版本号', () async {
     final result = await run(<String>['version']);
     expect(result.exitCode, 0, reason: '${result.stderr}');
-    expect('${result.stdout}', contains('w_tools_figma 0.11.3'));
+    expect('${result.stdout}', contains('w_tools_figma $figmaVersion'));
   });
 
   test('不支持的选项返回 exit 2', () async {

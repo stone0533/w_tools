@@ -1,6 +1,6 @@
 # `w_tools_figma` CLI 契约（v0.1）
 
-- 状态：**v0.1 契约已实现；当前实现 0.11.3**（契约仍可微调；以当前 CLI 行为为准）
+- 状态：**v0.1 契约已实现；当前实现 0.11.4**（契约仍可微调；以当前 CLI 行为为准）
 - 定位：**只读**的 Figma 取数 / 规格导出工具，与 `w_tools` 的 UI 约定无关
 - 包名：`w_tools_figma`（与 `w_tools_*` 命名一致）；入口 `dart run w_tools_figma:figma <command>`
 - 技术栈：**Dart**（Flutter 项目必有 Dart 运行时；跨平台；可测试；不依赖 Python）

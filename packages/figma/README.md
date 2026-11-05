@@ -51,20 +51,20 @@ W* 组件映射
 
 ### 1. 安装
 
-当前已发布（pub.dev）：`0.11.2`；`0.11.3` 待发布。
+当前已发布（pub.dev）：`0.11.3`；`0.11.4` 待发布。
 
 ```bash
-dart pub add dev:w_tools_figma:^0.11.2
+dart pub add dev:w_tools_figma:^0.11.4
 ```
 
 等价于：
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.11.2
+  w_tools_figma: ^0.11.4
 ```
 
-`0.11.3` 发布后，把上面的约束改为 `^0.11.3`。
+`0.11.4` 发布后即可使用上面的约束；发布前需要稳定版请用 `^0.11.3`。
 
 开发版使用 path 依赖：
 

@@ -37,9 +37,11 @@ void main() {
     expect(readme, isNot(contains('token 模板 / `.gitignore`')));
   });
 
-  test('README 注明当前 pub 0.11.2 / 0.11.3 待发布', () {
-    expect(readme, contains('0.11.2'));
-    expect(readme, contains('`0.11.3` 待发布'));
+  test('README 安装版本与 pubspec 一致，并注明待发布', () {
+    final version =
+        RegExp(r'^version:\s*(\S+)', multiLine: true).firstMatch(_read('pubspec.yaml'))!.group(1)!;
+    expect(readme, contains('w_tools_figma: ^$version'));
+    expect(readme, contains('待发布'));
   });
 
   test('docs/figma-cli 不声称 token 相对 --root', () {
