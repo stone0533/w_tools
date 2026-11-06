@@ -48,7 +48,30 @@ def script_files() -> list[str]:
 
 
 def entrypoint_text() -> str:
-    return '\n'.join(path.read_text() for path in ENTRYPOINTS if path.is_file())
+    """入口文件里「真的会执行」的行；整行注释不算接线。
+
+    以前整文件拼接，脚本名只出现在注释 / 说明里也算有入口（例如
+    `# 以后要跑 check_x.py`），覆盖自检就形同虚设。
+    """
+    lines: list[str] = []
+    for path in ENTRYPOINTS:
+        if not path.is_file():
+            continue
+        for line in path.read_text().splitlines():
+            if line.lstrip().startswith('#'):
+                continue
+            lines.append(line)
+    return '\n'.join(lines)
+
+
+def invoked(name: str, text: str) -> bool:
+    """脚本名必须出现在 bash / sh / dart / python3 的同一行命令里，而不是 echo 文案里。"""
+    pattern = re.compile(
+        rf'(?:^|[\s;&|(])(?:bash|sh|dart|python3?)\b[^\n]*?'
+        rf'(?<![\w.-]){re.escape(name)}(?![\w.-])',
+        re.MULTILINE,
+    )
+    return pattern.search(text) is not None
 
 
 def coverage_errors(
@@ -63,7 +86,7 @@ def coverage_errors(
         if name in manual:
             if not manual[name].strip():
                 errors.append(f'{name}: MANUAL 里没有写理由（人工脚本也要说明为什么）')
-        elif not re.search(rf'(?<![\w.-]){re.escape(name)}(?![\w.-])', entry_text):
+        elif not invoked(name, entry_text):
             errors.append(
                 f'{name}: 没有任何入口在跑它（preflight / check_docs / release_check / workflow）；'
                 '接线，或在 check_gate_coverage.py 的 MANUAL 里写明理由',

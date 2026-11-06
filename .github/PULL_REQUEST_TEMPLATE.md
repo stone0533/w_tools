@@ -1,5 +1,8 @@
 ## 改动类型
 
+> CI 会读这里的勾选：勾了「公开变化」但没有任何 `packages/*/CHANGELOG.md` 变更会被判失败
+> （`scripts/check_pr_scope.py`）。所以要发行为变化时，请同时更新版本与 CHANGELOG。
+
 - [ ] 内部重构（公开 API / 默认行为不变）
 - [ ] 公开变化（API / 行为 / 新组件）
 - [ ] 删除 / 废弃
@@ -15,7 +18,7 @@
 
 ## 公开变化的教学同步（有公开 API / 行为变化时）
 
-- [ ] 已跑 J-4（AI 教学覆盖审计），结论贴在本 PR
+- [ ] 已跑 J-4（AI 教学覆盖审计，定义见 [`docs/ai-maintainer-prompts.md`](../docs/ai-maintainer-prompts.md) 的 J-4 一节），结论贴在本 PR
 - [ ] catalog 的 `usage` / `pitfalls` / `related` / `dontUseFor` 已同步
 - [ ] `docs/agents/<pkg>.md` 与 `templates/agents/{zh,en}/<pkg>.md` 已同步
 - [ ] README / example / migration 已同步

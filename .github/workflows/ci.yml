@@ -202,6 +202,13 @@ jobs:
       - name: Check public API changes bump the version
         run: python3 scripts/check_version_bump.py --base ${{ github.event.pull_request.base.sha }}
 
+      # 行为变化没有公开 API diff，check_version_bump 看不到；只能按 PR 模板的
+      # 「公开变化」勾选 + CHANGELOG 变更兜底。
+      - name: Check PR declared scope
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: python3 scripts/check_pr_scope.py --base ${{ github.event.pull_request.base.sha }}
+
   # 声明的最低 Flutter 版本上再跑一遍：form 1.0.0 的 SizeTransition.alignment
   # 就是「声明支持 3.38、却在 3.38 编译失败」漏出去的。
   min_sdk:

@@ -31,10 +31,32 @@ class GateCoverageTest(unittest.TestCase):
         self.assertTrue(any('没有写理由' in error for error in errors))
 
     def test_stale_manual_entry_fails(self):
-        errors = coverage_errors(['check_docs.sh'], 'scripts/check_docs.sh', 'scripts/check_docs.sh',
+        errors = coverage_errors(['check_docs.sh'], 'bash scripts/check_docs.sh', 'scripts/check_docs.sh',
                                  {'gone.py': '已经不存在的脚本'})
         self.assertEqual(len(errors), 1)
         self.assertIn('MANUAL 登记了不存在的脚本 gone.py', errors[0])
+
+    def test_comment_mention_does_not_count_as_entrypoint(self):
+        errors = coverage_errors(
+            ['check_new.py'], '# 以后要跑 check_new.py\nbash scripts/preflight.sh',
+            '| check_new.py |', {},
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn('没有任何入口', errors[0])
+
+    def test_echo_mention_does_not_count_as_entrypoint(self):
+        errors = coverage_errors(
+            ['check_new.py'], 'echo "记得跑 check_new.py"\nbash scripts/preflight.sh',
+            '| check_new.py |', {},
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn('没有任何入口', errors[0])
+
+    def test_python_invocation_counts_as_entrypoint(self):
+        errors = coverage_errors(
+            ['check_new.py'], 'run "x" python3 scripts/check_new.py', '| check_new.py |', {},
+        )
+        self.assertEqual(errors, [])
 
 
 if __name__ == '__main__':

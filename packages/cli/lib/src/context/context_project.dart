@@ -112,6 +112,10 @@ class ProjectSnapshot {
   };
 
   /// 已安装 w_tools 能力的轻量摘要；空列表表示没有可识别包。
+  ///
+  /// 只收录消费入口包（6 个聚合子包 + app_getx / map_google / qr）。
+  /// `w_tools_app` / `w_tools_map` 是契约层，分别由 app_getx / map_google 代表；
+  /// cli / figma / device / e2e 是工具包，都不单列。
   List<Map<String, String>> capabilities() {
     final installed = <String>{...packages.keys, ...dependencies};
     const summaries = <String, String>{
