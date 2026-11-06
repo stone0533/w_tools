@@ -24,7 +24,8 @@ ui / toast / async / form —— 会把 `cached_network_image`（50 个传递包
    - 字段：`title` / `initialRoute` / `getPages` / `theme` / `translations` / `locale` / `fallbackLocale` /
      `builder` / `navigatorObservers` / `defaultTransition` / `systemUiOverlayStyle` / `orientations` /
      `appWrapper` / `plugins`；
-   - `WApp(options)` / `WApp.start(options)` 为新入口；`run()` 的同名参数保留一版并弃用；
+   - `WApp(options)` / `WApp.start(options)` 为新入口（最终入口以文末「落地结果」为准）；
+     `run()` 的同名参数保留一版并弃用；
    - 合并规则只有一条：**options 显式值 > 已弃用字段 > 默认值**，不再逐字段 `??`。
 
 2. **语言配置只解决"支持列表"，不新增第二个真源**

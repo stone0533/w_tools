@@ -64,25 +64,28 @@
 - 配置类型再次膨胀（出现 `XxxSettings` / `XxxParams` 这类同义命名），重新约定命名表；
 - Dart 语言能力变化（records / 更强的 const 推导）让手写 `copyWith` / `==` 不再划算。
 
-## 补充（2026-11-06，不改决策）：`WMapConfig` 是已知例外
+## 补充（2026-11-06，不改决策）：命名规则的已知例外
 
-ADR 发布次日（`984eacf`，2026-11-04）map 拆包时新增了公开类型 `WMapConfig`，
-与本 ADR 决策 2「不再新增 `XxxConfig`」冲突。核对后确认：
+ADR 发布后，`XxxConfig` 命名出现了两类偏差；核对后按以下方式处理：
 
-- 它符合决策 1 的**模型**要求（`const`、`final` 字段、`==`），只是**命名**不合规；
-- 它已随 `w_tools_map_google 1.0.0` 发布，为命名偏好立刻做 breaking 不划算。
+1. `WMapConfig`（`w_tools_map_google 1.0.0`）：不可变模型合规，命名不合规；
+   `map_google` 下一个 major 改名 `WMapOptions`。
+2. `WImageLoadConfig`（`w_tools_ui 4.2.0`，ADR 提交约 17 分钟后由 `WImageConfig` 改名）：
+   同上，`ui` 下一个 major 改名 `WImageLoadOptions`。
+3. 遗留不可变 Config：`WFormBorderConfig` / `WNavBarConfig` / `WTabBarConfig` /
+   `WBadgeConfig` / `WClipRRectConfig`。模型合规，命名是历史包袱；**不为改名做 breaking**，
+   登记为 grandfather。新代码仍只能用 `Style` / `Options` / `Icons` / `Theme`。
+4. 可变 `WForm*Config`（`WFormTextFieldConfig` 等）已从公共导出 `hide`（form 4.0 / 5.0）；
+   `WFormBorderConfig` 是不可变值对象，不在此列。
 
-因此：
-
-1. 规则不变：**新类型**仍用 `Style` / `Options` / `Icons` / `Theme`；
-2. `WMapConfig` 记为唯一例外，**下一个 major（2.0.0）改名为 `WMapOptions`**，
-   在此之前不再新增任何 `XxxConfig`；
-3. 改名完成前，`docs/agents/map.md` 与 catalog 的 `WMap` 条目要标明这个命名例外。
+规则不变：**新增类型不得再使用 `XxxConfig`**；上面是允许存在的 Config 名字全集，
+新增例外必须再开一条补充或新 ADR。
 
 ## 落地结果（2026-11-06）
 
-- 状态：已完成；决策 1/3/4/5/6 已落地，决策 2 的存量迁移也已完成
-  （`WForm*Config` 已从公共导出 `hide`，form 4.0 / 5.0）。
-- 偏差：`WMapConfig` 命名例外，见上节；`w_tools_map_google` 下一个 major 改名。
-- 证据：`packages/form/lib/src/components.dart`、`scripts/check_style_literals.py`、
-  `scripts/check_deprecations.py`、`packages/ui/lib/src/components/text/w_text_styles.dart`。
+- 状态：已完成；决策 1/3/4/5/6 已落地；决策 2 的可变 `WForm*Config` 已 hide，
+  命名例外见上节。
+- 偏差：`WMapConfig` / `WImageLoadConfig` 待下个 major 改名；遗留不可变 Config 登记 grandfather。
+- 证据：`packages/form/lib/src/components.dart`、`packages/ui/lib/src/components/common/image/image_config.dart`、
+  `scripts/check_style_literals.py`、`scripts/check_deprecations.py`、
+  `packages/ui/lib/src/components/text/w_text_styles.dart`。
