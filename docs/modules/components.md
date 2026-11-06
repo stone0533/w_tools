@@ -191,7 +191,7 @@
 | `WDebounce` / `WThrottle` | core | 防抖 / 节流（`WUx` 的同名方法已弃用） | 不要每次 build 新建实例；页面 dispose 时 cancel |
 | `WPlatform` | core | 平台判断 | 不要用 Platform.isXxx 绕过统一判断 |
 | `DioRegistry` | api | 按 baseUrl 创建并复用 Dio | 不要直接 `Dio()`；同一 baseUrl 只配置一次 |
-| `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试（recipe: docs/recipes/login-refresh.md） | 不要在拦截器里存 token |
+| `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试（可运行示例：packages/api/example） | 不要在拦截器里存 token |
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
 | `WApiConfig` | api | 请求配置与日志注入 | — |
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；单次扫码后用 `restartScan` |

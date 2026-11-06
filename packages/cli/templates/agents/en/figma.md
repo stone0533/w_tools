@@ -31,7 +31,7 @@ dart run w_tools_cli:w_tools explain <Component>
 
 - Do not invent `W*` component names; run `dart run w_tools_cli:w_tools doctor` after implementation.
 
-Full command list (quota / exit codes: `docs/figma-cli.md`):
+Full command list (quota / exit codes: https://github.com/stone0533/w_tools/blob/main/packages/figma/README.md):
 
 ```bash
 dart run w_tools_figma:figma fetch file <fileKey> --depth=3

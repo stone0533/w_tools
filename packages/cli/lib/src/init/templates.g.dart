@@ -1006,7 +1006,7 @@ dart run w_tools_cli:w_tools explain <组件名>
 
 - 不要凭记忆造 `W*` 组件名；实现后跑 `dart run w_tools_cli:w_tools doctor`。
 
-完整命令（额度 / 退出码见 `docs/figma-cli.md`）：
+完整命令（额度 / 退出码见 https://github.com/stone0533/w_tools/blob/main/packages/figma/README.md）：
 
 ```bash
 dart run w_tools_figma:figma fetch file <fileKey> --depth=3
@@ -1345,7 +1345,7 @@ dart run w_tools_cli:w_tools explain <Component>
 
 - Do not invent `W*` component names; run `dart run w_tools_cli:w_tools doctor` after implementation.
 
-Full command list (quota / exit codes: `docs/figma-cli.md`):
+Full command list (quota / exit codes: https://github.com/stone0533/w_tools/blob/main/packages/figma/README.md):
 
 ```bash
 dart run w_tools_figma:figma fetch file <fileKey> --depth=3
