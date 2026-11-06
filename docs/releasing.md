@@ -12,9 +12,13 @@
 发布前一条命令跑门禁：
 
 ```bash
-bash scripts/preflight.sh --all     # 静态检查 + 全部测试 + 全部子包 dry-run
+bash scripts/preflight.sh --all     # 静态检查 + 全部测试 + 全部子包/根包 dry-run
 bash scripts/preflight.sh           # 只跑静态检查（最快）
 ```
+
+> `--all` 里的**根包 dry-run 也计入失败**：它要求根包依赖的版本都已经在 pub.dev 上。
+> 发布子包阶段先用 `--with-tests`（静态 + 测试）；子包全部上线后再跑 `--all`，
+> 或者在根包发布前单独跑 `bash scripts/publish_package.sh . --dry-run`。
 >
 > **镜像滞后**：如果本机 / CI 设置了 `PUB_HOSTED_URL` 指向镜像（如 `pub.flutter-io.cn`），
 > 刚发布的版本可能暂时不可见。验证时显式 `PUB_HOSTED_URL=https://pub.dev`，并换一个全新的

@@ -210,6 +210,9 @@ bash scripts/release_check.sh --strict
 bash scripts/publish_package.sh packages/<pkg> --dry-run
 ```
 
+`preflight.sh --all` 会带根包 dry-run，**失败计入门禁**（要求根包依赖都已发布）；
+发布子包阶段用 `--with-tests`，子包全部上线后再跑 `--all`。
+
 `--online` 只在**发布后**核对线上版本；发布前跑必然报「待发布」，不要放进发布前清单。
 
 ### 真正发布

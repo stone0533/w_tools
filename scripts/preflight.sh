@@ -9,8 +9,8 @@
 #   bash scripts/preflight.sh --with-dry-run  # 再加全部子包 + 根包 publish dry-run
 #   bash scripts/preflight.sh --all           # 全部
 #
-# 退出码：任一步失败即非 0；dry-run 根包失败在子包未发布时是预期行为，
-# 脚本会单独提示，但不会让整次门禁失败（用 --with-dry-run 时）。
+# 退出码：任一步失败即非 0（包括根包 dry-run）。根包 dry-run 要求根包依赖的版本都已发布：
+# 发布子包阶段请用 --with-tests；全部子包上线后再跑 --all / --with-dry-run。
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -137,12 +137,9 @@ if [ -n "$with_dry_run" ]; then
     run "publish dry-run $name" bash scripts/publish_package.sh "$path" --dry-run
   done < "$root/scripts/packages.manifest"
   if [ -z "$only_pkg" ]; then
-    echo "==> publish dry-run 根包（子包未发布时失败是预期）"
-    if bash scripts/publish_package.sh . --dry-run; then
-      echo "    ✓ 根包 dry-run"
-    else
-      echo "    ! 根包 dry-run 失败：仅在全部子包已上线后才应通过"
-    fi
+    # 根包 dry-run 也计入失败：它要求根包依赖的版本都已发布。
+    # 发布子包阶段请改用 --with-tests；全部子包上线后再跑 --all。
+    run "publish dry-run root" bash scripts/publish_package.sh . --dry-run
   fi
 fi
 
