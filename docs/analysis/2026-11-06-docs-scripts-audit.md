@@ -43,8 +43,9 @@
 - `AGENTS.md` 的「先读」改为任务路由表；维护者提示词手册标注为「给人」。
 - `preflight.sh` 增加 `--package <pkg>`；CI 增加 `changes` job，纯文档改动不再跑 16 个装 Flutter 的 job。
 - 新增 `check_docs_duplicates.py`（modules 与包 README 的重复示例）并接入 `check_docs`；`check_agents_consistency.py` 增加「入口符号必须出现在 AGENTS.md」。
-- **未完成**：`w_tools_app_getx 1.0.1` 与根包 `9.0.2` 的正式发布。本机到 pub.dev 上传端点不可达（`Uploading...` 卡在 `SYN_SENT`），需在网络可达的环境执行
-  `bash scripts/publish_package.sh packages/app_getx` 和 `bash scripts/publish_package.sh .`。
+- **发布完成（2026-11-06）**：`w_tools_app_getx 1.0.1` 与 `w_tools 9.0.2` 已上线，
+  `release_check --online` 16 个包全部 `✓`、0 提醒。当时本机到 pub.dev 上传端点不可达
+  （`Uploading...` 卡在 `SYN_SENT`），最终在网络可达的环境完成发布。
 
 ## 未闭环（审计当时，保留为历史）
 
