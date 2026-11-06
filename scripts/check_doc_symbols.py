@@ -83,7 +83,7 @@ for path in (root / 'packages').glob('*/lib/**/*.dart'):
 object_members = {'copyWith', 'toString', 'hashCode', 'runtimeType', 'noSuchMethod'}
 
 targets: list[pathlib.Path] = []
-for sub in ('docs/agents', 'docs/recipes', 'docs/modules'):
+for sub in ('docs/agents', 'docs/recipes', 'docs/modules', 'docs/guides'):
     targets.extend(sorted((root / sub).glob('*.md')))
 targets.extend(sorted((root / 'packages').glob('*/README.md')))
 # 根 AGENTS.md 是仓库 AI 的主入口，代码块同样要对着源码校验。

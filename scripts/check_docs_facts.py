@@ -121,6 +121,48 @@ for path in files:
     if re.search(r'dart run w_tools_cli:(context|list|explain|doctor|init|feedback)', path.read_text()):
         errors.append(f'{path.relative_to(root)}: 仍用旧命令入口（应为 w_tools_cli:w_tools ...）')
 
+# 5) ADR：编号唯一且递增、文件命名规范、有状态行。退役编号允许留空，不复用。
+adr_dir = root / 'docs/adr'
+adrs = sorted(path for path in adr_dir.glob('*.md') if path.name != 'README.md')
+seen: set[int] = set()
+last = 0
+for path in adrs:
+    match = re.match(r'^(\d{4})-[a-z0-9-]+\.md$', path.name)
+    if not match:
+        errors.append(f'docs/adr/{path.name}: 文件名应形如 NNNN-kebab-title.md')
+        continue
+    number = int(match.group(1))
+    if number in seen:
+        errors.append(f'docs/adr/{path.name}: 编号 {number:04d} 重复')
+    if number <= last:
+        errors.append(f'docs/adr/{path.name}: 编号必须递增（退役编号可以留空，但不能复用）')
+    seen.add(number)
+    last = max(last, number)
+    if not re.search(r'^- 状态：\S+', path.read_text(), re.M):
+        errors.append(f'docs/adr/{path.name}: 缺少「- 状态：…」行')
+
+# 6) doctor 规则表必须在 conventions 与 CLI README 中一致（同一份规则，两个展示面）。
+def doctor_rule_table(path: pathlib.Path) -> dict[str, str]:
+    table: dict[str, str] = {}
+    for line in path.read_text().splitlines():
+        match = re.match(r'\|\s*(R[1-9])\s*\|\s*([^|]+?)\s*\|', line)
+        if match:
+            table[match.group(1)] = match.group(2).strip()
+    return table
+
+
+conventions = root / 'docs/conventions.md'
+cli_readme = root / 'packages/cli/README.md'
+if conventions.exists() and cli_readme.exists():
+    in_conventions = doctor_rule_table(conventions)
+    in_cli = doctor_rule_table(cli_readme)
+    for rule in sorted(set(in_conventions) | set(in_cli)):
+        if in_conventions.get(rule) != in_cli.get(rule):
+            errors.append(
+                f'doctor 规则表不一致：{rule} 在 conventions.md 是 '
+                f'{in_conventions.get(rule)}，在 packages/cli/README.md 是 {in_cli.get(rule)}',
+            )
+
 if errors:
     for error in errors:
         print(f'✗ {error}', file=sys.stderr)

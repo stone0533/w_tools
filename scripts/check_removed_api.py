@@ -20,7 +20,7 @@ names = [
     r'WImageCachePolicy', r'WImageConfig', r'WImageDefaults\b', r'WImageEmptyError',
     r'WImageNetworkError', r'WImageAssetError', r'WImageDecodeError', r'WImageProviderError',
     r'WImageFileError', r'WImageUnsupportedError', r'WImage\.avatar', r'WImage\.thumbnail',
-    r'WImage\.cover', r'WImage\.assetImage', r'WToastConfig', r'WFormDefaults',
+    r'WImage\.cover', r'WImage\.assetImage', r'WImage\.(?:network|asset|file|base64|memory|provider)', r'WToastConfig', r'WFormDefaults',
     r'WFormBorderConfigBuilder', r'WFormRowBorderExtension', r'withFormBorder',
     r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'\bWConfig\b', r'\bWRoute\b',
     r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
@@ -29,10 +29,11 @@ patterns = [re.compile(r'\b' + name + r'\b') for name in names]
 removal = re.compile(r'删除|移除|不再提供|迁移|removed', re.IGNORECASE)
 
 targets = []
-for sub in ('docs/agents', 'docs/recipes', 'docs/modules'):
+for sub in ('docs/agents', 'docs/recipes', 'docs/modules', 'docs/guides'):
     targets += sorted((root / sub).glob('*.md'))
 targets += [root / 'README.md', root / 'AGENTS.md']
 targets += sorted((root / 'packages').glob('*/README.md'))
+targets += sorted((root / 'packages').glob('*/AGENTS.md'))
 targets += sorted((root / 'packages').glob('*/example/README.md'))
 targets += sorted((root / 'packages').glob('*/example/lib/**/*.dart'))
 targets += sorted((root / 'packages/cli/templates/agents').rglob('*.md'))
