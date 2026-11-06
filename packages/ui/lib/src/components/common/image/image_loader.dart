@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 
 import 'image_load_state.dart';
+import 'image_notifier.dart';
 import 'image_retry_policy.dart';
 import 'image_types.dart';
 
@@ -24,9 +25,8 @@ class WImageLoader extends WImageLoadState {
     reset(retryCount: retryCount, retryDelay: retryDelay);
   }
 
-  final ValueNotifier<WImageLoadSnapshot> _notifier = ValueNotifier<WImageLoadSnapshot>(
-    const WImageLoadSnapshot(),
-  );
+  final ValueNotifier<WImageLoadSnapshot> _notifier =
+      WImageDeferredValueNotifier<WImageLoadSnapshot>(const WImageLoadSnapshot());
 
   /// 状态回调（State 负责切到 post-frame）
   final ValueChanged<WImageLoadStatus>? onStatus;
@@ -36,6 +36,7 @@ class WImageLoader extends WImageLoadState {
 
   int _retryCount;
   int _retryDelay;
+  int? _scheduledDelayMs;
   final Random _random;
   Timer? _retryTimer;
 
@@ -53,7 +54,7 @@ class WImageLoader extends WImageLoadState {
       attempt: attempt,
       error: error,
       retryScheduled: retryScheduled,
-      retryDelayMs: retryScheduled ? _retryDelay : null,
+      retryDelayMs: retryScheduled ? _scheduledDelayMs : null,
     );
     if (_notifier.value == next) return;
     _notifier.value = next;
@@ -63,12 +64,15 @@ class WImageLoader extends WImageLoadState {
 
   @override
   void reset({required int retryCount, required int retryDelay}) {
+    final wasActive = status != WImageLoadStatus.idle;
     _retryTimer?.cancel();
     _retryTimer = null;
     _retryCount = retryCount;
     _retryDelay = retryDelay;
+    _scheduledDelayMs = null;
     error = null;
     super.reset(retryCount: retryCount, retryDelay: retryDelay);
+    if (wasActive) onStatus?.call(WImageLoadStatus.idle);
     emit();
   }
 
@@ -81,6 +85,7 @@ class WImageLoader extends WImageLoadState {
     if (changed) {
       _retryCount = retryCount;
       _retryDelay = retryDelay;
+      _scheduledDelayMs = null;
       _retryTimer?.cancel();
       _retryTimer = null;
       // 保留已有 error：失败后修改 retry 配置不应把 failed 状态变成“无错误”
@@ -91,6 +96,7 @@ class WImageLoader extends WImageLoadState {
 
   @override
   void beginAttempt() {
+    _scheduledDelayMs = null;
     super.beginAttempt();
     emit();
   }
@@ -111,12 +117,15 @@ class WImageLoader extends WImageLoadState {
     if (status == WImageLoadStatus.completed || status == WImageLoadStatus.failed) {
       return;
     }
+    final changed = pendingProgress != progress;
     pendingProgress = progress;
     if (markStatus(WImageLoadStatus.loading)) {
       onStatus?.call(WImageLoadStatus.loading);
     }
     emit();
-    onProgress?.call(progress);
+    // 父级/自身重建会让 loadingBuilder 用同一个 progress 再调用一次；
+    // 只有进度真正变化时才对外回调，避免调用方 setState 造成重建放大。
+    if (changed) onProgress?.call(progress);
   }
 
   /// 成功加载到首帧。
@@ -126,13 +135,14 @@ class WImageLoader extends WImageLoadState {
     _retryTimer?.cancel();
     _retryTimer = null;
     retryScheduled = false;
+    _scheduledDelayMs = null;
     error = null;
     if (markStatus(WImageLoadStatus.completed)) {
       onStatus?.call(WImageLoadStatus.completed);
     }
     if (notifyProgress && !completedProgressSent) {
       completedProgressSent = true;
-      pendingProgress = const WImageProgress(downloadedBytes: 1, totalBytes: 1);
+      pendingProgress = const WImageProgress.complete();
       onProgress?.call(pendingProgress!);
     }
     emit();
@@ -170,12 +180,14 @@ class WImageLoader extends WImageLoadState {
       base: Duration(milliseconds: _retryDelay),
       random: _random,
     );
+    _scheduledDelayMs = delay.inMilliseconds;
     _generationAtSchedule = generation;
     _retryTimer?.cancel();
     _retryTimer = Timer(delay, () {
       if (generation != _generationAtSchedule) return;
       super.beginAttempt();
       retryScheduled = false;
+      _scheduledDelayMs = null;
       error = null;
       emit();
     });
@@ -190,6 +202,7 @@ class WImageLoader extends WImageLoadState {
     _retryTimer = null;
     generation++;
     retryScheduled = false;
+    _scheduledDelayMs = null;
     pendingProgress = null;
     error = null;
     super.beginManualAttempt();
@@ -199,6 +212,7 @@ class WImageLoader extends WImageLoadState {
   void dispose() {
     _retryTimer?.cancel();
     _retryTimer = null;
+    _scheduledDelayMs = null;
     if (retryScheduled) {
       retryScheduled = false;
       emit();

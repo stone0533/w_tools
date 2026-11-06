@@ -42,13 +42,19 @@ class WImageFrame extends StatelessWidget {
       result = ClipRRect(borderRadius: borderRadius, child: result);
     }
 
-    if (border != null || (boxShadow != null && boxShadow.isNotEmpty)) {
+    // 阴影在图片下层；边框必须在图片上层，否则会被图片完全盖住。
+    final hasShadow = boxShadow != null && boxShadow.isNotEmpty;
+    if (hasShadow) {
       result = DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          border: border,
-          boxShadow: boxShadow,
-        ),
+        decoration: BoxDecoration(borderRadius: borderRadius, boxShadow: boxShadow),
+        child: result,
+      );
+    }
+
+    if (border != null) {
+      result = DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(borderRadius: borderRadius, border: border),
         child: result,
       );
     }

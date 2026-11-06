@@ -110,7 +110,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
             child: WMap<Shop>(
               zone: _zone,
               controller: _controller,
-              config: WMapConfig<Shop>(
+              config: WMapOptions<Shop>(
                 selectZoom: 15,
                 closeZoom: 12,
                 selectLatOffset: 0.002,

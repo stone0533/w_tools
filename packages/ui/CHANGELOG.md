@@ -1,3 +1,36 @@
+## 7.0.0
+
+### Breaking
+- `WImageLoadConfig` 更名 `WImageLoadOptions`；同时把占位 / 错误 / 进度 / 重试 UI 拆到
+  `WImageSlots`，Options 只保留解码、重试与 gapless 行为。
+- `WImageDefaultsScope(defaults: WImageLoadConfig(...))` → `WImageTheme(slots: WImageSlots(...))`；
+  作用域只承载 UI 插槽，不再静默忽略重试/解码配置。
+- 删除 `WImage.type` / `WImage.data`（改用 `image.source.type` / `image.source.raw`）。
+- 删除 `WImageStyle.merge`（无法区分“未设置”和默认值，且无内部调用方）；用 `copyWith`。
+- `WImageController.state` 改为非空，`WImageLoadStatus` 新增 `idle`，`WImageLoadSnapshot.status` 不再可空；
+  controller 增加 `dispose()`。
+- `aspectRatio` 不能再与固定 `width` / `height` 同时设置。
+
+### Added
+- `WImageSource.resolve(...)`：生成与 WImage 一致尺寸规则的 provider，配合 `precacheImage`。
+- `WImageProgress.isComplete` / `WImageProgress.complete()`：完成不再伪造 1/1 字节。
+- `WImageTheme` / `WImageSlots` 公开类型；`WImageSlots` 同时支持固定 Widget、
+  `showRetryButton` / `retryLabel`；新的 `WImageTheme` 只承载 slots，
+  与 4.x 已删除的同名类型语义不同。
+- `gaplessPlayback` 现在真正保留上一帧。
+
+### Fixed
+- `borderRadius + border` 的边框改为绘制在图片之上，不再被图片盖住。
+- `aspectRatio` 作用在图片内容上，padding/margin 在外层。
+- `WImageStyle` 实现 `==` / `hashCode`，避免相同样式被误判为变化。
+- build 期状态通知延后到 post-frame，外部监听器 `setState` 不再崩溃。
+- 相同进度只回调一次；progress-only 变化不再重建 WImage 子树。
+- `onProgress` 完成回调、`retryDelayMs` 实际延迟、尺寸提示的重复/单轴漏报修正。
+- 默认占位/错误占位改为从 `ColorScheme` 派生，深色主题不再出现亮灰块。
+- `WImageErrorView` 小尺寸优先保留重试按钮；160×90 等常见尺寸可操作。
+
+迁移见 [`docs/migrations/ui-7.0.md`](../../docs/migrations/ui-7.0.md)。
+
 ## 6.1.1
 
 ### Fixed

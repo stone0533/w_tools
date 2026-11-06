@@ -28,6 +28,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
   @override
   void dispose() {
     _navController.dispose();
+    _imageController.dispose();
     super.dispose();
   }
 
@@ -399,7 +400,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
             source: WImageSource.network('https://example.invalid/controller.png'),
             controller: _imageController,
             style: const WImageStyle(width: 160, height: 90),
-            config: const WImageLoadConfig(showRetryButton: true)),
+            slots: const WImageSlots(showRetryButton: true)),
         TextButton(
           onPressed: _imageController.retry,
           child: const Text('controller.retry()'),

@@ -6,16 +6,16 @@ const subpackageConstraints = <String, String>{
   'w_tools_app': '^3.0.0',
   'w_tools_app_getx': '^1.0.0',
   'w_tools_form': '^5.1.0',
-  'w_tools_ui': '^6.0.0',
+  'w_tools_ui': '^7.0.0',
   'w_tools_api': '^5.0.0',
   'w_tools_toast': '^2.0.0',
   'w_tools_qr': '^1.1.1',
   'w_tools_map': '^3.0.0',
-  'w_tools_map_google': '^1.0.0',
+  'w_tools_map_google': '^2.0.0',
 };
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）
-const cliConstraint = '^1.12.0';
+const cliConstraint = '^1.13.0';
 
 /// 设备验证工具（dev_dependencies，独立包）
 const wToolsDeviceConstraint = '^0.1.4';

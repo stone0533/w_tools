@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// 不可变的图片视觉样式。
 ///
 /// 只负责尺寸、布局、装饰与语义；加载/重试/占位/进度由
-/// `WImageLoadConfig` 负责。
+/// `WImageLoadOptions` 负责。
 @immutable
 class WImageStyle {
   const WImageStyle({
@@ -39,7 +40,7 @@ class WImageStyle {
     );
   }
 
-  /// 常用预设：列表缩略图（正方形视觉占位；解码尺寸由 WImageLoadConfig 控制）
+  /// 常用预设：列表缩略图（正方形视觉占位；解码尺寸由 WImageLoadOptions 控制）
   factory WImageStyle.thumbnail(
     double width, {
     double? height,
@@ -83,37 +84,48 @@ class WImageStyle {
     assert(width == null || width! >= 0, 'width 不能为负');
     assert(height == null || height! >= 0, 'height 不能为负');
     assert(
-      !(aspectRatio != null && width != null && height != null),
-      'aspectRatio 与固定 width/height 不要同时设置（约束会冲突）',
+      !(aspectRatio != null && (width != null || height != null)),
+      'aspectRatio 不能与固定 width/height 同时设置（比例会作用在图片内容上）',
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is WImageStyle &&
+            other.width == width &&
+            other.height == height &&
+            other.fit == fit &&
+            other.alignment == alignment &&
+            other.aspectRatio == aspectRatio &&
+            other.borderRadius == borderRadius &&
+            other.border == border &&
+            listEquals(other.boxShadow, boxShadow) &&
+            other.margin == margin &&
+            other.padding == padding &&
+            other.semanticLabel == semanticLabel &&
+            other.excludeFromSemantics == excludeFromSemantics &&
+            other.filterQuality == filterQuality;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    width,
+    height,
+    fit,
+    alignment,
+    aspectRatio,
+    borderRadius,
+    border,
+    boxShadow == null ? null : Object.hashAll(boxShadow!),
+    margin,
+    padding,
+    semanticLabel,
+    excludeFromSemantics,
+    filterQuality,
+  );
 
   static const Object _unset = Object();
-
-  /// 合并样式：以本样式为底，[other] 中显式给出的字段覆盖。
-  ///
-  /// 用于「预设 + 局部覆盖」（[WImage.avatar] / [WImage.thumbnail] /
-  /// [WImage.cover]）。`fit` / `alignment` / `excludeFromSemantics` /
-  /// `filterQuality` 有非空默认值，无法区分「没传」，因此总是取 [other]；
-  /// 预设本身不使用这四个字段，所以合并结果符合预期。
-  WImageStyle merge(WImageStyle? other) {
-    if (other == null) return this;
-    return WImageStyle(
-      width: other.width ?? width,
-      height: other.height ?? height,
-      fit: other.fit,
-      alignment: other.alignment,
-      aspectRatio: other.aspectRatio ?? aspectRatio,
-      borderRadius: other.borderRadius ?? borderRadius,
-      border: other.border ?? border,
-      boxShadow: other.boxShadow ?? boxShadow,
-      margin: other.margin ?? margin,
-      padding: other.padding ?? padding,
-      semanticLabel: other.semanticLabel ?? semanticLabel,
-      excludeFromSemantics: other.excludeFromSemantics,
-      filterQuality: other.filterQuality,
-    );
-  }
 
   WImageStyle copyWith({
     Object? width = _unset,

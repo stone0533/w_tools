@@ -1,6 +1,6 @@
 name: w_tools_map_google
-description: "w_tools_map 的 Google Maps 实现：WMap / WMapZone / WMapConfig。"
-version: 1.0.0
+description: "w_tools_map 的 Google Maps 实现：WMap / WMapZone / WMapOptions。"
+version: 2.0.0
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/map_google

@@ -841,12 +841,13 @@ const String agentsUi = r'''
 - **徽标 / 裁剪 / 横向操作 / 步骤**：角标用 `WBadge(badgeContent:, child:)`；圆角裁剪用
   `WClipRRect(config: WClipRRectConfig.all(12), child: ...)`；横向操作行用 `WActionRow`；
   步骤条用 `WStep(labels:, current:)`，复用流程用 `WStepFlow`。App 级图片占位/错误用
-  `WImageDefaultsScope`；自定义按钮尺寸用 `WButtonSize`。
+  `WImageTheme`；自定义按钮尺寸用 `WButtonSize`。
 - **图片**：统一用 `WImage.source` + `WImageSource`——网络图
   `WImage.source(source: WImageSource.network(url))`，资源图
   `WImage.source(source: WImageSource.asset(name, prefix: true))`；
   `WImage.network` / `WImage.asset` / `WImage(data:)` 已在 6.0 删除。
-  视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageLoadConfig`；不要裸用
+  视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageLoadOptions`；App 级默认占位/错误用
+  `WImageTheme(slots: WImageSlots(...))`，预加载用 `WImageSource.resolve(...)`。不要裸用
   `Image.network` / `Image.asset`。没有 `width` / `height` / `aspectRatio` 时必须由父级
   给约束（`SizedBox` / `Expanded` / `AspectRatio`），否则加载前是 0 尺寸（空白）。
 - **文字**：新代码用 `WText(variant: WTextVariant.xxx)` + `WTextStyles`；字体/字号/行高放主题，
@@ -1173,13 +1174,15 @@ const String agentsUiEn = r'''
 - **Badges / clipping / action rows / steps**: use `WBadge(badgeContent:, child:)` for badges,
   `WClipRRect(config: WClipRRectConfig.all(12), child: ...)` for rounded clipping,
   `WActionRow` for horizontal action rows, and `WStep(labels:, current:)` (or `WStepFlow`
-  for reuse) for steps. Use `WImageDefaultsScope` for app-level image placeholders/errors
+  for reuse) for steps. Use `WImageTheme` for app-level image placeholders/errors
   and `WButtonSize` for custom button sizes.
 - **Images**: always use `WImage.source` + `WImageSource` —
   `WImage.source(source: WImageSource.network(url))` for network images and
   `WImage.source(source: WImageSource.asset(name, prefix: true))` for assets;
   `WImage.network` / `WImage.asset` / `WImage(data:)` were removed in 6.0.
-  Use `WImageStyle` for visuals and `WImageLoadConfig` for loading/retry/placeholders.
+  Use `WImageStyle` for visuals and `WImageLoadOptions` for loading/retry/placeholders.
+  Use `WImageTheme(slots: WImageSlots(...))` for app-level placeholders/errors and
+  `WImageSource.resolve(...)` for preloading.
   Do not use `Image.network` / `Image.asset` directly. Without `width` / `height` /
   `aspectRatio`, the parent must constrain it (`SizedBox` / `Expanded` / `AspectRatio`);
   otherwise it is 0-sized before load (blank).

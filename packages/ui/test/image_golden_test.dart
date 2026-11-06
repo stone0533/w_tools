@@ -82,7 +82,7 @@ void main() {
         WImage.source(
           source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
           style: const WImageStyle(width: 160, height: 120),
-          config: const WImageLoadConfig(showRetryButton: true),
+          slots: const WImageSlots(showRetryButton: true),
         ),
       ),
     );
@@ -100,7 +100,7 @@ void main() {
         WImage.source(
           source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
           style: const WImageStyle(width: 64, height: 64),
-          config: const WImageLoadConfig(errorWidget: _errorBox),
+          slots: const WImageSlots(errorWidget: _errorBox),
         ),
       ),
     );
@@ -118,7 +118,7 @@ void main() {
         WImage.source(
           source: WImageSource.parse(''),
           style: const WImageStyle(width: 64, height: 64),
-          config: const WImageLoadConfig(errorWidget: _errorBox),
+          slots: const WImageSlots(errorWidget: _errorBox),
         ),
       ),
     );

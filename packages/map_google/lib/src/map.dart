@@ -8,7 +8,7 @@ part 'map_zone.dart';
 /// [WMap] 的控制器：从业务 UI 侧触发选中 / 关闭。
 ///
 /// 之前 `closeSelection` 定义在私有的 `_WMapState` 里，外部拿不到实例，
-/// 导致 [WMapConfig.onItemClosed] 永远无法触发。把控制器传给 [WMap] 即可。
+/// 导致 [WMapOptions.onItemClosed] 永远无法触发。把控制器传给 [WMap] 即可。
 class WMapController<T> {
   _WMapState<T>? _state;
 
@@ -21,13 +21,13 @@ class WMapController<T> {
     if (identical(_state, state)) _state = null;
   }
 
-  /// 选中某个条目：等价于点地图上的 marker（相机动画 + [WMapConfig.onItemSelected]）。
+  /// 选中某个条目：等价于点地图上的 marker（相机动画 + [WMapOptions.onItemSelected]）。
   /// 用于「点底部列表里的门店 → 地图跟着跳」这类交互。
   Future<void> select(T item) async {
     await _state?.select(item);
   }
 
-  /// 关闭选中：相机动到条目位置并触发 [WMapConfig.onItemClosed]。
+  /// 关闭选中：相机动到条目位置并触发 [WMapOptions.onItemClosed]。
   /// 未绑定（对应 WMap 还没挂载）时什么都不做。
   Future<void> closeSelection(T item) async {
     await _state?.closeSelection(item);
@@ -42,7 +42,7 @@ class WMapController<T> {
 /// - 暴露 [GoogleMapController] 供外部控制
 ///
 /// 不内置任何业务 UI（列表面板、选中浮起、空状态等），
-/// 业务方通过 [WMapConfig.onItemSelected] / [WMapConfig.onItemClosed]
+/// 业务方通过 [WMapOptions.onItemSelected] / [WMapOptions.onItemClosed]
 /// 接收事件，自行构建业务 UI。
 ///
 /// ```dart
@@ -58,12 +58,12 @@ class WMapController<T> {
 ///
 /// WMap<Store>(
 ///   zone: zone,
-///   config: WMapConfig<Store>(onItemSelected: (store) {}),
+///   config: WMapOptions<Store>(onItemSelected: (store) {}),
 /// );
 /// ```
 class WMap<T> extends StatefulWidget {
   /// 组件配置
-  final WMapConfig<T> config;
+  final WMapOptions<T> config;
 
   /// 地图区域（数据 + 控制器）
   final WMapZone<T> zone;
@@ -295,7 +295,7 @@ class _WMapState<T> extends State<WMap<T>> {
 /// 地图组件配置类
 ///
 /// 仅负责地图相机行为和事件回调，不包含任何 UI 样式配置。
-class WMapConfig<T> {
+class WMapOptions<T> {
   /// 选中条目时的缩放级别
   final double selectZoom;
 
@@ -320,7 +320,7 @@ class WMapConfig<T> {
   /// 否则选中的 marker 会被卡片挡住。
   final EdgeInsets padding;
 
-  const WMapConfig({
+  const WMapOptions({
     this.selectZoom = 12,
     this.closeZoom = 11,
     this.selectLatOffset = 0.0,

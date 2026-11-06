@@ -60,7 +60,10 @@ void main() {
     expect(readme, contains('真机验证清单'));
   });
 
-  test('docs/modules/device_module.md 存在', () {
-    expect(File('../../docs/modules/device_module.md').existsSync(), isTrue);
+  test('模块文档并入 packages/device/README.md', () {
+    // 2026-11-06 docs 重构把 device_module.md 并入包 README；
+    // 这里守住新的真源，避免再回头依赖已删除的 docs/modules 文件。
+    expect(File('README.md').existsSync(), isTrue);
+    expect(_read('README.md'), contains('w_tools_device'));
   });
 }

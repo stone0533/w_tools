@@ -4,10 +4,10 @@
 
 - `WMapItemMapper` 适配普通业务模型
 - `WMapZone` 数据与 marker
-- `WMapConfig` 选中 / 关闭 / 地图点击
+- `WMapOptions` 选中 / 关闭 / 地图点击
 - `WMapController.select` / `closeSelection`
 - `WMapZone.update` 筛选门店
-- `WMapConfig.padding` 避免底部卡片遮住 marker
+- `WMapOptions.padding` 避免底部卡片遮住 marker
 
 ## 运行
 

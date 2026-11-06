@@ -85,3 +85,10 @@ ui / toast / async / form —— 会把 `cached_network_image`（50 个传递包
 - 偏差：静态 `WRoute` 已删除，路由栈由 `WRouteStack.defaultStack` 提供，`WApp.routeStack` 可替换。
 - 证据：`packages/app_getx/lib/src/app.dart`、`packages/app_getx/lib/src/options.dart`、
   `docs/agents/app.md`、`scripts/check_removed_api.py`。
+
+## 补充（2026-11-06，命名规则）
+
+- 本 ADR 的 `Options` / `Config` 命名由 [docs/naming.md](../naming.md) 统一
+  （决策背景见 [ADR-0007](0007-component-naming-roles.md)）：
+  `Options` 表单实例行为，`Settings` 表持久化偏好，`Params` 表调用参数。
+- `WLocaleConfig` 是不可变数据载体，按命名规范允许，不再视为“新增 Config”的例外。

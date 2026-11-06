@@ -28,6 +28,12 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   double? _progress;
   final WImageController _controller = WImageController();
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   WImageStyle get _style => WImageStyle(
         width: _aspectRatio == null ? _width : null,
         height: _aspectRatio == null ? _height : null,
@@ -40,11 +46,14 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
         semanticLabel: 'playground image',
       );
 
-  WImageLoadConfig get _config => WImageLoadConfig(
+  WImageLoadOptions get _config => WImageLoadOptions(
         memCacheWidth: _memCache,
         memCacheHeight: _memCache,
         retryCount: _retryCount,
         retryDelay: 500,
+      );
+
+  WImageSlots get _slots => WImageSlots(
         placeholder: _customPlaceholder ? const _Placeholder() : null,
         errorWidget: const _ErrorBox(),
       );
@@ -55,6 +64,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
           source: WImageSource.asset('assets/demo.png', prefix: false),
           style: _style,
           config: _config,
+          slots: _slots,
           controller: _controller,
           onLoadStatusChanged: (status) => setState(() => _status = status.name),
           onProgress: (progress) => setState(() => _progress = progress.fraction),
@@ -67,6 +77,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
           ),
           style: _style,
           config: _config,
+          slots: _slots,
           controller: _controller,
           onLoadStatusChanged: (status) => setState(() => _status = status.name),
           onProgress: (progress) => setState(() => _progress = progress.fraction),
@@ -96,11 +107,14 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     if (_withShadow) buffer.writeln('    boxShadow: WShadows.card,');
     if (_withMargin) buffer.writeln('    margin: const EdgeInsets.all(8),');
     buffer.writeln('  ),');
-    buffer.writeln('  config: WImageLoadConfig(');
+    buffer.writeln('  config: WImageLoadOptions(');
     buffer.writeln('    memCacheWidth: $_memCache,');
     buffer.writeln('    memCacheHeight: $_memCache,');
     buffer.writeln('    retryCount: $_retryCount,');
+    buffer.writeln('  ),');
+    buffer.writeln('  slots: WImageSlots(');
     if (_customPlaceholder) buffer.writeln('    placeholder: const _Placeholder(),');
+    buffer.writeln('    errorWidget: const _ErrorBox(),');
     buffer.writeln('  ),');
     buffer.writeln('  controller: controller,');
     buffer.writeln('  onLoadStatusChanged: (status) => ...,');
@@ -211,7 +225,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text('自定义 placeholder'),
-          subtitle: const Text('关闭后使用 WImageDefaultsScope 的默认占位符'),
+          subtitle: const Text('关闭后使用 WImageTheme 的默认占位符'),
           value: _customPlaceholder,
           onChanged: (value) => setState(() => _customPlaceholder = value),
         ),

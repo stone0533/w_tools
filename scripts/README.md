@@ -31,7 +31,7 @@ bash scripts/preflight.sh --package ui
 
 ```text
 format / analyze / docs / AI 契约（含 feedback）
-公开类型 catalog / 弃用 / 风格
+公开类型 catalog / 弃用 / 命名 / 风格
 catalog / templates 生成物新鲜度
 release check
 CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
@@ -63,7 +63,7 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 
 | 脚本 | 作用 | 调用方 |
 |---|---|---|
-| `check_doc_symbols.py` | 文档 `W*` 符号是否存在（含 root `README.md` / `AGENTS.md`） | preflight |
+| `check_doc_symbols.py` | 文档 `W*` 符号 / 成员是否存在（含 root `README.md` / `AGENTS.md`、`docs/naming.md` 行内示例） | preflight |
 | `check_docs_snippets.py` | 已证伪 API / components 表格列数 | check_docs |
 | `check_docs_duplicates.py` | `docs/modules` 与包 README 不再复制同一段 dart 示例 | check_docs |
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
@@ -74,6 +74,7 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 | `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查 | preflight |
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档（含 root + `packages/*/AGENTS.md`） | preflight |
+| `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |
 
 ### API / 风格
 
@@ -105,9 +106,11 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 
 这些是启发式检查，不是完整编译器/analyzer：
 
-- `check_doc_symbols.py`：正则匹配符号和成员（只扫 ```dart 代码块）；
+- `check_doc_symbols.py`：正则匹配符号和成员（扫 ```dart 代码块；`docs/naming.md` 额外扫行内代码）；
 - `check_docs_snippets.py`：只拦截已知错误写法；
 - `check_public_catalog.py`：基于 export/part 的静态扫描 + `uncataloged.yaml` 基线；
+- `check_naming.py`：只认 barrel 导出的公开名字（`hide` / `lib/src` 内部实现不参与），
+  例外读 `naming_baseline.yaml`；
 - `check_docs_facts.py`：规模数字与索引完整性，不校验 API 细节；
 - `check_agents_consistency.py`：只比入口名，不比措辞；
 - `check_package_docs.py`：只校验 caret 下界与主版本，不校验具体 patch；

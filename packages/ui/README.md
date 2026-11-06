@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^6.1.1
+  w_tools_ui: ^7.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -57,7 +57,7 @@ WImage.source(
     fit: BoxFit.cover,
     borderRadius: BorderRadius.all(Radius.circular(12)),
   ),
-  config: const WImageLoadConfig(memCacheWidth: 800),
+  config: const WImageLoadOptions(memCacheWidth: 800),
 );
 ```
 
@@ -74,8 +74,12 @@ WImage.source(
 | 已知网络 / 资源 / 文件 / Base64 | `WImageSource.network/asset/file/base64` |
 | 任意 `ImageProvider` / 内存字节 | `WImageSource.provider` / `ImageProvider` + `MemoryImage` |
 | 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
-| 需要加载配置 | `config: WImageLoadConfig(...)` |
+| 需要加载行为 | `config: WImageLoadOptions(...)` |
+| 需要单图占位/错误/进度/重试 UI | `slots: WImageSlots(...)` |
 | 需要视觉样式 | `style: WImageStyle(...)` |
+| 需要 App 级默认占位/错误/进度 | `WImageTheme(slots: WImageSlots(...))` |
+| 需要预加载 | `await WImageSource.resolve(...)` + `precacheImage` |
+| 需要手动重试/状态 | `controller: WImageController()` |
 
 `WImageSource.asset(name)` 默认 **不**拼 `WAssets.imagePath`；
 需要自动拼前缀时用 `WImageSource.asset(name, prefix: true)`。
@@ -87,14 +91,46 @@ WImage.source(source: WImageSource.parse(url), style: WImageStyle.avatar(40))
 WImage.source(
   source: WImageSource.parse(url),
   style: WImageStyle.thumbnail(80),
-  config: const WImageLoadConfig(memCacheWidth: 240, memCacheHeight: 240),
+  config: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 240),
 )
 WImage.source(
   source: WImageSource.network(url),
-  config: const WImageLoadConfig(showRetryButton: true),
+  slots: const WImageSlots(showRetryButton: true),
 )
 WImage.source(source: WImageSource.asset('logo.png', prefix: true))
 WImage.source(source: WImageSource.provider(MemoryImage(bytes)))
+```
+
+App 级默认占位只装一次：
+
+```dart
+WImageTheme(
+  slots: WImageSlots(
+    placeholderBuilder: (context, data) => const Center(child: CircularProgressIndicator()),
+    errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
+  ),
+  child: app,
+)
+```
+
+预加载要与 WImage 使用同一套尺寸规则：
+
+```dart
+final provider = await WImageSource.network(url).resolve(memCacheWidth: 240);
+await precacheImage(provider, context);
+```
+
+手动重试/状态监听：
+
+```dart
+final controller = WImageController();
+WImage.source(
+  source: WImageSource.network(url),
+  controller: controller,
+  slots: const WImageSlots(showRetryButton: true),
+);
+controller.state.addListener(() => debugPrint('${controller.state.value.status}'));
+// controller.dispose();
 ```
 
 `WImageStyle` 也提供预设与链式糖：
@@ -110,6 +146,7 @@ const WImageStyle().square(40).rounded(20)
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
+> 7.0 迁移见 [`docs/migrations/ui-7.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-7.0.md)；
 > 历史迁移见 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)。
 
 ## 文本

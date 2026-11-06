@@ -1,15 +1,22 @@
 part of 'image.dart';
 
+/// WImage 内部 Image 的 key：同一个 State 的同一轮尝试保持稳定（换 source 时
+/// 复用元素以支持 gaplessPlayback），重试时 attempt 变化触发重建。
+class _WImageAttemptKey extends LocalKey {
+  const _WImageAttemptKey(this.owner, this.attempt);
+
+  final Object owner;
+  final int attempt;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _WImageAttemptKey && identical(other.owner, owner) && other.attempt == attempt;
+
+  @override
+  int get hashCode => Object.hash(identityHashCode(owner), attempt);
+}
+
 class _WImageState extends State<WImage> {
-  /// 缓存的默认占位符
-  static final Widget _fallbackPlaceholder = Container(color: Colors.grey[200]);
-
-  /// 缓存的默认错误占位符
-  static final Widget _fallbackErrorWidget = Container(
-    color: Colors.grey[200],
-    child: const Icon(Icons.error),
-  );
-
   /// 解码后小于该字节数的 Base64 直接在主 isolate 解码
   /// （`compute` 起 isolate 的开销更大；Web 上 `compute` 也仍在主线程）
   static const int _inlineDecodeMaxBytes = 64 * 1024;
@@ -31,6 +38,12 @@ class _WImageState extends State<WImage> {
   /// debug 下“无尺寸 + 无界父级”提示是否已排过（每个 State 只提示一次）
   bool _sizeHintScheduled = false;
 
+  /// 是否已有可复用的上一帧（gaplessPlayback）
+  bool _hasFrame = false;
+
+  /// 上一次用于驱动重建的快照（progress-only 变化不重建）
+  WImageLoadSnapshot? _lastSnapshot;
+
   /// 加载 / 重试 / 进度状态
   late final WImageLoader _load;
 
@@ -38,7 +51,7 @@ class _WImageState extends State<WImage> {
   WImageLoader get loader => _load;
 
   WImageStyle get style => widget.style;
-  WImageLoadConfig get config => widget.config;
+  WImageLoadOptions get config => widget.config;
 
   @override
   void initState() {
@@ -62,11 +75,27 @@ class _WImageState extends State<WImage> {
       },
     );
     _reset();
-    _load.state.addListener(_scheduleRebuild);
+    _lastSnapshot = _load.state.value;
+    _load.state.addListener(_handleLoadStateChanged);
     widget.controller?._attach(this);
   }
 
   bool _rebuildScheduled = false;
+
+  /// 只重建真正影响 WImage 树的状态；进度变化由内部 Image.loadingBuilder 自己处理。
+  void _handleLoadStateChanged() {
+    final next = _load.state.value;
+    final previous = _lastSnapshot;
+    _lastSnapshot = next;
+    if (previous != null &&
+        previous.status == next.status &&
+        previous.attempt == next.attempt &&
+        previous.retryScheduled == next.retryScheduled &&
+        identical(previous.error, next.error)) {
+      return;
+    }
+    _scheduleRebuild();
+  }
 
   void _scheduleRebuild() {
     if (!mounted) return;
@@ -95,12 +124,19 @@ class _WImageState extends State<WImage> {
       oldWidget.controller?._detach(this);
       widget.controller?._attach(this);
     }
-    if (oldWidget.style != widget.style || oldWidget.config != widget.config) {
+    if (oldWidget.style != widget.style ||
+        oldWidget.config != widget.config ||
+        oldWidget.slots != widget.slots) {
       _lastFrame = null;
     }
-    if (oldWidget.style != widget.style) {
-      // 尺寸配置可能从“有”变“无”，允许重新检查
+    if (oldWidget.style.width != widget.style.width ||
+        oldWidget.style.height != widget.style.height ||
+        oldWidget.style.aspectRatio != widget.style.aspectRatio) {
+      // 尺寸配置变化时允许重新检查；fit/颜色等变化不重复提示。
       _sizeHintScheduled = false;
+    }
+    if (oldWidget.config.gaplessPlayback && !config.gaplessPlayback) {
+      _hasFrame = false;
     }
     if (oldWidget.source != widget.source) {
       _reset();
@@ -110,7 +146,7 @@ class _WImageState extends State<WImage> {
   @override
   void dispose() {
     widget.controller?._detach(this);
-    _load.state.removeListener(_scheduleRebuild);
+    _load.state.removeListener(_handleLoadStateChanged);
     _load.dispose();
     super.dispose();
   }
@@ -122,10 +158,13 @@ class _WImageState extends State<WImage> {
     _providerCache = null;
     _providerKey = null;
     _lastFrame = null;
+    if (!config.gaplessPlayback) _hasFrame = false;
     _load.reset(
       retryCount: config.retryCount,
       retryDelay: config.retryDelay,
     );
+    // source 切换时 attempt 会归零；这不算一次“重试”，不要清掉 gapless 上一帧。
+    _seenAttempt = _load.attempt;
   }
 
   int _seenAttempt = 0;
@@ -143,6 +182,7 @@ class _WImageState extends State<WImage> {
       _providerCache = null;
       _providerKey = null;
       _lastFrame = null;
+      _hasFrame = false;
     }
     _debugScheduleSizeHint();
     return _buildContent(context);
@@ -154,9 +194,6 @@ class _WImageState extends State<WImage> {
   /// `IntrinsicHeight` / 故意 0 尺寸的调用方，也不影响 release。
   void _debugScheduleSizeHint() {
     if (!kDebugMode || _sizeHintScheduled) return;
-    if (style.width != null || style.height != null || style.aspectRatio != null) {
-      return;
-    }
     _sizeHintScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) => _debugCheckSizeHint());
   }
@@ -166,22 +203,30 @@ class _WImageState extends State<WImage> {
     final renderObject = context.findRenderObject();
     if (renderObject is! RenderBox || !renderObject.hasSize) return;
     final constraints = renderObject.constraints;
+    final size = renderObject.size;
     final unboundedWidth = constraints.maxWidth.isInfinite;
     final unboundedHeight = constraints.maxHeight.isInfinite;
     if (!unboundedWidth && !unboundedHeight) return;
-    final axis = unboundedWidth && unboundedHeight ? '宽高' : (unboundedWidth ? '宽度' : '高度');
+    final zeroWidth = unboundedWidth && size.width <= 0;
+    final zeroHeight = unboundedHeight && size.height <= 0;
+    if (!zeroWidth && !zeroHeight) return;
+    final axis = zeroWidth && zeroHeight ? '宽高' : (zeroWidth ? '宽度' : '高度');
     debugPrint(
-      '[w_tools_ui] WImage 没有 width/height/aspectRatio，且父级在$axis轴上无界：'
-      '加载前占位是 0 尺寸，会表现为空白。请给 WImageStyle 设置尺寸或 aspectRatio，'
-      '或用 SizedBox / Expanded / AspectRatio 约束。',
+      '[w_tools_ui] WImage 在$axis轴上没有确定尺寸（加载前占位为 0，会表现为空白）。'
+      '请给 WImageStyle 设置 width / height / aspectRatio，'
+      '或让父级在$axis轴上有界（SizedBox / Expanded / AspectRatio）。',
     );
   }
 
   Widget _buildContent(BuildContext context) {
     Widget result;
     if (_value.isEmpty) {
-      _load.fail(WImageError(widget.data, WImageErrorKind.empty));
-      result = _errorSlot(context, _load.error ?? WImageError(widget.data, WImageErrorKind.empty));
+      _hasFrame = false;
+      _load.fail(WImageError(widget.source.raw, WImageErrorKind.empty));
+      result = _errorSlot(
+        context,
+        _load.error ?? WImageError(widget.source.raw, WImageErrorKind.empty),
+      );
     } else {
       result = switch (_type) {
         WImageType.network => _buildNetwork(),
@@ -192,12 +237,12 @@ class _WImageState extends State<WImage> {
       };
     }
 
-    result = WImageFrame(style: style, child: result);
     final aspectRatio = style.aspectRatio;
     if (aspectRatio != null && aspectRatio > 0) {
-      return AspectRatio(aspectRatio: aspectRatio, child: result);
+      // 比例作用于图片内容；padding / margin 在 WImageFrame 外层叠加。
+      result = AspectRatio(aspectRatio: aspectRatio, child: result);
     }
-    return result;
+    return WImageFrame(style: style, child: result);
   }
 
   /// 给占位/错误占位加尺寸约束（配置了宽高时）
@@ -206,37 +251,63 @@ class _WImageState extends State<WImage> {
     return SizedBox(width: style.width, height: style.height, child: child);
   }
 
-  /// 构建默认占位符（defaults 优先，其次内置兜底）
-  Widget _buildPlaceholder(BuildContext context) {
-    final themed = WImageDefaultsScope.maybeOf(context)?.placeholderBuilder?.call(context, _value);
-    return _sizedSlot(themed ?? _fallbackPlaceholder);
+  Widget _fallbackPlaceholder(BuildContext context) {
+    return ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest);
   }
 
-  /// 构建默认错误占位符（defaults 优先，其次内置兜底）
-  Widget _buildErrorWidget(BuildContext context, WImageError error) {
-    final themed = WImageDefaultsScope.maybeOf(
-      context,
-    )?.errorWidgetBuilder?.call(context, _value, error);
-    return _sizedSlot(themed ?? _fallbackErrorWidget);
+  Widget _fallbackErrorWidget(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return ColoredBox(
+      color: colors.errorContainer,
+      child: Icon(Icons.error, color: colors.onErrorContainer),
+    );
+  }
+
+  /// 合并单图 slots 与主题 slots：单图非空字段优先，错误占位在
+  /// showRetryButton=true 时不再继承主题的错误 builder。
+  WImageSlots _slotsFor(BuildContext context) {
+    final theme = WImageTheme.maybeOf(context) ?? const WImageSlots();
+    final own = widget.slots;
+    if (own == null) return theme;
+
+    final ownShowRetry = own.showRetryButton;
+    final showRetry = ownShowRetry ?? theme.showRetryButton;
+    final ownHasError = own.errorWidgetBuilder != null || own.errorWidget != null;
+    final inheritThemeError = !ownHasError && showRetry != true;
+
+    return WImageSlots(
+      placeholderBuilder:
+          own.placeholderBuilder ?? (own.placeholder == null ? theme.placeholderBuilder : null),
+      placeholder: own.placeholder ?? theme.placeholder,
+      errorWidgetBuilder:
+          own.errorWidgetBuilder ??
+          (own.errorWidget == null && inheritThemeError ? theme.errorWidgetBuilder : null),
+      errorWidget:
+          own.errorWidget ??
+          (own.errorWidgetBuilder == null && inheritThemeError ? theme.errorWidget : null),
+      progressBuilder: own.progressBuilder ?? theme.progressBuilder,
+      showRetryButton: showRetry,
+      retryLabel: own.retryLabel ?? theme.retryLabel,
+    );
   }
 
   /// 图片加载中的占位（优先业务自定义）
   Widget _placeholderFor(BuildContext context) {
-    final builder = config.placeholderBuilder;
-    if (builder != null) {
-      return builder(context, _value) ?? _buildPlaceholder(context);
-    }
-    return config.placeholder ?? _buildPlaceholder(context);
+    final slots = _slotsFor(context);
+    return slots.placeholderBuilder?.call(context, _value) ??
+        _sizedSlot(slots.placeholder ?? _fallbackPlaceholder(context));
   }
 
-  /// 错误占位：业务 builder > 固定 Widget > 内置重试视图 > defaults/兜底
+  /// 错误占位：业务 builder > 固定 Widget > 内置重试视图 > 兜底
   Widget _errorSlot(BuildContext context, WImageError error) {
-    final builder = config.errorWidgetBuilder;
+    final slots = _slotsFor(context);
+    final builder = slots.errorWidgetBuilder;
     if (builder != null) {
-      return builder(context, error.data, error) ?? _buildErrorWidget(context, error);
+      return builder(context, error.data, error) ??
+          _sizedSlot(slots.errorWidget ?? _fallbackErrorWidget(context));
     }
-    if (config.errorWidget != null) return config.errorWidget!;
-    if (config.showRetryButton) {
+    if (slots.errorWidget != null) return _sizedSlot(slots.errorWidget!);
+    if (slots.showRetryButton ?? false) {
       final canRetry = const {
         WImageErrorKind.network,
         WImageErrorKind.provider,
@@ -246,13 +317,13 @@ class _WImageState extends State<WImage> {
         WImageErrorView(
           error: error,
           onRetry: canRetry ? _load.retryNow : null,
-          retryLabel: config.retryLabel,
+          retryLabel: slots.retryLabel ?? '重试',
           // 实际尺寸交给 WImageErrorView 的 LayoutBuilder 判断；
           // compact/showAction 仅保留为调用方显式覆盖参数。
         ),
       );
     }
-    return _buildErrorWidget(context, error);
+    return _sizedSlot(_fallbackErrorWidget(context));
   }
 
   ImageProvider _cachedProvider(Object key, ImageProvider Function() create) {
@@ -281,11 +352,11 @@ class _WImageState extends State<WImage> {
     );
     return _imageWidget(
       provider,
-      errorFactory: (error) => WImageError(widget.data, WImageErrorKind.network, cause: error),
+      errorFactory: (error) =>
+          WImageError(widget.source.raw, WImageErrorKind.network, cause: error),
       applyDecodeSize: false,
       notifyProgressCompletion: true,
       retryOnError: true,
-      progressBuilder: config.progressBuilder,
     );
   }
 
@@ -295,7 +366,8 @@ class _WImageState extends State<WImage> {
     final provider = _cachedProvider(source.provider, () => source.provider);
     return _imageWidget(
       provider,
-      errorFactory: (error) => WImageError(widget.data, WImageErrorKind.provider, cause: error),
+      errorFactory: (error) =>
+          WImageError(widget.source.raw, WImageErrorKind.provider, cause: error),
     );
   }
 
@@ -308,7 +380,7 @@ class _WImageState extends State<WImage> {
     );
     return _imageWidget(
       provider,
-      errorFactory: (error) => WImageError(widget.data, WImageErrorKind.asset, cause: error),
+      errorFactory: (error) => WImageError(widget.source.raw, WImageErrorKind.asset, cause: error),
     );
   }
 
@@ -316,7 +388,8 @@ class _WImageState extends State<WImage> {
   Widget _buildFile(BuildContext context) {
     final provider = buildFileImageProvider(_value);
     if (provider == null) {
-      final error = WImageError(widget.data, WImageErrorKind.unsupported);
+      _hasFrame = false;
+      final error = WImageError(widget.source.raw, WImageErrorKind.unsupported);
       _load.fail(error);
       return _errorSlot(context, error);
     }
@@ -326,7 +399,7 @@ class _WImageState extends State<WImage> {
     );
     return _imageWidget(
       cached,
-      errorFactory: (error) => WImageError(widget.data, WImageErrorKind.file, cause: error),
+      errorFactory: (error) => WImageError(widget.source.raw, WImageErrorKind.file, cause: error),
     );
   }
 
@@ -336,7 +409,11 @@ class _WImageState extends State<WImage> {
       future: _bytesFuture ??= _decodeBase64(_value),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          final error = WImageError(widget.data, WImageErrorKind.decode, cause: snapshot.error);
+          final error = WImageError(
+            widget.source.raw,
+            WImageErrorKind.decode,
+            cause: snapshot.error,
+          );
           _load.fail(error);
           return _errorSlot(context, error);
         }
@@ -351,7 +428,8 @@ class _WImageState extends State<WImage> {
         );
         return _imageWidget(
           provider,
-          errorFactory: (error) => WImageError(widget.data, WImageErrorKind.decode, cause: error),
+          errorFactory: (error) =>
+              WImageError(widget.source.raw, WImageErrorKind.decode, cause: error),
         );
       },
     );
@@ -368,7 +446,6 @@ class _WImageState extends State<WImage> {
     bool notifyCompletion = true,
     bool notifyProgressCompletion = false,
     bool retryOnError = false,
-    Widget? Function(BuildContext, String, WImageProgress)? progressBuilder,
   }) {
     final effectiveProvider = applyDecodeSize
         ? ResizeImage.resizeIfNeeded(
@@ -378,7 +455,9 @@ class _WImageState extends State<WImage> {
           )
         : provider;
     return Image(
-      key: ValueKey('$_value#attempt=${_load.attempt}'),
+      // 同一个 State + 同一个 attempt 保持 key 稳定：换 source 时复用 Image
+      // 元素，gaplessPlayback 才能保留上一帧；重试时 attempt 变化，强制重建。
+      key: _WImageAttemptKey(this, _load.attempt),
       image: effectiveProvider,
       width: style.width,
       height: style.height,
@@ -392,6 +471,7 @@ class _WImageState extends State<WImage> {
           ? (context, child, frame, wasSynchronouslyLoaded) {
               final done = wasSynchronouslyLoaded || frame != null;
               if (done) {
+                _hasFrame = true;
                 _lastFrame = child;
                 if (notifyCompletion) {
                   _load.handleCompleted(notifyProgress: notifyProgressCompletion);
@@ -400,6 +480,7 @@ class _WImageState extends State<WImage> {
               }
               if (!showPlaceholderWhileLoading) return child;
               _load.markLoading();
+              if (config.gaplessPlayback && _hasFrame) return child;
               return _placeholderFor(context);
             }
           : null,
@@ -413,13 +494,16 @@ class _WImageState extends State<WImage> {
           totalBytes: loadingProgress.expectedTotalBytes,
         );
         _load.handleProgress(progress);
-        final builder = progressBuilder ?? WImageDefaultsScope.maybeOf(context)?.progressBuilder;
+        final builder = _slotsFor(context).progressBuilder;
         return builder?.call(context, _value, progress) ?? _placeholderFor(context);
       },
       errorBuilder: (context, error, stackTrace) {
         if (_load.status == WImageLoadStatus.completed) {
           return _lastFrame ?? const SizedBox.shrink();
         }
+        // 错误占位会替换 Image；之后换回有效 source 时不要再拿旧帧，
+        // 否则 frameBuilder 会返回空 RawImage，表现为整块空白。
+        _hasFrame = false;
         final typed = errorFactory(error);
         _load.handleError(error, typed, retry: retryOnError);
         if (_load.retryScheduled) return _placeholderFor(context);

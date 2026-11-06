@@ -7,7 +7,7 @@
 
 | 页面 | 位置 | 覆盖 |
 |---|---|---|
-| **Playground** | `lib/playground_page.dart` | WImage 参数实时调整：width / height / aspectRatio / fit / memCache / borderRadius / retryCount / placeholder / border / boxShadow / margin；`onLoadStatusChanged`、`onProgress`、`WImageController.retry`、`WImageSource.network(headers/cacheKey)`，并同步生成当前 `WImageStyle` / `WImageLoadConfig` 代码 |
+| **Playground** | `lib/playground_page.dart` | WImage 参数实时调整：width / height / aspectRatio / fit / memCache / borderRadius / retryCount / placeholder / border / boxShadow / margin；`onLoadStatusChanged`、`onProgress`、`WImageController.retry`、`WImageSource.network(headers/cacheKey)`，并同步生成当前 `WImageStyle` / `WImageLoadOptions` / `WImageSlots` 代码 |
 | **状态矩阵** | `lib/states_page.dart` | 加载成功 / 失败 / 空数据 / 加载中 / 主题默认错误占位 / file 不支持 / `precacheImage` 预热 |
 | **常用配方** | `lib/recipes_page.dart` | `WImageStyle.avatar / thumbnail / cover`、asset prefix、`WImageSource.provider(MemoryImage)`、内置错误 + 自动重试 |
 | **按钮** | `lib/buttons_page.dart` | `WButton` 的主题四态、loading / disabled、3 档尺寸 + 自定义、纯图标、列表行、对话框、content / contentBuilder、WidgetStateProperty、键盘 / 语义、`onLongPress`、`loadingBuilder`、`WButtonMotion`；`WPressable` 的 enabled / onLongPress / pressedOpacity |

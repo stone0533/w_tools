@@ -12,14 +12,14 @@ import 'states_page.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 进程级缓存预算；占位符/错误占位默认值交给 WImageDefaultsScope。
+  // 进程级缓存预算；占位符/错误占位默认值交给 WImageTheme。
   PaintingBinding.instance.imageCache
     ..maximumSize = 300
     ..maximumSizeBytes = 300 * 1024 * 1024;
 
   runApp(
-    WImageDefaultsScope(
-      defaults: WImageLoadConfig(
+    WImageTheme(
+      slots: WImageSlots(
         placeholderBuilder: (context, data) => const Center(child: CircularProgressIndicator()),
         errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
       ),

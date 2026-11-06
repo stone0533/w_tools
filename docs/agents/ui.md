@@ -15,7 +15,9 @@
 不要裸用 Image.network / Image.asset
 ```
 
-`WImageStyle` 管视觉，`WImageLoadConfig` 管加载 / 重试 / 占位；普通图片也优先复用 `WImage`。
+`WImageStyle` 管视觉，`WImageLoadOptions` 管加载 / 重试，`WImageSlots` 管占位 / 错误 / 进度 / 重试 UI；普通图片也优先复用 `WImage`。
+App 级默认占位 / 错误 / 进度用 `WImageTheme(slots: WImageSlots(...))`，需要预加载时用
+`WImageSource.resolve(...)` + `precacheImage`。
 
 ## 扩展方法
 

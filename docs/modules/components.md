@@ -43,17 +43,18 @@
 | `WText` / `WTextVariant` / `WTextStyles` | ui | 语义文字样式、overrides、maxLines、textScaler | 不要再用 `WTextConfig`；已移除，使用 `WTextStyles` |
 | `WImage` | ui | 网络图/资源图（缓存、重试、占位） | 不要裸用 `Image.network` |
 | `WImageSource` | ui | WImage 的来源：network / asset / file / base64 / provider / parse | 不要用已删除的 WImage.network / asset / file / data |
-| `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 加载 / 重试 / 占位用 `WImageLoadConfig`，不要混在 style 里 |
-| `WImageLoadConfig` | ui | 图片加载：解码尺寸 / 重试 / 占位 / 错误 / 进度 | 视觉样式用 `WImageStyle` |
+| `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里 |
+| `WImageLoadOptions` | ui | 图片加载行为：解码尺寸 / 重试 / gapless | 视觉样式用 `WImageStyle` |
 | `WImageController` | ui | 手动重试与加载状态（retry / state） | 一个 controller 只能绑定一张 WImage |
 | `WAppPlugin` | app | 插件分层初始化 | — |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
-| `WImageDefaultsScope` | ui | App 级图片占位 / 错误 / 进度默认配置 | — |
+| `WImageTheme` | ui | App 级图片占位 / 错误 / 进度默认配置 | — |
+| `WImageSlots` | ui | 单图 / App 级图片占位 / 错误 / 进度 / 重试 UI | 不要把重试次数、解码尺寸等行为配置塞进 WImageSlots |
 | `WImageErrorKind` | ui | 图片错误分类（WImageError.kind） | — |
 | `WImageError` | ui | 图片加载错误（data / kind / cause / message） | — |
-| `WImageProgress` | ui | 图片加载进度（downloadedBytes / totalBytes / fraction） | — |
+| `WImageProgress` | ui | 图片加载进度（downloadedBytes / totalBytes / fraction / isComplete） | — |
 | `WImageType` | ui | 图片来源类型（asset / network / file / base64 / provider） | — |
-| `WImageLoadStatus` | ui | 图片加载状态（loading / completed / failed） | — |
+| `WImageLoadStatus` | ui | 图片加载状态（idle / loading / completed / failed） | — |
 | `WImageLoadSnapshot` | ui | 图片加载快照（status / progress / attempt / error / retryScheduled） | — |
 | `WImageStyleX` | ui | WImageStyle 链式糖：square / rounded | — |
 | `WTextStylesThemeData` | ui | ThemeData.withWTextStyles：同时写 TextTheme 与 WTextStyles | — |

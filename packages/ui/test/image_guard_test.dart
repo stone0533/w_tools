@@ -69,7 +69,7 @@ void main() {
         MaterialApp(
           home: WImage.source(
             source: WImageSource.parse('   '),
-            config: WImageLoadConfig(
+            slots: WImageSlots(
               errorWidgetBuilder: (context, url, error) {
                 captured = error;
                 return const SizedBox.shrink();
@@ -90,7 +90,7 @@ void main() {
         MaterialApp(
           home: WImage.source(
             source: WImageSource.parse(''),
-            config: WImageLoadConfig(
+            slots: WImageSlots(
               errorWidgetBuilder: (context, url, error) {
                 captured = error;
                 return const Text('custom-error');
@@ -214,7 +214,7 @@ void main() {
 
   group('WImage 解码尺寸', () {
     testWidgets('memCacheWidth / memCacheHeight 透传给 CachedNetworkImageProvider', (tester) async {
-      const config = WImageLoadConfig(memCacheWidth: 240, memCacheHeight: 240);
+      const config = WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 240);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -239,7 +239,7 @@ void main() {
           home: Scaffold(
             body: WImage.source(
               source: WImageSource.asset('assets/images/logo.png'),
-              config: const WImageLoadConfig(memCacheWidth: 120),
+              config: const WImageLoadOptions(memCacheWidth: 120),
             ),
           ),
         ),
@@ -355,7 +355,7 @@ void main() {
         semanticLabel: 'label',
         filterQuality: FilterQuality.high,
       );
-      const config = WImageLoadConfig(
+      const config = WImageLoadOptions(
         memCacheWidth: 30,
         memCacheHeight: 40,
         retryCount: 2,

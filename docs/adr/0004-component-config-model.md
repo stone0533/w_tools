@@ -85,7 +85,19 @@ ADR 发布后，`XxxConfig` 命名出现了两类偏差；核对后按以下方�
 
 - 状态：已完成；决策 1/3/4/5/6 已落地；决策 2 的可变 `WForm*Config` 已 hide，
   命名例外见上节。
-- 偏差：`WMapConfig` / `WImageLoadConfig` 待下个 major 改名；遗留不可变 Config 登记 grandfather。
+- 偏差：`WMapConfig` 已在 map_google 2.0 改为 `WMapOptions`；`WImageLoadConfig` 已在 ui 7.0
+  改为 `WImageLoadOptions`；遗留不可变 Config 登记 grandfather。
 - 证据：`packages/form/lib/src/components.dart`、`packages/ui/lib/src/components/common/image/image_config.dart`、
   `scripts/check_style_literals.py`、`scripts/check_deprecations.py`、
   `packages/ui/lib/src/components/text/w_text_styles.dart`。
+
+## 补充（2026-11-06，命名规则修订）
+
+- 本 ADR 决策 2 的**命名部分**由 [ADR-0007](0007-component-naming-roles.md) 修订；
+  不可变值对象、单一公开入口、enum、Theme、两段式发布等决策继续有效。
+- 因此 `WLocaleConfig`（不可变数据载体）与 `WImageSlots`（组件级 UI 插槽）按 [命名规范](../naming.md) 是允许的，
+  不再作为本 ADR 白名单的口头例外。
+- 新的 Config 名字以 [`scripts/naming_baseline.yaml`](../scripts/naming_baseline.yaml) 的基线为准
+  （规则见 [命名规范](../naming.md)，`scripts/check_naming.py` 读该基线）；
+  本 ADR 的“Config 名字全集”说法由 ADR-0007 与命名规范取代。
+- ADR-0004 补充里的 `WMapConfig` 待改名项已清零：map_google 2.0 已改为 `WMapOptions`。

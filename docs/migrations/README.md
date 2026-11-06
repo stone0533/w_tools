@@ -26,6 +26,7 @@
 - [5.0](ui-5.0.md)：删除 WRowButtons / 图片预设 / 错误子类 / 布局糖等
 - [4.7](ui-4.7.md)：四个组件的 config 可选
 - [6.0](ui-6.0.md)：`WImage` 单入口，删除旧构造器与 String 图片扩展
+- [7.0](ui-7.0.md)：`WImageLoadConfig` → `WImageLoadOptions`、`WImageDefaultsScope` → `WImageTheme`、删除 `WImageStyle.merge` / `WImage.type` / `WImage.data`
 
 ## form
 
@@ -54,6 +55,7 @@
 ## api / app / map / qr
 
 - [api 2.0](api-2.0.md)：日志片段、注册表配置冲突报错
+- [map_google 2.0](map_google-2.0.md)：`WMapConfig` → `WMapOptions`
 - [api 2.1](api-2.1.md)：401 重试不再隐式注册 Dio
 - [api 5.0](api-5.0.md)：删除日志旧 bool 参数
 - [app 1.1](app-1.1.md)：`WBottomSheet` 透传、路由修复

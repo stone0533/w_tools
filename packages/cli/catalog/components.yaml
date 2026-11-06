@@ -187,12 +187,13 @@ components:
       WImage.source(source: WImageSource.network(url));
       WImage.source(source: WImageSource.asset('logo.png', prefix: true));
       WImage.source(source: WImageSource.parse(raw));
+      WImage.source(source: WImageSource.network(url), slots: const WImageSlots(showRetryButton: true));
       // 必须给 width/height/aspectRatio，或由父级约束（SizedBox/Expanded/AspectRatio）
     pitfalls:
       - '旧 WImage.network/asset/data 已在 6.0 删除'
       - '未知来源用 WImageSource.parse'
       - '没有 width/height/aspectRatio 时必须由父级约束（SizedBox/Expanded/AspectRatio）；否则 Row/Column/ListView 里加载前是 0 尺寸（空白）'
-    related: ['`WImageSource`']
+    related: ['`WImageSource`', '`WImageSlots`']
     teach: true
   - name: '`WImageSource`'
     package: 'w_tools_ui'
@@ -208,10 +209,12 @@ components:
       WImageSource.base64(raw);
       WImageSource.provider(MemoryImage(bytes));
       WImageSource.parse(raw); // 未知字符串
+      await WImageSource.asset('logo.png').resolve(memCacheWidth: 240); // 预加载 provider
     pitfalls:
       - 'asset(name) 默认不拼 WAssets.imagePath；需要前缀时显式 prefix: true'
       - '旧 WImage.network/asset/file 已删除'
       - '未知字符串用 WImageSource.parse'
+      - '预加载用 WImageSource.resolve，不要自己拼 AssetImage/CachedNetworkImageProvider'
     related: ['`WImage`']
     teach: true
   - name: '`WImageStyle`'
@@ -219,7 +222,7 @@ components:
     docsAnchor: 'wimagestyle-配置'
     section: '2. 文本与图标'
     useFor: '图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义'
-    dontUseFor: '加载 / 重试 / 占位用 `WImageLoadConfig`，不要混在 style 里'
+    dontUseFor: '占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里'
     usage: |
       WImageStyle.avatar(40)
       WImageStyle.thumbnail(80)
@@ -233,24 +236,23 @@ components:
         semanticLabel: '封面',
       )
     pitfalls:
-      - 'aspectRatio 与固定 width+height 同时传会断言'
-      - '列表缩略图用 WImageStyle.thumbnail，解码尺寸交给 WImageLoadConfig.memCache*'
-    related: ['`WImage`', '`WImageLoadConfig`']
+      - 'aspectRatio 不能与固定 width/height 同时传（debug 断言）'
+      - '列表缩略图用 WImageStyle.thumbnail，解码尺寸交给 WImageLoadOptions.memCache*'
+    related: ['`WImage`', '`WImageLoadOptions`']
     teach: true
-  - name: '`WImageLoadConfig`'
+  - name: '`WImageLoadOptions`'
     package: 'w_tools_ui'
-    docsAnchor: 'wimageloadconfig-配置'
+    docsAnchor: 'wimageloadoptions-配置'
     section: '2. 文本与图标'
-    useFor: '图片加载：解码尺寸 / 重试 / 占位 / 错误 / 进度'
+    useFor: '图片加载行为：解码尺寸 / 重试 / gapless'
     dontUseFor: '视觉样式用 `WImageStyle`'
     usage: |
-      const WImageLoadConfig(memCacheWidth: 480, memCacheHeight: 480)
-      const WImageLoadConfig(placeholder: ..., errorWidget: ..., showRetryButton: true, retryCount: 2)
-      const WImageLoadConfig(progressBuilder: (context, data, progress) => ...)
+      const WImageLoadOptions(memCacheWidth: 480, memCacheHeight: 480, retryCount: 2)
+      const WImageLoadOptions(gaplessPlayback: true)
     pitfalls:
       - 'retryCount 默认 0（不自动重试）；需要重试要显式设置'
-      - 'App 级默认占位用 `WImageDefaultsScope`，不要逐张图传 builder'
-    related: ['`WImage`', '`WImageStyle`', '`WImageController`']
+      - '占位 / 错误 / 进度 / 重试 UI 用 `WImageSlots`，不要塞进 Options'
+    related: ['`WImage`', '`WImageStyle`', '`WImageSlots`', '`WImageController`']
     teach: true
   - name: '`WImageController`'
     package: 'w_tools_ui'
@@ -262,7 +264,8 @@ components:
       final controller = WImageController();
       WImage.source(source: WImageSource.network(url), controller: controller);
       controller.retry();
-      controller.state?.addListener(() { ... });
+      controller.state.addListener(() { ... }); // 初始即 idle，无需判空
+      controller.dispose();
     related: ['`WImage`']
     teach: false
   - name: '`WButtonStyle`'
@@ -1212,11 +1215,11 @@ components:
     section: '8. 能力（非 UI）'
     useFor: 'Google Maps 地图与数据区域'
     dontUseFor: '不要直接用 `GoogleMap`；需要 API Key'
-    usage: "WMap(zone: WMapZone<Shop>(maps: shops), config: const WMapConfig<Shop>())"
+    usage: "WMap(zone: WMapZone<Shop>(maps: shops), config: const WMapOptions<Shop>())"
     pitfalls:
       - "WMap/WMapZone \u6765\u81ea w_tools_map_google\uff0c\u4e0d\u662f w_tools_map"
       - "markerId \u5fc5\u987b\u7a33\u5b9a"
-      - "`WMapConfig` 是命名例外（早于 ADR-0004）；map_google 2.0 改名 `WMapOptions`，现在仍用现名"
+      - "map_google 2.0 起 `WMapConfig` 改名 `WMapOptions`；旧名已删除"
     related: ["`WMapController`", "`WMapItemMapper`"]
     teach: true
 
@@ -1318,22 +1321,38 @@ components:
       WHexColor.fromHex('#FF5733'); color.toHex();
     teach: false
 
-  - name: '`WImageDefaultsScope`'
+  - name: '`WImageTheme`'
     package: 'w_tools_ui'
-    docsAnchor: 'wimagedefaultsscope'
+    docsAnchor: 'wimagetheme'
     section: '2. 文本与图标'
     useFor: 'App 级图片占位 / 错误 / 进度默认配置'
     usage: |
-      WImageDefaultsScope(
-        defaults: WImageLoadConfig(
+      WImageTheme(
+        slots: WImageSlots(
           placeholderBuilder: (context, data) => const CircularProgressIndicator(),
           errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
         ),
         child: app,
       )
     pitfalls:
-      - '单张图的 WImageLoadConfig 优先于 WImageDefaultsScope'
-    related: ['`WImageLoadConfig`', '`WImage`']
+      - '单张图的 WImage.slots 优先于 WImageTheme；WImageLoadOptions 只放行为'
+      - 'WImageTheme 只接收 WImageSlots（占位/错误/进度/重试 UI），不承载重试/解码配置'
+    related: ['`WImageSlots`', '`WImage`']
+    teach: false
+  - name: '`WImageSlots`'
+    package: 'w_tools_ui'
+    docsAnchor: 'wimageslots-配置'
+    section: '2. 文本与图标'
+    useFor: '单图 / App 级图片占位 / 错误 / 进度 / 重试 UI'
+    usage: |
+      WImageSlots(
+        placeholderBuilder: (context, data) => const CircularProgressIndicator(),
+        errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
+        progressBuilder: (context, data, progress) => const LinearProgressIndicator(),
+        showRetryButton: true,
+      )
+    dontUseFor: '不要把重试次数、解码尺寸等行为配置塞进 WImageSlots'
+    related: ['`WImageTheme`', '`WImageLoadOptions`', '`WImage`']
     teach: false
   - name: '`WImageErrorKind`'
     package: 'w_tools_ui'
@@ -1341,7 +1360,7 @@ components:
     section: '2. 文本与图标'
     useFor: '图片错误分类（WImageError.kind）'
     usage: |
-      WImageLoadConfig(
+      WImageLoadOptions(
         errorWidgetBuilder: (context, data, error) => switch (error.kind) {
           WImageErrorKind.network => const Icon(Icons.wifi_off),
           WImageErrorKind.asset => const Icon(Icons.image_not_supported),
@@ -1356,7 +1375,7 @@ components:
     section: '2. 文本与图标'
     useFor: '图片加载错误（data / kind / cause / message）'
     usage: |
-      WImageLoadConfig(
+      WImageLoadOptions(
         errorWidgetBuilder: (context, data, error) => Text(error.message),
       )
     related: ['`WImageErrorKind`']
@@ -1365,9 +1384,9 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '4-wimage---图片组件'
     section: '2. 文本与图标'
-    useFor: '图片加载进度（downloadedBytes / totalBytes / fraction）'
+    useFor: '图片加载进度（downloadedBytes / totalBytes / fraction / isComplete）'
     usage: |
-      WImageLoadConfig(
+      WImageLoadOptions(
         progressBuilder: (context, data, progress) =>
             LinearProgressIndicator(value: progress.fraction),
       )
@@ -1386,10 +1405,10 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '重试与手动重试'
     section: '2. 文本与图标'
-    useFor: '图片加载状态（loading / completed / failed）'
+    useFor: '图片加载状态（idle / loading / completed / failed）'
     usage: |
-      controller.state?.addListener(() {
-        if (controller.state!.value.status == WImageLoadStatus.failed) { ... }
+      controller.state.addListener(() {
+        if (controller.state.value.status == WImageLoadStatus.failed) { ... }
       });
     related: ['`WImageLoadSnapshot`']
     teach: false
@@ -1399,8 +1418,8 @@ components:
     section: '2. 文本与图标'
     useFor: '图片加载快照（status / progress / attempt / error / retryScheduled）'
     usage: |
-      controller.state?.addListener(() {
-        final snapshot = controller.state!.value;
+      controller.state.addListener(() {
+        final snapshot = controller.state.value;
         // snapshot.status / progress / attempt / error
       });
     related: ['`WImageController`']

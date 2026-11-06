@@ -3,10 +3,10 @@
 ## 概述
 
 Map 模块由 `w_tools_map`（接口 / 模型）+ `w_tools_map_google`（Google 实现）组成：
-`WMapItem` / `WMapItemMapper` 在 `w_tools_map`，`WMap` / `WMapZone` / `WMapConfig` /
+`WMapItem` / `WMapItemMapper` 在 `w_tools_map`，`WMap` / `WMapZone` / `WMapOptions` /
 `WMapController` 在 `w_tools_map_google`。Google 实现基于 `google_maps_flutter`。组件职责仅限：渲染地图与 Marker、管理相机动画（选中/关闭时的平滑移动）、暴露 `GoogleMapController` 供外部控制。
 
-**不内置任何业务 UI**（列表面板、选中浮起、空状态等）。业务方通过 `WMapConfig.onItemSelected` / `WMapConfig.onItemClosed` 接收事件后自行构建业务 UI。
+**不内置任何业务 UI**（列表面板、选中浮起、空状态等）。业务方通过 `WMapOptions.onItemSelected` / `WMapOptions.onItemClosed` 接收事件后自行构建业务 UI。
 
 依赖：只有 `w_tools_map_google` 依赖 `google_maps_flutter`；
 `w_tools_map` 只包含平台无关模型。
@@ -28,7 +28,7 @@ packages/map/                         # 接口层
 
 packages/map_google/                  # Google 实现
 └── lib/src/
-    ├── map.dart                      # WMap / WMapConfig / WMapController
+    ├── map.dart                      # WMap / WMapOptions / WMapController
     └── map_zone.dart                 # WMapZone / WMapIconAssets
 ```
 
@@ -142,14 +142,14 @@ zone.update(newStoreList);
 基于 `GoogleMap` 封装的通用地图组件。交互行为：
 
 - 点击 Marker → 选中该条目 + 地图居中（纬度上移 `selectLatOffset` 以露出底部内容）+ 打开 InfoWindow
-- 选中/关闭时通过 `WMapConfig` 回调通知业务方，由业务方构建 UI
+- 选中/关闭时通过 `WMapOptions` 回调通知业务方，由业务方构建 UI
 - 数据更新后若选中条目已不在 `maps` 中，自动清除选中态
 
 ### 构造参数
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `config` | `WMapConfig<T>` | 组件配置 |
+| `config` | `WMapOptions<T>` | 组件配置 |
 | `zone` | `WMapZone<T>` | 地图区域 |
 | `controller` | `WMapController<T>?` | 可选，业务侧选中 / 关闭选中 |
 
@@ -183,7 +183,7 @@ WMap<StoreItem>(
 
 ---
 
-## 4. WMapConfig - 配置类
+## 4. WMapOptions - 配置类
 
 ### 功能说明
 
@@ -204,7 +204,7 @@ WMap<StoreItem>(
 ### 使用示例
 
 ```dart
-final mapConfig = WMapConfig<StoreItem>(
+final mapConfig = WMapOptions<StoreItem>(
   selectZoom: 12,
   closeZoom: 11,
   selectLatOffset: 0.03,
@@ -254,7 +254,7 @@ import 'package:w_tools/w_tools.dart';
 /// 1. 业务数据模型（见 WMapItem 示例）
 
 /// 2. 构建配置
-final mapConfig = WMapConfig<StoreItem>(
+final mapConfig = WMapOptions<StoreItem>(
   onItemSelected: (item) {
     // 业务方自行展示列表面板 / 选中浮起等 UI
   },

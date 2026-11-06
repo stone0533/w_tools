@@ -20,7 +20,7 @@ final zone = WMapZone<Store>(
 
 WMap<Store>(
   zone: zone,
-  config: WMapConfig<Store>(
+  config: WMapOptions<Store>(
     onItemSelected: (s) {},
     onItemClosed: (s) {},
   ),
@@ -43,7 +43,7 @@ WMap<Store>(
 - Android / iOS 都要配 Google Maps API Key；
 - `json_serializable` 模型不要改生成代码，用 `WMapItemMapper` 取字段；
 - 业务 UI 选中 / 关闭统一走 `WMapController.select` / `closeSelection`；`closeSelection` 会隐藏 InfoWindow。
-- 直接构造 `WMap(config:, zone:)`；`WMapConfig.build()` 已在 5.0 删除。
-- `WMapConfig` 是命名例外（早于 ADR-0004），map_google 2.0 会改名 `WMapOptions`；在那之前仍用现名。
+- 直接构造 `WMap(config:, zone:)`；旧 `WMapConfig.build()` 已在 5.0 删除。
+- `WMapOptions` 是 map_google 2.0 的正式名字；旧 `WMapConfig` 已删除（迁移见 `docs/migrations/map_google-2.0.md`）。
 
 完整说明：[map_module.md](../modules/map_module.md) · 示例：`packages/map_google/example`

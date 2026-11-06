@@ -48,11 +48,11 @@ ui/
     │   │   │   ├── image.dart                  # WImage, WImageController
     │   │   │   ├── image_source.dart           # WImageSource（sealed）
     │   │   │   ├── image_style.dart            # WImageStyle
-    │   │   │   ├── image_config.dart           # WImageLoadConfig
+    │   │   │   ├── image_config.dart           # WImageLoadOptions
     │   │   │   ├── image_loader.dart           # 内部加载器（不导出）
     │   │   │   ├── image_load_state.dart       # 内部状态基类
     │   │   │   ├── image_frame.dart            # WImageFrame
-    │   │   │   ├── image_defaults.dart         # WImageDefaultsScope（接收 WImageLoadConfig）
+    │   │   │   ├── image_defaults.dart         # WImageTheme / WImageSlots
     │   │   │   ├── image_types.dart            # WImageType / WImageProgress / WImageError
     │   │   │   ├── image_retry_policy.dart     # 重试判定与退避（内部）
     │   │   │   └── _image_file_*.dart          # file provider 条件实现
@@ -745,10 +745,13 @@ Text.rich(
 
 图片组件，支持网络 URL、本地资源、本地文件、Base64 与任意 `ImageProvider`。
 
-**新代码只用 `WImage.source(...)`**；来源用 `WImageSource.network` / `WImageSource.asset` /
-`WImageSource.file` / `WImageSource.base64` / `WImageSource.provider`。
-`WImage.source(source: WImageSource.parse(...))` 的自动判定只作为便利入口。
-提供占位符、错误处理、加载进度、网络重试、解码尺寸限制与图片变换。
+新代码统一使用 `WImage.source` + `WImageSource`：
+
+- 来源：`WImageSource.network` / `asset` / `file` / `base64` / `provider`
+- 视觉：`WImageStyle`（尺寸、fit、圆角、边框、阴影、间距、语义）
+- 加载行为：`WImageLoadOptions`（解码尺寸、重试、gapless）
+- UI 插槽：`WImage.slots: WImageSlots(...)`；App 级默认值用 `WImageTheme(slots: ...)`
+- 控制：`WImageController`，手动重试 + 非空加载状态
 
 ### 新 API（推荐）
 
@@ -765,19 +768,18 @@ WImage.source(
     fit: BoxFit.cover,
     borderRadius: BorderRadius.all(Radius.circular(12)),
   ),
-  config: const WImageLoadConfig(retryCount: 1),
+  config: const WImageLoadOptions(retryCount: 1),
 )
 ```
 
-- `WImageSource` 是 sealed：`network` / `asset` / `file` / `base64`，`WImageSource.parse` 保留字符串自动判定；
-- `WImageStyle` 不可变，只管视觉/布局/语义；`WImageLoadConfig` 不可变，管加载/重试/占位/进度；
-- `WImageDefaultsScope`（InheritedWidget）可按子树覆盖默认占位符/错误占位/进度 UI；
-- `WImageController.state` 暴露 `ValueListenable<WImageLoadSnapshot>`（status / progress / attempt）；
-- 重试定时器、错误分类、进度上报与状态去重都在内部加载器内（不对外导出），`WImage` 的 State 只负责构建与渲染；
-- 网络图统一走 `CachedNetworkImageProvider` + `Image`：磁盘缓存仍由 `cached_network_image` 负责，
-  进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`；
-- `WImage.network/asset/file/base64/provider` 等命名构造已在 5.0/6.0 删除；只用 `WImage.source`。
-- 旧的可变 `WImageLoadConfig` / `WImageLoadConfigBuild` 已移除；新的 `WImageLoadConfig` 是不可变配置。
+- `WImageSource` 是 sealed：`network` / `asset` / `file` / `base64` / `provider`；
+  `WImageSource.parse` 只作为动态字符串的便利入口，WImage 不再替调用方猜类型；
+- `WImageStyle` / `WImageLoadOptions` 都是不可变值对象（实现 `==` / `hashCode`）；
+- `WImageTheme` 只接收 `WImageSlots`，不会静默覆盖单图的解码/重试配置；
+- `WImageController.state` 从创建起就是非空 `ValueListenable<WImageLoadSnapshot>`，初始 `idle`；
+- 网络图统一走 `CachedNetworkImageProvider` + `Image`；磁盘缓存由 `cached_network_image` 负责；
+- 旧 `WImage.network/asset/file/base64/provider` 在 5.0/6.0 删除，旧 `WImageLoadConfig` /
+  `WImageDefaultsScope` 在 7.0 删除；迁移见 [`docs/migrations/ui-7.0.md`](../migrations/ui-7.0.md)。
 
 ### 构造参数
 
@@ -785,14 +787,15 @@ WImage.source(
 |------|------|------|
 | `source` | `WImageSource` | 必需，图片来源 |
 | `style` | `WImageStyle` | 视觉样式（默认 `const WImageStyle()`） |
-| `config` | `WImageLoadConfig` | 加载配置（默认 `const WImageLoadConfig()`） |
-| `onLoadStatusChanged` | `ValueChanged<WImageLoadStatus>?` | 加载状态回调 |
-| `onProgress` | `ValueChanged<WImageProgress>?` | 类型化进度回调（仅网络） |
+| `config` | `WImageLoadOptions` | 加载行为（默认 `const WImageLoadOptions()`） |
+| `slots` | `WImageSlots?` | 单图 UI 插槽；null 时使用 `WImageTheme` |
+| `onLoadStatusChanged` | `ValueChanged<WImageLoadStatus>?` | 加载状态回调（post-frame） |
+| `onProgress` | `ValueChanged<WImageProgress>?` | 进度回调（网络 / 自定义 provider 的 chunk） |
 | `controller` | `WImageController?` | 手动重试 / 状态监听 |
 
 ### 显式构造
 
-| 构造 | 说明 |
+| 入口 | 说明 |
 |------|------|
 | `WImage.source(source: WImageSource.network(url))` | 网络图；`//` 开头的协议相对地址会补 `https:` |
 | `WImage.source(source: WImageSource.asset(path))` | 资产图；前后的空白会被裁掉 |
@@ -800,8 +803,17 @@ WImage.source(
 | `WImage.source(source: WImageSource.base64(data))` | Base64；可带 `data:...;base64,` 前缀，也可裸串 |
 | `WImage.source(source: WImageSource.provider(MemoryImage(bytes)))` | `Uint8List` → `MemoryImage` |
 | `WImage.source(source: WImageSource.provider(provider))` | 任意 `ImageProvider` |
+| `WImageSource.resolve(...)` | 预加载：返回与 WImage 相同尺寸规则的 `ImageProvider` |
 
-`WImage.thumbnail` / `WImage.cover` / `WImageSource.assetImage` 已在 5.0 删除；
+```dart
+final provider = await WImageSource.asset('logo.png').resolve(
+  memCacheWidth: 240,
+  memCacheHeight: 240,
+);
+await precacheImage(provider, context);
+```
+
+`WImage.thumbnail` / `WImage.cover` / `WImage.assetImage` 已在 5.0 删除；
 字符串图片扩展已在 6.0 删除。
 
 ### WImageSource.parse 自动判定
@@ -811,27 +823,23 @@ WImage.source(
 | `network` | `Uri` 解析出的 scheme 为 `http`/`https`（大小写无关）且 host 非空；或 `//` 开头 |
 | `file` | scheme 为 `file` |
 | `base64` | `data:` 开头（不限于 `data:image/`） |
-| `provider` | 任意 `ImageProvider`（`WImageSource.provider` / `WImageSource.provider(MemoryImage(...))`） |
-
-`data:` / `file:` 前缀大小写不敏感（`DATA:` / `FILE:` 同样识别）。
 | `asset` | 其余；空串/纯空白会直接渲染错误占位 |
 
-`WImageSource.parse` 的判定只在 `initState` / `didUpdateWidget` 执行一次，不使用跨实例的全局缓存。
-显式构造来源时不要依赖自动判定。
+`WImageSource.parse` 由调用方执行（通常在自己的 build / 数据层），WImage 内部不会再猜一次。
+无法识别来源优先显式传 `type`；`provider` 不能从字符串解析。
 
 ### 错误类型
 
-`errorWidgetBuilder` 的第三个参数是 `WImageError`；4.2 起用 `error.kind`（`WImageErrorKind`）区分，
-`WImageXxxError` 子类已在 5.0 删除：
+`errorWidgetBuilder` 的第三个参数是 `WImageError`，用 `error.kind`（`WImageErrorKind`）区分：
 
 | kind | 场景 |
 |------|------|
 | `empty` | 空串 / 纯空白 |
 | `network` | 网络请求失败（`cause` 为底层异常） |
 | `asset` | 资产不存在或解码失败 |
-| `decode` | Base64 解码失败 |
+| `decode` | Base64 解码失败 / 图片解码失败 |
 | `file` | 文件读取失败 |
-| `provider` | `WImageSource.provider` / `WImageSource.provider(MemoryImage(...))` 解码失败 |
+| `provider` | 任意 `ImageProvider` 解码失败 |
 | `unsupported` | Web 上的 `file://` |
 
 ```dart
@@ -849,172 +857,184 @@ errorWidgetBuilder: (context, url, error) => switch (error.kind) {
 | `width` / `height` | `double?` | null | 图片内容尺寸 |
 | `fit` | `BoxFit` | cover | 适配模式 |
 | `alignment` | `Alignment` | center | 对齐方式 |
-| `aspectRatio` | `double?` | null | 固定宽高比，加载前后不跳版 |
+| `aspectRatio` | `double?` | null | 图片内容比例；不能与固定 width/height 同用 |
 | `filterQuality` | `FilterQuality` | low | 采样质量 |
 | `semanticLabel` | `String?` | null | 无障碍描述 |
 | `excludeFromSemantics` | bool | false | 从语义树排除 |
-| `borderRadius` / `border` / `boxShadow` | — | null | 装饰 |
+| `borderRadius` / `border` / `boxShadow` | — | null | 装饰；边框绘制在图片之上 |
 | `margin` / `padding` | `EdgeInsets?` | null | 间距 |
 
-### WImageLoadConfig 配置
+`WImageStyle` 是值对象：字段相同即 `==`，可用于 const / 外层缓存。
+
+### WImageLoadOptions 配置
+
+只包含加载行为，不包含 UI：
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `memCacheWidth` / `memCacheHeight` | `int?` | null | 解码尺寸上限（物理像素） |
-| `gaplessPlayback` | bool | false | 换图保留上一帧 |
-| `retryCount` / `retryDelay` | int / int | 0 / 1000 | 网络重试次数 / 间隔（毫秒） |
+| `gaplessPlayback` | bool | false | 换 source 时保留上一帧，直到新图加载完成 |
+| `retryCount` / `retryDelay` | int / int | 0 / 1000 | 网络重试次数 / 基础间隔（毫秒，带抖动） |
+
+### WImageSlots 配置
+
+单图或 `WImageTheme` 的 UI 插槽：
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
 | `placeholderBuilder` | 函数 | null | 占位符（推荐） |
-| `placeholder` | `Widget?` | null | 固定占位符 |
+| `placeholder` | `Widget?` | null | 固定占位符（有 width/height 时会套 SizedBox） |
 | `errorWidgetBuilder` | 函数 | null | 错误占位（推荐，第三参是 `WImageError`） |
-| `errorWidget` | `Widget?` | null | 固定错误占位 |
+| `errorWidget` | `Widget?` | null | 固定错误占位（有 width/height 时会套 SizedBox） |
 | `progressBuilder` | 函数 | null | 进度（`WImageProgress`） |
-| `showRetryButton` | bool | false | 无自定义错误占位时显示内置“错误 + 重试”视图 |
-| `retryLabel` | String | 重试 | 内置重试按钮文案 |
+| `showRetryButton` | `bool?` | null | 可重试错误时显示内置“错误 + 重试”视图；null 继承主题 |
+| `retryLabel` | `String?` | null | 内置重试按钮文案；null 继承主题 / 使用「重试」 |
 
-`WImageStyle` / `WImageLoadConfig` 都是不可变的：用 `copyWith` 覆盖字段，字段本身没有 setter。
-新的 `WImageLoadConfig` 不是旧版可变配置的回归。
-`boxShadow` 列表在渲染时会复制为不可变快照，但不要依赖这一点去修改传入列表。
-`httpHeaders` / `cacheKey` 属于来源，放在 `WImageSource.network(...)` 上。
+- `width` / `height` 是图片内容尺寸；`padding` / `margin` 在外部叠加。
+- 没有 `width` / `height` / `aspectRatio` 时，父级必须在至少一个轴上有界；否则加载前占位是
+  0 尺寸（空白）。debug 下会打印一次提示。
+- `aspectRatio` 不能和固定 `width` / `height` 同时设置。
+- `placeholderBuilder` / `errorWidgetBuilder` 的返回值不会自动套 `SizedBox`；
+  `WImageSlots` 的固定 `placeholder` / `errorWidget` 在设置 width/height 时会套。
+- 网络 `headers` / `cacheKey` 属于 `WImageSource.network`，不要放到 options。
 
-- `width` / `height` 是**图片内容尺寸**；`padding` / `margin` 在外部叠加，
-  实际总尺寸 = 内容尺寸 + 间距。
-- 没有 `width` / `height` / `aspectRatio` 时，必须由父级给确定约束（`SizedBox` /
-  `Expanded` / `AspectRatio`）。在 `Row` / `Column` / `ListView` 的无界轴上，默认占位是
-  0 尺寸，表现为空白；debug 下 `WImage` 会打印提示。
-- `aspectRatio` 不要和固定的 `width` + `height` 同时设置（debug 下会 assert，约束会冲突）。
-- `borderRadius` 同时作用于图片本体、`border` 与 `boxShadow`。
-- 自定义 `placeholder` / `placeholderBuilder` / `errorWidget` / `errorWidgetBuilder`
-  不会自动套 `SizedBox`；需要自己按 `width` / `height` 或 `AspectRatio` 处理尺寸。
+### 加载状态与进度
 
-### WImageDefaultsScope
+- `WImageLoadStatus`：`idle` / `loading` / `completed` / `failed`；`WImageController.state` 初始为 `idle`。
+- `WImageLoadSnapshot.status` 不再可空；`attempt` 每次自动/手动重试递增。
+- `onProgress` 只在进度真正变化时回调；完成时收到 `WImageProgress.complete()`（`isComplete == true`，
+  `fraction == 1.0`，字节数不再伪造为 1/1）。
+- `WImageLoadSnapshot.retryScheduled == true` 时，`retryDelayMs` 是含抖动的实际排队延迟。
 
-- `WImageDefaultsScope`（InheritedWidget）接收 `WImageLoadConfig`，按子树覆盖默认占位/错误/进度；
+### WImageTheme
 
 ```dart
-WImageDefaultsScope(
-  defaults: const WImageLoadConfig(
+WImageTheme(
+  slots: WImageSlots(
     placeholderBuilder: _placeholder,
     errorWidgetBuilder: _error,
     progressBuilder: _progress,
   ),
-  child: ...,
+  child: app,
 )
-
-PaintingBinding.instance.imageCache
-  ..maximumSize = 200
-  ..maximumSizeBytes = 200 * 1024 * 1024;
 ```
 
-优先级：`WImageLoadConfig.placeholderBuilder` > `WImageLoadConfig.placeholder` > `WImageDefaultsScope.placeholderBuilder` > 内置兜底。
-默认进度 UI 用 `WImageDefaultsScope` / `WImageLoadConfig.progressBuilder`。
-内置错误视图可用 `WImageLoadConfig(showRetryButton: true)` 启用，或直接复用 `WImageErrorView`。
-`WImageErrorView` 尺寸策略：
+### WImageSlots
+
+`WImageSlots` 承载占位 / 错误 / 进度 UI（builder 或固定 Widget）以及内置重试开关；
+它不承载 `retryCount`、`memCacheWidth` 等行为配置（这些始终按单图 `WImageLoadOptions` 决定）。
+
+默认优先级按字段分别合并：
+
+- 占位：单图 `slots.placeholderBuilder` / `slots.placeholder` > `WImageTheme` 同名字段 > 内置
+- 错误：单图 `slots.errorWidgetBuilder` / `slots.errorWidget` / `showRetryButton` >
+  `WImageTheme` 同名字段 > 内置
+- 进度：单图 `slots.progressBuilder` > `WImageTheme.progressBuilder` > 占位
+- 单图 `showRetryButton: true` 会抑制从主题继承的错误 builder/widget；
+  显式 `false` 则允许继承。
+
+内置 `WImageErrorView` 的尺寸策略：
 
 | 尺寸 | 图标 | 文案 | 重试按钮 |
 |---|---|---|---|
-| `< 64` | ✅ | ❌ | ❌ |
-| `64–96` | ✅ | ❌ | ❌ |
-| `96–120` | ✅ | ✅ | ❌ |
-| `>= 120×112` | ✅ | ✅ | ✅（仅可重试错误） |
+| 宽 < 96 或高 < 64 | ✅ | ❌ | ❌ |
+| 高 64–87 | ✅ | ✅ | ❌ |
+| 高 88–111（可重试） | ✅ | ❌ | ✅ |
+| 高 ≥ 112（可重试） | ✅ | ✅ | ✅ |
 
-- 仅 `WImageErrorKind.network` / `provider` / `file` 显示重试按钮；
-- 空数据、Base64 解码失败、asset 不存在、平台不支持不显示重试；
-- 也可显式传 `compact: true` / `showAction: false`。
-优先级：`WImageLoadConfig.errorWidgetBuilder` > `WImageLoadConfig.errorWidget` > `showRetryButton` > `WImageDefaultsScope` > 兜底。
+只有 `network` / `provider` / `file` 错误可重试；`empty` / `decode` / `asset` / `unsupported`
+不显示重试按钮。小尺寸优先保留按钮而不是文案。
 
-需要缩略图解码上限时自行传入 `WImageLoadConfig(memCacheWidth: ..., memCacheHeight: ...)`（通常按 `max(width, height) × devicePixelRatio` 计算）。
+### 缓存与预加载
 
-### 缓存
-
-- 资产 / 文件 / Base64 统一走 `Image` + Flutter `ImageCache`；`memCacheWidth` / `memCacheHeight` 通过 `ResizeImage` 生效。
-- 网络图走 `cached_network_image`（内存 + 磁盘），可用 `httpHeaders` / `cacheKey` 定制。
-
-### 2.0 迁移
-
-- 旧的可变 `WImageLoadConfig` 删除；2.0 的 `WImageLoadConfig` 是**新的不可变加载配置**；
-  视觉样式由 `WImageStyle` 负责。
-- `WImageLoadConfigBuild` 删除，用 `WImage.source` / `WImageSource.network/asset/file/base64`；
-- `WImage.onLoadProgress` 删除，用 `onProgress`；
-- `cacheEnabled` / `fitCenter` / `size` 均已删除。
-
-### 可运行示例
-
-完整示例在 [`packages/ui/example`](../../packages/ui/example/README.md)：
-
-```bash
-cd packages/ui/example
-flutter pub get
-flutter run
-```
-
-包含 **Playground**（实时调参 + 生成 `WImageStyle` / `WImageLoadConfig` 代码）与 **状态矩阵**（成功/失败/空数据/加载中/主题/文件不支持）。
-覆盖网络图、asset、Base64、圆形头像、进度、自动/手动重试、主题、缓存预算与预加载。
+- 资产 / 文件 / Base64 / provider 统一走 Flutter `ImageCache`；`memCacheWidth` /
+  `memCacheHeight` 通过 `ResizeImage` 生效。
+- 网络图走 `cached_network_image`（内存 + 磁盘），可用 `headers` / `cacheKey` 定制。
+- 预加载用 `WImageSource.resolve(...)` 生成与 WImage 一致的 provider，再 `precacheImage`。
+- 注意：`CachedNetworkImageProvider` 的相等性与 Flutter ImageCache key 不包含 headers；
+  同一 URL + cacheKey 换 token 不会自动重取。认证图请把用户/租户信息并入 `cacheKey`。
 
 ### 重试与手动重试
 
-- `retryCount` 默认 0（不自动重试）；开启后只对**可重试错误**生效：
-  `5xx` / `408` / `429` / 连接级失败（拿不到状态码）。`4xx` 直接失败，不会白白等 N 次延迟。
-- 重试间隔按指数退避（`retryDelay` → 2× → 4×……，上限 30s）并带 20% 抖动，
-  避免同屏多张图在同一毫秒齐刷刷重试。
-- 修改 `retryCount` / `retryDelay` 会取消已经排队的旧重试（避免关掉重试后仍多发一次请求）。
-- 一个 `WImageController` 对应一个 `WImage`；同时绑定两张图会在 debug 下触发断言。
-- `WImageController.state` 在首次绑定后保持同一 `ValueListenable`；WImage 卸载后不再更新，
-  但外部持有的监听器仍可安全 `removeListener`。
-- 需要用户手动重试时，传一个 `WImageController`，在错误占位里调用 `retry()`：
+- `retryCount` 默认 0；只对可重试错误生效：`5xx` / `408` / `429` / 连接级失败。
+- 重试间隔指数退避（`retryDelay` → 2× → 4×……，上限 30s）并带 20% 抖动。
+- 修改 `retryCount` / `retryDelay` 会取消已排队重试。
+- 一个 `WImageController` 只对应一张 `WImage`；同时绑定两张图 debug 下断言。
+- `controller.state` 创建后即可监听（初始 `idle`），不需要 `!` / `?`；WImage 卸载后不再更新。
+- controller 需要释放时调用 `dispose()`。
 
 ```dart
 final controller = WImageController();
 
-WImage.source(source: WImageSource.network(url), controller: controller, config: WImageLoadConfig(
-    errorWidgetBuilder: (context, url, error) => TextButton(
-      onPressed: controller.retry,
-      child: const Text('重试'),
-    ),
-  ))
+WImage.source(
+  source: WImageSource.network(url),
+  controller: controller,
+  slots: const WImageSlots(showRetryButton: true),
+);
+
+controller.state.addListener(() {
+  final snapshot = controller.state.value;
+  debugPrint('${snapshot.status} ${snapshot.progress?.fraction}');
+});
+
+// 离开页面
+controller.dispose();
 ```
 
-`retry()` 会立即发起新请求（不等待自动重试的退避时间），对网络 / 资产 / 文件 / Base64 四种来源都有效；
-组件卸载后调用是空操作。手动重试也会把已执行的重试计数清零。
+`retry()` 对 network / asset / file / base64 都有效；组件卸载后是空操作。手动重试会清零自动重试预算。
 
 ### 使用示例
 
 ```dart
 // 网络图片 + 固定宽高比 + 解码尺寸
-WImage.source(source: WImageSource.network('https://example.com/image.jpg'), style: const WImageStyle(
+WImage.source(
+  source: WImageSource.network('https://example.com/image.jpg'),
+  style: const WImageStyle(
     aspectRatio: 16 / 9,
     borderRadius: BorderRadius.all(Radius.circular(12)),
-  ), config: const WImageLoadConfig(memCacheWidth: 480))
+  ),
+  config: const WImageLoadOptions(memCacheWidth: 480),
+)
 
-// 列表缩略图：限制解码尺寸（大图按原尺寸解码很吃内存）
-WImage.source(source: WImageSource.network(url), config: const WImageLoadConfig(memCacheWidth: 240))
+// 列表缩略图
+WImage.source(
+  source: WImageSource.network(url),
+  config: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 240),
+)
 
 // 带重试与进度
-WImage.source(source: WImageSource.network(url), config: WImageLoadConfig(
-    retryCount: 3,
-    retryDelay: 1500,
+WImage.source(
+  source: WImageSource.network(url),
+  config: const WImageLoadOptions(retryCount: 3, retryDelay: 1500),
+  slots: WImageSlots(
     progressBuilder: (context, url, progress) =>
         CircularProgressIndicator(value: progress.fraction),
-  ), onProgress: (p) => debugPrint('${p.downloadedBytes}/${p.totalBytes}'))
+  ),
+  onProgress: (p) => debugPrint('${p.downloadedBytes}/${p.totalBytes}'),
+)
 
-// 本地资源 / 文件 / Base64
+// 本地资源 / 文件 / Base64 / provider
 WImage.source(source: WImageSource.asset('assets/images/logo.png'))
 WImage.source(source: WImageSource.file('/tmp/a.png'))
 WImage.source(source: WImageSource.base64(base64String))
+WImage.source(source: WImageSource.provider(MemoryImage(bytes)))
 
 // 圆形头像
-WImage.source(source: WImageSource.network(avatarUrl), style: const WImageStyle(
-    width: 100,
-    height: 100,
-    borderRadius: BorderRadius.all(Radius.circular(50)),
-  ))
+WImage.source(
+  source: WImageSource.network(avatarUrl),
+  style: WImageStyle.avatar(48),
+)
 
 // 错误分支
-WImage.source(source: WImageSource.network(url), config: WImageLoadConfig(
+WImage.source(
+  source: WImageSource.network(url),
+  slots: WImageSlots(
     errorWidgetBuilder: (context, url, error) => switch (error.kind) {
       WImageErrorKind.network => const Icon(Icons.wifi_off),
       _ => const Icon(Icons.broken_image),
     },
-  ))
+  ),
+)
 ```
 
 ### 字符串入口已删除

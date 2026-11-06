@@ -19,13 +19,15 @@
 - **Badges / clipping / action rows / steps**: use `WBadge(badgeContent:, child:)` for badges,
   `WClipRRect(config: WClipRRectConfig.all(12), child: ...)` for rounded clipping,
   `WActionRow` for horizontal action rows, and `WStep(labels:, current:)` (or `WStepFlow`
-  for reuse) for steps. Use `WImageDefaultsScope` for app-level image placeholders/errors
+  for reuse) for steps. Use `WImageTheme` for app-level image placeholders/errors
   and `WButtonSize` for custom button sizes.
 - **Images**: always use `WImage.source` + `WImageSource` —
   `WImage.source(source: WImageSource.network(url))` for network images and
   `WImage.source(source: WImageSource.asset(name, prefix: true))` for assets;
   `WImage.network` / `WImage.asset` / `WImage(data:)` were removed in 6.0.
-  Use `WImageStyle` for visuals and `WImageLoadConfig` for loading/retry/placeholders.
+  Use `WImageStyle` for visuals and `WImageLoadOptions` for loading/retry/placeholders.
+  Use `WImageTheme(slots: WImageSlots(...))` for app-level placeholders/errors and
+  `WImageSource.resolve(...)` for preloading.
   Do not use `Image.network` / `Image.asset` directly. Without `width` / `height` /
   `aspectRatio`, the parent must constrain it (`SizedBox` / `Expanded` / `AspectRatio`);
   otherwise it is 0-sized before load (blank).

@@ -8,7 +8,7 @@ import 'image_types.dart';
 /// 公开只为测试可见；不属于 barrel 导出的公共 API。
 class WImageLoadState {
   /// 上一次已通知的加载状态
-  WImageLoadStatus? status;
+  WImageLoadStatus status = WImageLoadStatus.idle;
 
   /// 已执行的尝试次数（自动 + 手动，作为重建 token）
   int attempt = 0;
@@ -34,7 +34,7 @@ class WImageLoadState {
 
   /// 重置到初始状态
   void reset({required int retryCount, required int retryDelay}) {
-    status = null;
+    status = WImageLoadStatus.idle;
     attempt = 0;
     autoRetries = 0;
     generation++;
@@ -73,7 +73,7 @@ class WImageLoadState {
   void beginAttempt() {
     attempt++;
     autoRetries++;
-    status = null;
+    status = WImageLoadStatus.idle;
     completedProgressSent = false;
     pendingProgress = null;
   }
@@ -82,7 +82,7 @@ class WImageLoadState {
   void beginManualAttempt() {
     attempt++;
     autoRetries = 0;
-    status = null;
+    status = WImageLoadStatus.idle;
     completedProgressSent = false;
     pendingProgress = null;
   }

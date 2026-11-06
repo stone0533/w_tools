@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""检查文档代码块里的 W 符号：类存在，且 `WXxx.member` 成员存在。
+"""检查文档里的 W 符号：类存在，且 `WXxx.member` 成员存在。
 
 只扫推荐路径（根 README / AGENTS.md、docs/agents、docs/recipes、docs/modules、docs/guides、
 packages/*/README.md），跳过迁移 / 分析 / ADR（历史文档允许出现已删除的名字）。
 
 - `WXxx(` 的 `WXxx` 必须能在 packages/*/lib 找到 class / enum / mixin / extension / typedef；
-- `WXxx.member` 的 member 必须在该类（深度 1）声明，或属于 Object 的通用成员。
+- `WXxx.member` 的 member 必须在该类（深度 1）声明，或属于 Object 的通用成员；
+- `docs/naming.md` 是规则表，示例写在行内代码里：同样校验，但忽略该文件明确写成
+  反例 / 历史名字的符号（见 `NAMING_DOC_IGNORE`）。
 """
 from __future__ import annotations
 
@@ -87,7 +89,7 @@ for sub in ('docs/agents', 'docs/recipes', 'docs/modules', 'docs/guides'):
     targets.extend(sorted((root / sub).glob('*.md')))
 targets.extend(sorted((root / 'packages').glob('*/README.md')))
 # 根 README / AGENTS.md 是仓库的主入口，代码块同样要对着源码校验。
-targets += [root / 'README.md', root / 'AGENTS.md']
+targets += [root / 'README.md', root / 'AGENTS.md', root / 'docs' / 'naming.md']
 
 call_re = re.compile(r'\b(W[A-Z][A-Za-z0-9_]*)\s*\(')
 member_access_re = re.compile(r'\b(W[A-Z][A-Za-z0-9_]*)\.([a-zA-Z_]\w*)')
@@ -115,10 +117,38 @@ for path in targets:
                     f'{path.relative_to(root)}: 代码块第 {line} 行引用了未定义成员 {owner}.{member}'
                 )
 
+NAMING_DOC = root / 'docs' / 'naming.md'
+# naming.md 里有意写成不存在的反例 / 历史名字；新增反例时在这里登记。
+NAMING_DOC_IGNORE = {
+    'WImg', 'WBtn', 'WMsg', 'WQRView', 'WAPIConfig', 'WImageHelper',
+    'WMapConfig', 'WImageLoadConfig', 'Widget', 'With',
+}
+inline_code_re = re.compile(r'`([^`\n]+)`')
+inline_symbol_re = re.compile(
+    r'(?<![A-Za-z0-9_])(W[A-Z][A-Za-z0-9_]*)(?:\.([a-zA-Z_]\w*))?'
+)
+
+if NAMING_DOC.exists():
+    text = NAMING_DOC.read_text()
+    for span in inline_code_re.finditer(text):
+        line = text[: span.start()].count('\n') + 1
+        for owner, member in inline_symbol_re.findall(span.group(1)):
+            if owner in NAMING_DOC_IGNORE:
+                continue
+            if owner not in declared:
+                bad.append(f'docs/naming.md:{line}: 引用了未定义符号 {owner}')
+                continue
+            if member in object_members or not member:
+                continue
+            if member not in members.get(owner, set()):
+                bad.append(
+                    f'docs/naming.md:{line}: 引用了未定义成员 {owner}.{member}'
+                )
+
 if bad:
-    print('文档代码块引用了不存在的符号/成员：', file=sys.stderr)
+    print('文档引用了不存在的符号/成员：', file=sys.stderr)
     for item in bad:
         print(f'  ✗ {item}', file=sys.stderr)
     sys.exit(1)
 
-print(f'✓ 文档代码块符号/成员检查通过（{len(targets)} 个文件）')
+print(f'✓ 文档符号/成员检查通过（{len(targets)} 个文件）')

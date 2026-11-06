@@ -240,7 +240,8 @@ teach: false  普通组件：至少 useFor / dontUseFor
 | 5.5 生成物新鲜度 | `catalog.g.dart` / `templates.g.dart` / `components.md` 与源文件一致 | `gen_catalog.dart --check`、`gen_templates.dart --check` |
 | 5.6 查询正确性 | `list` / `explain` / `context`、三种输出格式、别名命中、README 快速开始 | [`cli_test.dart`](../packages/cli/test/cli_test.dart)、[`catalog_test.dart`](../packages/cli/test/catalog_test.dart)、[`context_test.dart`](../packages/cli/test/context_test.dart) |
 | 5.7 文档入口一致性 | 文档索引完整、`docs/agents` 索引与规则页一致、doctor 规则表两处一致、root / 各包 `AGENTS.md` 的符号与已删除 API、提示词命令可执行 | [`check_docs_facts.py`](../scripts/check_docs_facts.py)、[`check_agents_consistency.py`](../scripts/check_agents_consistency.py)、[`check_prompt_docs.py`](../scripts/check_prompt_docs.py) |
-| 5.8 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh` | [`ci_matrix.py`](../scripts/ci_matrix.py) |
+| 5.8 命名约定 | 公开 `W*Config` 必须在 [naming_baseline.yaml](../scripts/naming_baseline.yaml) 内；库包公开类型 `W` 前缀；规则见 [docs/naming.md](naming.md) | [`check_naming.py`](../scripts/check_naming.py) |
+| 5.9 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh` | [`ci_matrix.py`](../scripts/ci_matrix.py) |
 
 重建基线用 `python3 scripts/check_public_catalog.py --write`；它是**基线**，不是「全了」的证明，
 新增类型仍要人工判断进 catalog 还是 `uncataloged.yaml`。

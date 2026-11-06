@@ -18,7 +18,8 @@ root = pathlib.Path(__file__).resolve().parent.parent
 # 已删除的公开名白名单：每次删除 / 废弃都要在这里登记，见 docs/ai-contract.md §7。
 names = [
     r'WRowButtons', r'WRowButtonsController', r'WSizeBox', r'WPadding', r'WColumn',
-    r'WImageCachePolicy', r'WImageConfig', r'WImageDefaults\b', r'WImageEmptyError',
+    r'WImageCachePolicy', r'WImageConfig', r'WImageLoadConfig', r'WImageDefaults\b', r'WMapConfig',
+    r'WImageDefaultsScope', r'WImageEmptyError',
     r'WImageNetworkError', r'WImageAssetError', r'WImageDecodeError', r'WImageProviderError',
     r'WImageFileError', r'WImageUnsupportedError', r'WImage\.avatar', r'WImage\.thumbnail',
     r'WImage\.cover', r'WImage\.assetImage', r'WImage\.(?:network|asset|file|base64|memory|provider)', r'WToastConfig', r'WFormDefaults',

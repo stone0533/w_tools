@@ -1,3 +1,10 @@
+## 1.13.0
+
+### Changed
+- `init` 生成的 `w_tools_ui` 约束同步到 `^7.0.0`，UI 模板补充 `WImageTheme` /
+  `WImageSlots` / `WImageSource.resolve` 规则。
+- `init` 生成的 `w_tools_map_google` 约束同步到 `^2.0.0`（`WMapConfig` → `WMapOptions`）。
+
 ## 1.12.0
 
 ### Added

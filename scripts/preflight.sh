@@ -72,6 +72,7 @@ run "analyze" flutter analyze
 run "docs" bash scripts/check_docs.sh
 run "doc symbols" python3 scripts/check_doc_symbols.py
 run "removed API" python3 scripts/check_removed_api.py
+run "naming" python3 scripts/check_naming.py
 run "public catalog" python3 scripts/check_public_catalog.py
 # 生成物新鲜度：只改源文件却忘了跑生成器时，这里直接失败（不用等 --with-tests 的 cli 测试）。
 run "catalog fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_catalog.dart --check"

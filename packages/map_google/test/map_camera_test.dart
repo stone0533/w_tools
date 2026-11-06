@@ -166,7 +166,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
-        home: WMap<_Shop>(zone: zone, config: const WMapConfig<_Shop>()),
+        home: WMap<_Shop>(zone: zone, config: const WMapOptions<_Shop>()),
       ),
     );
     await tester.pump(); // onMapCreated

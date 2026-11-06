@@ -1,11 +1,11 @@
 # w_tools_map_google
 
-`w_tools_map` 的 Google Maps 实现，提供 `WMap` / `WMapZone` / `WMapConfig`。
+`w_tools_map` 的 Google Maps 实现，提供 `WMap` / `WMapZone` / `WMapOptions`。
 
 ```yaml
 dependencies:
   w_tools_map: ^3.0.0
-  w_tools_map_google: ^1.0.0
+  w_tools_map_google: ^2.0.0
 ```
 
 ```dart

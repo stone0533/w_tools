@@ -1,8 +1,13 @@
+import 'dart:convert';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 import '../../../utils/assets.dart';
 import 'image_types.dart';
+
+import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
 /// 图片来源。
 ///
@@ -22,6 +27,55 @@ sealed class WImageSource {
 
   /// 用于相等判断与诊断的 key
   String get key;
+
+  /// 解析成与 [WImage] 使用同一套尺寸规则的 [ImageProvider]。
+  ///
+  /// 预加载示例：
+  /// ```dart
+  /// final provider = await source.resolve(memCacheWidth: 240, memCacheHeight: 240);
+  /// await precacheImage(provider, context);
+  /// ```
+  ///
+  /// - network 使用 `CachedNetworkImageProvider`（maxWidth/maxHeight 走磁盘缩放）
+  /// - 其余来源用 [ResizeImage.resizeIfNeeded] 包一层
+  /// - Web 上的 file 抛 [UnsupportedError]；Base64 非法时抛 [FormatException]
+  Future<ImageProvider> resolve({int? memCacheWidth, int? memCacheHeight}) async {
+    final source = this;
+    switch (source) {
+      case WNetworkImageSource():
+        return CachedNetworkImageProvider(
+          source.value,
+          headers: source.headers,
+          cacheKey: source.cacheKey,
+          maxWidth: memCacheWidth,
+          maxHeight: memCacheHeight,
+        );
+      case WAssetImageSource():
+        return ResizeImage.resizeIfNeeded(
+          memCacheWidth,
+          memCacheHeight,
+          AssetImage(source.value, package: source.package),
+        );
+      case WFileImageSource():
+        final provider = buildFileImageProvider(source.value);
+        if (provider == null) {
+          throw UnsupportedError('当前平台不支持本地文件图片');
+        }
+        return ResizeImage.resizeIfNeeded(memCacheWidth, memCacheHeight, provider);
+      case WBase64ImageSource():
+        return ResizeImage.resizeIfNeeded(
+          memCacheWidth,
+          memCacheHeight,
+          MemoryImage(base64Decode(source.value)),
+        );
+      case WProviderImageSource():
+        return ResizeImage.resizeIfNeeded(
+          memCacheWidth,
+          memCacheHeight,
+          source.provider,
+        );
+    }
+  }
 
   /// 从字符串解析来源；猜不中时按 asset 处理。
   factory WImageSource.parse(String raw, {WImageType? type}) {

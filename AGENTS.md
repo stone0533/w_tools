@@ -9,6 +9,7 @@
 | 改公开 API / 组件 | [`packages/cli/catalog/components.yaml`](packages/cli/catalog/components.yaml) + [`docs/modules/components.md`](docs/modules/components.md) |
 | 改 AI 资产 / catalog / 模板 | [`docs/ai-contract.md`](docs/ai-contract.md) |
 | 改脚本 / 门禁 | [`scripts/README.md`](scripts/README.md) |
+| 改命名 / 新增公开类型 | [`docs/naming.md`](docs/naming.md) |
 | 判断文档该放哪 | [`docs/documentation-map.md`](docs/documentation-map.md) |
 
 > [`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md) 是**给人**复制场景提示词的手册（A~M），agent 不需要预读。
@@ -67,7 +68,7 @@ docs/modules/components.md
 
 - 新页面表单用 `WForm` + 直接字段（`WFormTextField` 等）；不要从 `Config.build` 开始，直接字段不要传 `config`。
 - 普通业务按钮用 `WButton`；任意 child 点击用 `WPressable`；表单字段值选择用 `WFormButton`。
-- 新增/修改组件前先读 [`CONTRIBUTING.md`](CONTRIBUTING.md) 和 [`docs/modules/components.md`](docs/modules/components.md)，不要重复造。
+- 新增/修改组件前先读 [`CONTRIBUTING.md`](CONTRIBUTING.md)、[`docs/naming.md`](docs/naming.md) 和 [`docs/modules/components.md`](docs/modules/components.md)，不要重复造。
 - 详细选择规则见 [`docs/agents/README.md`](docs/agents/README.md)。
 
 > 消费方项目的接入方式（聚合入口、暂存层、`AGENTS.md` 片段）**不要**写进本文件 ——

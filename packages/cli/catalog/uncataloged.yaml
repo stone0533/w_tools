@@ -19,7 +19,7 @@ packages:
   w_tools_map:
     - WMapItem
   w_tools_map_google:
-    - WMapConfig
+    - WMapOptions
     - WMapIconAssets
   w_tools_qr:
     - WQrViewState

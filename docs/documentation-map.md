@@ -81,6 +81,7 @@ docs/
   README.md               文档总索引
   documentation-map.md    本文：文档定位 + AI 整理规则
   conventions.md          接入约定 / doctor R1~R9
+  naming.md               命名规范（唯一事实源）
   releasing.md            发版流程
   ai-contract.md          AI 分层、更新、完整性检查
   ai-maintainer-prompts.md 维护者按场景使用的 AI 提示词
@@ -120,6 +121,7 @@ scripts/README.md         scripts 运行手册
 | `docs/README.md` | 所有人 | 文档总索引 | 新增文档目录 | 具体规则 |
 | `docs/documentation-map.md` | 维护者（人/仓库 AI） | 文档定位与整理规则 | 文档结构变化 | 包 API 细节 |
 | `docs/conventions.md` | 接入者 / 维护者 | 接入方式与 doctor 规则 | 接入规则 / R1~R9 变化 | 组件目录 |
+| `docs/naming.md` | 维护者 / 仓库 AI | 包、文件、类型、成员的命名规则与存量例外 | 命名规则变化 | 组件 API、教程 |
 | `docs/ai-contract.md` | 维护者 / 仓库 AI | AI 分层、更新流程、完整性 | catalog / AGENTS 机制变化 | 单个组件教程 |
 | `docs/ai-maintainer-prompts.md` | 维护者（人/仓库 AI） | 按场景复制的提示词 | 工作流变化 | 完整规则副本；命令由 `check_prompt_docs.py` 守 |
 | `docs/modules/*.md` | 包使用者（人/AI） | 包职责、API、用法 | 包的公开行为变化 | 维护者内部流程 |
@@ -257,6 +259,19 @@ docs/guides/README.md（索引）
 ```
 
 指南回答「一类工程问题怎么做」，不绑定单个包；单包用法进 modules，跨包组合进 recipes。
+
+### 新增 / 修改命名规则
+
+放：
+
+```text
+docs/naming.md（规则 + 存量例外说明）
+scripts/naming_baseline.yaml（可放行名字的基线，只减不增）
+scripts/check_naming.py（其中可判定的部分）
+```
+
+命名规则不进 ADR：ADR 只记录为什么这样定。可放行的存量名字维护在
+`scripts/naming_baseline.yaml`，`check_naming.py` 读它并双向检查（漏登记 / 已删除未删行）。
 
 ### 新增架构决策
 

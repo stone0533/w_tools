@@ -59,8 +59,8 @@ void main() {
     final provider = _ChunkProvider(base64Decode(_redPixel));
 
     await tester.pumpWidget(
-      WImageDefaultsScope(
-        defaults: WImageLoadConfig(
+      WImageTheme(
+        slots: WImageSlots(
           progressBuilder: (context, url, progress) => const Text('THEME_PROGRESS'),
         ),
         child: MaterialApp(

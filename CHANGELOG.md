@@ -1,3 +1,8 @@
+## 10.0.0
+
+- 抬高 `w_tools_ui` 到 `^7.0.0`：WImage 配置收敛、状态非空、边框/gapless/进度修复。
+  迁移见 `docs/migrations/ui-7.0.md`。
+
 ## 9.0.2
 
 - 抬高聚合包对已发布 patch 的下界：`w_tools_core ^3.1.1` / `w_tools_async ^5.0.1` /

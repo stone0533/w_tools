@@ -1,0 +1,30 @@
+# 命名门禁基线：公开 W*Config 的登记册 + 「不套 W 前缀」的公开类型例外。
+#
+# 规则在 docs/naming.md；本文件回答「哪些现有名字可以放过」以及「为什么」。
+# - 公开 W*Config 都要在这里有一行：允许项、grandfather、冻结的遗留可变；
+#   新增名字先按 docs/naming.md §3.3 选对角色，确实要保留才加行并 review；
+# - 债务行只减不增；scripts/check_naming.py 双向检查：
+#   代码里有、这里没有（新名字）；这里有的、代码里已经没有（改名 / 删除后要删行）；
+# - 这里只收类型名；角色级 / 成员级 / 旧扩展名例外写在 docs/naming.md §6，不进本文件。
+
+version: 1
+
+# 公开 W*Config（barrel 导出的名字）
+configs:
+  WLocaleConfig: 不可变数据载体，允许
+  WBadgeConfig: grandfather，不为改名做 breaking
+  WClipRRectConfig: grandfather，同上
+  WFormBorderConfig: grandfather，同上
+  WNavBarConfig: grandfather，同上
+  WTabBarConfig: grandfather，同上
+  WApiConfig: 遗留可变静态配置，冻结新增，下个 major 再评估
+  WAppConfig: 遗留可变静态配置，冻结新增，下个 major 再评估
+
+# 不套 W 前缀的公开类型（api 数据层）
+prefixes:
+  ApiClientId: api 数据层类型
+  BaseLocalDataSource: 消费方继承
+  BaseRemoteDataSource: 消费方继承
+  BaseRepository: 消费方继承
+  DioRegistry: api 基础设施入口
+  IApiPath: 遗留，不新增 I 前缀接口

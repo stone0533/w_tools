@@ -4,7 +4,7 @@ import 'image_types.dart';
 
 /// 内置的错误占位：图标 + 文案 + 可选重试按钮。
 ///
-/// 通过 `WImageLoadConfig(showRetryButton: true)` 启用（`WImageStyle` 没有该参数）；
+/// 通过 `WImageSlots(showRetryButton: true)` 启用（`WImageStyle` 没有该参数）；
 /// 业务也可以直接复用它。
 class WImageErrorView extends StatelessWidget {
   const WImageErrorView({
@@ -35,9 +35,10 @@ class WImageErrorView extends StatelessWidget {
         builder: (context, constraints) {
           final width = constraints.maxWidth.isFinite ? constraints.maxWidth : 400.0;
           final height = constraints.maxHeight.isFinite ? constraints.maxHeight : 400.0;
-          final showText = !compact && width >= 96 && height >= 64;
+          // 小尺寸优先保留可操作的“重试”：空间不够时隐藏文案而不是隐藏按钮。
           final showButton =
-              !compact && showAction && onRetry != null && width >= 120 && height >= 112;
+              !compact && showAction && onRetry != null && width >= 96 && height >= 88;
+          final showText = !compact && width >= 96 && height >= (showButton ? 112 : 64);
 
           return Center(
             child: Padding(

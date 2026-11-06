@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 
 /// 图片加载状态枚举
 enum WImageLoadStatus {
+  /// 尚未开始加载 / 已重置
+  idle,
+
   /// 加载中
   loading,
 
@@ -37,7 +40,16 @@ enum WImageType {
 @immutable
 class WImageProgress {
   /// 创建进度
-  const WImageProgress({this.downloadedBytes, this.totalBytes});
+  const WImageProgress({
+    this.downloadedBytes,
+    this.totalBytes,
+    this.isComplete = false,
+  });
+
+  /// 加载完成信号。
+  ///
+  /// 不伪造字节数；需要判断是否完成用 [isComplete] / `fraction == 1.0`。
+  const WImageProgress.complete() : downloadedBytes = null, totalBytes = null, isComplete = true;
 
   /// 已下载字节数（未知时为 null）
   final int? downloadedBytes;
@@ -45,8 +57,12 @@ class WImageProgress {
   /// 总字节数（服务端未返回 Content-Length 时为 null）
   final int? totalBytes;
 
-  /// 进度比例（0.0 - 1.0）；总大小未知或非法时返回 null
+  /// 是否已经完成
+  final bool isComplete;
+
+  /// 进度比例（0.0 - 1.0）；完成时为 1.0，总大小未知或非法时返回 null
   double? get fraction {
+    if (isComplete) return 1.0;
     final total = totalBytes;
     if (total == null || total <= 0) return null;
     return ((downloadedBytes ?? 0) / total).clamp(0.0, 1.0);
@@ -56,14 +72,16 @@ class WImageProgress {
   bool operator ==(Object other) {
     return other is WImageProgress &&
         other.downloadedBytes == downloadedBytes &&
-        other.totalBytes == totalBytes;
+        other.totalBytes == totalBytes &&
+        other.isComplete == isComplete;
   }
 
   @override
-  int get hashCode => Object.hash(downloadedBytes, totalBytes);
+  int get hashCode => Object.hash(downloadedBytes, totalBytes, isComplete);
 
   @override
   String toString() {
+    if (isComplete) return 'WImageProgress(complete)';
     final total = totalBytes;
     return 'WImageProgress(${downloadedBytes ?? 0}/$total)';
   }
@@ -123,10 +141,12 @@ class WImageError implements Exception {
 }
 
 /// 图片加载快照（供 [WImageController.state] 监听）。
+///
+/// 初始为 [WImageLoadStatus.idle]；`status` 不再可空。
 @immutable
 class WImageLoadSnapshot {
   const WImageLoadSnapshot({
-    this.status,
+    this.status = WImageLoadStatus.idle,
     this.progress,
     this.attempt = 0,
     this.error,
@@ -134,13 +154,14 @@ class WImageLoadSnapshot {
     this.retryDelayMs,
   });
 
-  final WImageLoadStatus? status;
+  final WImageLoadStatus status;
   final WImageProgress? progress;
   final int attempt;
   final WImageError? error;
   final bool retryScheduled;
   final int? retryDelayMs;
 
+  bool get isIdle => status == WImageLoadStatus.idle;
   bool get isLoading => status == WImageLoadStatus.loading;
   bool get isCompleted => status == WImageLoadStatus.completed;
   bool get isFailed => status == WImageLoadStatus.failed;

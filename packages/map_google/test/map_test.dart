@@ -50,9 +50,9 @@ void main() {
     });
   });
 
-  group('WMapConfig<T> — 纯 Dart', () {
+  group('WMapOptions<T> — 纯 Dart', () {
     test('默认构造参数', () {
-      const cfg = WMapConfig<_TestMapItem>();
+      const cfg = WMapOptions<_TestMapItem>();
       expect(cfg.selectZoom, 12);
       expect(cfg.closeZoom, 11);
       expect(cfg.selectLatOffset, 0.0);
@@ -63,7 +63,7 @@ void main() {
     test('自定义参数', () {
       void onSelect(_TestMapItem item) {}
       void onClose(_TestMapItem item) {}
-      final cfg = WMapConfig<_TestMapItem>(
+      final cfg = WMapOptions<_TestMapItem>(
         selectZoom: 18,
         closeZoom: 5,
         selectLatOffset: 0.001,
@@ -379,9 +379,9 @@ void main() {
     });
   });
 
-  group('WMap + WMapConfig.build → 构造 & wiring', () {
+  group('WMap + WMapOptions 构造 & wiring', () {
     testWidgets('WMap widget 渲染 GoogleMap', (tester) async {
-      const cfg = WMapConfig<_TestMapItem>();
+      const cfg = WMapOptions<_TestMapItem>();
       final zone = WMapZone<_TestMapItem>(
         maps: const [
           _TestMapItem(id: 'a', name: 'A', latitude: 31.1979, longitude: 121.3239),
@@ -404,7 +404,7 @@ void main() {
     });
 
     testWidgets('WMap dispose → 移除 listener', (tester) async {
-      const cfg = WMapConfig<_TestMapItem>();
+      const cfg = WMapOptions<_TestMapItem>();
       final zone = WMapZone<_TestMapItem>(
         maps: const [_TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2)],
       );
@@ -428,7 +428,7 @@ void main() {
     });
 
     testWidgets('WMap 切换 zone → 移除旧 zone listener', (tester) async {
-      const cfg = WMapConfig<_TestMapItem>();
+      const cfg = WMapOptions<_TestMapItem>();
       final oldZone = WMapZone<_TestMapItem>(
         maps: const [_TestMapItem(id: 'a', name: 'A', latitude: 1, longitude: 2)],
       );
@@ -457,8 +457,8 @@ void main() {
       expect(newZone.dataUpdatedListenerCount, 1);
     });
 
-    testWidgets('WMapConfig.padding 透传给 GoogleMap', (tester) async {
-      const cfg = WMapConfig<_TestMapItem>(
+    testWidgets('WMapOptions.padding 透传给 GoogleMap', (tester) async {
+      const cfg = WMapOptions<_TestMapItem>(
         padding: EdgeInsets.only(bottom: 120),
       );
       final zone = WMapZone<_TestMapItem>(
@@ -494,7 +494,7 @@ void main() {
             body: WMap<_TestMapItem>(
               controller: controller,
               zone: zone,
-              config: WMapConfig<_TestMapItem>(
+              config: WMapOptions<_TestMapItem>(
                 onItemSelected: (item) => selected = item,
               ),
             ),
@@ -508,7 +508,7 @@ void main() {
     });
 
     testWidgets('WMapController 随 WMap 挂载/卸载绑定', (tester) async {
-      const cfg = WMapConfig<_TestMapItem>();
+      const cfg = WMapOptions<_TestMapItem>();
       final controller = WMapController<_TestMapItem>();
       final zone = WMapZone<_TestMapItem>(
         maps: const [

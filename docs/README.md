@@ -7,7 +7,7 @@
 | [`recipes/`](recipes/README.md) | 使用者 | 跨包组合场景（分页 / 表单提交 / App 根装配…） |
 | [`guides/`](guides/README.md) | 使用者 | 横向指南（测试策略等），不绑定单个包 |
 | [`migrations/`](migrations/README.md) | 升级用户 | 各包历史版本迁移 |
-| 本目录顶层 | 维护者 / agent | 接入约定、文档地图、AI 契约、发版流程 |
+| 本目录顶层 | 维护者 / agent | 命名规范、接入约定、文档地图、AI 契约、发版流程 |
 
 > 本文件是**文档总索引**：`docs/` 下新增顶层文档、子目录 README 或 ADR 时必须在这里加一行
 > （`scripts/check_docs_facts.py` 会检查漏链）。
@@ -29,6 +29,7 @@
 
 - [Agent 文档索引](agents/README.md)：各包首选入口、规则页、工具与仓库流程
 - [conventions.md](conventions.md)：接入约定与 doctor 的 R1~R9
+- [命名规范](naming.md)：包 / 文件 / 类型 / 成员 / 测试的命名规则与存量例外（唯一事实源）
 - [AI 使用契约](ai-contract.md)：catalog / explain / AGENTS 四层、更新流程、完整性边界
 - [维护者 AI 提示词](ai-maintainer-prompts.md)：按场景（A~M）复制
 - [使用反馈](feedback/README.md)：消费方问题汇总与闭环状态（`docs/feedback/<包>.md`）
@@ -44,6 +45,7 @@
 - [0004 组件 config 模型](adr/0004-component-config-model.md)：Config 的边界与直接字段
 - [0005 App options 与插件归属](adr/0005-app-options-and-plugin-ownership.md)：`WAppOptions` / `WAppPlugin` 的职责划分
 - [0006 包拓扑](adr/0006-package-topology.md)：独立库包 + 契约/实现对，根包只聚合基础子包
+- [0007 组件命名约定](adr/0007-component-naming-roles.md)：命名收敛为角色判断（规则正文见 naming.md）
 
 ## 评审记录
 

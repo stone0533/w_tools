@@ -17,6 +17,9 @@
 
 通用原则见 [`docs/conventions.md`](docs/conventions.md) §6；这里只写最容易违反的两条：
 
+- **命名**先看 [`docs/naming.md`](docs/naming.md) 的 30 秒流程与角色表（§3.3）：
+  `W` 前缀、角色后缀、同义择一、review 清单都在那里。新增 `Config` 必须登记
+  [`scripts/naming_baseline.yaml`](scripts/naming_baseline.yaml)，并按 §7 清单在 PR 里写结论。
 - **参数 ≤ 3 个**：合成一个组件；**> 3 个**：说明它们是两个组件，不要硬合并
   （教训：一个 311 宽的弹窗壳，因为要塞内容/按钮/内边距/标题色，最后变成 4 个参数——
   正确的做法是「只共用壳，内容和按钮各自组装」）
@@ -41,7 +44,7 @@
   （子包要能脱离仓库根独立 `flutter test` / 发布）
 - 像素敏感组件（卡片、弹窗、图标对齐）加 **golden**：
   ```bash
-  flutter test --update-goldens packages/ui/test/golden/xxx_test.dart
+  flutter test --update-goldens packages/ui/test/image_golden_test.dart
   ```
 - 根 `test/` 只放聚合契约（`w_tools.dart` 的重导出）
 - `packages/cli` 是纯 Dart 包：用 `dart test`，不要引入 `flutter_test`

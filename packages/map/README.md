@@ -13,7 +13,7 @@
 Google Maps 实现：
 
 ```text
-w_tools_map_google → WMap / WMapZone / WMapConfig / Google 类型
+w_tools_map_google → WMap / WMapZone / WMapOptions / Google 类型
 ```
 
 ## 安装

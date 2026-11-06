@@ -18,7 +18,7 @@ void main() {
         _wrap(
           WImage.source(
             source: WImageSource.network(_url),
-            config: const WImageLoadConfig(placeholder: Text('LOAD')),
+            slots: const WImageSlots(placeholder: Text('LOAD')),
           ),
         ),
       );
@@ -36,7 +36,7 @@ void main() {
               headers: const {'Authorization': 'Bearer token'},
               cacheKey: 'home-hero',
             ),
-            config: const WImageLoadConfig(memCacheWidth: 240, memCacheHeight: 120),
+            config: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 120),
           ),
         ),
       );
@@ -54,7 +54,7 @@ void main() {
         _wrap(
           WImage.source(
             source: WImageSource.network(_url),
-            config: WImageLoadConfig(
+            slots: WImageSlots(
               progressBuilder: (_, __, ___) => const Text('PROG'),
             ),
           ),
@@ -75,13 +75,18 @@ void main() {
       expect(identical(first, second), isTrue);
     });
 
-    testWidgets('重试计数体现在 ValueKey 上', (tester) async {
-      await tester.pumpWidget(_wrap(WImage.source(source: WImageSource.network(_url))));
-
-      expect(
-        find.byKey(const ValueKey('$_url#attempt=0')),
-        findsOneWidget,
+    testWidgets('重试会换掉 Image 的 key，强制重新解析 provider', (tester) async {
+      final controller = WImageController();
+      await tester.pumpWidget(
+        _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
       );
+      final first = tester.widget<Image>(find.byType(Image)).key;
+
+      controller.retry();
+      await tester.pump();
+      final second = tester.widget<Image>(find.byType(Image)).key;
+
+      expect(first, isNot(second));
     });
   });
 
@@ -93,12 +98,12 @@ void main() {
       );
 
       expect(controller.isAttached, isTrue);
-      expect(find.byKey(const ValueKey('$_url#attempt=0')), findsOneWidget);
+      expect(controller.state.value.attempt, 0);
 
       controller.retry();
       await tester.pump();
 
-      expect(find.byKey(const ValueKey('$_url#attempt=1')), findsOneWidget);
+      expect(controller.state.value.attempt, 1);
     });
 
     testWidgets('controller.state 暴露加载快照', (tester) async {
@@ -107,11 +112,11 @@ void main() {
         _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
       );
       expect(controller.state, isNotNull);
-      expect(controller.state!.value.attempt, 0);
+      expect(controller.state.value.attempt, 0);
 
       controller.retry();
       await tester.pump();
-      expect(controller.state!.value.attempt, 1);
+      expect(controller.state.value.attempt, 1);
     });
 
     testWidgets('卸载后自动解绑，retry() 不抛异常', (tester) async {
@@ -135,7 +140,7 @@ void main() {
       Widget build(int retryCount) => _wrap(
         WImage.source(
           source: WImageSource.network(_url),
-          config: WImageLoadConfig(retryCount: retryCount),
+          config: WImageLoadOptions(retryCount: retryCount),
           controller: controller,
         ),
       );
@@ -145,10 +150,10 @@ void main() {
       await tester.pump();
       controller.retry();
       await tester.pump();
-      expect(find.byKey(const ValueKey('$_url#attempt=2')), findsOneWidget);
+      expect(controller.state.value.attempt, 2);
 
       await tester.pumpWidget(build(0));
-      expect(find.byKey(const ValueKey('$_url#attempt=0')), findsOneWidget);
+      expect(controller.state.value.attempt, 0);
     });
 
     testWidgets('retry() 对资产图同样生效（换 key 重建）', (tester) async {
@@ -157,28 +162,23 @@ void main() {
         _wrap(WImage.source(source: WImageSource.asset('assets/none.png'), controller: controller)),
       );
 
-      expect(
-        find.byKey(const ValueKey('assets/none.png#attempt=0')),
-        findsOneWidget,
-      );
+      final first = tester.widget<Image>(find.byType(Image)).key;
 
       controller.retry();
       await tester.pump();
 
-      expect(
-        find.byKey(const ValueKey('assets/none.png#attempt=1')),
-        findsOneWidget,
-      );
+      final second = tester.widget<Image>(find.byType(Image)).key;
+      expect(first, isNot(second));
     });
   });
 
   group('WImage 构造快捷入口', () {
     test('base64 生成显式 base64 类型', () {
-      expect(WImage.source(source: WImageSource.base64('AAAA')).type, WImageType.base64);
+      expect(WImage.source(source: WImageSource.base64('AAAA')).source.type, WImageType.base64);
     });
 
     test('file 生成显式 file 类型', () {
-      expect(WImage.source(source: WImageSource.file('/tmp/a.png')).type, WImageType.file);
+      expect(WImage.source(source: WImageSource.file('/tmp/a.png')).source.type, WImageType.file);
     });
   });
 
