@@ -63,7 +63,7 @@ docs/modules/components.md
 
 改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。发布后核对线上 / 快照：`python3 scripts/release_status.py --online`（每周一 CI 也会跑，`--check` 只把「落后 / 快照漂移」判失败；网络不可达返回 2，周检按跳过处理）。子包与聚合包版本独立，发布根包前 `release_check --strict` 要求根包的 `^x.y.z` 约束覆盖子包当前版本（`w_tools_cli` 是独立工具包，根包不依赖它，不在此列）。
 
-实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。正式发布时脚本自己会要求干净工作区、`main` 且 HEAD == `origin/main`、并跑 `release_check --strict`（脚本里的 `--force` 只用于明确的例外）。
+实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。正式发布时脚本自己会要求干净工作区、`main` 且 HEAD == `origin/main`、并跑 `release_check` 内容检查（脚本里的 `--force` 只用于明确的例外）；`scripts/api_snapshots/` 下未提交的快照允许存在，一批里可以连续发多个包，最后统一提交（发根包前必须提交，因为 `release_check --strict` 要求完全干净）。
 
 ### 发布窗口判断
 

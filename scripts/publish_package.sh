@@ -16,8 +16,11 @@
 #   scripts/publish_package.sh . --force         # 跳过发布前保护（干净 main / release_check）
 #
 # 正式发布前会 fail-closed：工作区必须干净、当前分支必须是 main 且 HEAD == origin/main、
-# `release_check.sh --strict` 必须通过。原因：暂存副本直接来自工作区，而暂存目录在 git
-# 之外，`pub publish` 根本看不到未提交改动 / 错误分支。dry-run 与 --stage-only 不受影响。
+# 内容检查（release_check）必须通过。原因：暂存副本直接来自工作区，而暂存目录在 git
+# 之外，`pub publish` 根本看不到未提交改动 / 错误分支。
+# 例外：`scripts/api_snapshots/` 下**未提交的快照**允许存在 —— 它是上一次发布成功后的产物，
+# `scripts/` 不会进发布物；批量发多个包时不必每发一个就提交一次（最后统一提交）。
+# dry-run 与 --stage-only 不受影响。
 #
 # 发布目标：默认 https://pub.dev。
 #   不复用 PUB_HOSTED_URL —— 本机常把它设成只读镜像，且镜像元数据会滞后。
@@ -192,8 +195,12 @@ if [ -z "$dry_run" ] && [ -z "$force" ]; then
     echo "✗ 工作区有未提交改动：发布会把工作区原样发出去，请先 commit 或 git stash" >&2
     exit 1
   fi
-  if [ -n "$(git -C "$repo_root" ls-files --others --exclude-standard | head -n1)" ]; then
-    echo "✗ 存在未跟踪文件：$(git -C "$repo_root" ls-files --others --exclude-standard | head -n3 | tr '\n' ' ')" >&2
+  # 上一次发布写出的 API 快照可以暂时不提交：它是发布产物，且 scripts/ 不进发布物。
+  # 其它未跟踪文件仍然阻止发布，避免把工作区里的半成品带出去。
+  untracked="$(git -C "$repo_root" ls-files --others --exclude-standard | grep -vE '^scripts/api_snapshots/' || true)"
+  if [ -n "$untracked" ]; then
+    echo "✗ 存在未跟踪文件（scripts/api_snapshots 以外的会阻止发布）：" >&2
+    printf '%s\n' "$untracked" | head -n3 >&2
     exit 1
   fi
   branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD)"
@@ -209,12 +216,14 @@ if [ -z "$dry_run" ] && [ -z "$force" ]; then
     echo "✗ HEAD 与 origin/main 不一致：先 git pull --ff-only / git push" >&2
     exit 1
   fi
+  # 干净度 / 分支 / 同步已在上面显式检查（并且允许未提交的快照）；这里只跑内容检查。
+  # 不用 --strict：它要求完全干净，会和「批量发布、最后统一提交快照」冲突。
   if [ "$src" = "$repo_root" ]; then
-    bash "$repo_root/scripts/release_check.sh" --strict
+    bash "$repo_root/scripts/release_check.sh"
   else
-    bash "$repo_root/scripts/release_check.sh" --strict --package "$pkg_short"
+    bash "$repo_root/scripts/release_check.sh" --package "$pkg_short"
   fi
-  echo "✓ 发布前保护通过（干净 main / release_check --strict）"
+  echo "✓ 发布前保护通过（干净 main / release_check）"
 fi
 
 cd "$staging"

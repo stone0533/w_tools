@@ -106,19 +106,21 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    bash scripts/publish_package.sh packages/map --dry-run
    ```
    第 7 步的正式发布会**自己再跑一遍**这些保护（干净工作区 / `main` 且 HEAD == `origin/main` /
-   `release_check --strict`），漏跑第 6 步不会把未提交改动发出去；例外情况用脚本的 `--force`。
-7. 发布子包：
+   `release_check` 内容检查），漏跑第 6 步不会把未提交改动发出去；例外情况用脚本的 `--force`。
+7. 发布子包（一个发布波次里可以连续发多个包）：
    ```bash
    bash scripts/publish_package.sh packages/map
    # 其余需要发布的子包同理
    ```
-   发布成功后脚本会把该版本写成 `scripts/api_snapshots/w_tools_<pkg>-<version>.txt`。
-   **这个文件必须提交**：否则基线漂移，且下次 `release_check --strict` 会因“未跟踪文件”失败。
+   每成功发布一个包，脚本会把该版本写成 `scripts/api_snapshots/w_tools_<pkg>-<version>.txt`。
+   这些快照**可以等本批次全部发完再一起提交**：发布保护只放行 `scripts/api_snapshots/`
+   下的未跟踪文件，其它未跟踪文件仍会阻止发布。
    ```bash
    git add scripts/api_snapshots
-   git commit -m "chore(release): w_tools_map <version> API 基线"
+   git commit -m "chore(release): <本批次> API 基线"
    git push
    ```
+   `release_check --strict` 要求工作区完全干净，所以**发根包前必须先提交这批快照**。
 8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界），最后发聚合包：
    ```bash
    bash scripts/release_check.sh --strict          # 含根包 caret 下界检查
@@ -182,7 +184,10 @@ Failed to update packages.        # 退出码 66
 暂存副本直接来自**工作区**，而暂存目录在 git 之外：`pub publish` 看不到未提交改动、错误分支、
 落后 main，也看不到 CHANGELOG 缺段。所以正式发布（非 `--dry-run` / `--stage-only`）前脚本会
 fail-closed 地检查：工作区干净、当前分支是 `main` 且 `HEAD == origin/main`、
-`release_check.sh --strict` 通过；确实需要例外时用 `--force`。
+`release_check` 内容检查通过；确实需要例外时用 `--force`。
+
+唯一放行的未跟踪文件是 `scripts/api_snapshots/` 下的快照（上一次发布的产物，`scripts/` 不进
+发布物）：这样一批里可以连续发多个包，最后统一提交快照。其它未跟踪文件仍会阻止发布。
 
 发布目标**默认是 `https://pub.dev`**，不会继承本地 shell 里的 `PUB_HOSTED_URL`
 （那通常是只读镜像，元数据还会滞后）。需要发到其它 host 时用：

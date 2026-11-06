@@ -112,7 +112,7 @@ check 名字随包矩阵变化。
 |---|---|---|
 | `release_check.sh` | 版本 / CHANGELOG / 根约束 / README / pub.dev 漂移 | 发布前先跑 `--strict` |
 | `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 只把「落后 / 快照漂移」判失败，「待发布」正常；网络不可达重试后返回 2（周检按跳过处理） | 发布后核对 / 每周一 CI |
-| `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict`（`--force` 跳过） | **真正发布会执行，不是 dry-run** |
+| `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：干净工作区（允许 `scripts/api_snapshots/` 下未提交快照）+ `main` 且 HEAD == `origin/main` + `release_check`（`--force` 跳过） | **真正发布会执行，不是 dry-run** |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
 
 ### 包内检查
