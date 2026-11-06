@@ -63,7 +63,7 @@ for sub in ('agents', 'modules', 'recipes', 'guides'):
 docs += sorted((root / 'packages').glob('*/README.md'))
 
 install_re = re.compile(
-    r'^\s*(w_tools(?:_[A-Za-z0-9_]+)?)\s*:\s*\^(\d+(?:\.\d+)*)',
+    r'''^\s*(w_tools(?:_[A-Za-z0-9_]+)?)\s*:\s*["']?\^(\d+(?:\.\d+)*)''',
     re.M,
 )
 seen: set[tuple[str, str, str]] = set()
@@ -86,6 +86,25 @@ for path in sorted(set(docs)):
                 f'{rel}: {name} 安装示例应使用当前版本 ^{current}'
                 f'（现为 ^{constraint_raw}）',
             )
+
+# 非 caret 写法（`>=3.1.1` / `3.1.1`）不满足「下界 == 当前版本」，一并拦住。
+bare_re = re.compile(
+    r'''^\s*(w_tools(?:_[A-Za-z0-9_]+)?)\s*:\s*["']?((?:>=|>|<=|<|=)?\s*\d+(?:\.\d+)*)''',
+    re.M,
+)
+for path in sorted(set(docs)):
+    if not path.is_file():
+        continue
+    rel = path.relative_to(root)
+    for match in bare_re.finditer(path.read_text()):
+        name, raw = match.group(1), match.group(2)
+        if name not in versions:
+            errors.append(f'{rel}: 安装示例引用了未知包 {name}')
+            continue
+        errors.append(
+            f'{rel}: {name} 安装示例必须写成 caret 约束 ^{versions[name]}'
+            f'（现为 {raw.strip()}）',
+        )
 
 if errors:
     for error in errors:

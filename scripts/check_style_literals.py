@@ -19,6 +19,7 @@ targets = ['packages/form', 'packages/toast', 'packages/async']
 pattern = re.compile(r'\bColor\(0x|\bColors\.(?:white|black|grey)\b')
 
 violations: list[str] = []
+scanned = 0
 for target in targets:
     lib = root / target / 'lib'
     if not lib.is_dir():
@@ -26,6 +27,7 @@ for target in targets:
     for path in sorted(lib.rglob('*.dart')):
         if path.name.endswith('.g.dart'):
             continue
+        scanned += 1
         for number, line in enumerate(path.read_text().splitlines(), start=1):
             if 'style-literal-ok' in line:
                 continue
@@ -36,6 +38,11 @@ for target in targets:
                 violations.append(
                     f'{path.relative_to(root)}:{number}: {line.strip()}'
                 )
+
+# 目录 / 文件都匹配不到时不能报“通过”：那说明路径写错了，而不是没有违规。
+if scanned == 0:
+    print('  ✗ 没有扫描到任何文件：packages/{form,toast,async}/lib 不存在或为空')
+    sys.exit(1)
 
 for violation in violations:
     print(f'  ✗ 默认样式出现字面量色值：{violation}')

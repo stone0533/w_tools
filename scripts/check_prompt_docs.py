@@ -44,7 +44,8 @@ for lineno, line in enumerate(lines, 1):
             continue  # 规则 1 已报
         body = script.read_text()
         for flag in re.findall(r'--[A-Za-z][A-Za-z0-9-]*', match.group(2)):
-            if flag not in body:
+            # 按完整 token 匹配：`--with-test` 不能因为 `--with-tests` 存在就算认识。
+            if not re.search(rf'(?<![\w-]){re.escape(flag)}(?![\w-])', body):
                 errors.append(f'{doc.name}:{lineno}: {match.group(1)} 不认识 {flag}')
 
 # 3) 生成器 / 契约测试必须在 packages/cli 下跑（按代码块跟踪 cwd）

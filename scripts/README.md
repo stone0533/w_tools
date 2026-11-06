@@ -66,16 +66,16 @@ check 名字随包矩阵变化。
 
 | 脚本 | 作用 | 调用方 |
 |---|---|---|
-| `check_doc_symbols.py` | 文档 `W*` 符号 / 成员是否存在，且 import 的包（根 barrel / 子包 / package 级 re-export）按包归属能提供该符号（含 root `README.md` / `AGENTS.md`、`docs/naming.md` 行内示例） | check_docs / preflight |
+| `check_doc_symbols.py` | 文档 `W*` 符号 / 成员是否存在，且 import 的包（根 barrel / 子包 / package 级 re-export）按 barrel 真正导出能提供该符号；用到未导出的内部类型会报错（含 root `README.md` / `AGENTS.md` / `packages/*/AGENTS.md`、`docs/naming.md` 行内示例） | check_docs / preflight |
 | `check_docs_snippets.py` | 已证伪 API / components 表格列数 | check_docs |
 | `check_docs_duplicates.py` | `docs/modules` 与包 README 不再复制同一段 dart 示例 | check_docs |
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
-| `check_package_docs.py` | 当前文档安装约束（下界 == 当前版本）/ 跨包示例 / example 链接 | check_docs |
-| `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性 / ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
+| `check_package_docs.py` | 当前文档安装约束（必须是 caret，且下界 == 当前版本；非 caret 直接失败）/ 跨包示例 / example 链接 | check_docs |
+| `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性（含每个 ADR 在 `docs/README.md` 留行）/ ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名 + 高频规则短语一致 | check_docs |
 | `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
-| `check_public_catalog.py` | 公开类型 → catalog 反向检查 | preflight |
+| `check_public_catalog.py` | 公开类型 → catalog 反向检查（双向：新类型要登记，基线里的旧名字也要删） | preflight |
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档 / catalog（含 root + `packages/*/AGENTS.md` + `catalog/components.yaml`） | check_docs / preflight |
 | `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |
 
@@ -109,14 +109,15 @@ check 名字随包矩阵变化。
 
 这些是启发式检查，不是完整编译器/analyzer：
 
-- `check_doc_symbols.py`：正则匹配符号和成员（扫 ```dart 代码块；`docs/naming.md` 额外扫行内代码）；
+- `check_doc_symbols.py`：正则匹配符号和成员（扫 ```dart 代码块；`docs/naming.md` 额外扫行内代码；
+  正文里的组件清单 / 行内 `` `WXxx` `` 不参与，别指望它发现散文里的旧名字）；
 - `check_docs_snippets.py`：只拦截已知错误写法；
-- `check_public_catalog.py`：基于 export/part 的静态扫描 + `uncataloged.yaml` 基线；
+- `check_public_catalog.py`：基于 export/part 的静态扫描 + `uncataloged.yaml` 基线（双向）；
 - `check_naming.py`：只认 barrel 导出的公开名字（`hide` / `lib/src` 内部实现不参与），
   例外读 `naming_baseline.yaml`；
 - `check_docs_facts.py`：规模数字与索引完整性，不校验 API 细节；
 - `check_agents_consistency.py`：比入口名 + 高频规则短语，不做全文语义比对；
-- `check_package_docs.py`：只校验 caret 下界与主版本，不校验具体 patch；
+- `check_package_docs.py`：只校验 caret 下界与主版本（非 caret 直接失败），不校验具体 patch；
 - `ci_matrix.py --check`：查清单是否同源，不查 workflow 语义。
 
 发布前：

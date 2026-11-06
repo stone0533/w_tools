@@ -68,3 +68,27 @@ python3 scripts/ci_matrix.py --check
 
 `flutter analyze` 在审计环境里因无法写 Flutter engine cache（`Operation not permitted`）失败，未计入仓库缺陷；
 完整测试套件也未在该环境执行。
+
+## 同日修复（第二轮）
+
+- **链接门禁**：`check_docs.sh` 的 python 输出补尾换行，读取循环加 `|| [ -n "$line" ]`。
+  此前「恰好一条坏链」会被整步吞掉；反向验证：只加一条坏链现在会失败。顺带修了 ADR-0004
+  指向 `../scripts/naming_baseline.yaml` 的坏链（应为 `../../scripts/...`）。
+- **CI 覆盖**：`docs` job 增加 `release_check.sh`（只改 CHANGELOG 的 PR 也校验版本 / 物料）；
+  `static` 过滤加入 `docs/feedback/**`（反馈台账不再只在本地校验）；`umbrella` 显式安装 PyYAML。
+- **退出码契约**：`check_feedback.sh` 的 `Unhandled exception` / `FileSystemException` 归 1（真失败），
+  exit 2 只留「dart 起不来 / 包未解析」。
+- **manifest 同源**：`root_aggregate` 列真正生效 —— `release_check.sh` 按列判断是否聚合，
+  `ci_matrix.py --check` 校验取值并与根 pubspec 依赖双向对齐。
+- **脚本健壮性**：`check_removed_api` 修 `WApp()` 死正则并补登 `WRow` / `WAsync*` / `WRegExp*` /
+  `WTextConfig`；`check_doc_symbols` 的 import 边界改为 barrel 粒度、拒绝未导出内部类型、
+  纳入 `packages/*/AGENTS.md`；`check_package_docs` 拒绝非 caret 写法；`check_prompt_docs` flag
+  改为整 token；`check_public_catalog` 回收失效基线；`check_style_literals` /
+  `check_docs_duplicates` / `check_docs_snippets` 不再「零输入即通过」；`check_agents_consistency`
+  遇到悬空链接不再崩溃。
+- **文档事实**：根 README（`WRichText` / `WFormFieldButton` / 配置驱动 / 错字）、`example/README`
+  的聚合范围、`modules/README` 的 figma 依赖与 SDK 表、`CONTRIBUTING` 的 toast 反例、
+  `docs/agents/cli.md` 的旧命令形式；zh async 模板补上 `WAsyncPagedController`。
+
+仍未覆盖：`check_doc_symbols` 只扫代码块，正文 / 行内 `` `WXxx` `` 的旧名字不在门禁内
+（`WRichText` 这类就是从这里漏掉的）；`check_agents_consistency` 只比 6 组高频短语，规则语义仍靠 review。

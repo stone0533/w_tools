@@ -48,7 +48,12 @@ components = docs / 'modules' / 'components.md'
 lines = components.read_text().splitlines()
 start = next((i for i, line in enumerate(lines) if line.startswith('## 8. 能力')), None)
 end = next((i for i, line in enumerate(lines) if start is not None and i > start and line.startswith('## 9.')), None)
-if start is not None and end is not None:
+if start is None or end is None:
+    # 标题改名时不能静默跳过列数检查：那会让整个 §8 表格失守。
+    errors.append(
+        f'{components}: 找不到「## 8. 能力…」或「## 9. …」标题，无法校验组件表格列数',
+    )
+else:
     for i in range(start, end):
         line = lines[i]
         if line.startswith('|') and not line.startswith('| ---'):

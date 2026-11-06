@@ -151,16 +151,17 @@ for pkg in $PACKAGES; do
       warn "$pkg: CHANGELOG 有未发版条目（## Unreleased）—— 若是已随旧版本发布的内容，折叠进对应版本；只有真正未发的才留在这里"
   fi
 
-  if [ "$pkg" = "cli" ] || [ "$pkg" = "figma" ] || [ "$pkg" = "device" ] || [ "$pkg" = "e2e" ]; then
-    # CLI / figma 是独立工具包：消费方放 dev_dependencies，不需要根包依赖它们
-    ok "$name ${version}（独立工具包，不要求根包依赖）"
-  elif [ "$pkg" = "app" ] || [ "$pkg" = "app_getx" ] || [ "$pkg" = "map" ] || [ "$pkg" = "map_google" ] || [ "$pkg" = "qr" ]; then
-    # 6.0 起根聚合包不再包含原生 map/qr，按需直接依赖子包
-    ok "$name ${version}（根包不聚合，按需依赖）"
-  else
+  # 是否进根聚合包由 `packages.manifest` 第 4 列决定，不再在这里硬编码包名。
+  aggregate="$(awk -F'|' -v name="$name" '$1 == name {print $4}' "$REPO_ROOT/scripts/packages.manifest")"
+  case "$pkg" in
+    cli | figma | device | e2e) is_tool=1 ;;
+    *) is_tool="" ;;
+  esac
+
+  if [ "$aggregate" = "root" ]; then
     constraint="$(sed -n "s/^  w_tools_${pkg}:[[:space:]]*//p" pubspec.yaml | head -n1)"
     if [ -z "$constraint" ]; then
-      fail "根包 pubspec.yaml 缺少对 w_tools_$pkg 的依赖"
+      fail "根包 pubspec.yaml 缺少对 w_tools_$pkg 的依赖（manifest 标记为 root 聚合）"
     else
       caret_accepts "$constraint" "$version"
       rc=$?
@@ -180,6 +181,14 @@ for pkg in $PACKAGES; do
         fail "根包约束 $constraint 不接受本地版本 $version —— 聚合包用户拿不到这个子包版本"
       fi
     fi
+  elif [ -n "$is_tool" ]; then
+    # 工具包消费方放 dev_dependencies，不需要根包依赖它们
+    ok "$name ${version}（独立工具包，不要求根包依赖）"
+  elif [ "$aggregate" = "-" ]; then
+    # 6.0 起根聚合包不再包含原生 map/qr 等能力，按需直接依赖子包
+    ok "$name ${version}（根包不聚合，按需依赖）"
+  else
+    fail "$pkg: packages.manifest 的 root_aggregate 列是 '$aggregate'（应为 root 或 -）"
   fi
 done
 
@@ -245,15 +254,18 @@ if [ "$ONLINE" = 1 ]; then
     local_version="$root_version"
     [ "$name" = "w_tools" ] || local_version="$(pubspec_version "packages/${name#w_tools_}/pubspec.yaml")"
 
-    published="$(
-      curl -fsSL --max-time 10 "https://pub.dev/api/packages/$name" 2>/dev/null |
-        grep -o '"latest":{"version":"[^"]*"' |
-        head -n1 |
-        sed 's/.*"version":"//; s/"$//'
-    )"
+    json="$(curl -fsSL --max-time 10 "https://pub.dev/api/packages/$name" 2>/dev/null)" || json=""
+    if [ -z "$json" ]; then
+      warn "$name: 取不到线上版本（网络不可达或包不存在），跳过比对"
+      continue
+    fi
 
+    published="$(printf '%s' "$json" | python3 -c '
+import json, sys
+print(json.load(sys.stdin)["latest"]["version"])
+' 2>/dev/null)" || published=""
     if [ -z "$published" ]; then
-      warn "$name: 取不到线上版本（网络或包不存在），跳过比对"
+      fail "$name: pub.dev 返回的 JSON 无法解析（latest.version 缺失），不能当作已核对"
       continue
     fi
 

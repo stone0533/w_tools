@@ -76,8 +76,11 @@ jobs:
             static:
               - 'scripts/**'
               - '!scripts/**/*.md'
+              # 反馈台账只有 `w_tools_cli:feedback lint` 能校验（需要 Dart + pub get），
+              # 走 umbrella 的静态门禁；否则只改 docs/feedback/ 时没有任何 job 会真正检查它。
+              - 'docs/feedback/**'
 
-  # 纯文档改动不需要 Flutter；这里只跑文档 / 符号 / 版本门禁。
+  # 纯文档改动不需要 Flutter；这里只跑文档 / 符号 / 版本 / 发版物料门禁。
   # 代码 PR 也会跑一遍，成本约几秒，避免 docs-only 与 code-only 两套 required check 分叉。
   docs:
     name: Docs (lightweight)
@@ -95,6 +98,11 @@ jobs:
       # check_docs 现在包含文档符号 / 已删除 API / 安装版本（下界 == 当前版本）。
       - name: Docs gates
         run: PATH="$RUNNER_TEMP/docs-venv/bin:$PATH" bash scripts/check_docs.sh
+
+      # 只改 CHANGELOG / 版本号 / 依赖约束时 `code` 过滤不命中，umbrella 会被 skip；
+      # release_check 只依赖 bash + python3（不需要 Flutter），放在这个轻量 job 里兜底。
+      - name: Release gates (no Flutter)
+        run: bash scripts/release_check.sh
 
   # 聚合包契约：w_tools.dart 的重导出（只做 re-export，配置走子包）。
   # 子包的行为测试已移入各自的 packages/<pkg>/test/，由下面的矩阵负责。
@@ -121,6 +129,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # preflight 里的 check_docs_facts / check_public_catalog / check_naming / ci_matrix --check
+      # 都 `import yaml`；不要假设 runner 镜像自带 PyYAML（与 docs job 用同一套做法）。
+      - name: Install check dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/check-venv"
+          "$RUNNER_TEMP/check-venv/bin/pip" install --disable-pip-version-check pyyaml
+
       # 静态门禁只有一份定义：scripts/preflight.sh。
       # 它覆盖 format / analyze / docs（链接、旧命令、反馈台账）/ 文档符号 /
       # 已删除 API / 公开类型 → catalog / 弃用到期 / 默认样式字面量 /
@@ -128,7 +143,7 @@ jobs:
       # 以前 CI 手抄了其中一部分，导致 check_public_catalog 与 check_deprecations
       # 在 CI 里根本没跑。
       - name: Static gates (preflight)
-        run: bash scripts/preflight.sh
+        run: PATH="$RUNNER_TEMP/check-venv/bin:$PATH" bash scripts/preflight.sh
 
       - name: Test (umbrella contract)
         run: flutter test

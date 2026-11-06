@@ -30,8 +30,10 @@ printf '%s\n' "$output"
 if [ "$status" -eq 0 ]; then
   exit 0
 fi
-if printf '%s\n' "$output" | grep -qE 'FileSystemException|Unhandled exception|dartdev|Could not find|Failed to (load|resolve|run)'; then
-  echo '（反馈检查环境不可用：dart 运行失败，本次不判定规则）' >&2
+if printf '%s\n' "$output" | grep -qE 'dartdev|Could not find|Failed to (load|resolve|run)|Waiting for another flutter command'; then
+  echo '（反馈检查环境不可用：dart 起不来或包未解析，本次不判定规则）' >&2
   exit 2
 fi
+# 其余一律按“规则检查失败”处理：`Unhandled exception` / `FileSystemException`
+# 说明 lint 本身崩了或台账写坏了，不能被当成环境问题静默跳过。
 exit 1

@@ -41,6 +41,7 @@ def blocks_with_lines(path: pathlib.Path) -> list[tuple[int, str]]:
 
 
 duplicates: list[str] = []
+compared: list[str] = []
 for module in sorted(docs.glob('*_module.md')):
     package = module.name.removesuffix('_module.md')
     readme = root / 'packages' / package / 'README.md'
@@ -50,6 +51,7 @@ for module in sorted(docs.glob('*_module.md')):
     readme_blocks = blocks_with_lines(readme)
     if not module_blocks or not readme_blocks:
         continue
+    compared.append(f'{module.name} ↔ packages/{package}/README.md')
     readme_index = {body: line for line, body in readme_blocks}
     for line, body in module_blocks:
         readme_line = readme_index.get(body)
@@ -59,6 +61,14 @@ for module in sorted(docs.glob('*_module.md')):
             f'{module.relative_to(root)}:{line} 与 {readme.relative_to(root)}:{readme_line} '
             f'是同一段 {body.count(chr(10)) + 1} 行 dart 示例',
         )
+
+# 一对可比较的文档都没找到时不能报“通过”：说明路径或命名规则已经变了。
+if not compared:
+    print(
+        '✗ 没有可比较的 modules ↔ 包 README 组合（检查路径 / *_module.md 命名）',
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 if duplicates:
     for item in duplicates:

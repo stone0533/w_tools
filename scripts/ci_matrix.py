@@ -8,7 +8,7 @@ CI 的包矩阵以前是手写的：`scripts/packages.manifest` 加了 app_getx 
 用法：
     python3 scripts/ci_matrix.py --github-output   # 追加 include=[...] 到 $GITHUB_OUTPUT
     python3 scripts/ci_matrix.py --json            # 人读的 JSON
-    python3 scripts/ci_matrix.py --check           # manifest ↔ 目录 ↔ CI 工作流一致性
+    python3 scripts/ci_matrix.py --check           # manifest ↔ 目录 ↔ CI 工作流 ↔ 根聚合约束一致性
 """
 from __future__ import annotations
 
@@ -69,6 +69,31 @@ def check(rows: list[dict[str, str]]) -> list[str]:
             errors.append(
                 f"packages.manifest:{row['line']}: 未知 runner {row['runner']}（应为 flutter / dart）",
             )
+        if row['aggregate'] not in ('root', '-'):
+            errors.append(
+                f"packages.manifest:{row['line']}: root_aggregate 应为 root / -，实际 {row['aggregate']}",
+            )
+        if row['example'] not in ('example', '-'):
+            errors.append(
+                f"packages.manifest:{row['line']}: example_test 应为 example / -，实际 {row['example']}",
+            )
+
+    # `root_aggregate` 必须与根 pubspec 的真实依赖一致，否则 release_check 会按错的清单校验。
+    root_pubspec = yaml.safe_load((root / 'pubspec.yaml').read_text()) or {}
+    aggregated_in_root = {
+        str(name)
+        for name in (root_pubspec.get('dependencies') or {})
+        if str(name).startswith('w_tools_')
+    }
+    aggregated_in_manifest = {row['name'] for row in rows if row['aggregate'] == 'root'}
+    for name in sorted(aggregated_in_manifest - aggregated_in_root):
+        errors.append(
+            f'packages.manifest: {name} 标记 root 聚合，但根 pubspec.yaml 没有依赖它',
+        )
+    for name in sorted(aggregated_in_root - aggregated_in_manifest):
+        errors.append(
+            f'root pubspec.yaml 依赖 {name}，但 packages.manifest 没有标记 root 聚合',
+        )
 
     for directory in sorted((root / 'packages').iterdir()):
         if directory.is_dir() and directory.name not in listed:

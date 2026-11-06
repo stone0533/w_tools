@@ -3,12 +3,13 @@
 
 只检查“当前文档”，历史目录（migrations/adr/analysis/release）允许旧版本和旧数量。
 
-检查五类事实：
+检查六类事实：
 1. 规模类数字（N 个库子包 / N 个 Flutter）从 pubspec 推导后与正文比对；
-2. `docs/README.md` 必须索引每个顶层文档、子目录 README，以及没有 README 的目录下的文档；
+2. `docs/README.md` 必须索引每个顶层文档、子目录 README、没有 README 的目录下的文档，以及每个 ADR；
 3. 每个带 README 的 docs 子目录，它的 README 必须索引本目录下所有文档；
 4. 当前文档不得再使用旧命令入口；
-5. ADR 编号 / 状态行 / 索引状态与日期 / 补充日期 / 已取代链接。
+5. ADR 编号 / 状态行 / 索引状态与日期 / 补充日期 / 已取代链接；
+6. doctor 的 R1~R9 规则表在 conventions 与 CLI README 中 id / 级别一致。
 
 第 1 条用推导而不是“记住几个过期数字”：包数量变化时这里不需要改代码。
 """
@@ -105,6 +106,14 @@ if docs_index.exists():
             continue  # 子目录文档由该目录 README 负责
         if path.resolve() not in indexed:
             errors.append(f'docs/README.md: 没有索引 docs/{rel.as_posix()}')
+    # ADR 在总索引里逐条列出（带一句摘要）；有 adr/README 不代表总索引可以漏。
+    for path in sorted((root / 'docs/adr').glob('*.md')):
+        if path.name == 'README.md':
+            continue
+        if path.resolve() not in indexed:
+            errors.append(
+                f'docs/README.md: 没有索引 docs/adr/{path.name}（新增 ADR 要在总索引留一行）',
+            )
 else:
     errors.append('缺少 docs/README.md')
 

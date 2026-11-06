@@ -68,7 +68,9 @@ else:
             continue  # cli / device / e2e 走工具文档，不按包规则页检查
         text = page.read_text()
         for linked in linked_pages(page):
-            text += linked.read_text()
+            # 失效链接交给 check_docs 的链接门禁报；这里不能因为读不到文件直接崩掉。
+            if linked.exists():
+                text += linked.read_text()
         entry_names = [
             match.group(1)
             for token in re.findall(r'`([^`]+)`', entry)

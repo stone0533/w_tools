@@ -74,14 +74,16 @@ for f in files:
             continue
         if not (f.parent / target).resolve().exists():
             bad.append(f'{f} -> {target}')
-out.write_text('\n'.join(bad))
+# 必须带尾换行：调用方用 `while read` 读，最后一行没有分隔符时会被整行丢掉。
+out.write_text('\n'.join(bad) + ('\n' if bad else ''))
 PY
   if [ "$python_status" -ne 0 ]; then
     printf '链接检查脚本执行失败（python 退出 %s）\n' "$python_status" >&2
     rm -f "$tmp"
     return 1
   fi
-  while IFS= read -r line; do
+  # `|| [ -n "$line" ]`：即使上面的写端忘了补尾换行，也不能静默漏掉最后一条。
+  while IFS= read -r line || [ -n "$line" ]; do
     [ -n "$line" ] || continue
     printf '✗ 失效链接：%s\n' "$line" >&2
     bad=1

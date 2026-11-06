@@ -21,7 +21,7 @@ root = pathlib.Path(__file__).resolve().parent.parent
 BASELINE = root / 'scripts' / 'naming_baseline.yaml'
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from check_public_catalog import exported_types  # noqa: E402
+from _dart_exports import exported_types  # noqa: E402
 
 # 工具包是给维护者用的 CLI / 设备工具，不是消费方 API，不套 W 前缀。
 # 新增工具包时同步这里与 check_public_catalog.py 的 SKIP。

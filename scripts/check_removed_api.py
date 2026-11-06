@@ -17,17 +17,22 @@ import sys
 root = pathlib.Path(__file__).resolve().parent.parent
 # 已删除的公开名白名单：每次删除 / 废弃都要在这里登记，见 docs/ai-contract.md §7。
 names = [
-    r'WRowButtons', r'WRowButtonsController', r'WSizeBox', r'WPadding', r'WColumn',
+    r'WRowButtons', r'WRowButtonsController', r'WRow\b', r'WSizeBox', r'WPadding', r'WColumn',
     r'WImageCachePolicy', r'WImageConfig', r'WImageLoadConfig', r'WImageDefaults\b', r'WMapConfig',
     r'WImageDefaultsScope', r'WImageEmptyError',
     r'WImageNetworkError', r'WImageAssetError', r'WImageDecodeError', r'WImageProviderError',
     r'WImageFileError', r'WImageUnsupportedError', r'WImage\.avatar', r'WImage\.thumbnail',
     r'WImage\.cover', r'WImage\.assetImage', r'WImage\.(?:network|asset|file|base64|memory|provider)', r'WToastConfig', r'WFormDefaults',
     r'WFormBorderConfigBuilder', r'WFormRowBorderExtension', r'withFormBorder',
-    r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'\bWConfig\b', r'\bWRoute\b',
-    r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
+    r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'WAsyncBuilder', r'WAsyncConfig',
+    r'WAsyncLoading', r'\bWConfig\b', r'\bWRoute\b', r'WRegExpPattern', r'WRegExpPreset',
+    r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
 ]
-patterns = [re.compile(r'\b' + name + r'\b') for name in names]
+# 以 `)` 结尾的条目不能补尾 `\b`：`)` 后面通常不是单词字符，补了就永远匹配不到。
+patterns = [
+    re.compile(r'\b' + name + ('' if name.endswith(r'\)') else r'\b'))
+    for name in names
+]
 removal = re.compile(r'删除|移除|不再提供|迁移|removed', re.IGNORECASE)
 
 targets = []

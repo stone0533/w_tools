@@ -8,8 +8,8 @@ catalog/uncataloged.yaml 记录有意不登记的公开类型；新增公开类�
 from __future__ import annotations
 
 import pathlib
-import re
 import sys
+
 import yaml
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -17,48 +17,9 @@ CATALOG = ROOT / 'packages/cli/catalog/components.yaml'
 BASELINE = ROOT / 'packages/cli/catalog/uncataloged.yaml'
 SKIP = {'w_tools_cli', 'w_tools_device', 'w_tools_e2e', 'w_tools_figma'}
 
-DECL = re.compile(r'\b(?:class|enum|mixin|typedef|extension)\s+([A-Z][A-Za-z0-9_]*)')
-BLOCK_COMMENT = re.compile(r'/\*.*?\*/', re.S)
-LINE_COMMENT = re.compile(r'//[^\n]*')
-
-
-def strip_comments(text: str) -> str:
-    return LINE_COMMENT.sub('', BLOCK_COMMENT.sub('', text))
-EXPORT = re.compile(r"^\s*export\s+'([^']+)'(?:\s+show\s+([^;]+)|\s+hide\s+([^;]+))?;", re.M)
-PART = re.compile(r"^\s*part\s+'([^']+)'", re.M)
-
-
-def exported_types(package_dir: pathlib.Path) -> set[str]:
-    lib = package_dir / 'lib'
-    barrels = list(lib.glob('w_tools_*.dart'))
-    out: set[str] = set()
-    seen: set[pathlib.Path] = set()
-
-    def visit(path: pathlib.Path, show: set[str] | None, hide: set[str]) -> None:
-        path = path.resolve()
-        if path in seen or not path.exists():
-            return
-        seen.add(path)
-        text = path.read_text()
-        code = strip_comments(text)
-        for m in PART.finditer(text):
-            visit(path.parent / m.group(1), show, hide)
-        for m in EXPORT.finditer(text):
-            target = (path.parent / m.group(1)).resolve()
-            child_show = set(x.strip() for x in m.group(2).split(',')) if m.group(2) else show
-            child_hide = set(x.strip() for x in m.group(3).split(',')) if m.group(3) else hide
-            visit(target, child_show, child_hide)
-        for m in DECL.finditer(code):
-            name = m.group(1)
-            if show is not None and name not in show:
-                continue
-            if name in hide:
-                continue
-            out.add(name)
-
-    for barrel in barrels:
-        visit(barrel, None, set())
-    return out
+# barrel / export / part 的解析与 check_doc_symbols 共用，避免“公开类型”两套定义。
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from _dart_exports import exported_types  # noqa: E402
 
 
 def load_baseline() -> dict[str, set[str]]:
@@ -114,6 +75,14 @@ def main() -> int:
             errors.append(
                 f'{pkg}: 新公开类型 {name} 未进入 catalog/uncataloged.yaml；'
                 '请登记 catalog 或更新基线',
+            )
+    # 基线只减不增：已删除 / 已进 catalog 的类型继续留在基线里，会让它慢慢失真。
+    for pkg, names in baseline.items():
+        stale = names - current.get(pkg, set())
+        for name in sorted(stale):
+            errors.append(
+                f'{pkg}: uncataloged.yaml 里的 {name} 已不是未登记的公开类型'
+                '（已删除或已进 catalog），请删行',
             )
     if errors:
         for error in errors:

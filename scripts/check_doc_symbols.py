@@ -2,10 +2,12 @@
 """检查文档里的 W 符号：类存在，且 `WXxx.member` 成员存在。
 
 只扫推荐路径（根 README / AGENTS.md、docs/agents、docs/recipes、docs/modules、docs/guides、
-packages/*/README.md），跳过迁移 / 分析 / ADR（历史文档允许出现已删除的名字）。
+packages/*/README.md、packages/*/AGENTS.md），跳过迁移 / 分析 / ADR（历史文档允许出现已删除的名字）。
 
 - `WXxx(` 的 `WXxx` 必须能在 packages/*/lib 找到 class / enum / mixin / extension / typedef；
 - `WXxx.member` 的 member 必须在该类（深度 1）声明，或属于 Object 的通用成员；
+- 代码块 import 的包必须真的导出用到的符号：按 barrel（`export ... show/hide`）判断，
+  用到只在 `lib/src` 可见、未导出的类型会报错；
 - `docs/naming.md` 是规则表，示例写在行内代码里：同样校验，但忽略该文件明确写成
   反例 / 历史名字的符号（见 `NAMING_DOC_IGNORE`）。
 """
@@ -14,6 +16,9 @@ from __future__ import annotations
 import pathlib
 import re
 import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from _dart_exports import exported_types  # noqa: E402
 
 root = pathlib.Path(__file__).resolve().parent.parent
 decl_re = re.compile(r'\b(?:class|enum|mixin|extension|typedef)\s+(W[A-Za-z0-9_]+)')
@@ -26,6 +31,8 @@ skip_members = {
 }
 
 declared: set[str] = set()
+# 声明所属的包（含未导出的 src 类型），用于识别“文档用了内部类型”。
+declared_packages: dict[str, set[str]] = {}
 members: dict[str, set[str]] = {}
 # 公开符号来自哪个包：用于验证「import 根 barrel 时符号确实由根包导出」。
 symbol_packages: dict[str, set[str]] = {}
@@ -78,7 +85,7 @@ for path in (root / 'packages').glob('*/lib/**/*.dart'):
     package_name = f'w_tools_{path.relative_to(root / "packages").parts[0]}'
     for name in decl_re.findall(text):
         declared.add(name)
-        symbol_packages.setdefault(name, set()).add(package_name)
+        declared_packages.setdefault(name, set()).add(package_name)
     for match in type_start_re.finditer(text):
         name = match.group(1)
         body = _class_body(text, match.start())
@@ -86,6 +93,15 @@ for path in (root / 'packages').glob('*/lib/**/*.dart'):
         # 命名构造函数（WXxx.named）
         for ctor in re.finditer(rf'\b{re.escape(name)}\.([A-Za-z_]\w*)\s*\(', body):
             members[name].add(ctor.group(1))
+
+# 符号归属按 barrel 真正 export 的类型算，而不是 `lib/src` 里的全部声明：
+# 否则文档 import 了包、却用只有 src 里可见的未导出类型时，边界检查会漏过。
+for pkg_dir in sorted((root / 'packages').iterdir()):
+    if not (pkg_dir / 'lib').is_dir():
+        continue
+    package_name = f'w_tools_{pkg_dir.name}'
+    for name in exported_types(pkg_dir):
+        symbol_packages.setdefault(name, set()).add(package_name)
 
 object_members = {'copyWith', 'toString', 'hashCode', 'runtimeType', 'noSuchMethod'}
 
@@ -106,6 +122,8 @@ targets: list[pathlib.Path] = []
 for sub in ('docs/agents', 'docs/recipes', 'docs/modules', 'docs/guides'):
     targets.extend(sorted((root / sub).glob('*.md')))
 targets.extend(sorted((root / 'packages').glob('*/README.md')))
+# 包级 AGENTS 也是推荐阅读路径（ai-contract §5.7 明确声称会校验），同样扫代码块。
+targets.extend(sorted((root / 'packages').glob('*/AGENTS.md')))
 # 根 README / AGENTS.md 是仓库的主入口，代码块同样要对着源码校验。
 targets += [root / 'README.md', root / 'AGENTS.md', root / 'docs' / 'naming.md']
 
@@ -146,6 +164,15 @@ for path in targets:
             for name in sorted(set(re.findall(r'\b(W[A-Z][A-Za-z0-9_]*)\b', clean_block))):
                 packages = symbol_packages.get(name)
                 if not packages:
+                    # 声明存在、但没有任何包 barrel 导出：内部类型，文档里不该直接使用。
+                    declared_in = declared_packages.get(name)
+                    if declared_in:
+                        line = clean_block.find(name)
+                        line_no = clean_block[:line].count('\n') + 1 if line >= 0 else 1
+                        bad.append(
+                            f'{path.relative_to(root)}: 代码块第 {line_no} 行使用了'
+                            f'未公开导出的内部类型 {name}（声明于 {", ".join(sorted(declared_in))}）'
+                        )
                     continue
                 reachable = bool(packages & block_imports)
                 if not reachable:
