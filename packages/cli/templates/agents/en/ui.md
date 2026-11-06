@@ -17,7 +17,7 @@
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
 - **Badges / clipping / action rows / steps**: use `WBadge(badgeContent:, child:)` for badges,
-  `WClipRRect(config: WClipRRectConfig.all(12), child: ...)` for rounded clipping,
+  `WClipRRect(borderRadius: BorderRadius.circular(12), child: ...)` for rounded clipping,
   `WActionRow` for horizontal action rows, and `WStep(labels:, current:)` (or `WStepFlow`
   for reuse) for steps. Use `WImageTheme` for app-level image placeholders/errors
   and `WButtonSize` for custom button sizes.
@@ -39,13 +39,15 @@
   Consumers cannot add `WTextVariant` enum values.
   Minimal: `WText(text: 'Title', variant: WTextVariant.title)`.
 - **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
-  `WHexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`;
+  `WColorExtension.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`;
   compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
 - **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
   prefixes; use native `SizedBox` / `Padding` / `Row` / `Column`, and `num.allPadding` for `EdgeInsets`.
   `WSizeBox` / `WPadding` / `WRow` / `WColumn` were removed in 5.0.
-- **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
-  `WNotificationListener` for scroll notifications/percentage (depth 0 only).
+- **Lists / notifications**: use `WListView` / `WListViewSliver` for lists,
+  `WKeepAliveWrapper` for list-item keep-alive, `WNotificationListener` for scroll
+  notifications/percentage (depth 0 only), and `WGradientCircularProgressIndicator`
+  for progress.
 - **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
   in `ScreenUtilInit.builder` / `WAppOptions.builder` (or a custom plugin's `builderWrapper`); `wrapApp` has no Theme.
 - **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated cards;

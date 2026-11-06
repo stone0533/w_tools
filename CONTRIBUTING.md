@@ -62,6 +62,10 @@
   `python3 scripts/check_public_api_diff.py --package <pkg>`；它要求变化写进
   当前版本 CHANGELOG 的 `### Breaking` / `### Removed`，或 migration。
   基线在 `scripts/api_snapshots/`，发布新版本后更新。
+- 有公开 API / 行为变化时，合并前跑一次 **J-4（AI 教学覆盖审计）**，并在 PR 里贴矩阵结论；
+  J-4 只读，不修改文件。至少确认：catalog、`docs/agents/<pkg>.md`、
+  `templates/agents/{zh,en}/<pkg>.md`、README、example 都已同步。
+- 自动门禁只能保证符号/锚点/生成物一致；教学方法是否讲清楚仍需要 J-4 人工判断。
 
 ## 6. grep / 检查脚本经验
 

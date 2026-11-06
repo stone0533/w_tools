@@ -13,6 +13,14 @@
 - [ ] 公开 `build()` 只在 `*Builder` 上
 - [ ] 改名 / 删除已同步 catalog、README、example、migration、baseline
 
+## 公开变化的教学同步（有公开 API / 行为变化时）
+
+- [ ] 已跑 J-4（AI 教学覆盖审计），结论贴在本 PR
+- [ ] catalog 的 `usage` / `pitfalls` / `related` / `dontUseFor` 已同步
+- [ ] `docs/agents/<pkg>.md` 与 `templates/agents/{zh,en}/<pkg>.md` 已同步
+- [ ] README / example / migration 已同步
+- [ ] `bash scripts/preflight.sh --with-tests` 通过
+
 ## 自检
 
 - [ ] `bash scripts/preflight.sh --with-tests`（或说明未跑原因）

@@ -839,7 +839,7 @@ const String agentsUi = r'''
   样式用 `style`，`label` 和 `content` 不能同时传。`loading` 时同时设置 `enabled: !loading`；
   纯图标按钮提供 `semanticLabel`。状态色放 `AppButtons`。
 - **徽标 / 裁剪 / 横向操作 / 步骤**：角标用 `WBadge(badgeContent:, child:)`；圆角裁剪用
-  `WClipRRect(config: WClipRRectConfig.all(12), child: ...)`；横向操作行用 `WActionRow`；
+  `WClipRRect(borderRadius: BorderRadius.circular(12), child: ...)`；横向操作行用 `WActionRow`；
   步骤条用 `WStep(labels:, current:)`，复用流程用 `WStepFlow`。App 级图片占位/错误用
   `WImageTheme`；自定义按钮尺寸用 `WButtonSize`。
 - **图片**：统一用 `WImage.source` + `WImageSource`——网络图
@@ -857,13 +857,14 @@ const String agentsUi = r'''
   `variant + style`；项目内重复抽本地 helper；消费方不能自行新增 `WTextVariant` enum，
   稳定跨页面语义再提给 `w_tools_ui`。
 - **扩展**：数字格式化用 `toThousandsSeparated` / `toCurrency` / `toPercent`；
-  hex 颜色用 `WHexColor.fromHex` 或 `'#rrggbb'.toColor()`；`EdgeInsets` 值用 `num.allPadding`；
+  hex 颜色用 `WColorExtension.fromHex` 或 `'#rrggbb'.toColor()`；`EdgeInsets` 值用 `num.allPadding`；
   BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合。
 - **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
   `SizedBox` / `Padding` / `Row` / `Column` 直接用 Flutter 原生组件；需要 `EdgeInsets` 值时用 `num.allPadding`。
   `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已弃用（5.0 移除），新代码不要再用。
-- **列表 / 通知**：列表项保活用 `WKeepAliveWrapper`；滚动通知 / 百分比用 `WNotificationListener`
-  （百分比只处理 depth 0 的 `ScrollUpdateNotification`）。
+- **列表 / 通知**：列表用 `WListView` / `WListViewSliver`；列表项保活用 `WKeepAliveWrapper`；
+  滚动通知 / 百分比用 `WNotificationListener`（百分比只处理 depth 0 的 `ScrollUpdateNotification`）；
+  进度用 `WGradientCircularProgressIndicator`。
 - **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
   在 `ScreenUtilInit.builder` / `WAppOptions.builder`（或自建插件的 `builderWrapper`）的 build 期构建。
   `wrapApp` 没有 Theme；需要 Theme 的排版扩展用 `builderWrapper`。
@@ -1172,7 +1173,7 @@ const String agentsUiEn = r'''
   use `style`; do not pass both `label` and `content`. With `loading`, also set `enabled: !loading`;
   provide `semanticLabel` for icon-only buttons. Put state colors in `AppButtons`.
 - **Badges / clipping / action rows / steps**: use `WBadge(badgeContent:, child:)` for badges,
-  `WClipRRect(config: WClipRRectConfig.all(12), child: ...)` for rounded clipping,
+  `WClipRRect(borderRadius: BorderRadius.circular(12), child: ...)` for rounded clipping,
   `WActionRow` for horizontal action rows, and `WStep(labels:, current:)` (or `WStepFlow`
   for reuse) for steps. Use `WImageTheme` for app-level image placeholders/errors
   and `WButtonSize` for custom button sizes.
@@ -1194,13 +1195,15 @@ const String agentsUiEn = r'''
   Consumers cannot add `WTextVariant` enum values.
   Minimal: `WText(text: 'Title', variant: WTextVariant.title)`.
 - **Extensions**: use `toThousandsSeparated` / `toCurrency` / `toPercent` for number formatting;
-  `WHexColor.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`;
+  `WColorExtension.fromHex` or `'#rrggbb'.toColor()` for colors; use `num.allPadding` for `EdgeInsets`;
   compose `BoxDecoration` with `withColor` / `withBorderRadius` / `withShadow`.
 - **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
   prefixes; use native `SizedBox` / `Padding` / `Row` / `Column`, and `num.allPadding` for `EdgeInsets`.
   `WSizeBox` / `WPadding` / `WRow` / `WColumn` were removed in 5.0.
-- **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
-  `WNotificationListener` for scroll notifications/percentage (depth 0 only).
+- **Lists / notifications**: use `WListView` / `WListViewSliver` for lists,
+  `WKeepAliveWrapper` for list-item keep-alive, `WNotificationListener` for scroll
+  notifications/percentage (depth 0 only), and `WGradientCircularProgressIndicator`
+  for progress.
 - **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
   in `ScreenUtilInit.builder` / `WAppOptions.builder` (or a custom plugin's `builderWrapper`); `wrapApp` has no Theme.
 - **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated cards;

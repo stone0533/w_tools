@@ -565,4 +565,37 @@ void main() {
       expect(image.usage ?? '', contains('WImageLoadOptions'));
     });
   });
+  group('UI 模板入口覆盖', () {
+    const names = <String>[
+      'WText',
+      'WImage',
+      'WButton',
+      'WPressable',
+      'WScaffold',
+      'WAppBar',
+      'WNavBar',
+      'WTabBar',
+      'WStep',
+      'WBadge',
+      'WClipRRect',
+      'WListView',
+      'WKeepAliveWrapper',
+      'WNotificationListener',
+      'WGradientCircularProgressIndicator',
+    ];
+
+    for (final lang in <String>['zh', 'en']) {
+      test('$lang 模板覆盖 UI 核心入口', () {
+        final text = File('templates/agents/$lang/ui.md').readAsStringSync();
+        for (final name in names) {
+          expect(text, contains(name), reason: '$lang ui.md 缺少 $name');
+        }
+      });
+
+      test('$lang 模板不再教旧扩展名', () {
+        final text = File('templates/agents/$lang/ui.md').readAsStringSync();
+        expect(text, isNot(contains('WHexColor')));
+      });
+    }
+  });
 }
