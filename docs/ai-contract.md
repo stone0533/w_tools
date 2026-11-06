@@ -228,102 +228,22 @@ teach: false  普通组件：至少 useFor / dontUseFor
 
 ## 5. 完整性检查
 
-“全不全”拆成六个维度。
+“全不全”拆成下面这些维度。**这里只列维度与入口**——脚本细节和纪律见
+[`scripts/README.md`](../scripts/README.md)，不维护第二份门禁清单，也不写死数量。
 
-### 5.1 可发现性
+| 维度 | 查什么 | 入口 |
+|---|---|---|
+| 5.1 可发现性 | 公开导出类型必须进 catalog 或 `uncataloged.yaml` 基线 | [`check_public_catalog.py`](../scripts/check_public_catalog.py) |
+| 5.2 教学覆盖 | teach 必须有 usage / pitfalls / related；每个库包至少一个 teach；prompt 含「用法 / 注意 / 相关」 | [`ai_contract_test.dart`](../packages/cli/test/ai_contract_test.dart) |
+| 5.3 路由覆盖 | 每个 `InitFeature` 有 zh / en 模板，且不推荐旧命令 | 同上 |
+| 5.4 文档覆盖 | 每个包有 README；安装约束按 caret 语义接受当前版本；有 example 要在 README 提及 | [`check_package_docs.py`](../scripts/check_package_docs.py) |
+| 5.5 生成物新鲜度 | `catalog.g.dart` / `templates.g.dart` / `components.md` 与源文件一致 | `gen_catalog.dart --check`、`gen_templates.dart --check` |
+| 5.6 查询正确性 | `list` / `explain` / `context`、三种输出格式、别名命中、README 快速开始 | [`cli_test.dart`](../packages/cli/test/cli_test.dart)、[`catalog_test.dart`](../packages/cli/test/catalog_test.dart)、[`context_test.dart`](../packages/cli/test/context_test.dart) |
+| 5.7 文档入口一致性 | 文档索引完整、`docs/agents` 索引与规则页一致、doctor 规则表两处一致、root / 各包 `AGENTS.md` 的符号与已删除 API、提示词命令可执行 | [`check_docs_facts.py`](../scripts/check_docs_facts.py)、[`check_agents_consistency.py`](../scripts/check_agents_consistency.py)、[`check_prompt_docs.py`](../scripts/check_prompt_docs.py) |
+| 5.8 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh` | [`ci_matrix.py`](../scripts/ci_matrix.py) |
 
-```text
-公开类型 → catalog
-```
-
-由 [`scripts/check_public_catalog.py`](../scripts/check_public_catalog.py) 检查：
-
-- 扫描包导出的公开类型；
-- 减去 catalog 已登记；
-- 与 `uncataloged.yaml` 基线比较；
-- 新公开类型未登记则失败。
-
-基线重建：
-
-```bash
-python3 scripts/check_public_catalog.py --write
-```
-
-注意：这是**基线**，不是自动证明。新增类型仍然要人工判断应该进 catalog 还是基线。
-
-### 5.2 教学覆盖
-
-由 [`packages/cli/test/ai_contract_test.dart`](../packages/cli/test/ai_contract_test.dart) 检查：
-
-- 至少覆盖主要入口组件；
-- 每个库包至少一个 `teach`；
-- `teach` 组件必须有 usage / pitfalls / related；
-- `related` 可解析；
-- prompt 必须包含：
-  - `用法：`
-  - `注意：`
-  - `相关：`
-
-### 5.3 路由覆盖
-
-同一测试检查：
-
-- 每个 `InitFeature` 有 zh / en AGENTS 模板；
-- 所有模板非空；
-- 不出现旧命令：
-  ```text
-  w_tools_cli:context
-  w_tools_cli:list
-  w_tools_cli:explain
-  ```
-
-### 5.4 文档覆盖
-
-由 [`scripts/check_package_docs.py`](../scripts/check_package_docs.py) 检查：
-
-- 每个子包有 README；
-- README 安装约束按 caret 语义接受 pubspec 当前版本（不是只比 major）；
-- 有 `example/` 的包必须在 README 提到示例。
-
-### 5.5 生成物新鲜度
-
-```bash
-dart run tool/gen_catalog.dart --check
-dart run tool/gen_templates.dart --check
-```
-
-### 5.6 查询正确性
-
-- [`packages/cli/test/cli_test.dart`](../packages/cli/test/cli_test.dart)
-- [`packages/cli/test/catalog_test.dart`](../packages/cli/test/catalog_test.dart)
-- [`packages/cli/test/context_test.dart`](../packages/cli/test/context_test.dart)
-- [`packages/async/test/docs_examples_test.dart`](../packages/async/test/docs_examples_test.dart)
-
-覆盖：
-
-- `list` / `explain` / `context`；
-- text / json / prompt；
-- usage / pitfalls / related；
-- 别名精确命中；
-- context capabilities；
-- README 快速开始。
-
-### 5.7 文档入口一致性
-
-- [`scripts/check_docs_facts.py`](../scripts/check_docs_facts.py)：规模数字从 pubspec 推导；
-  `docs/README.md` 必须索引每个顶层文档 / 子目录 README / ADR；子目录 README 必须索引本目录文档；
-- [`scripts/check_agents_consistency.py`](../scripts/check_agents_consistency.py)：
-  `docs/agents/README.md` 写的首选入口必须在该包规则页出现；
-- root [`AGENTS.md`](../AGENTS.md) 的代码块与已删除 API 同样纳入
-  `check_doc_symbols.py` / `check_removed_api.py`；
-- [`scripts/check_prompt_docs.py`](../scripts/check_prompt_docs.py)：维护者提示词引用的脚本 / flag /
-  `cd packages/cli` / 占位符 / 场景编号都必须存在且可解析。
-
-### 5.8 清单同源
-
-- [`scripts/ci_matrix.py`](../scripts/ci_matrix.py)：CI 包矩阵从 `packages.manifest` 生成，
-  `--check` 保证 manifest / 目录 / workflow 不变形，且 CI 的静态门禁调用 `preflight.sh`；
-- `preflight.sh` 是静态门禁的唯一入口，CI 不再手抄步骤。
+重建基线用 `python3 scripts/check_public_catalog.py --write`；它是**基线**，不是「全了」的证明，
+新增类型仍要人工判断进 catalog 还是 `uncataloged.yaml`。
 
 ---
 
@@ -407,7 +327,7 @@ bash scripts/preflight.sh --with-tests
 - `check_public_catalog.py` 基于 export/part 静态扫描，不是完整 analyzer；
 - `uncataloged.yaml` 是“有意不登记”清单，仍应定期 review；
 - `usage` 是最短片段，不保证全量编译；
-- 39 个非 teach 组件仍只有 useFor / dontUseFor；
+- 大部分 `teach: false` 组件仍只有 useFor / dontUseFor（具体比例见 catalog，不在文档里写死）；
 - `context.capabilities` 是静态映射，新增包需同步；
 - Markdown 全量代码块编译尚未开启，只检查关键示例。
 
@@ -423,6 +343,7 @@ bash scripts/preflight.sh --with-tests
 [ ] README 已更新
 [ ] example 已更新
 [ ] 生成器已跑
+[ ] 文档索引 / docs/agents 入口 / CI 清单同源由 preflight 覆盖（不必单独跑）
 [ ] ai_contract / cli / docs / preflight 通过
 [ ] 破坏性变更已写 migration
 ```

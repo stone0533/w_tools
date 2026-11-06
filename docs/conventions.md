@@ -56,7 +56,7 @@
 ## 5. 依赖策略
 
 - 消费方**只依赖用到的子包**，不要依赖聚合包 `w_tools`
-  （根包 7.0 起已移除 app/map/qr；按需依赖更可控）
+  （当前根包只聚合 `core` / `async` / `ui` / `form` / `api` / `toast`，见 [ADR-0006](adr/0006-package-topology.md)）
 - 业务代码**只 import 项目自己的聚合入口**（如 `lib/app/w/toolkit.dart`），不直接 import 子包
 - 开发期要现场改子包：用 `dependency_overrides` 指向本地 workspace，**不要**改回聚合包
 
@@ -98,10 +98,15 @@ doctor 检查项：
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成（只检查带 w_tools 标记的 target 文件与 toolkit；UI starter 可自定义，不检查；版本标记与 `pubspec.lock` 不一致） |
 | R9 | 配置 | 项目禁用 API（`.w_tools_doctor.yaml` 的 `banned`；默认空，命中按条目 level 报） |
 
+本节是 R1~R9 的**规则细节唯一来源**；[`packages/cli/README.md`](../packages/cli/README.md) 的表格
+是给 pub.dev 读者的简版。新增或修改规则时先改这里，再同步包 README 与 `doctor --print-config` 的输出；
+两张表的 R id 与级别由 `scripts/check_docs_facts.py` 校验一致。
+
 doctor 规则是文本级检查：注释会跳过，字符串内容仍可能命中。
 
 `--strict` 让 warning 也失败（默认关）；`--json` 给 CI 解析，issue 里的 `fix`
-（`run` / `edit`）可直接执行，没有 `fix` 时看 `hint`。
+（`run` / `edit`）可直接执行，没有 `fix` 时看 `hint`；`--only=R1,R9` 只跑指定规则，
+`--include-tests` 把 R2 的扫描范围扩到 `test/` / `tool/`。
 
 无 CLI 时的手动 grep 只作兜底：① 对应 R4（仅覆盖已知业务目录，严格 import 白名单仍是项目特有）；② 对应 R2（覆盖 `test/` / `tool/` 需加 `--include-tests`）；③ 对应 R1；④ 对应 R9 的 `banned`。不要把这四条直接实现成默认 CLI 规则。
 
@@ -145,5 +150,5 @@ Image.asset('logo.png');
 `init --force` 只刷新生成物；UI starter 需显式 `--force-starters`（1.8.0+），覆盖前会写 `.bak`。
 项目 UI 层固定为 `lib/app/ui/`，暂存层固定为 `lib/app/design_system/`；`init` 与 doctor 使用同一套路径（`packages/cli/lib/src/layout.dart` 是唯一来源）。聚合入口默认 `lib/app/w/toolkit.dart`，可用 `.w_tools_doctor.yaml` 的 `toolkit_entry` 覆盖 —— `init` 与 doctor 都读它。
 
-> 早期这里放的是三条 grep 命令，现在**以 doctor 为唯一事实源** —— 同一份规则不能有两个实现，
+> 早期这里放的是四条 grep 命令，现在**以 doctor 为唯一事实源** —— 同一份规则不能有两个实现，
 > 否则必然漂移。

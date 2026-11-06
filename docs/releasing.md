@@ -1,8 +1,10 @@
 # 发版流程（Flutter 子包 + 工具包 + 聚合包）
 
-> 发布记录索引：[docs/releases/](releases/README.md)。
+> 发布历史见各包 `CHANGELOG.md` 与 [`docs/migrations/`](migrations/README.md)（breaking 变更）；
+> 协调发布波次的版本矩阵记在根 `CHANGELOG.md` 的对应版本段。
 >
-> 当前大版本发布清单：[2026-11-04 根包 9.0.0](releases/2026-11-04-major-5.0.md)。
+> **本文是发布流程的唯一操作来源**；[`ai-maintainer-prompts.md`](ai-maintainer-prompts.md) 的 K 场景
+> 只是给 AI 的任务卡与边界，脚本参数、顺序、常见坑以本文为准。
 
 包清单的唯一来源是 [`scripts/packages.manifest`](../scripts/packages.manifest)；
 `preflight.sh` / `release_check.sh` 都从这里取包名、路径、runner 和 example 测试。
@@ -36,25 +38,30 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
   `Removed` / 破坏性行为变更 → **major**。发布脚本会在「版本不是 X.0.0 但 CHANGELOG
   含 Removed/breaking」时给出警告。
 - **发布顺序**：先子包，后聚合包。聚合包约束抬高到新子包版本之后才能发。
-- **`w_tools_cli` 独立发布**：它是纯 Dart 工具包（`packages/cli`），不被根包依赖，
-  版本自己走。发布命令一样用 `bash scripts/publish_package.sh packages/cli`
-  （脚本检测到没有 Flutter 依赖时会改用 `dart pub publish`），不需要跟子包/根包同批。
+- **已发布版本不回滚、不重发**：有外部使用者时 fix-forward —— 先发 patch 恢复兼容
+  （通常是 `@Deprecated` 垫片），下个 major 再删；确认没有外部使用者时不回滚、不加垫片，
+  记录例外，后续破坏性改动一律按 major 发。
+- **工具包独立发布**：`cli` / `figma` / `device`（纯 Dart）与 `e2e`（Flutter）都不被根包依赖，
+  版本自己走，不需要跟子包/根包同批。发布命令一样用 `publish_package.sh`
+  （脚本检测到没有 Flutter 依赖时会改用 `dart pub publish`）。
 - **历史例外**：`w_tools_ui 1.1.0` 删除了 `WNetworkImageWithRetry`，按 semver 应为 2.0.0；
   当时无外部使用者，未回滚、未加兼容垫片。今后破坏性改动一律按 major 发。
 
 ## 消费方 AGENTS 更新
 
 `w_tools_cli` 的 AGENTS / 文档模板变更后，消费方不会自动更新已有 `AGENTS.md`。
-发版说明中需要提醒消费方升级 CLI 后重新执行：
+发版说明中需要提醒消费方升级 CLI 后：
 
 ```bash
-dart run w_tools_cli:w_tools init
-dart run w_tools_cli:w_tools init --check-drift
+dart run w_tools_cli:w_tools init              # 重新生成，拿到最新模板
+dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改文件
 ```
 
-模板变更只影响后续 `init` 生成内容；已有项目必须重新 init 才会拿到新的 Form / UI / Button 规则。
+模板变更只影响后续 `init` 生成内容；已有项目必须重新 `init` 才会拿到新的 Form / UI / Button 规则。
 
 ## 发版步骤
+
+下面以 `map` 为例，换成你要发的包即可。
 
 1. 改子包 `version` + 写 `CHANGELOG.md`（`## x.y.z`）。
 2. 需要聚合包跟上的，改根 `pubspec.yaml` 里对应的 `w_tools_<pkg>: ^x.y.z`。
@@ -145,6 +152,7 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 | 根包约束 | 每个 `w_tools_<pkg>: ^x.y.z` 必须接受子包本地版本 |
 | 根包版本 ↔ CHANGELOG | 同上 |
 | README 版本声明 | 禁止出现「当前 `x.y.z`」这种会漂移的硬编码 |
+| 弃用到期 | `@Deprecated` 的 `remove-in` 是否到期（复用 `check_deprecations.py`） |
 | `## Unreleased` 条目 | 只提醒：说明有已记录但未发版的改动 |
 | `--strict` | 已跟踪文件无未提交改动、无未跟踪文件 |
 | `--online` | 与 pub.dev API 对比最新版本，指出待发布 / 落后 |
@@ -152,13 +160,14 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 
 ## 常见坑
 
-- **`pub publish --dry-run` 返回 65**：多半是工作区不干净。先提交再跑。
+- **`pub publish` 提示工作区不干净**：先提交再跑（具体退出码看 pub 输出；历史上
+  `pub publish --dry-run` 报过 65）。
 - **只发子包不发聚合包**：已发布过的聚合包不会自动更新依赖约束；想让它带上新子包必须发一次
   新的聚合版本。
 - **忘记抬约束**：子包发了 1.1.0，但根包还写 `^1.0.0`，用户拿到的是 1.0.0。脚本会直接报错。
 - **CHANGELOG 写成 `## v1.1.0`**：脚本按 `## 1.1.0` 精确匹配，不要带 `v`。
 - **直接在包目录敲 `flutter pub publish`**：会把 `workspace:` / `resolution: workspace`
-  带进发布物，消费方 `dart pub deps` 会以退出码 66 失败。统一用
+  带进发布物，消费方 `dart pub deps` 会失败（当时观察到的退出码是 66）。统一用
   `scripts/publish_package.sh`。
 - **`## Unreleased` 一直挂着**：先确认这些改动是不是已经随已发布版本出去了——
   是就折叠进对应版本（已发布版本的 CHANGELOG 会原样显示在 pub.dev 上，改不了旧版本，

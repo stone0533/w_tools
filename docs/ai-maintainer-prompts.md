@@ -293,7 +293,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 5. catalog 增加入口组件；入口组件 teach: true。
 6. 如果是 init feature，加 templates/agents/{zh,en}/<feature>.md 和 features.dart 映射。
 7. 更新 context.capabilities（packages/cli/lib/src/context/context_project.dart）、
-   docs/modules/README.md、docs/releases。
+   docs/modules/README.md、根 CHANGELOG。
 8. 跑（生成器在 packages/cli 下）：
    cd packages/cli
    dart run tool/gen_templates.dart
@@ -784,6 +784,9 @@ J-5 多包/家族
 ```text
 审计 → 准备版本 → dry-run → 人工确认 → 发布 → 发布后验证
 ```
+
+> 本节是给 AI 的任务卡与边界；**操作细节（脚本参数、顺序、常见坑）以
+> [`docs/releasing.md`](releasing.md) 为准**，两边冲突时以那份文档为准。
 
 不要用一条“帮我发布”的提示词完成全部步骤。
 
