@@ -144,7 +144,8 @@ jobs:
   # 声明的最低 Flutter 版本上再跑一遍：form 1.0.0 的 SizeTransition.alignment
   # 就是「声明支持 3.38、却在 3.38 编译失败」漏出去的。
   min_sdk:
-    name: Flutter ${{ env.MIN_FLUTTER_VERSION }} (declared minimum)
+    # 这里不能用 env 上下文（GitHub 在 job name 阶段不解析 env）；版本由下方 setup 步骤使用。
+    name: Flutter declared minimum
     needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
