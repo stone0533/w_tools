@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""检查维护者提示词里的命令是否可执行。
+"""检查文档里的命令是否可执行。
 
-只扫 docs/ai-maintainer-prompts.md：这份文档是给人和 AI 直接复制粘贴的，
-命令写错（脚本不存在 / flag 拼错 / 少了 cd）时没有别的门禁能发现。
+1) `docs/ai-maintainer-prompts.md` 是维护者直接复制粘贴的提示词手册，规则最严：
+   命令可执行 + 生成器 cwd 正确 + 占位符都有定义 + 场景编号都有标题。
+2) 其余**当前文档**（README / AGENTS / CONTRIBUTING / scripts/README / docs 顶层与
+   agents·recipes·guides·feedback / 包 README）只校验「脚本存在 + flag 被脚本认识」。
+   历史目录（analysis / adr / migrations）不参与：它们允许记录旧命令。
 
 规则：
 1. 引用的 scripts/*.sh|py 必须存在；
 2. `bash scripts/x.sh --flag` / `python3 scripts/x.py --flag` 里的 flag 必须被该脚本认识；
-3. 代码块里 `dart run tool/<file>.dart` / `dart test test/<file>.dart`
+3. （仅提示词手册）代码块里 `dart run tool/<file>.dart` / `dart test test/<file>.dart`
    必须在 `cd packages/cli` 之后（`cd ../..` 之后再跑同样算错）；
-4. 不允许残留 `<...>` 占位符；
-5. 正文占位符必须出现在填空表里（或在表下说明里单独定义）；
-6. §1 场景选择里引用的 A~M / X-n 必须有对应标题 —— 防止“文档承诺了 J-5，正文没有”的漂移。
+4. （仅提示词手册）不允许残留 `<...>` 占位符；
+5. （仅提示词手册）正文占位符必须出现在填空表里（或在表下说明里单独定义）；
+6. （仅提示词手册）§1 场景选择里引用的 A~M / X-n 必须有对应标题。
 """
 from __future__ import annotations
 
@@ -30,6 +33,15 @@ if not doc.exists():
 text = doc.read_text()
 lines = text.splitlines()
 
+def command_flags(tail: str) -> list[str]:
+    """取一条命令里的 flag；在反引号 / 中文括号 / 注释 / 表格分隔处截断。
+
+    否则同一行后面解释性文字里的 `--check` 会被算到前一个脚本头上。
+    """
+    tail = re.split(r'[`（(#|]', tail, maxsplit=1)[0]
+    return re.findall(r'--[A-Za-z][A-Za-z0-9-]*', tail)
+
+
 # 1) 引用的脚本必须存在
 for lineno, line in enumerate(lines, 1):
     for match in re.finditer(r'scripts/([A-Za-z0-9_.-]+\.(?:sh|py))', line):
@@ -43,7 +55,7 @@ for lineno, line in enumerate(lines, 1):
         if not script.exists():
             continue  # 规则 1 已报
         body = script.read_text()
-        for flag in re.findall(r'--[A-Za-z][A-Za-z0-9-]*', match.group(2)):
+        for flag in command_flags(match.group(2)):
             # 按完整 token 匹配：`--with-test` 不能因为 `--with-tests` 存在就算认识。
             if not re.search(rf'(?<![\w-]){re.escape(flag)}(?![\w-])', body):
                 errors.append(f'{doc.name}:{lineno}: {match.group(1)} 不认识 {flag}')
@@ -97,10 +109,48 @@ else:
     for scenario in sorted(referenced - heading_ids):
         errors.append(f'{doc.name}: 场景选择引用了 {scenario}，但正文没有对应标题')
 
+# 7) 其余当前文档：脚本必须存在、flag 必须被脚本认识。
+#    文档里的命令比提示词手册多一个数量级，改名 / 改 flag 后没人会逐条回读。
+command_docs: list[pathlib.Path] = [
+    root / 'README.md',
+    root / 'AGENTS.md',
+    root / 'CONTRIBUTING.md',
+    root / 'scripts/README.md',
+]
+command_docs += sorted((root / 'docs').glob('*.md'))
+for sub in ('agents', 'recipes', 'guides', 'feedback'):
+    command_docs += sorted((root / 'docs' / sub).glob('*.md'))
+command_docs += sorted((root / 'packages').glob('*/README.md'))
+command_docs += sorted((root / 'packages').glob('*/AGENTS.md'))
+
+script_ref = re.compile(r'scripts/([A-Za-z0-9_.-]+\.(?:sh|py))')
+call_ref = re.compile(r'(?:bash|python3)\s+scripts/([A-Za-z0-9_.-]+\.(?:sh|py))([^\n]*)')
+
+
+def check_commands(path: pathlib.Path) -> None:
+    rel = path.relative_to(root)
+    for lineno, line in enumerate(path.read_text().splitlines(), 1):
+        for match in script_ref.finditer(line):
+            if not (root / 'scripts' / match.group(1)).exists():
+                errors.append(f'{rel}:{lineno}: 引用的脚本不存在：scripts/{match.group(1)}')
+        for match in call_ref.finditer(line):
+            script = root / 'scripts' / match.group(1)
+            if not script.exists():
+                continue  # 上面的存在性检查已经报过
+            body = script.read_text()
+            for flag in command_flags(match.group(2)):
+                if not re.search(rf'(?<![\w-]){re.escape(flag)}(?![\w-])', body):
+                    errors.append(f'{rel}:{lineno}: {match.group(1)} 不认识 {flag}')
+
+
+for path in sorted(set(command_docs)):
+    if path.is_file() and path.name != 'ai-maintainer-prompts.md':
+        check_commands(path)
+
 if errors:
     for error in errors:
         print(f'✗ {error}', file=sys.stderr)
-    print(f'\n维护者提示词检查失败：{len(errors)} 项', file=sys.stderr)
+    print(f'\n文档命令检查失败：{len(errors)} 项', file=sys.stderr)
     sys.exit(1)
 
-print('维护者提示词检查通过')
+print('文档命令检查通过（提示词手册 + 当前文档）')

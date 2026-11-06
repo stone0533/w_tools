@@ -22,7 +22,7 @@ import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-from check_public_api_diff import api_surface  # noqa: E402
+from check_public_api_diff import NO_PUBLIC_API, api_surface, latest_snapshot_version  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / 'scripts/packages.manifest'
@@ -93,6 +93,31 @@ def diff_surfaces(
     return changes
 
 
+def _version_tuple(raw: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in re.findall(r'\d+', raw))
+
+
+def requires_bump(
+    new_version: str,
+    base_version: str,
+    published_version: str | None,
+) -> bool:
+    """本次 API 变化是否必须再抬版本号。
+
+    - `new != base`：本 PR 已经抬过，放行；
+    - `new > published`：版本号已经领先已发布基线（同一个未发布版本里继续加改动），放行；
+    - 否则必须抬：否则改动会落在已发布版本上，pub.dev 无法回滚。
+
+    只比 base 版本号会把「已经抬过但还没发布」的版本误判成没抬（docs/releasing.md §发版步骤
+    说「功能 PR 里已经抬过就沿用」，这正是第二种情况）。
+    """
+    if new_version != base_version:
+        return False
+    if published_version is None:
+        return True
+    return _version_tuple(new_version) <= _version_tuple(published_version)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -117,9 +142,20 @@ def main() -> int:
 
     packages = [args.package] if args.package else manifest_packages()
     errors: list[str] = []
+    skipped: list[str] = []
+    pending: list[str] = []
     checked = 0
     for package in packages:
         current = api_surface(ROOT / 'packages' / package)
+        if not current:
+            if package in NO_PUBLIC_API:
+                skipped.append(package)
+                continue
+            errors.append(
+                f'{package}: 解析不到公开 API（lib/ 下缺 w_tools_*.dart barrel），'
+                '版本门禁会空转；补 barrel 或登记到 check_public_api_diff.NO_PUBLIC_API'
+            )
+            continue
         base = base_surface(args.base, package)
         if base is None:
             continue  # 新包：base 里没有，版本从 0 开始，不需要对比
@@ -132,12 +168,15 @@ def main() -> int:
         changes = diff_surfaces(base, current)
         if not changes:
             continue
-        if new_version != old_version:
+        published = latest_snapshot_version(package)
+        if not requires_bump(new_version, old_version, published):
+            if new_version == old_version and published is not None:
+                pending.append(f'{package} {new_version}')
             continue
         sample = '、'.join(sorted(changes)[:3])
         errors.append(
             f'{package}: 公开 API 有 {len(changes)} 处变化（{sample}…），'
-            f'但版本仍是 {new_version}。请抬版本并写 CHANGELOG 段'
+            f'但版本仍是 {new_version}（已发布基线 {published or "无"}）。请抬版本并写 CHANGELOG 段'
         )
 
     if errors:
@@ -145,6 +184,10 @@ def main() -> int:
         for error in errors:
             print(f'  ✗ {error}', file=sys.stderr)
         return 1
+    if pending:
+        print(f'✓ 公开 API 变化落在未发布版本里：{"、".join(pending)}')
+    if skipped:
+        print(f'! 无 barrel 公开 API，已跳过：{"、".join(skipped)}')
     print(f'✓ 公开 API 变化的包都已抬版本（对比 {checked} 个包）')
     return 0
 

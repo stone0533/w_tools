@@ -12,6 +12,14 @@ class PublishSnapshotTest(unittest.TestCase):
         self.assertIn('--version', text)
         self.assertIn('exit 1', text)
 
+    def test_publish_script_fails_closed_before_publishing(self):
+        text = (ROOT / 'scripts/publish_package.sh').read_text()
+        # 正式发布前必须自己守住「干净 main + release_check --strict」，不能只靠操作者记得跑。
+        self.assertIn('release_check.sh', text)
+        self.assertIn('--strict', text)
+        self.assertIn('origin/main', text)
+        self.assertIn('--force', text)
+
 
 if __name__ == '__main__':
     unittest.main()

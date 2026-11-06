@@ -35,6 +35,7 @@ format / analyze / docs（含符号 / 已删除 API / 安装版本）
 catalog / templates 生成物新鲜度
 release check
 CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
+门禁覆盖（每个检查脚本都有入口，且在本手册登记）
 全部包 + example + root 测试 + root example 测试 + 模板编译
 ```
 
@@ -46,9 +47,11 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 check 名字随包矩阵变化。
 
 > 路径过滤在 `.github/workflows/ci.yml` 的 `changes` job，用 `dorny/paths-filter@v4` +
-> `predicate-quantifier: 'some-with-excludes'`。**不要去掉这个 quantifier**：默认的 `some`
-> 会让 `!` 排除规则匹配「不在排除范围内」的所有文件，两个过滤器都恒为 true，纯文档 PR 会跑满
-> 17 个 job（PR #2 实测踩过）。
+> `predicate-quantifier: 'some-with-excludes'`。**过滤器只写正向规则，不要再加 `!` 排除**：
+> 默认的 `some` 会让 `!` 匹配「不在排除范围内」的所有文件（两个过滤器都恒为 true，纯文档 PR
+> 跑满 17 个 job，PR #2 实测）；而 `some-with-excludes` 下 `!` 又没有「再包含」语义 ——
+> 曾用 `!packages/**/*.md` 排除文档，结果把 `packages/cli/templates/**` 里的模板 md 一起挡掉，
+> 改模板不跑生成物新鲜度。`python3 scripts/ci_matrix.py --check` 现在会拒绝带 `!` 的过滤器。
 
 ---
 
@@ -61,8 +64,9 @@ check 名字随包矩阵变化。
 | `preflight.sh` | 全仓门禁总入口（CI 直接调用它） | 提交前 / 合并前 |
 | `install_git_hooks.sh` | 安装 `.githooks`（pre-push 阻止直接 push main） | 首次检出 / 流程要求 |
 | `check_pr_checks.sh` | 用 `gh pr checks --required` 确认 PR Required checks | 发布前 |
-| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字） | 只改文档时可单独跑 / CI docs job |
-| `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移 | preflight / CI matrix job |
+| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字；`--skip-feedback` 供不装 Flutter 的 CI docs job 用） | 只改文档时可单独跑 / CI docs job |
+| `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移（含路径过滤器只能正向、`example` 列 ↔ `example/test`） | preflight / CI matrix job |
+| `check_gate_coverage.py` | 每个 `scripts/*.sh` / `*.py` 都必须被 preflight / check_docs / release_check / workflow 之一调用（人工脚本在脚本内 `MANUAL` 写明理由），且在本手册登记 | preflight |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
 
 `check_docs.sh` 是 `preflight` 的子集，**不要只跑它就说全仓通过**。
@@ -81,7 +85,7 @@ check 名字随包矩阵变化。
 | `check_package_docs.py` | 当前文档安装约束（仍写成 caret 的示例必须下界 == 当前版本，非 caret 直接失败；`pub add` 命令不参与）/ 跨包示例 / example 链接 | check_docs |
 | `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性（含每个 ADR 在 `docs/README.md` 留行）/ ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名 + 高频规则短语一致 | check_docs |
-| `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
+| `check_prompt_docs.py` | 文档命令可执行（提示词手册：脚本 / flag / cwd / 占位符 / 场景编号；其余当前文档：脚本存在 + flag 存在；历史目录不参与） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查（双向：新类型要登记，基线里的旧名字也要删） | preflight |
 | `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到 | check_docs / preflight |
 | `check_catalog_symbols.py` | catalog `usage` / `useFor` / `related` 里的 `W*` / `W*.member` 必须真实存在于公开 API | preflight |
@@ -99,7 +103,7 @@ check 名字随包矩阵变化。
 | `check_deprecations.py` | `@Deprecated` 的 `remove-in` 是否到期 | preflight |
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
-| `check_version_bump.py` | 对比 PR base 与 HEAD 的公开 API 表面：有变化但 pubspec 版本没抬 → 失败（内部重构不会误报） | CI `api-bump` job / 本地 `--base main` |
+| `check_version_bump.py` | 对比 PR base 与 HEAD 的公开 API 表面：有变化但「版本没抬、且当前版本不高于已发布快照」→ 失败（已抬过但还没发布的版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过） | CI `api-bump` job / 本地 `--base main` |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
 ### 发布
@@ -107,8 +111,8 @@ check 名字随包矩阵变化。
 | 脚本 | 作用 | 注意 |
 |---|---|---|
 | `release_check.sh` | 版本 / CHANGELOG / 根约束 / README / pub.dev 漂移 | 发布前先跑 `--strict` |
-| `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 只把「落后 / 快照漂移」判失败，「待发布」正常 | 发布后核对 / 每周一 CI |
-| `publish_package.sh` | 在去掉 workspace 的暂存副本里发布 | **真正发布会执行，不是 dry-run** |
+| `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 只把「落后 / 快照漂移」判失败，「待发布」正常；网络不可达重试后返回 2（周检按跳过处理） | 发布后核对 / 每周一 CI |
+| `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict`（`--force` 跳过） | **真正发布会执行，不是 dry-run** |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
 
 ### 包内检查
@@ -138,7 +142,10 @@ check 名字随包矩阵变化。
 - `check_test_imports.py`：只按文件判断，不区分“行为测试”与“白盒测试”；存量在
   `test_imports_baseline.yaml`，修好后要删行（否则脚本会报 stale）；
 - `check_public_api_diff.py`：只比较快照里已有的 key（删除 / 改签名），新增成员不拦；缺基线直接失败；
-- `ci_matrix.py --check`：查清单是否同源，不查 workflow 语义。
+  没有 `w_tools_*.dart` barrel 的包（目前只有 `cli`）显式登记为「不适用」，不会打印假 ✓；
+- `check_version_bump.py`：只比较 barrel 公开面；「已抬过但还没发布」的版本按已发布快照判断，不重复要求抬版本；
+- `ci_matrix.py --check`：查清单是否同源、路径过滤器是否只写正向，不查 workflow 语义；
+- `check_gate_coverage.py`：只按文件名找入口，不判断入口里的参数 / 条件是否真会执行到。
 
 发布前：
 

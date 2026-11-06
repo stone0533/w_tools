@@ -66,23 +66,39 @@ jobs:
           # 结果就是过滤器永远为 true（PR #2 实测：3 个文档文件同时命中 code 和 static）。
           # 必须用 some-with-excludes：命中至少一个正向规则、且不命中任何排除规则。
           # v3 不支持该值，所以这里固定 @v4。
+          #
+          # 规则里**只写正向**，不要再加 `!` 排除：some-with-excludes 没有「再包含」语义，
+          # 一条 `!packages/**/*.md` 会把 `packages/cli/templates/**` 里的模板 md 一起挡掉，
+          # 模板类型写错 / 忘了跑 gen_templates 时就没有重量级 job 兜底（用 ci_matrix --check 守）。
           predicate-quantifier: 'some-with-excludes'
           filters: |
             code:
-              - 'packages/**'
-              - '!packages/**/*.md'
+              # 子包源码 / 测试 / 工具 / example 的 dart 代码与清单
+              - 'packages/**/*.dart'
+              - 'packages/**/pubspec.yaml'
+              - 'packages/**/pubspec.lock'
+              - 'packages/**/analysis_options.yaml'
+              - 'packages/**/assets/**'
+              # AGENTS 模板与 catalog 是生成物的源；改 .md 模板同样要跑生成物新鲜度
               - 'packages/cli/templates/**'
+              - 'packages/cli/catalog/**'
               - 'lib/**'
-              - 'example/**'
-              - '!example/**/*.md'
               - 'test/**'
+              - 'example/**/*.dart'
+              - 'example/**/pubspec.yaml'
+              - 'example/**/assets/**'
               - 'pubspec.yaml'
               - 'pubspec.lock'
               - 'analysis_options.yaml'
               - '.github/workflows/ci.yml'
             static:
-              - 'scripts/**'
-              - '!scripts/**/*.md'
+              # 门禁脚本、基线、manifest、快照：都是「跑 umbrella 才有意义」的输入
+              - 'scripts/**/*.sh'
+              - 'scripts/**/*.py'
+              - 'scripts/**/*.yaml'
+              - 'scripts/**/*.txt'
+              - 'scripts/packages.manifest'
+              - 'scripts/tests/**'
               # 反馈台账只有 `w_tools_cli:feedback lint` 能校验（需要 Dart + pub get），
               # 走 umbrella 的静态门禁；否则只改 docs/feedback/ 时没有任何 job 会真正检查它。
               - 'docs/feedback/**'
@@ -109,8 +125,11 @@ jobs:
           "$RUNNER_TEMP/docs-venv/bin/pip" install --disable-pip-version-check pyyaml
 
       # check_docs 现在包含文档符号 / 已删除 API / 安装版本（下界 == 当前版本）。
+      # --skip-feedback：这个 job 不装 Flutter，反馈台账检查（需要 dart + pub get）在这里
+      # 只会打印「环境不可用」；真正校验它在 umbrella 的 preflight 里（docs/feedback 改动
+      # 会命中 static 过滤器 → umbrella）。
       - name: Docs gates
-        run: PATH="$RUNNER_TEMP/docs-venv/bin:$PATH" bash scripts/check_docs.sh
+        run: PATH="$RUNNER_TEMP/docs-venv/bin:$PATH" bash scripts/check_docs.sh --skip-feedback
 
       # 只改 CHANGELOG / 版本号 / 依赖约束时 `code` 过滤不命中，umbrella 会被 skip；
       # release_check 只依赖 bash + python3（不需要 Flutter），放在这个轻量 job 里兜底。

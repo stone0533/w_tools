@@ -23,6 +23,40 @@ RUNNERS = {'flutter', 'dart'}
 EXPECTED_MATRIX_INCLUDE = '${{ fromJSON(needs.matrix.outputs.include) }}'
 
 
+def path_filter_errors(workflow: dict) -> list[str]:
+    """CI 路径过滤器只能写正向规则。
+
+    `predicate-quantifier: some-with-excludes` 没有「再包含」语义：一条
+    `!packages/**/*.md` 会把后面正向列出的 `packages/cli/templates/**/*.md`
+    一起挡掉（模板改错时重量级 job 全 skip）。这里把这类回归变成可单测的检查，
+    而不是只写在 yml 注释里。
+    """
+    filters = (((workflow.get('jobs') or {}).get('changes') or {}).get('steps') or [])
+    text = ''
+    for step in filters:
+        if isinstance(step, dict) and step.get('id') == 'filter':
+            text = str((step.get('with') or {}).get('filters') or '')
+    if not text:
+        return ['ci.yml: 找不到 changes job 的 filter 定义（路径门控无法校验）']
+    errors: list[str] = []
+    current = ''
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.endswith(':') and not line.startswith('-'):
+            current = line[:-1].strip()
+            continue
+        if line.startswith('- '):
+            pattern = line[2:].strip().strip("'\"")
+            if pattern.startswith('!'):
+                errors.append(
+                    f'ci.yml: 过滤器 {current or "?"} 含排除规则 {pattern}；'
+                    'some-with-excludes 没有再包含语义，请改成纯正向列表',
+                )
+    return errors
+
+
 def read_manifest() -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for number, raw in enumerate(manifest_path.read_text().splitlines(), start=1):
@@ -77,6 +111,19 @@ def check(rows: list[dict[str, str]]) -> list[str]:
             errors.append(
                 f"packages.manifest:{row['line']}: example_test 应为 example / -，实际 {row['example']}",
             )
+        # example_test 列决定本地 preflight 是否跑该包 example 的测试；CI 则按文件存在判断。
+        # 两边不同源时会出现「CI 跑了、本地没跑」或「列写着 example 但目录里没有测试」。
+        has_example_tests = (directory / 'example' / 'test').is_dir()
+        if row['example'] == 'example' and not has_example_tests:
+            errors.append(
+                f"packages.manifest:{row['line']}: {row['path']} 标记 example_test=example，"
+                '但 example/test 目录不存在（preflight 会在这一步失败）',
+            )
+        if row['example'] == '-' and has_example_tests:
+            errors.append(
+                f"packages.manifest:{row['line']}: {row['path']} 有 example/test，"
+                '但 example_test 列是 -（本地 preflight 不会跑它）',
+            )
 
     # `root_aggregate` 必须与根 pubspec 的真实依赖一致，否则 release_check 会按错的清单校验。
     root_pubspec = yaml.safe_load((root / 'pubspec.yaml').read_text()) or {}
@@ -101,6 +148,7 @@ def check(rows: list[dict[str, str]]) -> list[str]:
 
     workflow = yaml.safe_load(ci_path.read_text())
     jobs = workflow.get('jobs') or {}
+    errors.extend(path_filter_errors(workflow))
 
     matrix_job = jobs.get('matrix') or {}
     outputs = matrix_job.get('outputs') or {}

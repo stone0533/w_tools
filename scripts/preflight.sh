@@ -101,6 +101,8 @@ run "script unit tests" bash -c "cd scripts/tests && python3 -m unittest discove
 run "release check" bash scripts/release_check.sh
 # CI 的包矩阵与静态门禁必须从 manifest / preflight 派生，不能手抄一份。
 run "ci parity" python3 scripts/ci_matrix.py --check
+# 每个检查脚本都必须真的被某个入口调用，并且在本手册登记 —— 防止「文档说在跑、实际没接」。
+run "gate coverage" python3 scripts/check_gate_coverage.py
 
 if [ -n "$with_tests" ]; then
   while IFS='|' read -r name path runner aggregate example || [ -n "$name" ]; do

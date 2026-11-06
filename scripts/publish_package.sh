@@ -13,6 +13,11 @@
 #   scripts/publish_package.sh packages/ui       # 发布 w_tools_ui
 #   scripts/publish_package.sh packages/ui --dry-run
 #   scripts/publish_package.sh . --stage-only    # 只生成暂存副本（调试用，不删除）
+#   scripts/publish_package.sh . --force         # 跳过发布前保护（干净 main / release_check）
+#
+# 正式发布前会 fail-closed：工作区必须干净、当前分支必须是 main 且 HEAD == origin/main、
+# `release_check.sh --strict` 必须通过。原因：暂存副本直接来自工作区，而暂存目录在 git
+# 之外，`pub publish` 根本看不到未提交改动 / 错误分支。dry-run 与 --stage-only 不受影响。
 #
 # 发布目标：默认 https://pub.dev。
 #   不复用 PUB_HOSTED_URL —— 本机常把它设成只读镜像，且镜像元数据会滞后。
@@ -31,7 +36,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 publish_host="${PUBLISH_HOSTED_URL:-https://pub.dev}"
 
 usage() {
-  sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,30p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 if [ $# -lt 1 ]; then
@@ -51,10 +56,12 @@ shift
 
 dry_run=""
 stage_only=""
+force=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) dry_run="--dry-run" ;;
     --stage-only) stage_only="1" ;;
+    --force) force="1" ;;
     -h | --help)
       usage
       exit 0
@@ -173,16 +180,52 @@ if [ -n "$stage_only" ]; then
   exit 0
 fi
 
+# 正式发布前的保护。暂存副本来自工作区，而暂存目录在 git 之外 ——
+# `pub publish` 看不到未提交改动、错误分支、落后 main，也看不到 CHANGELOG 缺段。
+# 以前这些全靠操作者先手动跑 release_check --strict，漏跑就能把没合并的代码发出去；
+# 已发布版本无法回滚，所以这里 fail-closed（需要时显式 --force 跳过）。
+pkg_name="$(sed -n 's/^name:[[:space:]]*//p' "$staging/pubspec.yaml" | head -n1)"
+pkg_short="${pkg_name#w_tools_}"
+if [ -z "$dry_run" ] && [ -z "$force" ]; then
+  echo "== 发布前保护（--force 可跳过）"
+  if ! git -C "$repo_root" diff --quiet HEAD -- 2>/dev/null; then
+    echo "✗ 工作区有未提交改动：发布会把工作区原样发出去，请先 commit 或 git stash" >&2
+    exit 1
+  fi
+  if [ -n "$(git -C "$repo_root" ls-files --others --exclude-standard | head -n1)" ]; then
+    echo "✗ 存在未跟踪文件：$(git -C "$repo_root" ls-files --others --exclude-standard | head -n3 | tr '\n' ' ')" >&2
+    exit 1
+  fi
+  branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD)"
+  if [ "$branch" != "main" ]; then
+    echo "✗ 当前分支是 ${branch}：正式发布只允许在 main 上（先合并 PR，或显式 --force）" >&2
+    exit 1
+  fi
+  if ! origin_main="$(git -C "$repo_root" rev-parse --verify --quiet origin/main)"; then
+    echo "✗ 找不到 origin/main：先 git fetch origin" >&2
+    exit 1
+  fi
+  if [ "$(git -C "$repo_root" rev-parse HEAD)" != "$origin_main" ]; then
+    echo "✗ HEAD 与 origin/main 不一致：先 git pull --ff-only / git push" >&2
+    exit 1
+  fi
+  if [ "$src" = "$repo_root" ]; then
+    bash "$repo_root/scripts/release_check.sh" --strict
+  else
+    bash "$repo_root/scripts/release_check.sh" --strict --package "$pkg_short"
+  fi
+  echo "✓ 发布前保护通过（干净 main / release_check --strict）"
+fi
+
 cd "$staging"
 PUB_HOSTED_URL="$publish_host" "$publish_runner" pub publish $dry_run
 
 # 发布成功后把当前版本写成新的公开 API 基线；失败只提示，不让已完成的发布看起来失败。
 if [ -z "$dry_run" ] && [ "$src" != "$repo_root" ]; then
-  pkg_name="$(sed -n 's/^name:[[:space:]]*//p' "$staging/pubspec.yaml" | head -n1)"
-  pkg_short="${pkg_name#w_tools_}"
   if ! python3 "$repo_root/scripts/check_public_api_diff.py" \
     --snapshot-from "$staging" --package "$pkg_short" --version "$version"; then
     echo "!! 发布成功，但 API 快照更新失败；请手动重跑 check_public_api_diff.py --snapshot-from" >&2
     exit 1
   fi
+  echo "!! 记得提交并推送快照：git add scripts/api_snapshots && git commit -m \"chore(release): ${pkg_name} ${version} API 基线\"" >&2
 fi

@@ -1,3 +1,5 @@
+import contextlib
+import io
 import pathlib
 import sys
 import tempfile
@@ -5,6 +7,7 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
+import release_status as mod
 from release_status import changelog_first, classify, version_tuple
 
 
@@ -30,6 +33,27 @@ class ReleaseStatusTest(unittest.TestCase):
             path = pathlib.Path(temp) / 'CHANGELOG.md'
             path.write_text('# Changelog\n\n## Unreleased\n\n- wip\n\n## 1.2.3\n\n- done\n')
             self.assertEqual(changelog_first(path), '1.2.3')
+
+    def test_all_unreachable_returns_2_instead_of_failing(self):
+        """网络全挂不是发布事故：--check 应返回 2（周检按跳过处理），而不是 1。"""
+        old_urlopen = mod.urllib.request.urlopen
+        old_sleep = mod.time.sleep
+        old_argv = sys.argv
+
+        def offline(*args, **kwargs):
+            raise mod.urllib.error.URLError('offline')
+
+        mod.urllib.request.urlopen = offline
+        mod.time.sleep = lambda *_: None
+        sys.argv = ['release_status.py', '--online', '--check']
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(mod.main(), 2)
+        finally:
+            mod.urllib.request.urlopen = old_urlopen
+            mod.time.sleep = old_sleep
+            sys.argv = old_argv
 
 
 if __name__ == '__main__':

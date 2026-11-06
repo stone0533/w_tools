@@ -10,6 +10,11 @@
     python3 scripts/release_status.py                 # 离线，只读 pubspec / 快照 / CHANGELOG
     python3 scripts/release_status.py --online        # 再查 pub.dev
     python3 scripts/release_status.py --online --check  # CI / weekly：异常时退出 1
+
+退出码：
+    0  通过（「待发布」是正常状态；网络失败只提示）
+    1  「落后 / 快照与线上不一致 / 缺快照」（--check 时）
+    2  线上一个包都没取到（网络不可达）；周检按「本次跳过」处理，不判发布事故
 """
 from __future__ import annotations
 
@@ -18,6 +23,7 @@ import json
 import pathlib
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -72,13 +78,24 @@ def snapshot_version(package: str) -> str | None:
     return candidates[-1].stem.rsplit('-', 1)[-1]
 
 
+def fetch_latest(name: str) -> str | None:
+    """取 pub.dev 最新版本；网络抖动重试 3 次，仍失败返回 None（由调用方决定如何降级）。"""
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(PUB_API + name, timeout=10) as response:
+                return json.load(response)['latest']['version']
+        except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError, OSError) as error:
+            last_error = error
+            if attempt < 2:
+                time.sleep(1 + attempt)
+    if last_error is not None:
+        print(f'  （{name}: 取 pub.dev 失败：{last_error}）', file=sys.stderr)
+    return None
+
+
 def published_version(package: str) -> str | None:
-    try:
-        with urllib.request.urlopen(PUB_API + f'w_tools_{package}', timeout=10) as response:
-            data = json.load(response)
-        return data['latest']['version']
-    except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError, OSError):
-        return None
+    return fetch_latest(f'w_tools_{package}')
 
 
 def root_constraints() -> dict[str, str]:
@@ -112,6 +129,8 @@ def main() -> int:
     rows: list[tuple[str, str, str | None, str | None, str]] = []
     errors: list[str] = []
     warnings: list[str] = []
+    unreachable: list[str] = []
+    online_ok = 0
 
     for name, path in read_manifest():
         package = name.removeprefix('w_tools_')
@@ -123,8 +142,11 @@ def main() -> int:
         rows.append((package, local, published, snapshot, status))
 
         if args.online and published is None:
-            errors.append(f'{package}: 取不到 pub.dev 版本（网络不可达或包不存在）')
+            # 网络问题不是发布事故：每周 CI 不因此发失败邮件（全部取不到时由退出码 2 说明）。
+            unreachable.append(package)
             continue
+        if args.online:
+            online_ok += 1
         if status == '落后':
             errors.append(f'{package}: 仓库 {local} < 线上 {published}，仓库落后')
         if status == '待发布' and args.fail_pending:
@@ -147,14 +169,11 @@ def main() -> int:
                 )
 
     root_local = version_of(ROOT / 'pubspec.yaml') or '?'
-    root_published = None
-    if args.online:
-        try:
-            with urllib.request.urlopen(PUB_API + 'w_tools', timeout=10) as response:
-                root_published = json.load(response)['latest']['version']
-        except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError, OSError):
-            root_published = None
-            errors.append('w_tools: 取不到 pub.dev 版本（网络不可达）')
+    root_published = fetch_latest('w_tools') if args.online else None
+    if args.online and root_published is None:
+        unreachable.append('w_tools')
+    if root_published is not None:
+        online_ok += 1
     rows.append(('w_tools(root)', root_local, root_published, '-', classify(root_local, root_published)))
     if args.online and root_published is not None and version_tuple(root_local) < version_tuple(root_published):
         errors.append(f'w_tools: 仓库 {root_local} < 线上 {root_published}，仓库落后')
@@ -167,6 +186,8 @@ def main() -> int:
     pending = [row[0] for row in rows if row[4] == '待发布']
     if pending:
         print(f'\n待发布（正常）：{" ".join(pending)}')
+    if unreachable:
+        print(f'\n未核对（取不到 pub.dev，按环境问题处理）：{" ".join(unreachable)}')
     if warnings:
         print('\n提醒：')
         for warning in warnings:
@@ -177,6 +198,12 @@ def main() -> int:
             print(f'  ✗ {error}', file=sys.stderr)
         if args.check:
             return 1
+    if args.online and online_ok == 0:
+        print(
+            '\n✗ 一个包都没取到 pub.dev 版本，本次线上核对没有执行（退出码 2）',
+            file=sys.stderr,
+        )
+        return 2
     print('\n状态正常' if args.check else '')
     return 0
 

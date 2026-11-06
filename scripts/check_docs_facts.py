@@ -68,7 +68,13 @@ if modules_readme.exists():
             errors.append(f'docs/modules/README.md: 根聚合包 {name} 未说明')
 
 # 1) 规模类数字必须与推导值一致（不再维护“哪些数字算过期”的清单）。
-scale = {'库子包': len(library_packages), 'Flutter': len(flutter_library)}
+module_docs = sorted((root / 'docs/modules').glob('*_module.md'))
+scale = {
+    '库子包': len(library_packages),
+    'Flutter': len(flutter_library),
+    '包': len(packages),
+    '份模块文档': len(module_docs),
+}
 for path in files:
     for number, line in enumerate(path.read_text().splitlines(), start=1):
         for label, expected in scale.items():

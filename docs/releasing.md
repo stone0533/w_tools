@@ -101,6 +101,8 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    bash scripts/release_check.sh --strict --package map
    bash scripts/publish_package.sh packages/map --dry-run
    ```
+   第 7 步的正式发布会**自己再跑一遍**这些保护（干净工作区 / `main` 且 HEAD == `origin/main` /
+   `release_check --strict`），漏跑第 6 步不会把未提交改动发出去；例外情况用脚本的 `--force`。
 7. 发布子包：
    ```bash
    bash scripts/publish_package.sh packages/map
@@ -127,7 +129,8 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    python3 scripts/release_status.py --online
    ```
    `release-status.yml` 每周一也会跑 `release_status.py --online --check`：
-   「待发布」不算错，只有「仓库落后 / 快照与线上不一致」才会红。
+   「待发布」不算错，只有「仓库落后 / 快照与线上不一致」才会红；网络不可达（一个包都没取到）
+   返回退出码 2，周检按「本次跳过」处理，不会因外网抖动误报发布事故。
 
 > `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
 > 发布前的门禁是第 4、6 步。
@@ -171,6 +174,11 @@ Failed to update packages.        # 退出码 66
 `scripts/publish_package.sh` 会先把包复制到仓库外的临时目录，去掉 `workspace:` 与
 `resolution: workspace`，排除 `test/`、`docs/`、`scripts/` 等仓库内容（根包还排除 `packages/`），
 确认暂存 pubspec 干净后再执行 `pub publish`。CI 的发布预演也走它。
+
+暂存副本直接来自**工作区**，而暂存目录在 git 之外：`pub publish` 看不到未提交改动、错误分支、
+落后 main，也看不到 CHANGELOG 缺段。所以正式发布（非 `--dry-run` / `--stage-only`）前脚本会
+fail-closed 地检查：工作区干净、当前分支是 `main` 且 `HEAD == origin/main`、
+`release_check.sh --strict` 通过；确实需要例外时用 `--force`。
 
 发布目标**默认是 `https://pub.dev`**，不会继承本地 shell 里的 `PUB_HOSTED_URL`
 （那通常是只读镜像，元数据还会滞后）。需要发到其它 host 时用：
