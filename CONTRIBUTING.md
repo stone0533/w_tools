@@ -50,7 +50,8 @@
 - 根 `test/` 只放聚合契约（`w_tools.dart` 重导出）与跨包回归，单包行为测试放回 `packages/<pkg>/test/`
 - `packages/cli` 是纯 Dart 包：用 `dart test`，不要引入 `flutter_test`
 - 行为测试只 import barrel；确实需要内部 helper 的测试放 `test/internal/`（不限于纯内部逻辑）。
-  `check_test_imports.py` 会挡住 `test/`、`integration_test/`、`example/test/` 里的 `src` import。
+  `check_test_imports.py` 会挡住全仓 `test/`、`integration_test/`、`example/test/` 里的 `src` import；
+  存量白盒测试登记在 `scripts/test_imports_baseline.yaml`，只减不增（修好一个删一行）。
 
 ## 5. 发布
 

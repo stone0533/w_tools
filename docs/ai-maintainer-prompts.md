@@ -769,9 +769,10 @@ G. 维护与发布
 ```
 
 > **J-4A** 是 J-4 的自动子集，不是新场景：`python3 scripts/check_teaching_coverage.py`
-> 只检查 `packages/cli/catalog/entrypoints.yaml` 里的入口名是否出现在 docs/agents、模板 zh+en、
-> README、example 五个载体里（子串匹配）。它由 `check_docs.sh` / `preflight` 自动跑，
-> 通过不代表“讲清楚了”；J-4 的人工矩阵仍然要做。
+> 检查 `packages/cli/catalog/entrypoints.yaml` 里的入口名是否出现在 docs/agents、模板 zh+en、
+> README（有 example 时再加 example/lib）这些载体里（子串匹配；app_getx / map_google 共用
+> app / map 规则页）。它由 `check_docs.sh` / `preflight` 自动跑，通过不代表“讲清楚了”；
+> J-4 的人工矩阵仍然要做。
 
 J 的边界：
 

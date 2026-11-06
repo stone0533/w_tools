@@ -41,6 +41,37 @@ class TeachingCoverageTest(unittest.TestCase):
                 path.write_text('WText WImage\n')
             self.assertEqual(check_package(root, 'ui', ['WText', 'WImage']), [])
 
+    def test_missing_example_directory_is_not_required(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            for rel in [
+                'docs/agents/app.md',
+                'packages/cli/templates/agents/zh/app.md',
+                'packages/cli/templates/agents/en/app.md',
+                'packages/app/README.md',
+            ]:
+                path = root / rel
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('WAppPlugin\n')
+            self.assertEqual(check_package(root, 'app', ['WAppPlugin']), [])
+
+    def test_doc_alias_uses_shared_rule_page(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            for rel in [
+                'docs/agents/app.md',
+                'packages/cli/templates/agents/zh/app.md',
+                'packages/cli/templates/agents/en/app.md',
+                'packages/app_getx/README.md',
+            ]:
+                path = root / rel
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('WApp WAppOptions\n')
+            self.assertEqual(
+                check_package(root, 'app_getx', ['WApp', 'WAppOptions'], 'app'),
+                [],
+            )
+
 
 if __name__ == '__main__':
     unittest.main()
