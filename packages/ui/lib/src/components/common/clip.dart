@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/cupertino.dart';
 
 /// 圆角裁剪组件，用于为子组件添加圆角
