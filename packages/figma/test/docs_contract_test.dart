@@ -6,7 +6,6 @@ String _read(String path) => File(path).readAsStringSync();
 
 void main() {
   final readme = _read('README.md');
-  final contract = _read('../../docs/figma-cli.md');
   final agents = _read('../../docs/agents/figma.md');
 
   test('README 命令表覆盖全部公开命令', () {
@@ -44,13 +43,13 @@ void main() {
     expect(readme, contains('待发布'));
   });
 
-  test('docs/figma-cli 不声称 token 相对 --root', () {
-    expect(contract, isNot(contains('token / 缓存都相对它解析')));
-    expect(contract, contains('token 固定在'));
+  test('README 不声称 token 相对 --root', () {
+    expect(readme, isNot(contains('token / 缓存都相对它解析')));
+    expect(readme, contains('环境变量优先于文件'));
   });
 
-  test('docs/figma-cli diff 签名包含 fileKey', () {
-    expect(contract, contains('`diff <fileKey> <nodeId>`'));
+  test('README 的 diff 用法包含 fileKey', () {
+    expect(readme, contains('diff <fileKey>'));
   });
 
   test('README 有库 API 章节', () {

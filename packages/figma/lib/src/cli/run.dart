@@ -28,7 +28,7 @@ String _rootOption(List<String> args) {
 }
 
 const _usage = '''
-w_tools_figma — 只读的 Figma 取数与规格导出 CLI（契约见 docs/figma-cli.md）
+w_tools_figma — 只读的 Figma 取数与规格导出 CLI（文档见 packages/figma/README.md）
 
 用法：
   dart run w_tools_figma:figma init   [--force]

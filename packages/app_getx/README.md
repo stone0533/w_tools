@@ -121,6 +121,11 @@ final result = await WBottomSheet.show<String>(const MySheetContent());
 
 见 [`example/`](example/)：WApp 启动、插件依赖、GetX 路由、语言切换与底部弹窗。
 
+## 历史迁移
+
+升级前先看 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)：
+每个包的 breaking 变更都有「旧 → 新」对照，不只是变更清单。
+
 ## License
 
 MIT

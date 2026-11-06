@@ -69,6 +69,11 @@ final mapper = WMapItemMapper<ShopDto>(
 
 见 [`w_tools_map_google`](../map_google/README.md) 与 [`map_google/example`](../map_google/example/)。
 
+## 历史迁移
+
+升级前先看 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)：
+每个包的 breaking 变更都有「旧 → 新」对照，不只是变更清单。
+
 ## License
 
 MIT

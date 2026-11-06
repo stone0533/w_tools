@@ -2,7 +2,9 @@
 
 只读的 Figma 取数 / 规格导出 CLI。
 
-- 契约：https://github.com/stone0533/w_tools/blob/main/docs/figma-cli.md
+- 为什么独立成包：`w_tools_cli` 只管接入约定（`init` / `doctor`），Figma 塞进去会变成大杂烩；
+  消费方可能只需要其中一个，独立包还能独立发版，不牵连其它包。
+- 为什么只读：token 权限最小化，避免误改设计稿。
 - AI / agent 使用说明：https://github.com/stone0533/w_tools/blob/main/docs/agents/figma.md
 
 ## Library / CLI
@@ -195,6 +197,14 @@ cd packages/figma
 
 `fetch` / `diff` 在额度用尽时默认拒绝（退出码 3），加 `--ignore-budget` 继续。
 
+参数边界：
+
+- `tokens --out=<path>` 与 `--json` 互斥；`--map=<yaml>` 用于语义名映射；
+- `spec --node-only` 只返回结构化 `node`（不生成 markdown）；`--node-depth=<n>` 只限制 `node` 的子节点深度；
+- `cache clean --all` 必须同时给 `--yes`；`--all` 清所有项目缓存，但不会动账号级 `_usage.log` / `_budget.json`；
+- `fetch nodes --depth=<n>` 限制层数（默认不限，深页面缓存会很大）；
+- `diff --if-stale` 先比版本：没变直接退出（0 次 Tier 1），变了才拉。
+
 完整帮助：
 
 ```bash
@@ -229,9 +239,13 @@ _meta-<key>.json
 账号级（`~/.cache/w_tools/figma/`，跨项目共用）：
 
 ```text
-_usage.log
-_budget.json
+_usage.log      # TSV：时间 \t 类型 \t 缓存文件名
+_budget.json    # {"month":"2026-11","limit":20,"used":1}
 ```
+
+预算规则：本月已用超过 `limit` 的 80% 时打警告；达到上限后 `fetch` / `diff` 默认拒绝（退出码 3），
+`--ignore-budget` 放行；缓存命中与 `spec` / `tokens`（纯本地）不触发检查。
+遇到 429 只按 `Retry-After` 提示，不自动重试（View 座位重试会继续烧额度）。
 
 ## 典型工作流
 

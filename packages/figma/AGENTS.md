@@ -57,31 +57,31 @@ dart run w_tools_cli:w_tools explain <组件名>
 
 - 不要凭记忆造 `W*` 组件名。
 - 按 [`docs/agents/ui.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/ui.md)：
-  - 页面骨架用 `AppScaffold`
+  - 页面骨架用 `AppScaffold`（`init` 生成）；仓库内页面用 `WScaffold` + `WAppBar`
   - 文本用 `WText` + `WTextStyles`
-  - 图片用 `WImage.asset` / `WImage.network`，禁止裸 `Image.asset`
-  - 表单用 `WForm` + `WTextField` 等直接字段
-  - 间距用 `WSizeBox` / `WPadding`
+  - 图片用 `WImage.source(source: WImageSource.asset(...))` / `WImageSource.network(...)`，禁止裸 `Image.asset`
+  - 表单用 `WForm` + `WFormTextField` 等直接字段
+  - 间距用原生 `SizedBox` / `Padding`（`WSizeBox` / `WPadding` 5.0 已删除），适配值用 `WScreen.w/h`
 - `tokens` 只给设计 token，不会自动生成页面代码；组件映射必须结合项目 toolkit。
 
-## 0.4.0+ 能力
+## 常用命令
 
-当前安装的稳定版见 pub.dev；以下命令可直接使用：
+当前稳定版见 pub.dev；下面这些命令可直接用：
 
 ```bash
-figma frames --all
-figma frames --name=会员 --page=我的
-figma frames --verbose
-figma spec 1862:9222,1862:9226 --json
-figma spec 1862:9222 --json --no-markdown
+dart run w_tools_figma:figma frames --all
+dart run w_tools_figma:figma frames --name=会员 --page=我的
+dart run w_tools_figma:figma frames --verbose
+dart run w_tools_figma:figma spec 1862:9222,1862:9226 --json
+dart run w_tools_figma:figma spec 1862:9222 --json --node-only
 ```
 
-多画板 JSON schema 是 `w_tools_figma.specs/1`；`frames` 默认只列顶层画板。
+多节点 JSON schema 是 `w_tools_figma.specs/1`；`frames` 默认只列顶层画板。
 
 ## 规则
 
 - 先读缓存，`spec` / `tokens` 不联网。
 - 不要默认 `--refresh`；会消耗 Tier 1。
 - `--check-stale` 只提示，不重拉；需要更新时再 `--refresh`。
-- token 走 `FIGMA_TOKEN` 环境变量或 `.figma-token`；不要提交、不要打印。
+- token 走 `FIGMA_TOKEN` 环境变量或 `~/.config/w_tools/figma-token`（旧 `.figma-token` 首次运行会自动迁移）；不要提交、不要打印。
 - 实现后跑 `dart run w_tools_cli:w_tools doctor` 和项目测试。

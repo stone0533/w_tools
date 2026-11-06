@@ -29,7 +29,7 @@ class FetchResult {
 
 /// 取数：`file` / `nodes` / `images`。
 ///
-/// 规则（见 docs/figma-cli.md §2.4）：
+/// 规则（见 packages/figma/README.md 的「缓存与额度」）：
 /// - 缓存命中直接返回，不写日志、不算 Tier 1；
 /// - `refresh` 才删除缓存并重新请求；
 /// - 只有真的打了接口才写用量日志。

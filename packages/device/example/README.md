@@ -10,10 +10,17 @@
 - 顶部 4%–12% 是标题区，切换 tab 会变化；
 - 已安装 cliclick，宿主 App 有辅助功能/屏幕录制权限。
 
-使用前把脚本复制到自己的项目，并按实际布局修改 `--tabs`、`y`、`region`：
+使用前把脚本复制到自己的项目，`dev_dependencies` 加 `w_tools_device`，并按实际布局修改
+`--tabs`、`y`、`region`：
 
 ```bash
 dart run tool/device_smoke.dart --tabs=4 --device=<udid>
+```
+
+更通用的验证（只比较会变的区域）直接用：
+
+```bash
+dart run w_tools_device:device verify <x> <y> --region=<x,y,w,h>
 ```
 
 Android 不做这个等分 tab 假设；直接用 `w_tools_device` 的 `--android` 命令，见

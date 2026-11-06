@@ -91,6 +91,11 @@ await key.currentState?.restartScan();
 
 见 [`example/`](example/)：单次扫码、结果展示、继续扫描、闪光灯与摄像头翻转。
 
+## 历史迁移
+
+升级前先看 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)：
+每个包的 breaking 变更都有「旧 → 新」对照，不只是变更清单。
+
 ## License
 
 MIT

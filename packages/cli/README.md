@@ -252,6 +252,8 @@ dart run w_tools_cli:w_tools doctor --strict            # warning 也失败
 | R9 | 配置 | 项目禁用 API（`banned`；默认空） |
 
 > doctor 规则是文本级检查：整行注释和行尾 `//` 注释会跳过，但字符串内容仍可能命中。
+> 完整规则细节与豁免语义以仓库里的
+> [docs/conventions.md §7](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md) 为准。
 
 只跑部分规则：
 
@@ -280,7 +282,7 @@ banned:
   - id: no-raw-image
     pattern: 'Image\.asset\('
     mode: regex
-    use: 'WImage.asset'
+    use: 'WImage.source(source: WImageSource.asset(...))'
     reason: '项目要求统一图片入口'
     level: warn
     paths: ['lib/app/modules/**']

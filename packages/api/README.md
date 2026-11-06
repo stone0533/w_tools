@@ -65,6 +65,25 @@ final registry = DioRegistry.forBaseUrl(
 );
 ```
 
+`tokenRefresher` 由业务实现，**必须自己持久化新 token**，否则下一次 `tokenGetter` 仍返回旧值：
+
+```dart
+Future<String?> refreshAccessToken() async {
+  final refresh = WToken.getRefreshToken();
+  if (refresh == null) return null;
+
+  final result = await api.refresh(refresh);   // 你自己的刷新接口
+  await WToken.saveToken(result.token, result.expiry);
+  return result.token;
+}
+```
+
+完整链路（401 → 清除 → 刷新 → 重试）在 [`example/`](example/) 里用 MockAdapter 跑通，
+不需要网络与真机。
+
+登录成功后用 `WToken.saveTokens(token, refreshToken, expiry)` 一次写全量凭证；
+`saveToken` 只写 access token，适合刷新场景。
+
 > `w_tools_api` 重导出公开 API 用到的 dio 类型（`BaseOptions` / `Dio` / `Response` / `Options` /
 > `Interceptor` 等），不需要再单独依赖 dio。
 
@@ -82,6 +101,11 @@ final registry = DioRegistry.forBaseUrl(
 ## 完整示例
 
 见 [`example/`](example/)：DioRegistry、日志脱敏、401 刷新与重试（使用内存 MockAdapter，不需要网络）。
+
+## 历史迁移
+
+升级前先看 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)：
+每个包的 breaking 变更都有「旧 → 新」对照，不只是变更清单。
 
 ## License
 

@@ -292,3 +292,8 @@ WAsyncStateSliver<List<Gift>>(
 - 默认文案来自 `WAsyncStrings`，项目应注入自己的本地化文案；
 - `WAsyncState.status` 的类型是 `WAsyncStatus`（loading / ready / empty / failed）；优先 `when`，需要分支时直接 switch。
 - 取消不会中止底层 Future，只是让等待尽快结束。
+
+## 历史迁移
+
+升级前先看 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)：
+每个包的 breaking 变更都有「旧 → 新」对照，不只是变更清单。

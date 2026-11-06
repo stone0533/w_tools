@@ -110,7 +110,7 @@ const WImageStyle().square(40).rounded(20)
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
-> 历史迁移见 [`docs/migrations/`](../../docs/migrations/README.md)。
+> 历史迁移见 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)。
 
 ## 文本
 

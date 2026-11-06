@@ -13,7 +13,7 @@ class BudgetExceededException implements Exception {
 
 /// Tier 1 额度护栏：真正发请求前检查本月用量。
 ///
-/// 规则（`docs/figma-cli.md` §2.4）：达到月度上限时默认拒绝，
+/// 规则（`packages/figma/README.md` 的「缓存与额度」）：达到月度上限时默认拒绝，
 /// `--ignore-budget` 放行；80% 时由 `usage` / `budget` 打警告。
 /// 缓存命中、`spec` / `tokens`（纯本地）不走这里。
 class BudgetGuard {
