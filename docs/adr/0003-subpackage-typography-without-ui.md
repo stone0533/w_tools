@@ -85,3 +85,10 @@
 
 数据来自 `.dart_tool/package_config.json` + 各包 `pubspec.yaml` 的 `dependencies` 闭包，
 会随依赖版本变化，但量级不会变。
+
+## 落地结果（2026-11-06）
+
+- 状态：已完成；三包仍不依赖 `w_tools_ui`（`app_getx → app`、`map_google → map` 之外无内部依赖）。
+- 偏差：决策 2 举例的 `WToastConfig` 已在 toast 2.0 删除，现行入口是 `WToastStyle` / `WToastTheme`；
+  `WForm*Config` 已从公共导出 `hide`（form 4.0 / 5.0），决策 1 的「不加 ui 依赖」不变。
+- 证据：`packages/{async,toast,form}/pubspec.yaml`、`scripts/check_style_literals.py`、`scripts/check_deprecations.py`。

@@ -76,3 +76,9 @@
 - pub 支持可选依赖 / feature flags，或原生 SDK 变成 Flutter 内置能力；
 - 某个工具包被库包反向依赖（说明它已不是 dev-only，需要重新定义角色）；
 - 根包的兼容价值消失（主要用户都已直接依赖子包）。
+
+## 落地结果（2026-11-06）
+
+- 状态：已完成；当前包角色与依赖边与上表一致，内部边只有 `app_getx → app`、`map_google → map`。
+- 证据：`packages/*/pubspec.yaml`、`scripts/ci_matrix.py`、`docs/modules/README.md`。
+- 偏差：无；包数量以 `packages.manifest` 与各包 `pubspec.yaml` 为准（本文不写死）。

@@ -9,7 +9,7 @@
 
 ## 背景
 
-`WApp` 现在有 **11 个可变公共字段**（`title` / `initialRoute` / `getPages` / `theme` / `locale` /
+`WApp` 现在有 **12 个可变公共字段**（`title` / `initialRoute` / `getPages` / `theme` / `locale` /
 `fallbackLocale` / `builder` / `navigatorObservers` / `defaultTransition` / `systemUiOverlayStyle` /
 `orientations` / `appWrapper`），同时 `start()` 又接受一套同名参数；两者覆盖关系靠 `??` 逐字段处理。
 
@@ -75,3 +75,12 @@ ui / toast / async / form —— 会把 `cached_network_image`（50 个传递包
 - app 需要内置插件生命周期（而不是业务方自建插件），说明「谁配置谁提供」不再成立；
 - `get` 被替换或移除，契约层与启动层的边界需要重划；
 - 多实例 / 多 App 壳（同一进程两套路由或语言）成为真实需求。
+
+## 落地结果（2026-11-06）
+
+- 状态：已完成；入口最终为 `WApp.options(WAppOptions(...)).start()`。
+- 偏差：背景里的 `WApp(options)` / `WApp.start(options)` 是当时的候选写法，落地时收敛为
+  `WApp.options(...)`；`start()` 是实例方法，不存在 `WApp(options)` 构造。
+- 偏差：静态 `WRoute` 已删除，路由栈由 `WRouteStack.defaultStack` 提供，`WApp.routeStack` 可替换。
+- 证据：`packages/app_getx/lib/src/app.dart`、`packages/app_getx/lib/src/options.dart`、
+  `docs/agents/app.md`、`scripts/check_removed_api.py`。

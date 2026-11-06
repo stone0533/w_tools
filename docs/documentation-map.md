@@ -349,7 +349,7 @@ scripts/README.md
 |---|---|---|
 | `scripts/preflight.sh --with-tests` | 全部静态门禁 + 全部包 / example / 根包测试 | 提交前 / 合并前；CI 的 umbrella job 直接调用它 |
 | `scripts/check_docs.sh` | 只改文档：链接 / 旧命令 / 版本声明 / 反馈台账 / 提示词 / docs/agents 一致性 | 改 docs |
-| `scripts/check_docs_facts.py` | 规模数字（从 pubspec 推导）、文档索引完整性、ADR 编号与状态、doctor 规则表一致性 | check_docs |
+| `scripts/check_docs_facts.py` | 规模数字（从 pubspec 推导）、文档索引完整性、ADR 编号 / 状态 / 索引一致、doctor 规则表一致性 | check_docs |
 | `scripts/check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名一致 | check_docs |
 | `scripts/ci_matrix.py --check` | CI 包矩阵 / 门禁步骤与 manifest、preflight 一致 | preflight |
 | `packages/cli/tool/gen_catalog.dart --check` | catalog 生成物 | 改 catalog |

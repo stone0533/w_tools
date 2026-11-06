@@ -64,7 +64,7 @@
 - 配置类型再次膨胀（出现 `XxxSettings` / `XxxParams` 这类同义命名），重新约定命名表；
 - Dart 语言能力变化（records / 更强的 const 推导）让手写 `copyWith` / `==` 不再划算。
 
-## 修订（2026-11-06）：`WMapConfig` 是已知例外
+## 补充（2026-11-06，不改决策）：`WMapConfig` 是已知例外
 
 ADR 发布次日（`984eacf`，2026-11-04）map 拆包时新增了公开类型 `WMapConfig`，
 与本 ADR 决策 2「不再新增 `XxxConfig`」冲突。核对后确认：
@@ -78,3 +78,11 @@ ADR 发布次日（`984eacf`，2026-11-04）map 拆包时新增了公开类型 `
 2. `WMapConfig` 记为唯一例外，**下一个 major（2.0.0）改名为 `WMapOptions`**，
    在此之前不再新增任何 `XxxConfig`；
 3. 改名完成前，`docs/agents/map.md` 与 catalog 的 `WMap` 条目要标明这个命名例外。
+
+## 落地结果（2026-11-06）
+
+- 状态：已完成；决策 1/3/4/5/6 已落地，决策 2 的存量迁移也已完成
+  （`WForm*Config` 已从公共导出 `hide`，form 4.0 / 5.0）。
+- 偏差：`WMapConfig` 命名例外，见上节；`w_tools_map_google` 下一个 major 改名。
+- 证据：`packages/form/lib/src/components.dart`、`scripts/check_style_literals.py`、
+  `scripts/check_deprecations.py`、`packages/ui/lib/src/components/text/w_text_styles.dart`。

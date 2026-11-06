@@ -3,11 +3,12 @@
 
 只检查“当前文档”，历史目录（migrations/adr/analysis/release）允许旧版本和旧数量。
 
-检查四类事实：
+检查五类事实：
 1. 规模类数字（N 个库子包 / N 个 Flutter）从 pubspec 推导后与正文比对；
 2. `docs/README.md` 必须索引每个顶层文档、子目录 README，以及没有 README 的目录下的文档；
 3. 每个带 README 的 docs 子目录，它的 README 必须索引本目录下所有文档；
-4. 当前文档不得再使用旧命令入口。
+4. 当前文档不得再使用旧命令入口；
+5. ADR 编号 / 状态行 / 索引状态与日期 / 补充日期 / 已取代链接。
 
 第 1 条用推导而不是“记住几个过期数字”：包数量变化时这里不需要改代码。
 """
@@ -121,11 +122,13 @@ for path in files:
     if re.search(r'dart run w_tools_cli:(context|list|explain|doctor|init|feedback)', path.read_text()):
         errors.append(f'{path.relative_to(root)}: 仍用旧命令入口（应为 w_tools_cli:w_tools ...）')
 
-# 5) ADR：编号唯一且递增、文件命名规范、有状态行。退役编号允许留空，不复用。
+# 5) ADR：编号唯一且递增、文件命名规范、有状态行；索引状态/日期与正文一致；
+#    「已取代」必须有 Superseded by 链接；「补充 / 修订」必须带日期。
 adr_dir = root / 'docs/adr'
 adrs = sorted(path for path in adr_dir.glob('*.md') if path.name != 'README.md')
 seen: set[int] = set()
 last = 0
+adr_status: dict[str, str] = {}
 for path in adrs:
     match = re.match(r'^(\d{4})-[a-z0-9-]+\.md$', path.name)
     if not match:
@@ -138,8 +141,57 @@ for path in adrs:
         errors.append(f'docs/adr/{path.name}: 编号必须递增（退役编号可以留空，但不能复用）')
     seen.add(number)
     last = max(last, number)
-    if not re.search(r'^- 状态：\S+', path.read_text(), re.M):
+    text = path.read_text()
+    status = re.search(r'^- 状态：(.+)$', text, re.M)
+    if not status:
         errors.append(f'docs/adr/{path.name}: 缺少「- 状态：…」行')
+        continue
+    adr_status[path.name] = status.group(1).strip()
+    if status.group(1).strip().startswith('已取代') and not re.search(
+        r'Superseded by \[ADR-\d{4}\]',
+        text,
+    ):
+        errors.append(
+            f'docs/adr/{path.name}: 状态是「已取代」，但缺少 Superseded by [ADR-000N] 链接',
+        )
+    for heading in re.findall(r'^##\s*(?:补充|修订)[^\n]*$', text, re.M):
+        if not re.search(r'\d{4}-\d{2}-\d{2}', heading):
+            errors.append(
+                f'docs/adr/{path.name}: 「{heading.strip()}」缺少日期（YYYY-MM-DD）',
+            )
+
+adr_index = adr_dir / 'README.md'
+if adr_index.exists():
+    indexed_files: set[str] = set()
+    for line in adr_index.read_text().splitlines():
+        match = re.match(
+            r'\|\s*\[(\d{4})\]\(([^)]+)\)\s*\|[^|]*\|\s*([^|]+?)\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|',
+            line,
+        )
+        if not match:
+            continue
+        number, filename, index_status, index_date = match.groups()
+        indexed_files.add(filename)
+        body_status = adr_status.get(filename)
+        if body_status is None:
+            if not (adr_dir / filename).exists():
+                errors.append(f'docs/adr/README.md: 索引引用了不存在的文件 {filename}')
+            continue
+        head = lambda value: re.split(r'[（(]', value)[0].strip()  # noqa: E731
+        if head(index_status) != head(body_status):
+            errors.append(
+                f'docs/adr/README.md: {number} 索引状态「{index_status}」'
+                f'与正文「{body_status}」不一致',
+            )
+        body_dates = re.findall(r'\d{4}-\d{2}-\d{2}', body_status)
+        if body_dates and body_dates[0] != index_date:
+            errors.append(
+                f'docs/adr/README.md: {number} 索引日期 {index_date} '
+                f'与正文状态日期 {body_dates[0]} 不一致',
+            )
+    for path in adrs:
+        if path.name not in indexed_files:
+            errors.append(f'docs/adr/README.md: 没有索引 {path.name}')
 
 # 6) doctor 规则表必须在 conventions 与 CLI README 中一致（同一份规则，两个展示面）。
 def doctor_rule_table(path: pathlib.Path) -> dict[str, str]:

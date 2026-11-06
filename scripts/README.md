@@ -69,7 +69,7 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
 | `check_package_docs.py` | 子包 + 根 README 安装约束（caret 语义）/ example 链接 | check_docs |
-| `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性 / ADR 编号与状态 / doctor 规则表一致性 / 旧命令 | check_docs |
+| `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性 / ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名一致 | check_docs |
 | `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查 | preflight |

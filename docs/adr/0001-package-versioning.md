@@ -49,6 +49,12 @@
 - 包数量明显收敛，独立发版的收益不再明显；
 - 出现必须跨包同步 breaking（例如统一大版本宣传）的场景。
 
+## 落地结果（2026-11-06）
+
+- 状态：持续执行中；子包仍各自独立版本，发布统一走 `publish_package.sh`。
+- 证据：`scripts/release_check.sh`（完整 `--strict` 现在强制根包 caret 下界）、`docs/releasing.md`。
+- 偏差：无；操作细节以 `releasing.md` 为准。
+
 ## 历史例外
 
 - `w_tools_ui 1.1.0` 删除了 `WNetworkImageWithRetry`，按 semver 应为 2.0.0。
