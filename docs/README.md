@@ -2,7 +2,7 @@
 
 | 目录 | 受众 | 内容 |
 |------|------|------|
-| [`modules/`](modules/README.md) | 使用者 | 11 个库子包的模块文档、组件目录、依赖矩阵 |
+| [`modules/`](modules/README.md) | 使用者 | 11 个库子包索引、组件目录、依赖矩阵（9 份模块文档 + app_getx/map_google 用包 README） |
 | [`agents/`](agents/README.md) | 仓库 AI / 维护者 | 包级首选入口、硬规则、禁止项、工具工作流 |
 | [`recipes/`](recipes/README.md) | 使用者 | 跨包组合场景（分页 / 表单提交 / App 根装配…） |
 | [`guides/`](guides/README.md) | 使用者 | 横向指南（测试策略等），不绑定单个包 |

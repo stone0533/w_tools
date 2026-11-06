@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 文档自检：相对链接、旧命令、包清单、硬编码版本表、docs/agents 一致性、子检查汇总。
+# 文档自检：链接、旧命令、安装版本、符号 / 根包导出、已删除 API、索引、docs/agents 一致性。
 # 用法：bash scripts/check_docs.sh（preflight 与 CI 都会跑）
 #
 # 每一步都会打出自己的名字：失败时能直接看出是哪一步，而不是只看到子脚本的堆栈。
@@ -130,7 +130,9 @@ step 'modules/README 重复示例' python3 scripts/check_docs_duplicates.py --fa
 step '版本声明' python3 scripts/check_docs_versions.py
 step_optional '反馈台账' bash scripts/check_feedback.sh
 step 'async 旧 API' python3 scripts/check_async_docs.py
-step '子包 README 版本 / 示例' python3 scripts/check_package_docs.py
+step '安装约束 / 示例' python3 scripts/check_package_docs.py
+step '文档符号 / import 边界' python3 scripts/check_doc_symbols.py
+step '已删除 API' python3 scripts/check_removed_api.py
 step '当前文档事实' python3 scripts/check_docs_facts.py
 step '维护者提示词' python3 scripts/check_prompt_docs.py
 step 'docs/agents 索引与入口' python3 scripts/check_agents_consistency.py

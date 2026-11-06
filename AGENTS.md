@@ -56,7 +56,7 @@ docs/modules/components.md
 
 ## 文档
 
-改 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、包清单、README、事实一致性；CI 也会跑）；公开 API 变化还要跑 `python3 scripts/check_public_catalog.py`。
+改 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、安装版本、文档符号 / import 边界、已删除 API、索引、事实一致性；CI 也会跑）；公开 API 变化还要跑 `python3 scripts/check_public_catalog.py`。
 
 ## 发布
 
@@ -173,72 +173,28 @@ Default five-role vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `
 
 single-context — one root `GLOSSARY.md` shared by the app and all packages, with architecture decisions in `docs/adr/`. See `docs/agents/domain.md`.
 
-## 启动与主题（ScreenUtil / WTextStyles）
+## 包级硬规则（细节见 docs/agents/）
+
+> 本文件不复制包级细节：每包只留最容易违反的一条，完整规则点进去看。
+> 包级用法冲突时，以 `docs/agents/` 与对应包 README 为准；仓库提交门禁以本文件为准。
+
+| 包 | 最短硬规则 | 详情 |
+|---|---|---|
+| core | `WStorage` 读前 `await WStorage.init()`；`WValidator` / `WRegExp` / `WLogger`；`WEncrypt` 的 AES-CBC 不提供完整性 | [core](docs/agents/core.md) |
+| async | `WAsyncController` + `WAsyncView`；`WAsyncTheme` 放根节点；分页失败写 `loadMoreError` | [async](docs/agents/async.md) |
+| ui | 新代码 `WText(variant:)` + `WTextStyles`；普通按钮 `WButton`、任意 child 点击 `WPressable`；图片 `WImage` | [ui](docs/agents/ui.md) |
+| form | `WForm` + 直接字段；不要从 `Config.build` 开始，字段不传 `config` | [form](docs/agents/form.md) |
+| api | `WApiConfig` + `DioRegistry.forBaseUrl`；不要直接 `Dio()`；token 用 `WToken` | [api](docs/agents/api.md) |
+| toast | `WToast` + `WToastStyle` / `WToastTheme`；根节点一次 `BotToastInit` | [toast](docs/agents/toast.md) |
+| app | `WApp.options(WAppOptions(...)).start()`；插件用 `WAppPlugin`，有顺序要求用 `dependsOn` | [app](docs/agents/app.md) |
+| qr | `WQrView`，不要直接用 `QRView`；默认 `scanOnce = true` | [qr](docs/agents/qr.md) |
+| map | `WMap` / `WMapZone` 来自 `w_tools_map_google`；`markerId` 必须稳定；不要直接用 `GoogleMap` | [map](docs/agents/map.md) |
+
+## 启动与主题（跨包）
 
 - 不要在 `main()` / 顶层 `final` 计算 `.sp`；在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期构建。
 - `WAppPlugin.wrapApp` 在 MaterialApp 外，没有 Theme / MediaQuery；需要 Theme 用 `builderWrapper`。
 - `WAsyncTheme` 只存 builder，可放 `wrapApp`。
 
-## 文字（w_tools_ui）
-
-- 新代码用 `WText(variant:)` + `WTextStyles`（`WTextConfig` 已移除）；字体统一放 `WTextStyles`，局部用 `style` / `maxLines` / `overflow` / `textScaler` 覆盖。
-- 先复用已有 variant；新增 variant 按 breaking change 评估。
-
-详见 [`docs/agents/ui.md`](docs/agents/ui.md)。
-
-## 异步区块（w_tools_async）
-
-- 页面用 `WAsyncController` + `WAsyncView`；每个区块一个 Controller，不要手写 `ValueNotifier`，不要传 `options.activity`。
-- `WAsyncTheme` 放 App 根节点；滚动壳用 `WAsyncStateBuilder`，Sliver 用 `WAsyncStateSliver`。
-- 分页用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError`，不要替换列表。
-- 纯执行用 `WAsync.tryRun`（`WAsyncResult`）或 `WAsync.run`（失败抛异常）；取消用 `WCancelToken`。
-
-详见 [`docs/agents/async.md`](docs/agents/async.md)。
-
-## 网络（w_tools_api）
-
-- 统一 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接 `Dio()`；同一 baseUrl 只初始化一次，换配置先 `dispose`。
-- Token 用 `WToken`；拦截器只注入回调。日志用 `WLogInterceptor`，不要依赖它做业务错误处理。
-
-详见 [`docs/agents/api.md`](docs/agents/api.md)。
-
-## 轻提示（w_tools_toast）
-
-- 用 `WToast.showSuccess/showError/...` + `WToastStyle` / `WToastTheme`（`WToastConfig` 已在 2.0 删除）；`WToastTheme` 放在 `MaterialApp` 外层，`showXxx(context:)` 才会读到。
-- App 根节点只需一次 `BotToastInit` + `BotToastNavigatorObserver`。
-
-详见 [`docs/agents/toast.md`](docs/agents/toast.md)。
-
-## 启动（w_tools_app_getx）
-
-- 入口用 `WApp.options(WAppOptions(...)).start()`；插件用 `WAppPlugin`，有顺序要求用 `dependsOn`；`WRouteObserver` 由 `WApp` 自动追加。不要手写 `runApp` 初始化顺序。
-- 多语言用 `WLanguage().changeLanguage(...)`。
-
-详见 [`docs/agents/app.md`](docs/agents/app.md)。
-
-## 基础工具（w_tools_core）
-
-- `WStorage` 读之前必须 `await WStorage.init()`；`WStorage` / `WToken` 是明文存储，不是安全存储。
-- 校验用 `WValidator`，正则用 `WRegExp`，日志用 `WLogger`，不要 `print`；`WEncrypt` 的 AES-CBC 不提供完整性，防篡改用 AES-GCM。
-
-详见 [`docs/agents/core.md`](docs/agents/core.md)。
-
-## 扫码（w_tools_qr）
-
-- 用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce = true`，连续扫描显式 `false`。
-- 重扫用 `GlobalKey<WQrViewState>.restartScan()`；配置相机权限；`onScanned` 只在 `Barcode.code` 非空时触发。
-
-详见 [`docs/agents/qr.md`](docs/agents/qr.md)。
-
-## 地图（w_tools_map + w_tools_map_google）
-
-- `WMap` / `WMapZone` 来自 `w_tools_map_google`，模型 / mapper 来自 `w_tools_map`；不要直接用 `GoogleMap`。
-- `markerId` 必须稳定；生成模型用 `WMapItemMapper`；选中/关闭用 `WMapController`；Google Maps 需要 API Key（地图默认关闭，用 `init --map`）。
-
-详见 [`docs/agents/map.md`](docs/agents/map.md)。
-
-## 包级规则入口
-
-- core / ui / form / async / api / app / toast / qr / map 的详细规则分别在 [`docs/agents/`](docs/agents/)；
-- 组件目录由 [`catalog/components.yaml`](packages/cli/catalog/components.yaml) 生成；
-- README / example 是该包的用户事实源与可运行场景。
+> 组件目录由 [`catalog/components.yaml`](packages/cli/catalog/components.yaml) 生成；
+> README / example 是该包的用户事实源与可运行场景。

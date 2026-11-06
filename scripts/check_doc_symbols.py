@@ -27,6 +27,8 @@ skip_members = {
 
 declared: set[str] = set()
 members: dict[str, set[str]] = {}
+# 公开符号来自哪个包：用于验证「import 根 barrel 时符号确实由根包导出」。
+symbol_packages: dict[str, set[str]] = {}
 
 
 def _strip_comments(text: str) -> str:
@@ -73,7 +75,10 @@ def _collect_members(body: str, name: str) -> set[str]:
 
 for path in (root / 'packages').glob('*/lib/**/*.dart'):
     text = _strip_comments(path.read_text())
-    declared.update(decl_re.findall(text))
+    package_name = f'w_tools_{path.relative_to(root / "packages").parts[0]}'
+    for name in decl_re.findall(text):
+        declared.add(name)
+        symbol_packages.setdefault(name, set()).add(package_name)
     for match in type_start_re.finditer(text):
         name = match.group(1)
         body = _class_body(text, match.start())
@@ -83,6 +88,19 @@ for path in (root / 'packages').glob('*/lib/**/*.dart'):
             members[name].add(ctor.group(1))
 
 object_members = {'copyWith', 'toString', 'hashCode', 'runtimeType', 'noSuchMethod'}
+
+# 每个包的 barrel 可由 `import 'package:w_tools_xxx/...'` 提供的符号范围。
+# 只解析 package 级 re-export（如 app_getx -> app）；src 文件仍按包归属处理。
+package_reexports: dict[str, set[str]] = {}
+for barrel in (root / 'packages').glob('*/lib/w_tools_*.dart'):
+    package_name = f'w_tools_{barrel.relative_to(root / "packages").parts[0]}'
+    package_reexports[package_name] = set(
+        re.findall(r"export\s+'package:(w_tools_[a-z_]+)/", barrel.read_text())
+    )
+
+# 根 barrel 的导出范围。
+root_barrel = (root / 'lib' / 'w_tools.dart').read_text()
+root_exports = set(re.findall(r"export\s+'package:(w_tools_[a-z_]+)/", root_barrel))
 
 targets: list[pathlib.Path] = []
 for sub in ('docs/agents', 'docs/recipes', 'docs/modules', 'docs/guides'):
@@ -117,6 +135,36 @@ for path in targets:
                     f'{path.relative_to(root)}: 代码块第 {line} 行引用了未定义成员 {owner}.{member}'
                 )
 
+        # 反向检查 import 边界：代码块用到的 W 符号，必须由它 import 的包
+        # （或该包再导出的包）提供。能拦住：
+        # - import 根 barrel 却用 map / qr / app 等未聚合符号；
+        # - import root + map 却用 map_google 的 WMap；
+        # - import ui 却用 form 的 WFormButton。
+        block_imports = set(re.findall(r"package:(w_tools(?:_[a-z_]+)?)/", block))
+        if block_imports:
+            clean_block = _strip_comments(block)
+            for name in sorted(set(re.findall(r'\b(W[A-Z][A-Za-z0-9_]*)\b', clean_block))):
+                packages = symbol_packages.get(name)
+                if not packages:
+                    continue
+                reachable = bool(packages & block_imports)
+                if not reachable:
+                    for imported in block_imports:
+                        if imported == 'w_tools':
+                            reachable = bool(packages & root_exports)
+                        else:
+                            reachable = bool(packages & package_reexports.get(imported, set()))
+                        if reachable:
+                            break
+                if reachable:
+                    continue
+                line = clean_block.find(name)
+                line_no = clean_block[:line].count('\n') + 1 if line >= 0 else 1
+                bad.append(
+                    f'{path.relative_to(root)}: 代码块第 {line_no} 行 import 的包未导出 {name}；'
+                    f'请直接 import 声明的包或改用已导出入口'
+                )
+
 NAMING_DOC = root / 'docs' / 'naming.md'
 # naming.md 里有意写成不存在的反例 / 历史名字；新增反例时在这里登记。
 NAMING_DOC_IGNORE = {
@@ -146,9 +194,9 @@ if NAMING_DOC.exists():
                 )
 
 if bad:
-    print('文档引用了不存在的符号/成员：', file=sys.stderr)
+    print('文档引用了不存在的符号/成员，或 import 的包未导出相关符号：', file=sys.stderr)
     for item in bad:
         print(f'  ✗ {item}', file=sys.stderr)
     sys.exit(1)
 
-print(f'✓ 文档符号/成员检查通过（{len(targets)} 个文件）')
+print(f'✓ 文档符号 / 成员 / import 导出边界检查通过（{len(targets)} 个文件）')

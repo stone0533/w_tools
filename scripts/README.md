@@ -30,7 +30,7 @@ bash scripts/preflight.sh --package ui
 这一条覆盖：
 
 ```text
-format / analyze / docs / AI 契约（含 feedback）
+format / analyze / docs（含符号 / 已删除 API / 安装版本）
 公开类型 catalog / 弃用 / 命名 / 风格
 catalog / templates 生成物新鲜度
 release check
@@ -40,7 +40,10 @@ CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
 
 CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩阵由
 `scripts/ci_matrix.py` 从 `packages.manifest` 生成。两边不再各维护一份清单。
-重量级 job（packages / min-sdk）由 `changes` job 按路径门控：纯文档改动只跑 umbrella。
+重量级 job（umbrella / packages / min_sdk）由 `changes` job 按路径门控：纯文档改动只跑
+轻量 `docs` job（`check_docs.sh`），不安装 Flutter；只改 `scripts/` 时跑 umbrella 的静态门禁
++ docs，不跑 15 个包矩阵。分支保护只要求最后的 `Required checks` 聚合 job，避免 required
+check 名字随包矩阵变化。
 
 ---
 
@@ -51,7 +54,7 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 | 脚本 | 作用 | 何时跑 |
 |---|---|---|
 | `preflight.sh` | 全仓门禁总入口（CI 直接调用它） | 提交前 / 合并前 |
-| `check_docs.sh` | 文档与 AI 资产检查总入口（每步会打名字） | 只改文档时可单独跑 |
+| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 旧命令 / 符号 / 已删除 API / 安装版本，每步会打名字） | 只改文档时可单独跑 |
 | `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移 | preflight / CI matrix job |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
 
@@ -63,17 +66,17 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 
 | 脚本 | 作用 | 调用方 |
 |---|---|---|
-| `check_doc_symbols.py` | 文档 `W*` 符号 / 成员是否存在（含 root `README.md` / `AGENTS.md`、`docs/naming.md` 行内示例） | preflight |
+| `check_doc_symbols.py` | 文档 `W*` 符号 / 成员是否存在，且 import 的包（根 barrel / 子包 / package 级 re-export）按包归属能提供该符号（含 root `README.md` / `AGENTS.md`、`docs/naming.md` 行内示例） | check_docs / preflight |
 | `check_docs_snippets.py` | 已证伪 API / components 表格列数 | check_docs |
 | `check_docs_duplicates.py` | `docs/modules` 与包 README 不再复制同一段 dart 示例 | check_docs |
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
-| `check_package_docs.py` | 子包 + 根 README 安装约束（caret 语义）/ example 链接 | check_docs |
+| `check_package_docs.py` | 当前文档安装约束（下界 == 当前版本）/ 跨包示例 / example 链接 | check_docs |
 | `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性 / ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名一致 | check_docs |
 | `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查 | preflight |
-| `check_removed_api.py` | 已删除 API 是否还在推荐文档（含 root + `packages/*/AGENTS.md`） | preflight |
+| `check_removed_api.py` | 已删除 API 是否还在推荐文档（含 root + `packages/*/AGENTS.md`） | check_docs / preflight |
 | `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |
 
 ### API / 风格

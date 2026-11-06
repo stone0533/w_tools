@@ -30,7 +30,7 @@ dependencies:
 ```yaml
 dependencies:
   w_tools_map: ^3.0.0
-  w_tools_map_google: ^1.0.0
+  w_tools_map_google: ^2.0.0
 ```
 
 ## 使用模型

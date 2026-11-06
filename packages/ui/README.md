@@ -331,6 +331,9 @@ WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
 | 资源 | `WAssets` |
 | 扩展 | `WHexColor` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 
+完整构造参数与成员见 [pub.dev API 文档](https://pub.dev/documentation/w_tools_ui/latest/)
+或 `packages/ui/lib` 源码；模块边界与设计取舍见 [`docs/modules/ui_module.md`](https://github.com/stone0533/w_tools/blob/main/docs/modules/ui_module.md)。
+
 ## License
 
 MIT

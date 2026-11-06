@@ -4,6 +4,8 @@
 - `init` 生成的 `w_tools_ui` 约束同步到 `^7.0.0`，UI 模板补充 `WImageTheme` /
   `WImageSlots` / `WImageSource.resolve` 规则。
 - `init` 生成的 `w_tools_map_google` 约束同步到 `^2.0.0`（`WMapConfig` → `WMapOptions`）。
+- `init` 生成的全部子包约束改为与仓库当前版本完全一致；修正 `w_tools_device` 仍生成
+  `^0.1.4`（当前 0.2.0）的漂移，测试覆盖全部 `subpackageConstraints` 与 device。
 
 ## 1.12.0
 

@@ -33,10 +33,10 @@
 
 ## 安装
 
-> ℹ️ **发布状态**：6 个基础子包与聚合包 `w_tools` 已发布到 pub.dev；
-> `w_tools_cli` 是独立的纯 Dart 工具包，发布状态见 pub.dev。
-> 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 6 个基础子包，只 re-export 子包能力；
-> 各包的安装约束以根 `pubspec.yaml` 为准；本文示例约束由 `scripts/check_package_docs.py` 校验。
+> ℹ️ **版本说明**：具体版本以各包 `pubspec.yaml` 与 pub.dev 页面为准；仓库 `main` 可能领先于
+> pub.dev 已发布版本。根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 6 个基础子包，只 re-export
+> 子包能力；聚合示例以根 `pubspec.yaml` 为准，其它安装示例以对应子包的 `pubspec.yaml` 为准。
+> 本文安装示例由 `scripts/check_package_docs.py` 校验（示例下界必须等于仓库当前版本）。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
 ### 本地开发 / 跨仓库接入
@@ -61,18 +61,28 @@ dependencies:
 
 > 只想用某个子包时同理：把 `path` 指向仓库内的 `packages/ui`、`packages/core` 等。
 
-### 推荐：只依赖用到的子包（不要依赖聚合包）
+### 两条接入路径（先选一条）
+
+| 路径 | 适用 | 入口 |
+|---|---|---|
+| **A. 只依赖子包** | 生产项目（推荐；doctor R1 要求） | `import 'package:w_tools_ui/w_tools_ui.dart';` 等 |
+| **B. 聚合包** | 快速体验 / 旧项目兼容 | `import 'package:w_tools/w_tools.dart';` |
+
+#### A. 只依赖用到的子包（推荐）
 
 根包只保留 core/async/ui/form/api/toast；`app` / `map` / `qr` 一律按需直接依赖对应子包：
 
 ```yaml
 dependencies:
-  w_tools_core: ^3.1.0
-  w_tools_async: ^5.0.0
+  w_tools_core: ^3.1.1
+  w_tools_async: ^5.0.1
   w_tools_ui: ^7.0.0
-  w_tools_form: ^5.0.0
+  w_tools_form: ^5.1.1
   # 需要再加 w_tools_app_getx / api / toast / qr / map / map_google
 ```
+
+> 依赖放子包，但业务代码不要直接 import 子包：统一 import CLI 生成的
+> `lib/app/w/toolkit.dart` 聚合入口（见 [`docs/conventions.md`](docs/conventions.md) §5）。
 
 模板与理由：[`packages/cli/templates/`](packages/cli/templates/)、[`docs/conventions.md`](docs/conventions.md)、
 [ADR-0002](docs/adr/0002-consumers-depend-on-subpackages.md)。
@@ -82,7 +92,7 @@ CLI 在独立的纯 Dart 包里，不需要先引入聚合包：
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.12.0
+  w_tools_cli: ^1.13.0
 ```
 
 ```bash
@@ -90,9 +100,9 @@ dart run w_tools_cli:w_tools init      # 生成到当前项目
 dart run w_tools_cli:w_tools doctor    # 之后随时检查是否守约定
 ```
 
-### 入口约定
+#### B. 聚合包入口（快速体验 / 旧项目兼容）
 
-新代码统一使用：
+如果你明确选择聚合包，统一使用：
 
 ```dart
 import 'package:w_tools/w_tools.dart';
@@ -119,13 +129,14 @@ WFormTheme(
 
 ### 从 pub.dev 安装
 
-各子包独立发布，可只引入需要的包；根包 `w_tools` 也作为聚合包发布。
+各子包可独立安装，可只引入需要的包；根包 `w_tools` 也作为聚合包提供。
+**当前可安装版本以 pub.dev 页面为准**；仓库 `main` 可能领先于已发布版本，安装前先确认。
 
 > 环境：Dart `^3.10.0`、Flutter `>=3.38.0`。
 
 ```yaml
 dependencies:
-  w_tools_core: ^3.1.0   # 只引子包
+  w_tools_core: ^3.1.1   # 只引子包
   w_tools_ui: ^7.0.0
 ```
 
@@ -136,6 +147,9 @@ dependencies:
   w_tools: ^10.0.0
 ```
 
+> ⚠️ 上面是仓库当前版本。若 pub.dev 尚未发布该版本，请按 pub.dev 页面选择可用版本，
+> 或使用上面的 path / git 依赖方式，避免 `pub get` 解析失败。
+>
 > ⚠️ 聚合包只用于快速体验 / 旧项目兼容。按接入约定（doctor R1），生产项目应直接依赖子包；
 > 用了聚合包再跑 `doctor` 会报 R1。
 
@@ -164,7 +178,7 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^1.0.0
+  w_tools_app_getx: ^1.0.1
 ```
 
 ```dart

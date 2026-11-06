@@ -59,5 +59,6 @@
 > 这些文件属于 w_tools 维护仓库，`w_tools_cli:init` 不会把整个 docs/agents 目录复制到消费方。
 > 消费方 AI 看到的是生成的 AGENTS 摘要；需要完整说明时读本仓库或对应包文档。
 >
-> 强制提交规则以根 [`AGENTS.md`](../../AGENTS.md) 为准，本索引只负责导航。
+> 根 [`AGENTS.md`](../../AGENTS.md) 是入口与跨包硬规则；本目录是包级详细规则。
+> 包级用法以本目录 + 对应包 README 为准，仓库提交门禁以 `AGENTS.md` 为准。
 

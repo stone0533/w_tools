@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
+import 'package:w_tools_cli/src/init/versions.dart';
 import 'package:w_tools_cli/src/common/version.dart';
 import 'package:w_tools_cli/src/init/manifest.dart';
 import 'package:yaml/yaml.dart';
@@ -770,48 +771,65 @@ void main() {
 
   group('pubspec 片段版本', () {
     final repo = tryRepoRoot();
-    test('仓库版本满足生成的 caret 约束（防主版本漂移）', () async {
+    test('仓库版本与生成的 caret 约束完全一致（防版本漂移）', () async {
       final root = repo!;
       final snippet = runInit(
         makeProject(),
         features: InitFeatures.full.copyWith(map: true),
       ).pubspecSnippet;
-      for (final pkg in <String>[
-        'core',
-        'app',
-        'form',
-        'ui',
-        'api',
-        'toast',
-        'qr',
-        'map',
-      ]) {
-        final pubspec =
-            loadYaml(
-                  File(p.join(root.path, 'packages', pkg, 'pubspec.yaml')).readAsStringSync(),
-                )
-                as YamlMap;
+      for (final entry in subpackageConstraints.entries) {
+        final pubspecPath = p.join(
+          root.path,
+          'packages',
+          entry.key.replaceFirst('w_tools_', ''),
+          'pubspec.yaml',
+        );
+        final pubspec = loadYaml(File(pubspecPath).readAsStringSync()) as YamlMap;
         final version = pubspec['version'] as String;
-        final match = RegExp(
-          'w_tools_$pkg: \\^(\\d+)\\.(\\d+)\\.(\\d+)',
-        ).firstMatch(snippet);
-        expect(match, isNotNull, reason: '片段缺少 w_tools_$pkg 约束');
-        final cMajor = int.parse(match!.group(1)!);
-        final cMinor = int.parse(match.group(2)!);
-        final cPatch = int.parse(match.group(3)!);
-        final parts = version.split('.').map(int.parse).toList();
-        final ok =
-            parts[0] == cMajor &&
-            (parts[0] > cMajor || parts[1] > cMinor || (parts[1] == cMinor && parts[2] >= cPatch));
         expect(
-          ok,
-          isTrue,
-          reason:
-              'packages/$pkg 版本 $version 不满足片段约束 ^$cMajor.$cMinor.$cPatch；'
-              '请更新 init_project.dart',
+          entry.value,
+          '^$version',
+          reason: '${entry.key} 的 init 约束必须等于当前版本 $version',
+        );
+        expect(
+          snippet,
+          contains('${entry.key}: ${entry.value}'),
+          reason: 'init 片段缺少 ${entry.key}: ${entry.value}',
         );
       }
-      expect(snippet, contains('w_tools_cli: ^1.13.0'));
+
+      final devicePubspec =
+          loadYaml(
+                File(
+                  p.join(root.path, 'packages', 'device', 'pubspec.yaml'),
+                ).readAsStringSync(),
+              )
+              as YamlMap;
+      expect(
+        wToolsDeviceConstraint,
+        '^${devicePubspec['version']}',
+        reason: 'w_tools_device 的 init 约束必须等于当前版本',
+      );
+      expect(cliConstraint, '^1.13.0');
+      expect(snippet, contains('w_tools_cli: $cliConstraint'));
+
+      // 反向检查：片段里出现的每个 w_tools_* 约束都必须在已知清单里，
+      // 防止新增/手写约束绕过 subpackageConstraints。
+      final allowed = <String>{
+        ...subpackageConstraints.keys,
+        'w_tools_cli',
+        'w_tools_device',
+      };
+      for (final match in RegExp(
+        r'^\s*(w_tools_[a-z_]+):\s*\^',
+        multiLine: true,
+      ).allMatches(snippet)) {
+        expect(
+          allowed,
+          contains(match.group(1)),
+          reason: 'init 片段出现了未登记的约束 ${match.group(1)}',
+        );
+      }
     }, skip: repo == null ? '不在 w_tools 仓库内' : false);
   });
 }

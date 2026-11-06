@@ -75,6 +75,7 @@ AI 检索面不是第三份完整文档，而是使用面 / 维护面的**可查
 
 ```text
 根 README                 第一入口：安装 / 子包选择 / 快速开始
+AGENTS.md                 仓库 AI 入口：任务路由 + 跨包硬规则
 CONTRIBUTING.md           改组件的硬性要求
 
 docs/
@@ -117,6 +118,7 @@ scripts/README.md         scripts 运行手册
 | 文档 | 主要读者 | 作用 | 什么时候改 | 不要放什么 |
 |---|---|---|---|---|
 | 根 `README.md` | 包使用者（人/AI） | 第一入口、安装、子包选择 | 改安装方式 / 包边界 / 快速开始 | 完整 API 表、包内部实现 |
+| `AGENTS.md` | 仓库 AI | 入口、任务路由、跨包硬规则 | 任务路由 / 跨包规则变化 | 包级详细教程；包级细节链到 `docs/agents/` |
 | `CONTRIBUTING.md` | 维护者（人/AI） | 新增 / 修改组件的硬要求 | 组件规范变化 | 具体组件 API |
 | `docs/README.md` | 所有人 | 文档总索引 | 新增文档目录 | 具体规则 |
 | `docs/documentation-map.md` | 维护者（人/仓库 AI） | 文档定位与整理规则 | 文档结构变化 | 包 API 细节 |
@@ -124,9 +126,9 @@ scripts/README.md         scripts 运行手册
 | `docs/naming.md` | 维护者 / 仓库 AI | 包、文件、类型、成员的命名规则与存量例外 | 命名规则变化 | 组件 API、教程 |
 | `docs/ai-contract.md` | 维护者 / 仓库 AI | AI 分层、更新流程、完整性 | catalog / AGENTS 机制变化 | 单个组件教程 |
 | `docs/ai-maintainer-prompts.md` | 维护者（人/仓库 AI） | 按场景复制的提示词 | 工作流变化 | 完整规则副本；命令由 `check_prompt_docs.py` 守 |
-| `docs/modules/*.md` | 包使用者（人/AI） | 包职责、API、用法 | 包的公开行为变化 | 维护者内部流程 |
+| `docs/modules/*.md` | 包使用者（人/AI） | 包边界、架构、跨类关系；安装 / 最小用法以包 README 为准，逐参数 API 以 pub.dev API 文档 / 源码为准 | 包架构 / 边界变化 | 逐参数 API 表、安装示例（历史重叠按包逐步收敛） |
 | `docs/modules/components.md` | 包使用者（人/AI） | 组件目录 | **只由生成器改** | 手写内容 |
-| `docs/agents/*.md` | 仓库 AI | 首选入口、硬规则、禁止项 | 规则 / 入口变化 | 完整教程、历史 |
+| `docs/agents/*.md` | 仓库 AI | 包级详细规则、首选入口、禁止项（详细源） | 规则 / 入口变化 | 完整教程、历史 |
 | `docs/recipes/*.md` | 包使用者（人/AI） | 跨包组合用法 | 多包协作方式变化 | 单包 API 全表 |
 | `docs/guides/*.md` | 包使用者（人/AI） | 横向指南（测试策略 / 工程做法） | 指南做法变化 | 单包 API、跨包组合 |
 | `docs/migrations/*.md` | 升级用户（人/AI） | 版本迁移 | 发布 breaking change 时新增 | 当前用法教程 |
@@ -134,12 +136,18 @@ scripts/README.md         scripts 运行手册
 | `docs/analysis/*.md` | 维护者 | 某次评审记录 | 评审时新增 | 当前事实源 |
 | `docs/feedback/*.md` | 维护者 / 用户 | 问题台账 | 通过 CLI 追加 | 当前 API 文档 |
 | `docs/releasing.md` | 维护者（人/仓库 AI） | 发布流程 | 发布流程变化 | 具体版本号 |
-| `packages/<pkg>/README.md` | 包使用者（人/AI） | 安装、API、最小用法、限制 | 公开 API / 行为变化 | 跨包组合大全 |
+| `packages/<pkg>/README.md` | 包使用者（人/AI） | 安装、最小用法、常用配方、限制（用法事实源） | 公开 API / 行为变化 | 跨包组合大全 |
 | `packages/<pkg>/example/` | 包使用者（人）/ 仓库 AI | 可运行场景 | 用法变化 / 新场景 | 隐藏内部实现 |
 | `scripts/README.md` | 维护者（人/仓库 AI） | 何时跑哪个脚本 | 脚本增删 / 流程变化 | 脚本内部实现 |
 | `packages/cli/catalog/components.yaml` | 维护者 / 仓库 AI | 组件事实源 | 组件新增/修改/删除 | 长教程 |
 | `packages/cli/templates/agents/` | 维护者 / 仓库 AI | AGENTS 唯一源 | 规则/入口变化 | 完整文档 |
 | `packages/cli/catalog/uncataloged.yaml` | 维护者 | 有意不登记公开类型 | 新增子 API 时 | 逃逸登记 |
+
+### `docs/modules/*.md` 与包 README 的分工
+
+- 包 README 是安装、最小用法、常用配方的事实源；逐参数 API 以 pub.dev API 文档 / 源码为准；
+- modules 文档只写包边界、架构、跨类关系与设计取舍；需要参数表时链接 README / pub.dev API 文档 / 源码，不再复制；
+- 历史 modules 文档里的逐参数表是存量，按包逐步收敛（`ui` 已收敛）；新增内容不要再复制。
 
 ---
 
@@ -172,6 +180,7 @@ scripts/README.md         scripts 运行手册
 | AGENTS 片段 | `packages/cli/templates/agents/` | `templates.g.dart` |
 | 包版本 | `packages/*/pubspec.yaml` | `release_check` 读取 |
 | 包用法 | `packages/<pkg>/README.md` | 无 |
+| 参数 API | `packages/<pkg>/lib` 源码 / pub.dev API 文档 | 无 |
 | 跨包场景 | `docs/recipes/` | 无 |
 | AI 查询内容 | catalog + `explain` renderer | `explain` 输出 |
 | 用户问题 | `docs/feedback/`（CLI 维护） | 无 |
@@ -356,20 +365,16 @@ scripts/README.md
 
 ## 7. 自动检查
 
-**门禁清单的唯一来源是 [`scripts/README.md`](../scripts/README.md)** —— 这里只列入口与边界，
-不重复维护第三份清单。历史上这张表漏过 `check_feedback.sh` / `check_deprecations.py` /
-`check_style_literals.py`，于是“文档说有哪些检查”和“CI 实际跑什么”分叉了。
+**门禁清单的唯一来源是 [`scripts/README.md`](../scripts/README.md)** —— 这里只给最常用的入口，
+不重复维护完整清单。历史上这里维护过一张清单，漏过 `check_feedback.sh` /
+`check_deprecations.py` / `check_style_literals.py`，于是“文档说有哪些检查”和
+“CI 实际跑什么”分叉了。
 
-| 入口 | 覆盖 | 何时跑 |
-|---|---|---|
-| `scripts/preflight.sh --with-tests` | 全部静态门禁 + 全部包 / example / 根包测试 | 提交前 / 合并前；CI 的 umbrella job 直接调用它 |
-| `scripts/check_docs.sh` | 只改文档：链接 / 旧命令 / 版本声明 / 反馈台账 / 提示词 / docs/agents 一致性 | 改 docs |
-| `scripts/check_docs_facts.py` | 规模数字（从 pubspec 推导）、文档索引完整性、ADR 编号 / 状态 / 索引一致、doctor 规则表一致性 | check_docs |
-| `scripts/check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名一致 | check_docs |
-| `scripts/ci_matrix.py --check` | CI 包矩阵 / 门禁步骤与 manifest、preflight 一致 | preflight |
-| `packages/cli/tool/gen_catalog.dart --check` | catalog 生成物 | 改 catalog |
-| `packages/cli/tool/gen_templates.dart --check` | AGENTS 生成物 | 改 templates |
-| `packages/cli/test/ai_contract_test.dart` | teach / prompt / AGENTS feature | 改 catalog / templates |
+```text
+提交前 / 合并前：bash scripts/preflight.sh --with-tests
+只改文档：      bash scripts/check_docs.sh
+发布前：        bash scripts/release_check.sh --strict
+```
 
 `check_docs.sh` 是 `preflight` 的子集，**不要只跑它就说全仓通过**。
 

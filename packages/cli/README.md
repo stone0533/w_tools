@@ -18,7 +18,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_cli: ^1.12.0
+  w_tools_cli: ^1.13.0
 ```
 
 ```bash

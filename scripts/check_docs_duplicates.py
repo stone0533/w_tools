@@ -9,6 +9,8 @@
     python3 scripts/check_docs_duplicates.py --fail    # 有重复即失败（CI / check_docs 用）
 
 历史：2026-11-06 审计发现 modules（5,726 行）与 packages/*/README（2,537 行）范围重叠。
+边界：本检查只抓**完全相同的 dart 代码块**；参数表 / 散文重叠不在范围内，按
+[`docs/documentation-map.md`](../docs/documentation-map.md) 的「modules 与包 README 分工」人工收敛。
 """
 from __future__ import annotations
 

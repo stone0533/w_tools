@@ -25,14 +25,14 @@
 | `w_tools_map` | `packages/map/` | 平台无关地图模型 / mapper |
 | `w_tools_map_google` | `packages/map_google/` | Google Maps 实现 `WMap` |
 
-## 工具包（纯 Dart）
+## 工具包
 
-| 包 | 路径 | 职责 |
-|------|------|------|
-| `w_tools_cli` | `packages/cli/` | 消费方接入工具：`init` 生成聚合入口/暂存层/项目 UI 规范/AGENTS 片段，`doctor` 检查接入约定 |
-| `w_tools_figma` | `packages/figma/` | 只读的 Figma 取数 / 规格 / token / diff CLI（命令与额度见 [`packages/figma/README.md`](../../packages/figma/README.md)） |
-| `w_tools_device` | `packages/device/` | 设备验证 CLI：列模拟器 / 启动 / 截图 / 在 DeviceHub 里按设备坐标点击（自动标定）；平台矩阵与命令见 [`packages/device/README.md`](../../packages/device/README.md) |
-| `w_tools_e2e` | `packages/e2e/` | 设备验证的免登录入口（编译期开关，release 天然失效） |
+| 包 | 路径 | 运行环境 | 职责 |
+|------|------|----------|------|
+| `w_tools_cli` | `packages/cli/` | 纯 Dart | 消费方接入工具：`init` 生成聚合入口/暂存层/项目 UI 规范/AGENTS 片段，`doctor` 检查接入约定 |
+| `w_tools_figma` | `packages/figma/` | 纯 Dart | 只读的 Figma 取数 / 规格 / token / diff CLI（命令与额度见 [`packages/figma/README.md`](../../packages/figma/README.md)） |
+| `w_tools_device` | `packages/device/` | 纯 Dart | 设备验证 CLI：列模拟器 / 启动 / 截图 / 在 DeviceHub 里按设备坐标点击（自动标定）；平台矩阵与命令见 [`packages/device/README.md`](../../packages/device/README.md) |
+| `w_tools_e2e` | `packages/e2e/` | Flutter | 设备验证的免登录入口（编译期开关，release 天然失效） |
 
 `w_tools_cli` 依赖 `args` / `path` / `yaml`；`w_tools_figma` 只用 Dart 标准库；`w_tools_device` 依赖 `image`；`w_tools_e2e` 是 Flutter 包。
 
@@ -84,8 +84,11 @@
 
 - 所有模块文档使用**中文**撰写。
 - `pubspec.yaml`、API 字段名、方法名、类名等保持**英文原名**。
-- 文档结构统一为：概述 → 模块结构 → 逐类说明（功能说明、核心方法/参数、使用示例）→
-  完整配置示例 → 注意事项。
+- 文档结构优先：概述 → 模块结构 → 边界 / 架构 → 跨类关系 → 注意事项；
+  历史逐类说明保留，但新增内容不要再复制包 README 的安装 / API 表。
+- 包 README 是安装、最小用法、常用配方的事实源；逐参数 API 以 pub.dev API 文档 / 源码为准。
+  modules 文档负责边界与架构，参数细节优先链接各包 README（[packages/](../../packages)）或
+  [`components.md`](components.md)。
 - 新增或修改组件时，改 [`packages/cli/catalog/components.yaml`](../../packages/cli/catalog/components.yaml)
   并跑 `cd packages/cli && dart run tool/gen_catalog.dart` 重新生成 [`components.md`](components.md)（不要手改）。
 

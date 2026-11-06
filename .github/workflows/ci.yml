@@ -41,7 +41,7 @@ jobs:
         run: python3 scripts/ci_matrix.py --github-output >> "$GITHUB_OUTPUT"
 
   # 纯文档改动不必跑 16 个装 Flutter 的 job。
-  # 只把 umbrella（preflight + docs）设为必需检查；packages / min-sdk 被 skip 不阻塞合并。
+  # 分支保护只要求最后的 Required checks；packages / min_sdk 被 skip 不影响它。
   changes:
     name: Changed paths
     runs-on: ubuntu-24.04
@@ -49,6 +49,8 @@ jobs:
     outputs:
       # workflow_dispatch 不跑 paths-filter，按「可能有代码变化」处理。
       code: ${{ steps.filter.outputs.code || 'true' }}
+      # 只改 scripts/ 时跑 umbrella 的静态门禁，但不必跑 15 个包矩阵。
+      static: ${{ steps.filter.outputs.static || 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -63,17 +65,44 @@ jobs:
               - 'packages/**'
               - '!packages/**/*.md'
               - 'packages/cli/templates/**'
+              - 'lib/**'
               - 'example/**'
               - '!example/**/*.md'
               - 'test/**'
               - 'pubspec.yaml'
               - 'pubspec.lock'
+              - 'analysis_options.yaml'
               - '.github/workflows/ci.yml'
+            static:
+              - 'scripts/**'
+              - '!scripts/**/*.md'
+
+  # 纯文档改动不需要 Flutter；这里只跑文档 / 符号 / 版本门禁。
+  # 代码 PR 也会跑一遍，成本约几秒，避免 docs-only 与 code-only 两套 required check 分叉。
+  docs:
+    name: Docs (lightweight)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install check dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/docs-venv"
+          "$RUNNER_TEMP/docs-venv/bin/pip" install --disable-pip-version-check pyyaml
+
+      # check_docs 现在包含文档符号 / 已删除 API / 安装版本（下界 == 当前版本）。
+      - name: Docs gates
+        run: PATH="$RUNNER_TEMP/docs-venv/bin:$PATH" bash scripts/check_docs.sh
 
   # 聚合包契约：w_tools.dart 的重导出（只做 re-export，配置走子包）。
   # 子包的行为测试已移入各自的 packages/<pkg>/test/，由下面的矩阵负责。
+  # 纯文档改动跳过本 job，由上面的 docs job 覆盖。
   umbrella:
     name: Umbrella (w_tools)
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.static == 'true'
     # 固定 runner 版本：ubuntu-latest 自 2026-10-19 起开始迁移到 Ubuntu 26，
     # 先钉住 24.04，确认迁移无影响后再改回 latest。
     runs-on: ubuntu-24.04
@@ -114,7 +143,7 @@ jobs:
 
   # 声明的最低 Flutter 版本上再跑一遍：form 1.0.0 的 SizeTransition.alignment
   # 就是「声明支持 3.38、却在 3.38 编译失败」漏出去的。
-  min-sdk:
+  min_sdk:
     name: Flutter ${{ env.MIN_FLUTTER_VERSION }} (declared minimum)
     needs: changes
     if: needs.changes.outputs.code == 'true'
@@ -230,3 +259,37 @@ jobs:
           path: packages/${{ matrix.package }}/coverage/lcov.info
           if-no-files-found: ignore
           retention-days: 14
+
+  # 分支保护只需要这一个 required check。
+  # docs-only 时 umbrella / min_sdk / packages 会 skipped（视为通过）；
+  # 任何 failure / cancelled 都会让本 job 失败，避免 required check 名字随矩阵变化。
+  required:
+    name: Required checks
+    if: always()
+    needs: [matrix, changes, docs, umbrella, min_sdk, packages]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify dependency job results
+        run: |
+          # 这三个 job 必须真实成功；skipped 不算通过。
+          for result in \
+            "${{ needs.matrix.result }}" \
+            "${{ needs.changes.result }}" \
+            "${{ needs.docs.result }}"; do
+            if [ "$result" != "success" ]; then
+              echo "required job failed: $result" >&2
+              exit 1
+            fi
+          done
+
+          # 这三个按路径门控，docs-only 时允许 skipped。
+          for result in \
+            "${{ needs.umbrella.result }}" \
+            "${{ needs.min_sdk.result }}" \
+            "${{ needs.packages.result }}"; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "required job failed: $result" >&2; exit 1 ;;
+            esac
+          done
