@@ -20,17 +20,14 @@ w_tools_map_google → WMap / WMapZone / WMapOptions / Google 类型
 
 只使用模型：
 
-```yaml
-dependencies:
-  w_tools_map: ^3.0.0
+```bash
+flutter pub add w_tools_map
 ```
 
 需要地图组件时：
 
-```yaml
-dependencies:
-  w_tools_map: ^3.0.0
-  w_tools_map_google: ^2.0.0
+```bash
+flutter pub add w_tools_map w_tools_map_google
 ```
 
 ## 使用模型

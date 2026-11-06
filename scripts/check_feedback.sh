@@ -4,17 +4,18 @@
 # 用法：bash scripts/check_feedback.sh
 #
 # 退出码：
-#   0  通过（或没有 dart，直接跳过）
+#   0  通过
 #   1  规则不通过
-#   2  环境不可用（没有 package_config / dart 起不来）—— 调用方按“跳过”处理，不算文档失败
+#   2  环境不可用（没有 dart / 没有 package_config / dart 起不来）—— 调用方按“跳过”处理，
+#      并应把「跳过」显示出来；不能算通过（以前返回 0，CI 里成了假的 ✓）。
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
 if ! command -v dart >/dev/null 2>&1; then
-  echo '（没有 dart，跳过反馈检查）'
-  exit 0
+  echo '没有 dart，反馈检查无法运行（先安装 Flutter 并 dart pub get）' >&2
+  exit 2
 fi
 if [ ! -f .dart_tool/package_config.json ]; then
   echo '✗ 没有 .dart_tool/package_config.json —— 反馈检查无法运行。' >&2

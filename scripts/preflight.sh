@@ -54,6 +54,12 @@ if [ -n "$only_pkg" ]; then
   fi
 fi
 
+# 多数检查脚本 import yaml；缺依赖时给一句可执行的提示，而不是让 python 抛堆栈。
+if ! python3 -c 'import yaml' >/dev/null 2>&1; then
+  echo "缺少 PyYAML：python3 -m pip install pyyaml（CI 的 venv 会自动安装）" >&2
+  exit 2
+fi
+
 failed=0
 run() {
   local name="$1"
@@ -72,11 +78,16 @@ run "analyze" flutter analyze
 run "docs" bash scripts/check_docs.sh
 run "naming" python3 scripts/check_naming.py
 run "public catalog" python3 scripts/check_public_catalog.py
-run "catalog anchors" python3 scripts/check_catalog_anchors.py
 run "catalog symbols" python3 scripts/check_catalog_symbols.py
-run "public api diff" bash -c 'set -e; for f in scripts/api_snapshots/w_tools_*.txt; do [ -e "$f" ] || continue; pkg=$(basename "$f" | sed -E "s/^w_tools_(.+)-[0-9].*/\1/"); python3 scripts/check_public_api_diff.py --package "$pkg"; done'
+# 按 manifest 遍历，而不是遍历「已有快照」：缺基线必须失败，不能静默跳过。
+run "public api diff" bash -c '
+  set -e
+  while IFS="|" read -r name path runner aggregate example || [ -n "$name" ]; do
+    case "$name" in ""|"#"*) continue ;; esac
+    python3 scripts/check_public_api_diff.py --package "${name#w_tools_}"
+  done < scripts/packages.manifest
+'
 run "test imports" python3 scripts/check_test_imports.py --package ui
-run "teaching coverage" python3 scripts/check_teaching_coverage.py
 # 生成物新鲜度：只改源文件却忘了跑生成器时，这里直接失败（不用等 --with-tests 的 cli 测试）。
 run "catalog fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_catalog.dart --check"
 run "templates fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_templates.dart --check"
@@ -88,7 +99,7 @@ run "release check" bash scripts/release_check.sh
 run "ci parity" python3 scripts/ci_matrix.py --check
 
 if [ -n "$with_tests" ]; then
-  while IFS='|' read -r name path runner aggregate example; do
+  while IFS='|' read -r name path runner aggregate example || [ -n "$name" ]; do
     case "$name" in ''|'#'*) continue ;; esac
     if [ -n "$only_pkg" ] && [ "$path" != "packages/$only_pkg" ]; then continue; fi
     case "$runner" in
@@ -101,7 +112,7 @@ if [ -n "$with_tests" ]; then
     run "test root" flutter test
     run "test example" bash -c "cd example && flutter test --reporter=compact"
   fi
-  while IFS='|' read -r name path runner aggregate example; do
+  while IFS='|' read -r name path runner aggregate example || [ -n "$name" ]; do
     case "$name" in ''|'#'*) continue ;; esac
     if [ -n "$only_pkg" ] && [ "$path" != "packages/$only_pkg" ]; then continue; fi
     if [ "$example" = "example" ]; then
@@ -114,7 +125,7 @@ if [ -n "$with_tests" ]; then
 fi
 
 if [ -n "$with_dry_run" ]; then
-  while IFS='|' read -r name path runner aggregate example; do
+  while IFS='|' read -r name path runner aggregate example || [ -n "$name" ]; do
     case "$name" in ''|'#'*) continue ;; esac
     if [ -n "$only_pkg" ] && [ "$path" != "packages/$only_pkg" ]; then continue; fi
     run "publish dry-run $name" bash scripts/publish_package.sh "$path" --dry-run

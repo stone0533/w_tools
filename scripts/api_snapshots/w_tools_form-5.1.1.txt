@@ -1,0 +1,444 @@
+# w_tools_form 5.1.1
+WCardNumberInputFormatter	class
+WCardNumberInputFormatter.formatEditUpdate	TextEditingValue (TextEditingValue oldValue, TextEditingValue newValue,)
+WDividerInputFormatter	class
+WDividerInputFormatter.first	int
+WDividerInputFormatter.formatEditUpdate	TextEditingValue (TextEditingValue oldValue, TextEditingValue newValue,)
+WDividerInputFormatter.new	({this.first = 3, this.rear = 4, this.pattern = ' '})
+WDividerInputFormatter.pattern	String
+WDividerInputFormatter.rear	int
+WForm	class
+WForm.autovalidateMode	AutovalidateMode?
+WForm.borderConfig	WFormBorderConfig?
+WForm.checkboxSelectedIcon	Widget?
+WForm.checkboxUnselectedIcon	Widget?
+WForm.child	Widget
+WForm.clearButtonIcon	Widget?
+WForm.controller	WFormController
+WForm.createState	State<WForm> ()
+WForm.dropdownIcon	Widget?
+WForm.fieldStyle	WFormFieldStyle?
+WForm.icons	WFormIcons?
+WForm.new	({ super.key, required this.controller, required this.child, this.borderConfig, this.fieldStyle, this.validatorSettings, this.readOnly = false, this.autovalidateMode, this.icons, this.dropdownIcon, this.radioUnselectedIcon, this.radioSelectedIcon, this.checkboxUnselectedIcon, this.checkboxSelectedIcon, this.obscureTextIcon, this.obscureTextVisibleIcon, this.clearButtonIcon, })
+WForm.obscureTextIcon	Widget?
+WForm.obscureTextVisibleIcon	Widget?
+WForm.radioSelectedIcon	Widget?
+WForm.radioUnselectedIcon	Widget?
+WForm.readOnly	bool
+WForm.validatorSettings	WFormValidatorSettings?
+WFormBorder	class
+WFormBorder.child	Widget
+WFormBorder.config	WFormBorderConfig?
+WFormBorder.createState	State<WFormBorder> ()
+WFormBorder.hintTextList	List<String>?
+WFormBorder.isFocused	bool?
+WFormBorder.isReadOnly	bool?
+WFormBorder.isTransparentBackground	bool?
+WFormBorder.new	({ super.key, this.config, required this.child, this.hintTextList, this.isReadOnly, this.isTransparentBackground, this.isFocused, })
+WFormBorderBuilderLayout	class
+WFormBorderBuilderLayout.build	Widget (BuildContext context, WFormBorderLayoutData data)
+WFormBorderBuilderLayout.builder	WFormBorderLayoutBuilder
+WFormBorderBuilderLayout.new	(this.builder)
+WFormBorderColumnLayout	class
+WFormBorderColumnLayout.alignment	CrossAxisAlignment
+WFormBorderColumnLayout.build	Widget (BuildContext context, WFormBorderLayoutData data)
+WFormBorderColumnLayout.new	({ this.spacing = 4, this.alignment = CrossAxisAlignment.start, })
+WFormBorderColumnLayout.spacing	double
+WFormBorderConfig	class
+WFormBorderConfig.build	WFormBorder ({ List<String>? hintTextList, bool? isReadOnly, bool? isTransparentBackground, required Widget child, })
+WFormBorderConfig.copy	WFormBorderConfig ()
+WFormBorderConfig.copyWith	WFormBorderConfig ({ WFormBorderDecoration? defaultDecoration, WFormBorderDecoration? readOnlyDecoration, WFormBorderDecoration? errorDecoration, WFormBorderDecoration? focusedDecoration, TextStyle? hintStyle, TextStyle? errorStyle, Widget Function(List<String>? list)? hintBuilder, Widget Function(List<String>? list)? errorBuilder, WFormBorderLayout? layout, })
+WFormBorderConfig.defaultDecoration	WFormBorderDecoration?
+WFormBorderConfig.errorBuilder	Widget Function(List<String>? list)?
+WFormBorderConfig.errorDecoration	WFormBorderDecoration?
+WFormBorderConfig.errorStyle	TextStyle?
+WFormBorderConfig.focusedDecoration	WFormBorderDecoration?
+WFormBorderConfig.fromTheme	(ThemeData theme, { double radius = 12, TextStyle? hintStyle, TextStyle? errorStyle, })
+WFormBorderConfig.hintBuilder	Widget Function(List<String>? list)?
+WFormBorderConfig.hintStyle	TextStyle?
+WFormBorderConfig.layout	WFormBorderLayout
+WFormBorderConfig.new	({ this.defaultDecoration, this.readOnlyDecoration, this.errorDecoration, this.focusedDecoration, this.hintStyle, this.errorStyle, this.hintBuilder, this.errorBuilder, this.layout = WFormBorderLayout.column, })
+WFormBorderConfig.readOnlyDecoration	WFormBorderDecoration?
+WFormBorderConfig.standard	({ Color backgroundColor = Colors.white, Color borderColor = const Color(0xFFE5E7EB), Color focusColor = const Color(0xFF10B981), Color errorColor = const Color(0xFFEF4444), Color readOnlyColor = const Color(0xFFF9FAFB), double radius = 12, TextStyle? hintStyle, TextStyle? errorStyle, })
+WFormBorderConfigScope	class
+WFormBorderConfigScope.config	WFormBorderConfig?
+WFormBorderConfigScope.maybeOf	static WFormBorderConfig? (BuildContext context)
+WFormBorderConfigScope.new	({ super.key, required this.config, required super.child, })
+WFormBorderConfigScope.updateShouldNotify	bool (WFormBorderConfigScope oldWidget)
+WFormBorderDecoration	class
+WFormBorderDecoration.border	BoxBorder?
+WFormBorderDecoration.borderRadius	BorderRadius?
+WFormBorderDecoration.boxShadow	List<BoxShadow>?
+WFormBorderDecoration.color	Color?
+WFormBorderDecoration.copyWith	WFormBorderDecoration ({ BoxBorder? border, Color? color, BorderRadius? borderRadius, List<BoxShadow>? boxShadow, Gradient? gradient, })
+WFormBorderDecoration.gradient	Gradient?
+WFormBorderDecoration.new	({ this.border, this.color, this.borderRadius, this.boxShadow, this.gradient, })
+WFormBorderDecoration.toBoxDecoration	BoxDecoration ()
+WFormBorderDecorationExtension	extension
+WFormBorderDecorationExtension.withBorder	WFormBorderDecoration (BoxBorder border)
+WFormBorderDecorationExtension.withBorderRadius	WFormBorderDecoration (BorderRadius borderRadius)
+WFormBorderDecorationExtension.withBoxShadow	WFormBorderDecoration (List<BoxShadow> boxShadow)
+WFormBorderDecorationExtension.withColor	WFormBorderDecoration (Color color)
+WFormBorderDecorationExtension.withGradient	WFormBorderDecoration (Gradient gradient)
+WFormBorderDecorationExtension.withUniformBorder	WFormBorderDecoration (double width, Color color)
+WFormBorderDecorationExtension.withUniformBorderRadius	WFormBorderDecoration (double radius)
+WFormBorderLayout	class
+WFormBorderLayout.build	Widget (BuildContext context, WFormBorderLayoutData data)
+WFormBorderLayout.builder	static WFormBorderLayout (WFormBorderLayoutBuilder builder)
+WFormBorderLayout.column	WFormBorderLayout
+WFormBorderLayout.new	()
+WFormBorderLayoutBuilder	typedef WFormBorderLayoutBuilder = Widget Function( BuildContext context, WFormBorderLayoutData data, );
+WFormBorderLayoutData	class
+WFormBorderLayoutData.borderRadius	BorderRadius?
+WFormBorderLayoutData.child	Widget
+WFormBorderLayoutData.hasMessage	bool
+WFormBorderLayoutData.isError	bool
+WFormBorderLayoutData.isReadOnly	bool
+WFormBorderLayoutData.message	Widget
+WFormBorderLayoutData.new	({ required this.child, required this.message, required this.hasMessage, required this.isError, required this.isReadOnly, this.borderRadius, })
+WFormBorderState	class
+WFormBorderState.build	Widget (BuildContext context)
+WFormBorderState.config	late WFormBorderConfig
+WFormBorderState.didChangeDependencies	void ()
+WFormBorderState.didUpdateWidget	void (WFormBorder oldWidget)
+WFormBorderState.false	bool _configReady =
+WFormBorderState.initState	void ()
+WFormBorderState.isError	bool
+WFormBorderState.messageList	List<String>?
+WFormBorderState.setError	void (bool value, {List<String>? errorTextList})
+WFormButton	class
+WFormButton.actions	List<Widget>?
+WFormButton.bordered	bool
+WFormButton.build	Widget (BuildContext context)
+WFormButton.enableFocusBorder	bool
+WFormButton.enabled	bool?
+WFormButton.focusNode	FocusNode?
+WFormButton.hintTextList	List<String>?
+WFormButton.hintWidget	Widget?
+WFormButton.initialValue	String?
+WFormButton.isTransparentBackground	bool?
+WFormButton.label	String?
+WFormButton.leading	Widget?
+WFormButton.name	String
+WFormButton.new	({ super.key, required this.name, required this.onTap, this.label, this.hintWidget, this.selectedWidgetBuilder, this.initialValue, this.validator, this.focusNode, this.enabled, this.readOnly = false, this.bordered = true, this.hintTextList, this.isTransparentBackground, this.enableFocusBorder = true, this.leading, this.actions, })
+WFormButton.onTap	void Function(String? value, ValueChanged<String> didChange)
+WFormButton.readOnly	bool
+WFormButton.selectedWidgetBuilder	Widget Function(String value)?
+WFormButton.validator	FormFieldValidator<String>?
+WFormCheckbox	class
+WFormCheckbox.actions	List<Widget>?
+WFormCheckbox.bordered	bool
+WFormCheckbox.build	Widget (BuildContext context)
+WFormCheckbox.disabledIcon	Widget?
+WFormCheckbox.enableFocusBorder	bool
+WFormCheckbox.enabled	bool?
+WFormCheckbox.hintTextList	List<String>?
+WFormCheckbox.iconSpacing	double?
+WFormCheckbox.iconYOffset	double?
+WFormCheckbox.initialValue	bool
+WFormCheckbox.isTransparentBackground	bool?
+WFormCheckbox.leading	Widget?
+WFormCheckbox.name	String
+WFormCheckbox.new	({ super.key, required this.name, required this.title, this.initialValue = false, this.validator, this.onChanged, this.enabled, this.readOnly = false, this.bordered = false, this.hintTextList, this.isTransparentBackground, this.enableFocusBorder = true, this.unselectedIcon, this.selectedIcon, this.disabledIcon, this.iconSpacing, this.iconYOffset, this.leading, this.actions, })
+WFormCheckbox.onChanged	ValueChanged<bool?>?
+WFormCheckbox.readOnly	bool
+WFormCheckbox.selectedIcon	Widget?
+WFormCheckbox.title	Widget
+WFormCheckbox.unselectedIcon	Widget?
+WFormCheckbox.validator	FormFieldValidator<bool>?
+WFormController	class
+WFormController.clearError	void (String name)
+WFormController.clearValue	void (String name)
+WFormController.closeKeyboard	void ()
+WFormController.ensureBorderKey	GlobalKey<WFormBorderState> (String name, {Object? owner})
+WFormController.fields	FormBuilderFields?
+WFormController.formBorderKeys	Map<String, GlobalKey<WFormBorderState>>
+WFormController.formEntered	Map<String, bool>
+WFormController.isAllEntered	bool (Iterable<String> fieldNames)
+WFormController.new	()
+WFormController.pruneFormEntered	void ()
+WFormController.removeBorderKey	void (String name, {Object? owner})
+WFormController.removeFormEntered	void (String name)
+WFormController.reset	void ()
+WFormController.savedValue	Map<String, dynamic>
+WFormController.setError	void (String name, { List<String>? errorTextList, VoidCallback? callback, })
+WFormController.validate	bool ({WFormValidatorSettings? settings, List<WFormValidatorItem>? items})
+WFormController.validatorSettings	WFormValidatorSettings?
+WFormController.validators	WFormValidator ({WFormValidatorSettings? settings, List<WFormValidatorItem>? items})
+WFormController.value	Map<String, dynamic>
+WFormCustomValidator	class
+WFormDatePicker	class
+WFormDatePicker.actions	List<Widget>?
+WFormDatePicker.bordered	bool
+WFormDatePicker.build	Widget (BuildContext context)
+WFormDatePicker.displayFormat	String?
+WFormDatePicker.enableFocusBorder	bool
+WFormDatePicker.enabled	bool?
+WFormDatePicker.firstDate	DateTime?
+WFormDatePicker.hintText	String?
+WFormDatePicker.hintTextList	List<String>?
+WFormDatePicker.icon	Widget?
+WFormDatePicker.iconSize	double?
+WFormDatePicker.initialValue	String?
+WFormDatePicker.isTransparentBackground	bool?
+WFormDatePicker.label	String?
+WFormDatePicker.lastDate	DateTime?
+WFormDatePicker.leading	Widget?
+WFormDatePicker.message	String?
+WFormDatePicker.name	String
+WFormDatePicker.new	({ super.key, required this.name, this.label, this.hintText, this.message, this.initialValue, this.firstDate, this.lastDate, this.displayFormat, this.icon, this.iconSize, this.validator, this.onChanged, this.enabled, this.readOnly = false, this.bordered = true, this.hintTextList, this.isTransparentBackground, this.enableFocusBorder = true, this.leading, this.actions, })
+WFormDatePicker.null	List<String>? get _messages => message != null ? [message!] :
+WFormDatePicker.onChanged	ValueChanged<String?>?
+WFormDatePicker.readOnly	bool
+WFormDatePicker.validator	FormFieldValidator<String>?
+WFormDropdown	class
+WFormDropdown.actions	List<Widget>?
+WFormDropdown.bordered	bool
+WFormDropdown.build	Widget (BuildContext context)
+WFormDropdown.contentPadding	EdgeInsetsGeometry?
+WFormDropdown.dropdownColor	Color?
+WFormDropdown.enableFocusBorder	bool
+WFormDropdown.enabled	bool?
+WFormDropdown.hintText	String?
+WFormDropdown.hintTextList	List<String>?
+WFormDropdown.icon	Widget?
+WFormDropdown.initialValue	T?
+WFormDropdown.isTransparentBackground	bool?
+WFormDropdown.items	Map<T, String>
+WFormDropdown.label	String?
+WFormDropdown.leading	Widget?
+WFormDropdown.message	String?
+WFormDropdown.name	String
+WFormDropdown.new	({ super.key, required this.name, required this.items, this.label, this.hintText, this.message, this.initialValue, this.validator, this.onChanged, this.enabled, this.readOnly = false, this.bordered = true, this.hintTextList, this.isTransparentBackground, this.enableFocusBorder = true, this.icon, this.dropdownColor, this.contentPadding, this.leading, this.actions, })
+WFormDropdown.null	List<String>? get _messages => message != null ? [message!] :
+WFormDropdown.onChanged	ValueChanged<T?>?
+WFormDropdown.readOnly	bool
+WFormDropdown.validator	FormFieldValidator<T>?
+WFormFieldShell	class
+WFormFieldShell.child	Widget
+WFormFieldShell.createState	State<WFormFieldShell> ()
+WFormFieldShell.enableFocusBorder	bool
+WFormFieldShell.hintTextList	List<String>?
+WFormFieldShell.isTransparentBackground	bool?
+WFormFieldShell.name	String
+WFormFieldShell.new	({ super.key, required this.name, this.hintTextList, this.isTransparentBackground, required this.readOnly, this.enableFocusBorder = true, this.useIntrinsicHeight = false, required this.child, })
+WFormFieldShell.readOnly	bool
+WFormFieldShell.useIntrinsicHeight	bool
+WFormFieldStyle	class
+WFormFieldStyle.containerPadding	EdgeInsetsGeometry?
+WFormFieldStyle.height	double?
+WFormFieldStyle.hintStyle	TextStyle?
+WFormFieldStyle.new	({ this.height, this.containerPadding, this.textStyle, this.hintStyle, })
+WFormFieldStyle.of	static WFormFieldStyle? (BuildContext context)
+WFormFieldStyle.textStyle	TextStyle?
+WFormFieldStyleScope	class
+WFormFieldStyleScope.new	({ super.key, required this.style, required super.child, })
+WFormFieldStyleScope.style	WFormFieldStyle?
+WFormFieldStyleScope.updateShouldNotify	bool (WFormFieldStyleScope oldWidget)
+WFormIcons	class
+WFormIcons.checkboxSelected	Widget
+WFormIcons.checkboxUnselected	Widget
+WFormIcons.clear	Widget
+WFormIcons.copyWith	WFormIcons ({ Widget? dropdown, Widget? radioUnselected, Widget? radioSelected, Widget? checkboxUnselected, Widget? checkboxSelected, Widget? obscureText, Widget? obscureTextVisible, Widget? clear, })
+WFormIcons.defaults	WFormIcons
+WFormIcons.dropdown	Widget
+WFormIcons.new	({ this.dropdown = const Icon(Icons.keyboard_arrow_down), this.radioUnselected = const Icon(Icons.radio_button_off), this.radioSelected = const Icon(Icons.radio_button_checked), this.checkboxUnselected = const Icon(Icons.check_box_outline_blank), this.checkboxSelected = const Icon(Icons.check_box), this.obscureText = const Icon(Icons.visibility_off), this.obscureTextVisible = const Icon(Icons.visibility), this.clear = const Icon(Icons.clear, size: 18), })
+WFormIcons.obscureText	Widget
+WFormIcons.obscureTextVisible	Widget
+WFormIcons.radioSelected	Widget
+WFormIcons.radioUnselected	Widget
+WFormInputFormatters	class
+WFormInputFormatters.phone	static List<TextInputFormatter> ()
+WFormMultiDropdown	class
+WFormMultiDropdown.actions	List<Widget>?
+WFormMultiDropdown.bordered	bool
+WFormMultiDropdown.build	Widget (BuildContext context)
+WFormMultiDropdown.checkboxDisabledIcon	Widget?
+WFormMultiDropdown.checkboxSelectedIcon	Widget?
+WFormMultiDropdown.checkboxUnselectedIcon	Widget?
+WFormMultiDropdown.disabledKeys	Set<String>
+WFormMultiDropdown.enableFocusBorder	bool
+WFormMultiDropdown.enabled	bool?
+WFormMultiDropdown.hintText	String?
+WFormMultiDropdown.hintTextList	List<String>?
+WFormMultiDropdown.icon	Widget?
+WFormMultiDropdown.iconSize	double?
+WFormMultiDropdown.initialValue	Set<String>?
+WFormMultiDropdown.isTransparentBackground	bool?
+WFormMultiDropdown.itemCheckedStyle	TextStyle?
+WFormMultiDropdown.itemDisabledStyle	TextStyle?
+WFormMultiDropdown.itemStyle	TextStyle?
+WFormMultiDropdown.items	Map<String, String>
+WFormMultiDropdown.label	String?
+WFormMultiDropdown.leading	Widget?
+WFormMultiDropdown.message	String?
+WFormMultiDropdown.name	String
+WFormMultiDropdown.new	({ super.key, required this.name, required this.items, this.label, this.hintText, this.message, this.initialValue, this.validator, this.onChanged, this.enabled, this.readOnly = false, this.bordered = true, this.hintTextList, this.isTransparentBackground, this.enableFocusBorder = true, this.icon, this.iconSize, this.checkboxUnselectedIcon, this.checkboxSelectedIcon, this.checkboxDisabledIcon, this.disabledKeys = const <String>{}, this.itemStyle, this.itemCheckedStyle, this.itemDisabledStyle, this.leading, this.actions, })
+WFormMultiDropdown.null	List<String>? get _messages => message != null ? [message!] :
+WFormMultiDropdown.onChanged	ValueChanged<Set<String>>?
+WFormMultiDropdown.readOnly	bool
+WFormMultiDropdown.validator	FormFieldValidator<Set<String>>?
+WFormPopup	class
+WFormPopup._	()
+WFormPopupRoute	class
+WFormPopupRoute.animationDuration	Duration
+WFormPopupRoute.backgroundColor	Color?
+WFormPopupRoute.barrierColor	Color?
+WFormPopupRoute.barrierDismissible	bool
+WFormPopupRoute.barrierLabel	String?
+WFormPopupRoute.borderRadius	BorderRadius?
+WFormPopupRoute.buildPage	Widget (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation,)
+WFormPopupRoute.builder	WidgetBuilder
+WFormPopupRoute.elevation	double?
+WFormPopupRoute.new	({ required this.builder, required this.position, required this.barrierLabel, this.elevation, this.shadowColor, this.animationDuration = _defaultPopupAnimationDuration, this.width, this.backgroundColor, this.borderRadius, super.settings, })
+WFormPopupRoute.position	RelativeRect
+WFormPopupRoute.shadowColor	Color?
+WFormPopupRoute.transitionDuration	Duration
+WFormPopupRoute.width	double?
+WFormRadioGroup	class
+WFormRadioGroup.actions	List<Widget>?
+WFormRadioGroup.bordered	bool
+WFormRadioGroup.build	Widget (BuildContext context)
+WFormRadioGroup.enableFocusBorder	bool
+WFormRadioGroup.enabled	bool?
+WFormRadioGroup.hintTextList	List<String>?
+WFormRadioGroup.iconSpacing	double?
+WFormRadioGroup.iconYOffset	double?
+WFormRadioGroup.initialValue	T?
+WFormRadioGroup.isTransparentBackground	bool?
+WFormRadioGroup.itemExtraBuilder	Widget Function(BuildContext, T, String, bool)?
+WFormRadioGroup.items	Map<T, String>
+WFormRadioGroup.leading	Widget?
+WFormRadioGroup.lineSpacing	double?
+WFormRadioGroup.name	String
+WFormRadioGroup.new	({ super.key, required this.name, required this.items, this.initialValue, this.validator, this.onChanged, this.titleBuilder, this.itemExtraBuilder, this.enabled, this.readOnly = false, this.bordered = false, this.hintTextList, this.isTransparentBackground, this.enableFocusBorder = true, this.unselectedIcon, this.selectedIcon, this.iconSpacing, this.lineSpacing, this.iconYOffset, this.style, this.leading, this.actions, })
+WFormRadioGroup.onChanged	ValueChanged<T?>?
+WFormRadioGroup.readOnly	bool
+WFormRadioGroup.selectedIcon	Widget?
+WFormRadioGroup.style	TextStyle?
+WFormRadioGroup.titleBuilder	Widget Function(BuildContext, T, String, bool)?
+WFormRadioGroup.unselectedIcon	Widget?
+WFormRadioGroup.validator	FormFieldValidator<T>?
+WFormReadOnlyScope	class
+WFormReadOnlyScope.new	({ super.key, required this.readOnly, required super.child, })
+WFormReadOnlyScope.readOnly	bool
+WFormReadOnlyScope.readOnlyOf	static bool (BuildContext context)
+WFormReadOnlyScope.updateShouldNotify	bool (WFormReadOnlyScope oldWidget)
+WFormScope	class
+WFormScope.autovalidateMode	AutovalidateMode?
+WFormScope.borderConfigOf	static WFormBorderConfig? (BuildContext context)
+WFormScope.build	Widget (BuildContext context)
+WFormScope.child	Widget
+WFormScope.formBorderConfig	WFormBorderConfig?
+WFormScope.formData	WFormController
+WFormScope.new	({ super.key, required this.formData, required this.child, this.autovalidateMode, this.formBorderConfig, })
+WFormScope.of	static WFormController? (BuildContext context)
+WFormScope.requireOf	static WFormController (BuildContext context)
+WFormTextField	class
+WFormTextField.actions	List<Widget>?
+WFormTextField.autofocus	bool?
+WFormTextField.bordered	bool
+WFormTextField.build	Widget (BuildContext context)
+WFormTextField.enableFocusBorder	bool
+WFormTextField.enabled	bool?
+WFormTextField.focusNode	FocusNode?
+WFormTextField.hintText	String?
+WFormTextField.hintTextList	List<String>?
+WFormTextField.initialValue	String?
+WFormTextField.inputFormatters	List<TextInputFormatter>?
+WFormTextField.isTransparentBackground	bool?
+WFormTextField.keyboardType	TextInputType?
+WFormTextField.label	String?
+WFormTextField.leading	Widget?
+WFormTextField.maxLines	int?
+WFormTextField.message	String?
+WFormTextField.name	String
+WFormTextField.new	({ super.key, required this.name, this.label, this.hintText, this.message, this.initialValue, this.validator, this.onChanged, this.onSubmitted, this.onEditingComplete, this.focusNode, this.enabled, this.readOnly = false, this.bordered = true, this.obscureText, this.autofocus, this.keyboardType, this.textInputAction, this.maxLines, this.inputFormatters, this.actions, this.leading, this.hintTextList, this.isTransparentBackground, this.enableFocusBorder = true, })
+WFormTextField.obscureText	bool?
+WFormTextField.onChanged	ValueChanged<String?>?
+WFormTextField.onEditingComplete	VoidCallback?
+WFormTextField.onSubmitted	void Function(String?)?
+WFormTextField.readOnly	bool
+WFormTextField.textInputAction	TextInputAction?
+WFormTextField.validator	FormFieldValidator<String>?
+WFormTextFieldAction	class
+WFormTextFieldAction.build	Widget (BuildContext context)
+WFormTextFieldAction.iconBuilder	Widget Function(WFormTextFieldData data)
+WFormTextFieldAction.new	({ super.key, required this.iconBuilder, this.onPressed, this.visibleWhen, })
+WFormTextFieldAction.onPressed	void Function(WFormTextFieldData data)?
+WFormTextFieldAction.visibleWhen	bool Function(WFormTextFieldData data)?
+WFormTextFieldClearButton	class
+WFormTextFieldClearButton.build	Widget (BuildContext context)
+WFormTextFieldClearButton.icon	Widget?
+WFormTextFieldClearButton.new	({ super.key, this.onCleared, this.icon, })
+WFormTextFieldClearButton.onCleared	VoidCallback?
+WFormTextFieldData	class
+WFormTextFieldData.clear	void ()
+WFormTextFieldData.hasText	bool
+WFormTextFieldData.isPasswordVisible	bool
+WFormTextFieldData.obscureText	bool
+WFormTextFieldData.readOnly	bool
+WFormTextFieldData.togglePasswordVisibility	void ()
+WFormTextFieldData.value	String?
+WFormTextFieldData.valueListenable	ValueListenable<String?>
+WFormTextFieldPasswordToggle	class
+WFormTextFieldPasswordToggle.build	Widget (BuildContext context)
+WFormTextFieldPasswordToggle.new	({super.key})
+WFormTextFieldScope	class
+WFormTextFieldScope._	({ required _WFormTextFieldState state, required this.isPasswordVisible, required this.readOnly, required super.child, })
+WFormTextFieldScope.clear	void ()
+WFormTextFieldScope.hasText	bool
+WFormTextFieldScope.isPasswordVisible	bool
+WFormTextFieldScope.obscureText	bool
+WFormTextFieldScope.of	static WFormTextFieldData? (BuildContext context)
+WFormTextFieldScope.readOnly	bool
+WFormTextFieldScope.togglePasswordVisibility	void ()
+WFormTextFieldScope.updateShouldNotify	bool (WFormTextFieldScope oldWidget)
+WFormTextFieldScope.value	String?
+WFormTextFieldScope.valueListenable	ValueListenable<String?>
+WFormTheme	class
+WFormTheme.borderConfig	WFormBorderConfig?
+WFormTheme.build	Widget (BuildContext context)
+WFormTheme.checkboxSelectedIcon	Widget?
+WFormTheme.checkboxUnselectedIcon	Widget?
+WFormTheme.child	Widget
+WFormTheme.clearButtonIcon	Widget?
+WFormTheme.dropdownIcon	Widget?
+WFormTheme.effectiveCheckboxSelectedIcon	Widget
+WFormTheme.effectiveCheckboxUnselectedIcon	Widget
+WFormTheme.effectiveClearButtonIcon	Widget
+WFormTheme.effectiveDropdownIcon	Widget
+WFormTheme.effectiveObscureTextIcon	Widget
+WFormTheme.effectiveObscureTextVisibleIcon	Widget
+WFormTheme.effectiveRadioSelectedIcon	Widget
+WFormTheme.effectiveRadioUnselectedIcon	Widget
+WFormTheme.icons	WFormIcons?
+WFormTheme.maybeOf	static WFormTheme? (BuildContext context)
+WFormTheme.new	({ super.key, this.borderConfig, this.icons, this.dropdownIcon, this.radioUnselectedIcon, this.radioSelectedIcon, this.checkboxUnselectedIcon, this.checkboxSelectedIcon, this.obscureTextIcon, this.obscureTextVisibleIcon, this.clearButtonIcon, required this.child, })
+WFormTheme.obscureTextIcon	Widget?
+WFormTheme.obscureTextVisibleIcon	Widget?
+WFormTheme.radioSelectedIcon	Widget?
+WFormTheme.radioUnselectedIcon	Widget?
+WFormValidator	class
+WFormValidator.add	void (WFormValidatorItem item)
+WFormValidator.errors	Map<String, String>
+WFormValidator.formData	WFormController
+WFormValidator.new	({required this.formData, required this.validationItems, this.settings})
+WFormValidator.settings	WFormValidatorSettings?
+WFormValidator.validate	bool ()
+WFormValidator.validationItems	List<WFormValidatorItem>
+WFormValidatorItem	class
+WFormValidatorItem.autofocus	bool
+WFormValidatorItem.field	(this.fieldName, { this.autofocus = true, })
+WFormValidatorItem.fieldName	String
+WFormValidatorItem.new	({ required this.fieldName, required this.validatorBuilder, this.autofocus = true, })
+WFormValidatorItem.validatorBuilder	FormFieldValidator<dynamic> Function()?
+WFormValidatorSettings	class
+WFormValidatorSettings.continueOnError	bool
+WFormValidatorSettings.copy	WFormValidatorSettings ()
+WFormValidatorSettings.copyWith	WFormValidatorSettings ({ bool? showBorderError, bool? continueOnError, bool? notifyAllErrors, void Function(String fieldName, String error)? customErrorCallback, void Function(String fieldName, bool isValid, String? errorText)? itemValidationCallback, bool Function(String fieldName, Map<String, dynamic>? formValues)? shouldSkipValidation, })
+WFormValidatorSettings.customErrorCallback	void Function(String fieldName, String error)?
+WFormValidatorSettings.itemValidationCallback	void Function(String fieldName, bool isValid, String? errorText)?
+WFormValidatorSettings.notifyAllErrors	bool
+WFormValidatorSettings.shouldSkipValidation	bool Function(String fieldName, Map<String, dynamic>? formValues)?
+WFormValidatorSettings.showBorderError	bool

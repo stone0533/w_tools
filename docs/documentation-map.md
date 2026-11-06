@@ -183,6 +183,7 @@ scripts/README.md         scripts 运行手册
 | 参数 API | `packages/<pkg>/lib` 源码 / pub.dev API 文档 | 无 |
 | 跨包场景 | `docs/recipes/` | 无 |
 | AI 查询内容 | catalog + `explain` renderer | `explain` 输出 |
+| 核心入口清单 | `packages/cli/catalog/entrypoints.yaml` | `check_teaching_coverage` 读取 |
 | 用户问题 | `docs/feedback/`（CLI 维护） | 无 |
 
 **生成物不要手改。**

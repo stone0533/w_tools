@@ -1,0 +1,50 @@
+# w_tools_qr 1.1.1
+WQrController	class
+WQrController.dispose	Future<void> ()
+WQrController.facing	CameraFacing?
+WQrController.flipCamera	Future<CameraFacing> ()
+WQrController.getCameraInfo	Future<CameraFacing> ()
+WQrController.getFlashStatus	Future<bool?> ()
+WQrController.getSystemFeatures	Future<SystemFeatures> ()
+WQrController.hasPermissions	bool
+WQrController.internal	(this._controller, { CameraFacing? initialFacing, void Function(CameraFacing facing)? onFacingChanged, })
+WQrController.pauseCamera	Future<void> ()
+WQrController.resumeCamera	Future<void> ()
+WQrController.scanInvert	Future<void> (bool isScanInvert)
+WQrController.scannedDataStream	Stream<Barcode>
+WQrController.stopCamera	Future<void> ()
+WQrController.toggleFlash	Future<void> ()
+WQrView	class
+WQrView.borderColor	Color
+WQrView.cameraFacing	CameraFacing
+WQrView.checkedBorderColor	Color
+WQrView.createState	State<WQrView> ()
+WQrView.formatsAllowed	List<BarcodeFormat>
+WQrView.new	({ super.key, this.borderColor = Colors.red, this.checkedBorderColor = Colors.green, this.showOverlay = true, this.overlay, this.overlayMargin = EdgeInsets.zero, this.noPermissionCallback, this.onScanned, this.onQRViewCreated, this.cameraFacing = CameraFacing.back, this.formatsAllowed = const <BarcodeFormat>[], this.scanOnce = true, this.scanInterval = const Duration(milliseconds: 400), this.onError, })
+WQrView.noPermissionCallback	VoidCallback?
+WQrView.onError	void Function(Object error, StackTrace stackTrace)?
+WQrView.onQRViewCreated	void Function(WQrController)?
+WQrView.onScanned	void Function(Barcode scanData)?
+WQrView.overlay	WQrViewOverlayShape?
+WQrView.overlayMargin	EdgeInsetsGeometry
+WQrView.scanInterval	Duration
+WQrView.scanOnce	bool
+WQrView.showOverlay	bool
+WQrViewOverlayShape	class
+WQrViewOverlayShape.borderLength	double
+WQrViewOverlayShape.borderRadius	double
+WQrViewOverlayShape.borderWidth	double
+WQrViewOverlayShape.cutOutBottomOffset	double
+WQrViewOverlayShape.cutOutHeight	double
+WQrViewOverlayShape.cutOutWidth	double
+WQrViewOverlayShape.new	({ this.borderWidth = 3.0, this.overlayColor = const Color.fromRGBO(0, 0, 0, 0.5), this.borderRadius = 0, this.borderLength = 40, this.cutOutWidth = 250, double? cutOutHeight, this.cutOutBottomOffset = 0, })
+WQrViewOverlayShape.overlayColor	Color
+WQrViewState	class
+WQrViewState.build	Widget (BuildContext context)
+WQrViewState.didChangeAppLifecycleState	void (AppLifecycleState state)
+WQrViewState.didUpdateWidget	void (covariant WQrView oldWidget)
+WQrViewState.dispose	void ()
+WQrViewState.false	bool _pausedByLifecycle =
+WQrViewState.initState	void ()
+WQrViewState.reassemble	void ()
+WQrViewState.restartScan	Future<void> ()

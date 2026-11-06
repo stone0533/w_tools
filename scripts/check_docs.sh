@@ -9,6 +9,12 @@ set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
+# 多数检查脚本 import yaml；缺依赖时给一句可执行的提示，而不是让 python 抛堆栈。
+if ! python3 -c 'import yaml' >/dev/null 2>&1; then
+  echo "缺少 PyYAML：python3 -m pip install pyyaml（CI 的 venv 会自动安装）" >&2
+  exit 2
+fi
+
 errors=0
 _step() {
   local allow_skip="$1" label="$2"
@@ -135,6 +141,9 @@ step 'async 旧 API' python3 scripts/check_async_docs.py
 step '安装约束 / 示例' python3 scripts/check_package_docs.py
 step '文档符号 / import 边界' python3 scripts/check_doc_symbols.py
 step '已删除 API' python3 scripts/check_removed_api.py
+# 这两项只读 .md / yaml，必须留在 docs-only 也会跑的这一层（preflight 可能被 CI 路径过滤跳过）。
+step 'catalog 锚点' python3 scripts/check_catalog_anchors.py
+step '教学覆盖' python3 scripts/check_teaching_coverage.py
 step '当前文档事实' python3 scripts/check_docs_facts.py
 step '维护者提示词' python3 scripts/check_prompt_docs.py
 step 'docs/agents 索引与入口' python3 scripts/check_agents_consistency.py

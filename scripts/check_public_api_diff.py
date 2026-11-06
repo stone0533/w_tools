@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """公开 API 快照 diff：删除 / 可空性 / 类型变化必须进 CHANGELOG Breaking 或 migration。
 
+基线是**已发布版本**的公开 API（`scripts/api_snapshots/w_tools_<pkg>-<version>.txt`）；
+缺基线直接失败，不再静默跳过——否则该包的门禁等于不存在。
+CHANGELOG 段按 pubspec 的版本号选取，避免把新变更写进已经发布的历史段。
+
 用法：
   python3 scripts/check_public_api_diff.py --package ui
   python3 scripts/check_public_api_diff.py --snapshot-from /tmp/ui_arch --package ui --version 6.1.1
@@ -176,11 +180,21 @@ def diff_api(baseline: dict[str, str], current: dict[str, str]) -> list[tuple[st
     return changes
 
 
-def _current_version_text(changelog: str) -> str:
+def _current_version_text(changelog: str, version: str | None = None) -> str:
+    """取“本次变更”所在的 CHANGELOG 段。
+
+    优先精确匹配 pubspec 的版本号；没有时退到 `## Unreleased`；再退到第一段。
+    不能只取“第一个非 Unreleased 段”：版本没抬时那段是**已发布**的历史，
+    把新变更写进去会让仓库与 pub.dev 上的旧版本说明分叉。
+    """
     matches = list(re.finditer(r'(?m)^##\s+(\S+)', changelog))
     if not matches:
         return changelog
-    match = next((m for m in matches if m.group(1).lower() != 'unreleased'), matches[0])
+    match = None
+    if version:
+        match = next((m for m in matches if m.group(1) == version), None)
+    if match is None:
+        match = next((m for m in matches if m.group(1).lower() == 'unreleased'), matches[0])
     following = [m for m in matches if m.start() > match.start()]
     end = following[0].start() if following else len(changelog)
     return changelog[match.start():end]
@@ -200,17 +214,19 @@ def check_notes(
     changelog: str,
     migration: str,
     current: dict[str, str] | None = None,
+    version: str | None = None,
 ) -> list[str]:
-    version_text = _current_version_text(changelog)
+    version_text = _current_version_text(changelog, version)
     breaking = _section(version_text, 'Breaking') + '\n' + _section(version_text, 'Removed')
     notes = breaking + '\n' + migration
     added = _section(version_text, 'Added') + '\n' + _section(version_text, 'Changed')
     errors: list[str] = []
     for key, old, new in changes:
         type_name = key.split('.', 1)[0]
-        member = key.split('.', 1)[1] if '.' in key else ''
         type_exists = current is not None and type_name in current
-        mentioned = key in notes or (member and member in notes)
+        # 只认完整成员名（`WButton.color`）：裸成员名 `color` / `text` 这类
+        # 几乎必然出现在迁移文档的普通句子里，会变成免检通道。
+        mentioned = key in notes
         if not type_exists:
             # 整个类型被删除/改名：类型名出现在 Breaking/Removed 或 migration 即可。
             mentioned = mentioned or type_name in notes
@@ -258,6 +274,12 @@ def _write_snapshot(package_dir: pathlib.Path, package: str, version: str) -> pa
     return path
 
 
+def _pubspec_version(package_dir: pathlib.Path) -> str:
+    pubspec = (package_dir / 'pubspec.yaml').read_text()
+    match = re.search(r'(?m)^version:\s*(\S+)', pubspec)
+    return match.group(1) if match else ''
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--package', required=True, help='manifest 裸名，如 ui')
@@ -276,8 +298,15 @@ def main() -> int:
 
     snapshot = _snapshot_path(args.package)
     if snapshot is None:
-        print(f'! w_tools_{args.package} 没有 API 快照，跳过')
-        return 0
+        # 不能静默跳过：缺基线时这个门禁对整包失效，而外部看到的是 ✓。
+        print(
+            f'✗ w_tools_{args.package} 没有 API 快照，公开 API 变更无法校验。\n'
+            f'  基线必须来自**已发布**版本：解包 pub.dev 归档后运行\n'
+            f'  python3 scripts/check_public_api_diff.py --snapshot-from <解包目录> '
+            f'--package {args.package} --version <已发布版本>',
+            file=sys.stderr,
+        )
+        return 1
     baseline = _load_snapshot(snapshot)
     current = api_surface(package_dir)
     changes = diff_api(baseline, current)
@@ -287,16 +316,20 @@ def main() -> int:
 
     changelog_path = package_dir / 'CHANGELOG.md'
     changelog = changelog_path.read_text() if changelog_path.exists() else ''
-    pubspec = (package_dir / 'pubspec.yaml').read_text()
-    major_match = re.search(r'(?m)^version:\s*(\d+)\.', pubspec)
-    major = major_match.group(1) if major_match else '0'
+    version = _pubspec_version(package_dir)
+    major = version.split('.')[0] if version else '0'
     migration_path = ROOT / 'docs/migrations' / f'{args.package}-{major}.0.md'
     migration = migration_path.read_text() if migration_path.exists() else ''
-    errors = check_notes(changes, changelog, migration, current)
+    errors = check_notes(changes, changelog, migration, current, version or None)
     if errors:
         print(f'公开 API 变化未记录（{len(errors)} 条）：', file=sys.stderr)
         for error in errors:
             print(f'  ✗ {error}', file=sys.stderr)
+        print(
+            f'  应写进 packages/{args.package}/CHANGELOG.md 的 '
+            f'"## {version}" 的 ### Breaking / ### Removed，或 docs/migrations/。',
+            file=sys.stderr,
+        )
         return 1
     print(f'✓ {args.package} 公开 API 变化均已记录（{len(changes)} 条）')
     return 0

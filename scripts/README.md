@@ -56,7 +56,7 @@ check 名字随包矩阵变化。
 | `preflight.sh` | 全仓门禁总入口（CI 直接调用它） | 提交前 / 合并前 |
 | `install_git_hooks.sh` | 安装 `.githooks`（pre-push 阻止直接 push main） | 首次检出 / 流程要求 |
 | `check_pr_checks.sh` | 用 `gh pr checks --required` 确认 PR Required checks | 发布前 |
-| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 旧命令 / 符号 / 已删除 API / 安装版本，每步会打名字） | 只改文档时可单独跑 |
+| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字） | 只改文档时可单独跑 / CI docs job |
 | `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移 | preflight / CI matrix job |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
 
@@ -73,16 +73,16 @@ check 名字随包矩阵变化。
 | `check_docs_duplicates.py` | `docs/modules` 与包 README 不再复制同一段 dart 示例 | check_docs |
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
-| `check_package_docs.py` | 当前文档安装约束（必须是 caret，且下界 == 当前版本；非 caret 直接失败）/ 跨包示例 / example 链接 | check_docs |
+| `check_package_docs.py` | 当前文档安装约束（仍写成 caret 的示例必须下界 == 当前版本，非 caret 直接失败；`pub add` 命令不参与）/ 跨包示例 / example 链接 | check_docs |
 | `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性（含每个 ADR 在 `docs/README.md` 留行）/ ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名 + 高频规则短语一致 | check_docs |
 | `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查（双向：新类型要登记，基线里的旧名字也要删） | preflight |
-| `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到；提前到静态 preflight | preflight |
+| `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到 | check_docs / preflight |
 | `check_catalog_symbols.py` | catalog `usage` / `useFor` / `related` 里的 `W*` / `W*.member` 必须真实存在于公开 API | preflight |
-| `check_public_api_diff.py` | 公开 API 快照 diff：删除 / 类型/可空性 / 方法 / 构造器变化必须出现在当前版本 CHANGELOG 的 Breaking/Removed 或 migration（构造器可选参数可记 Added） | preflight |
+| `check_public_api_diff.py` | 公开 API 快照 diff：删除 / 类型/可空性 / 方法 / 构造器变化必须出现在**当前 pubspec 版本**的 CHANGELOG Breaking/Removed 或 migration（构造器可选参数可记 Added）；缺基线直接失败 | preflight |
 | `check_test_imports.py` | `package:w_tools_<pkg>/src/...` 只允许出现在 `test/internal/`；当前先覆盖 ui | preflight |
-| `check_teaching_coverage.py` | 核心入口 `entrypoints.yaml` 必须出现在 docs/agents / 模板 zh+en / README / example（J-4A） | preflight |
+| `check_teaching_coverage.py` | 核心入口 `entrypoints.yaml` 必须出现在 docs/agents / 模板 zh+en / README / example（J-4A） | check_docs / preflight |
 | `check_git_sync.sh` | 当前分支有 upstream 且 ahead/behind 都为 0；`release_check --strict` 调用 | release_check / 发布前 |
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档 / catalog（含 root + `packages/*/AGENTS.md` + `catalog/components.yaml`） | check_docs / preflight |
 | `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |
@@ -126,6 +126,9 @@ check 名字随包矩阵变化。
 - `check_docs_facts.py`：规模数字与索引完整性，不校验 API 细节；
 - `check_agents_consistency.py`：比入口名 + 高频规则短语，不做全文语义比对；
 - `check_package_docs.py`：只校验 caret 下界与主版本（非 caret 直接失败），不校验具体 patch；
+- `check_teaching_coverage.py`：只比对入口名是否出现在 docs/agents / 模板 / README / example 五个载体里
+  （子串匹配，不代表讲清楚了）；`entrypoints.yaml` 目前只登记 ui；
+- `check_public_api_diff.py`：只比较快照里已有的 key（删除 / 改签名），新增成员不拦；缺基线直接失败；
 - `ci_matrix.py --check`：查清单是否同源，不查 workflow 语义。
 
 发布前：
@@ -183,13 +186,15 @@ python3 scripts/list_removals.py
 python3 scripts/check_deprecations.py
 ```
 
-### 发布前
+### 发布前（步骤以 [releasing.md](../docs/releasing.md) 为准）
 
 ```bash
+bash scripts/check_pr_checks.sh <PR号>             # 合并前，在 PR 分支上；需要 gh
 bash scripts/release_check.sh --strict
-bash scripts/release_check.sh --online
 bash scripts/publish_package.sh packages/<pkg> --dry-run
 ```
+
+`--online` 只在**发布后**核对线上版本；发布前跑必然报「待发布」，不要放进发布前清单。
 
 ### 真正发布
 
@@ -224,13 +229,16 @@ bash scripts/publish_package.sh .
 
 ### 公开 API 快照
 
-`scripts/api_snapshots/w_tools_<pkg>-<version>.txt` 是上一次发布版本的公开 API 基线，
-由脚本生成，不要手改：
+`scripts/api_snapshots/w_tools_<pkg>-<version>.txt` 是**已发布版本**的公开 API 基线，
+由脚本生成，不要手改。`preflight` 按 manifest 逐包对比，**缺基线直接失败**（不再静默跳过）。
+
+- 正常情况：`publish_package.sh` 发布成功后自动写入；**必须 `git add` 提交**
+  （见 [releasing.md](../docs/releasing.md) 第 7 步，否则下次 `--strict` 会因未跟踪文件失败）。
+- 新包 / 补基线：从 pub.dev 归档（首次发布前可用当前版本）生成：
 
 ```bash
 python3 scripts/check_public_api_diff.py \
-  --snapshot-from /tmp/<pkg>-<version> \
-  --package <pkg> --version <version>
+  --snapshot-from /tmp/<pkg>-<version> --package <pkg> --version <version>
 ```
 
-发布新版本后更新对应快照；否则 `preflight` 的 `public api diff` 会一直对比旧版本。
+- 聚合包 `w_tools` 只 re-export，没有自己的 API 快照。

@@ -4,6 +4,9 @@
 规则：**安装示例的下界必须等于仓库当前版本**，不能只保证 caret 区间能接受当前版本。
 `^1.0.0` 对当前 1.9.10 是合法的 caret，但用户照抄会装到旧版；这类“下界落后”由本脚本拦截。
 
+安装命令优先写成 `flutter pub add <包>` / `dart pub add [dev:]<包>`（不写版本号，永远装到线上最新版）；
+本脚本只校验仍然写成 `w_tools*: ^x.y.z` 的示例，不允许下界落后于仓库当前版本。
+
 扫描范围是当前文档（根 README / AGENTS / CONTRIBUTING / docs 当前目录 / 包 README），
 历史目录 `docs/migrations` / `docs/adr` / `docs/analysis` / `docs/feedback` 不参与。
 跨包示例同样扫描：例如 `packages/map/README.md` 里的 `w_tools_map_google` 也会对照
