@@ -621,6 +621,25 @@ banned:
     expect('${r.stderr}', contains('pubspec.lock'));
   });
 
+  test('explain 读取 lock 版本并给出 API 文档', () async {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.lock')).writeAsStringSync(
+      'packages:\n  w_tools_ui:\n    version: "1.1.0"\n',
+    );
+    final r = await _run('explain.dart', [
+      'WImage',
+      '--root',
+      root.path,
+      '--format=prompt',
+    ]);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('包版本：w_tools_ui 1.1.0'));
+    expect(
+      '${r.stdout}',
+      contains('API 文档：https://pub.dev/documentation/w_tools_ui/1.1.0/'),
+    );
+  });
+
   test('explain --root 读取项目 banned', () async {
     final root = _project();
     File(p.join(root.path, '.w_tools_doctor.yaml')).writeAsStringSync('''

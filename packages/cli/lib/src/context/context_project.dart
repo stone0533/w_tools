@@ -17,10 +17,15 @@ class ProjectSnapshot {
   const ProjectSnapshot({
     required this.facts,
     required this.results,
+    required this.repoCheckout,
   });
 
   final ProjectFacts facts;
   final List<DoctorRuleResult> results;
+
+  /// 是否是 w_tools 仓库自身（不是消费方项目）。
+  /// 仓库根会被 R1 当成“依赖了聚合包”，这些是仓库结构，不是接入问题。
+  final bool repoCheckout;
 
   /// `w_tools_cli` 自身的安装位置（供 AI 判断能否直接写库侧反馈）。
   InstallInfo get install => InstallInfo.detect(projectRoot: root);
@@ -48,9 +53,13 @@ class ProjectSnapshot {
     final facts = ctx.facts;
     // 提前触发 lock 解析，让命令层能在 load 阶段捕获 PubspecLockException。
     facts.packages;
+    final repoCheckout =
+        ctx.name == 'w_tools' && Directory('${root.path}/packages/cli').existsSync();
     return ProjectSnapshot(
       facts: facts,
-      results: runDoctor(ctx, cfg),
+      // 仓库自身不跑消费方 doctor：R1 会把根包的聚合依赖误报成接入错误。
+      results: repoCheckout ? const <DoctorRuleResult>[] : runDoctor(ctx, cfg),
+      repoCheckout: repoCheckout,
     );
   }
 
@@ -58,6 +67,7 @@ class ProjectSnapshot {
     'schema': contextSchema,
     'schemaVersion': contextSchemaVersion,
     'cliVersion': cliVersion,
+    'repoCheckout': repoCheckout,
     'catalogVersion': catalogVersion,
     'project': <String, Object?>{
       'name': projectName,
@@ -81,6 +91,7 @@ class ProjectSnapshot {
     ],
     'install': install.toJson(),
     'doctor': <String, Object?>{
+      'skipped': repoCheckout,
       'error': errorCount,
       'warn': warnCount,
       'issues': <Map<String, Object?>>[
@@ -148,6 +159,7 @@ class ProjectSnapshot {
       ..writeln('# w_tools 项目上下文')
       ..writeln()
       ..writeln('- 项目：`$projectName`')
+      ..writeln(repoCheckout ? '- 模式：仓库检出（跳过消费方 doctor 规则）' : '- 模式：消费方项目')
       ..writeln('- w_tools_cli：`$cliVersion`（catalog v$catalogVersion）')
       ..writeln('- 已安装：${_installed()}')
       ..writeln(
@@ -161,7 +173,9 @@ class ProjectSnapshot {
         '- 暂存层：`$stagingDir`（$designSystemFiles 个文件，$missingStaged 个缺 `// STAGED:`）',
       )
       ..writeln('- 规则：${doctorRuleIds.map((id) => '`$id ${doctorRuleLevels[id]}`').join(' ')}')
-      ..writeln('- 当前检查：$errorCount error / $warnCount warning');
+      ..writeln(
+        repoCheckout ? '- 当前检查：已跳过（仓库自身）' : '- 当前检查：$errorCount error / $warnCount warning',
+      );
     final caps = capabilities();
     if (caps.isNotEmpty) {
       b
@@ -195,10 +209,11 @@ class ProjectSnapshot {
     final lines = <String>[
       '# w_tools 项目上下文（给 AI）',
       '项目: $projectName',
+      repoCheckout ? '模式: 仓库检出（跳过消费方 doctor 规则）' : '模式: 消费方项目',
       'w_tools_cli: $cliVersion / catalog v$catalogVersion',
       'toolkit: ${toolkitPath ?? '（未初始化）'}'
           '${toolkitExports.isEmpty ? '' : '（导出 ${toolkitExports.join(', ')}）'}',
-      '当前: $errorCount error / $warnCount warning',
+      repoCheckout ? '当前: 仓库检出，跳过消费方 doctor 规则' : '当前: $errorCount error / $warnCount warning',
       '命令: ${commands().entries.map((e) => '${e.key}=${e.value}').join(' | ')}',
       '直接依赖: ${dependencies.isEmpty ? '（无）' : dependencies.join(', ')}',
       '规则: ${doctorRuleIds.map((id) => '$id=${doctorRuleLevels[id]}').join(' ')}',

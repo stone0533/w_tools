@@ -6,6 +6,11 @@
 - `init` 生成的 `w_tools_map_google` 约束同步到 `^2.0.0`（`WMapConfig` → `WMapOptions`）。
 - `init` 生成的全部子包约束改为与仓库当前版本完全一致；修正 `w_tools_device` 仍生成
   `^0.1.4`（当前 0.2.0）的漂移，测试覆盖全部 `subpackageConstraints` 与 device。
+- `context` 在 w_tools 仓库检出内标记 `repoCheckout` 并跳过消费方 doctor，
+  不再把根包聚合依赖误报成 6 个 error。
+- `explain` 读取 `pubspec.lock`，输出 `包版本` 与对应版本的 pub.dev `API 文档`；
+  仓库文档链接仍指向 `main`，但会与包版本并列展示。
+- catalog 的 `WButton` 示例不再默认推荐 `WButtonStyles`，并补「项目页面优先 AppButtons」pitfall。
 
 ## 1.12.0
 

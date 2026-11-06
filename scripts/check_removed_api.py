@@ -39,6 +39,8 @@ targets += sorted((root / 'packages').glob('*/AGENTS.md'))
 targets += sorted((root / 'packages').glob('*/example/README.md'))
 targets += sorted((root / 'packages').glob('*/example/lib/**/*.dart'))
 targets += sorted((root / 'packages/cli/templates/agents').rglob('*.md'))
+# catalog 是 explain 的事实源；已删除 API 出现在 usage/pitfalls 里会直接教错 AI。
+targets += [root / 'packages/cli/catalog/components.yaml']
 
 
 def marked_as_removed(line: str, start: int) -> bool:

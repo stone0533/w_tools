@@ -147,7 +147,7 @@ scripts/README.md         scripts 运行手册
 
 - 包 README 是安装、最小用法、常用配方的事实源；逐参数 API 以 pub.dev API 文档 / 源码为准；
 - modules 文档只写包边界、架构、跨类关系与设计取舍；需要参数表时链接 README / pub.dev API 文档 / 源码，不再复制；
-- 历史 modules 文档里的逐参数表是存量，按包逐步收敛（`ui` 已收敛）；新增内容不要再复制。
+- 历史 modules 文档里的逐参数表是存量，按包逐步收敛（`ui` / `form` 已收敛）；新增内容不要再复制。
 
 ---
 

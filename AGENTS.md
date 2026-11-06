@@ -6,6 +6,7 @@
 
 | 任务 | 读 |
 |---|---|
+| 找组件 / 查用法 | `dart run w_tools_cli:w_tools list <关键词> --format=prompt` / `explain <组件名> --format=prompt` + [`catalog`](packages/cli/catalog/components.yaml) |
 | 改公开 API / 组件 | [`packages/cli/catalog/components.yaml`](packages/cli/catalog/components.yaml) + [`docs/modules/components.md`](docs/modules/components.md) |
 | 改 AI 资产 / catalog / 模板 | [`docs/ai-contract.md`](docs/ai-contract.md) |
 | 改脚本 / 门禁 | [`scripts/README.md`](scripts/README.md) |

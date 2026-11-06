@@ -6,7 +6,8 @@
 1. `docs/agents/README.md` 必须索引该目录下的每个文档（README 自己除外）；
 2. 「各包首选入口」表里写出的入口类型，必须能在该包规则页（或被它直接链接的
    docs/agents 子页，例如 ui → button）里找到；
-3. 同一张表的主入口符号，至少要有一个出现在根 `AGENTS.md`——防止某个包整节被删掉。
+3. 同一张表的主入口符号，至少要有一个出现在根 `AGENTS.md`——防止某个包整节被删掉；
+4. 高频规则短语必须同时出现在 docs/agents 与 zh/en 模板，防止只改一边。
 
 第 2 条治的是“索引表写了一个组件，规则页却从没提过”的漂移：
 两张表各自维护时，AI 读到哪份就按哪份写。
@@ -84,6 +85,47 @@ else:
                 f'AGENTS.md: 「{package}」的首选入口（{entry_names[0]} 等）一个都没提到，'
                 f'该包的硬规则可能整节被删了',
             )
+
+# 3) 高频规则的语义一致性：入口名一致还不够，关键规则不能只在一边。
+KEY_PHRASES = {
+    'AppButtons': [
+        'docs/agents/button.md',
+        'packages/cli/templates/agents/zh/ui.md',
+        'packages/cli/templates/agents/en/ui.md',
+    ],
+    'WStorage': [
+        'docs/agents/core.md',
+        'packages/cli/templates/agents/zh/core.md',
+        'packages/cli/templates/agents/en/core.md',
+    ],
+    'WForm': [
+        'docs/agents/form.md',
+        'packages/cli/templates/agents/zh/form.md',
+        'packages/cli/templates/agents/en/form.md',
+    ],
+    'WAsyncController': [
+        'docs/agents/async.md',
+        'packages/cli/templates/agents/zh/async.md',
+        'packages/cli/templates/agents/en/async.md',
+    ],
+    'WQrView': [
+        'docs/agents/qr.md',
+        'packages/cli/templates/agents/zh/qr.md',
+        'packages/cli/templates/agents/en/qr.md',
+    ],
+    'WToast': [
+        'docs/agents/toast.md',
+        'packages/cli/templates/agents/zh/toast.md',
+        'packages/cli/templates/agents/en/toast.md',
+    ],
+}
+for phrase, rels in KEY_PHRASES.items():
+    for rel in rels:
+        path = root / rel
+        if not path.exists():
+            errors.append(f'{rel}: 缺少，无法校验关键规则 {phrase}')
+        elif phrase not in path.read_text():
+            errors.append(f'{rel}: 没有出现关键规则 {phrase}')
 
 if errors:
     for error in errors:

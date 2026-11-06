@@ -51,6 +51,10 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
 
 - `explain` 在已 init 的项目里输出**聚合入口** import；子包 import 只允许出现在
   `lib/app/ui/`、`lib/app/design_system/` 与 toolkit 自身（R2 例外）。
+- `explain` 会读 `pubspec.lock` 标注 `包版本`，并给出该版本对应的 pub.dev `API 文档`；
+  仓库 `main` 文档链接可能领先于已安装版本，以 `包版本` 为准。
+- 在 w_tools 仓库检出内，`context` 会标记“仓库检出”并跳过消费方 doctor；
+  消费方项目才跑 R1~R9。
 - `doctor` 的 R2 会把业务代码直接 import `package:w_tools_*` 判 error；不要照抄组件目录里的子包 import。
 - `rules:` 里 `R2: false` 这类开关对全部规则生效；`--only=R1,R2` 是本次运行的白名单。
 - `list` / `explain` 没找到时退出码 1；参数错误 2。

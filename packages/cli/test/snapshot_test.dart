@@ -80,4 +80,19 @@ void main() {
     expect(snap.commands()['analyze'], 'flutter analyze');
     expect(snap.commands()['test'], 'flutter test');
   });
+
+  test('仓库检出不跑消费方 doctor，并标记 repoCheckout', () {
+    final root = Directory.systemTemp.createTempSync('wt_repo_');
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync(
+      'name: w_tools\n'
+      'environment:\n  sdk: ^3.10.0\n',
+    );
+    Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
+
+    final snap = ProjectSnapshot.load(root);
+    expect(snap.repoCheckout, isTrue);
+    expect(snap.errorCount, 0);
+    expect(snap.toPrompt(), contains('仓库检出'));
+    expect((snap.toJson()['doctor'] as Map)['skipped'], isTrue);
+  });
 }

@@ -280,7 +280,6 @@ class GiftPage extends StatelessWidget {
                 ),
                 WButton(
                   label: '兑换',
-                  style: WButtonStyles.of(context).primary,
                   onTap: () {},
                 ),
               ],

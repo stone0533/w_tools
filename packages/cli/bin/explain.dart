@@ -7,6 +7,7 @@ import 'package:w_tools_cli/src/catalog/catalog.dart';
 import 'package:w_tools_cli/src/explain/render_explain.dart';
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/common/project_loader.dart';
+import 'package:w_tools_cli/src/common/pubspec_lock.dart';
 import 'package:w_tools_cli/src/doctor/banned_rule.dart';
 
 const _usage = '''
@@ -47,6 +48,13 @@ CommandResult run(List<String> argv) {
       }
 
       final root = Directory(args['root'] as String? ?? Directory.current.path);
+      // 已安装版本用于标注 API 文档；解析失败不阻塞 explain。
+      var lockedVersions = const <String, String>{};
+      try {
+        lockedVersions = readLockedVersions(root);
+      } on PubspecLockException catch (e) {
+        stderr.writeln('${e.message}（explain 继续，但无法标注包版本）');
+      }
       // 聚合入口只在“真实消费方项目”里生成；仓库自身/无 pubspec 时退回 catalog import
       String? aggregateImport;
       try {
@@ -75,6 +83,11 @@ CommandResult run(List<String> argv) {
             'query': name,
             'found': matches.isNotEmpty,
             'import': aggregateImport,
+            'packageVersion': matches.length == 1 ? lockedVersions[matches.single.package] : null,
+            'docsUrl': matches.length == 1 ? docsUrlFor(matches.single) : null,
+            'apiDocsUrl': matches.length == 1
+                ? apiDocsUrlFor(matches.single, lockedVersions[matches.single.package])
+                : null,
             'components': matches.map((e) => e.toJson()).toList(),
             'banned': banned.map(_bannedJson).toList(),
           }),
@@ -103,6 +116,7 @@ CommandResult run(List<String> argv) {
       }
 
       final e = matches.single;
+      final packageVersion = lockedVersions[e.package];
       if (asPrompt) {
         print(
           renderExplainPrompt(
@@ -110,6 +124,8 @@ CommandResult run(List<String> argv) {
             importPath: aggregateImport ?? e.importPath,
             docsUrl: docsUrlFor(e),
             exampleUrl: exampleUrl(e.package),
+            packageVersion: packageVersion,
+            apiDocsUrl: apiDocsUrlFor(e, packageVersion),
           ),
         );
         for (final entry in banned) {
@@ -118,6 +134,7 @@ CommandResult run(List<String> argv) {
         return;
       }
       print('${e.name}  (${e.package})');
+      if (packageVersion != null) print('包版本：${e.package} $packageVersion');
       print('分组：${e.section}');
       print('用途：${e.useFor}');
       if (e.dontUseFor != null) print('不要用于：${e.dontUseFor}');
@@ -141,6 +158,8 @@ CommandResult run(List<String> argv) {
       final example = exampleUrl(e.package);
       if (example != null) print('示例：$example');
       print('文档：${docsUrlFor(e)}');
+      final apiDocs = apiDocsUrlFor(e, packageVersion);
+      if (apiDocs != null) print('API 文档：$apiDocs');
       for (final entry in banned) {
         print(_bannedText(entry));
       }
@@ -167,7 +186,13 @@ String docsUrlFor(CatalogEntry entry) {
 
 String docsUrl(String docs) {
   if (docs.startsWith('http://') || docs.startsWith('https://')) return docs;
+  // 仓库文档固定在 main：可能领先于消费方已安装版本；版本信息另由 API 文档给出。
   return 'https://github.com/stone0533/w_tools/blob/main/${docs.replaceFirst(RegExp(r'^/'), '')}';
+}
+
+String? apiDocsUrlFor(CatalogEntry entry, String? version) {
+  if (version == null || version.trim().isEmpty) return null;
+  return 'https://pub.dev/documentation/${entry.package}/${version.trim()}/';
 }
 
 String _bannedText(BannedRule entry) {

@@ -291,10 +291,11 @@ components:
     usage: |
       WButton(label: '保存', onTap: save);
       WButton(label: '提交', loading: true, enabled: false, onTap: save);
-      WButton(icon: Icons.add, label: '新增', style: WButtonStyles.of(context).primary, onTap: add);
+      WButton(icon: Icons.add, label: '新增', onTap: add);
       WButton(label: '详情', content: Row(mainAxisSize: MainAxisSize.min, children: [...]), onTap: ...);
     pitfalls:
       - '任意 child 点击用 WPressable，不要套 WButton'
+      - '项目页面优先用 AppButtons；WButtonStyles 只用于组件示例 / 独立 Demo'
       - 'loading 时同时设 enabled: false，避免重复点击'
       - 'label 与 content 不能同时传；icon-only 要提供 semanticLabel'
     related: ['`WPressable`', '`WButtonStyles`']
@@ -1219,7 +1220,7 @@ components:
     pitfalls:
       - "WMap/WMapZone \u6765\u81ea w_tools_map_google\uff0c\u4e0d\u662f w_tools_map"
       - "markerId \u5fc5\u987b\u7a33\u5b9a"
-      - "map_google 2.0 起 `WMapConfig` 改名 `WMapOptions`；旧名已删除"
+      - "map_google 2.0 起旧 `WMapConfig` 已删除，改用 `WMapOptions`"
     related: ["`WMapController`", "`WMapItemMapper`"]
     teach: true
 

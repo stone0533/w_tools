@@ -6,12 +6,17 @@ String renderExplainPrompt(
   required String importPath,
   required String docsUrl,
   String? exampleUrl,
+  String? packageVersion,
+  String? apiDocsUrl,
 }) {
   final b = StringBuffer()
     ..writeln('# ${entry.name} (${entry.package})')
     ..writeln(entry.useFor)
     ..writeln()
     ..writeln("import '$importPath';");
+  if (packageVersion != null && packageVersion.isNotEmpty) {
+    b.writeln('包版本：${entry.package} $packageVersion');
+  }
   if (entry.usage != null) {
     b
       ..writeln()
@@ -39,5 +44,8 @@ String renderExplainPrompt(
   b
     ..writeln()
     ..writeln('文档：$docsUrl');
+  if (apiDocsUrl != null && apiDocsUrl.isNotEmpty) {
+    b.writeln('API 文档：$apiDocsUrl');
+  }
   return b.toString().trimRight();
 }
