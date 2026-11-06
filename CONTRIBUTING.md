@@ -67,7 +67,13 @@
   `templates/agents/{zh,en}/<pkg>.md`、README、example 都已同步。
 - 自动门禁只能保证符号/锚点/生成物一致；教学方法是否讲清楚仍需要 J-4 人工判断。
 
-## 6. grep / 检查脚本经验
+## 6. Git / PR 流程
+
+- 首次检出先跑 `bash scripts/install_git_hooks.sh`；`.githooks/pre-push` 会阻止直接 push main。
+- 公开变化走 feature 分支 + PR，等 Required checks 通过后合并；不要用管理员绕过。
+- 发布前用 `bash scripts/check_pr_checks.sh [PR号]` 确认 Required checks（需要 `gh`）。
+
+## 7. grep / 检查脚本经验
 
 写 `grep` / `rg` 检查脚本时：
 
@@ -77,14 +83,14 @@
 
 这些是维护者检查脚本的经验，不进入消费方 AGENTS。
 
-## 7. 组件从「消费方暂存层」上移时
+## 8. 组件从「消费方暂存层」上移时
 
 1. 确认满足上面四条
 2. 把消费方 `lib/app/design_system/` 里的文件删掉，引用改成 `package:w_tools_ui`
 3. 该消费方的 `toolkit.dart`（聚合入口）里加一行 `export`
 4. 在消费方的 issue/PR 里注明「已上移」，并更新它的 `docs/agents/w_tools.md` 待上移清单
 
-## 8. 使用反馈（`docs/feedback/`）
+## 9. 使用反馈（`docs/feedback/`）
 
 消费方撞到的问题按固定格式汇总在 [`docs/feedback/`](docs/feedback/README.md)。
 

@@ -1,0 +1,17 @@
+# 每个包必须教给 AI / 用户的核心入口；不要求覆盖所有子 API。
+w_tools_ui:
+  - WText
+  - WImage
+  - WButton
+  - WPressable
+  - WScaffold
+  - WAppBar
+  - WNavBar
+  - WTabBar
+  - WStep
+  - WBadge
+  - WClipRRect
+  - WListView
+  - WKeepAliveWrapper
+  - WNotificationListener
+  - WGradientCircularProgressIndicator

@@ -243,3 +243,11 @@ bigText
 ```
 
 以上名字只是“若库内确实需要新增 variant”时的命名示例；当前已有 `price` 时先复用它。
+
+## 容器 / 列表
+
+```text
+角标 / 数量提示 → WBadge
+圆角裁剪 → WClipRRect
+普通 / 分隔线 / 网格 / 重叠列表 → WListView + WListViewSliver
+```

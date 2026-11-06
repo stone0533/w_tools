@@ -54,6 +54,8 @@ check 名字随包矩阵变化。
 | 脚本 | 作用 | 何时跑 |
 |---|---|---|
 | `preflight.sh` | 全仓门禁总入口（CI 直接调用它） | 提交前 / 合并前 |
+| `install_git_hooks.sh` | 安装 `.githooks`（pre-push 阻止直接 push main） | 首次检出 / 流程要求 |
+| `check_pr_checks.sh` | 用 `gh pr checks --required` 确认 PR Required checks | 发布前 |
 | `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 旧命令 / 符号 / 已删除 API / 安装版本，每步会打名字） | 只改文档时可单独跑 |
 | `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移 | preflight / CI matrix job |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
@@ -80,6 +82,7 @@ check 名字随包矩阵变化。
 | `check_catalog_symbols.py` | catalog `usage` / `useFor` / `related` 里的 `W*` / `W*.member` 必须真实存在于公开 API | preflight |
 | `check_public_api_diff.py` | 公开 API 快照 diff：删除 / 类型/可空性 / 方法 / 构造器变化必须出现在当前版本 CHANGELOG 的 Breaking/Removed 或 migration（构造器可选参数可记 Added） | preflight |
 | `check_test_imports.py` | `package:w_tools_<pkg>/src/...` 只允许出现在 `test/internal/`；当前先覆盖 ui | preflight |
+| `check_teaching_coverage.py` | 核心入口 `entrypoints.yaml` 必须出现在 docs/agents / 模板 zh+en / README / example（J-4A） | preflight |
 | `check_git_sync.sh` | 当前分支有 upstream 且 ahead/behind 都为 0；`release_check --strict` 调用 | release_check / 发布前 |
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档 / catalog（含 root + `packages/*/AGENTS.md` + `catalog/components.yaml`） | check_docs / preflight |
 | `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |

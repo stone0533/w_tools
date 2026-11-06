@@ -566,28 +566,20 @@ void main() {
     });
   });
   group('UI 模板入口覆盖', () {
-    const names = <String>[
-      'WText',
-      'WImage',
-      'WButton',
-      'WPressable',
-      'WScaffold',
-      'WAppBar',
-      'WNavBar',
-      'WTabBar',
-      'WStep',
-      'WBadge',
-      'WClipRRect',
-      'WListView',
-      'WKeepAliveWrapper',
-      'WNotificationListener',
-      'WGradientCircularProgressIndicator',
-    ];
+    final entrypoints =
+        (loadYaml(File('catalog/entrypoints.yaml').readAsStringSync())['w_tools_ui'] as List)
+            .cast<String>();
+
+    test('entrypoints 覆盖 UI 核心入口', () {
+      expect(entrypoints, isNotEmpty);
+      expect(entrypoints, contains('WImage'));
+      expect(entrypoints, contains('WNotificationListener'));
+    });
 
     for (final lang in <String>['zh', 'en']) {
       test('$lang 模板覆盖 UI 核心入口', () {
         final text = File('templates/agents/$lang/ui.md').readAsStringSync();
-        for (final name in names) {
+        for (final name in entrypoints) {
           expect(text, contains(name), reason: '$lang ui.md 缺少 $name');
         }
       });

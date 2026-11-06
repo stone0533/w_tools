@@ -76,6 +76,7 @@ run "catalog anchors" python3 scripts/check_catalog_anchors.py
 run "catalog symbols" python3 scripts/check_catalog_symbols.py
 run "public api diff" bash -c 'set -e; for f in scripts/api_snapshots/w_tools_*.txt; do [ -e "$f" ] || continue; pkg=$(basename "$f" | sed -E "s/^w_tools_(.+)-[0-9].*/\1/"); python3 scripts/check_public_api_diff.py --package "$pkg"; done'
 run "test imports" python3 scripts/check_test_imports.py --package ui
+run "teaching coverage" python3 scripts/check_teaching_coverage.py
 # 生成物新鲜度：只改源文件却忘了跑生成器时，这里直接失败（不用等 --with-tests 的 cli 测试）。
 run "catalog fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_catalog.dart --check"
 run "templates fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_templates.dart --check"

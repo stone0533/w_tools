@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# 阻止直接 push main；公开变更走 PR + Required checks。
+set -euo pipefail
+
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "禁止直接 push main：请推 feature 分支并开 PR，等 Required checks 通过后再合并。" >&2
+    exit 1
+  fi
+done
