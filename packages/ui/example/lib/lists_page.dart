@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'demo_widgets.dart';
+import 'lists_page_sections.dart';
 
 /// WListView / WListViewSliver / 通知 / keepAlive 的完整演示。
 class ListsDemoPage extends StatefulWidget {
@@ -229,103 +230,14 @@ class _ListsDemoPageState extends State<ListsDemoPage> {
               ],
             ),
           ),
-          DemoSection(
-            title: 'WNotificationListenerBuilder',
-            subtitle: '百分比只处理 depth 0 的 ScrollUpdateNotification',
-            child: Builder(
-              builder: (context) {
-                final probe = WNotificationListenerBuilder<ScrollNotification>(
-                  child: ListView.builder(
-                    itemCount: 30,
-                    itemBuilder: (context, index) => SizedBox(
-                      height: 36,
-                      child: Center(
-                        child: WText(
-                          text: 'scroll $index',
-                          variant: WTextVariant.caption,
-                        ),
-                      ),
-                    ),
-                  ),
-                )..onNotificationPercentage((value) => _percent.value = value);
-                if (_prevent) {
-                  probe.preventNotificationPropagation(true);
-                } else {
-                  probe.onNotification((_) {
-                    _notifications.value++;
-                    return false;
-                  });
-                }
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DemoBox(
-                      height: 160,
-                      child: NotificationListener<ScrollNotification>(
-                        onNotification: (_) {
-                          _bubbled.value++;
-                          return false;
-                        },
-                        child: probe.build(),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const WText(
-                          text: 'preventNotificationPropagation',
-                          variant: WTextVariant.caption,
-                        ),
-                        Switch(
-                          value: _prevent,
-                          onChanged: (value) => setState(() => _prevent = value),
-                        ),
-                      ],
-                    ),
-                    ValueListenableBuilder<int>(
-                      valueListenable: _notifications,
-                      builder: (context, value, _) =>
-                          _KeyValue(label: 'onNotification', value: '$value'),
-                    ),
-                    ValueListenableBuilder<double?>(
-                      valueListenable: _percent,
-                      builder: (context, value, _) => _KeyValue(
-                        label: 'percentage',
-                        value: value?.toStringAsFixed(2) ?? '-',
-                      ),
-                    ),
-                    ValueListenableBuilder<int>(
-                      valueListenable: _bubbled,
-                      builder: (context, value, _) =>
-                          _KeyValue(label: 'bubbled 到外层', value: '$value'),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          DemoSection(
-            title: 'WKeepAliveWrapper',
-            subtitle: '与 WListView 的 keepAlive 互为补充；页面级保活用它',
-            child: DemoBox(
-              height: 160,
-              child: ListView.builder(
-                itemCount: 5,
-                itemBuilder: (context, index) => WKeepAliveWrapper(
-                  keepAlive: _keepAlive,
-                  child: SizedBox(
-                    height: 48,
-                    child: Center(
-                      child: WText(
-                        text: 'keepAlive=$_keepAlive · item $index',
-                        variant: WTextVariant.body,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          ...buildListsNotificationSections(
+            context: context,
+            notifications: _notifications,
+            bubbled: _bubbled,
+            percent: _percent,
+            prevent: _prevent,
+            onPreventChanged: (value) => setState(() => _prevent = value),
+            keepAlive: _keepAlive,
           ),
         ],
       ),
@@ -367,26 +279,6 @@ class _CounterTileState extends State<_CounterTile> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _KeyValue extends StatelessWidget {
-  const _KeyValue({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Expanded(child: WText(text: label, variant: WTextVariant.caption)),
-          WText(text: value, variant: WTextVariant.bodyStrong),
-        ],
       ),
     );
   }

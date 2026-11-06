@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image/image.dart';
+import 'package:w_tools_ui/w_tools_ui.dart';
 import 'package:w_tools_ui/src/components/common/image/image_retry_policy.dart';
 
 const _url = 'https://example.com/img.png';
@@ -36,7 +36,7 @@ void main() {
               headers: const {'Authorization': 'Bearer token'},
               cacheKey: 'home-hero',
             ),
-            config: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 120),
+            options: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 120),
           ),
         ),
       );
@@ -140,7 +140,7 @@ void main() {
       Widget build(int retryCount) => _wrap(
         WImage.source(
           source: WImageSource.network(_url),
-          config: WImageLoadOptions(retryCount: retryCount),
+          options: WImageLoadOptions(retryCount: retryCount),
           controller: controller,
         ),
       );

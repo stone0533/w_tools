@@ -1,13 +1,11 @@
-import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 import '../../../utils/assets.dart';
+import 'image_base64.dart';
+import 'image_config.dart';
+import 'image_provider_factory.dart';
 import 'image_types.dart';
-
-import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
 /// 图片来源。
 ///
@@ -43,30 +41,31 @@ sealed class WImageSource {
     final source = this;
     switch (source) {
       case WNetworkImageSource():
-        return CachedNetworkImageProvider(
-          source.value,
-          headers: source.headers,
-          cacheKey: source.cacheKey,
-          maxWidth: memCacheWidth,
-          maxHeight: memCacheHeight,
+        return createNetworkImageProvider(
+          source,
+          WImageLoadOptions(
+            memCacheWidth: memCacheWidth,
+            memCacheHeight: memCacheHeight,
+          ),
         );
       case WAssetImageSource():
         return ResizeImage.resizeIfNeeded(
           memCacheWidth,
           memCacheHeight,
-          AssetImage(source.value, package: source.package),
+          createAssetImageProvider(source),
         );
       case WFileImageSource():
-        final provider = buildFileImageProvider(source.value);
+        final provider = createFileImageProvider(source);
         if (provider == null) {
           throw UnsupportedError('当前平台不支持本地文件图片');
         }
         return ResizeImage.resizeIfNeeded(memCacheWidth, memCacheHeight, provider);
       case WBase64ImageSource():
+        final bytes = await decodeImageBase64(source.value);
         return ResizeImage.resizeIfNeeded(
           memCacheWidth,
           memCacheHeight,
-          MemoryImage(base64Decode(source.value)),
+          createMemoryImageProvider(bytes),
         );
       case WProviderImageSource():
         return ResizeImage.resizeIfNeeded(

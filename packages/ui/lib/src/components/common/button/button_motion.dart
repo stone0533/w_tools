@@ -29,6 +29,19 @@ class WButtonMotion {
   final Duration duration;
   final Curve curve;
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WButtonMotion &&
+          other.effect == effect &&
+          other.pressedOpacity == pressedOpacity &&
+          other.pressedScale == pressedScale &&
+          other.duration == duration &&
+          other.curve == curve;
+
+  @override
+  int get hashCode => Object.hash(effect, pressedOpacity, pressedScale, duration, curve);
+
   void validate() {
     assert(
       pressedOpacity >= 0 && pressedOpacity <= 1,

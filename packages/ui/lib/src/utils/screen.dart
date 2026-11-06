@@ -83,6 +83,13 @@ class WScreen {
   /// 字体缩放（无 delegate 时返回原始值）
   static double sp(double value) => delegateFont?.call(value) ?? value;
 
+  /// 测试用：清空全部 delegate，恢复恒等行为。
+  static void reset() {
+    delegateWidth = null;
+    delegateHeight = null;
+    delegateFont = null;
+  }
+
   // ──── 内部 ────
 
   static MediaQueryData get _mq => MediaQueryData.fromView(_view);

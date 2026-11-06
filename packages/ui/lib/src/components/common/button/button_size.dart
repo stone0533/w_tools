@@ -8,7 +8,7 @@ const Object _unset = Object();
 @immutable
 class WButtonSize {
   const WButtonSize({
-    required this.name,
+    this.name = '',
     this.minWidth,
     this.minHeight,
     this.padding,
@@ -21,6 +21,7 @@ class WButtonSize {
     this.tapTargetSize = 48,
   });
 
+  /// 调试 / 语义名；省略时为空字符串。不参与布局，只参与值相等。
   final String name;
   final double? minWidth;
   final double? minHeight;

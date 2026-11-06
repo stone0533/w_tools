@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
@@ -200,6 +202,39 @@ void main() {
     );
   });
 
+  testWidgets('WNavBar 异步回调乱序时以最后一次点击为准', (tester) async {
+    final controller = WNavController(length: 3, vsync: tester);
+    addTearDown(controller.dispose);
+    final firstTap = Completer<bool?>();
+    final secondTap = Completer<bool?>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WNavBar(
+            config: const WNavBarConfig(),
+            controller: controller,
+            onItemTap: (index) => index == 1 ? firstTap.future : secondTap.future,
+            itemBuilder: (_, index, selected) => Text('item-$index'),
+          ),
+        ),
+      ),
+    );
+
+    // 先点 item-1（慢），再点 item-2（快）；第二次回调先返回。
+    await tester.tap(find.text('item-1'));
+    await tester.pump();
+    await tester.tap(find.text('item-2'));
+    await tester.pump();
+
+    secondTap.complete(true);
+    await tester.pump();
+    firstTap.complete(true);
+    await tester.pumpAndSettle();
+
+    expect(controller.currentIndex, 2, reason: '最后一次点击应赢');
+  });
+
   testWidgets('WNavBar onItemTap 返回 false 时阻止切换', (tester) async {
     final controller = WNavController(length: 2, vsync: tester);
     addTearDown(controller.dispose);
@@ -220,5 +255,36 @@ void main() {
     await tester.tap(find.text('item-1'));
     await tester.pumpAndSettle();
     expect(controller.currentIndex, 0);
+  });
+  test('WNavBarConfig 值相等', () {
+    final a = WNavBarConfig(padding: const EdgeInsets.all(8)); // ignore: prefer_const_constructors
+    final b = WNavBarConfig(padding: const EdgeInsets.all(8)); // ignore: prefer_const_constructors
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+  });
+  testWidgets('WNavBar 直接传 style', (tester) async {
+    final ctrl = WNavController(length: 2, vsync: tester);
+    addTearDown(ctrl.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          bottomNavigationBar: WNavBar(
+            controller: ctrl,
+            style: const WNavBarStyle(
+              decoration: BoxDecoration(color: Colors.white),
+              padding: EdgeInsets.all(4),
+            ),
+            itemBuilder: (context, index, selected) => Text('$index'),
+          ),
+        ),
+      ),
+    );
+
+    final container = tester.widget<Container>(
+      find.descendant(of: find.byType(WNavBar), matching: find.byType(Container)),
+    );
+    expect(container.decoration, const BoxDecoration(color: Colors.white));
+    expect(container.padding, const EdgeInsets.all(4));
   });
 }

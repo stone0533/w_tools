@@ -846,7 +846,7 @@ const String agentsUi = r'''
   `WImage.source(source: WImageSource.network(url))`，资源图
   `WImage.source(source: WImageSource.asset(name, prefix: true))`；
   `WImage.network` / `WImage.asset` / `WImage(data:)` 已在 6.0 删除。
-  视觉用 `WImageStyle`，加载 / 重试 / 占位用 `WImageLoadOptions`；App 级默认占位/错误用
+  视觉用 `WImageStyle`；加载 / 重试行为用 `WImageLoadOptions`；占位 / 错误 / 进度 UI 用 `WImageSlots`；App 级默认占位/错误用
   `WImageTheme(slots: WImageSlots(...))`，预加载用 `WImageSource.resolve(...)`。不要裸用
   `Image.network` / `Image.asset`。没有 `width` / `height` / `aspectRatio` 时必须由父级
   给约束（`SizedBox` / `Expanded` / `AspectRatio`），否则加载前是 0 尺寸（空白）。
@@ -862,7 +862,7 @@ const String agentsUi = r'''
 - **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
   `SizedBox` / `Padding` / `Row` / `Column` 直接用 Flutter 原生组件；需要 `EdgeInsets` 值时用 `num.allPadding`。
   `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已弃用（5.0 移除），新代码不要再用。
-- **列表 / 通知**：列表项保活用 `WKeepAliveWrapper`；滚动通知 / 百分比用 `WNotificationListenerBuilder`
+- **列表 / 通知**：列表项保活用 `WKeepAliveWrapper`；滚动通知 / 百分比用 `WNotificationListener`
   （百分比只处理 depth 0 的 `ScrollUpdateNotification`）。
 - **初始化时机**：不要在 main / 顶层 final 中调用 `.sp`；`WTextStyles` 若用 `.sp`，
   在 `ScreenUtilInit.builder` / `WAppOptions.builder`（或自建插件的 `builderWrapper`）的 build 期构建。
@@ -1180,7 +1180,8 @@ const String agentsUiEn = r'''
   `WImage.source(source: WImageSource.network(url))` for network images and
   `WImage.source(source: WImageSource.asset(name, prefix: true))` for assets;
   `WImage.network` / `WImage.asset` / `WImage(data:)` were removed in 6.0.
-  Use `WImageStyle` for visuals and `WImageLoadOptions` for loading/retry/placeholders.
+  Use `WImageStyle` for visuals, `WImageLoadOptions` for loading/retry behavior,
+  and `WImageSlots` for placeholder/error/progress UI.
   Use `WImageTheme(slots: WImageSlots(...))` for app-level placeholders/errors and
   `WImageSource.resolve(...)` for preloading.
   Do not use `Image.network` / `Image.asset` directly. Without `width` / `height` /
@@ -1198,9 +1199,8 @@ const String agentsUiEn = r'''
 - **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
   prefixes; use native `SizedBox` / `Padding` / `Row` / `Column`, and `num.allPadding` for `EdgeInsets`.
   `WSizeBox` / `WPadding` / `WRow` / `WColumn` were removed in 5.0.
-  to wrap content.
 - **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
-  `WNotificationListenerBuilder` for scroll notifications/percentage (depth 0 only).
+  `WNotificationListener` for scroll notifications/percentage (depth 0 only).
 - **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
   in `ScreenUtilInit.builder` / `WAppOptions.builder` (or a custom plugin's `builderWrapper`); `wrapApp` has no Theme.
 - **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated cards;

@@ -33,6 +33,7 @@ void main() {
 
     test('build 返回 WTabBar', () {
       const cfg = WTabBarConfig();
+      // ignore: deprecated_member_use
       final tab = cfg.build(tabs: const [Text('A'), Text('B')]);
       expect(tab, isA<WTabBar>());
     });
@@ -46,6 +47,7 @@ void main() {
         indicatorWeight: 3,
       );
 
+      // ignore: deprecated_member_use
       final copy = cfg.copy();
       expect(copy, isA<WTabBarConfig>());
       expect(identical(cfg, copy), false);
@@ -162,5 +164,42 @@ void main() {
     );
     final tabBar = tester.widget<TabBar>(find.byType(TabBar));
     expect(tabBar.overlayColor?.resolve({}), Colors.red);
+  });
+  test('WTabBarConfig 值相等', () {
+    final a = WTabBarConfig(isScrollable: true); // ignore: prefer_const_constructors
+    final b = WTabBarConfig(isScrollable: true); // ignore: prefer_const_constructors
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+  });
+  testWidgets('WTabBar 默认不强制透明 overlay，交给 TabBarTheme', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: DefaultTabController(
+          length: 1,
+          child: WTabBar(tabs: [Text('A')]),
+        ),
+      ),
+    );
+    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabBar.overlayColor, isNull);
+  });
+  testWidgets('WTabBar 直接传 style', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: DefaultTabController(
+          length: 2,
+          child: WTabBar(
+            style: WTabBarStyle(
+              labelStyle: TextStyle(fontSize: 20),
+              isScrollable: true,
+            ),
+            tabs: [Text('A'), Text('B')],
+          ),
+        ),
+      ),
+    );
+    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabBar.labelStyle, const TextStyle(fontSize: 20));
+    expect(tabBar.isScrollable, isTrue);
   });
 }

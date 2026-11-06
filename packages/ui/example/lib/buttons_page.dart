@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'app_buttons.dart';
+import 'buttons_page_sections.dart';
+import 'demo_widgets.dart';
 
 /// WButton 使用场景示例。
 class ButtonsPage extends StatefulWidget {
@@ -71,7 +73,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _Section(
+        DemoSection(
           title: '1. 项目主题：定义一次，页面一行',
           subtitle: '主按钮 / 次按钮 / 文字按钮 / 危险按钮',
           child: Wrap(
@@ -85,7 +87,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ],
           ),
         ),
-        _Section(
+        DemoSection(
           title: '2. 表单提交：loading / disabled',
           subtitle: 'loading 保持按钮尺寸，不会跳版',
           child: Wrap(
@@ -110,7 +112,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ],
           ),
         ),
-        _Section(
+        DemoSection(
           title: '3. 尺寸：默认 3 档 + 任意自定义',
           subtitle: '尺寸是值对象，不是固定 enum',
           child: Wrap(
@@ -137,7 +139,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ],
           ),
         ),
-        _Section(
+        DemoSection(
           title: '4. 图标按钮 / 纯图标工具栏',
           subtitle: '纯图标按钮建议提供 semanticLabel',
           child: Wrap(
@@ -171,7 +173,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ],
           ),
         ),
-        _Section(
+        DemoSection(
           title: '5. 列表行操作：紧凑文字按钮',
           subtitle: '适合表格/列表右侧操作',
           child: Card(
@@ -203,7 +205,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ),
           ),
         ),
-        _Section(
+        DemoSection(
           title: '6. 对话框：取消 / 危险确认',
           subtitle: '在 AlertDialog.actions 中直接使用',
           child: WButton(
@@ -212,7 +214,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             onTap: _showConfirmDialog,
           ),
         ),
-        _Section(
+        DemoSection(
           title: '7. 单按钮样式覆盖',
           subtitle: '不需要主题变体，直接传一个 WButtonStyle',
           child: Wrap(
@@ -238,7 +240,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ],
           ),
         ),
-        _Section(
+        DemoSection(
           title: '8. 可点击区域：包裹任意 child',
           subtitle: '用 WPressable，不声明 button 语义',
           child: WPressable(
@@ -254,7 +256,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ),
           ),
         ),
-        _Section(
+        DemoSection(
           title: '10. 复杂可点击区域：多行文本 + 图片 + 图标',
           subtitle: 'WPressable + Container；不是按钮语义',
           child: WPressable(
@@ -329,7 +331,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ),
           ),
         ),
-        _Section(
+        DemoSection(
           title: '11. 真正的复杂按钮：content / contentBuilder',
           subtitle: '保留 button 语义、loading、键盘和点击区域',
           child: Wrap(
@@ -369,7 +371,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ],
           ),
         ),
-        _Section(
+        DemoSection(
           title: '12. 状态样式：WidgetStateProperty',
           subtitle: 'primary 按钮按 disabled / pressed / hovered 返回不同背景色',
           child: Column(
@@ -400,7 +402,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ],
           ),
         ),
-        _Section(
+        DemoSection(
           title: '13. 键盘与无障碍',
           subtitle: 'Tab 聚焦，Enter / Space 激活',
           child: Wrap(
@@ -429,155 +431,14 @@ class _ButtonsPageState extends State<ButtonsPage> {
             ],
           ),
         ),
-        _Section(
-          title: '14. 长按 / loadingBuilder',
-          subtitle: 'loadingBuilder 自定义加载中占位；长按走 onLongPress',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  WButton(
-                    style: AppButtons.secondary(context),
-                    label: '长按我',
-                    onTap: () => setState(() => _taps++),
-                    onLongPress: () => setState(() => _longPresses++),
-                  ),
-                  WButton(
-                    style: AppButtons.primary(context),
-                    label: '提交中',
-                    loading: true,
-                    loadingBuilder: (context) => const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    onTap: () {},
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'onLongPress 触发 $_longPresses 次',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-        _Section(
-          title: '15. WButtonMotion：opacity / scale / none',
-          subtitle: '通过 style.copyWith(motion: ...) 局部覆盖',
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              WButton(
-                style: AppButtons.primary(context).copyWith(
-                  motion: const WButtonMotion(
-                    effect: WButtonEffectType.scale,
-                    pressedScale: 0.96,
-                  ),
-                ),
-                label: 'scale 按压',
-                onTap: () {},
-              ),
-              WButton(
-                style: AppButtons.secondary(context).copyWith(
-                  motion: const WButtonMotion(
-                    effect: WButtonEffectType.opacity,
-                    pressedOpacity: 0.6,
-                  ),
-                ),
-                label: 'opacity 按压',
-                onTap: () {},
-              ),
-              WButton(
-                style: AppButtons.text(context).copyWith(
-                  motion: const WButtonMotion(effect: WButtonEffectType.none),
-                ),
-                label: '无按压效果',
-                onTap: () {},
-              ),
-            ],
-          ),
-        ),
-        _Section(
-          title: '16. WPressable：enabled / onLongPress / pressedOpacity',
-          subtitle: '无 button 语义；需要键盘/最小点击区域时换 WButton',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              WPressable(
-                enabled: false,
-                onTap: () => setState(() => _taps++),
-                child: const Card(
-                  child: ListTile(
-                    leading: Icon(Icons.block),
-                    title: Text('enabled: false（点击无效）'),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              WPressable(
-                pressedOpacity: 0.6,
-                onLongPress: () => setState(() => _longPresses++),
-                onTap: () => setState(() => _taps++),
-                child: const Card(
-                  child: ListTile(
-                    leading: Icon(Icons.touch_app_outlined),
-                    title: Text('onTap + onLongPress + pressedOpacity'),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'taps=$_taps · longPress=$_longPresses',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
+        ...buildButtonsInteractionSections(
+          context: context,
+          taps: _taps,
+          longPresses: _longPresses,
+          onTap: () => setState(() => _taps++),
+          onLongPress: () => setState(() => _longPresses++),
         ),
       ],
-    );
-  }
-}
-
-class _Section extends StatelessWidget {
-  const _Section({
-    required this.title,
-    required this.child,
-    this.subtitle,
-  });
-
-  final String title;
-  final String? subtitle;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle!,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
     );
   }
 }

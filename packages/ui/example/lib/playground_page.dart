@@ -2,7 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
-enum _Source { asset, network }
+import 'playground_config.dart';
+import 'playground_controls.dart';
+import 'playground_preview.dart';
+import 'playground_snippet.dart';
 
 class PlaygroundPage extends StatefulWidget {
   const PlaygroundPage({super.key});
@@ -12,18 +15,7 @@ class PlaygroundPage extends StatefulWidget {
 }
 
 class _PlaygroundPageState extends State<PlaygroundPage> {
-  _Source _source = _Source.asset;
-  double _width = 320;
-  double _height = 180;
-  double? _aspectRatio;
-  BoxFit _fit = BoxFit.cover;
-  int? _memCache = 240;
-  double _radius = 12;
-  int _retryCount = 0;
-  bool _customPlaceholder = true;
-  bool _withBorder = false;
-  bool _withShadow = false;
-  bool _withMargin = false;
+  PlaygroundConfig _config = const PlaygroundConfig();
   String? _status;
   double? _progress;
   final WImageController _controller = WImageController();
@@ -34,94 +26,20 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     super.dispose();
   }
 
-  WImageStyle get _style => WImageStyle(
-        width: _aspectRatio == null ? _width : null,
-        height: _aspectRatio == null ? _height : null,
-        aspectRatio: _aspectRatio,
-        fit: _fit,
-        borderRadius: BorderRadius.circular(_radius),
-        border: _withBorder ? Border.all(color: const Color(0xFF4F46E5), width: 2) : null,
-        boxShadow: _withShadow ? WShadows.card : null,
-        margin: _withMargin ? const EdgeInsets.all(8) : null,
-        semanticLabel: 'playground image',
+  String _snippet() => buildPlaygroundSnippet(
+        isNetwork: _config.isNetwork,
+        width: _config.width,
+        height: _config.height,
+        aspectRatio: _config.aspectRatio,
+        fitName: _config.fit.name,
+        memCache: _config.memCache,
+        radius: _config.radius,
+        withBorder: _config.withBorder,
+        withShadow: _config.withShadow,
+        withMargin: _config.withMargin,
+        customPlaceholder: _config.customPlaceholder,
+        retryCount: _config.retryCount,
       );
-
-  WImageLoadOptions get _config => WImageLoadOptions(
-        memCacheWidth: _memCache,
-        memCacheHeight: _memCache,
-        retryCount: _retryCount,
-        retryDelay: 500,
-      );
-
-  WImageSlots get _slots => WImageSlots(
-        placeholder: _customPlaceholder ? const _Placeholder() : null,
-        errorWidget: const _ErrorBox(),
-      );
-
-  Widget _preview() {
-    return switch (_source) {
-      _Source.asset => WImage.source(
-          source: WImageSource.asset('assets/demo.png', prefix: false),
-          style: _style,
-          config: _config,
-          slots: _slots,
-          controller: _controller,
-          onLoadStatusChanged: (status) => setState(() => _status = status.name),
-          onProgress: (progress) => setState(() => _progress = progress.fraction),
-        ),
-      _Source.network => WImage.source(
-          source: WImageSource.network(
-            'https://picsum.photos/seed/wtools-playground/640/360',
-            headers: const {'X-Demo': 'playground'},
-            cacheKey: 'wtools-playground',
-          ),
-          style: _style,
-          config: _config,
-          slots: _slots,
-          controller: _controller,
-          onLoadStatusChanged: (status) => setState(() => _status = status.name),
-          onProgress: (progress) => setState(() => _progress = progress.fraction),
-        ),
-    };
-  }
-
-  String _snippet() {
-    final buffer = StringBuffer('WImage.source(\n');
-    if (_source == _Source.network) {
-      buffer.writeln("  source: WImageSource.network('https://…'),");
-    } else {
-      buffer.writeln("  source: WImageSource.asset('assets/demo.png', prefix: false),");
-    }
-    buffer.writeln('  style: WImageStyle(');
-    if (_aspectRatio == null) {
-      buffer.writeln('    width: ${_width.toStringAsFixed(0)},');
-      buffer.writeln('    height: ${_height.toStringAsFixed(0)},');
-    } else {
-      buffer.writeln('    aspectRatio: ${_aspectRatio!.toStringAsFixed(2)},');
-    }
-    buffer.writeln('    fit: BoxFit.${_fit.name},');
-    buffer.writeln(
-      '    borderRadius: BorderRadius.circular(${_radius.toStringAsFixed(0)}),',
-    );
-    if (_withBorder) buffer.writeln('    border: Border.all(...),');
-    if (_withShadow) buffer.writeln('    boxShadow: WShadows.card,');
-    if (_withMargin) buffer.writeln('    margin: const EdgeInsets.all(8),');
-    buffer.writeln('  ),');
-    buffer.writeln('  config: WImageLoadOptions(');
-    buffer.writeln('    memCacheWidth: $_memCache,');
-    buffer.writeln('    memCacheHeight: $_memCache,');
-    buffer.writeln('    retryCount: $_retryCount,');
-    buffer.writeln('  ),');
-    buffer.writeln('  slots: WImageSlots(');
-    if (_customPlaceholder) buffer.writeln('    placeholder: const _Placeholder(),');
-    buffer.writeln('    errorWidget: const _ErrorBox(),');
-    buffer.writeln('  ),');
-    buffer.writeln('  controller: controller,');
-    buffer.writeln('  onLoadStatusChanged: (status) => ...,');
-    buffer.writeln('  onProgress: (progress) => ...,');
-    buffer.write(')');
-    return buffer.toString();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,135 +50,23 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
           clipBehavior: Clip.antiAlias,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Center(child: _preview()),
-          ),
-        ),
-        const SizedBox(height: 16),
-        SegmentedButton<_Source>(
-          segments: const [
-            ButtonSegment(value: _Source.asset, label: Text('asset')),
-            ButtonSegment(value: _Source.network, label: Text('network')),
-          ],
-          selected: {_source},
-          onSelectionChanged: (value) => setState(() => _source = value.first),
-        ),
-        const SizedBox(height: 16),
-        _SliderTile(
-          label: 'width',
-          value: _width,
-          min: 80,
-          max: 400,
-          onChanged: _aspectRatio == null ? (value) => setState(() => _width = value) : null,
-        ),
-        _SliderTile(
-          label: 'height',
-          value: _height,
-          min: 80,
-          max: 400,
-          onChanged: _aspectRatio == null ? (value) => setState(() => _height = value) : null,
-        ),
-        _SliderTile(
-          label: 'borderRadius',
-          value: _radius,
-          min: 0,
-          max: 48,
-          onChanged: (value) => setState(() => _radius = value),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<double?>(
-          initialValue: _aspectRatio,
-          decoration: const InputDecoration(
-            labelText: 'aspectRatio',
-            border: OutlineInputBorder(),
-          ),
-          items: const [
-            DropdownMenuItem(value: null, child: Text('off（使用 width/height）')),
-            DropdownMenuItem(value: 1, child: Text('1 : 1')),
-            DropdownMenuItem(value: 16 / 9, child: Text('16 : 9')),
-            DropdownMenuItem(value: 4 / 3, child: Text('4 : 3')),
-          ],
-          onChanged: (value) => setState(() => _aspectRatio = value),
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<BoxFit>(
-          initialValue: _fit,
-          decoration: const InputDecoration(
-            labelText: 'fit',
-            border: OutlineInputBorder(),
-          ),
-          items: BoxFit.values
-              .map((fit) => DropdownMenuItem(value: fit, child: Text(fit.name)))
-              .toList(),
-          onChanged: (value) => setState(() => _fit = value ?? BoxFit.cover),
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<int?>(
-          initialValue: _memCache,
-          decoration: const InputDecoration(
-            labelText: 'memCacheWidth / memCacheHeight',
-            border: OutlineInputBorder(),
-          ),
-          items: const [
-            DropdownMenuItem(value: null, child: Text('off')),
-            DropdownMenuItem(value: 240, child: Text('240')),
-            DropdownMenuItem(value: 480, child: Text('480')),
-            DropdownMenuItem(value: 960, child: Text('960')),
-          ],
-          onChanged: (value) => setState(() => _memCache = value),
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<int>(
-          initialValue: _retryCount,
-          decoration: const InputDecoration(
-            labelText: 'retryCount',
-            border: OutlineInputBorder(),
-          ),
-          items: const [
-            DropdownMenuItem(value: 0, child: Text('0')),
-            DropdownMenuItem(value: 1, child: Text('1')),
-            DropdownMenuItem(value: 3, child: Text('3')),
-          ],
-          onChanged: (value) => setState(() => _retryCount = value ?? 0),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('自定义 placeholder'),
-          subtitle: const Text('关闭后使用 WImageTheme 的默认占位符'),
-          value: _customPlaceholder,
-          onChanged: (value) => setState(() => _customPlaceholder = value),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('WImageStyle.border'),
-          value: _withBorder,
-          onChanged: (value) => setState(() => _withBorder = value),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('WImageStyle.boxShadow'),
-          value: _withShadow,
-          onChanged: (value) => setState(() => _withShadow = value),
-        ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('WImageStyle.margin'),
-          value: _withMargin,
-          onChanged: (value) => setState(() => _withMargin = value),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'status: ${_status ?? '-'} · progress: ${_progress?.toStringAsFixed(2) ?? '-'}',
+            child: Center(
+              child: buildPlaygroundPreview(
+                config: _config,
+                controller: _controller,
+                onStatus: (status) => setState(() => _status = status),
+                onProgress: (progress) => setState(() => _progress = progress.fraction),
               ),
             ),
-            TextButton.icon(
-              onPressed: _controller.retry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('controller.retry()'),
-            ),
-          ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        PlaygroundControls(
+          config: _config,
+          onChanged: (next) => setState(() => _config = next),
+          onRetry: _controller.retry,
+          status: _status,
+          progress: _progress,
         ),
         const SizedBox(height: 8),
         Text('当前代码', style: Theme.of(context).textTheme.titleMedium),
@@ -278,67 +84,6 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SliderTile extends StatelessWidget {
-  const _SliderTile({
-    required this.label,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-  });
-
-  final String label;
-  final double value;
-  final double min;
-  final double max;
-  final ValueChanged<double>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(width: 96, child: Text(label)),
-        Expanded(
-          child: Slider(
-            value: value.clamp(min, max),
-            min: min,
-            max: max,
-            onChanged: onChanged,
-          ),
-        ),
-        SizedBox(
-          width: 48,
-          child: Text(value.toStringAsFixed(0), textAlign: TextAlign.end),
-        ),
-      ],
-    );
-  }
-}
-
-class _Placeholder extends StatelessWidget {
-  const _Placeholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: Color(0xFFE8EAF6),
-      child: Center(child: Icon(Icons.image_outlined)),
-    );
-  }
-}
-
-class _ErrorBox extends StatelessWidget {
-  const _ErrorBox();
-
-  @override
-  Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: Color(0xFFFFEBEE),
-      child: Center(child: Icon(Icons.broken_image_outlined)),
     );
   }
 }

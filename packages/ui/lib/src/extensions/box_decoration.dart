@@ -45,6 +45,15 @@ extension WBoxDecorationExtension on BoxDecoration {
   /// 需要唯一背景时先调用 [withoutColor]。
   BoxDecoration withGradient(Gradient gradient) => _copy(gradient: gradient);
 
+  /// 设置唯一背景：color / gradient 二选一，并清空另一个。
+  BoxDecoration withBackground({Color? color, Gradient? gradient}) {
+    assert(
+      (color == null) != (gradient == null),
+      'withBackground: color 与 gradient 必须且只能传一个',
+    );
+    return _copy(color: color, gradient: gradient);
+  }
+
   BoxDecoration withoutGradient() => _copy(gradient: null);
 
   BoxDecoration withBorder(BoxBorder border) => _copy(border: border);

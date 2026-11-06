@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 
 import 'image_load_state.dart';
 import 'image_notifier.dart';
-import 'image_retry_policy.dart';
-import 'image_types.dart';
+import '../components/common/image/image_retry_policy.dart';
+import '../components/common/image/image_types.dart';
 
 /// 图片加载状态持有者：把 `WImageLoadState` 与 `ValueListenable` 组合。
 ///

@@ -25,7 +25,8 @@
   `WImage.source(source: WImageSource.network(url))` for network images and
   `WImage.source(source: WImageSource.asset(name, prefix: true))` for assets;
   `WImage.network` / `WImage.asset` / `WImage(data:)` were removed in 6.0.
-  Use `WImageStyle` for visuals and `WImageLoadOptions` for loading/retry/placeholders.
+  Use `WImageStyle` for visuals, `WImageLoadOptions` for loading/retry behavior,
+  and `WImageSlots` for placeholder/error/progress UI.
   Use `WImageTheme(slots: WImageSlots(...))` for app-level placeholders/errors and
   `WImageSource.resolve(...)` for preloading.
   Do not use `Image.network` / `Image.asset` directly. Without `width` / `height` /
@@ -43,9 +44,8 @@
 - **Tools**: use `WScreen.w/h/sp` for screen/font adaptation and `WAssets.imagePath` for asset
   prefixes; use native `SizedBox` / `Padding` / `Row` / `Column`, and `num.allPadding` for `EdgeInsets`.
   `WSizeBox` / `WPadding` / `WRow` / `WColumn` were removed in 5.0.
-  to wrap content.
 - **Lists / notifications**: use `WKeepAliveWrapper` for list-item keep-alive and
-  `WNotificationListenerBuilder` for scroll notifications/percentage (depth 0 only).
+  `WNotificationListener` for scroll notifications/percentage (depth 0 only).
 - **Init timing**: never call `.sp` in `main` / top-level finals. Build `WTextStyles` with `.sp`
   in `ScreenUtilInit.builder` / `WAppOptions.builder` (or a custom plugin's `builderWrapper`); `wrapApp` has no Theme.
 - **Boxes**: put repeated `BoxDecoration` values in `AppBoxes`; use `AppCard` for repeated cards;

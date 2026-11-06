@@ -137,4 +137,20 @@ void main() {
       expect(WScreen.sp(10), 14);
     });
   });
+  test('reset 恢复默认 delegate', () {
+    WScreen.delegateWidth = (v) => v * 2;
+    WScreen.delegateHeight = (v) => v * 2;
+    WScreen.delegateFont = (v) => v * 2;
+    WScreen.reset();
+    expect(WScreen.w(10), 10);
+    expect(WScreen.h(10), 10);
+    expect(WScreen.sp(10), 10);
+  });
+
+  test('WAssets.reset 恢复默认前缀', () {
+    WAssets.imagePath = 'assets/icons/';
+    expect('logo.png'.assetImagePath, 'assets/icons/logo.png');
+    WAssets.reset();
+    expect(WAssets.imagePath, 'assets/images/');
+  });
 }

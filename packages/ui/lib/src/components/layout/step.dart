@@ -1,154 +1,17 @@
 import 'package:flutter/material.dart';
 
-/// 步骤状态。
-enum WStepState { completed, current, upcoming }
+import 'step_flow.dart';
+import 'step_style.dart';
+import 'step_types.dart';
 
-const Object _unset = Object();
+export 'step_flow.dart';
+export 'step_style.dart';
+export 'step_types.dart';
 
-/// 步骤项构建器。
-///
-/// [index] 从 1 开始，等于 [WStep.labels] 中的位置。
-/// 返回的 widget 会被放进 Expanded 单元格，不要再返回 Expanded。
-typedef WStepItemBuilder =
-    Widget Function(
-      BuildContext context,
-      int index,
-      WStepState state,
-    );
-
-/// 分割线构建器。
-///
-/// [index] 从 1 开始，表示分割线位于第 index 步和第 index + 1 步之间。
-typedef WStepSeparatorBuilder =
-    Widget Function(
-      BuildContext context,
-      int index,
-      bool completed,
-    );
-
-/// 步骤条语义标签构建器。
-typedef WStepSemanticLabelBuilder =
-    String Function(
-      int current,
-      int total,
-    );
-
-/// 步骤条视觉样式。
-class WStepStyle {
-  const WStepStyle({
-    this.completedColor = Colors.blue,
-    this.currentColor = Colors.blue,
-    this.upcomingColor = Colors.grey,
-    this.itemSize = 28,
-    this.labelSpacing = 8,
-    this.separatorHeight = 2,
-    this.separatorIndent = 8,
-    this.labelStyle,
-    this.completedLabelStyle,
-    this.currentLabelStyle,
-    this.upcomingLabelStyle,
-  });
-
-  final Color completedColor;
-  final Color currentColor;
-  final Color upcomingColor;
-  final double itemSize;
-  final double labelSpacing;
-  final double separatorHeight;
-  final double separatorIndent;
-  final TextStyle? labelStyle;
-  final TextStyle? completedLabelStyle;
-  final TextStyle? currentLabelStyle;
-  final TextStyle? upcomingLabelStyle;
-
-  WStepStyle copyWith({
-    Color? completedColor,
-    Color? currentColor,
-    Color? upcomingColor,
-    double? itemSize,
-    double? labelSpacing,
-    double? separatorHeight,
-    double? separatorIndent,
-    Object? labelStyle = _unset,
-    Object? completedLabelStyle = _unset,
-    Object? currentLabelStyle = _unset,
-    Object? upcomingLabelStyle = _unset,
-  }) {
-    return WStepStyle(
-      completedColor: completedColor ?? this.completedColor,
-      currentColor: currentColor ?? this.currentColor,
-      upcomingColor: upcomingColor ?? this.upcomingColor,
-      itemSize: itemSize ?? this.itemSize,
-      labelSpacing: labelSpacing ?? this.labelSpacing,
-      separatorHeight: separatorHeight ?? this.separatorHeight,
-      separatorIndent: separatorIndent ?? this.separatorIndent,
-      labelStyle: identical(labelStyle, _unset) ? this.labelStyle : labelStyle as TextStyle?,
-      completedLabelStyle: identical(completedLabelStyle, _unset)
-          ? this.completedLabelStyle
-          : completedLabelStyle as TextStyle?,
-      currentLabelStyle: identical(currentLabelStyle, _unset)
-          ? this.currentLabelStyle
-          : currentLabelStyle as TextStyle?,
-      upcomingLabelStyle: identical(upcomingLabelStyle, _unset)
-          ? this.upcomingLabelStyle
-          : upcomingLabelStyle as TextStyle?,
-    );
-  }
-}
-
-/// 一组步骤的不可变定义，可在多个页面复用。
-///
-/// 页面只需要传 [current]：
-///
-/// ```dart
-/// AppSteps.register.build(current: step)
-/// ```
-class WStepFlow {
-  WStepFlow({
-    required List<String> labels,
-    this.style = const WStepStyle(),
-    this.itemBuilder,
-    this.separatorBuilder,
-    this.semanticLabelBuilder,
-  }) : labels = List.unmodifiable(labels);
-
-  final List<String> labels;
-  final WStepStyle style;
-  final WStepItemBuilder? itemBuilder;
-  final WStepSeparatorBuilder? separatorBuilder;
-  final WStepSemanticLabelBuilder? semanticLabelBuilder;
-
-  WStepFlow copyWith({
-    List<String>? labels,
-    WStepStyle? style,
-    WStepItemBuilder? itemBuilder,
-    WStepSeparatorBuilder? separatorBuilder,
-    WStepSemanticLabelBuilder? semanticLabelBuilder,
-  }) {
-    return WStepFlow(
-      labels: labels ?? this.labels,
-      style: style ?? this.style,
-      itemBuilder: itemBuilder ?? this.itemBuilder,
-      separatorBuilder: separatorBuilder ?? this.separatorBuilder,
-      semanticLabelBuilder: semanticLabelBuilder ?? this.semanticLabelBuilder,
-    );
-  }
-
-  WStep build({
-    Key? key,
-    required int current,
-  }) {
-    return WStep(
-      key: key,
-      current: current,
-      labels: labels,
-      style: style,
-      itemBuilder: itemBuilder,
-      separatorBuilder: separatorBuilder,
-      semanticLabelBuilder: semanticLabelBuilder,
-    );
-  }
-}
+Color _onColor(Color background) =>
+    ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+    ? Colors.white
+    : Colors.black;
 
 /// 步骤条。
 ///
@@ -186,6 +49,11 @@ class WStep extends StatelessWidget {
     assert(style.separatorHeight >= 0, 'WStepStyle.separatorHeight 不能为负');
     assert(style.separatorIndent >= 0, 'WStepStyle.separatorIndent 不能为负');
 
+    final scheme = Theme.of(context).colorScheme;
+    final colors = style.resolve(scheme);
+    final completedColor = colors.completed;
+    final currentColor = colors.current;
+    final upcomingColor = colors.upcoming;
     final children = <Widget>[];
     for (var index = 1; index <= labels.length; index++) {
       final state = index < current
@@ -196,7 +64,9 @@ class WStep extends StatelessWidget {
 
       children.add(
         Expanded(
-          child: itemBuilder?.call(context, index, state) ?? _buildItem(index, state),
+          child:
+              itemBuilder?.call(context, index, state) ??
+              _buildItem(index, state, completedColor, currentColor, upcomingColor),
         ),
       );
 
@@ -204,7 +74,9 @@ class WStep extends StatelessWidget {
         final completed = index < current;
         children.add(
           Expanded(
-            child: separatorBuilder?.call(context, index, completed) ?? _buildSeparator(completed),
+            child:
+                separatorBuilder?.call(context, index, completed) ??
+                _buildSeparator(completed, completedColor, upcomingColor),
           ),
         );
       }
@@ -217,14 +89,20 @@ class WStep extends StatelessWidget {
     );
   }
 
-  Widget _buildItem(int index, WStepState state) {
+  Widget _buildItem(
+    int index,
+    WStepState state,
+    Color completedColor,
+    Color currentColor,
+    Color upcomingColor,
+  ) {
     final color = switch (state) {
-      WStepState.completed => style.completedColor,
-      WStepState.current => style.currentColor,
-      WStepState.upcoming => style.upcomingColor,
+      WStepState.completed => completedColor,
+      WStepState.current => currentColor,
+      WStepState.upcoming => upcomingColor,
     };
     final filled = state != WStepState.upcoming;
-    final labelStyle = _labelStyle(state);
+    final labelStyle = _labelStyle(state, completedColor, currentColor, upcomingColor);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -242,12 +120,12 @@ class WStep extends StatelessWidget {
               ? Icon(
                   Icons.check,
                   size: style.itemSize * 0.55,
-                  color: Colors.white,
+                  color: _onColor(completedColor),
                 )
               : Text(
                   '$index',
                   style: TextStyle(
-                    color: filled ? Colors.white : color,
+                    color: filled ? _onColor(color) : color,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -264,11 +142,16 @@ class WStep extends StatelessWidget {
     );
   }
 
-  TextStyle _labelStyle(WStepState state) {
+  TextStyle _labelStyle(
+    WStepState state,
+    Color completedColor,
+    Color currentColor,
+    Color upcomingColor,
+  ) {
     final color = switch (state) {
-      WStepState.completed => style.completedColor,
-      WStepState.current => style.currentColor,
-      WStepState.upcoming => style.upcomingColor,
+      WStepState.completed => completedColor,
+      WStepState.current => currentColor,
+      WStepState.upcoming => upcomingColor,
     };
     final base = style.labelStyle ?? const TextStyle(fontSize: 12);
     final stateStyle = switch (state) {
@@ -279,11 +162,11 @@ class WStep extends StatelessWidget {
     return base.copyWith(color: color).merge(stateStyle);
   }
 
-  Widget _buildSeparator(bool completed) {
+  Widget _buildSeparator(bool completed, Color completedColor, Color upcomingColor) {
     return Container(
       height: style.separatorHeight,
       margin: EdgeInsets.symmetric(horizontal: style.separatorIndent),
-      color: completed ? style.completedColor : style.upcomingColor,
+      color: completed ? completedColor : upcomingColor,
     );
   }
 }

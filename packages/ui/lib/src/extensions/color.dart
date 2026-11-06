@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 /// 颜色扩展类，提供十六进制颜色转换功能
 ///
-/// 兼容旧代码的 `WHexColor.fromHex()` 静态调用方式仍可用：
+/// 兼容旧代码的 `WColorExtension.fromHex()` 静态调用方式仍可用：
 /// ```dart
-/// final color = WHexColor.fromHex('#FF5733');
+/// final color = WColorExtension.fromHex('#FF5733');
 /// final color2 = '#FF5733'.toColor(); // 通过 WStringExtension
 /// ```
-extension WHexColor on Color {
+extension WColorExtension on Color {
   /// 从十六进制字符串创建颜色
   ///
   /// 支持以下格式：

@@ -6,6 +6,21 @@ import 'w_text_styles.dart';
 ///
 /// 单色 / 单样式文本优先使用 [variant] + [WTextStyles]；
 /// 局部差异用 [style] / [color] 覆盖。
+/// 保留旧 WTextConfig 对 strut 的处理：有字体信息时避免大字号 / 字体回退裁切。
+StrutStyle? _resolveStrutStyle(TextStyle? style, StrutStyle? override) {
+  if (override != null) return override;
+  if (style == null ||
+      (style.fontFamily == null && style.fontSize == null && style.height == null)) {
+    return null;
+  }
+  return StrutStyle(
+    fontFamily: style.fontFamily,
+    fontSize: style.fontSize,
+    height: style.height,
+    forceStrutHeight: true,
+  );
+}
+
 class WText extends StatelessWidget {
   /// 文本内容
   final String text;
@@ -62,20 +77,7 @@ class WText extends StatelessWidget {
       effectiveStyle = (effectiveStyle ?? const TextStyle()).copyWith(color: color);
     }
 
-    // 保留旧 WTextConfig 对 strut 的处理：有字体信息时避免大字号 / 字体回退裁切
-    final autoStrutStyle =
-        strutStyle ??
-        (effectiveStyle != null &&
-                (effectiveStyle.fontFamily != null ||
-                    effectiveStyle.fontSize != null ||
-                    effectiveStyle.height != null)
-            ? StrutStyle(
-                fontFamily: effectiveStyle.fontFamily,
-                fontSize: effectiveStyle.fontSize,
-                height: effectiveStyle.height,
-                forceStrutHeight: true,
-              )
-            : null);
+    final autoStrutStyle = _resolveStrutStyle(effectiveStyle, strutStyle);
 
     return Text(
       text,

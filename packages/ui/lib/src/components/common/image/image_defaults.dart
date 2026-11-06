@@ -35,15 +35,6 @@ class WImageSlots {
   /// 内置重试按钮文案；null 表示继承主题 / 使用「重试」
   final String? retryLabel;
 
-  bool get isEmpty =>
-      placeholderBuilder == null &&
-      errorWidgetBuilder == null &&
-      progressBuilder == null &&
-      placeholder == null &&
-      errorWidget == null &&
-      showRetryButton == null &&
-      retryLabel == null;
-
   void validate() {
     assert(
       !(placeholder != null && placeholderBuilder != null),

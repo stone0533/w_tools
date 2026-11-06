@@ -10,6 +10,7 @@ import 'button_size.dart';
 import 'button_style.dart';
 import 'button_styles.dart';
 
+export 'button_metrics.dart';
 export 'button_motion.dart';
 export 'button_resolved_style.dart';
 export 'button_semantics.dart';
@@ -35,6 +36,10 @@ typedef WButtonContentBuilder =
 /// 支持 label/icon、静态 [content]、需要最终样式的 [contentBuilder]；
 /// 保留 button 语义、键盘、loading 和最小点击区域。
 class WButton extends StatefulWidget {
+  /// 测试用：记录样式解析（cache miss）次数。
+  @visibleForTesting
+  static int debugStyleResolutionCount = 0;
+
   const WButton({
     super.key,
     this.style,
@@ -109,6 +114,7 @@ class _WButtonState extends State<WButton> {
   bool _hovered = false;
   WButtonStyle? _cachedStyle;
   Object? _cachedStyleKey;
+  ThemeData? _cachedTheme;
 
   bool get _interactive =>
       widget.enabled && !widget.loading && (widget.onTap != null || widget.onLongPress != null);
@@ -132,15 +138,13 @@ class _WButtonState extends State<WButton> {
 
   WButtonStyle _resolveStyle(BuildContext context) {
     final theme = Theme.of(context);
-    final key = Object.hash(
-      theme,
-      widget.style,
-      widget.size,
-      widget.semanticLabel,
-      widget.label,
-      widget.icon,
-    );
-    if (_cachedStyle != null && _cachedStyleKey == key) return _cachedStyle!;
+    // ThemeData.hashCode 是深比较；这里只关心 Theme 实例是否变化（Theme.of 返回稳定实例）。
+    final key = Object.hash(widget.style, widget.size, widget.semanticLabel);
+    if (_cachedStyle != null && _cachedStyleKey == key && identical(_cachedTheme, theme)) {
+      return _cachedStyle!;
+    }
+    _cachedTheme = theme;
+    WButton.debugStyleResolutionCount++;
 
     final base = widget.style ?? WButtonStyles.of(context).primary;
     final semantic = widget.semanticLabel;
@@ -227,7 +231,7 @@ class _WButtonState extends State<WButton> {
       bool pressed,
     ) {
       final child = _buildButtonContentWidget(this, context, visual);
-      final inner = _buildButtonContent(this, context, style, child);
+      final inner = _buildButtonContent(this, context, style, visual, child);
       final padded = Padding(
         padding: style.padding ?? EdgeInsets.zero,
         child: Align(

@@ -34,10 +34,10 @@ class RecipesPage extends StatelessWidget {
           child: WImage.source(
               source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
               style: WImageStyle.thumbnail(96),
-              config: const WImageLoadOptions(memCacheWidth: 288, memCacheHeight: 288)),
+              options: const WImageLoadOptions(memCacheWidth: 288, memCacheHeight: 288)),
         ),
         const _Code(
-            'WImage.source(source: ..., style: WImageStyle.thumbnail(96), config: WImageLoadOptions(...))'),
+            'WImage.source(source: ..., style: WImageStyle.thumbnail(96), options: WImageLoadOptions(...))'),
         const SizedBox(height: 24),
         const _SectionTitle('封面：WImage + WImageStyle.cover'),
         const SizedBox(height: 8),
@@ -81,7 +81,7 @@ class RecipesPage extends StatelessWidget {
           child: WImage.source(
               source: WImageSource.parse('https://example.invalid/retry.png'),
               style: const WImageStyle(width: 160, height: 90),
-              config: const WImageLoadOptions(retryCount: 1),
+              options: const WImageLoadOptions(retryCount: 1),
               slots: const WImageSlots(showRetryButton: true)),
         ),
         const _Code(

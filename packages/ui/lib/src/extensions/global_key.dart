@@ -16,7 +16,7 @@ extension WGlobalKeyExtension on GlobalKey {
   /// 与 [offset] 同为全局坐标；组件不可见时返回 null。
   Rect? rect() {
     final object = currentContext?.findRenderObject();
-    if (object is! RenderBox) return null;
+    if (object is! RenderBox || !object.hasSize) return null;
     return object.localToGlobal(Offset.zero) & object.size;
   }
 }

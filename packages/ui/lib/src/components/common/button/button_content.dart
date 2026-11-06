@@ -39,13 +39,20 @@ Widget _buildButtonLoading(
   _WButtonState state,
   BuildContext context,
   WButtonStyle style,
+  WButtonResolvedStyle visual,
 ) {
+  // spinner 必须跟随按钮前景色：默认 CircularProgressIndicator 取
+  // colorScheme.primary，在主色填充按钮上会和背景同色、几乎不可见。
+  final indicatorColor = visual.foregroundColor ?? visual.textStyle?.color;
   final child =
       state.widget.loadingBuilder?.call(context) ??
-      const SizedBox(
+      SizedBox(
         width: 18,
         height: 18,
-        child: CircularProgressIndicator(strokeWidth: 2),
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: indicatorColor,
+        ),
       );
   return Semantics(
     label: style.semantics.loadingLabel,
@@ -58,6 +65,7 @@ Widget _buildButtonContent(
   _WButtonState state,
   BuildContext context,
   WButtonStyle style,
+  WButtonResolvedStyle visual,
   Widget child,
 ) {
   if (!state.widget.loading) return child;
@@ -69,7 +77,7 @@ Widget _buildButtonContent(
       ExcludeSemantics(
         child: Opacity(opacity: 0, child: child),
       ),
-      _buildButtonLoading(state, context, style),
+      _buildButtonLoading(state, context, style, visual),
     ],
   );
 }

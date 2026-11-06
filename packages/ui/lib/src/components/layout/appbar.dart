@@ -1,75 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// 标准顶部栏样式。
-@immutable
-class WAppBarStyle {
-  const WAppBarStyle({
-    this.backgroundColor,
-    this.gradient,
-    this.foregroundColor,
-    this.titleStyle,
-    this.height = 56,
-    this.titleSpacing,
-    this.systemOverlayStyle,
-  });
+import 'appbar_style.dart';
 
-  final Color? backgroundColor;
-  final Gradient? gradient;
-  final Color? foregroundColor;
-  final TextStyle? titleStyle;
-  final double height;
-  final double? titleSpacing;
-  final SystemUiOverlayStyle? systemOverlayStyle;
+export 'appbar_style.dart';
 
-  static const Object _unset = Object();
-
-  WAppBarStyle copyWith({
-    Object? backgroundColor = _unset,
-    Object? gradient = _unset,
-    Object? foregroundColor = _unset,
-    Object? titleStyle = _unset,
-    double? height,
-    Object? titleSpacing = _unset,
-    Object? systemOverlayStyle = _unset,
-  }) {
-    return WAppBarStyle(
-      backgroundColor: identical(backgroundColor, _unset)
-          ? this.backgroundColor
-          : backgroundColor as Color?,
-      gradient: identical(gradient, _unset) ? this.gradient : gradient as Gradient?,
-      foregroundColor: identical(foregroundColor, _unset)
-          ? this.foregroundColor
-          : foregroundColor as Color?,
-      titleStyle: identical(titleStyle, _unset) ? this.titleStyle : titleStyle as TextStyle?,
-      height: height ?? this.height,
-      titleSpacing: identical(titleSpacing, _unset) ? this.titleSpacing : titleSpacing as double?,
-      systemOverlayStyle: identical(systemOverlayStyle, _unset)
-          ? this.systemOverlayStyle
-          : systemOverlayStyle as SystemUiOverlayStyle?,
-    );
-  }
-
-  void validate() {
-    assert(height >= 0 && height.isFinite, 'WAppBarStyle.height 非法');
-    assert(
-      titleSpacing == null || (titleSpacing!.isFinite && titleSpacing! >= 0),
-      'WAppBarStyle.titleSpacing 必须非负',
-    );
-    assert(
-      !(backgroundColor != null && gradient != null),
-      'WAppBarStyle.backgroundColor 与 gradient 只能选一个',
-    );
-  }
-}
-
-/// 标准顶部导航栏。
-///
-/// 只提供 leading / title / actions / bottom 的标准布局；
-/// 任意叠放请在页面层自己用 Container/Stack。
-///
-/// 默认包含状态栏背景；嵌套在 SafeArea 中时可传 `includeStatusBar: false`。
-class WAppBar extends StatelessWidget {
+class WAppBar extends StatelessWidget implements PreferredSizeWidget {
   const WAppBar({
     super.key,
     this.title,
@@ -100,6 +36,10 @@ class WAppBar extends StatelessWidget {
 
   /// toolbar + bottom 的高度，不含状态栏。
   double get contentHeight => style.height + (bottom?.preferredSize.height ?? 0);
+
+  /// [PreferredSizeWidget] 约定：不含状态栏（Scaffold 会按 primary 补 top padding）。
+  @override
+  Size get preferredSize => Size.fromHeight(contentHeight);
 
   @override
   Widget build(BuildContext context) {

@@ -127,3 +127,39 @@ class DemoEntryTile extends StatelessWidget {
     );
   }
 }
+
+/// 分组标题 + 底部间距；用于 components / buttons 等演示页。
+class DemoSectionTitle extends StatelessWidget {
+  const DemoSectionTitle(this.title, {super.key});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: WText(text: title, variant: WTextVariant.title),
+    );
+  }
+}
+
+/// label / value 的并排小行。
+class DemoKeyValue extends StatelessWidget {
+  const DemoKeyValue({super.key, required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          WText(text: '$label：', variant: WTextVariant.caption),
+          WText(text: value, variant: WTextVariant.caption),
+        ],
+      ),
+    );
+  }
+}

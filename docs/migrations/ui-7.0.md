@@ -8,7 +8,7 @@
 | 6.x | 7.0 |
 |---|---|
 | `WImageLoadConfig(...)` | `WImageLoadOptions(...)`（只保留行为字段） |
-| `config: WImageLoadConfig()` | `config: const WImageLoadOptions()` + `slots:` |
+| `config: WImageLoadConfig()` | `options: const WImageLoadOptions()` + `slots:`（7.0 起只接受 `options:`） |
 
 行为字段（`memCacheWidth` / `retryCount` / `gaplessPlayback` 等）仍在
 `WImageLoadOptions`；占位 / 错误 / 进度 / 重试 UI 移到 `WImageSlots`：
@@ -27,7 +27,7 @@ WImage.source(
 // 7.0
 WImage.source(
   source: ...,
-  config: const WImageLoadOptions(retryCount: 1),
+  options: const WImageLoadOptions(retryCount: 1),
   slots: const WImageSlots(
     placeholder: _placeholder,
     showRetryButton: true,
@@ -35,7 +35,7 @@ WImage.source(
 )
 ```
 
-旧名不保留。
+旧名不保留；7.0 也不保留 `config:` 别名。
 
 ## 2. 默认作用域收窄
 
@@ -84,6 +84,7 @@ WImageTheme(
 | `WImage.data` | `image.source.raw` |
 | `WImageStyle.merge(other)` | 用 `copyWith(...)` 逐字段覆盖 |
 | `WImageDefaultsScope` | `WImageTheme(slots: WImageSlots(...))` |
+| `WImageSlots.isEmpty` | 无（未使用，直接删除） |
 
 `WImageStyle.merge` 之前无法区分“未设置”和默认值（`fit` / `alignment` / `filterQuality`
 会被空样式覆盖），且没有内部调用方；7.0 删除。
@@ -128,3 +129,17 @@ await precacheImage(provider, context);
 - `retryDelayMs` 现在是实际排队延迟（含抖动），不是基础间隔。
 - `onProgress` 对相同进度只回调一次；进度变化不再触发 WImage 整棵子树重建。
 - controller 状态通知在 build 期会延后到 post-frame，外部监听器可以安全 `setState`。
+
+
+## 7. 扩展改名
+
+7.0 按 `Extension` 角色统一了早期扩展名；旧扩展不保留别名（同名实例方法会冲突）：
+
+| 6.x / 7.0 工作区 | 7.0 |
+|---|---|
+| `WImageStyleX` | `WImageStyleExtension` |
+| `WHexColor` | `WColorExtension`（静态入口改为 `WColorExtension.fromHex`） |
+| `WTextStylesThemeData` | `WThemeDataExtension` |
+| `WNotificationListenerBuilderExtension` | 删除；用 `WNotificationListener` 包住 child |
+
+`'#RRGGBB'.toColor()` 仍可用，内部改为 `WColorExtension.fromHex`。

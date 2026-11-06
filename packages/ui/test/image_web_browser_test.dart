@@ -4,7 +4,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image/image.dart';
+import 'package:w_tools_ui/w_tools_ui.dart';
 
 /// 真实浏览器环境下运行：`flutter test --platform chrome test/image_web_browser_test.dart`
 void main() {

@@ -17,16 +17,18 @@
 | `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 | backgroundColor 与 gradient 只能选一个 |
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 需 vsync 并由页面 State dispose | 不要自己写 `BottomNavigationBar` |
 | `WNavBarConfig` | ui | WNavBar 的外层装饰 / padding | 选中态与切换动画由 `WNavController` 管，不要放进 config |
+| `WNavBarStyle` | ui | WNavBar 的外层装饰 / padding；新代码优先 | 选中态与切换动画由 `WNavController` 管，不要放进 style |
 | `WTabBar` | ui | 顶部 tab；依赖 TabController / DefaultTabController | 需要下划线跟随的复杂交互时先看它够不够 |
 | `WTabBarConfig` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式 | WTabBar 不自带 controller，不要在这里塞状态 |
+| `WTabBarStyle` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式；新代码优先 | WTabBar 不自带 controller，不要在这里塞状态 |
 | `WStep` / `WStepFlow` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
 | `WStepStyle` | ui | 步骤条颜色 / 尺寸 / 间距 / 标签样式 | 不要靠改 WStep 内部布局实现视觉；优先用 itemBuilder |
 | `WApp` | app_getx | GetX 启动器 | — |
 | `WAppOptions` | app_getx | WApp 的标题 / 主题 / GetX 路由 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
 | `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
 | `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` | async | 无 UI 异步执行（tryRun/run）、取消与活动计数 | — |
-| `WStepState` | ui | 步骤项状态（completed / current / upcoming） | — |
-| `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | — |
+| `WStepState` | ui | 步骤项状态（completed / current / upcoming） | 不要自己拼状态字符串；按 enum 分支 |
+| `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | 不要在 builder 里返回 Expanded；外层已经包了 Expanded |
 | `WFormScope` | form | 表单 InheritedWidget 管道（由 WForm 组合） | — |
 | `WAsyncSuccess` | async | tryRun 成功结果 | — |
 | `WAsyncFailure` | async | tryRun 失败结果（error / stackTrace / isProgrammingError） | — |
@@ -48,23 +50,23 @@
 | `WImageController` | ui | 手动重试与加载状态（retry / state） | 一个 controller 只能绑定一张 WImage |
 | `WAppPlugin` | app | 插件分层初始化 | — |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
-| `WImageTheme` | ui | App 级图片占位 / 错误 / 进度默认配置 | — |
+| `WImageTheme` | ui | App 级图片占位 / 错误 / 进度默认配置 | 不要按单图传参；单图默认值用 WImageSlots，主题只做 App 级兜底 |
 | `WImageSlots` | ui | 单图 / App 级图片占位 / 错误 / 进度 / 重试 UI | 不要把重试次数、解码尺寸等行为配置塞进 WImageSlots |
-| `WImageErrorKind` | ui | 图片错误分类（WImageError.kind） | — |
-| `WImageError` | ui | 图片加载错误（data / kind / cause / message） | — |
-| `WImageProgress` | ui | 图片加载进度（downloadedBytes / totalBytes / fraction / isComplete） | — |
-| `WImageType` | ui | 图片来源类型（asset / network / file / base64 / provider） | — |
-| `WImageLoadStatus` | ui | 图片加载状态（idle / loading / completed / failed） | — |
-| `WImageLoadSnapshot` | ui | 图片加载快照（status / progress / attempt / error / retryScheduled） | — |
-| `WImageStyleX` | ui | WImageStyle 链式糖：square / rounded | — |
-| `WTextStylesThemeData` | ui | ThemeData.withWTextStyles：同时写 TextTheme 与 WTextStyles | — |
-| `WNetworkImageSource` | ui | WImageSource 的网络实现（通常用 WImageSource.network） | — |
-| `WAssetImageSource` | ui | WImageSource 的资源实现（通常用 WImageSource.asset） | — |
-| `WFileImageSource` | ui | WImageSource 的本地文件实现（通常用 WImageSource.file） | — |
-| `WBase64ImageSource` | ui | WImageSource 的 Base64 实现（通常用 WImageSource.base64） | — |
-| `WProviderImageSource` | ui | WImageSource 的 ImageProvider 实现（通常用 WImageSource.provider） | — |
-| `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / compact） | — |
-| `WImageFrame` | ui | 把 WImageStyle 的圆角 / 边框 / 阴影应用到任意 child | — |
+| `WImageErrorKind` | ui | 图片错误分类（WImageError.kind） | 不要用字符串比较错误；按 kind 分支 |
+| `WImageError` | ui | 图片加载错误（data / kind / cause / message） | 不要自己构造来 mock 失败；用 WImageSource 触发真实错误 |
+| `WImageProgress` | ui | 图片加载进度（downloadedBytes / totalBytes / fraction / isComplete） | 不要把 downloadedBytes 当总大小；总大小未知时看 fraction == null |
+| `WImageType` | ui | 图片来源类型（asset / network / file / base64 / provider） | 不要用它决定业务 UI；按 WImageSource 子类型或 error.kind 判断 |
+| `WImageLoadStatus` | ui | 图片加载状态（idle / loading / completed / failed） | 不要当业务状态机；只表示图片加载阶段 |
+| `WImageLoadSnapshot` | ui | 图片加载快照（status / progress / attempt / error / retryScheduled） | 不要缓存后当实时状态；监听 WImageController.state |
+| `WImageStyleExtension` | ui | WImageStyle 链式糖：square / rounded | 不要用它做条件样式；复杂组合直接构造 WImageStyle |
+| `WThemeDataExtension` | ui | ThemeData.withWTextStyles：同时写 TextTheme 与 WTextStyles | 不要只装 TextTheme 不装扩展；会丢 price / number / badge 语义 |
+| `WNetworkImageSource` | ui | WImageSource 的网络实现（通常用 WImageSource.network） | 不要复用可变 headers 后再改；source 是值对象 |
+| `WAssetImageSource` | ui | WImageSource 的资源实现（通常用 WImageSource.asset） | 不要在已带 WAssets 前缀的路径上再传 prefix: true；会重复前缀 |
+| `WFileImageSource` | ui | WImageSource 的本地文件实现（通常用 WImageSource.file） | 不要在 Web 上用；Web 上 WImageSource.resolve 抛 UnsupportedError |
+| `WBase64ImageSource` | ui | WImageSource 的 Base64 实现（通常用 WImageSource.base64） | 不要传超大 Base64 做主线程解码；优先网络 / 资源图 |
+| `WProviderImageSource` | ui | WImageSource 的 ImageProvider 实现（通常用 WImageSource.provider） | 不要用它绕开 WImage 的错误与语义处理；只在已有 provider 时用 |
+| `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / compact） | 不要当页面级错误组件；只用于图片占位 |
+| `WImageFrame` | ui | 把 WImageStyle 的圆角 / 边框 / 阴影应用到任意 child | 不要单独当卡片用；图片装饰走 WImageStyle |
 | `WAsyncStatus` | async | 四态枚举：loading / ready / empty / failed | — |
 <!-- catalog:2:end -->
 
@@ -77,22 +79,23 @@
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WButtonStyle` | ui | 按钮视觉：颜色 / 边框 / 圆角 / 内边距 / 尺寸 / 动效 / 语义 | 按钮宽度由父布局决定，`WButtonStyle` 不含 width |
+| `WButtonMetrics` | ui | `WButtonStyle` 的布局 / 尺寸部分（padding / alignment / min / tapTarget / icon / gap） | 不要用它承载颜色 / 渐变 / 边框；这些仍在 `WButtonStyle` |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义 / 键盘焦点 / 最小点击区域时用 `WButton` |
 | `WButtonStyles` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要硬编码颜色；页面统一样式用项目 AppButtons 注册表 |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
-| `WBadge` | ui | 角标数字 | — |
+| `WBadge` | ui | 角标数字 | 不要用于状态点或长文案；状态点用原生 Container，多字提示用 WText |
 | `WFormIcons` | form | 表单图标集合（下拉 / 勾选 / 单选 / 密码 / 清空） | `WFormDefaults` 已删除；单字段 icon 参数优先于它 |
 | `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WAppConfig` | app_getx | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
-| `WButtonSize` | ui | 按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap） | — |
-| `WButtonMotion` / `WButtonEffectType` | ui | 按钮按压动效（opacity / scale / none） | — |
-| `WButtonSemantics` | ui | 按钮无障碍语义（label / hint） | — |
-| `WPressEffect` | ui | WPressable 按压效果（opacity / scale / none） | — |
-| `WBadgeConfig` | ui | WBadge 位置 / 显隐 / 自定义样式 | — |
-| `WButtonContentBuilder` | ui | WButton.contentBuilder 的类型：拿到最终样式自己排版 | — |
-| `WButtonResolvedStyle` | ui | contentBuilder 拿到的最终样式（states / 背景 / 文字样式等） | — |
+| `WButtonSize` | ui | 按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap） | 不要用它控制宽度；宽度由父布局决定 |
+| `WButtonMotion` / `WButtonEffectType` | ui | 按钮按压动效（opacity / scale / none） | 不要每个按钮自定义一套；默认动效已够，品牌统一放 AppButtons |
+| `WButtonSemantics` | ui | 按钮无障碍语义（label / hint） | 不要用它替代 Semantics 组件；它只供 WButton 的朗读文案 |
+| `WPressEffect` | ui | WPressable 按压效果（opacity / scale / none） | 不要用它做 loading；只做按压反馈 |
+| `WBadgeConfig` | ui | WBadge 位置 / 显隐 / 自定义样式 | 不要用 position 做外部布局；它只控制角标相对 child 的位置 |
+| `WButtonContentBuilder` | ui | WButton.contentBuilder 的类型：拿到最终样式自己排版 | 不要在 builder 里重新读 Theme 派生样式；直接用传入的 resolved style |
+| `WButtonResolvedStyle` | ui | contentBuilder 拿到的最终样式（states / 背景 / 文字样式等） | 不要缓存后跨帧使用；它只对当前 WidgetState 有效 |
 | `WFormTheme` | form | WForm 内部的主题 InheritedWidget（由 WForm 组合） | — |
 | `WAsyncPageLoader` | async | 分页 loader 的类型：(page) => Future<List<T>> | — |
 | `WAsyncTokenLoader` | async | 可感知取消的 loader 类型：(token) => Future<T> | — |
@@ -104,7 +107,7 @@
 <!-- catalog:4:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WClipRRect` | ui | 裁剪 | — |
+| `WClipRRect` | ui | 裁剪 | 不要用它替代图片圆角；图片圆角用 WImageStyle.borderRadius |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
 | `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
@@ -114,8 +117,8 @@
 | `WAsyncStateBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除 |
 | `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据 | 非滚动页面用 `WAsyncView` |
 | `WLanguage` | app_getx | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
-| `WClipRRectConfig` | ui | WClipRRect 圆角配置（all / copyWith） | — |
-| `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | — |
+| `WClipRRectConfig` | ui | WClipRRect 圆角配置（all / copyWith） | 不要用它做图片圆角；图片圆角用 WImageStyle.borderRadius |
+| `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |
 | `WFormReadOnlyScope` | form | 只读作用域：由 WForm / 字段自动注入，穿透任意包装 | — |
 | `WFormBorderLayout` / `WFormBorderBuilderLayout` / `WFormBorderColumnLayout` / `WFormBorderLayoutBuilder` / `WFormBorderLayoutData` | form | 边框与消息的布局策略（column / builder） | — |
 | `WFormFieldShell` / `WFormBorderState` | form | 字段外框装配与边框 State（内置字段自动使用） | — |
@@ -171,11 +174,11 @@
 | `WBottomSheet` | app_getx | 底部面板外壳 | — |
 | `WToast` | toast | 轻提示 | — |
 | `WToastStyle` | toast | Toast 的时长 / 对齐 / 背景 / 动画等样式 | 不要为单条 toast 重复造主题；全局用 WToastTheme |
-| `WGradientCircularProgressIndicator` | ui | 加载指示 | — |
+| `WGradientCircularProgressIndicator` | ui | 加载指示 | 不要用于不确定进度；需要无障碍 value 语义时传 value |
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
 | `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
+| `WNotificationListener` | ui | 声明式监听滚动通知 / 百分比；新代码优先 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
 | `WNotificationListenerBuilder` | ui | 监听滚动通知 / 百分比 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
-| `WNotificationListenerBuilderExtension` | ui | 任意 Widget 转 WNotificationListenerBuilder 的扩展 getter | — |
 | `WFormCustomValidator` | form | 把自定义校验函数包成 FormFieldValidator | — |
 <!-- catalog:7:end -->
 
@@ -216,11 +219,11 @@
 | `WBoxDecorationExtension` | ui | BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影） | 不要每次重写完整 BoxDecoration |
 | `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight | 需要 button 语义用 `WButton` |
 | `WUiWidgetExtension` | ui | `toPressable`（任意 child 点击，无 button 语义） | 需要 button 语义用 `WButton` |
-| `WHexColor` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
-| `WGradients` | ui | 预设渐变（vertical / horizontal / diagonal / radial） | — |
-| `WShadows` | ui | 预设阴影（none / card / elevated / floating） | — |
-| `WTextStyleExtension` | ui | TextStyle 快捷修改（bold / withColor / withSize） | — |
-| `WGlobalKeyExtension` | ui | GlobalKey 位置 / 边界（offset / rect） | — |
+| `WColorExtension` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
+| `WGradients` | ui | 预设渐变（vertical / horizontal / diagonal / radial） | 不要写死品牌色；它只提供方向，颜色由调用方传 |
+| `WShadows` | ui | 预设阴影（none / card / elevated / floating） | 不要用于深色模式文字阴影；它只是中性预设 |
+| `WTextStyleExtension` | ui | TextStyle 快捷修改（bold / withColor / withSize） | 不要用它替代 WTextStyles 做全局字体；只做一次性覆盖 |
+| `WGlobalKeyExtension` | ui | GlobalKey 位置 / 边界（offset / rect） | 不要用它替代 controller / 状态传递；只做读取位置 |
 <!-- catalog:9:end -->
 
 ## 10. 待补（有重复用例，尚未进包）

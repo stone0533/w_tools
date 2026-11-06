@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
@@ -88,6 +89,24 @@ void main() {
     );
   });
 
+  testWidgets('WStep — 默认色跟随 ColorScheme（暗色）', (tester) async {
+    final theme = ThemeData(useMaterial3: true, brightness: Brightness.dark);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: theme,
+        home: const Scaffold(
+          body: WStep(labels: ['下单', '付款'], current: 1),
+        ),
+      ),
+    );
+
+    final container = tester.widget<Container>(
+      find.descendant(of: find.byType(WStep), matching: find.byType(Container)).first,
+    );
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.color, theme.colorScheme.primary);
+  });
+
   testWidgets('WStep — completed / current / upcoming 默认状态', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -167,6 +186,19 @@ void main() {
     expect(tester.takeException(), isAssertionError);
   });
 
+  testWidgets('WScaffold — 接受任意 PreferredSizeWidget 作为 appBar', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WScaffold(
+          appBar: AppBar(title: const Text('自定义顶栏')),
+          body: const Text('body'),
+        ),
+      ),
+    );
+    expect(find.text('自定义顶栏'), findsOneWidget);
+    expect(find.text('body'), findsOneWidget);
+  });
+
   testWidgets('WScaffold — 渲染 body', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: WScaffold(body: Text('body content'))),
@@ -179,6 +211,14 @@ void main() {
       const MaterialApp(home: WKeepAliveWrapper(child: Text('alive'))),
     );
     expect(find.text('alive'), findsOneWidget);
+  });
+
+  test('WGradientCircularProgressIndicator — 默认背景色不由组件写死', () {
+    const indicator = WGradientCircularProgressIndicator(
+      radius: 12,
+      colors: [Colors.red, Colors.orange],
+    );
+    expect(indicator.backgroundColor, isNull);
   });
 
   testWidgets('WGradientCircularProgressIndicator — 渲染', (tester) async {
@@ -275,6 +315,38 @@ void main() {
     expect(tester.takeException(), isAssertionError);
   });
 
+  testWidgets('WNotificationListener — 通知与百分比同时生效', (tester) async {
+    final notifications = <Notification>[];
+    double? percentage;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WNotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              notifications.add(notification);
+              return false;
+            },
+            onNotificationPercentage: (value) => percentage = value,
+            child: ListView(
+              children: List.generate(
+                50,
+                (index) => SizedBox(height: 40, child: Text('$index')),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    expect(notifications.whereType<ScrollUpdateNotification>(), isNotEmpty);
+    expect(percentage, isNotNull);
+    expect(percentage, greaterThan(0));
+  });
+
   testWidgets('WNotificationListenerBuilder — build() 返回 NotificationListener', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -334,6 +406,43 @@ void main() {
       ),
       throwsAssertionError,
     );
+  });
+
+  testWidgets('WAppBar — gradient / systemOverlayStyle / includeStatusBar: false', (tester) async {
+    const overlay = SystemUiOverlayStyle.light;
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(padding: EdgeInsets.only(top: 24)),
+          child: Scaffold(
+            body: WAppBar(
+              title: '渐变',
+              includeStatusBar: false,
+              style: WAppBarStyle(
+                gradient: LinearGradient(colors: [Colors.red, Colors.blue]),
+                systemOverlayStyle: overlay,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final container = tester.widget<Container>(
+      find.descendant(of: find.byType(WAppBar), matching: find.byType(Container)).first,
+    );
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.gradient, isNotNull);
+    expect(decoration.color, isNull);
+    expect(container.padding, EdgeInsets.zero);
+
+    final region = tester.widget<AnnotatedRegion<SystemUiOverlayStyle>>(
+      find.descendant(
+        of: find.byType(WAppBar),
+        matching: find.byType(AnnotatedRegion<SystemUiOverlayStyle>),
+      ),
+    );
+    expect(region.value, overlay);
   });
 
   testWidgets('WAppBar — 默认高度与无 canPop 时不显示返回', (tester) async {
@@ -860,5 +969,33 @@ void main() {
 
       expect(bubbled, isFalse);
     });
+  });
+  test('WStepStyle.resolve 按 ColorScheme 兜底', () {
+    final scheme = ThemeData.light().colorScheme;
+    final resolved = const WStepStyle().resolve(scheme);
+    expect(resolved.completed, scheme.primary);
+    expect(resolved.current, scheme.primary);
+    expect(resolved.upcoming, scheme.outline);
+
+    final custom = const WStepStyle(
+      completedColor: Colors.green,
+      currentColor: Colors.orange,
+      upcomingColor: Colors.grey,
+    ).resolve(scheme);
+    expect(custom.completed, Colors.green);
+    expect(custom.current, Colors.orange);
+    expect(custom.upcoming, Colors.grey);
+  });
+  testWidgets('WScaffold appBar 与便捷参数互斥', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WScaffold(
+          appBar: WAppBar(title: 'A'),
+          title: 'B',
+          body: SizedBox.shrink(),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isAssertionError);
   });
 }

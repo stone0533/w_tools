@@ -5,6 +5,9 @@
 
 `w_tools_ui` 是 w_tools 的 UI 组件层，提供通用组件、布局、导航、扩展与屏幕适配工具。
 
+> 文档分工：本文负责**安装 / 快速开始 / 常用配方**；模块边界、设计取舍与反例见
+> [`docs/modules/ui_module.md`](../../docs/modules/ui_module.md)。
+
 ## 特性
 
 - **通用组件**：`WText` / `WImage` / `WButton` / `WBadge` 等
@@ -57,7 +60,7 @@ WImage.source(
     fit: BoxFit.cover,
     borderRadius: BorderRadius.all(Radius.circular(12)),
   ),
-  config: const WImageLoadOptions(memCacheWidth: 800),
+  options: const WImageLoadOptions(memCacheWidth: 800),
 );
 ```
 
@@ -74,7 +77,7 @@ WImage.source(
 | 已知网络 / 资源 / 文件 / Base64 | `WImageSource.network/asset/file/base64` |
 | 任意 `ImageProvider` / 内存字节 | `WImageSource.provider` / `ImageProvider` + `MemoryImage` |
 | 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
-| 需要加载行为 | `config: WImageLoadOptions(...)` |
+| 需要加载行为 | `options: WImageLoadOptions(...)` |
 | 需要单图占位/错误/进度/重试 UI | `slots: WImageSlots(...)` |
 | 需要视觉样式 | `style: WImageStyle(...)` |
 | 需要 App 级默认占位/错误/进度 | `WImageTheme(slots: WImageSlots(...))` |
@@ -91,7 +94,7 @@ WImage.source(source: WImageSource.parse(url), style: WImageStyle.avatar(40))
 WImage.source(
   source: WImageSource.parse(url),
   style: WImageStyle.thumbnail(80),
-  config: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 240),
+  options: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 240),
 )
 WImage.source(
   source: WImageSource.network(url),
@@ -132,6 +135,9 @@ WImage.source(
 controller.state.addListener(() => debugPrint('${controller.state.value.status}'));
 // controller.dispose();
 ```
+
+`WImageStyle.width/height` 只约束图片内容；`padding` / `margin` 会加在总尺寸上
+（`width: 10` + `padding: 5` → 总尺寸 20），这一点与 `Container` 不同。
 
 `WImageStyle` 也提供预设与链式糖：
 
@@ -192,7 +198,7 @@ WScaffold(
   body: ...,
 );
 
-// 自定义顶栏
+// 自定义顶栏：WAppBar 或其他 PreferredSizeWidget（Material AppBar / SliverAppBar）
 WScaffold(appBar: WAppBar(title: '详情'), body: ...);
 
 WStep(labels: const ['下单', '付款', '完成'], current: 2);
@@ -211,7 +217,7 @@ WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap:
 
 ```dart
 WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
-WClipRRect(config: const WClipRRectConfig.all(12), child: image);
+WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
 WActionRow(children: [WButton(...), WButton(...)]);
 ```
 
@@ -221,8 +227,8 @@ WActionRow(children: [WButton(...), WButton(...)]);
 WGradientCircularProgressIndicator(radius: 24, value: 0.6, colors: const [Colors.indigo, Colors.lightBlue]);
 WKeepAliveWrapper(child: item);
 WNotificationListenerBuilder<ScrollNotification>(child: list)
-  ..onNotificationPercentage((p) { ... })
-  ..build();
+  .onNotificationPercentage((p) { ... })
+  .build()
 ```
 
 ## 导航
@@ -240,7 +246,7 @@ class _NavDemoState extends State<NavDemo> {
   @override
   Widget build(BuildContext context) {
     return WNavBar(
-      config: const WNavBarConfig(),
+      style: const WNavBarStyle(),
       controller: _controller,
       itemBuilder: (context, index, selected) => Text('Tab $index'),
     );
@@ -258,7 +264,7 @@ DefaultTabController(
   child: Column(
     children: [
       WTabBar(
-        config: WTabBarConfig(),
+        style: const WTabBarStyle(),
         tabs: const [Text('全部'), Text('已完成')],
       ),
       const Expanded(
@@ -329,7 +335,7 @@ WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
 | 屏幕工具 | `WScreen` |
 | 资源 | `WAssets` |
-| 扩展 | `WHexColor` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
+| 扩展 | `WColorExtension` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 
 完整构造参数与成员见 [pub.dev API 文档](https://pub.dev/documentation/w_tools_ui/latest/)
 或 `packages/ui/lib` 源码；模块边界与设计取舍见 [`docs/modules/ui_module.md`](https://github.com/stone0533/w_tools/blob/main/docs/modules/ui_module.md)。

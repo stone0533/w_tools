@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image/image.dart';
-import 'package:w_tools_ui/src/components/common/image/image_loader.dart';
+import 'package:w_tools_ui/w_tools_ui.dart';
+import 'package:w_tools_ui/src/internal/image_loader.dart';
 
 void main() {
   setUpAll(() {
@@ -31,28 +31,28 @@ void main() {
       expect(
         () => WImage.source(
           source: WImageSource.parse('x'),
-          config: const WImageLoadOptions(retryCount: -1),
+          options: const WImageLoadOptions(retryCount: -1),
         ),
         throwsAssertionError,
       );
       expect(
         () => WImage.source(
           source: WImageSource.parse('x'),
-          config: const WImageLoadOptions(retryDelay: -1),
+          options: const WImageLoadOptions(retryDelay: -1),
         ),
         throwsAssertionError,
       );
       expect(
         () => WImage.source(
           source: WImageSource.parse('x'),
-          config: const WImageLoadOptions(memCacheWidth: 0),
+          options: const WImageLoadOptions(memCacheWidth: 0),
         ),
         throwsAssertionError,
       );
       expect(
         () => WImage.source(
           source: WImageSource.parse('x'),
-          config: const WImageLoadOptions(memCacheHeight: 0),
+          options: const WImageLoadOptions(memCacheHeight: 0),
         ),
         throwsAssertionError,
       );
@@ -569,5 +569,50 @@ void main() {
         debugPrint = original;
       }
     });
+  });
+  group('WImage 选项命名', () {
+    testWidgets('WImage.source 接受 options:', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WImage.source(
+            source: WImageSource.network('https://example.com/a.png'),
+            options: const WImageLoadOptions(retryCount: 1, memCacheWidth: 120),
+          ),
+        ),
+      );
+      final image = tester.widget<WImage>(find.byType(WImage));
+      expect(image.options.retryCount, 1);
+      expect(image.options.memCacheWidth, 120);
+    });
+  });
+
+  testWidgets('同一 controller 绑定第二张图时报错且保留第一张', (tester) async {
+    final controller = WImageController();
+    addTearDown(controller.dispose);
+    final errors = <FlutterErrorDetails>[];
+    final original = FlutterError.onError;
+    FlutterError.onError = errors.add;
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: [
+              WImage.source(
+                source: WImageSource.network('https://example.com/a.png'),
+                controller: controller,
+              ),
+              WImage.source(
+                source: WImageSource.network('https://example.com/b.png'),
+                controller: controller,
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(errors, isNotEmpty);
+      expect(controller.isAttached, isTrue);
+    } finally {
+      FlutterError.onError = original;
+    }
   });
 }

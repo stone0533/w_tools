@@ -97,7 +97,7 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
   ///   所有表单输入会变成数字样式；
   /// - 未涉及的槽位保留 [base]。
   ///
-  /// 应用侧用 [WTextStylesThemeData.withWTextStyles] 一次装好：
+  /// 应用侧用 [WThemeDataExtension.withWTextStyles] 一次装好：
   /// 之后 form / toast / async 只读 `Theme.of(context).textTheme` 即可跟随，
   /// 不需要依赖 w_tools_ui。
   TextTheme toTextTheme(TextTheme base) {
@@ -197,7 +197,7 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
 ///
 /// 三个包（form / toast / async）只读 `Theme.of(context).textTheme`，
 /// 因此不需要依赖 w_tools_ui；由应用在构建 ThemeData 时装一次即可。
-extension WTextStylesThemeData on ThemeData {
+extension WThemeDataExtension on ThemeData {
   /// 同时写入 [TextTheme]（供 Material 组件）与 [WTextStyles] 扩展（供 [WText]）。
   ///
   /// ```dart

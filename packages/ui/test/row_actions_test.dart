@@ -79,4 +79,74 @@ void main() {
     expect(find.text('item-2-selected'), findsOneWidget);
     expect(find.text('item-0'), findsOneWidget);
   });
+  testWidgets('WSelectableRow 初始选中项自动滚入视口', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          width: 200,
+          height: 40,
+          child: WSelectableRow(
+            itemCount: 20,
+            selectedIndex: 15,
+            onSelected: (_) {},
+            builder: (context, index, isSelected) => SizedBox(
+              width: 80,
+              child: Text('item-$index'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final rect = tester.getRect(find.text('item-15'));
+    expect(rect.left, greaterThanOrEqualTo(0));
+    expect(rect.right, lessThanOrEqualTo(200));
+  });
+
+  testWidgets('WSelectableRow scrollToSelected: false 不主动滚动', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          width: 200,
+          height: 40,
+          child: WSelectableRow(
+            itemCount: 20,
+            selectedIndex: 15,
+            scrollToSelected: false,
+            onSelected: (_) {},
+            builder: (context, index, isSelected) => SizedBox(
+              width: 80,
+              child: Text('item-$index'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(find.text('item-15')).left, greaterThan(200));
+  });
+
+  testWidgets('WSelectableRow itemCount 变化后选中项仍可渲染', (tester) async {
+    Widget build(int count, int selected) => _host(
+      SizedBox(
+        width: 200,
+        height: 40,
+        child: WSelectableRow(
+          itemCount: count,
+          selectedIndex: selected,
+          onSelected: (_) {},
+          builder: (context, index, isSelected) => SizedBox(width: 80, child: Text('item-$index')),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build(3, 2));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(build(6, 5));
+    await tester.pumpAndSettle();
+
+    expect(find.text('item-5'), findsOneWidget);
+  });
 }

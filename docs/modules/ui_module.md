@@ -1,5 +1,8 @@
 # UI 模块文档
 
+> 文档分工：本文负责**模块边界 / 设计取舍 / 反例**；安装、快速开始与常用配方见
+> [`packages/ui/README.md`](../../packages/ui/README.md)。
+
 ## 概述
 
 UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布局、导航、扩展方法与屏幕适配工具。
@@ -12,10 +15,18 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 **模块特点：**
 
-- **零业务框架依赖**：不依赖其他 w_tools 子包；`toast` 由根聚合包 re-export，`qr` 不聚合、需要时直接依赖 `w_tools_qr`。
+- **零业务框架依赖**：不依赖其他 w_tools 子包；`qr` 不聚合，需要时直接依赖 `w_tools_qr`。
 - **最低 Flutter 版本 3.38**：列表组件不再单独声明 `cacheExtent`，交给 Flutter 默认行为，避免 3.44+ 的 deprecated 警告。
 - **屏幕适配可选**：`WScreen` 内置设备信息获取，适配函数通过 delegate 注入；无 delegate 时返回原始值。
 - **第三方依赖**：`badges`（徽章）、`cached_network_image`（图片缓存），具体约束见 `packages/ui/pubspec.yaml`。
+
+## 重构取舍（2026-11）
+
+- **catalog 粒度**：67 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
+  需要精确命中，合并会降低可发现性。
+- **token 层**：暂不引入 `WUiTokens`。当前颜色走 `ColorScheme`，尺寸走
+  `WButtonSize` / `WStepStyle`，阴影/渐变走 `WShadows` / `WGradients`；
+  等出现 3 个以上组件共享同一组 spacing/radius/duration 再评估。
 
 ## 快速判断
 
@@ -90,9 +101,9 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 4. WImage - 图片组件
 
-- 统一入口：`WImage.source(source: WImageSource..., style:, config:, slots:, controller:)`。
+- 统一入口：`WImage.source(source: WImageSource..., style:, options:, slots:, controller:)`；7.0 起只接受 `options:`。
 - 来源用 `WImageSource.network / asset / file / base64 / provider`；动态字符串先
-  `WImageSource.parse`，再交给 `WImage.source`。
+  `WImageSource.parse`。需要精确控制来源类型时用具体 `W*ImageSource` 子类，一般优先工厂。
 - `WImageSource.asset(name)` 默认**不**拼 `WAssets.imagePath`；需要前缀时显式传 `prefix: true`。
 - 三层职责分开：
   - `WImageStyle`：尺寸、fit、圆角、边框等视觉；
@@ -101,11 +112,12 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 - App 级默认占位与错误用 `WImageTheme(slots: ...)`；单图覆盖用 `slots:`。
 - `WImage` 不自动给尺寸：没有 `width` / `height` / `aspectRatio` 时，必须由父级
   （`SizedBox` / `Expanded` / `AspectRatio`）约束，否则加载前占位是 0 尺寸。
+- `WImageStyle.width/height` 不含 `padding` / `margin`：它们会额外计入总尺寸
+  （与 `Container` 的尺寸语义不同）。
 
 ### 显式构造
 
-需要精确控制来源类型时用 `WNetworkImageSource` / `WAssetImageSource` / `WFileImageSource` /
-`WBase64ImageSource` / `WProviderImageSource`；一般业务优先 `WImageSource` 工厂。
+需要精确控制来源类型时用具体 `W*ImageSource` 子类；一般优先 `WImageSource` 工厂。
 
 ### WImageStyle 配置
 
@@ -113,7 +125,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ### WImageLoadOptions 配置
 
-加载行为：缓存尺寸、重试策略、进度回调等。不要把视觉参数塞进来。
+加载行为：缓存尺寸、重试与 `gaplessPlayback`。进度回调在 `WImage.onProgress`；不要把视觉参数或占位 UI 塞进来。
 
 ### WImageSlots 配置
 
@@ -132,18 +144,19 @@ App 级默认 `WImageSlots`，放在主题 / App 根节点；单图仍可用 `sl
 ### 错误类型
 
 错误分类用 `WImageError` / `WImageErrorKind`，进度用 `WImageProgress`；
-默认错误 UI 是 `WImageErrorView`。Base64 非法抛 `FormatException`，Web 上的 `file` 抛
-`UnsupportedError`。
+默认错误 UI 是 `WImageErrorView`。`WImageSource.resolve` 在 Base64 非法时抛 `FormatException`、
+Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError` 并渲染错误占位。
 
 旧字符串图片入口已删除；新代码不要再使用 `WImage('url')` 形式。
 
 ## 5. WBadge - 徽章组件
 
-`WBadge` 用于角标 / 数量提示；复杂样式用 `WBadgeConfig`，不要直接改内部布局。
+`WBadge` 用于角标 / 数量提示；直接传 `position` / `showBadge` / `badgeStyle`，不要直接改内部布局。
 
 ### WBadgeConfig
 
-徽章颜色、位置、偏移与内容样式放在 `WBadgeConfig`；页面级复用优先封装成项目 UI 预设。
+`WBadgeConfig` 仍可用，但已是为 8.0 保留的兼容入口；新代码直接传
+`position` / `showBadge` / `badgeStyle`。
 
 ## 6. WListView - 列表
 
@@ -156,7 +169,9 @@ App 级默认 `WImageSlots`，放在主题 / App 根节点；单图仍可用 `sl
 
 ## 7. WScaffold - 增强脚手架
 
-- 普通页面：`WScaffold` + `WAppBar`；需要自定义顶栏时 `WScaffold(appBar: WAppBar(...))`。
+- 普通页面：`WScaffold` + `WAppBar`；需要自定义顶栏时 `WScaffold(appBar: WAppBar(...))`，
+  也可以传任意 `PreferredSizeWidget`（Material `AppBar` / `SliverAppBar`）。
+- `WAppBar` 自身实现 `PreferredSizeWidget`；传 `WAppBar` 时 `includeStatusBar` 必须为 true。
 - 传了 `appBar` 时不要再传 `title` / `titleWidget` / `leading` / `actions` / `onBack` /
   `appBarStyle` / `appBarBottom`，否则 assert；且 `appBar` 必须 `includeStatusBar: true`，
   `WScaffold` 自身的 `automaticallyImplyLeading` / `centerTitle` 保持默认。
@@ -171,17 +186,18 @@ App 级默认 `WImageSlots`，放在主题 / App 根节点；单图仍可用 `sl
 ### WStep
 
 `WStep` / `WStepFlow` 用于步骤指示；样式与状态用 `WStepStyle` / `WStepState`，
-自定义项 / 分隔线 / 语义用对应的 builder。
+自定义项 / 分隔线 / 语义用对应的 builder。`WStepStyle` 的完成 / 当前 / 未开始颜色
+未显式设置时分别取 `ColorScheme.primary` / `primary` / `outline`，暗色主题下自动跟随。
 
 ### WNavBar / WNavController
 
 底部导航：`WNavBar` + `WNavController`；`WNavController` 需要页面 State 提供 `vsync`，
-并由调用方 `dispose`。配置用 `WNavBarConfig`。
+并由调用方 `dispose`。配置用 `WNavBarStyle`（旧 `WNavBarConfig` 8.0 移除）。
 
 ### WTabBar
 
 顶部 tab：`WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`；
-配置用 `WTabBarConfig`。
+配置用 `WTabBarStyle`（旧 `WTabBarConfig` 8.0 移除）。
 
 ### WActionRow / WSelectableRow
 
@@ -189,33 +205,35 @@ App 级默认 `WImageSlots`，放在主题 / App 根节点；单图仍可用 `sl
 
 ### WClipRRect
 
-圆角裁剪；配置用 `WClipRRectConfig`，不要再手写一层 `ClipRRect`。
+圆角裁剪；直接传 `borderRadius`，不要再手写一层 `ClipRRect`。
+`WClipRRectConfig` 已是为 8.0 保留的兼容入口。
 
 ### WGradientCircularProgressIndicator
 
-渐变圆形进度指示器；颜色、半径、进度由构造参数控制。
+渐变圆形进度指示器；颜色、半径、进度由构造参数控制。未传 `backgroundColor` 时
+取 `ColorScheme.surfaceContainerHighest`，不写死浅灰。
 
 ### WKeepAliveWrapper
 
 列表项保活；只包需要保活的子项，不要整页包。
 
-### WNotificationListenerBuilder
+### WNotificationListener
 
-滚动通知 / 百分比；百分比只在 depth 0 的 `ScrollUpdateNotification` 上回调。
+声明式监听；旧 `WNotificationListenerBuilder` 为兼容入口，计划 8.0 移除。
 
 ## 9. 扩展方法
 
-### WHexColor（Color 扩展）
+### WColorExtension（Color 扩展）
 
-十六进制颜色解析 / 生成：`WHexColor.fromHex` / `'#rrggbb'.toColor()`。
+十六进制颜色解析 / 生成：`WColorExtension.fromHex` / `'#rrggbb'.toColor()`。
 
 ### WStringExtension
 
-字符串格式化、验证、转换等；新增前先看 `packages/ui/lib/src/extensions/` 是否已有。
+字符串转数字 / 去空格 / hex 颜色 / 资源路径；新增前先看 `packages/ui/lib/src/extensions/` 是否已有。
 
 ### WNumExtension
 
-数字格式化、范围检查、`toThousandsSeparated` / `toCurrency` / `toPercent` 等。
+数字格式化与间距 / 圆角 / `BorderSide` 糖：`toThousandsSeparated` / `toCurrency` / `toPercent` 等。
 
 ### WWidgetExtension
 
@@ -245,48 +263,8 @@ GlobalKey 查找 / 定位；不要用它替代正常的 controller 传递。
 
 ## 组合示例
 
-```dart
-import 'package:flutter/material.dart';
-import 'package:w_tools_ui/w_tools_ui.dart';
-
-class GiftPage extends StatelessWidget {
-  const GiftPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return WScaffold(
-      title: '礼物',
-      body: WListView(
-        sliver: WListViewSliver.list(
-          itemCount: 3,
-          itemBuilder: (context, index) => Padding(
-            padding: 12.allPadding,
-            child: Row(
-              children: [
-                WImage.source(
-                  source: WImageSource.network('https://example.com/$index.jpg'),
-                  style: const WImageStyle.avatar(40),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: WText(
-                    text: '礼物 $index',
-                    variant: WTextVariant.body,
-                  ),
-                ),
-                WButton(
-                  label: '兑换',
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-```
+完整页面示例见 [`packages/ui/README.md`](../../packages/ui/README.md) 的「快速开始」；
+本文件只保留模块边界与反例。
 
 ## 注意事项
 

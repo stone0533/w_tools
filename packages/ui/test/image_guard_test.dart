@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image/image.dart';
+import 'package:w_tools_ui/w_tools_ui.dart';
 
 /// 空数据 / 类型判定 / 显式构造 / 解码尺寸 / 布局 / 语义 的回归测试。
 const _pngBase64 =
@@ -221,7 +221,7 @@ void main() {
           home: Scaffold(
             body: WImage.source(
               source: WImageSource.parse('https://cdn.example.com/a.png'),
-              config: config,
+              options: config,
             ),
           ),
         ),
@@ -239,7 +239,7 @@ void main() {
           home: Scaffold(
             body: WImage.source(
               source: WImageSource.asset('assets/images/logo.png'),
-              config: const WImageLoadOptions(memCacheWidth: 120),
+              options: const WImageLoadOptions(memCacheWidth: 120),
             ),
           ),
         ),

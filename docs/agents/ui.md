@@ -23,7 +23,7 @@ App 级默认占位 / 错误 / 进度用 `WImageTheme(slots: WImageSlots(...))`�
 
 ```text
 数字格式化 → toThousandsSeparated / toCurrency / toPercent
-hex 颜色 → WHexColor.fromHex / '#rrggbb'.toColor()
+hex 颜色 → WColorExtension.fromHex / '#rrggbb'.toColor()
 EdgeInsets → num.allPadding
 BoxDecoration → withColor / withBorderRadius / withShadow
 ```
@@ -61,10 +61,10 @@ WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate�
 ```text
 加载指示 → WGradientCircularProgressIndicator
 列表项保活 → WKeepAliveWrapper
-滚动通知 / 百分比 → WNotificationListenerBuilder
+滚动通知 / 百分比 → WNotificationListener（旧 Builder 8.0 移除）
 ```
 
-WNotificationListenerBuilder 的百分比只在 depth 0 的 ScrollUpdateNotification 上回调。
+WNotificationListener 的百分比只在 depth 0 的 ScrollUpdateNotification 上回调。
 
 ## 弹层
 

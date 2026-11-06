@@ -13,6 +13,17 @@ class WButtonSemantics {
   final String? hint;
   final String loadingLabel;
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WButtonSemantics &&
+          other.label == label &&
+          other.hint == hint &&
+          other.loadingLabel == loadingLabel;
+
+  @override
+  int get hashCode => Object.hash(label, hint, loadingLabel);
+
   WButtonSemantics copyWith({
     String? label,
     String? hint,

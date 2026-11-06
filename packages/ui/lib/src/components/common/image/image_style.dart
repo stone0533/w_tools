@@ -171,7 +171,7 @@ class WImageStyle {
 }
 
 /// 不可变样式的链式糖：每次返回新实例。
-extension WImageStyleX on WImageStyle {
+extension WImageStyleExtension on WImageStyle {
   WImageStyle square(double size) => copyWith(width: size, height: size);
 
   WImageStyle rounded(double radius) => copyWith(borderRadius: BorderRadius.circular(radius));

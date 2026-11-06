@@ -10,6 +10,10 @@
 - `WImageController.state` 改为非空，`WImageLoadStatus` 新增 `idle`，`WImageLoadSnapshot.status` 不再可空；
   controller 增加 `dispose()`。
 - `aspectRatio` 不能再与固定 `width` / `height` 同时设置。
+- `WImage.source` 只接受 `options:`；7.0 重构期间新增的 `config:` 兼容别名未发布，直接删除。
+- 删除未使用的 `WImageSlots.isEmpty`。
+- 扩展改名：`WImageStyleX` → `WImageStyleExtension`、`WHexColor` → `WColorExtension`、
+  `WTextStylesThemeData` → `WThemeDataExtension`；`WNotificationListenerBuilderExtension` 删除。
 
 ### Added
 - `WImageSource.resolve(...)`：生成与 WImage 一致尺寸规则的 provider，配合 `precacheImage`。
@@ -18,6 +22,14 @@
   `showRetryButton` / `retryLabel`；新的 `WImageTheme` 只承载 slots，
   与 4.x 已删除的同名类型语义不同。
 - `gaplessPlayback` 现在真正保留上一帧。
+- `WNavBarStyle` / `WTabBarStyle`；`WNavBar` / `WTabBar` 新增 `style:`（`config:` 仍是兼容入口）。
+- `WStepStyle.resolve(ColorScheme)`，把完成 / 当前 / 未开始颜色解析集中到一处。
+- `WNotificationListener<T>` 声明式滚动通知 / 百分比监听；旧 `WNotificationListenerBuilder` 仍是兼容入口。
+- `WButtonMetrics`：`WButtonStyle` 的布局 / 尺寸子集，支持 `fromStyle` / `applyTo` / `WButtonStyle.metrics`。
+- `WBadge` 直接传 `position` / `showBadge` / `badgeStyle`；`WClipRRect` 直接传 `borderRadius`。
+- `WWidgetExtension.withTopSafeSpaceOf` / `withBottomBarSpaceOf`，读取当前 `MediaQuery`。
+- `WNumExtension.borderSideOf(context)`（主题 outline）与 `WBoxDecorationExtension.withBackground(...)`。
+- `WScreen.reset()` / `WAssets.reset()`（测试隔离用）。
 
 ### Fixed
 - `borderRadius + border` 的边框改为绘制在图片之上，不再被图片盖住。
@@ -28,6 +40,21 @@
 - `onProgress` 完成回调、`retryDelayMs` 实际延迟、尺寸提示的重复/单轴漏报修正。
 - 默认占位/错误占位改为从 `ColorScheme` 派生，深色主题不再出现亮灰块。
 - `WImageErrorView` 小尺寸优先保留重试按钮；160×90 等常见尺寸可操作。
+
+
+### Changed
+- `appbar.dart` / `tab_bar.dart` 拆出 style / config；`list_view.dart` 的 sliver 拆为 part 文件。
+- `step.dart` 拆为 `step_types` / `step_style` / `step_flow`；`row_actions.dart` 拆为 `action_row` / `selectable_row`。
+- `WImage` 内部拆出 provider 工厂、slots 合并 / 构建、Base64 解码、尺寸提示与 source 构建；
+  `WImageState` 从 526 行降到约 335 行，公开行为不变。
+- `WButton` 增加 `debugStyleResolutionCount`（`@visibleForTesting`），用于验证样式缓存命中。
+- `WTabBar` 未配置 `overlayColor` 时不再强制透明，交给 `TabBarTheme` / Material 默认。
+- `WButtonStyle` / `WButtonMotion` / `WButtonSemantics` / `WAppBarStyle` / `WStepStyle` 支持值相等。
+- `WButton` 样式解析按 Theme 实例命中缓存，避免每次 build 计算 `ThemeData` 深哈希。
+
+### Deprecated
+- `WNotificationListenerBuilder`（用 `WNotificationListener`，8.0 移除）。
+- `WClipRRect.config` / `WBadge.config` / `withTopSafeSpace` / `withBottomBarSpace`（8.0 移除）。
 
 迁移见 [`docs/migrations/ui-7.0.md`](../../docs/migrations/ui-7.0.md)。
 

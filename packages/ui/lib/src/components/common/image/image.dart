@@ -1,22 +1,22 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'image_error_view.dart';
 import 'image_frame.dart';
-import 'image_loader.dart';
-import 'image_notifier.dart';
+import '../../../internal/image_loader.dart';
+import '../../../internal/image_notifier.dart';
+import 'image_base64.dart';
+import 'image_provider_factory.dart';
+import 'image_size_hint.dart';
+import 'image_slots_build.dart';
+import 'image_slots_merge.dart';
 import 'image_source.dart';
 import 'image_style.dart';
 import 'image_config.dart';
 import 'image_defaults.dart';
 import 'image_types.dart';
-
-import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
 
 export 'image_frame.dart';
 export 'image_error_view.dart';
@@ -27,6 +27,7 @@ export 'image_defaults.dart';
 export 'image_types.dart';
 
 part 'image_state.dart';
+part 'image_state_builders.dart';
 
 /// 图片控制器
 ///
@@ -64,10 +65,19 @@ class WImageController {
 
   /// @internal 由 _WImageState 调用
   void _attach(_WImageState state) {
-    assert(
-      _state == null || identical(_state, state),
-      'WImageController 不能同时绑定多个 WImage；请为每张图使用独立 controller',
-    );
+    if (_state != null && !identical(_state, state)) {
+      // release 下也报错：静默改绑会让第一张图的状态永久失联。
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: FlutterError(
+            'WImageController 不能同时绑定多个 WImage；请为每张图使用独立 controller',
+          ),
+          library: 'w_tools_ui',
+          context: ErrorDescription('while attaching WImageController'),
+        ),
+      );
+      return;
+    }
     if (identical(_state, state)) return;
     _loader?.state.removeListener(_sync);
     _state = state;
@@ -107,7 +117,7 @@ class WImage extends StatefulWidget {
   final WImageStyle style;
 
   /// 不可变加载行为配置
-  final WImageLoadOptions config;
+  final WImageLoadOptions options;
 
   /// 单图 UI 插槽；null 表示完全使用 `WImageTheme`
   final WImageSlots? slots;
@@ -126,7 +136,7 @@ class WImage extends StatefulWidget {
     Key? key,
     required WImageSource source,
     WImageStyle style = const WImageStyle(),
-    WImageLoadOptions config = const WImageLoadOptions(),
+    WImageLoadOptions? options,
     WImageSlots? slots,
     ValueChanged<WImageLoadStatus>? onLoadStatusChanged,
     ValueChanged<WImageProgress>? onProgress,
@@ -136,7 +146,7 @@ class WImage extends StatefulWidget {
       key: key,
       source: source,
       style: style,
-      config: config,
+      options: options ?? const WImageLoadOptions(),
       slots: slots,
       onLoadStatusChanged: onLoadStatusChanged,
       onProgress: onProgress,
@@ -148,14 +158,14 @@ class WImage extends StatefulWidget {
     super.key,
     required this.source,
     required this.style,
-    required this.config,
+    required this.options,
     this.slots,
     this.onLoadStatusChanged,
     this.onProgress,
     this.controller,
   }) {
     style.validate();
-    config.validate();
+    options.validate();
     slots?.validate();
   }
 

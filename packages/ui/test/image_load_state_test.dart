@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image/image_load_state.dart';
-import 'package:w_tools_ui/src/components/common/image/image_types.dart';
+import 'package:w_tools_ui/src/internal/image_load_state.dart';
+import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
   test('手动重试清零自动重试预算，但 attempt 继续递增', () {

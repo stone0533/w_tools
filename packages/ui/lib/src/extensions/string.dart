@@ -18,7 +18,7 @@ extension WStringExtension on String {
   String trimAll() => replaceAll(RegExp(r'\s+'), '');
 
   /// 将十六进制字符串转换为颜色（如 '#FF0000' → Colors.red）
-  Color toColor() => WHexColor.fromHex(this);
+  Color toColor() => WColorExtension.fromHex(this);
 
   /// 文件名对应的完整资产图片路径
   ///

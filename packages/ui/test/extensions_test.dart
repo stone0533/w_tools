@@ -4,8 +4,8 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
   group('Color Extensions', () {
-    test('WHexColor.fromHex - 6位颜色', () {
-      final color = WHexColor.fromHex('#FF5733');
+    test('WColorExtension.fromHex - 6位颜色', () {
+      final color = WColorExtension.fromHex('#FF5733');
       final value = color.toARGB32();
       expect((value >> 24) & 0xFF, 255); // alpha
       expect((value >> 16) & 0xFF, 255); // red
@@ -13,8 +13,8 @@ void main() {
       expect(value & 0xFF, 51); // blue
     });
 
-    test('WHexColor.fromHex - 8位颜色（带透明度）', () {
-      final color = WHexColor.fromHex('#80FF5733');
+    test('WColorExtension.fromHex - 8位颜色（带透明度）', () {
+      final color = WColorExtension.fromHex('#80FF5733');
       final value = color.toARGB32();
       expect((value >> 24) & 0xFF, 128); // alpha
       expect((value >> 16) & 0xFF, 255); // red
@@ -22,16 +22,16 @@ void main() {
       expect(value & 0xFF, 51); // blue
     });
 
-    test('WHexColor.fromHex - 3位简写', () {
-      final color = WHexColor.fromHex('#F00');
+    test('WColorExtension.fromHex - 3位简写', () {
+      final color = WColorExtension.fromHex('#F00');
       final value = color.toARGB32();
       expect((value >> 16) & 0xFF, 255); // red
       expect((value >> 8) & 0xFF, 0); // green
       expect(value & 0xFF, 0); // blue
     });
 
-    test('WHexColor.fromHex - 4位简写（带透明度）', () {
-      final color = WHexColor.fromHex('#8F00');
+    test('WColorExtension.fromHex - 4位简写（带透明度）', () {
+      final color = WColorExtension.fromHex('#8F00');
       final value = color.toARGB32();
       expect((value >> 24) & 0xFF, 136); // alpha ('8' * 17 = 136)
       expect((value >> 16) & 0xFF, 255); // red
@@ -39,26 +39,26 @@ void main() {
       expect(value & 0xFF, 0); // blue
     });
 
-    test('WHexColor.fromHex - 前后空格', () {
-      final color = WHexColor.fromHex(' #FF5733 ');
+    test('WColorExtension.fromHex - 前后空格', () {
+      final color = WColorExtension.fromHex(' #FF5733 ');
       expect(color.toARGB32(), const Color(0xFFFF5733).toARGB32());
     });
 
-    test('WHexColor.fromHex - 不带#前缀', () {
-      final color = WHexColor.fromHex('FF5733');
+    test('WColorExtension.fromHex - 不带#前缀', () {
+      final color = WColorExtension.fromHex('FF5733');
       final value = color.toARGB32();
       expect((value >> 16) & 0xFF, 255); // red
       expect((value >> 8) & 0xFF, 87); // green
       expect(value & 0xFF, 51); // blue
     });
 
-    test('WHexColor.fromHex - 无效格式抛出异常', () {
-      expect(() => WHexColor.fromHex(''), throwsFormatException);
-      expect(() => WHexColor.fromHex('#FFF'), returnsNormally); // 有效的3位
-      expect(() => WHexColor.fromHex('#FFFF'), returnsNormally); // 有效的4位
-      expect(() => WHexColor.fromHex('#FFFFF'), throwsFormatException); // 无效的5位
-      expect(() => WHexColor.fromHex('#12#34'), throwsFormatException); // # 只能有一个前缀
-      expect(() => WHexColor.fromHex('12#34'), throwsFormatException);
+    test('WColorExtension.fromHex - 无效格式抛出异常', () {
+      expect(() => WColorExtension.fromHex(''), throwsFormatException);
+      expect(() => WColorExtension.fromHex('#FFF'), returnsNormally); // 有效的3位
+      expect(() => WColorExtension.fromHex('#FFFF'), returnsNormally); // 有效的4位
+      expect(() => WColorExtension.fromHex('#FFFFF'), throwsFormatException); // 无效的5位
+      expect(() => WColorExtension.fromHex('#12#34'), throwsFormatException); // # 只能有一个前缀
+      expect(() => WColorExtension.fromHex('12#34'), throwsFormatException);
     });
 
     test('Color.toHex', () {
@@ -424,6 +424,72 @@ void main() {
       );
       await tester.tap(find.text('卡片'));
       expect(taps, 1);
+    });
+  });
+  group('上下文相关扩展', () {
+    testWidgets('withTopSafeSpaceOf / withBottomBarSpaceOf 读 MediaQuery', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(
+              padding: EdgeInsets.only(top: 24, bottom: 12),
+            ),
+            child: Builder(
+              builder: (context) => Column(
+                children: [
+                  const SizedBox(width: 10, height: 10).withTopSafeSpaceOf(context),
+                  const SizedBox(width: 10, height: 10).withBottomBarSpaceOf(context),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is Padding && widget.padding == const EdgeInsets.only(top: 24),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is Padding && widget.padding == const EdgeInsets.only(bottom: 12),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('num.borderSideOf 使用主题 outline 颜色', (tester) async {
+      late BorderSide side;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              side = 2.borderSideOf(context);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      expect(side.width, 2);
+      expect(side.color, Theme.of(tester.element(find.byType(SizedBox))).colorScheme.outline);
+    });
+
+    test('withBackground 清空另一种背景', () {
+      final colorOnly = const BoxDecoration().withBackground(color: Colors.red);
+      expect(colorOnly.color, Colors.red);
+      expect(colorOnly.gradient, isNull);
+
+      const gradient = LinearGradient(colors: [Colors.red, Colors.blue]);
+      final gradientOnly = const BoxDecoration().withBackground(gradient: gradient);
+      expect(gradientOnly.gradient, gradient);
+      expect(gradientOnly.color, isNull);
+
+      expect(
+        () => const BoxDecoration().withBackground(color: Colors.red, gradient: gradient),
+        throwsAssertionError,
+      );
     });
   });
 }

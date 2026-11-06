@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'button_metrics.dart';
 import 'button_motion.dart';
 import 'button_resolved_style.dart';
 import 'button_semantics.dart';
@@ -61,6 +62,9 @@ class WButtonStyle {
   final double tapTargetSize;
   final double iconSize;
   final double gap;
+
+  /// 布局 / 尺寸部分；新代码可用 [WButtonMetrics] 单独传递。
+  WButtonMetrics get metrics => WButtonMetrics.fromStyle(this);
 
   /// 填充按钮的常用构造。
   factory WButtonStyle.filled({
@@ -147,8 +151,61 @@ class WButtonStyle {
     );
   }
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WButtonStyle &&
+          other.motion == motion &&
+          other.semantics == semantics &&
+          other.backgroundColor == backgroundColor &&
+          other.gradient == gradient &&
+          other.border == border &&
+          other.borderRadius == borderRadius &&
+          other.boxShadow == boxShadow &&
+          other.padding == padding &&
+          other.alignment == alignment &&
+          other.clipBehavior == clipBehavior &&
+          other.foregroundColor == foregroundColor &&
+          other.textStyle == textStyle &&
+          other.focusColor == focusColor &&
+          other.hoverColor == hoverColor &&
+          other.disabledOpacity == disabledOpacity &&
+          other.minWidth == minWidth &&
+          other.minHeight == minHeight &&
+          other.tapTargetSize == tapTargetSize &&
+          other.iconSize == iconSize &&
+          other.gap == gap;
+
+  @override
+  int get hashCode => Object.hash(
+    motion,
+    semantics,
+    backgroundColor,
+    gradient,
+    border,
+    borderRadius,
+    boxShadow,
+    padding,
+    alignment,
+    clipBehavior,
+    foregroundColor,
+    textStyle,
+    focusColor,
+    hoverColor,
+    disabledOpacity,
+    minWidth,
+    minHeight,
+    tapTargetSize,
+    iconSize,
+    gap,
+  );
+
   void validate() {
     motion.validate();
+    assert(
+      backgroundColor == null || gradient == null,
+      'WButtonStyle.backgroundColor 与 gradient 只能选一个',
+    );
     assert(
       disabledOpacity >= 0 && disabledOpacity <= 1,
       'disabledOpacity 必须在 0..1',

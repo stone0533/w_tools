@@ -1,7 +1,8 @@
+import 'dart:convert';
+
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/image/image_source.dart';
-import 'package:w_tools_ui/src/components/common/image/image_types.dart';
-import 'package:w_tools_ui/src/utils/assets.dart';
+import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
   group('WImageSource.parse', () {
@@ -56,5 +57,10 @@ void main() {
       expect(WImageSource.asset('a.png'), isNot(WImageSource.asset('b.png')));
       expect(WImageSource.base64('AAAA'), WImageSource.base64('AAAA'));
     });
+  });
+  test('resolve 大 Base64 与 WImage 使用同一解码结果', () async {
+    final raw = base64Encode(List<int>.filled(150 * 1024, 7));
+    final provider = await WImageSource.base64(raw).resolve(memCacheWidth: 64);
+    expect(provider, isA<ResizeImage>());
   });
 }

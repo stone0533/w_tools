@@ -23,7 +23,7 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
     required this.colors,
     this.stops,
     this.strokeCapRound = false,
-    this.backgroundColor = const Color(0xFFEEEEEE),
+    this.backgroundColor,
     this.totalAngle = 2 * pi,
     this.value = 0,
     this.semanticsLabel,
@@ -43,8 +43,8 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
   /// 当前进度，取值范围 [0.0-1.0]
   final double value;
 
-  /// 进度条背景色
-  final Color backgroundColor;
+  /// 进度条背景色；为 null 时取 `ColorScheme.surfaceContainerHighest`。
+  final Color? backgroundColor;
 
   /// 进度条的总弧度，2*PI为整圆，小于2*PI则不是整圆
   final double totalAngle;
@@ -70,6 +70,7 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
       offset = asin((strokeWidth / (radius * 2 - strokeWidth)).clamp(-1.0, 1.0));
     }
     final progress = value.isFinite ? value.clamp(0.0, 1.0) : 0.0;
+    final background = backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
     return Semantics(
       label: semanticsLabel,
       value: '${(progress * 100).round()}%',
@@ -80,7 +81,7 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
           painter: _WGradientCircularProgressPainter(
             strokeWidth: strokeWidth,
             strokeCapRound: strokeCapRound,
-            backgroundColor: backgroundColor,
+            backgroundColor: background,
             value: value,
             total: totalAngle,
             radius: radius,
@@ -108,7 +109,7 @@ class _WGradientCircularProgressPainter extends CustomPainter {
   _WGradientCircularProgressPainter({
     required this.strokeWidth,
     this.strokeCapRound = false,
-    this.backgroundColor = const Color(0xFFEEEEEE),
+    required this.backgroundColor,
     this.radius,
     this.total = 2 * pi,
     required this.colors,

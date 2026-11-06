@@ -2,8 +2,13 @@ import 'package:flutter/cupertino.dart';
 
 /// 圆角裁剪组件，用于为子组件添加圆角
 class WClipRRect extends StatelessWidget {
-  /// 裁剪配置
+  /// 裁剪配置（8.0 移除；新代码直接传 [borderRadius]）
+  /// remove-in: 8.0.0
+  @Deprecated('Use borderRadius instead; config 将在 8.0 移除')
   final WClipRRectConfig? config;
+
+  /// 圆角；与 [config] 二选一，优先使用本参数
+  final BorderRadiusGeometry? borderRadius;
 
   /// 子组件
   final Widget child;
@@ -20,15 +25,19 @@ class WClipRRect extends StatelessWidget {
   const WClipRRect({
     super.key,
     this.config,
+    this.borderRadius,
     required this.child,
     this.clipBehavior = Clip.antiAlias,
-  });
+  }) : assert(
+         config == null || borderRadius == null,
+         'WClipRRect: config 与 borderRadius 只能传一个',
+       );
 
   @override
   Widget build(BuildContext context) {
-    final config = this.config ?? const WClipRRectConfig();
+    final radius = borderRadius ?? config?.borderRadius ?? BorderRadius.zero;
     return ClipRRect(
-      borderRadius: config.borderRadius,
+      borderRadius: radius,
       clipBehavior: clipBehavior,
       child: child,
     );
@@ -51,4 +60,10 @@ class WClipRRectConfig {
   WClipRRectConfig copyWith({BorderRadiusGeometry? borderRadius}) {
     return WClipRRectConfig(borderRadius: borderRadius ?? this.borderRadius);
   }
+
+  @override
+  bool operator ==(Object other) => other is WClipRRectConfig && other.borderRadius == borderRadius;
+
+  @override
+  int get hashCode => borderRadius.hashCode;
 }

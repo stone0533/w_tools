@@ -1,4 +1,6 @@
-import 'image_types.dart';
+import 'package:flutter/foundation.dart';
+
+import '../components/common/image/image_types.dart';
 
 /// 加载 / 重试 / 进度的一次性状态
 ///
@@ -6,6 +8,7 @@ import 'image_types.dart';
 /// 真正的回调仍留在 State（依赖 `mounted` 与 widget 回调）。
 ///
 /// 公开只为测试可见；不属于 barrel 导出的公共 API。
+@internal
 class WImageLoadState {
   /// 上一次已通知的加载状态
   WImageLoadStatus status = WImageLoadStatus.idle;

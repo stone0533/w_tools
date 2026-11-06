@@ -17,5 +17,10 @@ class WAssets {
     _imagePath = trimmed.isEmpty || trimmed.endsWith('/') ? trimmed : '$trimmed/';
   }
 
+  /// 测试用：恢复默认前缀。
+  static void reset() {
+    _imagePath = 'assets/images/';
+  }
+
   WAssets._();
 }

@@ -20,7 +20,7 @@
 | └ 导航 / Tab | `lib/nav_page.dart` | WNavController（animateTo / currentIndex / previousIndex / indexIsChanging / offset）、onItemTap 拦截、WNavBarConfig 装饰 / padding、WTabBar 配置（indicator / divider / scrollable / tabAlignment / onTap）、WTabBarConfig.copyWith |
 | └ 步骤 | `lib/steps_page.dart` | WStep 默认、WStepStyle 全字段、itemBuilder / separatorBuilder / semanticLabelBuilder、WStepFlow 复用 + copyWith |
 
-## 覆盖矩阵（catalog 25 条）
+## 覆盖矩阵（25 个入口分组 / 67 条 catalog）
 
 | 入口 | 页面 | 关键点 |
 |---|---|---|

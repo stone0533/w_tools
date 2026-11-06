@@ -43,6 +43,12 @@ extension WNumExtension on num {
   /// 返回：指定宽度的 BorderSide 实例
   BorderSide borderSide({Color color = Colors.grey}) => BorderSide(width: toDouble(), color: color);
 
+  /// 主题描边色（ColorScheme.outline）的 BorderSide；新代码优先用它。
+  BorderSide borderSideOf(BuildContext context, {Color? color}) => BorderSide(
+    width: toDouble(),
+    color: color ?? Theme.of(context).colorScheme.outline,
+  );
+
   /// 转换为带千分位分隔符的字符串
   ///
   /// 科学计数法（如 `1e+21`、`1.5e-7`）会先展开为普通十进制再分组；

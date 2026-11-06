@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 /// `WImage` 的 frameBuilder / loadingBuilder / errorBuilder 会在 build 期间更新
 /// 加载状态；如果外部监听器（例如 ValueListenableBuilder）同步 setState，会触发
 /// “setState() called during build”。加载器与 controller 都使用这个 notifier。
+@internal
 class WImageDeferredValueNotifier<T> extends ValueNotifier<T> {
   WImageDeferredValueNotifier(super.value);
 

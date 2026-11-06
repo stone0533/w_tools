@@ -1,5 +1,6 @@
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
@@ -162,6 +163,21 @@ void main() {
       expect(clip.clipBehavior, Clip.antiAlias);
     });
 
+    testWidgets('WClipRRect 直接传 borderRadius', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+      final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
+      expect(clip.borderRadius, BorderRadius.circular(8));
+    });
+
     test('WClipRRectConfig.all / copyWith 设置圆角', () {
       final config = WClipRRectConfig.all(8);
       expect(config.borderRadius, BorderRadius.circular(8));
@@ -201,6 +217,26 @@ void main() {
       );
       expect(find.text('3'), findsOneWidget);
       expect(find.byIcon(Icons.email), findsOneWidget);
+    });
+
+    testWidgets('WBadge 直接传 position / showBadge / badgeStyle', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WBadge(
+              position: badges.BadgePosition.topEnd(top: 1, end: 2),
+              showBadge: false,
+              badgeStyle: const badges.BadgeStyle(badgeColor: Colors.red),
+              badgeContent: const Text('9'),
+              child: const Icon(Icons.email),
+            ),
+          ),
+        ),
+      );
+      final badge = tester.widget<badges.Badge>(find.byType(badges.Badge));
+      expect(badge.showBadge, isFalse);
+      expect(badge.position, isA<badges.BadgePosition>());
+      expect(badge.badgeStyle.badgeColor, Colors.red);
     });
 
     testWidgets('badgeContent 为空时不渲染徽章（不报错）', (tester) async {
@@ -344,6 +380,40 @@ void main() {
       expect(config.isShown, isTrue);
     });
   });
+  group('Config 值相等（UI-013）', () {
+    test('WBadgeConfig', () {
+      final a = WBadgeConfig(showBadge: false); // ignore: prefer_const_constructors
+      final b = WBadgeConfig(showBadge: false); // ignore: prefer_const_constructors
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('WClipRRectConfig', () {
+      final a = WClipRRectConfig.all(8);
+      final b = WClipRRectConfig.all(8);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+    });
+  });
+
+  test('WBadge 通过 barrel 转出 badges 类型', () {
+    expect(BadgePosition.center(), isA<BadgePosition>());
+    expect(const BadgeStyle(), isA<BadgeStyle>());
+  });
+  testWidgets('GlobalKey.rect() 对未布局的 RenderBox 返回 null', (tester) async {
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: _NoLayoutBox(
+          child: SizedBox(key: key, width: 10, height: 10),
+        ),
+      ),
+    );
+
+    expect(key.rect(), isNull);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 /// 保活探针：记录 initState / dispose 次数，用于断言子树是否被保活
@@ -372,4 +442,24 @@ class _KeepAliveProbeState extends State<_KeepAliveProbe> {
 
   @override
   Widget build(BuildContext context) => const SizedBox(height: 100);
+}
+
+class _NoLayoutBox extends SingleChildRenderObjectWidget {
+  const _NoLayoutBox({super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderNoLayout();
+}
+
+class _RenderNoLayout extends RenderProxyBox {
+  @override
+  void performLayout() {
+    size = constraints.smallest;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {}
+
+  @override
+  void visitChildrenForSemantics(RenderObjectVisitor visitor) {}
 }

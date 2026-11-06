@@ -4,8 +4,9 @@ import 'image_style.dart';
 
 /// 图片装饰层：padding / margin / borderRadius / border / boxShadow。
 ///
-/// 顺序与 `Container` 一致：margin 在外，padding 在内；圆角同时作用于
-/// 图片本体、border 与 shadow。
+/// 顺序与 `Container` 一致（margin 在外、padding 在内）；但尺寸语义不同：
+/// `WImageStyle.width/height` 只约束图片内容，padding / margin 会额外加在总尺寸上
+/// （`width: 10` + `padding: 5` 的最终尺寸是 20，而不是 Container 的 10）。
 class WImageFrame extends StatelessWidget {
   const WImageFrame({super.key, required this.style, required this.child});
 

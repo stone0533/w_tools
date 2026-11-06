@@ -1,5 +1,51 @@
 import 'package:flutter/material.dart';
 
+/// 声明式通知监听器；新代码用它替代 [WNotificationListenerBuilder]。
+///
+/// [onNotification] 与 [onNotificationPercentage] 可同时生效：先计算滚动百分比，
+/// 再把通知交给自定义回调决定是否继续传递。
+class WNotificationListener<T extends Notification> extends StatelessWidget {
+  const WNotificationListener({
+    super.key,
+    required this.child,
+    this.onNotification,
+    this.onNotificationPercentage,
+    this.preventNotificationPropagation = false,
+  });
+
+  final Widget child;
+  final bool Function(T notification)? onNotification;
+  final void Function(double percentage)? onNotificationPercentage;
+  final bool preventNotificationPropagation;
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<T>(
+      onNotification: (notification) {
+        notifyScrollPercentage(notification, onNotificationPercentage);
+        return onNotification?.call(notification) ?? preventNotificationPropagation;
+      },
+      child: child,
+    );
+  }
+}
+
+/// 计算并回调顶层滚动百分比；WNotificationListener 与旧 Builder 共用。
+void notifyScrollPercentage(
+  Notification notification,
+  void Function(double percentage)? callback,
+) {
+  if (callback == null) return;
+  if (notification is! ScrollUpdateNotification || notification.depth != 0) return;
+
+  final metrics = notification.metrics;
+  if (metrics.maxScrollExtent <= 0) {
+    callback(0.0);
+    return;
+  }
+  callback((metrics.pixels / metrics.maxScrollExtent).clamp(0.0, 1.0));
+}
+
 /// 通知监听器构建器，用于创建和配置 NotificationListener 组件
 ///
 /// 使用构建器模式，支持链式配置通知回调与滚动百分比回调。
@@ -43,17 +89,7 @@ class WNotificationListenerBuilder<T extends Notification> {
 
   /// 计算并回调顶层滚动百分比
   void _handleScrollPercentage(T notification) {
-    final callback = _onNotificationPercentage;
-    if (callback == null) return;
-    if (notification is! ScrollUpdateNotification || notification.depth != 0) return;
-
-    final metrics = notification.metrics;
-    // 不可滚动（maxScrollExtent == 0）时避免 0/0 产生 NaN
-    if (metrics.maxScrollExtent <= 0) {
-      callback(0.0);
-      return;
-    }
-    callback((metrics.pixels / metrics.maxScrollExtent).clamp(0.0, 1.0));
+    notifyScrollPercentage(notification, _onNotificationPercentage);
   }
 
   /// 设置通知回调函数
@@ -88,17 +124,5 @@ class WNotificationListenerBuilder<T extends Notification> {
   WNotificationListenerBuilder<T> preventNotificationPropagation(bool prevent) {
     _preventNotificationPropagation = prevent;
     return this;
-  }
-}
-
-/// WNotificationListenerBuilder 的便捷构造函数扩展
-///
-/// 提供了一种更简洁的方式来创建 WNotificationListenerBuilder 实例
-extension WNotificationListenerBuilderExtension on Widget {
-  /// 创建 WNotificationListenerBuilder 实例
-  ///
-  /// 返回：WNotificationListenerBuilder<Notification> 实例，默认监听所有类型的通知
-  WNotificationListenerBuilder<Notification> get notificationListenerBuilder {
-    return WNotificationListenerBuilder<Notification>(child: this);
   }
 }

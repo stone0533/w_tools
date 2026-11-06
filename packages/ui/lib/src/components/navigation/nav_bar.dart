@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../common/pressable.dart';
 import 'nav_controller.dart';
+import 'nav_style.dart';
+
+export 'nav_style.dart';
 
 /// 底部导航栏组件
 ///
@@ -9,8 +12,11 @@ import 'nav_controller.dart';
 ///
 /// [controller] 由调用方持有并负责释放，本组件只负责添加 / 移除监听。
 class WNavBar extends StatefulWidget {
-  /// 标签栏配置
-  final WNavBarConfig config;
+  /// 标签栏配置（旧入口，8.0 移除；新代码用 [style]）
+  final WNavBarConfig? config;
+
+  /// 标签栏样式
+  final WNavBarStyle? style;
 
   /// 导航项构建器
   final Widget Function(BuildContext, int, bool) itemBuilder;
@@ -26,11 +32,12 @@ class WNavBar extends StatefulWidget {
 
   const WNavBar({
     super.key,
-    this.config = const WNavBarConfig(),
+    this.config,
+    this.style,
     required this.itemBuilder,
     this.onItemTap,
     required this.controller,
-  });
+  }) : assert(config == null || style == null, 'WNavBar: config 与 style 只能传一个');
 
   @override
   State<WNavBar> createState() => _WNavBarState();
@@ -39,6 +46,7 @@ class WNavBar extends StatefulWidget {
 class _WNavBarState extends State<WNavBar> {
   late WNavController _controller;
   late final VoidCallback _listener;
+  int _tapToken = 0;
 
   @override
   void initState() {
@@ -69,10 +77,13 @@ class _WNavBarState extends State<WNavBar> {
   }
 
   Future<void> _handleTap(int index) async {
+    // 异步回调可能乱序返回：只有最后一次点击的 future 能触发切换，
+    // 否则慢回调会覆盖用户后来的选择。
+    final token = ++_tapToken;
     final result = await widget.onItemTap?.call(index);
-    if (!mounted) return;
+    if (!mounted || token != _tapToken) return;
     if (result != false) {
-      _controller.animateTo(index);
+      await _controller.animateTo(index);
     }
   }
 
@@ -98,8 +109,8 @@ class _WNavBarState extends State<WNavBar> {
       ],
     );
 
-    final decoration = widget.config.decoration;
-    final padding = widget.config.padding;
+    final decoration = widget.style?.decoration ?? widget.config?.decoration;
+    final padding = widget.style?.padding ?? widget.config?.padding;
     if (decoration == null && padding == null) {
       return navContent;
     }
@@ -125,7 +136,16 @@ class WNavBarConfig {
     this.padding,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      other is WNavBarConfig && other.decoration == decoration && other.padding == padding;
+
+  @override
+  int get hashCode => Object.hash(decoration, padding);
+
   /// 构建导航栏
+  /// remove-in: 8.0.0
+  @Deprecated('Use WNavBar(config: ...) instead; Config.build 将在 8.0 移除')
   WNavBar build({
     required Widget Function(BuildContext, int, bool) itemBuilder,
     Future<bool?>? Function(int)? onItemTap,

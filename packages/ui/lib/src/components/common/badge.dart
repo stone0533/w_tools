@@ -3,8 +3,19 @@ import 'package:badges/badges.dart' as badges;
 
 /// 徽章组件，用于显示角标或标记
 class WBadge extends StatelessWidget {
-  /// 徽章配置
+  /// 徽章配置（8.0 移除；新代码直接传 position/showBadge/badgeStyle）
+  /// remove-in: 8.0.0
+  @Deprecated('Use position/showBadge/badgeStyle instead; config 将在 8.0 移除')
   final WBadgeConfig? config;
+
+  /// 徽章位置
+  final badges.BadgePosition? position;
+
+  /// 是否显示徽章
+  final bool showBadge;
+
+  /// 自定义徽章样式
+  final badges.BadgeStyle? badgeStyle;
 
   /// 徽章内容
   final Widget? badgeContent;
@@ -21,22 +32,27 @@ class WBadge extends StatelessWidget {
   const WBadge({
     super.key,
     this.config,
+    this.position,
+    this.showBadge = true,
+    this.badgeStyle,
     this.badgeContent,
     this.child,
-  });
+  }) : assert(
+         config == null || (position == null && badgeStyle == null && showBadge == true),
+         'WBadge: config 与 position/showBadge/badgeStyle 只能传一组',
+       );
 
   @override
   Widget build(BuildContext context) {
-    final config = this.config ?? const WBadgeConfig();
     // badgeContent 为空时静默不渲染：showBadge 只是开关，内容为空没有可显示的东西。
-    // （旧实现会 assert，导致最简单的 WBadge(child: ...) 在 debug 下直接崩溃。）
-    final showBadge = config.showBadge && badgeContent != null;
+    final effectiveShow = (config?.showBadge ?? showBadge) && badgeContent != null;
 
     return badges.Badge(
-      showBadge: showBadge,
-      position: config.position,
+      showBadge: effectiveShow,
+      position: position ?? config?.position,
       badgeStyle:
-          config.badgeStyle ??
+          badgeStyle ??
+          config?.badgeStyle ??
           const badges.BadgeStyle(
             padding: EdgeInsets.zero,
             borderSide: BorderSide(color: Colors.transparent, width: 0),
@@ -84,6 +100,16 @@ class WBadgeConfig {
 
   /// 是否显示徽章
   bool get isShown => showBadge;
+
+  @override
+  bool operator ==(Object other) =>
+      other is WBadgeConfig &&
+      other.position == position &&
+      other.showBadge == showBadge &&
+      other.badgeStyle == badgeStyle;
+
+  @override
+  int get hashCode => Object.hash(position, showBadge, badgeStyle);
 
   /// 创建副本并选择性更新（可空字段传 null 表示清空）
   WBadgeConfig copyWith({

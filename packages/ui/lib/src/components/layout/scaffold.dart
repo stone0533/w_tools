@@ -6,9 +6,13 @@ import 'appbar.dart';
 /// 项目页面脚手架：默认顶部栏 + body + 常用 Scaffold 槽位。
 ///
 /// 只传 `title` 时自动构建 [WAppBar]；特殊顶部栏用 [appBar] 覆盖。
+/// 两种方式二选一：显式 [appBar] 时不要再传便捷参数；新代码推荐显式 `appBar: WAppBar(...)`。
 class WScaffold extends StatelessWidget {
   /// 顶部栏覆盖；与 title/titleWidget/leading/actions/onBack 互斥。
-  final WAppBar? appBar;
+  ///
+  /// 可以是任意 [PreferredSizeWidget]（如 Material `AppBar` / `SliverAppBar`）；
+  /// 传 [WAppBar] 时会校验其包含状态栏。
+  final PreferredSizeWidget? appBar;
 
   final String? title;
   final Widget? titleWidget;
@@ -79,34 +83,37 @@ class WScaffold extends StatelessWidget {
               onBack == null &&
               appBarStyle == null &&
               appBarBottom == null &&
-              appBar!.includeStatusBar &&
               automaticallyImplyLeading &&
               centerTitle),
       'WScaffold: 传了 appBar 时不要再传 title/leading/actions/onBack/appBarStyle/appBarBottom；'
-      'appBar 必须包含状态栏，且 WScaffold 自身的 leading/centerTitle 参数保持默认',
+      'WScaffold 自身的 leading/centerTitle 参数保持默认',
     );
-    final bar =
-        appBar ??
-        (_needsDefaultAppBar
-            ? WAppBar(
-                title: title,
-                titleWidget: titleWidget,
-                leading: leading,
-                actions: actions,
-                bottom: appBarBottom,
-                onBack: onBack,
-                automaticallyImplyLeading: automaticallyImplyLeading,
-                centerTitle: centerTitle,
-                style: appBarStyle ?? const WAppBarStyle(),
-              )
-            : null);
+    if (appBar case final WAppBar bar) {
+      assert(
+        bar.includeStatusBar,
+        'WScaffold: 传 WAppBar 作为 appBar 时必须 includeStatusBar: true',
+      );
+    }
 
-    final appBarWidget = bar == null
-        ? null
-        : PreferredSize(
-            preferredSize: Size.fromHeight(bar.contentHeight),
-            child: bar,
-          );
+    final PreferredSizeWidget? appBarWidget;
+    if (appBar != null) {
+      appBarWidget = appBar;
+    } else if (_needsDefaultAppBar) {
+      final bar = WAppBar(
+        title: title,
+        titleWidget: titleWidget,
+        leading: leading,
+        actions: actions,
+        bottom: appBarBottom,
+        onBack: onBack,
+        automaticallyImplyLeading: automaticallyImplyLeading,
+        centerTitle: centerTitle,
+        style: appBarStyle ?? const WAppBarStyle(),
+      );
+      appBarWidget = bar;
+    } else {
+      appBarWidget = null;
+    }
 
     Widget? content = body;
     final padding = MediaQuery.paddingOf(context);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_ui/src/components/common/button/button.dart';
+import 'package:w_tools_ui/w_tools_ui.dart';
 
 Widget _wrap(Widget child) => MaterialApp(
   home: Scaffold(body: Center(child: child)),
@@ -53,6 +53,33 @@ void main() {
       expect(next.focusColor, Colors.black12);
       expect(style.motion.effect, WButtonEffectType.opacity);
       expect(() => style.validate(), returnsNormally);
+    });
+
+    test('backgroundColor 与 gradient 互斥（debug assert）', () {
+      const style = WButtonStyle(
+        backgroundColor: WidgetStatePropertyAll(Colors.red),
+        gradient: WidgetStatePropertyAll(
+          LinearGradient(colors: [Colors.red, Colors.blue]),
+        ),
+      );
+      expect(style.validate, throwsAssertionError);
+    });
+
+    testWidgets('样式解析按 Theme 实例命中缓存', (tester) async {
+      WButton.debugStyleResolutionCount = 0;
+      const style = WButtonStyle(minWidth: 10);
+      Widget app(ThemeData theme) => MaterialApp(
+        theme: theme,
+        home: Scaffold(
+          body: WButton(style: style, label: 'A', onTap: () {}),
+        ),
+      );
+
+      await tester.pumpWidget(app(ThemeData.light()));
+      expect(WButton.debugStyleResolutionCount, 1);
+
+      await tester.pumpWidget(app(ThemeData.light()));
+      expect(WButton.debugStyleResolutionCount, 1);
     });
 
     test('WButtonMotion.copyWith 替换字段并保留其余', () {
@@ -511,6 +538,28 @@ void main() {
       final loading = tester.getSize(find.byType(WButton));
       expect(loading.width, normal.width);
       expect(loading.height, normal.height);
+    });
+
+    testWidgets('loading 指示器使用按钮前景色（主色按钮上可见）', (tester) async {
+      const foreground = Color(0xFFFFFFFF);
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            style: WButtonStyle.filled(
+              backgroundColor: const Color(0xFF3949AB),
+              foregroundColor: foreground,
+            ),
+            label: '提交',
+            loading: true,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      final indicator = tester.widget<CircularProgressIndicator>(
+        find.byType(CircularProgressIndicator),
+      );
+      expect(indicator.color, foreground);
     });
 
     testWidgets('长按进入 Semantics 并触发 onLongPress', (tester) async {

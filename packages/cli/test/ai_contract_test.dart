@@ -531,4 +531,38 @@ void main() {
       expect(templates.agentsBase, isNot(contains('w_tools_cli:context')));
     });
   });
+  group('UI 教学质量门禁', () {
+    final ui = catalog.where((e) => e.package == 'w_tools_ui').toList();
+
+    test('ui catalog usage 不使用级联 ..build()（会丢弃 Widget）', () {
+      for (final entry in ui) {
+        expect(
+          entry.usage ?? '',
+          isNot(contains('..build()')),
+          reason: '${entry.name} 的 usage 用级联 build()，返回值被丢弃',
+        );
+      }
+    });
+
+    test('ui catalog 条目都有非空 dontUseFor', () {
+      for (final entry in ui) {
+        expect(
+          entry.dontUseFor?.trim(),
+          isNotNull,
+          reason: '${entry.name} 缺少 dontUseFor',
+        );
+        expect(
+          entry.dontUseFor!.trim(),
+          isNotEmpty,
+          reason: '${entry.name} 的 dontUseFor 为空',
+        );
+      }
+    });
+
+    test('WImage usage 覆盖 WImageLoadOptions', () {
+      final image = ui.singleWhere((e) => e.names.contains('WImage'));
+      expect(image.usage ?? '', contains('options:'));
+      expect(image.usage ?? '', contains('WImageLoadOptions'));
+    });
+  });
 }

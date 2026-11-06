@@ -288,6 +288,10 @@
 - `build()` 只允许出现在显式 `Builder` 上，且是该类型唯一入口；这里指**非 Widget 的公开
   `build()`**，`Widget.build` 的框架覆盖不在此列。
 - 布尔字段不用 `enable` / `disable` 命名；状态用 `enabled`。
+- 存量 `WButton.loading` 沿用 Flutter 习惯（不改成 `isLoading`）；新布尔参数仍按
+  `isXxx` / `hasXxx` / `canXxx`。
+- 索引基：`WStep.current` 是 1 基（与 `WStepItemBuilder` 的 1 基索引一致），
+  这是冻结例外；新 API 统一 0 基。
 - 泛型参数用 `T` / `TValue` / `TResult` 这类有含义的名字，不写 `T1` / `Type`。
 - 抽象类 / mixin 用领域名词；不新加 `I` / `Abstract` 前缀，`Base*` 只作为存量。
 - 集合用复数（`children` / `items`），映射用 `<值>By<键>`（`itemsById`）。
@@ -340,7 +344,9 @@
 
 - **组件级角色**：`WImageSlots`——角色还没推广（§3.3），不是「允许的新名字」。
 - **成员级例外**：`WNotificationListenerBuilder.build()`——`build()` 规则见 §4.2。
-- **旧扩展名**：`WImageStyleX` / `WHexColor`——早于 `XxxExtension` 规则，冻结新增。
+- **旧扩展名**：7.0 已改为 `WImageStyleExtension` / `WColorExtension` /
+  `WThemeDataExtension`；通知 Builder 的旧扩展已删除。
+  这三个新名字按 §3.3 的 `Extension` 角色，不再登记例外。
 
 以上三类不占基线，因为它们是「角色还没推广 / 规则例外」，不是「允许的存量名字」；
 它们同样只减不增，新增同类名字按 §3.3 的 `Extension` 角色处理。

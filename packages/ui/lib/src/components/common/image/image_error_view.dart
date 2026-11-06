@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'image_types.dart';
 
+const double _kActionMinWidth = 96;
+const double _kActionMinHeight = 88;
+const double _kTextMinHeightWithButton = 112;
+const double _kTextMinHeight = 64;
+
 /// 内置的错误占位：图标 + 文案 + 可选重试按钮。
 ///
 /// 通过 `WImageSlots(showRetryButton: true)` 启用（`WImageStyle` 没有该参数）；
@@ -37,8 +42,15 @@ class WImageErrorView extends StatelessWidget {
           final height = constraints.maxHeight.isFinite ? constraints.maxHeight : 400.0;
           // 小尺寸优先保留可操作的“重试”：空间不够时隐藏文案而不是隐藏按钮。
           final showButton =
-              !compact && showAction && onRetry != null && width >= 96 && height >= 88;
-          final showText = !compact && width >= 96 && height >= (showButton ? 112 : 64);
+              !compact &&
+              showAction &&
+              onRetry != null &&
+              width >= _kActionMinWidth &&
+              height >= _kActionMinHeight;
+          final showText =
+              !compact &&
+              width >= _kActionMinWidth &&
+              height >= (showButton ? _kTextMinHeightWithButton : _kTextMinHeight);
 
           return Center(
             child: Padding(

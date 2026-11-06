@@ -17,13 +17,6 @@ class _WImageAttemptKey extends LocalKey {
 }
 
 class _WImageState extends State<WImage> {
-  /// 解码后小于该字节数的 Base64 直接在主 isolate 解码
-  /// （`compute` 起 isolate 的开销更大；Web 上 `compute` 也仍在主线程）
-  static const int _inlineDecodeMaxBytes = 64 * 1024;
-
-  /// 当前图片类型
-  late WImageType _type;
-
   /// 规范化后的数据（trim、补 scheme、剥 data: 前缀、file:// 转路径）
   late String _value;
 
@@ -51,16 +44,16 @@ class _WImageState extends State<WImage> {
   WImageLoader get loader => _load;
 
   WImageStyle get style => widget.style;
-  WImageLoadOptions get config => widget.config;
+  WImageLoadOptions get options => widget.options;
 
   @override
   void initState() {
     super.initState();
     style.validate();
-    config.validate();
+    options.validate();
     _load = WImageLoader(
-      retryCount: config.retryCount,
-      retryDelay: config.retryDelay,
+      retryCount: options.retryCount,
+      retryDelay: options.retryDelay,
       onStatus: (status) {
         if (!mounted) return;
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -115,17 +108,17 @@ class _WImageState extends State<WImage> {
   void didUpdateWidget(WImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     style.validate();
-    config.validate();
+    options.validate();
     _load.syncRetryConfig(
-      retryCount: config.retryCount,
-      retryDelay: config.retryDelay,
+      retryCount: options.retryCount,
+      retryDelay: options.retryDelay,
     );
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller?._detach(this);
       widget.controller?._attach(this);
     }
     if (oldWidget.style != widget.style ||
-        oldWidget.config != widget.config ||
+        oldWidget.options != widget.options ||
         oldWidget.slots != widget.slots) {
       _lastFrame = null;
     }
@@ -135,7 +128,7 @@ class _WImageState extends State<WImage> {
       // 尺寸配置变化时允许重新检查；fit/颜色等变化不重复提示。
       _sizeHintScheduled = false;
     }
-    if (oldWidget.config.gaplessPlayback && !config.gaplessPlayback) {
+    if (oldWidget.options.gaplessPlayback && !options.gaplessPlayback) {
       _hasFrame = false;
     }
     if (oldWidget.source != widget.source) {
@@ -152,16 +145,15 @@ class _WImageState extends State<WImage> {
   }
 
   void _reset() {
-    _type = widget.source.type;
     _value = widget.source.value;
     _bytesFuture = null;
     _providerCache = null;
     _providerKey = null;
     _lastFrame = null;
-    if (!config.gaplessPlayback) _hasFrame = false;
+    if (!options.gaplessPlayback) _hasFrame = false;
     _load.reset(
-      retryCount: config.retryCount,
-      retryDelay: config.retryDelay,
+      retryCount: options.retryCount,
+      retryDelay: options.retryDelay,
     );
     // source 切换时 attempt 会归零；这不算一次“重试”，不要清掉 gapless 上一帧。
     _seenAttempt = _load.attempt;
@@ -173,7 +165,7 @@ class _WImageState extends State<WImage> {
   Widget build(BuildContext context) {
     assert(() {
       style.validate();
-      config.validate();
+      options.validate();
       return true;
     }());
     if (_load.attempt != _seenAttempt) {
@@ -195,27 +187,10 @@ class _WImageState extends State<WImage> {
   void _debugScheduleSizeHint() {
     if (!kDebugMode || _sizeHintScheduled) return;
     _sizeHintScheduled = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _debugCheckSizeHint());
-  }
-
-  void _debugCheckSizeHint() {
-    if (!mounted) return;
-    final renderObject = context.findRenderObject();
-    if (renderObject is! RenderBox || !renderObject.hasSize) return;
-    final constraints = renderObject.constraints;
-    final size = renderObject.size;
-    final unboundedWidth = constraints.maxWidth.isInfinite;
-    final unboundedHeight = constraints.maxHeight.isInfinite;
-    if (!unboundedWidth && !unboundedHeight) return;
-    final zeroWidth = unboundedWidth && size.width <= 0;
-    final zeroHeight = unboundedHeight && size.height <= 0;
-    if (!zeroWidth && !zeroHeight) return;
-    final axis = zeroWidth && zeroHeight ? '宽高' : (zeroWidth ? '宽度' : '高度');
-    debugPrint(
-      '[w_tools_ui] WImage 在$axis轴上没有确定尺寸（加载前占位为 0，会表现为空白）。'
-      '请给 WImageStyle 设置 width / height / aspectRatio，'
-      '或让父级在$axis轴上有界（SizedBox / Expanded / AspectRatio）。',
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      debugCheckWImageSizeHint(context);
+    });
   }
 
   Widget _buildContent(BuildContext context) {
@@ -228,12 +203,12 @@ class _WImageState extends State<WImage> {
         _load.error ?? WImageError(widget.source.raw, WImageErrorKind.empty),
       );
     } else {
-      result = switch (_type) {
-        WImageType.network => _buildNetwork(),
-        WImageType.asset => _buildAsset(),
-        WImageType.file => _buildFile(context),
-        WImageType.base64 => _buildBase64(),
-        WImageType.provider => _buildProvider(),
+      result = switch (widget.source) {
+        WNetworkImageSource source => _buildNetwork(source),
+        WAssetImageSource source => _buildAsset(source),
+        WFileImageSource source => _buildFile(context, source),
+        WBase64ImageSource() => _buildBase64(),
+        WProviderImageSource source => _buildProvider(source),
       };
     }
 
@@ -245,85 +220,32 @@ class _WImageState extends State<WImage> {
     return WImageFrame(style: style, child: result);
   }
 
-  /// 给占位/错误占位加尺寸约束（配置了宽高时）
-  Widget _sizedSlot(Widget child) {
-    if (style.width == null && style.height == null) return child;
-    return SizedBox(width: style.width, height: style.height, child: child);
-  }
-
-  Widget _fallbackPlaceholder(BuildContext context) {
-    return ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest);
-  }
-
-  Widget _fallbackErrorWidget(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return ColoredBox(
-      color: colors.errorContainer,
-      child: Icon(Icons.error, color: colors.onErrorContainer),
-    );
-  }
-
   /// 合并单图 slots 与主题 slots：单图非空字段优先，错误占位在
   /// showRetryButton=true 时不再继承主题的错误 builder。
   WImageSlots _slotsFor(BuildContext context) {
     final theme = WImageTheme.maybeOf(context) ?? const WImageSlots();
-    final own = widget.slots;
-    if (own == null) return theme;
-
-    final ownShowRetry = own.showRetryButton;
-    final showRetry = ownShowRetry ?? theme.showRetryButton;
-    final ownHasError = own.errorWidgetBuilder != null || own.errorWidget != null;
-    final inheritThemeError = !ownHasError && showRetry != true;
-
-    return WImageSlots(
-      placeholderBuilder:
-          own.placeholderBuilder ?? (own.placeholder == null ? theme.placeholderBuilder : null),
-      placeholder: own.placeholder ?? theme.placeholder,
-      errorWidgetBuilder:
-          own.errorWidgetBuilder ??
-          (own.errorWidget == null && inheritThemeError ? theme.errorWidgetBuilder : null),
-      errorWidget:
-          own.errorWidget ??
-          (own.errorWidgetBuilder == null && inheritThemeError ? theme.errorWidget : null),
-      progressBuilder: own.progressBuilder ?? theme.progressBuilder,
-      showRetryButton: showRetry,
-      retryLabel: own.retryLabel ?? theme.retryLabel,
-    );
+    return mergeImageSlots(own: widget.slots, theme: theme);
   }
 
   /// 图片加载中的占位（优先业务自定义）
   Widget _placeholderFor(BuildContext context) {
-    final slots = _slotsFor(context);
-    return slots.placeholderBuilder?.call(context, _value) ??
-        _sizedSlot(slots.placeholder ?? _fallbackPlaceholder(context));
+    return buildImagePlaceholder(
+      context: context,
+      slots: _slotsFor(context),
+      style: style,
+      data: _value,
+    );
   }
 
   /// 错误占位：业务 builder > 固定 Widget > 内置重试视图 > 兜底
   Widget _errorSlot(BuildContext context, WImageError error) {
-    final slots = _slotsFor(context);
-    final builder = slots.errorWidgetBuilder;
-    if (builder != null) {
-      return builder(context, error.data, error) ??
-          _sizedSlot(slots.errorWidget ?? _fallbackErrorWidget(context));
-    }
-    if (slots.errorWidget != null) return _sizedSlot(slots.errorWidget!);
-    if (slots.showRetryButton ?? false) {
-      final canRetry = const {
-        WImageErrorKind.network,
-        WImageErrorKind.provider,
-        WImageErrorKind.file,
-      }.contains(error.kind);
-      return _sizedSlot(
-        WImageErrorView(
-          error: error,
-          onRetry: canRetry ? _load.retryNow : null,
-          retryLabel: slots.retryLabel ?? '重试',
-          // 实际尺寸交给 WImageErrorView 的 LayoutBuilder 判断；
-          // compact/showAction 仅保留为调用方显式覆盖参数。
-        ),
-      );
-    }
-    return _sizedSlot(_fallbackErrorWidget(context));
+    return buildImageErrorSlot(
+      context: context,
+      slots: _slotsFor(context),
+      style: style,
+      error: error,
+      onRetry: _load.retryNow,
+    );
   }
 
   ImageProvider _cachedProvider(Object key, ImageProvider Function() create) {
@@ -332,107 +254,6 @@ class _WImageState extends State<WImage> {
     _providerKey = key;
     _providerCache = provider;
     return provider;
-  }
-
-  /// 网络图片：CachedNetworkImageProvider + 统一 Image 管线
-  ///
-  /// 磁盘/内存缓存仍由 `cached_network_image` 的 provider 负责；
-  /// 进度来自 `Image.loadingBuilder` 的 `ImageChunkEvent`。
-  Widget _buildNetwork() {
-    final network = widget.source as WNetworkImageSource;
-    final provider = _cachedProvider(
-      'network:${network.key}:${config.memCacheWidth}x${config.memCacheHeight}',
-      () => CachedNetworkImageProvider(
-        _value,
-        headers: network.headers,
-        cacheKey: network.cacheKey,
-        maxWidth: config.memCacheWidth,
-        maxHeight: config.memCacheHeight,
-      ),
-    );
-    return _imageWidget(
-      provider,
-      errorFactory: (error) =>
-          WImageError(widget.source.raw, WImageErrorKind.network, cause: error),
-      applyDecodeSize: false,
-      notifyProgressCompletion: true,
-      retryOnError: true,
-    );
-  }
-
-  /// 任意 provider（含 MemoryImage）
-  Widget _buildProvider() {
-    final source = widget.source as WProviderImageSource;
-    final provider = _cachedProvider(source.provider, () => source.provider);
-    return _imageWidget(
-      provider,
-      errorFactory: (error) =>
-          WImageError(widget.source.raw, WImageErrorKind.provider, cause: error),
-    );
-  }
-
-  /// 本地资源：统一走 [AssetImage]（Flutter 自带 ImageCache，支持 2x/3x 变体）
-  Widget _buildAsset() {
-    final asset = widget.source as WAssetImageSource;
-    final provider = _cachedProvider(
-      'asset:${asset.key}:${config.memCacheWidth}x${config.memCacheHeight}',
-      () => AssetImage(asset.value, package: asset.package),
-    );
-    return _imageWidget(
-      provider,
-      errorFactory: (error) => WImageError(widget.source.raw, WImageErrorKind.asset, cause: error),
-    );
-  }
-
-  /// 本地文件：条件导入拿 provider，Web 返回 null → 不支持
-  Widget _buildFile(BuildContext context) {
-    final provider = buildFileImageProvider(_value);
-    if (provider == null) {
-      _hasFrame = false;
-      final error = WImageError(widget.source.raw, WImageErrorKind.unsupported);
-      _load.fail(error);
-      return _errorSlot(context, error);
-    }
-    final cached = _cachedProvider(
-      'file:${widget.source.key}',
-      () => provider,
-    );
-    return _imageWidget(
-      cached,
-      errorFactory: (error) => WImageError(widget.source.raw, WImageErrorKind.file, cause: error),
-    );
-  }
-
-  /// Base64：小数据直接解码，大数据交给 isolate
-  Widget _buildBase64() {
-    return FutureBuilder<Uint8List>(
-      future: _bytesFuture ??= _decodeBase64(_value),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          final error = WImageError(
-            widget.source.raw,
-            WImageErrorKind.decode,
-            cause: snapshot.error,
-          );
-          _load.fail(error);
-          return _errorSlot(context, error);
-        }
-        if (!snapshot.hasData) {
-          _load.markLoading();
-          return _placeholderFor(context);
-        }
-        final bytes = snapshot.data!;
-        final provider = _cachedProvider(
-          'base64:${identityHashCode(bytes)}:${config.memCacheWidth}x${config.memCacheHeight}',
-          () => MemoryImage(bytes),
-        );
-        return _imageWidget(
-          provider,
-          errorFactory: (error) =>
-              WImageError(widget.source.raw, WImageErrorKind.decode, cause: error),
-        );
-      },
-    );
   }
 
   /// 统一的 Image 构建：所有来源的宽高/适配/解码/语义参数只在这里维护
@@ -449,8 +270,8 @@ class _WImageState extends State<WImage> {
   }) {
     final effectiveProvider = applyDecodeSize
         ? ResizeImage.resizeIfNeeded(
-            config.memCacheWidth,
-            config.memCacheHeight,
+            options.memCacheWidth,
+            options.memCacheHeight,
             provider,
           )
         : provider;
@@ -464,7 +285,7 @@ class _WImageState extends State<WImage> {
       fit: style.fit,
       filterQuality: style.filterQuality,
       alignment: style.alignment,
-      gaplessPlayback: config.gaplessPlayback,
+      gaplessPlayback: options.gaplessPlayback,
       semanticLabel: style.semanticLabel,
       excludeFromSemantics: style.excludeFromSemantics,
       frameBuilder: (showPlaceholderWhileLoading || notifyCompletion)
@@ -480,7 +301,7 @@ class _WImageState extends State<WImage> {
               }
               if (!showPlaceholderWhileLoading) return child;
               _load.markLoading();
-              if (config.gaplessPlayback && _hasFrame) return child;
+              if (options.gaplessPlayback && _hasFrame) return child;
               return _placeholderFor(context);
             }
           : null,
@@ -510,17 +331,5 @@ class _WImageState extends State<WImage> {
         return _errorSlot(context, _load.error ?? typed);
       },
     );
-  }
-
-  /// Base64 解码（小数据同步，大数据 isolate）
-  static Uint8List _decodeBase64Sync(String data) => base64Decode(data);
-
-  Future<Uint8List> _decodeBase64(String value) {
-    // Base64 文本长度 × 3/4 ≈ 解码后的字节数
-    final estimatedBytes = value.length * 3 ~/ 4;
-    if (estimatedBytes <= _inlineDecodeMaxBytes) {
-      return Future<Uint8List>.sync(() => _decodeBase64Sync(value));
-    }
-    return compute(_decodeBase64Sync, value);
   }
 }
