@@ -208,7 +208,15 @@ def check_notes(
     errors: list[str] = []
     for key, old, new in changes:
         type_name = key.split('.', 1)[0]
-        if key in notes or type_name in notes:
+        member = key.split('.', 1)[1] if '.' in key else ''
+        type_exists = current is not None and type_name in current
+        mentioned = key in notes or (member and member in notes)
+        if not type_exists:
+            # 整个类型被删除/改名：类型名出现在 Breaking/Removed 或 migration 即可。
+            mentioned = mentioned or type_name in notes
+        if key.endswith('.new') and type_name in notes:
+            mentioned = True
+        if mentioned:
             continue
         # 构造器新增可选参数是 additive：允许记在 Added/Changed；构造器删除仍要 Breaking。
         if key.endswith('.new') and new is not None and current is not None and key in current:
