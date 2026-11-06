@@ -106,11 +106,11 @@ CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
 - 本仓库内反馈用 `dart run w_tools_cli:w_tools feedback submit ... --ledger`（自动维护 `docs/feedback/` 与索引）；消费方用 issue 入口
 - [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R9）
 - [`docs/modules/components.md`](docs/modules/components.md)（若涉及组件建议）
-- `packages/cli/test/init_test.dart` / `doctor_test.dart` 的用例
+- `packages/cli/test/internal/init_test.dart` / `internal/doctor_test.dart` 的用例
 - `packages/cli/CHANGELOG.md`
 
 **改了 `DoctorConfig` 的默认值**必须同步 `renderDefaultConfig()`（`doctor --print-config` 的输出），
-`packages/cli/test/config_render_test.dart` 会挡住漂移。
+`packages/cli/test/internal/config_render_test.dart` 会挡住漂移。
 
 **改了 `packages/cli/templates/` 下的模板文件后必须跑**（在 `packages/cli/` 下）：
 
@@ -118,12 +118,12 @@ CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
 dart run tool/gen_templates.dart
 ```
 
-生成 `lib/src/init/templates.g.dart`，否则 `test/templates_fresh_test.dart` 会红 ——
+生成 `lib/src/init/templates.g.dart`，否则 `test/internal/templates_fresh_test.dart` 会红 ——
 这是有意的：模板只允许有一份来源（`templates/`）。
 
 **改了 `packages/cli/catalog/components.yaml` 后必须跑** `dart run tool/gen_catalog.dart`
 （生成 `lib/src/catalog/catalog.g.dart` 和 `docs/modules/components.md` 的 §1~§9 表格），
-否则 `test/catalog_test.dart` 会红 —— 组件目录同样只允许有一份来源。
+否则 `test/internal/catalog_test.dart` 会红 —— 组件目录同样只允许有一份来源。
 
 CLI 是纯 Dart 包：测试用 `dart test`；发布统一用 `bash scripts/publish_package.sh packages/cli`，不要直接 `dart pub publish`。
 

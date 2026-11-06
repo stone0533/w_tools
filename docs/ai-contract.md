@@ -234,11 +234,11 @@ teach: false  普通组件：至少 useFor / dontUseFor
 | 维度 | 查什么 | 入口 |
 |---|---|---|
 | 5.1 可发现性 | 公开导出类型必须进 catalog 或 `uncataloged.yaml` 基线 | [`check_public_catalog.py`](../scripts/check_public_catalog.py) |
-| 5.2 教学覆盖 | teach 必须有 usage / pitfalls / related；每个库包至少一个 teach；prompt 含「用法 / 注意 / 相关」 | [`ai_contract_test.dart`](../packages/cli/test/ai_contract_test.dart) |
+| 5.2 教学覆盖 | teach 必须有 usage / pitfalls / related；每个库包至少一个 teach；prompt 含「用法 / 注意 / 相关」 | [`ai_contract_test.dart`](../packages/cli/test/internal/ai_contract_test.dart) |
 | 5.3 路由覆盖 | 每个 `InitFeature` 有 zh / en 模板，且不推荐旧命令 | 同上 |
 | 5.4 文档覆盖 | 每个包有 README；所有当前文档的安装示例下界等于当前版本（含跨包示例）；有 example 要在 README 提及 | [`check_package_docs.py`](../scripts/check_package_docs.py) |
 | 5.5 生成物新鲜度 | `catalog.g.dart` / `templates.g.dart` / `components.md` 与源文件一致 | `gen_catalog.dart --check`、`gen_templates.dart --check` |
-| 5.6 查询正确性 | `list` / `explain` / `context`、三种输出格式、别名命中、README 快速开始 | [`cli_test.dart`](../packages/cli/test/cli_test.dart)、[`catalog_test.dart`](../packages/cli/test/catalog_test.dart)、[`context_test.dart`](../packages/cli/test/context_test.dart) |
+| 5.6 查询正确性 | `list` / `explain` / `context`、三种输出格式、别名命中、README 快速开始 | [`cli_test.dart`](../packages/cli/test/cli_test.dart)、[`catalog_test.dart`](../packages/cli/test/internal/catalog_test.dart)、[`context_test.dart`](../packages/cli/test/internal/context_test.dart) |
 | 5.7 文档入口一致性 | 文档索引完整、`docs/agents` 索引与规则页一致、高频规则短语在 docs/agents 与 zh/en 模板一致、doctor 规则表两处一致、root / 各包 `AGENTS.md` 的符号、import / re-export 边界与已删除 API、提示词命令可执行 | [`check_docs_facts.py`](../scripts/check_docs_facts.py)、[`check_agents_consistency.py`](../scripts/check_agents_consistency.py)、[`check_doc_symbols.py`](../scripts/check_doc_symbols.py)、[`check_removed_api.py`](../scripts/check_removed_api.py)、[`check_prompt_docs.py`](../scripts/check_prompt_docs.py) |
 | 5.8 命名约定 | 公开 `W*Config` 必须在 [naming_baseline.yaml](../scripts/naming_baseline.yaml) 内；库包公开类型 `W` 前缀；规则见 [docs/naming.md](naming.md) | [`check_naming.py`](../scripts/check_naming.py) |
 | 5.9 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh` | [`ci_matrix.py`](../scripts/ci_matrix.py) |

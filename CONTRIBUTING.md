@@ -11,7 +11,8 @@
 - [ ] **默认值可用**：不传任何参数也能渲染出一个合理的组件
 - [ ] **至少一个测试**：`packages/<pkg>/test/` 下的 widget 测试；像素敏感的加上 golden
 - [ ] **`CHANGELOG.md` 条目 + 版本号**：子包版本必须抬；如果该子包被根包聚合，
-      根包的 `^x.y.z` 约束要一起改（改完跑 `bash scripts/release_check.sh`）
+      根包的 `^x.y.z` 约束要一起改（改完跑 `bash scripts/release_check.sh`）。
+      CI 的 `api-bump` job 会比对 base 与 HEAD 的公开 API 表面，**没抬版本直接失败**。
 
 ## 2. 接口设计
 

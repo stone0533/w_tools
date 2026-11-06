@@ -94,6 +94,7 @@ check 名字随包矩阵变化。
 | `check_deprecations.py` | `@Deprecated` 的 `remove-in` 是否到期 | preflight |
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
+| `check_version_bump.py` | 对比 PR base 与 HEAD 的公开 API 表面：有变化但 pubspec 版本没抬 → 失败（内部重构不会误报） | CI `api-bump` job / 本地 `--base main` |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
 ### 发布
@@ -111,7 +112,7 @@ check 名字随包矩阵变化。
 | `packages/cli/tool/gen_catalog.dart --check` | `catalog.g.dart` / `components.md` 与 `components.yaml` 一致 | preflight / 改 catalog |
 | `packages/cli/tool/gen_templates.dart --check` | `templates.g.dart` 与 `templates/` 一致 | preflight / 改 templates |
 | `packages/cli/tool/check_templates_compile.dart` | init 模板生成后能否通过 Flutter analyze | `preflight --with-tests` |
-| `packages/cli/test/ai_contract_test.dart` | teach / prompt / AGENTS feature 契约 | `preflight --with-tests` |
+| `packages/cli/test/internal/ai_contract_test.dart` | teach / prompt / AGENTS feature 契约 | `preflight --with-tests` |
 
 ### 检查边界
 

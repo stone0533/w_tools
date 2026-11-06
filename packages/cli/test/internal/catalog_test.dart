@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:w_tools_cli/src/catalog/catalog.dart';
 
-import '../tool/gen_catalog.dart' as gen;
+import '../../tool/gen_catalog.dart' as gen;
 
 void main() {
   test('catalog.g.dart 与 catalog/components.yaml 一致', () {
