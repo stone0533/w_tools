@@ -12,7 +12,8 @@
 - [ ] **至少一个测试**：`packages/<pkg>/test/` 下的 widget 测试；像素敏感的加上 golden
 - [ ] **`CHANGELOG.md` 条目 + 版本号**：子包版本必须抬；如果该子包被根包聚合，
       根包的 `^x.y.z` 约束要一起改（改完跑 `bash scripts/release_check.sh`）。
-      CI 的 `api-bump` job 会比对 base 与 HEAD 的公开 API 表面，**没抬版本直接失败**。
+      CI 的 `api-bump` job 会比对 base 与 HEAD 的公开 API 表面：API 变了但版本既没抬、
+      也不高于已发布快照（即仍指向 pub.dev 上的版本）时直接失败；已经在未发布版本里的改动可以沿用。
 
 ## 2. 接口设计
 
@@ -58,7 +59,8 @@
 
 - 实际发布用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），
   **不要**在包目录直接 `flutter pub publish` —— `workspace:` 字段会被原样发布，
-  消费方 `dart pub deps` 会失败
+  消费方 `dart pub deps` 会失败。正式发布时脚本会自己要求：干净工作区、`main` 且
+  `HEAD == origin/main`、`release_check.sh --strict` 通过（`--force` 只用于明确的例外）。
 - 版本策略与流程见 [`docs/releasing.md`](docs/releasing.md)
 - 公开 API 变化（删除 / 类型变化 / 可空性变化）先跑
   `python3 scripts/check_public_api_diff.py --package <pkg>`；它要求变化写进

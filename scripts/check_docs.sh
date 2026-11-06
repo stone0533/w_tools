@@ -1,10 +1,29 @@
 #!/usr/bin/env bash
 # 文档自检：链接、旧命令、安装版本、符号 / 根包导出、已删除 API、索引、docs/agents 一致性。
-# 用法：bash scripts/check_docs.sh（preflight 与 CI 都会跑）
+# 用法：bash scripts/check_docs.sh [--skip-feedback]（preflight 与 CI 都会跑）
+#
+# --skip-feedback：跳过「反馈台账」（需要 dart + pub get）。CI 的 docs job 不装 Flutter，
+# 那条检查在那里必然只能打印「环境不可用」；走 umbrella 的 preflight 才是真正校验的地方。
 #
 # 每一步都会打出自己的名字：失败时能直接看出是哪一步，而不是只看到子脚本的堆栈。
 # 只有显式标了 step_optional 的步骤，退出码 2 才会按“环境不可用”跳过。
 set -uo pipefail
+
+skip_feedback=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --skip-feedback) skip_feedback=1 ;;
+    -h | --help)
+      sed -n '2,8p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *)
+      echo "未知参数: $1" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
@@ -136,7 +155,9 @@ step '组件目录版本表' check_no_version_table
 step '文档片段与表格列数' python3 scripts/check_docs_snippets.py
 step 'modules/README 重复示例' python3 scripts/check_docs_duplicates.py --fail
 step '版本声明' python3 scripts/check_docs_versions.py
-step_optional '反馈台账' bash scripts/check_feedback.sh
+if [ -z "$skip_feedback" ]; then
+  step_optional '反馈台账' bash scripts/check_feedback.sh
+fi
 step 'async 旧 API' python3 scripts/check_async_docs.py
 step '安装约束 / 示例' python3 scripts/check_package_docs.py
 step '文档符号 / import 边界' python3 scripts/check_doc_symbols.py
