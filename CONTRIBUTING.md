@@ -28,8 +28,9 @@
 ## 3. 文档
 
 - 表单相关改动先看 [`docs/agents/form.md`](docs/agents/form.md)
-- 组件加进 [`docs/modules/components.md`](docs/modules/components.md) 的对应表格：
-  **用来做什么 / 不要用在哪 / 引入版本**
+- 组件先登记到 [`packages/cli/catalog/components.yaml`](packages/cli/catalog/components.yaml)（`useFor` / `dontUseFor`），
+  再跑 `cd packages/cli && dart run tool/gen_catalog.dart` 生成 [`docs/modules/components.md`](docs/modules/components.md)；
+  **不要手改生成物**
 - 「不要用在哪」比「怎么用」更有价值——误用是主要故障源
 - 该子包的 `docs/modules/<module>_module.md` 补一段说明（如果有行为细节）
 - 改完 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、包清单）
@@ -76,7 +77,7 @@
 **完整流程（消费方 / 维护者两套步骤、一条完整示例）只维护一份**，见
 [`docs/feedback/README.md`](docs/feedback/README.md)。本节只留三条硬规则：
 
-1. **有反馈才建文件**：`docs/feedback/<包>.md`，不要预建 13 个空文件；
+1. **有反馈才建文件**：`docs/feedback/<包>.md`，不要为每个包预建空文件；
 2. `已修复` **必须带版本号**（+ commit），细节写进 CHANGELOG；
 3. 已闭环压成表格一行；提交前跑 `bash scripts/check_feedback.sh`。
 

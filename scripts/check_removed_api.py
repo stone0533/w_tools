@@ -15,6 +15,7 @@ import re
 import sys
 
 root = pathlib.Path(__file__).resolve().parent.parent
+# 已删除的公开名白名单：每次删除 / 废弃都要在这里登记，见 docs/ai-contract.md §7。
 names = [
     r'WRowButtons', r'WRowButtonsController', r'WSizeBox', r'WPadding', r'WColumn',
     r'WImageCachePolicy', r'WImageConfig', r'WImageDefaults\b', r'WImageEmptyError',

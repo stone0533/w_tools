@@ -86,7 +86,8 @@
 - `pubspec.yaml`、API 字段名、方法名、类名等保持**英文原名**。
 - 文档结构统一为：概述 → 模块结构 → 逐类说明（功能说明、核心方法/参数、使用示例）→
   完整配置示例 → 注意事项。
-- 新增或修改组件时，同步更新 [`components.md`](components.md) 的组件表。
+- 新增或修改组件时，改 [`packages/cli/catalog/components.yaml`](../../packages/cli/catalog/components.yaml)
+  并跑 `cd packages/cli && dart run tool/gen_catalog.dart` 重新生成 [`components.md`](components.md)（不要手改）。
 
 ## 相关文档
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """检查文档代码块里的 W 符号：类存在，且 `WXxx.member` 成员存在。
 
-只扫推荐路径（docs/agents、docs/recipes、docs/modules、packages/*/README.md），
-跳过迁移 / 分析 / ADR（历史文档允许出现已删除的名字）。
+只扫推荐路径（根 README / AGENTS.md、docs/agents、docs/recipes、docs/modules、docs/guides、
+packages/*/README.md），跳过迁移 / 分析 / ADR（历史文档允许出现已删除的名字）。
 
 - `WXxx(` 的 `WXxx` 必须能在 packages/*/lib 找到 class / enum / mixin / extension / typedef；
 - `WXxx.member` 的 member 必须在该类（深度 1）声明，或属于 Object 的通用成员。
@@ -86,8 +86,8 @@ targets: list[pathlib.Path] = []
 for sub in ('docs/agents', 'docs/recipes', 'docs/modules', 'docs/guides'):
     targets.extend(sorted((root / sub).glob('*.md')))
 targets.extend(sorted((root / 'packages').glob('*/README.md')))
-# 根 AGENTS.md 是仓库 AI 的主入口，代码块同样要对着源码校验。
-targets.append(root / 'AGENTS.md')
+# 根 README / AGENTS.md 是仓库的主入口，代码块同样要对着源码校验。
+targets += [root / 'README.md', root / 'AGENTS.md']
 
 call_re = re.compile(r'\b(W[A-Z][A-Za-z0-9_]*)\s*\(')
 member_access_re = re.compile(r'\b(W[A-Z][A-Za-z0-9_]*)\.([a-zA-Z_]\w*)')

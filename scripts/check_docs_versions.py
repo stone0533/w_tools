@@ -20,7 +20,10 @@ files += sorted((root / 'packages').glob('*/README.md'))
 files += sorted((root / 'packages').glob('*/AGENTS.md'))
 files += sorted((root / 'docs').rglob('*.md'))
 
-pattern = re.compile(r'v?\d+\.\d+\.\d+\s*(?:已发布|待发布)')
+pattern = re.compile(
+    r'(?:v?\d+\.\d+\.\d+\s*(?:已发布|待发布))'
+    r'|(?:(?:已发布|待发布)\s*v?\d+\.\d+\.\d+)',
+)
 skip = root / 'docs' / 'analysis'
 
 bad: list[str] = []

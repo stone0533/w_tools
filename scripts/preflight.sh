@@ -3,7 +3,7 @@
 # 发布前门禁（静态检查默认全跑；测试 / dry-run 按需开启）。
 #
 # 用法：
-#   bash scripts/preflight.sh                 # format / analyze / docs（含 feedback）/ 弃用 / catalog / release
+#   bash scripts/preflight.sh                 # format / analyze / docs（含 feedback）/ 弃用 / catalog（含生成物新鲜度）/ release
 #   bash scripts/preflight.sh --with-tests    # 再加所有包 + example + 根包测试 + 模板编译
 #   bash scripts/preflight.sh --with-dry-run  # 再加全部子包 + 根包 publish dry-run
 #   bash scripts/preflight.sh --all           # 全部
@@ -23,7 +23,7 @@ for arg in "$@"; do
     --with-dry-run) with_dry_run=1 ;;
     --all) with_tests=1; with_dry_run=1 ;;
     -h | --help)
-      sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,15p' "$0" | sed -n 's/^# \{0,1\}//p'
       exit 0
       ;;
     *)
@@ -52,6 +52,9 @@ run "docs" bash scripts/check_docs.sh
 run "doc symbols" python3 scripts/check_doc_symbols.py
 run "removed API" python3 scripts/check_removed_api.py
 run "public catalog" python3 scripts/check_public_catalog.py
+# 生成物新鲜度：只改源文件却忘了跑生成器时，这里直接失败（不用等 --with-tests 的 cli 测试）。
+run "catalog fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_catalog.dart --check"
+run "templates fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_templates.dart --check"
 run "style literals" python3 scripts/check_style_literals.py
 run "deprecations" python3 scripts/check_deprecations.py
 run "release check" bash scripts/release_check.sh

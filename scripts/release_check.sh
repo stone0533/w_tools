@@ -196,13 +196,13 @@ else
 fi
 
 section 'README 版本声明'
-# README 不再硬编码「当前 x.y.z」：版本会随各包独立发版漂移，以 pubspec / pub.dev 为准。
+# README 不写「当前 x.y.z」这类发布状态版本；安装示例的 caret 约束由 check_package_docs.py 校验。
 if grep -nE '当前[[:space:]]*`[0-9]+\.[0-9]+\.[0-9]+`' README.md >/dev/null 2>&1; then
   while IFS= read -r line; do
-    fail "README.md 硬编码了子包版本：$line"
+    fail "README.md 声明了发布状态版本：$line"
   done < <(grep -nE '当前[[:space:]]*`[0-9]+\.[0-9]+\.[0-9]+`' README.md)
 else
-  ok "README 未硬编码版本号"
+  ok "README 未声明发布状态版本（安装约束见 check_package_docs.py）"
 fi
 
 section '弃用到期（remove-in）'

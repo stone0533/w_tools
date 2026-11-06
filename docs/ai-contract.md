@@ -280,12 +280,14 @@ teach: false  普通组件：至少 useFor / dontUseFor
 
 ```text
 1. 删除或废弃代码
-2. 从 catalog 移除条目，或改 aliases / usage / pitfalls
-3. 检查 related 是否还有引用
-4. 更新 AGENTS 模板（明确新入口）
-5. 更新 README / migration
-6. 更新 example
-7. 跑 check_removed_api / check_docs / preflight
+2. 把删除的公开名补进 scripts/check_removed_api.py 的 names 列表
+   （手写白名单：不登记，后续文档引用就拦不住）
+3. 从 catalog 移除条目，或改 aliases / usage / pitfalls
+4. 检查 related 是否还有引用
+5. 更新 AGENTS 模板（明确新入口）
+6. 更新 README / migration
+7. 更新 example
+8. 跑 check_removed_api / check_docs / preflight
 ```
 
 如果 API 只是 deprecated：

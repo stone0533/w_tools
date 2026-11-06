@@ -50,6 +50,7 @@
 带日期的历史分析，**不是当前事实源**：
 
 - [2026-11-03 修复路线图](analysis/2026-11-03-remediation-plan.md)
+- [2026-11-06 文档 / 脚本体系审计](analysis/2026-11-06-docs-scripts-audit.md)
 
 改完 `docs/` 后跑：
 

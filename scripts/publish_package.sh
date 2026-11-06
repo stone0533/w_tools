@@ -107,7 +107,7 @@ rsync -a \
   --exclude '.DS_Store' \
   "$src/" "$staging/"
 
-# 根包只发布聚合层本身，8 个子包各自独立发布
+# 根包只发布聚合层本身，6 个子包各自独立发布
 if [ "$src" = "$repo_root" ]; then
   rm -rf "$staging/packages"
 fi

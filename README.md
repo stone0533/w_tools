@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/stone0533/w_tools/actions/workflows/ci.yml/badge.svg)](https://github.com/stone0533/w_tools/actions/workflows/ci.yml)
 
-一个基于 Config 开发的功能丰富的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
+一个按子包拆分、配置驱动的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
 
 ## 特性
 
@@ -36,7 +36,7 @@
 > ℹ️ **发布状态**：6 个基础子包与聚合包 `w_tools` 已发布到 pub.dev；
 > `w_tools_cli` 是独立的纯 Dart 工具包，发布状态见 pub.dev。
 > 根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 6 个基础子包，只 re-export 子包能力；
-> 各包按其当前主版本约束（见根 `pubspec.yaml`，本文不硬编码版本号）。
+> 各包的安装约束以根 `pubspec.yaml` 为准；本文示例约束由 `scripts/check_package_docs.py` 校验。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
 ### 本地开发 / 跨仓库接入
@@ -98,17 +98,22 @@ dart run w_tools_cli:w_tools doctor    # 之后随时检查是否守约定
 import 'package:w_tools/w_tools.dart';
 ```
 
-根包不再提供旧 `WConfig` 兼容层（`WConfig` 的键名字段已弃用）。
+根包不再提供旧 `WConfig` 兼容层（`WConfig` 已在 core 3.0 删除）。
 
 配置走子包入口：
 
 ```dart
+import 'package:flutter/material.dart';
 import 'package:w_tools/w_tools.dart';
 
-WToken.tokenKey = 'auth_token';   // core：token 键名
-WAssets.imagePath = 'assets/images/';  // ui：资源前缀
-WFormIcons.check = Icons.check;   // form：表单图标
-WToken.tokenKey = 'token'; // core：token 键名
+WToken.tokenKey = 'auth_token';         // core：token 键名
+WAssets.imagePath = 'assets/images/';   // ui：资源前缀
+
+// form：图标按页面作用域配置（WFormIcons 没有全局静态赋值）
+WFormTheme(
+  icons: WFormIcons.defaults.copyWith(clear: const Icon(Icons.clear)),
+  child: form,
+);
 ```
 
 
@@ -128,7 +133,7 @@ dependencies:
 
 ```yaml
 dependencies:
-  w_tools: ^7.0.0
+  w_tools: ^9.0.1
 ```
 
 然后运行：

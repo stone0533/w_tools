@@ -26,6 +26,7 @@ bash scripts/preflight.sh --with-tests
 ```text
 format / analyze / docs / AI 契约（含 feedback）
 公开类型 catalog / 弃用 / 风格
+catalog / templates 生成物新鲜度
 release check
 CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
 全部包 + example + root 测试 + root example 测试 + 模板编译
@@ -55,11 +56,11 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 
 | 脚本 | 作用 | 调用方 |
 |---|---|---|
-| `check_doc_symbols.py` | 文档 `W*` 符号是否存在（含 root `AGENTS.md`） | preflight |
+| `check_doc_symbols.py` | 文档 `W*` 符号是否存在（含 root `README.md` / `AGENTS.md`） | preflight |
 | `check_docs_snippets.py` | 已证伪 API / components 表格列数 | check_docs |
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
-| `check_package_docs.py` | 子包 README 安装约束（caret 语义）/ example 链接 | check_docs |
+| `check_package_docs.py` | 子包 + 根 README 安装约束（caret 语义）/ example 链接 | check_docs |
 | `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性 / ADR 编号与状态 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名一致 | check_docs |
 | `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
@@ -87,7 +88,10 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 
 | 工具 | 作用 | 何时跑 |
 |---|---|---|
+| `packages/cli/tool/gen_catalog.dart --check` | `catalog.g.dart` / `components.md` 与 `components.yaml` 一致 | preflight / 改 catalog |
+| `packages/cli/tool/gen_templates.dart --check` | `templates.g.dart` 与 `templates/` 一致 | preflight / 改 templates |
 | `packages/cli/tool/check_templates_compile.dart` | init 模板生成后能否通过 Flutter analyze | `preflight --with-tests` |
+| `packages/cli/test/ai_contract_test.dart` | teach / prompt / AGENTS feature 契约 | `preflight --with-tests` |
 
 ### 检查边界
 
@@ -98,6 +102,7 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 - `check_public_catalog.py`：基于 export/part 的静态扫描 + `uncataloged.yaml` 基线；
 - `check_docs_facts.py`：规模数字与索引完整性，不校验 API 细节；
 - `check_agents_consistency.py`：只比入口名，不比措辞；
+- `check_package_docs.py`：只校验 caret 下界与主版本，不校验具体 patch；
 - `ci_matrix.py --check`：查清单是否同源，不查 workflow 语义。
 
 发布前：
