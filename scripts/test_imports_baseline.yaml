@@ -3,12 +3,6 @@
 # 需要内部实现时把测试放进 test/internal/。
 # 新增违规必须改代码，不要往这里加行；脚本会双向检查（新违规 / 已修复未删行）。
 # 生成：python3 scripts/check_test_imports.py --write
+# 当前为 0 条：所有白盒测试都在 test/internal/；新增违规请改代码，不要往这里加行。
 version: 1
 packages:
-  form:
-    - test/_helpers/config_exports.dart
-    - test/date_picker_test.dart
-    - test/form_config_test.dart
-    - test/form_theme_test.dart
-    - test/text_field_config_test.dart
-    - test/text_field_widget_test.dart

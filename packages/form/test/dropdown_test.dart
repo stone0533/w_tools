@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 import '_helpers/form_test_scaffold.dart';
-import '_helpers/config_exports.dart';
+import 'internal/_helpers/config_exports.dart';
 
 void main() {
   group('WFormDropdownConfig — 纯 Dart', () {
