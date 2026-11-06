@@ -253,7 +253,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
    cd packages/cli
    dart run tool/gen_catalog.dart
    dart run tool/gen_templates.dart
-   dart test test/ai_contract_test.dart
+   dart test test/internal/ai_contract_test.dart
 8. 用 explain <组件> --format=prompt 自测。
 ```
 
@@ -322,7 +322,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
    cd packages/cli
    dart run tool/gen_catalog.dart
    dart run tool/gen_templates.dart
-   dart test test/ai_contract_test.dart
+   dart test test/internal/ai_contract_test.dart
    cd ../..
    bash scripts/check_docs.sh
    python3 scripts/check_public_catalog.py
@@ -1032,10 +1032,10 @@ bash scripts/publish_package.sh <包目录>
 要求：
 1. 规则只实现一次：检查逻辑写在 lib/，文档只描述；不要两边各写一份。
 2. 改 DoctorConfig 默认值 → 同步 renderDefaultConfig()（doctor --print-config），
-   packages/cli/test/config_render_test.dart 会挡住漂移。
+   packages/cli/test/internal/config_render_test.dart 会挡住漂移。
 3. 改 templates/agents/** → cd packages/cli && dart run tool/gen_templates.dart。
 4. 改 catalog/components.yaml → cd packages/cli && dart run tool/gen_catalog.dart。
-5. 同步：packages/cli/test/init_test.dart 或 doctor_test.dart、
+5. 同步：packages/cli/test/internal/init_test.dart 或 doctor_test.dart、
    docs/conventions.md §7、docs/agents/cli.md、packages/cli/CHANGELOG.md。
 6. 在 packages/cli 跑 dart test；再回仓库根跑 bash scripts/preflight.sh --with-tests。
 7. 报告 changed files、命令结果、消费方会感知到的行为变化。

@@ -7,7 +7,7 @@ import 'package:w_tools_cli/src/doctor/rule.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/templates.dart';
 
-import '../tool/gen_templates.dart';
+import '../../tool/gen_templates.dart';
 
 /// 漂移守卫：`lib/src/init/templates.g.dart` 必须与仓库根 `templates/` 一致。
 ///

@@ -129,6 +129,22 @@ def check(rows: list[dict[str, str]]) -> list[str]:
     if 'scripts/preflight.sh' not in runs:
         errors.append('ci.yml: 静态门禁必须调用 scripts/preflight.sh（不要再手抄检查步骤）')
 
+    # 本地 fvm 与 CI 的 Flutter 版本必须同源，否则依赖解析会分叉。
+    fvmrc_path = root / '.fvmrc'
+    if not fvmrc_path.exists():
+        errors.append('.fvmrc 缺失：在仓库根用 fvm use <version> 固定 Flutter 版本')
+    else:
+        try:
+            pinned = json.loads(fvmrc_path.read_text()).get('flutter')
+        except json.JSONDecodeError:
+            pinned = None
+            errors.append('.fvmrc 不是合法 JSON')
+        ci_version = (workflow.get('env') or {}).get('FLUTTER_VERSION')
+        if pinned and ci_version and str(pinned) != str(ci_version):
+            errors.append(
+                f'.fvmrc 固定 Flutter {pinned}，ci.yml 的 FLUTTER_VERSION 是 {ci_version}',
+            )
+
     return errors
 
 

@@ -5,37 +5,6 @@
 # 生成：python3 scripts/check_test_imports.py --write
 version: 1
 packages:
-  cli:
-    - test/ai_contract_test.dart
-    - test/banned_test.dart
-    - test/catalog_test.dart
-    - test/config_parse_test.dart
-    - test/config_render_test.dart
-    - test/context_test.dart
-    - test/doctor_test.dart
-    - test/feedback_ledger_test.dart
-    - test/feedback_submit_test.dart
-    - test/feedback_test.dart
-    - test/init_test.dart
-    - test/reporter_test.dart
-    - test/schema_test.dart
-    - test/snapshot_test.dart
-    - test/templates_fresh_test.dart
-    - test/version_test.dart
-  core:
-    - test/countdown_test.dart
-    - test/hash_encrypt_test.dart
-    - test/reg_exp_test.dart
-    - test/storage_test.dart
-    - test/token_test.dart
-    - test/utils_test.dart
-  figma:
-    - test/budget_guard_test.dart
-    - test/cache_command_test.dart
-    - test/cache_migration_test.dart
-    - test/cli_behavior_test.dart
-    - test/token_test.dart
-    - test/version_test.dart
   form:
     - test/_helpers/config_exports.dart
     - test/date_picker_test.dart
