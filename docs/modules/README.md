@@ -34,7 +34,7 @@
 | `w_tools_device` | `packages/device/` | 纯 Dart | 设备验证 CLI：列模拟器 / 启动 / 截图 / 在 DeviceHub 里按设备坐标点击（自动标定）；平台矩阵与命令见 [`packages/device/README.md`](../../packages/device/README.md) |
 | `w_tools_e2e` | `packages/e2e/` | Flutter | 设备验证的免登录入口（编译期开关，release 天然失效） |
 
-`w_tools_cli` 依赖 `args` / `path` / `yaml`；`w_tools_figma` 只用 Dart 标准库；`w_tools_device` 依赖 `image`；`w_tools_e2e` 是 Flutter 包。
+`w_tools_cli` 依赖 `args` / `path` / `yaml`；`w_tools_figma` 依赖 `yaml`；`w_tools_device` 依赖 `image`；`w_tools_e2e` 是 Flutter 包。
 
 ## 依赖约束矩阵（库子包）
 
@@ -79,6 +79,8 @@
 | `w_tools_form` | ^3.10.0 | >= 3.38 |
 | `w_tools_cli` | ^3.10.0 | —（纯 Dart） |
 | `w_tools_figma` | >=3.6.0 <4.0.0 | —（纯 Dart） |
+| `w_tools_device` | >=3.6.0 <4.0.0 | —（纯 Dart） |
+| `w_tools_e2e` | >=3.6.0 <4.0.0 | >= 3.22 |
 
 ## 文档风格
 

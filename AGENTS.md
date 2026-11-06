@@ -53,7 +53,7 @@ docs/modules/components.md
 
 ## 测试
 
-每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立测试 / 发布。Flutter 子包用 `flutter test`；纯 Dart 包（`map` / `cli` / `figma` / `device`）用 `dart test`；`e2e` 以 pubspec 为准。根 `test/` 只留聚合契约（`w_tools.dart` 的重导出）。
+每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立测试 / 发布。Flutter 子包用 `flutter test`；纯 Dart 包（`map` / `cli` / `figma` / `device`）用 `dart test`；`e2e` 以 pubspec 为准。根 `test/` 只放聚合契约（`w_tools.dart` 重导出）与跨包回归，单包行为测试不要放这里。
 
 ## 文档
 

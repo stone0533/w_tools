@@ -39,7 +39,8 @@ flutter test
 
 ## 说明
 
-聚合包会带上 9 个 Flutter 子包及其依赖（包括 map / qr / GetX）。
+聚合包只带上 6 个基础子包（core / async / ui / form / api / toast）；
+app / app_getx / map / map_google / qr 不聚合，按需直接依赖对应子包。
 
 生产项目建议按需依赖子包；本示例只用于验证聚合入口的实际用法。
 

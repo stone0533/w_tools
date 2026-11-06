@@ -97,7 +97,7 @@ ADR 发布后，`XxxConfig` 命名出现了两类偏差；核对后按以下方�
   不可变值对象、单一公开入口、enum、Theme、两段式发布等决策继续有效。
 - 因此 `WLocaleConfig`（不可变数据载体）与 `WImageSlots`（组件级 UI 插槽）按 [命名规范](../naming.md) 是允许的，
   不再作为本 ADR 白名单的口头例外。
-- 新的 Config 名字以 [`scripts/naming_baseline.yaml`](../scripts/naming_baseline.yaml) 的基线为准
+- 新的 Config 名字以 [`scripts/naming_baseline.yaml`](../../scripts/naming_baseline.yaml) 的基线为准
   （规则见 [命名规范](../naming.md)，`scripts/check_naming.py` 读该基线）；
   本 ADR 的“Config 名字全集”说法由 ADR-0007 与命名规范取代。
 - ADR-0004 补充里的 `WMapConfig` 待改名项已清零：map_google 2.0 已改为 `WMapOptions`。

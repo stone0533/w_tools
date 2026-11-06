@@ -2,14 +2,14 @@
 
 [![CI](https://github.com/stone0533/w_tools/actions/workflows/ci.yml/badge.svg)](https://github.com/stone0533/w_tools/actions/workflows/ci.yml)
 
-一个按子包拆分、配置驱动的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
+一个按子包拆分、以子包配置（`WToken` / `WAssets` / `WAppConfig` 等）驱动的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
 
 ## 特性
 
 - **组件库**：提供丰富的 UI 组件，涵盖通用组件、输入组件、布局组件和导航组件
 - **工具类**：包含加密、验证、日志、存储、网络请求等多种实用工具
 - **扩展功能**：提供颜色、字符串、数字、容器等多种扩展方法
-- **配置驱动**：采用配置驱动的设计模式，便于定制和扩展
+- **配置在子包**：`WToken`（键名）/ `WAssets`（资源前缀）/ `WAppConfig`（语言）等配置各归其包（`WConfig` 已在 3.0 删除）
 - **响应式设计**：支持屏幕适配，自动适应不同设备尺寸
 
 ## 文档
@@ -28,7 +28,7 @@
 | [docs/adr/](docs/adr/) | 架构决策（版本策略、依赖子包） |
 | [packages/cli/README.md](packages/cli/README.md) | `init` / `doctor` CLI |
 
-> `docs/modules/` 面向使用者，`docs/` 顶层面向维护者/agent；`docs/` 不随 pub 发布会
+> `docs/modules/` 面向使用者，`docs/` 顶层面向维护者/agent；`docs/` 不随 pub 发布
 >（已在根 `.pubignore` 排除）。
 
 ## 安装
@@ -203,10 +203,9 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 - **RowButtons** (`WActionRow` / `WSelectableRow`): 行按钮组件
 - **Text** (`WText`): 增强的文本组件
 - **TextStyle** (`WTextStyleExtension`): `TextStyle` 的 `bold` / `withColor` / `withSize` 扩展
-- **RichText** (`WRichText`): 富文本组件，支持复杂文本渲染
 
 #### 输入组件
-- **FormButton** (`WFormFieldButton`): 表单按钮组件
+- **FormButton** (`WFormButton`): 表单字段值选择按钮（`WButton` 负责普通点击）
 - **FormCheckbox** (`WFormCheckbox`): 单个复选框字段组件
 - **FormBuilder** (`WFormScope`): 表单构建器组件
 - **FormDropdown** (`WFormDropdown`): 表单下拉选择组件，支持自定义样式和选项

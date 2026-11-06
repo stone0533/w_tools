@@ -203,10 +203,6 @@ App 级默认 `WImageSlots`，放在主题 / App 根节点；单图仍可用 `sl
 
 滚动通知 / 百分比；百分比只在 depth 0 的 `ScrollUpdateNotification` 上回调。
 
-### WRichText
-
-富文本组合；简单文本优先 `WText`，需要多段不同样式时再用 `WRichText`。
-
 ## 9. 扩展方法
 
 ### WHexColor（Color 扩展）

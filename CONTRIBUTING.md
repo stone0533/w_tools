@@ -25,7 +25,8 @@
   正确的做法是「只共用壳，内容和按钮各自组装」）
 - **布尔参数**要么全部默认 `false`，要么用一个 enum（避免 `type: true, compact: false` 这种调用点）
 - **第三方类型**只要出现在公开签名里，就由本包 `w_tools_*.dart` barrel `export ... show` 转出
-  （反例：map 暴露 CameraPosition 却不转出 google_maps_flutter；toast 要求 BotToastInit 却不转出 bot_toast）。
+  （正例：toast 已转出 `BotToastInit` / `BotToastNavigatorObserver` / `CancelFunc`；
+  反例：map 暴露 `CameraPosition` 却不转出 `google_maps_flutter`）。
   例外必须在 README 安装段写清“需自行添加的包 + 约束”。
 
 ## 3. 文档
@@ -46,7 +47,7 @@
   ```bash
   flutter test --update-goldens packages/ui/test/image_golden_test.dart
   ```
-- 根 `test/` 只放聚合契约（`w_tools.dart` 的重导出）
+- 根 `test/` 只放聚合契约（`w_tools.dart` 重导出）与跨包回归，单包行为测试放回 `packages/<pkg>/test/`
 - `packages/cli` 是纯 Dart 包：用 `dart test`，不要引入 `flutter_test`
 
 ## 5. 发布
