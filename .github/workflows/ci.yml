@@ -60,8 +60,13 @@ jobs:
       - name: Detect code changes
         id: filter
         if: github.event_name != 'workflow_dispatch'
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
+          # 默认的 'some' 下，`!` 排除规则会匹配「不在排除范围里的所有文件」，
+          # 结果就是过滤器永远为 true（PR #2 实测：3 个文档文件同时命中 code 和 static）。
+          # 必须用 some-with-excludes：命中至少一个正向规则、且不命中任何排除规则。
+          # v3 不支持该值，所以这里固定 @v4。
+          predicate-quantifier: 'some-with-excludes'
           filters: |
             code:
               - 'packages/**'
