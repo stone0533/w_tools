@@ -42,7 +42,8 @@ CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
 CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩阵由
 `scripts/ci_matrix.py` 从 `packages.manifest` 生成。两边不再各维护一份清单。
 重量级 job（umbrella / packages / min_sdk）由 `changes` job 按路径门控：纯文档改动只跑
-轻量 `docs` job（`check_docs.sh`），不安装 Flutter；只改 `scripts/` 时跑 umbrella 的静态门禁
+轻量 `docs` job（`check_docs.sh` + `release_check` + `ci_matrix --check` /
+`check_gate_coverage`），不安装 Flutter；只改 `scripts/` 时跑 umbrella 的静态门禁
 + docs，不跑 15 个包矩阵。分支保护只要求最后的 `Required checks` 聚合 job，避免 required
 check 名字随包矩阵变化。
 
@@ -65,8 +66,8 @@ check 名字随包矩阵变化。
 | `install_git_hooks.sh` | 安装 `.githooks`（pre-push 阻止直接 push main） | 首次检出 / 流程要求 |
 | `check_pr_checks.sh` | 用 `gh pr checks --required` 确认 PR Required checks | 发布前 |
 | `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 链接锚点 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字；`--skip-feedback` 供不装 Flutter 的 CI docs job 用） | 只改文档时可单独跑 / CI docs job |
-| `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移（含路径过滤器只能正向、`example` 列 ↔ `example/test`） | preflight / CI matrix job |
-| `check_gate_coverage.py` | 每个 `scripts/*.sh` / `*.py` 都必须被 preflight / check_docs / release_check / workflow 之一调用（人工脚本在脚本内 `MANUAL` 写明理由），且在本手册登记 | preflight |
+| `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移（关键正向过滤器 / quantifier / required 接线 / docs job meta 检查 / `example` 列 ↔ `example/test`） | preflight / CI docs job / matrix job |
+| `check_gate_coverage.py` | 每个 `scripts/*.sh` / `*.py` 都必须被 preflight / check_docs / release_check / workflow 之一调用（人工脚本在脚本内 `MANUAL` 写明理由），且在本手册登记 | preflight / CI docs job |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
 
 `check_docs.sh` 是 `preflight` 的子集，**不要只跑它就说全仓通过**。
@@ -92,7 +93,7 @@ check 名字随包矩阵变化。
 | `check_public_api_diff.py` | 公开 API 快照 diff：删除 / 类型/可空性 / 方法 / 构造器变化必须出现在**当前 pubspec 版本**的 CHANGELOG Breaking/Removed 或 migration（构造器可选参数可记 Added）；缺基线直接失败 | preflight |
 | `check_test_imports.py` | `package:w_tools_<pkg>/src/...` 只允许出现在 `test/internal/`；全包检查，存量登记在 `test_imports_baseline.yaml`（只减不增） | preflight |
 | `check_teaching_coverage.py` | 11 个库包的 `entrypoints.yaml` 入口必须出现在 docs/agents / 模板 zh+en / README（有 example 还要在 example/lib）；app_getx / map_google 共用 app / map 规则页（J-4A） | check_docs / preflight |
-| `check_git_sync.sh` | 当前分支有 upstream 且 ahead/behind 都为 0；`release_check --strict` 调用 | release_check / 发布前 |
+| `check_git_sync.sh` | 先 fetch 远端，再要求当前分支有 upstream 且 ahead/behind 都为 0；`release_check --strict` 调用 | release_check / 发布前 |
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档 / catalog（含 root + `packages/*/AGENTS.md` + `catalog/components.yaml`） | check_docs / preflight |
 | `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |
 
@@ -104,16 +105,17 @@ check 名字随包矩阵变化。
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
 | `check_version_bump.py` | 对比 PR base 与 HEAD 的公开 API 表面：有变化但「版本没抬、且当前版本不高于已发布快照」→ 失败（已抬过但还没发布的版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过） | CI `api-bump` job / 本地 `--base main` |
-| `check_pr_scope.py` | 读 PR 模板的「公开变化」勾选：勾了但没有任何 `packages/*/CHANGELOG.md` 变更 → 失败（行为变化没有 API diff，靠这条兜底；无 PR body 时跳过） | CI `api-bump` job |
+| `check_pr_scope.py` | 读 PR 模板的「公开变化」勾选：勾了但没有任何相关 CHANGELOG 变更 → 失败（子包 CHANGELOG；根包改 `lib/` / `pubspec.yaml` 时用根 CHANGELOG；行为变化没有 API diff，靠这条兜底；无 PR body 时跳过） | CI `api-bump` job |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
 ### 发布
 
 | 脚本 | 作用 | 注意 |
 |---|---|---|
-| `release_check.sh` | 版本 / CHANGELOG / 根约束 / README / pub.dev 漂移 | 发布前先跑 `--strict` |
-| `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 只把「落后 / 快照漂移」判失败，「待发布」正常；网络不可达重试后返回 2（周检按跳过处理） | 发布后核对 / 每周一 CI |
-| `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict`（`--force` 跳过） | **真正发布会执行，不是 dry-run** |
+| `release_check.sh` | 版本 / CHANGELOG / 根约束 / README / pub.dev 漂移；完整 `--strict` 还要求每个包最新快照已 tracked 且版本 == 本地；`--online` 全部取不到时返回 2 | 发布前先跑 `--strict` |
+| `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 只把「落后 / 快照漂移」判失败，「待发布」正常；网络不可达重试后返回 2（周检按跳过处理）；不带 `--online` / `--require-*` 的 `--check` 返回 2；`--require-tracked --require-local` 做离线快照结构检查，`--quiet` 只输出异常 | 发布后核对 / 每周一 CI / 根包发布前 |
+| `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：先 `git fetch`，再查干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict`（`--force` 跳过）；快照写入失败保留 staging；发布成功后快照先写到 `.w_tools/release-snapshots/` | **真正发布会执行，不是 dry-run** |
+| `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`，并打印快照 PR 的命令；不 commit / 不 push | 一批发布结束后、发根包前 |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
 
 ### 包内检查
@@ -217,7 +219,18 @@ bash scripts/publish_package.sh packages/<pkg> --dry-run
 `preflight.sh --all` 会带根包 dry-run，**失败计入门禁**（要求根包依赖都已发布）；
 发布子包阶段用 `--with-tests`，子包全部上线后再跑 `--all`。
 
-`--online` 只在**发布后**核对线上版本；发布前跑必然报「待发布」，不要放进发布前清单。
+完整 `--strict`（不带 `--package`）还会要求每个包的最新 API 快照**已 tracked** 且版本 ==
+本地 pubspec：发根包前必须先合入快照 PR（untracked 快照会被 `reset --hard` / `clean` 丢掉）。
+
+`--online` 只在**发布后**核对线上版本；发布前跑 `release_check --online` 必然报「待发布」，
+不要放进发布前清单。线上核对推荐：
+
+```bash
+python3 scripts/release_status.py --online --check
+```
+
+它把「待发布」视为正常；`release_check --online` 在全部取不到线上版本时返回 2
+（环境不可用），不会打印「检查通过」。
 
 ### 真正发布
 

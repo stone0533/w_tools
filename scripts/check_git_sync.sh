@@ -11,6 +11,15 @@ if ! git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; the
 fi
 
 upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}')"
+# 先 fetch：否则比较的是本地缓存的 remote-tracking ref，远端已前进时仍会「通过」。
+remote="${upstream%%/*}"
+branch="${upstream#*/}"
+if [ "$remote" != "$branch" ]; then
+  if ! git fetch --quiet "$remote" "$branch"; then
+    echo "取不到远端 $upstream；先确认网络 / 权限再发布" >&2
+    exit 1
+  fi
+fi
 ahead="$(git rev-list --count '@{u}..HEAD')"
 behind="$(git rev-list --count 'HEAD..@{u}')"
 

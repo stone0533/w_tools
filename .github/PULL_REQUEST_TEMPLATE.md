@@ -1,7 +1,8 @@
 ## 改动类型
 
-> CI 会读这里的勾选：勾了「公开变化」但没有任何 `packages/*/CHANGELOG.md` 变更会被判失败
-> （`scripts/check_pr_scope.py`）。所以要发行为变化时，请同时更新版本与 CHANGELOG。
+> CI 会读这里的勾选：勾了「公开变化」但没有任何相关 CHANGELOG 变更会被判失败
+> （子包：`packages/<pkg>/CHANGELOG.md`；根包改 `lib/` 或 `pubspec.yaml` 时：根 `CHANGELOG.md`）。
+> 所以要发行为变化时，请同时更新版本与 CHANGELOG。
 
 - [ ] 内部重构（公开 API / 默认行为不变）
 - [ ] 公开变化（API / 行为 / 新组件）

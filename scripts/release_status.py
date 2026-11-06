@@ -6,6 +6,10 @@
 - 哪些包待发布（本地 > 线上）——正常状态，不算错误；
 - 哪些包异常（本地 < 线上、快照与线上不一致、缺快照）——`--check` 时失败。
 
+离线结构检查（不查 pub.dev）：
+    python3 scripts/release_status.py --quiet --check --require-tracked --require-local
+用于发布前确认「每个包的最新快照已提交，且版本等于本地 pubspec」。
+
 用法：
     python3 scripts/release_status.py                 # 离线，只读 pubspec / 快照 / CHANGELOG
     python3 scripts/release_status.py --online        # 再查 pub.dev
@@ -15,6 +19,7 @@
     0  通过（「待发布」是正常状态；网络失败只提示）
     1  「落后 / 快照与线上不一致 / 缺快照」（--check 时）
     2  线上一个包都没取到（网络不可达）；周检按「本次跳过」处理，不判发布事故
+       或 `--check` 没带 `--online` / `--require-*`（没有可核对的目标）
 """
 from __future__ import annotations
 
@@ -22,6 +27,7 @@ import argparse
 import json
 import pathlib
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -68,14 +74,29 @@ def version_tuple(text: str) -> tuple[int, ...]:
     return tuple(int(part) for part in re.findall(r'\d+', text))
 
 
-def snapshot_version(package: str) -> str | None:
+def snapshot_path(package: str) -> pathlib.Path | None:
+    """最新快照文件（按版本号排序取最大）；没有返回 None。"""
     candidates = sorted(
         SNAPSHOTS.glob(f'w_tools_{package}-*.txt'),
         key=lambda path: version_tuple(path.stem.rsplit('-', 1)[-1]),
     )
-    if not candidates:
-        return None
-    return candidates[-1].stem.rsplit('-', 1)[-1]
+    return candidates[-1] if candidates else None
+
+
+def snapshot_version(package: str) -> str | None:
+    path = snapshot_path(package)
+    return path.stem.rsplit('-', 1)[-1] if path is not None else None
+
+
+def git_tracked(path: pathlib.Path) -> bool:
+    """快照文件是否已被 git 跟踪（untracked 的文件会在 reset/clean 后丢失）。"""
+    result = subprocess.run(
+        ['git', 'ls-files', '--error-unmatch', '--', str(path.relative_to(ROOT))],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
 
 
 def fetch_latest(name: str) -> str | None:
@@ -123,7 +144,27 @@ def main() -> int:
     parser.add_argument('--online', action='store_true', help='查 pub.dev 的线上版本')
     parser.add_argument('--check', action='store_true', help='异常（落后 / 快照不一致）时退出 1')
     parser.add_argument('--fail-pending', action='store_true', help='把「待发布」也算失败')
+    parser.add_argument('--quiet', action='store_true', help='只在异常时输出，不打印状态表')
+    parser.add_argument(
+        '--require-tracked',
+        action='store_true',
+        help='离线检查：最新快照必须已被 git 跟踪（发布根包前用）',
+    )
+    parser.add_argument(
+        '--require-local',
+        action='store_true',
+        help='离线检查：最新快照版本必须等于本地 pubspec 版本',
+    )
     args = parser.parse_args()
+
+    structural = args.require_tracked or args.require_local
+    if args.check and not args.online and not structural:
+        print(
+            '✗ --check 需要 --online（线上核对），'
+            '或加 --require-tracked / --require-local 做离线快照检查',
+            file=sys.stderr,
+        )
+        return 2
 
     constraints = root_constraints()
     rows: list[tuple[str, str, str | None, str | None, str]] = []
@@ -136,10 +177,30 @@ def main() -> int:
         package = name.removeprefix('w_tools_')
         package_dir = ROOT / path
         local = version_of(package_dir / 'pubspec.yaml') or '?'
-        snapshot = snapshot_version(package)
+        snapshot_file = snapshot_path(package)
+        snapshot = snapshot_file.stem.rsplit('-', 1)[-1] if snapshot_file else None
         published = published_version(package) if args.online else None
         status = classify(local, published)
         rows.append((package, local, published, snapshot, status))
+
+        # 结构检查不依赖线上版本：网络不可达时也要能验证「快照存在 / 已提交 / 版本一致」。
+        if snapshot is None:
+            errors.append(f'{package}: 缺 API 快照（scripts/api_snapshots）')
+        else:
+            if args.require_tracked and not git_tracked(snapshot_file):
+                errors.append(
+                    f'{package}: API 快照 {snapshot_file.name} 未提交——'
+                    '先合入快照 PR（untracked 快照会被 reset / clean 丢掉）'
+                )
+            if args.require_local and version_tuple(snapshot) != version_tuple(local):
+                errors.append(
+                    f'{package}: API 快照 {snapshot} ≠ 本地版本 {local}——'
+                    '先发布子包并提交快照，再发根包'
+                )
+            if published is not None and version_tuple(snapshot) != version_tuple(published):
+                errors.append(
+                    f'{package}: API 快照 {snapshot} ≠ 线上 {published}——发布后记得提交快照'
+                )
 
         if args.online and published is None:
             # 网络问题不是发布事故：每周 CI 不因此发失败邮件（全部取不到时由退出码 2 说明）。
@@ -151,12 +212,6 @@ def main() -> int:
             errors.append(f'{package}: 仓库 {local} < 线上 {published}，仓库落后')
         if status == '待发布' and args.fail_pending:
             errors.append(f'{package}: 仓库 {local} > 线上 {published}，待发布')
-        if snapshot is None:
-            errors.append(f'{package}: 缺 API 快照（scripts/api_snapshots）')
-        elif published is not None and version_tuple(snapshot) != version_tuple(published):
-            errors.append(
-                f'{package}: API 快照 {snapshot} ≠ 线上 {published}——发布后记得提交快照'
-            )
         first = changelog_first(package_dir / 'CHANGELOG.md')
         if first != local:
             warnings.append(f'{package}: CHANGELOG 首段是 {first}，pubspec 是 {local}')
@@ -179,19 +234,20 @@ def main() -> int:
         errors.append(f'w_tools: 仓库 {root_local} < 线上 {root_published}，仓库落后')
 
     header = ('包', '本地', '线上', '快照', '结论')
-    print('  '.join(header))
-    for row in rows:
-        print('  '.join('-' if value is None else str(value) for value in row))
+    if not args.quiet:
+        print('  '.join(header))
+        for row in rows:
+            print('  '.join('-' if value is None else str(value) for value in row))
 
-    pending = [row[0] for row in rows if row[4] == '待发布']
-    if pending:
-        print(f'\n待发布（正常）：{" ".join(pending)}')
-    if unreachable:
-        print(f'\n未核对（取不到 pub.dev，按环境问题处理）：{" ".join(unreachable)}')
-    if warnings:
-        print('\n提醒：')
-        for warning in warnings:
-            print(f'  ! {warning}')
+        pending = [row[0] for row in rows if row[4] == '待发布']
+        if pending:
+            print(f'\n待发布（正常）：{" ".join(pending)}')
+        if unreachable:
+            print(f'\n未核对（取不到 pub.dev，按环境问题处理）：{" ".join(unreachable)}')
+        if warnings:
+            print('\n提醒：')
+            for warning in warnings:
+                print(f'  ! {warning}')
     if errors:
         print('\n异常：', file=sys.stderr)
         for error in errors:
@@ -204,7 +260,8 @@ def main() -> int:
             file=sys.stderr,
         )
         return 2
-    print('\n状态正常' if args.check else '')
+    if args.check and not args.quiet:
+        print('\n状态正常' if args.online else '\n离线快照检查通过（线上未核对）')
     return 0
 
 

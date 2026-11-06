@@ -38,3 +38,6 @@ coverage/
 # Flutter golden failure artifacts
 **/test/failures/
 /example/pubspec.lock
+
+# 发布时暂存的 API 快照（由 scripts/apply_snapshots.sh 应用到 scripts/api_snapshots）
+/.w_tools/

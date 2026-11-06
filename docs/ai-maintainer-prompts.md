@@ -816,8 +816,10 @@ J-5 多包/家族
 
 运行：
 - git status --porcelain（必须干净；不干净先停）
+- git fetch origin main（确认本地 main 没有落后；发布脚本也会自己 fetch）
 - bash scripts/release_check.sh --package <pkg>
-- bash scripts/release_check.sh --package <pkg> --online
+- python3 scripts/release_status.py --online --check
+  （「待发布」是正常状态；线上比较以它为准。release_check --online 断网时返回 2）
 - bash scripts/preflight.sh --with-tests
 - 从 pub.dev API 取 latest.archive_url，下载归档到 /tmp，解压后与本地比较：
   pubspec.yaml / lib/** / README.md / CHANGELOG.md / LICENSE / example/**
@@ -825,12 +827,12 @@ J-5 多包/家族
 
 审根包时换成：
 - bash scripts/release_check.sh
-- bash scripts/release_check.sh --online
+- python3 scripts/release_status.py --online --check
 （根包版本 ↔ CHANGELOG ↔ 子包 caret 约束都在这一轮看，K-1M 会把它们并进总表）
 
 检查：
 1. 版本号与 CHANGELOG 是否一致；
-2. --online 是否只证明“版本存在”，不能证明内容已发布；
+2. release_status 只证明“版本号存在”，不能证明内容已发布；
 3. 同版本归档与本地是否有差异（有差异 = 同版本漂移，必须 K-2 升版本）；
 4. README 安装版本 / 示例是否过期；
 5. 根包约束是否覆盖新版本（仅聚合包）；
@@ -890,7 +892,8 @@ J-5 多包/家族
 1. 版本号必须与 CHANGELOG 的 ## 段一致；
 2. 更新 README 安装版本；
 3. 跑 release_check / preflight；
-4. 完成后提交并 push（K-3 需要干净工作区）；
+4. 完成后提交到 feature 分支并 push，开 PR；等 Required checks 通过后**合并到 main**
+   （K-3 / K-4 的发布保护要求 `main` 且 `HEAD == origin/main`）；
 5. 报告 changed files 和检查结果。
 ```
 
@@ -902,7 +905,7 @@ J-5 多包/家族
 第一步只输出版本提案表（包 | 旧版本 | 新版本 | 级别 | 依据），等维护者确认。
 确认后按 K-2 逐包改 pubspec / CHANGELOG / README；
 版本常量按需同步；不要改无关包。
-最后统一跑 release_check / preflight，提交并 push。
+最后统一跑 release_check / preflight，提交并 push，开 PR 合并到 main。
 ```
 
 ### K-3. Dry-run（单包）
@@ -951,6 +954,11 @@ bash scripts/publish_package.sh packages/<pkg>
 ```text
 一次只执行一个 publish 命令；每个包发布后做 K-5，再发下一个。
 不要用一个命令/一个进程同时发多个包。
+
+快照会先写到 .w_tools/release-snapshots/（gitignored），不会挡住下一个包；
+全部发完后运行 bash scripts/apply_snapshots.sh，按它打印的命令开一个快照 PR 并合入。
+发根包前必须合入（否则 publish_package.sh . 与 release_check --strict 都会拦住）。
+不要用 --force 绕过这一步：它会同时跳过干净树 / main / HEAD==origin/main / release_check。
 ```
 
 发布顺序：

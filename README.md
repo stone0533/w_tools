@@ -36,8 +36,9 @@
 > ℹ️ **版本说明**：具体版本以各包 `pubspec.yaml` 与 pub.dev 页面为准；仓库 `main` 可能领先于
 > pub.dev 已发布版本。根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 6 个基础子包，只 re-export
 > 子包能力；聚合示例以根 `pubspec.yaml` 为准，其它安装示例以对应子包的 `pubspec.yaml` 为准。
-> 安装命令用 `pub add`（装 pub.dev 上已发布的最新版），不在文档里写死版本号——否则仓库一领先，
-> 文档里的 `^x.y.z` 就会变成装不到的版本；仍写了 caret 约束的地方由 `scripts/check_package_docs.py` 校验。
+> 安装命令用 `pub add`（装 pub.dev 上已发布的最新版），**安装命令里不写死版本号**——否则仓库一领先，
+> 文档里的 `^x.y.z` 就会变成装不到的版本。配置片段里仍写 caret 约束时，下界必须等于当前版本
+> （由 `scripts/check_package_docs.py` 校验）。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
 ### 本地开发 / 跨仓库接入

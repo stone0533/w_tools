@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-from check_pr_scope import declared_public_change, touches_package_changelog
+from check_pr_scope import declared_public_change, touches_changelog
 
 
 class PrScopeTest(unittest.TestCase):
@@ -23,14 +23,23 @@ class PrScopeTest(unittest.TestCase):
         self.assertFalse(declared_public_change(''))
 
     def test_package_changelog_detected(self):
-        self.assertTrue(touches_package_changelog(['packages/ui/CHANGELOG.md', 'README.md']))
+        self.assertTrue(touches_changelog(['packages/ui/CHANGELOG.md', 'README.md']))
 
-    def test_root_changelog_only_is_not_enough(self):
+    def test_root_changelog_with_subpackage_code_is_not_enough(self):
         # 根包 CHANGELOG 不代表子包抬了版本；行为变化必须落到具体子包。
-        self.assertFalse(touches_package_changelog(['CHANGELOG.md', 'packages/ui/lib/a.dart']))
+        self.assertFalse(touches_changelog(['CHANGELOG.md', 'packages/ui/lib/a.dart']))
+
+    def test_root_changelog_with_root_lib_is_enough(self):
+        self.assertTrue(touches_changelog(['CHANGELOG.md', 'lib/w_tools.dart']))
+
+    def test_root_changelog_with_root_pubspec_is_enough(self):
+        self.assertTrue(touches_changelog(['CHANGELOG.md', 'pubspec.yaml']))
+
+    def test_root_changelog_alone_is_not_enough(self):
+        self.assertFalse(touches_changelog(['CHANGELOG.md']))
 
     def test_unrelated_files(self):
-        self.assertFalse(touches_package_changelog(['docs/releasing.md']))
+        self.assertFalse(touches_changelog(['docs/releasing.md']))
 
 
 if __name__ == '__main__':

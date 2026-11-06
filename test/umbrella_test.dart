@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools/w_tools.dart' as w;
 
@@ -17,6 +19,22 @@ void main() {
     expect(w.WToast, isNotNull); // toast
     expect(w.WButton, isNotNull); // ui
     expect(w.WAsyncState<Object>, isNotNull); // async
+  });
+  test('w_tools.dart 只 re-export 6 个基础子包', () {
+    // 根包没有 API 快照，re-export 的增删必须在这里被挡住。
+    final source = File('lib/w_tools.dart').readAsStringSync();
+    final exports = RegExp(
+      r"^export 'package:(w_tools_[a-z_]+)/",
+      multiLine: true,
+    ).allMatches(source).map((match) => match.group(1)!).toList()..sort();
+    expect(exports, [
+      'w_tools_api',
+      'w_tools_async',
+      'w_tools_core',
+      'w_tools_form',
+      'w_tools_toast',
+      'w_tools_ui',
+    ]);
   });
   test('WToken 可配置 token 键名', () {
     final origin = w.WToken.tokenKey;

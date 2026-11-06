@@ -11,6 +11,11 @@ class PublishSnapshotTest(unittest.TestCase):
         self.assertIn('--snapshot-from', text)
         self.assertIn('--version', text)
         self.assertIn('exit 1', text)
+        self.assertIn('stage_only=1', text)
+        self.assertIn('release-snapshots', text)
+        self.assertIn('apply_snapshots.sh', text)
+        self.assertIn('--output-dir', text)
+        self.assertIn('compgen -G', text)
 
     def test_publish_script_fails_closed_before_publishing(self):
         text = (ROOT / 'scripts/publish_package.sh').read_text()
@@ -18,6 +23,7 @@ class PublishSnapshotTest(unittest.TestCase):
         self.assertIn('release_check.sh', text)
         self.assertIn('--strict', text)
         self.assertIn('origin/main', text)
+        self.assertIn('git -C "$repo_root" fetch', text)
         self.assertIn('--force', text)
 
 

@@ -60,13 +60,14 @@
 
 - 实际发布用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），
   **不要**在包目录直接 `flutter pub publish` —— `workspace:` 字段会被原样发布，
-  消费方 `dart pub deps` 会失败。正式发布时脚本会自己要求：干净工作区、`main` 且
-  `HEAD == origin/main`、`release_check.sh --strict` 通过（`--force` 只用于明确的例外）。
+  消费方 `dart pub deps` 会失败。正式发布时脚本会自己先 `git fetch`，再要求：干净工作区、
+  `main` 且 `HEAD == origin/main`、`release_check.sh --strict` 通过（`--force` 只用于明确的例外）。
 - 版本策略与流程见 [`docs/releasing.md`](docs/releasing.md)
 - 公开 API 变化（删除 / 类型变化 / 可空性变化）先跑
   `python3 scripts/check_public_api_diff.py --package <pkg>`；它要求变化写进
   **当前 pubspec 版本**对应 CHANGELOG 段的 `### Breaking` / `### Removed`，或 migration。
-  基线在 `scripts/api_snapshots/`：发布脚本会在发布成功后写入，**记得提交**；
+  基线在 `scripts/api_snapshots/`：发布脚本先把快照写到 `.w_tools/release-snapshots/`
+  （gitignored），一批发完运行 `bash scripts/apply_snapshots.sh` 应用过来，**记得提交**；
   缺基线时门禁直接失败（不再静默跳过）。
   快照提交**走分支 + PR**：`pre-push` 禁止直接 push main，而发布脚本要求
   `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 再发根包；

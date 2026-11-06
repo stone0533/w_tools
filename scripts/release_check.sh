@@ -270,10 +270,21 @@ if [ "$STRICT" = 1 ]; then
   else
     fail "未 push / 未同步 upstream；发布前先 git push"
   fi
+  if [ -z "$SELECTED" ]; then
+    section 'API 快照（--strict，根包发布前）'
+    # 根包发布意味着所有子包都已发布：快照必须已提交且版本等于本地 pubspec。
+    # untracked 快照会在 reset / clean 后丢失（PR #8 实际踩过），所以这里要求 tracked。
+    if python3 scripts/release_status.py --quiet --check --require-tracked --require-local; then
+      ok "每个包的最新 API 快照都已提交，且与本地版本一致"
+    else
+      fail "API 快照缺失 / 未提交 / 与本地版本不一致——先发布子包并合入快照 PR，再发根包"
+    fi
+  fi
 fi
 
 if [ "$ONLINE" = 1 ]; then
   section 'pub.dev 发布状态（--online）'
+  online_ok=0
   if [ -n "$SELECTED" ]; then
     online_names="w_tools_$SELECTED"
   else
@@ -300,6 +311,7 @@ print(json.load(sys.stdin)["latest"]["version"])
       fail "$name: pub.dev 返回的 JSON 无法解析（latest.version 缺失），不能当作已核对"
       continue
     fi
+    online_ok=$((online_ok + 1))
 
     if [ "$local_version" = "$published" ]; then
       ok "$name $local_version 已发布"
@@ -315,6 +327,10 @@ printf '\n'
 if [ "$errors" -gt 0 ]; then
   printf '检查失败：%s 项错误，%s 条提醒\n' "$errors" "$warns"
   exit 1
+fi
+if [ "$ONLINE" = 1 ] && [ "$online_ok" -eq 0 ]; then
+  printf '检查失败：一个包都没取到 pub.dev 版本，本次线上核对没有执行（环境不可用，退出码 2）\n' >&2
+  exit 2
 fi
 
 printf '检查通过（%s 条提醒）\n' "$warns"
