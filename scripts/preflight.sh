@@ -87,7 +87,11 @@ run "public api diff" bash -c '
     python3 scripts/check_public_api_diff.py --package "${name#w_tools_}"
   done < scripts/packages.manifest
 '
-run "test imports" python3 scripts/check_test_imports.py --package ui
+if [ -n "$only_pkg" ]; then
+  run "test imports" python3 scripts/check_test_imports.py --package "$only_pkg"
+else
+  run "test imports" python3 scripts/check_test_imports.py
+fi
 # 生成物新鲜度：只改源文件却忘了跑生成器时，这里直接失败（不用等 --with-tests 的 cli 测试）。
 run "catalog fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_catalog.dart --check"
 run "templates fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_templates.dart --check"

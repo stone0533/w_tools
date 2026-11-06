@@ -81,8 +81,8 @@ check 名字随包矩阵变化。
 | `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到 | check_docs / preflight |
 | `check_catalog_symbols.py` | catalog `usage` / `useFor` / `related` 里的 `W*` / `W*.member` 必须真实存在于公开 API | preflight |
 | `check_public_api_diff.py` | 公开 API 快照 diff：删除 / 类型/可空性 / 方法 / 构造器变化必须出现在**当前 pubspec 版本**的 CHANGELOG Breaking/Removed 或 migration（构造器可选参数可记 Added）；缺基线直接失败 | preflight |
-| `check_test_imports.py` | `package:w_tools_<pkg>/src/...` 只允许出现在 `test/internal/`；当前先覆盖 ui | preflight |
-| `check_teaching_coverage.py` | 核心入口 `entrypoints.yaml` 必须出现在 docs/agents / 模板 zh+en / README / example（J-4A） | check_docs / preflight |
+| `check_test_imports.py` | `package:w_tools_<pkg>/src/...` 只允许出现在 `test/internal/`；全包检查，存量登记在 `test_imports_baseline.yaml`（只减不增） | preflight |
+| `check_teaching_coverage.py` | 11 个库包的 `entrypoints.yaml` 入口必须出现在 docs/agents / 模板 zh+en / README（有 example 还要在 example/lib）；app_getx / map_google 共用 app / map 规则页（J-4A） | check_docs / preflight |
 | `check_git_sync.sh` | 当前分支有 upstream 且 ahead/behind 都为 0；`release_check --strict` 调用 | release_check / 发布前 |
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档 / catalog（含 root + `packages/*/AGENTS.md` + `catalog/components.yaml`） | check_docs / preflight |
 | `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |
@@ -126,8 +126,10 @@ check 名字随包矩阵变化。
 - `check_docs_facts.py`：规模数字与索引完整性，不校验 API 细节；
 - `check_agents_consistency.py`：比入口名 + 高频规则短语，不做全文语义比对；
 - `check_package_docs.py`：只校验 caret 下界与主版本（非 caret 直接失败），不校验具体 patch；
-- `check_teaching_coverage.py`：只比对入口名是否出现在 docs/agents / 模板 / README / example 五个载体里
-  （子串匹配，不代表讲清楚了）；`entrypoints.yaml` 目前只登记 ui；
+- `check_teaching_coverage.py`：只比对入口名是否出现在 docs/agents / 模板 / README（有 example 时再加 example/lib）
+  这几个载体里（子串匹配，不代表讲清楚了）；`entrypoints.yaml` 覆盖 11 个库包；
+- `check_test_imports.py`：只按文件判断，不区分“行为测试”与“白盒测试”；存量在
+  `test_imports_baseline.yaml`，修好后要删行（否则脚本会报 stale）；
 - `check_public_api_diff.py`：只比较快照里已有的 key（删除 / 改签名），新增成员不拦；缺基线直接失败；
 - `ci_matrix.py --check`：查清单是否同源，不查 workflow 语义。
 

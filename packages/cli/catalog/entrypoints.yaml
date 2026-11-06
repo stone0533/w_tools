@@ -1,4 +1,19 @@
 # 每个包必须教给 AI / 用户的核心入口；不要求覆盖所有子 API。
+# 载体：docs/agents/<pkg>.md、templates/agents/{zh,en}/<pkg>.md、packages/<pkg>/README.md，
+# 以及 packages/<pkg>/example/lib（有 example 时才要求）。
+# app_getx / map_google 没有独立规则页，分别共用 app.md / map.md。
+# 工具包（cli / figma / device / e2e）不在这里：它们走 docs/agents + 工具 README。
+w_tools_core:
+  - WStorage
+  - WToken
+  - WValidator
+  - WLogger
+  - WDebounce
+w_tools_async:
+  - WAsyncController
+  - WAsyncView
+  - WAsyncStateBuilder
+  - WAsync
 w_tools_ui:
   - WText
   - WImage
@@ -15,3 +30,34 @@ w_tools_ui:
   - WKeepAliveWrapper
   - WNotificationListener
   - WGradientCircularProgressIndicator
+w_tools_form:
+  - WForm
+  - WFormTextField
+  - WFormDropdown
+  - WFormCheckbox
+  - WFormButton
+w_tools_api:
+  - WApiConfig
+  - DioRegistry
+  - WTokenInterceptor
+  - WLogInterceptor
+w_tools_toast:
+  - WToast
+  - WToastStyle
+  - WToastTheme
+w_tools_app:
+  - WAppPlugin
+w_tools_app_getx:
+  - WApp
+  - WAppOptions
+  - WBottomSheet
+  - WRouteStack
+w_tools_map:
+  - WMapItem
+  - WMapItemMapper
+w_tools_map_google:
+  - WMap
+  - WMapZone
+  - WMapOptions
+w_tools_qr:
+  - WQrView
