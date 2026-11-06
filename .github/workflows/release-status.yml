@@ -2,6 +2,8 @@ name: Release status
 
 # 只读状态检查：仓库 vs pub.dev，区分「待发布（正常）」与「落后 / 快照漂移（异常）」。
 # 失败时 GitHub 会给最近提交者发邮件，作为「有人从别的机器发布了、或快照没提交」的提醒。
+# 退出码 2 表示「一个包都没取到 pub.dev」（网络不可达）：这不算发布事故，按跳过处理，
+# 避免每周一因外网抖动误发失败邮件。
 
 on:
   schedule:
@@ -22,4 +24,13 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Check release status
-        run: python3 scripts/release_status.py --online --check
+        run: |
+          set +e
+          python3 scripts/release_status.py --online --check
+          status=$?
+          set -e
+          if [ "$status" -eq 2 ]; then
+            echo "::warning::pub.dev 不可达，本次线上核对跳过（不是发布事故）"
+            exit 0
+          fi
+          exit "$status"

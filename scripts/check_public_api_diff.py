@@ -22,6 +22,11 @@ from _dart_exports import exported_types, strip_comments  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SNAPSHOTS = ROOT / 'scripts/api_snapshots'
 
+# 没有 barrel 的包：公开 API 门禁对它不适用。`w_tools_cli` 是可执行工具（入口在 bin/），
+# lib/ 下只有 src/，没有 w_tools_cli.dart。显式登记后打印「不适用」并跳过 ——
+# 空 surface 绝不能当成「与快照一致」的 ✓（否则这个包的门禁等于不存在）。
+NO_PUBLIC_API = {'cli'}
+
 DECL = re.compile(r'\b(?:class|enum|mixin|extension|typedef)\s+([A-Z][A-Za-z0-9_]*)')
 FIELD = re.compile(r'^(.+?)\s+([a-zA-Z]\w*)\s*(?:=|;|$)')
 GETTER = re.compile(r'^([A-Za-z_][\w<>,?. ]*?)\s+get\s+([a-zA-Z]\w*)')
@@ -255,6 +260,12 @@ def _snapshot_path(package: str) -> pathlib.Path | None:
     return latest_snapshot(list(SNAPSHOTS.glob(f'w_tools_{package}-*.txt')))
 
 
+def latest_snapshot_version(package: str) -> str | None:
+    """最新基线对应的版本号（没有基线时返回 None）。"""
+    path = _snapshot_path(package)
+    return path.stem.rsplit('-', 1)[-1] if path is not None else None
+
+
 def _load_snapshot(path: pathlib.Path) -> dict[str, str]:
     out: dict[str, str] = {}
     for line in path.read_text().splitlines():
@@ -309,6 +320,19 @@ def main() -> int:
         return 1
     baseline = _load_snapshot(snapshot)
     current = api_surface(package_dir)
+    if not current:
+        if args.package in NO_PUBLIC_API:
+            print(
+                f'! {args.package}: 没有 barrel 公开 API（已登记为不适用），'
+                '跳过快照比对（不是 ✓）',
+            )
+            return 0
+        print(
+            f'✗ w_tools_{args.package} 解析不到任何公开 API：lib/ 下缺 w_tools_*.dart barrel，'
+            '这个包的门禁会空转。补 barrel，或在 check_public_api_diff.NO_PUBLIC_API 里显式登记。',
+            file=sys.stderr,
+        )
+        return 1
     changes = diff_api(baseline, current)
     if not changes:
         print(f'✓ {args.package} 公开 API 与 {snapshot.name} 一致')

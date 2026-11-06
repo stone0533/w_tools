@@ -201,5 +201,32 @@ class PublicApiDiffTest(unittest.TestCase):
                 sys.argv = old_argv
 
 
+    def test_empty_surface_fails_unless_declared(self):
+        """空 surface 不能当成「一致」：cli 显式登记后跳过，其它包必须失败。"""
+        import check_public_api_diff as mod
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            (root / 'snapshots').mkdir()
+            (root / 'snapshots' / 'w_tools_demo-1.0.0.txt').write_text('# w_tools_demo 1.0.0\n')
+            (root / 'snapshots' / 'w_tools_cli-1.0.0.txt').write_text('# w_tools_cli 1.0.0\n')
+            old_root, old_snapshots = mod.ROOT, mod.SNAPSHOTS
+            old_argv = sys.argv
+            mod.ROOT = root
+            mod.SNAPSHOTS = root / 'snapshots'
+            try:
+                sys.argv = ['check_public_api_diff.py', '--package', 'demo']
+                with contextlib.redirect_stdout(io.StringIO()):
+                    with contextlib.redirect_stderr(io.StringIO()):
+                        self.assertEqual(mod.main(), 1)
+
+                sys.argv = ['check_public_api_diff.py', '--package', 'cli']
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(mod.main(), 0)
+            finally:
+                mod.ROOT, mod.SNAPSHOTS = old_root, old_snapshots
+                sys.argv = old_argv
+
+
 if __name__ == '__main__':
     unittest.main()
