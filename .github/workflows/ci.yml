@@ -20,6 +20,8 @@ env:
   # 升级 Flutter 时同步改 .fvmrc、这里与 MIN_FLUTTER_VERSION，避免 CI 与本地解析出不同的依赖版本。
   FLUTTER_VERSION: '3.44.9'
   # 声明的最低版本：单独跑一遍，防止「声明支持 3.38 却用了 3.38 已移除的 API」。
+  # 注意：pubspec 声明 `>=3.38.0`，这里实测 3.38.4 ——「实测高于声明」是保守方向；
+  # 要抬声明下限时，pubspec 与这里一起改，不要只改一边。
   MIN_FLUTTER_VERSION: '3.38.4'
 
 jobs:

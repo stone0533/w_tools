@@ -102,6 +102,7 @@ check 名字随包矩阵变化。
 | 脚本 | 作用 | 注意 |
 |---|---|---|
 | `release_check.sh` | 版本 / CHANGELOG / 根约束 / README / pub.dev 漂移 | 发布前先跑 `--strict` |
+| `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 只把「落后 / 快照漂移」判失败，「待发布」正常 | 发布后核对 / 每周一 CI |
 | `publish_package.sh` | 在去掉 workspace 的暂存副本里发布 | **真正发布会执行，不是 dry-run** |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
 

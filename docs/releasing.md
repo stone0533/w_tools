@@ -122,7 +122,11 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    ```bash
    bash scripts/release_check.sh --package map --online
    # 发布多个包/聚合包时去掉 --package，做全量比对
+   # 状态总表（线上 / 快照 / 根约束一眼看完）
+   python3 scripts/release_status.py --online
    ```
+   `release-status.yml` 每周一也会跑 `release_status.py --online --check`：
+   「待发布」不算错，只有「仓库落后 / 快照与线上不一致」才会红。
 
 > `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
 > 发布前的门禁是第 4、6 步。

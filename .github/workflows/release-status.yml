@@ -1,0 +1,25 @@
+name: Release status
+
+# 只读状态检查：仓库 vs pub.dev，区分「待发布（正常）」与「落后 / 快照漂移（异常）」。
+# 失败时 GitHub 会给最近提交者发邮件，作为「有人从别的机器发布了、或快照没提交」的提醒。
+
+on:
+  schedule:
+    # GitHub cron 是 UTC；01:00 UTC = 09:00 Asia/Shanghai，每周一。
+    - cron: '0 1 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    name: Release status (online)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check release status
+        run: python3 scripts/release_status.py --online --check
