@@ -76,6 +76,25 @@
 - 公开变化走 feature 分支 + PR，等 Required checks 通过后合并；不要用管理员绕过。
 - 发布前用 `bash scripts/check_pr_checks.sh [PR号]` 确认 Required checks（需要 `gh`）。
 
+### 合并方式：固定 Merge commit
+
+仓库只允许 **Merge commit**（GitHub 已关闭 Squash / Rebase，合并后自动删远端分支）。这样每个逻辑 commit 的**原始 SHA 与作者时间**都会保留：
+
+```bash
+git log --first-parent main   # PR 级历史（发布说明用这个）
+git log main                  # 完整细节（每个逻辑步骤）
+```
+
+- **合并前整理 commit**：用 `git rebase -i` 收掉 `wip` / `fixup` / `fix test`；每个 commit 用
+  conventional 前缀（`feat` / `fix` / `docs` / `chore` …）+ 一句人话；
+- **一个 PR 只做一件事**：顺手修（如 CI 红灯）单独开 PR，不要塞进主题 PR；
+- **合并只在 GitHub 上做**：本地只 `git pull --ff-only`，不要先把分支合进本地 main 再开 PR；
+- **回滚一个 PR** 用 `git revert -m 1 <merge-sha>`，并在 PR / CHANGELOG 里说明；
+  同一分支再合回来需要先 revert 掉这次 revert。
+
+> 不用 Rebase 合并：它会重写 committer 时间与 SHA（PR #1 踩过，5 个 commit 的时间全变成合并时刻）；
+> 不用 Squash：会丢掉 agent 一次会话里「门禁 / 基线 / 测试迁移」这类分层步骤的叙事。
+
 ## 7. grep / 检查脚本经验
 
 写 `grep` / `rg` 检查脚本时：

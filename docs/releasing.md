@@ -90,7 +90,8 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    ```bash
    bash scripts/release_check.sh --package map
    ```
-5. 提交到 feature 分支并 push，开 PR；等 Required checks 通过后**合并到 main**。
+5. 提交到 feature 分支并 push，开 PR；等 Required checks 通过后**合并到 main**
+   （合并方式固定 **Merge commit**，见 [CONTRIBUTING §6](../CONTRIBUTING.md#6-git--pr-流程)）。
 6. 在 main 上复核 + 发布预演（**必须走发布脚本**，原因见下一节）：
    ```bash
    # Required checks 在 PR 分支上确认：gh pr checks 需要一个 PR，
@@ -130,6 +131,17 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 
 > `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
 > 发布前的门禁是第 4、6 步。
+
+### 看版本变更列表
+
+合并方式固定为 Merge commit（见 [CONTRIBUTING §6](../CONTRIBUTING.md#6-git--pr-流程)），
+所以用 **first-parent** 取「PR 级」历史，不会被 PR 内部的中间 commit 干扰：
+
+```bash
+git log --first-parent --oneline <上一次发版的 commit>..HEAD
+```
+
+写 CHANGELOG / 发版说明时用这一条；`git log`（不带 `--first-parent`）留着看每个 PR 的细节。
 
 ## 发布前真机 / 消费方检查
 
