@@ -10,6 +10,7 @@ class PublishSnapshotTest(unittest.TestCase):
         self.assertIn('check_public_api_diff.py', text)
         self.assertIn('--snapshot-from', text)
         self.assertIn('--version', text)
+        self.assertIn('exit 1', text)
 
 
 if __name__ == '__main__':

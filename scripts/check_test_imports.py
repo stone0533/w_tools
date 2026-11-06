@@ -13,17 +13,20 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 def check_package(package_dir: pathlib.Path, package: str) -> list[str]:
     pattern = re.compile(rf"package:w_tools_{re.escape(package)}/src/")
     errors: list[str] = []
-    test_dir = package_dir / 'test'
-    if not test_dir.exists():
-        return errors
-    for path in test_dir.rglob('*.dart'):
-        relative = path.relative_to(test_dir)
-        if relative.parts and relative.parts[0] == 'internal':
+    test_dirs = [package_dir / 'test', package_dir / 'integration_test', package_dir / 'example' / 'test']
+    for test_dir in test_dirs:
+        if not test_dir.exists():
             continue
-        text = path.read_text()
-        for match in pattern.finditer(text):
-            line = text.count('\n', 0, match.start()) + 1
-            errors.append(f'{path.relative_to(package_dir)}:{line} 直接 import src（应放 test/internal/）')
+        for path in test_dir.rglob('*.dart'):
+            relative = path.relative_to(test_dir)
+            if relative.parts and relative.parts[0] == 'internal':
+                continue
+            text = path.read_text()
+            for match in pattern.finditer(text):
+                line = text.count('\n', 0, match.start()) + 1
+                errors.append(
+                    f'{path.relative_to(package_dir)}:{line} 直接 import src（应放 test/internal/ 或改用 barrel）'
+                )
     return errors
 
 

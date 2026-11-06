@@ -183,5 +183,6 @@ if [ -z "$dry_run" ] && [ "$src" != "$repo_root" ]; then
   if ! python3 "$repo_root/scripts/check_public_api_diff.py" \
     --snapshot-from "$staging" --package "$pkg_short" --version "$version"; then
     echo "!! 发布成功，但 API 快照更新失败；请手动重跑 check_public_api_diff.py --snapshot-from" >&2
+    exit 1
   fi
 fi

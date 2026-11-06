@@ -19,7 +19,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SNAPSHOTS = ROOT / 'scripts/api_snapshots'
 
 DECL = re.compile(r'\b(?:class|enum|mixin|extension|typedef)\s+([A-Z][A-Za-z0-9_]*)')
-FIELD = re.compile(r'^([A-Za-z_][\w<>,?. ]*?)\s+([a-zA-Z]\w*)\s*(?:=|;)')
+FIELD = re.compile(r'^(.+?)\s+([a-zA-Z]\w*)\s*(?:=|;|$)')
 GETTER = re.compile(r'^([A-Za-z_][\w<>,?. ]*?)\s+get\s+([a-zA-Z]\w*)')
 MODIFIER = re.compile(r'^(?:static\s+)?(?:final|const|late\s+final)\s+')
 ENUM_VALUE = re.compile(r'^\s*([A-Za-z]\w*)\s*(?:,|;|$)', re.M)
@@ -47,46 +47,95 @@ def _normalize(value: str) -> str:
 METHOD = re.compile(r'^([A-Za-z_][\w<>,?. ]*)\s+([a-zA-Z]\w*)\s*\((.*)\)')
 
 
-def _methods(body: str, type_name: str) -> dict[str, str]:
+def _close_paren(signature: str, open_paren: int) -> int:
+    depth = 0
+    for pos in range(open_paren, len(signature)):
+        if signature[pos] == '(':
+            depth += 1
+        elif signature[pos] == ')':
+            depth -= 1
+            if depth == 0:
+                return pos
+    return -1
+
+
+def _gather_signature(lines: list[str], index: int, initial: str) -> tuple[str, int, list[str]]:
+    signature = initial
+    consumed = [lines[index].strip()]
+    balance = signature.count('(') - signature.count(')')
+    while balance > 0 and index + 1 < len(lines):
+        index += 1
+        next_line = lines[index].strip()
+        consumed.append(next_line)
+        signature += ' ' + next_line
+        balance += next_line.count('(') - next_line.count(')')
+    return signature, index, consumed
+
+
+def _members(type_name: str, body: str) -> dict[str, str]:
     out: dict[str, str] = {}
     lines = body.splitlines()
     depth = 0
     index = 0
     while index < len(lines):
-        raw = lines[index]
-        line = raw.strip()
+        line = lines[index].strip()
+        consumed = [line]
         if depth == 0 and line and not line.startswith(('//', '@', 'return ', 'if ', 'for ', 'while ', 'switch ', 'assert ')):
             candidate = MODIFIER.sub('', line)
-            candidate = re.sub(r'^static\s+', '', candidate)
-            if '(' in candidate.split('=', 1)[0].split(';', 1)[0]:
-                signature = candidate
-                balance = signature.count('(') - signature.count(')')
-                while balance > 0 and index + 1 < len(lines):
-                    index += 1
-                    next_line = lines[index].strip()
-                    signature += ' ' + next_line
-                    balance += next_line.count('(') - next_line.count(')')
+            candidate = re.sub(r'^(?:factory|external)\s+', '', candidate)
+            candidate = re.sub(r'^const\s+', '', candidate)
+            constructor = re.match(
+                rf'^{re.escape(type_name)}(?:\.([a-zA-Z_]\w*))?\s*\(', candidate
+            )
+            getter = GETTER.match(candidate)
+            if constructor:
+                signature, index, consumed = _gather_signature(lines, index, candidate)
                 open_paren = signature.find('(')
-                if open_paren < 0:
-                    continue
-                depth_paren = 0
-                close_paren = -1
-                for pos in range(open_paren, len(signature)):
-                    if signature[pos] == '(':
-                        depth_paren += 1
-                    elif signature[pos] == ')':
-                        depth_paren -= 1
-                        if depth_paren == 0:
-                            close_paren = pos
-                            break
-                if close_paren < 0:
-                    continue
-                match = METHOD.match(signature[:close_paren + 1])
-                if match:
-                    return_type, method_name, params = match.groups()
-                    if method_name != type_name and not method_name.startswith('_'):
-                        out[method_name] = f'{_normalize(return_type)} ({_normalize(params)})'
-        depth += line.count('{') - line.count('}')
+                close_paren = _close_paren(signature, open_paren) if open_paren >= 0 else -1
+                if open_paren >= 0 and close_paren > open_paren:
+                    params = signature[open_paren + 1:close_paren]
+                    name = constructor.group(1)
+                    out[f'{type_name}.{name}' if name else f'{type_name}.new'] = (
+                        f'({_normalize(params)})'
+                    )
+            elif getter:
+                name = getter.group(2)
+                if not name.startswith('_') and name not in {'hashCode', 'runtimeType'}:
+                    out[f'{type_name}.{name}'] = _normalize(getter.group(1))
+            elif '(' in candidate.split('=', 1)[0].split(';', 1)[0] and 'Function(' not in candidate:
+                signature, index, consumed = _gather_signature(lines, index, candidate)
+                open_paren = signature.find('(')
+                close_paren = _close_paren(signature, open_paren) if open_paren >= 0 else -1
+                if open_paren >= 0 and close_paren > open_paren:
+                    head = signature[:open_paren].strip()
+                    method = re.match(r'^(.+?)\s+([a-zA-Z_]\w*)$', head)
+                    if method:
+                        return_type, method_name = method.groups()
+                        if method_name not in {'operator', 'Function'} and not method_name.startswith('_'):
+                            params = signature[open_paren + 1:close_paren]
+                            out[f'{type_name}.{method_name}'] = (
+                                f'{_normalize(return_type)} ({_normalize(params)})'
+                            )
+            elif '=' in candidate or ';' in candidate:
+                field = FIELD.match(candidate)
+                if field:
+                    field_type, field_name = field.group(1), field.group(2)
+                    if field_name not in {'operator', 'Function'} and not field_name.startswith('_'):
+                        out[f'{type_name}.{field_name}'] = _normalize(field_type)
+        if (
+            depth == 0
+            and '=>' in line
+            and not line.rstrip().endswith(';')
+            and not consumed[-1].rstrip().endswith(';')
+        ):
+            while index + 1 < len(lines):
+                index += 1
+                next_line = lines[index].strip()
+                consumed.append(next_line)
+                if next_line.endswith(';'):
+                    break
+        for consumed_line in consumed:
+            depth += consumed_line.count('{') - consumed_line.count('}')
         index += 1
     return out
 
@@ -108,22 +157,7 @@ def api_surface(package_dir: pathlib.Path) -> dict[str, str]:
                 continue
             out[name] = kind
             body = _body(text, match.start())
-            for method_name, signature in _methods(body, name).items():
-                out[f'{name}.{method_name}'] = signature
-            depth = 0
-            for raw in body.splitlines():
-                line = raw.strip()
-                if depth == 0 and line and not line.startswith(('//', '@', 'return ', 'if ', 'for ', 'while ', 'switch ', 'assert ')):
-                    candidate = MODIFIER.sub('', line)
-                    getter = GETTER.match(candidate)
-                    if getter:
-                        if not getter.group(2).startswith('_'):
-                            out[f'{name}.{getter.group(2)}'] = _normalize(getter.group(1))
-                    elif '(' not in candidate.split('=', 1)[0].split(';', 1)[0]:
-                        field = FIELD.match(candidate)
-                        if field and not field.group(2).startswith('_'):
-                            out[f'{name}.{field.group(2)}'] = _normalize(field.group(1))
-                depth += line.count('{') - line.count('}')
+            out.update(_members(name, body))
             if kind == 'enum':
                 for value in ENUM_VALUE.finditer(body):
                     out[f'{name}.{value.group(1)}'] = 'enum'
@@ -143,13 +177,13 @@ def diff_api(baseline: dict[str, str], current: dict[str, str]) -> list[tuple[st
 
 
 def _current_version_text(changelog: str) -> str:
-    match = re.search(r'(?m)^##\s+(\S+)', changelog)
-    if not match:
+    matches = list(re.finditer(r'(?m)^##\s+(\S+)', changelog))
+    if not matches:
         return changelog
-    start = match.start()
-    next_match = re.search(r'(?m)^##\s+', changelog[match.end():])
-    end = match.end() + next_match.start() if next_match else len(changelog)
-    return changelog[start:end]
+    match = next((m for m in matches if m.group(1).lower() != 'unreleased'), matches[0])
+    following = [m for m in matches if m.start() > match.start()]
+    end = following[0].start() if following else len(changelog)
+    return changelog[match.start():end]
 
 
 def _section(text: str, title: str) -> str:
@@ -161,21 +195,40 @@ def _section(text: str, title: str) -> str:
     return rest[:next_match.start()] if next_match else rest
 
 
-def check_notes(changes: list[tuple[str, str, str | None]], changelog: str, migration: str) -> list[str]:
+def check_notes(
+    changes: list[tuple[str, str, str | None]],
+    changelog: str,
+    migration: str,
+    current: dict[str, str] | None = None,
+) -> list[str]:
     version_text = _current_version_text(changelog)
-    notes = _section(version_text, 'Breaking') + '\n' + _section(version_text, 'Removed') + '\n' + migration
+    breaking = _section(version_text, 'Breaking') + '\n' + _section(version_text, 'Removed')
+    notes = breaking + '\n' + migration
+    added = _section(version_text, 'Added') + '\n' + _section(version_text, 'Changed')
     errors: list[str] = []
     for key, old, new in changes:
         type_name = key.split('.', 1)[0]
-        if type_name not in notes and key not in notes:
-            change = '删除' if new is None else f'{old} → {new}'
-            errors.append(f'{key}（{change}）未出现在 CHANGELOG Breaking/Removed 或 migration')
+        if key in notes or type_name in notes:
+            continue
+        # 构造器新增可选参数是 additive：允许记在 Added/Changed；构造器删除仍要 Breaking。
+        if key.endswith('.new') and new is not None and current is not None and key in current:
+            if key in added or type_name in added:
+                continue
+        change = '删除' if new is None else f'{old} → {new}'
+        errors.append(f'{key}（{change}）未出现在 CHANGELOG Breaking/Removed 或 migration')
     return errors
 
 
+def latest_snapshot(paths: list[pathlib.Path]) -> pathlib.Path | None:
+    def key(path: pathlib.Path) -> tuple[int, ...]:
+        version = path.stem.rsplit('-', 1)[-1]
+        return tuple(int(part) for part in version.split('.') if part.isdigit())
+
+    return max(paths, key=key) if paths else None
+
+
 def _snapshot_path(package: str) -> pathlib.Path | None:
-    matches = sorted(SNAPSHOTS.glob(f'w_tools_{package}-*.txt'))
-    return matches[-1] if matches else None
+    return latest_snapshot(list(SNAPSHOTS.glob(f'w_tools_{package}-*.txt')))
 
 
 def _load_snapshot(path: pathlib.Path) -> dict[str, str]:
@@ -231,7 +284,7 @@ def main() -> int:
     major = major_match.group(1) if major_match else '0'
     migration_path = ROOT / 'docs/migrations' / f'{args.package}-{major}.0.md'
     migration = migration_path.read_text() if migration_path.exists() else ''
-    errors = check_notes(changes, changelog, migration)
+    errors = check_notes(changes, changelog, migration, current)
     if errors:
         print(f'公开 API 变化未记录（{len(errors)} 条）：', file=sys.stderr)
         for error in errors:

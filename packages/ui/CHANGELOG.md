@@ -35,6 +35,7 @@
 - `WNotificationListener<T>` 声明式滚动通知 / 百分比监听；旧 `WNotificationListenerBuilder` 仍是兼容入口。
 - `WButtonMetrics`：`WButtonStyle` 的布局 / 尺寸子集，支持 `fromStyle` / `applyTo` / `WButtonStyle.metrics`。
 - `WBadge` 直接传 `position` / `showBadge` / `badgeStyle`；`WClipRRect` 直接传 `borderRadius`。
+- `WButtonSize.name` 改为可选，省略时为空字符串；自定义尺寸不再强制命名。
 - `WWidgetExtension.withTopSafeSpaceOf` / `withBottomBarSpaceOf`，读取当前 `MediaQuery`。
 - `WNumExtension.borderSideOf(context)`（主题 outline）与 `WBoxDecorationExtension.withBackground(...)`。
 - `WScreen.reset()` / `WAssets.reset()`（测试隔离用）。

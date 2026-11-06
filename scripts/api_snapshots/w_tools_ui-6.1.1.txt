@@ -2,6 +2,8 @@
 WActionRow	class
 WActionRow.children	List<Widget>
 WActionRow.controller	ScrollController?
+WActionRow.createState	State<WActionRow> ()
+WActionRow.new	({ super.key, required this.children, this.padding, this.spacing = 8, this.physics, this.controller, this.onScroll, })
 WActionRow.onScroll	ValueChanged<double>?
 WActionRow.padding	EdgeInsetsGeometry?
 WActionRow.physics	ScrollPhysics?
@@ -10,48 +12,58 @@ WAppBar	class
 WAppBar.actions	List<Widget>
 WAppBar.automaticallyImplyLeading	bool
 WAppBar.bottom	PreferredSizeWidget?
+WAppBar.build	Widget (BuildContext context)
 WAppBar.centerTitle	bool
 WAppBar.contentHeight	double
 WAppBar.includeStatusBar	bool
 WAppBar.leading	Widget?
+WAppBar.new	({ super.key, this.title, this.titleWidget, this.leading, this.actions = const <Widget>[], this.bottom, this.onBack, this.automaticallyImplyLeading = true, this.centerTitle = true, this.includeStatusBar = true, this.style = const WAppBarStyle(), })
 WAppBar.onBack	VoidCallback?
 WAppBar.style	WAppBarStyle
 WAppBar.title	String?
 WAppBar.titleWidget	Widget?
 WAppBarStyle	class
 WAppBarStyle.backgroundColor	Color?
+WAppBarStyle.copyWith	WAppBarStyle ({ Object? backgroundColor = _unset, Object? gradient = _unset, Object? foregroundColor = _unset, Object? titleStyle = _unset, double? height, Object? titleSpacing = _unset, Object? systemOverlayStyle = _unset, })
 WAppBarStyle.foregroundColor	Color?
 WAppBarStyle.gradient	Gradient?
 WAppBarStyle.height	double
+WAppBarStyle.new	({ this.backgroundColor, this.gradient, this.foregroundColor, this.titleStyle, this.height = 56, this.titleSpacing, this.systemOverlayStyle, })
 WAppBarStyle.systemOverlayStyle	SystemUiOverlayStyle?
 WAppBarStyle.titleSpacing	double?
 WAppBarStyle.titleStyle	TextStyle?
+WAppBarStyle.validate	void ()
 WAssetImageSource	class
-WAssetImageSource.hashCode	int
 WAssetImageSource.key	String
 WAssetImageSource.name	String
-WAssetImageSource.operator	bool
+WAssetImageSource.new	(this.name, {this.package, this.prefix = false})
 WAssetImageSource.package	String?
 WAssetImageSource.prefix	bool
 WAssetImageSource.raw	String
 WAssetImageSource.type	WImageType
 WAssetImageSource.value	String
 WAssets	class
-WAssets.imagePath	static String
+WAssets._	()
+WAssets.imagePath	static set (String value)
 WBadge	class
 WBadge.badgeContent	Widget?
+WBadge.build	Widget (BuildContext context)
 WBadge.child	Widget?
 WBadge.config	WBadgeConfig?
+WBadge.new	({ super.key, this.config, this.badgeContent, this.child, })
 WBadgeConfig	class
 WBadgeConfig.badgeStyle	badges.BadgeStyle?
+WBadgeConfig.center	()
+WBadgeConfig.copyWith	WBadgeConfig ({ Object? position = _unset, bool? showBadge, Object? badgeStyle = _unset, })
 WBadgeConfig.isShown	bool
+WBadgeConfig.new	({ this.position, this.showBadge = true, this.badgeStyle, })
 WBadgeConfig.position	badges.BadgePosition?
 WBadgeConfig.showBadge	bool
+WBadgeConfig.topRight	({double? top, double? end})
 WBase64ImageSource	class
 WBase64ImageSource.data	String
-WBase64ImageSource.hashCode	int
 WBase64ImageSource.key	String
-WBase64ImageSource.operator	bool
+WBase64ImageSource.new	(this.data)
 WBase64ImageSource.raw	String
 WBase64ImageSource.type	WImageType
 WBase64ImageSource.value	String
@@ -72,12 +84,14 @@ WButton	class
 WButton.autofocus	bool
 WButton.content	Widget?
 WButton.contentBuilder	WButtonContentBuilder?
+WButton.createState	State<WButton> ()
 WButton.enabled	bool
 WButton.focusNode	FocusNode?
 WButton.icon	IconData?
 WButton.label	String?
 WButton.loading	bool
 WButton.loadingBuilder	WidgetBuilder?
+WButton.new	({ super.key, this.style, this.label, this.icon, this.content, this.contentBuilder, this.size, this.semanticLabel, this.onTap, this.onLongPress, this.enabled = true, this.loading = false, this.loadingBuilder, this.focusNode, this.autofocus = false, })
 WButton.onLongPress	GestureLongPressCallback?
 WButton.onTap	GestureTapCallback?
 WButton.semanticLabel	String?
@@ -89,11 +103,14 @@ WButtonEffectType.none	enum
 WButtonEffectType.opacity	enum
 WButtonEffectType.scale	enum
 WButtonMotion	class
+WButtonMotion.copyWith	WButtonMotion ({ WButtonEffectType? effect, double? pressedOpacity, double? pressedScale, Duration? duration, Curve? curve, })
 WButtonMotion.curve	Curve
 WButtonMotion.duration	Duration
 WButtonMotion.effect	WButtonEffectType
+WButtonMotion.new	({ this.effect = WButtonEffectType.opacity, this.pressedOpacity = 0.7, this.pressedScale = 0.95, this.duration = const Duration(milliseconds: 100), this.curve = Curves.easeInOut, })
 WButtonMotion.pressedOpacity	double
 WButtonMotion.pressedScale	double
+WButtonMotion.validate	void ()
 WButtonResolvedStyle	class
 WButtonResolvedStyle.backgroundColor	Color?
 WButtonResolvedStyle.border	BoxBorder?
@@ -102,34 +119,43 @@ WButtonResolvedStyle.foregroundColor	Color?
 WButtonResolvedStyle.gap	double
 WButtonResolvedStyle.gradient	Gradient?
 WButtonResolvedStyle.iconSize	double
+WButtonResolvedStyle.new	({ this.states = const <WidgetState>{}, this.backgroundColor, this.gradient, this.border, this.boxShadow, this.textStyle, this.foregroundColor, this.iconSize = 18, this.gap = 8, })
 WButtonResolvedStyle.states	Set<WidgetState>
 WButtonResolvedStyle.textStyle	TextStyle?
 WButtonSemantics	class
+WButtonSemantics.copyWith	WButtonSemantics ({ String? label, String? hint, String? loadingLabel, })
 WButtonSemantics.hint	String?
 WButtonSemantics.label	String?
 WButtonSemantics.loadingLabel	String
+WButtonSemantics.new	({ this.label, this.hint, this.loadingLabel = '加载中', })
+WButtonSemantics.withoutHint	WButtonSemantics ()
+WButtonSemantics.withoutLabel	WButtonSemantics ()
 WButtonSize	class
+WButtonSize.copyWith	WButtonSize ({ String? name, Object? minWidth = _unset, Object? minHeight = _unset, Object? padding = _unset, Object? fontSize = _unset, Object? fontWeight = _unset, Object? lineHeight = _unset, Object? letterSpacing = _unset, Object? iconSize = _unset, Object? gap = _unset, double? tapTargetSize, })
 WButtonSize.fontSize	double?
 WButtonSize.fontWeight	FontWeight?
 WButtonSize.gap	double?
-WButtonSize.hashCode	int
 WButtonSize.iconSize	double?
 WButtonSize.letterSpacing	double?
 WButtonSize.lineHeight	double?
 WButtonSize.minHeight	double?
 WButtonSize.minWidth	double?
 WButtonSize.name	String
-WButtonSize.operator	bool
+WButtonSize.new	({ required this.name, this.minWidth, this.minHeight, this.padding, this.fontSize, this.fontWeight, this.lineHeight, this.letterSpacing, this.iconSize, this.gap, this.tapTargetSize = 48, })
 WButtonSize.padding	EdgeInsetsGeometry?
 WButtonSize.tapTargetSize	double
+WButtonSize.validate	void ()
 WButtonStyle	class
 WButtonStyle.alignment	AlignmentGeometry
+WButtonStyle.applySize	WButtonStyle (WButtonSize? size)
 WButtonStyle.backgroundColor	WidgetStateProperty<Color?>?
 WButtonStyle.border	WidgetStateProperty<BoxBorder?>?
 WButtonStyle.borderRadius	BorderRadius?
 WButtonStyle.boxShadow	WidgetStateProperty<List<BoxShadow>?>?
 WButtonStyle.clipBehavior	Clip
+WButtonStyle.copyWith	WButtonStyle ({ WButtonMotion? motion, WButtonSemantics? semantics, WidgetStateProperty<Color?>? backgroundColor, WidgetStateProperty<Gradient?>? gradient, WidgetStateProperty<BoxBorder?>? border, BorderRadius? borderRadius, WidgetStateProperty<List<BoxShadow>?>? boxShadow, EdgeInsetsGeometry? padding, AlignmentGeometry? alignment, Clip? clipBehavior, WidgetStateProperty<Color?>? foregroundColor, WidgetStateProperty<TextStyle?>? textStyle, Color? focusColor, Color? hoverColor, double? disabledOpacity, double? minWidth, double? minHeight, double? tapTargetSize, double? iconSize, double? gap, })
 WButtonStyle.disabledOpacity	double
+WButtonStyle.filled	({ required Color backgroundColor, Color? foregroundColor, Color? borderColor, BorderRadius? borderRadius, EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10), TextStyle? textStyle, WButtonMotion motion = const WButtonMotion(), WButtonSemantics semantics = const WButtonSemantics(), })
 WButtonStyle.focusColor	Color?
 WButtonStyle.foregroundColor	WidgetStateProperty<Color?>?
 WButtonStyle.gap	double
@@ -139,22 +165,44 @@ WButtonStyle.iconSize	double
 WButtonStyle.minHeight	double
 WButtonStyle.minWidth	double
 WButtonStyle.motion	WButtonMotion
+WButtonStyle.new	({ this.motion = const WButtonMotion(), this.semantics = const WButtonSemantics(), this.backgroundColor, this.gradient, this.border, this.borderRadius, this.boxShadow, this.padding, this.alignment = Alignment.center, this.clipBehavior = Clip.none, this.foregroundColor, this.textStyle, this.focusColor, this.hoverColor, this.disabledOpacity = 0.5, this.minWidth = 48, this.minHeight = 48, this.tapTargetSize = 48, this.iconSize = 18, this.gap = 8, })
+WButtonStyle.outlined	({ Color? foregroundColor, Color? borderColor, BorderRadius? borderRadius, EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10), TextStyle? textStyle, WButtonMotion motion = const WButtonMotion(), WButtonSemantics semantics = const WButtonSemantics(), })
 WButtonStyle.padding	EdgeInsetsGeometry?
+WButtonStyle.resolve	WButtonResolvedStyle (Set<WidgetState> states)
 WButtonStyle.semantics	WButtonSemantics
 WButtonStyle.tapTargetSize	double
+WButtonStyle.text	({ Color? foregroundColor, EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8), TextStyle? textStyle, WButtonMotion motion = const WButtonMotion(), WButtonSemantics semantics = const WButtonSemantics(), })
 WButtonStyle.textStyle	WidgetStateProperty<TextStyle?>?
+WButtonStyle.validate	void ()
+WButtonStyle.withBackgroundColor	WButtonStyle (Color color)
+WButtonStyle.withBorder	WButtonStyle (BoxBorder border)
+WButtonStyle.withBoxShadow	WButtonStyle (List<BoxShadow> shadows)
+WButtonStyle.withForegroundColor	WButtonStyle (Color color)
+WButtonStyle.withTextStyle	WButtonStyle (TextStyle textStyle)
+WButtonStyle.withoutBackground	WButtonStyle ()
+WButtonStyle.withoutBorder	WButtonStyle ()
+WButtonStyle.withoutBoxShadow	WButtonStyle ()
+WButtonStyle.withoutDecoration	WButtonStyle ()
+WButtonStyle.withoutFocusColor	WButtonStyle ()
+WButtonStyle.withoutForegroundColor	WButtonStyle ()
+WButtonStyle.withoutHoverColor	WButtonStyle ()
+WButtonStyle.withoutText	WButtonStyle ()
+WButtonStyle.withoutTextStyle	WButtonStyle ()
 WButtonStyles	class
 WClipRRect	class
+WClipRRect.build	Widget (BuildContext context)
 WClipRRect.child	Widget
 WClipRRect.clipBehavior	Clip
 WClipRRect.config	WClipRRectConfig?
+WClipRRect.new	({ super.key, this.config, required this.child, this.clipBehavior = Clip.antiAlias, })
 WClipRRectConfig	class
+WClipRRectConfig.all	(double radius)
 WClipRRectConfig.borderRadius	BorderRadiusGeometry
 WClipRRectConfig.copyWith	WClipRRectConfig ({BorderRadiusGeometry? borderRadius})
+WClipRRectConfig.new	({this.borderRadius = BorderRadius.zero})
 WFileImageSource	class
-WFileImageSource.hashCode	int
 WFileImageSource.key	String
-WFileImageSource.operator	bool
+WFileImageSource.new	(this.path)
 WFileImageSource.path	String
 WFileImageSource.raw	String
 WFileImageSource.type	WImageType
@@ -164,7 +212,9 @@ WGlobalKeyExtension.offset	Offset? ()
 WGlobalKeyExtension.rect	Rect? ()
 WGradientCircularProgressIndicator	class
 WGradientCircularProgressIndicator.backgroundColor	Color
+WGradientCircularProgressIndicator.build	Widget (BuildContext context)
 WGradientCircularProgressIndicator.colors	List<Color>
+WGradientCircularProgressIndicator.new	({ super.key, this.strokeWidth = 2.0, required this.radius, required this.colors, this.stops, this.strokeCapRound = false, this.backgroundColor = const Color(0xFFEEEEEE), this.totalAngle = 2 * pi, this.value = 0, this.semanticsLabel, })
 WGradientCircularProgressIndicator.radius	double
 WGradientCircularProgressIndicator.semanticsLabel	String?
 WGradientCircularProgressIndicator.stops	List<double>?
@@ -173,18 +223,22 @@ WGradientCircularProgressIndicator.strokeWidth	double
 WGradientCircularProgressIndicator.totalAngle	double
 WGradientCircularProgressIndicator.value	double
 WGradients	class
-WGradients.vertical	LinearGradient (List<Color> colors, { List<double>? stops, })
+WGradients.diagonal	static LinearGradient (List<Color> colors, { List<double>? stops, })
+WGradients.horizontal	static LinearGradient (List<Color> colors, { List<double>? stops, })
+WGradients.radial	static RadialGradient (List<Color> colors, { List<double>? stops, AlignmentGeometry center = Alignment.center, double radius = 0.5, })
+WGradients.vertical	static LinearGradient (List<Color> colors, { List<double>? stops, })
 WHexColor	extension
-WHexColor.fromHex	Color (String hexString)
+WHexColor.fromHex	static Color (String hexString)
 WHexColor.toHex	String ({bool leadingHashSign = true})
 WImage	class
+WImage._	({ super.key, required this.type, required this.source, required this.style, required this.config, this.onLoadStatusChanged, this.onProgress, this.controller, })
 WImage.config	WImageLoadConfig
 WImage.controller	WImageController?
 WImage.createState	State<WImage> ()
 WImage.data	String
 WImage.onLoadStatusChanged	ValueChanged<WImageLoadStatus>?
 WImage.onProgress	ValueChanged<WImageProgress>?
-WImage.source	WImageSource
+WImage.source	({ Key? key, required WImageSource source, WImageStyle style = const WImageStyle(), WImageLoadConfig config = const WImageLoadConfig(), ValueChanged<WImageLoadStatus>? onLoadStatusChanged, ValueChanged<WImageProgress>? onProgress, WImageController? controller, })
 WImage.style	WImageStyle
 WImage.type	WImageType?
 WImageController	class
@@ -193,11 +247,16 @@ WImageController.retry	void ()
 WImageController.state	ValueListenable<WImageLoadSnapshot>?
 WImageDefaultsScope	class
 WImageDefaultsScope.defaults	WImageLoadConfig
+WImageDefaultsScope.maybeOf	static WImageLoadConfig? (BuildContext context)
+WImageDefaultsScope.new	({ super.key, required this.defaults, required super.child, })
+WImageDefaultsScope.of	static WImageLoadConfig (BuildContext context)
+WImageDefaultsScope.updateShouldNotify	bool (WImageDefaultsScope oldWidget)
 WImageError	class
 WImageError.cause	Object?
 WImageError.data	String
 WImageError.kind	WImageErrorKind
 WImageError.message	String
+WImageError.new	(this.data, this.kind, {this.cause})
 WImageError.toString	String ()
 WImageErrorKind	enum
 WImageErrorKind.asset	enum
@@ -208,39 +267,46 @@ WImageErrorKind.network	enum
 WImageErrorKind.provider	enum
 WImageErrorKind.unsupported	enum
 WImageErrorView	class
+WImageErrorView.build	Widget (BuildContext context)
 WImageErrorView.compact	bool
 WImageErrorView.error	WImageError
+WImageErrorView.new	({ super.key, required this.error, this.onRetry, this.retryLabel = '重试', this.compact = false, this.showAction = true, })
 WImageErrorView.onRetry	VoidCallback?
 WImageErrorView.retryLabel	String
 WImageErrorView.showAction	bool
 WImageFrame	class
 WImageFrame.build	Widget (BuildContext context)
 WImageFrame.child	Widget
+WImageFrame.new	({super.key, required this.style, required this.child})
 WImageFrame.style	WImageStyle
 WImageLoadConfig	class
+WImageLoadConfig.copyWith	WImageLoadConfig ({ Object? memCacheWidth = _unset, Object? memCacheHeight = _unset, bool? gaplessPlayback, int? retryCount, int? retryDelay, Object? placeholderBuilder = _unset, Object? errorWidgetBuilder = _unset, Object? progressBuilder = _unset, Object? placeholder = _unset, Object? errorWidget = _unset, bool? showRetryButton, String? retryLabel, })
 WImageLoadConfig.errorWidget	Widget?
+WImageLoadConfig.errorWidgetBuilder	Widget? Function(BuildContext, String, WImageError)?
 WImageLoadConfig.gaplessPlayback	bool
-WImageLoadConfig.hashCode	int
 WImageLoadConfig.memCacheHeight	int?
 WImageLoadConfig.memCacheWidth	int?
-WImageLoadConfig.operator	bool
+WImageLoadConfig.new	({ this.memCacheWidth, this.memCacheHeight, this.gaplessPlayback = false, this.retryCount = 0, this.retryDelay = 1000, this.placeholderBuilder, this.errorWidgetBuilder, this.progressBuilder, this.placeholder, this.errorWidget, this.showRetryButton = false, this.retryLabel = '重试', })
 WImageLoadConfig.placeholder	Widget?
+WImageLoadConfig.placeholderBuilder	Widget? Function(BuildContext, String)?
+WImageLoadConfig.progressBuilder	Widget? Function(BuildContext, String, WImageProgress)?
 WImageLoadConfig.retryCount	int
 WImageLoadConfig.retryDelay	int
 WImageLoadConfig.retryLabel	String
 WImageLoadConfig.showRetryButton	bool
+WImageLoadConfig.validate	void ()
 WImageLoadSnapshot	class
 WImageLoadSnapshot.attempt	int
 WImageLoadSnapshot.error	WImageError?
-WImageLoadSnapshot.hashCode	int
 WImageLoadSnapshot.isCompleted	bool
 WImageLoadSnapshot.isFailed	bool
 WImageLoadSnapshot.isLoading	bool
-WImageLoadSnapshot.operator	bool
+WImageLoadSnapshot.new	({ this.status, this.progress, this.attempt = 0, this.error, this.retryScheduled = false, this.retryDelayMs, })
 WImageLoadSnapshot.progress	WImageProgress?
 WImageLoadSnapshot.retryDelayMs	int?
 WImageLoadSnapshot.retryScheduled	bool
 WImageLoadSnapshot.status	WImageLoadStatus?
+WImageLoadSnapshot.toString	String ()
 WImageLoadStatus	enum
 WImageLoadStatus.completed	enum
 WImageLoadStatus.failed	enum
@@ -248,28 +314,41 @@ WImageLoadStatus.loading	enum
 WImageProgress	class
 WImageProgress.downloadedBytes	int?
 WImageProgress.fraction	double?
-WImageProgress.hashCode	int
-WImageProgress.operator	bool
+WImageProgress.new	({this.downloadedBytes, this.totalBytes})
 WImageProgress.toString	String ()
 WImageProgress.totalBytes	int?
 WImageSource	class
+WImageSource.asset	(String name, { String? package, bool prefix = false, })
+WImageSource.base64	(String data)
+WImageSource.file	(String path)
 WImageSource.key	String
+WImageSource.network	(String url, { Map<String, String>? headers, String? cacheKey, })
+WImageSource.new	()
+WImageSource.parse	(String raw, {WImageType? type})
+WImageSource.provider	(ImageProvider provider)
 WImageSource.raw	String
 WImageSource.type	WImageType
 WImageSource.value	String
 WImageStyle	class
 WImageStyle.alignment	Alignment
 WImageStyle.aspectRatio	double?
+WImageStyle.avatar	(double size, { BorderRadius? borderRadius, Border? border, List<BoxShadow>? boxShadow, })
 WImageStyle.border	BoxBorder?
 WImageStyle.borderRadius	BorderRadius?
 WImageStyle.boxShadow	List<BoxShadow>?
+WImageStyle.copyWith	WImageStyle ({ Object? width = _unset, Object? height = _unset, Object? fit = _unset, Object? alignment = _unset, Object? aspectRatio = _unset, Object? borderRadius = _unset, Object? border = _unset, Object? boxShadow = _unset, Object? margin = _unset, Object? padding = _unset, Object? semanticLabel = _unset, Object? excludeFromSemantics = _unset, Object? filterQuality = _unset, })
+WImageStyle.cover	({ double? aspectRatio = 16 / 9, double? radius, })
 WImageStyle.excludeFromSemantics	bool
 WImageStyle.filterQuality	FilterQuality
 WImageStyle.fit	BoxFit
 WImageStyle.height	double?
 WImageStyle.margin	EdgeInsets?
+WImageStyle.merge	WImageStyle (WImageStyle? other)
+WImageStyle.new	({ this.width, this.height, this.fit = BoxFit.cover, this.alignment = Alignment.center, this.aspectRatio, this.borderRadius, this.border, this.boxShadow, this.margin, this.padding, this.semanticLabel, this.excludeFromSemantics = false, this.filterQuality = FilterQuality.low, })
 WImageStyle.padding	EdgeInsets?
 WImageStyle.semanticLabel	String?
+WImageStyle.thumbnail	(double width, { double? height, })
+WImageStyle.validate	void ()
 WImageStyle.width	double?
 WImageStyleX	extension
 WImageStyleX.rounded	WImageStyle (double radius)
@@ -282,18 +361,24 @@ WImageType.network	enum
 WImageType.provider	enum
 WKeepAliveWrapper	class
 WKeepAliveWrapper.child	Widget
+WKeepAliveWrapper.createState	State<WKeepAliveWrapper> ()
 WKeepAliveWrapper.keepAlive	bool
+WKeepAliveWrapper.new	({ super.key, required this.child, this.keepAlive = true, })
 WListView	class
+WListView.build	Widget (BuildContext context)
 WListView.controller	ScrollController?
+WListView.new	({ super.key, required this.sliver, this.controller, this.physics, this.shrinkWrap = false, this.scrollDirection = Axis.vertical, this.reverse = false, })
 WListView.physics	ScrollPhysics?
 WListView.reverse	bool
 WListView.scrollDirection	Axis
 WListView.shrinkWrap	bool
 WListView.sliver	WListViewSliver
 WListViewSliver	class
+WListViewSliver.build	Widget (BuildContext context)
 WListViewSliver.empty	Widget?
 WListViewSliver.emptyFill	bool
 WListViewSliver.footer	Widget?
+WListViewSliver.grid	({ super.key, required this.itemCount, required this.itemBuilder, required this.gridDelegate, this.padding = EdgeInsets.zero, this.header, this.footer, this.empty, this.emptyFill = false, this.keepAlive = false, })
 WListViewSliver.gridDelegate	SliverGridDelegate?
 WListViewSliver.hasEmpty	bool
 WListViewSliver.header	Widget?
@@ -302,38 +387,51 @@ WListViewSliver.itemBuilder	IndexedWidgetBuilder
 WListViewSliver.itemCount	int
 WListViewSliver.itemExtent	double?
 WListViewSliver.keepAlive	bool
+WListViewSliver.list	({ super.key, required this.itemCount, required this.itemBuilder, this.itemExtent, this.padding = EdgeInsets.zero, this.header, this.footer, this.empty, this.emptyFill = false, this.keepAlive = false, })
 WListViewSliver.overlap	double
 WListViewSliver.padding	EdgeInsetsGeometry
+WListViewSliver.separated	({ super.key, required this.itemCount, required this.itemBuilder, required this.separatorBuilder, this.padding = EdgeInsets.zero, this.header, this.footer, this.empty, this.emptyFill = false, this.keepAlive = false, })
 WListViewSliver.separatorBuilder	IndexedWidgetBuilder?
 WNavBar	class
-WNavBar.Function	Future<bool?>? (int)
 WNavBar.config	WNavBarConfig
 WNavBar.controller	WNavController
+WNavBar.createState	State<WNavBar> ()
+WNavBar.itemBuilder	Widget Function(BuildContext, int, bool)
+WNavBar.new	({ super.key, this.config = const WNavBarConfig(), required this.itemBuilder, this.onItemTap, required this.controller, })
+WNavBar.onItemTap	Future<bool?>? Function(int)?
 WNavBarConfig	class
+WNavBarConfig.build	WNavBar ({ required Widget Function(BuildContext, int, bool) itemBuilder, Future<bool?>? Function(int)? onItemTap, required WNavController controller, })
 WNavBarConfig.decoration	BoxDecoration?
+WNavBarConfig.new	({ this.decoration, this.padding, })
 WNavBarConfig.padding	EdgeInsetsGeometry?
 WNavController	class
+WNavController.animateTo	Future<void> (int index, { Duration? duration, Curve curve = Curves.ease, })
 WNavController.animation	Animation<double>
-WNavController.currentIndex	int
+WNavController.currentIndex	set (int value)
+WNavController.dispose	void ()
+WNavController.false	bool _disposed =
 WNavController.indexIsChanging	bool
 WNavController.length	int
+WNavController.new	({ int initialIndex = 0, required this.length, required this.vsync, })
 WNavController.offset	double
 WNavController.previousIndex	int
 WNavController.vsync	TickerProvider
 WNetworkImageSource	class
 WNetworkImageSource.cacheKey	String?
-WNetworkImageSource.hashCode	int
 WNetworkImageSource.headers	Map<String, String>?
 WNetworkImageSource.key	String
-WNetworkImageSource.operator	bool
+WNetworkImageSource.new	(this._url, {this.headers, this.cacheKey})
 WNetworkImageSource.raw	String
 WNetworkImageSource.type	WImageType
 WNetworkImageSource.value	String
 WNotificationListenerBuilder	class
-WNotificationListenerBuilder.Function	void (double percentage)
 WNotificationListenerBuilder.build	NotificationListener<T> ()
 WNotificationListenerBuilder.child	Widget
+WNotificationListenerBuilder.false	bool _preventNotificationPropagation =
+WNotificationListenerBuilder.new	({required this.child})
 WNotificationListenerBuilder.onNotification	WNotificationListenerBuilder<T> (bool Function(T)? onNotification,)
+WNotificationListenerBuilder.onNotificationPercentage	WNotificationListenerBuilder<T> (void Function(double percentage)? onNotificationPercentage,)
+WNotificationListenerBuilder.preventNotificationPropagation	WNotificationListenerBuilder<T> (bool prevent)
 WNotificationListenerBuilder.preventsPropagation	bool
 WNotificationListenerBuilderExtension	extension
 WNotificationListenerBuilderExtension.notificationListenerBuilder	WNotificationListenerBuilder<Notification>
@@ -358,19 +456,20 @@ WPressEffect.scale	enum
 WPressable	class
 WPressable.behavior	HitTestBehavior
 WPressable.child	Widget
+WPressable.createState	State<WPressable> ()
 WPressable.curve	Curve
 WPressable.duration	Duration
 WPressable.effect	WPressEffect
 WPressable.enabled	bool
 WPressable.excludeChildSemanticsWhenDisabled	bool
+WPressable.new	({ super.key, required this.child, this.onTap, this.onLongPress, this.enabled = true, this.effect = WPressEffect.opacity, this.pressedOpacity = 0.85, this.pressedScale = 0.98, this.duration = const Duration(milliseconds: 100), this.curve = Curves.easeInOut, this.behavior = HitTestBehavior.opaque, this.excludeChildSemanticsWhenDisabled = false, })
 WPressable.onLongPress	GestureLongPressCallback?
 WPressable.onTap	GestureTapCallback?
 WPressable.pressedOpacity	double
 WPressable.pressedScale	double
 WProviderImageSource	class
-WProviderImageSource.hashCode	int
 WProviderImageSource.key	String
-WProviderImageSource.operator	bool
+WProviderImageSource.new	(this.provider)
 WProviderImageSource.provider	ImageProvider
 WProviderImageSource.raw	String
 WProviderImageSource.type	WImageType
@@ -384,11 +483,13 @@ WScaffold.automaticallyImplyLeading	bool
 WScaffold.backgroundColor	Color?
 WScaffold.body	Widget?
 WScaffold.bottomNavigationBar	Widget?
+WScaffold.build	Widget (BuildContext context)
 WScaffold.centerTitle	bool
 WScaffold.floatingActionButton	Widget?
 WScaffold.includeBottomSafeArea	bool
 WScaffold.includeTopSafeArea	bool
 WScaffold.leading	Widget?
+WScaffold.new	({ super.key, this.appBar, this.title, this.titleWidget, this.leading, this.actions = const <Widget>[], this.onBack, this.automaticallyImplyLeading = true, this.centerTitle = true, this.appBarStyle, this.appBarBottom, this.body, this.bottomNavigationBar, this.floatingActionButton, this.backgroundColor, this.systemStatusBarStyle, this.underlayWidget, this.includeTopSafeArea = false, this.includeBottomSafeArea = true, this.resizeToAvoidBottomInset = true, })
 WScaffold.onBack	VoidCallback?
 WScaffold.resizeToAvoidBottomInset	bool
 WScaffold.systemStatusBarStyle	SystemUiOverlayStyle?
@@ -396,24 +497,31 @@ WScaffold.title	String?
 WScaffold.titleWidget	Widget?
 WScaffold.underlayWidget	Widget?
 WScreen	class
-WScreen.Function	double (double)
+WScreen._	()
 WScreen.bottomSafeAreaHeight	static double
-WScreen.h	double (double value)
-WScreen.of	WScreenData (BuildContext context)
+WScreen.delegateFont	static double Function(double)?
+WScreen.delegateHeight	static double Function(double)?
+WScreen.delegateWidth	static double Function(double)?
+WScreen.h	static double (double value)
+WScreen.of	static WScreenData (BuildContext context)
 WScreen.screenHeight	static double
 WScreen.screenWidth	static double
-WScreen.sp	double (double value)
+WScreen.sp	static double (double value)
 WScreen.statusBarHeight	static double
-WScreen.w	double (double value)
+WScreen.w	static double (double value)
 WScreenData	class
 WScreenData.bottomSafeAreaHeight	double
 WScreenData.height	double
+WScreenData.new	({required this.size, required this.padding})
 WScreenData.padding	EdgeInsets
 WScreenData.size	Size
 WScreenData.statusBarHeight	double
 WScreenData.width	double
 WSelectableRow	class
+WSelectableRow.builder	Widget Function(BuildContext context, int index, bool selected)
+WSelectableRow.createState	State<WSelectableRow> ()
 WSelectableRow.itemCount	int
+WSelectableRow.new	({ super.key, required this.itemCount, required this.builder, required this.selectedIndex, required this.onSelected, this.padding, this.spacing = 8, this.physics, this.scrollToSelected = true, this.scrollController, })
 WSelectableRow.onSelected	ValueChanged<int>
 WSelectableRow.padding	EdgeInsetsGeometry?
 WSelectableRow.physics	ScrollPhysics?
@@ -423,15 +531,20 @@ WSelectableRow.selectedIndex	int?
 WSelectableRow.spacing	double
 WShadows	class
 WStep	class
+WStep.build	Widget (BuildContext context)
 WStep.current	int
 WStep.itemBuilder	WStepItemBuilder?
 WStep.labels	List<String>
+WStep.new	({ super.key, required this.current, required this.labels, this.itemBuilder, this.separatorBuilder, this.semanticLabelBuilder, this.style = const WStepStyle(), })
 WStep.semanticLabelBuilder	WStepSemanticLabelBuilder?
 WStep.separatorBuilder	WStepSeparatorBuilder?
 WStep.style	WStepStyle
 WStepFlow	class
+WStepFlow.build	WStep ({ Key? key, required int current, })
+WStepFlow.copyWith	WStepFlow ({ List<String>? labels, WStepStyle? style, WStepItemBuilder? itemBuilder, WStepSeparatorBuilder? separatorBuilder, WStepSemanticLabelBuilder? semanticLabelBuilder, })
 WStepFlow.itemBuilder	WStepItemBuilder?
 WStepFlow.labels	List<String>
+WStepFlow.new	({ required List<String> labels, this.style = const WStepStyle(), this.itemBuilder, this.separatorBuilder, this.semanticLabelBuilder, })
 WStepFlow.semanticLabelBuilder	WStepSemanticLabelBuilder?
 WStepFlow.separatorBuilder	WStepSeparatorBuilder?
 WStepFlow.style	WStepStyle
@@ -443,11 +556,13 @@ WStepState.completed	enum
 WStepStyle	class
 WStepStyle.completedColor	Color
 WStepStyle.completedLabelStyle	TextStyle?
+WStepStyle.copyWith	WStepStyle ({ Color? completedColor, Color? currentColor, Color? upcomingColor, double? itemSize, double? labelSpacing, double? separatorHeight, double? separatorIndent, Object? labelStyle = _unset, Object? completedLabelStyle = _unset, Object? currentLabelStyle = _unset, Object? upcomingLabelStyle = _unset, })
 WStepStyle.currentColor	Color
 WStepStyle.currentLabelStyle	TextStyle?
 WStepStyle.itemSize	double
 WStepStyle.labelSpacing	double
 WStepStyle.labelStyle	TextStyle?
+WStepStyle.new	({ this.completedColor = Colors.blue, this.currentColor = Colors.blue, this.upcomingColor = Colors.grey, this.itemSize = 28, this.labelSpacing = 8, this.separatorHeight = 2, this.separatorIndent = 8, this.labelStyle, this.completedLabelStyle, this.currentLabelStyle, this.upcomingLabelStyle, })
 WStepStyle.separatorHeight	double
 WStepStyle.separatorIndent	double
 WStepStyle.upcomingColor	Color
@@ -460,11 +575,16 @@ WStringExtension.toInt	int? ()
 WStringExtension.toNum	num? ()
 WStringExtension.trimAll	String ()
 WTabBar	class
-WTabBar.Function	void (int)
+WTabBar.build	Widget (BuildContext context)
 WTabBar.config	WTabBarConfig?
 WTabBar.controller	TabController?
+WTabBar.new	({ super.key, this.config, required this.tabs, this.controller, this.onTap, })
+WTabBar.onTap	void Function(int)?
 WTabBar.tabs	List<Widget>
 WTabBarConfig	class
+WTabBarConfig.build	WTabBar ({ required List<Widget> tabs, TabController? controller, void Function(int)? onTap, })
+WTabBarConfig.copy	WTabBarConfig ()
+WTabBarConfig.copyWith	WTabBarConfig ({ Object? labelStyle = _unset, Object? unselectedLabelStyle = _unset, Object? dividerColor = _unset, Object? dividerHeight = _unset, Object? padding = _unset, bool? isScrollable, Object? indicatorSize = _unset, Object? indicatorColor = _unset, Object? indicator = _unset, double? indicatorWeight, Object? tabAlignment = _unset, Object? overlayColor = _unset, })
 WTabBarConfig.dividerColor	Color?
 WTabBarConfig.dividerHeight	double?
 WTabBarConfig.indicator	Decoration?
@@ -473,14 +593,17 @@ WTabBarConfig.indicatorSize	TabBarIndicatorSize?
 WTabBarConfig.indicatorWeight	double
 WTabBarConfig.isScrollable	bool
 WTabBarConfig.labelStyle	TextStyle?
+WTabBarConfig.new	({ this.labelStyle, this.unselectedLabelStyle, this.dividerColor, this.dividerHeight, this.padding, this.isScrollable = false, this.indicatorSize, this.indicatorColor, this.indicator, this.indicatorWeight = 2.0, this.tabAlignment, this.overlayColor, })
 WTabBarConfig.overlayColor	Color?
 WTabBarConfig.padding	EdgeInsetsGeometry?
 WTabBarConfig.tabAlignment	TabAlignment?
 WTabBarConfig.unselectedLabelStyle	TextStyle?
 WText	class
+WText.build	Widget (BuildContext context)
 WText.color	Color?
 WText.locale	Locale?
 WText.maxLines	int?
+WText.new	({ super.key, required this.text, this.variant, this.style, this.color, this.maxLines, this.overflow, this.textAlign, this.softWrap, this.textDirection, this.textScaler, this.semanticsLabel, this.locale, this.textWidthBasis, this.strutStyle, })
 WText.overflow	TextOverflow?
 WText.semanticsLabel	String?
 WText.softWrap	bool?
@@ -502,12 +625,19 @@ WTextStyles.body	TextStyle
 WTextStyles.bodyStrong	TextStyle
 WTextStyles.button	TextStyle
 WTextStyles.caption	TextStyle
+WTextStyles.copyWith	WTextStyles ({ TextStyle? display, TextStyle? headline, TextStyle? title, TextStyle? body, TextStyle? bodyStrong, TextStyle? caption, TextStyle? label, TextStyle? button, TextStyle? price, TextStyle? number, TextStyle? badge, })
 WTextStyles.display	TextStyle
+WTextStyles.fromTextTheme	(TextTheme textTheme)
 WTextStyles.headline	TextStyle
 WTextStyles.label	TextStyle
+WTextStyles.lerp	WTextStyles (ThemeExtension<WTextStyles>? other, double t)
+WTextStyles.new	({ required this.display, required this.headline, required this.title, required this.body, required this.bodyStrong, required this.caption, required this.label, required this.button, required this.price, required this.number, required this.badge, })
 WTextStyles.number	TextStyle
+WTextStyles.of	static WTextStyles (BuildContext context)
 WTextStyles.price	TextStyle
+WTextStyles.resolve	TextStyle (WTextVariant variant)
 WTextStyles.title	TextStyle
+WTextStyles.toTextTheme	TextTheme (TextTheme base)
 WTextStylesThemeData	extension
 WTextStylesThemeData.withWTextStyles	ThemeData (WTextStyles styles)
 WTextVariant	enum

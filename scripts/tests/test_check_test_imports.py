@@ -21,6 +21,18 @@ class TestImportBoundaryTest(unittest.TestCase):
             self.assertEqual(len(errors), 1)
             self.assertIn('a_test.dart', errors[0])
 
+    def test_integration_test_importing_src_is_reported(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            integration = root / 'integration_test'
+            integration.mkdir()
+            (integration / 'flow_test.dart').write_text(
+                "import 'package:w_tools_ui/src/a.dart';\n"
+            )
+            errors = check_package(root, 'ui')
+            self.assertEqual(len(errors), 1)
+            self.assertIn('integration_test', errors[0])
+
     def test_internal_test_importing_src_is_allowed(self):
         with tempfile.TemporaryDirectory() as temp:
             root = pathlib.Path(temp)

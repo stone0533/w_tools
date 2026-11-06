@@ -91,6 +91,7 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 5. 提交（`pub publish` 只有在干净工作区才不会报 65）。
 6. 干净工作区复核 + 发布预演（**必须走发布脚本**，原因见下一节）：
    ```bash
+   # --strict 还要求当前分支有 upstream，且 ahead/behind 都为 0（见 scripts/check_git_sync.sh）
    bash scripts/release_check.sh --strict --package map
    bash scripts/publish_package.sh packages/map --dry-run
    ```
