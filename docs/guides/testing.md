@@ -223,7 +223,7 @@ dart run w_tools_device:device verify <x> <y> --region=<x,y,w,h>
 - 凭证不提交仓库
 - 测试入口与生产入口分开
 
-见 [E2E 免登录](e2e-login.md)。
+见 [E2E 免登录](../recipes/e2e-login.md)。
 
 ---
 
@@ -312,6 +312,6 @@ CI 账号
 ## 相关
 
 - [设备验证](../agents/device-testing.md)
-- [Tab 设备冒烟](device-tab-smoke.md)
-- [E2E 免登录](e2e-login.md)
-- [表单提交](form-submit.md)
+- [Tab 设备冒烟示例](../../packages/device/example/README.md)
+- [E2E 免登录](../recipes/e2e-login.md)
+- [表单提交](../recipes/form-submit.md)

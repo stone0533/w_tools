@@ -2,9 +2,9 @@
 
 # ADR 0002：消费方依赖**子包**，不依赖聚合包
 
-> 注：本 ADR 记录时为 8 个 Flutter 子包；之后新增 `w_tools_async`。
-> 2026-11 根包 7.0 起不再聚合 `w_tools_app` / `w_tools_map` / `w_tools_qr`；后续 app 拆为 `w_tools_app` + `w_tools_app_getx`，map 拆为 `w_tools_map` + `w_tools_map_google`。
-> 根包版本以根 `pubspec.yaml` 为准，ADR 不写死当前版本。
+> 本 ADR 正文冻结在 2026-10-24。根包聚合范围此后两次收缩（6.0 去 map/qr、7.0 去 app），
+> app / map 也已拆成契约层 + 实现层，见 [ADR-0006](0006-package-topology.md)。
+> 根包版本以根 `pubspec.yaml` 为准。
 
 
 - 状态：已采纳（2026-10-24）
@@ -62,4 +62,11 @@ dependencies:
 ## 工具支持
 
 - `dart run w_tools_cli:w_tools init`：生成 `toolkit.dart` + 暂存层 README + `lib/app/ui/` 页面规范 + `AGENTS.md` 片段
-- `dart run w_tools_cli:w_tools doctor`：R1（禁止聚合包）/ R2（禁止直连子包）等 6 条检查
+- `dart run w_tools_cli:w_tools doctor`：R1（禁止聚合包）/ R2（禁止直连子包）；
+  完整规则集见 [`docs/conventions.md`](../conventions.md) §7（R1~R9）
+
+## 重新评估的条件
+
+- 聚合包长期无人使用，可以评估删除；
+- pub 支持可选依赖 / feature flags，聚合包的「快捷方式」价值重新成立；
+- 消费方工具链能自动按需引入（`init` 生成的 toolkit 已接近这一步）。

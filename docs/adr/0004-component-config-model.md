@@ -44,7 +44,7 @@
 7. **破坏性变更两段式**（见 [ADR-0002](0002-consumers-depend-on-subpackages.md) 与 D2）：
    先弃用 + 迁移表，下一个大版本删除。
 
-## 影响
+## 后果
 
 - 调用方从“改字段”变成“换实例”，`const` 与 `==` 让缓存 / 重建判断可靠；
 - 每个能力只有一个入口，文档与测试面收敛；
@@ -57,3 +57,24 @@
 - 不把运行期状态放进 `Style` / `Options`（如 loading 计数）：状态放到独立对象
   （`WAsyncLoading`）或控制器里；
 - 不为了“统一”强行把各包的作用域 Widget 合并成一个跨包类型。
+
+## 重新评估的条件
+
+- 旧 `WForm*Config` 全部删除后，确认是否还需要保留「可变配置」的迁移壳；
+- 配置类型再次膨胀（出现 `XxxSettings` / `XxxParams` 这类同义命名），重新约定命名表；
+- Dart 语言能力变化（records / 更强的 const 推导）让手写 `copyWith` / `==` 不再划算。
+
+## 修订（2026-11-06）：`WMapConfig` 是已知例外
+
+ADR 发布次日（`984eacf`，2026-11-04）map 拆包时新增了公开类型 `WMapConfig`，
+与本 ADR 决策 2「不再新增 `XxxConfig`」冲突。核对后确认：
+
+- 它符合决策 1 的**模型**要求（`const`、`final` 字段、`==`），只是**命名**不合规；
+- 它已随 `w_tools_map_google 1.0.0` 发布，为命名偏好立刻做 breaking 不划算。
+
+因此：
+
+1. 规则不变：**新类型**仍用 `Style` / `Options` / `Icons` / `Theme`；
+2. `WMapConfig` 记为唯一例外，**下一个 major（2.0.0）改名为 `WMapOptions`**，
+   在此之前不再新增任何 `XxxConfig`；
+3. 改名完成前，`docs/agents/map.md` 与 catalog 的 `WMap` 条目要标明这个命名例外。

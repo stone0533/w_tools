@@ -44,5 +44,6 @@ WMap<Store>(
 - `json_serializable` 模型不要改生成代码，用 `WMapItemMapper` 取字段；
 - 业务 UI 选中 / 关闭统一走 `WMapController.select` / `closeSelection`；`closeSelection` 会隐藏 InfoWindow。
 - 直接构造 `WMap(config:, zone:)`；`WMapConfig.build()` 已在 5.0 删除。
+- `WMapConfig` 是命名例外（早于 ADR-0004），map_google 2.0 会改名 `WMapOptions`；在那之前仍用现名。
 
 完整说明：[map_module.md](../modules/map_module.md) · 示例：`packages/map_google/example`

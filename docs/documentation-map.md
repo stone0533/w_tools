@@ -82,7 +82,6 @@ docs/
   documentation-map.md    本文：文档定位 + AI 整理规则
   conventions.md          接入约定 / doctor R1~R9
   releasing.md            发版流程
-  figma-cli.md            Figma CLI 契约
   ai-contract.md          AI 分层、更新、完整性检查
   ai-maintainer-prompts.md 维护者按场景使用的 AI 提示词
 
@@ -90,9 +89,9 @@ docs/
     components.md         生成物：组件目录表
   agents/                 AI/维护者：首选入口、硬规则、禁止项
   recipes/                跨包组合场景
+  guides/                 横向指南（测试策略等）
   migrations/             版本迁移（历史）
   adr/                    架构决策（历史）
-  releases/               发布记录（历史）
   analysis/               评审分析（历史）
   feedback/               使用反馈台账
 
@@ -127,13 +126,12 @@ scripts/README.md         scripts 运行手册
 | `docs/modules/components.md` | 包使用者（人/AI） | 组件目录 | **只由生成器改** | 手写内容 |
 | `docs/agents/*.md` | 仓库 AI | 首选入口、硬规则、禁止项 | 规则 / 入口变化 | 完整教程、历史 |
 | `docs/recipes/*.md` | 包使用者（人/AI） | 跨包组合用法 | 多包协作方式变化 | 单包 API 全表 |
+| `docs/guides/*.md` | 包使用者（人/AI） | 横向指南（测试策略 / 工程做法） | 指南做法变化 | 单包 API、跨包组合 |
 | `docs/migrations/*.md` | 升级用户（人/AI） | 版本迁移 | 发布 breaking change 时新增 | 当前用法教程 |
 | `docs/adr/*.md` | 维护者（人/仓库 AI） | 架构决策记录 | 新决策时新增，旧决策不改 | 操作手册 |
-| `docs/releases/*.md` | 维护者 | 某次发布记录 | 发布时新增 | 当前版本声明 |
 | `docs/analysis/*.md` | 维护者 | 某次评审记录 | 评审时新增 | 当前事实源 |
 | `docs/feedback/*.md` | 维护者 / 用户 | 问题台账 | 通过 CLI 追加 | 当前 API 文档 |
 | `docs/releasing.md` | 维护者（人/仓库 AI） | 发布流程 | 发布流程变化 | 具体版本号 |
-| `docs/figma-cli.md` | 工具使用者 | Figma CLI 契约 | 命令/输出契约变化 | 页面实现教程 |
 | `packages/<pkg>/README.md` | 包使用者（人/AI） | 安装、API、最小用法、限制 | 公开 API / 行为变化 | 跨包组合大全 |
 | `packages/<pkg>/example/` | 包使用者（人）/ 仓库 AI | 可运行场景 | 用法变化 / 新场景 | 隐藏内部实现 |
 | `scripts/README.md` | 维护者（人/仓库 AI） | 何时跑哪个脚本 | 脚本增删 / 流程变化 | 脚本内部实现 |
@@ -151,7 +149,7 @@ scripts/README.md         scripts 运行手册
 | modules / recipes / migrations | ✅ | ✅ | 参考 | 参考 |
 | CONTRIBUTING / conventions | 贡献者 | 部分 | ✅ | ✅ |
 | agents / ai-contract / prompts | ❌ | 生成摘要 | ✅ | ✅ |
-| ADR / analysis / releases | ❌ | ❌ | ✅ | 参考 |
+| ADR / analysis | ❌ | ❌ | ✅ | 参考 |
 | scripts / catalog / templates | ❌ | 查询结果 | ✅ | ✅ |
 
 ### 判断规则
@@ -249,15 +247,30 @@ docs/recipes/
 
 并在 `docs/recipes/README.md` 加索引。
 
+### 新增使用指南
+
+放：
+
+```text
+docs/guides/<topic>.md
+docs/guides/README.md（索引）
+```
+
+指南回答「一类工程问题怎么做」，不绑定单个包；单包用法进 modules，跨包组合进 recipes。
+
 ### 新增架构决策
 
 放：
 
 ```text
-docs/adr/
+docs/adr/NNNN-kebab-title.md
+docs/adr/README.md（索引 + 模板 + 状态词）
 ```
 
-ADR 记录决策，不记录当前操作手册。
+- ADR 记录决策，不记录当前操作手册；
+- **旧 ADR 不改决策**：新决策开新编号，并在旧 ADR 顶部加一行指向新 ADR（被完全覆盖时状态改「已取代」）；
+- 编号四位、唯一且递增；退役编号留空不复用（`scripts/check_docs_facts.py` 检查命名、递增与状态行）；
+- 新增后同步 `docs/README.md` 的 ADR 索引。
 
 ### 新增版本迁移
 
@@ -268,16 +281,6 @@ docs/migrations/
 ```
 
 并在 `docs/migrations/README.md` 加索引。
-
-### 新增发布记录
-
-放：
-
-```text
-docs/releases/
-```
-
-不要改写历史发布记录。
 
 ### 新增反馈
 
@@ -307,7 +310,7 @@ scripts/README.md
 1. 先判断信息类型，再选文档。
 2. 能用 catalog / explain 表达的事实，不要复制成长篇。
 3. 不重复维护第二份组件清单。
-4. 不改历史迁移 / ADR / releases / analysis，除非修链接或错字。
+4. 不改历史迁移 / ADR / analysis，除非修链接或错字。
 5. 不写“已发布 / 待发布 x.y.z”；版本以 pubspec 为准。
 6. 不手改生成物。
 7. 新增公开 API 必须判断：catalog 还是 uncataloged。
@@ -346,7 +349,7 @@ scripts/README.md
 |---|---|---|
 | `scripts/preflight.sh --with-tests` | 全部静态门禁 + 全部包 / example / 根包测试 | 提交前 / 合并前；CI 的 umbrella job 直接调用它 |
 | `scripts/check_docs.sh` | 只改文档：链接 / 旧命令 / 版本声明 / 反馈台账 / 提示词 / docs/agents 一致性 | 改 docs |
-| `scripts/check_docs_facts.py` | 规模数字（从 pubspec 推导）与文档索引完整性 | check_docs |
+| `scripts/check_docs_facts.py` | 规模数字（从 pubspec 推导）、文档索引完整性、ADR 编号与状态、doctor 规则表一致性 | check_docs |
 | `scripts/check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名一致 | check_docs |
 | `scripts/ci_matrix.py --check` | CI 包矩阵 / 门禁步骤与 manifest、preflight 一致 | preflight |
 | `packages/cli/tool/gen_catalog.dart --check` | catalog 生成物 | 改 catalog |

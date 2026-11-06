@@ -57,6 +57,6 @@ dart run w_tools_device:device shot --real --device=<名称>
 
 ## 可选示例
 
-- Tab 冒烟：[`docs/recipes/device-tab-smoke.md`](../recipes/device-tab-smoke.md)
+- Tab 冒烟：[`packages/device/example/README.md`](../../packages/device/example/README.md)
 - Keep-alive 集成测试：[`docs/recipes/keepalive-integration-test.md`](../recipes/keepalive-integration-test.md)
 - E2E 免登录：[`docs/recipes/e2e-login.md`](../recipes/e2e-login.md)

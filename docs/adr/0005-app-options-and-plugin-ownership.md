@@ -57,7 +57,7 @@ ui / toast / async / form —— 会把 `cached_network_image`（50 个传递包
 
 5. **`WBottomSheet` 保持工具类**，不引入插件；它的参数已经透传 `Get.bottomSheet`。
 
-## 影响
+## 后果
 
 - 调用方从"改字段"变成"传 options"，`const` / `==` 可比较，测试可注入；
 - 插件不再成为 app 的依赖负担，消费方按需组合；
@@ -69,3 +69,9 @@ ui / toast / async / form —— 会把 `cached_network_image`（50 个传递包
 - 不为了"插件齐全"让 `w_tools_app` 依赖 ui / form / toast / async；
 - 不做全局可写的 `currentLanguage` 第二真源；
 - 不在本次发布前改 `WApp` 的公共构造（属于下一个 minor 的破坏性迁移）。
+
+## 重新评估的条件
+
+- app 需要内置插件生命周期（而不是业务方自建插件），说明「谁配置谁提供」不再成立；
+- `get` 被替换或移除，契约层与启动层的边界需要重划；
+- 多实例 / 多 App 壳（同一进程两套路由或语言）成为真实需求。

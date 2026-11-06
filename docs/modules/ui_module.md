@@ -1738,187 +1738,67 @@ WAssets.imagePath = 'assets/icons/';
 
 ---
 
-## 完整配置示例
+## 组合示例
 
-### WScreen 适配 + WListView + WButton 组合
+完整可运行版本见 [`packages/ui/example/`](../../packages/ui/example/README.md)。这里只保留三处最容易接错的线：
+
+1. **适配委托**：在 `ScreenUtilInit.builder` 里把适配函数注入 `WScreen`；不要在顶层 `final` / `static final` 里算 `.sp`。
+2. **列表**：`WScaffold` 负责安全区与 AppBar，列表用 `WListView(sliver: WListViewSliver.*)` 组合 header / footer / empty。
+3. **底部导航**：`WNavController` 由页面 `State` 创建并释放；`WNavBar` 只渲染，不持有 controller。
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:w_tools/w_tools.dart';
-
-void main() {
-  runApp(ScreenUtilInit(
-    designSize: const Size(375, 667),
-    builder: (context, child) {
-      // 将 flutter_screenutil 的适配函数注入 WScreen
-      WScreen.delegateWidth = (v) => ScreenUtil().setWidth(v);
-      WScreen.delegateHeight = (v) => ScreenUtil().setHeight(v);
-      WScreen.delegateFont  = (v) => ScreenUtil().setSp(v);
-      return child!;
-    },
-    child: const MyApp(),
-  ));
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: WScaffold(
-        backgroundColor: Colors.grey[100],
-        includeTopSafeArea: true,
-        includeBottomSafeArea: true,
-        body: const HomePage(),
-      ),
-    );
-  }
-}
-
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final List<String> _items = List.generate(20, (i) => 'Item ${i + 1}');
-
-  @override
-  Widget build(BuildContext context) {
-    return WListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      sliver: WListViewSliver.separated(
-        padding: EdgeInsets.all(WScreen.w(16)),
-        separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
-        itemCount: _items.length,
-        itemBuilder: (ctx, i) => ListTile(
-          leading: CircleAvatar(child: Text('${i + 1}')),
-          title: WText(
-            text: _items[i],
-            variant: WTextVariant.body,
-            style: const TextStyle(fontWeight: FontWeight.w500),
-            color: Colors.black87,
-          ),
-          trailing: WButton(
-            style: WButtonStyles.of(context).danger,
-            label: '删除',
-            size: WButtonSize.small,
-            onTap: () => setState(() => _items.removeAt(i)),
-          ),
-        ),
-        header: WText(
-          text: '标题',
-          variant: WTextVariant.title,
-          color: Colors.black,
-        ),
-        footer: SizedBox(
-          height: WScreen.h(80),
-          child: Center(
-            child: WButton(
-              style: WButtonStyles.of(context).primary,
-              label: '提交',
-              onTap: () => print('提交'),
-            ),
-          ),
-        ),
-        empty: const Center(child: Text('暂无数据')),
-      ),
-    );
-  }
-}
+// 1) 适配委托
+ScreenUtilInit(
+  designSize: const Size(375, 667),
+  builder: (context, child) {
+    WScreen.delegateWidth = (v) => ScreenUtil().setWidth(v);
+    WScreen.delegateHeight = (v) => ScreenUtil().setHeight(v);
+    WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
+    return child!;
+  },
+  child: const MyApp(),
+);
 ```
 
-### WNavBar 完整示例
+```dart
+// 2) 页面 + 列表
+WScaffold(
+  body: WListView(
+    sliver: WListViewSliver.separated(
+      padding: EdgeInsets.all(WScreen.w(16)),
+      itemCount: items.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (ctx, i) => ListTile(
+        title: WText(text: items[i], variant: WTextVariant.body),
+      ),
+    ),
+  ),
+);
+```
 
 ```dart
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
-  @override
-  State<MainPage> createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  late final WNavController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WNavController(length: 3, vsync: this);
-  }
-
-  final _pages = const [
-    HomeScreen(),
-    MessageScreen(),
-    ProfileScreen(),
-  ];
+// 3) 底部导航：controller 归页面所有
+class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
+  late final WNavController _nav = WNavController(length: 3, vsync: this);
 
   @override
   void dispose() {
-    _controller.dispose(); // controller 由调用方管理
+    _nav.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return WScaffold(
-      backgroundColor: Colors.white,
-      includeTopSafeArea: true,
-      body: ListenableBuilder(
-        listenable: _controller,
-        builder: (ctx, _) => _pages[_controller.currentIndex],
-      ),
-      bottomNavigationBar: MainNavBar(controller: _controller),
-    );
-  }
-}
-
-class MainNavBar extends StatelessWidget {
-  const MainNavBar({super.key, required this.controller});
-
-  final WNavController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(bottom: WScreen.bottomSafeAreaHeight),
-      color: Colors.white,
-      child: WNavBar(
-        config: WNavBarConfig(),
-        controller: controller,
-        onItemTap: (index) async {
-          // 可在此做拦截判断，返回 false 阻止切换
-          return true;
-        },
-        itemBuilder: (ctx, index, isSelected) {
-          final items = const [
-            _NavItem(Icons.home, '首页'),
-            _NavItem(Icons.message, '消息'),
-            _NavItem(Icons.person, '我的'),
-          ];
-          final item = items[index];
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                item.icon,
-                color: isSelected ? Colors.blue : Colors.grey,
-                size: WScreen.w(24),
-              ),
-              SizedBox(height: WScreen.h(4)),
-              WText(
-                text: item.label,
-                variant: WTextVariant.caption,
-                color: isSelected ? Colors.blue : Colors.grey,
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
+  Widget build(BuildContext context) => WScaffold(
+        body: IndexedStack(index: _nav.currentIndex, children: const [HomePage(), MessagePage(), ProfilePage()]),
+        bottomNavigationBar: WNavBar(
+          controller: _nav,
+          itemBuilder: (ctx, index, selected) => WText(
+            text: labels[index],
+            variant: WTextVariant.caption,
+            color: selected ? Theme.of(ctx).colorScheme.primary : null,
+          ),
+        ),
+      );
 }
 ```
 

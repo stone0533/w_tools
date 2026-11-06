@@ -2,7 +2,7 @@
 
 工具：`packages/figma`，包名 `w_tools_figma`（版本以 pub.dev 为准）。
 消费方安装：`dart pub add dev:w_tools_figma`（装最新版；要锁定版本时再手写约束）。
-契约：[`docs/figma-cli.md`](../figma-cli.md)。
+命令 / 额度 / 退出码：[`packages/figma/README.md`](../../packages/figma/README.md)。
 消费方可复制的片段：[`packages/figma/AGENTS.md`](../../packages/figma/AGENTS.md)。
 
 ## 什么时候用

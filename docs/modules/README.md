@@ -30,8 +30,8 @@
 | 包 | 路径 | 职责 |
 |------|------|------|
 | `w_tools_cli` | `packages/cli/` | 消费方接入工具：`init` 生成聚合入口/暂存层/项目 UI 规范/AGENTS 片段，`doctor` 检查接入约定 |
-| `w_tools_figma` | `packages/figma/` | 只读的 Figma 取数 / 规格 / token / diff CLI（契约见 [figma-cli.md](../figma-cli.md)） |
-| `w_tools_device` | `packages/device/` | 设备验证 CLI：列模拟器 / 启动 / 截图 / 在 DeviceHub 里按设备坐标点击（自动标定）；见 [device_module.md](device_module.md) |
+| `w_tools_figma` | `packages/figma/` | 只读的 Figma 取数 / 规格 / token / diff CLI（命令与额度见 [`packages/figma/README.md`](../../packages/figma/README.md)） |
+| `w_tools_device` | `packages/device/` | 设备验证 CLI：列模拟器 / 启动 / 截图 / 在 DeviceHub 里按设备坐标点击（自动标定）；平台矩阵与命令见 [`packages/device/README.md`](../../packages/device/README.md) |
 | `w_tools_e2e` | `packages/e2e/` | 设备验证的免登录入口（编译期开关，release 天然失效） |
 
 `w_tools_cli` 依赖 `args` / `path` / `yaml`；`w_tools_figma` 只用 Dart 标准库；`w_tools_device` 依赖 `image`；`w_tools_e2e` 是 Flutter 包。
@@ -40,7 +40,8 @@
 
 > ✅ 表示该子包强依赖外部包（不可替换）。具体约束以各包 `pubspec.yaml` 为准。
 > 子包之间**不新增相互依赖**（含不依赖 `w_tools_ui`）：排版通过 `ThemeData.textTheme` 共享，
-> 见 [ADR-0003](../adr/0003-subpackage-typography-without-ui.md)。
+> 见 [ADR-0003](../adr/0003-subpackage-typography-without-ui.md)。唯一例外是「实现包 → 契约包」
+> 两对（`app_getx → app`、`map_google → map`），见 [ADR-0006](../adr/0006-package-topology.md)。
 
 | 子包 | 强依赖外部包 |
 |------|--------------|
@@ -54,7 +55,9 @@
 | `w_tools_async` | `flutter`（无第三方强依赖） |
 | `w_tools_core` | `encrypt`、`crypto`、`convert`、`logger`、`shared_preferences`、`synchronized` |
 
-子包间**无强制相互依赖**，可单独引入。
+除 `app_getx → app`、`map_google → map` 两对契约关系外，库子包之间没有相互依赖，可单独引入；
+完整拓扑（库包 / 契约 / 实现 / 工具包 / 聚合包）见
+[ADR-0006](../adr/0006-package-topology.md)。
 
 ## SDK 与最低版本
 

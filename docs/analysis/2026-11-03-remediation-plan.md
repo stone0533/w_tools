@@ -2,7 +2,7 @@
 
 # w_tools 修复路线图（2026-11-03）
 
-> 配套：[全仓代码评审](2026-11-03-codebase-review.md)（问题地图 + 证据）。
+> 背景：2026-11-03 全仓评审后的问题地图（评审快照已随修复完成归档，不再单独保留）。
 > 本文只回答一件事：**按什么顺序修、每步怎么验收、什么时候必须停。**
 > 基线 `main @ 38d54b0`，14 个包全部已发布，工作区干净。
 
@@ -239,7 +239,7 @@ P2 进展：core 正则已收敛（`WRegExp.time/dateTime`，validator 不再内
 `icon` 与 `iconBuilder` 重叠；qr `flipCamera` 重建后回退、5 个零调用转发；app 三套配置入口的三重回退
 要到 2.0 收敛；golden 仍未做；feedback 复盘已完成（5 条已闭环，见 `docs/feedback/`）。
 
-**下一大版本准备**：自动生成删除清单 [`2026-11-04-next-major-removals.md`](2026-11-04-next-major-removals.md)
+**下一大版本准备**：用 `scripts/list_removals.py` 生成删除清单（该批次已完成）
 （`scripts/list_removals.py`，67 项：app 2.0 / core 3.0 / form 4.0 / ui 5.0）。
 
 **发布（A 方案：两段式）**：13 个子包 `publish_package.sh --dry-run` 全通过；根包按预期失败
