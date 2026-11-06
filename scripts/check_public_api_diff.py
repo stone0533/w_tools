@@ -276,9 +276,15 @@ def _load_snapshot(path: pathlib.Path) -> dict[str, str]:
     return out
 
 
-def _write_snapshot(package_dir: pathlib.Path, package: str, version: str) -> pathlib.Path:
-    SNAPSHOTS.mkdir(parents=True, exist_ok=True)
-    path = SNAPSHOTS / f'w_tools_{package}-{version}.txt'
+def _write_snapshot(
+    package_dir: pathlib.Path,
+    package: str,
+    version: str,
+    output_dir: pathlib.Path | None = None,
+) -> pathlib.Path:
+    target = output_dir or SNAPSHOTS
+    target.mkdir(parents=True, exist_ok=True)
+    path = target / f'w_tools_{package}-{version}.txt'
     surface = api_surface(package_dir)
     lines = [f'# w_tools_{package} {version}'] + [f'{k}\t{v}' for k, v in sorted(surface.items())]
     path.write_text('\n'.join(lines) + '\n')
@@ -296,6 +302,10 @@ def main() -> int:
     parser.add_argument('--package', required=True, help='manifest 裸名，如 ui')
     parser.add_argument('--snapshot-from', help='从该包目录生成快照')
     parser.add_argument('--version', help='快照版本（与 --snapshot-from 一起用）')
+    parser.add_argument(
+        '--output-dir',
+        help='快照写入目录（默认 scripts/api_snapshots）；发布脚本用它写 .w_tools/release-snapshots',
+    )
     args = parser.parse_args()
 
     package_dir = ROOT / 'packages' / args.package
@@ -303,8 +313,15 @@ def main() -> int:
         if not args.version:
             print('--snapshot-from 需要 --version', file=sys.stderr)
             return 2
-        path = _write_snapshot(pathlib.Path(args.snapshot_from), args.package, args.version)
-        print(f'✓ 写入 API 快照 {path.relative_to(ROOT)}')
+        output_dir = pathlib.Path(args.output_dir) if args.output_dir else None
+        path = _write_snapshot(
+            pathlib.Path(args.snapshot_from), args.package, args.version, output_dir
+        )
+        try:
+            shown = path.relative_to(ROOT)
+        except ValueError:
+            shown = path
+        print(f'✓ 写入 API 快照 {shown}')
         return 0
 
     snapshot = _snapshot_path(args.package)

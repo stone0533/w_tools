@@ -55,6 +55,26 @@
 - 证据：`scripts/release_check.sh`（完整 `--strict` 现在强制根包 caret 下界）、`docs/releasing.md`。
 - 偏差：无；操作细节以 `releasing.md` 为准。
 
+## 补充（2026-11-07）：未发布窗口的边界
+
+2026-11 全流程审计发现：`AGENTS.md` / `docs/releasing.md` 的示例把「本地未发布版本」
+说成 breaking 窗口（本地 7.1.0、pub 7.0.0，于是 7.1 可以破坏），与本 ADR 第 2 条
+（破坏性 → major）冲突；实际代码里的 `remove-in` 也全部指向下一个 major（8.0.0）。
+明确如下：
+
+- **基线**：pub.dev 最新发布版本，对应 `scripts/api_snapshots/` 的最新快照。
+- **已发布 API**：删除 / 改名 / 不兼容签名变化 → 抬 major（7.x → 8.0.0），
+  `remove-in` 写 8.0.0。
+- **只在上次发布之后新增、从未出现在任何已发布版本里的 API**：可以在当前未发布版本里
+  直接改名 / 删除，不需要抬 major，也不需要 `remove-in`；API 快照 diff 以基线为准，
+  这类改动天然不会算成 breaking。
+- **0.x 工具包**（figma / device / e2e）：按 semver 预发布语义，0.x 的 minor 可以包含
+  破坏性改动；0.x → 1.0 才按 major 宣传。库包（core / async / ui / form / api / toast /
+  app / app_getx / map / map_google / qr）不适用这条。
+
+`remove-in` 永远写具体版本 `x.y.z`，并且是**下一个 major**；不要写当前未发布的 minor
+（写了会被 `check_deprecations` 当场判到期）。
+
 ## 历史例外
 
 - `w_tools_ui 1.1.0` 删除了 `WNetworkImageWithRetry`，按 semver 应为 2.0.0。

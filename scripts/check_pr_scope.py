@@ -3,7 +3,8 @@
 
 `check_version_bump.py` 只看公开 API 表面，纯行为变化（默认值、交互、修 bug）
 在 API 不变时它看不到。这类改动是否抬版本 / 写 CHANGELOG 只能由 PR 自己声明——
-PR 模板里勾了「公开变化」时，这里要求 PR 至少改一个 `packages/*/CHANGELOG.md`。
+PR 模板里勾了「公开变化」时，这里要求 PR 至少改一个相关 CHANGELOG：
+子包用 `packages/<pkg>/CHANGELOG.md`；根包改 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`。
 
 用法：
     PR_BODY="$(gh pr view --json body -q .body)" \
@@ -13,7 +14,7 @@ CI 里由 `.github/workflows/ci.yml` 的 `api-bump` job 传入 PR body 与 base 
 
 退出码：
     0  通过，或没有 PR 上下文（本地 preflight 不判）
-    1  勾了「公开变化」但没有任何 `packages/*/CHANGELOG.md` 变更
+    1  勾了「公开变化」但没有改相关 CHANGELOG
     2  参数 / git 错误
 """
 from __future__ import annotations
@@ -28,7 +29,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PUBLIC_CHANGE_MARK = '公开变化'
 CHECKED_BOX = re.compile(r'^\s*[-*]\s*\[[xX]\]\s*(.*)$', re.MULTILINE)
-CHANGELOG = re.compile(r'^packages/[^/]+/CHANGELOG\.md$')
+PACKAGE_CHANGELOG = re.compile(r'^packages/[^/]+/CHANGELOG\.md$')
+ROOT_CHANGELOG = 'CHANGELOG.md'
 
 
 def declared_public_change(pr_body: str) -> bool:
@@ -39,8 +41,18 @@ def declared_public_change(pr_body: str) -> bool:
     return False
 
 
-def touches_package_changelog(changed: list[str]) -> bool:
-    return any(CHANGELOG.match(path) for path in changed)
+def touches_changelog(changed: list[str]) -> bool:
+    """勾了「公开变化」时，是否改到了相关 CHANGELOG。
+
+    - 子包：任意 `packages/<pkg>/CHANGELOG.md` 被改即算；
+    - 根包：只有同时改了根 `lib/` 或根 `pubspec.yaml` 时，根 `CHANGELOG.md` 才算，
+      避免「改子包代码 + 顺手改根 CHANGELOG」绕过子包 CHANGELOG 要求。
+    """
+    if any(PACKAGE_CHANGELOG.match(path) for path in changed):
+        return True
+    if ROOT_CHANGELOG not in changed:
+        return False
+    return any(path == 'pubspec.yaml' or path.startswith('lib/') for path in changed)
 
 
 def changed_files(base: str) -> list[str]:
@@ -80,15 +92,16 @@ def main() -> int:
         return 0
 
     changed = changed_files(args.base)
-    if touches_package_changelog(changed):
-        print('✓ 勾选了「公开变化」，且改动了子包 CHANGELOG')
+    if touches_changelog(changed):
+        print('✓ 勾选了「公开变化」，且改动了相关 CHANGELOG')
         return 0
 
     print(
-        '✗ PR 勾选了「公开变化（API / 行为 / 新组件）」，但没有改动任何 '
-        '`packages/*/CHANGELOG.md`。\n'
+        '✗ PR 勾选了「公开变化（API / 行为 / 新组件）」，但没有改动相关 CHANGELOG。\n'
+        '  子包：写 packages/<pkg>/CHANGELOG.md 的当前版本段；\n'
+        '  根包：改 lib/ 或 pubspec.yaml 时写根 CHANGELOG.md。\n'
         '  行为变化没有公开 API diff，不会被 check_version_bump / api diff 拦住；\n'
-        '  请抬子包版本并写当前版本 CHANGELOG 段，或把勾选改成「内部重构」。',
+        '  请抬版本并写当前版本 CHANGELOG 段，或把勾选改成「内部重构」。',
         file=sys.stderr,
     )
     return 1

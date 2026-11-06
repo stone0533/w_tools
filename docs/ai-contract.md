@@ -245,9 +245,9 @@ teach: false  普通组件：至少 useFor / dontUseFor
 | 5.6 查询正确性 | `list` / `explain` / `context`、三种输出格式、别名命中、README 快速开始 | [`cli_test.dart`](../packages/cli/test/cli_test.dart)、[`catalog_test.dart`](../packages/cli/test/internal/catalog_test.dart)、[`context_test.dart`](../packages/cli/test/internal/context_test.dart) |
 | 5.7 文档入口一致性 | 文档索引完整、`docs/agents` 索引与规则页一致、高频规则短语在 docs/agents 与 zh/en 模板一致、doctor 规则表两处一致、root / 各包 `AGENTS.md` 的符号、import / re-export 边界与已删除 API、文档里的命令可执行（提示词手册 + 当前文档的脚本 / flag） | [`check_docs_facts.py`](../scripts/check_docs_facts.py)、[`check_agents_consistency.py`](../scripts/check_agents_consistency.py)、[`check_doc_symbols.py`](../scripts/check_doc_symbols.py)、[`check_removed_api.py`](../scripts/check_removed_api.py)、[`check_prompt_docs.py`](../scripts/check_prompt_docs.py) |
 | 5.8 命名约定 | 公开 `W*Config` 必须在 [naming_baseline.yaml](../scripts/naming_baseline.yaml) 内；库包公开类型 `W` 前缀；规则见 [docs/naming.md](naming.md) | [`check_naming.py`](../scripts/check_naming.py) |
-| 5.9 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh`；每个检查脚本都必须有真实入口（preflight / check_docs / release_check / workflow）且在 `scripts/README.md` 登记 | [`ci_matrix.py`](../scripts/ci_matrix.py)、[`check_gate_coverage.py`](../scripts/check_gate_coverage.py) |
+| 5.9 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh`；关键路径过滤器 / required 接线 / docs job meta 检查由 `ci_matrix --check` 守；每个检查脚本都必须有真实入口（preflight / check_docs / release_check / workflow）且在 `scripts/README.md` 登记 | [`ci_matrix.py`](../scripts/ci_matrix.py)、[`check_gate_coverage.py`](../scripts/check_gate_coverage.py) |
 | 5.10 核心入口教学覆盖 | `entrypoints.yaml` 里的入口必须出现在 docs/agents / 模板 zh+en / README（有 example 还要出现在 example/lib）；覆盖 11 个库包，app_getx/map_google 共用 app/map 规则页（J-4A） | [`check_teaching_coverage.py`](../scripts/check_teaching_coverage.py) |
-| 5.11 PR 分类 ↔ CHANGELOG | PR 模板勾了「公开变化（API / 行为 / 新组件）」时，必须至少改一个 `packages/*/CHANGELOG.md`；行为变化没有 API diff，靠这条兜底 | [`check_pr_scope.py`](../scripts/check_pr_scope.py) |
+| 5.11 PR 分类 ↔ CHANGELOG | PR 模板勾了「公开变化（API / 行为 / 新组件）」时，必须至少改一个相关 CHANGELOG（子包；根包改 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`）；行为变化没有 API diff，靠这条兜底 | [`check_pr_scope.py`](../scripts/check_pr_scope.py) |
 
 重建基线用 `python3 scripts/check_public_catalog.py --write`；它是**基线**，不是「全了」的证明，
 新增类型仍要人工判断进 catalog 还是 `uncataloged.yaml`。

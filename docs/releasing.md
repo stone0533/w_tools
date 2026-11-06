@@ -42,14 +42,17 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 
 ```bash
 curl -s https://pub.dev/api/packages/w_tools_ui | jq -r .latest.version
-# 或（脚本直接查 https://pub.dev，不读本地的 PUB_HOSTED_URL）
-bash scripts/release_check.sh --package ui --online
+# 或（状态表；「待发布」显示为正常，不会因未发布而失败）
+python3 scripts/release_status.py --online
 ```
 
-- 本地版本 **高于** pub.dev 且该本地版本尚未发布时，这个本地 major 就是 breaking 窗口；
-  `remove-in` 写这个 major，不写下一个 major。
-- 例：本地 `ui 7.1.0`、pub.dev `ui 7.0.0`，7.1 就是 breaking 窗口；
-  7.1 的删除/改名不应写成 `remove-in: 8.0.0`。
+- 基线是 pub.dev 最新发布版本（= `scripts/api_snapshots/` 的最新快照）。
+- 删除 / 改名**已发布** API：抬 major（7.x → 8.0.0），`remove-in` 写 8.0.0。
+- 只在上次发布之后新增、从未发布的 API：可在当前未发布版本直接改 / 删，不抬 major。
+- 例：`ui 7.0.0` 已发布、本地 `7.1.0`：`7.0.0` 里存在的 API 删除 → `8.0.0`；
+  `7.1.0` 新增的 API 改名 → 仍在 `7.1.0`（若尚未发布），不需要 `remove-in`。
+- 0.x 工具包按 semver 预发布语义（minor 可破坏）；库包不适用，详见
+  [ADR-0001](adr/0001-package-versioning.md) 的 2026-11-07 补充。
 - `--online` 在目标版本尚未发布时会显示「仓库 X > pub.dev Y —— 待发布」并以非 0 退出；
   这是预期的「待发布」状态，不是内容已验证。
 - **聚合包**：`w_tools` 按聚合层独立发版。它对各子包的 caret 约束下界应取**子包当前版本**
@@ -98,27 +101,26 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    （合并方式固定 **Merge commit**，见 [CONTRIBUTING §6](../CONTRIBUTING.md#6-git--pr-流程)）。
 6. 在 main 上复核 + 发布预演（**必须走发布脚本**，原因见下一节）：
    ```bash
-   # Required checks 在 PR 分支上确认：gh pr checks 需要一个 PR，
-   # 合并后在 main 上跑会找不到 PR（有 PR 号就直接传）。
+   # 用 PR 号查 Required checks（合并后 gh pr checks <PR号> 仍可用；不带号在 main 上找不到 PR）
    bash scripts/check_pr_checks.sh <PR号>
-   # --strict 要求当前分支有 upstream，且 ahead/behind 都为 0（见 scripts/check_git_sync.sh）
+   # --strict 会先 fetch，再要求当前分支有 upstream 且 ahead/behind 都为 0
    bash scripts/release_check.sh --strict --package map
    bash scripts/publish_package.sh packages/map --dry-run
    ```
-   第 7 步的正式发布会**自己再跑一遍**这些保护（干净工作区 / `main` 且 HEAD == `origin/main` /
-   `release_check --strict`），漏跑第 6 步不会把未提交改动发出去；例外情况用脚本的 `--force`。
+   第 7 步的正式发布会**自己再跑一遍**这些保护（干净工作区 / `main` 且 fetch 后的
+   `HEAD == origin/main` / `release_check --strict`），漏跑第 6 步不会把未提交改动发出去；
+   例外情况用脚本的 `--force`。
 7. 发布子包：
    ```bash
    bash scripts/publish_package.sh packages/map
    # 其余需要发布的子包同理
    ```
-   发布成功后脚本会把该版本写成 `scripts/api_snapshots/w_tools_<pkg>-<version>.txt`。
-   **这个文件必须提交，而且必须走分支 + PR**：`.githooks/pre-push` 禁止直接 push main
-   （见 [CONTRIBUTING §6](../CONTRIBUTING.md#6-git--pr-流程)），而发布脚本要求 `main` 干净且
-   `HEAD == origin/main`，所以不能把快照只 commit 在本地 main 上。
+   发布成功后脚本把快照写到 `.w_tools/release-snapshots/`（gitignored），工作区保持干净，
+   因此可以**连续发多个包**。快照不会自动提交；一批发完后应用并走 PR：
 
    ```bash
-   git switch -c chore/release-snapshots
+   bash scripts/apply_snapshots.sh
+   git switch -c chore/release-snapshots   # 已存在则 git switch chore/release-snapshots
    git add scripts/api_snapshots
    git commit -m "chore(release): w_tools_map <version> API 基线"
    git push -u origin HEAD
@@ -126,25 +128,32 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    git switch main && git pull --ff-only
    ```
 
+   > **快照必须走分支 + PR**：`.githooks/pre-push` 禁止直接 push main，而发布脚本要求
+   > `main` 干净且 `HEAD == origin/main`。
    > 同一波还要发聚合包时，**必须先合入快照 PR 再执行第 8 步**；否则
-   > `publish_package.sh .` 会因为「存在未跟踪文件 / HEAD != origin/main」失败。
-   > 只发子包、暂不发聚合包时，也要先把快照 commit 到 `chore/release-snapshots` 分支
-   > （让 main 工作区保持干净），PR 可以攒到下一次发版前一起提；
-   > **不要**把快照长期留成未跟踪文件，否则下一次 `--strict` / 正式发布会被它挡住。
-8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界），最后发聚合包
-   （确认第 7 步的快照 PR 已合入，且本地 `main` 已 `git pull --ff-only`）：
+   > `publish_package.sh .` 会因「`.w_tools/release-snapshots/` 还有未应用快照」或
+   > `release_check --strict` 的 `--require-tracked` 检查失败。
+   > 只发子包、暂不发聚合包时，也要在**当次发布波次内**合入——周检在「快照落后线上」时会红。
+   > `.w_tools/` 是 gitignored 本地状态，不要提交；不要用 `--force` 绕过上面的检查。
+
+   **一批里连发多个子包**
+
+   连续执行 `publish_package.sh`（一次一个包），快照会自动累积到
+   `.w_tools/release-snapshots/`；全部发完后运行一次 `apply_snapshots.sh`，只开一个快照 PR。
+8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界 + 每个包的快照已 tracked
+   且版本 == 本地），最后发聚合包（确认第 7 步的快照 PR 已合入，且本地 `main` 已
+   `git pull --ff-only`）：
    ```bash
-   bash scripts/release_check.sh --strict          # 含根包 caret 下界检查
+   bash scripts/release_check.sh --strict          # 根包 caret 下界 + API 快照
    bash scripts/publish_package.sh . --dry-run     # 预演
    bash scripts/publish_package.sh .               # 正式发布
    ```
-9. 发布后确认（这一步才会把「待发布」判成通过）：
+9. 发布后确认（推荐 `release_status.py`，它把「待发布」视为正常）：
    ```bash
-   bash scripts/release_check.sh --package map --online
-   # 发布多个包/聚合包时去掉 --package，做全量比对
-   # 状态总表（线上 / 快照 / 根约束一眼看完）
-   python3 scripts/release_status.py --online
+   python3 scripts/release_status.py --online --check
    ```
+   `release_check --package map --online` 仍可用于单包核对，但网络不可达时现在返回 2，
+   不会再打印「检查通过」；全量线上状态以 `release_status.py` 为准。
    `release-status.yml` 每周一也会跑 `release_status.py --online --check`：
    「待发布」不算错，只有「仓库落后 / 快照与线上不一致」才会红；网络不可达（一个包都没取到）
    返回退出码 2，周检按「本次跳过」处理，不会因外网抖动误报发布事故。
@@ -227,9 +236,9 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 | README 版本声明 | 禁止出现「当前 `x.y.z`」这种会漂移的硬编码 |
 | 弃用到期 | `@Deprecated` 的 `remove-in` 是否到期（复用 `check_deprecations.py`） |
 | `## Unreleased` 条目 | 只提醒：说明有已记录但未发版的改动 |
-| `--strict` | 已跟踪文件无未提交改动、无未跟踪文件 |
-| `--online` | 与 pub.dev API 对比最新版本，指出待发布 / 落后 |
-| `--package <pkg>` | 只检查指定子包；根包与其他子包不参与 |
+| `--strict` | 已跟踪文件无未提交改动、无未跟踪文件、upstream 已同步；完整模式还要求每个包的最新快照已 tracked 且版本 == 本地 |
+| `--online` | 与 pub.dev API 对比最新版本；一个包都取不到时退出 2（环境不可用，不打印「检查通过」） |
+| `--package <pkg>` | 收窄版本 / 物料检查；根包版本与其他子包不参与，但弃用检查与根 README 仍全仓；快照 tracked 检查只在完整 `--strict` |
 
 ## 常见坑
 
@@ -246,5 +255,8 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
   是就折叠进对应版本（已发布版本的 CHANGELOG 会原样显示在 pub.dev 上，改不了旧版本，
   只能发新版本修正）；只有真正未发的才继续留在 Unreleased。
 - **发布后快照推不上去**：`.githooks/pre-push` 禁止直接 push main，而发布脚本又要求
-  `HEAD == origin/main`。快照必须走分支 + PR（第 7 步）；要发聚合包时先合入快照 PR，
-  再 `git pull --ff-only` 后执行第 8 步。不要用 `--no-verify` 绕过。
+  `HEAD == origin/main`。先 `bash scripts/apply_snapshots.sh` 应用快照，再走分支 + PR
+  （第 7 步）；要发聚合包时先合入快照 PR，再 `git pull --ff-only` 后执行第 8 步。
+  不要用 `--no-verify` 绕过。
+- **快照还留在 `.w_tools/release-snapshots/` 就发根包**：`publish_package.sh .` 会直接拒绝；
+  先 `apply_snapshots.sh` 并合入 PR。

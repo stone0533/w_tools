@@ -31,6 +31,7 @@ ENTRYPOINTS += sorted((ROOT / '.github' / 'workflows').glob('*.yml'))
 
 # 人工执行、刻意不进门禁的脚本：value 是理由（空理由会失败，避免「先登记再说」）。
 MANUAL = {
+    'apply_snapshots.sh': '发布一批后把 .w_tools/release-snapshots 应用到 scripts/api_snapshots，人工执行',
     'install-gh.sh': '一次性安装 / 登录向导，人工执行',
     'install_git_hooks.sh': '首次检出时安装 .githooks，人工执行',
     'check_pr_checks.sh': '发布前用 gh 确认 PR Required checks，人工执行',

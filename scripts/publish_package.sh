@@ -15,9 +15,10 @@
 #   scripts/publish_package.sh . --stage-only    # 只生成暂存副本（调试用，不删除）
 #   scripts/publish_package.sh . --force         # 跳过发布前保护（干净 main / release_check）
 #
-# 正式发布前会 fail-closed：工作区必须干净、当前分支必须是 main 且 HEAD == origin/main、
-# `release_check.sh --strict` 必须通过。原因：暂存副本直接来自工作区，而暂存目录在 git
-# 之外，`pub publish` 根本看不到未提交改动 / 错误分支。dry-run 与 --stage-only 不受影响。
+# 正式发布前会 fail-closed：先 git fetch，工作区必须干净、当前分支必须是 main 且
+# HEAD == origin/main、`release_check.sh --strict` 必须通过。原因：暂存副本直接来自工作区，
+# 而暂存目录在 git 之外，`pub publish` 根本看不到未提交改动 / 错误分支。
+# dry-run 与 --stage-only 不受影响。
 #
 # 发布目标：默认 https://pub.dev。
 #   不复用 PUB_HOSTED_URL —— 本机常把它设成只读镜像，且镜像元数据会滞后。
@@ -25,18 +26,25 @@
 #
 # 暂存副本会：
 #   - 去掉顶层 `workspace:` 块与 `resolution: workspace`
-#   - 排除 .git / .dart_tool / build / coverage / test / doc / scripts / .github / pubspec.lock
+#   - 排除 .git / .dart_tool / build / coverage / test / docs / scripts / .github / .w_tools / pubspec.lock
 #   - 根包额外排除 `packages/`（子包只随各自包发布）
+#
+# 发布成功后的 API 快照先写到 `.w_tools/release-snapshots/`（gitignored），
+# 一批发完后用 `bash scripts/apply_snapshots.sh` 应用并开一个快照 PR；根包发布前必须先合入。
 #
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# 快照先写到 gitignored 目录，避免「发布 A 后留下未跟踪快照，挡住发布 B」。
+# 一批发布结束后用 scripts/apply_snapshots.sh 应用并走 PR。
+snapshot_dir="${W_TOOLS_SNAPSHOT_DIR:-$repo_root/.w_tools/release-snapshots}"
+
 # 显式指定发布目标：本地 shell 里的 PUB_HOSTED_URL 常指向只读镜像，不能带进发布流程。
 publish_host="${PUBLISH_HOSTED_URL:-https://pub.dev}"
 
 usage() {
-  sed -n '2,30p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,34p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 if [ $# -lt 1 ]; then
@@ -109,6 +117,7 @@ rsync -a \
   --exclude 'docs' \
   --exclude 'scripts' \
   --exclude '.github' \
+  --exclude '.w_tools' \
   --exclude '.idea' \
   --exclude '*.iml' \
   --exclude '.DS_Store' \
@@ -201,12 +210,22 @@ if [ -z "$dry_run" ] && [ -z "$force" ]; then
     echo "✗ 当前分支是 ${branch}：正式发布只允许在 main 上（先合并 PR，或显式 --force）" >&2
     exit 1
   fi
+  # 先 fetch：否则 HEAD == origin/main 比较的是本地缓存的 ref，远端前进后仍会通过。
+  if ! git -C "$repo_root" fetch --quiet origin main; then
+    echo "✗ 无法 fetch origin main：确认网络 / 远端后再发布" >&2
+    exit 1
+  fi
   if ! origin_main="$(git -C "$repo_root" rev-parse --verify --quiet origin/main)"; then
     echo "✗ 找不到 origin/main：先 git fetch origin" >&2
     exit 1
   fi
   if [ "$(git -C "$repo_root" rev-parse HEAD)" != "$origin_main" ]; then
     echo "✗ HEAD 与 origin/main 不一致：先 git pull --ff-only（本地提交要发布，请走分支 + PR）" >&2
+    exit 1
+  fi
+  if [ "$src" = "$repo_root" ] && compgen -G "$snapshot_dir/w_tools_*.txt" >/dev/null; then
+    echo "✗ $snapshot_dir 还有未应用的 API 快照：" >&2
+    echo "  先运行 bash scripts/apply_snapshots.sh 并合入快照 PR，再发根包" >&2
     exit 1
   fi
   if [ "$src" = "$repo_root" ]; then
@@ -220,15 +239,20 @@ fi
 cd "$staging"
 PUB_HOSTED_URL="$publish_host" "$publish_runner" pub publish $dry_run
 
-# 发布成功后把当前版本写成新的公开 API 基线；失败只提示，不让已完成的发布看起来失败。
+# 发布成功后把当前版本写成新的公开 API 基线（先写 gitignored 的 pending 目录，发布完一批再应用）。
+# 发布已成功、快照失败时保留暂存副本并返回非 0，方便直接重跑生成命令。
 if [ -z "$dry_run" ] && [ "$src" != "$repo_root" ]; then
+  mkdir -p "$snapshot_dir"
   if ! python3 "$repo_root/scripts/check_public_api_diff.py" \
-    --snapshot-from "$staging" --package "$pkg_short" --version "$version"; then
-    echo "!! 发布成功，但 API 快照更新失败；请手动重跑 check_public_api_diff.py --snapshot-from" >&2
+    --snapshot-from "$staging" --package "$pkg_short" --version "$version" \
+    --output-dir "$snapshot_dir"; then
+    stage_only=1  # 让 EXIT trap 保留暂存副本
+    echo "!! 发布已成功，但 API 快照写入失败；暂存副本保留在：$staging" >&2
+    echo "!! 重新生成快照：" >&2
+    echo "!!   python3 $repo_root/scripts/check_public_api_diff.py --snapshot-from \"$staging\" --package $pkg_short --version $version --output-dir \"$snapshot_dir\"" >&2
     exit 1
   fi
-  echo "!! 快照必须走分支 + PR（pre-push 禁止直接 push main，见 docs/releasing.md 第 7 步）：" >&2
-  echo "!!   git switch -c chore/release-snapshots && git add scripts/api_snapshots && git commit -m \"chore(release): ${pkg_name} ${version} API 基线\"" >&2
-  echo "!!   git push -u origin HEAD && gh pr create --fill" >&2
-  echo "!! 要发聚合包时，先合入快照 PR 并 git pull --ff-only，再跑 publish_package.sh ." >&2
+  echo "!! 快照已写入 $snapshot_dir/（gitignored，不会挡住下一个包）" >&2
+  echo "!! 发布完当前一批后运行：bash scripts/apply_snapshots.sh" >&2
+  echo "!! 它会打印快照 PR 的命令；根包发布前必须先合入该 PR。" >&2
 fi

@@ -21,6 +21,140 @@ manifest_path = root / 'scripts/packages.manifest'
 ci_path = root / '.github/workflows/ci.yml'
 RUNNERS = {'flutter', 'dart'}
 EXPECTED_MATRIX_INCLUDE = '${{ fromJSON(needs.matrix.outputs.include) }}'
+EXPECTED_QUANTIFIER = 'some-with-excludes'
+
+# 这些正向规则决定「哪些改动会触发重量级 job」。少一条就可能让整类改动静默跳过门禁，
+# 所以把它们列成必须存在的清单；有意改过滤器时同步改这里（同源守卫）。
+REQUIRED_FILTERS = {
+    'code': [
+        'packages/**/*.dart',
+        'packages/**/pubspec.yaml',
+        'packages/cli/templates/**',
+        'packages/cli/catalog/**',
+        'lib/**',
+        'test/**',
+        'pubspec.yaml',
+        '.github/workflows/ci.yml',
+    ],
+    'static': [
+        'scripts/**/*.sh',
+        'scripts/**/*.py',
+        'scripts/packages.manifest',
+        'scripts/tests/**',
+        'docs/feedback/**',
+        'docs/modules/components.md',
+        '.fvmrc',
+    ],
+}
+
+# required 必须等这些 job；任何一项从 needs 里掉了，分支保护就可能提前放行。
+REQUIRED_JOBS = ('matrix', 'changes', 'docs', 'umbrella', 'api-bump', 'min_sdk', 'packages')
+
+# 这些 job 按路径门控，if 必须仍然引用 code / static；否则会被无条件 skip。
+GATED_JOB_CONDITIONS = {
+    'umbrella': ('needs.changes.outputs.code', 'needs.changes.outputs.static'),
+    'min_sdk': ('needs.changes.outputs.code',),
+    'packages': ('needs.changes.outputs.code',),
+}
+
+# docs job 每次 PR 都跑；把 meta 检查放这里，避免「过滤器坏了 → umbrella skip → 自检也不跑」。
+DOCS_JOB_COMMANDS = (
+    'scripts/check_docs.sh',
+    'scripts/release_check.sh',
+    'scripts/ci_matrix.py --check',
+    'scripts/check_gate_coverage.py',
+)
+
+
+def filter_config(workflow: dict) -> dict:
+    steps = (((workflow.get('jobs') or {}).get('changes') or {}).get('steps') or [])
+    for step in steps:
+        if isinstance(step, dict) and step.get('id') == 'filter':
+            return step.get('with') or {}
+    return {}
+
+
+def filter_patterns(workflow: dict) -> dict[str, list[str]]:
+    """把 `filters:` 文本解析成 {group: [pattern]}。"""
+    text = str(filter_config(workflow).get('filters') or '')
+    groups: dict[str, list[str]] = {}
+    current = ''
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.endswith(':') and not line.startswith('-'):
+            current = line[:-1].strip()
+            groups.setdefault(current, [])
+            continue
+        if line.startswith('- ') and current:
+            groups[current].append(line[2:].strip().strip("'\""))
+    return groups
+
+
+def required_filter_errors(workflow: dict) -> list[str]:
+    """过滤器必须包含关键正向规则，并且 quantifier 必须是 some-with-excludes。"""
+    config = filter_config(workflow)
+    if not config:
+        return []  # 缺 filter 由 path_filter_errors 报，避免重复
+    errors: list[str] = []
+    quantifier = config.get('predicate-quantifier')
+    if quantifier != EXPECTED_QUANTIFIER:
+        errors.append(
+            f'ci.yml: changes filter 的 predicate-quantifier 是 {quantifier!r}，'
+            f'必须是 {EXPECTED_QUANTIFIER!r}（否则 `!` 排除会吞掉正向规则）'
+        )
+    groups = filter_patterns(workflow)
+    for group, required in REQUIRED_FILTERS.items():
+        missing = [pattern for pattern in required if pattern not in groups.get(group, [])]
+        if missing:
+            errors.append(
+                f'ci.yml: {group} 过滤器缺少关键正向规则：{", ".join(missing)}；'
+                '删除会让对应改动静默跳过重量级 job'
+            )
+    return errors
+
+
+def required_job_errors(workflow: dict) -> list[str]:
+    """required 聚合 job 与各门控 job 的接线不能被静默削弱。"""
+    jobs = workflow.get('jobs') or {}
+    required = jobs.get('required') or {}
+    needs = required.get('needs')
+    if isinstance(needs, str):
+        needs = [needs]
+    need_set = set(needs or [])
+    errors: list[str] = []
+    missing = [name for name in REQUIRED_JOBS if name not in need_set]
+    if missing:
+        errors.append(
+            f'ci.yml: required.needs 缺少 {", ".join(missing)}；'
+            '分支保护可能在这些 job 完成前就通过'
+        )
+
+    for job, needles in GATED_JOB_CONDITIONS.items():
+        condition = str((jobs.get(job) or {}).get('if') or '')
+        for needle in needles:
+            if needle not in condition:
+                errors.append(
+                    f'ci.yml: {job}.if 不再引用 {needle}；'
+                    '路径过滤失效时这个 job 会被无条件 skip'
+                )
+
+    docs_steps = (jobs.get('docs') or {}).get('steps') or []
+    docs_commands = '\n'.join(
+        line
+        for step in docs_steps
+        if isinstance(step, dict)
+        for line in str(step.get('run') or '').splitlines()
+        if not line.lstrip().startswith('#')
+    )
+    for command in DOCS_JOB_COMMANDS:
+        if command not in docs_commands:
+            errors.append(
+                f'ci.yml: docs job 必须运行 `{command}`；'
+                '它每次 PR 都跑，是过滤器/门禁接线失效时的兜底'
+            )
+    return errors
 
 
 def path_filter_errors(workflow: dict) -> list[str]:
@@ -31,27 +165,15 @@ def path_filter_errors(workflow: dict) -> list[str]:
     一起挡掉（模板改错时重量级 job 全 skip）。这里把这类回归变成可单测的检查，
     而不是只写在 yml 注释里。
     """
-    filters = (((workflow.get('jobs') or {}).get('changes') or {}).get('steps') or [])
-    text = ''
-    for step in filters:
-        if isinstance(step, dict) and step.get('id') == 'filter':
-            text = str((step.get('with') or {}).get('filters') or '')
-    if not text:
+    groups = filter_patterns(workflow)
+    if not groups:
         return ['ci.yml: 找不到 changes job 的 filter 定义（路径门控无法校验）']
     errors: list[str] = []
-    current = ''
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith('#'):
-            continue
-        if line.endswith(':') and not line.startswith('-'):
-            current = line[:-1].strip()
-            continue
-        if line.startswith('- '):
-            pattern = line[2:].strip().strip("'\"")
+    for group, patterns in groups.items():
+        for pattern in patterns:
             if pattern.startswith('!'):
                 errors.append(
-                    f'ci.yml: 过滤器 {current or "?"} 含排除规则 {pattern}；'
+                    f'ci.yml: 过滤器 {group} 含排除规则 {pattern}；'
                     'some-with-excludes 没有再包含语义，请改成纯正向列表',
                 )
     return errors
@@ -160,6 +282,8 @@ def check(rows: list[dict[str, str]]) -> list[str]:
     workflow = yaml.safe_load(ci_path.read_text())
     jobs = workflow.get('jobs') or {}
     errors.extend(path_filter_errors(workflow))
+    errors.extend(required_filter_errors(workflow))
+    errors.extend(required_job_errors(workflow))
 
     matrix_job = jobs.get('matrix') or {}
     outputs = matrix_job.get('outputs') or {}

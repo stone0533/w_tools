@@ -131,10 +131,18 @@ jobs:
       - name: Docs gates
         run: PATH="$RUNNER_TEMP/docs-venv/bin:$PATH" bash scripts/check_docs.sh --skip-feedback
 
-      # 只改 CHANGELOG / 版本号 / 依赖约束时 `code` 过滤不命中，umbrella 会被 skip；
+      # 只改 CHANGELOG / 文档时 `code` 过滤不命中，umbrella 会被 skip；
       # release_check 只依赖 bash + python3（不需要 Flutter），放在这个轻量 job 里兜底。
       - name: Release gates (no Flutter)
         run: bash scripts/release_check.sh
+
+      # meta 门禁：每次 PR 都跑。即使路径过滤器被削弱、umbrella 被 skip，
+      # 这里的 ci_matrix --check 也能发现「关键正向规则 / required 接线」被改掉。
+      - name: Gate wiring (no Flutter)
+        run: |
+          export PATH="$RUNNER_TEMP/docs-venv/bin:$PATH"
+          python3 scripts/ci_matrix.py --check
+          python3 scripts/check_gate_coverage.py
 
   # 聚合包契约：w_tools.dart 的重导出（只做 re-export，配置走子包）。
   # 子包的行为测试已移入各自的 packages/<pkg>/test/，由下面的矩阵负责。

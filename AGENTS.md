@@ -18,7 +18,7 @@
 ## 改动前先分类
 
 1. **内部重构**：公开 API / 默认行为不变 → 只改代码 + 测试。
-2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界）；必要时 migration。行为变化没有公开 API diff，CI 的 `check_pr_scope.py` 只看 PR 模板勾选：勾了「公开变化」却没改任何 `packages/*/CHANGELOG.md` 会失败。
+2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界）；必要时 migration。行为变化没有公开 API diff，CI 的 `check_pr_scope.py` 只看 PR 模板勾选：勾了「公开变化」却没改相关 CHANGELOG（子包或根包）会失败。
 3. **删除 / 废弃**：额外清理 aliases / related / migration，把删除的公开名补进 `scripts/check_removed_api.py` 的名单，并跑 removed API 检查。
 4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities（仅消费入口包） / release。
 
@@ -63,21 +63,23 @@ docs/modules/components.md
 
 改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。发布后核对线上 / 快照：`python3 scripts/release_status.py --online`（每周一 CI 也会跑，`--check` 只把「落后 / 快照漂移」判失败；网络不可达返回 2，周检按跳过处理）。子包与聚合包版本独立，发布根包前 `release_check --strict` 要求根包的 `^x.y.z` 约束覆盖子包当前版本（`w_tools_cli` 是独立工具包，根包不依赖它，不在此列）。
 
-实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。正式发布时脚本自己会要求干净工作区、`main` 且 HEAD == `origin/main`、并跑 `release_check --strict`（脚本里的 `--force` 只用于明确的例外）。
+实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。正式发布时脚本自己会先 `git fetch`，再要求干净工作区、`main` 且 HEAD == 最新的 `origin/main`、并跑 `release_check --strict`（脚本里的 `--force` 只用于明确的例外）。
 
-子包发布成功后脚本写入的 `scripts/api_snapshots/` 基线**走分支 + PR**：`pre-push` 禁止直接 push main，而发布脚本要求 `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 并 `git pull --ff-only`，再发根包（详见 `docs/releasing.md` 第 7 步）。
+子包发布成功后，脚本先把快照写到 `.w_tools/release-snapshots/`（gitignored，不会挡住下一个包）；一批发完运行 `bash scripts/apply_snapshots.sh` 应用到 `scripts/api_snapshots/`，再走分支 + PR：`pre-push` 禁止直接 push main，而发布脚本要求 `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 并 `git pull --ff-only`，再发根包（详见 `docs/releasing.md` 第 7 步）。
 
 ### 发布窗口判断
 
 先查 pub.dev 最新版本，再决定 `remove-in` / breaking 写给哪个版本：
 
-- 本地版本 **高于** pub.dev 且尚未发布时，这个本地 major 就是 breaking 窗口；
-  `remove-in` 写这个 major，不写下一个 major。
-- 例：本地 ui `7.1.0`、pub.dev ui `7.0.0`，7.1 就是 breaking 窗口；
-  不要把 7.1 的删除/改名标成 `remove-in: 8.0.0`。
+- 基线是 pub.dev 最新发布版本（= `scripts/api_snapshots/` 的最新快照）。
+- 删除 / 改名**已发布** API：抬 major（7.x → 8.0.0），`remove-in` 写 8.0.0。
+- 只在上次发布之后新增、从未发布的 API：可在当前未发布版本直接改 / 删，不抬 major。
+- 例：ui `7.0.0` 已发布、本地 `7.1.0`：`7.0.0` 里存在的 API 删除 → `8.0.0`；
+  `7.1.0` 新增的 API 改名 → 仍在 `7.1.0`（若尚未发布），不需要 `remove-in`。
+- 0.x 工具包按 semver 预发布语义（minor 可破坏）；细节见 ADR-0001 的 2026-11-07 补充。
 - 判断命令：`curl -s https://pub.dev/api/packages/<pkg> | jq -r .latest.version`，
-  或 `bash scripts/release_check.sh --package <pkg> --online`（直接查 `https://pub.dev`，
-  不读本地 `PUB_HOSTED_URL`）。发布后才会判通过；发布前按设计报「待发布」。
+  或 `python3 scripts/release_status.py --online`（把「待发布」显示为正常状态；
+  `release_check --online` 在断网时返回 2，发布前不要用它做判断）。
 
 ## 改代码时的组件硬规则
 

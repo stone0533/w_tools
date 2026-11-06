@@ -227,6 +227,38 @@ class PublicApiDiffTest(unittest.TestCase):
                 mod.ROOT, mod.SNAPSHOTS = old_root, old_snapshots
                 sys.argv = old_argv
 
+    def test_output_dir_writes_snapshot_to_pending_dir(self):
+        """发布脚本把快照写到 .w_tools/release-snapshots，不直接写 scripts/api_snapshots。"""
+        import check_public_api_diff as mod
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            package = root / 'packages' / 'demo'
+            (package / 'lib' / 'src').mkdir(parents=True)
+            (package / 'lib' / 'w_tools_demo.dart').write_text("export 'src/a.dart';\n")
+            (package / 'lib' / 'src' / 'a.dart').write_text('class WDemo {}\n')
+            (package / 'pubspec.yaml').write_text('name: w_tools_demo\nversion: 1.0.0\n')
+            pending = root / 'pending'
+            old_root, old_snapshots = mod.ROOT, mod.SNAPSHOTS
+            old_argv = sys.argv
+            mod.ROOT = root
+            mod.SNAPSHOTS = root / 'snapshots'
+            try:
+                sys.argv = [
+                    'check_public_api_diff.py',
+                    '--snapshot-from', str(package),
+                    '--package', 'demo',
+                    '--version', '1.0.0',
+                    '--output-dir', str(pending),
+                ]
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(mod.main(), 0)
+                self.assertTrue((pending / 'w_tools_demo-1.0.0.txt').exists())
+                self.assertFalse((mod.SNAPSHOTS / 'w_tools_demo-1.0.0.txt').exists())
+            finally:
+                mod.ROOT, mod.SNAPSHOTS = old_root, old_snapshots
+                sys.argv = old_argv
+
 
 if __name__ == '__main__':
     unittest.main()

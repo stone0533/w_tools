@@ -55,6 +55,34 @@ class ReleaseStatusTest(unittest.TestCase):
             mod.time.sleep = old_sleep
             sys.argv = old_argv
 
+    def test_offline_check_without_online_or_require_returns_2(self):
+        """没有可核对的目标时不能打印「状态正常」。"""
+        old_argv = sys.argv
+        sys.argv = ['release_status.py', '--check']
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(mod.main(), 2)
+        finally:
+            sys.argv = old_argv
+
+    def test_snapshot_version_picks_the_latest(self):
+        with tempfile.TemporaryDirectory() as temp:
+            snapshots = pathlib.Path(temp)
+            (snapshots / 'w_tools_ui-7.0.0.txt').write_text('# 7.0.0\n')
+            (snapshots / 'w_tools_ui-10.0.0.txt').write_text('# 10.0.0\n')
+            (snapshots / 'w_tools_ui-9.0.0.txt').write_text('# 9.0.0\n')
+            old = mod.SNAPSHOTS
+            mod.SNAPSHOTS = snapshots
+            try:
+                self.assertEqual(mod.snapshot_version('ui'), '10.0.0')
+            finally:
+                mod.SNAPSHOTS = old
+
+    def test_git_tracked_distinguishes_tracked_file(self):
+        self.assertTrue(mod.git_tracked(mod.ROOT / 'scripts/release_status.py'))
+        self.assertFalse(mod.git_tracked(mod.ROOT / 'scripts/__not_a_real_file__.txt'))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -4,11 +4,13 @@
 # - test/：本仓库测试，依赖各包自己的 dev_dependencies
 # - docs/：模块与维护者文档（面向仓库，不随根包发布）
 # - scripts/ / .github/：仓库工具与 CI
+# - .w_tools/：发布时暂存的 API 快照（本地状态，不进发布物）
 # - coverage/：`flutter test --coverage` 的产物，绝不能进发布包
 test/
 docs/
 scripts/
 .github/
+.w_tools/
 coverage/
 .flutter-plugins
 .flutter-plugins-dependencies
