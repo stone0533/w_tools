@@ -40,7 +40,7 @@ jobs:
         id: emit
         run: python3 scripts/ci_matrix.py --github-output >> "$GITHUB_OUTPUT"
 
-  # 纯文档改动不必跑 16 个装 Flutter 的 job。
+  # 纯文档改动不必跑 17 个装 Flutter 的 job（umbrella + min_sdk + 15 个包）。
   # 分支保护只要求最后的 Required checks；packages / min_sdk 被 skip 不影响它。
   changes:
     name: Changed paths
@@ -79,6 +79,10 @@ jobs:
               # 反馈台账只有 `w_tools_cli:feedback lint` 能校验（需要 Dart + pub get），
               # 走 umbrella 的静态门禁；否则只改 docs/feedback/ 时没有任何 job 会真正检查它。
               - 'docs/feedback/**'
+              # 生成物：手改后必须由 gen_catalog --check（需要 Dart）拦住。
+              - 'docs/modules/components.md'
+              # pre-push 钩子由 scripts/tests/test_pre_push_hook.py 覆盖。
+              - '.githooks/**'
 
   # 纯文档改动不需要 Flutter；这里只跑文档 / 符号 / 版本 / 发版物料门禁。
   # 代码 PR 也会跑一遍，成本约几秒，避免 docs-only 与 code-only 两套 required check 分叉。

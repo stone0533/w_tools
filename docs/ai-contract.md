@@ -242,6 +242,7 @@ teach: false  普通组件：至少 useFor / dontUseFor
 | 5.7 文档入口一致性 | 文档索引完整、`docs/agents` 索引与规则页一致、高频规则短语在 docs/agents 与 zh/en 模板一致、doctor 规则表两处一致、root / 各包 `AGENTS.md` 的符号、import / re-export 边界与已删除 API、提示词命令可执行 | [`check_docs_facts.py`](../scripts/check_docs_facts.py)、[`check_agents_consistency.py`](../scripts/check_agents_consistency.py)、[`check_doc_symbols.py`](../scripts/check_doc_symbols.py)、[`check_removed_api.py`](../scripts/check_removed_api.py)、[`check_prompt_docs.py`](../scripts/check_prompt_docs.py) |
 | 5.8 命名约定 | 公开 `W*Config` 必须在 [naming_baseline.yaml](../scripts/naming_baseline.yaml) 内；库包公开类型 `W` 前缀；规则见 [docs/naming.md](naming.md) | [`check_naming.py`](../scripts/check_naming.py) |
 | 5.9 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh` | [`ci_matrix.py`](../scripts/ci_matrix.py) |
+| 5.10 核心入口教学覆盖 | `entrypoints.yaml` 里的入口必须出现在 docs/agents / 模板 zh+en / README / example（J-4A；当前只登记 ui） | [`check_teaching_coverage.py`](../scripts/check_teaching_coverage.py) |
 
 重建基线用 `python3 scripts/check_public_catalog.py --write`；它是**基线**，不是「全了」的证明，
 新增类型仍要人工判断进 catalog 还是 `uncataloged.yaml`。

@@ -73,9 +73,8 @@
 
 先安装（纯 Dart，不依赖 Flutter）：
 
-```yaml
-dev_dependencies:
-  w_tools_cli: ^1.13.0
+```bash
+dart pub add dev:w_tools_cli
 ```
 
 ```bash

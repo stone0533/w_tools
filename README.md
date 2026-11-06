@@ -36,7 +36,8 @@
 > ℹ️ **版本说明**：具体版本以各包 `pubspec.yaml` 与 pub.dev 页面为准；仓库 `main` 可能领先于
 > pub.dev 已发布版本。根包 `w_tools` 自 2.0.0 起是**聚合包**，依赖 6 个基础子包，只 re-export
 > 子包能力；聚合示例以根 `pubspec.yaml` 为准，其它安装示例以对应子包的 `pubspec.yaml` 为准。
-> 本文安装示例由 `scripts/check_package_docs.py` 校验（示例下界必须等于仓库当前版本）。
+> 安装命令用 `pub add`（装 pub.dev 上已发布的最新版），不在文档里写死版本号——否则仓库一领先，
+> 文档里的 `^x.y.z` 就会变成装不到的版本；仍写了 caret 约束的地方由 `scripts/check_package_docs.py` 校验。
 > 只想要部分能力时，建议直接引入对应子包，避免把 GetX / 地图 / 扫码等依赖一并带入。
 
 ### 本地开发 / 跨仓库接入
@@ -72,13 +73,9 @@ dependencies:
 
 根包只保留 core/async/ui/form/api/toast；`app` / `map` / `qr` 一律按需直接依赖对应子包：
 
-```yaml
-dependencies:
-  w_tools_core: ^3.1.1
-  w_tools_async: ^5.0.1
-  w_tools_ui: ^7.0.0
-  w_tools_form: ^5.1.1
-  # 需要再加 w_tools_app_getx / api / toast / qr / map / map_google
+```bash
+flutter pub add w_tools_core w_tools_async w_tools_ui w_tools_form
+# 需要再加 w_tools_app_getx / api / toast / qr / map / map_google
 ```
 
 > 依赖放子包，但业务代码不要直接 import 子包：统一 import CLI 生成的
@@ -90,9 +87,8 @@ dependencies:
 更省事的做法是用 CLI 生成（聚合入口、暂存层 README、`AGENTS.md` 片段一次装好）。
 CLI 在独立的纯 Dart 包里，不需要先引入聚合包：
 
-```yaml
-dev_dependencies:
-  w_tools_cli: ^1.13.0
+```bash
+dart pub add dev:w_tools_cli
 ```
 
 ```bash
@@ -134,21 +130,18 @@ WFormTheme(
 
 > 环境：Dart `^3.10.0`、Flutter `>=3.38.0`。
 
-```yaml
-dependencies:
-  w_tools_core: ^3.1.1   # 只引子包
-  w_tools_ui: ^7.0.0
+```bash
+flutter pub add w_tools_core w_tools_ui   # 只引子包
 ```
 
 或一键引入聚合包（会带上全部 6 个基础子包及其依赖）：
 
-```yaml
-dependencies:
-  w_tools: ^10.0.0
+```bash
+flutter pub add w_tools
 ```
 
-> ⚠️ 上面是仓库当前版本。若 pub.dev 尚未发布该版本，请按 pub.dev 页面选择可用版本，
-> 或使用上面的 path / git 依赖方式，避免 `pub get` 解析失败。
+> ⚠️ `pub add` 装的是 pub.dev 上当前发布的最新版本；想锁定版本时以 pub.dev 页面为准。
+> 需要仓库 `main` 上尚未发布的改动时，用上面的 path / git 依赖方式。
 >
 > ⚠️ 聚合包只用于快速体验 / 旧项目兼容。按接入约定（doctor R1），生产项目应直接依赖子包；
 > 用了聚合包再跑 `doctor` 会报 R1。

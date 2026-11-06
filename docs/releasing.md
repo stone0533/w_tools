@@ -38,14 +38,14 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 
 ```bash
 curl -s https://pub.dev/api/packages/w_tools_ui | jq -r .latest.version
-# 或
-PUB_HOSTED_URL=https://pub.dev bash scripts/release_check.sh --package ui --online
+# 或（脚本直接查 https://pub.dev，不读本地的 PUB_HOSTED_URL）
+bash scripts/release_check.sh --package ui --online
 ```
 
 - 本地版本 **高于** pub.dev 且该本地版本尚未发布时，这个本地 major 就是 breaking 窗口；
   `remove-in` 写这个 major，不写下一个 major。
-- 例：本地 `ui 7.0.0`、pub.dev `ui 6.1.1`，7.0 就是 breaking 窗口；
-  7.0 的删除/改名不应写成 `remove-in: 8.0.0`。
+- 例：本地 `ui 7.1.0`、pub.dev `ui 7.0.0`，7.1 就是 breaking 窗口；
+  7.1 的删除/改名不应写成 `remove-in: 8.0.0`。
 - `--online` 在目标版本尚未发布时会显示「仓库 X > pub.dev Y —— 待发布」并以非 0 退出；
   这是预期的「待发布」状态，不是内容已验证。
 - **聚合包**：`w_tools` 按聚合层独立发版。它对各子包的 caret 约束下界应取**子包当前版本**
@@ -81,19 +81,22 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 
 下面以 `map` 为例，换成你要发的包即可。
 
-1. 改子包 `version` + 写 `CHANGELOG.md`（`## x.y.z`）。
-2. 需要聚合包跟上的，改根 `pubspec.yaml` 里对应的 `w_tools_<pkg>: ^x.y.z`。
+1. 确认子包 `version` + `CHANGELOG.md` 的 `## x.y.z` 段：功能 PR 里已经抬过就沿用；
+   还没抬时才在这里抬（版本号决定 semver，拿不准先和人工确认）。
+2. 需要聚合包跟上的，确认根 `pubspec.yaml` 里对应的 `w_tools_<pkg>: ^x.y.z` 下界已抬
+   （功能 PR 里改过就不动；`release_check` 会校验下界是否落后）。
 3. 改根 `version` + 写根 `CHANGELOG.md`。
 4. 本地预检（不要求工作区干净）：
    ```bash
    bash scripts/release_check.sh --package map
    ```
-5. 提交（`pub publish` 只有在干净工作区才不会报 65）。
-6. 干净工作区复核 + 发布预演（**必须走发布脚本**，原因见下一节）：
+5. 提交到 feature 分支并 push，开 PR；等 Required checks 通过后**合并到 main**。
+6. 在 main 上复核 + 发布预演（**必须走发布脚本**，原因见下一节）：
    ```bash
-   # --strict 还要求当前分支有 upstream，且 ahead/behind 都为 0（见 scripts/check_git_sync.sh）
-   # 发布前确认 PR Required checks（需要 gh）
-   bash scripts/check_pr_checks.sh
+   # Required checks 在 PR 分支上确认：gh pr checks 需要一个 PR，
+   # 合并后在 main 上跑会找不到 PR（有 PR 号就直接传）。
+   bash scripts/check_pr_checks.sh <PR号>
+   # --strict 要求当前分支有 upstream，且 ahead/behind 都为 0（见 scripts/check_git_sync.sh）
    bash scripts/release_check.sh --strict --package map
    bash scripts/publish_package.sh packages/map --dry-run
    ```
@@ -101,6 +104,13 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    ```bash
    bash scripts/publish_package.sh packages/map
    # 其余需要发布的子包同理
+   ```
+   发布成功后脚本会把该版本写成 `scripts/api_snapshots/w_tools_<pkg>-<version>.txt`。
+   **这个文件必须提交**：否则基线漂移，且下次 `release_check --strict` 会因“未跟踪文件”失败。
+   ```bash
+   git add scripts/api_snapshots
+   git commit -m "chore(release): w_tools_map <version> API 基线"
+   git push
    ```
 8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界），最后发聚合包：
    ```bash

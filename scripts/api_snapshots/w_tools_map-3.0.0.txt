@@ -1,0 +1,12 @@
+# w_tools_map 3.0.0
+WMapItem	class
+WMapItem.id	String?
+WMapItem.latitude	double?
+WMapItem.longitude	double?
+WMapItem.name	String?
+WMapItemMapper	class
+WMapItemMapper.id	String Function(T item)
+WMapItemMapper.isValid	bool Function(T item)?
+WMapItemMapper.name	String? Function(T item)?
+WMapItemMapper.new	({ required this.id, required this.position, this.name, this.isValid, })
+WMapItemMapper.position	({double latitude, double longitude}) Function(T item)

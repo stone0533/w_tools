@@ -1,0 +1,69 @@
+# w_tools_app_getx 1.0.1
+WApp	class
+WApp.addPlugin	void (WAppPlugin plugin)
+WApp.addPlugins	void (Iterable<WAppPlugin> plugins)
+WApp.clearPlugins	void ()
+WApp.false	bool _initialized =
+WApp.init	Future<void> ({VoidCallback? onLazyInit, List<Future<void>>? customTasks})
+WApp.isInitialized	bool
+WApp.options	WAppOptions
+WApp.plugins	List<WAppPlugin>
+WApp.removePlugin	void (String name)
+WApp.routeStack	WRouteStack
+WApp.run	void ({ String? initialRoute, List<GetPage<dynamic>>? getPages, TransitionBuilder? builder, List<NavigatorObserver>? navigatorObservers, Transition? defaultTransition, ThemeData? theme, Translations? translations, Locale? locale, Locale? fallbackLocale, })
+WApp.start	Future<void> ({ VoidCallback? onLazyInit, List<Future<void>>? customTasks, String? initialRoute, List<GetPage<dynamic>>? getPages, TransitionBuilder? builder, List<NavigatorObserver>? navigatorObservers, Transition? defaultTransition, ThemeData? theme, Translations? translations, Locale? locale, Locale? fallbackLocale, })
+WAppConfig	class
+WAppConfig._	()
+WAppConfig.currentLanguage	static String
+WAppConfig.supportedLanguages	static set (Map<String, String> value)
+WAppOptions	class
+WAppOptions.appWrapper	Widget Function(Widget child)?
+WAppOptions.applyOrientations	bool
+WAppOptions.builder	TransitionBuilder?
+WAppOptions.copyWith	WAppOptions ({ String? title, Object? initialRoute = _unset, Object? getPages = _unset, Object? theme = _unset, Object? translations = _unset, Object? locale = _unset, Object? fallbackLocale = _unset, Object? builder = _unset, Object? navigatorObservers = _unset, Object? defaultTransition = _unset, Object? systemUiOverlayStyle = _unset, List<DeviceOrientation>? orientations, bool? applyOrientations, Object? appWrapper = _unset, Object? localeConfig = _unset, List<WAppPlugin>? plugins, })
+WAppOptions.defaultTransition	Transition?
+WAppOptions.fallbackLocale	Locale?
+WAppOptions.getPages	List<GetPage<dynamic>>?
+WAppOptions.initialRoute	String?
+WAppOptions.locale	Locale?
+WAppOptions.localeConfig	WLocaleConfig?
+WAppOptions.navigatorObservers	List<NavigatorObserver>?
+WAppOptions.new	({ required this.title, this.initialRoute, this.getPages, this.theme, this.translations, this.locale, this.fallbackLocale, this.builder, this.navigatorObservers, this.defaultTransition, this.systemUiOverlayStyle = const SystemUiOverlayStyle( statusBarColor: Colors.transparent, statusBarBrightness: Brightness.dark, systemNavigationBarColor: Colors.black, systemNavigationBarIconBrightness: Brightness.light, ), this.orientations = const [DeviceOrientation.portraitUp], this.applyOrientations = false, this.appWrapper, this.localeConfig, this.plugins = const [], })
+WAppOptions.orientations	List<DeviceOrientation>
+WAppOptions.plugins	List<WAppPlugin>
+WAppOptions.systemUiOverlayStyle	SystemUiOverlayStyle?
+WAppOptions.theme	ThemeData?
+WAppOptions.title	String
+WAppOptions.translations	Translations?
+WBottomSheet	class
+WLanguage	class
+WLanguage._internal	()
+WLanguage.changeLanguage	void (String languageCode)
+WLanguage.currentLanguage	String
+WLanguage.currentLanguageName	String
+WLanguage.currentLocale	Locale
+WLanguage.languageStream	RxString
+WLanguage.listenLanguageChange	StreamSubscription<String> (void Function(String) callback,)
+WLanguage.new	()
+WLanguage.supportedLanguages	Map<String, String>
+WLanguage.syncFromConfig	void ()
+WLocaleConfig	class
+WLocaleConfig.defaultLanguage	String?
+WLocaleConfig.new	({required this.supportedLanguages, this.defaultLanguage})
+WLocaleConfig.supportedLanguages	Map<String, String>
+WRouteObserver	class
+WRouteObserver.didPop	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didPush	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didRemove	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didReplace	void ({Route<dynamic>? newRoute, Route<dynamic>? oldRoute})
+WRouteObserver.new	({WRouteStack? stack})
+WRouteStack	class
+WRouteStack.addRoute	void (Route<dynamic> route)
+WRouteStack.clearRoutes	void ()
+WRouteStack.defaultStack	WRouteStack
+WRouteStack.new	()
+WRouteStack.popUntilRoute	void (String page)
+WRouteStack.removeRoute	void (Route<dynamic> route)
+WRouteStack.removeRouteIfExists	void (String page)
+WRouteStack.removeRoutesAfter	void (String page)
+WRouteStack.routes	List<Route<dynamic>>

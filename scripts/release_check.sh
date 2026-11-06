@@ -13,6 +13,10 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT" || exit 2
 
 PACKAGES="$(awk -F'|' '!/^[[:space:]]*#/ && NF {name=$1; sub(/^w_tools_/,"",name); printf "%s ",name}' "$REPO_ROOT/scripts/packages.manifest")"
+if [ -z "${PACKAGES// /}" ]; then
+  echo "读不到 scripts/packages.manifest 的包列表；发布检查无法进行。" >&2
+  exit 2
+fi
 STRICT=0
 ONLINE=0
 SELECTED=""
@@ -91,6 +95,17 @@ changelog_has_unreleased() {
   ' "$1"
 }
 
+# CHANGELOG 里重复的版本段（历史踩过：根包两个 `## 6.0.0`）。
+changelog_duplicate_versions() {
+  grep -E '^##[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+' "$1" 2>/dev/null |
+    sed -E 's/^##[[:space:]]+//' | awk '{print $1}' | sort | uniq -d
+}
+
+# 第一段版本号（跳过 Unreleased）：新版本必须排在最上面。
+changelog_first_version() {
+  awk '/^##[[:space:]]/ { if ($2 == "Unreleased") next; print $2; exit }' "$1" 2>/dev/null
+}
+
 # 版本比较：$1 > $2 时返回 0
 ver_gt() {
   awk -v a="$1" -v b="$2" 'BEGIN {
@@ -147,6 +162,12 @@ for pkg in $PACKAGES; do
   if [ -f "$dir/CHANGELOG.md" ]; then
     changelog_has_version "$dir/CHANGELOG.md" "$version" ||
       fail "$pkg: CHANGELOG 里没有 '## $version' 段（当前 pubspec 版本是 ${version}）"
+    dups="$(changelog_duplicate_versions "$dir/CHANGELOG.md")"
+    [ -n "$dups" ] &&
+      fail "$pkg: CHANGELOG 有重复版本段：$(printf '%s' "$dups" | tr '\n' ' ')"
+    first="$(changelog_first_version "$dir/CHANGELOG.md")"
+    [ "$first" = "$version" ] ||
+      fail "$pkg: CHANGELOG 第一段应为 '## $version'（实际为 '## ${first:-空}'）——新版本要排在最上面"
     changelog_has_unreleased "$dir/CHANGELOG.md" &&
       warn "$pkg: CHANGELOG 有未发版条目（## Unreleased）—— 若是已随旧版本发布的内容，折叠进对应版本；只有真正未发的才留在这里"
   fi
@@ -204,6 +225,12 @@ else
   else
     fail "根包 CHANGELOG 里没有 '## $root_version' 段"
   fi
+  root_dups="$(changelog_duplicate_versions CHANGELOG.md)"
+  [ -n "$root_dups" ] &&
+    fail "根包 CHANGELOG 有重复版本段：$(printf '%s' "$root_dups" | tr '\n' ' ')"
+  root_first="$(changelog_first_version CHANGELOG.md)"
+  [ "$root_first" = "$root_version" ] ||
+    fail "根包 CHANGELOG 第一段应为 '## $root_version'（实际为 '## ${root_first:-空}'）"
   changelog_has_unreleased CHANGELOG.md &&
     warn "根包 CHANGELOG 有未发版条目（## Unreleased）"
 fi

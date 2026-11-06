@@ -1,3 +1,5 @@
+import contextlib
+import io
 import pathlib
 import sys
 import tempfile
@@ -5,7 +7,13 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-from check_public_api_diff import api_surface, check_notes, diff_api, latest_snapshot
+from check_public_api_diff import (
+    _current_version_text,
+    api_surface,
+    check_notes,
+    diff_api,
+    latest_snapshot,
+)
 
 
 class PublicApiDiffTest(unittest.TestCase):
@@ -130,6 +138,67 @@ class PublicApiDiffTest(unittest.TestCase):
             changes,
             [('WThing.run', 'void (int value)', 'void (String value)')],
         )
+
+    def test_version_section_is_selected_by_pubspec_version(self):
+        changelog = (
+            '## 7.1.0\n\n### Breaking\n- WThing.future\n\n'
+            '## 7.0.0\n\n### Breaking\n- WThing.current\n'
+        )
+        text = _current_version_text(changelog, '7.0.0')
+        self.assertIn('WThing.current', text)
+        self.assertNotIn('WThing.future', text)
+
+    def test_unreleased_section_is_used_when_version_is_missing(self):
+        changelog = (
+            '## Unreleased\n\n### Breaking\n- WThing.upcoming\n\n'
+            '## 7.0.0\n\n### Breaking\n- WThing.released\n'
+        )
+        text = _current_version_text(changelog, '7.1.0')
+        self.assertIn('WThing.upcoming', text)
+        self.assertNotIn('WThing.released', text)
+
+    def test_bare_member_name_no_longer_satisfies_breaking_notes(self):
+        changes = [('WButton.text', 'String', 'String?')]
+        errors = check_notes(
+            changes,
+            changelog='## 7.0.0\n\n### Breaking\n- 调整了 text 的默认值\n',
+            migration='the text field layout changed',
+        )
+        self.assertEqual(len(errors), 1)
+
+    def test_full_member_name_satisfies_breaking_notes(self):
+        changes = [('WButton.text', 'String', 'String?')]
+        errors = check_notes(
+            changes,
+            changelog='## 7.0.0\n\n### Breaking\n- `WButton.text` 改为可空\n',
+            migration='',
+        )
+        self.assertEqual(errors, [])
+
+    def test_missing_snapshot_is_an_error(self):
+        import check_public_api_diff as mod
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            package = root / 'packages' / 'demo'
+            (package / 'lib' / 'src').mkdir(parents=True)
+            (package / 'lib' / 'w_tools_demo.dart').write_text("export 'src/a.dart';\n")
+            (package / 'lib' / 'src' / 'a.dart').write_text('class WDemo {}\n')
+            (package / 'pubspec.yaml').write_text(
+                'name: w_tools_demo\nversion: 1.0.0\n'
+            )
+            old_root, old_snapshots = mod.ROOT, mod.SNAPSHOTS
+            old_argv = sys.argv
+            mod.ROOT = root
+            mod.SNAPSHOTS = root / 'snapshots'
+            mod.SNAPSHOTS.mkdir()
+            try:
+                sys.argv = ['check_public_api_diff.py', '--package', 'demo']
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(mod.main(), 1)
+            finally:
+                mod.ROOT, mod.SNAPSHOTS = old_root, old_snapshots
+                sys.argv = old_argv
 
 
 if __name__ == '__main__':

@@ -1,0 +1,8 @@
+# w_tools_app 3.0.0
+WAppPlugin	class
+WAppPlugin.builderWrapper	TransitionBuilder?
+WAppPlugin.dependsOn	List<String>
+WAppPlugin.name	String
+WAppPlugin.navigatorObservers	List<NavigatorObserver>?
+WAppPlugin.onInit	Future<void> ()
+WAppPlugin.wrapApp	Widget (Widget child)

@@ -60,12 +60,13 @@
 - 版本策略与流程见 [`docs/releasing.md`](docs/releasing.md)
 - 公开 API 变化（删除 / 类型变化 / 可空性变化）先跑
   `python3 scripts/check_public_api_diff.py --package <pkg>`；它要求变化写进
-  当前版本 CHANGELOG 的 `### Breaking` / `### Removed`，或 migration。
-  基线在 `scripts/api_snapshots/`，发布新版本后更新。
+  **当前 pubspec 版本**对应 CHANGELOG 段的 `### Breaking` / `### Removed`，或 migration。
+  基线在 `scripts/api_snapshots/`：发布脚本会在发布成功后写入，**记得提交**；
+  缺基线时门禁直接失败（不再静默跳过）。
 - 有公开 API / 行为变化时，合并前跑一次 **J-4（AI 教学覆盖审计）**，并在 PR 里贴矩阵结论；
   J-4 只读，不修改文件。至少确认：catalog、`docs/agents/<pkg>.md`、
   `templates/agents/{zh,en}/<pkg>.md`、README、example 都已同步。
-- 自动门禁只能保证符号/锚点/生成物一致；教学方法是否讲清楚仍需要 J-4 人工判断。
+- 自动门禁覆盖符号 / 锚点 / 生成物 / 入口名（J-4A），但教学方法是否讲清楚仍需要 J-4 人工判断。
 
 ## 6. Git / PR 流程
 

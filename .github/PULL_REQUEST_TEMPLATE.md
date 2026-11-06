@@ -21,6 +21,12 @@
 - [ ] README / example / migration 已同步
 - [ ] `bash scripts/preflight.sh --with-tests` 通过
 
+## 版本 / 发布物料（有公开 API / 行为变化时）
+
+- [ ] 子包 `version` 已抬，`CHANGELOG.md` 有对应 `## x.y.z` 段（新段落排在最上面）
+- [ ] 聚合子包已同步根 `pubspec.yaml` 的 `^x.y.z` 下界
+- [ ] 破坏性变更已写 migration（或 CHANGELOG `### Breaking` / `### Removed` 里写明 `Type.member`）
+
 ## 自检
 
 - [ ] `bash scripts/preflight.sh --with-tests`（或说明未跑原因）

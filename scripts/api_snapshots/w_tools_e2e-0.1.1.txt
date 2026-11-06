@@ -1,0 +1,15 @@
+# w_tools_e2e 0.1.1
+E2eConfig	class
+E2eConfig.canAutoLogin	bool
+E2eConfig.copyWith	E2eConfig ({Duration? timeout})
+E2eConfig.email	String
+E2eConfig.enabled	bool
+E2eConfig.fromEnvironment	()
+E2eConfig.new	({ required this.enabled, required this.email, required this.password, this.timeout = const Duration(seconds: 60), })
+E2eConfig.password	String
+E2eConfig.timeout	Duration
+E2eConfig.toString	String ()
+E2eLogin	class
+E2eLogin._	()
+E2eLogin.run	static Future<bool> ({ E2eConfig? config, required E2eLoginCallback login, FutureOr<void> Function()? afterLogin, FutureOr<void> Function(Object error, StackTrace stack)? onError, })
+E2eLoginCallback	typedef E2eLoginCallback = Future<void> Function(String email, String password);

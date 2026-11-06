@@ -18,7 +18,7 @@
 ## 改动前先分类
 
 1. **内部重构**：公开 API / 默认行为不变 → 只改代码 + 测试。
-2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；必要时 migration。
+2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界）；必要时 migration。
 3. **删除 / 废弃**：额外清理 aliases / related / migration，把删除的公开名补进 `scripts/check_removed_api.py` 的名单，并跑 removed API 检查。
 4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities / release。
 
@@ -71,11 +71,11 @@ docs/modules/components.md
 
 - 本地版本 **高于** pub.dev 且尚未发布时，这个本地 major 就是 breaking 窗口；
   `remove-in` 写这个 major，不写下一个 major。
-- 例：本地 ui `7.0.0`、pub.dev ui `6.1.1`，7.0 就是 breaking 窗口；
-  不要把 7.0 的删除/改名标成 `remove-in: 8.0.0`。
+- 例：本地 ui `7.1.0`、pub.dev ui `7.0.0`，7.1 就是 breaking 窗口；
+  不要把 7.1 的删除/改名标成 `remove-in: 8.0.0`。
 - 判断命令：`curl -s https://pub.dev/api/packages/<pkg> | jq -r .latest.version`，
-  或 `bash scripts/release_check.sh --package <pkg> --online`（注意 `--online` 用
-  `PUB_HOSTED_URL=https://pub.dev`，镜像可能滞后）。
+  或 `bash scripts/release_check.sh --package <pkg> --online`（直接查 `https://pub.dev`，
+  不读本地 `PUB_HOSTED_URL`）。发布后才会判通过；发布前按设计报「待发布」。
 
 ## 改代码时的组件硬规则
 

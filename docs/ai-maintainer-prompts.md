@@ -584,7 +584,8 @@ example 是否覆盖真实场景
 - packages/<pkg>/lib/
 - packages/<pkg>/test/
 - packages/<pkg>/example/（存在时）
-- 对应的 modules 文档（ui/form/async/app/device 等；app 与 app_getx 共用 app_module.md）
+- 对应的 modules 文档（ui/form/async/app 等；app 与 app_getx 共用 app_module.md；
+  device 是工具包，没有 modules 文档，只看 device-testing.md）
 - 对应的 agents 文档（ui.md / form.md / async.md / app.md / device-testing.md 等）
 - packages/cli/catalog/components.yaml 中 package: w_tools_<pkg> 的条目
 - packages/cli/catalog/uncataloged.yaml 中该包的基线
@@ -767,6 +768,11 @@ G. 维护与发布
 范围、命令、边界同 J-4；runner 以 manifest 为准。
 ```
 
+> **J-4A** 是 J-4 的自动子集，不是新场景：`python3 scripts/check_teaching_coverage.py`
+> 只检查 `packages/cli/catalog/entrypoints.yaml` 里的入口名是否出现在 docs/agents、模板 zh+en、
+> README、example 五个载体里（子串匹配）。它由 `check_docs.sh` / `preflight` 自动跑，
+> 通过不代表“讲清楚了”；J-4 的人工矩阵仍然要做。
+
 J 的边界：
 
 ```text
@@ -829,7 +835,7 @@ J-5 多包/家族
 5. 根包约束是否覆盖新版本（仅聚合包）；
 6. 依赖包是否已先发布；
 7. 是否需要 migration；
-8. 工作区是否干净、是否已 push（--strict 只查干净，不查 push）。
+8. 工作区是否干净、是否已 push（`--strict` 同时要求干净、已 push、且与 upstream 同步，见 `check_git_sync.sh`）。
 
 输出：
 - 通过项
@@ -862,14 +868,15 @@ J-5 多包/家族
 ```text
 任务：为 <pkg> 准备发布。
 
-先输出“版本提案表”（旧版本 → 新版本、major/minor/patch、依据），
-等维护者确认后再改文件。不要自动决定版本号。
+先看功能 PR 是否已经抬过版本：抬过就沿用现有版本（`release_check` 会校验 CHANGELOG 段）。
+还没抬时才输出“版本提案表”（旧版本 → 新版本、major/minor/patch、依据），
+等维护者确认后再改文件。
 
 允许改：
 - packages/<pkg>/pubspec.yaml
 - packages/<pkg>/CHANGELOG.md
 - packages/<pkg>/README.md
-- 根包约束（仅发根包时）
+- 根包约束（聚合子包的功能 PR 里应已抬下界；这里只确认，不重复改）
 - 必要的 migration
 - 版本常量（cli/figma 的 version.dart 等，仅用于版本一致性测试）
 
