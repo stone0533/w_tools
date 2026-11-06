@@ -168,6 +168,10 @@ lib/src/init/templates.g.dart
 
 新增包或能力时要同步摘要。
 
+摘要只收录**消费入口包**（6 个聚合子包 + `app_getx` / `map_google` / `qr`）。
+`w_tools_app` / `w_tools_map` 是契约层，分别由 `app_getx` / `map_google` 代表，不单列；
+`cli` / `figma` / `device` / `e2e` 是工具包，也不在能力摘要里。
+
 ### 3.5 检查生成物没有漂移
 
 ```bash
@@ -243,6 +247,7 @@ teach: false  普通组件：至少 useFor / dontUseFor
 | 5.8 命名约定 | 公开 `W*Config` 必须在 [naming_baseline.yaml](../scripts/naming_baseline.yaml) 内；库包公开类型 `W` 前缀；规则见 [docs/naming.md](naming.md) | [`check_naming.py`](../scripts/check_naming.py) |
 | 5.9 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh`；每个检查脚本都必须有真实入口（preflight / check_docs / release_check / workflow）且在 `scripts/README.md` 登记 | [`ci_matrix.py`](../scripts/ci_matrix.py)、[`check_gate_coverage.py`](../scripts/check_gate_coverage.py) |
 | 5.10 核心入口教学覆盖 | `entrypoints.yaml` 里的入口必须出现在 docs/agents / 模板 zh+en / README（有 example 还要出现在 example/lib）；覆盖 11 个库包，app_getx/map_google 共用 app/map 规则页（J-4A） | [`check_teaching_coverage.py`](../scripts/check_teaching_coverage.py) |
+| 5.11 PR 分类 ↔ CHANGELOG | PR 模板勾了「公开变化（API / 行为 / 新组件）」时，必须至少改一个 `packages/*/CHANGELOG.md`；行为变化没有 API diff，靠这条兜底 | [`check_pr_scope.py`](../scripts/check_pr_scope.py) |
 
 重建基线用 `python3 scripts/check_public_catalog.py --write`；它是**基线**，不是「全了」的证明，
 新增类型仍要人工判断进 catalog 还是 `uncataloged.yaml`。
@@ -272,7 +277,7 @@ teach: false  普通组件：至少 useFor / dontUseFor
 - 补 README；
 - 有 example 则补 example；
 - 如果是 init feature，补 `templates/agents/{zh,en}/<feature>.md`；
-- 补 `context.capabilities`；
+- 如果是消费入口包，补 `context.capabilities`（契约层 `app` / `map` 与工具包不单列）；
 - 补 `docs/modules` 索引；
 - 补 release 约束 / 版本。
 
@@ -332,25 +337,19 @@ bash scripts/preflight.sh --with-tests
 - `uncataloged.yaml` 是“有意不登记”清单，仍应定期 review；
 - `usage` 是最短片段，不保证全量编译；
 - 大部分 `teach: false` 组件仍只有 useFor / dontUseFor（具体比例见 catalog，不在文档里写死）；
-- `context.capabilities` 是静态映射，新增包需同步；
+- `context.capabilities` 是静态映射，新增**消费入口包**时需同步（契约层 / 工具包不单列）；
+- `check_pr_scope.py` 只读 PR 模板的「公开变化」勾选：勾错或删掉模板时它看不到真实意图；
 - Markdown 全量代码块编译尚未开启，只检查关键示例。
 
 ---
 
 ## 10. PR 检查表
 
-```text
-[ ] 公开 API 变化已反映到 catalog
-[ ] teach 组件的 usage / pitfalls / related 完整
-[ ] related 可解析
-[ ] AGENTS 模板已更新
-[ ] README 已更新
-[ ] example 已更新
-[ ] 生成器已跑
-[ ] 文档索引 / docs/agents 入口 / CI 清单同源由 preflight 覆盖（不必单独跑）
-[ ] ai_contract / cli / docs / preflight 通过
-[ ] 破坏性变更已写 migration
-```
+以仓库的 [`.github/PULL_REQUEST_TEMPLATE.md`](../.github/PULL_REQUEST_TEMPLATE.md) 为准
+（GitHub 开 PR 会自动带出）。分类、命名、教学同步、版本物料都只维护在模板里，
+这里不再留第二份清单；J-4 的定义见 [ai-maintainer-prompts.md](ai-maintainer-prompts.md) 的 J-4 一节。
+
+自动门禁由 `bash scripts/preflight.sh --with-tests` 覆盖，不需要在 PR 里逐项手抄结果。
 
 ---
 

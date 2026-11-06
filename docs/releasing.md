@@ -113,13 +113,26 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    # 其余需要发布的子包同理
    ```
    发布成功后脚本会把该版本写成 `scripts/api_snapshots/w_tools_<pkg>-<version>.txt`。
-   **这个文件必须提交**：否则基线漂移，且下次 `release_check --strict` 会因“未跟踪文件”失败。
+   **这个文件必须提交，而且必须走分支 + PR**：`.githooks/pre-push` 禁止直接 push main
+   （见 [CONTRIBUTING §6](../CONTRIBUTING.md#6-git--pr-流程)），而发布脚本要求 `main` 干净且
+   `HEAD == origin/main`，所以不能把快照只 commit 在本地 main 上。
+
    ```bash
+   git switch -c chore/release-snapshots
    git add scripts/api_snapshots
    git commit -m "chore(release): w_tools_map <version> API 基线"
-   git push
+   git push -u origin HEAD
+   gh pr create --fill          # 等 Required checks 通过后按 Merge commit 合并
+   git switch main && git pull --ff-only
    ```
-8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界），最后发聚合包：
+
+   > 同一波还要发聚合包时，**必须先合入快照 PR 再执行第 8 步**；否则
+   > `publish_package.sh .` 会因为「存在未跟踪文件 / HEAD != origin/main」失败。
+   > 只发子包、暂不发聚合包时，也要先把快照 commit 到 `chore/release-snapshots` 分支
+   > （让 main 工作区保持干净），PR 可以攒到下一次发版前一起提；
+   > **不要**把快照长期留成未跟踪文件，否则下一次 `--strict` / 正式发布会被它挡住。
+8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界），最后发聚合包
+   （确认第 7 步的快照 PR 已合入，且本地 `main` 已 `git pull --ff-only`）：
    ```bash
    bash scripts/release_check.sh --strict          # 含根包 caret 下界检查
    bash scripts/publish_package.sh . --dry-run     # 预演
@@ -232,3 +245,6 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 - **`## Unreleased` 一直挂着**：先确认这些改动是不是已经随已发布版本出去了——
   是就折叠进对应版本（已发布版本的 CHANGELOG 会原样显示在 pub.dev 上，改不了旧版本，
   只能发新版本修正）；只有真正未发的才继续留在 Unreleased。
+- **发布后快照推不上去**：`.githooks/pre-push` 禁止直接 push main，而发布脚本又要求
+  `HEAD == origin/main`。快照必须走分支 + PR（第 7 步）；要发聚合包时先合入快照 PR，
+  再 `git pull --ff-only` 后执行第 8 步。不要用 `--no-verify` 绕过。

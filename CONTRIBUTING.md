@@ -39,7 +39,8 @@
   **不要手改生成物**
 - 「不要用在哪」比「怎么用」更有价值——误用是主要故障源
 - 该子包的 `docs/modules/<module>_module.md` 补一段说明（如果有行为细节）
-- 改完 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、包清单）
+- 改完 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、安装版本、文档符号 / import 边界、
+  已删除 API、索引、事实一致性）
 
 ## 4. 测试要求
 
@@ -67,14 +68,24 @@
   **当前 pubspec 版本**对应 CHANGELOG 段的 `### Breaking` / `### Removed`，或 migration。
   基线在 `scripts/api_snapshots/`：发布脚本会在发布成功后写入，**记得提交**；
   缺基线时门禁直接失败（不再静默跳过）。
+  快照提交**走分支 + PR**：`pre-push` 禁止直接 push main，而发布脚本要求
+  `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 再发根包；
+  细节见 [`docs/releasing.md`](docs/releasing.md) 第 7 步。
 - 有公开 API / 行为变化时，合并前跑一次 **J-4（AI 教学覆盖审计）**，并在 PR 里贴矩阵结论；
-  J-4 只读，不修改文件。至少确认：catalog、`docs/agents/<pkg>.md`、
+  J-4 只读，不修改文件。定义与提示词见
+  [`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md) 的 J-4 一节。
+  至少确认：catalog、`docs/agents/<pkg>.md`、
   `templates/agents/{zh,en}/<pkg>.md`、README、example 都已同步。
+  矩阵列至少：公开类型 | catalog | teach | AGENTS zh | AGENTS en | explain | README | example。
 - 自动门禁覆盖符号 / 锚点 / 生成物 / 入口名（J-4A），但教学方法是否讲清楚仍需要 J-4 人工判断。
 
 ## 6. Git / PR 流程
 
 - 首次检出先跑 `bash scripts/install_git_hooks.sh`；`.githooks/pre-push` 会阻止直接 push main。
+- 需求 / 可复现的 bug 先开 issue：反馈类用 [`.github/ISSUE_TEMPLATE/feedback.md`](.github/ISSUE_TEMPLATE/feedback.md)
+  （自动带 `needs-triage`），其余用空白 issue；小修 / 文档 / 内部重构可以直接开 PR。
+  PR 链 issue 时写 `Closes #n`。issue 的读写与 label 约定见
+  [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) 与 [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md)。
 - 公开变化走 feature 分支 + PR，等 Required checks 通过后合并；不要用管理员绕过。
 - 发布前用 `bash scripts/check_pr_checks.sh [PR号]` 确认 Required checks（需要 `gh`）。
 

@@ -208,7 +208,7 @@ workspace
 pubspec / README / CHANGELOG / LICENSE / .pubignore
 example（有真实入口时）
 templates/agents/{zh,en}/<feature>.md（init feature）
-context.capabilities
+context.capabilities（仅消费入口包）
 docs/modules/README.md
 release 约束 / 版本
 ```
@@ -334,7 +334,8 @@ scripts/README.md
 ```text
 1. 先判断信息类型，再选文档。
 2. 能用 catalog / explain 表达的事实，不要复制成长篇。
-3. 不重复维护第二份组件清单。
+3. 不重复维护第二份组件清单（根 README 的清单是历史例外：行内符号由 `check_doc_symbols` 校验，
+   已删除 / 改名的名字由 `check_removed_api` 兜底；新增内容优先链接 catalog，不要再抄一份）。
 4. 不改历史迁移 / ADR / analysis，除非修链接或错字。
 5. 不写“已发布 / 待发布 x.y.z”；版本以 pubspec 为准。
 6. 不手改生成物。
