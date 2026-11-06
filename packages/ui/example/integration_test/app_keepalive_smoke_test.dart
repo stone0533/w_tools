@@ -56,7 +56,8 @@ class _HarnessState extends State<_Harness> with TickerProviderStateMixin {
   static double scrollOffset(int i) => _current?._scrolls[i]?.offset ?? 0;
   static bool tickerEnabled(int i) {
     final ctx = _current?._keys[i]?.currentContext;
-    return ctx != null && TickerMode.valuesOf(ctx).enabled;
+    // ignore: deprecated_member_use
+    return ctx != null && TickerMode.of(ctx);
   }
 
   int _index = 0;

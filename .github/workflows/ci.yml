@@ -136,10 +136,8 @@ jobs:
       - name: Test root example
         run: cd example && flutter test
 
-      # 发布必须在去掉 workspace 字段的暂存副本里做，否则消费方 `pub deps` 会去缓存里找
-      # `packages/core` 而失败（2.0.0 踩过，见 docs/releasing.md）。
-      - name: Publish dry-run (root, staged)
-        run: bash scripts/publish_package.sh . --dry-run
+      # 根包 dry-run 需要全部子包已发布；发布前失败是预期，不放进 CI。
+      # 子包矩阵已各自跑 staged dry-run，根包发布前用 release_check --strict 把关。
 
   # 声明的最低 Flutter 版本上再跑一遍：form 1.0.0 的 SizeTransition.alignment
   # 就是「声明支持 3.38、却在 3.38 编译失败」漏出去的。
