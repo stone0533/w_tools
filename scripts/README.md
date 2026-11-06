@@ -45,6 +45,11 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 + docs，不跑 15 个包矩阵。分支保护只要求最后的 `Required checks` 聚合 job，避免 required
 check 名字随包矩阵变化。
 
+> 路径过滤在 `.github/workflows/ci.yml` 的 `changes` job，用 `dorny/paths-filter@v4` +
+> `predicate-quantifier: 'some-with-excludes'`。**不要去掉这个 quantifier**：默认的 `some`
+> 会让 `!` 排除规则匹配「不在排除范围内」的所有文件，两个过滤器都恒为 true，纯文档 PR 会跑满
+> 17 个 job（PR #2 实测踩过）。
+
 ---
 
 ## 脚本分类
