@@ -64,7 +64,7 @@ check 名字随包矩阵变化。
 | `preflight.sh` | 全仓门禁总入口（CI 直接调用它） | 提交前 / 合并前 |
 | `install_git_hooks.sh` | 安装 `.githooks`（pre-push 阻止直接 push main） | 首次检出 / 流程要求 |
 | `check_pr_checks.sh` | 用 `gh pr checks --required` 确认 PR Required checks | 发布前 |
-| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字；`--skip-feedback` 供不装 Flutter 的 CI docs job 用） | 只改文档时可单独跑 / CI docs job |
+| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 链接锚点 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字；`--skip-feedback` 供不装 Flutter 的 CI docs job 用） | 只改文档时可单独跑 / CI docs job |
 | `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移（含路径过滤器只能正向、`example` 列 ↔ `example/test`） | preflight / CI matrix job |
 | `check_gate_coverage.py` | 每个 `scripts/*.sh` / `*.py` 都必须被 preflight / check_docs / release_check / workflow 之一调用（人工脚本在脚本内 `MANUAL` 写明理由），且在本手册登记 | preflight |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
@@ -104,6 +104,7 @@ check 名字随包矩阵变化。
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
 | `check_version_bump.py` | 对比 PR base 与 HEAD 的公开 API 表面：有变化但「版本没抬、且当前版本不高于已发布快照」→ 失败（已抬过但还没发布的版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过） | CI `api-bump` job / 本地 `--base main` |
+| `check_pr_scope.py` | 读 PR 模板的「公开变化」勾选：勾了但没有任何 `packages/*/CHANGELOG.md` 变更 → 失败（行为变化没有 API diff，靠这条兜底；无 PR body 时跳过） | CI `api-bump` job |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
 ### 发布
@@ -128,8 +129,11 @@ check 名字随包矩阵变化。
 
 这些是启发式检查，不是完整编译器/analyzer：
 
-- `check_doc_symbols.py`：正则匹配符号和成员（扫 ```dart 代码块；`docs/naming.md` 额外扫行内代码；
-  正文里的组件清单 / 行内 `` `WXxx` `` 不参与，别指望它发现散文里的旧名字）；
+- `check_doc_symbols.py`：正则匹配符号和成员（扫 ```dart 代码块；所有推荐文档额外扫行内
+  `` `WXxx` `` 的类型名，但同一行写了「已删除 / 不要 / 没有 / 反例」等上下文时放行；
+  成员检查仍只覆盖代码块与 `docs/naming.md`）；
+- `check_docs.sh` 的链接锚点：按 GitHub slug 近似（去反引号 / 标点、空格转 `-`），
+  不处理重复标题的 `-1` 后缀；新增重名标题时写成唯一标题；
 - `check_docs_snippets.py`：只拦截已知错误写法；
 - `check_public_catalog.py`：基于 export/part 的静态扫描 + `uncataloged.yaml` 基线（双向）；
 - `check_naming.py`：只认 barrel 导出的公开名字（`hide` / `lib/src` 内部实现不参与），
@@ -251,8 +255,10 @@ bash scripts/publish_package.sh .
 `scripts/api_snapshots/w_tools_<pkg>-<version>.txt` 是**已发布版本**的公开 API 基线，
 由脚本生成，不要手改。`preflight` 按 manifest 逐包对比，**缺基线直接失败**（不再静默跳过）。
 
-- 正常情况：`publish_package.sh` 发布成功后自动写入；**必须 `git add` 提交**
-  （见 [releasing.md](../docs/releasing.md) 第 7 步，否则下次 `--strict` 会因未跟踪文件失败）。
+- 正常情况：`publish_package.sh` 发布成功后自动写入；**提交必须走分支 + PR**
+  （`pre-push` 禁止直接 push main；发布脚本要求 `HEAD == origin/main`）。
+  同一波要发聚合包时，先合入快照 PR，再 `git pull --ff-only` 后发根包。
+  细节见 [releasing.md](../docs/releasing.md) 第 7 步。
 - 新包 / 补基线：从 pub.dev 归档（首次发布前可用当前版本）生成：
 
 ```bash

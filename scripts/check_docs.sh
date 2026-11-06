@@ -117,6 +117,74 @@ PY
   return "$bad"
 }
 
+# 1b) 链接锚点：`file.md#section` 必须能在目标文件的标题里找到（check_links 只查文件存在）
+check_anchors() {
+  python3 - <<'PY'
+import pathlib
+import re
+import sys
+
+roots = [
+    'docs',
+    'README.md',
+    'CONTRIBUTING.md',
+    'AGENTS.md',
+    'packages/cli/README.md',
+    'scripts/README.md',
+]
+files = []
+for root in roots:
+    p = pathlib.Path(root)
+    if p.is_file():
+        files.append(p)
+    elif p.is_dir():
+        files.extend(p.rglob('*.md'))
+for pattern in ('packages/*/README.md', 'packages/*/AGENTS.md', 'packages/*/example/README.md'):
+    files.extend(pathlib.Path('.').glob(pattern))
+files = sorted(set(files))
+
+heading = re.compile(r'^(#{1,6})\s+(.*)$')
+link = re.compile(r'\]\(([^)\s]+)\)')
+
+
+def slug(text: str) -> str:
+    text = text.strip().lower()
+    text = re.sub(r'`([^`]*)`', r'\1', text)
+    text = re.sub(r'[^\w\u4e00-\u9fff \-]', '', text, flags=re.UNICODE)
+    return text.replace(' ', '-')
+
+
+anchors = {}
+for f in files:
+    anchors[f.resolve()] = {
+        slug(m.group(2)) for m in (heading.match(line) for line in f.read_text().splitlines()) if m
+    }
+
+bad = []
+for f in files:
+    for m in link.finditer(f.read_text()):
+        target = m.group(1).strip()
+        if target.startswith(('http://', 'https://', 'mailto:')) or '#' not in target:
+            continue
+        path, _, fragment = target.partition('#')
+        if not fragment:
+            continue
+        destination = (f.parent / path).resolve() if path else f.resolve()
+        if path and not destination.exists():
+            continue  # 坏文件由 check_links 报，这里不重复
+        if destination.suffix != '.md':
+            continue
+        if fragment not in anchors.get(destination, set()):
+            bad.append(f'{f} -> {target}')
+
+if bad:
+    print('失效锚点：', file=sys.stderr)
+    for item in bad:
+        print(f'  ✗ {item}', file=sys.stderr)
+    sys.exit(1)
+PY
+}
+
 # 2) 不允许旧命令（CLI 已拆到 w_tools_cli）
 check_old_commands() {
   local hits
@@ -149,6 +217,7 @@ check_no_version_table() {
 }
 
 step '相对链接' check_links
+step '链接锚点' check_anchors
 step '旧命令' check_old_commands
 step '模块索引包覆盖' check_package_index
 step '组件目录版本表' check_no_version_table

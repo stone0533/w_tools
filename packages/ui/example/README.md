@@ -48,7 +48,7 @@
 | `WBoxDecorationExtension` | extensions_page、components_page | with* / without* / shape |
 | `WWidgetExtension` | extensions_page | expanded / padding / intrinsic / decoration |
 | `WUiWidgetExtension` | extensions_page | toPressable |
-| `WHexColor` | extensions_page | fromHex / toHex |
+| `WColorExtension` | extensions_page | fromHex / toHex |
 
 ## 运行
 

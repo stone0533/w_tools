@@ -124,6 +124,8 @@ for sub in ('docs/agents', 'docs/recipes', 'docs/modules', 'docs/guides'):
 targets.extend(sorted((root / 'packages').glob('*/README.md')))
 # 包级 AGENTS 也是推荐阅读路径（ai-contract §5.7 明确声称会校验），同样扫代码块。
 targets.extend(sorted((root / 'packages').glob('*/AGENTS.md')))
+# example README 是「哪个页面演示了哪个组件」的索引，写错同样会误导用户。
+targets.extend(sorted((root / 'packages').glob('*/example/README.md')))
 # 根 README / AGENTS.md 是仓库的主入口，代码块同样要对着源码校验。
 targets += [root / 'README.md', root / 'AGENTS.md', root / 'docs' / 'naming.md']
 
@@ -219,6 +221,29 @@ if NAMING_DOC.exists():
                 bad.append(
                     f'docs/naming.md:{line}: 引用了未定义成员 {owner}.{member}'
                 )
+
+# 正文 / 行内代码里的类型名：只在代码块里校验会漏掉「代码块全对、正文还推荐已改名 API」
+# 的漂移（根 README 的 `WHexColor` 就是这样活过所有门禁的）。这里只校验类型是否存在，
+# 成员检查仍交给代码块；同一行明确写了「已删除 / 不要 / 没有 / 反例」等上下文时放行。
+INLINE_ALLOW_CONTEXT = re.compile(
+    r'删除|移除|不再提供|已弃用|弃用|改名|迁移|取代|替代|不导出|内部化|没有|不要|禁止'
+    r'|反例|历史|暂不|deprecated|removed',
+    re.IGNORECASE,
+)
+# 不是 w_tools 公共类型、但在正文里以 W 开头的词。
+INLINE_IGNORE = {'WSL'}
+
+for path in targets:
+    if path == NAMING_DOC or not path.is_file():
+        continue
+    for line_no, line in enumerate(path.read_text().splitlines(), start=1):
+        if '`' not in line or INLINE_ALLOW_CONTEXT.search(line):
+            continue
+        for span in inline_code_re.finditer(line):
+            for owner, _member in inline_symbol_re.findall(span.group(1)):
+                if owner in declared or owner in INLINE_IGNORE:
+                    continue
+                bad.append(f'{path.relative_to(root)}:{line_no}: 正文引用了未定义符号 {owner}')
 
 if bad:
     print('文档引用了不存在的符号/成员，或 import 的包未导出相关符号：', file=sys.stderr)

@@ -5,10 +5,11 @@ import 'package:w_tools_async/w_tools_async.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 import 'package:w_tools_toast/w_tools_toast.dart';
-import 'package:w_tools_form/src/components/fields/dropdown.dart';
-import 'package:w_tools_form/src/components/fields/multi_dropdown.dart';
 
 /// 批量测试所有 Config 类的 setter 链式调用
+///
+/// 隐藏的 `*Config`（如 `WFormDropdownConfig`）是包内实现，白盒测试放在
+/// `packages/form/test/internal/`；本文件只使用 barrel 导出的类型。
 
 void main() {
   // ========= core =========
@@ -103,29 +104,6 @@ void main() {
       // withBorderRadius 也是链式
       final rounded = original.withBorderRadius(BorderRadius.circular(12));
       expect(rounded, isA<WFormBorderDecoration>());
-    });
-  });
-
-  group('WFormDropdownConfig', () {
-    test('所有 setter 可调用', () {
-      final c = WFormDropdownConfig()
-        ..height = 48
-        ..hint = const Text('请选择')
-        ..icon = const Icon(Icons.arrow_downward)
-        ..dropdownColor = Colors.white
-        ..style = const TextStyle(fontSize: 16);
-      expect(c, isNotNull);
-    });
-  });
-
-  group('WFormMultiDropdownConfig', () {
-    test('所有 setter 可调用', () {
-      final c = WFormMultiDropdownConfig()
-        ..height = 48
-        ..enabled = true
-        ..icon = const Icon(Icons.arrow_drop_down)
-        ..itemPadding = const EdgeInsets.symmetric(vertical: 8);
-      expect(c, isNotNull);
     });
   });
 

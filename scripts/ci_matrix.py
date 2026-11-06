@@ -142,6 +142,17 @@ def check(rows: list[dict[str, str]]) -> list[str]:
             f'root pubspec.yaml 依赖 {name}，但 packages.manifest 没有标记 root 聚合',
         )
 
+    # 新增包还必须进根 pubspec 的 workspace，否则根目录 pub get / analyze 解析不到它。
+    workspace = {
+        str(entry).rstrip('/')
+        for entry in (root_pubspec.get('workspace') or [])
+    }
+    manifest_paths = {row['path'].rstrip('/') for row in rows}
+    for path in sorted(manifest_paths - workspace):
+        errors.append(f'packages.manifest: {path} 不在根 pubspec.yaml 的 workspace 里')
+    for path in sorted(workspace - manifest_paths):
+        errors.append(f'root pubspec.yaml workspace: {path} 不在 packages.manifest 里')
+
     for directory in sorted((root / 'packages').iterdir()):
         if directory.is_dir() and directory.name not in listed:
             errors.append(f'packages/{directory.name}: 目录存在但不在 packages.manifest 里')

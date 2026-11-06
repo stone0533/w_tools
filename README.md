@@ -245,7 +245,7 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 ### 📚 扩展功能
 
 #### 扩展方法
-- **颜色扩展** (`WHexColor`): 十六进制颜色解析 / 生成
+- **颜色扩展** (`WColorExtension`): 十六进制颜色解析 / 生成（`fromHex` / `toHex`）
 - **字符串扩展** (`WStringExtension`): 提供字符串格式化、验证、转换等功能
 - **数字扩展** (`WNumExtension`): 提供数字格式化、范围检查等功能
 - **容器扩展** (`WWidgetExtension`): 提供容器装饰、布局调整等功能

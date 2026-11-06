@@ -1,5 +1,10 @@
 # Issue tracker: GitHub
 
+> 适用范围：这份文档服务 issue / triage / wayfinder 技能。**代码贡献流程以
+> [CONTRIBUTING §6](../../CONTRIBUTING.md#6-git--pr-流程) 为准**；反馈类 issue 用
+> [`.github/ISSUE_TEMPLATE/feedback.md`](../../.github/ISSUE_TEMPLATE/feedback.md)，
+> 默认 `needs-triage`。
+
 Issues and specs for this repo live as GitHub issues in `stone0533/w_tools`. Use the `gh` CLI for all operations.
 
 ## Conventions

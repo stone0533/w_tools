@@ -18,9 +18,9 @@
 ## 改动前先分类
 
 1. **内部重构**：公开 API / 默认行为不变 → 只改代码 + 测试。
-2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界）；必要时 migration。
+2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界）；必要时 migration。行为变化没有公开 API diff，CI 的 `check_pr_scope.py` 只看 PR 模板勾选：勾了「公开变化」却没改任何 `packages/*/CHANGELOG.md` 会失败。
 3. **删除 / 废弃**：额外清理 aliases / related / migration，把删除的公开名补进 `scripts/check_removed_api.py` 的名单，并跑 removed API 检查。
-4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities / release。
+4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities（仅消费入口包） / release。
 
 ## 改代码后更新 AI 资产
 
@@ -64,6 +64,8 @@ docs/modules/components.md
 改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。发布后核对线上 / 快照：`python3 scripts/release_status.py --online`（每周一 CI 也会跑，`--check` 只把「落后 / 快照漂移」判失败；网络不可达返回 2，周检按跳过处理）。子包与聚合包版本独立，发布根包前 `release_check --strict` 要求根包的 `^x.y.z` 约束覆盖子包当前版本（`w_tools_cli` 是独立工具包，根包不依赖它，不在此列）。
 
 实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。正式发布时脚本自己会要求干净工作区、`main` 且 HEAD == `origin/main`、并跑 `release_check --strict`（脚本里的 `--force` 只用于明确的例外）。
+
+子包发布成功后脚本写入的 `scripts/api_snapshots/` 基线**走分支 + PR**：`pre-push` 禁止直接 push main，而发布脚本要求 `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 并 `git pull --ff-only`，再发根包（详见 `docs/releasing.md` 第 7 步）。
 
 ### 发布窗口判断
 

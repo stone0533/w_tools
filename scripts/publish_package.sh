@@ -206,7 +206,7 @@ if [ -z "$dry_run" ] && [ -z "$force" ]; then
     exit 1
   fi
   if [ "$(git -C "$repo_root" rev-parse HEAD)" != "$origin_main" ]; then
-    echo "✗ HEAD 与 origin/main 不一致：先 git pull --ff-only / git push" >&2
+    echo "✗ HEAD 与 origin/main 不一致：先 git pull --ff-only（本地提交要发布，请走分支 + PR）" >&2
     exit 1
   fi
   if [ "$src" = "$repo_root" ]; then
@@ -227,5 +227,8 @@ if [ -z "$dry_run" ] && [ "$src" != "$repo_root" ]; then
     echo "!! 发布成功，但 API 快照更新失败；请手动重跑 check_public_api_diff.py --snapshot-from" >&2
     exit 1
   fi
-  echo "!! 记得提交并推送快照：git add scripts/api_snapshots && git commit -m \"chore(release): ${pkg_name} ${version} API 基线\"" >&2
+  echo "!! 快照必须走分支 + PR（pre-push 禁止直接 push main，见 docs/releasing.md 第 7 步）：" >&2
+  echo "!!   git switch -c chore/release-snapshots && git add scripts/api_snapshots && git commit -m \"chore(release): ${pkg_name} ${version} API 基线\"" >&2
+  echo "!!   git push -u origin HEAD && gh pr create --fill" >&2
+  echo "!! 要发聚合包时，先合入快照 PR 并 git pull --ff-only，再跑 publish_package.sh ." >&2
 fi

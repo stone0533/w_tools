@@ -27,6 +27,8 @@ names = [
     r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'WAsyncBuilder', r'WAsyncConfig',
     r'WAsyncLoading', r'\bWConfig\b', r'\bWRoute\b', r'WRegExpPattern', r'WRegExpPreset',
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
+    # ui 7.0 的改名：旧名不保留，必须登记，否则 README / example 里的旧推荐拦不住。
+    r'WHexColor', r'WImageStyleX',
 ]
 # 以 `)` 结尾的条目不能补尾 `\b`：`)` 后面通常不是单词字符，补了就永远匹配不到。
 patterns = [

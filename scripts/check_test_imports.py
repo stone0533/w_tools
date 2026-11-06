@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """测试 import 边界：`package:w_tools_<pkg>/src/...` 只允许出现在 `test/internal/`。
 
-默认检查 `scripts/packages.manifest` 里的全部包（不再只查 ui）。
+默认检查 `scripts/packages.manifest` 里的全部包，**外加仓库根**的 `test/` /
+`example/test/` / `example/integration_test/`（CONTRIBUTING 承诺的是「全仓」）。
 存量违规登记在 `scripts/test_imports_baseline.yaml`：
 - 新增违规 → 失败（应把测试挪进 `test/internal/` 或改用 barrel）；
 - 基线里已经不再违规的文件 → 也失败（只减不增，修好了要删行）。
@@ -18,6 +19,13 @@ import yaml
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BASELINE = ROOT / 'scripts/test_imports_baseline.yaml'
 MANIFEST = ROOT / 'scripts/packages.manifest'
+# 根仓不是 manifest 里的包，用固定 key 参与同一套基线比对。
+ROOT_KEY = '__root__'
+ROOT_TEST_DIRS = [
+    ROOT / 'test',
+    ROOT / 'example' / 'test',
+    ROOT / 'example' / 'integration_test',
+]
 
 
 def manifest_packages() -> list[str]:
@@ -28,6 +36,27 @@ def manifest_packages() -> list[str]:
             continue
         packages.append(line.split('|')[0].removeprefix('w_tools_'))
     return packages
+
+
+def _lines_with_src_imports(text: str, pattern: re.Pattern[str]) -> list[int]:
+    return [text.count('\n', 0, match.start()) + 1 for match in pattern.finditer(text)]
+
+
+def root_violations() -> dict[str, list[int]]:
+    """根仓 test/ 等目录里的 src import（任意 w_tools_* 包）。"""
+    pattern = re.compile(r'package:w_tools_[a-z_]+/src/')
+    found: dict[str, list[int]] = {}
+    for test_dir in ROOT_TEST_DIRS:
+        if not test_dir.exists():
+            continue
+        for path in sorted(test_dir.rglob('*.dart')):
+            relative = path.relative_to(test_dir)
+            if relative.parts and relative.parts[0] == 'internal':
+                continue
+            lines = _lines_with_src_imports(path.read_text(), pattern)
+            if lines:
+                found[str(path.relative_to(ROOT))] = lines
+    return found
 
 
 def violations(package_dir: pathlib.Path, package: str) -> dict[str, list[int]]:
@@ -136,6 +165,8 @@ def main() -> int:
         package: violations(ROOT / 'packages' / package, package)
         for package in packages
     }
+    if not args.package:
+        found[ROOT_KEY] = root_violations()
 
     if args.write:
         data = {package: set(paths) for package, paths in found.items()}
@@ -147,15 +178,19 @@ def main() -> int:
         return 0
 
     baseline = load_baseline()
-    errors = evaluate(packages, found, baseline, known_packages=all_packages)
+    eval_packages = packages if args.package else [*packages, ROOT_KEY]
+    errors = evaluate(
+        eval_packages, found, baseline, known_packages=[*all_packages, ROOT_KEY],
+    )
     if errors:
         print('测试 import 边界检查失败：', file=sys.stderr)
         for error in errors:
             print(f'  ✗ {error}', file=sys.stderr)
         return 1
 
-    debt = sum(len(baseline.get(package, set())) for package in packages)
-    print(f'✓ 测试 import 边界通过（{len(packages)} 个包，{debt} 个存量文件）')
+    debt = sum(len(baseline.get(package, set())) for package in eval_packages)
+    scope = f'{len(packages)} 个包' if args.package else f'{len(packages)} 个包 + 仓库根'
+    print(f'✓ 测试 import 边界通过（{scope}，{debt} 个存量文件）')
     return 0
 
 
