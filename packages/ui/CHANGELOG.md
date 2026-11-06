@@ -14,6 +14,10 @@
 - 删除未使用的 `WImageSlots.isEmpty`。
 - 扩展改名：`WImageStyleX` → `WImageStyleExtension`、`WHexColor` → `WColorExtension`、
   `WTextStylesThemeData` → `WThemeDataExtension`；`WNotificationListenerBuilderExtension` 删除。
+- `WStepStyle.completedColor` / `currentColor` / `upcomingColor` 改为可空；未显式设置时
+  分别取 `ColorScheme.primary` / `primary` / `outline`（6.1.1 默认是 `Colors.blue` / `Colors.grey`）。
+- `WGradientCircularProgressIndicator.backgroundColor` 改为可空；未设置时取
+  `ColorScheme.surfaceContainerHighest`（6.1.1 固定为 `0xFFEEEEEE`）。
 
 ### Added
 - `WImageSource.resolve(...)`：生成与 WImage 一致尺寸规则的 provider，配合 `precacheImage`。

@@ -129,6 +129,12 @@ await precacheImage(provider, context);
 - `retryDelayMs` 现在是实际排队延迟（含抖动），不是基础间隔。
 - `onProgress` 对相同进度只回调一次；进度变化不再触发 WImage 整棵子树重建。
 - controller 状态通知在 build 期会延后到 post-frame，外部监听器可以安全 `setState`。
+- `WStepStyle.completedColor` / `currentColor` / `upcomingColor` 现在可空；未设置时取
+  `ColorScheme.primary` / `primary` / `outline`。6.1.1 的默认是 `Colors.blue` / `Colors.grey`，
+  需要固定颜色时显式传入。
+- `WGradientCircularProgressIndicator.backgroundColor` 现在可空；未设置时取
+  `ColorScheme.surfaceContainerHighest`。6.1.1 固定为 `0xFFEEEEEE`，需要固定颜色时显式传入。
+- `WTabBar` 未配置 `overlayColor` 时不再强制透明，交给 `TabBarTheme` / Material 默认。
 
 
 ## 7. 扩展改名
