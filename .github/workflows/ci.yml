@@ -13,6 +13,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 env:
   # 与本地 fvm 使用的版本保持一致（pubspec 要求 Flutter >= 3.38 / Dart ^3.10）。
@@ -38,6 +39,36 @@ jobs:
       - name: Emit matrix from packages.manifest
         id: emit
         run: python3 scripts/ci_matrix.py --github-output >> "$GITHUB_OUTPUT"
+
+  # 纯文档改动不必跑 16 个装 Flutter 的 job。
+  # 只把 umbrella（preflight + docs）设为必需检查；packages / min-sdk 被 skip 不阻塞合并。
+  changes:
+    name: Changed paths
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      # workflow_dispatch 不跑 paths-filter，按「可能有代码变化」处理。
+      code: ${{ steps.filter.outputs.code || 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Detect code changes
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            code:
+              - 'packages/**'
+              - '!packages/**/*.md'
+              - 'packages/cli/templates/**'
+              - 'example/**'
+              - '!example/**/*.md'
+              - 'test/**'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - '.github/workflows/ci.yml'
 
   # 聚合包契约：w_tools.dart 的重导出（只做 re-export，配置走子包）。
   # 子包的行为测试已移入各自的 packages/<pkg>/test/，由下面的矩阵负责。
@@ -85,6 +116,8 @@ jobs:
   # 就是「声明支持 3.38、却在 3.38 编译失败」漏出去的。
   min-sdk:
     name: Flutter ${{ env.MIN_FLUTTER_VERSION }} (declared minimum)
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -115,7 +148,8 @@ jobs:
   # runner 列区分 Flutter / 纯 Dart；加新包时只改 manifest，不用动这个文件。
   packages:
     name: Package / ${{ matrix.package }}
-    needs: matrix
+    needs: [matrix, changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:

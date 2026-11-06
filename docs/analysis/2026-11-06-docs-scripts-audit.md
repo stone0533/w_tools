@@ -37,7 +37,16 @@
 
 反向验证：临时把根 README 改回 `^7.0.0` 与 `WFormIcons.check`，两条新门禁分别报错后恢复。
 
-## 未闭环（需要单独决策）
+## 同日后续（2026-11-06）
+
+- 根包已备好 9.0.2：4 条 caret 下界抬到已发布的 patch；`release_check --strict` 开始把「下界落后」判成失败（日常 preflight 仍只提醒）。
+- `AGENTS.md` 的「先读」改为任务路由表；维护者提示词手册标注为「给人」。
+- `preflight.sh` 增加 `--package <pkg>`；CI 增加 `changes` job，纯文档改动不再跑 16 个装 Flutter 的 job。
+- 新增 `check_docs_duplicates.py`（modules 与包 README 的重复示例）并接入 `check_docs`；`check_agents_consistency.py` 增加「入口符号必须出现在 AGENTS.md」。
+- **未完成**：`w_tools_app_getx 1.0.1` 与根包 `9.0.2` 的正式发布。本机到 pub.dev 上传端点不可达（`Uploading...` 卡在 `SYN_SENT`），需在网络可达的环境执行
+  `bash scripts/publish_package.sh packages/app_getx` 和 `bash scripts/publish_package.sh .`。
+
+## 未闭环（审计当时，保留为历史）
 
 - 根包 4 条 caret 下界低于子包当前版本（`core` / `async` / `ui` / `form`）：要抬约束并配根包发版，不能混在文档修复里。
 - `docs/releasing.md` 把「下界取子包当前版本」写成硬要求，但 `release_check` 只给提醒：要么抬版本，要么把文档改成建议。

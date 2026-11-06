@@ -21,6 +21,12 @@
 bash scripts/preflight.sh --with-tests
 ```
 
+只跑一个包（静态门禁 + 该包测试 + example）：
+
+```bash
+bash scripts/preflight.sh --package ui
+```
+
 这一条覆盖：
 
 ```text
@@ -34,6 +40,7 @@ CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
 
 CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩阵由
 `scripts/ci_matrix.py` 从 `packages.manifest` 生成。两边不再各维护一份清单。
+重量级 job（packages / min-sdk）由 `changes` job 按路径门控：纯文档改动只跑 umbrella。
 
 ---
 
@@ -58,6 +65,7 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 |---|---|---|
 | `check_doc_symbols.py` | 文档 `W*` 符号是否存在（含 root `README.md` / `AGENTS.md`） | preflight |
 | `check_docs_snippets.py` | 已证伪 API / components 表格列数 | check_docs |
+| `check_docs_duplicates.py` | `docs/modules` 与包 README 不再复制同一段 dart 示例 | check_docs |
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
 | `check_package_docs.py` | 子包 + 根 README 安装约束（caret 语义）/ example 链接 | check_docs |

@@ -33,7 +33,8 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
   `## x.y.z` 段。
 - **聚合包**：`w_tools` 按聚合层独立发版。它对各子包的 caret 约束下界应取**子包当前版本**
   （例如 `^1.2.0`，而不是 `^1.0.0`）：`^1.0.0` 虽然能接受 1.2.0，但已有 lockfile 的用户
-  不会自动升级，新装用户也可能停在旧版。`release_check` 在「能接受但下界落后」时会给出提醒。
+  不会自动升级，新装用户也可能停在旧版。日常 `preflight` 只提醒；发布根包前的
+  `release_check --strict` 会把「能接受但下界落后」判成失败。
 - **版本语义**：`Fixed` → patch；`Added` / 兼容的 `Changed` → minor；
   `Removed` / 破坏性行为变更 → **major**。发布脚本会在「版本不是 X.0.0 但 CHANGELOG
   含 Removed/breaking」时给出警告。
@@ -81,10 +82,11 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    bash scripts/publish_package.sh packages/map
    # 其余需要发布的子包同理
    ```
-8. 需要聚合包跟上时，最后发聚合包：
+8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界），最后发聚合包：
    ```bash
-   bash scripts/publish_package.sh . --dry-run   # 预演
-   bash scripts/publish_package.sh .             # 正式发布
+   bash scripts/release_check.sh --strict          # 含根包 caret 下界检查
+   bash scripts/publish_package.sh . --dry-run     # 预演
+   bash scripts/publish_package.sh .               # 正式发布
    ```
 9. 发布后确认（这一步才会把「待发布」判成通过）：
    ```bash

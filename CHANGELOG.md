@@ -1,3 +1,8 @@
+## 9.0.2
+
+- 抬高聚合包对已发布 patch 的下界：`w_tools_core ^3.1.1` / `w_tools_async ^5.0.1` /
+  `w_tools_ui ^6.1.1` / `w_tools_form ^5.1.1`。已有 lockfile 的聚合包用户才能拿到这些修复。
+
 ## 9.0.1
 
 - README：文档索引补齐 ai-contract / ai-maintainer-prompts / scripts / documentation-map；

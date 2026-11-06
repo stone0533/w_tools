@@ -1,6 +1,6 @@
 name: w_tools
 description: "聚合 6 个基础子包的 Flutter 工具库：涵盖 UI 组件、表单、网络、Toast、应用启动与核心工具，帮助开发者快速构建高质量的 Flutter 应用。"
-version: 9.0.1
+version: 9.0.2
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools
 issue_tracker: https://github.com/stone0533/w_tools/issues
@@ -36,12 +36,12 @@ dependencies:
   flutter:
     sdk: flutter
 
-  w_tools_core: ^3.1.0
-  w_tools_form: ^5.0.0
-  w_tools_ui: ^6.0.0
+  w_tools_core: ^3.1.1
+  w_tools_form: ^5.1.1
+  w_tools_ui: ^6.1.1
   w_tools_api: ^5.0.0
   w_tools_toast: ^2.0.0
-  w_tools_async: ^5.0.0
+  w_tools_async: ^5.0.1
 
 dev_dependencies:
   flutter_test:

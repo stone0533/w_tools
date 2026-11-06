@@ -168,7 +168,11 @@ for pkg in $PACKAGES; do
         ok "$name ${version}（根约束 ${constraint}）"
         lower="${constraint#^}"
         if ver_gt "$version" "$lower"; then
-          warn "根包约束 ${constraint} 的下界低于本地版本 ${version} —— 已有 lockfile 的聚合包用户不会自动拿到它"
+          if [ "$STRICT" = 1 ]; then
+            fail "根包约束 ${constraint} 的下界低于本地版本 ${version} —— 发布根包前必须抬高（非 --strict 只提醒）"
+          else
+            warn "根包约束 ${constraint} 的下界低于本地版本 ${version} —— 已有 lockfile 的聚合包用户不会自动拿到它"
+          fi
         fi
       elif [ "$rc" = 2 ]; then
         fail "根包对 w_tools_$pkg 的约束 '$constraint' 不是 ^ 形式，脚本无法校验"

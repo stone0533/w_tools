@@ -1558,26 +1558,8 @@ _controller.currentIndex; // 当前选中索引
 
 `WTabBarConfig` 是不可变配置，用构造 / `copyWith` 派生；`overlayColor` 控制点击 / hover overlay，默认透明。
 
-`WTabBar` 不自带 controller，必须由 `DefaultTabController` 提供，或显式传入 `TabController`：
-
-```dart
-DefaultTabController(
-  length: 2,
-  child: Column(
-    children: [
-      WTabBar(
-        config: WTabBarConfig(),
-        tabs: const [Text('全部'), Text('已完成')],
-      ),
-      const Expanded(
-        child: TabBarView(
-          children: [Text('全部内容'), Text('已完成内容')],
-        ),
-      ),
-    ],
-  ),
-)
-```
+`WTabBar` 不自带 controller，必须由 `DefaultTabController` 提供，或显式传入 `TabController`。
+完整示例见 [`packages/ui/README.md`](../../packages/ui/README.md) 的「顶部 tab」一节（本文不重复维护同一段代码）。
 
 ---
 

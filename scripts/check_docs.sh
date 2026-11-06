@@ -126,6 +126,7 @@ step '旧命令' check_old_commands
 step '模块索引包覆盖' check_package_index
 step '组件目录版本表' check_no_version_table
 step '文档片段与表格列数' python3 scripts/check_docs_snippets.py
+step 'modules/README 重复示例' python3 scripts/check_docs_duplicates.py --fail
 step '版本声明' python3 scripts/check_docs_versions.py
 step_optional '反馈台账' bash scripts/check_feedback.sh
 step 'async 旧 API' python3 scripts/check_async_docs.py

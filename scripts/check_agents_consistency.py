@@ -5,7 +5,8 @@
 
 1. `docs/agents/README.md` 必须索引该目录下的每个文档（README 自己除外）；
 2. 「各包首选入口」表里写出的入口类型，必须能在该包规则页（或被它直接链接的
-   docs/agents 子页，例如 ui → button）里找到。
+   docs/agents 子页，例如 ui → button）里找到；
+3. 同一张表的主入口符号，至少要有一个出现在根 `AGENTS.md`——防止某个包整节被删掉。
 
 第 2 条治的是“索引表写了一个组件，规则页却从没提过”的漂移：
 两张表各自维护时，AI 读到哪份就按哪份写。
@@ -50,6 +51,7 @@ for path in sorted(agents.glob('*.md')):
         errors.append(f'docs/agents/README.md: 没有索引 {path.name}')
 
 # 2) 首选入口必须在该包规则页（或它直接链接的子页）里出现。
+agents_md = (root / 'AGENTS.md').read_text()
 table = re.search(r'## 各包首选入口.*?(?=\n## )', readme.read_text(), re.S)
 if table is None:
     errors.append('docs/agents/README.md: 缺少「各包首选入口」一节')
@@ -66,16 +68,22 @@ else:
         text = page.read_text()
         for linked in linked_pages(page):
             text += linked.read_text()
-        for token in re.findall(r'`([^`]+)`', entry):
-            match = re.match(r'(W[A-Za-z0-9_]+)', token)
-            if not match:
-                continue
-            name = match.group(1)
+        entry_names = [
+            match.group(1)
+            for token in re.findall(r'`([^`]+)`', entry)
+            if (match := re.match(r'(W[A-Za-z0-9_]+)', token))
+        ]
+        for name in entry_names:
             if name not in text:
                 errors.append(
                     f'docs/agents/README.md: 「{package}」首选入口写了 {name}，'
                     f'但 {page.name} 从未提到它（索引与规则页不一致）',
                 )
+        if entry_names and not any(name in agents_md for name in entry_names):
+            errors.append(
+                f'AGENTS.md: 「{package}」的首选入口（{entry_names[0]} 等）一个都没提到，'
+                f'该包的硬规则可能整节被删了',
+            )
 
 if errors:
     for error in errors:

@@ -2,10 +2,16 @@
 
 ## 先读
 
-- 文档定位：[`docs/documentation-map.md`](docs/documentation-map.md)
-- AI 契约：[`docs/ai-contract.md`](docs/ai-contract.md)
-- 维护者提示词：[`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md)
-- 脚本手册：[`scripts/README.md`](scripts/README.md)
+所有任务先看本文件的「改动前先分类」「测试」「文档」「发布」四节；其余按任务查：
+
+| 任务 | 读 |
+|---|---|
+| 改公开 API / 组件 | [`packages/cli/catalog/components.yaml`](packages/cli/catalog/components.yaml) + [`docs/modules/components.md`](docs/modules/components.md) |
+| 改 AI 资产 / catalog / 模板 | [`docs/ai-contract.md`](docs/ai-contract.md) |
+| 改脚本 / 门禁 | [`scripts/README.md`](scripts/README.md) |
+| 判断文档该放哪 | [`docs/documentation-map.md`](docs/documentation-map.md) |
+
+> [`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md) 是**给人**复制场景提示词的手册（A~M），agent 不需要预读。
 
 ## 改动前先分类
 
@@ -53,7 +59,7 @@ docs/modules/components.md
 
 ## 发布
 
-改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。子包与聚合包版本独立，根包的 `^x.y.z` 约束必须覆盖子包当前版本（`w_tools_cli` 是独立工具包，根包不依赖它，不在此列）。
+改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。子包与聚合包版本独立，发布根包前 `release_check --strict` 要求根包的 `^x.y.z` 约束覆盖子包当前版本（`w_tools_cli` 是独立工具包，根包不依赖它，不在此列）。
 
 实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。
 
@@ -174,19 +180,17 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ## 文字（w_tools_ui）
 
-- 新代码用 `WText(variant:)` + `WTextStyles`；`WTextConfig` 已移除。
-- 局部用 `style` / `maxLines` / `overflow` / `textScaler` 覆盖；字体统一放 `WTextStyles`。
+- 新代码用 `WText(variant:)` + `WTextStyles`（`WTextConfig` 已移除）；字体统一放 `WTextStyles`，局部用 `style` / `maxLines` / `overflow` / `textScaler` 覆盖。
 - 先复用已有 variant；新增 variant 按 breaking change 评估。
 
 详见 [`docs/agents/ui.md`](docs/agents/ui.md)。
 
 ## 异步区块（w_tools_async）
 
-- 页面用 `WAsyncController` + `WAsyncView`；每个区块一个 Controller，不要手写 `ValueNotifier`。
+- 页面用 `WAsyncController` + `WAsyncView`；每个区块一个 Controller，不要手写 `ValueNotifier`，不要传 `options.activity`。
 - `WAsyncTheme` 放 App 根节点；滚动壳用 `WAsyncStateBuilder`，Sliver 用 `WAsyncStateSliver`。
 - 分页用 `WAsyncPagedController`；`loadMore` 失败写 `loadMoreError`，不要替换列表。
 - 纯执行用 `WAsync.tryRun`（`WAsyncResult`）或 `WAsync.run`（失败抛异常）；取消用 `WCancelToken`。
-- Controller 自己维护四态，不要传 `options.activity`。
 
 详见 [`docs/agents/async.md`](docs/agents/async.md)。
 
@@ -197,10 +201,16 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 详见 [`docs/agents/api.md`](docs/agents/api.md)。
 
+## 轻提示（w_tools_toast）
+
+- 用 `WToast.showSuccess/showError/...` + `WToastStyle` / `WToastTheme`（`WToastConfig` 已在 2.0 删除）；`WToastTheme` 放在 `MaterialApp` 外层，`showXxx(context:)` 才会读到。
+- App 根节点只需一次 `BotToastInit` + `BotToastNavigatorObserver`。
+
+详见 [`docs/agents/toast.md`](docs/agents/toast.md)。
+
 ## 启动（w_tools_app_getx）
 
-- 入口用 `WApp.options(WAppOptions(...)).start()`；不要手写 `runApp` 初始化顺序。
-- 插件用 `WAppPlugin`；有顺序要求用 `dependsOn`。`WRouteObserver` 由 `WApp` 自动追加。
+- 入口用 `WApp.options(WAppOptions(...)).start()`；插件用 `WAppPlugin`，有顺序要求用 `dependsOn`；`WRouteObserver` 由 `WApp` 自动追加。不要手写 `runApp` 初始化顺序。
 - 多语言用 `WLanguage().changeLanguage(...)`。
 
 详见 [`docs/agents/app.md`](docs/agents/app.md)。
@@ -208,24 +218,21 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 ## 基础工具（w_tools_core）
 
 - `WStorage` 读之前必须 `await WStorage.init()`；`WStorage` / `WToken` 是明文存储，不是安全存储。
-- 校验用 `WValidator`，正则用 `WRegExp`，日志用 `WLogger`，不要 `print`。
-- `WEncrypt` 的 AES-CBC 不提供完整性；需要防篡改用 AES-GCM。
+- 校验用 `WValidator`，正则用 `WRegExp`，日志用 `WLogger`，不要 `print`；`WEncrypt` 的 AES-CBC 不提供完整性，防篡改用 AES-GCM。
 
 详见 [`docs/agents/core.md`](docs/agents/core.md)。
 
 ## 扫码（w_tools_qr）
 
 - 用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce = true`，连续扫描显式 `false`。
-- 重扫用 `GlobalKey<WQrViewState>.restartScan()`；配置相机权限。
-- `onScanned` 只在 `Barcode.code` 非空时触发。
+- 重扫用 `GlobalKey<WQrViewState>.restartScan()`；配置相机权限；`onScanned` 只在 `Barcode.code` 非空时触发。
 
 详见 [`docs/agents/qr.md`](docs/agents/qr.md)。
 
 ## 地图（w_tools_map + w_tools_map_google）
 
 - `WMap` / `WMapZone` 来自 `w_tools_map_google`，模型 / mapper 来自 `w_tools_map`；不要直接用 `GoogleMap`。
-- Google Maps 需要 API Key；地图默认关闭，用 `init --map`。
-- `markerId` 必须稳定；生成模型用 `WMapItemMapper`；选中/关闭用 `WMapController`。
+- `markerId` 必须稳定；生成模型用 `WMapItemMapper`；选中/关闭用 `WMapController`；Google Maps 需要 API Key（地图默认关闭，用 `init --map`）。
 
 详见 [`docs/agents/map.md`](docs/agents/map.md)。
 

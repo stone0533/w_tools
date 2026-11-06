@@ -5,6 +5,7 @@
 # 用法：
 #   bash scripts/preflight.sh                 # format / analyze / docs（含 feedback）/ 弃用 / catalog（含生成物新鲜度）/ release
 #   bash scripts/preflight.sh --with-tests    # 再加所有包 + example + 根包测试 + 模板编译
+#   bash scripts/preflight.sh --package ui    # 静态门禁 + 只跑 ui 包（含 example）的测试
 #   bash scripts/preflight.sh --with-dry-run  # 再加全部子包 + 根包 publish dry-run
 #   bash scripts/preflight.sh --all           # 全部
 #
@@ -17,21 +18,41 @@ cd "$root"
 
 with_tests=""
 with_dry_run=""
-for arg in "$@"; do
-  case "$arg" in
+only_pkg=""
+while [ $# -gt 0 ]; do
+  case "$1" in
     --with-tests) with_tests=1 ;;
     --with-dry-run) with_dry_run=1 ;;
+    --package)
+      if [ $# -lt 2 ]; then
+        echo "--package 需要包目录名（如 ui）" >&2
+        exit 2
+      fi
+      only_pkg="$2"
+      shift
+      ;;
+    --package=*) only_pkg="${1#*=}" ;;
     --all) with_tests=1; with_dry_run=1 ;;
     -h | --help)
-      sed -n '2,15p' "$0" | sed -n 's/^# \{0,1\}//p'
+      sed -n '2,16p' "$0" | sed -n 's/^# \{0,1\}//p'
       exit 0
       ;;
     *)
-      echo "未知参数: $arg" >&2
+      echo "未知参数: $1" >&2
       exit 2
       ;;
   esac
+  shift
 done
+
+if [ -n "$only_pkg" ]; then
+  with_tests=1
+  if ! awk -F'|' -v p="packages/$only_pkg" '$1 !~ /^#/ && $2 == p { found = 1 } END { exit found ? 0 : 1 }' \
+    "$root/scripts/packages.manifest"; then
+    echo "--package 未在 packages.manifest 找到: $only_pkg" >&2
+    exit 2
+  fi
+fi
 
 failed=0
 run() {
@@ -64,33 +85,42 @@ run "ci parity" python3 scripts/ci_matrix.py --check
 if [ -n "$with_tests" ]; then
   while IFS='|' read -r name path runner aggregate example; do
     case "$name" in ''|'#'*) continue ;; esac
+    if [ -n "$only_pkg" ] && [ "$path" != "packages/$only_pkg" ]; then continue; fi
     case "$runner" in
       flutter) run "test $name" bash -c "cd $path && flutter test --reporter=compact" ;;
       dart) run "test $name" bash -c "cd $path && dart test --reporter=compact" ;;
       *) echo "未知 runner: $name=$runner" >&2; failed=1 ;;
     esac
   done < "$root/scripts/packages.manifest"
-  run "test root" flutter test
-  run "test example" bash -c "cd example && flutter test --reporter=compact"
+  if [ -z "$only_pkg" ]; then
+    run "test root" flutter test
+    run "test example" bash -c "cd example && flutter test --reporter=compact"
+  fi
   while IFS='|' read -r name path runner aggregate example; do
     case "$name" in ''|'#'*) continue ;; esac
+    if [ -n "$only_pkg" ] && [ "$path" != "packages/$only_pkg" ]; then continue; fi
     if [ "$example" = "example" ]; then
       run "test $name/example" bash -c "cd $path/example && flutter test --reporter=compact"
     fi
   done < "$root/scripts/packages.manifest"
-  run "template compile" bash -c "cd packages/cli && dart run tool/check_templates_compile.dart"
+  if [ -z "$only_pkg" ] || [ "$only_pkg" = "cli" ]; then
+    run "template compile" bash -c "cd packages/cli && dart run tool/check_templates_compile.dart"
+  fi
 fi
 
 if [ -n "$with_dry_run" ]; then
   while IFS='|' read -r name path runner aggregate example; do
     case "$name" in ''|'#'*) continue ;; esac
+    if [ -n "$only_pkg" ] && [ "$path" != "packages/$only_pkg" ]; then continue; fi
     run "publish dry-run $name" bash scripts/publish_package.sh "$path" --dry-run
   done < "$root/scripts/packages.manifest"
-  echo "==> publish dry-run 根包（子包未发布时失败是预期）"
-  if bash scripts/publish_package.sh . --dry-run; then
-    echo "    ✓ 根包 dry-run"
-  else
-    echo "    ! 根包 dry-run 失败：仅在全部子包已上线后才应通过"
+  if [ -z "$only_pkg" ]; then
+    echo "==> publish dry-run 根包（子包未发布时失败是预期）"
+    if bash scripts/publish_package.sh . --dry-run; then
+      echo "    ✓ 根包 dry-run"
+    else
+      echo "    ! 根包 dry-run 失败：仅在全部子包已上线后才应通过"
+    fi
   fi
 fi
 

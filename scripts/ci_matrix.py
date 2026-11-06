@@ -83,8 +83,11 @@ def check(rows: list[dict[str, str]]) -> list[str]:
         errors.append('ci.yml: matrix job 必须输出 include（由 scripts/ci_matrix.py 生成）')
 
     packages_job = jobs.get('packages') or {}
-    if packages_job.get('needs') != 'matrix':
-        errors.append('ci.yml: packages job 必须 needs: matrix（矩阵从 manifest 生成）')
+    needs = packages_job.get('needs')
+    if not (needs == 'matrix' or (isinstance(needs, list) and 'matrix' in needs)):
+        errors.append('ci.yml: packages job 必须 needs matrix（矩阵从 manifest 生成）')
+    if 'changes' not in jobs:
+        errors.append('ci.yml: 缺少 changes job（纯文档改动不应跑重量级包矩阵）')
     strategy = (packages_job.get('strategy') or {}).get('matrix') or {}
     if strategy.get('include') != EXPECTED_MATRIX_INCLUDE:
         errors.append(
