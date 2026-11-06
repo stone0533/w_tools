@@ -18,6 +18,10 @@
   分别取 `ColorScheme.primary` / `primary` / `outline`（6.1.1 默认是 `Colors.blue` / `Colors.grey`）。
 - `WGradientCircularProgressIndicator.backgroundColor` 改为可空；未设置时取
   `ColorScheme.surfaceContainerHighest`（6.1.1 固定为 `0xFFEEEEEE`）。
+- `WNavBar.config` 改为可空（默认不再注入 `const WNavBarConfig()`）；读取 `.config` 的代码
+  需要处理 null，或改用 `style:`。
+- `WScaffold.appBar` 类型从 `WAppBar?` 放宽为 `PreferredSizeWidget?`；读取 `.appBar` 并依赖
+  `WAppBar` 类型的代码需要显式收窄。
 
 ### Added
 - `WImageSource.resolve(...)`：生成与 WImage 一致尺寸规则的 provider，配合 `precacheImage`。

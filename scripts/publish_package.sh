@@ -175,3 +175,13 @@ fi
 
 cd "$staging"
 PUB_HOSTED_URL="$publish_host" "$publish_runner" pub publish $dry_run
+
+# 发布成功后把当前版本写成新的公开 API 基线；失败只提示，不让已完成的发布看起来失败。
+if [ -z "$dry_run" ] && [ "$src" != "$repo_root" ]; then
+  pkg_name="$(sed -n 's/^name:[[:space:]]*//p' "$staging/pubspec.yaml" | head -n1)"
+  pkg_short="${pkg_name#w_tools_}"
+  if ! python3 "$repo_root/scripts/check_public_api_diff.py" \
+    --snapshot-from "$staging" --package "$pkg_short" --version "$version"; then
+    echo "!! 发布成功，但 API 快照更新失败；请手动重跑 check_public_api_diff.py --snapshot-from" >&2
+  fi
+fi

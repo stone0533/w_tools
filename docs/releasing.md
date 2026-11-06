@@ -31,6 +31,23 @@ pub.dev 1.0.0，聚合包用户拿不到 1.1.0 的地图改进。
 - **子包**：各自独立发版，版本号写在 `packages/<pkg>/pubspec.yaml`。破坏性改动 → major；
   新能力 → minor；修 bug / 文档 → patch。`CHANGELOG.md` 必须有与 pubspec 版本**完全一致**的
   `## x.y.z` 段。
+
+### 发布窗口判断（先看 pub.dev）
+
+决定 `remove-in` 或 breaking 版本前，先查 pub.dev 最新版本：
+
+```bash
+curl -s https://pub.dev/api/packages/w_tools_ui | jq -r .latest.version
+# 或
+PUB_HOSTED_URL=https://pub.dev bash scripts/release_check.sh --package ui --online
+```
+
+- 本地版本 **高于** pub.dev 且该本地版本尚未发布时，这个本地 major 就是 breaking 窗口；
+  `remove-in` 写这个 major，不写下一个 major。
+- 例：本地 `ui 7.0.0`、pub.dev `ui 6.1.1`，7.0 就是 breaking 窗口；
+  7.0 的删除/改名不应写成 `remove-in: 8.0.0`。
+- `--online` 在目标版本尚未发布时会显示「仓库 X > pub.dev Y —— 待发布」并以非 0 退出；
+  这是预期的「待发布」状态，不是内容已验证。
 - **聚合包**：`w_tools` 按聚合层独立发版。它对各子包的 caret 约束下界应取**子包当前版本**
   （例如 `^1.2.0`，而不是 `^1.0.0`）：`^1.0.0` 虽然能接受 1.2.0，但已有 lockfile 的用户
   不会自动升级，新装用户也可能停在旧版。日常 `preflight` 只提醒；发布根包前的

@@ -65,6 +65,18 @@ docs/modules/components.md
 
 实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。
 
+### 发布窗口判断
+
+先查 pub.dev 最新版本，再决定 `remove-in` / breaking 写给哪个版本：
+
+- 本地版本 **高于** pub.dev 且尚未发布时，这个本地 major 就是 breaking 窗口；
+  `remove-in` 写这个 major，不写下一个 major。
+- 例：本地 ui `7.0.0`、pub.dev ui `6.1.1`，7.0 就是 breaking 窗口；
+  不要把 7.0 的删除/改名标成 `remove-in: 8.0.0`。
+- 判断命令：`curl -s https://pub.dev/api/packages/<pkg> | jq -r .latest.version`，
+  或 `bash scripts/release_check.sh --package <pkg> --online`（注意 `--online` 用
+  `PUB_HOSTED_URL=https://pub.dev`，镜像可能滞后）。
+
 ## 改代码时的组件硬规则
 
 - 新页面表单用 `WForm` + 直接字段（`WFormTextField` 等）；不要从 `Config.build` 开始，直接字段不要传 `config`。

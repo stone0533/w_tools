@@ -76,6 +76,9 @@ check 名字随包矩阵变化。
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名 + 高频规则短语一致 | check_docs |
 | `check_prompt_docs.py` | 维护者提示词的命令可执行（脚本 / flag / cwd / 占位符 / 场景编号） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查（双向：新类型要登记，基线里的旧名字也要删） | preflight |
+| `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到；提前到静态 preflight | preflight |
+| `check_public_api_diff.py` | 公开 API 快照 diff：删除 / 类型变化 / 可空性变化必须出现在当前版本 CHANGELOG 的 Breaking/Removed 或 migration | preflight |
+| `check_test_imports.py` | `package:w_tools_<pkg>/src/...` 只允许出现在 `test/internal/`；当前先覆盖 ui | preflight |
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档 / catalog（含 root + `packages/*/AGENTS.md` + `catalog/components.yaml`） | check_docs / preflight |
 | `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |
 
@@ -212,3 +215,17 @@ bash scripts/publish_package.sh .
 - [组件目录源](../packages/cli/catalog/components.yaml)
 - [模板生成器](../packages/cli/tool/gen_templates.dart)
 - [目录生成器](../packages/cli/tool/gen_catalog.dart)
+
+
+### 公开 API 快照
+
+`scripts/api_snapshots/w_tools_<pkg>-<version>.txt` 是上一次发布版本的公开 API 基线，
+由脚本生成，不要手改：
+
+```bash
+python3 scripts/check_public_api_diff.py \
+  --snapshot-from /tmp/<pkg>-<version> \
+  --package <pkg> --version <version>
+```
+
+发布新版本后更新对应快照；否则 `preflight` 的 `public api diff` 会一直对比旧版本。

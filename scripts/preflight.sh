@@ -72,11 +72,15 @@ run "analyze" flutter analyze
 run "docs" bash scripts/check_docs.sh
 run "naming" python3 scripts/check_naming.py
 run "public catalog" python3 scripts/check_public_catalog.py
+run "catalog anchors" python3 scripts/check_catalog_anchors.py
+run "public api diff" bash -c 'set -e; for f in scripts/api_snapshots/w_tools_*.txt; do [ -e "$f" ] || continue; pkg=$(basename "$f" | sed -E "s/^w_tools_(.+)-[0-9].*/\1/"); python3 scripts/check_public_api_diff.py --package "$pkg"; done'
+run "test imports" python3 scripts/check_test_imports.py --package ui
 # 生成物新鲜度：只改源文件却忘了跑生成器时，这里直接失败（不用等 --with-tests 的 cli 测试）。
 run "catalog fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_catalog.dart --check"
 run "templates fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_templates.dart --check"
 run "style literals" python3 scripts/check_style_literals.py
 run "deprecations" python3 scripts/check_deprecations.py
+run "script unit tests" bash -c "cd scripts/tests && python3 -m unittest discover -p 'test_*.py'"
 run "release check" bash scripts/release_check.sh
 # CI 的包矩阵与静态门禁必须从 manifest / preflight 派生，不能手抄一份。
 run "ci parity" python3 scripts/ci_matrix.py --check

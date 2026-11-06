@@ -238,6 +238,20 @@ if [ "$STRICT" = 1 ]; then
   else
     fail "存在未跟踪文件：$(echo "$untracked" | head -n3 | tr '\n' ' ')"
   fi
+  if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+    ahead="$(git rev-list --count '@{u}..HEAD' 2>/dev/null || echo 0)"
+    behind="$(git rev-list --count 'HEAD..@{u}' 2>/dev/null || echo 0)"
+    if [ "$ahead" -eq 0 ]; then
+      ok "已 push（没有领先 upstream 的提交）"
+    else
+      fail "有 $ahead 个提交未 push；发布前先 git push"
+    fi
+    if [ "$behind" -gt 0 ]; then
+      fail "落后 upstream $behind 个提交；先同步再发布"
+    fi
+  else
+    fail "当前分支没有 upstream；发布前先 git push -u"
+  fi
 fi
 
 if [ "$ONLINE" = 1 ]; then

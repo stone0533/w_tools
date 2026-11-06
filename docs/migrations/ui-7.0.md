@@ -135,6 +135,10 @@ await precacheImage(provider, context);
 - `WGradientCircularProgressIndicator.backgroundColor` 现在可空；未设置时取
   `ColorScheme.surfaceContainerHighest`。6.1.1 固定为 `0xFFEEEEEE`，需要固定颜色时显式传入。
 - `WTabBar` 未配置 `overlayColor` 时不再强制透明，交给 `TabBarTheme` / Material 默认。
+- `WNavBar.config` 现在可空（默认不再注入 `const WNavBarConfig()`）；读取 `.config` 时处理
+  null，或直接用 `style:`。
+- `WScaffold.appBar` 类型放宽为 `PreferredSizeWidget?`；如果读取 `.appBar` 并依赖 `WAppBar`
+  类型，需要显式收窄。
 
 
 ## 7. 扩展改名

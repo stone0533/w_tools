@@ -49,6 +49,8 @@
   ```
 - 根 `test/` 只放聚合契约（`w_tools.dart` 重导出）与跨包回归，单包行为测试放回 `packages/<pkg>/test/`
 - `packages/cli` 是纯 Dart 包：用 `dart test`，不要引入 `flutter_test`
+- 测试直接 import `package:w_tools_<pkg>/src/...` 时，测试文件必须放在 `test/internal/`；
+  `check_test_imports.py` 会挡住 public 测试目录里的 `src` import。
 
 ## 5. 发布
 
@@ -56,6 +58,10 @@
   **不要**在包目录直接 `flutter pub publish` —— `workspace:` 字段会被原样发布，
   消费方 `dart pub deps` 会失败
 - 版本策略与流程见 [`docs/releasing.md`](docs/releasing.md)
+- 公开 API 变化（删除 / 类型变化 / 可空性变化）先跑
+  `python3 scripts/check_public_api_diff.py --package <pkg>`；它要求变化写进
+  当前版本 CHANGELOG 的 `### Breaking` / `### Removed`，或 migration。
+  基线在 `scripts/api_snapshots/`，发布新版本后更新。
 
 ## 6. grep / 检查脚本经验
 
