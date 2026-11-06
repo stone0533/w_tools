@@ -8,7 +8,7 @@
   Pagination: use `WAsyncPagedController`; on `loadMore` failure write `loadMoreError` / footer,
   never replace the list with `WAsyncController.failed`.
   For pure execution without UI use `WAsync.tryRun` + `WAsyncResult`, or `WAsync.run` (throws on failure);
-  do not use old `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading`.
+  do not use the removed `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading`.
 
   Minimal page:
 

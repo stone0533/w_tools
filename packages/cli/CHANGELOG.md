@@ -11,6 +11,10 @@
 - `explain` 读取 `pubspec.lock`，输出 `包版本` 与对应版本的 pub.dev `API 文档`；
   仓库文档链接仍指向 `main`，但会与包版本并列展示。
 - catalog 的 `WButton` 示例不再默认推荐 `WButtonStyles`，并补「项目页面优先 AppButtons」pitfall。
+- `init` 的 zh / en async 模板统一分页规则为 `WAsyncPagedController`（中文版此前仍写
+  「loadMore 自己维护」），与仓库 `docs/agents/async.md` 对齐。
+- `context` 在仓库检出、没有可匹配的已安装包时输出「已安装：（无）」，不再打印空值。
+- catalog 的 `WText` 说明把 `WTextConfig` 标成「已移除」，让文档门禁能识别这是删除说明而不是推荐。
 
 ## 1.12.0
 

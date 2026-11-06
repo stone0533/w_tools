@@ -253,6 +253,8 @@ class ProjectSnapshot {
             .where((e) => e.key.startsWith('w_tools_') || direct.contains(e.key))
             .toList()
           ..sort((a, b) => a.key.compareTo(b.key));
+    // 仓库检出时根依赖都解析到 path 包，可能一条都匹配不到；不要输出空的「已安装：」。
+    if (entries.isEmpty) return '（无）';
     return entries.map((e) => '`${e.key} ${e.value}`').join('、');
   }
 }
