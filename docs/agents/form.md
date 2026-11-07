@@ -45,7 +45,7 @@ WForm(
    - 文本：`label` / `message` / `validator` / `obscureText` / `actions`
    - 下拉：`items` / `initialValue` / `icon` / `contentPadding`
    - 多选：`disabledKeys` / `itemStyle` / `itemCheckedStyle`
-   - 复选 / 单选：`message`（仅 `bordered: true` 时渲染）/ `title` / `items`
+   - 复选 / 单选：`message`（有边框时交给 hint / error builder；无边框时渲染在字段下方）/ `title` / `items`
    - 日期：`firstDate` / `lastDate` / `displayFormat`
    - 按钮：`label` / `message` / `hintWidget` / `selectedWidgetBuilder`（`WFormButton` 行为等价
      `WFormFieldButton<String>`，两者类型独立；enum / int 用 `WFormFieldButton<T>`）

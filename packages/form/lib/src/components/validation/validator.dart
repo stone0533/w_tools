@@ -15,14 +15,14 @@ import '../form_controller.dart';
 /// 直接调用 `formKey.currentState.validate()` 时仍走原生字段错误展示，
 /// 仅 text / dropdown 会渲染文案，自定义构建的字段不渲染。
 class WFormValidator {
-  /// 表单数据对象
-  WFormController formData;
+  /// 表单数据对象（构造后不可换绑）
+  final WFormController formData;
 
-  /// 验证项列表
-  List<WFormValidatorItem> validationItems;
+  /// 验证项列表（列表本身可继续 [add]，但不建议整体替换）
+  final List<WFormValidatorItem> validationItems;
 
-  /// 验证器配置
-  WFormValidatorSettings? settings;
+  /// 验证器配置（构造时确定；要改请在创建时传，同上与设置类保持不可变）
+  final WFormValidatorSettings? settings;
 
   /// 最近一次校验的失败项集合（字段名 -> 错误文本），只读快照
   ///
@@ -105,7 +105,7 @@ class WFormValidator {
         }
       }
 
-      if (resolvedConfig.showBorderError == true && formData.hasBorder(item.fieldName)) {
+      if (resolvedConfig.showBorderError == true && formData.borders.has(item.fieldName)) {
         formData.setError(item.fieldName, errorTextList: [errorText]);
       }
 

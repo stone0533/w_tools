@@ -210,6 +210,7 @@ class WFormDropdown<T> extends StatelessWidget {
         focusNode: focusNode,
         dropdownColor: dropdownColor,
         height: fieldStyle?.height,
+        containerPadding: fieldStyle?.containerPadding,
         leading: leading,
         actions: actions,
       ),

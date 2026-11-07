@@ -169,7 +169,7 @@ void main() {
       ),
     );
 
-    expect(form.hasBorder('email'), isTrue);
+    expect(form.borders.has('email'), isTrue);
     form.setError('email', errorTextList: const ['邮箱错误']);
     await tester.pump();
     expect(tester.takeException(), isNull);

@@ -146,8 +146,9 @@ class _WFormState extends State<WForm> {
     }
     if (_ownsController &&
         (oldWidget.controller != widget.controller ||
-            oldWidget.validatorSettings != widget.validatorSettings ||
-            oldWidget.borderStyle != widget.borderStyle)) {
+            oldWidget.validatorSettings != widget.validatorSettings)) {
+      // 只跟随 controller / validatorSettings：边框样式与校验设置无关，
+      // 换 borderStyle 不能把用户手动注入的 controller.validatorSettings 覆盖掉。
       _syncSettings();
     }
   }

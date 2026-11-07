@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_lifecycle.dart';
 import '../form_scope.dart';
 import '../form_icons.dart';
 import '../form_theme.dart';
@@ -17,7 +16,7 @@ part 'multi_dropdown_item.dart';
 ///
 /// 点击后在锚点下方弹出可多选的选项列表，字段值为 `Set<String>`；
 /// 未选择时的占位文本、禁用项、弹层外观与选项样式可通过
-/// [WFormMultiDropdownConfig] 配置，只读状态会合并外层 [WFormReadOnlyScope]。
+/// 直接参数配置，只读状态会合并外层 [WFormReadOnlyScope]。
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
 class WFormMultiDropdownCore extends StatelessWidget {
@@ -177,46 +176,43 @@ class WFormMultiDropdownCore extends StatelessWidget {
       onChanged?.call(selected);
     }
 
-    return WFormFieldCleanup(
-      name: name,
-      child: WFormFieldFrame(
-        height: height,
-        width: width,
-        decoration: containerDecoration,
-        margin: containerMargin,
-        padding: containerPadding,
-        yOffset: yOffset,
-        leading: leading,
-        actions: actions,
-        child: _WFormMultiDropdown(
-          name: name,
-          items: items,
-          initialValue: initialValue,
-          onChanged: onChangedHandler,
-          validator: validator,
-          enabled: enabled && !WFormReadOnlyScope.readOnlyOf(context),
-          decoration: decoration,
-          icon: icon,
-          iconSize: iconSize,
-          iconDisabledColor: iconDisabledColor,
-          iconEnabledColor: iconEnabledColor,
-          checkboxUnselectedIcon: checkboxUnselectedIcon,
-          checkboxSelectedIcon: checkboxSelectedIcon,
-          checkboxDisabledIcon: checkboxDisabledIcon,
-          style: style,
-          hintStyle: hintStyle,
-          popUpLayerPadding: popUpLayerPadding,
-          popUpLayerElevation: popUpLayerElevation,
-          popUpLayerShadowColor: popUpLayerShadowColor,
-          hintText: hintText ?? hintText,
-          disabledKeys: disabledKeys,
-          itemPadding: itemPadding,
-          itemStyle: itemStyle,
-          itemCheckedStyle: itemCheckedStyle,
-          itemDisabledStyle: itemDisabledStyle,
-          itemTitlePadding: itemTitlePadding,
-          focusNode: focusNode,
-        ),
+    return WFormFieldFrame(
+      height: height,
+      width: width,
+      decoration: containerDecoration,
+      margin: containerMargin,
+      padding: containerPadding,
+      yOffset: yOffset,
+      leading: leading,
+      actions: actions,
+      child: _WFormMultiDropdown(
+        name: name,
+        items: items,
+        initialValue: initialValue,
+        onChanged: onChangedHandler,
+        validator: validator,
+        enabled: enabled && !WFormReadOnlyScope.readOnlyOf(context),
+        decoration: decoration,
+        icon: icon,
+        iconSize: iconSize,
+        iconDisabledColor: iconDisabledColor,
+        iconEnabledColor: iconEnabledColor,
+        checkboxUnselectedIcon: checkboxUnselectedIcon,
+        checkboxSelectedIcon: checkboxSelectedIcon,
+        checkboxDisabledIcon: checkboxDisabledIcon,
+        style: style,
+        hintStyle: hintStyle,
+        popUpLayerPadding: popUpLayerPadding,
+        popUpLayerElevation: popUpLayerElevation,
+        popUpLayerShadowColor: popUpLayerShadowColor,
+        hintText: hintText ?? hintText,
+        disabledKeys: disabledKeys,
+        itemPadding: itemPadding,
+        itemStyle: itemStyle,
+        itemCheckedStyle: itemCheckedStyle,
+        itemDisabledStyle: itemDisabledStyle,
+        itemTitlePadding: itemTitlePadding,
+        focusNode: focusNode,
       ),
     );
   }

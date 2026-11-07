@@ -16,6 +16,9 @@ Widget assembleFormField({
   List<String>? hintTextList,
   bool? isTransparentBackground,
 }) {
+  if (name.isEmpty) {
+    throw ArgumentError.value(name, 'name', '字段名称不能为空');
+  }
   if (!bordered) {
     // 无边框时没有 errorBuilder / hintBuilder，但提示文案不能静默丢弃：
     // 直接在字段下方用默认文字样式渲染（release 同样生效）。

@@ -196,10 +196,4 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckboxCore, bool>
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
     _formData?.handleChange(widget.name, value);
   }
-
-  @override
-  void dispose() {
-    _formData?.removeFormEntered(widget.name);
-    super.dispose();
-  }
 }

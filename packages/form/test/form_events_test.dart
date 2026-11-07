@@ -166,7 +166,7 @@ void main() {
       ),
     );
 
-    expect(form.hasBorder('plain'), isFalse);
+    expect(form.borders.has('plain'), isFalse);
     expect(
       () => form.setError('plain', errorTextList: const ['不会渲染']),
       throwsAssertionError,
@@ -300,8 +300,32 @@ void main() {
     expect(find.text('请选择优惠券'), findsWidgets);
   });
 
-  test('formEntered 是只读视图', () {
+  test('formEntered 未挂载时是不可变空表', () {
     final form = WFormController();
     expect(() => form.formEntered['x'] = true, throwsUnsupportedError);
+  });
+
+  testWidgets('formEntered 返回独立副本：改它不影响表单', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormTextField(name: 'a', label: 'A'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'x');
+    await tester.pump();
+
+    final snapshot = form.formEntered;
+    snapshot['extra'] = true;
+
+    // 改副本不能写回表单：formEntered 是按字段值派生的快照。
+    expect(form.formEntered.containsKey('extra'), isFalse);
+    expect(form.formEntered['a'], isTrue);
   });
 }

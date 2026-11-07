@@ -528,7 +528,7 @@ void main() {
       );
 
       expect(find.text('input'), findsOneWidget);
-      expect(formData.hasBorder('email'), true);
+      expect(formData.borders.has('email'), true);
     });
 
     testWidgets('hintTextList 从 WFormFieldShell 传递', (tester) async {
@@ -754,11 +754,11 @@ void main() {
     );
 
     formData.handleChange('dynamic_field', 'x');
-    expect(formData.hasBorder('dynamic_field'), isTrue);
+    expect(formData.borders.has('dynamic_field'), isTrue);
 
     await tester.pumpWidget(const SizedBox.shrink());
 
-    expect(formData.hasBorder('dynamic_field'), isFalse);
+    expect(formData.borders.has('dynamic_field'), isFalse);
     expect(formData.formEntered.containsKey('dynamic_field'), isFalse);
   });
 

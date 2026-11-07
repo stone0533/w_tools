@@ -30,6 +30,9 @@ names = [
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
     # ui 7.0 的改名：旧名不保留，必须登记，否则 README / example 里的旧推荐拦不住。
     r'WHexColor', r'WImageStyleX',
+    # form 6.0：实时派生 formEntered / 内部边框登记收口后删除的公开名。
+    r'pruneFormEntered', r'removeFormEntered', r'hasBorder', r'errorChannelOf',
+    r'registerBorder', r'unregisterBorder', r'removeErrorChannel',
 ]
 # 以 `)` 结尾的条目不能补尾 `\b`：`)` 后面通常不是单词字符，补了就永远匹配不到。
 patterns = [

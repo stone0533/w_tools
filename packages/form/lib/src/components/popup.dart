@@ -244,7 +244,10 @@ class _CustomPopupRouteLayout extends SingleChildLayoutDelegate {
   /// 计算子控件位置
   @override
   Offset getPositionForChild(Size size, Size childSize) {
-    final double x = position.left;
+    // 水平方向钳制在安全区内：显式 width 大于锚点宽度、或锚点贴边时，
+    // 不 clamp 会把弹层画到屏幕外（越界部分不可见也不可点）。
+    final double maxX = max(padding.left, size.width - childSize.width - padding.right);
+    final double x = min(max(position.left, padding.left), maxX);
     final double anchorHeight = size.height - position.top - position.bottom;
     final double spaceAbove = position.top - anchorHeight - padding.top;
     final double spaceBelow = size.height - position.top - padding.bottom;

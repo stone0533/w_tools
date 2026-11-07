@@ -22,6 +22,17 @@ class WFormFieldStyle {
   static WFormFieldStyle? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<WFormFieldStyleScope>()?.style;
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is WFormFieldStyle &&
+      other.height == height &&
+      other.containerPadding == containerPadding &&
+      other.textStyle == textStyle &&
+      other.hintStyle == hintStyle;
+
+  @override
+  int get hashCode => Object.hash(height, containerPadding, textStyle, hintStyle);
 }
 
 /// 覆盖一棵子树内直接字段的 [WFormFieldStyle]。
