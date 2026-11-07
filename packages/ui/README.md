@@ -6,7 +6,7 @@
 `w_tools_ui` 是 w_tools 的 UI 组件层，提供通用组件、布局、导航、扩展与屏幕适配工具。
 
 > 文档分工：本文负责**安装 / 快速开始 / 常用配方**；模块边界、设计取舍与反例见
-> [`docs/modules/ui_module.md`](../../docs/modules/ui_module.md)。
+> [`docs/modules/ui_module.md`](https://github.com/stone0533/w_tools/blob/main/docs/modules/ui_module.md)。
 
 ## 特性
 

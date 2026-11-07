@@ -57,6 +57,7 @@
 - [2026-11-07 全流程审计：改动 → 门禁 → PR → 发布](analysis/2026-11-07-process-audit.md)
 - [2026-11-07 全流程二轮审计：门禁假绿与发布断点](analysis/2026-11-07-process-audit-round2.md)
 - [2026-11-07 全流程三轮审计：PR 分类、版本门禁与单包发布](analysis/2026-11-07-process-audit-round3.md)
+- [2026-11-08 全流程四轮审计：建议落地顺序的执行记录](analysis/2026-11-08-process-audit-round4.md)
 
 改完 `docs/` 后跑：
 

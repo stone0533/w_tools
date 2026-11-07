@@ -8,7 +8,9 @@
 - 有变化 + 版本已经领先已发布基线 → 通过（CHANGELOG 段 / semver 由 release_check 与
   api diff 继续把关）；
 - 版本降级 / 版本不高于已发布基线 → 失败（已发布版本不可回滚）；
-- 包在 merge-base 里不存在（新包）→ 跳过。
+- 包在 merge-base 里不存在（新包）→ 跳过；
+- 根包 `lib/w_tools.dart` 的 export 行有变化 → 根包版本必须高于 base（根包没有
+  barrel 目录，单独检查；`--package w_tools` 可以只跑这一项）。
 
 已发布基线默认取仓库快照；`--online` 时先查 pub.dev（CI 的 api-bump 用这个），
 取不到才回退到快照并打印提醒 —— 快照可能滞后一个版本（批量发布窗口），
@@ -193,6 +195,26 @@ def requires_bump(
     return False
 
 
+EXPORT_LINE = re.compile(r"""(?m)^\s*export\s+['"]([^'"]+)['"]""")
+
+
+def root_export_surface(text: str) -> list[str]:
+    """根包 barrel 的 re-export 目标（排序后比较，顺序变化不算 API 变化）。"""
+    return sorted(EXPORT_LINE.findall(text))
+
+
+def root_requires_bump(
+    base_exports: list[str],
+    current_exports: list[str],
+    base_version: str,
+    new_version: str,
+) -> bool:
+    """根包 export 变化时，版本是否必须高于 base。"""
+    if sorted(base_exports) == sorted(current_exports):
+        return False
+    return release_parts(new_version) <= release_parts(base_version)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -228,7 +250,7 @@ def main() -> int:
         )
         return 2
 
-    packages = [args.package] if args.package else manifest_packages()
+    packages = [] if args.package == 'w_tools' else ([args.package] if args.package else manifest_packages())
     errors: list[str] = []
     warnings: list[str] = []
     skipped: list[str] = []
@@ -278,6 +300,39 @@ def main() -> int:
             f'（base {old_version}）。请抬版本并写 CHANGELOG 段'
         )
 
+    checked_root = 0
+    if args.package in (None, 'w_tools'):
+        current_root = ROOT / 'lib/w_tools.dart'
+        base_root = _git_show(base_ref, 'lib/w_tools.dart')
+        if not current_root.is_file():
+            if args.package == 'w_tools':
+                errors.append('w_tools: 缺 lib/w_tools.dart，根包版本门禁无法执行')
+        elif base_root is None:
+            if args.package == 'w_tools':
+                errors.append('w_tools: base 里读不到 lib/w_tools.dart，根包版本门禁无法执行')
+        else:
+            checked_root = 1
+            base_exports = root_export_surface(base_root)
+            current_exports = root_export_surface(current_root.read_text())
+            old_root_version = _parse_version(_git_show(base_ref, 'pubspec.yaml') or '')
+            new_root_version = _parse_version((ROOT / 'pubspec.yaml').read_text())
+            if old_root_version is None or new_root_version is None:
+                errors.append(
+                    'w_tools: 读不到根包 pubspec version'
+                    f'（base={old_root_version}，当前={new_root_version}）'
+                )
+            elif root_requires_bump(
+                base_exports,
+                current_exports,
+                old_root_version,
+                new_root_version,
+            ):
+                errors.append(
+                    'w_tools: 根包 re-export 有变化，但版本 '
+                    f'{new_root_version} 没有高于 base {old_root_version}。'
+                    '请抬根包版本并写 CHANGELOG 段'
+                )
+
     if errors:
         print('公开 API 变了但没有抬版本：', file=sys.stderr)
         for error in errors:
@@ -291,7 +346,8 @@ def main() -> int:
         print(f'! base 里没有这些包（新包，跳过对比）：{"、".join(new_packages)}')
     if skipped:
         print(f'! 无 barrel 公开 API，已跳过：{"、".join(skipped)}')
-    print(f'✓ 公开 API 变化的包都已抬版本（对比 {checked} 个包）')
+    root_note = ' + 根包' if checked_root else ''
+    print(f'✓ 公开 API 变化的包都已抬版本（对比 {checked} 个包{root_note}）')
     return 0
 
 

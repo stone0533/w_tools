@@ -98,6 +98,23 @@ run_command() {
   fi
 }
 
+# 变异前先跑一遍未变异的命令：基线必须绿，否则“变异后红”不能证明任何事。
+# 例如用例本来就缺依赖 / 断言写错时，任何变异都会让命令 exit 1，旧实现会把它
+# 误报成「变异被杀死」。
+baseline_out="$(mktemp)"
+set +e
+run_command "$@" >"$baseline_out" 2>&1
+baseline_code=$?
+set -e
+if [ "$baseline_code" -ne 0 ]; then
+  printf '✗ 变异前基线不绿（exit=%s）：测试命令在未变异代码上已经失败，这次红不能证明任何事。\n' "$baseline_code" >&2
+  printf '%s\n' '--- 基线输出（末尾 10 行）---' >&2
+  tail -n 10 "$baseline_out" >&2
+  rm -f "$baseline_out"
+  exit 2
+fi
+rm -f "$baseline_out"
+
 backup="$(mktemp)"
 cp "$file" "$backup"
 restored=0

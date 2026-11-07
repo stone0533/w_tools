@@ -16,6 +16,8 @@ from check_version_bump import (
     published_version,
     release_parts,
     requires_bump,
+    root_export_surface,
+    root_requires_bump,
 )
 
 
@@ -119,6 +121,60 @@ class PublishedBaselineTest(unittest.TestCase):
             mod.urllib.request.urlopen = old_urlopen
         self.assertEqual(len(warnings), 1)
         self.assertIn('pub.dev', warnings[0])
+
+
+class RootPackageTest(unittest.TestCase):
+    """根包只做 re-export，但它也有版本和 CHANGELOG；export 变化必须抬版本。"""
+
+    def test_root_export_surface_ignores_comments_and_order(self):
+        text = (
+            "// export 'package:old/old.dart';\n"
+            "export 'package:w_tools_ui/w_tools_ui.dart';\n"
+            "export 'package:w_tools_core/w_tools_core.dart';\n"
+        )
+        self.assertEqual(
+            root_export_surface(text),
+            [
+                'package:w_tools_core/w_tools_core.dart',
+                'package:w_tools_ui/w_tools_ui.dart',
+            ],
+        )
+
+    def test_export_change_without_bump_requires_bump(self):
+        self.assertTrue(
+            root_requires_bump(
+                ['package:w_tools_ui/w_tools_ui.dart'],
+                ['package:w_tools_ui/w_tools_ui.dart', 'package:w_tools_new/w_tools_new.dart'],
+                '11.0.0',
+                '11.0.0',
+            )
+        )
+
+    def test_export_change_with_bump_passes(self):
+        self.assertFalse(
+            root_requires_bump(
+                ['package:w_tools_ui/w_tools_ui.dart'],
+                ['package:w_tools_new/w_tools_new.dart'],
+                '11.0.0',
+                '11.1.0',
+            )
+        )
+
+    def test_export_order_only_does_not_require_bump(self):
+        self.assertFalse(
+            root_requires_bump(
+                [
+                    'package:w_tools_ui/w_tools_ui.dart',
+                    'package:w_tools_core/w_tools_core.dart',
+                ],
+                [
+                    'package:w_tools_core/w_tools_core.dart',
+                    'package:w_tools_ui/w_tools_ui.dart',
+                ],
+                '11.0.0',
+                '11.0.0',
+            )
+        )
 
 
 if __name__ == '__main__':

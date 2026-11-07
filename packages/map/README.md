@@ -64,7 +64,7 @@ final mapper = WMapItemMapper<ShopDto>(
 
 ## 完整地图
 
-见 [`w_tools_map_google`](../map_google/README.md) 与 [`map_google/example`](../map_google/example/)。
+见 [`w_tools_map_google`](https://github.com/stone0533/w_tools/blob/main/packages/map_google/README.md) 与 [`map_google/example`](https://github.com/stone0533/w_tools/tree/main/packages/map_google/example)。
 
 ## 历史迁移
 

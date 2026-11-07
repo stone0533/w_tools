@@ -1,6 +1,6 @@
 # 贡献指南（新增/修改组件）
 
-> 判据先看 [`docs/conventions.md`](docs/conventions.md)：这个组件**该不该**进包。
+> 判据先看 [`docs/conventions.md`](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md)：这个组件**该不该**进包。
 > 这里只写「决定进包之后，必须带齐什么」。
 
 ## 1. 新增组件的四条硬性要求
@@ -15,15 +15,18 @@
       它只**提醒**下界落后，发布根包前必须跑 `--strict`）。
       CI 的 `api-bump` job 会比对 base 与 HEAD 的公开 API 表面：API 变了但版本既没抬、
       也不高于**已发布**基线（CI 用 pub.dev 版本，取不到才退回快照）时直接失败；
-      已经在未发布版本里的改动可以沿用。
+      已经在未发布版本里的改动可以沿用；确实要留到下次发版时，也可以写进非空
+      `## Unreleased`（`check_pr_scope` 接受，`release_check` 会提醒）。
+      根包改 `lib/` / `pubspec.yaml` 时，根 `CHANGELOG.md` 也必须改；根包 re-export
+      变化必须抬根包版本（`check_version_bump` 会拦）。
 
 ## 2. 接口设计
 
-通用原则见 [`docs/conventions.md`](docs/conventions.md) §6；这里只写最容易违反的两条：
+通用原则见 [`docs/conventions.md`](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md) §6；这里只写最容易违反的两条：
 
-- **命名**先看 [`docs/naming.md`](docs/naming.md) 的 30 秒流程与角色表（§3.3）：
+- **命名**先看 [`docs/naming.md`](https://github.com/stone0533/w_tools/blob/main/docs/naming.md) 的 30 秒流程与角色表（§3.3）：
   `W` 前缀、角色后缀、同义择一、review 清单都在那里。新增 `Config` 必须登记
-  [`scripts/naming_baseline.yaml`](scripts/naming_baseline.yaml)，并按 §7 清单在 PR 里写结论。
+  [`scripts/naming_baseline.yaml`](https://github.com/stone0533/w_tools/blob/main/scripts/naming_baseline.yaml)，并按 §7 清单在 PR 里写结论。
 - **参数 ≤ 3 个**：合成一个组件；**> 3 个**：说明它们是两个组件，不要硬合并
   （教训：一个 311 宽的弹窗壳，因为要塞内容/按钮/内边距/标题色，最后变成 4 个参数——
   正确的做法是「只共用壳，内容和按钮各自组装」）
@@ -35,9 +38,9 @@
 
 ## 3. 文档
 
-- 表单相关改动先看 [`docs/agents/form.md`](docs/agents/form.md)
-- 组件先登记到 [`packages/cli/catalog/components.yaml`](packages/cli/catalog/components.yaml)（`useFor` / `dontUseFor`），
-  再跑 `cd packages/cli && dart run tool/gen_catalog.dart` 生成 [`docs/modules/components.md`](docs/modules/components.md)；
+- 表单相关改动先看 [`docs/agents/form.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/form.md)
+- 组件先登记到 [`packages/cli/catalog/components.yaml`](https://github.com/stone0533/w_tools/blob/main/packages/cli/catalog/components.yaml)（`useFor` / `dontUseFor`），
+  再跑 `cd packages/cli && dart run tool/gen_catalog.dart` 生成 [`docs/modules/components.md`](https://github.com/stone0533/w_tools/blob/main/docs/modules/components.md)；
   **不要手改生成物**
 - 「不要用在哪」比「怎么用」更有价值——误用是主要故障源
 - 该子包的 `docs/modules/<module>_module.md` 补一段说明（如果有行为细节）
@@ -56,8 +59,9 @@
 - **测试有效性**：守卫（`mounted` / null / 取消）、错误分支、边界 clamp 的用例，要证明「删掉被守逻辑它就红」。
   只断言 `takeException()` / `returnsNormally` 的用例优先查——删掉功能它也可能绿。
   用 `bash scripts/mutate_guard.sh ... --expect '<失败特征>' -- bash -c '<测试命令>'` 做一次定向变异，
+  脚本会先跑一次未变异的基线；基线不绿直接 exit 2，不能拿“原来就红”当变异被杀死。
   在 PR 里贴三行记录（变异点 / 命令 / 红输出关键行）。变异后仍绿有两种解释：用例没断言到目标行为（补正向断言），
-  或该守卫没有价值（删守卫）——先补断言，再决定删不删。见 [`scripts/README.md`](scripts/README.md) 的「测试有效性（人工）」。
+  或该守卫没有价值（删守卫）——先补断言，再决定删不删。见 [`scripts/README.md`](https://github.com/stone0533/w_tools/blob/main/scripts/README.md) 的「测试有效性（人工）」。
 - `packages/cli` 是纯 Dart 包：用 `dart test`，不要引入 `flutter_test`
 - 行为测试只 import barrel；确实需要内部 helper 的测试放 `test/internal/`（不限于纯内部逻辑）。
   `check_test_imports.py` 会挡住全仓 `test/`、`integration_test/`、`example/test/` 里的 `src` import；
@@ -70,7 +74,7 @@
   消费方 `dart pub deps` 会失败。正式发布时脚本会自己先 `git fetch`，再要求：干净工作区、
   `main` 且 `HEAD == origin/main`、`release_check.sh --strict` 通过；子包还要过快照基线守卫
   （最新快照已提交，本地版本不得低于 / 等于快照，除非是新包首发）。`--force --reason "..."` 只用于明确的例外，reason 会打日志。
-- 版本策略与流程见 [`docs/releasing.md`](docs/releasing.md)
+- 版本策略与流程见 [`docs/releasing.md`](https://github.com/stone0533/w_tools/blob/main/docs/releasing.md)
 - 公开 API 变化（删除 / 类型变化 / 可空性变化）先跑
   `python3 scripts/check_public_api_diff.py --package <pkg>`；它要求变化写进
   **当前 pubspec 版本**对应 CHANGELOG 段的 `### Breaking` / `### Removed`，或 migration。
@@ -79,10 +83,10 @@
   缺基线时门禁直接失败（不再静默跳过）。
   快照提交**走分支 + PR**：`pre-push` 禁止直接 push main，而发布脚本要求
   `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 再发根包；
-  细节见 [`docs/releasing.md`](docs/releasing.md) 第 7 步。
+  细节见 [`docs/releasing.md`](https://github.com/stone0533/w_tools/blob/main/docs/releasing.md) 第 7 步。
 - 有公开 API / 行为变化时，合并前跑一次 **J-4（AI 教学覆盖审计）**，并在 PR 里贴矩阵结论；
   J-4 只读，不修改文件。定义与提示词见
-  [`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md) 的 J-4 一节。
+  [`docs/ai-maintainer-prompts.md`](https://github.com/stone0533/w_tools/blob/main/docs/ai-maintainer-prompts.md) 的 J-4 一节。
   至少确认：catalog、`docs/agents/<pkg>.md`、
   `templates/agents/{zh,en}/<feature>.md`（模板按 init feature 命名，不是包名；
   `app_getx` 用 `app.md`、`map_google` 用 `map.md`）、README、example 都已同步。
@@ -93,16 +97,19 @@
 ## 6. Git / PR 流程
 
 - 首次检出先跑 `bash scripts/install_git_hooks.sh`；`.githooks/pre-push` 会阻止直接 push main。
-- 需求 / 可复现的 bug 先开 issue：反馈类用 [`.github/ISSUE_TEMPLATE/feedback.md`](.github/ISSUE_TEMPLATE/feedback.md)
+- 需求 / 可复现的 bug 先开 issue：反馈类用 [`.github/ISSUE_TEMPLATE/feedback.md`](https://github.com/stone0533/w_tools/blob/main/.github/ISSUE_TEMPLATE/feedback.md)
   （自动带 `needs-triage`），其余用空白 issue；小修 / 文档 / 内部重构可以直接开 PR。
   PR 链 issue 时写 `Closes #n`。issue 的读写与 label 约定见
-  [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) 与 [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md)。
+  [`docs/agents/issue-tracker.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/issue-tracker.md) 与 [`docs/agents/triage-labels.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/triage-labels.md)。
 - 公开变化走 feature 分支 + PR，等 Required checks 通过后合并；不要用管理员绕过。
 - PR body 必须带仓库模板的「## 改动类型」段，并至少勾选一项（改了公开代码
   `lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/` 时 `check_pr_scope` 会强制；
   空 body 或四类全空都会失败）。
   用 `gh pr create --fill` 创建后要 `gh pr edit --body` 补上四类勾选；只改脚本 / 文档的
   PR（例如快照 PR）不受这条限制。
+- 勾了公开类别时，`check_pr_scope` 还要求：每个被改包都有 `packages/<pkg>/CHANGELOG.md`，
+  根包公开面有根 `CHANGELOG.md`，且本地版本高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 `CHANGELOG` 有非空
+  `## Unreleased`）。版本段内容 / 破坏性说明仍由 review 与 `check_public_api_diff` 核对。
 - 发布前用 `bash scripts/check_pr_checks.sh [PR号]` 确认 Required checks（需要 `gh`）。
 
 ### 合并方式：固定 Merge commit
@@ -144,10 +151,10 @@ git log main                  # 完整细节（每个逻辑步骤）
 
 ## 9. 使用反馈（`docs/feedback/`）
 
-消费方撞到的问题按固定格式汇总在 [`docs/feedback/`](docs/feedback/README.md)。
+消费方撞到的问题按固定格式汇总在 [`docs/feedback/`](https://github.com/stone0533/w_tools/blob/main/docs/feedback/README.md)。
 
 **完整流程（消费方 / 维护者两套步骤、一条完整示例）只维护一份**，见
-[`docs/feedback/README.md`](docs/feedback/README.md)。本节只留三条硬规则：
+[`docs/feedback/README.md`](https://github.com/stone0533/w_tools/blob/main/docs/feedback/README.md)。本节只留三条硬规则：
 
 1. **有反馈才建文件**：`docs/feedback/<包>.md`，不要为每个包预建空文件；
 2. `已修复` **必须带版本号**（+ commit），细节写进 CHANGELOG；
