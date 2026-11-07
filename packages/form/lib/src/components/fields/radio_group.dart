@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -72,75 +71,89 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
                      ? itemExtraBuilder(field.context, element.key, element.value, isSelected)
                      : null;
 
-                 return Semantics(
-                   container: true,
-                   checked: isSelected,
-                   inMutuallyExclusiveGroup: true,
+                 return FocusableActionDetector(
                    enabled: isEnabled,
-                   child: Column(
-                     mainAxisSize: MainAxisSize.min,
-                     children: [
-                       Row(
-                         mainAxisSize: MainAxisSize.min,
-                         crossAxisAlignment: CrossAxisAlignment.start,
-                         children: [
-                           MouseRegion(
-                             cursor: isEnabled
-                                 ? SystemMouseCursors.click
-                                 : SystemMouseCursors.basic,
-                             child: GestureDetector(
-                               behavior: HitTestBehavior.opaque,
-                               onTap: () => click(element.key),
-                               child: Transform(
-                                 transform: Matrix4.translationValues(
-                                   0,
-                                   config.iconYOffset ?? 0,
-                                   0,
-                                 ),
-                                 child: isSelected
-                                     ? config.selectedIcon ??
-                                           theme?.effectiveRadioSelectedIcon ??
-                                           WFormIcons.defaults.radioSelected
-                                     : config.unselectedIcon ??
-                                           theme?.effectiveRadioUnselectedIcon ??
-                                           WFormIcons.defaults.radioUnselected,
-                               ),
-                             ),
-                           ),
-                           SizedBox(width: config.iconSpacing ?? 0),
-                           Expanded(
-                             child: MouseRegion(
+                   actions: <Type, Action<Intent>>{
+                     ActivateIntent: CallbackAction<ActivateIntent>(
+                       onInvoke: (_) {
+                         click(element.key);
+                         return null;
+                       },
+                     ),
+                   },
+                   child: Semantics(
+                     container: true,
+                     checked: isSelected,
+                     inMutuallyExclusiveGroup: true,
+                     enabled: isEnabled,
+                     onTap: isEnabled ? () => click(element.key) : null,
+                     child: Column(
+                       mainAxisSize: MainAxisSize.min,
+                       children: [
+                         Row(
+                           mainAxisSize: MainAxisSize.min,
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             MouseRegion(
                                cursor: isEnabled
                                    ? SystemMouseCursors.click
                                    : SystemMouseCursors.basic,
                                child: GestureDetector(
                                  behavior: HitTestBehavior.opaque,
+                                 excludeFromSemantics: true,
                                  onTap: () => click(element.key),
-                                 child: titleBuilder != null
-                                     ? titleBuilder(
-                                         field.context,
-                                         element.key,
-                                         element.value,
-                                         isSelected,
-                                       )
-                                     : Text(
-                                         element.value,
-                                         style: config.style,
-                                         strutStyle: StrutStyle(
-                                           fontFamily: config.style?.fontFamily,
-                                           fontSize: config.style?.fontSize,
-                                           fontWeight: config.style?.fontWeight,
-                                           height: config.style?.height,
-                                           forceStrutHeight: true,
-                                         ),
-                                       ),
+                                 child: Transform(
+                                   transform: Matrix4.translationValues(
+                                     0,
+                                     config.iconYOffset ?? 0,
+                                     0,
+                                   ),
+                                   child: isSelected
+                                       ? config.selectedIcon ??
+                                             theme?.effectiveRadioSelectedIcon ??
+                                             WFormIcons.defaults.radioSelected
+                                       : config.unselectedIcon ??
+                                             theme?.effectiveRadioUnselectedIcon ??
+                                             WFormIcons.defaults.radioUnselected,
+                                 ),
                                ),
                              ),
-                           ),
-                         ],
-                       ),
-                       if (child != null) child,
-                     ],
+                             SizedBox(width: config.iconSpacing ?? 0),
+                             Expanded(
+                               child: MouseRegion(
+                                 cursor: isEnabled
+                                     ? SystemMouseCursors.click
+                                     : SystemMouseCursors.basic,
+                                 child: GestureDetector(
+                                   behavior: HitTestBehavior.opaque,
+                                   excludeFromSemantics: true,
+                                   onTap: () => click(element.key),
+                                   child: titleBuilder != null
+                                       ? titleBuilder(
+                                           field.context,
+                                           element.key,
+                                           element.value,
+                                           isSelected,
+                                         )
+                                       : Text(
+                                           element.value,
+                                           style: config.style,
+                                           strutStyle: StrutStyle(
+                                             fontFamily: config.style?.fontFamily,
+                                             fontSize: config.style?.fontSize,
+                                             fontWeight: config.style?.fontWeight,
+                                             height: config.style?.height,
+                                             forceStrutHeight: true,
+                                           ),
+                                         ),
+                                 ),
+                               ),
+                             ),
+                           ],
+                         ),
+                         if (child != null) child,
+                       ],
+                     ),
                    ),
                  );
                }).toList(),

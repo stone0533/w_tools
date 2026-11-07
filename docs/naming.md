@@ -209,8 +209,8 @@
   它和 `Scope` 都可能内部用 `InheritedWidget`，区别是「默认值」还是「运行期对象」。
 - `Scope` 的名字用被作用域的领域 / 对象：传 controller 用领域名（`WFormScope`），
   不要写 `<领域>ControllerScope`；作用域的对象本身是命名类型时，可以写 `<对象>Scope`
-  （`WFormBorderConfigScope`）。
-- 复合名只允许「A 的 B」式修饰：`WFormBorderConfigScope` 读作「面向 `WFormBorderConfig` 的 Scope」，
+  （`WFormBorderDecorationExtension`）。
+- 复合名只允许「A 的 B」式修饰：`WFormFieldStyleScope` 读作「面向 `WFormFieldStyle` 的 Scope」，
   不是两个并列角色；`XxxConfigOptions` 这类并列角色仍然禁止。
 - Flutter 既有名词（`ThemeData` / `Sliver` / `Route`）原样保留，不拆成两个角色。
 - 扩展名的 `Extension` 前紧挨被扩展的类型，用途 / 领域限定词放在它前面：

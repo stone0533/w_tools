@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -65,44 +64,61 @@ class WFormCheckboxCore extends FormBuilderField<bool> {
                  WFormIcons.defaults.checkboxUnselected;
            }
 
-           return Semantics(
-             container: true,
-             checked: state.value == true,
+           return FocusableActionDetector(
              enabled: isEnabled,
-             child: WFormFieldFrame(
-               height: config.height,
-               width: config.width,
-               decoration: config.containerDecoration,
-               margin: config.containerMargin,
-               padding: config.containerPadding,
-               leading: config.leading,
-               actions: config.actions,
-               child: Row(
-                 mainAxisSize: MainAxisSize.min,
-                 children: [
-                   MouseRegion(
-                     cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-                     child: GestureDetector(
-                       behavior: HitTestBehavior.opaque,
-                       onTap: toggle,
-                       child: Transform(
-                         transform: Matrix4.translationValues(0, config.iconYOffset ?? 0, 0),
-                         child: buildIcon(),
-                       ),
-                     ),
-                   ),
-                   SizedBox(width: config.iconSpacing ?? 0),
-                   Expanded(
-                     child: MouseRegion(
+             actions: <Type, Action<Intent>>{
+               ActivateIntent: CallbackAction<ActivateIntent>(
+                 onInvoke: (_) {
+                   toggle();
+                   return null;
+                 },
+               ),
+             },
+             child: Semantics(
+               container: true,
+               checked: state.value == true,
+               enabled: isEnabled,
+               onTap: isEnabled ? toggle : null,
+               child: WFormFieldFrame(
+                 height: config.height,
+                 width: config.width,
+                 decoration: config.containerDecoration,
+                 margin: config.containerMargin,
+                 padding: config.containerPadding,
+                 leading: config.leading,
+                 actions: config.actions,
+                 child: Row(
+                   mainAxisSize: MainAxisSize.min,
+                   children: [
+                     MouseRegion(
                        cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
                        child: GestureDetector(
                          behavior: HitTestBehavior.opaque,
+                         excludeFromSemantics: true,
                          onTap: toggle,
-                         child: title,
+                         child: Transform(
+                           transform: Matrix4.translationValues(0, config.iconYOffset ?? 0, 0),
+                           child: buildIcon(),
+                         ),
                        ),
                      ),
-                   ),
-                 ],
+                     SizedBox(width: config.iconSpacing ?? 0),
+                     Expanded(
+                       child: MouseRegion(
+                         cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                         child: GestureDetector(
+                           behavior: HitTestBehavior.opaque,
+                           excludeFromSemantics: true,
+                           onTap: toggle,
+                           child: DefaultTextStyle.merge(
+                             style: config.style,
+                             child: title ?? const SizedBox.shrink(),
+                           ),
+                         ),
+                       ),
+                     ),
+                   ],
+                 ),
                ),
              ),
            );
@@ -142,6 +158,7 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckboxCore, bool>
 ///
 /// 可变的字段配置；用命名构造 / copyWith。
 class WFormCheckboxConfig extends WFormFieldBaseConfig {
+  TextStyle? style;
   Widget? unselectedIcon;
   Widget? selectedIcon;
   Widget? disabledIcon;
@@ -149,6 +166,7 @@ class WFormCheckboxConfig extends WFormFieldBaseConfig {
   double? iconYOffset;
 
   WFormCheckboxConfig({
+    this.style,
     this.unselectedIcon,
     this.selectedIcon,
     this.disabledIcon,
@@ -220,6 +238,7 @@ class WFormCheckboxConfig extends WFormFieldBaseConfig {
   WFormCheckboxConfig copy() => copyWith();
 
   WFormCheckboxConfig copyWith({
+    TextStyle? style,
     Widget? unselectedIcon,
     Widget? selectedIcon,
     Widget? disabledIcon,
@@ -235,6 +254,7 @@ class WFormCheckboxConfig extends WFormFieldBaseConfig {
     EdgeInsetsGeometry? containerPadding,
   }) {
     return WFormCheckboxConfig(
+      style: style ?? this.style,
       unselectedIcon: unselectedIcon ?? this.unselectedIcon,
       selectedIcon: selectedIcon ?? this.selectedIcon,
       disabledIcon: disabledIcon ?? this.disabledIcon,

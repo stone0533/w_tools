@@ -1,3 +1,49 @@
+## 6.0.0
+
+### Breaking
+- `WForm` / `WFormTheme` 移除 8 个单项图标参数（`dropdownIcon`、`radioUnselectedIcon`、
+  `radioSelectedIcon`、`checkboxUnselectedIcon`、`checkboxSelectedIcon`、
+  `obscureTextIcon`、`obscureTextVisibleIcon`、`clearButtonIcon`）：
+  统一用 `icons: WFormIcons(...)`；`WForm` 仍会继承外层 `WFormTheme.icons`。
+- 公开 barrel 不再导出 `WFormBorderConfigScope`、`WFormBorderState`、`WFormPopupRoute`
+  （内部实现；`WFormPopup.show` / `hide`、`WFormBorderConfig` 不变）。
+  移除的成员：`WForm.dropdownIcon`、`WForm.radioUnselectedIcon`、`WForm.radioSelectedIcon`、`WForm.checkboxUnselectedIcon`、`WForm.checkboxSelectedIcon`、`WForm.obscureTextIcon`、`WForm.obscureTextVisibleIcon`、`WForm.clearButtonIcon`、`WFormTheme.dropdownIcon`、`WFormTheme.radioUnselectedIcon`、`WFormTheme.radioSelectedIcon`、`WFormTheme.checkboxUnselectedIcon`、`WFormTheme.checkboxSelectedIcon`、`WFormTheme.obscureTextIcon`、`WFormTheme.obscureTextVisibleIcon`、`WFormTheme.clearButtonIcon`。
+- `WFormController.formBorderKeys` 不再公开（内部管道在 `border_registry.dart` 中维护）；
+  判断字段是否有边框用 `WFormController.hasBorder(name)`（内部 API）。
+- `WFormController.ensureBorderKey` / `WFormController.removeBorderKey` 不再公开：边框 key 由包内
+  `border_registry.dart` 管理；业务侧用 `setError` / `clearError`。
+- `WFormController.formEntered` 改为只读视图，写入请走 `handleChange` / `updateValue`。
+- `WFormValidatorItem` 的 `fieldName` / `validatorBuilder` / `autofocus` 改为构造后不可变。
+- 迁移见 `docs/migrations/form-6.0.md`。
+
+### Added
+- `WForm.onChanged`：任一字段变化后回调当前整表值（`Map<String, dynamic>`）。
+- `WFormCheckbox.message` / `WFormRadioGroup.message`：与其余直接字段一致的提示文案入口
+  （仅在 `bordered: true` 时渲染，与 `hintTextList` 二选一）。
+- `WFormFieldButton<T>`：泛型字段选择器；`WFormButton` 保持原 String API，等价于 `WFormFieldButton<String>`。
+- `WFormButton.message` / `WFormFieldButton.message`：提示文案简写（与 `hintTextList` 二选一）。
+
+### Fixed
+- 外层 `WFormTheme` 的 `icons` 现在会被 `WForm` 继承，App 级统一图标生效。
+- `WFormPopup.hide` 在没有弹层时不再 pop 普通页面（改为 no-op）。
+- `WForm.fieldStyle` 的 `textStyle` / `hintStyle` 补齐到复选框标题、日期与多选占位符。
+- 复选框 / 单选项补齐可点击语义与键盘激活（`Semantics.onTap` + `FocusableActionDetector`）。
+- `WFormBorderState` 的 error / message 状态改为只读 getter，外部不能直接改。
+- 同一个 `WFormController` 被两个 `WForm` 同时挂载时，第二个显示可读的重复挂载提示，
+  不再只报底层 `GlobalKey` 冲突；owner 卸载后提示会自动恢复为表单。
+- `bordered: false` 字段参与 `validate()` 时不再触发 debug 断言，错误只汇集到
+  `WFormValidator.errors`（无边框字段没有可渲染的错误位置）。
+- `WForm` 运行期换绑 controller 时会清理旧 controller 的默认校验设置。
+- 已打开的多选弹层会跟随外部 `setValue` / `reset` 更新勾选态。
+
+### Changed
+- `WFormController.validators()` 不传 `items` 时校验当前已挂载字段，与 `validate()` 一致。
+- `message` 与 `hintTextList` 同时传会在 debug 断言，不再静默丢弃 `message`。
+- `bordered: false` 字段调用 `setError` 会在 debug 断言提示（release 仍 no-op），
+  错误请从 `WFormValidator.errors` 读。
+- 文档：`WForm` / `WFormController` 必须一对一（共用 controller 会 `GlobalKey` 冲突）；
+  修正 `textAlign` 直接参数、`WFormTheme` / `WFormScope` 用法。
+
 ## 5.1.1
 
 ### Fixed

@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
@@ -38,11 +37,13 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
         controller: _form,
         borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
-        dropdownIcon: const Icon(Icons.expand_more_rounded),
-        radioUnselectedIcon: const Icon(Icons.radio_button_off),
-        radioSelectedIcon: const Icon(Icons.radio_button_checked),
-        checkboxUnselectedIcon: const Icon(Icons.check_box_outline_blank),
-        checkboxSelectedIcon: const Icon(Icons.check_box),
+        icons: const WFormIcons(
+          dropdown: Icon(Icons.expand_more_rounded),
+          radioUnselected: Icon(Icons.radio_button_off),
+          radioSelected: Icon(Icons.radio_button_checked),
+          checkboxUnselected: Icon(Icons.check_box_outline_blank),
+          checkboxSelected: Icon(Icons.check_box),
+        ),
         validatorSettings: WFormValidatorSettings()
           ..showBorderError = true
           ..continueOnError = true,

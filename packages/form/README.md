@@ -12,7 +12,7 @@
 - **直接字段参数**：常用样式/插槽直接传参；可变字段 Config 已在 5.0 移除
 - **边框体系**：`WFormBorderConfig`（不可变）+ `WFormBorder`
 - **只读与校验**：`WFormReadOnlyScope` / `WFormValidatorSettings`
-- **字段按钮**：`WFormButton` 自定义选择、弹层等交互
+- **字段按钮**：`WFormButton`（String）/ `WFormFieldButton<T>`（泛型）自定义选择、弹层等交互
 
 完整可运行示例见 [`example/`](example/)。
 
@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^5.1.1
+  w_tools_form: ^6.0.0
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
@@ -102,6 +102,7 @@ class _LoginFormState extends State<LoginForm> {
 
 普通页面优先用直接字段参数；跨字段默认值放 `WForm.fieldStyle`。
 可变 `WForm*Config` / `Config.build` 已在 form 5.0 移除。
+多行字段（`maxLines > 1`）要同步提高高度：`WFormFieldStyleScope(style: WFormFieldStyle(height: 72), ...)`。
 
 ```dart
 WFormTextField(
@@ -117,12 +118,27 @@ WFormTextField(
 WFormDropdown<String>(name: 'city', items: const {'sh': '上海'}, initialValue: 'sh');
 WFormMultiDropdown(name: 'tags', items: const {'a': 'A'}, disabledKeys: const {'b'});
 WFormDatePicker(name: 'birthday', label: '生日', displayFormat: 'yyyy-MM-dd');
-WFormCheckbox(name: 'agree', title: Text('同意'), bordered: true);
-WFormRadioGroup<String>(name: 'gender', items: const {'male': '男'}, bordered: true);
+WFormCheckbox(
+  name: 'agree',
+  title: Text('同意'),
+  message: '请先同意协议',
+  bordered: true,
+);
+WFormRadioGroup<String>(
+  name: 'gender',
+  items: const {'male': '男', 'female': '女'},
+  message: '请选择性别',
+  bordered: true,
+);
 WFormButton(
   name: 'coupon',
   label: '请选择优惠券',
   onTap: (value, didChange) => didChange('new_user'),
+);
+WFormFieldButton<int>(
+  name: 'level',
+  label: '选择等级',
+  onTap: (value, didChange) => didChange(3),
 );
 ```
 
@@ -166,11 +182,19 @@ WForm(
 
 ```dart
 form.validators(items: [WFormValidatorItem.field('email')]).validate();
+form.validators().validate(); // 不传 items：校验全部已挂载字段
 form.validate(settings: WFormValidatorSettings()..continueOnError = true);
 
 form.value; form.savedValue;
 form.setValue('email', 'a@b.com');
 form.reset();
+
+// 整表变化（任一字段变化后回调当前值）
+WForm(
+  controller: form,
+  onChanged: (values) => debugPrint('changed: $values'),
+  child: ...,
+);
 ```
 
 ## 主要 API
@@ -182,7 +206,7 @@ form.reset();
 | 下拉 / 多选 | `WFormDropdown` / `WFormMultiDropdown` |
 | 日期 | `WFormDatePicker` |
 | 复选 / 单选 | `WFormCheckbox` / `WFormRadioGroup` |
-| 自定义字段按钮 | `WFormButton` |
+| 自定义字段按钮 | `WFormButton` / `WFormFieldButton<T>` |
 | 边框 | `WFormBorder` / `WFormBorderConfig` |
 | 校验 | `WFormValidator` / `WFormValidatorItem` / `WFormValidatorSettings` |
 

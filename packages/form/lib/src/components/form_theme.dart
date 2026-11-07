@@ -13,14 +13,6 @@ class WFormTheme extends StatelessWidget {
     super.key,
     this.borderConfig,
     this.icons,
-    this.dropdownIcon,
-    this.radioUnselectedIcon,
-    this.radioSelectedIcon,
-    this.checkboxUnselectedIcon,
-    this.checkboxSelectedIcon,
-    this.obscureTextIcon,
-    this.obscureTextVisibleIcon,
-    this.clearButtonIcon,
     required this.child,
   });
 
@@ -29,17 +21,8 @@ class WFormTheme extends StatelessWidget {
   /// 表单边框配置；WFormScope 未显式传 formBorderConfig 时继承本项
   final WFormBorderConfig? borderConfig;
 
-  /// 图标集合；单个 `xxxIcon` 参数优先于它
+  /// 图标集合；未配置项回退 [WFormIcons.defaults]
   final WFormIcons? icons;
-
-  final Widget? dropdownIcon;
-  final Widget? radioUnselectedIcon;
-  final Widget? radioSelectedIcon;
-  final Widget? checkboxUnselectedIcon;
-  final Widget? checkboxSelectedIcon;
-  final Widget? obscureTextIcon;
-  final Widget? obscureTextVisibleIcon;
-  final Widget? clearButtonIcon;
 
   static WFormTheme? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<_WFormThemeInherited>()?.theme;
@@ -58,22 +41,19 @@ class WFormTheme extends StatelessWidget {
     );
   }
 
-  Widget get effectiveDropdownIcon =>
-      dropdownIcon ?? icons?.dropdown ?? WFormIcons.defaults.dropdown;
+  Widget get effectiveDropdownIcon => icons?.dropdown ?? WFormIcons.defaults.dropdown;
   Widget get effectiveRadioUnselectedIcon =>
-      radioUnselectedIcon ?? icons?.radioUnselected ?? WFormIcons.defaults.radioUnselected;
+      icons?.radioUnselected ?? WFormIcons.defaults.radioUnselected;
   Widget get effectiveRadioSelectedIcon =>
-      radioSelectedIcon ?? icons?.radioSelected ?? WFormIcons.defaults.radioSelected;
+      icons?.radioSelected ?? WFormIcons.defaults.radioSelected;
   Widget get effectiveCheckboxUnselectedIcon =>
-      checkboxUnselectedIcon ?? icons?.checkboxUnselected ?? WFormIcons.defaults.checkboxUnselected;
+      icons?.checkboxUnselected ?? WFormIcons.defaults.checkboxUnselected;
   Widget get effectiveCheckboxSelectedIcon =>
-      checkboxSelectedIcon ?? icons?.checkboxSelected ?? WFormIcons.defaults.checkboxSelected;
-  Widget get effectiveObscureTextIcon =>
-      obscureTextIcon ?? icons?.obscureText ?? WFormIcons.defaults.obscureText;
+      icons?.checkboxSelected ?? WFormIcons.defaults.checkboxSelected;
+  Widget get effectiveObscureTextIcon => icons?.obscureText ?? WFormIcons.defaults.obscureText;
   Widget get effectiveObscureTextVisibleIcon =>
-      obscureTextVisibleIcon ?? icons?.obscureTextVisible ?? WFormIcons.defaults.obscureTextVisible;
-  Widget get effectiveClearButtonIcon =>
-      clearButtonIcon ?? icons?.clear ?? WFormIcons.defaults.clear;
+      icons?.obscureTextVisible ?? WFormIcons.defaults.obscureTextVisible;
+  Widget get effectiveClearButtonIcon => icons?.clear ?? WFormIcons.defaults.clear;
 }
 
 /// WFormTheme 的 InheritedWidget 载体。
@@ -88,14 +68,6 @@ class _WFormThemeInherited extends InheritedWidget {
   @override
   bool updateShouldNotify(_WFormThemeInherited oldWidget) {
     return theme.borderConfig != oldWidget.theme.borderConfig ||
-        theme.icons != oldWidget.theme.icons ||
-        theme.dropdownIcon != oldWidget.theme.dropdownIcon ||
-        theme.radioUnselectedIcon != oldWidget.theme.radioUnselectedIcon ||
-        theme.radioSelectedIcon != oldWidget.theme.radioSelectedIcon ||
-        theme.checkboxUnselectedIcon != oldWidget.theme.checkboxUnselectedIcon ||
-        theme.checkboxSelectedIcon != oldWidget.theme.checkboxSelectedIcon ||
-        theme.obscureTextIcon != oldWidget.theme.obscureTextIcon ||
-        theme.obscureTextVisibleIcon != oldWidget.theme.obscureTextVisibleIcon ||
-        theme.clearButtonIcon != oldWidget.theme.clearButtonIcon;
+        theme.icons != oldWidget.theme.icons;
   }
 }

@@ -26,7 +26,7 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
         controller: _form,
         borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
-        clearButtonIcon: const Icon(Icons.close_rounded, size: 18),
+        icons: const WFormIcons(clear: Icon(Icons.close_rounded, size: 18)),
         validatorSettings: WFormValidatorSettings()
           ..showBorderError = true
           ..continueOnError = true,

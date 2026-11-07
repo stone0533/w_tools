@@ -217,9 +217,8 @@ void main() {
         'WCardNumberInputFormatter',
         'WDividerInputFormatter',
         'WFormCustomValidator',
-        'WFormPopupRoute',
         'WFormFieldShell',
-        'WFormBorderState',
+        'WFormFieldButton',
         'WFormBorderLayout',
       ];
       for (final name in names) {

@@ -88,10 +88,12 @@ class WFormPopup {
 
   /// 关闭当前弹层，并可回传结果
   ///
-  /// 仅在弹层打开时调用；否则会弹出普通页面。
-  /// [rootNavigator] 需与 [show] 时保持一致，避免弹错路由栈。
+  /// 当前 [Navigator] 没有本组件打开的弹层时不做任何事（不会 pop 普通页面）。
+  /// [rootNavigator] 需与 [show] 时保持一致，避免匹配到错误的导航栈。
   static void hide<T>(BuildContext context, [T? result, bool rootNavigator = false]) {
-    Navigator.of(context, rootNavigator: rootNavigator).pop<T>(result);
+    final navigator = Navigator.of(context, rootNavigator: rootNavigator);
+    if (!_activeNavigators.contains(navigator)) return;
+    navigator.pop<T>(result);
   }
 
   /// 获取已完成布局的 RenderBox
@@ -104,7 +106,7 @@ class WFormPopup {
   }
 }
 
-/// 表单弹出层路由
+/// 表单弹出层路由（内部实现，用 [WFormPopup.show] / [WFormPopup.hide]）
 class WFormPopupRoute<T> extends PopupRoute<T> {
   /// 构建弹出层内容的回调函数
   final WidgetBuilder builder;

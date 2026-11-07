@@ -455,7 +455,7 @@ components:
     docsAnchor: '36-直接字段与-wform'
     section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验'
-    dontUseFor: '不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope`'
+    dontUseFor: '普通页面不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` 三层嵌套；App 级图标 / 边框才用外层 `WFormTheme`'
     usage: |
       WForm(
         controller: form,
@@ -464,12 +464,14 @@ components:
         validatorSettings: WFormValidatorSettings()..showBorderError = true,
         readOnly: false,
         icons: WFormIcons.defaults,
+        onChanged: (values) { /* 任一字段变化后的整表值 */ },
         child: WFormTextField(name: 'email'),
       )
     pitfalls:
-      - '一个 WForm 对应一个 WFormController'
+      - '一个 WForm 对应一个 WFormController；两个 WForm 不能同时挂载同一个 controller'
       - '表单字段用直接参数，不要从 Config.build 开始'
-      - 'readOnly 只在 WForm 上传；不要逐字段传'
+      - '整页只读用 WForm(readOnly: true)；单字段锁定用字段的 readOnly'
+      - '整表变化用 WForm(onChanged:)；不要逐字段拼回调'
     related: ['`WFormController`', '`WFormTextField`']
     teach: true
   - name: '`WFormController`'
@@ -477,7 +479,7 @@ components:
     docsAnchor: '2-wformcontroller--表单状态管理'
     section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '表单数据 / 字段值 / 校验入口'
-    dontUseFor: '多个 WForm 不要共用一个 controller'
+    dontUseFor: '两个 WForm 不能同时挂载同一个 controller（会显示重复挂载提示）'
     usage: |
       final form = WFormController();
       WForm(controller: form, child: ...);
@@ -508,6 +510,8 @@ components:
       )
     pitfalls:
       - '不要再传 config: WFormTextFieldConfig'
+      - 'message 与 hintTextList 二选一，同时传会断言'
+      - 'maxLines > 1 时同步提高 WFormFieldStyle.height（或用 WFormFieldStyleScope），否则内容会被裁'
     related: ['`WForm`', '`WFormFieldStyle`']
     teach: true
   - name: '`WFormDropdown`'
@@ -580,7 +584,7 @@ components:
         validator: (value) => value == true ? null : '请先同意',
       )
     pitfalls:
-      - 'title 必填；需要边框 / message 时显式传 bordered: true'
+      - 'title 必填；message 只在有边框时渲染，需要它时传 bordered: true'
     related: ['`WFormRadioGroup`', '`WFormFieldStyle`']
     teach: true
   - name: '`WFormRadioGroup`'
@@ -598,7 +602,7 @@ components:
       )
     pitfalls:
       - 'titleBuilder 是每个选项的标题，不是分组标题'
-      - '默认 bordered: false；需要边框 / message 时显式传 bordered: true'
+      - '默认 bordered: false；message 只在有边框时渲染，需要它时传 bordered: true'
     related: ['`WFormCheckbox`', '`WFormFieldStyle`']
     teach: true
   - name: '`WFormButton`'
@@ -618,8 +622,24 @@ components:
     pitfalls:
       - '写值只能通过 onTap 拿到的 didChange；字段卸载后再调会被包内保护忽略'
       - '显示已选值用 selectedWidgetBuilder，不要在外面再维护一份状态'
-    related: ['`WForm`', '`WFormPopup`']
+      - 'String 值用 `WFormButton`；enum / int 等非 String 值用 `WFormFieldButton<T>`'
+      - 'message 与 hintTextList 二选一，同时传会断言'
+    related: ['`WForm`', '`WFormPopup`', '`WFormFieldButton`']
     teach: true
+  - name: '`WFormFieldButton`'
+    package: 'w_tools_form'
+    docsAnchor: '57-wformbutton'
+    section: '5. 字段组件（直接用法 / 低层细节）'
+    useFor: '泛型字段值选择器：enum / int 等非 String 值'
+    dontUseFor: 'String 值优先用 `WFormButton`；普通业务按钮用 `WButton`'
+    usage: |
+      WFormFieldButton<int>(
+        name: 'level',
+        label: '选择等级',
+        onTap: (value, didChange) => didChange(3),
+      )
+    related: ['`WFormButton`', '`WFormPopup`']
+    teach: false
   - name: '`WFormFieldStyle`'
     package: 'w_tools_form'
     docsAnchor: '36-直接字段与-wform'
@@ -655,6 +675,8 @@ components:
     section: '4. 边框系统'
     useFor: '低层边框 / 错误展示；普通页面由 `WForm` 统一提供'
     dontUseFor: '普通字段不要手写 `WFormBorder`'
+    pitfalls:
+      - '字段 bordered: false 时没有边框 key，setError 在 debug 会断言提示（release 为 no-op）；这类字段的错误从 WFormValidator.errors 读'
     usage: |
       // 由字段自动装配；自定义外观用 WFormBorderConfig
       WForm(
@@ -697,8 +719,8 @@ components:
     package: 'w_tools_form'
     docsAnchor: 'wformicons--图标集合'
     section: '3. WFormTheme / WFormIcons — 表单主题'
-    useFor: '表单图标集合（下拉 / 勾选 / 单选 / 密码 / 清空）'
-    dontUseFor: '`WFormDefaults` 已删除；单字段 icon 参数优先于它'
+    useFor: '表单图标统一入口（下拉 / 勾选 / 单选 / 密码 / 清空）；WForm 会继承外层 WFormTheme 的图标'
+    dontUseFor: '`WFormDefaults` 已删除；`WForm` / `WFormTheme` 已不再接受单项 `xxxIcon` 参数，统一用 `icons:`'
     usage: |
       WForm(
         icons: const WFormIcons(dropdown: Icon(Icons.expand_more)),
@@ -790,6 +812,7 @@ components:
       );
     pitfalls:
       - '同一 Navigator 同时只允许一个 WFormPopup'
+      - '没有弹层时 hide 是 no-op（不会 pop 普通页面）；rootNavigator 需与 show 一致'
     related: ['`WFormButton`']
     teach: false
   - name: '`WAsyncView`'
@@ -1791,24 +1814,27 @@ components:
     package: 'w_tools_form'
     docsAnchor: '3-wformtheme--wformicons--表单主题'
     section: '3. WFormTheme / WFormIcons — 表单主题'
-    useFor: 'WForm 内部的主题 InheritedWidget（由 WForm 组合）'
+    useFor: '主题 InheritedWidget：App 级图标 / 边框统一放外层，WForm 会继承'
     usage: |
-      // 由 WForm 组合，不要手写
-      WForm(controller: form, child: ...)
+      WFormTheme(
+        icons: WFormIcons.defaults,
+        borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+        child: MaterialApp(...),
+      )
     pitfalls:
-      - '不要直接实例化；用 WForm 的 icons / borderConfig 等参数'
+      - '普通页面用 WForm(icons:/borderConfig:)；需要 App 级统一时才在外层用 WFormTheme'
     related: ['`WForm`']
     teach: false
   - name: '`WFormScope`'
     package: 'w_tools_form'
     docsAnchor: '1-wformscope--表单容器'
     section: '1. WFormScope — 表单容器'
-    useFor: '表单 InheritedWidget 管道（由 WForm 组合）'
+    useFor: '表单 InheritedWidget 管道（WForm 内部组合）'
     usage: |
-      // 由 WForm 组合，不要手写
+      // 普通页面用 WForm；只有自定义布局时才直接组合 WFormScope
       WForm(controller: form, child: ...)
     pitfalls:
-      - '不要直接实例化；controller 通过 WForm 传入'
+      - '普通页面不要直接实例化；自定义布局场景才用，且 formData 必须与字段子树同一个 controller'
     related: ['`WForm`', '`WFormController`']
     teach: false
   - name: '`WFormReadOnlyScope`'
@@ -1893,40 +1919,28 @@ components:
       - '通常不用直接构造；自定义布局用 WFormBorderLayout.builder(...)'
     related: ['`WFormBorderConfig`']
     teach: false
-  - name: '`WFormFieldShell` / `WFormBorderState`'
+  - name: '`WFormFieldShell`'
     package: 'w_tools_form'
     docsAnchor: '43-wformfieldshell'
     section: '4. 边框系统'
-    useFor: '字段外框装配与边框 State（内置字段自动使用）'
+    useFor: '字段外框装配（内置字段自动使用；自定义字段可参考 form_module.md §4.3）'
     usage: |
       WFormFieldShell(name: 'x', readOnly: false, child: ...)
     pitfalls:
       - '普通字段不要手写；自定义字段可参考 form_module.md §4.3'
     related: ['`WFormBorder`']
     teach: false
-  - name: '`WFormBorderConfigScope` / `WFormBorderDecorationExtension`'
+  - name: '`WFormBorderDecorationExtension`'
     package: 'w_tools_form'
     docsAnchor: '4-边框系统'
     section: '4. 边框系统'
-    useFor: '边框配置的 InheritedWidget 与装饰扩展（内部使用）'
+    useFor: '边框装饰值对象的链式扩展（withUniformBorder / withColor 等）'
     usage: |
-      WForm(borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)), child: ...)
-    pitfalls:
-      - '业务用 WFormBorderConfig；不要直接依赖 Scope'
-    related: ['`WFormBorderConfig`']
+      const WFormBorderDecoration()
+          .withUniformBorder(1, Colors.grey)
+          .withUniformBorderRadius(8)
+    related: ['`WFormBorderDecoration`']
     teach: false
-  - name: '`WFormPopupRoute`'
-    package: 'w_tools_form'
-    docsAnchor: '6-wformpopup--弹出层'
-    section: '6. WFormPopup — 弹出层'
-    useFor: 'WFormPopup 使用的 PopupRoute（由 show 创建）'
-    usage: |
-      WFormPopup.show(context: context, builder: (context) => ...)
-    pitfalls:
-      - '不要自己 push 这个 Route；用 WFormPopup.show'
-    related: ['`WFormPopup`']
-    teach: false
-
   - name: '`WAsyncErrorView` / `WAsyncErrorBanner`'
     package: 'w_tools_async'
     docsAnchor: '4-view'

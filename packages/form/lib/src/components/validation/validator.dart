@@ -98,7 +98,7 @@ class WFormValidator {
         }
       }
 
-      if (resolvedConfig.showBorderError == true) {
+      if (resolvedConfig.showBorderError == true && formData.hasBorder(item.fieldName)) {
         formData.setError(item.fieldName, errorTextList: [errorText]);
       }
 
@@ -149,17 +149,17 @@ class WFormValidator {
 ///   并把校验错误汇总进 [WFormValidator.errors] 与边框错误。
 class WFormValidatorItem {
   /// 字段名称
-  String fieldName;
+  final String fieldName;
 
   /// 验证函数生成器
   ///
   /// 每次校验时调用一次以获取验证函数，便于按运行期状态生成动态规则；
   /// 若规则固定，可在生成器内返回同一函数实例，避免重复创建闭包。
   /// 为 null 时表示使用字段自身声明的 validator（见 [WFormValidatorItem.field]）。
-  FormFieldValidator<dynamic> Function()? validatorBuilder;
+  final FormFieldValidator<dynamic> Function()? validatorBuilder;
 
   /// 是否自动聚焦到错误字段
-  bool autofocus;
+  final bool autofocus;
 
   /// 创建自定义校验项
   WFormValidatorItem({

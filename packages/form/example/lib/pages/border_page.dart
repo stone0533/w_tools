@@ -23,7 +23,11 @@ class _BorderExamplePageState extends State<BorderExamplePage> {
         controller: _form,
         borderConfig: exampleCompactBorderConfig,
         fieldStyle: exampleFieldStyle,
-        validatorSettings: WFormValidatorSettings()..showBorderError = true,
+        validatorSettings: WFormValidatorSettings()
+          ..showBorderError = true
+          ..itemValidationCallback = (name, ok, error) {
+            _lastValidation = ok ? '$name：通过' : '$name：$error';
+          },
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
@@ -58,7 +62,10 @@ class _BorderExamplePageState extends State<BorderExamplePage> {
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: _form.validate,
+              onPressed: () {
+                _form.validate();
+                setState(() {});
+              },
               child: const Text('触发校验'),
             ),
             const SizedBox(height: 12),

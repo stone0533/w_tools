@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 part of 'multi_dropdown.dart';
 
 class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
@@ -11,6 +10,7 @@ class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
   Widget? checkboxSelectedIcon;
   Widget? checkboxDisabledIcon;
   TextStyle? style;
+  TextStyle? hintStyle;
   EdgeInsets? popUpLayerPadding;
   double? popUpLayerElevation;
   Color? popUpLayerShadowColor;
@@ -41,6 +41,7 @@ class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
     this.checkboxSelectedIcon,
     this.checkboxDisabledIcon,
     this.style,
+    this.hintStyle,
     this.popUpLayerPadding,
     this.popUpLayerElevation,
     this.popUpLayerShadowColor,
@@ -135,6 +136,7 @@ class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
     Widget? checkboxSelectedIcon,
     Widget? checkboxDisabledIcon,
     TextStyle? style,
+    TextStyle? hintStyle,
     EdgeInsets? popUpLayerPadding,
     double? popUpLayerElevation,
     Color? popUpLayerShadowColor,
@@ -165,6 +167,7 @@ class WFormMultiDropdownConfig extends WFormFieldBaseConfig {
       checkboxSelectedIcon: checkboxSelectedIcon ?? this.checkboxSelectedIcon,
       checkboxDisabledIcon: checkboxDisabledIcon ?? this.checkboxDisabledIcon,
       style: style ?? this.style,
+      hintStyle: hintStyle ?? this.hintStyle,
       popUpLayerPadding: popUpLayerPadding ?? this.popUpLayerPadding,
       popUpLayerElevation: popUpLayerElevation ?? this.popUpLayerElevation,
       popUpLayerShadowColor: popUpLayerShadowColor ?? this.popUpLayerShadowColor,

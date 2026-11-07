@@ -9,6 +9,21 @@ import 'form_theme.dart';
 import 'validation/validator.dart';
 import 'form_controller.dart';
 
+final Expando<Object> _controllerHosts = Expando<Object>();
+
+bool _claimController(WFormController controller, Object host) {
+  final current = _controllerHosts[controller];
+  if (current == null || identical(current, host)) {
+    _controllerHosts[controller] = host;
+    return true;
+  }
+  return false;
+}
+
+void _releaseController(WFormController controller, Object host) {
+  if (identical(_controllerHosts[controller], host)) _controllerHosts[controller] = null;
+}
+
 /// 表单页面容器。
 ///
 /// 一次性组合 [WFormTheme]、[WFormScope] 与 [WFormReadOnlyScope]，
@@ -21,6 +36,9 @@ import 'form_controller.dart';
 ///   child: ListView(...),
 /// )
 /// ```
+///
+/// 图标：显式 [icons] 优先；未传时继承祖先 [WFormTheme]，最后回退
+/// [WFormIcons.defaults]。
 ///
 /// 校验设置：显式传 [validatorSettings] 时完全以它为准；未传时注入
 /// `WFormValidatorSettings()..showBorderError = true`，保证 `validate()` 失败时
@@ -36,15 +54,8 @@ class WForm extends StatefulWidget {
     this.validatorSettings,
     this.readOnly = false,
     this.autovalidateMode,
+    this.onChanged,
     this.icons,
-    this.dropdownIcon,
-    this.radioUnselectedIcon,
-    this.radioSelectedIcon,
-    this.checkboxUnselectedIcon,
-    this.checkboxSelectedIcon,
-    this.obscureTextIcon,
-    this.obscureTextVisibleIcon,
-    this.clearButtonIcon,
   });
 
   final WFormController controller;
@@ -55,25 +66,25 @@ class WForm extends StatefulWidget {
   final bool readOnly;
   final AutovalidateMode? autovalidateMode;
 
-  /// 图标集合（单个 `xxxIcon` 参数优先）
-  final WFormIcons? icons;
+  /// 任一字段值变化后回调，参数为当前整表值。
+  final ValueChanged<Map<String, dynamic>>? onChanged;
 
-  final Widget? dropdownIcon;
-  final Widget? radioUnselectedIcon;
-  final Widget? radioSelectedIcon;
-  final Widget? checkboxUnselectedIcon;
-  final Widget? checkboxSelectedIcon;
-  final Widget? obscureTextIcon;
-  final Widget? obscureTextVisibleIcon;
-  final Widget? clearButtonIcon;
+  /// 图标集合；未传时继承外层 [WFormTheme]，最后回退 [WFormIcons.defaults]
+  final WFormIcons? icons;
 
   @override
   State<WForm> createState() => _WFormState();
 }
 
 class _WFormState extends State<WForm> {
-  /// 实际生效的校验设置：显式传入优先；只传了 borderConfig 时默认显示边框错误，
+  /// 实际生效的校验设置：显式传入优先；未传时默认显示边框错误。
   WFormValidatorSettings? _settings;
+
+  /// 当前 state 是否持有 controller 的挂载登记
+  bool _ownsController = false;
+
+  /// 是否为「等待 owner 释放」排过一次 post-frame 重试
+  bool _recoveryScheduled = false;
 
   /// 主题派生的默认边框配置（按 ThemeData 实例缓存，避免每帧重建）
   WFormBorderConfig? _defaultBorderConfig;
@@ -82,7 +93,22 @@ class _WFormState extends State<WForm> {
   @override
   void initState() {
     super.initState();
-    _syncSettings();
+    _ownsController = _claimController(widget.controller, this);
+    if (_ownsController) _syncSettings();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _ownsController = _claimController(widget.controller, this);
+    if (_ownsController) _syncSettings();
+  }
+
+  @override
+  void deactivate() {
+    _releaseController(widget.controller, this);
+    _ownsController = false;
+    super.deactivate();
   }
 
   void _syncSettings() {
@@ -111,15 +137,37 @@ class _WFormState extends State<WForm> {
   @override
   void didUpdateWidget(covariant WForm oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller ||
-        oldWidget.validatorSettings != widget.validatorSettings ||
-        oldWidget.borderConfig != widget.borderConfig) {
+    if (oldWidget.controller != widget.controller) {
+      if (oldWidget.controller.validatorSettings == _settings) {
+        oldWidget.controller.validatorSettings = null;
+      }
+      _releaseController(oldWidget.controller, this);
+      _ownsController = _claimController(widget.controller, this);
+    }
+    if (_ownsController &&
+        (oldWidget.controller != widget.controller ||
+            oldWidget.validatorSettings != widget.validatorSettings ||
+            oldWidget.borderConfig != widget.borderConfig)) {
       _syncSettings();
     }
   }
 
+  /// owner 卸载发生在本帧更晚的时候，post-frame 再试一次并触发重建。
+  void _scheduleRecovery() {
+    if (_recoveryScheduled) return;
+    _recoveryScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _recoveryScheduled = false;
+      if (!mounted || _ownsController) return;
+      if (_claimController(widget.controller, this)) {
+        setState(() => _ownsController = true);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _releaseController(widget.controller, this);
     if (widget.controller.validatorSettings == _settings) {
       widget.controller.validatorSettings = null;
     }
@@ -128,26 +176,50 @@ class _WFormState extends State<WForm> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_ownsController) {
+      // owner 卸载后允许自动恢复；claim 是幂等的，不会抢走别人的登记。
+      _ownsController = _claimController(widget.controller, this);
+      if (!_ownsController) _scheduleRecovery();
+    }
+    if (!_ownsController) {
+      // 不抛异常：抛在 build 里会连带 ErrorWidget 撑破布局，这里直接给出可读提示。
+      return const _WFormDuplicateControllerNotice();
+    }
+
+    // 未显式传的图标继承外层 WFormTheme，实现「App 统一图标」。
+    final inheritedTheme = WFormTheme.maybeOf(context);
     return WFormTheme(
-      icons: widget.icons,
+      icons: widget.icons ?? inheritedTheme?.icons,
       borderConfig: _resolveBorderConfig(context),
-      dropdownIcon: widget.dropdownIcon,
-      radioUnselectedIcon: widget.radioUnselectedIcon,
-      radioSelectedIcon: widget.radioSelectedIcon,
-      checkboxUnselectedIcon: widget.checkboxUnselectedIcon,
-      checkboxSelectedIcon: widget.checkboxSelectedIcon,
-      obscureTextIcon: widget.obscureTextIcon,
-      obscureTextVisibleIcon: widget.obscureTextVisibleIcon,
-      clearButtonIcon: widget.clearButtonIcon,
       child: WFormFieldStyleScope(
         style: widget.fieldStyle,
         child: WFormScope(
           formData: widget.controller,
           autovalidateMode: widget.autovalidateMode,
+          onChanged: widget.onChanged,
           child: WFormReadOnlyScope(
             readOnly: widget.readOnly,
             child: widget.child,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 同一个 controller 被多个 WForm 同时挂载时的可读提示。
+class _WFormDuplicateControllerNotice extends StatelessWidget {
+  const _WFormDuplicateControllerNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Text(
+          'WFormController 重复挂载：同一个 WFormController 不能同时被两个 WForm 使用。'
+          '请各自持有 controller，或在页面间传递值。',
+          textAlign: TextAlign.center,
         ),
       ),
     );

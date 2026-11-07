@@ -35,6 +35,9 @@ class WFormScope extends StatelessWidget {
   /// 自动验证模式
   final AutovalidateMode? autovalidateMode;
 
+  /// 任一字段值变化后的回调（参数为当前整表值）
+  final ValueChanged<Map<String, dynamic>>? onChanged;
+
   /// 表单边框配置（作用于本 builder 子树内的所有表单边框）
   ///
   /// 按引用捕获：运行期修改请替换实例（`formBorderConfig = newCfg`，
@@ -48,6 +51,7 @@ class WFormScope extends StatelessWidget {
     required this.child,
     this.autovalidateMode,
     this.formBorderConfig,
+    this.onChanged,
   });
 
   /// 获取当前子树中的 [WFormController]（无祖先时返回 null）
@@ -86,6 +90,7 @@ class WFormScope extends StatelessWidget {
         child: FormBuilder(
           key: formData.formKey,
           autovalidateMode: autovalidateMode,
+          onChanged: onChanged == null ? null : () => onChanged!(formData.value),
           child: child,
         ),
       ),

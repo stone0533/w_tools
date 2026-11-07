@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
@@ -73,9 +72,9 @@ class TestFormBorderBuilder {
   );
 }
 
-/// 测试专用：4.0 删除的 `Row.withFormBorder` 的等价实现。
-///
-/// 生产代码直接用 `WFormFieldShell(child: Row(...))`；测试保留糖，避免逐处改。
+/// 测试专用：`Row.withFormBorder` 在 4.0 已删除，这里只作为
+/// `WFormFieldShell(child: Row(...))` 的装配糖，测的是公开的 `WFormFieldShell`
+/// 与只读作用域，不代表已删除的扩展仍然存在。
 extension TestRowBorder on Row {
   Widget withFormBorder({
     required String name,

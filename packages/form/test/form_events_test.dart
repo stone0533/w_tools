@@ -1,0 +1,277 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:w_tools_form/w_tools_form.dart';
+
+void main() {
+  testWidgets('WForm.onChanged 收到整表值', (tester) async {
+    Map<String, dynamic>? changed;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            onChanged: (values) => changed = values,
+            child: const WFormTextField(name: 'email', label: '邮箱'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'a@b.com');
+    await tester.pump();
+
+    expect(changed, isNotNull);
+    expect(changed!['email'], 'a@b.com');
+  });
+
+  testWidgets('validators() 不传 items 时校验全部字段', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: WFormTextField(
+              name: 'email',
+              label: '邮箱',
+              validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final validator = form.validators();
+    expect(validator.validate(), isFalse);
+
+    await tester.enterText(find.byType(TextField), 'a@b.com');
+    await tester.pump();
+    expect(validator.validate(), isTrue);
+  });
+
+  testWidgets('message 与 hintTextList 同传时断言', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormTextField(
+              name: 'email',
+              label: '邮箱',
+              message: '消息',
+              hintTextList: ['提示'],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isAssertionError);
+  });
+
+  testWidgets('两个 WForm 共用 controller 会得到可读错误', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              WForm(
+                controller: form,
+                child: const WFormTextField(name: 'a', label: 'A'),
+              ),
+              WForm(
+                controller: form,
+                child: const WFormTextField(name: 'b', label: 'B'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('WFormController 重复挂载'), findsOneWidget);
+    // 第一个 WForm 不受影响，仍正常渲染。
+    expect(find.text('A'), findsWidgets);
+  });
+
+  testWidgets('同一帧替换 WForm（key 变化）仍可复用 controller', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            key: const ValueKey('first'),
+            controller: form,
+            child: const WFormTextField(name: 'a', label: 'A'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            key: const ValueKey('second'),
+            controller: form,
+            child: const WFormTextField(name: 'b', label: 'B'),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('WForm 卸载后 controller 可再次挂载', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormTextField(name: 'a', label: 'A'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: SizedBox())));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormTextField(name: 'b', label: 'B'),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('bordered:false 字段 setError 会断言提示', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormTextField(name: 'plain', label: '无边框', bordered: false),
+          ),
+        ),
+      ),
+    );
+
+    expect(form.hasBorder('plain'), isFalse);
+    expect(
+      () => form.setError('plain', errorTextList: const ['不会渲染']),
+      throwsAssertionError,
+    );
+  });
+
+  testWidgets('borderless 字段 validate 不抛异常，错误只进 errors', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: WFormTextField(
+              name: 'plain',
+              label: '无边框',
+              bordered: false,
+              validator: (_) => '必填',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final validator = form.validators();
+    expect(validator.validate(), isFalse);
+    expect(tester.takeException(), isNull);
+    expect(validator.errors['plain'], '必填');
+  });
+
+  testWidgets('移除 owner 后重复挂载的 WForm 会恢复', (tester) async {
+    final form = WFormController();
+    Widget build({required bool showFirst}) => MaterialApp(
+      home: Scaffold(
+        body: Column(
+          children: [
+            if (showFirst)
+              WForm(
+                key: const ValueKey('first'),
+                controller: form,
+                child: const WFormTextField(name: 'a', label: 'A'),
+              ),
+            WForm(
+              key: const ValueKey('second'),
+              controller: form,
+              child: const WFormTextField(name: 'b', label: 'B'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build(showFirst: true));
+    expect(find.textContaining('WFormController 重复挂载'), findsOneWidget);
+
+    await tester.pumpWidget(build(showFirst: false));
+    await tester.pump();
+
+    expect(find.textContaining('WFormController 重复挂载'), findsNothing);
+    expect(find.text('B'), findsWidgets);
+  });
+
+  testWidgets('换绑 controller 会清掉旧 controller 的默认校验设置', (tester) async {
+    final first = WFormController();
+    final second = WFormController();
+    Widget build(WFormController controller) => MaterialApp(
+      home: Scaffold(
+        body: WForm(
+          controller: controller,
+          child: const WFormTextField(name: 'email', label: '邮箱'),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build(first));
+    expect(first.validatorSettings, isNotNull);
+
+    await tester.pumpWidget(build(second));
+    expect(first.validatorSettings, isNull);
+    expect(second.validatorSettings, isNotNull);
+  });
+
+  testWidgets('WFormButton 支持 message 简写', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            borderConfig: WFormBorderConfig.standard(),
+            child: WFormButton(
+              name: 'coupon',
+              label: '选择优惠券',
+              message: '请选择优惠券',
+              onTap: (_, __) {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('请选择优惠券'), findsWidgets);
+  });
+
+  test('formEntered 是只读视图', () {
+    final form = WFormController();
+    expect(() => form.formEntered['x'] = true, throwsUnsupportedError);
+  });
+}

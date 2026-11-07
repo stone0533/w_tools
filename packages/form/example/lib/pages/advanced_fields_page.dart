@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
@@ -16,6 +15,7 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
   final _form = WFormController();
   String? _snapshot;
   String? _validationResult;
+  int _changeCount = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +26,12 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
         borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
         autovalidateMode: AutovalidateMode.onUserInteraction,
-        dropdownIcon: const Icon(Icons.expand_more_rounded),
-        checkboxUnselectedIcon: const Icon(Icons.check_box_outline_blank),
-        checkboxSelectedIcon: const Icon(Icons.check_box),
+        onChanged: (_) => setState(() => _changeCount++),
+        icons: const WFormIcons(
+          dropdown: Icon(Icons.expand_more_rounded),
+          checkboxUnselected: Icon(Icons.check_box_outline_blank),
+          checkboxSelected: Icon(Icons.check_box),
+        ),
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
@@ -42,12 +45,16 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
               style: TextStyle(color: Color(0xFF6B7280)),
             ),
             const SizedBox(height: 24),
-            const WFormTextField(
-              name: 'bio',
-              label: '个人简介',
-              message: '最多三行',
-              maxLines: 3,
-              leading: Icon(Icons.notes_rounded),
+            const WFormFieldStyleScope(
+              // 多行字段需要比页面默认（52）更高的外框，否则第三行会被裁掉。
+              style: WFormFieldStyle(height: 72),
+              child: WFormTextField(
+                name: 'bio',
+                label: '个人简介',
+                message: '最多三行',
+                maxLines: 3,
+                leading: Icon(Icons.notes_rounded),
+              ),
             ),
             const SizedBox(height: 16),
             const WFormDropdown<String>(
@@ -75,6 +82,15 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
               selectedIcon: Icon(Icons.radio_button_checked),
               unselectedIcon: Icon(Icons.radio_button_off),
             ),
+            const SizedBox(height: 16),
+            WFormFieldButton<int>(
+              name: 'priority',
+              label: '选择优先级',
+              selectedWidgetBuilder: (value) => Text('优先级 $value'),
+              onTap: (_, didChange) => didChange(1),
+            ),
+            const SizedBox(height: 8),
+            Text('字段变化次数：$_changeCount'),
             const SizedBox(height: 24),
             Wrap(
               spacing: 8,

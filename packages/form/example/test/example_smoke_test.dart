@@ -52,6 +52,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('字段配置'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('读取 controller 状态'));
     await tester.tap(find.text('读取 controller 状态'));
     await tester.pumpAndSettle();

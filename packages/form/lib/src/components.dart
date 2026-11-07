@@ -4,7 +4,7 @@
 export 'components/form_icons.dart';
 
 // 边框与布局
-export 'components/border/border.dart';
+export 'components/border/border.dart' hide WFormBorderConfigScope, WFormBorderState;
 export 'components/border/border_layout.dart';
 export 'components/border/field_shell.dart';
 export 'components/border/read_only_scope.dart';
@@ -22,7 +22,6 @@ export 'components/fields/text_field_actions.dart';
 
 // 表单容器与数据
 export 'components/field_button.dart' hide WFormFieldButtonCore, WFormFieldButtonConfig;
-export 'components/field_base_config.dart' hide WFormFieldBaseConfig;
 export 'components/form_container.dart';
 export 'components/form_scope.dart';
 export 'components/form_field_style.dart';
@@ -31,7 +30,7 @@ export 'components/form_controller.dart';
 // 默认值与工具
 export 'components/form_theme.dart';
 export 'components/form_input_formatters.dart';
-export 'components/popup.dart';
+export 'components/popup.dart' hide WFormPopupRoute;
 
 // 校验器
 export 'components/validation/custom_validator.dart';
