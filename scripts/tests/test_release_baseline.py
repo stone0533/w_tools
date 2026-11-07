@@ -25,7 +25,9 @@ class BaselineTest(unittest.TestCase):
         self.assertIn('低于本地', message)
 
     def test_publish_local_ahead_passes(self):
-        code, message = mod.baseline('cli', '1.15.0', mode='publish')
+        # 快照版本 mock 掉：不依赖仓库当前基线（发布该版本后真实基线会等于本地）。
+        with mock.patch.object(mod, 'snapshot_version', return_value='1.14.0'):
+            code, message = mod.baseline('cli', '1.15.0', mode='publish')
         self.assertEqual(code, 0)
         self.assertIn('待发布', message)
 
