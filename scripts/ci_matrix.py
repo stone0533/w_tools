@@ -29,11 +29,17 @@ REQUIRED_FILTERS = {
     'code': [
         'packages/**/*.dart',
         'packages/**/pubspec.yaml',
+        # 测试资产 / 输出契约 / 发布白名单：只改它们也要跑包测试与 dry-run。
+        'packages/**/test/**',
+        'packages/**/schema/**',
+        'packages/**/*.json',
+        'packages/**/.pubignore',
         'packages/cli/templates/**',
         'packages/cli/catalog/**',
         'lib/**',
         'test/**',
         'pubspec.yaml',
+        '.pubignore',
         '.github/workflows/ci.yml',
     ],
     'static': [
@@ -155,6 +161,166 @@ def required_job_errors(workflow: dict) -> list[str]:
                 '它每次 PR 都跑，是过滤器/门禁接线失效时的兜底'
             )
     return errors
+
+
+EXPECTED_CHANGES_OUTPUTS = {
+    'code': "${{ steps.filter.outputs.code || 'true' }}",
+    'static': "${{ steps.filter.outputs.static || 'true' }}",
+}
+EXPECTED_GATED_IFS = {
+    'umbrella': "needs.changes.outputs.code == 'true' || needs.changes.outputs.static == 'true'",
+    'min_sdk': "needs.changes.outputs.code == 'true'",
+    'packages': "needs.changes.outputs.code == 'true'",
+}
+GATE_COMMANDS = (
+    'scripts/preflight.sh',
+    'check_version_bump.py',
+    'check_pr_scope.py',
+    'scripts/check_docs.sh',
+    'scripts/release_check.sh',
+    'ci_matrix.py --check',
+    'check_gate_coverage.py',
+)
+PR_TEMPLATE = root / '.github/PULL_REQUEST_TEMPLATE.md'
+RELEASE_STATUS_WORKFLOW = root / '.github/workflows/release-status.yml'
+REQUIRED_CHECK_NAME = 'Required checks'
+
+
+def _normalized(value: object) -> str:
+    return ' '.join(str(value or '').split())
+
+
+def wiring_errors(workflow: dict) -> list[str]:
+    """outputs / 门控 if / required 判定必须是精确的那几句，而不是「包含某个子串」。"""
+    jobs = workflow.get('jobs') or {}
+    errors: list[str] = []
+
+    outputs = (jobs.get('changes') or {}).get('outputs') or {}
+    for key, expected in EXPECTED_CHANGES_OUTPUTS.items():
+        actual = _normalized(outputs.get(key))
+        if actual != expected:
+            errors.append(
+                f'ci.yml: changes.outputs.{key} 是 {actual!r}，必须是 {expected!r}；'
+                '改错会让门控 job 被静默 skip'
+            )
+
+    for job, expected in EXPECTED_GATED_IFS.items():
+        actual = _normalized((jobs.get(job) or {}).get('if'))
+        if actual != expected:
+            errors.append(
+                f'ci.yml: {job}.if 是 {actual!r}，必须是 {expected!r}；'
+                '子串匹配挡不住 `&& false` / `!= true`'
+            )
+
+    required = jobs.get('required') or {}
+    if _normalized(required.get('name')) != REQUIRED_CHECK_NAME:
+        errors.append(
+            f'ci.yml: required.name 必须是 {REQUIRED_CHECK_NAME!r}；'
+            '改名后所有 PR 会永久 pending'
+        )
+    run_text = '\n'.join(
+        str(step.get('run') or '')
+        for step in required.get('steps') or []
+        if isinstance(step, dict)
+    )
+    for job in REQUIRED_JOBS:
+        if f'needs.{job}.result' not in run_text:
+            errors.append(
+                f'ci.yml: required 的判定没有读取 needs.{job}.result；'
+                '掏空判定脚本会让全部门禁失效'
+            )
+    if 'exit 1' not in run_text:
+        errors.append('ci.yml: required 的判定没有失败分支（exit 1）')
+    return errors
+
+
+def gate_step_errors(workflow: dict) -> list[str]:
+    """门禁步骤不能被 `if: false` / `continue-on-error` 静默关掉。"""
+    errors: list[str] = []
+    for job in ('umbrella', 'api-bump', 'docs'):
+        for step in (workflow.get('jobs') or {}).get(job, {}).get('steps') or []:
+            if not isinstance(step, dict):
+                continue
+            run = str(step.get('run') or '')
+            if not any(command in run for command in GATE_COMMANDS):
+                continue
+            if 'if' in step:
+                errors.append(
+                    f'ci.yml: {job} 的门禁步骤带了 if（{step.get("if")}）：'
+                    '条件不满足时门禁会静默跳过'
+                )
+            if step.get('continue-on-error'):
+                errors.append(
+                    f'ci.yml: {job} 的门禁步骤开了 continue-on-error：失败会被吞掉'
+                )
+    return errors
+
+
+def matrix_emit_errors(workflow: dict) -> list[str]:
+    """矩阵必须真的由 ci_matrix.py 生成，不能换成手写 JSON。"""
+    job = (workflow.get('jobs') or {}).get('matrix') or {}
+    outputs = job.get('outputs') or {}
+    errors: list[str] = []
+    if _normalized(outputs.get('include')) != '${{ steps.emit.outputs.include }}':
+        errors.append('ci.yml: matrix.outputs.include 必须来自 steps.emit.outputs.include')
+    emit = next(
+        (
+            step
+            for step in job.get('steps') or []
+            if isinstance(step, dict) and step.get('id') == 'emit'
+        ),
+        None,
+    )
+    if emit is None:
+        errors.append('ci.yml: matrix job 缺少 id=emit 的步骤')
+    else:
+        run = str(emit.get('run') or '')
+        if 'scripts/ci_matrix.py --github-output' not in run:
+            errors.append('ci.yml: matrix 的 emit 步骤必须调用 scripts/ci_matrix.py --github-output')
+        if '$GITHUB_OUTPUT' not in run:
+            errors.append('ci.yml: matrix 的 emit 步骤必须写入 $GITHUB_OUTPUT')
+    return errors
+
+
+def pr_template_errors(path: pathlib.Path | None = None) -> list[str]:
+    """PR 模板是 check_pr_scope 的输入契约：改动类型段与四类勾选不能丢。"""
+    target = path or PR_TEMPLATE
+    if not target.is_file():
+        return ['缺少 .github/PULL_REQUEST_TEMPLATE.md（PR 分类门禁没有输入）']
+    text = target.read_text()
+    errors: list[str] = []
+    if '## 改动类型' not in text:
+        errors.append('PULL_REQUEST_TEMPLATE.md: 缺少「## 改动类型」段（check_pr_scope 依赖它）')
+    for box in ('内部重构', '公开变化', '删除 / 废弃', '新增包'):
+        if box not in text:
+            errors.append(f'PULL_REQUEST_TEMPLATE.md: 缺少改动类型「{box}」')
+    return errors
+
+
+def release_status_workflow_errors(path: pathlib.Path | None = None) -> list[str]:
+    """周检是唯一能发现「快照漂移 / 仓库落后线上」的门禁，不能被静默删掉或写坏。"""
+    target = path or RELEASE_STATUS_WORKFLOW
+    if not target.is_file():
+        return ['缺少 .github/workflows/release-status.yml（每周线上核对会消失）']
+    import yaml
+
+    try:
+        workflow = yaml.safe_load(target.read_text()) or {}
+    except yaml.YAMLError as error:
+        return [f'.github/workflows/release-status.yml 不是合法 YAML：{error}']
+    runs = '\n'.join(
+        str(step.get('run') or '')
+        for job in (workflow.get('jobs') or {}).values()
+        if isinstance(job, dict)
+        for step in (job.get('steps') or [])
+        if isinstance(step, dict)
+    )
+    if 'scripts/release_status.py --online --check' not in runs:
+        return [
+            '.github/workflows/release-status.yml: 必须运行 '
+            '`python3 scripts/release_status.py --online --check`'
+        ]
+    return []
 
 
 def path_filter_errors(workflow: dict) -> list[str]:
@@ -284,6 +450,13 @@ def check(rows: list[dict[str, str]]) -> list[str]:
     errors.extend(path_filter_errors(workflow))
     errors.extend(required_filter_errors(workflow))
     errors.extend(required_job_errors(workflow))
+    # 上面几条只校验「文本里出现过」；下面几条把语义也钉死：
+    # outputs / if / required 判定 / 门禁 step / 矩阵生成 / PR 模板 / 周检。
+    errors.extend(wiring_errors(workflow))
+    errors.extend(gate_step_errors(workflow))
+    errors.extend(matrix_emit_errors(workflow))
+    errors.extend(pr_template_errors())
+    errors.extend(release_status_workflow_errors())
 
     matrix_job = jobs.get('matrix') or {}
     outputs = matrix_job.get('outputs') or {}

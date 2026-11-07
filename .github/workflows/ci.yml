@@ -79,6 +79,12 @@ jobs:
               - 'packages/**/pubspec.lock'
               - 'packages/**/analysis_options.yaml'
               - 'packages/**/assets/**'
+              # golden / fixture / schema 不是 .dart，但同样是测试与发布契约的输入：
+              # 只改它们时也必须跑对应的包测试与 dry-run（二轮审计 P1-3）。
+              - 'packages/**/test/**'
+              - 'packages/**/schema/**'
+              - 'packages/**/*.json'
+              - 'packages/**/.pubignore'
               # AGENTS 模板与 catalog 是生成物的源；改 .md 模板同样要跑生成物新鲜度
               - 'packages/cli/templates/**'
               - 'packages/cli/catalog/**'
@@ -90,6 +96,7 @@ jobs:
               - 'pubspec.yaml'
               - 'pubspec.lock'
               - 'analysis_options.yaml'
+              - '.pubignore'
               - '.github/workflows/ci.yml'
             static:
               # 门禁脚本、基线、manifest、快照：都是「跑 umbrella 才有意义」的输入
@@ -207,8 +214,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      # --online：用 pub.dev 的最新版本当「已发布基线」。仓库快照在批量发布窗口里可能
+      # 滞后一个版本，只按快照判断会把「删线上已发布 API」当成未发布版本里的改动放行。
+      # 取不到 pub.dev 时脚本回退到快照并打印提醒，不会因此卡住 PR。
       - name: Check public API changes bump the version
-        run: python3 scripts/check_version_bump.py --base ${{ github.event.pull_request.base.sha }}
+        run: python3 scripts/check_version_bump.py --base ${{ github.event.pull_request.base.sha }} --online
 
       # 行为变化没有公开 API diff，check_version_bump 看不到；只能按 PR 模板的
       # 「公开变化」勾选 + CHANGELOG 变更兜底。

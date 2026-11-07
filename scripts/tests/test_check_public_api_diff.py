@@ -260,5 +260,114 @@ class PublicApiDiffTest(unittest.TestCase):
                 sys.argv = old_argv
 
 
+class SnapshotIntegrityTest(unittest.TestCase):
+    """空基线 = 门禁永久空转；--snapshot-from 必须拒绝写空 / 写错版本。"""
+
+    def _run(self, mod, root, argv):
+        old_root, old_snapshots = mod.ROOT, mod.SNAPSHOTS
+        old_argv = sys.argv
+        mod.ROOT = root
+        mod.SNAPSHOTS = root / 'snapshots'
+        sys.argv = ['check_public_api_diff.py', *argv]
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    return mod.main()
+        finally:
+            mod.ROOT, mod.SNAPSHOTS = old_root, old_snapshots
+            sys.argv = old_argv
+
+    def _package(self, root):
+        package = root / 'packages' / 'demo'
+        (package / 'lib' / 'src').mkdir(parents=True)
+        (package / 'lib' / 'w_tools_demo.dart').write_text("export 'src/a.dart';\n")
+        (package / 'lib' / 'src' / 'a.dart').write_text('class WDemo {}\n')
+        (package / 'pubspec.yaml').write_text('name: w_tools_demo\nversion: 2.0.0\n')
+        (package / 'CHANGELOG.md').write_text('## 2.0.0\n')
+        return package
+
+    def test_empty_baseline_is_an_error(self):
+        import check_public_api_diff as mod
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            self._package(root)
+            (root / 'snapshots').mkdir()
+            (root / 'snapshots' / 'w_tools_demo-2.0.0.txt').write_text(
+                '# w_tools_demo 2.0.0\n'
+            )
+            self.assertEqual(self._run(mod, root, ['--package', 'demo']), 1)
+
+    def test_snapshot_from_rejects_empty_source(self):
+        import check_public_api_diff as mod
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            (root / 'snapshots').mkdir()
+            empty = root / 'empty-src'
+            empty.mkdir()
+            (empty / 'pubspec.yaml').write_text('name: w_tools_demo\nversion: 3.0.0\n')
+            status = self._run(
+                mod, root,
+                ['--snapshot-from', str(empty), '--package', 'demo', '--version', '3.0.0'],
+            )
+            self.assertEqual(status, 1)
+            self.assertFalse((root / 'snapshots' / 'w_tools_demo-3.0.0.txt').exists())
+
+    def test_snapshot_from_rejects_version_mismatch(self):
+        import check_public_api_diff as mod
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            (root / 'snapshots').mkdir()
+            source = root / 'src'
+            (source / 'lib').mkdir(parents=True)
+            (source / 'lib' / 'w_tools_demo.dart').write_text('class WDemo {}\n')
+            (source / 'pubspec.yaml').write_text('name: w_tools_demo\nversion: 2.0.0\n')
+            status = self._run(
+                mod, root,
+                ['--snapshot-from', str(source), '--package', 'demo', '--version', '1.0.0'],
+            )
+            self.assertEqual(status, 2)
+
+    def test_constructor_deletion_needs_its_own_note(self):
+        errors = check_notes(
+            [('WButton.new', '({int x})', None)],
+            changelog='## 7.1.0\n\n### Breaking\n- WButton.text 改为可空\n',
+            migration='',
+            current={'WButton': 'class'},
+            version='7.1.0',
+        )
+        self.assertEqual(len(errors), 1)
+
+    def test_old_major_migration_only_counts_on_major_bump(self):
+        changes = [('WColorExtension.fromHex', 'String (int)', 'String (String)')]
+        migration = 'WColorExtension.fromHex 参数改为 String\n'
+        same_major = check_notes(
+            changes, '', migration,
+            current={'WColorExtension': 'extension'}, version='7.1.0',
+            allow_migration=False,
+        )
+        self.assertEqual(len(same_major), 1)
+        major_bump = check_notes(
+            changes, '', migration,
+            current={'WColorExtension': 'extension'}, version='8.0.0',
+            allow_migration=True,
+        )
+        self.assertEqual(major_bump, [])
+
+    def test_prerelease_snapshot_is_the_latest(self):
+        from check_public_api_diff import latest_snapshot, snapshot_version_of
+
+        with tempfile.TemporaryDirectory() as temp:
+            directory = pathlib.Path(temp)
+            stable = directory / 'w_tools_demo-7.0.0.txt'
+            dev = directory / 'w_tools_demo-8.0.0-dev.1.txt'
+            stable.write_text('# 7.0.0\n')
+            dev.write_text('# 8.0.0-dev.1\n')
+            self.assertEqual(snapshot_version_of(dev), '8.0.0-dev.1')
+            self.assertEqual(latest_snapshot([stable, dev]), dev)
+
+
 if __name__ == '__main__':
     unittest.main()

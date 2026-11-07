@@ -1,5 +1,6 @@
 import pathlib
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -7,9 +8,14 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import yaml
 
 from ci_matrix import (
+    gate_step_errors,
+    matrix_emit_errors,
     path_filter_errors,
+    pr_template_errors,
+    release_status_workflow_errors,
     required_filter_errors,
     required_job_errors,
+    wiring_errors,
 )
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -120,6 +126,84 @@ class RequiredWiringTest(unittest.TestCase):
         errors = required_job_errors(workflow)
         self.assertTrue(errors)
         self.assertTrue(any('ci_matrix.py --check' in error for error in errors))
+
+
+class SemanticWiringTest(unittest.TestCase):
+    """meta 门禁要能发现「文本还在、执行语义被改掉」的接线回归。"""
+
+    def test_actual_ci_passes(self):
+        workflow = load_ci()
+        self.assertEqual(wiring_errors(workflow), [])
+        self.assertEqual(gate_step_errors(workflow), [])
+        self.assertEqual(matrix_emit_errors(workflow), [])
+        self.assertEqual(pr_template_errors(), [])
+        self.assertEqual(release_status_workflow_errors(), [])
+
+    def test_changes_outputs_cannot_be_forced_false(self):
+        workflow = load_ci()
+        workflow['jobs']['changes']['outputs']['code'] = 'false'
+        errors = wiring_errors(workflow)
+        self.assertTrue(errors)
+        self.assertIn('changes.outputs.code', errors[0])
+
+    def test_gated_if_cannot_be_silenced(self):
+        workflow = load_ci()
+        workflow['jobs']['umbrella']['if'] = (
+            "needs.changes.outputs.code == 'true' || needs.changes.outputs.static == 'true'"
+            ' && false'
+        )
+        errors = wiring_errors(workflow)
+        self.assertTrue(any('umbrella.if' in error for error in errors))
+
+    def test_required_step_cannot_be_gutted(self):
+        workflow = load_ci()
+        workflow['jobs']['required']['steps'] = [
+            {'name': 'noop', 'run': 'echo ok; exit 0'}
+        ]
+        errors = wiring_errors(workflow)
+        self.assertTrue(any('needs.packages.result' in error for error in errors))
+
+    def test_gate_step_cannot_be_disabled(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['umbrella']['steps']:
+            if 'scripts/preflight.sh' in str(step.get('run') or ''):
+                step['if'] = False
+        errors = gate_step_errors(workflow)
+        self.assertTrue(errors)
+        self.assertIn('if', errors[0])
+
+    def test_gate_step_cannot_ignore_failure(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['api-bump']['steps']:
+            if 'check_version_bump.py' in str(step.get('run') or ''):
+                step['continue-on-error'] = True
+        errors = gate_step_errors(workflow)
+        self.assertTrue(any('continue-on-error' in error for error in errors))
+
+    def test_matrix_emit_cannot_be_replaced(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['matrix']['steps']:
+            if step.get('id') == 'emit':
+                step['run'] = 'echo \'include=[]\' >> "$GITHUB_OUTPUT"'
+        errors = matrix_emit_errors(workflow)
+        self.assertTrue(errors)
+        self.assertTrue(any('ci_matrix.py --github-output' in error for error in errors))
+
+    def test_pr_template_marker_is_required(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = pathlib.Path(temp) / 'PULL_REQUEST_TEMPLATE.md'
+            path.write_text('- [ ] 内部重构\n')
+            errors = pr_template_errors(path)
+            self.assertTrue(errors)
+            self.assertTrue(any('## 改动类型' in error for error in errors))
+
+    def test_release_status_workflow_is_required(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = pathlib.Path(temp) / 'release-status.yml'
+            path.write_text('name: x\njobs:\n  a:\n    steps:\n      - run: echo hi\n')
+            errors = release_status_workflow_errors(path)
+            self.assertTrue(errors)
+            self.assertIn('release_status.py --online --check', errors[0])
 
 
 if __name__ == '__main__':

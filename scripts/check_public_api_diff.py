@@ -27,6 +27,21 @@ SNAPSHOTS = ROOT / 'scripts/api_snapshots'
 # 空 surface 绝不能当成「与快照一致」的 ✓（否则这个包的门禁等于不存在）。
 NO_PUBLIC_API = {'cli'}
 
+# `w_tools_<pkg>-<version>.txt`；版本允许预发布后缀（`8.0.0-dev.1`）。
+# 不能用 `stem.rsplit('-', 1)`：`-dev.1` 会被截成 `1`，新基线永远不会被当成最新。
+SNAPSHOT_NAME = re.compile(
+    r'^w_tools_(?P<package>.+?)-(?P<version>\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)\.txt$'
+)
+
+
+def snapshot_version_of(path: pathlib.Path) -> str:
+    """从快照文件名取版本号；不符合命名时退回旧的 rsplit 行为。"""
+    match = SNAPSHOT_NAME.match(path.name)
+    if match:
+        return match.group('version')
+    return path.stem.rsplit('-', 1)[-1]
+
+
 DECL = re.compile(r'\b(?:class|enum|mixin|extension|typedef)\s+([A-Z][A-Za-z0-9_]*)')
 FIELD = re.compile(r'^(.+?)\s+([a-zA-Z]\w*)\s*(?:=|;|$)')
 GETTER = re.compile(r'^([A-Za-z_][\w<>,?. ]*?)\s+get\s+([a-zA-Z]\w*)')
@@ -220,10 +235,11 @@ def check_notes(
     migration: str,
     current: dict[str, str] | None = None,
     version: str | None = None,
+    allow_migration: bool = True,
 ) -> list[str]:
     version_text = _current_version_text(changelog, version)
     breaking = _section(version_text, 'Breaking') + '\n' + _section(version_text, 'Removed')
-    notes = breaking + '\n' + migration
+    notes = breaking + '\n' + (migration if allow_migration else '')
     added = _section(version_text, 'Added') + '\n' + _section(version_text, 'Changed')
     errors: list[str] = []
     for key, old, new in changes:
@@ -235,8 +251,6 @@ def check_notes(
         if not type_exists:
             # 整个类型被删除/改名：类型名出现在 Breaking/Removed 或 migration 即可。
             mentioned = mentioned or type_name in notes
-        if key.endswith('.new') and type_name in notes:
-            mentioned = True
         if mentioned:
             continue
         # 构造器新增可选参数是 additive：允许记在 Added/Changed；构造器删除仍要 Breaking。
@@ -250,7 +264,7 @@ def check_notes(
 
 def latest_snapshot(paths: list[pathlib.Path]) -> pathlib.Path | None:
     def key(path: pathlib.Path) -> tuple[int, ...]:
-        version = path.stem.rsplit('-', 1)[-1]
+        version = snapshot_version_of(path)
         return tuple(int(part) for part in version.split('.') if part.isdigit())
 
     return max(paths, key=key) if paths else None
@@ -263,7 +277,7 @@ def _snapshot_path(package: str) -> pathlib.Path | None:
 def latest_snapshot_version(package: str) -> str | None:
     """最新基线对应的版本号（没有基线时返回 None）。"""
     path = _snapshot_path(package)
-    return path.stem.rsplit('-', 1)[-1] if path is not None else None
+    return snapshot_version_of(path) if path is not None else None
 
 
 def _load_snapshot(path: pathlib.Path) -> dict[str, str]:
@@ -297,6 +311,13 @@ def _pubspec_version(package_dir: pathlib.Path) -> str:
     return match.group(1) if match else ''
 
 
+def _major(version: str | None) -> int | None:
+    if not version:
+        return None
+    match = re.match(r'(\d+)', version)
+    return int(match.group(1)) if match else None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--package', required=True, help='manifest 裸名，如 ui')
@@ -313,9 +334,34 @@ def main() -> int:
         if not args.version:
             print('--snapshot-from 需要 --version', file=sys.stderr)
             return 2
+        source = pathlib.Path(args.snapshot_from)
+        if not (source / 'pubspec.yaml').is_file():
+            print(
+                f'✗ {source} 不像包目录（缺 pubspec.yaml）：拒绝写快照。'
+                '请指向解包后的归档 / 包目录本身',
+                file=sys.stderr,
+            )
+            return 2
+        source_version = _pubspec_version(source)
+        if source_version and source_version != args.version:
+            print(
+                f'✗ --version {args.version} 与来源 {source} 的 pubspec 版本 '
+                f'{source_version} 不一致；快照版本必须等于来源版本',
+                file=sys.stderr,
+            )
+            return 2
+        surface = api_surface(source)
+        if not surface and args.package not in NO_PUBLIC_API:
+            # 空基线会让这个包的公开 API 门禁永久空转（diff_api({}, current) 恒为 []）。
+            print(
+                f'✗ {source} 解析不到任何公开 API（缺 lib/w_tools_*.dart barrel）：'
+                '拒绝写空基线',
+                file=sys.stderr,
+            )
+            return 1
         output_dir = pathlib.Path(args.output_dir) if args.output_dir else None
         path = _write_snapshot(
-            pathlib.Path(args.snapshot_from), args.package, args.version, output_dir
+            source, args.package, args.version, output_dir
         )
         try:
             shown = path.relative_to(ROOT)
@@ -336,6 +382,16 @@ def main() -> int:
         )
         return 1
     baseline = _load_snapshot(snapshot)
+    if not baseline and args.package not in NO_PUBLIC_API:
+        # 0 字节 / 只有 header 的基线会让 diff_api({}, current) 恒为 []：门禁永久空转。
+        print(
+            f'✗ w_tools_{args.package} 的 API 快照 {snapshot.name} 是空的：'
+            '空基线会让公开 API 门禁永久空转。请从 pub.dev 归档重新生成：\n'
+            f'  python3 scripts/check_public_api_diff.py --snapshot-from <解包目录> '
+            f'--package {args.package} --version <已发布版本>',
+            file=sys.stderr,
+        )
+        return 1
     current = api_surface(package_dir)
     if not current:
         if args.package in NO_PUBLIC_API:
@@ -358,10 +414,19 @@ def main() -> int:
     changelog_path = package_dir / 'CHANGELOG.md'
     changelog = changelog_path.read_text() if changelog_path.exists() else ''
     version = _pubspec_version(package_dir)
-    major = version.split('.')[0] if version else '0'
-    migration_path = ROOT / 'docs/migrations' / f'{args.package}-{major}.0.md'
+    major = _major(version)
+    migration_path = (
+        ROOT / 'docs/migrations' / f'{args.package}-{major if major is not None else 0}.0.md'
+    )
     migration = migration_path.read_text() if migration_path.exists() else ''
-    errors = check_notes(changes, changelog, migration, current, version or None)
+    # 旧 major 的迁移文档不能给当前 major 的破坏性变更背书：只有跨 major 时才计入。
+    published_major = _major(latest_snapshot_version(args.package))
+    allow_migration = (
+        major is not None and published_major is not None and major > published_major
+    )
+    errors = check_notes(
+        changes, changelog, migration, current, version or None, allow_migration
+    )
     if errors:
         print(f'公开 API 变化未记录（{len(errors)} 条）：', file=sys.stderr)
         for error in errors:

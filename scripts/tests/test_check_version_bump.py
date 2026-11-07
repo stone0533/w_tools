@@ -4,7 +4,14 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-from check_version_bump import _parse_version, diff_surfaces, requires_bump
+import check_version_bump as mod
+from check_version_bump import (
+    _parse_version,
+    base_has_package,
+    diff_surfaces,
+    published_version,
+    requires_bump,
+)
 
 
 class VersionBumpTest(unittest.TestCase):
@@ -54,6 +61,34 @@ class RequiresBumpTest(unittest.TestCase):
     def test_prerelease_suffix_compares_numerically(self):
         self.assertFalse(requires_bump('1.1.0-dev.1', '1.1.0-dev.1', '1.0.0'))
         self.assertTrue(requires_bump('1.0.0', '1.0.0', '1.0.0'))
+
+
+class PublishedBaselineTest(unittest.TestCase):
+    """已发布基线：离线用快照；--online 用 pub.dev（失败回退快照并提醒）。"""
+
+    def test_base_package_presence_is_not_archive_success(self):
+        self.assertTrue(base_has_package('HEAD', 'ui'))
+        self.assertFalse(base_has_package('HEAD', 'not_a_real_package'))
+
+    def test_offline_uses_latest_snapshot(self):
+        warnings: list[str] = []
+        self.assertEqual(published_version('ui', False, warnings), '7.0.0')
+        self.assertEqual(warnings, [])
+
+    def test_online_falls_back_to_snapshot_with_warning(self):
+        old_urlopen = mod.urllib.request.urlopen
+
+        def offline(*args, **kwargs):
+            raise mod.urllib.error.URLError('offline')
+
+        mod.urllib.request.urlopen = offline
+        warnings: list[str] = []
+        try:
+            self.assertEqual(published_version('ui', True, warnings), '7.0.0')
+        finally:
+            mod.urllib.request.urlopen = old_urlopen
+        self.assertEqual(len(warnings), 1)
+        self.assertIn('pub.dev', warnings[0])
 
 
 if __name__ == '__main__':

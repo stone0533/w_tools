@@ -17,9 +17,9 @@
 
 退出码：
     0  通过（「待发布」是正常状态；网络失败只提示）
-    1  「落后 / 快照与线上不一致 / 缺快照」（--check 时）
+    1  「落后 / 快照与线上不一致 / 缺快照 / pub.dev 404」（--check 时）
     2  线上一个包都没取到（网络不可达）；周检按「本次跳过」处理，不判发布事故
-       或 `--check` 没带 `--online` / `--require-*`（没有可核对的目标）
+    3  用法错误：`--check` 没带 `--online` / `--require-*`（没有可核对的目标）
 """
 from __future__ import annotations
 
@@ -38,15 +38,27 @@ MANIFEST = ROOT / 'scripts/packages.manifest'
 SNAPSHOTS = ROOT / 'scripts/api_snapshots'
 PUB_API = 'https://pub.dev/api/packages/'
 
+# `w_tools_<pkg>-<version>.txt`；版本允许预发布后缀（`8.0.0-dev.1`）。
+SNAPSHOT_NAME = re.compile(
+    r'^w_tools_(?P<package>.+?)-(?P<version>\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)\.txt$'
+)
 
-def read_manifest() -> list[tuple[str, str]]:
-    rows: list[tuple[str, str]] = []
-    for raw in MANIFEST.read_text().splitlines():
+
+class PackageNotFound(Exception):
+    """pub.dev 明确返回 404：包名拼错 / 改名 / 从未发布（不是网络问题）。"""
+
+
+def read_manifest(path: pathlib.Path | None = None) -> list[tuple[str, str, str]]:
+    """(包名, 目录, root_aggregate)。第三列决定 `--require-local` 是否适用。"""
+    manifest = path or MANIFEST
+    rows: list[tuple[str, str, str]] = []
+    for raw in manifest.read_text().splitlines():
         line = raw.strip()
         if not line or line.startswith('#'):
             continue
         fields = line.split('|')
-        rows.append((fields[0], fields[1]))
+        aggregate = fields[3] if len(fields) > 3 else '-'
+        rows.append((fields[0], fields[1], aggregate))
     return rows
 
 
@@ -74,18 +86,23 @@ def version_tuple(text: str) -> tuple[int, ...]:
     return tuple(int(part) for part in re.findall(r'\d+', text))
 
 
+def snapshot_version_of(path: pathlib.Path) -> str:
+    match = SNAPSHOT_NAME.match(path.name)
+    return match.group('version') if match else path.stem.rsplit('-', 1)[-1]
+
+
 def snapshot_path(package: str) -> pathlib.Path | None:
     """最新快照文件（按版本号排序取最大）；没有返回 None。"""
     candidates = sorted(
         SNAPSHOTS.glob(f'w_tools_{package}-*.txt'),
-        key=lambda path: version_tuple(path.stem.rsplit('-', 1)[-1]),
+        key=lambda path: version_tuple(snapshot_version_of(path)),
     )
     return candidates[-1] if candidates else None
 
 
 def snapshot_version(package: str) -> str | None:
     path = snapshot_path(package)
-    return path.stem.rsplit('-', 1)[-1] if path is not None else None
+    return snapshot_version_of(path) if path is not None else None
 
 
 def git_tracked(path: pathlib.Path) -> bool:
@@ -100,16 +117,23 @@ def git_tracked(path: pathlib.Path) -> bool:
 
 
 def fetch_latest(name: str) -> str | None:
-    """取 pub.dev 最新版本；网络抖动重试 3 次，仍失败返回 None（由调用方决定如何降级）。"""
+    """取 pub.dev 最新版本；网络抖动重试，仍失败返回 None（由调用方决定如何降级）。
+
+    404 单独抛 PackageNotFound：包名拼错 / 改名不是网络问题，不能按「未核对」跳过。
+    """
     last_error: Exception | None = None
-    for attempt in range(3):
+    for attempt in range(2):
         try:
-            with urllib.request.urlopen(PUB_API + name, timeout=10) as response:
+            with urllib.request.urlopen(PUB_API + name, timeout=5) as response:
                 return json.load(response)['latest']['version']
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                raise PackageNotFound(name) from error
+            last_error = error
         except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError, OSError) as error:
             last_error = error
-            if attempt < 2:
-                time.sleep(1 + attempt)
+        if attempt < 1:
+            time.sleep(1)
     if last_error is not None:
         print(f'  （{name}: 取 pub.dev 失败：{last_error}）', file=sys.stderr)
     return None
@@ -139,6 +163,29 @@ def classify(local: str, published: str | None) -> str:
     return '已发布'
 
 
+def local_snapshot_errors(
+    package: str, aggregate: str, snapshot: str, local: str
+) -> list[str]:
+    """`--require-local` 的判定：只有根聚合包必须快照 == 本地版本。
+
+    工具包 / 不聚合的包允许领先快照（待发布），否则一次 cli / qr 的版本抬升
+    会把下一次根包发布卡住（二轮审计 P2-4）。
+    """
+    if version_tuple(snapshot) == version_tuple(local):
+        return []
+    if aggregate == 'root':
+        return [
+            f'{package}: API 快照 {snapshot} ≠ 本地版本 {local}——'
+            '先发布子包并提交快照，再发根包'
+        ]
+    if version_tuple(snapshot) > version_tuple(local):
+        return [
+            f'{package}: API 快照 {snapshot} 高于本地版本 {local}——'
+            '快照比代码新，检查是否回退过版本'
+        ]
+    return []
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--online', action='store_true', help='查 pub.dev 的线上版本')
@@ -153,7 +200,7 @@ def main() -> int:
     parser.add_argument(
         '--require-local',
         action='store_true',
-        help='离线检查：最新快照版本必须等于本地 pubspec 版本',
+        help='离线检查：根聚合包的最新快照版本必须等于本地 pubspec 版本（工具包 / 不聚合的包不参与）',
     )
     args = parser.parse_args()
 
@@ -164,22 +211,28 @@ def main() -> int:
             '或加 --require-tracked / --require-local 做离线快照检查',
             file=sys.stderr,
         )
-        return 2
+        return 3
 
     constraints = root_constraints()
     rows: list[tuple[str, str, str | None, str | None, str]] = []
     errors: list[str] = []
     warnings: list[str] = []
     unreachable: list[str] = []
+    not_found: list[str] = []
     online_ok = 0
 
-    for name, path in read_manifest():
+    for name, path, aggregate in read_manifest():
         package = name.removeprefix('w_tools_')
         package_dir = ROOT / path
         local = version_of(package_dir / 'pubspec.yaml') or '?'
         snapshot_file = snapshot_path(package)
-        snapshot = snapshot_file.stem.rsplit('-', 1)[-1] if snapshot_file else None
-        published = published_version(package) if args.online else None
+        snapshot = snapshot_version_of(snapshot_file) if snapshot_file else None
+        published = None
+        if args.online:
+            try:
+                published = published_version(package)
+            except PackageNotFound:
+                not_found.append(package)
         status = classify(local, published)
         rows.append((package, local, published, snapshot, status))
 
@@ -192,17 +245,16 @@ def main() -> int:
                     f'{package}: API 快照 {snapshot_file.name} 未提交——'
                     '先合入快照 PR（untracked 快照会被 reset / clean 丢掉）'
                 )
-            if args.require_local and version_tuple(snapshot) != version_tuple(local):
-                errors.append(
-                    f'{package}: API 快照 {snapshot} ≠ 本地版本 {local}——'
-                    '先发布子包并提交快照，再发根包'
-                )
+            if args.require_local:
+                errors.extend(local_snapshot_errors(package, aggregate, snapshot, local))
             if published is not None and version_tuple(snapshot) != version_tuple(published):
                 errors.append(
                     f'{package}: API 快照 {snapshot} ≠ 线上 {published}——发布后记得提交快照'
                 )
 
         if args.online and published is None:
+            if package in not_found:
+                continue  # 404 已单独记错误，不再算「环境不可用」
             # 网络问题不是发布事故：每周 CI 不因此发失败邮件（全部取不到时由退出码 2 说明）。
             unreachable.append(package)
             continue
@@ -223,9 +275,21 @@ def main() -> int:
                     f'{package}: 根约束 {constraint} 下界低于子包 {local}（--strict 会失败）'
                 )
 
+    for package in not_found:
+        errors.append(
+            f'{package}: pub.dev 没有 w_tools_{package}（404）——包名拼错 / 改名 / 从未发布'
+        )
+
     root_local = version_of(ROOT / 'pubspec.yaml') or '?'
-    root_published = fetch_latest('w_tools') if args.online else None
-    if args.online and root_published is None:
+    root_published = None
+    root_missing = False
+    if args.online:
+        try:
+            root_published = fetch_latest('w_tools')
+        except PackageNotFound:
+            root_missing = True
+            errors.append('w_tools: pub.dev 上没有这个包（404）——包名拼错 / 从未发布')
+    if args.online and root_published is None and not root_missing:
         unreachable.append('w_tools')
     if root_published is not None:
         online_ok += 1

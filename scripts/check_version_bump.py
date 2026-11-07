@@ -7,18 +7,25 @@
 - 有变化 + 版本变了 → 通过（CHANGELOG 段 / semver 由 release_check 与 api diff 继续把关）；
 - 包在 base 里不存在（新包）→ 跳过。
 
+已发布基线默认取仓库快照；`--online` 时先查 pub.dev（CI 的 api-bump 用这个），
+取不到才回退到快照并打印提醒 —— 快照可能滞后一个版本（批量发布窗口），
+那时把「已发布版本」当成未发布会让删除线上 API 的改动通过。
+
 只用于 PR 门禁（需要 base 全历史）；本地浅克隆缺 base 时返回 2。
 """
 from __future__ import annotations
 
 import argparse
 import io
+import json
 import pathlib
 import re
 import subprocess
 import sys
 import tarfile
 import tempfile
+import urllib.error
+import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
@@ -67,6 +74,20 @@ def _parse_version(text: str) -> str | None:
     return match.group(1) if match else None
 
 
+def base_has_package(ref: str, package: str) -> bool:
+    """base 里到底有没有这个包。
+
+    不能用 `base_surface(...) is None` 判断：archive 失败 / 浅克隆缺对象也会返回 None，
+    那样会把已存在的包当成新包，版本门禁静默消失（二轮审计 P1-4）。
+    """
+    result = subprocess.run(
+        ['git', 'cat-file', '-e', f'{ref}:packages/{package}/pubspec.yaml'],
+        cwd=ROOT,
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
 def base_surface(ref: str, package: str) -> dict[str, str] | None:
     result = subprocess.run(
         ['git', 'archive', f'{ref}:packages/{package}'],
@@ -79,6 +100,25 @@ def base_surface(ref: str, package: str) -> dict[str, str] | None:
         with tarfile.open(fileobj=io.BytesIO(result.stdout)) as archive:
             archive.extractall(temp)
         return api_surface(pathlib.Path(temp))
+
+
+PUB_API = 'https://pub.dev/api/packages/'
+
+
+def published_version(package: str, online: bool, warnings: list[str]) -> str | None:
+    """已发布版本：默认用仓库快照；`--online` 时以 pub.dev 为准（取不到回退快照）。"""
+    snapshot = latest_snapshot_version(package)
+    if not online:
+        return snapshot
+    try:
+        with urllib.request.urlopen(PUB_API + f'w_tools_{package}', timeout=5) as response:
+            return json.load(response)['latest']['version']
+    except (urllib.error.URLError, TimeoutError, OSError, KeyError, json.JSONDecodeError) as error:
+        warnings.append(
+            f'{package}: 取不到 pub.dev 版本（{error}），'
+            f'按仓库快照 {snapshot or "无"} 判断（快照可能滞后）'
+        )
+        return snapshot
 
 
 def diff_surfaces(
@@ -126,6 +166,11 @@ def main() -> int:
         help='对比的 base ref（CI 用 PR base sha）；默认 origin/main',
     )
     parser.add_argument('--package', help='只检查一个包（debug 用）')
+    parser.add_argument(
+        '--online',
+        action='store_true',
+        help='用 pub.dev 最新版本当已发布基线（取不到时回退到仓库快照并提醒）',
+    )
     args = parser.parse_args()
 
     if subprocess.run(
@@ -142,7 +187,9 @@ def main() -> int:
 
     packages = [args.package] if args.package else manifest_packages()
     errors: list[str] = []
+    warnings: list[str] = []
     skipped: list[str] = []
+    new_packages: list[str] = []
     pending: list[str] = []
     checked = 0
     for package in packages:
@@ -156,9 +203,17 @@ def main() -> int:
                 '版本门禁会空转；补 barrel 或登记到 check_public_api_diff.NO_PUBLIC_API'
             )
             continue
+        if not base_has_package(args.base, package):
+            new_packages.append(package)
+            continue
         base = base_surface(args.base, package)
         if base is None:
-            continue  # 新包：base 里没有，版本从 0 开始，不需要对比
+            # base 里有这个包、却读不出 API：不能当成新包跳过（版本门禁会静默消失）。
+            errors.append(
+                f'{package}: 读不到 base 里的公开 API（git archive 失败）；'
+                '请确认 fetch 完整历史后重跑'
+            )
+            continue
         old_version = base_version(args.base, package)
         new_version = current_version(package)
         if old_version is None or new_version is None:
@@ -168,7 +223,7 @@ def main() -> int:
         changes = diff_surfaces(base, current)
         if not changes:
             continue
-        published = latest_snapshot_version(package)
+        published = published_version(package, args.online, warnings)
         if not requires_bump(new_version, old_version, published):
             if new_version == old_version and published is not None:
                 pending.append(f'{package} {new_version}')
@@ -186,6 +241,10 @@ def main() -> int:
         return 1
     if pending:
         print(f'✓ 公开 API 变化落在未发布版本里：{"、".join(pending)}')
+    for warning in warnings:
+        print(f'  ! {warning}')
+    if new_packages:
+        print(f'! base 里没有这些包（新包，跳过对比）：{"、".join(new_packages)}')
     if skipped:
         print(f'! 无 barrel 公开 API，已跳过：{"、".join(skipped)}')
     print(f'✓ 公开 API 变化的包都已抬版本（对比 {checked} 个包）')
