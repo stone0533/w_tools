@@ -42,5 +42,6 @@
 ## 自检
 
 - [ ] `bash scripts/preflight.sh --with-tests`（或说明未跑原因）
+- [ ] 守卫 / 边界类用例已做**变异验证**（删掉被守逻辑后用例必须变红，贴命令与结果）
 - [ ] PR 内 commit 已整理（无 `wip` / `fixup`；一个 PR 只做一件事）
 - [ ] 合并方式使用 **Merge commit**（见 `CONTRIBUTING.md` §6）

@@ -132,6 +132,21 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `packages/cli/tool/check_templates_compile.dart` | init 模板生成后能否通过 Flutter analyze | `preflight --with-tests` |
 | `packages/cli/test/internal/ai_contract_test.dart` | teach / prompt / AGENTS feature 契约 | `preflight --with-tests` |
 
+### 测试有效性（人工）
+
+| 脚本 | 作用 | 何时跑 |
+|---|---|---|
+| `mutate_guard.sh` | 定向变异：临时破坏一段「被守逻辑」，确认目标用例**变红**后无条件还原；变异后仍绿说明用例空转或守卫无价值 | 写 / 审守卫、错误分支、边界 clamp 的用例时 |
+
+```bash
+bash scripts/mutate_guard.sh \
+  --file packages/form/lib/src/components/fields/multi_dropdown_field.dart \
+  --from 'if (!state.mounted) return;' --to '// mutated' \
+  -- cd packages/form && flutter test test/form_gaps_test.dart --plain-name "multi 弹层打开后字段卸载"
+```
+
+变异点必须**恰好命中 1 处**；脚本用 `trap` 保证任何退出路径都会还原文件，跑完 `git status` 应只剩你自己的改动。
+
 ### 检查边界
 
 这些是启发式检查，不是完整编译器/analyzer：
