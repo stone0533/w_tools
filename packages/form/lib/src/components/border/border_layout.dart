@@ -30,68 +30,26 @@ class WFormBorderLayoutData {
   });
 }
 
-/// 边框与消息的布局策略
+/// 边框与消息的布局策略：返回「边框 + 消息」的组装结果。
 ///
-/// 内置 [column]（边框在上、消息在下）；需要其他排布时：
-/// - 用 [builder] 传入函数式实现，无需建类；
-/// - 或继承本类并覆写 [build]。
-abstract class WFormBorderLayout {
-  const WFormBorderLayout();
+/// 默认用 [columnBorderLayout]（边框在上、消息在下）；自定义直接传函数，
+/// 不需要建类：
+///
+/// ```dart
+/// WFormBorderStyle(
+///   layout: (context, data) => Column(children: [data.child, data.message]),
+/// )
+/// ```
+typedef WFormBorderLayout = Widget Function(BuildContext context, WFormBorderLayoutData data);
 
-  /// 默认布局：边框在上、消息在下
-  static const WFormBorderLayout column = WFormBorderColumnLayout();
-
-  /// 函数式布局（无需建类）
-  static WFormBorderLayout builder(WFormBorderLayoutBuilder builder) =>
-      WFormBorderBuilderLayout(builder);
-
-  /// 组装边框与消息
-  Widget build(BuildContext context, WFormBorderLayoutData data);
-}
-
-/// 布局构建函数
-typedef WFormBorderLayoutBuilder =
-    Widget Function(
-      BuildContext context,
-      WFormBorderLayoutData data,
-    );
-
-/// 默认布局实现：边框在上、消息在下
-class WFormBorderColumnLayout extends WFormBorderLayout {
-  /// 消息与边框的间距
-  final double spacing;
-
-  /// 消息的对齐方式
-  final CrossAxisAlignment alignment;
-
-  const WFormBorderColumnLayout({
-    this.spacing = 4,
-    this.alignment = CrossAxisAlignment.start,
-  });
-
-  @override
-  Widget build(BuildContext context, WFormBorderLayoutData data) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: alignment,
-      children: [
-        data.child,
-        if (data.hasMessage) ...[
-          SizedBox(height: spacing),
-          data.message,
-        ],
-      ],
-    );
-  }
-}
-
-/// 函数式布局实现
-class WFormBorderBuilderLayout extends WFormBorderLayout {
-  /// 布局构建函数
-  final WFormBorderLayoutBuilder builder;
-
-  const WFormBorderBuilderLayout(this.builder);
-
-  @override
-  Widget build(BuildContext context, WFormBorderLayoutData data) => builder(context, data);
+/// 默认布局：边框在上、消息在下。
+Widget columnBorderLayout(BuildContext context, WFormBorderLayoutData data) {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      data.child,
+      if (data.hasMessage) ...[const SizedBox(height: 4), data.message],
+    ],
+  );
 }

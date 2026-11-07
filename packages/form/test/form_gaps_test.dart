@@ -1,0 +1,546 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:w_tools_form/w_tools_form.dart';
+
+import 'internal/_helpers/form_test_scaffold.dart';
+
+void main() {
+  testWidgets('autovalidateMode 传给底层 FormBuilder', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: const WFormTextField(name: 'a', label: 'A'),
+          ),
+        ),
+      ),
+    );
+
+    final builder = tester.widget<FormBuilder>(find.byType(FormBuilder));
+    expect(builder.autovalidateMode, AutovalidateMode.onUserInteraction);
+  });
+
+  testWidgets('运行期切换 readOnly：值保留，切回后可继续编辑', (tester) async {
+    final form = WFormController();
+    Widget build({required bool readOnly}) => MaterialApp(
+      home: Scaffold(
+        body: WForm(
+          controller: form,
+          readOnly: readOnly,
+          child: const WFormTextField(name: 'a', label: 'A'),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build(readOnly: false));
+    await tester.enterText(find.byType(TextField), 'hello');
+    await tester.pump();
+    expect(form.value['a'], 'hello');
+
+    await tester.pumpWidget(build(readOnly: true));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isTrue);
+    expect(form.value['a'], 'hello');
+
+    await tester.pumpWidget(build(readOnly: false));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isFalse);
+
+    await tester.enterText(find.byType(TextField), 'hello2');
+    await tester.pump();
+    expect(form.value['a'], 'hello2');
+  });
+
+  testWidgets('shouldSkipValidation 跳过的字段不校验、不进 errors', (tester) async {
+    final form = WFormController();
+    await pumpForm(
+      tester,
+      formData: form,
+      child: const Column(
+        children: [
+          WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
+          WFormTextField(name: 'b', label: 'B', validator: _alwaysFail),
+        ],
+      ),
+    );
+
+    final validator = form.validators(
+      settings: WFormValidatorSettings(
+        showBorderError: false,
+        shouldSkipValidation: ((name, _) => name == 'a'),
+      ),
+    );
+
+    expect(validator.validate(), isFalse);
+    expect(validator.errors.keys, ['b']);
+  });
+
+  test('validators().add 的新校验项参与下一次 validate', () {
+    final form = WFormController();
+    final validator = form.validators();
+    validator.add(
+      WFormValidatorItem(
+        fieldName: 'extra',
+        validatorBuilder: () =>
+            (_) => '自定义失败',
+      ),
+    );
+
+    expect(validator.validate(), isFalse);
+    expect(validator.errors['extra'], '自定义失败');
+  });
+
+  test('WFormValidatorSettings 是不可变配置（const 构造 + 命名参数）', () {
+    const settings = WFormValidatorSettings(showBorderError: true, continueOnError: true);
+    expect(settings.showBorderError, isTrue);
+    expect(settings.continueOnError, isTrue);
+    final copy = settings.copyWith(notifyAllErrors: true);
+    expect(copy.continueOnError, isTrue);
+    expect(copy.notifyAllErrors, isTrue);
+  });
+
+  testWidgets('bordered: false 的字段把多条提示用「；」拼起来渲染', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormTextField(
+              name: 'a',
+              label: 'A',
+              bordered: false,
+              hintTextList: ['第一条', '第二条'],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('第一条；第二条'), findsOneWidget);
+  });
+
+  testWidgets('date 的 displayFormat 直接生效', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormDatePicker(
+              name: 'd',
+              label: '日期',
+              initialValue: '2024-03-05',
+              displayFormat: 'yyyy/MM/dd',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('2024/03/05'), findsOneWidget);
+  });
+
+  testWidgets('text 的 maxLines / onEditingComplete 生效', (tester) async {
+    var completed = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormTextField(
+              name: 'bio',
+              label: '简介',
+              maxLines: 3,
+              textInputAction: TextInputAction.done,
+              onEditingComplete: () => completed = true,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.widget<TextField>(find.byType(TextField)).maxLines, 3);
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    expect(completed, isTrue);
+  });
+
+  testWidgets('multi 弹层打开后字段卸载，再点选项不崩', (tester) async {
+    final form = WFormController();
+    Widget build({required bool show}) => MaterialApp(
+      home: Scaffold(
+        body: WForm(
+          controller: form,
+          child: show
+              ? const WFormMultiDropdown(name: 'tags', items: {'a': 'A'})
+              : const SizedBox.shrink(),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build(show: true));
+    await tester.tap(find.byType(WFormMultiDropdown));
+    await tester.pumpAndSettle();
+    expect(find.text('A'), findsWidgets);
+
+    await tester.pumpWidget(build(show: false));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('WFormThemeData.of 读取子树主题数据', (tester) async {
+    late WFormThemeData? data;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WFormTheme(
+            icons: const WFormIcons(dropdown: Icon(Icons.expand_more)),
+            child: Builder(
+              builder: (context) {
+                data = WFormThemeData.of(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(data, isNotNull);
+    expect((data!.effectiveDropdownIcon as Icon).icon, Icons.expand_more);
+    expect(data!.effectiveClearButtonIcon, WFormIcons.defaults.clear);
+  });
+
+  testWidgets('checkbox 的 iconSpacing / iconYOffset 生效', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormCheckbox(
+              name: 'agree',
+              title: Text('同意'),
+              iconSpacing: 12,
+              iconYOffset: 3,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final spacing = tester.widget<SizedBox>(
+      find.byWidgetPredicate((w) => w is SizedBox && w.width == 12),
+    );
+    expect(spacing.width, 12);
+    final transform = tester.widget<Transform>(
+      find.byWidgetPredicate((w) => w is Transform && w.transform.storage[13] == 3),
+    );
+    expect(transform.transform.storage[13], 3);
+  });
+
+  testWidgets('radio 的 itemExtraBuilder / lineSpacing 生效', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormRadioGroup<String>(
+              name: 'level',
+              items: const {'a': 'A'},
+              lineSpacing: 6,
+              itemExtraBuilder: (_, value, label, selected) => Text('extra-$label-$selected'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('extra-A-false'), findsOneWidget);
+    final column = tester.widget<Column>(
+      find.byWidgetPredicate((w) => w is Column && w.spacing == 6),
+    );
+    expect(column.spacing, 6);
+  });
+
+  testWidgets('外部 focusNode 在字段卸载后不被 dispose', (tester) async {
+    final node = FocusNode();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormTextField(name: 'a', label: 'A', focusNode: node),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+
+    // 仍可正常使用，说明没被包内 dispose
+    expect(() => node.requestFocus(), returnsNormally);
+    node.dispose();
+  });
+
+  testWidgets('WForm 的 borderStyle 只通过一个作用域下发', (tester) async {
+    final style = WFormBorderStyle.standard();
+    late WFormBorderStyle? resolved;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            borderStyle: style,
+            child: Builder(
+              builder: (context) {
+                resolved = WFormScope.borderStyleOf(context);
+                return const WFormTextField(name: 'a', label: 'A');
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(resolved, style);
+  });
+
+  testWidgets('两条校验路径都调用时不重复渲染错误文案', (tester) async {
+    final form = WFormController();
+    await pumpForm(
+      tester,
+      formData: form,
+      child: const WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
+    );
+
+    expect(form.validate(), isFalse); // 边框通道
+    expect(form.formKey.currentState!.validate(), isFalse); // ffb 内联通道
+    await tester.pump();
+
+    // 同一字段的同一错误只能出现一次。
+    expect(find.text('必填'), findsOneWidget);
+  });
+
+  testWidgets('自定义字段（未接 handleChange）也能被 formEntered 反映', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const _BareCustomField(name: 'custom'),
+          ),
+        ),
+      ),
+    );
+
+    form.formKey.currentState!.fields['custom']!.didChange('hello');
+    await tester.pump();
+
+    expect(form.formEntered['custom'], isTrue);
+    expect(form.isAllEntered(['custom']), isTrue);
+  });
+
+  testWidgets('字段卸载后错误通道与边框登记都被清理', (tester) async {
+    final form = WFormController();
+    Widget build({required bool show}) => MaterialApp(
+      home: Scaffold(
+        body: WForm(
+          controller: form,
+          child: show ? const WFormTextField(name: 'a', label: 'A') : const SizedBox.shrink(),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build(show: true));
+    form.setError('a', errorTextList: const ['出错了']);
+    await tester.pump();
+    expect(form.hasBorder('a'), isTrue);
+
+    await tester.pumpWidget(build(show: false));
+    await tester.pump();
+    expect(form.hasBorder('a'), isFalse);
+
+    // 同名字段重新挂载：不应继承上一次的错误
+    await tester.pumpWidget(build(show: true));
+    await tester.pump();
+    expect(form.hasBorder('a'), isTrue);
+    expect(find.text('出错了'), findsNothing);
+  });
+
+  testWidgets('multi dropdown 的 disabledKeys 不可点击', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormMultiDropdown(
+              name: 'tags',
+              items: {'a': 'A', 'b': 'B'},
+              disabledKeys: {'b'},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(WFormMultiDropdown));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('B').last);
+    await tester.pumpAndSettle();
+    expect(form.value['tags'], isNull);
+
+    await tester.tap(find.text('A').last);
+    await tester.pumpAndSettle();
+    expect(form.value['tags'], {'a'});
+  });
+
+  testWidgets('radio 的 titleBuilder 定制每个选项标题', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: WFormRadioGroup<String>(
+              name: 'level',
+              items: const {'basic': '基础'},
+              titleBuilder: (_, value, label, selected) => Text('$label${selected ? '*' : ''}'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('基础'), findsOneWidget);
+  });
+
+  testWidgets('checkbox 的 disabledIcon 在禁用时替换图标', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormCheckbox(
+              name: 'agree',
+              title: Text('同意'),
+              enabled: false,
+              disabledIcon: Icon(Icons.block),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.block), findsOneWidget);
+  });
+
+  testWidgets('dropdown 的 initialValue 不在 items 时不崩溃（保持现状，仅不显示）', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormDropdown<String>(
+              name: 'city',
+              items: {'sh': '上海'},
+              initialValue: 'not-in-items',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(WFormDropdown<String>), findsOneWidget);
+    expect(form.value['city'], 'not-in-items');
+  });
+
+  testWidgets('WFormPopup 点击屏障外部会关闭', (tester) async {
+    late BuildContext anchor;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: Builder(
+              builder: (context) {
+                anchor = context;
+                return const SizedBox(width: 1, height: 1);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    WFormPopup.show<void>(context: anchor, builder: (_) => const Text('popup'));
+    await tester.pumpAndSettle();
+    expect(find.text('popup'), findsOneWidget);
+
+    await tester.tapAt(const Offset(400, 300));
+    await tester.pumpAndSettle();
+    expect(find.text('popup'), findsNothing);
+  });
+
+  testWidgets('等值的 validatorSettings 不会每帧重写 controller', (tester) async {
+    final form = WFormController();
+    Widget build() => MaterialApp(
+      home: Scaffold(
+        body: WForm(
+          controller: form,
+          // 官方示例就是这么内联构造的：只要值相等，就不该触发重新注入
+          validatorSettings: const WFormValidatorSettings(continueOnError: true),
+          child: const WFormTextField(name: 'a', label: 'A'),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build());
+    final first = form.validatorSettings;
+
+    await tester.pumpWidget(build());
+    expect(identical(form.validatorSettings, first), isTrue);
+  });
+
+  testWidgets('字段级 style 覆盖 WForm.fieldStyle 的 textStyle', (tester) async {
+    const fieldStyle = TextStyle(color: Color(0xFF111111));
+    const override = TextStyle(color: Color(0xFF222222));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            fieldStyle: const WFormFieldStyle(textStyle: fieldStyle),
+            child: const Column(
+              children: [
+                WFormTextField(name: 'a', label: 'A'),
+                WFormTextField(name: 'b', label: 'B', style: override),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final fields = tester.widgetList<TextField>(find.byType(TextField)).toList();
+    expect(fields[0].style?.color, const Color(0xFF111111));
+    expect(fields[1].style?.color, const Color(0xFF222222));
+  });
+}
+
+String? _alwaysFail(String? value) => '必填';
+
+/// 只声明值、不接 onChanged 的自定义字段：用来证明 formEntered 不应依赖字段自觉上报。
+class _BareCustomField extends FormBuilderField<String> {
+  const _BareCustomField({required super.name}) : super(builder: _buildBare);
+
+  static Widget _buildBare(FormFieldState<String?> field) => const SizedBox.shrink();
+}

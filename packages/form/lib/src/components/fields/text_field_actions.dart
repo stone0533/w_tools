@@ -81,7 +81,7 @@ class WFormTextFieldPasswordToggle extends StatelessWidget {
     return WFormTextFieldAction(
       visibleWhen: (data) => data.obscureText,
       iconBuilder: (data) {
-        final theme = WFormTheme.maybeOf(context);
+        final theme = WFormThemeData.of(context);
         return data.isPasswordVisible
             ? theme?.effectiveObscureTextVisibleIcon ?? WFormIcons.defaults.obscureTextVisible
             : theme?.effectiveObscureTextIcon ?? WFormIcons.defaults.obscureText;
@@ -118,7 +118,7 @@ class WFormTextFieldClearButton extends StatelessWidget {
     return WFormTextFieldAction(
       visibleWhen: (data) => data.hasText && !data.readOnly,
       iconBuilder: (_) {
-        final theme = WFormTheme.maybeOf(context);
+        final theme = WFormThemeData.of(context);
         return icon ?? theme?.effectiveClearButtonIcon ?? WFormIcons.defaults.clear;
       },
       onPressed: (data) {

@@ -3,16 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 import '_helpers/form_test_scaffold.dart';
-import 'internal/_helpers/config_exports.dart';
+import 'package:w_tools_form/src/components/field_button.dart';
+import 'package:w_tools_form/src/components/fields/text_field.dart';
 
 void main() {
   group('WFormFieldButtonCore Widget', () {
     testWidgets('渲染 hintWidget', (tester) async {
-      final config = WFormFieldButtonConfig(hintWidget: const Text('请选择'));
-
       await pumpForm(
         tester,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('请选择'),
           name: 'choice',
           onTap: (value, didChange) {},
         ),
@@ -22,11 +22,10 @@ void main() {
     });
 
     testWidgets('initialValue 显示 selectedWidget 内容', (tester) async {
-      final config = WFormFieldButtonConfig(hintWidget: const Text('请选择'));
-
       await pumpForm(
         tester,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('请选择'),
           name: 'choice',
           initialValue: '选项A',
           onTap: (value, didChange) {},
@@ -40,11 +39,10 @@ void main() {
     testWidgets('点击按钮触发 onTap', (tester) async {
       bool tapped = false;
 
-      final config = WFormFieldButtonConfig(hintWidget: const Text('点我'));
-
       await pumpForm(
         tester,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('点我'),
           name: 'tap_test',
           selectedWidgetBuilder: (v) => Text('值: $v'),
           onTap: (value, didChange) {
@@ -64,14 +62,11 @@ void main() {
 
     testWidgets('enabled=false 时点击不触发 onTap', (tester) async {
       bool tapped = false;
-      final config = WFormFieldButtonConfig(
-        hintWidget: const Text('禁用'),
-        enabled: false,
-      );
-
       await pumpForm(
         tester,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('禁用'),
+          enabled: false,
           name: 'disabled',
           onTap: (value, didChange) {
             tapped = true;
@@ -97,11 +92,10 @@ void main() {
 
     testWidgets('build(enabled: false) 覆盖配置', (tester) async {
       bool tapped = false;
-      final config = WFormFieldButtonConfig(hintWidget: const Text('覆盖禁用'));
-
       await pumpForm(
         tester,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('覆盖禁用'),
           name: 'override_btn',
           enabled: false,
           onTap: (_, __) {
@@ -127,12 +121,11 @@ void main() {
 
     testWidgets('点击 didChange 同步 formEntered', (tester) async {
       final formData = WFormController();
-      final config = WFormFieldButtonConfig(hintWidget: const Text('选择'));
-
       await pumpForm(
         tester,
         formData: formData,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('选择'),
           name: 'entered_btn',
           onTap: (value, didChange) => didChange('a'),
         ),
@@ -146,12 +139,11 @@ void main() {
 
     testWidgets('form reset 后 formEntered 同步复位', (tester) async {
       final formData = WFormController();
-      final config = WFormFieldButtonConfig(hintWidget: const Text('重置按钮'));
-
       await pumpForm(
         tester,
         formData: formData,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('重置按钮'),
           name: 'reset_btn',
           onTap: (_, didChange) => didChange('a'),
         ),
@@ -167,11 +159,9 @@ void main() {
     });
 
     testWidgets('具备 button 语义与启用状态', (tester) async {
-      final config = WFormFieldButtonConfig(hintWidget: const Text('语义'));
-
       await pumpForm(
         tester,
-        child: config.build(name: 'semantic_btn', onTap: (_, __) {}),
+        child: buttonCore(hintWidget: const Text('语义'), name: 'semantic_btn', onTap: (_, __) {}),
       );
 
       final buttonSemantics = tester
@@ -187,14 +177,14 @@ void main() {
     });
 
     testWidgets('禁用态语义 enabled=false', (tester) async {
-      final config = WFormFieldButtonConfig(
-        hintWidget: const Text('禁用语义'),
-        enabled: false,
-      );
-
       await pumpForm(
         tester,
-        child: config.build(name: 'semantic_disabled_btn', onTap: (_, __) {}),
+        child: buttonCore(
+          hintWidget: const Text('禁用语义'),
+          enabled: false,
+          name: 'semantic_disabled_btn',
+          onTap: (_, __) {},
+        ),
       );
 
       final buttonSemantics = tester
@@ -210,15 +200,15 @@ void main() {
     });
 
     testWidgets('leading / actions 渲染在按钮两侧', (tester) async {
-      final config = WFormFieldButtonConfig(
-        hintWidget: const Text('带附加内容'),
-        leading: const Icon(Icons.star),
-        actions: [const Icon(Icons.add), const Icon(Icons.remove)],
-      );
-
       await pumpForm(
         tester,
-        child: config.build(name: 'decorated_btn', onTap: (_, __) {}),
+        child: buttonCore(
+          hintWidget: const Text('带附加内容'),
+          leading: const Icon(Icons.star),
+          actions: [const Icon(Icons.add), const Icon(Icons.remove)],
+          name: 'decorated_btn',
+          onTap: (_, __) {},
+        ),
       );
 
       expect(find.byIcon(Icons.star), findsOneWidget);
@@ -228,14 +218,14 @@ void main() {
     });
 
     testWidgets('yOffset 平移按钮内容', (tester) async {
-      final config = WFormFieldButtonConfig(
-        hintWidget: const Text('偏移'),
-        yOffset: 6,
-      );
-
       await pumpForm(
         tester,
-        child: config.build(name: 'offset_btn', onTap: (_, __) {}),
+        child: buttonCore(
+          hintWidget: const Text('偏移'),
+          yOffset: 6,
+          name: 'offset_btn',
+          onTap: (_, __) {},
+        ),
       );
 
       final transformed = tester
@@ -252,13 +242,12 @@ void main() {
 
     testWidgets('外层只读作用域下不可点击', (tester) async {
       bool tapped = false;
-      final config = WFormFieldButtonConfig(hintWidget: const Text('只读'));
-
       await pumpForm(
         tester,
         child: WFormReadOnlyScope(
           readOnly: true,
-          child: config.build(
+          child: buttonCore(
+            hintWidget: const Text('只读'),
             name: 'readonly_btn',
             onTap: (value, didChange) {
               tapped = true;
@@ -274,28 +263,16 @@ void main() {
       expect(tapped, false);
     });
 
-    testWidgets('WFormFieldButtonConfig.build 返回 WFormFieldButtonCore', (tester) async {
-      final config = WFormFieldButtonConfig();
-      final btn =
-          config.build(
-                name: 'x',
-                onTap: (_, __) {},
-              )
-              as WFormFieldButtonCore<String>;
-      expect(btn, isA<WFormFieldButtonCore<String>>());
-      expect(btn.name, 'x');
-    });
-
     testWidgets('height / width 渲染到外层容器', (tester) async {
-      final config = WFormFieldButtonConfig(
-        hintWidget: const Text('尺寸'),
-        height: 48,
-        width: 200,
-      );
-
       await pumpForm(
         tester,
-        child: config.build(name: 'size_btn', onTap: (_, __) {}),
+        child: buttonCore(
+          hintWidget: const Text('尺寸'),
+          height: 48,
+          width: 200,
+          name: 'size_btn',
+          onTap: (_, __) {},
+        ),
       );
 
       final size = tester.getSize(find.byType(WFormFieldButtonCore<String>));
@@ -303,38 +280,16 @@ void main() {
       expect(size.height, 48);
     });
 
-    testWidgets('setter 传 null 可清空配置', (tester) async {
-      final config = WFormFieldButtonConfig();
-
-      await pumpForm(
-        tester,
-        child: config.build(name: 'cleared_btn', onTap: (_, __) {}),
-      );
-
-      final container = tester.widget<Container>(
-        find
-            .descendant(
-              of: find.byType(WFormFieldButtonCore<String>),
-              matching: find.byType(Container),
-            )
-            .first,
-      );
-      expect(container.constraints, isNull);
-      expect(container.padding, isNull);
-      expect(find.text('可清空'), findsNothing);
-    });
-
     testWidgets('validator / focusNode 透传到内部字段', (tester) async {
       final formData = WFormController();
       final focusNode = FocusNode();
       addTearDown(focusNode.dispose);
 
-      final config = WFormFieldButtonConfig(hintWidget: const Text('校验'));
-
       await pumpForm(
         tester,
         formData: formData,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('校验'),
           bordered: true,
           name: 'validated_btn',
           validator: (value) => value == null || value.isEmpty ? '必填' : null,
@@ -352,11 +307,10 @@ void main() {
     });
 
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
-      final config = WFormFieldButtonConfig(hintWidget: const Text('边框按钮'));
-
       await pumpForm(
         tester,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('边框按钮'),
           bordered: true,
           name: 'btn_border',
           onTap: (_, __) {},
@@ -375,80 +329,69 @@ void main() {
       expect(data.isAllEntered(const ['a']), false);
     });
 
-    testWidgets('onChange — 非 String 值也维护 formEntered', (tester) async {
-      final data = WFormController();
-      // 数字：按 value != null 判定
-      data.handleChange('count', 1);
-      expect(data.formEntered['count'], true);
-      data.handleChange<int>('count', null);
-      expect(data.formEntered['count'], false);
-      // 集合：按 isNotEmpty 判定
-      data.handleChange('tags', <String>['a']);
-      expect(data.formEntered['tags'], true);
-      data.handleChange('tags', <String>[]);
-      expect(data.formEntered['tags'], false);
-      // 字符串：按 isNotEmpty 判定
-      data.handleChange('name', '');
-      expect(data.formEntered['name'], false);
-      data.handleChange('name', 'x');
-      expect(data.formEntered['name'], true);
-      // 布尔：false 视为未输入（与表单 reset 语义一致）
-      data.handleChange('agree', true);
-      expect(data.formEntered['agree'], true);
-      data.handleChange('agree', false);
-      expect(data.formEntered['agree'], false);
-    });
-
-    testWidgets('formKey — 不同 WFormController 实例有不同 formKey', (tester) async {
-      final data1 = WFormController();
-      final data2 = WFormController();
-      expect(data1.formKey, isNot(same(data2.formKey)));
-    });
-
-    testWidgets('closeKeyboard — 不抛异常', (tester) async {
-      await pumpForm(tester, child: const SizedBox.shrink());
-      final data = WFormController();
-      data.closeKeyboard();
-      // 不抛异常 = 通过
-    });
-
-    testWidgets('isAllEntered — 全部为 true 时返回 true', (tester) async {
-      final data = WFormController();
-      data.handleChange('a', 'x');
-      data.handleChange('b', 'y');
-      expect(data.isAllEntered(const ['a', 'b']), true);
-    });
-
-    testWidgets('isAllEntered — 有一个为 false 时返回 false', (tester) async {
-      final data = WFormController();
-      data.handleChange('a', 'x');
-      data.handleChange('b', '');
-      expect(data.isAllEntered(const ['a', 'b']), false);
-    });
-
-    testWidgets('isAllEntered — 缺少指定字段时返回 false', (tester) async {
-      final data = WFormController();
-      data.handleChange('a', 'x');
-
-      expect(data.isAllEntered(const ['a', 'missing']), false);
-    });
-
-    testWidgets('isAllEntered — 空字段集合返回 false', (tester) async {
-      expect(WFormController().isAllEntered(const []), false);
-    });
-
-    testWidgets('isAllEntered — 忽略已卸载字段的陈旧记录', (tester) async {
+    testWidgets('formEntered 按字段值实时派生（string / bool / 集合）', (tester) async {
       final data = WFormController();
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
+        child: const Column(
+          children: [
+            WFormTextField(name: 'name'),
+            WFormCheckbox(name: 'agree', title: Text('同意')),
+            WFormMultiDropdown(name: 'tags', items: {'a': 'A'}),
+          ],
+        ),
       );
 
-      data.handleChange('a', 'x');
-      data.handleChange('unmounted', 'y');
+      expect(data.formEntered['name'], isFalse); // 空字符串
+      data.updateValue('name', 'x');
+      await tester.pump();
+      expect(data.formEntered['name'], isTrue);
 
+      expect(data.formEntered['agree'], isFalse); // 初始 false 视为未输入
+      data.updateValue('agree', true);
+      await tester.pump();
+      expect(data.formEntered['agree'], isTrue);
+
+      expect(data.formEntered['tags'], isFalse); // null
+      data.updateValue('tags', {'a'});
+      await tester.pump();
+      expect(data.formEntered['tags'], isTrue);
+    });
+
+    testWidgets('isAllEntered 按字段值判断', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: const Column(
+          children: [
+            WFormTextField(name: 'a'),
+            WFormTextField(name: 'b'),
+          ],
+        ),
+      );
+
+      expect(data.isAllEntered(const ['a']), isFalse);
+      data.updateValue('a', 'x');
+      await tester.pump();
       expect(data.isAllEntered(const ['a']), isTrue);
+      expect(data.isAllEntered(const ['a', 'b']), isFalse);
+      expect(data.isAllEntered(const ['a', 'missing']), isFalse);
+      expect(data.isAllEntered(const []), isFalse);
+    });
+
+    testWidgets('formEntered 只包含当前已挂载字段', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: const WFormTextField(name: 'a'),
+      );
+
+      expect(data.formEntered.keys, ['a']);
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(data.formEntered, isEmpty);
     });
   });
 
@@ -458,7 +401,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
+        child: const WFormTextFieldCore(name: 'a'),
       );
 
       expect(data.getFieldsValue('a'), isNull);
@@ -474,7 +417,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
+        child: const WFormTextFieldCore(name: 'a'),
       );
 
       data.updateValue<String>('a', 'hello');
@@ -489,10 +432,11 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'raw'),
+        child: const WFormTextFieldCore(name: 'raw'),
       );
 
-      data.handleChange('raw', 'x');
+      data.updateValue('raw', 'x');
+      await tester.pump();
       expect(data.formEntered['raw'], isTrue);
 
       await tester.pumpWidget(const SizedBox.shrink());
@@ -508,7 +452,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
+        child: const WFormTextFieldCore(name: 'a'),
       );
 
       data.updateValue<String>('a', 'hello');
@@ -524,7 +468,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextFieldConfig().build(
+        child: WFormTextFieldCore(
           name: 'email',
           validator: (value) => (value == null || value.isEmpty) ? '必填' : null,
         ),
@@ -541,7 +485,7 @@ void main() {
       await pumpForm(
         tester,
         formData: data,
-        child: WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
+        child: const WFormTextFieldCore(name: 'a'),
       );
 
       final validators = data.validators(
@@ -559,6 +503,54 @@ void main() {
       data.setValue('a', 'x');
       await tester.pump();
       expect(validators.validate(), isTrue);
+    });
+  });
+
+  group('WFormController — 清空 / 重置语义', () {
+    testWidgets('clearValue 对 bool / Set 字段不是类型安全的清空', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: const Column(
+          children: [
+            WFormCheckbox(name: 'agree', title: Text('同意'), initialValue: true),
+            WFormMultiDropdown(name: 'tags', items: {'a': 'A'}, initialValue: {'a'}),
+          ],
+        ),
+      );
+
+      data.clearValue('agree');
+      data.clearValue('tags');
+      await tester.pump();
+
+      // 现状：clearValue 一律写 null —— 对非可空类型来说语义不明确。
+      expect(data.value['agree'], isNull);
+      expect(data.value['tags'], isNull);
+    });
+
+    testWidgets('resetValue 把字段回到自身 initialValue', (tester) async {
+      final data = WFormController();
+      await pumpForm(
+        tester,
+        formData: data,
+        child: const Column(
+          children: [
+            WFormCheckbox(name: 'agree', title: Text('同意'), initialValue: true),
+            WFormMultiDropdown(name: 'tags', items: {'a': 'A'}, initialValue: {'a'}),
+          ],
+        ),
+      );
+
+      data.clearValue('agree');
+      data.clearValue('tags');
+      await tester.pump();
+      data.resetValue('agree');
+      data.resetValue('tags');
+      await tester.pump();
+
+      expect(data.value['agree'], isTrue);
+      expect(data.value['tags'], {'a'});
     });
   });
 }

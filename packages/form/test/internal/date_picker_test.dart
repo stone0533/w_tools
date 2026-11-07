@@ -3,8 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/field_assembly.dart';
 import 'package:w_tools_form/src/components/fields/date_picker.dart';
-import '_helpers/config_exports.dart';
 
 void main() {
   final firstDate = DateTime(1900);
@@ -47,7 +47,7 @@ void main() {
             name: 'birthday',
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(decoration: const InputDecoration(hintText: '选择日期')),
+            decoration: const InputDecoration(hintText: '选择日期'),
           ),
         ),
       );
@@ -63,7 +63,6 @@ void main() {
           formData: formData,
           child: WFormDatePickerCore(
             name: 'birthday',
-            config: WFormDatePickerConfig(),
             initialValue: initialValue,
             firstDate: firstDate,
             lastDate: lastDate,
@@ -83,7 +82,7 @@ void main() {
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(iconSize: 36),
+            iconSize: 36,
           ),
         ),
       );
@@ -101,10 +100,8 @@ void main() {
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(
-              iconEnabledColor: Colors.red,
-              iconDisabledColor: Colors.grey,
-            ),
+            iconEnabledColor: Colors.red,
+            iconDisabledColor: Colors.grey,
           ),
         ),
       );
@@ -121,10 +118,8 @@ void main() {
             firstDate: firstDate,
             lastDate: lastDate,
             enabled: false,
-            config: WFormDatePickerConfig(
-              iconEnabledColor: Colors.red,
-              iconDisabledColor: Colors.grey,
-            ),
+            iconEnabledColor: Colors.red,
+            iconDisabledColor: Colors.grey,
           ),
         ),
       );
@@ -141,7 +136,7 @@ void main() {
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(icon: const Icon(Icons.calendar_today, size: 30)),
+            icon: const Icon(Icons.calendar_today, size: 30),
           ),
         ),
       );
@@ -160,9 +155,7 @@ void main() {
             initialValue: initialValue,
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(
-              style: const TextStyle(color: Colors.purple, fontSize: 18),
-            ),
+            style: const TextStyle(color: Colors.purple, fontSize: 18),
           ),
         ),
       );
@@ -183,10 +176,8 @@ void main() {
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(
-              height: 64,
-              containerDecoration: const BoxDecoration(color: color),
-            ),
+            height: 64,
+            containerDecoration: const BoxDecoration(color: color),
           ),
         ),
       );
@@ -207,11 +198,14 @@ void main() {
       await tester.pumpWidget(
         buildWrapped(
           formData: formData,
-          child: WFormDatePickerConfig().build(
-            bordered: true,
+          child: assembleFormField(
             name: 'd_border',
-            firstDate: firstDate,
-            lastDate: lastDate,
+            bordered: true,
+            child: WFormDatePickerCore(
+              name: 'd_border',
+              firstDate: firstDate,
+              lastDate: lastDate,
+            ),
           ),
         ),
       );
@@ -231,7 +225,7 @@ void main() {
               name: 'd_readonly',
               firstDate: firstDate,
               lastDate: lastDate,
-              config: WFormDatePickerConfig(decoration: const InputDecoration(hintText: '只读日期')),
+              decoration: const InputDecoration(hintText: '只读日期'),
             ),
           ),
         ),
@@ -261,7 +255,6 @@ void main() {
             name: 'validated_date',
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(),
             validator: (value) => value == null ? '请选择日期' : null,
           ),
         ),
@@ -280,7 +273,6 @@ void main() {
             name: 'reset_date',
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(),
           ),
         ),
       );
@@ -305,7 +297,7 @@ void main() {
             name: 'd1',
             firstDate: firstDate,
             lastDate: lastDate,
-            config: WFormDatePickerConfig(decoration: const InputDecoration(hintText: '点击选日期')),
+            decoration: const InputDecoration(hintText: '点击选日期'),
           ),
         ),
       );
@@ -323,7 +315,6 @@ void main() {
           formData: formData,
           child: WFormDatePickerCore(
             name: 'd1',
-            config: WFormDatePickerConfig(),
             firstDate: firstDate,
             lastDate: lastDate,
           ),
@@ -355,7 +346,6 @@ void main() {
           formData: formData,
           child: WFormDatePickerCore(
             name: 'd1',
-            config: WFormDatePickerConfig(),
             firstDate: firstDate,
             lastDate: lastDate,
           ),
@@ -380,7 +370,6 @@ void main() {
           formData: formData,
           child: WFormDatePickerCore(
             name: 'd_keep',
-            config: WFormDatePickerConfig(),
             firstDate: firstDate,
             lastDate: lastDate,
             initialValue: initialValue,
@@ -408,7 +397,6 @@ void main() {
           formData: formData,
           child: WFormDatePickerCore(
             name: 'd1',
-            config: WFormDatePickerConfig(),
             firstDate: firstDate,
             lastDate: lastDate,
             onChanged: (v) => changed = v,
@@ -434,7 +422,6 @@ void main() {
           formData: formData,
           child: WFormDatePickerCore(
             name: 'd1',
-            config: WFormDatePickerConfig(),
             firstDate: firstDate,
             lastDate: lastDate,
             enabled: false,
@@ -455,7 +442,6 @@ void main() {
           formData: formData,
           child: WFormDatePickerCore(
             name: 'd1',
-            config: WFormDatePickerConfig(),
             initialValue: '1800-01-01',
             firstDate: firstDate,
             lastDate: lastDate,
@@ -477,7 +463,6 @@ void main() {
           formData: formData,
           child: WFormDatePickerCore(
             name: 'd1',
-            config: WFormDatePickerConfig(),
             initialValue: 'not-a-date',
             firstDate: firstDate,
             lastDate: lastDate,

@@ -40,10 +40,16 @@ class WFormPopup {
     RouteSettings? settings,
   }) {
     final navigator = Navigator.of(context, rootNavigator: rootNavigator);
-    if (!_activeNavigators.add(navigator)) {
-      // 已有弹层打开，忽略重复调用
+    if (_activeNavigators.contains(navigator)) {
+      // 同一 Navigator 只允许一个 WFormPopup：debug 下直接报出来，release 保持旧行为（忽略）。
+      assert(
+        false,
+        '同一 Navigator 已有 WFormPopup：先 hide 或等它关闭再 show，'
+        '否则第二次调用会被忽略（拿到的 Future 立即完成）。',
+      );
       return Future<T?>.value();
     }
+    _activeNavigators.add(navigator);
 
     try {
       final RenderBox anchor = _renderBoxOf(anchorContext ?? context);

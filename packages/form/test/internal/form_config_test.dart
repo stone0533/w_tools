@@ -3,9 +3,8 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
-import '../_helpers/form_test_scaffold.dart';
+import '_helpers/form_test_scaffold.dart';
 import 'package:w_tools_form/src/components/fields/text_field.dart';
-import '_helpers/config_exports.dart';
 
 void main() {
   group('WFormValidatorItem', () {
@@ -32,39 +31,34 @@ void main() {
 
   group('WFormValidatorSettings', () {
     test('默认值', () {
-      final config = WFormValidatorSettings();
-      // 私有字段但有公开行为 — 通过 setter 设置后验证
-      config.showBorderError = true;
-      expect(config, isNotNull); // 只是验证类可实例化
+      const config = WFormValidatorSettings();
+      expect(config.showBorderError, isFalse);
+      expect(config.continueOnError, isFalse);
+      expect(config.notifyAllErrors, isFalse);
+      expect(config.customErrorCallback, isNull);
+      expect(config.itemValidationCallback, isNull);
+      expect(config.shouldSkipValidation, isNull);
     });
 
-    test('setter 可以设置回调', () {
-      final config = WFormValidatorSettings();
-      bool callbackCalled = false;
-      config.customErrorCallback = (field, error) => callbackCalled = true;
-      expect(callbackCalled, false);
-    });
-
-    test('getter 可回读所有配置', () {
-      final config = WFormValidatorSettings()
-        ..showBorderError = true
-        ..continueOnError = true
-        ..notifyAllErrors = true
-        ..customErrorCallback = (field, error) {}
-        ..itemValidationCallback = (field, isValid, error) {}
-        ..shouldSkipValidation = (field, values) => true;
+    test('构造参数可设置回调与开关', () {
+      bool called = false;
+      final config = WFormValidatorSettings(
+        showBorderError: true,
+        customErrorCallback: (field, error) => called = true,
+      );
 
       expect(config.showBorderError, isTrue);
-      expect(config.continueOnError, isTrue);
-      expect(config.notifyAllErrors, isTrue);
-      expect(config.customErrorCallback, isNotNull);
-      expect(config.itemValidationCallback, isNotNull);
-      expect(config.shouldSkipValidation, isNotNull);
+      config.customErrorCallback!('a', 'err');
+      expect(called, isTrue);
+    });
 
-      final copy = config.copy();
+    test('copyWith 生成新实例且不修改原实例', () {
+      const base = WFormValidatorSettings(showBorderError: true);
+      final copy = base.copyWith(continueOnError: true);
+
+      expect(base.continueOnError, isFalse);
       expect(copy.showBorderError, isTrue);
       expect(copy.continueOnError, isTrue);
-      expect(copy.notifyAllErrors, isTrue);
     });
   });
 
@@ -128,10 +122,10 @@ void main() {
           home: Scaffold(
             body: WFormScope(
               formData: data,
-              child: Column(
+              child: const Column(
                 children: [
-                  WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'a'),
-                  WFormTextFieldCore(config: WFormTextFieldConfig(), name: 'b'),
+                  WFormTextFieldCore(name: 'a'),
+                  WFormTextFieldCore(name: 'b'),
                 ],
               ),
             ),
@@ -153,9 +147,10 @@ void main() {
                 (v) => (v == null || v.toString().isEmpty) ? 'b 必填' : null,
           ),
         ],
-        settings: WFormValidatorSettings()
-          ..continueOnError = true
-          ..itemValidationCallback = ((name, ok, err) => visited.add(name)),
+        settings: WFormValidatorSettings(
+          continueOnError: true,
+          itemValidationCallback: ((name, ok, err) => visited.add(name)),
+        ),
       );
 
       expect(validators.validate(), isFalse);

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
-import '_helpers/form_test_scaffold.dart';
-import 'internal/_helpers/config_exports.dart';
+import 'internal/_helpers/form_test_scaffold.dart';
 
 /// 构造一个总是校验失败的校验项
 WFormValidatorItem failingItem(String name) => WFormValidatorItem(
@@ -20,14 +19,72 @@ WFormValidatorItem passingItem(String name) => WFormValidatorItem(
 );
 
 void main() {
+  testWidgets('只用 WFormScope 时 validate() 默认显示边框错误', (tester) async {
+    final form = WFormController();
+    await pumpForm(
+      tester,
+      formData: form,
+      child: const WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
+    );
+
+    expect(form.validate(), isFalse);
+    await tester.pump();
+    expect(find.text('必填'), findsOneWidget);
+  });
+
+  test('controller.validators() 返回可增长的校验项列表', () {
+    final form = WFormController();
+    final validator = form.validators();
+    expect(
+      () => validator.add(WFormValidatorItem.field('x')),
+      returnsNormally,
+    );
+  });
+
+  testWidgets('validate() 跟随 controller.validatorSettings 的后续变更', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            borderStyle: terseBorderStyle(),
+            child: const WFormTextField(
+              name: 'a',
+              label: 'A',
+              validator: _alwaysFail,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // 不传 settings 的 validator：每次 validate 都应重新解析 controller 的设置。
+    form.validatorSettings = const WFormValidatorSettings();
+    final validator = WFormValidator(
+      formData: form,
+      validationItems: [WFormValidatorItem.field('a')],
+    );
+    expect(validator.validate(), isFalse);
+    await tester.pump();
+    expect(find.text('必填'), findsNothing);
+
+    // 运行期改设置后，同一个 validator 必须跟着变，不能沿用第一次解析的结果。
+    form.validatorSettings = const WFormValidatorSettings(showBorderError: true);
+    expect(validator.validate(), isFalse);
+    await tester.pump();
+    expect(find.text('必填'), findsOneWidget);
+  });
+
   group('WFormValidator 短路 / 全量校验', () {
     testWidgets('默认短路校验：遇到第一个失败项即返回，不再校验后续字段', (tester) async {
       final formData = WFormController();
       final validated = <String>[];
-      final config = WFormValidatorSettings()
-        ..itemValidationCallback = (name, isValid, errorText) {
+      final config = WFormValidatorSettings(
+        itemValidationCallback: (name, isValid, errorText) {
           validated.add(name);
-        };
+        },
+      );
 
       final validators = WFormValidator(
         formData: formData,
@@ -45,11 +102,12 @@ void main() {
     testWidgets('全量校验：continueOnError = true 时遍历全部校验项', (tester) async {
       final formData = WFormController();
       final validated = <String>[];
-      final config = WFormValidatorSettings()
-        ..continueOnError = true
-        ..itemValidationCallback = (name, isValid, errorText) {
+      final config = WFormValidatorSettings(
+        continueOnError: true,
+        itemValidationCallback: (name, isValid, errorText) {
           validated.add(name);
-        };
+        },
+      );
 
       final validators = WFormValidator(
         formData: formData,
@@ -67,11 +125,12 @@ void main() {
     testWidgets('全量校验：customErrorCallback 仅对第一个失败项触发', (tester) async {
       final formData = WFormController();
       final notified = <String>[];
-      final config = WFormValidatorSettings()
-        ..continueOnError = true
-        ..customErrorCallback = (fieldName, error) {
+      final config = WFormValidatorSettings(
+        continueOnError: true,
+        customErrorCallback: (fieldName, error) {
           notified.add(fieldName);
-        };
+        },
+      );
 
       final validators = WFormValidator(
         formData: formData,
@@ -88,10 +147,11 @@ void main() {
 
     testWidgets('全量校验：notifyAllErrors = true 时每个失败项都触发 customErrorCallback', (tester) async {
       final notified = <String>[];
-      final config = WFormValidatorSettings()
-        ..continueOnError = true
-        ..notifyAllErrors = true
-        ..customErrorCallback = (fieldName, error) => notified.add(fieldName);
+      final config = WFormValidatorSettings(
+        continueOnError: true,
+        notifyAllErrors: true,
+        customErrorCallback: (fieldName, error) => notified.add(fieldName),
+      );
 
       final validators = WFormValidator(
         formData: WFormController(),
@@ -112,8 +172,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().build(bordered: true, name: 'a'),
-            WFormTextFieldConfig().build(bordered: true, name: 'b'),
+            textCore(bordered: true, name: 'a'),
+            textCore(bordered: true, name: 'b'),
           ],
         ),
       );
@@ -124,7 +184,7 @@ void main() {
       expect(find.text('a error'), findsOneWidget);
 
       // 全量校验：a 通过（应清除残留错误），b 失败（应显示错误）
-      final config = WFormValidatorSettings()..showBorderError = true;
+      const config = WFormValidatorSettings(showBorderError: true);
       final validators = WFormValidator(
         formData: formData,
         validationItems: [
@@ -148,7 +208,7 @@ void main() {
       final validators = WFormValidator(
         formData: WFormController(),
         validationItems: [failingItem('a'), passingItem('b'), failingItem('c')],
-        settings: WFormValidatorSettings()..continueOnError = true,
+        settings: const WFormValidatorSettings(continueOnError: true),
       );
 
       validators.validate();
@@ -236,8 +296,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
-            WFormTextFieldConfig().build(bordered: true, name: 'b', focusNode: focusB),
+            textCore(bordered: true, name: 'a', focusNode: focusA),
+            textCore(bordered: true, name: 'b', focusNode: focusB),
           ],
         ),
       );
@@ -245,9 +305,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), failingItem('b')],
-        settings: WFormValidatorSettings()
-          ..showBorderError = true
-          ..continueOnError = true,
+        settings: const WFormValidatorSettings(showBorderError: true, continueOnError: true),
       );
 
       validators.validate();
@@ -267,7 +325,7 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
+            textCore(bordered: true, name: 'a', focusNode: focusA),
           ],
         ),
       );
@@ -275,7 +333,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a')],
-        settings: WFormValidatorSettings()..showBorderError = false,
+        settings: const WFormValidatorSettings(showBorderError: false),
       );
 
       validators.validate();
@@ -296,8 +354,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().build(bordered: true, name: 'a', focusNode: focusA),
-            WFormTextFieldConfig().build(bordered: true, name: 'b', focusNode: focusB),
+            textCore(bordered: true, name: 'a', focusNode: focusA),
+            textCore(bordered: true, name: 'b', focusNode: focusB),
           ],
         ),
       );
@@ -313,9 +371,7 @@ void main() {
           ),
           failingItem('b'),
         ],
-        settings: WFormValidatorSettings()
-          ..showBorderError = true
-          ..continueOnError = true,
+        settings: const WFormValidatorSettings(showBorderError: true, continueOnError: true),
       );
 
       validators.validate();
@@ -332,8 +388,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().build(bordered: true, name: 'a'),
-            WFormTextFieldConfig().build(bordered: true, name: 'b'),
+            textCore(bordered: true, name: 'a'),
+            textCore(bordered: true, name: 'b'),
           ],
         ),
       );
@@ -341,9 +397,7 @@ void main() {
       final full = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), failingItem('b')],
-        settings: WFormValidatorSettings()
-          ..showBorderError = true
-          ..continueOnError = true,
+        settings: const WFormValidatorSettings(showBorderError: true, continueOnError: true),
       );
       full.validate();
       await tester.pump();
@@ -354,7 +408,7 @@ void main() {
       final short = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a'), failingItem('b')],
-        settings: WFormValidatorSettings()..showBorderError = true,
+        settings: const WFormValidatorSettings(showBorderError: true),
       );
       short.validate();
       await tester.pump();
@@ -371,7 +425,7 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().build(bordered: true, name: 'a'),
+            textCore(bordered: true, name: 'a'),
           ],
         ),
       );
@@ -379,7 +433,7 @@ void main() {
       final on = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a')],
-        settings: WFormValidatorSettings()..showBorderError = true,
+        settings: const WFormValidatorSettings(showBorderError: true),
       );
       on.validate();
       await tester.pump();
@@ -388,7 +442,7 @@ void main() {
       final off = WFormValidator(
         formData: formData,
         validationItems: [failingItem('a')],
-        settings: WFormValidatorSettings()..showBorderError = false,
+        settings: const WFormValidatorSettings(showBorderError: false),
       );
       off.validate();
       await tester.pump();
@@ -410,7 +464,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormTextFieldConfig().build(
+        child: textCore(
           name: 'name',
           validator: (value) => value == null || value.isEmpty ? '必填' : null,
         ),
@@ -438,8 +492,8 @@ void main() {
         formData: formData,
         child: Column(
           children: [
-            WFormTextFieldConfig().build(name: 'a', validator: (_) => 'a error'),
-            WFormTextFieldConfig().build(name: 'b', validator: (_) => 'b error'),
+            textCore(name: 'a', validator: (_) => 'a error'),
+            textCore(name: 'b', validator: (_) => 'b error'),
           ],
         ),
       );
@@ -450,10 +504,11 @@ void main() {
           WFormValidatorItem.field('a'),
           WFormValidatorItem.field('b'),
         ],
-        settings: WFormValidatorSettings()
-          ..itemValidationCallback = (name, isValid, errorText) {
+        settings: WFormValidatorSettings(
+          itemValidationCallback: (name, isValid, errorText) {
             visited.add(name);
           },
+        ),
       );
 
       expect(validators.validate(), isFalse);
@@ -465,7 +520,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormFieldButtonConfig().build(
+        child: buttonCore(
           bordered: true,
           name: 'btn',
           validator: (_) => '字段错误',
@@ -476,7 +531,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [WFormValidatorItem.field('btn')],
-        settings: WFormValidatorSettings()..showBorderError = true,
+        settings: const WFormValidatorSettings(showBorderError: true),
       );
 
       expect(validators.validate(), isFalse);
@@ -491,7 +546,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormTextFieldConfig().build(
+        child: textCore(
           bordered: true,
           name: 'name',
           validator: (_) => '必填',
@@ -501,7 +556,7 @@ void main() {
       final validators = WFormValidator(
         formData: formData,
         validationItems: [WFormValidatorItem.field('name')],
-        settings: WFormValidatorSettings()..showBorderError = true,
+        settings: const WFormValidatorSettings(showBorderError: true),
       );
 
       expect(validators.validate(), isFalse);
@@ -523,3 +578,5 @@ void main() {
     });
   });
 }
+
+String? _alwaysFail(String? value) => '必填';

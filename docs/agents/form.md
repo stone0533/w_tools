@@ -6,11 +6,8 @@
 ```dart
 WForm(
   controller: form,
-  // 跟随明暗与品牌色；standard() 是显式浅色预设，只适合固定浅色页
-  borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+  // 边框默认跟随主题；只有固定浅色页才显式用 WFormBorderStyle.standard()
   fieldStyle: const WFormFieldStyle(height: 52),
-  validatorSettings: WFormValidatorSettings()
-    ..showBorderError = true,
   child: Column(
     children: [
       WFormTextField(
@@ -97,11 +94,11 @@ final value = await WFormPopup.show<String>(
 11. 输入格式化 / 图标 / 统一校验：
 
 ```dart
-WFormTextField(name: 'phone', inputFormatters: WFormInputFormatters.phone());
+WFormTextField(name: 'phone', inputFormatters: WFormInputFormatters.hkPhone());
 WForm(controller: form, icons: const WFormIcons(dropdown: Icon(Icons.expand_more)), child: ...);
 
 form.validators(items: [WFormValidatorItem.field('email')]).validate();
-form.validate(settings: WFormValidatorSettings()..continueOnError = true);
+form.validate(settings: const WFormValidatorSettings(continueOnError: true));
 form.reset();
 ```
 

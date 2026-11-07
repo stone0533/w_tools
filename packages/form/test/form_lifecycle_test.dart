@@ -37,11 +37,11 @@ void main() {
       ),
     );
 
-    final off = WFormValidatorSettings();
+    const off = WFormValidatorSettings();
     await tester.pumpWidget(build(off));
     expect(form.validatorSettings, same(off));
 
-    final on = WFormValidatorSettings()..showBorderError = true;
+    const on = WFormValidatorSettings(showBorderError: true);
     await tester.pumpWidget(build(on));
     expect(form.validatorSettings, same(on));
   });
@@ -118,7 +118,7 @@ void main() {
 
     await tester.pumpWidget(build(firstParent: false));
     await tester.pump();
-    expect(find.textContaining('WFormController 重复挂载'), findsNothing);
+    expect(find.byKey(const ValueKey<String>('w-form-duplicate-controller')), findsNothing);
     expect(find.text('A'), findsWidgets);
   });
 
@@ -147,7 +147,7 @@ void main() {
       ),
     );
 
-    form.handleChange('a', 'x');
+    form.updateValue('a', 'x');
     await tester.pump();
     expect(form.formEntered['a'], isTrue);
 
@@ -164,7 +164,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormTextField(name: 'email', label: '邮箱'),
           ),
         ),

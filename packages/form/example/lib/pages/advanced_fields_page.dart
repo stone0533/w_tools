@@ -23,7 +23,6 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
       appBar: AppBar(title: const Text('高级字段')),
       body: WForm(
         controller: _form,
-        borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
         autovalidateMode: AutovalidateMode.onUserInteraction,
         onChanged: (_) => setState(() => _changeCount++),

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
-/// 边框配置不可变，可以安全地跨字段、跨页面共享。
-final WFormBorderConfig exampleBorderConfig = WFormBorderConfig.standard(
-  radius: 12,
-);
+// 页面级边框直接用 WForm 的默认值（跟随主题）。这里只保留「自定义边框」示例，
+// 见 exampleCompactBorderConfig。
 
 /// 页面默认字段样式：高度 / 内边距 / 正文 / hint。
 const exampleFieldStyle = WFormFieldStyle(
@@ -15,7 +13,7 @@ const exampleFieldStyle = WFormFieldStyle(
 );
 
 /// 自定义边框：灰底 + 聚焦绿边 + 错误红边，消息使用自定义前缀。
-final exampleCompactBorderConfig = WFormBorderConfig(
+final exampleCompactBorderConfig = WFormBorderStyle(
   defaultDecoration: WFormBorderDecoration(
     color: const Color(0xFFF9FAFB),
     border: Border.all(color: const Color(0xFFE5E7EB)),

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:w_tools_form/src/components/fields/checkbox.dart';
 import 'package:w_tools_form/w_tools_form.dart';
-import 'internal/_helpers/config_exports.dart';
+import 'package:w_tools_form/src/components/fields/dropdown.dart';
+import 'package:w_tools_form/src/components/fields/text_field.dart';
+
+import '_helpers/form_test_scaffold.dart';
 
 void main() {
   testWidgets('WForm + 直接字段构造', (tester) async {
@@ -12,7 +16,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: Column(
               children: [
                 WFormTextField(
@@ -81,7 +85,7 @@ void main() {
     );
 
     final valid = form.validate(
-      settings: WFormValidatorSettings()..showBorderError = true,
+      settings: const WFormValidatorSettings(showBorderError: true),
     );
     expect(valid, isFalse);
   });
@@ -97,7 +101,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            validatorSettings: WFormValidatorSettings()..showBorderError = true,
+            validatorSettings: const WFormValidatorSettings(showBorderError: true),
             child: WFormTextField(
               name: 'email',
               label: '邮箱',
@@ -113,7 +117,7 @@ void main() {
 
   testWidgets('WForm 卸载后清理 controller 的默认校验设置', (tester) async {
     final form = WFormController();
-    final settings = WFormValidatorSettings()..showBorderError = true;
+    const settings = WFormValidatorSettings(showBorderError: true);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -148,7 +152,7 @@ void main() {
     final core = tester.widget<WFormTextFieldCore>(
       find.byType(WFormTextFieldCore),
     );
-    expect(core.config.height, 60);
+    expect(core.height, 60);
   });
 
   testWidgets('边框 key 按字段 name 自动注册', (tester) async {
@@ -189,7 +193,7 @@ void main() {
     expect(shell.hintTextList, isNull);
   });
 
-  testWidgets('只传 borderConfig 时，validate 失败默认可见错误文案', (tester) async {
+  testWidgets('只传 borderStyle 时，validate 失败默认可见错误文案', (tester) async {
     final form = WFormController();
 
     await tester.pumpWidget(
@@ -197,7 +201,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: WFormTextField(
               name: 'email',
               label: '邮箱',
@@ -221,8 +225,8 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: WFormBorderConfig.standard(),
-            validatorSettings: WFormValidatorSettings(),
+            borderStyle: WFormBorderStyle.standard(),
+            validatorSettings: const WFormValidatorSettings(),
             child: WFormTextField(
               name: 'email',
               label: '邮箱',
@@ -244,7 +248,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormDatePicker(name: 'birthday', hintText: '请选择生日'),
           ),
         ),
@@ -262,7 +266,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormDatePicker(name: 'birthday', label: '生日'),
           ),
         ),
@@ -278,7 +282,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormDropdown<String>(
               name: 'city',
               label: '旧占位符',
@@ -300,7 +304,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormMultiDropdown(
               name: 'tags',
               hintText: '',
@@ -320,7 +324,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormMultiDropdown(
               name: 'tags',
               items: {'a': 'A'},
@@ -339,7 +343,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const Column(
               children: [
                 WFormTextField(
@@ -396,7 +400,7 @@ void main() {
     }
   });
 
-  testWidgets('bordered:false + message 不再静默丢弃（与文本字段一致）', (tester) async {
+  testWidgets('bordered:false + message 不再静默丢弃（release 也渲染）', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -413,7 +417,8 @@ void main() {
       ),
     );
 
-    expect(tester.takeException(), isAssertionError);
+    expect(tester.takeException(), isNull);
+    expect(find.text('请选择城市'), findsOneWidget);
   });
 
   testWidgets('WFormController.reset 重置字段值与输入状态', (tester) async {
@@ -424,7 +429,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const Column(
               children: [
                 WFormTextField(name: 'email', initialValue: 'seed'),
@@ -458,7 +463,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: Column(
               children: [
                 const WFormCheckbox(name: 'agree', title: Text('同意')),
@@ -497,7 +502,7 @@ void main() {
           body: WForm(
             controller: WFormController(),
             fieldStyle: const WFormFieldStyle(height: 52),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormFieldStyleScope(
               style: WFormFieldStyle(height: 70),
               child: WFormDropdown<String>(
@@ -513,8 +518,22 @@ void main() {
     final core = tester.widget<WFormDropdownCore<String>>(
       find.byType(WFormDropdownCore<String>),
     );
-    expect(core.config.height, 70);
+    expect(core.height, 70);
   });
 }
 
-void _noopTap(String? value, ValueChanged<String> didChange) {}
+void _noopTap(String? value, ValueChanged<String> didChange) {
+  testWidgets('复选框 / 下拉 / 单选 / 多选 / 日期都接受 focusNode', (tester) async {
+    final node = FocusNode();
+    await pumpForm(
+      tester,
+      child: WFormCheckbox(name: 'c', title: const Text('同意'), focusNode: node),
+    );
+
+    expect(
+      tester.widget<WFormCheckboxCore>(find.byType(WFormCheckboxCore)).focusNode,
+      same(node),
+    );
+    node.dispose();
+  });
+}

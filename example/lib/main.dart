@@ -68,7 +68,7 @@ class _AggregateExamplePageState extends State<AggregateExamplePage> {
       appBar: AppBar(title: const Text('w_tools 聚合包')),
       body: WForm(
         controller: _form,
-        borderConfig: WFormBorderConfig.standard(radius: 12),
+        borderStyle: WFormBorderStyle.standard(radius: 12),
         fieldStyle: const WFormFieldStyle(
           height: 52,
           containerPadding: EdgeInsets.symmetric(horizontal: 16),

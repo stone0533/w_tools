@@ -32,7 +32,7 @@ App 级统一图标仍然放在外层 `WFormTheme.icons`，`WForm` 会继承。
 
 以下类型不再从 `package:w_tools_form/w_tools_form.dart` 导出：
 
-- `WFormBorderConfigScope`：用 `WForm(borderConfig:)` / `WFormTheme(borderConfig:)`；
+- `WFormBorderStyleScope`：用 `WForm(borderStyle:)` / `WFormTheme(borderStyle:)`；
 - `WFormBorderState`：`WFormController.formBorderKeys` / `ensureBorderKey` /
   `removeBorderKey` 标为内部；业务侧用 `form.setError` / `form.clearError`；
 - `WFormPopupRoute`：用 `WFormPopup.show` / `WFormPopup.hide`。
@@ -42,7 +42,9 @@ App 级统一图标仍然放在外层 `WFormTheme.icons`，`WForm` 会继承。
 
 ## 3. 字段按钮
 
-`WFormButton` 保持原 String API，等价于 `WFormFieldButton<String>`，String 用法不变。
+`WFormButton` 现在是 `typedef WFormButton = WFormFieldButton<String>`：String 用法的参数与行为不变，
+但**不再是独立类型**——`find.byType(WFormButton)` / `is WFormButton` 都会落到
+`WFormFieldButton<String>`，`WFormButton.new` 等成员名在 API 快照里随之消失。
 需要 enum / int 值时直接用泛型：
 
 ```dart
@@ -74,3 +76,35 @@ WFormFieldButton<int>(
 
 `bordered: false` 的字段没有边框位置，`validate()` 失败时不会绘制错误，
 也不会再触发 debug 断言；错误从 `WFormValidator.errors` 读取。
+
+## 7. `WFormBorderConfig` → `WFormBorderStyle`
+
+边框配置是不可变视觉样式（装饰 / hint / error / 布局），按 `docs/naming.md` §3.3 属
+`Style` 而不是 `Config`；同时删掉零调用的公开装配入口 `build()` 与重复的 `copy()`。
+
+| 旧 | 新 |
+|---|---|
+| `WFormBorderConfig` | `WFormBorderStyle` |
+| `WFormBorderConfig.standard()` / `.fromTheme()` | `WFormBorderStyle.standard()` / `.fromTheme()` |
+| `WForm(borderConfig: ...)` | `WForm(borderStyle: ...)` |
+| `WFormTheme(borderConfig: ...)` | `WFormTheme(borderStyle: ...)` |
+| `WFormScope.formBorderConfig` | `WFormScope.formBorderStyle` |
+| `WFormScope.borderConfigOf(context)` | `WFormScope.borderStyleOf(context)` |
+| `WFormBorder(config: ...)` | `WFormBorder(style: ...)` |
+| `WFormBorderState.config` | `WFormBorderState.style` |
+| `WFormBorderConfig.build(child: ...)` | 删除（用 `WFormBorder(style: ...)`） |
+| `WFormBorderConfig.copy()` | 删除（用 `copyWith()`） |
+
+精确符号变更（旧 → 新）：
+
+- `WFormBorderConfig` → `WFormBorderStyle`
+- `WFormBorderConfig.standard` / `WFormBorderConfig.fromTheme` → `WFormBorderStyle.standard` / `.fromTheme`
+- `WForm.borderConfig` → `WForm.borderStyle`
+- `WFormTheme.borderConfig` → `WFormTheme.borderStyle`
+- `WFormBorder.new`：命名参数 `config` → `style`
+- `WFormBorder.config` → `WFormBorder.style`
+- `WFormScope.formBorderConfig` → `WFormScope.formBorderStyle`
+- `WFormScope.borderConfigOf` → `WFormScope.borderStyleOf`
+- `WFormBorderConfigScope` → `WFormBorderStyleScope`（仍未导出）
+- `WFormBorderConfigScope.new` / `WFormBorderConfigScope.config` / `WFormBorderConfigScope.maybeOf` / `WFormBorderConfigScope.updateShouldNotify` 随作用域类一起改名
+- `WFormBorderConfig.build`、`WFormBorderConfig.copy` 删除（零调用；用 `WFormBorder(style: ...)` / `copyWith()`）

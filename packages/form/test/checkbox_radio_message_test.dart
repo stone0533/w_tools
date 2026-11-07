@@ -9,7 +9,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormCheckbox(
               name: 'agree',
               title: Text('同意'),
@@ -30,7 +30,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: const WFormRadioGroup<String>(
               name: 'gender',
               items: {'female': '女', 'male': '男'},

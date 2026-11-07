@@ -24,7 +24,6 @@ class _PopupExamplePageState extends State<PopupExamplePage> {
       appBar: AppBar(title: const Text('锚定弹层')),
       body: WForm(
         controller: _form,
-        borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
         child: ListView(
           padding: const EdgeInsets.all(20),

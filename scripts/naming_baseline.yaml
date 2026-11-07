@@ -14,7 +14,6 @@ configs:
   WLocaleConfig: 不可变数据载体，允许
   WBadgeConfig: grandfather，不为改名做 breaking
   WClipRRectConfig: grandfather，同上
-  WFormBorderConfig: grandfather，同上
   WNavBarConfig: grandfather，同上
   WTabBarConfig: grandfather，同上
   WApiConfig: 遗留可变静态配置，冻结新增，下个 major 再评估

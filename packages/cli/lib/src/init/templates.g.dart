@@ -1515,8 +1515,8 @@ const String agentsForm = r'''
   不要手写只读作用域。
 - **表单字段按钮**：字段值选择用 `WFormButton`，不要用 `WButton` 承担表单字段值。
 - **表单弹层**：锚定选择用 `WFormPopup`，它不是居中确认框。
-- **边框**：默认用 `WFormBorderConfig.fromTheme(Theme.of(context))`；不要手写 `WFormBorder`。
-- **输入格式化 / 插槽动作**：`WFormInputFormatters.phone()`；文本插槽用
+- **边框**：默认跟随主题，不需要显式传 `borderStyle`；固定浅色页才用 `WFormBorderStyle.standard()`；不要手写 `WFormBorder`。
+- **输入格式化 / 插槽动作**：`WFormInputFormatters.hkPhone()`；文本插槽用
   `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton`。
 ''';
 
@@ -1857,9 +1857,9 @@ const String agentsFormEn = r'''
 - **Field buttons**: use `WFormButton` for field value selection; do not use `WButton`
   to hold a form field value.
 - **Form popups**: use `WFormPopup` for anchored selection; it is not a centered dialog.
-- **Borders**: default to `WFormBorderConfig.fromTheme(Theme.of(context))`; do not
-  hand-write `WFormBorder`.
-- **Input formatters / slot actions**: `WFormInputFormatters.phone()`; text slots use
+- **Borders**: the default already follows the theme, so do not pass `borderStyle`
+  unless you need `standard()` for a fixed light page; do not hand-write `WFormBorder`.
+- **Input formatters / slot actions**: `WFormInputFormatters.hkPhone()`; text slots use
   `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton`.
 ''';
 

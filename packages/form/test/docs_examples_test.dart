@@ -15,12 +15,12 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: WFormBorderConfig.standard(radius: 12),
+            borderStyle: WFormBorderStyle.standard(radius: 12),
             fieldStyle: const WFormFieldStyle(
               height: 52,
               containerPadding: EdgeInsets.symmetric(horizontal: 16),
             ),
-            validatorSettings: WFormValidatorSettings()..showBorderError = true,
+            validatorSettings: const WFormValidatorSettings(showBorderError: true),
             child: ListView(
               children: [
                 WFormTextField(
@@ -80,12 +80,13 @@ void main() {
     final form = WFormController();
 
     // §7 校验：文档签名是 validators({settings, items})
-    final settings = WFormValidatorSettings()
-      ..showBorderError = true
-      ..continueOnError = true
-      ..customErrorCallback = (name, err) {}
-      ..itemValidationCallback = (name, ok, err) {}
-      ..shouldSkipValidation = (name, values) => false;
+    final settings = WFormValidatorSettings(
+      showBorderError: true,
+      continueOnError: true,
+      customErrorCallback: (name, err) {},
+      itemValidationCallback: (name, ok, err) {},
+      shouldSkipValidation: (name, values) => false,
+    );
     final validator = form.validators(
       settings: settings,
       items: [
@@ -104,25 +105,23 @@ void main() {
         .withUniformBorder(1, Colors.grey)
         .withUniformBorderRadius(8)
         .withColor(Colors.white);
-    final borderConfig =
-        WFormBorderConfig(
+    final borderStyle =
+        WFormBorderStyle(
           defaultDecoration: decoration,
           focusedDecoration: decoration,
           errorDecoration: decoration,
           hintStyle: const TextStyle(fontSize: 12),
           errorStyle: const TextStyle(fontSize: 12),
-          layout: WFormBorderLayout.builder(
-            (context, data) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [data.child, data.message],
-            ),
+          layout: (context, data) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [data.child, data.message],
           ),
         ).copyWith(
-          layout: WFormBorderLayout.column,
+          layout: columnBorderLayout,
           errorBuilder: (list) => Text(list?.join('；') ?? ''),
         );
-    expect(borderConfig.copy(), equals(borderConfig));
-    expect(WFormBorderConfig.fromTheme(ThemeData.light()).errorStyle, isNotNull);
+    expect(borderStyle.copyWith(), equals(borderStyle));
+    expect(WFormBorderStyle.fromTheme(ThemeData.light()).errorStyle, isNotNull);
 
     // §3 图标 / 主题
     final icons = WFormIcons.defaults.copyWith(
@@ -134,7 +133,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: borderConfig,
+            borderStyle: borderStyle,
             icons: icons,
             fieldStyle: const WFormFieldStyle(height: 52),
             validatorSettings: settings,
@@ -144,7 +143,7 @@ void main() {
                   name: 'email',
                   label: '邮箱',
                   // §8 格式化器
-                  inputFormatters: WFormInputFormatters.phone(),
+                  inputFormatters: WFormInputFormatters.hkPhone(),
                   actions: [
                     WFormTextFieldAction(
                       visibleWhen: (data) => data.hasText,
@@ -192,7 +191,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: WFormFieldShell(
               name: 'amount',
               readOnly: false,

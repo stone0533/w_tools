@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/material.dart';
 
 import 'border_layout.dart';
@@ -13,15 +13,17 @@ import 'border_layout.dart';
 class WFormBorder extends StatefulWidget {
   /// 创建表单边框容器
   ///
-  /// [config] 为 null 时继承祖先 [WFormScope.formBorderConfig]。
+  /// [style] 为 null 时继承祖先 [WFormScope.formBorderStyle]。
   const WFormBorder({
     super.key,
-    this.config,
+    this.style,
     required this.child,
     this.hintTextList,
     this.isReadOnly,
     this.isTransparentBackground,
     this.isFocused,
+    this.errorChannel,
+    this.fieldErrorText,
   });
 
   /// 子组件
@@ -39,8 +41,17 @@ class WFormBorder extends StatefulWidget {
   /// 是否聚焦
   final bool? isFocused;
 
-  /// 边框配置（为 null 时继承祖先 WFormScope.formBorderConfig）
-  final WFormBorderConfig? config;
+  /// 边框配置（为 null 时继承祖先 WFormScope.formBorderStyle）
+  final WFormBorderStyle? style;
+
+  /// 错误通道：非 null 时显示为错误态，list 交给 `errorBuilder` 渲染
+  final ValueListenable<List<String>?>? errorChannel;
+
+  /// 字段自身的内联错误（`FormFieldState.errorText`）
+  ///
+  /// 非 null 时说明错误已由输入控件（InputDecoration）渲染，边框不再重复展示文案，
+  /// 只保留错误态装饰——这就是「两套错误通道」的消重规则。
+  final String? fieldErrorText;
 
   @override
   State<WFormBorder> createState() => WFormBorderState();
@@ -48,8 +59,8 @@ class WFormBorder extends StatefulWidget {
 
 /// WFormBorder 的状态类
 class WFormBorderState extends State<WFormBorder> {
-  /// 当前生效的边框配置（显式传入或继承自 [WFormScope.formBorderConfig]）
-  late WFormBorderConfig config;
+  /// 当前生效的边框配置（显式传入或继承自 [WFormScope.formBorderStyle]）
+  late WFormBorderStyle style;
 
   /// 是否有错误
   bool get isError => _isError;
@@ -64,6 +75,9 @@ class WFormBorderState extends State<WFormBorder> {
   /// 用 record 承载全部判定条件，减少字段数量，并让「透明态装饰为 null」也能命中缓存。
   ({bool? transparent, bool? readOnly, bool isError, bool? focused})? _decorationKey;
 
+  /// 本帧是否存在内联错误（由输入控件渲染）
+  bool _hasInlineError = false;
+
   /// 缓存的装饰对象
   WFormBorderDecoration? _cachedDecoration;
 
@@ -74,17 +88,33 @@ class WFormBorderState extends State<WFormBorder> {
   BorderRadius? _cachedBorderRadius;
 
   /// 配置是否已同步过（首次同步必须执行）
-  bool _configReady = false;
+  bool _styleReady = false;
 
-  /// 设置错误状态
+  /// 未注入外部通道时自建的通道（`setError` 与内部测试用）
+  ValueNotifier<List<String>?>? _ownChannel;
+
+  /// 当前使用的错误通道
+  late ValueListenable<List<String>?> _channel;
+
+  /// 设置错误状态（包内使用；普通页面走 `WFormController.setError`）
   ///
   /// 无状态变化时直接返回，避免校验通过时对已无错误的字段重复触发重建。
   void setError(bool value, {List<String>? errorTextList}) {
-    // 清除错误且当前本就无错误：无变化，跳过重建
-    if (!value && !_isError) return;
+    final next = value ? (errorTextList ?? const <String>[]) : null;
+    if (next == null && !_isError) return;
+    final channel = _channel;
+    if (channel is ValueNotifier<List<String>?>) {
+      channel.value = next;
+    }
+  }
+
+  /// 错误通道变化：同步错误态与消息列表
+  void _onErrorChanged() {
+    final List<String>? error = _channel.value;
+    if ((error != null) == _isError && listEquals(error, _messageList)) return;
     setState(() {
-      _isError = value;
-      _messageList = value ? errorTextList : widget.hintTextList;
+      _isError = error != null;
+      _messageList = error ?? widget.hintTextList;
     });
   }
 
@@ -92,37 +122,57 @@ class WFormBorderState extends State<WFormBorder> {
   void initState() {
     super.initState();
     // initState 中不能读取 InheritedWidget：先用显式配置或空配置占位，
-    // 继承 WFormScope.formBorderConfig 在 didChangeDependencies 中完成
-    config = widget.config ?? const WFormBorderConfig();
-    _configReady = true;
-    _messageList = widget.hintTextList;
+    // 继承 WFormScope.formBorderStyle 在 didChangeDependencies 中完成
+    style = widget.style ?? const WFormBorderStyle();
+    _styleReady = true;
+    _ownChannel = widget.errorChannel == null ? ValueNotifier<List<String>?>(null) : null;
+    _channel = widget.errorChannel ?? _ownChannel!;
+    final List<String>? error = _channel.value;
+    _isError = error != null;
+    _messageList = error ?? widget.hintTextList;
+    _channel.addListener(_onErrorChanged);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _syncConfig();
+    _syncStyle();
   }
 
   @override
   void didUpdateWidget(WFormBorder oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _syncConfig();
+    if (oldWidget.errorChannel != widget.errorChannel) {
+      _channel.removeListener(_onErrorChanged);
+      _ownChannel?.dispose();
+      _ownChannel = widget.errorChannel == null ? ValueNotifier<List<String>?>(null) : null;
+      _channel = widget.errorChannel ?? _ownChannel!;
+      _channel.addListener(_onErrorChanged);
+      _onErrorChanged();
+    }
+    _syncStyle();
     // 非错误态下同步父级传入的新提示文本
     if (!_isError && !listEquals(widget.hintTextList, oldWidget.hintTextList)) {
       _messageList = widget.hintTextList;
     }
   }
 
-  /// 同步生效配置：显式传入优先，否则继承最近的 [WFormBorderConfigScope]。
+  @override
+  void dispose() {
+    _channel.removeListener(_onErrorChanged);
+    _ownChannel?.dispose();
+    super.dispose();
+  }
+
+  /// 同步生效配置：显式传入优先，否则继承最近的 [WFormBorderStyleScope]。
   ///
   /// 用 `==`（值比较）而不是快照：内置工厂不再产生闭包，值相等的配置不会触发重建。
-  void _syncConfig() {
+  void _syncStyle() {
     final resolved =
-        widget.config ?? WFormBorderConfigScope.maybeOf(context) ?? const WFormBorderConfig();
-    if (_configReady && resolved == config) return;
-    config = resolved;
-    _configReady = true;
+        widget.style ?? WFormBorderStyleScope.maybeOf(context) ?? const WFormBorderStyle();
+    if (_styleReady && resolved == style) return;
+    style = resolved;
+    _styleReady = true;
     _decorationKey = null; // 失效装饰缓存
   }
 
@@ -140,7 +190,7 @@ class WFormBorderState extends State<WFormBorder> {
     final key = (
       transparent: widget.isTransparentBackground,
       readOnly: widget.isReadOnly,
-      isError: _isError,
+      isError: _isError || _hasInlineError,
       focused: widget.isFocused,
     );
 
@@ -150,17 +200,17 @@ class WFormBorderState extends State<WFormBorder> {
     _decorationKey = key;
 
     WFormBorderDecoration? decoration;
-    if (isError) {
+    if (key.isError) {
       // 错误态优先于透明背景：校验反馈不应因背景透明而丢失
-      decoration = config.errorDecoration ?? config.defaultDecoration;
+      decoration = style.errorDecoration ?? style.defaultDecoration;
     } else if (widget.isTransparentBackground == true) {
       decoration = null;
     } else if (widget.isReadOnly == true) {
-      decoration = config.readOnlyDecoration ?? config.defaultDecoration;
+      decoration = style.readOnlyDecoration ?? style.defaultDecoration;
     } else if (widget.isFocused == true) {
-      decoration = config.focusedDecoration ?? config.defaultDecoration;
+      decoration = style.focusedDecoration ?? style.defaultDecoration;
     } else {
-      decoration = config.defaultDecoration;
+      decoration = style.defaultDecoration;
     }
 
     _cachedDecoration = decoration;
@@ -184,6 +234,8 @@ class WFormBorderState extends State<WFormBorder> {
 
   @override
   Widget build(BuildContext context) {
+    // 内联错误必须在计算装饰前确定：它同时影响装饰与消息去重
+    _hasInlineError = widget.fieldErrorText != null;
     final decoration = _getBoxDecoration();
     final borderRadius = _getBorderRadius();
 
@@ -197,27 +249,30 @@ class WFormBorderState extends State<WFormBorder> {
     }
 
     // 2. 按状态构建消息
-    final hasMessage = _messageList?.isNotEmpty ?? false;
+    //
+    // 内联错误（由输入控件渲染）优先：同一字段只出现一次错误文案。
+    final List<String>? errorList = _hasInlineError || !_isError ? null : _messageList;
+    final bool hasMessage = _hasInlineError
+        ? false
+        : (errorList?.isNotEmpty ?? (_messageList?.isNotEmpty ?? false));
     final Widget message;
     if (!hasMessage) {
       message = const SizedBox.shrink();
-    } else if (_isError) {
-      message =
-          config.errorBuilder?.call(_messageList) ??
-          _defaultMessage(_messageList!, config.errorStyle);
+    } else if (errorList != null) {
+      message = style.errorBuilder?.call(errorList) ?? _defaultMessage(errorList, style.errorStyle);
     } else {
       message =
-          config.hintBuilder?.call(_messageList) ?? _defaultMessage(messageList!, config.hintStyle);
+          style.hintBuilder?.call(_messageList) ?? _defaultMessage(messageList!, style.hintStyle);
     }
 
     // 3. 交给布局策略组装
-    return config.layout.build(
+    return style.layout(
       context,
       WFormBorderLayoutData(
         child: child,
         message: message,
         hasMessage: hasMessage,
-        isError: _isError,
+        isError: _isError || _hasInlineError,
         isReadOnly: widget.isReadOnly ?? false,
         borderRadius: borderRadius,
       ),
@@ -228,7 +283,7 @@ class WFormBorderState extends State<WFormBorder> {
 /// 表单边框配置类，定义边框的样式和构建器。
 ///
 /// 本类为不可变配置；修改实例用 copyWith。
-class WFormBorderConfig {
+class WFormBorderStyle {
   final WFormBorderDecoration? defaultDecoration;
   final WFormBorderDecoration? readOnlyDecoration;
   final WFormBorderDecoration? errorDecoration;
@@ -237,7 +292,7 @@ class WFormBorderConfig {
   /// hint / error 文案的默认文字样式。
   ///
   /// [hintBuilder] / [errorBuilder] 为空时用它渲染 `Text(list.join('；'))`。
-  /// 内置工厂（[WFormBorderConfig.standard] / [WFormBorderConfig.fromTheme]）走这两个字段
+  /// 内置工厂（[WFormBorderStyle.standard] / [WFormBorderStyle.fromTheme]）走这两个字段
   /// 而不是闭包，因此配置之间可以做 `==` 比较（避免每帧重建）。
   final TextStyle? hintStyle;
   final TextStyle? errorStyle;
@@ -246,7 +301,7 @@ class WFormBorderConfig {
   final Widget Function(List<String>? list)? errorBuilder;
   final WFormBorderLayout layout;
 
-  const WFormBorderConfig({
+  const WFormBorderStyle({
     this.defaultDecoration,
     this.readOnlyDecoration,
     this.errorDecoration,
@@ -255,13 +310,13 @@ class WFormBorderConfig {
     this.errorStyle,
     this.hintBuilder,
     this.errorBuilder,
-    this.layout = WFormBorderLayout.column,
+    this.layout = columnBorderLayout,
   });
 
   /// 显式浅色预设（历史入口）。
   ///
-  /// 颜色写死，不跟随深色主题；新代码请用 [WFormBorderConfig.fromTheme]。
-  factory WFormBorderConfig.standard({
+  /// 颜色写死，不跟随深色主题；新代码请用 [WFormBorderStyle.fromTheme]。
+  factory WFormBorderStyle.standard({
     Color backgroundColor = Colors.white, // style-literal-ok: 显式浅色预设
     Color borderColor = const Color(0xFFE5E7EB), // style-literal-ok: 显式浅色预设
     Color focusColor = const Color(0xFF10B981), // style-literal-ok: 显式浅色预设
@@ -281,7 +336,7 @@ class WFormBorderConfig {
         const TextStyle(fontSize: 12, color: Color(0xFF6B7280)); // style-literal-ok: 显式浅色预设
     final errorTextStyle = errorStyle ?? TextStyle(fontSize: 12, color: errorColor);
 
-    return WFormBorderConfig(
+    return WFormBorderStyle(
       defaultDecoration: base,
       focusedDecoration: base.copyWith(
         border: Border.all(color: focusColor, width: 1.5),
@@ -303,11 +358,11 @@ class WFormBorderConfig {
   /// ```dart
   /// WForm(
   ///   controller: form,
-  ///   borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+  ///   borderStyle: WFormBorderStyle.fromTheme(Theme.of(context)),
   ///   child: ...,
   /// )
   /// ```
-  factory WFormBorderConfig.fromTheme(
+  factory WFormBorderStyle.fromTheme(
     ThemeData theme, {
     double radius = 12,
     TextStyle? hintStyle,
@@ -326,7 +381,7 @@ class WFormBorderConfig {
       color: errorStyle?.color ?? scheme.error,
     );
 
-    return WFormBorderConfig(
+    return WFormBorderStyle(
       defaultDecoration: base,
       focusedDecoration: base.copyWith(
         border: Border.all(color: scheme.primary, width: 1.5),
@@ -340,24 +395,7 @@ class WFormBorderConfig {
     );
   }
 
-  WFormBorder build({
-    List<String>? hintTextList,
-    bool? isReadOnly,
-    bool? isTransparentBackground,
-    required Widget child,
-  }) {
-    return WFormBorder(
-      config: this,
-      hintTextList: hintTextList,
-      isReadOnly: isReadOnly,
-      isTransparentBackground: isTransparentBackground,
-      child: child,
-    );
-  }
-
-  WFormBorderConfig copy() => copyWith();
-
-  WFormBorderConfig copyWith({
+  WFormBorderStyle copyWith({
     WFormBorderDecoration? defaultDecoration,
     WFormBorderDecoration? readOnlyDecoration,
     WFormBorderDecoration? errorDecoration,
@@ -368,7 +406,7 @@ class WFormBorderConfig {
     Widget Function(List<String>? list)? errorBuilder,
     WFormBorderLayout? layout,
   }) {
-    return WFormBorderConfig(
+    return WFormBorderStyle(
       defaultDecoration: defaultDecoration ?? this.defaultDecoration,
       readOnlyDecoration: readOnlyDecoration ?? this.readOnlyDecoration,
       errorDecoration: errorDecoration ?? this.errorDecoration,
@@ -383,7 +421,7 @@ class WFormBorderConfig {
 
   @override
   bool operator ==(Object other) =>
-      other is WFormBorderConfig &&
+      other is WFormBorderStyle &&
       other.defaultDecoration == defaultDecoration &&
       other.readOnlyDecoration == readOnlyDecoration &&
       other.errorDecoration == errorDecoration &&
@@ -527,21 +565,21 @@ extension WFormBorderDecorationExtension on WFormBorderDecoration {
 ///
 /// WFormScope / WFormTheme 只负责写入本作用域；WFormBorder 只读取最近的作用域，
 /// 不再反向依赖表单 Scope 或主题，从而避免循环 import。
-class WFormBorderConfigScope extends InheritedWidget {
-  const WFormBorderConfigScope({
+class WFormBorderStyleScope extends InheritedWidget {
+  const WFormBorderStyleScope({
     super.key,
-    required this.config,
+    required this.style,
     required super.child,
   });
 
-  final WFormBorderConfig? config;
+  final WFormBorderStyle? style;
 
-  static WFormBorderConfig? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<WFormBorderConfigScope>()?.config;
+  static WFormBorderStyle? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<WFormBorderStyleScope>()?.style;
   }
 
   @override
-  bool updateShouldNotify(WFormBorderConfigScope oldWidget) {
-    return config != oldWidget.config;
+  bool updateShouldNotify(WFormBorderStyleScope oldWidget) {
+    return style != oldWidget.style;
   }
 }
