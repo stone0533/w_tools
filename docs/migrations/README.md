@@ -36,6 +36,7 @@
 - [4.0](form-4.0.md)：删除 `WFormDefaults` / Builder / Row 扩展：`Config.build` / `*Core` 内部化
 - [5.0](form-5.0.md)：移除 8 个公开可变字段 Config，改直接字段参数 / `WFormFieldStyle`
 - [5.1](form-5.1.md)：多选未配置 `hintText` 时不再显示 `ALL`
+- [6.0](form-6.0.md)：移除单项图标参数，内部类型不再导出，`WFormFieldButton<T>`
 
 ## async
 

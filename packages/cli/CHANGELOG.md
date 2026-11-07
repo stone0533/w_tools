@@ -1,5 +1,9 @@
 ## 1.15.0
 
+### Fixed
+- 同步子包版本约束：`w_tools_form` 改为 `^6.0.0`（catalog / init 模板 / `versions.dart` 一起更新）。
+
+
 ### Changed
 - 重构 `init` 生成的 `.w_tools/AI_PROMPTS.md`，结构对齐维护者提示词手册：
   「新手先看这里 → 0 固定前缀 → 填空说明 → 一个填好的例子 → 1 场景选择 → A~K 场景

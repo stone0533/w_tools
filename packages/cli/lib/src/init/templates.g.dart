@@ -1507,9 +1507,10 @@ const String agentsForm = r'''
 - **表单**：新页面用 `WForm` + 直接字段（`WFormTextField` / `WFormDropdown` /
   `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`），
   不要从 `Config.build` 开始。
-  `WForm` 需要 `WFormController`，与 controller 一对一；页面级高度 / 内边距用
-  `WForm.fieldStyle`（`WFormFieldStyle`），校验设置用 `WFormValidatorSettings` /
-  `WFormValidator`；字段差异用直接参数，不要传字段 `config`。
+  `WForm` 需要 `WFormController`，且必须一对一（同一个 controller 同时挂载两个
+  `WForm` 会显示重复挂载提示）；页面级高度 / 内边距用 `WForm.fieldStyle`
+  （`WFormFieldStyle`），校验设置用 `WFormValidatorSettings` / `WFormValidator`；
+  整表变化用 `WForm(onChanged:)`；字段差异用直接参数，不要传字段 `config`。
 - **只读**：整页只读用 `WForm(readOnly: true)`；单字段只读用字段的 `readOnly`，
   不要手写只读作用域。
 - **表单字段按钮**：字段值选择用 `WFormButton`，不要用 `WButton` 承担表单字段值。
@@ -1846,9 +1847,11 @@ const String agentsFormEn = r'''
 - **Forms**: use `WForm` + direct fields (`WFormTextField` / `WFormDropdown` /
   `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`);
   do not start from `Config.build`.
-  `WForm` requires a `WFormController` (one-to-one); page-level height/padding use
+  `WForm` requires a `WFormController` and must be one-to-one (mounting two `WForm`s
+  on one controller shows a duplicate-mount notice); page-level height/padding use
   `WForm.fieldStyle` (`WFormFieldStyle`); validation uses `WFormValidatorSettings` /
-  `WFormValidator`; field differences use direct parameters, never a field `config`.
+  `WFormValidator`; form-wide changes use `WForm(onChanged:)`; field differences use
+  direct parameters, never a field `config`.
 - **Read-only**: use `WForm(readOnly: true)` for a whole form; use the field's
   `readOnly` for a single field; do not hand-write the read-only scope.
 - **Field buttons**: use `WFormButton` for field value selection; do not use `WButton`

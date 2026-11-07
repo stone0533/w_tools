@@ -1,3 +1,8 @@
+## Unreleased
+
+- 抬高聚合包对 `w_tools_form` 的下界到 `^6.0.0`：6.0 收口图标入口、内部类型与
+  边框 key 管道，并补齐 `WFormFieldButton<T>` / `onChanged` / `message` 等能力。
+
 ## 10.0.0
 
 - 抬高 `w_tools_ui` 到 `^7.0.0`：WImage 配置收敛、状态非空、边框/gapless/进度修复。

@@ -1,7 +1,8 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+
+import 'internal/_helpers/border_state.dart';
 
 import '_helpers/form_test_scaffold.dart';
 import 'internal/_helpers/config_exports.dart';
@@ -105,7 +106,7 @@ void main() {
     });
 
     testWidgets('hintTextList 运行期变更 → 提示文本随之更新（回归）', (tester) async {
-      final key = GlobalKey<WFormBorderState>();
+      final key = GlobalKey();
       final cfg = TestFormBorderBuilder();
       cfg.hintBuilder = (list) => Column(
         children: [for (final e in list ?? const <String>[]) Text('hint-$e')],
@@ -131,7 +132,7 @@ void main() {
     });
 
     testWidgets('配置原地修改 / 清空后，组件重建即生效（回归）', (tester) async {
-      final key = GlobalKey<WFormBorderState>();
+      final key = GlobalKey();
       final cfg = TestFormBorderBuilder()
         ..defaultDecoration = const WFormBorderDecoration(color: Color(0xFF111111));
 
@@ -231,7 +232,7 @@ void main() {
     });
 
     testWidgets('setError(true) → 显示 errorBuilder', (tester) async {
-      final key = GlobalKey<WFormBorderState>();
+      final key = GlobalKey();
       final cfg = makeCfg();
       cfg.hintBuilder = (list) => const Text('hint-placeholder');
       cfg.errorBuilder = (list) => Column(
@@ -252,17 +253,17 @@ void main() {
       );
 
       expect(find.text('hint-placeholder'), findsOneWidget);
-      key.currentState?.setError(true, errorTextList: const ['必填', '格式错误']);
+      borderStateOf(key)?.setError(true, errorTextList: const ['必填', '格式错误']);
       await tester.pump();
 
       expect(find.text('err-必填'), findsOneWidget);
       expect(find.text('err-格式错误'), findsOneWidget);
-      expect(key.currentState?.isError, true);
-      expect(key.currentState?.messageList, ['必填', '格式错误']);
+      expect(borderStateOf(key)?.isError, true);
+      expect(borderStateOf(key)?.messageList, ['必填', '格式错误']);
     });
 
     testWidgets('setError(false) → 恢复 hintTextList', (tester) async {
-      final key = GlobalKey<WFormBorderState>();
+      final key = GlobalKey();
       final cfg = makeCfg();
       cfg.hintBuilder = (list) => Column(
         children: list!.map((e) => Text('hint-$e')).toList(),
@@ -284,19 +285,19 @@ void main() {
         ),
       );
 
-      key.currentState?.setError(true, errorTextList: const ['出错了']);
+      borderStateOf(key)?.setError(true, errorTextList: const ['出错了']);
       await tester.pump();
       expect(find.text('err-出错了'), findsOneWidget);
 
-      key.currentState?.setError(false);
+      borderStateOf(key)?.setError(false);
       await tester.pump();
       expect(find.text('hint-字段提示'), findsOneWidget);
-      expect(key.currentState?.isError, false);
-      expect(key.currentState?.messageList, ['字段提示']);
+      expect(borderStateOf(key)?.isError, false);
+      expect(borderStateOf(key)?.messageList, ['字段提示']);
     });
 
     testWidgets('对已无错误的字段 setError(false) → 不触发重建（无意义重建优化）', (tester) async {
-      final key = GlobalKey<WFormBorderState>();
+      final key = GlobalKey();
       // 用 hintBuilder 的执行次数作为 WFormBorderState 重建的观测点
       var buildCount = 0;
       final cfg = makeCfg();
@@ -322,16 +323,16 @@ void main() {
       final initial = buildCount;
 
       // 本来就无错误：清错应是 no-op，不触发重建
-      key.currentState?.setError(false);
+      borderStateOf(key)?.setError(false);
       await tester.pump();
       expect(buildCount, initial);
 
       // 对照：从错误态清错会触发重建（hintBuilder 再次执行）
-      key.currentState?.setError(true, errorTextList: const ['err']);
+      borderStateOf(key)?.setError(true, errorTextList: const ['err']);
       await tester.pump();
       expect(find.text('err'), findsOneWidget);
 
-      key.currentState?.setError(false);
+      borderStateOf(key)?.setError(false);
       await tester.pump();
       expect(buildCount, initial + 1);
     });
@@ -393,7 +394,7 @@ void main() {
     });
 
     testWidgets('errorDecoration 优先于 readOnly + focused', (tester) async {
-      final key = GlobalKey<WFormBorderState>();
+      final key = GlobalKey();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -413,7 +414,7 @@ void main() {
         ),
       );
 
-      key.currentState?.setError(true, errorTextList: const ['err']);
+      borderStateOf(key)?.setError(true, errorTextList: const ['err']);
       await tester.pump();
 
       expect(borderBoxDecoration(tester)?.color, Colors.red);
@@ -544,7 +545,7 @@ void main() {
       );
 
       expect(find.text('input'), findsOneWidget);
-      expect(formData.formBorderKeys.containsKey('email'), true);
+      expect(formData.hasBorder('email'), true);
     });
 
     testWidgets('hintTextList 从 WFormFieldShell 传递', (tester) async {
@@ -576,7 +577,7 @@ void main() {
 
   group('WFormBorder 状态优先级与焦点开关（回归）', () {
     testWidgets('isTransparentBackground: true 时错误装饰仍生效', (tester) async {
-      final key = GlobalKey<WFormBorderState>();
+      final key = GlobalKey();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -600,7 +601,7 @@ void main() {
       // 初始：透明背景 → 无装饰
       expect(findBorderWithSideColor(const Color(0xFFC0061A)), findsNothing);
 
-      key.currentState?.setError(true, errorTextList: const ['必填']);
+      borderStateOf(key)?.setError(true, errorTextList: const ['必填']);
       await tester.pump();
 
       // 错误态优先于透明背景 → 红框回归
@@ -751,7 +752,7 @@ void main() {
     });
   });
 
-  testWidgets('WFormFieldShell 卸载时注销 formBorderKeys', (tester) async {
+  testWidgets('WFormFieldShell 卸载时注销边框登记', (tester) async {
     final formData = WFormController();
 
     await tester.pumpWidget(
@@ -769,16 +770,16 @@ void main() {
       ),
     );
 
-    formData.formEntered['dynamic_field'] = true;
-    expect(formData.formBorderKeys.containsKey('dynamic_field'), isTrue);
+    formData.handleChange('dynamic_field', 'x');
+    expect(formData.hasBorder('dynamic_field'), isTrue);
 
     await tester.pumpWidget(const SizedBox.shrink());
 
-    expect(formData.formBorderKeys.containsKey('dynamic_field'), isFalse);
+    expect(formData.hasBorder('dynamic_field'), isFalse);
     expect(formData.formEntered.containsKey('dynamic_field'), isFalse);
   });
 
-  group('Row.withFormBorder（WFormRowBorderExtension）', () {
+  group('WFormFieldShell + WFormReadOnlyScope（替代已删除的 Row.withFormBorder）', () {
     testWidgets('readOnly: true → 内部输入组件被置为只读 / 禁用', (tester) async {
       final formData = WFormController();
 

@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -11,6 +10,14 @@ import 'fields/dropdown.dart';
 import 'fields/multi_dropdown.dart';
 import 'fields/radio_group.dart';
 import 'fields/text_field.dart';
+
+/// `hintTextList` 与 `message` 只允许二选一，同时传时直接断言。
+void _assertHints(String? message, List<String>? hintTextList) {
+  assert(
+    message == null || hintTextList == null,
+    'message 与 hintTextList 只需传一个（message 是便捷写法，不能与列表同时使用）。',
+  );
+}
 
 void _applyBaseStyle(
   WFormFieldBaseConfig config,
@@ -25,7 +32,7 @@ void _applyBaseStyle(
 ///
 /// 这些 Widget 是日常业务入口：常用参数直接传入；页面级样式用
 /// `WForm.fieldStyle`，单个字段的特殊样式用 `WFormFieldStyleScope` 包裹。
-/// 字段仍由既有 Config.build 实现，边框 / 校验 / 只读等能力保持不变。
+/// 字段由包内装配层实现（非公开 API），边框 / 校验 / 只读等能力保持不变。
 class WFormTextField extends StatelessWidget {
   const WFormTextField({
     super.key,
@@ -84,8 +91,11 @@ class WFormTextField extends StatelessWidget {
   final bool? isTransparentBackground;
   final bool enableFocusBorder;
 
+  List<String>? get _messages => message != null ? [message!] : null;
+
   @override
   Widget build(BuildContext context) {
+    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final c = WFormTextFieldConfig();
     _applyBaseStyle(c, fieldStyle);
@@ -116,11 +126,6 @@ class WFormTextField extends StatelessWidget {
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
     );
-  }
-
-  List<String>? get _messages {
-    if (message != null) return [message!];
-    return null;
   }
 }
 
@@ -174,8 +179,11 @@ class WFormDropdown<T> extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
+  List<String>? get _messages => message != null ? [message!] : null;
+
   @override
   Widget build(BuildContext context) {
+    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final c = WFormDropdownConfig();
     _applyBaseStyle(c, fieldStyle);
@@ -201,8 +209,6 @@ class WFormDropdown<T> extends StatelessWidget {
       readOnly: readOnly,
     );
   }
-
-  List<String>? get _messages => message != null ? [message!] : null;
 }
 
 class WFormMultiDropdown extends StatelessWidget {
@@ -267,12 +273,16 @@ class WFormMultiDropdown extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
+  List<String>? get _messages => message != null ? [message!] : null;
+
   @override
   Widget build(BuildContext context) {
+    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final c = WFormMultiDropdownConfig();
     _applyBaseStyle(c, fieldStyle);
     c.style ??= fieldStyle?.textStyle;
+    c.hintStyle ??= fieldStyle?.hintStyle;
     c.hintText = label ?? c.hintText;
     if (enabled != null) c.enabled = enabled!;
     if (leading != null) c.leading = leading;
@@ -300,8 +310,6 @@ class WFormMultiDropdown extends StatelessWidget {
       readOnly: readOnly,
     );
   }
-
-  List<String>? get _messages => message != null ? [message!] : null;
 }
 
 class WFormDatePicker extends StatelessWidget {
@@ -358,8 +366,11 @@ class WFormDatePicker extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
+  List<String>? get _messages => message != null ? [message!] : null;
+
   @override
   Widget build(BuildContext context) {
+    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final c = WFormDatePickerConfig();
     _applyBaseStyle(c, fieldStyle);
@@ -372,6 +383,7 @@ class WFormDatePicker extends StatelessWidget {
     if (hintText != null || label != null) {
       c.decoration = (c.decoration ?? const InputDecoration()).copyWith(
         hintText: hintText ?? label,
+        hintStyle: fieldStyle?.hintStyle,
       );
     }
     if (enabled != null) c.enabled = enabled!;
@@ -389,8 +401,6 @@ class WFormDatePicker extends StatelessWidget {
       readOnly: readOnly,
     );
   }
-
-  List<String>? get _messages => message != null ? [message!] : null;
 }
 
 class WFormCheckbox extends StatelessWidget {
@@ -398,6 +408,7 @@ class WFormCheckbox extends StatelessWidget {
     super.key,
     required this.name,
     required this.title,
+    this.message,
     this.initialValue = false,
     this.validator,
     this.onChanged,
@@ -418,6 +429,9 @@ class WFormCheckbox extends StatelessWidget {
 
   final String name;
   final Widget title;
+
+  /// 提示文案（有边框时渲染）；与 [hintTextList] 二选一。
+  final String? message;
   final bool initialValue;
   final FormFieldValidator<bool>? validator;
   final ValueChanged<bool?>? onChanged;
@@ -439,11 +453,15 @@ class WFormCheckbox extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
+  List<String>? get _messages => message != null ? [message!] : null;
+
   @override
   Widget build(BuildContext context) {
+    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final c = WFormCheckboxConfig();
     _applyBaseStyle(c, fieldStyle);
+    c.style ??= fieldStyle?.textStyle;
     if (enabled != null) c.enabled = enabled!;
     if (leading != null) c.leading = leading;
     if (actions != null) c.actions = actions;
@@ -460,7 +478,7 @@ class WFormCheckbox extends StatelessWidget {
       onChanged: onChanged,
       readOnly: readOnly,
       bordered: bordered,
-      hintTextList: hintTextList,
+      hintTextList: hintTextList ?? _messages,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
     );
@@ -472,6 +490,7 @@ class WFormRadioGroup<T> extends StatelessWidget {
     super.key,
     required this.name,
     required this.items,
+    this.message,
     this.initialValue,
     this.validator,
     this.onChanged,
@@ -496,6 +515,9 @@ class WFormRadioGroup<T> extends StatelessWidget {
   final String name;
   final Map<T, String> items;
   final T? initialValue;
+
+  /// 提示文案（有边框时渲染）；与 [hintTextList] 二选一。
+  final String? message;
   final FormFieldValidator<T>? validator;
   final ValueChanged<T?>? onChanged;
   final Widget Function(BuildContext, T, String, bool)? titleBuilder;
@@ -519,8 +541,11 @@ class WFormRadioGroup<T> extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
+  List<String>? get _messages => message != null ? [message!] : null;
+
   @override
   Widget build(BuildContext context) {
+    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final c = WFormRadioGroupConfig();
     _applyBaseStyle(c, fieldStyle);
@@ -544,13 +569,16 @@ class WFormRadioGroup<T> extends StatelessWidget {
       itemExtraBuilder: itemExtraBuilder,
       readOnly: readOnly,
       bordered: bordered,
-      hintTextList: hintTextList,
+      hintTextList: hintTextList ?? _messages,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
     );
   }
 }
 
+// 注意：WFormButton 与 WFormFieldButton 有意保留两份字段声明。
+// 让 WFormButton 继承 WFormFieldButton<String> 会让 API 快照把继承来的成员
+// 视为删除，并改变 find.byType(WFormButton) 的 runtimeType；改参数时两边必须同步。
 class WFormButton extends StatelessWidget {
   const WFormButton({
     super.key,
@@ -558,6 +586,7 @@ class WFormButton extends StatelessWidget {
     required this.onTap,
     this.label,
     this.hintWidget,
+    this.message,
     this.selectedWidgetBuilder,
     this.initialValue,
     this.validator,
@@ -576,6 +605,9 @@ class WFormButton extends StatelessWidget {
   final void Function(String? value, ValueChanged<String> didChange) onTap;
   final String? label;
   final Widget? hintWidget;
+
+  /// 提示文案（有边框时渲染）；与 [hintTextList] 二选一。
+  final String? message;
   final Widget Function(String value)? selectedWidgetBuilder;
   final String? initialValue;
   final FormFieldValidator<String>? validator;
@@ -593,6 +625,7 @@ class WFormButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final c = WFormFieldButtonConfig();
     _applyBaseStyle(c, fieldStyle);
@@ -611,7 +644,82 @@ class WFormButton extends StatelessWidget {
       focusNode: focusNode,
       readOnly: readOnly,
       bordered: bordered,
-      hintTextList: hintTextList,
+      hintTextList: hintTextList ?? (message != null ? [message!] : null),
+      isTransparentBackground: isTransparentBackground,
+      enableFocusBorder: enableFocusBorder,
+    );
+  }
+}
+
+/// 泛型字段值选择器：enum / int 等非 String 值。
+///
+/// `WFormButton` 是它的 String 便捷形态（字段值固定 `String`）。
+class WFormFieldButton<T> extends StatelessWidget {
+  const WFormFieldButton({
+    super.key,
+    required this.name,
+    required this.onTap,
+    this.label,
+    this.hintWidget,
+    this.message,
+    this.selectedWidgetBuilder,
+    this.initialValue,
+    this.validator,
+    this.focusNode,
+    this.enabled,
+    this.readOnly = false,
+    this.bordered = true,
+    this.hintTextList,
+    this.isTransparentBackground,
+    this.enableFocusBorder = true,
+    this.leading,
+    this.actions,
+  });
+
+  final String name;
+  final void Function(T? value, ValueChanged<T> didChange) onTap;
+  final String? label;
+  final Widget? hintWidget;
+
+  /// 提示文案（有边框时渲染）；与 [hintTextList] 二选一。
+  final String? message;
+  final Widget Function(T value)? selectedWidgetBuilder;
+  final T? initialValue;
+  final FormFieldValidator<T>? validator;
+  final FocusNode? focusNode;
+  final bool? enabled;
+  final bool readOnly;
+  final bool bordered;
+  final List<String>? hintTextList;
+  final bool? isTransparentBackground;
+  final bool enableFocusBorder;
+  final Widget? leading;
+
+  /// 字段右侧操作插槽。
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    _assertHints(message, hintTextList);
+    final fieldStyle = WFormFieldStyle.of(context);
+    final c = WFormFieldButtonConfig();
+    _applyBaseStyle(c, fieldStyle);
+    if (enabled != null) c.enabled = enabled!;
+    if (leading != null) c.leading = leading;
+    if (actions != null) c.actions = actions;
+    if (hintWidget != null || label != null) {
+      c.hintWidget = hintWidget ?? Text(label!);
+    }
+    return c.buildTyped<T>(
+      name: name,
+      onTap: onTap,
+      selectedWidgetBuilder: selectedWidgetBuilder,
+      initialValue: initialValue,
+      validator: validator,
+      focusNode: focusNode,
+      readOnly: readOnly,
+      bordered: bordered,
+      hintTextList: hintTextList ?? (message != null ? [message!] : null),
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
     );

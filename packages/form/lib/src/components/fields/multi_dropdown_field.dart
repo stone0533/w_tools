@@ -31,6 +31,9 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
   /// 文本样式
   final TextStyle? style;
 
+  /// 未选择时占位文本样式
+  final TextStyle? hintStyle;
+
   /// 输入装饰
   final InputDecoration? decoration;
 
@@ -81,6 +84,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
     this.checkboxSelectedIcon,
     this.checkboxDisabledIcon,
     this.style,
+    this.hintStyle,
     this.popUpLayerPadding,
     this.popUpLayerElevation,
     this.popUpLayerShadowColor,
@@ -93,7 +97,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
     this.itemTitlePadding,
   }) : super(
          builder: (FormFieldState<Set<String>?> field) {
-           final state = field as FormBuilderFieldState<_WFormMultiDropdown, Set<String>>;
+           final state = field as _WFormMultiDropdownState;
            final theme = WFormTheme.maybeOf(state.context);
 
            // 按已选顺序拼接显示文本
@@ -131,54 +135,57 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                                return Container(
                                  width: double.infinity,
                                  padding: popUpLayerPadding,
-                                 child: SingleChildScrollView(
-                                   child: Wrap(
-                                     children: items.entries.map((e) {
-                                       // 是否在禁用列表中
-                                       final bool isDisabled = disabledKeys.contains(e.key);
+                                 child: ValueListenableBuilder<Set<String>>(
+                                   valueListenable: state.selection,
+                                   builder: (context, selection, _) => SingleChildScrollView(
+                                     child: Wrap(
+                                       children: items.entries.map((e) {
+                                         // 是否在禁用列表中
+                                         final bool isDisabled = disabledKeys.contains(e.key);
 
-                                       // 显示优先级：选中 > 禁用 > 可用
-                                       // （已选中的项即使被禁用，也应显示为选中态）
-                                       _WFormMultiDropdownItemStatus status =
-                                           _WFormMultiDropdownItemStatus.enable;
-                                       if (state.value?.contains(e.key) ?? false) {
-                                         status = _WFormMultiDropdownItemStatus.checked;
-                                       } else if (isDisabled) {
-                                         status = _WFormMultiDropdownItemStatus.disable;
-                                       }
+                                         // 显示优先级：选中 > 禁用 > 可用
+                                         // （已选中的项即使被禁用，也应显示为选中态）
+                                         _WFormMultiDropdownItemStatus status =
+                                             _WFormMultiDropdownItemStatus.enable;
+                                         if (selection.contains(e.key)) {
+                                           status = _WFormMultiDropdownItemStatus.checked;
+                                         } else if (isDisabled) {
+                                           status = _WFormMultiDropdownItemStatus.disable;
+                                         }
 
-                                       return _WFormMultiDropdownItem(
-                                         value: e.key,
-                                         title: e.value,
-                                         disabled: isDisabled,
-                                         icon:
-                                             checkboxUnselectedIcon ??
-                                             theme?.effectiveCheckboxUnselectedIcon ??
-                                             WFormIcons.defaults.checkboxUnselected,
-                                         checkedIcon:
-                                             checkboxSelectedIcon ??
-                                             theme?.effectiveCheckboxSelectedIcon ??
-                                             WFormIcons.defaults.checkboxSelected,
-                                         disabledIcon: checkboxDisabledIcon,
-                                         status: status,
-                                         onTap: (v, isChecked) {
-                                           // 弹层挂在 Navigator 上，可能比字段活得久
-                                           if (!state.mounted) return;
-                                           final selected = <String>{...?state.value};
-                                           if (isChecked) {
-                                             selected.add(v);
-                                           } else {
-                                             selected.remove(v);
-                                           }
-                                           state.didChange(selected);
-                                         },
-                                         titlePadding: itemTitlePadding,
-                                         style: itemStyle,
-                                         padding: itemPadding,
-                                         checkedStyle: itemCheckedStyle,
-                                         disabledStyle: itemDisabledStyle,
-                                       );
-                                     }).toList(),
+                                         return _WFormMultiDropdownItem(
+                                           value: e.key,
+                                           title: e.value,
+                                           disabled: isDisabled,
+                                           icon:
+                                               checkboxUnselectedIcon ??
+                                               theme?.effectiveCheckboxUnselectedIcon ??
+                                               WFormIcons.defaults.checkboxUnselected,
+                                           checkedIcon:
+                                               checkboxSelectedIcon ??
+                                               theme?.effectiveCheckboxSelectedIcon ??
+                                               WFormIcons.defaults.checkboxSelected,
+                                           disabledIcon: checkboxDisabledIcon,
+                                           status: status,
+                                           onTap: (v, isChecked) {
+                                             // 弹层挂在 Navigator 上，可能比字段活得久
+                                             if (!state.mounted) return;
+                                             final selected = <String>{...?state.value};
+                                             if (isChecked) {
+                                               selected.add(v);
+                                             } else {
+                                               selected.remove(v);
+                                             }
+                                             state.didChange(selected);
+                                           },
+                                           titlePadding: itemTitlePadding,
+                                           style: itemStyle,
+                                           padding: itemPadding,
+                                           checkedStyle: itemCheckedStyle,
+                                           disabledStyle: itemDisabledStyle,
+                                         );
+                                       }).toList(),
+                                     ),
                                    ),
                                  ),
                                );
@@ -192,7 +199,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                        Expanded(
                          child: Text(
                            displayText,
-                           style: style,
+                           style: title.isEmpty ? (hintStyle ?? style) : style,
                            strutStyle: style != null
                                ? StrutStyle(
                                    fontFamily: style.fontFamily,
@@ -224,7 +231,30 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
 
   @override
   FormBuilderFieldState<_WFormMultiDropdown, Set<String>> createState() =>
-      FormBuilderFieldState<_WFormMultiDropdown, Set<String>>();
+      _WFormMultiDropdownState();
+}
+
+/// 多选字段 state：用 [ValueNotifier] 让已打开的弹层跟随外部值变化。
+class _WFormMultiDropdownState extends FormBuilderFieldState<_WFormMultiDropdown, Set<String>> {
+  final ValueNotifier<Set<String>> selection = ValueNotifier<Set<String>>(const {});
+
+  @override
+  void initState() {
+    super.initState();
+    selection.value = widget.initialValue ?? const <String>{};
+  }
+
+  @override
+  void didChange(Set<String>? value) {
+    super.didChange(value);
+    selection.value = value ?? const <String>{};
+  }
+
+  @override
+  void dispose() {
+    selection.dispose();
+    super.dispose();
+  }
 }
 
 /// 多选下拉框选项状态枚举

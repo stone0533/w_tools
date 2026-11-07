@@ -1,7 +1,10 @@
+import 'dart:collection';
+
+import 'package:flutter/foundation.dart' show internal;
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'border/border.dart';
+import 'border/border_registry.dart' as border_registry;
 import 'validation/validator.dart';
 
 /// 表单数据管理类
@@ -9,7 +12,7 @@ import 'validation/validator.dart';
 /// 持有表单 [formKey]，并提供：
 /// - 字段值读写：[value]、[setValue]、[getFieldsValue]（[fields] 为底层字段集合）
 /// - 输入状态：[formEntered]、[isAllEntered]
-/// - 边框错误：[setError]、[clearError]、[ensureBorderKey]（配合 [formBorderKeys]）
+/// - 边框错误：[setError]、[clearError]、[hasBorder]
 /// - 校验器工厂：[validators]
 class WFormController {
   /// 创建表单数据容器
@@ -30,8 +33,9 @@ class WFormController {
   /// 上次 `validate()` / `save()` 时的快照（旧 `value` 语义）
   Map<String, dynamic> get savedValue => formKey.currentState?.value ?? const <String, dynamic>{};
 
-  /// 各字段是否已输入的映射
-  final Map<String, bool> formEntered = {};
+  /// 各字段是否已输入的映射（只读视图；写入走 [handleChange] / [updateValue]）
+  Map<String, bool> get formEntered => UnmodifiableMapView(_formEntered);
+  final Map<String, bool> _formEntered = {};
 
   /// 指定字段是否都已输入
   ///
@@ -41,7 +45,7 @@ class WFormController {
     if (fieldNames.isEmpty) return false;
     pruneFormEntered();
     for (final name in fieldNames) {
-      if (formEntered[name] != true) return false;
+      if (_formEntered[name] != true) return false;
     }
     return true;
   }
@@ -50,7 +54,7 @@ class WFormController {
   void pruneFormEntered() {
     final registered = fields;
     if (registered == null) return;
-    formEntered.removeWhere((name, _) => !registered.containsKey(name));
+    _formEntered.removeWhere((name, _) => !registered.containsKey(name));
   }
 
   /// 按字段名设置字段值
@@ -95,7 +99,7 @@ class WFormController {
     VoidCallback? callback,
   }) {
     clearError(name);
-    formEntered[name] = switch (value) {
+    _formEntered[name] = switch (value) {
       String v => v.isNotEmpty,
       Iterable v => v.isNotEmpty,
       Map v => v.isNotEmpty,
@@ -121,7 +125,13 @@ class WFormController {
     List<String>? errorTextList,
     VoidCallback? callback,
   }) {
-    formBorderKeys[name]?.currentState?.setError(
+    final borderKey = border_registry.borderKeyOf(this, name);
+    assert(
+      borderKey != null || !(fields?.containsKey(name) ?? false),
+      '字段 $name 没有边框 key（bordered: false 的字段不会渲染 setError）；'
+      '这类字段的错误请从 WFormValidator.errors 读取。',
+    );
+    borderKey?.currentState?.setError(
       true,
       errorTextList: errorTextList,
     );
@@ -130,44 +140,16 @@ class WFormController {
 
   /// 清除指定字段的错误样式
   void clearError(String name) {
-    formBorderKeys[name]?.currentState?.setError(false);
+    border_registry.borderKeyOf(this, name)?.currentState?.setError(false);
   }
 
-  /// 表单边框 key 映射（由 [ensureBorderKey] 按需登记）
-  final Map<String, GlobalKey<WFormBorderState>> formBorderKeys = {};
-
-  /// 各字段名当前的宿主 State（仅用于重名检测）
-  final Map<String, Object> _borderKeyOwners = {};
-
-  /// 获取指定字段的边框 key，不存在时创建
-  ///
-  /// [owner] 为调用方 State。同名被两个仍挂载的字段注册时，debug 期给出可读错误 ——
-  /// Flutter 自己的 "Multiple widgets used the same GlobalKey" 看不出是哪个 `name`。
-  GlobalKey<WFormBorderState> ensureBorderKey(String name, {Object? owner}) {
-    if (owner != null) {
-      final existing = _borderKeyOwners[name];
-      assert(
-        existing == null || identical(existing, owner),
-        '字段 name 重复：$name。同一 WForm 内 name 必须唯一'
-        '（检查是否同时挂载了两个 name 相同的字段，或边框用了子字段的名字）。',
-      );
-      _borderKeyOwners[name] = owner;
-    }
-    return formBorderKeys.putIfAbsent(name, () => GlobalKey<WFormBorderState>());
-  }
-
-  /// 注销指定字段的边框 key；字段卸载时由 WFormFieldShell 调用
-  ///
-  /// [owner] 用于避免「同名字段 A 卸载时把 B 的 key 也删掉」。
-  void removeBorderKey(String name, {Object? owner}) {
-    if (owner != null && !identical(_borderKeyOwners[name], owner)) return;
-    _borderKeyOwners.remove(name);
-    formBorderKeys.remove(name);
-  }
+  /// 内部：该字段是否已注册边框（`bordered: false` 的字段没有）。
+  @internal
+  bool hasBorder(String name) => border_registry.hasBorder(this, name);
 
   /// 注销指定字段的输入状态；字段卸载时由 WFormFieldShell 调用
   void removeFormEntered(String name) {
-    formEntered.remove(name);
+    _formEntered.remove(name);
   }
 
   /// 关闭键盘
@@ -176,10 +158,17 @@ class WFormController {
   }
 
   /// 创建表单校验器（校验项由 [WFormValidator.validate] 按序执行）
+  ///
+  /// [items] 为 null 时与 [validate] 一致：校验当前已挂载字段的自身 validator。
+  /// 表单未挂载时按空校验项处理（调用 [WFormValidator.validate] 会通过）。
   WFormValidator validators({WFormValidatorSettings? settings, List<WFormValidatorItem>? items}) {
+    final validationItems =
+        items ??
+        (fields?.keys.map(WFormValidatorItem.field).toList(growable: false) ??
+            const <WFormValidatorItem>[]);
     return WFormValidator(
       formData: this,
-      validationItems: items ?? [],
+      validationItems: validationItems,
       settings: settings ?? validatorSettings,
     );
   }

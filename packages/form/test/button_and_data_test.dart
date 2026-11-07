@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
@@ -83,7 +82,10 @@ void main() {
       // 禁用态视觉半透明
       final opacity = tester.widget<Opacity>(
         find
-            .descendant(of: find.byType(WFormFieldButtonCore), matching: find.byType(Opacity))
+            .descendant(
+              of: find.byType(WFormFieldButtonCore<String>),
+              matching: find.byType(Opacity),
+            )
             .first,
       );
       expect(opacity.opacity, 0.5);
@@ -114,7 +116,10 @@ void main() {
       expect(tapped, false);
       final opacity = tester.widget<Opacity>(
         find
-            .descendant(of: find.byType(WFormFieldButtonCore), matching: find.byType(Opacity))
+            .descendant(
+              of: find.byType(WFormFieldButtonCore<String>),
+              matching: find.byType(Opacity),
+            )
             .first,
       );
       expect(opacity.opacity, 0.5);
@@ -172,7 +177,7 @@ void main() {
       final buttonSemantics = tester
           .widgetList<Semantics>(
             find.descendant(
-              of: find.byType(WFormFieldButtonCore),
+              of: find.byType(WFormFieldButtonCore<String>),
               matching: find.byType(Semantics),
             ),
           )
@@ -195,7 +200,7 @@ void main() {
       final buttonSemantics = tester
           .widgetList<Semantics>(
             find.descendant(
-              of: find.byType(WFormFieldButtonCore),
+              of: find.byType(WFormFieldButtonCore<String>),
               matching: find.byType(Semantics),
             ),
           )
@@ -236,7 +241,7 @@ void main() {
       final transformed = tester
           .widgetList<Container>(
             find.descendant(
-              of: find.byType(WFormFieldButtonCore),
+              of: find.byType(WFormFieldButtonCore<String>),
               matching: find.byType(Container),
             ),
           )
@@ -276,8 +281,8 @@ void main() {
                 name: 'x',
                 onTap: (_, __) {},
               )
-              as WFormFieldButtonCore;
-      expect(btn, isA<WFormFieldButtonCore>());
+              as WFormFieldButtonCore<String>;
+      expect(btn, isA<WFormFieldButtonCore<String>>());
       expect(btn.name, 'x');
     });
 
@@ -293,7 +298,7 @@ void main() {
         child: config.build(name: 'size_btn', onTap: (_, __) {}),
       );
 
-      final size = tester.getSize(find.byType(WFormFieldButtonCore));
+      final size = tester.getSize(find.byType(WFormFieldButtonCore<String>));
       expect(size.width, 200);
       expect(size.height, 48);
     });
@@ -308,7 +313,10 @@ void main() {
 
       final container = tester.widget<Container>(
         find
-            .descendant(of: find.byType(WFormFieldButtonCore), matching: find.byType(Container))
+            .descendant(
+              of: find.byType(WFormFieldButtonCore<String>),
+              matching: find.byType(Container),
+            )
             .first,
       );
       expect(container.constraints, isNull);
@@ -335,7 +343,9 @@ void main() {
         ),
       );
 
-      final button = tester.widget<WFormFieldButtonCore>(find.byType(WFormFieldButtonCore));
+      final button = tester.widget<WFormFieldButtonCore<String>>(
+        find.byType(WFormFieldButtonCore<String>),
+      );
       expect(button.validator, isNotNull);
       expect(button.focusNode, same(focusNode));
       expect(formData.formKey.currentState!.validate(), isFalse);
@@ -354,7 +364,7 @@ void main() {
       );
 
       expect(find.byType(WFormFieldShell), findsOneWidget);
-      expect(find.byType(WFormFieldButtonCore), findsOneWidget);
+      expect(find.byType(WFormFieldButtonCore<String>), findsOneWidget);
       expect(find.text('边框按钮'), findsOneWidget);
     });
   });
@@ -389,13 +399,6 @@ void main() {
       expect(data.formEntered['agree'], false);
     });
 
-    testWidgets('ensureBorderKey — 返回同一个 key（单例模式）', (tester) async {
-      final data = WFormController();
-      final k1 = data.ensureBorderKey('field');
-      final k2 = data.ensureBorderKey('field');
-      expect(k1, same(k2));
-    });
-
     testWidgets('formKey — 不同 WFormController 实例有不同 formKey', (tester) async {
       final data1 = WFormController();
       final data2 = WFormController();
@@ -411,21 +414,21 @@ void main() {
 
     testWidgets('isAllEntered — 全部为 true 时返回 true', (tester) async {
       final data = WFormController();
-      data.formEntered['a'] = true;
-      data.formEntered['b'] = true;
+      data.handleChange('a', 'x');
+      data.handleChange('b', 'y');
       expect(data.isAllEntered(const ['a', 'b']), true);
     });
 
     testWidgets('isAllEntered — 有一个为 false 时返回 false', (tester) async {
       final data = WFormController();
-      data.formEntered['a'] = true;
-      data.formEntered['b'] = false;
+      data.handleChange('a', 'x');
+      data.handleChange('b', '');
       expect(data.isAllEntered(const ['a', 'b']), false);
     });
 
     testWidgets('isAllEntered — 缺少指定字段时返回 false', (tester) async {
       final data = WFormController();
-      data.formEntered['a'] = true;
+      data.handleChange('a', 'x');
 
       expect(data.isAllEntered(const ['a', 'missing']), false);
     });

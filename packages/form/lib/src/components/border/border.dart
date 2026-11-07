@@ -52,10 +52,12 @@ class WFormBorderState extends State<WFormBorder> {
   late WFormBorderConfig config;
 
   /// 是否有错误
-  bool isError = false;
+  bool get isError => _isError;
+  bool _isError = false;
 
   /// 消息列表（提示或错误）
-  List<String>? messageList;
+  List<String>? get messageList => _messageList;
+  List<String>? _messageList;
 
   /// 装饰缓存键（null 表示尚未计算）
   ///
@@ -79,10 +81,10 @@ class WFormBorderState extends State<WFormBorder> {
   /// 无状态变化时直接返回，避免校验通过时对已无错误的字段重复触发重建。
   void setError(bool value, {List<String>? errorTextList}) {
     // 清除错误且当前本就无错误：无变化，跳过重建
-    if (!value && !isError) return;
+    if (!value && !_isError) return;
     setState(() {
-      isError = value;
-      messageList = value ? errorTextList : widget.hintTextList;
+      _isError = value;
+      _messageList = value ? errorTextList : widget.hintTextList;
     });
   }
 
@@ -93,7 +95,7 @@ class WFormBorderState extends State<WFormBorder> {
     // 继承 WFormScope.formBorderConfig 在 didChangeDependencies 中完成
     config = widget.config ?? const WFormBorderConfig();
     _configReady = true;
-    messageList = widget.hintTextList;
+    _messageList = widget.hintTextList;
   }
 
   @override
@@ -107,8 +109,8 @@ class WFormBorderState extends State<WFormBorder> {
     super.didUpdateWidget(oldWidget);
     _syncConfig();
     // 非错误态下同步父级传入的新提示文本
-    if (!isError && !listEquals(widget.hintTextList, oldWidget.hintTextList)) {
-      messageList = widget.hintTextList;
+    if (!_isError && !listEquals(widget.hintTextList, oldWidget.hintTextList)) {
+      _messageList = widget.hintTextList;
     }
   }
 
@@ -138,7 +140,7 @@ class WFormBorderState extends State<WFormBorder> {
     final key = (
       transparent: widget.isTransparentBackground,
       readOnly: widget.isReadOnly,
-      isError: isError,
+      isError: _isError,
       focused: widget.isFocused,
     );
 
@@ -195,17 +197,17 @@ class WFormBorderState extends State<WFormBorder> {
     }
 
     // 2. 按状态构建消息
-    final hasMessage = messageList?.isNotEmpty ?? false;
+    final hasMessage = _messageList?.isNotEmpty ?? false;
     final Widget message;
     if (!hasMessage) {
       message = const SizedBox.shrink();
-    } else if (isError) {
+    } else if (_isError) {
       message =
-          config.errorBuilder?.call(messageList) ??
-          _defaultMessage(messageList!, config.errorStyle);
+          config.errorBuilder?.call(_messageList) ??
+          _defaultMessage(_messageList!, config.errorStyle);
     } else {
       message =
-          config.hintBuilder?.call(messageList) ?? _defaultMessage(messageList!, config.hintStyle);
+          config.hintBuilder?.call(_messageList) ?? _defaultMessage(messageList!, config.hintStyle);
     }
 
     // 3. 交给布局策略组装
@@ -215,7 +217,7 @@ class WFormBorderState extends State<WFormBorder> {
         child: child,
         message: message,
         hasMessage: hasMessage,
-        isError: isError,
+        isError: _isError,
         isReadOnly: widget.isReadOnly ?? false,
         borderRadius: borderRadius,
       ),

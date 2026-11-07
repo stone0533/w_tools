@@ -235,7 +235,7 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 - **倒计时工具** (`WCountdown`): 提供倒计时功能
 - **用户体验** (`WUx`): 提供防抖、节流、平滑滚动等用户体验优化功能
 - **存储工具** (`WStorage`): 提供本地存储功能
-- **弹窗工具** (`WFormPopup.show` / `WFormPopupRoute`): 提供从触发控件下方弹出的自定义路由
+- **弹窗工具** (`WFormPopup.show`): 提供从触发控件下方弹出的自定义路由
 - **语言工具** (`WLanguage`): 提供语言管理和切换功能
 - **Toast 工具** (`WToast`): 提供轻量级消息提示功能
 - **异步工具** (`WAsync` / `WAsyncState` / `WAsyncView`): 提供执行、四态状态、Controller 与异步视图

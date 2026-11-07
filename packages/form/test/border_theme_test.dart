@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
+import 'internal/_helpers/border_state.dart';
+
 void main() {
   group('WFormBorderConfig.fromTheme', () {
     test('边框 / 聚焦 / 错误 / 只读底色都来自 ColorScheme', () {
@@ -44,7 +46,7 @@ void main() {
       final theme = ThemeData(useMaterial3: true);
       final scheme = theme.colorScheme;
       final config = WFormBorderConfig.fromTheme(theme);
-      final key = GlobalKey<WFormBorderState>();
+      final key = GlobalKey();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -64,7 +66,7 @@ void main() {
       expect(hint.style?.color, scheme.onSurfaceVariant);
       expect(hint.style?.fontSize, theme.textTheme.bodySmall?.fontSize);
 
-      key.currentState!.setError(true, errorTextList: const ['格式不对']);
+      borderStateOf(key)!.setError(true, errorTextList: const ['格式不对']);
       await tester.pump();
       final error = tester.widget<Text>(find.text('格式不对'));
       expect(error.style?.color, scheme.error);

@@ -48,11 +48,15 @@ WForm(
    - 文本：`label` / `message` / `validator` / `obscureText` / `actions`
    - 下拉：`items` / `initialValue` / `icon` / `contentPadding`
    - 多选：`disabledKeys` / `itemStyle` / `itemCheckedStyle`
+   - 复选 / 单选：`message`（仅 `bordered: true` 时渲染）/ `title` / `items`
    - 日期：`firstDate` / `lastDate` / `displayFormat`
-   - 按钮：`label` / `hintWidget` / `selectedWidgetBuilder`
+   - 按钮：`label` / `message` / `hintWidget` / `selectedWidgetBuilder`（`WFormButton` 行为等价
+     `WFormFieldButton<String>`，两者类型独立；enum / int 用 `WFormFieldButton<T>`）
 6. 边框 / 校验 / 只读由 `WForm` 统一提供，不要在页面里堆
-   `WFormTheme`、`WFormScope`、`WFormReadOnlyScope`。
-7. `WForm` 与 `WFormController` 一对一使用。
+   `WFormTheme`、`WFormScope`、`WFormReadOnlyScope`；整表变化用
+   `WForm(onChanged:)`，不要逐字段拼回调。
+7. `WForm` 与 `WFormController` 必须一对一：同一个 controller 同时挂载两个
+   `WForm` 时，第二个不会构建 `FormBuilder`，而是显示重复挂载提示。
 8. 提交校验优先：
 
 ```dart

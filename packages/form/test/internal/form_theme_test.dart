@@ -1,6 +1,6 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:w_tools_form/src/components/border/border.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 import 'package:w_tools_form/src/components/fields/checkbox.dart';
 import '_helpers/config_exports.dart';
@@ -11,7 +11,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: WFormTheme(
-            checkboxUnselectedIcon: const Icon(Icons.star),
+            icons: const WFormIcons(checkboxUnselected: Icon(Icons.star)),
             child: WFormScope(
               formData: WFormController(),
               child: WFormCheckboxCore(

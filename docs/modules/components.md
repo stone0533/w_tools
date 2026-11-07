@@ -29,7 +29,7 @@
 | `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` | async | 无 UI 异步执行（tryRun/run）、取消与活动计数 | — |
 | `WStepState` | ui | 步骤项状态（completed / current / upcoming） | 不要自己拼状态字符串；按 enum 分支 |
 | `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | 不要在 builder 里返回 Expanded；外层已经包了 Expanded |
-| `WFormScope` | form | 表单 InheritedWidget 管道（由 WForm 组合） | — |
+| `WFormScope` | form | 表单 InheritedWidget 管道（WForm 内部组合） | — |
 | `WAsyncSuccess` | async | tryRun 成功结果 | — |
 | `WAsyncFailure` | async | tryRun 失败结果（error / stackTrace / isProgrammingError） | — |
 | `WAsyncCancelled` | async | tryRun 取消结果（reason） | — |
@@ -85,7 +85,7 @@
 | `WButtonStyles` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要硬编码颜色；页面统一样式用项目 AppButtons 注册表 |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 | 不要用于状态点或长文案；状态点用原生 Container，多字提示用 WText |
-| `WFormIcons` | form | 表单图标集合（下拉 / 勾选 / 单选 / 密码 / 清空） | `WFormDefaults` 已删除；单字段 icon 参数优先于它 |
+| `WFormIcons` | form | 表单图标统一入口（下拉 / 勾选 / 单选 / 密码 / 清空）；WForm 会继承外层 WFormTheme 的图标 | `WFormDefaults` 已删除；`WForm` / `WFormTheme` 已不再接受单项 `xxxIcon` 参数，统一用 `icons:` |
 | `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WAppConfig` | app_getx | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
@@ -96,7 +96,7 @@
 | `WBadgeConfig` | ui | WBadge 位置 / 显隐 / 自定义样式 | 不要用 position 做外部布局；它只控制角标相对 child 的位置 |
 | `WButtonContentBuilder` | ui | WButton.contentBuilder 的类型：拿到最终样式自己排版 | 不要在 builder 里重新读 Theme 派生样式；直接用传入的 resolved style |
 | `WButtonResolvedStyle` | ui | contentBuilder 拿到的最终样式（states / 背景 / 文字样式等） | 不要缓存后跨帧使用；它只对当前 WidgetState 有效 |
-| `WFormTheme` | form | WForm 内部的主题 InheritedWidget（由 WForm 组合） | — |
+| `WFormTheme` | form | 主题 InheritedWidget：App 级图标 / 边框统一放外层，WForm 会继承 | — |
 | `WAsyncPageLoader` | async | 分页 loader 的类型：(page) => Future<List<T>> | — |
 | `WAsyncTokenLoader` | async | 可感知取消的 loader 类型：(token) => Future<T> | — |
 | `WAsyncTokenPageLoader` | async | 可感知取消的分页 loader 类型：(page, token) => Future<List<T>> | — |
@@ -121,8 +121,8 @@
 | `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |
 | `WFormReadOnlyScope` | form | 只读作用域：由 WForm / 字段自动注入，穿透任意包装 | — |
 | `WFormBorderLayout` / `WFormBorderBuilderLayout` / `WFormBorderColumnLayout` / `WFormBorderLayoutBuilder` / `WFormBorderLayoutData` | form | 边框与消息的布局策略（column / builder） | — |
-| `WFormFieldShell` / `WFormBorderState` | form | 字段外框装配与边框 State（内置字段自动使用） | — |
-| `WFormBorderConfigScope` / `WFormBorderDecorationExtension` | form | 边框配置的 InheritedWidget 与装饰扩展（内部使用） | — |
+| `WFormFieldShell` | form | 字段外框装配（内置字段自动使用；自定义字段可参考 form_module.md §4.3） | — |
+| `WFormBorderDecorationExtension` | form | 边框装饰值对象的链式扩展（withUniformBorder / withColor 等） | — |
 | `WAsyncErrorView` / `WAsyncErrorBanner` | async | 默认整块错误视图 / 保留旧数据时的错误条 | — |
 | `WAsyncRetryErrorHandler` | async | onRetryError 回调的类型 | — |
 <!-- catalog:4:end -->
@@ -132,8 +132,8 @@
 <!-- catalog:5:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WForm` | form | 页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验 | 不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` |
-| `WFormController` | form | 表单数据 / 字段值 / 校验入口 | 多个 WForm 不要共用一个 controller |
+| `WForm` | form | 页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验 | 普通页面不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` 三层嵌套；App 级图标 / 边框才用外层 `WFormTheme` |
+| `WFormController` | form | 表单数据 / 字段值 / 校验入口 | 两个 WForm 不能同时挂载同一个 controller（会显示重复挂载提示） |
 | `WFormTextField` | form | 直接文本 / 密码字段（label / message / validator） | 不要默认写 `WFormTextFieldConfig().build(...)` |
 | `WFormDropdown` | form | 直接下拉字段（items / 初始值 / icon / contentPadding） | 多选用 `WFormMultiDropdown`；自定义弹层用 `WFormPopup` |
 | `WFormMultiDropdown` | form | 直接多选字段（items / disabledKeys / 选项样式） | 单选用 `WFormDropdown` |
@@ -141,6 +141,7 @@
 | `WFormCheckbox` | form | 直接复选字段（title 必填，默认 bordered: false） | 多选用 `WFormMultiDropdown` |
 | `WFormRadioGroup` | form | 直接单选字段（items / titleBuilder / lineSpacing） | 多选用 `WFormMultiDropdown` |
 | `WFormButton` | form | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用 |
+| `WFormFieldButton` | form | 泛型字段值选择器：enum / int 等非 String 值 | String 值优先用 `WFormButton`；普通业务按钮用 `WButton` |
 | `WFormFieldStyle` | form | 页面级字段默认高度 / 内边距 / 文字 / hint 样式 | 字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹 |
 | `WFormFieldStyleScope` | form | 单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / hint） | 整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层 |
 | `WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton` | form | 文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空 | 不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldScope.of` |
@@ -160,7 +161,6 @@
 | --- | --- | --- | --- |
 | `WFormPopup` | form | **锚定式**下拉弹层（贴在输入框下方） | ⚠️ 它不是居中对话框，别拿来做「确认弹窗」 |
 | `WRouteObserver` | app_getx | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
-| `WFormPopupRoute` | form | WFormPopup 使用的 PopupRoute（由 show 创建） | — |
 <!-- catalog:6:end -->
 
 ## 7. 状态与反馈

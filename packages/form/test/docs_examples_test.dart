@@ -216,6 +216,6 @@ void main() {
 
     expect(find.byIcon(Icons.attach_money), findsOneWidget);
     expect(form.validate(), isFalse);
-    expect(form.formBorderKeys.containsKey('amount'), isTrue);
+    expect(form.hasBorder('amount'), isTrue);
   });
 }

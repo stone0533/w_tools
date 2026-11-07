@@ -38,7 +38,8 @@ lib/
     advanced_fields_page.dart 字段参数 / controller 读取
     border_page.dart   自定义 WFormBorderConfig
 test/
-  example_smoke_test.dart
+  example_smoke_test.dart  首页 / 只读 / 弹层冒烟
+  example_pages_test.dart  边框回调 / 多行高度 / 泛型按钮 / 多选 / 日期
 ```
 
 ## 使用方式

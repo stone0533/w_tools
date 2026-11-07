@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -16,7 +15,7 @@ import 'form_controller.dart';
 /// 禁用或位于只读作用域时不响应点击，并以半透明样式呈现。
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
-class WFormFieldButtonCore extends StatelessWidget {
+class WFormFieldButtonCore<T> extends StatelessWidget {
   /// 按钮配置
   final WFormFieldButtonConfig config;
 
@@ -24,19 +23,19 @@ class WFormFieldButtonCore extends StatelessWidget {
   final String name;
 
   /// 选中值的 widget 构建器
-  final Widget Function(String value)? selectedWidgetBuilder;
+  final Widget Function(T value)? selectedWidgetBuilder;
 
   /// 点击回调函数
-  final void Function(String? value, ValueChanged<String> didChange) onTap;
+  final void Function(T? value, ValueChanged<T> didChange) onTap;
 
   /// 初始值
-  final String? initialValue;
+  final T? initialValue;
 
   /// 是否启用（null 时使用 [WFormFieldButtonConfig] 中的值）
   final bool? enabled;
 
   /// 校验器
-  final FormFieldValidator<String>? validator;
+  final FormFieldValidator<T>? validator;
 
   /// 焦点节点
   final FocusNode? focusNode;
@@ -65,7 +64,7 @@ class WFormFieldButtonCore extends StatelessWidget {
       yOffset: config.yOffset,
       leading: config.leading,
       actions: config.actions,
-      child: _WFormScopeButton<String>(
+      child: _WFormScopeButton<T>(
         name: name,
         initialValue: initialValue,
         enabled: (enabled ?? config.enabled) && !WFormReadOnlyScope.readOnlyOf(context),
@@ -108,7 +107,7 @@ class WFormFieldButtonConfig extends WFormFieldBaseConfig {
     this.containerPadding = containerPadding;
   }
 
-  /// 框架内部使用（直接字段 / Core 组装），4.0 物理移出 Config。
+  /// 框架内部使用（`WFormButton` / 直接字符串值）。
   @internal
   Widget build({
     required String name,
@@ -123,6 +122,36 @@ class WFormFieldButtonConfig extends WFormFieldBaseConfig {
     List<String>? hintTextList,
     bool? isTransparentBackground,
     bool enableFocusBorder = true,
+  }) => buildTyped<String>(
+    name: name,
+    onTap: onTap,
+    selectedWidgetBuilder: selectedWidgetBuilder,
+    initialValue: initialValue,
+    enabled: enabled,
+    validator: validator,
+    focusNode: focusNode,
+    readOnly: readOnly,
+    bordered: bordered,
+    hintTextList: hintTextList,
+    isTransparentBackground: isTransparentBackground,
+    enableFocusBorder: enableFocusBorder,
+  );
+
+  /// 框架内部使用：泛型值路径（供 [WFormFieldButton] 使用）。
+  @internal
+  Widget buildTyped<T>({
+    required String name,
+    required void Function(T? value, ValueChanged<T> didChange) onTap,
+    Widget Function(T value)? selectedWidgetBuilder,
+    T? initialValue,
+    bool? enabled,
+    FormFieldValidator<T>? validator,
+    FocusNode? focusNode,
+    bool readOnly = false,
+    bool bordered = false,
+    List<String>? hintTextList,
+    bool? isTransparentBackground,
+    bool enableFocusBorder = true,
   }) {
     if (!bordered) {
       // message / hintTextList 只由边框渲染；无边框时静默丢弃是陷阱，直接报出来
@@ -130,7 +159,7 @@ class WFormFieldButtonConfig extends WFormFieldBaseConfig {
         hintTextList == null || hintTextList.isEmpty,
         'bordered: false 时不会渲染 message / hintTextList；需要提示请保留 bordered，或自行展示。',
       );
-      final field = WFormFieldButtonCore(
+      final field = WFormFieldButtonCore<T>(
         config: this,
         name: name,
         onTap: onTap,
@@ -154,7 +183,7 @@ class WFormFieldButtonConfig extends WFormFieldBaseConfig {
       isTransparentBackground: isTransparentBackground,
       readOnly: readOnly || !baseEnabled,
       enableFocusBorder: enableFocusBorder,
-      child: innerConfig.build(
+      child: innerConfig.buildTyped<T>(
         name: name,
         onTap: onTap,
         selectedWidgetBuilder: selectedWidgetBuilder,
