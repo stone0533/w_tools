@@ -55,6 +55,8 @@ docs/modules/components.md
 
 每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立测试 / 发布。Flutter 子包用 `flutter test`；纯 Dart 包（`map` / `cli` / `figma` / `device`）用 `dart test`；`e2e` 以 pubspec 为准。根 `test/` 只放聚合契约（`w_tools.dart` 重导出）与跨包回归，单包行为测试不要放这里。
 
+守卫 / 错误分支 / 边界 clamp 的用例要能证明「删掉被守逻辑它就红」：用 `bash scripts/mutate_guard.sh` 做一次定向变异（`--expect` 与 `bash -c` 写法见 `CONTRIBUTING.md` §4 和 `scripts/README.md`「测试有效性（人工）」）。只断言 `takeException()` / `returnsNormally` 的用例优先查——删掉功能它也可能绿；变异存活先补正向断言，再考虑删守卫。
+
 ## 文档
 
 改 `docs/` 后跑 `bash scripts/check_docs.sh`（链接、旧命令、安装版本、文档符号 / import 边界、已删除 API、索引、事实一致性；CI 也会跑）；公开 API 变化还要跑 `python3 scripts/check_public_catalog.py`。

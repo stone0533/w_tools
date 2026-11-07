@@ -42,6 +42,9 @@
 ## 自检
 
 - [ ] `bash scripts/preflight.sh --with-tests`（或说明未跑原因）
-- [ ] 守卫 / 边界类用例已做**变异验证**（删掉被守逻辑后用例必须变红，贴命令与结果）
+- [ ] 守卫 / 边界类用例已做**变异验证**（不适用写「不适用」）
+  - 变异点：`路径:行`（`--from` → `--to`）
+  - 命令：`bash scripts/mutate_guard.sh ... --expect '...' -- bash -c '...'`
+  - 结果：`✓ 变异被杀死` / `✗ 变异存活（已补断言 / 已删守卫）`
 - [ ] PR 内 commit 已整理（无 `wip` / `fixup`；一个 PR 只做一件事）
 - [ ] 合并方式使用 **Merge commit**（见 `CONTRIBUTING.md` §6）

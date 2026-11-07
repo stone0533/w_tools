@@ -142,10 +142,14 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 bash scripts/mutate_guard.sh \
   --file packages/form/lib/src/components/fields/multi_dropdown_field.dart \
   --from 'if (!state.mounted) return;' --to '// mutated' \
-  -- cd packages/form && flutter test test/form_gaps_test.dart --plain-name "multi 弹层打开后字段卸载"
+  --expect 'after dispose' \
+  -- bash -c 'cd packages/form && flutter test test/form_gaps_test.dart --plain-name "multi 弹层打开后字段卸载"'
 ```
 
-变异点必须**恰好命中 1 处**；脚本用 `trap` 保证任何退出路径都会还原文件，跑完 `git status` 应只剩你自己的改动。
+- 测试命令必须用 **`bash -c '...'` 包成一个参数**。直接写 `-- cd packages/form && flutter test ...` 会被调用方 shell 按 `&&` 拆开，脚本只收到 `cd packages/form`：在仓库根跑报「变异存活」、在 `packages/form` 里跑报「变异被杀死」，两次测试其实都没跑（脚本会拦下这种写法）。
+- `--expect <特征串>` 要求红输出里出现该串，避免把「编译失败」当成「用例变红」；不写时也会显式拒绝 `Compilation failed` / `Failed to load` / 没匹配到用例。
+- 退出码：`0` 杀死 / `1` 存活 / `2` 无效（含超时）/ `3` 还原失败。`--timeout <秒>` 默认 600，`0` 关闭。
+- 变异点必须**恰好命中 1 处**；脚本用 `trap` 保证任何退出路径都会还原文件，并用 `cmp` 校验还原结果，跑完 `git status` 应只剩你自己的改动。
 
 ### 检查边界
 
