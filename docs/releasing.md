@@ -108,8 +108,10 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    bash scripts/publish_package.sh packages/map --dry-run
    ```
    第 7 步的正式发布会**自己再跑一遍**这些保护（干净工作区 / `main` 且 fetch 后的
-   `HEAD == origin/main` / `release_check --strict`），漏跑第 6 步不会把未提交改动发出去；
-   例外情况用脚本的 `--force --reason "..."`（reason 会打到发布日志）。
+   `HEAD == origin/main` / `release_check --strict` / 子包快照基线守卫），漏跑第 6 步不会把
+   未提交改动发出去；例外情况用脚本的 `--force --reason "..."`（reason 会打到发布日志）。
+   快照基线守卫要求最新快照已提交，本地版本不得低于 / 等于快照（新包首发在
+   `scripts/pending_first_release.txt` 里时除外），防止带着丢失 / 回退的基线发布。
 7. 发布子包：
    ```bash
    bash scripts/publish_package.sh packages/map
@@ -160,7 +162,7 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    `release_check --package map --online` 仍可用于单包核对，但网络不可达时现在返回 2，
    不会再打印「检查通过」；全量线上状态以 `release_status.py` 为准。
    `release-status.yml` 每周一也会跑 `release_status.py --online --check`：
-   「待发布」不算错，只有「仓库落后 / 快照与线上不一致」才会红；网络不可达（一个包都没取到）
+   「待发布」不算错，只有「仓库落后 / 快照与线上不一致 / 缺快照 / pub.dev 404」才会红；网络不可达（一个包都没取到）
    返回退出码 2，周检按「本次跳过」处理，不会因外网抖动误报发布事故。
 
 > `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
@@ -244,8 +246,8 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 | 弃用到期 | `@Deprecated` 的 `remove-in` 是否到期（复用 `check_deprecations.py`） |
 | `## Unreleased` 条目 | 只提醒：说明有已记录但未发版的改动 |
 | `--strict` | 已跟踪文件无未提交改动、无未跟踪文件、upstream 已同步；完整模式还要求每个包的最新快照已 tracked，且**根聚合包**快照版本 == 本地（工具包 / 不聚合的包允许待发布，不会卡住根包） |
-| `--online` | 与 pub.dev API 对比最新版本；一个包都取不到时退出 2（环境不可用，不打印「检查通过」）；pub.dev 404 判失败（包名拼错 / 改名） |
-| `--package <pkg>` | 收窄版本 / 物料检查；根包版本与其他子包不参与，但弃用检查与根 README 仍全仓；快照 tracked 检查只在完整 `--strict` |
+| `--online` | 与 pub.dev API 对比最新版本；一个包都取不到时退出 2（环境不可用，不打印「检查通过」）；404 只 warn，要判 404 用 `release_status.py --online --check` |
+| `--package <pkg>` | 收窄版本 / 物料检查；根包版本与其他子包不参与，但弃用检查与根 README 仍全仓；会提示最新快照高于 / 等于 / 缺失本地版本；完整快照 tracked 检查只在完整 `--strict` |
 
 ## 常见坑
 

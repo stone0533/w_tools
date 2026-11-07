@@ -358,7 +358,11 @@ def pr_template_errors(path: pathlib.Path | None = None) -> list[str]:
 
 
 def release_status_workflow_errors(path: pathlib.Path | None = None) -> list[str]:
-    """周检是唯一能发现「快照漂移 / 仓库落后线上」的门禁，不能被静默删掉或写坏。"""
+    """周检是唯一能发现「快照漂移 / 仓库落后线上」的门禁，不能被静默删掉或写坏。
+
+    不只看命令文本：`on.schedule` 被删、job / step 带 `if` 或 `continue-on-error`
+    都会让周检静默消失（三轮审计 §16）。
+    """
     target = path or RELEASE_STATUS_WORKFLOW
     if not target.is_file():
         return ['缺少 .github/workflows/release-status.yml（每周线上核对会消失）']
@@ -368,19 +372,56 @@ def release_status_workflow_errors(path: pathlib.Path | None = None) -> list[str
         workflow = yaml.safe_load(target.read_text()) or {}
     except yaml.YAMLError as error:
         return [f'.github/workflows/release-status.yml 不是合法 YAML：{error}']
-    runs = '\n'.join(
-        str(step.get('run') or '')
-        for job in (workflow.get('jobs') or {}).values()
-        if isinstance(job, dict)
-        for step in (job.get('steps') or [])
-        if isinstance(step, dict)
+
+    errors: list[str] = []
+    jobs = workflow.get('jobs') or {}
+    status = jobs.get('status') or {}
+    steps = [step for step in (status.get('steps') or []) if isinstance(step, dict)]
+    run_step = next(
+        (
+            step
+            for step in steps
+            if 'scripts/release_status.py --online --check' in str(step.get('run') or '')
+        ),
+        None,
     )
-    if 'scripts/release_status.py --online --check' not in runs:
-        return [
-            '.github/workflows/release-status.yml: 必须运行 '
+    if run_step is None:
+        errors.append(
+            '.github/workflows/release-status.yml: status job 必须运行 '
             '`python3 scripts/release_status.py --online --check`'
-        ]
-    return []
+        )
+    if 'if' in status:
+        errors.append(
+            '.github/workflows/release-status.yml: status job 不能带 if；'
+            '否则周检会被静默跳过'
+        )
+    if run_step is not None:
+        if 'if' in run_step:
+            errors.append(
+                '.github/workflows/release-status.yml: 周检步骤不能带 if；'
+                '否则会静默跳过'
+            )
+        if run_step.get('continue-on-error'):
+            errors.append(
+                '.github/workflows/release-status.yml: 周检步骤不能开 continue-on-error；'
+                '否则失败会被吞掉'
+            )
+
+    triggers = workflow.get('on')
+    if triggers is None:
+        triggers = workflow.get(True)  # PyYAML 把裸 `on:` 解析成布尔键
+    schedule = triggers.get('schedule') if isinstance(triggers, dict) else None
+    crons = {
+        str(item['cron'])
+        for item in (schedule or [])
+        if isinstance(item, dict) and item.get('cron')
+    }
+    if '0 1 * * 1' not in crons:
+        errors.append(
+            '.github/workflows/release-status.yml: 必须保留 on.schedule 的 cron '
+            "'0 1 * * 1'（每周一线上核对），否则周检会退化成手动"
+        )
+    return errors
 
 
 def path_filter_errors(workflow: dict) -> list[str]:

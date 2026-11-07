@@ -225,6 +225,8 @@ jobs:
       - name: Check PR declared scope
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          # 空 body 与「本地没有 PR 上下文」必须区分：空 body 也要检查改动范围。
+          PR_CONTEXT: '1'
         run: python3 scripts/check_pr_scope.py --base ${{ github.event.pull_request.base.sha }}
 
   # 声明的最低 Flutter 版本上再跑一遍：form 1.0.0 的 SizeTransition.alignment

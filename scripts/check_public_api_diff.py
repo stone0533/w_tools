@@ -327,7 +327,16 @@ def main() -> int:
         '--output-dir',
         help='快照写入目录（默认 scripts/api_snapshots）；发布脚本用它写 .w_tools/release-snapshots',
     )
+    parser.add_argument(
+        '--latest-snapshot',
+        action='store_true',
+        help='只打印该包最新 API 快照版本（没有则打印空行）；发布脚本的基线守卫用',
+    )
     args = parser.parse_args()
+
+    if args.latest_snapshot:
+        print(latest_snapshot_version(args.package) or '')
+        return 0
 
     package_dir = ROOT / 'packages' / args.package
     if args.snapshot_from:

@@ -213,6 +213,21 @@ for pkg in $PACKAGES; do
   fi
 done
 
+# 单包模式也给出快照基线结论：完整 --strict 的根包检查不覆盖 --package，
+# 而「快照比本地新」是版本回退 / 基线异常，不能只靠 publish 脚本兜底。
+if [ -n "$SELECTED" ]; then
+  section 'API 快照基线（--package）'
+  selected_version="$(pubspec_version "packages/$SELECTED/pubspec.yaml")"
+  baseline_out="$(python3 scripts/_release_baseline.py \
+    --package "$SELECTED" --version "$selected_version" --mode check 2>&1)"
+  baseline_rc=$?
+  case "$baseline_rc" in
+    0) ok "$baseline_out" ;;
+    10 | 11) warn "$baseline_out" ;;
+    *) fail "$baseline_out" ;;
+  esac
+fi
+
 section '根包'
 root_version="$(pubspec_version pubspec.yaml)"
 if [ -n "$SELECTED" ]; then

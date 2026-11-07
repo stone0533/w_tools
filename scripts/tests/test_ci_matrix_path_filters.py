@@ -281,6 +281,48 @@ class SemanticWiringTest(unittest.TestCase):
             self.assertTrue(errors)
             self.assertIn('release_status.py --online --check', errors[0])
 
+    def _release_errors(self, mutate) -> list[str]:
+        data = yaml.safe_load(
+            (ROOT / '.github/workflows/release-status.yml').read_text()
+        )
+        mutate(data)
+        with tempfile.TemporaryDirectory() as temp:
+            path = pathlib.Path(temp) / 'release-status.yml'
+            path.write_text(yaml.safe_dump(data, sort_keys=False))
+            return release_status_workflow_errors(path)
+
+    def test_release_status_schedule_cannot_be_removed(self):
+        errors = self._release_errors(lambda w: w[True].pop('schedule'))
+        self.assertTrue(any('on.schedule' in error for error in errors))
+
+    def test_release_status_cron_cannot_be_changed(self):
+        errors = self._release_errors(
+            lambda w: w[True]['schedule'][0].update({'cron': '0 2 * * 1'})
+        )
+        self.assertTrue(any("0 1 * * 1" in error for error in errors))
+
+    def test_release_status_job_cannot_be_disabled(self):
+        errors = self._release_errors(lambda w: w['jobs']['status'].update({'if': False}))
+        self.assertTrue(any('status job' in error and 'if' in error for error in errors))
+
+    def test_release_status_step_cannot_be_disabled(self):
+        def mutate(w):
+            for step in w['jobs']['status']['steps']:
+                if 'release_status.py --online --check' in str(step.get('run') or ''):
+                    step['if'] = False
+
+        errors = self._release_errors(mutate)
+        self.assertTrue(any('周检步骤' in error and 'if' in error for error in errors))
+
+    def test_release_status_step_cannot_ignore_failure(self):
+        def mutate(w):
+            for step in w['jobs']['status']['steps']:
+                if 'release_status.py --online --check' in str(step.get('run') or ''):
+                    step['continue-on-error'] = True
+
+        errors = self._release_errors(mutate)
+        self.assertTrue(any('continue-on-error' in error for error in errors))
+
 
 if __name__ == '__main__':
     unittest.main()

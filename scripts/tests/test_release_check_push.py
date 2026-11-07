@@ -16,6 +16,11 @@ class ReleaseCheckPushTest(unittest.TestCase):
         self.assertIn('--require-tracked', release)
         self.assertIn('--require-local', release)
 
+    def test_package_mode_reports_snapshot_baseline(self):
+        release = (ROOT / 'scripts/release_check.sh').read_text()
+        self.assertIn('_release_baseline.py', release)
+        self.assertIn('--mode check', release)
+
 
 if __name__ == '__main__':
     unittest.main()
