@@ -32,7 +32,7 @@ void _releaseController(WFormController controller, Object host) {
 /// ```dart
 /// WForm(
 ///   controller: form,
-///   borderConfig: WFormBorderConfig.standard(),
+///   borderStyle: WFormBorderStyle.standard(),
 ///   child: ListView(...),
 /// )
 /// ```
@@ -41,15 +41,15 @@ void _releaseController(WFormController controller, Object host) {
 /// [WFormIcons.defaults]。
 ///
 /// 校验设置：显式传 [validatorSettings] 时完全以它为准；未传时注入
-/// `WFormValidatorSettings()..showBorderError = true`，保证 `validate()` 失败时
-/// 至少有边框错误可看。没有边框样式（例如显式 `const WFormBorderConfig()`）时
+/// `const WFormValidatorSettings(showBorderError: true)`，保证 `validate()` 失败时
+/// 至少有边框错误可看。没有边框样式（例如显式 `const WFormBorderStyle()`）时
 /// 不会渲染文案，效果等同“没有错误展示”。
 class WForm extends StatefulWidget {
   const WForm({
     super.key,
     required this.controller,
     required this.child,
-    this.borderConfig,
+    this.borderStyle,
     this.fieldStyle,
     this.validatorSettings,
     this.readOnly = false,
@@ -60,7 +60,7 @@ class WForm extends StatefulWidget {
 
   final WFormController controller;
   final Widget child;
-  final WFormBorderConfig? borderConfig;
+  final WFormBorderStyle? borderStyle;
   final WFormFieldStyle? fieldStyle;
   final WFormValidatorSettings? validatorSettings;
   final bool readOnly;
@@ -87,7 +87,7 @@ class _WFormState extends State<WForm> {
   bool _recoveryScheduled = false;
 
   /// 主题派生的默认边框配置（按 ThemeData 实例缓存，避免每帧重建）
-  WFormBorderConfig? _defaultBorderConfig;
+  WFormBorderStyle? _defaultBorderConfig;
   ThemeData? _defaultBorderTheme;
 
   @override
@@ -114,22 +114,22 @@ class _WFormState extends State<WForm> {
   void _syncSettings() {
     // 现在默认边框一定存在（显式 / 祖先主题 / fromTheme），
     // 未显式配置校验设置时默认把错误显示在边框上。
-    _settings = widget.validatorSettings ?? (WFormValidatorSettings()..showBorderError = true);
+    _settings = widget.validatorSettings ?? const WFormValidatorSettings(showBorderError: true);
     widget.controller.validatorSettings = _settings;
   }
 
-  /// 边框配置解析：显式参数 > 祖先 [WFormBorderConfigScope] > 主题派生默认值。
-  WFormBorderConfig? _resolveBorderConfig(BuildContext context) {
-    final explicit = widget.borderConfig;
+  /// 边框配置解析：显式参数 > 祖先 [WFormBorderStyleScope] > 主题派生默认值。
+  WFormBorderStyle? _resolveBorderStyle(BuildContext context) {
+    final explicit = widget.borderStyle;
     if (explicit != null) return explicit;
 
-    final inherited = WFormBorderConfigScope.maybeOf(context);
+    final inherited = WFormBorderStyleScope.maybeOf(context);
     if (inherited != null) return inherited;
 
     final theme = Theme.of(context);
     if (!identical(_defaultBorderTheme, theme) || _defaultBorderConfig == null) {
       _defaultBorderTheme = theme;
-      _defaultBorderConfig = WFormBorderConfig.fromTheme(theme);
+      _defaultBorderConfig = WFormBorderStyle.fromTheme(theme);
     }
     return _defaultBorderConfig;
   }
@@ -147,7 +147,7 @@ class _WFormState extends State<WForm> {
     if (_ownsController &&
         (oldWidget.controller != widget.controller ||
             oldWidget.validatorSettings != widget.validatorSettings ||
-            oldWidget.borderConfig != widget.borderConfig)) {
+            oldWidget.borderStyle != widget.borderStyle)) {
       _syncSettings();
     }
   }
@@ -160,6 +160,7 @@ class _WFormState extends State<WForm> {
       _recoveryScheduled = false;
       if (!mounted || _ownsController) return;
       if (_claimController(widget.controller, this)) {
+        _syncSettings();
         setState(() => _ownsController = true);
       }
     });
@@ -178,8 +179,13 @@ class _WFormState extends State<WForm> {
   Widget build(BuildContext context) {
     if (!_ownsController) {
       // owner 卸载后允许自动恢复；claim 是幂等的，不会抢走别人的登记。
-      _ownsController = _claimController(widget.controller, this);
-      if (!_ownsController) _scheduleRecovery();
+      if (_claimController(widget.controller, this)) {
+        _ownsController = true;
+        // 恢复挂载时也必须重新注入默认校验设置：前一个 WForm 的 dispose 会把它清空。
+        _syncSettings();
+      } else {
+        _scheduleRecovery();
+      }
     }
     if (!_ownsController) {
       // 不抛异常：抛在 build 里会连带 ErrorWidget 撑破布局，这里直接给出可读提示。
@@ -187,10 +193,10 @@ class _WFormState extends State<WForm> {
     }
 
     // 未显式传的图标继承外层 WFormTheme，实现「App 统一图标」。
-    final inheritedTheme = WFormTheme.maybeOf(context);
+    final inheritedTheme = WFormThemeData.of(context);
     return WFormTheme(
       icons: widget.icons ?? inheritedTheme?.icons,
-      borderConfig: _resolveBorderConfig(context),
+      borderStyle: _resolveBorderStyle(context),
       child: WFormFieldStyleScope(
         style: widget.fieldStyle,
         child: WFormScope(
@@ -211,9 +217,13 @@ class _WFormState extends State<WForm> {
 class _WFormDuplicateControllerNotice extends StatelessWidget {
   const _WFormDuplicateControllerNotice();
 
+  /// 稳定 key：测试按 key 断言，改文案不会让用例变红
+  static const ValueKey<String> widgetKey = ValueKey<String>('w-form-duplicate-controller');
+
   @override
   Widget build(BuildContext context) {
     return const Center(
+      key: widgetKey,
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Text(

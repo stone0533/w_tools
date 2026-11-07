@@ -91,7 +91,7 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
-    expect(find.textContaining('WFormController 重复挂载'), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('w-form-duplicate-controller')), findsOneWidget);
     // 第一个 WForm 不受影响，仍正常渲染。
     expect(find.text('A'), findsWidgets);
   });
@@ -220,13 +220,43 @@ void main() {
     );
 
     await tester.pumpWidget(build(showFirst: true));
-    expect(find.textContaining('WFormController 重复挂载'), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('w-form-duplicate-controller')), findsOneWidget);
 
     await tester.pumpWidget(build(showFirst: false));
     await tester.pump();
 
-    expect(find.textContaining('WFormController 重复挂载'), findsNothing);
+    expect(find.byKey(const ValueKey<String>('w-form-duplicate-controller')), findsNothing);
     expect(find.text('B'), findsWidgets);
+  });
+
+  testWidgets('恢复挂载后重新注入默认校验设置', (tester) async {
+    final form = WFormController();
+    Widget build({required bool showFirst}) => MaterialApp(
+      home: Scaffold(
+        body: Column(
+          children: [
+            if (showFirst)
+              WForm(
+                key: const ValueKey('first'),
+                controller: form,
+                child: const WFormTextField(name: 'a', label: 'A'),
+              ),
+            WForm(
+              key: const ValueKey('second'),
+              controller: form,
+              child: const WFormTextField(name: 'b', label: 'B'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build(showFirst: true));
+    await tester.pumpWidget(build(showFirst: false));
+    await tester.pump();
+
+    // 恢复后必须重新注入 WForm 的默认校验设置，否则 validate() 不再显示边框错误。
+    expect(form.validatorSettings?.showBorderError, isTrue);
   });
 
   testWidgets('换绑 controller 会清掉旧 controller 的默认校验设置', (tester) async {
@@ -255,7 +285,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            borderConfig: WFormBorderConfig.standard(),
+            borderStyle: WFormBorderStyle.standard(),
             child: WFormButton(
               name: 'coupon',
               label: '选择优惠券',

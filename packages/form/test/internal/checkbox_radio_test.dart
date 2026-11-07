@@ -5,14 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 import '_helpers/form_test_scaffold.dart';
-import 'internal/_helpers/config_exports.dart';
+import 'package:w_tools_form/src/components/fields/checkbox.dart';
+import 'package:w_tools_form/src/components/fields/radio_group.dart';
 
 void main() {
   group('WFormCheckboxCore Widget', () {
     testWidgets('默认未选中时显示 checkboxUnselectedIcon', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'agree',
           title: const Text('我同意'),
           initialValue: false,
@@ -26,7 +27,7 @@ void main() {
     testWidgets('initialValue=true 显示选中图标', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'agree',
           title: const Text('同意'),
           initialValue: true,
@@ -39,7 +40,7 @@ void main() {
       bool? lastValue;
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'toggle',
           title: const Text('点我'),
           initialValue: false,
@@ -66,7 +67,7 @@ void main() {
     testWidgets('点击 title 区域也能切换', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'title_tap',
           title: const Text('标题可点击'),
           initialValue: false,
@@ -83,7 +84,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'null_value',
           title: const Text('空值'),
           initialValue: false,
@@ -104,7 +105,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'entered',
           title: const Text('记录输入'),
           initialValue: false,
@@ -121,7 +122,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'reset_checkbox',
           title: const Text('重置复选框'),
           initialValue: false,
@@ -142,7 +143,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'validated_checkbox',
           title: const Text('同意协议'),
           validator: (value) => value == true ? null : '请勾选',
@@ -156,7 +157,7 @@ void main() {
     testWidgets('build(enabled: false) 覆盖配置', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'override_disabled',
           title: const Text('覆盖禁用'),
           initialValue: false,
@@ -169,10 +170,25 @@ void main() {
       expect(find.byIcon(Icons.check_box_outline_blank), findsOneWidget);
     });
 
+    testWidgets('禁用态统一用 0.5 透明度呈现', (tester) async {
+      await pumpForm(
+        tester,
+        child: checkboxCore(
+          name: 'dimmed',
+          title: const Text('禁用'),
+          enabled: false,
+        ),
+      );
+
+      expect(find.byType(Opacity), findsOneWidget);
+      expect(tester.widget<Opacity>(find.byType(Opacity)).opacity, 0.5);
+    });
+
     testWidgets('enabled=false 时点击不切换', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig(enabled: false).build(
+        child: checkboxCore(
+          enabled: false,
           name: 'disabled',
           title: const Text('禁用'),
           initialValue: false,
@@ -186,17 +202,14 @@ void main() {
     });
 
     testWidgets('自定义 selectedIcon / unselectedIcon', (tester) async {
-      final config = WFormCheckboxConfig(
-        selectedIcon: const Icon(Icons.star),
-        unselectedIcon: const Icon(Icons.star_border),
-      );
-
       await pumpForm(
         tester,
-        child: config.build(
+        child: checkboxCore(
           name: 'custom',
           title: const Text('自定义图标'),
           initialValue: false,
+          selectedIcon: const Icon(Icons.star),
+          unselectedIcon: const Icon(Icons.star_border),
         ),
       );
       expect(find.byIcon(Icons.star_border), findsOneWidget);
@@ -206,17 +219,10 @@ void main() {
       expect(find.byIcon(Icons.star), findsOneWidget);
     });
 
-    testWidgets('build 返回 WFormCheckboxCore', (tester) async {
-      final config = WFormCheckboxConfig();
-      final cb = config.build(name: 'x', title: const Text('t')) as WFormCheckboxCore;
-      expect(cb, isA<WFormCheckboxCore>());
-      expect(cb.name, 'x');
-    });
-
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           bordered: true,
           name: 'cb_border',
           title: const Text('边框复选框'),
@@ -231,7 +237,7 @@ void main() {
       final handle = tester.ensureSemantics();
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'cb_semantic',
           title: const Text('语义'),
           initialValue: true,
@@ -254,7 +260,7 @@ void main() {
     testWidgets('渲染所有选项', (tester) async {
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           name: 'fruit',
           items: const {'a': '苹果', 'b': '香蕉', 'c': '樱桃'},
         ),
@@ -267,7 +273,7 @@ void main() {
     testWidgets('initialValue 指定选中项', (tester) async {
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           name: 'color',
           items: const {'r': '红', 'g': '绿', 'b': '蓝'},
           initialValue: 'g',
@@ -277,13 +283,27 @@ void main() {
       expect(find.byIcon(Icons.radio_button_checked), findsOneWidget);
     });
 
+    testWidgets('禁用态统一用 0.5 透明度呈现', (tester) async {
+      await pumpForm(
+        tester,
+        child: radioCore<String>(
+          name: 'dimmed_radio',
+          items: const {'a': 'A'},
+          enabled: false,
+        ),
+      );
+
+      expect(find.byType(Opacity), findsOneWidget);
+      expect(tester.widget<Opacity>(find.byType(Opacity)).opacity, 0.5);
+    });
+
     testWidgets('点击选项切换选中', (tester) async {
       String? lastValue;
       final formData = WFormController();
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           name: 'pick',
           items: const {'x': 'X', 'y': 'Y'},
           initialValue: 'x',
@@ -303,7 +323,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           name: 'reset_radio',
           items: const {'x': 'X', 'y': 'Y'},
         ),
@@ -323,7 +343,7 @@ void main() {
       await pumpForm(
         tester,
         formData: formData,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           name: 'validated_radio',
           items: const {'x': 'X', 'y': 'Y'},
           validator: (value) => value == null ? '请选择' : null,
@@ -338,7 +358,7 @@ void main() {
       String? lastValue;
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           name: 'override_disabled',
           items: const {'a': 'A', 'b': 'B'},
           initialValue: 'a',
@@ -356,7 +376,8 @@ void main() {
       String? lastValue;
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig(enabled: false).build<String>(
+        child: radioCore<String>(
+          enabled: false,
           name: 'disabled_pick',
           items: const {'a': 'A', 'b': 'B'},
           initialValue: 'a',
@@ -374,7 +395,7 @@ void main() {
 
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           name: 'semantic',
           items: const {'x': 'X', 'y': 'Y'},
           initialValue: 'x',
@@ -393,22 +414,10 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets('build 返回 WFormRadioGroupCore', (tester) async {
-      final config = WFormRadioGroupConfig();
-      final radio =
-          config.build<String>(
-                name: 'x',
-                items: const {'k': 'v'},
-              )
-              as WFormRadioGroupCore<String>;
-      expect(radio, isA<WFormRadioGroupCore<String>>());
-      expect(radio.name, 'x');
-    });
-
     testWidgets('build(bordered: true) → WFormFieldShell 包装', (tester) async {
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           bordered: true,
           name: 'radio_border',
           items: const {'a': 'A'},

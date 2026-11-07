@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 import '../form_icons.dart';
@@ -13,12 +12,48 @@ import '../form_theme.dart';
 /// 单个复选框字段组件
 ///
 /// 点击图标或标题切换选中状态；选中 / 未选中 / 禁用图标、间距与图标偏移可通过
-/// [WFormCheckboxConfig] 配置，未配置时取 [WFormIcons.defaults] 的默认图标。
+/// `WFormCheckbox` 的同名参数 配置，未配置时取 [WFormIcons.defaults] 的默认图标。
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
 class WFormCheckboxCore extends FormBuilderField<bool> {
-  /// 复选框配置
-  final WFormCheckboxConfig config;
+  /// 未选中图标（null 时取 WFormTheme / WFormIcons 默认）
+  final Widget? unselectedIcon;
+
+  /// 选中图标
+  final Widget? selectedIcon;
+
+  /// 禁用图标（null 时沿用选中/未选中图标）
+  final Widget? disabledIcon;
+
+  /// 图标与标题间距
+  final double? iconSpacing;
+
+  /// 图标纵向偏移
+  final double? iconYOffset;
+
+  /// 标题文字样式
+  final TextStyle? style;
+
+  /// 外框高度
+  final double? height;
+
+  /// 外框宽度
+  final double? width;
+
+  /// 外框装饰（bordered 时由边框接管）
+  final Decoration? containerDecoration;
+
+  /// 外框外边距
+  final EdgeInsetsGeometry? containerMargin;
+
+  /// 外框内边距
+  final EdgeInsetsGeometry? containerPadding;
+
+  /// 左侧插槽
+  final Widget? leading;
+
+  /// 右侧操作插槽
+  final List<Widget>? actions;
 
   /// 标题 widget（会占满剩余宽度，适合整行布局）
   final Widget? title;
@@ -26,18 +61,30 @@ class WFormCheckboxCore extends FormBuilderField<bool> {
   /// 创建复选框字段
   WFormCheckboxCore({
     super.key,
-    required this.config,
     required super.name,
     required this.title,
     bool super.initialValue = false,
-    bool? enabled,
+    super.enabled = true,
     super.onChanged,
     super.validator,
+    this.unselectedIcon,
+    this.selectedIcon,
+    this.disabledIcon,
+    this.iconSpacing,
+    this.iconYOffset,
+    this.style,
+    this.height,
+    this.width,
+    this.containerDecoration,
+    this.containerMargin,
+    this.containerPadding,
+    this.leading,
+    this.actions,
+    super.focusNode,
   }) : super(
-         enabled: enabled ?? config.enabled,
          builder: (FormFieldState<bool?> field) {
            final state = field as FormBuilderFieldState<WFormCheckboxCore, bool>;
-           final theme = WFormTheme.maybeOf(field.context);
+           final theme = WFormThemeData.of(field.context);
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
            final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(field.context);
@@ -51,15 +98,15 @@ class WFormCheckboxCore extends FormBuilderField<bool> {
            }
 
            Widget buildIcon() {
-             if (!isEnabled && config.disabledIcon != null) {
-               return config.disabledIcon!;
+             if (!isEnabled && disabledIcon != null) {
+               return disabledIcon;
              }
              if (state.value == true) {
-               return config.selectedIcon ??
+               return selectedIcon ??
                    theme?.effectiveCheckboxSelectedIcon ??
                    WFormIcons.defaults.checkboxSelected;
              }
-             return config.unselectedIcon ??
+             return unselectedIcon ??
                  theme?.effectiveCheckboxUnselectedIcon ??
                  WFormIcons.defaults.checkboxUnselected;
            }
@@ -80,44 +127,47 @@ class WFormCheckboxCore extends FormBuilderField<bool> {
                enabled: isEnabled,
                onTap: isEnabled ? toggle : null,
                child: WFormFieldFrame(
-                 height: config.height,
-                 width: config.width,
-                 decoration: config.containerDecoration,
-                 margin: config.containerMargin,
-                 padding: config.containerPadding,
-                 leading: config.leading,
-                 actions: config.actions,
-                 child: Row(
-                   mainAxisSize: MainAxisSize.min,
-                   children: [
-                     MouseRegion(
-                       cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-                       child: GestureDetector(
-                         behavior: HitTestBehavior.opaque,
-                         excludeFromSemantics: true,
-                         onTap: toggle,
-                         child: Transform(
-                           transform: Matrix4.translationValues(0, config.iconYOffset ?? 0, 0),
-                           child: buildIcon(),
-                         ),
-                       ),
-                     ),
-                     SizedBox(width: config.iconSpacing ?? 0),
-                     Expanded(
-                       child: MouseRegion(
+                 height: height,
+                 width: width,
+                 decoration: containerDecoration,
+                 margin: containerMargin,
+                 padding: containerPadding,
+                 leading: leading,
+                 actions: actions,
+                 child: Opacity(
+                   opacity: isEnabled ? 1 : 0.5,
+                   child: Row(
+                     mainAxisSize: MainAxisSize.min,
+                     children: [
+                       MouseRegion(
                          cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
                          child: GestureDetector(
                            behavior: HitTestBehavior.opaque,
                            excludeFromSemantics: true,
                            onTap: toggle,
-                           child: DefaultTextStyle.merge(
-                             style: config.style,
-                             child: title ?? const SizedBox.shrink(),
+                           child: Transform(
+                             transform: Matrix4.translationValues(0, iconYOffset ?? 0, 0),
+                             child: buildIcon(),
                            ),
                          ),
                        ),
-                     ),
-                   ],
+                       SizedBox(width: iconSpacing ?? 0),
+                       Expanded(
+                         child: MouseRegion(
+                           cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                           child: GestureDetector(
+                             behavior: HitTestBehavior.opaque,
+                             excludeFromSemantics: true,
+                             onTap: toggle,
+                             child: DefaultTextStyle.merge(
+                               style: style,
+                               child: title ?? const SizedBox.shrink(),
+                             ),
+                           ),
+                         ),
+                       ),
+                     ],
+                   ),
                  ),
                ),
              ),
@@ -151,123 +201,5 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckboxCore, bool>
   void dispose() {
     _formData?.removeFormEntered(widget.name);
     super.dispose();
-  }
-}
-
-/// 复选框配置类，定义复选框的样式和行为。
-///
-/// 可变的字段配置；用命名构造 / copyWith。
-class WFormCheckboxConfig extends WFormFieldBaseConfig {
-  TextStyle? style;
-  Widget? unselectedIcon;
-  Widget? selectedIcon;
-  Widget? disabledIcon;
-  double? iconSpacing;
-  double? iconYOffset;
-
-  WFormCheckboxConfig({
-    this.style,
-    this.unselectedIcon,
-    this.selectedIcon,
-    this.disabledIcon,
-    this.iconSpacing,
-    this.iconYOffset,
-    bool enabled = true,
-    double? height,
-    double? width,
-    Widget? leading,
-    List<Widget>? actions,
-    Decoration? containerDecoration,
-    EdgeInsetsGeometry? containerMargin,
-    EdgeInsetsGeometry? containerPadding,
-  }) {
-    this.enabled = enabled;
-    this.height = height;
-    this.width = width;
-    this.leading = leading;
-    this.actions = actions;
-    this.containerDecoration = containerDecoration;
-    this.containerMargin = containerMargin;
-    this.containerPadding = containerPadding;
-  }
-
-  /// 框架内部使用（直接字段 / Core 组装），4.0 物理移出 Config。
-  @internal
-  Widget build({
-    required String name,
-    required Widget title,
-    bool initialValue = false,
-    bool? enabled,
-    ValueChanged<bool?>? onChanged,
-    FormFieldValidator<bool>? validator,
-    bool readOnly = false,
-    bool bordered = false,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    bool enableFocusBorder = true,
-  }) {
-    final baseEnabled = enabled ?? this.enabled;
-    final config = bordered ? (copy()..containerDecoration = null) : this;
-    final field = WFormCheckboxCore(
-      config: config,
-      name: name,
-      title: title,
-      initialValue: initialValue,
-      enabled: bordered ? baseEnabled && !readOnly : enabled,
-      onChanged: onChanged,
-      validator: validator,
-    );
-    if (!bordered) {
-      // message / hintTextList 只由边框渲染；无边框时静默丢弃是陷阱，直接报出来
-      assert(
-        hintTextList == null || hintTextList.isEmpty,
-        'bordered: false 时不会渲染 message / hintTextList；需要提示请保留 bordered，或自行展示。',
-      );
-      return readOnly ? WFormReadOnlyScope(readOnly: true, child: field) : field;
-    }
-    return WFormFieldFrame.border(
-      name: name,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      readOnly: readOnly || !baseEnabled,
-      child: field,
-    );
-  }
-
-  WFormCheckboxConfig copy() => copyWith();
-
-  WFormCheckboxConfig copyWith({
-    TextStyle? style,
-    Widget? unselectedIcon,
-    Widget? selectedIcon,
-    Widget? disabledIcon,
-    double? iconSpacing,
-    double? iconYOffset,
-    bool? enabled,
-    double? height,
-    double? width,
-    Widget? leading,
-    List<Widget>? actions,
-    Decoration? containerDecoration,
-    EdgeInsetsGeometry? containerMargin,
-    EdgeInsetsGeometry? containerPadding,
-  }) {
-    return WFormCheckboxConfig(
-      style: style ?? this.style,
-      unselectedIcon: unselectedIcon ?? this.unselectedIcon,
-      selectedIcon: selectedIcon ?? this.selectedIcon,
-      disabledIcon: disabledIcon ?? this.disabledIcon,
-      iconSpacing: iconSpacing ?? this.iconSpacing,
-      iconYOffset: iconYOffset ?? this.iconYOffset,
-      enabled: enabled ?? this.enabled,
-      height: height ?? this.height,
-      width: width ?? this.width,
-      leading: leading ?? this.leading,
-      actions: actions ?? this.actions,
-      containerDecoration: containerDecoration ?? this.containerDecoration,
-      containerMargin: containerMargin ?? this.containerMargin,
-      containerPadding: containerPadding ?? this.containerPadding,
-    );
   }
 }

@@ -95,10 +95,11 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
     this.itemCheckedStyle,
     this.itemDisabledStyle,
     this.itemTitlePadding,
+    super.focusNode,
   }) : super(
          builder: (FormFieldState<Set<String>?> field) {
            final state = field as _WFormMultiDropdownState;
-           final theme = WFormTheme.maybeOf(state.context);
+           final theme = WFormThemeData.of(state.context);
 
            // 按已选顺序拼接显示文本
            final selectedValues = state.value ?? const <String>{};

@@ -260,7 +260,7 @@ void main() {
       expect(result, 'ok');
     });
 
-    testWidgets('同一 Navigator 重复 show 只保留一个弹层', (tester) async {
+    testWidgets('同一 Navigator 重复 show 只保留一个弹层（debug 断言）', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -271,9 +271,12 @@ void main() {
                     context: context,
                     builder: (_) => const Text('popup-A'),
                   );
-                  WFormPopup.show(
-                    context: context,
-                    builder: (_) => const Text('popup-B'),
+                  expect(
+                    () => WFormPopup.show(
+                      context: context,
+                      builder: (_) => const Text('popup-B'),
+                    ),
+                    throwsAssertionError,
                   );
                 },
                 child: const Text('open'),
@@ -397,5 +400,29 @@ void main() {
       final anchorRect = tester.getRect(find.byType(TextButton));
       expect(popupRect.bottom, lessThanOrEqualTo(anchorRect.top + 0.5));
     });
+  });
+
+  testWidgets('同一 Navigator 二次 show 在 debug 下断言（不再静默）', (tester) async {
+    late BuildContext anchor;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) {
+              anchor = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ),
+    );
+
+    WFormPopup.show<void>(context: anchor, builder: (_) => const SizedBox.shrink());
+    expect(
+      () => WFormPopup.show<void>(context: anchor, builder: (_) => const SizedBox.shrink()),
+      throwsAssertionError,
+    );
+    WFormPopup.hide(anchor);
+    await tester.pumpAndSettle();
   });
 }

@@ -85,9 +85,9 @@ void main() {
   });
 
   // ========= form Config =========
-  group('WFormBorderConfig', () {
+  group('WFormBorderStyle', () {
     test('defaultDecoration / errorDecoration 可直接构造，并支持 copyWith', () {
-      const c = WFormBorderConfig(
+      const c = WFormBorderStyle(
         defaultDecoration: WFormBorderDecoration(color: Colors.grey),
         errorDecoration: WFormBorderDecoration(color: Colors.red),
       );

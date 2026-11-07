@@ -9,18 +9,14 @@ class _WFormControllerInherited extends InheritedWidget {
   /// 表单数据对象
   final WFormController formData;
 
-  /// 表单边框配置
-  final WFormBorderConfig? formBorderConfig;
-
   const _WFormControllerInherited({
     required this.formData,
-    required this.formBorderConfig,
     required super.child,
   });
 
   @override
   bool updateShouldNotify(_WFormControllerInherited oldWidget) {
-    return formData != oldWidget.formData || formBorderConfig != oldWidget.formBorderConfig;
+    return formData != oldWidget.formData;
   }
 }
 
@@ -40,9 +36,9 @@ class WFormScope extends StatelessWidget {
 
   /// 表单边框配置（作用于本 builder 子树内的所有表单边框）
   ///
-  /// 按引用捕获：运行期修改请替换实例（`formBorderConfig = newCfg`，
+  /// 按引用捕获：运行期修改请替换实例（`formBorderStyle = newCfg`，
   /// 通常用 `copyWith` 生成），原地修改同一实例不会触发子树重建。
-  final WFormBorderConfig? formBorderConfig;
+  final WFormBorderStyle? formBorderStyle;
 
   /// 创建表单构建器
   const WFormScope({
@@ -50,7 +46,7 @@ class WFormScope extends StatelessWidget {
     required this.formData,
     required this.child,
     this.autovalidateMode,
-    this.formBorderConfig,
+    this.formBorderStyle,
     this.onChanged,
   });
 
@@ -73,20 +69,16 @@ class WFormScope extends StatelessWidget {
   ///
   /// 未配置时返回 null，此时 [WFormBorder] 不渲染任何装饰，
   /// 外观完全由显式配置决定。
-  static WFormBorderConfig? borderConfigOf(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_WFormControllerInherited>()
-        ?.formBorderConfig;
-  }
+  static WFormBorderStyle? borderStyleOf(BuildContext context) =>
+      WFormBorderStyleScope.maybeOf(context);
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBorderConfig = formBorderConfig ?? WFormBorderConfigScope.maybeOf(context);
-    return WFormBorderConfigScope(
-      config: effectiveBorderConfig,
+    final effectiveBorderConfig = formBorderStyle ?? WFormBorderStyleScope.maybeOf(context);
+    return WFormBorderStyleScope(
+      style: effectiveBorderConfig,
       child: _WFormControllerInherited(
         formData: formData,
-        formBorderConfig: effectiveBorderConfig,
         child: FormBuilder(
           key: formData.formKey,
           autovalidateMode: autovalidateMode,

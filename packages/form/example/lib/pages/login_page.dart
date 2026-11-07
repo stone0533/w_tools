@@ -24,12 +24,12 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
       appBar: AppBar(title: const Text('登录表单')),
       body: WForm(
         controller: _form,
-        borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
         icons: const WFormIcons(clear: Icon(Icons.close_rounded, size: 18)),
-        validatorSettings: WFormValidatorSettings()
-          ..showBorderError = true
-          ..continueOnError = true,
+        validatorSettings: const WFormValidatorSettings(
+          showBorderError: true,
+          continueOnError: true,
+        ),
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [

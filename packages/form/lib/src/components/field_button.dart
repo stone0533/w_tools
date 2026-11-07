@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/read_only_scope.dart';
-import 'field_base_config.dart';
 import 'field_frame.dart';
 import 'form_scope.dart';
 import 'form_controller.dart';
@@ -16,8 +15,32 @@ import 'form_controller.dart';
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
 class WFormFieldButtonCore<T> extends StatelessWidget {
-  /// 按钮配置
-  final WFormFieldButtonConfig config;
+  /// 未选择时展示的 widget
+  final Widget? hintWidget;
+
+  /// 外框高度
+  final double? height;
+
+  /// 外框宽度
+  final double? width;
+
+  /// 内容 Y 轴偏移
+  final double? yOffset;
+
+  /// 左侧插槽
+  final Widget? leading;
+
+  /// 右侧操作插槽
+  final List<Widget>? actions;
+
+  /// 外框装饰（bordered 时由边框接管）
+  final Decoration? containerDecoration;
+
+  /// 外框外边距
+  final EdgeInsetsGeometry? containerMargin;
+
+  /// 外框内边距
+  final EdgeInsetsGeometry? containerPadding;
 
   /// 字段名称
   final String name;
@@ -32,7 +55,8 @@ class WFormFieldButtonCore<T> extends StatelessWidget {
   final T? initialValue;
 
   /// 是否启用（null 时使用 [WFormFieldButtonConfig] 中的值）
-  final bool? enabled;
+  /// 是否启用（只读作用域仍会覆盖）
+  final bool enabled;
 
   /// 校验器
   final FormFieldValidator<T>? validator;
@@ -43,182 +67,45 @@ class WFormFieldButtonCore<T> extends StatelessWidget {
   /// 创建表单按钮组件
   const WFormFieldButtonCore({
     super.key,
-    required this.config,
     required this.name,
     required this.onTap,
     this.selectedWidgetBuilder,
     this.initialValue,
-    this.enabled,
+    this.enabled = true,
     this.validator,
     this.focusNode,
+    this.hintWidget,
+    this.height,
+    this.width,
+    this.yOffset,
+    this.leading,
+    this.actions,
+    this.containerDecoration,
+    this.containerMargin,
+    this.containerPadding,
   });
 
   @override
   Widget build(BuildContext context) {
     return WFormFieldFrame(
-      height: config.height,
-      width: config.width,
-      decoration: config.containerDecoration,
-      margin: config.containerMargin,
-      padding: config.containerPadding,
-      yOffset: config.yOffset,
-      leading: config.leading,
-      actions: config.actions,
+      height: height,
+      width: width,
+      decoration: containerDecoration,
+      margin: containerMargin,
+      padding: containerPadding,
+      yOffset: yOffset,
+      leading: leading,
+      actions: actions,
       child: _WFormScopeButton<T>(
         name: name,
         initialValue: initialValue,
-        enabled: (enabled ?? config.enabled) && !WFormReadOnlyScope.readOnlyOf(context),
+        enabled: enabled && !WFormReadOnlyScope.readOnlyOf(context),
         onTap: onTap,
-        hintWidget: config.hintWidget,
+        hintWidget: hintWidget,
         selectedWidgetBuilder: selectedWidgetBuilder,
         validator: validator,
         focusNode: focusNode,
       ),
-    );
-  }
-}
-
-/// 表单按钮配置类，定义按钮的样式和行为。
-///
-/// 可变的字段配置；用命名构造 / copyWith。
-class WFormFieldButtonConfig extends WFormFieldBaseConfig {
-  Widget? hintWidget;
-
-  WFormFieldButtonConfig({
-    this.hintWidget,
-    bool enabled = true,
-    double? height,
-    double? width,
-    double? yOffset,
-    Widget? leading,
-    List<Widget>? actions,
-    Decoration? containerDecoration,
-    EdgeInsetsGeometry? containerMargin,
-    EdgeInsetsGeometry? containerPadding,
-  }) {
-    this.enabled = enabled;
-    this.height = height;
-    this.width = width;
-    this.yOffset = yOffset;
-    this.leading = leading;
-    this.actions = actions;
-    this.containerDecoration = containerDecoration;
-    this.containerMargin = containerMargin;
-    this.containerPadding = containerPadding;
-  }
-
-  /// 框架内部使用（`WFormButton` / 直接字符串值）。
-  @internal
-  Widget build({
-    required String name,
-    required void Function(String? value, ValueChanged<String> didChange) onTap,
-    Widget Function(String value)? selectedWidgetBuilder,
-    String? initialValue,
-    bool? enabled,
-    FormFieldValidator<String>? validator,
-    FocusNode? focusNode,
-    bool readOnly = false,
-    bool bordered = false,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    bool enableFocusBorder = true,
-  }) => buildTyped<String>(
-    name: name,
-    onTap: onTap,
-    selectedWidgetBuilder: selectedWidgetBuilder,
-    initialValue: initialValue,
-    enabled: enabled,
-    validator: validator,
-    focusNode: focusNode,
-    readOnly: readOnly,
-    bordered: bordered,
-    hintTextList: hintTextList,
-    isTransparentBackground: isTransparentBackground,
-    enableFocusBorder: enableFocusBorder,
-  );
-
-  /// 框架内部使用：泛型值路径（供 [WFormFieldButton] 使用）。
-  @internal
-  Widget buildTyped<T>({
-    required String name,
-    required void Function(T? value, ValueChanged<T> didChange) onTap,
-    Widget Function(T value)? selectedWidgetBuilder,
-    T? initialValue,
-    bool? enabled,
-    FormFieldValidator<T>? validator,
-    FocusNode? focusNode,
-    bool readOnly = false,
-    bool bordered = false,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    bool enableFocusBorder = true,
-  }) {
-    if (!bordered) {
-      // message / hintTextList 只由边框渲染；无边框时静默丢弃是陷阱，直接报出来
-      assert(
-        hintTextList == null || hintTextList.isEmpty,
-        'bordered: false 时不会渲染 message / hintTextList；需要提示请保留 bordered，或自行展示。',
-      );
-      final field = WFormFieldButtonCore<T>(
-        config: this,
-        name: name,
-        onTap: onTap,
-        selectedWidgetBuilder: selectedWidgetBuilder,
-        initialValue: initialValue,
-        enabled: enabled,
-        validator: validator,
-        focusNode: focusNode,
-      );
-      return readOnly ? WFormReadOnlyScope(readOnly: true, child: field) : field;
-    }
-
-    final baseEnabled = enabled ?? this.enabled;
-    final innerConfig = copy()
-      ..containerDecoration = null
-      ..enabled = baseEnabled && !readOnly;
-
-    return WFormFieldFrame.border(
-      name: name,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      readOnly: readOnly || !baseEnabled,
-      enableFocusBorder: enableFocusBorder,
-      child: innerConfig.buildTyped<T>(
-        name: name,
-        onTap: onTap,
-        selectedWidgetBuilder: selectedWidgetBuilder,
-        initialValue: initialValue,
-        validator: validator,
-        focusNode: focusNode,
-      ),
-    );
-  }
-
-  WFormFieldButtonConfig copy() => copyWith();
-
-  WFormFieldButtonConfig copyWith({
-    Widget? hintWidget,
-    bool? enabled,
-    double? height,
-    double? width,
-    double? yOffset,
-    Widget? leading,
-    List<Widget>? actions,
-    Decoration? containerDecoration,
-    EdgeInsetsGeometry? containerMargin,
-    EdgeInsetsGeometry? containerPadding,
-  }) {
-    return WFormFieldButtonConfig(
-      hintWidget: hintWidget ?? this.hintWidget,
-      enabled: enabled ?? this.enabled,
-      height: height ?? this.height,
-      width: width ?? this.width,
-      yOffset: yOffset ?? this.yOffset,
-      leading: leading ?? this.leading,
-      actions: actions ?? this.actions,
-      containerDecoration: containerDecoration ?? this.containerDecoration,
-      containerMargin: containerMargin ?? this.containerMargin,
-      containerPadding: containerPadding ?? this.containerPadding,
     );
   }
 }

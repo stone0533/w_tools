@@ -5,6 +5,10 @@
 
 
 ### Changed
+- 同步 form 组件目录与 init 模板：`WFormBorderConfig` → `WFormBorderStyle`（新增 `borderStyle:` 用法），
+  新增 `WFormThemeData` 条目，`WFormButton` 标注为 `WFormFieldButton<String>` 别名，
+  `WFormValidatorSettings` 改为不可变写法，`bordered: false` 的 message 改为渲染在字段下方，
+  `phone()` 更新为 `hkPhone()`。
 - 重构 `init` 生成的 `.w_tools/AI_PROMPTS.md`，结构对齐维护者提示词手册：
   「新手先看这里 → 0 固定前缀 → 填空说明 → 一个填好的例子 → 1 场景选择 → A~K 场景
   → 2 输出不对时 → 3 AI 完成后你必须检查 → 4 维护这份文档」。

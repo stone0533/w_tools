@@ -7,8 +7,8 @@
 - 只读预览：`WForm(readOnly: true)`
 - 锚定弹层：`WFormPopup` + `WFormButton`
 - 高级字段：leading / maxLines / 禁用下拉 / 自定义勾选 / 单选样式 / controller 读取
-- 自定义边框：`WFormBorderConfig` 的聚焦 / 错误装饰、hint / error builder、itemValidationCallback
-- 统一边框 / 图标：`WFormBorderConfig` + `WForm` 的 icon 配置
+- 自定义边框：`WFormBorderStyle` 的聚焦 / 错误装饰、hint / error builder、itemValidationCallback
+- 统一边框 / 图标：`WFormBorderStyle` + `WForm` 的 icon 配置
 
 ## 运行
 
@@ -36,7 +36,7 @@ lib/
     profile_page.dart   资料编辑 / 只读场景
     popup_page.dart     WFormPopup 锚定弹层
     advanced_fields_page.dart 字段参数 / controller 读取
-    border_page.dart   自定义 WFormBorderConfig
+    border_page.dart   自定义 WFormBorderStyle
 test/
   example_smoke_test.dart  首页 / 只读 / 弹层冒烟
   example_pages_test.dart  边框回调 / 多行高度 / 泛型按钮 / 多选 / 日期
@@ -49,11 +49,11 @@ test/
 ```dart
 WForm(
   controller: form,
-  borderConfig: exampleBorderConfig,
+  borderStyle: exampleBorderConfig,
   fieldStyle: exampleFieldStyle,
-  validatorSettings: WFormValidatorSettings()
-    ..showBorderError = true
-    ..continueOnError = true,
+  validatorSettings: const WFormValidatorSettings(
+    showBorderError: true,
+    continueOnError: true,
   readOnly: isReadOnly,
   child: ListView(...),
 )
@@ -119,9 +119,9 @@ WFormButton(
 ```dart
 // WForm 上统一设置一次
 WForm(
-  validatorSettings: WFormValidatorSettings()
-    ..showBorderError = true
-    ..continueOnError = true,
+  validatorSettings: const WFormValidatorSettings(
+    showBorderError: true,
+    continueOnError: true,
   ...
 )
 

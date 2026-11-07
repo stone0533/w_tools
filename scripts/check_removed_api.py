@@ -24,7 +24,7 @@ names = [
     r'WImageFileError', r'WImageUnsupportedError', r'WImage\.avatar', r'WImage\.thumbnail',
     r'WImage\.cover', r'WImage\.assetImage', r'WImage\.(?:network|asset|file|base64|memory|provider)', r'WToastConfig', r'WFormDefaults',
     r'WFormBorderConfigBuilder', r'WFormRowBorderExtension', r'withFormBorder',
-    r'WFormBorderConfigScope', r'WFormBorderState', r'WFormPopupRoute',
+    r'WFormBorderConfigScope', r'WFormBorderState', r'\bWFormBorderConfig\b', r'WFormPopupRoute',
     r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'WAsyncBuilder', r'WAsyncConfig',
     r'WAsyncLoading', r'\bWConfig\b', r'\bWRoute\b', r'WRegExpPattern', r'WRegExpPreset',
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',

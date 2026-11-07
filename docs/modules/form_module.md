@@ -29,7 +29,7 @@ Form 模块（`w_tools_form` 子包）基于 `flutter_form_builder`，提供 `WF
 | 复选 / 单选 | `WFormCheckbox` / `WFormRadioGroup<T>` |
 | 表单字段值选择 | `WFormButton` / `WFormFieldButton<T>` |
 | 锚定弹层 | `WFormPopup` |
-| 边框 | `WFormBorderConfig` / `WFormBorderDecoration` |
+| 边框 | `WFormBorderStyle` / `WFormBorderDecoration` |
 | 校验 | `WFormValidator` / `WFormValidatorSettings` |
 
 字段选择与反例以 [`docs/agents/form.md`](../agents/form.md) 为准。
@@ -44,8 +44,11 @@ packages/form/
     ├── form_scope.dart / form_theme.dart # WFormScope / WFormTheme
     ├── form_controller.dart              # WFormController
     ├── direct_fields.dart                # 直接字段 + WFormFieldButton
-    ├── border/                           # WFormBorder / Decoration / Config / FieldShell
-    ├── fields/                           # WFormTextField / Dropdown / …
+    ├── field_assembly.dart               # 直接字段的公共装配（bordered / 只读 / name 校验）
+    ├── field_frame.dart                  # 外框布局（内部）
+    ├── field_lifecycle.dart              # 无状态字段的 formEntered 清理（内部）
+    ├── border/                           # WFormBorder / Style / FieldShell / border_registry
+    ├── fields/                           # WFormTextField / Dropdown / …（每个字段一个文件）
     ├── validation/                       # WFormValidator / CustomValidator
     ├── popup.dart                        # WFormPopup
     └── form_input_formatters.dart        # 输入格式化器
@@ -55,11 +58,14 @@ packages/form/
 
 ```text
 WForm
-  └─ WFormTheme（边框 / 图标）
-      └─ WFormScope（formData + formBorderConfig）
-          └─ FormBuilder（flutter_form_builder）
-              └─ 直接字段
-                  └─ WFormFieldShell（边框 key + 只读作用域）
+  └─ WFormTheme（边框样式 / 图标）
+      └─ WFormFieldStyleScope（页面级字段默认样式）
+          └─ WFormScope（formData + formBorderStyle）
+              └─ FormBuilder（flutter_form_builder）
+                  └─ WFormReadOnlyScope（整表只读）
+                      └─ 直接字段
+                          └─ WFormFieldShell（边框 key + 字段级只读作用域）
+                              └─ WFormBorder（装饰 / 错误与提示文案）
 ```
 
 数据流：
@@ -75,13 +81,13 @@ WForm
 
 - `WFormScope.of(context)` 取 `WFormController?`；
 - `WFormScope.requireOf(context)` 取 controller，无祖先抛 `StateError`；
-- `WFormScope.borderConfigOf(context)` 取当前边框配置；
+- `WFormScope.borderStyleOf(context)` 取当前边框配置；
 - `formData` 必须与字段子树共享同一个 controller。
 
 ```dart
 WFormScope(
   formData: form,
-  formBorderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+  formBorderStyle: WFormBorderStyle.fromTheme(Theme.of(context)),
   child: Column(children: [WFormTextField(name: 'name', label: '姓名')]),
 )
 ```
@@ -140,7 +146,6 @@ WForm(
 ```dart
 WForm(
   controller: form,
-  borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
   fieldStyle: const WFormFieldStyle(height: 52),
   child: Column(
     children: [
@@ -182,13 +187,13 @@ const WFormBorderDecoration()
     .withColor(Colors.white);
 ```
 
-### 4.2 WFormBorderConfig
+### 4.2 WFormBorderStyle
 
 不可变边框配置，默认全部为 null（外观由调用方决定）。常用：
 
 ```dart
-WFormBorderConfig.fromTheme(Theme.of(context));
-WFormBorderConfig.standard(radius: 12);
+WFormBorderStyle.fromTheme(Theme.of(context));
+WFormBorderStyle.standard(radius: 12);
 ```
 
 字段顺序：`errorDecoration` > `readOnlyDecoration` / `focusedDecoration` > `defaultDecoration`。
@@ -233,7 +238,7 @@ WFormTextField(
 ### 5.3 WFormMultiDropdown
 
 - 值类型 `Set<String>`；通过 `WFormPopup` 在锚点下方弹出。
-- `disabledKeys` 显示选中态但不可点击；已选项按选中顺序拼接。
+- `disabledKeys` 显示选中态但不可点击；已选项按 `Set` 的迭代顺序拼接（不是点击先后）。
 
 ### 5.4 WFormCheckbox
 
@@ -248,14 +253,14 @@ WFormTextField(
 ### 5.6 WFormDatePicker
 
 - 存储格式固定 ISO `yyyy-MM-dd`；显示格式用 `displayFormat`（默认 `yMMMMd`）。
-- 使用系统 `showDatePicker`；`firstDate` / `lastDate` 默认 `1900` / `now`，建议显式传。
+- 使用系统 `showDatePicker`；`firstDate` / `lastDate` 默认 `1900` / `2100`，需要收窄范围时显式传。
 
 ### 5.7 WFormButton
 
 - 字段值选择器；点击行为由 `onTap(value, didChange)` 决定，选择后调用 `didChange`。
 - `selectedWidgetBuilder` 渲染当前值；`hintWidget` 可替代 `label`。
 - 普通按钮用 `WButton`，不要用 `WFormButton` 承担普通点击；`WFormButton` / `WFormFieldButton` 都支持 `message`（与 `hintTextList` 二选一）。
-- 值类型：`WFormButton` 保持原 String API，行为等价于 `WFormFieldButton<String>`（两者是独立类型，字段声明相同）；enum / int 等用 `WFormFieldButton<T>`。
+- 值类型：`WFormButton` 就是 `typedef WFormButton = WFormFieldButton<String>`（同一类型，String 用法不变）；enum / int 等用 `WFormFieldButton<T>`。
 
 ## 6. WFormPopup — 弹出层
 
@@ -297,10 +302,11 @@ final value = await WFormPopup.show<String>(
 | `shouldSkipValidation` | null | 返回 true 跳过该项 |
 
 `WFormValidator.errors` 是只读错误快照，每次 `validate()` 重新填充。
+`WFormValidatorSettings` 不可变（`const` 构造 + `copyWith`），字段全部 `final`。
 
 ```dart
 final validator = form.validators(
-  settings: WFormValidatorSettings()..showBorderError = true,
+  settings: const WFormValidatorSettings(showBorderError: true),
   items: [
     WFormValidatorItem.field('email'),
     WFormValidatorItem(fieldName: 'password', validatorBuilder: () => (v) => ...),
@@ -311,7 +317,7 @@ if (!validator.validate()) return;
 
 ## 8. form_input_formatters.dart
 
-- `WFormInputFormatters.phone()`：香港号码，最多 8 位；
+- `WFormInputFormatters.hkPhone()`：香港号码，最多 8 位；
 - `WCardNumberInputFormatter`：每 4 位加空格；
 - `WDividerInputFormatter({first, rear, pattern})`：自定义分段。
 
@@ -337,7 +343,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return WForm(
       controller: form,
-      borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
+      borderStyle: WFormBorderStyle.fromTheme(Theme.of(context)),
       child: Column(
         children: [
           WFormTextField(name: 'email', label: '邮箱'),
@@ -363,7 +369,7 @@ class _LoginPageState extends State<LoginPage> {
 
 - **不要从 Config 开始**：字段 Config / `*Core` 是包内实现；页面统一 `WForm` + 直接字段。
 - **只读**：整页 `WForm(readOnly: true)`；单字段用字段的 `readOnly`，不要手写只读作用域。
-- **边框**：默认 `WFormBorderConfig.fromTheme(Theme.of(context))`；不要手写 `WFormBorder`。
+- **边框**：默认 `WFormBorderStyle.fromTheme(Theme.of(context))`；不要手写 `WFormBorder`。
 - **Controller 生命周期**：`WFormController` 由页面 State 持有即可；它没有 `dispose`，表单状态随 `WForm` 卸载。
 - **校验设置**：`WForm.validatorSettings` 会成为 `validate()` / `validators()` 的默认值。
 - **无边框字段**：`bordered: false` 时没有边框 key，`setError` 在 debug 会断言提示（release 为 no-op）；这类字段的错误从 `WFormValidator.errors` 读。

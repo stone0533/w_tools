@@ -10,7 +10,7 @@
 - **WForm 容器**：一次组合主题、表单作用域和只读作用域
 - **直接字段构造**：`WFormTextField` / `WFormDropdown` / `WFormDatePicker` 等直接使用
 - **直接字段参数**：常用样式/插槽直接传参；可变字段 Config 已在 5.0 移除
-- **边框体系**：`WFormBorderConfig`（不可变）+ `WFormBorder`
+- **边框体系**：`WFormBorderStyle`（不可变）+ `WFormBorder`
 - **只读与校验**：`WFormReadOnlyScope` / `WFormValidatorSettings`
 - **字段按钮**：`WFormButton`（String）/ `WFormFieldButton<T>`（泛型）自定义选择、弹层等交互
 
@@ -50,13 +50,10 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     return WForm(
       controller: _form,
-      borderConfig: WFormBorderConfig.fromTheme(Theme.of(context)),
       fieldStyle: const WFormFieldStyle(
         height: 52,
         containerPadding: EdgeInsets.symmetric(horizontal: 16),
       ),
-      validatorSettings: WFormValidatorSettings()
-        ..showBorderError = true,
       child: Column(
         children: [
           WFormTextField(
@@ -164,7 +161,7 @@ final value = await WFormPopup.show<String>(
 
 WFormTextField(
   name: 'phone',
-  inputFormatters: WFormInputFormatters.phone(),
+  inputFormatters: WFormInputFormatters.hkPhone(),
 );
 ```
 
@@ -183,7 +180,7 @@ WForm(
 ```dart
 form.validators(items: [WFormValidatorItem.field('email')]).validate();
 form.validators().validate(); // 不传 items：校验全部已挂载字段
-form.validate(settings: WFormValidatorSettings()..continueOnError = true);
+form.validate(settings: const WFormValidatorSettings(continueOnError: true));
 
 form.value; form.savedValue;
 form.setValue('email', 'a@b.com');
@@ -207,7 +204,7 @@ WForm(
 | 日期 | `WFormDatePicker` |
 | 复选 / 单选 | `WFormCheckbox` / `WFormRadioGroup` |
 | 自定义字段按钮 | `WFormButton` / `WFormFieldButton<T>` |
-| 边框 | `WFormBorder` / `WFormBorderConfig` |
+| 边框（低层，普通页面不用手写） | `WFormBorder` / `WFormBorderStyle` |
 | 校验 | `WFormValidator` / `WFormValidatorItem` / `WFormValidatorSettings` |
 
 ## 历史迁移

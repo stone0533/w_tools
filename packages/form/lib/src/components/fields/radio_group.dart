@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 import '../form_icons.dart';
@@ -14,12 +13,48 @@ import '../form_theme.dart';
 ///
 /// 以单列布局渲染所有选项，支持自定义标题（[titleBuilder]）与选项下方
 /// 附加内容（[itemExtraBuilder]）；选中状态、间距与图标可通过
-/// [WFormRadioGroupConfig] 配置，只读状态会合并外层 [WFormReadOnlyScope]。
+/// `WFormRadioGroup` 的同名参数 配置，只读状态会合并外层 [WFormReadOnlyScope]。
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
 class WFormRadioGroupCore<T> extends FormBuilderField<T> {
-  /// 单选按钮组配置
-  final WFormRadioGroupConfig config;
+  /// 未选中图标（null 时取 WFormTheme / WFormIcons 默认）
+  final Widget? unselectedIcon;
+
+  /// 选中图标
+  final Widget? selectedIcon;
+
+  /// 图标与标题间距
+  final double? iconSpacing;
+
+  /// 选项行距
+  final double? lineSpacing;
+
+  /// 图标纵向偏移
+  final double? iconYOffset;
+
+  /// 标题文字样式
+  final TextStyle? style;
+
+  /// 外框高度
+  final double? height;
+
+  /// 外框宽度
+  final double? width;
+
+  /// 外框装饰（bordered 时由边框接管）
+  final Decoration? containerDecoration;
+
+  /// 外框外边距
+  final EdgeInsetsGeometry? containerMargin;
+
+  /// 选项内边距（作用在内层选项上）
+  final EdgeInsetsGeometry? containerPadding;
+
+  /// 左侧插槽
+  final Widget? leading;
+
+  /// 右侧操作插槽
+  final List<Widget>? actions;
 
   /// 选项映射，键为值，值为显示文本
   final Map<T, String> items;
@@ -33,20 +68,32 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
   /// 创建单选按钮组字段
   WFormRadioGroupCore({
     super.key,
-    required this.config,
     required super.name,
     required this.items,
     this.titleBuilder,
     this.itemExtraBuilder,
     super.initialValue,
-    bool? enabled,
+    super.enabled = true,
     super.onChanged,
     super.validator,
+    this.unselectedIcon,
+    this.selectedIcon,
+    this.iconSpacing,
+    this.lineSpacing,
+    this.iconYOffset,
+    this.style,
+    this.height,
+    this.width,
+    this.containerDecoration,
+    this.containerMargin,
+    this.containerPadding,
+    this.leading,
+    this.actions,
+    super.focusNode,
   }) : super(
-         enabled: enabled ?? config.enabled,
          builder: (FormFieldState<T?> field) {
            final state = field as FormBuilderFieldState<WFormRadioGroupCore<T>, T>;
-           final theme = WFormTheme.maybeOf(field.context);
+           final theme = WFormThemeData.of(field.context);
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
            final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(field.context);
@@ -59,11 +106,11 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
            }
 
            final options = Padding(
-             padding: config.containerPadding ?? EdgeInsets.zero,
+             padding: containerPadding ?? EdgeInsets.zero,
              child: Column(
                mainAxisSize: MainAxisSize.min,
                crossAxisAlignment: CrossAxisAlignment.start,
-               spacing: config.lineSpacing ?? 0,
+               spacing: lineSpacing ?? 0,
                children: items.entries.map((element) {
                  final isSelected = state.value == element.key;
 
@@ -105,20 +152,20 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
                                  child: Transform(
                                    transform: Matrix4.translationValues(
                                      0,
-                                     config.iconYOffset ?? 0,
+                                     iconYOffset ?? 0,
                                      0,
                                    ),
                                    child: isSelected
-                                       ? config.selectedIcon ??
+                                       ? selectedIcon ??
                                              theme?.effectiveRadioSelectedIcon ??
                                              WFormIcons.defaults.radioSelected
-                                       : config.unselectedIcon ??
+                                       : unselectedIcon ??
                                              theme?.effectiveRadioUnselectedIcon ??
                                              WFormIcons.defaults.radioUnselected,
                                  ),
                                ),
                              ),
-                             SizedBox(width: config.iconSpacing ?? 0),
+                             SizedBox(width: iconSpacing ?? 0),
                              Expanded(
                                child: MouseRegion(
                                  cursor: isEnabled
@@ -137,12 +184,12 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
                                          )
                                        : Text(
                                            element.value,
-                                           style: config.style,
+                                           style: style,
                                            strutStyle: StrutStyle(
-                                             fontFamily: config.style?.fontFamily,
-                                             fontSize: config.style?.fontSize,
-                                             fontWeight: config.style?.fontWeight,
-                                             height: config.style?.height,
+                                             fontFamily: style?.fontFamily,
+                                             fontSize: style?.fontSize,
+                                             fontWeight: style?.fontWeight,
+                                             height: style?.height,
                                              forceStrutHeight: true,
                                            ),
                                          ),
@@ -161,15 +208,15 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
            );
 
            return WFormFieldFrame(
-             height: config.height,
-             width: config.width,
-             decoration: config.containerDecoration,
-             margin: config.containerMargin,
+             height: height,
+             width: width,
+             decoration: containerDecoration,
+             margin: containerMargin,
              // containerPadding 作用在内层选项 Padding 上，外框不再重复施加
              padding: null,
-             leading: config.leading,
-             actions: config.actions,
-             child: options,
+             leading: leading,
+             actions: actions,
+             child: Opacity(opacity: isEnabled ? 1 : 0.5, child: options),
            );
          },
        );
@@ -200,125 +247,5 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroupCore
   void dispose() {
     _formData?.removeFormEntered(widget.name);
     super.dispose();
-  }
-}
-
-/// 单选按钮组配置类，定义单选按钮组的样式和行为。
-///
-/// 可变的字段配置；用命名构造 / copyWith。
-class WFormRadioGroupConfig extends WFormFieldBaseConfig {
-  Widget? unselectedIcon;
-  Widget? selectedIcon;
-  double? iconSpacing;
-  double? lineSpacing;
-  double? iconYOffset;
-  TextStyle? style;
-
-  WFormRadioGroupConfig({
-    this.unselectedIcon,
-    this.selectedIcon,
-    this.iconSpacing,
-    this.lineSpacing,
-    this.iconYOffset,
-    this.style,
-    bool enabled = true,
-    double? height,
-    double? width,
-    Widget? leading,
-    List<Widget>? actions,
-    Decoration? containerDecoration,
-    EdgeInsetsGeometry? containerMargin,
-    EdgeInsetsGeometry? containerPadding,
-  }) {
-    this.enabled = enabled;
-    this.height = height;
-    this.width = width;
-    this.leading = leading;
-    this.actions = actions;
-    this.containerDecoration = containerDecoration;
-    this.containerMargin = containerMargin;
-    this.containerPadding = containerPadding;
-  }
-
-  Widget build<T>({
-    required String name,
-    required Map<T, String> items,
-    Widget Function(BuildContext, T, String, bool)? titleBuilder,
-    Widget Function(BuildContext, T, String, bool)? itemExtraBuilder,
-    T? initialValue,
-    bool? enabled,
-    ValueChanged<T?>? onChanged,
-    FormFieldValidator<T>? validator,
-    bool readOnly = false,
-    bool bordered = false,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    bool enableFocusBorder = true,
-  }) {
-    final baseEnabled = enabled ?? this.enabled;
-    final config = bordered ? (copy()..containerDecoration = null) : this;
-    final field = WFormRadioGroupCore<T>(
-      config: config,
-      name: name,
-      items: items,
-      titleBuilder: titleBuilder,
-      itemExtraBuilder: itemExtraBuilder,
-      initialValue: initialValue,
-      enabled: bordered ? baseEnabled && !readOnly : enabled,
-      onChanged: onChanged,
-      validator: validator,
-    );
-    if (!bordered) {
-      // message / hintTextList 只由边框渲染；无边框时静默丢弃是陷阱，直接报出来
-      assert(
-        hintTextList == null || hintTextList.isEmpty,
-        'bordered: false 时不会渲染 message / hintTextList；需要提示请保留 bordered，或自行展示。',
-      );
-      return readOnly ? WFormReadOnlyScope(readOnly: true, child: field) : field;
-    }
-    return WFormFieldFrame.border(
-      name: name,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      readOnly: readOnly || !baseEnabled,
-      child: field,
-    );
-  }
-
-  WFormRadioGroupConfig copy() => copyWith();
-
-  WFormRadioGroupConfig copyWith({
-    Widget? unselectedIcon,
-    Widget? selectedIcon,
-    double? iconSpacing,
-    double? lineSpacing,
-    double? iconYOffset,
-    bool? enabled,
-    double? height,
-    double? width,
-    Widget? leading,
-    List<Widget>? actions,
-    Decoration? containerDecoration,
-    EdgeInsetsGeometry? containerMargin,
-    EdgeInsetsGeometry? containerPadding,
-    TextStyle? style,
-  }) {
-    return WFormRadioGroupConfig(
-      unselectedIcon: unselectedIcon ?? this.unselectedIcon,
-      selectedIcon: selectedIcon ?? this.selectedIcon,
-      iconSpacing: iconSpacing ?? this.iconSpacing,
-      lineSpacing: lineSpacing ?? this.lineSpacing,
-      iconYOffset: iconYOffset ?? this.iconYOffset,
-      enabled: enabled ?? this.enabled,
-      height: height ?? this.height,
-      width: width ?? this.width,
-      leading: leading ?? this.leading,
-      actions: actions ?? this.actions,
-      containerDecoration: containerDecoration ?? this.containerDecoration,
-      containerMargin: containerMargin ?? this.containerMargin,
-      containerPadding: containerPadding ?? this.containerPadding,
-      style: style ?? this.style,
-    );
   }
 }

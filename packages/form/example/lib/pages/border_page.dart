@@ -3,7 +3,7 @@ import 'package:w_tools_form/w_tools_form.dart';
 
 import '../form_style.dart';
 
-/// 真实场景五：自定义 WFormBorderConfig。
+/// 真实场景五：自定义 WFormBorderStyle。
 class BorderExamplePage extends StatefulWidget {
   const BorderExamplePage({super.key});
 
@@ -21,13 +21,14 @@ class _BorderExamplePageState extends State<BorderExamplePage> {
       appBar: AppBar(title: const Text('自定义边框')),
       body: WForm(
         controller: _form,
-        borderConfig: exampleCompactBorderConfig,
+        borderStyle: exampleCompactBorderConfig,
         fieldStyle: exampleFieldStyle,
-        validatorSettings: WFormValidatorSettings()
-          ..showBorderError = true
-          ..itemValidationCallback = (name, ok, error) {
+        validatorSettings: WFormValidatorSettings(
+          showBorderError: true,
+          itemValidationCallback: (name, ok, error) {
             _lastValidation = ok ? '$name：通过' : '$name：$error';
           },
+        ),
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
@@ -37,7 +38,7 @@ class _BorderExamplePageState extends State<BorderExamplePage> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'WFormBorderConfig 可以覆盖默认 / 聚焦 / 错误 / 只读装饰，以及 hint / error 布局。',
+              'WFormBorderStyle 可以覆盖默认 / 聚焦 / 错误 / 只读装饰，以及 hint / error 布局。',
               style: TextStyle(color: Color(0xFF6B7280)),
             ),
             const SizedBox(height: 24),

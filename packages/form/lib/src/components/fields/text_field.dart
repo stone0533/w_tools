@@ -5,7 +5,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_base_config.dart';
 import '../form_scope.dart';
 import '../form_controller.dart';
 
@@ -18,8 +17,71 @@ import '../form_controller.dart';
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
 class WFormTextFieldCore extends StatefulWidget {
-  /// 文本输入配置
-  final WFormTextFieldConfig config;
+  /// 输入装饰（hint / 前后缀 / 边框样式）
+  final InputDecoration? decoration;
+
+  /// hint 文字样式
+  final TextStyle? hintStyle;
+
+  /// 输入框内边距
+  final EdgeInsetsGeometry? contentPadding;
+
+  /// 前缀 widget
+  final Widget? prefix;
+
+  /// 前缀图标
+  final Widget? prefixIcon;
+
+  /// 正文样式
+  final TextStyle? style;
+
+  /// 只读态正文样式
+  final TextStyle? readOnlyStyle;
+
+  /// 是否密码模式
+  final bool obscureText;
+
+  /// 键盘类型
+  final TextInputType? keyboardType;
+
+  /// 输入格式化器
+  final List<TextInputFormatter>? inputFormatters;
+
+  /// 文本对齐
+  final TextAlign? textAlign;
+
+  /// 是否自动聚焦
+  final bool? autofocus;
+
+  /// 最大行数
+  final int? maxLines;
+
+  /// 键盘动作
+  final TextInputAction? textInputAction;
+
+  /// 外框高度
+  final double? height;
+
+  /// 外框宽度
+  final double? width;
+
+  /// 内容 Y 轴偏移
+  final double? yOffset;
+
+  /// 左侧插槽
+  final Widget? leading;
+
+  /// 右侧操作插槽
+  final List<Widget>? actions;
+
+  /// 外框装饰（bordered 时由边框接管）
+  final Decoration? containerDecoration;
+
+  /// 外框外边距
+  final EdgeInsetsGeometry? containerMargin;
+
+  /// 外框内边距
+  final EdgeInsetsGeometry? containerPadding;
 
   /// 字段名称
   final String name;
@@ -42,8 +104,9 @@ class WFormTextFieldCore extends StatefulWidget {
   /// 是否只读
   final bool readOnly;
 
-  /// 是否启用（null 时读取 [config.enabled]）
-  final bool? enabled;
+  /// 是否启用（null 时读取 [enabled]）
+  /// 是否启用（只读作用域仍会覆盖）
+  final bool enabled;
 
   /// 校验器
   final FormFieldValidator<String>? validator;
@@ -54,7 +117,6 @@ class WFormTextFieldCore extends StatefulWidget {
   /// 创建单行文本输入组件
   const WFormTextFieldCore({
     super.key,
-    required this.config,
     required this.name,
     this.onChanged,
     this.onSubmitted,
@@ -62,9 +124,31 @@ class WFormTextFieldCore extends StatefulWidget {
     this.initialValue,
     this.hintText,
     this.readOnly = false,
-    this.enabled,
+    this.enabled = true,
     this.validator,
     this.focusNode,
+    this.decoration,
+    this.hintStyle,
+    this.contentPadding,
+    this.prefix,
+    this.prefixIcon,
+    this.style,
+    this.readOnlyStyle,
+    this.obscureText = false,
+    this.keyboardType,
+    this.inputFormatters,
+    this.textAlign,
+    this.autofocus,
+    this.maxLines,
+    this.textInputAction,
+    this.height,
+    this.width,
+    this.yOffset,
+    this.leading,
+    this.actions,
+    this.containerDecoration,
+    this.containerMargin,
+    this.containerPadding,
   });
 
   @override
@@ -152,41 +236,41 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
       widget.onChanged?.call(value);
     }
 
-    // 合并自身 enabled / config.enabled / 外层只读作用域
+    // 合并自身 enabled / enabled / 外层只读作用域
     final inheritedReadOnly = WFormReadOnlyScope.readOnlyOf(context);
-    final isEnabled = (widget.enabled ?? widget.config.enabled) && !inheritedReadOnly;
+    final isEnabled = widget.enabled && !inheritedReadOnly;
     _effectiveReadOnly = !isEnabled || widget.readOnly || inheritedReadOnly;
     final readOnly = _effectiveReadOnly;
 
-    final customDecoration = widget.config.decoration;
-    final hintText = widget.hintText ?? widget.config.hintText ?? customDecoration?.hintText;
+    final customDecoration = widget.decoration;
+    final hintText = widget.hintText ?? widget.hintText ?? customDecoration?.hintText;
 
     return WFormTextFieldScope._(
       state: this,
       isPasswordVisible: _isPasswordVisible,
       readOnly: readOnly,
       child: WFormFieldFrame(
-        height: widget.config.height,
-        width: widget.config.width,
-        decoration: widget.config.containerDecoration,
-        margin: widget.config.containerMargin,
-        padding: widget.config.containerPadding,
-        yOffset: widget.config.yOffset,
-        leading: widget.config.leading,
-        actions: widget.config.actions,
+        height: widget.height,
+        width: widget.width,
+        decoration: widget.containerDecoration,
+        margin: widget.containerMargin,
+        padding: widget.containerPadding,
+        yOffset: widget.yOffset,
+        leading: widget.leading,
+        actions: widget.actions,
         child: FormBuilderTextField(
           focusNode: _focusNode,
           name: widget.name,
           initialValue: widget.initialValue,
           validator: widget.validator,
-          textInputAction: widget.config.textInputAction,
+          textInputAction: widget.textInputAction,
           enabled: isEnabled,
           readOnly: readOnly,
           onChanged: onChanged,
-          cursorColor: widget.config.style?.color,
+          cursorColor: widget.style?.color,
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: customDecoration?.hintStyle ?? widget.config.hintStyle,
+            hintStyle: customDecoration?.hintStyle ?? widget.hintStyle,
             fillColor: customDecoration?.fillColor ?? Colors.transparent,
             filled: customDecoration?.filled ?? true,
             border: customDecoration?.border ?? InputBorder.none,
@@ -194,205 +278,34 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
             focusedBorder: customDecoration?.focusedBorder ?? InputBorder.none,
             errorBorder: customDecoration?.errorBorder ?? InputBorder.none,
             focusedErrorBorder: customDecoration?.focusedErrorBorder ?? InputBorder.none,
-            contentPadding: customDecoration?.contentPadding ?? widget.config.contentPadding,
-            prefix: customDecoration?.prefix ?? widget.config.prefix,
-            prefixIcon: customDecoration?.prefixIcon ?? widget.config.prefixIcon,
+            contentPadding: customDecoration?.contentPadding ?? widget.contentPadding,
+            prefix: customDecoration?.prefix ?? widget.prefix,
+            prefixIcon: customDecoration?.prefixIcon ?? widget.prefixIcon,
             suffix: customDecoration?.suffix,
             suffixIcon: customDecoration?.suffixIcon,
             isCollapsed: customDecoration?.isCollapsed ?? true,
           ),
-          style: readOnly
-              ? widget.config.readOnlyStyle ?? widget.config.style
-              : widget.config.style,
+          style: readOnly ? widget.readOnlyStyle ?? widget.style : widget.style,
           strutStyle: StrutStyle(
-            fontFamily: widget.config.style?.fontFamily,
-            fontSize: widget.config.style?.fontSize,
-            fontWeight: widget.config.style?.fontWeight,
-            height: widget.config.style?.height,
+            fontFamily: widget.style?.fontFamily,
+            fontSize: widget.style?.fontSize,
+            fontWeight: widget.style?.fontWeight,
+            height: widget.style?.height,
             forceStrutHeight: true,
           ),
-          obscureText: widget.config.obscureText && !_isPasswordVisible,
+          obscureText: widget.obscureText && !_isPasswordVisible,
           obscuringCharacter: '＊',
           keyboardType:
-              widget.config.keyboardType ??
-              (widget.config.obscureText ? TextInputType.visiblePassword : null),
-          inputFormatters: widget.config.inputFormatters,
-          textAlign: widget.config.textAlign ?? TextAlign.start,
-          autofocus: widget.config.autofocus ?? false,
+              widget.keyboardType ?? (widget.obscureText ? TextInputType.visiblePassword : null),
+          inputFormatters: widget.inputFormatters,
+          textAlign: widget.textAlign ?? TextAlign.start,
+          autofocus: widget.autofocus ?? false,
           autocorrect: false,
-          maxLines: widget.config.maxLines ?? 1,
+          maxLines: widget.maxLines ?? 1,
           onSubmitted: widget.onSubmitted,
           onEditingComplete: widget.onEditingComplete,
         ),
       ),
-    );
-  }
-}
-
-/// 文本输入配置类，定义文本输入的样式和行为。
-///
-/// 可变字段配置（legacy）；新代码优先用直接字段参数，后续大版本移除。
-class WFormTextFieldConfig extends WFormFieldBaseConfig {
-  TextInputType? keyboardType;
-  List<TextInputFormatter>? inputFormatters;
-  TextStyle? readOnlyStyle;
-  TextStyle? style;
-  EdgeInsetsGeometry? contentPadding;
-  TextStyle? hintStyle;
-  String? hintText;
-  InputDecoration? decoration;
-  TextAlign? textAlign;
-  bool? autofocus;
-  bool obscureText;
-  Widget? prefix;
-  Widget? prefixIcon;
-  int? maxLines;
-  TextInputAction? textInputAction;
-
-  WFormTextFieldConfig({
-    bool enabled = true,
-    this.keyboardType,
-    this.inputFormatters,
-    this.readOnlyStyle,
-    double? height,
-    double? width,
-    this.style,
-    this.contentPadding,
-    this.hintStyle,
-    this.hintText,
-    this.decoration,
-    double? yOffset,
-    Widget? leading,
-    List<Widget>? actions,
-    Decoration? containerDecoration,
-    EdgeInsetsGeometry? containerMargin,
-    EdgeInsetsGeometry? containerPadding,
-    this.textAlign,
-    this.autofocus,
-    this.obscureText = false,
-    this.prefix,
-    this.prefixIcon,
-    this.maxLines,
-    this.textInputAction,
-  }) {
-    this.enabled = enabled;
-    this.height = height;
-    this.width = width;
-    this.yOffset = yOffset;
-    this.leading = leading;
-    this.actions = actions;
-    this.containerDecoration = containerDecoration;
-    this.containerMargin = containerMargin;
-    this.containerPadding = containerPadding;
-  }
-
-  /// 框架内部使用（直接字段 / Core 组装），4.0 物理移出 Config。
-  @internal
-  Widget build({
-    required String name,
-    ValueChanged<String?>? onChanged,
-    void Function(String?)? onSubmitted,
-    VoidCallback? onEditingComplete,
-    String? initialValue,
-    String? hintText,
-    bool readOnly = false,
-    FormFieldValidator<String>? validator,
-    FocusNode? focusNode,
-    bool bordered = false,
-    List<String>? hintTextList,
-    bool? isTransparentBackground,
-    bool enableFocusBorder = true,
-  }) {
-    final config = bordered ? (copy()..containerDecoration = null) : this;
-    final effectiveReadOnly = readOnly || !enabled;
-    final field = WFormTextFieldCore(
-      config: config,
-      name: name,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
-      onEditingComplete: onEditingComplete,
-      initialValue: initialValue,
-      hintText: hintText ?? this.hintText,
-      readOnly: readOnly,
-      enabled: enabled,
-      validator: validator,
-      focusNode: focusNode,
-    );
-    if (!bordered) {
-      // 与其它字段一致：无边框时也要下发只读作用域，消费方插槽才能读到
-      if (effectiveReadOnly) {
-        return WFormReadOnlyScope(readOnly: true, child: field);
-      }
-      // message / hintTextList 只由边框渲染；无边框时静默丢弃是陷阱，直接报出来
-      assert(
-        hintTextList == null || hintTextList.isEmpty,
-        'bordered: false 时不会渲染 message / hintTextList；需要提示请保留 bordered，或自行展示。',
-      );
-      return field;
-    }
-    return WFormFieldFrame.border(
-      name: name,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      readOnly: effectiveReadOnly,
-      child: field,
-    );
-  }
-
-  WFormTextFieldConfig copy() => copyWith();
-
-  WFormTextFieldConfig copyWith({
-    bool? enabled,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-    TextStyle? readOnlyStyle,
-    double? height,
-    double? width,
-    TextStyle? style,
-    EdgeInsetsGeometry? contentPadding,
-    TextStyle? hintStyle,
-    String? hintText,
-    InputDecoration? decoration,
-    double? yOffset,
-    Widget? leading,
-    List<Widget>? actions,
-    Decoration? containerDecoration,
-    EdgeInsetsGeometry? containerMargin,
-    EdgeInsetsGeometry? containerPadding,
-    TextAlign? textAlign,
-    bool? autofocus,
-    bool? obscureText,
-    Widget? prefix,
-    Widget? prefixIcon,
-    int? maxLines,
-    TextInputAction? textInputAction,
-  }) {
-    return WFormTextFieldConfig(
-      enabled: enabled ?? this.enabled,
-      keyboardType: keyboardType ?? this.keyboardType,
-      inputFormatters: inputFormatters ?? this.inputFormatters,
-      readOnlyStyle: readOnlyStyle ?? this.readOnlyStyle,
-      height: height ?? this.height,
-      width: width ?? this.width,
-      style: style ?? this.style,
-      contentPadding: contentPadding ?? this.contentPadding,
-      hintStyle: hintStyle ?? this.hintStyle,
-      hintText: hintText ?? this.hintText,
-      decoration: decoration ?? this.decoration,
-      yOffset: yOffset ?? this.yOffset,
-      leading: leading ?? this.leading,
-      actions: actions ?? this.actions,
-      containerDecoration: containerDecoration ?? this.containerDecoration,
-      containerMargin: containerMargin ?? this.containerMargin,
-      containerPadding: containerPadding ?? this.containerPadding,
-      textAlign: textAlign ?? this.textAlign,
-      autofocus: autofocus ?? this.autofocus,
-      obscureText: obscureText ?? this.obscureText,
-      prefix: prefix ?? this.prefix,
-      prefixIcon: prefixIcon ?? this.prefixIcon,
-      maxLines: maxLines ?? this.maxLines,
-      textInputAction: textInputAction ?? this.textInputAction,
     );
   }
 }
@@ -406,32 +319,46 @@ class WFormTextFieldConfig extends WFormFieldBaseConfig {
 /// 用户自定义 action Widget 通过 [WFormTextFieldScope.of] 获取此接口，
 /// 读取输入状态、订阅值变化、触发密码切换或清空等动作，无需闭包或外部回调。
 ///
-/// 使用示例：
+/// 使用示例（需要跟随输入值重建时，必须订阅 [valueListenable]）：
 /// ```dart
 /// class MyCustomSearchAction extends StatelessWidget {
 ///   const MyCustomSearchAction({super.key});
 ///   @override
 ///   Widget build(BuildContext context) {
 ///     final data = WFormTextFieldScope.of(context);
-///     if (data == null || !data.hasText) return const SizedBox.shrink();
-///     return IconButton(
-///       icon: const Icon(Icons.search),
-///       onPressed: () {/* ... */},
+///     if (data == null) return const SizedBox.shrink();
+///     return ListenableBuilder(
+///       listenable: data.valueListenable,
+///       builder: (context, _) {
+///         if (!data.hasText) return const SizedBox.shrink();
+///         return IconButton(
+///           icon: const Icon(Icons.search),
+///           onPressed: () {/* ... */},
+///         );
+///       },
 ///     );
 ///   }
 /// }
 /// ```
-abstract final class WFormTextFieldData {
-  /// 当前密码是否可见（仅 [WFormTextFieldConfig.obscureText] 为 true 时有意义）
+///
+/// 注意：`value` / `hasText` 本身**不会**让调用方重建（scope 只在密码可见性与只读变化时通知），
+/// 所以在 `build` 里直接读它们会拿到旧值。预置的 [WFormTextFieldAction] /
+/// [WFormTextFieldClearButton] 已内部订阅。
+abstract interface class WFormTextFieldData {
+  /// 当前密码是否可见（仅 `WFormTextField.obscureText` 为 true 时有意义）
   bool get isPasswordVisible;
 
-  /// 是否为密码模式（对应 [WFormTextFieldConfig.obscureText]）
+  /// 是否为密码模式（对应 `WFormTextField.obscureText`）
   bool get obscureText;
 
   /// 当前输入值（null 表示未输入过）
+  ///
+  /// 读取本 getter 不会触发重建；要跟随输入变化请用 [valueListenable]。
   String? get value;
 
   /// 是否有输入内容（`value != null && value.isNotEmpty` 的快捷判断）
+  ///
+  /// 同样不触发重建；在 `build` 里用请包一层 [ListenableBuilder]。
   bool get hasText;
 
   /// 字段是否只读（含外层只读作用域）
@@ -497,5 +424,5 @@ final class WFormTextFieldScope extends InheritedWidget implements WFormTextFiel
   void clear() => _state._clearField();
 
   @override
-  bool get obscureText => _state.widget.config.obscureText;
+  bool get obscureText => _state.widget.obscureText;
 }

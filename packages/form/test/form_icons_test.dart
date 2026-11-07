@@ -21,10 +21,7 @@ void main() {
   group('WFormTheme.effective*', () {
     testWidgets('icons 覆盖默认值，未配置项回退 WFormIcons.defaults', (tester) async {
       const star = Icon(Icons.star);
-      const theme = WFormTheme(
-        icons: WFormIcons(dropdown: star),
-        child: SizedBox.shrink(),
-      );
+      const theme = WFormThemeData(icons: WFormIcons(dropdown: star));
 
       expect(theme.effectiveDropdownIcon, star);
       expect(theme.effectiveRadioSelectedIcon, WFormIcons.defaults.radioSelected);
@@ -54,13 +51,12 @@ void main() {
   });
 
   testWidgets('effective* 覆盖密码 / 清空图标', (tester) async {
-    const theme = WFormTheme(
+    const theme = WFormThemeData(
       icons: WFormIcons(
         obscureText: Icon(Icons.visibility_off_outlined),
         obscureTextVisible: Icon(Icons.visibility_outlined),
         clear: Icon(Icons.clear_all),
       ),
-      child: SizedBox.shrink(),
     );
 
     expect(theme.effectiveObscureTextIcon, isA<Icon>());

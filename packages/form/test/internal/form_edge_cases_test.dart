@@ -2,20 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
+import 'package:w_tools_form/src/components/field_assembly.dart';
+
 import '_helpers/form_test_scaffold.dart';
-import 'internal/_helpers/config_exports.dart';
+import 'package:w_tools_form/src/components/fields/date_picker.dart';
 
 void main() {
   group('字段卸载清理 formEntered', () {
     Future<void> expectCleanup(
       WidgetTester tester,
       Widget child,
-      String name,
-    ) async {
+      String name, {
+      Object? value = 'x',
+    }) async {
       final data = WFormController();
       await pumpForm(tester, formData: data, child: child);
 
-      data.handleChange(name, 'x');
+      data.updateValue<Object?>(name, value);
+      await tester.pump();
       expect(data.formEntered[name], isTrue);
 
       await tester.pumpWidget(const SizedBox.shrink());
@@ -25,18 +29,19 @@ void main() {
     testWidgets('WFormCheckbox 卸载后清理输入状态', (tester) async {
       await expectCleanup(
         tester,
-        WFormCheckboxConfig().build(
+        checkboxCore(
           name: 'checkbox',
           title: const Text('同意'),
         ),
         'checkbox',
+        value: true,
       );
     });
 
     testWidgets('WFormDatePicker 卸载后清理输入状态', (tester) async {
       await expectCleanup(
         tester,
-        WFormDatePickerConfig().build(
+        WFormDatePickerCore(
           name: 'date',
           firstDate: DateTime(2000),
           lastDate: DateTime(2100),
@@ -48,7 +53,7 @@ void main() {
     testWidgets('WFormRadioGroup 卸载后清理输入状态', (tester) async {
       await expectCleanup(
         tester,
-        WFormRadioGroupConfig().build<String>(
+        radioCore<String>(
           name: 'radio',
           items: const {'a': 'A'},
         ),
@@ -57,10 +62,9 @@ void main() {
     });
 
     testWidgets('WFormButton 卸载后清理输入状态', (tester) async {
-      final config = WFormFieldButtonConfig(hintWidget: const Text('选择'));
       await expectCleanup(
         tester,
-        config.build(name: 'button', onTap: (_, __) {}),
+        buttonCore(hintWidget: const Text('选择'), name: 'button', onTap: (_, __) {}),
         'button',
       );
     });
@@ -71,7 +75,7 @@ void main() {
       var changed = false;
       await pumpForm(
         tester,
-        child: WFormCheckboxConfig().build(
+        child: checkboxCore(
           name: 'checkbox',
           title: const Text('同意'),
           readOnly: true,
@@ -87,11 +91,15 @@ void main() {
     testWidgets('WFormDatePicker 裸字段只读', (tester) async {
       await pumpForm(
         tester,
-        child: WFormDatePickerConfig().build(
+        child: assembleFormField(
           name: 'date',
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
+          bordered: false,
           readOnly: true,
+          child: WFormDatePickerCore(
+            name: 'date',
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
+          ),
         ),
       );
 
@@ -104,7 +112,7 @@ void main() {
       String? changed;
       await pumpForm(
         tester,
-        child: WFormRadioGroupConfig().build<String>(
+        child: radioCore<String>(
           name: 'radio',
           items: const {'a': 'A'},
           readOnly: true,
@@ -119,10 +127,10 @@ void main() {
 
     testWidgets('WFormButton 裸字段只读', (tester) async {
       var tapped = false;
-      final config = WFormFieldButtonConfig(hintWidget: const Text('选择'));
       await pumpForm(
         tester,
-        child: config.build(
+        child: buttonCore(
+          hintWidget: const Text('选择'),
           name: 'button',
           readOnly: true,
           onTap: (_, __) => tapped = true,

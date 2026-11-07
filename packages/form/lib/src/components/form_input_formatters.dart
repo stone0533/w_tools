@@ -17,13 +17,19 @@ class WFormInputFormatters {
   /// 香港电话号码格式化器
   ///
   /// 最多 8 位数字，每 4 位用空格分隔（格式化后总长度上限 9）。
-  static List<TextInputFormatter> phone() {
+  static List<TextInputFormatter> hkPhone() {
     return [
       FilteringTextInputFormatter.digitsOnly,
       WCardNumberInputFormatter(),
       LengthLimitingTextInputFormatter(9),
     ];
   }
+
+  /// 旧名：只表示「香港 8 位号码」，容易和通用手机号混淆。
+  ///
+  /// remove-in: 7.0.0
+  @Deprecated('改用 hkPhone()：它明确表示香港 8 位号码')
+  static List<TextInputFormatter> phone() => hkPhone();
 }
 
 /// 通用分隔符输入格式化器

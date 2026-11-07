@@ -35,7 +35,6 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
       ),
       body: WForm(
         controller: _form,
-        borderConfig: exampleBorderConfig,
         fieldStyle: exampleFieldStyle,
         icons: const WFormIcons(
           dropdown: Icon(Icons.expand_more_rounded),
@@ -44,9 +43,10 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
           checkboxUnselected: Icon(Icons.check_box_outline_blank),
           checkboxSelected: Icon(Icons.check_box),
         ),
-        validatorSettings: WFormValidatorSettings()
-          ..showBorderError = true
-          ..continueOnError = true,
+        validatorSettings: const WFormValidatorSettings(
+          showBorderError: true,
+          continueOnError: true,
+        ),
         readOnly: _readOnly,
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -78,7 +78,7 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
               label: '手机号',
               message: '香港手机号 8 位',
               keyboardType: TextInputType.phone,
-              inputFormatters: WFormInputFormatters.phone(),
+              inputFormatters: WFormInputFormatters.hkPhone(),
               validator: (value) {
                 final digits = (value ?? '').replaceAll(' ', '');
                 if (digits.isNotEmpty && digits.length != 8) {

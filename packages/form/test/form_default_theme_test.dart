@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
-/// 默认值必须能用：不传 borderConfig 时也要有主题边框、message 与校验错误可见。
+/// 默认值必须能用：不传 borderStyle 时也要有主题边框、message 与校验错误可见。
 void main() {
-  testWidgets('不传 borderConfig：默认边框来自主题，message 可见', (tester) async {
+  testWidgets('不传 borderStyle：默认边框来自主题，message 可见', (tester) async {
     final theme = ThemeData(useMaterial3: true);
 
     await tester.pumpWidget(
@@ -32,7 +32,7 @@ void main() {
     expect((decoration.border! as Border).top.color, theme.colorScheme.outlineVariant);
   });
 
-  testWidgets('不传 borderConfig 且未传 settings：validate 失败错误可见', (tester) async {
+  testWidgets('不传 borderStyle 且未传 settings：validate 失败错误可见', (tester) async {
     final form = WFormController();
 
     await tester.pumpWidget(
@@ -55,7 +55,7 @@ void main() {
     expect(find.text('请输入邮箱'), findsWidgets);
   });
 
-  testWidgets('显式 const WFormBorderConfig() 表示不要外观与文案', (tester) async {
+  testWidgets('显式 const WFormBorderStyle() 表示不要外观与文案', (tester) async {
     final form = WFormController();
 
     await tester.pumpWidget(
@@ -63,7 +63,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            borderConfig: const WFormBorderConfig(),
+            borderStyle: const WFormBorderStyle(),
             child: WFormTextField(
               name: 'email',
               label: '邮箱',
@@ -81,8 +81,8 @@ void main() {
     expect(find.text('请输入邮箱'), findsNothing);
   });
 
-  testWidgets('祖先 WFormTheme 的 borderConfig 在 WForm 未显式传时生效', (tester) async {
-    final ancestor = WFormBorderConfig.fromTheme(
+  testWidgets('祖先 WFormTheme 的 borderStyle 在 WForm 未显式传时生效', (tester) async {
+    final ancestor = WFormBorderStyle.fromTheme(
       ThemeData(useMaterial3: true),
       hintStyle: const TextStyle(color: Color(0xFF00AA00)),
     );
@@ -91,7 +91,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: WFormTheme(
-            borderConfig: ancestor,
+            borderStyle: ancestor,
             child: WForm(
               controller: WFormController(),
               child: const WFormTextField(name: 'email', label: '邮箱', message: '提示'),
@@ -105,12 +105,12 @@ void main() {
     expect(hint.style?.color, const Color(0xFF00AA00));
   });
 
-  testWidgets('WForm 显式 borderConfig 优先于祖先 WFormTheme（嵌套场景）', (tester) async {
-    final ancestor = WFormBorderConfig.fromTheme(
+  testWidgets('WForm 显式 borderStyle 优先于祖先 WFormTheme（嵌套场景）', (tester) async {
+    final ancestor = WFormBorderStyle.fromTheme(
       ThemeData(useMaterial3: true),
       hintStyle: const TextStyle(color: Color(0xFF00AA00)),
     );
-    final inner = WFormBorderConfig.fromTheme(
+    final inner = WFormBorderStyle.fromTheme(
       ThemeData(useMaterial3: true),
       hintStyle: const TextStyle(color: Color(0xFF0000AA)),
     );
@@ -119,10 +119,10 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: WFormTheme(
-            borderConfig: ancestor,
+            borderStyle: ancestor,
             child: WForm(
               controller: WFormController(),
-              borderConfig: inner,
+              borderStyle: inner,
               child: const WFormTextField(name: 'email', label: '邮箱', message: '提示'),
             ),
           ),

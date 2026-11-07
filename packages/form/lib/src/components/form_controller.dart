@@ -1,10 +1,7 @@
-import 'dart:collection';
-
 import 'package:flutter/foundation.dart' show internal;
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'border/border_registry.dart' as border_registry;
 import 'validation/validator.dart';
 
 /// 表单数据管理类
@@ -33,9 +30,25 @@ class WFormController {
   /// 上次 `validate()` / `save()` 时的快照（旧 `value` 语义）
   Map<String, dynamic> get savedValue => formKey.currentState?.value ?? const <String, dynamic>{};
 
-  /// 各字段是否已输入的映射（只读视图；写入走 [handleChange] / [updateValue]）
-  Map<String, bool> get formEntered => UnmodifiableMapView(_formEntered);
-  final Map<String, bool> _formEntered = {};
+  /// 各字段是否已输入的映射（**由当前字段值实时派生**，只读）
+  ///
+  /// 判定规则：字符串 / 集合 / Map 按非空，布尔按自身值，其它类型按非 null。
+  /// 不再依赖字段自觉调用 [handleChange]，自定义字段也能被正确反映。
+  Map<String, bool> get formEntered {
+    final registered = fields;
+    if (registered == null) return const <String, bool>{};
+    return {
+      for (final name in registered.keys) name: _isEntered(registered[name]?.value),
+    };
+  }
+
+  static bool _isEntered(Object? value) => switch (value) {
+    String v => v.isNotEmpty,
+    Iterable v => v.isNotEmpty,
+    Map v => v.isNotEmpty,
+    bool v => v,
+    _ => value != null,
+  };
 
   /// 指定字段是否都已输入
   ///
@@ -43,19 +56,16 @@ class WFormController {
   /// 字段卸载后 [formEntered] 会被清理，因此动态字段不会残留。
   bool isAllEntered(Iterable<String> fieldNames) {
     if (fieldNames.isEmpty) return false;
-    pruneFormEntered();
+    final registered = fields;
+    if (registered == null) return false;
     for (final name in fieldNames) {
-      if (_formEntered[name] != true) return false;
+      if (!_isEntered(registered[name]?.value)) return false;
     }
     return true;
   }
 
-  /// 清理已卸载字段在 [formEntered] 中的残留记录
-  void pruneFormEntered() {
-    final registered = fields;
-    if (registered == null) return;
-    _formEntered.removeWhere((name, _) => !registered.containsKey(name));
-  }
+  /// 兼容保留：`formEntered` 已改为实时派生，不再需要手动清理
+  void pruneFormEntered() {}
 
   /// 按字段名设置字段值
   ///
@@ -75,9 +85,21 @@ class WFormController {
     handleChange<T>(name, value);
   }
 
-  /// 清空指定字段并更新输入状态
+  /// 清空指定字段：把值写成 `null` 并更新输入状态
+  ///
+  /// 只对**可空类型**（String / 数值等）语义明确；`bool` / `Set` 这类非空值类型
+  /// 请用 [resetValue] 回到字段自己的 `initialValue`。
   void clearValue(String name) {
     updateValue<String?>(name, null);
+  }
+
+  /// 把指定字段重置回它自己的 `initialValue`
+  ///
+  /// 适用于非空值类型：`bool` → 初值（含 `false`）、`Set<String>` → 初值集合、
+  /// 日期 / 下拉 → 初值。等价于对该字段调用 `FormFieldState.reset()`，
+  /// 因此字段自己声明的 `onReset` 也会执行。
+  void resetValue(String name) {
+    formKey.currentState?.fields[name]?.reset();
   }
 
   /// 重置表单：所有字段回到各自初始值
@@ -99,13 +121,6 @@ class WFormController {
     VoidCallback? callback,
   }) {
     clearError(name);
-    _formEntered[name] = switch (value) {
-      String v => v.isNotEmpty,
-      Iterable v => v.isNotEmpty,
-      Map v => v.isNotEmpty,
-      bool v => v,
-      _ => value != null,
-    };
     callback?.call();
   }
 
@@ -114,6 +129,46 @@ class WFormController {
   /// 实际类型与 [T] 不符时抛错。
   T? getFieldsValue<T>(String name) {
     return formKey.currentState?.fields[name]?.value as T?;
+  }
+
+  /// 边框 owner 登记（仅用于检测同名字段，不保存任何 widget 状态）
+  final Map<String, Object> _borderOwners = {};
+
+  /// 每个字段的错误通道（字段名 → 当前错误列表）
+  ///
+  /// 边框订阅自己的通道渲染错误；这样不需要 `GlobalKey` 反查 widget 状态。
+  final Map<String, ValueNotifier<List<String>?>> _errorChannels = {};
+
+  /// 内部：取（或创建）指定字段的错误通道；`WFormFieldShell` 注册边框时调用
+  @internal
+  ValueNotifier<List<String>?> errorChannelOf(String name) =>
+      _errorChannels.putIfAbsent(name, () => ValueNotifier<List<String>?>(null));
+
+  /// 内部：字段卸载时注销错误通道
+  @internal
+  void removeErrorChannel(String name) {
+    _errorChannels.remove(name)?.dispose();
+  }
+
+  /// 内部：注册字段边框（重复 name 在 debug 直接报出来）
+  @internal
+  void registerBorder(String name, {required Object owner}) {
+    final existing = _borderOwners[name];
+    assert(
+      existing == null || identical(existing, owner),
+      '字段 name 重复：$name。同一 WForm 内 name 必须唯一'
+      '（检查是否同时挂载了两个 name 相同的字段，或边框用了子字段的名字）。',
+    );
+    _borderOwners[name] = owner;
+    errorChannelOf(name);
+  }
+
+  /// 内部：注销字段边框（只清自己的登记）
+  @internal
+  void unregisterBorder(String name, {required Object owner}) {
+    if (!identical(_borderOwners[name], owner)) return;
+    _borderOwners.remove(name);
+    removeErrorChannel(name);
   }
 
   /// 设置指定字段的错误样式
@@ -125,32 +180,28 @@ class WFormController {
     List<String>? errorTextList,
     VoidCallback? callback,
   }) {
-    final borderKey = border_registry.borderKeyOf(this, name);
     assert(
-      borderKey != null || !(fields?.containsKey(name) ?? false),
-      '字段 $name 没有边框 key（bordered: false 的字段不会渲染 setError）；'
+      hasBorder(name) || !(fields?.containsKey(name) ?? false),
+      '字段 $name 没有边框（bordered: false 的字段不会渲染 setError）；'
       '这类字段的错误请从 WFormValidator.errors 读取。',
     );
-    borderKey?.currentState?.setError(
-      true,
-      errorTextList: errorTextList,
-    );
+    if (hasBorder(name)) {
+      errorChannelOf(name).value = errorTextList ?? const <String>[];
+    }
     callback?.call();
   }
 
   /// 清除指定字段的错误样式
   void clearError(String name) {
-    border_registry.borderKeyOf(this, name)?.currentState?.setError(false);
+    _errorChannels[name]?.value = null;
   }
 
   /// 内部：该字段是否已注册边框（`bordered: false` 的字段没有）。
   @internal
-  bool hasBorder(String name) => border_registry.hasBorder(this, name);
+  bool hasBorder(String name) => _errorChannels.containsKey(name);
 
-  /// 注销指定字段的输入状态；字段卸载时由 WFormFieldShell 调用
-  void removeFormEntered(String name) {
-    _formEntered.remove(name);
-  }
+  /// 兼容保留：`formEntered` 已改为实时派生，无需注销
+  void removeFormEntered(String name) {}
 
   /// 关闭键盘
   void closeKeyboard() {
@@ -163,9 +214,7 @@ class WFormController {
   /// 表单未挂载时按空校验项处理（调用 [WFormValidator.validate] 会通过）。
   WFormValidator validators({WFormValidatorSettings? settings, List<WFormValidatorItem>? items}) {
     final validationItems =
-        items ??
-        (fields?.keys.map(WFormValidatorItem.field).toList(growable: false) ??
-            const <WFormValidatorItem>[]);
+        items ?? (fields?.keys.map(WFormValidatorItem.field).toList() ?? <WFormValidatorItem>[]);
     return WFormValidator(
       formData: this,
       validationItems: validationItems,
@@ -184,9 +233,7 @@ class WFormController {
     if (formKey.currentState == null) return false;
     pruneFormEntered();
     final validationItems =
-        items ??
-        (fields?.keys.map(WFormValidatorItem.field).toList(growable: false) ??
-            const <WFormValidatorItem>[]);
+        items ?? (fields?.keys.map(WFormValidatorItem.field).toList() ?? <WFormValidatorItem>[]);
     return validators(items: validationItems, settings: settings ?? validatorSettings).validate();
   }
 }

@@ -5,18 +5,46 @@
   `radioSelectedIcon`、`checkboxUnselectedIcon`、`checkboxSelectedIcon`、
   `obscureTextIcon`、`obscureTextVisibleIcon`、`clearButtonIcon`）：
   统一用 `icons: WFormIcons(...)`；`WForm` 仍会继承外层 `WFormTheme.icons`。
-- 公开 barrel 不再导出 `WFormBorderConfigScope`、`WFormBorderState`、`WFormPopupRoute`
-  （内部实现；`WFormPopup.show` / `hide`、`WFormBorderConfig` 不变）。
+- `WFormBorderConfig` 改名为 `WFormBorderStyle`（视觉样式，不是 Config）。同时改名：
+  `WForm(borderConfig:)` → `borderStyle:`、`WFormTheme(borderConfig:)` → `borderStyle:`、
+  `WFormScope.formBorderConfig` → `formBorderStyle`、`WFormScope.borderConfigOf` →
+  `borderStyleOf`、`WFormBorder.config` → `WFormBorder.style`。
+  删除零调用的 `WFormBorderConfig.build()` 与 `WFormBorderConfig.copy()`（用 `copyWith`）。
+- 公开 barrel 不再导出 `WFormBorderStyleScope`、`WFormBorderState`、`WFormPopupRoute`
+  （内部实现；`WFormPopup.show` / `hide` 不变）。
   移除的成员：`WForm.dropdownIcon`、`WForm.radioUnselectedIcon`、`WForm.radioSelectedIcon`、`WForm.checkboxUnselectedIcon`、`WForm.checkboxSelectedIcon`、`WForm.obscureTextIcon`、`WForm.obscureTextVisibleIcon`、`WForm.clearButtonIcon`、`WFormTheme.dropdownIcon`、`WFormTheme.radioUnselectedIcon`、`WFormTheme.radioSelectedIcon`、`WFormTheme.checkboxUnselectedIcon`、`WFormTheme.checkboxSelectedIcon`、`WFormTheme.obscureTextIcon`、`WFormTheme.obscureTextVisibleIcon`、`WFormTheme.clearButtonIcon`。
+- `WFormFieldShell.useIntrinsicHeight` 删除：`WFormFieldShell.new` 不再接受该参数
+  （没有任何调用方；需要时用外层 `IntrinsicHeight`）。
 - `WFormController.formBorderKeys` 不再公开（内部管道在 `border_registry.dart` 中维护）；
   判断字段是否有边框用 `WFormController.hasBorder(name)`（内部 API）。
 - `WFormController.ensureBorderKey` / `WFormController.removeBorderKey` 不再公开：边框 key 由包内
   `border_registry.dart` 管理；业务侧用 `setError` / `clearError`。
 - `WFormController.formEntered` 改为只读视图，写入请走 `handleChange` / `updateValue`。
 - `WFormValidatorItem` 的 `fieldName` / `validatorBuilder` / `autofocus` 改为构造后不可变。
+- `WFormButton` 改为 `typedef WFormButton = WFormFieldButton<String>`（不再是独立类）：
+  `WFormButton.actions` / `WFormButton.bordered` / `WFormButton.build` / `WFormButton.enableFocusBorder` / `WFormButton.enabled` / `WFormButton.focusNode` / `WFormButton.hintTextList` / `WFormButton.hintWidget` / `WFormButton.initialValue` / `WFormButton.isTransparentBackground` / `WFormButton.label` / `WFormButton.leading` / `WFormButton.name` / `WFormButton.onTap` / `WFormButton.readOnly` / `WFormButton.selectedWidgetBuilder` / `WFormButton.validator`
+  现在来自 `WFormFieldButton`，签名不变；
+  `find.byType(WFormButton)` 等价于 `find.byType(WFormFieldButton<String>)`。
+
+- 边框布局收敛为一个函数 `typedef WFormBorderLayout`（`WFormBorderLayout.new` /
+  `WFormBorderLayout.column` / `WFormBorderLayout.builder` 不再存在）：删除 `WFormBorderColumnLayout` /
+  `WFormBorderBuilderLayout` / `WFormBorderLayoutBuilder`，默认布局改为顶层
+  `columnBorderLayout`；自定义布局直接传 `(context, data) => ...`。
+- `WFormTheme` 拆成 widget + 数据：新增 `WFormThemeData`（icons / borderStyle + `effective*` + `of`），
+  `effective*` getter 从 widget 移到数据类；`WFormTheme.maybeOf` 由返回 widget 改为返回数据。
+  移除的成员：`WFormTheme.effectiveCheckboxSelectedIcon` / `WFormTheme.effectiveCheckboxUnselectedIcon` / `WFormTheme.effectiveClearButtonIcon` / `WFormTheme.effectiveDropdownIcon` / `WFormTheme.effectiveObscureTextIcon` / `WFormTheme.effectiveObscureTextVisibleIcon` / `WFormTheme.effectiveRadioSelectedIcon` / `WFormTheme.effectiveRadioUnselectedIcon` / `WFormTheme.maybeOf`
+- `WFormValidatorSettings` 改为**不可变配置**：字段全部 `final`，新增 `const` 构造的命名参数；
+  旧写法 `WFormValidatorSettings()..showBorderError = true` 不能再赋值，改用
+  `const WFormValidatorSettings(showBorderError: true)`。`copy()` / `copyWith()` 仍返回新实例。
 - 迁移见 `docs/migrations/form-6.0.md`。
 
 ### Added
+- `WFormCheckbox` / `WFormRadioGroup` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker`
+  新增 `focusNode` 参数（与 `WFormTextField` / `WFormButton` 对齐），用于校验自动聚焦或外部接管焦点。
+- `WFormController.resetValue(name)`：把单个字段重置回它自己的 `initialValue`（bool / Set 等非空值类型
+  用它；`clearValue` 仍是一律写 `null`，只对可空类型语义明确，文档已注明）。
+- `WFormTextField` / `WFormCheckbox` / `WFormDatePicker` 新增 `style` 参数：单字段覆盖正文样式，
+  未传时仍取 `WForm.fieldStyle.textStyle`（与 `WFormRadioGroup.style` 对齐）。
 - `WForm.onChanged`：任一字段变化后回调当前整表值（`Map<String, dynamic>`）。
 - `WFormCheckbox.message` / `WFormRadioGroup.message`：与其余直接字段一致的提示文案入口
   （仅在 `bordered: true` 时渲染，与 `hintTextList` 二选一）。
@@ -41,6 +69,25 @@
 - `message` 与 `hintTextList` 同时传会在 debug 断言，不再静默丢弃 `message`。
 - `bordered: false` 字段调用 `setError` 会在 debug 断言提示（release 仍 no-op），
   错误请从 `WFormValidator.errors` 读。
+- `WFormTextFieldData` 从 `abstract final class` 改为 `abstract interface class`：消费方（或测试）
+  可以自行 `implements` 它来 fake 输入框状态。
+- `WFormDatePicker` 的默认 `lastDate` 从「今天」放宽到 `DateTime(2100)`：预约 / 到期日这类
+  场景不再默认选不了未来；只要选过去的表单请显式传 `lastDate: DateTime.now()`。
+- `WFormValidatorSettings` 增加 `==` / `hashCode`：按官方示例在 `build` 里内联构造等值设置时，
+  不再每次重建都重写 `controller.validatorSettings`。
+- `bordered: false` 的字段不再静默丢弃 `message` / `hintTextList`：改为渲染在字段下方
+  （12px 默认文字样式，release 同样生效）；原来只有 debug 断言。
+- 边框样式只保留**一个** `WFormBorderStyleScope` 通道：`WFormScope.borderStyleOf` 直接读该作用域，
+  `WFormTheme` 在没有有效样式时不再插入空作用域。
+- 错误通道消重：同一字段同时触发 `WFormValidator.validate()`（边框通道）与
+  `formKey.validate()`（内联 `errorText`）时，文案只渲染一次——内联错误优先，
+  边框只保留错误态装饰。
+- 边框错误改为**控制器内的按字段错误通道**（删掉 `GlobalKey` 反查与 `border_registry.dart`）：
+  `setError` / `clearError` 行为不变，字段卸载时通道随之注销；同名字段仍在 debug 抛可读错误。
+- `WFormController.formEntered` 改为**由当前字段值实时派生**：不再要求字段调用 `handleChange`，
+  自定义字段也能被正确反映；`pruneFormEntered` / `removeFormEntered` 保留为兼容 no-op。
+- 禁用态视觉统一：`WFormCheckbox` / `WFormRadioGroup` 在 `enabled: false` 时整行 0.5 透明度，
+  与 `WFormButton` 一致（之前只有图标/文案不变，看不出禁用）。
 - 文档：`WForm` / `WFormController` 必须一对一（共用 controller 会 `GlobalKey` 冲突）；
   修正 `textAlign` 直接参数、`WFormTheme` / `WFormScope` 用法。
 
@@ -106,7 +153,7 @@
 
 ### Removed
 - `WFormDefaults`：默认图标改用 `WFormIcons.defaults` / `WFormTheme.icons`。
-- `WFormBorderConfigBuilder` + `WFormBorderConfig.builder()`：直接用 `WFormBorderConfig(...)` / `copyWith`。
+- `WFormBorderStyleBuilder` + `WFormBorderStyle.builder()`：直接用 `WFormBorderStyle(...)` / `copyWith`。
 - `WFormRowBorderExtension`（`Row.withFormBorder`）：直接用 `WFormFieldShell(child: Row(...))`。
 
 ## 3.2.0
@@ -131,11 +178,11 @@
 ## 3.0.0
 
 ### Breaking
-- `WForm` 未传 `borderConfig` 时，默认使用 `WFormBorderConfig.fromTheme(Theme.of(context))`：
+- `WForm` 未传 `borderStyle` 时，默认使用 `WFormBorderStyle.fromTheme(Theme.of(context))`：
   字段会有主题边框 / 背景，`message` 与校验错误默认可见（未显式传 `validatorSettings` 时
-  `showBorderError = true`）。需要保持「无外观」的页面请显式传 `const WFormBorderConfig()`。
-- `WFormTheme` 的优先级改为「显式参数 > 祖先作用域」：嵌套时里层 `WFormTheme(borderConfig:)`
-  或 `WForm(borderConfig:)` 说了算（此前祖先会覆盖显式参数）。
+  `showBorderError = true`）。需要保持「无外观」的页面请显式传 `const WFormBorderStyle()`。
+- `WFormTheme` 的优先级改为「显式参数 > 祖先作用域」：嵌套时里层 `WFormTheme(borderStyle:)`
+  或 `WForm(borderStyle:)` 说了算（此前祖先会覆盖显式参数）。
 
 ### Changed
 - 显式 re-export `flutter_form_builder` 的核心类型（`FormBuilderField` / `FormBuilderFieldState` /
@@ -143,7 +190,7 @@
   的公开类型不再“隐式泄漏”，消费方无需自行声明同版本依赖。
 
 ### Deprecated
-- `WFormBorderConfig.builder()` / `WFormBorderConfigBuilder`：4.0 移除，改用 `WFormBorderConfig(...)` / `copyWith`。
+- `WFormBorderStyle.builder()` / `WFormBorderStyleBuilder`：4.0 移除，改用 `WFormBorderStyle(...)` / `copyWith`。
 - `Row.withFormBorder(...)`：4.0 移除，改用 `WFormFieldShell(name: ..., child: Row(...))`。
 
 ### Fixed
@@ -151,8 +198,8 @@
 - `bordered: false` 时传入 `message` / `hintTextList` 会触发断言，不再静默丢弃。
 
 ### Added
-- `WFormBorderConfig` / `WFormBorderDecoration` 实现 `==` / `hashCode`；
-  `WFormBorderConfig` 新增 `hintStyle` / `errorStyle` 字段（内置工厂用它渲染默认文案，
+- `WFormBorderStyle` / `WFormBorderDecoration` 实现 `==` / `hashCode`；
+  `WFormBorderStyle` 新增 `hintStyle` / `errorStyle` 字段（内置工厂用它渲染默认文案，
   不再创建闭包，配置可比较）。
 
 ### Changed
@@ -161,9 +208,9 @@
 ## 2.2.0
 
 ### Added
-- `WFormBorderConfig.fromTheme(ThemeData)`：边框 / 背景 / 聚焦 / 错误 / 只读底色全部来自 `ColorScheme`，
+- `WFormBorderStyle.fromTheme(ThemeData)`：边框 / 背景 / 聚焦 / 错误 / 只读底色全部来自 `ColorScheme`，
   hint / error 文字取 `TextTheme.bodySmall`（颜色用 `onSurfaceVariant` / `error`）。深色主题不再白底。
-- `WFormBorderConfig.standard()` 的注释明确为「显式浅色预设」，新代码请用 `fromTheme`。
+- `WFormBorderStyle.standard()` 的注释明确为「显式浅色预设」，新代码请用 `fromTheme`。
 
 ### Changed
 - 多选弹层的阴影色默认取 `colorScheme.shadow`，不再写死 `Colors.grey`。
@@ -171,7 +218,7 @@
 ## 2.1.0
 
 ### Changed
-- 校验设置：`WForm` 只传 `borderConfig` 而未传 `validatorSettings` 时，默认 `showBorderError = true`；此前 `validate()` 失败时界面没有任何反馈。显式传 `validatorSettings` 时完全以显式为准。
+- 校验设置：`WForm` 只传 `borderStyle` 而未传 `validatorSettings` 时，默认 `showBorderError = true`；此前 `validate()` 失败时界面没有任何反馈。显式传 `validatorSettings` 时完全以显式为准。
 
 ### Fixed
 - `WFormButton.onTap` 的 `didChange` 在字段已卸载时直接返回，不再对已销毁的字段 `setState`。
@@ -191,14 +238,14 @@
 - 新增直接字段构造 API（`WFormTextField` / `WFormDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` / `WFormButton` 等）。
 - 原字段 Widget 重命名为 `*Core` 作为低层实现；普通页面不再需要 `Config.build`。
 - 新增登录 / 会员资料可运行示例 `example/`。
-- 字段 Config 统一为可变 cascade，继承 `WFormFieldBaseConfig`；`WFormBorderConfig` 保持不可变。
-- 移除字段 Config Builder；边框保留 `WFormBorderConfigBuilder`。
+- 字段 Config 统一为可变 cascade，继承 `WFormFieldBaseConfig`；`WFormBorderStyle` 保持不可变。
+- 移除字段 Config Builder；边框保留 `WFormBorderStyleBuilder`。
 - `WFormValidatorConfig` 重命名为 `WFormValidatorSettings`，`validators` / `validate` 参数统一为 `settings`。
 - 新增 `WFormController.updateValue`，同时写值并更新输入状态。
 - 新增 `WFormController.validate()`；`isAllEntered` 改为显式字段名集合（空集合返回 false）。
 - 裸字段 `readOnly` 通过 `WFormReadOnlyScope` 生效；无状态下拉也通过 `WFormFieldCleanup` 清理 `formEntered`。
-- `WFormBorder` 可直接读取 `WFormTheme.borderConfig`，不再要求主题必须先于 Scope；改为 `WFormBorderConfigScope`，消除 border / scope / theme 循环 import。
-- 新增 `WFormBorderConfig.standard()`，并提供 `WFormTheme.borderConfig` 作用域继承。
+- `WFormBorder` 可直接读取 `WFormTheme.borderStyle`，不再要求主题必须先于 Scope；改为 `WFormBorderStyleScope`，消除 border / scope / theme 循环 import。
+- 新增 `WFormBorderStyle.standard()`，并提供 `WFormTheme.borderStyle` 作用域继承。
 - `WFormTextFieldConfig.enabled=false` 现在真正禁用文本字段，不再静默失效；新增 `clearValue`。
 - 修复 `WFormMultiDropdownConfig.hintText` 不生效。
 
@@ -237,7 +284,7 @@
   （不对外导出），行为不变。
 - 新增字段组件：`WFormTextField` / `WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup`
 - 新增表单容器：`WFormBuilder` / `WFormData` / `WFormButton`
-- 新增边框体系：`WFormBorder` / `WFormBorderConfig` / `WFormBorderWithData` / `WFormReadOnlyScope`
+- 新增边框体系：`WFormBorder` / `WFormBorderStyle` / `WFormBorderWithData` / `WFormReadOnlyScope`
 - 新增校验能力：`WFormValidator` / `WFormValidatorItem` / `WFormCustomValidator`
 - 新增默认值与输入格式化工具：`WFormDefaults` / `WInputFormatters`
 - 支持字段级 `validator` 透传与配置化构建

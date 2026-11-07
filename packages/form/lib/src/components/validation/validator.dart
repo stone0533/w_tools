@@ -56,11 +56,18 @@ class WFormValidator {
   /// 校验项支持两种模式：`validatorBuilder` 自定义规则，或
   /// [WFormValidatorItem.field] 执行字段自身声明的 validator。
   /// 校验结果会写入 [errors]（字段名 -> 错误文本），可用于汇总展示全部错误。
+  /// 未显式传 [settings]、且 controller 也没有注入时，按 `showBorderError = true` 解析。
   bool validate() {
     formData.closeKeyboard();
     final formKey = formData.formKey;
     formKey.currentState?.save();
-    final resolvedConfig = settings ??= formData.validatorSettings ?? WFormValidatorSettings();
+    // 每次校验都重新解析：不把结果写回 settings，否则运行期改 controller.validatorSettings
+    // 或复用同一个 validator 时，会一直沿用第一次的设置。
+    // 没有任何显式设置时按「显示边框错误」解析：错误可见不应依赖是否用了 WForm 容器。
+    final resolvedConfig =
+        settings ??
+        formData.validatorSettings ??
+        const WFormValidatorSettings(showBorderError: true);
     _errors.clear();
 
     // 先筛掉跳过项，并清除参与本次校验字段上一次残留的边框错误
@@ -179,29 +186,40 @@ class WFormValidatorItem {
   }) : validatorBuilder = null;
 }
 
-/// 表单验证器配置类，定义验证器的行为
+/// 表单验证器配置（不可变）。
 ///
-/// 各选项通过可变字段配置，可用 [copy] / [copyWith] 生成副本
+/// 构造后不能再改字段；要改就用 [copyWith] 生成新实例。
+/// 字段全部 `final` + `==` / `hashCode`，所以「值相等的设置」不会触发重复注入。
 class WFormValidatorSettings {
+  /// 创建校验设置
+  const WFormValidatorSettings({
+    this.showBorderError = false,
+    this.continueOnError = false,
+    this.notifyAllErrors = false,
+    this.customErrorCallback,
+    this.itemValidationCallback,
+    this.shouldSkipValidation,
+  });
+
   /// 是否显示边框错误
   ///
   /// 仅控制校验失败时是否设置边框错误；校验开始时的清除不受此开关影响。
-  bool showBorderError = false;
+  final bool showBorderError;
 
   /// 遇到失败项后是否继续校验后续字段（默认 false，即短路校验）
-  bool continueOnError = false;
+  final bool continueOnError;
 
   /// 是否对所有失败项触发 [customErrorCallback]
-  bool notifyAllErrors = false;
+  final bool notifyAllErrors;
 
   /// 自定义错误处理函数（失败字段名、错误文本）
-  void Function(String fieldName, String error)? customErrorCallback;
+  final void Function(String fieldName, String error)? customErrorCallback;
 
   /// 每一项校验的结果回调（字段名、是否通过、错误文本）
-  void Function(String fieldName, bool isValid, String? errorText)? itemValidationCallback;
+  final void Function(String fieldName, bool isValid, String? errorText)? itemValidationCallback;
 
   /// 校验前判断是否跳过当前字段
-  bool Function(String fieldName, Map<String, dynamic>? formValues)? shouldSkipValidation;
+  final bool Function(String fieldName, Map<String, dynamic>? formValues)? shouldSkipValidation;
 
   /// 创建当前配置的副本
   WFormValidatorSettings copy() => copyWith();
@@ -217,17 +235,33 @@ class WFormValidatorSettings {
     void Function(String fieldName, bool isValid, String? errorText)? itemValidationCallback,
     bool Function(String fieldName, Map<String, dynamic>? formValues)? shouldSkipValidation,
   }) {
-    final config = WFormValidatorSettings();
-    config.showBorderError = showBorderError ?? this.showBorderError;
-    config.continueOnError = continueOnError ?? this.continueOnError;
-    config.notifyAllErrors = notifyAllErrors ?? this.notifyAllErrors;
-    config.customErrorCallback = customErrorCallback ?? this.customErrorCallback;
-    config.itemValidationCallback = itemValidationCallback ?? this.itemValidationCallback;
-    config.shouldSkipValidation = shouldSkipValidation ?? this.shouldSkipValidation;
-    return config;
+    return WFormValidatorSettings(
+      showBorderError: showBorderError ?? this.showBorderError,
+      continueOnError: continueOnError ?? this.continueOnError,
+      notifyAllErrors: notifyAllErrors ?? this.notifyAllErrors,
+      customErrorCallback: customErrorCallback ?? this.customErrorCallback,
+      itemValidationCallback: itemValidationCallback ?? this.itemValidationCallback,
+      shouldSkipValidation: shouldSkipValidation ?? this.shouldSkipValidation,
+    );
   }
-}
 
-/// WFormValidatorSettings 的 Builder。
-///
-/// 当前阶段仍返回可变 Config 的副本；后续 Config 不可变化后保持同一调用方式。
+  @override
+  bool operator ==(Object other) =>
+      other is WFormValidatorSettings &&
+      other.showBorderError == showBorderError &&
+      other.continueOnError == continueOnError &&
+      other.notifyAllErrors == notifyAllErrors &&
+      other.customErrorCallback == customErrorCallback &&
+      other.itemValidationCallback == itemValidationCallback &&
+      other.shouldSkipValidation == shouldSkipValidation;
+
+  @override
+  int get hashCode => Object.hash(
+    showBorderError,
+    continueOnError,
+    notifyAllErrors,
+    customErrorCallback,
+    itemValidationCallback,
+    shouldSkipValidation,
+  );
+}
