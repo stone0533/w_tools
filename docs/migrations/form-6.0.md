@@ -65,11 +65,12 @@ WFormFieldButton<int>(
 
 ## 5. 控制器与校验项的可见性收口
 
-- `WFormController.formBorderKeys` / `WFormController.ensureBorderKey` / `WFormController.removeBorderKey` 不再公开：
-  边框 key 由包内 `border_registry.dart` 管理；需要判断字段是否有边框时用
-  `hasBorder(name)`（`@internal`）。
-- `WFormController.formEntered` 改为只读视图：写入请用 `handleChange(name, value)` /
-  `updateValue(name, value)`。
+- `WFormController.formBorderKeys` / `WFormController.ensureBorderKey` / `WFormController.removeBorderKey`
+  不再公开：边框登记与错误通道由包内 `WFormBorderRegistry`（`border/border_registry.dart`）维护。
+  同版删除 `errorChannelOf` / `removeErrorChannel` / `registerBorder` / `unregisterBorder` / `hasBorder`；
+  业务侧只用 `setError` / `clearError`。
+- `WFormController.formEntered` 改为**按字段值实时派生的快照**：没有需要手工写入的输入状态，
+  `setValue` / `updateValue` 都会立即反映。同版删除兼容 no-op `pruneFormEntered` / `removeFormEntered`。
 - `WFormValidatorItem` 的 `fieldName` / `validatorBuilder` / `autofocus` 构造后不可变。
 
 ## 6. `bordered: false` 的校验

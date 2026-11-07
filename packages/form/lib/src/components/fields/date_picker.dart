@@ -11,7 +11,7 @@ import '../form_controller.dart';
 /// 表单日期选择器组件
 ///
 /// 字段值以 ISO `yyyy-MM-dd` 存储（与 locale 无关），显示时按
-/// [WFormDatePickerConfig.displayFormat] 与当前 locale 格式化；
+/// [displayFormat] 与当前 locale 格式化；
 /// 点击后弹出 [showDatePicker] 选择日期。
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
@@ -106,7 +106,7 @@ class WFormDatePickerCore extends FormBuilderField<String> {
 
            // 显示文本
            final date = _tryParse(state.value);
-           final title = date == null ? '' : DateFormat(displayFormat, locale).format(date);
+           final title = date == null ? '' : _formatDisplay(date, displayFormat, locale);
 
            // 容器与图标
            final content = Semantics(
@@ -181,6 +181,16 @@ class WFormDatePickerCore extends FormBuilderField<String> {
          },
        );
 
+  /// 按显示格式渲染日期；locale 数据未初始化（未装 flutter_localizations）
+  /// 时回退到内置的 en_US，避免在 build 期抛 LocaleDataException。
+  static String _formatDisplay(DateTime date, String pattern, String locale) {
+    try {
+      return DateFormat(pattern, locale).format(date);
+    } on Exception {
+      return DateFormat(pattern, 'en_US').format(date);
+    }
+  }
+
   /// 按 ISO `yyyy-MM-dd` 存储日期
   static String _formatStorage(DateTime date) {
     final month = date.month.toString().padLeft(2, '0');
@@ -216,11 +226,5 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePickerCore, S
     super.didChange(value);
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
     _formData?.handleChange(widget.name, value);
-  }
-
-  @override
-  void dispose() {
-    _formData?.removeFormEntered(widget.name);
-    super.dispose();
   }
 }

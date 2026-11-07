@@ -46,8 +46,7 @@ packages/form/
     ├── direct_fields.dart                # 直接字段 + WFormFieldButton
     ├── field_assembly.dart               # 直接字段的公共装配（bordered / 只读 / name 校验）
     ├── field_frame.dart                  # 外框布局（内部）
-    ├── field_lifecycle.dart              # 无状态字段的 formEntered 清理（内部）
-    ├── border/                           # WFormBorder / Style / FieldShell / border_registry
+    ├── border/                           # WFormBorder / Style / FieldShell / border_registry（内部）
     ├── fields/                           # WFormTextField / Dropdown / …（每个字段一个文件）
     ├── validation/                       # WFormValidator / CustomValidator
     ├── popup.dart                        # WFormPopup
@@ -71,7 +70,7 @@ WForm
 数据流：
 
 1. 字段通过 `FormBuilderFieldState.didChange` 更新值；
-2. `WFormController.handleChange` 更新 `formEntered` / 清错误；
+2. `WFormController.handleChange` 清该字段的边框错误（`formEntered` 由字段值实时派生，不靠它维护）；
 3. `form.validate()` / `form.validators().validate()` 执行字段 validator 或 `WFormValidatorItem`；
 4. 校验失败写边框错误，由 `WFormBorder` 渲染。
 
@@ -100,10 +99,10 @@ WFormScope(
 |---|---|
 | `value` / `savedValue` | 当前值 / 上次 `validate()` 或 `save()` 的快照 |
 | `fields` | 字段集合；未挂载时为 null |
-| `formEntered` | 各字段是否已输入的只读视图 |
+| `formEntered` | 各字段是否已输入的派生快照（每次调用返回独立副本，改它不影响表单） |
 | `isAllEntered(names)` | 指定字段是否都已输入 |
-| `updateValue<T>` | 写值 + 更新 `formEntered`；业务优先用这个 |
-| `setValue` / `handleChange` | 只写值 / 只更新输入状态与错误 |
+| `updateValue<T>` | 写值 + 清该字段边框错误（`setValue` + `handleChange`） |
+| `setValue` / `handleChange` | 只写值 / 只清错误；两者都会立刻反映到 `formEntered` |
 | `getFieldsValue<T>` | 不 `save` 也能取即时值 |
 | `validate({items})` | 一步校验；未挂载返回 false |
 | `validators({settings, items})` | 创建 `WFormValidator` |
@@ -238,17 +237,17 @@ WFormTextField(
 ### 5.3 WFormMultiDropdown
 
 - 值类型 `Set<String>`；通过 `WFormPopup` 在锚点下方弹出。
-- `disabledKeys` 显示选中态但不可点击；已选项按 `Set` 的迭代顺序拼接（不是点击先后）。
+- `disabledKeys` 显示选中态但不可点击；已选项按选择先后拼接（`Set` 插入序，等价于点击顺序）。
 
 ### 5.4 WFormCheckbox
 
 单选布尔值，`initialValue` 默认 `false`；`bordered` 默认 `false`（其余字段默认 `true`）；只读同时受 `enabled` 与 `WFormReadOnlyScope` 影响。
-提示文案用 `message`（仅在 `bordered: true` 时渲染；与 `hintTextList` 二选一）。
+提示文案用 `message`（有边框时交给 hint / error builder；无边框时渲染在字段下方；与 `hintTextList` 二选一）。
 
 ### 5.5 WFormRadioGroup<T>
 
 `items: Map<T, String>`，单列布局；`titleBuilder` / `itemExtraBuilder` 可定制每项，`lineSpacing` 控制行距；`bordered` 默认 `false`。
-提示文案用 `message`（仅在 `bordered: true` 时渲染；与 `hintTextList` 二选一）。
+提示文案用 `message`（有边框时交给 hint / error builder；无边框时渲染在字段下方；与 `hintTextList` 二选一）。
 
 ### 5.6 WFormDatePicker
 
@@ -281,6 +280,8 @@ final value = await WFormPopup.show<String>(
 ## 7. 校验系统
 
 `WFormValidator` 由 `WFormController.validators({settings, items})` 创建，按序执行。
+每次 `validate()` 会先调用 `FormBuilderState.save()`：`savedValue` 与当前值同步，
+字段声明的 `onSaved` 也会执行（即使校验失败）。
 `items` 为 null 时与 `validate()` 一致：校验当前已挂载字段的自身 validator。
 
 ### WFormValidatorItem

@@ -15,12 +15,17 @@
   移除的成员：`WForm.dropdownIcon`、`WForm.radioUnselectedIcon`、`WForm.radioSelectedIcon`、`WForm.checkboxUnselectedIcon`、`WForm.checkboxSelectedIcon`、`WForm.obscureTextIcon`、`WForm.obscureTextVisibleIcon`、`WForm.clearButtonIcon`、`WFormTheme.dropdownIcon`、`WFormTheme.radioUnselectedIcon`、`WFormTheme.radioSelectedIcon`、`WFormTheme.checkboxUnselectedIcon`、`WFormTheme.checkboxSelectedIcon`、`WFormTheme.obscureTextIcon`、`WFormTheme.obscureTextVisibleIcon`、`WFormTheme.clearButtonIcon`。
 - `WFormFieldShell.useIntrinsicHeight` 删除：`WFormFieldShell.new` 不再接受该参数
   （没有任何调用方；需要时用外层 `IntrinsicHeight`）。
-- `WFormController.formBorderKeys` 不再公开（内部管道在 `border_registry.dart` 中维护）；
-  判断字段是否有边框用 `WFormController.hasBorder(name)`（内部 API）。
-- `WFormController.ensureBorderKey` / `WFormController.removeBorderKey` 不再公开：边框 key 由包内
-  `border_registry.dart` 管理；业务侧用 `setError` / `clearError`。
-- `WFormController.formEntered` 改为只读视图，写入请走 `handleChange` / `updateValue`。
+- `WFormController.formBorderKeys` / `ensureBorderKey` / `removeBorderKey` 不再公开：边框登记与
+  错误通道由包内 `WFormBorderRegistry`（`border/border_registry.dart`，不导出）维护。
+- 同版删除 `WFormController.errorChannelOf` / `removeErrorChannel` / `registerBorder` /
+  `unregisterBorder` / `hasBorder`：业务侧只用 `setError` / `clearError`。
+- 同版删除兼容 no-op `WFormController.pruneFormEntered` / `WFormController.removeFormEntered`
+  （`formEntered` 已由字段值实时派生，没有需要手工清理的输入状态）。
+- `WFormController.formEntered` 改为**按字段值实时派生的快照**：`setValue` / `updateValue`
+  都会立即反映；返回的是独立副本，改它不影响表单。
 - `WFormValidatorItem` 的 `fieldName` / `validatorBuilder` / `autofocus` 改为构造后不可变。
+- `WFormValidator` 的 `formData` / `validationItems` / `settings` 改为 `final`（构造后不可换绑；
+  `validationItems` 列表内容仍可 `add`）。
 - `WFormButton` 改为 `typedef WFormButton = WFormFieldButton<String>`（不再是独立类）：
   `WFormButton.actions` / `WFormButton.bordered` / `WFormButton.build` / `WFormButton.enableFocusBorder` / `WFormButton.enabled` / `WFormButton.focusNode` / `WFormButton.hintTextList` / `WFormButton.hintWidget` / `WFormButton.initialValue` / `WFormButton.isTransparentBackground` / `WFormButton.label` / `WFormButton.leading` / `WFormButton.name` / `WFormButton.onTap` / `WFormButton.readOnly` / `WFormButton.selectedWidgetBuilder` / `WFormButton.validator`
   现在来自 `WFormFieldButton`，签名不变；
@@ -52,6 +57,13 @@
 - `WFormButton.message` / `WFormFieldButton.message`：提示文案简写（与 `hintTextList` 二选一）。
 
 ### Fixed
+- `WFormDropdown` 忽略 `WForm.fieldStyle.containerPadding`：下拉内容现在与其余字段
+  共用同一左内边距（同页不再错位）。
+- `WForm` 只在 controller / `validatorSettings` 变化时重设默认校验设置：改 `borderStyle`
+  不会再覆盖用户手动注入的 `controller.validatorSettings`。
+- `WFormPopup` 水平方向钳制在安全区内：显式 `width` 大于锚点宽度、或锚点贴边时，
+  弹层不再画到屏幕外。
+- `bordered: false` 的字段同样校验空 `name`（与 `bordered: true` 一致抛 `ArgumentError`）。
 - 外层 `WFormTheme` 的 `icons` 现在会被 `WForm` 继承，App 级统一图标生效。
 - `WFormPopup.hide` 在没有弹层时不再 pop 普通页面（改为 no-op）。
 - `WForm.fieldStyle` 的 `textStyle` / `hintStyle` 补齐到复选框标题、日期与多选占位符。
@@ -82,10 +94,16 @@
 - 错误通道消重：同一字段同时触发 `WFormValidator.validate()`（边框通道）与
   `formKey.validate()`（内联 `errorText`）时，文案只渲染一次——内联错误优先，
   边框只保留错误态装饰。
-- 边框错误改为**控制器内的按字段错误通道**（删掉 `GlobalKey` 反查与 `border_registry.dart`）：
+- 边框错误改为**按字段错误通道**（`WFormBorderRegistry`，删掉 `GlobalKey` 反查）：
   `setError` / `clearError` 行为不变，字段卸载时通道随之注销；同名字段仍在 debug 抛可读错误。
 - `WFormController.formEntered` 改为**由当前字段值实时派生**：不再要求字段调用 `handleChange`，
-  自定义字段也能被正确反映；`pruneFormEntered` / `removeFormEntered` 保留为兼容 no-op。
+  自定义字段也能被正确反映。
+- `WForm.fieldStyle` 的 `containerPadding` 补齐到下拉字段（之前只有高度 / 文字样式生效）。
+- `WFormFieldStyle` 增加 `==` / `hashCode`：字段级样式相等时不再触发无意义子树重建。
+- `validate()` 会先执行 `FormBuilderState.save()`：`savedValue` 与当前值同步，字段 `onSaved`
+  也会执行（即使校验失败）；文档已注明这个副作用。
+- `WFormDatePicker` 在 locale 数据未初始化（未装 `flutter_localizations`）时回退到 `en_US`
+  渲染，不再在 build 期抛 `LocaleDataException`。
 - 禁用态视觉统一：`WFormCheckbox` / `WFormRadioGroup` 在 `enabled: false` 时整行 0.5 透明度，
   与 `WFormButton` 一致（之前只有图标/文案不变，看不出禁用）。
 - 文档：`WForm` / `WFormController` 必须一对一（共用 controller 会 `GlobalKey` 冲突）；

@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../field_lifecycle.dart';
 import '../form_scope.dart';
 import '../form_icons.dart';
 import '../form_theme.dart';
@@ -79,7 +78,7 @@ class WFormDropdownCore<T> extends StatelessWidget {
   /// 提示文本
   final String? hintText;
 
-  /// 是否启用（null 时使用 [WFormDropdownConfig.enabled]）
+  /// 是否启用（由字段参数 / 外层只读作用域决定）
   /// 是否启用（只读作用域仍会覆盖）
   final bool enabled;
 
@@ -134,52 +133,49 @@ class WFormDropdownCore<T> extends StatelessWidget {
     // 继承外层只读作用域（WFormFieldShell.readOnly）
     final effectiveEnabled = enabled && !WFormReadOnlyScope.readOnlyOf(context);
 
-    return WFormFieldCleanup(
-      name: name,
-      child: WFormFieldFrame(
-        height: height,
-        width: width,
-        decoration: containerDecoration,
-        margin: containerMargin,
-        padding: containerPadding,
-        yOffset: yOffset,
-        leading: leading,
-        actions: actions,
-        child: FormBuilderDropdown<T>(
-          name: name,
-          items: items.entries
-              .map(
-                (e) => DropdownMenuItem<T>(
-                  value: e.key,
-                  child: Text(
-                    e.value,
-                    style: style,
-                    strutStyle: StrutStyle(
-                      fontFamily: style?.fontFamily,
-                      fontSize: style?.fontSize,
-                      fontWeight: style?.fontWeight,
-                      height: style?.height,
-                      forceStrutHeight: true,
-                    ),
+    return WFormFieldFrame(
+      height: height,
+      width: width,
+      decoration: containerDecoration,
+      margin: containerMargin,
+      padding: containerPadding,
+      yOffset: yOffset,
+      leading: leading,
+      actions: actions,
+      child: FormBuilderDropdown<T>(
+        name: name,
+        items: items.entries
+            .map(
+              (e) => DropdownMenuItem<T>(
+                value: e.key,
+                child: Text(
+                  e.value,
+                  style: style,
+                  strutStyle: StrutStyle(
+                    fontFamily: style?.fontFamily,
+                    fontSize: style?.fontSize,
+                    fontWeight: style?.fontWeight,
+                    height: style?.height,
+                    forceStrutHeight: true,
                   ),
                 ),
-              )
-              .toList(),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            contentPadding: contentPadding,
-          ),
-          initialValue: initialValue,
-          validator: validator,
-          icon: icon ?? theme?.effectiveDropdownIcon ?? WFormIcons.defaults.dropdown,
-          onChanged: onChangedHandler,
-          hint: hintWidget,
-          enabled: effectiveEnabled,
-          dropdownColor: dropdownColor,
-          focusNode: focusNode,
+              ),
+            )
+            .toList(),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          contentPadding: contentPadding,
         ),
+        initialValue: initialValue,
+        validator: validator,
+        icon: icon ?? theme?.effectiveDropdownIcon ?? WFormIcons.defaults.dropdown,
+        onChanged: onChangedHandler,
+        hint: hintWidget,
+        enabled: effectiveEnabled,
+        dropdownColor: dropdownColor,
+        focusNode: focusNode,
       ),
     );
   }

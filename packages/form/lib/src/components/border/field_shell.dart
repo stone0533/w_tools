@@ -54,17 +54,15 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
     super.didChangeDependencies();
     final next = WFormScope.requireOf(context);
     if (!identical(_formData, next)) {
-      _formData?.unregisterBorder(widget.name, owner: this);
-      _formData?.removeFormEntered(widget.name);
+      _formData?.borders.unregister(widget.name, owner: this);
       _formData = next;
-      _formData!.registerBorder(widget.name, owner: this);
+      _formData!.borders.register(widget.name, owner: this);
     }
   }
 
   @override
   void dispose() {
-    _formData?.unregisterBorder(widget.name, owner: this);
-    _formData?.removeFormEntered(widget.name);
+    _formData?.borders.unregister(widget.name, owner: this);
     super.dispose();
   }
 
@@ -81,9 +79,8 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
 
     // name 变化后旧 key 不再有意义，避免 formBorderKeys 累积
     if (oldWidget.name != widget.name) {
-      _formData?.unregisterBorder(oldWidget.name, owner: this);
-      _formData?.removeFormEntered(oldWidget.name);
-      _formData?.registerBorder(widget.name, owner: this);
+      _formData?.borders.unregister(oldWidget.name, owner: this);
+      _formData?.borders.register(widget.name, owner: this);
     }
 
     // 关闭焦点边框后回调不再触发，需在此复位，避免边框卡在聚焦装饰
@@ -107,7 +104,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
     child = WFormReadOnlyScope(readOnly: isReadOnly, child: child);
 
     return WFormBorder(
-      errorChannel: formData.errorChannelOf(widget.name),
+      errorChannel: formData.borders.channelOf(widget.name),
       fieldErrorText: formData.fields?[widget.name]?.errorText,
       style: WFormScope.borderStyleOf(context),
       hintTextList: widget.hintTextList,

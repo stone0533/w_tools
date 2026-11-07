@@ -401,16 +401,16 @@ void main() {
     await tester.pumpWidget(build(show: true));
     form.setError('a', errorTextList: const ['出错了']);
     await tester.pump();
-    expect(form.hasBorder('a'), isTrue);
+    expect(form.borders.has('a'), isTrue);
 
     await tester.pumpWidget(build(show: false));
     await tester.pump();
-    expect(form.hasBorder('a'), isFalse);
+    expect(form.borders.has('a'), isFalse);
 
     // 同名字段重新挂载：不应继承上一次的错误
     await tester.pumpWidget(build(show: true));
     await tester.pump();
-    expect(form.hasBorder('a'), isTrue);
+    expect(form.borders.has('a'), isTrue);
     expect(find.text('出错了'), findsNothing);
   });
 

@@ -47,6 +47,9 @@ FIELD = re.compile(r'^(.+?)\s+([a-zA-Z]\w*)\s*(?:=|;|$)')
 GETTER = re.compile(r'^([A-Za-z_][\w<>,?. ]*?)\s+get\s+([a-zA-Z]\w*)')
 MODIFIER = re.compile(r'^(?:static\s+)?(?:final|const|late\s+final)\s+')
 ENUM_VALUE = re.compile(r'^\s*([A-Za-z]\w*)\s*(?:,|;|$)', re.M)
+# 解析私有 getter 时，行尾的 `: null;` 曾被 FIELD 正则误当成成员名；
+# 这些是 Dart 保留字，不可能是真实成员名，统一排除（含旧快照的 `.null` 伪条目）。
+RESERVED_MEMBER_NAMES = {'null', 'true', 'false', 'this', 'super'}
 
 
 def _body(text: str, start: int) -> str:
@@ -144,7 +147,11 @@ def _members(type_name: str, body: str) -> dict[str, str]:
                 field = FIELD.match(candidate)
                 if field:
                     field_type, field_name = field.group(1), field.group(2)
-                    if field_name not in {'operator', 'Function'} and not field_name.startswith('_'):
+                    if (
+                        field_name not in {'operator', 'Function'}
+                        and field_name not in RESERVED_MEMBER_NAMES
+                        and not field_name.startswith('_')
+                    ):
                         out[f'{type_name}.{field_name}'] = _normalize(field_type)
         if (
             depth == 0
@@ -191,6 +198,10 @@ def api_surface(package_dir: pathlib.Path) -> dict[str, str]:
 def diff_api(baseline: dict[str, str], current: dict[str, str]) -> list[tuple[str, str, str | None]]:
     changes: list[tuple[str, str, str | None]] = []
     for key in sorted(baseline):
+        # 旧基线（5.1.1 等）里可能有 `X.null` 这类解析伪成员，忽略它们，
+        # 否则删掉一个私有 getter 会被判成公开 API 删除。
+        if key.rsplit('.', 1)[-1] in RESERVED_MEMBER_NAMES:
+            continue
         old = baseline[key]
         new = current.get(key)
         if new is None:

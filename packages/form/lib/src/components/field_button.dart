@@ -54,7 +54,7 @@ class WFormFieldButtonCore<T> extends StatelessWidget {
   /// 初始值
   final T? initialValue;
 
-  /// 是否启用（null 时使用 [WFormFieldButtonConfig] 中的值）
+  /// 是否启用（由字段参数 / 外层只读作用域决定）
   /// 是否启用（只读作用域仍会覆盖）
   final bool enabled;
 
@@ -192,11 +192,5 @@ class _WFormScopeButtonState<T> extends FormBuilderFieldState<_WFormScopeButton<
     super.didChange(value);
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
     _formData?.handleChange(widget.name, value);
-  }
-
-  @override
-  void dispose() {
-    _formData?.removeFormEntered(widget.name);
-    super.dispose();
   }
 }

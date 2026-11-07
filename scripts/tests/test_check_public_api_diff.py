@@ -387,6 +387,31 @@ class SnapshotIntegrityTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), latest_snapshot_version('ui'))
 
+    def test_private_getter_is_not_recorded_as_null_member(self):
+        """私有 getter 以 `: null;` 结尾时，不能把 null 当成成员名。"""
+        with tempfile.TemporaryDirectory() as temp:
+            package = pathlib.Path(temp)
+            (package / 'lib' / 'src').mkdir(parents=True)
+            (package / 'lib' / 'w_tools_demo.dart').write_text(
+                "export 'src/a.dart';\n"
+            )
+            (package / 'lib' / 'src' / 'a.dart').write_text(
+                'class WThing<T> {\n'
+                '  final T? value;\n'
+                '  List<String>? get _messages => value != null ? [value.toString()] : null;\n'
+                '}\n'
+            )
+            surface = api_surface(package)
+            self.assertNotIn('WThing.null', surface)
+
+    def test_legacy_null_pseudo_member_is_ignored_by_diff(self):
+        """旧快照里的 `X.null` 是解析伪成员，不能在 diff 里报成删除。"""
+        changes = diff_api(
+            {'WThing.null': 'List<String>? get _messages => ... :'},
+            {},
+        )
+        self.assertEqual(changes, [])
+
 
 if __name__ == '__main__':
     unittest.main()

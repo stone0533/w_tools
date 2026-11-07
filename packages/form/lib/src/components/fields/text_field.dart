@@ -204,7 +204,6 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
 
   @override
   void dispose() {
-    _formData.removeFormEntered(widget.name);
     if (widget.focusNode == null) {
       _focusNode.dispose();
     }
