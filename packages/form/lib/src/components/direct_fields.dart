@@ -11,35 +11,108 @@ import 'fields/multi_dropdown.dart';
 import 'fields/radio_group.dart';
 import 'fields/text_field.dart';
 
-// 新增直接字段时的约定（FORM-009 的收口结论）：
-// 1. 公共装配走 `assembleFormField`：不要在新字段里另写 assert / bordered 分支 /
-//    `hintTextList ?? [message]`，这些规则只在 field_assembly.dart 维护一份；
+// 新增直接字段时的约定（FORM-009 收口后）：
+// 1. 公共参数与装配走 `_WFormDirectField` 基类：字段只声明自己的参数与 core，
+//    不要在字段里另写 assert / bordered 分支 / 只读合并；
 // 2. `WForm.fieldStyle` 的 height / containerPadding / textStyle / hintStyle 要接到
 //    字段的 core 上（没有对应展示的可以不接，但在字段 doc 里写明）；漏接是静默失效；
-// 3. 在 `test/internal/field_style_matrix_test.dart` 补一行矩阵用例，否则漏接没人发现；
-// 4. 不做基类/参数收敛：公开 API 快照按「类自身成员」记录，字段或 build 挪进基类
-//    会被 check_public_api_diff 判成删除，需要先升级快照工具（独立任务）。
+// 3. 在 `test/internal/field_style_matrix_test.dart` 补一行矩阵用例，否则漏接没人发现。
+
+/// 直接字段的公共装配骨架（内部基类，不导出）。
+///
+/// 7 个直接字段共用这些参数与装配步骤（断言 / 只读合并 / 提示文案 / 外框）：
+/// 收敛在这里，新增公共参数或调整装配顺序时只改一处。
+///
+/// 子类只保留自己的参数与 core 构建（`_buildField`）；`bordered` 因默认值不同
+/// 仍由各字段声明并覆盖基类 getter。
+abstract class _WFormDirectField extends StatelessWidget {
+  const _WFormDirectField({
+    super.key,
+    required this.name,
+    this.message,
+    this.hintTextList,
+    this.isTransparentBackground,
+    this.enableFocusBorder = true,
+    this.readOnly = false,
+    this.enabled,
+    this.leading,
+    this.actions,
+  });
+
+  /// 字段名称
+  final String name;
+
+  /// 提示文案；与 [hintTextList] 二选一
+  final String? message;
+
+  /// 提示文案列表；与 [message] 二选一
+  final List<String>? hintTextList;
+
+  /// 是否透明背景
+  final bool? isTransparentBackground;
+
+  /// 是否启用焦点边框
+  final bool enableFocusBorder;
+
+  /// 是否只读
+  final bool readOnly;
+
+  /// 是否启用（null 视为启用）
+  final bool? enabled;
+
+  /// 左侧插槽
+  final Widget? leading;
+
+  /// 右侧操作插槽
+  final List<Widget>? actions;
+
+  /// 是否带边框（复选 / 单选默认 false，其余 true）
+  bool get bordered => true;
+
+  /// 构建字段的 core；公共装配（断言 / 只读 / 提示 / 外框）已由本类完成。
+  Widget _buildField(
+    BuildContext context,
+    WFormFieldStyle? fieldStyle,
+    bool effectiveEnabled,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final fieldStyle = WFormFieldStyle.of(context);
+    final effectiveEnabled = enabled ?? true;
+    return assembleFormField(
+      name: name,
+      bordered: bordered,
+      readOnly: readOnly || !effectiveEnabled,
+      message: message,
+      hintTextList: hintTextList,
+      isTransparentBackground: isTransparentBackground,
+      enableFocusBorder: enableFocusBorder,
+      child: _buildField(context, fieldStyle, effectiveEnabled),
+    );
+  }
+}
 
 /// 直接构造的表单字段。
 ///
 /// 这些 Widget 是日常业务入口：常用参数直接传入；页面级样式用
 /// `WForm.fieldStyle`，单个字段的特殊样式用 `WFormFieldStyleScope` 包裹。
 /// 字段由包内装配层实现（非公开 API），边框 / 校验 / 只读等能力保持不变。
-class WFormTextField extends StatelessWidget {
+class WFormTextField extends _WFormDirectField {
   const WFormTextField({
     super.key,
-    required this.name,
+    required super.name,
     this.label,
     this.hintText,
-    this.message,
+    super.message,
     this.initialValue,
     this.validator,
     this.onChanged,
     this.onSubmitted,
     this.onEditingComplete,
     this.focusNode,
-    this.enabled,
-    this.readOnly = false,
+    super.enabled,
+    super.readOnly,
     this.bordered = true,
     this.obscureText,
     this.autofocus,
@@ -47,28 +120,25 @@ class WFormTextField extends StatelessWidget {
     this.textInputAction,
     this.maxLines,
     this.inputFormatters,
-    this.actions,
-    this.leading,
-    this.hintTextList,
-    this.isTransparentBackground,
-    this.enableFocusBorder = true,
+    super.actions,
+    super.leading,
+    super.hintTextList,
+    super.isTransparentBackground,
+    super.enableFocusBorder,
     this.style,
   });
 
-  final String name;
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
   final String? hintText;
-  final String? message;
   final String? initialValue;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String?>? onChanged;
   final void Function(String?)? onSubmitted;
   final VoidCallback? onEditingComplete;
   final FocusNode? focusNode;
-  final bool? enabled;
-  final bool readOnly;
+  @override
   final bool bordered;
   final bool? obscureText;
   final bool? autofocus;
@@ -76,162 +146,129 @@ class WFormTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final int? maxLines;
   final List<TextInputFormatter>? inputFormatters;
-  final List<Widget>? actions;
-
-  /// 文本输入框左侧插槽。
-  final Widget? leading;
-  final List<String>? hintTextList;
-  final bool? isTransparentBackground;
-  final bool enableFocusBorder;
 
   /// 正文样式（未传时取 `WForm.fieldStyle`）
   final TextStyle? style;
 
   @override
-  Widget build(BuildContext context) {
-    final fieldStyle = WFormFieldStyle.of(context);
-    final effectiveEnabled = enabled ?? true;
-    return assembleFormField(
+  Widget _buildField(
+    BuildContext context,
+    WFormFieldStyle? fieldStyle,
+    bool effectiveEnabled,
+  ) {
+    return WFormTextFieldCore(
       name: name,
-      bordered: bordered,
-      readOnly: readOnly || !effectiveEnabled,
-      message: message,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      child: WFormTextFieldCore(
-        name: name,
-        initialValue: initialValue,
-        hintText: hintText ?? label,
-        validator: validator,
-        onChanged: onChanged,
-        onSubmitted: onSubmitted,
-        onEditingComplete: onEditingComplete,
-        focusNode: focusNode,
-        readOnly: readOnly,
-        enabled: effectiveEnabled,
-        style: style ?? fieldStyle?.textStyle,
-        hintStyle: fieldStyle?.hintStyle,
-        height: fieldStyle?.height,
-        containerPadding: fieldStyle?.containerPadding,
-        obscureText: obscureText ?? false,
-        autofocus: autofocus,
-        keyboardType: keyboardType,
-        textInputAction: textInputAction,
-        maxLines: maxLines,
-        inputFormatters: inputFormatters,
-        actions: actions,
-        leading: leading,
-      ),
+      initialValue: initialValue,
+      hintText: hintText ?? label,
+      validator: validator,
+      onChanged: onChanged,
+      onSubmitted: onSubmitted,
+      onEditingComplete: onEditingComplete,
+      focusNode: focusNode,
+      readOnly: readOnly,
+      enabled: effectiveEnabled,
+      style: style ?? fieldStyle?.textStyle,
+      hintStyle: fieldStyle?.hintStyle,
+      height: fieldStyle?.height,
+      containerPadding: fieldStyle?.containerPadding,
+      obscureText: obscureText ?? false,
+      autofocus: autofocus,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      maxLines: maxLines,
+      inputFormatters: inputFormatters,
+      actions: actions,
+      leading: leading,
     );
   }
 }
 
-class WFormDropdown<T> extends StatelessWidget {
+class WFormDropdown<T> extends _WFormDirectField {
   const WFormDropdown({
     super.key,
-    required this.name,
+    required super.name,
     required this.items,
     this.label,
     this.hintText,
-    this.message,
+    super.message,
     this.initialValue,
     this.validator,
     this.onChanged,
-    this.enabled,
-    this.readOnly = false,
+    super.enabled,
+    super.readOnly,
     this.bordered = true,
-    this.hintTextList,
-    this.isTransparentBackground,
-    this.enableFocusBorder = true,
+    super.hintTextList,
+    super.isTransparentBackground,
+    super.enableFocusBorder,
     this.icon,
     this.dropdownColor,
     this.contentPadding,
-    this.leading,
-    this.actions,
+    super.leading,
+    super.actions,
     this.focusNode,
   });
 
-  final String name;
   final Map<T, String> items;
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
   final String? hintText;
-  final String? message;
   final T? initialValue;
   final FormFieldValidator<T>? validator;
   final ValueChanged<T?>? onChanged;
-  final bool? enabled;
-  final bool readOnly;
+  @override
   final bool bordered;
-  final List<String>? hintTextList;
-  final bool? isTransparentBackground;
-  final bool enableFocusBorder;
   final Widget? icon;
   final Color? dropdownColor;
   final EdgeInsetsGeometry? contentPadding;
 
-  /// 字段左侧插槽。
-  final Widget? leading;
-
-  /// 字段右侧操作插槽。
-  final List<Widget>? actions;
-
   final FocusNode? focusNode;
 
   @override
-  Widget build(BuildContext context) {
-    final fieldStyle = WFormFieldStyle.of(context);
-    final effectiveEnabled = enabled ?? true;
-    return assembleFormField(
+  Widget _buildField(
+    BuildContext context,
+    WFormFieldStyle? fieldStyle,
+    bool effectiveEnabled,
+  ) {
+    return WFormDropdownCore<T>(
       name: name,
-      bordered: bordered,
-      readOnly: readOnly || !effectiveEnabled,
-      message: message,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      child: WFormDropdownCore<T>(
-        name: name,
-        items: items,
-        initialValue: initialValue,
-        validator: validator,
-        onChanged: onChanged,
-        hintText: hintText ?? label,
-        enabled: effectiveEnabled,
-        icon: icon,
-        style: fieldStyle?.textStyle,
-        hintStyle: fieldStyle?.hintStyle,
-        contentPadding: contentPadding,
-        focusNode: focusNode,
-        dropdownColor: dropdownColor,
-        height: fieldStyle?.height,
-        containerPadding: fieldStyle?.containerPadding,
-        leading: leading,
-        actions: actions,
-      ),
+      items: items,
+      initialValue: initialValue,
+      validator: validator,
+      onChanged: onChanged,
+      hintText: hintText ?? label,
+      enabled: effectiveEnabled,
+      icon: icon,
+      style: fieldStyle?.textStyle,
+      hintStyle: fieldStyle?.hintStyle,
+      contentPadding: contentPadding,
+      focusNode: focusNode,
+      dropdownColor: dropdownColor,
+      height: fieldStyle?.height,
+      containerPadding: fieldStyle?.containerPadding,
+      leading: leading,
+      actions: actions,
     );
   }
 }
 
-class WFormMultiDropdown extends StatelessWidget {
+class WFormMultiDropdown extends _WFormDirectField {
   const WFormMultiDropdown({
     super.key,
-    required this.name,
+    required super.name,
     required this.items,
     this.label,
     this.hintText,
-    this.message,
+    super.message,
     this.initialValue,
     this.validator,
     this.onChanged,
-    this.enabled,
-    this.readOnly = false,
+    super.enabled,
+    super.readOnly,
     this.bordered = true,
-    this.hintTextList,
-    this.isTransparentBackground,
-    this.enableFocusBorder = true,
+    super.hintTextList,
+    super.isTransparentBackground,
+    super.enableFocusBorder,
     this.icon,
     this.iconSize,
     this.checkboxUnselectedIcon,
@@ -241,27 +278,21 @@ class WFormMultiDropdown extends StatelessWidget {
     this.itemStyle,
     this.itemCheckedStyle,
     this.itemDisabledStyle,
-    this.leading,
-    this.actions,
+    super.leading,
+    super.actions,
     this.focusNode,
   });
 
-  final String name;
   final Map<String, String> items;
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
   final String? hintText;
-  final String? message;
   final Set<String>? initialValue;
   final FormFieldValidator<Set<String>>? validator;
   final ValueChanged<Set<String>>? onChanged;
-  final bool? enabled;
-  final bool readOnly;
+  @override
   final bool bordered;
-  final List<String>? hintTextList;
-  final bool? isTransparentBackground;
-  final bool enableFocusBorder;
   final Widget? icon;
   final double? iconSize;
   final Widget? checkboxUnselectedIcon;
@@ -272,62 +303,49 @@ class WFormMultiDropdown extends StatelessWidget {
   final TextStyle? itemCheckedStyle;
   final TextStyle? itemDisabledStyle;
 
-  /// 字段左侧插槽。
-  final Widget? leading;
-
-  /// 字段右侧操作插槽。
-  final List<Widget>? actions;
-
   final FocusNode? focusNode;
 
   @override
-  Widget build(BuildContext context) {
-    final fieldStyle = WFormFieldStyle.of(context);
-    final effectiveEnabled = enabled ?? true;
-    return assembleFormField(
+  Widget _buildField(
+    BuildContext context,
+    WFormFieldStyle? fieldStyle,
+    bool effectiveEnabled,
+  ) {
+    return WFormMultiDropdownCore(
       name: name,
-      bordered: bordered,
-      readOnly: readOnly || !effectiveEnabled,
-      message: message,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      child: WFormMultiDropdownCore(
-        name: name,
-        items: items,
-        initialValue: initialValue,
-        validator: validator,
-        onChanged: onChanged,
-        hintText: hintText ?? label,
-        enabled: effectiveEnabled,
-        icon: icon,
-        iconSize: iconSize,
-        style: fieldStyle?.textStyle,
-        hintStyle: fieldStyle?.hintStyle,
-        height: fieldStyle?.height,
-        containerPadding: fieldStyle?.containerPadding,
-        disabledKeys: disabledKeys,
-        leading: leading,
-        actions: actions,
-        checkboxUnselectedIcon: checkboxUnselectedIcon,
-        checkboxSelectedIcon: checkboxSelectedIcon,
-        checkboxDisabledIcon: checkboxDisabledIcon,
-        itemStyle: itemStyle,
-        itemCheckedStyle: itemCheckedStyle,
-        focusNode: focusNode,
-        itemDisabledStyle: itemDisabledStyle,
-      ),
+      items: items,
+      initialValue: initialValue,
+      validator: validator,
+      onChanged: onChanged,
+      hintText: hintText ?? label,
+      enabled: effectiveEnabled,
+      icon: icon,
+      iconSize: iconSize,
+      style: fieldStyle?.textStyle,
+      hintStyle: fieldStyle?.hintStyle,
+      height: fieldStyle?.height,
+      containerPadding: fieldStyle?.containerPadding,
+      disabledKeys: disabledKeys,
+      leading: leading,
+      actions: actions,
+      checkboxUnselectedIcon: checkboxUnselectedIcon,
+      checkboxSelectedIcon: checkboxSelectedIcon,
+      checkboxDisabledIcon: checkboxDisabledIcon,
+      itemStyle: itemStyle,
+      itemCheckedStyle: itemCheckedStyle,
+      focusNode: focusNode,
+      itemDisabledStyle: itemDisabledStyle,
     );
   }
 }
 
-class WFormDatePicker extends StatelessWidget {
+class WFormDatePicker extends _WFormDirectField {
   const WFormDatePicker({
     super.key,
-    required this.name,
+    required super.name,
     this.label,
     this.hintText,
-    this.message,
+    super.message,
     this.initialValue,
     this.firstDate,
     this.lastDate,
@@ -336,24 +354,22 @@ class WFormDatePicker extends StatelessWidget {
     this.iconSize,
     this.validator,
     this.onChanged,
-    this.enabled,
-    this.readOnly = false,
+    super.enabled,
+    super.readOnly,
     this.bordered = true,
-    this.hintTextList,
-    this.isTransparentBackground,
-    this.enableFocusBorder = true,
-    this.leading,
-    this.actions,
+    super.hintTextList,
+    super.isTransparentBackground,
+    super.enableFocusBorder,
+    super.leading,
+    super.actions,
     this.style,
     this.focusNode,
   });
 
-  final String name;
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
   final String? hintText;
-  final String? message;
   final String? initialValue;
   final DateTime? firstDate;
   final DateTime? lastDate;
@@ -364,104 +380,80 @@ class WFormDatePicker extends StatelessWidget {
   final double? iconSize;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String?>? onChanged;
-  final bool? enabled;
-  final bool readOnly;
+  @override
   final bool bordered;
-  final List<String>? hintTextList;
-  final bool? isTransparentBackground;
-  final bool enableFocusBorder;
 
   /// 日期文字样式（未传时取 `WForm.fieldStyle`）
   final TextStyle? style;
 
-  /// 字段左侧插槽。
-  final Widget? leading;
-
-  /// 字段右侧操作插槽。
-  final List<Widget>? actions;
-
   final FocusNode? focusNode;
 
   @override
-  Widget build(BuildContext context) {
-    final fieldStyle = WFormFieldStyle.of(context);
-    final effectiveEnabled = enabled ?? true;
-    return assembleFormField(
+  Widget _buildField(
+    BuildContext context,
+    WFormFieldStyle? fieldStyle,
+    bool effectiveEnabled,
+  ) {
+    return WFormDatePickerCore(
       name: name,
-      bordered: bordered,
-      readOnly: readOnly || !effectiveEnabled,
-      message: message,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      child: WFormDatePickerCore(
-        name: name,
-        firstDate: firstDate ?? DateTime(1900),
-        lastDate: lastDate ?? DateTime(2100),
-        initialValue: initialValue,
-        validator: validator,
-        onChanged: onChanged,
-        enabled: effectiveEnabled,
-        displayFormat: displayFormat ?? 'yMMMMd',
-        icon: icon,
-        iconSize: iconSize,
-        style: style ?? fieldStyle?.textStyle,
-        decoration: hintText == null && label == null
-            ? null
-            : (const InputDecoration()).copyWith(
-                hintText: hintText ?? label,
-                hintStyle: fieldStyle?.hintStyle,
-              ),
-        height: fieldStyle?.height,
-        containerPadding: fieldStyle?.containerPadding,
-        leading: leading,
-        focusNode: focusNode,
-        actions: actions,
-      ),
+      firstDate: firstDate ?? DateTime(1900),
+      lastDate: lastDate ?? DateTime(2100),
+      initialValue: initialValue,
+      validator: validator,
+      onChanged: onChanged,
+      enabled: effectiveEnabled,
+      displayFormat: displayFormat ?? 'yMMMMd',
+      icon: icon,
+      iconSize: iconSize,
+      style: style ?? fieldStyle?.textStyle,
+      decoration: hintText == null && label == null
+          ? null
+          : (const InputDecoration()).copyWith(
+              hintText: hintText ?? label,
+              hintStyle: fieldStyle?.hintStyle,
+            ),
+      height: fieldStyle?.height,
+      containerPadding: fieldStyle?.containerPadding,
+      leading: leading,
+      focusNode: focusNode,
+      actions: actions,
     );
   }
 }
 
-class WFormCheckbox extends StatelessWidget {
+class WFormCheckbox extends _WFormDirectField {
   const WFormCheckbox({
     super.key,
-    required this.name,
+    required super.name,
     required this.title,
-    this.message,
+    super.message,
     this.initialValue = false,
     this.validator,
     this.onChanged,
-    this.enabled,
-    this.readOnly = false,
+    super.enabled,
+    super.readOnly,
     this.bordered = false,
-    this.hintTextList,
-    this.isTransparentBackground,
-    this.enableFocusBorder = true,
+    super.hintTextList,
+    super.isTransparentBackground,
+    super.enableFocusBorder,
     this.unselectedIcon,
     this.selectedIcon,
     this.disabledIcon,
     this.iconSpacing,
     this.iconYOffset,
-    this.leading,
-    this.actions,
+    super.leading,
+    super.actions,
     this.style,
     this.focusNode,
   });
 
-  final String name;
   final Widget title;
 
-  /// 提示文案（有边框时渲染）；与 [hintTextList] 二选一。
-  final String? message;
   final bool initialValue;
   final FormFieldValidator<bool>? validator;
   final ValueChanged<bool?>? onChanged;
-  final bool? enabled;
-  final bool readOnly;
+  @override
   final bool bordered;
-  final List<String>? hintTextList;
-  final bool? isTransparentBackground;
-  final bool enableFocusBorder;
   final Widget? unselectedIcon;
   final Widget? selectedIcon;
   final Widget? disabledIcon;
@@ -471,93 +463,73 @@ class WFormCheckbox extends StatelessWidget {
   /// 标题文字样式（未传时取 `WForm.fieldStyle`）
   final TextStyle? style;
 
-  /// 字段左侧插槽。
-  final Widget? leading;
-
-  /// 字段右侧操作插槽。
-  final List<Widget>? actions;
-
   final FocusNode? focusNode;
 
   @override
-  Widget build(BuildContext context) {
-    final fieldStyle = WFormFieldStyle.of(context);
-    final effectiveEnabled = enabled ?? true;
-    return assembleFormField(
+  Widget _buildField(
+    BuildContext context,
+    WFormFieldStyle? fieldStyle,
+    bool effectiveEnabled,
+  ) {
+    return WFormCheckboxCore(
       name: name,
-      bordered: bordered,
-      readOnly: readOnly || !effectiveEnabled,
-      message: message,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      child: WFormCheckboxCore(
-        name: name,
-        title: title,
-        initialValue: initialValue,
-        validator: validator,
-        onChanged: onChanged,
-        enabled: effectiveEnabled,
-        unselectedIcon: unselectedIcon,
-        selectedIcon: selectedIcon,
-        disabledIcon: disabledIcon,
-        iconSpacing: iconSpacing,
-        iconYOffset: iconYOffset,
-        style: style ?? fieldStyle?.textStyle,
-        height: fieldStyle?.height,
-        containerPadding: fieldStyle?.containerPadding,
-        leading: leading,
-        focusNode: focusNode,
-        actions: actions,
-      ),
+      title: title,
+      initialValue: initialValue,
+      validator: validator,
+      onChanged: onChanged,
+      enabled: effectiveEnabled,
+      unselectedIcon: unselectedIcon,
+      selectedIcon: selectedIcon,
+      disabledIcon: disabledIcon,
+      iconSpacing: iconSpacing,
+      iconYOffset: iconYOffset,
+      style: style ?? fieldStyle?.textStyle,
+      height: fieldStyle?.height,
+      containerPadding: fieldStyle?.containerPadding,
+      leading: leading,
+      focusNode: focusNode,
+      actions: actions,
     );
   }
 }
 
-class WFormRadioGroup<T> extends StatelessWidget {
+class WFormRadioGroup<T> extends _WFormDirectField {
   const WFormRadioGroup({
     super.key,
-    required this.name,
+    required super.name,
     required this.items,
-    this.message,
+    super.message,
     this.initialValue,
     this.validator,
     this.onChanged,
     this.titleBuilder,
     this.itemExtraBuilder,
-    this.enabled,
-    this.readOnly = false,
+    super.enabled,
+    super.readOnly,
     this.bordered = false,
-    this.hintTextList,
-    this.isTransparentBackground,
-    this.enableFocusBorder = true,
+    super.hintTextList,
+    super.isTransparentBackground,
+    super.enableFocusBorder,
     this.unselectedIcon,
     this.selectedIcon,
     this.iconSpacing,
     this.lineSpacing,
     this.iconYOffset,
     this.style,
-    this.leading,
-    this.actions,
+    super.leading,
+    super.actions,
     this.focusNode,
   });
 
-  final String name;
   final Map<T, String> items;
   final T? initialValue;
 
-  /// 提示文案（有边框时渲染）；与 [hintTextList] 二选一。
-  final String? message;
   final FormFieldValidator<T>? validator;
   final ValueChanged<T?>? onChanged;
   final Widget Function(BuildContext, T, String, bool)? titleBuilder;
   final Widget Function(BuildContext, T, String, bool)? itemExtraBuilder;
-  final bool? enabled;
-  final bool readOnly;
+  @override
   final bool bordered;
-  final List<String>? hintTextList;
-  final bool? isTransparentBackground;
-  final bool enableFocusBorder;
   final Widget? unselectedIcon;
   final Widget? selectedIcon;
   final double? iconSpacing;
@@ -565,47 +537,34 @@ class WFormRadioGroup<T> extends StatelessWidget {
   final double? iconYOffset;
   final TextStyle? style;
 
-  /// 字段左侧插槽。
-  final Widget? leading;
-
-  /// 字段右侧操作插槽。
-  final List<Widget>? actions;
-
   final FocusNode? focusNode;
 
   @override
-  Widget build(BuildContext context) {
-    final fieldStyle = WFormFieldStyle.of(context);
-    final effectiveEnabled = enabled ?? true;
-    return assembleFormField(
+  Widget _buildField(
+    BuildContext context,
+    WFormFieldStyle? fieldStyle,
+    bool effectiveEnabled,
+  ) {
+    return WFormRadioGroupCore<T>(
       name: name,
-      bordered: bordered,
-      readOnly: readOnly || !effectiveEnabled,
-      message: message,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      child: WFormRadioGroupCore<T>(
-        name: name,
-        items: items,
-        initialValue: initialValue,
-        validator: validator,
-        onChanged: onChanged,
-        titleBuilder: titleBuilder,
-        itemExtraBuilder: itemExtraBuilder,
-        enabled: effectiveEnabled,
-        unselectedIcon: unselectedIcon,
-        selectedIcon: selectedIcon,
-        iconSpacing: iconSpacing,
-        lineSpacing: lineSpacing,
-        iconYOffset: iconYOffset,
-        style: style ?? fieldStyle?.textStyle,
-        height: fieldStyle?.height,
-        containerPadding: fieldStyle?.containerPadding,
-        leading: leading,
-        focusNode: focusNode,
-        actions: actions,
-      ),
+      items: items,
+      initialValue: initialValue,
+      validator: validator,
+      onChanged: onChanged,
+      titleBuilder: titleBuilder,
+      itemExtraBuilder: itemExtraBuilder,
+      enabled: effectiveEnabled,
+      unselectedIcon: unselectedIcon,
+      selectedIcon: selectedIcon,
+      iconSpacing: iconSpacing,
+      lineSpacing: lineSpacing,
+      iconYOffset: iconYOffset,
+      style: style ?? fieldStyle?.textStyle,
+      height: fieldStyle?.height,
+      containerPadding: fieldStyle?.containerPadding,
+      leading: leading,
+      focusNode: focusNode,
+      actions: actions,
     );
   }
 }
@@ -620,76 +579,58 @@ typedef WFormButton = WFormFieldButton<String>;
 /// 泛型字段值选择器：enum / int 等非 String 值。
 ///
 /// `WFormButton` 是它的 String 便捷形态（字段值固定 `String`）。
-class WFormFieldButton<T> extends StatelessWidget {
+class WFormFieldButton<T> extends _WFormDirectField {
   const WFormFieldButton({
     super.key,
-    required this.name,
+    required super.name,
     required this.onTap,
     this.label,
     this.hintWidget,
-    this.message,
+    super.message,
     this.selectedWidgetBuilder,
     this.initialValue,
     this.validator,
     this.focusNode,
-    this.enabled,
-    this.readOnly = false,
+    super.enabled,
+    super.readOnly,
     this.bordered = true,
-    this.hintTextList,
-    this.isTransparentBackground,
-    this.enableFocusBorder = true,
-    this.leading,
-    this.actions,
+    super.hintTextList,
+    super.isTransparentBackground,
+    super.enableFocusBorder,
+    super.leading,
+    super.actions,
   });
 
-  final String name;
   final void Function(T? value, ValueChanged<T> didChange) onTap;
   final String? label;
   final Widget? hintWidget;
 
-  /// 提示文案（有边框时渲染）；与 [hintTextList] 二选一。
-  final String? message;
   final Widget Function(T value)? selectedWidgetBuilder;
   final T? initialValue;
   final FormFieldValidator<T>? validator;
   final FocusNode? focusNode;
-  final bool? enabled;
-  final bool readOnly;
+  @override
   final bool bordered;
-  final List<String>? hintTextList;
-  final bool? isTransparentBackground;
-  final bool enableFocusBorder;
-  final Widget? leading;
-
-  /// 字段右侧操作插槽。
-  final List<Widget>? actions;
 
   @override
-  Widget build(BuildContext context) {
-    final fieldStyle = WFormFieldStyle.of(context);
-    final effectiveEnabled = enabled ?? true;
-    return assembleFormField(
+  Widget _buildField(
+    BuildContext context,
+    WFormFieldStyle? fieldStyle,
+    bool effectiveEnabled,
+  ) {
+    return WFormFieldButtonCore<T>(
       name: name,
-      bordered: bordered,
-      readOnly: readOnly || !effectiveEnabled,
-      message: message,
-      hintTextList: hintTextList,
-      isTransparentBackground: isTransparentBackground,
-      enableFocusBorder: enableFocusBorder,
-      child: WFormFieldButtonCore<T>(
-        name: name,
-        onTap: onTap,
-        selectedWidgetBuilder: selectedWidgetBuilder,
-        initialValue: initialValue,
-        validator: validator,
-        focusNode: focusNode,
-        enabled: effectiveEnabled,
-        hintWidget: hintWidget ?? (label != null ? Text(label!) : null),
-        height: fieldStyle?.height,
-        containerPadding: fieldStyle?.containerPadding,
-        leading: leading,
-        actions: actions,
-      ),
+      onTap: onTap,
+      selectedWidgetBuilder: selectedWidgetBuilder,
+      initialValue: initialValue,
+      validator: validator,
+      focusNode: focusNode,
+      enabled: effectiveEnabled,
+      hintWidget: hintWidget ?? (label != null ? Text(label!) : null),
+      height: fieldStyle?.height,
+      containerPadding: fieldStyle?.containerPadding,
+      leading: leading,
+      actions: actions,
     );
   }
 }

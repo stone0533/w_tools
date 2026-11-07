@@ -99,13 +99,113 @@ def _gather_signature(lines: list[str], index: int, initial: str) -> tuple[str, 
     return signature, index, consumed
 
 
-def _members(type_name: str, body: str) -> dict[str, str]:
+DECL_ANY = re.compile(r'\b(?:class|enum|mixin|extension|typedef)\s+([A-Z_][A-Za-z0-9_]*)')
+SUPER_PARAM = re.compile(r'\b(?:required\s+)?super\.([A-Za-z_]\w*)')
+
+
+def _supertypes(text: str, start: int) -> list[str]:
+    """类声明里的 extends / with 名字（只用于同包基类解析）。"""
+    brace = text.find('{', start)
+    header = text[start:brace if brace >= 0 else len(text)]
+    return re.findall(r'\b(?:extends|with)\s+([A-Za-z_]\w*)', header)
+
+
+def _split_top_level(text: str) -> list[str]:
+    parts: list[str] = []
+    current = ''
+    depth = 0
+    quote: str | None = None
+    for ch in text:
+        if quote:
+            current += ch
+            if ch == quote:
+                quote = None
+            continue
+        if ch in ("'", '"'):
+            quote = ch
+            current += ch
+            continue
+        if ch in '<({[':
+            depth += 1
+        elif ch in '>)}]':
+            depth -= 1
+        if ch == ',' and depth == 0:
+            parts.append(current)
+            current = ''
+        else:
+            current += ch
+    if current.strip():
+        parts.append(current)
+    return [part.strip() for part in parts if part.strip()]
+
+
+def _param_map(params: str) -> dict[str, str]:
+    """`({a, required this.b, this.c = 1})` → {a: 'a', b: 'required this.b', c: 'this.c = 1'}。"""
+    inner = params.strip()
+    if inner.startswith('(') and inner.endswith(')'):
+        inner = inner[1:-1].strip()
+    if inner.startswith('{') and inner.endswith('}'):
+        inner = inner[1:-1]
+    out: dict[str, str] = {}
+    for part in _split_top_level(inner):
+        match = re.match(r'^(?:required\s+)?(?:this\.|super\.)?([A-Za-z_]\w*)', part)
+        if match:
+            out[match.group(1)] = part
+    return out
+
+
+def _base_param_map(
+    base: str,
+    index: dict[str, dict],
+    cache: dict[str, dict[str, str]],
+) -> dict[str, str]:
+    """基类构造参数：参数名 → 原始声明文本（如 `required this.name`）。"""
+    if base in cache:
+        return cache[base]
+    result: dict[str, str] = {}
+    info = index.get(base)
+    if info is not None and info.get('kind') != 'typedef':
+        members = _members(base, index[base]['body'], None, None, cache)
+        ctor = members.get(f'{base}.new')
+        if ctor:
+            result = _param_map(ctor)
+    cache[base] = result
+    return result
+
+
+def _expand_super_params(
+    params: str,
+    index: dict[str, dict] | None,
+    supers: list[str] | None,
+    cache: dict[str, dict[str, str]] | None,
+) -> str:
+    """把 `super.x` 展开成基类里的 `this.x`（含默认值），让快照与旧基线可比。"""
+    if index is None or not supers or cache is None or 'super.' not in params:
+        return params
+    param_map: dict[str, str] = {}
+    for base in supers:
+        param_map.update(_base_param_map(base, index, cache))
+
+    def replace(match: re.Match[str]) -> str:
+        name = match.group(1)
+        return param_map.get(name, match.group(0))
+
+    return SUPER_PARAM.sub(replace, params)
+
+
+def _members(
+    type_name: str,
+    body: str,
+    index: dict[str, dict] | None = None,
+    supers: list[str] | None = None,
+    cache: dict[str, dict[str, str]] | None = None,
+) -> dict[str, str]:
     out: dict[str, str] = {}
     lines = body.splitlines()
     depth = 0
-    index = 0
-    while index < len(lines):
-        line = lines[index].strip()
+    index_line = 0
+    while index_line < len(lines):
+        line = lines[index_line].strip()
         consumed = [line]
         if depth == 0 and line and not line.startswith(('//', '@', 'return ', 'if ', 'for ', 'while ', 'switch ', 'assert ')):
             candidate = MODIFIER.sub('', line)
@@ -116,11 +216,12 @@ def _members(type_name: str, body: str) -> dict[str, str]:
             )
             getter = GETTER.match(candidate)
             if constructor:
-                signature, index, consumed = _gather_signature(lines, index, candidate)
+                signature, index_line, consumed = _gather_signature(lines, index_line, candidate)
                 open_paren = signature.find('(')
                 close_paren = _close_paren(signature, open_paren) if open_paren >= 0 else -1
                 if open_paren >= 0 and close_paren > open_paren:
                     params = signature[open_paren + 1:close_paren]
+                    params = _expand_super_params(params, index, supers, cache)
                     name = constructor.group(1)
                     out[f'{type_name}.{name}' if name else f'{type_name}.new'] = (
                         f'({_normalize(params)})'
@@ -130,7 +231,7 @@ def _members(type_name: str, body: str) -> dict[str, str]:
                 if not name.startswith('_') and name not in {'hashCode', 'runtimeType'}:
                     out[f'{type_name}.{name}'] = _normalize(getter.group(1))
             elif '(' in candidate.split('=', 1)[0].split(';', 1)[0] and 'Function(' not in candidate:
-                signature, index, consumed = _gather_signature(lines, index, candidate)
+                signature, index_line, consumed = _gather_signature(lines, index_line, candidate)
                 open_paren = signature.find('(')
                 close_paren = _close_paren(signature, open_paren) if open_paren >= 0 else -1
                 if open_paren >= 0 and close_paren > open_paren:
@@ -159,39 +260,67 @@ def _members(type_name: str, body: str) -> dict[str, str]:
             and not line.rstrip().endswith(';')
             and not consumed[-1].rstrip().endswith(';')
         ):
-            while index + 1 < len(lines):
-                index += 1
-                next_line = lines[index].strip()
+            while index_line + 1 < len(lines):
+                index_line += 1
+                next_line = lines[index_line].strip()
                 consumed.append(next_line)
                 if next_line.endswith(';'):
                     break
         for consumed_line in consumed:
             depth += consumed_line.count('{') - consumed_line.count('}')
-        index += 1
+        index_line += 1
+
+    if index and supers:
+        # 继承来的成员也算它的公开面（基类通常是包内私有类，不单独导出）。
+        for base in supers:
+            info = index.get(base)
+            if info is None or info.get('kind') == 'typedef':
+                continue
+            base_members = _members(base, info['body'], None, None, cache)
+            for key, value in base_members.items():
+                member = key[len(base) + 1:] if key.startswith(f'{base}.') else ''
+                if not member or member in {'new'}:
+                    continue
+                out.setdefault(f'{type_name}.{member}', value)
     return out
+
+
+def _package_index(package_dir: pathlib.Path) -> dict[str, dict]:
+    index: dict[str, dict] = {}
+    for path in (package_dir / 'lib').rglob('*.dart'):
+        text = strip_comments(path.read_text())
+        for match in DECL_ANY.finditer(text):
+            name = match.group(1)
+            kind = match.group(0).split()[0]
+            entry: dict = {'kind': kind}
+            if kind == 'typedef':
+                end = text.find(';', match.start())
+                entry['typedef'] = _normalize(text[match.start():end + 1]) if end >= 0 else ''
+            else:
+                entry['body'] = _body(text, match.start())
+                entry['supers'] = _supertypes(text, match.start())
+            index[name] = entry
+    return index
 
 
 def api_surface(package_dir: pathlib.Path) -> dict[str, str]:
     exported = exported_types(package_dir)
+    index = _package_index(package_dir)
+    cache: dict[str, dict[str, str]] = {}
     out: dict[str, str] = {}
-    for path in (package_dir / 'lib').rglob('*.dart'):
-        text = strip_comments(path.read_text())
-        for match in DECL.finditer(text):
-            name = match.group(1)
-            if name not in exported:
-                continue
-            kind = match.group(0).split()[0]
-            if kind == 'typedef':
-                end = text.find(';', match.start())
-                if end >= 0:
-                    out[name] = _normalize(text[match.start():end + 1])
-                continue
-            out[name] = kind
-            body = _body(text, match.start())
-            out.update(_members(name, body))
-            if kind == 'enum':
-                for value in ENUM_VALUE.finditer(body):
-                    out[f'{name}.{value.group(1)}'] = 'enum'
+    for name, info in index.items():
+        if name not in exported:
+            continue
+        kind = info['kind']
+        if kind == 'typedef':
+            out[name] = info.get('typedef', '')
+            continue
+        out[name] = kind
+        body = info.get('body', '')
+        out.update(_members(name, body, index, info.get('supers'), cache))
+        if kind == 'enum':
+            for value in ENUM_VALUE.finditer(body):
+                out[f'{name}.{value.group(1)}'] = 'enum'
     return out
 
 
