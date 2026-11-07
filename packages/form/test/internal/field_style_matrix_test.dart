@@ -152,4 +152,37 @@ void main() {
       expect(frame.padding, _pad);
     });
   });
+
+  group('WForm.fieldStyle.hintStyle 到达各字段占位符', () {
+    Future<void> expectHintColor(WidgetTester tester, String hint) async {
+      final paragraph = tester.renderObject<RenderParagraph>(find.text(hint));
+      expect(paragraph.text.style?.color, _red);
+    }
+
+    testWidgets('WFormTextField', (tester) async {
+      await _pump(tester, const WFormTextField(name: 'a', hintText: '文本占位'));
+      await expectHintColor(tester, '文本占位');
+    });
+
+    testWidgets('WFormDropdown', (tester) async {
+      await _pump(
+        tester,
+        const WFormDropdown<String>(name: 'd', items: {'a': 'A'}, hintText: '下拉占位'),
+      );
+      await expectHintColor(tester, '下拉占位');
+    });
+
+    testWidgets('WFormMultiDropdown', (tester) async {
+      await _pump(
+        tester,
+        const WFormMultiDropdown(name: 'm', items: {'a': 'A'}, hintText: '多选占位'),
+      );
+      await expectHintColor(tester, '多选占位');
+    });
+
+    testWidgets('WFormDatePicker', (tester) async {
+      await _pump(tester, const WFormDatePicker(name: 'date', hintText: '日期占位'));
+      await expectHintColor(tester, '日期占位');
+    });
+  });
 }

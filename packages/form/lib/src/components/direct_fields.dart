@@ -11,13 +11,14 @@ import 'fields/multi_dropdown.dart';
 import 'fields/radio_group.dart';
 import 'fields/text_field.dart';
 
-/// `hintTextList` 与 `message` 只允许二选一，同时传时直接断言。
-void _assertHints(String? message, List<String>? hintTextList) {
-  assert(
-    message == null || hintTextList == null,
-    'message 与 hintTextList 只需传一个（message 是便捷写法，不能与列表同时使用）。',
-  );
-}
+// 新增直接字段时的约定（FORM-009 的收口结论）：
+// 1. 公共装配走 `assembleFormField`：不要在新字段里另写 assert / bordered 分支 /
+//    `hintTextList ?? [message]`，这些规则只在 field_assembly.dart 维护一份；
+// 2. `WForm.fieldStyle` 的 height / containerPadding / textStyle / hintStyle 要接到
+//    字段的 core 上（没有对应展示的可以不接，但在字段 doc 里写明）；漏接是静默失效；
+// 3. 在 `test/internal/field_style_matrix_test.dart` 补一行矩阵用例，否则漏接没人发现；
+// 4. 不做基类/参数收敛：公开 API 快照按「类自身成员」记录，字段或 build 挪进基类
+//    会被 check_public_api_diff 判成删除，需要先升级快照工具（独立任务）。
 
 /// 直接构造的表单字段。
 ///
@@ -86,18 +87,16 @@ class WFormTextField extends StatelessWidget {
   /// 正文样式（未传时取 `WForm.fieldStyle`）
   final TextStyle? style;
 
-  List<String>? get _messages => message != null ? [message!] : null;
-
   @override
   Widget build(BuildContext context) {
-    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final effectiveEnabled = enabled ?? true;
     return assembleFormField(
       name: name,
       bordered: bordered,
       readOnly: readOnly || !effectiveEnabled,
-      hintTextList: hintTextList ?? _messages,
+      message: message,
+      hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
       child: WFormTextFieldCore(
@@ -179,20 +178,18 @@ class WFormDropdown<T> extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
-  List<String>? get _messages => message != null ? [message!] : null;
-
   final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
-    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final effectiveEnabled = enabled ?? true;
     return assembleFormField(
       name: name,
       bordered: bordered,
       readOnly: readOnly || !effectiveEnabled,
-      hintTextList: hintTextList ?? _messages,
+      message: message,
+      hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
       child: WFormDropdownCore<T>(
@@ -281,20 +278,18 @@ class WFormMultiDropdown extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
-  List<String>? get _messages => message != null ? [message!] : null;
-
   final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
-    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final effectiveEnabled = enabled ?? true;
     return assembleFormField(
       name: name,
       bordered: bordered,
       readOnly: readOnly || !effectiveEnabled,
-      hintTextList: hintTextList ?? _messages,
+      message: message,
+      hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
       child: WFormMultiDropdownCore(
@@ -385,20 +380,18 @@ class WFormDatePicker extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
-  List<String>? get _messages => message != null ? [message!] : null;
-
   final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
-    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final effectiveEnabled = enabled ?? true;
     return assembleFormField(
       name: name,
       bordered: bordered,
       readOnly: readOnly || !effectiveEnabled,
-      hintTextList: hintTextList ?? _messages,
+      message: message,
+      hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
       child: WFormDatePickerCore(
@@ -484,20 +477,18 @@ class WFormCheckbox extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
-  List<String>? get _messages => message != null ? [message!] : null;
-
   final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
-    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final effectiveEnabled = enabled ?? true;
     return assembleFormField(
       name: name,
       bordered: bordered,
       readOnly: readOnly || !effectiveEnabled,
-      hintTextList: hintTextList ?? _messages,
+      message: message,
+      hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
       child: WFormCheckboxCore(
@@ -580,20 +571,18 @@ class WFormRadioGroup<T> extends StatelessWidget {
   /// 字段右侧操作插槽。
   final List<Widget>? actions;
 
-  List<String>? get _messages => message != null ? [message!] : null;
-
   final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
-    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final effectiveEnabled = enabled ?? true;
     return assembleFormField(
       name: name,
       bordered: bordered,
       readOnly: readOnly || !effectiveEnabled,
-      hintTextList: hintTextList ?? _messages,
+      message: message,
+      hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
       child: WFormRadioGroupCore<T>(
@@ -677,14 +666,14 @@ class WFormFieldButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _assertHints(message, hintTextList);
     final fieldStyle = WFormFieldStyle.of(context);
     final effectiveEnabled = enabled ?? true;
     return assembleFormField(
       name: name,
       bordered: bordered,
       readOnly: readOnly || !effectiveEnabled,
-      hintTextList: hintTextList ?? (message != null ? [message!] : null),
+      message: message,
+      hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
       enableFocusBorder: enableFocusBorder,
       child: WFormFieldButtonCore<T>(
