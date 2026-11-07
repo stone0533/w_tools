@@ -55,6 +55,7 @@
 - [2026-11-06 文档 / 脚本体系审计](analysis/2026-11-06-docs-scripts-audit.md)
 - [2026-11-06 UI 子包使用示例与选型分析](analysis/2026-11-06-ui-usage-examples.md)
 - [2026-11-07 全流程审计：改动 → 门禁 → PR → 发布](analysis/2026-11-07-process-audit.md)
+- [2026-11-07 全流程二轮审计：门禁假绿与发布断点](analysis/2026-11-07-process-audit-round2.md)
 
 改完 `docs/` 后跑：
 
