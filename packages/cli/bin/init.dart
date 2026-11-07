@@ -4,12 +4,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:w_tools_cli/src/common/cli.dart';
+import 'package:w_tools_cli/src/common/project_loader.dart';
 import 'package:w_tools_cli/src/common/version.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_options.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
-import 'package:yaml/yaml.dart' show YamlException;
 
 const _usage = '''
 w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
@@ -50,7 +50,8 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --device / --no-device  生成通用设备文档 / Gradle 镜像（docs/agents/device-testing.md /
                         tool/gradle-mirror.init.gradle.example；检测到 w_tools_device 时默认开）
   --ai-prompts / --no-ai-prompts  生成消费方 AI 任务提示词（默认开；--no-instructions 时关闭）
-  --no-instructions  不生成/不检查 AGENTS 等 AI 指令文件（优先于 --targets）
+  --instructions / --no-instructions  生成 / 不生成 AGENTS 等 AI 指令文件
+                                     （--no-instructions 优先于 --targets）
   --targets=<l>  指令文件目标，逗号分隔：agents,claude,cursor,copilot（默认取配置 / agents）
   --lang=<l>     zh | en（默认取配置 / zh）
   --version      显示版本
@@ -95,8 +96,7 @@ List<Map<String, String>> _jsonEntries(List<String> items) {
 /// 根据本次结果给出可执行的下一步，而不是无条件 doctor。
 List<String> _nextActions(InitReport report) {
   final actions = <String>[];
-  final needsDeps = !report.pubspecSnippet.trimLeft().startsWith('# 依赖已齐全');
-  if (needsDeps && report.pubspecSnippet.trim().isNotEmpty) {
+  if (report.pubspecNeeded) {
     actions.add('把 pubspecSnippet 的依赖加入 pubspec.yaml，然后运行 dart pub get');
   }
   if (report.missing.isNotEmpty) {
@@ -150,9 +150,9 @@ CommandResult run(List<String> argv) {
 
       DoctorConfig config;
       try {
-        config = DoctorConfig.load(root);
-      } on YamlException catch (e) {
-        failCli(args, '.w_tools_doctor.yaml 解析失败：${e.message}');
+        config = ProjectFiles.loadConfig(root);
+      } on ProjectLoadException catch (e) {
+        failCli(args, e.message);
       }
 
       InitOptions options;
@@ -211,7 +211,7 @@ CommandResult run(List<String> argv) {
             'drift': _jsonEntries(report.drift),
             'stale': _jsonEntries(report.stale),
             'missing': _jsonEntries(report.missing),
-            'needsPubspec': !report.pubspecSnippet.trimLeft().startsWith('# 依赖已齐全'),
+            'needsPubspec': report.pubspecNeeded,
             'warnings': report.warnings,
             'pubspecSnippet': report.pubspecSnippet,
             'nextActions': _nextActions(report),

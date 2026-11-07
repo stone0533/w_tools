@@ -1,7 +1,7 @@
 # 设备验证（w_tools_device）
 
 > 项目：`{{projectName}}`
-> 本文件由 `dart run w_tools_cli:init --device` 生成，只包含通用设备命令；项目自己的
+> 本文件由 `dart run w_tools_cli:w_tools init --device` 生成，只包含通用设备命令；项目自己的
 > 设备、账号、tab 布局请写到项目文档，不要改这份通用说明。
 > 完整参数以 [`packages/device/README.md`](https://github.com/stone0533/w_tools/blob/main/packages/device/README.md) 为准。
 

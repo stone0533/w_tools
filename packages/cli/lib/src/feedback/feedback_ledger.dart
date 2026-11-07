@@ -34,8 +34,10 @@ const feedbackPackages = <String>{
   'form',
   'api',
   'app',
+  'app_getx',
   'toast',
   'map',
+  'map_google',
   'qr',
   'cli',
   'figma',
@@ -71,6 +73,15 @@ FeedbackLedgerResult addToLedger(
       '--ledger 只能在 w_tools 仓库检出中使用（需要 pubspec name=w_tools、packages/cli、docs/feedback）；'
       '消费方开启 feedback.issue 后用 --issue，否则跳过',
     );
+  }
+
+  // 先确认索引可写，再落条目：否则索引缺失时会留下「有台账、没索引」的半截状态。
+  final readme = File(p.join(dir, 'README.md'));
+  if (!readme.existsSync()) {
+    throw FeedbackLedgerException('找不到 ${readme.path}，无法同步反馈索引');
+  }
+  if (!readme.readAsLinesSync().any(_indexRow.hasMatch)) {
+    throw FeedbackLedgerException('${readme.path} 没有反馈索引表');
   }
 
   final name = feedbackLedgerName(draft.package);

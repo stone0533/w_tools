@@ -57,6 +57,23 @@ Directory _repo() {
 }
 
 void main() {
+  test('CLI-020 索引表缺失时先失败，不留下半截台账', () {
+    final root = _repo();
+    addTearDown(() => root.deleteSync(recursive: true));
+    File(
+      p.join(root.path, 'docs', 'feedback', 'README.md'),
+    ).writeAsStringSync('# 反馈\n\n没有索引表。\n');
+
+    expect(
+      () => addToLedger(root, FeedbackDraft(package: 'api', title: '新问题', body: _body)),
+      throwsA(isA<FeedbackLedgerException>()),
+    );
+    expect(
+      File(p.join(root.path, 'docs', 'feedback', 'api.md')).readAsStringSync(),
+      isNot(contains('新问题')),
+    );
+  });
+
   test('追加到已有台账并更新索引', () {
     final root = _repo();
     addTearDown(() => root.deleteSync(recursive: true));

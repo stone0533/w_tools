@@ -58,8 +58,10 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
   消费方项目才跑 R1~R9。
 - `doctor` 的 R2 会把业务代码直接 import `package:w_tools_*` 判 error；不要照抄组件目录里的子包 import。
 - `rules:` 里 `R2: false` 这类开关对全部规则生效；`--only=R1,R2` 是本次运行的白名单。
-- `list` / `explain` 没找到时退出码 1；参数错误 2。
+- `list` / `explain` 没找到时退出码 1；参数错误 2；gh 等外部工具不可用 3。
 - `feedback path` 在消费方默认只提示未启用，不返回本地收件箱路径。
+- `feedback search --gh` 在 `gh` 未安装 / 未登录时退出 `3`，且不返回本地结果；
+  只想查本地台账时去掉 `--gh`。
 - `feedback` 是记录 **w_tools 本身**的问题，不是业务代码问题。
 - **在 w_tools 仓库检出内**：默认直接追加 `docs/feedback/<包>.md` 并更新索引（`--ledger`）。
 - **消费方**：默认**不提交**；只有 `.w_tools_doctor.yaml` 的 `feedback.issue: true` 时才建 Issue

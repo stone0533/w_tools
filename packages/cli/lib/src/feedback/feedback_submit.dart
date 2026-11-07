@@ -14,6 +14,16 @@ class FeedbackSubmitException implements Exception {
   String toString() => message;
 }
 
+/// 外部工具不可用（gh 未安装 / 未登录）——CLI 退出码 3。
+class FeedbackExternalException implements Exception {
+  const FeedbackExternalException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 /// 提交反馈的正文骨架（中文）；字段名必须与 lint 的别名一致。
 const feedbackBodyTemplate = '''- 包/版本：
 - 环境：
@@ -111,13 +121,25 @@ Uri createGitHubIssue(
   FeedbackDraft draft, {
   String repo = 'stone0533/w_tools',
 }) {
-  final gh = Process.runSync('gh', const <String>['--version']);
-  if (gh.exitCode != 0) {
-    throw const FeedbackSubmitException('找不到 gh CLI；先安装并登录 gh，或在 w_tools 仓库内使用 --ledger');
+  final ProcessResult gh;
+  try {
+    gh = Process.runSync('gh', const <String>['--version']);
+  } on ProcessException {
+    throw const FeedbackExternalException(
+      '找不到 gh CLI；先安装并登录 gh，或在 w_tools 仓库内使用 --ledger',
+    );
   }
-  final auth = Process.runSync('gh', const <String>['auth', 'status']);
+  if (gh.exitCode != 0) {
+    throw const FeedbackExternalException('gh 不可用；先安装并登录 gh，或在 w_tools 仓库内使用 --ledger');
+  }
+  final ProcessResult auth;
+  try {
+    auth = Process.runSync('gh', const <String>['auth', 'status']);
+  } on ProcessException {
+    throw const FeedbackExternalException('找不到 gh CLI；先安装并登录 gh，或在 w_tools 仓库内使用 --ledger');
+  }
   if (auth.exitCode != 0) {
-    throw const FeedbackSubmitException('gh 未登录；先运行 gh auth login，或在 w_tools 仓库内使用 --ledger');
+    throw const FeedbackExternalException('gh 未登录；先运行 gh auth login，或在 w_tools 仓库内使用 --ledger');
   }
 
   final temp = File(
@@ -187,7 +209,12 @@ List<FeedbackMatch> searchLocal(
       if (file.existsSync()) files.add(file);
     } else {
       for (final entity in ledger.listSync()) {
-        if (entity is File && entity.path.endsWith('.md')) files.add(entity);
+        if (entity is! File || !entity.path.endsWith('.md')) continue;
+        // 索引与模板不是反馈正文：搜出来的行会污染「先查重」的结果。
+        if (p.basename(entity.path) == 'README.md' || p.basename(entity.path) == 'TEMPLATE.md') {
+          continue;
+        }
+        files.add(entity);
       }
     }
   }

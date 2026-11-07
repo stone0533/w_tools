@@ -42,6 +42,9 @@ CommandResult run(List<String> argv) {
     body: (args) {
       final name = args.rest.join(' ').trim();
       if (name.isEmpty) {
+        if (outputFormat(args) == 'json') {
+          failCli(args, '用法：dart run w_tools_cli:explain <组件名>');
+        }
         stderr.writeln('用法：dart run w_tools_cli:explain <组件名>\n');
         stderr.writeln(_usage);
         throw CliExit(2);
@@ -71,8 +74,7 @@ CommandResult run(List<String> argv) {
       try {
         banned = _matchingBanned(name, root);
       } on ProjectLoadException catch (e) {
-        stderr.writeln(e.message);
-        throw CliExit(2);
+        failCli(args, e.message);
       }
       final asJson = (args['json'] as bool) || args['format'] == 'json';
       final asPrompt = args['format'] == 'prompt';
@@ -80,6 +82,8 @@ CommandResult run(List<String> argv) {
       if (asJson) {
         print(
           jsonEncode(<String, Object?>{
+            'schema': 'w_tools_cli.explain/1',
+            'schemaVersion': 1,
             'query': name,
             'found': matches.isNotEmpty,
             'import': aggregateImport,

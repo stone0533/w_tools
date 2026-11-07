@@ -22,33 +22,9 @@ class R4DesignSystemBoundary {
 
   static DoctorRuleResult check(ProjectContext ctx, DoctorConfig config) {
     const dirs = <String>{projectUiDirPath, designSystemDirPath};
-    final issues = <DoctorIssue>[];
-    var found = false;
-
-    for (final dirPath in dirs) {
-      final dir = Directory(p.join(ctx.root.path, dirPath));
-      if (!dir.existsSync()) continue;
-      found = true;
-      for (final file in TextScan.files(ctx)) {
-        if (!file.path.startsWith('$dirPath/')) continue;
-        for (final line in file.codeLines) {
-          if (_forbidden.hasMatch(line.code) &&
-              !Suppression.isIgnored(file.lines, line.index, id)) {
-            issues.add(
-              DoctorIssue(
-                rule: id,
-                level: DoctorLevel.error,
-                file: file.path,
-                line: line.lineNumber,
-                message: '设计系统组件 import 了业务层：${line.code.trim()}',
-                hint: '项目 UI / 暂存层只能依赖 dart/flutter/w_tools/get —— 依赖业务就无法复用或上移',
-              ),
-            );
-          }
-        }
-      }
-    }
-
+    final found = dirs.any(
+      (dirPath) => Directory(p.join(ctx.root.path, dirPath)).existsSync(),
+    );
     if (!found) {
       return const DoctorRuleResult(
         ruleId: id,
@@ -56,6 +32,33 @@ class R4DesignSystemBoundary {
         status: DoctorRuleStatus.skipped,
         skipReason: '项目里没有设计系统目录',
       );
+    }
+
+    final issues = <DoctorIssue>[];
+    // 一次遍历：先判断文件是否落在设计系统目录里，再扫内容。
+    for (final file in TextScan.files(ctx)) {
+      String? dirPath;
+      for (final candidate in dirs) {
+        if (file.path == candidate || file.path.startsWith('$candidate/')) {
+          dirPath = candidate;
+          break;
+        }
+      }
+      if (dirPath == null) continue;
+      for (final line in file.codeLines) {
+        if (_forbidden.hasMatch(line.code) && !Suppression.isIgnored(file.lines, line.index, id)) {
+          issues.add(
+            DoctorIssue(
+              rule: id,
+              level: DoctorLevel.error,
+              file: file.path,
+              line: line.lineNumber,
+              message: '设计系统组件 import 了业务层：${line.code.trim()}',
+              hint: '项目 UI / 暂存层只能依赖 dart/flutter/w_tools/get —— 依赖业务就无法复用或上移',
+            ),
+          );
+        }
+      }
     }
 
     return DoctorRuleResult(

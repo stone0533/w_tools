@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:w_tools_cli/src/common/cli.dart';
@@ -59,9 +60,24 @@ CommandResult run(List<String> argv) {
     body: (args) {
       final root = Directory(args['root'] as String? ?? Directory.current.path);
 
+      if ((args['force'] as bool) && !(args['write-config'] as bool)) {
+        failCli(args, '--force 只能配合 --write-config 使用（覆盖前会写 .bak）');
+      }
+
       // 纯输出操作，不依赖当前目录是不是一个 Dart 项目
       if (args['print-config'] as bool) {
-        stdout.write(renderDefaultConfig());
+        final content = renderDefaultConfig();
+        if (outputFormat(args) == 'json') {
+          print(
+            jsonEncode(<String, Object?>{
+              'schema': 'w_tools_cli.doctor/1',
+              'schemaVersion': 1,
+              'config': content,
+            }),
+          );
+        } else {
+          stdout.write(content);
+        }
         return;
       }
 
@@ -76,13 +92,28 @@ CommandResult run(List<String> argv) {
           failCli(args, '${DoctorConfig.fileName} 已存在（加 --force 覆盖）');
         }
         // 这个文件是项目手工维护的 palette / banned / ignore，覆盖前必须留底。
+        String? backupName;
         if (exists) {
           final backup = File('${target.path}.bak');
           backup.writeAsStringSync(target.readAsStringSync());
-          stderr.writeln('已备份原配置到 ${DoctorConfig.fileName}.bak');
+          backupName = '${DoctorConfig.fileName}.bak';
+          if (outputFormat(args) != 'json') {
+            stderr.writeln('已备份原配置到 $backupName');
+          }
         }
         target.writeAsStringSync(renderDefaultConfig());
-        print('已写入 ${DoctorConfig.fileName}');
+        if (outputFormat(args) == 'json') {
+          print(
+            jsonEncode(<String, Object?>{
+              'schema': 'w_tools_cli.doctor/1',
+              'schemaVersion': 1,
+              'written': target.path,
+              'backup': backupName,
+            }),
+          );
+        } else {
+          print('已写入 ${DoctorConfig.fileName}');
+        }
         return;
       }
 

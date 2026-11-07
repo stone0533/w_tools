@@ -61,8 +61,7 @@ CommandResult run(List<String> argv) {
       try {
         snapshot = ProjectSnapshot.load(root, config: config);
       } on PubspecLockException catch (e) {
-        stderr.writeln(e.message);
-        throw CliExit(2);
+        failCli(args, e.message);
       } on YamlException catch (e) {
         failCli(args, 'pubspec.yaml 解析失败：${e.message}');
       }

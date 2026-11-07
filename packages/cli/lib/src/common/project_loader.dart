@@ -37,6 +37,8 @@ class ProjectFiles {
       return DoctorConfig.load(root);
     } on YamlException catch (e) {
       throw ProjectLoadException('${DoctorConfig.fileName} 解析失败：${e.message}');
+    } on DoctorConfigException catch (e) {
+      throw ProjectLoadException('${DoctorConfig.fileName} 配置错误：${e.message}');
     }
   }
 
