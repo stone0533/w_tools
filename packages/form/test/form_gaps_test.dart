@@ -102,7 +102,7 @@ void main() {
     expect(copy.notifyAllErrors, isTrue);
   });
 
-  testWidgets('bordered: false + message 放在固定高度容器里不溢出', (tester) async {
+  testWidgets('bordered: false 的 message 渲染在字段下方，52px 容器内不溢出', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -122,7 +122,18 @@ void main() {
       ),
     );
 
+    // 先确认没有溢出：溢出异常会由 takeException 取走。
     expect(tester.takeException(), isNull);
+
+    // 正向断言：文案真的渲染了，而且落在输入框下方。
+    // 只断言「不抛异常」时，删掉文案渲染这条用例仍会绿。
+    final input = find.byType(TextField);
+    final message = find.text('提示文案');
+    expect(message, findsOneWidget);
+    expect(
+      tester.getTopLeft(message).dy,
+      greaterThanOrEqualTo(tester.getBottomLeft(input).dy),
+    );
   });
 
   testWidgets('bordered: false 的字段把多条提示用「；」拼起来渲染', (tester) async {

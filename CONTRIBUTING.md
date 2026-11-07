@@ -54,9 +54,10 @@
   ```
 - 根 `test/` 只放聚合契约（`w_tools.dart` 重导出）与跨包回归，单包行为测试放回 `packages/<pkg>/test/`
 - **测试有效性**：守卫（`mounted` / null / 取消）、错误分支、边界 clamp 的用例，要证明「删掉被守逻辑它就红」。
-  用 `bash scripts/mutate_guard.sh --file <f> --from '<old>' --to '<new>' -- <测试命令>` 做一次定向变异，
-  在 PR 里贴三行记录（变异点 / 变红输出 / 还原后通过）。变异后仍绿有两种解释：用例空转（改用例），
-  或该守卫没有价值（删守卫）。见 [`scripts/README.md`](scripts/README.md) 的「测试有效性（人工）」。
+  只断言 `takeException()` / `returnsNormally` 的用例优先查——删掉功能它也可能绿。
+  用 `bash scripts/mutate_guard.sh ... --expect '<失败特征>' -- bash -c '<测试命令>'` 做一次定向变异，
+  在 PR 里贴三行记录（变异点 / 命令 / 红输出关键行）。变异后仍绿有两种解释：用例没断言到目标行为（补正向断言），
+  或该守卫没有价值（删守卫）——先补断言，再决定删不删。见 [`scripts/README.md`](scripts/README.md) 的「测试有效性（人工）」。
 - `packages/cli` 是纯 Dart 包：用 `dart test`，不要引入 `flutter_test`
 - 行为测试只 import barrel；确实需要内部 helper 的测试放 `test/internal/`（不限于纯内部逻辑）。
   `check_test_imports.py` 会挡住全仓 `test/`、`integration_test/`、`example/test/` 里的 `src` import；
