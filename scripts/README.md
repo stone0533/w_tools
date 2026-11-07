@@ -90,7 +90,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_package_docs.py` | 当前文档安装约束（仍写成 caret 的示例必须下界 == 当前版本，非 caret 直接失败；`pub add` 命令不参与）/ 跨包示例 / example 链接 | check_docs |
 | `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性（含每个 ADR 在 `docs/README.md` 留行）/ ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名 + 高频规则短语一致 | check_docs |
-| `check_prompt_docs.py` | 文档命令可执行（提示词手册：脚本 / flag / cwd / 占位符 / 场景编号 / `w_tools` 子命令 flag（含 `\` 续行）/ 手册内的 docs 路径；其余当前文档：脚本存在 + flag 存在 + CLI flag 存在；历史目录不参与） | check_docs |
+| `check_prompt_docs.py` | 文档命令可执行（提示词手册：脚本 / flag / cwd / 占位符 / 场景编号（§1 ↔ 标题双向、重复标题）/ `w_tools` 子命令 flag（含 `\` 续行）/ 手册内 docs 路径 / 生成器与测试文件存在；其余当前文档：脚本存在 + flag 存在 + CLI flag 存在；历史目录不参与） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查（双向：新类型要登记，基线里的旧名字也要删） | preflight |
 | `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到 | check_docs / preflight |
 | `check_catalog_symbols.py` | catalog `usage` / `useFor` / `related` 里的 `W*` / `W*.member` 必须真实存在于公开 API | preflight |
