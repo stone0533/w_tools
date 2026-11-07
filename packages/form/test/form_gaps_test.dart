@@ -102,6 +102,29 @@ void main() {
     expect(copy.notifyAllErrors, isTrue);
   });
 
+  testWidgets('bordered: false + message 放在固定高度容器里不溢出', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 52,
+            child: WForm(
+              controller: WFormController(),
+              child: const WFormTextField(
+                name: 'a',
+                label: 'A',
+                bordered: false,
+                message: '提示文案',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('bordered: false 的字段把多条提示用「；」拼起来渲染', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -190,6 +213,12 @@ void main() {
     await tester.pumpWidget(build(show: false));
     await tester.pumpAndSettle();
 
+    // 弹层挂在 Navigator 上，字段卸载后仍然存在——「再点」这条路是真的能走到的。
+    expect(find.text('A'), findsWidgets);
+    await tester.tap(find.text('A').last);
+    await tester.pumpAndSettle();
+
+    // 没有 mounted 守卫时会报 setState() called after dispose()。
     expect(tester.takeException(), isNull);
   });
 
