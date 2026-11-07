@@ -4,11 +4,21 @@
 
 配套规则见 [`docs/ai-contract.md`](ai-contract.md)。
 
+> 最后核对：2026-11-07（PR #12 后）。机器校验只覆盖脚本 / flag / cwd / 占位符 / 场景编号；
+> 流程语义仍以 [`AGENTS.md`](../AGENTS.md)、[`CONTRIBUTING.md`](../CONTRIBUTING.md)、
+> [`docs/releasing.md`](releasing.md) 为准。
+
+> 快速跳转：[A](#a-内部重构--bug-修复) · [B](#b-修改现有公开组件--api--行为) · [C](#c-新增公开组件) ·
+> [D](#d-删除--废弃公开-api) · [E](#e-新增包) · [F](#f-只整理-catalog--agents--文档) ·
+> [G](#g-只审查不要修改) · [H](#h-ai-不能访问仓库--不能跑命令) · [I](#i-全仓审计--全量整理) ·
+> [J](#j-单包全面审计只读) · [K](#k-发布-pub) · [L](#l-改-w_tools_cli--doctor--init-模板) ·
+> [M](#m-处理--闭环反馈条目) · [N](#n-门禁--ci-红灯)
+
 ---
 
 ## 新手先看这里
 
-你不需要先读完 A~M。
+你不需要先读完 A~N。
 
 ### 只需三步
 
@@ -18,28 +28,33 @@
 
 ### 让 AI 帮你选场景
 
-不确定选 A~M 时，先发这段：
+不确定选 A~N 时，先发这段：
 
 ```text
 我是 w_tools 维护者，但不熟悉这些提示词。
 
-请先读 docs/ai-maintainer-prompts.md 和 docs/ai-contract.md。
+请只读 docs/ai-maintainer-prompts.md 的「§1 场景选择」和「§0 固定前缀」，
+以及 docs/ai-contract.md；不要通读全文。
 
 我的任务是：<原因>。
 范围是：<包> / <组件> / <文件>。
 
-请先判断应该用 A~M 哪个场景，并说明原因；
+请先判断应该用 A~N 哪个场景，并说明原因；
 不要改代码；
 确认后，给我一份已经填好包名、组件和范围的提示词。
 ```
 
 ### 默认工作流
 
+复杂改动 / 范围不确定时，按轮次拆：
+
 ```text
 第 1 轮：只审计（G / J-0 / J-4 / K-1），不改文件
 第 2 轮：只修 P0/P1（B / A / J-2）
-第 3 轮：跑 preflight，检查 explain 输出 / 发布归档
+第 3 轮：跑 bash scripts/preflight.sh --with-tests，检查 explain 输出；发布任务再加归档核对
 ```
+
+小修 / 文档 / 内部重构可以直接走 A / F，不必先审计。
 
 不要第一轮就：
 
@@ -57,7 +72,8 @@
 
 ```text
 你是 w_tools 的维护者，先读 docs/ai-contract.md、AGENTS.md 和
-packages/<pkg>/README.md，再开始。
+packages/<pkg>/README.md（存在时），再开始；新增 / 修改公开类型时，
+再读 CONTRIBUTING.md 与 docs/naming.md。
 
 硬约束：
 1. 先判断这是内部改动，还是公开 API / 行为变化。
@@ -68,7 +84,12 @@ packages/<pkg>/README.md，再开始。
 6. 命令在正确目录跑：`dart run tool/*`、`dart test test/*` 只在 `packages/cli` 下成立；
    `scripts/*.sh` 会自己 cd 到仓库根。贴命令时带上 cd，别让下一个人复现失败。
 7. 不要改无关包、无关文档、无关测试。
-8. 最后报告 changed files、实际命令结果、explain 输出、剩余风险。
+8. 默认只改工作区：不要 commit / push / 开 PR / 合并，除非任务块明确要求（如 K-2）；
+   不要用 `git reset --hard` / `git clean` 清理未提交内容。
+9. 公开变化：抬子包版本 + 在当前版本 CHANGELOG 段写变更；聚合子包同时抬根 pubspec 的
+   `^x.y.z` 下界。PR 正文保留「## 改动类型」段；勾了「公开变化」时，每个改了 lib 的包
+   都要改自己的 CHANGELOG（CI 的 check_pr_scope 强制）。
+10. 最后报告 changed files、实际命令结果、explain 输出、剩余风险。
 ```
 
 然后从下面选一个任务块贴在后面。
@@ -89,14 +110,20 @@ packages/<pkg>/README.md，再开始。
 | `<feature>` | init 能力名 | `map`、`form` |
 | `<批次名>` | 审计后的批次名 | `form-p0-validator` |
 | `<PKG>` | 审计 ID 前缀（大写） | `FORM` → `FORM-001` |
+| `<新版本>` | 新版本号 | `7.1.0` |
+| `<当前版本>` | 当前 pubspec 版本 | `7.0.0` |
+| `<major>` | 主版本号 | `8` |
 | `<标题>` | 反馈 / 条目标题 | `cache clean --all 无确认` |
 | `<关键词>` | 搜索词 | `cache` |
 
-`<runner>` 不用手填：查 [`scripts/packages.manifest`](../scripts/packages.manifest) 第 3 列（`flutter` / `dart`）。
+`<runner>` 必须替换：查 [`scripts/packages.manifest`](../scripts/packages.manifest) 第 3 列
+（`flutter` / `dart`）；纯 Dart 包用 `dart test`，其余用 `flutter test`。
 `<包目录>` 指 `packages/<pkg>`（根包用 `.`）；`<pkg1>` / `<pkg2>` 就是多个 `<pkg>`。
+`<包>` 用于自然语言（可写 `w_tools_form` 或 `form`）；`<pkg>` 用于路径 / `--package`（只写 `form`）。
 
 新手最容易漏的是 `<包>` 和 `<文件>`；能填具体路径就不要只写包名。
-正文只认上表这些占位符；出现表外的占位符说明模板没填完，按上下文换成对应的一行。
+正文除上表与上面说明的 `<runner>` / `<包目录>` / `<pkg1>` / `<pkg2>` 外，不应出现其它占位符；
+出现表外占位符说明模板没填完，按上下文换成对应的一行。
 
 ### 一个填好的例子：审计 form
 
@@ -144,6 +171,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 我要新增 / 删除 / 加包？         → C / D / E
 我要改 CLI / doctor / init 模板？ → L
 我要闭环一条用户反馈？            → M
+我要改门禁 / CI，或 CI 红了？     → N
+我要升级 Flutter / 依赖？         → N-1
 ```
 
 | 你的改动 | 用哪个 |
@@ -169,6 +198,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 | 批量发布多个包 | K-1M / K-2M |
 | 改 w_tools_cli / doctor / init 模板 | L |
 | 处理 / 闭环反馈条目 | M |
+| 改门禁脚本 / CI / 处理 CI 红灯 | N |
+| 升级 Flutter / 依赖 | N-1 |
 
 ---
 
@@ -189,7 +220,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 2. 只改必要代码 + 测试。
 3. 如果发现确实有公开行为变化，停下来，改用场景 B。
 4. 不要改 catalog / AGENTS / README / example。
-5. 运行该包测试和全仓 preflight。
+5. 运行 `cd packages/<pkg> && <runner> test` 和 `bash scripts/preflight.sh --with-tests`。
 6. 报告 changed files、为什么不需要文档更新、测试结果。
 ```
 
@@ -212,22 +243,30 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 
 要求：
 1. 先列清楚公开变化：API、默认行为、错误语义。
-2. 代码 + 测试。
-3. 更新 catalog/components.yaml：
+2. 判断 semver：已发布 API 的删除 / 签名变化 → major；新增能力 → minor；修 bug → patch。
+   已发布基线看 python3 scripts/release_status.py --online（「待发布」正常），
+   或 scripts/api_snapshots/ 的最新快照；没有网络时以快照为准并注明。
+3. 抬 packages/<pkg>/pubspec.yaml 版本，并在 CHANGELOG 最上面写 `## <新版本>` 段
+   （Fixed / Added / Changed / Breaking / Removed）；聚合子包同时抬根 pubspec 的 `^x.y.z` 下界。
+4. 代码 + 测试；像素敏感的按 CONTRIBUTING §4 加 golden。
+5. 更新 catalog/components.yaml：
    - usage
    - pitfalls
    - related
+   - dontUseFor
    - aliases（保留旧名时）
    - teach（入口组件必须）
-4. 更新对应 AGENTS 模板，确保不再推荐旧写法。
-5. 更新 README；必要时更新 example。
-6. 如果是 breaking，写 migration，并检查 docs/migrations/README.md。
-7. 先改源文件，再跑：
+6. 更新对应 AGENTS 模板（templates/agents/{zh,en}/<feature>.md，不是 <pkg>.md），
+   确保不再推荐旧写法。
+7. 更新 README；必要时更新 example。
+8. 如果是 breaking，写 migration，并检查 docs/migrations/README.md。
+9. 先改源文件，再跑：
    cd packages/cli
    dart run tool/gen_catalog.dart
    dart run tool/gen_templates.dart
-8. 运行 explain <组件> --format=prompt，贴输出。
-9. 运行 preflight --with-tests，贴结果。
+10. 运行 dart run w_tools_cli:w_tools explain <组件> --format=prompt，贴输出。
+11. 运行 bash scripts/preflight.sh --with-tests，贴结果。
+12. PR 正文保留「## 改动类型」段；勾「公开变化」时本包 CHANGELOG 必须被改。
 ```
 
 ---
@@ -238,23 +277,28 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 任务：新增组件 <组件>，包是 <pkg>。
 
 要求：
-1. 先判断它是 teach 入口还是普通组件，并说明理由。
-2. 实现 + 测试；如果需要 async / 状态，先查 async 规则。
-3. 在 catalog/components.yaml 增加：
+1. 先判断它是 teach 入口还是普通组件，并说明理由；读 CONTRIBUTING §1 / §2 / §4。
+2. 实现 + 测试（行为测试放 packages/<pkg>/test/，依赖写进该包 dev_dependencies）；
+   如果需要 async / 状态，先查 async 规则。
+3. 抬 packages/<pkg>/pubspec.yaml 版本，在 CHANGELOG 最上面写 `## <新版本>`；
+   聚合子包同时抬根 pubspec 的 `^x.y.z` 下界。
+4. 在 catalog/components.yaml 增加：
    - name / package / section
    - useFor / dontUseFor
    - teach（入口组件）
    - usage / pitfalls / related（teach 时）
    - aliases（有方法名查询需求时）
-4. related 优先指向已有 catalog 组件；子 API 才考虑 uncataloged 基线。
-5. 如果影响包级规则，更新 AGENTS 模板。
-6. 更新 README；有真实场景就更新 example。
-7. 跑生成器与契约测试，再跑全仓 preflight：
+5. related 优先指向已有 catalog 组件；子 API 才考虑 uncataloged 基线。
+6. 如果影响包级规则，更新 templates/agents/{zh,en}/<feature>.md。
+7. 更新 README；有真实场景就更新 example。
+8. 跑生成器与契约测试，再跑全仓门禁：
    cd packages/cli
    dart run tool/gen_catalog.dart
    dart run tool/gen_templates.dart
    dart test test/internal/ai_contract_test.dart
-8. 用 explain <组件> --format=prompt 自测。
+   cd ../..
+   bash scripts/preflight.sh --with-tests
+9. 用 dart run w_tools_cli:w_tools explain <组件> --format=prompt 自测。
 ```
 
 ---
@@ -265,17 +309,21 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 任务：删除或废弃 <包> 的 <API>，替代方案是 <替代>。
 
 要求：
-1. 代码层删除或加 deprecated，写清 remove-in。
-2. catalog：
-   - 删除条目，或调整 usage / pitfalls / aliases；
-   - 清理 related 中指向旧 API 的引用。
-3. AGENTS 不能继续推荐旧入口。
-4. README / migration / example 更新。
-5. 在仓库根运行：
+1. 先查已发布基线：删除 / 改名已发布 API 必须抬 major；只有上次发布后新增、
+   从未发布的 API 才能在当前版本直接删（见 docs/releasing.md「发布窗口判断」）。
+2. 代码层删除或加 @Deprecated，并在紧邻注释块写 `/// remove-in: <下一个 major>`。
+3. 抬版本，并在当前版本 CHANGELOG 的 `### Breaking` / `### Removed` 写清 `Type.member`；
+   必要时写 docs/migrations/<pkg>-<major>.0.md。
+4. 把删除的公开名补进 scripts/check_removed_api.py 的名单。
+5. catalog：删除条目，或调整 usage / pitfalls / dontUseFor / aliases；清理 related 里的旧引用。
+6. AGENTS / README / example 不能继续推荐旧入口。
+7. 在仓库根运行：
    python3 scripts/check_removed_api.py
+   python3 scripts/check_deprecations.py
+   python3 scripts/check_public_api_diff.py --package <pkg>
    python3 scripts/check_public_catalog.py
    bash scripts/preflight.sh --with-tests
-6. 如果只是 deprecated，明确告诉 AI 现在应该用什么。
+8. 如果只是 deprecated，明确告诉 AI 现在应该用什么，并保留 remove-in 到期版本。
 ```
 
 ---
@@ -287,21 +335,28 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 
 要求：
 1. 在 scripts/packages.manifest 加一行：name / path / runner / root_aggregate / example_test。
-2. 加入根 workspace 和根约束（如果属于聚合范围）。
-3. pubspec / CHANGELOG / README / LICENSE / .pubignore。
-4. 有真实入口就加 example，并加 smoke test。
-5. catalog 增加入口组件；入口组件 teach: true。
-6. 如果是 init feature，加 templates/agents/{zh,en}/<feature>.md 和 features.dart 映射。
-7. 更新 context.capabilities（packages/cli/lib/src/context/context_project.dart）、
+2. 加入根 pubspec.yaml 的 workspace（所有新包都必须，ci_matrix --check 会校验）；
+   只有聚合包才加根 dependencies 的 `w_tools_<pkg>: ^x.y.z` 约束。
+3. pubspec 写 `resolution: workspace`；补 CHANGELOG / README / LICENSE / .pubignore。
+4. 首次发布前补 API 基线（否则 preflight 的 public api diff 会失败）：
+   python3 scripts/check_public_api_diff.py \
+     --snapshot-from packages/<pkg> --package <pkg> --version <当前版本>
+   工具包（无 barrel）改为登记：check_public_api_diff.py 的 NO_PUBLIC_API、
+   check_docs_facts.py 的 TOOLS、check_naming.py 的 TOOL_PACKAGES。
+5. 有真实入口就加 example，并加 smoke test。
+6. catalog 增加入口组件；入口组件 teach: true。
+7. 如果是 init feature，加 templates/agents/{zh,en}/<feature>.md 和 features.dart 映射。
+8. 更新 context.capabilities（packages/cli/lib/src/context/context_project.dart）、
    docs/modules/README.md、根 CHANGELOG。
-8. 跑（生成器在 packages/cli 下）：
+9. 跑（生成器在 packages/cli 下）：
    cd packages/cli
    dart run tool/gen_templates.dart
    dart run tool/gen_catalog.dart
    cd ../..
+   python3 scripts/ci_matrix.py --check
    python3 scripts/check_public_catalog.py
    bash scripts/preflight.sh --with-tests
-9. 报告发布顺序和依赖关系。
+10. 报告发布顺序和依赖关系。
 ```
 
 ---
@@ -334,7 +389,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 ## G. 只审查，不要修改
 
 ```text
-任务：审查本次改动，不要改任何文件。
+任务：审查本次改动（git diff main...HEAD 或工作区改动），不要改任何文件。
 
 请检查：
 1. 是否有公开 API / 行为变化被漏掉？
@@ -343,7 +398,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 4. README / example 是否跟得上？
 5. 是否有生成物被手改？
 6. 是否有测试被削弱？
-7. 运行 preflight --with-tests 并贴结果。
+7. 运行 bash scripts/preflight.sh --with-tests 并贴结果。
 
 输出：
 - 阻断问题
@@ -398,7 +453,6 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 
 先读：
 - docs/ai-contract.md
-- docs/ai-maintainer-prompts.md
 - AGENTS.md
 - packages/cli/catalog/components.yaml
 - packages/cli/templates/agents/
@@ -461,7 +515,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 2. 先改 catalog / templates 源文件，再跑生成器；
 3. 不手改生成物；
 4. 更新 README / example（仅本批相关）；
-5. 跑本批验收 + preflight；
+5. 跑本批验收 + bash scripts/preflight.sh --with-tests；
 6. 如果发现需要跨批改动，停下来说明，不要顺手改；
 7. 报告 changed files、命令结果、explain 输出。
 ```
@@ -578,7 +632,6 @@ example 是否覆盖真实场景
 先读：
 - AGENTS.md
 - docs/ai-contract.md
-- docs/ai-maintainer-prompts.md
 - packages/<pkg>/README.md
 - packages/<pkg>/pubspec.yaml
 - packages/<pkg>/lib/
@@ -598,7 +651,7 @@ example 是否覆盖真实场景
 - bash scripts/check_docs.sh
 - python3 scripts/check_public_catalog.py
 - dart run w_tools_cli:w_tools list --package=<pkg> --format=prompt
-- 对该包入口组件逐个运行 explain --format=prompt
+- 对该包入口组件逐个运行 dart run w_tools_cli:w_tools explain <组件> --format=prompt
 
 审计维度：
 
@@ -710,7 +763,7 @@ G. 维护与发布
 3. 不改变未列入问题的公开行为。
 4. 不手改生成物。
 5. 每条完成后跑对应验收命令。
-6. 最后跑 preflight --with-tests。
+6. 最后跑 bash scripts/preflight.sh --with-tests。
 7. 报告：问题 ID、改动文件、测试结果、未解决项。
 ```
 
@@ -736,10 +789,10 @@ G. 维护与发布
 
 运行：
 - dart run w_tools_cli:w_tools list --package=<pkg> --format=prompt
-- 对全部 teach 入口运行 explain --format=prompt
-- 对非 teach 抽样 explain
-- 对 uncataloged 基线抽查 explain
-- 运行该包测试 / check_docs / check_public_catalog（SKIP 包注明不适用）
+- 对全部 teach 入口运行 dart run w_tools_cli:w_tools explain <组件> --format=prompt
+- 对非 teach 抽样运行 explain <组件> --format=prompt
+- 对 uncataloged 基线抽查 explain <组件> --format=prompt
+- 运行该包测试 / bash scripts/check_docs.sh / python3 scripts/check_public_catalog.py（SKIP 包注明不适用）
 
 检查：
 1. teach 的 usage 是否覆盖主要变体（不是单行）；
@@ -818,8 +871,10 @@ J-5 多包/家族
 - git status --porcelain（必须干净；不干净先停）
 - git fetch origin main（确认本地 main 没有落后；发布脚本也会自己 fetch）
 - bash scripts/release_check.sh --package <pkg>
-- python3 scripts/release_status.py --online --check
-  （「待发布」是正常状态；线上比较以它为准。release_check --online 断网时返回 2）
+- python3 scripts/release_status.py --online
+  （「待发布」是正常状态；线上比较以它为准。release_check --online 断网时返回 2。
+   发布波次中——上一包已发布、快照还没 apply——不要加 --check：它会把「快照 ≠ 线上」判失败；
+   --check 留给快照 PR 合入后 / 周检）。
 - bash scripts/preflight.sh --with-tests
 - 从 pub.dev API 取 latest.archive_url，下载归档到 /tmp，解压后与本地比较：
   pubspec.yaml / lib/** / README.md / CHANGELOG.md / LICENSE / example/**
@@ -827,8 +882,9 @@ J-5 多包/家族
 
 审根包时换成：
 - bash scripts/release_check.sh
-- python3 scripts/release_status.py --online --check
-（根包版本 ↔ CHANGELOG ↔ 子包 caret 约束都在这一轮看，K-1M 会把它们并进总表）
+- python3 scripts/release_status.py --online
+（根包版本 ↔ CHANGELOG ↔ 子包 caret 约束都在这一轮看，K-1M 会把它们并进总表；
+  同样不要在波次中加 --check）
 
 检查：
 1. 版本号与 CHANGELOG 是否一致；
@@ -878,10 +934,10 @@ J-5 多包/家族
 允许改：
 - packages/<pkg>/pubspec.yaml
 - packages/<pkg>/CHANGELOG.md
-- packages/<pkg>/README.md
+- packages/<pkg>/README.md（只改安装示例的 caret 下界；不要写「当前 x.y.z」）
 - 根包约束（聚合子包的功能 PR 里应已抬下界；这里只确认，不重复改）
 - 必要的 migration
-- 版本常量（cli/figma 的 version.dart 等，仅用于版本一致性测试）
+- 版本常量（cli/figma 的 lib/src/common/version.dart 等，仅用于版本一致性测试）
 
 不允许：
 - 执行 pub publish
@@ -890,10 +946,12 @@ J-5 多包/家族
 
 要求：
 1. 版本号必须与 CHANGELOG 的 ## 段一致；
-2. 更新 README 安装版本；
-3. 跑 release_check / preflight；
-4. 完成后提交到 feature 分支并 push，开 PR；等 Required checks 通过后**合并到 main**
-   （K-3 / K-4 的发布保护要求 `main` 且 `HEAD == origin/main`）；
+2. 更新 README 安装示例的 caret 下界（必须等于新版本），不要写死「当前 x.y.z」——
+   release_check 会判失败；安装命令用 pub add，不写死版本；
+3. 跑 bash scripts/release_check.sh --package <pkg>（发布根包前用 --strict）
+   与 bash scripts/preflight.sh --with-tests；
+4. 完成后提交到 feature 分支并 push，开 PR（正文保留「## 改动类型」段）；
+   等 Required checks 通过后**合并到 main**（K-3 / K-4 的发布保护要求 `main` 且 `HEAD == origin/main`）；
 5. 报告 changed files 和检查结果。
 ```
 
@@ -905,7 +963,10 @@ J-5 多包/家族
 第一步只输出版本提案表（包 | 旧版本 | 新版本 | 级别 | 依据），等维护者确认。
 确认后按 K-2 逐包改 pubspec / CHANGELOG / README；
 版本常量按需同步；不要改无关包。
-最后统一跑 release_check / preflight，提交并 push，开 PR 合并到 main。
+最后统一跑：
+bash scripts/release_check.sh
+bash scripts/preflight.sh --with-tests
+提交并 push，开 PR（正文保留「## 改动类型」段）并合并到 main。
 ```
 
 ### K-3. Dry-run（单包）
@@ -952,8 +1013,10 @@ bash scripts/publish_package.sh packages/<pkg>
 批量发布：
 
 ```text
-一次只执行一个 publish 命令；每个包发布后做 K-5，再发下一个。
-不要用一个命令/一个进程同时发多个包。
+一次只执行一个 publish 命令。
+同一批可以连续发：每包发完至少确认版本可见（python3 scripts/release_status.py --online，
+不要加 --check）；归档 diff 可以在批末统一做，避免每个包都下载一次归档。
+K-5 的归档核对不依赖快照。
 
 快照会先写到 .w_tools/release-snapshots/（gitignored），不会挡住下一个包；
 全部发完后运行 bash scripts/apply_snapshots.sh，按它打印的命令开一个快照 PR 并合入。
@@ -983,8 +1046,12 @@ bash scripts/publish_package.sh .
 任务：验证 <pkg> 发布结果。
 
 运行：
+- python3 scripts/release_status.py --online（总表；快照还没 apply 时不要加 --check）
 - bash scripts/release_check.sh --package <pkg> --online
 - 下载 pub.dev 最新归档，确认 README / CHANGELOG / lib 与仓库一致
+
+快照：publish 成功后先写到 .w_tools/release-snapshots/；一批发完
+bash scripts/apply_snapshots.sh 并合入快照 PR。根包发布前必须合入。
 
 检查：
 1. pub.dev 版本可见；
@@ -1050,14 +1117,14 @@ bash scripts/publish_package.sh <包目录>
 ```
 
 完成判据：`dart test` 全绿；`doctor --print-config` 与默认值一致；
-模板 / catalog 重新生成后 `git diff` 只包含你改的源文件。
+模板 / catalog 重新生成后的 diff **只反映你改的源文件**，没有额外漂移。
 
 ## M. 处理 / 闭环反馈条目
 
 适用：
 
 ```text
-docs/feedback/<包>.md 里有 [待处理] / [已确认] 条目要修、要定状态
+docs/feedback/<pkg>.md 里有 [待处理] / [已确认] 条目要修、要定状态
 ```
 
 ```text
@@ -1065,20 +1132,75 @@ docs/feedback/<包>.md 里有 [待处理] / [已确认] 条目要修、要定状
 
 先读：
 - docs/feedback/README.md（状态机与索引规则）
-- docs/feedback/<包>.md 中的该条目
+- docs/feedback/<pkg>.md 中的该条目
 
 要求：
 1. 先查重与现状：
-   dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>
+   dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<pkg>
 2. 先复现，再修；修代码走 A / B，不要顺手改公开 API。
-3. 状态只由维护者改：待处理 → 已确认（链 issue）→ 已修复（版本 + commit）/ 不修（写理由）。
-4. 已修复必须带版本号；闭环后压成「## 已闭环」一行，细节写 CHANGELOG。
-5. 同步 docs/feedback/README.md 索引表的待处理数量，不要新建第二张表。
+3. 状态只由维护者确认：待处理 → 已确认（链 issue）→ 已修复（版本 + commit）/ 不修（写理由）。
+   AI 不要把条目标成「已修复」；发布后由维护者补版本号。
+4. 新条目用 feedback submit ... --ledger（自动建档 / 更新索引）；状态变更手工改
+   docs/feedback/<pkg>.md，并同步 README 索引表的待处理数量（CI 会核对）。
+5. 已闭环压成「## 已闭环」一行，细节写 CHANGELOG。
 6. 提交前跑 bash scripts/check_feedback.sh。
 7. 报告：条目、改动文件、版本、验证命令。
 ```
 
 完成判据：条目状态合法、`check_feedback.sh` 通过、CHANGELOG 里有一句对应说明。
+
+## N. 门禁 / CI 红灯
+
+适用：
+
+```text
+PR 的 Required checks 红了
+本地 preflight / check_docs 失败
+要改 scripts/ 或 .github/workflows/
+```
+
+```text
+任务：处理 <包> / <文件> 的门禁失败，或修改门禁脚本。
+
+先读：
+- scripts/README.md（每个脚本做什么 / 谁调用）
+- .github/workflows/ci.yml（job 与 required 接线）
+- 失败 job 的完整日志（不是只看 GitHub 摘要）
+
+要求：
+1. 先复现：在本地跑失败 job 里的同一条命令，贴完整输出。
+2. 定位到唯一入口：静态门禁是 scripts/preflight.sh，文档是 scripts/check_docs.sh，
+   发布是 scripts/release_check.sh；不要另写一套检查，也不要让 CI 手抄步骤。
+3. 修根因。禁止为了让检查变绿而：删检查、加 `if: false` / `continue-on-error`、
+   放宽 ci_matrix 的 REQUIRED_FILTERS、用 `--force`、改旧版本 CHANGELOG 段。
+4. 改门禁脚本时同步 scripts/tests（脚本单测）与 scripts/README.md 登记；
+   改 ci.yml 时跑 python3 scripts/ci_matrix.py --check 与
+   python3 scripts/check_gate_coverage.py。
+5. 跑并贴结果：
+   bash scripts/check_docs.sh
+   bash scripts/preflight.sh --with-tests
+6. 报告：失败原因、改了哪些文件、为什么不是绕过、剩余风险。
+```
+
+完成判据：对应命令本地通过；`ci_matrix --check` 与 `check_gate_coverage` 通过；
+没有新增 `if: false` / `continue-on-error` / `--force`。
+
+### N-1. 升级 Flutter / 依赖
+
+```text
+任务：升级 Flutter 到目标版本，或升级依赖 <包>。
+
+要求：
+1. 同步版本 pin：.fvmrc、.github/workflows/ci.yml 的 FLUTTER_VERSION 与
+   MIN_FLUTTER_VERSION、根 / 各子包 pubspec 的 environment.flutter 下限。
+2. 只抬声明下限时，MIN_FLUTTER_VERSION 必须 >= 声明的下限；ci_matrix --check 目前只校验
+   .fvmrc ↔ FLUTTER_VERSION，MIN 要人看。
+3. 跑 flutter pub get → flutter analyze → bash scripts/preflight.sh --with-tests；
+   有条件再跑 CI 的 min_sdk job。
+4. 报告：版本矩阵（声明 / CI 实跑 / .fvmrc）、改了哪些包、剩余风险。
+```
+
+完成判据：`.fvmrc`、`ci.yml`、pubspec 三处版本一致；全仓测试通过。
 
 ## 2. 提示词使用示例
 
@@ -1120,9 +1242,9 @@ docs/feedback/<包>.md 里有 [待处理] / [已确认] 条目要修、要定状
 按 J-4 输出覆盖矩阵（公开类型 | catalog | teach | AGENTS zh | AGENTS en | explain | README | example）。
 ```
 
-### 发布所有未发布包
+### 审计所有未发布包
 
-固定前缀 + 场景 K-1M：
+固定前缀 + 场景 K-1M（实际发布走 K-2M → K-3 → K-4）：
 
 ```text
 任务：审计所有包的发布状态，输出状态总表、同版本漂移清单、建议版本与发布顺序。
@@ -1146,8 +1268,11 @@ K-1 → K-2（确认版本）→ 提交并 push → K-3 → K-4 → K-5，逐包
 [ ] explain <组件> --format=prompt 输出正确
 [ ] README / example 已更新
 [ ] docs/README.md 已索引新增文档；docs/agents 的首选入口能在该包规则页找到
-[ ] 发布时：git status 干净、归档 diff 看过、版本常量已同步
-[ ] preflight --with-tests 实际通过
+[ ] 公开变化 PR：正文有「## 改动类型」段；每个改了 lib 的包都改了 CHANGELOG
+[ ] 发布时：git status 干净、归档 diff 看过、lib/src/common/version.dart 与 pubspec 一致
+[ ] 发布时：快照 PR 已合入（根包前）、没有用 --force、
+    python3 scripts/release_status.py --online --check 通过
+[ ] bash scripts/preflight.sh --with-tests 实际通过
 [ ] 没有削弱测试
 ```
 
@@ -1226,7 +1351,12 @@ bash scripts/check_docs.sh
 ```
 
 它除了链接和旧命令，还会用 `check_prompt_docs.py` 核对本文引用脚本、flag、`cd packages/cli`、
-占位符与场景编号（§1 提到的 A~M / X-n 必须有对应标题）。
+占位符、CLI 子命令 flag 与场景编号（§1 提到的 A~Z / X-n 必须有对应标题）。
+
+新增场景时**必须**同步 `scripts/check_prompt_docs.py` 的场景正则（A~Z）与 §1 表；
+否则 `check_docs` 会报「场景选择引用了 X，但正文没有对应标题」。
+
+机器只校验命令可执行与编号存在；先后顺序、状态机、semver 判断仍要 review。
 
 保持它和 [`docs/ai-contract.md`](ai-contract.md) 一致。
 

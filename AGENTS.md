@@ -13,7 +13,7 @@
 | 改命名 / 新增公开类型 | [`docs/naming.md`](docs/naming.md) |
 | 判断文档该放哪 | [`docs/documentation-map.md`](docs/documentation-map.md) |
 
-> [`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md) 是**给人**复制场景提示词的手册（A~M），agent 不需要预读。
+> [`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md) 是**给人**复制场景提示词的手册（A~N），agent 不需要预读。
 
 ## 改动前先分类
 
