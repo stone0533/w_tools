@@ -467,6 +467,29 @@ class SnapshotIntegrityTest(unittest.TestCase):
                 '({ super.key, required this.name, this.readOnly = false, this.extra, })',
             )
 
+    def test_members_from_every_mixin_are_part_of_surface(self):
+        """`with A, B` 时两个 mixin 的成员都要算进公开面（不能只取第一个）。"""
+        with tempfile.TemporaryDirectory() as temp:
+            package = pathlib.Path(temp)
+            (package / 'lib' / 'src').mkdir(parents=True)
+            (package / 'lib' / 'w_tools_demo.dart').write_text(
+                "export 'src/a.dart' show WChild;\n"
+            )
+            (package / 'lib' / 'src' / 'a.dart').write_text(
+                'mixin WAlpha {\n'
+                '  String? get alpha => null;\n'
+                '}\n'
+                'mixin WBeta {\n'
+                '  bool get beta => false;\n'
+                '}\n'
+                'class WChild with WAlpha, WBeta {\n'
+                '  const WChild();\n'
+                '}\n'
+            )
+            surface = api_surface(package)
+            self.assertEqual(surface.get('WChild.alpha'), 'String?')
+            self.assertEqual(surface.get('WChild.beta'), 'bool')
+
 
 if __name__ == '__main__':
     unittest.main()

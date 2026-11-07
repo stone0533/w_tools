@@ -104,10 +104,23 @@ SUPER_PARAM = re.compile(r'\b(?:required\s+)?super\.([A-Za-z_]\w*)')
 
 
 def _supertypes(text: str, start: int) -> list[str]:
-    """类声明里的 extends / with 名字（只用于同包基类解析）。"""
+    """类声明里的 extends / with 名字（顺序保留，`with A, B` 两个都要）。
+
+    只用于同包基类解析：外部基类（StatelessWidget 等）不在索引里，会被跳过。
+    """
     brace = text.find('{', start)
     header = text[start:brace if brace >= 0 else len(text)]
-    return re.findall(r'\b(?:extends|with)\s+([A-Za-z_]\w*)', header)
+    names: list[str] = []
+    extends = re.search(r'\bextends\s+([A-Za-z_]\w*)', header)
+    if extends:
+        names.append(extends.group(1))
+    for with_clause in re.finditer(r'\bwith\s+([^;{]+)', header):
+        segment = re.split(r'\b(?:implements|on)\b', with_clause.group(1))[0]
+        for part in segment.split(','):
+            name = re.match(r'\s*([A-Za-z_]\w*)', part)
+            if name:
+                names.append(name.group(1))
+    return names
 
 
 def _split_top_level(text: str) -> list[str]:
