@@ -40,7 +40,7 @@ const String aiPrompts = r'''
 还是不确定，直接把这段发给 AI：
 
 ```text
-我不知道该用 C-A 到 C-J 哪个场景。
+我不知道该用 C-A 到 C-K 哪个场景。
 
 请先读：
 - AGENTS.md
@@ -60,21 +60,19 @@ const String aiPrompts = r'''
 ```text
 你是本项目的 Flutter 开发者。
 
-先读 AGENTS.md 和 pubspec.yaml。
+先读 AGENTS.md 和 pubspec.yaml；项目规则优先于本文件。
 
 规则：
 1. 写代码前先运行：
    dart run w_tools_cli:w_tools context --format=prompt
-2. 找组件先运行：
+2. 找组件运行：
    dart run w_tools_cli:w_tools list <关键词> --format=prompt
-3. 查用法运行：
+   查用法运行：
    dart run w_tools_cli:w_tools explain <组件名> --format=prompt
-4. 不要凭记忆猜 w_tools API；以 explain 输出为准。
-5. 只使用项目已安装的包；业务代码按项目约定 import。
-6. 先看项目现有相似页面 / 路由 / 状态管理，不要发明新架构。
-7. 不要手改生成的 AGENTS.md。
-8. 完成后运行 flutter analyze / flutter test，并贴实际输出。
-9. 不能运行命令就明确说没运行，不要声称通过。
+3. 不要凭记忆猜 w_tools API；以 explain 输出为准。
+4. 只使用项目已安装的包；import / 分层 / 禁止项按 AGENTS.md。
+5. 不要修改 AGENTS.md 的 `w_tools:begin/end` 标记块；块外可以追加项目规则。
+6. 完成后运行 flutter analyze / flutter test，并贴实际输出；不能运行就明确说没运行。
 ```
 
 ## C-A 新页面：先计划，再实现
@@ -118,7 +116,9 @@ const String aiPrompts = r'''
 - 数据接口与分页参数
 - 是否支持下拉刷新
 - 空态 / 错误态 / 加载更多失败
+<!-- @if:async -->
 - 项目是否已使用 WAsyncPagedController
+<!-- @endif -->
 
 要求：
 1. 先看项目现有列表页写法；
@@ -174,7 +174,7 @@ const String aiPrompts = r'''
 4. 是否违反 AGENTS.md；
 5. 页面状态 / 表单 / 网络 / 地图 / 扫码是否用错入口。
 
-先运行 context / list / explain 核对。
+先运行 `dart run w_tools_cli:w_tools doctor --format=json`，再用 context / list / explain 核对。
 输出：
 | ID | 级别 | 文件:行 | 证据 | 问题 | 建议修复 | 验收 |
 不要修改文件。
@@ -193,6 +193,11 @@ const String aiPrompts = r'''
 5. 不改变无关业务行为；
 6. 完成后 flutter analyze + flutter test；
 7. 报告旧 API 残留。
+
+升级与刷新：
+- flutter pub upgrade
+- dart run w_tools_cli:w_tools init --check-drift
+- 有 drift 时：dart run w_tools_cli:w_tools init --force
 ```
 
 ## C-G 调试 UI / 性能
@@ -225,10 +230,14 @@ const String aiPrompts = r'''
 
 优先覆盖：
 1. loading / empty / error / ready；
+<!-- @if:form -->
 2. 表单校验、提交、只读；
+<!-- @endif -->
 3. Controller dispose / 请求取消；
 4. 列表刷新 / 加载更多 / footer；
+<!-- @if:api -->
 5. 401 / 请求失败。
+<!-- @endif -->
 
 要求：
 - 用 flutter_test / widget test；
@@ -252,7 +261,7 @@ const String aiPrompts = r'''
 
 运行：
 - flutter test integration_test/...
-- 需要设备时用 w_tools_device
+- 需要设备时按 AGENTS.md 的 device 段操作（w_tools_device）
 ```
 
 ## C-J 只审查改动
@@ -292,9 +301,13 @@ const String aiPrompts = r'''
 ```text
 [ ] loading / empty / error / ready 四态完整
 [ ] 请求有取消 / dispose 保护
+<!-- @if:form -->
 [ ] 表单有校验、提交中、错误保留
+<!-- @endif -->
 [ ] 列表有刷新 / 分页 / footer
+<!-- @if:ui -->
 [ ] 图片用 WImage.source，限制解码尺寸
+<!-- @endif -->
 [ ] 路由参数和返回结果正确
 [ ] 键盘 / SafeArea / overflow 检查
 [ ] 暗色模式和 TextScaler 不溢出
@@ -342,7 +355,7 @@ If you are unsure which prompt to use, start here:
 If still unsure, send this to the AI:
 
 ```text
-I do not know whether to use C-A through C-J.
+I do not know whether to use C-A through C-K.
 
 Read first:
 - AGENTS.md
@@ -362,21 +375,19 @@ Then fill that scenario's prompt with my project name, page, and scope and give 
 ```text
 You are a Flutter developer on this project.
 
-Read AGENTS.md and pubspec.yaml first.
+Read AGENTS.md and pubspec.yaml first; project rules take precedence over this file.
 
 Rules:
 1. Before coding, run:
    dart run w_tools_cli:w_tools context --format=prompt
 2. To find components, run:
    dart run w_tools_cli:w_tools list <keyword> --format=prompt
-3. To look up usage, run:
+   To look up usage, run:
    dart run w_tools_cli:w_tools explain <Component> --format=prompt
-4. Do not guess w_tools APIs; follow explain output.
-5. Only use packages installed in this project; follow project import rules.
-6. Inspect existing similar pages / routes / state management first; do not invent a new architecture.
-7. Do not edit generated AGENTS.md.
-8. Run flutter analyze / flutter test and paste actual output.
-9. If you cannot run commands, say so; do not claim they passed.
+3. Do not guess w_tools APIs; follow explain output.
+4. Only use packages installed in this project; imports / layering / bans follow AGENTS.md.
+5. Do not edit the `w_tools:begin/end` block in AGENTS.md; you may append project rules outside it.
+6. Run flutter analyze / flutter test and paste actual output; if you cannot run commands, say so.
 ```
 
 ## C-A New page: plan first, then implement
@@ -420,7 +431,9 @@ Confirm first:
 - data API and pagination params
 - pull-to-refresh
 - empty / error / load-more failure
+<!-- @if:async -->
 - whether the project uses WAsyncPagedController
+<!-- @endif -->
 
 Requirements:
 1. Follow existing list pages.
@@ -476,7 +489,7 @@ Check:
 4. violations of AGENTS.md;
 5. wrong entries for state / forms / network / maps / QR.
 
-Use context / list / explain to verify.
+Run `dart run w_tools_cli:w_tools doctor --format=json`, then use context / list / explain to verify.
 Output:
 | ID | Severity | File:line | Evidence | Problem | Suggested fix | Acceptance |
 Do not modify files.
@@ -495,6 +508,11 @@ Requirements:
 5. Do not change unrelated behavior.
 6. Run flutter analyze + flutter test.
 7. Report remaining outdated APIs.
+
+Upgrade and refresh:
+- flutter pub upgrade
+- dart run w_tools_cli:w_tools init --check-drift
+- on drift: dart run w_tools_cli:w_tools init --force
 ```
 
 ## C-G Debug UI / performance
@@ -527,10 +545,14 @@ Task: add white-box tests for <page/component>.
 
 Prioritize:
 1. loading / empty / error / ready;
+<!-- @if:form -->
 2. form validation, submit, read-only;
+<!-- @endif -->
 3. controller disposal / request cancellation;
 4. list refresh / load more / footer;
+<!-- @if:api -->
 5. 401 / request failure.
+<!-- @endif -->
 
 Requirements:
 - use flutter_test / widget tests;
@@ -554,7 +576,7 @@ Requirements:
 
 Run:
 - flutter test integration_test/...
-- use w_tools_device when a device is required.
+- follow the device section in AGENTS.md (w_tools_device) when a device is required.
 ```
 
 ## C-J Review changes only
@@ -594,9 +616,13 @@ I provide:
 ```text
 [ ] loading / empty / error / ready complete
 [ ] requests have cancel / dispose protection
+<!-- @if:form -->
 [ ] forms have validation, submitting state, input preservation
+<!-- @endif -->
 [ ] lists have refresh / pagination / footer
+<!-- @if:ui -->
 [ ] images use WImage.source with decode limits
+<!-- @endif -->
 [ ] route arguments and results are correct
 [ ] keyboard / SafeArea / overflow checked
 [ ] dark mode and TextScaler do not overflow

@@ -1,3 +1,17 @@
+## 1.15.0
+
+### Changed
+- 重构 `init` 生成的 `.w_tools/AI_PROMPTS.md`：场景元提示覆盖 C-A~C-K；
+  固定前缀去掉与 AGENTS 重复的规则，并明确只改 AGENTS 的 `w_tools:begin/end` 块外内容。
+- AI_PROMPTS 按能力裁剪补齐：`WAsyncPagedController`（async）、表单自检 / C-H 表单项（form）、
+  `WImage.source` 自检（ui）、C-H 401 项（api）。
+- C-E 审计补 `doctor --format=json`；C-F 补 `flutter pub upgrade` /
+  `init --check-drift` / `init --force`；C-I 指向 AGENTS 的 device 段。
+
+### Added
+- AI_PROMPTS 契约测试：场景表与章节对应、zh/en 对齐、旧入口 / 已删除 API、
+  `@if` 平衡与按能力裁剪。
+
 ## 1.14.0
 
 ### Changed

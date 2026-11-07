@@ -33,7 +33,7 @@ If you are unsure which prompt to use, start here:
 If still unsure, send this to the AI:
 
 ```text
-I do not know whether to use C-A through C-J.
+I do not know whether to use C-A through C-K.
 
 Read first:
 - AGENTS.md
@@ -53,21 +53,19 @@ Then fill that scenario's prompt with my project name, page, and scope and give 
 ```text
 You are a Flutter developer on this project.
 
-Read AGENTS.md and pubspec.yaml first.
+Read AGENTS.md and pubspec.yaml first; project rules take precedence over this file.
 
 Rules:
 1. Before coding, run:
    dart run w_tools_cli:w_tools context --format=prompt
 2. To find components, run:
    dart run w_tools_cli:w_tools list <keyword> --format=prompt
-3. To look up usage, run:
+   To look up usage, run:
    dart run w_tools_cli:w_tools explain <Component> --format=prompt
-4. Do not guess w_tools APIs; follow explain output.
-5. Only use packages installed in this project; follow project import rules.
-6. Inspect existing similar pages / routes / state management first; do not invent a new architecture.
-7. Do not edit generated AGENTS.md.
-8. Run flutter analyze / flutter test and paste actual output.
-9. If you cannot run commands, say so; do not claim they passed.
+3. Do not guess w_tools APIs; follow explain output.
+4. Only use packages installed in this project; imports / layering / bans follow AGENTS.md.
+5. Do not edit the `w_tools:begin/end` block in AGENTS.md; you may append project rules outside it.
+6. Run flutter analyze / flutter test and paste actual output; if you cannot run commands, say so.
 ```
 
 ## C-A New page: plan first, then implement
@@ -111,7 +109,9 @@ Confirm first:
 - data API and pagination params
 - pull-to-refresh
 - empty / error / load-more failure
+<!-- @if:async -->
 - whether the project uses WAsyncPagedController
+<!-- @endif -->
 
 Requirements:
 1. Follow existing list pages.
@@ -167,7 +167,7 @@ Check:
 4. violations of AGENTS.md;
 5. wrong entries for state / forms / network / maps / QR.
 
-Use context / list / explain to verify.
+Run `dart run w_tools_cli:w_tools doctor --format=json`, then use context / list / explain to verify.
 Output:
 | ID | Severity | File:line | Evidence | Problem | Suggested fix | Acceptance |
 Do not modify files.
@@ -186,6 +186,11 @@ Requirements:
 5. Do not change unrelated behavior.
 6. Run flutter analyze + flutter test.
 7. Report remaining outdated APIs.
+
+Upgrade and refresh:
+- flutter pub upgrade
+- dart run w_tools_cli:w_tools init --check-drift
+- on drift: dart run w_tools_cli:w_tools init --force
 ```
 
 ## C-G Debug UI / performance
@@ -218,10 +223,14 @@ Task: add white-box tests for <page/component>.
 
 Prioritize:
 1. loading / empty / error / ready;
+<!-- @if:form -->
 2. form validation, submit, read-only;
+<!-- @endif -->
 3. controller disposal / request cancellation;
 4. list refresh / load more / footer;
+<!-- @if:api -->
 5. 401 / request failure.
+<!-- @endif -->
 
 Requirements:
 - use flutter_test / widget tests;
@@ -245,7 +254,7 @@ Requirements:
 
 Run:
 - flutter test integration_test/...
-- use w_tools_device when a device is required.
+- follow the device section in AGENTS.md (w_tools_device) when a device is required.
 ```
 
 ## C-J Review changes only
@@ -285,9 +294,13 @@ I provide:
 ```text
 [ ] loading / empty / error / ready complete
 [ ] requests have cancel / dispose protection
+<!-- @if:form -->
 [ ] forms have validation, submitting state, input preservation
+<!-- @endif -->
 [ ] lists have refresh / pagination / footer
+<!-- @if:ui -->
 [ ] images use WImage.source with decode limits
+<!-- @endif -->
 [ ] route arguments and results are correct
 [ ] keyboard / SafeArea / overflow checked
 [ ] dark mode and TextScaler do not overflow

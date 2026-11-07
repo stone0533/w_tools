@@ -33,7 +33,7 @@
 还是不确定，直接把这段发给 AI：
 
 ```text
-我不知道该用 C-A 到 C-J 哪个场景。
+我不知道该用 C-A 到 C-K 哪个场景。
 
 请先读：
 - AGENTS.md
@@ -53,21 +53,19 @@
 ```text
 你是本项目的 Flutter 开发者。
 
-先读 AGENTS.md 和 pubspec.yaml。
+先读 AGENTS.md 和 pubspec.yaml；项目规则优先于本文件。
 
 规则：
 1. 写代码前先运行：
    dart run w_tools_cli:w_tools context --format=prompt
-2. 找组件先运行：
+2. 找组件运行：
    dart run w_tools_cli:w_tools list <关键词> --format=prompt
-3. 查用法运行：
+   查用法运行：
    dart run w_tools_cli:w_tools explain <组件名> --format=prompt
-4. 不要凭记忆猜 w_tools API；以 explain 输出为准。
-5. 只使用项目已安装的包；业务代码按项目约定 import。
-6. 先看项目现有相似页面 / 路由 / 状态管理，不要发明新架构。
-7. 不要手改生成的 AGENTS.md。
-8. 完成后运行 flutter analyze / flutter test，并贴实际输出。
-9. 不能运行命令就明确说没运行，不要声称通过。
+3. 不要凭记忆猜 w_tools API；以 explain 输出为准。
+4. 只使用项目已安装的包；import / 分层 / 禁止项按 AGENTS.md。
+5. 不要修改 AGENTS.md 的 `w_tools:begin/end` 标记块；块外可以追加项目规则。
+6. 完成后运行 flutter analyze / flutter test，并贴实际输出；不能运行就明确说没运行。
 ```
 
 ## C-A 新页面：先计划，再实现
@@ -111,7 +109,9 @@
 - 数据接口与分页参数
 - 是否支持下拉刷新
 - 空态 / 错误态 / 加载更多失败
+<!-- @if:async -->
 - 项目是否已使用 WAsyncPagedController
+<!-- @endif -->
 
 要求：
 1. 先看项目现有列表页写法；
@@ -167,7 +167,7 @@
 4. 是否违反 AGENTS.md；
 5. 页面状态 / 表单 / 网络 / 地图 / 扫码是否用错入口。
 
-先运行 context / list / explain 核对。
+先运行 `dart run w_tools_cli:w_tools doctor --format=json`，再用 context / list / explain 核对。
 输出：
 | ID | 级别 | 文件:行 | 证据 | 问题 | 建议修复 | 验收 |
 不要修改文件。
@@ -186,6 +186,11 @@
 5. 不改变无关业务行为；
 6. 完成后 flutter analyze + flutter test；
 7. 报告旧 API 残留。
+
+升级与刷新：
+- flutter pub upgrade
+- dart run w_tools_cli:w_tools init --check-drift
+- 有 drift 时：dart run w_tools_cli:w_tools init --force
 ```
 
 ## C-G 调试 UI / 性能
@@ -218,10 +223,14 @@
 
 优先覆盖：
 1. loading / empty / error / ready；
+<!-- @if:form -->
 2. 表单校验、提交、只读；
+<!-- @endif -->
 3. Controller dispose / 请求取消；
 4. 列表刷新 / 加载更多 / footer；
+<!-- @if:api -->
 5. 401 / 请求失败。
+<!-- @endif -->
 
 要求：
 - 用 flutter_test / widget test；
@@ -245,7 +254,7 @@
 
 运行：
 - flutter test integration_test/...
-- 需要设备时用 w_tools_device
+- 需要设备时按 AGENTS.md 的 device 段操作（w_tools_device）
 ```
 
 ## C-J 只审查改动
@@ -285,9 +294,13 @@
 ```text
 [ ] loading / empty / error / ready 四态完整
 [ ] 请求有取消 / dispose 保护
+<!-- @if:form -->
 [ ] 表单有校验、提交中、错误保留
+<!-- @endif -->
 [ ] 列表有刷新 / 分页 / footer
+<!-- @if:ui -->
 [ ] 图片用 WImage.source，限制解码尺寸
+<!-- @endif -->
 [ ] 路由参数和返回结果正确
 [ ] 键盘 / SafeArea / overflow 检查
 [ ] 暗色模式和 TextScaler 不溢出

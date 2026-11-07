@@ -40,7 +40,7 @@ templates/agents/zh/closing.md
 ```
 
 内容只面向使用 w_tools 的项目，不复用维护者 A~J。
-form / api 场景带 `@if:` 标记，按 `InitFeatures` 条件生成。
+form / api / async / ui 的场景或检查行带 `@if:` 标记，按 `InitFeatures` 条件生成。
 
 ## toolkit 可选标记
 
