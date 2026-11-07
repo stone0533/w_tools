@@ -412,6 +412,61 @@ class SnapshotIntegrityTest(unittest.TestCase):
         )
         self.assertEqual(changes, [])
 
+    def test_inherited_members_are_part_of_surface(self):
+        """公开类继承自同包私有基类时，基类成员要算进它的公开面。"""
+        with tempfile.TemporaryDirectory() as temp:
+            package = pathlib.Path(temp)
+            (package / 'lib' / 'src').mkdir(parents=True)
+            (package / 'lib' / 'w_tools_demo.dart').write_text(
+                "export 'src/a.dart' show WChild;\n"
+            )
+            (package / 'lib' / 'src' / 'a.dart').write_text(
+                'abstract class _WBase extends StatelessWidget {\n'
+                '  const _WBase({super.key, required this.name, this.readOnly = false});\n'
+                '  final String name;\n'
+                '  final bool readOnly;\n'
+                '  @override\n'
+                '  Widget build(BuildContext context) => const SizedBox.shrink();\n'
+                '}\n'
+                'class WChild extends _WBase {\n'
+                '  const WChild({super.key, required super.name});\n'
+                '}\n'
+            )
+            surface = api_surface(package)
+            self.assertEqual(surface.get('WChild.name'), 'String')
+            self.assertEqual(surface.get('WChild.readOnly'), 'bool')
+            self.assertEqual(surface.get('WChild.build'), 'Widget (BuildContext context)')
+
+    def test_super_params_expand_to_base_param_text(self):
+        """子类用 `super.x` 时，构造参数文本要展开成基类的 `this.x` 形态。"""
+        with tempfile.TemporaryDirectory() as temp:
+            package = pathlib.Path(temp)
+            (package / 'lib' / 'src').mkdir(parents=True)
+            (package / 'lib' / 'w_tools_demo.dart').write_text(
+                "export 'src/a.dart' show WChild;\n"
+            )
+            (package / 'lib' / 'src' / 'a.dart').write_text(
+                'abstract class _WBase extends StatelessWidget {\n'
+                '  const _WBase({super.key, required this.name, this.readOnly = false});\n'
+                '  final String name;\n'
+                '  final bool readOnly;\n'
+                '}\n'
+                'class WChild extends _WBase {\n'
+                '  const WChild({\n'
+                '    super.key,\n'
+                '    required super.name,\n'
+                '    super.readOnly,\n'
+                '    this.extra,\n'
+                '  });\n'
+                '  final String? extra;\n'
+                '}\n'
+            )
+            surface = api_surface(package)
+            self.assertEqual(
+                surface.get('WChild.new'),
+                '({ super.key, required this.name, this.readOnly = false, this.extra, })',
+            )
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,12 @@
-## Unreleased
+## 11.0.0
 
+### Breaking
+
+- 跟随 `w_tools_form` 6.0.0：根包重导出 form 的公开 barrel，因此删除的
+  `WFormController.pruneFormEntered` / `removeFormEntered` / `errorChannelOf` /
+  `removeErrorChannel` / `registerBorder` / `unregisterBorder` / `hasBorder`
+  在根包一并消失；`WFormValidator` 的 `formData` / `validationItems` / `settings`
+  改为 `final`。迁移见 `docs/migrations/form-6.0.md`。
 - 抬高聚合包对 `w_tools_form` 的下界到 `^6.0.0`：6.0 收口图标入口、内部类型与
   边框 key 管道，并补齐 `WFormFieldButton<T>` / `onChanged` / `message` 等能力。
 
