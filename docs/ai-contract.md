@@ -258,7 +258,7 @@ teach: false  普通组件：至少 useFor / dontUseFor
 | 5.8 命名约定 | 公开 `W*Config` 必须在 [naming_baseline.yaml](../scripts/naming_baseline.yaml) 内；库包公开类型 `W` 前缀；规则见 [docs/naming.md](naming.md) | [`check_naming.py`](../scripts/check_naming.py) |
 | 5.9 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh`；关键路径过滤器 / required 接线 / docs job meta 检查由 `ci_matrix --check` 守；每个检查脚本都必须有真实入口（preflight / check_docs / release_check / workflow）且在 `scripts/README.md` 登记 | [`ci_matrix.py`](../scripts/ci_matrix.py)、[`check_gate_coverage.py`](../scripts/check_gate_coverage.py) |
 | 5.10 核心入口教学覆盖 | `entrypoints.yaml` 里的入口必须出现在 docs/agents / 模板 zh+en / README（有 example 还要出现在 example/lib）；覆盖 11 个库包，app_getx/map_google 共用 app/map 规则页（J-4A） | [`check_teaching_coverage.py`](../scripts/check_teaching_coverage.py) |
-| 5.11 PR 分类 ↔ CHANGELOG | 改了 `lib/` 的 PR 必须带 PR 模板的「## 改动类型」段并至少勾选一项（空 body / 全未勾选会失败）；勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了 lib 的包**都要改自己的 CHANGELOG（根包改 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`）；行为变化没有 API diff，靠这条兜底 | [`check_pr_scope.py`](../scripts/check_pr_scope.py) |
+| 5.11 PR 分类 ↔ CHANGELOG | 改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须带 PR 模板的「## 改动类型」段并至少勾选一项（空 body / 全未勾选会失败）；勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG（根包改 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`）；行为变化没有 API diff，靠这条兜底 | [`check_pr_scope.py`](../scripts/check_pr_scope.py) |
 
 重建基线用 `python3 scripts/check_public_catalog.py --write`；它是**基线**，不是「全了」的证明，
 新增类型仍要人工判断进 catalog 还是 `uncataloged.yaml`。
@@ -349,7 +349,7 @@ bash scripts/preflight.sh --with-tests
 - `usage` 是最短片段，不保证全量编译；
 - 大部分 `teach: false` 组件仍只有 useFor / dontUseFor（具体比例见 catalog，不在文档里写死）；
 - `context.capabilities` 是静态映射，新增**消费入口包**时需同步（契约层 / 工具包不单列）；
-- `check_pr_scope.py` 只读 PR 正文：改了 `lib/` 时要求「## 改动类型」段并至少勾选一项（空 body 也失败），勾了公开类别时要求每个被改包的 CHANGELOG 被改；它无法验证改动**是否真的**是公开变化；
+- `check_pr_scope.py` 只读 PR 正文：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）时要求「## 改动类型」段并至少勾选一项（空 body 也失败），勾了公开类别时要求每个被改包的 CHANGELOG 被改；它无法验证改动**是否真的**是公开变化；
 - Markdown 全量代码块编译尚未开启，只检查关键示例。
 
 ---

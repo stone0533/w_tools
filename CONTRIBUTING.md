@@ -93,8 +93,9 @@
   PR 链 issue 时写 `Closes #n`。issue 的读写与 label 约定见
   [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) 与 [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md)。
 - 公开变化走 feature 分支 + PR，等 Required checks 通过后合并；不要用管理员绕过。
-- PR body 必须带仓库模板的「## 改动类型」段，并至少勾选一项（改了 `lib/` 时
-  `check_pr_scope` 会强制；空 body 或四类全空都会失败）。
+- PR body 必须带仓库模板的「## 改动类型」段，并至少勾选一项（改了公开代码
+  `lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/` 时 `check_pr_scope` 会强制；
+  空 body 或四类全空都会失败）。
   用 `gh pr create --fill` 创建后要 `gh pr edit --body` 补上四类勾选；只改脚本 / 文档的
   PR（例如快照 PR）不受这条限制。
 - 发布前用 `bash scripts/check_pr_checks.sh [PR号]` 确认 Required checks（需要 `gh`）。

@@ -213,6 +213,27 @@ for pkg in $PACKAGES; do
   fi
 done
 
+# 单包模式也给出快照基线结论：完整 --strict 的根包检查不覆盖 --package，
+# 而「快照比本地新」是版本回退 / 基线异常，不能只靠 publish 脚本兜底。
+if [ -n "$SELECTED" ]; then
+  section 'API 快照基线（--package）'
+  selected_version="$(pubspec_version "packages/$SELECTED/pubspec.yaml")"
+  if ! latest_snapshot="$(python3 scripts/check_public_api_diff.py \
+    --package "$SELECTED" --latest-snapshot 2>/dev/null)"; then
+    fail "$SELECTED: 读取最新 API 快照失败；先确认 scripts/api_snapshots 可读"
+    latest_snapshot=""
+  fi
+  if [ -z "$latest_snapshot" ]; then
+    warn "$SELECTED: 没有 API 快照——新包首发请确认 scripts/pending_first_release.txt；publish 脚本会 fail-closed"
+  elif ver_gt "$latest_snapshot" "$selected_version"; then
+    fail "$SELECTED: API 快照 $latest_snapshot 高于本地版本 ${selected_version}（版本回退 / 基线异常）"
+  elif [ "$latest_snapshot" = "$selected_version" ]; then
+    warn "$SELECTED: API 快照已等于本地版本 ${selected_version}（可能已发布；首发请确认 pending_first_release）"
+  else
+    ok "$SELECTED: API 快照 $latest_snapshot 低于本地 ${selected_version}（待发布）"
+  fi
+fi
+
 section '根包'
 root_version="$(pubspec_version pubspec.yaml)"
 if [ -n "$SELECTED" ]; then

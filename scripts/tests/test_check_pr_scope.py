@@ -91,6 +91,14 @@ class PathDerivationTest(unittest.TestCase):
                    'packages/form/CHANGELOG.md']
         self.assertEqual(missing_package_changelogs(changed), ['ui'])
 
+    def test_template_change_needs_cli_changelog(self):
+        changed = ['packages/cli/templates/agents/zh/core.md']
+        self.assertEqual(missing_package_changelogs(changed), ['cli'])
+
+    def test_bin_change_needs_package_changelog(self):
+        changed = ['packages/cli/bin/w_tools.dart']
+        self.assertEqual(missing_package_changelogs(changed), ['cli'])
+
     def test_other_package_changelog_is_not_enough(self):
         changed = ['packages/ui/lib/a.dart', 'packages/form/CHANGELOG.md']
         self.assertEqual(missing_package_changelogs(changed), ['ui'])
@@ -98,11 +106,18 @@ class PathDerivationTest(unittest.TestCase):
     def test_public_code_paths(self):
         self.assertTrue(touches_public_code(['packages/ui/lib/a.dart']))
         self.assertTrue(touches_public_code(['lib/w_tools.dart']))
+        self.assertTrue(touches_public_code(['packages/cli/bin/w_tools.dart']))
+        self.assertTrue(
+            touches_public_code(['packages/cli/templates/agents/zh/core.md'])
+        )
+        self.assertTrue(touches_public_code(['packages/cli/catalog/components.yaml']))
         self.assertFalse(touches_public_code(['scripts/check_docs.sh']))
         self.assertFalse(touches_public_code(['packages/ui/README.md']))
 
     def test_template_section(self):
         self.assertTrue(has_template_section('## 改动类型\n- [ ] 内部重构\n'))
+        self.assertTrue(has_template_section('## 改动类型（必填）\n- [ ] 内部重构\n'))
+        self.assertFalse(has_template_section('## 改动类型说明\n- [ ] 内部重构\n'))
         self.assertFalse(has_template_section('fix(ui): tweak padding'))
 
 
@@ -159,6 +174,31 @@ class MainTest(unittest.TestCase):
     def test_new_package_requires_changelog(self):
         body = '## 改动类型\n\n- [x] 新增包\n'
         self.assertEqual(self._main(body, ['packages/ui/lib/a.dart']), 1)
+
+    def test_empty_body_with_cli_template_fails_in_pr_context(self):
+        self.assertEqual(
+            self._main('', ['packages/cli/templates/agents/zh/core.md']), 1
+        )
+
+    def test_cli_template_public_without_changelog_fails(self):
+        body = '## 改动类型\n\n- [x] 公开变化（API / 行为 / 新组件）\n'
+        self.assertEqual(
+            self._main(body, ['packages/cli/templates/agents/zh/core.md']), 1
+        )
+
+    def test_cli_template_public_with_changelog_passes(self):
+        body = '## 改动类型\n\n- [x] 公开变化（API / 行为 / 新组件）\n'
+        changed = [
+            'packages/cli/templates/agents/zh/core.md',
+            'packages/cli/CHANGELOG.md',
+        ]
+        self.assertEqual(self._main(body, changed), 0)
+
+    def test_cli_template_internal_passes(self):
+        body = '## 改动类型\n\n- [x] 内部重构（公开 API / 默认行为不变）\n'
+        self.assertEqual(
+            self._main(body, ['packages/cli/templates/agents/zh/core.md']), 0
+        )
 
 
 if __name__ == '__main__':

@@ -570,3 +570,43 @@ python3 scripts/check_gate_coverage.py          # 通过
 export 都会让测试失败。根包真正的缺口只是「版本号是否跟着抬」，而根包版本在发布时
 由完整 `release_check --strict` + `pub publish` 的重复版本检查兜底。为它单独维护一份
 export 快照，成本高于收益。
+
+## 17. 第二批落地（2026-11-07，提交后继续）
+
+按 §16 的 ROI 顺序做了 4 项，仍然没有新增门禁框架：
+
+| 项 | 落点 | 行为 |
+| --- | --- | --- |
+| 周检自检 | `scripts/ci_matrix.py` + `test_ci_matrix_path_filters.py` | 断言 `on.schedule` 仍含每周一 cron、status job 无 `if`、周检步骤无 `if` / `continue-on-error`；删 schedule / 改 cron / 关 step 都会让 `ci_matrix --check` 红 |
+| CLI 公开路径 | `scripts/check_pr_scope.py` + 测试 | `PUBLIC_PATH` / `public_packages` 覆盖 `lib/`、`bin/`、CLI `templates/` / `catalog/` / `schema/`；这些路径的 PR 必须带改动类型，公开类别时按包要求 CHANGELOG |
+| `release_check --package` 快照基线 | `scripts/release_check.sh` + 测试 | 单包模式新增「API 快照基线」段：快照高于本地 → fail；等于 / 缺失 → warn；低于本地 → ok。不再只靠 publish 脚本兜底 |
+| 文档与边角 | `docs/releasing.md`、`scripts/README.md`、`AGENTS.md`、`check_pr_scope` | `--online` 404 说明改成以 `release_status` 为准；`--package` 快照说明；标题允许 `## 改动类型（必填）`；新增工具包补 header-only 快照要求 |
+
+验证：
+
+```text
+scripts/tests unittest                          # 200 tests OK
+bash scripts/check_docs.sh                      # 18 步全 ✓
+bash scripts/preflight.sh                       # 除 analyze（沙箱）外全 ✓
+bash scripts/release_check.sh                   # 0 提醒
+bash scripts/release_check.sh --package ui      # 1 条快照基线提醒（快照 == 本地）
+bash scripts/release_check.sh --package cli     # 0 提醒（本地 1.15.0 > 快照 1.14.0）
+python3 scripts/check_version_bump.py --base main  # 14 包通过
+python3 scripts/ci_matrix.py --check            # 通过（含新 schedule / if 断言）
+python3 scripts/check_gate_coverage.py          # 通过
+```
+
+手工对抗验证：
+
+```text
+release-status.yml 删 schedule / 改 cron / status.if / step.if / continue-on-error
+  → ci_matrix --check 均 exit 1
+release_check --package ui + w_tools_ui-9.9.9.txt
+  → exit 1（快照高于本地）
+check_pr_scope：只改 packages/cli/templates/...
+  → 空 body exit 1；公开类别无 CHANGELOG exit 1；有 packages/cli/CHANGELOG 通过
+```
+
+**仍然保留（不作为本轮范围）**：分支保护 `enforce_admins` / `strict`（运维决策）、
+根包版本门禁（已有 export 测试）、`MIN_FLUTTER_VERSION`、prerelease semver、
+发布守卫的 dry-run 覆盖。当前判断没有新的架构级问题。

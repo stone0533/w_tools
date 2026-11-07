@@ -6,10 +6,11 @@
 PR 模板里勾了公开类别（公开变化 / 删除废弃 / 新增包）时，这里要求 PR 至少改一个
 **被改包**的 CHANGELOG：
 
-- 子包：`packages/<pkg>/CHANGELOG.md`，且 `<pkg>` 必须是本次改了 `lib/` 的包；
+- 子包：`packages/<pkg>/CHANGELOG.md`，且 `<pkg>` 必须是本次改了公开代码的包
+  （`lib/` / `bin/` / CLI 的 `templates/` / `catalog/` / `schema/`）；
 - 根包：改根 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`。
 
-另外，改了 `lib/` 的 PR 必须带「## 改动类型」段，并且至少勾选一项：
+另外，改了公开代码的 PR 必须带「## 改动类型」段，并且至少勾选一项：
 `gh pr create --fill` 的空 body、或模板段但四类全空，都会让门禁静默跳过
 （二轮审计 P2-2、三轮审计 P1-1）。
 
@@ -36,11 +37,15 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 # 勾选这三类都意味着「有公开影响」：删除 / 废弃、新增包同样必须写 CHANGELOG。
 PUBLIC_CHANGE_MARKS = ('公开变化', '删除 / 废弃', '新增包')
-SECTION_HEADING = re.compile(r'(?m)^##\s+改动类型\s*$')
+SECTION_HEADING = re.compile(r'(?m)^##\s+改动类型(?:\s*$|\s*[（(].*$)')
 CHECKED_BOX = re.compile(r'^\s*[-*]\s*\[[xX]\]\s*(.*)$', re.MULTILINE)
 PACKAGE_CHANGELOG = re.compile(r'^packages/[^/]+/CHANGELOG\.md$')
 PACKAGE_LIB = re.compile(r'^packages/([^/]+)/lib/')
-PUBLIC_PATH = re.compile(r'^(?:packages/[^/]+/lib/|lib/)')
+# 公开行为不只在 lib/：CLI 的 bin/、templates/、catalog/、schema/ 同样会改变消费方看到的内容。
+PACKAGE_PUBLIC = re.compile(r'^packages/([^/]+)/(?:lib|bin|templates|catalog|schema)/')
+PUBLIC_PATH = re.compile(
+    r'^(?:packages/[^/]+/(?:lib|bin)/|packages/cli/(?:templates|catalog|schema)/|lib/)'
+)
 ROOT_CHANGELOG = 'CHANGELOG.md'
 
 
@@ -110,11 +115,21 @@ def lib_packages(changed: list[str]) -> set[str]:
     return packages
 
 
+def public_packages(changed: list[str]) -> set[str]:
+    """本次改了公开代码（lib / bin / templates / catalog / schema）的包集合。"""
+    packages = set()
+    for path in changed:
+        match = PACKAGE_PUBLIC.match(path)
+        if match:
+            packages.add(match.group(1))
+    return packages
+
+
 def missing_package_changelogs(changed: list[str]) -> list[str]:
-    """改了 lib 却没有改对应包 CHANGELOG 的包（升序）。"""
+    """改了公开代码却没有改对应包 CHANGELOG 的包（升序）。"""
     return sorted(
         package
-        for package in lib_packages(changed)
+        for package in public_packages(changed)
         if f'packages/{package}/CHANGELOG.md' not in changed
     )
 
@@ -169,7 +184,7 @@ def main() -> int:
         changed = changed_files(args.base)
         if touches_public_code(changed):
             print(
-                '✗ PR body 为空：这个 PR 改了 lib/，但没有声明改动类型。\n'
+                '✗ PR body 为空：这个 PR 改了公开代码，但没有声明改动类型。\n'
                 '  空 body 会让 check_pr_scope 静默跳过（三轮审计 P1-1）。\n'
                 '  用仓库的 PR 模板，或 `gh pr edit --body` 补上「## 改动类型」并勾选一项。',
                 file=sys.stderr,
@@ -186,7 +201,7 @@ def main() -> int:
     if not has_template_section(pr_body):
         if touches_public_code(changed):
             print(
-                '✗ PR body 里没有「## 改动类型」段：这个 PR 改了 lib/，'
+                '✗ PR body 里没有「## 改动类型」段：这个 PR 改了公开代码，'
                 '但没有按模板声明改动类型，CHANGELOG 门禁会整条失效。\n'
                 '  用仓库的 PR 模板，或 `gh pr edit --body` 补上四类勾选。',
                 file=sys.stderr,
@@ -211,14 +226,14 @@ def main() -> int:
     missing = missing_package_changelogs(changed)
     if missing:
         print(
-            '✗ 勾选了公开类别，但以下包改了 lib/ 却没改对应 CHANGELOG：'
+            '✗ 勾选了公开类别，但以下包改了公开代码却没改对应 CHANGELOG：'
             f'{", ".join(missing)}。\n'
             '  子包：写 packages/<pkg>/CHANGELOG.md 的当前版本段；\n'
             '  根包：改 lib/ 或 pubspec.yaml 时写根 CHANGELOG.md。',
             file=sys.stderr,
         )
         return 1
-    if lib_packages(changed):
+    if public_packages(changed):
         print('✓ 勾选了公开类别，且每个被改的包都改了 CHANGELOG')
         return 0
     if touches_changelog(changed):

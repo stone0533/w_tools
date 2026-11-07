@@ -1,7 +1,7 @@
 ## 改动类型
 
-> 改了 `lib/` 的 PR 必须保留这一段，并**至少勾选一项**（`check_pr_scope` 会拦截空 body /
-> 全未勾选）。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，CI 要求**每个改了 lib 的包**
+> 改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须
+> 保留这一段，并**至少勾选一项**（`check_pr_scope` 会拦截空 body / 全未勾选）。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，CI 要求**每个改了 lib 的包**
 > 都改自己的 `packages/<pkg>/CHANGELOG.md`（根包改 `lib/` / `pubspec.yaml` 时用根
 > `CHANGELOG.md`）。CI 只校验「有没有改 CHANGELOG」；版本号与版本段位置由 review 核对。
 
