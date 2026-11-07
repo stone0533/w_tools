@@ -18,9 +18,8 @@ class ReleaseCheckPushTest(unittest.TestCase):
 
     def test_package_mode_reports_snapshot_baseline(self):
         release = (ROOT / 'scripts/release_check.sh').read_text()
-        self.assertIn('--latest-snapshot', release)
-        self.assertIn('高于本地版本', release)
-        self.assertIn('pending_first_release.txt', release)
+        self.assertIn('_release_baseline.py', release)
+        self.assertIn('--mode check', release)
 
 
 if __name__ == '__main__':

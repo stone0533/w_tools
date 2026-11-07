@@ -645,3 +645,32 @@ check_pr_scope：只改 packages/cli/templates/...
 剩余动作按 ROI 排序是：**push + PR 让 CI 实跑 → 决定分支保护 → 收敛快照守卫实现 →
 （可选）把 `release_check --online` 委托给 `release_status`**。根包 / MIN / prerelease /
 发布守卫 dry-run 覆盖继续不做。
+
+## 19. 快照守卫收敛（2026-11-07）
+
+按 §18 的下一步落地了守卫收敛，并已把前两批推到 PR #20：
+
+| 项 | 落点 | 行为 |
+| --- | --- | --- |
+| 共用守卫 | `scripts/_release_baseline.py` | `--mode check`：快照高于本地 → 1，等于 / 缺失 → 10 / 11（调用方 warn），低于本地 → 0；`--mode publish`：只放行「本地高于快照」或「新包在 pending 名单」 |
+| `release_check --package` | `scripts/release_check.sh` | 调 helper 的 `check` 模式；0 → ok，10/11 → warn，其余 → fail |
+| `publish_package.sh` | `scripts/publish_package.sh` | 调 helper 的 `publish` 模式；非 0 直接拒绝发布，成功时打印基线结论 |
+| 测试 | `scripts/tests/test_release_baseline.py` | 覆盖 check 的等于 / 高于 / 低于，publish 的等于 / 缺失 / pending / untracked |
+
+验证：
+
+```text
+scripts/tests unittest                          # 209 tests OK
+bash scripts/check_docs.sh                      # 18 步全 ✓
+bash scripts/release_check.sh --package ui      # 1 条快照基线提醒
+bash scripts/release_check.sh --package cli     # 0 提醒
+python3 scripts/ci_matrix.py --check            # 通过
+python3 scripts/check_gate_coverage.py          # 通过（helper 以 _ 开头，不登记为门禁）
+```
+
+`/tmp` clone 手工验证：`cli 1.15.0` 对快照 `1.14.0` 通过；`core 3.1.1` 对同版本快照被
+publish 守卫拒绝；快照高于本地 / 未 tracked 均拒绝。
+
+PR #20 的 CI 在第一批提交上已通过 `api-bump` / docs / matrix / umbrella / min_sdk 和
+已完成的包 job；收敛提交后需要重跑一次 CI。剩余未做：`release_check --online` 委托、
+分支保护 `strict`、根包版本门禁、`MIN_FLUTTER_VERSION`、prerelease semver。
