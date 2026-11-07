@@ -10,21 +10,32 @@ dart run w_tools_cli:w_tools init                 # 写入 toolkit / AGENTS / AI
 dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 ```
 
-`init` 默认生成 `.w_tools/AI_PROMPTS.md`（消费者版 AI 任务提示词）；
+`init` 默认生成 `.w_tools/AI_PROMPTS.md`（消费方场景提示词库）；
 不需要时用 `--no-ai-prompts`，`--no-instructions` 会一并关闭。
+
+`AI_PROMPTS.md` 给**使用 w_tools 的开发者**（Dart / Flutter 开发者、对写提示词不熟）用，不是给 agent 的规则书：
+场景编号是「族字母-工序号」（`A-1` 计划 → `A-2` 实现、`E-1` 审计 → `E-2` 修复、
+`F-1`→`F-2`→`F-3` 升级），贴一段做一件事。规则主体仍在项目规则文件（`AGENTS.md` / `CLAUDE.md` / …），两者别互相扩写。
+
+生成时会按本次 targets、`toolkit_entry` 与 pubspec（Flutter / 纯 Dart、聚合包 / 子包）渲染固定前缀，不写死 `AGENTS.md` 或 `flutter` 命令。
+
+它是生成物：内容与模板不同时 `init` 不覆盖、只报 drift；`init --force` 直接覆盖且**没有备份**，
+项目自己的提示词请另存。
 
 升级到 1.10+ 后，已有项目首次 `init --check` 会因缺少 `.w_tools/AI_PROMPTS.md` 报缺失；
 运行一次 `init` 补上，或用 `init --no-ai-prompts` 关闭。`--no-instructions` 与 `--ai-prompts`
 不能同时显式使用。
 
 `init` 不会改 `pubspec.yaml`；它保留上次 `.w_tools/init.json` 的 profile/targets/lang，
-只有显式参数才覆盖。`--force` 只覆盖文件，不重置参数；要回到默认用 `--reset`。
+只有显式参数才覆盖。`--force` 只覆盖文件，不重置参数，也不覆盖 `.w_tools_doctor.yaml`；
+要覆盖项目配置用 `--force-config`（先 `.bak`），要回到默认 profile 用 `--reset`。
 
 ## 命令选择
 
 | 场景 | 命令 |
 | --- | --- |
 | 第一次接入 / 升级后刷新 | `init`；有 drift 时按输出用 `init --force` |
+| 恢复默认 doctor 配置 | `init --force-config`（先写 `.bak`） |
 | CI 检查接入约定 | `doctor --format=json`（warning 也失败加 `--strict`） |
 | 给 AI 项目事实 | `context --format=prompt` |
 | 找组件 | `list <关键词>` 或 `list --package=<包>`；给 AI 加 `--format=prompt` |
@@ -35,6 +46,8 @@ dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 （`w_tools_cli:init` 这类兼容入口仍保留，但新文档统一写 dispatcher 形式）。
 
 ## AI 闭环
+
+人先按 `.w_tools/AI_PROMPTS.md` 选场景（`A-1` / `B-1` …）并填空，贴给 AI；AI 侧再走：
 
 ```bash
 dart run w_tools_cli:w_tools context --format=prompt   # 1. 项目事实

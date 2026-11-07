@@ -140,6 +140,8 @@ class ProjectSnapshot {
     final result = <String, String>{
       'context': 'dart run w_tools_cli:w_tools context --format=json',
       'doctor': 'dart run w_tools_cli:w_tools doctor --json',
+      'list': 'dart run w_tools_cli:w_tools list <关键词> --format=prompt',
+      'explain': 'dart run w_tools_cli:w_tools explain <组件名> --format=prompt',
       'initCheck': 'dart run w_tools_cli:w_tools init --check-drift',
       'feedbackStatus': 'dart run w_tools_cli:w_tools feedback status',
       'feedbackSubmit':
@@ -250,7 +252,10 @@ class ProjectSnapshot {
   }
 
   String _installed() {
-    if (packages.isEmpty) return '（未解析到 pubspec.lock）';
+    const workspaceMissing = '（仓库检出：workspace 包不在 pubspec.lock，见直接依赖）';
+    if (packages.isEmpty) {
+      return repoCheckout ? workspaceMissing : '（未解析到 pubspec.lock）';
+    }
     final direct = dependencies.toSet();
     final entries =
         packages.entries
@@ -258,7 +263,7 @@ class ProjectSnapshot {
             .toList()
           ..sort((a, b) => a.key.compareTo(b.key));
     // 仓库检出时根依赖都解析到 path 包，可能一条都匹配不到；不要输出空的「已安装：」。
-    if (entries.isEmpty) return '（无）';
+    if (entries.isEmpty) return repoCheckout ? workspaceMissing : '（无）';
     return entries.map((e) => '`${e.key} ${e.value}`').join('、');
   }
 }

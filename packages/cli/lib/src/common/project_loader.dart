@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:yaml/yaml.dart' show YamlException, YamlMap, loadYaml;
+import 'package:yaml/yaml.dart' show YamlException;
 
 import '../doctor/config.dart';
+import 'project_pubspec.dart';
 
 /// 项目级配置读取错误；命令层统一转成可读提示。
 class ProjectLoadException implements Exception {
@@ -49,16 +50,15 @@ class ProjectFiles {
     if (!file.existsSync()) {
       throw ProjectLoadException('找不到 pubspec.yaml：${root.path}（用 --root=<dir> 指定项目根）');
     }
-    try {
-      final raw = loadYaml(file.readAsStringSync());
-      final name = raw is YamlMap ? raw['name'] : null;
-      if (name is! String || name.trim().isEmpty) {
-        throw const ProjectLoadException('pubspec.yaml 缺少合法的 name');
-      }
-      final config = loadConfig(root);
-      return ProjectInfo(name: name.trim(), toolkitEntry: config.toolkitEntry);
-    } on YamlException catch (e) {
-      throw ProjectLoadException('pubspec.yaml 解析失败：${e.message}');
+    final pubspec = ProjectPubspec.load(root);
+    if (pubspec.parseError != null) {
+      throw ProjectLoadException('pubspec.yaml 解析失败：${pubspec.parseError}');
     }
+    final name = pubspec.declaredName;
+    if (name == null) {
+      throw const ProjectLoadException('pubspec.yaml 缺少合法的 name');
+    }
+    final config = loadConfig(root);
+    return ProjectInfo(name: name, toolkitEntry: config.toolkitEntry);
   }
 }

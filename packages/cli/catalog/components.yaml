@@ -1127,6 +1127,7 @@ components:
       - 'onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess'
       - '取消需要 WCancelToken；取消不中止底层 Future'
     related: ['WAsyncResult', 'WAsyncOptions', 'WCancelToken']
+    aliases: ['tryRun', 'run', 'map', 'retry']
     teach: true
   - name: '`WCountdown`'
     package: 'w_tools_core'

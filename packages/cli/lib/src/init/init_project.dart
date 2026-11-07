@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:yaml/yaml.dart';
 
+import '../common/backup.dart';
+import '../common/project_pubspec.dart';
 import '../doctor/config.dart';
 import 'features.dart';
+import 'generated_files.dart';
 import 'manifest.dart';
 import 'targets.dart';
 import 'templates.dart';
@@ -70,6 +72,7 @@ List<String> _extraExports(String existing, String generated) {
 InitReport runInit(
   Directory root, {
   bool force = false,
+  bool forceConfig = false,
   bool forceStarters = false,
   bool check = false,
   InitFeatures features = InitFeatures.full,
@@ -82,7 +85,8 @@ InitReport runInit(
   InitManifest? manifest,
 }) {
   final report = InitReport();
-  final app = _projectName(root);
+  final pubspec = ProjectPubspec.load(root);
+  final app = pubspec.declaredName ?? 'app';
   if (!device && _hasDeviceDependency(root)) {
     report.warnings.add(
       '检测到 w_tools_device，但设备脚手架未启用；运行 init --device 生成 device starter / docs',
@@ -91,18 +95,6 @@ InitReport runInit(
   // --check 只读：迁移会移动文件，必须跳过（旧文件由 InitManifest.load 回退读取）
   if (!check && InitManifest.migrateLegacy(root)) {
     report.warnings.add('已把 .w_tools_init.json 迁到 ${InitManifest.fileName}');
-  }
-
-  String backup(File file) {
-    final base = File('${file.path}.bak');
-    if (!base.existsSync()) {
-      file.copySync(base.path);
-      return p.basename(base.path);
-    }
-    final stamp = DateTime.now().toIso8601String().replaceAll(RegExp(r'[:.]'), '-');
-    final alt = File('${file.path}.bak.$stamp');
-    file.copySync(alt.path);
-    return p.basename(alt.path);
   }
 
   void write(
@@ -159,7 +151,7 @@ InitReport runInit(
           return;
         }
         final extras = _extraExports(existing, content);
-        final name = backup(file);
+        final name = backupFile(file);
         final migrated = extras.isEmpty
             ? content
             : '${content.trimRight()}\n\n// migrated from legacy toolkit\n${extras.join('\n')}\n';
@@ -173,29 +165,31 @@ InitReport runInit(
         report.created.add('$rel（已覆盖）');
         return;
       }
-      // 项目配置（.w_tools_doctor.yaml）：内容由项目手工维护（palette / banned / ignore），
-      // --force 覆盖前先备份，避免把项目配置直接抹掉。
+      // 项目配置（.w_tools_doctor.yaml）：内容由项目手工维护（palette / banned / ignore）。
+      // 默认即使 --force 也保留；只有 --force-config 才覆盖，覆盖前先备份。
       if (projectConfig) {
         if (file.readAsStringSync() == content) {
           report.upToDate.add(rel);
           return;
         }
         if (check) {
-          if (force) {
+          if (forceConfig) {
             report.drift.add('$rel（内容不同，未改动）');
           } else {
             report.upToDate.add(rel);
           }
           return;
         }
-        if (!force) {
+        if (!forceConfig) {
           report.upToDate.add(rel);
+          if (force) {
+            report.warnings.add('保留了 $rel（项目配置；需要覆盖用 --force-config）');
+          }
           return;
         }
-        final backup = File('${file.path}.bak');
-        backup.writeAsStringSync(file.readAsStringSync());
+        final name = backupFile(file);
         file.writeAsStringSync(content);
-        report.warnings.add('覆盖了 $rel：原内容已备份到 ${p.basename(backup.path)}');
+        report.warnings.add('覆盖了 $rel：原内容已备份到 $name');
         report.created.add('$rel（已覆盖）');
         return;
       }
@@ -219,7 +213,7 @@ InitReport runInit(
       if (projectConfig) {
         report.warnings.add('覆盖了 $rel：原有的自定义配置会丢失');
       } else if (starter) {
-        final name = backup(file);
+        final name = backupFile(file);
         report.warnings.add('覆盖了 $rel：原内容已备份到 $name');
       }
       file.writeAsStringSync(content);
@@ -306,8 +300,15 @@ InitReport runInit(
 
   if (aiPrompts && targets.isNotEmpty) {
     write(
-      '.w_tools/AI_PROMPTS.md',
-      InitTemplates.aiPrompts(lang: lang, features: features),
+      GeneratedFiles.aiPrompts,
+      InitTemplates.aiPrompts(
+        lang: lang,
+        features: features,
+        rulesFiles: _rulesFiles(targets),
+        toolkitImport: _toolkitImport(app, projectConfig.toolkitEntry),
+        isFlutter: pubspec.isFlutter,
+        usesAggregate: pubspec.usesAggregate,
+      ),
     );
   }
 
@@ -336,7 +337,7 @@ InitReport runInit(
     write(InitManifest.fileName, manifest.encode(), metadata: true);
   }
   report.pubspecSnippet = _snippet(
-    root,
+    pubspec,
     report,
     features: features,
     device: device,
@@ -377,7 +378,7 @@ void _collectStale(
   }
 
   if (!aiPrompts) {
-    const rel = '.w_tools/AI_PROMPTS.md';
+    const rel = GeneratedFiles.aiPrompts;
     if (File(p.join(root.path, rel)).existsSync()) {
       report.stale.add('$rel（当前未启用 ai-prompts，未删除）');
     }
@@ -405,16 +406,18 @@ void _collectStale(
   }
 }
 
-String _projectName(Directory root) {
-  final file = File(p.join(root.path, 'pubspec.yaml'));
-  if (!file.existsSync()) return 'app';
-  try {
-    final raw = loadYaml(file.readAsStringSync());
-    if (raw is YamlMap) return (raw['name'] as String?) ?? 'app';
-  } on YamlException {
-    // pubspec 写坏时回退到 app；真正的解析警告由 _snippet 报出
-  }
-  return 'app';
+/// 本次 `init` 实际写入的规则文件；`AI_PROMPTS` 里不再硬编码 AGENTS.md。
+String _rulesFiles(Set<String> targets) {
+  final files = <String>{
+    for (final target in targets)
+      if (targetFiles[target] != null) targetFiles[target]!,
+  }.toList()..sort();
+  return files.isEmpty ? 'AGENTS.md' : files.join(' / ');
+}
+
+String _toolkitImport(String app, String toolkitEntry) {
+  if (!toolkitEntry.startsWith('lib/')) return toolkitEntry;
+  return 'package:$app/${toolkitEntry.substring(4)}';
 }
 
 void _upsertBlock(
@@ -480,54 +483,22 @@ void _upsertBlock(
   report.created.add('$rel（已追加 w_tools 片段）');
 }
 
-bool _hasDeviceDependency(Directory root) {
-  final file = File(p.join(root.path, 'pubspec.yaml'));
-  if (!file.existsSync()) return false;
-  try {
-    final raw = loadYaml(file.readAsStringSync());
-    if (raw is! YamlMap) return false;
-    for (final key in const <String>['dependencies', 'dev_dependencies']) {
-      final deps = raw[key];
-      if (deps is YamlMap && deps.containsKey('w_tools_device')) return true;
-    }
-  } on YamlException {
-    return false;
-  }
-  return false;
-}
+bool _hasDeviceDependency(Directory root) =>
+    ProjectPubspec.load(root).hasDependency('w_tools_device');
 
 String _snippet(
-  Directory root,
+  ProjectPubspec pubspec,
   InitReport report, {
   required InitFeatures features,
   required bool device,
 }) {
-  final pubspecFile = File(p.join(root.path, 'pubspec.yaml'));
-  var name = 'app';
-  var existing = <String>{};
-  var existingDev = <String>{};
-  var hasDeps = false;
-  var hasDev = false;
-  if (pubspecFile.existsSync()) {
-    try {
-      final raw = loadYaml(pubspecFile.readAsStringSync());
-      if (raw is YamlMap) {
-        name = (raw['name'] as String?) ?? name;
-        final deps = raw['dependencies'];
-        if (deps is YamlMap) {
-          hasDeps = true;
-          existing = deps.keys.map((e) => '$e').toSet();
-        }
-        final dev = raw['dev_dependencies'];
-        if (dev is YamlMap) {
-          hasDev = true;
-          existingDev = dev.keys.map((e) => '$e').toSet();
-        }
-      }
-    } on YamlException catch (e) {
-      report.warnings.add('pubspec.yaml 解析失败，依赖片段按默认值生成：${e.message}');
-    }
+  if (pubspec.parseError != null) {
+    report.warnings.add('pubspec.yaml 解析失败，依赖片段按默认值生成：${pubspec.parseError}');
   }
+  final existing = pubspec.dependencies.keys.toSet();
+  final existingDev = pubspec.devDependencies.keys.toSet();
+  final hasDeps = pubspec.hasDependenciesSection;
+  final hasDev = pubspec.hasDevDependenciesSection;
 
   final pkgs = <String>[
     'w_tools_core',

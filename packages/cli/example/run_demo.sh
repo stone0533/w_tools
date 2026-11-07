@@ -22,27 +22,32 @@ if [ ! -d .dart_tool ]; then
 fi
 
 echo "== init =="
-dart run bin/init.dart --root="$TMP" --profile=minimal --no-ui --no-instructions
+dart run bin/w_tools.dart init --root="$TMP" --profile=minimal --no-ui --no-instructions
 
 echo
 echo "== init --check-drift =="
-dart run bin/init.dart --root="$TMP" --profile=minimal --no-ui --no-instructions --check-drift
+dart run bin/w_tools.dart init --root="$TMP" --profile=minimal --no-ui --no-instructions --check-drift
 
 echo
 echo "== doctor =="
-dart run bin/doctor.dart --root="$TMP" --format=markdown
+dart run bin/w_tools.dart doctor --root="$TMP" --format=markdown
 
 echo
 echo "== context =="
-dart run bin/context.dart --root="$TMP" --format=prompt --max-tokens=1200
+dart run bin/w_tools.dart context --root="$TMP" --format=prompt --max-tokens=1200
 
 echo
 echo "== list =="
-dart run bin/list.dart WForm
+dart run bin/w_tools.dart list WForm
 
 echo
 echo "== explain =="
-dart run bin/explain.dart WForm
+dart run bin/w_tools.dart explain WForm
+
+echo
+echo "== feedback =="
+dart run bin/w_tools.dart feedback status --root="$TMP"
+dart run bin/w_tools.dart feedback path --root="$TMP" --package=cli
 
 echo
 echo "临时 demo 项目：${TMP}"

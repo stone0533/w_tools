@@ -5,62 +5,78 @@
 // ignore_for_file: prefer_single_quotes, lines_longer_than_80_chars
 
 const String aiPrompts = r'''
-# w_tools AI 任务提示词
+# w_tools 场景提示词
 
-> 由 `w_tools_cli` v{{version}} 生成；重新生成请运行 `dart run w_tools_cli:w_tools init --force`。
-> 本文件只服务**使用 w_tools 的项目**，不是 w_tools 仓库维护提示词。
+> 由 `w_tools_cli` v{{version}}（生成器版本）生成；重新生成请运行 `dart run w_tools_cli:w_tools init --force`。
+>
+> **本文件是生成物**：内容与模板不同时 `init` 不会覆盖、只报 drift；
+> `init --force` 会直接覆盖，而且**没有备份**。
+> 项目自己的提示词请另存（例如 `.w_tools/PROMPTS.local.md`），不要写进这里。
+>
+> 本文件只服务**使用 w_tools 的项目**，不是 w_tools 仓库维护提示词；项目规则以 `{{rulesFiles}}` 为准。
 
-## 先读
+---
 
-- 本项目的 `AGENTS.md`
-- 本项目的 `pubspec.yaml`
+## 新手先看这里
 
-## 先选场景（新手）
+### 只需三步
 
-不知道用哪个提示词时，先看这张表：
+1. 用一句话说明任务；
+2. 不知道该用哪段，先让 AI 帮你选；
+3. AI 判断后，复制它填好的提示词，或复制对应场景块。
 
-| 我要做什么 | 用哪个 |
-|---|---|
-| 写一个新页面 / 功能 | C-A |
-| 写列表 / 分页 / 刷新 | C-B |
-<!-- @if:form -->
-| 写表单 / 校验 / 提交 | C-C |
-<!-- @endif -->
-<!-- @if:api -->
-| 写接口 / 登录 / 401 | C-D |
-<!-- @endif -->
-| 检查现有代码有没有用错 | C-E |
-| 升级 w_tools | C-F |
-| 页面 overflow / 性能问题 | C-G |
-| 补白盒测试 | C-H |
-| 补黑盒测试 | C-I |
-| 只审查 AI 改动 | C-J |
-| AI 不能读仓库 / 不能跑命令 | C-K |
+### 让 AI 帮你选场景
 
-还是不确定，直接把这段发给 AI：
+不确定用哪段时，先发这段：
 
 ```text
-我不知道该用 C-A 到 C-K 哪个场景。
+我是本项目的 Dart / Flutter 开发者，但不熟悉这些提示词。
 
-请先读：
-- AGENTS.md
-- pubspec.yaml
-- .w_tools/AI_PROMPTS.md
+先只读 .w_tools/AI_PROMPTS.md 的「1. 场景选择」，选出场景编号并说明理由。
 
-我的任务是：<用一句话描述>。
-范围是：<页面 / 文件 / 功能>。
+我的任务是：<任务>。
+范围是：<范围>。
 
-请先判断应该用哪个场景，并说明原因。
-不要写代码；
-确认后，把该场景的提示词填好项目名、页面和范围，再给我。
+我确认编号后，你再只读该编号对应的一节，按原文把占位符换成具体值；
+缺信息先问我，不要猜。
+最后给我一份可以直接复制的完整提示词（放在一个代码块里）。
+如果文件读不到，直接告诉我，我来贴。
 ```
 
-## 固定前缀（每次先贴）
+### 默认工作流
+
+复杂任务 / 范围不确定时，按轮次拆：
 
 ```text
-你是本项目的 Flutter 开发者。
+第 1 轮：只读，不改文件        A-1 / E-1 / F-1
+第 2 轮：只改一个范围          A-2 / E-2 / F-2
+第 3 轮：只审不改 + 跑检查      F-3 / J-1，然后 {{analyze}} / {{test}}
+```
 
-先读 AGENTS.md 和 pubspec.yaml；项目规则优先于本文件。
+多轮场景默认在同一会话进行。新开会话时，先把上一轮输出作为「交接材料」贴进来；
+没有交接材料就回到上一步重新出计划。
+
+小任务一轮就够（固定前缀照旧先贴）：B-1 / G-1 / H-1 / I-1。
+
+不要第一轮就：
+
+```text
+实现 + 补测试 + 改文档 + 跑全仓
+```
+
+### AI 完成后先看
+
+按文末「3. AI 完成后你必须检查」逐条核对 —— 全文只有这一份清单，不在这里另抄一份。
+
+---
+
+## 0. 固定前缀（每次先贴）
+
+```text
+你是本项目的 Dart / Flutter 开发者。
+
+先读 {{rulesFiles}} 和 pubspec.yaml；项目规则优先于本文件。
+如存在 `.w_tools/PROMPTS.local.md`，也先读并按其中的项目约定执行。
 
 规则：
 1. 写代码前先运行：
@@ -69,24 +85,125 @@ const String aiPrompts = r'''
    dart run w_tools_cli:w_tools list <关键词> --format=prompt
    查用法运行：
    dart run w_tools_cli:w_tools explain <组件名> --format=prompt
-3. 不要凭记忆猜 w_tools API；以 explain 输出为准。
-4. 只使用项目已安装的包；import / 分层 / 禁止项按 AGENTS.md。
-5. 不要修改 AGENTS.md 的 `w_tools:begin/end` 标记块；块外可以追加项目规则。
-6. 完成后运行 flutter analyze / flutter test，并贴实际输出；不能运行就明确说没运行。
+3. w_tools API 以 explain 输出为准。
+4. 依赖与入口：{{dependencyNote}}
+   业务代码统一从项目聚合入口（{{toolkitImport}}）取 API；
+   直接 import package:w_tools_* 只出现在 toolkit 自身；启用 UI 时还包括 lib/app/ui/、lib/app/design_system/。
+5. 只改 {{rulesFiles}} 中 `w_tools:begin/end` 标记块外的内容；块内保持生成原样。
+6. 完成后运行 {{analyze}} / {{test}}，并贴实际输出；不能运行就明确说没运行。
+7. 除非场景另有规定，默认输出 = 改动文件清单 + 关键代码片段 + {{analyze}} / {{test}} 原始输出。
 ```
 
-## C-A 新页面：先计划，再实现
+固定前缀的例外：让 AI 选场景时只读 §1；K-1 不贴固定前缀；其余场景每次先贴。
+
+---
+
+## 填空说明
+
+| 占位符 | 填什么 | 示例 |
+|---|---|---|
+| `<任务>` | 一句话目标 | 订单列表页 |
+| `<页面>` | 页面名 / 菜单名 | 「我的订单」页 |
+| `<路由>` | 路由 path | `/orders` |
+| `<接口>` | 接口 path 或方法名 | `GET /api/orders` |
+| `<组件名>` | 公开类名 | `WFormTextField` |
+| `<关键词>` | 搜索词 | 表单 |
+| `<范围>` | 这次只动哪些文件 / 功能 | `lib/orders/` |
+| `<旧版本>` | 当前子包版本（各包独立，以 `pubspec.lock` 为准） | `w_tools_ui 7.0.0` |
+| `<新版本>` | 目标子包版本 | `w_tools_ui 8.0.0` |
+| `<核心流程>` | 要跑通的用户路径 | 登录 → 下单 → 返回 |
+| `<现象>` | 看到的症状 | 键盘弹出后输入框被挡 |
+
+`w_tools_cli` 的版本是**生成器版本**，不是子包版本；升级场景按子包分别填。
+标题里带 `X-n` 的是场景编号：字母是任务族，数字是族内工序，按顺序贴。
+新手最容易漏 `<路由>` 和 `<接口>`：只写「做个列表页」，AI 就会自己编字段名。
+
+---
+
+## 一个填好的例子：B-1 列表页
+
+❌ 太模糊，AI 只能猜：
 
 ```text
-任务：实现 <页面/功能>。
+帮我用 w_tools 做个订单列表页
+```
 
-先不要写代码。先读：
-- AGENTS.md / pubspec.yaml
-- lib/app/ui/ / lib/app/design_system/
+✅ 填到能验收：
+
+```text
+任务：实现「我的订单」列表页，路由 /orders，接口 GET /api/orders?page=&size=
+
+先确认：
+- 分页参数是 page / size，返回里有 total
+- 支持下拉刷新，不做无限滚动
+
+要求：
+1. 先看项目里现有的列表页写法
+2. 首屏 loading / empty / error 必须完整
+3. 加载更多失败只更新 footer，不替换列表
+4. 列表项使用稳定 key
+5. 完成后 analyze + test，并补一个列表状态测试
+
+输出：改动文件清单 + 关键代码片段 + analyze / test 原始输出。
+```
+
+差别只有三点：**给了路由和接口**、**划了范围（不做无限滚动）**、**写清了要交什么**。
+
+---
+
+## 1. 场景选择
+
+| 我要做什么 | 用哪个 |
+|---|---|
+| 做一个新页面 / 功能 | A-1 → A-2 |
+| 列表 / 分页 / 刷新 | B-1 |
+<!-- @if:form -->
+| 表单 / 校验 / 提交 | C-1 |
+<!-- @endif -->
+<!-- @if:api -->
+| 接口 / 登录 / 401 | D-1 |
+<!-- @endif -->
+| 检查现有代码有没有用错 | E-1（查完再 E-2 修） |
+| 升级 w_tools | F-1 → F-2 → F-3 |
+| 页面 overflow / 卡顿 | G-1 |
+| 补白盒测试 | H-1 |
+| 补黑盒测试 | I-1 |
+| 只审查 AI 改动 | J-1 |
+| AI 读不到仓库 / 不能跑命令 | K-1 |
+
+### 从现象反查
+
+| 症状 | 场景 |
+|---|---|
+| 列表加载更多把整个列表顶掉了 | B-1 |
+<!-- @if:form -->
+| 表单提交失败后，用户输入没了 | C-1 |
+<!-- @endif -->
+<!-- @if:api -->
+| 401 之后一直重试 / 白屏 | D-1 |
+<!-- @endif -->
+| 键盘弹出字段被挡 / overflow | G-1 |
+| AI 说改了，但拿不出 analyze 输出 | J-1 或 K-1 |
+| 不确定用哪段 | 上面「让 AI 帮你选场景」 |
+
+---
+
+## A. 新页面
+
+### A-1. 只读计划
+
+```text
+任务：实现 <页面>，路由 <路由>。
+
+先不要写代码，也不要改任何文件。先读：
+- {{rulesFiles}} / pubspec.yaml
+<!-- @if:ui -->
+- lib/app/ui/ 与 lib/app/design_system/
+<!-- @endif -->
 - 2~3 个相似页面
 - 路由注册文件
 
-先输出：
+输出（只要这 7 项，不要代码）：
 1. 可复用的现有页面 / 组件
 2. 页面状态：loading / empty / error / ready
 3. 路由与参数
@@ -95,22 +212,31 @@ const String aiPrompts = r'''
 6. 文件改动计划
 7. 测试计划
 
-等我确认后再写代码。
+我确认后再进入 A-2。
+```
 
-实现要求：
+### A-2. 按计划实现
+
+```text
+按上一条确认的计划实现 <页面>；同一会话继续，新会话先贴 A-1 的计划。范围：<范围>。
+
+要求：
 - 先运行 context，再用 list / explain 找组件；
 - 不发明新的目录 / 状态管理方案；
 - 不修改 w_tools 子包；
-- 有请求就要有取消 / dispose 保护；
-- 有表单就要有校验、提交中、错误保留；
-- 有列表就要考虑刷新和加载更多；
-- 完成后 flutter analyze + flutter test。
+- 有请求就要有取消 / dispose 保护。
 ```
 
-## C-B 列表 / 分页 / 刷新
+计划要改就回 A-1 重来，不要在 A-2 里边做边改方案。
+
+---
+
+## B. 列表 / 分页 / 刷新
+
+### B-1. 实现列表页
 
 ```text
-任务：实现 <列表页>。
+任务：实现 <页面> 列表，路由 <路由>，接口 <接口>。
 
 先确认：
 - 数据接口与分页参数
@@ -126,18 +252,22 @@ const String aiPrompts = r'''
 3. 加载更多失败只更新 footer，不替换列表；
 4. 列表项使用稳定 key；
 5. 图片按需限制解码尺寸；
-6. 完成后 analyze + test，并补一个列表状态 widget test。
+6. 完成后 analyze + test，并补一个列表状态测试。
 ```
 
+---
+
 <!-- @if:form -->
-## C-C 表单 / 校验 / 提交
+## C. 表单 / 校验 / 提交
+
+### C-1. 实现表单页
 
 ```text
-任务：实现 <表单页>。
+任务：实现 <页面> 表单，路由 <路由>。
 
 要求：
 1. 用 WForm + 直接字段，不传字段 config；
-2. 校验用字段 validator + WFormValidatorSettings；
+2. 校验用字段 validator；WForm 统一传 validatorSettings；
 3. 提交中禁用重复提交；
 4. 接口失败保留用户输入；
 5. 键盘弹出时字段可见；
@@ -146,11 +276,15 @@ const String aiPrompts = r'''
 ```
 <!-- @endif -->
 
+---
+
 <!-- @if:api -->
-## C-D 接口 / 登录 / 401
+## D. 接口 / 登录 / 401
+
+### D-1. 实现接口 / 登录流程
 
 ```text
-任务：实现 <接口 / 登录流程>。
+任务：实现 <接口> 与 <页面> 的登录流程。
 
 要求：
 1. 用 WApiConfig + DioRegistry，不直接 new Dio；
@@ -162,52 +296,133 @@ const String aiPrompts = r'''
 ```
 <!-- @endif -->
 
-## C-E 审计现有代码
+---
+
+## E. 审计现有代码
+
+### E-1. 只读审计
 
 ```text
-只审计，不要修改。
+只审计，不改任何文件。
 
 检查当前项目：
 1. 是否用了已删除 / 过期的 w_tools API；
 2. 是否绕过 w_tools 直接用了底层库；
 3. 是否有重复造组件；
-4. 是否违反 AGENTS.md；
-5. 页面状态 / 表单 / 网络 / 地图 / 扫码是否用错入口。
+4. 是否违反 {{rulesFiles}}；
+5. 已启用的能力是否走对入口，不要绕过包装层直接用底层库。
+   - core：优先用 WStorage / WToken / WValidator / WLogger，而不是裸 SharedPreferences / print
+<!-- @if:ui -->
+   - UI：WText / WButton / WImage，不要直接用 Text / ElevatedButton / Image
+<!-- @endif -->
+<!-- @if:form -->
+   - 表单：WForm + 直接字段，不传 config
+<!-- @endif -->
+<!-- @if:api -->
+   - 接口：WApiConfig + DioRegistry，token 用 WToken
+<!-- @endif -->
+<!-- @if:toast -->
+   - Toast：WToast + WToastTheme，不要直接用 BotToast
+<!-- @endif -->
+<!-- @if:app -->
+   - App：WApp.options / WAppPlugin，不要手工初始化插件
+<!-- @endif -->
+<!-- @if:async -->
+   - Async：WAsyncController / WAsyncView，不要自己维护 loading / error 状态
+<!-- @endif -->
+<!-- @if:qr -->
+   - 扫码：WQrView，不要直接用 QRView
+<!-- @endif -->
+<!-- @if:map -->
+   - 地图：WMap / WMapZone，不要直接用 GoogleMap
+<!-- @endif -->
 
 先运行 `dart run w_tools_cli:w_tools doctor --format=json`，再用 context / list / explain 核对。
-输出：
+对每个 w_tools 类型 / import 跑 `explain`；exit 1 记为“catalog 未收录或名字不对”，
+再结合 `{{analyze}}` 的 deprecated 警告判断是否真的要替换。
+
+输出一张表，按严重度排序：
 | ID | 级别 | 文件:行 | 证据 | 问题 | 建议修复 | 验收 |
-不要修改文件。
+级别：P0 阻断（编译 / 主流程不可用）、P1 应修（错误入口 / 状态缺失）、P2 建议（一致性 / 可读性）。
+本次只读，不改文件。
 ```
 
-## C-F 升级 w_tools
+### E-2. 按清单修复
 
 ```text
-任务：把 w_tools 从 <旧版本> 升到 <新版本>。
+按上一条审计输出的清单修复；同一会话继续，新会话先贴 E-1 的表格。本次范围：<范围>。
 
 要求：
-1. 先读对应 migration 文档；
-2. 找出项目里所有旧 API；
-3. 先列改动计划，不要直接改；
-4. 按文件逐步替换；
-5. 不改变无关业务行为；
-6. 完成后 flutter analyze + flutter test；
-7. 报告旧 API 残留。
+1. 一次只修一个级别，先 P0 再 P1；
+2. 每修一条，标出对应的审计 ID；
+3. 不改与清单无关的代码；
+4. 修完重跑 doctor，对比修复前后的 error 数。
 
-升级与刷新：
-- flutter pub upgrade
-- dart run w_tools_cli:w_tools init --check-drift
-- 有 drift 时：dart run w_tools_cli:w_tools init --force
+输出：修了哪些 ID + 改动文件清单 + doctor 前后对比 + {{analyze}} / {{test}} 原始输出。
 ```
 
-## C-G 调试 UI / 性能
+---
+
+## F. 升级 w_tools
+
+### F-1. 升级计划与旧 API 清单
 
 ```text
-任务：排查 <页面> 的 UI / 性能问题。
+任务：升级 w_tools 子包。先从 pubspec.lock 按包列出 <旧版本> 和 <新版本>（各包独立），再确定本次范围。
+
+先不要改代码。先做三件事：
+1. 按包读 migration 文档
+   （w_tools 仓库 docs/migrations/ 按包和版本找，例如 ui-7.0.md / form-5.1.md；或 pub.dev 上对应包的 CHANGELOG）；
+2. 找出项目里所有旧 API 和需要改的调用点；
+3. 列出按文件分组的改动计划。
+
+输出：旧 API 清单（文件:行 + 替换方式） + 分文件改动计划 + 风险点。
+我确认后再进入 F-2。
+```
+
+### F-2. 分文件替换
+
+```text
+按 F-1 的计划替换旧 API；同一会话继续，新会话先贴 F-1 的计划。本次只做：<范围>。
+
+要求：
+1. 按文件逐步替换，一个文件一次；
+2. 不改变无关业务行为；
+3. 遇到计划里没覆盖的调用点，停下来先报告，不要自己猜；
+4. 每改完一批跑一次 {{analyze}}。
+
+输出：本批改动文件 + 关键 diff + {{analyze}} 原始输出。
+```
+
+### F-3. 验证与残留报告
+
+```text
+升级收尾。
+
+要求：
+1. 跑 {{analyze}} + {{test}}，贴原始输出；
+2. 按包报告旧 API 残留（有就列文件:行，没有就明确说没有）；
+3. 刷新项目接入文件并检查 drift：
+   {{pubUpgrade}}
+   dart run w_tools_cli:w_tools init --check-drift
+4. 有 drift 时再运行（会覆盖生成物，没有备份）：
+   dart run w_tools_cli:w_tools init --force
+
+输出：{{analyze}} / {{test}} 原始输出 + 残留清单 + drift 检查结果。
+```
+
+---
+
+## G. 调试 UI / 性能
+
+### G-1. 排查 UI / 性能问题
+
+```text
+任务：排查 <页面> 的 UI / 性能问题，现象：<现象>。
 
 先收集：
 - 复现步骤
-- 设备与 Flutter 版本
+- 设备与 SDK 版本
 - 报错 / overflow 日志
 - 相关页面代码
 - explain 输出
@@ -220,51 +435,71 @@ const String aiPrompts = r'''
 5. 列表 key / controller dispose；
 6. 是否是 w_tools 用法问题。
 
-不要靠猜；先给复现和证据。
+先给复现和证据，再给结论；没有证据的结论标为推测。
+
+输出：复现步骤 + 证据 + 根因 + 修复建议 + 验证方式。
 ```
 
-## C-H 白盒测试
+---
+
+## H. 白盒测试
+
+### H-1. 补组件 / 单元测试
 
 ```text
-任务：为 <页面/组件> 补白盒测试。
+任务：为 <页面> 补白盒测试。
 
 优先覆盖：
-1. loading / empty / error / ready；
+- loading / empty / error / ready；
 <!-- @if:form -->
-2. 表单校验、提交、只读；
+- 表单校验、提交、只读；
 <!-- @endif -->
-3. Controller dispose / 请求取消；
-4. 列表刷新 / 加载更多 / footer；
+- controller dispose / 请求取消；
+- 列表刷新 / 加载更多 / footer；
 <!-- @if:api -->
-5. 401 / 请求失败。
+- 401 / 请求失败。
 <!-- @endif -->
 
 要求：
-- 用 flutter_test / widget test；
+- 用 {{testFramework}}；
 - 先读项目现有 test 写法；
-- 不为了通过而降低断言；
-- 不启动真实网络；
-- 完成后 flutter test。
+- 断言覆盖真实行为；
+- 用 mock / fake 替代真实网络；
+- 完成后 {{test}}。
+
+输出：新增 / 修改的测试文件 + {{test}} 原始输出。
 ```
 
-## C-I 黑盒测试
+---
+
+## I. 黑盒测试
+
+### I-1. 补 integration test
 
 ```text
-任务：为 <核心流程> 补黑盒测试。
+任务：为核心流程「<核心流程>」补黑盒测试。
 
 要求：
 1. 从用户入口进入：启动 → 登录 → 页面 → 返回；
 2. 用 Key / Semantics 定位，不依赖坐标和随机文案；
 3. 使用测试账号 / 测试数据，不提交真实凭证；
 4. 失败保留截图 / 日志；
-5. 能用 integration_test 时优先，坐标点击只作为兜底。
+5. 优先用项目已有的集成测试方案，坐标点击只作为兜底。
 
 运行：
-- flutter test integration_test/...
-- 需要设备时按 AGENTS.md 的 device 段操作（w_tools_device）
+- {{integrationTest}}
+
+需要真机时先看项目是否装了 w_tools_device：装了按它的文档操作，没装就跳过，
+不要手写 adb 命令。
+
+输出：测试文件 + 运行结果 + 失败时的截图 / 日志路径。
 ```
 
-## C-J 只审查改动
+---
+
+## J. 只审查改动
+
+### J-1. 只读审查
 
 ```text
 只审查本次改动，不要改代码。
@@ -276,13 +511,17 @@ const String aiPrompts = r'''
 4. 是否降低了测试标准；
 5. 是否手改了生成物。
 
-输出阻断项、建议项、可保留风险。
+输出：阻断项 / 建议项 / 可保留风险，每项带文件:行和理由。
 ```
 
-## C-K AI 不能读仓库 / 不能跑命令
+---
+
+## K. AI 不能读仓库 / 不能跑命令
+
+### K-1. 片段式协作
 
 ```text
-你不能直接访问仓库或运行命令。
+本轮不贴固定前缀：你不能访问仓库或运行命令。
 
 请基于我提供的代码片段工作，并明确标注：
 1. 哪些结论来自我贴的内容；
@@ -296,86 +535,164 @@ const String aiPrompts = r'''
 - 报错 / 测试输出
 ```
 
-## 页面完成自检
+---
+
+## 2. 输出不对时，加一句话就够
+
+不要重写整段提示词，按症状追加一句：
+
+| 症状 | 追加这句 |
+|---|---|
+| 格式乱、啰嗦 | 按我给的输出要求再给一次，不要解释过程 |
+| 改了不该改的文件 | 只改 <范围>，其他文件不要动 |
+| 用了错 / 不存在的 API | 先跑 explain <组件名>，按输出重写用到它的那几处 |
+| 说做了但拿不出证据 | 把 analyze 和 test 的原始输出贴出来；没跑就直说 |
+| 越做越大 | 停下来，先只给计划，不要写代码 |
+
+### AI 提到的组件，先用 explain 核一遍
+
+AI 说「用某个组件就能解决」时，不要直接信：
+
+```bash
+dart run w_tools_cli:w_tools explain <组件名> --format=prompt
+```
+
+- 退出码 0：catalog 有记录，按输出核对参数名；
+- 退出码 1：catalog 未收录或名字不对（可能拼错，也可能是未登记的公开类型），
+  先按 explain 实际列出的名字重写，再判断是否真的不存在。
+
+同理，AI 说 analyze / test 都过了，但没贴原始输出，就当作没跑。
+
+---
+
+## 3. AI 完成后你必须检查
 
 ```text
+[ ] 报告里说跑过的命令，都真的跑过；没跑就写明没跑
+[ ] 声称的 analyze / test 结果是原文，不是复述
+[ ] git diff 没有大范围无关改动
+[ ] 没有手改生成物
 [ ] loading / empty / error / ready 四态完整
-[ ] 请求有取消 / dispose 保护
+[ ] 请求有取消 / dispose 保护（如涉及）
 <!-- @if:form -->
 [ ] 表单有校验、提交中、错误保留
 <!-- @endif -->
-[ ] 列表有刷新 / 分页 / footer
+[ ] 列表有刷新 / 分页 / footer（如涉及）
 <!-- @if:ui -->
 [ ] 图片用 WImage.source，限制解码尺寸
 <!-- @endif -->
 [ ] 路由参数和返回结果正确
 [ ] 键盘 / SafeArea / overflow 检查
 [ ] 暗色模式和 TextScaler 不溢出
-[ ] 没有直接 import w_tools_*
+[ ] 业务代码没有直接 import w_tools_*（toolkit / UI 暂存层除外）
 [ ] 没有旧 API
-[ ] flutter analyze 通过
-[ ] flutter test 通过
-[ ] 新增/修改的 widget 有测试
+[ ] {{analyze}} 通过
+[ ] {{test}} 通过
+[ ] 新增 / 修改的组件有测试
 ```
+
+逐条标 `✅` / `N/A（写理由）` / `❌`；`N/A` 不等于通过。
+
+重点看两件事：**AI 有没有贴原始输出**、**有没有改到清单外的文件**。
+
+---
+
+## 4. 维护这份文档
+
+本文件由 `init` 生成，不要手改：
+
+- 内容与模板不同时，`init` 不覆盖，只报 drift；
+- `init --force` 直接覆盖，没有备份；
+- 项目自己的提示词另建文件，不要写进这里。
+
+升级 w_tools 后刷新：
+
+```bash
+{{pubUpgrade}}
+dart run w_tools_cli:w_tools init --check-drift
+# 有 drift 时（会覆盖生成物）
+dart run w_tools_cli:w_tools init --force
+```
+
+场景编号是「族字母-工序号」：字母是任务族，数字是族内工序，按顺序贴。
 ''';
 
 const String aiPromptsEn = r'''
-# w_tools AI task prompts
+# w_tools scenario prompts
 
 > Generated by `w_tools_cli` v{{version}}; regenerate with `dart run w_tools_cli:w_tools init --force`.
-> This file is for projects **using** w_tools, not for maintaining the w_tools repo.
+>
+> **This file is generated**: when content differs, `init` does not overwrite and only reports drift;
+> `init --force` overwrites it directly, and there is **no backup**.
+> Keep your own project prompts elsewhere (for example `.w_tools/PROMPTS.local.md`).
+>
+> This file is for projects **using** w_tools, not for maintaining the w_tools repo; project rules in
+> `{{rulesFiles}}` take precedence.
 
-## Read first
+---
 
-- this project's `AGENTS.md`
-- this project's `pubspec.yaml`
+## Start here
 
-## Choose a scenario (beginner)
+### Just three steps
 
-If you are unsure which prompt to use, start here:
+1. Describe the task in one sentence;
+2. If unsure which prompt to use, let the AI pick one;
+3. Copy the filled-in prompt, or the matching scenario block.
 
-| What I need | Use |
-|---|---|
-| A new page / feature | C-A |
-| A list / pagination / refresh | C-B |
-<!-- @if:form -->
-| A form / validation / submit | C-C |
-<!-- @endif -->
-<!-- @if:api -->
-| An API / login / 401 flow | C-D |
-<!-- @endif -->
-| Audit existing usage | C-E |
-| Upgrade w_tools | C-F |
-| Overflow / performance issues | C-G |
-| Add white-box tests | C-H |
-| Add black-box tests | C-I |
-| Review AI changes only | C-J |
-| AI cannot read the repo / run commands | C-K |
+### Let the AI pick a scenario
 
-If still unsure, send this to the AI:
+If unsure which prompt to use, send this first:
 
 ```text
-I do not know whether to use C-A through C-K.
+I am a Dart / Flutter developer on this project, but I am not familiar with these prompts.
 
-Read first:
-- AGENTS.md
-- pubspec.yaml
-- .w_tools/AI_PROMPTS.md
+Read only the "1. Scenario selection" section of .w_tools/AI_PROMPTS.md first,
+pick a scenario ID, and explain why.
 
-My task: <one sentence>.
-Scope: <page / file / feature>.
+My task: <task>.
+Scope: <scope>.
 
-Decide which scenario fits and explain why.
-Do not write code yet.
-Then fill that scenario's prompt with my project name, page, and scope and give it to me.
+After I confirm the ID, read only that scenario's section and fill the placeholders
+from the original text. Ask me first if information is missing, do not guess.
+Then give me one copy-ready prompt inside a single code block.
+If you cannot read the file, say so and I will paste the section.
 ```
 
-## Fixed prefix (paste first)
+### Default workflow
+
+For complex or unclear-scope work, split it into rounds:
 
 ```text
-You are a Flutter developer on this project.
+Round 1: read-only, change no files     A-1 / E-1 / F-1
+Round 2: change one scope only          A-2 / E-2 / F-2
+Round 3: review only + run checks       F-3 / J-1, then {{analyze}} / {{test}}
+```
 
-Read AGENTS.md and pubspec.yaml first; project rules take precedence over this file.
+Multi-round scenarios stay in the same conversation. If you start a new chat, paste the previous
+round's output as a handoff first; without a handoff, go back to the previous round.
+
+A small task is one round (still paste the fixed prefix first): B-1 / G-1 / H-1 / I-1.
+
+Do not ask for this in round 1:
+
+```text
+implement + add tests + update docs + run the whole repo
+```
+
+### Check after the AI finishes
+
+Work through "3. What you must check after the AI finishes" at the end —
+there is exactly one checklist in this file, nothing is duplicated here.
+
+---
+
+## 0. Fixed prefix (paste first)
+
+```text
+You are a Dart / Flutter developer on this project.
+
+Read {{rulesFiles}} and pubspec.yaml first; project rules take precedence over this file.
+If `.w_tools/PROMPTS.local.md` exists, read it first and follow its project conventions.
 
 Rules:
 1. Before coding, run:
@@ -384,145 +701,346 @@ Rules:
    dart run w_tools_cli:w_tools list <keyword> --format=prompt
    To look up usage, run:
    dart run w_tools_cli:w_tools explain <Component> --format=prompt
-3. Do not guess w_tools APIs; follow explain output.
-4. Only use packages installed in this project; imports / layering / bans follow AGENTS.md.
-5. Do not edit the `w_tools:begin/end` block in AGENTS.md; you may append project rules outside it.
-6. Run flutter analyze / flutter test and paste actual output; if you cannot run commands, say so.
+3. Follow explain output for w_tools APIs.
+4. Dependencies and entry points: {{dependencyNote}}
+   Business code takes APIs from the project toolkit entry ({{toolkitImport}});
+   direct `package:w_tools_*` imports belong only in the toolkit itself; with UI enabled, also `lib/app/ui/` and `lib/app/design_system/`.
+5. Edit only content outside the `w_tools:begin/end` block in {{rulesFiles}}; keep the block generated.
+6. Run {{analyze}} / {{test}} and paste the actual output; if you cannot run them, say so.
+7. Unless a scenario says otherwise, output = changed file list + key code snippets + raw {{analyze}} / {{test}} output.
 ```
 
-## C-A New page: plan first, then implement
+Fixed-prefix exceptions: scenario selection reads only §1; K-1 does not paste the prefix; every other scenario pastes it first.
+
+---
+
+## Fill-in guide
+
+| Placeholder | What to fill in | Example |
+|---|---|---|
+| `<task>` | one-sentence goal | order list page |
+| `<page>` | page / menu name | "My orders" page |
+| `<route>` | route path | `/orders` |
+| `<api>` | API path or method name | `GET /api/orders` |
+| `<Component>` | public class name | `WFormTextField` |
+| `<keyword>` | search term | form |
+| `<scope>` | files / feature this round touches | `lib/orders/` |
+| `<oldversion>` | current sub-package version (per package; use `pubspec.lock`) | `w_tools_ui 7.0.0` |
+| `<newversion>` | target sub-package version | `w_tools_ui 8.0.0` |
+| `<flow>` | user path that must work | login -> order -> back |
+| `<symptom>` | what you observe | input hidden by keyboard |
+
+The `w_tools_cli` version is the **generator version**, not a sub-package version; fill upgrade prompts per package.
+Headings carrying `X-n` are scenario IDs: the letter is a task family, the number is a step
+inside it; paste them in order.
+Beginners most often forget `<route>` and `<api>`: writing only "make a list page" makes the AI
+invent field names.
+
+---
+
+## A filled-in example: B-1 list page
+
+Too vague, the AI can only guess:
 
 ```text
-Task: implement <page/feature>.
+Use w_tools to make an order list page
+```
 
-Do not write code yet. First read:
-- AGENTS.md / pubspec.yaml
-- lib/app/ui/ / lib/app/design_system/
+Filled in enough to verify:
+
+```text
+Task: implement the "My orders" list page, route /orders, API GET /api/orders?page=&size=
+
+Confirm first:
+- pagination params are page / size, the response has total
+- pull-to-refresh yes, infinite scroll no
+
+Requirements:
+1. follow the existing list pages in this project
+2. first-screen loading / empty / error must be complete
+3. load-more failure updates the footer only, do not replace the list
+4. use stable keys for list items
+5. run analyze + test, and add a list-state test
+
+```
+
+Only three differences: **it gives the route and API**, **it bounds the scope (no infinite scroll)**,
+and **it says what to deliver**.
+
+---
+
+## 1. Scenario selection
+
+| What I need | Use |
+|---|---|
+| A new page / feature | A-1 -> A-2 |
+| A list / pagination / refresh | B-1 |
+<!-- @if:form -->
+| A form / validation / submit | C-1 |
+<!-- @endif -->
+<!-- @if:api -->
+| An API / login / 401 flow | D-1 |
+<!-- @endif -->
+| Audit existing usage | E-1 (then E-2 to fix) |
+| Upgrade w_tools | F-1 -> F-2 -> F-3 |
+| Page overflow / jank | G-1 |
+| Add white-box tests | H-1 |
+| Add black-box tests | I-1 |
+| Review AI changes only | J-1 |
+| AI cannot read the repo / run commands | K-1 |
+
+### Reverse lookup by symptom
+
+| Symptom | Scenario |
+|---|---|
+| Load-more replaces the whole list | B-1 |
+<!-- @if:form -->
+| User input is lost after a failed form submit | C-1 |
+<!-- @endif -->
+<!-- @if:api -->
+| Endless retry / blank screen after 401 | D-1 |
+<!-- @endif -->
+| Field hidden by keyboard / overflow | G-1 |
+| AI says it changed things but shows no analyze output | J-1 or K-1 |
+| Not sure which block to use | "Let the AI pick a scenario" above |
+
+---
+
+## A. New page
+
+### A-1. Read-only plan
+
+```text
+Task: implement <page>, route <route>.
+
+Do not write code yet and do not change any file. Read first:
+- {{rulesFiles}} / pubspec.yaml
+<!-- @if:ui -->
+- lib/app/ui/ and lib/app/design_system/
+<!-- @endif -->
 - 2-3 similar pages
 - route registration
 
-Output first:
+Output (only these 7 items, no code):
 1. reusable existing pages / components
 2. page states: loading / empty / error / ready
 3. route and arguments
 4. data source
-5. w_tools components to explain
+5. w_tools components that need explain
 6. file change plan
 7. test plan
 
-Wait for confirmation before coding.
-
-Implementation requirements:
-- run context, then list / explain;
-- do not invent a new directory / state architecture;
-- do not modify w_tools packages;
-- requests need cancel / dispose protection;
-- forms need validation, submitting state, and input preservation;
-- lists need refresh and load-more behavior;
-- run flutter analyze + flutter test.
+Wait for my confirmation before A-2.
 ```
 
-## C-B List / pagination / refresh
+### A-2. Implement the plan
 
 ```text
-Task: implement <list page>.
+Implement <page> following the plan I confirmed in the previous step; stay in the same conversation, or paste the A-1 plan first in a new chat. Scope: <scope>.
+
+Requirements:
+- run context first, then find components with list / explain;
+- do not invent a new directory / state architecture;
+- do not modify w_tools sub-packages;
+- requests need cancel / dispose protection.
+```
+
+If the plan must change, go back to A-1; do not redesign inside A-2.
+
+---
+
+## B. List / pagination / refresh
+
+### B-1. Implement the list page
+
+```text
+Task: implement the <page> list, route <route>, API <api>.
 
 Confirm first:
 - data API and pagination params
 - pull-to-refresh
 - empty / error / load-more failure
 <!-- @if:async -->
-- whether the project uses WAsyncPagedController
+- whether the project already uses WAsyncPagedController
 <!-- @endif -->
 
 Requirements:
-1. Follow existing list pages.
-2. First-screen loading / empty / error is complete.
-3. Load-more failure updates footer only; do not replace the list.
-4. Use stable keys for list items.
-5. Limit image decode size.
-6. Run analyze + test; add a list-state widget test.
+1. follow existing list pages in this project;
+2. first-screen loading / empty / error must be complete;
+3. load-more failure updates the footer only, do not replace the list;
+4. use stable keys for list items;
+5. limit image decode size;
+6. run analyze + test, and add a list-state test.
 ```
+
+---
 
 <!-- @if:form -->
-## C-C Form / validation / submit
+## C. Form / validation / submit
+
+### C-1. Implement the form page
 
 ```text
-Task: implement <form page>.
+Task: implement the <page> form, route <route>.
 
 Requirements:
-1. Use WForm + direct fields; do not pass field config.
-2. Use field validator + WFormValidatorSettings.
-3. Disable duplicate submit while submitting.
-4. Preserve user input on API failure.
-5. Keep fields visible when the keyboard opens.
-6. Handle readOnly / edit mode correctly.
-7. Add validation + submit tests.
+1. use WForm + direct fields; do not pass field config;
+2. validate with field validator; pass validatorSettings to WForm;
+3. disable duplicate submit while submitting;
+4. preserve user input when the API fails;
+5. keep fields visible when the keyboard opens;
+6. handle readOnly / edit mode correctly;
+7. add a validation + submit test.
 ```
 <!-- @endif -->
+
+---
 
 <!-- @if:api -->
-## C-D API / login / 401
+## D. API / login / 401
+
+### D-1. Implement the API / login flow
 
 ```text
-Task: implement <API / login flow>.
+Task: implement <api> and the login flow for <page>.
 
 Requirements:
-1. Use WApiConfig + DioRegistry; do not create Dio directly.
-2. Store tokens with WToken.
-3. Refresh on 401 and retry only once.
-4. Show business errors on failure.
-5. Do not setState after page switch / dispose.
-6. Run analyze + test.
+1. use WApiConfig + DioRegistry; do not create Dio directly;
+2. store tokens with WToken;
+3. refresh on 401 and retry only once;
+4. show business errors on failure;
+5. do not setState after page switch / dispose;
+6. run analyze + test.
 ```
 <!-- @endif -->
 
-## C-E Audit existing code
+---
+
+## E. Audit existing code
+
+### E-1. Read-only audit
 
 ```text
-Audit only; do not modify files.
+Audit only; do not modify any file.
 
-Check:
+Check this project:
 1. deleted / outdated w_tools APIs;
 2. bypassing w_tools and using underlying libraries directly;
 3. duplicated components;
-4. violations of AGENTS.md;
-5. wrong entries for state / forms / network / maps / QR.
+4. violations of {{rulesFiles}};
+5. whether enabled capabilities use the right entry point instead of bypassing the wrappers.
+   - core: prefer WStorage / WToken / WValidator / WLogger over raw SharedPreferences / print
+<!-- @if:ui -->
+   - UI: WText / WButton / WImage instead of raw Text / ElevatedButton / Image
+<!-- @endif -->
+<!-- @if:form -->
+   - forms: WForm + direct fields, no config
+<!-- @endif -->
+<!-- @if:api -->
+   - network: WApiConfig + DioRegistry, tokens with WToken
+<!-- @endif -->
+<!-- @if:toast -->
+   - toast: WToast + WToastTheme instead of BotToast directly
+<!-- @endif -->
+<!-- @if:app -->
+   - app: WApp.options / WAppPlugin instead of manual plugin setup
+<!-- @endif -->
+<!-- @if:async -->
+   - async: WAsyncController / WAsyncView instead of hand-maintained loading / error state
+<!-- @endif -->
+<!-- @if:qr -->
+   - QR: WQrView, not QRView directly
+<!-- @endif -->
+<!-- @if:map -->
+   - maps: WMap / WMapZone, not GoogleMap directly
+<!-- @endif -->
 
-Run `dart run w_tools_cli:w_tools doctor --format=json`, then use context / list / explain to verify.
-Output:
+Run `dart run w_tools_cli:w_tools doctor --format=json` first, then verify with context / list / explain.
+For each w_tools type / import, run `explain`; treat exit 1 as "not in catalog or wrong name",
+then check `{{analyze}}` deprecated warnings before deciding to replace it.
+
+Output one table, sorted by severity:
 | ID | Severity | File:line | Evidence | Problem | Suggested fix | Acceptance |
-Do not modify files.
+Severity: P0 blocking (compile / main flow unusable), P1 should fix (wrong entry / missing state), P2 suggestion (consistency / readability).
+Read-only; do not modify files.
 ```
 
-## C-F Upgrade w_tools
+### E-2. Fix from the list
 
 ```text
-Task: upgrade w_tools from <old version> to <new version>.
+Fix what the audit above reported; stay in the same conversation, or paste the E-1 table first in a new chat. This round's scope: <scope>.
 
 Requirements:
-1. Read the matching migration document first.
-2. Find every outdated API in this project.
-3. Present a change plan before editing.
-4. Replace file by file.
-5. Do not change unrelated behavior.
-6. Run flutter analyze + flutter test.
-7. Report remaining outdated APIs.
+1. fix one severity at a time, P0 before P1;
+2. tag each fix with its audit ID;
+3. do not touch code outside the list;
+4. rerun doctor afterwards and compare error counts.
 
-Upgrade and refresh:
-- flutter pub upgrade
-- dart run w_tools_cli:w_tools init --check-drift
-- on drift: dart run w_tools_cli:w_tools init --force
+Output: which IDs were fixed + changed file list + doctor before/after + raw {{analyze}} / {{test}} output.
 ```
 
-## C-G Debug UI / performance
+---
+
+## F. Upgrade w_tools
+
+### F-1. Upgrade plan and outdated API inventory
 
 ```text
-Task: diagnose <page> UI / performance issues.
+Task: upgrade the w_tools sub-packages. First list <oldversion> and <newversion> per package from pubspec.lock (versions are independent), then choose this round's scope.
+
+Do not change code yet. Do three things first:
+1. read the migration document per package
+   (look up the matching version under docs/migrations/ in the w_tools repo, e.g. ui-7.0.md / form-5.1.md; or the package CHANGELOG on pub.dev);
+2. find every outdated API and call site in this project;
+3. list a per-file change plan.
+
+Output: outdated API inventory (file:line + replacement) + per-file plan + risks.
+Wait for my confirmation before F-2.
+```
+
+### F-2. Replace file by file
+
+```text
+Replace outdated APIs following the F-1 plan; stay in the same conversation, or paste the F-1 plan first in a new chat. This round only covers: <scope>.
+
+Requirements:
+1. go file by file, one file at a time;
+2. do not change unrelated behavior;
+3. stop and report any call site the plan missed; do not guess;
+4. run {{analyze}} after each batch.
+
+Output: changed files in this batch + key diff + raw {{analyze}} output.
+```
+
+### F-3. Verify and report leftovers
+
+```text
+Wrap up the upgrade.
+
+Requirements:
+1. run {{analyze}} + {{test}} and paste raw output;
+2. report leftover outdated APIs per package (file:line if any, otherwise say there are none);
+3. refresh the project integration files and check drift:
+   {{pubUpgrade}}
+   dart run w_tools_cli:w_tools init --check-drift
+4. on drift run this (overwrites generated files, no backup):
+   dart run w_tools_cli:w_tools init --force
+
+Output: raw {{analyze}} / {{test}} output + leftover list + drift result.
+```
+
+---
+
+## G. Debug UI / performance
+
+### G-1. Diagnose UI / performance
+
+```text
+Task: diagnose UI / performance issues on <page>; symptom: <symptom>.
 
 Collect first:
 - reproduction steps
-- device and Flutter version
+- device and SDK version
 - error / overflow logs
 - relevant page code
 - explain output
@@ -535,103 +1053,189 @@ Check:
 5. list keys / controller disposal;
 6. whether this is a w_tools usage issue.
 
-Do not guess; provide reproduction and evidence first.
+Give reproduction and evidence first, then conclusions; mark conclusions without evidence as speculation.
+
+Output: reproduction steps + evidence + root cause + suggested fix + verification.
 ```
 
-## C-H White-box tests
+---
+
+## H. White-box tests
+
+### H-1. Add component / unit tests
 
 ```text
-Task: add white-box tests for <page/component>.
+Task: add white-box tests for <page>.
 
 Prioritize:
-1. loading / empty / error / ready;
+- loading / empty / error / ready;
 <!-- @if:form -->
-2. form validation, submit, read-only;
+- form validation, submit, read-only;
 <!-- @endif -->
-3. controller disposal / request cancellation;
-4. list refresh / load more / footer;
+- controller disposal / request cancellation;
+- list refresh / load more / footer;
 <!-- @if:api -->
-5. 401 / request failure.
+- 401 / request failure.
 <!-- @endif -->
 
 Requirements:
-- use flutter_test / widget tests;
-- follow existing test style;
-- do not weaken assertions to pass;
-- do not use real network;
-- run flutter test.
+- use {{testFramework}};
+- follow the existing test style;
+- assertions cover real behavior;
+- use mocks / fakes instead of the real network;
+- run {{test}}.
+
+Output: added / changed test files + raw {{test}} output.
 ```
 
-## C-I Black-box tests
+---
+
+## I. Black-box tests
+
+### I-1. Add an integration test
 
 ```text
-Task: add black-box tests for <core flow>.
+Task: add a black-box test for the core flow "<flow>".
 
 Requirements:
-1. enter through user-facing flow: launch -> login -> page -> back;
+1. enter through the user-facing flow: launch -> login -> page -> back;
 2. locate by Key / Semantics, not coordinates or random text;
-3. use test accounts/data; never commit real credentials;
+3. use test accounts / test data; never commit real credentials;
 4. keep screenshots / logs on failure;
-5. prefer integration_test; coordinate taps only as fallback.
+5. prefer the project's existing integration-test setup; coordinate taps only as a fallback.
 
 Run:
-- flutter test integration_test/...
-- follow the device section in AGENTS.md (w_tools_device) when a device is required.
+- {{integrationTest}}
+
+If a real device is needed, first check whether the project depends on w_tools_device:
+use it when present, skip it when not, and do not hand-write adb commands.
+
+Output: test files + run result + screenshot / log paths on failure.
 ```
 
-## C-J Review changes only
+---
+
+## J. Review changes only
+
+### J-1. Read-only review
 
 ```text
 Review this change only; do not edit code.
 
 Check:
 1. correct entry points;
-2. old APIs / duplicated components;
-3. unrelated files;
-4. weakened tests;
+2. outdated APIs / duplicated components;
+3. unrelated files touched;
+4. weakened test standards;
 5. hand-edited generated files.
 
-Output blockers, suggestions, and acceptable risks.
+Output: blockers / suggestions / acceptable risks, each with file:line and rationale.
 ```
 
-## C-K AI cannot read the repo / run commands
+---
+
+## K. AI cannot read the repo / run commands
+
+### K-1. Work from snippets
 
 ```text
-You cannot access the repository or run commands.
+Do not paste the fixed prefix this round: you cannot access the repository or run commands.
 
-Work from the snippets I provide and clearly state:
+Work from the snippets I provide and clearly label:
 1. what is based on the snippets;
 2. what I must verify by running commands;
 3. do not claim analyze / test passed.
 
 I provide:
-- diff
-- relevant pubspec snippet
+- the diff
+- the relevant pubspec snippet
 - explain output
 - error / test output
 ```
 
-## Page completion self-check
+---
+
+## 2. When the output is wrong, one sentence is enough
+
+Do not rewrite the whole prompt; append one line matching the symptom:
+
+| Symptom | Append this |
+|---|---|
+| Messy format, too verbose | Re-answer in the output format I gave, without narrating |
+| Touched files it should not | Only change <scope>; leave every other file alone |
+| Wrong / non-existent API | Run explain <Component> first, then rewrite only where it is used |
+| Claims work but shows no evidence | Paste the raw analyze and test output; say so if you did not run them |
+| Keeps growing the scope | Stop; give me the plan only, do not write code |
+
+### Verify any component the AI mentions
+
+When the AI says "just use some component", do not trust it:
+
+```bash
+dart run w_tools_cli:w_tools explain <Component> --format=prompt
+```
+
+- exit code 0: the catalog has it; check the parameter names in the output;
+- exit code 1: not in the catalog or the name is wrong (a typo, or a public type that is
+  intentionally uncataloged); first rewrite using the names explain actually lists, then decide
+  whether it truly does not exist.
+
+Likewise, if the AI says analyze / test passed but pastes no raw output, treat it as not run.
+
+---
+
+## 3. What you must check after the AI finishes
 
 ```text
-[ ] loading / empty / error / ready complete
-[ ] requests have cancel / dispose protection
+[ ] every command it claims to have run was actually run; if not, it says so
+[ ] the analyze / test result is raw output, not a paraphrase
+[ ] git diff has no large unrelated changes
+[ ] no generated file was hand-edited
+[ ] loading / empty / error / ready are all handled
+[ ] requests have cancel / dispose protection (when applicable)
 <!-- @if:form -->
-[ ] forms have validation, submitting state, input preservation
+[ ] forms validate, show submitting state, and keep input on failure
 <!-- @endif -->
-[ ] lists have refresh / pagination / footer
+[ ] lists have refresh / pagination / footer (when applicable)
 <!-- @if:ui -->
 [ ] images use WImage.source with decode limits
 <!-- @endif -->
 [ ] route arguments and results are correct
 [ ] keyboard / SafeArea / overflow checked
 [ ] dark mode and TextScaler do not overflow
-[ ] no direct w_tools_* imports
+[ ] business code has no direct w_tools_* imports (toolkit / UI staging layer excepted)
 [ ] no outdated APIs
-[ ] flutter analyze passes
-[ ] flutter test passes
-[ ] new/changed widgets have tests
+[ ] {{analyze}} passes
+[ ] {{test}} passes
+[ ] new / changed components have tests
 ```
+
+Mark every item `✅` / `N/A (with reason)` / `❌`; `N/A` is not a pass.
+
+Watch two things above all: **whether the AI pasted raw output**, and **whether it touched files
+outside the list**.
+
+---
+
+## 4. Maintaining this file
+
+This file is generated by `init`; do not edit it by hand:
+
+- when content differs, `init` does not overwrite, it only reports drift;
+- `init --force` overwrites it directly, with no backup;
+- keep your own project prompts in a separate file.
+
+Refresh after upgrading w_tools:
+
+```bash
+{{pubUpgrade}}
+dart run w_tools_cli:w_tools init --check-drift
+# on drift (this overwrites generated files)
+dart run w_tools_cli:w_tools init --force
+```
+
+Scenario IDs are "family letter - step number": the letter is a task family, the number is a step
+inside it; paste them in order.
 ''';
 
 const String toolkitTemplate = r'''
@@ -840,7 +1444,7 @@ const String agentsClosing = r'''
 
 ## 完成前
 
-- `dart run w_tools_cli:w_tools doctor --json` → 0 error（warning 看情况）
+- `dart run w_tools_cli:w_tools doctor --format=json` → 0 error（warning 看情况）
 - `flutter analyze`、`flutter test`
 - 本次用过 `w_tools_*` 且被卡住？→ 先看 `.w_tools_doctor.yaml` 的 `feedback.issue`；
   未开启就跳过（这是默认）；开启后按「使用反馈」search → submit。
@@ -1174,7 +1778,7 @@ const String agentsClosingEn = r'''
 
 ## Before done
 
-- `dart run w_tools_cli:w_tools doctor --json` → 0 error (warnings are contextual)
+- `dart run w_tools_cli:w_tools doctor --format=json` → 0 error (warnings are contextual)
 - `flutter analyze`, `flutter test`
 - Used `w_tools_*` and got blocked? → check `feedback.issue` in `.w_tools_doctor.yaml`;
   if off, skip (default); if on, follow "Usage feedback" (search → submit).

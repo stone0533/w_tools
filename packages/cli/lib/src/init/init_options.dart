@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:yaml/yaml.dart' show YamlException, YamlMap, loadYaml;
 
+import '../common/project_pubspec.dart';
 import '../doctor/config.dart';
 import 'features.dart';
 import 'manifest.dart';
@@ -21,6 +21,7 @@ class InitOptions {
     required this.check,
     required this.checkDrift,
     required this.force,
+    required this.forceConfig,
     required this.forceStarters,
     required this.figmaInstall,
     this.manifest,
@@ -36,6 +37,7 @@ class InitOptions {
   final bool check;
   final bool checkDrift;
   final bool force;
+  final bool forceConfig;
   final bool forceStarters;
   final String? figmaInstall;
   final InitManifest? manifest;
@@ -115,9 +117,10 @@ class InitOptions {
       features = features.withFeature(InitFeature.map, true);
     }
 
+    final pubspec = ProjectPubspec.load(root);
     final figma = args.wasParsed('figma')
         ? args['figma'] as bool
-        : (manifest?.figma ?? _resolveFigma(root, config));
+        : (manifest?.figma ?? _resolveFigma(pubspec, config));
     final aiPrompts = targets.isEmpty
         ? false
         : args.wasParsed('ai-prompts')
@@ -127,7 +130,7 @@ class InitOptions {
         ? true
         : args.wasParsed('device')
         ? args['device'] as bool
-        : (manifest?.device ?? _hasDependency(root, 'w_tools_device'));
+        : (manifest?.device ?? pubspec.hasDependency('w_tools_device'));
     return InitOptions(
       profile: profile,
       features: features,
@@ -139,8 +142,9 @@ class InitOptions {
       check: check,
       checkDrift: checkDrift,
       force: args['force'] as bool,
+      forceConfig: args['force-config'] as bool,
       forceStarters: (args['force-starters'] as bool) || (args['force-ui'] as bool),
-      figmaInstall: _figmaInstallLine(root),
+      figmaInstall: _figmaInstallLine(pubspec),
       manifest: manifest,
     );
   }
@@ -166,50 +170,17 @@ class InitOptionsException implements Exception {
   String toString() => message;
 }
 
-bool _hasDependency(Directory root, String name) {
-  final file = File('${root.path}/pubspec.yaml');
-  if (!file.existsSync()) return false;
-  try {
-    final raw = loadYaml(file.readAsStringSync());
-    if (raw is! YamlMap) return false;
-    for (final key in const <String>['dependencies', 'dev_dependencies']) {
-      final deps = raw[key];
-      if (deps is YamlMap && deps.containsKey(name)) return true;
-    }
-  } on YamlException {
-    return false;
-  }
-  return false;
+String? _figmaInstallLine(ProjectPubspec pubspec) {
+  if (!pubspec.hasDependency('w_tools_figma')) return null;
+  final constraint = pubspec.constraint('w_tools_figma');
+  if (constraint == null) return '# w_tools_figma 已通过 path/git 安装';
+  return 'dart pub add dev:w_tools_figma:$constraint';
 }
 
-({bool present, String? constraint}) _figmaDependency(Directory root) {
-  final file = File('${root.path}/pubspec.yaml');
-  if (!file.existsSync()) return (present: false, constraint: null);
-  try {
-    final raw = loadYaml(file.readAsStringSync());
-    for (final key in const <String>['dependencies', 'dev_dependencies']) {
-      final deps = raw is YamlMap ? raw[key] : null;
-      if (deps is! YamlMap || !deps.containsKey('w_tools_figma')) continue;
-      final value = deps['w_tools_figma'];
-      return (present: true, constraint: value is String ? value : null);
-    }
-  } on YamlException {
-    return (present: false, constraint: null);
-  }
-  return (present: false, constraint: null);
-}
-
-String? _figmaInstallLine(Directory root) {
-  final dep = _figmaDependency(root);
-  if (!dep.present) return null;
-  if (dep.constraint == null) return '# w_tools_figma 已通过 path/git 安装';
-  return 'dart pub add dev:w_tools_figma:${dep.constraint}';
-}
-
-bool _resolveFigma(Directory root, DoctorConfig config) {
+bool _resolveFigma(ProjectPubspec pubspec, DoctorConfig config) {
   return switch (config.aiFigma) {
     'true' => true,
     'false' => false,
-    _ => _figmaDependency(root).present,
+    _ => pubspec.hasDependency('w_tools_figma'),
   };
 }

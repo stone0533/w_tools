@@ -94,7 +94,7 @@ doctor 检查项：
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
 | R6 | warn | 禁用单位 `.h` / `.r`（**项目专用，默认关**，配置 `rules.R6: true` 打开） |
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致（导出未依赖 / 依赖未导出） |
-| R8 | warn | 生成物由旧版 `w_tools_cli` 生成（只检查带 w_tools 标记的 target 文件与 toolkit；UI starter 可自定义，不检查；版本标记与 `pubspec.lock` 不一致） |
+| R8 | warn | 生成物由旧版 `w_tools_cli` 生成（检查 toolkit、target 文件与 `.w_tools/AI_PROMPTS.md`；UI starter 可自定义，不检查；版本标记与 `pubspec.lock` 不一致） |
 | R9 | 配置 | 项目禁用 API（`.w_tools_doctor.yaml` 的 `banned`；默认空，命中按条目 level 报） |
 
 本节是 R1~R9 的**规则细节唯一来源**；[`packages/cli/README.md`](../packages/cli/README.md) 的表格
@@ -116,7 +116,7 @@ R2（覆盖 `test/` / `tool/` 需加 `--include-tests`）、R1、R9 的 `banned`
 
 ```bash
 dart run w_tools_cli:w_tools doctor --print-config    # 打印带注释的默认配置
-dart run w_tools_cli:w_tools doctor --write-config    # 写到 .w_tools_doctor.yaml（已存在则跳过，--force 覆盖）
+dart run w_tools_cli:w_tools doctor --write-config    # 写到 .w_tools_doctor.yaml（已存在报错；--force 覆盖，先写 .bak / .bak.<timestamp>）
 ```
 
 `init` 也会顺手生成这个文件（带注释的默认配置，值与内置默认一致）。
@@ -148,7 +148,7 @@ Image.asset('logo.png');
 ```
 
 `R2`~`R9` 支持豁免；`R1` 暂不支持。行级规则用 `// w_tools:ignore`，文件级规则（R5/R7/R8）用 `// w_tools:ignore-file`。没有 `reason:` 的豁免不生效；整行注释和行尾 `//` 注释会跳过，字符串仍可能命中；`init` 会把有效 `banned` 生成到 AGENTS。
-`init --force` 只刷新生成物；UI starter 需显式 `--force-starters`（1.8.0+），覆盖前会写 `.bak`。
+`init --force` 只刷新生成物，**不覆盖 `.w_tools_doctor.yaml`**；要覆盖项目配置用 `init --force-config`（先 `.bak`）。UI starter 需显式 `--force-starters`（1.8.0+），覆盖前会写 `.bak`。
 项目 UI 层固定为 `lib/app/ui/`，暂存层固定为 `lib/app/design_system/`；`init` 与 doctor 使用同一套路径（`packages/cli/lib/src/layout.dart` 是唯一来源）。聚合入口默认 `lib/app/w/toolkit.dart`，可用 `.w_tools_doctor.yaml` 的 `toolkit_entry` 覆盖 —— `init` 与 doctor 都读它。
 
 > 早期这里放的是四条 grep 命令，现在**以 doctor 为唯一事实源** —— 同一份规则不能有两个实现，

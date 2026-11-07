@@ -56,7 +56,7 @@
 - [组合用法](../recipes/README.md)：分页 / 表单提交 / App 根装配
 - [使用反馈](../feedback/README.md)：用 w_tools 撞到的问题按模板记录（`docs/feedback/<包>.md`）
 
-> 这些文件属于 w_tools 维护仓库，`w_tools_cli:init` 不会把整个 docs/agents 目录复制到消费方。
+> 这些文件属于 w_tools 维护仓库，`dart run w_tools_cli:w_tools init` 不会把整个 docs/agents 目录复制到消费方。
 > 消费方 AI 看到的是生成的 AGENTS 摘要；需要完整说明时读本仓库或对应包文档。
 >
 > 根 [`AGENTS.md`](../../AGENTS.md) 是入口与跨包硬规则；本目录是包级详细规则。

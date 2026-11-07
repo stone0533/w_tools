@@ -14,7 +14,7 @@ import 'package:w_tools_cli/src/init/init_project.dart';
 const _usage = '''
 w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
 
-用法：dart run w_tools_cli:init [选项]
+用法：dart run w_tools_cli:w_tools init [选项]
 
 生成：
   lib/app/w/toolkit.dart            本项目用到的能力清单（聚合入口）
@@ -37,7 +37,8 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --check-drift  在 --check 基础上，内容与模板不同也算失败（检查模板是否过期）
   --format=<fmt> text | json（默认 text）
   --json         等价于 --format=json
-  --force        覆盖生成物 / 配置（配置先 .bak；默认不动）
+  --force        覆盖生成物；不覆盖 .w_tools_doctor.yaml（用 --force-config）
+  --force-config 覆盖 .w_tools_doctor.yaml（先 .bak；--force 不会覆盖它）
   --reset        忽略 .w_tools/init.json，按本次参数与默认值重来
   --force-starters 覆盖 UI / device starter（先 .bak）
   --force-ui     等同 --force-starters（兼容别名）
@@ -58,10 +59,10 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --help, -h     显示本帮助
 
 示例：
-  dart run w_tools_cli:init
-  dart run w_tools_cli:init --profile=ui
-  dart run w_tools_cli:init --targets=agents,claude --lang=en
-  dart run w_tools_cli:init --check-drift
+  dart run w_tools_cli:w_tools init
+  dart run w_tools_cli:w_tools init --profile=ui
+  dart run w_tools_cli:w_tools init --targets=agents,claude --lang=en
+  dart run w_tools_cli:w_tools init --check-drift
 
 说明：
   .w_tools_doctor.yaml 的有效 banned 会生成到 AGENTS 的“本项目禁用 API”段落。
@@ -100,13 +101,13 @@ List<String> _nextActions(InitReport report) {
     actions.add('把 pubspecSnippet 的依赖加入 pubspec.yaml，然后运行 dart pub get');
   }
   if (report.missing.isNotEmpty) {
-    actions.add('dart run w_tools_cli:init');
+    actions.add('dart run w_tools_cli:w_tools init');
   }
   if (report.drift.isNotEmpty) {
-    actions.add('dart run w_tools_cli:init --force');
+    actions.add('dart run w_tools_cli:w_tools init --force');
   }
   if (actions.isEmpty) {
-    actions.add('dart run w_tools_cli:doctor');
+    actions.add('dart run w_tools_cli:w_tools doctor');
   }
   return actions;
 }
@@ -119,6 +120,7 @@ CommandResult run(List<String> argv) {
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json'])
     ..addFlag('json', negatable: false)
     ..addFlag('force', negatable: false)
+    ..addFlag('force-config', negatable: false)
     ..addFlag('force-starters', negatable: false)
     ..addFlag('force-ui', negatable: false)
     ..addFlag('reset', negatable: false)
@@ -173,6 +175,7 @@ CommandResult run(List<String> argv) {
       final report = runInit(
         root,
         force: options.force,
+        forceConfig: options.forceConfig,
         forceStarters: options.forceStarters,
         check: options.check,
         features: options.features,
@@ -205,6 +208,7 @@ CommandResult run(List<String> argv) {
             'figma': figmaEnabled,
             'device': deviceEnabled,
             'aiPrompts': options.aiPrompts,
+            'forceConfig': options.forceConfig,
             'forceStarters': options.forceStarters,
             'created': _jsonEntries(report.created),
             'upToDate': _jsonEntries(report.upToDate),
@@ -245,7 +249,7 @@ CommandResult run(List<String> argv) {
           print('! $w');
         }
         if (report.drift.isNotEmpty) {
-          print('→ 覆盖上述 drift：dart run w_tools_cli:init --force');
+          print('→ 覆盖上述 drift：dart run w_tools_cli:w_tools init --force');
         }
         print('');
         print('需要在 pubspec.yaml 里加入：');

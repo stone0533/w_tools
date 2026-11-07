@@ -1089,7 +1089,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     importPath: "package:w_tools_async/w_tools_async.dart",
     docs: "docs/modules/async_module.md",
     docsAnchor: "1-wasync",
-    aliases: <String>[],
+    aliases: <String>["tryRun", "run", "map", "retry"],
     usage: "final result = await WAsync.tryRun(() => api.fetch());\nswitch (result) {\n  case WAsyncSuccess(:final value): use(value);\n  case WAsyncFailure(:final error): log(error);\n  case WAsyncCancelled(): log('cancelled');\n}\nfinal value = await WAsync.run(() => api.fetch());\nfinal name = await WAsync.map(() => api.fetch(), onSuccess: (v) => v.name);\n",
     pitfalls: <String>["run 失败抛异常；tryRun 不抛异常", "onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess", "取消需要 WCancelToken；取消不中止底层 Future"],
     related: <String>["WAsyncResult", "WAsyncOptions", "WCancelToken"],

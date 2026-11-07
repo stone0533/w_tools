@@ -13,6 +13,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:w_tools_cli/src/init/conditional_template.dart';
 
 const _templates = <String, String>{
   'ai/consumer-prompts.md': 'aiPrompts',
@@ -59,13 +60,15 @@ const _templates = <String, String>{
   'app_scaffold.dart.tpl': 'appScaffoldTemplate',
 };
 
+String normalizeTemplatePath(String path) => path.replaceAll('\\', '/');
+
 String generate(String repoRoot) {
   // 模板目录与注册表必须一一对应：新增文件忘记登记会在这里失败。
   final templatesDir = Directory(p.join(repoRoot, 'templates'));
   final actual = templatesDir
       .listSync(recursive: true)
       .whereType<File>()
-      .map((f) => p.relative(f.path, from: templatesDir.path).replaceAll(r'\\', '/'))
+      .map((f) => normalizeTemplatePath(p.relative(f.path, from: templatesDir.path)))
       .where((rel) => rel != 'README.md')
       .toSet();
   final missing = actual.difference(_templates.keys.toSet());
@@ -83,7 +86,7 @@ String generate(String repoRoot) {
 
   _templates.forEach((file, symbol) {
     final content = File(p.join(repoRoot, 'templates', file)).readAsStringSync();
-    _validateConditionalMarkers(file, content);
+    ConditionalTemplate.validate(content, name: file);
     buf
       ..writeln('const String $symbol = r\'\'\'')
       ..write(content)
@@ -91,26 +94,6 @@ String generate(String repoRoot) {
       ..writeln();
   });
   return buf.toString();
-}
-
-void _validateConditionalMarkers(String file, String content) {
-  var depth = 0;
-  for (final line in content.split('\n')) {
-    if (RegExp(r'^<!-- @if:[a-z]+ -->$').hasMatch(line)) {
-      if (depth != 0) {
-        throw StateError('模板 $file: @if 不支持嵌套');
-      }
-      depth++;
-    } else if (line == '<!-- @endif -->') {
-      if (depth == 0) {
-        throw StateError('模板 $file: 多余的 @endif');
-      }
-      depth--;
-    }
-  }
-  if (depth != 0) {
-    throw StateError('模板 $file: @if 未闭合');
-  }
 }
 
 void main(List<String> argv) {

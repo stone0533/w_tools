@@ -321,6 +321,46 @@ banned:
     expect((await _run('init.dart', ['--root', root.path, '--check-drift'])).exitCode, 1);
   });
 
+  test('init --force 保留自定义 config；--force-config 才覆盖', () async {
+    final root = _project();
+    final config = File(p.join(root.path, '.w_tools_doctor.yaml'));
+    expect(
+      (await _run('init.dart', [
+        '--root',
+        root.path,
+        '--profile=minimal',
+        '--no-instructions',
+      ])).exitCode,
+      0,
+    );
+    const custom = '# 我改过\nfeedback:\n  issue: true\n';
+    config.writeAsStringSync(custom);
+
+    final force = await _run('init.dart', [
+      '--root',
+      root.path,
+      '--profile=minimal',
+      '--no-instructions',
+      '--force',
+      '--format=json',
+    ]);
+    expect(force.exitCode, 0, reason: '${force.stderr}');
+    expect(config.readAsStringSync(), custom);
+    expect('${force.stdout}', contains('--force-config'));
+
+    final forceConfig = await _run('init.dart', [
+      '--root',
+      root.path,
+      '--profile=minimal',
+      '--no-instructions',
+      '--force-config',
+      '--format=json',
+    ]);
+    expect(forceConfig.exitCode, 0, reason: '${forceConfig.stderr}');
+    expect(config.readAsStringSync(), contains('由 `dart run w_tools_cli:w_tools doctor'));
+    expect(File('${config.path}.bak').readAsStringSync(), custom);
+  });
+
   test('doctor --only 未知规则返回 2', () async {
     final root = _project();
     final r = await _run('doctor.dart', ['--root', root.path, '--only=R99']);
@@ -367,6 +407,39 @@ banned:
     expect(backup.existsSync(), isTrue);
     expect(backup.readAsStringSync(), contains('mine'));
     expect(cfg.readAsStringSync(), isNot(contains('mine')));
+  });
+
+  test('doctor --write-config --force 连续覆盖不丢旧备份', () async {
+    final root = Directory.systemTemp.createTempSync('wt_wcfg_rot_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: demo\n');
+    final cfg = File(p.join(root.path, '.w_tools_doctor.yaml'));
+    expect((await _run('doctor.dart', ['--root', root.path, '--write-config'])).exitCode, 0);
+
+    cfg.writeAsStringSync('# user A\nfeedback:\n  issue: true\n');
+    expect(
+      (await _run('doctor.dart', ['--root', root.path, '--write-config', '--force'])).exitCode,
+      0,
+    );
+    expect(File('${cfg.path}.bak').readAsStringSync(), contains('user A'));
+
+    cfg.writeAsStringSync('# user B\nfeedback:\n  issue: false\n');
+    expect(
+      (await _run('doctor.dart', ['--root', root.path, '--write-config', '--force'])).exitCode,
+      0,
+    );
+    expect(
+      File('${cfg.path}.bak').readAsStringSync(),
+      contains('user A'),
+      reason: '已有 .bak 不能被第二次 force 覆盖',
+    );
+    final stamped = Directory(root.path)
+        .listSync()
+        .whereType<File>()
+        .where((f) => p.basename(f.path).startsWith('.w_tools_doctor.yaml.bak.'))
+        .toList();
+    expect(stamped, isNotEmpty);
+    expect(stamped.any((f) => f.readAsStringSync().contains('user B')), isTrue);
   });
 
   test('doctor --json 的 exitCode 与进程退出码一致', () async {
@@ -463,6 +536,18 @@ banned:
     final json = await _run('explain.dart', ['WImage', '--format=json']);
     final payload = jsonDecode('${json.stdout}') as Map<String, Object?>;
     expect(payload['found'], isTrue);
+  });
+
+  test('CLI-007 explain 多匹配返回 1 且 JSON 标记 ambiguous', () async {
+    final prompt = await _run('explain.dart', ['W', '--format=prompt']);
+    expect(prompt.exitCode, 1);
+    expect('${prompt.stdout}', contains('缩小关键词'));
+
+    final json = await _run('explain.dart', ['W', '--format=json']);
+    expect(json.exitCode, 1);
+    final payload = jsonDecode('${json.stdout}') as Map<String, Object?>;
+    expect(payload['ambiguous'], isTrue);
+    expect(payload['found'], isFalse);
   });
 
   test('list --format=prompt 输出紧凑目录', () async {
@@ -691,6 +776,17 @@ banned:
     expect(r.exitCode, 1);
   });
 
+  test('CLI-005 list 工具包在 prompt / json 也给教学入口', () async {
+    final prompt = await _run('list.dart', ['--package=cli', '--format=prompt']);
+    expect(prompt.exitCode, 1);
+    expect('${prompt.stdout}', contains('docs/agents/cli.md'));
+
+    final json = await _run('list.dart', ['--package=cli', '--format=json']);
+    expect(json.exitCode, 1);
+    expect('${json.stdout}', contains('"hint"'));
+    expect('${json.stdout}', contains('docs/agents/cli.md'));
+  });
+
   test('feedback 缺少子命令时退出码 2', () async {
     final root = _project();
     final r = await _run('feedback.dart', ['--root', root.path]);
@@ -860,6 +956,19 @@ banned:
       root.path,
       '--package=foo',
       '--title=x',
+    ]);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('未知反馈包'));
+  });
+
+  test('CLI-006 feedback search 拒绝未知包', () async {
+    final root = _project();
+    final r = await _run('feedback.dart', [
+      'search',
+      'nothing',
+      '--root',
+      root.path,
+      '--package=foo',
     ]);
     expect(r.exitCode, 2);
     expect('${r.stderr}', contains('未知反馈包'));
@@ -1068,10 +1177,11 @@ banned:
     expect('${r.stdout}', contains('"ok":false'));
   });
 
-  test('CLI-017 init --help 列出 --instructions', () async {
+  test('CLI-017 init --help 列出 --instructions / --force-config', () async {
     final r = await _run('init.dart', ['--help']);
     expect(r.exitCode, 0);
     expect('${r.stdout}', contains('--instructions'));
+    expect('${r.stdout}', contains('--force-config'));
   });
 
   test('CLI-007 feedback path 拒绝未知包', () async {
