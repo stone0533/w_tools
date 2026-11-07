@@ -1,4 +1,5 @@
 import pathlib
+import subprocess
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -25,6 +26,17 @@ class PublishSnapshotTest(unittest.TestCase):
         self.assertIn('origin/main', text)
         self.assertIn('git -C "$repo_root" fetch', text)
         self.assertIn('--force', text)
+        self.assertIn('force_reason', text)
+
+    def test_force_requires_a_reason(self):
+        result = subprocess.run(
+            ['bash', 'scripts/publish_package.sh', 'packages/ui', '--force'],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('--reason', result.stderr)
 
 
 if __name__ == '__main__':

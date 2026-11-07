@@ -36,6 +36,7 @@ import urllib.request
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / 'scripts/packages.manifest'
 SNAPSHOTS = ROOT / 'scripts/api_snapshots'
+PENDING_FIRST_RELEASE = ROOT / 'scripts/pending_first_release.txt'
 PUB_API = 'https://pub.dev/api/packages/'
 
 # `w_tools_<pkg>-<version>.txt`；版本允许预发布后缀（`8.0.0-dev.1`）。
@@ -60,6 +61,24 @@ def read_manifest(path: pathlib.Path | None = None) -> list[tuple[str, str, str]
         aggregate = fields[3] if len(fields) > 3 else '-'
         rows.append((fields[0], fields[1], aggregate))
     return rows
+
+
+def pending_first_release(path: pathlib.Path | None = None) -> set[str]:
+    """已合并、尚未首次发布到 pub.dev 的包（裸名）。
+
+    这些包在首发前必然 404；周检不应把它当成「包名拼错 / 被改名」。
+    文件里写 `w_tools_geo` 或 `geo` 都归一到 `geo`。
+    """
+    target = path or PENDING_FIRST_RELEASE
+    if not target.is_file():
+        return set()
+    names: set[str] = set()
+    for raw in target.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        names.add(line.removeprefix('w_tools_'))
+    return names
 
 
 def version_of(path: pathlib.Path) -> str | None:
@@ -219,6 +238,7 @@ def main() -> int:
     warnings: list[str] = []
     unreachable: list[str] = []
     not_found: list[str] = []
+    pending = pending_first_release()
     online_ok = 0
 
     for name, path, aggregate in read_manifest():
@@ -232,9 +252,19 @@ def main() -> int:
             try:
                 published = published_version(package)
             except PackageNotFound:
-                not_found.append(package)
-        status = classify(local, published)
+                if package in pending:
+                    warnings.append(
+                        f'{package}: 尚未首次发布（scripts/pending_first_release.txt），'
+                        '按预期跳过 404'
+                    )
+                else:
+                    not_found.append(package)
+        status = '待首发' if package in pending and published is None else classify(local, published)
         rows.append((package, local, published, snapshot, status))
+        if package in pending and published is not None:
+            warnings.append(
+                f'{package}: 已发布，但仍在 scripts/pending_first_release.txt；删掉这一行'
+            )
 
         # 结构检查不依赖线上版本：网络不可达时也要能验证「快照存在 / 已提交 / 版本一致」。
         if snapshot is None:
@@ -255,10 +285,12 @@ def main() -> int:
         if args.online and published is None:
             if package in not_found:
                 continue  # 404 已单独记错误，不再算「环境不可用」
+            if package in pending:
+                continue  # 首次发布前必然 404：待首发，不算网络失败
             # 网络问题不是发布事故：每周 CI 不因此发失败邮件（全部取不到时由退出码 2 说明）。
             unreachable.append(package)
             continue
-        if args.online:
+        if args.online and published is not None:
             online_ok += 1
         if status == '落后':
             errors.append(f'{package}: 仓库 {local} < 线上 {published}，仓库落后')
@@ -303,9 +335,12 @@ def main() -> int:
         for row in rows:
             print('  '.join('-' if value is None else str(value) for value in row))
 
-        pending = [row[0] for row in rows if row[4] == '待发布']
-        if pending:
-            print(f'\n待发布（正常）：{" ".join(pending)}')
+        pending_rows = [row[0] for row in rows if row[4] == '待发布']
+        if pending_rows:
+            print(f'\n待发布（正常）：{" ".join(pending_rows)}')
+        first_release_rows = [row[0] for row in rows if row[4] == '待首发']
+        if first_release_rows:
+            print(f'\n待首发（正常，尚未发布过）：{" ".join(first_release_rows)}')
         if unreachable:
             print(f'\n未核对（取不到 pub.dev，按环境问题处理）：{" ".join(unreachable)}')
         if warnings:

@@ -12,6 +12,7 @@ from release_status import (
     changelog_first,
     classify,
     local_snapshot_errors,
+    pending_first_release,
     read_manifest,
     snapshot_version_of,
     version_tuple,
@@ -94,6 +95,16 @@ class ReleaseStatusTest(unittest.TestCase):
         rows = read_manifest()
         self.assertIn(('w_tools_ui', 'packages/ui', 'root'), rows)
         self.assertIn(('w_tools_cli', 'packages/cli', '-'), rows)
+
+    def test_pending_first_release_normalizes_names(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = pathlib.Path(temp) / 'pending.txt'
+            path.write_text('# comment\n\ndemo\nw_tools_geo\n')
+            self.assertEqual(pending_first_release(path), {'demo', 'geo'})
+
+    def test_pending_first_release_missing_file_is_empty(self):
+        with tempfile.TemporaryDirectory() as temp:
+            self.assertEqual(pending_first_release(pathlib.Path(temp) / 'none.txt'), set())
 
     def test_local_snapshot_only_for_root_aggregated_packages(self):
         self.assertEqual(local_snapshot_errors('ui', 'root', '7.0.0', '7.0.0'), [])

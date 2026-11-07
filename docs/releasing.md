@@ -109,7 +109,7 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    ```
    第 7 步的正式发布会**自己再跑一遍**这些保护（干净工作区 / `main` 且 fetch 后的
    `HEAD == origin/main` / `release_check --strict`），漏跑第 6 步不会把未提交改动发出去；
-   例外情况用脚本的 `--force`。
+   例外情况用脚本的 `--force --reason "..."`（reason 会打到发布日志）。
 7. 发布子包：
    ```bash
    bash scripts/publish_package.sh packages/map
@@ -140,6 +140,10 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 
    连续执行 `publish_package.sh`（一次一个包），快照会自动累积到
    `.w_tools/release-snapshots/`；全部发完后运行一次 `apply_snapshots.sh`，只开一个快照 PR。
+
+   **新包首发**：新包合并后，把裸名加进 `scripts/pending_first_release.txt`（一行一个）；
+   首发前周检不会因 pub.dev 404 变红。首版发布成功后删掉该行，否则 `release_status`
+   会提示「已发布但仍在名单」。
 8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界 + 每个包的快照已 tracked，
    且根聚合包 core / async / ui / form / api / toast 的快照版本 == 本地；
    工具包 / 不聚合的包允许待发布），最后发聚合包
@@ -205,7 +209,7 @@ Failed to update packages.        # 退出码 66
 暂存副本直接来自**工作区**，而暂存目录在 git 之外：`pub publish` 看不到未提交改动、错误分支、
 落后 main，也看不到 CHANGELOG 缺段。所以正式发布（非 `--dry-run` / `--stage-only`）前脚本会
 fail-closed 地检查：工作区干净、当前分支是 `main` 且 `HEAD == origin/main`、
-`release_check.sh --strict` 通过；确实需要例外时用 `--force`。
+`release_check.sh --strict` 通过；确实需要例外时用 `--force --reason "..."`（reason 会打日志）。
 
 发布目标**默认是 `https://pub.dev`**，不会继承本地 shell 里的 `PUB_HOSTED_URL`
 （那通常是只读镜像，元数据还会滞后）。需要发到其它 host 时用：
