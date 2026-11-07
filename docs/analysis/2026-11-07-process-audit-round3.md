@@ -610,3 +610,38 @@ check_pr_scope：只改 packages/cli/templates/...
 **仍然保留（不作为本轮范围）**：分支保护 `enforce_admins` / `strict`（运维决策）、
 根包版本门禁（已有 export 测试）、`MIN_FLUTTER_VERSION`、prerelease semver、
 发布守卫的 dry-run 覆盖。当前判断没有新的架构级问题。
+
+## 18. 提交后全流程复核（2026-11-07）
+
+> 分支 `fix/process-gates-round3`（`01aeab8` + `a1749de`），工作区干净；**未 push / 未开 PR**。
+
+### 18.1 当前状态
+
+- `check_docs.sh` 18 步全绿；`scripts/tests` 200 个测试通过。
+- `preflight.sh` 除 analyze（沙箱 engine cache）外全绿；`release_check.sh` 0 提醒；
+  `check_version_bump --base main` 14 包通过；`ci_matrix --check` / `gate_coverage` 通过。
+- `release_check.sh --strict` 只差一项：分支没有 upstream（未 push），不是代码问题。
+- CI 没有在分支上跑过；合并前需要 push + PR，让 `api-bump` / `packages` / `min_sdk` 实跑。
+
+### 18.2 仍值得关注的 3 个点
+
+| 项 | 现状 | 建议 |
+| --- | --- | --- |
+| 快照守卫有两份实现 | `release_check --package` 新增一份「快照高于本地 → fail」，`publish_package.sh` 又有一份更完整的「tracked / 等于 / 缺失」 | 抽成一个 Python helper（例如 `--snapshot-baseline` 模式），两个入口共用；否则后续语义容易漂移 |
+| `release_check --online` 仍是第二套线上比较 | 文档已经改成「404 以 `release_status` 为准」，但代码仍只 warn | 最终建议把 `--online` 委托给 `release_status`，或明确标记为 deprecated；不要继续扩大两套实现 |
+| 分支保护是唯一未动的 P2 | `enforce_admins=false`、`strict=false`；`api-bump` 只在 PR 事件跑 | 这是策略选择：要 fail-closed 就开保护；否则在 `CONTRIBUTING` 记录「直推 main 会跳过 api-bump」的例外 |
+
+另外两个低风险一致性问题：
+
+- `check_pr_scope` 的 `PUBLIC_PATH` 只把 **CLI** 的 `templates/catalog/schema` 当公开路径，
+  而 `PACKAGE_PUBLIC` 对任何包的 `templates/catalog/schema` 都要求 CHANGELOG。当前没有
+  非 CLI 模板，暂不影响；以后新增同类路径时把两个正则收敛成一个判定函数。
+- `release_check --package` 对「快照等于本地」只 warn（publish 守卫会 fail）。这是有意的
+  首发窗口设计，但输出上容易让人以为可以直接重发；可在日志里加一句「重发会被 publish 守卫拦住」。
+
+### 18.3 结论
+
+三条假绿、周检自检、CLI 公开路径、单包快照基线都已落地；当前没有新的架构级问题。
+剩余动作按 ROI 排序是：**push + PR 让 CI 实跑 → 决定分支保护 → 收敛快照守卫实现 →
+（可选）把 `release_check --online` 委托给 `release_status`**。根包 / MIN / prerelease /
+发布守卫 dry-run 覆盖继续不做。
