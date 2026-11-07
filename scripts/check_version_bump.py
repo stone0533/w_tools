@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """公开 API 变了就必须抬版本。
 
-对比 PR base 与当前工作区的公开 API 表面（barrel 导出的类型 / 成员 / 签名）：
+对比 PR 的 **merge-base**（`git merge-base <base> HEAD`）与当前工作区的公开 API 表面
+（barrel 导出的类型 / 成员 / 签名）：
 
 - 有变化 + pubspec 版本没变 → 失败（补版本号 + CHANGELOG）；
-- 有变化 + 版本变了 → 通过（CHANGELOG 段 / semver 由 release_check 与 api diff 继续把关）；
-- 包在 base 里不存在（新包）→ 跳过。
+- 有变化 + 版本已经领先已发布基线 → 通过（CHANGELOG 段 / semver 由 release_check 与
+  api diff 继续把关）；
+- 版本降级 / 版本不高于已发布基线 → 失败（已发布版本不可回滚）；
+- 包在 merge-base 里不存在（新包）→ 跳过。
 
 已发布基线默认取仓库快照；`--online` 时先查 pub.dev（CI 的 api-bump 用这个），
 取不到才回退到快照并打印提醒 —— 快照可能滞后一个版本（批量发布窗口），
@@ -74,6 +77,25 @@ def _parse_version(text: str) -> str | None:
     return match.group(1) if match else None
 
 
+def merge_base(ref: str) -> str | None:
+    """PR 真正的分叉点。
+
+    不能用 `github.event.pull_request.base.sha` 直接当对比点：它是 base 分支的
+    **当前 tip**，可能已经包含其它已合并 PR 的改动。拿它做 diff 会把别人的改动
+    算到本 PR 头上（false positive），也可能因为 base 版本已经变了而漏掉本 PR
+    该抬的版本（false negative，三轮审计 P1-2）。
+    """
+    result = subprocess.run(
+        ['git', 'merge-base', ref, 'HEAD'],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
+
+
 def base_has_package(ref: str, package: str) -> bool:
     """base 里到底有没有这个包。
 
@@ -133,8 +155,16 @@ def diff_surfaces(
     return changes
 
 
-def _version_tuple(raw: str) -> tuple[int, ...]:
-    return tuple(int(part) for part in re.findall(r'\d+', raw))
+def release_parts(raw: str) -> tuple[int, ...]:
+    """major.minor.patch，忽略 pre-release / build 后缀。
+
+    不能复用 `_version_tuple` 的数字列表：`1.0.0-dev.1` 会变成 `(1, 0, 0, 1)`，
+    比 `1.0.0` 还大。这里只比较 release 段，pre-release → release 不会被误判为降级。
+    """
+    parts = [int(part) for part in re.findall(r'\d+', raw)[:3]]
+    while len(parts) < 3:
+        parts.append(0)
+    return tuple(parts)
 
 
 def requires_bump(
@@ -144,18 +174,23 @@ def requires_bump(
 ) -> bool:
     """本次 API 变化是否必须再抬版本号。
 
-    - `new != base`：本 PR 已经抬过，放行；
-    - `new > published`：版本号已经领先已发布基线（同一个未发布版本里继续加改动），放行；
-    - 否则必须抬：否则改动会落在已发布版本上，pub.dev 无法回滚。
+    - 版本降级（release 段变小）→ 必须失败；
+    - `new` 不高于已发布基线 → 必须失败（已发布版本不可回滚 / 不可重发）；
+    - `new == base` 且没有已发布基线 → 必须失败（无法证明落在未发布版本里）；
+    - 其余情况（已经抬过且高于已发布基线）→ 放行。
 
     只比 base 版本号会把「已经抬过但还没发布」的版本误判成没抬（docs/releasing.md §发版步骤
-    说「功能 PR 里已经抬过就沿用」，这正是第二种情况）。
+    说「功能 PR 里已经抬过就沿用」）；而只看 `new != base` 又会放过降级。两者都要防。
     """
-    if new_version != base_version:
-        return False
-    if published_version is None:
+    new = release_parts(new_version)
+    base = release_parts(base_version)
+    if new < base:
         return True
-    return _version_tuple(new_version) <= _version_tuple(published_version)
+    if published_version is not None and new <= release_parts(published_version):
+        return True
+    if new == base:
+        return published_version is None
+    return False
 
 
 def main() -> int:
@@ -163,7 +198,7 @@ def main() -> int:
     parser.add_argument(
         '--base',
         default='origin/main',
-        help='对比的 base ref（CI 用 PR base sha）；默认 origin/main',
+        help='对比的 base ref（CI 用 PR base sha）；实际对比 merge-base；默认 origin/main',
     )
     parser.add_argument('--package', help='只检查一个包（debug 用）')
     parser.add_argument(
@@ -181,6 +216,14 @@ def main() -> int:
         print(
             f'找不到 base ref：{args.base}。浅克隆请先 fetch 全历史，'
             '或显式传 --base <sha>（CI 用 actions/checkout fetch-depth: 0）。',
+            file=sys.stderr,
+        )
+        return 2
+
+    base_ref = merge_base(args.base)
+    if base_ref is None:
+        print(
+            f'无法计算 {args.base} 与 HEAD 的 merge-base；请确认 base 存在且历史完整。',
             file=sys.stderr,
         )
         return 2
@@ -203,10 +246,10 @@ def main() -> int:
                 '版本门禁会空转；补 barrel 或登记到 check_public_api_diff.NO_PUBLIC_API'
             )
             continue
-        if not base_has_package(args.base, package):
+        if not base_has_package(base_ref, package):
             new_packages.append(package)
             continue
-        base = base_surface(args.base, package)
+        base = base_surface(base_ref, package)
         if base is None:
             # base 里有这个包、却读不出 API：不能当成新包跳过（版本门禁会静默消失）。
             errors.append(
@@ -214,7 +257,7 @@ def main() -> int:
                 '请确认 fetch 完整历史后重跑'
             )
             continue
-        old_version = base_version(args.base, package)
+        old_version = base_version(base_ref, package)
         new_version = current_version(package)
         if old_version is None or new_version is None:
             errors.append(f'{package}: 读不到 pubspec version（base={old_version}，当前={new_version}）')
@@ -231,7 +274,8 @@ def main() -> int:
         sample = '、'.join(sorted(changes)[:3])
         errors.append(
             f'{package}: 公开 API 有 {len(changes)} 处变化（{sample}…），'
-            f'但版本仍是 {new_version}（已发布基线 {published or "无"}）。请抬版本并写 CHANGELOG 段'
+            f'但版本 {new_version} 没有高于已发布基线 {published or "无"}'
+            f'（base {old_version}）。请抬版本并写 CHANGELOG 段'
         )
 
     if errors:

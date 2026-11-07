@@ -18,7 +18,7 @@
 ## 改动前先分类
 
 1. **内部重构**：公开 API / 默认行为不变 → 只改代码 + 测试。
-2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界）；必要时 migration。行为变化没有公开 API diff，CI 的 `check_pr_scope.py` 按 PR 模板兜底：改了 `lib/` 的 PR 必须带「## 改动类型」段；勾了「公开变化」时，每个改了 lib 的包都要改自己的 CHANGELOG。
+2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界）；必要时 migration。行为变化没有公开 API diff，CI 的 `check_pr_scope.py` 按 PR 模板兜底：改了 `lib/` 的 PR 必须带「## 改动类型」段并至少勾选一项（空 body 也会失败）；勾了公开类别（公开变化 / 删除废弃 / 新增包）时，每个改了 lib 的包都要改自己的 CHANGELOG。
 3. **删除 / 废弃**：额外清理 aliases / related / migration，把删除的公开名补进 `scripts/check_removed_api.py` 的名单，并跑 removed API 检查。
 4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities（仅消费入口包） / release。工具包（无 barrel）还要登记 `check_public_api_diff.py` 的 `NO_PUBLIC_API`、`check_docs_facts.py` 的 `TOOLS`、`check_naming.py` 的 `TOOL_PACKAGES`。首次发布前把裸名加进 `scripts/pending_first_release.txt`（首发成功后删行），否则周检会因 pub.dev 404 判红。
 
@@ -63,7 +63,7 @@ docs/modules/components.md
 
 改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。发布后核对线上 / 快照：`python3 scripts/release_status.py --online`（每周一 CI 也会跑，`--check` 把「落后 / 快照漂移 / 缺快照 / pub.dev 404」判失败；网络不可达返回 2，周检按跳过处理）。子包与聚合包版本独立，发布根包前 `release_check --strict` 要求根包的 `^x.y.z` 约束覆盖子包当前版本，并且**根聚合包**的 API 快照版本 == 本地（工具包 / 不聚合的包允许待发布；`w_tools_cli` 是独立工具包，根包不依赖它）。
 
-实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。正式发布时脚本自己会先 `git fetch`，再要求干净工作区、`main` 且 HEAD == 最新的 `origin/main`、并跑 `release_check --strict`（脚本里的 `--force --reason "..."` 只用于明确的例外）。
+实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。正式发布时脚本自己会先 `git fetch`，再要求干净工作区、`main` 且 HEAD == 最新的 `origin/main`、并跑 `release_check --strict`；子包还会过快照基线守卫（最新快照已提交，本地版本不得低于 / 等于快照，新包首发在 `pending_first_release.txt` 时除外）。脚本里的 `--force --reason "..."` 只用于明确的例外。
 
 子包发布成功后，脚本先把快照写到 `.w_tools/release-snapshots/`（gitignored，不会挡住下一个包）；一批发完运行 `bash scripts/apply_snapshots.sh` 应用到 `scripts/api_snapshots/`，再走分支 + PR：`pre-push` 禁止直接 push main，而发布脚本要求 `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 并 `git pull --ff-only`，再发根包（详见 `docs/releasing.md` 第 7 步）。
 

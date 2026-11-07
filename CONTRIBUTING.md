@@ -63,7 +63,8 @@
 - 实际发布用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），
   **不要**在包目录直接 `flutter pub publish` —— `workspace:` 字段会被原样发布，
   消费方 `dart pub deps` 会失败。正式发布时脚本会自己先 `git fetch`，再要求：干净工作区、
-  `main` 且 `HEAD == origin/main`、`release_check.sh --strict` 通过（`--force --reason "..."` 只用于明确的例外，reason 会打日志）。
+  `main` 且 `HEAD == origin/main`、`release_check.sh --strict` 通过；子包还要过快照基线守卫
+  （最新快照已提交，本地版本不得低于 / 等于快照，除非是新包首发）。`--force --reason "..."` 只用于明确的例外，reason 会打日志。
 - 版本策略与流程见 [`docs/releasing.md`](docs/releasing.md)
 - 公开 API 变化（删除 / 类型变化 / 可空性变化）先跑
   `python3 scripts/check_public_api_diff.py --package <pkg>`；它要求变化写进
@@ -92,7 +93,8 @@
   PR 链 issue 时写 `Closes #n`。issue 的读写与 label 约定见
   [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) 与 [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md)。
 - 公开变化走 feature 分支 + PR，等 Required checks 通过后合并；不要用管理员绕过。
-- PR body 必须带仓库模板的「## 改动类型」段（改了 `lib/` 时 `check_pr_scope` 会强制）。
+- PR body 必须带仓库模板的「## 改动类型」段，并至少勾选一项（改了 `lib/` 时
+  `check_pr_scope` 会强制；空 body 或四类全空都会失败）。
   用 `gh pr create --fill` 创建后要 `gh pr edit --body` 补上四类勾选；只改脚本 / 文档的
   PR（例如快照 PR）不受这条限制。
 - 发布前用 `bash scripts/check_pr_checks.sh [PR号]` 确认 Required checks（需要 `gh`）。

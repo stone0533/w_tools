@@ -28,6 +28,15 @@ class PublishSnapshotTest(unittest.TestCase):
         self.assertIn('--force', text)
         self.assertIn('force_reason', text)
 
+    def test_publish_script_checks_snapshot_baseline(self):
+        """单包发布不能带着「快照比本地新 / 快照丢失」继续（三轮审计 P2-1）。"""
+        text = (ROOT / 'scripts/publish_package.sh').read_text()
+        self.assertIn('--latest-snapshot', text)
+        self.assertIn('pending_first_release.txt', text)
+        self.assertIn('低于最新 API 快照', text)
+        self.assertIn('已经是快照基线', text)
+        self.assertIn('快照基线', text)
+
     def test_force_requires_a_reason(self):
         result = subprocess.run(
             ['bash', 'scripts/publish_package.sh', 'packages/ui', '--force'],

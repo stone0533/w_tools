@@ -108,8 +108,8 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_deprecations.py` | `@Deprecated` 的 `remove-in` 是否到期；只认紧贴声明上方的注释块（相邻弃用不会互借） | preflight |
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
-| `check_version_bump.py` | 对比 PR base 与 HEAD 的公开 API 表面：有变化但「版本没抬、且当前版本不高于已发布基线」→ 失败（已抬过但还没发布的版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过）。`--online` 时用 pub.dev 当已发布基线（取不到回退仓库快照并提醒），修 `git archive` 失败被当成新包 | CI `api-bump` job（带 `--online`）/ 本地 `--base main` |
-| `check_pr_scope.py` | 读 PR 模板：改了 `lib/` 的 PR 必须带「## 改动类型」段；勾了「公开变化」时，**每个改了 lib 的包**都要改自己的 CHANGELOG | CI `api-bump` job |
+| `check_version_bump.py` | 对比 PR 的 **merge-base** 与 HEAD 的公开 API 表面：版本降级、版本不高于已发布基线、或版本没抬 → 失败（已抬过且高于已发布基线的未发布版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过）。`--online` 时用 pub.dev 当已发布基线（取不到回退仓库快照并提醒），修 `git archive` 失败被当成新包 | CI `api-bump` job（带 `--online`）/ 本地 `--base main` |
+| `check_pr_scope.py` | 读 PR 模板：改了 `lib/` 的 PR 必须有「## 改动类型」段且至少勾选一项；空 body 也失败。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了 lib 的包**都要改自己的 CHANGELOG | CI `api-bump` job |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
 ### 发布
@@ -118,7 +118,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 |---|---|---|
 | `release_check.sh` | 版本 / CHANGELOG / 根约束 / README / pub.dev 漂移；完整 `--strict` 还要求每个包最新快照已 tracked，且**根聚合包**的版本 == 本地（工具包 / 不聚合的包允许待发布）；`--online` 全部取不到时返回 2 | 发布前先跑 `--strict` |
 | `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 把「落后 / 快照漂移 / 缺快照 / pub.dev 404」判失败，「待发布」正常；网络不可达重试后返回 2（周检按跳过处理）；`--check` 没带 `--online` / `--require-*` 返回 3（用法错误）；`--require-tracked --require-local` 做离线快照结构检查（`--require-local` 只要求**根聚合包**快照 == 本地），`--quiet` 只输出异常；`pending_first_release.txt` 里的新包 404 只警告（结论「待首发」） | 发布后核对 / 每周一 CI / 根包发布前 |
-| `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：先 `git fetch`，再查干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict`（`--force --reason "..."` 才跳过，reason 会打日志）；快照写入失败保留 staging；发布成功后快照先写到 `.w_tools/release-snapshots/` | **真正发布会执行，不是 dry-run** |
+| `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：先 `git fetch`，再查干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict` + 子包快照基线守卫（快照必须已提交，本地版本不得低于 / 等于快照，除非新包在 `pending_first_release.txt`）（`--force --reason "..."` 才跳过，reason 会打日志）；快照写入失败保留 staging；发布成功后快照先写到 `.w_tools/release-snapshots/` | **真正发布会执行，不是 dry-run** |
 | `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`，并打印快照 PR 的命令；不 commit / 不 push | 一批发布结束后、发根包前 |
 | `pending_first_release.txt` | 已合并、尚未首次发布到 pub.dev 的包（裸名）；`release_status` 对 404 只警告，避免新包首发窗口让周检变红 | 新包合并 → 首发成功后删行 |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
@@ -224,8 +224,9 @@ bash scripts/publish_package.sh packages/<pkg> --dry-run
 `preflight.sh --all` 会带根包 dry-run，**失败计入门禁**（要求根包依赖都已发布）；
 发布子包阶段用 `--with-tests`，子包全部上线后再跑 `--all`。
 
-完整 `--strict`（不带 `--package`）还会要求每个包的最新 API 快照**已 tracked** 且版本 ==
-本地 pubspec：发根包前必须先合入快照 PR（untracked 快照会被 `reset --hard` / `clean` 丢掉）。
+完整 `--strict`（不带 `--package`）还会要求每个包的最新 API 快照**已 tracked**，且
+**根聚合包**版本 == 本地 pubspec：发根包前必须先合入快照 PR（untracked 快照会被
+`reset --hard` / `clean` 丢掉）；工具包 / 不聚合的包允许待发布。
 
 `--online` 只在**发布后**核对线上版本；发布前跑 `release_check --online` 必然报「待发布」，
 不要放进发布前清单。线上核对推荐：

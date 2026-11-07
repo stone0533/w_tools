@@ -1,15 +1,20 @@
 import pathlib
+import subprocess
 import sys
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 import check_version_bump as mod
 from check_version_bump import (
     _parse_version,
     base_has_package,
     diff_surfaces,
+    merge_base,
     published_version,
+    release_parts,
     requires_bump,
 )
 
@@ -61,6 +66,31 @@ class RequiresBumpTest(unittest.TestCase):
     def test_prerelease_suffix_compares_numerically(self):
         self.assertFalse(requires_bump('1.1.0-dev.1', '1.1.0-dev.1', '1.0.0'))
         self.assertTrue(requires_bump('1.0.0', '1.0.0', '1.0.0'))
+
+    def test_downgrade_requires_bump(self):
+        self.assertTrue(requires_bump('1.9.0', '2.0.0', '2.0.0'))
+
+    def test_bumped_to_an_already_published_version_requires_bump(self):
+        self.assertTrue(requires_bump('7.0.0', '6.9.0', '7.0.0'))
+
+    def test_bumped_past_published_is_allowed(self):
+        self.assertFalse(requires_bump('7.1.0', '6.9.0', '7.0.0'))
+
+    def test_release_parts_ignore_prerelease_suffix(self):
+        self.assertEqual(release_parts('1.0.0-dev.1'), (1, 0, 0))
+        self.assertEqual(release_parts('1.0.0'), (1, 0, 0))
+        self.assertGreater(release_parts('1.0.1'), release_parts('1.0.0'))
+
+
+class MergeBaseTest(unittest.TestCase):
+    def test_merge_base_of_head_is_head(self):
+        head = subprocess.check_output(
+            ['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True
+        ).strip()
+        self.assertEqual(merge_base('HEAD'), head)
+
+    def test_unknown_ref_returns_none(self):
+        self.assertIsNone(merge_base('refs/heads/does-not-exist'))
 
 
 class PublishedBaselineTest(unittest.TestCase):

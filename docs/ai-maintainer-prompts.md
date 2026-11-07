@@ -88,8 +88,9 @@ packages/<pkg>/README.md（存在时），再开始；改具体包时读 docs/ag
 8. 默认只改工作区：不要 commit / push / 开 PR / 合并，除非任务块明确要求（如 K-2 / K-2M）；
    不要用 `git reset --hard` / `git clean` 清理未提交内容。
 9. 公开变化：抬子包版本 + 在当前版本 CHANGELOG 段写变更；聚合子包同时抬根 pubspec 的
-   `^x.y.z` 下界。PR 正文保留「## 改动类型」段；勾了「公开变化」时，每个改了 lib 的包
-   都要改自己的 CHANGELOG（CI 的 check_pr_scope 强制）。
+   `^x.y.z` 下界。PR 正文保留「## 改动类型」段并至少勾选一项；勾了公开类别
+   （公开变化 / 删除废弃 / 新增包）时，每个改了 lib 的包都要改自己的 CHANGELOG
+   （CI 的 check_pr_scope 强制；空 body 也会失败）。
 10. 最后报告 changed files、实际命令结果、explain 输出、剩余风险。
 ```
 
@@ -285,7 +286,7 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
    dart run tool/gen_templates.dart
 10. 运行 dart run w_tools_cli:w_tools explain <组件> --format=prompt，贴输出。
 11. 运行 bash scripts/preflight.sh --with-tests，贴结果。
-12. PR 正文保留「## 改动类型」段；勾「公开变化」时本包 CHANGELOG 必须被改。
+12. PR 正文保留「## 改动类型」段并至少勾选一项；勾公开类别时本包 CHANGELOG 必须被改。
 ```
 
 ---
@@ -1297,7 +1298,7 @@ K-1 → K-2（确认版本）→ 提交并 push → K-3 → K-4 → K-5，逐包
 [ ] explain <组件> --format=prompt 输出正确
 [ ] README / example 已更新
 [ ] docs/README.md 已索引新增文档；docs/agents 的首选入口能在该包规则页找到
-[ ] 公开变化 PR：正文有「## 改动类型」段；每个改了 lib 的包都改了 CHANGELOG
+[ ] 公开变化 PR：正文有「## 改动类型」段且至少勾选一项；每个改了 lib 的包都改了 CHANGELOG
 [ ] 发布时：git status 干净、归档 diff 看过、lib/src/common/version.dart 与 pubspec 一致
 [ ] 发布时：快照 PR 已合入（根包前）、没有用 --force、
     python3 scripts/release_status.py --online --check 通过

@@ -1,11 +1,14 @@
 import contextlib
 import io
 import pathlib
+import subprocess
 import sys
 import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 from check_public_api_diff import (
     _current_version_text,
@@ -13,6 +16,7 @@ from check_public_api_diff import (
     check_notes,
     diff_api,
     latest_snapshot,
+    latest_snapshot_version,
 )
 
 
@@ -367,6 +371,21 @@ class SnapshotIntegrityTest(unittest.TestCase):
             dev.write_text('# 8.0.0-dev.1\n')
             self.assertEqual(snapshot_version_of(dev), '8.0.0-dev.1')
             self.assertEqual(latest_snapshot([stable, dev]), dev)
+
+    def test_latest_snapshot_flag_prints_version(self):
+        result = subprocess.run(
+            [
+                sys.executable,
+                'scripts/check_public_api_diff.py',
+                '--package', 'ui',
+                '--latest-snapshot',
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), latest_snapshot_version('ui'))
 
 
 if __name__ == '__main__':

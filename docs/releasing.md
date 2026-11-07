@@ -108,8 +108,10 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    bash scripts/publish_package.sh packages/map --dry-run
    ```
    第 7 步的正式发布会**自己再跑一遍**这些保护（干净工作区 / `main` 且 fetch 后的
-   `HEAD == origin/main` / `release_check --strict`），漏跑第 6 步不会把未提交改动发出去；
-   例外情况用脚本的 `--force --reason "..."`（reason 会打到发布日志）。
+   `HEAD == origin/main` / `release_check --strict` / 子包快照基线守卫），漏跑第 6 步不会把
+   未提交改动发出去；例外情况用脚本的 `--force --reason "..."`（reason 会打到发布日志）。
+   快照基线守卫要求最新快照已提交，本地版本不得低于 / 等于快照（新包首发在
+   `scripts/pending_first_release.txt` 里时除外），防止带着丢失 / 回退的基线发布。
 7. 发布子包：
    ```bash
    bash scripts/publish_package.sh packages/map

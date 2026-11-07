@@ -17,9 +17,10 @@
 #                                       # --force 必须写 --reason（会打印到日志）
 #
 # 正式发布前会 fail-closed：先 git fetch，工作区必须干净、当前分支必须是 main 且
-# HEAD == origin/main、`release_check.sh --strict` 必须通过。原因：暂存副本直接来自工作区，
-# 而暂存目录在 git 之外，`pub publish` 根本看不到未提交改动 / 错误分支。
-# dry-run 与 --stage-only 不受影响。
+# HEAD == origin/main、`release_check.sh --strict` 必须通过；子包还要过一道快照基线守卫
+# （最新快照必须已提交，本地版本不能低于 / 等于快照，除非是新包首发）。
+# 原因：暂存副本直接来自工作区，而暂存目录在 git 之外，`pub publish` 根本看不到未提交
+# 改动 / 错误分支。dry-run 与 --stage-only 不受影响。
 #
 # 发布目标：默认 https://pub.dev。
 #   不复用 PUB_HOSTED_URL —— 本机常把它设成只读镜像，且镜像元数据会滞后。
@@ -250,10 +251,70 @@ if [ -z "$dry_run" ] && [ -z "$force" ]; then
   else
     bash "$repo_root/scripts/release_check.sh" --strict --package "$pkg_short"
   fi
-  echo "✓ 发布前保护通过（干净 main / release_check --strict）"
+  # 单包发布不走完整 --strict 的快照检查；这里补一条最小不变量：
+  # - 已有快照时，本地版本不能低于快照（回退），也不能等于快照且不在首发名单（重发）；
+  # - 没有快照时，只允许 pending_first_release 里的新包（首发）。
+  # 快照丢失 / 回退是发布后不可恢复的，宁可在这里 fail-closed。
+  if [ "$src" != "$repo_root" ] && [ -z "$stage_only" ]; then
+    in_pending=""
+    if grep -qx "$pkg_short" "$repo_root/scripts/pending_first_release.txt" 2>/dev/null ||
+      grep -qx "w_tools_${pkg_short}" "$repo_root/scripts/pending_first_release.txt" 2>/dev/null; then
+      in_pending=1
+    fi
+    if ! snapshot_version="$(python3 "$repo_root/scripts/check_public_api_diff.py" \
+      --package "$pkg_short" --latest-snapshot 2>/dev/null)"; then
+      echo "✗ 读取 $pkg_name 的最新 API 快照失败；先确认 scripts/api_snapshots 可读" >&2
+      exit 1
+    fi
+    if [ -z "$snapshot_version" ]; then
+      if [ -z "$in_pending" ]; then
+        echo "✗ $pkg_name 没有 API 快照，也不在 scripts/pending_first_release.txt：" >&2
+        echo "  已有包说明基线丢失；新包首发请先把裸名加进该文件。" >&2
+        exit 1
+      fi
+    else
+      snapshot_rel="scripts/api_snapshots/w_tools_${pkg_short}-${snapshot_version}.txt"
+      if ! git -C "$repo_root" ls-files --error-unmatch -- "$snapshot_rel" >/dev/null 2>&1; then
+        echo "✗ 最新 API 快照未提交：$snapshot_rel" >&2
+        echo "  先提交快照 PR，再发布（untracked 快照会在 reset --hard 后丢失）。" >&2
+        exit 1
+      fi
+      if ! python3 - "$snapshot_version" "$version" "$in_pending" <<'PY'
+import re
+import sys
+
+def parts(raw: str) -> tuple[int, ...]:
+    values = [int(part) for part in re.findall(r'\d+', raw)[:3]]
+    while len(values) < 3:
+        values.append(0)
+    return tuple(values)
+
+snapshot, local = sys.argv[1], sys.argv[2]
+in_pending = bool(sys.argv[3])
+snapshot_parts, local_parts = parts(snapshot), parts(local)
+if local_parts < snapshot_parts:
+    print(
+        f'✗ 本地版本 {local} 低于最新 API 快照 {snapshot}（版本回退？）',
+        file=sys.stderr,
+    )
+    sys.exit(1)
+if local_parts == snapshot_parts and not in_pending:
+    print(
+        f'✗ 本地版本 {local} 已经是快照基线（通常是已发布版本）；'
+        '请抬版本，或确认是否误操作',
+        file=sys.stderr,
+    )
+    sys.exit(1)
+PY
+      then
+        exit 1
+      fi
+    fi
+  fi
+  echo "✓ 发布前保护通过（干净 main / release_check --strict / 快照基线）"
 elif [ -n "$force" ] && [ -z "$dry_run" ]; then
   # 逃生门也要留审计线索：--force 一次跳过全部保护，事后必须能从日志看出跳过了什么。
-  echo "!! --force：已跳过 干净工作区 / main / HEAD==origin/main / pending 快照 / release_check --strict 检查（reason: ${force_reason}）" >&2
+  echo "!! --force：已跳过 干净工作区 / main / HEAD==origin/main / pending 快照 / release_check --strict / 快照基线 检查（reason: ${force_reason}）" >&2
 fi
 
 cd "$staging"
