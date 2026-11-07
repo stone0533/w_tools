@@ -37,8 +37,39 @@ class CliFlagTest(unittest.TestCase):
         text = 'dart run w_tools_cli:w_tools init --no-async --map --force\n'
         self.assertEqual(mod.cli_flag_errors(text, 'x'), [])
 
-    def test_unknown_subcommand_is_skipped(self):
-        self.assertEqual(mod.cli_flag_errors('w_tools_cli:w_tools unknown --x\n', 'x'), [])
+    def test_unknown_subcommand_is_reported(self):
+        errors = mod.cli_flag_errors('w_tools_cli:w_tools unknown --x\n', 'x')
+        self.assertTrue(errors)
+        self.assertIn('未知的 w_tools 子命令', errors[0])
+
+    def test_bare_w_tools_is_not_a_subcommand(self):
+        # `w_tools_cli:w_tools`（后面没有子命令）不能被回退匹配成子命令 `w`。
+        self.assertEqual(mod.cli_flag_errors('dart run w_tools_cli:w_tools\n', 'x'), [])
+
+    def test_flags_on_continuation_line_are_checked(self):
+        text = (
+            'dart run w_tools_cli:w_tools feedback submit \\\n'
+            '  --package=ui --nope\n'
+        )
+        errors = mod.cli_flag_errors(text, 'x')
+        self.assertTrue(errors)
+        self.assertIn('--nope', errors[0])
+
+
+class PathTest(unittest.TestCase):
+    def test_existing_docs_path_passes(self):
+        self.assertEqual(mod.path_exists_errors('先读 docs/agents/form.md\n', 'x'), [])
+
+    def test_missing_docs_path_is_reported(self):
+        errors = mod.path_exists_errors('先读 docs/agents/not-a-real-file.md\n', 'x')
+        self.assertTrue(errors)
+        self.assertIn('docs/agents/not-a-real-file.md', errors[0])
+
+    def test_template_paths_are_ignored(self):
+        self.assertEqual(
+            mod.path_exists_errors('docs/agents/<pkg>.md / docs/modules/<pkg>_module.md\n', 'x'),
+            [],
+        )
 
 
 class PlaceholderTest(unittest.TestCase):

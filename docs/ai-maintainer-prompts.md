@@ -1,10 +1,10 @@
 # 维护者 AI 提示词手册
 
-本文给 **w_tools 包维护者**使用：改代码、加组件、删 API、加包、整理目录时，直接复制对应提示词给 AI。
+本文给 **w_tools 包维护者**使用：改代码、加组件、删 API、加包、整理目录、处理门禁红灯或发布问题时，直接复制对应提示词给 AI。
 
 配套规则见 [`docs/ai-contract.md`](ai-contract.md)。
 
-> 最后核对：2026-11-07（PR #12 后）。机器校验只覆盖脚本 / flag / cwd / 占位符 / 场景编号；
+> 最后核对：2026-11-07（PR #13 后）。机器校验只覆盖脚本 / flag / cwd / 占位符 / 场景编号；
 > 流程语义仍以 [`AGENTS.md`](../AGENTS.md)、[`CONTRIBUTING.md`](../CONTRIBUTING.md)、
 > [`docs/releasing.md`](releasing.md) 为准。
 
@@ -12,13 +12,13 @@
 > [D](#d-删除--废弃公开-api) · [E](#e-新增包) · [F](#f-只整理-catalog--agents--文档) ·
 > [G](#g-只审查不要修改) · [H](#h-ai-不能访问仓库--不能跑命令) · [I](#i-全仓审计--全量整理) ·
 > [J](#j-单包全面审计只读) · [K](#k-发布-pub) · [L](#l-改-w_tools_cli--doctor--init-模板) ·
-> [M](#m-处理--闭环反馈条目) · [N](#n-门禁--ci-红灯)
+> [M](#m-处理--闭环反馈条目) · [N](#n-门禁--ci-红灯) · [N-1](#n-1-升级-flutter--依赖)
 
 ---
 
 ## 新手先看这里
 
-你不需要先读完 A~N。
+你不需要先读完 A~N（含 N-1）。
 
 ### 只需三步
 
@@ -28,7 +28,7 @@
 
 ### 让 AI 帮你选场景
 
-不确定选 A~N 时，先发这段：
+不确定选 A~N（含 N-1）时，先发这段：
 
 ```text
 我是 w_tools 维护者，但不熟悉这些提示词。
@@ -39,7 +39,7 @@
 我的任务是：<原因>。
 范围是：<包> / <组件> / <文件>。
 
-请先判断应该用 A~N 哪个场景，并说明原因；
+请先判断应该用 A~N（含 N-1）哪个场景，并说明原因；
 不要改代码；
 确认后，给我一份已经填好包名、组件和范围的提示词。
 ```
@@ -72,7 +72,8 @@
 
 ```text
 你是 w_tools 的维护者，先读 docs/ai-contract.md、AGENTS.md 和
-packages/<pkg>/README.md（存在时），再开始；新增 / 修改公开类型时，
+packages/<pkg>/README.md（存在时），再开始；改具体包时读 docs/agents/<pkg>.md
+（app_getx → app.md、map_google → map.md）；新增 / 修改公开类型时，
 再读 CONTRIBUTING.md 与 docs/naming.md。
 
 硬约束：
@@ -84,7 +85,7 @@ packages/<pkg>/README.md（存在时），再开始；新增 / 修改公开类�
 6. 命令在正确目录跑：`dart run tool/*`、`dart test test/*` 只在 `packages/cli` 下成立；
    `scripts/*.sh` 会自己 cd 到仓库根。贴命令时带上 cd，别让下一个人复现失败。
 7. 不要改无关包、无关文档、无关测试。
-8. 默认只改工作区：不要 commit / push / 开 PR / 合并，除非任务块明确要求（如 K-2）；
+8. 默认只改工作区：不要 commit / push / 开 PR / 合并，除非任务块明确要求（如 K-2 / K-2M）；
    不要用 `git reset --hard` / `git clean` 清理未提交内容。
 9. 公开变化：抬子包版本 + 在当前版本 CHANGELOG 段写变更；聚合子包同时抬根 pubspec 的
    `^x.y.z` 下界。PR 正文保留「## 改动类型」段；勾了「公开变化」时，每个改了 lib 的包
@@ -201,6 +202,20 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 | 改门禁脚本 / CI / 处理 CI 红灯 | N |
 | 升级 Flutter / 依赖 | N-1 |
 
+### 从报错反查场景
+
+| 症状 | 场景 | 第一条命令 |
+|---|---|---|
+| `api-bump` 红：API 变了但版本没抬 | B / §0 硬约束 9 | `bash scripts/preflight.sh --with-tests` |
+| `public api diff` 红：缺基线 / 删改未记录 | D（删改）/ E（新包） | `python3 scripts/check_public_api_diff.py --package <pkg>` |
+| `check_removed_api` / `check_deprecations` 红 | D | `python3 scripts/check_deprecations.py` |
+| docs 链接 / 锚点 / 符号红 | F | `bash scripts/check_docs.sh` |
+| `check_prompt_docs` 红（flag / 占位符 / 场景编号） | F / N | `python3 scripts/check_prompt_docs.py` |
+| `ci_matrix --check` / `Required checks` 红 | N | `python3 scripts/ci_matrix.py --check` |
+| `release_status` 报「快照 ≠ 线上」 | K-4 / K-5 | `bash scripts/apply_snapshots.sh` |
+| 新包 `public api diff` 红 | E | `python3 scripts/check_public_api_diff.py --snapshot-from packages/<pkg> --package <pkg> --version <当前版本>` |
+| 本地 `preflight` 绿但 PR 红 | N | 看 CI-only：`check_version_bump` / `check_pr_scope` / dry-run |
+
 ---
 
 ## A. 内部重构 / Bug 修复
@@ -244,7 +259,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 要求：
 1. 先列清楚公开变化：API、默认行为、错误语义。
 2. 判断 semver：已发布 API 的删除 / 签名变化 → major；新增能力 → minor；修 bug → patch。
-   已发布基线看 python3 scripts/release_status.py --online（「待发布」正常），
+   已发布基线看 python3 scripts/release_status.py --online（「待发布」正常；
+   看总表的「结论」列，exit 0 不代表无异常），
    或 scripts/api_snapshots/ 的最新快照；没有网络时以快照为准并注明。
 3. 抬 packages/<pkg>/pubspec.yaml 版本，并在 CHANGELOG 最上面写 `## <新版本>` 段
    （Fixed / Added / Changed / Breaking / Removed）；聚合子包同时抬根 pubspec 的 `^x.y.z` 下界。
@@ -343,6 +359,10 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
      --snapshot-from packages/<pkg> --package <pkg> --version <当前版本>
    工具包（无 barrel）改为登记：check_public_api_diff.py 的 NO_PUBLIC_API、
    check_docs_facts.py 的 TOOLS、check_naming.py 的 TOOL_PACKAGES。
+   **首发窗口**：这个基线只用于让 preflight 通过；合并后尽快发首版（publish 要求
+   main 干净且 HEAD == origin/main）。首发前 release_status --online --check 会因
+   pub.dev 404 判红（周检也会），属预期；同一版本里再改 API 会被 check_version_bump
+   要求抬版本（bootstrap 基线被当成已发布基线）。
 5. 有真实入口就加 example，并加 smoke test。
 6. catalog 增加入口组件；入口组件 teach: true。
 7. 如果是 init feature，加 templates/agents/{zh,en}/<feature>.md 和 features.dart 映射。
@@ -873,8 +893,9 @@ J-5 多包/家族
 - bash scripts/release_check.sh --package <pkg>
 - python3 scripts/release_status.py --online
   （「待发布」是正常状态；线上比较以它为准。release_check --online 断网时返回 2。
-   发布波次中——上一包已发布、快照还没 apply——不要加 --check：它会把「快照 ≠ 线上」判失败；
-   --check 留给快照 PR 合入后 / 周检）。
+   发布波次中——上一包已发布、快照还没 apply——只忽略刚发布包的「快照 ≠ 线上」，
+   其它「落后 / 404 / 缺快照」要停；--check 留给快照 PR 合入后 / 周检。
+   不加 --check 时它总是 exit 0，异常只打印在「异常：」段——必须读输出，不要只看退出码。
 - bash scripts/preflight.sh --with-tests
 - 从 pub.dev API 取 latest.archive_url，下载归档到 /tmp，解压后与本地比较：
   pubspec.yaml / lib/** / README.md / CHANGELOG.md / LICENSE / example/**
@@ -884,7 +905,7 @@ J-5 多包/家族
 - bash scripts/release_check.sh
 - python3 scripts/release_status.py --online
 （根包版本 ↔ CHANGELOG ↔ 子包 caret 约束都在这一轮看，K-1M 会把它们并进总表；
-  同样不要在波次中加 --check）
+  同样看「异常：」段、不要只看退出码；波次中不要加 --check）
 
 检查：
 1. 版本号与 CHANGELOG 是否一致；
@@ -1015,7 +1036,8 @@ bash scripts/publish_package.sh packages/<pkg>
 ```text
 一次只执行一个 publish 命令。
 同一批可以连续发：每包发完至少确认版本可见（python3 scripts/release_status.py --online，
-不要加 --check）；归档 diff 可以在批末统一做，避免每个包都下载一次归档。
+不要加 --check；看输出里的版本与「异常：」段——exit 0 不代表无异常）；
+归档 diff 可以在批末统一做，避免每个包都下载一次归档。
 K-5 的归档核对不依赖快照。
 
 快照会先写到 .w_tools/release-snapshots/（gitignored），不会挡住下一个包；
@@ -1046,7 +1068,8 @@ bash scripts/publish_package.sh .
 任务：验证 <pkg> 发布结果。
 
 运行：
-- python3 scripts/release_status.py --online（总表；快照还没 apply 时不要加 --check）
+- python3 scripts/release_status.py --online（总表；快照还没 apply 时不要加 --check；
+  看「异常：」段——exit 0 不代表无异常）
 - bash scripts/release_check.sh --package <pkg> --online
 - 下载 pub.dev 最新归档，确认 README / CHANGELOG / lib 与仓库一致
 
@@ -1160,7 +1183,7 @@ PR 的 Required checks 红了
 ```
 
 ```text
-任务：处理 <包> / <文件> 的门禁失败，或修改门禁脚本。
+任务：处理门禁失败（范围：<包> / <文件> / 无），或修改门禁脚本。
 
 先读：
 - scripts/README.md（每个脚本做什么 / 谁调用）
@@ -1174,7 +1197,7 @@ PR 的 Required checks 红了
 3. 修根因。禁止为了让检查变绿而：删检查、加 `if: false` / `continue-on-error`、
    放宽 ci_matrix 的 REQUIRED_FILTERS、用 `--force`、改旧版本 CHANGELOG 段。
 4. 改门禁脚本时同步 scripts/tests（脚本单测）与 scripts/README.md 登记；
-   改 ci.yml 时跑 python3 scripts/ci_matrix.py --check 与
+   改 ci.yml 时跑 python3 scripts/ci_matrix.py --check；改脚本时再跑
    python3 scripts/check_gate_coverage.py。
 5. 跑并贴结果：
    bash scripts/check_docs.sh
@@ -1254,6 +1277,7 @@ PR 的 Required checks 红了
 ### 单包发布
 
 K-1 → K-2（确认版本）→ 提交并 push → K-3 → K-4 → K-5，逐包执行。
+子包发完：bash scripts/apply_snapshots.sh → 快照 PR；根包发布前必须合入。
 
 ## 3. AI 完成后你必须检查
 

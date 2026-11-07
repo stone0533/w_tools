@@ -16,7 +16,10 @@
 5. （仅提示词手册）正文占位符必须出现在填空表里（表下说明里的 <runner> 等除外）；
 6. （仅提示词手册）§1 场景选择里引用的 A~Z / X-n 必须有对应标题；
 7. 其余当前文档：脚本存在、flag 被脚本认识；
-8. `dart run w_tools_cli:<sub>` 的 flag 必须被 packages/cli/bin/<sub>.dart 认识。
+8. `dart run w_tools_cli:<sub>` 的 flag 必须被 packages/cli/bin/<sub>.dart 认识，
+   未知子命令报错；以 `\\` 结尾的续行会先拼成一条逻辑行再校验；
+9. （仅提示词手册）代码块里的 `docs/**.md` / `packages/**.md` 路径必须存在
+   （模板路径 `<>` 不匹配；其它文档可能写「输出到 docs/x.md」这类未来路径，不做此检查）。
 """
 from __future__ import annotations
 
@@ -28,8 +31,32 @@ import sys
 root = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_DOC = root / 'docs/ai-maintainer-prompts.md'
 CLI_BIN = root / 'packages' / 'cli' / 'bin'
-CLI_CALL = re.compile(r'w_tools_cli:(?:w_tools\s+)?([a-z][a-z0-9-]*)([^\n]*)')
+# `w_tools_cli:w_tools <sub>` 或 `w_tools_cli:<sub>`；末尾的 (?![\w_]) 防止把裸
+# `w_tools_cli:w_tools`（后面没有子命令）回退匹配成子命令 `w`。
+CLI_CALL = re.compile(
+    r'w_tools_cli:(?:w_tools\s+([a-z][a-z0-9-]*)(?![\w_])|([a-z][a-z0-9-]*)(?![\w_]))([^\n]*)'
+)
+DOC_PATH = re.compile(r'(?<![\w<])((?:docs|packages)/[A-Za-z0-9_./-]+\.md)')
 DOCUMENTED_BELOW = {'<runner>', '<包目录>', '<pkg1>', '<pkg2>'}
+
+
+def logical_lines(text: str) -> list[tuple[int, str]]:
+    """把以 `\\` 结尾的续行拼成一条逻辑行，并保留起始行号。
+
+    否则 `feedback submit \\` 下一行的 `--package` / `--ledger` 不会被校验。
+    """
+    raw = text.splitlines()
+    out: list[tuple[int, str]] = []
+    index = 0
+    while index < len(raw):
+        start = index + 1
+        buffer = raw[index]
+        while buffer.rstrip().endswith('\\') and index + 1 < len(raw):
+            buffer = buffer.rstrip()[:-1].rstrip() + ' ' + raw[index + 1].strip()
+            index += 1
+        out.append((start, buffer))
+        index += 1
+    return out
 
 
 def command_flags(tail: str) -> list[str]:
@@ -52,7 +79,7 @@ def script_exists_errors(text: str, name: str) -> list[str]:
 
 def script_flag_errors(text: str, name: str) -> list[str]:
     errors: list[str] = []
-    for lineno, line in enumerate(text.splitlines(), 1):
+    for lineno, line in logical_lines(text):
         for match in re.finditer(
             r'(?:bash|python3)\s+scripts/([A-Za-z0-9_.-]+\.(?:sh|py))([^\n]*)', line
         ):
@@ -64,6 +91,21 @@ def script_flag_errors(text: str, name: str) -> list[str]:
                 # 按完整 token 匹配：`--with-test` 不能因为 `--with-tests` 存在就算认识。
                 if not re.search(rf'(?<![\w-]){re.escape(flag)}(?![\w-])', body):
                     errors.append(f'{name}:{lineno}: {match.group(1)} 不认识 {flag}')
+    return errors
+
+
+def path_exists_errors(text: str, name: str) -> list[str]:
+    """代码块里的 `docs/**.md` / `packages/**.md` 路径必须存在。
+
+    这些路径不是 Markdown 链接，链接检查看不到（旧的 docs/agents/w_tools.md 就是这样漏的）。
+    含 `<...>` 的模板路径不会被 DOC_PATH 匹配，天然跳过。
+    """
+    errors: list[str] = []
+    for lineno, line in logical_lines(text):
+        for match in DOC_PATH.finditer(line):
+            path = match.group(1)
+            if not (root / path).is_file():
+                errors.append(f'{name}:{lineno}: 引用的路径不存在：{path}')
     return errors
 
 
@@ -145,17 +187,25 @@ def _cli_flags(subcommand: str) -> set[str] | None:
 
 
 def cli_flag_errors(text: str, name: str) -> list[str]:
-    """`dart run w_tools_cli:w_tools <sub> --flag` 的 flag 必须被对应 bin 认识。"""
+    """`dart run w_tools_cli:w_tools <sub> --flag` 的 flag 必须被对应 bin 认识。
+
+    续行（`\\`）会先拼成逻辑行；未知子命令也报错，避免 `lst` 这种拼写错误静默通过。
+    """
     errors: list[str] = []
     cache: dict[str, set[str] | None] = {}
-    for lineno, line in enumerate(text.splitlines(), 1):
+    for lineno, line in logical_lines(text):
         for match in CLI_CALL.finditer(line):
-            subcommand, tail = match.group(1), match.group(2)
+            subcommand = match.group(1) or match.group(2)
+            tail = match.group(3)
             if subcommand not in cache:
                 cache[subcommand] = _cli_flags(subcommand)
             flags = cache[subcommand]
             if flags is None:
-                continue  # 不是已知子命令（可能是描述性文字）
+                errors.append(
+                    f'{name}:{lineno}: 未知的 w_tools 子命令 {subcommand}'
+                    f'（没有 packages/cli/bin/{subcommand}.dart）'
+                )
+                continue
             for flag in re.findall(r'--([A-Za-z][A-Za-z0-9-]*)', tail):
                 if flag not in flags:
                     errors.append(f'{name}:{lineno}: w_tools {subcommand} 不认识 --{flag}')
@@ -195,6 +245,7 @@ def main(argv: list[str] | None = None) -> int:
     errors += placeholder_errors(text, name)
     errors += scenario_errors(text, name)
     errors += cli_flag_errors(text, name)
+    errors += path_exists_errors(text, name)
 
     for path in command_docs():
         if not path.is_file() or path.name == 'ai-maintainer-prompts.md':
