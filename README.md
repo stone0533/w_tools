@@ -16,17 +16,17 @@
 
 | 文档 | 内容 |
 |------|------|
-| [docs/modules/README.md](docs/modules/README.md) | 模块文档索引、依赖矩阵、SDK 速查 |
-| [docs/modules/components.md](docs/modules/components.md) | 组件目录（先查这里），含「不要用在哪」 |
-| [docs/conventions.md](docs/conventions.md) | 接入约定：包 / 暂存层 / 业务层判定与 doctor 规则 |
-| [docs/ai-contract.md](docs/ai-contract.md) | AI 使用契约：catalog / explain / AGENTS 的更新与完整性检查 |
-| [docs/ai-maintainer-prompts.md](docs/ai-maintainer-prompts.md) | 维护者 AI 提示词：按场景复制 |
-| [scripts/README.md](scripts/README.md) | scripts 运行手册：何时跑哪个检查 / 发布脚本 |
-| [docs/documentation-map.md](docs/documentation-map.md) | 文档定位与 AI 整理规则 |
+| [docs/modules/README.md](https://github.com/stone0533/w_tools/blob/main/docs/modules/README.md) | 模块文档索引、依赖矩阵、SDK 速查 |
+| [docs/modules/components.md](https://github.com/stone0533/w_tools/blob/main/docs/modules/components.md) | 组件目录（先查这里），含「不要用在哪」 |
+| [docs/conventions.md](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md) | 接入约定：包 / 暂存层 / 业务层判定与 doctor 规则 |
+| [docs/ai-contract.md](https://github.com/stone0533/w_tools/blob/main/docs/ai-contract.md) | AI 使用契约：catalog / explain / AGENTS 的更新与完整性检查 |
+| [docs/ai-maintainer-prompts.md](https://github.com/stone0533/w_tools/blob/main/docs/ai-maintainer-prompts.md) | 维护者 AI 提示词：按场景复制 |
+| [scripts/README.md](https://github.com/stone0533/w_tools/blob/main/scripts/README.md) | scripts 运行手册：何时跑哪个检查 / 发布脚本 |
+| [docs/documentation-map.md](https://github.com/stone0533/w_tools/blob/main/docs/documentation-map.md) | 文档定位与 AI 整理规则 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 新增/修改组件的硬性要求 |
-| [docs/releasing.md](docs/releasing.md) | 发版流程与发布脚本 |
-| [docs/adr/](docs/adr/) | 架构决策（版本策略、依赖子包） |
-| [packages/cli/README.md](packages/cli/README.md) | `init` / `doctor` CLI |
+| [docs/releasing.md](https://github.com/stone0533/w_tools/blob/main/docs/releasing.md) | 发版流程与发布脚本 |
+| [docs/adr/](https://github.com/stone0533/w_tools/tree/main/docs/adr) | 架构决策（版本策略、依赖子包） |
+| [packages/cli/README.md](https://github.com/stone0533/w_tools/blob/main/packages/cli/README.md) | `init` / `doctor` CLI |
 
 > `docs/modules/` 面向使用者，`docs/` 顶层面向维护者/agent；`docs/` 不随 pub 发布
 >（已在根 `.pubignore` 排除）。
@@ -80,10 +80,10 @@ flutter pub add w_tools_core w_tools_async w_tools_ui w_tools_form
 ```
 
 > 依赖放子包，但业务代码不要直接 import 子包：统一 import CLI 生成的
-> `lib/app/w/toolkit.dart` 聚合入口（见 [`docs/conventions.md`](docs/conventions.md) §5）。
+> `lib/app/w/toolkit.dart` 聚合入口（见 [`docs/conventions.md`](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md) §5）。
 
-模板与理由：[`packages/cli/templates/`](packages/cli/templates/)、[`docs/conventions.md`](docs/conventions.md)、
-[ADR-0002](docs/adr/0002-consumers-depend-on-subpackages.md)。
+模板与理由：[`packages/cli/templates/`](https://github.com/stone0533/w_tools/tree/main/packages/cli/templates)、[`docs/conventions.md`](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md)、
+[ADR-0002](https://github.com/stone0533/w_tools/blob/main/docs/adr/0002-consumers-depend-on-subpackages.md)。
 
 更省事的做法是用 CLI 生成（聚合入口、暂存层 README、`AGENTS.md` 片段一次装好）。
 CLI 在独立的纯 Dart 包里，不需要先引入聚合包：
@@ -179,7 +179,7 @@ dependencies:
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 ```
 
-完整用法见 [`packages/app_getx/README.md`](packages/app_getx/README.md)。
+完整用法见 [`packages/app_getx/README.md`](https://github.com/stone0533/w_tools/blob/main/packages/app_getx/README.md)。
 
 ## 核心功能
 

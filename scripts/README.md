@@ -69,7 +69,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `preflight.sh` | 全仓门禁总入口（CI 直接调用它） | 提交前 / 合并前 |
 | `install_git_hooks.sh` | 安装 `.githooks`（pre-push 阻止直接 push main） | 首次检出 / 流程要求 |
 | `check_pr_checks.sh` | 用 `gh pr checks --required` 确认 PR Required checks | 发布前 |
-| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 链接锚点 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字；`--skip-feedback` 供不装 Flutter 的 CI docs job 用） | 只改文档时可单独跑 / CI docs job |
+| `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 链接锚点 / 发布物 Markdown 链接 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字；`--skip-feedback` 供不装 Flutter 的 CI docs job 用） | 只改文档时可单独跑 / CI docs job |
 | `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移（关键正向过滤器 / quantifier / required 接线 / docs job meta 检查 / `example` 列 ↔ `example/test`） | preflight / CI docs job / matrix job |
 | `check_gate_coverage.py` | 每个 `scripts/*.sh` / `*.py` 都必须被 preflight / check_docs / release_check / workflow 之一调用（人工脚本在脚本内 `MANUAL` 写明理由），且在本手册登记 | preflight / CI docs job |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
@@ -88,6 +88,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_docs_versions.py` | 文档不得声明已发布/待发布版本 | check_docs |
 | `check_async_docs.py` | async 公开文档旧 API | check_docs |
 | `check_package_docs.py` | 当前文档安装约束（仍写成 caret 的示例必须下界 == 当前版本，非 caret 直接失败；`pub add` 命令不参与）/ 跨包示例 / example 链接 | check_docs |
+| `check_published_links.py` | 发布物 Markdown 相对链接：根 `README.md` / `CHANGELOG.md` / `CONTRIBUTING.md` / `example/**` 不得指向 `.pubignore` / 发布脚本排除的 `docs/`、`scripts/`、`packages/` 等路径；包内 Markdown 不得跳出包目录或指向包内被排除的 `test/`、`docs/` 等子目录 | check_docs |
 | `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性（含每个 ADR 在 `docs/README.md` 留行）/ ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名 + 高频规则短语一致 | check_docs |
 | `check_prompt_docs.py` | 文档命令可执行（提示词手册 **+ `packages/cli/templates/ai/*.md`**：脚本 / flag / cwd / 占位符（带空格的写法逃过校验，模板里不许写空格）/ 场景编号（§1 ↔ 标题双向、重复标题）/ `w_tools` 子命令 flag（含 `\` 续行）/ 手册内 docs 路径 / 生成器与测试文件存在；其余当前文档：脚本存在 + flag 存在 + CLI flag 存在；历史目录不参与） | check_docs |
@@ -108,8 +109,8 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_deprecations.py` | `@Deprecated` 的 `remove-in` 是否到期；只认紧贴声明上方的注释块（相邻弃用不会互借） | preflight |
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
-| `check_version_bump.py` | 对比 PR 的 **merge-base** 与 HEAD 的公开 API 表面：版本降级、版本不高于已发布基线、或版本没抬 → 失败（已抬过且高于已发布基线的未发布版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过）。`--online` 时用 pub.dev 当已发布基线（取不到回退仓库快照并提醒），修 `git archive` 失败被当成新包 | CI `api-bump` job（带 `--online`）/ 本地 `--base main` |
-| `check_pr_scope.py` | 读 PR 模板：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须有「## 改动类型」段且至少勾选一项；空 body 也失败。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG | CI `api-bump` job |
+| `check_version_bump.py` | 对比 PR 的 **merge-base** 与 HEAD 的公开 API 表面：版本降级、版本不高于已发布基线、或版本没抬 → 失败（已抬过且高于已发布基线的未发布版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过）。根包 `lib/w_tools.dart` 的 export 行变化也要求根包版本高于 base。`--online` 时用 pub.dev 当已发布基线（取不到回退仓库快照并提醒），修 `git archive` 失败被当成新包 | CI `api-bump` job（带 `--online`）/ 本地 `--base main` |
+| `check_pr_scope.py` | 读 PR 模板：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须有「## 改动类型」段且至少勾选一项；空 body 也失败。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG；根包公开面要有根 `CHANGELOG.md`；本地版本还要高于已发布基线（CI 带 `--online`：用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`） | CI `api-bump` job |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
 ### 发布
@@ -136,7 +137,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 
 | 脚本 | 作用 | 何时跑 |
 |---|---|---|
-| `mutate_guard.sh` | 定向变异：临时破坏一段「被守逻辑」，确认目标用例**变红**后无条件还原；变异后仍绿说明用例空转或守卫无价值 | 写 / 审守卫、错误分支、边界 clamp 的用例时 |
+| `mutate_guard.sh` | 定向变异：变异前先跑一次基线，确认目标用例**变红**后无条件还原；基线不绿直接拒绝，变异后仍绿说明用例空转或守卫无价值 | 写 / 审守卫、错误分支、边界 clamp 的用例时 |
 
 ```bash
 bash scripts/mutate_guard.sh \
@@ -147,8 +148,9 @@ bash scripts/mutate_guard.sh \
 ```
 
 - 测试命令必须用 **`bash -c '...'` 包成一个参数**。直接写 `-- cd packages/form && flutter test ...` 会被调用方 shell 按 `&&` 拆开，脚本只收到 `cd packages/form`：在仓库根跑报「变异存活」、在 `packages/form` 里跑报「变异被杀死」，两次测试其实都没跑（脚本会拦下这种写法）。
+- 脚本会在变异前先跑一次未变异的命令：基线不绿说明用例本身有问题（缺依赖 / 断言写错 / 环境坏），直接 exit 2，不会把「原来就红」当成「变异被杀死」。
 - `--expect <特征串>` 要求红输出里出现该串，避免把「编译失败」当成「用例变红」；不写时也会显式拒绝 `Compilation failed` / `Failed to load` / 没匹配到用例。
-- 退出码：`0` 杀死 / `1` 存活 / `2` 无效（含超时）/ `3` 还原失败。`--timeout <秒>` 默认 600，`0` 关闭。
+- 退出码：`0` 杀死 / `1` 存活 / `2` 无效（含基线不绿、超时）/ `3` 还原失败。`--timeout <秒>` 默认 600，`0` 关闭。
 - 变异点必须**恰好命中 1 处**；脚本用 `trap` 保证任何退出路径都会还原文件，并用 `cmp` 校验还原结果，跑完 `git status` 应只剩你自己的改动。
 
 ### 检查边界
@@ -173,7 +175,8 @@ bash scripts/mutate_guard.sh \
   `test_imports_baseline.yaml`，修好后要删行（否则脚本会报 stale）；
 - `check_public_api_diff.py`：只比较快照里已有的 key（删除 / 改签名），新增成员不拦；缺基线直接失败；
   没有 `w_tools_*.dart` barrel 的包（目前只有 `cli`）显式登记为「不适用」，不会打印假 ✓；
-- `check_version_bump.py`：只比较 barrel 公开面；「已抬过但还没发布」的版本按已发布基线判断（CI 带 `--online` 时以 pub.dev 为准），不重复要求抬版本；
+- `check_version_bump.py`：只比较 barrel 公开面 + 根包 `lib/w_tools.dart` 的 export 行；「已抬过但还没发布」的版本按已发布基线判断（CI 带 `--online` 时以 pub.dev 为准），不重复要求抬版本；
+- `check_published_links.py`：只检查会随发布物发出的 Markdown；校验本仓库 GitHub 绝对 URL 的路径存在，不校验外部 URL / 锚点 / 引用式链接；
 - `ci_matrix.py --check`：查清单是否同源、路径过滤器是否只写正向，不查 workflow 语义；
 - `check_gate_coverage.py`：只按文件名找入口，不判断入口里的参数 / 条件是否真会执行到。
 

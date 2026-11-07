@@ -3,12 +3,14 @@
 
 `check_version_bump.py` 只看公开 API 表面，纯行为变化（默认值、交互、修 bug）
 在 API 不变时它看不到。这类改动是否抬版本 / 写 CHANGELOG 只能由 PR 自己声明——
-PR 模板里勾了公开类别（公开变化 / 删除废弃 / 新增包）时，这里要求 PR 至少改一个
-**被改包**的 CHANGELOG：
+PR 模板里勾了公开类别（公开变化 / 删除废弃 / 新增包）时，这里要求：
 
-- 子包：`packages/<pkg>/CHANGELOG.md`，且 `<pkg>` 必须是本次改了公开代码的包
+- 子包：每个改了公开代码的包都要改自己的 `packages/<pkg>/CHANGELOG.md`
   （`lib/` / `bin/` / CLI 的 `templates/` / `catalog/` / `schema/`）；
-- 根包：改根 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`。
+- 根包：改根 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`；
+- 版本：本地版本必须高于已发布基线（默认快照；CI 的 `--online` 用 pub.dev）；
+  确实还没发版时，`CHANGELOG` 里要有非空 `## Unreleased` 段。
+  只改文档 / 脚本的 PR 不要求 CHANGELOG。
 
 另外，改了公开代码的 PR 必须带「## 改动类型」段，并且至少勾选一项：
 `gh pr create --fill` 的空 body、或模板段但四类全空，都会让门禁静默跳过
@@ -21,8 +23,10 @@ PR 模板里勾了公开类别（公开变化 / 删除废弃 / 新增包）时�
 CI 里由 `.github/workflows/ci.yml` 的 `api-bump` job 传入 PR body、PR_CONTEXT 与 base sha。
 
 退出码：
-    0  通过，或没有 PR 上下文（本地 preflight 不判），或 PR 未改 lib 且 body 为空
-    1  空 body / 全未勾选 / 勾了公开类别但没有改相关 CHANGELOG
+    0  通过，没有 PR 上下文（本地 preflight 不判），PR 未改公开代码且 body 为空，
+       或只改文档 / 脚本
+    1  空 body / 全未勾选 / 缺根包或子包 CHANGELOG /
+       公开变化没有抬版本且没有 `## Unreleased`
     2  参数 / git 错误
 """
 from __future__ import annotations
@@ -34,12 +38,15 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from check_public_api_diff import latest_snapshot_version  # noqa: E402
+from check_version_bump import published_version as published_baseline  # noqa: E402
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 # 勾选这三类都意味着「有公开影响」：删除 / 废弃、新增包同样必须写 CHANGELOG。
 PUBLIC_CHANGE_MARKS = ('公开变化', '删除 / 废弃', '新增包')
 SECTION_HEADING = re.compile(r'(?m)^##\s+改动类型(?:\s*$|\s*[（(].*$)')
 CHECKED_BOX = re.compile(r'^\s*[-*]\s*\[[xX]\]\s*(.*)$', re.MULTILINE)
-PACKAGE_CHANGELOG = re.compile(r'^packages/[^/]+/CHANGELOG\.md$')
 PACKAGE_LIB = re.compile(r'^packages/([^/]+)/lib/')
 # 公开行为不只在 lib/：CLI 的 bin/、templates/、catalog/、schema/ 同样会改变消费方看到的内容。
 PACKAGE_PUBLIC = re.compile(r'^packages/([^/]+)/(?:lib|bin|templates|catalog|schema)/')
@@ -134,18 +141,118 @@ def missing_package_changelogs(changed: list[str]) -> list[str]:
     )
 
 
+def root_public_change(changed: list[str]) -> bool:
+    """是否改了根包的公开面（`lib/` / `pubspec.yaml`）。"""
+    return any(path == 'pubspec.yaml' or path.startswith('lib/') for path in changed)
+
+
+def missing_root_changelog(changed: list[str]) -> bool:
+    """改了根包公开面却没有改根 CHANGELOG。
+
+    根包改动不能由任意子包 CHANGELOG 顶替；混在子包改动里也不行。
+    """
+    return root_public_change(changed) and ROOT_CHANGELOG not in changed
+
+
 def touches_changelog(changed: list[str]) -> bool:
     """勾了公开类别时，是否改到了相关 CHANGELOG。
 
-    - 子包：任意 `packages/<pkg>/CHANGELOG.md` 被改即算；
-    - 根包：只有同时改了根 `lib/` 或根 `pubspec.yaml` 时，根 `CHANGELOG.md` 才算，
-      避免「改子包代码 + 顺手改根 CHANGELOG」绕过子包 CHANGELOG 要求。
+    - 子包：必须有被改包的 `packages/<pkg>/CHANGELOG.md`；
+    - 根包：只有同时改了根 `lib/` 或根 `pubspec.yaml` 时，根 `CHANGELOG.md` 才算。
     """
-    if any(PACKAGE_CHANGELOG.match(path) for path in changed):
-        return True
+    if public_packages(changed):
+        return all(
+            f'packages/{package}/CHANGELOG.md' in changed
+            for package in public_packages(changed)
+        )
     if ROOT_CHANGELOG not in changed:
         return False
-    return any(path == 'pubspec.yaml' or path.startswith('lib/') for path in changed)
+    return root_public_change(changed)
+
+
+def release_parts(raw: str) -> tuple[int, ...]:
+    """major.minor.patch；pre-release / build 后缀不参与（与 check_version_bump 一致）。"""
+    parts = [int(part) for part in re.findall(r'\d+', raw)[:3]]
+    while len(parts) < 3:
+        parts.append(0)
+    return tuple(parts)
+
+
+def changelog_section(text: str, heading: str) -> str:
+    """返回 `## <heading>` 到下一个二级标题之间的正文。"""
+    match = re.search(rf'(?m)^##\s+{re.escape(heading)}\s*$', text, re.IGNORECASE)
+    if not match:
+        return ''
+    rest = text[match.end():]
+    following = re.search(r'(?m)^##\s+', rest)
+    return rest[:following.start()] if following else rest
+
+
+def has_unreleased_entry(text: str) -> bool:
+    """`## Unreleased` 段里是否有真实条目（只写标题不算）。"""
+    body = changelog_section(text, 'Unreleased')
+    return any(
+        line.strip() and not line.strip().startswith('#')
+        for line in body.splitlines()
+    )
+
+
+def package_version(package: str) -> str | None:
+    path = ROOT / 'packages' / package / 'pubspec.yaml'
+    if not path.is_file():
+        return None
+    match = re.search(r'(?m)^version:\s*(\S+)', path.read_text())
+    return match.group(1) if match else None
+
+
+def changelog_policy_error_for(
+    package: str,
+    current_version: str | None,
+    published_version: str | None,
+    changelog_text: str,
+) -> str | None:
+    """公开变化落在已发布版本段且没抬版本时返回错误。
+
+    已发布基线由调用方给出（默认仓库快照；CI 的 `--online` 用 pub.dev）。
+    当前版本高于它时属于未发布窗口，沿用当前版本段是允许的。基线与当前版本
+    相等（或更旧）时，必须抬版本，或把变化写进 `## Unreleased`。
+    """
+    if not current_version or not published_version:
+        return None
+    if release_parts(current_version) > release_parts(published_version):
+        return None
+    if has_unreleased_entry(changelog_text):
+        return None
+    return (
+        f'{package}: 本地版本 {current_version} 不高于已发布基线'
+        f'（快照 {published_version}），但这次公开变化没有抬版本，'
+        'CHANGELOG 里也没有 `## Unreleased` 条目；'
+        '请抬版本，或把变化写进 `## Unreleased`，不要追加到已发布版本段'
+    )
+
+
+def changelog_policy_errors(
+    changed: list[str],
+    published_for=None,
+) -> list[str]:
+    """published_for 默认用仓库快照；CI 传 --online 时用 pub.dev（回退快照）。"""
+    resolve = published_for or latest_snapshot_version
+    errors: list[str] = []
+    for package in sorted(public_packages(changed)):
+        changelog_rel = f'packages/{package}/CHANGELOG.md'
+        if changelog_rel not in changed:
+            continue
+        path = ROOT / changelog_rel
+        text = path.read_text() if path.is_file() else ''
+        error = changelog_policy_error_for(
+            package,
+            package_version(package),
+            resolve(package),
+            text,
+        )
+        if error:
+            errors.append(error)
+    return errors
 
 
 def changed_files(base: str) -> list[str]:
@@ -171,6 +278,11 @@ def changed_files(base: str) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--base', help='PR 的 base sha / 分支（CI 传 base.sha）')
+    parser.add_argument(
+        '--online',
+        action='store_true',
+        help='用 pub.dev 最新版本当已发布基线（取不到回退仓库快照并提醒）',
+    )
     args = parser.parse_args()
 
     pr_body = os.environ.get('PR_BODY', '')
@@ -223,6 +335,10 @@ def main() -> int:
         print('PR 未勾选公开类别（公开变化 / 删除废弃 / 新增包），跳过 CHANGELOG 检查')
         return 0
 
+    if not public_packages(changed) and not root_public_change(changed):
+        print('勾选了公开类别，但本次没有改公开代码；按文档改动跳过 CHANGELOG 检查')
+        return 0
+
     missing = missing_package_changelogs(changed)
     if missing:
         print(
@@ -232,6 +348,31 @@ def main() -> int:
             '  根包：改 lib/ 或 pubspec.yaml 时写根 CHANGELOG.md。',
             file=sys.stderr,
         )
+        return 1
+    if missing_root_changelog(changed):
+        print(
+            '✗ 改了根包 lib/ 或 pubspec.yaml，但没有改根 CHANGELOG.md；'
+            '子包 CHANGELOG 不能代替根包记录。',
+            file=sys.stderr,
+        )
+        return 1
+    warnings: list[str] = []
+
+    def published_for(package: str) -> str | None:
+        if args.online:
+            return published_baseline(package, True, warnings)
+        return latest_snapshot_version(package)
+
+    policy_errors = changelog_policy_errors(changed, published_for)
+    for warning in warnings:
+        print(f'  ! {warning}')
+    if policy_errors:
+        print(
+            '✗ 勾选了公开类别，但以下包的行为变化没有抬版本，也没写进 `## Unreleased`：',
+            file=sys.stderr,
+        )
+        for error in policy_errors:
+            print(f'  ✗ {error}', file=sys.stderr)
         return 1
     if public_packages(changed):
         print('✓ 勾选了公开类别，且每个被改的包都改了 CHANGELOG')

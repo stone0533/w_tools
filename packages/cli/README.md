@@ -126,7 +126,7 @@ dart run w_tools_cli:w_tools init --device
 
 `--device` 的 pubspec 片段会补 `w_tools_device`。
 通用 UI keep-alive 集成测试不再由 init 生成；参考
-[`docs/recipes/keepalive-integration-test.md`](../../docs/recipes/keepalive-integration-test.md)。
+[`docs/recipes/keepalive-integration-test.md`](https://github.com/stone0533/w_tools/blob/main/docs/recipes/keepalive-integration-test.md)。
 
 ### Figma 片段
 

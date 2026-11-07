@@ -1,9 +1,11 @@
 ## 改动类型
 
 > 改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须
-> 保留这一段，并**至少勾选一项**（`check_pr_scope` 会拦截空 body / 全未勾选）。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，CI 要求**每个改了 lib 的包**
+> 保留这一段，并**至少勾选一项**（`check_pr_scope` 会拦截空 body / 全未勾选）。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，CI 要求**每个改了公开代码的包**
 > 都改自己的 `packages/<pkg>/CHANGELOG.md`（根包改 `lib/` / `pubspec.yaml` 时用根
-> `CHANGELOG.md`）。CI 只校验「有没有改 CHANGELOG」；版本号与版本段位置由 review 核对。
+> `CHANGELOG.md`），且本地版本要高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 `CHANGELOG` 有非空 `## Unreleased`）。
+> CI 校验「CHANGELOG 是否被改 + 版本是否高于已发布基线」；版本段内容与破坏性说明
+> 仍由 review 和 `check_public_api_diff` 核对。
 
 - [ ] 内部重构（公开 API / 默认行为不变）
 - [ ] 公开变化（API / 行为 / 新组件）

@@ -258,7 +258,8 @@ teach: false  普通组件：至少 useFor / dontUseFor
 | 5.8 命名约定 | 公开 `W*Config` 必须在 [naming_baseline.yaml](../scripts/naming_baseline.yaml) 内；库包公开类型 `W` 前缀；规则见 [docs/naming.md](naming.md) | [`check_naming.py`](../scripts/check_naming.py) |
 | 5.9 清单同源 | CI 包矩阵从 `packages.manifest` 生成，静态门禁调用 `preflight.sh`；关键路径过滤器 / required 接线 / docs job meta 检查由 `ci_matrix --check` 守；每个检查脚本都必须有真实入口（preflight / check_docs / release_check / workflow）且在 `scripts/README.md` 登记 | [`ci_matrix.py`](../scripts/ci_matrix.py)、[`check_gate_coverage.py`](../scripts/check_gate_coverage.py) |
 | 5.10 核心入口教学覆盖 | `entrypoints.yaml` 里的入口必须出现在 docs/agents / 模板 zh+en / README（有 example 还要出现在 example/lib）；覆盖 11 个库包，app_getx/map_google 共用 app/map 规则页（J-4A） | [`check_teaching_coverage.py`](../scripts/check_teaching_coverage.py) |
-| 5.11 PR 分类 ↔ CHANGELOG | 改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须带 PR 模板的「## 改动类型」段并至少勾选一项（空 body / 全未勾选会失败）；勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG（根包改 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`）；行为变化没有 API diff，靠这条兜底 | [`check_pr_scope.py`](../scripts/check_pr_scope.py) |
+| 5.11 PR 分类 ↔ CHANGELOG | 改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须带 PR 模板的「## 改动类型」段并至少勾选一项（空 body / 全未勾选会失败）；勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG（根包改 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`），且本地版本要高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`）；行为变化没有 API diff，靠这条兜底 | [`check_pr_scope.py`](../scripts/check_pr_scope.py) |
+| 5.12 发布物链接 | 会随发布物发出的 Markdown（README / CHANGELOG / CONTRIBUTING / example / 包内 Markdown）不得用相对链接指向不随包发布的路径；pub.dev 会改写相对链接，但 tarball / pub cache 不会 | [`check_published_links.py`](../scripts/check_published_links.py) |
 
 重建基线用 `python3 scripts/check_public_catalog.py --write`；它是**基线**，不是「全了」的证明，
 新增类型仍要人工判断进 catalog 还是 `uncataloged.yaml`。
@@ -349,7 +350,8 @@ bash scripts/preflight.sh --with-tests
 - `usage` 是最短片段，不保证全量编译；
 - 大部分 `teach: false` 组件仍只有 useFor / dontUseFor（具体比例见 catalog，不在文档里写死）；
 - `context.capabilities` 是静态映射，新增**消费入口包**时需同步（契约层 / 工具包不单列）；
-- `check_pr_scope.py` 只读 PR 正文：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）时要求「## 改动类型」段并至少勾选一项（空 body 也失败），勾了公开类别时要求每个被改包的 CHANGELOG 被改；它无法验证改动**是否真的**是公开变化；
+- `check_pr_scope.py` 只读 PR 正文：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）时要求「## 改动类型」段并至少勾选一项（空 body 也失败），勾了公开类别时要求每个被改包的 CHANGELOG 被改、根包公开面有根 CHANGELOG、本地版本高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`）；它无法验证改动**是否真的**是公开变化；
+- `check_published_links.py` 只检查会随发布物发出的 Markdown；校验本仓库 GitHub 绝对 URL 的路径存在，不校验外部 URL / 锚点 / 引用式链接；
 - Markdown 全量代码块编译尚未开启，只检查关键示例。
 
 ---

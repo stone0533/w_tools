@@ -65,7 +65,7 @@
 - `WNotificationListenerBuilder`（用 `WNotificationListener`，8.0 移除）。
 - `WClipRRect.config` / `WBadge.config` / `withTopSafeSpace` / `withBottomBarSpace`（8.0 移除）。
 
-迁移见 [`docs/migrations/ui-7.0.md`](../../docs/migrations/ui-7.0.md)。
+迁移见 [`docs/migrations/ui-7.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-7.0.md)。
 
 ## 6.1.1
 

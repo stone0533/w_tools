@@ -40,7 +40,7 @@ templates/agents/zh/closing.md
 ```
 
 内容只面向**使用 w_tools 的项目**（读者是 Dart / Flutter 开发者、但对 AI 提示词不熟的人）。
-编号体系与维护者手册 [A~N](../../../docs/ai-maintainer-prompts.md) 相同（字母 = 任务族、
+编号体系与维护者手册 [A~N](https://github.com/stone0533/w_tools/blob/main/docs/ai-maintainer-prompts.md) 相同（字母 = 任务族、
 数字 = 工序），但场景内容不复用；两份文件的字母会重名，仓库内讨论时写「消费方 A-1」。
 
 ### 结构

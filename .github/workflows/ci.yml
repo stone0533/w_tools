@@ -222,12 +222,15 @@ jobs:
 
       # 行为变化没有公开 API diff，check_version_bump 看不到；只能按 PR 模板的
       # 「公开变化」勾选 + CHANGELOG 变更兜底。
+      # --online：快照 PR 合入前，仓库快照可能仍落后 pub.dev；用线上版本当
+      # 「已发布基线」，避免把已发布版本的 CHANGELOG 段当成未发布窗口。
+      # 取不到 pub.dev 时 published_version 回退到快照并打印提醒。
       - name: Check PR declared scope
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
           # 空 body 与「本地没有 PR 上下文」必须区分：空 body 也要检查改动范围。
           PR_CONTEXT: '1'
-        run: python3 scripts/check_pr_scope.py --base ${{ github.event.pull_request.base.sha }}
+        run: python3 scripts/check_pr_scope.py --base ${{ github.event.pull_request.base.sha }} --online
 
   # 声明的最低 Flutter 版本上再跑一遍：form 1.0.0 的 SizeTransition.alignment
   # 就是「声明支持 3.38、却在 3.38 编译失败」漏出去的。

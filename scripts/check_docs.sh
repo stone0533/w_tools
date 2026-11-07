@@ -72,6 +72,7 @@ roots = [
     'README.md',
     'CONTRIBUTING.md',
     'AGENTS.md',
+    'CHANGELOG.md',
     'packages/cli/README.md',
     'scripts/README.md',
 ]
@@ -82,8 +83,8 @@ for root in roots:
         files.append(p)
     elif p.is_dir():
         files.extend(p.rglob('*.md'))
-# 包 README / 包 AGENTS / example README 也属于推荐阅读路径，链接同样要能点开。
-for pattern in ('packages/*/README.md', 'packages/*/AGENTS.md', 'packages/*/example/README.md'):
+# 包 README / 包 AGENTS / 包 CHANGELOG / example README 也属于推荐阅读路径，链接同样要能点开。
+for pattern in ('packages/*/README.md', 'packages/*/AGENTS.md', 'packages/*/CHANGELOG.md', 'packages/*/example/README.md'):
     files.extend(pathlib.Path('.').glob(pattern))
 files = sorted(set(files))
 
@@ -129,6 +130,7 @@ roots = [
     'README.md',
     'CONTRIBUTING.md',
     'AGENTS.md',
+    'CHANGELOG.md',
     'packages/cli/README.md',
     'scripts/README.md',
 ]
@@ -139,7 +141,7 @@ for root in roots:
         files.append(p)
     elif p.is_dir():
         files.extend(p.rglob('*.md'))
-for pattern in ('packages/*/README.md', 'packages/*/AGENTS.md', 'packages/*/example/README.md'):
+for pattern in ('packages/*/README.md', 'packages/*/AGENTS.md', 'packages/*/CHANGELOG.md', 'packages/*/example/README.md'):
     files.extend(pathlib.Path('.').glob(pattern))
 files = sorted(set(files))
 
@@ -218,6 +220,7 @@ check_no_version_table() {
 
 step '相对链接' check_links
 step '链接锚点' check_anchors
+step '发布物相对链接' python3 scripts/check_published_links.py
 step '旧命令' check_old_commands
 step '模块索引包覆盖' check_package_index
 step '组件目录版本表' check_no_version_table
