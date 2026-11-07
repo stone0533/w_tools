@@ -171,19 +171,31 @@ EXPECTED_GATED_IFS = {
     'umbrella': "needs.changes.outputs.code == 'true' || needs.changes.outputs.static == 'true'",
     'min_sdk': "needs.changes.outputs.code == 'true'",
     'packages': "needs.changes.outputs.code == 'true'",
+    # api-bump 在 push main 时允许 skipped；改错 / 改成 false 时 PR 上的
+    # check_version_bump / check_pr_scope 会静默消失。
+    'api-bump': "github.event_name == 'pull_request'",
 }
-GATE_COMMANDS = (
-    'scripts/preflight.sh',
-    'check_version_bump.py',
-    'check_pr_scope.py',
-    'scripts/check_docs.sh',
-    'scripts/release_check.sh',
-    'ci_matrix.py --check',
-    'check_gate_coverage.py',
-)
 PR_TEMPLATE = root / '.github/PULL_REQUEST_TEMPLATE.md'
 RELEASE_STATUS_WORKFLOW = root / '.github/workflows/release-status.yml'
 REQUIRED_CHECK_NAME = 'Required checks'
+
+# packages 的 analyze / test 步骤有合法的 matrix 条件；把这些条件也钉死，
+# 避免 `if: false` / `&& false` 把某个包类型的测试静默关掉。
+EXPECTED_PACKAGE_STEP_IFS = {
+    'Analyze (Flutter package)': "matrix.kind == 'flutter'",
+    'Analyze (pure Dart package)': "matrix.kind == 'dart'",
+    'Compile generated UI templates': "matrix.package == 'cli'",
+    'Analyze example (published with package)': (
+        "matrix.kind == 'flutter' && hashFiles(format('packages/{0}/example/pubspec.yaml', "
+        "matrix.package)) != ''"
+    ),
+    'Test example (if present)': (
+        "matrix.kind == 'flutter' && hashFiles(format('packages/{0}/example/test/**', "
+        "matrix.package)) != ''"
+    ),
+    'Test (Flutter package)': "matrix.kind == 'flutter'",
+    'Test (pure Dart package)': "matrix.kind == 'dart'",
+}
 
 
 def _normalized(value: object) -> str:
@@ -213,6 +225,11 @@ def wiring_errors(workflow: dict) -> list[str]:
             )
 
     required = jobs.get('required') or {}
+    if _normalized(required.get('if')) != 'always()':
+        errors.append(
+            'ci.yml: required.if 必须是 always()；'
+            '否则依赖失败时 Required checks 可能被 skip'
+        )
     if _normalized(required.get('name')) != REQUIRED_CHECK_NAME:
         errors.append(
             f'ci.yml: required.name 必须是 {REQUIRED_CHECK_NAME!r}；'
@@ -234,25 +251,68 @@ def wiring_errors(workflow: dict) -> list[str]:
     return errors
 
 
-def gate_step_errors(workflow: dict) -> list[str]:
-    """门禁步骤不能被 `if: false` / `continue-on-error` 静默关掉。"""
+UNCONDITIONAL_GATE_JOBS = ('required', 'min_sdk', 'umbrella', 'api-bump', 'docs')
+CONDITIONAL_GATE_STEPS = (
+    ('matrix', 'ci_matrix.py --github-output'),
+    ('packages', 'publish_package.sh'),
+)
+
+
+def _gate_step_errors(job: str, step: dict) -> list[str]:
     errors: list[str] = []
-    for job in ('umbrella', 'api-bump', 'docs'):
-        for step in (workflow.get('jobs') or {}).get(job, {}).get('steps') or []:
-            if not isinstance(step, dict):
-                continue
-            run = str(step.get('run') or '')
-            if not any(command in run for command in GATE_COMMANDS):
-                continue
-            if 'if' in step:
-                errors.append(
-                    f'ci.yml: {job} 的门禁步骤带了 if（{step.get("if")}）：'
-                    '条件不满足时门禁会静默跳过'
-                )
-            if step.get('continue-on-error'):
-                errors.append(
-                    f'ci.yml: {job} 的门禁步骤开了 continue-on-error：失败会被吞掉'
-                )
+    if 'if' in step:
+        errors.append(
+            f'ci.yml: {job} 的门禁步骤带了 if（{step.get("if")}）：'
+            '条件不满足时门禁会静默跳过'
+        )
+    if step.get('continue-on-error'):
+        errors.append(
+            f'ci.yml: {job} 的门禁步骤开了 continue-on-error：失败会被吞掉'
+        )
+    return errors
+
+
+def gate_step_errors(workflow: dict) -> list[str]:
+    """门禁步骤不能被 `if: false` / `continue-on-error` 静默关掉。
+
+    覆盖 required / min_sdk / umbrella / api-bump / docs 的全部步骤，以及
+    matrix 的 emit、packages 的 publish dry-run。`packages` 的 analyze / test
+    有合法的 `matrix.*` 条件，不在这里一刀切。
+    """
+    jobs = workflow.get('jobs') or {}
+    errors: list[str] = []
+    for job in UNCONDITIONAL_GATE_JOBS:
+        for step in jobs.get(job, {}).get('steps') or []:
+            if isinstance(step, dict):
+                errors.extend(_gate_step_errors(job, step))
+    for job, needle in CONDITIONAL_GATE_STEPS:
+        for step in jobs.get(job, {}).get('steps') or []:
+            if isinstance(step, dict) and needle in str(step.get('run') or ''):
+                errors.extend(_gate_step_errors(job, step))
+    return errors
+
+
+def package_step_errors(workflow: dict) -> list[str]:
+    """packages 的 analyze / test 步骤必须保留原来的 matrix 条件。"""
+    jobs = workflow.get('jobs') or {}
+    errors: list[str] = []
+    for step in (jobs.get('packages') or {}).get('steps') or []:
+        if not isinstance(step, dict):
+            continue
+        name = str(step.get('name') or '')
+        expected = EXPECTED_PACKAGE_STEP_IFS.get(name)
+        if expected is None:
+            continue
+        actual = _normalized(step.get('if'))
+        if actual != expected:
+            errors.append(
+                f'ci.yml: packages 的「{name}」if 是 {actual!r}，必须是 {expected!r}；'
+                '改错会让该包类型的测试静默跳过'
+            )
+        if step.get('continue-on-error'):
+            errors.append(
+                f'ci.yml: packages 的「{name}」开了 continue-on-error：失败会被吞掉'
+            )
     return errors
 
 
@@ -454,6 +514,7 @@ def check(rows: list[dict[str, str]]) -> list[str]:
     # outputs / if / required 判定 / 门禁 step / 矩阵生成 / PR 模板 / 周检。
     errors.extend(wiring_errors(workflow))
     errors.extend(gate_step_errors(workflow))
+    errors.extend(package_step_errors(workflow))
     errors.extend(matrix_emit_errors(workflow))
     errors.extend(pr_template_errors())
     errors.extend(release_status_workflow_errors())

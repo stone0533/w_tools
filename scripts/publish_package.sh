@@ -13,7 +13,8 @@
 #   scripts/publish_package.sh packages/ui       # 发布 w_tools_ui
 #   scripts/publish_package.sh packages/ui --dry-run
 #   scripts/publish_package.sh . --stage-only    # 只生成暂存副本（调试用，不删除）
-#   scripts/publish_package.sh . --force         # 跳过发布前保护（干净 main / release_check）
+#   scripts/publish_package.sh . --force --reason "hotfix: 快照 PR 未合入"  # 跳过发布前保护
+#                                       # --force 必须写 --reason（会打印到日志）
 #
 # 正式发布前会 fail-closed：先 git fetch，工作区必须干净、当前分支必须是 main 且
 # HEAD == origin/main、`release_check.sh --strict` 必须通过。原因：暂存副本直接来自工作区，
@@ -65,11 +66,21 @@ shift
 dry_run=""
 stage_only=""
 force=""
+force_reason=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) dry_run="--dry-run" ;;
     --stage-only) stage_only="1" ;;
     --force) force="1" ;;
+    --reason)
+      if [ $# -lt 2 ]; then
+        echo "--reason 需要一句说明（会写进发布日志）" >&2
+        exit 2
+      fi
+      force_reason="$2"
+      shift
+      ;;
+    --reason=*) force_reason="${1#*=}" ;;
     -h | --help)
       usage
       exit 0
@@ -82,6 +93,12 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
+
+# --force 是逃生门，但必须留下原因：一次会跳过全部发布前保护，事后要能解释。
+if [ -n "$force" ] && [ -z "$dry_run" ] && [ -z "$stage_only" ] && [ -z "$force_reason" ]; then
+  echo "✗ 使用 --force 必须同时写 --reason \"...\"（例如 --reason \"hotfix: 快照 PR 未合入\"）" >&2
+  exit 2
+fi
 
 src="$(cd "$repo_root/$target" && pwd)"
 case "$src" in
@@ -236,7 +253,7 @@ if [ -z "$dry_run" ] && [ -z "$force" ]; then
   echo "✓ 发布前保护通过（干净 main / release_check --strict）"
 elif [ -n "$force" ] && [ -z "$dry_run" ]; then
   # 逃生门也要留审计线索：--force 一次跳过全部保护，事后必须能从日志看出跳过了什么。
-  echo "!! --force：已跳过 干净工作区 / main / HEAD==origin/main / pending 快照 / release_check --strict 检查" >&2
+  echo "!! --force：已跳过 干净工作区 / main / HEAD==origin/main / pending 快照 / release_check --strict 检查（reason: ${force_reason}）" >&2
 fi
 
 cd "$staging"

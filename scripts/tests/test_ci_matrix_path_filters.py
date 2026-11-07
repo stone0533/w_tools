@@ -10,6 +10,7 @@ import yaml
 from ci_matrix import (
     gate_step_errors,
     matrix_emit_errors,
+    package_step_errors,
     path_filter_errors,
     pr_template_errors,
     release_status_workflow_errors,
@@ -135,6 +136,7 @@ class SemanticWiringTest(unittest.TestCase):
         workflow = load_ci()
         self.assertEqual(wiring_errors(workflow), [])
         self.assertEqual(gate_step_errors(workflow), [])
+        self.assertEqual(package_step_errors(workflow), [])
         self.assertEqual(matrix_emit_errors(workflow), [])
         self.assertEqual(pr_template_errors(), [])
         self.assertEqual(release_status_workflow_errors(), [])
@@ -155,6 +157,12 @@ class SemanticWiringTest(unittest.TestCase):
         errors = wiring_errors(workflow)
         self.assertTrue(any('umbrella.if' in error for error in errors))
 
+    def test_api_bump_if_cannot_be_silenced(self):
+        workflow = load_ci()
+        workflow['jobs']['api-bump']['if'] = False
+        errors = wiring_errors(workflow)
+        self.assertTrue(any('api-bump.if' in error for error in errors))
+
     def test_required_step_cannot_be_gutted(self):
         workflow = load_ci()
         workflow['jobs']['required']['steps'] = [
@@ -162,6 +170,74 @@ class SemanticWiringTest(unittest.TestCase):
         ]
         errors = wiring_errors(workflow)
         self.assertTrue(any('needs.packages.result' in error for error in errors))
+
+    def test_required_if_must_be_always(self):
+        workflow = load_ci()
+        workflow['jobs']['required']['if'] = False
+        errors = wiring_errors(workflow)
+        self.assertTrue(any('required.if' in error for error in errors))
+
+    def test_required_step_cannot_be_disabled(self):
+        workflow = load_ci()
+        workflow['jobs']['required']['steps'][0]['if'] = False
+        errors = gate_step_errors(workflow)
+        self.assertTrue(any('required' in error and 'if' in error for error in errors))
+
+    def test_required_step_cannot_ignore_failure(self):
+        workflow = load_ci()
+        workflow['jobs']['required']['steps'][0]['continue-on-error'] = True
+        errors = gate_step_errors(workflow)
+        self.assertTrue(
+            any('required' in error and 'continue-on-error' in error for error in errors)
+        )
+
+    def test_min_sdk_gate_step_cannot_be_disabled(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['min_sdk']['steps']:
+            if 'flutter analyze' in str(step.get('run') or ''):
+                step['if'] = False
+        errors = gate_step_errors(workflow)
+        self.assertTrue(any('min_sdk' in error for error in errors))
+
+    def test_packages_dry_run_cannot_be_disabled(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['packages']['steps']:
+            if 'publish_package.sh' in str(step.get('run') or ''):
+                step['if'] = False
+        errors = gate_step_errors(workflow)
+        self.assertTrue(any('packages' in error for error in errors))
+
+    def test_umbrella_test_cannot_be_disabled(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['umbrella']['steps']:
+            if str(step.get('run') or '').strip() == 'flutter test':
+                step['if'] = False
+        errors = gate_step_errors(workflow)
+        self.assertTrue(any('umbrella' in error for error in errors))
+
+    def test_package_test_step_cannot_be_disabled(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['packages']['steps']:
+            if step.get('name') == 'Test (Flutter package)':
+                step['if'] = False
+        errors = package_step_errors(workflow)
+        self.assertTrue(any('Test (Flutter package)' in error for error in errors))
+
+    def test_package_step_if_cannot_be_altered(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['packages']['steps']:
+            if step.get('name') == 'Test (pure Dart package)':
+                step['if'] = "matrix.kind == 'dart' && false"
+        errors = package_step_errors(workflow)
+        self.assertTrue(any('Test (pure Dart package)' in error for error in errors))
+
+    def test_package_step_cannot_ignore_failure(self):
+        workflow = load_ci()
+        for step in workflow['jobs']['packages']['steps']:
+            if step.get('name') == 'Test (Flutter package)':
+                step['continue-on-error'] = True
+        errors = package_step_errors(workflow)
+        self.assertTrue(any('continue-on-error' in error for error in errors))
 
     def test_gate_step_cannot_be_disabled(self):
         workflow = load_ci()

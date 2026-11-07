@@ -362,10 +362,10 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
      --snapshot-from packages/<pkg> --package <pkg> --version <当前版本>
    工具包（无 barrel）改为登记：check_public_api_diff.py 的 NO_PUBLIC_API、
    check_docs_facts.py 的 TOOLS、check_naming.py 的 TOOL_PACKAGES。
-   **首发窗口**：这个基线只用于让 preflight 通过；合并后尽快发首版（publish 要求
-   main 干净且 HEAD == origin/main）。首发前 release_status --online --check 会因
-   pub.dev 404 判红（周检也会），属预期；同一版本里再改 API 会被 check_version_bump
-   要求抬版本（bootstrap 基线被当成已发布基线）。
+   **首发窗口**：这个基线只用于让 preflight 通过；合并前把裸名加进
+   scripts/pending_first_release.txt（release_status 对 404 只警告，周检不再变红），
+   合并后尽快发首版（publish 要求 main 干净且 HEAD == origin/main）；首版成功后删掉该行。
+   同一版本里再改 API 会被 check_version_bump 要求抬版本（bootstrap 基线被当成已发布基线）。
 5. 有真实入口就加 example，并加 smoke test。
 6. catalog 增加入口组件；入口组件 teach: true。
 7. 如果是 init feature，加 templates/agents/{zh,en}/<feature>.md 和 features.dart 映射。

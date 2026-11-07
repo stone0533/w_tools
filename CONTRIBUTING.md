@@ -63,7 +63,7 @@
 - 实际发布用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），
   **不要**在包目录直接 `flutter pub publish` —— `workspace:` 字段会被原样发布，
   消费方 `dart pub deps` 会失败。正式发布时脚本会自己先 `git fetch`，再要求：干净工作区、
-  `main` 且 `HEAD == origin/main`、`release_check.sh --strict` 通过（`--force` 只用于明确的例外）。
+  `main` 且 `HEAD == origin/main`、`release_check.sh --strict` 通过（`--force --reason "..."` 只用于明确的例外，reason 会打日志）。
 - 版本策略与流程见 [`docs/releasing.md`](docs/releasing.md)
 - 公开 API 变化（删除 / 类型变化 / 可空性变化）先跑
   `python3 scripts/check_public_api_diff.py --package <pkg>`；它要求变化写进
