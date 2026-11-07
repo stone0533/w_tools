@@ -19,7 +19,9 @@
 8. `dart run w_tools_cli:<sub>` 的 flag 必须被 packages/cli/bin/<sub>.dart 认识，
    未知子命令报错；以 `\\` 结尾的续行会先拼成一条逻辑行再校验；
 9. （仅提示词手册）代码块里的 `docs/**.md` / `packages/**.md` 路径必须存在
-   （模板路径 `<>` 不匹配；其它文档可能写「输出到 docs/x.md」这类未来路径，不做此检查）。
+   （模板路径 `<>` 不匹配；其它文档可能写「输出到 docs/x.md」这类未来路径，不做此检查）；
+10. （仅提示词手册）`dart run tool/<file>` / `dart test test/<file>` 的文件必须存在；
+    场景标题不能重复，且每个顶层场景都必须在 §1 出现（反向也要能查到）。
 """
 from __future__ import annotations
 
@@ -152,16 +154,48 @@ def placeholder_errors(text: str, name: str) -> list[str]:
 
 def scenario_errors(text: str, name: str) -> list[str]:
     errors: list[str] = []
+    top_level = re.findall(r'^##\s+([A-Z])[.\s]', text, re.M)
+    seen: set[str] = set()
+    for letter in top_level:
+        if letter in seen:
+            errors.append(f'{name}: 场景 {letter} 有重复标题（每个场景只能出现一次）')
+        seen.add(letter)
+
     heading_ids = set(
         re.findall(r'^#{2,3}\s+([A-Z](?:-\d+[A-Z]?)?)[.\s]', text, re.M),
     )
     selection = re.search(r'^## 1\. 场景选择.*?(?=^## )', text, re.S | re.M)
     if selection is None:
         errors.append(f'{name}: 缺少「## 1. 场景选择」一节')
-    else:
-        referenced = set(re.findall(r'\b([A-Z](?:-\d+[A-Z]?)?)\b', selection.group(0)))
-        for scenario in sorted(referenced - heading_ids):
-            errors.append(f'{name}: 场景选择引用了 {scenario}，但正文没有对应标题')
+        return errors
+
+    selection_text = selection.group(0)
+    for letter in sorted(seen):
+        if not re.search(rf'\b{letter}\b', selection_text):
+            errors.append(f'{name}: 场景 {letter} 有标题，但 §1 场景选择没有列出（读者找不到）')
+
+    referenced = set(re.findall(r'\b([A-Z](?:-\d+[A-Z]?)?)\b', selection_text))
+    for scenario in sorted(referenced - heading_ids):
+        errors.append(f'{name}: 场景选择引用了 {scenario}，但正文没有对应标题')
+    return errors
+
+
+DART_TOOL = re.compile(r'dart\s+run\s+tool/([A-Za-z0-9_]+\.dart)')
+DART_TEST = re.compile(r'dart\s+test\s+test/([A-Za-z0-9_/.-]+\.dart)')
+
+
+def dart_file_errors(text: str, name: str) -> list[str]:
+    """`dart run tool/<file>` / `dart test test/<file>` 的文件必须存在（相对 packages/cli）。"""
+    errors: list[str] = []
+    for lineno, line in logical_lines(text):
+        for match in DART_TOOL.finditer(line):
+            path = root / 'packages' / 'cli' / 'tool' / match.group(1)
+            if not path.is_file():
+                errors.append(f'{name}:{lineno}: 生成器不存在：packages/cli/tool/{match.group(1)}')
+        for match in DART_TEST.finditer(line):
+            path = root / 'packages' / 'cli' / 'test' / match.group(1)
+            if not path.is_file():
+                errors.append(f'{name}:{lineno}: 测试文件不存在：packages/cli/test/{match.group(1)}')
     return errors
 
 
@@ -246,6 +280,7 @@ def main(argv: list[str] | None = None) -> int:
     errors += scenario_errors(text, name)
     errors += cli_flag_errors(text, name)
     errors += path_exists_errors(text, name)
+    errors += dart_file_errors(text, name)
 
     for path in command_docs():
         if not path.is_file() or path.name == 'ai-maintainer-prompts.md':

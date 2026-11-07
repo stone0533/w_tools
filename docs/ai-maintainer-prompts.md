@@ -4,9 +4,9 @@
 
 配套规则见 [`docs/ai-contract.md`](ai-contract.md)。
 
-> 最后核对：2026-11-07（PR #13 后）。机器校验只覆盖脚本 / flag / cwd / 占位符 / 场景编号；
-> 流程语义仍以 [`AGENTS.md`](../AGENTS.md)、[`CONTRIBUTING.md`](../CONTRIBUTING.md)、
-> [`docs/releasing.md`](releasing.md) 为准。
+> 最后核对：2026-11-07。机器能查什么见 [`scripts/README.md`](../scripts/README.md) 的
+> `check_prompt_docs.py` 一行；流程语义仍以 [`AGENTS.md`](../AGENTS.md)、
+> [`CONTRIBUTING.md`](../CONTRIBUTING.md)、[`docs/releasing.md`](releasing.md) 为准。
 
 > 快速跳转：[A](#a-内部重构--bug-修复) · [B](#b-修改现有公开组件--api--行为) · [C](#c-新增公开组件) ·
 > [D](#d-删除--废弃公开-api) · [E](#e-新增包) · [F](#f-只整理-catalog--agents--文档) ·
@@ -118,7 +118,8 @@ packages/<pkg>/README.md（存在时），再开始；改具体包时读 docs/ag
 | `<关键词>` | 搜索词 | `cache` |
 
 `<runner>` 必须替换：查 [`scripts/packages.manifest`](../scripts/packages.manifest) 第 3 列
-（`flutter` / `dart`）；纯 Dart 包用 `dart test`，其余用 `flutter test`。
+（`flutter` / `dart`）；纯 Dart 包用 `dart test` / `dart analyze`，其余用
+`flutter test` / `flutter analyze`。
 `<包目录>` 指 `packages/<pkg>`（根包用 `.`）；`<pkg1>` / `<pkg2>` 就是多个 `<pkg>`。
 `<包>` 用于自然语言（可写 `w_tools_form` 或 `form`）；`<pkg>` 用于路径 / `--package`（只写 `form`）。
 
@@ -210,7 +211,9 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 | `public api diff` 红：缺基线 / 删改未记录 | D（删改）/ E（新包） | `python3 scripts/check_public_api_diff.py --package <pkg>` |
 | `check_removed_api` / `check_deprecations` 红 | D | `python3 scripts/check_deprecations.py` |
 | docs 链接 / 锚点 / 符号红 | F | `bash scripts/check_docs.sh` |
-| `check_prompt_docs` 红（flag / 占位符 / 场景编号） | F / N | `python3 scripts/check_prompt_docs.py` |
+| `check_prompt_docs` 红（flag / 占位符 / 场景编号 / 路径） | F / N | `python3 scripts/check_prompt_docs.py` |
+| `check_pr_scope` 红（PR 正文 / 某包 CHANGELOG） | B / §0 硬约束 9 | `gh pr view --json body` |
+| `publish --dry-run` 红 | E / K-3 | `bash scripts/publish_package.sh packages/<pkg> --dry-run` |
 | `ci_matrix --check` / `Required checks` 红 | N | `python3 scripts/ci_matrix.py --check` |
 | `release_status` 报「快照 ≠ 线上」 | K-4 / K-5 | `bash scripts/apply_snapshots.sh` |
 | 新包 `public api diff` 红 | E | `python3 scripts/check_public_api_diff.py --snapshot-from packages/<pkg> --package <pkg> --version <当前版本>` |
@@ -893,8 +896,9 @@ J-5 多包/家族
 - bash scripts/release_check.sh --package <pkg>
 - python3 scripts/release_status.py --online
   （「待发布」是正常状态；线上比较以它为准。release_check --online 断网时返回 2。
-   发布波次中——上一包已发布、快照还没 apply——只忽略刚发布包的「快照 ≠ 线上」，
-   其它「落后 / 404 / 缺快照」要停；--check 留给快照 PR 合入后 / 周检。
+   发布波次中——上一包已发布、快照还没 apply——只忽略刚发布包的「快照 ≠ 线上」；
+   其它「落后 / 缺快照」要停；404 只有「从未发布、本次首发的新包」不算异常，
+   其它 404 要停。--check 留给快照 PR 合入后 / 周检。
    不加 --check 时它总是 exit 0，异常只打印在「异常：」段——必须读输出，不要只看退出码。
 - bash scripts/preflight.sh --with-tests
 - 从 pub.dev API 取 latest.archive_url，下载归档到 /tmp，解压后与本地比较：
@@ -1216,8 +1220,9 @@ PR 的 Required checks 红了
 要求：
 1. 同步版本 pin：.fvmrc、.github/workflows/ci.yml 的 FLUTTER_VERSION 与
    MIN_FLUTTER_VERSION、根 / 各子包 pubspec 的 environment.flutter 下限。
-2. 只抬声明下限时，MIN_FLUTTER_VERSION 必须 >= 声明的下限；ci_matrix --check 目前只校验
-   .fvmrc ↔ FLUTTER_VERSION，MIN 要人看。
+2. 只抬声明下限时，MIN_FLUTTER_VERSION 必须 >= 声明的下限；理想是 == 声明下限
+   （取可用的最高 patch），高于声明只算保守，不会真正测到声明的最低版本。
+   ci_matrix --check 目前只校验 .fvmrc ↔ FLUTTER_VERSION，MIN 要人看。
 3. 跑 flutter pub get → flutter analyze → bash scripts/preflight.sh --with-tests；
    有条件再跑 CI 的 min_sdk job。
 4. 报告：版本矩阵（声明 / CI 实跑 / .fvmrc）、改了哪些包、剩余风险。
@@ -1375,10 +1380,18 @@ bash scripts/check_docs.sh
 ```
 
 它除了链接和旧命令，还会用 `check_prompt_docs.py` 核对本文引用脚本、flag、`cd packages/cli`、
-占位符、CLI 子命令 flag 与场景编号（§1 提到的 A~Z / X-n 必须有对应标题）。
+占位符、CLI 子命令 flag（含 `\` 续行）、手册内 docs 路径、生成器 / 测试文件是否存在，
+以及场景编号（§1 ↔ 标题双向、重复标题）。
 
-新增场景时**必须**同步 `scripts/check_prompt_docs.py` 的场景正则（A~Z）与 §1 表；
-否则 `check_docs` 会报「场景选择引用了 X，但正文没有对应标题」。
+**新增 / 删除场景时**（第 1–2 步由 `check_docs` 强制；第 3–4 步靠自觉）：
+
+```text
+1. 加 / 删 `## X.` 标题（子场景用 `### X-1.`）
+2. 在 §1「场景选择」的问题列表和表里加 / 删一行
+3. 在顶部「快速跳转」加 / 删链接
+4. 把 `A~N（含 N-1）` 的终点改成新的范围
+5. 跑 bash scripts/check_docs.sh，再手动看一遍 §3 清单
+```
 
 机器只校验命令可执行与编号存在；先后顺序、状态机、semver 判断仍要 review。
 

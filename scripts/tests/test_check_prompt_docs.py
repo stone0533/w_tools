@@ -13,13 +13,23 @@ class ScenarioTest(unittest.TestCase):
         self.assertEqual(mod.scenario_errors(text, 'x'), [])
 
     def test_unknown_scenario_is_reported(self):
-        text = '## 1. 场景选择\n\nX\n\n## A. a\n'
+        text = '## 1. 场景选择\n\nA / X\n\n## A. a\n'
         errors = mod.scenario_errors(text, 'x')
         self.assertTrue(errors)
-        self.assertIn('X', errors[0])
+        self.assertTrue(any('X' in error for error in errors))
 
     def test_missing_selection_section(self):
         self.assertTrue(mod.scenario_errors('## A. a\n', 'x'))
+
+    def test_duplicate_scenario_heading_is_reported(self):
+        text = '## 1. 场景选择\n\nA\n\n## A. one\n\n## A. two\n'
+        errors = mod.scenario_errors(text, 'x')
+        self.assertTrue(any('重复标题' in error for error in errors))
+
+    def test_orphan_scenario_heading_is_reported(self):
+        text = '## 1. 场景选择\n\nA\n\n## A. one\n\n## O. orphan\n'
+        errors = mod.scenario_errors(text, 'x')
+        self.assertTrue(any('O' in error and '没有列出' in error for error in errors))
 
 
 class CliFlagTest(unittest.TestCase):
@@ -91,6 +101,26 @@ class CwdTest(unittest.TestCase):
     def test_generator_after_cd_is_ok(self):
         text = '```\ncd packages/cli\ndart run tool/gen_catalog.dart\n```\n'
         self.assertEqual(mod.cwd_errors(text, 'x'), [])
+
+
+class DartFileTest(unittest.TestCase):
+    def test_existing_generator_and_test_pass(self):
+        text = (
+            'cd packages/cli\n'
+            'dart run tool/gen_catalog.dart\n'
+            'dart test test/internal/ai_contract_test.dart\n'
+        )
+        self.assertEqual(mod.dart_file_errors(text, 'x'), [])
+
+    def test_missing_generator_is_reported(self):
+        errors = mod.dart_file_errors('dart run tool/nope.dart\n', 'x')
+        self.assertTrue(errors)
+        self.assertIn('packages/cli/tool/nope.dart', errors[0])
+
+    def test_missing_test_file_is_reported(self):
+        errors = mod.dart_file_errors('dart test test/nope_test.dart\n', 'x')
+        self.assertTrue(errors)
+        self.assertIn('packages/cli/test/nope_test.dart', errors[0])
 
 
 if __name__ == '__main__':
