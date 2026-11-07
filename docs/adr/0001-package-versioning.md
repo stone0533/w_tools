@@ -72,8 +72,9 @@
   破坏性改动；0.x → 1.0 才按 major 宣传。库包（core / async / ui / form / api / toast /
   app / app_getx / map / map_google / qr）不适用这条。
 
-`remove-in` 永远写具体版本 `x.y.z`，并且是**下一个 major**；不要写当前未发布的 minor
-（写了会被 `check_deprecations` 当场判到期）。
+`remove-in` 永远写具体版本 `x.y.z`，并且是**下一个 major**。写成**等于或低于**当前版本时
+`check_deprecations` 会当场判到期；写成一个更高的未发布 minor 不会立刻失败，但到期时
+`remove-in` 已经过时，别这么写。
 
 ## 历史例外
 

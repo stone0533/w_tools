@@ -107,7 +107,9 @@ doctor 规则是文本级检查：注释会跳过，字符串内容仍可能命�
 （`run` / `edit`）可直接执行，没有 `fix` 时看 `hint`；`--only=R1,R9` 只跑指定规则，
 `--include-tests` 把 R2 的扫描范围扩到 `test/` / `tool/`。
 
-无 CLI 时的手动 grep 只作兜底：① 对应 R4（仅覆盖已知业务目录，严格 import 白名单仍是项目特有）；② 对应 R2（覆盖 `test/` / `tool/` 需加 `--include-tests`）；③ 对应 R1；④ 对应 R9 的 `banned`。不要把这四条直接实现成默认 CLI 规则。
+无 CLI 时的手动 grep 只作兜底：R4（仅覆盖已知业务目录，严格 import 白名单仍是项目特有）、
+R2（覆盖 `test/` / `tool/` 需加 `--include-tests`）、R1、R9 的 `banned` 各有一条等价命令。
+这些规则只在 doctor 里实现，不要把它们当成默认 CLI 规则的第二份实现。
 
 **配置（可选）**：`.w_tools_doctor.yaml`。不写它 doctor 也按默认值运行；
 把开关摊开用：

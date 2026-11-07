@@ -11,9 +11,11 @@
 - [ ] **默认值可用**：不传任何参数也能渲染出一个合理的组件
 - [ ] **至少一个测试**：`packages/<pkg>/test/` 下的 widget 测试；像素敏感的加上 golden
 - [ ] **`CHANGELOG.md` 条目 + 版本号**：子包版本必须抬；如果该子包被根包聚合，
-      根包的 `^x.y.z` 约束要一起改（改完跑 `bash scripts/release_check.sh`）。
+      根包的 `^x.y.z` 约束要一起改（改完跑 `bash scripts/release_check.sh`；
+      它只**提醒**下界落后，发布根包前必须跑 `--strict`）。
       CI 的 `api-bump` job 会比对 base 与 HEAD 的公开 API 表面：API 变了但版本既没抬、
-      也不高于已发布快照（即仍指向 pub.dev 上的版本）时直接失败；已经在未发布版本里的改动可以沿用。
+      也不高于**已发布**基线（CI 用 pub.dev 版本，取不到才退回快照）时直接失败；
+      已经在未发布版本里的改动可以沿用。
 
 ## 2. 接口设计
 
@@ -76,8 +78,10 @@
   J-4 只读，不修改文件。定义与提示词见
   [`docs/ai-maintainer-prompts.md`](docs/ai-maintainer-prompts.md) 的 J-4 一节。
   至少确认：catalog、`docs/agents/<pkg>.md`、
-  `templates/agents/{zh,en}/<pkg>.md`、README、example 都已同步。
+  `templates/agents/{zh,en}/<feature>.md`（模板按 init feature 命名，不是包名；
+  `app_getx` 用 `app.md`、`map_google` 用 `map.md`）、README、example 都已同步。
   矩阵列至少：公开类型 | catalog | teach | AGENTS zh | AGENTS en | explain | README | example。
+  矩阵目前没有机器落点（PR 模板里只有一行结论位），所以 J-4 的结论要写进 PR 正文。
 - 自动门禁覆盖符号 / 锚点 / 生成物 / 入口名（J-4A），但教学方法是否讲清楚仍需要 J-4 人工判断。
 
 ## 6. Git / PR 流程
@@ -88,6 +92,9 @@
   PR 链 issue 时写 `Closes #n`。issue 的读写与 label 约定见
   [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) 与 [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md)。
 - 公开变化走 feature 分支 + PR，等 Required checks 通过后合并；不要用管理员绕过。
+- PR body 必须带仓库模板的「## 改动类型」段（改了 `lib/` 时 `check_pr_scope` 会强制）。
+  用 `gh pr create --fill` 创建后要 `gh pr edit --body` 补上四类勾选；只改脚本 / 文档的
+  PR（例如快照 PR）不受这条限制。
 - 发布前用 `bash scripts/check_pr_checks.sh [PR号]` 确认 Required checks（需要 `gh`）。
 
 ### 合并方式：固定 Merge commit
@@ -124,7 +131,8 @@ git log main                  # 完整细节（每个逻辑步骤）
 1. 确认满足上面四条
 2. 把消费方 `lib/app/design_system/` 里的文件删掉，引用改成 `package:w_tools_ui`
 3. 该消费方的 `toolkit.dart`（聚合入口）里加一行 `export`
-4. 在消费方的 issue/PR 里注明「已上移」，并更新它的 `docs/agents/w_tools.md` 待上移清单
+4. 在消费方的 issue/PR 里注明「已上移」，并清掉暂存层里对应的 `// STAGED:` 标记
+   （本仓库没有 `docs/agents/w_tools.md` 这类待上移清单，别去找）
 
 ## 9. 使用反馈（`docs/feedback/`）
 
