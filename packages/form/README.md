@@ -139,6 +139,14 @@ WFormFieldButton<int>(
 );
 ```
 
+## 本地化（日期 / 文案）
+
+日期字段的显示格式走 `intl`（`displayFormat` + 当前 locale）。需要中文月份 /
+本地化文案的 app，请在 `MaterialApp` 挂 `flutter_localizations`
+（`GlobalMaterialLocalizations.delegate`）——它会初始化 `intl` 的 locale 数据。
+
+未挂时字段不会崩：会回退到 `en_US` 渲染（显示英文月份）。
+
 ## 只读与字段级样式
 
 ```dart

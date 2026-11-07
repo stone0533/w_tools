@@ -253,6 +253,8 @@ WFormTextField(
 
 - 存储格式固定 ISO `yyyy-MM-dd`；显示格式用 `displayFormat`（默认 `yMMMMd`）。
 - 使用系统 `showDatePicker`；`firstDate` / `lastDate` 默认 `1900` / `2100`，需要收窄范围时显式传。
+- 显示文案走 `intl`：需要中文月份 / 本地化文案时，宿主 `MaterialApp` 要挂
+  `flutter_localizations`；未挂时回退 `en_US`（不崩，但显示英文月份）。
 
 ### 5.7 WFormButton
 
