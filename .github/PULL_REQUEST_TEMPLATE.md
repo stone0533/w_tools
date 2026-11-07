@@ -1,13 +1,21 @@
 ## 改动类型
 
-> CI 会读这里的勾选：勾了「公开变化」但没有任何相关 CHANGELOG 变更会被判失败
-> （子包：`packages/<pkg>/CHANGELOG.md`；根包改 `lib/` 或 `pubspec.yaml` 时：根 `CHANGELOG.md`）。
-> 所以要发行为变化时，请同时更新版本与 CHANGELOG。
+> 改了 `lib/` 的 PR 必须保留这一段（`check_pr_scope` 会检查「## 改动类型」是否存在）。
+> 勾了「公开变化」时，CI 要求**每个改了 lib 的包**都改自己的 `packages/<pkg>/CHANGELOG.md`
+> （根包改 `lib/` / `pubspec.yaml` 时用根 `CHANGELOG.md`）。CI 只校验「有没有改 CHANGELOG」；
+> 版本号与版本段位置由 review 核对。
 
 - [ ] 内部重构（公开 API / 默认行为不变）
 - [ ] 公开变化（API / 行为 / 新组件）
 - [ ] 删除 / 废弃
 - [ ] 新增包
+
+## J-4 结论（有公开 API / 行为变化时必填）
+
+> 矩阵列：公开类型 | catalog | teach | AGENTS zh | AGENTS en | explain | README | example。
+> 至少写一行结论；完整矩阵可贴在这里或链接到 issue / analysis。
+
+- J-4 结论：
 
 ## 命名（`docs/naming.md` §7）
 
@@ -21,7 +29,7 @@
 
 - [ ] 已跑 J-4（AI 教学覆盖审计，定义见 [`docs/ai-maintainer-prompts.md`](../docs/ai-maintainer-prompts.md) 的 J-4 一节），结论贴在本 PR
 - [ ] catalog 的 `usage` / `pitfalls` / `related` / `dontUseFor` 已同步
-- [ ] `docs/agents/<pkg>.md` 与 `templates/agents/{zh,en}/<pkg>.md` 已同步
+- [ ] `docs/agents/<pkg>.md` 与 `templates/agents/{zh,en}/<feature>.md` 已同步（模板按 init feature 命名；`app_getx`→`app.md`、`map_google`→`map.md`）
 - [ ] README / example / migration 已同步
 - [ ] `bash scripts/preflight.sh --with-tests` 通过
 

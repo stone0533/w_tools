@@ -4,7 +4,14 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-from check_pr_scope import declared_public_change, touches_changelog
+from check_pr_scope import (
+    declared_public_change,
+    has_template_section,
+    lib_packages,
+    missing_package_changelogs,
+    touches_changelog,
+    touches_public_code,
+)
 
 
 class PrScopeTest(unittest.TestCase):
@@ -40,6 +47,35 @@ class PrScopeTest(unittest.TestCase):
 
     def test_unrelated_files(self):
         self.assertFalse(touches_changelog(['docs/releasing.md']))
+
+
+class PathDerivationTest(unittest.TestCase):
+    """CHANGELOG 必须属于被改的包；改了 lib/ 就必须带模板段。"""
+
+    def test_lib_packages(self):
+        self.assertEqual(
+            lib_packages(['packages/ui/lib/a.dart', 'packages/form/lib/b.dart']),
+            {'ui', 'form'},
+        )
+
+    def test_missing_package_changelog(self):
+        changed = ['packages/ui/lib/a.dart', 'packages/form/lib/b.dart',
+                   'packages/form/CHANGELOG.md']
+        self.assertEqual(missing_package_changelogs(changed), ['ui'])
+
+    def test_other_package_changelog_is_not_enough(self):
+        changed = ['packages/ui/lib/a.dart', 'packages/form/CHANGELOG.md']
+        self.assertEqual(missing_package_changelogs(changed), ['ui'])
+
+    def test_public_code_paths(self):
+        self.assertTrue(touches_public_code(['packages/ui/lib/a.dart']))
+        self.assertTrue(touches_public_code(['lib/w_tools.dart']))
+        self.assertFalse(touches_public_code(['scripts/check_docs.sh']))
+        self.assertFalse(touches_public_code(['packages/ui/README.md']))
+
+    def test_template_section(self):
+        self.assertTrue(has_template_section('## 改动类型\n- [ ] 内部重构\n'))
+        self.assertFalse(has_template_section('fix(ui): tweak padding'))
 
 
 if __name__ == '__main__':

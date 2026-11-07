@@ -53,8 +53,8 @@ python3 scripts/release_status.py --online
   `7.1.0` 新增的 API 改名 → 仍在 `7.1.0`（若尚未发布），不需要 `remove-in`。
 - 0.x 工具包按 semver 预发布语义（minor 可破坏）；库包不适用，详见
   [ADR-0001](adr/0001-package-versioning.md) 的 2026-11-07 补充。
-- `--online` 在目标版本尚未发布时会显示「仓库 X > pub.dev Y —— 待发布」并以非 0 退出；
-  这是预期的「待发布」状态，不是内容已验证。
+- `release_check.sh --online` 把「仓库 > 线上（待发布）」判失败；`release_status.py --online`
+  把「待发布」当正常状态（退出 0）。发布前不要用 `--online` 当门禁，它只用于发布后核对。
 - **聚合包**：`w_tools` 按聚合层独立发版。它对各子包的 caret 约束下界应取**子包当前版本**
   （例如 `^1.2.0`，而不是 `^1.0.0`）：`^1.0.0` 虽然能接受 1.2.0，但已有 lockfile 的用户
   不会自动升级，新装用户也可能停在旧版。日常 `preflight` 只提醒；发布根包前的
@@ -140,9 +140,10 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 
    连续执行 `publish_package.sh`（一次一个包），快照会自动累积到
    `.w_tools/release-snapshots/`；全部发完后运行一次 `apply_snapshots.sh`，只开一个快照 PR。
-8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界 + 每个包的快照已 tracked
-   且版本 == 本地），最后发聚合包（确认第 7 步的快照 PR 已合入，且本地 `main` 已
-   `git pull --ff-only`）：
+8. 需要聚合包跟上时，先跑**完整** `--strict`（会校验根包下界 + 每个包的快照已 tracked，
+   且根聚合包 core / async / ui / form / api / toast 的快照版本 == 本地；
+   工具包 / 不聚合的包允许待发布），最后发聚合包
+   （确认第 7 步的快照 PR 已合入，且本地 `main` 已 `git pull --ff-only`）：
    ```bash
    bash scripts/release_check.sh --strict          # 根包 caret 下界 + API 快照
    bash scripts/publish_package.sh . --dry-run     # 预演
@@ -231,13 +232,15 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 | 包名 / `resolution: workspace` | 目录与包名一致，否则 pub workspace 解析异常 |
 | 发布物料 | 每个包有 `README.md` / `CHANGELOG.md` / `LICENSE` |
 | 版本 ↔ CHANGELOG | `## <pubspec version>` 必须存在（点号按字面匹配） |
+| CHANGELOG 段顺序 | 第一个版本段必须是最新版本（新版本段要加在文件最上面） |
+| CHANGELOG 重复段 | 不允许两个 `## x.y.z`（历史踩过根包重复 6.0.0） |
 | 根包约束 | 每个 `w_tools_<pkg>: ^x.y.z` 必须接受子包本地版本 |
 | 根包版本 ↔ CHANGELOG | 同上 |
 | README 版本声明 | 禁止出现「当前 `x.y.z`」这种会漂移的硬编码 |
 | 弃用到期 | `@Deprecated` 的 `remove-in` 是否到期（复用 `check_deprecations.py`） |
 | `## Unreleased` 条目 | 只提醒：说明有已记录但未发版的改动 |
-| `--strict` | 已跟踪文件无未提交改动、无未跟踪文件、upstream 已同步；完整模式还要求每个包的最新快照已 tracked 且版本 == 本地 |
-| `--online` | 与 pub.dev API 对比最新版本；一个包都取不到时退出 2（环境不可用，不打印「检查通过」） |
+| `--strict` | 已跟踪文件无未提交改动、无未跟踪文件、upstream 已同步；完整模式还要求每个包的最新快照已 tracked，且**根聚合包**快照版本 == 本地（工具包 / 不聚合的包允许待发布，不会卡住根包） |
+| `--online` | 与 pub.dev API 对比最新版本；一个包都取不到时退出 2（环境不可用，不打印「检查通过」）；pub.dev 404 判失败（包名拼错 / 改名） |
 | `--package <pkg>` | 收窄版本 / 物料检查；根包版本与其他子包不参与，但弃用检查与根 README 仍全仓；快照 tracked 检查只在完整 `--strict` |
 
 ## 常见坑

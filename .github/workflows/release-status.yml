@@ -4,6 +4,7 @@ name: Release status
 # 失败时 GitHub 会给最近提交者发邮件，作为「有人从别的机器发布了、或快照没提交」的提醒。
 # 退出码 2 表示「一个包都没取到 pub.dev」（网络不可达）：这不算发布事故，按跳过处理，
 # 避免每周一因外网抖动误发失败邮件。
+# 退出码 3 是用法错误（例如命令被改坏）：必须失败，不能被当成断网跳过。
 
 on:
   schedule:
@@ -18,7 +19,9 @@ jobs:
   status:
     name: Release status (online)
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # 17 个请求（15 包 + root）× 最多 2 次 × 5s + 退避 ≈ 3 分钟；留足余量避免
+    # 网络半死时因 job timeout 误报（二轮审计 P2-6）。
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7

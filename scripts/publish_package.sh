@@ -234,6 +234,9 @@ if [ -z "$dry_run" ] && [ -z "$force" ]; then
     bash "$repo_root/scripts/release_check.sh" --strict --package "$pkg_short"
   fi
   echo "✓ 发布前保护通过（干净 main / release_check --strict）"
+elif [ -n "$force" ] && [ -z "$dry_run" ]; then
+  # 逃生门也要留审计线索：--force 一次跳过全部保护，事后必须能从日志看出跳过了什么。
+  echo "!! --force：已跳过 干净工作区 / main / HEAD==origin/main / pending 快照 / release_check --strict 检查" >&2
 fi
 
 cd "$staging"

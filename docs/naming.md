@@ -317,7 +317,7 @@
 
 | 对象 | 规则 |
 |---|---|
-| 测试 | `test/<主题>_test.dart`；一个文件测一个行为面；helper 放 `test/_helpers/` |
+| 测试 | `test/<主题>_test.dart`；一个文件测一个行为面；helper 放 `test/_helpers/`（只 import barrel；需要 `src` 的放 `test/internal/`） |
 | golden | `test/goldens/<组件>_<状态>.png`，用 `--update-goldens` 生成 |
 | 脚本 | `check_*` 只读检查，`gen_*` 生成物，其余用「动词_名词」；Python 用 `.py`，shell 用 `.sh` |
 | 脚本参数 | kebab-case（`--with-tests`）；布尔开关不加 `=true` |
