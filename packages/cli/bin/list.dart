@@ -42,6 +42,7 @@ CommandResult run(List<String> argv) {
       final label = package != null ? 'package=$package' : 'query=${query.isEmpty ? '*' : query}';
       final asJson = (args['json'] as bool) || args['format'] == 'json';
       final asPrompt = args['format'] == 'prompt';
+      final hint = results.isEmpty ? _toolHint(package) : null;
 
       if (asJson) {
         print(
@@ -51,6 +52,7 @@ CommandResult run(List<String> argv) {
             'query': query,
             'package': package,
             'count': results.length,
+            if (hint != null) 'hint': hint,
             'components': results.map((e) => e.toJson()).toList(),
           }),
         );
@@ -60,6 +62,7 @@ CommandResult run(List<String> argv) {
 
       if (asPrompt) {
         print('# w_tools catalog v$catalogVersion · $label');
+        if (hint != null) print(hint);
         for (final entry in results) {
           print('- ${entry.name} [${entry.package}]: ${entry.useFor}');
           if (entry.usage != null) {
@@ -72,12 +75,7 @@ CommandResult run(List<String> argv) {
 
       print('w_tools_cli list · catalog v$catalogVersion · $label · ${results.length} 个结果');
       if (results.isEmpty) {
-        if (package != null && _toolPackages.contains(package)) {
-          final name = package.substring('w_tools_'.length);
-          print('工具包不在组件目录里：看 docs/agents/$name.md 与 packages/$name/README.md。');
-        } else {
-          print('没有匹配。换个关键词，或运行 `dart run w_tools_cli:w_tools list` 看全部。');
-        }
+        print(hint ?? '没有匹配。换个关键词，或运行 `dart run w_tools_cli:w_tools list` 看全部。');
         throw CliExit(1);
       }
       for (final entry in results) {
@@ -101,6 +99,12 @@ const _toolPackages = <String>{
   'w_tools_device',
   'w_tools_e2e',
 };
+
+String? _toolHint(String? package) {
+  if (package == null || !_toolPackages.contains(package)) return null;
+  final name = package.substring('w_tools_'.length);
+  return '工具包不在组件目录里：看 docs/agents/$name.md 与 packages/$name/README.md。';
+}
 
 String _normalizePackage(String value) {
   final v = value.trim();

@@ -6,17 +6,17 @@ CLI 不是 Flutter App。示例以命令演示一个最小消费方项目的接�
 
 ```bash
 # 查组件
-dart run w_tools_cli:list 下拉
-dart run w_tools_cli:explain WForm
+dart run w_tools_cli:w_tools list 下拉
+dart run w_tools_cli:w_tools explain WForm
 
 # 看项目事实
-dart run w_tools_cli:context --format=prompt
+dart run w_tools_cli:w_tools context --format=prompt
 
 # 初始化项目
-dart run w_tools_cli:init --profile=minimal --no-ui --no-instructions
+dart run w_tools_cli:w_tools init --profile=minimal --no-ui --no-instructions
 
 # 检查项目
-dart run w_tools_cli:doctor --format=markdown
+dart run w_tools_cli:w_tools doctor --format=markdown
 ```
 
 ## 可复现 demo
@@ -39,6 +39,7 @@ Windows 请使用 Git Bash 或 WSL；`dart test` 在 Windows 上会跳过依赖 
 执行 doctor
 执行 context
 执行 list / explain
+执行 feedback status / path
 退出时清理临时目录
 ```
 

@@ -1,3 +1,65 @@
+## 1.15.0
+
+### Changed
+- 重构 `init` 生成的 `.w_tools/AI_PROMPTS.md`，结构对齐维护者提示词手册：
+  「新手先看这里 → 0 固定前缀 → 填空说明 → 一个填好的例子 → 1 场景选择 → A~K 场景
+  → 2 输出不对时 → 3 AI 完成后你必须检查 → 4 维护这份文档」。
+  读者是**使用 w_tools 的 Dart / Flutter 开发者**（对提示词不熟），不是 agent。
+- 场景编号从 `C-A~C-K` 改为「族字母-工序号」：`A-1`、`B-1`……；有先后关系的大任务拆成多轮，
+  每轮一个可判断的产物——`A-1` 只读计划 → `A-2` 实现、`E-1` 审计 → `E-2` 修复、
+  `F-1` 计划 → `F-2` 分文件替换 → `F-3` 验证。旧编号对应：`C-A→A-1`、`C-B→B-1`、
+  `C-C→C-1`、`C-D→D-1`、`C-E→E-1`、`C-F→F-1`、`C-G→G-1`、`C-H→H-1`、`C-I→I-1`、
+  `C-J→J-1`、`C-K→K-1`。
+- 新增「填空说明」占位符表、「一个填好的例子」、「从现象反查」、「输出不对时加一句话」、
+  「AI 提到的组件先用 explain 核一遍」、「默认工作流（分轮次）」。
+- 固定前缀改为按项目上下文渲染：规则文件名来自本次 targets，工具链命令按 pubspec 的
+  `flutter` 依赖在 `flutter` / `dart` 间切换，依赖说明区分具体子包与旧聚合包，
+  toolkit 入口写真实 `package:<name>/...`；纯 Dart 与 `--targets=claude` 不再拿到错误指令。
+- 选场景元提示改为两段式：先选编号，再只读该场景填占位符；K-1 明确不贴固定前缀；
+  A-2 / E-2 / F-2 补同会话 / 交接材料；默认工作流补 `F-3`。
+- 升级场景按子包版本填写（不再假设单一 w_tools 版本）；`E-1` 补 ui / toast / app / async
+  入口、P0/P1/P2 定义与 explain 查旧 API 步骤；自检表要求标 `✅` / `N/A` / `❌`。
+- 自检表收敛为全文唯一一份（§3），各场景正文不再另抄；默认输出契约上收到固定前缀，
+  场景块只写差异。
+- 模板头部写明「生成物 + `init --force` 无备份」，并提示项目自有提示词另存。
+- `init` / `doctor` / `context` / `explain` / `feedback` 的 help、运行提示、doctor fix 与
+  example 统一写 `dart run w_tools_cli:w_tools <cmd>`；兼容入口只在 dispatcher 说明里保留。
+- `doctor` R1 文案改为“根包已不再聚合 app / map / qr”，地图改指向 `w_tools_map_google`。
+- `doctor` R8 纳入 `.w_tools/AI_PROMPTS.md`；`--write-config` 的 help 与
+  `docs/conventions.md` 改为“已存在报错，加 `--force` 覆盖”。
+- `context` 的 commands 补 `list` / `explain`；`list` 在 prompt/json 下也给出工具包教学入口；
+  `feedback search` 拒绝未知包；`explain` 多匹配改为退出 1，JSON 增加 `ambiguous`。
+- `AI_PROMPTS` 的升级场景改为按包和版本查找 migration，不再只写 `<pkg>-<major>.md`。
+- catalog 给 `WAsync` 补 `tryRun` / `run` / `map` / `retry` 方法别名，`explain` 可精确命中。
+- 抽出 `ProjectPubspec` / `GeneratedFiles` / `ConditionalTemplate`，统一 pubspec 读取、
+  生成物清单与 `@if` 渲染；生成器拒绝行内 marker，并修 Windows 相对路径分隔符。
+- `init --force` 不再覆盖 `.w_tools_doctor.yaml`；新增 `init --force-config` 显式覆盖
+  项目配置，覆盖前按 `.bak` / `.bak.<timestamp>` 备份，连续覆盖不丢旧备份。
+- `doctor --write-config --force` 复用同一轮转备份逻辑；help / README / conventions
+  写明 `.bak` 与 `.bak.<timestamp>`。
+
+### Fixed
+- 裁剪后不再出现悬空引用：`A-1` 的 `lib/app/ui/`、`E-1` 的能力清单、`F-1` 的 migration
+  文档出处、`I-1` 的 device 段都改成按能力裁剪或条件句；`H-1` 的编号跳号已消除。
+- `doctor` 统一写 `--format=json`，不再与 AGENTS 的 `--json` 混用。
+- `--targets=claude|cursor|copilot` 时 AI_PROMPTS 不再引用未生成的 `AGENTS.md`。
+- 纯 Dart 项目不再生成 `flutter analyze` / `flutter test` / `flutter pub upgrade`。
+- 子包 import 规则与 AGENTS / doctor R2 例外对齐：toolkit、`lib/app/ui/`、
+  `lib/app/design_system/` 允许直接 import `package:w_tools_*`。
+- `context` 在仓库检出、workspace 包不在 `pubspec.lock` 时不再显示“（无）”。
+
+### Added
+- AI_PROMPTS 契约测试补齐：每个 feature 关闭后不得引用被裁掉的场景编号、填空表存在、
+  固定前缀自足、`I-1` 不再指向不存在的 device 段。
+- `check_prompt_docs.py` 把 `packages/cli/templates/ai/*.md` 纳入提示词手册级检查
+  （flag / 占位符 / 场景编号双向）；场景标题正则收紧为「必须带点」，避免
+  `## A filled-in example` 被误判成场景 A；`§1` 同时接受中英文标题。
+- 测试覆盖 AI_PROMPTS 的 targets / 纯 Dart / 聚合包上下文渲染，以及未知占位符不泄漏。
+- 新增 CLI-001~012 回归测试：旧入口扫描、R1/R8、context commands、list prompt/json、
+  feedback search、explain 多匹配、migration 路径、仓库检出文案、生成器行内 marker。
+- 新增 CLI-DOC-001~005 回归测试：`--force` 保留配置、`--force-config` 备份/轮转、
+  check/drift 对配置的行为。
+
 ## 1.14.0
 
 ### Changed

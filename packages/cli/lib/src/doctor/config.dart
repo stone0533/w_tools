@@ -264,9 +264,10 @@ String? _toolkitEntryError(String entry) {
 String renderDefaultConfig() {
   final defaults = DoctorConfig();
   final buf = StringBuffer()
-    ..writeln('# 由 `dart run w_tools_cli:doctor --print-config` 生成。')
+    ..writeln('# 由 `dart run w_tools_cli:w_tools doctor --print-config` 生成。')
     ..writeln('# 这个文件是可选的：没有它，doctor 就按下面的默认值运行；')
     ..writeln('# 把它写下来只是把可选开关摊开，方便团队按项目调整。')
+    ..writeln('# 这是项目配置：init --force 不会覆盖；要恢复默认用 init --force-config。')
     ..writeln('toolkit_entry: ${defaults.toolkitEntry}')
     ..writeln()
     ..writeln('colors:')

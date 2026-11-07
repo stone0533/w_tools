@@ -41,6 +41,8 @@ void main() {
     expect(commands['feedbackStatus'], contains('feedback status'));
     expect(commands['feedbackSubmit'], contains('feedback submit'));
     expect(commands['feedbackLint'], contains('feedback lint'));
+    expect(commands['list'], contains('list'));
+    expect(commands['explain'], contains('explain'));
   });
 
   test('context 暴露已安装能力摘要', () {
@@ -139,6 +141,20 @@ packages:
     });
     final ctx = ProjectContext.load(root, DoctorConfig());
     expect(ctx.filesUnder('lib/app/design_system'), ['lib/app/design_system/x.dart']);
+  });
+  test('仓库检出时已装文案不写（无）', () {
+    final root = _project({
+      'pubspec.yaml': 'name: w_tools\n',
+      'pubspec.lock': 'packages:\n  args:\n    version: "2.6.0"\n',
+    });
+    addTearDown(() => root.deleteSync(recursive: true));
+    Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
+    final snapshot = ProjectSnapshot.load(root);
+    expect(snapshot.repoCheckout, isTrue);
+    final prompt = snapshot.toPrompt();
+    expect(prompt, contains('仓库检出'));
+    expect(prompt, isNot(contains('已装(w_tools/直接依赖): （无）')));
+    expect(prompt, contains('workspace 包不在 pubspec.lock'));
   });
   _installTests();
 }

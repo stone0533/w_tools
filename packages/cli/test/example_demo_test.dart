@@ -19,6 +19,8 @@ void main() {
       expect(result.stdout, contains('== doctor =='));
       expect(result.stdout, contains('0 error / 0 warning'));
       expect(result.stdout, contains('WForm'));
+      expect(result.stdout, contains('== feedback =='));
+      expect(result.stdout, contains('反馈通道'));
     },
     skip: Platform.isWindows ? '需要 bash' : false,
     timeout: const Timeout(Duration(minutes: 2)),

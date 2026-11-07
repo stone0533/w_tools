@@ -2,6 +2,7 @@ import '../common/version.dart';
 import '../doctor/banned_rule.dart';
 import '../doctor/run.dart';
 import '../layout.dart';
+import 'conditional_template.dart';
 import 'features.dart';
 import 'templates.g.dart' as generated;
 
@@ -12,7 +13,7 @@ import 'templates.g.dart' as generated;
 ///
 /// 为什么是「生成常量」而不是运行时读文件：
 /// `Isolate.resolvePackageUri` 在 flutter_test 里会抛 `Unsupported operation`，
-/// 消费方执行 `dart run w_tools_cli:init` 时也可能拿不到可靠路径。
+/// 消费方执行 `dart run w_tools_cli:w_tools init` 时也可能拿不到可靠路径。
 /// 生成物由 `test/templates_fresh_test.dart` 挡住漂移。
 class InitTemplates {
   InitTemplates._();
@@ -59,26 +60,50 @@ class InitTemplates {
   static String appButtons() => generated.appButtonsTemplate.replaceAll('{{version}}', cliVersion);
 
   /// 消费方 AI 任务提示词；生成到 `.w_tools/AI_PROMPTS.md`。
+  ///
+  /// [rulesFiles] 是本次 `init` 实际写入的指令文件（AGENTS.md / CLAUDE.md / …）。
+  /// [toolkitImport] 是项目聚合入口的 package import，写进固定前缀，避免 AI 猜路径。
+  /// [isFlutter] / [usesAggregate] 决定工具链命令与依赖说明，纯 Dart 或旧聚合包
+  /// 项目不会被要求执行 `flutter` 或删除已有聚合依赖。
   static String aiPrompts({
     String lang = 'zh',
     InitFeatures features = InitFeatures.full,
+    String rulesFiles = 'AGENTS.md',
+    String toolkitImport = 'package:app/app/w/toolkit.dart',
+    bool isFlutter = true,
+    bool usesAggregate = false,
   }) {
     final enabled = features.enabled.toSet();
-    final out = <String>[];
-    var include = true;
-    for (final line in (lang == 'en' ? generated.aiPromptsEn : generated.aiPrompts).split('\n')) {
-      final start = RegExp(r'^<!-- @if:([a-z]+) -->$').firstMatch(line);
-      if (start != null) {
-        include = enabled.contains(start.group(1));
-        continue;
-      }
-      if (line == '<!-- @endif -->') {
-        include = true;
-        continue;
-      }
-      if (include) out.add(line);
-    }
-    return out.join('\n').replaceAll('{{version}}', cliVersion);
+    final en = lang == 'en';
+    final analyze = isFlutter ? 'flutter analyze' : 'dart analyze';
+    final test = isFlutter ? 'flutter test' : 'dart test';
+    final pubUpgrade = isFlutter ? 'flutter pub upgrade' : 'dart pub upgrade';
+    final testFramework = isFlutter ? 'flutter_test' : 'test';
+    final integrationTest = isFlutter ? 'flutter test integration_test/...' : 'dart test test/...';
+    final dependencyNote = usesAggregate
+        ? (en
+              ? 'This project uses the aggregate `w_tools` package for legacy compatibility; '
+                    'keep it as-is and add new dependencies as sub-packages only.'
+              : '本项目已使用聚合包 `w_tools`（旧项目兼容）；保持现状，新依赖只加具体子包。')
+        : (en
+              ? 'This project depends on specific sub-packages; '
+                    'add new dependencies as sub-packages only.'
+              : '本项目依赖具体子包；新依赖只加具体子包。');
+
+    final rendered = ConditionalTemplate.render(
+      en ? generated.aiPromptsEn : generated.aiPrompts,
+      enabled,
+    );
+    return rendered
+        .replaceAll('{{version}}', cliVersion)
+        .replaceAll('{{rulesFiles}}', rulesFiles)
+        .replaceAll('{{toolkitImport}}', toolkitImport)
+        .replaceAll('{{dependencyNote}}', dependencyNote)
+        .replaceAll('{{analyze}}', analyze)
+        .replaceAll('{{test}}', test)
+        .replaceAll('{{pubUpgrade}}', pubUpgrade)
+        .replaceAll('{{testFramework}}', testFramework)
+        .replaceAll('{{integrationTest}}', integrationTest);
   }
 
   /// UI / 暂存层生成物：路径 → (内容, 是否 starter)。

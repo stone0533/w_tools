@@ -19,11 +19,11 @@ const _usage = '''
 w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
 
 用法：
-  dart run w_tools_cli:feedback path [--package=<包>]
-  dart run w_tools_cli:feedback lint [--include-inbox]
-  dart run w_tools_cli:feedback submit --package=<包> --title=<标题> (--stdin | --body-file=<file>) [--ledger | --issue]
-  dart run w_tools_cli:feedback search <关键词> [--package=<包>] [--gh]
-  dart run w_tools_cli:feedback status
+  dart run w_tools_cli:w_tools feedback path [--package=<包>]
+  dart run w_tools_cli:w_tools feedback lint [--include-inbox]
+  dart run w_tools_cli:w_tools feedback submit --package=<包> --title=<标题> (--stdin | --body-file=<file>) [--ledger | --issue]
+  dart run w_tools_cli:w_tools feedback search <关键词> [--package=<包>] [--gh]
+  dart run w_tools_cli:w_tools feedback status
 
 子命令：
   path    输出库侧台账路径（消费方默认不写文件）
@@ -56,10 +56,10 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   只想查本地台账时去掉 --gh。
 
 示例：
-  dart run w_tools_cli:feedback search "WImage 缓存" --package=ui
-  dart run w_tools_cli:feedback submit --package=ui --title="WImage 缓存不生效" --stdin
-  dart run w_tools_cli:feedback submit --package=ui --title="..." --body-file=/tmp/f.md --gh
-  dart run w_tools_cli:feedback lint --include-inbox
+  dart run w_tools_cli:w_tools feedback search "WImage 缓存" --package=ui
+  dart run w_tools_cli:w_tools feedback submit --package=ui --title="WImage 缓存不生效" --stdin
+  dart run w_tools_cli:w_tools feedback submit --package=ui --title="..." --body-file=/tmp/f.md --gh
+  dart run w_tools_cli:w_tools feedback lint --include-inbox
 ''';
 
 CommandResult run(List<String> argv) {
@@ -393,6 +393,9 @@ void _search(ArgResults args, Directory root, bool asJson) {
   if (query.isEmpty) _usageError('search 需要一个关键词');
   final rawPackage = _packageArg(args, required: false);
   final package = rawPackage == null ? null : feedbackLedgerName(rawPackage);
+  if (package != null && !feedbackPackages.contains(package)) {
+    _usageError('未知反馈包：$package（可选：${feedbackPackages.join(', ')}）');
+  }
 
   final local = searchLocal(root, package: package, query: query);
   final github = <Map<String, Object?>>[];

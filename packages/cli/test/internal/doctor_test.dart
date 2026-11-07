@@ -41,6 +41,8 @@ void main() {
       expect(r.issues.single.level, DoctorLevel.error);
       expect(r.issues.single.fix?.kind, 'edit');
       expect(r.issues.single.fix?.path, 'dependencies.w_tools');
+      expect(r.issues.single.message, isNot(contains('w_tools_map')));
+      expect(r.issues.single.hint, contains('w_tools_map_google'));
     });
 
     test('只在 dev_dependencies 里有 → 通过（doctor 自己就靠它）', () {
@@ -488,6 +490,18 @@ void main() {
       });
       final r = R8GeneratedStale.check(ctxOf(root, DoctorConfig()), DoctorConfig());
       expect(r.status, DoctorRuleStatus.skipped);
+    });
+
+    test('AI_PROMPTS 版本不一致 → warn', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'pubspec.lock': 'packages:\n  w_tools_cli:\n    version: "1.0.0"\n',
+        '.w_tools/AI_PROMPTS.md': '> 由 `w_tools_cli` v0.9.0（生成器版本）生成；重新生成请运行 init --force。\n',
+      });
+      final r = R8GeneratedStale.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.status, DoctorRuleStatus.fail);
+      expect(r.issues.single.file, '.w_tools/AI_PROMPTS.md');
+      expect(r.issues.single.message, contains('0.9.0'));
     });
 
     test('没有 w_tools_cli 的 lock → 跳过', () {

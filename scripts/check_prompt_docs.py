@@ -3,7 +3,9 @@
 
 1) `docs/ai-maintainer-prompts.md` 是维护者直接复制粘贴的提示词手册，规则最严：
    命令可执行 + 生成器 cwd 正确 + 占位符都有定义 + 场景编号都有标题 + CLI flag 存在。
-2) 其余**当前文档**（README / AGENTS / CONTRIBUTING / scripts/README / docs 顶层与
+2) `packages/cli/templates/ai/*.md`（`init` 生成给消费方的 AI_PROMPTS 模板）用同一套严格规则：
+   模板会原样进入用户项目，flag / 占位符 / 场景编号错一次就发到所有项目。
+3) 其余**当前文档**（README / AGENTS / CONTRIBUTING / scripts/README / docs 顶层与
    agents·recipes·guides·feedback / 包 README）只校验「脚本存在 + flag 被脚本或 CLI 认识」。
    历史目录（analysis / adr / migrations）不参与：它们允许记录旧命令。
 
@@ -39,7 +41,15 @@ CLI_CALL = re.compile(
     r'w_tools_cli:(?:w_tools\s+([a-z][a-z0-9-]*)(?![\w_])|([a-z][a-z0-9-]*)(?![\w_]))([^\n]*)'
 )
 DOC_PATH = re.compile(r'(?<![\w<])((?:docs|packages)/[A-Za-z0-9_./-]+\.md)')
-DOCUMENTED_BELOW = {'<runner>', '<包目录>', '<pkg1>', '<pkg2>'}
+DOCUMENTED_BELOW = {
+    '<runner>',
+    '<包目录>',
+    '<pkg1>',
+    '<pkg2>',
+    # 升级场景里的 migration 路径模板，不是让用户逐字填的占位符。
+    '<pkg>',
+    '<major>',
+}
 
 
 def logical_lines(text: str) -> list[tuple[int, str]]:
@@ -152,9 +162,14 @@ def placeholder_errors(text: str, name: str) -> list[str]:
     return errors
 
 
+SELECTION_HEADING = r'^## 1\. (?:场景选择|Scenario selection).*?(?=^## )'
+
+
 def scenario_errors(text: str, name: str) -> list[str]:
     errors: list[str] = []
-    top_level = re.findall(r'^##\s+([A-Z])[.\s]', text, re.M)
+    # 只认带点的标题（`## A.` / `### A-1.`）；不要求点会把 `## A filled-in example`
+    # 这类以大写字母开头的普通标题误判成场景 A。
+    top_level = re.findall(r'^##\s+([A-Z])\.', text, re.M)
     seen: set[str] = set()
     for letter in top_level:
         if letter in seen:
@@ -162,11 +177,11 @@ def scenario_errors(text: str, name: str) -> list[str]:
         seen.add(letter)
 
     heading_ids = set(
-        re.findall(r'^#{2,3}\s+([A-Z](?:-\d+[A-Z]?)?)[.\s]', text, re.M),
+        re.findall(r'^#{2,3}\s+([A-Z](?:-\d+[A-Z]?)?)\.', text, re.M),
     )
-    selection = re.search(r'^## 1\. 场景选择.*?(?=^## )', text, re.S | re.M)
+    selection = re.search(SELECTION_HEADING, text, re.S | re.M)
     if selection is None:
-        errors.append(f'{name}: 缺少「## 1. 场景选择」一节')
+        errors.append(f'{name}: 缺少「## 1. 场景选择 / Scenario selection」一节')
         return errors
 
     selection_text = selection.group(0)
@@ -266,17 +281,19 @@ def command_docs() -> list[pathlib.Path]:
     return sorted(set(docs))
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--doc', default=str(DEFAULT_DOC), help='提示词手册路径（测试用）')
-    args = parser.parse_args(argv)
-    doc = pathlib.Path(args.doc)
-    if not doc.is_file():
-        print(f'缺少 {doc}', file=sys.stderr)
-        return 2
+def consumer_prompt_docs() -> list[pathlib.Path]:
+    """`init` 生成给消费方的提示词模板：和本手册同一套严格规则。
 
-    text = doc.read_text()
-    name = doc.name
+    这些模板会原样出现在用户项目里，flag / 占位符 / 场景编号错一次就发到所有项目，
+    所以不能只靠 `packages/cli/test` 的契约测试。
+    """
+    return sorted((root / 'packages' / 'cli' / 'templates' / 'ai').glob('*.md'))
+
+
+def strict_errors(path: pathlib.Path) -> list[str]:
+    """提示词手册级别的全部检查（脚本 / flag / cwd / 占位符 / 场景编号 / 路径）。"""
+    text = path.read_text()
+    name = path.name
     errors: list[str] = []
     errors += script_exists_errors(text, name)
     errors += script_flag_errors(text, name)
@@ -286,6 +303,24 @@ def main(argv: list[str] | None = None) -> int:
     errors += cli_flag_errors(text, name)
     errors += path_exists_errors(text, name)
     errors += dart_file_errors(text, name)
+    return errors
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--doc', default=str(DEFAULT_DOC), help='提示词手册路径（测试用）')
+    args = parser.parse_args(argv)
+    doc = pathlib.Path(args.doc)
+    if not doc.is_file():
+        print(f'缺少 {doc}', file=sys.stderr)
+        return 2
+
+    errors: list[str] = strict_errors(doc)
+    for path in consumer_prompt_docs():
+        if path.resolve() == doc.resolve():
+            continue
+        # 模板文件名原样保留，报错里能直接看出是 zh 还是 en。
+        errors += strict_errors(path)
 
     for path in command_docs():
         if not path.is_file() or path.name == 'ai-maintainer-prompts.md':
@@ -301,7 +336,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f'✗ {error}', file=sys.stderr)
         print(f'\n文档命令检查失败：{len(errors)} 项', file=sys.stderr)
         return 1
-    print('文档命令检查通过（提示词手册 + 当前文档）')
+    print('文档命令检查通过（提示词手册 + 消费方提示词模板 + 当前文档）')
     return 0
 
 

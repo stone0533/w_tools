@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../common/glob.dart';
+import '../common/project_pubspec.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
@@ -39,8 +40,11 @@ class ProjectContext {
     final pubspecFile = File(p.join(root.path, 'pubspec.yaml'));
     YamlMap pubspec = YamlMap();
     if (pubspecFile.existsSync()) {
-      final raw = loadYaml(pubspecFile.readAsStringSync());
-      if (raw is YamlMap) pubspec = raw;
+      final loaded = ProjectPubspec.load(root);
+      if (loaded.parseError != null) {
+        throw YamlException('pubspec.yaml 解析失败：${loaded.parseError}', null);
+      }
+      pubspec = loaded.raw;
     }
 
     final roots = <String>['lib'];

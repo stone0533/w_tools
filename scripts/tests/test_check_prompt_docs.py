@@ -123,5 +123,47 @@ class DartFileTest(unittest.TestCase):
         self.assertIn('packages/cli/test/nope_test.dart', errors[0])
 
 
+class ScenarioHeadingTest(unittest.TestCase):
+    def test_plain_capitalised_heading_is_not_a_scenario(self):
+        # `## A filled-in example` 这类普通标题不能被当成场景 A。
+        text = '## 1. 场景选择\n\nA\n\n## A. a\n\n## A filled-in example\n'
+        self.assertEqual(mod.scenario_errors(text, 'x'), [])
+
+    def test_english_selection_heading_is_accepted(self):
+        text = (
+            '## 1. Scenario selection\n\nA-1 -> A-2\n\n'
+            '## A. a\n\n### A-1. a1\n\n### A-2. a2\n'
+        )
+        self.assertEqual(mod.scenario_errors(text, 'x'), [])
+
+    def test_sub_scenario_must_have_heading(self):
+        text = '## 1. 场景选择\n\nA-1 / A-2\n\n## A. a\n\n### A-1. a1\n'
+        errors = mod.scenario_errors(text, 'x')
+        self.assertTrue(any('A-2' in error for error in errors))
+
+
+class ConsumerTemplateTest(unittest.TestCase):
+    """`init` 生成的消费方提示词模板必须和本手册一样过严格检查。"""
+
+    def test_templates_are_registered(self):
+        names = [path.name for path in mod.consumer_prompt_docs()]
+        self.assertIn('consumer-prompts.md', names)
+        self.assertIn('consumer-prompts.en.md', names)
+
+    def test_consumer_templates_pass_strict_checks(self):
+        for path in mod.consumer_prompt_docs():
+            self.assertEqual(mod.strict_errors(path), [], msg=str(path))
+
+    def test_placeholder_with_space_escapes_validation(self):
+        # 带空格的占位符不会被 placeholder_errors 匹配，所以模板里一律不许写空格。
+        text = '| `<a>` | x |\n\n<接口 / 登录流程>\n'
+        self.assertEqual(mod.placeholder_errors(text, 'x'), [])
+
+    def test_undefined_placeholder_in_template_is_reported(self):
+        text = '| `<pkg>` | 包目录名 | `form` |\n\n任务：实现 <页面>。\n'
+        errors = mod.placeholder_errors(text, 'x')
+        self.assertTrue(any('<页面>' in error for error in errors))
+
+
 if __name__ == '__main__':
     unittest.main()

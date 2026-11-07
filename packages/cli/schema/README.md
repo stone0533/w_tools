@@ -1,6 +1,6 @@
 # context JSON schema
 
-`context.v1.json` 是 `w_tools_cli:context --format=json` 的 v1 结构契约。
+`context.v1.json` 是 `dart run w_tools_cli:w_tools context --format=json` 的 v1 结构契约。
 
 规则：
 

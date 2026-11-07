@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
 import 'package:w_tools_cli/src/init/versions.dart';
@@ -96,14 +97,47 @@ void main() {
       final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md'));
       expect(prompt.existsSync(), isTrue);
       expect(report.created.any((e) => e.contains('AI_PROMPTS.md')), isTrue);
-      expect(prompt.readAsStringSync(), contains('先选场景'));
-      expect(prompt.readAsStringSync(), contains('C-A 新页面'));
+      expect(prompt.readAsStringSync(), contains('场景选择'));
+      expect(prompt.readAsStringSync(), contains('A-1. 只读计划'));
       expect(prompt.readAsStringSync(), contains('w_tools_cli'));
 
       final offRoot = makeProject();
       final off = runInit(offRoot, aiPrompts: false);
       expect(File(p.join(offRoot.path, '.w_tools', 'AI_PROMPTS.md')).existsSync(), isFalse);
       expect(off.created.any((e) => e.contains('AI_PROMPTS.md')), isFalse);
+    });
+
+    test('AI_PROMPTS 跟随 targets / Flutter / 聚合包上下文', () async {
+      final claudeRoot = makeProject();
+      runInit(claudeRoot, targets: const {'claude'});
+      final claude = File(
+        p.join(claudeRoot.path, '.w_tools', 'AI_PROMPTS.md'),
+      ).readAsStringSync();
+      expect(claude, contains('CLAUDE.md'));
+      expect(claude, isNot(contains('AGENTS.md')));
+      expect(claude, contains('package:demo_app/app/w/toolkit.dart'));
+
+      final dartRoot = makeProject();
+      File(p.join(dartRoot.path, 'pubspec.yaml')).writeAsStringSync(
+        "name: demo_app\nenvironment:\n  sdk: '^3.8.0'\ndependencies:\n  w_tools_core: ^3.1.1\n",
+      );
+      runInit(dartRoot);
+      final dart = File(
+        p.join(dartRoot.path, '.w_tools', 'AI_PROMPTS.md'),
+      ).readAsStringSync();
+      expect(dart, contains('dart analyze'));
+      expect(dart, isNot(contains('flutter analyze')));
+      expect(dart, contains('本项目依赖具体子包'));
+
+      final aggregateRoot = makeProject();
+      File(p.join(aggregateRoot.path, 'pubspec.yaml')).writeAsStringSync(
+        "name: demo_app\nenvironment:\n  sdk: '^3.8.0'\ndependencies:\n  w_tools: ^10.0.0\n",
+      );
+      runInit(aggregateRoot);
+      final aggregate = File(
+        p.join(aggregateRoot.path, '.w_tools', 'AI_PROMPTS.md'),
+      ).readAsStringSync();
+      expect(aggregate, contains('已使用聚合包'));
     });
 
     test('AI_PROMPTS 按已启用能力裁剪表单 / 接口场景', () async {
@@ -113,28 +147,28 @@ void main() {
         features: InitFeatures.full.copyWith(form: false, api: false),
       );
       final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).readAsStringSync();
-      expect(prompt, isNot(contains('C-C 表单')));
-      expect(prompt, isNot(contains('C-D 接口')));
-      expect(prompt, isNot(contains('| 写表单')));
-      expect(prompt, isNot(contains('| 写接口')));
+      expect(prompt, isNot(contains('## C. 表单')));
+      expect(prompt, isNot(contains('## D. 接口')));
+      expect(prompt, isNot(contains('| 表单 / 校验 / 提交 |')));
+      expect(prompt, isNot(contains('| 接口 / 登录 / 401 |')));
       expect(prompt, isNot(contains('@if:')));
-      expect(prompt, contains('C-B 列表'));
+      expect(prompt, contains('B-1'));
 
       final fullRoot = makeProject();
       runInit(fullRoot);
       final full = File(
         p.join(fullRoot.path, '.w_tools', 'AI_PROMPTS.md'),
       ).readAsStringSync();
-      expect(full, contains('C-C 表单'));
-      expect(full, contains('C-D 接口'));
+      expect(full, contains('## C. 表单'));
+      expect(full, contains('## D. 接口'));
     });
 
     test('AI_PROMPTS 英文版包含场景选择', () async {
       final root = makeProject();
       runInit(root, lang: 'en');
       final prompt = File(p.join(root.path, '.w_tools', 'AI_PROMPTS.md')).readAsStringSync();
-      expect(prompt, contains('Choose a scenario'));
-      expect(prompt, contains('C-A'));
+      expect(prompt, contains('Scenario selection'));
+      expect(prompt, contains('A-1. Read-only plan'));
     });
 
     test('--no-instructions 同时关闭 AI_PROMPTS', () async {
@@ -294,12 +328,24 @@ void main() {
       expect(report.warnings.any((e) => e.contains('.w_tools_init.json')), isTrue);
     });
 
-    test('--check --force 不写项目配置', () async {
+    test('--check --force 不写项目配置，也不报配置 drift', () async {
       final root = makeProject();
       final config = File(p.join(root.path, '.w_tools_doctor.yaml'));
       config.writeAsStringSync('banned: []\n');
       final before = config.readAsStringSync();
       final report = runInit(root, check: true, force: true);
+      expect(config.readAsStringSync(), before);
+      expect(report.drift.any((e) => e.contains('.w_tools_doctor.yaml')), isFalse);
+      expect(report.upToDate.any((e) => e.contains('.w_tools_doctor.yaml')), isTrue);
+      expect(File('${config.path}.bak').existsSync(), isFalse);
+    });
+
+    test('--check --force-config 报配置 drift，但不写 .bak', () async {
+      final root = makeProject();
+      final config = File(p.join(root.path, '.w_tools_doctor.yaml'));
+      config.writeAsStringSync('banned: []\n');
+      final before = config.readAsStringSync();
+      final report = runInit(root, check: true, forceConfig: true);
       expect(config.readAsStringSync(), before);
       expect(report.drift.any((e) => e.contains('.w_tools_doctor.yaml')), isTrue);
       expect(File('${config.path}.bak').existsSync(), isFalse);
@@ -523,14 +569,50 @@ void main() {
       expect(snippet, isNot(contains('\ndev_dependencies:\n')));
     });
 
-    test('--force 覆盖自定义 config 时给出警告', () async {
+    test('--force 保留自定义 config，并提示 --force-config', () async {
       final root = makeProject();
       runInit(root);
       final config = File(p.join(root.path, '.w_tools_doctor.yaml'));
-      config.writeAsStringSync('# 我改过\n');
+      const custom = '# 我改过\nfeedback:\n  issue: true\n';
+      config.writeAsStringSync(custom);
       final report = runInit(root, force: true);
-      expect(report.warnings.any((e) => e.contains('覆盖了')), isTrue);
-      expect(report.created.any((e) => e.contains('.w_tools_doctor.yaml')), isTrue);
+      expect(config.readAsStringSync(), custom);
+      expect(report.created.any((e) => e.contains('.w_tools_doctor.yaml')), isFalse);
+      expect(
+        report.warnings.any(
+          (e) => e.contains('保留') && e.contains('--force-config'),
+        ),
+        isTrue,
+      );
+      expect(File('${config.path}.bak').existsSync(), isFalse);
+    });
+
+    test('--force-config 覆盖配置前写 .bak，连续覆盖不丢旧备份', () async {
+      final root = makeProject();
+      runInit(root);
+      final config = File(p.join(root.path, '.w_tools_doctor.yaml'));
+      const first = '# user A\nfeedback:\n  issue: true\n';
+      config.writeAsStringSync(first);
+      final firstReport = runInit(root, forceConfig: true);
+      expect(config.readAsStringSync(), renderDefaultConfig());
+      expect(File('${config.path}.bak').readAsStringSync(), first);
+      expect(firstReport.warnings.any((e) => e.contains('.bak')), isTrue);
+
+      const second = '# user B\nfeedback:\n  issue: false\n';
+      config.writeAsStringSync(second);
+      runInit(root, forceConfig: true);
+      expect(
+        File('${config.path}.bak').readAsStringSync(),
+        first,
+        reason: '已有 .bak 不能被覆盖',
+      );
+      final stamped = Directory(root.path)
+          .listSync()
+          .whereType<File>()
+          .where((f) => p.basename(f.path).startsWith('.w_tools_doctor.yaml.bak.'))
+          .toList();
+      expect(stamped, isNotEmpty);
+      expect(stamped.any((f) => f.readAsStringSync() == second), isTrue);
     });
 
     test('pubspec 写坏时只警告，不抛异常', () async {
@@ -831,7 +913,7 @@ void main() {
         '^${devicePubspec['version']}',
         reason: 'w_tools_device 的 init 约束必须等于当前版本',
       );
-      expect(cliConstraint, '^1.14.0');
+      expect(cliConstraint, '^1.15.0');
       expect(snippet, contains('w_tools_cli: $cliConstraint'));
 
       // 反向检查：片段里出现的每个 w_tools_* 约束都必须在已知清单里，

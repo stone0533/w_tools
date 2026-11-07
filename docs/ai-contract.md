@@ -38,9 +38,20 @@ w_tools 是 monorepo，子包多、版本独立、API 会演进。
 | AGENTS | 入口规则 / 路由 | [`packages/cli/templates/agents/`](../packages/cli/templates/agents/) |
 | README / example | 完整说明与真实场景 | `packages/<pkg>/README.md`、`packages/<pkg>/example/` |
 
+这四层都在解决“AI 怎么知道事实”。另有一个人用的入口：消费方 `.w_tools/AI_PROMPTS.md`
+（源模板 [`packages/cli/templates/ai/`](../packages/cli/templates/ai/)，场景编号 `A-1` / `B-1` …）。
+它**不是规则源**，而是开发者复制、填空、贴给 AI 的场景提示词；规则主体仍写在项目规则文件里，
+固定前缀只保留每次贴给 AI 的最小操作契约。这份文件负责“这次让 AI 做什么、交什么、贴完怎么验”，
+两边不要互相扩写。
+
 ---
 
 ## 2. 消费方 AI 的工作流
+
+人先选场景：`.w_tools/AI_PROMPTS.md` 的 §1 场景选择（`A-1` 计划 → `A-2` 实现、
+`E-1` 审计 → `E-2` 修复、`F-1`→`F-2`→`F-3` 升级），填好占位符再贴给 AI。
+
+AI 侧从拿事实开始：
 
 ### 第一步：拿项目事实
 

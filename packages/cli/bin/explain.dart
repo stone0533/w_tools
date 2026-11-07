@@ -13,11 +13,11 @@ import 'package:w_tools_cli/src/doctor/banned_rule.dart';
 const _usage = '''
 w_tools_cli explain —— 查看某个组件的用途、反例、import 与文档
 
-用法：dart run w_tools_cli:explain <组件名>
+用法：dart run w_tools_cli:w_tools explain <组件名>
 
 示例：
-  dart run w_tools_cli:explain WImage
-  dart run w_tools_cli:explain WFormDropdown
+  dart run w_tools_cli:w_tools explain WImage
+  dart run w_tools_cli:w_tools explain WFormDropdown
 
 说明：
   项目 .w_tools_doctor.yaml 配置 banned 时，会提示禁用项、替代方案与原因。
@@ -43,9 +43,9 @@ CommandResult run(List<String> argv) {
       final name = args.rest.join(' ').trim();
       if (name.isEmpty) {
         if (outputFormat(args) == 'json') {
-          failCli(args, '用法：dart run w_tools_cli:explain <组件名>');
+          failCli(args, '用法：dart run w_tools_cli:w_tools explain <组件名>');
         }
-        stderr.writeln('用法：dart run w_tools_cli:explain <组件名>\n');
+        stderr.writeln('用法：dart run w_tools_cli:w_tools explain <组件名>\n');
         stderr.writeln(_usage);
         throw CliExit(2);
       }
@@ -85,7 +85,8 @@ CommandResult run(List<String> argv) {
             'schema': 'w_tools_cli.explain/1',
             'schemaVersion': 1,
             'query': name,
-            'found': matches.isNotEmpty,
+            'found': matches.length == 1,
+            'ambiguous': matches.length > 1,
             'import': aggregateImport,
             'packageVersion': matches.length == 1 ? lockedVersions[matches.single.package] : null,
             'docsUrl': matches.length == 1 ? docsUrlFor(matches.single) : null,
@@ -96,13 +97,14 @@ CommandResult run(List<String> argv) {
             'banned': banned.map(_bannedJson).toList(),
           }),
         );
+        if (matches.length > 1) throw CliExit(1);
         if (matches.isEmpty && banned.isEmpty) throw CliExit(1);
         return;
       }
 
       if (matches.isEmpty) {
         if (banned.isEmpty) {
-          print('没有找到 `$name`。试试 `dart run w_tools_cli:list $name`。');
+          print('没有找到 `$name`。试试 `dart run w_tools_cli:w_tools list $name`。');
           throw CliExit(1);
         }
         print('`$name` 不在组件目录中，但命中本项目禁用项：');
@@ -116,7 +118,7 @@ CommandResult run(List<String> argv) {
         for (final e in matches) {
           print('  ${e.name}  [${e.package}]');
         }
-        return;
+        throw CliExit(1);
       }
 
       final e = matches.single;

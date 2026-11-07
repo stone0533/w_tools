@@ -13,7 +13,7 @@ import 'package:yaml/yaml.dart' show YamlException;
 const _usage = '''
 w_tools_cli context —— 输出项目事实（给 AI / CI 的一份稳定上下文）
 
-用法：dart run w_tools_cli:context [选项]
+用法：dart run w_tools_cli:w_tools context [选项]
 
 选项：
   --root=<dir>        项目根目录（默认当前目录）
@@ -24,8 +24,8 @@ w_tools_cli context —— 输出项目事实（给 AI / CI 的一份稳定上�
   --help, -h          显示本帮助
 
 示例：
-  dart run w_tools_cli:context --format=prompt
-  dart run w_tools_cli:context --format=json
+  dart run w_tools_cli:w_tools context --format=prompt
+  dart run w_tools_cli:w_tools context --format=json
 ''';
 
 CommandResult run(List<String> argv) {

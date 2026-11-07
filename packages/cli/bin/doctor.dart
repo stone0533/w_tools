@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:w_tools_cli/src/common/backup.dart';
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/common/project_loader.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
@@ -14,7 +15,7 @@ import 'package:yaml/yaml.dart' show YamlException;
 const _usage = '''
 w_tools_cli doctor —— 扫描消费方项目是否符合 w_tools 的接入约定
 
-用法：dart run w_tools_cli:doctor [选项]
+用法：dart run w_tools_cli:w_tools doctor [选项]
 
 选项：
   --root=<dir>        项目根目录（默认当前目录）
@@ -24,16 +25,16 @@ w_tools_cli doctor —— 扫描消费方项目是否符合 w_tools 的接入约
   --only=<R1,R2>      只跑指定规则
   --include-tests     同时扫描 test/ 与 tool/
   --print-config      打印带注释的默认配置（可直接粘贴成 .w_tools_doctor.yaml）
-  --write-config      把默认配置写到 <root>/.w_tools_doctor.yaml（已存在则跳过）
-  --force             配合 --write-config 覆盖已有文件（覆盖前写 .bak）
+  --write-config      把默认配置写到 <root>/.w_tools_doctor.yaml（已存在报错，加 --force 覆盖）
+  --force             配合 --write-config 覆盖已有文件（写 .bak；已存在则 .bak.<timestamp>）
   --version           显示版本
   --help, -h          显示本帮助
 
 示例：
-  dart run w_tools_cli:doctor
-  dart run w_tools_cli:doctor --format=markdown
-  dart run w_tools_cli:doctor --only=R1,R9 --strict --json
-  dart run w_tools_cli:doctor --print-config
+  dart run w_tools_cli:w_tools doctor
+  dart run w_tools_cli:w_tools doctor --format=markdown
+  dart run w_tools_cli:w_tools doctor --only=R1,R9 --strict --json
+  dart run w_tools_cli:w_tools doctor --print-config
 
 说明：
   R9 读取 .w_tools_doctor.yaml 的 banned；未配置时跳过。
@@ -94,9 +95,7 @@ CommandResult run(List<String> argv) {
         // 这个文件是项目手工维护的 palette / banned / ignore，覆盖前必须留底。
         String? backupName;
         if (exists) {
-          final backup = File('${target.path}.bak');
-          backup.writeAsStringSync(target.readAsStringSync());
-          backupName = '${DoctorConfig.fileName}.bak';
+          backupName = backupFile(target);
           if (outputFormat(args) != 'json') {
             stderr.writeln('已备份原配置到 $backupName');
           }

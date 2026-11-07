@@ -49,6 +49,7 @@ doctor → 0 error / 0 warning 才算通过
 | 只检查不写文件 | `init --check` |
 | 检查模板是否过期 | `init --check-drift` |
 | 升级 CLI 后刷新生成物 | `init --force` |
+| 显式恢复默认 `.w_tools_doctor.yaml` | `init --force-config`（先 `.bak`） |
 | 回到默认 profile/targets/lang | `init --reset` |
 | 明确刷新 UI / device starter | `init --force-starters` |
 
@@ -82,7 +83,7 @@ dart run w_tools_cli:w_tools init
 ```text
 lib/app/w/toolkit.dart             本项目能力清单（w_tools:begin/end 标记块，块外追加项不会被 --force 覆盖）
 .w_tools/init.json                  上次 init 的 flags；--check 用它回放参数
-.w_tools/AI_PROMPTS.md             消费方 AI 任务提示词（默认生成）
+.w_tools/AI_PROMPTS.md             消费方场景提示词库（默认生成）
 .w_tools_doctor.yaml               doctor 配置（默认值与内置一致）
 AGENTS.md / CLAUDE.md / ...        w_tools 指令片段（标记块）
 lib/app/ui/                        页面规范（AppBars / AppBoxes / AppButtons / AppCard / AppScaffold）
@@ -183,22 +184,39 @@ copilot  .github/copilot-instructions.md
 .w_tools/AI_PROMPTS.md
 ```
 
-包含消费者版；文件开头有“先选场景”速查表和新手元提示词。
+给**使用 w_tools 的开发者**用（Dart / Flutter 开发者、对写提示词不熟）：按场景编号复制一段、填空、贴给 AI。
+文件结构：
 
 ```text
-固定前缀
-C-A 新页面：先计划，再实现
-C-B 列表 / 分页 / 刷新
-C-C 表单 / 校验 / 提交（启用 form 时）
-C-D 接口 / 登录 / 401（启用 api 时）
-C-E 审计现有代码
-C-F 升级 w_tools
-C-G 调试 UI / 性能
-C-H 白盒测试
-C-I 黑盒测试
-C-J 只审查
-C-K AI 不能跑命令
+新手先看这里（三步 / 让 AI 选场景 / 默认工作流 / 完成后先看）
+0. 固定前缀（每次先贴）
+填空说明（占位符表）
+一个填好的例子
+1. 场景选择（＋从现象反查）
 ```
+
+场景编号是「族字母-工序号」，有先后关系的拆成多轮：
+
+```text
+A-1 只读计划 → A-2 实现
+B-1 列表 / 分页 / 刷新
+C-1 表单 / 校验 / 提交（启用 form 时）
+D-1 接口 / 登录 / 401（启用 api 时）
+E-1 审计 → E-2 按清单修复
+F-1 计划 → F-2 分文件替换 → F-3 验证（升级 w_tools 子包）
+G-1 调试 UI / 性能
+H-1 白盒测试
+I-1 黑盒测试
+J-1 只审查改动
+K-1 AI 不能读仓库
+```
+
+固定前缀里的规则文件、toolkit 入口、`flutter` / `dart` 命令、聚合包 / 子包说明，会按本次 `init` 的 targets、`toolkit_entry` 与 pubspec 渲染；纯 Dart 项目不会拿到 `flutter` 命令，`--targets=claude` 也不会指向 `AGENTS.md`。
+
+文末「3. AI 完成后你必须检查」是全文唯一一份自检清单；每条要求标 `✅` / `N/A（写理由）` / `❌`。
+
+它是生成物：内容与模板不同时 `init` 不覆盖、只报 drift；`init --force` 直接覆盖且没有备份，
+项目自己的提示词请另存。
 
 关闭：
 
@@ -320,7 +338,7 @@ dart run w_tools_cli:w_tools doctor --write-config    # 写入 .w_tools_doctor.y
 dart run w_tools_cli:w_tools doctor --write-config --json   # JSON: { schema, written, backup }
 ```
 
-`--force` 只能配合 `--write-config` 使用（覆盖前写 `.bak`）。
+`--force` 只能配合 `--write-config` 使用（覆盖前写 `.bak`；`.bak` 已存在时写 `.bak.<timestamp>`）。
 
 `--json` 的 issue 带可选 `fix`：
 
@@ -457,7 +475,8 @@ dart run w_tools_cli:w_tools doctor
 注意：
 
 ```text
---force 会覆盖生成的 AGENTS / toolkit 标记块 / 配置（配置先 .bak）
+--force 会覆盖生成的 AGENTS / toolkit 标记块；不覆盖 .w_tools_doctor.yaml
+要覆盖项目配置用 --force-config（先 .bak）
 toolkit 标记块外的项目追加项会保留
 `.w_tools/init.json` 记录本次 init flags，普通 init 总是更新；--check 只比对不写
 --force-starters 才会覆盖 UI / device starter，并先写 .bak
