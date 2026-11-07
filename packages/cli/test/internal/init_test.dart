@@ -569,6 +569,27 @@ void main() {
       expect(snippet, contains('w_tools_core'));
       expect(snippet, contains('dev_dependencies:'));
     });
+
+    test('CLI-019 pubspecNeeded 直接来自依赖状态，不解析提示文案', () async {
+      final missing = runInit(makeProject());
+      expect(missing.pubspecNeeded, isTrue);
+
+      final full = runInit(
+        makeProject(
+          extra: {
+            'pubspec.yaml':
+                'name: demo_app\n'
+                'dependencies:\n'
+                '  w_tools_core: any\n  w_tools_app: any\n  w_tools_app_getx: any\n  w_tools_form: any\n'
+                '  w_tools_ui: any\n  w_tools_api: any\n  w_tools_toast: any\n'
+                '  w_tools_qr: any\n  w_tools_async: any\n'
+                'dev_dependencies:\n'
+                '  w_tools_cli: any\n',
+          },
+        ),
+      );
+      expect(full.pubspecNeeded, isFalse);
+    });
   });
 
   group('AGENTS.md 处理', () {
@@ -810,7 +831,7 @@ void main() {
         '^${devicePubspec['version']}',
         reason: 'w_tools_device 的 init 约束必须等于当前版本',
       );
-      expect(cliConstraint, '^1.13.0');
+      expect(cliConstraint, '^1.14.0');
       expect(snippet, contains('w_tools_cli: $cliConstraint'));
 
       // 反向检查：片段里出现的每个 w_tools_* 约束都必须在已知清单里，

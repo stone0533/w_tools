@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:yaml/yaml.dart';
 
 import 'version.dart';
 
@@ -33,7 +34,7 @@ CommandResult runCli(
   required ArgParser parser,
   required void Function(ArgResults args) body,
 }) {
-  final wantsJson = argv.contains('--json') || argv.contains('--format=json');
+  final wantsJson = _wantsJson(argv);
   Never usageError(String message) {
     if (wantsJson) {
       stdout.writeln(
@@ -71,11 +72,40 @@ CommandResult runCli(
       print(usage);
       return CommandResult.ok;
     }
-    body(args);
+    try {
+      body(args);
+    } on CliExit {
+      rethrow;
+    } catch (error) {
+      // 任何未预期异常都不应以「255 + 栈」结束：统一成错误信封 + 稳定退出码。
+      _failUnexpected(args, error);
+    }
     return CommandResult.ok;
   } on CliExit catch (e) {
     return CommandResult(e.code);
   }
+}
+
+/// 参数解析失败前就要判断要不要 JSON 错误；`--format json` 与 `--format=json` 都算。
+bool _wantsJson(List<String> argv) {
+  for (var i = 0; i < argv.length; i++) {
+    final arg = argv[i];
+    if (arg == '--json' || arg == '--format=json') return true;
+    if (arg == '--format' && i + 1 < argv.length && argv[i + 1] == 'json') return true;
+  }
+  return false;
+}
+
+/// 把未捕获异常映射成 CLI 错误：配置/文件问题 2，外部工具/未知问题 3。
+Never _failUnexpected(ArgResults args, Object error) {
+  final (message, code) = switch (error) {
+    ProcessException e => ('外部命令不可用：${e.message}', 3),
+    FileSystemException e => ('文件操作失败：${e.path ?? ''}', 2),
+    YamlException e => ('YAML 解析失败：${e.message}', 2),
+    TypeError() => ('配置类型错误：$error', 2),
+    _ => ('内部错误：$error', 3),
+  };
+  failCli(args, message, code: code);
 }
 
 /// 命令体统一的失败出口：`--json` 时输出 JSON，而不是只写 stderr。

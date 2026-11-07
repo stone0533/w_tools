@@ -27,7 +27,7 @@ class R6BannedUnits {
     final issues = <DoctorIssue>[];
     for (final file in TextScan.files(ctx)) {
       for (final line in file.codeLines) {
-        final m = _pattern.firstMatch(line.code);
+        final m = _pattern.firstMatch(line.codeOnly);
         if (m == null) continue;
         if (Suppression.isIgnored(file.lines, line.index, id)) continue;
         issues.add(

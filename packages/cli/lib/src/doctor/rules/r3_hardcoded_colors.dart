@@ -35,14 +35,21 @@ class R3HardcodedColors {
         continue;
       }
       for (final line in file.codeLines) {
-        for (final re in <RegExp>[_colorPattern, _hexPattern]) {
-          for (final m in re.allMatches(line.code)) {
-            final hex = _normalize(m.group(1)!);
-            if (!palette.contains(hex)) continue;
-            if (Suppression.isIgnored(file.lines, line.index, id)) continue;
-            final places = hits.putIfAbsent(hex, () => <({String file, int line})>[]);
-            places.add((file: file.path, line: line.lineNumber));
-          }
+        // Color(...) 只在代码里算；字符串里的同名文本是数据，不是硬编码色。
+        for (final m in _colorPattern.allMatches(line.codeOnly)) {
+          final hex = _normalize(m.group(1)!);
+          if (!palette.contains(hex)) continue;
+          if (Suppression.isIgnored(file.lines, line.index, id)) continue;
+          final places = hits.putIfAbsent(hex, () => <({String file, int line})>[]);
+          places.add((file: file.path, line: line.lineNumber));
+        }
+        // fromHex('#...') 的色值本身在字符串里，必须保留字符串内容才能匹配。
+        for (final m in _hexPattern.allMatches(line.code)) {
+          final hex = _normalize(m.group(1)!);
+          if (!palette.contains(hex)) continue;
+          if (Suppression.isIgnored(file.lines, line.index, id)) continue;
+          final places = hits.putIfAbsent(hex, () => <({String file, int line})>[]);
+          places.add((file: file.path, line: line.lineNumber));
         }
       }
     }

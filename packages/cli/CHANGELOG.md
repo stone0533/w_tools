@@ -1,3 +1,25 @@
+## 1.14.0
+
+### Changed
+- 未捕获异常不再以「255 + 栈」结束：统一输出错误信封，配置 / 文件问题退出码 2，
+  外部工具 / 未知问题退出码 3；`explain` / `context` / `doctor` 的错误在 `--json` 下也输出 JSON。
+- `doctor --print-config` / `--write-config` 支持 `--json`；`--force` 必须配合 `--write-config`。
+- `explain --format=prompt` 补「不要用于」段，和 text 格式对齐。
+- `list` / `explain` / `doctor` / `feedback path|status|search` 的 JSON 输出补
+  `schema` / `schemaVersion`。
+- `feedback` 的包清单补 `app_getx` / `map_google`，`path` 与 `submit` 共用同一份；
+  本地查重不再把 `README.md` / `TEMPLATE.md` 当反馈。
+- `feedback submit --issue`：`gh` 未安装 / 未登录退出码改为 3（外部不可用），不再抛栈。
+- `init` 的 `toolkit_entry` 必须是项目内相对路径，拒绝绝对路径与 `..`。
+- `init` 生成的 toolkit / UI starter / device 模板统一改用 `w_tools_cli:w_tools <cmd>`。
+- doctor 缓存 `SourceFile`、R4 单次遍历；R3 的 `Color(...)` 与 R6 的单位不再匹配字符串字面量
+  （`fromHex('#...')` 仍按字符串匹配）。
+- `list --package=<工具包>` 给出 `docs/agents` / README 的专门提示。
+
+### Fixed
+- `feedback --ledger` 在索引缺失时先失败，不再留下「有台账、没索引」的半截状态。
+- `init` 的 `needsPubspec` / 下一步提示改由 `InitReport.pubspecNeeded` 驱动，不再解析提示文案。
+
 ## 1.13.0
 
 ### Changed

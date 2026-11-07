@@ -43,6 +43,8 @@ class DoctorReporter {
 
   void printJson(List<DoctorRuleResult> results) {
     final payload = <String, Object?>{
+      'schema': 'w_tools_cli.doctor/1',
+      'schemaVersion': 1,
       'project': projectName,
       'fileCount': fileCount,
       'counts': <String, int>{

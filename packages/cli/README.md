@@ -250,7 +250,8 @@ dart run w_tools_cli:w_tools doctor --strict            # warning 也失败
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成 |
 | R9 | 配置 | 项目禁用 API（`banned`；默认空） |
 
-> doctor 规则是文本级检查：整行注释和行尾 `//` 注释会跳过，但字符串内容仍可能命中。
+> doctor 规则是文本级检查：注释会跳过；R3 的 `Color(...)` / R6 单位不会命中字符串字面量，
+> 但 R9 与 `fromHex('#...')` 仍按字符串内容匹配。
 > 完整规则细节与豁免语义以仓库里的
 > [docs/conventions.md §7](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md) 为准。
 
@@ -314,8 +315,12 @@ Image.asset('logo.png');
 
 ```bash
 dart run w_tools_cli:w_tools doctor --print-config    # 打印默认配置
+dart run w_tools_cli:w_tools doctor --print-config --json   # JSON: { schema, config }
 dart run w_tools_cli:w_tools doctor --write-config    # 写入 .w_tools_doctor.yaml
+dart run w_tools_cli:w_tools doctor --write-config --json   # JSON: { schema, written, backup }
 ```
+
+`--force` 只能配合 `--write-config` 使用（覆盖前写 `.bak`）。
 
 `--json` 的 issue 带可选 `fix`：
 
@@ -415,7 +420,8 @@ dart run w_tools_cli:w_tools explain WFormDropdown
 dart run w_tools_cli:w_tools explain WAsync --format=prompt
 ```
 
-输出用途、反例、import、用法、注意项、相关组件、文档；`--format=prompt` 是给 AI 的紧凑格式。
+输出用途、反例、import、用法、注意项、相关组件、文档；`--format=prompt` 是给 AI 的紧凑格式，
+同样包含「不要用于」段。
 项目配置了 `banned` 时会提示禁用项和替代方案。
 `banned` 读取 `--root` 或当前工作目录的 `.w_tools_doctor.yaml`。
 
@@ -440,7 +446,7 @@ dart run w_tools_cli:w_tools doctor --json           # 写完自检
 CLI 模板会随版本变化。升级后执行：
 
 ```bash
-flutter pub upgrade w_tools_cli
+dart pub upgrade w_tools_cli
 
 dart run w_tools_cli:w_tools init --check-drift
 # 有 drift 时再覆盖生成物
@@ -475,6 +481,9 @@ toolkit 标记块外的项目追加项会保留
 | `feedback path` / `lint` | 成功 / 无问题 | lint 有问题 | 参数 / 子命令错误 |
 | `feedback submit` | 生成链接 / 写入 / 创建成功 | `--gh` 提交失败 | 参数 / 字段缺失 |
 | `feedback search` | 找到 | 未找到 | 参数错误 |
+
+`feedback submit --issue` 在 `gh` 未安装 / 未登录时退出 `3`（外部不可用），不再抛栈。
+`feedback search --gh` 在 `gh` 未安装 / 未登录时同样退出 `3`，本地结果不返回。
 
 ---
 
@@ -512,6 +521,9 @@ python3 ../../scripts/check_public_catalog.py --write
 
 AI 教学契约由 `test/ai_contract_test.dart` 检查：teach 组件必须有
 usage / pitfalls / related，所有 AGENTS feature 必须有 zh/en 模板。
+
+新增包时同步 `lib/src/feedback/feedback_ledger.dart` 的 `feedbackPackages` 与
+`bin/explain.dart` 的 `_examplePackages`；`test/internal/package_lists_test.dart` 会挡住漂移。
 
 > 改 CLI 版本号时同步 `lib/src/common/version.dart` 的 `cliVersion`；
 > `test/version_test.dart` 会拦住漂移。

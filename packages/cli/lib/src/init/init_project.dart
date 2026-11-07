@@ -34,6 +34,9 @@ class InitReport {
 
   /// 需要人工加到 pubspec 的依赖片段
   String pubspecSnippet = '';
+
+  /// 是否确实有依赖需要补（不解析 [pubspecSnippet] 的提示文案）。
+  bool pubspecNeeded = false;
 }
 
 String _normalizeExport(String line) =>
@@ -549,7 +552,8 @@ String _snippet(
     if (device && !existingDev.contains('w_tools_device'))
       'w_tools_device: $wToolsDeviceConstraint',
   ];
-  if (depLines.isEmpty && devLines.isEmpty) {
+  report.pubspecNeeded = depLines.isNotEmpty || devLines.isNotEmpty;
+  if (!report.pubspecNeeded) {
     return '# 依赖已齐全，无需修改 pubspec.yaml\n';
   }
 

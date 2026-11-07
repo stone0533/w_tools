@@ -11,7 +11,12 @@ String renderExplainPrompt(
 }) {
   final b = StringBuffer()
     ..writeln('# ${entry.name} (${entry.package})')
-    ..writeln(entry.useFor)
+    ..writeln(entry.useFor);
+  final dontUseFor = entry.dontUseFor?.trim();
+  if (dontUseFor != null && dontUseFor.isNotEmpty) {
+    b.writeln('不要用于：$dontUseFor');
+  }
+  b
     ..writeln()
     ..writeln("import '$importPath';");
   if (packageVersion != null && packageVersion.isNotEmpty) {

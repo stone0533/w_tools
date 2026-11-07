@@ -16,11 +16,16 @@ Directory _project() {
 }
 
 /// 用真实的 dart run 跑入口，验证参数解析与退出码（main 里有 exit，不能直接调用）。
-Future<ProcessResult> _run(String bin, List<String> args) {
+Future<ProcessResult> _run(
+  String bin,
+  List<String> args, {
+  Map<String, String>? env,
+}) {
   return Process.run(
     Platform.resolvedExecutable,
     <String>['run', 'bin/$bin', ...args],
     workingDirectory: Directory.current.path,
+    environment: env,
   );
 }
 
@@ -910,4 +915,227 @@ banned:
       isFalse,
     );
   });
+
+  test('CLI-001 init 拒绝越界 toolkit_entry，且不写项目外文件', () async {
+    final base = Directory.systemTemp.createTempSync('wt_escape_');
+    addTearDown(() => base.deleteSync(recursive: true));
+    final root = Directory(p.join(base.path, 'proj'))..createSync(recursive: true);
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: demo_app\n');
+    File(
+      p.join(root.path, '.w_tools_doctor.yaml'),
+    ).writeAsStringSync('toolkit_entry: ../escaped/toolkit.dart\n');
+
+    final r = await _run('init.dart', ['--root', root.path]);
+
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('toolkit_entry'));
+    expect(File(p.join(base.path, 'escaped', 'toolkit.dart')).existsSync(), isFalse);
+    expect(File(p.join(root.path, 'lib', 'app', 'w', 'toolkit.dart')).existsSync(), isFalse);
+  });
+
+  test('CLI-002 坏配置类型不再抛栈（context）', () async {
+    final root = _project();
+    File(tmpConfig(root)).writeAsStringSync('toolkit_entry: [a, b]\n');
+
+    final r = await _run('context.dart', ['--root', root.path, '--format=json']);
+
+    expect(r.exitCode, 2);
+    expect('${r.stdout}', contains('"ok":false'));
+    expect('${r.stderr}', isNot(contains('TypeError')));
+    expect('${r.stderr}', isNot(contains('#0')));
+  });
+
+  test('CLI-002 / CLI-009 无 gh 时 feedback --issue 退出 3 且不抛栈', () async {
+    final root = _project();
+    final body = File(p.join(root.path, 'body.md'))
+      ..writeAsStringSync('''
+- 包/版本：ui 1.0.0
+- 环境：test
+- 命令 / 输入：x
+- 期望：a
+- 实际：b
+- 影响：c
+- 建议：d
+- 复现数据：e
+''');
+
+    final r = await _run(
+      'feedback.dart',
+      [
+        'submit',
+        '--root',
+        root.path,
+        '--package=ui',
+        '--title=t',
+        '--body-file',
+        body.path,
+        '--issue',
+      ],
+      env: <String, String>{'PATH': '/usr/bin:/bin'},
+    );
+
+    expect(r.exitCode, 3, reason: '${r.stderr}');
+    expect('${r.stderr}', isNot(contains('ProcessException')));
+    expect('${r.stderr}', isNot(contains('#0')));
+  });
+
+  test('CLI-009 feedback search --gh 无 gh 也退出 3', () async {
+    final root = _project();
+    final r = await _run(
+      'feedback.dart',
+      ['search', 'needle', '--root', root.path, '--gh'],
+      env: <String, String>{'PATH': '/usr/bin:/bin'},
+    );
+    expect(r.exitCode, 3, reason: '${r.stderr}');
+    expect('${r.stderr}', isNot(contains('#')));
+  });
+
+  test('CLI-003 explain --json 缺组件名输出 JSON 错误', () async {
+    final r = await _run('explain.dart', ['--json']);
+    expect(r.exitCode, 2);
+    expect('${r.stdout}', contains('"ok":false'));
+  });
+
+  test('CLI-004 context --format=json 坏 lock 输出 JSON 错误', () async {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.lock')).writeAsStringSync('packages: [');
+    final r = await _run('context.dart', ['--root', root.path, '--format=json']);
+    expect(r.exitCode, 2);
+    expect('${r.stdout}', contains('"ok":false'));
+    expect('${r.stdout}', contains('pubspec.lock'));
+  });
+
+  test('CLI-005 doctor --print-config / --write-config 支持 --json，--force 需配套', () async {
+    final root = _project();
+
+    final printConfig = await _run('doctor.dart', ['--print-config', '--json']);
+    expect(printConfig.exitCode, 0, reason: '${printConfig.stderr}');
+    final printed = jsonDecode('${printConfig.stdout}') as Map<String, Object?>;
+    expect(printed['schema'], isNotEmpty);
+    expect('${printed['config']}', contains('toolkit_entry'));
+
+    final writeConfig = await _run('doctor.dart', [
+      '--root',
+      root.path,
+      '--write-config',
+      '--json',
+    ]);
+    expect(writeConfig.exitCode, 0, reason: '${writeConfig.stderr}');
+    final written = jsonDecode('${writeConfig.stdout}') as Map<String, Object?>;
+    expect(written['written'], endsWith('.w_tools_doctor.yaml'));
+
+    final forceOnly = await _run('doctor.dart', ['--root', root.path, '--force']);
+    expect(forceOnly.exitCode, 2);
+    expect('${forceOnly.stderr}', contains('--write-config'));
+  });
+
+  test('CLI-010 JSON 输出带 schema', () async {
+    final root = _project();
+
+    final doctor =
+        jsonDecode(
+              '${(await _run('doctor.dart', ['--root', root.path, '--json'])).stdout}',
+            )
+            as Map<String, Object?>;
+    expect(doctor['schema'], 'w_tools_cli.doctor/1');
+    expect(doctor['schemaVersion'], 1);
+
+    final list =
+        jsonDecode(
+              '${(await _run('list.dart', ['WForm', '--format=json'])).stdout}',
+            )
+            as Map<String, Object?>;
+    expect(list['schema'], 'w_tools_cli.list/1');
+
+    final explain =
+        jsonDecode(
+              '${(await _run('explain.dart', ['WForm', '--json'])).stdout}',
+            )
+            as Map<String, Object?>;
+    expect(explain['schema'], 'w_tools_cli.explain/1');
+
+    final status =
+        jsonDecode(
+              '${(await _run('feedback.dart', ['status', '--root', root.path, '--json'])).stdout}',
+            )
+            as Map<String, Object?>;
+    expect(status['schema'], 'w_tools_cli.feedback/1');
+  });
+
+  test('CLI-016 --format json 的空格写法在错误时也输出 JSON', () async {
+    final r = await _run('list.dart', ['--format', 'json', '--bogus']);
+    expect(r.exitCode, 2);
+    expect('${r.stdout}', contains('"ok":false'));
+  });
+
+  test('CLI-017 init --help 列出 --instructions', () async {
+    final r = await _run('init.dart', ['--help']);
+    expect(r.exitCode, 0);
+    expect('${r.stdout}', contains('--instructions'));
+  });
+
+  test('CLI-007 feedback path 拒绝未知包', () async {
+    final root = _project();
+    final r = await _run('feedback.dart', ['path', '--root', root.path, '--package=foo']);
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('未知反馈包'));
+  });
+
+  test('CLI-007 feedback path 与 submit 对 app_getx 一致', () async {
+    final root = _project();
+    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools\n');
+    Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
+    Directory(p.join(root.path, 'docs', 'feedback')).createSync(recursive: true);
+    File(p.join(root.path, 'docs', 'feedback', 'README.md')).writeAsStringSync('''
+# 反馈
+
+| 包 | 待处理 | 最近更新 |
+| --- | --- | --- |
+| [api](api.md) | 0 | 2026-11-04 |
+''');
+
+    final path = await _run('feedback.dart', [
+      'path',
+      '--root',
+      root.path,
+      '--package=app_getx',
+    ]);
+    expect(path.exitCode, 0);
+    expect('${path.stdout}', contains('app_getx.md'));
+
+    final body = File(p.join(root.path, 'body.md'))
+      ..writeAsStringSync('''
+- 包/版本：app_getx 1.0.0
+- 环境：test
+- 命令 / 输入：x
+- 期望：a
+- 实际：b
+- 影响：c
+- 建议：d
+- 复现数据：e
+''');
+    final submit = await _run('feedback.dart', [
+      'submit',
+      '--root',
+      root.path,
+      '--package=app_getx',
+      '--title=t',
+      '--body-file',
+      body.path,
+      '--ledger',
+    ]);
+    expect(submit.exitCode, 0, reason: '${submit.stderr}');
+    expect(
+      File(p.join(root.path, 'docs', 'feedback', 'app_getx.md')).existsSync(),
+      isTrue,
+    );
+  });
+
+  test('CLI-011 list --package=cli 给出工具包教学入口提示', () async {
+    final r = await _run('list.dart', ['--package=cli']);
+    expect(r.exitCode, 1);
+    expect('${r.stdout}', contains('docs/agents/cli.md'));
+  });
 }
+
+String tmpConfig(Directory root) => p.join(root.path, '.w_tools_doctor.yaml');

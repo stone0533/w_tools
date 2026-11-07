@@ -200,10 +200,15 @@ def dart_file_errors(text: str, name: str) -> list[str]:
 
 
 def _cli_flags(subcommand: str) -> set[str] | None:
-    path = CLI_BIN / f'{subcommand}.dart'
-    if not path.is_file():
+    paths = [CLI_BIN / f'{subcommand}.dart']
+    if subcommand == 'feedback':
+        # feedback 的 parser 已下沉到 lib/src/feedback/feedback_command.dart，
+        # bin/feedback.dart 只剩 dispatch；两处都扫，flag 才不会被误判为未知。
+        paths.append(CLI_BIN.parent / 'lib' / 'src' / 'feedback' / 'feedback_command.dart')
+    present = [path for path in paths if path.is_file()]
+    if not present:
         return None
-    body = path.read_text()
+    body = '\n'.join(path.read_text() for path in present)
     flags = set(re.findall(r'--([A-Za-z][A-Za-z0-9-]*)', body))
     flags |= set(re.findall(r"addFlag\('([^']+)'\)", body))
     flags |= set(re.findall(r"addOption\('([^']+)'\)", body))

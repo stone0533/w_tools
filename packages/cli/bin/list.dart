@@ -46,6 +46,8 @@ CommandResult run(List<String> argv) {
       if (asJson) {
         print(
           jsonEncode(<String, Object?>{
+            'schema': 'w_tools_cli.list/1',
+            'schemaVersion': 1,
             'query': query,
             'package': package,
             'count': results.length,
@@ -70,7 +72,12 @@ CommandResult run(List<String> argv) {
 
       print('w_tools_cli list · catalog v$catalogVersion · $label · ${results.length} 个结果');
       if (results.isEmpty) {
-        print('没有匹配。换个关键词，或运行 `dart run w_tools_cli:w_tools list` 看全部。');
+        if (package != null && _toolPackages.contains(package)) {
+          final name = package.substring('w_tools_'.length);
+          print('工具包不在组件目录里：看 docs/agents/$name.md 与 packages/$name/README.md。');
+        } else {
+          print('没有匹配。换个关键词，或运行 `dart run w_tools_cli:w_tools list` 看全部。');
+        }
         throw CliExit(1);
       }
       for (final entry in results) {
@@ -86,6 +93,14 @@ CommandResult run(List<String> argv) {
 void main(List<String> argv) {
   exitCode = run(argv).exitCode;
 }
+
+/// 工具包没有 catalog 条目（教学在 docs/agents 与 README），空结果时给专门提示。
+const _toolPackages = <String>{
+  'w_tools_cli',
+  'w_tools_figma',
+  'w_tools_device',
+  'w_tools_e2e',
+};
 
 String _normalizePackage(String value) {
   final v = value.trim();

@@ -82,6 +82,9 @@ void main() {
         expect(prompt, contains('用法：'));
         expect(prompt, contains('注意：'));
         expect(prompt, contains('相关：'));
+        if (entry.dontUseFor != null && entry.dontUseFor!.trim().isNotEmpty) {
+          expect(prompt, contains('不要用于：'));
+        }
         expect(prompt.length, lessThan(5000));
       });
     }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import '../layout.dart';
@@ -183,8 +184,16 @@ class DoctorConfig {
       }
     }
 
+    final rawToolkitEntry = raw['toolkit_entry'];
+    if (rawToolkitEntry != null && rawToolkitEntry is! String) {
+      throw const DoctorConfigException('toolkit_entry 必须是字符串');
+    }
+    final toolkitEntry = (rawToolkitEntry as String?) ?? ProjectLayout.toolkitEntry;
+    final toolkitError = _toolkitEntryError(toolkitEntry);
+    if (toolkitError != null) throw DoctorConfigException(toolkitError);
+
     return DoctorConfig(
-      toolkitEntry: (raw['toolkit_entry'] as String?) ?? 'lib/app/w/toolkit.dart',
+      toolkitEntry: toolkitEntry,
       palette: palette,
       colorMinCount: minCount,
       enabledRules: rules,
@@ -222,6 +231,29 @@ class DoctorConfig {
       feedbackIssue: feedbackIssue ?? this.feedbackIssue,
     );
   }
+}
+
+/// 配置字段本身不合法（类型 / 路径越界）。
+class DoctorConfigException implements Exception {
+  const DoctorConfigException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+/// `toolkit_entry` 必须留在项目根内：绝对路径与 `..` 一律拒绝。
+String? _toolkitEntryError(String entry) {
+  final normalized = entry.trim().replaceAll('\\', '/');
+  if (normalized.isEmpty) return 'toolkit_entry 不能为空';
+  if (p.isAbsolute(normalized)) {
+    return 'toolkit_entry 必须是项目内相对路径：$entry';
+  }
+  if (p.split(normalized).contains('..')) {
+    return 'toolkit_entry 不能包含 ..（会写到项目根之外）：$entry';
+  }
+  return null;
 }
 
 /// 把**代码里的默认值**渲染成带注释的 YAML 配置文件。
