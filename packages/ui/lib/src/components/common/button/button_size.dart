@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-const Object _unset = Object();
-
 /// 不可变的按钮尺寸令牌。
 ///
 /// 3 个默认值只是约定，不是限制；项目可以自定义任意 [WButtonSize]。
@@ -74,34 +72,31 @@ class WButtonSize {
     assert(tapTargetSize >= 0 && tapTargetSize.isFinite);
   }
 
+  /// 派生新尺寸；传 null 表示保留当前值（不能用 copyWith 清空字段）。
   WButtonSize copyWith({
     String? name,
-    Object? minWidth = _unset,
-    Object? minHeight = _unset,
-    Object? padding = _unset,
-    Object? fontSize = _unset,
-    Object? fontWeight = _unset,
-    Object? lineHeight = _unset,
-    Object? letterSpacing = _unset,
-    Object? iconSize = _unset,
-    Object? gap = _unset,
+    double? minWidth,
+    double? minHeight,
+    EdgeInsetsGeometry? padding,
+    double? fontSize,
+    FontWeight? fontWeight,
+    double? lineHeight,
+    double? letterSpacing,
+    double? iconSize,
+    double? gap,
     double? tapTargetSize,
   }) {
     return WButtonSize(
       name: name ?? this.name,
-      minWidth: identical(minWidth, _unset) ? this.minWidth : (minWidth as num?)?.toDouble(),
-      minHeight: identical(minHeight, _unset) ? this.minHeight : (minHeight as num?)?.toDouble(),
-      padding: identical(padding, _unset) ? this.padding : padding as EdgeInsetsGeometry?,
-      fontSize: identical(fontSize, _unset) ? this.fontSize : (fontSize as num?)?.toDouble(),
-      fontWeight: identical(fontWeight, _unset) ? this.fontWeight : fontWeight as FontWeight?,
-      lineHeight: identical(lineHeight, _unset)
-          ? this.lineHeight
-          : (lineHeight as num?)?.toDouble(),
-      letterSpacing: identical(letterSpacing, _unset)
-          ? this.letterSpacing
-          : (letterSpacing as num?)?.toDouble(),
-      iconSize: identical(iconSize, _unset) ? this.iconSize : (iconSize as num?)?.toDouble(),
-      gap: identical(gap, _unset) ? this.gap : (gap as num?)?.toDouble(),
+      minWidth: minWidth ?? this.minWidth,
+      minHeight: minHeight ?? this.minHeight,
+      padding: padding ?? this.padding,
+      fontSize: fontSize ?? this.fontSize,
+      fontWeight: fontWeight ?? this.fontWeight,
+      lineHeight: lineHeight ?? this.lineHeight,
+      letterSpacing: letterSpacing ?? this.letterSpacing,
+      iconSize: iconSize ?? this.iconSize,
+      gap: gap ?? this.gap,
       tapTargetSize: tapTargetSize ?? this.tapTargetSize,
     );
   }

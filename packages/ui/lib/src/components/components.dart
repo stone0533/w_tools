@@ -7,6 +7,7 @@ export 'common/clip.dart';
 export 'common/image/image.dart';
 export 'common/keep_alive_wrapper.dart';
 export 'common/notification_listener.dart';
+export 'common/press_effect.dart';
 export 'common/pressable.dart';
 export 'common/row_actions.dart';
 export 'text/w_text.dart';

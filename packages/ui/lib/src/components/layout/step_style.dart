@@ -1,7 +1,32 @@
 import 'package:flutter/material.dart';
 
-const Object _unset = Object();
+/// 步骤条按主题解析后的三种颜色。
+@immutable
+class WStepColors {
+  const WStepColors({
+    required this.completed,
+    required this.current,
+    required this.upcoming,
+  });
 
+  final Color completed;
+  final Color current;
+  final Color upcoming;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WStepColors &&
+          other.completed == completed &&
+          other.current == current &&
+          other.upcoming == upcoming;
+
+  @override
+  int get hashCode => Object.hash(completed, current, upcoming);
+}
+
+/// 步骤条样式。
+@immutable
 class WStepStyle {
   const WStepStyle({
     this.completedColor,
@@ -31,8 +56,8 @@ class WStepStyle {
   final TextStyle? upcomingLabelStyle;
 
   /// 按 ColorScheme 解析实际颜色；未显式设置的颜色取主题色。
-  ({Color completed, Color current, Color upcoming}) resolve(ColorScheme scheme) {
-    return (
+  WStepColors resolve(ColorScheme scheme) {
+    return WStepColors(
       completed: completedColor ?? scheme.primary,
       current: currentColor ?? scheme.primary,
       upcoming: upcomingColor ?? scheme.outline,
@@ -78,10 +103,10 @@ class WStepStyle {
     double? labelSpacing,
     double? separatorHeight,
     double? separatorIndent,
-    Object? labelStyle = _unset,
-    Object? completedLabelStyle = _unset,
-    Object? currentLabelStyle = _unset,
-    Object? upcomingLabelStyle = _unset,
+    TextStyle? labelStyle,
+    TextStyle? completedLabelStyle,
+    TextStyle? currentLabelStyle,
+    TextStyle? upcomingLabelStyle,
   }) {
     return WStepStyle(
       completedColor: completedColor ?? this.completedColor,
@@ -91,16 +116,10 @@ class WStepStyle {
       labelSpacing: labelSpacing ?? this.labelSpacing,
       separatorHeight: separatorHeight ?? this.separatorHeight,
       separatorIndent: separatorIndent ?? this.separatorIndent,
-      labelStyle: identical(labelStyle, _unset) ? this.labelStyle : labelStyle as TextStyle?,
-      completedLabelStyle: identical(completedLabelStyle, _unset)
-          ? this.completedLabelStyle
-          : completedLabelStyle as TextStyle?,
-      currentLabelStyle: identical(currentLabelStyle, _unset)
-          ? this.currentLabelStyle
-          : currentLabelStyle as TextStyle?,
-      upcomingLabelStyle: identical(upcomingLabelStyle, _unset)
-          ? this.upcomingLabelStyle
-          : upcomingLabelStyle as TextStyle?,
+      labelStyle: labelStyle ?? this.labelStyle,
+      completedLabelStyle: completedLabelStyle ?? this.completedLabelStyle,
+      currentLabelStyle: currentLabelStyle ?? this.currentLabelStyle,
+      upcomingLabelStyle: upcomingLabelStyle ?? this.upcomingLabelStyle,
     );
   }
 }

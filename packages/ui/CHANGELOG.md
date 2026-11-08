@@ -1,3 +1,60 @@
+## 8.0.0
+
+### Breaking
+
+- 删除 `WNavBarConfig` / `WTabBarConfig` / `WBadgeConfig` / `WClipRRectConfig`：统一用
+  `WNavBarStyle` / `WTabBarStyle` 与直接字段；`WTabBar` / `WNavBar` 只接受 `style`。
+- `WBadge` 改用自有 `WBadgePosition` / `WBadgeStyle`，不再转出 `badges` 包的
+  `BadgePosition` / `BadgeStyle`；默认背景 / 前景改为 `ColorScheme.error` / `onError`，
+  `badgeContent` 为空或 `showBadge: false` 时只渲染 child。
+- `WButtonStyle` 不再承载 `motion` / `semantics`，改由 `WButton(motion:, semantics:)`；
+  删除 `WButtonMetrics` 与 `WButtonStyle.metrics`。
+- 删除 `WButtonEffectType`，统一用 `WPressEffect`；`WButtonMotion.effect` 类型随之改变。
+- `WButtonStyles.of` 返回 `WButtonStyleSet`，不再返回匿名 record。
+- 删除 `WNotificationListenerBuilder`，统一用 `WNotificationListener`。
+- `WStepStyle.resolve` 返回 `WStepColors`；`WStep` 默认语义标签改为
+  `"<label> (<current>/<total>)"`，不再写死英文 "Step X of Y"。
+- `WPressable.excludeChildSemanticsWhenDisabled` 更名 `hasChildSemanticsWhenDisabled`，
+  默认 true（与旧默认行为一致）。
+- `WAppBarStyle.copyWith` / `WStepStyle.copyWith` 改为传 null 表示保留，不再能清空字段。
+- `WScaffold` 未显式设置标题样式时优先 `WTextStyles.title`（未安装时仍是 `titleLarge`）。
+
+成员级（逐条）：
+- `WClipRRect.config` 删除；`WClipRRectConfig` 类型删除。
+- `WNavBar.config` / `WTabBar.config` 删除；`WTabBar.style` 改为非空并使用默认值。
+- `WTabBarStyle.toConfig` 删除。
+- `WButtonStyle.filled` / `WButtonStyle.outlined` / `WButtonStyle.text` 去掉 `motion` / `semantics` 参数。
+- `WButtonStyle.motion` / `WButtonStyle.semantics` / `WButtonStyle.metrics` 删除。
+- `WPressable.new` 的 `excludeChildSemanticsWhenDisabled` 更名 `hasChildSemanticsWhenDisabled`。
+- `WWidgetExtension.withBottomBarSpace` / `WWidgetExtension.withTopSafeSpace` 删除。
+- `WBadge.config` / `WBadge.badgeStyle` / `WBadge.position` 改为 8.0 自有类型或删除。
+- `WButton.debugStyleResolutionCount` 删除。
+- `WButtonMotion.new` / `WButtonMotion.copyWith` 的 `effect` 类型改为 `WPressEffect`。
+- `WButtonStyle.copyWith` 去掉 `motion` / `semantics` 参数。
+- `WButtonSize.copyWith` 改为传 null 表示保留，不再使用 `_unset` 哨兵。
+- `WClipRRect.new` / `WNavBar.new` / `WActionRow.createState` 随构造 / 继承变化调整。
+
+### Removed
+
+- `WNavBarConfig`、`WTabBarConfig`、`WBadgeConfig`、`WClipRRectConfig`
+- `WButtonMetrics`、`WButtonEffectType`、`WNotificationListenerBuilder`
+- `badges` 依赖与 barrel 里的 `BadgePosition` / `BadgeStyle` 转出
+
+### Added
+
+- `WButtonStyleSet`、`WStepColors`、`WBadgeStyle`、`WBadgePosition`
+- `WButton.motion` / `WButton.semantics`
+- `WAppBarStyle.withBackground` / `WAppBarStyle.withoutBackground`：在纯色与渐变之间安全切换
+- `WTabBarStyle.copyWith` 与 `WTabBarStyle` 值相等
+- `WScreenData` 值相等
+
+### Changed
+
+- README / example / catalog / AGENTS 模板全部切到 `style` 与自有类型。
+- `WImage` 的 provider cache key 只随来源变化（解码尺寸仍由 `ResizeImage` 统一应用）。
+- `WImageLoadOptions` 文件更名 `image_load_options.dart`；`WImageSlots` / `WImageTheme`
+  拆到独立文件（公开 API 不变）。
+
 ## 7.0.0
 
 ### Breaking

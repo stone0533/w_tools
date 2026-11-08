@@ -34,7 +34,7 @@ extension _WImageStateBuilders on _WImageState {
   /// 本地资源：统一走 [AssetImage]（Flutter 自带 ImageCache，支持 2x/3x 变体）
   Widget _buildAsset(WAssetImageSource asset) {
     final provider = _cachedProvider(
-      'asset:${asset.key}:${options.memCacheWidth}x${options.memCacheHeight}',
+      'asset:${asset.key}',
       () => createAssetImageProvider(asset),
     );
     return _imageWidget(
@@ -82,7 +82,7 @@ extension _WImageStateBuilders on _WImageState {
         }
         final bytes = snapshot.data!;
         final provider = _cachedProvider(
-          'base64:${identityHashCode(bytes)}:${options.memCacheWidth}x${options.memCacheHeight}',
+          'base64:${identityHashCode(bytes)}',
           () => createMemoryImageProvider(bytes),
         );
         return _imageWidget(

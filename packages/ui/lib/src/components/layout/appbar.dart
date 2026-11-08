@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../text/w_text_styles.dart';
 import 'appbar_style.dart';
 
 export 'appbar_style.dart';
@@ -43,6 +44,7 @@ class WAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 断言依赖运行时 style；const 构造器无法调用 validate()，故留在 build。
     style.validate();
     final leadingWidget = leading ?? _buildLeading(context);
     final middle = _buildTitle(context);
@@ -113,11 +115,9 @@ class WAppBar extends StatelessWidget implements PreferredSizeWidget {
     // 都没有时不传 style，交给 Text 的默认样式。
     final theme = Theme.of(context);
     final baseStyle =
-        style.titleStyle ?? theme.appBarTheme.titleTextStyle ?? theme.textTheme.titleLarge;
+        style.titleStyle ?? theme.appBarTheme.titleTextStyle ?? WTextStyles.of(context).title;
     final foreground = style.foregroundColor;
-    final titleStyle = foreground == null
-        ? baseStyle
-        : (baseStyle ?? const TextStyle()).copyWith(color: foreground);
+    final titleStyle = foreground == null ? baseStyle : baseStyle.copyWith(color: foreground);
 
     return Text(
       title,

@@ -78,43 +78,32 @@ List<Widget> buildComponentsOverviewSections() {
     ),
     const SizedBox(height: 24),
     const DemoSectionTitle('WBadge 角标'),
-    Row(
+    const Row(
       children: [
         WBadge(
-          config: WBadgeConfig.topRight(top: 0, end: 0),
-          badgeContent: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-            ),
-            child: const Text(
-              '3',
-              style: TextStyle(color: Colors.white, fontSize: 11),
-            ),
-          ),
-          child: const Icon(Icons.notifications, size: 32),
+          badgeContent: Text('3'),
+          child: Icon(Icons.notifications, size: 32),
         ),
       ],
     ),
     const SizedBox(height: 12),
     const DemoSectionTitle('WBadge：center / showBadge:false / 空内容'),
-    Wrap(
+    const Wrap(
       spacing: 24,
       runSpacing: 12,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         WBadge(
-          config: WBadgeConfig.center(),
-          badgeContent: const Text('NEW'),
-          child: const Icon(Icons.mail_outline, size: 32),
+          position: WBadgePosition.center(),
+          badgeContent: Text('NEW'),
+          child: Icon(Icons.mail_outline, size: 32),
         ),
-        const WBadge(
-          config: WBadgeConfig(showBadge: false),
+        WBadge(
+          showBadge: false,
           badgeContent: Text('hidden'),
           child: Icon(Icons.inbox_outlined, size: 32),
         ),
-        const WBadge(
+        WBadge(
           child: Icon(Icons.notifications_none, size: 32),
         ),
       ],
@@ -124,7 +113,7 @@ List<Widget> buildComponentsOverviewSections() {
     const SizedBox(height: 24),
     const DemoSectionTitle('WClipRRect 圆角裁剪'),
     WClipRRect(
-      config: WClipRRectConfig.all(16),
+      borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: Container(
         width: 120,
@@ -145,24 +134,22 @@ List<Widget> buildComponentsOverviewSections() {
     ),
     const SizedBox(height: 12),
     const DemoSectionTitle('WClipRRect 配置变体'),
-    Wrap(
+    const Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
         WClipRRect(
-          config: WClipRRectConfig.all(8).copyWith(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(24),
-              bottomRight: Radius.circular(24),
-            ),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
           ),
-          child: const SizedBox(
+          child: SizedBox(
             width: 96,
             height: 64,
             child: ColoredBox(color: Colors.indigo),
           ),
         ),
-        const WClipRRect(
+        WClipRRect(
           child: SizedBox(
             width: 96,
             height: 64,

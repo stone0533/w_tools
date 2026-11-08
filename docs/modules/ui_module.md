@@ -22,7 +22,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 重构取舍（2026-11）
 
-- **catalog 粒度**：67 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
+- **catalog 粒度**：68 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
   需要精确命中，合并会降低可发现性。
 - **token 层**：暂不引入 `WUiTokens`。当前颜色走 `ColorScheme`，尺寸走
   `WButtonSize` / `WStepStyle`，阴影/渐变走 `WShadows` / `WGradients`；
@@ -64,9 +64,9 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 - 表单字段的“值选择”用 `WFormButton`，不要用 `WButton` 手写。
 - 样式分层：
   - `WButtonStyle`：视觉（颜色、圆角、边框、内边距等）；
-  - `WButtonStyles`：组件层预设（`primary` / `secondary` / `text` / `danger`）；
-  - `WButtonMotion` / `WButtonEffectType`：按下、缩放、透明度等动效；
-  - `WButtonSize` / `WButtonSemantics`：尺寸与语义；
+  - `WButtonStyles`：组件层预设（`primary` / `secondary` / `text` / `danger`），返回 `WButtonStyleSet`；
+  - `WButton(motion:, semantics:)`：按下、缩放、透明度与无障碍语义；
+  - `WButtonSize`：尺寸令牌；
   - `WButtonContentBuilder`：复杂内容（多行、图标 + 文案 + 尾部）时使用。
 - **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成）；`WButtonStyles.of(context).primary`
   适合组件示例 / 独立 Demo。不要在每个调用点重复写完整 `WButtonStyle`。
@@ -77,11 +77,11 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ### WButtonMotion
 
-按下缩放、透明度、震动等效果由 `WButtonMotion` / `WButtonEffectType` 控制；默认已满足大多数场景。
+按下缩放、透明度等效果由 `WButton.motion`（`WButtonMotion` + `WPressEffect`）控制；默认已满足大多数场景。
 
 ### WButtonSemantics
 
-按钮语义、禁用态与 loading 态的朗读由 `WButtonSemantics` 负责；自定义 child 时不要绕过。
+按钮语义、禁用态与 loading 态的朗读由 `WButton.semantics`（`WButtonSemantics`）负责；自定义 child 时不要绕过。
 
 ### WButtonSize
 
@@ -151,12 +151,11 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ## 5. WBadge - 徽章组件
 
-`WBadge` 用于角标 / 数量提示；直接传 `position` / `showBadge` / `badgeStyle`，不要直接改内部布局。
+`WBadge` 用于角标 / 数量提示；位置用 `position`，视觉用 `style`，显隐用 `showBadge`。
 
-### WBadgeConfig
+### WBadgeStyle / WBadgePosition
 
-`WBadgeConfig` 仍可用，但已是为 8.0 保留的兼容入口；新代码直接传
-`position` / `showBadge` / `badgeStyle`。
+`WBadgePosition` 控制角标相对 child 的位置（`topEnd` / `center`）；`WBadgeStyle` 控制背景、前景、文字、padding、圆角与边框。默认背景 / 前景取 `ColorScheme.error` / `onError`。
 
 ## 6. WListView - 列表
 
@@ -192,12 +191,12 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 ### WNavBar / WNavController
 
 底部导航：`WNavBar` + `WNavController`；`WNavController` 需要页面 State 提供 `vsync`，
-并由调用方 `dispose`。配置用 `WNavBarStyle`（旧 `WNavBarConfig` 8.0 移除）。
+并由调用方 `dispose`。配置用 `WNavBarStyle`。
 
 ### WTabBar
 
 顶部 tab：`WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`；
-配置用 `WTabBarStyle`（旧 `WTabBarConfig` 8.0 移除）。
+配置用 `WTabBarStyle`。
 
 ### WActionRow / WSelectableRow
 
@@ -206,7 +205,6 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 ### WClipRRect
 
 圆角裁剪；直接传 `borderRadius`，不要再手写一层 `ClipRRect`。
-`WClipRRectConfig` 已是为 8.0 保留的兼容入口。
 
 ### WGradientCircularProgressIndicator
 
@@ -219,7 +217,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ### WNotificationListener
 
-声明式监听；旧 `WNotificationListenerBuilder` 为兼容入口，计划 8.0 移除。
+声明式监听；百分比只处理 depth 0 的 `ScrollUpdateNotification`。
 
 ## 9. 扩展方法
 

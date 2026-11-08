@@ -15,12 +15,19 @@ List<Widget> buildListsNotificationSections({
 }) {
   return [
     DemoSection(
-      title: 'WNotificationListenerBuilder',
+      title: 'WNotificationListener',
       subtitle: '百分比只处理 depth 0 的 ScrollUpdateNotification',
       child: Builder(
         builder: (context) {
-          // ignore: deprecated_member_use
-          final probe = WNotificationListenerBuilder<ScrollNotification>(
+          final probe = WNotificationListener<ScrollNotification>(
+            onNotificationPercentage: (value) => percent.value = value,
+            preventNotificationPropagation: prevent,
+            onNotification: prevent
+                ? null
+                : (_) {
+                    notifications.value++;
+                    return false;
+                  },
             child: ListView.builder(
               itemCount: 30,
               itemBuilder: (context, index) => SizedBox(
@@ -33,15 +40,7 @@ List<Widget> buildListsNotificationSections({
                 ),
               ),
             ),
-          )..onNotificationPercentage((value) => percent.value = value);
-          if (prevent) {
-            probe.preventNotificationPropagation(true);
-          } else {
-            probe.onNotification((_) {
-              notifications.value++;
-              return false;
-            });
-          }
+          );
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +52,7 @@ List<Widget> buildListsNotificationSections({
                     bubbled.value++;
                     return false;
                   },
-                  child: probe.build(),
+                  child: probe,
                 ),
               ),
               const SizedBox(height: 8),

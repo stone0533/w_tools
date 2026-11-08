@@ -16,13 +16,12 @@
 | `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom） | 任意叠放/覆盖布局在页面层用 Container/Stack |
 | `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 | backgroundColor 与 gradient 只能选一个 |
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 需 vsync 并由页面 State dispose | 不要自己写 `BottomNavigationBar` |
-| `WNavBarConfig` | ui | WNavBar 的外层装饰 / padding | 选中态与切换动画由 `WNavController` 管，不要放进 config |
 | `WNavBarStyle` | ui | WNavBar 的外层装饰 / padding；新代码优先 | 选中态与切换动画由 `WNavController` 管，不要放进 style |
 | `WTabBar` | ui | 顶部 tab；依赖 TabController / DefaultTabController | 需要下划线跟随的复杂交互时先看它够不够 |
-| `WTabBarConfig` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式 | WTabBar 不自带 controller，不要在这里塞状态 |
 | `WTabBarStyle` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式；新代码优先 | WTabBar 不自带 controller，不要在这里塞状态 |
 | `WStep` / `WStepFlow` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
 | `WStepStyle` | ui | 步骤条颜色 / 尺寸 / 间距 / 标签样式 | 不要靠改 WStep 内部布局实现视觉；优先用 itemBuilder |
+| `WStepColors` | ui | WStepStyle.resolve 返回的 completed / current / upcoming 颜色 | 不要自己按 Brightness 推颜色；让 WStepStyle.resolve 解析主题 |
 | `WApp` | app_getx | GetX 启动器 | — |
 | `WAppOptions` | app_getx | WApp 的标题 / 主题 / GetX 路由 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
 | `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
@@ -43,7 +42,7 @@
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WText` / `WTextVariant` / `WTextStyles` | ui | 语义文字样式、overrides、maxLines、textScaler | 不要再用已移除的 `WTextConfig`，改用 `WTextStyles` |
-| `WImage` | ui | 网络图/资源图（缓存、重试、占位） | 不要裸用 `Image.network` |
+| `WImage` | ui | 网络图/资源图（缓存、占位；重试需显式设置 retryCount） | 不要裸用 `Image.network` |
 | `WImageSource` | ui | WImage 的来源：network / asset / file / base64 / provider / parse | 不要用已删除的 WImage.network / asset / file / data |
 | `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里 |
 | `WImageLoadOptions` | ui | 图片加载行为：解码尺寸 / 重试 / gapless | 视觉样式用 `WImageStyle` |
@@ -79,21 +78,22 @@
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WButtonStyle` | ui | 按钮视觉：颜色 / 边框 / 圆角 / 内边距 / 尺寸 / 动效 / 语义 | 按钮宽度由父布局决定，`WButtonStyle` 不含 width |
-| `WButtonMetrics` | ui | `WButtonStyle` 的布局 / 尺寸部分（padding / alignment / min / tapTarget / icon / gap） | 不要用它承载颜色 / 渐变 / 边框；这些仍在 `WButtonStyle` |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义 / 键盘焦点 / 最小点击区域时用 `WButton` |
 | `WButtonStyles` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要硬编码颜色；页面统一样式用项目 AppButtons 注册表 |
+| `WButtonStyleSet` | ui | WButtonStyles.of 返回的四种语义样式集合 | 不要自己 new 这组样式；用 WButtonStyles.of(context) |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 | 不要用于状态点或长文案；状态点用原生 Container，多字提示用 WText |
+| `WBadgeStyle` | ui | 角标视觉：背景 / 前景 / 文字 / padding / 圆角 / 边框 | 不要在这里放位置；位置用 WBadgePosition |
+| `WBadgePosition` | ui | 角标位置：topEnd / center | 不要用它做外部布局；它只控制角标相对 child 的位置 |
 | `WFormIcons` | form | 表单图标统一入口（下拉 / 勾选 / 单选 / 密码 / 清空）；WForm 会继承外层 WFormTheme 的图标 | `WFormDefaults` 已删除；`WForm` / `WFormTheme` 已不再接受单项 `xxxIcon` 参数，统一用 `icons:` |
 | `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WAppConfig` | app_getx | 语言列表与当前语言真源 | 非响应式；切换用 `WLanguage` |
 | `WButtonSize` | ui | 按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap） | 不要用它控制宽度；宽度由父布局决定 |
-| `WButtonMotion` / `WButtonEffectType` | ui | 按钮按压动效（opacity / scale / none） | 不要每个按钮自定义一套；默认动效已够，品牌统一放 AppButtons |
+| `WButtonMotion` | ui | 按钮按压动效（opacity / scale / none） | 不要每个按钮自定义一套；默认动效已够，品牌统一放 AppButtons |
 | `WButtonSemantics` | ui | 按钮无障碍语义（label / hint） | 不要用它替代 Semantics 组件；它只供 WButton 的朗读文案 |
 | `WPressEffect` | ui | WPressable 按压效果（opacity / scale / none） | 不要用它做 loading；只做按压反馈 |
-| `WBadgeConfig` | ui | WBadge 位置 / 显隐 / 自定义样式 | 不要用 position 做外部布局；它只控制角标相对 child 的位置 |
 | `WButtonContentBuilder` | ui | WButton.contentBuilder 的类型：拿到最终样式自己排版 | 不要在 builder 里重新读 Theme 派生样式；直接用传入的 resolved style |
 | `WButtonResolvedStyle` | ui | contentBuilder 拿到的最终样式（states / 背景 / 文字样式等） | 不要缓存后跨帧使用；它只对当前 WidgetState 有效 |
 | `WFormThemeData` | form | 表单主题数据（icons / borderStyle + effective* 图标 getter）；`WFormThemeData.of(context)` 读取 | — |
@@ -118,7 +118,6 @@
 | `WAsyncStateBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除 |
 | `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据 | 非滚动页面用 `WAsyncView` |
 | `WLanguage` | app_getx | 语言切换 / `languageStream` | 不要直接改 `WAppConfig.currentLanguage` 后期待通知 |
-| `WClipRRectConfig` | ui | WClipRRect 圆角配置（all / copyWith） | 不要用它做图片圆角；图片圆角用 WImageStyle.borderRadius |
 | `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |
 | `WFormReadOnlyScope` | form | 只读作用域：由 WForm / 字段自动注入，穿透任意包装 | — |
 | `WFormBorderLayout` / `WFormBorderLayoutData` | form | 边框与消息的布局策略：一个函数 typedef（默认 columnBorderLayout） | — |
@@ -179,7 +178,6 @@
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
 | `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
 | `WNotificationListener` | ui | 声明式监听滚动通知 / 百分比；新代码优先 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
-| `WNotificationListenerBuilder` | ui | 监听滚动通知 / 百分比 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
 | `WFormCustomValidator` | form | 把自定义校验函数包成 FormFieldValidator | — |
 <!-- catalog:7:end -->
 

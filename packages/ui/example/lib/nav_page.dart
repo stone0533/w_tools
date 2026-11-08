@@ -133,13 +133,13 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
             ),
           ),
           DemoSection(
-            title: 'WNavBarConfig：外层装饰 / padding',
+            title: 'WNavBarStyle：外层装饰 / padding',
             child: DemoBox(
               height: 100,
               child: WNavBar(
                 controller: _nav,
                 itemBuilder: _itemBuilder,
-                config: WNavBarConfig(
+                style: WNavBarStyle(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: scheme.surfaceContainerHighest,
@@ -150,7 +150,7 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
             ),
           ),
           DemoSection(
-            title: 'WTabBar：config / indicator / divider / scrollable',
+            title: 'WTabBar：style / indicator / divider / scrollable',
             subtitle: 'WTabBar 不自带 controller，需要 DefaultTabController 或外部传入',
             child: DemoBox(
               height: 280,
@@ -159,7 +159,7 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
                 child: Column(
                   children: [
                     WTabBar(
-                      config: const WTabBarConfig(
+                      style: const WTabBarStyle(
                         isScrollable: true,
                         tabAlignment: TabAlignment.start,
                         indicatorColor: Color(0xFF4F46E5),
@@ -189,14 +189,14 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
             ),
           ),
           DemoSection(
-            title: 'WTabBarConfig.copyWith',
+            title: 'WTabBarStyle.copyWith',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _KeyValue(label: 'onTap index', value: '$_tabTap'),
                 const CodeText(
-                  'const base = WTabBarConfig(isScrollable: true);\n'
-                  'final config = base.copyWith(indicatorColor: Colors.indigo);',
+                  'const base = WTabBarStyle(isScrollable: true);\n'
+                  'final style = base.copyWith(indicatorColor: Colors.indigo);',
                 ),
               ],
             ),

@@ -1491,7 +1491,7 @@ const String agentsUi = r'''
   BoxDecoration 用 `withColor` / `withBorderRadius` / `withShadow` 组合。
 - **工具**：屏幕 / 字体适配用 `WScreen.w/h/sp`；资源前缀用 `WAssets.imagePath`；
   `SizedBox` / `Padding` / `Row` / `Column` 直接用 Flutter 原生组件；需要 `EdgeInsets` 值时用 `num.allPadding`。
-  `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已弃用（5.0 移除），新代码不要再用。
+  `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已在 5.0 删除，新代码不要再用。
 - **列表 / 通知**：列表用 `WListView` / `WListViewSliver`；列表项保活用 `WKeepAliveWrapper`；
   滚动通知 / 百分比用 `WNotificationListener`（百分比只处理 depth 0 的 `ScrollUpdateNotification`）；
   进度用 `WGradientCircularProgressIndicator`。

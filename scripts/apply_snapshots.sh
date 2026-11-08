@@ -76,11 +76,11 @@ for file in "${files[@]}"; do
   version="${version%.txt}"
   pubspec="$root/packages/$pkg/pubspec.yaml"
   if [ ! -f "$pubspec" ]; then
-    echo "  ! $base：找不到 packages/$pkg/pubspec.yaml（仍应用；请确认包名）" >&2
+    echo "  ! ${base}：找不到 packages/$pkg/pubspec.yaml（仍应用；请确认包名）" >&2
   else
     local_version="$(sed -n 's/^version:[[:space:]]*//p' "$pubspec" | head -n1)"
     if [ "$local_version" != "$version" ]; then
-      echo "  ! $base：本地 pubspec 版本是 ${local_version:-?}，快照版本是 $version（仍应用；根包 strict 会拦住不一致）" >&2
+      echo "  ! ${base}：本地 pubspec 版本是 ${local_version:-?}，快照版本是 ${version}（仍应用；根包 strict 会拦住不一致）" >&2
     fi
   fi
   mv -f "$file" "$to/$base"

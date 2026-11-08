@@ -58,6 +58,9 @@ class WImageLoadOptions {
     retryDelay,
   );
 
+  /// 派生新配置。
+  ///
+  /// 用 [_unset] 哨兵区分「未传」与「传 null 清空」。
   WImageLoadOptions copyWith({
     Object? memCacheWidth = _unset,
     Object? memCacheHeight = _unset,

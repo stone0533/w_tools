@@ -64,9 +64,13 @@ class _WSelectableRowState extends State<WSelectableRow> {
   }
 
   void _syncKeys() {
-    _itemKeys
-      ..clear()
-      ..addAll(List.generate(widget.itemCount, (_) => GlobalKey()));
+    // 只增删尾部：itemCount 变化时保留前 N 项的元素 / 状态。
+    if (_itemKeys.length > widget.itemCount) {
+      _itemKeys.removeRange(widget.itemCount, _itemKeys.length);
+    }
+    while (_itemKeys.length < widget.itemCount) {
+      _itemKeys.add(GlobalKey());
+    }
   }
 
   void _scheduleEnsureVisible() {

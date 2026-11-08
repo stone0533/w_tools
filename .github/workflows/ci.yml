@@ -330,6 +330,11 @@ jobs:
         working-directory: packages/${{ matrix.package }}
         run: flutter test --coverage
 
+      # 只给 ui 设行覆盖下限；其它包先只上传报告，避免一次性把历史包卡死。
+      - name: Coverage floor (ui)
+        if: matrix.package == 'ui'
+        run: python3 scripts/check_coverage.py --package ui --min-lines 90
+
       - name: Test (pure Dart package)
         if: matrix.kind == 'dart'
         working-directory: packages/${{ matrix.package }}

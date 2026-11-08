@@ -1,29 +1,19 @@
 import 'package:flutter/material.dart';
 
-/// 按钮按压效果。
-enum WButtonEffectType {
-  /// 无效果
-  none,
-
-  /// 按下时透明度降低
-  opacity,
-
-  /// 按下时轻微缩小
-  scale,
-}
+import '../press_effect.dart';
 
 /// 按钮动效配置。
 @immutable
 class WButtonMotion {
   const WButtonMotion({
-    this.effect = WButtonEffectType.opacity,
+    this.effect = WPressEffect.opacity,
     this.pressedOpacity = 0.7,
     this.pressedScale = 0.95,
     this.duration = const Duration(milliseconds: 100),
     this.curve = Curves.easeInOut,
   });
 
-  final WButtonEffectType effect;
+  final WPressEffect effect;
   final double pressedOpacity;
   final double pressedScale;
   final Duration duration;
@@ -55,7 +45,7 @@ class WButtonMotion {
   }
 
   WButtonMotion copyWith({
-    WButtonEffectType? effect,
+    WPressEffect? effect,
     double? pressedOpacity,
     double? pressedScale,
     Duration? duration,

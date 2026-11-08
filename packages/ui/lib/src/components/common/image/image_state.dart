@@ -222,9 +222,21 @@ class _WImageState extends State<WImage> {
 
   /// 合并单图 slots 与主题 slots：单图非空字段优先，错误占位在
   /// showRetryButton=true 时不再继承主题的错误 builder。
+  WImageSlots? _mergedSlots;
+  WImageSlots? _mergedThemeSlots;
+  WImageSlots? _mergedOwnSlots;
+
   WImageSlots _slotsFor(BuildContext context) {
     final theme = WImageTheme.maybeOf(context) ?? const WImageSlots();
-    return mergeImageSlots(own: widget.slots, theme: theme);
+    if (_mergedSlots != null &&
+        identical(theme, _mergedThemeSlots) &&
+        identical(widget.slots, _mergedOwnSlots)) {
+      return _mergedSlots!;
+    }
+    _mergedThemeSlots = theme;
+    _mergedOwnSlots = widget.slots;
+    _mergedSlots = mergeImageSlots(own: widget.slots, theme: theme);
+    return _mergedSlots!;
   }
 
   /// 图片加载中的占位（优先业务自定义）

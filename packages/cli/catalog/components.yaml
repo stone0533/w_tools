@@ -54,6 +54,8 @@ components:
         ),
       )
       // 渐变：WAppBarStyle(gradient: LinearGradient(colors: [...]))
+    pitfalls:
+      - 'backgroundColor 与 gradient 只能选一个；两者切换用 withBackground(color:) / withBackground(gradient:)'
     related: ['`WAppBar`']
     teach: false
   - name: '`WNavBar` / `WNavController`'
@@ -64,7 +66,11 @@ components:
     dontUseFor: '不要自己写 `BottomNavigationBar`'
     usage: |
       final nav = WNavController(length: 3, vsync: this); // State with TickerProviderStateMixin
-      WNavBar(controller: nav, itemBuilder: (context, index, selected) => ...);
+      WNavBar(
+        controller: nav,
+        style: const WNavBarStyle(padding: EdgeInsets.symmetric(horizontal: 8)),
+        itemBuilder: (context, index, selected) => ...,
+      );
       
       @override
       void dispose() {
@@ -73,24 +79,7 @@ components:
       }
     pitfalls:
       - 'onItemTap 返回 false 可以阻止切换'
-    related: ['`WNavBarConfig`', '`WTabBar`']
-    teach: false
-  - name: '`WNavBarConfig`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wnavbar--wnavcontroller'
-    section: '1. 页面骨架与导航'
-    useFor: 'WNavBar 的外层装饰 / padding'
-    dontUseFor: '选中态与切换动画由 `WNavController` 管，不要放进 config'
-    usage: |
-      WNavBar(
-        controller: nav,
-        config: WNavBarConfig(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(color: ..., borderRadius: BorderRadius.circular(16)),
-        ),
-        itemBuilder: ...,
-      )
-    related: ['`WNavBar`']
+    related: ['`WNavBarStyle`', '`WTabBar`']
     teach: false
   - name: '`WNavBarStyle`'
     package: 'w_tools_ui'
@@ -105,7 +94,7 @@ components:
         itemBuilder: ...,
       )
     teach: false
-    related: ['`WNavBar`', '`WNavBarConfig`']
+    related: ['`WNavBar`']
   - name: '`WTabBar`'
     package: 'w_tools_ui'
     docsAnchor: 'wtabbar'
@@ -117,33 +106,18 @@ components:
         length: 2,
         child: Column(
           children: [
-            WTabBar(tabs: const [Tab(text: '全部'), Tab(text: '完成')]),
+            WTabBar(
+              style: const WTabBarStyle(indicatorColor: Colors.indigo),
+              tabs: const [Tab(text: '全部'), Tab(text: '完成')],
+            ),
             Expanded(child: TabBarView(children: [...])),
           ],
         ),
       )
     pitfalls:
       - 'WTabBar 不自带 controller；外面必须有 DefaultTabController 或显式 TabController'
-    related: ['`WTabBarConfig`', '`WNavBar`']
+    related: ['`WTabBarStyle`', '`WNavBar`']
     teach: false
-  - name: '`WTabBarConfig`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wtabbar'
-    section: '1. 页面骨架与导航'
-    useFor: '指示器 / 分割线 / 对齐 / overlay / 标签样式'
-    dontUseFor: 'WTabBar 不自带 controller，不要在这里塞状态'
-    usage: |
-      WTabBar(
-        config: const WTabBarConfig(
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          indicatorColor: Colors.indigo,
-        ),
-        tabs: const [Tab(text: '全部'), Tab(text: '完成')],
-      )
-    pitfalls:
-      - 'tabAlignment 非默认值时必须同时设 isScrollable: true'
-    related: ['`WTabBar`']
   - name: '`WTabBarStyle`'
     package: 'w_tools_ui'
     docsAnchor: 'wtabbar'
@@ -161,7 +135,7 @@ components:
       )
     pitfalls:
       - 'tabAlignment 非默认值时必须同时设 isScrollable: true'
-    related: ['`WTabBar`', '`WTabBarConfig`']
+    related: ['`WTabBar`']
     teach: false
   - name: '`WStep` / `WStepFlow`'
     package: 'w_tools_ui'
@@ -193,6 +167,17 @@ components:
       )
     related: ['`WStep`']
     teach: false
+  - name: '`WStepColors`'
+    package: 'w_tools_ui'
+    docsAnchor: 'wstep'
+    section: '1. 页面骨架与导航'
+    useFor: 'WStepStyle.resolve 返回的 completed / current / upcoming 颜色'
+    dontUseFor: '不要自己按 Brightness 推颜色；让 WStepStyle.resolve 解析主题'
+    usage: |
+      final colors = style.resolve(Theme.of(context).colorScheme);
+      colors.completed; colors.current; colors.upcoming;
+    related: ['`WStepStyle`', '`WStep`']
+    teach: false
   - name: '`WText` / `WTextVariant` / `WTextStyles`'
     package: 'w_tools_ui'
     docsAnchor: '3-wtext---文本组件'
@@ -213,7 +198,7 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '4-wimage---图片组件'
     section: '2. 文本与图标'
-    useFor: '网络图/资源图（缓存、重试、占位）'
+    useFor: '网络图/资源图（缓存、占位；重试需显式设置 retryCount）'
     dontUseFor: '不要裸用 `Image.network`'
     usage: |
       WImage.source(source: WImageSource.network(url));
@@ -317,17 +302,6 @@ components:
         onTap: save,
       )
     related: ['`WButton`']
-  - name: '`WButtonMetrics`'
-    package: 'w_tools_ui'
-    docsAnchor: '2-wbutton---按钮组件'
-    section: '3. 按钮与操作'
-    useFor: '`WButtonStyle` 的布局 / 尺寸部分（padding / alignment / min / tapTarget / icon / gap）'
-    dontUseFor: '不要用它承载颜色 / 渐变 / 边框；这些仍在 `WButtonStyle`'
-    usage: |
-      final metrics = WButtonMetrics.fromStyle(style);
-      final resized = metrics.applyTo(style);
-    teach: false
-    related: ['`WButtonStyle`']
   - name: '`WButton`'
     package: 'w_tools_ui'
     docsAnchor: '2-wbutton---按钮组件'
@@ -371,6 +345,17 @@ components:
       // WButtonStyles.of(context).secondary / .text / .danger 同源
     related: ['`WButton`']
     teach: false
+  - name: '`WButtonStyleSet`'
+    package: 'w_tools_ui'
+    docsAnchor: '2-wbutton---按钮组件'
+    section: '3. 按钮与操作'
+    useFor: 'WButtonStyles.of 返回的四种语义样式集合'
+    dontUseFor: '不要自己 new 这组样式；用 WButtonStyles.of(context)'
+    usage: |
+      final set = WButtonStyles.of(context);
+      WButton(style: set.primary, label: '保存', onTap: save);
+    related: ['`WButtonStyles`', '`WButton`']
+    teach: false
   - name: '`WActionRow` / `WSelectableRow`'
     package: 'w_tools_ui'
     docsAnchor: 'wactionrow--wselectablerow'
@@ -399,11 +384,37 @@ components:
     dontUseFor: '不要用于状态点或长文案；状态点用原生 Container，多字提示用 WText'
     usage: |
       WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
-      WBadge(position: BadgePosition.center(), badgeContent: const Text('NEW'), child: ...);
-      WBadge(showBadge: false, child: ...);
+      WBadge(position: const WBadgePosition.center(), badgeContent: const Text('NEW'), child: ...);
+      WBadge(showBadge: false, badgeContent: const Text('hidden'), child: ...);
     pitfalls:
       - 'badgeContent 为空时不渲染徽章（不报错）'
-    related: ['`WBadgeConfig`']
+      - '默认背景 / 前景取 ColorScheme.error / onError；自定义用 style: WBadgeStyle(...)'
+    related: ['`WBadgeStyle`', '`WBadgePosition`']
+    teach: false
+  - name: '`WBadgeStyle`'
+    package: 'w_tools_ui'
+    docsAnchor: '5-wbadge---徽章组件'
+    section: '3. 按钮与操作'
+    useFor: '角标视觉：背景 / 前景 / 文字 / padding / 圆角 / 边框'
+    dontUseFor: '不要在这里放位置；位置用 WBadgePosition'
+    usage: |
+      WBadge(
+        style: const WBadgeStyle(backgroundColor: Colors.green, foregroundColor: Colors.white),
+        badgeContent: const Text('NEW'),
+        child: icon,
+      )
+    related: ['`WBadge`', '`WBadgePosition`']
+    teach: false
+  - name: '`WBadgePosition`'
+    package: 'w_tools_ui'
+    docsAnchor: '5-wbadge---徽章组件'
+    section: '3. 按钮与操作'
+    useFor: '角标位置：topEnd / center'
+    dontUseFor: '不要用它做外部布局；它只控制角标相对 child 的位置'
+    usage: |
+      WBadge(position: const WBadgePosition.topEnd(top: 2, end: 2), child: ...);
+      WBadge(position: const WBadgePosition.center(), child: ...);
+    related: ['`WBadge`', '`WBadgeStyle`']
     teach: false
   - name: '`WClipRRect`'
     package: 'w_tools_ui'
@@ -414,12 +425,10 @@ components:
     usage: |
       WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
       WClipRRect(
-        config: WClipRRectConfig.all(12).copyWith(
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(24)),
-        ),
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(24)),
         child: image,
       )
-    related: ['`WClipRRectConfig`']
+    related: ['`WImageStyle`']
     teach: false
   - name: '`WScreen`'
     package: 'w_tools_ui'
@@ -983,7 +992,7 @@ components:
     pitfalls:
       - '嵌 SmartRefresher / NestedScrollView 时只用 WListViewSliver，外层自己给滚动壳'
       - 'shrinkWrap: true 与 emptyFill: true 同时用会断言'
-    related: ['`WKeepAliveWrapper`', '`WNotificationListenerBuilder`']
+    related: ['`WKeepAliveWrapper`', '`WNotificationListener`']
     teach: true
   - name: '`WKeepAliveWrapper`'
     package: 'w_tools_ui'
@@ -1009,25 +1018,7 @@ components:
         child: ListView.builder(...),
       )
     teach: false
-    related: ['`WNotificationListenerBuilder`']
-  - name: '`WNotificationListenerBuilder`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wnotificationlistener'
-    section: '7. 状态与反馈'
-    useFor: '监听滚动通知 / 百分比'
-    dontUseFor: '百分比只处理 depth 0 的 ScrollUpdateNotification'
-    usage: |
-      WNotificationListenerBuilder<ScrollNotification>(
-        child: ListView.builder(...),
-      )
-        .onNotificationPercentage((p) { ... })
-        .onNotification((n) => false)
-        .build()
-    pitfalls:
-      - '不要忘了最后的 .build()；它才返回 Widget'
-      - '百分比只处理 depth 0 的 ScrollUpdateNotification'
     related: ['`WListView`']
-    teach: false
   - name: '`WApp`'
     package: 'w_tools_app_getx'
     docsAnchor: '1-wapp---启动器'
@@ -1527,7 +1518,7 @@ components:
       - '视觉尺寸可以更小，tapTargetSize 默认 48 保证点击区域'
     related: ['`WButton`']
     teach: false
-  - name: '`WButtonMotion` / `WButtonEffectType`'
+  - name: '`WButtonMotion`'
     package: 'w_tools_ui'
     docsAnchor: 'wbuttonmotion'
     section: '3. 按钮与操作'
@@ -1535,15 +1526,13 @@ components:
     dontUseFor: '不要每个按钮自定义一套；默认动效已够，品牌统一放 AppButtons'
     usage: |
       WButton(
-        style: WButtonStyles.of(context).primary.copyWith(
-          motion: const WButtonMotion(effect: WButtonEffectType.scale, pressedScale: 0.96),
-        ),
+        motion: const WButtonMotion(effect: WPressEffect.scale, pressedScale: 0.96),
         label: '保存',
         onTap: save,
       )
     pitfalls:
-      - 'effect: WButtonEffectType.none 关闭按压效果'
-    related: ['`WButtonStyle`']
+      - 'effect: WPressEffect.none 关闭按压效果'
+    related: ['`WButton`', '`WPressEffect`']
     teach: false
   - name: '`WButtonSemantics`'
     package: 'w_tools_ui'
@@ -1570,31 +1559,6 @@ components:
       WPressable(effect: WPressEffect.scale, pressedScale: 0.98, onTap: open, child: card);
       WPressable(effect: WPressEffect.none, onTap: open, child: card);
     related: ['`WPressable`']
-    teach: false
-  - name: '`WBadgeConfig`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wbadgeconfig'
-    section: '3. 按钮与操作'
-    useFor: 'WBadge 位置 / 显隐 / 自定义样式'
-    dontUseFor: '不要用 position 做外部布局；它只控制角标相对 child 的位置'
-    usage: |
-      WBadge(position: BadgePosition.topEnd(top: 0, end: 0), badgeContent: ..., child: ...);
-      WBadge(position: BadgePosition.center(), badgeContent: ..., child: ...);
-      const WBadgeConfig(showBadge: false);
-    pitfalls:
-      - 'badgeContent 自带视觉时 badgeStyle 用默认透明'
-    related: ['`WBadge`']
-    teach: false
-  - name: '`WClipRRectConfig`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wcliprrect'
-    section: '4. 布局与容器'
-    useFor: 'WClipRRect 圆角配置（all / copyWith）'
-    dontUseFor: '不要用它做图片圆角；图片圆角用 WImageStyle.borderRadius'
-    usage: |
-      WClipRRectConfig.all(12)
-      WClipRRectConfig.all(12).copyWith(borderRadius: const BorderRadius.only(...))
-    related: ['`WClipRRect`']
     teach: false
   - name: '`WScreenData`'
     package: 'w_tools_ui'

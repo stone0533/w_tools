@@ -149,7 +149,7 @@
 | `Scaffold` | 页面骨架 | `WScaffold` |
 | `Sliver` | 某个列表 / 区块的 sliver 版本 | `WListViewSliver` / `WAsyncStateSliver` |
 
-- `Builder` 是显式构建器（`WAsyncStateBuilder`、`WNotificationListenerBuilder`），
+- `Builder` 是显式构建器（`WAsyncStateBuilder`），
   只能有一个 `build()` 入口。
 - 组合优先用名词堆叠（`WFormTextFieldPasswordToggle`），不用 `With` / `And` 连接词；
   堆叠要能读成一个名词短语，不要把两个角色并排。
@@ -181,7 +181,7 @@
 | 15 | 回调 | `Callback` | 语义 | 公开签名里的函数类型 | 是公开的函数类型别名？ | `WCountdownCallback` | 弱 |
 | 16 | 可变设置 | `Settings` | 生命周期 | 运行期可改的一组设置（不一定落盘） | 需要在运行期改一组设置？ | `WFormValidatorSettings` | 弱 |
 | 17 | 调用参数 | `Params` | 生命周期 | 一次性入参 | 只是这次调用的参数？ | —（暂无公开类型） | 弱 |
-| 18 | 不可变数据载体 | `Config` | 形态 | 纯数据、无业务行为、构造后不变 | 没有行为字段，只是一个不可变的值对象？ | `WBadgeConfig` / `WLocaleConfig` | 强（基线） |
+| 18 | 不可变数据载体 | `Config` | 形态 | 纯数据、无业务行为、构造后不变 | 没有行为字段，只是一个不可变的值对象？ | `WLocaleConfig` | 强（基线） |
 
 以上都不成立 → **不套角色后缀**，用组件专属名词（`WPressable` / `WStepFlow` 这类）；
 不要为了「像规范」硬加一个后缀。
@@ -343,12 +343,11 @@
 不进基线、但在规则内冻结的例外：
 
 - **组件级角色**：`WImageSlots`——角色还没推广（§3.3），不是「允许的新名字」。
-- **成员级例外**：`WNotificationListenerBuilder.build()`——`build()` 规则见 §4.2。
 - **旧扩展名**：7.0 已改为 `WImageStyleExtension` / `WColorExtension` /
   `WThemeDataExtension`；通知 Builder 的旧扩展已删除。
   这三个新名字按 §3.3 的 `Extension` 角色，不再登记例外。
 
-以上三类不占基线，因为它们是「角色还没推广 / 规则例外」，不是「允许的存量名字」；
+以上两类不占基线，因为它们是「角色还没推广 / 规则例外」，不是「允许的存量名字」；
 它们同样只减不增，新增同类名字按 §3.3 的 `Extension` 角色处理。
 
 `scripts/check_naming.py` 直接读基线，并双向检查：

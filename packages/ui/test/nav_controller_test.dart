@@ -109,7 +109,7 @@ void main() {
     Widget buildNav(WNavController controller) => MaterialApp(
       home: Scaffold(
         body: WNavBar(
-          config: const WNavBarConfig(),
+          style: const WNavBarStyle(),
           controller: controller,
           itemBuilder: (_, i, selected) => Text('item-$i'),
         ),
@@ -183,7 +183,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: WNavBar(
-            config: const WNavBarConfig(),
+            style: const WNavBarStyle(),
             controller: controller,
             itemBuilder: (_, index, selected) => Text('item-$index'),
           ),
@@ -212,7 +212,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: WNavBar(
-            config: const WNavBarConfig(),
+            style: const WNavBarStyle(),
             controller: controller,
             onItemTap: (index) => index == 1 ? firstTap.future : secondTap.future,
             itemBuilder: (_, index, selected) => Text('item-$index'),
@@ -243,7 +243,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: WNavBar(
-            config: const WNavBarConfig(),
+            style: const WNavBarStyle(),
             controller: controller,
             onItemTap: (index) async => false,
             itemBuilder: (_, index, selected) => Text('item-$index'),
@@ -256,12 +256,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller.currentIndex, 0);
   });
-  test('WNavBarConfig 值相等', () {
-    final a = WNavBarConfig(padding: const EdgeInsets.all(8)); // ignore: prefer_const_constructors
-    final b = WNavBarConfig(padding: const EdgeInsets.all(8)); // ignore: prefer_const_constructors
-    expect(a, b);
-    expect(a.hashCode, b.hashCode);
-  });
+
   testWidgets('WNavBar 直接传 style', (tester) async {
     final ctrl = WNavController(length: 2, vsync: tester);
     addTearDown(ctrl.dispose);

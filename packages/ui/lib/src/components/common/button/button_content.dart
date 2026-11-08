@@ -38,7 +38,6 @@ Widget _buildButtonContentWidget(
 Widget _buildButtonLoading(
   _WButtonState state,
   BuildContext context,
-  WButtonStyle style,
   WButtonResolvedStyle visual,
 ) {
   // spinner 必须跟随按钮前景色：默认 CircularProgressIndicator 取
@@ -55,7 +54,7 @@ Widget _buildButtonLoading(
         ),
       );
   return Semantics(
-    label: style.semantics.loadingLabel,
+    label: state._semantics.loadingLabel,
     container: true,
     child: child,
   );
@@ -64,7 +63,6 @@ Widget _buildButtonLoading(
 Widget _buildButtonContent(
   _WButtonState state,
   BuildContext context,
-  WButtonStyle style,
   WButtonResolvedStyle visual,
   Widget child,
 ) {
@@ -77,7 +75,7 @@ Widget _buildButtonContent(
       ExcludeSemantics(
         child: Opacity(opacity: 0, child: child),
       ),
-      _buildButtonLoading(state, context, style, visual),
+      _buildButtonLoading(state, context, visual),
     ],
   );
 }

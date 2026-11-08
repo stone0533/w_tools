@@ -419,11 +419,10 @@ class _ButtonsPageState extends State<ButtonsPage> {
                 ),
               ),
               WButton(
-                style: AppButtons.secondary(context).copyWith(
-                  semantics: const WButtonSemantics(
-                    label: '保存草稿',
-                    hint: '保存当前内容但不提交',
-                  ),
+                style: AppButtons.secondary(context),
+                semantics: const WButtonSemantics(
+                  label: '保存草稿',
+                  hint: '保存当前内容但不提交',
                 ),
                 label: '带语义的按钮',
                 onTap: () {},

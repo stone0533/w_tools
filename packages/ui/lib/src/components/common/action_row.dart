@@ -6,7 +6,7 @@ import 'horizontal_scroller.dart';
 ///
 /// 用于工具栏 / 筛选 Chip / 快捷操作等只关心点击的场景；
 /// 需要「单选高亮」时用 [WSelectableRow]。
-class WActionRow extends StatefulWidget {
+class WActionRow extends StatelessWidget {
   const WActionRow({
     super.key,
     required this.children,
@@ -38,19 +38,14 @@ class WActionRow extends StatefulWidget {
   final ValueChanged<double>? onScroll;
 
   @override
-  State<WActionRow> createState() => _WActionRowState();
-}
-
-class _WActionRowState extends State<WActionRow> {
-  @override
   Widget build(BuildContext context) {
     return WActionRowScrollView(
-      padding: widget.padding,
-      spacing: widget.spacing,
-      physics: widget.physics,
-      controller: widget.controller,
-      onScroll: widget.onScroll,
-      children: widget.children,
+      padding: padding,
+      spacing: spacing,
+      physics: physics,
+      controller: controller,
+      onScroll: onScroll,
+      children: children,
     );
   }
 }

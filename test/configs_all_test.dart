@@ -60,9 +60,9 @@ void main() {
     });
   });
 
-  group('WNavBarConfig', () {
+  group('WNavBarStyle', () {
     test('decoration / padding 可设置', () {
-      const c = WNavBarConfig(
+      const c = WNavBarStyle(
         decoration: BoxDecoration(color: Colors.white),
         padding: EdgeInsets.all(4),
       );
@@ -71,9 +71,9 @@ void main() {
     });
   });
 
-  group('WTabBarConfig', () {
+  group('WTabBarStyle', () {
     test('不可变构造 / copyWith', () {
-      const c = WTabBarConfig(
+      const c = WTabBarStyle(
         labelStyle: TextStyle(fontSize: 16),
         indicatorColor: Colors.red,
         padding: EdgeInsets.symmetric(horizontal: 16),

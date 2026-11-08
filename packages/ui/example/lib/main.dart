@@ -106,7 +106,7 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
         ),
       ),
       bottomNavigationBar: WNavBar(
-        config: const WNavBarConfig(),
+        style: const WNavBarStyle(),
         controller: _navController,
         itemBuilder: (context, index, selected) {
           final item = _destinations[index];

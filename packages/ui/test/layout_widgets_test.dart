@@ -347,56 +347,6 @@ void main() {
     expect(percentage, greaterThan(0));
   });
 
-  testWidgets('WNotificationListenerBuilder — build() 返回 NotificationListener', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: WNotificationListenerBuilder<ScrollNotification>(
-          child: const Text('listening'),
-        ).build(),
-      ),
-    );
-    expect(find.text('listening'), findsOneWidget);
-  });
-
-  testWidgets('WNotificationListenerBuilder — 链式 onNotification 可用', (tester) async {
-    final wrapper = WNotificationListenerBuilder<ScrollNotification>(
-      child: const Text('listen'),
-    ).onNotification((_) => true);
-
-    await tester.pumpWidget(MaterialApp(home: wrapper.build()));
-    expect(find.text('listen'), findsOneWidget);
-  });
-
-  testWidgets('WNotificationListenerBuilder — 自定义回调与百分比可同时生效', (tester) async {
-    var notifications = 0;
-    double? percentage;
-
-    final wrapper =
-        WNotificationListenerBuilder<ScrollNotification>(
-            child: SizedBox(
-              height: 100,
-              child: ListView.builder(
-                itemCount: 50,
-                itemBuilder: (_, i) => SizedBox(height: 20, child: Text('row-$i')),
-              ),
-            ),
-          )
-          ..onNotification((_) {
-            notifications++;
-            return false;
-          })
-          ..onNotificationPercentage((value) => percentage = value);
-
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: wrapper.build())));
-    await tester.drag(find.byType(ListView), const Offset(0, -100));
-    await tester.pump();
-
-    expect(notifications, greaterThan(0));
-    expect(percentage, isNotNull);
-    expect(percentage!.isNaN, isFalse);
-    expect(percentage, inInclusiveRange(0.0, 1.0));
-  });
-
   test('WGradientCircularProgressIndicator — strokeWidth 不小于直径时断言失败', () {
     expect(
       () => WGradientCircularProgressIndicator(
@@ -643,7 +593,8 @@ void main() {
     const style = WAppBarStyle(height: 56, titleSpacing: 8);
     final next = style.copyWith(height: 64, titleSpacing: null);
     expect(next.height, 64);
-    expect(next.titleSpacing, isNull);
+    // 8.0 起 copyWith 的 null 表示保留，不能再用它清空字段。
+    expect(next.titleSpacing, 8);
     expect(() => style.copyWith(height: -1).validate(), throwsAssertionError);
     expect(
       () => const WAppBarStyle(
@@ -827,149 +778,45 @@ void main() {
     });
   });
 
+  test('WAppBarStyle.withBackground / withoutBackground 可在纯色与渐变间切换', () {
+    const gradient = LinearGradient(colors: [Colors.red, Colors.blue]);
+    const base = WAppBarStyle(gradient: gradient, height: 60);
+
+    final solid = base.withBackground(color: Colors.white);
+    expect(solid.backgroundColor, Colors.white);
+    expect(solid.gradient, isNull);
+    expect(solid.height, 60);
+    expect(solid.validate, returnsNormally);
+
+    final back = solid.withBackground(gradient: gradient);
+    expect(back.backgroundColor, isNull);
+    expect(back.gradient, gradient);
+    expect(back.validate, returnsNormally);
+
+    final cleared = base.withoutBackground();
+    expect(cleared.backgroundColor, isNull);
+    expect(cleared.gradient, isNull);
+    expect(cleared.height, 60);
+  });
+
   group('WStepStyle copyWith', () {
-    test('传 null 可清空文字样式，未传则保留', () {
+    test('传 null 表示保留，未传同样保留', () {
       const style = WStepStyle(
         labelStyle: TextStyle(fontSize: 12),
         completedLabelStyle: TextStyle(fontWeight: FontWeight.w700),
       );
 
-      final cleared = style.copyWith(labelStyle: null, completedLabelStyle: null);
-      expect(cleared.labelStyle, isNull);
-      expect(cleared.completedLabelStyle, isNull);
-
-      final kept = style.copyWith(itemSize: 32);
+      final kept = style.copyWith(
+        labelStyle: null,
+        completedLabelStyle: null,
+        itemSize: 32,
+      );
       expect(kept.labelStyle, style.labelStyle);
       expect(kept.completedLabelStyle, style.completedLabelStyle);
       expect(kept.itemSize, 32);
     });
   });
 
-  group('WNotificationListenerBuilder 语义', () {
-    FixedScrollMetrics metrics({double max = 100, double pixels = 10}) {
-      return FixedScrollMetrics(
-        minScrollExtent: 0,
-        maxScrollExtent: max,
-        pixels: pixels,
-        viewportDimension: 100,
-        axisDirection: AxisDirection.down,
-        devicePixelRatio: 1,
-      );
-    }
-
-    testWidgets('非 ScrollUpdateNotification 不回调百分比', (tester) async {
-      double? percentage;
-      late BuildContext inner;
-      final wrapper = WNotificationListenerBuilder<ScrollNotification>(
-        child: Builder(
-          builder: (context) {
-            inner = context;
-            return const SizedBox();
-          },
-        ),
-      )..onNotificationPercentage((value) => percentage = value);
-
-      await tester.pumpWidget(MaterialApp(home: wrapper.build()));
-      ScrollStartNotification(metrics: metrics(), context: inner).dispatch(inner);
-
-      expect(percentage, isNull);
-    });
-
-    testWidgets('depth > 0 的 ScrollUpdate 不回调百分比', (tester) async {
-      double? percentage;
-      late BuildContext inner;
-      final wrapper = WNotificationListenerBuilder<ScrollNotification>(
-        child: Builder(
-          builder: (context) {
-            inner = context;
-            return const SizedBox();
-          },
-        ),
-      )..onNotificationPercentage((value) => percentage = value);
-
-      await tester.pumpWidget(MaterialApp(home: wrapper.build()));
-      ScrollUpdateNotification(metrics: metrics(), context: inner, depth: 1).dispatch(inner);
-
-      expect(percentage, isNull);
-    });
-
-    testWidgets('maxScrollExtent 为 0 时回调 0.0', (tester) async {
-      double? percentage;
-      late BuildContext inner;
-      final wrapper = WNotificationListenerBuilder<ScrollNotification>(
-        child: Builder(
-          builder: (context) {
-            inner = context;
-            return const SizedBox();
-          },
-        ),
-      )..onNotificationPercentage((value) => percentage = value);
-
-      await tester.pumpWidget(MaterialApp(home: wrapper.build()));
-      ScrollUpdateNotification(metrics: metrics(max: 0), context: inner).dispatch(inner);
-
-      expect(percentage, 0.0);
-    });
-
-    testWidgets('onNotification 返回值优先于 preventNotificationPropagation', (tester) async {
-      var bubbled = false;
-      late BuildContext inner;
-      final wrapper =
-          WNotificationListenerBuilder<ScrollNotification>(
-              child: Builder(
-                builder: (context) {
-                  inner = context;
-                  return const SizedBox();
-                },
-              ),
-            )
-            ..preventNotificationPropagation(true)
-            ..onNotification((_) => false);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: NotificationListener<ScrollNotification>(
-            onNotification: (_) {
-              bubbled = true;
-              return false;
-            },
-            child: wrapper.build(),
-          ),
-        ),
-      );
-      ScrollUpdateNotification(metrics: metrics(), context: inner).dispatch(inner);
-
-      expect(bubbled, isTrue);
-    });
-
-    testWidgets('无 onNotification 且 prevent=true 时阻止向上传递', (tester) async {
-      var bubbled = false;
-      late BuildContext inner;
-      final wrapper = WNotificationListenerBuilder<ScrollNotification>(
-        child: Builder(
-          builder: (context) {
-            inner = context;
-            return const SizedBox();
-          },
-        ),
-      )..preventNotificationPropagation(true);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: NotificationListener<ScrollNotification>(
-            onNotification: (_) {
-              bubbled = true;
-              return false;
-            },
-            child: wrapper.build(),
-          ),
-        ),
-      );
-      ScrollUpdateNotification(metrics: metrics(), context: inner).dispatch(inner);
-
-      expect(bubbled, isFalse);
-    });
-  });
   test('WStepStyle.resolve 按 ColorScheme 兜底', () {
     final scheme = ThemeData.light().colorScheme;
     final resolved = const WStepStyle().resolve(scheme);

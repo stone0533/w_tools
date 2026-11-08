@@ -1,4 +1,4 @@
-import 'image_defaults.dart';
+import 'image_slots.dart';
 
 /// 合并单图 slots 与主题 slots：单图非空字段优先。
 ///

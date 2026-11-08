@@ -21,25 +21,25 @@ Widget _buildButtonOverlay(
 }
 
 Widget _buildButtonVisual(
-  WButtonStyle style,
+  WButtonMotion motion,
   bool pressed,
   Widget child,
 ) {
-  switch (style.motion.effect) {
-    case WButtonEffectType.none:
+  switch (motion.effect) {
+    case WPressEffect.none:
       return child;
-    case WButtonEffectType.opacity:
+    case WPressEffect.opacity:
       return AnimatedOpacity(
-        opacity: pressed ? style.motion.pressedOpacity.clamp(0.0, 1.0) : 1.0,
-        duration: style.motion.duration,
-        curve: style.motion.curve,
+        opacity: pressed ? motion.pressedOpacity.clamp(0.0, 1.0) : 1.0,
+        duration: motion.duration,
+        curve: motion.curve,
         child: child,
       );
-    case WButtonEffectType.scale:
+    case WPressEffect.scale:
       return AnimatedScale(
-        scale: pressed ? style.motion.pressedScale.clamp(0.1, 1.0) : 1.0,
-        duration: style.motion.duration,
-        curve: style.motion.curve,
+        scale: pressed ? motion.pressedScale.clamp(0.1, 1.0) : 1.0,
+        duration: motion.duration,
+        curve: motion.curve,
         child: child,
       );
   }

@@ -38,7 +38,7 @@ class MorePage extends StatelessWidget {
       ),
       (
         'WNavBar / WNavController / WTabBar',
-        '切换动画、onItemTap 拦截、WNavBarConfig、WTabBar 配置',
+        '切换动画、onItemTap 拦截、WNavBarStyle、WTabBar 配置',
         (_) => const NavDemoPage(),
       ),
       (

@@ -4,13 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
-  group('WTabBarConfig — 纯 Dart', () {
+  group('WTabBarStyle — 纯 Dart', () {
     test('默认构造', () {
-      expect(const WTabBarConfig(), isNotNull);
+      expect(const WTabBarStyle(), isNotNull);
     });
 
     test('构造字段与 copyWith', () {
-      const cfg = WTabBarConfig(
+      const style = WTabBarStyle(
         labelStyle: TextStyle(fontSize: 16),
         unselectedLabelStyle: TextStyle(fontSize: 14),
         dividerColor: Colors.grey,
@@ -22,37 +22,21 @@ void main() {
         indicatorWeight: 3.0,
         tabAlignment: TabAlignment.center,
       );
-      expect(cfg.isScrollable, isTrue);
-      expect(cfg.indicatorWeight, 3.0);
-      expect(cfg.dividerHeight, 1.0);
+      expect(style.isScrollable, isTrue);
+      expect(style.indicatorWeight, 3.0);
+      expect(style.dividerHeight, 1.0);
 
-      final updated = cfg.copyWith(dividerHeight: 2.0, dividerColor: Colors.red);
+      final updated = style.copyWith(dividerHeight: 2.0, dividerColor: Colors.red);
       expect(updated.dividerHeight, 2.0);
       expect(updated.dividerColor, Colors.red);
-      expect(updated.labelStyle, cfg.labelStyle);
+      expect(updated.labelStyle, style.labelStyle);
     });
 
-    test('build 返回 WTabBar', () {
-      const cfg = WTabBarConfig();
-      final tab = cfg.build(tabs: const [Text('A'), Text('B')]);
-      expect(tab, isA<WTabBar>());
-    });
-  });
-
-  group('WTabBarConfig — copy', () {
-    test('copy / copyWith 返回新实例', () {
-      const cfg = WTabBarConfig(
-        labelStyle: TextStyle(fontSize: 14),
-        isScrollable: true,
-        indicatorWeight: 3,
-      );
-
-      final copy = cfg.copy();
-      expect(copy, isA<WTabBarConfig>());
-      expect(identical(cfg, copy), false);
-
-      final updated = copy.copyWith(indicatorWeight: 5);
-      expect(updated, isA<WTabBarConfig>());
+    test('值相等', () {
+      const a = WTabBarStyle(isScrollable: true);
+      const b = WTabBarStyle(isScrollable: true);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
     });
   });
 
@@ -65,7 +49,7 @@ void main() {
             body: Column(
               children: [
                 WTabBar(
-                  config: const WTabBarConfig(),
+                  style: const WTabBarStyle(),
                   tabs: List.generate(tabCount, (i) => Text('Tab $i')),
                   onTap: onTap,
                 ),
@@ -115,8 +99,8 @@ void main() {
       expect(tapped, 2);
     });
 
-    testWidgets('自定义 config.indicatorColor / indicatorWeight', (tester) async {
-      const cfg = WTabBarConfig(
+    testWidgets('自定义 style.indicatorColor / indicatorWeight', (tester) async {
+      const cfg = WTabBarStyle(
         indicatorColor: Colors.orange,
         indicatorWeight: 4,
       );
@@ -128,7 +112,7 @@ void main() {
               body: Column(
                 children: [
                   WTabBar(
-                    config: cfg,
+                    style: cfg,
                     tabs: [Text('A'), Text('B')],
                   ),
                   Expanded(
@@ -147,14 +131,14 @@ void main() {
   });
 
   testWidgets('WTabBar overlayColor 可配置', (tester) async {
-    const cfg = WTabBarConfig(overlayColor: Colors.red);
+    const cfg = WTabBarStyle(overlayColor: Colors.red);
     await tester.pumpWidget(
       const MaterialApp(
         home: DefaultTabController(
           length: 2,
           child: Scaffold(
             body: WTabBar(
-              config: cfg,
+              style: cfg,
               tabs: [Text('A'), Text('B')],
             ),
           ),
@@ -163,12 +147,6 @@ void main() {
     );
     final tabBar = tester.widget<TabBar>(find.byType(TabBar));
     expect(tabBar.overlayColor?.resolve({}), Colors.red);
-  });
-  test('WTabBarConfig 值相等', () {
-    final a = WTabBarConfig(isScrollable: true); // ignore: prefer_const_constructors
-    final b = WTabBarConfig(isScrollable: true); // ignore: prefer_const_constructors
-    expect(a, b);
-    expect(a.hashCode, b.hashCode);
   });
   testWidgets('WTabBar 默认不强制透明 overlay，交给 TabBarTheme', (tester) async {
     await tester.pumpWidget(

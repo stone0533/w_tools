@@ -40,7 +40,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('child'));
+    await tester.tap(find.byType(WPressable));
     await tester.pumpAndSettle();
     expect(taps, 0);
   });
@@ -82,7 +82,7 @@ void main() {
       _wrap(
         WPressable(
           enabled: false,
-          excludeChildSemanticsWhenDisabled: true,
+          hasChildSemanticsWhenDisabled: false,
           child: child(),
         ),
       ),

@@ -34,6 +34,14 @@ class WScreenData {
   double get height => size.height;
   double get statusBarHeight => padding.top;
   double get bottomSafeAreaHeight => padding.bottom;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WScreenData && other.size == size && other.padding == padding;
+
+  @override
+  int get hashCode => Object.hash(size, padding);
 }
 
 class WScreen {
@@ -49,16 +57,16 @@ class WScreen {
   // ──── 设备信息（永远可用，和 ScreenUtil 无关） ────
 
   /// 设备屏幕宽度（逻辑像素）
-  static double get screenWidth => _mq.size.width;
+  static double get screenWidth => _view.physicalSize.width / _view.devicePixelRatio;
 
   /// 设备屏幕高度（逻辑像素）
-  static double get screenHeight => _mq.size.height;
+  static double get screenHeight => _view.physicalSize.height / _view.devicePixelRatio;
 
   /// 状态栏高度（刘海屏会更高）
-  static double get statusBarHeight => _mq.padding.top;
+  static double get statusBarHeight => _view.padding.top / _view.devicePixelRatio;
 
   /// 底部安全区高度
-  static double get bottomSafeAreaHeight => _mq.padding.bottom;
+  static double get bottomSafeAreaHeight => _view.padding.bottom / _view.devicePixelRatio;
 
   // ──── 适配委托（用户需要屏幕适配时注入） ────
   // 同时使用 flutter_screenutil 时，把 ScreenUtil 的 setWidth/setHeight/setSp 注入进来
@@ -91,8 +99,6 @@ class WScreen {
   }
 
   // ──── 内部 ────
-
-  static MediaQueryData get _mq => MediaQueryData.fromView(_view);
 
   static ui.FlutterView get _view => WidgetsBinding.instance.platformDispatcher.views.first;
 

@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^7.0.0
+  w_tools_ui: ^8.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -152,6 +152,7 @@ const WImageStyle().square(40).rounded(20)
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
+> 8.0 迁移见 [`docs/migrations/ui-8.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-8.0.md)；
 > 7.0 迁移见 [`docs/migrations/ui-7.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-7.0.md)；
 > 历史迁移见 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)。
 
@@ -226,9 +227,10 @@ WActionRow(children: [WButton(...), WButton(...)]);
 ```dart
 WGradientCircularProgressIndicator(radius: 24, value: 0.6, colors: const [Colors.indigo, Colors.lightBlue]);
 WKeepAliveWrapper(child: item);
-WNotificationListenerBuilder<ScrollNotification>(child: list)
-  .onNotificationPercentage((p) { ... })
-  .build()
+WNotificationListener<ScrollNotification>(
+  onNotificationPercentage: (p) { ... },
+  child: list,
+)
 ```
 
 ## 导航
@@ -330,7 +332,7 @@ WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
 | 裁剪 | `WClipRRect` |
 | 加载指示 | `WGradientCircularProgressIndicator` |
 | 列表保活 | `WKeepAliveWrapper` |
-| 滚动通知 | `WNotificationListenerBuilder` |
+| 滚动通知 | `WNotificationListener` |
 | 布局 | `WScaffold` / `WAppBar` / `WListView` |
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
 | 屏幕工具 | `WScreen` |

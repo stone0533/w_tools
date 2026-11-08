@@ -27,6 +27,7 @@
 - [4.7](ui-4.7.md)：四个组件的 config 可选
 - [6.0](ui-6.0.md)：`WImage` 单入口，删除旧构造器与 String 图片扩展
 - [7.0](ui-7.0.md)：`WImageLoadConfig` → `WImageLoadOptions`、`WImageDefaultsScope` → `WImageTheme`、删除 `WImageStyle.merge` / `WImage.type` / `WImage.data`
+- [8.0](ui-8.0.md)：删除 Config 过渡入口 / `WButtonMetrics` / Builder；角标自有类型；按钮 motion / semantics 参数化
 
 ## form
 

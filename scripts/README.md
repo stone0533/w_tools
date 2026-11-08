@@ -72,6 +72,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 链接锚点 / 发布物 Markdown 链接 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字；`--skip-feedback` 供不装 Flutter 的 CI docs job 用） | 只改文档时可单独跑 / CI docs job |
 | `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移（关键正向过滤器 / quantifier / required 接线 / docs job meta 检查 / `example` 列 ↔ `example/test`） | preflight / CI docs job / matrix job |
 | `check_gate_coverage.py` | 每个 `scripts/*.sh` / `*.py` 都必须被 preflight / check_docs / release_check / workflow 之一调用（人工脚本在脚本内 `MANUAL` 写明理由），且在本手册登记 | preflight / CI docs job |
+| `check_coverage.py` | 读取 `lcov.info` 校验行覆盖下限（CI 的 ui job 用 90%；本地可 `--lcov` 指定报告） | CI packages job |
 | `packages.manifest` | 包名 / 路径 / runner / root / example 的单一清单 | 新增包 / 改测试入口 |
 
 `check_docs.sh` 是 `preflight` 的子集，**不要只跑它就说全仓通过**。

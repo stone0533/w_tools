@@ -1,3 +1,8 @@
+## Unreleased
+
+### Fixed
+- 同步 `w_tools_ui` 版本约束到 `^8.0.0`（init 生成的 pubspec 与 `versions.dart`）。
+
 ## 1.15.0
 
 ### Fixed
