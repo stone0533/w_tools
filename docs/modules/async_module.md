@@ -143,7 +143,6 @@ WAsyncState.failed(error, previousData: oldData)
 `data` 可读取旧数据；`when(...)` 四态全覆盖；`isRefreshing` 表示 loading + 旧数据。
 `WAsyncState.list(...)`（旧名 `ofList`，已 deprecated）把 null / 空列表转为 empty，与
 `WAsyncController.list` 对称。
-`errorMessage(maxLength:)` 用于日志 / 错误文案截断；视图默认直接展示 `error`，不自动截断。
 
 ## 3. Controller
 

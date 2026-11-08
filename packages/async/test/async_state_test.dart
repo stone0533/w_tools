@@ -74,17 +74,6 @@ void main() {
       expect(failed.data, 5);
     });
 
-    test('errorMessage 截断过长错误', () {
-      final long = WAsyncState<int>.failed('x' * 300);
-      expect(long.errorMessage(maxLength: 10).length, 11);
-      expect(long.errorMessage(maxLength: 10).endsWith('…'), isTrue);
-    });
-
-    test('errorMessage 负数 maxLength 按 0 处理', () {
-      final state = WAsyncState<int>.failed(Exception('e'));
-      expect(state.errorMessage(maxLength: -1), '…');
-    });
-
     test('值相等与 hashCode', () {
       expect(const WAsyncState<int>.ready(1), const WAsyncState<int>.ready(1));
       expect(const WAsyncState<int>.ready(1).hashCode, const WAsyncState<int>.ready(1).hashCode);

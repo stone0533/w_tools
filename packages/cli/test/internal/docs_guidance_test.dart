@@ -63,9 +63,12 @@ void main() {
     expect(readme, contains('万级'));
   });
 
-  test('ASYNC-024：WAsyncState.errorMessage 的用途已写明', () {
+  test('ASYNC-024：WAsyncState.errorMessage 已移除并记录迁移', () {
     final module = File('../../docs/modules/async_module.md').readAsStringSync();
+    final migration = File('../../docs/migrations/async-6.0.md').readAsStringSync();
 
-    expect(module, contains('errorMessage'));
+    expect(module, isNot(contains('errorMessage')));
+    expect(migration, contains('WAsyncState.errorMessage'));
+    expect(migration, contains('移除'));
   });
 }

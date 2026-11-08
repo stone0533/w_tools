@@ -26,7 +26,7 @@ names = [
     r'WFormBorderConfigBuilder', r'WFormRowBorderExtension', r'withFormBorder',
     r'WFormBorderConfigScope', r'WFormBorderState', r'\bWFormBorderConfig\b', r'WFormPopupRoute',
     r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'WAsyncBuilder', r'WAsyncConfig',
-    r'WAsyncLoading', r'\bWConfig\b', r'\bWRoute\b', r'WRegExpPattern', r'WRegExpPreset',
+    r'WAsyncLoading', r'WAsyncState\.errorMessage', r'\bWConfig\b', r'\bWRoute\b', r'WRegExpPattern', r'WRegExpPreset',
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
     # ui 7.0 的改名：旧名不保留，必须登记，否则 README / example 里的旧推荐拦不住。
     r'WHexColor', r'WImageStyleX',

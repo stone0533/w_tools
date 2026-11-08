@@ -102,13 +102,6 @@ class WAsyncState<T> {
   /// 是否是在保留旧数据的前提下刷新。
   bool get isRefreshing => isLoading && data != null;
 
-  /// 保留已有数据的错误信息（超过 [maxLength] 时截断，避免日志/文案过长）。
-  String errorMessage({int maxLength = 120}) {
-    final limit = maxLength < 0 ? 0 : maxLength;
-    final text = error?.toString() ?? '';
-    return text.length <= limit ? text : '${text.substring(0, limit)}…';
-  }
-
   @override
   bool operator ==(Object other) =>
       other is WAsyncState<T> &&

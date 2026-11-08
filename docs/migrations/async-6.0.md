@@ -62,3 +62,13 @@ errorBuilder: (context, error, retry) =>
 `WAsyncController.list` 现在和 `WAsyncPagedController` 一样，把列表包成 unmodifiable。
 原地 `add` / `remove` 会抛 `UnsupportedError`；需要可变副本时自己 `List.of(data)`。
 泛型 `WAsyncController` 仍原样保存 loader 返回值。
+
+## 移除 WAsyncState.errorMessage
+
+6.0 移除未使用的 `WAsyncState.errorMessage`。需要截断错误文案时自己处理：
+
+```dart
+final text = state.error?.toString() ?? '';
+final message = text.length <= 120 ? text : '${text.substring(0, 120)}…';
+```
+

@@ -13,8 +13,10 @@
   `WAsyncPagedController` 一致；原地修改会抛 `UnsupportedError`。
 
 ### Docs
-- 写明分页追加的 O(n) 规模边界（万级以上建议窗口化），以及
-  `WAsyncState.errorMessage` 的日志 / 文案截断用途。
+- 写明分页追加的 O(n) 规模边界（万级以上建议窗口化）。
+
+### Removed
+- `WAsyncState.errorMessage`：未使用的半成品 API，6.0 移除；需要截断错误文案时自己处理。
 
 ### Internal
 - 去掉控制器 / sliver 的不可达取消分支与 `pool` 的死 fallback。
