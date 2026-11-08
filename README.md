@@ -2,14 +2,14 @@
 
 [![CI](https://github.com/stone0533/w_tools/actions/workflows/ci.yml/badge.svg)](https://github.com/stone0533/w_tools/actions/workflows/ci.yml)
 
-一个按子包拆分、以子包配置（`WToken` / `WAssets` / `WAppConfig` 等）驱动的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
+一个按子包拆分、以子包配置（`WToken` / `WAssets` / `WLocaleConfig` 等）驱动的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
 
 ## 特性
 
 - **组件库**：提供丰富的 UI 组件，涵盖通用组件、输入组件、布局组件和导航组件
 - **工具类**：包含加密、验证、日志、存储、网络请求等多种实用工具
 - **扩展功能**：提供颜色、字符串、数字、容器等多种扩展方法
-- **配置在子包**：`WToken`（键名）/ `WAssets`（资源前缀）/ `WAppConfig`（语言）等配置各归其包（`WConfig` 已在 3.0 删除）
+- **配置在子包**：`WToken`（键名）/ `WAssets`（资源前缀）/ `WLocaleConfig`（语言）等配置各归其包（`WConfig` 已在 3.0 删除）
 - **响应式设计**：支持屏幕适配，自动适应不同设备尺寸
 
 ## 文档
@@ -172,7 +172,7 @@ flutter pub get
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^1.0.1
+  w_tools_app_getx: ^2.0.0
 ```
 
 ```dart
@@ -241,7 +241,7 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 - **异步工具** (`WAsync` / `WAsyncState` / `WAsyncView`): 提供执行、四态状态、Controller 与异步视图
 - **平台工具** (`WPlatform`): 提供平台检测和适配功能，支持移动、桌面和 Web 平台的判断，以及平台特定操作的执行
 - **正则工具** (`WRegExp`): 提供常用正则表达式
-- **路由工具** (`WRouteStack` / `WRouteStack.defaultStack`): 路由栈记录与回退
+- **路由工具** (`WRouteStack` / `app.routeStack`): 路由栈记录与回退
 
 ### 📚 扩展功能
 

@@ -5,8 +5,8 @@ export 'package:w_tools_app/w_tools_app.dart' show WAppPlugin;
 
 export 'src/app.dart';
 export 'src/options.dart';
-export 'src/utils/app_config.dart';
-export 'src/utils/bottom_sheet.dart';
-export 'src/utils/language.dart';
-export 'src/utils/route.dart';
-export 'src/utils/router_observer.dart';
+export 'src/language/language.dart';
+export 'src/language/locale_config.dart';
+export 'src/routing/route_stack.dart';
+export 'src/routing/route_observer.dart';
+export 'src/sheet/bottom_sheet.dart';

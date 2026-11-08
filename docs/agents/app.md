@@ -7,15 +7,15 @@
 ## 最小用法
 
 ```dart
-void main() {
-  WApp.options(
+Future<void> main() async {
+  final app = WApp.options(
     WAppOptions(
       title: 'Demo',
-      initialRoute: '/',
-      getPages: [GetPage(name: '/', page: () => const HomePage())],
+      home: const HomePage(),   // 或 initialRoute: '/', getPages: [...]
       theme: ThemeData(useMaterial3: true),
     ),
-  ).start();   // = init() + run()，只调用一次
+  );
+  await app.start();          // = init() + run()，只调用一次
 }
 ```
 
@@ -37,66 +37,82 @@ class ServicePlugin with WAppPlugin {
   @override
   Future<void> onInit() async { ... }
 }
-WApp.options(
-  WAppOptions(title: 'Demo', plugins: [AnalyticsPlugin()]),
-).start();
+
+final app = WApp.options(
+  WAppOptions(
+    title: 'Demo',
+    home: const HomePage(),
+    plugins: [AnalyticsPlugin(), ServicePlugin()],
+  ),
+);
+await app.start();
 ```
 
 多语言：
 
 ```dart
-WApp.options(
+final app = WApp.options(
   WAppOptions(
     title: 'Demo',
-    localeConfig: const WLocaleConfig(
+    home: const HomePage(),
+    localeConfig: WLocaleConfig(
       supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-      defaultLanguage: 'zh_CN',   // 当前语言不在列表时回退
+      initialLanguage: 'zh_CN',   // 首次启动语言
+      fallbackLanguage: 'en_US',  // 当前语言不受支持时回退
     ),
   ),
-).start();
+);
+await app.start();
+
+// 运行期切换
+app.language.changeLanguage('en_US');
 ```
 
 `WAppOptions.copyWith(...)` 可复用配置；`start()` 只覆盖 `initialRoute / getPages / builder /
 navigatorObservers / defaultTransition / theme / translations / locale / fallbackLocale`，
-`title`、`orientations`、`systemUiOverlayStyle`、`appWrapper` 等只能放 `WAppOptions`。
+`title`、`home`、`orientations`、`shouldApplyOrientations`、`systemUiOverlayStyle`、`appWrapper`、
+`localeConfig`、`plugins` 等只能放 `WAppOptions`。
 
 ## 组合全局主题（不需要插件）
 
 ```dart
-WApp.options(
+final app = WApp.options(
   WAppOptions(
     title: 'Demo',
+    home: const HomePage(),
     appWrapper: (child) => WAsyncTheme(
       child: WToastTheme(style: WToastStyle.defaults, child: child),
     ),
   ),
-).start();
+);
+await app.start();
 ```
 
 `appWrapper` 在 MaterialApp 外、插件 `wrapApp` 之内；需要 Theme 的东西放 `builderWrapper`。
 
 ## 不要用
 
-- 用可变字段（`app.title = ...` 已在 2.0 删除）；统一 `WAppOptions`；
-- 手写 `runApp` + 自己的初始化顺序（用 `WApp.start()`）；
+- 手写 `runApp` + 自己的初始化顺序（用 `app.start()`）；
 - 重复添加 `WRouteObserver`（`WApp` 已自动追加）；
-- 在 `wrapApp` 里读 Theme / MediaQuery（它在 MaterialApp 外）。
+- 在 `wrapApp` 里读 Theme / MediaQuery（它在 MaterialApp 外）；
+- 自己保存 `WLanguage` 实例 / 用已删除的 `WRouteStack.defaultStack`；改用 `app.language` / `app.routeStack`。
 
 ## 常见坑
 
-- `start()` 只能调一次（重复调用会再次 `runApp`）；
+- `start()` / `run()` 只能调一次（重复调用抛 `StateError`）；
 - 需要 Theme 的插件生命周期用 `builderWrapper`，不是 `wrapApp`；
-- 多语言用 `WLanguage().changeLanguage(...)` 监听变化，不要直接写 `WAppConfig.currentLanguage`。
+- 多语言用 `app.language.changeLanguage(...)`，监听 `app.language.languageChanges`；
+  不要保存第二份 current；
+- `WLanguage` 的 `languageChanges` 是只读流，`languageListenable` 是只读 `ValueListenable`。
 
 ## 语言与路由栈
 
 ```dart
-WAppConfig.supportedLanguages = {'zh_CN': '简体中文', 'en_US': 'English'};
-WLanguage().changeLanguage('zh_CN');
-WLanguage().languageStream.listen((code) { ... });
+app.language.changeLanguage('zh_CN');
+app.language.languageChanges.listen((code) { ... });
 
-WRouteStack.defaultStack.popUntilRoute('/home');
-WApp.routeStack.routes; // 或 app.routeStack
+app.routeStack.popUntilRoute('/home');
+app.routeStack.routes;
 
 final result = await WBottomSheet.show<String>(const MySheetContent());
 ```

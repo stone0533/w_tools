@@ -7,7 +7,7 @@ import 'package:w_tools/w_tools.dart' as w;
 ///
 /// 确认 `package:w_tools/w_tools.dart` 能解析 6 个基础子包的公开类型
 /// —— 任一子包的重导出出现命名冲突，本文件会直接编译失败。
-/// `WConfig` 已在 core 3.0 删除；聚合入口的配置走 `WToken` / `WAssets` / `WAppConfig`。
+/// `WConfig` 已在 core 3.0 删除；聚合入口的配置走 `WToken` / `WAssets` / `WLocaleConfig`。
 ///
 /// 各能力的行为测试放在各自的包内（packages/<pkg>/test/），
 /// 本文件不重复覆盖。

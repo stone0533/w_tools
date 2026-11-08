@@ -377,7 +377,6 @@ void main() {
         'WAppPlugin',
         'WBottomSheet',
         'WLanguage',
-        'WAppConfig',
         'WRouteObserver',
         'WRouteStack',
         'WLocaleConfig',
@@ -392,7 +391,6 @@ void main() {
         for (final name in <String>[
           'WLanguage',
           'WLocaleConfig',
-          'WAppConfig',
           'WRouteStack',
           'WBottomSheet',
           'dependsOn',

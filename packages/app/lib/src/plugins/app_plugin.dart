@@ -7,17 +7,17 @@ import 'package:flutter/material.dart';
 ///   → 系统设置（状态栏、屏幕方向）
 ///   → plugin.onInit()：按 [dependsOn] 分层执行（同层并行、跨层串行）
 ///   → customTasks（并行）
-///   → 首帧后 onLazyInit()
 ///   → runApp(...)
+///   → 首帧后 onLazyInit()
 ///
 /// run 阶段两个包裹钩子的位置（以两个插件 P₁、P₂ 为例，自外向内）：
 /// ```
 /// runApp(
 ///   P₂.wrapApp(                     // 插件 wrapApp：后注册者更靠外
 ///     P₁.wrapApp(
-///       appWrapper(                 // `启动器的 `appWrapper`` 字段（位于插件之内）
+///       appWrapper(                 // 实现层 WAppOptions.appWrapper（位于插件之内）
 ///         MaterialApp(
-///           builder: (ctx, nav) =>  // `启动器的 `builder`` 字段（位于插件之外）
+///           builder: (ctx, nav) =>  // 实现层 WAppOptions.builder（位于插件之外）
 ///             P₂.builderWrapper(
 ///               P₁.builderWrapper(nav),
 ///             ),
@@ -28,7 +28,7 @@ import 'package:flutter/material.dart';
 /// );
 /// ```
 ///
-/// 启动器的 `builder` / `appWrapper` 是上述两个位置的**单例字段版**入口；
+/// 实现层 `WAppOptions.builder` / `WAppOptions.appWrapper` 是上述两个位置的字段版入口；
 /// 注意二者的叠加次序**相反**：builder 应用在插件链**之后**（更靠外），
 /// appWrapper 应用在插件链**之前**（更靠内）。
 ///
@@ -61,7 +61,8 @@ abstract mixin class WAppPlugin {
   ///
   /// 适用于：dotenv 加载、日志配置、SharedPreferences 预加载等异步准备工作
   ///
-  /// **注意**：任一插件的 `onInit` 抛错都会中断整个启动（fail-fast）。
+  /// **注意**：任一插件的 `onInit` 抛错都会让启动失败；同层其它插件仍会执行完
+  /// （`Future.wait` 等全部完成后抛出）。
   Future<void> onInit() async {}
 
   // ──── run 阶段钩子 ────
@@ -75,7 +76,7 @@ abstract mixin class WAppPlugin {
   /// BotToast、需要 Localizations 的 easy_localization。
   ///
   /// 返回的 TransitionBuilder 按插件注册顺序串联（后注册者更靠外），
-  /// 最后再叠加 `启动器的 `builder``。
+  /// 最后再叠加实现层 `WAppOptions.builder`。
   ///
   /// **注意**：返回的 widget 必须把入参 `child` 纳入其 widget 树，
   /// 否则会丢弃整个 app（黑屏）。
@@ -89,7 +90,7 @@ abstract mixin class WAppPlugin {
   /// **何时用**：需要覆盖 MaterialApp 之外的 `MediaQuery`、包最外层手势，
   /// 或做全局尺寸适配（如 ScreenUtilInit）时。
   ///
-  /// 多个插件时**最外层**插件的返回值即 runApp 的 child；`启动器的 `appWrapper``
+  /// 多个插件时**最外层**插件的返回值即 runApp 的 child；`WAppOptions.appWrapper`
   /// 会先于本钩子执行，因而位于插件 wrapApp 链的**更内层**。
   ///
   /// **注意**：返回的 widget 必须把入参 `child` 纳入其 widget 树，
@@ -99,7 +100,7 @@ abstract mixin class WAppPlugin {
   /// 额外的 NavigatorObserver
   ///
   /// 所有插件的 observers 会合并到 MaterialApp.navigatorObservers 列表
-  /// （WRouteObserver 会在最后追加，保证路由观测完整性）
+  /// （WApp 会按栈自动追加 WRouteObserver；同栈不重复追加）
   ///
   /// 适用于：BotToastNavigatorObserver、自定义路由埋点等
   List<NavigatorObserver>? get navigatorObservers => null;

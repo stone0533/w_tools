@@ -30,15 +30,16 @@ packages/app_getx/                    # GetX 实现层
     ├── w_tools_app_getx.dart          # 统一导出
     └── src/
         ├── app.dart                  # WApp 启动器
-        ├── options.dart              # WAppOptions / WLocaleConfig
-        └── utils/
-            ├── app_config.dart       # WAppConfig 语言配置
-            ├── bottom_sheet.dart     # WBottomSheet
-            ├── language.dart         # WLanguage
-            ├── route.dart            # WRouteStack
-            └── router_observer.dart  # WRouteObserver
+        ├── options.dart              # WAppOptions
+        ├── language/
+        │   ├── language.dart         # WLanguage
+        │   └── locale_config.dart    # WLocaleConfig
+        ├── routing/
+        │   ├── route_stack.dart      # WRouteStack
+        │   └── route_observer.dart   # WRouteObserver
+        └── sheet/
+            └── bottom_sheet.dart     # WBottomSheet
 ```
-
 
 ---
 
@@ -52,59 +53,79 @@ packages/app_getx/                    # GetX 实现层
 2. **插件生命周期**：维护插件注册表，按 `dependsOn` 声明构建分层依赖图，分层初始化。
 3. **启动流程**：提供 `init`、`run`、`start` 三个入口，幂等且带非空校验。
 
-### 配置方式（1.2+）
+语言与路由栈是**实例状态**：`app.language` / `app.routeStack`，没有全局单例。
+
+### 配置方式
 
 ```dart
-WApp.options(
+final app = WApp.options(
   WAppOptions(
     title: 'Demo',
-    initialRoute: '/',
-    getPages: [GetPage(name: '/', page: () => const HomePage())],
+    home: const HomePage(),
+    // 或者：initialRoute: '/', getPages: [...]
   ),
-).start();
+);
+await app.start();
 ```
 
 优先级：`start()` 参数 > `WAppOptions` > 默认值。
-语言支持列表用 `WLocaleConfig`；运行期当前语言真源是 `WAppConfig.currentLanguage`，`WLanguage` 是它的响应式包装。
+必须提供 `home`，或同时提供 `initialRoute` + `getPages`；配置错误在构造时抛
+`ArgumentError`。
 
 ### WAppOptions 字段
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `title` | `String` | — | **必填**，应用标题 |
-| `initialRoute` | `String` | — | **必填**，初始路由 |
-| `getPages` | `List<GetPage<dynamic>>` | — | **必填**，GetX 路由表 |
-| `orientations` | `List<DeviceOrientation>` | `[portraitUp]` | 支持的屏幕方向，默认仅竖屏 |
-| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | 透明状态栏 + 黑色导航栏 | 系统 UI 样式；`null` 表示不干预 |
-| `builder` | `TransitionBuilder?` | null | GetMaterialApp.builder；位于插件 builderWrapper 链之后（更外层） |
-| `navigatorObservers` | `List<NavigatorObserver>?` | null | 额外的 navigator observers |
-| `defaultTransition` | `Transition?` | null | GetX 默认转场动画 |
-| `theme` | `ThemeData?` | null | 主题数据 |
+| `home` | `Widget?` | null | 根页面；与 `initialRoute` + `getPages` 二选一 |
+| `initialRoute` | `String?` | null | 初始路由；`home` 为 null 时必填 |
+| `getPages` | `List<GetPage<dynamic>>?` | null | GetX 路由表；`home` 为 null 时必填 |
+| `routes` | `Map<String, WidgetBuilder>?` | null | 普通命名路由 |
+| `navigatorKey` | `GlobalKey<NavigatorState>?` | null | 自定义 Navigator key |
+| `theme` | `ThemeData?` | null | 亮色主题 |
+| `darkTheme` | `ThemeData?` | null | 暗色主题 |
+| `themeMode` | `ThemeMode?` | null | 主题模式，传给 `GetMaterialApp` |
 | `translations` | `Translations?` | null | GetX 国际化翻译表 |
 | `locale` | `Locale?` | null | 当前语言 |
 | `fallbackLocale` | `Locale?` | null | 兜底语言 |
-| `appWrapper` | `Widget Function(Widget)?` | null | 包裹 GetMaterialApp；位于插件 wrapApp 之内，插件更外层 |
+| `supportedLocales` | `List<Locale>?` | null | 显式覆盖；默认由 `localeConfig` 派生 |
+| `localizationsDelegates` | `Iterable<LocalizationsDelegate<dynamic>>?` | null | 默认使用 `GlobalMaterialLocalizations.delegates` |
+| `builder` | `TransitionBuilder?` | null | GetMaterialApp.builder；位于插件 builderWrapper 链之后（更外层） |
+| `navigatorObservers` | `List<NavigatorObserver>?` | null | 额外的 navigator observers |
+| `defaultTransition` | `Transition?` | null | GetX 默认转场动画 |
+| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | null | 系统 UI 样式；`null` 表示不干预 |
+| `orientations` | `List<DeviceOrientation>` | `[portraitUp]` | 支持的屏幕方向 |
+| `shouldApplyOrientations` | `bool` | `false` | 是否启动时应用 `orientations` |
+| `appWrapper` | `Widget Function(Widget)?` | null | 包裹 GetMaterialApp；位于插件 wrapApp 之内 |
+| `localeConfig` | `WLocaleConfig?` | null | 支持语言 / 首次语言 / 回退语言 |
+| `plugins` | `List<WAppPlugin>` | `[]` | 启动插件 |
+| `routeStack` | `WRouteStack?` | null | 自定义路由栈；默认新建 |
+| `unknownRoute` | `GetPage<dynamic>?` | null | GetX 未知路由 |
+
+`WAppOptions` 是不可变值对象：构造时会拷贝 list / map，并实现 `==` / `hashCode`。
 
 ### 插件管理方法
 
 | 方法 | 说明 |
 |------|------|
-| `addPlugin(WAppPlugin plugin)` | 注册单个插件 |
-| `addPlugins(Iterable<WAppPlugin> plugins)` | 批量注册插件 |
-| `removePlugin(String name)` | 按名称移除插件 |
-| `clearPlugins()` | 清空所有已注册插件 |
+| `addPlugin(WAppPlugin plugin)` | 注册单个插件（init 前） |
+| `addPlugins(Iterable<WAppPlugin> plugins)` | 批量注册（init 前） |
+| `removePlugin(String name)` | 按名称移除（init 前） |
+| `clearPlugins()` | 清空所有插件（init 前） |
+
+`init` 之后再修改插件会抛 `StateError`，避免“插件没跑 onInit 却参与了 wrapper”的静默错误。
 
 ### 生命周期方法
 
 | 方法 | 幂等 | 说明 |
 |------|------|------|
-| `init({VoidCallback? onLazyInit, List<Future<void>>? customTasks})` | ✅ | 初始化阶段：`WidgetsFlutterBinding.ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → `onLazyInit` 首帧后回调 |
-| `run({...})` | ❌ | 启动应用。**必须先 `init`**；会校验 `title`、`initialRoute`、`getPages` 非空 |
-| `start({onLazyInit, customTasks, initialRoute, getPages, builder, navigatorObservers, defaultTransition, theme, translations, locale, fallbackLocale})` | ❌ | 一站式启动：`start = init + run`；`title` / `orientations` / `systemUiOverlayStyle` 等放 `WAppOptions`（start 只覆盖列出的 9 个参数） |
+| `init({VoidCallback? onLazyInit, List<Future<void>>? customTasks})` | ✅ | `ensureInitialized` → 系统设置 → 插件分层初始化 → `customTasks` 并行 → `onLazyInit` 首帧后回调 |
+| `run({...})` | ❌ | 启动应用；必须先 `init`，且只能调用一次 |
+| `start({...})` | ❌ | 一站式启动：`init` + `run`；只能调用一次 |
 
 ### 包裹顺序（由外向内）
 
-```
+```text
 插件 wrapApp（后注册者更外）
   → WAppOptions.appWrapper
     → GetMaterialApp
@@ -113,22 +134,15 @@ WApp.options(
 
 builder 链（由内向外）：
 
-```
+```text
 插件 builderWrapper[0] → 插件 builderWrapper[1] → ... → WApp.builder
 ```
 
-`WApp.builder` 不是最外层：它在 `GetMaterialApp` 内部，插件 `wrapApp` 和 `appWrapper` 都在它外面。
-
 ### 插件初始化流程
 
-`init` 内部对已注册插件构建依赖分层图后按层执行：
-
 - 同层插件**并行**初始化（`Future.wait`）。
-- 跨层**串行**（上一层全部完成后下一层才开始）。
-- 以下情况会抛 `StateError`：
-  - 插件 `name` 重复；
-  - `dependsOn` 中声明的依赖未被注册；
-  - 存在循环依赖。
+- 跨层**串行**。
+- 插件 `name` 重复、`dependsOn` 引用未注册插件、存在循环依赖时抛 `StateError`。
 
 ### `builderWrapper` 与 `.sp`
 
@@ -170,12 +184,16 @@ Future<void> main() async {
   final app = WApp.options(
     WAppOptions(
       title: 'My App',
-      initialRoute: Routes.home,
-      getPages: Routes.pages,
+      home: const HomePage(),
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       translations: AppTranslations(),
-      locale: const Locale('zh', 'CN'),
-      fallbackLocale: const Locale('en', 'US'),
+      localeConfig: WLocaleConfig(
+        supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+        initialLanguage: 'zh_CN',
+        fallbackLanguage: 'en_US',
+      ),
       plugins: [AuthPlugin()],
     ),
   );
@@ -183,7 +201,6 @@ Future<void> main() async {
   await app.start(
     onLazyInit: () {
       // 首帧后执行的轻量任务
-      WLogger.i('first frame');
     },
     customTasks: [
       // 必须在 run 前完成的任务（并行执行）
@@ -202,7 +219,7 @@ Future<void> main() async {
 
 `WAppPlugin` 是一个 `mixin class`，业务/功能方可以通过混入该接口实现自己的插件，并注册到 `WApp`。
 
-插件体系让诸如认证、推送、埋点、主题切换等横切关注点无需侵入 `main.dart`，并支持依赖声明和生命周期钩子。
+插件体系让认证、推送、埋点、主题切换等横切关注点无需侵入 `main.dart`，并支持依赖声明和生命周期钩子。
 
 ### 必填字段
 
@@ -218,13 +235,13 @@ Future<void> main() async {
 
 > 依赖是**声明式**的，而非注册顺序。即使 A 在 B 之前注册，只要 B 在 `dependsOn` 中声明了 A，A 会先初始化。
 
-### 钩子方法（全部可选实现）
+### 钩子方法
 
 | 钩子 | 返回类型 | 说明 |
 |------|----------|------|
-| `onInit()` | `Future<void>` / `void` | 初始化阶段被调用，可返回 Future 参与分层编排 |
-| `builderWrapper` | `TransitionBuilder?` | 对 `MaterialApp.builder` 的再次包裹；**后注册的插件在 builder 链更外层**。需要 Theme/MediaQuery/`.sp` 的主题扩展应在这里构建 |
-| `wrapApp` | `Widget Function(Widget)` | 对根 Widget 的包裹（如 Provider、最外层手势）；**后注册者最外**。位于 MaterialApp 之外，没有 Theme/MediaQuery |
+| `onInit()` | `Future<void>` | 初始化阶段被调用，参与分层编排 |
+| `builderWrapper` | `TransitionBuilder?` | 对 `MaterialApp.builder` 的再次包裹；**后注册的插件在 builder 链更外层** |
+| `wrapApp` | `Widget Function(Widget)` | 对根 Widget 的包裹；**后注册者最外**。位于 MaterialApp 之外，没有 Theme/MediaQuery |
 | `navigatorObservers` | `List<NavigatorObserver>?` | 额外的 `NavigatorObserver`，会与 `WAppOptions.navigatorObservers` 合并 |
 
 ### 使用示例
@@ -243,126 +260,120 @@ class AuthPlugin with WAppPlugin {
   }
 }
 
-// 另一个插件依赖 auth
 class PushPlugin with WAppPlugin {
   @override
   String get name => 'push';
 
   @override
-  List<String> get dependsOn => ['auth']; // 等 auth 初始化完再 init 自己
+  List<String> get dependsOn => ['auth'];
 }
 ```
 
 ---
 
-## 3. WAppConfig - 应用配置
+## 3. WLanguage - 语言管理
 
 ### 功能说明
 
-维护支持的语言列表和当前语言。为 `WLanguage` 提供语言元数据。
+每个 `WApp` 持有一个 `WLanguage` 实例（`app.language`）。它负责：
 
-### 字段
+- 支持语言列表；
+- 当前语言（唯一可写入口 `changeLanguage`）；
+- 只读变化流 / 值监听；
+- 语言码 ↔ `Locale` 解析。
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `supportedLanguages` | `Map<String, String>` | 键为语言代码（如 `'zh_CN'`），值为语言展示名（如 `'简体中文'`）；**整体赋值** |
-| `currentLanguage` | `String` | 当前语言代码 |
-
-### 使用示例
-
-```dart
-WAppConfig.supportedLanguages = {
-  'zh_CN': '简体中文',
-  'en_US': 'English',
-};
-WAppConfig.currentLanguage = 'zh_CN';
-```
-
----
-
-## 4. WLanguage - 语言管理
-
-### 功能说明
-
-提供语言切换、变更监听和当前 Locale 查询。底层使用 GetX 的状态响应式能力（`RxString`）。
+没有全局单例，也没有第二份可写的 `currentLanguage`。
 
 ### 公开成员
 
 | 成员 | 类型 | 说明 |
 |------|------|------|
-| `changeLanguage(String languageCode)` | 方法 | 切换语言 |
-| `listenLanguageChange(void Function(String) callback)` | 方法 | 注册语言变更监听（返回可调用对象用于取消） |
-| `languageStream` | `RxString` | 当前语言的响应式流 |
-| `currentLocale` | `Locale` | 将当前 `languageCode` 转为 `Locale`（支持 `zh_CN` 或 `en`） |
-| `currentLanguageName` | `String` | 当前语言的展示名（未收录时回退为语言代码） |
+| `supportedLanguages` | `Map<String, String>` | 只读支持列表 |
+| `currentLanguage` | `String` | 当前语言码 |
+| `currentLanguageName` | `String` | 当前语言展示名；未收录时回退为语言码 |
+| `currentLocale` | `Locale` | 当前语言对应 Locale（支持 `en` / `zh_CN` / `zh_Hant_TW`） |
+| `languageChanges` | `Stream<String>` | 只读变化流 |
+| `languageListenable` | `ValueListenable<String>` | 只读值监听，可用于 `ValueListenableBuilder` |
+| `changeLanguage(String)` | `bool` | 切换语言；未收录返回 false。只触发 GetMaterialApp 重建，不整树 reassemble |
+| `listenLanguageChange(...)` | `StreamSubscription<String>` | 监听语言变化，可取消 |
+| `hasExplicitSelection` | `bool` | 是否已显式选择语言 |
 
 ### 使用示例
 
 ```dart
-// 切换（WLanguage 是单例，用 WLanguage() 取实例）
-WLanguage().changeLanguage('en_US');
+// 切换
+app.language.changeLanguage('en_US');
 
-// 监听（返回 StreamSubscription）
-final subscription = WLanguage().listenLanguageChange((code) {
+// 监听
+final subscription = app.language.listenLanguageChange((code) {
   debugPrint('语言已切换为 $code');
 });
-
-// 在 State.dispose 中取消
 await subscription.cancel();
+
+// 只读值监听
+ValueListenableBuilder<String>(
+  valueListenable: app.language.languageListenable,
+  builder: (context, code, _) => Text(app.language.currentLanguageName),
+);
 ```
 
 ---
 
-## 5. WRouteStack - 路由栈管理
+## 4. WRouteStack - 路由栈管理
 
 ### 功能说明
 
-维护**根 Navigator** 的路由栈（由 `WRouteObserver` 记录），通过 `WRouteStack.defaultStack` 访问（持有 `WApp` 实例时也可用 `app.routeStack`）。仅覆盖根路由；嵌套 Navigator 需要自行管理。
+维护**根 Navigator** 的路由栈（由 `WRouteObserver` 记录），通过 `app.routeStack` 访问。
+每个 `WApp` 拥有自己的栈；没有全局 `defaultStack`。仅覆盖根路由；嵌套 Navigator 需要自行管理。
 
 ### 只读成员
 
 | 成员 | 类型 | 说明 |
 |------|------|------|
-| `routes` | `List<Route>` | 当前根 Navigator 的路由栈（**只读**） |
+| `routes` | `UnmodifiableListView<Route>` | 当前根 Navigator 的路由栈（只读视图，O(1)） |
 
 ### 操作方法
 
-| 方法 | 说明 |
-|------|------|
-| `removeRouteIfExists(String page)` | 栈中存在该路由名则移除（`Navigator.removeRoute`） |
-| `removeRoutesAfter(String page)` | 移除该路由名**上方**的所有路由（保留 `page`） |
-| `popUntilRoute(String page)` | 反复 `pop` 直到栈顶为 `page` |
+| 方法 | 返回 | 说明 |
+|------|------|------|
+| `removeRouteIfExists(String page)` | `bool` | 栈中存在该路由名则移除 |
+| `removeRoutesAfter(String page)` | `int` | 移除该路由名**上方**的所有路由（保留 `page`），返回数量 |
+| `popUntilRoute(String page)` | `bool` | 反复 `pop` 直到栈顶为 `page`；目标不存在返回 false 且不动作 |
 
-> `addRoute` / `removeRoute` 是**内部方法**，由 `WRouteObserver` 在 `didPush` / `didPop` / `didRemove` / `didReplace` 中自动调用。
+> `addRoute` / `removeRoute` / `clearRoutes` 是 `@internal`，由 `WRouteObserver` 自动调用。
 
 ### 使用示例
 
 ```dart
-// 按路由名截断
-WRouteStack.defaultStack.removeRoutesAfter('/profile');
-WRouteStack.defaultStack.popUntilRoute('/profile');
+app.routeStack.removeRoutesAfter('/profile');
+app.routeStack.popUntilRoute('/profile');
 ```
 
 ---
 
-## 6. WRouteObserver - 路由观察者
+## 5. WRouteObserver - 路由观察者
 
 ### 功能说明
 
-实现 `NavigatorObserver`，自动把根 Navigator 的路由变化同步到 `WRouteStack.defaultStack`（`WApp` 实例的 `routeStack`）。**通常不需要手动实例化**——`WApp` 会自动将其加入 `GetMaterialApp.navigatorObservers`。
+实现 `NavigatorObserver`，把根 Navigator 的路由变化同步到指定的 `WRouteStack`。
+`WApp` 会自动为 `app.routeStack` 追加一个 observer；如果调用方已经提供了同栈的
+`WRouteObserver`，不会重复追加。
+
+默认只记录页面路由；`PopupRoute`（底部弹窗 / 对话框）不进入路由栈，需要时传
+`recordPopups: true`。
 
 ### 观察的事件
 
 | 方法 | 行为 |
 |------|------|
-| `didPush(route, previousRoute)` | 追加到 `WRouteStack.defaultStack.routes` |
-| `didPop(route, previousRoute)` | 从 `WRouteStack.defaultStack.routes` 移除 |
-| `didReplace(newRoute, oldRoute)` | 替换 `WRouteStack.defaultStack.routes` 中的对应条目 |
-| `didRemove(route, previousRoute)` | 从 `WRouteStack.defaultStack.routes` 移除 |
+| `didPush(route, previousRoute)` | 追加到 `WRouteStack.routes`（PopupRoute 默认跳过） |
+| `didPop(route, previousRoute)` | 从 `WRouteStack.routes` 移除 |
+| `didReplace(newRoute, oldRoute)` | 移除旧路由、记录新路由 |
+| `didRemove(route, previousRoute)` | 从 `WRouteStack.routes` 移除 |
 
 ---
 
-## 7. WBottomSheet - 底部弹窗
+## 6. WBottomSheet - 底部弹窗
 
 ### 功能说明
 
@@ -375,7 +386,7 @@ WRouteStack.defaultStack.popUntilRoute('/profile');
 ### 使用示例
 
 ```dart
-WBottomSheet.show(
+final result = await WBottomSheet.show<String>(
   Container(
     height: 300,
     child: const Center(child: Text('这是底部弹窗内容')),
@@ -392,43 +403,34 @@ import 'package:flutter/material.dart';
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 Future<void> main() async {
-  // 1. 语言配置
-  WAppConfig.supportedLanguages = {
-    'zh_CN': '简体中文',
-    'en_US': 'English',
-  };
-
-  // 2. 应用配置与插件
   final app = WApp.options(
     WAppOptions(
       title: 'My App',
-      initialRoute: '/home',
-      getPages: [
-        GetPage(name: '/home', page: () => const HomePage()),
-        GetPage(name: '/profile', page: () => const ProfilePage()),
-      ],
-      orientations: [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
-      systemUiOverlayStyle: SystemUiOverlayStyle.dark,
+      home: const HomePage(),
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       translations: AppTranslations(),
-      locale: const Locale('zh', 'CN'),
-      fallbackLocale: const Locale('en', 'US'),
+      localeConfig: WLocaleConfig(
+        supportedLanguages: {
+          'zh_CN': '简体中文',
+          'en_US': 'English',
+        },
+        initialLanguage: 'zh_CN',
+        fallbackLanguage: 'en_US',
+      ),
       plugins: [AuthPlugin(), PushPlugin()],
     ),
   );
 
-  // 3. 一站式启动
   await app.start(
     builder: (context, child) {
-      // 业务侧额外包裹（比如全局 Loading）
       return GlobalLoading(child: child ?? const SizedBox.shrink());
     },
     onLazyInit: () {
-      // 首帧渲染后执行（同步回调，不阻塞启动）
       WBottomSheet.show(const Text('欢迎使用！'));
     },
     customTasks: [
-      // 启动前必须完成的任务（并行执行）
       AuthService.restoreSession(),
       Analytics.init(),
     ],
@@ -440,14 +442,17 @@ Future<void> main() async {
 
 ## 注意事项
 
-- **强依赖 GetX**：整个子包（包括 `WBottomSheet`）基于 `get` 包实现，无法替换为其他状态管理/路由方案。
-- **`init` 必须在 `run` 之前调用**：直接调用 `run` 而未先 `init` 会抛 `StateError`。`start` 方法会自动处理这个顺序。
+- **强依赖 GetX**：整个子包（包括 `WBottomSheet`）基于 `get` 包实现。
+- **`init` 必须在 `run` 之前调用**；`start` 会自动处理顺序。
 - **插件依赖是声明式的**：`WAppPlugin.dependsOn` 决定初始化顺序，而非 `addPlugin` 的调用顺序。
-- **`run` 会校验非空参数**：`title`、`initialRoute`、`getPages` 任一为空会在运行时抛出错误。
-- **路由栈仅覆盖根 Navigator**：嵌套 Navigator 的路由变化不会进入 `WRouteStack.defaultStack.routes`。
-- **`WLanguage.currentLocale` 解析约定**：语言代码用下划线分隔（`zh_CN`）或仅语言码（`en`）；非法代码会退化为只取第一段，不会返回 null。
-- **`WAppConfig.supportedLanguages` 是整体赋值**：使用 `=` 覆盖，不提供 `.add` 增量 API。
-- **`WAppPlugin.onInit` 可返回 Future**：若返回 `Future<void>`，`WApp.init` 会等待它完成再进入下一层。
+- **`start` / `run` 只能调用一次**，重复调用抛 `StateError`。
+- **`home` 与 `initialRoute` + `getPages` 二选一**；`WAppOptions` 构造时校验。
+- **路由栈仅覆盖根 Navigator**：嵌套 Navigator 的路由变化不会进入 `app.routeStack.routes`。
+- **`WLanguage.currentLocale` 解析约定**：语言码用下划线或连字符分隔，支持脚本码（`zh_Hant_TW`）。
+- **语言列表是实例状态**：`app.language` 与 `WAppOptions.localeConfig` 二选一即可；
+  `WAppConfig` 已删除，不再有全局静态语言配置。
+- **Flutter 本地化**：默认使用 `GlobalMaterialLocalizations.delegates`；
+  需要自定义时传 `WAppOptions.localizationsDelegates`。
 
 ---
 

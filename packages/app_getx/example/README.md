@@ -2,16 +2,16 @@
 
 真实场景示例，覆盖：
 
-- `WApp.start()` 一站式启动
+- `app.start()` 一站式启动
 - `WAppPlugin` / `dependsOn` 插件分层
 - GetX 路由
-- `WRouteStack` / `WRouteObserver`
+- `app.routeStack` / `WRouteObserver`
 - 插件 `navigatorObservers` 路由事件
 - 插件 `builderWrapper` / `wrapApp`
-- `WApp.builder` / `WApp.appWrapper`
+- `WAppOptions.builder` / `appWrapper`
 - `customTasks` / `onLazyInit`
-- `WRouteStack.defaultStack.popUntilRoute`
-- `WLanguage` 语言切换
+- `app.routeStack.popUntilRoute`
+- `app.language` 语言切换与 `WLocaleConfig`
 - `WBottomSheet`
 
 ## 运行
@@ -49,7 +49,7 @@ flutter test
 ```text
 main
   → createApp()
-  → WApp.start()
+  → app.start()
   → init(): 系统设置 + 插件 onInit
   → run(): GetMaterialApp
 ```
@@ -64,6 +64,7 @@ FeaturePlugin dependsOn ['env']
 
 ## 说明
 
-示例使用 GetX；这是 `w_tools_app` 的强依赖。
+示例使用 GetX；`w_tools_app_getx` 强依赖 GetX，`w_tools_app` 只提供插件契约。
 
 `WRouteObserver` 由 `WApp` 自动追加，示例没有手工添加。
+语言由 `app.language` 维护，示例通过 `WLocaleConfig.initialLanguage` 启动为中文。

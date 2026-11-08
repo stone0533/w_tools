@@ -1,115 +1,170 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
+
+GetPage<dynamic> _page(String name) => GetPage(name: name, page: () => const SizedBox.shrink());
+
+void main() {
+  group('WAppOptions 校验', () {
+    test('必须提供 home 或 initialRoute + getPages', () {
+      expect(
+        () => WAppOptions(title: 'Demo'),
+        throwsArgumentError,
+      );
+      expect(
+        () => WAppOptions(title: 'Demo', initialRoute: '/'),
+        throwsArgumentError,
+      );
+      expect(
+        () => WAppOptions(title: 'Demo', getPages: [_page('/')]),
+        throwsArgumentError,
+      );
+    });
+
+    test('home 存在时可以不传 initialRoute / getPages', () {
+      final options = WAppOptions(
+        title: 'Demo',
+        home: const SizedBox.shrink(),
+      );
+      expect(options.home, isNotNull);
+      expect(options.getPages, isNull);
+    });
+
+    test('title 不能为空', () {
+      expect(
+        () => WAppOptions(title: '', home: const SizedBox.shrink()),
+        throwsArgumentError,
+      );
+    });
+
+    test('getPages 不能是空列表', () {
+      expect(
+        () => WAppOptions(title: 'Demo', initialRoute: '/', getPages: const []),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  group('WAppOptions 不可变与比较', () {
+    test('入参 list / map 被拷贝，外部修改不影响实例', () {
+      final pages = <GetPage<dynamic>>[_page('/')];
+      final observers = <NavigatorObserver>[];
+      final plugins = <WAppPlugin>[];
+      final options = WAppOptions(
+        title: 'Demo',
+        home: const SizedBox.shrink(),
+        getPages: pages,
+        navigatorObservers: observers,
+        plugins: plugins,
+      );
+
+      pages.add(_page('/next'));
+      observers.add(_NoopObserver());
+      plugins.add(_NoopPlugin());
+
+      expect(options.getPages, hasLength(1));
+      expect(options.navigatorObservers, isEmpty);
+      expect(options.plugins, isEmpty);
+    });
+
+    test('相同配置 == / hashCode 一致', () {
+      const home = SizedBox.shrink();
+      final a = WAppOptions(title: 'Demo', home: home);
+      final b = WAppOptions(title: 'Demo', home: home);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('copyWith 可清空可空字段并保留其它字段', () {
+      final base = WAppOptions(
+        title: 'Demo',
+        home: const SizedBox.shrink(),
+        theme: ThemeData.light(),
+        navigatorObservers: const [],
+      );
+
+      final pages = [_page('/')];
+      final copy = base.copyWith(
+        title: 'Next',
+        home: null,
+        initialRoute: '/',
+        getPages: pages,
+      );
+
+      expect(copy.title, 'Next');
+      expect(copy.home, isNull);
+      expect(copy.initialRoute, '/');
+      expect(copy.getPages, hasLength(1));
+      expect(copy.theme, same(base.theme));
+    });
+
+    test('shouldApplyOrientations 默认 false，systemUiOverlayStyle 默认不干预', () {
+      final options = WAppOptions(
+        title: 'Demo',
+        home: const SizedBox.shrink(),
+      );
+      expect(options.shouldApplyOrientations, isFalse);
+      expect(options.systemUiOverlayStyle, isNull);
+    });
+  });
+
+  group('WLocaleConfig', () {
+    const supported = {'en_US': 'English', 'zh_CN': '简体中文'};
+
+    test('入参 map 被拷贝，外部修改不影响实例', () {
+      final map = <String, String>{'en_US': 'English'};
+      final config = WLocaleConfig(supportedLanguages: map);
+      map['zh_CN'] = '简体中文';
+
+      expect(config.supportedLanguages.containsKey('zh_CN'), isFalse);
+      expect(
+        () => config.supportedLanguages['zh_CN'] = '简体中文',
+        throwsUnsupportedError,
+      );
+    });
+
+    test('initial / fallback 必须在支持列表内', () {
+      expect(
+        () => WLocaleConfig(
+          supportedLanguages: supported,
+          initialLanguage: 'fr_FR',
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WLocaleConfig(
+          supportedLanguages: supported,
+          fallbackLanguage: 'fr_FR',
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('相同内容 == / hashCode 一致', () {
+      final a = WLocaleConfig(supportedLanguages: supported);
+      final b = WLocaleConfig(supportedLanguages: supported);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('copyWith 可改 initial / fallback', () {
+      final base = WLocaleConfig(supportedLanguages: supported);
+      final copy = base.copyWith(
+        initialLanguage: 'zh_CN',
+        fallbackLanguage: 'en_US',
+      );
+
+      expect(copy.initialLanguage, 'zh_CN');
+      expect(copy.fallbackLanguage, 'en_US');
+      expect(copy.supportedLanguages, supported);
+    });
+  });
+}
 
 class _NoopPlugin extends WAppPlugin {
   @override
   String get name => 'noop';
 }
 
-void main() {
-  tearDown(() {
-    WAppConfig.supportedLanguages = {'en_US': 'English'};
-    WAppConfig.currentLanguage = 'en_US';
-  });
-
-  group('WAppOptions', () {
-    test('copyWith 保留未指定字段，传 null 可清空', () {
-      const options = WAppOptions(
-        title: 'Demo',
-        initialRoute: '/home',
-        theme: null,
-        locale: Locale('zh'),
-      );
-
-      final copy = options.copyWith(title: 'Next');
-      expect(copy.title, 'Next');
-      expect(copy.initialRoute, '/home');
-      expect(copy.locale, const Locale('zh'));
-
-      final cleared = options.copyWith(initialRoute: null, locale: null);
-      expect(cleared.initialRoute, isNull);
-      expect(cleared.locale, isNull);
-    });
-
-    test('orientations 默认不应用，显式开启才生效', () {
-      const options = WAppOptions(title: 'Demo');
-      expect(options.applyOrientations, isFalse);
-      expect(options.orientations, const [DeviceOrientation.portraitUp]);
-      final explicit = options.copyWith(
-        orientations: const [DeviceOrientation.landscapeLeft],
-        applyOrientations: true,
-      );
-      expect(explicit.orientations, const [DeviceOrientation.landscapeLeft]);
-      expect(explicit.applyOrientations, isTrue);
-    });
-
-    test('WApp.options 注册 options 里的插件', () {
-      final app = WApp.options(
-        WAppOptions(title: 'Demo', plugins: [_NoopPlugin()]),
-      );
-      expect(app.plugins.map((p) => p.name), contains('noop'));
-    });
-
-    test('init 应用 WLocaleConfig，当前语言不支持时回退到默认语言', () async {
-      WAppConfig.currentLanguage = 'fr_FR';
-      final app = WApp.options(
-        const WAppOptions(
-          title: 'Demo',
-          localeConfig: WLocaleConfig(
-            supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-            defaultLanguage: 'zh_CN',
-          ),
-        ),
-      );
-
-      await app.init();
-
-      expect(WAppConfig.supportedLanguages.containsKey('zh_CN'), isTrue);
-      expect(WAppConfig.currentLanguage, 'zh_CN');
-    });
-  });
-
-  test('syncFromConfig 把 WAppConfig 回写到 languageStream', () {
-    WAppConfig.currentLanguage = 'en_US';
-    WLanguage().syncFromConfig();
-    expect(WLanguage().languageStream.value, 'en_US');
-
-    WAppConfig.currentLanguage = 'zh_CN';
-    WLanguage().syncFromConfig();
-    expect(WLanguage().languageStream.value, 'zh_CN');
-  });
-
-  group('WRouteStack', () {
-    test('add / remove / clear', () {
-      final stack = WRouteStack();
-      final route = MaterialPageRoute<void>(
-        settings: const RouteSettings(name: '/a'),
-        builder: (_) => const SizedBox.shrink(),
-      );
-
-      stack.addRoute(route);
-      expect(stack.routes, [route]);
-      stack.removeRoute(route);
-      expect(stack.routes, isEmpty);
-
-      stack.addRoute(route);
-      stack.clearRoutes();
-      expect(stack.routes, isEmpty);
-    });
-
-    test('WRouteObserver 写入指定实例，不污染默认栈', () {
-      final stack = WRouteStack();
-      final observer = WRouteObserver(stack: stack);
-      final route = MaterialPageRoute<void>(
-        settings: const RouteSettings(name: '/b'),
-        builder: (_) => const SizedBox.shrink(),
-      );
-
-      observer.didPush(route, null);
-      expect(stack.routes, contains(route));
-      expect(WRouteStack.defaultStack.routes, isNot(contains(route)));
-    });
-  });
-}
+class _NoopObserver extends NavigatorObserver {}

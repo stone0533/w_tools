@@ -28,6 +28,9 @@ names = [
     r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'WAsyncBuilder', r'WAsyncConfig',
     r'WAsyncLoading', r'WAsyncState\.errorMessage', r'\bWConfig\b', r'\bWRoute\b', r'WRegExpPattern', r'WRegExpPreset',
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
+    # app_getx 2.0：全局语言状态与静态路由栈收口。
+    r'\bWAppConfig\b', r'WLocaleConfig\.defaultLanguage', r'WLanguage\.languageStream',
+    r'WLanguage\.syncFromConfig', r'WRouteStack\.defaultStack', r'WAppOptions\.applyOrientations',
     # ui 7.0 的改名：旧名不保留，必须登记，否则 README / example 里的旧推荐拦不住。
     r'WHexColor', r'WImageStyleX',
     # ui 8.0：Config 过渡入口 / 按钮冗余类型 / Builder 收口。

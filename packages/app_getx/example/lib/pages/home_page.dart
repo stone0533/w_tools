@@ -35,10 +35,10 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 16),
           Obx(() {
-            // 读取 Rx 才会让 Obx 订阅语言变化。
-            final code = WLanguage().languageStream.value;
+            // currentLanguage 读取 Rx 值，Obx 会自动订阅语言变化。
+            final code = app.language.currentLanguage;
             return Text(
-              '当前语言：${WLanguage().currentLanguageName} ($code)',
+              '当前语言：${app.language.currentLanguageName} ($code)',
               style: const TextStyle(fontSize: 16),
             );
           }),
@@ -53,8 +53,8 @@ class _HomePageState extends State<HomePage> {
               ),
               FilledButton.tonal(
                 onPressed: () {
-                  WLanguage().changeLanguage(
-                    WLanguage().currentLanguage == 'zh_CN' ? 'en_US' : 'zh_CN',
+                  app.language.changeLanguage(
+                    app.language.currentLanguage == 'zh_CN' ? 'en_US' : 'zh_CN',
                   );
                 },
                 child: const Text('切换语言'),
@@ -68,7 +68,8 @@ class _HomePageState extends State<HomePage> {
               OutlinedButton(
                 onPressed: () {
                   setState(() {
-                    _routeSnapshot = WRouteStack.defaultStack.routes
+                    // 路由栈：WRouteStack（每个 WApp 自己的 app.routeStack）
+                    _routeSnapshot = app.routeStack.routes
                         .map((route) => route.settings.name ?? '(unnamed)')
                         .join(' → ');
                   });

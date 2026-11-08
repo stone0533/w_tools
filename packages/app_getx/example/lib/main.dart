@@ -5,6 +5,9 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 import 'pages/detail_page.dart';
 import 'pages/home_page.dart';
 
+/// 当前应用实例；示例页面通过它访问 `language` / `routeStack`。
+late WApp app;
+
 /// 示例启动日志：便于观察插件依赖顺序。
 final List<String> startupEvents = <String>[];
 
@@ -84,7 +87,7 @@ class FeaturePlugin extends WAppPlugin {
 }
 
 WApp createApp() {
-  return WApp.options(
+  final instance = WApp.options(
     WAppOptions(
       title: 'w_tools_app 示例',
       initialRoute: '/',
@@ -109,15 +112,20 @@ WApp createApp() {
         FeaturePlugin(),
         EnvPlugin(),
       ],
-      localeConfig: const WLocaleConfig(
-        supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
+      localeConfig: WLocaleConfig(
+        supportedLanguages: const {'zh_CN': '简体中文', 'en_US': 'English'},
+        initialLanguage: 'zh_CN',
+        fallbackLanguage: 'en_US',
       ),
     ),
   );
+  app = instance;
+  return instance;
 }
 
 Future<void> main() async {
-  await createApp().start(
+  final instance = createApp();
+  await instance.start(
     customTasks: [
       Future<void>.delayed(
         const Duration(milliseconds: 120),
