@@ -1,0 +1,43 @@
+# w_tools_app 3.1.0
+WAppPlugin	class
+WAppPlugin.builderWrapper	TransitionBuilder?
+WAppPlugin.dependsOn	List<String>
+WAppPlugin.name	String
+WAppPlugin.navigatorObservers	List<NavigatorObserver>?
+WAppPlugin.onInit	Future<void> ()
+WAppPlugin.wrapApp	Widget (Widget child)
+WAppPluginRunner	class
+WAppPluginRunner.addPlugin	void (WAppPlugin plugin)
+WAppPluginRunner.addPlugins	void (Iterable<WAppPlugin> plugins)
+WAppPluginRunner.clearPlugins	void ()
+WAppPluginRunner.init	Future<void> ()
+WAppPluginRunner.new	([Iterable<WAppPlugin> plugins = const []])
+WAppPluginRunner.plugins	List<WAppPlugin>
+WAppPluginRunner.removePlugin	void (String name)
+WAppTheme	class
+WAppTheme.copyWith	WAppTheme ({ Object? light = _unset, Object? dark = _unset, ThemeMode? mode, Object? systemUiOverlayStyle = _unset, })
+WAppTheme.dark	ThemeData?
+WAppTheme.light	ThemeData?
+WAppTheme.mode	ThemeMode
+WAppTheme.new	({ this.light, this.dark, this.mode = ThemeMode.system, this.systemUiOverlayStyle = _defaultSystemUiOverlayStyle, })
+WAppTheme.systemUiOverlayStyle	SystemUiOverlayStyle?
+WLanguage	class
+WLanguage.changeLanguage	bool (String languageCode)
+WLanguage.currentLanguage	String
+WLanguage.currentLanguageName	String
+WLanguage.currentLocale	Locale
+WLanguage.fromConfig	(WLocaleConfig? config)
+WLanguage.hasExplicitSelection	bool
+WLanguage.languageChanges	Stream<String>
+WLanguage.languageListenable	ValueListenable<String>
+WLanguage.listenLanguageChange	StreamSubscription<String> (void Function(String) callback,)
+WLanguage.localeFromCode	static Locale (String languageCode)
+WLanguage.new	({ Map<String, String> supportedLanguages = const {'en_US': 'English'}, String currentLanguage = 'en_US', String? initialLanguage, String? fallbackLanguage, bool explicitSelection = false, })
+WLanguage.supportedLanguages	Map<String, String>
+WLocaleConfig	class
+WLocaleConfig._	(this.supportedLanguages, this.initialLanguage, this.fallbackLanguage,)
+WLocaleConfig.copyWith	WLocaleConfig ({ Map<String, String>? supportedLanguages, Object? initialLanguage = _unset, Object? fallbackLanguage = _unset, })
+WLocaleConfig.fallbackLanguage	String?
+WLocaleConfig.initialLanguage	String?
+WLocaleConfig.new	({ required Map<String, String> supportedLanguages, String? initialLanguage, String? fallbackLanguage, })
+WLocaleConfig.supportedLanguages	Map<String, String>
