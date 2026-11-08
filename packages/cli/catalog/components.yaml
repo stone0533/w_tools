@@ -873,6 +873,7 @@ components:
     pitfalls:
       - '页面 dispose 时 controller.dispose()'
       - 'Controller 只接 onError；activity 只在 WAsync 上用'
+      - 'list 的 state.data 是 unmodifiable；需要可变副本请自己 List.of'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
     teach: true
   - name: '`WAsyncPagedController`'

@@ -192,8 +192,8 @@ class _GiftPageState extends State<GiftPage> {
 
 Controller 只接 `onError`；不再接受 `WAsyncOptions` / `activity`。控制器自己维护四态。
 
-`WAsyncController` 原样保存 loader 的返回值；`WAsyncPagedController` 的 `state.data` 是
-unmodifiable 列表。需要不可变列表时，在 loader 里自己包一层。
+`WAsyncController.list` 与 `WAsyncPagedController` 的 `state.data` 是 unmodifiable 列表；
+泛型 `WAsyncController` 仍原样保存 loader 的返回值（无法通用地包一层）。
 
 ## 取消
 

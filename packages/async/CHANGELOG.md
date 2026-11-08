@@ -9,6 +9,8 @@
 - `WAsyncOptions.onError` 从 `void Function(Object?)?` 改为 `void Function(Object)?`。
 - `WAsyncErrorWidgetBuilder` 的 retry 从 `VoidCallback` 改为 `VoidCallback?`；无 retry 时
   自定义 / 主题 builder 仍会被调用并收到 null，包内默认视图不渲染按钮。
+- `WAsyncController.list` 的 `state.data` 改为 unmodifiable 列表，与
+  `WAsyncPagedController` 一致；原地修改会抛 `UnsupportedError`。
 
 ### Docs
 - 写明分页追加的 O(n) 规模边界（万级以上建议窗口化），以及

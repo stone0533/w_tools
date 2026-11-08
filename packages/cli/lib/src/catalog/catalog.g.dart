@@ -851,7 +851,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docsAnchor: "wasynccontroller",
     aliases: <String>[],
     usage: "final c = WAsyncController.list(() => api.list(), onError: (e) => log(e)); c.load();\nc.retry();\n@override\nvoid dispose() { c.dispose(); super.dispose(); }\n",
-    pitfalls: <String>["页面 dispose 时 controller.dispose()", "Controller 只接 onError；activity 只在 WAsync 上用"],
+    pitfalls: <String>["页面 dispose 时 controller.dispose()", "Controller 只接 onError；activity 只在 WAsync 上用", "list 的 state.data 是 unmodifiable；需要可变副本请自己 List.of"],
     related: <String>["WAsyncView", "WAsyncState", "WAsyncPagedController"],
     teach: true,
   ),

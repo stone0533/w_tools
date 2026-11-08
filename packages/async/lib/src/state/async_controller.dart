@@ -40,20 +40,23 @@ class WAsyncController<T> {
     this._loader, {
     this.onError,
     bool Function(T value)? isEmpty,
+    T Function(T value)? normalize,
     WAsyncState<T>? initial,
   }) : _isEmpty = isEmpty,
+       _normalize = normalize,
        _state = ValueNotifier(initial ?? WAsyncState<T>.loading());
 
-  /// 列表场景：空列表自动归为 empty。
+  /// 列表场景：空列表自动归为 empty；`state.data` 为 unmodifiable。
   static WAsyncController<List<E>> list<E>(
     Future<List<E>> Function() loader, {
     void Function(Object error)? onError,
     WAsyncState<List<E>>? initial,
   }) {
-    return WAsyncController<List<E>>(
-      loader,
+    return WAsyncController<List<E>>._(
+      (token) => loader(),
       onError: onError,
       isEmpty: (value) => value.isEmpty,
+      normalize: (value) => List<E>.unmodifiable(value),
       initial: initial,
     );
   }
@@ -64,6 +67,7 @@ class WAsyncController<T> {
   final void Function(Object error)? onError;
 
   final bool Function(T value)? _isEmpty;
+  final T Function(T value)? _normalize;
   final ValueNotifier<WAsyncState<T>> _state;
 
   ValueListenable<WAsyncState<T>> get state => _state;
@@ -92,7 +96,7 @@ class WAsyncController<T> {
     if (_disposed || generation != _generation || token.isCancelled) return;
 
     if (result is WAsyncSuccess<T>) {
-      final value = result.value;
+      final value = _normalize?.call(result.value) ?? result.value;
       _state.value = _isEmpty?.call(value) == true
           ? WAsyncState<T>.empty()
           : WAsyncState<T>.ready(value);

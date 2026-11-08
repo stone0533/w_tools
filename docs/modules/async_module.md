@@ -161,7 +161,8 @@ await controller.load();
 - 旧请求不会覆盖新请求；
 - 失败保留旧数据；
 - `withToken` 让 loader 拿到 `WCancelToken`；
-- Controller 只接 `onError`；activity 只在 `WAsync` 上用。
+- Controller 只接 `onError`；activity 只在 `WAsync` 上用；
+- `WAsyncController.list` / `WAsyncPagedController` 的 `state.data` 是 unmodifiable；泛型 `WAsyncController` 原样保存。
 
 ### WAsyncPagedController
 

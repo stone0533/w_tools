@@ -56,3 +56,9 @@ errorBuilder: (context, error, retry) =>
 ```
 
 包内默认视图在没有 retry 时不渲染按钮；自定义 builder 需要自己决定是否渲染。
+
+## WAsyncController.list 的 state.data 不可变
+
+`WAsyncController.list` 现在和 `WAsyncPagedController` 一样，把列表包成 unmodifiable。
+原地 `add` / `remove` 会抛 `UnsupportedError`；需要可变副本时自己 `List.of(data)`。
+泛型 `WAsyncController` 仍原样保存 loader 返回值。

@@ -160,5 +160,20 @@ void main() {
       expect(controller.state.value.isFailed, isTrue);
       expect(reported, isA<StateError>());
     });
+
+    test('list 的 state.data 是不可变列表（与 Paged 一致）', () async {
+      final source = <int>[1, 2];
+      final controller = WAsyncController.list<int>(() async => source);
+      addTearDown(controller.dispose);
+
+      await controller.load();
+
+      final data = controller.state.value.data!;
+      expect(data, <int>[1, 2]);
+      expect(() => data.add(3), throwsUnsupportedError);
+
+      source.add(3);
+      expect(controller.state.value.data, <int>[1, 2]);
+    });
   });
 }
