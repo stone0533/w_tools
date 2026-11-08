@@ -192,7 +192,7 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 - **GradientCircularProgressIndicator** (`WGradientCircularProgressIndicator`): 渐变圆形进度指示器
 - **Image** (`WImage`): 增强的图片组件（网络图支持自动重试与 `WImageController` 手动重试）
 - **KeepAliveWrapper** (`WKeepAliveWrapper`): 保持组件状态的包装器
-- **NotificationListener** (`WNotificationListenerBuilder`): 通知监听器构建器
+- **NotificationListener** (`WNotificationListener`): 声明式通知监听器
 - **QrView** (`WQrView`): 二维码扫描组件（来自 `w_tools_qr` 子包）
 - **RowButtons** (`WActionRow` / `WSelectableRow`): 行按钮组件
 - **Text** (`WText`): 增强的文本组件

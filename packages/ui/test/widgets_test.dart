@@ -1,4 +1,3 @@
-import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -116,99 +115,45 @@ void main() {
   });
 
   group('WClipRRect Widget', () {
-    testWidgets('ClipRRect 正确包裹 child', (tester) async {
-      final config = WClipRRectConfig.all(12);
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WClipRRect(
-              config: config,
-              child: const Text('rounded'),
-            ),
-          ),
-        ),
-      );
-      expect(find.text('rounded'), findsOneWidget);
-      expect(find.byType(ClipRRect), findsOneWidget);
-    });
-
-    testWidgets('WClipRRect 支持 clipBehavior', (tester) async {
+    testWidgets('渲染并应用 borderRadius', (tester) async {
+      const radius = BorderRadius.all(Radius.circular(12));
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
             body: WClipRRect(
-              config: WClipRRectConfig(),
-              clipBehavior: Clip.hardEdge,
-              child: SizedBox.shrink(),
+              borderRadius: radius,
+              child: SizedBox(width: 10, height: 10),
             ),
           ),
         ),
       );
       final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
-      expect(clip.clipBehavior, Clip.hardEdge);
-    });
-
-    testWidgets('WClipRRect 默认 clipBehavior 为 antiAlias', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: WClipRRect(
-              config: WClipRRectConfig(),
-              child: SizedBox.shrink(),
-            ),
-          ),
-        ),
-      );
-      final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
+      expect(clip.borderRadius, radius);
       expect(clip.clipBehavior, Clip.antiAlias);
     });
 
-    testWidgets('WClipRRect 直接传 borderRadius', (tester) async {
+    testWidgets('支持 clipBehavior', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: WClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: const SizedBox.shrink(),
+              borderRadius: BorderRadius.zero,
+              clipBehavior: Clip.hardEdge,
+              child: SizedBox(width: 10, height: 10),
             ),
           ),
         ),
       );
-      final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
-      expect(clip.borderRadius, BorderRadius.circular(8));
-    });
-
-    test('WClipRRectConfig.all / copyWith 设置圆角', () {
-      final config = WClipRRectConfig.all(8);
-      expect(config.borderRadius, BorderRadius.circular(8));
-      expect(
-        config.copyWith(borderRadius: BorderRadius.circular(4)).borderRadius,
-        BorderRadius.circular(4),
-      );
-    });
-
-    testWidgets('config 默认 borderRadius 为 BorderRadius.zero', (tester) async {
-      const config = WClipRRectConfig();
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: WClipRRect(config: config, child: SizedBox.shrink()),
-          ),
-        ),
-      );
-      // ClipRRect 存在说明 build 正常
-      expect(find.byType(ClipRRect), findsOneWidget);
+      expect(tester.widget<ClipRRect>(find.byType(ClipRRect)).clipBehavior, Clip.hardEdge);
     });
   });
 
   group('WBadge Widget', () {
-    testWidgets('渲染 badgeContent', (tester) async {
-      const config = WBadgeConfig();
+    testWidgets('渲染 badgeContent 与 child', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
             body: WBadge(
-              config: config,
               badgeContent: Text('3'),
               child: Icon(Icons.email),
             ),
@@ -219,110 +164,64 @@ void main() {
       expect(find.byIcon(Icons.email), findsOneWidget);
     });
 
-    testWidgets('WBadge 直接传 position / showBadge / badgeStyle', (tester) async {
+    testWidgets('默认样式跟随 ColorScheme.error / onError', (tester) async {
+      final theme = ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue));
       await tester.pumpWidget(
         MaterialApp(
+          theme: theme,
+          home: const Scaffold(
+            body: WBadge(badgeContent: Text('9'), child: Icon(Icons.email)),
+          ),
+        ),
+      );
+      final box = tester.widget<DecoratedBox>(
+        find.descendant(of: find.byType(WBadge), matching: find.byType(DecoratedBox)).last,
+      );
+      expect((box.decoration as BoxDecoration).color, theme.colorScheme.error);
+    });
+
+    testWidgets('自定义 position / style / showBadge', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
           home: Scaffold(
             body: WBadge(
-              position: badges.BadgePosition.topEnd(top: 1, end: 2),
+              position: WBadgePosition.topEnd(top: 1, end: 2),
+              style: WBadgeStyle(backgroundColor: Colors.red),
               showBadge: false,
-              badgeStyle: const badges.BadgeStyle(badgeColor: Colors.red),
-              badgeContent: const Text('9'),
-              child: const Icon(Icons.email),
+              badgeContent: Text('9'),
+              child: Icon(Icons.email),
             ),
           ),
         ),
       );
-      final badge = tester.widget<badges.Badge>(find.byType(badges.Badge));
-      expect(badge.showBadge, isFalse);
-      expect(badge.position, isA<badges.BadgePosition>());
-      expect(badge.badgeStyle.badgeColor, Colors.red);
+      expect(find.text('9'), findsNothing);
+      expect(find.byIcon(Icons.email), findsOneWidget);
     });
 
-    testWidgets('badgeContent 为空时不渲染徽章（不报错）', (tester) async {
+    testWidgets('badgeContent 为空时不渲染徽章', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: WBadge(
-              config: WBadgeConfig(),
-              child: Icon(Icons.notifications),
-            ),
-          ),
+          home: Scaffold(body: WBadge(child: Icon(Icons.notifications))),
         ),
       );
       expect(tester.takeException(), isNull);
       expect(find.byIcon(Icons.notifications), findsOneWidget);
-      expect(find.byType(badges.Badge), findsOneWidget);
     });
 
-    testWidgets('最简构造 WBadge(child:) 不崩溃', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(body: WBadge(child: Icon(Icons.mail))),
-        ),
-      );
-      expect(tester.takeException(), isNull);
-      expect(find.byIcon(Icons.mail), findsOneWidget);
-    });
-
-    test('copyWith 可恢复显示', () {
-      const config = WBadgeConfig(showBadge: false);
-      expect(config.isShown, isFalse);
-      expect(config.copyWith(showBadge: true).isShown, isTrue);
-    });
-
-    testWidgets('badgeStyle 可配置', (tester) async {
-      const config = WBadgeConfig(
-        badgeStyle: badges.BadgeStyle(
-          badgeColor: Colors.red,
-          padding: EdgeInsets.all(4),
-        ),
-      );
+    testWidgets('position.center 覆盖在 child 上', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
             body: WBadge(
-              config: config,
-              badgeContent: Text('3'),
-              child: Icon(Icons.notifications),
+              position: WBadgePosition.center(),
+              badgeContent: Text('NEW'),
+              child: SizedBox(width: 40, height: 40),
             ),
           ),
         ),
       );
-      expect(find.text('3'), findsOneWidget);
-    });
-
-    testWidgets('hideBadge() 隐藏徽章', (tester) async {
-      const config = WBadgeConfig(showBadge: false);
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: WBadge(
-              config: config,
-              badgeContent: Text('hidden'),
-              child: Icon(Icons.notifications),
-            ),
-          ),
-        ),
-      );
-
-      // badges 包在 showBadge=false 时并非移除内容，而是把它渲染为完全透明
-      // （FadeTransition/Opacity 为 0，widget 仍留在树中），
-      // 因此断言「内容处于不可见状态」，而非 findsNothing。
-      bool hidden = false;
-      tester.element(find.text('hidden')).visitAncestorElements((element) {
-        final widget = element.widget;
-        if (widget is FadeTransition && widget.opacity.value == 0) {
-          hidden = true;
-        } else if (widget is Opacity && widget.opacity == 0) {
-          hidden = true;
-        }
-        return !hidden; // 命中即停止继续向上遍历
-      });
-      expect(hidden, isTrue);
-
-      // child 仍在
-      expect(find.byIcon(Icons.notifications), findsOneWidget);
+      expect(find.text('NEW'), findsOneWidget);
+      expect(find.byType(Positioned), findsWidgets);
     });
   });
 
@@ -369,37 +268,18 @@ void main() {
     });
   });
 
-  group('WBadgeConfig copyWith', () {
-    test('可清空 position / badgeStyle，工厂可用', () {
-      final config = WBadgeConfig.topRight(top: 2, end: 3);
-      expect(config.position, isNotNull);
-      final cleared = config.copyWith(position: null, badgeStyle: null);
-      expect(cleared.position, isNull);
-      expect(cleared.badgeStyle, isNull);
-      expect(WBadgeConfig.center().position, isNotNull);
-      expect(config.isShown, isTrue);
-    });
-  });
-  group('Config 值相等（UI-013）', () {
-    test('WBadgeConfig', () {
-      final a = WBadgeConfig(showBadge: false); // ignore: prefer_const_constructors
-      final b = WBadgeConfig(showBadge: false); // ignore: prefer_const_constructors
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-    });
-
-    test('WClipRRectConfig', () {
-      final a = WClipRRectConfig.all(8);
-      final b = WClipRRectConfig.all(8);
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-    });
+  test('WBadgePosition / WBadgeStyle 值相等', () {
+    expect(
+      const WBadgePosition.topEnd(top: 1, end: 2),
+      const WBadgePosition.topEnd(top: 1, end: 2),
+    );
+    expect(const WBadgePosition.center(), const WBadgePosition.center());
+    expect(
+      const WBadgeStyle(backgroundColor: Colors.red),
+      const WBadgeStyle(backgroundColor: Colors.red),
+    );
   });
 
-  test('WBadge 通过 barrel 转出 badges 类型', () {
-    expect(BadgePosition.center(), isA<BadgePosition>());
-    expect(const BadgeStyle(), isA<BadgeStyle>());
-  });
   testWidgets('GlobalKey.rect() 对未布局的 RenderBox 返回 null', (tester) async {
     final key = GlobalKey();
     await tester.pumpWidget(

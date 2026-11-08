@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'button_metrics.dart';
-import 'button_motion.dart';
 import 'button_resolved_style.dart';
-import 'button_semantics.dart';
 import 'button_size.dart';
 
 /// 不可变的按钮视觉样式。
@@ -13,8 +10,6 @@ import 'button_size.dart';
 @immutable
 class WButtonStyle {
   const WButtonStyle({
-    this.motion = const WButtonMotion(),
-    this.semantics = const WButtonSemantics(),
     this.backgroundColor,
     this.gradient,
     this.border,
@@ -34,9 +29,6 @@ class WButtonStyle {
     this.iconSize = 18,
     this.gap = 8,
   });
-
-  final WButtonMotion motion;
-  final WButtonSemantics semantics;
 
   final WidgetStateProperty<Color?>? backgroundColor;
   final WidgetStateProperty<Gradient?>? gradient;
@@ -63,9 +55,6 @@ class WButtonStyle {
   final double iconSize;
   final double gap;
 
-  /// 布局 / 尺寸部分；新代码可用 [WButtonMetrics] 单独传递。
-  WButtonMetrics get metrics => WButtonMetrics.fromStyle(this);
-
   /// 填充按钮的常用构造。
   factory WButtonStyle.filled({
     required Color backgroundColor,
@@ -74,8 +63,6 @@ class WButtonStyle {
     BorderRadius? borderRadius,
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     TextStyle? textStyle,
-    WButtonMotion motion = const WButtonMotion(),
-    WButtonSemantics semantics = const WButtonSemantics(),
   }) {
     return WButtonStyle(
       backgroundColor: WidgetStatePropertyAll(backgroundColor),
@@ -84,8 +71,6 @@ class WButtonStyle {
       borderRadius: borderRadius ?? BorderRadius.circular(8),
       padding: padding,
       textStyle: textStyle == null ? null : WidgetStatePropertyAll(textStyle),
-      motion: motion,
-      semantics: semantics,
     );
   }
 
@@ -96,8 +81,6 @@ class WButtonStyle {
     BorderRadius? borderRadius,
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     TextStyle? textStyle,
-    WButtonMotion motion = const WButtonMotion(),
-    WButtonSemantics semantics = const WButtonSemantics(),
   }) {
     final color = borderColor ?? foregroundColor;
     return WButtonStyle(
@@ -107,8 +90,6 @@ class WButtonStyle {
       borderRadius: borderRadius ?? BorderRadius.circular(8),
       padding: padding,
       textStyle: textStyle == null ? null : WidgetStatePropertyAll(textStyle),
-      motion: motion,
-      semantics: semantics,
     );
   }
 
@@ -117,16 +98,12 @@ class WButtonStyle {
     Color? foregroundColor,
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     TextStyle? textStyle,
-    WButtonMotion motion = const WButtonMotion(),
-    WButtonSemantics semantics = const WButtonSemantics(),
   }) {
     return WButtonStyle(
       foregroundColor: foregroundColor == null ? null : WidgetStatePropertyAll(foregroundColor),
       borderRadius: BorderRadius.circular(8),
       padding: padding,
       textStyle: textStyle == null ? null : WidgetStatePropertyAll(textStyle),
-      motion: motion,
-      semantics: semantics,
     );
   }
 
@@ -155,8 +132,6 @@ class WButtonStyle {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is WButtonStyle &&
-          other.motion == motion &&
-          other.semantics == semantics &&
           other.backgroundColor == backgroundColor &&
           other.gradient == gradient &&
           other.border == border &&
@@ -178,8 +153,6 @@ class WButtonStyle {
 
   @override
   int get hashCode => Object.hash(
-    motion,
-    semantics,
     backgroundColor,
     gradient,
     border,
@@ -201,7 +174,6 @@ class WButtonStyle {
   );
 
   void validate() {
-    motion.validate();
     assert(
       backgroundColor == null || gradient == null,
       'WButtonStyle.backgroundColor 与 gradient 只能选一个',
@@ -217,8 +189,6 @@ class WButtonStyle {
   }
 
   WButtonStyle copyWith({
-    WButtonMotion? motion,
-    WButtonSemantics? semantics,
     WidgetStateProperty<Color?>? backgroundColor,
     WidgetStateProperty<Gradient?>? gradient,
     WidgetStateProperty<BoxBorder?>? border,
@@ -239,8 +209,6 @@ class WButtonStyle {
     double? gap,
   }) {
     return WButtonStyle(
-      motion: motion ?? this.motion,
-      semantics: semantics ?? this.semantics,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       gradient: gradient ?? this.gradient,
       border: border ?? this.border,
@@ -300,8 +268,6 @@ class WButtonStyle {
     Object? hoverColor = _unset,
   }) {
     return WButtonStyle(
-      motion: motion,
-      semantics: semantics,
       backgroundColor: identical(backgroundColor, _unset)
           ? this.backgroundColor
           : backgroundColor as WidgetStateProperty<Color?>?,

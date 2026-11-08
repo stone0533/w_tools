@@ -2,10 +2,46 @@ import 'package:flutter/material.dart';
 
 import 'button_style.dart';
 
-/// 按钮样式：主题派生默认值 + 兼容预设。
+/// 四种语义按钮样式的命名集合。
 ///
-/// 新代码用 `WButtonStyles.of(context)`（跟随 `ColorScheme` / `TextTheme`）；
-/// 下面的静态预设是旧的硬编码 fallback，已弃用（5.0 移除）。
+/// 用 [WButtonStyles.of] 获取；结果按 `ThemeData` 缓存，主题不变时是同一个实例。
+@immutable
+class WButtonStyleSet {
+  const WButtonStyleSet({
+    required this.primary,
+    required this.secondary,
+    required this.text,
+    required this.danger,
+  });
+
+  /// 主按钮：`colorScheme.primary` / `onPrimary`
+  final WButtonStyle primary;
+
+  /// 次按钮：描边，`primary` 前景 + `outline` 边框
+  final WButtonStyle secondary;
+
+  /// 文字按钮：`primary` 前景
+  final WButtonStyle text;
+
+  /// 危险按钮：`error` / `onError`
+  final WButtonStyle danger;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WButtonStyleSet &&
+          other.primary == primary &&
+          other.secondary == secondary &&
+          other.text == text &&
+          other.danger == danger;
+
+  @override
+  int get hashCode => Object.hash(primary, secondary, text, danger);
+}
+
+/// 按当前主题派生四种语义按钮样式。
+///
+/// 新代码用 `WButtonStyles.of(context).primary`（跟随 `ColorScheme` / `TextTheme`）。
 abstract final class WButtonStyles {
   /// 按当前主题派生的四种语义样式。
   ///
@@ -15,32 +51,17 @@ abstract final class WButtonStyles {
   /// - `danger`：`error` / `onError`
   ///
   /// 结果按 `ThemeData` 缓存，主题不变时是同一个实例。
-  static ({
-    WButtonStyle primary,
-    WButtonStyle secondary,
-    WButtonStyle text,
-    WButtonStyle danger,
-  })
-  of(BuildContext context) {
+  static WButtonStyleSet of(BuildContext context) {
     final theme = Theme.of(context);
     return _cache[theme] ??= _build(theme);
   }
 
-  static final Expando<
-    ({WButtonStyle primary, WButtonStyle secondary, WButtonStyle text, WButtonStyle danger})
-  >
-  _cache = Expando();
+  static final Expando<WButtonStyleSet> _cache = Expando();
 
-  static ({
-    WButtonStyle primary,
-    WButtonStyle secondary,
-    WButtonStyle text,
-    WButtonStyle danger,
-  })
-  _build(ThemeData theme) {
+  static WButtonStyleSet _build(ThemeData theme) {
     final scheme = theme.colorScheme;
     final labelStyle = theme.textTheme.labelLarge;
-    return (
+    return WButtonStyleSet(
       primary: WButtonStyle.filled(
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,

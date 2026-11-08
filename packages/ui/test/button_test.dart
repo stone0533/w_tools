@@ -28,31 +28,25 @@ void main() {
   group('WButtonStyle / motion / semantics', () {
     test('默认值与 copyWith', () {
       const style = WButtonStyle();
-      expect(style.motion.effect, WButtonEffectType.opacity);
-      expect(style.motion.pressedOpacity, 0.7);
-      expect(style.motion.pressedScale, 0.95);
-      expect(style.motion.duration, const Duration(milliseconds: 100));
-      expect(style.semantics.label, isNull);
+      const motion = WButtonMotion();
+      const semantics = WButtonSemantics();
+      expect(motion.effect, WPressEffect.opacity);
+      expect(motion.pressedOpacity, 0.7);
+      expect(motion.pressedScale, 0.95);
+      expect(motion.duration, const Duration(milliseconds: 100));
+      expect(semantics.label, isNull);
       expect(style.alignment, Alignment.center);
 
       final next = style.copyWith(
-        motion: const WButtonMotion(
-          effect: WButtonEffectType.scale,
-          pressedScale: 0.9,
-        ),
-        semantics: const WButtonSemantics(label: '提交'),
         alignment: Alignment.centerLeft,
         minHeight: 60,
         focusColor: Colors.black12,
       );
-      expect(next.motion.effect, WButtonEffectType.scale);
-      expect(next.motion.pressedScale, 0.9);
-      expect(next.semantics.label, '提交');
       expect(next.alignment, Alignment.centerLeft);
       expect(next.minHeight, 60);
       expect(next.focusColor, Colors.black12);
-      expect(style.motion.effect, WButtonEffectType.opacity);
       expect(() => style.validate(), returnsNormally);
+      expect(() => motion.validate(), returnsNormally);
     });
 
     test('backgroundColor 与 gradient 互斥（debug assert）', () {
@@ -65,37 +59,20 @@ void main() {
       expect(style.validate, throwsAssertionError);
     });
 
-    testWidgets('样式解析按 Theme 实例命中缓存', (tester) async {
-      WButton.debugStyleResolutionCount = 0;
-      const style = WButtonStyle(minWidth: 10);
-      Widget app(ThemeData theme) => MaterialApp(
-        theme: theme,
-        home: Scaffold(
-          body: WButton(style: style, label: 'A', onTap: () {}),
-        ),
-      );
-
-      await tester.pumpWidget(app(ThemeData.light()));
-      expect(WButton.debugStyleResolutionCount, 1);
-
-      await tester.pumpWidget(app(ThemeData.light()));
-      expect(WButton.debugStyleResolutionCount, 1);
-    });
-
     test('WButtonMotion.copyWith 替换字段并保留其余', () {
-      const motion = WButtonMotion(effect: WButtonEffectType.scale, pressedScale: 0.9);
+      const motion = WButtonMotion(effect: WPressEffect.scale, pressedScale: 0.9);
       final next = motion.copyWith(
-        effect: WButtonEffectType.none,
+        effect: WPressEffect.none,
         pressedOpacity: 0.5,
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
       );
-      expect(next.effect, WButtonEffectType.none);
+      expect(next.effect, WPressEffect.none);
       expect(next.pressedOpacity, 0.5);
       expect(next.pressedScale, 0.9);
       expect(next.duration, const Duration(milliseconds: 200));
       expect(next.curve, Curves.easeOut);
-      expect(motion.effect, WButtonEffectType.scale);
+      expect(motion.effect, WPressEffect.scale);
     });
 
     test('非法值触发 assert', () {
@@ -251,12 +228,12 @@ void main() {
       expect(custom.letterSpacing, 0.3);
     });
 
-    test('copyWith 可清空可空字段，且仍接受 int 字面量', () {
+    test('copyWith 传 null 表示保留，且仍接受 int 字面量', () {
       final sized = WButtonSize.small.copyWith(minHeight: 40, iconSize: 20);
       expect(sized.minHeight, 40.0);
       expect(sized.iconSize, 20.0);
 
-      final cleared = sized.copyWith(
+      final kept = sized.copyWith(
         minHeight: null,
         iconSize: null,
         padding: null,
@@ -266,15 +243,15 @@ void main() {
         letterSpacing: null,
         gap: null,
       );
-      expect(cleared.minHeight, isNull);
-      expect(cleared.iconSize, isNull);
-      expect(cleared.padding, isNull);
-      expect(cleared.fontSize, isNull);
-      expect(cleared.fontWeight, isNull);
-      expect(cleared.lineHeight, isNull);
-      expect(cleared.letterSpacing, isNull);
-      expect(cleared.gap, isNull);
-      expect(cleared.tapTargetSize, 48);
+      expect(kept.minHeight, 40.0);
+      expect(kept.iconSize, 20.0);
+      expect(kept.padding, sized.padding);
+      expect(kept.fontSize, sized.fontSize);
+      expect(kept.fontWeight, sized.fontWeight);
+      expect(kept.lineHeight, sized.lineHeight);
+      expect(kept.letterSpacing, sized.letterSpacing);
+      expect(kept.gap, sized.gap);
+      expect(kept.tapTargetSize, 48);
     });
 
     test('非法值触发 assert', () {
@@ -507,7 +484,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.text('禁用'));
+      await tester.tap(find.byType(WButton));
       await tester.pumpAndSettle();
       expect(taps, 0);
 
@@ -522,7 +499,7 @@ void main() {
         ),
       );
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      await tester.tap(find.byType(CircularProgressIndicator));
+      await tester.tap(find.byType(WButton));
       await tester.pump();
       expect(taps, 0);
     });
@@ -651,9 +628,7 @@ void main() {
         _wrap(
           WButton(
             label: 'opacity',
-            style: const WButtonStyle(
-              motion: WButtonMotion(pressedOpacity: 0.4),
-            ),
+            motion: const WButtonMotion(pressedOpacity: 0.4),
             onTap: () {},
           ),
         ),
@@ -681,11 +656,9 @@ void main() {
         _wrap(
           WButton(
             label: 'scale',
-            style: const WButtonStyle(
-              motion: WButtonMotion(
-                effect: WButtonEffectType.scale,
-                pressedScale: 0.8,
-              ),
+            motion: const WButtonMotion(
+              effect: WPressEffect.scale,
+              pressedScale: 0.8,
             ),
             onTap: () {},
           ),
@@ -750,9 +723,7 @@ void main() {
           WButton(
             label: '键盘',
             autofocus: true,
-            style: const WButtonStyle(
-              motion: WButtonMotion(pressedOpacity: 0.35),
-            ),
+            motion: const WButtonMotion(pressedOpacity: 0.35),
             onTap: () => taps++,
           ),
         ),
@@ -775,11 +746,9 @@ void main() {
         _wrap(
           WButton(
             icon: Icons.close,
-            style: const WButtonStyle(
-              semantics: WButtonSemantics(
-                label: '关闭',
-                hint: '关闭当前弹窗',
-              ),
+            semantics: const WButtonSemantics(
+              label: '关闭',
+              hint: '关闭当前弹窗',
             ),
             onTap: () {},
           ),

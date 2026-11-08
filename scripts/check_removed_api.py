@@ -30,6 +30,9 @@ names = [
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
     # ui 7.0 的改名：旧名不保留，必须登记，否则 README / example 里的旧推荐拦不住。
     r'WHexColor', r'WImageStyleX',
+    # ui 8.0：Config 过渡入口 / 按钮冗余类型 / Builder 收口。
+    r'\bWNavBarConfig\b', r'\bWTabBarConfig\b', r'\bWBadgeConfig\b', r'\bWClipRRectConfig\b',
+    r'\bWButtonMetrics\b', r'\bWButtonEffectType\b', r'\bWNotificationListenerBuilder\b',
     # form 6.0：实时派生 formEntered / 内部边框登记收口后删除的公开名。
     r'pruneFormEntered', r'removeFormEntered', r'hasBorder', r'errorChannelOf',
     r'registerBorder', r'unregisterBorder', r'removeErrorChannel',

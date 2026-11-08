@@ -22,31 +22,24 @@ class WAppBarStyle {
   final double? titleSpacing;
   final SystemUiOverlayStyle? systemOverlayStyle;
 
-  static const Object _unset = Object();
-
+  /// 派生新样式；传 null 表示保留当前值（不能用 copyWith 清空字段）。
   WAppBarStyle copyWith({
-    Object? backgroundColor = _unset,
-    Object? gradient = _unset,
-    Object? foregroundColor = _unset,
-    Object? titleStyle = _unset,
+    Color? backgroundColor,
+    Gradient? gradient,
+    Color? foregroundColor,
+    TextStyle? titleStyle,
     double? height,
-    Object? titleSpacing = _unset,
-    Object? systemOverlayStyle = _unset,
+    double? titleSpacing,
+    SystemUiOverlayStyle? systemOverlayStyle,
   }) {
     return WAppBarStyle(
-      backgroundColor: identical(backgroundColor, _unset)
-          ? this.backgroundColor
-          : backgroundColor as Color?,
-      gradient: identical(gradient, _unset) ? this.gradient : gradient as Gradient?,
-      foregroundColor: identical(foregroundColor, _unset)
-          ? this.foregroundColor
-          : foregroundColor as Color?,
-      titleStyle: identical(titleStyle, _unset) ? this.titleStyle : titleStyle as TextStyle?,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      gradient: gradient ?? this.gradient,
+      foregroundColor: foregroundColor ?? this.foregroundColor,
+      titleStyle: titleStyle ?? this.titleStyle,
       height: height ?? this.height,
-      titleSpacing: identical(titleSpacing, _unset) ? this.titleSpacing : titleSpacing as double?,
-      systemOverlayStyle: identical(systemOverlayStyle, _unset)
-          ? this.systemOverlayStyle
-          : systemOverlayStyle as SystemUiOverlayStyle?,
+      titleSpacing: titleSpacing ?? this.titleSpacing,
+      systemOverlayStyle: systemOverlayStyle ?? this.systemOverlayStyle,
     );
   }
 
@@ -85,10 +78,3 @@ class WAppBarStyle {
     );
   }
 }
-
-/// 标准顶部导航栏。
-///
-/// 只提供 leading / title / actions / bottom 的标准布局；
-/// 任意叠放请在页面层自己用 Container/Stack。
-///
-/// 默认包含状态栏背景；嵌套在 SafeArea 中时可传 `includeStatusBar: false`。

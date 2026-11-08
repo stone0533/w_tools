@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'image_defaults.dart';
+import 'image_slots.dart';
 import 'image_error_view.dart';
 import 'image_style.dart';
 import 'image_types.dart';

@@ -11,7 +11,7 @@ const _redPixel =
 void main() {
   test('README 不包含 7.0 已删除的 API', () {
     final readme = File('README.md').readAsStringSync();
-    expect(readme, contains('w_tools_ui: ^7.0.0'));
+    expect(readme, contains('w_tools_ui: ^8.0.0'));
     expect(readme, contains('options: WImageLoadOptions'));
     expect(readme, isNot(contains('config: WImageLoadConfig')));
     expect(readme, isNot(contains('WHexColor')));
@@ -49,6 +49,46 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(WImage), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('README 导航 / 角标 / 裁剪片段可渲染', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: DefaultTabController(
+          length: 2,
+          child: Column(
+            children: [
+              WTabBar(
+                style: WTabBarStyle(),
+                tabs: [Text('全部'), Text('已完成')],
+              ),
+              Expanded(
+                child: TabBarView(children: [Text('全部内容'), Text('已完成内容')]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.byType(WTabBar), findsOneWidget);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              WBadge(badgeContent: Text('3'), child: Icon(Icons.notifications)),
+              WClipRRect(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+                child: SizedBox(width: 10, height: 10),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.text('3'), findsOneWidget);
+    expect(find.byType(WClipRRect), findsOneWidget);
   });
 
   test('README 扩展段落使用新扩展名', () {

@@ -1,16 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// 任意 child 的基础点击效果。
-enum WPressEffect {
-  /// 无效果
-  none,
-
-  /// 按下时透明度降低
-  opacity,
-
-  /// 按下时轻微缩小
-  scale,
-}
+import 'press_effect.dart';
 
 /// 给任意 child 添加点击能力的轻量包装。
 ///
@@ -34,7 +24,7 @@ class WPressable extends StatefulWidget {
     this.duration = const Duration(milliseconds: 100),
     this.curve = Curves.easeInOut,
     this.behavior = HitTestBehavior.opaque,
-    this.excludeChildSemanticsWhenDisabled = false,
+    this.hasChildSemanticsWhenDisabled = true,
   }) : assert(
          pressedOpacity >= 0 && pressedOpacity <= 1,
          'pressedOpacity 必须在 0..1',
@@ -55,10 +45,10 @@ class WPressable extends StatefulWidget {
   final Curve curve;
   final HitTestBehavior behavior;
 
-  /// 禁用时是否同时排除 child 的语义。
+  /// 禁用时是否仍保留 child 的语义。
   ///
-  /// 默认 false：保留内容语义；如果 child 内部有交互控件，可开启以彻底禁用。
-  final bool excludeChildSemanticsWhenDisabled;
+  /// 默认 true：保留内容语义；如果 child 内部有交互控件，可设为 false 彻底禁用。
+  final bool hasChildSemanticsWhenDisabled;
 
   @override
   State<WPressable> createState() => _WPressableState();
@@ -126,9 +116,7 @@ class _WPressableState extends State<WPressable> {
     assert(!widget.duration.isNegative, 'duration 不能为负');
     if (!widget.enabled) {
       final disabled = IgnorePointer(child: widget.child);
-      return widget.excludeChildSemanticsWhenDisabled
-          ? ExcludeSemantics(child: disabled)
-          : disabled;
+      return widget.hasChildSemanticsWhenDisabled ? disabled : ExcludeSemantics(child: disabled);
     }
     if (!_actionable) {
       return widget.child;

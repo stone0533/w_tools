@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 import '_image_file_web.dart' if (dart.library.io) '_image_file_native.dart';
-import 'image_config.dart';
+import 'image_load_options.dart';
 import 'image_source.dart';
 
 /// 由 WImage 与 WImageSource.resolve 共用的 provider 构造。

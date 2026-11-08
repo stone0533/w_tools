@@ -95,7 +95,7 @@ List<Widget> buildComponentsStateSections({
         child: Column(
           children: [
             WTabBar(
-              config: WTabBarConfig(),
+              style: WTabBarStyle(),
               tabs: [
                 Tab(text: '全部'),
                 Tab(text: '进行中'),
@@ -122,7 +122,7 @@ List<Widget> buildComponentsStateSections({
       child: DecoratedBox(
         decoration: const BoxDecoration(color: Colors.white),
         child: WNavBar(
-          config: const WNavBarConfig(),
+          style: const WNavBarStyle(),
           controller: navController,
           itemBuilder: (context, index, selected) {
             const icons = [Icons.home, Icons.message, Icons.person];
@@ -135,8 +135,9 @@ List<Widget> buildComponentsStateSections({
       ),
     ),
     const SizedBox(height: 24),
-    const DemoSectionTitle('WNotificationListenerBuilder 滚动百分比'),
-    WNotificationListenerBuilder<ScrollNotification>(
+    const DemoSectionTitle('WNotificationListener 滚动百分比'),
+    WNotificationListener<ScrollNotification>(
+      onNotificationPercentage: onScrollPercent,
       child: SizedBox(
         height: 120,
         child: ListView.builder(
@@ -147,7 +148,7 @@ List<Widget> buildComponentsStateSections({
           ),
         ),
       ),
-    ).onNotificationPercentage(onScrollPercent).build(),
+    ),
     const SizedBox(height: 8),
     Text(
       scrollPercent == null ? '滚动上面的列表查看百分比' : '滚动百分比：${(scrollPercent * 100).round()}%',

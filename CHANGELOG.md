@@ -1,3 +1,10 @@
+## Unreleased
+
+### Changed
+
+- 抬高 `w_tools_ui` 下界到 `^8.0.0`：ui 8.0 删除 Config / Metrics / Builder 等过渡入口，
+  迁移见 `docs/migrations/ui-8.0.md`。
+
 ## 11.0.0
 
 ### Breaking

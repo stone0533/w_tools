@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'tab_bar_config.dart';
-
-/// 标签栏的视觉 / 布局样式；新代码优先用它替代 config。
+/// 标签栏的视觉 / 布局样式。
 @immutable
 class WTabBarStyle {
   const WTabBarStyle({
@@ -33,21 +31,66 @@ class WTabBarStyle {
   final TabAlignment? tabAlignment;
   final Color? overlayColor;
 
-  /// 转成旧配置，供 WTabBar 内部统一处理。
-  WTabBarConfig toConfig() {
-    return WTabBarConfig(
-      labelStyle: labelStyle,
-      unselectedLabelStyle: unselectedLabelStyle,
-      dividerColor: dividerColor,
-      dividerHeight: dividerHeight,
-      padding: padding,
-      isScrollable: isScrollable,
-      indicatorSize: indicatorSize,
-      indicatorColor: indicatorColor,
-      indicator: indicator,
-      indicatorWeight: indicatorWeight,
-      tabAlignment: tabAlignment,
-      overlayColor: overlayColor,
+  WTabBarStyle copyWith({
+    TextStyle? labelStyle,
+    TextStyle? unselectedLabelStyle,
+    Color? dividerColor,
+    double? dividerHeight,
+    EdgeInsetsGeometry? padding,
+    bool? isScrollable,
+    TabBarIndicatorSize? indicatorSize,
+    Color? indicatorColor,
+    Decoration? indicator,
+    double? indicatorWeight,
+    TabAlignment? tabAlignment,
+    Color? overlayColor,
+  }) {
+    return WTabBarStyle(
+      labelStyle: labelStyle ?? this.labelStyle,
+      unselectedLabelStyle: unselectedLabelStyle ?? this.unselectedLabelStyle,
+      dividerColor: dividerColor ?? this.dividerColor,
+      dividerHeight: dividerHeight ?? this.dividerHeight,
+      padding: padding ?? this.padding,
+      isScrollable: isScrollable ?? this.isScrollable,
+      indicatorSize: indicatorSize ?? this.indicatorSize,
+      indicatorColor: indicatorColor ?? this.indicatorColor,
+      indicator: indicator ?? this.indicator,
+      indicatorWeight: indicatorWeight ?? this.indicatorWeight,
+      tabAlignment: tabAlignment ?? this.tabAlignment,
+      overlayColor: overlayColor ?? this.overlayColor,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WTabBarStyle &&
+          other.labelStyle == labelStyle &&
+          other.unselectedLabelStyle == unselectedLabelStyle &&
+          other.dividerColor == dividerColor &&
+          other.dividerHeight == dividerHeight &&
+          other.padding == padding &&
+          other.isScrollable == isScrollable &&
+          other.indicatorSize == indicatorSize &&
+          other.indicatorColor == indicatorColor &&
+          other.indicator == indicator &&
+          other.indicatorWeight == indicatorWeight &&
+          other.tabAlignment == tabAlignment &&
+          other.overlayColor == overlayColor;
+
+  @override
+  int get hashCode => Object.hash(
+    labelStyle,
+    unselectedLabelStyle,
+    dividerColor,
+    dividerHeight,
+    padding,
+    isScrollable,
+    indicatorSize,
+    indicatorColor,
+    indicator,
+    indicatorWeight,
+    tabAlignment,
+    overlayColor,
+  );
 }

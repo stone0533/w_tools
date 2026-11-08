@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
-  testWidgets('WClipRRect 不传 config 也能渲染', (tester) async {
+  testWidgets('WClipRRect 不传 borderRadius 也能渲染', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: WClipRRect(child: SizedBox(width: 10, height: 10)),
@@ -13,7 +13,7 @@ void main() {
     expect(find.byType(WClipRRect), findsOneWidget);
   });
 
-  testWidgets('WBadge 不传 config 时显示 badgeContent', (tester) async {
+  testWidgets('WBadge 只传 badgeContent 时显示', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: WBadge(
@@ -25,7 +25,7 @@ void main() {
     expect(find.text('1'), findsOneWidget);
   });
 
-  testWidgets('WTabBar 不传 config 也能渲染 tabs', (tester) async {
+  testWidgets('WTabBar 不传 style 也能渲染 tabs', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: DefaultTabController(

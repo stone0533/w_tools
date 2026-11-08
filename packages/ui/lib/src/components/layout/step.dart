@@ -49,8 +49,11 @@ class WStep extends StatelessWidget {
     assert(style.separatorHeight >= 0, 'WStepStyle.separatorHeight 不能为负');
     assert(style.separatorIndent >= 0, 'WStepStyle.separatorIndent 不能为负');
 
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final colors = style.resolve(scheme);
+    final labelBase =
+        style.labelStyle ?? theme.textTheme.bodySmall ?? const TextStyle(fontSize: 12);
     final completedColor = colors.completed;
     final currentColor = colors.current;
     final upcomingColor = colors.upcoming;
@@ -66,7 +69,14 @@ class WStep extends StatelessWidget {
         Expanded(
           child:
               itemBuilder?.call(context, index, state) ??
-              _buildItem(index, state, completedColor, currentColor, upcomingColor),
+              _buildItem(
+                index,
+                state,
+                completedColor,
+                currentColor,
+                upcomingColor,
+                labelBase,
+              ),
         ),
       );
 
@@ -82,9 +92,13 @@ class WStep extends StatelessWidget {
       }
     }
 
+    final currentLabel = current >= 1 && current <= labels.length ? labels[current - 1] : '';
     return Semantics(
       label:
-          semanticLabelBuilder?.call(current, labels.length) ?? 'Step $current of ${labels.length}',
+          semanticLabelBuilder?.call(current, labels.length) ??
+          (currentLabel.isEmpty
+              ? '$current/${labels.length}'
+              : '$currentLabel ($current/${labels.length})'),
       child: Row(children: children),
     );
   }
@@ -95,6 +109,7 @@ class WStep extends StatelessWidget {
     Color completedColor,
     Color currentColor,
     Color upcomingColor,
+    TextStyle labelBase,
   ) {
     final color = switch (state) {
       WStepState.completed => completedColor,
@@ -102,7 +117,7 @@ class WStep extends StatelessWidget {
       WStepState.upcoming => upcomingColor,
     };
     final filled = state != WStepState.upcoming;
-    final labelStyle = _labelStyle(state, completedColor, currentColor, upcomingColor);
+    final labelStyle = _labelStyle(state, completedColor, currentColor, upcomingColor, labelBase);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -147,13 +162,14 @@ class WStep extends StatelessWidget {
     Color completedColor,
     Color currentColor,
     Color upcomingColor,
+    TextStyle labelBase,
   ) {
     final color = switch (state) {
       WStepState.completed => completedColor,
       WStepState.current => currentColor,
       WStepState.upcoming => upcomingColor,
     };
-    final base = style.labelStyle ?? const TextStyle(fontSize: 12);
+    final base = labelBase;
     final stateStyle = switch (state) {
       WStepState.completed => style.completedLabelStyle,
       WStepState.current => style.currentLabelStyle,

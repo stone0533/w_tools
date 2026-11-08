@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'button_motion.dart';
+import '../press_effect.dart';
 import 'button_resolved_style.dart';
+import 'button_semantics.dart';
 import 'button_size.dart';
 import 'button_style.dart';
 import 'button_styles.dart';
 
-export 'button_metrics.dart';
 export 'button_motion.dart';
 export 'button_resolved_style.dart';
 export 'button_semantics.dart';
@@ -36,10 +37,6 @@ typedef WButtonContentBuilder =
 /// 支持 label/icon、静态 [content]、需要最终样式的 [contentBuilder]；
 /// 保留 button 语义、键盘、loading 和最小点击区域。
 class WButton extends StatefulWidget {
-  /// 测试用：记录样式解析（cache miss）次数。
-  @visibleForTesting
-  static int debugStyleResolutionCount = 0;
-
   const WButton({
     super.key,
     this.style,
@@ -48,6 +45,8 @@ class WButton extends StatefulWidget {
     this.content,
     this.contentBuilder,
     this.size,
+    this.motion = const WButtonMotion(),
+    this.semantics = const WButtonSemantics(),
     this.semanticLabel,
     this.onTap,
     this.onLongPress,
@@ -86,6 +85,12 @@ class WButton extends StatefulWidget {
 
   /// 尺寸；null 时 variant 构造回退到 medium
   final WButtonSize? size;
+
+  /// 按压动效（opacity / scale / none）
+  final WButtonMotion motion;
+
+  /// 无障碍语义；`semanticLabel` 会覆盖其中的 label
+  final WButtonSemantics semantics;
 
   /// 显式无障碍标签；纯图标按钮建议提供
   final String? semanticLabel;
@@ -139,27 +144,20 @@ class _WButtonState extends State<WButton> {
   WButtonStyle _resolveStyle(BuildContext context) {
     final theme = Theme.of(context);
     // ThemeData.hashCode 是深比较；这里只关心 Theme 实例是否变化（Theme.of 返回稳定实例）。
-    final key = Object.hash(widget.style, widget.size, widget.semanticLabel);
+    final key = Object.hash(widget.style, widget.size);
     if (_cachedStyle != null && _cachedStyleKey == key && identical(_cachedTheme, theme)) {
       return _cachedStyle!;
     }
     _cachedTheme = theme;
-    WButton.debugStyleResolutionCount++;
-
     final base = widget.style ?? WButtonStyles.of(context).primary;
-    final semantic = widget.semanticLabel;
-    final resolved = semantic == null
-        ? base
-        : base.copyWith(
-            semantics: base.semantics.copyWith(label: semantic),
-          );
-    final sized = resolved.applySize(widget.size);
+    final sized = base.applySize(widget.size);
     assert(
       widget.icon == null ||
           widget.label != null ||
           widget.content != null ||
           widget.contentBuilder != null ||
-          sized.semantics.label != null,
+          widget.semanticLabel != null ||
+          widget.semantics.label != null,
       'WButton: 纯图标按钮请提供 semanticLabel',
     );
     _cachedStyle = sized;
@@ -167,16 +165,21 @@ class _WButtonState extends State<WButton> {
     return sized;
   }
 
+  WButtonSemantics get _semantics {
+    final label = widget.semanticLabel;
+    return label == null ? widget.semantics : widget.semantics.copyWith(label: label);
+  }
+
   void _setPressed(bool value) {
     if (_pressed.value == value) return;
     _pressed.value = value;
   }
 
-  void _pulse(WButtonStyle style) {
+  void _pulse(WButtonMotion motion) {
     final token = ++_pressToken;
     _pressTimer?.cancel();
     _setPressed(true);
-    _pressTimer = Timer(style.motion.duration, () {
+    _pressTimer = Timer(motion.duration, () {
       if (mounted && token == _pressToken) _setPressed(false);
     });
   }
@@ -191,13 +194,13 @@ class _WButtonState extends State<WButton> {
     widget.onLongPress?.call();
   }
 
-  void _activate(WButtonStyle style) {
+  void _activate() {
     if (!_interactive || widget.onTap == null) return;
-    _pulse(style);
+    _pulse(widget.motion);
     _handleTap();
   }
 
-  void _onTapDown(WButtonStyle style, TapDownDetails details) {
+  void _onTapDown(TapDownDetails details) {
     if (!_interactive) return;
     _pressToken++;
     _pressTimer?.cancel();
@@ -218,6 +221,8 @@ class _WButtonState extends State<WButton> {
   Widget build(BuildContext context) {
     final style = _resolveStyle(context);
     style.validate();
+    final motion = widget.motion..validate();
+    final semantics = _semantics;
     final interactive = _interactive;
     final keyboardInteractive = interactive && widget.onTap != null;
     final theme = Theme.of(context);
@@ -231,7 +236,7 @@ class _WButtonState extends State<WButton> {
       bool pressed,
     ) {
       final child = _buildButtonContentWidget(this, context, visual);
-      final inner = _buildButtonContent(this, context, style, visual, child);
+      final inner = _buildButtonContent(this, context, visual, child);
       final padded = Padding(
         padding: style.padding ?? EdgeInsets.zero,
         child: Align(
@@ -285,7 +290,7 @@ class _WButtonState extends State<WButton> {
         );
       }
 
-      var result = _buildButtonVisual(style, pressed, visualChild);
+      var result = _buildButtonVisual(motion, pressed, visualChild);
       if (_hovered && interactive) {
         result = _buildButtonOverlay(result, hoverColor, style.borderRadius);
       }
@@ -298,9 +303,9 @@ class _WButtonState extends State<WButton> {
     return Semantics(
       button: true,
       enabled: interactive,
-      label: style.semantics.label,
-      hint: style.semantics.hint,
-      onTap: interactive && widget.onTap != null ? () => _activate(style) : null,
+      label: semantics.label,
+      hint: semantics.hint,
+      onTap: interactive && widget.onTap != null ? () => _activate() : null,
       onLongPress: interactive && widget.onLongPress != null ? _handleLongPress : null,
       child: FocusableActionDetector(
         enabled: keyboardInteractive,
@@ -316,7 +321,7 @@ class _WButtonState extends State<WButton> {
         actions: <Type, Action<Intent>>{
           ActivateIntent: CallbackAction<ActivateIntent>(
             onInvoke: (_) {
-              _activate(style);
+              _activate();
               return null;
             },
           ),
@@ -326,7 +331,7 @@ class _WButtonState extends State<WButton> {
           excludeFromSemantics: true,
           onTap: interactive ? _handleTap : null,
           onLongPress: interactive && widget.onLongPress != null ? _handleLongPress : null,
-          onTapDown: interactive ? (details) => _onTapDown(style, details) : null,
+          onTapDown: interactive ? (details) => _onTapDown(details) : null,
           onTapUp: interactive ? _onTapUp : null,
           onTapCancel: interactive ? _onTapCancel : null,
           child: ValueListenableBuilder<bool>(

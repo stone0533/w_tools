@@ -30,7 +30,7 @@ enum WTextVariant {
 /// 安装到 ThemeData.extensions 后，页面只需要：
 ///
 /// ```dart
-/// WText('标题', variant: WTextVariant.title)
+/// WText(text: '标题', variant: WTextVariant.title)
 /// ```
 ///
 /// 没有安装时，[of] 会从当前 [TextTheme] 生成一组兜底样式。

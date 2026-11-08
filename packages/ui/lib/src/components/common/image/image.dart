@@ -14,16 +14,18 @@ import 'image_slots_build.dart';
 import 'image_slots_merge.dart';
 import 'image_source.dart';
 import 'image_style.dart';
-import 'image_config.dart';
-import 'image_defaults.dart';
+import 'image_load_options.dart';
+import 'image_slots.dart';
+import 'image_theme.dart';
 import 'image_types.dart';
 
 export 'image_frame.dart';
 export 'image_error_view.dart';
 export 'image_source.dart';
 export 'image_style.dart';
-export 'image_config.dart';
-export 'image_defaults.dart';
+export 'image_load_options.dart';
+export 'image_slots.dart';
+export 'image_theme.dart';
 export 'image_types.dart';
 
 part 'image_state.dart';

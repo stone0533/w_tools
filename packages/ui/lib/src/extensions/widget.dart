@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../utils/screen.dart';
+import '../components/common/press_effect.dart';
 import '../components/common/pressable.dart';
 
 /// Widget 扩展（通用工具方法，不依赖 ui 组件）
@@ -9,30 +9,6 @@ extension WWidgetExtension on Widget {
   Widget expanded([int flex = 1]) {
     return Expanded(
       flex: flex,
-      child: this,
-    );
-  }
-
-  /// 添加底部安全空间（适配底部导航栏）。
-  ///
-  /// 读取 [WScreen.bottomSafeAreaHeight]，不读取当前 [MediaQuery]。
-  /// remove-in: 8.0.0
-  @Deprecated('Use withBottomBarSpaceOf(context); 8.0 移除')
-  Widget withBottomBarSpace() {
-    return Padding(
-      padding: EdgeInsets.only(bottom: WScreen.bottomSafeAreaHeight),
-      child: this,
-    );
-  }
-
-  /// 添加顶部安全空间（适配状态栏）。
-  ///
-  /// 读取 [WScreen.statusBarHeight]，不读取当前 [MediaQuery]。
-  /// remove-in: 8.0.0
-  @Deprecated('Use withTopSafeSpaceOf(context); 8.0 移除')
-  Widget withTopSafeSpace() {
-    return Padding(
-      padding: EdgeInsets.only(top: WScreen.statusBarHeight),
       child: this,
     );
   }

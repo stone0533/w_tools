@@ -1,131 +1,190 @@
-// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
-import 'package:badges/badges.dart' as badges;
 
-/// 徽章组件，用于显示角标或标记
-class WBadge extends StatelessWidget {
-  /// 徽章配置（8.0 移除；新代码直接传 position/showBadge/badgeStyle）
-  /// remove-in: 8.0.0
-  @Deprecated('Use position/showBadge/badgeStyle instead; config 将在 8.0 移除')
-  final WBadgeConfig? config;
-
-  /// 徽章位置
-  final badges.BadgePosition? position;
-
-  /// 是否显示徽章
-  final bool showBadge;
-
-  /// 自定义徽章样式
-  final badges.BadgeStyle? badgeStyle;
-
-  /// 徽章内容
-  final Widget? badgeContent;
-
-  /// 子组件
-  final Widget? child;
-
-  /// 构造函数
-  ///
-  /// - [key]：组件键
-  /// - [config]：徽章配置
-  /// - [badgeContent]：徽章内容
-  /// - [child]：子组件
-  const WBadge({
-    super.key,
-    this.config,
-    this.position,
-    this.showBadge = true,
-    this.badgeStyle,
-    this.badgeContent,
-    this.child,
-  }) : assert(
-         config == null || (position == null && badgeStyle == null && showBadge == true),
-         'WBadge: config 与 position/showBadge/badgeStyle 只能传一组',
-       );
-
-  @override
-  Widget build(BuildContext context) {
-    // badgeContent 为空时静默不渲染：showBadge 只是开关，内容为空没有可显示的东西。
-    final effectiveShow = (config?.showBadge ?? showBadge) && badgeContent != null;
-
-    return badges.Badge(
-      showBadge: effectiveShow,
-      position: position ?? config?.position,
-      badgeStyle:
-          badgeStyle ??
-          config?.badgeStyle ??
-          const badges.BadgeStyle(
-            padding: EdgeInsets.zero,
-            borderSide: BorderSide(color: Colors.transparent, width: 0),
-            badgeColor: Colors.transparent,
-          ),
-      badgeContent: badgeContent,
-      badgeAnimation: const badges.BadgeAnimation.fade(
-        animationDuration: Duration(milliseconds: 0),
-      ),
-      child: child,
-    );
-  }
-}
-
-/// 徽章配置类（不可变；用构造 / [copyWith] 派生）
+/// 角标位置。
+///
+/// `topEnd` 的 [end] 跟随当前 [Directionality]（LTR 是右边，RTL 是左边）。
 @immutable
-class WBadgeConfig {
-  /// 创建配置
-  const WBadgeConfig({
-    this.position,
-    this.showBadge = true,
-    this.badgeStyle,
-  });
+class WBadgePosition {
+  /// 右上角（RTL 下为左上角）。
+  const WBadgePosition.topEnd({this.top = 0, this.end = 0}) : _center = false;
 
-  /// 徽章位置
-  final badges.BadgePosition? position;
+  /// 居中覆盖 child。
+  const WBadgePosition.center() : top = 0, end = 0, _center = true;
 
-  /// 是否显示徽章
-  final bool showBadge;
+  final double top;
+  final double end;
+  final bool _center;
 
-  /// 自定义徽章样式；为 null 时使用透明样式，由 badgeContent 自带视觉
-  final badges.BadgeStyle? badgeStyle;
-
-  /// 右上角位置（常用场景的便捷构造）
-  factory WBadgeConfig.topRight({double? top, double? end}) {
-    return WBadgeConfig(
-      position: badges.BadgePosition.topEnd(top: top ?? 0, end: end ?? 0),
-    );
-  }
-
-  /// 居中位置
-  factory WBadgeConfig.center() {
-    return WBadgeConfig(position: badges.BadgePosition.center());
-  }
-
-  /// 是否显示徽章
-  bool get isShown => showBadge;
+  bool get isCenter => _center;
 
   @override
   bool operator ==(Object other) =>
-      other is WBadgeConfig &&
-      other.position == position &&
-      other.showBadge == showBadge &&
-      other.badgeStyle == badgeStyle;
+      identical(this, other) ||
+      other is WBadgePosition && other.top == top && other.end == end && other._center == _center;
 
   @override
-  int get hashCode => Object.hash(position, showBadge, badgeStyle);
+  int get hashCode => Object.hash(top, end, _center);
 
-  /// 创建副本并选择性更新（可空字段传 null 表示清空）
-  WBadgeConfig copyWith({
-    Object? position = _unset,
-    bool? showBadge,
-    Object? badgeStyle = _unset,
+  @override
+  String toString() =>
+      _center ? 'WBadgePosition.center()' : 'WBadgePosition.topEnd(top: $top, end: $end)';
+}
+
+/// 角标视觉样式。
+///
+/// 未设置的字段从 [ColorScheme] / [TextTheme] 解析：
+/// 背景取 `colorScheme.error`，前景取 `colorScheme.onError`。
+@immutable
+class WBadgeStyle {
+  const WBadgeStyle({
+    this.backgroundColor,
+    this.foregroundColor,
+    this.textStyle,
+    this.padding,
+    this.borderRadius,
+    this.border,
+  });
+
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final TextStyle? textStyle;
+  final EdgeInsetsGeometry? padding;
+  final BorderRadiusGeometry? borderRadius;
+  final BoxBorder? border;
+
+  WBadgeStyle copyWith({
+    Color? backgroundColor,
+    Color? foregroundColor,
+    TextStyle? textStyle,
+    EdgeInsetsGeometry? padding,
+    BorderRadiusGeometry? borderRadius,
+    BoxBorder? border,
   }) {
-    return WBadgeConfig(
-      position: identical(position, _unset) ? this.position : position as badges.BadgePosition?,
-      showBadge: showBadge ?? this.showBadge,
-      badgeStyle: identical(badgeStyle, _unset)
-          ? this.badgeStyle
-          : badgeStyle as badges.BadgeStyle?,
+    return WBadgeStyle(
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      foregroundColor: foregroundColor ?? this.foregroundColor,
+      textStyle: textStyle ?? this.textStyle,
+      padding: padding ?? this.padding,
+      borderRadius: borderRadius ?? this.borderRadius,
+      border: border ?? this.border,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WBadgeStyle &&
+          other.backgroundColor == backgroundColor &&
+          other.foregroundColor == foregroundColor &&
+          other.textStyle == textStyle &&
+          other.padding == padding &&
+          other.borderRadius == borderRadius &&
+          other.border == border;
+
+  @override
+  int get hashCode => Object.hash(
+    backgroundColor,
+    foregroundColor,
+    textStyle,
+    padding,
+    borderRadius,
+    border,
+  );
+}
+
+/// 徽章组件，用于显示角标或标记。
+///
+/// 默认背景 / 前景来自 `ColorScheme.error` / `onError`；需要自定义时传 [style]。
+class WBadge extends StatelessWidget {
+  const WBadge({
+    super.key,
+    this.badgeContent,
+    this.child,
+    this.position = const WBadgePosition.topEnd(),
+    this.style,
+    this.showBadge = true,
+  });
+
+  /// 徽章内容；为 null 时不渲染徽章。
+  final Widget? badgeContent;
+
+  /// 被标记的 child。
+  final Widget? child;
+
+  /// 徽章位置，默认右上角。
+  final WBadgePosition position;
+
+  /// 徽章视觉；null 时跟随 `ColorScheme`。
+  final WBadgeStyle? style;
+
+  /// 是否显示徽章。
+  final bool showBadge;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = badgeContent;
+    if (!showBadge || content == null) {
+      return child ?? const SizedBox.shrink();
+    }
+
+    final bubble = _WBadgeBubble(style: style, child: content);
+    final anchor = child;
+    if (anchor == null) return bubble;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        anchor,
+        if (position.isCenter)
+          Positioned.fill(child: Center(child: bubble))
+        else
+          Positioned.directional(
+            textDirection: Directionality.of(context),
+            top: position.top,
+            end: position.end,
+            child: bubble,
+          ),
+      ],
     );
   }
 }
 
-const Object _unset = Object();
+class _WBadgeBubble extends StatelessWidget {
+  const _WBadgeBubble({required this.style, required this.child});
+
+  final WBadgeStyle? style;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final background = style?.backgroundColor ?? scheme.error;
+    final foreground = style?.foregroundColor ?? scheme.onError;
+    final baseTextStyle = style?.textStyle ?? theme.textTheme.labelSmall;
+    final padding = style?.padding ?? const EdgeInsets.symmetric(horizontal: 5, vertical: 2);
+    final borderRadius = style?.borderRadius ?? const BorderRadius.all(Radius.circular(999));
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: borderRadius,
+        border: style?.border,
+      ),
+      child: Padding(
+        padding: padding,
+        child: DefaultTextStyle.merge(
+          style: (baseTextStyle ?? const TextStyle()).copyWith(
+            color: foreground,
+            fontSize: (baseTextStyle?.fontSize ?? 11),
+            height: baseTextStyle?.height ?? 1.2,
+          ),
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground, size: baseTextStyle?.fontSize ?? 11),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}

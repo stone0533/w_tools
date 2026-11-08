@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../text/w_text_styles.dart';
 import 'appbar_style.dart';
 
 export 'appbar_style.dart';
@@ -113,11 +114,9 @@ class WAppBar extends StatelessWidget implements PreferredSizeWidget {
     // 都没有时不传 style，交给 Text 的默认样式。
     final theme = Theme.of(context);
     final baseStyle =
-        style.titleStyle ?? theme.appBarTheme.titleTextStyle ?? theme.textTheme.titleLarge;
+        style.titleStyle ?? theme.appBarTheme.titleTextStyle ?? WTextStyles.of(context).title;
     final foreground = style.foregroundColor;
-    final titleStyle = foreground == null
-        ? baseStyle
-        : (baseStyle ?? const TextStyle()).copyWith(color: foreground);
+    final titleStyle = foreground == null ? baseStyle : baseStyle.copyWith(color: foreground);
 
     return Text(
       title,

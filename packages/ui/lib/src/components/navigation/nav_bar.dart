@@ -12,9 +12,6 @@ export 'nav_style.dart';
 ///
 /// [controller] 由调用方持有并负责释放，本组件只负责添加 / 移除监听。
 class WNavBar extends StatefulWidget {
-  /// 标签栏配置（旧入口，8.0 移除；新代码用 [style]）
-  final WNavBarConfig? config;
-
   /// 标签栏样式
   final WNavBarStyle? style;
 
@@ -32,12 +29,11 @@ class WNavBar extends StatefulWidget {
 
   const WNavBar({
     super.key,
-    this.config,
     this.style,
     required this.itemBuilder,
     this.onItemTap,
     required this.controller,
-  }) : assert(config == null || style == null, 'WNavBar: config 与 style 只能传一个');
+  });
 
   @override
   State<WNavBar> createState() => _WNavBarState();
@@ -109,8 +105,8 @@ class _WNavBarState extends State<WNavBar> {
       ],
     );
 
-    final decoration = widget.style?.decoration ?? widget.config?.decoration;
-    final padding = widget.style?.padding ?? widget.config?.padding;
+    final decoration = widget.style?.decoration;
+    final padding = widget.style?.padding;
     if (decoration == null && padding == null) {
       return navContent;
     }
@@ -119,43 +115,6 @@ class _WNavBarState extends State<WNavBar> {
       decoration: decoration,
       padding: padding,
       child: navContent,
-    );
-  }
-}
-
-/// 导航栏配置类
-class WNavBarConfig {
-  /// 外层装饰；为 null 时不包裹 Container
-  final BoxDecoration? decoration;
-
-  /// 外层 padding；为 null 时不额外加 padding
-  final EdgeInsetsGeometry? padding;
-
-  const WNavBarConfig({
-    this.decoration,
-    this.padding,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      other is WNavBarConfig && other.decoration == decoration && other.padding == padding;
-
-  @override
-  int get hashCode => Object.hash(decoration, padding);
-
-  /// 构建导航栏
-  /// remove-in: 8.0.0
-  @Deprecated('Use WNavBar(config: ...) instead; Config.build 将在 8.0 移除')
-  WNavBar build({
-    required Widget Function(BuildContext, int, bool) itemBuilder,
-    Future<bool?>? Function(int)? onItemTap,
-    required WNavController controller,
-  }) {
-    return WNavBar(
-      config: this,
-      itemBuilder: itemBuilder,
-      onItemTap: onItemTap,
-      controller: controller,
     );
   }
 }

@@ -53,35 +53,32 @@ List<Widget> buildButtonsInteractionSections({
     ),
     DemoSection(
       title: '15. WButtonMotion：opacity / scale / none',
-      subtitle: '通过 style.copyWith(motion: ...) 局部覆盖',
+      subtitle: '通过 WButton.motion 局部覆盖',
       child: Wrap(
         spacing: 12,
         runSpacing: 12,
         children: [
           WButton(
-            style: AppButtons.primary(context).copyWith(
-              motion: const WButtonMotion(
-                effect: WButtonEffectType.scale,
-                pressedScale: 0.96,
-              ),
+            style: AppButtons.primary(context),
+            motion: const WButtonMotion(
+              effect: WPressEffect.scale,
+              pressedScale: 0.96,
             ),
             label: 'scale 按压',
             onTap: () {},
           ),
           WButton(
-            style: AppButtons.secondary(context).copyWith(
-              motion: const WButtonMotion(
-                effect: WButtonEffectType.opacity,
-                pressedOpacity: 0.6,
-              ),
+            style: AppButtons.secondary(context),
+            motion: const WButtonMotion(
+              effect: WPressEffect.opacity,
+              pressedOpacity: 0.6,
             ),
             label: 'opacity 按压',
             onTap: () {},
           ),
           WButton(
-            style: AppButtons.text(context).copyWith(
-              motion: const WButtonMotion(effect: WButtonEffectType.none),
-            ),
+            style: AppButtons.text(context),
+            motion: const WButtonMotion(effect: WPressEffect.none),
             label: '无按压效果',
             onTap: () {},
           ),

@@ -3,7 +3,7 @@ import 'package:flutter/painting.dart';
 
 import '../../../utils/assets.dart';
 import 'image_base64.dart';
-import 'image_config.dart';
+import 'image_load_options.dart';
 import 'image_provider_factory.dart';
 import 'image_types.dart';
 
