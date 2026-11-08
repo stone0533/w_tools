@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.0.0
+
+### Breaking
+- `WAsyncController` / `WAsyncPagedController` 的 `options: WAsyncOptions?` 改为
+  `onError: void Function(Object)?`；控制器不再接受 activity。迁移见
+  [async-6.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-6.0.md)。
+- `WAsyncOptions.onError` 从 `void Function(Object?)?` 改为 `void Function(Object)?`。
+- `WAsyncErrorWidgetBuilder` 的 retry 从 `VoidCallback` 改为 `VoidCallback?`；无 retry 时
+  自定义 / 主题 builder 仍会被调用并收到 null，包内默认视图不渲染按钮。
+
 ## 5.2.0
 
 ### Added

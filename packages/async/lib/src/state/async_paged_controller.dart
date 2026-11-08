@@ -13,12 +13,12 @@ class WAsyncPagedController<T> {
   WAsyncPagedController(
     WAsyncPageLoader<T> loader, {
     int initialPage = 1,
-    WAsyncOptions? options,
+    void Function(Object error)? onError,
     WAsyncState<List<T>>? initial,
   }) : this._(
          (page, _) => loader(page),
          initialPage: initialPage,
-         options: options,
+         onError: onError,
          initial: initial,
        );
 
@@ -26,33 +26,23 @@ class WAsyncPagedController<T> {
   WAsyncPagedController.withToken(
     WAsyncTokenPageLoader<T> loader, {
     int initialPage = 1,
-    WAsyncOptions? options,
+    void Function(Object error)? onError,
     WAsyncState<List<T>>? initial,
   }) : this._(
          loader,
          initialPage: initialPage,
-         options: options,
+         onError: onError,
          initial: initial,
        );
 
   WAsyncPagedController._(
     this._loader, {
     this.initialPage = 1,
-    this.options,
+    this.onError,
     WAsyncState<List<T>>? initial,
   }) : _page = _resolvePage(initialPage, initial),
        _hasMore = ValueNotifier(_hasMoreFromInitial(initial)),
-       _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading()) {
-    final activity = options?.activity;
-    if (activity != null) {
-      throw ArgumentError.value(
-        activity,
-        'options.activity',
-        'WAsyncPagedController 自己维护加载状态，不接受 activity；'
-            '并发活动计数请直接用 WAsync。',
-      );
-    }
-  }
+       _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading());
 
   static int _resolvePage<T>(
     int initialPage,
@@ -75,10 +65,8 @@ class WAsyncPagedController<T> {
   final WAsyncTokenPageLoader<T> _loader;
   final int initialPage;
 
-  /// 执行选项；分页状态由控制器维护。
-  /// 传入 [WAsyncOptions.activity] 会在构造时抛 [ArgumentError]，
-  /// release 下也一样，不会静默忽略。
-  final WAsyncOptions? options;
+  /// 失败兜底回调；分页状态由控制器维护，不提供 activity。
+  final void Function(Object error)? onError;
 
   final ValueNotifier<WAsyncState<List<T>>> _state;
   final ValueNotifier<bool> _isLoadingMore = ValueNotifier(false);
@@ -145,7 +133,7 @@ class WAsyncPagedController<T> {
 
     final result = await WAsync.tryRun<List<T>>(
       () => _loader(initialPage, token),
-      options: options?.withoutActivity(),
+      options: onError == null ? null : WAsyncOptions(onError: onError),
       cancelToken: token,
     );
 
@@ -191,7 +179,7 @@ class WAsyncPagedController<T> {
 
     final result = await WAsync.tryRun<List<T>>(
       () => _loader(requestedPage, token),
-      options: options?.withoutActivity(),
+      options: onError == null ? null : WAsyncOptions(onError: onError),
       cancelToken: token,
     );
 

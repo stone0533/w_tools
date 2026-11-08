@@ -866,13 +866,13 @@ components:
     useFor: '单区块异步状态、load / retry / 旧请求丢弃'
     dontUseFor: '分页用 `WAsyncPagedController`；纯执行用 `WAsync`'
     usage: |
-      final c = WAsyncController.list(() => api.list()); c.load();
+      final c = WAsyncController.list(() => api.list(), onError: (e) => log(e)); c.load();
       c.retry();
       @override
       void dispose() { c.dispose(); super.dispose(); }
     pitfalls:
       - '页面 dispose 时 controller.dispose()'
-      - '不要给 Controller 传 options.activity'
+      - 'Controller 只接 onError；activity 只在 WAsync 上用'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
     teach: true
   - name: '`WAsyncPagedController`'
@@ -1147,13 +1147,13 @@ components:
     docsAnchor: '1-wasync'
     section: '1. WAsync'
     useFor: 'WAsync 的执行选项：并发活动计数与失败兜底回调'
-    dontUseFor: 'Controller 自己维护四态，不接受 activity；给 Controller 传 options 时只带 onError'
+    dontUseFor: 'Controller 不接 WAsyncOptions，只接 onError；不要用 activity 合并多个独立区块'
     usage: |
       final activity = WAsyncActivity(onStart: ..., onEnd: ...);
       final options = WAsyncOptions(activity: activity, onError: (e) => log(e));
       await WAsync.run(() => api.fetch(), options: options);
     pitfalls:
-      - 'Controller 传 options.activity 会抛 ArgumentError'
+      - 'Controller 只接 onError，不接 WAsyncOptions'
       - '调用点自己处理错误时用 withoutOnError()，避免重复上报'
     related: ['WAsync', 'WAsyncActivity', 'WCancelToken']
     teach: true

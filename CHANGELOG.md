@@ -1,11 +1,16 @@
-## Unreleased
+## 12.0.0
+
+### Breaking
+
+- 跟随 `w_tools_async` 6.0.0：根包重导出 async 的公开 barrel，`WAsyncController` /
+  `WAsyncPagedController` 不再接受 `WAsyncOptions`（改 `onError`），`WAsyncOptions.onError`
+  去 nullable，error builder 的 retry 改为可空。迁移见 `docs/migrations/async-6.0.md`。
+- 抬高 `w_tools_async` 下界到 `^6.0.0`。
 
 ### Changed
 
 - 抬高 `w_tools_ui` 下界到 `^8.0.0`：ui 8.0 删除 Config / Metrics / Builder 等过渡入口，
   迁移见 `docs/migrations/ui-8.0.md`。
-- 抬高 `w_tools_async` 下界到 `^5.2.0`：Controller 传 `WAsyncOptions.activity` 在 release
-  下也会抛 `ArgumentError`；新增 `WAsyncState.list` 与 `WAsyncPagedController.changes`。
 
 ## 11.0.0
 

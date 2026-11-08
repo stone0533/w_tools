@@ -1,6 +1,6 @@
 name: w_tools_async
 description: "w_tools 的异步层：执行、重试、超时、取消、四态状态、Controller 与可复用异步视图。"
-version: 5.2.0
+version: 6.0.0
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/async

@@ -8,7 +8,7 @@ typedef WAsyncErrorWidgetBuilder =
     Widget Function(
       BuildContext context,
       Object error,
-      VoidCallback onRetry,
+      VoidCallback? onRetry,
     );
 
 /// 异步视图的全局默认主题（普通视图 + sliver 视图合在一处）。

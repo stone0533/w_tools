@@ -27,7 +27,7 @@
 
 `WAsync.map` 做结果映射，`serial` 做同类型顺序任务，`first` 做多源竞速。
 
-`onRetry == null` 时不调用自定义 error / banner builder（它们要求可用的 retry）。
+`onRetry == null` 时不显示重试按钮；自定义 error / banner builder 仍会收到 `null`，由 builder 决定是否渲染按钮。
 
 `tryRun` 结果：
 

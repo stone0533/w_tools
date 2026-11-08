@@ -254,11 +254,11 @@ void main() {
       await loading;
     });
 
-    test('Error 也会回调 options.onError', () async {
+    test('Error 也会回调 onError', () async {
       Object? reported;
       final controller = WAsyncPagedController<int>(
         (page) async => throw StateError('bug'),
-        options: WAsyncOptions(onError: (error) => reported = error),
+        onError: (error) => reported = error,
       );
       addTearDown(controller.dispose);
 
@@ -275,18 +275,6 @@ void main() {
           initialPage: 0,
         ),
         throwsArgumentError,
-      );
-    });
-
-    test('传 options.activity 会抛 ArgumentError（分页自己管加载状态，release 也一样）', () {
-      expect(
-        () => WAsyncPagedController<int>(
-          (page) async => const <int>[],
-          options: WAsyncOptions(activity: WAsyncActivity()),
-        ),
-        throwsA(
-          isA<ArgumentError>().having((e) => e.name, 'name', 'options.activity'),
-        ),
       );
     });
 

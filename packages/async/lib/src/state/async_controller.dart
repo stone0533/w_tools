@@ -13,12 +13,12 @@ typedef WAsyncTokenLoader<T> = Future<T> Function(WCancelToken token);
 class WAsyncController<T> {
   WAsyncController(
     Future<T> Function() loader, {
-    WAsyncOptions? options,
+    void Function(Object error)? onError,
     bool Function(T value)? isEmpty,
     WAsyncState<T>? initial,
   }) : this._(
          (token) => loader(),
-         options: options,
+         onError: onError,
          isEmpty: isEmpty,
          initial: initial,
        );
@@ -26,43 +26,33 @@ class WAsyncController<T> {
   /// 需要感知取消的 loader 版本。
   WAsyncController.withToken(
     WAsyncTokenLoader<T> loader, {
-    WAsyncOptions? options,
+    void Function(Object error)? onError,
     bool Function(T value)? isEmpty,
     WAsyncState<T>? initial,
   }) : this._(
          loader,
-         options: options,
+         onError: onError,
          isEmpty: isEmpty,
          initial: initial,
        );
 
   WAsyncController._(
     this._loader, {
-    this.options,
+    this.onError,
     bool Function(T value)? isEmpty,
     WAsyncState<T>? initial,
   }) : _isEmpty = isEmpty,
-       _state = ValueNotifier(initial ?? WAsyncState<T>.loading()) {
-    final activity = options?.activity;
-    if (activity != null) {
-      throw ArgumentError.value(
-        activity,
-        'options.activity',
-        'WAsyncController 自己维护四态，不接受 activity；'
-            '并发活动计数请直接用 WAsync。',
-      );
-    }
-  }
+       _state = ValueNotifier(initial ?? WAsyncState<T>.loading());
 
   /// 列表场景：空列表自动归为 empty。
   static WAsyncController<List<E>> list<E>(
     Future<List<E>> Function() loader, {
-    WAsyncOptions? options,
+    void Function(Object error)? onError,
     WAsyncState<List<E>>? initial,
   }) {
     return WAsyncController<List<E>>(
       loader,
-      options: options,
+      onError: onError,
       isEmpty: (value) => value.isEmpty,
       initial: initial,
     );
@@ -70,10 +60,8 @@ class WAsyncController<T> {
 
   final WAsyncTokenLoader<T> _loader;
 
-  /// 执行选项；页面级状态由控制器维护。
-  /// 传入 [WAsyncOptions.activity] 会在构造时抛 [ArgumentError]，
-  /// release 下也一样，不会静默忽略。
-  final WAsyncOptions? options;
+  /// 失败兜底回调；控制器自己维护四态，不提供 activity。
+  final void Function(Object error)? onError;
 
   final bool Function(T value)? _isEmpty;
   final ValueNotifier<WAsyncState<T>> _state;
@@ -97,7 +85,7 @@ class WAsyncController<T> {
 
     final result = await WAsync.tryRun<T>(
       () => _loader(token),
-      options: options?.withoutActivity(),
+      options: onError == null ? null : WAsyncOptions(onError: onError),
       cancelToken: token,
     );
 

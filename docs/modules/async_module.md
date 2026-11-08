@@ -58,7 +58,7 @@ packages/async/lib/
 | 成员 | 类型 | 说明 |
 |------|------|------|
 | `activity` | `WAsyncActivity?` | 需要合并并发活动时传入 |
-| `onError` | `void Function(Object?)?` | 失败兜底回调 |
+| `onError` | `void Function(Object)?` | 失败兜底回调 |
 
 直接构造 options；5.0 删除 `copyWith`。`withoutActivity()` / `withoutOnError()` 分别只去掉 activity / onError。
 
@@ -149,7 +149,10 @@ WAsyncState.failed(error, previousData: oldData)
 ### WAsyncController
 
 ```dart
-final controller = WAsyncController.list(() => api.gifts());
+final controller = WAsyncController.list(
+  () => api.gifts(),
+  onError: (error) => log(error),
+);
 await controller.load();
 ```
 
@@ -157,7 +160,7 @@ await controller.load();
 - 旧请求不会覆盖新请求；
 - 失败保留旧数据；
 - `withToken` 让 loader 拿到 `WCancelToken`；
-- 传 `options.activity` 会在构造时抛 `ArgumentError`（release 也一样）；并发活动计数直接用 `WAsync`。
+- Controller 只接 `onError`；activity 只在 `WAsync` 上用。
 
 ### WAsyncPagedController
 
@@ -187,8 +190,8 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 | `WAsyncErrorView` | 默认整块错误 |
 | `WAsyncErrorBanner` | 保留旧数据时的错误条 |
 
-- `WAsyncView.onRetry` 可选；无 retry 时不渲染按钮，也不调用自定义 error / banner builder；自定义 retry 失败用 `onRetryError` 观测；
-- `WAsyncStateSliver.onRetry` 可选；无 retry 时不调用要求 retry 的自定义 builder；
+- `WAsyncView.onRetry` 可选；无 retry 时不渲染按钮，但自定义 error / banner builder 仍会收到 `null`，由 builder 决定是否渲染按钮；自定义 retry 失败用 `onRetryError` 观测；
+- `WAsyncStateSliver.onRetry` 可选；无 retry 时自定义 builder 仍会收到 `null`；
 - 默认文案由 `WAsyncStrings` 提供，通过 `WAsyncTheme.strings` 注入本地化。
 
 ## 5. Theme
@@ -219,4 +222,4 @@ cd packages/async
 flutter test
 ```
 
-当前 5.2.0；迁移见 [async-5.0](../migrations/async-5.0.md)。
+当前 6.0.0；迁移见 [async-6.0](../migrations/async-6.0.md)。

@@ -147,11 +147,11 @@ void main() {
       await loading;
     });
 
-    test('Error 也会回调 options.onError', () async {
+    test('Error 也会回调 onError', () async {
       Object? reported;
       final controller = WAsyncController<int>(
         () async => throw StateError('bug'),
-        options: WAsyncOptions(onError: (error) => reported = error),
+        onError: (error) => reported = error,
       );
       addTearDown(controller.dispose);
 
@@ -159,18 +159,6 @@ void main() {
 
       expect(controller.state.value.isFailed, isTrue);
       expect(reported, isA<StateError>());
-    });
-
-    test('传 options.activity 会抛 ArgumentError（控制器自己管四态，release 也一样）', () {
-      expect(
-        () => WAsyncController<int>(
-          () async => 1,
-          options: WAsyncOptions(activity: WAsyncActivity()),
-        ),
-        throwsA(
-          isA<ArgumentError>().having((e) => e.name, 'name', 'options.activity'),
-        ),
-      );
     });
   });
 }

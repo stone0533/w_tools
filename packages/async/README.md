@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^5.2.0
+  w_tools_async: ^6.0.0
 ```
 
 要求 Flutter 3.38+。
@@ -133,7 +133,8 @@ final name = await WAsync.map<String, String>(
 - `WAsync` 不再用 `null` 表示失败或取消；
 - `onSuccess` / `map` 的映射异常由调用方处理，不会回调 `options.onError`；
 - 只有 token 取消才算 `WAsyncCancelled`；任务自己抛 `WCancellationException` 仍算失败；
-- `onRetry == null` 时不会调用自定义 `errorBuilder` / `errorBannerBuilder`（它们需要可用的 retry）。
+- `onRetry == null` 时 `errorBuilder` / `errorBannerBuilder` 仍会收到 `null` 的 retry；
+  由 builder 自己决定是否渲染按钮。
 
 并发组合器的边界：
 
@@ -189,7 +190,7 @@ class _GiftPageState extends State<GiftPage> {
 
 每个独立区块一个 Controller。
 
-给 Controller 传 `WAsyncOptions.activity` 会在构造时抛 `ArgumentError`（release 也一样）；Controller 自己维护四态。
+Controller 只接 `onError`；不再接受 `WAsyncOptions` / `activity`。控制器自己维护四态。
 
 `WAsyncController` 原样保存 loader 的返回值；`WAsyncPagedController` 的 `state.data` 是
 unmodifiable 列表。需要不可变列表时，在 loader 里自己包一层。
@@ -295,14 +296,15 @@ WAsyncStateSliver<List<Gift>>(
 
 - 失败 + 旧数据：保留 ready sliver，追加错误条；
 - 刷新 + 旧数据：默认不额外加进度，避免和 `SmartRefresher` 重复；
-- `onRetry == null`：不显示重试按钮，也不调用要求 retry 的自定义 error / banner builder。
+- `onRetry == null`：不显示重试按钮；自定义 error / banner builder 仍会收到 `null`，
+  需自行决定是否渲染按钮。
 
 ## 约定
 
 - Controller 会把所有异常（含 `Error`）转为 `failed`，并回调 `WAsyncOptions.onError`；
 - `WAsyncActivity` 只做并发活动计数，不是加载视图；
 - 同一批并行任务可以共享 `WAsyncActivity`；不要用它合并多个独立区块。
-- `WAsyncOptions.activity` 只用于 `WAsync` 直接执行；Controller 自己维护四态，传了会断言；
+- `WAsyncOptions.activity` 只用于 `WAsync` 直接执行；Controller 只接 `onError`；
 - 默认文案来自 `WAsyncStrings`，项目应注入自己的本地化文案；
 - `WAsyncState.status` 的类型是 `WAsyncStatus`（loading / ready / empty / failed）；优先 `when`，需要分支时直接 switch。
 - 取消不会中止底层 Future，只是让等待尽快结束。

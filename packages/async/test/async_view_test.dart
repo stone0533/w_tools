@@ -476,12 +476,13 @@ void main() {
     expect(retries, 1);
   });
 
-  testWidgets('未传 onRetry 时不显示按钮，也不调用 errorBuilder', (tester) async {
+  testWidgets('未传 onRetry 时 errorBuilder 仍会收到 null', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom'),
     );
     addTearDown(state.dispose);
     var calls = 0;
+    VoidCallback? seen;
 
     await tester.pumpWidget(
       _host(
@@ -490,6 +491,7 @@ void main() {
           readyBuilder: (context, value) => Text('value-$value'),
           errorBuilder: (context, error, retry) {
             calls++;
+            seen = retry;
             return const Text('custom-error');
           },
         ),
@@ -497,8 +499,9 @@ void main() {
     );
 
     expect(find.text('Retry'), findsNothing);
-    expect(find.text('custom-error'), findsNothing);
-    expect(calls, 0);
+    expect(find.text('custom-error'), findsOneWidget);
+    expect(calls, 1);
+    expect(seen, isNull);
   });
 
   testWidgets('显式 errorBuilder 优先于默认错误视图', (tester) async {

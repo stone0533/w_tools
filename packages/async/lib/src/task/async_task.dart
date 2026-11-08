@@ -22,7 +22,7 @@ class WAsyncOptions {
   final WAsyncActivity? activity;
 
   /// 失败兜底回调；抛错会被忽略。
-  final void Function(Object? error)? onError;
+  final void Function(Object error)? onError;
 
   /// 去掉并发活动计数器，保留错误回调。
   WAsyncOptions withoutActivity() => WAsyncOptions(onError: onError);
