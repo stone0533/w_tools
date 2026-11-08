@@ -1,6 +1,11 @@
 # w_tools_app
 
-`w_tools_app` 是 w_tools 的**应用启动契约层**，只包含与 GetX 无关的插件接口：
+`w_tools_app` 是 w_tools 的 **GetX-free 应用内核**，提供：
+
+- `WAppPlugin`：插件契约；
+- `WAppPluginRunner`：插件注册表、`dependsOn` 分层初始化；
+- `WLanguage` / `WLocaleConfig`：语言状态与语言配置；
+- `WAppTheme`：应用外观（亮/暗主题、主题模式、系统栏）。
 
 ```dart
 class AppServicePlugin extends WAppPlugin {
@@ -12,16 +17,20 @@ class AppServicePlugin extends WAppPlugin {
     // 初始化
   }
 }
+
+final runner = WAppPluginRunner([AppServicePlugin()]);
+await runner.init();
 ```
 
-需要完整的 `WApp` 启动器、GetX 路由、语言切换与底部弹窗时，依赖：
+需要完整的 `WApp` 启动器、GetX 路由与底部弹窗时，依赖：
 
 ```yaml
 dependencies:
   w_tools_app_getx: ^2.0.0
 ```
 
-`w_tools_app_getx` 会 re-export 本包的 `WAppPlugin`。
+需要 GetX 启动器时使用 `w_tools_app_getx`；本包的内核类型可以直接从
+`package:w_tools_app/w_tools_app.dart` 引用。
 
 ## 历史迁移
 

@@ -1,8 +1,15 @@
 # Changelog
 
-## Unreleased
+## 3.1.0
+
+### Added
+- `WAppPluginRunner`：GetX-free 的插件注册表与 `dependsOn` 分层初始化器。
+- `WLanguage` / `WLocaleConfig`：语言状态与语言配置（GetX-free）。
+- `WAppTheme`：应用外观（亮/暗主题、主题模式、系统栏）。
 
 ### Changed
+- `WAppTheme.systemUiOverlayStyle` 恢复 1.x 默认：透明状态栏 + 黑色导航栏；
+  显式传 `null` 可关闭。
 - 文档：修正 `WAppPlugin` 生命周期顺序与契约层引用；补 `wrapApp` 保留 child 的测试。
 
 ## 3.0.0

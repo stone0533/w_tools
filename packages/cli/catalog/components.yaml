@@ -1107,7 +1107,22 @@ components:
       - '有顺序要求必须写 dependsOn，不能依赖注册顺序'
       - 'onInit 抛错会中断启动（fail-fast）'
       - 'wrapApp 在 MaterialApp 外，没有 Theme / MediaQuery'
-    related: ['`WApp`']
+    related: ['`WApp`', '`WAppPluginRunner`']
+    teach: true
+  - name: '`WAppPluginRunner`'
+    package: 'w_tools_app'
+    docsAnchor: '2-wappplugin---插件接口'
+    section: '2. WAppPlugin - 插件接口'
+    useFor: 'GetX-free 的插件注册表与 dependsOn 分层初始化'
+    dontUseFor: '不要绕过应用入口直接调用；应用壳会委托它'
+    usage: |
+      final runner = WAppPluginRunner([EnvPlugin(), ServicePlugin()]);
+      await runner.init();
+    pitfalls:
+      - '插件 name 必须唯一'
+      - 'dependsOn 必须引用已注册插件；循环依赖会抛 StateError'
+      - 'init 之后不可增删插件'
+    related: ['`WAppPlugin`']
     teach: true
   - name: '`WAsyncState`'
     package: 'w_tools_async'

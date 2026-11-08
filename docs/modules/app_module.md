@@ -279,6 +279,19 @@ class PushPlugin with WAppPlugin {
 }
 ```
 
+### WAppPluginRunner（w_tools_app）
+
+`WAppPluginRunner` 是 GetX-free 的插件注册表与分层初始化器；应用壳可以直接使用：
+
+```dart
+final runner = WAppPluginRunner([EnvPlugin(), ServicePlugin()]);
+await runner.init();
+```
+
+- 同层并行、跨层串行；
+- `name` 重复 / 依赖未注册 / 循环依赖抛 `StateError`；
+- `init` 之后不可增删插件。
+
 ---
 
 ## 3. WLanguage - 语言管理

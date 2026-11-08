@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 
-import 'package:w_tools_app/w_tools_app.dart';
+import 'package:w_tools_app/w_tools_app.dart' show WAppPlugin;
 import 'language/language.dart';
 import 'options.dart';
 import 'routing/route_observer.dart';
