@@ -10,7 +10,9 @@ import _release_baseline as mod
 
 class BaselineTest(unittest.TestCase):
     def test_check_equal_warns(self):
-        code, message = mod.baseline('ui', '7.0.0', mode='check')
+        # 快照版本 mock 掉：不依赖仓库当前基线（发布 8.0.0 后真实基线已前移）。
+        with mock.patch.object(mod, 'snapshot_version', return_value='7.0.0'):
+            code, message = mod.baseline('ui', '7.0.0', mode='check')
         self.assertEqual(code, mod.WARN_EQUAL)
         self.assertIn('等于', message)
 
@@ -32,7 +34,9 @@ class BaselineTest(unittest.TestCase):
         self.assertIn('待发布', message)
 
     def test_publish_equal_without_pending_fails(self):
-        code, message = mod.baseline('ui', '7.0.0', mode='publish')
+        # 同上：固定快照版本，避免用例随仓库发布状态漂移。
+        with mock.patch.object(mod, 'snapshot_version', return_value='7.0.0'):
+            code, message = mod.baseline('ui', '7.0.0', mode='publish')
         self.assertEqual(code, 1)
         self.assertIn('已经是快照基线', message)
 
