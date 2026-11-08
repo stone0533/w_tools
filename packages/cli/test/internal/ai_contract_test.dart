@@ -376,6 +376,7 @@ void main() {
         'WAppOptions',
         'WAppTheme',
         'WAppPlugin',
+        'WAppPluginRunner',
         'WBottomSheet',
         'WLanguage',
         'WRouteObserver',

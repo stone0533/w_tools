@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import 'package:w_tools_app/w_tools_app.dart';
+import 'package:w_tools_app/w_tools_app.dart' show WAppPlugin;
 import 'language/locale_config.dart';
 import 'routing/route_stack.dart';
 import 'theme/app_theme.dart';

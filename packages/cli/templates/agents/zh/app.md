@@ -3,6 +3,7 @@
   `builderWrapper` 在 MaterialApp 内，`wrapApp` 在外且没有 Theme / MediaQuery；
   `WRouteObserver` 已由 WApp 自动追加，不要重复添加。
 - **插件**：实现 `WAppPlugin`，`onInit` 参与分层初始化；有顺序要求必须显式声明 `dependsOn`。
+  非 GetX 启动器可直接用 `WAppPluginRunner`（`w_tools_app`）。
 - **多语言**：支持语言 / 首次语言 / 回退语言用 `WLocaleConfig`（`WAppOptions.localeConfig`）；
   运行期用 `app.language`（`WLanguage`）的 `changeLanguage(...)`，监听 `languageChanges` 或 `languageListenable`；
   不要自己保存第二份 currentLanguage。

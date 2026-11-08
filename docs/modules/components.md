@@ -52,6 +52,7 @@
 | `WImageLoadOptions` | ui | 图片加载行为：解码尺寸 / 重试 / gapless | 视觉样式用 `WImageStyle` |
 | `WImageController` | ui | 手动重试与加载状态（retry / state） | 一个 controller 只能绑定一张 WImage |
 | `WAppPlugin` | app | 插件分层初始化 | — |
+| `WAppPluginRunner` | app | GetX-free 的插件注册表与 dependsOn 分层初始化 | 不要绕过应用入口直接调用；应用壳会委托它 |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
 | `WImageTheme` | ui | App 级图片占位 / 错误 / 进度默认配置 | 不要按单图传参；单图默认值用 WImageSlots，主题只做 App 级兜底 |
 | `WImageSlots` | ui | 单图 / App 级图片占位 / 错误 / 进度 / 重试 UI | 不要把重试次数、解码尺寸等行为配置塞进 WImageSlots |

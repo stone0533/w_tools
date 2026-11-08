@@ -31,6 +31,7 @@
 - `WApp`：`language`；`WLocaleConfig` 的 `==` / `hashCode` / `copyWith`。
 
 ### Changed
+- 内部：从 `w_tools_app` 只 `show WAppPlugin` 导入，避免与本地语言/外观类型冲突。
 - `WAppOptions` 构造时校验 `home` 或 `initialRoute` + `getPages`；`start` 覆盖仍可用，
   但基础配置必须有效。
 - `WApp.run` 从 `WLocaleConfig` 派生 `supportedLocales`，并默认使用
