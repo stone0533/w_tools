@@ -89,7 +89,7 @@ await app.start();
 | `getPages` | `List<GetPage<dynamic>>?` | null | GetX 路由表；`home` 为 null 时必填 |
 | `routes` | `Map<String, WidgetBuilder>?` | null | 普通命名路由 |
 | `navigatorKey` | `GlobalKey<NavigatorState>?` | null | 自定义 Navigator key |
-| `theme` | `WAppTheme?` | null | 应用外观（亮/暗主题、模式、系统栏） |
+| `theme` | `WAppTheme?` | null | 应用外观；null 时使用默认 `WAppTheme`（含默认系统栏） |
 | `translations` | `Translations?` | null | GetX 国际化翻译表 |
 | `locale` | `Locale?` | null | 当前语言 |
 | `fallbackLocale` | `Locale?` | null | 兜底语言 |
@@ -115,9 +115,11 @@ await app.start();
 | `light` | `ThemeData?` | null | 亮色主题 |
 | `dark` | `ThemeData?` | null | 暗色主题 |
 | `mode` | `ThemeMode` | `ThemeMode.system` | 主题模式 |
-| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | null | 系统 UI 样式；`null` 不干预 |
+| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | 透明状态栏 + 黑色导航栏 | 系统 UI 样式；显式传 `null` 不干预 |
 
 `WAppTheme` 是应用外观值对象，实现 `==` / `hashCode` / `copyWith`；不要和 `WAsyncTheme`（Widget）混用。
+默认恢复透明状态栏（`statusBarColor: Colors.transparent`）；需要完全交给系统时传
+`WAppTheme(systemUiOverlayStyle: null)`。
 
 ### 插件管理方法
 
@@ -485,6 +487,7 @@ Future<void> main() async {
 - **语言列表是实例状态**：`app.language` 与 `WAppOptions.localeConfig` 二选一即可；
   `WAppConfig` 已删除，不再有全局静态语言配置。
 - **应用外观**：`theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` 统一放 `WAppTheme`；
+  默认透明状态栏，显式 `systemUiOverlayStyle: null` 关闭。
 - **Flutter 本地化**：默认使用 `GlobalMaterialLocalizations.delegates`；
   需要自定义时传 `WAppOptions.localizationsDelegates`。
 

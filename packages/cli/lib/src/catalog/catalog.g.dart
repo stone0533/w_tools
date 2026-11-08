@@ -1059,7 +1059,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docsAnchor: "wapptheme-字段",
     aliases: <String>[],
     usage: "WAppTheme(\n  light: ThemeData.light(),\n  dark: ThemeData.dark(),\n  mode: ThemeMode.system,\n  systemUiOverlayStyle: SystemUiOverlayStyle.dark,\n)\n",
-    pitfalls: <String>["通过 WAppOptions.theme 传入；不是 Widget"],
+    pitfalls: <String>["通过 WAppOptions.theme 传入；不是 Widget", "默认透明状态栏 + 黑色导航栏；显式 systemUiOverlayStyle: null 关闭"],
     related: <String>["`WAppOptions`", "`WApp`"],
     teach: false,
   ),

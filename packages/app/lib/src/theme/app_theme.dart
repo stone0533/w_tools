@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+const SystemUiOverlayStyle _defaultSystemUiOverlayStyle = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarBrightness: Brightness.dark,
+  systemNavigationBarColor: Colors.black,
+  systemNavigationBarIconBrightness: Brightness.light,
+);
+
 /// 应用外观配置：亮/暗主题、主题模式与系统 UI 样式。
 ///
 /// 这是应用级的外观值对象，不属于组件 `Options`；`WAppOptions.theme` 使用它。
@@ -10,7 +17,7 @@ class WAppTheme {
     this.light,
     this.dark,
     this.mode = ThemeMode.system,
-    this.systemUiOverlayStyle,
+    this.systemUiOverlayStyle = _defaultSystemUiOverlayStyle,
   });
 
   /// 亮色主题；为 null 时使用 `GetMaterialApp` 默认值。
@@ -22,7 +29,7 @@ class WAppTheme {
   /// 主题模式，默认跟随系统。
   final ThemeMode mode;
 
-  /// 系统 UI 样式；为 null 时不主动干预。
+  /// 系统 UI 样式；默认透明状态栏，显式传 null 时不主动干预。
   final SystemUiOverlayStyle? systemUiOverlayStyle;
 
   static const Object _unset = Object();

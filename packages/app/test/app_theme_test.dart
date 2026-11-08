@@ -17,4 +17,18 @@ void main() {
     expect(copy.light, same(light));
     expect(copy.dark, same(dark));
   });
+
+  test('默认系统栏为透明状态栏 + 黑色导航栏', () {
+    final style = const WAppTheme().systemUiOverlayStyle;
+
+    expect(style, isNotNull);
+    expect(style!.statusBarColor, Colors.transparent);
+    expect(style.statusBarBrightness, Brightness.dark);
+    expect(style.systemNavigationBarColor, Colors.black);
+    expect(style.systemNavigationBarIconBrightness, Brightness.light);
+  });
+
+  test('显式 null 可关闭系统栏干预', () {
+    expect(const WAppTheme(systemUiOverlayStyle: null).systemUiOverlayStyle, isNull);
+  });
 }

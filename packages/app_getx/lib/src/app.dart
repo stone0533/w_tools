@@ -152,8 +152,10 @@ class WApp {
     }
   }
 
+  WAppTheme get _appTheme => options.theme ?? const WAppTheme();
+
   void _setupSystemUI() {
-    final style = options.theme?.systemUiOverlayStyle;
+    final style = _appTheme.systemUiOverlayStyle;
     if (style == null || kIsWeb) return;
     SystemChrome.setSystemUIOverlayStyle(style);
   }
@@ -203,8 +205,8 @@ class WApp {
 
     final effectiveDefaultTransition =
         defaultTransition ?? options.defaultTransition ?? Transition.topLevel;
-    final appTheme = options.theme;
-    final effectiveTheme = theme ?? appTheme?.light;
+    final appTheme = _appTheme;
+    final effectiveTheme = theme ?? appTheme.light;
     final effectiveTranslations = translations ?? options.translations;
     final effectiveLocale =
         locale ?? options.locale ?? (language.hasExplicitSelection ? language.currentLocale : null);
@@ -264,8 +266,8 @@ class WApp {
           options.localizationsDelegates ?? GlobalMaterialLocalizations.delegates,
       defaultTransition: effectiveDefaultTransition,
       theme: effectiveTheme,
-      darkTheme: appTheme?.dark,
-      themeMode: appTheme?.mode ?? ThemeMode.system,
+      darkTheme: appTheme.dark,
+      themeMode: appTheme.mode,
     );
 
     final wrapper = options.appWrapper;

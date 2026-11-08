@@ -76,7 +76,7 @@ app.language.changeLanguage('en_US');
 navigatorObservers / defaultTransition / theme / translations / locale / fallbackLocale`，
 `title`、`home`、`orientations`、`shouldApplyOrientations`、`appWrapper`、`localeConfig`、
 `plugins` 等只能放 `WAppOptions`；外观（theme / darkTheme / themeMode / systemUiOverlayStyle）
-统一放 `WAppTheme`。
+统一放 `WAppTheme`；默认透明状态栏，显式 `systemUiOverlayStyle: null` 关闭。
 
 ## 组合全局主题（不需要插件）
 

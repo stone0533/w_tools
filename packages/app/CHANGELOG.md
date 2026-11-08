@@ -9,6 +9,8 @@
 - `w_tools_app_getx` 继续 re-export 这些类型，消费方 import 路径不变。
 
 ### Changed
+- `WAppTheme.systemUiOverlayStyle` 恢复 1.x 默认：透明状态栏 + 黑色导航栏；
+  显式传 `null` 可关闭。
 - 文档：修正 `WAppPlugin` 生命周期顺序与契约层引用；补 `wrapApp` 保留 child 的测试。
 
 ## 3.0.0

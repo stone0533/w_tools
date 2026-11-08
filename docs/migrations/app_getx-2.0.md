@@ -18,7 +18,7 @@
 | `WRouteObserver()` | `WRouteObserver(stack: app.routeStack)` |
 | `WAppOptions(applyOrientations: true)` | `WAppOptions(shouldApplyOrientations: true)` |
 | `WAppOptions(theme: ThemeData..., darkTheme: ..., themeMode: ...)` | `WAppOptions(theme: WAppTheme(light: ..., dark: ..., mode: ...))` |
-| `WAppOptions(systemUiOverlayStyle: ...)` | `WAppTheme(systemUiOverlayStyle: ...)` |
+| `WAppOptions(systemUiOverlayStyle: ...)` | `WAppTheme(systemUiOverlayStyle: ...)`；默认恢复透明状态栏，显式 null 关闭 |
 | `WAppOptions(...)` 的 `const` 用法 | 去掉 `const`（内部做不可变拷贝） |
 | `WApp.routeStack = ...` | `WAppOptions(routeStack: ...)`（`WApp.routeStack` 为 final） |
 | `WLanguage` / `WLocaleConfig` / `WAppTheme` 的包归属 | 声明移到 `w_tools_app`；`w_tools_app_getx` 继续 re-export，import 路径不变 |

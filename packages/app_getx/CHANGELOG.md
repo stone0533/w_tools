@@ -33,6 +33,8 @@
 - `WApp`：`language`；`WLocaleConfig` 的 `==` / `hashCode` / `copyWith`。
 
 ### Changed
+- 恢复 1.x 默认透明状态栏：`WAppTheme.systemUiOverlayStyle` 默认非 null；
+  未传 `theme` 时使用默认 `WAppTheme`，显式 `null` 关闭。
 - `WAppOptions` 构造时校验 `home` 或 `initialRoute` + `getPages`；`start` 覆盖仍可用，
   但基础配置必须有效。
 - `WApp.run` 从 `WLocaleConfig` 派生 `supportedLocales`，并默认使用
