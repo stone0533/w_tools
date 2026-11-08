@@ -1521,7 +1521,7 @@ const String agentsForm = r'''
 ''';
 
 const String agentsApi = r'''
-- **网络**：统一 `WApiConfig` + `DioRegistry.forBaseUrl`，不要直接 `Dio()`；
+- **网络**：优先用 `WApiConfig` + `DioRegistry.forBaseUrl`；裸 `Dio()` 必须传 `dio:`；
   同一 baseUrl 只初始化一次；命中后传不同配置会报错，需要先 dispose。Token 存 `w_tools_core` 的 `WToken`，通过
   `WTokenInterceptor` 的 `tokenGetter` / `tokenClearer` / `tokenRefresher` 注入；
   401 重试依赖 DioRegistry。日志用 `WLogInterceptor`，默认脱敏敏感头。
@@ -1864,7 +1864,7 @@ const String agentsFormEn = r'''
 ''';
 
 const String agentsApiEn = r'''
-- **Network**: use `WApiConfig` + `DioRegistry.forBaseUrl`, never `Dio()` directly;
+- **Network**: prefer `WApiConfig` + `DioRegistry.forBaseUrl`; a bare `Dio()` must receive `dio:`;
   initialize each baseUrl once; different options/interceptors after the first call throw ArgumentError (dispose first to change config). Store tokens with `w_tools_core`'s `WToken` and inject via
   `WTokenInterceptor` (`tokenGetter` / `tokenClearer` / `tokenRefresher`); 401 retry depends
   on DioRegistry. Use `WLogInterceptor` for logs; sensitive headers are redacted by default.

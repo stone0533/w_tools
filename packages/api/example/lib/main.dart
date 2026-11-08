@@ -41,6 +41,7 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
   late final DioRegistry _registry;
   late final _DemoAdapter _adapter;
   late final _DemoRepository _repository;
+  late final BaseOptions _previousBaseOptions;
   final _logs = <String>[];
 
   String? _token = 'expired-token';
@@ -55,6 +56,7 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
     WApiConfig.logErrorHandler = (message) {
       if (mounted) setState(() => _logs.insert(0, 'ERROR: $message'));
     };
+    _previousBaseOptions = WApiConfig.baseOptions;
     WApiConfig.baseOptions = BaseOptions(
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 10),
@@ -93,6 +95,10 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
             WLogPart.error,
             WLogPart.errorHint,
           },
+          redactedHeaders: {
+            ...WLogInterceptor.defaultRedactedHeaders,
+            'x-demo-secret',
+          },
         ),
       ],
     );
@@ -106,6 +112,7 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
   @override
   void dispose() {
     DioRegistry.dispose(_baseUrl);
+    WApiConfig.baseOptions = _previousBaseOptions;
     WApiConfig.logDebugHandler = null;
     WApiConfig.logErrorHandler = null;
     super.dispose();

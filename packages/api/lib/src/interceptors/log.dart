@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
@@ -49,6 +50,27 @@ class WLogInterceptor extends Interceptor {
   /// 需要脱敏的请求 / 响应头（大小写不敏感）
   final Set<String> redactedHeaders;
 
+  /// 单条 body 的默认最大输出字符数；`<= 0` 表示不截断
+  static const int defaultMaxBodyLength = 2000;
+
+  /// 默认需要脱敏的 query 参数（大小写不敏感）
+  static const Set<String> defaultSensitiveQueryKeys = {
+    'token',
+    'access_token',
+    'refresh_token',
+    'api_key',
+    'apikey',
+    'secret',
+    'password',
+    'auth',
+  };
+
+  /// 单条 body 的最大输出字符数；超过后截断
+  final int maxBodyLength;
+
+  /// 需要脱敏的 query 参数（大小写不敏感）
+  final Set<String> sensitiveQueryKeys;
+
   /// 默认脱敏的敏感头
   static const Set<String> defaultRedactedHeaders = {
     'authorization',
@@ -56,20 +78,38 @@ class WLogInterceptor extends Interceptor {
     'set-cookie',
     'proxy-authorization',
     'x-api-key',
+    'x-auth-token',
+    'x-access-token',
+    'x-csrf-token',
+    'x-xsrf-token',
   };
 
   /// 构造函数
   ///
-  /// [parts] 非空时，未列出的片段不输出；未传时使用包内默认值。
+  /// [parts] 非空时，未列出的片段不输出；未传时使用包内默认值
+  /// （默认不打印 request / response body）。[parts]、[redactedHeaders] 与
+  /// [sensitiveQueryKeys] 都会被复制为不可变集合，构造后修改原集合不会影响本实例。
+  ///
+  /// [maxBodyLength] 为单条 body 的最大输出字符数，默认
+  /// [defaultMaxBodyLength]；传 `<= 0` 表示不截断。
   WLogInterceptor({
-    this.parts,
+    Set<WLogPart>? parts,
     this.enableLog = true,
-    this.redactedHeaders = defaultRedactedHeaders,
-  }) : _request = parts?.contains(WLogPart.request) ?? true,
+    Set<String>? redactedHeaders,
+    this.maxBodyLength = defaultMaxBodyLength,
+    Set<String>? sensitiveQueryKeys,
+  }) : parts = parts == null ? null : Set<WLogPart>.unmodifiable(parts),
+       redactedHeaders = Set<String>.unmodifiable(
+         (redactedHeaders ?? defaultRedactedHeaders).map((header) => header.toLowerCase()),
+       ),
+       sensitiveQueryKeys = Set<String>.unmodifiable(
+         (sensitiveQueryKeys ?? defaultSensitiveQueryKeys).map((key) => key.toLowerCase()),
+       ),
+       _request = parts?.contains(WLogPart.request) ?? true,
        _requestHeader = parts?.contains(WLogPart.requestHeader) ?? true,
-       _requestBody = parts?.contains(WLogPart.requestBody) ?? true,
+       _requestBody = parts?.contains(WLogPart.requestBody) ?? false,
        _responseHeader = parts?.contains(WLogPart.responseHeader) ?? false,
-       _responseBody = parts?.contains(WLogPart.responseBody) ?? true,
+       _responseBody = parts?.contains(WLogPart.responseBody) ?? false,
        _error = parts?.contains(WLogPart.error) ?? true,
        _errorHint = parts?.contains(WLogPart.errorHint) ?? true;
 
@@ -89,8 +129,19 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
+    if (WApiConfig.logDebugHandler == null) {
+      handler.next(options);
+      return;
+    }
+
+    // parts 只开 error 等响应侧片段时，不要顺带打印请求行。
+    if (parts != null && !_request && !_requestHeader && !_requestBody) {
+      handler.next(options);
+      return;
+    }
+
     var builder = StringBuffer('*** Request *** \n');
-    builder.write(_printKV('uri', options.uri));
+    builder.write(_printKV('uri', _safeUri(options.uri)));
 
     if (_request) {
       builder.write(_printKV('method', options.method));
@@ -129,20 +180,65 @@ class WLogInterceptor extends Interceptor {
     return object.toString();
   }
 
-  /// 格式化为可读文本：Map/Iterable 走缩进 JSON，其余回退 toString()
+  /// 格式化为可读文本：Map/Iterable 走缩进 JSON，二进制只输出字节数
   String _message(dynamic res) {
+    if (res is Uint8List) {
+      return '<${res.length} bytes>';
+    }
+    String text;
     if (res is Map || res is Iterable) {
       var encoder = JsonEncoder.withIndent('  ', _toEncodableFallback);
-      return encoder.convert(res);
+      try {
+        text = encoder.convert(res);
+      } catch (_) {
+        text = res.toString();
+      }
     } else {
-      return res.toString();
+      text = res.toString();
     }
+    return _truncate(text);
+  }
+
+  String _truncate(String text) {
+    if (maxBodyLength <= 0 || text.length <= maxBodyLength) return text;
+    return '${text.substring(0, maxBodyLength)}\n... (truncated, ${text.length} chars)';
+  }
+
+  /// query 中常见的敏感参数默认脱敏，避免 token 随 URI 进入日志。
+  Uri _safeUri(Uri uri) {
+    if (uri.queryParametersAll.isEmpty) return uri;
+
+    var changed = false;
+    final pairs = <String>[];
+    uri.queryParametersAll.forEach((key, values) {
+      final encodedKey = Uri.encodeQueryComponent(key);
+      if (sensitiveQueryKeys.contains(key.toLowerCase())) {
+        pairs.add('$encodedKey=***');
+        changed = true;
+      } else {
+        for (final value in values) {
+          pairs.add('$encodedKey=${Uri.encodeQueryComponent(value)}');
+        }
+      }
+    });
+    return changed ? uri.replace(query: pairs.join('&')) : uri;
   }
 
   /// 响应阶段：打印响应详情
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     if (!enableLog || (parts != null && parts!.isEmpty)) {
+      handler.next(response);
+      return;
+    }
+
+    if (WApiConfig.logDebugHandler == null) {
+      handler.next(response);
+      return;
+    }
+
+    // parts 只开 error 等请求侧片段时，不要顺带打印响应行。
+    if (parts != null && !_responseHeader && !_responseBody) {
       handler.next(response);
       return;
     }
@@ -167,9 +263,14 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
+    if (WApiConfig.logErrorHandler == null) {
+      handler.next(err);
+      return;
+    }
+
     if (_error) {
       var builder = StringBuffer('*** DioError *** \n');
-      builder.write('uri: ${err.requestOptions.uri}\n');
+      builder.write('uri: ${_safeUri(err.requestOptions.uri)}\n');
       builder.write('$err');
       if (err.response != null) {
         _printResponse(err.response!, builder, (message) {
@@ -209,7 +310,7 @@ class WLogInterceptor extends Interceptor {
 
   /// 打印响应信息
   void _printResponse(Response response, StringBuffer builder, void Function(String) pr) {
-    builder.write(_printKV('uri', response.requestOptions.uri));
+    builder.write(_printKV('uri', _safeUri(response.requestOptions.uri)));
     // statusCode / redirect 属响应元信息，始终打印，不受 responseHeader 开关影响
     builder.write(_printKV('statusCode', response.statusCode));
     if (response.isRedirect == true) {

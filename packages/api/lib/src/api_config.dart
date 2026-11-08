@@ -21,5 +21,15 @@ class WApiConfig {
   /// 示例: `WApiConfig.logErrorHandler = (m) => WLogger.e(m);`
   static void Function(dynamic message)? logErrorHandler;
 
+  /// 恢复默认配置并清空日志回调；主要供测试和示例清理全局状态。
+  static void reset() {
+    baseOptions = BaseOptions(
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 50),
+    );
+    logDebugHandler = null;
+    logErrorHandler = null;
+  }
+
   WApiConfig._();
 }

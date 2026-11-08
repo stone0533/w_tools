@@ -16,4 +16,15 @@ class ApiClientId {
 
   /// 客户端名称
   final String name;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiClientId && runtimeType == other.runtimeType && name == other.name;
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  String toString() => 'ApiClientId($name)';
 }

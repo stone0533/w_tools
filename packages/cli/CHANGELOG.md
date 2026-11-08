@@ -1,6 +1,8 @@
 ## Unreleased
 
 ### Fixed
+- catalog/templates：修正 `WApiConfig` 的不可编译 usage；补齐 `WTokenInterceptor` / `WLogInterceptor` /
+  `WLogPart` 教学条目（`WLogPart` 升为 teach）；`versions.dart` 同步 `w_tools_api` 到 `^5.1.0`。
 - 同步 `w_tools_ui` 版本约束到 `^8.0.0`（init 生成的 pubspec 与 `versions.dart`）。
 - 同步 `w_tools_async` 版本约束到 `^6.0.0`（init 生成的 pubspec 与 `versions.dart`）。
 - catalog：修正 `WAsyncTheme` 的 `sliverLoadingBuilder` 示例（返回非滚动 Widget），并把

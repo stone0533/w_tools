@@ -9,7 +9,6 @@ packages:
     - BaseRemoteDataSource
     - BaseRepository
     - IApiPath
-    - WLogPart
   w_tools_core:
     - WCountdownCallback
     - WCountdownRemainingType

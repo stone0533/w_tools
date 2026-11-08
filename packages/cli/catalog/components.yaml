@@ -1256,7 +1256,7 @@ components:
     usage: "final r = DioRegistry.forBaseUrl('https://api.example.com'); await r.dio.get('/users');"
     pitfalls:
       - "\u540c\u4e00 baseUrl \u53ea\u80fd\u521d\u59cb\u5316\u4e00\u6b21\uff1b\u6362\u914d\u7f6e\u5148 dispose"
-    related: ["`WApiConfig`", "`WLogInterceptor`"]
+    related: ["`WApiConfig`", "`WLogInterceptor`", "`WTokenInterceptor`"]
     teach: true
 
   - name: '`WTokenInterceptor`'
@@ -1264,19 +1264,50 @@ components:
     section: '8. 能力（非 UI）'
     useFor: 'Token 注入 / 401 刷新 / 重试（可运行示例：packages/api/example）'
     dontUseFor: '不要在拦截器里存 token'
+    usage: |
+      final tokenInterceptor = WTokenInterceptor(
+        tokenGetter: () => token,
+        tokenClearer: clearToken,
+        tokenRefresher: refreshToken,
+      );
+    pitfalls:
+      - "tokenRefresher 必须自己持久化新 token，否则 tokenGetter 仍返回旧值"
+      - "裸 Dio 需构造传 `dio:`；推荐走 `DioRegistry` 自动绑定"
+    related: ["`DioRegistry`", "`WApiConfig`"]
+    teach: true
+
   - name: '`WLogInterceptor`'
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
     useFor: '请求 / 响应 / 错误日志'
     dontUseFor: '不做业务错误处理；敏感头默认脱敏'
+    usage: "final log = WLogInterceptor(parts: {WLogPart.request, WLogPart.error});"
+    pitfalls:
+      - "默认不打印 request / response body；需要时显式加 `requestBody` / `responseBody`，并用 `kDebugMode` 控制"
+      - "只做日志，不做业务错误处理"
+    related: ["`WLogPart`", "`WApiConfig`"]
+    teach: true
+
+  - name: '`WLogPart`'
+    package: 'w_tools_api'
+    section: '8. 能力（非 UI）'
+    useFor: 'WLogInterceptor 的日志片段选择'
+    dontUseFor: '不要单独使用；作为 `parts` 的枚举值'
+    usage: "final parts = {WLogPart.request, WLogPart.error};"
+    pitfalls:
+      - "作为 `WLogInterceptor.parts` 的值；未列出的片段不输出"
+    related: ["`WLogInterceptor`"]
+    teach: true
+
   - name: '`WApiConfig`'
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
     useFor: '请求配置与日志注入'
-    usage: "final options = WApiConfig.baseOptions(baseUrl: 'https://api.example.com');"
+    usage: "WApiConfig.baseOptions = BaseOptions(connectTimeout: const Duration(seconds: 10));"
     pitfalls:
+      - "`baseOptions` 是字段不是方法；在首次 `DioRegistry.forBaseUrl` 前设置"
       - "\u4e0d\u8981\u76f4\u63a5 Dio()\uff1b\u7edf\u4e00\u8d70 DioRegistry"
-    related: ["`DioRegistry`"]
+    related: ["`DioRegistry`", "`WLogInterceptor`"]
     teach: true
 
   - name: '`WLanguage`'

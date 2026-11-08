@@ -12,7 +12,7 @@ Cookie 管理未内置，需要时请使用社区包 [`dio_cookie_manager`](http
 - 要发请求 / 配拦截器 → `DioRegistry` + `WApiConfig`
 - Token 401 刷新 → `WTokenInterceptor`
 - 日志 → `WLogInterceptor`（默认脱敏敏感头）
-- 不要直接用 `Dio()` 绕过 registry
+- 优先用 `DioRegistry`；裸 `Dio()` 必须传 `dio:`，否则 401 后无法重试
 - 可运行示例：[packages/api/example](../../packages/api/example/README.md)
 
 - 强制规则：根 [`AGENTS.md`](../../AGENTS.md)
@@ -21,16 +21,18 @@ Cookie 管理未内置，需要时请使用社区包 [`dio_cookie_manager`](http
 
 ```
 api/
-├── api.dart                        # 统一导出文件
-├── api_config.dart                 # WApiConfig 全局配置
-├── common.dart                     # IApiPath / ApiClientId
-├── clients/
-│   └── dio_registry.dart           # DioRegistry Dio 实例注册表
-├── interceptors/
-│   ├── log.dart                    # WLogInterceptor 日志拦截器
-│   └── token.dart                  # WTokenInterceptor 令牌拦截器
-└── repositories/
-    └── base_repository.dart        # BaseRepository 数据仓库基类
+├── w_tools_api.dart                # 公开 barrel
+└── src/
+    ├── api.dart                    # 内部导出
+    ├── api_config.dart             # WApiConfig 全局配置
+    ├── common.dart                 # IApiPath / ApiClientId
+    ├── clients/
+    │   └── dio_registry.dart       # DioRegistry Dio 实例注册表
+    ├── interceptors/
+    │   ├── log.dart                # WLogInterceptor 日志拦截器
+    │   └── token.dart              # WTokenInterceptor 令牌拦截器
+    └── repositories/
+        └── base_repository.dart    # BaseRepository 数据仓库基类
 ```
 
 
@@ -53,6 +55,7 @@ api/
 |------|------|
 | `DioRegistry.forBaseUrl(baseUrl, {options, interceptors})` | 获取或创建指定 `baseUrl` 的实例 |
 | `dio` | 获取内部 `Dio` 实例 |
+| `DioRegistry.maybeForBaseUrl(baseUrl)` | 读取已注册的 `Dio`，不创建新实例 |
 | `DioRegistry.dispose(baseUrl)` | 关闭并移除指定 `baseUrl` 的实例 |
 | `DioRegistry.clearCache()` | 关闭并清空所有缓存实例 |
 
@@ -91,12 +94,12 @@ DioRegistry.dispose('https://api.example.com');
 
 ## 2. WLogInterceptor - 日志拦截器
 
-默认会脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `Proxy-Authorization` / `X-Api-Key`；
-可通过 `redactedHeaders` 覆盖。
+默认会脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `Proxy-Authorization` / `X-Api-Key` /
+`X-Auth-Token` 等敏感头；可通过 `redactedHeaders` 覆盖（大小写不敏感）。
 
 ### 功能说明
 
-按 `parts`（`WLogPart`）打印请求与响应详情，输出经 `WApiConfig.logDebugHandler` / `WApiConfig.logErrorHandler`。`parts` 为 `null` 时使用包内默认值；传空集合表示全部关闭。
+按 `parts`（`WLogPart`）打印请求与响应详情，输出经 `WApiConfig.logDebugHandler` / `WApiConfig.logErrorHandler`。`parts` 为 `null` 时使用包内默认值（默认不打印 request / response body）；传空集合表示全部关闭。
 
 ### 配置参数
 
@@ -104,9 +107,11 @@ DioRegistry.dispose('https://api.example.com');
 |------|------|------|
 | `parts` | `Set<WLogPart>?` | 要输出的片段：`request` / `requestHeader` / `requestBody` / `responseHeader` / `responseBody` / `error` / `errorHint` |
 | `enableLog` | bool | 是否启用日志（默认 true） |
-| `redactedHeaders` | `Set<String>` | 脱敏头列表 |
+| `redactedHeaders` | `Set<String>?` | 脱敏头列表；默认已内置常见敏感头 |
+| `sensitiveQueryKeys` | `Set<String>?` | 需要脱敏的 query 参数；默认 `token` / `access_token` 等 |
+| `maxBodyLength` | int | 单条 body 最大字符数（默认 2000，`<= 0` 不截断） |
 
-> 显式传 `parts` 时，未列出的片段不会输出（`error` 是详细错误，`errorHint` 是友好提示，二者独立）；body 是否打印建议用 `kDebugMode` 控制。
+> 显式传 `parts` 时，未列出的片段不会输出（`error` 是详细错误，`errorHint` 是友好提示，二者独立）；需要 body 时显式加 `requestBody` / `responseBody`，并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；单条 body 超过 2000 字符会截断。
 
 ### 使用示例
 
@@ -144,6 +149,7 @@ final logInterceptor = WLogInterceptor(
 | `configureRequest` | `void Function(RequestOptions)?` | null | 配置请求（**可修改**） |
 | `configureResponse` | `void Function(Response)?` | null | 配置响应（**可修改**） |
 | `observeError` | `void Function(DioException)?` | null | 错误观测（**仅观测**，与 401 刷新独立，可同时使用） |
+| `onAuthFailure` | `void Function(DioException)?` | null | 刷新失败 / 无刷新器 / 达到重试上限时回调 |
 | `unauthorizedStatusCode` | int | 401 | 未授权状态码 |
 | `maxAuthRetries` | int | 1 | 认证重试上限 |
 
@@ -151,6 +157,8 @@ final logInterceptor = WLogInterceptor(
 
 - 仅对 `Map` / `String` body 补 `application/json`；`Uint8List` / `Stream` / `FormData` 等保持 dio 的推断，不强制 json。
 - `observeError` 与 401 刷新**相互独立、可同时使用**：错误观测回调先无条件执行，之后再独立判断 401 走刷新流程。
+- 同一个 `WTokenInterceptor` 只能绑定一个 Dio；多个 registry 请各建实例，共享实例会在第二次绑定时报 `ArgumentError`。
+- 刷新失败 / 未配置 `tokenRefresher` / 达到 `maxAuthRetries` 时调用 `onAuthFailure`，适合跳登录或清会话。
 - **并发 401 共享同一次刷新（single-flight）**，不会重复调用 `tokenRefresher`。
 - `tokenRefresher` 抛出的异常会被捕获并记录日志，请求以原错误结束，不会逃逸出拦截器链。
 - 刷新契约：`tokenRefresher` 取得新 token 后应自行持久化，使 `tokenGetter` 随后返回新 token；若提供 `tokenClearer`，须保证清除后 `tokenGetter` 不再返回旧 token（返回 null 亦可，此时重试会使用拦截器显式写入的新 token）。
@@ -177,6 +185,7 @@ final tokenInterceptor = WTokenInterceptor(
 | `baseOptions` | 全局默认 `BaseOptions`（可覆盖；`DioRegistry` 使用时复制，不修改原实例） |
 | `logDebugHandler` | Debug 日志回调，需显式注入 |
 | `logErrorHandler` | Error 日志回调，需显式注入 |
+| `reset()` | 恢复默认 `baseOptions` 并清空日志回调，主要供测试 / 示例清理 |
 
 ```dart
 WApiConfig.baseOptions = BaseOptions(
@@ -284,8 +293,16 @@ void setupApi() {
 
 ## 安全特性
 
-- ✅ Token 日志脱敏（仅显示前 10 位）
+- ✅ Token 日志不输出任何 token 片段（仅记录「已注入」）
 - ✅ `DioRegistry` 使用前复制 `BaseOptions`，避免实例间共享可变配置
+
+---
+
+## 生命周期与全局状态（6.0.0 规划）
+
+- `DioRegistry` 是进程级静态缓存，按精确 `baseUrl` 缓存；可用 `DioRegistry.maxCachedInstances` 开启 LRU（`null` 不限制，默认），或用 `DioRegistry.cacheTtl` 设置惰性过期，或 `dispose(baseUrl)` / `clearCache()` 手动清理。6.0.0 再评估是否提供实例化 registry。
+- `WApiConfig` 是全局可变静态配置；`baseOptions` 在 registry 创建时复制，之后修改只影响新实例。测试 / 示例可用 `WApiConfig.reset()` 清理。6.0.0 再评估不可变 / 实例化配置。
+- `BaseRepository` / `BaseLocalDataSource` / `BaseRemoteDataSource` 只提供数据源容器；6.0.0 再评估是否保留、合并或收紧泛型约束。
 
 ---
 

@@ -1,3 +1,8 @@
+## Unreleased
+
+### Changed
+- 根包 `w_tools_api` 约束抬到 `^5.1.0`（web 网络层修复与 `onAuthFailure` / `reset` 等新 API）。
+
 ## 12.0.0
 
 ### Breaking
