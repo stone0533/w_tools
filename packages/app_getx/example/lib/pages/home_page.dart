@@ -34,14 +34,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 16),
-          Obx(() {
-            // currentLanguage 读取 Rx 值，Obx 会自动订阅语言变化。
-            final code = app.language.currentLanguage;
-            return Text(
+          ValueListenableBuilder<String>(
+            valueListenable: app.language.languageListenable,
+            builder: (context, code, _) => Text(
               '当前语言：${app.language.currentLanguageName} ($code)',
               style: const TextStyle(fontSize: 16),
-            );
-          }),
+            ),
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,

@@ -8,10 +8,7 @@ GetPage<dynamic> _page(String name) => GetPage(name: name, page: () => const Siz
 void main() {
   group('WAppOptions 校验', () {
     test('必须提供 home 或 initialRoute + getPages', () {
-      expect(
-        () => WAppOptions(title: 'Demo'),
-        throwsArgumentError,
-      );
+      expect(() => WAppOptions(title: 'Demo'), throwsArgumentError);
       expect(
         () => WAppOptions(title: 'Demo', initialRoute: '/'),
         throwsArgumentError,
@@ -99,30 +96,13 @@ void main() {
       expect(copy.theme, same(base.theme));
     });
 
-    test('shouldApplyOrientations 默认 false，systemUiOverlayStyle 默认不干预', () {
+    test('shouldApplyOrientations 默认 false，theme 默认不干预', () {
       final options = WAppOptions(
         title: 'Demo',
         home: const SizedBox.shrink(),
       );
       expect(options.shouldApplyOrientations, isFalse);
-      expect(options.theme?.systemUiOverlayStyle, isNull);
-    });
-  });
-
-  group('WAppTheme', () {
-    test('值相等 / hashCode / copyWith', () {
-      final light = ThemeData.light();
-      final dark = ThemeData.dark();
-      final a = WAppTheme(light: light, dark: dark, mode: ThemeMode.dark);
-      final b = WAppTheme(light: light, dark: dark, mode: ThemeMode.dark);
-
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-
-      final copy = a.copyWith(mode: ThemeMode.light);
-      expect(copy.mode, ThemeMode.light);
-      expect(copy.light, same(light));
-      expect(copy.dark, same(dark));
+      expect(options.theme, isNull);
     });
 
     test('WAppOptions.theme 接受 WAppTheme，copyWith 可清空', () {
@@ -135,58 +115,6 @@ void main() {
 
       expect(options.theme, same(appTheme));
       expect(options.copyWith(theme: null).theme, isNull);
-    });
-  });
-
-  group('WLocaleConfig', () {
-    const supported = {'en_US': 'English', 'zh_CN': '简体中文'};
-
-    test('入参 map 被拷贝，外部修改不影响实例', () {
-      final map = <String, String>{'en_US': 'English'};
-      final config = WLocaleConfig(supportedLanguages: map);
-      map['zh_CN'] = '简体中文';
-
-      expect(config.supportedLanguages.containsKey('zh_CN'), isFalse);
-      expect(
-        () => config.supportedLanguages['zh_CN'] = '简体中文',
-        throwsUnsupportedError,
-      );
-    });
-
-    test('initial / fallback 必须在支持列表内', () {
-      expect(
-        () => WLocaleConfig(
-          supportedLanguages: supported,
-          initialLanguage: 'fr_FR',
-        ),
-        throwsArgumentError,
-      );
-      expect(
-        () => WLocaleConfig(
-          supportedLanguages: supported,
-          fallbackLanguage: 'fr_FR',
-        ),
-        throwsArgumentError,
-      );
-    });
-
-    test('相同内容 == / hashCode 一致', () {
-      final a = WLocaleConfig(supportedLanguages: supported);
-      final b = WLocaleConfig(supportedLanguages: supported);
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-    });
-
-    test('copyWith 可改 initial / fallback', () {
-      final base = WLocaleConfig(supportedLanguages: supported);
-      final copy = base.copyWith(
-        initialLanguage: 'zh_CN',
-        fallbackLanguage: 'en_US',
-      );
-
-      expect(copy.initialLanguage, 'zh_CN');
-      expect(copy.fallbackLanguage, 'en_US');
-      expect(copy.supportedLanguages, supported);
     });
   });
 }
