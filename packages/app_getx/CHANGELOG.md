@@ -22,6 +22,8 @@
 - `WApp.routeStack` 改为 `final`；自定义栈通过 `WAppOptions.routeStack` 注入。
 
 ### Added
+- `WLanguage` / `WLocaleConfig` / `WAppTheme` 的声明移到 `w_tools_app`；本包继续
+  re-export，import 路径不变。依赖下界抬到 `w_tools_app: ^3.1.0`。
 - `WAppOptions`：`home`、`routes`、`navigatorKey`、`supportedLocales`、
   `localizationsDelegates`、`routeStack`、`unknownRoute`、`shouldApplyOrientations`；
   `WAppOptions` 的 `==` / `hashCode`。
@@ -31,7 +33,8 @@
 - `WApp`：`language`；`WLocaleConfig` 的 `==` / `hashCode` / `copyWith`。
 
 ### Changed
-- 内部：从 `w_tools_app` 只 `show WAppPlugin` 导入，避免与本地语言/外观类型冲突。
+- 恢复 1.x 默认透明状态栏：`WAppTheme.systemUiOverlayStyle` 默认非 null；
+  未传 `theme` 时使用默认 `WAppTheme`，显式 `null` 关闭。
 - `WAppOptions` 构造时校验 `home` 或 `initialRoute` + `getPages`；`start` 覆盖仍可用，
   但基础配置必须有效。
 - `WApp.run` 从 `WLocaleConfig` 派生 `supportedLocales`，并默认使用
@@ -40,6 +43,8 @@
 - `WRouteObserver` 按栈去重；`PopupRoute` 默认不进入路由栈。
 - `WLanguage.changeLanguage` 改为更新 `Get.locale` + `Get.rootController.update()`，
   不再触发 GetX 的全树 `performReassemble`。
+- `WLanguage` 不再暴露 `RxString`；直接依赖 `Obx` 读 `currentLanguage` 的代码改用
+  `languageListenable` / `languageChanges`。
 
 ### Fixed
 - `WLocaleConfig.initialLanguage` 现在真正作为首次启动语言生效。
