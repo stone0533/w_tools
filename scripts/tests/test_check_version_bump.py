@@ -104,7 +104,9 @@ class PublishedBaselineTest(unittest.TestCase):
 
     def test_offline_uses_latest_snapshot(self):
         warnings: list[str] = []
-        self.assertEqual(published_version('ui', False, warnings), '7.0.0')
+        expected = mod.latest_snapshot_version('ui')
+        self.assertIsNotNone(expected)
+        self.assertEqual(published_version('ui', False, warnings), expected)
         self.assertEqual(warnings, [])
 
     def test_online_falls_back_to_snapshot_with_warning(self):
@@ -115,8 +117,10 @@ class PublishedBaselineTest(unittest.TestCase):
 
         mod.urllib.request.urlopen = offline
         warnings: list[str] = []
+        expected = mod.latest_snapshot_version('ui')
+        self.assertIsNotNone(expected)
         try:
-            self.assertEqual(published_version('ui', True, warnings), '7.0.0')
+            self.assertEqual(published_version('ui', True, warnings), expected)
         finally:
             mod.urllib.request.urlopen = old_urlopen
         self.assertEqual(len(warnings), 1)
