@@ -110,4 +110,26 @@ void main() {
       }
     }
   });
+
+  test('ASYNC-001：sliver*Builder 的示例返回非滚动 Widget', () {
+    final entry = findComponent('WAsyncTheme');
+    expect(entry, isNotNull);
+    expect(entry!.usage, isNotNull);
+    expect(entry.usage, contains('sliverLoadingBuilder'));
+    expect(
+      entry.usage,
+      isNot(contains('SliverFillRemaining')),
+      reason: 'sliver*Builder 由 WAsyncStateSliver 包 SliverFillRemaining，示例不能返回 sliver',
+    );
+  });
+
+  test('ASYNC-002：WAsyncOptions / WAsyncActivity / WCancelToken 各自可 explain', () {
+    for (final name in <String>['WAsyncOptions', 'WAsyncActivity', 'WCancelToken']) {
+      final entry = findComponent(name);
+      expect(entry, isNotNull, reason: '$name 没有独立条目');
+      expect(entry!.name, name, reason: '$name 仍被合并到 ${entry.name}');
+      expect(entry.usage, isNotNull, reason: '$name 没有 usage');
+      expect(entry.teach, isTrue, reason: '$name 是入口类型，应 teach');
+    }
+  });
 }

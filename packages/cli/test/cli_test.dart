@@ -687,7 +687,7 @@ banned:
 
     final alias = await _run('explain.dart', ['tryRun']);
     expect(alias.exitCode, 0);
-    expect('${alias.stdout}', contains('WAsync / WAsyncOptions'));
+    expect('${alias.stdout}', startsWith('WAsync  (w_tools_async)'));
 
     final themeViews = await _run('explain.dart', ['WAsyncThemeViews']);
     expect(themeViews.exitCode, 0);

@@ -4,6 +4,8 @@
 
 - 抬高 `w_tools_ui` 下界到 `^8.0.0`：ui 8.0 删除 Config / Metrics / Builder 等过渡入口，
   迁移见 `docs/migrations/ui-8.0.md`。
+- 抬高 `w_tools_async` 下界到 `^5.1.0`：Controller 传 `WAsyncOptions.activity` 现在在
+  release 下也会抛 `ArgumentError`，不再静默忽略。
 
 ## 11.0.0
 

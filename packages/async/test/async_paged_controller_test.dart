@@ -278,14 +278,36 @@ void main() {
       );
     });
 
-    test('传 options.activity 会触发断言（分页自己管加载状态）', () {
+    test('传 options.activity 会抛 ArgumentError（分页自己管加载状态，release 也一样）', () {
       expect(
         () => WAsyncPagedController<int>(
           (page) async => const <int>[],
           options: WAsyncOptions(activity: WAsyncActivity()),
         ),
-        throwsAssertionError,
+        throwsA(
+          isA<ArgumentError>().having((e) => e.name, 'name', 'options.activity'),
+        ),
       );
+    });
+
+    test('最后一页为空时 hasMoreListenable 通知，但 state 不变', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const <int>[],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      final stateBefore = controller.state.value;
+      final seen = <bool>[];
+      controller.hasMoreListenable.addListener(
+        () => seen.add(controller.hasMore),
+      );
+
+      await controller.loadMore();
+
+      expect(controller.hasMore, isFalse);
+      expect(seen, <bool>[false]);
+      expect(controller.state.value, same(stateBefore));
     });
   });
 }

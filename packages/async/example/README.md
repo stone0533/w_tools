@@ -135,13 +135,17 @@ await controller.refresh();
 await controller.loadMore();
 ```
 
-footer 同时监听：
+footer 监听：
 
 ```text
 isLoadingMore
 loadMoreError
-state
+hasMoreListenable
 ```
+
+`hasMoreListenable` 不能省：最后一页返回空列表时 `hasMore` 会变，但 `state` 不变。
+如果 footer 只由 `state` 重建，就必须再监听 `hasMoreListenable`；示例里的 footer 还监听
+`isLoadingMore`，而它在每次 `loadMore` 前后都会翻转，所以能顺带刷新。
 
 ### Sliver
 

@@ -25,7 +25,10 @@
 | `WApp` | app_getx | GetX 启动器 | — |
 | `WAppOptions` | app_getx | WApp 的标题 / 主题 / GetX 路由 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
 | `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
-| `WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` | async | 无 UI 异步执行（tryRun/run）、取消与活动计数 | — |
+| `WAsync` | async | 无 UI 异步执行（tryRun / run / 组合器） | 页面四态用 `WAsyncController` + `WAsyncView`；不要用已删除的 `runValue` / `WAsyncLoading` |
+| `WAsyncOptions` | async | WAsync 的执行选项：并发活动计数与失败兜底回调 | Controller 自己维护四态，不接受 activity；给 Controller 传 options 时只带 onError |
+| `WAsyncActivity` | async | 同一批并发任务共享的加载计数：0→1 / 1→0 各回调一次 | 不是加载视图；不要拿它合并多个独立区块 |
+| `WCancelToken` | async | 协作式取消：传给 WAsync / withToken loader | 取消后不可复用；新请求要新建 token |
 | `WStepState` | ui | 步骤项状态（completed / current / upcoming） | 不要自己拼状态字符串；按 enum 分支 |
 | `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | 不要在 builder 里返回 Expanded；外层已经包了 Expanded |
 | `WFormScope` | form | 表单 InheritedWidget 管道（WForm 内部组合） | — |

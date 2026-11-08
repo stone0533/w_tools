@@ -88,6 +88,8 @@ class _Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // isLoadingMore 在每次 loadMore 前后翻转，footer 会随之重建；
+    // 若 footer 只由 state 驱动，必须额外监听 controller.hasMoreListenable。
     return ValueListenableBuilder<bool>(
       valueListenable: controller.isLoadingMore,
       builder: (context, loading, _) {

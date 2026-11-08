@@ -41,13 +41,18 @@ class WAsyncController<T> {
     this.options,
     bool Function(T value)? isEmpty,
     WAsyncState<T>? initial,
-  }) : assert(
-         options == null || options.activity == null,
-         'WAsyncController 自己维护四态，options.activity 会被忽略；'
-         '并发活动计数请直接用 WAsync。',
-       ),
-       _isEmpty = isEmpty,
-       _state = ValueNotifier(initial ?? WAsyncState<T>.loading());
+  }) : _isEmpty = isEmpty,
+       _state = ValueNotifier(initial ?? WAsyncState<T>.loading()) {
+    final activity = options?.activity;
+    if (activity != null) {
+      throw ArgumentError.value(
+        activity,
+        'options.activity',
+        'WAsyncController 自己维护四态，不接受 activity；'
+            '并发活动计数请直接用 WAsync。',
+      );
+    }
+  }
 
   /// 列表场景：空列表自动归为 empty。
   static WAsyncController<List<E>> list<E>(
@@ -66,7 +71,8 @@ class WAsyncController<T> {
   final WAsyncTokenLoader<T> _loader;
 
   /// 执行选项；页面级状态由控制器维护。
-  /// 传入 [WAsyncOptions.activity] 只在 debug 断言，release 下会被忽略。
+  /// 传入 [WAsyncOptions.activity] 会在构造时抛 [ArgumentError]，
+  /// release 下也一样，不会静默忽略。
   final WAsyncOptions? options;
 
   final bool Function(T value)? _isEmpty;

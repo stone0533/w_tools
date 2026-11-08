@@ -2,6 +2,9 @@
 
 ### Fixed
 - 同步 `w_tools_ui` 版本约束到 `^8.0.0`（init 生成的 pubspec 与 `versions.dart`）。
+- 同步 `w_tools_async` 版本约束到 `^5.1.0`（init 生成的 pubspec 与 `versions.dart`）。
+- catalog：修正 `WAsyncTheme` 的 `sliverLoadingBuilder` 示例（返回非滚动 Widget），并把
+  `WAsyncOptions` / `WAsyncActivity` / `WCancelToken` 从合并条目拆成可独立 `explain` 的条目。
 
 ## 1.15.0
 

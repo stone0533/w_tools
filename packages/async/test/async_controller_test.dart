@@ -161,13 +161,15 @@ void main() {
       expect(reported, isA<StateError>());
     });
 
-    test('传 options.activity 会触发断言（控制器自己管四态）', () {
+    test('传 options.activity 会抛 ArgumentError（控制器自己管四态，release 也一样）', () {
       expect(
         () => WAsyncController<int>(
           () async => 1,
           options: WAsyncOptions(activity: WAsyncActivity()),
         ),
-        throwsAssertionError,
+        throwsA(
+          isA<ArgumentError>().having((e) => e.name, 'name', 'options.activity'),
+        ),
       );
     });
   });

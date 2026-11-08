@@ -40,14 +40,19 @@ class WAsyncPagedController<T> {
     this.initialPage = 1,
     this.options,
     WAsyncState<List<T>>? initial,
-  }) : assert(
-         options == null || options.activity == null,
-         'WAsyncPagedController 自己维护加载状态，options.activity 会被忽略；'
-         '并发活动计数请直接用 WAsync。',
-       ),
-       _page = _resolvePage(initialPage, initial),
+  }) : _page = _resolvePage(initialPage, initial),
        _hasMore = ValueNotifier(_hasMoreFromInitial(initial)),
-       _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading());
+       _state = ValueNotifier(initial ?? WAsyncState<List<T>>.loading()) {
+    final activity = options?.activity;
+    if (activity != null) {
+      throw ArgumentError.value(
+        activity,
+        'options.activity',
+        'WAsyncPagedController 自己维护加载状态，不接受 activity；'
+            '并发活动计数请直接用 WAsync。',
+      );
+    }
+  }
 
   static int _resolvePage<T>(
     int initialPage,
@@ -69,6 +74,10 @@ class WAsyncPagedController<T> {
 
   final WAsyncTokenPageLoader<T> _loader;
   final int initialPage;
+
+  /// 执行选项；分页状态由控制器维护。
+  /// 传入 [WAsyncOptions.activity] 会在构造时抛 [ArgumentError]，
+  /// release 下也一样，不会静默忽略。
   final WAsyncOptions? options;
 
   final ValueNotifier<WAsyncState<List<T>>> _state;
@@ -87,7 +96,13 @@ class WAsyncPagedController<T> {
   ValueListenable<bool> get isLoadingMore => _isLoadingMore;
   ValueListenable<Object?> get loadMoreError => _loadMoreError;
 
+  /// 是否还有下一页。
+  ///
+  /// 最后一页返回空列表时这里会变 [false]，但 [state] 不变；
+  /// 只按 [state] 重建的 footer 必须额外监听 [hasMoreListenable]。
   bool get hasMore => _hasMore.value;
+
+  /// [hasMore] 的监听入口；footer 用它感知「加载更多 → 没有更多」。
   ValueListenable<bool> get hasMoreListenable => _hasMore;
 
   /// 重新加载第一页；失败时保留旧数据。

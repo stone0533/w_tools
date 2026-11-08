@@ -1,3 +1,10 @@
+## 5.1.0
+
+### Changed
+- `WAsyncController` / `WAsyncPagedController` 传入 `WAsyncOptions.activity` 现在在构造时抛
+  `ArgumentError`（release 也一样），不再在 release 下静默忽略。控制器自己维护四态；
+  需要并发活动计数请直接用 `WAsync`。
+
 ## 5.0.1
 
 ### Changed

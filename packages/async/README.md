@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^5.0.1
+  w_tools_async: ^5.1.0
 ```
 
 要求 Flutter 3.38+。
@@ -183,7 +183,7 @@ class _GiftPageState extends State<GiftPage> {
 
 每个独立区块一个 Controller。
 
-给 Controller 传 `WAsyncOptions.activity` 只会在 debug 断言失败；Controller 自己维护四态。
+给 Controller 传 `WAsyncOptions.activity` 会在构造时抛 `ArgumentError`（release 也一样）；Controller 自己维护四态。
 
 ## 取消
 
@@ -222,6 +222,9 @@ controller.hasMoreListenable
 ```
 
 `loadMore` 失败只写 `loadMoreError`，不会清空已有列表。
+
+最后一页返回空列表时 `hasMore` 会变成 `false`，但 `state` 不变；只按 `state` 重建的
+footer 必须额外监听 `hasMoreListenable`，否则按钮会一直停在「加载更多」。
 
 `initial: WAsyncState.ready([])` 视为没有更多：不会请求 `initialPage + 1`。
 

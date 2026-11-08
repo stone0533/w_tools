@@ -154,7 +154,8 @@ await controller.load();
 - 每次 `load` 取消上一次 token；
 - 旧请求不会覆盖新请求；
 - 失败保留旧数据；
-- `withToken` 让 loader 拿到 `WCancelToken`。
+- `withToken` 让 loader 拿到 `WCancelToken`；
+- 传 `options.activity` 会在构造时抛 `ArgumentError`（release 也一样）；并发活动计数直接用 `WAsync`。
 
 ### WAsyncPagedController
 
