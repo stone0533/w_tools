@@ -1,4 +1,4 @@
-## Unreleased
+## 1.15.1
 
 ### Fixed
 - catalog：`WLanguage` / `WLocaleConfig` / `WAppTheme` 归属改为 `w_tools_app`（`w_tools_app_getx` re-export）。
