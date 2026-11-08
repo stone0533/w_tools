@@ -1,0 +1,65 @@
+# w_tools_api 5.1.0
+ApiClientId	class
+ApiClientId.name	String
+ApiClientId.new	(this.name)
+ApiClientId.toString	String ()
+BaseLocalDataSource	class
+BaseRemoteDataSource	class
+BaseRepository	class
+BaseRepository.localDataSource	LocalDataSourceType?
+BaseRepository.new	({this.localDataSource, this.remoteDataSource})
+BaseRepository.remoteDataSource	RemoteDataSourceType?
+DioRegistry	class
+DioRegistry._internal	(String baseUrl, BaseOptions options, List<Interceptor> interceptors,)
+DioRegistry.cacheTtl	static Duration?
+DioRegistry.clearCache	static void ()
+DioRegistry.dio	Dio
+DioRegistry.dispose	static void (String baseUrl)
+DioRegistry.forBaseUrl	static DioRegistry (String baseUrl, { BaseOptions? options, List<Interceptor>? interceptors, })
+DioRegistry.maxCachedInstances	static int?
+DioRegistry.maybeForBaseUrl	static Dio? (String baseUrl)
+IApiPath	class
+IApiPath.baseUrl	String
+WApiConfig	class
+WApiConfig.Duration	receiveTimeout: const (seconds: 50)
+WApiConfig._	()
+WApiConfig.baseOptions	static BaseOptions
+WApiConfig.logDebugHandler	static void Function(dynamic message)?
+WApiConfig.logErrorHandler	static void Function(dynamic message)?
+WApiConfig.reset	static void ()
+WLogInterceptor	class
+WLogInterceptor.defaultMaxBodyLength	int
+WLogInterceptor.defaultRedactedHeaders	Set<String>
+WLogInterceptor.defaultSensitiveQueryKeys	Set<String>
+WLogInterceptor.enableLog	bool
+WLogInterceptor.maxBodyLength	int
+WLogInterceptor.new	({ Set<WLogPart>? parts, this.enableLog = true, Set<String>? redactedHeaders, this.maxBodyLength = defaultMaxBodyLength, Set<String>? sensitiveQueryKeys, })
+WLogInterceptor.onError	void (DioException err, ErrorInterceptorHandler handler)
+WLogInterceptor.onRequest	void (RequestOptions options, RequestInterceptorHandler handler,)
+WLogInterceptor.onResponse	void (Response response, ResponseInterceptorHandler handler)
+WLogInterceptor.parts	Set<WLogPart>?
+WLogInterceptor.redactedHeaders	Set<String>
+WLogInterceptor.sensitiveQueryKeys	Set<String>
+WLogPart	enum
+WLogPart.error	enum
+WLogPart.errorHint	enum
+WLogPart.request	enum
+WLogPart.requestBody	enum
+WLogPart.requestHeader	enum
+WLogPart.responseBody	enum
+WLogPart.responseHeader	enum
+WTokenInterceptor	class
+WTokenInterceptor.bindDio	void (Dio dio)
+WTokenInterceptor.configureRequest	void Function(RequestOptions)?
+WTokenInterceptor.configureResponse	void Function(Response)?
+WTokenInterceptor.maxAuthRetries	int
+WTokenInterceptor.new	({ this.tokenGetter, this.tokenClearer, this.tokenRefresher, this.configureRequest, this.configureResponse, this.observeError, this.onAuthFailure, this.unauthorizedStatusCode = 401, this.maxAuthRetries = 1, Dio? dio, })
+WTokenInterceptor.observeError	void Function(DioException)?
+WTokenInterceptor.onAuthFailure	void Function(DioException)?
+WTokenInterceptor.onError	Future<void> (DioException err, ErrorInterceptorHandler handler,)
+WTokenInterceptor.onRequest	void (RequestOptions options, RequestInterceptorHandler handler,)
+WTokenInterceptor.onResponse	void (Response response, ResponseInterceptorHandler handler)
+WTokenInterceptor.tokenClearer	Future<void> Function()?
+WTokenInterceptor.tokenGetter	String? Function()?
+WTokenInterceptor.tokenRefresher	Future<String?> Function()?
+WTokenInterceptor.unauthorizedStatusCode	int
