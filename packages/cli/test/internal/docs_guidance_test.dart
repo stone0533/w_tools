@@ -55,4 +55,17 @@ void main() {
     expect(readme, contains('不会取消落败者'));
     expect(readme, contains('只上报第一个错误'));
   });
+
+  test('ASYNC-009：分页追加的规模边界已写明', () {
+    final readme = File('../../packages/async/README.md').readAsStringSync();
+
+    expect(readme, contains('O(n)'));
+    expect(readme, contains('万级'));
+  });
+
+  test('ASYNC-024：WAsyncState.errorMessage 的用途已写明', () {
+    final module = File('../../docs/modules/async_module.md').readAsStringSync();
+
+    expect(module, contains('errorMessage'));
+  });
 }

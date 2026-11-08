@@ -235,6 +235,8 @@ footer 想只挂一个监听时用 `controller.changes`（合并以上四个）�
 
 `loadMore` 失败只写 `loadMoreError`，不会清空已有列表。
 
+分页追加每次会复制列表（O(n)）；万级以上建议窗口化 / 虚拟列表，持久化结构留到 6.x 评估。
+
 最后一页返回空列表时 `hasMore` 会变成 `false`，但 `state` 不变；只按 `state` 重建的
 footer 必须额外监听 `hasMoreListenable`，否则按钮会一直停在「加载更多」。
 

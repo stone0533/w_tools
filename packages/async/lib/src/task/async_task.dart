@@ -250,10 +250,7 @@ class WAsync {
           await Future.wait(List.generate(workerCount, (_) => worker()));
 
           if (hasError) {
-            Error.throwWithStackTrace(
-              firstError ?? StateError('任务执行失败'),
-              firstStackTrace ?? StackTrace.current,
-            );
+            Error.throwWithStackTrace(firstError!, firstStackTrace!);
           }
           cancelToken?.throwIfCancelled();
           return results.cast<T>();

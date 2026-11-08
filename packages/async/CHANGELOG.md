@@ -10,6 +10,13 @@
 - `WAsyncErrorWidgetBuilder` 的 retry 从 `VoidCallback` 改为 `VoidCallback?`；无 retry 时
   自定义 / 主题 builder 仍会被调用并收到 null，包内默认视图不渲染按钮。
 
+### Docs
+- 写明分页追加的 O(n) 规模边界（万级以上建议窗口化），以及
+  `WAsyncState.errorMessage` 的日志 / 文案截断用途。
+
+### Internal
+- 去掉控制器 / sliver 的不可达取消分支与 `pool` 的死 fallback。
+
 ## 5.2.0
 
 ### Added

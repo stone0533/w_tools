@@ -91,19 +91,18 @@ class WAsyncController<T> {
 
     if (_disposed || generation != _generation || token.isCancelled) return;
 
-    switch (result) {
-      case WAsyncSuccess<T>(:final value):
-        _state.value = _isEmpty?.call(value) == true
-            ? WAsyncState<T>.empty()
-            : WAsyncState<T>.ready(value);
-      case WAsyncFailure<T>(:final error):
-        _state.value = WAsyncState<T>.failed(
-          error,
-          previousData: previousData,
-        );
-      case WAsyncCancelled<T>():
-        return;
+    if (result is WAsyncSuccess<T>) {
+      final value = result.value;
+      _state.value = _isEmpty?.call(value) == true
+          ? WAsyncState<T>.empty()
+          : WAsyncState<T>.ready(value);
+    } else if (result is WAsyncFailure<T>) {
+      _state.value = WAsyncState<T>.failed(
+        result.error,
+        previousData: previousData,
+      );
     }
+    // WAsyncCancelled 已在上面的 token.isCancelled 提前返回，不需要单独分支。
   }
 
   /// 手动重试入口。

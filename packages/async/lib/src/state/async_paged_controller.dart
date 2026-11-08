@@ -139,24 +139,23 @@ class WAsyncPagedController<T> {
 
     if (_disposed || generation != _generation || token.isCancelled) return;
 
-    switch (result) {
-      case WAsyncSuccess<List<T>>(:final value):
-        _page = initialPage + 1;
-        _hasMore.value = value.isNotEmpty;
-        final items = List<T>.unmodifiable(value);
-        _state.value = items.isEmpty
-            ? WAsyncState<List<T>>.empty()
-            : WAsyncState<List<T>>.ready(items);
-      case WAsyncFailure<List<T>>(:final error):
-        _page = oldPage;
-        _hasMore.value = oldHasMore;
-        _state.value = WAsyncState<List<T>>.failed(
-          error,
-          previousData: oldData,
-        );
-      case WAsyncCancelled<List<T>>():
-        return;
+    if (result is WAsyncSuccess<List<T>>) {
+      final value = result.value;
+      _page = initialPage + 1;
+      _hasMore.value = value.isNotEmpty;
+      final items = List<T>.unmodifiable(value);
+      _state.value = items.isEmpty
+          ? WAsyncState<List<T>>.empty()
+          : WAsyncState<List<T>>.ready(items);
+    } else if (result is WAsyncFailure<List<T>>) {
+      _page = oldPage;
+      _hasMore.value = oldHasMore;
+      _state.value = WAsyncState<List<T>>.failed(
+        result.error,
+        previousData: oldData,
+      );
     }
+    // WAsyncCancelled 已在上面的 token.isCancelled 提前返回。
   }
 
   /// 追加下一页；失败只写 [loadMoreError]，不会清空已有列表。

@@ -126,27 +126,22 @@ class WAsyncStateSliver<T> extends StatelessWidget {
         );
       }
     } else {
+      final Widget child;
+      if (value.isLoading) {
+        child = views.sliverLoading(context, explicit: loadingBuilder);
+      } else if (value.isEmpty) {
+        child = views.sliverEmpty(context, explicit: emptyBuilder);
+      } else {
+        // data 为 null 且不是 loading / empty / ready，只剩 failed。
+        child = views.sliverError(
+          context,
+          value.error!,
+          retry,
+          explicit: errorBuilder,
+        );
+      }
       slivers.add(
-        SliverFillRemaining(
-          hasScrollBody: hasScrollBody,
-          child: switch (value.status) {
-            WAsyncStatus.loading => views.sliverLoading(
-              context,
-              explicit: loadingBuilder,
-            ),
-            WAsyncStatus.empty => views.sliverEmpty(
-              context,
-              explicit: emptyBuilder,
-            ),
-            WAsyncStatus.failed => views.sliverError(
-              context,
-              value.error!,
-              retry,
-              explicit: errorBuilder,
-            ),
-            WAsyncStatus.ready => const SizedBox.shrink(),
-          },
-        ),
+        SliverFillRemaining(hasScrollBody: hasScrollBody, child: child),
       );
     }
 
