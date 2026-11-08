@@ -19,7 +19,7 @@
 
 ```yaml
 dependencies:
-  w_tools_api: ^5.0.0
+  w_tools_api: ^5.1.0
 ```
 
 ```bash
@@ -43,15 +43,21 @@ final registry = DioRegistry.forBaseUrl(
 final response = await registry.dio.get('/users');
 ```
 
+> `WLogInterceptor` 只有注入 `WApiConfig.logDebugHandler` / `logErrorHandler` 后才会输出；默认不打印 request / response body，需要时显式传 `parts` 并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；单条 body 超过 2000 字符会截断。可用 `sensitiveQueryKeys` / `maxBodyLength` 覆盖默认值。
+
 释放实例：
 
 ```dart
 DioRegistry.dispose('https://api.example.com');
 ```
 
-带 Token 时，存储交给 `w_tools_core` 的 `WToken`，拦截器只注入回调：
+带 Token 时，存储交给 `w_tools_core` 的 `WToken`（需要额外依赖该包），拦截器只注入回调：
 
 ```dart
+import 'package:flutter/foundation.dart';
+import 'package:w_tools_api/w_tools_api.dart';
+import 'package:w_tools_core/w_tools_core.dart';
+
 final registry = DioRegistry.forBaseUrl(
   'https://api.example.com',
   interceptors: [
@@ -65,7 +71,7 @@ final registry = DioRegistry.forBaseUrl(
 );
 ```
 
-`tokenRefresher` 由业务实现，**必须自己持久化新 token**，否则下一次 `tokenGetter` 仍返回旧值：
+`tokenRefresher` 由业务实现，**必须自己持久化新 token**，否则下一次 `tokenGetter` 仍返回旧值。刷新失败或达到重试上限时，可配置 `onAuthFailure` 跳登录 / 清会话：
 
 ```dart
 Future<String?> refreshAccessToken() async {
@@ -84,15 +90,16 @@ Future<String?> refreshAccessToken() async {
 登录成功后用 `WToken.saveTokens(token, refreshToken, expiry)` 一次写全量凭证；
 `saveToken` 只写 access token，适合刷新场景。
 
-> `w_tools_api` 重导出公开 API 用到的 dio 类型（`BaseOptions` / `Dio` / `Response` / `Options` /
-> `Interceptor` 等），不需要再单独依赖 dio。
+> `w_tools_api` 重导出常用 dio 类型（`BaseOptions` / `Dio` / `Response` / `Options` /
+> `Interceptor` 等）；`FormData` / `MultipartFile` / `HttpClientAdapter` 等上传或 adapter 类型
+> 仍需直接依赖 `dio`。
 
 ## 主要 API
 
 | 能力 | 入口 |
 |---|---|
-| Dio 注册表 | `DioRegistry.forBaseUrl` / `dispose` / `clearCache` |
-| 默认配置 | `WApiConfig.baseOptions` |
+| Dio 注册表 | `DioRegistry.forBaseUrl` / `maybeForBaseUrl` / `dispose` / `clearCache` |
+| 默认配置 | `WApiConfig.baseOptions` / `WApiConfig.reset`（测试清理） |
 | 日志拦截 | `WLogInterceptor` |
 | Token 拦截 | `WTokenInterceptor` |
 | Repository | `BaseRepository` |

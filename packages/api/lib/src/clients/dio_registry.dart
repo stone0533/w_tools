@@ -30,6 +30,9 @@ class DioRegistry {
   /// 创建时的拦截器（用于命中缓存时检测冲突）
   late final List<Interceptor> _interceptors;
 
+  /// 创建时间（用于 TTL 判断）
+  final DateTime _createdAt = DateTime.now();
+
   /// 获取 Dio 实例
   Dio get dio {
     return _dio;
@@ -49,14 +52,36 @@ class DioRegistry {
     _interceptors = List.unmodifiable(interceptors);
     _dio = Dio(_options);
 
-    for (final element in _interceptors) {
-      _dio.interceptors.add(element);
-      if (element is WTokenInterceptor) element.bindDio(_dio);
+    try {
+      for (final element in _interceptors) {
+        _dio.interceptors.add(element);
+        if (element is WTokenInterceptor) element.bindDio(_dio);
+      }
+    } catch (_) {
+      // 绑定失败时不要留下一个半初始化的 Dio。
+      _dio.close(force: true);
+      rethrow;
     }
   }
 
-  /// 已创建的实例映射（key 为 baseUrl）
+  /// 已创建的实例映射（key 为 baseUrl；按最近使用排序）
   static final Map<String, DioRegistry> _instances = {};
+
+  /// 最大缓存实例数；`null` 表示不限制（默认），`<= 0` 表示不缓存
+  ///
+  /// 设置后按最近使用淘汰：命中缓存的实例会被移到队尾，新实例入队后若超出上限，
+  /// 队首实例会被 `dispose`。
+  static int? maxCachedInstances;
+
+  /// 缓存 TTL；`null` 表示不过期（默认）
+  ///
+  /// 在 [forBaseUrl] / [maybeForBaseUrl] 访问时惰性判断，过期实例会被关闭并移除。
+  static Duration? cacheTtl;
+
+  bool get _expired {
+    final ttl = cacheTtl;
+    return ttl != null && DateTime.now().difference(_createdAt) > ttl;
+  }
 
   /// 获取或创建指定 baseUrl 的实例（按 baseUrl 缓存）
   ///
@@ -74,8 +99,13 @@ class DioRegistry {
     List<Interceptor>? interceptors,
   }) {
     final existing = _instances[baseUrl];
-    if (existing != null) {
-      if (options != null && !_sameOptions(existing._options, options)) {
+    if (existing != null && existing._expired) {
+      _instances.remove(baseUrl);
+      existing._dio.close(force: true);
+    }
+    final active = _instances[baseUrl];
+    if (active != null) {
+      if (options != null && !_sameOptions(active._options, options)) {
         throw ArgumentError.value(
           baseUrl,
           'baseUrl',
@@ -83,7 +113,7 @@ class DioRegistry {
               '如需更换配置请先 DioRegistry.dispose(baseUrl)',
         );
       }
-      if (interceptors != null && !listEquals(existing._interceptors, interceptors)) {
+      if (interceptors != null && !listEquals(active._interceptors, interceptors)) {
         throw ArgumentError.value(
           baseUrl,
           'baseUrl',
@@ -91,23 +121,49 @@ class DioRegistry {
               '如需更换配置请先 DioRegistry.dispose(baseUrl)',
         );
       }
-      return existing;
+      _instances.remove(baseUrl);
+      _instances[baseUrl] = active;
+      _evictOverflow();
+      return active;
     }
 
-    return _instances[baseUrl] = DioRegistry._internal(
+    final registry = DioRegistry._internal(
       baseUrl,
       options ?? WApiConfig.baseOptions,
       List.unmodifiable(interceptors ?? const []),
     );
+    _instances[baseUrl] = registry;
+    _evictOverflow();
+    return registry;
+  }
+
+  static void _evictOverflow() {
+    final max = maxCachedInstances;
+    if (max == null) return;
+    while (_instances.isNotEmpty && _instances.length > max) {
+      final oldest = _instances.keys.first;
+      final evicted = _instances.remove(oldest);
+      evicted?._dio.close(force: true);
+    }
   }
 
   /// 已注册的 Dio（不创建新实例）；未注册返回 null。
   ///
   /// 供 [WTokenInterceptor] 在重试时复用当前实例，避免隐式注册污染缓存。
-  static Dio? maybeForBaseUrl(String baseUrl) => _instances[baseUrl]?.dio;
+  static Dio? maybeForBaseUrl(String baseUrl) {
+    final registry = _instances[baseUrl];
+    if (registry == null) return null;
+    if (registry._expired) {
+      _instances.remove(baseUrl);
+      registry._dio.close(force: true);
+      return null;
+    }
+    return registry.dio;
+  }
 
   /// 比较两个 BaseOptions 的关键网络配置。
   ///
+  /// header 名按大小写不敏感比较；query / extra 的值按内容深度比较（含 List / Map / Set）。
   /// `validateStatus` 按引用比较（默认实现是同一个顶层函数；自定义闭包即使语义
   /// 相同也会被视为不同配置）。
   static bool _sameOptions(BaseOptions a, BaseOptions b) {
@@ -121,14 +177,65 @@ class DioRegistry {
         a.persistentConnection == b.persistentConnection &&
         a.listFormat == b.listFormat &&
         a.method == b.method &&
-        mapEquals(a.queryParameters, b.queryParameters) &&
+        _sameMap(a.queryParameters, b.queryParameters) &&
         a.maxRedirects == b.maxRedirects &&
         a.preserveHeaderCase == b.preserveHeaderCase &&
         identical(a.requestEncoder, b.requestEncoder) &&
         identical(a.responseDecoder, b.responseDecoder) &&
         identical(a.validateStatus, b.validateStatus) &&
-        mapEquals(a.headers, b.headers) &&
-        mapEquals(a.extra, b.extra);
+        _sameHeaderMap(a.headers, b.headers) &&
+        _sameMap(a.extra, b.extra);
+  }
+
+  /// header 名大小写不敏感，值按内容比较。
+  static bool _sameHeaderMap(
+    Map<String, dynamic> a,
+    Map<String, dynamic> b,
+  ) {
+    if (a.length != b.length) return false;
+    final loweredB = <String, dynamic>{
+      for (final entry in b.entries) entry.key.toLowerCase(): entry.value,
+    };
+    for (final entry in a.entries) {
+      final key = entry.key.toLowerCase();
+      if (!loweredB.containsKey(key)) return false;
+      if (!_sameValue(entry.value, loweredB[key])) return false;
+    }
+    return true;
+  }
+
+  /// query / extra 的 key 保留原语义，只做值的内容比较。
+  static bool _sameMap(Map<String, dynamic> a, Map<String, dynamic> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (!b.containsKey(entry.key)) return false;
+      if (!_sameValue(entry.value, b[entry.key])) return false;
+    }
+    return true;
+  }
+
+  static bool _sameValue(dynamic a, dynamic b) {
+    if (identical(a, b)) return true;
+    if (a is Map && b is Map) {
+      if (a.length != b.length) return false;
+      for (final key in a.keys) {
+        if (!b.containsKey(key)) return false;
+        if (!_sameValue(a[key], b[key])) return false;
+      }
+      return true;
+    }
+    if (a is List && b is List) {
+      if (a.length != b.length) return false;
+      for (var i = 0; i < a.length; i++) {
+        if (!_sameValue(a[i], b[i])) return false;
+      }
+      return true;
+    }
+    if (a is Set && b is Set) {
+      if (a.length != b.length) return false;
+      return a.every(b.contains);
+    }
+    return a == b;
   }
 
   /// 释放指定 baseUrl 的实例及其 Dio 资源

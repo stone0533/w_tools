@@ -42,7 +42,15 @@ class WTokenInterceptor extends Interceptor {
   final void Function(Response)? configureResponse;
 
   /// 错误观测回调（**仅观测**，不能修改或阻止错误）：日志、埋点、提示；与 401 刷新相互独立
+  ///
+  /// 回调抛出的异常会被记录，不会替换原始 [DioException]。
   final void Function(DioException)? observeError;
+
+  /// 认证无法恢复时的回调：刷新失败、未配置刷新、或达到重试上限
+  ///
+  /// 与 [observeError] 不同，它只在确认无法继续认证流程时调用，适合跳登录 / 清会话。
+  /// 回调抛出的异常会被记录，不会替换原始 [DioException]。
+  final void Function(DioException)? onAuthFailure;
 
   /// 未授权错误状态码，默认为 401
   final int unauthorizedStatusCode;
@@ -52,6 +60,9 @@ class WTokenInterceptor extends Interceptor {
 
   /// 进行中的刷新任务：并发 401 共享同一次刷新，避免重复请求
   Future<String?>? _refreshFuture;
+
+  /// 请求级重试计数键；带命名空间，避免覆盖业务自己的 extra
+  static const String _retryCountKey = '_w_tools_retry_count';
 
   /// 所属 Dio（registry 创建时自动绑定；裸 Dio 请构造时传 `dio:`）
   Dio? _dio;
@@ -64,7 +75,9 @@ class WTokenInterceptor extends Interceptor {
   /// @param configureRequest 配置请求回调
   /// @param configureResponse 配置响应回调
   /// @param observeError 错误观测回调
+  /// @param onAuthFailure 认证无法恢复时的回调
   /// @param unauthorizedStatusCode 未授权错误状态码，默认为 401
+  /// @param dio 所属 Dio（裸 Dio 创建时传入；registry 会自动绑定）
   /// @param maxAuthRetries 认证错误最大重试次数，默认为 1
   WTokenInterceptor({
     this.tokenGetter,
@@ -73,13 +86,25 @@ class WTokenInterceptor extends Interceptor {
     this.configureRequest,
     this.configureResponse,
     this.observeError,
+    this.onAuthFailure,
     this.unauthorizedStatusCode = 401,
     this.maxAuthRetries = 1,
     Dio? dio,
   }) : _dio = dio;
 
   /// 绑定所属 Dio（一般不用手动调用；[DioRegistry] 会为传入的拦截器自动绑定）
-  void bindDio(Dio dio) => _dio = dio;
+  ///
+  /// 同一个实例不能绑定到两个 Dio；共享实例请为每个 registry 创建独立拦截器。
+  void bindDio(Dio dio) {
+    final current = _dio;
+    if (current != null && !identical(current, dio)) {
+      throw ArgumentError(
+        'WTokenInterceptor 已绑定到另一个 Dio；'
+        '请为每个 DioRegistry 创建独立的 WTokenInterceptor 实例。',
+      );
+    }
+    _dio = dio;
+  }
 
   @override
   void onRequest(
@@ -119,8 +144,12 @@ class WTokenInterceptor extends Interceptor {
       super.onError(err, handler);
       return;
     }
-    // 错误观测：与 401 刷新相互独立，先无条件执行
-    observeError?.call(err);
+    // 错误观测：与 401 刷新相互独立；回调异常不能替换原错误。
+    try {
+      observeError?.call(err);
+    } catch (e) {
+      WApiConfig.logErrorHandler?.call('observeError failed: $e');
+    }
 
     // 处理未授权错误
     if (err.response?.statusCode == unauthorizedStatusCode) {
@@ -136,9 +165,8 @@ class WTokenInterceptor extends Interceptor {
     final token = tokenGetter?.call();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
-      // 安全的日志输出：仅显示前缀；过短的 token 全量遮蔽，避免敏感信息泄露
-      final masked = token.length > 10 ? '${token.substring(0, 10)}...' : '***';
-      WApiConfig.logDebugHandler?.call('Added token to request: $masked');
+      // 不输出 token 的任何片段；只记录“已注入”。
+      WApiConfig.logDebugHandler?.call('Added token to request: ***');
     } else {
       WApiConfig.logDebugHandler?.call('No token found, skipping authorization header');
     }
@@ -149,26 +177,29 @@ class WTokenInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    // 获取请求级别的重试计数
-    final retryCount = (err.requestOptions.extra['_retryCount'] as int?) ?? 0;
+    // 获取请求级别的重试计数（使用带命名空间的键）
+    final retryCount = (err.requestOptions.extra[_retryCountKey] as int?) ?? 0;
 
     // 本次请求带出去的是哪个 token：晚到的 401 可能发生在别的请求已经刷新之后。
     final usedToken = _bearerTokenOf(err.requestOptions);
     final currentToken = tokenGetter?.call();
     final refreshedByOthers =
-        usedToken != null &&
-        currentToken != null &&
-        currentToken.isNotEmpty &&
-        currentToken != usedToken;
+        currentToken != null && currentToken.isNotEmpty && currentToken != usedToken;
 
     if (!refreshedByOthers) {
       // 清除失效 token；即使不重试，也不应把旧 token 留在存储里。
       // 已经在别处刷新成功时不能清 —— 那会把刚写入的新 token 抹掉。
-      await tokenClearer?.call();
+      // 清除失败也不能替换原始 401，否则业务无法按未授权处理。
+      try {
+        await tokenClearer?.call();
+      } catch (e) {
+        WApiConfig.logErrorHandler?.call('tokenClearer failed: $e');
+      }
     }
 
     if (retryCount >= maxAuthRetries) {
       WApiConfig.logErrorHandler?.call('Max authentication retry attempts reached');
+      _notifyAuthFailure(err);
       super.onError(err, handler);
       return;
     }
@@ -205,6 +236,7 @@ class WTokenInterceptor extends Interceptor {
     int retryCount,
   ) async {
     if (tokenRefresher == null) {
+      _notifyAuthFailure(err);
       super.onError(err, handler);
       return;
     }
@@ -224,7 +256,16 @@ class WTokenInterceptor extends Interceptor {
       WApiConfig.logErrorHandler?.call('Token refresh failed: $e');
     }
 
+    _notifyAuthFailure(err);
     super.onError(err, handler);
+  }
+
+  void _notifyAuthFailure(DioException err) {
+    try {
+      onAuthFailure?.call(err);
+    } catch (e) {
+      WApiConfig.logErrorHandler?.call('onAuthFailure failed: $e');
+    }
   }
 
   /// 触发一次 token 刷新；并发调用共享同一 Future（single-flight）
@@ -284,7 +325,7 @@ class WTokenInterceptor extends Interceptor {
       return;
     }
     requestOptions.headers['Authorization'] = 'Bearer $newToken';
-    requestOptions.extra['_retryCount'] = retryCount + 1;
+    requestOptions.extra[_retryCountKey] = retryCount + 1;
     final responseNew = await dio.fetch(requestOptions);
     handler.resolve(responseNew);
   }

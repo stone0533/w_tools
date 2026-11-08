@@ -6,8 +6,9 @@ abstract class BaseRemoteDataSource {}
 
 /// 数据仓库基础类：整合本地数据源与网络数据源
 ///
-/// [LocalDataSourceType] 需继承 [BaseLocalDataSource]，
+/// 只提供容器，不包含业务行为；[LocalDataSourceType] 需继承 [BaseLocalDataSource]，
 /// [RemoteDataSourceType] 需继承 [BaseRemoteDataSource]。
+/// 6.0.0 再评估是否保留、合并或收紧泛型约束。
 abstract class BaseRepository<
   LocalDataSourceType extends BaseLocalDataSource?,
   RemoteDataSourceType extends BaseRemoteDataSource?

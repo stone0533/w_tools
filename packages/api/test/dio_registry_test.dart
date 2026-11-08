@@ -125,6 +125,47 @@ void main() {
       expect(util2, isA<DioRegistry>());
     });
 
+    test('cacheTtl 到期后重新创建实例', () async {
+      DioRegistry.cacheTtl = const Duration(milliseconds: 10);
+      addTearDown(() => DioRegistry.cacheTtl = null);
+
+      final a = DioRegistry.forBaseUrl('https://ttl.example.com');
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      final b = DioRegistry.forBaseUrl('https://ttl.example.com');
+
+      expect(b, isNot(same(a)));
+      expect(
+        DioRegistry.maybeForBaseUrl('https://ttl.example.com'),
+        same(b.dio),
+      );
+    });
+
+    test('maybeForBaseUrl 对过期实例返回 null', () async {
+      DioRegistry.cacheTtl = const Duration(milliseconds: 10);
+      addTearDown(() => DioRegistry.cacheTtl = null);
+
+      DioRegistry.forBaseUrl('https://ttl-maybe.example.com');
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+
+      expect(DioRegistry.maybeForBaseUrl('https://ttl-maybe.example.com'), isNull);
+    });
+
+    test('maxCachedInstances 按最近使用淘汰', () {
+      DioRegistry.maxCachedInstances = 2;
+      addTearDown(() => DioRegistry.maxCachedInstances = null);
+
+      final a = DioRegistry.forBaseUrl('https://lru-a.example.com');
+      DioRegistry.forBaseUrl('https://lru-b.example.com');
+
+      // 命中 a 后，a 变成最近使用；再创建 c 时淘汰 b。
+      DioRegistry.forBaseUrl('https://lru-a.example.com');
+      final c = DioRegistry.forBaseUrl('https://lru-c.example.com');
+
+      expect(DioRegistry.maybeForBaseUrl('https://lru-a.example.com'), same(a.dio));
+      expect(DioRegistry.maybeForBaseUrl('https://lru-b.example.com'), isNull);
+      expect(DioRegistry.maybeForBaseUrl('https://lru-c.example.com'), same(c.dio));
+    });
+
     test('clearCache 清空所有缓存', () {
       DioRegistry.forBaseUrl('https://a.example.com');
       DioRegistry.forBaseUrl('https://b.example.com');

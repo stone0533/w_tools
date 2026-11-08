@@ -199,6 +199,7 @@
 | `DioRegistry` | api | 按 baseUrl 创建并复用 Dio | 不要直接 `Dio()`；同一 baseUrl 只配置一次 |
 | `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试（可运行示例：packages/api/example） | 不要在拦截器里存 token |
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
+| `WLogPart` | api | WLogInterceptor 的日志片段选择 | 不要单独使用；作为 `parts` 的枚举值 |
 | `WApiConfig` | api | 请求配置与日志注入 | — |
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；单次扫码后用 `restartScan` |
 | `WQrController` | qr | 相机控制与广播扫描流 | 不要用它重置 scanOnce |

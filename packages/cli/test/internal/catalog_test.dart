@@ -132,4 +132,23 @@ void main() {
       expect(entry.teach, isTrue, reason: '$name 是入口类型，应 teach');
     }
   });
+
+  test('API-001：WApiConfig usage 不把 baseOptions 字段当方法调用', () {
+    final entry = findComponent('WApiConfig');
+    expect(entry, isNotNull);
+    expect(entry!.usage, isNotNull);
+    expect(entry.usage, contains('WApiConfig.baseOptions ='));
+    expect(
+      entry.usage,
+      isNot(contains('WApiConfig.baseOptions(')),
+      reason: 'baseOptions 是字段，不能像方法一样调用',
+    );
+  });
+
+  test('API-012：WLogPart 可 explain 且带 usage', () {
+    final entry = findComponent('WLogPart');
+    expect(entry, isNotNull, reason: 'WLogPart 没有独立条目');
+    expect(entry!.usage, isNotNull, reason: 'WLogPart 没有 usage');
+    expect(entry.teach, isTrue, reason: 'WLogPart 是入口枚举，应 teach');
+  });
 }

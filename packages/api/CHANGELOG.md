@@ -1,5 +1,29 @@
 # Changelog
 
+## 5.1.0
+
+### Added
+- `WTokenInterceptor.onAuthFailure`：刷新失败 / 未配置刷新 / 达到重试上限时回调，便于跳登录或清会话。
+- `WLogInterceptor.maxBodyLength` / `sensitiveQueryKeys`：可覆盖 body 截断阈值与敏感 query 参数。
+- `DioRegistry.maxCachedInstances`：可开启按最近使用淘汰的缓存上限（`null` 不限制）。
+- `DioRegistry.cacheTtl`：可设置缓存惰性过期时间（`null` 不过期，默认）。
+- `WApiConfig.reset()`：恢复默认 `baseOptions` 并清空日志回调，主要供测试 / 示例清理。
+- `ApiClientId` 增加 `==` / `hashCode` / `toString`，同名实例可按值比较。
+
+### Changed
+- `WLogInterceptor`：默认不打印 request / response body；`parts` 只输出显式开启的片段；
+  二进制 body 只输出 `<N bytes>`，文本 body 超过 2000 字符截断；URI 敏感 query 参数脱敏；
+  `redactedHeaders` 大小写不敏感并补充常见敏感头。
+- `WTokenInterceptor`：无 token 请求的晚到 401 不再清掉后来登录的 token；重试计数改用
+  `_w_tools_retry_count`；日志不再输出 token 片段；`tokenClearer` / `observeError` 抛异常
+  不再替换原始 401；共享实例第二次绑定 Dio 时报 `ArgumentError`。
+- `DioRegistry`：配置比较对 header 大小写不敏感，query / extra 值按内容比较；新增可选 LRU 上限。
+
+### Fixed
+- 修复 catalog 中 `WApiConfig` 的不可编译 usage，并补齐 `WTokenInterceptor` / `WLogInterceptor` /
+  `WLogPart` 的教学条目。
+- 修复 example 打印 `X-Demo-Secret`、退出后未恢复 `WApiConfig.baseOptions` 的问题。
+
 ## 5.0.0
 
 ### Removed
