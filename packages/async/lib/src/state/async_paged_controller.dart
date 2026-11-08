@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 
 import '../task/async_task.dart';
@@ -143,10 +145,9 @@ class WAsyncPagedController<T> {
       final value = result.value;
       _page = initialPage + 1;
       _hasMore.value = value.isNotEmpty;
-      final items = List<T>.unmodifiable(value);
-      _state.value = items.isEmpty
+      _state.value = value.isEmpty
           ? WAsyncState<List<T>>.empty()
-          : WAsyncState<List<T>>.ready(items);
+          : WAsyncState<List<T>>.ready(_ChunkedList<T>.from(value));
     } else if (result is WAsyncFailure<List<T>>) {
       _page = oldPage;
       _hasMore.value = oldHasMore;
@@ -192,9 +193,10 @@ class WAsyncPagedController<T> {
           return;
         }
         _page++;
-        _state.value = WAsyncState<List<T>>.ready(
-          List<T>.unmodifiable(current.followedBy(value)),
-        );
+        final next = current is _ChunkedList<T>
+            ? current.appendAll(value)
+            : _ChunkedList<T>.from(current).appendAll(value);
+        _state.value = WAsyncState<List<T>>.ready(next);
       case WAsyncFailure<List<T>>(:final error):
         _loadMoreError.value = error;
       case WAsyncCancelled<List<T>>():
@@ -212,4 +214,71 @@ class WAsyncPagedController<T> {
     _loadMoreError.dispose();
     _hasMore.dispose();
   }
+}
+
+/// 追加 O(页大小 + chunk 数) 的不可变列表。
+///
+/// 每次 append 只复制最后一个 chunk（≤ 256）和外层 chunk 引用，
+/// 旧版本共享前面的 chunk，用于分页列表的结构共享。
+class _ChunkedList<T> extends ListBase<T> {
+  _ChunkedList._(this._chunks, this._length);
+
+  factory _ChunkedList.from(Iterable<T> items) {
+    final chunks = <List<T>>[];
+    var current = <T>[];
+    var length = 0;
+    for (final item in items) {
+      if (current.length == _chunkSize) {
+        chunks.add(List<T>.unmodifiable(current));
+        current = <T>[];
+      }
+      current.add(item);
+      length++;
+    }
+    if (current.isNotEmpty) chunks.add(List<T>.unmodifiable(current));
+    return _ChunkedList<T>._(List<List<T>>.unmodifiable(chunks), length);
+  }
+
+  static const int _chunkShift = 8;
+  static const int _chunkSize = 1 << _chunkShift;
+
+  final List<List<T>> _chunks;
+  final int _length;
+
+  @override
+  int get length => _length;
+
+  @override
+  set length(int value) => throw UnsupportedError('不可变列表');
+
+  @override
+  T operator [](int index) {
+    if (index < 0 || index >= _length) {
+      throw RangeError.index(index, this);
+    }
+    return _chunks[index >> _chunkShift][index & (_chunkSize - 1)];
+  }
+
+  @override
+  void operator []=(int index, T value) => throw UnsupportedError('不可变列表');
+
+  /// 返回追加 [items] 后的新列表；当前列表不变。
+  _ChunkedList<T> appendAll(Iterable<T> items) {
+    final chunks = List<List<T>>.of(_chunks, growable: true);
+    var last = chunks.isEmpty ? <T>[] : List<T>.of(chunks.removeLast(), growable: true);
+    var length = _length;
+    for (final item in items) {
+      if (last.length == _chunkSize) {
+        chunks.add(List<T>.unmodifiable(last));
+        last = <T>[];
+      }
+      last.add(item);
+      length++;
+    }
+    if (last.isNotEmpty) chunks.add(List<T>.unmodifiable(last));
+    return _ChunkedList<T>._(List<List<T>>.unmodifiable(chunks), length);
+  }
+
+  @override
+  String toString() => toList().toString();
 }

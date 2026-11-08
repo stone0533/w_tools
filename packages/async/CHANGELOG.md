@@ -12,8 +12,12 @@
 - `WAsyncController.list` 的 `state.data` 改为 unmodifiable 列表，与
   `WAsyncPagedController` 一致；原地修改会抛 `UnsupportedError`。
 
+### Changed
+- `WAsyncPagedController` 的追加改为内部 chunked 不可变列表（结构共享）：每页只复制
+  最后一个 chunk（≤256）与外层引用，旧 `state.data` 共享前缀；`state.data` 仍是 `List<T>`。
+
 ### Docs
-- 写明分页追加的 O(n) 规模边界（万级以上建议窗口化）。
+- README 写明分页追加的 chunked 结构与结构共享语义（十万级不会整表复制）。
 
 ### Removed
 - `WAsyncState.errorMessage`：未使用的半成品 API，6.0 移除；需要截断错误文案时自己处理。

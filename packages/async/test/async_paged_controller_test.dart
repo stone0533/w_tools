@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
@@ -329,6 +330,42 @@ void main() {
       final data = controller.state.value.data!;
       expect(data, <int>[1, 2]);
       expect(() => data.add(3), throwsUnsupportedError);
+      expect(() => data[0] = 9, throwsUnsupportedError);
+      expect(() => data.length = 1, throwsUnsupportedError);
+    });
+
+    test('跨 chunk 追加的索引 / 内容 / toList / json 正确', () async {
+      final pages = <int, List<int>>{
+        1: List<int>.generate(200, (index) => index),
+        2: List<int>.generate(200, (index) => 200 + index),
+      };
+      final controller = WAsyncPagedController<int>(
+        (page) async => pages[page] ?? const <int>[],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      final firstPage = controller.state.value.data!;
+      await controller.loadMore();
+
+      final data = controller.state.value.data!;
+      final expected = List<int>.generate(400, (index) => index);
+      expect(data.length, 400);
+      expect(data[0], 0);
+      expect(data[255], 255);
+      expect(data[256], 256);
+      expect(data[399], 399);
+      expect(data.toList(), expected);
+      expect(data.sublist(250, 260), expected.sublist(250, 260));
+      expect(data.reversed.first, 399);
+      expect(data.contains(256), isTrue);
+      expect(data.indexOf(300), 300);
+      expect(jsonEncode(data), jsonEncode(expected));
+      expect(data.toString(), contains('399'));
+
+      // 旧快照不被后续 append 改写。
+      expect(firstPage.length, 200);
+      expect(firstPage[199], 199);
     });
   });
 }

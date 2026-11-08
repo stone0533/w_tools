@@ -178,6 +178,7 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 ```
 
 只挂一个监听时用 `changes`（合并以上四项）；需要细粒度重建时仍用上面的单项。
+追加使用 chunked 不可变列表（结构共享），不会每页复制整表；`state.data` 仍是 `List<T>`。
 
 `initialPage` 必须 >= 1；`initial: WAsyncState.ready([])` / `WAsyncState.empty()` 视为没有更多；`loadMore` 失败只写 `loadMoreError`，不清空列表。
 

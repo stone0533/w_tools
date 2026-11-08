@@ -56,11 +56,11 @@ void main() {
     expect(readme, contains('只上报第一个错误'));
   });
 
-  test('ASYNC-009：分页追加的规模边界已写明', () {
+  test('ASYNC-009：分页追加的 chunked 结构已写明', () {
     final readme = File('../../packages/async/README.md').readAsStringSync();
 
-    expect(readme, contains('O(n)'));
-    expect(readme, contains('万级'));
+    expect(readme, contains('chunked'));
+    expect(readme, contains('结构共享'));
   });
 
   test('ASYNC-024：WAsyncState.errorMessage 已移除并记录迁移', () {
