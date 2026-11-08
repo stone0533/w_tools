@@ -23,6 +23,9 @@ class WAppBarStyle {
   final SystemUiOverlayStyle? systemOverlayStyle;
 
   /// 派生新样式；传 null 表示保留当前值（不能用 copyWith 清空字段）。
+  ///
+  /// 需要在纯色与渐变之间切换时用 [withBackground]；清空背景用
+  /// [withoutBackground]。
   WAppBarStyle copyWith({
     Color? backgroundColor,
     Gradient? gradient,
@@ -40,6 +43,37 @@ class WAppBarStyle {
       height: height ?? this.height,
       titleSpacing: titleSpacing ?? this.titleSpacing,
       systemOverlayStyle: systemOverlayStyle ?? this.systemOverlayStyle,
+    );
+  }
+
+  /// 设置唯一背景：color / gradient 必须且只能传一个，并清空另一个。
+  ///
+  /// [copyWith] 的 null 表示保留，无法清空另一项；渐变 ↔ 纯色切换用这里，
+  /// 否则 `copyWith(backgroundColor: c)` 会同时保留 gradient，触发 validate 断言。
+  WAppBarStyle withBackground({Color? color, Gradient? gradient}) {
+    assert(
+      (color == null) != (gradient == null),
+      'WAppBarStyle.withBackground: color 与 gradient 必须且只能传一个',
+    );
+    return WAppBarStyle(
+      backgroundColor: color,
+      gradient: gradient,
+      foregroundColor: foregroundColor,
+      titleStyle: titleStyle,
+      height: height,
+      titleSpacing: titleSpacing,
+      systemOverlayStyle: systemOverlayStyle,
+    );
+  }
+
+  /// 清空背景（backgroundColor 与 gradient）。
+  WAppBarStyle withoutBackground() {
+    return WAppBarStyle(
+      foregroundColor: foregroundColor,
+      titleStyle: titleStyle,
+      height: height,
+      titleSpacing: titleSpacing,
+      systemOverlayStyle: systemOverlayStyle,
     );
   }
 

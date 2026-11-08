@@ -54,6 +54,8 @@ components:
         ),
       )
       // 渐变：WAppBarStyle(gradient: LinearGradient(colors: [...]))
+    pitfalls:
+      - 'backgroundColor 与 gradient 只能选一个；两者切换用 withBackground(color:) / withBackground(gradient:)'
     related: ['`WAppBar`']
     teach: false
   - name: '`WNavBar` / `WNavController`'

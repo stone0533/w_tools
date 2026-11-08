@@ -51,7 +51,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docsAnchor: "wappbar",
     aliases: <String>[],
     usage: "WAppBar(\n  title: '首页',\n  style: WAppBarStyle(\n    backgroundColor: Colors.white,\n    foregroundColor: Colors.black87,\n    titleStyle: TextStyle(fontWeight: FontWeight.w700),\n  ),\n)\n// 渐变：WAppBarStyle(gradient: LinearGradient(colors: [...]))\n",
-    pitfalls: <String>[],
+    pitfalls: <String>["backgroundColor 与 gradient 只能选一个；两者切换用 withBackground(color:) / withBackground(gradient:)"],
     related: <String>["`WAppBar`"],
     teach: false,
   ),

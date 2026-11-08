@@ -220,6 +220,7 @@ class _WButtonState extends State<WButton> {
   @override
   Widget build(BuildContext context) {
     final style = _resolveStyle(context);
+    // 断言依赖运行时 style；const 构造器无法调用 validate()，故留在 build。
     style.validate();
     final motion = widget.motion..validate();
     final semantics = _semantics;

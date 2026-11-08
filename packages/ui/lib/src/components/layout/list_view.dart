@@ -26,6 +26,7 @@ class WListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 断言依赖 sliver 与滚动方向两个运行时参数，无法前移到 const 构造器。
     assert(
       !sliver.isOverlap || (scrollDirection == Axis.vertical && !reverse),
       'WListViewSliver.overlap 只支持垂直、非 reverse 列表',

@@ -83,6 +83,7 @@ WNotificationListener<ScrollNotification>(
 
 - `WPressable.excludeChildSemanticsWhenDisabled` → `hasChildSemanticsWhenDisabled`（默认 true）。
 - `WAppBarStyle.copyWith` / `WStepStyle.copyWith` / `WButtonSize.copyWith` 传 null 表示保留，不能清空字段。
+  背景在纯色与渐变之间切换改用 `withBackground(color:)` / `withBackground(gradient:)`。
 - `WScaffold` 标题样式在未显式设置时优先 `WTextStyles.title`。
 - `WWidgetExtension.withBottomBarSpace()` / `withTopSafeSpace()` 删除，改用
   `withBottomBarSpaceOf(context)` / `withTopSafeSpaceOf(context)`。

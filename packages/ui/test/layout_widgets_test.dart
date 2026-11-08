@@ -778,6 +778,27 @@ void main() {
     });
   });
 
+  test('WAppBarStyle.withBackground / withoutBackground 可在纯色与渐变间切换', () {
+    const gradient = LinearGradient(colors: [Colors.red, Colors.blue]);
+    const base = WAppBarStyle(gradient: gradient, height: 60);
+
+    final solid = base.withBackground(color: Colors.white);
+    expect(solid.backgroundColor, Colors.white);
+    expect(solid.gradient, isNull);
+    expect(solid.height, 60);
+    expect(solid.validate, returnsNormally);
+
+    final back = solid.withBackground(gradient: gradient);
+    expect(back.backgroundColor, isNull);
+    expect(back.gradient, gradient);
+    expect(back.validate, returnsNormally);
+
+    final cleared = base.withoutBackground();
+    expect(cleared.backgroundColor, isNull);
+    expect(cleared.gradient, isNull);
+    expect(cleared.height, 60);
+  });
+
   group('WStepStyle copyWith', () {
     test('传 null 表示保留，未传同样保留', () {
       const style = WStepStyle(

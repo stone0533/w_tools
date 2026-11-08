@@ -39,6 +39,7 @@ class WStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // labels 是运行时列表，const 构造器无法常量求值；断言留在 build。
     assert(labels.isNotEmpty, 'WStep.labels 不能为空');
     assert(
       current >= 1 && current <= labels.length,

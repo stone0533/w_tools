@@ -44,6 +44,7 @@
 
 - `WButtonStyleSet`、`WStepColors`、`WBadgeStyle`、`WBadgePosition`
 - `WButton.motion` / `WButton.semantics`
+- `WAppBarStyle.withBackground` / `WAppBarStyle.withoutBackground`：在纯色与渐变之间安全切换
 - `WTabBarStyle.copyWith` 与 `WTabBarStyle` 值相等
 - `WScreenData` 值相等
 

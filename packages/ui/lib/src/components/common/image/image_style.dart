@@ -127,6 +127,9 @@ class WImageStyle {
 
   static const Object _unset = Object();
 
+  /// 派生新样式。
+  ///
+  /// 用 [_unset] 哨兵区分「未传」与「传 null 清空」。
   WImageStyle copyWith({
     Object? width = _unset,
     Object? height = _unset,

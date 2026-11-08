@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
+Widget _emptyItemBuilder(BuildContext context, int index) => const SizedBox.shrink();
+
 void main() {
   test('WScreenData 值相等', () {
     expect(
@@ -145,5 +147,82 @@ void main() {
       ),
     );
     expect(find.byType(WNotificationListener<ScrollNotification>), findsOneWidget);
+  });
+
+  testWidgets('UI-021: WStep / WListView 的 const 用法仍然成立', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: WStep(labels: ['a', 'b'], current: 1)),
+    );
+    expect(find.byType(WStep), findsOneWidget);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: WListView(
+            sliver: WListViewSliver.list(itemCount: 0, itemBuilder: _emptyItemBuilder),
+          ),
+        ),
+      ),
+    );
+    expect(find.byType(WListView), findsOneWidget);
+  });
+
+  testWidgets('WAppBar 标题优先 WTextStyles.title', (tester) async {
+    const styles = WTextStyles(
+      display: TextStyle(fontSize: 1),
+      headline: TextStyle(fontSize: 2),
+      title: TextStyle(fontSize: 42),
+      body: TextStyle(),
+      bodyStrong: TextStyle(),
+      caption: TextStyle(),
+      label: TextStyle(),
+      button: TextStyle(),
+      price: TextStyle(),
+      number: TextStyle(),
+      badge: TextStyle(),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData().withWTextStyles(styles),
+        home: const Scaffold(appBar: WAppBar(title: '标题')),
+      ),
+    );
+    expect(tester.widget<Text>(find.text('标题')).style?.fontSize, 42);
+  });
+
+  testWidgets('WStep 标签默认跟随 textTheme.bodySmall', (tester) async {
+    final base = ThemeData.light();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: base.copyWith(
+          textTheme: base.textTheme.copyWith(bodySmall: const TextStyle(fontSize: 9)),
+        ),
+        home: const WStep(labels: ['a'], current: 1),
+      ),
+    );
+    expect(tester.widget<Text>(find.text('a')).style?.fontSize, 9);
+  });
+
+  testWidgets('WBadge topEnd 与 center 的位置不同', (tester) async {
+    Widget app(Widget badge) => MaterialApp(home: Center(child: badge));
+
+    await tester.pumpWidget(
+      app(const WBadge(badgeContent: Text('3'), child: SizedBox(width: 40, height: 40))),
+    );
+    final topEnd = tester.getCenter(find.text('3'));
+
+    await tester.pumpWidget(
+      app(
+        const WBadge(
+          position: WBadgePosition.center(),
+          badgeContent: Text('3'),
+          child: SizedBox(width: 40, height: 40),
+        ),
+      ),
+    );
+    final center = tester.getCenter(find.text('3'));
+
+    expect(center.dx, lessThan(topEnd.dx));
+    expect(center.dy, greaterThan(topEnd.dy));
   });
 }

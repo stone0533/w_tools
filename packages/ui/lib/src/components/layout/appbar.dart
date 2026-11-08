@@ -44,6 +44,7 @@ class WAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 断言依赖运行时 style；const 构造器无法调用 validate()，故留在 build。
     style.validate();
     final leadingWidget = leading ?? _buildLeading(context);
     final middle = _buildTitle(context);
