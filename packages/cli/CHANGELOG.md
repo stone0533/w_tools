@@ -1,6 +1,7 @@
 ## Unreleased
 
 ### Fixed
+- catalog：`WLanguage` / `WLocaleConfig` / `WAppTheme` 归属改为 `w_tools_app`（`w_tools_app_getx` re-export）。
 - 同步 `w_tools_app_getx` 版本约束到 `^2.0.0`、`w_tools_app` 到 `^3.1.0`（init 生成的 pubspec 与 `versions.dart`）。
 - catalog/templates：修正 `WApiConfig` 的不可编译 usage；补齐 `WTokenInterceptor` / `WLogInterceptor` /
   `WLogPart` 教学条目（`WLogPart` 升为 teach）；`versions.dart` 同步 `w_tools_api` 到 `^5.1.0`。
