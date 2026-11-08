@@ -279,6 +279,16 @@ void main() {
     expect(find.text('Retry'), findsNothing);
   });
 
+  testWidgets('WAsyncErrorBanner 默认文案使用 ASCII 冒号', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        const WAsyncErrorBanner(error: 'boom'),
+      ),
+    );
+
+    expect(find.text('Something went wrong: boom'), findsOneWidget);
+  });
+
   testWidgets('自定义 refreshingBuilder 生效', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.loading(previousData: 1),

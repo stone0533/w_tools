@@ -141,6 +141,8 @@ WAsyncState.failed(error, previousData: oldData)
 ```
 
 `data` 可读取旧数据；`when(...)` 四态全覆盖；`isRefreshing` 表示 loading + 旧数据。
+`WAsyncState.list(...)`（旧名 `ofList`，已 deprecated）把 null / 空列表转为 empty，与
+`WAsyncController.list` 对称。
 
 ## 3. Controller
 
@@ -170,6 +172,8 @@ await paged.loadMore();
 ```text
 state / isLoadingMore / loadMoreError / hasMoreListenable
 ```
+
+只挂一个监听时用 `changes`（合并以上四项）；需要细粒度重建时仍用上面的单项。
 
 `initialPage` 必须 >= 1；`initial: WAsyncState.ready([])` / `WAsyncState.empty()` 视为没有更多；`loadMore` 失败只写 `loadMoreError`，不清空列表。
 
@@ -215,4 +219,4 @@ cd packages/async
 flutter test
 ```
 
-当前 5.1.0；迁移见 [async-5.0](../migrations/async-5.0.md)。
+当前 5.2.0；迁移见 [async-5.0](../migrations/async-5.0.md)。

@@ -309,5 +309,38 @@ void main() {
       expect(seen, <bool>[false]);
       expect(controller.state.value, same(stateBefore));
     });
+
+    test('changes 在 refresh / loadMore / hasMore 变化时通知', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const <int>[],
+      );
+      addTearDown(controller.dispose);
+      var notifications = 0;
+      void listener() => notifications++;
+      controller.changes.addListener(listener);
+      addTearDown(() => controller.changes.removeListener(listener));
+
+      await controller.refresh();
+      final afterRefresh = notifications;
+      expect(afterRefresh, greaterThan(0));
+
+      await controller.loadMore();
+      expect(notifications, greaterThan(afterRefresh));
+      expect(controller.hasMore, isFalse);
+    });
+
+    test('追加后的列表不可变', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const [2],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+
+      final data = controller.state.value.data!;
+      expect(data, <int>[1, 2]);
+      expect(() => data.add(3), throwsUnsupportedError);
+    });
   });
 }

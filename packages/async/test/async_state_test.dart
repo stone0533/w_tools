@@ -30,11 +30,20 @@ void main() {
       expect(failed.data, isNull);
     });
 
-    test('ofList：null 与空列表都是 empty，非空才是 ready', () {
-      expect(WAsyncState.ofList<int>(null).isEmpty, isTrue);
-      expect(WAsyncState.ofList<int>(const []).isEmpty, isTrue);
-      expect(WAsyncState.ofList<int>(const [1, 2]).isReady, isTrue);
-      expect(WAsyncState.ofList<int>(const [1, 2]).data, const [1, 2]);
+    test('ofList：null 与空列表都是 empty，非空才是 ready（兼容旧名）', () {
+      // ignore: deprecated_member_use_from_same_package
+      const ofList = WAsyncState.ofList<int>;
+      expect(ofList(null).isEmpty, isTrue);
+      expect(ofList(const []).isEmpty, isTrue);
+      expect(ofList(const [1, 2]).isReady, isTrue);
+      expect(ofList(const [1, 2]).data, const [1, 2]);
+    });
+
+    test('list：与 ofList 等价，命名与 WAsyncController.list 对称', () {
+      expect(WAsyncState.list<int>(null).isEmpty, isTrue);
+      expect(WAsyncState.list<int>(const []).isEmpty, isTrue);
+      expect(WAsyncState.list<int>(const [1, 2]).isReady, isTrue);
+      expect(WAsyncState.list<int>(const [1, 2]).data, const [1, 2]);
     });
 
     test('when 覆盖四态', () {

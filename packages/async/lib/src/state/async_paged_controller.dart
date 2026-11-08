@@ -84,6 +84,12 @@ class WAsyncPagedController<T> {
   final ValueNotifier<bool> _isLoadingMore = ValueNotifier(false);
   final ValueNotifier<Object?> _loadMoreError = ValueNotifier(null);
   final ValueNotifier<bool> _hasMore;
+  late final Listenable _changes = Listenable.merge([
+    _state,
+    _isLoadingMore,
+    _loadMoreError,
+    _hasMore,
+  ]);
 
   int _page;
   bool _disposed = false;
@@ -104,6 +110,13 @@ class WAsyncPagedController<T> {
 
   /// [hasMore] 的监听入口；footer 用它感知「加载更多 → 没有更多」。
   ValueListenable<bool> get hasMoreListenable => _hasMore;
+
+  /// state / isLoadingMore / loadMoreError / hasMore 任一变化都会通知。
+  ///
+  /// footer 只需要一个监听入口时用它；[dispose] 后不要再添加监听。
+  /// 只需要粒度更细的通知时，仍可用 [state] / [isLoadingMore] /
+  /// [loadMoreError] / [hasMoreListenable]。
+  Listenable get changes => _changes;
 
   /// 重新加载第一页；失败时保留旧数据。
   Future<void> refresh() async {
@@ -193,7 +206,7 @@ class WAsyncPagedController<T> {
         }
         _page++;
         _state.value = WAsyncState<List<T>>.ready(
-          List<T>.unmodifiable([...current, ...value]),
+          List<T>.unmodifiable(current.followedBy(value)),
         );
       case WAsyncFailure<List<T>>(:final error):
         _loadMoreError.value = error;

@@ -27,7 +27,7 @@ class WAsyncErrorBanner extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '$title：$error',
+                '$title: $error',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

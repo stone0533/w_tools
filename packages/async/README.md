@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^5.1.0
+  w_tools_async: ^5.2.0
 ```
 
 要求 Flutter 3.38+。
@@ -191,6 +191,9 @@ class _GiftPageState extends State<GiftPage> {
 
 给 Controller 传 `WAsyncOptions.activity` 会在构造时抛 `ArgumentError`（release 也一样）；Controller 自己维护四态。
 
+`WAsyncController` 原样保存 loader 的返回值；`WAsyncPagedController` 的 `state.data` 是
+unmodifiable 列表。需要不可变列表时，在 loader 里自己包一层。
+
 ## 取消
 
 控制器默认不接收 token；需要请求层感知取消时用 `withToken`：
@@ -226,6 +229,8 @@ controller.isLoadingMore
 controller.loadMoreError
 controller.hasMoreListenable
 ```
+
+footer 想只挂一个监听时用 `controller.changes`（合并以上四个）；需要细粒度重建时仍用上面的单项。
 
 `loadMore` 失败只写 `loadMoreError`，不会清空已有列表。
 

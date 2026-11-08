@@ -1,5 +1,21 @@
 # Changelog
 
+## 5.2.0
+
+### Added
+- `WAsyncState.list`：与 `WAsyncController.list` 对称的列表状态构造；旧名 `ofList`
+  标 `@Deprecated`，7.0 删除。
+- `WAsyncPagedController.changes`：合并 `state` / `isLoadingMore` / `loadMoreError` /
+  `hasMoreListenable` 的单监听入口，footer 不必再挂四个监听。
+
+### Changed
+- `WAsyncErrorBanner` 默认文案的冒号改为 ASCII `: `，避免英文 title 与全角标点混排。
+- 分页追加改用 `List.unmodifiable(current.followedBy(value))`，去掉一次中间列表拷贝。
+
+### Docs
+- 说明 `WAsyncController` 原样保存 loader 返回值，`WAsyncPagedController.state.data`
+  为 unmodifiable 列表。
+
 ## 5.1.0
 
 ### Changed

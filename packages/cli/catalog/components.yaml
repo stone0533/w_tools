@@ -885,6 +885,7 @@ components:
       final c = WAsyncPagedController<Item>((page) => api.list(page: page));
       await c.refresh();
       await c.loadMore();
+      c.changes.addListener(() { ... }); // 或单项监听 hasMoreListenable / loadMoreError
       c.hasMoreListenable.addListener(() { ... });
       c.loadMoreError.addListener(() { ... });
     pitfalls:
@@ -1097,6 +1098,7 @@ components:
     usage: |
       state.when(loading: ..., ready: ..., empty: ..., failed: ...);
       state.status; state.data; state.error;
+      WAsyncState.list(items); // null / 空列表 → empty
     pitfalls:
       - '不要手写 ValueNotifier<WAsyncState>'
     related: ['WAsyncController']
