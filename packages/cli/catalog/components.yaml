@@ -1072,7 +1072,7 @@ components:
     related: ['`WApp`', '`WAppTheme`', '`WLocaleConfig`']
     teach: true
   - name: '`WAppTheme`'
-    package: 'w_tools_app_getx'
+    package: 'w_tools_app'
     docsAnchor: 'wapptheme-字段'
     section: '1. WApp - 启动器'
     useFor: '应用外观：亮/暗主题、主题模式、系统栏'
@@ -1107,7 +1107,22 @@ components:
       - '有顺序要求必须写 dependsOn，不能依赖注册顺序'
       - 'onInit 抛错会中断启动（fail-fast）'
       - 'wrapApp 在 MaterialApp 外，没有 Theme / MediaQuery'
-    related: ['`WApp`']
+    related: ['`WApp`', '`WAppPluginRunner`']
+    teach: true
+  - name: '`WAppPluginRunner`'
+    package: 'w_tools_app'
+    docsAnchor: '2-wappplugin---插件接口'
+    section: '2. WAppPlugin - 插件接口'
+    useFor: 'GetX-free 的插件注册表与 dependsOn 分层初始化'
+    dontUseFor: '不要绕过 WApp.init 直接调用；WApp 内部会委托它'
+    usage: |
+      final runner = WAppPluginRunner([EnvPlugin(), ServicePlugin()]);
+      await runner.init();
+    pitfalls:
+      - '插件 name 必须唯一'
+      - 'dependsOn 必须引用已注册插件；循环依赖会抛 StateError'
+      - 'init 之后不可增删插件'
+    related: ['`WAppPlugin`', '`WApp`']
     teach: true
   - name: '`WAsyncState`'
     package: 'w_tools_async'
@@ -1330,7 +1345,7 @@ components:
     teach: true
 
   - name: '`WLanguage`'
-    package: 'w_tools_app_getx'
+    package: 'w_tools_app'
     docsAnchor: '3-wlanguage---语言管理'
     section: '3. WLanguage - 语言管理'
     useFor: '实例级语言状态 / 切换 / 只读变化流'
@@ -2142,7 +2157,7 @@ components:
     teach: false
 
   - name: '`WLocaleConfig`'
-    package: 'w_tools_app_getx'
+    package: 'w_tools_app'
     docsAnchor: 'wappoptions-字段'
     section: '1. WApp - 启动器'
     useFor: '语言支持列表、首次启动语言与回退语言（WAppOptions.localeConfig）'

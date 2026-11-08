@@ -4,9 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import 'package:w_tools_app/w_tools_app.dart';
-import 'language/locale_config.dart';
 import 'routing/route_stack.dart';
-import 'theme/app_theme.dart';
 
 /// `WApp` 的不可变配置。
 ///

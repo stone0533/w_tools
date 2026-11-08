@@ -12,7 +12,7 @@
 - **一站式启动**：`app.start()` = `init()` + `run()`；入口是 `WApp.options(...)`
 - **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层并行、跨层串行）
 - **实例级状态**：`app.language` / `app.routeStack`，没有全局单例
-- **语言切换**：`WLanguage` + `WLocaleConfig`（支持初始化语言与回退语言）
+- **语言切换**：`WLanguage` + `WLocaleConfig`（来自 `w_tools_app`，支持初始化/回退语言）
 - **路由工具**：`WRouteStack` / `WRouteObserver` 记录与操作 GetX 路由
 - **底部弹窗**：`WBottomSheet.show()`
 
@@ -119,8 +119,8 @@ final result = await WBottomSheet.show<String>(const MySheetContent());
 | 应用启动 | `WApp` / `app.start()` |
 | 插件契约 | `WAppPlugin` / `WAppPlugin.dependsOn` |
 | 应用配置 | `WAppOptions` / `WLocaleConfig` |
-| 应用外观 | `WAppTheme` |
-| 语言 | `app.language`（`WLanguage`） |
+| 应用外观 | `WAppTheme`（来自 `w_tools_app`） |
+| 语言 | `app.language`（`WLanguage`，来自 `w_tools_app`） |
 | 路由 | `app.routeStack` / `WRouteObserver` |
 | 底部弹窗 | `WBottomSheet` |
 

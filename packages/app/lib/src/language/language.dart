@@ -1,16 +1,14 @@
 import 'dart:async';
-
 import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 
 import 'locale_config.dart';
 
 /// 一个应用语言实例。
 ///
-/// 每个 [WApp] 持有自己的实例（`app.language`），不再使用全局单例；
-/// 当前语言只有一个可写入口 [changeLanguage]。
+/// 每个应用壳持有自己的实例；当前语言只有一个可写入口 [changeLanguage]。
+/// 本类不依赖 GetX；应用壳通过 [bindLocaleUpdater] 注入自己的 locale 刷新逻辑。
 class WLanguage {
   WLanguage({
     Map<String, String> supportedLanguages = const {'en_US': 'English'},
@@ -38,8 +36,9 @@ class WLanguage {
       );
     }
 
-    _current = _resolveInitial(currentLanguage, initial, fallback).obs;
-    _currentNotifier = ValueNotifier<String>(_current.value);
+    _current = ValueNotifier<String>(
+      _resolveInitial(currentLanguage, initial, fallback),
+    );
     _explicit = explicitSelection || initial != null;
   }
 
@@ -56,8 +55,8 @@ class WLanguage {
   }
 
   final Map<String, String> _supportedLanguages;
-  late final RxString _current;
-  late final ValueNotifier<String> _currentNotifier;
+  late final ValueNotifier<String> _current;
+  final StreamController<String> _changes = StreamController<String>.broadcast();
   bool _explicit = false;
   void Function(Locale)? _onLocaleChanged;
 
@@ -73,17 +72,14 @@ class WLanguage {
   /// 当前语言对应的 [Locale]。
   Locale get currentLocale => localeFromCode(currentLanguage);
 
-  /// 是否已经由 `WAppOptions.localeConfig` / [changeLanguage] 显式选择过语言。
-  ///
-  /// `WApp.run` 用它决定是否把当前语言传给 `GetMaterialApp.locale`；
-  /// 未显式选择时保留系统语言（不改变旧行为）。
+  /// 是否已经由 `WLocaleConfig` / [changeLanguage] 显式选择过语言。
   bool get hasExplicitSelection => _explicit;
 
   /// 语言变化的只读通知。
-  Stream<String> get languageChanges => _current.stream;
+  Stream<String> get languageChanges => _changes.stream;
 
   /// 语言变化的只读值监听（可用于 `ValueListenableBuilder`）。
-  ValueListenable<String> get languageListenable => _currentNotifier;
+  ValueListenable<String> get languageListenable => _current;
 
   /// 切换语言；未收录的语言返回 false 且不产生变化。
   bool changeLanguage(String languageCode) {
@@ -92,13 +88,12 @@ class WLanguage {
     if (_current.value == languageCode) return true;
 
     _current.value = languageCode;
-    _currentNotifier.value = languageCode;
+    _changes.add(languageCode);
     _onLocaleChanged?.call(currentLocale);
     return true;
   }
 
-  /// 绑定 GetX 的 locale 更新（由 `WApp.run` 在应用挂载后调用）。
-  @internal
+  /// 绑定应用壳的 locale 刷新逻辑（由 GetX 适配层注入）。
   void bindLocaleUpdater(void Function(Locale locale) updater) {
     _onLocaleChanged = updater;
   }
@@ -107,7 +102,7 @@ class WLanguage {
   StreamSubscription<String> listenLanguageChange(
     void Function(String) callback,
   ) {
-    return _current.listen(callback);
+    return _changes.stream.listen(callback);
   }
 
   /// 把语言码解析为 [Locale]，支持 `en` / `zh_CN` / `zh_Hant_TW`。

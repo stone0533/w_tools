@@ -4,6 +4,9 @@
 
 应用启动（初始化顺序、插件、路由、主题、多语言）、底部弹窗。
 
+`WAppPlugin` / `WAppPluginRunner` / `WLanguage` / `WLocaleConfig` / `WAppTheme` 在
+`w_tools_app`；`WApp` / `WAppOptions` / 路由 / 底部弹窗在 `w_tools_app_getx`。
+
 ## 最小用法
 
 ```dart
@@ -66,6 +69,7 @@ await app.start();
 
 // 运行期切换
 app.language.changeLanguage('en_US');
+// UI 监听：app.language.languageListenable（ValueListenable）或 languageChanges（Stream）
 ```
 
 `WAppOptions.copyWith(...)` 可复用配置；`start()` 只覆盖 `initialRoute / getPages / builder /

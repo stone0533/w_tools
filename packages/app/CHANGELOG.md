@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 3.1.0
+
+### Added
+- `WAppPluginRunner`：GetX-free 的插件注册表与 `dependsOn` 分层初始化器。
+- `WLanguage` / `WLocaleConfig`：语言状态与语言配置，从 `w_tools_app_getx` 上移。
+- `WAppTheme`：应用外观（亮/暗主题、主题模式、系统栏），从 `w_tools_app_getx` 上移。
+- `w_tools_app_getx` 继续 re-export 这些类型，消费方 import 路径不变。
 
 ### Changed
 - 文档：修正 `WAppPlugin` 生命周期顺序与契约层引用；补 `wrapApp` 保留 child 的测试。

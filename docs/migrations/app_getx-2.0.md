@@ -11,6 +11,7 @@
 | `WAppConfig.currentLanguage` | `app.language.currentLanguage` / `app.language.changeLanguage(...)` |
 | `WLanguage()` 全局单例 | `app.language` |
 | `WLanguage().languageStream` | `app.language.languageChanges` 或 `languageListenable` |
+| `Obx(() => Text(WLanguage().currentLanguage))` | `ValueListenableBuilder(valueListenable: app.language.languageListenable, ...)`（不再依赖 Rx） |
 | `WLanguage().syncFromConfig()` | 删除；`WLocaleConfig` 在 `WApp` 构造时应用 |
 | `WLocaleConfig(defaultLanguage: 'zh_CN')` | `WLocaleConfig(initialLanguage: 'zh_CN', fallbackLanguage: 'en_US')` |
 | `WRouteStack.defaultStack` | `app.routeStack`（或 `WAppOptions.routeStack` 注入） |
@@ -20,6 +21,7 @@
 | `WAppOptions(systemUiOverlayStyle: ...)` | `WAppTheme(systemUiOverlayStyle: ...)` |
 | `WAppOptions(...)` 的 `const` 用法 | 去掉 `const`（内部做不可变拷贝） |
 | `WApp.routeStack = ...` | `WAppOptions(routeStack: ...)`（`WApp.routeStack` 为 final） |
+| `WLanguage` / `WLocaleConfig` / `WAppTheme` 的包归属 | 声明移到 `w_tools_app`；`w_tools_app_getx` 继续 re-export，import 路径不变 |
 
 ## 升级步骤
 

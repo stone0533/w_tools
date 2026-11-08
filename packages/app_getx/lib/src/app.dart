@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 
 import 'package:w_tools_app/w_tools_app.dart';
-import 'language/language.dart';
 import 'options.dart';
 import 'routing/route_observer.dart';
 import 'routing/route_stack.dart';
@@ -34,9 +31,8 @@ import 'routing/route_stack.dart';
 class WApp {
   WApp.options(this.options)
     : language = WLanguage.fromConfig(options.localeConfig),
-      routeStack = options.routeStack ?? WRouteStack() {
-    _plugins.addAll(options.plugins);
-  }
+      routeStack = options.routeStack ?? WRouteStack(),
+      _pluginRunner = WAppPluginRunner(options.plugins);
 
   /// 不可变配置。
   final WAppOptions options;
@@ -47,7 +43,7 @@ class WApp {
   /// 本应用的路由栈（[WRouteObserver] 会写入它）。
   final WRouteStack routeStack;
 
-  final List<WAppPlugin> _plugins = [];
+  final WAppPluginRunner _pluginRunner;
 
   bool _initialized = false;
   Future<void>? _initFuture;
@@ -55,7 +51,7 @@ class WApp {
   bool _hasRun = false;
 
   /// 已注册插件（只读视图）。
-  List<WAppPlugin> get plugins => UnmodifiableListView<WAppPlugin>(_plugins);
+  List<WAppPlugin> get plugins => _pluginRunner.plugins;
 
   /// 是否已完成 [init]。
   bool get isInitialized => _initialized;
@@ -63,28 +59,16 @@ class WApp {
   // ──── 插件管理 ────
 
   /// 注册单个插件（须在 [init] 之前调用）。
-  void addPlugin(WAppPlugin plugin) {
-    _ensureEditable('addPlugin');
-    _plugins.add(plugin);
-  }
+  void addPlugin(WAppPlugin plugin) => _pluginRunner.addPlugin(plugin);
 
   /// 批量注册插件（须在 [init] 之前调用）。
-  void addPlugins(Iterable<WAppPlugin> plugins) {
-    _ensureEditable('addPlugins');
-    _plugins.addAll(plugins);
-  }
+  void addPlugins(Iterable<WAppPlugin> plugins) => _pluginRunner.addPlugins(plugins);
 
   /// 按名称移除插件（须在 [init] 之前调用）。
-  void removePlugin(String name) {
-    _ensureEditable('removePlugin');
-    _plugins.removeWhere((plugin) => plugin.name == name);
-  }
+  void removePlugin(String name) => _pluginRunner.removePlugin(name);
 
   /// 清空所有插件（须在 [init] 之前调用）。
-  void clearPlugins() {
-    _ensureEditable('clearPlugins');
-    _plugins.clear();
-  }
+  void clearPlugins() => _pluginRunner.clearPlugins();
 
   // ──── 生命周期 ────
 
@@ -116,7 +100,7 @@ class WApp {
 
     _setupSystemUI();
     await _setupOrientation();
-    await _initPlugins();
+    await _pluginRunner.init();
 
     if (customTasks != null && customTasks.isNotEmpty) {
       await Future.wait(customTasks);
@@ -165,47 +149,6 @@ class WApp {
     } catch (_) {
       _started = false;
       rethrow;
-    }
-  }
-
-  /// 按 [WAppPlugin.dependsOn] 分层执行插件 [WAppPlugin.onInit]。
-  ///
-  /// 同一层并行，下一层等待上一层全部完成。
-  /// 插件 name 重复、依赖未注册、循环依赖时抛 [StateError]。
-  Future<void> _initPlugins() async {
-    if (_plugins.isEmpty) return;
-
-    final names = _plugins.map((plugin) => plugin.name).toSet();
-    if (names.length != _plugins.length) {
-      throw StateError('插件 name 必须唯一');
-    }
-
-    for (final plugin in _plugins) {
-      for (final dependency in plugin.dependsOn) {
-        if (!names.contains(dependency)) {
-          throw StateError(
-            '插件 "${plugin.name}" 依赖了未注册的插件 "$dependency"',
-          );
-        }
-      }
-    }
-
-    final done = <String>{};
-    final pending = <WAppPlugin>[..._plugins];
-
-    while (pending.isNotEmpty) {
-      final ready = pending
-          .where((plugin) => plugin.dependsOn.every(done.contains))
-          .toList(growable: false);
-      if (ready.isEmpty) {
-        throw StateError(
-          '插件存在循环依赖：${pending.map((plugin) => plugin.name).join(", ")}',
-        );
-      }
-
-      await Future.wait(ready.map((plugin) => plugin.onInit()));
-      done.addAll(ready.map((plugin) => plugin.name));
-      pending.removeWhere(ready.contains);
     }
   }
 
@@ -276,7 +219,7 @@ class WApp {
     // 插件 builderWrapper × N → 用户自定义 builder（后者更靠外）。
     Widget builderChain(BuildContext context, Widget? child) {
       Widget result = child ?? const SizedBox.shrink();
-      for (final plugin in _plugins) {
+      for (final plugin in _pluginRunner.plugins) {
         final wrapper = plugin.builderWrapper;
         if (wrapper != null) {
           result = wrapper(context, result);
@@ -291,7 +234,7 @@ class WApp {
 
     final allObservers = <NavigatorObserver>[
       ...(navigatorObservers ?? options.navigatorObservers ?? const []),
-      ..._plugins.expand(
+      ..._pluginRunner.plugins.expand(
         (plugin) => plugin.navigatorObservers ?? const <NavigatorObserver>[],
       ),
     ];
@@ -327,7 +270,7 @@ class WApp {
 
     final wrapper = options.appWrapper;
     app = wrapper?.call(app) ?? app;
-    for (final plugin in _plugins) {
+    for (final plugin in _pluginRunner.plugins) {
       app = plugin.wrapApp(app);
     }
 
@@ -339,11 +282,5 @@ class WApp {
       Get.locale = locale;
       Get.rootController.update();
     });
-  }
-
-  void _ensureEditable(String action) {
-    if (_initialized) {
-      throw StateError('$action() 必须在 init() 之前调用');
-    }
   }
 }

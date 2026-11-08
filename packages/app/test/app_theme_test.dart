@@ -1,0 +1,20 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:w_tools_app/w_tools_app.dart';
+
+void main() {
+  test('值相等 / hashCode / copyWith', () {
+    final light = ThemeData.light();
+    final dark = ThemeData.dark();
+    final a = WAppTheme(light: light, dark: dark, mode: ThemeMode.dark);
+    final b = WAppTheme(light: light, dark: dark, mode: ThemeMode.dark);
+
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+
+    final copy = a.copyWith(mode: ThemeMode.light);
+    expect(copy.mode, ThemeMode.light);
+    expect(copy.light, same(light));
+    expect(copy.dark, same(dark));
+  });
+}

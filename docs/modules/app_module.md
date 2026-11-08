@@ -2,13 +2,14 @@
 
 ## 概述
 
-App 模块由 `w_tools_app`（契约）+ `w_tools_app_getx`（GetX 实现）组成：
-`WAppPlugin` 在 `w_tools_app`，`WApp` / `WAppOptions` / 语言 / 路由 / 底部弹窗在
-`w_tools_app_getx`。本文同时说明两层。
+App 模块由 `w_tools_app`（GetX-free 应用内核）+ `w_tools_app_getx`（GetX 实现）组成：
+`WAppPlugin` / `WAppPluginRunner` / `WLanguage` / `WLocaleConfig` / `WAppTheme` 在
+`w_tools_app`；`WApp` / `WAppOptions` / 路由 / 底部弹窗在 `w_tools_app_getx`。
+本文同时说明两层。
 
-`w_tools_app` 只提供 `WAppPlugin` 契约，**不依赖 GetX**；
-`w_tools_app_getx` 强依赖 GetX（`get` 包），提供 `WApp` / `WAppOptions` /
-语言 / 路由 / 底部弹窗。`WApp` 本质是对 `GetMaterialApp` 的增强包装。
+`w_tools_app` **不依赖 GetX**；`w_tools_app_getx` 强依赖 GetX（`get` 包），
+提供 `WApp` / `WAppOptions` / 路由 / 底部弹窗，并复用 `w_tools_app` 的插件编排、
+语言状态与外观配置。`WApp` 本质是对 `GetMaterialApp` 的增强包装。
 
 ## 快速判断
 - 启动 → `WApp.options(WAppOptions(...)).start()`（2.0+）
@@ -22,18 +23,23 @@ App 模块由 `w_tools_app`（契约）+ `w_tools_app_getx`（GetX 实现）组�
 ## 模块结构
 
 ```text
-packages/app/                         # 契约层（GetX 无关）
-└── lib/src/plugins/app_plugin.dart    # WAppPlugin
+packages/app/                         # 应用内核（GetX 无关）
+└── lib/src/
+    ├── plugins/
+    │   ├── app_plugin.dart           # WAppPlugin
+    │   └── app_plugin_runner.dart    # WAppPluginRunner
+    ├── language/
+    │   ├── language.dart             # WLanguage
+    │   └── locale_config.dart        # WLocaleConfig
+    └── theme/
+        └── app_theme.dart            # WAppTheme
 
 packages/app_getx/                    # GetX 实现层
 └── lib/
-    ├── w_tools_app_getx.dart          # 统一导出
+    ├── w_tools_app_getx.dart          # 统一导出 + re-export app 类型
     └── src/
         ├── app.dart                  # WApp 启动器
         ├── options.dart              # WAppOptions
-        ├── language/
-        │   ├── language.dart         # WLanguage
-        │   └── locale_config.dart    # WLocaleConfig
         ├── routing/
         │   ├── route_stack.dart      # WRouteStack
         │   └── route_observer.dart   # WRouteObserver
@@ -47,13 +53,14 @@ packages/app_getx/                    # GetX 实现层
 
 ### 功能说明
 
-`WApp` 是整个子包的入口，负责三件事：
+`WApp` 是 GetX 启动器的入口，负责三件事：
 
-1. **应用配置**：封装 `GetMaterialApp` 的常用参数（标题、路由、主题、国际化等）。
-2. **插件生命周期**：维护插件注册表，按 `dependsOn` 声明构建分层依赖图，分层初始化。
+1. **应用配置**：封装 `GetMaterialApp` 的常用参数（标题、路由、外观、国际化等）。
+2. **插件生命周期**：委托 `WAppPluginRunner` 维护插件注册表与分层初始化。
 3. **启动流程**：提供 `init`、`run`、`start` 三个入口，幂等且带非空校验。
 
-语言与路由栈是**实例状态**：`app.language` / `app.routeStack`，没有全局单例。
+`WLanguage` / `WLocaleConfig` / `WAppTheme` 定义在 `w_tools_app`；
+`WApp` 只负责 GetX 适配（`GetMaterialApp`、`Get.locale`）。
 
 ### 配置方式
 
@@ -279,13 +286,27 @@ class PushPlugin with WAppPlugin {
 }
 ```
 
+### WAppPluginRunner（w_tools_app）
+
+`WAppPluginRunner` 是 GetX-free 的插件注册表与分层初始化器；`WApp` 内部委托它，
+非 GetX 应用壳也可以直接使用：
+
+```dart
+final runner = WAppPluginRunner([EnvPlugin(), ServicePlugin()]);
+await runner.init();
+```
+
+- 同层并行、跨层串行；
+- `name` 重复 / 依赖未注册 / 循环依赖抛 `StateError`；
+- `init` 之后不可增删插件。
+
 ---
 
 ## 3. WLanguage - 语言管理
 
 ### 功能说明
 
-每个 `WApp` 持有一个 `WLanguage` 实例（`app.language`）。它负责：
+`WLanguage` 定义在 `w_tools_app`，每个 `WApp` 持有一个实例（`app.language`）。它负责：
 
 - 支持语言列表；
 - 当前语言（唯一可写入口 `changeLanguage`）；

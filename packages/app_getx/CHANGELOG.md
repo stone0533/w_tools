@@ -22,6 +22,8 @@
 - `WApp.routeStack` 改为 `final`；自定义栈通过 `WAppOptions.routeStack` 注入。
 
 ### Added
+- `WLanguage` / `WLocaleConfig` / `WAppTheme` 的声明移到 `w_tools_app`；本包继续
+  re-export，import 路径不变。依赖下界抬到 `w_tools_app: ^3.1.0`。
 - `WAppOptions`：`home`、`routes`、`navigatorKey`、`supportedLocales`、
   `localizationsDelegates`、`routeStack`、`unknownRoute`、`shouldApplyOrientations`；
   `WAppOptions` 的 `==` / `hashCode`。
@@ -39,6 +41,8 @@
 - `WRouteObserver` 按栈去重；`PopupRoute` 默认不进入路由栈。
 - `WLanguage.changeLanguage` 改为更新 `Get.locale` + `Get.rootController.update()`，
   不再触发 GetX 的全树 `performReassemble`。
+- `WLanguage` 不再暴露 `RxString`；直接依赖 `Obx` 读 `currentLanguage` 的代码改用
+  `languageListenable` / `languageChanges`。
 
 ### Fixed
 - `WLocaleConfig.initialLanguage` 现在真正作为首次启动语言生效。

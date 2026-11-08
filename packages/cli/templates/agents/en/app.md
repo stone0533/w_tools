@@ -3,7 +3,7 @@
   `WAppPlugin.dependsOn`. `builderWrapper` lives inside MaterialApp; `wrapApp` is outside and has no
   Theme/MediaQuery. `WRouteObserver` is appended automatically.
 - **Plugins**: implement `WAppPlugin`; `onInit` participates in layered initialization. Declare
-  `dependsOn` when order matters.
+  `dependsOn` when order matters. For non-GetX shells use `WAppPluginRunner` (`w_tools_app`).
 - **Localization**: use `WLocaleConfig` (`WAppOptions.localeConfig`) for supported / initial /
   fallback languages. Switch at runtime with `app.language` (`WLanguage`).`changeLanguage(...)` and listen to
   `languageChanges` or `languageListenable`; do not keep a second writable currentLanguage.
