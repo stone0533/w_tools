@@ -1,4 +1,12 @@
-## Unreleased
+## 12.0.0
+
+### Breaking
+
+- 跟随 `w_tools_async` 6.0.0：根包重导出 async 的公开 barrel，`WAsyncController` /
+  `WAsyncPagedController` 不再接受 `WAsyncOptions`（改 `onError`），`WAsyncOptions.onError`
+  去 nullable，error builder 的 retry 改为可空，`WAsyncController.list` 的 `state.data`
+  改为 unmodifiable，移除 `WAsyncState.errorMessage`。迁移见 `docs/migrations/async-6.0.md`。
+- 抬高 `w_tools_async` 下界到 `^6.0.0`。
 
 ### Changed
 

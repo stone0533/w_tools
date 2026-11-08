@@ -23,6 +23,8 @@ import 'async_theme_views.dart';
 /// 为错误条/刷新条约束有界宽度，不强制高度。
 ///
 /// [onRetry] 由调用方负责处理异常；推荐直接传 `WAsyncController.load`。
+/// 为 null 时 [errorBuilder] / [errorBannerBuilder] 仍会收到 `null` 的 retry，
+/// 由 builder 决定是否渲染按钮；包内默认视图不带按钮。
 ///
 /// [readyBuilder] 返回内容本身；需要 `SmartRefresher` / `RefreshIndicator`
 /// 时，把滚动组件放进 [readyBuilder] 内部，不要包在 [WAsyncView] 外面。

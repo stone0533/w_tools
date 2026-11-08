@@ -62,8 +62,9 @@ void main() {
       expect(find.text('加载失败'), findsOneWidget);
     });
 
-    testWidgets('无 retry 时不调用 explicit / theme builder', (tester) async {
+    testWidgets('无 retry 时 explicit builder 仍会收到 null', (tester) async {
       var calls = 0;
+      VoidCallback? seen;
 
       await tester.pumpWidget(
         WAsyncTheme(
@@ -78,6 +79,7 @@ void main() {
               null,
               explicit: (context, error, retry) {
                 calls++;
+                seen = retry;
                 return const Text('explicit-error');
               },
             ),
@@ -85,9 +87,32 @@ void main() {
         ),
       );
 
+      expect(find.text('explicit-error'), findsOneWidget);
       expect(find.text('theme-error'), findsNothing);
-      expect(find.text('explicit-error'), findsNothing);
-      expect(calls, 0);
+      expect(calls, 1);
+      expect(seen, isNull);
+    });
+
+    testWidgets('无 retry 时 theme builder 仍会收到 null', (tester) async {
+      var calls = 0;
+      VoidCallback? seen;
+
+      await tester.pumpWidget(
+        WAsyncTheme(
+          errorBuilder: (context, error, retry) {
+            calls++;
+            seen = retry;
+            return const Text('theme-error');
+          },
+          child: _probe(
+            (context, views) => views.error(context, Exception('boom'), null),
+          ),
+        ),
+      );
+
+      expect(find.text('theme-error'), findsOneWidget);
+      expect(calls, 1);
+      expect(seen, isNull);
     });
 
     testWidgets('explicit 优先于 theme', (tester) async {

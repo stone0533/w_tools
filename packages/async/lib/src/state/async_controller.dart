@@ -13,12 +13,12 @@ typedef WAsyncTokenLoader<T> = Future<T> Function(WCancelToken token);
 class WAsyncController<T> {
   WAsyncController(
     Future<T> Function() loader, {
-    WAsyncOptions? options,
+    void Function(Object error)? onError,
     bool Function(T value)? isEmpty,
     WAsyncState<T>? initial,
   }) : this._(
          (token) => loader(),
-         options: options,
+         onError: onError,
          isEmpty: isEmpty,
          initial: initial,
        );
@@ -26,50 +26,48 @@ class WAsyncController<T> {
   /// 需要感知取消的 loader 版本。
   WAsyncController.withToken(
     WAsyncTokenLoader<T> loader, {
-    WAsyncOptions? options,
+    void Function(Object error)? onError,
     bool Function(T value)? isEmpty,
     WAsyncState<T>? initial,
   }) : this._(
          loader,
-         options: options,
+         onError: onError,
          isEmpty: isEmpty,
          initial: initial,
        );
 
   WAsyncController._(
     this._loader, {
-    this.options,
+    this.onError,
     bool Function(T value)? isEmpty,
+    T Function(T value)? normalize,
     WAsyncState<T>? initial,
-  }) : assert(
-         options == null || options.activity == null,
-         'WAsyncController 自己维护四态，options.activity 会被忽略；'
-         '并发活动计数请直接用 WAsync。',
-       ),
-       _isEmpty = isEmpty,
+  }) : _isEmpty = isEmpty,
+       _normalize = normalize,
        _state = ValueNotifier(initial ?? WAsyncState<T>.loading());
 
-  /// 列表场景：空列表自动归为 empty。
+  /// 列表场景：空列表自动归为 empty；`state.data` 为 unmodifiable。
   static WAsyncController<List<E>> list<E>(
     Future<List<E>> Function() loader, {
-    WAsyncOptions? options,
+    void Function(Object error)? onError,
     WAsyncState<List<E>>? initial,
   }) {
-    return WAsyncController<List<E>>(
-      loader,
-      options: options,
+    return WAsyncController<List<E>>._(
+      (token) => loader(),
+      onError: onError,
       isEmpty: (value) => value.isEmpty,
+      normalize: (value) => List<E>.unmodifiable(value),
       initial: initial,
     );
   }
 
   final WAsyncTokenLoader<T> _loader;
 
-  /// 执行选项；页面级状态由控制器维护。
-  /// 传入 [WAsyncOptions.activity] 只在 debug 断言，release 下会被忽略。
-  final WAsyncOptions? options;
+  /// 失败兜底回调；控制器自己维护四态，不提供 activity。
+  final void Function(Object error)? onError;
 
   final bool Function(T value)? _isEmpty;
+  final T Function(T value)? _normalize;
   final ValueNotifier<WAsyncState<T>> _state;
 
   ValueListenable<WAsyncState<T>> get state => _state;
@@ -91,25 +89,24 @@ class WAsyncController<T> {
 
     final result = await WAsync.tryRun<T>(
       () => _loader(token),
-      options: options?.withoutActivity(),
+      options: onError == null ? null : WAsyncOptions(onError: onError),
       cancelToken: token,
     );
 
     if (_disposed || generation != _generation || token.isCancelled) return;
 
-    switch (result) {
-      case WAsyncSuccess<T>(:final value):
-        _state.value = _isEmpty?.call(value) == true
-            ? WAsyncState<T>.empty()
-            : WAsyncState<T>.ready(value);
-      case WAsyncFailure<T>(:final error):
-        _state.value = WAsyncState<T>.failed(
-          error,
-          previousData: previousData,
-        );
-      case WAsyncCancelled<T>():
-        return;
+    if (result is WAsyncSuccess<T>) {
+      final value = _normalize?.call(result.value) ?? result.value;
+      _state.value = _isEmpty?.call(value) == true
+          ? WAsyncState<T>.empty()
+          : WAsyncState<T>.ready(value);
+    } else if (result is WAsyncFailure<T>) {
+      _state.value = WAsyncState<T>.failed(
+        result.error,
+        previousData: previousData,
+      );
     }
+    // WAsyncCancelled 已在上面的 token.isCancelled 提前返回，不需要单独分支。
   }
 
   /// 手动重试入口。

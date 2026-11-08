@@ -58,7 +58,7 @@ packages/async/lib/
 | 成员 | 类型 | 说明 |
 |------|------|------|
 | `activity` | `WAsyncActivity?` | 需要合并并发活动时传入 |
-| `onError` | `void Function(Object?)?` | 失败兜底回调 |
+| `onError` | `void Function(Object)?` | 失败兜底回调 |
 
 直接构造 options；5.0 删除 `copyWith`。`withoutActivity()` / `withoutOnError()` 分别只去掉 activity / onError。
 
@@ -141,20 +141,27 @@ WAsyncState.failed(error, previousData: oldData)
 ```
 
 `data` 可读取旧数据；`when(...)` 四态全覆盖；`isRefreshing` 表示 loading + 旧数据。
+`WAsyncState.list(...)`（旧名 `ofList`，已 deprecated）把 null / 空列表转为 empty，与
+`WAsyncController.list` 对称。
 
 ## 3. Controller
 
 ### WAsyncController
 
 ```dart
-final controller = WAsyncController.list(() => api.gifts());
+final controller = WAsyncController.list(
+  () => api.gifts(),
+  onError: (error) => log(error),
+);
 await controller.load();
 ```
 
 - 每次 `load` 取消上一次 token；
 - 旧请求不会覆盖新请求；
 - 失败保留旧数据；
-- `withToken` 让 loader 拿到 `WCancelToken`。
+- `withToken` 让 loader 拿到 `WCancelToken`；
+- Controller 只接 `onError`；activity 只在 `WAsync` 上用；
+- `WAsyncController.list` / `WAsyncPagedController` 的 `state.data` 是 unmodifiable；泛型 `WAsyncController` 原样保存。
 
 ### WAsyncPagedController
 
@@ -170,6 +177,9 @@ await paged.loadMore();
 state / isLoadingMore / loadMoreError / hasMoreListenable
 ```
 
+只挂一个监听时用 `changes`（合并以上四项）；需要细粒度重建时仍用上面的单项。
+追加使用 chunked 不可变列表（结构共享），不会每页复制整表；`state.data` 仍是 `List<T>`。
+
 `initialPage` 必须 >= 1；`initial: WAsyncState.ready([])` / `WAsyncState.empty()` 视为没有更多；`loadMore` 失败只写 `loadMoreError`，不清空列表。
 
 ## 4. View
@@ -182,8 +192,8 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 | `WAsyncErrorView` | 默认整块错误 |
 | `WAsyncErrorBanner` | 保留旧数据时的错误条 |
 
-- `WAsyncView.onRetry` 可选；无 retry 时不渲染按钮，也不调用自定义 error / banner builder；自定义 retry 失败用 `onRetryError` 观测；
-- `WAsyncStateSliver.onRetry` 可选；无 retry 时不调用要求 retry 的自定义 builder；
+- `WAsyncView.onRetry` 可选；无 retry 时不渲染按钮，但自定义 error / banner builder 仍会收到 `null`，由 builder 决定是否渲染按钮；自定义 retry 失败用 `onRetryError` 观测；
+- `WAsyncStateSliver.onRetry` 可选；无 retry 时自定义 builder 仍会收到 `null`；
 - 默认文案由 `WAsyncStrings` 提供，通过 `WAsyncTheme.strings` 注入本地化。
 
 ## 5. Theme
@@ -214,4 +224,4 @@ cd packages/async
 flutter test
 ```
 
-当前 5.0.0；迁移见 [async-5.0](../migrations/async-5.0.md)。
+当前 6.0.0；迁移见 [async-6.0](../migrations/async-6.0.md)。

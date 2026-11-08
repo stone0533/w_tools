@@ -5,7 +5,7 @@
 /// 传入 [WAsync] 各执行方法的 `cancelToken` 后，任务会在开始、结束以及
 /// 重试等待等边界处检查取消状态。取消不会中止已经开始执行的 Future，
 /// 只会让后续的检查点提前结束。
-/// 令牌取消后不可复用：后续任务会在开始前直接返回 null。
+/// 令牌取消后不可复用：后续任务会在开始前直接以取消结束。
 class WCancelToken {
   /// 是否已取消
   bool _isCancelled = false;
@@ -82,7 +82,7 @@ class WCancelToken {
 /// 取消异常
 ///
 /// 由 [WCancelToken.throwIfCancelled] 抛出；[WAsync] 会将其视为正常结束，
-/// 不回调 `onError`，并返回 null。
+/// 不回调 `onError`，并以 `WAsyncCancelled` / `WCancellationException` 结束。
 class WCancellationException implements Exception {
   /// 取消原因
   final Object? reason;

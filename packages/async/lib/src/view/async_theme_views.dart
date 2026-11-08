@@ -37,8 +37,8 @@ import 'async_theme.dart';
 /// ```
 ///
 /// 约定：
-/// - `retry` 为 null 时使用**不带重试按钮**的默认视图，并且不调用自定义 /
-///   主题 builder —— 它们要求一个可用的 retry 回调，传 no-op 会渲染出点了没反应的按钮；
+/// - `retry` 为 null 时仍会调用显式 / 主题 builder，并把 `null` 传进去；
+///   builder 自己决定是否渲染重试按钮。包内默认视图不带按钮。
 /// - `sliver*` 默认值是非滚动 Widget；[maybeRefreshingSliver] 可能返回 null
 ///   （默认不额外加进度，刷新进度由外层 `SmartRefresher` 负责）。
 class WAsyncThemeViews {
@@ -76,9 +76,6 @@ class WAsyncThemeViews {
     VoidCallback? retry, {
     WAsyncErrorWidgetBuilder? explicit,
   }) {
-    if (retry == null) {
-      return WAsyncErrorView(error: error, title: _strings.errorTitle);
-    }
     return explicit?.call(context, error, retry) ??
         _theme?.errorBuilder?.call(context, error, retry) ??
         WAsyncErrorView(
@@ -96,9 +93,6 @@ class WAsyncThemeViews {
     VoidCallback? retry, {
     WAsyncErrorWidgetBuilder? explicit,
   }) {
-    if (retry == null) {
-      return WAsyncErrorBanner(error: error, title: _strings.errorTitle);
-    }
     return explicit?.call(context, error, retry) ??
         _theme?.errorBannerBuilder?.call(context, error, retry) ??
         WAsyncErrorBanner(
@@ -139,9 +133,6 @@ class WAsyncThemeViews {
     VoidCallback? retry, {
     WAsyncErrorWidgetBuilder? explicit,
   }) {
-    if (retry == null) {
-      return WAsyncErrorView(error: error, title: _strings.errorTitle);
-    }
     return explicit?.call(context, error, retry) ??
         _theme?.sliverErrorBuilder?.call(context, error, retry) ??
         WAsyncErrorView(
@@ -159,9 +150,6 @@ class WAsyncThemeViews {
     VoidCallback? retry, {
     WAsyncErrorWidgetBuilder? explicit,
   }) {
-    if (retry == null) {
-      return WAsyncErrorBanner(error: error, title: _strings.errorTitle);
-    }
     return explicit?.call(context, error, retry) ??
         _theme?.sliverErrorBannerBuilder?.call(context, error, retry) ??
         WAsyncErrorBanner(

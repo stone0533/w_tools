@@ -147,11 +147,11 @@ void main() {
       await loading;
     });
 
-    test('Error 也会回调 options.onError', () async {
+    test('Error 也会回调 onError', () async {
       Object? reported;
       final controller = WAsyncController<int>(
         () async => throw StateError('bug'),
-        options: WAsyncOptions(onError: (error) => reported = error),
+        onError: (error) => reported = error,
       );
       addTearDown(controller.dispose);
 
@@ -161,14 +161,19 @@ void main() {
       expect(reported, isA<StateError>());
     });
 
-    test('传 options.activity 会触发断言（控制器自己管四态）', () {
-      expect(
-        () => WAsyncController<int>(
-          () async => 1,
-          options: WAsyncOptions(activity: WAsyncActivity()),
-        ),
-        throwsAssertionError,
-      );
+    test('list 的 state.data 是不可变列表（与 Paged 一致）', () async {
+      final source = <int>[1, 2];
+      final controller = WAsyncController.list<int>(() async => source);
+      addTearDown(controller.dispose);
+
+      await controller.load();
+
+      final data = controller.state.value.data!;
+      expect(data, <int>[1, 2]);
+      expect(() => data.add(3), throwsUnsupportedError);
+
+      source.add(3);
+      expect(controller.state.value.data, <int>[1, 2]);
     });
   });
 }

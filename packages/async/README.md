@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^5.0.1
+  w_tools_async: ^6.0.0
 ```
 
 要求 Flutter 3.38+。
@@ -133,7 +133,14 @@ final name = await WAsync.map<String, String>(
 - `WAsync` 不再用 `null` 表示失败或取消；
 - `onSuccess` / `map` 的映射异常由调用方处理，不会回调 `options.onError`；
 - 只有 token 取消才算 `WAsyncCancelled`；任务自己抛 `WCancellationException` 仍算失败；
-- `onRetry == null` 时不会调用自定义 `errorBuilder` / `errorBannerBuilder`（它们需要可用的 retry）。
+- `onRetry == null` 时 `errorBuilder` / `errorBannerBuilder` 仍会收到 `null` 的 retry；
+  由 builder 自己决定是否渲染按钮。
+
+并发组合器的边界：
+
+- `parallel` 失败后其余 Future 会继续执行，不会自动取消；
+- `first` 返回最先完成的结果，不会取消落败者；
+- `pool` 只上报第一个错误，其余错误被忽略。
 
 自定义重试失败时，View 默认用 `FlutterError.reportError` 上报；需要自己记录时传：
 
@@ -183,7 +190,10 @@ class _GiftPageState extends State<GiftPage> {
 
 每个独立区块一个 Controller。
 
-给 Controller 传 `WAsyncOptions.activity` 只会在 debug 断言失败；Controller 自己维护四态。
+Controller 只接 `onError`；不再接受 `WAsyncOptions` / `activity`。控制器自己维护四态。
+
+`WAsyncController.list` 与 `WAsyncPagedController` 的 `state.data` 是 unmodifiable 列表；
+泛型 `WAsyncController` 仍原样保存 loader 的返回值（无法通用地包一层）。
 
 ## 取消
 
@@ -221,7 +231,15 @@ controller.loadMoreError
 controller.hasMoreListenable
 ```
 
+footer 想只挂一个监听时用 `controller.changes`（合并以上四个）；需要细粒度重建时仍用上面的单项。
+
 `loadMore` 失败只写 `loadMoreError`，不会清空已有列表。
+
+分页追加使用 chunked 不可变列表（结构共享）：每页只复制最后一个 chunk（≤256）和外层
+chunk 引用，旧 `state.data` 与新增量共享前缀，十万级也不会整表复制。
+
+最后一页返回空列表时 `hasMore` 会变成 `false`，但 `state` 不变；只按 `state` 重建的
+footer 必须额外监听 `hasMoreListenable`，否则按钮会一直停在「加载更多」。
 
 `initial: WAsyncState.ready([])` 视为没有更多：不会请求 `initialPage + 1`。
 
@@ -281,14 +299,15 @@ WAsyncStateSliver<List<Gift>>(
 
 - 失败 + 旧数据：保留 ready sliver，追加错误条；
 - 刷新 + 旧数据：默认不额外加进度，避免和 `SmartRefresher` 重复；
-- `onRetry == null`：不显示重试按钮，也不调用要求 retry 的自定义 error / banner builder。
+- `onRetry == null`：不显示重试按钮；自定义 error / banner builder 仍会收到 `null`，
+  需自行决定是否渲染按钮。
 
 ## 约定
 
 - Controller 会把所有异常（含 `Error`）转为 `failed`，并回调 `WAsyncOptions.onError`；
 - `WAsyncActivity` 只做并发活动计数，不是加载视图；
 - 同一批并行任务可以共享 `WAsyncActivity`；不要用它合并多个独立区块。
-- `WAsyncOptions.activity` 只用于 `WAsync` 直接执行；Controller 自己维护四态，传了会断言；
+- `WAsyncOptions.activity` 只用于 `WAsync` 直接执行；Controller 只接 `onError`；
 - 默认文案来自 `WAsyncStrings`，项目应注入自己的本地化文案；
 - `WAsyncState.status` 的类型是 `WAsyncStatus`（loading / ready / empty / failed）；优先 `when`，需要分支时直接 switch。
 - 取消不会中止底层 Future，只是让等待尽快结束。

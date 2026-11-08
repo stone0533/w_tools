@@ -866,13 +866,14 @@ components:
     useFor: '单区块异步状态、load / retry / 旧请求丢弃'
     dontUseFor: '分页用 `WAsyncPagedController`；纯执行用 `WAsync`'
     usage: |
-      final c = WAsyncController.list(() => api.list()); c.load();
+      final c = WAsyncController.list(() => api.list(), onError: (e) => log(e)); c.load();
       c.retry();
       @override
       void dispose() { c.dispose(); super.dispose(); }
     pitfalls:
       - '页面 dispose 时 controller.dispose()'
-      - '不要给 Controller 传 options.activity'
+      - 'Controller 只接 onError；activity 只在 WAsync 上用'
+      - 'list 的 state.data 是 unmodifiable；需要可变副本请自己 List.of'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
     teach: true
   - name: '`WAsyncPagedController`'
@@ -885,6 +886,7 @@ components:
       final c = WAsyncPagedController<Item>((page) => api.list(page: page));
       await c.refresh();
       await c.loadMore();
+      c.changes.addListener(() { ... }); // 或单项监听 hasMoreListenable / loadMoreError
       c.hasMoreListenable.addListener(() { ... });
       c.loadMoreError.addListener(() { ... });
     pitfalls:
@@ -920,11 +922,12 @@ components:
         strings: const WAsyncStrings(empty: '暂无数据'),
         loadingBuilder: (_) => const AppLoadingView(),
         errorBuilder: (context, error, retry) => AppRetryView(error, retry),
-        sliverLoadingBuilder: (_) => const SliverFillRemaining(child: AppLoadingView()),
+        sliverLoadingBuilder: (_) => const AppLoadingView(),
         child: app,
       )
     pitfalls:
       - '普通 builder 只作用于 WAsyncView；sliver 用 sliver*Builder'
+      - 'sliver*Builder 返回非滚动 Widget；WAsyncStateSliver 会包 SliverFillRemaining，不要返回 sliver'
     related: ['WAsyncThemeViews', 'WAsyncView', 'WAsyncStateSliver']
     teach: true
   - name: '`WAsyncThemeViews`'
@@ -1096,6 +1099,7 @@ components:
     usage: |
       state.when(loading: ..., ready: ..., empty: ..., failed: ...);
       state.status; state.data; state.error;
+      WAsyncState.list(items); // null / 空列表 → empty
     pitfalls:
       - '不要手写 ValueNotifier<WAsyncState>'
     related: ['WAsyncController']
@@ -1117,11 +1121,12 @@ components:
       - 'isProgrammingError 只存在于 WAsyncFailure'
     related: ['WAsync', 'WAsyncController']
     teach: true
-  - name: '`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`'
+  - name: '`WAsync`'
     package: 'w_tools_async'
     docsAnchor: '1-wasync'
     section: '1. WAsync'
-    useFor: '无 UI 异步执行（tryRun/run）、取消与活动计数'
+    useFor: '无 UI 异步执行（tryRun / run / 组合器）'
+    dontUseFor: '页面四态用 `WAsyncController` + `WAsyncView`；不要用已删除的 `runValue` / `WAsyncLoading`'
     usage: |
       final result = await WAsync.tryRun(() => api.fetch());
       switch (result) {
@@ -1135,8 +1140,61 @@ components:
       - 'run 失败抛异常；tryRun 不抛异常'
       - 'onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess'
       - '取消需要 WCancelToken；取消不中止底层 Future'
-    related: ['WAsyncResult', 'WAsyncOptions', 'WCancelToken']
+    related: ['WAsyncResult', 'WAsyncOptions', 'WAsyncActivity', 'WCancelToken']
     aliases: ['tryRun', 'run', 'map', 'retry']
+    teach: true
+  - name: '`WAsyncOptions`'
+    package: 'w_tools_async'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: 'WAsync 的执行选项：并发活动计数与失败兜底回调'
+    dontUseFor: 'Controller 不接 WAsyncOptions，只接 onError；不要用 activity 合并多个独立区块'
+    usage: |
+      final activity = WAsyncActivity(onStart: ..., onEnd: ...);
+      final options = WAsyncOptions(activity: activity, onError: (e) => log(e));
+      await WAsync.run(() => api.fetch(), options: options);
+    pitfalls:
+      - 'Controller 只接 onError，不接 WAsyncOptions'
+      - '调用点自己处理错误时用 withoutOnError()，避免重复上报'
+    related: ['WAsync', 'WAsyncActivity', 'WCancelToken']
+    teach: true
+  - name: '`WAsyncActivity`'
+    package: 'w_tools_async'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: '同一批并发任务共享的加载计数：0→1 / 1→0 各回调一次'
+    dontUseFor: '不是加载视图；不要拿它合并多个独立区块'
+    usage: |
+      final activity = WAsyncActivity(
+        onStart: () => setState(() => _loading = true),
+        onEnd: () => setState(() => _loading = false),
+      );
+      await WAsync.parallel(
+        [loadConfig(), loadProfile()],
+        options: WAsyncOptions(activity: activity),
+      );
+    pitfalls:
+      - 'begin / end 是框架内部使用，业务不要直接调'
+      - '只在 WAsync 直接执行时生效；Controller 不接受 activity'
+    related: ['WAsync', 'WAsyncOptions']
+    teach: true
+  - name: '`WCancelToken`'
+    package: 'w_tools_async'
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: '协作式取消：传给 WAsync / withToken loader'
+    dontUseFor: '取消后不可复用；新请求要新建 token'
+    usage: |
+      final token = WCancelToken();
+      final result = await WAsync.tryRun(
+        () => api.fetch(cancelToken: token),
+        cancelToken: token,
+      );
+      token.cancel('page disposed');
+    pitfalls:
+      - '取消是协作式的：底层 Future 不一定停，只是等待提前结束'
+      - '令牌取消后不能复用'
+    related: ['WAsync', 'WAsyncOptions', 'WCancellationException']
     teach: true
   - name: '`WCountdown`'
     package: 'w_tools_core'

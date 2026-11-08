@@ -137,6 +137,13 @@ void main() {
         throwsA(isA<TimeoutException>()),
       );
     });
+
+    test('timeout 负值参数校验', () async {
+      await expectLater(
+        WAsync.timeout<int>(() async => 1, const Duration(seconds: -1)),
+        throwsArgumentError,
+      );
+    });
   });
 
   group('组合执行', () {
@@ -170,6 +177,23 @@ void main() {
       expect(values, [0, 1, 2, 3, 4]);
       expect(peak, lessThanOrEqualTo(2));
       await expectLater(WAsync.pool<int>([], concurrency: 0), throwsArgumentError);
+    });
+
+    test('pool 任务抛错时抛出首个错误并保留 stack', () async {
+      final error = StateError('boom');
+      try {
+        await WAsync.pool<int>(
+          [
+            () async => throw error,
+            () async => 2,
+          ],
+          concurrency: 2,
+        );
+        fail('expected throw');
+      } catch (caught, stackTrace) {
+        expect(caught, same(error));
+        expect(stackTrace.toString(), isNotEmpty);
+      }
     });
 
     test('first 返回最先完成的结果，空集合抛错', () async {
@@ -235,6 +259,17 @@ void main() {
       final token = WCancelToken();
       final future = WAsync.first<int>(
         [Future.delayed(const Duration(seconds: 1), () => 1)],
+        cancelToken: token,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      token.cancel('stop');
+      await expectLater(future, throwsA(isA<WCancellationException>()));
+    });
+
+    test('parallel 等待期间取消', () async {
+      final token = WCancelToken();
+      final future = WAsync.parallel<int>(
+        [Future<int>.delayed(const Duration(seconds: 1), () => 1)],
         cancelToken: token,
       );
       await Future<void>.delayed(const Duration(milliseconds: 5));

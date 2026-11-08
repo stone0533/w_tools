@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
@@ -254,11 +255,11 @@ void main() {
       await loading;
     });
 
-    test('Error 也会回调 options.onError', () async {
+    test('Error 也会回调 onError', () async {
       Object? reported;
       final controller = WAsyncPagedController<int>(
         (page) async => throw StateError('bug'),
-        options: WAsyncOptions(onError: (error) => reported = error),
+        onError: (error) => reported = error,
       );
       addTearDown(controller.dispose);
 
@@ -278,14 +279,93 @@ void main() {
       );
     });
 
-    test('传 options.activity 会触发断言（分页自己管加载状态）', () {
-      expect(
-        () => WAsyncPagedController<int>(
-          (page) async => const <int>[],
-          options: WAsyncOptions(activity: WAsyncActivity()),
-        ),
-        throwsAssertionError,
+    test('最后一页为空时 hasMoreListenable 通知，但 state 不变', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const <int>[],
       );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      final stateBefore = controller.state.value;
+      final seen = <bool>[];
+      controller.hasMoreListenable.addListener(
+        () => seen.add(controller.hasMore),
+      );
+
+      await controller.loadMore();
+
+      expect(controller.hasMore, isFalse);
+      expect(seen, <bool>[false]);
+      expect(controller.state.value, same(stateBefore));
+    });
+
+    test('changes 在 refresh / loadMore / hasMore 变化时通知', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const <int>[],
+      );
+      addTearDown(controller.dispose);
+      var notifications = 0;
+      void listener() => notifications++;
+      controller.changes.addListener(listener);
+      addTearDown(() => controller.changes.removeListener(listener));
+
+      await controller.refresh();
+      final afterRefresh = notifications;
+      expect(afterRefresh, greaterThan(0));
+
+      await controller.loadMore();
+      expect(notifications, greaterThan(afterRefresh));
+      expect(controller.hasMore, isFalse);
+    });
+
+    test('追加后的列表不可变', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const [2],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+
+      final data = controller.state.value.data!;
+      expect(data, <int>[1, 2]);
+      expect(() => data.add(3), throwsUnsupportedError);
+      expect(() => data[0] = 9, throwsUnsupportedError);
+      expect(() => data.length = 1, throwsUnsupportedError);
+    });
+
+    test('跨 chunk 追加的索引 / 内容 / toList / json 正确', () async {
+      final pages = <int, List<int>>{
+        1: List<int>.generate(200, (index) => index),
+        2: List<int>.generate(200, (index) => 200 + index),
+      };
+      final controller = WAsyncPagedController<int>(
+        (page) async => pages[page] ?? const <int>[],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      final firstPage = controller.state.value.data!;
+      await controller.loadMore();
+
+      final data = controller.state.value.data!;
+      final expected = List<int>.generate(400, (index) => index);
+      expect(data.length, 400);
+      expect(data[0], 0);
+      expect(data[255], 255);
+      expect(data[256], 256);
+      expect(data[399], 399);
+      expect(data.toList(), expected);
+      expect(data.sublist(250, 260), expected.sublist(250, 260));
+      expect(data.reversed.first, 399);
+      expect(data.contains(256), isTrue);
+      expect(data.indexOf(300), 300);
+      expect(jsonEncode(data), jsonEncode(expected));
+      expect(data.toString(), contains('399'));
+
+      // 旧快照不被后续 append 改写。
+      expect(firstPage.length, 200);
+      expect(firstPage[199], 199);
     });
   });
 }

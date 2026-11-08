@@ -30,11 +30,20 @@ void main() {
       expect(failed.data, isNull);
     });
 
-    test('ofList：null 与空列表都是 empty，非空才是 ready', () {
-      expect(WAsyncState.ofList<int>(null).isEmpty, isTrue);
-      expect(WAsyncState.ofList<int>(const []).isEmpty, isTrue);
-      expect(WAsyncState.ofList<int>(const [1, 2]).isReady, isTrue);
-      expect(WAsyncState.ofList<int>(const [1, 2]).data, const [1, 2]);
+    test('ofList：null 与空列表都是 empty，非空才是 ready（兼容旧名）', () {
+      // ignore: deprecated_member_use_from_same_package
+      const ofList = WAsyncState.ofList<int>;
+      expect(ofList(null).isEmpty, isTrue);
+      expect(ofList(const []).isEmpty, isTrue);
+      expect(ofList(const [1, 2]).isReady, isTrue);
+      expect(ofList(const [1, 2]).data, const [1, 2]);
+    });
+
+    test('list：与 ofList 等价，命名与 WAsyncController.list 对称', () {
+      expect(WAsyncState.list<int>(null).isEmpty, isTrue);
+      expect(WAsyncState.list<int>(const []).isEmpty, isTrue);
+      expect(WAsyncState.list<int>(const [1, 2]).isReady, isTrue);
+      expect(WAsyncState.list<int>(const [1, 2]).data, const [1, 2]);
     });
 
     test('when 覆盖四态', () {
@@ -65,21 +74,30 @@ void main() {
       expect(failed.data, 5);
     });
 
-    test('errorMessage 截断过长错误', () {
-      final long = WAsyncState<int>.failed('x' * 300);
-      expect(long.errorMessage(maxLength: 10).length, 11);
-      expect(long.errorMessage(maxLength: 10).endsWith('…'), isTrue);
-    });
-
-    test('errorMessage 负数 maxLength 按 0 处理', () {
-      final state = WAsyncState<int>.failed(Exception('e'));
-      expect(state.errorMessage(maxLength: -1), '…');
-    });
-
     test('值相等与 hashCode', () {
       expect(const WAsyncState<int>.ready(1), const WAsyncState<int>.ready(1));
       expect(const WAsyncState<int>.ready(1).hashCode, const WAsyncState<int>.ready(1).hashCode);
       expect(const WAsyncState<int>.ready(1), isNot(const WAsyncState<int>.ready(2)));
+    });
+  });
+
+  group('WAsyncResult', () {
+    test('isSuccess / isFailure / isCancelled 三态互斥', () {
+      const success = WAsyncSuccess<int>(1);
+      const failure = WAsyncFailure<int>('boom', StackTrace.empty);
+      const cancelled = WAsyncCancelled<int>('stop');
+
+      expect(success.isSuccess, isTrue);
+      expect(success.isFailure, isFalse);
+      expect(success.isCancelled, isFalse);
+
+      expect(failure.isSuccess, isFalse);
+      expect(failure.isFailure, isTrue);
+      expect(failure.isCancelled, isFalse);
+
+      expect(cancelled.isSuccess, isFalse);
+      expect(cancelled.isFailure, isFalse);
+      expect(cancelled.isCancelled, isTrue);
     });
   });
 }

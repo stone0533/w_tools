@@ -1,3 +1,57 @@
+# Changelog
+
+## 6.0.0
+
+### Breaking
+- `WAsyncController` / `WAsyncPagedController` 的 `options: WAsyncOptions?` 改为
+  `onError: void Function(Object)?`；控制器不再接受 activity。迁移见
+  [async-6.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-6.0.md)。
+- `WAsyncOptions.onError` 从 `void Function(Object?)?` 改为 `void Function(Object)?`。
+- `WAsyncErrorWidgetBuilder` 的 retry 从 `VoidCallback` 改为 `VoidCallback?`；无 retry 时
+  自定义 / 主题 builder 仍会被调用并收到 null，包内默认视图不渲染按钮。
+- `WAsyncController.list` 的 `state.data` 改为 unmodifiable 列表，与
+  `WAsyncPagedController` 一致；原地修改会抛 `UnsupportedError`。
+
+### Changed
+- `WAsyncPagedController` 的追加改为内部 chunked 不可变列表（结构共享）：每页只复制
+  最后一个 chunk（≤256）与外层引用，旧 `state.data` 共享前缀；`state.data` 仍是 `List<T>`。
+
+### Docs
+- README 写明分页追加的 chunked 结构与结构共享语义（十万级不会整表复制）。
+
+### Removed
+- `WAsyncState.errorMessage`：未使用的半成品 API，6.0 移除；需要截断错误文案时自己处理。
+
+### Internal
+- 去掉控制器 / sliver 的不可达取消分支与 `pool` 的死 fallback。
+
+## 5.2.0
+
+### Added
+- `WAsyncState.list`：与 `WAsyncController.list` 对称的列表状态构造；旧名 `ofList`
+  标 `@Deprecated`，7.0 删除。
+- `WAsyncPagedController.changes`：合并 `state` / `isLoadingMore` / `loadMoreError` /
+  `hasMoreListenable` 的单监听入口，footer 不必再挂四个监听。
+
+### Changed
+- `WAsyncErrorBanner` 默认文案的冒号改为 ASCII `: `，避免英文 title 与全角标点混排。
+- 分页追加改用 `List.unmodifiable(current.followedBy(value))`，去掉一次中间列表拷贝。
+
+### Docs
+- 说明 `WAsyncController` 原样保存 loader 返回值，`WAsyncPagedController.state.data`
+  为 unmodifiable 列表。
+
+## 5.1.0
+
+### Changed
+- `WAsyncController` / `WAsyncPagedController` 传入 `WAsyncOptions.activity` 现在在构造时抛
+  `ArgumentError`（release 也一样），不再在 release 下静默忽略。控制器自己维护四态；
+  需要并发活动计数请直接用 `WAsync`。
+
+### Docs
+- 修正已删除 API / 旧 null 语义的过期注释；补充并发组合器边界与分页 footer 的
+  `hasMoreListenable` 说明，并补齐结果三态 getter、theme 通知、sliver / view retry 错误等测试。
+
 ## 5.0.1
 
 ### Changed
@@ -18,8 +72,6 @@
 
 ### Added
 - `WAsyncOptions.withoutOnError()`：调用点自己处理错误时去掉兜底 onError，避免重复上报。
-
-# Changelog
 
 ## 4.1.0
 

@@ -279,6 +279,16 @@ void main() {
     expect(find.text('Retry'), findsNothing);
   });
 
+  testWidgets('WAsyncErrorBanner 默认文案使用 ASCII 冒号', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        const WAsyncErrorBanner(error: 'boom'),
+      ),
+    );
+
+    expect(find.text('Something went wrong: boom'), findsOneWidget);
+  });
+
   testWidgets('自定义 refreshingBuilder 生效', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.loading(previousData: 1),
@@ -464,5 +474,82 @@ void main() {
     await tester.pump();
 
     expect(retries, 1);
+  });
+
+  testWidgets('未传 onRetry 时 errorBuilder 仍会收到 null', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+    var calls = 0;
+    VoidCallback? seen;
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          readyBuilder: (context, value) => Text('value-$value'),
+          errorBuilder: (context, error, retry) {
+            calls++;
+            seen = retry;
+            return const Text('custom-error');
+          },
+        ),
+      ),
+    );
+
+    expect(find.text('Retry'), findsNothing);
+    expect(find.text('custom-error'), findsOneWidget);
+    expect(calls, 1);
+    expect(seen, isNull);
+  });
+
+  testWidgets('显式 errorBuilder 优先于默认错误视图', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async {},
+          readyBuilder: (context, value) => Text('value-$value'),
+          errorBuilder: (context, error, retry) => const Text('custom-error'),
+        ),
+      ),
+    );
+
+    expect(find.text('custom-error'), findsOneWidget);
+    expect(find.byType(WAsyncErrorView), findsNothing);
+  });
+
+  testWidgets('retry 失败且无 onRetryError 时走 FlutterError.reportError', (tester) async {
+    final errors = <FlutterErrorDetails>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = errors.add;
+    addTearDown(() => FlutterError.onError = previous);
+
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async => throw Exception('retry failed'),
+          readyBuilder: (context, value) => Text('value-$value'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(errors, isNotEmpty);
   });
 }

@@ -38,44 +38,39 @@ class _SliverPageState extends State<SliverPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ValueListenableBuilder<WAsyncState<List<String>>>(
-        valueListenable: _controller.state,
-        builder: (context, state, _) {
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                title: const Text('Sliver 列表'),
-                actions: [
-                  IconButton(
-                    tooltip: '刷新',
-                    onPressed: _controller.load,
-                    icon: const Icon(Icons.refresh_rounded),
-                  ),
-                  IconButton(
-                    tooltip: '下一次失败',
-                    onPressed: () {
-                      _failNext = true;
-                      _controller.load();
-                    },
-                    icon: const Icon(Icons.error_outline_rounded),
-                  ),
-                ],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            title: const Text('Sliver 列表'),
+            actions: [
+              IconButton(
+                tooltip: '刷新',
+                onPressed: _controller.load,
+                icon: const Icon(Icons.refresh_rounded),
               ),
-              WAsyncStateSliver<List<String>>(
-                state: _controller.state,
-                onRetry: _controller.load,
-                readySliverBuilder: (context, items) => SliverList.separated(
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) => ListTile(
-                    leading: const Icon(Icons.view_day_outlined),
-                    title: Text(items[index]),
-                  ),
-                ),
+              IconButton(
+                tooltip: '下一次失败',
+                onPressed: () {
+                  _failNext = true;
+                  _controller.load();
+                },
+                icon: const Icon(Icons.error_outline_rounded),
               ),
             ],
-          );
-        },
+          ),
+          WAsyncStateSliver<List<String>>(
+            state: _controller.state,
+            onRetry: _controller.load,
+            readySliverBuilder: (context, items) => SliverList.separated(
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, index) => ListTile(
+                leading: const Icon(Icons.view_day_outlined),
+                title: Text(items[index]),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

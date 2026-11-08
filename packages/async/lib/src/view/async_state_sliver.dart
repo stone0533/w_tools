@@ -21,9 +21,8 @@ import 'async_theme_views.dart';
 ///
 /// loading / empty / error 的默认值来自 `WAsyncTheme` 的 `sliver*Builder`；这些 builder 必须返回非滚动内容。
 ///
-/// 没有重试入口时（[onRetry] 为 null）失败态使用**不带重试按钮**的默认视图，
-/// 并且不调用 [errorBuilder] / [errorBannerBuilder]：它们的契约要求一个可用的
-/// retry 回调，传 no-op 会渲染出点了没反应的按钮。
+/// 没有重试入口时（[onRetry] 为 null）[errorBuilder] / [errorBannerBuilder] 仍会收到
+/// `null` 的 retry，由 builder 决定是否渲染按钮；包内默认视图不带按钮。
 class WAsyncStateSliver<T> extends StatelessWidget {
   const WAsyncStateSliver({
     super.key,
@@ -97,8 +96,7 @@ class WAsyncStateSliver<T> extends StatelessWidget {
     final data = value.data;
     final views = WAsyncThemeViews.of(context);
     final slivers = <Widget>[];
-    // 没有重试入口时传 null：自定义 builder 的契约要求一个可用的 retry 回调，
-    // 传 no-op 会渲染出「点了没反应」的按钮。
+    // 没有重试入口时传 null；builder 自己决定是否渲染按钮。
     final VoidCallback? retry = onRetry == null ? null : _fireRetry;
 
     if (value.isReady) {
@@ -128,27 +126,22 @@ class WAsyncStateSliver<T> extends StatelessWidget {
         );
       }
     } else {
+      final Widget child;
+      if (value.isLoading) {
+        child = views.sliverLoading(context, explicit: loadingBuilder);
+      } else if (value.isEmpty) {
+        child = views.sliverEmpty(context, explicit: emptyBuilder);
+      } else {
+        // data 为 null 且不是 loading / empty / ready，只剩 failed。
+        child = views.sliverError(
+          context,
+          value.error!,
+          retry,
+          explicit: errorBuilder,
+        );
+      }
       slivers.add(
-        SliverFillRemaining(
-          hasScrollBody: hasScrollBody,
-          child: switch (value.status) {
-            WAsyncStatus.loading => views.sliverLoading(
-              context,
-              explicit: loadingBuilder,
-            ),
-            WAsyncStatus.empty => views.sliverEmpty(
-              context,
-              explicit: emptyBuilder,
-            ),
-            WAsyncStatus.failed => views.sliverError(
-              context,
-              value.error!,
-              retry,
-              explicit: errorBuilder,
-            ),
-            WAsyncStatus.ready => const SizedBox.shrink(),
-          },
-        ),
+        SliverFillRemaining(hasScrollBody: hasScrollBody, child: child),
       );
     }
 

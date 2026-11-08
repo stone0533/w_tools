@@ -22,7 +22,7 @@ class WAsyncOptions {
   final WAsyncActivity? activity;
 
   /// 失败兜底回调；抛错会被忽略。
-  final void Function(Object? error)? onError;
+  final void Function(Object error)? onError;
 
   /// 去掉并发活动计数器，保留错误回调。
   WAsyncOptions withoutActivity() => WAsyncOptions(onError: onError);
@@ -36,7 +36,7 @@ class WAsyncOptions {
 /// 异步执行助手。
 ///
 /// 两套入口：
-/// - [tryRun] / [tryRunValue]：返回 [WAsyncResult]，不抛业务异常；
+/// - [tryRun]：返回 [WAsyncResult]，不抛业务异常；
 /// - [run] / [map] / [retry] / [timeout] / [parallel] / [pool] / [first] / [serial]：
 ///   失败抛异常，取消抛 [WCancellationException]。
 ///
@@ -250,10 +250,7 @@ class WAsync {
           await Future.wait(List.generate(workerCount, (_) => worker()));
 
           if (hasError) {
-            Error.throwWithStackTrace(
-              firstError ?? StateError('任务执行失败'),
-              firstStackTrace ?? StackTrace.current,
-            );
+            Error.throwWithStackTrace(firstError!, firstStackTrace!);
           }
           cancelToken?.throwIfCancelled();
           return results.cast<T>();

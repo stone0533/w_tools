@@ -47,6 +47,7 @@
 - [4.0](async-4.0.md)：`WAsyncStateSliver.state` 改为 `ValueListenable`
 - [4.1](async-4.1.md)：取消立即返回、`options.onError` 覆盖 `Error`、`WAsyncThemeViews` / `withToken` / `runValue`
 - [5.0](async-5.0.md)：不再用 null 表示失败 / 取消，改 `WAsyncSuccess` / `WAsyncFailure` / `WAsyncCancelled`
+- [6.0](async-6.0.md)：Controller 改 `onError`、`onError` 去 nullable、error builder retry 可空
 
 ## toast
 

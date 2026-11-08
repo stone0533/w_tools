@@ -53,5 +53,7 @@ Widget build(BuildContext context) {
 
 - `builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`，四态只作为 slivers；
 - 追加下一页用 `controller.loadMore()`，失败看 `controller.loadMoreError`，**不要**把整页替换成失败态；
-- `controller.hasMore` 是普通 getter，footer 需要监听 `state` / `isLoadingMore` / `loadMoreError`；
+- `controller.hasMore` 是普通 getter；footer 必须监听 `hasMoreListenable`——最后一页返回空列表时
+  `hasMore` 会变但 `state` 不变，只按 `state` 重建的 footer 不会刷新；`isLoadingMore` / `loadMoreError`
+  按需监听；
 - `dispose()` 会取消上一次 `refresh()` 的 token。

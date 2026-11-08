@@ -27,7 +27,7 @@
 
 `WAsync.map` 做结果映射，`serial` 做同类型顺序任务，`first` 做多源竞速。
 
-`onRetry == null` 时不调用自定义 error / banner builder（它们要求可用的 retry）。
+`onRetry == null` 时不显示重试按钮；自定义 error / banner builder 仍会收到 `null`，由 builder 决定是否渲染按钮。
 
 `tryRun` 结果：
 
@@ -70,5 +70,14 @@ if (result is WAsyncSuccess<Gift>) {
 `WAsyncFailure` / `WAsyncCancelled`。
 
 `WAsyncActivity` 只用于同一批并行任务（如 `WAsync.parallel`），不要合并多个独立区块。
+
+状态 / 结果 / 活动分不清时：
+
+| 类型 | 是什么 | 不是什么 |
+|---|---|---|
+| `WAsyncState` | 一次请求的四态快照（status / data / error） | 不是执行结果 |
+| `WAsyncStatus` | 四态枚举 | 不是状态载体 |
+| `WAsyncResult` | `tryRun` 的成功 / 失败 / 取消结果 | 不是 UI 状态 |
+| `WAsyncActivity` | 并发活动计数器 | 不是加载视图 |
 
 完整说明：[async_module.md](../modules/async_module.md) · 示例：[packages/async/example](../../packages/async/example/README.md)

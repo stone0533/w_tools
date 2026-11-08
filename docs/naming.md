@@ -237,6 +237,11 @@
 | 一次性入参 | `Params` | `Options` | 一次调用有效，跨调用复用就归 `Options` / `Settings` |
 | 运行期控制 | `Controller` | `State` | 有生命周期、命令式方法（`WAsyncController`）；纯数据用 `State` |
 
+#### async 的窄角色
+
+- `Activity`（`WAsyncActivity`）：并发活动计数器，不是加载视图；新代码优先复用，不另造 `LoadingCounter`。
+- `Views`（`WAsyncThemeViews`）：默认视图解析器；新代码优先复用，不另造 `Resolver`。
+
 ### 3.4 Config 的硬约束
 
 - 构造是 `const`，字段全是 `final`，实现 `==` / `hashCode`；背景见 [ADR-0004](adr/0004-component-config-model.md)。

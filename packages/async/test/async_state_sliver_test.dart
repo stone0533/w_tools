@@ -130,9 +130,11 @@ void main() {
     expect(find.text('Retry'), findsNothing);
   });
 
-  testWidgets('未传 onRetry 时不调用自定义 error / banner builder', (tester) async {
+  testWidgets('未传 onRetry 时自定义 error / banner builder 仍会收到 null', (tester) async {
     var errorBuilderCalls = 0;
     var bannerBuilderCalls = 0;
+    VoidCallback? errorRetry;
+    VoidCallback? bannerRetry;
 
     Widget build(WAsyncState<int> state) {
       return CustomScrollView(
@@ -142,10 +144,12 @@ void main() {
             readySliverBuilder: (context, value) => SliverToBoxAdapter(child: Text('ready-$value')),
             errorBuilder: (context, error, retry) {
               errorBuilderCalls++;
+              errorRetry = retry;
               return const Text('custom-error');
             },
             errorBannerBuilder: (context, error, retry) {
               bannerBuilderCalls++;
+              bannerRetry = retry;
               return const Text('custom-banner');
             },
           ),
@@ -154,14 +158,16 @@ void main() {
     }
 
     await tester.pumpWidget(_host(build(const WAsyncState.failed('boom'))));
-    expect(find.text('custom-error'), findsNothing);
-    expect(errorBuilderCalls, 0);
+    expect(find.text('custom-error'), findsOneWidget);
+    expect(errorBuilderCalls, 1);
+    expect(errorRetry, isNull);
 
     await tester.pumpWidget(
       _host(build(const WAsyncState.failed('boom', previousData: 1))),
     );
-    expect(find.text('custom-banner'), findsNothing);
-    expect(bannerBuilderCalls, 0);
+    expect(find.text('custom-banner'), findsOneWidget);
+    expect(bannerBuilderCalls, 1);
+    expect(bannerRetry, isNull);
   });
 
   testWidgets('传了 onRetry 时自定义 error builder 优先于默认视图', (tester) async {
@@ -183,5 +189,58 @@ void main() {
 
     expect(find.text('custom-error'), findsOneWidget);
     expect(find.byType(WAsyncErrorView), findsNothing);
+  });
+
+  testWidgets('retry 同步抛错可被 onRetryError 观测', (tester) async {
+    Object? reported;
+
+    await tester.pumpWidget(
+      _host(
+        CustomScrollView(
+          slivers: [
+            WAsyncStateSliver<int>(
+              state: ValueNotifier(const WAsyncState.failed('boom')),
+              onRetry: () => throw Exception('sync retry'),
+              onRetryError: (error, _) => reported = error,
+              readySliverBuilder: (context, value) =>
+                  SliverToBoxAdapter(child: Text('ready-$value')),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+
+    expect(reported, isA<Exception>());
+  });
+
+  testWidgets('retry 失败且无 onRetryError 时走 FlutterError.reportError', (tester) async {
+    final errors = <FlutterErrorDetails>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = errors.add;
+    addTearDown(() => FlutterError.onError = previous);
+
+    await tester.pumpWidget(
+      _host(
+        CustomScrollView(
+          slivers: [
+            WAsyncStateSliver<int>(
+              state: ValueNotifier(const WAsyncState.failed('boom')),
+              onRetry: () async => throw Exception('retry failed'),
+              readySliverBuilder: (context, value) =>
+                  SliverToBoxAdapter(child: Text('ready-$value')),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(errors, isNotEmpty);
   });
 }

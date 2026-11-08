@@ -10,7 +10,7 @@ import 'package:flutter/foundation.dart';
 ///
 /// Future<void> loadGifts() async {
 ///   final result = await WAsync.run(() => api.gifts());
-///   gifts = WAsyncState.ofList(result);
+///   gifts = WAsyncState.list(result);
 /// }
 /// ```
 enum WAsyncStatus {
@@ -56,12 +56,20 @@ class WAsyncState<T> {
 
   /// 列表类数据的便捷构造：null 或空列表都视为 [empty]。
   ///
+  /// 与 `WAsyncController.list` 命名对称：
+  ///
   /// ```dart
-  /// final state = WAsyncState.ofList<Gift>(result);
+  /// final state = WAsyncState.list<Gift>(result);
   /// ```
-  static WAsyncState<List<E>> ofList<E>(List<E>? list) => (list == null || list.isEmpty)
+  static WAsyncState<List<E>> list<E>(List<E>? list) => (list == null || list.isEmpty)
       ? WAsyncState<List<E>>.empty()
       : WAsyncState<List<E>>.ready(list);
+
+  /// 列表类数据的便捷构造；保留旧名，改用 [list]。
+  ///
+  /// remove-in: 7.0.0
+  @Deprecated('Use WAsyncState.list instead.')
+  static WAsyncState<List<E>> ofList<E>(List<E>? list) => WAsyncState.list<E>(list);
 
   final WAsyncStatus status;
   final T? data;
@@ -93,13 +101,6 @@ class WAsyncState<T> {
 
   /// 是否是在保留旧数据的前提下刷新。
   bool get isRefreshing => isLoading && data != null;
-
-  /// 保留已有数据的错误信息（超过 [maxLength] 时截断，避免日志/文案过长）。
-  String errorMessage({int maxLength = 120}) {
-    final limit = maxLength < 0 ? 0 : maxLength;
-    final text = error?.toString() ?? '';
-    return text.length <= limit ? text : '${text.substring(0, limit)}…';
-  }
 
   @override
   bool operator ==(Object other) =>
