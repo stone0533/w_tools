@@ -13,7 +13,6 @@ version: 1
 configs:
   WLocaleConfig: 不可变数据载体，允许
   WApiConfig: 遗留可变静态配置，冻结新增，下个 major 再评估
-  WAppConfig: 遗留可变静态配置，冻结新增，下个 major 再评估
 
 # 不套 W 前缀的公开类型（api 数据层）
 prefixes:

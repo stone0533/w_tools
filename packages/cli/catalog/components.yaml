@@ -790,8 +790,8 @@ components:
     teach: false
   - name: '`WBottomSheet`'
     package: 'w_tools_app_getx'
-    docsAnchor: '7-wbottomsheet---底部弹窗'
-    section: '7. WBottomSheet - 底部弹窗'
+    docsAnchor: '6-wbottomsheet---底部弹窗'
+    section: '6. WBottomSheet - 底部弹窗'
     useFor: '底部面板外壳'
     usage: |
       final result = await WBottomSheet.show<String>(
@@ -801,7 +801,7 @@ components:
     pitfalls:
       - '基于 Get.bottomSheet；需要 GetX 运行时'
     related: ['`WApp`']
-    teach: false
+    teach: true
   - name: '`WFormPopup`'
     package: 'w_tools_form'
     docsAnchor: '6-wformpopup--弹出层'
@@ -1031,44 +1031,63 @@ components:
       final app = WApp.options(
         WAppOptions(
           title: 'Demo',
-          initialRoute: '/',
-          getPages: [GetPage(name: '/', page: () => const HomePage())],
-          localeConfig: const WLocaleConfig(
+          home: const HomePage(),
+          localeConfig: WLocaleConfig(
             supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-            defaultLanguage: 'zh_CN',
+            initialLanguage: 'zh_CN',
           ),
-          appWrapper: (child) => WAsyncTheme(child: child),
         ),
       );
       await app.start();
+      app.language.changeLanguage('en_US');
+      app.routeStack.popUntilRoute('/');
     pitfalls:
       - 'WApp 在 w_tools_app_getx，不在 core w_tools_app'
-      - 'start() 只调用一次'
-      - 'title / orientations / systemUiOverlayStyle / appWrapper 只能放 WAppOptions，start() 参数改不了'
-    related: ['`WAppPlugin`', '`WAppOptions`']
+      - 'start() / run() 只能调用一次'
+      - '语言与路由栈是实例状态：app.language / app.routeStack，没有全局单例'
+    related: ['`WAppPlugin`', '`WAppOptions`', '`WLanguage`']
     teach: true
   - name: '`WAppOptions`'
     package: 'w_tools_app_getx'
     docsAnchor: 'wappoptions-字段'
     section: '1. WApp - 启动器'
-    useFor: 'WApp 的标题 / 主题 / GetX 路由 / 语言 / 包装器配置'
+    useFor: 'WApp 的标题 / 路由 / 外观 / 语言 / 包装器配置'
     dontUseFor: '不要手写 runApp；入口用 WApp.options(...).start()'
     usage: |
-      const options = WAppOptions(
+      final options = WAppOptions(
         title: 'Demo',
-        getPages: [GetPage(name: '/', page: () => const HomePage())],
+        home: const HomePage(), // 或 initialRoute + getPages
+        theme: WAppTheme(light: ThemeData.light()),
         localeConfig: WLocaleConfig(
           supportedLanguages: {'zh_CN': '简体中文'},
-          defaultLanguage: 'zh_CN',
+          initialLanguage: 'zh_CN',
         ),
         plugins: [AnalyticsPlugin()],
         appWrapper: (child) => WAsyncTheme(child: child),
       );
     pitfalls:
-      - 'getPages / translations 属于 GetX 路由与语言配置'
+      - 'home 为 null 时必须提供 initialRoute + getPages'
       - 'start() 只覆盖 initialRoute / getPages / builder / navigatorObservers / defaultTransition / theme / translations / locale / fallbackLocale；其余字段只能放 WAppOptions'
-    related: ['`WApp`']
+      - '外观统一放 WAppTheme；不要往 WAppOptions 加视觉字段'
+    related: ['`WApp`', '`WAppTheme`', '`WLocaleConfig`']
     teach: true
+  - name: '`WAppTheme`'
+    package: 'w_tools_app_getx'
+    docsAnchor: 'wapptheme-字段'
+    section: '1. WApp - 启动器'
+    useFor: '应用外观：亮/暗主题、主题模式、系统栏'
+    dontUseFor: '不要用 WAsyncTheme；它是 Widget，本类型是配置'
+    usage: |
+      WAppTheme(
+        light: ThemeData.light(),
+        dark: ThemeData.dark(),
+        mode: ThemeMode.system,
+        systemUiOverlayStyle: SystemUiOverlayStyle.dark,
+      )
+    pitfalls:
+      - '通过 WAppOptions.theme 传入；不是 Widget'
+    related: ['`WAppOptions`', '`WApp`']
+    teach: false
   - name: '`WAppPlugin`'
     package: 'w_tools_app'
     docsAnchor: '2-wappplugin---插件接口'
@@ -1312,43 +1331,32 @@ components:
 
   - name: '`WLanguage`'
     package: 'w_tools_app_getx'
-    docsAnchor: '4-wlanguage---语言管理'
-    section: '4. WLanguage - 语言管理'
-    useFor: '语言切换 / `languageStream`'
-    dontUseFor: '不要直接改 `WAppConfig.currentLanguage` 后期待通知'
+    docsAnchor: '3-wlanguage---语言管理'
+    section: '3. WLanguage - 语言管理'
+    useFor: '实例级语言状态 / 切换 / 只读变化流'
+    dontUseFor: '不要自己保存 currentLanguage；用 app.language'
     usage: |
-      WLanguage().changeLanguage('zh_CN');
-      WLanguage().languageStream.listen((code) { ... });
-      WLanguage().currentLanguageName;
+      app.language.changeLanguage('zh_CN');
+      app.language.languageChanges.listen((code) { ... });
+      app.language.languageListenable; // ValueListenable
     pitfalls:
-      - '未在 supportedLanguages 中的语言会被忽略'
-    related: ['`WAppConfig`', '`WLocaleConfig`']
-    teach: false
-  - name: '`WAppConfig`'
-    package: 'w_tools_app_getx'
-    docsAnchor: '3-wappconfig---应用配置'
-    section: '3. WAppConfig - 应用配置'
-    useFor: '语言列表与当前语言真源'
-    dontUseFor: '非响应式；切换用 `WLanguage`'
-    usage: |
-      WAppConfig.supportedLanguages = {'zh_CN': '简体中文', 'en_US': 'English'};
-      WAppConfig.currentLanguage;
-    pitfalls:
-      - '直接改 currentLanguage 不会通知；响应式切换用 WLanguage'
-    related: ['`WLanguage`']
+      - '不再有全局单例；每个 WApp 持有自己的 app.language'
+      - '未在 supportedLanguages 中的语言会被拒绝并返回 false'
+    related: ['`WLocaleConfig`', '`WApp`']
     teach: false
   - name: '`WRouteObserver`'
     package: 'w_tools_app_getx'
-    docsAnchor: '6-wrouteobserver---路由观察者'
-    section: '6. WRouteObserver - 路由观察者'
+    docsAnchor: '5-wrouteobserver---路由观察者'
+    section: '5. WRouteObserver - 路由观察者'
     useFor: '维护 `WRouteStack` 路由栈'
     dontUseFor: '不要重复添加；WApp 已自动追加'
     usage: |
-      // 默认由 WApp 自动追加；只有自定义栈时才手动创建
-      final observer = WRouteObserver();
+      // 默认由 WApp 自动追加；自定义栈时：
+      final observer = WRouteObserver(stack: app.routeStack);
     pitfalls:
-      - 'WApp 已自动追加，重复添加会让路由栈重复记录'
-    related: ['`WRouteStack`']
+      - 'WApp 已自动追加；重复添加会让路由栈重复记录'
+      - '默认不记录 PopupRoute；需要时 recordPopups: true'
+    related: ['`WRouteStack`', '`WApp`']
     teach: false
   - name: '`WQrView`'
     package: 'w_tools_qr'
@@ -1409,16 +1417,16 @@ components:
     teach: true
   - name: '`WRouteStack`'
     package: 'w_tools_app_getx'
-    docsAnchor: '5-wroutestack---路由栈管理'
-    section: '5. WRouteStack - 路由栈管理'
-    useFor: '路由栈操作（`WRouteStack.defaultStack` / `app.routeStack`）'
+    docsAnchor: '4-wroutestack---路由栈管理'
+    section: '4. WRouteStack - 路由栈管理'
+    useFor: '路由栈操作（`app.routeStack`）'
     usage: |
-      WRouteStack.defaultStack.popUntilRoute('/home');
-      WRouteStack.defaultStack.routes;
+      app.routeStack.popUntilRoute('/home');
+      app.routeStack.routes;
     pitfalls:
-      - '新代码优先用 app.routeStack；defaultStack 是旧静态入口'
+      - '每个 WApp 持有自己的栈；没有全局 defaultStack'
     related: ['`WRouteObserver`', '`WApp`']
-    teach: false
+    teach: true
   - name: '`WNumExtension`'
     package: 'w_tools_ui'
     docsAnchor: 'wnumextension'
@@ -2137,13 +2145,14 @@ components:
     package: 'w_tools_app_getx'
     docsAnchor: 'wappoptions-字段'
     section: '1. WApp - 启动器'
-    useFor: '语言支持列表与默认回退语言（WAppOptions.localeConfig）'
+    useFor: '语言支持列表、首次启动语言与回退语言（WAppOptions.localeConfig）'
     usage: |
-      const WLocaleConfig(
+      WLocaleConfig(
         supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-        defaultLanguage: 'zh_CN',
+        initialLanguage: 'zh_CN',
+        fallbackLanguage: 'en_US',
       )
     pitfalls:
-      - '当前语言不在 supportedLanguages 时回退到 defaultLanguage；defaultLanguage 为 null 时不回退'
+      - 'initialLanguage / fallbackLanguage 必须出现在 supportedLanguages 中'
     related: ['`WAppOptions`', '`WLanguage`']
     teach: false

@@ -201,6 +201,9 @@
 补充：
 
 - `Options` 只装行为 / 生命周期，不装 UI；视觉一律 `Style`。
+  例外：`WAppOptions` 是应用组合根，不是组件 Options；允许 `home` / `builder` / `appWrapper`
+  这类组合根字段。应用外观统一走 `WAppTheme`（`theme` / `darkTheme` / `themeMode` /
+  `systemUiOverlayStyle`），不要再往 `WAppOptions` 加视觉字段。
 - `Options` 里必须有行为字段；如果全是数据，不要用 `Options`：视觉参数走 `Style`，
   组件内部流转的数据走 `Data`，其余独立的不可变值对象走 `Config`（`Theme` 只在需要给子树
   提供默认值时用）。

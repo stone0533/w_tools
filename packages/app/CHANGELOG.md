@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- 文档：修正 `WAppPlugin` 生命周期顺序与契约层引用；补 `wrapApp` 保留 child 的测试。
+
 ## 3.0.0
 
 ### Breaking

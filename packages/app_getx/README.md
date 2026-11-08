@@ -10,17 +10,17 @@
 ## 特性
 
 - **一站式启动**：`app.start()` = `init()` + `run()`；入口是 `WApp.options(...)`
-- **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层并行、跨层串行）；它是**消费方自建插件**的扩展点，子包不自带插件，包级主题用 `WAppOptions.appWrapper` / `builder`
+- **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层并行、跨层串行）
+- **实例级状态**：`app.language` / `app.routeStack`，没有全局单例
+- **语言切换**：`WLanguage` + `WLocaleConfig`（支持初始化语言与回退语言）
 - **路由工具**：`WRouteStack` / `WRouteObserver` 记录与操作 GetX 路由
-- **语言切换**：`WLanguage` 统一管理当前语言与支持语言
 - **底部弹窗**：`WBottomSheet.show()`
-- **全局配置**：`WAppConfig`
 
 ## 安装
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^1.0.1
+  w_tools_app_getx: ^2.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -29,15 +29,13 @@ dependencies:
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 Future<void> main() async {
   final app = WApp.options(
     WAppOptions(
       title: 'Demo',
-      initialRoute: '/',
-      getPages: [GetPage(name: '/', page: () => const HomePage())],
+      home: const HomePage(), // 或 initialRoute + getPages
     ),
   );
 
@@ -58,7 +56,14 @@ class AnalyticsPlugin with WAppPlugin {
   }
 }
 
-final app = WApp.options(const WAppOptions(title: 'Demo'))..addPlugin(AnalyticsPlugin());
+final app = WApp.options(
+  WAppOptions(
+    title: 'Demo',
+    home: const HomePage(),
+    plugins: [AnalyticsPlugin()],
+  ),
+);
+await app.start();
 ```
 
 ## 生命周期
@@ -66,39 +71,40 @@ final app = WApp.options(const WAppOptions(title: 'Demo'))..addPlugin(AnalyticsP
 ```text
 init()   可重复 / 并发调用；只执行一次插件 onInit
 start()  = init() + run()，只调用一次
-run()    通常由 start 调用；重复调用会再次 runApp
+run()    通常由 start 调用；只能调用一次
 ```
 
 初始化失败时 `isInitialized` 保持 false；再次调用 `init()` 会重新执行插件 `onInit`。
+`init` 之后再修改插件列表会抛 `StateError`。
 
-## 语言与路由
+## 语言
 
 ```dart
-WAppConfig.supportedLanguages = {
-  'zh_CN': '简体中文',
-  'en_US': 'English',
-};
-
-WApp.options(
+final app = WApp.options(
   WAppOptions(
     title: 'Demo',
-    localeConfig: const WLocaleConfig(
+    home: const HomePage(),
+    localeConfig: WLocaleConfig(
       supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-      defaultLanguage: 'zh_CN', // 当前语言不在列表时回退
+      initialLanguage: 'zh_CN',   // 首次启动语言
+      fallbackLanguage: 'en_US',  // 当前语言不受支持时回退
     ),
   ),
-).start();
+);
+await app.start();
 
-WLanguage().changeLanguage('zh_CN');
-WLanguage().languageStream.listen((code) {
+app.language.changeLanguage('en_US');
+app.language.languageChanges.listen((code) {
   // 更新 UI
 });
 ```
 
+## 路由
+
 ```dart
-// WApp 运行后，WRouteObserver 会维护 WRouteStack.defaultStack
-WRouteStack.defaultStack.popUntilRoute('/home');
-WApp.routeStack.routes; // 或 app.routeStack
+// WApp 自动维护 app.routeStack，不需要手动添加 WRouteObserver
+app.routeStack.popUntilRoute('/home');
+app.routeStack.routes;
 
 final result = await WBottomSheet.show<String>(const MySheetContent());
 ```
@@ -112,9 +118,10 @@ final result = await WBottomSheet.show<String>(const MySheetContent());
 |---|---|
 | 应用启动 | `WApp` / `app.start()` |
 | 插件契约 | `WAppPlugin` / `WAppPlugin.dependsOn` |
-| 配置 | `WAppConfig` |
-| 路由 | `WRouteStack` / `WRouteObserver` |
-| 语言 | `WLanguage` |
+| 应用配置 | `WAppOptions` / `WLocaleConfig` |
+| 应用外观 | `WAppTheme` |
+| 语言 | `app.language`（`WLanguage`） |
+| 路由 | `app.routeStack` / `WRouteObserver` |
 | 底部弹窗 | `WBottomSheet` |
 
 ## 完整示例
@@ -123,8 +130,8 @@ final result = await WBottomSheet.show<String>(const MySheetContent());
 
 ## 历史迁移
 
-升级前先看 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)：
-每个包的 breaking 变更都有「旧 → 新」对照，不只是变更清单。
+从 1.x 升级先看 [`docs/migrations/app_getx-2.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/app_getx-2.0.md)：
+`WAppConfig` / `WRouteStack.defaultStack` / 全局 `WLanguage()` 已移除。
 
 ## License
 

@@ -18,7 +18,7 @@ class AppServicePlugin extends WAppPlugin {
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^1.0.1
+  w_tools_app_getx: ^2.0.0
 ```
 
 `w_tools_app_getx` 会 re-export 本包的 `WAppPlugin`。

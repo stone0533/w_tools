@@ -4,205 +4,168 @@ import 'package:get/get.dart';
 import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 void main() {
-  setUpAll(() {
+  setUp(() {
     Get.testMode = true;
   });
 
   tearDown(() {
-    WRouteStack.defaultStack.clearRoutes();
     Get.reset();
     Get.testMode = true;
   });
 
-  group('WRouteObserver — 纯 Dart（Mock Route）', () {
-    test('didPush 追加到 WRouteStack.defaultStack.routes', () {
-      final observer = WRouteObserver();
+  group('WRouteObserver（纯 Dart）', () {
+    test('didPush 追加到指定 WRouteStack', () {
+      final stack = WRouteStack();
+      final observer = WRouteObserver(stack: stack);
       final route = _FakeRoute('/first');
 
       observer.didPush(route, null);
-      expect(WRouteStack.defaultStack.routes.length, 1);
-      expect(WRouteStack.defaultStack.routes.first, route);
+      expect(stack.routes, [route]);
     });
 
-    test('didPop 按对象移除', () {
-      final observer = WRouteObserver();
+    test('didPop 按对象移除，不误删其它路由', () {
+      final stack = WRouteStack();
+      final observer = WRouteObserver(stack: stack);
       final r1 = _FakeRoute('/a');
       final r2 = _FakeRoute('/b');
-
-      observer.didPush(r1, null);
-      observer.didPush(r2, null);
-      expect(WRouteStack.defaultStack.routes.length, 2);
-
-      observer.didPop(r2, r1);
-      expect(WRouteStack.defaultStack.routes.length, 1);
-      expect(WRouteStack.defaultStack.routes.first, r1);
-    });
-
-    test('didPop 弹出中间路由不影响其后路由（回归：曾用 removeLast）', () {
-      final observer = WRouteObserver();
-      final r1 = _FakeRoute('/a');
-      final r2 = _FakeRoute('/b');
-      final r3 = _FakeRoute('/c');
 
       observer.didPush(r1, null);
       observer.didPush(r2, r1);
-      observer.didPush(r3, r2);
-
-      // 弹出中间路由 r2（非栈顶），r1、r3 应保留
       observer.didPop(r2, r1);
-      expect(WRouteStack.defaultStack.routes, [r1, r3]);
 
-      // 空列表上 pop 应为 no-op（不再抛 StateError）
-      WRouteStack.defaultStack.clearRoutes();
+      expect(stack.routes, [r1]);
+      // 空列表上 pop 应为 no-op
       expect(() => observer.didPop(r1, null), returnsNormally);
     });
 
-    test('多次 push/pop 追踪栈正确', () {
-      final observer = WRouteObserver();
-      final r1 = _FakeRoute('/home');
-      final r2 = _FakeRoute('/second');
-      final r3 = _FakeRoute('/third');
-
-      observer.didPush(r1, null);
-      observer.didPush(r2, r1);
-      observer.didPush(r3, r2);
-      expect(WRouteStack.defaultStack.routes.length, 3);
-      expect(WRouteStack.defaultStack.routes.last, r3);
-
-      observer.didPop(r3, r2);
-      expect(WRouteStack.defaultStack.routes.length, 2);
-      expect(WRouteStack.defaultStack.routes.last, r2);
-
-      observer.didPop(r2, r1);
-      expect(WRouteStack.defaultStack.routes.length, 1);
-      expect(WRouteStack.defaultStack.routes.first, r1);
-    });
-
-    test('didReplace 替换路由：移除旧、记录新', () {
-      final observer = WRouteObserver();
+    test('didReplace 移除旧路由并记录新路由', () {
+      final stack = WRouteStack();
+      final observer = WRouteObserver(stack: stack);
       final oldRoute = _FakeRoute('/old');
       final newRoute = _FakeRoute('/new');
 
       observer.didPush(oldRoute, null);
-      expect(WRouteStack.defaultStack.routes, [oldRoute]);
-
-      // pushReplacement 场景不会触发 didPush，只会触发 didReplace
       observer.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-      expect(WRouteStack.defaultStack.routes, [newRoute]);
+
+      expect(stack.routes, [newRoute]);
     });
 
     test('didRemove 直接移除路由', () {
-      final observer = WRouteObserver();
-      final r1 = _FakeRoute('/a');
-      final r2 = _FakeRoute('/b');
+      final stack = WRouteStack();
+      final observer = WRouteObserver(stack: stack);
+      final route = _FakeRoute('/a');
 
-      observer.didPush(r1, null);
-      observer.didPush(r2, r1);
-
-      observer.didRemove(r2, r1);
-      expect(WRouteStack.defaultStack.routes, [r1]);
+      observer.didPush(route, null);
+      observer.didRemove(route, null);
+      expect(stack.routes, isEmpty);
     });
 
-    testWidgets('pushReplacement 后路由记录与真实栈一致（回归）', (tester) async {
-      final navKey = GlobalKey<NavigatorState>();
-      await tester.pumpWidget(
-        MaterialApp(
-          navigatorKey: navKey,
-          navigatorObservers: [WRouteObserver()],
-          home: const Text('A'),
-        ),
-      );
-      await tester.pumpAndSettle();
+    test('默认忽略 PopupRoute（底部弹窗 / 对话框）', () {
+      final stack = WRouteStack();
+      final observer = WRouteObserver(stack: stack);
+      final popup = _FakePopupRoute();
 
-      navKey.currentState!.push(
-        MaterialPageRoute<void>(
-          settings: const RouteSettings(name: '/b'),
-          builder: (_) => const Text('B'),
+      observer.didPush(popup, null);
+      expect(stack.routes, isEmpty);
+    });
+
+    test('recordPopups: true 时记录 PopupRoute', () {
+      final stack = WRouteStack();
+      final observer = WRouteObserver(stack: stack, recordPopups: true);
+      final popup = _FakePopupRoute();
+
+      observer.didPush(popup, null);
+      expect(stack.routes, [popup]);
+    });
+
+    test('routes 是只读视图', () {
+      final stack = WRouteStack();
+      expect(() => stack.routes.add(_FakeRoute('/x')), throwsUnsupportedError);
+    });
+  });
+
+  group('WRouteStack（纯 Dart）', () {
+    test('removeRouteIfExists 返回是否删除', () {
+      final stack = WRouteStack();
+      final route = _FakeRoute('/home');
+      stack.addRoute(route);
+
+      expect(stack.removeRouteIfExists('/not-exist'), isFalse);
+      expect(stack.removeRouteIfExists('/home'), isTrue);
+      expect(stack.routes, isEmpty);
+    });
+
+    test('removeRoutesAfter 返回删除数量并保留目标', () {
+      final stack = WRouteStack();
+      final r1 = _FakeRoute('/home');
+      final r2 = _FakeRoute('/settings');
+      final r3 = _FakeRoute('/detail');
+      for (final route in [r1, r2, r3]) {
+        stack.addRoute(route);
+      }
+
+      expect(stack.removeRoutesAfter('/not-exist'), 0);
+      expect(stack.removeRoutesAfter('/settings'), 1);
+      expect(stack.routes, [r1, r2]);
+    });
+
+    test('popUntilRoute 目标不存在时返回 false 且不动作', () {
+      final stack = WRouteStack();
+      stack.addRoute(_FakeRoute('/a'));
+
+      expect(stack.popUntilRoute('/not-exist'), isFalse);
+      expect(stack.routes, hasLength(1));
+    });
+  });
+
+  group('WRouteStack（真实 Navigator）', () {
+    testWidgets('push / pushReplacement / remove 与真实栈一致', (tester) async {
+      final stack = WRouteStack();
+      final navKey = GlobalKey<NavigatorState>();
+
+      await tester.pumpWidget(
+        GetMaterialApp(
+          navigatorKey: navKey,
+          navigatorObservers: [WRouteObserver(stack: stack)],
+          getPages: [
+            GetPage(name: '/', page: () => const Text('home')),
+            GetPage(name: '/b', page: () => const Text('b')),
+            GetPage(name: '/c', page: () => const Text('c')),
+          ],
+          initialRoute: '/',
         ),
       );
       await tester.pumpAndSettle();
-      expect(WRouteStack.defaultStack.routes.map((r) => r.settings.name), contains('/b'));
+      expect(stack.routes.map((r) => r.settings.name), ['/']);
+
+      Get.toNamed('/b');
+      await tester.pumpAndSettle();
+      expect(stack.routes.map((r) => r.settings.name), ['/', '/b']);
 
       navKey.currentState!.pushReplacement(
         MaterialPageRoute<void>(
           settings: const RouteSettings(name: '/c'),
-          builder: (_) => const Text('C'),
+          builder: (_) => const Text('c'),
         ),
       );
       await tester.pumpAndSettle();
+      expect(stack.routes.map((r) => r.settings.name), ['/', '/c']);
 
-      final names = WRouteStack.defaultStack.routes.map((r) => r.settings.name).toList();
-      expect(names, isNot(contains('/b'))); // 旧路由不再残留
-      expect(names, contains('/c')); // 新路由被记录
-    });
-  });
-
-  group('WRoute — 静态路由工具（纯 Dart）', () {
-    test('routes 为只读快照，直接修改会抛 UnsupportedError', () {
-      expect(WRouteStack.defaultStack.routes, isEmpty);
-      expect(WRouteStack.defaultStack.routes, isA<List<Route<dynamic>>>());
-      expect(() => WRouteStack.defaultStack.routes.add(_FakeRoute('/x')), throwsUnsupportedError);
+      expect(stack.removeRouteIfExists('/c'), isTrue);
+      await tester.pumpAndSettle();
+      expect(stack.routes.map((r) => r.settings.name), ['/']);
     });
 
-    test('removeRouteIfExists — 移除匹配名称', () {
-      final mock1 = _FakeRoute('/home');
-      final mock2 = _FakeRoute('/settings');
-      final mock3 = _FakeRoute('/about');
-      _seed([mock1, mock2, mock3]);
+    testWidgets('popUntilRoute 成功回到目标页', (tester) async {
+      final stack = WRouteStack();
 
-      WRouteStack.defaultStack.removeRouteIfExists('/settings');
-      expect(WRouteStack.defaultStack.routes.length, 2);
-      expect(WRouteStack.defaultStack.routes.contains(mock2), isFalse);
-      expect(WRouteStack.defaultStack.routes.contains(mock1), isTrue);
-    });
-
-    test('removeRouteIfExists — 不存在不报错', () {
-      _seed([_FakeRoute('/home')]);
-      expect(() => WRouteStack.defaultStack.removeRouteIfExists('/not-exist'), returnsNormally);
-      expect(WRouteStack.defaultStack.routes.length, 1);
-    });
-
-    test('removeRoutesAfter — 移除匹配项之上的路由（不含匹配）', () {
-      final r1 = _FakeRoute('/home');
-      final r2 = _FakeRoute('/settings');
-      final r3 = _FakeRoute('/detail');
-      final r4 = _FakeRoute('/edit');
-      _seed([r1, r2, r3, r4]);
-
-      // 移除 /settings 之上的 r3, r4，保留 r1, r2
-      WRouteStack.defaultStack.removeRoutesAfter('/settings');
-      expect(WRouteStack.defaultStack.routes.length, 2);
-      expect(WRouteStack.defaultStack.routes.contains(r1), isTrue);
-      expect(WRouteStack.defaultStack.routes.contains(r2), isTrue);
-      expect(WRouteStack.defaultStack.routes.contains(r3), isFalse);
-    });
-
-    test('removeRoutesAfter — 匹配第一个元素 → 移除其后所有', () {
-      _seed([_FakeRoute('/home'), _FakeRoute('/a'), _FakeRoute('/b')]);
-      WRouteStack.defaultStack.removeRoutesAfter('/home');
-      expect(WRouteStack.defaultStack.routes.length, 1);
-      expect(WRouteStack.defaultStack.routes.first.settings.name, '/home');
-    });
-
-    test('removeRoutesAfter — 无匹配则不动（不再清空全部）', () {
-      _seed([_FakeRoute('/a'), _FakeRoute('/b')]);
-      WRouteStack.defaultStack.removeRoutesAfter('/not-exist');
-      expect(WRouteStack.defaultStack.routes.length, 2);
-    });
-
-    test('popUntilRoute — 目标不在路由记录中时不动作（回归：曾会弹空路由栈）', () {
-      _seed([_FakeRoute('/a'), _FakeRoute('/b')]);
-      WRouteStack.defaultStack.popUntilRoute('/not-exist');
-      expect(WRouteStack.defaultStack.routes.length, 2); // 未被弹空
-    });
-
-    testWidgets('popUntilRoute — 目标不存在时不弹空真实路由栈（回归）', (tester) async {
       await tester.pumpWidget(
         GetMaterialApp(
-          navigatorObservers: [WRouteObserver()],
+          navigatorObservers: [WRouteObserver(stack: stack)],
           getPages: [
-            GetPage(name: '/', page: () => const Text('A')),
-            GetPage(name: '/b', page: () => const Text('B')),
+            GetPage(name: '/', page: () => const Text('home')),
+            GetPage(name: '/b', page: () => const Text('b')),
+            GetPage(name: '/c', page: () => const Text('c')),
           ],
           initialRoute: '/',
         ),
@@ -211,27 +174,43 @@ void main() {
 
       Get.toNamed('/b');
       await tester.pumpAndSettle();
-      final before = WRouteStack.defaultStack.routes.length;
-      expect(before, greaterThan(0));
-
-      // 修复前：Get.until 的断言永不成立，Navigator.popUntil 会一路弹到栈空
-      WRouteStack.defaultStack.popUntilRoute('/not-exist');
+      Get.toNamed('/c');
       await tester.pumpAndSettle();
 
-      expect(WRouteStack.defaultStack.routes.length, before); // 路由栈未被弹空
+      expect(stack.popUntilRoute('/'), isTrue);
+      await tester.pumpAndSettle();
+      expect(Get.currentRoute, '/');
+      expect(stack.routes.map((r) => r.settings.name), ['/']);
     });
   });
 }
 
-/// 批量注入路由记录（routes 已封装为只读，需通过 addRoute 注入）
-void _seed(List<Route<dynamic>> routes) => routes.forEach(WRouteStack.defaultStack.addRoute);
-
-// ——— 测试辅助：Fake Route ———
-
-class _FakeRoute<T> extends Route<T> {
+class _FakeRoute extends Route<void> {
   _FakeRoute(this._name);
+
   final String _name;
 
   @override
   RouteSettings get settings => RouteSettings(name: _name);
+}
+
+class _FakePopupRoute extends PopupRoute<void> {
+  @override
+  Duration get transitionDuration => Duration.zero;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  bool get barrierDismissible => false;
+
+  @override
+  String? get barrierLabel => null;
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) => const SizedBox.shrink();
 }

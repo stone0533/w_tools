@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:w_tools_app_getx/w_tools_app_getx.dart';
+import '../main.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key});
@@ -22,14 +22,14 @@ class DetailPage extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () {
-                WRouteStack.defaultStack.removeRouteIfExists('/detail');
-                Get.back();
+                // 移除当前路由即回到上一页，不需要再 Get.back()。
+                app.routeStack.removeRouteIfExists('/detail');
               },
               child: const Text('移除当前路由后返回'),
             ),
             TextButton(
-              onPressed: () => WRouteStack.defaultStack.popUntilRoute('/'),
-              child: const Text('回到首页（WRouteStack.defaultStack.popUntilRoute）'),
+              onPressed: () => app.routeStack.popUntilRoute('/'),
+              child: const Text('回到首页（app.routeStack.popUntilRoute）'),
             ),
           ],
         ),
