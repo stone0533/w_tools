@@ -119,6 +119,7 @@ final result = await WBottomSheet.show<String>(const MySheetContent());
 | 应用启动 | `WApp` / `app.start()` |
 | 插件契约 | `WAppPlugin` / `WAppPlugin.dependsOn` |
 | 应用配置 | `WAppOptions` / `WLocaleConfig` |
+| 应用外观 | `WAppTheme` |
 | 语言 | `app.language`（`WLanguage`） |
 | 路由 | `app.routeStack` / `WRouteObserver` |
 | 底部弹窗 | `WBottomSheet` |

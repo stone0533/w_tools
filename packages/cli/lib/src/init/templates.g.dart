@@ -1539,6 +1539,8 @@ const String agentsApp = r'''
 - **路由栈**：用 `app.routeStack`；`WRouteStack` / `WRouteObserver` 由 WApp 维护，
   没有全局 `defaultStack`。操作栈用 `app.routeStack.popUntilRoute(...)`。
 - **底部面板**：用 `WBottomSheet.show(...)`，不要直接用 `showModalBottomSheet`。
+- **应用外观**：`theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` 用 `WAppTheme`，
+  通过 `WAppOptions.theme` 传入。
 - **全局主题 / 默认视图**：用 `WAppOptions.appWrapper` 组合对应包的主题 Widget；
   需要 Theme / MediaQuery 的插件用 `builderWrapper`；不要为此让 app 依赖其它子包。
 ''';
@@ -1882,6 +1884,8 @@ const String agentsAppEn = r'''
 - **Route stack**: use `app.routeStack`; `WRouteStack` / `WRouteObserver` are maintained by WApp and
   there is no global `defaultStack`. Use `app.routeStack.popUntilRoute(...)`.
 - **Bottom sheet**: use `WBottomSheet.show(...)`, not `showModalBottomSheet`.
+- **Appearance**: put `theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` in `WAppTheme`,
+  passed via `WAppOptions.theme`.
 - **Global theme / defaults**: compose theme widgets with `WAppOptions.appWrapper`; plugins that need
   Theme/MediaQuery use `builderWrapper`; do not make the app package depend on other subpackages.
 ''';

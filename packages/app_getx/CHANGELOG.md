@@ -15,15 +15,17 @@
 - `WLanguage._internal` 私有构造删除（`WLanguage.new` 改为实例构造）。
 - `WRouteObserver.new` 必须传 `stack:`；默认不记录 `PopupRoute`（可 `recordPopups: true`）。
 - `WAppOptions.applyOrientations` 改为 `shouldApplyOrientations`；
-  `systemUiOverlayStyle` 默认改为 `null`（不主动干预）。
+  `WAppOptions.theme` 类型改为 `WAppTheme?`，删除 `WAppOptions.darkTheme` / `WAppOptions.themeMode` /
+  `WAppOptions.systemUiOverlayStyle`。
 - `WAppOptions.new` / `WAppOptions.copyWith` 改为非 const，新增 `home` 等字段；
   `WAppOptions` 现在做不可变拷贝并实现 `==` / `hashCode`。
 - `WApp.routeStack` 改为 `final`；自定义栈通过 `WAppOptions.routeStack` 注入。
 
 ### Added
-- `WAppOptions`：`home`、`routes`、`navigatorKey`、`darkTheme`、`themeMode`、
-  `supportedLocales`、`localizationsDelegates`、`routeStack`、`unknownRoute`、
-  `shouldApplyOrientations`；`WAppOptions` 的 `==` / `hashCode`。
+- `WAppOptions`：`home`、`routes`、`navigatorKey`、`supportedLocales`、
+  `localizationsDelegates`、`routeStack`、`unknownRoute`、`shouldApplyOrientations`；
+  `WAppOptions` 的 `==` / `hashCode`。
+- `WAppTheme`：亮/暗主题、主题模式与系统 UI 样式；`==` / `hashCode` / `copyWith`。
 - `WLanguage`：`languageChanges`、`languageListenable`、`hasExplicitSelection`。
 - `WRouteObserver`：`stack`、`recordPopups`。
 - `WApp`：`language`；`WLocaleConfig` 的 `==` / `hashCode` / `copyWith`。

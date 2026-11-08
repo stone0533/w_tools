@@ -10,3 +10,4 @@ export 'src/language/locale_config.dart';
 export 'src/routing/route_stack.dart';
 export 'src/routing/route_observer.dart';
 export 'src/sheet/bottom_sheet.dart';
+export 'src/theme/app_theme.dart';

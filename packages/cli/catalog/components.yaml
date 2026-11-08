@@ -1051,13 +1051,13 @@ components:
     package: 'w_tools_app_getx'
     docsAnchor: 'wappoptions-字段'
     section: '1. WApp - 启动器'
-    useFor: 'WApp 的标题 / 路由 / 主题 / 语言 / 包装器配置'
+    useFor: 'WApp 的标题 / 路由 / 外观 / 语言 / 包装器配置'
     dontUseFor: '不要手写 runApp；入口用 WApp.options(...).start()'
     usage: |
       final options = WAppOptions(
         title: 'Demo',
         home: const HomePage(), // 或 initialRoute + getPages
-        getPages: [GetPage(name: '/', page: () => const HomePage())],
+        theme: WAppTheme(light: ThemeData.light()),
         localeConfig: WLocaleConfig(
           supportedLanguages: {'zh_CN': '简体中文'},
           initialLanguage: 'zh_CN',
@@ -1068,9 +1068,26 @@ components:
     pitfalls:
       - 'home 为 null 时必须提供 initialRoute + getPages'
       - 'start() 只覆盖 initialRoute / getPages / builder / navigatorObservers / defaultTransition / theme / translations / locale / fallbackLocale；其余字段只能放 WAppOptions'
-      - 'orientations 不会自动应用；需要时显式 shouldApplyOrientations: true'
-    related: ['`WApp`', '`WLocaleConfig`']
+      - '外观统一放 WAppTheme；不要往 WAppOptions 加视觉字段'
+    related: ['`WApp`', '`WAppTheme`', '`WLocaleConfig`']
     teach: true
+  - name: '`WAppTheme`'
+    package: 'w_tools_app_getx'
+    docsAnchor: 'wapptheme-字段'
+    section: '1. WApp - 启动器'
+    useFor: '应用外观：亮/暗主题、主题模式、系统栏'
+    dontUseFor: '不要用 WAsyncTheme；它是 Widget，本类型是配置'
+    usage: |
+      WAppTheme(
+        light: ThemeData.light(),
+        dark: ThemeData.dark(),
+        mode: ThemeMode.system,
+        systemUiOverlayStyle: SystemUiOverlayStyle.dark,
+      )
+    pitfalls:
+      - '通过 WAppOptions.theme 传入；不是 Widget'
+    related: ['`WAppOptions`', '`WApp`']
+    teach: false
   - name: '`WAppPlugin`'
     package: 'w_tools_app'
     docsAnchor: '2-wappplugin---插件接口'

@@ -23,7 +23,8 @@
 | `WStepStyle` | ui | 步骤条颜色 / 尺寸 / 间距 / 标签样式 | 不要靠改 WStep 内部布局实现视觉；优先用 itemBuilder |
 | `WStepColors` | ui | WStepStyle.resolve 返回的 completed / current / upcoming 颜色 | 不要自己按 Brightness 推颜色；让 WStepStyle.resolve 解析主题 |
 | `WApp` | app_getx | GetX 启动器 | — |
-| `WAppOptions` | app_getx | WApp 的标题 / 路由 / 主题 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
+| `WAppOptions` | app_getx | WApp 的标题 / 路由 / 外观 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
+| `WAppTheme` | app_getx | 应用外观：亮/暗主题、主题模式、系统栏 | 不要用 WAsyncTheme；它是 Widget，本类型是配置 |
 | `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
 | `WAsync` | async | 无 UI 异步执行（tryRun / run / 组合器） | 页面四态用 `WAsyncController` + `WAsyncView`；不要用已删除的 `runValue` / `WAsyncLoading` |
 | `WAsyncOptions` | async | WAsync 的执行选项：并发活动计数与失败兜底回调 | Controller 不接 WAsyncOptions，只接 onError；不要用 activity 合并多个独立区块 |

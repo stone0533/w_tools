@@ -374,6 +374,7 @@ void main() {
       const names = <String>[
         'WApp',
         'WAppOptions',
+        'WAppTheme',
         'WAppPlugin',
         'WBottomSheet',
         'WLanguage',
@@ -391,6 +392,7 @@ void main() {
         for (final name in <String>[
           'WLanguage',
           'WLocaleConfig',
+          'WAppTheme',
           'WRouteStack',
           'WBottomSheet',
           'dependsOn',

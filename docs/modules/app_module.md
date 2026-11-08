@@ -82,9 +82,7 @@ await app.start();
 | `getPages` | `List<GetPage<dynamic>>?` | null | GetX 路由表；`home` 为 null 时必填 |
 | `routes` | `Map<String, WidgetBuilder>?` | null | 普通命名路由 |
 | `navigatorKey` | `GlobalKey<NavigatorState>?` | null | 自定义 Navigator key |
-| `theme` | `ThemeData?` | null | 亮色主题 |
-| `darkTheme` | `ThemeData?` | null | 暗色主题 |
-| `themeMode` | `ThemeMode?` | null | 主题模式，传给 `GetMaterialApp` |
+| `theme` | `WAppTheme?` | null | 应用外观（亮/暗主题、模式、系统栏） |
 | `translations` | `Translations?` | null | GetX 国际化翻译表 |
 | `locale` | `Locale?` | null | 当前语言 |
 | `fallbackLocale` | `Locale?` | null | 兜底语言 |
@@ -93,7 +91,6 @@ await app.start();
 | `builder` | `TransitionBuilder?` | null | GetMaterialApp.builder；位于插件 builderWrapper 链之后（更外层） |
 | `navigatorObservers` | `List<NavigatorObserver>?` | null | 额外的 navigator observers |
 | `defaultTransition` | `Transition?` | null | GetX 默认转场动画 |
-| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | null | 系统 UI 样式；`null` 表示不干预 |
 | `orientations` | `List<DeviceOrientation>` | `[portraitUp]` | 支持的屏幕方向 |
 | `shouldApplyOrientations` | `bool` | `false` | 是否启动时应用 `orientations` |
 | `appWrapper` | `Widget Function(Widget)?` | null | 包裹 GetMaterialApp；位于插件 wrapApp 之内 |
@@ -103,6 +100,17 @@ await app.start();
 | `unknownRoute` | `GetPage<dynamic>?` | null | GetX 未知路由 |
 
 `WAppOptions` 是不可变值对象：构造时会拷贝 list / map，并实现 `==` / `hashCode`。
+
+### WAppTheme 字段
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `light` | `ThemeData?` | null | 亮色主题 |
+| `dark` | `ThemeData?` | null | 暗色主题 |
+| `mode` | `ThemeMode` | `ThemeMode.system` | 主题模式 |
+| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | null | 系统 UI 样式；`null` 不干预 |
+
+`WAppTheme` 是应用外观值对象，实现 `==` / `hashCode` / `copyWith`；不要和 `WAsyncTheme`（Widget）混用。
 
 ### 插件管理方法
 
@@ -185,9 +193,11 @@ Future<void> main() async {
     WAppOptions(
       title: 'My App',
       home: const HomePage(),
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      theme: WAppTheme(
+        light: AppTheme.light,
+        dark: AppTheme.dark,
+        mode: ThemeMode.system,
+      ),
       translations: AppTranslations(),
       localeConfig: WLocaleConfig(
         supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
@@ -407,9 +417,11 @@ Future<void> main() async {
     WAppOptions(
       title: 'My App',
       home: const HomePage(),
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      theme: WAppTheme(
+        light: AppTheme.light,
+        dark: AppTheme.dark,
+        mode: ThemeMode.system,
+      ),
       translations: AppTranslations(),
       localeConfig: WLocaleConfig(
         supportedLanguages: {
@@ -451,6 +463,7 @@ Future<void> main() async {
 - **`WLanguage.currentLocale` 解析约定**：语言码用下划线或连字符分隔，支持脚本码（`zh_Hant_TW`）。
 - **语言列表是实例状态**：`app.language` 与 `WAppOptions.localeConfig` 二选一即可；
   `WAppConfig` 已删除，不再有全局静态语言配置。
+- **应用外观**：`theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` 统一放 `WAppTheme`；
 - **Flutter 本地化**：默认使用 `GlobalMaterialLocalizations.delegates`；
   需要自定义时传 `WAppOptions.localizationsDelegates`。
 

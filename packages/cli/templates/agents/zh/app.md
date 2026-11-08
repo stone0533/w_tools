@@ -9,5 +9,7 @@
 - **路由栈**：用 `app.routeStack`；`WRouteStack` / `WRouteObserver` 由 WApp 维护，
   没有全局 `defaultStack`。操作栈用 `app.routeStack.popUntilRoute(...)`。
 - **底部面板**：用 `WBottomSheet.show(...)`，不要直接用 `showModalBottomSheet`。
+- **应用外观**：`theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` 用 `WAppTheme`，
+  通过 `WAppOptions.theme` 传入。
 - **全局主题 / 默认视图**：用 `WAppOptions.appWrapper` 组合对应包的主题 Widget；
   需要 Theme / MediaQuery 的插件用 `builderWrapper`；不要为此让 app 依赖其它子包。

@@ -80,7 +80,7 @@ void main() {
       final base = WAppOptions(
         title: 'Demo',
         home: const SizedBox.shrink(),
-        theme: ThemeData.light(),
+        theme: WAppTheme(light: ThemeData.light()),
         navigatorObservers: const [],
       );
 
@@ -105,7 +105,36 @@ void main() {
         home: const SizedBox.shrink(),
       );
       expect(options.shouldApplyOrientations, isFalse);
-      expect(options.systemUiOverlayStyle, isNull);
+      expect(options.theme?.systemUiOverlayStyle, isNull);
+    });
+  });
+
+  group('WAppTheme', () {
+    test('值相等 / hashCode / copyWith', () {
+      final light = ThemeData.light();
+      final dark = ThemeData.dark();
+      final a = WAppTheme(light: light, dark: dark, mode: ThemeMode.dark);
+      final b = WAppTheme(light: light, dark: dark, mode: ThemeMode.dark);
+
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+
+      final copy = a.copyWith(mode: ThemeMode.light);
+      expect(copy.mode, ThemeMode.light);
+      expect(copy.light, same(light));
+      expect(copy.dark, same(dark));
+    });
+
+    test('WAppOptions.theme 接受 WAppTheme，copyWith 可清空', () {
+      final appTheme = WAppTheme(light: ThemeData.light());
+      final options = WAppOptions(
+        title: 'Demo',
+        home: const SizedBox.shrink(),
+        theme: appTheme,
+      );
+
+      expect(options.theme, same(appTheme));
+      expect(options.copyWith(theme: null).theme, isNull);
     });
   });
 

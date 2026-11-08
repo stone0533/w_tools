@@ -91,9 +91,11 @@ WApp createApp() {
     WAppOptions(
       title: 'w_tools_app 示例',
       initialRoute: '/',
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF0EA5E9),
-        useMaterial3: true,
+      theme: WAppTheme(
+        light: ThemeData(
+          colorSchemeSeed: const Color(0xFF0EA5E9),
+          useMaterial3: true,
+        ),
       ),
       appWrapper: (child) => RepaintBoundary(child: child),
       builder: (context, child) => MediaQuery(

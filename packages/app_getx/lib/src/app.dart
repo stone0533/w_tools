@@ -210,7 +210,7 @@ class WApp {
   }
 
   void _setupSystemUI() {
-    final style = options.systemUiOverlayStyle;
+    final style = options.theme?.systemUiOverlayStyle;
     if (style == null || kIsWeb) return;
     SystemChrome.setSystemUIOverlayStyle(style);
   }
@@ -260,7 +260,8 @@ class WApp {
 
     final effectiveDefaultTransition =
         defaultTransition ?? options.defaultTransition ?? Transition.topLevel;
-    final effectiveTheme = theme ?? options.theme;
+    final appTheme = options.theme;
+    final effectiveTheme = theme ?? appTheme?.light;
     final effectiveTranslations = translations ?? options.translations;
     final effectiveLocale =
         locale ?? options.locale ?? (language.hasExplicitSelection ? language.currentLocale : null);
@@ -320,8 +321,8 @@ class WApp {
           options.localizationsDelegates ?? GlobalMaterialLocalizations.delegates,
       defaultTransition: effectiveDefaultTransition,
       theme: effectiveTheme,
-      darkTheme: options.darkTheme,
-      themeMode: options.themeMode ?? ThemeMode.system,
+      darkTheme: appTheme?.dark,
+      themeMode: appTheme?.mode ?? ThemeMode.system,
     );
 
     final wrapper = options.appWrapper;

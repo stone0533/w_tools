@@ -16,6 +16,8 @@
 | `WRouteStack.defaultStack` | `app.routeStack`（或 `WAppOptions.routeStack` 注入） |
 | `WRouteObserver()` | `WRouteObserver(stack: app.routeStack)` |
 | `WAppOptions(applyOrientations: true)` | `WAppOptions(shouldApplyOrientations: true)` |
+| `WAppOptions(theme: ThemeData..., darkTheme: ..., themeMode: ...)` | `WAppOptions(theme: WAppTheme(light: ..., dark: ..., mode: ...))` |
+| `WAppOptions(systemUiOverlayStyle: ...)` | `WAppTheme(systemUiOverlayStyle: ...)` |
 | `WAppOptions(...)` 的 `const` 用法 | 去掉 `const`（内部做不可变拷贝） |
 | `WApp.routeStack = ...` | `WAppOptions(routeStack: ...)`（`WApp.routeStack` 为 final） |
 
@@ -26,7 +28,8 @@
    `WAppOptions.routeStack` 注入；
 3. 把 `defaultLanguage` 改为 `initialLanguage` / `fallbackLanguage`，
    两者都必须在 `supportedLanguages` 中；
-4. 去掉 `WAppOptions` 的 `const`；`applyOrientations` 改为 `shouldApplyOrientations`；
+4. 去掉 `WAppOptions` 的 `const`；`applyOrientations` 改为 `shouldApplyOrientations`，
+   外观字段收进 `WAppTheme`（`theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle`）；
 5. 如果项目需要中文 Material 控件，确认 `WAppOptions.localizationsDelegates` 或使用默认的
    `GlobalMaterialLocalizations.delegates`；
 6. 运行 `flutter analyze` 与 `flutter test`，按编译错误清理旧 API。

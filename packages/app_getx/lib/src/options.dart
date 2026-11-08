@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:w_tools_app/w_tools_app.dart';
 import 'language/locale_config.dart';
 import 'routing/route_stack.dart';
+import 'theme/app_theme.dart';
 
 /// `WApp` 的不可变配置。
 ///
@@ -31,8 +32,6 @@ class WAppOptions {
     Map<String, WidgetBuilder>? routes,
     this.navigatorKey,
     this.theme,
-    this.darkTheme,
-    this.themeMode,
     this.translations,
     this.locale,
     this.fallbackLocale,
@@ -41,7 +40,6 @@ class WAppOptions {
     this.builder,
     List<NavigatorObserver>? navigatorObservers,
     this.defaultTransition,
-    this.systemUiOverlayStyle,
     List<DeviceOrientation>? orientations,
     this.shouldApplyOrientations = false,
     this.appWrapper,
@@ -86,9 +84,7 @@ class WAppOptions {
   final List<GetPage<dynamic>>? getPages;
   final Map<String, WidgetBuilder>? routes;
   final GlobalKey<NavigatorState>? navigatorKey;
-  final ThemeData? theme;
-  final ThemeData? darkTheme;
-  final ThemeMode? themeMode;
+  final WAppTheme? theme;
   final Translations? translations;
   final Locale? locale;
   final Locale? fallbackLocale;
@@ -97,7 +93,6 @@ class WAppOptions {
   final TransitionBuilder? builder;
   final List<NavigatorObserver>? navigatorObservers;
   final Transition? defaultTransition;
-  final SystemUiOverlayStyle? systemUiOverlayStyle;
   final List<DeviceOrientation> orientations;
 
   /// 是否在启动时应用 [orientations]；默认 false。
@@ -119,8 +114,6 @@ class WAppOptions {
     Object? routes = _unset,
     Object? navigatorKey = _unset,
     Object? theme = _unset,
-    Object? darkTheme = _unset,
-    Object? themeMode = _unset,
     Object? translations = _unset,
     Object? locale = _unset,
     Object? fallbackLocale = _unset,
@@ -129,7 +122,6 @@ class WAppOptions {
     Object? builder = _unset,
     Object? navigatorObservers = _unset,
     Object? defaultTransition = _unset,
-    Object? systemUiOverlayStyle = _unset,
     Object? orientations = _unset,
     bool? shouldApplyOrientations,
     Object? appWrapper = _unset,
@@ -147,9 +139,7 @@ class WAppOptions {
       getPages: pick<List<GetPage<dynamic>>>(getPages, this.getPages),
       routes: pick<Map<String, WidgetBuilder>>(routes, this.routes),
       navigatorKey: pick<GlobalKey<NavigatorState>>(navigatorKey, this.navigatorKey),
-      theme: pick<ThemeData>(theme, this.theme),
-      darkTheme: pick<ThemeData>(darkTheme, this.darkTheme),
-      themeMode: pick<ThemeMode>(themeMode, this.themeMode),
+      theme: pick<WAppTheme>(theme, this.theme),
       translations: pick<Translations>(translations, this.translations),
       locale: pick<Locale>(locale, this.locale),
       fallbackLocale: pick<Locale>(fallbackLocale, this.fallbackLocale),
@@ -163,10 +153,6 @@ class WAppOptions {
         this.navigatorObservers,
       ),
       defaultTransition: pick<Transition>(defaultTransition, this.defaultTransition),
-      systemUiOverlayStyle: pick<SystemUiOverlayStyle>(
-        systemUiOverlayStyle,
-        this.systemUiOverlayStyle,
-      ),
       orientations: pick<List<DeviceOrientation>>(orientations, this.orientations),
       shouldApplyOrientations: shouldApplyOrientations ?? this.shouldApplyOrientations,
       appWrapper: pick<Widget Function(Widget)>(appWrapper, this.appWrapper),
@@ -188,8 +174,6 @@ class WAppOptions {
         mapEquals(other.routes, routes) &&
         other.navigatorKey == navigatorKey &&
         other.theme == theme &&
-        other.darkTheme == darkTheme &&
-        other.themeMode == themeMode &&
         other.translations == translations &&
         other.locale == locale &&
         other.fallbackLocale == fallbackLocale &&
@@ -201,7 +185,6 @@ class WAppOptions {
         other.builder == builder &&
         listEquals(other.navigatorObservers, navigatorObservers) &&
         other.defaultTransition == defaultTransition &&
-        other.systemUiOverlayStyle == systemUiOverlayStyle &&
         listEquals(other.orientations, orientations) &&
         other.shouldApplyOrientations == shouldApplyOrientations &&
         other.appWrapper == appWrapper &&
@@ -222,8 +205,6 @@ class WAppOptions {
     ),
     navigatorKey,
     theme,
-    darkTheme,
-    themeMode,
     translations,
     locale,
     fallbackLocale,
@@ -232,7 +213,6 @@ class WAppOptions {
     builder,
     Object.hashAll(navigatorObservers ?? const <NavigatorObserver>[]),
     defaultTransition,
-    systemUiOverlayStyle,
     Object.hashAll(orientations),
     shouldApplyOrientations,
     appWrapper,

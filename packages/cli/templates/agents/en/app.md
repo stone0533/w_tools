@@ -10,5 +10,7 @@
 - **Route stack**: use `app.routeStack`; `WRouteStack` / `WRouteObserver` are maintained by WApp and
   there is no global `defaultStack`. Use `app.routeStack.popUntilRoute(...)`.
 - **Bottom sheet**: use `WBottomSheet.show(...)`, not `showModalBottomSheet`.
+- **Appearance**: put `theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` in `WAppTheme`,
+  passed via `WAppOptions.theme`.
 - **Global theme / defaults**: compose theme widgets with `WAppOptions.appWrapper`; plugins that need
   Theme/MediaQuery use `builderWrapper`; do not make the app package depend on other subpackages.

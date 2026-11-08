@@ -12,7 +12,7 @@ Future<void> main() async {
     WAppOptions(
       title: 'Demo',
       home: const HomePage(),   // 或 initialRoute: '/', getPages: [...]
-      theme: ThemeData(useMaterial3: true),
+      theme: WAppTheme(light: ThemeData(useMaterial3: true)),
     ),
   );
   await app.start();          // = init() + run()，只调用一次
@@ -70,8 +70,9 @@ app.language.changeLanguage('en_US');
 
 `WAppOptions.copyWith(...)` 可复用配置；`start()` 只覆盖 `initialRoute / getPages / builder /
 navigatorObservers / defaultTransition / theme / translations / locale / fallbackLocale`，
-`title`、`home`、`orientations`、`shouldApplyOrientations`、`systemUiOverlayStyle`、`appWrapper`、
-`localeConfig`、`plugins` 等只能放 `WAppOptions`。
+`title`、`home`、`orientations`、`shouldApplyOrientations`、`appWrapper`、`localeConfig`、
+`plugins` 等只能放 `WAppOptions`；外观（theme / darkTheme / themeMode / systemUiOverlayStyle）
+统一放 `WAppTheme`。
 
 ## 组合全局主题（不需要插件）
 
