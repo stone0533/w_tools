@@ -184,4 +184,57 @@ void main() {
     expect(find.text('custom-error'), findsOneWidget);
     expect(find.byType(WAsyncErrorView), findsNothing);
   });
+
+  testWidgets('retry 同步抛错可被 onRetryError 观测', (tester) async {
+    Object? reported;
+
+    await tester.pumpWidget(
+      _host(
+        CustomScrollView(
+          slivers: [
+            WAsyncStateSliver<int>(
+              state: ValueNotifier(const WAsyncState.failed('boom')),
+              onRetry: () => throw Exception('sync retry'),
+              onRetryError: (error, _) => reported = error,
+              readySliverBuilder: (context, value) =>
+                  SliverToBoxAdapter(child: Text('ready-$value')),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+
+    expect(reported, isA<Exception>());
+  });
+
+  testWidgets('retry 失败且无 onRetryError 时走 FlutterError.reportError', (tester) async {
+    final errors = <FlutterErrorDetails>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = errors.add;
+    addTearDown(() => FlutterError.onError = previous);
+
+    await tester.pumpWidget(
+      _host(
+        CustomScrollView(
+          slivers: [
+            WAsyncStateSliver<int>(
+              state: ValueNotifier(const WAsyncState.failed('boom')),
+              onRetry: () async => throw Exception('retry failed'),
+              readySliverBuilder: (context, value) =>
+                  SliverToBoxAdapter(child: Text('ready-$value')),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(errors, isNotEmpty);
+  });
 }

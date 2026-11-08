@@ -135,6 +135,12 @@ final name = await WAsync.map<String, String>(
 - 只有 token 取消才算 `WAsyncCancelled`；任务自己抛 `WCancellationException` 仍算失败；
 - `onRetry == null` 时不会调用自定义 `errorBuilder` / `errorBannerBuilder`（它们需要可用的 retry）。
 
+并发组合器的边界：
+
+- `parallel` 失败后其余 Future 会继续执行，不会自动取消；
+- `first` 返回最先完成的结果，不会取消落败者；
+- `pool` 只上报第一个错误，其余错误被忽略。
+
 自定义重试失败时，View 默认用 `FlutterError.reportError` 上报；需要自己记录时传：
 
 ```dart

@@ -77,4 +77,30 @@ void main() {
     );
     expect(find.text('theme-sliver-error'), findsOneWidget);
   });
+
+  testWidgets('切换 strings 会通知依赖的 WAsyncView 重建', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(const WAsyncState<int>.empty());
+    addTearDown(state.dispose);
+
+    Widget build(String empty) {
+      return WAsyncTheme(
+        strings: WAsyncStrings(empty: empty),
+        child: MaterialApp(
+          home: Scaffold(
+            body: WAsyncView<int>(
+              state: state,
+              readyBuilder: (context, value) => Text('$value'),
+            ),
+          ),
+        ),
+      );
+    }
+
+    await tester.pumpWidget(build('A'));
+    expect(find.text('A'), findsOneWidget);
+
+    await tester.pumpWidget(build('B'));
+    expect(find.text('B'), findsOneWidget);
+    expect(find.text('A'), findsNothing);
+  });
 }

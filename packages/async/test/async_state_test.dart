@@ -82,4 +82,24 @@ void main() {
       expect(const WAsyncState<int>.ready(1), isNot(const WAsyncState<int>.ready(2)));
     });
   });
+
+  group('WAsyncResult', () {
+    test('isSuccess / isFailure / isCancelled 三态互斥', () {
+      const success = WAsyncSuccess<int>(1);
+      const failure = WAsyncFailure<int>('boom', StackTrace.empty);
+      const cancelled = WAsyncCancelled<int>('stop');
+
+      expect(success.isSuccess, isTrue);
+      expect(success.isFailure, isFalse);
+      expect(success.isCancelled, isFalse);
+
+      expect(failure.isSuccess, isFalse);
+      expect(failure.isFailure, isTrue);
+      expect(failure.isCancelled, isFalse);
+
+      expect(cancelled.isSuccess, isFalse);
+      expect(cancelled.isFailure, isFalse);
+      expect(cancelled.isCancelled, isTrue);
+    });
+  });
 }

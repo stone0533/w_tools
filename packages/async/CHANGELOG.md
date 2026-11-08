@@ -1,9 +1,15 @@
+# Changelog
+
 ## 5.1.0
 
 ### Changed
 - `WAsyncController` / `WAsyncPagedController` 传入 `WAsyncOptions.activity` 现在在构造时抛
   `ArgumentError`（release 也一样），不再在 release 下静默忽略。控制器自己维护四态；
   需要并发活动计数请直接用 `WAsync`。
+
+### Docs
+- 修正已删除 API / 旧 null 语义的过期注释；补充并发组合器边界与分页 footer 的
+  `hasMoreListenable` 说明，并补齐结果三态 getter、theme 通知、sliver / view retry 错误等测试。
 
 ## 5.0.1
 
@@ -25,8 +31,6 @@
 
 ### Added
 - `WAsyncOptions.withoutOnError()`：调用点自己处理错误时去掉兜底 onError，避免重复上报。
-
-# Changelog
 
 ## 4.1.0
 

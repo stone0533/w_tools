@@ -465,4 +465,78 @@ void main() {
 
     expect(retries, 1);
   });
+
+  testWidgets('未传 onRetry 时不显示按钮，也不调用 errorBuilder', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+    var calls = 0;
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          readyBuilder: (context, value) => Text('value-$value'),
+          errorBuilder: (context, error, retry) {
+            calls++;
+            return const Text('custom-error');
+          },
+        ),
+      ),
+    );
+
+    expect(find.text('Retry'), findsNothing);
+    expect(find.text('custom-error'), findsNothing);
+    expect(calls, 0);
+  });
+
+  testWidgets('显式 errorBuilder 优先于默认错误视图', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async {},
+          readyBuilder: (context, value) => Text('value-$value'),
+          errorBuilder: (context, error, retry) => const Text('custom-error'),
+        ),
+      ),
+    );
+
+    expect(find.text('custom-error'), findsOneWidget);
+    expect(find.byType(WAsyncErrorView), findsNothing);
+  });
+
+  testWidgets('retry 失败且无 onRetryError 时走 FlutterError.reportError', (tester) async {
+    final errors = <FlutterErrorDetails>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = errors.add;
+    addTearDown(() => FlutterError.onError = previous);
+
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async => throw Exception('retry failed'),
+          readyBuilder: (context, value) => Text('value-$value'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(errors, isNotEmpty);
+  });
 }

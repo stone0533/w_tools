@@ -36,7 +36,7 @@ class WAsyncOptions {
 /// 异步执行助手。
 ///
 /// 两套入口：
-/// - [tryRun] / [tryRunValue]：返回 [WAsyncResult]，不抛业务异常；
+/// - [tryRun]：返回 [WAsyncResult]，不抛业务异常；
 /// - [run] / [map] / [retry] / [timeout] / [parallel] / [pool] / [first] / [serial]：
 ///   失败抛异常，取消抛 [WCancellationException]。
 ///

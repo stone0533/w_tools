@@ -215,4 +215,4 @@ cd packages/async
 flutter test
 ```
 
-当前 5.0.0；迁移见 [async-5.0](../migrations/async-5.0.md)。
+当前 5.1.0；迁移见 [async-5.0](../migrations/async-5.0.md)。

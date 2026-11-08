@@ -71,4 +71,13 @@ if (result is WAsyncSuccess<Gift>) {
 
 `WAsyncActivity` 只用于同一批并行任务（如 `WAsync.parallel`），不要合并多个独立区块。
 
+状态 / 结果 / 活动分不清时：
+
+| 类型 | 是什么 | 不是什么 |
+|---|---|---|
+| `WAsyncState` | 一次请求的四态快照（status / data / error） | 不是执行结果 |
+| `WAsyncStatus` | 四态枚举 | 不是状态载体 |
+| `WAsyncResult` | `tryRun` 的成功 / 失败 / 取消结果 | 不是 UI 状态 |
+| `WAsyncActivity` | 并发活动计数器 | 不是加载视图 |
+
 完整说明：[async_module.md](../modules/async_module.md) · 示例：[packages/async/example](../../packages/async/example/README.md)
