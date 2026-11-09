@@ -75,6 +75,27 @@ class _HomePage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           FilledButton(
+            onPressed: () => WToast.showModal(
+              context: context,
+              builder: (cancel) => Card(
+                margin: const EdgeInsets.all(32),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('网络异常，请稍后重试'),
+                      const SizedBox(height: 12),
+                      TextButton(onPressed: cancel, child: const Text('知道了')),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            child: const Text('遮罩提示（点遮罩可关）'),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
             onPressed: () => _runLoading(context),
             child: const Text('loading + 结果提示'),
           ),

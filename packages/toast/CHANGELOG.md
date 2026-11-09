@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.0
+
+### Added
+- `WToast.showModal`：带遮罩的提示入口。默认点遮罩关闭（`barrierDismissible: true`）、
+  遮罩拦截点击不穿透、4 秒超时兜底自动关闭；做错误提示 / 网络异常时不再需要自己拼
+  `showCustomDialog` 的三个安全参数。
+
+### Changed
+- `showCustomDialog` 的 dartdoc 写清默认值组合的后果：`duration: null` + `clickClose: false`
+  + `allowClick: true` = 不自动关、点遮罩不关、点击穿透到下层。做提示请用 `showModal`。
+  **本次不改 `showCustomDialog` 的默认行为**，避免影响用它做自定义 loading 的调用方。
+
 ## 2.0.0
 
 ### Removed

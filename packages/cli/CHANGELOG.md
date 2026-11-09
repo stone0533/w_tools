@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed
+- catalog / templates：同步 `w_tools_toast` 2.1（新增 `WToast.showModal`；`WToast` 条目补
+  「`showCustomDialog` 默认关不掉且点击穿透」的陷阱与正确用法）；`init` 的 toast 约束同步到 `^2.1.0`。
+
 ## 1.16.0
 
 ### Changed

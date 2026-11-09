@@ -3,6 +3,8 @@
 ## 什么时候用
 
 非阻塞的轻提示（成功 / 错误 / 警告 / loading）。确认框用 Flutter `showDialog`。
+需要**带遮罩、看得见但不困住用户**的提示（错误卡片、网络异常）用 `WToast.showModal`；
+不要用 `WToast.showCustomDialog` 做提示——它的默认值是给自定义 loading 的。
 
 ## 初始化（只做一次）
 
@@ -45,6 +47,8 @@ WToast.showSuccess('ok', context: context);   // context 用来读 WToastTheme
 
 - 忘记 `BotToastInit` 时所有入口静默失败（走 `onError`）；
 - loading 全局唯一：再次 `showLoading` 会先关上一个；
-- `runWithLoading` 失败会先提示再 `rethrow`，调用方仍要处理异常。
+- `runWithLoading` 失败会先提示再 `rethrow`，调用方仍要处理异常；
+- `showCustomDialog` 的默认组合（`duration:null` + `clickClose:false` + `allowClick:true`）
+  会做出「关不掉 + 点击穿透」的遮罩；做提示用 `showModal`。
 
 完整说明：[toast_module.md](../modules/toast_module.md) · 示例：`packages/toast/example`
