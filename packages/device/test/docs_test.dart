@@ -52,12 +52,37 @@ void main() {
     expect(help, contains('2 参数'));
   });
 
-  test('README 标注 type 实验 / boot 默认 / 库 API 限制 / 真机清单', () {
+  test('README 标注 type 实验 / boot 默认 / 库 API 边界 / 真机清单', () {
     final readme = _read('README.md');
     expect(readme, contains('实验'));
     expect(readme, contains('省略'));
-    expect(readme, contains('不承诺'));
+    expect(readme, contains('不建议消费方依赖'));
+    expect(readme, contains('API 快照'));
     expect(readme, contains('真机验证清单'));
+  });
+
+  test('CLI 版本常量与 pubspec 一致', () {
+    final version =
+        RegExp(r'^version:\s*(\S+)', multiLine: true).firstMatch(_read('pubspec.yaml'))!.group(1)!;
+    expect(
+      _read('lib/src/cli/device_cli.dart'),
+      contains("deviceCliVersion = '$version'"),
+    );
+  });
+
+  test('example 的 verify 无变化期望退出码是 1，不是旧的 2', () {
+    final example = _read('example/tool/device_smoke.dart');
+    expect(example, contains('expectExit: <int>[1]'));
+    expect(example, isNot(contains('expectExit: <int>[2]')));
+  });
+
+  test('help 与 README 的 region / 超时限制一致', () async {
+    final help = '${(await _help()).stdout}';
+    final readme = _read('README.md');
+    expect(help, contains('Android=截图像素'));
+    expect(readme, contains('Android=截图像素'));
+    expect(help, contains('仅 wait / verify'));
+    expect(readme, contains('只用于 wait / verify'));
   });
 
   test('模块文档并入 packages/device/README.md', () {

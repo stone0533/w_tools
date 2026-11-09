@@ -81,17 +81,29 @@ class Adb {
   }
 
   static AndroidDevice? resolve(List<AndroidDevice> all, String? query) {
+    // 只从就绪设备里挑：显式指定 offline / unauthorized 设备时返回 null，
+    // 由调用方给出“没有就绪设备”的明确错误，而不是继续执行再报 adb 错误。
     final ready = all.where((d) => d.isReady).toList();
     if (query == null || query.isEmpty) return ready.firstOrNull;
-    return all.where((d) => d.serial == query).firstOrNull ??
+    return ready.where((d) => d.serial == query).firstOrNull ??
         ready.where((d) => d.model.toLowerCase().contains(query.toLowerCase())).firstOrNull;
   }
 
-  /// 设备分辨率（px）。
+  /// 设备分辨率（px）。有 `Override size` 时优先用它，因为 `input tap/swipe`
+  /// 使用的就是 override 后的显示坐标空间。
   Future<(int, int)> screenSize(String serial) async {
     final r = await _shell.runOrThrow('adb', _args(serial, ['shell', 'wm', 'size']));
-    final m = RegExp(r'(\d+)x(\d+)').firstMatch('${r.stdout}');
-    if (m == null) throw StateError('读不到 Android 分辨率：${r.stdout}');
+    final text = '${r.stdout}';
+    final m = RegExp(r'Override size:\s*(\d+)x(\d+)').firstMatch(text) ??
+        RegExp(r'(\d+)x(\d+)').firstMatch(text);
+    if (m == null) {
+      throw ProcessException(
+        'adb',
+        _args(serial, ['shell', 'wm', 'size']),
+        '读不到 Android 分辨率：$text',
+        1,
+      );
+    }
     return (int.parse(m.group(1)!), int.parse(m.group(2)!));
   }
 

@@ -35,6 +35,9 @@ class Simctl {
 
   final Shell _shell;
 
+  /// 同一进程内并发读尺寸时避免临时文件互相覆盖。
+  static int _sizeSeq = 0;
+
   Future<List<SimDevice>> devices() async {
     final r = await _shell.runOrThrow('xcrun', ['simctl', 'list', 'devices', '--json']);
     return parseDevices('${r.stdout}');
@@ -111,7 +114,8 @@ class Simctl {
   /// 读取截图尺寸（px），用于标定时确定设备宽高比。
   Future<(int width, int height)> screenshotSize(String udid) async {
     final tmp = File(
-      '${Directory.systemTemp.path}/w_tools_device_size_${DateTime.now().microsecondsSinceEpoch}.png',
+      '${Directory.systemTemp.path}/w_tools_device_size_'
+      '${DateTime.now().microsecondsSinceEpoch}_${_sizeSeq++}.png',
     );
     try {
       await screenshot(udid, tmp.path);
@@ -127,7 +131,12 @@ class Simctl {
     final w = RegExp(r'pixelWidth:\s*(\d+)').firstMatch(text);
     final h = RegExp(r'pixelHeight:\s*(\d+)').firstMatch(text);
     if (w == null || h == null) {
-      throw StateError('读不到图片尺寸: $path');
+      throw ProcessException(
+        'sips',
+        ['-g', 'pixelWidth', '-g', 'pixelHeight', path],
+        '读不到图片尺寸: $path',
+        1,
+      );
     }
     return (int.parse(w.group(1)!), int.parse(h.group(1)!));
   }

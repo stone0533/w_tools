@@ -100,10 +100,16 @@ const _toolPackages = <String>{
   'w_tools_e2e',
 };
 
+/// 工具包里只有 device 的规则页文件名不是 `<name>.md`。
+const _toolDocNames = <String, String>{
+  'device': 'device-testing.md',
+};
+
 String? _toolHint(String? package) {
   if (package == null || !_toolPackages.contains(package)) return null;
   final name = package.substring('w_tools_'.length);
-  return '工具包不在组件目录里：看 docs/agents/$name.md 与 packages/$name/README.md。';
+  final doc = _toolDocNames[name] ?? '$name.md';
+  return '工具包不在组件目录里：看 docs/agents/$doc 与 packages/$name/README.md。';
 }
 
 String _normalizePackage(String value) {

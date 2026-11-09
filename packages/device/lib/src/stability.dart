@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
@@ -40,32 +41,32 @@ class Stability {
     }
     return false;
   }
-
-  /// 执行 [action] 后，看画面在 [timeout] 内是否发生变化。
-  Future<bool> changedAfter(Future<void> Function() action,
-      {Duration timeout = const Duration(seconds: 5)}) async {
-    final before = await _grab();
-    await action();
-    final sw = Stopwatch()..start();
-    while (sw.elapsed < timeout) {
-      final after = await _grab();
-      if (after != before) return true;
-      await Future<void>.delayed(interval);
-    }
-    return false;
-  }
 }
 
 /// 截图指纹：相等即「画面没变」。
 ///
-/// 用长度 + 每隔 [step] 字节采样，足够判断变化，不追求加密强度。
+/// PNG 先解码成像素再采样，避免「同一画面、不同 PNG 压缩/元数据」被误判为变化；
+/// 非 PNG（测试或异常输出）退化为长度 + 字节采样。
 class ScreenFingerprint {
   const ScreenFingerprint._();
 
   static String of(Uint8List bytes, {int step = 4096}) {
-    var acc = bytes.length;
-    for (var i = 0; i < bytes.length; i += step) {
-      acc = (acc * 31 + bytes[i]) & 0x7fffffff;
+    final image = img.decodePng(bytes);
+    if (image == null) {
+      var acc = bytes.length;
+      for (var i = 0; i < bytes.length; i += step) {
+        acc = (acc * 31 + bytes[i]) & 0x7fffffff;
+      }
+      return '$acc';
+    }
+    // 约采样 [step] 个像素（step 是「字节步长」的旧语义，这里换算成像素步长）。
+    final stride = math.max(1, math.sqrt(step).round());
+    var acc = image.width * 1000003 + image.height;
+    for (var y = 0; y < image.height; y += stride) {
+      for (var x = 0; x < image.width; x += stride) {
+        final p = image.getPixel(x, y);
+        acc = (acc * 31 + p.r.toInt() + p.g.toInt() * 3 + p.b.toInt() * 7) & 0x7fffffff;
+      }
     }
     return '$acc';
   }
@@ -97,9 +98,20 @@ class ScreenFingerprint {
   }
 }
 
+/// `verify` 在等待画面稳定时超时；CLI 把它映射成退出码 3（外部/超时）。
+class VerificationTimeout implements Exception {
+  const VerificationTimeout(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 /// 点按自检：先等稳定 → 取指纹 → 点 → 等稳定 → 比指纹。
 ///
 /// 直接比「点击前后一帧」会把水波纹/动画当成页面变化，所以中间要等稳定。
+/// 任何一次稳定等待超时都抛 [VerificationTimeout]，不把「没等到稳定」误报成「没变化」。
 class TapVerifier {
   const TapVerifier._();
 
@@ -110,10 +122,20 @@ class TapVerifier {
     Duration stableFor = const Duration(milliseconds: 600),
     Duration timeout = const Duration(seconds: 15),
   }) async {
-    await stability.waitStable(stableFor: stableFor, timeout: timeout);
+    final sw = Stopwatch()..start();
+    Duration remaining() {
+      final left = timeout - sw.elapsed;
+      return left.isNegative ? Duration.zero : left;
+    }
+
+    if (!await stability.waitStable(stableFor: stableFor, timeout: remaining())) {
+      throw const VerificationTimeout('点击前画面在超时内没有稳定，无法可靠判定');
+    }
     final before = await fingerprint();
     await tap();
-    await stability.waitStable(stableFor: stableFor, timeout: timeout);
+    if (!await stability.waitStable(stableFor: stableFor, timeout: remaining())) {
+      throw const VerificationTimeout('点击后画面在超时内没有稳定，无法可靠判定');
+    }
     return before != await fingerprint();
   }
 }

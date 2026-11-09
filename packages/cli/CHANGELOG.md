@@ -4,6 +4,8 @@
 - catalog / templates / context：同步 `w_tools_qr` 2.0（`WQrController` 归调用方、
   `WQrOverlayStyle`、`WQrScanResult`、移除 `WQrViewState`）；`WQrController` 升为 teach，
   旧名保留为 aliases 供 `explain` 兜底；capability 摘要改为 `WQrView + WQrController（重扫 restart）`。
+- `init` 的 `w_tools_device` 版本约束同步到 `^0.3.0`。
+- `list --package=device` 的提示改为指向 `docs/agents/device-testing.md`（此前指向不存在的 `device.md`）。
 
 ## 1.15.1
 

@@ -10,7 +10,7 @@
 //
 // 用法：
 //   dart run tool/device_smoke.dart [--json] [--tabs=5] [--device=<udid>]
-// 退出码：0 全通过 · 1 有步骤失败 · 2 参数/环境错误
+// 退出码：0 全通过 · 1 有步骤失败
 
 import 'dart:convert';
 import 'dart:io';
@@ -51,7 +51,10 @@ class _Opts {
       } else if (a.startsWith('--device=')) {
         device = a.substring('--device='.length);
       } else if (a.startsWith('--tabs=')) {
-        tabs = int.tryParse(a.substring('--tabs='.length)) ?? 5;
+        final raw = a.substring('--tabs='.length);
+        final parsed = int.tryParse(raw);
+        if (parsed == null) throw _SmokeFailure('--tabs 需要整数：$raw');
+        tabs = parsed;
       } else {
         throw _SmokeFailure('未知参数：$a');
       }
@@ -112,7 +115,7 @@ class _Runner {
       y,
       region,
       label: 'same tab',
-      expectExit: <int>[2],
+      expectExit: <int>[1],
     );
     _ok('same tab', {'changed': same['changed']});
 

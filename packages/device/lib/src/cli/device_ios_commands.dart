@@ -2,7 +2,7 @@ part of 'device_cli.dart';
 
 Future<void> _list(DeviceOptions o, Simctl simctl) async {
   if (o.real) {
-    final devices = await Devicectl().devices();
+    final devices = await _deps.devicectl().devices();
     _emit(
         o,
         {
@@ -51,18 +51,20 @@ String _realTable(List<RealDevice> devices) {
 
 Future<void> _boot(Simctl simctl, DeviceOptions o) async {
   final devices = await simctl.devices();
-  final target = Simctl.resolve(devices, o.deviceOrFirst ?? o.positional.firstOrNull);
+  final query = o.deviceQuery ?? o.positional.firstOrNull;
+  final target = Simctl.resolve(devices, query);
   if (target == null) {
-    throw StateError('找不到模拟器：${o.deviceOrFirst ?? o.positional.firstOrNull}');
+    throw DeviceCliException('找不到模拟器：${query ?? '（没有可用模拟器）'}', 3);
   }
   if (!target.isBooted) {
-    if (!o.json) stdout.writeln('启动 ${target.name} (${target.udid}) ...');
+    if (!o.json) _deps.write('启动 ${target.name} (${target.udid}) ...\n');
     await simctl.boot(target.udid);
   }
   _emit(
       o,
       {
         'udid': target.udid,
+        'deviceId': target.udid,
         'name': target.name,
         'ready': true,
       },
@@ -71,16 +73,20 @@ Future<void> _boot(Simctl simctl, DeviceOptions o) async {
 
 Future<void> _shot(Simctl simctl, DeviceOptions o) async {
   if (o.real) {
-    final devices = await Devicectl().devices();
-    final target = Devicectl.resolve(devices, o.deviceOrFirst ?? o.positional.firstOrNull);
+    final devices = await _deps.devicectl().devices();
+    final query = o.deviceQuery ?? o.positional.firstOrNull;
+    final target = Devicectl.resolve(devices, query);
     if (target == null) {
-      throw StateError('找不到真机（先 device list --real；确认已连接并信任）');
+      throw const DeviceCliException(
+        '找不到真机（先 device list --real；确认已连接并信任）',
+        3,
+      );
     }
     if (!target.isBooted) {
-      throw StateError('真机未启动/未解锁：${target.name} (${target.bootState})');
+      throw DeviceCliException('真机未启动/未解锁：${target.name} (${target.bootState})', 3);
     }
-    final out = o.out ?? '${Directory.systemTemp.path}/device_real.png';
-    await Devicectl().screenshot(target.udid, out);
+    final out = o.out ?? _tempFile('w_tools_device_real_shot', 'png');
+    await _deps.devicectl().screenshot(target.udid, out);
     // 锁屏/息屏时 devicectl 会返回全黑图 —— 明确提示，别让人以为截图坏了
     final dark = ScreenStats.isMostlyDark(File(out).readAsBytesSync());
     _emit(
@@ -88,6 +94,7 @@ Future<void> _shot(Simctl simctl, DeviceOptions o) async {
       {
         'path': out,
         'udid': target.udid,
+        'deviceId': target.udid,
         'real': true,
         if (dark) 'warning': '截图几乎全黑：真机可能锁屏/息屏，请点亮并解锁后重试',
       },
@@ -98,74 +105,96 @@ Future<void> _shot(Simctl simctl, DeviceOptions o) async {
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
   final out = o.out ?? _tempFile('w_tools_device_shot', 'png');
   await simctl.screenshot(udid, out);
-  _emit(o, {'path': out, 'udid': udid, 'real': false}, out);
+  final dark = ScreenStats.isMostlyDark(File(out).readAsBytesSync());
+  _emit(
+    o,
+    {
+      'path': out,
+      'udid': udid,
+      'deviceId': udid,
+      'real': false,
+      if (dark) 'warning': '截图几乎全黑：模拟器可能未显示内容',
+    },
+    dark ? '$out\n⚠️ 截图几乎全黑：模拟器可能未显示内容' : out,
+  );
 }
 
 Future<void> _tap(Simctl simctl, DeviceOptions o) async {
-  _requireArgs(o, 2, 'tap 需要 <x> <y>（设备坐标）');
+  await _requireCliclick();
   final x = double.parse(o.positional[0]);
   final y = double.parse(o.positional[1]);
-  final cal = await _calibrate(simctl, o, force: o.noCache);
+  final udid = await _resolveUdid(simctl, o, bootedOnly: true);
+  final cal = await _calibrate(simctl, o, udid, force: o.noCache);
   final screen = cal.toScreen(DPoint(x, y));
-  await Input().tap(screen.x, screen.y);
+  await _deps.input().tap(screen.x, screen.y);
   _emit(
       o,
       {
         'device': {'x': x, 'y': y},
         'screen': {'x': screen.x, 'y': screen.y},
+        'deviceId': udid,
       },
       'tap device($x, $y) → screen(${screen.x.round()}, ${screen.y.round()})');
 }
 
 Future<void> _drag(Simctl simctl, DeviceOptions o) async {
-  _requireArgs(o, 4, 'drag 需要 <x1> <y1> <x2> <y2>（设备坐标）');
-  final cal = await _calibrate(simctl, o, force: o.noCache);
-  final a = cal.toScreen(
-    DPoint(double.parse(o.positional[0]), double.parse(o.positional[1])),
-  );
-  final b = cal.toScreen(
-    DPoint(double.parse(o.positional[2]), double.parse(o.positional[3])),
-  );
-  await Input().drag(a.x, a.y, b.x, b.y);
+  await _requireCliclick();
+  final udid = await _resolveUdid(simctl, o, bootedOnly: true);
+  final cal = await _calibrate(simctl, o, udid, force: o.noCache);
+  final x1 = double.parse(o.positional[0]);
+  final y1 = double.parse(o.positional[1]);
+  final x2 = double.parse(o.positional[2]);
+  final y2 = double.parse(o.positional[3]);
+  final a = cal.toScreen(DPoint(x1, y1));
+  final b = cal.toScreen(DPoint(x2, y2));
+  await _deps.input().drag(a.x, a.y, b.x, b.y);
   _emit(
       o,
       {
-        'from': {'x': a.x, 'y': a.y},
-        'to': {'x': b.x, 'y': b.y},
+        'device': {
+          'from': {'x': x1, 'y': y1},
+          'to': {'x': x2, 'y': y2},
+        },
+        'screen': {
+          'from': {'x': a.x, 'y': a.y},
+          'to': {'x': b.x, 'y': b.y},
+        },
+        'deviceId': udid,
       },
       'drag screen(${a.x.round()},${a.y.round()}) → (${b.x.round()},${b.y.round()})');
 }
 
 Future<void> _wait(Simctl simctl, DeviceOptions o) async {
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
-  Calibration? calibration;
+  int? deviceWidth;
   int? pixelWidth;
   if (o.region != null) {
-    calibration = await _calibrate(simctl, o, force: o.noCache);
-    pixelWidth = calibration.screenshotWidth > 0
-        ? calibration.screenshotWidth
-        : (await simctl.screenshotSize(udid)).$1;
+    // wait 只需要「截图 px / 设备 point」的比例；不需要 DeviceHub 标定。
+    final size = await simctl.screenshotSize(udid);
+    pixelWidth = size.$1;
+    final deviceScale = o.scale ?? Simctl.guessScale(size.$1);
+    deviceWidth = size.$1 ~/ deviceScale;
   }
   final ok = await _stability(
     simctl,
     udid,
     region: o.region,
-    calibration: calibration,
+    deviceWidth: deviceWidth,
     pixelWidth: pixelWidth,
   ).waitStable(
     stableFor: o.stableFor,
     timeout: o.timeout,
   );
-  _emit(o, {'stable': ok}, ok ? '画面已稳定' : '等待超时（画面仍在变化）');
+  _emit(o, {'stable': ok, 'deviceId': udid}, ok ? '画面已稳定' : '等待超时（画面仍在变化）');
   if (!ok) exitCode = 3;
 }
 
 Future<void> _verify(Simctl simctl, DeviceOptions o) async {
-  _requireArgs(o, 2, 'verify 需要 <x> <y>（设备坐标）');
+  await _requireCliclick();
   final x = double.parse(o.positional[0]);
   final y = double.parse(o.positional[1]);
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
-  final cal = await _calibrate(simctl, o, force: o.noCache);
+  final cal = await _calibrate(simctl, o, udid, force: o.noCache);
   final screen = cal.toScreen(DPoint(x, y));
   final pixelWidth =
       cal.screenshotWidth > 0 ? cal.screenshotWidth : (await simctl.screenshotSize(udid)).$1;
@@ -174,17 +203,17 @@ Future<void> _verify(Simctl simctl, DeviceOptions o) async {
       simctl,
       udid,
       region: o.region,
-      calibration: cal,
+      deviceWidth: cal.deviceWidth,
       pixelWidth: pixelWidth,
     ),
     fingerprint: () => _fingerprint(
       simctl,
       udid,
       region: o.region,
-      calibration: cal,
+      deviceWidth: cal.deviceWidth,
       pixelWidth: pixelWidth,
     ),
-    tap: () => Input().tap(screen.x, screen.y),
+    tap: () => _deps.input().tap(screen.x, screen.y),
     stableFor: o.stableFor,
     timeout: o.timeout,
   );
@@ -194,6 +223,7 @@ Future<void> _verify(Simctl simctl, DeviceOptions o) async {
         'changed': changed,
         'device': {'x': x, 'y': y},
         'screen': {'x': screen.x, 'y': screen.y},
+        'deviceId': udid,
         'region': o.region == null
             ? null
             : {
@@ -208,7 +238,7 @@ Future<void> _verify(Simctl simctl, DeviceOptions o) async {
   if (!changed) exitCode = 1;
 }
 
-void _emitCalibration(DeviceOptions o, Calibration c) {
+void _emitCalibration(DeviceOptions o, Calibration c, {String? deviceId}) {
   _emit(
       o,
       {
@@ -225,6 +255,7 @@ void _emitCalibration(DeviceOptions o, Calibration c) {
           'height': c.screenshotHeight,
           'scale': c.scale,
         },
+        if (deviceId != null) 'deviceId': deviceId,
       },
       '窗口：(${c.window.x}, ${c.window.y}) ${c.window.width}×${c.window.height}\n'
       '设备屏幕（窗口内）：(${c.deviceRect.left.toStringAsFixed(1)}, '
@@ -240,17 +271,17 @@ Future<String> _fingerprint(
   Simctl simctl,
   String udid, {
   DRect? region,
-  Calibration? calibration,
+  int? deviceWidth,
   int? pixelWidth,
 }) async {
   final out = _tempFile('w_tools_device_fp', 'png');
   try {
     await simctl.screenshot(udid, out);
     final bytes = File(out).readAsBytesSync();
-    if (region == null || calibration == null || pixelWidth == null) {
+    if (region == null || deviceWidth == null || pixelWidth == null) {
       return ScreenFingerprint.of(bytes);
     }
-    final scale = pixelWidth / calibration.deviceWidth; // 截图 px / 设备 point
+    final scale = pixelWidth / deviceWidth; // 截图 px / 设备 point
     final px = DRect(
       region.left * scale,
       region.top * scale,
@@ -268,7 +299,7 @@ Stability _stability(
   Simctl simctl,
   String udid, {
   DRect? region,
-  Calibration? calibration,
+  int? deviceWidth,
   int? pixelWidth,
 }) =>
     Stability(
@@ -276,25 +307,28 @@ Stability _stability(
         simctl,
         udid,
         region: region,
-        calibration: calibration,
+        deviceWidth: deviceWidth,
         pixelWidth: pixelWidth,
       ),
     );
 
 /// 拿标定（缓存命中且窗口没变就复用）。
+///
+/// 缓存命中路径不激活 DeviceHub、不截图：只有真正需要重算时才 capture（内部会 activate）。
 Future<Calibration> _calibrate(
   Simctl simctl,
-  DeviceOptions o, {
+  DeviceOptions o,
+  String udid, {
   bool force = false,
 }) async {
-  final udid = await _resolveUdid(simctl, o, bootedOnly: true);
-  final store = CalibrationStore();
-  final hub = DeviceHub();
-  // 先把 DeviceHub 置前：别的窗口（有时是活动监视器）会盖住设备预览
-  await hub.activate();
+  final store = _deps.calibrationStore();
+  final hub = _deps.deviceHub();
   final window = await hub.window();
   if (window == null) {
-    throw StateError('读不到 DeviceHub 窗口：确认 DeviceHub 已打开，且宿主 App 有「辅助功能」权限');
+    throw const DeviceCliException(
+      '读不到 DeviceHub 窗口：确认 DeviceHub 已打开，且宿主 App 有「辅助功能」权限',
+      3,
+    );
   }
   // 先取当前设备分辨率：尺寸 / 方向 / --scale 变化时旧标定必须失效，
   // 否则 deviceRect 会把点击换算到错误位置（旧实现只比对窗口，查不出旋转）。
@@ -318,16 +352,23 @@ Future<Calibration> _calibrate(
   try {
     final scale = await hub.capture(window, shot);
     final image = img.decodePng(File(shot).readAsBytesSync());
-    if (image == null) throw StateError('窗口截图解码失败：$shot');
-    final cal = const CalibrationDetector().detect(
-      image: image,
-      window: window,
-      scale: scale,
-      deviceWidth: points.$1,
-      deviceHeight: points.$2,
-      screenshotWidth: size.$1,
-      screenshotHeight: size.$2,
-    );
+    if (image == null) {
+      throw DeviceCliException('窗口截图解码失败：$shot', 3);
+    }
+    final Calibration cal;
+    try {
+      cal = const CalibrationDetector().detect(
+        image: image,
+        window: window,
+        scale: scale,
+        deviceWidth: points.$1,
+        deviceHeight: points.$2,
+        screenshotWidth: size.$1,
+        screenshotHeight: size.$2,
+      );
+    } on StateError catch (e) {
+      throw DeviceCliException(e.message, 3);
+    }
     store.save(udid, cal);
     return cal;
   } finally {
@@ -342,9 +383,16 @@ Future<String> _resolveUdid(
   bool bootedOnly = false,
 }) async {
   final devices = await simctl.devices();
-  final target = Simctl.resolve(devices, o.deviceOrFirst, bootedOnly: bootedOnly);
+  final query = o.deviceQuery;
+  final target = Simctl.resolve(devices, query, bootedOnly: bootedOnly);
   if (target == null) {
-    throw StateError(bootedOnly ? '没有已启动的模拟器（先 device boot）' : '找不到模拟器');
+    if (query != null && query.isNotEmpty) {
+      throw DeviceCliException('找不到匹配的模拟器：$query（先 device list 确认）', 3);
+    }
+    throw DeviceCliException(
+      bootedOnly ? '没有已启动的模拟器（先 device boot）' : '找不到模拟器',
+      3,
+    );
   }
   return target.udid;
 }
