@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:image/image.dart' as img;
 import 'package:test/test.dart';
 import 'package:w_tools_device/w_tools_device.dart';
 
@@ -28,19 +31,76 @@ void main() {
     expect(ok, isFalse);
   });
 
-  test('changedAfter：动作改变画面返回 true', () async {
-    var value = 'a';
-    final s = Stability(grab: () async => value, interval: const Duration(milliseconds: 5));
-    final changed = await s.changedAfter(() async => value = 'b');
-    expect(changed, isTrue);
+  test('整屏指纹：同一画面、不同 PNG 压缩级别 → 指纹相同', () {
+    final image = img.Image(width: 40, height: 40);
+    img.fill(image, color: img.ColorRgb8(30, 30, 30));
+    final a = Uint8List.fromList(img.encodePng(image, level: 1));
+    final b = Uint8List.fromList(img.encodePng(image, level: 9));
+    expect(ScreenFingerprint.of(a), ScreenFingerprint.of(b));
   });
 
-  test('changedAfter：画面不变返回 false', () async {
-    final s = Stability(grab: () async => 'same', interval: const Duration(milliseconds: 5));
-    final changed = await s.changedAfter(
-      () async {},
-      timeout: const Duration(milliseconds: 40),
+  test('整屏指纹：画面变了 → 指纹不同', () {
+    final before = img.Image(width: 40, height: 40);
+    img.fill(before, color: img.ColorRgb8(30, 30, 30));
+    final after = img.Image(width: 40, height: 40);
+    img.fill(after, color: img.ColorRgb8(200, 30, 30));
+    expect(
+      ScreenFingerprint.of(Uint8List.fromList(img.encodePng(before))),
+      isNot(ScreenFingerprint.of(Uint8List.fromList(img.encodePng(after)))),
     );
-    expect(changed, isFalse);
   });
+
+  test('verify：点击前画面不稳定 → VerificationTimeout，且不点击', () async {
+    var tapped = false;
+    await expectLater(
+      TapVerifier.verify(
+        stability: _NeverStable(),
+        fingerprint: () async => 'x',
+        tap: () async => tapped = true,
+        stableFor: const Duration(milliseconds: 1),
+        timeout: const Duration(milliseconds: 10),
+      ),
+      throwsA(isA<VerificationTimeout>()),
+    );
+    expect(tapped, isFalse);
+  });
+
+  test('verify：点击后画面不稳定 → VerificationTimeout', () async {
+    var taps = 0;
+    await expectLater(
+      TapVerifier.verify(
+        stability: _FirstStableThenNever(),
+        fingerprint: () async => 'x',
+        tap: () async => taps++,
+        stableFor: const Duration(milliseconds: 1),
+        timeout: const Duration(milliseconds: 10),
+      ),
+      throwsA(isA<VerificationTimeout>()),
+    );
+    expect(taps, 1);
+  });
+}
+
+class _NeverStable extends Stability {
+  _NeverStable() : super(grab: () async => '');
+
+  @override
+  Future<bool> waitStable({
+    Duration stableFor = const Duration(milliseconds: 600),
+    Duration timeout = const Duration(seconds: 15),
+  }) async =>
+      false;
+}
+
+class _FirstStableThenNever extends Stability {
+  _FirstStableThenNever() : super(grab: () async => '');
+
+  var calls = 0;
+
+  @override
+  Future<bool> waitStable({
+    Duration stableFor = const Duration(milliseconds: 600),
+    Duration timeout = const Duration(seconds: 15),
+  }) async =>
+      calls++ == 0;
 }

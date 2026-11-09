@@ -63,6 +63,47 @@ void main() {
       expect(o.out, '/tmp/a.png');
     });
 
+    test('值选项统一支持空格与等号写法', () {
+      final o = DeviceOptions.parse(<String>[
+        'verify',
+        '1',
+        '2',
+        '--device',
+        'iPhone 17 Pro',
+        '--region',
+        '0,0,10,10',
+        '--scale',
+        '3',
+        '--timeout-ms',
+        '5000',
+        '--stable-ms',
+        '200',
+      ]);
+      expect(o.deviceQuery, 'iPhone 17 Pro');
+      expect(o.region!.width, 10);
+      expect(o.scale, 3);
+      expect(o.timeout, const Duration(seconds: 5));
+      expect(o.stableFor, const Duration(milliseconds: 200));
+    });
+
+    test('空值 / 缺值 → 明确报错', () {
+      expect(() => DeviceOptions.parse(['tap', '1', '2', '--device=']), throwsStateError);
+      expect(() => DeviceOptions.parse(['shot', '--out=']), throwsStateError);
+      expect(() => DeviceOptions.parse(['shot', '--device']), throwsStateError);
+      expect(() => DeviceOptions.parse(['wait', '--timeout-ms']), throwsStateError);
+    });
+
+    test('positional / seen 是只读视图', () {
+      final o = DeviceOptions.parse(['tap', '1', '2', '--json']);
+      expect(() => o.positional.add('3'), throwsUnsupportedError);
+      expect(() => o.seen.add('x'), throwsUnsupportedError);
+    });
+
+    test('deviceQuery 取代 deviceOrFirst', () {
+      final o = DeviceOptions.parse(['tap', '1', '2', '--device=ABC']);
+      expect(o.deviceQuery, 'ABC');
+    });
+
     test('--timeout-ms / --stable-ms / --scale', () {
       final o = DeviceOptions.parse(
         ['wait', '--timeout-ms=5000', '--stable-ms=200', '--scale=2'],
@@ -110,7 +151,10 @@ void main() {
         () => DeviceOptions.parse(['wait', '--no-cache']).validate(),
         throwsStateError,
       );
-      DeviceOptions.parse(['wait', '--no-cache', '--region=0,0,10,10']).validate();
+      expect(
+        () => DeviceOptions.parse(['wait', '--no-cache', '--region=0,0,10,10']).validate(),
+        throwsStateError,
+      );
     });
 
     test('rejects android no-cache and list --device', () {
@@ -127,6 +171,15 @@ void main() {
     test('valid shot real and wait android', () {
       DeviceOptions.parse(['shot', '--real']).validate();
       DeviceOptions.parse(['wait', '--android', '--region=0,0,100,100']).validate();
+    });
+
+    test('位置参数数量：多传 / 少传都报错', () {
+      expect(() => DeviceOptions.parse(['tap', '1', '2', '3']).validate(), throwsStateError);
+      expect(() => DeviceOptions.parse(['list', 'x']).validate(), throwsStateError);
+      expect(() => DeviceOptions.parse(['type']).validate(), throwsStateError);
+      expect(() => DeviceOptions.parse(['shot', 'x']).validate(), throwsStateError);
+      DeviceOptions.parse(['shot', '--real', 'device']).validate();
+      DeviceOptions.parse(['boot', 'iPhone']).validate();
     });
   });
 
@@ -190,7 +243,7 @@ emulator-5554          offline transport_id:3
       const text = 'List of devices attached\nAAA offline\nBBB device model:Pixel_5\n';
       final list = Adb.parseDevices(text);
       expect(Adb.resolve(list, null)!.serial, 'BBB');
-      expect(Adb.resolve(list, 'AAA')!.serial, 'AAA');
+      expect(Adb.resolve(list, 'AAA'), isNull); // offline 设备不再被当作可执行目标
       expect(Adb.resolve(list, 'pixel')!.serial, 'BBB');
       expect(Adb.resolve(const [], null), isNull);
     });

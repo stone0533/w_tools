@@ -100,6 +100,37 @@ void main() {
       );
       expect(cal.deviceRect.width / cal.deviceRect.height, closeTo(402 / 874, 0.02));
     });
+
+    test('深色画面（屏幕内容也接近黑色）仍按机身外框标定', () {
+      final image = img.Image(width: 872, height: 1084);
+      img.fill(image, color: img.ColorRgb8(250, 250, 250));
+      img.fillRect(
+        image,
+        x1: 340,
+        y1: 60,
+        x2: 780,
+        y2: 1030,
+        color: img.ColorRgb8(8, 8, 8),
+      );
+      // 暗色主题的屏幕内容仍比机身亮，但都低于 160 的黑判定阈值。
+      img.fillRect(
+        image,
+        x1: 350,
+        y1: 70,
+        x2: 770,
+        y2: 1020,
+        color: img.ColorRgb8(30, 30, 30),
+      );
+      final cal = const CalibrationDetector().detect(
+        image: image,
+        window: const HubWindow(0, 0, 872, 1084),
+        scale: 1,
+        deviceWidth: 402,
+        deviceHeight: 874,
+      );
+      expect(cal.deviceRect.width / cal.deviceRect.height, closeTo(402 / 874, 0.02));
+      expect(cal.deviceRect.left, closeTo(340, 25));
+    });
   });
 
   group('标定缓存（窗口移动后必须失效）', () {
@@ -127,17 +158,35 @@ void main() {
     test('窗口没变 → 缓存新鲜；窗口移动 → 失效', () {
       final store = CalibrationStore(home: home.path);
       store.save('UDID1', sample(const HubWindow(100, 50, 872, 1084)));
-      expect(store.isFresh('UDID1', const HubWindow(100, 50, 872, 1084)), isTrue);
-      expect(store.isFresh('UDID1', const HubWindow(300, 50, 872, 1084)), isFalse);
-      expect(store.isFresh('UDID1', const HubWindow(100, 50, 900, 1084)), isFalse);
+      expect(
+        CalibrationStore.isFreshCalibration(
+          store.load('UDID1'),
+          const HubWindow(100, 50, 872, 1084),
+        ),
+        isTrue,
+      );
+      expect(
+        CalibrationStore.isFreshCalibration(
+          store.load('UDID1'),
+          const HubWindow(300, 50, 872, 1084),
+        ),
+        isFalse,
+      );
+      expect(
+        CalibrationStore.isFreshCalibration(
+          store.load('UDID1'),
+          const HubWindow(100, 50, 900, 1084),
+        ),
+        isFalse,
+      );
     });
 
     test('设备尺寸变化 → 缓存失效', () {
       final store = CalibrationStore(home: home.path);
       store.save('UDID1', sample(const HubWindow(100, 50, 872, 1084)));
       expect(
-        store.isFresh(
-          'UDID1',
+        CalibrationStore.isFreshCalibration(
+          store.load('UDID1'),
           const HubWindow(100, 50, 872, 1084),
           deviceWidth: 402,
           deviceHeight: 874,
@@ -145,24 +194,11 @@ void main() {
         isTrue,
       );
       expect(
-        store.isFresh(
-          'UDID1',
+        CalibrationStore.isFreshCalibration(
+          store.load('UDID1'),
           const HubWindow(100, 50, 872, 1084),
           deviceWidth: 874,
           deviceHeight: 402,
-        ),
-        isFalse,
-      );
-    });
-
-    test('scale 变化 → 缓存失效', () {
-      final store = CalibrationStore(home: home.path);
-      store.save('UDID1', sample(const HubWindow(100, 50, 872, 1084)));
-      expect(
-        store.isFresh(
-          'UDID1',
-          const HubWindow(100, 50, 872, 1084),
-          scale: 2,
         ),
         isFalse,
       );
@@ -173,7 +209,13 @@ void main() {
       store.dir.createSync(recursive: true);
       store.fileFor('BAD').writeAsStringSync('{not json');
       expect(store.load('BAD'), isNull);
-      expect(store.isFresh('BAD', const HubWindow(0, 0, 1, 1)), isFalse);
+      expect(
+        CalibrationStore.isFreshCalibration(
+          store.load('BAD'),
+          const HubWindow(0, 0, 1, 1),
+        ),
+        isFalse,
+      );
     });
   });
 

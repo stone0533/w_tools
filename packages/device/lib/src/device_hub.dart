@@ -61,7 +61,10 @@ class DeviceHub {
   }
 
   /// 截窗口到 [out]，返回「截图 px / point」的缩放比。
+  ///
+  /// 激活窗口只放在真正截图前：缓存命中的 tap/drag 不需要把窗口置前（也不该等 400ms）。
   Future<double> capture(HubWindow window, String out) async {
+    await activate();
     await _shell.runOrThrow('screencapture', [
       '-x',
       '-R',

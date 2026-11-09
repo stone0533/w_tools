@@ -2,9 +2,14 @@ part of 'device_cli.dart';
 
 Future<String> _androidSerial(DeviceOptions o) async {
   final devices = await Adb().devices();
-  final target = Adb.resolve(devices, o.deviceOrFirst);
+  final query = o.deviceQuery;
+  final target = Adb.resolve(devices, query);
   if (target == null) {
-    throw StateError('没有就绪的 Android 设备（检查数据线 / 调试授权：adb devices -l）');
+    final suffix = query == null || query.isEmpty ? '' : '，未找到：$query';
+    throw DeviceCliException(
+      '没有就绪的 Android 设备（检查数据线 / 调试授权：adb devices -l）$suffix',
+      3,
+    );
   }
   return target.serial;
 }
@@ -42,6 +47,7 @@ Future<void> _androidShot(DeviceOptions o) async {
     {
       'path': out,
       'serial': serial,
+      'deviceId': serial,
       'android': true,
       if (dark) 'warning': '截图几乎全黑：设备可能息屏/锁屏，请点亮解锁后重试',
     },
@@ -50,7 +56,6 @@ Future<void> _androidShot(DeviceOptions o) async {
 }
 
 Future<void> _androidTap(DeviceOptions o) async {
-  _requireArgs(o, 2, 'tap 需要 <x> <y>（Android 用截图像素）');
   final serial = await _androidSerial(o);
   final x = int.parse(o.positional[0]);
   final y = int.parse(o.positional[1]);
@@ -60,21 +65,28 @@ Future<void> _androidTap(DeviceOptions o) async {
       {
         'device': {'x': x, 'y': y},
         'serial': serial,
+        'deviceId': serial,
       },
       'tap $x, $y（像素）');
 }
 
 Future<void> _androidDrag(DeviceOptions o) async {
-  _requireArgs(o, 4, 'drag 需要 <x1> <y1> <x2> <y2>（Android 用截图像素）');
   final serial = await _androidSerial(o);
-  final v = o.positional.take(4).map(int.parse).toList();
+  final v = o.positional.map(int.parse).toList();
   await Adb().swipe(serial, v[0], v[1], v[2], v[3]);
+  final coords = {
+    'from': {'x': v[0], 'y': v[1]},
+    'to': {'x': v[2], 'y': v[3]},
+  };
   _emit(
       o,
       {
-        'from': {'x': v[0], 'y': v[1]},
-        'to': {'x': v[2], 'y': v[3]},
+        // 兼容旧 key；新脚本用 device/screen（Android 两者都是截图像素）。
+        ...coords,
+        'device': coords,
+        'screen': coords,
         'serial': serial,
+        'deviceId': serial,
       },
       'swipe ${v[0]},${v[1]} → ${v[2]},${v[3]}（像素）');
 }
@@ -99,16 +111,16 @@ Future<String> _androidFingerprint(Adb adb, String serial, {DRect? region}) asyn
 
 Future<void> _androidWait(DeviceOptions o) async {
   final serial = await _androidSerial(o);
-  final ok = await _androidStability(Adb(), serial, region: o.region).waitStable(
+  final adb = Adb();
+  final ok = await _androidStability(adb, serial, region: o.region).waitStable(
     stableFor: o.stableFor,
     timeout: o.timeout,
   );
-  _emit(o, {'stable': ok, 'serial': serial}, ok ? '画面已稳定' : '等待超时（画面仍在变化）');
+  _emit(o, {'stable': ok, 'serial': serial, 'deviceId': serial}, ok ? '画面已稳定' : '等待超时（画面仍在变化）');
   if (!ok) exitCode = 3;
 }
 
 Future<void> _androidVerify(DeviceOptions o) async {
-  _requireArgs(o, 2, 'verify 需要 <x> <y>（Android 用截图像素）');
   final serial = await _androidSerial(o);
   final adb = Adb();
   final x = int.parse(o.positional[0]);
@@ -126,6 +138,7 @@ Future<void> _androidVerify(DeviceOptions o) async {
         'changed': changed,
         'device': {'x': x, 'y': y},
         'serial': serial,
+        'deviceId': serial,
         'region': o.region == null
             ? null
             : {
