@@ -5,6 +5,9 @@
   发布物里的 example 可独立 `pub get`；`publish_package.sh` 排除该文件。
 - 新增 `check_example_paths.py`：preflight 拦住 example 的包外 `path:` 依赖。
 
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^8.0.1`（ui example 修复）。
+
 ## 12.0.1
 
 ### Changed

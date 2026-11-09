@@ -38,7 +38,7 @@ dependencies:
 
   w_tools_core: ^3.1.1
   w_tools_form: ^6.0.0
-  w_tools_ui: ^8.0.0
+  w_tools_ui: ^8.0.1
   w_tools_api: ^5.1.0
   w_tools_toast: ^2.1.0
   w_tools_async: ^6.1.0

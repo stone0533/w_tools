@@ -1,3 +1,9 @@
+## 0.11.5
+
+### Fixed
+- `--help` / 契约文案指向 `packages/figma/README.md`，不再引用已删除的
+  `docs/figma-cli.md`；相关缓存 / fetch 注释同步。
+
 ## 0.11.4
 
 ### Fixed
