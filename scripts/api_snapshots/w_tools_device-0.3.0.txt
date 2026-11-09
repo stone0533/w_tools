@@ -1,0 +1,165 @@
+# w_tools_device 0.3.0
+Adb	class
+Adb.currentPackage	Future<String> (String serial)
+Adb.devices	Future<List<AndroidDevice>> ()
+Adb.escapeTextArgument	static String (String text)
+Adb.new	({Shell shell = const ProcessShell()})
+Adb.parseCurrentPackage	static String (String dumpsys)
+Adb.parseDevices	static List<AndroidDevice> (String text)
+Adb.requirePackage	static String (String pkg)
+Adb.resolve	static AndroidDevice? (List<AndroidDevice> all, String? query)
+Adb.screenshot	Future<String> (String serial, String out)
+Adb.swipe	Future<void> (String serial, int x1, int y1, int x2, int y2, { int durationMs = 300, })
+Adb.tap	Future<void> (String serial, int x, int y)
+Adb.text	Future<void> (String serial, String text)
+AndroidDevice	class
+AndroidDevice.isReady	bool
+AndroidDevice.model	String
+AndroidDevice.new	({ required this.serial, required this.state, required this.model, required this.product, required this.transport, })
+AndroidDevice.product	String
+AndroidDevice.serial	String
+AndroidDevice.state	String
+AndroidDevice.toJson	Map<String, Object?> ()
+AndroidDevice.transport	String
+Calibration	class
+Calibration.deviceHeight	int
+Calibration.deviceRect	DRect
+Calibration.deviceWidth	int
+Calibration.fromJson	static Calibration? (Map<String, dynamic>? json)
+Calibration.matches	bool (HubWindow w)
+Calibration.new	({ required this.window, required this.deviceRect, required this.deviceWidth, required this.deviceHeight, this.screenshotWidth = 0, this.screenshotHeight = 0, this.scale = 0, })
+Calibration.scale	double
+Calibration.screenshotHeight	int
+Calibration.screenshotWidth	int
+Calibration.toJson	Map<String, dynamic> ()
+Calibration.toScreen	DPoint (DPoint devicePoint)
+Calibration.window	HubWindow
+CalibrationDetector	class
+CalibrationDetector.detect	Calibration ({ required img.Image image, required HubWindow window, required double scale, required int deviceWidth, required int deviceHeight, int? screenshotWidth, int? screenshotHeight, })
+CalibrationDetector.new	()
+CalibrationStore	class
+CalibrationStore.dir	Directory
+CalibrationStore.fileFor	File (String udid)
+CalibrationStore.isFreshCalibration	static bool (Calibration? cached, HubWindow window, { int? deviceWidth, int? deviceHeight, })
+CalibrationStore.load	Calibration? (String udid)
+CalibrationStore.new	({String? home})
+CalibrationStore.save	void (String udid, Calibration c)
+DPoint	class
+DPoint.new	(this.x, this.y)
+DPoint.toString	String ()
+DPoint.x	double
+DPoint.y	double
+DRect	class
+DRect.bottom	double
+DRect.centerX	double
+DRect.centerY	double
+DRect.deflate	DRect (double v)
+DRect.height	double
+DRect.left	double
+DRect.new	(this.left, this.top, this.width, this.height)
+DRect.right	double
+DRect.toString	String ()
+DRect.top	double
+DRect.width	double
+DRect.withSize	DRect (double w, double h)
+DeviceHub	class
+DeviceHub.activate	Future<void> ()
+DeviceHub.capture	Future<double> (HubWindow window, String out)
+DeviceHub.new	({Shell shell = const ProcessShell()})
+DeviceHub.parseWindow	static HubWindow? (String text)
+DeviceHub.scaleFor	Future<double> (HubWindow window, String out)
+DeviceHub.window	Future<HubWindow?> ()
+DeviceOptions	class
+DeviceOptions.android	bool
+DeviceOptions.command	String
+DeviceOptions.device	String?
+DeviceOptions.deviceOrFirst	String?
+DeviceOptions.deviceQuery	String?
+DeviceOptions.json	bool
+DeviceOptions.new	({ required this.command, required this.positional, required this.device, required this.out, required this.noCache, required this.scale, required this.timeout, required this.stableFor, required this.region, required this.json, required this.real, required this.android, required this.seen, })
+DeviceOptions.noCache	bool
+DeviceOptions.out	String?
+DeviceOptions.parse	static DeviceOptions (List<String> args)
+DeviceOptions.positional	List<String>
+DeviceOptions.real	bool
+DeviceOptions.region	DRect?
+DeviceOptions.scale	int?
+DeviceOptions.seen	Set<String>
+DeviceOptions.stableFor	Duration
+DeviceOptions.timeout	Duration
+DeviceOptions.validate	void ()
+Devicectl	class
+Devicectl.devices	Future<List<RealDevice>> ()
+Devicectl.new	({Shell shell = const ProcessShell()})
+Devicectl.parseDevices	static List<RealDevice> (String jsonText)
+Devicectl.resolve	static RealDevice? (List<RealDevice> all, String? query)
+Devicectl.screenshot	Future<String> (String device, String out)
+HubWindow	class
+HubWindow.fromJson	static HubWindow? (Map<String, dynamic>? json)
+HubWindow.height	double
+HubWindow.new	(this.x, this.y, this.width, this.height)
+HubWindow.sameAs	bool (HubWindow other, {double tolerance = 1})
+HubWindow.toJson	Map<String, dynamic> ()
+HubWindow.width	double
+HubWindow.x	double
+HubWindow.y	double
+Input	class
+Input.available	Future<bool> ()
+Input.drag	Future<void> (double x1, double y1, double x2, double y2, { int steps = 6, })
+Input.new	({Shell shell = const ProcessShell()})
+Input.tap	Future<void> (double x, double y)
+Input.type	Future<void> (String text)
+ProcessShell	class
+ProcessShell.new	({this.timeout = const Duration(seconds: 120)})
+ProcessShell.run	Future<ProcessResult> (String exe, List<String> args)
+ProcessShell.runBytes	Future<Uint8List> (String exe, List<String> args)
+ProcessShell.runOrThrow	Future<ProcessResult> (String exe, List<String> args)
+ProcessShell.timeout	Duration
+RealDevice	class
+RealDevice.bootState	String
+RealDevice.isBooted	bool
+RealDevice.name	String
+RealDevice.new	({ required this.udid, required this.name, required this.osVersion, required this.bootState, required this.transport, required this.paired, })
+RealDevice.osVersion	String
+RealDevice.paired	bool
+RealDevice.toJson	Map<String, Object?> ()
+RealDevice.transport	String
+RealDevice.udid	String
+ScreenFingerprint	class
+ScreenFingerprint._	()
+ScreenFingerprint.of	static String (Uint8List bytes, {int step = 4096})
+ScreenFingerprint.ofRegion	static String (Uint8List pngBytes, { required DRect region, int step = 2, })
+ScreenStats	class
+ScreenStats._	()
+ScreenStats.isMostlyDark	static bool (Uint8List pngBytes, {int threshold = 12, int step = 8})
+Shell	class
+Shell.run	Future<ProcessResult> (String exe, List<String> args)
+Shell.runBytes	Future<Uint8List> (String exe, List<String> args)
+Shell.runOrThrow	Future<ProcessResult> (String exe, List<String> args)
+SimDevice	class
+SimDevice.isBooted	bool
+SimDevice.name	String
+SimDevice.new	({ required this.udid, required this.name, required this.state, required this.runtime, })
+SimDevice.runtime	String
+SimDevice.runtimeLabel	String
+SimDevice.state	String
+SimDevice.udid	String
+Simctl	class
+Simctl.boot	Future<void> (String udid)
+Simctl.devices	Future<List<SimDevice>> ()
+Simctl.guessScale	static int (int pixelWidth)
+Simctl.new	({Shell shell = const ProcessShell()})
+Simctl.parseDevices	static List<SimDevice> (String jsonText)
+Simctl.resolve	static SimDevice? (List<SimDevice> all, String? query, { bool bootedOnly = false, })
+Simctl.screenshot	Future<String> (String udid, String out)
+Stability	class
+Stability.interval	Duration
+Stability.new	({ required Future<String> Function() grab, this.interval = const Duration(milliseconds: 300), })
+Stability.waitStable	Future<bool> ({ Duration stableFor = const Duration(milliseconds: 600), Duration timeout = const Duration(seconds: 15), })
+TapVerifier	class
+TapVerifier._	()
+TapVerifier.verify	static Future<bool> ({ required Stability stability, required Future<String> Function() fingerprint, required Future<void> Function() tap, Duration stableFor = const Duration(milliseconds: 600), Duration timeout = const Duration(seconds: 15), })
+VerificationTimeout	class
+VerificationTimeout.message	String
+VerificationTimeout.new	(this.message)
+VerificationTimeout.toString	String ()
