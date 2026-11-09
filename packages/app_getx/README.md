@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^2.1.0
+  w_tools_app_getx: ^2.1.1
 ```
 
 > 本包最低要求 Flutter 3.38.0。

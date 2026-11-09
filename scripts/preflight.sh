@@ -101,6 +101,9 @@ run "templates fresh" bash -c "cd packages/cli && dart --suppress-analytics run 
 run "style literals" python3 scripts/check_style_literals.py
 run "deprecations" python3 scripts/check_deprecations.py
 run "script unit tests" bash -c "cd scripts/tests && python3 -m unittest discover -p 'test_*.py'"
+# 版本号会同时出现在子包 pubspec / 根 pubspec / init versions.dart；
+# 只靠 release_check 与 ai_contract 测试会漏掉 CLI 自己的 cliConstraint。
+run "versions" python3 scripts/check_versions.py
 run "release check" bash scripts/release_check.sh
 # CI 的包矩阵与静态门禁必须从 manifest / preflight 派生，不能手抄一份。
 run "ci parity" python3 scripts/ci_matrix.py --check

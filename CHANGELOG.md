@@ -1,3 +1,10 @@
+## 12.0.2
+
+### Fixed
+- 根 `example/` 的 workspace `dependency_overrides` 移到 `example/pubspec_overrides.yaml`，
+  发布物里的 example 可独立 `pub get`；`publish_package.sh` 排除该文件。
+- 新增 `check_example_paths.py`：preflight 拦住 example 的包外 `path:` 依赖。
+
 ## 12.0.1
 
 ### Changed
