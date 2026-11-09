@@ -6,5 +6,6 @@ export 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart'
     show Barcode, BarcodeFormat, CameraException, CameraFacing, SystemFeatures;
 
 export 'src/qr_controller.dart';
-export 'src/qr_overlay_shape.dart';
+export 'src/qr_overlay_style.dart';
+export 'src/qr_scan_result.dart';
 export 'src/qr_view.dart';

@@ -1600,8 +1600,10 @@ const String agentsCore = r'''
 ''';
 
 const String agentsQr = r'''
-- **扫码**：用 `WQrView`，不要直接用 `QRView`；默认 `scanOnce=true`，
-  重新扫描用 `GlobalKey<WQrViewState>.restartScan()`。
+- **扫码**：用 `WQrView`，不要直接用 `QRView`；控制器 `WQrController` 由页面创建并传
+  `WQrView(controller: ...)`，重新扫描用 `controller.restart()`（`WQrViewState` 已移除）。
+- **单次 / 连续**：`scanOnce` 控制扫完是否暂停（默认 true，只在传了 `onScanned` 时生效）；
+  连续扫描用 `scanOnce: false` + `scanInterval` 去重；不传 `onScanned` 时不会暂停相机。
 ''';
 
 const String agentsMap = r'''
@@ -1947,8 +1949,11 @@ const String agentsCoreEn = r'''
 ''';
 
 const String agentsQrEn = r'''
-- **Scanning**: use `WQrView`, not the raw `QRView`; `scanOnce` defaults to true, and restart via
-  `GlobalKey<WQrViewState>.restartScan()`.
+- **Scanning**: use `WQrView`, not the raw `QRView`; create a `WQrController` in the page and pass
+  `WQrView(controller: ...)`; restart with `controller.restart()` (`WQrViewState` was removed).
+- **Once vs continuous**: `scanOnce` decides whether scanning pauses after a hit (default true, only
+  applies when `onScanned` is set); use `scanOnce: false` + `scanInterval` for continuous scanning;
+  without `onScanned` the camera never auto-pauses.
 ''';
 
 const String agentsMapEn = r'''

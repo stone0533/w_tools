@@ -20,7 +20,5 @@ packages:
   w_tools_map_google:
     - WMapOptions
     - WMapIconAssets
-  w_tools_qr:
-    - WQrViewState
   w_tools_toast:
     - WToastTheme

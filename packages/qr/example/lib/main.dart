@@ -32,8 +32,9 @@ class QrScannerPage extends StatefulWidget {
 }
 
 class _QrScannerPageState extends State<QrScannerPage> {
-  final _qrKey = GlobalKey<WQrViewState>();
-  WQrController? _controller;
+  /// 控制器由页面创建并持有，跨平台视图重建保持不变
+  final WQrController _controller = WQrController();
+
   StreamSubscription<Barcode>? _streamSubscription;
   String? _result;
   int _streamCount = 0;
@@ -41,22 +42,39 @@ class _QrScannerPageState extends State<QrScannerPage> {
   bool _continuous = false;
   bool _showOverlay = true;
   bool _qrOnly = true;
+  bool _permissionDenied = false;
 
-  void _onScanned(Barcode barcode) {
-    setState(() => _result = barcode.code);
+  @override
+  void initState() {
+    super.initState();
+    // 广播流与控制器同生命周期：只需订阅一次
+    _streamSubscription = _controller.scannedDataStream.listen((barcode) {
+      final code = barcode.code;
+      if (code == null || code.isEmpty || !mounted) return;
+      setState(() => _streamCount++);
+    });
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onScanned(WQrScanResult result) {
+    setState(() => _result = result.code);
   }
 
   Future<void> _restart() async {
     setState(() => _result = null);
-    await _qrKey.currentState?.restartScan();
+    await _controller.restart();
   }
 
   Future<void> _toggleTorch() async {
-    final controller = _controller;
-    if (controller == null) return;
     try {
-      await controller.toggleFlash();
-      final status = await controller.getFlashStatus();
+      await _controller.toggleFlash();
+      final status = await _controller.getFlashStatus();
       if (mounted) setState(() => _torchOn = status ?? false);
     } catch (error, stackTrace) {
       _report(error, stackTrace);
@@ -65,7 +83,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
 
   Future<void> _flip() async {
     try {
-      await _controller?.flipCamera();
+      await _controller.flipCamera();
     } catch (error, stackTrace) {
       _report(error, stackTrace);
     }
@@ -78,10 +96,9 @@ class _QrScannerPageState extends State<QrScannerPage> {
     );
   }
 
-  @override
-  void dispose() {
-    _streamSubscription?.cancel();
-    super.dispose();
+  void _onPermissionDenied() {
+    if (!mounted) return;
+    setState(() => _permissionDenied = true);
   }
 
   @override
@@ -106,33 +123,17 @@ class _QrScannerPageState extends State<QrScannerPage> {
         children: [
           Positioned.fill(
             child: WQrView(
-              key: _qrKey,
+              controller: _controller,
               onScanned: _onScanned,
-              onQRViewCreated: (controller) {
-                _controller = controller;
-                _streamSubscription?.cancel();
-                _streamSubscription = controller.scannedDataStream.listen(
-                  (barcode) {
-                    final code = barcode.code;
-                    if (code == null || code.isEmpty || !mounted) return;
-                    setState(() => _streamCount++);
-                  },
-                );
-              },
+              onPermissionDenied: _onPermissionDenied,
               onError: _report,
               scanOnce: !_continuous,
               scanInterval: const Duration(seconds: 1),
-              showOverlay: _showOverlay,
               formatsAllowed: _qrOnly
                   ? const <BarcodeFormat>[BarcodeFormat.qrcode]
                   : const <BarcodeFormat>[],
-              noPermissionCallback: () {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('需要相机权限才能扫码')),
-                );
-              },
-              overlay: const WQrViewOverlayShape(
+              style: WQrOverlayStyle(
+                isVisible: _showOverlay,
                 borderWidth: 4,
                 cutOutWidth: 240,
                 cutOutHeight: 240,
@@ -143,30 +144,40 @@ class _QrScannerPageState extends State<QrScannerPage> {
             top: 12,
             left: 12,
             right: 12,
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FilterChip(
-                  label: const Text('连续扫描'),
-                  selected: _continuous,
-                  onSelected: (value) => setState(() => _continuous = value),
+                Row(
+                  children: [
+                    FilterChip(
+                      label: const Text('连续扫描'),
+                      selected: _continuous,
+                      onSelected: (value) => setState(() => _continuous = value),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('扫描框'),
+                      selected: _showOverlay,
+                      onSelected: (value) => setState(() => _showOverlay = value),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('仅二维码'),
+                      selected: _qrOnly,
+                      onSelected: (value) => setState(() => _qrOnly = value),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text('扫描框'),
-                  selected: _showOverlay,
-                  onSelected: (value) => setState(() => _showOverlay = value),
-                ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text('仅二维码'),
-                  selected: _qrOnly,
-                  onSelected: (value) => setState(() => _qrOnly = value),
+                const SizedBox(height: 8),
+                const Text(
+                  '切换「仅二维码」会重启相机（平台视图重建），扫描状态随之重置',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ],
             ),
           ),
           Positioned(
-            top: 60,
+            top: 76,
             left: 12,
             right: 12,
             child: Text(
@@ -202,6 +213,44 @@ class _QrScannerPageState extends State<QrScannerPage> {
                         child: const Text('继续扫描'),
                       ),
                     ],
+                  ),
+                ),
+              ),
+            ),
+          if (_permissionDenied)
+            Positioned.fill(
+              child: ColoredBox(
+                color: Colors.black54,
+                child: Center(
+                  child: Card(
+                    margin: const EdgeInsets.all(32),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.no_photography_outlined, size: 40),
+                          const SizedBox(height: 12),
+                          const Text(
+                            '需要相机权限',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '请在系统设置中允许相机权限后返回本页',
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          FilledButton(
+                            onPressed: () => setState(() => _permissionDenied = false),
+                            child: const Text('我已授权'),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

@@ -127,7 +127,7 @@ class ProjectSnapshot {
       'w_tools_toast': 'WToast.showXxx + WToastStyle',
       'w_tools_app_getx': 'WApp + WAppPlugin + GetX 路由',
       'w_tools_map_google': 'WMap + WMapZone',
-      'w_tools_qr': 'WQrView / WQrController',
+      'w_tools_qr': 'WQrView + WQrController（重扫 restart）',
     };
     return [
       for (final entry in summaries.entries)

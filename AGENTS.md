@@ -206,7 +206,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 | api | `WApiConfig` + `DioRegistry.forBaseUrl`；不要直接 `Dio()`；token 用 `WToken` | [api](docs/agents/api.md) |
 | toast | `WToast` + `WToastStyle` / `WToastTheme`；根节点一次 `BotToastInit` | [toast](docs/agents/toast.md) |
 | app | `WApp.options(WAppOptions(...)).start()`；插件用 `WAppPlugin`，有顺序要求用 `dependsOn` | [app](docs/agents/app.md) |
-| qr | `WQrView`，不要直接用 `QRView`；默认 `scanOnce = true` | [qr](docs/agents/qr.md) |
+| qr | `WQrView` + `WQrController`（重扫 `controller.restart()`），不要直接用 `QRView` | [qr](docs/agents/qr.md) |
 | map | `WMap` / `WMapZone` 来自 `w_tools_map_google`；`markerId` 必须稳定；不要直接用 `GoogleMap` | [map](docs/agents/map.md) |
 
 ## 启动与主题（跨包）
