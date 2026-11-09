@@ -57,15 +57,18 @@ python3 scripts/release_status.py --online
   把「待发布」当正常状态（退出 0）。发布前不要用 `--online` 当门禁，它只用于发布后核对。
 - **聚合包**：`w_tools` 按聚合层独立发版。它对各子包的 caret 约束下界应取**子包当前版本**
   （例如 `^1.2.0`，而不是 `^1.0.0`）：`^1.0.0` 虽然能接受 1.2.0，但已有 lockfile 的用户
-  不会自动升级，新装用户也可能停在旧版。日常 `preflight` 只提醒；发布根包前的
-  `release_check --strict` 会把「能接受但下界落后」判成失败。
+  不会自动升级，新装用户也可能停在旧版。日常 `preflight` 的 `check_versions.py` 会把
+  「下界 != 当前版本」直接判失败；发布根包前的 `release_check --strict` 还会把
+  「能接受但下界落后」判成失败。
 - **版本语义**：`Fixed` → patch；`Added` / 兼容的 `Changed` → minor；
   `Removed` / 破坏性行为变更 → **major**。发布脚本会在「版本不是 X.0.0 但 CHANGELOG
   含 Removed/breaking」时给出警告。
 - **发布顺序**：先子包，后聚合包。聚合包约束抬高到新子包版本之后才能发。
-- **约束抬升跟随发布，不跟功能 PR**：`packages/cli/lib/src/init/versions.dart` 与根
-  `pubspec.yaml` 的下界放到 K-2 发布准备里改（子包发布之后）。否则合并到发布之间会
-  出现「`init` 生成的约束在 pub.dev 上还解析不到」的窗口。
+- **约束抬升跟随版本，不跟随发布动作**：功能 PR 可以抬 `packages/cli/lib/src/init/versions.dart`
+  与根 `pubspec.yaml` 的下界，但根包 / CLI 自身没有 API diff 的变化必须写进非空
+  `## Unreleased`；K-2 把它折叠成根包 / CLI 的版本段后再发布。`check_versions.py`
+  保证下界 == 当前版本；发 CLI / 根包前还要确认它们约束的子包版本已在 pub.dev 可见
+  （发布顺序：子包 → CLI / 根包）。
 - **已发布版本不回滚、不重发**：有外部使用者时 fix-forward —— 先发 patch 恢复兼容
   （通常是 `@Deprecated` 垫片），下个 major 再删；确认没有外部使用者时不回滚、不加垫片，
   记录例外，后续破坏性改动一律按 major 发。
@@ -93,11 +96,14 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 
 1. 确认子包 `version` + `CHANGELOG.md` 的 `## x.y.z` 段：功能 PR 里已经抬过就沿用；
    还没抬时才在这里抬（版本号决定 semver，拿不准先和人工确认）。
-2. 需要聚合包 / cli 跟上的，在**本步**把 `packages/cli/lib/src/init/versions.dart` 与根
-   `pubspec.yaml` 的下界抬到子包当前版本（功能 PR 不改它；`release_check` 会校验下界是否落后）。
+2. 功能 PR 已经抬过根 `pubspec.yaml` / `versions.dart` 下界就沿用；还没抬时在**本步**
+   抬到子包当前版本。发布聚合子包前根约束必须已等于子包当前版本
+   （`release_check --strict --package` 会拦）。K-2 同时把 `## Unreleased` 折叠成
+   根包 / CLI 的版本段；发 CLI / 根包前确认约束指向的子包版本已发布。
 3. 改根 `version` + 写根 `CHANGELOG.md`。
 4. 本地预检（不要求工作区干净）：
    ```bash
+   python3 scripts/check_versions.py
    bash scripts/release_check.sh --package map
    ```
 5. 提交到 feature 分支并 push，开 PR；等 Required checks 通过后**合并到 main**
@@ -130,7 +136,8 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    git commit -m "chore(release): w_tools_map <version> API 基线"
    git push -u origin HEAD
    gh pr create --fill
-   gh pr merge --auto --merge   # 快照只是搬运基线，Required checks 过了自动合并
+   gh pr checks --required      # 等 Required checks
+   gh pr merge --merge          # 仓库未开 auto-merge；若已开启可改用 --auto
    git switch main && git pull --ff-only
    ```
 

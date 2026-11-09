@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  w_tools_map:
-    path: ../../map
+  # 发布物里 example 必须能从 pub.dev 解析；本地开发用 pubspec_overrides.yaml 指到 workspace。
+  w_tools_map: ^3.0.0
   w_tools_map_google:
     path: ../
 
@@ -22,7 +22,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-dependency_overrides:
-  w_tools_map:
-    path: ../../map

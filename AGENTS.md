@@ -18,7 +18,7 @@
 ## 改动前先分类
 
 1. **内部重构**：公开 API / 默认行为不变 → 只改代码 + 测试。
-2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界；**公开 API 变化必须抬版本** —— `check_version_bump` 不认 `## Unreleased`；只有无 API diff 的行为 / 文档变化才能写进非空 `## Unreleased` 延后发布；版本约束的抬升属于发布波次，见 `docs/releasing.md` K-2，不要塞进功能 PR）；必要时 migration；改根包 `lib/` / `pubspec.yaml` 时必须同时改根 `CHANGELOG.md`，根包 re-export 变化必须抬根包版本（`check_version_bump`）。行为变化没有公开 API diff，CI 的 `check_pr_scope.py` 按 PR 模板兜底：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须带「## 改动类型」段并至少勾选一项（空 body 也会失败）；勾了公开类别（公开变化 / 删除废弃 / 新增包）时，每个改了公开代码的包都要改自己的 CHANGELOG，且版本要高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`）。
+2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界；改到 CLI `init` 约束时同步 `packages/cli/lib/src/init/versions.dart`；**公开 API 变化必须抬版本** —— `check_version_bump` 不认 `## Unreleased`；根包 / CLI 自身没有 API diff 的约束变化可以跟功能 PR，但必须写进非空 `## Unreleased`，由 K-2 折叠成版本段，见 `docs/releasing.md`；`scripts/check_versions.py` 保证所有下界 == 当前版本）；必要时 migration；改根包 `lib/` / `pubspec.yaml` 时必须同时改根 `CHANGELOG.md`，根包 re-export 变化必须抬根包版本（`check_version_bump`）。行为变化没有公开 API diff，CI 的 `check_pr_scope.py` 按 PR 模板兜底：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须带「## 改动类型」段并至少勾选一项（空 body 也会失败）；勾了公开类别（公开变化 / 删除废弃 / 新增包）时，每个改了公开代码的包都要改自己的 CHANGELOG，且版本要高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`）。
 3. **删除 / 废弃**：额外清理 aliases / related / migration，把删除的公开名补进 `scripts/check_removed_api.py` 的名单，并跑 removed API 检查。
 4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities（仅消费入口包） / release。工具包（无 barrel）还要登记 `check_public_api_diff.py` 的 `NO_PUBLIC_API`、`check_docs_facts.py` 的 `TOOLS`、`check_naming.py` 的 `TOOL_PACKAGES`，并生成 header-only 快照（否则 `check_public_api_diff` 缺基线会失败）。首次发布前把裸名加进 `scripts/pending_first_release.txt`（首发成功后删行），否则周检会因 pub.dev 404 判红。
 
@@ -56,6 +56,8 @@ docs/modules/components.md
 每个子包的行为测试放在 `packages/<pkg>/test/`，并在该包的 `dev_dependencies` 里声明所需依赖 —— 子包要能脱离仓库根独立测试 / 发布。Flutter 子包用 `flutter test`；纯 Dart 包（`map` / `cli` / `figma` / `device`）用 `dart test`；`e2e` 以 pubspec 为准。根 `test/` 只放聚合契约（`w_tools.dart` 重导出）与跨包回归，单包行为测试不要放这里。
 
 守卫 / 错误分支 / 边界 clamp 的用例要能证明「删掉被守逻辑它就红」：用 `bash scripts/mutate_guard.sh` 做一次定向变异（`--expect` 与 `bash -c` 写法见 `CONTRIBUTING.md` §4 和 `scripts/README.md`「测试有效性（人工）」）。只断言 `takeException()` / `returnsNormally` 的用例优先查——删掉功能它也可能绿；变异存活先补正向断言，再考虑删守卫。
+
+本机 / agent 沙箱没有 Flutter cache 写权限时，用 `bash scripts/preflight.sh --sandbox` 跳过 Flutter 测试（由 CI 覆盖）；单包改动用 `--package`，多包用 `--changed`，不要默认全量 `--with-tests`。preflight 用 `dart analyze`（同一 analyzer，不需要 Flutter engine cache）；CI 的每包 job 仍会跑 `flutter analyze`。
 
 ## 文档
 

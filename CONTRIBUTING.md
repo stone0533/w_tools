@@ -11,8 +11,10 @@
 - [ ] **默认值可用**：不传任何参数也能渲染出一个合理的组件
 - [ ] **至少一个测试**：`packages/<pkg>/test/` 下的 widget 测试；像素敏感的加上 golden
 - [ ] **`CHANGELOG.md` 条目 + 版本号**：子包版本必须抬；如果该子包被根包聚合，
-      根包的 `^x.y.z` 约束要一起改（改完跑 `bash scripts/release_check.sh`；
-      它只**提醒**下界落后，发布根包前必须跑 `--strict`）。
+      根包的 `^x.y.z` 约束和 `packages/cli/lib/src/init/versions.dart` 要一起改
+      （`python3 scripts/check_versions.py` 校验下界 == 当前版本；
+      改完跑 `bash scripts/release_check.sh`）。根包 / CLI 自身没有 API diff 的约束变化
+      写进非空 `## Unreleased`，由 K-2 折叠成版本段；不要追加到已发布的版本段。
       CI 的 `api-bump` job 会比对 base 与 HEAD 的公开 API 表面：API 变了但版本既没抬、
       也不高于**已发布**基线（CI 用 pub.dev 版本，取不到才退回快照）时直接失败；
       已经在未发布版本里的改动可以沿用；确实要留到下次发版时，也可以写进非空
@@ -98,7 +100,9 @@
 
 - 首次检出先跑 `bash scripts/install_git_hooks.sh`。本地钩子分三层：
   `pre-commit` 只查**已暂存** `*.dart` 的格式（<1s）；`commit-msg` 要求 conventional 标题
-  （`Merge` / `Revert` / `fixup!` / `squash!` 除外）；`pre-push` 阻止直接 push main。
+  （`Merge` / `Revert` / `fixup!` / `squash!` 除外）；`pre-push` 阻止直接 push main，
+  并在工作区干净、本地有 `origin/main` 时跑 `check_version_bump --base origin/main`
+  （api-bump 同款，公开 API 变了没抬版本会在这里红）。
   临时绕过用 `--no-verify`，合并前记得整理。
 - 需求 / 可复现的 bug 先开 issue：反馈类用 [`.github/ISSUE_TEMPLATE/feedback.md`](https://github.com/stone0533/w_tools/blob/main/.github/ISSUE_TEMPLATE/feedback.md)
   （自动带 `needs-triage`），其余用空白 issue；小修 / 文档 / 内部重构可以直接开 PR。

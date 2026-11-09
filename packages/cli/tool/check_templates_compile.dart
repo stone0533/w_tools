@@ -1,10 +1,11 @@
 // 编译冒烟检查：把 init 生成的 UI starter 放进 ui example 的临时目录，
-// 让 Flutter 解析 package:w_tools_ui，并执行 flutter analyze。
+// 用 dart 解析 package:w_tools_ui 并执行 dart analyze。
 //
 // 用法（在 packages/cli 下）：
 //   dart run tool/check_templates_compile.dart
 //
-// 需要 Flutter SDK；CI 的 CLI job 会跑它。
+// 用 dart 而不是 flutter：同一个 analyzer，且不需要 Flutter engine cache；
+// 本机 / agent 沙箱没有 FVM cache 写权限时也能跑。CI 的 CLI job 会跑它。
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -34,24 +35,24 @@ Future<void> main() async {
     }
 
     final pubGet = await Process.run(
-      'flutter',
-      const ['pub', 'get'],
+      'dart',
+      const ['--suppress-analytics', 'pub', 'get'],
       workingDirectory: exampleRoot.path,
     );
     if (pubGet.exitCode != 0) {
       stdout.write(pubGet.stdout);
       stderr.write(pubGet.stderr);
-      stderr.writeln('flutter pub get 失败');
+      stderr.writeln('dart pub get 失败');
       exitCode = 1;
       return;
     }
 
     final analyze = await Process.run(
-      'flutter',
+      'dart',
       [
+        '--suppress-analytics',
         'analyze',
         temp.path,
-        '--no-fatal-infos',
         '--no-fatal-warnings',
       ],
       workingDirectory: exampleRoot.path,

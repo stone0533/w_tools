@@ -40,7 +40,13 @@ ROOT_EXCLUDED_DIRS = {
     '.dart_tool',
     '.idea',
 }
-ROOT_EXCLUDED_FILES = {'AGENTS.md', 'devtools_options.yaml'}
+ROOT_EXCLUDED_FILES = {
+    'AGENTS.md',
+    'devtools_options.yaml',
+    '.flutter-plugins',
+    '.flutter-plugins-dependencies',
+    '.DS_Store',
+}
 
 # publish_package.sh 的 rsync 对每个包同样排掉这些目录。
 PACKAGE_EXCLUDED_DIRS = {

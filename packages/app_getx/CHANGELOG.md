@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.1
+
+### Fixed
+- `example` 的 `w_tools_app` path override 移到 `example/pubspec_overrides.yaml`；
+  发布物里的示例可独立 `pub get`。
+
 ## 2.1.0
 
 ### Added

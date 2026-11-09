@@ -885,7 +885,7 @@ J-5 多包/家族
 | 3 | 版本 / CHANGELOG（一个 PR） | K-2M | 发布准备 PR（已合并） |
 | 4 | 逐包 dry-run | K-3 | 每包 0 warning |
 | 5 | 逐包发布 | K-4，一次一个包 | 每包 publish 成功 |
-| 6 | 快照 | `bash scripts/apply_snapshots.sh` → PR → 按输出 `gh pr merge --auto --merge` | 快照 PR（已合并） |
+| 6 | 快照 | `bash scripts/apply_snapshots.sh` → PR → 按输出 `gh pr checks --required` + `gh pr merge --merge`（仓库未开 auto-merge） | 快照 PR（已合并） |
 | 7 | 根包（需要时） | 快照合入 + `git pull --ff-only` 后走 K-4 的根包段 | 根包发布成功 |
 | 8 | 验证 | K-5（两阶段） | 状态表全绿 |
 
@@ -971,7 +971,8 @@ J-5 多包/家族
 - packages/<pkg>/CHANGELOG.md
 - packages/<pkg>/README.md（只改安装示例的 caret 下界；不要写「当前 x.y.z」）
 - 聚合子包 / 根包下界：packages/cli/lib/src/init/versions.dart 与根 pubspec.yaml
-  —— 这是唯一允许抬约束的步骤；功能 PR 不改它
+  —— 功能 PR 已抬过就沿用；还没抬时在本步抬
+- 根包 / CLI 自身的 `## Unreleased`：本步折叠成对应版本段（没有 API diff 的约束变化）
 - 必要的 migration
 - 版本常量（cli/figma 的 lib/src/common/version.dart 等）
 
@@ -983,7 +984,8 @@ J-5 多包/家族
 要求：
 1. 版本号必须与 CHANGELOG 的 ## 段一致；
 2. 更新 README 安装示例的 caret 下界（必须等于新版本），不要写死「当前 x.y.z」；
-3. 跑 bash scripts/release_check.sh --package <pkg>（根包用 --strict）
+3. 跑 python3 scripts/check_versions.py
+   与 bash scripts/release_check.sh --package <pkg>（根包用 --strict）
    与 bash scripts/preflight.sh --with-tests（整波只跑这一次完整档）；
 4. 提交前跑本地 PR 预检：bash scripts/check_pr_ready.sh /tmp/pr.md
    （check_pr_scope + check_version_bump；body 与 `gh pr create --body-file` 用同一份）；
@@ -1003,6 +1005,7 @@ J-5 多包/家族
 不要改无关包。
 
 最后统一跑：
+python3 scripts/check_versions.py
 bash scripts/release_check.sh
 bash scripts/preflight.sh --with-tests
 bash scripts/check_pr_ready.sh /tmp/pr.md
@@ -1069,7 +1072,7 @@ bash scripts/publish_package.sh packages/<pkg> --yes
 快照先写到 .w_tools/release-snapshots/（gitignored），不会挡住下一个包。
 全部发完后：
 bash scripts/apply_snapshots.sh
-按它打印的命令开快照 PR，并用 gh pr merge --auto --merge 合并。
+按它打印的命令开快照 PR，等 Required checks 后用 `gh pr merge --merge` 合并（仓库未开 auto-merge；开了才用 `--auto`）。
 发根包前必须先合入快照 PR 并 git pull --ff-only
 （否则 publish_package.sh . 与 release_check --strict 都会拦住）。
 ```

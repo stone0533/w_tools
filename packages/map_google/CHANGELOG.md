@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1
+
+### Fixed
+- `example` 改为 hosted `w_tools_map: ^3.0.0`，本地 path override 移到
+  `example/pubspec_overrides.yaml`；发布物里的示例可独立 `pub get`。
+
 ## 2.0.0
 
 ### Breaking

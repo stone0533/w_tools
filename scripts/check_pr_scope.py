@@ -212,6 +212,63 @@ def package_version(package: str) -> str | None:
     return match.group(1) if match else None
 
 
+def root_version() -> str | None:
+    path = ROOT / 'pubspec.yaml'
+    if not path.is_file():
+        return None
+    match = re.search(r'(?m)^version:\s*(\S+)', path.read_text())
+    return match.group(1) if match else None
+
+
+def root_changelog_policy_error(
+    current_version: str | None,
+    base_version: str | None,
+    changelog_text: str,
+) -> str | None:
+    """根包 pubspec/lib 有变化但版本没抬时，必须写 `## Unreleased`。
+
+    与子包不同，根包没有 API 快照做“已发布基线”；用 merge-base 的版本判断
+    本次 PR 有没有抬根包版本。没抬时只能写 `## Unreleased`，不能追加到
+    已经发布的版本段——发布准备（K-2）会把它折叠成新版本段。
+    """
+    if not current_version or not base_version:
+        return None
+    if release_parts(current_version) > release_parts(base_version):
+        return None
+    if release_parts(current_version) < release_parts(base_version):
+        return (
+            f'w_tools: 根包版本从 {base_version} 降到 {current_version}；'
+            '已发布版本不能回滚'
+        )
+    if has_unreleased_entry(changelog_text):
+        return None
+    return (
+        f'w_tools: 根包 pubspec / lib 有变化，但版本仍是 {current_version}，'
+        'CHANGELOG 也没有 `## Unreleased` 条目；'
+        '请抬根包版本，或把变化写进 `## Unreleased`，不要追加到已发布版本段'
+    )
+
+
+def git_show(ref: str, path: str) -> str | None:
+    result = subprocess.run(
+        ['git', 'show', f'{ref}:{path}'],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout if result.returncode == 0 else None
+
+
+def merge_base_ref(base: str) -> str | None:
+    result = subprocess.run(
+        ['git', 'merge-base', base, 'HEAD'],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
 def changelog_policy_error_for(
     package: str,
     current_version: str | None,
@@ -364,6 +421,22 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
+    if root_public_change(changed) and ROOT_CHANGELOG in changed:
+        base_ref = merge_base_ref(args.base)
+        base_text = git_show(base_ref, 'pubspec.yaml') if base_ref else None
+        base_match = re.search(r'(?m)^version:\s*(\S+)', base_text or '')
+        root_text = ''
+        root_changelog = ROOT / ROOT_CHANGELOG
+        if root_changelog.is_file():
+            root_text = root_changelog.read_text()
+        root_error = root_changelog_policy_error(
+            root_version(),
+            base_match.group(1) if base_match else None,
+            root_text,
+        )
+        if root_error:
+            print(f'✗ {root_error}', file=sys.stderr)
+            return 1
     warnings: list[str] = []
 
     def published_for(package: str) -> str | None:

@@ -130,6 +130,20 @@ class PublishedLinksTest(unittest.TestCase):
             (ui / 'README.md').write_text('[example](example/README.md)\n')
             self.assertEqual(mod.find_errors(root), [])
 
+    def test_pubignore_top_level_entries_are_covered(self):
+        """新增 .pubignore 排除项时，链接检查的常量不能落后。"""
+        for raw in (ROOT / '.pubignore').read_text().splitlines():
+            entry = raw.strip()
+            if not entry or entry.startswith('#') or '*' in entry:
+                continue
+            if entry.endswith('/'):
+                self.assertIn(entry.rstrip('/'), mod.ROOT_EXCLUDED_DIRS)
+            else:
+                self.assertTrue(
+                    entry in mod.ROOT_EXCLUDED_FILES or entry in mod.ROOT_EXCLUDED_DIRS,
+                    f'.pubignore 的 {entry} 没有同步到 check_published_links 常量',
+                )
+
 
 if __name__ == '__main__':
     unittest.main()

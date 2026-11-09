@@ -27,12 +27,28 @@ bash scripts/preflight.sh --with-tests
 bash scripts/preflight.sh --package ui
 ```
 
+只跑相对 `origin/main` 改动到的包（含工作区改动；多个包时不用手拼 `--package`）：
+
+```bash
+bash scripts/preflight.sh --changed
+```
+
+本机 / agent 沙箱没有 Flutter cache 写权限时（Flutter 测试只能靠 CI）：
+
+```bash
+bash scripts/preflight.sh --sandbox          # 静态门禁 + 纯 Dart 测试
+bash scripts/preflight.sh --changed --sandbox
+```
+
+`--sandbox` 只跳过 Flutter 测试与 publish dry-run，并明确打印「由 CI 覆盖」；不要把它当成完整通过。
+
 这一条覆盖：
 
 ```text
 format / analyze / docs（含符号 / 已删除 API / 安装版本）
 公开类型 catalog / 弃用 / 命名 / 风格
 API 快照逐包 diff / 测试 import 边界 / scripts 单测
+版本约束（root pubspec / init versions.dart）/ 发布物 example 路径
 catalog / templates 生成物新鲜度
 release check
 CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
@@ -40,9 +56,10 @@ CI 包矩阵与门禁步骤 ↔ manifest / preflight 一致性
 全部包 + example + root 测试 + root example 测试 + 模板编译
 ```
 
-**CI-only（本地 preflight 不跑）**：`check_version_bump.py` / `check_pr_scope.py`（`api-bump`
-job，需要 PR body 与 base sha）、每包 `publish_package.sh --dry-run`（本地要
-`--with-dry-run`）、`min_sdk` 的 analyze / test。所以「本地全绿」不等于「PR 一定绿」。
+**CI-only（本地 preflight 不跑）**：`check_pr_scope.py`（`api-bump` job，需要 PR body 与
+base sha）、`api-bump` 的 `--online` 已发布基线、每包 `publish_package.sh --dry-run`（本地要
+`--with-dry-run`）、`min_sdk` 的 analyze / test。`check_version_bump.py` 在 pre-push
+（工作区干净且有 `origin/main`）也会跑一次。所以「本地全绿」仍然不等于「PR 一定绿」。
 CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩阵由
 `scripts/ci_matrix.py` 从 `packages.manifest` 生成。两边不再各维护一份清单。
 重量级 job（umbrella / packages / min_sdk）由 `changes` job 按路径门控：纯文档改动时它们
@@ -67,7 +84,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | 脚本 | 作用 | 何时跑 |
 |---|---|---|
 | `preflight.sh` | 全仓门禁总入口（CI 直接调用它） | 提交前 / 合并前 |
-| `install_git_hooks.sh` | 安装 `.githooks`（pre-push 阻止直接 push main） | 首次检出 / 流程要求 |
+| `install_git_hooks.sh` | 安装 `.githooks`（pre-push 阻止直接 push main；干净工作区时跑 `check_version_bump --base origin/main`） | 首次检出 / 流程要求 |
 | `check_pr_checks.sh` | 用 `gh pr checks --required` 确认 PR Required checks | 发布前 |
 | `check_docs.sh` | 文档与 AI 资产检查总入口（链接 / 链接锚点 / 发布物 Markdown 链接 / 旧命令 / 符号 / 已删除 API / 安装版本 / catalog 锚点 / 教学覆盖，每步会打名字；`--skip-feedback` 供不装 Flutter 的 CI docs job 用） | 只改文档时可单独跑 / CI docs job |
 | `ci_matrix.py` | 从 `packages.manifest` 生成 CI 包矩阵；`--check` 查漂移（关键正向过滤器 / quantifier / required 接线 / docs job meta 检查 / `example` 列 ↔ `example/test`） | preflight / CI docs job / matrix job |
@@ -117,6 +134,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
 | `check_version_bump.py` | 对比 PR 的 **merge-base** 与 HEAD 的公开 API 表面：版本降级、版本不高于已发布基线、或版本没抬 → 失败（已抬过且高于已发布基线的未发布版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过）。根包 `lib/w_tools.dart` 的 export 行变化也要求根包版本高于 base。`--online` 时用 pub.dev 当已发布基线（取不到回退仓库快照并提醒），修 `git archive` 失败被当成新包 | CI `api-bump` job（带 `--online`）/ 本地 `--base main` |
+| `check_versions.py` | 版本约束的单一校验：root `pubspec.yaml` 的聚合包 caret 下界、`init/versions.dart` 的 `subpackageConstraints` / `cliConstraint` / `wToolsDeviceConstraint` 都必须等于当前 pubspec 版本 | preflight |
 | `check_pr_ready.sh` | 开 PR 前本地跑 PR 级门禁：`check_pr_scope --body-file` + `check_version_bump --base origin/main`；用法 `bash scripts/check_pr_ready.sh <pr-body.md>` | 开 PR 前（CI 同批检查的本地版） |
 | `check_pr_scope.py` | 读 PR 模板：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须有「## 改动类型」段且至少勾选一项；空 body 也失败。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG；根包公开面要有根 `CHANGELOG.md`；本地版本还要高于已发布基线（CI 带 `--online`：用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`） | CI `api-bump` job |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
@@ -129,7 +147,8 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 把「落后 / 快照漂移 / 缺快照 / pub.dev 404」判失败，「待发布」正常；网络不可达重试后返回 2（周检按跳过处理）；`--check` 没带 `--online` / `--require-*` 返回 3（用法错误）；`--require-tracked --require-local` 做离线快照结构检查（`--require-local` 只要求**根聚合包**快照 == 本地），`--quiet` 只输出异常；`pending_first_release.txt` 里的新包 404 只警告（结论「待首发」） | 发布后核对 / 每周一 CI / 根包发布前 |
 | `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：先 `git fetch`，再查干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict` + 子包快照基线守卫（快照必须已提交，本地版本不得低于 / 等于快照，除非新包在 `pending_first_release.txt`）（`--force --reason "..."` 才跳过，reason 会打日志）；快照写入失败保留 staging；发布成功后快照先写到 `.w_tools/release-snapshots/` | **真正发布会执行，不是 dry-run** |
 | `check_publish_drift.py` | 下载 pub.dev 最新归档，与仓库比对 `pubspec.yaml` / `lib` / `README` / `CHANGELOG` / `example`：**code drift**（去掉注释后仍不同）→ 必须抬版本，`--check` 时 exit 1；**docs drift**（仅 Markdown）与 **comment drift**（仅 dartdoc/空行）只警告 | 每周一 CI（`--check`）/ 发布前审计 |
-| `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`，并打印快照 PR 的命令（含 `gh pr merge --auto --merge`）；不 commit / 不 push | 一批发布结束后、发根包前 |
+| `check_example_paths.py` | 会随包发布的 `example/pubspec.yaml`：`path:` 依赖必须落在包目录内，且不得带 `dependency_overrides`（本地路径覆盖放 `example/pubspec_overrides.yaml`，发布脚本排除） | preflight / 发布前 |
+| `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`，并打印快照 PR 的命令（含 `gh pr checks --required` + `gh pr merge --merge`；仓库未开 auto-merge）；不 commit / 不 push | 一批发布结束后、发根包前 |
 | `pending_first_release.txt` | 已合并、尚未首次发布到 pub.dev 的包（裸名）；`release_status` 对 404 只警告，避免新包首发窗口让周检变红 | 新包合并 → 首发成功后删行 |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
 
@@ -139,7 +158,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 |---|---|---|
 | `packages/cli/tool/gen_catalog.dart --check` | `catalog.g.dart` / `components.md` 与 `components.yaml` 一致 | preflight / 改 catalog |
 | `packages/cli/tool/gen_templates.dart --check` | `templates.g.dart` 与 `templates/` 一致 | preflight / 改 templates |
-| `packages/cli/tool/check_templates_compile.dart` | init 模板生成后能否通过 Flutter analyze | `preflight --with-tests` |
+| `packages/cli/tool/check_templates_compile.dart` | init 模板生成后能否通过 `dart analyze`（不需要 Flutter engine cache） | `preflight --with-tests` |
 | `packages/cli/test/internal/ai_contract_test.dart` | teach / prompt / AGENTS feature 契约 | `preflight --with-tests` |
 
 ### 测试有效性（人工）
@@ -185,6 +204,10 @@ bash scripts/mutate_guard.sh \
 - `check_public_api_diff.py`：只比较快照里已有的 key（删除 / 改签名），新增成员不拦；缺基线直接失败；
   没有 `w_tools_*.dart` barrel 的包（目前只有 `cli`）显式登记为「不适用」，不会打印假 ✓；
 - `check_version_bump.py`：只比较 barrel 公开面 + 根包 `lib/w_tools.dart` 的 export 行；「已抬过但还没发布」的版本按已发布基线判断（CI 带 `--online` 时以 pub.dev 为准），不重复要求抬版本；
+- `check_versions.py`：只校验「下界 == 当前版本」，不判断 semver 级别、也不判断约束指向的版本是否已发布（后者用 `release_status.py --online` / 发布顺序保证）；
+- `check_example_paths.py`：只检查会发布的 `example/pubspec.yaml` 的 `path:` 与 `dependency_overrides`；不解析 hosted 版本是否可解（发布前仍建议对暂存副本做一次 `pub get`）；
+- `preflight.sh --changed`：按路径映射到包；根 `pubspec.yaml` / `analysis_options.yaml` 变化会退化成跑全部包，不分析生成物之间的依赖；
+- `check_pr_scope.py` 的根包策略：用 merge-base 的根版本判断「有没有抬版本」，根包没有 API 快照，不拿 pub.dev 当基线；版本段内容仍由 `release_check` / review 核对；
 - `check_published_links.py`：只检查会随发布物发出的 Markdown；校验本仓库 GitHub 绝对 URL 的路径存在，不校验外部 URL / 锚点 / 引用式链接；
 - `ci_matrix.py --check`：查清单是否同源、路径过滤器是否只写正向，不查 workflow 语义；
 - `check_gate_coverage.py`：只按文件名找入口，不判断入口里的参数 / 条件是否真会执行到。

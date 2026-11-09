@@ -64,7 +64,7 @@ class ApplySnapshotsTest(unittest.TestCase):
                 ['w_tools_api-5.0.0.txt', 'w_tools_ui-7.0.0.txt'],
             )
 
-    def test_prints_auto_merge_hint(self):
+    def test_prints_merge_hint(self):
         with tempfile.TemporaryDirectory() as temp:
             pending = pathlib.Path(temp) / 'pending'
             target = pathlib.Path(temp) / 'out'
@@ -73,8 +73,9 @@ class ApplySnapshotsTest(unittest.TestCase):
             result = run('--from', str(pending), '--to', str(target))
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((target / 'w_tools_toast-2.1.0.txt').is_file())
-            # 快照 PR 只是搬运基线：checks 过了就自动合并，减少发布波次的人工等待。
-            self.assertIn('gh pr merge --auto --merge', result.stdout)
+            # 仓库 allow_auto_merge=false；快照 PR 打印的必须是可直接执行的 --merge。
+            self.assertIn('gh pr merge --merge', result.stdout)
+            self.assertNotIn('gh pr merge --auto', result.stdout)
 
 
 if __name__ == '__main__':

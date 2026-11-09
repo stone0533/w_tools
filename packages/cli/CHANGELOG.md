@@ -1,3 +1,9 @@
+## 1.17.1
+
+### Fixed
+- `init` 生成 `w_tools_cli` 的 dev 约束改用当前 CLI 版本（`^1.17.1`）；此前停在 `^1.16.0`。
+- `init_test` 改为读 `packages/cli/pubspec.yaml` 校验 `cliConstraint`，不再硬编码过期值。
+
 ## 1.17.0
 
 ### Breaking

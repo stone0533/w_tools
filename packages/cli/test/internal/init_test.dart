@@ -913,7 +913,18 @@ void main() {
         '^${devicePubspec['version']}',
         reason: 'w_tools_device 的 init 约束必须等于当前版本',
       );
-      expect(cliConstraint, '^1.16.0');
+      final cliPubspec =
+          loadYaml(
+                File(
+                  p.join(root.path, 'packages', 'cli', 'pubspec.yaml'),
+                ).readAsStringSync(),
+              )
+              as YamlMap;
+      expect(
+        cliConstraint,
+        '^${cliPubspec['version']}',
+        reason: 'w_tools_cli 的 init 约束必须等于当前版本',
+      );
       expect(snippet, contains('w_tools_cli: $cliConstraint'));
 
       // 反向检查：片段里出现的每个 w_tools_* 约束都必须在已知清单里，
