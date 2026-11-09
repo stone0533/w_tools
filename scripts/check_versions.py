@@ -116,6 +116,14 @@ def constraint_errors(root: pathlib.Path = ROOT) -> list[str]:
         if actual != expected:
             errors.append(f'versions.dart: {name} 是 {actual}，应为 {expected}')
 
+    # init 覆盖所有库子包（工具包 figma / e2e 不在 init 里；cli / device 用单独常量）。
+    tool_packages = {'cli', 'figma', 'device', 'e2e'}
+    for name in sorted(versions):
+        if name.startswith('w_tools_') and name.removeprefix('w_tools_') in tool_packages:
+            continue
+        if name not in map_constraints:
+            errors.append(f'versions.dart 的 subpackageConstraints 缺 {name}（库子包必须能被 init 引入）')
+
     for name, const_name in (
         ('w_tools_cli', 'cliConstraint'),
         ('w_tools_device', 'wToolsDeviceConstraint'),
