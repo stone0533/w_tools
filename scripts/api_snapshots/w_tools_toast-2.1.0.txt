@@ -1,0 +1,32 @@
+# w_tools_toast 2.1.0
+WToast	class
+WToast.hideLoading	static void ()
+WToast.showCustom	static CancelFunc ({ WToastStyle? style, BuildContext? context, Duration? duration, Alignment? align, Widget Function(CancelFunc cancelFunc)? toastBuilder, })
+WToast.showCustomDialog	static CancelFunc ({ required Widget Function(CancelFunc cancelFunc) toastBuilder, Alignment? align, void Function()? onClose, Duration? duration, Color? backgroundColor, Duration? animationDuration = const Duration(milliseconds: 200), bool allowClick = true, bool clickClose = false, void Function(dynamic error)? onError, })
+WToast.showError	static CancelFunc (Object? message, { WToastStyle? style, BuildContext? context, Duration? duration, Alignment? align, })
+WToast.showLoading	static CancelFunc ({ Object? message, bool dismissible = false, WToastStyle? style, BuildContext? context, })
+WToast.showModal	static CancelFunc ({ required Widget Function(CancelFunc cancelFunc) builder, Duration? duration = const Duration(seconds: 4), Alignment? align, bool barrierDismissible = true, Color? backgroundColor, WToastStyle? style, BuildContext? context, void Function()? onClose, void Function(dynamic error)? onError, })
+WToast.showSuccess	static CancelFunc (Object? message, { WToastStyle? style, BuildContext? context, Duration? duration, Alignment? align, })
+WToast.showText	static CancelFunc ({ required String text, AlignmentGeometry? align, Color? backgroundColor, Color? contentColor, BorderRadiusGeometry? borderRadius, TextStyle? textStyle, EdgeInsetsGeometry? contentPadding, Duration? duration, void Function()? onClose, bool clickClose = false, bool crossPage = true, bool onlyOne = true, void Function(dynamic error)? onError, })
+WToast.showWarning	static CancelFunc (Object? message, { WToastStyle? style, BuildContext? context, Duration? duration, Alignment? align, })
+WToastStyle	class
+WToastStyle.align	Alignment
+WToastStyle.animationDuration	Duration
+WToastStyle.backgroundColor	Color?
+WToastStyle.copyWith	WToastStyle ({ Duration? duration, Alignment? align, Object? backgroundColor = _unset, Duration? animationDuration, Object? toastBuilder = _unset, Object? onClose = _unset, Object? successBuilder = _unset, Object? errorBuilder = _unset, Object? warningBuilder = _unset, Object? loadingBuilder = _unset, Object? onError = _unset, })
+WToastStyle.defaults	WToastStyle
+WToastStyle.duration	Duration
+WToastStyle.errorBuilder	Widget Function(Object? message, CancelFunc cancelFunc)?
+WToastStyle.loadingBuilder	Widget Function(Object? message, CancelFunc cancelFunc, bool dismissible)?
+WToastStyle.new	({ this.duration = const Duration(seconds: 2), this.align = Alignment.center, this.backgroundColor, this.animationDuration = const Duration(milliseconds: 200), this.toastBuilder, this.onClose, this.successBuilder, this.errorBuilder, this.warningBuilder, this.loadingBuilder, this.onError, })
+WToastStyle.of	static WToastStyle (BuildContext context)
+WToastStyle.onClose	void Function()?
+WToastStyle.onError	void Function(dynamic error)?
+WToastStyle.successBuilder	Widget Function(Object? message, CancelFunc cancelFunc)?
+WToastStyle.toastBuilder	Widget Function(CancelFunc cancelFunc)?
+WToastStyle.warningBuilder	Widget Function(Object? message, CancelFunc cancelFunc)?
+WToastTheme	class
+WToastTheme.maybeOf	static WToastTheme? (BuildContext context)
+WToastTheme.new	({super.key, required this.style, required super.child})
+WToastTheme.style	WToastStyle
+WToastTheme.updateShouldNotify	bool (WToastTheme oldWidget)
