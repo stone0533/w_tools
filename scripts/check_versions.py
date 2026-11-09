@@ -105,6 +105,8 @@ def constraint_errors(root: pathlib.Path = ROOT) -> list[str]:
             errors.append(f'根 pubspec.yaml 缺 {name}: {expected}')
         elif actual != expected:
             errors.append(f'根 pubspec.yaml: {name} 是 {actual}，应为 {expected}')
+        if name not in map_constraints:
+            errors.append(f'versions.dart 的 subpackageConstraints 缺 {name}（根包聚合的子包必须能被 init 引入）')
 
     for name, actual in sorted(map_constraints.items()):
         if name not in versions:
