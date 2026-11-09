@@ -98,6 +98,7 @@ cat <<'EOF'
   git commit -m "chore(release): <pkg> <version> API 基线"
   git push -u origin HEAD
   gh pr create --fill
+  gh pr merge --auto --merge     # 快照只是搬运基线，checks 过了自动合并
 
 合入 PR 并 `git switch main && git pull --ff-only` 之后，才能发根包。
 EOF

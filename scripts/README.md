@@ -103,6 +103,12 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_removed_api.py` | 已删除 API 是否还在推荐文档 / catalog（含 root + `packages/*/AGENTS.md` + `catalog/components.yaml`） | check_docs / preflight |
 | `check_naming.py` | 规则在 `docs/naming.md`：公开 `W*Config` / 前缀例外读 `naming_baseline.yaml`；Dart 文件名 snake_case | preflight |
 
+### 本地钩子（fast）
+
+| 脚本 | 作用 | 被谁调用 |
+|---|---|---|
+| `format_staged.sh` | 只检查**已暂存**的 `*.dart` 是否格式化，不改文件；失败时打印 `dart format ...` 命令 | `.githooks/pre-commit`（`<1s`）；也可手动跑 |
+
 ### API / 风格
 
 | 脚本 | 作用 | 何时跑 |
@@ -111,6 +117,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `list_removals.py` | 列出所有待删除弃用项 | 准备大版本 |
 | `check_style_literals.py` | form/toast/async 默认样式禁止硬编码颜色 | preflight |
 | `check_version_bump.py` | 对比 PR 的 **merge-base** 与 HEAD 的公开 API 表面：版本降级、版本不高于已发布基线、或版本没抬 → 失败（已抬过且高于已发布基线的未发布版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过）。根包 `lib/w_tools.dart` 的 export 行变化也要求根包版本高于 base。`--online` 时用 pub.dev 当已发布基线（取不到回退仓库快照并提醒），修 `git archive` 失败被当成新包 | CI `api-bump` job（带 `--online`）/ 本地 `--base main` |
+| `check_pr_ready.sh` | 开 PR 前本地跑 PR 级门禁：`check_pr_scope --body-file` + `check_version_bump --base origin/main`；用法 `bash scripts/check_pr_ready.sh <pr-body.md>` | 开 PR 前（CI 同批检查的本地版） |
 | `check_pr_scope.py` | 读 PR 模板：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须有「## 改动类型」段且至少勾选一项；空 body 也失败。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG；根包公开面要有根 `CHANGELOG.md`；本地版本还要高于已发布基线（CI 带 `--online`：用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`） | CI `api-bump` job |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
@@ -121,7 +128,8 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `release_check.sh` | 版本 / CHANGELOG / 根约束 / README / pub.dev 漂移；`--package` 会报「快照高于本地 / 缺失 / 等于本地」的基线提示；完整 `--strict` 还要求每个包最新快照已 tracked，且**根聚合包**的版本 == 本地（工具包 / 不聚合的包允许待发布）；`--online` 全部取不到时返回 2 | 发布前先跑 `--strict` |
 | `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 把「落后 / 快照漂移 / 缺快照 / pub.dev 404」判失败，「待发布」正常；网络不可达重试后返回 2（周检按跳过处理）；`--check` 没带 `--online` / `--require-*` 返回 3（用法错误）；`--require-tracked --require-local` 做离线快照结构检查（`--require-local` 只要求**根聚合包**快照 == 本地），`--quiet` 只输出异常；`pending_first_release.txt` 里的新包 404 只警告（结论「待首发」） | 发布后核对 / 每周一 CI / 根包发布前 |
 | `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：先 `git fetch`，再查干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict` + 子包快照基线守卫（快照必须已提交，本地版本不得低于 / 等于快照，除非新包在 `pending_first_release.txt`）（`--force --reason "..."` 才跳过，reason 会打日志）；快照写入失败保留 staging；发布成功后快照先写到 `.w_tools/release-snapshots/` | **真正发布会执行，不是 dry-run** |
-| `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`，并打印快照 PR 的命令；不 commit / 不 push | 一批发布结束后、发根包前 |
+| `check_publish_drift.py` | 下载 pub.dev 最新归档，与仓库比对 `pubspec.yaml` / `lib` / `README` / `CHANGELOG` / `example`：**code drift**（去掉注释后仍不同）→ 必须抬版本，`--check` 时 exit 1；**docs drift**（仅 Markdown）与 **comment drift**（仅 dartdoc/空行）只警告 | 每周一 CI（`--check`）/ 发布前审计 |
+| `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`，并打印快照 PR 的命令（含 `gh pr merge --auto --merge`）；不 commit / 不 push | 一批发布结束后、发根包前 |
 | `pending_first_release.txt` | 已合并、尚未首次发布到 pub.dev 的包（裸名）；`release_status` 对 404 只警告，避免新包首发窗口让周检变红 | 新包合并 → 首发成功后删行 |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
 

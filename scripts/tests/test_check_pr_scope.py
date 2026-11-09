@@ -397,5 +397,24 @@ class ChangelogPolicyTest(unittest.TestCase):
         self.assertFalse(missing_root_changelog(['lib/w_tools.dart', 'CHANGELOG.md']))
 
 
+
+class ResolvePrBodyTest(unittest.TestCase):
+    def test_body_file_wins_over_env(self):
+        with tempfile.NamedTemporaryFile('w', suffix='.md', delete=False) as handle:
+            handle.write('## 改动类型\n\n- [x] 内部重构\n')
+            path = handle.name
+        self.addCleanup(lambda: os.unlink(path))
+        with mock.patch.dict(os.environ, {'PR_BODY': 'env-body'}):
+            self.assertIn('内部重构', mod.resolve_pr_body(path))
+
+    def test_falls_back_to_env(self):
+        with mock.patch.dict(os.environ, {'PR_BODY': 'env-body'}):
+            self.assertEqual(mod.resolve_pr_body(None), 'env-body')
+
+    def test_empty_when_neither_present(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(mod.resolve_pr_body(None), '')
+
+
 if __name__ == '__main__':
     unittest.main()

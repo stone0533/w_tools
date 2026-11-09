@@ -26,6 +26,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # 同版本内容漂移：release_status 只比版本号，仓库和线上都是 3.1.0 时它显示「已发布」，
+      # 但归档里的 lib/ 可能已经和仓库不一致。这里补内容比对（code drift 才失败；
+      # 注释 / Markdown 漂移只警告，可以留到下次功能版本）。
+      - name: Check publish drift
+        run: |
+          set +e
+          python3 scripts/check_publish_drift.py --check
+          status=$?
+          set -e
+          if [ "$status" -eq 2 ]; then
+            echo "::warning::pub.dev 不可达，本次漂移检查跳过（不是发布事故）"
+            exit 0
+          fi
+          exit "$status"
+
       - name: Check release status
         run: |
           set +e

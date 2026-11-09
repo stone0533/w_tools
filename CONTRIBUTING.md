@@ -96,7 +96,10 @@
 
 ## 6. Git / PR 流程
 
-- 首次检出先跑 `bash scripts/install_git_hooks.sh`；`.githooks/pre-push` 会阻止直接 push main。
+- 首次检出先跑 `bash scripts/install_git_hooks.sh`。本地钩子分三层：
+  `pre-commit` 只查**已暂存** `*.dart` 的格式（<1s）；`commit-msg` 要求 conventional 标题
+  （`Merge` / `Revert` / `fixup!` / `squash!` 除外）；`pre-push` 阻止直接 push main。
+  临时绕过用 `--no-verify`，合并前记得整理。
 - 需求 / 可复现的 bug 先开 issue：反馈类用 [`.github/ISSUE_TEMPLATE/feedback.md`](https://github.com/stone0533/w_tools/blob/main/.github/ISSUE_TEMPLATE/feedback.md)
   （自动带 `needs-triage`），其余用空白 issue；小修 / 文档 / 内部重构可以直接开 PR。
   PR 链 issue 时写 `Closes #n`。issue 的读写与 label 约定见
@@ -107,6 +110,9 @@
   空 body 或四类全空都会失败）。
   用 `gh pr create --fill` 创建后要 `gh pr edit --body` 补上四类勾选；只改脚本 / 文档的
   PR（例如快照 PR）不受这条限制。
+- 开 PR 前可先在本地跑 PR 级门禁（CI `api-bump` 同款）：
+  `bash scripts/check_pr_ready.sh <pr-body.md>` —— 它用 `check_pr_scope --body-file` +
+  `check_version_bump --base origin/main`，避免等 CI 才发现 CHANGELOG / 版本漏改。
 - 勾了公开类别时，`check_pr_scope` 还要求：每个被改包都有 `packages/<pkg>/CHANGELOG.md`，
   根包公开面有根 `CHANGELOG.md`，且本地版本高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 `CHANGELOG` 有非空
   `## Unreleased`）。版本段内容 / 破坏性说明仍由 review 与 `check_public_api_diff` 核对。
@@ -124,6 +130,9 @@ git log main                  # 完整细节（每个逻辑步骤）
 - **合并前整理 commit**：用 `git rebase -i` 收掉 `wip` / `fixup` / `fix test`；每个 commit 用
   conventional 前缀（`feat` / `fix` / `docs` / `chore` …）+ 一句人话；
 - **一个 PR 只做一件事**：顺手修（如 CI 红灯）单独开 PR，不要塞进主题 PR；
+  唯一的批次例外是「同一审计批次的多个 issue」和「同一发布窗口的多个包」——
+  允许一个 PR，但标题要带批次标识（如 `feedback 2026-11-09`、`release wave`），
+  正文每个 issue 一行 `Closes #n`，并在摘要里列出批次范围；
 - **合并只在 GitHub 上做**：本地只 `git pull --ff-only`，不要先把分支合进本地 main 再开 PR；
 - **回滚一个 PR** 用 `git revert -m 1 <merge-sha>`，并在 PR / CHANGELOG 里说明；
   同一分支再合回来需要先 revert 掉这次 revert。

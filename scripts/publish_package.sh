@@ -13,8 +13,10 @@
 #   scripts/publish_package.sh packages/ui       # 发布 w_tools_ui
 #   scripts/publish_package.sh packages/ui --dry-run
 #   scripts/publish_package.sh . --stage-only    # 只生成暂存副本（调试用，不删除）
+#   scripts/publish_package.sh packages/ui --yes  # 跳过 pub publish 的 y/N 确认（自动化 / 无 TTY）
 #   scripts/publish_package.sh . --force --reason "hotfix: 快照 PR 未合入"  # 跳过发布前保护
 #                                       # --force 必须写 --reason（会打印到日志）
+#                                       # 注意：脚本级 --force 与 pub 的 --yes 是两件事
 #
 # 正式发布前会 fail-closed：先 git fetch，工作区必须干净、当前分支必须是 main 且
 # HEAD == origin/main、`release_check.sh --strict` 必须通过；子包还要过一道快照基线守卫
@@ -68,10 +70,12 @@ dry_run=""
 stage_only=""
 force=""
 force_reason=""
+publish_yes=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) dry_run="--dry-run" ;;
     --stage-only) stage_only="1" ;;
+    --yes) publish_yes="1" ;;
     --force) force="1" ;;
     --reason)
       if [ $# -lt 2 ]; then
@@ -267,8 +271,15 @@ elif [ -n "$force" ] && [ -z "$dry_run" ]; then
   echo "!! --force：已跳过 干净工作区 / main / HEAD==origin/main / pending 快照 / release_check --strict / 快照基线 检查（reason: ${force_reason}）" >&2
 fi
 
+# --yes：跳过 pub 的交互式确认（等价于 pub publish --force，仍会跑完整校验）。
+# 只在正式发布时生效；--dry-run 本来就没有确认。
+pub_confirm=""
+if [ -n "$publish_yes" ] && [ -z "$dry_run" ]; then
+  pub_confirm="--force"
+fi
+
 cd "$staging"
-PUB_HOSTED_URL="$publish_host" "$publish_runner" pub publish $dry_run
+PUB_HOSTED_URL="$publish_host" "$publish_runner" pub publish $dry_run $pub_confirm
 
 # 发布成功后把当前版本写成新的公开 API 基线（先写 gitignored 的 pending 目录，发布完一批再应用）。
 # 发布已成功、快照失败时保留暂存副本并返回非 0，方便直接重跑生成命令。

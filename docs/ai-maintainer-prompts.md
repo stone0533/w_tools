@@ -902,7 +902,8 @@ J-5 多包/家族
    其它 404 要停。--check 留给快照 PR 合入后 / 周检。
    不加 --check 时它总是 exit 0，异常只打印在「异常：」段——必须读输出，不要只看退出码。
 - bash scripts/preflight.sh --with-tests
-- 从 pub.dev API 取 latest.archive_url，下载归档到 /tmp，解压后与本地比较：
+- python3 scripts/check_publish_drift.py        # 归档漂移（code / docs / comment 三类）
+- 需要手工核对时，再按下面方式取归档比较：
   pubspec.yaml / lib/** / README.md / CHANGELOG.md / LICENSE / example/**
   （排除 test / docs / scripts 等仓库专用内容）
 
@@ -1028,6 +1029,10 @@ bash scripts/preflight.sh --with-tests
 
 执行：
 bash scripts/publish_package.sh packages/<pkg>
+
+自动化 / 无 TTY 时加 --yes（只跳过 pub 的 y/N 确认，仍跑完整校验）：
+bash scripts/publish_package.sh packages/<pkg> --yes
+不要用 `yes | ...`（会顺带批准任何意外提示），也不要用 --force（那是跳过发布前保护）。
 
 禁止：
 - 直接在包目录 flutter pub publish
