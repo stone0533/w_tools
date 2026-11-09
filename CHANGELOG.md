@@ -1,10 +1,3 @@
-## Unreleased
-
-### Changed
-- 根包 `w_tools_api` 约束抬到 `^5.1.0`（web 网络层修复与 `onAuthFailure` / `reset` 等新 API）。
-- 根包 `w_tools_async` 约束抬到 `^6.1.0`（`WAsyncPagedController.page` /
-  `hasLoadedMoreThanOnePage` 新 API）。
-
 ## 12.0.0
 
 ### Breaking
@@ -19,6 +12,9 @@
 
 - 抬高 `w_tools_ui` 下界到 `^8.0.0`：ui 8.0 删除 Config / Metrics / Builder 等过渡入口，
   迁移见 `docs/migrations/ui-8.0.md`。
+- 抬高 `w_tools_api` 下界到 `^5.1.0`（web 网络层修复与 `onAuthFailure` / `reset` 等新 API）。
+- 进一步抬高 `w_tools_async` 下界到 `^6.1.0`：新增
+  `WAsyncPagedController.page` / `hasLoadedMoreThanOnePage`。
 
 ## 11.0.0
 
