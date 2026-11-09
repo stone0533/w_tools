@@ -44,7 +44,8 @@ toast/
 
 | 方法 | 说明 |
 |------|------|
-| `showCustomDialog({toastBuilder, align, onClose, duration, backgroundColor, animationDuration=200ms, onError})` | 全屏遮罩对话框。内部调用 `BotToast.showCustomLoading`，`toastBuilder` 在后续 build 阶段执行，由内部 `_guardBuilder` 兜底异常 |
+| `showModal({builder, duration=4s, align=center, barrierDismissible=true, backgroundColor, style, context, onClose, onError})` | **带遮罩的提示（推荐）**：点遮罩关闭、遮罩拦截点击不穿透、默认 4 秒兜底自动关闭 |
+| `showCustomDialog({toastBuilder, align, onClose, duration, backgroundColor, animationDuration=200ms, allowClick=true, clickClose=false, onError})` | BotToast `showCustomLoading` 的直通口（自定义 loading 用）。默认 `duration:null` + `clickClose:false` + `allowClick:true` = 不自动关、点遮罩不关、点击穿透下层 |
 | `showText({text, align, backgroundColor, contentColor, borderRadius, textStyle, contentPadding, duration, onClose, clickClose=false, crossPage=true, onlyOne=true, onError})` | 纯文本气泡提示，默认位置屏幕下方（`Alignment(0, 0.8)`） |
 | `hideAll({onError})` | 立即清理全部提示（文本 / 加载 / 自定义），不播放关闭动画 |
 
@@ -62,7 +63,18 @@ toast/
 ### 使用示例
 
 ```dart
-// 自定义对话框
+// 带遮罩的提示（推荐：点遮罩关、拦截穿透、4 秒兜底）
+final modalCancel = WToast.showModal(
+  builder: (cancel) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text('网络异常', onTap: cancel),
+    ),
+  ),
+  onClose: () => print('关闭'),
+);
+
+// 自定义 loading（直通 BotToast，不自动关、不响应遮罩点击）
 final cancel = WToast.showCustomDialog(
   toastBuilder: (cancelFunc) {
     return const Center(child: CircularProgressIndicator());
@@ -276,6 +288,7 @@ class _MyPageState extends State<MyPage> {
 ## 注意事项
 
 - **BotToast 必须先初始化**：`MaterialApp(builder: BotToastInit(), navigatorObservers: [BotToastNavigatorObserver()])`，否则成功/错误/加载类会静默失败（`onError` 上报）。
+- **做遮罩提示用 `showModal`，不要直接用 `showCustomDialog`**：后者是 BotToast `showCustomLoading` 的直通口，默认 `duration:null` + `clickClose:false` + `allowClick:true` —— 弹出后既不会自动关、点遮罩也不关，而且点击会**穿透**到下层页面。必须用 `showCustomDialog` 时显式传 `clickClose: true` / `allowClick: false` / `duration`。
 - **加载提示全局唯一**：`WToast` 全局共享同一个 loading 状态。再次调用 `showLoading` 会先关闭上一个，切换页面或组件销毁时 loading 仍会保留（除非显式 `hideLoading` / `hideAll`）。
 - **全屏遮罩 vs 文本气泡**：`backgroundColor` 在两类提示中含义不同——遮罩类用作全屏底色，气泡类用作气泡底色（且无遮罩）。
 - **`onClose` 延迟回调**：全屏遮罩类（成功/错误/警告/加载/自定义）的 `onClose` 会延迟 1ms 执行，避免在组件树销毁期间 `setState`。文本提示的 `onClose` 由 BotToast 直接回调，无延迟。

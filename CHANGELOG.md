@@ -1,3 +1,8 @@
+## Unreleased
+
+### Changed
+- 根包 `w_tools_toast` 约束抬到 `^2.1.0`（新增 `WToast.showModal`）。
+
 ## 12.0.0
 
 ### Breaking

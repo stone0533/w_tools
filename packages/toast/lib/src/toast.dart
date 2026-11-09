@@ -6,7 +6,8 @@ import 'toast_style.dart';
 /// BotToast 的轻量封装
 ///
 /// 提供三类入口：
-/// - [showCustomDialog]：自定义内容提示，成功 / 错误 / 警告 / 加载均基于此
+/// - [showModal]：带遮罩的提示（点遮罩关闭、拦截穿透、默认超时兜底）
+/// - [showCustomDialog]：BotToast `showCustomLoading` 的直通口，适合自定义 loading
 /// - [showText]：BotToast 原生文本提示
 /// - [hideAll]：一次性清理全部提示
 ///
@@ -40,7 +41,22 @@ class WToast {
   /// - [duration]：对话框显示时长；为 null 时不自动关闭
   /// - [backgroundColor]：全屏遮罩背景色，默认半透明黑色
   /// - [animationDuration]：进出场动画时长，默认 200 毫秒
+  /// - [allowClick]：为 true 时点击会**穿透**到下层页面（`HitTestBehavior.translucent`）
+  /// - [clickClose]：为 true 时点击遮罩会关闭对话框
   /// - [onError]：显示失败或内容构建失败时的回调函数
+  ///
+  /// **默认值组合是给自定义 loading 用的**：`duration: null` + `clickClose: false`
+  /// + `allowClick: true` 意味着一个既不自动关闭、点遮罩也不关、还会把点击透传给
+  /// 下层页面的遮罩。做错误提示 / 提示性遮罩请用 [showModal]，或用显式参数：
+  ///
+  /// ```dart
+  /// WToast.showCustomDialog(
+  ///   toastBuilder: (cancel) => card(onDismiss: cancel),
+  ///   clickClose: true,                      // 点遮罩即关
+  ///   allowClick: false,                     // 不吃穿透
+  ///   duration: const Duration(seconds: 4),  // 兜底自动消失
+  /// );
+  /// ```
   ///
   /// [toastBuilder] 在后续 build 阶段执行，其抛出的异常同样会交给 [onError]。
   /// 返回值用于关闭对话框；即使显示失败也会返回一个空函数。
@@ -78,6 +94,53 @@ class WToast {
       onError?.call(e);
       return () {};
     }
+  }
+
+  /// 显示带遮罩的提示（modal 语义，安全默认值）
+  ///
+  /// 和 [showCustomDialog] 的区别：这个入口默认就是安全的 ——
+  /// 点遮罩关闭（[barrierDismissible]）、遮罩**拦截**点击不穿透、[duration]
+  /// 默认 4 秒兜底自动关闭。适合错误提示、需要用户看到但不该困住用户的遮罩。
+  ///
+  /// [showCustomDialog] 保留 BotToast `showCustomLoading` 的原始默认值
+  /// （不自动关、点遮罩不关、点击穿透），只适合自定义 loading；做提示请用本方法。
+  ///
+  /// - [builder]：遮罩内容；收到关闭函数，可直接接「知道了」按钮
+  /// - [duration]：显示时长，默认 4 秒；传 null 表示只能靠点遮罩 / [CancelFunc] 关闭
+  /// - [align]：内容对齐，默认居中
+  /// - [barrierDismissible]：点遮罩是否关闭，默认 true
+  /// - [backgroundColor]：遮罩背景色，默认取 [WToastStyle.backgroundColor]（再退到半透明黑）
+  /// - [style] / [context]：解析全局 / 局部 [WToastStyle]
+  /// - [onClose] / [onError]：同 [showCustomDialog]
+  ///
+  /// ```dart
+  /// WToast.showModal(
+  ///   builder: (cancel) => Card(child: Text('网络异常', onTap: cancel)),
+  /// );
+  /// ```
+  static CancelFunc showModal({
+    required Widget Function(CancelFunc cancelFunc) builder,
+    Duration? duration = const Duration(seconds: 4),
+    Alignment? align,
+    bool barrierDismissible = true,
+    Color? backgroundColor,
+    WToastStyle? style,
+    BuildContext? context,
+    void Function()? onClose,
+    void Function(dynamic error)? onError,
+  }) {
+    final resolved = _resolveStyle(style, context);
+    return showCustomDialog(
+      toastBuilder: builder,
+      align: align ?? Alignment.center,
+      duration: duration,
+      backgroundColor: backgroundColor ?? resolved.backgroundColor,
+      animationDuration: resolved.animationDuration,
+      allowClick: false,
+      clickClose: barrierDismissible,
+      onClose: onClose ?? resolved.onClose,
+      onError: onError ?? resolved.onError,
+    );
   }
 
   /// 显示纯文本提示

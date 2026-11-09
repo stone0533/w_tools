@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_toast: ^2.0.0
+  w_tools_toast: ^2.1.0
 ```
 
 先在 `MaterialApp` 上完成 BotToast 初始化（只做一次）：
@@ -59,11 +59,16 @@ WToast.showSuccess('保存成功', style: style);
 |---|---|
 | 文本提示 | `WToast.showText` |
 | 成功 / 错误 / 警告 | `WToast.showSuccess` / `showError` / `showWarning` |
+| 遮罩提示（推荐） | `WToast.showModal` |
 | 加载 | `WToast.showLoading` / `hideLoading` |
-| 自定义 | `WToast.showCustom` / `showCustomDialog` |
+| 自定义 | `WToast.showCustom`；低层直通用 `showCustomDialog` |
 | loading + 结果提示 | `WToast.runWithLoading` |
 | 关闭全部 | `WToast.hideAll` |
 | 样式复用 | `WToastStyle`（不可变，`copyWith`） |
+
+> `WToast.showCustomDialog` 是 BotToast `showCustomLoading` 的直通口，默认
+> `duration: null` + `clickClose: false` + `allowClick: true`：不自动关、点遮罩不关、
+> 点击会穿透到下层页面。做提示请用 `WToast.showModal`。
 
 > `WToastConfig` 已在 2.0 删除；用 `WToastStyle` + `WToast.showXxx`。
 

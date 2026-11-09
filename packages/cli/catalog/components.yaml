@@ -951,11 +951,16 @@ components:
   - name: '`WToast`'
     package: 'w_tools_toast'
     section: '7. 状态与反馈'
-    useFor: '轻提示'
-    usage: "WToast.showSuccess('\u4fdd\u5b58\u6210\u529f');"
+    useFor: '轻提示；带遮罩的提示用 `WToast.showModal`（点遮罩关、不穿透、超时兜底）'
+    dontUseFor: '提示不要直接用 `WToast.showCustomDialog`（BotToast 直通口：默认关不掉且点击穿透）；确认框用 Flutter `showDialog`'
+    usage: |
+      WToast.showSuccess('保存成功');
+      WToast.showModal(builder: (cancel) => Text('网络异常', onTap: cancel));
+      // showCustomDialog 只用于自定义 loading；用时显式传 clickClose/allowClick/duration
     pitfalls:
-      - "\u5148\u6302 BotToastInit / BotToastNavigatorObserver"
-    related: ["`WToastStyle`"]
+      - '先挂 BotToastInit / BotToastNavigatorObserver，否则静默失败（走 onError）'
+      - 'showCustomDialog 默认 duration:null + clickClose:false + allowClick:true = 关不掉且点击穿透'
+    related: ['`WToastStyle`']
     teach: true
 
   - name: '`WToastStyle`'
