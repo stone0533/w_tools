@@ -102,7 +102,7 @@
 bash scripts/check_docs.sh                         # 19 步通过
 bash scripts/preflight.sh --sandbox                # 静态档通过（约 30s）
 bash scripts/preflight.sh --package cli --sandbox  # 含 cli 测试 + 模板编译通过
-python3 scripts/release_check.sh                   # 0 提醒
+bash scripts/release_check.sh                      # 0 提醒
 python3 scripts/check_versions.py                  # 通过
 python3 scripts/check_version_bump.py --base main  # 14 包 + 根包通过
 bash scripts/check_pr_ready.sh /tmp/pr.md main     # PR 级门禁通过
