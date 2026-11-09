@@ -11,7 +11,8 @@
 #   bash scripts/ship.sh -m "feat(cli): 一句话" --type public --j4 "J-4 结论…"
 #   bash scripts/ship.sh -m "fix(cli): 修个 bug" --type internal      # 内部重构
 #   bash scripts/ship.sh -m "..." --type public --check --merge       # 跑 preflight 并等 checks 后合并
-#   bash scripts/ship.sh --merge                                      # 已有 PR：只等 checks + 合并
+#   bash scripts/ship.sh --merge                                      # 已有 OPEN PR：只等 checks + 合并
+#                                                                      （不碰工作区、不重写 PR body）
 #   bash scripts/ship.sh -m "..." --dry-run                           # 只打印计划，不动任何东西
 #
 # 参数：
@@ -143,8 +144,35 @@ fi
 command -v gh >/dev/null 2>&1 || die "需要 gh（GitHub CLI）。安装：https://cli.github.com/"
 [ -f scripts/check_pr_ready.sh ] || die "缺少 scripts/check_pr_ready.sh（仓库不完整？）"
 
-if [ -z "$types" ] && [ -z "$body_file" ]; then
+# 两种模式：
+# - sync（默认）：暂存 → commit → push → 开 / 更新 PR；需要 --type 或 --body
+# - merge-only：只对当前分支的 OPEN PR 等 checks 再合并；不碰工作区、不重写 PR body
+sync=1
+if [ -z "$types" ] && [ -z "$body_file" ] && [ -z "$message" ]; then
+  sync=0
+fi
+if [ "$sync" -eq 0 ] && [ "$merge_after" -eq 0 ]; then
+  die "没有可做的事：给 --type internal|public|remove|new 开 PR，或 --merge 合并已有 PR"
+fi
+if [ "$sync" -eq 1 ] && [ -z "$types" ] && [ -z "$body_file" ]; then
   die "必须给 --type internal|public|remove|new（PR 模板要求至少勾选一项；也可以 --body 用现成 body）"
+fi
+
+if [ "$sync" -eq 0 ]; then
+  # merge-only：gh 会按当前分支找 PR；先确认状态，避免把「没开 PR」误当成合并失败
+  if [ "$dry_run" -eq 0 ]; then
+    state="$(gh pr view --json state --jq .state 2>/dev/null || true)"
+    [ "$state" = "OPEN" ] || die "当前分支没有 OPEN PR（状态：${state:-无}）；先用 --type … 开 PR"
+  fi
+  echo "== 等 checks（gh pr checks --watch）"
+  run gh pr checks --watch
+  echo "== Merge commit + 删远端分支"
+  run gh pr merge --merge --delete-branch
+  if [ "$dry_run" -eq 0 ]; then
+    echo "✓ 已合并。下一步（本地收尾，手动执行）："
+    echo "  git switch main && git pull --ff-only"
+  fi
+  exit 0
 fi
 
 # 公开面路径：改了这些且选 internal 时提醒（不是硬失败：lib/ 里也可能是内部重构）
