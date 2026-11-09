@@ -194,7 +194,7 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 # 1) 只读计划；审阅包 / 版本 / 顺序 / 阻断
 python3 scripts/release_wave.py plan --all --out .w_tools/release-plan.json
 
-# 2) 预演（只跑 release_check + publish --dry-run，不发布）
+# 2) 预演（子包逐包 dry-run；root-only 计划会实际跑 root 的 release_check --strict + publish dry-run；不发布）
 python3 scripts/release_wave.py run --plan .w_tools/release-plan.json --dry-run
 
 # 3) 正式执行（不可逆；需要 --yes）

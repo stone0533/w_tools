@@ -1003,21 +1003,39 @@ def _dry_run(plan: dict) -> int:
             print(f'✗ {error}', file=sys.stderr)
         return 2
     packages = {package['short']: package for package in plan.get('packages', [])}
+    order = [str(item) for item in plan.get('order', [])]
+    root_publish = (plan.get('root') or {}).get('action') == 'publish'
     try:
-        for short in plan.get('order', []):
-            package = packages.get(str(short))
+        for short in order:
+            package = packages.get(short)
             if package is None:
                 raise RunFailed(f'计划顺序里的 {short} 不在 packages 里', 2)
             _publish_package(package, dry_run=True)
+
+        # root-only 计划可以完整预演根包；有子包时 root 必须等子包发布 + 快照后才可 dry-run。
+        if root_publish and not order:
+            print('\n[dry-run] 根包：release_check --strict + publish_package.sh . --dry-run')
+            _cmd(['bash', 'scripts/release_check.sh', '--strict'], code=3)
+            _cmd(['bash', 'scripts/publish_package.sh', '.', '--dry-run'], code=3)
     except RunFailed as error:
         print(f'✗ {error}', file=sys.stderr)
         return error.code
+
+    if not order and not root_publish:
+        print('\n[dry-run] 没有待发布的包；计划内都已发布。')
+        return 0
+
     print('\n[dry-run] 未发布。真实执行会继续：')
+    if order:
+        print('  子包已逐包 dry-run 通过')
     if plan.get('snapshots_required'):
         print('  apply_snapshots.sh → 快照 PR → 等 checks → gh pr merge --merge → git pull')
-    if (plan.get('root') or {}).get('action') == 'publish':
-        print('  等子包在 pub.dev 可见 → release_check --strict → publish_package.sh . --dry-run → . --yes')
-    print('  最后 release_status --online --check + check_publish_drift --check')
+    if root_publish:
+        if order:
+            print('  等子包在 pub.dev 可见 → release_check --strict → publish_package.sh . --dry-run → . --yes')
+        else:
+            print('  根包已 dry-run 通过；正式执行 publish_package.sh . --yes')
+    print('  最后 release_status --online --check + 本波逐包 check_publish_drift --package <pkg> --check')
     return 0
 
 
