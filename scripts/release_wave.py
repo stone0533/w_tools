@@ -621,6 +621,8 @@ def validate_run_plan(
         errors.append(f'计划 schema 不是 {SCHEMA}')
     if plan.get('blockers'):
         errors.append('计划还有阻断项：' + '；'.join(str(item) for item in plan['blockers']))
+    if any('未核对 code drift' in str(item) for item in (plan.get('warnings') or [])):
+        errors.append('计划没有核对 code drift；用 plan（不要 --no-drift）重新生成')
 
     current_git = git or git_state()
     expected_git = plan.get('git') or {}
@@ -787,7 +789,7 @@ def _root_step(state: dict, plan: dict, wait_minutes: int) -> None:
     _save_state(state)
 
 
-def _verify_step(state: dict, wait_minutes: int) -> None:
+def _verify_step(state: dict, plan: dict, wait_minutes: int) -> None:
     state['phase'] = 'verifying'
     _save_state(state)
     deadline = time.time() + max(0, wait_minutes) * 60
@@ -803,30 +805,29 @@ def _verify_step(state: dict, wait_minutes: int) -> None:
             raise RunFailed('release_status --online --check 未通过（等待超时）', 5)
         print('  … 线上状态未稳定，稍后重试')
         time.sleep(15)
-    drift = _cmd(
-        [sys.executable, 'scripts/check_publish_drift.py', '--check'],
-        check=False,
-        code=5,
-    )
-    if drift.returncode == 1:
-        raise RunFailed('check_publish_drift 报 CODE DRIFT；已发布版本不能重发，只能 fix-forward', 5)
-    if drift.returncode == 2:
-        print('  ! check_publish_drift 网络不可用，未完成归档核对', file=sys.stderr)
+    # 只核对本波发布过的包；无关包的 drift 由周检 / 单独发版处理。
+    targets = [
+        str(package['short'])
+        for package in plan.get('packages', [])
+        if package.get('action') == 'publish'
+    ]
+    if (plan.get('root') or {}).get('action') == 'publish':
+        targets.append('w_tools')
+    for target in targets:
+        drift = _cmd(
+            [sys.executable, 'scripts/check_publish_drift.py', '--package', target, '--check'],
+            check=False,
+            code=5,
+        )
+        if drift.returncode == 1:
+            raise RunFailed(
+                f'{target}: check_publish_drift 报 CODE DRIFT；已发布版本不能重发，只能 fix-forward',
+                5,
+            )
+        if drift.returncode == 2:
+            print(f'  ! {target}: check_publish_drift 网络不可用，未完成归档核对', file=sys.stderr)
     state['phase'] = 'done'
     _save_state(state)
-
-
-def _audit_drift() -> None:
-    """run 前的归档核对：同版本 CODE DRIFT 必须为零，网络不可用时 fail fast。"""
-    result = _cmd(
-        [sys.executable, 'scripts/check_publish_drift.py', '--check'],
-        check=False,
-        code=3,
-    )
-    if result.returncode == 1:
-        raise RunFailed('check_publish_drift 报 CODE DRIFT；先抬版本，不能带着漂移发布', 3)
-    if result.returncode == 2:
-        raise RunFailed('check_publish_drift 网络不可用，发布前无法核对归档', 2)
 
 
 def _dry_run(plan: dict) -> int:
@@ -835,11 +836,6 @@ def _dry_run(plan: dict) -> int:
         for error in errors:
             print(f'✗ {error}', file=sys.stderr)
         return 2
-    try:
-        _audit_drift()
-    except RunFailed as error:
-        print(f'✗ {error}', file=sys.stderr)
-        return error.code
     packages = {package['short']: package for package in plan.get('packages', [])}
     try:
         for short in plan.get('order', []):
@@ -911,7 +907,6 @@ def _run(args) -> int:
     fd = _acquire_lock()
     try:
         _save_state(state)
-        _audit_drift()
         packages = {package['short']: package for package in plan.get('packages', [])}
         for short in plan.get('order', []):
             short = str(short)
@@ -937,7 +932,7 @@ def _run(args) -> int:
         _root_step(state, plan, args.wait_minutes)
 
         print('\n== 发布后验证')
-        _verify_step(state, args.wait_minutes)
+        _verify_step(state, plan, args.wait_minutes)
         state['phase'] = 'done'
         _save_state(state)
         print(f'\n✓ 发布波次完成；state: {STATE_FILE}')

@@ -256,6 +256,13 @@ class ValidateRunPlanTest(unittest.TestCase):
         )
         self.assertTrue(any('HEAD' in error for error in errors))
 
+    def test_plan_without_drift_audit_is_rejected(self):
+        errors = mod.validate_run_plan(
+            self._plan(warnings=['所有包：未核对 code drift（--no-drift）']),
+            rows=[], git=self._git(), gh_ready=True,
+        )
+        self.assertTrue(any('code drift' in error for error in errors))
+
     def test_snapshot_pr_requires_gh(self):
         errors = mod.validate_run_plan(
             self._plan(snapshots_required=True), rows=[], git=self._git(), gh_ready=False,

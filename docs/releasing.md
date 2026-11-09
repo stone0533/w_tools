@@ -204,11 +204,12 @@ python3 scripts/release_wave.py run --resume --yes
 python3 scripts/release_wave.py status
 ```
 
-它先跑 `check_publish_drift.py --check`（同版本 code drift 直接拒绝），再逐包调用现有的
+它要求 plan 已经跑过 drift 核对（`--no-drift` 的计划会被拒绝），再逐包调用现有的
 `publish_package.sh`（保留干净工作区 / main / `release_check --strict` / 快照基线保护），
 然后自动 `apply_snapshots.sh`、开快照 PR、等 checks、`gh pr merge --merge`、
 `git pull --ff-only`；根包会等子包在 pub.dev 可见后再 dry-run + 发布；最后跑
-`release_status --online --check` 和 `check_publish_drift --check`。
+`release_status --online --check`，并对本波发布过的包逐包跑
+`check_publish_drift --package <pkg> --check`。
 
 它**不会**改版本 / CHANGELOG、不会 `--force`，也不会替你做 K-2 的 semver 决策。
 state 在 `.w_tools/release-wave-state.json`（gitignored），用于断点续跑。
