@@ -251,6 +251,22 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 
 ## 常见坑
 
+- **`pub login` / `pub publish` 卡住、没有任何输出**：pub 的 OAuth 校验要连
+  `accounts.google.com` / `oauth2.googleapis.com`，这两个域直连不通时 pub 没有超时，
+  进程会停在 `SYN_SENT`，看起来像"命令没反应"（`pub.dev` 自己直连是通的）。
+  本机（维护者）Clash 在 `127.0.0.1:7890`，先导出代理再跑：
+  ```bash
+  export HTTPS_PROXY=http://127.0.0.1:7890
+  export HTTP_PROXY=http://127.0.0.1:7890
+  export NO_PROXY=localhost,127.0.0.1,pub.flutter-io.cn,storage.flutter-io.cn,pub.dev
+  dart pub login   # 秒回 "You are already logged in as ..." 即代理生效
+  ```
+  pub 只认 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 环境变量，不读 macOS 系统代理设置；
+  换机器 / 换端口先 `nc -z 127.0.0.1 <port>` 探活。
+- **`pub publish` 在无 TTY 时直接 `Package upload canceled`**：确认提示需要终端。
+  AI / 自动化里用 `script -q /dev/null` 包一层 pty、并保持 stdin 打开喂 `y`；
+  或由人在终端执行。不要用 `publish_package.sh --force --reason`——那是跳过发布前保护，
+  不是跳过确认。
 - **`pub publish` 提示工作区不干净**：先提交再跑（具体退出码看 pub 输出；历史上
   `pub publish --dry-run` 报过 65）。
 - **只发子包不发聚合包**：已发布过的聚合包不会自动更新依赖约束；想让它带上新子包必须发一次
