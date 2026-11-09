@@ -87,8 +87,8 @@ packages/<pkg>/README.md（存在时），再开始；改具体包时读 docs/ag
 7. 不要改无关包、无关文档、无关测试。
 8. 默认只改工作区：不要 commit / push / 开 PR / 合并，除非任务块明确要求（如 K-2 / K-2M）；
    不要用 `git reset --hard` / `git clean` 清理未提交内容。
-9. 公开变化：抬子包版本 + 在当前版本 CHANGELOG 段写变更；聚合子包同时抬根 pubspec 的
-   `^x.y.z` 下界。PR 正文保留「## 改动类型」段并至少勾选一项；勾了公开类别
+9. 公开变化：抬子包版本 + 在当前版本 CHANGELOG 段写变更；**聚合子包 / 根包的下界在
+   K-2 发布准备里抬，功能 PR 不改**。PR 正文保留「## 改动类型」段并至少勾选一项；勾了公开类别
    （公开变化 / 删除废弃 / 新增包）时，每个改了公开代码的包都要改自己的 CHANGELOG
    （CI 的 check_pr_scope 强制；空 body 也会失败）。
 10. 最后报告 changed files、实际命令结果、explain 输出、剩余风险。
@@ -193,10 +193,11 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 | 审计“所有使用方式是否教给 AI” | J-4 |
 | 审计多个包 / 包家族 | J-5 |
 | 把审计结果交给修复 | J-2 |
+| 发布波次（多包总控） | K-0 |
 | 发布 Pub / 发布前检查 | K-1（审计） |
 | 准备版本 / CHANGELOG | K-2（批量用 K-2M） |
 | 发布 dry-run | K-3 |
-| 实际发布（人工确认后） | K-4 |
+| 实际发布（确认后执行） | K-4 |
 | 发布后验证 | K-5 |
 | 批量发布多个包 | K-1M / K-2M |
 | 改 w_tools_cli / doctor / init 模板 | L |
@@ -866,13 +867,29 @@ J-5 多包/家族
 发布是高风险操作，必须拆成：
 
 ```text
-审计 → 准备版本 → dry-run → 人工确认 → 发布 → 发布后验证
+审计 → 准备版本 → dry-run → 确认 → 发布 → 发布后验证
 ```
 
-> 本节是给 AI 的任务卡与边界；**操作细节（脚本参数、顺序、常见坑）以
-> [`docs/releasing.md`](releasing.md) 为准**，两边冲突时以那份文档为准。
+> 本节是给 AI 的**任务卡与边界**：只写「读哪节 / 跑哪几条 / 输出什么 / 禁止什么」。
+> 命令细节、发布顺序与常见坑以 [`docs/releasing.md`](releasing.md) 为准（冲突时以它为准）。
+> 不要用一条“帮我发布”的提示词完成全部步骤。
 
-不要用一条“帮我发布”的提示词完成全部步骤。
+### K-0. 发布波次总控（多包）
+
+单包按 K-1 → K-2 → K-3 → K-4 → K-5。同一波多个包按下面顺序，每步都有产物：
+
+| 步 | 做什么 | 命令 / 门禁 | 产物 |
+|---|---|---|---|
+| 1 | 审计全部包 | K-1M；`python3 scripts/check_publish_drift.py` + `python3 scripts/release_status.py --online` | 漂移总表（code / docs / comment） |
+| 2 | 定版本与顺序 | K-1M 输出 | 版本提案表 + 发布顺序 |
+| 3 | 版本 / CHANGELOG（一个 PR） | K-2M | 发布准备 PR（已合并） |
+| 4 | 逐包 dry-run | K-3 | 每包 0 warning |
+| 5 | 逐包发布 | K-4，一次一个包 | 每包 publish 成功 |
+| 6 | 快照 | `bash scripts/apply_snapshots.sh` → PR → 按输出 `gh pr merge --auto --merge` | 快照 PR（已合并） |
+| 7 | 根包（需要时） | 快照合入 + `git pull --ff-only` 后走 K-4 的根包段 | 根包发布成功 |
+| 8 | 验证 | K-5（两阶段） | 状态表全绿 |
+
+工具包（`cli` / `figma` / `device` / `e2e`）独立发版，不阻塞根包。
 
 ### K-1. 发布前审计（只读，单包）
 
@@ -888,48 +905,36 @@ J-5 多包/家族
 - packages/<pkg>/CHANGELOG.md
 - packages/<pkg>/pubspec.yaml
 - packages/<pkg>/README.md
-- scripts/release_check.sh
-- scripts/publish_package.sh
 
-运行：
+运行（快速档，约 1 分钟；不要在这里跑 --with-tests）：
 - git status --porcelain（必须干净；不干净先停）
-- git fetch origin main（确认本地 main 没有落后；发布脚本也会自己 fetch）
-- bash scripts/release_check.sh --package <pkg>
-- python3 scripts/release_status.py --online
-  （「待发布」是正常状态；线上比较以它为准。release_check --online 断网时返回 2。
-   发布波次中——上一包已发布、快照还没 apply——只忽略刚发布包的「快照 ≠ 线上」；
-   其它「落后 / 缺快照」要停；404 只有「从未发布、本次首发的新包」不算异常，
-   其它 404 要停。--check 留给快照 PR 合入后 / 周检。
-   不加 --check 时它总是 exit 0，异常只打印在「异常：」段——必须读输出，不要只看退出码。
-- bash scripts/preflight.sh --with-tests
-- python3 scripts/check_publish_drift.py        # 归档漂移（code / docs / comment 三类）
-- 需要手工核对时，再按下面方式取归档比较：
-  pubspec.yaml / lib/** / README.md / CHANGELOG.md / LICENSE / example/**
-  （排除 test / docs / scripts 等仓库专用内容）
+- git fetch origin main
+- python3 scripts/check_publish_drift.py        # code 必须抬版本；docs / comment 可延后
+- python3 scripts/release_status.py --online    # 看「异常：」段，不要只看退出码
+- bash scripts/release_check.sh --package <pkg> # 根包去掉 --package
+- bash scripts/preflight.sh                     # 静态档（约 26s）
+
+`--with-tests` 是 12–15 分钟的完整档，留到 K-2 的 PR 前跑一次；审计阶段不重复。
 
 审根包时换成：
-- bash scripts/release_check.sh
+- bash scripts/release_check.sh（不带 --package）
 - python3 scripts/release_status.py --online
-（根包版本 ↔ CHANGELOG ↔ 子包 caret 约束都在这一轮看，K-1M 会把它们并进总表；
-  同样看「异常：」段、不要只看退出码；波次中不要加 --check）
+（根包版本 ↔ CHANGELOG ↔ 子包 caret 约束都在这一轮看，K-1M 会并进总表）
 
 检查：
 1. 版本号与 CHANGELOG 是否一致；
 2. release_status 只证明“版本号存在”，不能证明内容已发布；
-3. 同版本归档与本地是否有差异（有差异 = 同版本漂移，必须 K-2 升版本）；
+3. 漂移分类：`code` → 必须 K-2 升版本；`docs` / `comment` → 记录，可延后到下次功能版本；
 4. README 安装版本 / 示例是否过期；
 5. 根包约束是否覆盖新版本（仅聚合包）；
 6. 依赖包是否已先发布；
 7. 是否需要 migration；
-8. 工作区是否干净、是否已 push（`--strict` 同时要求干净、已 push、且与 upstream 同步，见 `check_git_sync.sh`）。
+8. 工作区是否干净、是否已 push（`--strict` 同时要求干净、已 push、且与 upstream 同步）。
 
 输出：
-- 通过项
-- 阻断项（必须修 / 建议修）
-- 建议版本号与依据
-- 建议发布顺序
-- 不要执行真实发布
-- 不要修改文件
+- 通过项 / 阻断项（必须修 / 建议修）
+- 建议版本号与依据、建议发布顺序
+- 不要执行真实发布、不要修改文件
 ```
 
 ### K-1M. 多包 / 全量发布审计（只读）
@@ -939,13 +944,16 @@ J-5 多包/家族
 
 范围：scripts/packages.manifest 中的包 + 根包。
 （根包不在 manifest 里：子包用 `--package <pkg>`，根包用不带 `--package` 的全量比对。）
-对每个包执行 K-1 的检查；
+对每个包执行 K-1 的检查；漂移一列直接用 `python3 scripts/check_publish_drift.py` 的输出。
+
 额外输出：
-1. 发布状态总表：包 | 本地版本 | pub 版本 | CHANGELOG | README | 归档 diff | 工作区受影响 | 结论 | 建议版本
+1. 发布状态总表：包 | 本地版本 | pub 版本 | 漂移（code / docs / comment） | 结论 | 建议版本
 2. 未发布内容清单（按包）
-3. 同版本漂移清单（这些包不能按当前版本发布）
+3. 同版本漂移清单：code 必须抬版本；docs / comment 可延后（写清延后理由）
 4. 发布顺序（无依赖 → 有依赖 → 根包；工具包独立）
 5. 明确哪些包进 K-2，哪些跳过
+6. 波次风险：根包下界、快照 PR 依赖、cli 的 init 约束是否需要同波生效
+
 不要修改文件、不要 dry-run、不要发布。
 ```
 
@@ -954,17 +962,18 @@ J-5 多包/家族
 ```text
 任务：为 <pkg> 准备发布。
 
-先看功能 PR 是否已经抬过版本：抬过就沿用现有版本（`release_check` 会校验 CHANGELOG 段）。
-还没抬时才输出“版本提案表”（旧版本 → 新版本、major/minor/patch、依据），
-等维护者确认后再改文件。
+先看功能 PR 是否已经抬过子包版本：抬过就沿用（release_check 会校验 CHANGELOG 段）。
+还没抬时才输出“版本提案表”（旧版本 → 新版本、major/minor/patch、依据）等确认。
+逃生口：若任务文本里已经给出确认过的版本提案表，视为已确认，直接执行，不要再停一轮。
 
 允许改：
 - packages/<pkg>/pubspec.yaml
 - packages/<pkg>/CHANGELOG.md
 - packages/<pkg>/README.md（只改安装示例的 caret 下界；不要写「当前 x.y.z」）
-- 根包约束（聚合子包的功能 PR 里应已抬下界；这里只确认，不重复改）
+- 聚合子包 / 根包下界：packages/cli/lib/src/init/versions.dart 与根 pubspec.yaml
+  —— 这是唯一允许抬约束的步骤；功能 PR 不改它
 - 必要的 migration
-- 版本常量（cli/figma 的 lib/src/common/version.dart 等，仅用于版本一致性测试）
+- 版本常量（cli/figma 的 lib/src/common/version.dart 等）
 
 不允许：
 - 执行 pub publish
@@ -973,13 +982,14 @@ J-5 多包/家族
 
 要求：
 1. 版本号必须与 CHANGELOG 的 ## 段一致；
-2. 更新 README 安装示例的 caret 下界（必须等于新版本），不要写死「当前 x.y.z」——
-   release_check 会判失败；安装命令用 pub add，不写死版本；
-3. 跑 bash scripts/release_check.sh --package <pkg>（发布根包前用 --strict）
-   与 bash scripts/preflight.sh --with-tests；
-4. 完成后提交到 feature 分支并 push，开 PR（正文保留「## 改动类型」段）；
-   等 Required checks 通过后**合并到 main**（K-3 / K-4 的发布保护要求 `main` 且 `HEAD == origin/main`）；
-5. 报告 changed files 和检查结果。
+2. 更新 README 安装示例的 caret 下界（必须等于新版本），不要写死「当前 x.y.z」；
+3. 跑 bash scripts/release_check.sh --package <pkg>（根包用 --strict）
+   与 bash scripts/preflight.sh --with-tests（整波只跑这一次完整档）；
+4. 提交前跑本地 PR 预检：bash scripts/check_pr_ready.sh /tmp/pr.md
+   （check_pr_scope + check_version_bump；body 与 `gh pr create --body-file` 用同一份）；
+5. 提交到 feature 分支并 push，开 PR（正文保留「## 改动类型」段），
+   等 Required checks 通过后合并到 main（K-3 / K-4 要求 main 且 HEAD == origin/main）；
+6. 报告 changed files 和检查结果。
 ```
 
 ### K-2M. 批量版本准备
@@ -987,12 +997,15 @@ J-5 多包/家族
 ```text
 任务：为以下包批量准备发布：<pkg1>, <pkg2>, ...
 
-第一步只输出版本提案表（包 | 旧版本 | 新版本 | 级别 | 依据），等维护者确认。
-确认后按 K-2 逐包改 pubspec / CHANGELOG / README；
-版本常量按需同步；不要改无关包。
+第一步只输出版本提案表（包 | 旧版本 | 新版本 | 级别 | 依据），等维护者确认；
+任务文本已给确认表时视为已确认，直接执行。
+确认后按 K-2 逐包改 pubspec / CHANGELOG / README / 聚合与根包下界 / 版本常量。
+不要改无关包。
+
 最后统一跑：
 bash scripts/release_check.sh
 bash scripts/preflight.sh --with-tests
+bash scripts/check_pr_ready.sh /tmp/pr.md
 提交并 push，开 PR（正文保留「## 改动类型」段）并合并到 main。
 ```
 
@@ -1007,6 +1020,10 @@ bash scripts/preflight.sh --with-tests
 
 不要执行真实 publish。
 
+根包额外前置（缺一不可，否则 dry-run 会因依赖解析失败）：
+1. 所有子包已发布且 pub.dev 可见；
+2. 快照 PR 已合入，main 已 git pull --ff-only。
+
 输出：
 - dry-run 结果
 - 包大小 / 文件清单（如果有）
@@ -1016,85 +1033,97 @@ bash scripts/preflight.sh --with-tests
 
 批量时逐包执行 K-3；不要并行 publish。
 
-### K-4. 实际发布（人工确认）
+### K-4. 实际发布（确认后执行）
 
 ```text
 任务：发布 <pkg>。
 
 前置条件：
-1. 人已确认版本号和发布范围；
+1. 版本号与发布范围已确认（任务里给过就算确认）；
 2. K-1 ~ K-3 已通过；
-3. 工作区干净；
-4. 已确认发布顺序。
+3. 工作区干净、main 且 HEAD == origin/main；
+4. 发布顺序见 docs/releasing.md。
 
-执行：
+执行（人在终端）：
 bash scripts/publish_package.sh packages/<pkg>
 
 自动化 / 无 TTY 时加 --yes（只跳过 pub 的 y/N 确认，仍跑完整校验）：
 bash scripts/publish_package.sh packages/<pkg> --yes
-不要用 `yes | ...`（会顺带批准任何意外提示），也不要用 --force（那是跳过发布前保护）。
+不要用 `yes | ...`（会顺带批准任何意外提示）。
 
 禁止：
-- 直接在包目录 flutter pub publish
-- 直接在包目录 dart pub publish
+- 直接在包目录 flutter pub publish / dart pub publish
 - 未确认版本号就发布
 - 在 dry-run 未通过时发布
+- 用 --force 代替正常保护；确需例外用 --force --reason "..." 并在 PR / 日志说明
 ```
 
 批量发布：
 
 ```text
 一次只执行一个 publish 命令。
-同一批可以连续发：每包发完至少确认版本可见（python3 scripts/release_status.py --online，
-不要加 --check；看输出里的版本与「异常：」段——exit 0 不代表无异常）；
-归档 diff 可以在批末统一做，避免每个包都下载一次归档。
-K-5 的归档核对不依赖快照。
+每包以 publish 成功消息为准：pub.dev 最多 10 分钟才对外可见，
+不要立刻用 release_status 判失败；延迟后再核对（K-5 阶段 1）。
+归档 diff 在批末统一做（check_publish_drift.py），不要每包都下载一次。
 
-快照会先写到 .w_tools/release-snapshots/（gitignored），不会挡住下一个包；
-全部发完后运行 bash scripts/apply_snapshots.sh，按它打印的命令开一个快照 PR 并合入。
-发根包前必须合入（否则 publish_package.sh . 与 release_check --strict 都会拦住）。
-不要用 --force 绕过这一步：它会同时跳过干净树 / main / HEAD==origin/main / release_check。
-```
-
-发布顺序：
-
-```text
-1. 先发被依赖的核心包
-2. 再发依赖它们的包
-3. app_getx / map_google 在 app / map 之后
-4. 全部子包上线后，再发根包
-5. w_tools_cli / figma / device / e2e 独立
+快照先写到 .w_tools/release-snapshots/（gitignored），不会挡住下一个包。
+全部发完后：
+bash scripts/apply_snapshots.sh
+按它打印的命令开快照 PR，并用 gh pr merge --auto --merge 合并。
+发根包前必须先合入快照 PR 并 git pull --ff-only
+（否则 publish_package.sh . 与 release_check --strict 都会拦住）。
 ```
 
 发根包：
 
-```bash
+```text
+前置（缺一不可）：
+1. 所有子包已发布且 pub.dev 可见；
+2. 快照 PR 已合入，main 已 pull；
+3. bash scripts/release_check.sh --strict 通过；
+4. bash scripts/publish_package.sh . --dry-run 通过。
+
+执行：
 bash scripts/publish_package.sh .
 ```
 
+发布顺序：见 [`docs/releasing.md`](releasing.md) 的「发布顺序」；工具包独立发版。
+
 ### K-5. 发布后验证
 
+分两阶段，别把 --check 跑早了。
+
 ```text
-任务：验证 <pkg> 发布结果。
+阶段 1（发布后立刻，快照还没 apply）：
+- python3 scripts/release_status.py --online            # 不加 --check；看「异常：」段
+- python3 scripts/check_publish_drift.py --package <pkg> # code drift 必须为零
+- 出现「未核对」行（网络抖动）时重跑一次，不要当成通过
 
-运行：
-- python3 scripts/release_status.py --online（总表；快照还没 apply 时不要加 --check；
-  看「异常：」段——exit 0 不代表无异常）
-- bash scripts/release_check.sh --package <pkg> --online
-- 下载 pub.dev 最新归档，确认 README / CHANGELOG / lib 与仓库一致
-
-快照：publish 成功后先写到 .w_tools/release-snapshots/；一批发完
-bash scripts/apply_snapshots.sh 并合入快照 PR。根包发布前必须合入。
+阶段 2（快照 PR 合入、main 已 pull 之后）：
+- python3 scripts/release_status.py --online --check    # 现在才判失败
+- 根包再确认 release_check.sh --package 能解析新版本
+```
 
 检查：
-1. pub.dev 版本可见；
-2. 归档内容与仓库一致（不是只看版本）；
+1. pub.dev 版本可见（注意最多 10 分钟传播延迟）；
+2. 归档内容与仓库一致（drift 输出里 code 为空）；
 3. 依赖包版本可解析；
 4. 根包约束（如适用）可解析；
 5. 发布记录 / release 文档是否需要更新。
 
 不要修改代码；只报告验证结果。
-```
+
+### K 的失败分支
+
+| 症状 | 先跑 | 处理 |
+|---|---|---|
+| drift 报 `CODE DRIFT` | `python3 scripts/check_publish_drift.py --package <pkg>` | 发 patch（内容已改）或回退改动；不能重发同版本 |
+| 只有 `docs drift` / `comment drift` | 同上 | 可延后到下次功能版本，写进 release 说明 |
+| `release_status` 有「未核对」 | 重跑 `python3 scripts/release_status.py --online` | 连续失败按网络问题处理，不判发布事故 |
+| 发布成功但 pub.dev 查不到版本 | 等 10 分钟再跑 K-5 阶段 1 | 仍不可见才排查 |
+| 快照写入失败（脚本保留 staging） | 按脚本打印的 `check_public_api_diff.py --snapshot-from ...` 重跑 | 不要手写快照 |
+| 发根包被拦（快照未合入 / 约束不满足） | `bash scripts/release_check.sh --strict` | 先合快照 PR，再 `git pull --ff-only` |
+| 误用 `--yes` | —— | 它只跳 y/N 确认，不跳校验；已发布版本不可回滚，只能 fix-forward |
 
 ### K 的硬边界
 
@@ -1105,6 +1134,7 @@ bash scripts/apply_snapshots.sh 并合入快照 PR。根包发布前必须合入
 不要在未跑 dry-run 时发布
 不要自动决定 major / minor / patch
 不要把 pub 凭证写进提示词
+不要把 --yes 当成跳过发布前保护（它只跳 y/N）
 同版本内容漂移必须升版本，不能重发
 ```
 

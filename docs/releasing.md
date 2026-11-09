@@ -93,8 +93,8 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 
 1. 确认子包 `version` + `CHANGELOG.md` 的 `## x.y.z` 段：功能 PR 里已经抬过就沿用；
    还没抬时才在这里抬（版本号决定 semver，拿不准先和人工确认）。
-2. 需要聚合包跟上的，确认根 `pubspec.yaml` 里对应的 `w_tools_<pkg>: ^x.y.z` 下界已抬
-   （功能 PR 里改过就不动；`release_check` 会校验下界是否落后）。
+2. 需要聚合包 / cli 跟上的，在**本步**把 `packages/cli/lib/src/init/versions.dart` 与根
+   `pubspec.yaml` 的下界抬到子包当前版本（功能 PR 不改它；`release_check` 会校验下界是否落后）。
 3. 改根 `version` + 写根 `CHANGELOG.md`。
 4. 本地预检（不要求工作区干净）：
    ```bash
