@@ -125,7 +125,8 @@ CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
 
 改动它们时必须同步：
 
-- 本仓库内反馈用 `dart run w_tools_cli:w_tools feedback submit ... --ledger`（自动维护 `docs/feedback/` 与索引）；消费方用 issue 入口
+- 本仓库内反馈用 `dart run w_tools_cli:w_tools feedback submit ... --ledger`（自动维护 `docs/feedback/` 与索引）；
+  消费方开启 `feedback.enabled` 后**本地台账优先、其次 Issue**；都没有 → `submit` exit 4（什么都没写）
 - [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R9）
 - [`docs/modules/components.md`](docs/modules/components.md)（若涉及组件建议）
 - `packages/cli/test/internal/init_test.dart` / `internal/doctor_test.dart` 的用例
@@ -173,19 +174,24 @@ dart run w_tools_cli:w_tools feedback submit \
 
 ### 消费方项目
 
-- 默认关闭：不写文件、不生成链接、不建 Issue；
+- 默认关闭：不写文件、不生成链接、不建 Issue（`submit` 会 exit 4 并说明什么都没写）；
 - 需要反馈时在 `.w_tools_doctor.yaml` 设置：
   ```yaml
   feedback:
-    issue: true
+    enabled: true
   ```
-- 然后：
+- 然后（默认路由：本机 w_tools 台账 → Issue）：
   ```bash
   dart run w_tools_cli:w_tools feedback submit \
-    --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --issue
+    --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md
   ```
-- `--issue` 需要已安装 gh（gh 读取 `GH_TOKEN` / `GITHUB_TOKEN`，或 `gh auth login`）；
-- 消费方**不要**直接改 `docs/feedback/`（没有索引维护能力）。
+- 本机有 w_tools 仓库检出（path / git 依赖）→ 写**那个仓库**的 `docs/feedback/`，不建 Issue；
+  仓库 clone 在别处时用 `feedback.ledger: <路径>` 指过去；
+  没有检出才建 Issue（需已安装 gh；gh 读取 `GH_TOKEN` / `GITHUB_TOKEN`，或 `gh auth login`）；
+- 公开 Issue 每个项目每天最多 5 条（`feedback.max_issues_per_day`，0 = 不限），额度耗尽 exit 2；
+  本地台账不占额度；
+- `--issue` 只在「本机有台账但确实要公开提 issue」时用；开关未开启时会被拒绝（exit 2）；
+- 消费方**不要**直接改 `docs/feedback/` 的索引（没有索引维护能力）。
 
 ### 规则
 

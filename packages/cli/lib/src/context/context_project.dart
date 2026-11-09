@@ -221,6 +221,7 @@ class ProjectSnapshot {
           '${toolkitExports.isEmpty ? '' : '（导出 ${toolkitExports.join(', ')}）'}',
       repoCheckout ? '当前: 仓库检出，跳过消费方 doctor 规则' : '当前: $errorCount error / $warnCount warning',
       '命令: ${commands().entries.map((e) => '${e.key}=${e.value}').join(' | ')}',
+      '反馈: 先 feedback status（ledger / issue / disabled）；开启后本地 w_tools 台账优先，其次 Issue；disabled 时不要提交（exit 4）',
       '直接依赖: ${dependencies.isEmpty ? '（无）' : dependencies.join(', ')}',
       '规则: ${doctorRuleIds.map((id) => '$id=${doctorRuleLevels[id]}').join(' ')}',
       '暂存层: $stagingDir（$designSystemFiles 个文件，$missingStaged 个缺 STAGED）',

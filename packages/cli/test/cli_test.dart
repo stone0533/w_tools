@@ -838,7 +838,7 @@ banned:
       '--body-file',
       body.path,
     ]);
-    expect(r.exitCode, 0);
+    expect(r.exitCode, 4);
     expect('${r.stdout}', contains('反馈未提交'));
     expect(File(p.join(root.path, 'docs', 'agents', 'feedback.md')).existsSync(), isFalse);
     expect(File(p.join(root.path, 'docs', 'feedback')).existsSync(), isFalse);
@@ -943,9 +943,90 @@ banned:
       '--body-file',
       body.path,
     ]);
-    expect(r.exitCode, 0);
+    expect(r.exitCode, 4);
     expect('${r.stdout}', contains('反馈未提交'));
     expect(File(p.join(root.path, 'docs', 'feedback', 'ui.md')).existsSync(), isFalse);
+  });
+
+  test('feedback 写本机检出时提示工作区会变脏', () async {
+    final root = Directory.systemTemp.createTempSync('wt_fb_dirty_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final repo = Directory(p.join(root.path, 'repo'))..createSync(recursive: true);
+    File(p.join(repo.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools\n');
+    final cli = Directory(p.join(repo.path, 'packages', 'cli'))..createSync(recursive: true);
+    File(p.join(cli.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools_cli\n');
+    final feedback = Directory(p.join(repo.path, 'docs', 'feedback'))..createSync(recursive: true);
+    File(p.join(feedback.path, 'README.md')).writeAsStringSync(
+      '| 包 | 待处理 | 最近更新 |\n| --- | --- | --- |\n| [api](api.md) | 0 | 2026-11-04 |\n',
+    );
+    final app = Directory(p.join(root.path, 'app'))..createSync(recursive: true);
+    File(p.join(app.path, 'pubspec.yaml')).writeAsStringSync('name: demo_app\n');
+    File(p.join(app.path, '.dart_tool', 'package_config.json'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+        jsonEncode({
+          'configVersion': 2,
+          'packages': [
+            {'name': 'w_tools_cli', 'rootUri': cli.path},
+          ],
+        }),
+      );
+    File(
+      p.join(app.path, '.w_tools_doctor.yaml'),
+    ).writeAsStringSync('feedback:\n  enabled: true\n');
+    final body = File(p.join(root.path, 'body.md'))..writeAsStringSync(_feedbackBody);
+
+    final r = await _run('feedback.dart', [
+      'submit',
+      '--root',
+      app.path,
+      '--package=ui',
+      '--title=WImage 空白',
+      '--body-file',
+      body.path,
+    ]);
+
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    expect(File(p.join(feedback.path, 'ui.md')).existsSync(), isTrue);
+    expect('${r.stderr}', contains('工作区会变脏'));
+  });
+
+  test('feedback 公开 Issue 日额度用完后 exit 2', () async {
+    final root = _project();
+    // 没有本机仓库：确保走 Issue 通道
+    final cache = Directory(p.join(root.path, 'pubcache', 'w_tools_cli'))
+      ..createSync(recursive: true);
+    File(p.join(cache.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools_cli\n');
+    File(p.join(root.path, '.dart_tool', 'package_config.json'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+        jsonEncode({
+          'configVersion': 2,
+          'packages': [
+            {'name': 'w_tools_cli', 'rootUri': cache.path},
+          ],
+        }),
+      );
+    File(tmpConfig(root)).writeAsStringSync('feedback:\n  enabled: true\n');
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    File(p.join(root.path, '.w_tools', 'feedback_budget.json'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({'date': today, 'count': 5}));
+    final body = File(p.join(root.path, 'body.md'))..writeAsStringSync(_feedbackBody);
+
+    final r = await _run('feedback.dart', [
+      'submit',
+      '--root',
+      root.path,
+      '--package=ui',
+      '--title=t',
+      '--body-file',
+      body.path,
+      '--repo=stone0533/__w_tools_feedback_guard__',
+    ]);
+
+    expect(r.exitCode, 2, reason: '${r.stderr}');
+    expect('${r.stderr}', contains('额度'));
   });
 
   test('未知包名直接拒绝', () async {
@@ -1056,6 +1137,16 @@ banned:
 
   test('CLI-002 / CLI-009 无 gh 时 feedback --issue 退出 3 且不抛栈', () async {
     final root = _project();
+    // 消费方 + 没有本地仓库 + 已开启反馈 → Issue 通道，才会去调 gh。
+    final cache = Directory(p.join(root.path, 'pubcache', 'w_tools_cli'))
+      ..createSync(recursive: true);
+    File(p.join(cache.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools_cli\n');
+    File(p.join(root.path, '.dart_tool', 'package_config.json'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+        '{"configVersion":2,"packages":[{"name":"w_tools_cli","rootUri":"${cache.path}"}]}',
+      );
+    File(tmpConfig(root)).writeAsStringSync('feedback:\n  enabled: true\n');
     final body = File(p.join(root.path, 'body.md'))
       ..writeAsStringSync('''
 - 包/版本：ui 1.0.0
@@ -1249,3 +1340,15 @@ banned:
 }
 
 String tmpConfig(Directory root) => p.join(root.path, '.w_tools_doctor.yaml');
+
+/// 字段齐全的反馈正文，submit 用例共用。
+const _feedbackBody = '''
+- 包/版本：w_tools_ui 5.0.0
+- 环境：macOS
+- 命令 / 输入：WImage
+- 期望：显示
+- 实际：空白
+- 影响：无
+- 建议：补提示
+- 复现数据：无
+''';

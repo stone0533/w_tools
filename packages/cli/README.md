@@ -353,22 +353,22 @@ dart run w_tools_cli:w_tools doctor --write-config --json   # JSON: { schema, wr
 
 给 AI / 开发者的反馈入口：**记录 w_tools 本身的问题**（不是业务代码问题）。
 
-**默认策略：本地台账优先；Issue 默认关闭；都不满足就跳过。**
+**默认策略：本地台账优先；Issue 其次；都不满足就跳过（exit 4，什么都不写）。**
 
 ```bash
-# 先查重
+# 先查重（本机没有台账时会提示加 --gh 搜 GitHub）
 dart run w_tools_cli:w_tools feedback search "WImage 缓存" --package=ui
 
 # 打印字段骨架（可选）
 dart run w_tools_cli:w_tools feedback submit --template > /tmp/feedback.md
 
-# 默认：仓库检出 → 写 docs/feedback；消费方 feedback.issue=true → 建 Issue；否则跳过
+# 默认路由：本机 w_tools 仓库 → 写它的 docs/feedback；没有仓库 → 建 Issue；都没有 → 跳过（exit 4）
 dart run w_tools_cli:w_tools feedback submit --package=ui --title="..." --body-file=/tmp/f.md
 
 # 显式覆盖
-dart run w_tools_cli:w_tools feedback submit ... --ledger   # 仓库内直接维护台账 + 索引
+dart run w_tools_cli:w_tools feedback submit ... --ledger   # 强制写本地台账（需本机仓库检出）
 # 相同标题 + 正文默认拒绝；确认重复时加 --allow-duplicate
-dart run w_tools_cli:w_tools feedback submit ... --issue    # 显式建 Issue（需已安装 gh）
+dart run w_tools_cli:w_tools feedback submit ... --issue    # 强制建 Issue（需 feedback.enabled）
 
 dart run w_tools_cli:w_tools feedback path --package=figma   # 该写哪个文件
 dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
@@ -376,18 +376,25 @@ dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
 
 | 子命令 | 作用 |
 |---|---|
-| `submit` | 本地台账优先；`--ledger` 强制台账，`--issue` 强制 Issue；无通道时跳过（exit 0） |
-| `search` | 本地台账查重；`--gh` 同时搜 GitHub issues |
-| `status` | 查看当前反馈通道（ledger / issue / disabled） |
-| `path` | 仓库检出 → `docs/feedback/<包>.md`；消费方默认不写文件，提示用 `--issue` |
+| `submit` | 默认本地台账 → Issue → 跳过（exit 4）；`--ledger` / `--issue` 显式覆盖 |
+| `search` | 本地台账查重（本机无台账会提示加 `--gh`）；`--gh` 同时搜 GitHub issues |
+| `status` | 查看通道（ledger / issue / disabled）+ gh 可用性 |
+| `path` | 返回真实可写的台账路径；本机没有 w_tools 仓库时明确说未启用 |
 | `lint` | 字段齐全 / 状态合法 / 已闭环带版本号 / 已确认链 issue / 索引与文件一致 / 待处理 stale 警告 |
 
-- 本地台账存在时**不联网**；Issue 需 `.w_tools_doctor.yaml` 的 `feedback.issue: true` 或显式 `--issue`
-- `feedback.issue` 默认 `false`；`--issue` 需要已安装 `gh`（gh 会读取 `GH_TOKEN`/`GITHUB_TOKEN`，或 `gh auth login`）
-- `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`
+- 本地台账存在时**不联网**；Issue 需 `.w_tools_doctor.yaml` 的 `feedback.enabled: true`（旧键 `feedback.issue` 兼容）
+- 仓库 clone 在别处（依赖解析不到）时：`feedback.ledger: ../w_tools`（相对项目根或绝对路径；无效时提示一次并忽略）
+- pub cache 里的 git 依赖不算本机库（不往缓存写台账）
+- 公开 Issue 每个项目每天最多 5 条（`feedback.max_issues_per_day`，0 = 不限；本地台账不占额度），
+  额度在 `.w_tools/feedback_budget.json`，耗尽 exit 2
+- 从消费方写本机 w_tools 检出时，stderr 会提醒工作区变脏（JSON 带 `dirtiesRepo`）
+- 开关是硬门禁：未开启时 `--issue` 拒绝（exit 2）；本机有台账时 `--issue` 才是「明确要公开提 issue」
+- `feedback.enabled` 默认 `false`；`--issue` 需要已安装 `gh`（gh 会读取 `GH_TOKEN`/`GITHUB_TOKEN`，或 `gh auth login`）
+- `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`（issue 附带 `gh.ready`）
 - `--ledger --linked-issue=123` 会在条目里写「关联 issue：#123」
-- 反馈 Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`；`docs/feedback/` 是 triage 后的台账
+- 反馈 Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`；Issue 正文不带台账的 `### [待处理]` / `状态变更` 元数据
 - `lint --stale-days=<n>`：待处理超过 n 天给警告（默认 30，0 关闭），不影响退出码
+- 本机没有台账时 `lint` 明确输出「跳过」而不是 `✓ 0 条`；`search` 会提示加 `--gh`
 - 规则与文件格式见仓库 `docs/feedback/README.md`；CI 的 `scripts/check_feedback.sh` 就是这条命令的包装
 - `--package` 只接受小写字母/数字/下划线（防路径穿越）
 
@@ -497,10 +504,11 @@ toolkit 标记块外的项目追加项会保留
 | `doctor` | 无 error（`--strict` 时也无 warning） | 有失败 | 参数 / 项目错误；`--write-config` 冲突 |
 | `list` / `explain` | 找到 | 未找到 | 参数错误 |
 | `context` | 成功 | — | 参数 / 项目错误 |
-| `feedback path` / `lint` | 成功 / 无问题 | lint 有问题 | 参数 / 子命令错误 |
-| `feedback submit` | 生成链接 / 写入 / 创建成功 | `--gh` 提交失败 | 参数 / 字段缺失 |
+| `feedback path` / `lint` | 成功 / 无问题 / 没有可校验内容 | lint 有问题 | 参数 / 子命令错误 |
+| `feedback submit` | 写入台账 / 创建 Issue | Issue 提交失败 | 参数 / 字段缺失 / 开关未开启 / 无 `--ledger` 目标 |
 | `feedback search` | 找到 | 未找到 | 参数错误 |
 
+`feedback submit` 没有可用通道时退出 `4`（什么都没写，跳过不等于成功）；
 `feedback submit --issue` 在 `gh` 未安装 / 未登录时退出 `3`（外部不可用），不再抛栈。
 `feedback search --gh` 在 `gh` 未安装 / 未登录时同样退出 `3`，本地结果不返回。
 

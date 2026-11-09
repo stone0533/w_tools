@@ -32,6 +32,36 @@ void main() {
     expect(draft.issueUrl.queryParameters['body'], contains('w_tools_ui 5.0.0'));
   });
 
+  test('Issue 正文去掉台账元数据，台账正文仍保留', () {
+    final draft = FeedbackDraft(package: 'ui', title: 'WImage 空白', body: _body);
+
+    expect(draft.body, startsWith('### [待处理] ui: WImage 空白'));
+    expect(draft.body, contains('- 状态变更：'));
+
+    expect(draft.issueBody, isNot(contains('### [待处理]')));
+    expect(draft.issueBody, isNot(contains('状态变更')));
+    expect(draft.issueBody, startsWith('- 包/版本：w_tools_ui 5.0.0'));
+    expect(draft.issueBody, contains('- 复现数据：见附件'));
+    expect(draft.issueUrl.queryParameters['body'], draft.issueBody);
+  });
+
+  test('searchLocal 可按解析后的台账目录查重（消费方台账不在项目根）', () {
+    final root = Directory.systemTemp.createTempSync('wt_fb_search_dir_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final ledger = Directory(p.join(root.path, 'repo', 'docs', 'feedback'))
+      ..createSync(recursive: true);
+    File(p.join(ledger.path, 'ui.md')).writeAsStringSync('### WImage 空白\n');
+    final projectRoot = Directory(p.join(root.path, 'app'))..createSync(recursive: true);
+
+    expect(searchLocal(projectRoot, query: 'WImage'), isEmpty);
+    final hits = searchLocal(
+      projectRoot,
+      query: 'WImage',
+      ledgerDir: ledger.path,
+    );
+    expect(hits.single.file, p.join(ledger.path, 'ui.md'));
+  });
+
   test('searchLocal 搜台账与收件箱', () {
     final root = Directory.systemTemp.createTempSync('wt_fb_search_');
     addTearDown(() => root.deleteSync(recursive: true));

@@ -109,6 +109,7 @@ Fixed-prefix exceptions: scenario selection reads only §1; K-1 does not paste t
 | `<newversion>` | target sub-package version | `w_tools_ui 8.0.0` |
 | `<flow>` | user path that must work | login -> order -> back |
 | `<symptom>` | what you observe | input hidden by keyboard |
+| `<package>` | sub-package name (`ui` or `w_tools_ui`) | `ui` |
 
 The `w_tools_cli` version is the **generator version**, not a sub-package version; fill upgrade prompts per package.
 Headings carrying `X-n` are scenario IDs: the letter is a task family, the number is a step
@@ -168,6 +169,7 @@ and **it says what to deliver**.
 | Add black-box tests | I-1 |
 | Review AI changes only | J-1 |
 | AI cannot read the repo / run commands | K-1 |
+| Blocked by w_tools / has a suggestion | L-1 |
 
 ### Reverse lookup by symptom
 
@@ -182,6 +184,7 @@ and **it says what to deliver**.
 <!-- @endif -->
 | Field hidden by keyboard / overflow | G-1 |
 | AI says it changed things but shows no analyze output | J-1 or K-1 |
+| Blocked by w_tools and want to file feedback | L-1 |
 | Not sure which block to use | "Let the AI pick a scenario" above |
 
 ---
@@ -531,6 +534,47 @@ I provide:
 - the relevant pubspec snippet
 - explain output
 - error / test output
+```
+
+---
+
+## L. Feedback to w_tools
+
+### L-1. File one feedback entry
+
+```text
+Task: record what blocked you in w_tools (or a capability suggestion) as one feedback entry.
+
+Run `dart run w_tools_cli:w_tools feedback status --json` first and read channel:
+- disabled -> stop: only tell me "the project has not enabled feedback" and how to enable it;
+  do not submit, and do not pass --issue;
+- ledger / issue -> continue.
+
+Then:
+1. Search first: `dart run w_tools_cli:w_tools feedback search "<keyword>" --package=<package>`
+   If the same problem exists, give me the file:line or issue number; do not submit a duplicate;
+2. Write the body with the fixed fields (missing fields are rejected); show me the draft first:
+   - package/version: current version of <package> from pubspec.lock
+   - environment: Flutter / Dart / platform / device
+   - command / input: the code, command or action that triggers it
+   - expected: what should happen
+   - actual: what happens; paste the error verbatim
+   - impact: time lost / what it broke; write "none" if not applicable
+   - suggestion: what you want changed
+   - repro data: minimal demo / log excerpt, redacted first
+   Save it as /tmp/w_tools_feedback.md;
+3. Submit: `dart run w_tools_cli:w_tools feedback submit --package=<package> --title="<symptom>" --body-file=/tmp/w_tools_feedback.md`
+   Default route: a local w_tools checkout -> its docs/feedback/; otherwise a GitHub Issue;
+   neither -> exit 4 and nothing is written.
+
+Do not:
+- add --issue unless I explicitly ask for a public issue;
+- paste secrets, tokens or business-sensitive data;
+- exceed 3-5 entries per session, and only what actually blocked you;
+- write any status other than "pending".
+
+Output: the result (ledger path or issue URL) + a symptom summary under 20 words;
+if rejected, paste the error verbatim.
 ```
 
 ---

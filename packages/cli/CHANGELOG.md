@@ -1,7 +1,49 @@
-## Unreleased
+## 1.17.0
+
+### Breaking
+- `feedback submit` 没有可用通道时由 exit 0 改为 **exit 4**（什么都没写）；依赖旧退出码的脚本 / CI 要改。
+- `--issue` 不再绕过开关：`feedback.enabled: false` 时退出 2（项目根是 w_tools 仓库时除外）。
+- 配置键 `feedback.issue` 改名 `feedback.enabled`；旧键仍兼容，同时出现时 `enabled` 优先。
 
 ### Changed
-- `init` 的 `w_tools_device` 约束同步到 `^0.3.1`。
+- **反馈通道改为一套判定**（`submit` / `status` / `path` / `search` / `lint` 共用）：
+  项目根是 w_tools 仓库 → 写该仓库 `docs/feedback/`；开启 `feedback.enabled` 且本机有 w_tools 检出
+  （path / git 依赖）→ **写那个仓库的台账**，不建 Issue；没有本地检出才建 Issue；否则跳过。
+  此前 `path` 认本地台账、`submit` 却按「项目根是不是仓库」判，路径依赖的消费方会自相矛盾。
+- **开关改名 `feedback.enabled`**（默认 false）；旧键 `feedback.issue` 仍兼容，`enabled` 优先。
+  `doctor --print-config` 输出同步（旧键以注释保留）。
+- **`--issue` 不再绕过开关**：未开启反馈时 `--issue` 退出 2，不再是一条隐式覆盖路径；
+  本机有台账时 `--issue` 仍可明确要求公开 Issue。`--ledger` 需要本机 w_tools 仓库检出。
+- **跳过不再是「成功」**：`feedback submit` 没有可用通道时退出 **4** 并打印「什么都没写」，
+  JSON 带 `mode: skipped` / `exitCode: 4`；AI / CI 不能再把「没提交」当成功。
+- `feedback status` 在 `issue` 通道下附带 `gh` 可用性（`installed` / `authenticated` / `ready`），
+  不必等提交才发现 gh 没装。
+- `feedback lint` 在本机没有台账时输出「跳过」而不是 `✓ 待处理 0 条`（假绿）；`search` 在无本地台账时
+  提示加 `--gh`，不再静默返回空。
+- 建 Issue 的正文不再带台账元数据（`### [待处理] …` + `- 状态变更：…`），预填链接同步。
+- pub cache 里的 git 依赖（`~/.pub-cache/git/…`）不当作「本机 w_tools 库」：不往缓存里写台账，
+  按「没有本地仓库」处理（缓存会被 `pub cache repair` 清掉，写进去等于写丢）。
+- 新增 `feedback.ledger: <路径>`（相对项目根或绝对路径）：仓库 clone 在别处、依赖解析不到时
+  也能命中本机台账；指向的不是 w_tools 仓库会在 stderr 提示一次并忽略（不静默写错地方）。
+- 公开 Issue 加**每日额度**：`feedback.max_issues_per_day`（默认 5，0 = 不限）。CLI 没有会话概念，
+  用日额度兜住「一次会话 3–5 条」；计数在 `.w_tools/feedback_budget.json`（跨天重置、删了归零），
+  本地台账不占额度；额度耗尽 exit 2，`--json` 带 `issueBudgetUsed` / `issueBudgetMax`。
+- 从消费方写本机 w_tools 检出时，stderr 提醒「该仓库工作区会变脏，提交前记得 commit / discard」，
+  `--json` 带 `dirtiesRepo`。
+
+### Fixed
+- `init` 的 `w_tools_device` 约束同步到 `^0.3.1`（`w_tools_device` 已发 0.3.1，上一版仍写 `^0.3.0`）。
+
+### Docs
+- `templates/agents/{zh,en}/feedback.md`：写明「本地台账优先 → Issue → 跳过（exit 4）」、开关硬门禁、
+  8 个必填字段、Issue 公开需脱敏；补 `feedback.ledger` 的用法。
+- `templates/ai/consumer-prompts{,.en}.md`：新增场景 `L-1 记一条反馈`（先 `feedback status`，
+  disabled 就停；查重 → 8 字段草稿 → 默认路由提交；不贴密钥、不超 3–5 条）。
+- `docs/agents/cli.md` 的 AI 闭环标明记反馈是 `L-1`。
+- 消费方 AGENTS 模板补公开 Issue 日额度、以及「写本机台账会弄脏 w_tools 工作区」的提醒。
+- `docs/agents/cli.md`、`docs/feedback/README.md`、`packages/cli/README.md`、根 `AGENTS.md` 同步路由与退出码；
+  删掉「消费方在本地日志做缓冲」这句与实现不一致的描述。
+- `context --format=prompt` 增加一行反馈路由提示（先 `feedback status`，disabled 时不要提交）。
 
 ## 1.16.1
 

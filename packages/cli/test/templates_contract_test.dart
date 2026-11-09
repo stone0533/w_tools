@@ -25,11 +25,19 @@ void main() {
     test('$lang feedback 模板要求 submit', () {
       final text = File('templates/agents/$lang/feedback.md').readAsStringSync();
       expect(text, contains('feedback submit'));
-      expect(text, contains('issue: true'));
+      expect(text, contains('enabled: true'));
+      expect(text, contains('issue: true'), reason: '旧键仍要说明兼容');
       expect(text, contains('--issue'));
       expect(text, anyOf(contains('包/版本'), contains('package/version')));
       expect(text, isNot(contains('docs/feedback/TEMPLATE.md')));
       expect(text, isNot(contains('--local')));
+    });
+
+    test('$lang feedback 模板写明本地台账优先与跳过 exit 4', () {
+      final text = File('templates/agents/$lang/feedback.md').readAsStringSync();
+      expect(text, contains('exit 4'));
+      expect(text, contains('--ledger'));
+      expect(text, anyOf(contains('docs/feedback/'), contains('docs/feedback/')));
     });
 
     test('$lang toast 模板包含初始化', () {
