@@ -1,0 +1,53 @@
+# w_tools_qr 2.0.0
+WQrController	class
+WQrController.attach	void (QRViewController native, { CameraFacing? initialFacing, void Function(CameraFacing facing)? onFacingChanged, Future<void> Function()? onRestart, })
+WQrController.cameraFacing	CameraFacing?
+WQrController.detach	void ()
+WQrController.dispose	Future<void> ()
+WQrController.flipCamera	Future<CameraFacing> ()
+WQrController.getCameraInfo	Future<CameraFacing> ()
+WQrController.getFlashStatus	Future<bool?> ()
+WQrController.getSystemFeatures	Future<SystemFeatures> ()
+WQrController.hasPermissions	bool
+WQrController.isAttached	bool
+WQrController.new	()
+WQrController.pauseCamera	Future<void> ()
+WQrController.restart	Future<void> ()
+WQrController.resumeCamera	Future<void> ()
+WQrController.scannedDataStream	Stream<Barcode>
+WQrController.setInvert	Future<void> (bool enabled)
+WQrController.stopCamera	Future<void> ()
+WQrController.toggleFlash	Future<void> ()
+WQrOverlayStyle	class
+WQrOverlayStyle.borderColor	Color
+WQrOverlayStyle.borderLength	double
+WQrOverlayStyle.borderRadius	double
+WQrOverlayStyle.borderWidth	double
+WQrOverlayStyle.cutOutBottomOffset	double
+WQrOverlayStyle.cutOutHeight	double
+WQrOverlayStyle.cutOutWidth	double
+WQrOverlayStyle.isVisible	bool
+WQrOverlayStyle.margin	EdgeInsetsGeometry
+WQrOverlayStyle.new	({ this.isVisible = true, this.borderColor = Colors.red, this.successColor = Colors.green, this.margin = EdgeInsets.zero, this.borderWidth = 3.0, this.overlayColor = const Color.fromRGBO(0, 0, 0, 0.5), this.borderRadius = 0, this.borderLength = 40, this.cutOutWidth = 250, double? cutOutHeight, this.cutOutBottomOffset = 0, })
+WQrOverlayStyle.overlayColor	Color
+WQrOverlayStyle.successColor	Color
+WQrScanResult	class
+WQrScanResult.code	String
+WQrScanResult.format	BarcodeFormat
+WQrScanResult.new	({ required this.code, required this.format, required this.timestamp, this.rawBytes, })
+WQrScanResult.rawBytes	List<int>?
+WQrScanResult.timestamp	DateTime
+WQrScanResult.toString	String ()
+WQrView	class
+WQrView.cameraFacing	CameraFacing
+WQrView.controller	WQrController?
+WQrView.createState	State<WQrView> ()
+WQrView.formatsAllowed	List<BarcodeFormat>
+WQrView.new	({ super.key, this.controller, this.style = const WQrOverlayStyle(), this.onScanned, this.onControllerReady, this.onPermissionDenied, this.onError, this.cameraFacing = CameraFacing.back, this.formatsAllowed = const <BarcodeFormat>[], this.scanOnce = true, this.scanInterval = const Duration(milliseconds: 400), })
+WQrView.onControllerReady	void Function(WQrController controller)?
+WQrView.onError	void Function(Object error, StackTrace stackTrace)?
+WQrView.onPermissionDenied	VoidCallback?
+WQrView.onScanned	void Function(WQrScanResult result)?
+WQrView.scanInterval	Duration
+WQrView.scanOnce	bool
+WQrView.style	WQrOverlayStyle
