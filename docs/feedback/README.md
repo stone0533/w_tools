@@ -1,7 +1,8 @@
 # 使用反馈（库侧）
 
 消费方用 `w_tools_*` 撞到的问题在这里汇总、定状态 —— **这里是唯一真相**。
-在 w_tools 仓库检出内默认**直接写这里**；消费方拿不到本仓库时，才在本地日志做缓冲（事后由维护者同步进来）。
+本机有 w_tools 仓库检出时，`feedback submit` 默认**直接写这里**（不开 Issue）；
+只有本机没有检出时，才在开启反馈后建 GitHub Issue，由维护者 triage 后同步进来。
 
 ## 规则
 
@@ -35,22 +36,27 @@
 ## 怎么用（消费方）
 
 > 装了 `w_tools_cli` 的项目，`init` 会把这段流程写进 AGENTS（「使用反馈（给 AI）」一节），
-> 新项目不用手抄；默认不提交，只有项目显式开启 `feedback.issue` 才建 Issue。
+> 新项目不用手抄；默认不提交，只有项目显式开启 `feedback.enabled` 才发。
 
-**默认策略：本地台账优先；Issue 默认关闭；都不满足就跳过。**
+**默认策略：本地台账优先；Issue 其次；都不满足就跳过（exit 4，什么都不写）。**
 
-- 在 w_tools 仓库检出内：`feedback submit` 自动写 `docs/feedback/<包>.md` 并更新索引；
-- 消费方：只有 `.w_tools_doctor.yaml` 的 `feedback.issue: true` 时才创建 Issue；
-- 没有本地台账且 Issue 未开启：**什么都不做**（不写本地收件箱、不生成链接）。
+1. 项目根就是 w_tools 仓库 → 写这里并更新索引（维护者默认，不读开关）；
+2. 开启 `feedback.enabled: true` 且本机有 w_tools 检出（path 依赖；pub cache 里的 git 依赖不算）→
+   写**那个检出**的 `docs/feedback/<包>.md`，**不建 Issue**；clone 在别处时用
+   `feedback.ledger: <路径>` 显式指定；
+3. 开启 `feedback.enabled: true` 但本机没有检出 → 建 GitHub Issue；
+4. 未开启 / 都没有 → **什么都不做**（不写本地收件箱、不生成链接、不建 Issue；`submit` exit 4）。
+
+开关未开启时 `--issue` 也被拒绝（exit 2）；`--ledger` 需要本机仓库检出。
 
 ```bash
 # 仓库内：直接维护台账
 dart run w_tools_cli:w_tools feedback submit \
   --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --ledger --linked-issue=123
 
-# 消费方（已开启 feedback.issue）：
+# 消费方（已开启 feedback.enabled）：默认本地台账优先，本机没有检出才建 Issue
 dart run w_tools_cli:w_tools feedback submit \
-  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md --issue
+  --package=<包> --title="<一句话>" --body-file=/tmp/feedback.md
 ```
 
 - `submit` 会校验必填字段；缺字段退出 2；

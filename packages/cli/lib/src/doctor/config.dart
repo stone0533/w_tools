@@ -26,7 +26,8 @@ class DoctorConfig {
     this.aiTargets = const <String>['agents'],
     this.aiLanguage = 'zh',
     this.aiFigma = 'auto',
-    this.feedbackIssue = false,
+    this.feedbackEnabled = false,
+    this.feedbackLedger,
   });
 
   /// R2 的白名单：这个文件里允许 import 子包（它就是聚合入口）
@@ -57,8 +58,16 @@ class DoctorConfig {
   /// auto 时由项目 pubspec 是否依赖 w_tools_figma 决定。
   final String aiFigma;
 
-  /// 是否允许 `feedback submit` 创建 GitHub Issue；默认关闭。
-  final bool feedbackIssue;
+  /// 是否开启反馈通道；默认关闭。
+  ///
+  /// 开启后：本机有 w_tools 仓库检出 → 写它的 `docs/feedback/`；
+  /// 没有本地仓库才建 GitHub Issue（见 `FeedbackChannel.resolve`）。
+  final bool feedbackEnabled;
+
+  /// 显式指定的本机 w_tools 仓库检出（`feedback.ledger`，可相对项目根）。
+  ///
+  /// 用于「仓库 clone 在别处、依赖里解析不到」的场景；指向的不是 w_tools 仓库时忽略。
+  final String? feedbackLedger;
 
   /// 配置文件名（项目根）
   static const fileName = '.w_tools_doctor.yaml';
@@ -164,10 +173,22 @@ class DoctorConfig {
     var aiTargets = const <String>['agents'];
     var aiLanguage = 'zh';
     var aiFigma = 'auto';
-    var feedbackIssue = false;
+    var feedbackEnabled = false;
+    String? feedbackLedger;
     final feedbackNode = raw['feedback'];
-    if (feedbackNode is YamlMap && feedbackNode['issue'] is bool) {
-      feedbackIssue = feedbackNode['issue'] as bool;
+    if (feedbackNode is YamlMap) {
+      // `enabled` 是主键；`issue` 是 1.17 之前的旧键，等价处理。
+      final enabled = feedbackNode['enabled'];
+      final legacy = feedbackNode['issue'];
+      if (enabled is bool) {
+        feedbackEnabled = enabled;
+      } else if (legacy is bool) {
+        feedbackEnabled = legacy;
+      }
+      final ledgerPath = feedbackNode['ledger'];
+      if (ledgerPath is String && ledgerPath.trim().isNotEmpty) {
+        feedbackLedger = ledgerPath.trim();
+      }
     }
 
     final aiNode = raw['ai'];
@@ -202,7 +223,8 @@ class DoctorConfig {
       aiTargets: aiTargets,
       aiLanguage: aiLanguage,
       aiFigma: aiFigma,
-      feedbackIssue: feedbackIssue,
+      feedbackEnabled: feedbackEnabled,
+      feedbackLedger: feedbackLedger,
     );
   }
 
@@ -216,7 +238,8 @@ class DoctorConfig {
     List<String>? aiTargets,
     String? aiLanguage,
     String? aiFigma,
-    bool? feedbackIssue,
+    bool? feedbackEnabled,
+    String? feedbackLedger,
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
@@ -228,7 +251,8 @@ class DoctorConfig {
       aiTargets: aiTargets ?? this.aiTargets,
       aiLanguage: aiLanguage ?? this.aiLanguage,
       aiFigma: aiFigma ?? this.aiFigma,
-      feedbackIssue: feedbackIssue ?? this.feedbackIssue,
+      feedbackEnabled: feedbackEnabled ?? this.feedbackEnabled,
+      feedbackLedger: feedbackLedger ?? this.feedbackLedger,
     );
   }
 }
@@ -288,8 +312,12 @@ String renderDefaultConfig() {
     ..writeln('  # auto: pubspec 依赖 w_tools_figma 时生成 Figma 片段；也可设为 true/false')
     ..writeln()
     ..writeln('feedback:')
-    ..writeln('  # 默认关闭；true 才允许 feedback submit 在没有本地台账时创建 GitHub Issue')
-    ..writeln('  issue: ${defaults.feedbackIssue}')
+    ..writeln('  # 反馈通道总开关，默认关闭。开启后：本地 w_tools 台账优先，没有本地仓库才建 Issue')
+    ..writeln('  enabled: ${defaults.feedbackEnabled}')
+    ..writeln('  # 旧键（1.17 起等价于 enabled，仍兼容）：')
+    ..writeln('  # issue: true')
+    ..writeln('  # 本机 w_tools 仓库不在依赖里时，显式指过去（相对项目根或绝对路径）：')
+    ..writeln('  # ledger: ../w_tools')
     ..writeln()
     ..writeln('# 跳过的路径前缀（相对项目根）')
     ..writeln('ignore: []')

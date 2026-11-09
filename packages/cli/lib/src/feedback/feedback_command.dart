@@ -4,10 +4,12 @@ import 'package:args/args.dart';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/common/project_loader.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
-import 'package:w_tools_cli/src/context/install_info.dart';
+import 'package:w_tools_cli/src/feedback/feedback_channel.dart';
 import 'package:w_tools_cli/src/feedback/feedback_lint.dart';
 import 'package:w_tools_cli/src/feedback/feedback_ledger.dart';
 import 'package:w_tools_cli/src/feedback/feedback_path.dart';
@@ -26,11 +28,17 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   dart run w_tools_cli:w_tools feedback status
 
 子命令：
-  path    输出库侧台账路径（消费方默认不写文件）
+  path    输出台账路径（本机没有 w_tools 仓库时不写文件）
   lint    校验字段、状态、版本号、索引
-  submit  默认：本地 docs/feedback 存在 → 写台账；否则 feedback.issue=true → 建 Issue；否则跳过
+  submit  默认路由：本地 w_tools 台账 → GitHub Issue → 跳过（exit 4）
   search  先查重：本地台账/收件箱；加 --gh 同时搜 GitHub issues
-  status  输出当前反馈通道：ledger / issue / disabled
+  status  输出当前通道：ledger / issue / disabled（附带 gh 可用性）
+
+通道（submit / status 共用同一套判定）：
+  1. 项目根是 w_tools 仓库      → 写 <仓库>/docs/feedback/（维护者默认，不读开关）
+  2. feedback.enabled: true 且本机有 w_tools 检出 → 写该仓库 docs/feedback/（不公开发）
+  3. feedback.enabled: true 且本机没有检出        → 建 GitHub Issue
+  4. 未开启 / 都没有                              → 跳过（exit 4，不写文件）
 
 选项：
   --root=<dir>        项目根（默认当前目录）
@@ -39,9 +47,9 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   --body-file=<file>  submit 用：Markdown 正文（也可用 --stdin）
   --stdin             submit 用：从标准输入读 Markdown 正文
   --template          submit 用：只打印正文骨架，不提交
-  --issue             submit：显式创建 GitHub Issue（默认关闭，需 feedback.issue 或本 flag）
+  --issue             submit：强制建 GitHub Issue（需 feedback.enabled；本机有台账时默认写台账）
   --gh                submit：--issue 的别名；search：搜 GitHub issues
-  --ledger            submit：仅 w_tools 仓库检出，直接写入 docs/feedback/<包>.md 并更新索引
+  --ledger            submit：强制写本地台账（需本机 w_tools 仓库检出）
   --linked-issue=<n>  ledger 用：在条目里写「关联 issue：#n」
   --allow-duplicate   ledger 用：允许写入完全相同的反馈（默认拒绝）
   --repo=<owner/repo> submit/search 的仓库（默认 stone0533/w_tools）
@@ -51,6 +59,13 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   --json              等价于 --format=json
   -h, --help          显示本帮助
 
+退出码：
+  0  成功（含「没有可校验的反馈文件」）
+  1  查重没找到 / lint 有规则问题
+  2  参数或配置错误（含 feedback.enabled=false 时的 --issue）
+  3  外部工具不可用（gh 未安装 / 未登录）
+  4  跳过：没有可用通道，什么都没写
+
 说明：
   --gh 需要 gh 已安装并登录；gh 不可用时退出 3，且不返回本地查重结果。
   只想查本地台账时去掉 --gh。
@@ -58,7 +73,7 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
 示例：
   dart run w_tools_cli:w_tools feedback search "WImage 缓存" --package=ui
   dart run w_tools_cli:w_tools feedback submit --package=ui --title="WImage 缓存不生效" --stdin
-  dart run w_tools_cli:w_tools feedback submit --package=ui --title="..." --body-file=/tmp/f.md --gh
+  dart run w_tools_cli:w_tools feedback submit --package=ui --title="..." --body-file=/tmp/f.md --issue
   dart run w_tools_cli:w_tools feedback lint --include-inbox
 ''';
 
@@ -124,31 +139,55 @@ void _path(ArgResults args, Directory root, bool asJson) {
   if (ledgerName != null && !feedbackPackages.contains(ledgerName)) {
     _usageError('未知反馈包：$ledgerName（可选：${feedbackPackages.join(', ')}）');
   }
-  final target = FeedbackTarget.resolve(projectRoot: root, package: ledgerName);
+  final channel = _channel(root);
+  final dir = channel.ledgerDir;
+  final target = dir == null ? null : (ledgerName == null ? dir : p.join(dir, '$ledgerName.md'));
+  final exists = target == null
+      ? false
+      : (ledgerName == null ? Directory(target).existsSync() : File(target).existsSync());
+  final kind = dir == null ? 'disabled' : (ledgerName == null ? 'library-dir' : 'library-package');
+
   if (asJson) {
     print(
       jsonEncode(<String, Object?>{
         'schema': 'w_tools_cli.feedback/1',
         'schemaVersion': 1,
-        ...target.toJson(),
+        'path': target,
+        'kind': kind,
+        'exists': exists,
+        ...channel.toJson(),
       }),
     );
     return;
   }
 
-  if (!target.isLibrary) {
-    print('未启用本地反馈通道：默认不写文件。');
-    print('仓库内用 feedback submit --ledger；消费方开启 feedback.issue 后用 --issue。');
+  if (target == null) {
+    print('未启用本地反馈通道：本机没有 w_tools 仓库，默认不写文件。');
+    print('仓库内用 feedback submit --ledger；消费方开启 feedback.enabled 后走默认通道（本地台账优先，其次 Issue）。');
     return;
   }
-  print(target.path!);
-  if (target.kind == 'library-dir') {
+  _warnInvalidOverride(channel);
+  print(target);
+  if (ledgerName == null) {
     print('# 库侧反馈目录；按包选文件，如 --package=cli');
-  } else if (!target.exists) {
-    stderr.writeln(
-      '# 该包还没有库侧台账；在仓库内用 feedback submit --package=${package ?? '<包>'} --ledger 建档',
-    );
+  } else if (!exists) {
+    stderr.writeln('# 该包还没有库侧台账；用 feedback submit --package=$ledgerName --ledger 建档');
   }
+}
+
+/// 通道解析只做一次：`submit` / `status` / `path` / `search` / `lint` 共用。
+FeedbackChannel _channel(Directory root) {
+  DoctorConfig config;
+  try {
+    config = ProjectFiles.loadConfig(root);
+  } on ProjectLoadException catch (e) {
+    _usageError(e.message);
+  }
+  return FeedbackChannel.resolve(
+    projectRoot: root,
+    issueEnabled: config.feedbackEnabled,
+    ledgerOverride: config.feedbackLedger,
+  );
 }
 
 void _lint(ArgResults args, Directory root, bool asJson) {
@@ -157,20 +196,13 @@ void _lint(ArgResults args, Directory root, bool asJson) {
   if (staleDays == null) {
     _usageError('--stale-days 需要整数：$staleDaysRaw');
   }
-  final install = InstallInfo.detect(projectRoot: root);
+  final channel = _channel(root);
   final linter = FeedbackLinter(staleDays: staleDays);
   final paths = <String>[];
-  FeedbackLintResult result;
-  if (install.feedbackDir != null) {
-    result = linter.lintLibrary(Directory(install.feedbackDir!));
-  } else {
-    result = FeedbackLintResult(
-      files: const <String>[],
-      pending: 0,
-      closed: 0,
-      issues: const <FeedbackIssue>[],
-    );
-  }
+  final dir = channel.ledgerDir;
+  FeedbackLintResult result = dir == null
+      ? FeedbackLintResult(files: const <String>[], pending: 0, closed: 0)
+      : linter.lintLibrary(Directory(dir));
   if (args['include-inbox'] as bool) {
     final inbox = inboxFile(root);
     if (inbox.existsSync()) paths.add(inbox.path);
@@ -184,12 +216,28 @@ void _lint(ArgResults args, Directory root, bool asJson) {
     );
   }
 
+  if (result.files.isEmpty) {
+    if (asJson) {
+      print(
+        jsonEncode(<String, Object?>{
+          'schema': 'w_tools_cli.feedback/1',
+          'ok': true,
+          'skipped': true,
+          'reason': 'no_ledger',
+          ...channel.toJson(),
+          ...result.toJson(),
+        }),
+      );
+      return;
+    }
+    print('跳过：本机没有可校验的反馈文件（没有 w_tools 台账，也没有旧收件箱）。');
+    print('台账只存在于 w_tools 仓库检出；消费方默认不写台账，这里没有可校验的内容即正常。');
+    return;
+  }
+
   if (asJson) {
     print(jsonEncode(result.toJson()));
   } else {
-    if (result.files.isEmpty) {
-      print('没有可校验的反馈文件（库侧未检出，也没有收件箱）');
-    }
     for (final i in result.issues) {
       stderr.writeln('✗ $i');
     }
@@ -219,35 +267,31 @@ void _submit(ArgResults args, Directory root, bool asJson) {
   }
 
   final explicitIssue = (args['issue'] as bool) || (args['gh'] as bool);
-  final modes = [explicitIssue, args['ledger']].where((v) => v == true).length;
-  if (modes > 1) {
+  final explicitLedger = args['ledger'] as bool;
+  if (explicitIssue && explicitLedger) {
     _usageError('--issue / --ledger 只能选一个');
   }
 
-  DoctorConfig config;
-  try {
-    config = ProjectFiles.loadConfig(root);
-  } on ProjectLoadException catch (e) {
-    _usageError(e.message);
+  final channel = _channel(root);
+  // 开关是硬门禁：消费方未开启时 --issue 也不放行，否则「默认关闭」名存实亡。
+  if (explicitIssue && !channel.enabled && !channel.isWtoolsRepo) {
+    _usageError(
+      'feedback.enabled=false：反馈通道未开启，--issue 不会绕过开关。'
+      '在 .w_tools_doctor.yaml 写 feedback.enabled: true 后重试；'
+      '只想写本地台账用 --ledger（需本机 w_tools 仓库检出）',
+    );
   }
-  final repo = isWtoolsRepo(root);
-  final wantLedger = (args['ledger'] as bool) || (!explicitIssue && repo);
-  final wantIssue = explicitIssue || (!(args['ledger'] as bool) && !repo && config.feedbackIssue);
+  if (explicitLedger && !channel.hasLedger) {
+    _usageError('--ledger 需要本机 w_tools 仓库检出（pubspec name=w_tools + packages/cli + docs/feedback）');
+  }
+
+  _warnInvalidOverride(channel);
+  final wantLedger = explicitLedger || (!explicitIssue && channel.mode == FeedbackMode.ledger);
+  final wantIssue = !wantLedger && (explicitIssue || channel.mode == FeedbackMode.issue);
 
   if (!wantLedger && !wantIssue) {
-    if (asJson) {
-      print(
-        jsonEncode({
-          'package': name,
-          'mode': 'skipped',
-          'reason': 'no_channel',
-        }),
-      );
-    } else {
-      print('反馈未提交：当前不是 w_tools 仓库，且 feedback.issue=false。');
-      print('在 w_tools 仓库内用 --ledger；或项目开启 feedback.issue: true 后重试。');
-    }
-    return;
+    _skipped(name, root, channel, asJson);
+    throw const CliExit(4);
   }
 
   final linkedRaw = (args['linked-issue'] as String?)?.trim();
@@ -298,9 +342,10 @@ void _submit(ArgResults args, Directory root, bool asJson) {
   }
 
   if (wantLedger) {
+    final repoRoot = channel.repoRoot!;
     try {
       final result = addToLedger(
-        root,
+        Directory(repoRoot),
         draft,
         linkedIssue: linkedIssue,
         allowDuplicate: args['allow-duplicate'] as bool,
@@ -310,12 +355,16 @@ void _submit(ArgResults args, Directory root, bool asJson) {
           jsonEncode({
             ...draft.toJson(),
             'mode': 'ledger',
+            'repoRoot': repoRoot,
             'ledgerPath': result.file.path,
             'pending': result.pending,
           }),
         );
       } else {
         print('已写入库侧台账：${result.file.path}（待处理 ${result.pending} 条）');
+        if (p.normalize(repoRoot) != p.normalize(root.path)) {
+          print('本机 w_tools 检出：$repoRoot（没有建 Issue）');
+        }
       }
     } on FeedbackLedgerException catch (e) {
       stderr.writeln(e.message);
@@ -324,6 +373,9 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     return;
   }
 
+  if (channel.hasLedger) {
+    stderr.writeln('# 本机有 w_tools 台账（${channel.ledgerDir}）；本次按 --issue 建公开 Issue');
+  }
   try {
     final url = createGitHubIssue(draft, repo: args['repo'] as String);
     if (asJson) {
@@ -337,6 +389,40 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     stderr.writeln(e.message);
     throw CliExit(1);
   }
+}
+
+/// `feedback.ledger` 配了但不指向 w_tools 仓库：提醒一次，别让它静默失效。
+void _warnInvalidOverride(FeedbackChannel channel) {
+  final invalid = channel.ledgerOverrideInvalid;
+  if (invalid == null) return;
+  stderr.writeln(
+    '# feedback.ledger 不是 w_tools 仓库检出（需要 pubspec name=w_tools + packages/cli + docs/feedback）：'
+    '$invalid；已忽略',
+  );
+}
+
+/// 没有可用通道：明确说明「什么都没写」，并用 exit 4 让 AI / CI 无法把它当成功。
+void _skipped(String name, Directory root, FeedbackChannel channel, bool asJson) {
+  final localLedger = channel.ledgerDir;
+  if (asJson) {
+    print(
+      jsonEncode(<String, Object?>{
+        'package': name,
+        'mode': 'skipped',
+        'reason': 'disabled',
+        'exitCode': 4,
+        ...channel.toJson(),
+        'localLedger': localLedger,
+      }),
+    );
+    return;
+  }
+  print('反馈未提交（exit 4）：当前项目没有开启反馈通道，什么都没有写。');
+  print('项目：${root.path}');
+  print(
+    localLedger == null ? '本机 w_tools 台账：无' : '本机 w_tools 台账：$localLedger（可用 --ledger 直接写）',
+  );
+  print('开启：.w_tools_doctor.yaml → feedback.enabled: true（开启后本地台账优先，其次 GitHub Issue）');
 }
 
 /// 外部工具不可用：统一退出码 3（与 README / cli.dart 的约定一致）。
@@ -356,35 +442,33 @@ Never _externalError(String message) {
 }
 
 void _status(Directory root, bool asJson) {
-  DoctorConfig config;
-  try {
-    config = ProjectFiles.loadConfig(root);
-  } on ProjectLoadException catch (e) {
-    _usageError(e.message);
-  }
-  final repo = isWtoolsRepo(root);
-  final channel = repo ? 'ledger' : (config.feedbackIssue ? 'issue' : 'disabled');
+  final channel = _channel(root);
+  final gh = channel.mode == FeedbackMode.issue ? GhStatus.probe() : null;
   if (asJson) {
     print(
-      jsonEncode({
+      jsonEncode(<String, Object?>{
         'schema': 'w_tools_cli.feedback/1',
         'schemaVersion': 1,
-        'channel': channel,
-        'isWtoolsRepo': repo,
-        'feedbackIssue': config.feedbackIssue,
-        'ledger': repo ? '${root.path}/docs/feedback' : null,
+        ...channel.toJson(),
+        'gh': gh?.toJson(),
       }),
     );
     return;
   }
-  switch (channel) {
-    case 'ledger':
-      print('反馈通道：ledger（${root.path}/docs/feedback）');
-    case 'issue':
-      print('反馈通道：issue（feedback.issue=true；需要 gh 登录/令牌）');
-    default:
-      print('反馈通道：disabled（默认不提交）');
-      print('w_tools 仓库内自动用 ledger；消费方在 .w_tools_doctor.yaml 设置 feedback.issue: true');
+  _warnInvalidOverride(channel);
+  switch (channel.mode) {
+    case FeedbackMode.ledger:
+      final where = channel.isWtoolsRepo ? '本仓库' : '本机 w_tools 检出';
+      print('反馈通道：ledger（${channel.ledgerDir}；$where）');
+    case FeedbackMode.issue:
+      final ghText = gh?.ready == true ? 'gh 已就绪' : 'gh 不可用（未安装 / 未登录）→ 提交会退出 3';
+      print('反馈通道：issue（feedback.enabled=true；$ghText）');
+    case FeedbackMode.disabled:
+      print('反馈通道：disabled（默认不提交；跳过时 exit 4，不写文件）');
+      if (channel.ledgerDir != null) {
+        print('本机 w_tools 台账：${channel.ledgerDir}（不自动写；--ledger 可显式写）');
+      }
+      print('开启：.w_tools_doctor.yaml → feedback.enabled: true');
   }
 }
 
@@ -397,7 +481,13 @@ void _search(ArgResults args, Directory root, bool asJson) {
     _usageError('未知反馈包：$package（可选：${feedbackPackages.join(', ')}）');
   }
 
-  final local = searchLocal(root, package: package, query: query);
+  final channel = _channel(root);
+  final local = searchLocal(
+    root,
+    package: package,
+    query: query,
+    ledgerDir: channel.ledgerDir,
+  );
   final github = <Map<String, Object?>>[];
   if (args['gh'] as bool) {
     try {
@@ -421,6 +511,9 @@ void _search(ArgResults args, Directory root, bool asJson) {
       }),
     );
   } else {
+    if (channel.ledgerDir == null) {
+      print('本机没有 w_tools 台账：本地查重不可用，加 --gh 搜 GitHub issues。');
+    }
     if (local.isEmpty && github.isEmpty) {
       print('没有找到相关反馈。');
     }

@@ -8,18 +8,22 @@ Only when `.w_tools_doctor.yaml` contains:
 
 ```yaml
 feedback:
-  issue: true
+  enabled: true
 ```
 
-may you create a GitHub Issue. Without it (or false) → **do nothing**: no local file, no link.
+may you submit (the legacy key `issue: true` still works). Without it (or false) → **do nothing**:
+no local file, no link, no Issue; do not try `--issue` to get around it — it fails with exit 2.
 
-### When enabled
+### When enabled: the local ledger wins
 
 1. **Search**
 
    ```bash
    dart run w_tools_cli:w_tools feedback search "<keywords>" --package=<package>
    ```
+
+   Searches the local ledger when this machine has one; add `--gh` to search GitHub
+   issues when it does not (exits 3 if `gh` is missing or logged out).
 
 2. **Write the body** (fields are validated; run
    `dart run w_tools_cli:w_tools feedback submit --template` to print the skeleton)
@@ -37,19 +41,27 @@ may you create a GitHub Issue. Without it (or false) → **do nothing**: no loca
 
    Save it as `/tmp/w_tools_feedback.md`.
 
-3. **Submit** (`--issue` explicitly overrides the config)
+3. **Submit** (default route: local ledger → Issue)
 
    ```bash
    dart run w_tools_cli:w_tools feedback submit \
-     --package=<package> --title="<one-line symptom>" --body-file=/tmp/w_tools_feedback.md --issue
+     --package=<package> --title="<one-line symptom>" --body-file=/tmp/w_tools_feedback.md
    ```
 
-   - Requires `gh` installed; gh reads `GH_TOKEN` / `GITHUB_TOKEN` or uses `gh auth login`;
-   - Prints the issue URL on success; fails loudly otherwise (no manual-link fallback).
+   - A w_tools checkout on this machine (path / git dependency) → appends to **its** `docs/feedback/`;
+     no Issue is created;
+   - Checkout somewhere else that the dependency does not resolve → add
+     `feedback.ledger: <path>` (relative to the project root, or absolute);
+   - No local checkout → creates a GitHub Issue (requires `gh`; it reads `GH_TOKEN` /
+     `GITHUB_TOKEN`, or use `gh auth login`);
+   - Neither → skipped with **exit 4**, nothing is written;
+   - Use `--issue` only when you have a local ledger but really want a public issue;
+     `--ledger` forces the local ledger.
 
 ### Boundaries
 
 - At most 3–5 entries per session, only what **actually blocked you**;
 - Status is only `pending`; **never mark it fixed yourself**;
+- Issues are public: no secrets, tokens or business-sensitive data; redact logs first;
 - Do not put feedback in business code or `.w_tools/`;
 - Maintainers triage into `w_tools/docs/feedback/<package>.md`.

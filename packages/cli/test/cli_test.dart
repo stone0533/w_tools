@@ -838,7 +838,7 @@ banned:
       '--body-file',
       body.path,
     ]);
-    expect(r.exitCode, 0);
+    expect(r.exitCode, 4);
     expect('${r.stdout}', contains('反馈未提交'));
     expect(File(p.join(root.path, 'docs', 'agents', 'feedback.md')).existsSync(), isFalse);
     expect(File(p.join(root.path, 'docs', 'feedback')).existsSync(), isFalse);
@@ -943,7 +943,7 @@ banned:
       '--body-file',
       body.path,
     ]);
-    expect(r.exitCode, 0);
+    expect(r.exitCode, 4);
     expect('${r.stdout}', contains('反馈未提交'));
     expect(File(p.join(root.path, 'docs', 'feedback', 'ui.md')).existsSync(), isFalse);
   });
@@ -1056,6 +1056,16 @@ banned:
 
   test('CLI-002 / CLI-009 无 gh 时 feedback --issue 退出 3 且不抛栈', () async {
     final root = _project();
+    // 消费方 + 没有本地仓库 + 已开启反馈 → Issue 通道，才会去调 gh。
+    final cache = Directory(p.join(root.path, 'pubcache', 'w_tools_cli'))
+      ..createSync(recursive: true);
+    File(p.join(cache.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools_cli\n');
+    File(p.join(root.path, '.dart_tool', 'package_config.json'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+        '{"configVersion":2,"packages":[{"name":"w_tools_cli","rootUri":"${cache.path}"}]}',
+      );
+    File(tmpConfig(root)).writeAsStringSync('feedback:\n  enabled: true\n');
     final body = File(p.join(root.path, 'body.md'))
       ..writeAsStringSync('''
 - 包/版本：ui 1.0.0

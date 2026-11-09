@@ -113,6 +113,7 @@ const String aiPrompts = r'''
 | `<新版本>` | 目标子包版本 | `w_tools_ui 8.0.0` |
 | `<核心流程>` | 要跑通的用户路径 | 登录 → 下单 → 返回 |
 | `<现象>` | 看到的症状 | 键盘弹出后输入框被挡 |
+| `<包>` | 子包名（`ui` / `w_tools_ui` 都行） | `ui` |
 
 `w_tools_cli` 的版本是**生成器版本**，不是子包版本；升级场景按子包分别填。
 标题里带 `X-n` 的是场景编号：字母是任务族，数字是族内工序，按顺序贴。
@@ -170,6 +171,7 @@ const String aiPrompts = r'''
 | 补黑盒测试 | I-1 |
 | 只审查 AI 改动 | J-1 |
 | AI 读不到仓库 / 不能跑命令 | K-1 |
+| 被 w_tools 卡住 / 有改进建议 | L-1 |
 
 ### 从现象反查
 
@@ -184,6 +186,7 @@ const String aiPrompts = r'''
 <!-- @endif -->
 | 键盘弹出字段被挡 / overflow | G-1 |
 | AI 说改了，但拿不出 analyze 输出 | J-1 或 K-1 |
+| 用 w_tools 时被卡住，想记一条反馈 | L-1 |
 | 不确定用哪段 | 上面「让 AI 帮你选场景」 |
 
 ---
@@ -537,6 +540,44 @@ const String aiPrompts = r'''
 
 ---
 
+## L. 反馈给 w_tools
+
+### L-1. 记一条反馈
+
+```text
+任务：把这次用 w_tools 被卡住的问题（或改进建议）记成一条反馈。
+
+先跑 `dart run w_tools_cli:w_tools feedback status --json`，看返回的 channel：
+- disabled → 停止：只告诉我「项目没开启反馈通道」和开启方法，不要提交，也不要加 --issue；
+- ledger / issue → 继续。
+
+然后：
+1. 查重：`dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>`
+   命中相同问题就把文件行号或 issue 编号给我，不要重复提交；
+2. 按固定字段写正文（缺字段会被拒绝），先把草稿给我看：
+   - 包/版本：<包> 的当前版本，以 pubspec.lock 为准
+   - 环境：Flutter / Dart / 平台 / 设备
+   - 命令 / 输入：触发的代码、命令或操作
+   - 期望：应该怎样
+   - 实际：实际怎样，报错贴原文
+   - 影响：因此卡了多久 / 做错了什么；没有就写「无」
+   - 建议：希望怎么改
+   - 复现数据：最小 demo / 日志片段，先脱敏
+   保存到 /tmp/w_tools_feedback.md；
+3. 提交：`dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" --body-file=/tmp/w_tools_feedback.md`
+   默认路由：本机有 w_tools 仓库就写它的 docs/feedback/；没有才建 Issue；都没有则 exit 4（什么都没写）。
+
+不要：
+- 不要加 --issue（除非我明确说要公开提 issue）；
+- 不要贴密钥 / token / 业务敏感数据；
+- 一次会话最多 3–5 条，只记真正卡住的；
+- 状态只写「待处理」，不要自己标「已修复」。
+
+输出：提交结果（台账路径或 issue URL）+ 20 字以内的现象摘要；被拒绝时原样贴错误。
+```
+
+---
+
 ## 2. 输出不对时，加一句话就够
 
 不要重写整段提示词，按症状追加一句：
@@ -729,6 +770,7 @@ Fixed-prefix exceptions: scenario selection reads only §1; K-1 does not paste t
 | `<newversion>` | target sub-package version | `w_tools_ui 8.0.0` |
 | `<flow>` | user path that must work | login -> order -> back |
 | `<symptom>` | what you observe | input hidden by keyboard |
+| `<package>` | sub-package name (`ui` or `w_tools_ui`) | `ui` |
 
 The `w_tools_cli` version is the **generator version**, not a sub-package version; fill upgrade prompts per package.
 Headings carrying `X-n` are scenario IDs: the letter is a task family, the number is a step
@@ -788,6 +830,7 @@ and **it says what to deliver**.
 | Add black-box tests | I-1 |
 | Review AI changes only | J-1 |
 | AI cannot read the repo / run commands | K-1 |
+| Blocked by w_tools / has a suggestion | L-1 |
 
 ### Reverse lookup by symptom
 
@@ -802,6 +845,7 @@ and **it says what to deliver**.
 <!-- @endif -->
 | Field hidden by keyboard / overflow | G-1 |
 | AI says it changed things but shows no analyze output | J-1 or K-1 |
+| Blocked by w_tools and want to file feedback | L-1 |
 | Not sure which block to use | "Let the AI pick a scenario" above |
 
 ---
@@ -1155,6 +1199,47 @@ I provide:
 
 ---
 
+## L. Feedback to w_tools
+
+### L-1. File one feedback entry
+
+```text
+Task: record what blocked you in w_tools (or a capability suggestion) as one feedback entry.
+
+Run `dart run w_tools_cli:w_tools feedback status --json` first and read channel:
+- disabled -> stop: only tell me "the project has not enabled feedback" and how to enable it;
+  do not submit, and do not pass --issue;
+- ledger / issue -> continue.
+
+Then:
+1. Search first: `dart run w_tools_cli:w_tools feedback search "<keyword>" --package=<package>`
+   If the same problem exists, give me the file:line or issue number; do not submit a duplicate;
+2. Write the body with the fixed fields (missing fields are rejected); show me the draft first:
+   - package/version: current version of <package> from pubspec.lock
+   - environment: Flutter / Dart / platform / device
+   - command / input: the code, command or action that triggers it
+   - expected: what should happen
+   - actual: what happens; paste the error verbatim
+   - impact: time lost / what it broke; write "none" if not applicable
+   - suggestion: what you want changed
+   - repro data: minimal demo / log excerpt, redacted first
+   Save it as /tmp/w_tools_feedback.md;
+3. Submit: `dart run w_tools_cli:w_tools feedback submit --package=<package> --title="<symptom>" --body-file=/tmp/w_tools_feedback.md`
+   Default route: a local w_tools checkout -> its docs/feedback/; otherwise a GitHub Issue;
+   neither -> exit 4 and nothing is written.
+
+Do not:
+- add --issue unless I explicitly ask for a public issue;
+- paste secrets, tokens or business-sensitive data;
+- exceed 3-5 entries per session, and only what actually blocked you;
+- write any status other than "pending".
+
+Output: the result (ledger path or issue URL) + a symptom summary under 20 words;
+if rejected, paste the error verbatim.
+```
+
+---
+
 ## 2. When the output is wrong, one sentence is enough
 
 Do not rewrite the whole prompt; append one line matching the symptom:
@@ -1382,18 +1467,22 @@ const String agentsFeedback = r'''
 
 ```yaml
 feedback:
-  issue: true
+  enabled: true
 ```
 
-才允许创建 GitHub Issue。没有这个配置（或为 false）→ **什么都不做**，不要写本地文件、不要打开链接。
+才允许提交（旧键 `issue: true` 仍兼容）。没有这段配置（或为 false）→ **什么都不做**：
+不写文件、不生成链接、不建 Issue；也不要加 `--issue` 试图绕过 —— 未开启时它会直接报错（exit 2）。
 
-### 已开启时
+### 已开启时：本地台账优先
 
 1. **查重**
 
    ```bash
    dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>
    ```
+
+   本机有 w_tools 台账就搜台账；没有台账时加 `--gh` 搜 GitHub issues
+   （`gh` 未安装 / 未登录会退出 3）。
 
 2. **写正文**（字段固定，缺字段会被拒绝；可先运行
    `dart run w_tools_cli:w_tools feedback submit --template` 打印骨架）
@@ -1411,20 +1500,24 @@ feedback:
 
    保存为 `/tmp/w_tools_feedback.md`。
 
-3. **提交**（`--issue` 可显式覆盖配置）
+3. **提交（默认路由：本地台账 → Issue）**
 
    ```bash
    dart run w_tools_cli:w_tools feedback submit \
-     --package=<包> --title="<一句话现象>" --body-file=/tmp/w_tools_feedback.md --issue
+     --package=<包> --title="<一句话现象>" --body-file=/tmp/w_tools_feedback.md
    ```
 
-   - 需要已安装 `gh`；gh 会读取 `GH_TOKEN` / `GITHUB_TOKEN`，或使用 `gh auth login`；
-   - 提交成功会输出 issue URL；失败会明确报错，不生成人工链接。
+   - 本机有 w_tools 仓库检出（path / git 依赖）→ 写进该仓库 `docs/feedback/`，**不会建 Issue**；
+   - 仓库 clone 在别处、依赖里解析不到 → 让项目加 `feedback.ledger: <仓库路径>`（相对项目根或绝对路径）；
+   - 本机没有 w_tools 仓库 → 建 GitHub Issue（需已安装 `gh`；gh 读取 `GH_TOKEN` / `GITHUB_TOKEN`，或用 `gh auth login`）；
+   - 两条都不成立 → 跳过并 **exit 4**，什么都没写；
+   - 本机有台账、又确实要公开提 issue 时才加 `--issue`；`--ledger` 强制只写本地台账。
 
 ### 边界
 
 - 一次会话最多 3–5 条，只记**真正卡住你**的；
 - 状态只写 `待处理`，**不要自己标「已修复」**；
+- Issue 是公开的：不要贴密钥 / token / 业务敏感数据，日志先脱敏；
 - 不要把反馈写进业务代码或 `.w_tools/`；
 - 维护者 triage 后才进入 `w_tools/docs/feedback/<包>.md`。
 ''';
@@ -1446,8 +1539,8 @@ const String agentsClosing = r'''
 
 - `dart run w_tools_cli:w_tools doctor --format=json` → 0 error（warning 看情况）
 - `flutter analyze`、`flutter test`
-- 本次用过 `w_tools_*` 且被卡住？→ 先看 `.w_tools_doctor.yaml` 的 `feedback.issue`；
-  未开启就跳过（这是默认）；开启后按「使用反馈」search → submit。
+- 本次用过 `w_tools_*` 且被卡住？→ 先看 `.w_tools_doctor.yaml` 的 `feedback.enabled`；
+  未开启就跳过（这是默认，`submit` 会 exit 4 且什么都不写）；开启后按「使用反馈」search → submit。
 <!-- w_tools:end -->
 ''';
 
@@ -1733,18 +1826,22 @@ Only when `.w_tools_doctor.yaml` contains:
 
 ```yaml
 feedback:
-  issue: true
+  enabled: true
 ```
 
-may you create a GitHub Issue. Without it (or false) → **do nothing**: no local file, no link.
+may you submit (the legacy key `issue: true` still works). Without it (or false) → **do nothing**:
+no local file, no link, no Issue; do not try `--issue` to get around it — it fails with exit 2.
 
-### When enabled
+### When enabled: the local ledger wins
 
 1. **Search**
 
    ```bash
    dart run w_tools_cli:w_tools feedback search "<keywords>" --package=<package>
    ```
+
+   Searches the local ledger when this machine has one; add `--gh` to search GitHub
+   issues when it does not (exits 3 if `gh` is missing or logged out).
 
 2. **Write the body** (fields are validated; run
    `dart run w_tools_cli:w_tools feedback submit --template` to print the skeleton)
@@ -1762,20 +1859,28 @@ may you create a GitHub Issue. Without it (or false) → **do nothing**: no loca
 
    Save it as `/tmp/w_tools_feedback.md`.
 
-3. **Submit** (`--issue` explicitly overrides the config)
+3. **Submit** (default route: local ledger → Issue)
 
    ```bash
    dart run w_tools_cli:w_tools feedback submit \
-     --package=<package> --title="<one-line symptom>" --body-file=/tmp/w_tools_feedback.md --issue
+     --package=<package> --title="<one-line symptom>" --body-file=/tmp/w_tools_feedback.md
    ```
 
-   - Requires `gh` installed; gh reads `GH_TOKEN` / `GITHUB_TOKEN` or uses `gh auth login`;
-   - Prints the issue URL on success; fails loudly otherwise (no manual-link fallback).
+   - A w_tools checkout on this machine (path / git dependency) → appends to **its** `docs/feedback/`;
+     no Issue is created;
+   - Checkout somewhere else that the dependency does not resolve → add
+     `feedback.ledger: <path>` (relative to the project root, or absolute);
+   - No local checkout → creates a GitHub Issue (requires `gh`; it reads `GH_TOKEN` /
+     `GITHUB_TOKEN`, or use `gh auth login`);
+   - Neither → skipped with **exit 4**, nothing is written;
+   - Use `--issue` only when you have a local ledger but really want a public issue;
+     `--ledger` forces the local ledger.
 
 ### Boundaries
 
 - At most 3–5 entries per session, only what **actually blocked you**;
 - Status is only `pending`; **never mark it fixed yourself**;
+- Issues are public: no secrets, tokens or business-sensitive data; redact logs first;
 - Do not put feedback in business code or `.w_tools/`;
 - Maintainers triage into `w_tools/docs/feedback/<package>.md`.
 ''';
@@ -1797,8 +1902,8 @@ const String agentsClosingEn = r'''
 
 - `dart run w_tools_cli:w_tools doctor --format=json` → 0 error (warnings are contextual)
 - `flutter analyze`, `flutter test`
-- Used `w_tools_*` and got blocked? → check `feedback.issue` in `.w_tools_doctor.yaml`;
-  if off, skip (default); if on, follow "Usage feedback" (search → submit).
+- Used `w_tools_*` and got blocked? → check `feedback.enabled` in `.w_tools_doctor.yaml`;
+  if off, skip (default; `submit` exits 4 and writes nothing); if on, follow "Usage feedback" (search → submit).
 <!-- w_tools:end -->
 ''';
 

@@ -14,6 +14,6 @@
 
 - `dart run w_tools_cli:w_tools doctor --format=json` → 0 error (warnings are contextual)
 - `flutter analyze`, `flutter test`
-- Used `w_tools_*` and got blocked? → check `feedback.issue` in `.w_tools_doctor.yaml`;
-  if off, skip (default); if on, follow "Usage feedback" (search → submit).
+- Used `w_tools_*` and got blocked? → check `feedback.enabled` in `.w_tools_doctor.yaml`;
+  if off, skip (default; `submit` exits 4 and writes nothing); if on, follow "Usage feedback" (search → submit).
 <!-- w_tools:end -->

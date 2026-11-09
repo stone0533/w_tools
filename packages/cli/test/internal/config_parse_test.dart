@@ -27,10 +27,32 @@ void main() {
     expect(DoctorConfig.parse('rules:\n  R1: false\n').enabledRules, isNot(contains('R1')));
   });
 
-  test('feedback.issue 默认 false，可显式开启', () {
-    expect(DoctorConfig().feedbackIssue, isFalse);
-    expect(DoctorConfig.parse('feedback:\n  issue: true\n').feedbackIssue, isTrue);
-    expect(DoctorConfig.parse('feedback:\n  issue: false\n').feedbackIssue, isFalse);
+  test('feedback.enabled 默认 false；旧键 feedback.issue 仍兼容', () {
+    expect(DoctorConfig().feedbackEnabled, isFalse);
+    expect(DoctorConfig.parse('feedback:\n  enabled: true\n').feedbackEnabled, isTrue);
+    expect(DoctorConfig.parse('feedback:\n  enabled: false\n').feedbackEnabled, isFalse);
+    // 1.17 之前的写法：等价处理，不让老项目失效
+    expect(DoctorConfig.parse('feedback:\n  issue: true\n').feedbackEnabled, isTrue);
+    expect(DoctorConfig.parse('feedback:\n  issue: false\n').feedbackEnabled, isFalse);
+    // 两个键同时出现时 enabled 优先
+    expect(
+      DoctorConfig.parse('feedback:\n  enabled: false\n  issue: true\n').feedbackEnabled,
+      isFalse,
+    );
+  });
+
+  test('feedback.ledger 解析为路径（空串 / 非字符串忽略）', () {
+    expect(DoctorConfig().feedbackLedger, isNull);
+    expect(
+      DoctorConfig.parse('feedback:\n  ledger: ../w_tools\n').feedbackLedger,
+      '../w_tools',
+    );
+    expect(
+      DoctorConfig.parse('feedback:\n  ledger: /opt/w_tools\n').feedbackLedger,
+      '/opt/w_tools',
+    );
+    expect(DoctorConfig.parse('feedback:\n  ledger: "  "\n').feedbackLedger, isNull);
+    expect(DoctorConfig.parse('feedback:\n  ledger: 42\n').feedbackLedger, isNull);
   });
 
   test('ignore 解析为列表', () {

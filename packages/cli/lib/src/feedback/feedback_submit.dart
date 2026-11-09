@@ -88,13 +88,30 @@ class FeedbackDraft {
   /// 缺失的必填字段（空表示可提交）。
   List<String> get missingFields => missingFeedbackFields(body);
 
+  /// 建 GitHub Issue 用的正文。
+  ///
+  /// [body] 是台账格式（`### [待处理] …` + `- 状态变更：…`），这两样只有台账需要；
+  /// Issue 里直接给原始字段，避免把台账元数据当正文。
+  String get issueBody => _stripLedgerMeta(body);
+
+  static String _stripLedgerMeta(String body) {
+    final lines = body.trim().split('\n');
+    final kept = <String>[];
+    for (var i = 0; i < lines.length; i++) {
+      if (i == 0 && lines[i].trimLeft().startsWith('### [')) continue;
+      if (RegExp(r'^\s*-\s*状态变更\s*[：:]').hasMatch(lines[i])) continue;
+      kept.add(lines[i]);
+    }
+    return kept.join('\n').trim();
+  }
+
   /// GitHub issue 标题。
   String get issueTitle => '[feedback][$package] $title';
 
   /// 预填 GitHub 新建 issue 的链接（不自动提交）。
   Uri get issueUrl => Uri.https('github.com', '/stone0533/w_tools/issues/new', {
     'title': issueTitle,
-    'body': body,
+    'body': issueBody,
     'labels': 'needs-triage',
   });
 
@@ -148,7 +165,7 @@ Uri createGitHubIssue(
       'w_tools_feedback_${DateTime.now().microsecondsSinceEpoch}.md',
     ),
   );
-  temp.writeAsStringSync(draft.body);
+  temp.writeAsStringSync(draft.issueBody);
   try {
     final result = Process.runSync('gh', <String>[
       'issue',
@@ -192,17 +209,21 @@ class FeedbackMatch {
   };
 }
 
-/// 在库侧台账 + 消费方收件箱里做简单子串查重。
+/// 在库侧台账（[ledgerDir]，默认项目根下的 `docs/feedback`）+ 旧收件箱里做子串查重。
+///
+/// 消费方的台账可能不在项目根（path 依赖时在 w_tools 仓库里），所以由调用方传
+/// 解析后的 [ledgerDir]。
 List<FeedbackMatch> searchLocal(
   Directory projectRoot, {
   String? package,
   required String query,
+  String? ledgerDir,
 }) {
   final files = <File>[];
   final inbox = File(p.join(projectRoot.path, 'docs', 'agents', 'feedback.md'));
   if (inbox.existsSync()) files.add(inbox);
 
-  final ledger = Directory(p.join(projectRoot.path, 'docs', 'feedback'));
+  final ledger = Directory(ledgerDir ?? p.join(projectRoot.path, 'docs', 'feedback'));
   if (ledger.existsSync()) {
     if (package != null) {
       final file = File(p.join(ledger.path, '$package.md'));
