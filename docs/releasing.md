@@ -185,6 +185,33 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 > `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
 > 发布前的门禁是第 4、6 步。
 
+### 一条命令执行已批准的计划（K-3 ~ K-5）
+
+版本 / CHANGELOG 的 K-2 PR 合并后，可以用 `release_wave.py` 执行整波：
+
+```bash
+# 1) 只读计划；审阅包 / 版本 / 顺序 / 阻断
+python3 scripts/release_wave.py plan --all --out .w_tools/release-plan.json
+
+# 2) 预演（只跑 release_check + publish --dry-run，不发布）
+python3 scripts/release_wave.py run --plan .w_tools/release-plan.json --dry-run
+
+# 3) 正式执行（不可逆；需要 --yes）
+python3 scripts/release_wave.py run --plan .w_tools/release-plan.json --yes
+
+# 4) 失败后继续；已发布的包不会重发
+python3 scripts/release_wave.py run --resume --yes
+python3 scripts/release_wave.py status
+```
+
+它逐包调用现有的 `publish_package.sh`（保留干净工作区 / main / `release_check --strict` /
+快照基线保护），然后自动 `apply_snapshots.sh`、开快照 PR、等 checks、`gh pr merge --merge`、
+`git pull --ff-only`；根包会等子包在 pub.dev 可见后再 dry-run + 发布；最后跑
+`release_status --online --check` 和 `check_publish_drift --check`。
+
+它**不会**改版本 / CHANGELOG、不会 `--force`，也不会替你做 K-2 的 semver 决策。
+state 在 `.w_tools/release-wave-state.json`（gitignored），用于断点续跑。
+
 ### 看版本变更列表
 
 合并方式固定为 Merge commit（见 [CONTRIBUTING §6](../CONTRIBUTING.md#6-git--pr-流程)），

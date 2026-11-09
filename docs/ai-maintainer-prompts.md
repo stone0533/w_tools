@@ -872,26 +872,31 @@ J-5 多包/家族
 
 > 本节是给 AI 的**任务卡与边界**：只写「读哪节 / 跑哪几条 / 输出什么 / 禁止什么」。
 > 命令细节、发布顺序与常见坑以 [`docs/releasing.md`](releasing.md) 为准（冲突时以它为准）。
-> 不要用一条“帮我发布”的提示词完成全部步骤。
+> 不要用一条“帮我发布”的无计划提示词；用 `plan` 生成计划，确认后再用 `run --plan ... --yes`。
 
 ### K-0. 发布波次总控（多包）
 
 单包按 K-1 → K-2 → K-3 → K-4 → K-5。同一波多个包按下面顺序，每步都有产物：
 
-> K-0 的审计/排序可以先跑一条只读命令：
-> `python3 scripts/release_wave.py plan --all`（`--json` 给 AI，`--check` 有阻断退出 1）。
-> 它不发布、不改文件；只给出版本、顺序、根包快照依赖与阻断项。需要逐包细节时再走 K-1。
+> K-0 的审计/排序先跑只读计划：
+> `python3 scripts/release_wave.py plan --all --out .w_tools/release-plan.json`
+> （`--json` 给 AI，`--check` 有阻断退出 1）。它不发布、不改文件；只给出版本、顺序、
+> 根包快照依赖与阻断项。需要逐包细节时再走 K-1。
+>
+> K-2 的版本 PR 合并后，步骤 4~8 可以一条命令执行：
+> `python3 scripts/release_wave.py run --plan .w_tools/release-plan.json --dry-run` 预演；
+> 确认后 `... --yes`。失败用 `... --resume --yes` 继续。它不会决定版本，也不会改 CHANGELOG。
 
 | 步 | 做什么 | 命令 / 门禁 | 产物 |
 |---|---|---|---|
-| 1 | 生成发布计划（只读） | `python3 scripts/release_wave.py plan --all` | 计划表 / JSON（本地 / 线上 / 快照 / 顺序 / 阻断） |
+| 1 | 生成发布计划（只读） | `python3 scripts/release_wave.py plan --all --out .w_tools/release-plan.json` | 计划表 / JSON（本地 / 线上 / 快照 / 顺序 / 阻断） |
 | 2 | 审阅计划、定版本 | 计划输出 + K-1 细节 | 版本提案表 + 发布顺序 |
 | 3 | 版本 / CHANGELOG（一个 PR） | K-2M | 发布准备 PR（已合并） |
-| 4 | 逐包 dry-run | K-3 | 每包 0 warning |
-| 5 | 逐包发布 | K-4，一次一个包 | 每包 publish 成功 |
-| 6 | 快照 | `bash scripts/apply_snapshots.sh` → PR → 按输出 `gh pr checks --required` + `gh pr merge --merge`（仓库未开 auto-merge） | 快照 PR（已合并） |
-| 7 | 根包（需要时） | 快照合入 + `git pull --ff-only` 后走 K-4 的根包段 | 根包发布成功 |
-| 8 | 验证 | K-5（两阶段） | 状态表全绿 |
+| 4 | 逐包 dry-run | K-3，或 `run --dry-run` | 每包 0 warning |
+| 5 | 逐包发布 | K-4，或 `run --yes`（一次一个包） | 每包 publish 成功 |
+| 6 | 快照 | `apply_snapshots.sh` + PR；`run` 会自动做 | 快照 PR（已合并） |
+| 7 | 根包（需要时） | 快照合入 + `git pull --ff-only` 后发布；`run` 会等可见性 | 根包发布成功 |
+| 8 | 验证 | K-5（两阶段）；`run` 会做 `release_status --check` + drift | 状态表全绿 |
 
 工具包（`cli` / `figma` / `device` / `e2e`）独立发版，不阻塞根包。
 
@@ -1051,7 +1056,7 @@ bash scripts/check_pr_ready.sh /tmp/pr.md
 3. 工作区干净、main 且 HEAD == origin/main；
 4. 发布顺序见 docs/releasing.md。
 
-执行（人在终端）：
+执行（人工或 AI；整波推荐 release_wave.py run，单包手动如下）：
 bash scripts/publish_package.sh packages/<pkg>
 
 自动化 / 无 TTY 时加 --yes（只跳过 pub 的 y/N 确认，仍跑完整校验）：
