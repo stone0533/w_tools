@@ -887,6 +887,7 @@ J-5 多包/家族
 > `python3 scripts/release_wave.py run --plan .w_tools/release-plan.json --dry-run` 预演；
 > 确认后 `... --yes`。失败用 `... --resume --yes` 继续。它不会决定版本，也不会改 CHANGELOG；
 > run 要求 plan 已经跑过 drift 核对（`--no-drift` 生成的计划会被拒绝）；发布后只核对本波发布过的包。
+> 不在本波发布的包有同版本 CODE DRIFT 时只进「提醒」，不阻断本波；周检 / 单独 patch 处理。
 
 | 步 | 做什么 | 命令 / 门禁 | 产物 |
 |---|---|---|---|
