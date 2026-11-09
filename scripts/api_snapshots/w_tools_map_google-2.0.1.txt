@@ -1,0 +1,38 @@
+# w_tools_map_google 2.0.1
+WMap	class
+WMap.config	WMapOptions<T>
+WMap.controller	WMapController<T>?
+WMap.createState	State<WMap<T>> ()
+WMap.new	({ super.key, required this.config, required this.zone, this.controller, })
+WMap.zone	WMapZone<T>
+WMapController	class
+WMapController.closeSelection	Future<void> (T item)
+WMapController.isAttached	bool
+WMapController.select	Future<void> (T item)
+WMapIconAssets	class
+WMapIconAssets.preload	static Future<void> (Iterable<String> assets, { double imagePixelRatio = 1.0, })
+WMapOptions	class
+WMapOptions.closeZoom	double
+WMapOptions.new	({ this.selectZoom = 12, this.closeZoom = 11, this.selectLatOffset = 0.0, this.onItemSelected, this.onItemClosed, this.onMapTap, this.padding = EdgeInsets.zero, })
+WMapOptions.onItemClosed	ValueChanged<T>?
+WMapOptions.onItemSelected	ValueChanged<T>?
+WMapOptions.onMapTap	ValueChanged<LatLng>?
+WMapOptions.padding	EdgeInsets
+WMapOptions.selectLatOffset	double
+WMapOptions.selectZoom	double
+WMapZone	class
+WMapZone.cameraPosition	CameraPosition?
+WMapZone.dataUpdatedListenerCount	int
+WMapZone.defaultZoom	double
+WMapZone.googleMapController	GoogleMapController?
+WMapZone.icon	BitmapDescriptor?
+WMapZone.iconAsset	String?
+WMapZone.iconBuilder	BitmapDescriptor Function(T item)?
+WMapZone.imagePixelRatio	double
+WMapZone.initMap	void ()
+WMapZone.initialCamera	CameraPosition?
+WMapZone.mapper	WMapItemMapper<T>
+WMapZone.maps	List<T>?
+WMapZone.markers	Set<Marker>
+WMapZone.new	({ this.googleMapController, this.maps, this.icon, this.iconAsset, this.imagePixelRatio = 1.0, this.iconBuilder, this.defaultZoom = 11, this.initialCamera, WMapItemMapper<T>? mapper, })
+WMapZone.update	void (List<T>? maps)
