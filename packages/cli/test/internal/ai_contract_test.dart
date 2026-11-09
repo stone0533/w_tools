@@ -428,7 +428,7 @@ void main() {
   });
 
   group('DEVICE 教学覆盖', () {
-    test('device 模板包含命令表', () {
+    test('device 模板用一行子命令索引，并指向完整文档', () {
       const commands = <String>[
         'list',
         'boot',
@@ -443,15 +443,17 @@ void main() {
         'verify',
       ];
       for (final template in <String>[templates.agentsDevice, templates.agentsDeviceEn]) {
-        for (final command in commands) {
-          expect(template, contains('device $command'), reason: '模板漏 device $command');
-        }
+        final index =
+            RegExp(r'w_tools_device:device ([a-z|]+)').firstMatch(template)?.group(1)?.split('|') ??
+            <String>[];
+        expect(index, containsAll(commands), reason: '子命令索引漏项：$index');
+        expect(template, contains('docs/agents/device-testing.md'));
       }
     });
   });
 
   group('FIGMA 教学覆盖', () {
-    test('figma 模板包含全部公开命令', () {
+    test('figma 模板只做路由，命令清单以包 README 为唯一来源', () {
       const commands = <String>[
         'init',
         'fetch file',
@@ -471,25 +473,30 @@ void main() {
         'help',
         'version',
       ];
+      final readme = File('../../packages/figma/README.md').readAsStringSync();
       for (final template in <String>[templates.agentsFigma, templates.agentsFigmaEn]) {
-        for (final command in commands) {
-          expect(template, contains('figma $command'), reason: '模板漏 figma $command');
-        }
+        expect(template, contains('w_tools_figma:figma init'));
+        expect(template, contains('w_tools_figma:figma help'));
+        expect(template, contains('packages/figma/README.md'));
+      }
+      for (final command in commands) {
+        expect(readme, contains(command), reason: 'figma README 漏命令 $command');
       }
     });
   });
 
   group('AGENTS 教学契约', () {
-    test('async 模板包含 load 与查询命令', () {
-      expect(templates.agentsAsync, contains('c.load()'));
-      expect(templates.agentsAsync, contains('explain WAsync --format=prompt'));
-      expect(templates.agentsAsyncEn, contains('c.load()'));
+    test('async 模板给出主入口与 explain 查询入口', () {
+      for (final template in <String>[templates.agentsAsync, templates.agentsAsyncEn]) {
+        expect(template, contains('WAsyncController'));
+        expect(template, contains('explain WAsyncPagedController'));
+        expect(template, contains('loadMoreError'));
+      }
     });
 
     test('所有 AGENTS 模板非空且使用统一命令', () {
       final all = <String, String>{
         'base': templates.agentsBase,
-        'feedback': templates.agentsFeedback,
         'closing': templates.agentsClosing,
         'ui': templates.agentsUi,
         'form': templates.agentsForm,

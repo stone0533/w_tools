@@ -41,7 +41,7 @@ w_tools 是 monorepo，子包多、版本独立、API 会演进。
 |---|---|---|---|
 | catalog | **唯一事实源**：组件入口 / 用途 / 最短用法 / 坑 / 关联 | [`packages/cli/catalog/components.yaml`](../packages/cli/catalog/components.yaml) | `list` / `explain` / `components.md` 都从它生成或读取 |
 | explain | **投影**：按需教学 | [`packages/cli/lib/src/explain/render_explain.dart`](../packages/cli/lib/src/explain/render_explain.dart) | 只渲染 catalog 字段 + import / 文档 / example / 包版本，不维护第二份教学内容 |
-| AGENTS | **投影**：入口规则 / 路由 | [`packages/cli/templates/agents/`](../packages/cli/templates/agents/) | `init` 生成消费方摘要；仓库 `AGENTS.md` + `docs/agents/` 是维护者更深一层 |
+| AGENTS | **投影**：入口规则 / 路由 | [`packages/cli/templates/agents/`](../packages/cli/templates/agents/) | `init` 生成消费方四段摘要（怎么用 / 硬规则 / 每包一行 / 完成前）；仓库 `AGENTS.md` + `docs/agents/` 是维护者更深一层 |
 | README / example | **投影**：完整说明与真实场景 | `packages/<pkg>/README.md`、`packages/<pkg>/example/` | 读者按需深入；不是事实源，门禁只校验链接 / 符号 / 安装下界 / 入口名 |
 
 这四层（一个事实源 + 三种投影）都在解决“AI 怎么知道事实”。另有两个人用的入口：消费方 `.w_tools/AI_PROMPTS.md`
@@ -165,6 +165,19 @@ lib/src/catalog/catalog.g.dart
 不要手改这两个生成物。
 
 ### 3.3 改 AGENTS 模板
+
+消费方 AGENTS 是**常驻上下文**（每个 turn 都付 token），所以只收「不查任何东西也必须遵守」的内容：
+
+| 想加的东西 | 该去哪 |
+| --- | --- |
+| 某个组件的用法 / 反例 / 参数形状 | `catalog/components.yaml` 的 `usage` / `pitfalls`（`explain` 的输出） |
+| 某个 API 被删 / 改名 | catalog `pitfalls` + 迁移说明；AGENTS 只在「AI 很可能照旧记忆写」时留一句 |
+| 一整个分支的流程（Figma / 设备 / 反馈 / 场景提示） | `templates/ai/` 或工具 README；AGENTS 只留 1–3 行路由 |
+| 跨组件的项目约定（用哪个入口、生成物别手改） | AGENTS 的「硬规则」或「组件约定」一行 |
+
+判据只有一句：**新规则先问「能不能进 catalog / explain」，能进就不进 AGENTS。**
+`test/internal/templates_fresh_test.dart` 有一组结构预算门禁（行数 / 字符数 / 段落顺序 / zh-en 符号一致），
+防止模板随版本单调膨胀。
 
 ```bash
 cd packages/cli

@@ -1,3 +1,35 @@
+## 1.18.0
+
+### Changed
+- **消费方 AGENTS 片段重做**：`init` 写入 `AGENTS.md` / `CLAUDE.md` / cursor / copilot 的片段从 280 行 / 11.6k 字符
+  降到 72 行 / 4.2k 字符，固定四段：`怎么用 w_tools` → `硬规则` → `组件约定`（每包一行）→ `完成前`。
+- 硬规则上移并带 doctor 规则号（R1 / R2 / R4 / R5 / R9）；R2 的 import 例外（toolkit、`lib/app/ui/`、
+  `lib/app/design_system/`、`test|tool|integration_test` 下的 `w_tools_cli` / `figma` / `device` / `e2e`）
+  从 R2 的同一份常量渲染 —— 此前「业务代码只 import 聚合入口」是绝对值，和 R2 白名单、generated 的 `app_*.dart` 互相矛盾。
+- 每个启用的包只留一行：主入口清单 + 一句话规则 + `explain` 入口；逐 API 细节从 AGENTS 删除
+  （`WImage` 尺寸约束、`WText` variant 顺序、`WNavBar` vsync 等仍在 catalog `pitfalls` / `explain`，不丢事实）。
+- 反馈段 68 行 → 3 行（默认关闭），完整流程指向 `.w_tools/AI_PROMPTS.md` 的 L-1；删除
+  `templates/agents/{zh,en}/feedback.md`。
+- Figma / 设备段改为路由：命令以 `packages/figma/README.md`、`figma --help`、
+  `docs/agents/device-testing.md` 为唯一来源，AGENTS 不再维护第二份命令清单。
+- 删除内联 doctor 规则速查表（`## 检查项`）；规则清单与启用状态由 `doctor --format=json` 提供。
+- `## 完成前` 的 analyze / test 跟随项目类型，纯 Dart 项目不再被要求跑 `flutter`。
+
+### Fixed
+- `## 项目规则` 从标记块内移到**块外**：新建指令文件时追加一次，`init` 不再覆盖项目自己的规则；
+  此前它既是块内生成内容（重跑即丢），又会把所有组件约定吞进自己的标题下。
+- 普通 `init`（不带 `--force`）原地刷新指令文件标记块时，若块内内容与模板不同（手改 / 换 profile），
+  先写 `AGENTS.md.bak` 再覆盖并给 warning（此前静默丢失）；README 的 `--force` 语义同步改成与实现一致。
+- R8 改为按**标记块内容**比对（版本号本身不算漂移）：CLI 升版本但模板没变时不再给所有消费方报 warn；
+  没有 `.w_tools/init.json` 时仍按版本标记比对。`.w_tools/init.json` 新增可选 `figmaInstall`。
+- cursor target 的 `.cursor/rules/w_tools.mdc` 显式写 `alwaysApply: true`：没有它时规则会落到
+  「Agent Requested」，由 agent 自己决定读不读，接入约定等于没生效。
+
+### Tests
+- `templates_fresh_test.dart` 新增结构预算门禁：full ≤ 90 行 / ≤ 6000 字符、minimal ≤ 45 行、段落顺序、
+  反馈 ≤ 4 行、zh/en 组件符号集合一致、项目规则占位必须在块外。
+- R8 新增「版本升了但内容没变 → pass」「块内被手改 → 报内容不同」用例。
+
 ## 1.17.2
 
 ### Fixed

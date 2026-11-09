@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import '../../common/pubspec_lock.dart';
+import '../../init/expected.dart';
 import '../../init/generated_files.dart';
 import '../../init/targets.dart';
 import '../config.dart';
@@ -56,6 +57,8 @@ class R8GeneratedStale {
       toolkitEntry: config.toolkitEntry,
       targets: targetFiles.keys,
     );
+    // 有 .w_tools/init.json 才能回放生成内容；老项目 return null → 退回版本比对。
+    final expectedArtifacts = ExpectedArtifacts.render(ctx.root);
     final issues = <DoctorIssue>[];
     var checked = 0;
 
@@ -72,6 +75,26 @@ class R8GeneratedStale {
       }
       checked++;
       final match = _version.firstMatch(content);
+      // 能回放生成内容就比内容：CLI 升版本但模板没变时不该报警。
+      final expected = expectedArtifacts?[rel];
+      if (expected != null) {
+        if (_comparable(content) == _comparable(expected)) continue;
+        issues.add(
+          DoctorIssue(
+            rule: id,
+            level: DoctorLevel.warn,
+            file: rel,
+            message: match == null
+                ? '生成物缺少 w_tools_cli 版本标记'
+                : match.group(1) == installed
+                ? '内容与 w_tools_cli $installed 的模板不同（可能被手改过）'
+                : '由 w_tools_cli ${match.group(1)} 生成，内容与当前安装的 $installed 模板不同',
+            hint: '运行 dart run w_tools_cli:w_tools init --force 刷新生成物（先看 --check-drift 的差异）',
+            fix: DoctorFix.run('dart run w_tools_cli:w_tools init --force'),
+          ),
+        );
+        continue;
+      }
       if (match == null) {
         issues.add(
           DoctorIssue(
@@ -115,5 +138,30 @@ class R8GeneratedStale {
       status: issues.isEmpty ? DoctorRuleStatus.pass : DoctorRuleStatus.fail,
       issues: issues,
     );
+  }
+
+  /// 只比「生成物本体」：标记块内是生成内容，块外是项目自己的东西。
+  /// 没有标记块（AI_PROMPTS）时比整份文件。
+  static String _comparable(String text) {
+    final body = _markerBody(text) ?? text.trim();
+    // 版本号本身不算漂移：模板没变、只是 CLI 打了新版本时不该报警。
+    return body.replaceAllMapped(
+      RegExp(r'(w_tools_cli`?\s*v?)[0-9]+\.[0-9]+\.[0-9]+'),
+      (m) => '${m.group(1)}<version>',
+    );
+  }
+
+  static String? _markerBody(String text) {
+    const begins = <String>['<!-- w_tools:begin -->', '// w_tools:begin'];
+    const ends = <String>['<!-- w_tools:end -->', '// w_tools:end'];
+    for (final begin in begins) {
+      final b = text.indexOf(begin);
+      if (b < 0) continue;
+      for (final end in ends) {
+        final e = text.indexOf(end, b + begin.length);
+        if (e > b) return text.substring(b + begin.length, e).trim();
+      }
+    }
+    return null;
   }
 }

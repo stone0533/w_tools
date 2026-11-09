@@ -1,19 +1,8 @@
-## Hard rules
-
-- Depend on subpackages, never the aggregate `w_tools`.
-- Business code imports only the toolkit entry, never `package:w_tools_*` directly.
-
-## Checks
-
-> R6 must be enabled in `.w_tools_doctor.yaml`; R9 requires `banned`.
-> The project config is the source of truth for activation.
-
-{{doctorRules}}
-
 ## Before done
 
-- `dart run w_tools_cli:w_tools doctor --format=json` → 0 error (warnings are contextual)
-- `flutter analyze`, `flutter test`
-- Used `w_tools_*` and got blocked? → check `feedback.enabled` in `.w_tools_doctor.yaml`;
-  if off, skip (default; `submit` exits 4 and writes nothing); if on, follow "Usage feedback" (search → submit).
+- `dart run w_tools_cli:w_tools doctor --format=json` → 0 error; the rule list and activation state (R1–R9) live there.
+- `{{analyze}}`, `{{test}}`; if you cannot run them, say so — never paste fake output.
+- Used `w_tools_*` and got blocked? Submit only when `.w_tools_doctor.yaml` has `feedback.enabled: true`:
+  `dart run w_tools_cli:w_tools feedback search "<keywords>" --package=<package>` → `feedback submit ...`;
+  when off (the default) skip it — no files, no Issue, no `--issue`. Full flow: `.w_tools/AI_PROMPTS.md` L-1.
 <!-- w_tools:end -->

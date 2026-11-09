@@ -1,3 +1,3 @@
-- **Core utilities**: call `await WStorage.init()` before reads; `WStorage` / `WToken`
-  are plaintext storage. Use `WValidator` for semantic validation and `WRegExp` for pure regex;
-  log through `WLogger`; use `WDebounce` for debounce/throttle.
+- **Core utilities** (`WStorage`: call `await WStorage.init()` before reads; `WValidator` /
+  `WRegExp` / `WLogger` / `WDebounce`): `WStorage` / `WToken` are plaintext storage.
+  Details: `explain WStorage`.

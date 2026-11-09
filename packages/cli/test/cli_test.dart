@@ -211,7 +211,7 @@ banned:
     expect(payload['figma'], isFalse);
     expect(
       File(p.join(root.path, 'AGENTS.md')).readAsStringSync(),
-      isNot(contains('w_tools_figma')),
+      isNot(contains('设计稿取数')),
     );
   });
 

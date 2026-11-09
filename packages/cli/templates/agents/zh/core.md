@@ -1,3 +1,2 @@
-- **基础工具**：`WStorage` 读取前先 `await WStorage.init()`；`WStorage` / `WToken`
-  是明文存储。`WValidator` 做业务语义校验，纯正则用 `WRegExp`；日志用 `WLogger`；
-  防抖 / 节流用 `WDebounce`。
+- **基础工具**（`WStorage` 读前先 `await WStorage.init()`；`WValidator` / `WRegExp` / `WLogger` / `WDebounce`）：
+  `WStorage` / `WToken` 是明文存储。细节：`explain WStorage`。

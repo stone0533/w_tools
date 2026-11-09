@@ -232,7 +232,7 @@ void main() {
       final root = makeProject();
       final report = runInit(root, figma: true);
       final agents = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
-      expect(agents, contains('## Figma → Flutter'));
+      expect(agents, contains('设计稿取数'));
       expect(agents, contains('w_tools_figma'));
       expect(agents, contains('w_tools_figma:figma init'));
       expect(agents, contains('dart pub add dev:w_tools_figma'));
@@ -421,8 +421,8 @@ void main() {
       runInit(noUiRoot, features: InitFeatures.full.copyWith(ui: false), figma: true);
       final noUiAgents = File(p.join(noUiRoot.path, 'AGENTS.md')).readAsStringSync();
       expect(noUiAgents, contains('w_tools_figma'));
-      expect(noUiAgents, isNot(contains('页面骨架用 `AppScaffold`')));
-      expect(noUiAgents, isNot(contains('表单用 `WForm`')));
+      expect(noUiAgents, isNot(contains('AppScaffold')));
+      expect(noUiAgents, contains('WForm'));
 
       final minimalRoot = makeProject();
       runInit(
@@ -700,9 +700,60 @@ void main() {
       );
       runInit(root);
       final content = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
-      expect(content, contains('用 w_tools 的方式'));
+      expect(content, contains('怎么用 w_tools'));
       expect(content, isNot(contains('旧内容')));
       expect(content, endsWith('结尾\n'));
+    });
+
+    test('新建文件时把「项目规则」补在标记块之外，且不会重复插入', () async {
+      final root = makeProject();
+      final report = runInit(root);
+      final first = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      final end = first.indexOf('<!-- w_tools:end -->');
+      final stub = first.indexOf('## 项目规则');
+      expect(report.created, contains('AGENTS.md'));
+      expect(stub, greaterThan(end), reason: '项目规则必须落在标记块之外');
+      expect('## 项目规则'.allMatches(first).length, 1);
+
+      // 项目在块外写自己的规则，重复 init 不会覆盖
+      File(p.join(root.path, 'AGENTS.md')).writeAsStringSync(
+        '${first.trimRight()}\n- 我们的页面都放 lib/pages/\n',
+      );
+      final again = runInit(root);
+      final second = File(p.join(root.path, 'AGENTS.md')).readAsStringSync();
+      expect(second, contains('我们的页面都放 lib/pages/'));
+      expect('## 项目规则'.allMatches(second).length, 1);
+      expect(again.created, isEmpty);
+    });
+
+    test('同一版本下手改标记块：覆盖前先备份并告警', () async {
+      final root = makeProject();
+      runInit(root);
+      final file = File(p.join(root.path, 'AGENTS.md'));
+      final edited = file.readAsStringSync().replaceFirst('## 怎么用 w_tools', '## 手改的标题');
+      file.writeAsStringSync(edited);
+
+      final report = runInit(root);
+      expect(report.warnings.any((w) => w.contains('已备份到')), isTrue);
+      expect(
+        Directory(root.path).listSync().whereType<File>().any(
+          (f) => f.path.contains('AGENTS.md') && f.path.endsWith('.bak'),
+        ),
+        isTrue,
+        reason: '手改内容必须留备份',
+      );
+      expect(file.readAsStringSync(), contains('## 怎么用 w_tools'));
+    });
+
+    test('普通 init 就会刷新标记块（与 toolkit 的 --force 语义不同，需写进 README）', () async {
+      final root = makeProject();
+      runInit(root);
+      final file = File(p.join(root.path, 'AGENTS.md'));
+      file.writeAsStringSync(
+        '# 说明\n<!-- w_tools:begin -->\n旧版块\n<!-- w_tools:end -->\n',
+      );
+      final report = runInit(root);
+      expect(report.created.any((e) => e.contains('已更新标记块')), isTrue);
     });
   });
 
@@ -829,7 +880,9 @@ void main() {
       expect(File(p.join(root.path, 'CLAUDE.md')).existsSync(), isTrue);
       final cursor = File(p.join(root.path, '.cursor/rules/w_tools.mdc'));
       expect(cursor.existsSync(), isTrue);
-      expect(cursor.readAsStringSync(), startsWith('---\ndescription: w_tools conventions'));
+      final cursorText = cursor.readAsStringSync();
+      expect(cursorText, startsWith('---\ndescription: w_tools conventions'));
+      expect(cursorText, contains('alwaysApply: true'), reason: '接入约定必须常驻，不能落到 Agent Requested');
     });
 
     test('--lang=en 生成英文指令', () async {

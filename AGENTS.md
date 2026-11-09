@@ -28,6 +28,9 @@
 
 1. 先改 [`packages/cli/catalog/components.yaml`](packages/cli/catalog/components.yaml)；
 2. 规则变化改 [`packages/cli/templates/agents/`](packages/cli/templates/agents/)；
+   消费方 AGENTS 是常驻上下文，只做**路由**：组件用法 / 反例先问「能不能进 catalog 的 `pitfalls`」，
+   分支流程（Figma / 设备 / 反馈 / 场景）进 `templates/ai/` 或工具 README。
+   `templates_fresh_test.dart` 有行数 / 字符数 / 段落顺序 / zh-en 符号一致的结构预算门禁，别硬塞；
 3. 跑生成器：
    ```bash
    cd packages/cli

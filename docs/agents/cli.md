@@ -19,6 +19,12 @@ dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 
 生成时会按本次 targets、`toolkit_entry` 与 pubspec（Flutter / 纯 Dart、聚合包 / 子包）渲染固定前缀，不写死 `AGENTS.md` 或 `flutter` 命令。
 
+`init` 写进项目的指令片段固定四段：`怎么用 w_tools`（context → list / explain → 聚合入口）、
+`硬规则`（R1 / R2 及 import 例外 / 生成物 / 暂存层 / R9）、`组件约定`（每个启用的包一行：主入口 + 一句话规则 + `explain` 入口）、
+`完成前`（doctor → analyze / test → 反馈开关）。片段只做**路由**：组件用法与反例以 `explain` 为准，
+分支流程（Figma / 设备 / 反馈 / 场景）在 `AI_PROMPTS.md` 或工具 README。
+片段在 `w_tools:begin/end` 标记块内（`init` 会刷新，块内手改会先备份），块外的 `## 项目规则` 归项目自己。
+
 它是生成物：内容与模板不同时 `init` 不覆盖、只报 drift；`init --force` 直接覆盖且**没有备份**，
 项目自己的提示词请另存。
 
