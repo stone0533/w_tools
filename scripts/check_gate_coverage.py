@@ -34,6 +34,8 @@ MANUAL = {
     'apply_snapshots.sh': '发布一批后把 .w_tools/release-snapshots 应用到 scripts/api_snapshots，人工执行',
     'install-gh.sh': '一次性安装 / 登录向导，人工执行',
     'install_git_hooks.sh': '首次检出时安装 .githooks，人工执行',
+    'ship.sh': '人工提交代码 / 开 PR / 合并的编排脚本（commit → push → PR，可选 --merge）；不是门禁，'
+    '所有门禁仍由钩子与 CI 执行',
     'check_pr_checks.sh': '发布前用 gh 确认 PR Required checks，人工执行',
     'check_pr_ready.sh': '开 PR 前本地跑 PR 级门禁（需要 PR body 文件），人工执行',
     'format_staged.sh': 'pre-commit 钩子调用（只查已暂存 .dart 的格式），人工执行',

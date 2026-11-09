@@ -138,6 +138,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_version_bump.py` | 对比 PR 的 **merge-base** 与 HEAD 的公开 API 表面：版本降级、版本不高于已发布基线、或版本没抬 → 失败（已抬过且高于已发布基线的未发布版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过）。根包 `lib/w_tools.dart` 的 export 行变化也要求根包版本高于 base。`--online` 时用 pub.dev 当已发布基线（取不到回退仓库快照并提醒），修 `git archive` 失败被当成新包 | CI `api-bump` job（带 `--online`）/ 本地 `--base main` |
 | `check_versions.py` | 版本约束的单一校验：root `pubspec.yaml` 的聚合包 caret 下界、`init/versions.dart` 的 `subpackageConstraints` / `cliConstraint` / `wToolsDeviceConstraint` 都必须等于当前 pubspec 版本 | preflight |
 | `check_pr_ready.sh` | 开 PR 前本地跑 PR 级门禁：`check_pr_scope --body-file` + `check_version_bump --base origin/main`；用法 `bash scripts/check_pr_ready.sh <pr-body.md>` | 开 PR 前（CI 同批检查的本地版） |
+| `ship.sh` | 一条命令走完「暂存 → commit → push → 开 PR（默认只到开 PR；`--merge` 才等 checks + Merge commit）」；PR body 自动带「## 改动类型」，公开类别强制 `--j4`；`--dry-run` 只打印计划 | 人工（日常提交 / PR） |
 | `check_pr_scope.py` | 读 PR 模板：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须有「## 改动类型」段且至少勾选一项；空 body 也失败。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG；根包公开面要有根 `CHANGELOG.md`；本地版本还要高于已发布基线（CI 带 `--online`：用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`） | CI `api-bump` job |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 

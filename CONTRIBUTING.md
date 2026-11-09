@@ -109,6 +109,8 @@
   PR 链 issue 时写 `Closes #n`。issue 的读写与 label 约定见
   [`docs/agents/issue-tracker.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/issue-tracker.md) 与 [`docs/agents/triage-labels.md`](https://github.com/stone0533/w_tools/blob/main/docs/agents/triage-labels.md)。
 - 公开变化走 feature 分支 + PR，等 Required checks 通过后合并；不要用管理员绕过。
+  想少敲命令：`bash scripts/ship.sh -m "feat(cli): 一句话" --type internal`
+  （默认只到开 PR，`--merge` 才等 checks 后合并，`--dry-run` 先看计划；公开类别必须带 `--j4`）。
 - PR body 必须带仓库模板的「## 改动类型」段，并至少勾选一项（改了公开代码
   `lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/` 时 `check_pr_scope` 会强制；
   空 body 或四类全空都会失败）。
