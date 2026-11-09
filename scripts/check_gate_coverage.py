@@ -39,6 +39,7 @@ MANUAL = {
     'format_staged.sh': 'pre-commit 钩子调用（只查已暂存 .dart 的格式），人工执行',
     'list_removals.py': '准备大版本时列出待删弃用项，人工执行',
     'mutate_guard.sh': '定向变异验证用例有效性（临时破坏被守逻辑→用例必须变红→自动还原），写守卫/边界用例时人工执行',
+    'release_wave.py': '发布波次计划（只读：版本 / 顺序 / 阻断），发布前人工或 AI 执行，不接入自动门禁',
 }
 
 
