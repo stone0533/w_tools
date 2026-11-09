@@ -1,7 +1,7 @@
 part of 'device_cli.dart';
 
 Future<String> _androidSerial(DeviceOptions o) async {
-  final devices = await Adb().devices();
+  final devices = await _deps.adb().devices();
   final query = o.deviceQuery;
   final target = Adb.resolve(devices, query);
   if (target == null) {
@@ -15,7 +15,7 @@ Future<String> _androidSerial(DeviceOptions o) async {
 }
 
 Future<void> _androidList(DeviceOptions o) async {
-  final devices = await Adb().devices();
+  final devices = await _deps.adb().devices();
   if (o.json) {
     _emit(
         o,
@@ -27,20 +27,20 @@ Future<void> _androidList(DeviceOptions o) async {
     return;
   }
   if (devices.isEmpty) {
-    stdout.writeln('（没有 Android 设备）');
+    _deps.write('（没有 Android 设备）\n');
     return;
   }
   final b = StringBuffer('状态\t型号\t序列号\n');
   for (final d in devices) {
     b.writeln('${d.state}\t${d.model}\t${d.serial}');
   }
-  stdout.writeln(b.toString().trimRight());
+  _deps.write('${b.toString().trimRight()}\n');
 }
 
 Future<void> _androidShot(DeviceOptions o) async {
   final serial = await _androidSerial(o);
   final out = o.out ?? _tempFile('w_tools_device_android_shot', 'png');
-  await Adb().screenshot(serial, out);
+  await _deps.adb().screenshot(serial, out);
   final dark = ScreenStats.isMostlyDark(File(out).readAsBytesSync());
   _emit(
     o,
@@ -59,7 +59,7 @@ Future<void> _androidTap(DeviceOptions o) async {
   final serial = await _androidSerial(o);
   final x = int.parse(o.positional[0]);
   final y = int.parse(o.positional[1]);
-  await Adb().tap(serial, x, y);
+  await _deps.adb().tap(serial, x, y);
   _emit(
       o,
       {
@@ -73,7 +73,7 @@ Future<void> _androidTap(DeviceOptions o) async {
 Future<void> _androidDrag(DeviceOptions o) async {
   final serial = await _androidSerial(o);
   final v = o.positional.map(int.parse).toList();
-  await Adb().swipe(serial, v[0], v[1], v[2], v[3]);
+  await _deps.adb().swipe(serial, v[0], v[1], v[2], v[3]);
   final coords = {
     'from': {'x': v[0], 'y': v[1]},
     'to': {'x': v[2], 'y': v[3]},
@@ -111,7 +111,7 @@ Future<String> _androidFingerprint(Adb adb, String serial, {DRect? region}) asyn
 
 Future<void> _androidWait(DeviceOptions o) async {
   final serial = await _androidSerial(o);
-  final adb = Adb();
+  final adb = _deps.adb();
   final ok = await _androidStability(adb, serial, region: o.region).waitStable(
     stableFor: o.stableFor,
     timeout: o.timeout,
@@ -122,7 +122,7 @@ Future<void> _androidWait(DeviceOptions o) async {
 
 Future<void> _androidVerify(DeviceOptions o) async {
   final serial = await _androidSerial(o);
-  final adb = Adb();
+  final adb = _deps.adb();
   final x = int.parse(o.positional[0]);
   final y = int.parse(o.positional[1]);
   final changed = await TapVerifier.verify(

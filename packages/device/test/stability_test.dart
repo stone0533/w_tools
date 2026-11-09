@@ -65,6 +65,19 @@ void main() {
     expect(tapped, isFalse);
   });
 
+  test('verify 的 timeout 是总预算，不是每次等待各一份', () async {
+    final seen = <Duration>[];
+    await TapVerifier.verify(
+      stability: _CaptureStability(seen),
+      fingerprint: () async => 'x',
+      tap: () async => Future<void>.delayed(const Duration(milliseconds: 30)),
+      stableFor: const Duration(milliseconds: 1),
+      timeout: const Duration(milliseconds: 100),
+    );
+    expect(seen, hasLength(2));
+    expect(seen[1], lessThan(const Duration(milliseconds: 100)));
+  });
+
   test('verify：点击后画面不稳定 → VerificationTimeout', () async {
     var taps = 0;
     await expectLater(
@@ -90,6 +103,22 @@ class _NeverStable extends Stability {
     Duration timeout = const Duration(seconds: 15),
   }) async =>
       false;
+}
+
+class _CaptureStability extends Stability {
+  _CaptureStability(this.seen) : super(grab: () async => '');
+
+  final List<Duration> seen;
+
+  @override
+  Future<bool> waitStable({
+    Duration stableFor = const Duration(milliseconds: 600),
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    seen.add(timeout);
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+    return true;
+  }
 }
 
 class _FirstStableThenNever extends Stability {

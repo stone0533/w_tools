@@ -2,7 +2,7 @@ part of 'device_cli.dart';
 
 Future<void> _list(DeviceOptions o, Simctl simctl) async {
   if (o.real) {
-    final devices = await Devicectl().devices();
+    final devices = await _deps.devicectl().devices();
     _emit(
         o,
         {
@@ -57,7 +57,7 @@ Future<void> _boot(Simctl simctl, DeviceOptions o) async {
     throw DeviceCliException('找不到模拟器：${query ?? '（没有可用模拟器）'}', 3);
   }
   if (!target.isBooted) {
-    if (!o.json) stdout.writeln('启动 ${target.name} (${target.udid}) ...');
+    if (!o.json) _deps.write('启动 ${target.name} (${target.udid}) ...\n');
     await simctl.boot(target.udid);
   }
   _emit(
@@ -73,7 +73,7 @@ Future<void> _boot(Simctl simctl, DeviceOptions o) async {
 
 Future<void> _shot(Simctl simctl, DeviceOptions o) async {
   if (o.real) {
-    final devices = await Devicectl().devices();
+    final devices = await _deps.devicectl().devices();
     final query = o.deviceQuery ?? o.positional.firstOrNull;
     final target = Devicectl.resolve(devices, query);
     if (target == null) {
@@ -86,7 +86,7 @@ Future<void> _shot(Simctl simctl, DeviceOptions o) async {
       throw DeviceCliException('真机未启动/未解锁：${target.name} (${target.bootState})', 3);
     }
     final out = o.out ?? _tempFile('w_tools_device_real_shot', 'png');
-    await Devicectl().screenshot(target.udid, out);
+    await _deps.devicectl().screenshot(target.udid, out);
     // 锁屏/息屏时 devicectl 会返回全黑图 —— 明确提示，别让人以为截图坏了
     final dark = ScreenStats.isMostlyDark(File(out).readAsBytesSync());
     _emit(
@@ -126,7 +126,7 @@ Future<void> _tap(Simctl simctl, DeviceOptions o) async {
   final udid = await _resolveUdid(simctl, o, bootedOnly: true);
   final cal = await _calibrate(simctl, o, udid, force: o.noCache);
   final screen = cal.toScreen(DPoint(x, y));
-  await Input().tap(screen.x, screen.y);
+  await _deps.input().tap(screen.x, screen.y);
   _emit(
       o,
       {
@@ -147,7 +147,7 @@ Future<void> _drag(Simctl simctl, DeviceOptions o) async {
   final y2 = double.parse(o.positional[3]);
   final a = cal.toScreen(DPoint(x1, y1));
   final b = cal.toScreen(DPoint(x2, y2));
-  await Input().drag(a.x, a.y, b.x, b.y);
+  await _deps.input().drag(a.x, a.y, b.x, b.y);
   _emit(
       o,
       {
@@ -213,7 +213,7 @@ Future<void> _verify(Simctl simctl, DeviceOptions o) async {
       deviceWidth: cal.deviceWidth,
       pixelWidth: pixelWidth,
     ),
-    tap: () => Input().tap(screen.x, screen.y),
+    tap: () => _deps.input().tap(screen.x, screen.y),
     stableFor: o.stableFor,
     timeout: o.timeout,
   );
@@ -321,8 +321,8 @@ Future<Calibration> _calibrate(
   String udid, {
   bool force = false,
 }) async {
-  final store = CalibrationStore();
-  final hub = DeviceHub();
+  final store = _deps.calibrationStore();
+  final hub = _deps.deviceHub();
   final window = await hub.window();
   if (window == null) {
     throw const DeviceCliException(

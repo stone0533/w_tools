@@ -122,12 +122,18 @@ class TapVerifier {
     Duration stableFor = const Duration(milliseconds: 600),
     Duration timeout = const Duration(seconds: 15),
   }) async {
-    if (!await stability.waitStable(stableFor: stableFor, timeout: timeout)) {
+    final sw = Stopwatch()..start();
+    Duration remaining() {
+      final left = timeout - sw.elapsed;
+      return left.isNegative ? Duration.zero : left;
+    }
+
+    if (!await stability.waitStable(stableFor: stableFor, timeout: remaining())) {
       throw const VerificationTimeout('点击前画面在超时内没有稳定，无法可靠判定');
     }
     final before = await fingerprint();
     await tap();
-    if (!await stability.waitStable(stableFor: stableFor, timeout: timeout)) {
+    if (!await stability.waitStable(stableFor: stableFor, timeout: remaining())) {
       throw const VerificationTimeout('点击后画面在超时内没有稳定，无法可靠判定');
     }
     return before != await fingerprint();

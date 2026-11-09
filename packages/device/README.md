@@ -70,7 +70,7 @@ size --real
 传给它命令（如 `boot` / `type` / `shot`）会直接报错，而不是静默忽略。
 `--no-cache` 只用于 iOS 模拟器的 tap / drag / verify；`wait --region` 不再依赖标定，因此不需要 `--no-cache`。
 `--timeout-ms` 和 `--stable-ms` 只用于 wait / verify；`--out` 只用于 shot；`boot` 省略参数时用第一台/已启动模拟器。
-`--timeout-ms` 是**每次**稳定等待的上限：`wait` 一次，`verify` 点击前 / 点击后各一次，不是整个命令的总预算。
+`--timeout-ms` 是等待上限：`wait` 只有一次窗口；`verify` 是点击前 + 点击后的**总预算**（不是各一份）。
 `list` 不支持 `--device`；`type` 必须带文本，且属于实验命令（输入法/控制字符不可控）。
 `--out` 支持 `--out=/path` 与 `--out /path` 两种写法；`--device` / `--region` / `--scale` /
 `--timeout-ms` / `--stable-ms` 同样支持空格写法，空值会报错。

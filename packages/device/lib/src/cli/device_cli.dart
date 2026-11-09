@@ -38,6 +38,47 @@ class DeviceCliException implements Exception {
   String toString() => message;
 }
 
+/// 可注入的 CLI 依赖：测试可在进程内替换设备/输出，不依赖 PATH 假命令。
+class DeviceCliDeps {
+  DeviceCliDeps({
+    Simctl Function()? simctl,
+    Adb Function()? adb,
+    Devicectl Function()? devicectl,
+    DeviceHub Function()? deviceHub,
+    Input Function()? input,
+    CalibrationStore Function()? calibrationStore,
+    void Function(String)? write,
+    void Function(String)? writeError,
+  })  : _simctl = simctl ?? (() => Simctl()),
+        _adb = adb ?? (() => Adb()),
+        _devicectl = devicectl ?? (() => Devicectl()),
+        _deviceHub = deviceHub ?? (() => DeviceHub()),
+        _input = input ?? (() => Input()),
+        _calibrationStore = calibrationStore ?? (() => CalibrationStore()),
+        _write = write ?? stdout.write,
+        _writeError = writeError ?? stderr.write;
+
+  final Simctl Function() _simctl;
+  final Adb Function() _adb;
+  final Devicectl Function() _devicectl;
+  final DeviceHub Function() _deviceHub;
+  final Input Function() _input;
+  final CalibrationStore Function() _calibrationStore;
+  final void Function(String) _write;
+  final void Function(String) _writeError;
+
+  Simctl simctl() => _simctl();
+  Adb adb() => _adb();
+  Devicectl devicectl() => _devicectl();
+  DeviceHub deviceHub() => _deviceHub();
+  Input input() => _input();
+  CalibrationStore calibrationStore() => _calibrationStore();
+  void write(String text) => _write(text);
+  void writeError(String text) => _writeError(text);
+}
+
+DeviceCliDeps _deps = DeviceCliDeps();
+
 const _usage = '''
 w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 list/shot
 
@@ -60,7 +101,7 @@ w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 li
   --device=<udid|名称>   指定设备（默认用已启动的 / 第一台；也支持 --device <值>）
   --no-cache            忽略标定缓存，强制重算（仅 iOS 模拟器 tap/drag/verify）
   --scale=3             设备像素密度；仅 iOS 模拟器 calibrate/tap/drag/size/wait/verify
-  --timeout-ms=15000    等待超时（每次稳定等待）；仅 wait / verify
+  --timeout-ms=15000    等待超时；wait 一次，verify 为点击前+后的总预算
   --stable-ms=600       画面稳定判定窗口；仅 wait / verify
   --region=x,y,w,h      只看这块区域；iOS 模拟器=设备坐标(point)，Android=截图像素；verify/wait 用
   --real                操作物理真机（仅 list / shot；点击需要 idb，本工具不支持）
@@ -75,25 +116,35 @@ w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 li
 依赖：macOS + Xcode；`brew install cliclick`；给宿主 App 开「辅助功能」+「屏幕录制」。
 ''';
 
-Future<void> runDeviceCli(List<String> args) async {
+Future<void> runDeviceCli(List<String> args, {DeviceCliDeps? deps}) async {
+  final previous = _deps;
+  if (deps != null) _deps = deps;
+  try {
+    await _runDeviceCli(args);
+  } finally {
+    _deps = previous;
+  }
+}
+
+Future<void> _runDeviceCli(List<String> args) async {
   final wantsJson = args.contains('--json');
   if (args.isEmpty) {
-    stdout.write(_usage);
+    _deps.write(_usage);
     exitCode = 2;
     return;
   }
   if (args.first == '-h' || args.first == '--help') {
-    stdout.write(_usage);
+    _deps.write(_usage);
     exitCode = 0;
     return;
   }
   if (args.length == 1 && args.first == '--version') {
-    stdout.writeln('w_tools_device $deviceCliVersion');
+    _deps.write('w_tools_device $deviceCliVersion\n');
     return;
   }
 
   DeviceOptions? options;
-  final simctl = Simctl();
+  final simctl = _deps.simctl();
   try {
     options = DeviceOptions.parse(args);
     options.validate();
@@ -131,16 +182,16 @@ Future<void> runDeviceCli(List<String> args) async {
       case 'type':
         if (o.android) {
           final serial = await _androidSerial(o);
-          await Adb().text(serial, o.positional.join(' '));
+          await _deps.adb().text(serial, o.positional.join(' '));
         } else {
           await _requireCliclick();
-          await Input().type(o.positional.join(' '));
+          await _deps.input().type(o.positional.join(' '));
         }
         _emit(o, {'text': o.positional.join(' ')}, '已输入：${o.positional.join(' ')}');
       case 'size':
         if (o.android) {
           final serial = await _androidSerial(o);
-          final size = await Adb().screenSize(serial);
+          final size = await _deps.adb().screenSize(serial);
           _emit(
             o,
             {
@@ -174,7 +225,7 @@ Future<void> runDeviceCli(List<String> args) async {
           throw const DeviceCliException('foreground 只支持 --android（iOS 请用 flutter run 的日志判断）', 2);
         }
         final serial = await _androidSerial(o);
-        final pkg = await Adb().currentPackage(serial);
+        final pkg = await _deps.adb().currentPackage(serial);
         if (pkg.isEmpty) {
           throw const DeviceCliException(
             '取不到 Android 前台包名（设备可能锁屏 / 无 Activity）',
@@ -220,7 +271,7 @@ Future<void> runDeviceCli(List<String> args) async {
 
 /// iOS 模拟器点击依赖 cliclick；提前给出可执行的安装提示，而不是让 ProcessException 裸奔。
 Future<void> _requireCliclick() async {
-  if (!await Input().available()) {
+  if (!await _deps.input().available()) {
     throw const DeviceCliException('找不到 cliclick；先 brew install cliclick（iOS 模拟器点击依赖它）', 3);
   }
 }
@@ -234,17 +285,17 @@ String _platformOf(DeviceOptions o) {
 /// 输出：`--json` 打 JSON，否则打人类可读文本。
 void _emit(DeviceOptions o, Map<String, Object?> data, String human) {
   if (o.json) {
-    stdout.writeln(
-      jsonEncode(<String, Object?>{
-        'schemaVersion': 1,
-        'ok': true,
-        'command': o.command,
-        'platform': _platformOf(o),
-        ...data,
-      }),
+    _deps.write(
+      '${jsonEncode(<String, Object?>{
+            'schemaVersion': 1,
+            'ok': true,
+            'command': o.command,
+            'platform': _platformOf(o),
+            ...data,
+          })}\n',
     );
   } else {
-    stdout.writeln(human);
+    _deps.write('$human\n');
   }
 }
 
@@ -257,16 +308,16 @@ void _fail(
 }) {
   final asJson = o?.json ?? jsonRequested;
   if (asJson) {
-    stdout.writeln(
-      jsonEncode(<String, Object?>{
-        'schemaVersion': 1,
-        'ok': false,
-        'command': o?.command,
-        'error': message,
-      }),
+    _deps.write(
+      '${jsonEncode(<String, Object?>{
+            'schemaVersion': 1,
+            'ok': false,
+            'command': o?.command,
+            'error': message,
+          })}\n',
     );
   } else {
-    stderr.writeln(usage ? '$message\n\n$_usage' : message);
+    _deps.writeError(usage ? '$message\n\n$_usage' : '$message\n');
   }
   exitCode = code;
 }
