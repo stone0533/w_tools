@@ -1,3 +1,5 @@
+import contextlib
+import io
 import pathlib
 import sys
 import unittest
@@ -202,6 +204,100 @@ class BuildPlanTest(unittest.TestCase):
     def test_schema(self):
         plan = mod.build_plan(data([], root_version='12.0.2', root_published='12.0.1'))
         self.assertEqual(plan['schema'], 'w_tools.release_plan/1')
+
+
+class ValidateRunPlanTest(unittest.TestCase):
+    def _plan(self, **overrides):
+        plan = {
+            'schema': mod.SCHEMA,
+            'git': {'head': 'abc', 'origin_main': 'abc', 'dirty': False},
+            'packages': [],
+            'order': [],
+            'root': {'action': 'skip'},
+            'blockers': [],
+            'snapshots_required': False,
+        }
+        plan.update(overrides)
+        return plan
+
+    def _git(self, **overrides):
+        git = {
+            'dirty': False,
+            'branch': 'main',
+            'head': 'abc',
+            'origin_main': 'abc',
+            'ahead': 0,
+            'behind': 0,
+        }
+        git.update(overrides)
+        return git
+
+    def test_clean_plan_passes(self):
+        self.assertEqual(
+            mod.validate_run_plan(self._plan(), rows=[], git=self._git(), gh_ready=True),
+            [],
+        )
+
+    def test_blockers_are_rejected(self):
+        errors = mod.validate_run_plan(
+            self._plan(blockers=['x: y']), rows=[], git=self._git(), gh_ready=True,
+        )
+        self.assertTrue(any('阻断' in error for error in errors))
+
+    def test_dirty_worktree_is_rejected(self):
+        errors = mod.validate_run_plan(
+            self._plan(), rows=[], git=self._git(dirty=True), gh_ready=True,
+        )
+        self.assertTrue(any('未提交' in error for error in errors))
+
+    def test_head_mismatch_is_rejected(self):
+        errors = mod.validate_run_plan(
+            self._plan(), rows=[], git=self._git(head='def'), gh_ready=True,
+        )
+        self.assertTrue(any('HEAD' in error for error in errors))
+
+    def test_snapshot_pr_requires_gh(self):
+        errors = mod.validate_run_plan(
+            self._plan(snapshots_required=True), rows=[], git=self._git(), gh_ready=False,
+        )
+        self.assertTrue(any('gh' in error for error in errors))
+
+    def test_blocked_root_is_rejected(self):
+        errors = mod.validate_run_plan(
+            self._plan(root={'action': 'blocked'}), rows=[], git=self._git(), gh_ready=True,
+        )
+        self.assertTrue(any('root' in error for error in errors))
+
+
+class RunGateTest(unittest.TestCase):
+    def _args(self, **overrides):
+        import types
+        args = types.SimpleNamespace(
+            command='run', resume=False, dry_run=False, yes=False, plan_file=None,
+            wait_minutes=15,
+        )
+        for key, value in overrides.items():
+            setattr(args, key, value)
+        return args
+
+    def test_run_requires_yes(self):
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(mod._run(self._args()), 2)
+
+    def test_run_requires_plan(self):
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(mod._run(self._args(yes=True)), 2)
+
+    def test_resume_without_state_fails(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            old = mod.STATE_FILE
+            mod.STATE_FILE = pathlib.Path(temp) / 'state.json'
+            try:
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(mod._run(self._args(yes=True, resume=True)), 2)
+            finally:
+                mod.STATE_FILE = old
 
 
 if __name__ == '__main__':
