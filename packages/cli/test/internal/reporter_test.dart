@@ -97,6 +97,30 @@ void main() {
     });
   });
 
+  test('--json 里未启用规则是 skipped + skipReason，且不影响计数与退出码', () {
+    final reporter = DoctorReporter(projectName: 'demo', fileCount: 1);
+    final raw = _capture(
+      () => reporter.printJson([
+        _rule(DoctorRuleStatus.pass),
+        const DoctorRuleResult(
+          ruleId: 'R6',
+          title: '禁用尺寸单位',
+          status: DoctorRuleStatus.skipped,
+          skipReason: '未在 rules 中启用',
+        ),
+      ]),
+    );
+    final json = jsonDecode(raw) as Map<String, Object?>;
+    final rules = json['rules'] as List;
+    final r6 = rules.singleWhere((r) => (r as Map)['id'] == 'R6') as Map;
+    expect(r6['status'], 'skipped');
+    expect(r6['skipReason'], '未在 rules 中启用');
+    expect(r6['issues'], isEmpty);
+    expect((json['counts'] as Map)['error'], 0);
+    expect((json['counts'] as Map)['warn'], 0);
+    expect(json['exitCode'], 0);
+  });
+
   test('人读输出包含定位、提示与统计', () {
     final reporter = DoctorReporter(projectName: 'demo', fileCount: 1);
     final raw = _capture(
