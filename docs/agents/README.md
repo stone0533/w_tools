@@ -50,7 +50,7 @@
 ## 元文档
 
 - [文档地图](../documentation-map.md)：每个文档写什么、信息该放哪
-- [AI 使用契约](../ai-contract.md)：catalog / explain / AGENTS 的更新、检查与完整性边界
+- [AI 使用契约](../ai-contract.md)：catalog 事实源、explain / AGENTS / README 三种投影、更新与完整性边界
 - [维护者 AI 提示词](../ai-maintainer-prompts.md)：按场景复制
 - [ADR 索引](../adr/README.md)：历史决策、状态词与模板（改架构前先看有没有已定方案）
 - [组合用法](../recipes/README.md)：分页 / 表单提交 / App 根装配

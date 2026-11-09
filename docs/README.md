@@ -30,7 +30,7 @@
 - [Agent 文档索引](agents/README.md)：各包首选入口、规则页、工具与仓库流程
 - [conventions.md](conventions.md)：接入约定与 doctor 的 R1~R9
 - [命名规范](naming.md)：包 / 文件 / 类型 / 成员 / 测试的命名规则与存量例外（唯一事实源）
-- [AI 使用契约](ai-contract.md)：catalog / explain / AGENTS 四层、更新流程、完整性边界
+- [AI 使用契约](ai-contract.md)：catalog 事实源 + explain / AGENTS / README 三种投影、更新流程、完整性边界
 - [维护者 AI 提示词](ai-maintainer-prompts.md)：按场景（A~N）复制
 - [使用反馈](feedback/README.md)：消费方问题汇总与闭环状态（`docs/feedback/<包>.md`）
 - [releasing.md](releasing.md)：发版流程、`publish_package.sh`、版本规则
