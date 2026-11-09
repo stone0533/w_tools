@@ -182,9 +182,16 @@ scripts/README.md         scripts 运行手册
 | 包用法 | `packages/<pkg>/README.md` | 无 |
 | 参数 API | `packages/<pkg>/lib` 源码 / pub.dev API 文档 | 无 |
 | 跨包场景 | `docs/recipes/` | 无 |
-| AI 查询内容 | catalog + `explain` renderer | `explain` 输出 |
+| AI 查询内容 | catalog（`explain` 只是 renderer，不单独存事实） | `explain` / `list` 输出 |
 | 核心入口清单 | `packages/cli/catalog/entrypoints.yaml` | `check_teaching_coverage` 读取 |
 | 用户问题 | `docs/feedback/`（CLI 维护） | 无 |
+
+> **一个事实源 + 三种投影**：catalog 是组件事实源；`explain` / AGENTS / README·example 是它的
+> 三种投影；`entrypoints.yaml` 是教学覆盖契约，`context` / `AI_PROMPTS` 是辅助。四者不要互相复制内容。
+>
+> 注意 catalog 与 README 的分工：catalog 负责**可查询的组件事实**（入口 / 用途 / 最短用法 / 坑），
+> README 负责**完整用法与参数细节**。`explain` 只读 catalog，不读 README；所以 catalog 的
+> `usage` / `pitfalls` 为空时，explain 不会自动从 README 补。
 
 **生成物不要手改。**
 

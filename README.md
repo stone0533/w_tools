@@ -19,7 +19,7 @@
 | [docs/modules/README.md](https://github.com/stone0533/w_tools/blob/main/docs/modules/README.md) | 模块文档索引、依赖矩阵、SDK 速查 |
 | [docs/modules/components.md](https://github.com/stone0533/w_tools/blob/main/docs/modules/components.md) | 组件目录（先查这里），含「不要用在哪」 |
 | [docs/conventions.md](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md) | 接入约定：包 / 暂存层 / 业务层判定与 doctor 规则 |
-| [docs/ai-contract.md](https://github.com/stone0533/w_tools/blob/main/docs/ai-contract.md) | AI 使用契约：catalog / explain / AGENTS 的更新与完整性检查 |
+| [docs/ai-contract.md](https://github.com/stone0533/w_tools/blob/main/docs/ai-contract.md) | AI 使用契约：catalog 事实源与 explain / AGENTS / README 投影的更新与完整性检查 |
 | [docs/ai-maintainer-prompts.md](https://github.com/stone0533/w_tools/blob/main/docs/ai-maintainer-prompts.md) | 维护者 AI 提示词：按场景复制 |
 | [scripts/README.md](https://github.com/stone0533/w_tools/blob/main/scripts/README.md) | scripts 运行手册：何时跑哪个检查 / 发布脚本 |
 | [docs/documentation-map.md](https://github.com/stone0533/w_tools/blob/main/docs/documentation-map.md) | 文档定位与 AI 整理规则 |

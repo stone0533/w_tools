@@ -7,14 +7,20 @@
 - **消费方 AI**：通过 `init` 生成的 `AGENTS.md` 和 CLI 查询工作；
 - **仓库维护者 / 仓库内 AI**：改代码、改 catalog、改模板、跑门禁。
 
-核心原则：
+核心原则：**catalog 是唯一事实源；explain / AGENTS / README·example 是它的三种投影。**
 
 ```text
-AGENTS 指路
-explain 教学
-catalog 提供事实
-README/example 提供完整参考
+catalog（唯一事实源：组件入口 / 用途 / 最短用法 / 坑 / 关联）
+  ├─ explain     按需教学：catalog 字段 + import / 文档锚点 / example / 包版本
+  ├─ AGENTS      入口规则与路由：templates/agents → init 写入消费方
+  └─ README/example  完整参考与可运行场景
+
+entrypoints.yaml  教学覆盖契约（核心入口必须出现在上述载体）
+context / AI_PROMPTS  项目事实 / 人用场景提示词（不是组件事实或规则源）
 ```
+
+四层不是四份平级文档：只有 catalog 是事实源，其余三层是不同粒度、不同载体的**投影**。
+所以改教学先改 catalog；改完了再同步 explain 能读到的字段、AGENTS 的路由、README/example 的完整说明。
 
 ---
 
@@ -29,20 +35,20 @@ w_tools 是 monorepo，子包多、版本独立、API 会演进。
 - 文档和代码容易漂移；
 - 同一问题在多个包重复解释。
 
-所以把“AI 需要知道的事实”拆成四层：
+所以把“AI 需要知道的事实”拆成 **1 个事实源 + 3 种投影**（explain / AGENTS / README·example）：
 
-| 层 | 作用 | 主要文件 |
-|---|---|---|
-| catalog | 组件事实源 | [`packages/cli/catalog/components.yaml`](../packages/cli/catalog/components.yaml) |
-| explain | 按需教学 | [`packages/cli/lib/src/explain/render_explain.dart`](../packages/cli/lib/src/explain/render_explain.dart) |
-| AGENTS | 入口规则 / 路由 | [`packages/cli/templates/agents/`](../packages/cli/templates/agents/) |
-| README / example | 完整说明与真实场景 | `packages/<pkg>/README.md`、`packages/<pkg>/example/` |
+| 层 | 角色 | 主要文件 | 与其他层的关系 |
+|---|---|---|---|
+| catalog | **唯一事实源**：组件入口 / 用途 / 最短用法 / 坑 / 关联 | [`packages/cli/catalog/components.yaml`](../packages/cli/catalog/components.yaml) | `list` / `explain` / `components.md` 都从它生成或读取 |
+| explain | **投影**：按需教学 | [`packages/cli/lib/src/explain/render_explain.dart`](../packages/cli/lib/src/explain/render_explain.dart) | 只渲染 catalog 字段 + import / 文档 / example / 包版本，不维护第二份教学内容 |
+| AGENTS | **投影**：入口规则 / 路由 | [`packages/cli/templates/agents/`](../packages/cli/templates/agents/) | `init` 生成消费方摘要；仓库 `AGENTS.md` + `docs/agents/` 是维护者更深一层 |
+| README / example | **投影**：完整说明与真实场景 | `packages/<pkg>/README.md`、`packages/<pkg>/example/` | 读者按需深入；不是事实源，门禁只校验链接 / 符号 / 安装下界 / 入口名 |
 
-这四层都在解决“AI 怎么知道事实”。另有一个人用的入口：消费方 `.w_tools/AI_PROMPTS.md`
-（源模板 [`packages/cli/templates/ai/`](../packages/cli/templates/ai/)，场景编号 `A-1` / `B-1` …）。
-它**不是规则源**，而是开发者复制、填空、贴给 AI 的场景提示词；规则主体仍写在项目规则文件里，
-固定前缀只保留每次贴给 AI 的最小操作契约。这份文件负责“这次让 AI 做什么、交什么、贴完怎么验”，
-两边不要互相扩写。
+这四层（一个事实源 + 三种投影）都在解决“AI 怎么知道事实”。另有两个人用的入口：消费方 `.w_tools/AI_PROMPTS.md`
+（源模板 [`packages/cli/templates/ai/`](../packages/cli/templates/ai/)，场景编号 `A-1` / `B-1` …）
+和 `context.capabilities`。前者**不是规则源**，而是开发者复制、填空、贴给 AI 的场景提示词；
+后者是**项目事实**（装了哪些能力），不是组件事实。两者都不替代 catalog。
+
 
 ---
 
@@ -346,9 +352,13 @@ bash scripts/preflight.sh --with-tests
 ## 9. 当前已知边界
 
 - `check_public_catalog.py` 基于 export/part 静态扫描，不是完整 analyzer；
+- catalog 只登记**组件入口**，不是全部公开 API；子 API 要么进 `uncataloged.yaml` 基线，要么只在源码 / pub.dev API 文档里；
+- `explain` 只是 renderer：不维护第二份教学；catalog 的 `usage` / `pitfalls` / `related` 为空时输出就会薄；
 - `uncataloged.yaml` 是“有意不登记”清单，仍应定期 review；
 - `usage` 是最短片段，不保证全量编译；
 - 大部分 `teach: false` 组件仍只有 useFor / dontUseFor（具体比例见 catalog，不在文档里写死）；
+- README / example 是“完整参考”，不是与当前安装版本一一对应的快照；`explain` 的仓库文档链接固定 main，API 文档才按 lock 版本拼接；
+- `entrypoints.yaml` 是覆盖契约，只证明核心入口在 docs/agents / 模板 / README / example 里“提到过”，不证明讲清楚了；语义仍由 J-4 人工审计；
 - `context.capabilities` 是静态映射，新增**消费入口包**时需同步（契约层 / 工具包不单列）；
 - `check_pr_scope.py` 只读 PR 正文：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）时要求「## 改动类型」段并至少勾选一项（空 body 也失败），勾了公开类别时要求每个被改包的 CHANGELOG 被改、根包公开面有根 CHANGELOG、本地版本高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`）；它无法验证改动**是否真的**是公开变化；
 - `check_published_links.py` 只检查会随发布物发出的 Markdown；校验本仓库 GitHub 绝对 URL 的路径存在，不校验外部 URL / 锚点 / 引用式链接；
