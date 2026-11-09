@@ -7,6 +7,9 @@
 脚本：`publish_package.sh` / `apply_snapshots.sh` / `gh`。它不会改版本、不会写
 CHANGELOG、不会 `--force`；失败会保存 state，可用 `run --resume` 从断点继续，已发布的包不重发。
 
+进度写 stderr（stdout 只留计划表 / JSON）：查询 pub.dev、归档核对、长命令每 15s 心跳；
+`--json` 时不会污染 stdout。
+
 用法：
     python3 scripts/release_wave.py plan --all
     python3 scripts/release_wave.py plan --all --check
@@ -52,6 +55,11 @@ from release_status import (  # noqa: E402
     version_of,
     version_tuple,
 )
+
+
+def _progress(message: str) -> None:
+    """进度只走 stderr：stdout 仍留给计划表 / JSON。"""
+    print(f'  · {message}', file=sys.stderr, flush=True)
 
 
 @dataclass
@@ -140,6 +148,7 @@ def drift_status(package: str) -> str:
 
 
 def check_versions_errors() -> list[str]:
+    _progress('校验 root / init 版本约束 …')
     result = subprocess.run(
         [sys.executable, str(ROOT / 'scripts' / 'check_versions.py')],
         cwd=ROOT,
@@ -152,6 +161,7 @@ def check_versions_errors() -> list[str]:
 
 
 def release_check_errors() -> list[str]:
+    _progress('运行 release_check.sh …')
     result = subprocess.run(
         ['bash', str(ROOT / 'scripts' / 'release_check.sh')],
         cwd=ROOT,
@@ -186,35 +196,79 @@ def collect_data(rows: list[dict[str, str]], *, audit_drift: bool) -> PlanData:
     published: dict[str, str] = {}
     not_found: set[str] = set()
     unreachable: set[str] = set()
+    _progress(f'查询 pub.dev 版本（{len(rows)} 个包）…')
     for row in rows:
         short = row['short']
+        _progress(f'查询 {short} …')
         try:
             value = fetch_latest(row['name'])
         except PackageNotFound:
             not_found.add(short)
+            _progress(f'  {short}: 404（待首发 / 未发布）')
             continue
         if value is None:
             unreachable.add(short)
+            _progress(f'  {short}: 取不到（网络）')
         else:
             published[short] = value
+            _progress(f'  {short}: {value}')
 
     root_version = version_of(ROOT / 'pubspec.yaml')
     root_published: str | None = None
     root_not_found = False
     root_unreachable = False
+    _progress('查询 root w_tools …')
     try:
         root_published = fetch_latest('w_tools')
     except PackageNotFound:
         root_not_found = True
     if root_published is None and not root_not_found:
         root_unreachable = True
+    if root_published:
+        _progress(f'  root: {root_published}')
+
+    if unreachable:
+        _progress(f'重试网络失败的包：{", ".join(sorted(unreachable))}')
+        by_short = {row['short']: row for row in rows}
+        for short in sorted(unreachable):
+            _progress(f'重试 {short} …')
+            try:
+                value = fetch_latest(by_short[short]['name'])
+            except PackageNotFound:
+                not_found.add(short)
+                unreachable.discard(short)
+                _progress(f'  {short}: 404（待首发 / 未发布）')
+                continue
+            if value is not None:
+                published[short] = value
+                unreachable.discard(short)
+                _progress(f'  {short}: {value}')
+
+    if root_unreachable:
+        _progress('重试 root w_tools …')
+        try:
+            root_published = fetch_latest('w_tools')
+        except PackageNotFound:
+            root_not_found = True
+            root_unreachable = False
+        if root_published:
+            root_unreachable = False
+            _progress(f'  root: {root_published}')
 
     drift: dict[str, str] = {}
     if audit_drift:
-        for row in rows:
-            if published.get(row['short']) == row['version']:
-                drift[row['short']] = drift_status(row['short'])
+        equal = [
+            row['short']
+            for row in rows
+            if published.get(row['short']) == row['version']
+        ]
+        if equal:
+            _progress(f'核对同版本归档（{len(equal)} 个包）：{", ".join(equal)}')
+        for short in equal:
+            _progress(f'核对 {short} 归档 …')
+            drift[short] = drift_status(short)
         if root_version and root_published == root_version:
+            _progress('核对 root 归档 …')
             drift['root'] = drift_status('w_tools')
 
     snapshots = {row['short']: snapshot_version(row['short']) for row in rows}
@@ -521,13 +575,23 @@ def _cmd(
     code: int = 3,
 ) -> subprocess.CompletedProcess:
     print(f"==> {' '.join(args)}", flush=True)
-    result = subprocess.run(
+    start = time.time()
+    process = subprocess.Popen(
         args,
         cwd=ROOT,
         text=True,
-        capture_output=capture,
+        stdout=subprocess.PIPE if capture else None,
+        stderr=subprocess.PIPE if capture else None,
         env={**os.environ, 'CI': 'true'},
     )
+    while True:
+        try:
+            stdout, stderr = process.communicate(timeout=15)
+            break
+        except subprocess.TimeoutExpired:
+            elapsed = int(time.time() - start)
+            print(f'  … 仍在运行（{elapsed}s）', file=sys.stderr, flush=True)
+    result = subprocess.CompletedProcess(args, process.returncode, stdout, stderr)
     if result.returncode != 0 and check:
         if capture:
             sys.stderr.write(result.stdout or '')
@@ -765,6 +829,7 @@ def _snapshot_step(state: dict, plan: dict) -> None:
         state['snapshot_pr'] = pr
         _save_state(state)
 
+    _progress('等待快照 PR checks（gh 输出 + 每 15s 心跳）…')
     _cmd(['gh', 'pr', 'checks', str(pr), '--required', '--watch'], code=4)
     _cmd(['gh', 'pr', 'merge', str(pr), '--merge'], code=4)
     _cmd(['git', 'switch', 'main'], code=4)
@@ -910,15 +975,16 @@ def _run(args) -> int:
     try:
         _save_state(state)
         packages = {package['short']: package for package in plan.get('packages', [])}
-        for short in plan.get('order', []):
-            short = str(short)
+        order = [str(item) for item in plan.get('order', [])]
+        total = len(order)
+        for index, short in enumerate(order, start=1):
             if short in state.get('published', {}):
                 print(f'  - {short} 已发布，跳过')
                 continue
             package = packages.get(short)
             if package is None:
                 raise RunFailed(f'计划顺序里的 {short} 不在 packages 里', 2)
-            print(f'\n== 发布 {short} {package["version"]}')
+            print(f'\n== 发布 [{index}/{total}] {short} {package["version"]}')
             _publish_package(package, dry_run=False)
             state['published'][short] = {
                 'version': package['version'],
@@ -977,11 +1043,13 @@ def _status(args) -> int:
 
 def _plan_command(args) -> int:
     if args.fetch:
+        _progress('git fetch origin main …')
         fetched = _git('fetch', 'origin', 'main')
         if fetched.returncode != 0:
             print(f'✗ git fetch origin main 失败：{fetched.stderr.strip()}', file=sys.stderr)
             return 2
 
+    _progress('读取 packages.manifest / 本地版本 / 快照 …')
     all_rows = _rows()
     try:
         rows, include_root = _selected_rows(all_rows, args.packages)
