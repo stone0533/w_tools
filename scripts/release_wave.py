@@ -33,6 +33,7 @@ import shutil
 import subprocess
 import sys
 import time
+import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -44,6 +45,7 @@ VERSIONS_DART = ROOT / 'packages' / 'cli' / 'lib' / 'src' / 'init' / 'versions.d
 SNAPSHOT_DIR = ROOT / '.w_tools' / 'release-snapshots'
 STATE_FILE = ROOT / '.w_tools' / 'release-wave-state.json'
 LOCK_FILE = ROOT / '.w_tools' / 'release-wave.lock'
+HEARTBEAT_SECONDS = 30
 
 sys.path.insert(0, str(ROOT / 'scripts'))
 from release_status import (  # noqa: E402
@@ -576,6 +578,7 @@ def _cmd(
 ) -> subprocess.CompletedProcess:
     print(f"==> {' '.join(args)}", flush=True)
     start = time.time()
+    warned = False
     process = subprocess.Popen(
         args,
         cwd=ROOT,
@@ -586,11 +589,19 @@ def _cmd(
     )
     while True:
         try:
-            stdout, stderr = process.communicate(timeout=15)
+            stdout, stderr = process.communicate(timeout=HEARTBEAT_SECONDS)
             break
         except subprocess.TimeoutExpired:
             elapsed = int(time.time() - start)
             print(f'  … 仍在运行（{elapsed}s）', file=sys.stderr, flush=True)
+            if not warned and elapsed >= 120:
+                warned = True
+                print(
+                    '  ! 已运行 2 分钟。若是 pub publish 卡住：检查 HTTPS_PROXY / 网络，'
+                    'Ctrl+C 后确认 pub.dev 无该版本，再用 run --resume 继续。',
+                    file=sys.stderr,
+                    flush=True,
+                )
     result = subprocess.CompletedProcess(args, process.returncode, stdout, stderr)
     if result.returncode != 0 and check:
         if capture:
@@ -672,6 +683,21 @@ def _gh_ready() -> tuple[bool, str]:
     if result.returncode != 0:
         return False, 'gh 未登录；先 gh auth login（快照 PR 需要）'
     return True, ''
+
+
+def _warn_pub_network() -> None:
+    """发布前的网络提示：OAuth 域直连不通时，pub publish 可能无超时地卡住。"""
+    if os.environ.get('HTTPS_PROXY') or os.environ.get('https_proxy'):
+        return
+    try:
+        urllib.request.urlopen('https://accounts.google.com', timeout=3)
+    except Exception:
+        print(
+            '  ! accounts.google.com 直连不可达；pub publish 的 OAuth 可能卡住。'
+            '按 AGENTS.md 设置 HTTPS_PROXY 后再发布。',
+            file=sys.stderr,
+            flush=True,
+        )
 
 
 def validate_run_plan(
@@ -789,21 +815,46 @@ def _wait_versions(state: dict, wait_minutes: int) -> None:
         time.sleep(10)
 
 
+def _wait_required_checks(pr: int) -> None:
+    """快照 PR 刚创建时 Required checks 可能还没注册；--required --watch 会直接报 no checks。"""
+    deadline = time.time() + 600
+    while True:
+        result = _cmd(['gh', 'pr', 'checks', str(pr)], capture=True, check=False)
+        text = (result.stdout or '') + (result.stderr or '')
+        if 'Required checks' in text:
+            break
+        if time.time() > deadline:
+            raise RunFailed('等待 Required checks 注册超时（10 分钟）', 4)
+        _progress('等待 Required checks 注册（GitHub 刚建 PR 时会有一小段空窗）…')
+        time.sleep(10)
+    _cmd(['gh', 'pr', 'checks', str(pr), '--required', '--watch'], code=4)
+
+
+def _pr_state(pr: int) -> str:
+    result = _cmd(
+        ['gh', 'pr', 'view', str(pr), '--json', 'state', '--jq', '.state'],
+        capture=True,
+        check=False,
+    )
+    return (result.stdout or '').strip()
+
+
 def _snapshot_step(state: dict, plan: dict) -> None:
     if state.get('snapshots') == 'merged':
         return
     state['phase'] = 'snapshots'
     _save_state(state)
-    _cmd(['bash', 'scripts/apply_snapshots.sh'], code=4)
-    changed = _git('status', '--porcelain', 'scripts/api_snapshots').stdout.strip()
-    if not changed:
-        state['snapshots'] = 'none'
-        _save_state(state)
-        return
 
     branch = state.get('snapshot_branch')
     pr = state.get('snapshot_pr')
     if not pr:
+        _cmd(['bash', 'scripts/apply_snapshots.sh'], code=4)
+        changed = _git('status', '--porcelain', 'scripts/api_snapshots').stdout.strip()
+        if not changed:
+            state['snapshots'] = 'none'
+            _save_state(state)
+            return
+
         branch = branch or f"chore/release-snapshots-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         exists = _git('show-ref', '--verify', '--quiet', f'refs/heads/{branch}').returncode == 0
         if exists:
@@ -828,17 +879,23 @@ def _snapshot_step(state: dict, plan: dict) -> None:
         state['snapshot_branch'] = branch
         state['snapshot_pr'] = pr
         _save_state(state)
+    else:
+        # 恢复时快照已在 PR 分支上：不要重新 apply（main 上不会有这些文件）。
+        pr_state = _pr_state(pr)
+        if pr_state == 'CLOSED':
+            raise RunFailed(f'快照 PR #{pr} 已关闭；检查后重新开一个', 4)
 
-    _progress('等待快照 PR checks（gh 输出 + 每 15s 心跳）…')
-    _cmd(['gh', 'pr', 'checks', str(pr), '--required', '--watch'], code=4)
-    _cmd(['gh', 'pr', 'merge', str(pr), '--merge'], code=4)
+    if _pr_state(pr) != 'MERGED':
+        _progress(f'等待快照 PR #{pr} 的 Required checks …')
+        _wait_required_checks(pr)
+        _cmd(['gh', 'pr', 'merge', str(pr), '--merge'], code=4)
+
     _cmd(['git', 'switch', 'main'], code=4)
     _cmd(['git', 'pull', '--ff-only'], code=4)
     if branch:
         _git('branch', '-d', branch)
     state['snapshots'] = 'merged'
     _save_state(state)
-
 
 def _root_step(state: dict, plan: dict, wait_minutes: int) -> None:
     root = plan.get('root') or {}
@@ -974,6 +1031,7 @@ def _run(args) -> int:
     fd = _acquire_lock()
     try:
         _save_state(state)
+        _warn_pub_network()
         packages = {package['short']: package for package in plan.get('packages', [])}
         order = [str(item) for item in plan.get('order', [])]
         total = len(order)
