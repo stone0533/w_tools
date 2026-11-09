@@ -1,4 +1,4 @@
-## Unreleased
+## 1.16.0
 
 ### Changed
 - catalog / templates / context：同步 `w_tools_qr` 2.0（`WQrController` 归调用方、
