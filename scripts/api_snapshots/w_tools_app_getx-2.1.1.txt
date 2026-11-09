@@ -1,0 +1,57 @@
+# w_tools_app_getx 2.1.1
+WApp	class
+WApp.addPlugin	void (WAppPlugin plugin)
+WApp.addPlugins	void (Iterable<WAppPlugin> plugins)
+WApp.clearPlugins	void ()
+WApp.init	Future<void> ({VoidCallback? onLazyInit, List<Future<void>>? customTasks})
+WApp.isInitialized	bool
+WApp.language	WLanguage
+WApp.options	WAppOptions
+WApp.plugins	List<WAppPlugin>
+WApp.removePlugin	void (String name)
+WApp.routeStack	WRouteStack
+WApp.run	void ({ String? initialRoute, List<GetPage<dynamic>>? getPages, TransitionBuilder? builder, List<NavigatorObserver>? navigatorObservers, Transition? defaultTransition, ThemeData? theme, Translations? translations, Locale? locale, Locale? fallbackLocale, })
+WApp.start	Future<void> ({ VoidCallback? onLazyInit, List<Future<void>>? customTasks, String? initialRoute, List<GetPage<dynamic>>? getPages, TransitionBuilder? builder, List<NavigatorObserver>? navigatorObservers, Transition? defaultTransition, ThemeData? theme, Translations? translations, Locale? locale, Locale? fallbackLocale, })
+WAppOptions	class
+WAppOptions.appWrapper	Widget Function(Widget child)?
+WAppOptions.builder	TransitionBuilder?
+WAppOptions.copyWith	WAppOptions ({ String? title, Object? home = _unset, Object? initialRoute = _unset, Object? getPages = _unset, Object? routes = _unset, Object? navigatorKey = _unset, Object? theme = _unset, Object? translations = _unset, Object? locale = _unset, Object? fallbackLocale = _unset, Object? supportedLocales = _unset, Object? localizationsDelegates = _unset, Object? builder = _unset, Object? navigatorObservers = _unset, Object? defaultTransition = _unset, Object? orientations = _unset, bool? shouldApplyOrientations, Object? appWrapper = _unset, Object? localeConfig = _unset, Object? plugins = _unset, Object? routeStack = _unset, Object? unknownRoute = _unset, })
+WAppOptions.defaultTransition	Transition?
+WAppOptions.fallbackLocale	Locale?
+WAppOptions.getPages	List<GetPage<dynamic>>?
+WAppOptions.home	Widget?
+WAppOptions.initialRoute	String?
+WAppOptions.locale	Locale?
+WAppOptions.localeConfig	WLocaleConfig?
+WAppOptions.localizationsDelegates	Iterable<LocalizationsDelegate<dynamic>>?
+WAppOptions.navigatorKey	GlobalKey<NavigatorState>?
+WAppOptions.navigatorObservers	List<NavigatorObserver>?
+WAppOptions.new	({ required this.title, this.home, this.initialRoute, List<GetPage<dynamic>>? getPages, Map<String, WidgetBuilder>? routes, this.navigatorKey, this.theme, this.translations, this.locale, this.fallbackLocale, List<Locale>? supportedLocales, this.localizationsDelegates, this.builder, List<NavigatorObserver>? navigatorObservers, this.defaultTransition, List<DeviceOrientation>? orientations, this.shouldApplyOrientations = false, this.appWrapper, this.localeConfig, List<WAppPlugin>? plugins, this.routeStack, this.unknownRoute, })
+WAppOptions.orientations	List<DeviceOrientation>
+WAppOptions.plugins	List<WAppPlugin>
+WAppOptions.routeStack	WRouteStack?
+WAppOptions.routes	Map<String, WidgetBuilder>?
+WAppOptions.shouldApplyOrientations	bool
+WAppOptions.supportedLocales	List<Locale>?
+WAppOptions.theme	WAppTheme?
+WAppOptions.title	String
+WAppOptions.translations	Translations?
+WAppOptions.unknownRoute	GetPage<dynamic>?
+WBottomSheet	class
+WRouteObserver	class
+WRouteObserver.didPop	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didPush	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didRemove	void (Route<dynamic> route, Route<dynamic>? previousRoute)
+WRouteObserver.didReplace	void ({Route<dynamic>? newRoute, Route<dynamic>? oldRoute})
+WRouteObserver.new	({required WRouteStack stack, this.recordPopups = false})
+WRouteObserver.recordPopups	bool
+WRouteObserver.stack	WRouteStack
+WRouteStack	class
+WRouteStack.addRoute	void (Route<dynamic> route)
+WRouteStack.clearRoutes	void ()
+WRouteStack.new	()
+WRouteStack.popUntilRoute	bool (String page)
+WRouteStack.removeRoute	void (Route<dynamic> route)
+WRouteStack.removeRouteIfExists	bool (String page)
+WRouteStack.removeRoutesAfter	int (String page)
+WRouteStack.routes	UnmodifiableListView<Route<dynamic>>
