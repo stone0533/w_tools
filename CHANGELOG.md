@@ -2,6 +2,8 @@
 
 ### Changed
 - 根包 `w_tools_api` 约束抬到 `^5.1.0`（web 网络层修复与 `onAuthFailure` / `reset` 等新 API）。
+- 根包 `w_tools_async` 约束抬到 `^6.1.0`（`WAsyncPagedController.page` /
+  `hasLoadedMoreThanOnePage` 新 API）。
 
 ## 12.0.0
 

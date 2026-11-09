@@ -6,6 +6,16 @@
   旧名保留为 aliases 供 `explain` 兜底；capability 摘要改为 `WQrView + WQrController（重扫 restart）`。
 - `init` 的 `w_tools_device` 版本约束同步到 `^0.3.0`。
 - `list --package=device` 的提示改为指向 `docs/agents/device-testing.md`（此前指向不存在的 `device.md`）。
+- `doctor`：未启用的规则（默认关闭的 R6、以及用户显式关闭的规则）现在统一以
+  `status: skipped` + `skipReason: 未在 rules 中启用` 出现在 `--format=json` / human / markdown
+  输出里，不再整条从 `rules` 数组消失；`counts` 与退出码不受影响。
+
+### Docs
+- `templates/agents/{zh,en}/async.md`：补「`WAsync` 的 `state` 是 `ValueListenable`、不是 `Rx`，
+  页面里其它 Rx 状态的 `Obx` 仍要保留」；分页补「页号读 `page` / `hasLoadedMoreThanOnePage`，
+  不要用 `data.length` 变大去猜」。
+- `templates/agents/{zh,en}/app.md`：插件 `onInit` 里注册 GetX 服务用 `registerService`
+  （`w_tools_app_getx`），不要写 `Future<void> onInit() => Get.putAsync(...)`（会注册到 `void`）。
 
 ## 1.15.1
 

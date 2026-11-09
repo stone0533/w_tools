@@ -889,9 +889,12 @@ components:
       c.changes.addListener(() { ... }); // 或单项监听 hasMoreListenable / loadMoreError
       c.hasMoreListenable.addListener(() { ... });
       c.loadMoreError.addListener(() { ... });
+      c.page;                      // 下一次 loadMore 的页码（首屏前 = initialPage）
+      c.hasLoadedMoreThanOnePage;  // 是否已成功追加过第二页
     pitfalls:
       - 'loadMore 失败只写 loadMoreError，不要清空列表'
       - 'initial: ready([]) / empty 视为没有更多'
+      - 'page 是「下一次请求的页码」，不是「当前页」；别自己用 data.length 猜是否翻过页'
     related: ['WAsyncView', 'WAsyncController']
     teach: true
   - name: '`WAsyncStateSliver`'

@@ -1,5 +1,17 @@
 # Changelog
 
+## 6.1.0
+
+### Added
+- `WAsyncPagedController.page`：下一次 `loadMore` 将请求的页码（首屏完成前等于
+  `initialPage`，刷新失败会回滚）。消费方不用再自己维护「是否翻过页」的布尔。
+- `WAsyncPagedController.hasLoadedMoreThanOnePage`：是否已成功追加过第二页
+  （`page > initialPage + 1`），由 `page` 派生，刷新失败回滚时不会误报。
+
+### Changed
+- `WAsyncView` / `WAsyncStateBuilder` 的 dartdoc 说明 `state` 是 `ValueListenable`、
+  不是 `Rx`：页面里其它 Rx 状态上的 `Obx` 仍需保留，删掉不会编译报错但会静默失效。
+
 ## 6.0.0
 
 ### Breaking

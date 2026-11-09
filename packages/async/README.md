@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^6.0.0
+  w_tools_async: ^6.1.0
 ```
 
 要求 Flutter 3.38+。
@@ -240,6 +240,10 @@ chunk 引用，旧 `state.data` 与新增量共享前缀，十万级也不会整
 
 最后一页返回空列表时 `hasMore` 会变成 `false`，但 `state` 不变；只按 `state` 重建的
 footer 必须额外监听 `hasMoreListenable`，否则按钮会一直停在「加载更多」。
+
+页号也直接可读：`controller.page` 是**下一次 `loadMore` 将请求的页码**（首屏完成前等于
+`initialPage`）；`controller.hasLoadedMoreThanOnePage` 表示已成功追加过第二页，
+用来区分「首屏还没翻过页」和「已翻过页、现在没有更多了」。
 
 `initial: WAsyncState.ready([])` 视为没有更多：不会请求 `initialPage + 1`。
 

@@ -101,6 +101,19 @@ class WAsyncPagedController<T> {
   /// [hasMore] 的监听入口；footer 用它感知「加载更多 → 没有更多」。
   ValueListenable<bool> get hasMoreListenable => _hasMore;
 
+  /// 下一次 [loadMore] 将请求的页码；首屏完成前等于 [initialPage]。
+  ///
+  /// 只进不退的语义在这里不成立：首屏 [refresh] 失败会回滚到刷新前的页码，
+  /// [loadMore] 失败则停在原页码。普通 getter，不会通知；
+  /// 需要感知变化时用 [changes]。
+  int get page => _page;
+
+  /// 是否已经成功追加过第二页（`page > initialPage + 1`）。
+  ///
+  /// footer 用它区分「首屏还没翻过页」和「已经翻过页、现在没有更多了」；
+  /// 它由 [page] 派生，刷新失败回滚时不会误报。
+  bool get hasLoadedMoreThanOnePage => _page > initialPage + 1;
+
   /// state / isLoadingMore / loadMoreError / hasMore 任一变化都会通知。
   ///
   /// footer 只需要一个监听入口时用它；[dispose] 后不要再添加监听。

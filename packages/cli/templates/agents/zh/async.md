@@ -4,6 +4,7 @@
   放在 App 根节点（`WAppOptions.appWrapper`；或消费方自建插件的 `wrapApp`），不要只放页面 body。
   普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，
   不要把 `SmartRefresher` 包在 `WAsyncView` 外面；分页用 `WAsyncPagedController`，
+  页号 / 是否翻过页读 `page` / `hasLoadedMoreThanOnePage`（不要用 `data.length` 变大去猜），
   `loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
   `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；
   loading/empty/error 只能作为 slivers 分支。Sliver 页面默认视图用 `WAsyncTheme` 的 `sliver*Builder`，
@@ -32,5 +33,10 @@
   `WAsyncStatus`（`state.status`）是四态枚举；`WAsyncStrings` 通过
   `WAsyncTheme(strings: ...)` 注入默认文案；取消异常用 `WCancellationException`。
   `WAsyncActivity` 只用于同一批并行任务，不要拿它合并多个独立区块。
+
+  **`WAsync` 的 `state` 是 `ValueListenable`，不是 `Rx`**：`WAsyncView` / `WAsyncStateBuilder`
+  只用 `ValueListenableBuilder` 重建自己。迁移时页面里其它 Rx 状态（筛选条件、倒计时）原来靠外层
+  `Obx` 重建，换成 `WAsyncStateBuilder` 后那个 `Obx` 还得包着（把 `Obx` 放进 builder 内层）；
+  顺手删掉它**不会有编译错误**，但那些状态就不再触发重建。
 
   查用法：`dart run w_tools_cli:w_tools explain WAsync --format=prompt`。

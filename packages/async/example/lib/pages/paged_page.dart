@@ -116,6 +116,12 @@ class _Footer extends StatelessWidget {
                         : '没有更多',
                   ),
                 ),
+                // hasLoadedMoreThanOnePage 区分「首屏还没翻过页」和「已翻过页」，
+                // 不用自己拿 state.data.length 变大去猜（失败路径上长度不变）。
+                Text(
+                  controller.hasLoadedMoreThanOnePage ? '已加载多页' : '仅第一页',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             );
           },
