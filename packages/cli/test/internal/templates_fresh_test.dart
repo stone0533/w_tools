@@ -7,6 +7,7 @@ import 'package:w_tools_cli/src/doctor/rule.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/templates.dart';
 
+import '../../tool/agent_budget.dart';
 import '../../tool/gen_templates.dart';
 
 /// 漂移守卫：`lib/src/init/templates.g.dart` 必须与仓库根 `templates/` 一致。
@@ -208,30 +209,25 @@ void main() {
   });
 
   group('AGENTS 结构预算（防沉淀）', () {
-    test('full 块 ≤ 90 行 / ≤ 6000 字符', () {
-      final block = InitTemplates.agentsBlock();
-      expect(block.split('\n').length, lessThanOrEqualTo(90));
-      expect(block.length, lessThanOrEqualTo(6000));
+    test('预算来自 catalog/agent_budget.yaml，且覆盖必检组合', () {
+      final budget = AgentBudget.load();
+      for (final combo in AgentBudget.requiredCombos) {
+        expect(budget.hasCombo(combo), isTrue, reason: '预算缺少必检组合 $combo');
+      }
+      expect(budget.feedbackMaxLines, greaterThan(0));
     });
 
-    test('英文 full 块 ≤ 100 行 / ≤ 7000 字符', () {
-      final en = InitTemplates.agentsBlock(lang: 'en');
-      expect(en.split('\n').length, lessThanOrEqualTo(100));
-      expect(en.length, lessThanOrEqualTo(7000));
+    test('渲染结果在预算内（行数 / 字符 / 反馈行数）', () {
+      final budget = AgentBudget.load();
+      final rows = measure(budget);
+      expect(rows, isNotEmpty);
+      expect(violations(budget, rows: rows), isEmpty);
     });
 
-    test('minimal 块 ≤ 45 行', () {
-      final minimal = InitTemplates.agentsBlock(
-        withUi: false,
-        withApp: false,
-        withForm: false,
-        withApi: false,
-        withAsync: false,
-        withQr: false,
-        withMap: false,
-        withToast: false,
-      );
-      expect(minimal.split('\n').length, lessThanOrEqualTo(45));
+    test('预算文件缺失时直接报错，不能静默失去保护', () {
+      final empty = Directory.systemTemp.createTempSync('wt_budget_');
+      addTearDown(() => empty.deleteSync(recursive: true));
+      expect(() => AgentBudget.load(empty), throwsStateError);
     });
 
     test('顺序：怎么用 → 硬规则 → 组件约定 → 完成前', () {
@@ -255,12 +251,16 @@ void main() {
     test('反馈只留几行，并指向 AI_PROMPTS 的 L-1', () {
       final block = InitTemplates.agentsBlock();
       final closing = block.substring(block.indexOf('## 完成前'));
-      expect(
-        closing.split('\n').where((line) => line.contains('feedback')).length,
-        lessThanOrEqualTo(4),
-      );
       expect(closing, contains('AI_PROMPTS.md'));
       expect(closing, contains('L-1'));
+      final budget = AgentBudget.load();
+      for (final lang in <String>['zh', 'en']) {
+        expect(
+          feedbackLines(lang),
+          lessThanOrEqualTo(budget.feedbackMaxLines),
+          reason: '$lang 的反馈段太长（默认关闭的通道不该常驻）',
+        );
+      }
     });
 
     test('zh / en 组件符号集合一致', () {

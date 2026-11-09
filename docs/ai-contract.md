@@ -176,8 +176,17 @@ lib/src/catalog/catalog.g.dart
 | 跨组件的项目约定（用哪个入口、生成物别手改） | AGENTS 的「硬规则」或「组件约定」一行 |
 
 判据只有一句：**新规则先问「能不能进 catalog / explain」，能进就不进 AGENTS。**
-`test/internal/templates_fresh_test.dart` 有一组结构预算门禁（行数 / 字符数 / 段落顺序 / zh-en 符号一致），
-防止模板随版本单调膨胀。
+
+落地由两道门禁兜底（都不是「语义判断」，语义仍是评审的事）：
+
+| 门禁 | 管什么 | 数据 / 实现 |
+|---|---|---|
+| 结构预算 | 渲染后的行数 / 字符数 / 反馈行数 | 数据在 [`packages/cli/catalog/agent_budget.yaml`](../packages/cli/catalog/agent_budget.yaml)；`packages/cli/tool/agent_budget.dart` 量并打印余量（preflight 的 `agents budget` 步），测试直接复用同一实现 |
+| 锚 | 每条 bullet 必须指向一个可查的出口（`explain X` / 路径 / 规则号 / 命令 / 占位符） | [`scripts/check_agents_routing.py`](../scripts/check_agents_routing.py)（`check_docs` 步）；确实不需要出口的流程句写 `<!-- no-anchor: 理由 -->` 显式豁免 |
+
+抬预算 = 改 `agent_budget.yaml` 的一处显式 diff，PR 里必须写理由；`zh/full`、`zh/minimal`、
+`en/full`、`en/minimal` 是必检组合，删掉会直接报错。形状类断言（四段顺序、硬规则在前 30 行、
+块内禁止 `## 项目规则` / `## 检查项`、zh-en 符号集合一致）在 `test/internal/templates_fresh_test.dart`。
 
 ```bash
 cd packages/cli

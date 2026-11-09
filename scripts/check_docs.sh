@@ -240,6 +240,7 @@ step '教学覆盖' python3 scripts/check_teaching_coverage.py
 step '当前文档事实' python3 scripts/check_docs_facts.py
 step '维护者提示词' python3 scripts/check_prompt_docs.py
 step 'docs/agents 索引与入口' python3 scripts/check_agents_consistency.py
+step 'AGENTS 模板锚' python3 scripts/check_agents_routing.py
 
 if [ "$errors" -gt 0 ]; then
   printf '\n文档检查失败：%s 项\n' "$errors"

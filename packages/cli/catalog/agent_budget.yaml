@@ -1,0 +1,28 @@
+# 消费方 AGENTS 片段的结构预算（按**渲染后**的行数 / 字符数）。
+#
+# 为什么是数据文件而不是测试里的常量：抬预算必须是一处显式 diff ——
+# 评审能看到「这次为什么允许更长」，而不是在测试里悄悄把 90 改成 120。
+# 改这里要同时说明理由（PR 描述 / CHANGELOG）。
+#
+# 键：lang -> profile（profile 名必须与 init --profile 一致）。
+# 只给需要盯的组合定预算；`zh/full` / `zh/minimal` / `en/full` / `en/minimal`
+# 是必检组合（见 tool/agent_budget.dart 的 requiredCombos），删掉会直接报错。
+agents:
+  zh:
+    full:
+      lines: 90
+      chars: 6000
+    minimal:
+      lines: 45
+      chars: 3000
+  en:
+    full:
+      lines: 100
+      chars: 7000
+    minimal:
+      lines: 50
+      chars: 3500
+
+# 「完成前」里的反馈段：默认关闭的通道不该常驻，只留几行指针。
+feedback:
+  maxLines: 4

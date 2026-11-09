@@ -109,6 +109,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_published_links.py` | 发布物 Markdown 相对链接：根 `README.md` / `CHANGELOG.md` / `CONTRIBUTING.md` / `example/**` 不得指向 `.pubignore` / 发布脚本排除的 `docs/`、`scripts/`、`packages/` 等路径；包内 Markdown 不得跳出包目录或指向包内被排除的 `test/`、`docs/` 等子目录 | check_docs |
 | `check_docs_facts.py` | 规模数字（从 pubspec 推导）/ 文档索引完整性（含每个 ADR 在 `docs/README.md` 留行）/ ADR 编号、状态、索引一致、补充日期 / doctor 规则表一致性 / 旧命令 | check_docs |
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名 + 高频规则短语一致 | check_docs |
+| `check_agents_routing.py` | 消费方 AGENTS 模板每条 bullet 必须有**锚**（`explain X` / 路径 / 规则号 / 命令 / 占位符），否则要写 `<!-- no-anchor: 理由 -->` 显式豁免；空理由也算失败 | check_docs |
 | `check_prompt_docs.py` | 文档命令可执行（提示词手册 **+ `packages/cli/templates/ai/*.md`**：脚本 / flag / cwd / 占位符（带空格的写法逃过校验，模板里不许写空格）/ 场景编号（§1 ↔ 标题双向、重复标题）/ `w_tools` 子命令 flag（含 `\` 续行）/ 手册内 docs 路径 / 生成器与测试文件存在；其余当前文档：脚本存在 + flag 存在 + CLI flag 存在；历史目录不参与） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查（双向：新类型要登记，基线里的旧名字也要删） | preflight |
 | `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到 | check_docs / preflight |
@@ -197,6 +198,9 @@ bash scripts/mutate_guard.sh \
   例外读 `naming_baseline.yaml`；
 - `check_docs_facts.py`：规模数字与索引完整性，不校验 API 细节；
 - `check_agents_consistency.py`：比入口名 + 高频规则短语，不做全文语义比对；
+- `check_agents_routing.py`：只查「每条有没有出口」，**不判断**这条规则该不该进 AGENTS
+  （那是 `docs/ai-contract.md` §3.3 的评审判据）；预算在 `packages/cli/catalog/agent_budget.yaml`，
+  由 `packages/cli/tool/agent_budget.dart` 在 preflight 里量；
 - `check_package_docs.py`：安装示例的下界必须等于当前版本（含 patch；非 caret 直接失败）；
 - `check_teaching_coverage.py`：只比对入口名是否出现在 docs/agents / 模板 / README（有 example 时再加 example/lib）
   这几个载体里（子串匹配，不代表讲清楚了）；`entrypoints.yaml` 覆盖 11 个库包；

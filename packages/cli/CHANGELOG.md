@@ -26,8 +26,12 @@
   「Agent Requested」，由 agent 自己决定读不读，接入约定等于没生效。
 
 ### Tests
-- `templates_fresh_test.dart` 新增结构预算门禁：full ≤ 90 行 / ≤ 6000 字符、minimal ≤ 45 行、段落顺序、
-  反馈 ≤ 4 行、zh/en 组件符号集合一致、项目规则占位必须在块外。
+- `templates_fresh_test.dart` 新增结构预算门禁：full / minimal / en 的行数与字符数、段落顺序、
+  反馈行数、zh/en 组件符号集合一致、项目规则占位必须在块外。
+- 预算数据化到 `catalog/agent_budget.yaml`（抬预算 = 一处显式 diff），`tool/agent_budget.dart`
+  量渲染结果并在 preflight 的 `agents budget` 步打印余量表；测试直接复用同一实现。
+- 新增 `scripts/check_agents_routing.py`：AGENTS 模板每条 bullet 必须有锚
+  （`explain X` / 路径 / 规则号 / 命令 / 占位符），否则要写 `<!-- no-anchor: 理由 -->` 显式豁免。
 - R8 新增「版本升了但内容没变 → pass」「块内被手改 → 报内容不同」用例。
 
 ## 1.17.2
