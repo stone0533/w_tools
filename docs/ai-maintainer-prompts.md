@@ -880,8 +880,9 @@ J-5 多包/家族
 
 > K-0 的审计/排序先跑只读计划：
 > `python3 scripts/release_wave.py plan --all --out .w_tools/release-plan.json`
-> （`--json` 给 AI，`--check` 有阻断退出 1）。它不发布、不改文件；只给出版本、顺序、
-> 根包快照依赖与阻断项。需要逐包细节时再走 K-1。
+> （`--json` 给 AI，`--check` 有阻断退出 1）。默认只列 publish / blocked + 汇总；
+> 看全表加 `--all-rows`，要旧的逐包进度 + 全表加 `--verbose`。它不发布、不改文件；
+> 只给出版本、顺序、根包快照依赖与阻断项。需要逐包细节时再走 K-1。
 >
 > K-2 的版本 PR 合并后，步骤 4~8 可以一条命令执行：
 > `python3 scripts/release_wave.py run --plan .w_tools/release-plan.json --dry-run` 预演；

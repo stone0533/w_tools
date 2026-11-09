@@ -99,7 +99,8 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    python3 scripts/release_wave.py plan --all
    python3 scripts/release_wave.py plan --all --json   # 给 AI / 脚本
    ```
-   它不发布、不改文件；版本决策仍由下面第 1 步确认。
+   它不发布、不改文件；默认只列 publish / blocked + 汇总，`--all-rows` 看全表，
+   `--verbose` 恢复逐包进度。版本决策仍由下面第 1 步确认。
 1. 确认子包 `version` + `CHANGELOG.md` 的 `## x.y.z` 段：功能 PR 里已经抬过就沿用；
    还没抬时才在这里抬（版本号决定 semver，拿不准先和人工确认）。
 2. 功能 PR 已经抬过根 `pubspec.yaml` / `versions.dart` 下界就沿用；还没抬时在**本步**
