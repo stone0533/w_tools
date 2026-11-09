@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# 阻止直接 push main；公开变更走 PR + Required checks。
+# 阻止直接 push main；feature 分支在干净工作区时先跑公开 API 版本检查。
+# 公开变更仍走 PR + Required checks。
 set -euo pipefail
+
+root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$root"
 
 while read -r _local_ref _local_sha remote_ref _remote_sha; do
   if [ "$remote_ref" = "refs/heads/main" ]; then
@@ -8,3 +12,19 @@ while read -r _local_ref _local_sha remote_ref _remote_sha; do
     exit 1
   fi
 done
+
+# 把 api-bump 最常见的红灯前移到 push 前：公开 API 变了却没抬版本。
+# 只在工作区干净、且本地有 origin/main 时跑；否则跳过（不阻塞脏工作区 / 浅克隆）。
+if [ "${PRE_PUSH_SKIP_VERSION_CHECK:-}" != "1" ] \
+  && [ -f scripts/check_version_bump.py ] \
+  && command -v python3 >/dev/null 2>&1 \
+  && git rev-parse --verify --quiet origin/main >/dev/null 2>&1 \
+  && git diff --quiet \
+  && [ -z "$(git ls-files --others --exclude-standard | head -n1)" ]; then
+  if ! python3 scripts/check_version_bump.py --base origin/main >/tmp/w_tools_pre_push_version.log 2>&1; then
+    echo "✗ 公开 API 变了但版本没抬（与 origin/main 对比）。" >&2
+    sed 's/^/  /' /tmp/w_tools_pre_push_version.log >&2
+    echo "  完整检查：python3 scripts/check_version_bump.py --base origin/main" >&2
+    exit 1
+  fi
+fi
