@@ -1,4 +1,4 @@
-## Unreleased
+## 1.16.1
 
 ### Changed
 - catalog / templates：同步 `w_tools_toast` 2.1（新增 `WToast.showModal`；`WToast` 条目补
