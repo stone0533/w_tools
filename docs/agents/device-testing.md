@@ -54,6 +54,7 @@ dart run w_tools_device:device shot --real --device=<名称>
 - `verify` 默认比较整屏，动画/轮播会误判，用 `--region`；
 - `--scale` 只用于 iOS 模拟器 calibrate/tap/drag/size/wait/verify；
 - `--no-cache` 只用于 iOS 模拟器 tap/drag/verify；`wait --region` 不需要标定，也不需要 `--no-cache`；
+- 横屏（Landscape）当前不支持（`calibrate` 会提示切回 Portrait）；DeviceHub 缩放/侧栏布局变化后先 `calibrate` 或加 `--no-cache`；
 - `--timeout-ms` / `--stable-ms` 只用于 wait/verify；verify 的 `--timeout-ms` 是点击前 + 后的总预算；
 - `--json` 输出带 `schemaVersion: 1`、`platform`、`deviceId`（单设备命令）；
 - 退出码：`0` 成功 · `1` verify 没变化 · `2` 参数/配置错误 · `3` 外部不可用 / 超时 · `4` 未分类执行错误。

@@ -15,7 +15,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_device: ^0.3.0
+  w_tools_device: ^0.3.1
 ```
 
 或：
@@ -119,7 +119,11 @@ dart run w_tools_device:device foreground --android    # 前台包名（冒烟�
 
 坐标标定原理：截 DeviceHub 窗口 → 找最外层黑色机身（连通域）→ 内缩得到设备屏幕矩形 →
 按设备分辨率换算成「设备坐标 ↔ 屏幕坐标」。结果缓存在 `~/.cache/w_tools_device/`，
-窗口位置 / 尺寸 / 设备宽高（旋转或 `--scale` 变化）不同就会失效并重算；需要强制重算时用 `--no-cache`。
+窗口位置 / 尺寸 / 设备宽高（`--scale` 变化）不同就会失效并重算；需要强制重算时用 `--no-cache`。
+
+**横屏（Landscape）当前不支持**：`calibrate` 会明确提示切回 Portrait。
+DeviceHub 的**缩放 / 侧栏布局变化不在标定缓存键里**：缩放或布局变化后先跑 `calibrate`，
+或给 `tap` / `drag` / `verify` 加 `--no-cache`，否则可能复用旧 `deviceRect` 点偏。
 
 ## 库 API 边界
 

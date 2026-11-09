@@ -112,6 +112,19 @@ class CalibrationDetector {
       throw StateError('在 DeviceHub 窗口里找不到设备机身（是不是没打开模拟器 / 没有屏幕录制权限？）');
     }
 
+    // 横屏预览：机身 bbox 会变成宽>高，但 simctl 截图仍是设备原生竖屏；
+    // 当前映射只支持竖屏，明确报错，避免被后面的“遮挡”检查误诊。
+    final previewRatio = bbox.width / bbox.height;
+    final landscapeRatio = deviceHeight / deviceWidth;
+    final looksLandscape =
+        previewRatio > 1.5 && ((previewRatio - landscapeRatio).abs() / landscapeRatio) < 0.25;
+    if (deviceHeight > deviceWidth && looksLandscape) {
+      throw StateError(
+        '检测到设备预览横屏（约 ${previewRatio.toStringAsFixed(1)}:1），但设备截图仍是竖屏；'
+        '当前版本不支持旋转设备，请把模拟器切回 Portrait 后重试。',
+      );
+    }
+
     // 去掉机身边框：横向约 3.2%，纵向按宽高比折算
     final insetX = math.max(3.0, bbox.width * 0.032);
     var rect = bbox.deflate(insetX);

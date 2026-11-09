@@ -101,6 +101,43 @@ void main() {
       expect(cal.deviceRect.width / cal.deviceRect.height, closeTo(402 / 874, 0.02));
     });
 
+    test('横屏预览但设备截图竖屏 → 明确报“横屏不支持”', () {
+      final image = img.Image(width: 1084, height: 872);
+      img.fill(image, color: img.ColorRgb8(250, 250, 250));
+      img.fillRect(
+        image,
+        x1: 40,
+        y1: 186,
+        x2: 1040,
+        y2: 686,
+        color: img.ColorRgb8(8, 8, 8),
+      );
+      img.fillRect(
+        image,
+        x1: 60,
+        y1: 200,
+        x2: 1020,
+        y2: 672,
+        color: img.ColorRgb8(235, 235, 235),
+      );
+      expect(
+        () => const CalibrationDetector().detect(
+          image: image,
+          window: const HubWindow(0, 0, 1084, 872),
+          scale: 1,
+          deviceWidth: 402,
+          deviceHeight: 874,
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('横屏'), contains('Portrait')),
+          ),
+        ),
+      );
+    });
+
     test('深色画面（屏幕内容也接近黑色）仍按机身外框标定', () {
       final image = img.Image(width: 872, height: 1084);
       img.fill(image, color: img.ColorRgb8(250, 250, 250));

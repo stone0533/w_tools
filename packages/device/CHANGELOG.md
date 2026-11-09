@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1
+
+### Fixed
+- 横屏（Landscape）预览：`calibrate` / `tap` / `verify` 现在明确报
+  “当前版本不支持旋转设备，请切回 Portrait”，不再误报“设备预览被其它窗口遮挡”。
+
+### Docs
+- 说明 DeviceHub 缩放 / 侧栏布局变化不在标定缓存键里：缩放后先 `calibrate`，或给
+  `tap` / `drag` / `verify` 加 `--no-cache`。
+
 ## 0.3.0
 
 ### Breaking
