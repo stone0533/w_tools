@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:w_tools_cli/src/doctor/banned_rule.dart';
 import 'package:w_tools_cli/src/doctor/rule.dart';
 import 'package:w_tools_cli/src/init/features.dart';
+import 'package:w_tools_cli/src/common/version.dart';
 import 'package:w_tools_cli/src/init/templates.dart';
 
 import '../../tool/agent_budget.dart';
@@ -222,6 +223,30 @@ void main() {
       final rows = measure(budget);
       expect(rows, isNotEmpty);
       expect(violations(budget, rows: rows), isEmpty);
+    });
+
+    test('--json 快照字段齐全，历史记录幂等', () {
+      final budget = AgentBudget.load();
+      final snapshot = snapshotJson(budget);
+      expect(snapshot['schema'], 'w_tools_cli.agent_budget/1');
+      expect(snapshot['generator'], isNotEmpty);
+      expect(snapshot['rows'], isA<List<Object?>>());
+      expect((snapshot['rows']! as List<Object?>), hasLength(greaterThan(0)));
+      expect(snapshot['feedback'], isA<Map<String, Object?>>());
+
+      final temp = Directory.systemTemp.createTempSync('wt_budget_history_');
+      addTearDown(() => temp.deleteSync(recursive: true));
+      final history = File(p.join(temp.path, 'agents_budget.jsonl'));
+      upsertRecord(history, snapshot);
+      upsertRecord(history, snapshot);
+      expect(history.readAsLinesSync().where((line) => line.trim().isNotEmpty).length, 1);
+      expect(recordViolations(history, '${snapshot['generator']}'), isEmpty);
+      expect(recordViolations(history, '9.9.9'), isNotEmpty);
+    });
+
+    test('当前 CLI 版本已记录历史快照（发布前必须 --record）', () {
+      final history = historyFileFor(AgentBudget.findCliRoot());
+      expect(recordViolations(history, cliVersion), isEmpty);
     });
 
     test('预算文件缺失时直接报错，不能静默失去保护', () {

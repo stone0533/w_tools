@@ -183,6 +183,7 @@ lib/src/catalog/catalog.g.dart
 |---|---|---|
 | 结构预算 | 渲染后的行数 / 字符数 / 反馈行数 | 数据在 [`packages/cli/catalog/agent_budget.yaml`](../packages/cli/catalog/agent_budget.yaml)；`packages/cli/tool/agent_budget.dart` 量并打印余量（preflight 的 `agents budget` 步），测试直接复用同一实现 |
 | 锚 | 每条 bullet 必须指向一个可查的出口（`explain X` / 路径 / 规则号 / 命令 / 占位符） | [`scripts/check_agents_routing.py`](../scripts/check_agents_routing.py)（`check_docs` 步）；确实不需要出口的流程句写 `<!-- no-anchor: 理由 -->` 显式豁免 |
+| 版本趋势 | 每个 CLI 版本长了多少 | [`docs/metrics/agents_budget.jsonl`](../docs/metrics/agents_budget.jsonl)（一个版本一行）；发布时 `dart run tool/agent_budget.dart --record` 写入，`--check` 要求当前版本已记录；周检 [`scripts/agents_budget_trend.py`](../scripts/agents_budget_trend.py) 出表到 job summary |
 
 抬预算 = 改 `agent_budget.yaml` 的一处显式 diff，PR 里必须写理由；`zh/full`、`zh/minimal`、
 `en/full`、`en/minimal` 是必检组合，删掉会直接报错。形状类断言（四段顺序、硬规则在前 30 行、

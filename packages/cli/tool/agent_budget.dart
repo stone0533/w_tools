@@ -4,14 +4,22 @@
 //
 // 用法（在 packages/cli 下）：
 //   dart run tool/agent_budget.dart            # 打印余量表
-//   dart run tool/agent_budget.dart --check    # 超预算 / 预算缺失时退出 1
+//   dart run tool/agent_budget.dart --json     # 机器可读快照（周检 / 趋势用）
+//   dart run tool/agent_budget.dart --record   # 把当前快照写进 docs/metrics/agents_budget.jsonl
+//   dart run tool/agent_budget.dart --check    # 超预算 / 预算缺失 / 当前版本没记录时退出 1
+//
+// 为什么要有历史记录：预算只能回答「现在离上限多远」，回答不了「这个版本又长了多少」。
+// 版本是 AGENTS 变化的最小发布单位，所以历史按 CLI 版本一行（`--record` 幂等 upsert），
+// 周检（.github/workflows/release-status.yml）读它出趋势表，不需要机器人提交。
 //
 // 为什么单独一个 tool 而不是写在测试里：预算要跟**渲染结果**比，只有 Dart 能渲染。
 // 测试（test/internal/templates_fresh_test.dart）和 preflight 都 import / 调用这里的
 // 实现，避免「测试里一套数字、数据文件里一套数字」。
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:w_tools_cli/src/common/version.dart';
 import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/templates.dart';
 import 'package:yaml/yaml.dart';
@@ -221,11 +229,104 @@ List<String> violations(AgentBudget budget, {List<BudgetRow>? rows}) {
   return out;
 }
 
+/// 机器可读快照：一行 = 一个版本（`--json` 与历史记录共用同一形状）。
+Map<String, Object?> snapshotJson(AgentBudget budget, {List<BudgetRow>? rows}) {
+  final measured = rows ?? measure(budget);
+  return <String, Object?>{
+    'schema': 'w_tools_cli.agent_budget/1',
+    'schemaVersion': 1,
+    'generator': cliVersion,
+    'measuredAt': DateTime.now().toUtc().toIso8601String(),
+    'rows': <Map<String, Object?>>[
+      for (final row in measured)
+        <String, Object?>{
+          'lang': row.lang,
+          'profile': row.profile,
+          'lines': row.lines,
+          'chars': row.chars,
+          'limitLines': row.limit.lines,
+          'limitChars': row.limit.chars,
+        },
+    ],
+    'feedback': <String, Object?>{
+      'zh': feedbackLines('zh'),
+      'en': feedbackLines('en'),
+      'maxLines': budget.feedbackMaxLines,
+    },
+  };
+}
+
+/// 历史快照：`docs/metrics/agents_budget.jsonl`，一个 CLI 版本一行。
+///
+/// 位置在 `docs/` 下（不进 CLI 包），因为它是仓库的演变记录，不是消费方产物。
+File historyFileFor(Directory cliRoot) {
+  final repoRoot = p.normalize(p.join(cliRoot.path, '..', '..'));
+  return File(p.join(repoRoot, 'docs', 'metrics', 'agents_budget.jsonl'));
+}
+
+/// 幂等写入：同一 `generator` 覆盖原行，否则追加；保持文件按记录顺序。
+void upsertRecord(File history, Map<String, Object?> record) {
+  final lines = history.existsSync()
+      ? history.readAsLinesSync().where((line) => line.trim().isNotEmpty).toList()
+      : <String>[];
+  final encoded = jsonEncode(record);
+  final index = lines.indexWhere((line) {
+    try {
+      final decoded = jsonDecode(line);
+      return decoded is Map && decoded['generator'] == record['generator'];
+    } on FormatException {
+      return false;
+    }
+  });
+  if (index >= 0) {
+    lines[index] = encoded;
+  } else {
+    lines.add(encoded);
+  }
+  history.parent.createSync(recursive: true);
+  history.writeAsStringSync('${lines.join('\n')}\n');
+}
+
+/// 当前版本是否已经记录；历史坏了也要报出来（否则趋势会静默断档）。
+///
+/// 只校验**存在性**，不校验数值一致：同一个版本内模板可能继续改，强行要求
+/// 「记录 == 当前渲染」会让多个并行 PR 因合并顺序把 main 弄红；数值的准确性
+/// 由发布流程保证（`docs/releasing.md` 第 4 步在发布前 `--record` 重新测量）。
+List<String> recordViolations(File history, String version) {
+  if (!history.existsSync()) {
+    return <String>[
+      '缺少 ${history.path}：跑 `dart run tool/agent_budget.dart --record` 生成并提交（一个版本一行）',
+    ];
+  }
+  var hasVersion = false;
+  final lines = history.readAsLinesSync().where((line) => line.trim().isNotEmpty).toList();
+  for (var index = 0; index < lines.length; index++) {
+    try {
+      final decoded = jsonDecode(lines[index]);
+      if (decoded is! Map) {
+        return <String>['${history.path} 第 ${index + 1} 行不是 JSON 对象'];
+      }
+      if (decoded['generator'] == version) hasVersion = true;
+    } on FormatException {
+      return <String>['${history.path} 第 ${index + 1} 行不是合法 JSON'];
+    }
+  }
+  if (hasVersion) return const <String>[];
+  return <String>[
+    '当前版本 $version 还没有历史快照：跑 `dart run tool/agent_budget.dart --record` 并提交 ${history.path}',
+  ];
+}
+
 void main(List<String> argv) {
+  final asJson = argv.contains('--json');
+  final record = argv.contains('--record');
   final checkOnly = argv.contains('--check');
+
   final AgentBudget budget;
+  final Directory cliRoot;
   try {
-    budget = AgentBudget.load();
+    cliRoot = AgentBudget.findCliRoot();
+    budget = AgentBudget.load(cliRoot);
   } on StateError catch (e) {
     stderr.writeln('✗ ${e.message}');
     exitCode = 1;
@@ -233,6 +334,34 @@ void main(List<String> argv) {
   }
 
   final rows = measure(budget);
+  final snapshot = snapshotJson(budget, rows: rows);
+  final history = historyFileFor(cliRoot);
+
+  if (record) {
+    upsertRecord(history, snapshot);
+    print(
+      '✓ 已记录 ${snapshot['generator']} → ${p.relative(history.path, from: Directory.current.path)}',
+    );
+    return;
+  }
+
+  final bad = <String>[
+    ...violations(budget, rows: rows),
+    ...recordViolations(history, cliVersion),
+  ];
+
+  if (asJson) {
+    print(
+      const JsonEncoder.withIndent('  ').convert(<String, Object?>{
+        ...snapshot,
+        'ok': bad.isEmpty,
+        'violations': bad,
+      }),
+    );
+    exitCode = checkOnly && bad.isNotEmpty ? 1 : 0;
+    return;
+  }
+
   if (!checkOnly) {
     print('AGENTS 片段预算（渲染后）：');
     for (final row in rows) {
@@ -247,9 +376,10 @@ void main(List<String> argv) {
     print(
       '  反馈行数: zh ${feedbackLines('zh')} / en ${feedbackLines('en')}（上限 ${budget.feedbackMaxLines}）',
     );
+    final recorded = recordViolations(history, cliVersion).isEmpty;
+    print('  历史快照: ${recorded ? '✓ $cliVersion 已记录' : '✗ 当前版本未记录（--record）'}');
   }
 
-  final bad = violations(budget, rows: rows);
   if (bad.isEmpty) {
     print('✓ AGENTS 片段在预算内（${rows.length} 个组合）');
     return;
@@ -257,6 +387,6 @@ void main(List<String> argv) {
   for (final line in bad) {
     stderr.writeln('✗ $line');
   }
-  stderr.writeln('修法：删内容或改 catalog/agent_budget.yaml（改预算要在 PR 里写理由）。');
+  stderr.writeln('修法：删内容 / 改 catalog/agent_budget.yaml（写理由）/ 跑 --record 记录本版本。');
   exitCode = 1;
 }

@@ -25,6 +25,13 @@
 - cursor target 的 `.cursor/rules/w_tools.mdc` 显式写 `alwaysApply: true`：没有它时规则会落到
   「Agent Requested」，由 agent 自己决定读不读，接入约定等于没生效。
 
+### Tooling
+- `tool/agent_budget.dart` 新增 `--json`（机器可读快照：schema / generator / rows / feedback）
+  与 `--record`（写入 `docs/metrics/agents_budget.jsonl`，一个 CLI 版本一行、幂等 upsert）；
+  `--check` 增加「当前版本已记录」校验，版本抬了没记录会失败。
+- 周检 `.github/workflows/release-status.yml` 用 `scripts/agents_budget_trend.py` 把预算趋势
+  渲染成 Markdown 表写进 job summary；只读历史，不跑 Dart、不需要外网。
+
 ### Tests
 - `templates_fresh_test.dart` 新增结构预算门禁：full / minimal / en 的行数与字符数、段落顺序、
   反馈行数、zh/en 组件符号集合一致、项目规则占位必须在块外。
