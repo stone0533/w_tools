@@ -146,7 +146,7 @@ class RootChangelogPolicyTest(unittest.TestCase):
 
     def test_bumped_root_version_passes(self):
         self.assertIsNone(
-            root_changelog_policy_error('12.0.2', '12.0.1', '## 12.0.2\n\n### Fixed\n'),
+            root_changelog_policy_error('12.0.2', '12.0.1', '## 12.0.2\n\n### Fixed\n', '12.0.1'),
         )
 
     def test_same_version_with_unreleased_passes(self):
@@ -155,21 +155,34 @@ class RootChangelogPolicyTest(unittest.TestCase):
                 '12.0.1',
                 '12.0.1',
                 '## Unreleased\n\n### Changed\n- 约束\n',
+                '12.0.1',
             ),
         )
 
     def test_same_version_without_unreleased_fails(self):
-        error = root_changelog_policy_error('12.0.1', '12.0.1', '## 12.0.1\n\n### Fixed\n')
+        error = root_changelog_policy_error(
+            '12.0.1', '12.0.1', '## 12.0.1\n\n### Fixed\n', '12.0.1',
+        )
         self.assertIsNotNone(error)
         self.assertIn('Unreleased', error)
 
+    def test_pending_root_version_can_edit_its_section(self):
+        self.assertIsNone(
+            root_changelog_policy_error('12.0.2', '12.0.2', '## 12.0.2\n\n### Changed\n', '12.0.1'),
+        )
+
+    def test_offline_skips_policy(self):
+        self.assertIsNone(
+            root_changelog_policy_error('12.0.1', '12.0.1', '## 12.0.1\n'),
+        )
+
     def test_downgrade_fails(self):
-        error = root_changelog_policy_error('12.0.0', '12.0.1', '## 12.0.0\n')
+        error = root_changelog_policy_error('12.0.0', '12.0.1', '## 12.0.0\n', '12.0.1')
         self.assertIsNotNone(error)
         self.assertIn('降', error)
 
     def test_missing_base_is_skipped(self):
-        self.assertIsNone(root_changelog_policy_error('12.0.1', None, ''))
+        self.assertIsNone(root_changelog_policy_error('12.0.1', None, '', '12.0.1'))
 
 
 class MainTest(unittest.TestCase):
