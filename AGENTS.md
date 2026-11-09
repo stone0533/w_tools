@@ -69,6 +69,22 @@ docs/modules/components.md
 
 子包发布成功后，脚本先把快照写到 `.w_tools/release-snapshots/`（gitignored，不会挡住下一个包）；一批发完运行 `bash scripts/apply_snapshots.sh` 应用到 `scripts/api_snapshots/`，再走分支 + PR：`pre-push` 禁止直接 push main，而发布脚本要求 `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 并 `git pull --ff-only`，再发根包（详见 `docs/releasing.md` 第 7 步）。
 
+### 本机网络（pub 的 OAuth 校验）
+
+`pub login` / `pub publish` 的 OAuth 校验要连 `accounts.google.com` / `oauth2.googleapis.com`；
+本机直连这两个域不通，而 pub 没有超时——现象是**没有任何输出地卡住**（进程停在 `SYN_SENT`），
+看起来像"命令没反应"。`pub.dev` 自己直连是通的。本机 Clash 代理在 `127.0.0.1:7890`：
+
+```bash
+export HTTPS_PROXY=http://127.0.0.1:7890
+export HTTP_PROXY=http://127.0.0.1:7890
+export NO_PROXY=localhost,127.0.0.1,pub.flutter-io.cn,storage.flutter-io.cn,pub.dev
+dart pub login   # 秒回 "You are already logged in as ..." 即代理生效
+```
+
+pub 只认 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 环境变量，不读 macOS 系统代理设置。
+换端口 / 换机器时先用 `nc -z 127.0.0.1 <port>` 探活再导出；CI 不需要这一节。
+
 ### 发布窗口判断
 
 先查 pub.dev 最新版本，再决定 `remove-in` / breaking 写给哪个版本：
