@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- `WAppPlugin.onInit` 的 dartdoc 补充：箭头写法 `Future<void> onInit() => Get.putAsync(...)`
+  会把实例注册到 `void` 下（`S` 被推断成 `void`），改用
+  `w_tools_app_getx` 的 `registerService<T>(...)` 或块体 + 显式泛型。
+
 ## 3.1.0
 
 ### Added

@@ -114,13 +114,27 @@ final Map<String, String> doctorRuleLevels = <String, String>{
   for (final r in doctorRules) r.id: r.level.name,
 };
 
+/// 未在 `rules` 中启用的规则统一用这个理由。
+const String doctorDisabledSkipReason = '未在 rules 中启用';
+
 /// 跑全部规则，或只跑 [only]。
+///
+/// 未启用的规则**不执行检查**，但仍以 [DoctorRuleStatus.skipped] 出现在结果里：
+/// 读 JSON / Markdown 的一方必须能区分「规则没启用」和「规则不存在」。
+/// 只按 [only] 过滤时，点名的未启用规则同样返回一条 skipped。
 List<DoctorRuleResult> runDoctor(ProjectContext ctx, DoctorConfig config, {Set<String>? only}) {
   final enabled = config.enabledRules;
-  final selected = doctorRules.where(
-    (r) => enabled.contains(r.id) && (only == null || only.contains(r.id)),
-  );
   return <DoctorRuleResult>[
-    for (final rule in selected) rule.check(ctx, config),
+    for (final rule in doctorRules)
+      if (only == null || only.contains(rule.id))
+        if (enabled.contains(rule.id))
+          rule.check(ctx, config)
+        else
+          DoctorRuleResult(
+            ruleId: rule.id,
+            title: rule.title,
+            status: DoctorRuleStatus.skipped,
+            skipReason: doctorDisabledSkipReason,
+          ),
   ];
 }

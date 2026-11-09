@@ -368,4 +368,73 @@ void main() {
       expect(firstPage[199], 199);
     });
   });
+
+  group('页号：page / hasLoadedMoreThanOnePage', () {
+    test('refresh 之前 page 是首屏页码，且不算翻过页', () {
+      final controller = WAsyncPagedController<int>((page) async => const [1], initialPage: 3);
+      addTearDown(controller.dispose);
+
+      expect(controller.page, 3);
+      expect(controller.hasLoadedMoreThanOnePage, isFalse);
+    });
+
+    test('首屏成功后 page 指向下一页，但仍不算翻过页', () async {
+      final controller = WAsyncPagedController<int>((page) async => const [1]);
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      expect(controller.page, 2);
+      expect(controller.hasLoadedMoreThanOnePage, isFalse);
+    });
+
+    test('追加成功后 page 前进，并标记已翻过页', () async {
+      final pages = <int, List<int>>{
+        3: [1],
+        4: [2],
+      };
+      final controller = WAsyncPagedController<int>(
+        (page) async => pages[page] ?? const <int>[],
+        initialPage: 3,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      expect(controller.page, 4);
+      await controller.loadMore();
+      expect(controller.page, 5);
+      expect(controller.hasLoadedMoreThanOnePage, isTrue);
+    });
+
+    test('loadMore 失败不推进页号，也不误报翻过页', () async {
+      final controller = WAsyncPagedController<int>((page) async {
+        if (page == 1) return const [1];
+        throw StateError('boom');
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      expect(controller.loadMoreError.value, isNotNull);
+      expect(controller.page, 2);
+      expect(controller.hasLoadedMoreThanOnePage, isFalse);
+    });
+
+    test('刷新失败回滚页号，已翻过页的状态保持', () async {
+      var failRefresh = false;
+      final controller = WAsyncPagedController<int>((page) async {
+        if (failRefresh) throw StateError('boom');
+        return page == 1 ? const [1] : const [2];
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      expect(controller.hasLoadedMoreThanOnePage, isTrue);
+
+      failRefresh = true;
+      await controller.refresh();
+      expect(controller.page, 3);
+      expect(controller.hasLoadedMoreThanOnePage, isTrue);
+    });
+  });
 }

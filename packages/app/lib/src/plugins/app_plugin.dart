@@ -63,6 +63,26 @@ abstract mixin class WAppPlugin {
   ///
   /// **注意**：任一插件的 `onInit` 抛错都会让启动失败；同层其它插件仍会执行完
   /// （`Future.wait` 等全部完成后抛出）。
+  ///
+  /// **注册 GetX 服务时注意推断**：`onInit` 返回 `Future<void>`，所以下面这种
+  /// 箭头写法会把实例注册到 `void` 下 —— `Get.putAsync<S>` 返回 `Future<S>`，
+  /// 期望类型 `Future<void>` 把 `S` 推成 `void`；之后 `Get.isRegistered<T>()`
+  /// 是 false、`Get.find<T>()` 抛 "not found"，而服务其实已经在跑，analyzer 也不报。
+  ///
+  /// ```dart
+  /// @override
+  /// Future<void> onInit() => Get.putAsync(() => PbeService().init()); // 错：注册到 void
+  /// ```
+  ///
+  /// 改用 `w_tools_app_getx` 的 `registerService<T>(...)`（`T` 只由 factory 推断，
+  /// 箭头写法也安全）；不想加依赖时写成块体 + 显式泛型：
+  ///
+  /// ```dart
+  /// @override
+  /// Future<void> onInit() async {
+  ///   await Get.putAsync<PbeService>(() => PbeService().init());
+  /// }
+  /// ```
   Future<void> onInit() async {}
 
   // ──── run 阶段钩子 ────

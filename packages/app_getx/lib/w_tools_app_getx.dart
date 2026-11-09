@@ -8,4 +8,5 @@ export 'src/app.dart';
 export 'src/options.dart';
 export 'src/routing/route_stack.dart';
 export 'src/routing/route_observer.dart';
+export 'src/service.dart';
 export 'src/sheet/bottom_sheet.dart';

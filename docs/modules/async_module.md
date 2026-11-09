@@ -180,6 +180,12 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 只挂一个监听时用 `changes`（合并以上四项）；需要细粒度重建时仍用上面的单项。
 追加使用 chunked 不可变列表（结构共享），不会每页复制整表；`state.data` 仍是 `List<T>`。
 
+页号：
+
+- `page` 是**下一次 `loadMore` 将请求的页码**，首屏完成前等于 `initialPage`；刷新失败会回滚。
+- `hasLoadedMoreThanOnePage`（`page > initialPage + 1`）表示已成功追加过第二页，
+  用它区分「首屏还没翻过页」和「已翻过页、现在没有更多了」；不要用 `state.data.length` 变大去猜。
+
 `initialPage` 必须 >= 1；`initial: WAsyncState.ready([])` / `WAsyncState.empty()` 视为没有更多；`loadMore` 失败只写 `loadMoreError`，不清空列表。
 
 ## 4. View
@@ -224,4 +230,4 @@ cd packages/async
 flutter test
 ```
 
-当前 6.0.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
+当前 6.1.0；迁移见 [async-6.0](../migrations/async-6.0.md)。

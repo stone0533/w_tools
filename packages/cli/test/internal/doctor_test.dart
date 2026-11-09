@@ -556,7 +556,7 @@ void main() {
   });
 
   group('配置与文本扫描边界', () {
-    test('rules: R2 false 真正关闭 R2', () {
+    test('rules: R2 false 真正关闭 R2（以 skipped 出现但不报问题）', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\n',
         'lib/a.dart': "import 'package:w_tools_ui/w_tools_ui.dart';\n",
@@ -564,7 +564,10 @@ void main() {
       addTearDown(() => root.deleteSync(recursive: true));
       final config = DoctorConfig.parse('rules:\n  R2: false\n');
       final results = runDoctor(ctxOf(root, config), config);
-      expect(results.where((r) => r.ruleId == 'R2'), isEmpty);
+      final r2 = results.singleWhere((r) => r.ruleId == 'R2');
+      expect(r2.status, DoctorRuleStatus.skipped);
+      expect(r2.skipReason, doctorDisabledSkipReason);
+      expect(r2.issues, isEmpty);
     });
 
     test('块注释里的 import 不算 R2', () {
@@ -614,6 +617,51 @@ void main() {
       final config = DoctorConfig(palette: const ['#3F3F3F'], colorMinCount: 3);
       final result = R3HardcodedColors.check(ctxOf(root, config), config);
       expect(result.issues, isNotEmpty);
+    });
+  });
+
+  group('规则列表一致性（未启用规则不消失）', () {
+    test('默认关闭的 R6 以 skipped 出现，并带 skipReason', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/a.dart': 'final x = 12.h;\n',
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig();
+      final r6 = runDoctor(ctxOf(root, config), config).singleWhere((r) => r.ruleId == 'R6');
+      expect(r6.status, DoctorRuleStatus.skipped);
+      expect(r6.skipReason, isNotEmpty);
+      expect(r6.issues, isEmpty);
+    });
+
+    test('显式关闭的规则同样以 skipped 出现，不再整个缺失', () {
+      final root = makeProject({'pubspec.yaml': 'name: demo\n'});
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig.parse('rules:\n  R2: false\n');
+      final r2 = runDoctor(ctxOf(root, config), config).singleWhere((r) => r.ruleId == 'R2');
+      expect(r2.status, DoctorRuleStatus.skipped);
+      expect(r2.issues, isEmpty);
+    });
+
+    test('未启用规则不执行检查：禁用 R2 时直连 import 不报问题', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'lib/a.dart': "import 'package:w_tools_ui/w_tools_ui.dart';\n",
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig.parse('rules:\n  R2: false\n');
+      final results = runDoctor(ctxOf(root, config), config);
+      expect(results.expand((r) => r.issues), isEmpty);
+    });
+
+    test('每条内置规则都有结果，--only 仍只返回点名的规则', () {
+      final root = makeProject({'pubspec.yaml': 'name: demo\n'});
+      addTearDown(() => root.deleteSync(recursive: true));
+      final config = DoctorConfig();
+      final all = runDoctor(ctxOf(root, config), config);
+      expect(all.map((r) => r.ruleId), unorderedEquals(doctorRuleIds));
+      final only = runDoctor(ctxOf(root, config), config, only: {'R1'});
+      expect(only.map((r) => r.ruleId), ['R1']);
     });
   });
 }

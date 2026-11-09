@@ -37,5 +37,18 @@ void main() {
       expect(text, contains('BotToastInit'));
       expect(text, contains('BotToastNavigatorObserver'));
     });
+
+    test('$lang async 模板说明 state 是 ValueListenable、Obx 不会跟着重建', () {
+      final text = File('templates/agents/$lang/async.md').readAsStringSync();
+      expect(text, contains('ValueListenable'));
+      expect(text, contains('Obx'));
+    });
+
+    test('$lang app 模板提醒插件里用 registerService 注册服务', () {
+      final text = File('templates/agents/$lang/app.md').readAsStringSync();
+      expect(text, contains('registerService'));
+      expect(text, contains('Get.putAsync'));
+      expect(text, contains('void'));
+    });
   }
 }

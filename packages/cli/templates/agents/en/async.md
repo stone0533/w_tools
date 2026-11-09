@@ -5,7 +5,8 @@
   `SmartRefresher` around `WAsyncView`. `builder` must always return the same
   `SmartRefresher + CustomScrollView`; loading/empty/error go inside slivers. Use
   `WAsyncTheme`'s `sliver*Builder` / `WAsyncStateSliver` for sliver pages; `readySliverBuilder` returns a sliver.
-  Pagination: use `WAsyncPagedController`; on `loadMore` failure write `loadMoreError` / footer,
+  Pagination: use `WAsyncPagedController`; read `page` / `hasLoadedMoreThanOnePage` instead of
+  guessing from `data.length`; on `loadMore` failure write `loadMoreError` / footer,
   never replace the list with `WAsyncController.failed`.
   For pure execution without UI use `WAsync.tryRun` + `WAsyncResult`, or `WAsync.run` (throws on failure);
   do not use the removed `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading`.
@@ -32,5 +33,11 @@
   `WAsyncStrings` via `WAsyncTheme(strings: ...)`; cancellation throws
   `WCancellationException`. `WAsyncActivity` is only for one batch of parallel
   tasks, never for merging independent blocks.
+
+  **`WAsync`'s `state` is a `ValueListenable`, not `Rx`**: `WAsyncView` /
+  `WAsyncStateBuilder` only rebuild through `ValueListenableBuilder`. When migrating,
+  other Rx state on the page (filters, countdowns) was rebuilt by an outer `Obx`; keep
+  that `Obx` (put it inside the builder). Deleting it **still compiles**, but those
+  states silently stop rebuilding.
 
   Look up usage: `dart run w_tools_cli:w_tools explain WAsync --format=prompt`.

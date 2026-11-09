@@ -1534,6 +1534,9 @@ const String agentsApp = r'''
   `WRouteObserver` 已由 WApp 自动追加，不要重复添加。
 - **插件**：实现 `WAppPlugin`，`onInit` 参与分层初始化；有顺序要求必须显式声明 `dependsOn`。
   非 GetX 启动器可直接用 `WAppPluginRunner`（`w_tools_app`）。
+  插件里注册 GetX 服务用 `registerService(() => Svc().init())`（`w_tools_app_getx`）；
+  不要写 `Future<void> onInit() => Get.putAsync(...)` —— 期望类型会把泛型推成 `void`，
+  实例注册到 `void` 下，`Get.find<T>()` 找不到且 analyzer 不报。
 - **多语言**：支持语言 / 首次语言 / 回退语言用 `WLocaleConfig`（`WAppOptions.localeConfig`）；
   运行期用 `app.language`（`WLanguage`）的 `changeLanguage(...)`，监听 `languageChanges` 或 `languageListenable`；
   不要自己保存第二份 currentLanguage。
@@ -1553,6 +1556,7 @@ const String agentsAsync = r'''
   放在 App 根节点（`WAppOptions.appWrapper`；或消费方自建插件的 `wrapApp`），不要只放页面 body。
   普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`，
   不要把 `SmartRefresher` 包在 `WAsyncView` 外面；分页用 `WAsyncPagedController`，
+  页号 / 是否翻过页读 `page` / `hasLoadedMoreThanOnePage`（不要用 `data.length` 变大去猜），
   `loadMore` 失败写 `loadMoreError` / footer，不要用 `WAsyncController.failed` 替换列表。
   `WAsyncStateBuilder.builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`；
   loading/empty/error 只能作为 slivers 分支。Sliver 页面默认视图用 `WAsyncTheme` 的 `sliver*Builder`，
@@ -1581,6 +1585,11 @@ const String agentsAsync = r'''
   `WAsyncStatus`（`state.status`）是四态枚举；`WAsyncStrings` 通过
   `WAsyncTheme(strings: ...)` 注入默认文案；取消异常用 `WCancellationException`。
   `WAsyncActivity` 只用于同一批并行任务，不要拿它合并多个独立区块。
+
+  **`WAsync` 的 `state` 是 `ValueListenable`，不是 `Rx`**：`WAsyncView` / `WAsyncStateBuilder`
+  只用 `ValueListenableBuilder` 重建自己。迁移时页面里其它 Rx 状态（筛选条件、倒计时）原来靠外层
+  `Obx` 重建，换成 `WAsyncStateBuilder` 后那个 `Obx` 还得包着（把 `Obx` 放进 builder 内层）；
+  顺手删掉它**不会有编译错误**，但那些状态就不再触发重建。
 
   查用法：`dart run w_tools_cli:w_tools explain WAsync --format=prompt`。
 ''';
@@ -1881,6 +1890,10 @@ const String agentsAppEn = r'''
   Theme/MediaQuery. `WRouteObserver` is appended automatically.
 - **Plugins**: implement `WAppPlugin`; `onInit` participates in layered initialization. Declare
   `dependsOn` when order matters. For non-GetX shells use `WAppPluginRunner` (`w_tools_app`).
+  Register GetX services in `onInit` with `registerService(() => Svc().init())`
+  (`w_tools_app_getx`), not `Future<void> onInit() => Get.putAsync(...)` — the expected type
+  infers the generic as `void`, the instance lands under `void`, and `Get.find<T>()` fails
+  without any analyzer error.
 - **Localization**: use `WLocaleConfig` (`WAppOptions.localeConfig`) for supported / initial /
   fallback languages. Switch at runtime with `app.language` (`WLanguage`).`changeLanguage(...)` and listen to
   `languageChanges` or `languageListenable`; do not keep a second writable currentLanguage.
@@ -1901,7 +1914,8 @@ const String agentsAsyncEn = r'''
   `SmartRefresher` around `WAsyncView`. `builder` must always return the same
   `SmartRefresher + CustomScrollView`; loading/empty/error go inside slivers. Use
   `WAsyncTheme`'s `sliver*Builder` / `WAsyncStateSliver` for sliver pages; `readySliverBuilder` returns a sliver.
-  Pagination: use `WAsyncPagedController`; on `loadMore` failure write `loadMoreError` / footer,
+  Pagination: use `WAsyncPagedController`; read `page` / `hasLoadedMoreThanOnePage` instead of
+  guessing from `data.length`; on `loadMore` failure write `loadMoreError` / footer,
   never replace the list with `WAsyncController.failed`.
   For pure execution without UI use `WAsync.tryRun` + `WAsyncResult`, or `WAsync.run` (throws on failure);
   do not use the removed `WAsync.run(onSuccess:)` / `runValue` / `WAsyncLoading`.
@@ -1928,6 +1942,12 @@ const String agentsAsyncEn = r'''
   `WAsyncStrings` via `WAsyncTheme(strings: ...)`; cancellation throws
   `WCancellationException`. `WAsyncActivity` is only for one batch of parallel
   tasks, never for merging independent blocks.
+
+  **`WAsync`'s `state` is a `ValueListenable`, not `Rx`**: `WAsyncView` /
+  `WAsyncStateBuilder` only rebuild through `ValueListenableBuilder`. When migrating,
+  other Rx state on the page (filters, countdowns) was rebuilt by an outer `Obx`; keep
+  that `Obx` (put it inside the builder). Deleting it **still compiles**, but those
+  states silently stop rebuilding.
 
   Look up usage: `dart run w_tools_cli:w_tools explain WAsync --format=prompt`.
 ''';

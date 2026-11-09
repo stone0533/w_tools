@@ -56,4 +56,7 @@ Widget build(BuildContext context) {
 - `controller.hasMore` 是普通 getter；footer 必须监听 `hasMoreListenable`——最后一页返回空列表时
   `hasMore` 会变但 `state` 不变，只按 `state` 重建的 footer 不会刷新；`isLoadingMore` / `loadMoreError`
   按需监听；
+- 想在 footer 上区分「首屏还没翻过页」和「已翻过页、现在没有更多了」，用
+  `controller.hasLoadedMoreThanOnePage`（或 `controller.page > controller.initialPage + 1`），
+  不要用 `state.data.length` 变大去猜——失败路径上长度不变，猜出来的值会错；
 - `dispose()` 会取消上一次 `refresh()` 的 token。

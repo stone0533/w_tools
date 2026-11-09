@@ -4,6 +4,10 @@
   Theme/MediaQuery. `WRouteObserver` is appended automatically.
 - **Plugins**: implement `WAppPlugin`; `onInit` participates in layered initialization. Declare
   `dependsOn` when order matters. For non-GetX shells use `WAppPluginRunner` (`w_tools_app`).
+  Register GetX services in `onInit` with `registerService(() => Svc().init())`
+  (`w_tools_app_getx`), not `Future<void> onInit() => Get.putAsync(...)` — the expected type
+  infers the generic as `void`, the instance lands under `void`, and `Get.find<T>()` fails
+  without any analyzer error.
 - **Localization**: use `WLocaleConfig` (`WAppOptions.localeConfig`) for supported / initial /
   fallback languages. Switch at runtime with `app.language` (`WLanguage`).`changeLanguage(...)` and listen to
   `languageChanges` or `languageListenable`; do not keep a second writable currentLanguage.

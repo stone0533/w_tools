@@ -26,7 +26,7 @@ await runner.init();
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^2.0.0
+  w_tools_app_getx: ^2.1.0
 ```
 
 需要 GetX 启动器时使用 `w_tools_app_getx`；本包的内核类型可以直接从

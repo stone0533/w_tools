@@ -5,6 +5,9 @@
 - 每个独立区块一个 Controller；不要用一个 `WAsyncActivity` 合并多个独立区块。
 - 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`。
+- `WAsyncView` / `WAsyncStateBuilder` 只监听 `ValueListenable`（`state` 不是 `Rx`）：
+  页面里其它 Rx 状态（筛选条件、倒计时）该包 `Obx` 还得包；迁移时顺手删掉外层 `Obx`
+  不会有编译错误，但那些状态就不再触发重建。
 - Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮。
 - 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
 - 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常。

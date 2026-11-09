@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0
+
+### Added
+- `registerService<T extends GetxService>(factory, {tag, permanent})`：在
+  `WAppPlugin.onInit` 里注册服务。返回 `Future<void>`，`T` 只由 factory 推断，
+  避免 `Future<void> onInit() => Get.putAsync(...)` 把实例注册到 `void` 下、
+  `Get.find<T>()` 找不到的坑（连箭头写法也安全）。
+
 ## 2.0.0
 
 ### Breaking

@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^2.0.0
+  w_tools_app_getx: ^2.1.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -65,6 +65,26 @@ final app = WApp.options(
 );
 await app.start();
 ```
+
+### 在插件里注册服务
+
+`onInit` 返回 `Future<void>`：直接用箭头写 `Get.putAsync(...)` 会让泛型 `S` 被推成
+`void`，实例注册到 `void` 下，`Get.find<T>()` 找不到（服务其实在跑，analyzer 也不报）。
+用 `registerService<T>` —— `T` 只由 factory 推断，箭头写法也安全：
+
+```dart
+class PbePlugin with WAppPlugin {
+  @override
+  String get name => 'pbe';
+
+  @override
+  Future<void> onInit() => registerService(() => PbeService().init());
+}
+
+// 之后：Get.find<PbeService>()
+```
+
+不想用 helper 就写块体 + 显式泛型：`await Get.putAsync<PbeService>(() => PbeService().init());`。
 
 ## 生命周期
 

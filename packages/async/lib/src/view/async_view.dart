@@ -31,6 +31,10 @@ import 'async_theme_views.dart';
 ///
 /// ready / refreshing / failed + 旧数据共用同一层内容容器，
 /// 状态切换不会重建 `readyBuilder` 的子树。
+///
+/// [state] 是 `ValueListenable`，不是 `Rx`：本组件只用 `ValueListenableBuilder`
+/// 重建自己。页面里其它 Rx 状态（筛选条件、倒计时）上的 `Obx` 不会因此自动重建，
+/// 迁移时仍要保留（放进 builder 内层）；删掉它不会有编译错误，但那些状态会静默失效。
 class WAsyncView<T> extends StatelessWidget {
   const WAsyncView({
     super.key,
