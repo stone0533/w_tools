@@ -620,7 +620,11 @@ def _write_json(path: pathlib.Path, data: object) -> None:
 
 def _load_plan(path: pathlib.Path) -> dict:
     if not path.is_file():
-        raise RunFailed(f'找不到计划文件：{path}', 2)
+        raise RunFailed(
+            f'找不到计划文件：{path}\n'
+            f'  先生成计划：python3 scripts/release_wave.py plan --packages <包...> --out {path}',
+            2,
+        )
     try:
         plan = json.loads(path.read_text())
     except json.JSONDecodeError as error:
@@ -1159,13 +1163,17 @@ def main() -> int:
     parser.add_argument('--wait-minutes', type=int, default=15, help='run：等 pub.dev 可见 / 验证超时（默认 15）')
     args = parser.parse_args()
 
-    if args.command == 'plan':
-        return _plan_command(args)
-    if args.command == 'status':
-        return _status(args)
-    if args.command == 'resume':
-        args.resume = True
-    return _run(args)
+    try:
+        if args.command == 'plan':
+            return _plan_command(args)
+        if args.command == 'status':
+            return _status(args)
+        if args.command == 'resume':
+            args.resume = True
+        return _run(args)
+    except RunFailed as error:
+        print(f'✗ {error}', file=sys.stderr)
+        return error.code
 
 
 if __name__ == '__main__':
