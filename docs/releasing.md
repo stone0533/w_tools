@@ -63,6 +63,9 @@ python3 scripts/release_status.py --online
   `Removed` / 破坏性行为变更 → **major**。发布脚本会在「版本不是 X.0.0 但 CHANGELOG
   含 Removed/breaking」时给出警告。
 - **发布顺序**：先子包，后聚合包。聚合包约束抬高到新子包版本之后才能发。
+- **约束抬升跟随发布，不跟功能 PR**：`packages/cli/lib/src/init/versions.dart` 与根
+  `pubspec.yaml` 的下界放到 K-2 发布准备里改（子包发布之后）。否则合并到发布之间会
+  出现「`init` 生成的约束在 pub.dev 上还解析不到」的窗口。
 - **已发布版本不回滚、不重发**：有外部使用者时 fix-forward —— 先发 patch 恢复兼容
   （通常是 `@Deprecated` 垫片），下个 major 再删；确认没有外部使用者时不回滚、不加垫片，
   记录例外，后续破坏性改动一律按 major 发。
@@ -126,7 +129,8 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    git add scripts/api_snapshots
    git commit -m "chore(release): w_tools_map <version> API 基线"
    git push -u origin HEAD
-   gh pr create --fill          # 等 Required checks 通过后按 Merge commit 合并
+   gh pr create --fill
+   gh pr merge --auto --merge   # 快照只是搬运基线，Required checks 过了自动合并
    git switch main && git pull --ff-only
    ```
 
@@ -264,9 +268,10 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
   pub 只认 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 环境变量，不读 macOS 系统代理设置；
   换机器 / 换端口先 `nc -z 127.0.0.1 <port>` 探活。
 - **`pub publish` 在无 TTY 时直接 `Package upload canceled`**：确认提示需要终端。
-  AI / 自动化里用 `script -q /dev/null` 包一层 pty、并保持 stdin 打开喂 `y`；
-  或由人在终端执行。不要用 `publish_package.sh --force --reason`——那是跳过发布前保护，
-  不是跳过确认。
+  自动化里加 `--yes`（脚本会给 `pub publish` 传 `--force`：只跳过 y/N 确认，仍跑完整校验）：
+  `bash scripts/publish_package.sh packages/<pkg> --yes`。不要用 `yes | ...`——它会顺带批准
+  任何意外提示；也不要用 `publish_package.sh --force --reason`，那是跳过**发布前保护**，
+  跟确认完全是两件事。
 - **`pub publish` 提示工作区不干净**：先提交再跑（具体退出码看 pub 输出；历史上
   `pub publish --dry-run` 报过 65）。
 - **只发子包不发聚合包**：已发布过的聚合包不会自动更新依赖约束；想让它带上新子包必须发一次

@@ -56,6 +56,13 @@ PUBLIC_PATH = re.compile(
 ROOT_CHANGELOG = 'CHANGELOG.md'
 
 
+def resolve_pr_body(body_file: str | None) -> str:
+    """PR body：本地预检优先读文件，CI 走 `PR_BODY` 环境变量。"""
+    if body_file:
+        return pathlib.Path(body_file).read_text()
+    return os.environ.get('PR_BODY', '')
+
+
 def type_section(pr_body: str) -> str:
     """只取「## 改动类型」到下一个二级标题之间的内容。
 
@@ -283,9 +290,10 @@ def main() -> int:
         action='store_true',
         help='用 pub.dev 最新版本当已发布基线（取不到回退仓库快照并提醒）',
     )
+    parser.add_argument('--body-file', help='从文件读 PR body（本地预检用；缺省读 PR_BODY）')
     args = parser.parse_args()
 
-    pr_body = os.environ.get('PR_BODY', '')
+    pr_body = resolve_pr_body(args.body_file)
     if not pr_body.strip():
         if not in_pr_context():
             print('没有 PR body 上下文（本地 / 非 PR 事件），跳过改动类型检查')

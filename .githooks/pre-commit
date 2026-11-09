@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# pre-commit：只检查已暂存的 Dart 文件格式（<1s）；完整门禁仍是 preflight。
+set -euo pipefail
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec bash "$hook_dir/../scripts/format_staged.sh"

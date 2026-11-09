@@ -35,6 +35,8 @@ MANUAL = {
     'install-gh.sh': '一次性安装 / 登录向导，人工执行',
     'install_git_hooks.sh': '首次检出时安装 .githooks，人工执行',
     'check_pr_checks.sh': '发布前用 gh 确认 PR Required checks，人工执行',
+    'check_pr_ready.sh': '开 PR 前本地跑 PR 级门禁（需要 PR body 文件），人工执行',
+    'format_staged.sh': 'pre-commit 钩子调用（只查已暂存 .dart 的格式），人工执行',
     'list_removals.py': '准备大版本时列出待删弃用项，人工执行',
     'mutate_guard.sh': '定向变异验证用例有效性（临时破坏被守逻辑→用例必须变红→自动还原），写守卫/边界用例时人工执行',
 }

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# commit-msg：标题必须符合 conventional 约定（Merge / Revert / fixup! / squash! 除外）。
+# 这是本地提示；远端 CI 不依赖 commit 文案。跳过：git commit --no-verify。
+set -euo pipefail
+
+msg_file="${1:?commit-msg 需要 message 文件路径}"
+subject="$(head -n1 "$msg_file" | sed 's/[[:space:]]*$//')"
+
+if [ -z "$subject" ]; then
+  exit 0
+fi
+
+case "$subject" in
+  "Merge "* | "Revert "* | "fixup! "* | "squash! "*) exit 0 ;;
+esac
+
+if printf '%s\n' "$subject" | grep -qE '^(feat|fix|docs|chore|refactor|test|perf|build|ci|style)(\([^)]+\))?!?: .+'; then
+  exit 0
+fi
+
+cat >&2 <<'TXT'
+✗ commit 标题不符合 conventional 约定。
+
+  要求：<type>(<scope>)?!?: <一句话>，type ∈ feat / fix / docs / chore /
+        refactor / test / perf / build / ci / style。
+  例：  fix(cli): doctor 未启用规则不再消失
+        feat(toast)!: 新增 showModal
+
+  只想先提交草稿：git commit --no-verify（合并前记得整理）。
+TXT
+exit 1
