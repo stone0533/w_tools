@@ -3,6 +3,7 @@ import io
 import pathlib
 import sys
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
@@ -251,6 +252,47 @@ class PrintHumanTest(unittest.TestCase):
         text = self._render(self._plan(), all_rows=True)
         self.assertIn('| core |', text)
         self.assertIn('| app_getx |', text)
+
+
+class DryRunTest(unittest.TestCase):
+    def _plan(self, *, order=None, packages=None, root_action='publish'):
+        return {
+            'schema': mod.SCHEMA,
+            'git': {},
+            'blockers': [],
+            'packages': packages or [],
+            'order': order or [],
+            'snapshots_required': False,
+            'root': {'action': root_action},
+        }
+
+    def test_root_only_plan_runs_root_dry_run(self):
+        calls = []
+
+        def fake_cmd(args, **kwargs):
+            calls.append(args)
+            return mock.Mock(returncode=0)
+
+        out = io.StringIO()
+        with mock.patch.object(mod, 'validate_run_plan', return_value=[]),                 mock.patch.object(mod, '_cmd', side_effect=fake_cmd),                 contextlib.redirect_stdout(out):
+            code = mod._dry_run(self._plan())
+
+        self.assertEqual(code, 0)
+        self.assertIn(['bash', 'scripts/release_check.sh', '--strict'], calls)
+        self.assertIn(['bash', 'scripts/publish_package.sh', '.', '--dry-run'], calls)
+        self.assertIn('根包已 dry-run 通过', out.getvalue())
+
+    def test_full_wave_does_not_dry_run_root(self):
+        calls = []
+        packages = [{'short': 'ui', 'version': '8.0.1'}]
+        out = io.StringIO()
+        with mock.patch.object(mod, 'validate_run_plan', return_value=[]),                 mock.patch.object(mod, '_cmd', side_effect=lambda *a, **k: calls.append(a)),                 mock.patch.object(mod, '_publish_package') as publish,                 contextlib.redirect_stdout(out):
+            code = mod._dry_run(self._plan(order=['ui'], packages=packages))
+
+        self.assertEqual(code, 0)
+        publish.assert_called_once()
+        self.assertEqual(calls, [])
+        self.assertIn('等子包在 pub.dev 可见', out.getvalue())
 
 
 class ValidateRunPlanTest(unittest.TestCase):
