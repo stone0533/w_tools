@@ -971,7 +971,8 @@ J-5 多包/家族
 - packages/<pkg>/CHANGELOG.md
 - packages/<pkg>/README.md（只改安装示例的 caret 下界；不要写「当前 x.y.z」）
 - 聚合子包 / 根包下界：packages/cli/lib/src/init/versions.dart 与根 pubspec.yaml
-  —— 这是唯一允许抬约束的步骤；功能 PR 不改它
+  —— 功能 PR 已抬过就沿用；还没抬时在本步抬
+- 根包 / CLI 自身的 `## Unreleased`：本步折叠成对应版本段（没有 API diff 的约束变化）
 - 必要的 migration
 - 版本常量（cli/figma 的 lib/src/common/version.dart 等）
 
@@ -983,7 +984,8 @@ J-5 多包/家族
 要求：
 1. 版本号必须与 CHANGELOG 的 ## 段一致；
 2. 更新 README 安装示例的 caret 下界（必须等于新版本），不要写死「当前 x.y.z」；
-3. 跑 bash scripts/release_check.sh --package <pkg>（根包用 --strict）
+3. 跑 python3 scripts/check_versions.py
+   与 bash scripts/release_check.sh --package <pkg>（根包用 --strict）
    与 bash scripts/preflight.sh --with-tests（整波只跑这一次完整档）；
 4. 提交前跑本地 PR 预检：bash scripts/check_pr_ready.sh /tmp/pr.md
    （check_pr_scope + check_version_bump；body 与 `gh pr create --body-file` 用同一份）；
@@ -1003,6 +1005,7 @@ J-5 多包/家族
 不要改无关包。
 
 最后统一跑：
+python3 scripts/check_versions.py
 bash scripts/release_check.sh
 bash scripts/preflight.sh --with-tests
 bash scripts/check_pr_ready.sh /tmp/pr.md

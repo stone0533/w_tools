@@ -20,6 +20,7 @@ from check_pr_scope import (
     lib_packages,
     missing_package_changelogs,
     missing_root_changelog,
+    root_changelog_policy_error,
     touches_changelog,
     touches_public_code,
 )
@@ -138,6 +139,37 @@ class PathDerivationTest(unittest.TestCase):
         self.assertTrue(has_template_section('## 改动类型（必填）\n- [ ] 内部重构\n'))
         self.assertFalse(has_template_section('## 改动类型说明\n- [ ] 内部重构\n'))
         self.assertFalse(has_template_section('fix(ui): tweak padding'))
+
+
+class RootChangelogPolicyTest(unittest.TestCase):
+    """根包 pubspec-only 变化也必须走 Unreleased，不能追写已发布段。"""
+
+    def test_bumped_root_version_passes(self):
+        self.assertIsNone(
+            root_changelog_policy_error('12.0.2', '12.0.1', '## 12.0.2\n\n### Fixed\n'),
+        )
+
+    def test_same_version_with_unreleased_passes(self):
+        self.assertIsNone(
+            root_changelog_policy_error(
+                '12.0.1',
+                '12.0.1',
+                '## Unreleased\n\n### Changed\n- 约束\n',
+            ),
+        )
+
+    def test_same_version_without_unreleased_fails(self):
+        error = root_changelog_policy_error('12.0.1', '12.0.1', '## 12.0.1\n\n### Fixed\n')
+        self.assertIsNotNone(error)
+        self.assertIn('Unreleased', error)
+
+    def test_downgrade_fails(self):
+        error = root_changelog_policy_error('12.0.0', '12.0.1', '## 12.0.0\n')
+        self.assertIsNotNone(error)
+        self.assertIn('降', error)
+
+    def test_missing_base_is_skipped(self):
+        self.assertIsNone(root_changelog_policy_error('12.0.1', None, ''))
 
 
 class MainTest(unittest.TestCase):

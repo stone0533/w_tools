@@ -33,17 +33,18 @@
 - [ ] catalog 的 `usage` / `pitfalls` / `related` / `dontUseFor` 已同步
 - [ ] `docs/agents/<pkg>.md` 与 `templates/agents/{zh,en}/<feature>.md` 已同步（模板按 init feature 命名；`app_getx`→`app.md`、`map_google`→`map.md`）
 - [ ] README / example / migration 已同步
-- [ ] `bash scripts/preflight.sh --with-tests` 通过
+- [ ] `bash scripts/preflight.sh --with-tests` 通过（本机 / 沙箱可跑 `--sandbox`，Flutter 测试由 CI 覆盖）
 
 ## 版本 / 发布物料（有公开 API / 行为变化时）
 
 - [ ] 子包 `version` 已抬，`CHANGELOG.md` 有对应 `## x.y.z` 段（新段落排在最上面）
-- [ ] 聚合子包已同步根 `pubspec.yaml` 的 `^x.y.z` 下界
+- [ ] 聚合子包已同步根 `pubspec.yaml` / `init/versions.dart` 下界（或写进 `## Unreleased`，由 K-2 折叠）
+- [ ] `python3 scripts/check_versions.py` 通过（所有约束下界 == 当前版本）
 - [ ] 破坏性变更已写 migration（或 CHANGELOG `### Breaking` / `### Removed` 里写明 `Type.member`）
 
 ## 自检
 
-- [ ] `bash scripts/preflight.sh --with-tests`（或说明未跑原因）
+- [ ] `bash scripts/preflight.sh --with-tests`（或 `--changed` / `--sandbox`，说明未跑原因）
 - [ ] 守卫 / 边界类用例已做**变异验证**（不适用写「不适用」）
   - 变异点：`路径:行`（`--from` → `--to`）
   - 命令：`bash scripts/mutate_guard.sh ... --expect '...' -- bash -c '...'`
