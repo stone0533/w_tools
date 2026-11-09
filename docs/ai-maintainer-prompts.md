@@ -878,10 +878,14 @@ J-5 多包/家族
 
 单包按 K-1 → K-2 → K-3 → K-4 → K-5。同一波多个包按下面顺序，每步都有产物：
 
+> K-0 的审计/排序可以先跑一条只读命令：
+> `python3 scripts/release_wave.py plan --all`（`--json` 给 AI，`--check` 有阻断退出 1）。
+> 它不发布、不改文件；只给出版本、顺序、根包快照依赖与阻断项。需要逐包细节时再走 K-1。
+
 | 步 | 做什么 | 命令 / 门禁 | 产物 |
 |---|---|---|---|
-| 1 | 审计全部包 | K-1M；`python3 scripts/check_publish_drift.py` + `python3 scripts/release_status.py --online` | 漂移总表（code / docs / comment） |
-| 2 | 定版本与顺序 | K-1M 输出 | 版本提案表 + 发布顺序 |
+| 1 | 生成发布计划（只读） | `python3 scripts/release_wave.py plan --all` | 计划表 / JSON（本地 / 线上 / 快照 / 顺序 / 阻断） |
+| 2 | 审阅计划、定版本 | 计划输出 + K-1 细节 | 版本提案表 + 发布顺序 |
 | 3 | 版本 / CHANGELOG（一个 PR） | K-2M | 发布准备 PR（已合并） |
 | 4 | 逐包 dry-run | K-3 | 每包 0 warning |
 | 5 | 逐包发布 | K-4，一次一个包 | 每包 publish 成功 |
