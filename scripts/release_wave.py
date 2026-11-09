@@ -310,8 +310,8 @@ def build_plan(data: PlanData) -> dict[str, object]:
             reason = f'CHANGELOG 缺 ## {local} 段'
         drift = data.drift.get(short)
         if action == 'skip' and drift == 'code':
-            action = 'blocked'
-            reason = '同版本 CODE DRIFT（内容变了但版本没抬）'
+            # 不在本波发布的包有同版本漂移：提醒，但不阻断本波。周检 / 单独 patch 处理。
+            warnings.append(f'{short}: 同版本 CODE DRIFT（不在本波发布；建议单独 patch）')
         elif action == 'skip' and drift == 'unknown':
             warnings.append(f'{short}: code drift 未核对（网络 / 工具不可用）')
         package = {
@@ -371,8 +371,7 @@ def build_plan(data: PlanData) -> dict[str, object]:
         root_reason = f'根 CHANGELOG 缺 ## {root_version} 段'
     root_drift = data.drift.get('root')
     if root_action == 'skip' and root_drift == 'code':
-        root_action = 'blocked'
-        root_reason = '根包同版本 CODE DRIFT'
+        warnings.append('root: 同版本 CODE DRIFT（不在本波发布；建议单独 patch）')
     elif root_action == 'skip' and root_drift == 'unknown':
         warnings.append('root: code drift 未核对')
     root = {
@@ -461,9 +460,12 @@ def _selected_rows(all_rows: list[dict[str, str]], packages: str | None) -> tupl
     if 'map_google' in wanted:
         wanted.add('map')
     if 'cli' in wanted:
-        wanted.update(
-            name.removeprefix('w_tools_') for name in versions_dart_constraints()
-        )
+        # 只把 init 约束里「本地版本已领先快照」的包带进来；已发布的 ui 等不参与本波。
+        for name in versions_dart_constraints():
+            short = name.removeprefix('w_tools_')
+            row = next((item for item in all_rows if item['short'] == short), None)
+            if row and snapshot_version(short) != row['version']:
+                wanted.add(short)
     if include_root:
         wanted.update(row['short'] for row in all_rows if row['aggregate'] == 'root')
     return [row for row in all_rows if row['short'] in wanted], include_root

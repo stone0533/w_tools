@@ -211,6 +211,9 @@ python3 scripts/release_wave.py status
 `release_status --online --check`，并对本波发布过的包逐包跑
 `check_publish_drift --package <pkg> --check`。
 
+不在本波发布的包有同版本 CODE DRIFT 时只进「提醒」，不阻断本波；那类漂移由周检 /
+单独 patch 处理。
+
 它**不会**改版本 / CHANGELOG、不会 `--force`，也不会替你做 K-2 的 semver 决策。
 state 在 `.w_tools/release-wave-state.json`（gitignored），用于断点续跑。
 

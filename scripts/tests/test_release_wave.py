@@ -187,6 +187,21 @@ class BuildPlanTest(unittest.TestCase):
         )
         self.assertTrue(any('工作区有未提交改动' in item for item in plan['blockers']))
 
+    def test_unrelated_code_drift_is_warning_not_blocker(self):
+        rows = [row('ui', '8.0.0')]
+        plan = mod.build_plan(
+            data(
+                rows,
+                published={'ui': '8.0.0'},
+                snapshots={'ui': '8.0.0'},
+                drift={'ui': 'code'},
+            ),
+        )
+        package = next(p for p in plan['packages'] if p['short'] == 'ui')
+        self.assertEqual(package['action'], 'skip')
+        self.assertEqual(plan['blockers'], [])
+        self.assertTrue(any('CODE DRIFT' in item for item in plan['warnings']))
+
     def test_no_drift_audit_adds_one_warning(self):
         rows = [row('app_getx', '2.1.1')]
         plan = mod.build_plan(
