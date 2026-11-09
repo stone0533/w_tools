@@ -151,7 +151,8 @@ class BuildPlanTest(unittest.TestCase):
         self.assertEqual(plan['order'], ['app_getx', 'map_google', 'cli'])
         self.assertEqual(plan['summary']['publish'], 3)
         self.assertEqual(plan['root']['action'], 'publish')
-        self.assertTrue(any('先发布子包并合入快照 PR' in item for item in plan['blockers']))
+        self.assertIn('先发布子包并合入快照 PR', plan['root']['requires'])
+        self.assertFalse(any('先发布子包并合入快照 PR' in item for item in plan['blockers']))
         self.assertTrue(plan['snapshots_required'])
 
     def test_root_snapshot_mismatch_blocks_root(self):
