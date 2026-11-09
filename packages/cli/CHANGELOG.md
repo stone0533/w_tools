@@ -1,3 +1,8 @@
+## 1.17.2
+
+### Fixed
+- `init` 生成 `w_tools_ui` 的约束同步到 `^8.0.1`（ui example patch）。
+
 ## 1.17.1
 
 ### Fixed
