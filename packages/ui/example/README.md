@@ -9,7 +9,7 @@
 |---|---|---|
 | **Playground** | `lib/playground_page.dart` | WImage 参数实时调整：width / height / aspectRatio / fit / memCache / borderRadius / retryCount / placeholder / border / boxShadow / margin；`onLoadStatusChanged`、`onProgress`、`WImageController.retry`、`WImageSource.network(headers/cacheKey)`，并同步生成当前 `WImageStyle` / `WImageLoadOptions` / `WImageSlots` 代码 |
 | **状态矩阵** | `lib/states_page.dart` | 加载成功 / 失败 / 空数据 / 加载中 / 主题默认错误占位 / file 不支持 / `precacheImage` 预热 |
-| **常用配方** | `lib/recipes_page.dart` | `WImageStyle.avatar / thumbnail / cover`、asset prefix、`WImageSource.provider(MemoryImage)`、内置错误 + 自动重试 |
+| **常用配方** | `lib/recipes_page.dart` | `WImageStyle.avatar / thumbnail / cover`、宽度铺满 + 高度上限（`ConstrainedBox(maxHeight)` + `width: double.infinity` + `fitWidth`）、asset prefix、`WImageSource.provider(MemoryImage)`、内置错误 + 自动重试 |
 | **按钮** | `lib/buttons_page.dart` | `WButton` 的主题四态、loading / disabled、3 档尺寸 + 自定义、纯图标、列表行、对话框、content / contentBuilder、WidgetStateProperty、键盘 / 语义、`onLongPress`、`loadingBuilder`、`WButtonMotion`；`WPressable` 的 enabled / onLongPress / pressedOpacity |
 | **组件** | `lib/components_page.dart` | WText、WScaffold、WScreen.w、扩展、WBadge（topRight / center / showBadge / 空内容）、WClipRRect（含配置变体）、渐变进度（含 totalAngle / strokeCapRound）、WStep、WListView（separated / grid）、WActionRow、WSelectableRow、WTabBar、WNavBar、通知百分比、WImageController、keepAlive |
 | **更多** | `lib/more_page.dart` | 二级示例入口（见下） |
@@ -30,7 +30,7 @@
 | `WTabBar` | nav_page、components_page | indicator / divider / scrollable / onTap |
 | `WStep` / `WStepFlow` | steps_page、components_page | style / builders / 复用 |
 | `WText` / `WTextVariant` / `WTextStyles` | text_page、components_page | 11 variant / 覆盖 / 自定义主题 |
-| `WImage` | playground、states、recipes、components | 四种来源 / 状态 / 重试 / 进度 / 控制器 |
+| `WImage` | playground、states、recipes、components | 四种来源 / 状态 / 重试 / 进度 / 控制器 / 宽度铺满 + 高度上限 |
 | `WImageSource` | playground、states、recipes | network(headers/cacheKey) / asset / file / base64 / provider / parse |
 | `WButton` | buttons_page | 主题 / 尺寸 / loading / 语义 / motion / 长按 |
 | `WPressable` | buttons_page、extensions_page | enabled / long press / pressedOpacity / toPressable |

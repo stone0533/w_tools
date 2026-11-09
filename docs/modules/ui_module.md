@@ -114,6 +114,10 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
   （`SizedBox` / `Expanded` / `AspectRatio`）约束，否则加载前占位是 0 尺寸。
 - `WImageStyle.width/height` 不含 `padding` / `margin`：它们会额外计入总尺寸
   （与 `Container` 的尺寸语义不同）。
+- 宽度铺满 + 高度上限（长图截断）：`ConstrainedBox(maxHeight:)` +
+  `WImageStyle(width: double.infinity, fit: BoxFit.fitWidth, alignment: ...)`；超限时按
+  `alignment` 保留上 / 中 / 下。完整配方与坑见
+  [`packages/ui/README.md`](../../packages/ui/README.md) 的「宽度铺满 + 高度上限」。
 
 ### 显式构造
 

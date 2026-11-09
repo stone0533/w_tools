@@ -149,6 +149,37 @@ WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)
 const WImageStyle().square(40).rounded(20)
 ```
 
+### 宽度铺满 + 高度上限
+
+宽度铺满、高度不超过 `maxHeight`，超出部分按 `alignment` 保留上 / 中 / 下。不需要新 API：
+`ConstrainedBox` + `fitWidth` 就够了。
+
+```dart
+ConstrainedBox(
+  constraints: const BoxConstraints(maxHeight: 240),
+  child: WImage.source(
+    source: WImageSource.parse(url),
+    style: const WImageStyle(
+      width: double.infinity, // 必须：宽度要是紧约束，否则夹高时会被缩窄
+      fit: BoxFit.fitWidth,
+      alignment: Alignment.center, // topCenter 保上 / center 保中 / bottomCenter 保下
+    ),
+  ),
+)
+```
+
+- 按宽度算出的高度 ≤ `maxHeight` 时，与普通 `fitWidth` 完全一致；
+- 超过时盒子固定在 `maxHeight`，`fitWidth` 会裁源图，`alignment` 的 y 分量决定保留哪一段
+  （x 分量不起作用，宽度总是铺满）；
+- 不要再给 `style.height`：固定高度会让上面的第一种情况也变成固定盒子；
+- 宽度约束不紧时（例如放在 `Column` 里），图片会按原图宽度走，甚至被 `maxHeight` 缩窄，
+  所以显式写 `width: double.infinity` 或让父级给紧宽度；宽度无界时（`Row` / 水平列表）
+  先给有界宽度，否则铺不满；
+- 加载前占位高度是 0，解码后才会展开；要避免跳动，优先在能拿到宽高时用
+  `aspectRatio` + `cover` 在数据层夹比例，或先放一个已知高度的占位。
+
+可运行示例见 [`example/lib/recipes_page.dart`](example/lib/recipes_page.dart)。
+
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
