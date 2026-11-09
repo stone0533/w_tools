@@ -204,8 +204,9 @@ python3 scripts/release_wave.py run --resume --yes
 python3 scripts/release_wave.py status
 ```
 
-它逐包调用现有的 `publish_package.sh`（保留干净工作区 / main / `release_check --strict` /
-快照基线保护），然后自动 `apply_snapshots.sh`、开快照 PR、等 checks、`gh pr merge --merge`、
+它先跑 `check_publish_drift.py --check`（同版本 code drift 直接拒绝），再逐包调用现有的
+`publish_package.sh`（保留干净工作区 / main / `release_check --strict` / 快照基线保护），
+然后自动 `apply_snapshots.sh`、开快照 PR、等 checks、`gh pr merge --merge`、
 `git pull --ff-only`；根包会等子包在 pub.dev 可见后再 dry-run + 发布；最后跑
 `release_status --online --check` 和 `check_publish_drift --check`。
 

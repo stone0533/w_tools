@@ -885,7 +885,8 @@ J-5 多包/家族
 >
 > K-2 的版本 PR 合并后，步骤 4~8 可以一条命令执行：
 > `python3 scripts/release_wave.py run --plan .w_tools/release-plan.json --dry-run` 预演；
-> 确认后 `... --yes`。失败用 `... --resume --yes` 继续。它不会决定版本，也不会改 CHANGELOG。
+> 确认后 `... --yes`。失败用 `... --resume --yes` 继续。它不会决定版本，也不会改 CHANGELOG；
+> run 会先跑 `check_publish_drift.py --check`，同版本 CODE DRIFT 或网络不可用直接拒绝。
 
 | 步 | 做什么 | 命令 / 门禁 | 产物 |
 |---|---|---|---|

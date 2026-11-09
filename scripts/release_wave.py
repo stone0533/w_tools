@@ -816,12 +816,30 @@ def _verify_step(state: dict, wait_minutes: int) -> None:
     _save_state(state)
 
 
+def _audit_drift() -> None:
+    """run 前的归档核对：同版本 CODE DRIFT 必须为零，网络不可用时 fail fast。"""
+    result = _cmd(
+        [sys.executable, 'scripts/check_publish_drift.py', '--check'],
+        check=False,
+        code=3,
+    )
+    if result.returncode == 1:
+        raise RunFailed('check_publish_drift 报 CODE DRIFT；先抬版本，不能带着漂移发布', 3)
+    if result.returncode == 2:
+        raise RunFailed('check_publish_drift 网络不可用，发布前无法核对归档', 2)
+
+
 def _dry_run(plan: dict) -> int:
     errors = validate_run_plan(plan, gh_ready=True)
     if errors:
         for error in errors:
             print(f'✗ {error}', file=sys.stderr)
         return 2
+    try:
+        _audit_drift()
+    except RunFailed as error:
+        print(f'✗ {error}', file=sys.stderr)
+        return error.code
     packages = {package['short']: package for package in plan.get('packages', [])}
     try:
         for short in plan.get('order', []):
@@ -893,6 +911,7 @@ def _run(args) -> int:
     fd = _acquire_lock()
     try:
         _save_state(state)
+        _audit_drift()
         packages = {package['short']: package for package in plan.get('packages', [])}
         for short in plan.get('order', []):
             short = str(short)
