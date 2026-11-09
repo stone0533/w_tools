@@ -1511,13 +1511,16 @@ feedback:
    - 仓库 clone 在别处、依赖里解析不到 → 让项目加 `feedback.ledger: <仓库路径>`（相对项目根或绝对路径）；
    - 本机没有 w_tools 仓库 → 建 GitHub Issue（需已安装 `gh`；gh 读取 `GH_TOKEN` / `GITHUB_TOKEN`，或用 `gh auth login`）；
    - 两条都不成立 → 跳过并 **exit 4**，什么都没写；
-   - 本机有台账、又确实要公开提 issue 时才加 `--issue`；`--ledger` 强制只写本地台账。
+   - 本机有台账、又确实要公开提 issue 时才加 `--issue`；`--ledger` 强制只写本地台账；
+   - 公开 Issue 每个项目每天最多 5 条（`feedback.max_issues_per_day`，0 = 不限）；额度用完会 exit 2，
+     本地台账不占额度。
 
 ### 边界
 
 - 一次会话最多 3–5 条，只记**真正卡住你**的；
 - 状态只写 `待处理`，**不要自己标「已修复」**；
 - Issue 是公开的：不要贴密钥 / token / 业务敏感数据，日志先脱敏；
+- 写本机台账会让 w_tools 工作区变脏：提交后提醒我 commit / discard，不要自己顺手提交别人的仓库；
 - 不要把反馈写进业务代码或 `.w_tools/`；
 - 维护者 triage 后才进入 `w_tools/docs/feedback/<包>.md`。
 ''';
@@ -1874,13 +1877,17 @@ no local file, no link, no Issue; do not try `--issue` to get around it — it f
      `GITHUB_TOKEN`, or use `gh auth login`);
    - Neither → skipped with **exit 4**, nothing is written;
    - Use `--issue` only when you have a local ledger but really want a public issue;
-     `--ledger` forces the local ledger.
+     `--ledger` forces the local ledger;
+   - At most 5 public issues per project per day (`feedback.max_issues_per_day`, 0 = unlimited);
+     once used up, submit exits 2. The local ledger does not count.
 
 ### Boundaries
 
 - At most 3–5 entries per session, only what **actually blocked you**;
 - Status is only `pending`; **never mark it fixed yourself**;
 - Issues are public: no secrets, tokens or business-sensitive data; redact logs first;
+- Writing the local ledger dirties the w_tools working tree: remind me to commit / discard afterwards;
+  never commit someone else's repo on your own;
 - Do not put feedback in business code or `.w_tools/`;
 - Maintainers triage into `w_tools/docs/feedback/<package>.md`.
 ''';

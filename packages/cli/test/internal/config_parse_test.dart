@@ -41,6 +41,27 @@ void main() {
     );
   });
 
+  test('feedback.max_issues_per_day 默认 5，非法值忽略', () {
+    expect(DoctorConfig().feedbackMaxIssuesPerDay, 5);
+    expect(
+      DoctorConfig.parse('feedback:\n  max_issues_per_day: 3\n').feedbackMaxIssuesPerDay,
+      3,
+    );
+    expect(
+      DoctorConfig.parse('feedback:\n  max_issues_per_day: 0\n').feedbackMaxIssuesPerDay,
+      0,
+      reason: '0 = 不限',
+    );
+    expect(
+      DoctorConfig.parse('feedback:\n  max_issues_per_day: -1\n').feedbackMaxIssuesPerDay,
+      5,
+    );
+    expect(
+      DoctorConfig.parse('feedback:\n  max_issues_per_day: "3"\n').feedbackMaxIssuesPerDay,
+      5,
+    );
+  });
+
   test('feedback.ledger 解析为路径（空串 / 非字符串忽略）', () {
     expect(DoctorConfig().feedbackLedger, isNull);
     expect(

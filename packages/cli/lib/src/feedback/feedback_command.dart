@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:w_tools_cli/src/common/cli.dart';
 import 'package:w_tools_cli/src/common/project_loader.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
+import 'package:w_tools_cli/src/feedback/feedback_budget.dart';
 import 'package:w_tools_cli/src/feedback/feedback_channel.dart';
 import 'package:w_tools_cli/src/feedback/feedback_lint.dart';
 import 'package:w_tools_cli/src/feedback/feedback_ledger.dart';
@@ -176,19 +177,24 @@ void _path(ArgResults args, Directory root, bool asJson) {
 }
 
 /// 通道解析只做一次：`submit` / `status` / `path` / `search` / `lint` 共用。
-FeedbackChannel _channel(Directory root) {
+typedef _Resolved = ({FeedbackChannel channel, DoctorConfig config});
+
+_Resolved _resolve(Directory root) {
   DoctorConfig config;
   try {
     config = ProjectFiles.loadConfig(root);
   } on ProjectLoadException catch (e) {
     _usageError(e.message);
   }
-  return FeedbackChannel.resolve(
+  final channel = FeedbackChannel.resolve(
     projectRoot: root,
     issueEnabled: config.feedbackEnabled,
     ledgerOverride: config.feedbackLedger,
   );
+  return (channel: channel, config: config);
 }
+
+FeedbackChannel _channel(Directory root) => _resolve(root).channel;
 
 void _lint(ArgResults args, Directory root, bool asJson) {
   final staleDaysRaw = args['stale-days'] as String;
@@ -272,7 +278,8 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     _usageError('--issue / --ledger 只能选一个');
   }
 
-  final channel = _channel(root);
+  final resolved = _resolve(root);
+  final channel = resolved.channel;
   // 开关是硬门禁：消费方未开启时 --issue 也不放行，否则「默认关闭」名存实亡。
   if (explicitIssue && !channel.enabled && !channel.isWtoolsRepo) {
     _usageError(
@@ -324,21 +331,11 @@ void _submit(ArgResults args, Directory root, bool asJson) {
   final draft = FeedbackDraft(package: name, title: title, body: body);
   final missing = draft.missingFields;
   if (missing.isNotEmpty) {
-    final message =
-        '反馈缺少必填字段：${missing.join('、')}；'
-        '按 `feedback submit --template` 的字段补全后重试。';
-    if (asJson) {
-      stdout.writeln(
-        jsonEncode({
-          'schema': 'w_tools_cli.feedback/1',
-          'ok': false,
-          'error': message,
-        }),
-      );
-      throw CliExit(2);
-    }
-    stderr.writeln(message);
-    throw CliExit(2);
+    _refused(
+      '反馈缺少必填字段：${missing.join('、')}；'
+      '按 `feedback submit --template` 的字段补全后重试。',
+      asJson,
+    );
   }
 
   if (wantLedger) {
@@ -350,20 +347,26 @@ void _submit(ArgResults args, Directory root, bool asJson) {
         linkedIssue: linkedIssue,
         allowDuplicate: args['allow-duplicate'] as bool,
       );
+      final dirtiesRepo = p.normalize(repoRoot) != p.normalize(root.path);
       if (asJson) {
         print(
           jsonEncode({
             ...draft.toJson(),
             'mode': 'ledger',
             'repoRoot': repoRoot,
+            'dirtiesRepo': dirtiesRepo,
             'ledgerPath': result.file.path,
             'pending': result.pending,
           }),
         );
       } else {
         print('已写入库侧台账：${result.file.path}（待处理 ${result.pending} 条）');
-        if (p.normalize(repoRoot) != p.normalize(root.path)) {
+        if (dirtiesRepo) {
           print('本机 w_tools 检出：$repoRoot（没有建 Issue）');
+          stderr.writeln(
+            '# 这次写的是本机 w_tools 检出：$repoRoot；该仓库工作区会变脏，'
+            '提交前记得 commit / discard',
+          );
         }
       }
     } on FeedbackLedgerException catch (e) {
@@ -376,10 +379,31 @@ void _submit(ArgResults args, Directory root, bool asJson) {
   if (channel.hasLedger) {
     stderr.writeln('# 本机有 w_tools 台账（${channel.ledgerDir}）；本次按 --issue 建公开 Issue');
   }
+
+  // 「一次会话 3–5 条」没有会话边界可判，用「每天 N 条公开 Issue」兜住；本地台账不占额度。
+  final budget = FeedbackBudget(FeedbackBudget.fileFor(root));
+  final maxIssues = resolved.config.feedbackMaxIssuesPerDay;
+  if (!budget.allows(maxIssues)) {
+    _refused(
+      '今天的公开反馈额度已用完（${budget.usedToday()}/$maxIssues 条，feedback.max_issues_per_day）。'
+      '本地台账不占额度，可用 --ledger；或调高上限 / 删 .w_tools/feedback_budget.json',
+      asJson,
+    );
+  }
+
   try {
     final url = createGitHubIssue(draft, repo: args['repo'] as String);
+    budget.record();
     if (asJson) {
-      print(jsonEncode({...draft.toJson(), 'mode': 'gh', 'issueUrl': url.toString()}));
+      print(
+        jsonEncode({
+          ...draft.toJson(),
+          'mode': 'gh',
+          'issueUrl': url.toString(),
+          'issueBudgetUsed': budget.usedToday(),
+          'issueBudgetMax': maxIssues,
+        }),
+      );
     } else {
       print('已创建 GitHub issue：$url');
     }
@@ -389,6 +413,22 @@ void _submit(ArgResults args, Directory root, bool asJson) {
     stderr.writeln(e.message);
     throw CliExit(1);
   }
+}
+
+/// 拒绝提交（字段不全 / 公开额度用完）：统一退出码 2，`--json` 时给错误信封。
+Never _refused(String message, bool asJson) {
+  if (asJson) {
+    stdout.writeln(
+      jsonEncode({
+        'schema': 'w_tools_cli.feedback/1',
+        'ok': false,
+        'error': message,
+      }),
+    );
+  } else {
+    stderr.writeln(message);
+  }
+  throw CliExit(2);
 }
 
 /// `feedback.ledger` 配了但不指向 w_tools 仓库：提醒一次，别让它静默失效。

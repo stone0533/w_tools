@@ -47,6 +47,10 @@
 3. 开启 `feedback.enabled: true` 但本机没有检出 → 建 GitHub Issue；
 4. 未开启 / 都没有 → **什么都不做**（不写本地收件箱、不生成链接、不建 Issue；`submit` exit 4）。
 
+公开 Issue 还有日额度：`feedback.max_issues_per_day`（默认 5，0 = 不限），计数在
+`.w_tools/feedback_budget.json`；本地台账不占额度。从消费方写本机检出会让 w_tools 工作区变脏，
+提交前记得 commit / discard。
+
 开关未开启时 `--issue` 也被拒绝（exit 2）；`--ledger` 需要本机仓库检出。
 
 ```bash

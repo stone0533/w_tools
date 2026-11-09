@@ -56,12 +56,16 @@ no local file, no link, no Issue; do not try `--issue` to get around it — it f
      `GITHUB_TOKEN`, or use `gh auth login`);
    - Neither → skipped with **exit 4**, nothing is written;
    - Use `--issue` only when you have a local ledger but really want a public issue;
-     `--ledger` forces the local ledger.
+     `--ledger` forces the local ledger;
+   - At most 5 public issues per project per day (`feedback.max_issues_per_day`, 0 = unlimited);
+     once used up, submit exits 2. The local ledger does not count.
 
 ### Boundaries
 
 - At most 3–5 entries per session, only what **actually blocked you**;
 - Status is only `pending`; **never mark it fixed yourself**;
 - Issues are public: no secrets, tokens or business-sensitive data; redact logs first;
+- Writing the local ledger dirties the w_tools working tree: remind me to commit / discard afterwards;
+  never commit someone else's repo on your own;
 - Do not put feedback in business code or `.w_tools/`;
 - Maintainers triage into `w_tools/docs/feedback/<package>.md`.

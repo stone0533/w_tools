@@ -28,6 +28,7 @@ class DoctorConfig {
     this.aiFigma = 'auto',
     this.feedbackEnabled = false,
     this.feedbackLedger,
+    this.feedbackMaxIssuesPerDay = 5,
   });
 
   /// R2 的白名单：这个文件里允许 import 子包（它就是聚合入口）
@@ -68,6 +69,11 @@ class DoctorConfig {
   ///
   /// 用于「仓库 clone 在别处、依赖里解析不到」的场景；指向的不是 w_tools 仓库时忽略。
   final String? feedbackLedger;
+
+  /// 每个项目每天最多建几条公开 Issue（`feedback.max_issues_per_day`，0 = 不限）。
+  ///
+  /// CLI 没有会话概念，用日额度兜住「一次会话最多 3–5 条」；本地台账不占额度。
+  final int feedbackMaxIssuesPerDay;
 
   /// 配置文件名（项目根）
   static const fileName = '.w_tools_doctor.yaml';
@@ -175,6 +181,7 @@ class DoctorConfig {
     var aiFigma = 'auto';
     var feedbackEnabled = false;
     String? feedbackLedger;
+    var feedbackMaxIssuesPerDay = 5;
     final feedbackNode = raw['feedback'];
     if (feedbackNode is YamlMap) {
       // `enabled` 是主键；`issue` 是 1.17 之前的旧键，等价处理。
@@ -188,6 +195,10 @@ class DoctorConfig {
       final ledgerPath = feedbackNode['ledger'];
       if (ledgerPath is String && ledgerPath.trim().isNotEmpty) {
         feedbackLedger = ledgerPath.trim();
+      }
+      final maxIssues = feedbackNode['max_issues_per_day'];
+      if (maxIssues is int && maxIssues >= 0) {
+        feedbackMaxIssuesPerDay = maxIssues;
       }
     }
 
@@ -225,6 +236,7 @@ class DoctorConfig {
       aiFigma: aiFigma,
       feedbackEnabled: feedbackEnabled,
       feedbackLedger: feedbackLedger,
+      feedbackMaxIssuesPerDay: feedbackMaxIssuesPerDay,
     );
   }
 
@@ -240,6 +252,7 @@ class DoctorConfig {
     String? aiFigma,
     bool? feedbackEnabled,
     String? feedbackLedger,
+    int? feedbackMaxIssuesPerDay,
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
@@ -253,6 +266,7 @@ class DoctorConfig {
       aiFigma: aiFigma ?? this.aiFigma,
       feedbackEnabled: feedbackEnabled ?? this.feedbackEnabled,
       feedbackLedger: feedbackLedger ?? this.feedbackLedger,
+      feedbackMaxIssuesPerDay: feedbackMaxIssuesPerDay ?? this.feedbackMaxIssuesPerDay,
     );
   }
 }
@@ -318,6 +332,8 @@ String renderDefaultConfig() {
     ..writeln('  # issue: true')
     ..writeln('  # 本机 w_tools 仓库不在依赖里时，显式指过去（相对项目根或绝对路径）：')
     ..writeln('  # ledger: ../w_tools')
+    ..writeln('  # 每个项目每天最多几条公开 Issue（0 = 不限）；本地台账不占额度')
+    ..writeln('  max_issues_per_day: ${defaults.feedbackMaxIssuesPerDay}')
     ..writeln()
     ..writeln('# 跳过的路径前缀（相对项目根）')
     ..writeln('ignore: []')

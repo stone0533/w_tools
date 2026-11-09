@@ -188,6 +188,8 @@ dart run w_tools_cli:w_tools feedback submit \
 - 本机有 w_tools 仓库检出（path / git 依赖）→ 写**那个仓库**的 `docs/feedback/`，不建 Issue；
   仓库 clone 在别处时用 `feedback.ledger: <路径>` 指过去；
   没有检出才建 Issue（需已安装 gh；gh 读取 `GH_TOKEN` / `GITHUB_TOKEN`，或 `gh auth login`）；
+- 公开 Issue 每个项目每天最多 5 条（`feedback.max_issues_per_day`，0 = 不限），额度耗尽 exit 2；
+  本地台账不占额度；
 - `--issue` 只在「本机有台账但确实要公开提 issue」时用；开关未开启时会被拒绝（exit 2）；
 - 消费方**不要**直接改 `docs/feedback/` 的索引（没有索引维护能力）。
 

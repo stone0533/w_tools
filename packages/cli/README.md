@@ -385,6 +385,9 @@ dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
 - 本地台账存在时**不联网**；Issue 需 `.w_tools_doctor.yaml` 的 `feedback.enabled: true`（旧键 `feedback.issue` 兼容）
 - 仓库 clone 在别处（依赖解析不到）时：`feedback.ledger: ../w_tools`（相对项目根或绝对路径；无效时提示一次并忽略）
 - pub cache 里的 git 依赖不算本机库（不往缓存写台账）
+- 公开 Issue 每个项目每天最多 5 条（`feedback.max_issues_per_day`，0 = 不限；本地台账不占额度），
+  额度在 `.w_tools/feedback_budget.json`，耗尽 exit 2
+- 从消费方写本机 w_tools 检出时，stderr 会提醒工作区变脏（JSON 带 `dirtiesRepo`）
 - 开关是硬门禁：未开启时 `--issue` 拒绝（exit 2）；本机有台账时 `--issue` 才是「明确要公开提 issue」
 - `feedback.enabled` 默认 `false`；`--issue` 需要已安装 `gh`（gh 会读取 `GH_TOKEN`/`GITHUB_TOKEN`，或 `gh auth login`）
 - `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`（issue 附带 `gh.ready`）

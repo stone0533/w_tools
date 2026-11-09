@@ -89,6 +89,10 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
 - `feedback.enabled` 默认 `false`；旧键 `feedback.issue` 仍兼容（`enabled` 优先）。
 - 仓库 clone 在别处（依赖解析不到）时用 `feedback.ledger: <路径>` 显式指过去；指向的不是
   w_tools 仓库会在 stderr 提示一次并忽略，不会静默写错地方。
+- `feedback.max_issues_per_day`（默认 5，0 = 不限）只约束**公开 Issue**：CLI 没有会话概念，
+  用日额度兜住「一次会话 3–5 条」；额度耗尽 exit 2，本地台账不占额度。计数在
+  `.w_tools/feedback_budget.json`（删了即归零，跨天自动重置）。
+- 从消费方写本机 w_tools 检出时会在 stderr 提醒「工作区会变脏」，提交前要 commit / discard。
 - **开关是硬门禁**：未开启时 `--issue` 不绕过（exit 2）；本机有台账时 `--issue` 才是「明确要公开提 issue」的覆盖。
 - 本机没有台账时 `search` 查不到东西，会提示加 `--gh` 搜 GitHub issues。
 - pub cache 里的 git 依赖（`~/.pub-cache/git/…`）不算「本机库」：不往缓存写台账，按「没有本地仓库」处理。
