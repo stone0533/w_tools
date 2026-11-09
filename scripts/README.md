@@ -129,6 +129,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `release_status.py` | 发布状态总表：本地 / 线上 / API 快照 / 结论；`--check` 把「落后 / 快照漂移 / 缺快照 / pub.dev 404」判失败，「待发布」正常；网络不可达重试后返回 2（周检按跳过处理）；`--check` 没带 `--online` / `--require-*` 返回 3（用法错误）；`--require-tracked --require-local` 做离线快照结构检查（`--require-local` 只要求**根聚合包**快照 == 本地），`--quiet` 只输出异常；`pending_first_release.txt` 里的新包 404 只警告（结论「待首发」） | 发布后核对 / 每周一 CI / 根包发布前 |
 | `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：先 `git fetch`，再查干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict` + 子包快照基线守卫（快照必须已提交，本地版本不得低于 / 等于快照，除非新包在 `pending_first_release.txt`）（`--force --reason "..."` 才跳过，reason 会打日志）；快照写入失败保留 staging；发布成功后快照先写到 `.w_tools/release-snapshots/` | **真正发布会执行，不是 dry-run** |
 | `check_publish_drift.py` | 下载 pub.dev 最新归档，与仓库比对 `pubspec.yaml` / `lib` / `README` / `CHANGELOG` / `example`：**code drift**（去掉注释后仍不同）→ 必须抬版本，`--check` 时 exit 1；**docs drift**（仅 Markdown）与 **comment drift**（仅 dartdoc/空行）只警告 | 每周一 CI（`--check`）/ 发布前审计 |
+| `check_example_paths.py` | 会随包发布的 `example/pubspec.yaml`：`path:` 依赖必须落在包目录内，且不得带 `dependency_overrides`（本地路径覆盖放 `example/pubspec_overrides.yaml`，发布脚本排除） | preflight / 发布前 |
 | `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`，并打印快照 PR 的命令（含 `gh pr merge --auto --merge`）；不 commit / 不 push | 一批发布结束后、发根包前 |
 | `pending_first_release.txt` | 已合并、尚未首次发布到 pub.dev 的包（裸名）；`release_status` 对 404 只警告，避免新包首发窗口让周检变红 | 新包合并 → 首发成功后删行 |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |

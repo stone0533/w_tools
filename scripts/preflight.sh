@@ -92,6 +92,9 @@ if [ -n "$only_pkg" ]; then
 else
   run "test imports" python3 scripts/check_test_imports.py
 fi
+# 发布物里的 example 必须能独立 pub get：CI 的仓库内 analyze/test 看不到
+# `../../app` / `../packages/qr` 这类包外路径。
+run "example paths" python3 scripts/check_example_paths.py
 # 生成物新鲜度：只改源文件却忘了跑生成器时，这里直接失败（不用等 --with-tests 的 cli 测试）。
 run "catalog fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_catalog.dart --check"
 run "templates fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_templates.dart --check"

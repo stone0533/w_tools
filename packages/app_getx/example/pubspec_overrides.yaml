@@ -1,0 +1,5 @@
+# 本地开发专用：用 workspace 的 w_tools_app，避免 app 3.1.x 与 app_getx 本地版本解析分叉。
+# 不随包发布（publish_package.sh 排除；pub 只自动排除包根的 pubspec_overrides.yaml）。
+dependency_overrides:
+  w_tools_app:
+    path: ../../app

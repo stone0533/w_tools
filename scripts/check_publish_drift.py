@@ -44,7 +44,13 @@ EXCLUDED_DIRS = {
     '.git', '.dart_tool', 'build', 'coverage', 'test', 'docs', 'scripts',
     '.github', '.w_tools', '.idea',
 }
-EXCLUDED_FILES = {'pubspec.lock', '.flutter-plugins', '.flutter-plugins-dependencies', '.DS_Store'}
+EXCLUDED_FILES = {
+    'pubspec.lock',
+    'pubspec_overrides.yaml',
+    '.flutter-plugins',
+    '.flutter-plugins-dependencies',
+    '.DS_Store',
+}
 
 
 class PackageNotFound(Exception):

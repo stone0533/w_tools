@@ -135,6 +135,7 @@ rsync -a \
   --exclude '.flutter-plugins' \
   --exclude '.flutter-plugins-dependencies' \
   --exclude 'pubspec.lock' \
+  --exclude 'pubspec_overrides.yaml' \
   --exclude 'test' \
   --exclude 'docs' \
   --exclude 'scripts' \
