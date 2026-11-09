@@ -63,7 +63,7 @@ dart pub add dev:w_tools_figma:^0.11.4
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.11.4
+  w_tools_figma: ^0.11.5
 ```
 
 `0.11.4` 发布后即可使用上面的约束；发布前需要稳定版请用 `^0.11.3`。

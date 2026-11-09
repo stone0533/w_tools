@@ -1,3 +1,9 @@
+## 8.0.1
+
+### Fixed
+- `example/recipes_page.dart` 补「宽度铺满 + 高度上限」配方与回归测试；
+  README / example README 同步。
+
 ## 8.0.0
 
 ### Breaking

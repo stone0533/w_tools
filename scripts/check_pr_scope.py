@@ -41,6 +41,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from check_public_api_diff import latest_snapshot_version  # noqa: E402
 from check_version_bump import published_version as published_baseline  # noqa: E402
+from release_status import PackageNotFound, fetch_latest  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 # 勾选这三类都意味着「有公开影响」：删除 / 废弃、新增包同样必须写 CHANGELOG。
@@ -224,14 +225,21 @@ def root_changelog_policy_error(
     current_version: str | None,
     base_version: str | None,
     changelog_text: str,
+    published_version: str | None = None,
 ) -> str | None:
     """根包 pubspec/lib 有变化但版本没抬时，必须写 `## Unreleased`。
 
-    与子包不同，根包没有 API 快照做“已发布基线”；用 merge-base 的版本判断
-    本次 PR 有没有抬根包版本。没抬时只能写 `## Unreleased`，不能追加到
-    已经发布的版本段——发布准备（K-2）会把它折叠成新版本段。
+    与子包不同，根包没有 API 快照做“已发布基线”；这里用 pub.dev 的 root 版本
+    （CI 的 --online）判断当前版本是否还在未发布窗口：
+    - current > published：允许直接改该未发布版本的 CHANGELOG 段；
+    - current == base == published：必须写 `## Unreleased` 或抬版本；
+    - 离线（published 未知）跳过，不在本地制造假阳性；CI 的 --online 仍会拦。
     """
     if not current_version or not base_version:
+        return None
+    if published_version is None:
+        return None
+    if release_parts(current_version) > release_parts(published_version):
         return None
     if release_parts(current_version) > release_parts(base_version):
         return None
@@ -429,10 +437,17 @@ def main() -> int:
         root_changelog = ROOT / ROOT_CHANGELOG
         if root_changelog.is_file():
             root_text = root_changelog.read_text()
+        root_published = None
+        if args.online:
+            try:
+                root_published = fetch_latest('w_tools')
+            except PackageNotFound:
+                root_published = None
         root_error = root_changelog_policy_error(
             root_version(),
             base_match.group(1) if base_match else None,
             root_text,
+            root_published,
         )
         if root_error:
             print(f'✗ {root_error}', file=sys.stderr)
