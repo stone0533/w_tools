@@ -49,6 +49,23 @@ class RecipesPage extends StatelessWidget {
         const _Code(
             'WImage.source(source: ..., style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12))'),
         const SizedBox(height: 24),
+        const _SectionTitle('宽度铺满 + 高度上限：ConstrainedBox(maxHeight) + fitWidth'),
+        const SizedBox(height: 8),
+        _Card(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 96),
+            child: WImage.source(
+                source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
+                style: const WImageStyle(
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                  alignment: Alignment.topCenter,
+                )),
+          ),
+        ),
+        const _Code(
+            'ConstrainedBox(maxHeight: 96) + WImageStyle(width: double.infinity, fit: BoxFit.fitWidth, alignment: Alignment.topCenter)'),
+        const SizedBox(height: 24),
         const _SectionTitle('自动拼接资源路径：WImage.source(source: WImageSource.asset(), prefix: true))'),
         const SizedBox(height: 8),
         _Card(
