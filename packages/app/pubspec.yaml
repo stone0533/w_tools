@@ -1,6 +1,6 @@
 name: w_tools_app
 description: "w_tools GetX-free 应用内核：插件契约/编排、语言状态与外观配置。GetX 启动器见 w_tools_app_getx。"
-version: 3.1.0
+version: 3.1.1
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/app

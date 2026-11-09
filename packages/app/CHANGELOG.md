@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.1
 
 ### Changed
 - `WAppPlugin.onInit` 的 dartdoc 补充：箭头写法 `Future<void> onInit() => Get.putAsync(...)`
