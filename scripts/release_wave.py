@@ -373,10 +373,14 @@ def build_plan(data: PlanData) -> dict[str, object]:
         'published': data.root_published,
         'action': root_action,
         'reason': root_reason,
+        'requires': [],
     }
     if root_action == 'blocked':
         _add(blockers, 'root', root_reason)
     if root_action == 'publish':
+        if candidates:
+            # 正常波次的顺序要求，不是阻断：子包发完、快照 PR 合入后再发根包。
+            root['requires'].append('先发布子包并合入快照 PR')
         if data.pending_snapshots:
             _add(blockers, 'root', '.w_tools/release-snapshots 还有未应用快照')
         for row in data.rows:
@@ -391,8 +395,6 @@ def build_plan(data: PlanData) -> dict[str, object]:
                     'root',
                     f'{short} 快照 {data.snapshots.get(short) or "缺失"} != 本地 {row["version"]}；先发布它',
                 )
-        if candidates:
-            _add(blockers, 'root', '先发布子包并合入快照 PR，再发根包')
 
     if root_action == 'skip' and data.pending_snapshots:
         warnings.append('root: 还有未应用的快照；如果要发根包，先走快照 PR')
@@ -481,6 +483,8 @@ def print_human(plan: dict[str, object]) -> None:
     print(f"发布顺序: {' -> '.join(order) if order else '（无子包待发布）'}")
     print(f"快照 PR: {'需要' if plan['snapshots_required'] else '不需要'}"
           f"{'（已有未应用快照）' if plan['pending_snapshots'] else ''}")
+    if root['requires']:
+        print(f"根包前置: {'；'.join(root['requires'])}")
     if plan['blockers']:
         print('\n阻断:')
         for blocker in plan['blockers']:
@@ -529,6 +533,7 @@ def main() -> int:
         ]
         plan['root']['action'] = 'skip'
         plan['root']['reason'] = '未在 --packages 中选择 root'
+        plan['root']['requires'] = []
         plan['summary']['root'] = 'skip'
 
     if args.json:
