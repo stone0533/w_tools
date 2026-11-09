@@ -59,8 +59,21 @@ from release_status import (  # noqa: E402
 )
 
 
+_PROGRESS_ENABLED = True
+_DETAIL_ENABLED = False
+
+
 def _progress(message: str) -> None:
-    """进度只走 stderr：stdout 仍留给计划表 / JSON。"""
+    """阶段级进度只走 stderr：stdout 仍留给计划表 / JSON。"""
+    if not _PROGRESS_ENABLED:
+        return
+    print(f'  · {message}', file=sys.stderr, flush=True)
+
+
+def _detail(message: str) -> None:
+    """逐包进度只在 plan --verbose 时打印。"""
+    if not (_PROGRESS_ENABLED and _DETAIL_ENABLED):
+        return
     print(f'  · {message}', file=sys.stderr, flush=True)
 
 
@@ -201,19 +214,19 @@ def collect_data(rows: list[dict[str, str]], *, audit_drift: bool) -> PlanData:
     _progress(f'查询 pub.dev 版本（{len(rows)} 个包）…')
     for row in rows:
         short = row['short']
-        _progress(f'查询 {short} …')
+        _detail(f'查询 {short} …')
         try:
             value = fetch_latest(row['name'])
         except PackageNotFound:
             not_found.add(short)
-            _progress(f'  {short}: 404（待首发 / 未发布）')
+            _detail(f'  {short}: 404（待首发 / 未发布）')
             continue
         if value is None:
             unreachable.add(short)
-            _progress(f'  {short}: 取不到（网络）')
+            _detail(f'  {short}: 取不到（网络）')
         else:
             published[short] = value
-            _progress(f'  {short}: {value}')
+            _detail(f'  {short}: {value}')
 
     root_version = version_of(ROOT / 'pubspec.yaml')
     root_published: str | None = None
@@ -227,24 +240,24 @@ def collect_data(rows: list[dict[str, str]], *, audit_drift: bool) -> PlanData:
     if root_published is None and not root_not_found:
         root_unreachable = True
     if root_published:
-        _progress(f'  root: {root_published}')
+        _detail(f'  root: {root_published}')
 
     if unreachable:
         _progress(f'重试网络失败的包：{", ".join(sorted(unreachable))}')
         by_short = {row['short']: row for row in rows}
         for short in sorted(unreachable):
-            _progress(f'重试 {short} …')
+            _detail(f'重试 {short} …')
             try:
                 value = fetch_latest(by_short[short]['name'])
             except PackageNotFound:
                 not_found.add(short)
                 unreachable.discard(short)
-                _progress(f'  {short}: 404（待首发 / 未发布）')
+                _detail(f'  {short}: 404（待首发 / 未发布）')
                 continue
             if value is not None:
                 published[short] = value
                 unreachable.discard(short)
-                _progress(f'  {short}: {value}')
+                _detail(f'  {short}: {value}')
 
     if root_unreachable:
         _progress('重试 root w_tools …')
@@ -255,7 +268,7 @@ def collect_data(rows: list[dict[str, str]], *, audit_drift: bool) -> PlanData:
             root_unreachable = False
         if root_published:
             root_unreachable = False
-            _progress(f'  root: {root_published}')
+            _detail(f'  root: {root_published}')
 
     drift: dict[str, str] = {}
     if audit_drift:
@@ -265,12 +278,13 @@ def collect_data(rows: list[dict[str, str]], *, audit_drift: bool) -> PlanData:
             if published.get(row['short']) == row['version']
         ]
         if equal:
-            _progress(f'核对同版本归档（{len(equal)} 个包）：{", ".join(equal)}')
+            _progress(f'核对同版本归档（{len(equal)} 个包）…')
+            _detail(f'  {", ".join(equal)}')
         for short in equal:
-            _progress(f'核对 {short} 归档 …')
+            _detail(f'核对 {short} 归档 …')
             drift[short] = drift_status(short)
         if root_version and root_published == root_version:
-            _progress('核对 root 归档 …')
+            _detail('核对 root 归档 …')
             drift['root'] = drift_status('w_tools')
 
     snapshots = {row['short']: snapshot_version(row['short']) for row in rows}
@@ -527,24 +541,48 @@ def _selected_rows(all_rows: list[dict[str, str]], packages: str | None) -> tupl
     return [row for row in all_rows if row['short'] in wanted], include_root
 
 
-def print_human(plan: dict[str, object]) -> None:
+def print_human(plan: dict[str, object], *, all_rows: bool = False) -> None:
     git = plan['git']
+    packages = plan['packages']
+    root = plan['root']
+    published = sum(1 for package in packages if package['action'] == 'skip')
+    pending = sum(1 for package in packages if package['action'] == 'publish')
+    blocked = sum(1 for package in packages if package['action'] == 'blocked')
+    if root['action'] == 'publish':
+        pending += 1
+    elif root['action'] == 'blocked':
+        blocked += 1
+    elif root.get('reason') != '未在 --packages 中选择 root':
+        published += 1
+    warnings = plan['warnings']
+
     print('=== 发布波次计划（只读） ===')
     print(f"base: {git.get('branch')}@{str(git.get('head'))[:8]}  clean={not git.get('dirty')}")
+    print(f'汇总: 已发布 {published} / 待发布 {pending} / 阻断 {blocked} / 提醒 {len(warnings)}')
     print()
-    print('| 包 | 本地 | 线上 | 快照 | 动作 | 说明 |')
-    print('|---|---|---|---|---|---|')
-    for package in plan['packages']:
-        print(
-            f"| {package['short']} | {package['version']} | {package['published'] or '-'} | "
-            f"{package['snapshot'] or '-'} | {package['action']} | {package['reason']} |",
-        )
-    root = plan['root']
-    print(
-        f"| root | {root['version'] or '-'} | {root['published'] or '-'} | - | "
-        f"{root['action']} | {root['reason']} |",
-    )
-    print()
+
+    visible = packages if all_rows else [
+        package for package in packages if package['action'] != 'skip'
+    ]
+    show_root = all_rows or root['action'] != 'skip'
+    if visible or show_root:
+        print('| 包 | 本地 | 线上 | 快照 | 动作 | 说明 |')
+        print('|---|---|---|---|---|---|')
+        for package in visible:
+            print(
+                f"| {package['short']} | {package['version']} | {package['published'] or '-'} | "
+                f"{package['snapshot'] or '-'} | {package['action']} | {package['reason']} |",
+            )
+        if show_root:
+            print(
+                f"| root | {root['version'] or '-'} | {root['published'] or '-'} | - | "
+                f"{root['action']} | {root['reason']} |",
+            )
+        print()
+    else:
+        print('没有待发布 / 阻断的包。')
+        print()
+
     order = plan['order']
     print(f"发布顺序: {' -> '.join(order) if order else '（无子包待发布）'}")
     print(f"快照 PR: {'需要' if plan['snapshots_required'] else '不需要'}"
@@ -557,9 +595,9 @@ def print_human(plan: dict[str, object]) -> None:
             print(f'  ✗ {blocker}')
     else:
         print('\n阻断: 无')
-    if plan['warnings']:
+    if warnings:
         print('\n提醒:')
-        for warning in plan['warnings']:
+        for warning in warnings:
             print(f'  ! {warning}')
 
 
@@ -1104,6 +1142,9 @@ def _status(args) -> int:
 
 
 def _plan_command(args) -> int:
+    global _DETAIL_ENABLED, _PROGRESS_ENABLED
+    _PROGRESS_ENABLED = bool(args.verbose) or not args.json
+    _DETAIL_ENABLED = bool(args.verbose)
     if args.fetch:
         _progress('git fetch origin main …')
         fetched = _git('fetch', 'origin', 'main')
@@ -1136,11 +1177,11 @@ def _plan_command(args) -> int:
     if args.out:
         out = pathlib.Path(args.out)
         _write_json(out, plan)
-        print(f'计划已写入 {out}（只读生成，未发布）')
+        print(f'计划已写入 {out}（只读生成，未发布）', file=sys.stderr)
     if args.json:
         print(json.dumps(plan, ensure_ascii=False, indent=2))
     else:
-        print_human(plan)
+        print_human(plan, all_rows=args.all_rows or args.verbose)
     if args.check and plan['blockers']:
         return 1
     return 0
@@ -1155,6 +1196,8 @@ def main() -> int:
     parser.add_argument('--json', action='store_true', help='plan/status：输出 JSON')
     parser.add_argument('--check', action='store_true', help='plan：有阻断时退出 1')
     parser.add_argument('--no-drift', action='store_true', help='plan：跳过同版本归档 CODE DRIFT 核对')
+    parser.add_argument('--verbose', '-v', action='store_true', help='plan：逐包进度 + 全表（旧输出）')
+    parser.add_argument('--all-rows', action='store_true', help='plan：表格显示全部包（含 skip）')
     parser.add_argument('--fetch', action='store_true', help='plan：先 git fetch origin main')
     parser.add_argument('--plan', dest='plan_file', help='run：plan 生成的 JSON 文件')
     parser.add_argument('--yes', action='store_true', help='run：确认执行（不可逆）')

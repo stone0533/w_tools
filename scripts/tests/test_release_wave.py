@@ -221,6 +221,38 @@ class BuildPlanTest(unittest.TestCase):
         self.assertEqual(plan['schema'], 'w_tools.release_plan/1')
 
 
+class PrintHumanTest(unittest.TestCase):
+    def _plan(self):
+        rows = [
+            row('core', '3.1.1', aggregate='root'),
+            row('app_getx', '2.1.1'),
+        ]
+        return mod.build_plan(
+            data(
+                rows,
+                published={'core': '3.1.1', 'app_getx': '2.1.0'},
+                snapshots={'core': '3.1.1', 'app_getx': '2.1.0'},
+            ),
+        )
+
+    def _render(self, plan, **kwargs):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            mod.print_human(plan, **kwargs)
+        return out.getvalue()
+
+    def test_default_hides_skip_rows_but_keeps_summary(self):
+        text = self._render(self._plan())
+        self.assertIn('汇总: 已发布 1 / 待发布 2 / 阻断 0 / 提醒 0', text)
+        self.assertIn('| app_getx |', text)
+        self.assertNotIn('| core |', text)
+
+    def test_all_rows_shows_skip_rows(self):
+        text = self._render(self._plan(), all_rows=True)
+        self.assertIn('| core |', text)
+        self.assertIn('| app_getx |', text)
+
+
 class ValidateRunPlanTest(unittest.TestCase):
     def _plan(self, **overrides):
         plan = {
