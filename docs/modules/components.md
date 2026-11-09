@@ -202,9 +202,10 @@
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头默认脱敏 |
 | `WLogPart` | api | WLogInterceptor 的日志片段选择 | 不要单独使用；作为 `parts` 的枚举值 |
 | `WApiConfig` | api | 请求配置与日志注入 | — |
-| `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；单次扫码后用 `restartScan` |
-| `WQrController` | qr | 相机控制与广播扫描流 | 不要用它重置 scanOnce |
-| `WQrViewOverlayShape` | qr | 扫描框样式 | 尺寸必须大于 0 |
+| `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；重扫不要 Key 状态，用 `WQrController.restart` |
+| `WQrController` | qr | 相机控制、广播扫描流与重扫 | 不要用它重置 UI 状态：单次锁定与成功色由 `WQrView` 管理 |
+| `WQrOverlayStyle` | qr | 扫描框颜色 / 是否显示 / 外边距与尺寸 | 不要为了改边框颜色去动 `WQrView` 的其它参数 |
+| `WQrScanResult` | qr | onScanned 的扫码结果（code / format / rawBytes / timestamp） | 不要把它当原始 Barcode：需要原始对象请监听 `WQrController.scannedDataStream` |
 | `WMap` / `WMapZone` | map_google | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
 | `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |

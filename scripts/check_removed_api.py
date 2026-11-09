@@ -40,6 +40,9 @@ names = [
     # form 6.0：实时派生 formEntered / 内部边框登记收口后删除的公开名。
     r'pruneFormEntered', r'removeFormEntered', r'hasBorder', r'errorChannelOf',
     r'registerBorder', r'unregisterBorder', r'removeErrorChannel',
+    # qr 2.0：控制器归调用方、样式收口、结果结构化后移除的公开名。
+    r'WQrViewState', r'WQrViewOverlayShape', r'onQRViewCreated', r'noPermissionCallback',
+    r'checkedBorderColor', r'showOverlay', r'restartScan', r'scanInvert', r'WQrController\.internal',
 ]
 # 以 `)` 结尾的条目不能补尾 `\b`：`)` 后面通常不是单词字符，补了就永远匹配不到。
 patterns = [

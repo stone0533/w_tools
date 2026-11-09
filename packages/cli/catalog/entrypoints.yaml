@@ -61,3 +61,4 @@ w_tools_map_google:
   - WMapOptions
 w_tools_qr:
   - WQrView
+  - WQrController

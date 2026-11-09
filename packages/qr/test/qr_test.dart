@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart' show QRView;
+import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart' show QrScannerOverlayShape, QRView;
 import 'package:w_tools_qr/w_tools_qr.dart';
 
 /// 平台视图创建后，插件使用的二维码通道名前缀（实际 id 由测试框架分配）
@@ -26,6 +27,14 @@ Future<void> _emitPlatformCall(WidgetTester tester, MethodCall call) async {
   await tester.pump(const Duration(milliseconds: 1));
 }
 
+/// 模拟扫描到一个条码
+Future<void> _emitBarcode(WidgetTester tester, String? code) {
+  return _emitPlatformCall(
+    tester,
+    MethodCall('onRecognizeQR', {'code': code, 'type': 'QR_CODE'}),
+  );
+}
+
 /// 从平台消息中解析方法名
 String? _decodeMethodName(ByteData? message) {
   if (message == null) return null;
@@ -36,169 +45,144 @@ String? _decodeMethodName(ByteData? message) {
   }
 }
 
-/// 模拟扫描到一个条码
-Future<void> _emitBarcode(WidgetTester tester, String code) {
-  return _emitPlatformCall(
-    tester,
-    MethodCall('onRecognizeQR', {'code': code, 'type': 'QR_CODE'}),
-  );
-}
+/// 编码一个成功回包
+ByteData? _success([Object? value]) => const StandardMethodCodec().encodeSuccessEnvelope(value);
 
 void main() {
-  test('只提供 onQRViewCreated 时不能沿用默认 scanOnce=true', () {
-    expect(() => WQrView(onQRViewCreated: (_) {}), throwsAssertionError);
-  });
-
-  group('WQrViewOverlayShape — 纯 Dart', () {
+  group('WQrOverlayStyle — 纯 Dart', () {
     test('默认构造参数', () {
-      const overlay = WQrViewOverlayShape();
-      expect(overlay.borderWidth, 3.0);
-      expect(overlay.overlayColor, const Color.fromRGBO(0, 0, 0, 0.5));
-      expect(overlay.borderRadius, 0);
-      expect(overlay.borderLength, 40);
-      expect(overlay.cutOutWidth, 250);
-      expect(overlay.cutOutBottomOffset, 0);
-      expect(overlay.cutOutHeight, 250);
+      const style = WQrOverlayStyle();
+      expect(style.isVisible, isTrue);
+      expect(style.borderColor, Colors.red);
+      expect(style.successColor, Colors.green);
+      expect(style.margin, EdgeInsets.zero);
+      expect(style.borderWidth, 3.0);
+      expect(style.overlayColor, const Color.fromRGBO(0, 0, 0, 0.5));
+      expect(style.borderRadius, 0);
+      expect(style.borderLength, 40);
+      expect(style.cutOutWidth, 250);
+      expect(style.cutOutHeight, 250);
+      expect(style.cutOutBottomOffset, 0);
     });
 
-    test('自定义 cutOutHeight', () {
-      const overlay = WQrViewOverlayShape(cutOutWidth: 200, cutOutHeight: 150);
-      expect(overlay.cutOutWidth, 200);
-      expect(overlay.cutOutHeight, 150);
-    });
-
-    test('全自定义参数', () {
-      const overlay = WQrViewOverlayShape(
+    test('自定义扫描框与颜色', () {
+      const style = WQrOverlayStyle(
+        isVisible: false,
+        borderColor: Colors.blue,
+        successColor: Colors.amber,
+        margin: EdgeInsets.all(8),
         borderWidth: 5,
-        overlayColor: Colors.amber,
         borderRadius: 10,
         borderLength: 60,
         cutOutWidth: 300,
         cutOutHeight: 200,
         cutOutBottomOffset: 20,
       );
-      expect(overlay.borderWidth, 5);
-      expect(overlay.overlayColor, Colors.amber);
-      expect(overlay.borderRadius, 10);
-      expect(overlay.borderLength, 60);
-      expect(overlay.cutOutWidth, 300);
-      expect(overlay.cutOutHeight, 200);
-      expect(overlay.cutOutBottomOffset, 20);
+      expect(style.isVisible, isFalse);
+      expect(style.borderColor, Colors.blue);
+      expect(style.successColor, Colors.amber);
+      expect(style.borderWidth, 5);
+      expect(style.cutOutHeight, 200);
+    });
+
+    test('值相等与 hashCode', () {
+      expect(
+        const WQrOverlayStyle(borderWidth: 4),
+        const WQrOverlayStyle(borderWidth: 4),
+      );
+      expect(
+        const WQrOverlayStyle(borderWidth: 4).hashCode,
+        const WQrOverlayStyle(borderWidth: 4).hashCode,
+      );
+      expect(
+        const WQrOverlayStyle(borderWidth: 4),
+        isNot(const WQrOverlayStyle(borderWidth: 5)),
+      );
+      expect(
+        const WQrOverlayStyle(isVisible: false),
+        isNot(const WQrOverlayStyle()),
+      );
+    });
+
+    test('非法尺寸在 debug 下断言失败', () {
+      expect(
+        () => WQrOverlayStyle(cutOutWidth: 60), // borderLength 40 > 30 + 6
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => WQrOverlayStyle(cutOutWidth: 0),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => WQrOverlayStyle(borderWidth: 0),
+        throwsA(isA<AssertionError>()),
+      );
     });
   });
 
-  test('非法尺寸在 debug 下断言失败', () {
-    expect(
-      () => WQrViewOverlayShape(cutOutWidth: 60), // borderLength 40 > 30 + 6
-      throwsA(isA<AssertionError>()),
-    );
-    expect(
-      () => WQrViewOverlayShape(cutOutWidth: 0),
-      throwsA(isA<AssertionError>()),
-    );
-    expect(
-      () => WQrViewOverlayShape(borderWidth: 0),
-      throwsA(isA<AssertionError>()),
-    );
+  test('WQrView 所有回调都可省略', () {
+    expect(const WQrView(), isA<WQrView>());
+    expect(const WQrView(scanOnce: true), isA<WQrView>());
+    // 只给 onControllerReady 也必须能构造（旧版这里会断言失败）
+    expect(WQrView(onControllerReady: (_) {}), isA<WQrView>());
+  });
+
+  test('未挂载的 WQrController：相机方法抛 StateError，restart 是 no-op', () async {
+    final controller = WQrController();
+    addTearDown(controller.dispose);
+
+    expect(controller.isAttached, isFalse);
+    expect(controller.hasPermissions, isFalse);
+    expect(controller.cameraFacing, isNull);
+    expect(() => controller.pauseCamera(), throwsStateError);
+    expect(() => controller.toggleFlash(), throwsStateError);
+    await expectLater(controller.restart(), completes);
   });
 
   group('WQrView — 构造 & 渲染（Tier 1）', () {
-    test('onScanned 与 onQRViewCreated 都为空时断言', () {
-      expect(() => WQrView(), throwsA(isA<AssertionError>()));
-    });
-
-    test('WQrViewOverlayShape 值相等', () {
-      expect(
-        const WQrViewOverlayShape(borderWidth: 4),
-        const WQrViewOverlayShape(borderWidth: 4),
-      );
-      expect(
-        const WQrViewOverlayShape(borderWidth: 4).hashCode,
-        const WQrViewOverlayShape(borderWidth: 4).hashCode,
-      );
-      expect(
-        const WQrViewOverlayShape(borderWidth: 4),
-        isNot(const WQrViewOverlayShape(borderWidth: 5)),
-      );
-    });
-
-    testWidgets('默认构造 — onScanned 可选 + 默认参数', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WQrView(onScanned: (_) {}),
-          ),
-        ),
-      );
-      expect(find.byType(WQrView), findsOneWidget);
-      final wqr = tester.widget<WQrView>(find.byType(WQrView));
-      expect(wqr.borderColor, Colors.red);
-      expect(wqr.checkedBorderColor, Colors.green);
-      expect(wqr.showOverlay, isTrue);
-      expect(wqr.scanOnce, isTrue);
-      expect(wqr.scanInterval, const Duration(milliseconds: 400));
-      expect(wqr.cameraFacing, CameraFacing.back);
-      expect(wqr.formatsAllowed, isEmpty);
-      expect(wqr.overlayMargin, EdgeInsets.zero);
-    });
-
-    testWidgets('自定义 borderColor / checkedBorderColor / overlay', (tester) async {
-      const overlay = WQrViewOverlayShape(borderWidth: 8);
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WQrView(
-              borderColor: Colors.blue,
-              checkedBorderColor: Colors.green,
-              overlay: overlay,
-              onScanned: (_) {},
-            ),
-          ),
-        ),
-      );
-      final wqr = tester.widget<WQrView>(find.byType(WQrView));
-      expect(wqr.borderColor, Colors.blue);
-      expect(wqr.checkedBorderColor, Colors.green);
-      expect(wqr.overlay!.borderWidth, 8);
-    });
-
-    testWidgets('noPermissionCallback 参数传递', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WQrView(
-              onScanned: (_) {},
-              noPermissionCallback: () {},
-            ),
-          ),
-        ),
-      );
-      final wqr = tester.widget<WQrView>(find.byType(WQrView));
-      expect(wqr.noPermissionCallback, isNotNull);
-    });
-
     testWidgets('默认绘制扫描框', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: WQrView(onScanned: (_) {})),
+        const MaterialApp(home: Scaffold(body: WQrView())),
+      );
+
+      final qrView = tester.widget<QRView>(find.byType(QRView));
+      final overlay = qrView.overlay as QrScannerOverlayShape;
+      expect(overlay.borderColor, Colors.red);
+      expect(qrView.overlayMargin, EdgeInsets.zero);
+      expect(qrView.cameraFacing, CameraFacing.back);
+      expect(qrView.formatsAllowed, isEmpty);
+    });
+
+    testWidgets('style 生效：颜色 / 外边距 / 是否显示', (tester) async {
+      const style = WQrOverlayStyle(
+        borderColor: Colors.blue,
+        successColor: Colors.amber,
+        margin: EdgeInsets.all(12),
+        borderWidth: 8,
+        cutOutWidth: 240,
+        cutOutHeight: 240,
+      );
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: WQrView(style: style)),
         ),
       );
 
       final qrView = tester.widget<QRView>(find.byType(QRView));
-      expect(qrView.overlay, isNotNull);
-    });
+      final overlay = qrView.overlay as QrScannerOverlayShape;
+      expect(overlay.borderColor, Colors.blue);
+      expect(overlay.borderWidth, 8);
+      expect(overlay.cutOutWidth, 240);
+      expect(qrView.overlayMargin, const EdgeInsets.all(12));
 
-    testWidgets('showOverlay 为 false 时全屏扫描', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: WQrView(onScanned: (_) {}, showOverlay: false),
+            body: WQrView(style: WQrOverlayStyle(isVisible: false)),
           ),
         ),
       );
-
-      final qrView = tester.widget<QRView>(find.byType(QRView));
-      expect(qrView.overlay, isNull);
+      expect(tester.widget<QRView>(find.byType(QRView)).overlay, isNull);
     });
   });
 
@@ -238,9 +222,27 @@ void main() {
               ),
             );
           }
-          return Future<ByteData?>.value(
-            const StandardMethodCodec().encodeSuccessEnvelope(null),
-          );
+          switch (method) {
+            case 'getCameraInfo':
+            case 'flipCamera':
+              return Future<ByteData?>.value(
+                _success(CameraFacing.front.index),
+              );
+            case 'getFlashInfo':
+              return Future<ByteData?>.value(_success(true));
+            case 'toggleFlash':
+              return Future<ByteData?>.value(_success(true));
+            case 'getSystemFeatures':
+              return Future<ByteData?>.value(
+                _success(<String, dynamic>{
+                  'hasFlash': true,
+                  'hasBackCamera': true,
+                  'hasFrontCamera': true,
+                }),
+              );
+            default:
+              return Future<ByteData?>.value(_success());
+          }
         }
         if (handler != null) {
           return handler(message);
@@ -261,31 +263,33 @@ void main() {
 
     Future<void> pumpQrView(
       WidgetTester tester, {
+      WQrController? controller,
       Key? key,
-      required void Function(Barcode) onScanned,
-      void Function(WQrController)? onQRViewCreated,
+      void Function(WQrScanResult result)? onScanned,
+      void Function(WQrController controller)? onControllerReady,
       void Function(Object error, StackTrace stackTrace)? onError,
+      VoidCallback? onPermissionDenied,
+      WQrOverlayStyle style = const WQrOverlayStyle(),
       bool scanOnce = true,
       Duration scanInterval = Duration.zero,
-      bool showOverlay = true,
       CameraFacing cameraFacing = CameraFacing.back,
       List<BarcodeFormat> formatsAllowed = const <BarcodeFormat>[],
-      VoidCallback? noPermissionCallback,
     }) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: WQrView(
               key: key,
+              controller: controller,
+              style: style,
               onScanned: onScanned,
-              onQRViewCreated: onQRViewCreated,
+              onControllerReady: onControllerReady,
               onError: onError,
+              onPermissionDenied: onPermissionDenied,
               scanOnce: scanOnce,
               scanInterval: scanInterval,
-              showOverlay: showOverlay,
               cameraFacing: cameraFacing,
               formatsAllowed: formatsAllowed,
-              noPermissionCallback: noPermissionCallback,
             ),
           ),
         ),
@@ -293,48 +297,60 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('onQRViewCreated 回调被触发 — controller 创建成功', (tester) async {
-      WQrController? capturedController;
-      await pumpQrView(
-        tester,
-        onScanned: (_) {},
-        onQRViewCreated: (ctrl) => capturedController = ctrl,
-      );
-      expect(capturedController, isNotNull);
-    });
+    testWidgets('传入 controller 时 onControllerReady 拿到同一实例', (tester) async {
+      final controller = WQrController();
+      addTearDown(controller.dispose);
+      WQrController? ready;
 
-    testWidgets('controller 创建后 scannedDataStream 是可用的广播流', (tester) async {
-      WQrController? capturedController;
       await pumpQrView(
         tester,
-        onScanned: (_) {},
-        onQRViewCreated: (ctrl) => capturedController = ctrl,
+        controller: controller,
+        onControllerReady: (c) => ready = c,
       );
-      expect(capturedController, isNotNull);
-      expect(capturedController!.scannedDataStream, isA<Stream<Barcode>>());
-      expect(capturedController!.scannedDataStream.isBroadcast, isTrue);
+
+      expect(ready, isNotNull);
+      expect(identical(ready, controller), isTrue);
+      expect(controller.scannedDataStream.isBroadcast, isTrue);
     });
 
     testWidgets('默认配置：扫码触发 onScanned 并暂停相机，且只触发一次', (tester) async {
-      final scanned = <String>[];
-      await pumpQrView(tester, onScanned: (data) => scanned.add(data.code ?? ''));
+      final scanned = <WQrScanResult>[];
+      await pumpQrView(tester, onScanned: scanned.add);
 
       await _emitBarcode(tester, 'hello');
 
-      expect(scanned, ['hello']);
+      expect(scanned.single.code, 'hello');
+      expect(scanned.single.format, BarcodeFormat.qrcode);
+      expect(scanned.single.timestamp, isA<DateTime>());
       expect(platformCalls, contains('pauseCamera'));
 
       // 扫描一次模式下，后续条码不再回调
       await _emitBarcode(tester, 'world');
-      expect(scanned, ['hello']);
+      expect(scanned, hasLength(1));
     });
 
-    testWidgets('scanOnce 为 false：持续回调且不暂停相机', (tester) async {
+    testWidgets('单次扫码成功后边框切 successColor', (tester) async {
+      const style = WQrOverlayStyle(
+        borderColor: Colors.blue,
+        successColor: Colors.amber,
+      );
+      await pumpQrView(tester, style: style, onScanned: (_) {});
+
+      var overlay = tester.widget<QRView>(find.byType(QRView)).overlay as QrScannerOverlayShape;
+      expect(overlay.borderColor, Colors.blue);
+
+      await _emitBarcode(tester, 'ok');
+
+      overlay = tester.widget<QRView>(find.byType(QRView)).overlay as QrScannerOverlayShape;
+      expect(overlay.borderColor, Colors.amber);
+    });
+
+    testWidgets('scanOnce 为 false：持续回调且不暂停相机、不高亮', (tester) async {
       final scanned = <String>[];
       await pumpQrView(
         tester,
         scanOnce: false,
-        onScanned: (data) => scanned.add(data.code ?? ''),
+        onScanned: (result) => scanned.add(result.code),
       );
 
       await _emitBarcode(tester, 'first');
@@ -342,21 +358,58 @@ void main() {
 
       expect(scanned, ['first', 'second']);
       expect(platformCalls, isNot(contains('pauseCamera')));
+      final overlay = tester.widget<QRView>(find.byType(QRView)).overlay as QrScannerOverlayShape;
+      expect(overlay.borderColor, Colors.red);
     });
 
-    testWidgets('restartScan 后可再次扫码', (tester) async {
-      final stateKey = GlobalKey<WQrViewState>();
+    testWidgets('空内容与 null 内容都忽略', (tester) async {
+      final scanned = <String>[];
+      await pumpQrView(tester, onScanned: (result) => scanned.add(result.code));
+
+      await _emitBarcode(tester, '');
+      await _emitBarcode(tester, null);
+
+      expect(scanned, isEmpty);
+      expect(platformCalls, isNot(contains('pauseCamera')));
+    });
+
+    testWidgets('不传 onScanned 时不会自动暂停相机，流仍持续推送', (tester) async {
+      final controller = WQrController();
+      addTearDown(controller.dispose);
+      final codes = <String>[];
+      await pumpQrView(
+        tester,
+        controller: controller,
+        onControllerReady: (c) {
+          c.scannedDataStream.listen((barcode) {
+            final code = barcode.code;
+            if (code != null) codes.add(code);
+          });
+        },
+      );
+
+      await _emitBarcode(tester, 'one');
+      await _emitBarcode(tester, 'two');
+
+      expect(codes, ['one', 'two']);
+      expect(platformCalls, isNot(contains('pauseCamera')));
+      expect(controller.hasPermissions, isFalse);
+    });
+
+    testWidgets('restart 后可再次扫码', (tester) async {
+      final controller = WQrController();
+      addTearDown(controller.dispose);
       final scanned = <String>[];
       await pumpQrView(
         tester,
-        key: stateKey,
-        onScanned: (data) => scanned.add(data.code ?? ''),
+        controller: controller,
+        onScanned: (result) => scanned.add(result.code),
       );
 
       await _emitBarcode(tester, 'first');
       expect(scanned, ['first']);
 
-      await stateKey.currentState!.restartScan();
+      await controller.restart();
       await tester.pump();
 
       await _emitBarcode(tester, 'second');
@@ -364,19 +417,41 @@ void main() {
       expect(platformCalls, contains('resumeCamera'));
     });
 
+    testWidgets('在 onScanned 内调用 restart 时暂停与恢复顺序正确', (tester) async {
+      final controller = WQrController();
+      addTearDown(controller.dispose);
+      await pumpQrView(
+        tester,
+        controller: controller,
+        onScanned: (_) => controller.restart(),
+      );
+
+      platformCalls.clear();
+      await _emitBarcode(tester, 'first');
+
+      final pauseIndex = platformCalls.indexOf('pauseCamera');
+      final resumeIndex = platformCalls.indexOf('resumeCamera');
+      expect(pauseIndex, isNonNegative);
+      expect(resumeIndex, greaterThan(pauseIndex));
+
+      await _emitBarcode(tester, 'second');
+      expect(platformCalls.where((call) => call == 'pauseCamera').length, 2);
+    });
+
     testWidgets('广播流支持多监听，且与 onScanned 共存', (tester) async {
-      WQrController? controller;
+      final controller = WQrController();
+      addTearDown(controller.dispose);
       final scanned = <String>[];
       await pumpQrView(
         tester,
-        onScanned: (data) => scanned.add(data.code ?? ''),
-        onQRViewCreated: (ctrl) => controller = ctrl,
+        controller: controller,
+        onScanned: (result) => scanned.add(result.code),
       );
 
       final first = <String>[];
       final second = <String>[];
-      controller!.scannedDataStream.listen((b) => first.add(b.code ?? ''));
-      controller!.scannedDataStream.listen((b) => second.add(b.code ?? ''));
+      controller.scannedDataStream.listen((b) => first.add(b.code ?? ''));
+      controller.scannedDataStream.listen((b) => second.add(b.code ?? ''));
 
       await _emitBarcode(tester, 'multi');
 
@@ -400,22 +475,37 @@ void main() {
       expect(reported, isA<CameraException>());
     });
 
-    testWidgets('无相机权限时触发 noPermissionCallback', (tester) async {
+    testWidgets('无权限回调只上报一次，重新授权后可再次上报', (tester) async {
       var deniedCount = 0;
       await pumpQrView(
         tester,
         onScanned: (_) {},
-        noPermissionCallback: () => deniedCount++,
+        onPermissionDenied: () => deniedCount++,
       );
 
-      await _emitPlatformCall(tester, const MethodCall('onPermissionSet', false));
-
+      await _emitPlatformCall(
+        tester,
+        const MethodCall('onPermissionSet', false),
+      );
+      await _emitPlatformCall(
+        tester,
+        const MethodCall('onPermissionSet', false),
+      );
       expect(deniedCount, 1);
+
+      await _emitPlatformCall(tester, const MethodCall('onPermissionSet', true));
+      await _emitPlatformCall(
+        tester,
+        const MethodCall('onPermissionSet', false),
+      );
+      expect(deniedCount, 2);
     });
 
     testWidgets('应用进入后台暂停相机，回到前台后恢复', (tester) async {
       addTearDown(() {
-        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
       });
       await pumpQrView(tester, onScanned: (_) {});
 
@@ -432,7 +522,9 @@ void main() {
 
     testWidgets('单次扫码完成后回到前台不会自动恢复相机', (tester) async {
       addTearDown(() {
-        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
       });
       await pumpQrView(tester, onScanned: (_) {});
       await _emitBarcode(tester, 'done');
@@ -446,42 +538,79 @@ void main() {
       expect(platformCalls, isNot(contains('resumeCamera')));
     });
 
-    testWidgets('在 onScanned 内调用 restartScan 时暂停与恢复顺序正确', (tester) async {
-      final stateKey = GlobalKey<WQrViewState>();
+    testWidgets('restart 在后台不恢复相机，回到前台后才恢复', (tester) async {
+      addTearDown(() {
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+      });
+      final controller = WQrController();
+      addTearDown(controller.dispose);
+      await pumpQrView(tester, controller: controller, onScanned: (_) {});
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      platformCalls.clear();
+
+      await controller.restart();
+      await tester.pump();
+      expect(platformCalls, isNot(contains('resumeCamera')));
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(platformCalls, contains('resumeCamera'));
+    });
+
+    testWidgets('onError 自身抛异常会被忽略', (tester) async {
       await pumpQrView(
         tester,
-        key: stateKey,
-        onScanned: (_) {
-          stateKey.currentState!.restartScan();
-        },
+        onScanned: (_) => throw StateError('callback failed'),
+        onError: (_, _) => throw StateError('handler failed'),
       );
 
-      platformCalls.clear();
-      await _emitBarcode(tester, 'first');
+      await _emitBarcode(tester, 'boom');
 
-      final pauseIndex = platformCalls.indexOf('pauseCamera');
-      final resumeIndex = platformCalls.indexOf('resumeCamera');
-      expect(pauseIndex, isNonNegative);
-      expect(resumeIndex, greaterThan(pauseIndex));
-
-      await _emitBarcode(tester, 'second');
-      expect(platformCalls.where((call) => call == 'pauseCamera').length, 2);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('cameraFacing 变化会重建平台视图并重置扫描状态', (tester) async {
       final scanned = <String>[];
-      await pumpQrView(tester, onScanned: (data) => scanned.add(data.code ?? ''));
+      await pumpQrView(tester, onScanned: (r) => scanned.add(r.code));
       await _emitBarcode(tester, 'first');
       expect(scanned, ['first']);
 
       await pumpQrView(
         tester,
         cameraFacing: CameraFacing.front,
-        onScanned: (data) => scanned.add(data.code ?? ''),
+        onScanned: (r) => scanned.add(r.code),
       );
       await _emitBarcode(tester, 'first');
 
       expect(scanned, ['first', 'first']);
+      expect(
+        tester.widget<QRView>(find.byType(QRView)).cameraFacing,
+        CameraFacing.front,
+      );
+    });
+
+    testWidgets('formatsAllowed 变化会重建平台视图并重置扫描状态', (tester) async {
+      final scanned = <String>[];
+      await pumpQrView(tester, onScanned: (r) => scanned.add(r.code));
+      await _emitBarcode(tester, 'first');
+      expect(scanned, ['first']);
+
+      await pumpQrView(
+        tester,
+        formatsAllowed: const <BarcodeFormat>[BarcodeFormat.qrcode],
+        onScanned: (r) => scanned.add(r.code),
+      );
+      await _emitBarcode(tester, 'first');
+
+      expect(scanned, ['first', 'first']);
+      expect(
+        tester.widget<QRView>(find.byType(QRView)).formatsAllowed,
+        [BarcodeFormat.qrcode],
+      );
     });
 
     testWidgets('scanInterval 内相同内容只回调一次', (tester) async {
@@ -490,7 +619,7 @@ void main() {
         tester,
         scanOnce: false,
         scanInterval: const Duration(seconds: 5),
-        onScanned: (data) => scanned.add(data.code ?? ''),
+        onScanned: (result) => scanned.add(result.code),
       );
 
       await _emitBarcode(tester, 'same');
@@ -501,68 +630,140 @@ void main() {
       expect(scanned, ['same', 'other']);
     });
 
-    testWidgets('onScanned 抛异常时通过 onError 上报', (tester) async {
-      Object? reported;
+    testWidgets('scanInterval 为 0 时关闭去重', (tester) async {
+      final scanned = <String>[];
       await pumpQrView(
         tester,
-        onScanned: (_) => throw StateError('callback failed'),
-        onError: (error, _) => reported = error,
+        scanOnce: false,
+        onScanned: (result) => scanned.add(result.code),
+      );
+
+      await _emitBarcode(tester, 'same');
+      await _emitBarcode(tester, 'same');
+
+      expect(scanned, ['same', 'same']);
+    });
+
+    testWidgets('大量不同条码不会因去重表容量被误判', (tester) async {
+      final scanned = <String>[];
+      await pumpQrView(
+        tester,
+        scanOnce: false,
+        scanInterval: const Duration(seconds: 5),
+        onScanned: (result) => scanned.add(result.code),
+      );
+
+      for (var index = 0; index < 80; index++) {
+        await _emitBarcode(tester, 'code-$index');
+      }
+
+      expect(scanned, hasLength(80));
+    });
+
+    testWidgets('onScanned 抛异常时通过 onError 上报，并回滚单次锁定', (tester) async {
+      final errors = <Object>[];
+      var calls = 0;
+      await pumpQrView(
+        tester,
+        onScanned: (_) {
+          calls++;
+          throw StateError('callback failed');
+        },
+        onError: (error, _) => errors.add(error),
       );
 
       await _emitBarcode(tester, 'boom');
 
-      expect(reported, isA<StateError>());
+      expect(calls, 1);
+      expect(errors.single, isA<StateError>());
+      // 回滚：恢复相机，下一次扫码仍可回调
+      expect(platformCalls, contains('resumeCamera'));
+      await _emitBarcode(tester, 'retry');
+      expect(calls, 2);
     });
 
-    testWidgets('onQRViewCreated 抛异常时通过 onError 上报', (tester) async {
-      Object? reported;
+    testWidgets('onControllerReady 抛异常时通过 onError 上报', (tester) async {
+      final errors = <Object>[];
       await pumpQrView(
         tester,
-        onScanned: (_) {},
-        onQRViewCreated: (_) => throw StateError('callback failed'),
-        onError: (error, _) => reported = error,
+        onControllerReady: (_) => throw StateError('callback failed'),
+        onError: (error, _) => errors.add(error),
       );
 
-      expect(reported, isA<StateError>());
+      expect(errors.single, isA<StateError>());
     });
 
-    testWidgets('WQrView dispose 正常释放订阅', (tester) async {
-      WQrController? capturedController;
+    testWidgets('控制器相机方法转发到平台', (tester) async {
+      // setInvert 只在 Android 上转发，这里临时覆盖平台并在用例结束前还原
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        final controller = WQrController();
+        addTearDown(controller.dispose);
+        await pumpQrView(tester, controller: controller, onScanned: (_) {});
+
+        expect(controller.isAttached, isTrue);
+        await controller.pauseCamera();
+        await controller.resumeCamera();
+        // 插件的 stopCamera 只在 iOS 生效（其他平台 no-op），这里只验证不抛
+        await controller.stopCamera();
+        final facing = await controller.flipCamera();
+        expect(facing, CameraFacing.front);
+        expect(controller.cameraFacing, CameraFacing.front);
+        expect(await controller.getCameraInfo(), CameraFacing.front);
+        expect(await controller.getFlashStatus(), isTrue);
+        await controller.toggleFlash();
+        final features = await controller.getSystemFeatures();
+        expect(features.hasFlash, isTrue);
+        await controller.setInvert(true);
+
+        expect(
+          platformCalls,
+          containsAll(<String>[
+            'pauseCamera',
+            'resumeCamera',
+            'flipCamera',
+            'getCameraInfo',
+            'getFlashInfo',
+            'toggleFlash',
+            'getSystemFeatures',
+            'invertScan',
+          ]),
+        );
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('dispose 后不再回调，也不抛异常', (tester) async {
+      final controller = WQrController();
+      addTearDown(controller.dispose);
+      final scanned = <String>[];
       await pumpQrView(
         tester,
-        onScanned: (_) {},
-        onQRViewCreated: (ctrl) => capturedController = ctrl,
+        controller: controller,
+        onScanned: (r) => scanned.add(r.code),
       );
-      expect(capturedController, isNotNull);
+      final staleChannel = _activeViewChannel;
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('done'))));
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: Text('done'))),
+      );
       await tester.pump();
 
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('scanOnce true→false 会恢复相机并可继续扫码', (tester) async {
-      final scanned = <String>[];
-      await pumpQrView(tester, onScanned: (b) => scanned.add(b.code ?? ''));
-      await _emitBarcode(tester, 'first');
-      expect(scanned, ['first']);
-      expect(platformCalls, contains('pauseCamera'));
-
-      platformCalls.clear();
-      await pumpQrView(
-        tester,
-        onScanned: (b) => scanned.add(b.code ?? ''),
-        scanOnce: false,
+      expect(controller.isAttached, isFalse);
+      // 旧平台视图的通道即使还有事件，也不应再回调
+      expect(staleChannel, isNotNull);
+      final data = const StandardMethodCodec().encodeMethodCall(
+        const MethodCall('onRecognizeQR', {'code': 'late', 'type': 'QR_CODE'}),
       );
-      expect(platformCalls, contains('resumeCamera'));
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+        staleChannel!,
+        data,
+        (_) {},
+      );
+      await tester.pump();
 
-      await _emitBarcode(tester, 'second');
-      expect(scanned, ['first', 'second']);
-    });
-
-    testWidgets('WQrView 无 onQRViewCreated → 正常渲染不崩', (tester) async {
-      await pumpQrView(tester, onScanned: (_) {});
-      expect(find.byType(WQrView), findsOneWidget);
+      expect(scanned, isEmpty);
       expect(tester.takeException(), isNull);
     });
   });
