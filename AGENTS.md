@@ -28,6 +28,11 @@
 
 1. 先改 [`packages/cli/catalog/components.yaml`](packages/cli/catalog/components.yaml)；
 2. 规则变化改 [`packages/cli/templates/agents/`](packages/cli/templates/agents/)；
+   消费方 AGENTS 是常驻上下文，只做**路由**：组件用法 / 反例先问「能不能进 catalog 的 `pitfalls`」，
+   分支流程（Figma / 设备 / 反馈 / 场景）进 `templates/ai/` 或工具 README。
+   预算数据在 `packages/cli/catalog/agent_budget.yaml`（抬预算要写理由），
+   `scripts/check_agents_routing.py` 要求每条 bullet 有锚（`explain` / 路径 / 规则号 / 命令），
+   豁免写 `<!-- no-anchor: 理由 -->`；`templates_fresh_test.dart` 守形状（四段顺序 / zh-en 符号一致）；
 3. 跑生成器：
    ```bash
    cd packages/cli

@@ -1,9 +1,10 @@
 import '../common/version.dart';
 import '../doctor/banned_rule.dart';
-import '../doctor/run.dart';
+import '../doctor/rules/r2_direct_subpackage_import.dart';
 import '../layout.dart';
 import 'conditional_template.dart';
 import 'features.dart';
+import 'targets.dart';
 import 'templates.g.dart' as generated;
 
 /// `init` 用的模板内容。
@@ -106,6 +107,19 @@ class InitTemplates {
         .replaceAll('{{integrationTest}}', integrationTest);
   }
 
+  /// 指令文件清单（`AGENTS.md / CLAUDE.md / …`）：AI_PROMPTS 与 R8 共用。
+  static String rulesFiles(Set<String> targets) {
+    final files = <String>{
+      for (final target in targets)
+        if (targetFiles[target] != null) targetFiles[target]!,
+    }.toList()..sort();
+    return files.isEmpty ? 'AGENTS.md' : files.join(' / ');
+  }
+
+  /// 聚合入口的 package import：R8 回放生成内容时也要用同一套换算。
+  static String toolkitImport(String app, String toolkitEntry) =>
+      toolkitEntry.startsWith('lib/') ? 'package:$app/${toolkitEntry.substring(4)}' : toolkitEntry;
+
   /// UI / 暂存层生成物：路径 → (内容, 是否 starter)。
   ///
   /// 写入与 stale 检测都从这里派生，避免两处各列一遍文件。
@@ -127,18 +141,37 @@ class InitTemplates {
     };
   }
 
-  static String _doctorRuleTable(bool en) {
-    final header = en ? '| Rule | Checks |' : '| 规则 | 检查 |';
-    final divider = '| --- | --- |';
-    final rows = <String>[
-      for (final rule in doctorRules) '| ${rule.id} | ${en ? rule.summaryEn : rule.summaryZh} |',
+  /// 指令文件末尾的「项目规则」占位：**写在标记块之外**，`init` 不会覆盖。
+  ///
+  /// 之前这块占位写在标记块内，标题还会把后面所有组件约定一起吞掉；
+  /// 现在只在新建文件时追加一次，重复执行不会重复插入。
+  static String projectRulesStub({String lang = 'zh'}) => lang == 'en'
+      ? '## Project rules\n\n'
+            '<!-- This section lives outside the w_tools block; `init` never overwrites it. -->\n'
+      : '## 项目规则\n\n'
+            '<!-- 本节在 w_tools 标记块之外，写项目自己的约定；`init` 不会覆盖这里。 -->\n';
+
+  /// R2 的 import 例外：从 doctor 规则里的**同一份常量**渲染，避免第三次手写。
+  static String importExceptions({required bool en, required String toolkitEntry}) {
+    final devOnly = R2DirectSubpackageImport.devOnlyPackages.toList()..sort();
+    final dirs = <String>[
+      '`$toolkitEntry`',
+      '`${ProjectLayout.projectUiDir}/`',
+      '`${ProjectLayout.designSystemDir}/`',
     ];
-    return <String>[header, divider, ...rows].join('\n');
+    if (en) {
+      return 'allowed: ${dirs.join(', ')};\n'
+          '  ${devOnly.join(' / ')} are also allowed under '
+          '`test/` / `tool/` / `integration_test/`';
+    }
+    return '允许 ${dirs.join('、')}；\n'
+        '  `test/` `tool/` `integration_test/` 下另允许 ${devOnly.join(' / ')}';
   }
 
   static String agentsBlock({
     String lang = 'zh',
     String app = 'app',
+    bool isFlutter = true,
     bool withUi = true,
     bool withApp = true,
     bool withForm = true,
@@ -150,7 +183,7 @@ class InitTemplates {
     bool withFigma = false,
     bool withDevice = false,
     String? figmaInstall,
-    String toolkitEntry = 'lib/app/w/toolkit.dart',
+    String toolkitEntry = ProjectLayout.toolkitEntry,
     List<BannedRule> banned = const <BannedRule>[],
   }) {
     final en = lang == 'en';
@@ -160,7 +193,6 @@ class InitTemplates {
     final bannedLines = <String>[];
     if (valid.isNotEmpty) {
       bannedLines
-        ..add('')
         ..add(en ? '### Project-banned APIs' : '### 本项目禁用 API')
         ..add(
           en
@@ -186,6 +218,8 @@ class InitTemplates {
       }
     }
 
+    // 顺序 = 阅读顺序：怎么用 → 硬规则 → 每包一行 → 禁用 API → 完成前。
+    // 每包只有一行「一句话规则 + 细节入口」；组件事实在 catalog / explain 里，不在这里复写。
     final parts = <String>[
       part(generated.agentsBase, generated.agentsBaseEn),
       if (withUi) part(generated.agentsUi, generated.agentsUiEn),
@@ -200,22 +234,29 @@ class InitTemplates {
       if (withFigma) part(generated.agentsFigma, generated.agentsFigmaEn),
       if (withDevice) part(generated.agentsDevice, generated.agentsDeviceEn),
       ...bannedLines,
-      part(generated.agentsFeedback, generated.agentsFeedbackEn),
       part(generated.agentsClosing, generated.agentsClosingEn),
     ];
     return parts
+        .map((part) => part.trim())
         .join('\n\n')
         .replaceAll('{{version}}', cliVersion)
-        .replaceAll('{{app}}', app)
         .replaceAll(
           '{{toolkitImport}}',
           '$app/${toolkitEntry.startsWith('lib/') ? toolkitEntry.substring(4) : toolkitEntry}',
         )
+        .replaceAll('{{toolkitEntry}}', toolkitEntry)
+        .replaceAll('{{projectUiDir}}', ProjectLayout.projectUiDir)
+        .replaceAll('{{designSystemDir}}', ProjectLayout.designSystemDir)
+        .replaceAll(
+          '{{importExceptions}}',
+          importExceptions(en: en, toolkitEntry: toolkitEntry),
+        )
+        .replaceAll('{{analyze}}', isFlutter ? 'flutter analyze' : 'dart analyze')
+        .replaceAll('{{test}}', isFlutter ? 'flutter test' : 'dart test')
         .replaceAll(
           '{{figmaInstall}}',
           figmaInstall ?? 'dart pub add dev:w_tools_figma',
         )
-        .replaceAll('{{doctorRules}}', _doctorRuleTable(en))
         .trimRight();
   }
 }

@@ -229,6 +229,9 @@ run "example paths" python3 scripts/check_example_paths.py
 # 生成物新鲜度：只改源文件却忘了跑生成器时，这里直接失败（不用等 --with-tests 的 cli 测试）。
 run "catalog fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_catalog.dart --check"
 run "templates fresh" bash -c "cd packages/cli && dart --suppress-analytics run tool/gen_templates.dart --check"
+# 消费方 AGENTS 的预算（行数 / 字符 / 反馈行数）：超了必须删内容或显式改
+# packages/cli/catalog/agent_budget.yaml（改预算要在 PR 里写理由）。
+run "agents budget" bash -c "cd packages/cli && dart --suppress-analytics run tool/agent_budget.dart --check"
 run "style literals" python3 scripts/check_style_literals.py
 run "deprecations" python3 scripts/check_deprecations.py
 run "script unit tests" bash -c "cd scripts/tests && python3 -m unittest discover -p 'test_*.py'"

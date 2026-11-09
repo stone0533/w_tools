@@ -113,6 +113,13 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    python3 scripts/check_versions.py
    bash scripts/release_check.sh --package map
    ```
+   发 **`w_tools_cli`** 时还要记录这一版的 AGENTS 预算快照（一行历史，趋势用）：
+   ```bash
+   cd packages/cli && dart run tool/agent_budget.dart --record
+   git add ../../docs/metrics/agents_budget.jsonl
+   ```
+   `preflight` 的 `agents budget` 会拦住「版本抬了但没记录」；周检会把
+   `docs/metrics/agents_budget.jsonl` 渲染成趋势表（[`docs/metrics/`](metrics/agents_budget.jsonl)）。
 5. 提交到 feature 分支并 push，开 PR；等 Required checks 通过后**合并到 main**
    （合并方式固定 **Merge commit**，见 [CONTRIBUTING §6](../CONTRIBUTING.md#6-git--pr-流程)）。
 6. 在 main 上复核 + 发布预演（**必须走发布脚本**，原因见下一节）：

@@ -41,6 +41,15 @@ jobs:
           fi
           exit "$status"
 
+      # AGENTS 片段的预算趋势：只读仓库里的历史快照（不跑 Dart / 不需要 pub get），
+      # 把 Markdown 表写进 job summary。历史缺失 / 坏行会失败（趋势断档要有人修）；
+      # 最新记录落后于当前 CLI 版本只告警（发布前该跑 --record）。
+      - name: AGENTS budget trend
+        run: |
+          python3 scripts/agents_budget_trend.py \
+            --history docs/metrics/agents_budget.jsonl \
+            --summary "$GITHUB_STEP_SUMMARY"
+
       - name: Check release status
         run: |
           set +e

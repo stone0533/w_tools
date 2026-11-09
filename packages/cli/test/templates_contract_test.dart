@@ -22,22 +22,17 @@ void main() {
       expect(text, isNot(contains('WApp.appWrapper')));
     });
 
-    test('$lang feedback 模板要求 submit', () {
-      final text = File('templates/agents/$lang/feedback.md').readAsStringSync();
+    // 反馈怎么提交只在「完成前」留几行，完整流程在 .w_tools/AI_PROMPTS.md（L-1），
+    // 避免默认关闭的通道占掉常驻上下文。
+    test('$lang closing 模板保留反馈开关与提交入口', () {
+      final text = File('templates/agents/$lang/closing.md').readAsStringSync();
+      expect(text, contains('feedback.enabled'));
+      expect(text, contains('feedback search'));
       expect(text, contains('feedback submit'));
-      expect(text, contains('enabled: true'));
-      expect(text, contains('issue: true'), reason: '旧键仍要说明兼容');
       expect(text, contains('--issue'));
-      expect(text, anyOf(contains('包/版本'), contains('package/version')));
-      expect(text, isNot(contains('docs/feedback/TEMPLATE.md')));
+      expect(text, contains('AI_PROMPTS.md'));
+      expect(text, contains('L-1'));
       expect(text, isNot(contains('--local')));
-    });
-
-    test('$lang feedback 模板写明本地台账优先与跳过 exit 4', () {
-      final text = File('templates/agents/$lang/feedback.md').readAsStringSync();
-      expect(text, contains('exit 4'));
-      expect(text, contains('--ledger'));
-      expect(text, anyOf(contains('docs/feedback/'), contains('docs/feedback/')));
     });
 
     test('$lang toast 模板包含初始化', () {

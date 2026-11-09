@@ -41,7 +41,7 @@ w_tools 是 monorepo，子包多、版本独立、API 会演进。
 |---|---|---|---|
 | catalog | **唯一事实源**：组件入口 / 用途 / 最短用法 / 坑 / 关联 | [`packages/cli/catalog/components.yaml`](../packages/cli/catalog/components.yaml) | `list` / `explain` / `components.md` 都从它生成或读取 |
 | explain | **投影**：按需教学 | [`packages/cli/lib/src/explain/render_explain.dart`](../packages/cli/lib/src/explain/render_explain.dart) | 只渲染 catalog 字段 + import / 文档 / example / 包版本，不维护第二份教学内容 |
-| AGENTS | **投影**：入口规则 / 路由 | [`packages/cli/templates/agents/`](../packages/cli/templates/agents/) | `init` 生成消费方摘要；仓库 `AGENTS.md` + `docs/agents/` 是维护者更深一层 |
+| AGENTS | **投影**：入口规则 / 路由 | [`packages/cli/templates/agents/`](../packages/cli/templates/agents/) | `init` 生成消费方四段摘要（怎么用 / 硬规则 / 每包一行 / 完成前）；仓库 `AGENTS.md` + `docs/agents/` 是维护者更深一层 |
 | README / example | **投影**：完整说明与真实场景 | `packages/<pkg>/README.md`、`packages/<pkg>/example/` | 读者按需深入；不是事实源，门禁只校验链接 / 符号 / 安装下界 / 入口名 |
 
 这四层（一个事实源 + 三种投影）都在解决“AI 怎么知道事实”。另有两个人用的入口：消费方 `.w_tools/AI_PROMPTS.md`
@@ -165,6 +165,29 @@ lib/src/catalog/catalog.g.dart
 不要手改这两个生成物。
 
 ### 3.3 改 AGENTS 模板
+
+消费方 AGENTS 是**常驻上下文**（每个 turn 都付 token），所以只收「不查任何东西也必须遵守」的内容：
+
+| 想加的东西 | 该去哪 |
+| --- | --- |
+| 某个组件的用法 / 反例 / 参数形状 | `catalog/components.yaml` 的 `usage` / `pitfalls`（`explain` 的输出） |
+| 某个 API 被删 / 改名 | catalog `pitfalls` + 迁移说明；AGENTS 只在「AI 很可能照旧记忆写」时留一句 |
+| 一整个分支的流程（Figma / 设备 / 反馈 / 场景提示） | `templates/ai/` 或工具 README；AGENTS 只留 1–3 行路由 |
+| 跨组件的项目约定（用哪个入口、生成物别手改） | AGENTS 的「硬规则」或「组件约定」一行 |
+
+判据只有一句：**新规则先问「能不能进 catalog / explain」，能进就不进 AGENTS。**
+
+落地由两道门禁兜底（都不是「语义判断」，语义仍是评审的事）：
+
+| 门禁 | 管什么 | 数据 / 实现 |
+|---|---|---|
+| 结构预算 | 渲染后的行数 / 字符数 / 反馈行数 | 数据在 [`packages/cli/catalog/agent_budget.yaml`](../packages/cli/catalog/agent_budget.yaml)；`packages/cli/tool/agent_budget.dart` 量并打印余量（preflight 的 `agents budget` 步），测试直接复用同一实现 |
+| 锚 | 每条 bullet 必须指向一个可查的出口（`explain X` / 路径 / 规则号 / 命令 / 占位符） | [`scripts/check_agents_routing.py`](../scripts/check_agents_routing.py)（`check_docs` 步）；确实不需要出口的流程句写 `<!-- no-anchor: 理由 -->` 显式豁免 |
+| 版本趋势 | 每个 CLI 版本长了多少 | [`docs/metrics/agents_budget.jsonl`](../docs/metrics/agents_budget.jsonl)（一个版本一行）；发布时 `dart run tool/agent_budget.dart --record` 写入，`--check` 要求当前版本已记录；周检 [`scripts/agents_budget_trend.py`](../scripts/agents_budget_trend.py) 出表到 job summary |
+
+抬预算 = 改 `agent_budget.yaml` 的一处显式 diff，PR 里必须写理由；`zh/full`、`zh/minimal`、
+`en/full`、`en/minimal` 是必检组合，删掉会直接报错。形状类断言（四段顺序、硬规则在前 30 行、
+块内禁止 `## 项目规则` / `## 检查项`、zh-en 符号集合一致）在 `test/internal/templates_fresh_test.dart`。
 
 ```bash
 cd packages/cli

@@ -158,6 +158,7 @@ class InitOptions {
     device: device,
     aiPrompts: aiPrompts,
     generator: generator,
+    figmaInstall: figmaInstall,
   );
 }
 

@@ -14,6 +14,10 @@ import 'package:w_tools_cli/src/doctor/rules/r6_banned_units.dart';
 import 'package:w_tools_cli/src/doctor/rules/r7_toolkit_consistency.dart';
 import 'package:w_tools_cli/src/doctor/rules/r8_generated_stale.dart';
 import 'package:w_tools_cli/src/doctor/run.dart';
+import 'package:w_tools_cli/src/common/version.dart';
+import 'package:w_tools_cli/src/init/features.dart';
+import 'package:w_tools_cli/src/init/manifest.dart';
+import 'package:w_tools_cli/src/init/templates.dart';
 
 /// 每个用例在临时目录里造一个最小「消费方项目」。
 Directory makeProject(Map<String, String> files) {
@@ -502,6 +506,51 @@ void main() {
       expect(r.status, DoctorRuleStatus.fail);
       expect(r.issues.single.file, '.w_tools/AI_PROMPTS.md');
       expect(r.issues.single.message, contains('0.9.0'));
+    });
+
+    InitManifest presetManifest() => InitManifest(
+      profile: 'full',
+      features: InitFeatures.full.toJson(),
+      targets: const <String>['agents'],
+      lang: 'zh',
+      figma: false,
+      device: false,
+      aiPrompts: false,
+    );
+
+    test('CLI 升版本但模板没变 → 不报警（按内容比，不按版本号比）', () {
+      final block = InitTemplates.agentsBlock(
+        app: 'demo',
+        isFlutter: false,
+        withMap: false,
+      );
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'pubspec.lock': 'packages:\n  w_tools_cli:\n    version: "$cliVersion"\n',
+        '.w_tools/init.json': presetManifest().encode(),
+        // 旧版本生成、内容与当前模板一致：只有版本号不同
+        'AGENTS.md': block.replaceFirst(cliVersion, '0.0.1'),
+      });
+      final r = R8GeneratedStale.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.status, DoctorRuleStatus.pass, reason: '${r.issues.map((i) => i.message)}');
+    });
+
+    test('块内被手改 → 报内容不同（有 init.json 时按内容比）', () {
+      final block = InitTemplates.agentsBlock(
+        app: 'demo',
+        isFlutter: false,
+        withMap: false,
+      );
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'pubspec.lock': 'packages:\n  w_tools_cli:\n    version: "$cliVersion"\n',
+        '.w_tools/init.json': presetManifest().encode(),
+        'AGENTS.md': block.replaceFirst('## 怎么用 w_tools', '## 手改标题'),
+      });
+      final r = R8GeneratedStale.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(r.status, DoctorRuleStatus.fail);
+      expect(r.issues.single.file, 'AGENTS.md');
+      expect(r.issues.single.message, contains('不同'));
     });
 
     test('没有 w_tools_cli 的 lock → 跳过', () {

@@ -12,6 +12,7 @@ class InitManifest {
     required this.device,
     this.aiPrompts = true,
     this.generator,
+    this.figmaInstall,
   });
 
   final String profile;
@@ -24,6 +25,11 @@ class InitManifest {
 
   /// 写这份 manifest 的 CLI 版本（老文件可能没有）。
   final String? generator;
+
+  /// `--figma-install` 的自定义安装命令；默认命令不记录。
+  ///
+  /// R8 回放生成内容时要还原同一份文本，否则会把「自定义安装命令」误判成漂移。
+  final String? figmaInstall;
 
   /// 新位置：`.w_tools/init.json`（工具元数据统一收敛在 `.w_tools/`）。
   static const fileName = '.w_tools/init.json';
@@ -82,6 +88,7 @@ class InitManifest {
         device: raw['device'] == true,
         aiPrompts: raw['aiPrompts'] != false,
         generator: raw['generator'] is String ? '${raw['generator']}' : null,
+        figmaInstall: raw['figmaInstall'] is String ? '${raw['figmaInstall']}' : null,
       );
     } on FormatException {
       return null;
