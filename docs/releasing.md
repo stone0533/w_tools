@@ -130,7 +130,8 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    git commit -m "chore(release): w_tools_map <version> API 基线"
    git push -u origin HEAD
    gh pr create --fill
-   gh pr merge --auto --merge   # 快照只是搬运基线，Required checks 过了自动合并
+   gh pr checks --required      # 等 Required checks
+   gh pr merge --merge          # 仓库未开 auto-merge；若已开启可改用 --auto
    git switch main && git pull --ff-only
    ```
 

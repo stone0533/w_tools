@@ -885,7 +885,7 @@ J-5 多包/家族
 | 3 | 版本 / CHANGELOG（一个 PR） | K-2M | 发布准备 PR（已合并） |
 | 4 | 逐包 dry-run | K-3 | 每包 0 warning |
 | 5 | 逐包发布 | K-4，一次一个包 | 每包 publish 成功 |
-| 6 | 快照 | `bash scripts/apply_snapshots.sh` → PR → 按输出 `gh pr merge --auto --merge` | 快照 PR（已合并） |
+| 6 | 快照 | `bash scripts/apply_snapshots.sh` → PR → 按输出 `gh pr checks --required` + `gh pr merge --merge`（仓库未开 auto-merge） | 快照 PR（已合并） |
 | 7 | 根包（需要时） | 快照合入 + `git pull --ff-only` 后走 K-4 的根包段 | 根包发布成功 |
 | 8 | 验证 | K-5（两阶段） | 状态表全绿 |
 
@@ -1069,7 +1069,7 @@ bash scripts/publish_package.sh packages/<pkg> --yes
 快照先写到 .w_tools/release-snapshots/（gitignored），不会挡住下一个包。
 全部发完后：
 bash scripts/apply_snapshots.sh
-按它打印的命令开快照 PR，并用 gh pr merge --auto --merge 合并。
+按它打印的命令开快照 PR，等 Required checks 后用 `gh pr merge --merge` 合并（仓库未开 auto-merge；开了才用 `--auto`）。
 发根包前必须先合入快照 PR 并 git pull --ff-only
 （否则 publish_package.sh . 与 release_check --strict 都会拦住）。
 ```
