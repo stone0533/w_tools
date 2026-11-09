@@ -18,7 +18,7 @@ part 'device_ios_commands.dart';
 part 'device_android_commands.dart';
 
 /// 与 pubspec 版本保持一致；`test/docs_test.dart` 会守住。
-const String deviceCliVersion = '0.3.0';
+const String deviceCliVersion = '0.3.1';
 
 var _tempSeq = 0;
 
@@ -99,7 +99,8 @@ w_tools_device —— iOS/Android 模拟器；Android 真机 adb；iOS 真机 li
 
 可选：
   --device=<udid|名称>   指定设备（默认用已启动的 / 第一台；也支持 --device <值>）
-  --no-cache            忽略标定缓存，强制重算（仅 iOS 模拟器 tap/drag/verify）
+  --no-cache            忽略标定缓存，强制重算（仅 iOS 模拟器 tap/drag/verify；
+                        DeviceHub 缩放/布局变化后也要用）
   --scale=3             设备像素密度；仅 iOS 模拟器 calibrate/tap/drag/size/wait/verify
   --timeout-ms=15000    等待超时；wait 一次，verify 为点击前+后的总预算
   --stable-ms=600       画面稳定判定窗口；仅 wait / verify

@@ -1,3 +1,8 @@
+## Unreleased
+
+### Changed
+- `init` 的 `w_tools_device` 约束同步到 `^0.3.1`。
+
 ## 1.16.1
 
 ### Changed
