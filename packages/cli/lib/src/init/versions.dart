@@ -1,7 +1,7 @@
 /// 子包版本约束。必须与仓库 `packages/*/pubspec.yaml` 的当前版本一致，
 /// 由 `test/init_test.dart` 读取仓库 pubspec 校验（防止版本漂移）。
 const subpackageConstraints = <String, String>{
-  'w_tools_core': '^3.1.1',
+  'w_tools_core': '^3.1.2',
   'w_tools_async': '^6.1.0',
   'w_tools_app': '^3.1.1',
   'w_tools_app_getx': '^2.1.1',
