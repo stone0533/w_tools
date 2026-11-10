@@ -1,3 +1,17 @@
+## 0.13.0
+
+### Breaking
+- 删除 `UsageSummary`（0.12.0 的兼容别名）。改用 `UsageResult`：类型成员不变，
+  按 API 快照这是删除 `UsageSummary.new` / `UsageSummary.month` / `UsageSummary.used` /
+  `UsageSummary.limit` / `UsageSummary.recent` / `UsageSummary.remaining` /
+  `UsageSummary.isNearLimit`。
+- 删除 `FigmaSpecRenderer.renderMarkdown`：它只是 `renderMarkdownFromRoot` 的转发，改用后者。
+  按 API 快照这是删除 `FigmaSpecRenderer.renderMarkdown`。
+- 删除 `spec --no-markdown` 旗标：改用 `--node-only`（语义完全一致，只影响 `--json`）。
+
+### Changed
+- 版本 0.12.0 → 0.13.0（0.x 预发布语义，minor 可破坏）。JSON 契约与其它命令行为不变。
+
 ## 0.12.0
 
 ### Changed

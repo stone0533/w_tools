@@ -11,9 +11,9 @@ void main() {
     expect(usageText, contains('version'));
   });
 
-  test('--no-markdown 在 help 里标了已弃用', () {
-    expect(commandUsage['spec'], contains('已弃用'));
-    expect(usageText, contains('已弃用'));
+  test('help 不再推荐已删除的 --no-markdown', () {
+    expect(usageText, isNot(contains('no-markdown')));
+    expect(commandUsage['spec'], isNot(contains('no-markdown')));
   });
 
   test('help init 点明与 w_tools_cli 的 init 不同', () {

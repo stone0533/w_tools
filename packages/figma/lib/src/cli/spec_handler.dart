@@ -15,10 +15,6 @@ Future<void> runSpec(
   rejectUnsupported(options, {'root', 'file', 'json', 'node-only', 'node-depth'});
   rejectExtraPositional(options, 1);
 
-  if (options.seenText['node-only'] == '--no-markdown') {
-    stderr.writeln('# --no-markdown 已弃用，改用 --node-only（remove-in: 0.13.0）');
-  }
-
   final rawIds = options.positional.isEmpty ? null : options.positional.first;
   if (rawIds == null) {
     stderr.writeln('spec 需要 nodeId，例如：spec 1862:9222');

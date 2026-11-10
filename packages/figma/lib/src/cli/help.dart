@@ -30,7 +30,6 @@ w_tools_figma — 只读的 Figma 取数与规格导出 CLI（文档见 packages
   --json          输出 JSON（默认输出 Markdown）
   --node-depth=<n>  spec --json 限制原始 node 的子节点深度（0 = 不带 children）
   --node-only       spec --json 只输出 node，不带 markdown
-  --no-markdown     等同 --node-only（已弃用，改用 --node-only；remove-in 0.13.0）
   -h, --help      显示帮助
 
 tokens 专属：
@@ -93,8 +92,7 @@ spec — 从缓存导出节点规格
 dart run w_tools_figma:figma spec <nodeId> [--file=<path>] [--root=<dir>] [--json] [--node-only] [--node-depth=<n>]
 
 只读缓存，不访问 Figma；默认扫描所有 nodes-*.json，选包含目标 nodeId 的文件。
---json 输出结构化 node；默认同时带 markdown，--node-only 可只保留 node
-（--no-markdown 等价但已弃用，改用 --node-only；remove-in 0.13.0）。
+--json 输出结构化 node；默认同时带 markdown，--node-only 可只保留 node。
 ''',
   'tokens': '''
 tokens — 汇总设计 token

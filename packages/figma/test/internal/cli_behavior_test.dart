@@ -615,7 +615,7 @@ void main() {
     expect('${result.stderr}', contains('跳过 1 个解析失败的缓存'));
   });
 
-  test('--no-markdown 仍等价 --node-only，但在 stderr 提示已弃用', () async {
+  test('spec --no-markdown 已在 0.13.0 删除（exit 2）', () async {
     final cache = File('${store.dir.path}/nodes-K-1-2.json');
     cache.parent.createSync(recursive: true);
     cache.writeAsStringSync(jsonEncode({
@@ -632,13 +632,12 @@ void main() {
       },
     }));
 
-    final deprecated = await run(<String>['spec', '1:2', '--json', '--no-markdown']);
+    final removed = await run(<String>['spec', '1:2', '--json', '--no-markdown']);
     final current = await run(<String>['spec', '1:2', '--json', '--node-only']);
 
-    expect(deprecated.exitCode, 0, reason: '${deprecated.stderr}');
-    expect('${deprecated.stdout}', '${current.stdout}', reason: '输出必须逐字节一致');
-    expect('${deprecated.stderr}', contains('已弃用'));
-    expect('${current.stderr}', isNot(contains('已弃用')));
+    expect(removed.exitCode, 2, reason: '${removed.stderr}');
+    expect('${removed.stderr}', contains('未知选项：--no-markdown'));
+    expect(current.exitCode, 0, reason: '${current.stderr}');
   });
 
   test('flag 值支持空格形态，输出与 = 形态一致', () async {

@@ -17,6 +17,8 @@ import sys
 root = pathlib.Path(__file__).resolve().parent.parent
 # 已删除的公开名白名单：每次删除 / 废弃都要在这里登记，见 docs/ai-contract.md §7。
 names = [
+    # figma 0.13.0：弃用别名 / 转发方法 / 同义 flag。
+    r'\bUsageSummary\b', r'FigmaSpecRenderer\.renderMarkdown', r'no-markdown',
     r'WRowButtons', r'WRowButtonsController', r'WRow\b', r'WSizeBox', r'WPadding', r'WColumn',
     r'WImageCachePolicy', r'WImageConfig', r'WImageLoadConfig', r'WImageDefaults\b', r'WMapConfig',
     r'WImageDefaultsScope', r'WImageEmptyError',
