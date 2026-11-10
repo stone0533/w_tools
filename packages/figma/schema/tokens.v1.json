@@ -47,6 +47,113 @@
       },
       "additionalProperties": true
     },
+    "colors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["value", "count"],
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "texts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "family",
+          "size",
+          "weight",
+          "lineHeight",
+          "letterSpacing",
+          "align",
+          "color",
+          "count"
+        ],
+        "properties": {
+          "family": {
+            "type": "string"
+          },
+          "size": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "string"
+          },
+          "lineHeight": {
+            "type": "string"
+          },
+          "letterSpacing": {
+            "type": "string"
+          },
+          "align": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "radii": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["value", "count"],
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "spacings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["value", "count"],
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      }
+    },
     "markdown": {
       "type": "string"
     },

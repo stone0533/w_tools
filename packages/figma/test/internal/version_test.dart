@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:w_tools_figma/src/common/version.dart';
+import 'package:w_tools_figma/src/cli/version.dart';
 
 void main() {
   test('figmaVersion 与 pubspec.yaml 的 version 一致', () {

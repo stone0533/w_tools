@@ -45,6 +45,10 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 ## 写页面时
 
 - `spec --json` 的 `node` 用于读结构、尺寸、颜色、文字、间距；`markdown` 只用于人读。
+- `tokens --json` 的 `colors` / `texts` / `radii` / `spacings` 是结构化 token（每项带 `count`，
+  颜色 / 文字还带 `samples`）；要 token 就读数组，不要解析 `markdown`。
+- `url --json` / `me --json` 也带 `schema`（`w_tools_figma.url/1` / `w_tools_figma.me/1`），
+  按 `schema` 分派；契约见 `packages/figma/schema/README.md`。
 - 节点很大时，先对子节点执行 `spec`，不要把整页 `node` 全塞进上下文。
 - 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
 - `spec` / `tokens` 默认扫描所有缓存，自动选包含目标 nodeId 的文件；失败时按提示加 `--file=`。

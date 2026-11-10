@@ -5,13 +5,19 @@ const _skipNamePrefixes = ['Left Side', 'Right Side', 'Island'];
 
 /// 把一个画板节点渲染成 Markdown 规格表。
 ///
-/// 与 `scripts/figma_spec.py` 输出逐字节一致（迁移期用 golden 对比校验）。
+/// golden（`test/fixtures/spec-expected.md`）来自迁移期对齐好的 Python 输出；
+/// 现在的守卫是 `test/spec_renderer_test.dart`。
 class FigmaSpecRenderer {
   const FigmaSpecRenderer({this.skipNamePrefixes = _skipNamePrefixes});
 
   final List<String> skipNamePrefixes;
 
   /// [node] 是目标画板；找不到时抛 [StateError]。
+  ///
+  /// 只是 [renderMarkdownFromRoot] 的转发：传进来的节点本身就会当根再查一次 targetId。
+  ///
+  /// remove-in: 0.13.0
+  @Deprecated('Use renderMarkdownFromRoot instead')
   String renderMarkdown(Map node, String targetId) {
     return renderMarkdownFromRoot(node, targetId);
   }

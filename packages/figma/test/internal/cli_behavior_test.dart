@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:w_tools_figma/src/common/version.dart';
+import 'package:w_tools_figma/src/cli/version.dart';
 
 /// CLI 层行为：不联网，只使用临时缓存。
 void main() {
@@ -107,6 +107,7 @@ void main() {
     ]);
     expect(result.exitCode, 0, reason: '${result.stderr}');
     final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+    expect(payload['schema'], 'w_tools_figma.url/1');
     expect(payload['fileKey'], 'ABC');
     expect(payload['nodeId'], '1:2');
   });
@@ -490,6 +491,208 @@ void main() {
     expect(unknown.exitCode, 2, reason: '${unknown.stderr}');
   });
 
+  test('tokens --json 带结构化数组，不再只有 counts + markdown', () async {
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'Tok',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+            'fills': [
+              {
+                'type': 'SOLID',
+                'color': {'r': 1, 'g': 0, 'b': 0, 'a': 1},
+              },
+            ],
+            'children': [
+              {
+                'id': '1:3',
+                'type': 'TEXT',
+                'name': 'Title',
+                'characters': 'hi',
+                'style': {
+                  'fontFamily': 'Inter',
+                  'fontSize': 14,
+                  'fontWeight': 500,
+                  'lineHeightPx': 20,
+                  'letterSpacing': 0,
+                  'textAlignHorizontal': 'LEFT',
+                },
+                'fills': [
+                  {
+                    'type': 'SOLID',
+                    'color': {'r': 0.2, 'g': 0.2, 'b': 0.2, 'a': 1},
+                  },
+                ],
+                'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 1, 'height': 1},
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    final result = await run(<String>['tokens', '1:2', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    final payload = jsonDecode('${result.stdout}') as Map<String, dynamic>;
+
+    expect(payload['schema'], 'w_tools_figma.tokens/1');
+    expect(payload['counts'], isA<Map<String, dynamic>>());
+    expect(payload['markdown'], contains('# 设计 token'));
+
+    final colors = (payload['colors'] as List).cast<Map<String, dynamic>>();
+    expect(
+      colors.map((c) => c['value']),
+      containsAll(<String>['#FF0000', '#333333']),
+      reason: '两个 SOLID 填充都要出现在结构化数组里',
+    );
+    expect(colors.every((c) => c['count'] == 1), isTrue);
+    expect(colors.first['samples'], isA<List<dynamic>>());
+
+    final texts = (payload['texts'] as List).cast<Map<String, dynamic>>();
+    expect(texts.single['family'], 'Inter');
+    expect(texts.single['size'], '14');
+    expect(texts.single['color'], '#333333');
+
+    expect(payload['radii'], isA<List<dynamic>>());
+    expect(payload['spacings'], isA<List<dynamic>>());
+  });
+
+  test('损坏缓存按"解析失败"报告，不再只说找不到节点', () async {
+    File('${store.dir.path}/nodes-good.json')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {
+            'document': {'id': '1:2', 'type': 'FRAME', 'name': 'Demo'},
+          },
+        },
+      }));
+    final bad = File('${store.dir.path}/nodes-bad.json')..writeAsStringSync('{not json');
+
+    final result = await run(<String>['spec', '9:9']);
+    expect(result.exitCode, 1, reason: '${result.stderr}');
+    expect('${result.stderr}', contains('解析失败'));
+    expect('${result.stderr}', contains('cache clean'));
+    expect('${result.stderr}', contains(bad.path));
+  });
+
+  test('只有损坏缓存时也指向 cache clean', () async {
+    File('${store.dir.path}/nodes-bad.json')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('{not json');
+
+    final result = await run(<String>['tokens', '1:2']);
+    expect(result.exitCode, 1, reason: '${result.stderr}');
+    expect('${result.stderr}', contains('解析失败'));
+  });
+
+  test('frames 跳过损坏缓存时保留好缓存的行并提示', () async {
+    File('${store.dir.path}/nodes-good.json')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(jsonEncode({
+        'nodes': {
+          '1:2': {
+            'document': {
+              'id': '1:2',
+              'type': 'FRAME',
+              'name': 'Demo',
+              'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+              'children': <Object?>[],
+            },
+          },
+        },
+      }));
+    File('${store.dir.path}/nodes-bad.json').writeAsStringSync('{not json');
+
+    final result = await run(<String>['frames', '--json']);
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect('${result.stdout}', contains('1:2'));
+    expect('${result.stderr}', contains('跳过 1 个解析失败的缓存'));
+  });
+
+  test('--no-markdown 仍等价 --node-only，但在 stderr 提示已弃用', () async {
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'Demo',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+            'children': <Object?>[],
+          },
+        },
+      },
+    }));
+
+    final deprecated = await run(<String>['spec', '1:2', '--json', '--no-markdown']);
+    final current = await run(<String>['spec', '1:2', '--json', '--node-only']);
+
+    expect(deprecated.exitCode, 0, reason: '${deprecated.stderr}');
+    expect('${deprecated.stdout}', '${current.stdout}', reason: '输出必须逐字节一致');
+    expect('${deprecated.stderr}', contains('已弃用'));
+    expect('${current.stderr}', isNot(contains('已弃用')));
+  });
+
+  test('flag 值支持空格形态，输出与 = 形态一致', () async {
+    final cache = File('${store.dir.path}/nodes-K-1-2.json');
+    cache.parent.createSync(recursive: true);
+    cache.writeAsStringSync(jsonEncode({
+      'nodes': {
+        '1:2': {
+          'document': {
+            'id': '1:2',
+            'type': 'FRAME',
+            'name': 'Demo',
+            'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 10, 'height': 10},
+            'children': [
+              {
+                'id': '1:3',
+                'type': 'TEXT',
+                'name': 'Title',
+                'absoluteBoundingBox': {'x': 0, 'y': 0, 'width': 1, 'height': 1},
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    final spaced = await run(<String>['spec', '1:2', '--json', '--node-depth', '0']);
+    final equals = await run(<String>['spec', '1:2', '--json', '--node-depth=0']);
+    expect(spaced.exitCode, 0, reason: '${spaced.stderr}');
+    expect('${spaced.stdout}', '${equals.stdout}');
+
+    final frames = await run(<String>['frames', '--json', '--name', 'Demo']);
+    expect(frames.exitCode, 0, reason: '${frames.stderr}');
+    expect('${frames.stdout}', contains('1:2'));
+  });
+
+  test('多余的位置参数报错，不再静默忽略', () async {
+    final spec = await run(<String>['spec', '1:2', '9:9']);
+    expect(spec.exitCode, 2, reason: '${spec.stderr}');
+    expect('${spec.stderr}', contains('多余的参数'));
+
+    final url = await run(<String>['url', 'a', 'b']);
+    expect(url.exitCode, 2);
+    expect('${url.stderr}', contains('多余的参数'));
+
+    final fetch = await run(<String>['fetch', 'nodes', 'K', '1:2', 'extra']);
+    expect(fetch.exitCode, 2);
+    expect('${fetch.stderr}', contains('多余的参数'));
+
+    final me = await run(<String>['me', 'extra']);
+    expect(me.exitCode, 2);
+    expect('${me.stderr}', contains('多余的参数'));
+  });
+
   test('init --force 覆盖已有 token', () async {
     final first = await run(<String>['init']);
     expect(first.exitCode, 0, reason: '${first.stderr}');
@@ -508,5 +711,20 @@ void main() {
     final token = CacheStore(root).tokenFile;
     expect(token.existsSync(), isTrue);
     expect(token.statSync().mode & 0x1FF, 0x180);
+  });
+
+  test('损坏缓存返回 exit 1，不报参数错误', () async {
+    final cache = File('${store.dir.path}/nodes-K-broken.json')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('{not json');
+
+    final spec = await run(<String>['spec', '1:2', '--file=${cache.path}']);
+    expect(spec.exitCode, 1, reason: '${spec.stderr}');
+    expect('${spec.stderr}', contains('缓存文件损坏'));
+    expect('${spec.stderr}', isNot(contains('参数错误')));
+
+    final tokens = await run(<String>['tokens', '1:2', '--file=${cache.path}']);
+    expect(tokens.exitCode, 1, reason: '${tokens.stderr}');
+    expect('${tokens.stderr}', contains('缓存文件损坏'));
   });
 }

@@ -6,12 +6,15 @@
 | --- | --- |
 | `cache.v1.json` | `w_tools_figma.cache/1` |
 | `fetch.v1.json` | `w_tools_figma.fetch/1` |
+| `frames.v1.json` | `w_tools_figma.frames/1` |
 | `specs.v1.json` | `w_tools_figma.specs/1` |
 | `spec.v1.json` | `w_tools_figma.spec/1` |
 | `tokens.v1.json` | `w_tools_figma.tokens/1` |
 | `diff.v1.json` | `w_tools_figma.diff/1` |
 | `usage.v1.json` | `w_tools_figma.usage/1` |
 | `budget.v1.json` | `w_tools_figma.budget/1` |
+| `url.v1.json` | `w_tools_figma.url/1` |
+| `me.v1.json` | `w_tools_figma.me/1` |
 
 策略与 `w_tools_cli` 的 context schema 一致：
 

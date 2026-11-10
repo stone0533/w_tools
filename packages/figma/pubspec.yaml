@@ -1,13 +1,14 @@
 name: w_tools_figma
 description: 只读的 Figma 取数与规格导出 CLI（读取本地缓存，不额外消耗额度）。
 repository: https://github.com/stone0533/w_tools
-version: 0.11.5
+version: 0.12.0
 resolution: workspace
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
 
 dependencies:
+  args: ^2.6.0
   yaml: ^3.1.2
 
 dev_dependencies:

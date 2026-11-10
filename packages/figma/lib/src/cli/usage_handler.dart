@@ -9,6 +9,8 @@ import 'cli_io.dart';
 void runUsage(List<String> args) {
   final options = parseOptions(args);
   rejectUnsupported(options, {'root', 'json'});
+  rejectExtraPositional(options, 0);
+
   final store = CacheStore(Directory(options.root));
   final summary = UsageCommand(store).run();
   if (options.json) {
@@ -36,29 +38,4 @@ void runUsage(List<String> args) {
       printLine('  ${e.at}  ${e.kind}  ${e.cacheFile}');
     }
   }
-}
-
-void runBudget(List<String> args) {
-  final options = parseOptions(args);
-  rejectUnsupported(options, {'root', 'json', 'set'});
-  final store = CacheStore(Directory(options.root));
-  if (options.budgetSet != null) {
-    store.dir.createSync(recursive: true);
-    store.budgetFile.writeAsStringSync(
-      const JsonEncoder.withIndent('  ').convert({'limit': options.budgetSet}),
-    );
-    printLine('月度预算已设为 ${options.budgetSet}');
-    return;
-  }
-  final summary = UsageCommand(store).run();
-  if (options.json) {
-    printLine(jsonEncode({
-      'schema': 'w_tools_figma.budget/1',
-      'limit': summary.limit,
-      'used': summary.used,
-      'remaining': summary.remaining,
-    }));
-    return;
-  }
-  printLine('月度预算 ${summary.limit} 次，本月已用 ${summary.used} 次，剩余 ${summary.remaining} 次');
 }

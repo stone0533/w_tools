@@ -8,6 +8,8 @@ import 'cli_io.dart';
 void runUrl(List<String> args) {
   final options = parseOptions(args);
   rejectUnsupported(options, {'root', 'json'});
+
+  rejectExtraPositional(options, 1);
   if (options.positional.isEmpty) {
     stderr.writeln('url 需要 Figma 链接或 nodeId');
     exitCode = 2;
@@ -15,7 +17,11 @@ void runUrl(List<String> args) {
   }
   final target = const UrlCommand().run(options.positional.first);
   if (options.json) {
-    printLine(jsonEncode({'fileKey': target.fileKey, 'nodeId': target.nodeId}));
+    printLine(jsonEncode({
+      'schema': 'w_tools_figma.url/1',
+      'fileKey': target.fileKey,
+      'nodeId': target.nodeId,
+    }));
     return;
   }
   printLine('fileKey=${target.fileKey}  nodeId=${target.nodeId ?? ''}');

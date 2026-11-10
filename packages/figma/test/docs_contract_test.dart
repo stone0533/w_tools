@@ -36,11 +36,11 @@ void main() {
     expect(readme, isNot(contains('token 模板 / `.gitignore`')));
   });
 
-  test('README 安装版本与 pubspec 一致，并注明待发布', () {
+  test('README 安装示例只用当前版本，不写死发布状态', () {
     final version =
         RegExp(r'^version:\s*(\S+)', multiLine: true).firstMatch(_read('pubspec.yaml'))!.group(1)!;
     expect(readme, contains('w_tools_figma: ^$version'));
-    expect(readme, contains('待发布'));
+    expect(readme, isNot(contains('待发布')));
   });
 
   test('README 不声称 token 相对 --root', () {

@@ -7,6 +7,8 @@ import 'cli_io.dart';
 Future<void> runGet(List<String> args) async {
   final options = parseOptions(args);
   rejectUnsupported(options, {'root'});
+
+  rejectExtraPositional(options, 2);
   final positional = options.positional;
   if (positional.length < 2) {
     stderr.writeln('get 用法：get <url> <outfile>');

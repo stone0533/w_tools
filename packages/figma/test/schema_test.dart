@@ -64,7 +64,44 @@ void main() {
       'sources': ['nodes-K-1-2.json'],
       'nodeIds': ['1:2'],
       'counts': {'colors': 1, 'texts': 2, 'radii': 0, 'spacings': 3},
+      'colors': [
+        {
+          'value': '#3F3F3F',
+          'count': 2,
+          'samples': ['「标题」'],
+        },
+      ],
+      'texts': [
+        {
+          'family': 'Inter',
+          'size': '14',
+          'weight': '500',
+          'lineHeight': '20',
+          'letterSpacing': '0',
+          'align': 'LEFT',
+          'color': '#333333',
+          'count': 2,
+          'samples': ['「标题」'],
+        },
+      ],
+      'radii': [
+        {'value': '8', 'count': 1},
+      ],
+      'spacings': [
+        {'value': '16', 'count': 2},
+      ],
       'markdown': '# tokens\n',
+    },
+    'url.v1.json': {
+      'schema': 'w_tools_figma.url/1',
+      'fileKey': 'ABC',
+      'nodeId': '1:2',
+    },
+    'me.v1.json': {
+      'schema': 'w_tools_figma.me/1',
+      'id': '1',
+      'handle': 'me',
+      'email': 'me@example.com',
     },
     'diff.v1.json': {
       'schema': 'w_tools_figma.diff/1',
@@ -112,6 +149,19 @@ void main() {
       );
     });
   }
+
+  test('url.v1 允许 nodeId 为 null（只有链接没有 node-id 时）', () {
+    final result = load('url.v1.json').validate({
+      'schema': 'w_tools_figma.url/1',
+      'fileKey': 'ABC',
+      'nodeId': null,
+    });
+    expect(
+      result.isValid,
+      isTrue,
+      reason: result.errors.map((e) => '${e.instancePath}: ${e.message}').join('\n'),
+    );
+  });
 
   test('cache clean 输出也符合 cache.v1', () {
     final result = load('cache.v1.json').validate({

@@ -5,6 +5,9 @@
 命令 / 额度 / 退出码：[`packages/figma/README.md`](../../packages/figma/README.md)。
 消费方可复制的片段：[`packages/figma/AGENTS.md`](../../packages/figma/AGENTS.md)。
 
+`figma init` 只建 figma-token / 缓存 / 预算，**不是** `w_tools_cli` 的 init（后者生成 AGENTS 与
+doctor 配置）；两者同名但互不替代。
+
 ## 什么时候用
 
 需要从 Figma 设计稿回答或实现这些事情时：
@@ -61,7 +64,8 @@ dart run w_tools_figma:figma get '<signed-url>' assets/demo.png
 - 页面很大时，先 `spec` 目标子节点；不要整页 `node` 全量塞进上下文。
 - 不知道 nodeId 时先跑 `frames`；`tokens --map` 可把颜色映射到项目语义名。
 - `spec` / `tokens` 默认扫描所有缓存，自动选包含目标 nodeId 的文件；失败时按提示加 `--file=`。
-- `frames` 默认只列顶层 FRAME，`--all` 才包含嵌套；`cacheFile` 是相对 `--root` 的路径。
+- `frames` 默认只列顶层 FRAME，`--all` 才包含嵌套；`cacheFile` 是该缓存文件的真实路径
+  （缓存在 `~/.cache/w_tools/figma/<项目标识>/`，通常是绝对路径），可以直接传给 `--file=`。
 - 多画板 `spec a,b,c` 的 JSON schema 是 `w_tools_figma.specs/1`。
 - `--no-markdown` 等同 `--node-only`，只影响 `--json`。
 
@@ -89,28 +93,6 @@ dart run w_tools_cli:w_tools explain <组件名>
 `tokens` 只提供设计值，不会自动生成代码。颜色 / 字号 / 间距要落到项目
 `AppColors` / `WTextStyles` / 间距常量，而不是硬编码。
 
-## 0.4.0+ 能力
-
-```bash
-# 默认只列顶层画板
-figma frames
-
-# 包含嵌套 FRAME
-figma frames --all
-
-# 名称 / 页面过滤
-figma frames --name=会员 --page=我的
-
-# 详细信息（cacheFile）
-figma frames --verbose
-
-# 多画板，JSON schema: w_tools_figma.specs/1
-figma spec 1862:9222,1862:9226 --json
-
-# 不要 markdown
-figma spec 1862:9222 --json --no-markdown
-```
-
 ## 规则
 
 - **先读缓存**：`spec` / `tokens` 不联网；只有缓存缺失或明确要更新时才 `fetch`。
@@ -121,6 +103,20 @@ figma spec 1862:9222 --json --no-markdown
 - token 用 `FIGMA_TOKEN` 环境变量或 `~/.config/w_tools/figma-token`；不要打印、不要提交。
 - 输出 JSON 时用 `--json`，不要解析人读文本。
 - JSON schema 在 `packages/figma/schema/`；schema 名称与 `--json` 输出的 `schema` 字段一致。
+
+## 读 JSON（推荐）
+
+```bash
+dart run w_tools_figma:figma spec <nodeId> --json
+dart run w_tools_figma:figma tokens <nodeId> --json
+dart run w_tools_figma:figma url '<figma-url>' --json
+```
+
+- `spec --json`：读 `node`（结构 / 尺寸 / 颜色 / 文字 / 间距）；`markdown` 只给人看。
+- `tokens --json`：`colors` / `texts` / `radii` / `spacings` 是结构化 token（每项带 `count`，
+  颜色 / 文字还带 `samples`）；需要 token 时直接读数组，不要解析 `markdown`。
+- `url --json` / `me --json` 都带 `schema`（`w_tools_figma.url/1` / `w_tools_figma.me/1`），按它分派；
+  全部 schema 见 `packages/figma/schema/README.md`。
 
 ## 额度
 

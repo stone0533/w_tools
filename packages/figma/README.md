@@ -53,20 +53,18 @@ W* 组件映射
 
 ### 1. 安装
 
-当前已发布（pub.dev）：`0.11.3`；`0.11.4` 待发布。
+装最新版（pub.dev 上的当前版本）；要锁版本时再手写 `^x.y.z` 约束。
 
 ```bash
-dart pub add dev:w_tools_figma:^0.11.4
+dart pub add dev:w_tools_figma
 ```
 
 等价于：
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.11.5
+  w_tools_figma: ^0.12.0
 ```
-
-`0.11.4` 发布后即可使用上面的约束；发布前需要稳定版请用 `^0.11.3`。
 
 开发版使用 path 依赖：
 
@@ -106,6 +104,9 @@ dart run w_tools_figma:figma init
 
 老项目的 `<项目>/.figma-cache/`、`<项目>/.figma-token` 会在下次运行时**自动迁移**
 到上述位置（迁移后旧文件删除）。
+
+迁移每个项目只做一次（标记 `<项目缓存目录>/_migrated-v1`）。把老项目整目录拷进一个**已经迁移过**
+的项目不会重跑；确实要重迁时删掉该标记即可。
 
 token 从 Figma：
 
@@ -240,8 +241,11 @@ _meta-<key>.json
 
 ```text
 _usage.log      # TSV：时间 \t 类型 \t 缓存文件名
-_budget.json    # {"month":"2026-11","limit":20,"used":1}
+_budget.json    # {"limit": 20}（代码只读 limit；budget --set 会保留其它字段）
 ```
+
+> `cache stats` 的文件数 / 字节数包含 `_nodes-index.json`（节点与 FRAME 的索引）和
+> `_migrated-v1`（迁移标记）；两者都可以删（索引会重建），`cache clean` 会一并清掉。
 
 预算规则：本月已用超过 `limit` 的 80% 时打警告；达到上限后 `fetch` / `diff` 默认拒绝（退出码 3），
 `--ignore-budget` 放行；缓存命中与 `spec` / `tokens`（纯本地）不触发检查。
@@ -277,27 +281,10 @@ dart run w_tools_figma:figma me
 
 ## 输出
 
-`--json` 输出带 schema：
-
-```text
-w_tools_figma.fetch/1
-w_tools_figma.spec/1
-w_tools_figma.tokens/1
-w_tools_figma.diff/1
-w_tools_figma.usage/1
-w_tools_figma.budget/1
-```
-
-schema 文件在 [`schema/`](schema/)，包含：
-
-```text
-fetch.v1.json
-spec.v1.json
-tokens.v1.json
-diff.v1.json
-usage.v1.json
-budget.v1.json
-```
+`--json` 输出带 `schema` 字段（`w_tools_figma.<命令>/1`）；文件清单、字段与"什么时候 bump"的策略见
+[`schema/README.md`](schema/README.md)。`tokens --json` 同时给结构化数组
+（`colors` / `texts` / `radii` / `spacings`）与 `markdown`，脚本不用解析人读文本。
+`source` 是第一个命中的缓存文件（兼容字段）；多缓存汇总时看 `sources`。
 
 `spec --json` 同时返回原始节点和 Markdown：
 
