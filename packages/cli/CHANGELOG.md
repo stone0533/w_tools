@@ -1,4 +1,4 @@
-## Unreleased
+## 1.18.1
 
 ### Changed
 - `init` 写入的子包约束同步 `w_tools_core: ^3.1.2`（core 3.1.2 修了 `WStorage.setObject` 的错误处理）。
