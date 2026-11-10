@@ -1,3 +1,19 @@
+## Unreleased
+
+### Changed
+- **消费方 AI_PROMPTS 与 AGENTS 对齐**：固定前缀补 `doctor --format=json`（0 error）、`test/` / `tool/` /
+  `integration_test/` 下 dev-only import 例外、L-1 反馈开启片段；§3 自检清单补 doctor 与生成物清单。
+- 修正与 catalog 冲突的 C-1 `validatorSettings` 说法；E-1 / §2 的 `explain` exit 1 补「匹配到多个」；
+  I-1 的集成测试命令改为可直接执行（`flutter test integration_test` / `dart test test`），
+  J-1 明确以 `git diff` 或用户贴的 diff 为审查输入。
+- 升级场景：migration 说明改为 CHANGELOG 优先（`docs/` 不随包发布），示例更新到 ui-8.0 / form-6.0；
+  F-2 明确先改 pubspec 约束并 pub get（普通 `pub upgrade` 不跨 major）；聚合包说明不再暗示「保持现状」即可通过 doctor R1。
+- README / templates README：固定前缀例外补 L-1，场景清单补 L-1，§3 不再称「文末」。
+- **新增两个场景**：M-1 接入 / 体检（按 doctor 报告一次修一条规则，直到 0 error）、
+  N-1 小改动（单文件 / 小范围，先给最小改法再动手）；固定前缀的开发者称谓按项目类型渲染
+  （纯 Dart 项目不再写「Dart / Flutter 开发者」）。
+- `feedback status --json` 在通道 disabled 时附带 `enableHint`，AI 不用再猜开启方式。
+
 ## 1.18.0
 
 ### Changed

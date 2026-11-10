@@ -24,7 +24,7 @@
 If unsure which prompt to use, send this first:
 
 ```text
-I am a Dart / Flutter developer on this project, but I am not familiar with these prompts.
+I am a {{role}} developer on this project, but I am not familiar with these prompts.
 
 Read only the "1. Scenario selection" section of .w_tools/AI_PROMPTS.md first,
 pick a scenario ID, and explain why.
@@ -51,7 +51,7 @@ Round 3: review only + run checks       F-3 / J-1, then {{analyze}} / {{test}}
 Multi-round scenarios stay in the same conversation. If you start a new chat, paste the previous
 round's output as a handoff first; without a handoff, go back to the previous round.
 
-A small task is one round (still paste the fixed prefix first): B-1 / G-1 / H-1 / I-1.
+A small task is one round (still paste the fixed prefix first): B-1 / G-1 / H-1 / I-1 / N-1.
 
 Do not ask for this in round 1:
 
@@ -61,7 +61,7 @@ implement + add tests + update docs + run the whole repo
 
 ### Check after the AI finishes
 
-Work through "3. What you must check after the AI finishes" at the end —
+Work through §3 "What you must check after the AI finishes" —
 there is exactly one checklist in this file, nothing is duplicated here.
 
 ---
@@ -69,7 +69,7 @@ there is exactly one checklist in this file, nothing is duplicated here.
 ## 0. Fixed prefix (paste first)
 
 ```text
-You are a Dart / Flutter developer on this project.
+You are a {{role}} developer on this project.
 
 Read {{rulesFiles}} and pubspec.yaml first; project rules take precedence over this file.
 If `.w_tools/PROMPTS.local.md` exists, read it first and follow its project conventions.
@@ -84,13 +84,16 @@ Rules:
 3. Follow explain output for w_tools APIs.
 4. Dependencies and entry points: {{dependencyNote}}
    Business code takes APIs from the project toolkit entry ({{toolkitImport}});
-   direct `package:w_tools_*` imports belong only in the toolkit itself; with UI enabled, also `lib/app/ui/` and `lib/app/design_system/`.
-5. Edit only content outside the `w_tools:begin/end` block in {{rulesFiles}}; keep the block generated.
-6. Run {{analyze}} / {{test}} and paste the actual output; if you cannot run them, say so.
+   direct `package:w_tools_*` imports belong only in the toolkit itself; with UI enabled, also `lib/app/ui/` and `lib/app/design_system/`;
+   dev-only tool imports under `test/` / `tool/` / `integration_test/` are allowed.
+5. When editing {{rulesFiles}}, only change content outside the `w_tools:begin/end` block; keep the block generated.
+6. After finishing, run {{analyze}} / {{test}}, then:
+   dart run w_tools_cli:w_tools doctor --format=json (0 errors)
+   Paste the actual output; if you cannot run them, say so.
 7. Unless a scenario says otherwise, output = changed file list + key code snippets + raw {{analyze}} / {{test}} output.
 ```
 
-Fixed-prefix exceptions: scenario selection reads only §1; K-1 does not paste the prefix; every other scenario pastes it first.
+Fixed-prefix exceptions: scenario selection reads only §1; K-1 does not paste the prefix; L-1 does not run {{analyze}} / {{test}}; every other scenario pastes it first.
 
 ---
 
@@ -170,6 +173,8 @@ and **it says what to deliver**.
 | Review AI changes only | J-1 |
 | AI cannot read the repo / run commands | K-1 |
 | Blocked by w_tools / has a suggestion | L-1 |
+| Just adopted / doctor reports errors | M-1 |
+| One small change / single-file fix | N-1 |
 
 ### Reverse lookup by symptom
 
@@ -185,6 +190,8 @@ and **it says what to deliver**.
 | Field hidden by keyboard / overflow | G-1 |
 | AI says it changed things but shows no analyze output | J-1 or K-1 |
 | Blocked by w_tools and want to file feedback | L-1 |
+| Doctor is all red after init | M-1 |
+| Only want to change one spot, nothing else | N-1 |
 | Not sure which block to use | "Let the AI pick a scenario" above |
 
 ---
@@ -268,7 +275,7 @@ Task: implement the <page> form, route <route>.
 
 Requirements:
 1. use WForm + direct fields; do not pass field config;
-2. validate with field validator; pass validatorSettings to WForm;
+2. validate with field validator; pass validatorSettings to WForm only when you need unified settings (defaults are enough);
 3. disable duplicate submit while submitting;
 4. preserve user input when the API fails;
 5. keep fields visible when the keyboard opens;
@@ -339,7 +346,7 @@ Check this project:
 <!-- @endif -->
 
 Run `dart run w_tools_cli:w_tools doctor --format=json` first, then verify with context / list / explain.
-For each w_tools type / import, run `explain`; treat exit 1 as "not in catalog or wrong name",
+For each w_tools type / import, run `explain`; treat exit 1 as "not in catalog / wrong name / ambiguous match",
 then check `{{analyze}}` deprecated warnings before deciding to replace it.
 
 Output one table, sorted by severity:
@@ -372,8 +379,8 @@ Output: which IDs were fixed + changed file list + doctor before/after + raw {{a
 Task: upgrade the w_tools sub-packages. First list <oldversion> and <newversion> per package from pubspec.lock (versions are independent), then choose this round's scope.
 
 Do not change code yet. Do three things first:
-1. read the migration document per package
-   (look up the matching version under docs/migrations/ in the w_tools repo, e.g. ui-7.0.md / form-5.1.md; or the package CHANGELOG on pub.dev);
+1. read the upgrade notes per package: prefer that package's CHANGELOG (pub.dev / GitHub); for details see
+   docs/migrations/ in the w_tools repo (e.g. ui-8.0.md / form-6.0.md; docs/ is not published with the package, so do not assume it is local);
 2. find every outdated API and call site in this project;
 3. list a per-file change plan.
 
@@ -387,10 +394,11 @@ Wait for my confirmation before F-2.
 Replace outdated APIs following the F-1 plan; stay in the same conversation, or paste the F-1 plan first in a new chat. This round only covers: <scope>.
 
 Requirements:
-1. go file by file, one file at a time;
-2. do not change unrelated behavior;
-3. stop and report any call site the plan missed; do not guess;
-4. run {{analyze}} after each batch.
+1. bump the pubspec constraint to <newversion> and run pub get first (a plain pub upgrade will not cross a major; edit the constraint by hand or use `{{pubUpgrade}} --major-versions`);
+2. go file by file, one file at a time;
+3. do not change unrelated behavior;
+4. stop and report any call site the plan missed; do not guess;
+5. run {{analyze}} after each batch.
 
 Output: changed files in this batch + key diff + raw {{analyze}} output.
 ```
@@ -487,7 +495,7 @@ Requirements:
 4. keep screenshots / logs on failure;
 5. prefer the project's existing integration-test setup; coordinate taps only as a fallback.
 
-Run:
+Run (ask me first if the test directory is missing; use a specific test file when needed):
 - {{integrationTest}}
 
 If a real device is needed, first check whether the project depends on w_tools_device:
@@ -503,7 +511,7 @@ Output: test files + run result + screenshot / log paths on failure.
 ### J-1. Read-only review
 
 ```text
-Review this change only; do not edit code.
+Review this change only; do not edit code. Start from `git diff` (or the diff I paste); if you cannot get the diff, ask me what changed.
 
 Check:
 1. correct entry points;
@@ -546,7 +554,8 @@ I provide:
 Task: record what blocked you in w_tools (or a capability suggestion) as one feedback entry.
 
 Run `dart run w_tools_cli:w_tools feedback status --json` first and read channel:
-- disabled -> stop: only tell me "the project has not enabled feedback" and how to enable it;
+- disabled -> stop: tell me "the project has not enabled feedback" and how to enable it (`enabled: true`
+  under `feedback:` in .w_tools_doctor.yaml, i.e. `feedback.enabled: true`), then rerun status;
   do not submit, and do not pass --issue;
 - ledger / issue -> continue.
 
@@ -579,6 +588,51 @@ if rejected, paste the error verbatim.
 
 ---
 
+## M. Setup / health check
+
+### M-1. Fix doctor issues to 0 errors
+
+```text
+Task: the project just adopted or upgraded w_tools; fix the doctor report to 0 errors.
+
+Run first:
+dart run w_tools_cli:w_tools doctor --format=json
+
+Requirements:
+1. report the totals first: error / warn counts per rule (R1-R9), and which rules you will fix first;
+2. fix one rule at a time, errors before warnings;
+3. only touch files named in the report; no drive-by refactors or formatting;
+4. apply the reported `fix` when present; otherwise read `hint` and make the minimal change;
+5. rerun doctor after each rule and paste error / warn counts before and after;
+6. if you believe an issue is a false positive, stop and ask me; do not silence it with an ignore;
+7. finish with {{analyze}} / {{test}} and paste raw output.
+
+Output: doctor before/after + what changed per rule + changed file list + raw {{analyze}} / {{test}} output.
+```
+
+---
+
+## N. Small change
+
+### N-1. Single-file / small-scope change
+
+```text
+Task: make a small change in <scope>: <task>.
+
+Read the relevant files and existing tests first, then state the minimal change in one sentence;
+after I confirm, make the change. (Skip the confirmation if my instruction is already explicit.)
+
+Requirements:
+1. only change <scope>; no drive-by refactors, formatting or dependency bumps;
+2. add or update a test when behavior changes; no test for pure copy / rename changes;
+3. run {{analyze}} and the relevant tests afterwards, and paste raw output;
+4. report out-of-scope problems; do not fix them.
+
+Output: diff + one-line rationale + raw {{analyze}} / test output.
+```
+
+---
+
 ## 2. When the output is wrong, one sentence is enough
 
 Do not rewrite the whole prompt; append one line matching the symptom:
@@ -600,9 +654,9 @@ dart run w_tools_cli:w_tools explain <Component> --format=prompt
 ```
 
 - exit code 0: the catalog has it; check the parameter names in the output;
-- exit code 1: not in the catalog or the name is wrong (a typo, or a public type that is
-  intentionally uncataloged); first rewrite using the names explain actually lists, then decide
-  whether it truly does not exist.
+- exit code 1: not in the catalog, the name is wrong, or the query is ambiguous (candidates are
+  listed); it may be a typo or an intentionally uncataloged public type. First rewrite using the
+  names explain actually lists, then decide whether it truly does not exist.
 
 Likewise, if the AI says analyze / test passed but pastes no raw output, treat it as not run.
 
@@ -614,7 +668,7 @@ Likewise, if the AI says analyze / test passed but pastes no raw output, treat i
 [ ] every command it claims to have run was actually run; if not, it says so
 [ ] the analyze / test result is raw output, not a paraphrase
 [ ] git diff has no large unrelated changes
-[ ] no generated file was hand-edited
+[ ] no generated file was hand-edited (toolkit / AGENTS block / .w_tools/AI_PROMPTS.md / lib/app/ui/ starter)
 [ ] loading / empty / error / ready are all handled
 [ ] requests have cancel / dispose protection (when applicable)
 <!-- @if:form -->
@@ -627,8 +681,9 @@ Likewise, if the AI says analyze / test passed but pastes no raw output, treat i
 [ ] route arguments and results are correct
 [ ] keyboard / SafeArea / overflow checked
 [ ] dark mode and TextScaler do not overflow
-[ ] business code has no direct w_tools_* imports (toolkit / UI staging layer excepted)
+[ ] business code has no direct w_tools_* imports (toolkit / UI staging layer / dev-only tools under test excepted)
 [ ] no outdated APIs
+[ ] doctor --format=json reports 0 errors
 [ ] {{analyze}} passes
 [ ] {{test}} passes
 [ ] new / changed components have tests

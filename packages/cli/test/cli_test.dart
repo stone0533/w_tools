@@ -1060,6 +1060,7 @@ banned:
     final r = await _run('feedback.dart', ['status', '--root', root.path, '--json']);
     expect(r.exitCode, 0);
     expect('${r.stdout}', contains('"channel":"disabled"'));
+    expect('${r.stdout}', contains('"enableHint"'));
   });
   test('feedback status 在仓库内输出 ledger', () async {
     final root = _project();

@@ -490,6 +490,8 @@ void _status(Directory root, bool asJson) {
         'schema': 'w_tools_cli.feedback/1',
         'schemaVersion': 1,
         ...channel.toJson(),
+        if (channel.mode == FeedbackMode.disabled)
+          'enableHint': '在 .w_tools_doctor.yaml 写 feedback.enabled: true 后重跑 status',
         'gh': gh?.toJson(),
       }),
     );
