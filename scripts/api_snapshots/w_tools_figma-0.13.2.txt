@@ -1,0 +1,164 @@
+# w_tools_figma 0.13.2
+CacheStore	class
+CacheStore.budgetFile	File
+CacheStore.budgetLimit	int ()
+CacheStore.cacheFile	File ({ required String kind, required String fileKey, String? ids, int? scale, int? depth, })
+CacheStore.cacheRoot	Directory
+CacheStore.defaultHome	static String ()
+CacheStore.dir	Directory
+CacheStore.homeOverride	static String?
+CacheStore.legacyDir	Directory
+CacheStore.legacyTokenFile	File
+CacheStore.logUsage	void ({required String kind, required String cacheFile, DateTime? now})
+CacheStore.metaFile	File (String fileKey)
+CacheStore.migrateLegacy	List<String> ()
+CacheStore.new	(this.root, { String? home, bool? windows, Map<String, String>? environment, })
+CacheStore.projectId	String
+CacheStore.read	Map<String, dynamic>? (File file)
+CacheStore.root	Directory
+CacheStore.tokenFile	File
+CacheStore.usageCountThisMonth	int ({DateTime? now})
+CacheStore.usageEntries	List<UsageEntry> ()
+CacheStore.usageFile	File
+CacheStore.write	void (File file, Map<String, dynamic> json)
+ColorUsage	class
+ColorUsage.count	int
+ColorUsage.new	(this.value)
+ColorUsage.samples	List<String>
+ColorUsage.value	String
+DiffCommand	class
+DiffCommand.client	FigmaClient
+DiffCommand.ignoreBudget	bool
+DiffCommand.log	bool
+DiffCommand.new	({ required this.store, required this.client, this.log = true, this.ignoreBudget = false, })
+DiffCommand.run	Future<DiffResult> ({ required String fileKey, required String nodeId, File? oldFile, })
+DiffCommand.store	CacheStore
+DiffResult	class
+DiffResult.changes	List<SpecChange>
+DiffResult.fileKey	String
+DiffResult.isEmpty	bool
+DiffResult.new	({ required this.fileKey, required this.nodeId, required this.changes, required this.nodes, required this.tierCalls, })
+DiffResult.nodeId	String
+DiffResult.nodes	List<SpecNodeDelta>
+DiffResult.tierCalls	int
+FetchCommand	class
+FetchCommand.client	FigmaClient
+FetchCommand.file	Future<FetchResult> ({ required String fileKey, int depth = 3, bool refresh = false, bool checkStale = false, })
+FetchCommand.ignoreBudget	bool
+FetchCommand.images	Future<FetchResult> ({ required String fileKey, required List<String> ids, int scale = 2, bool refresh = false, bool checkStale = false, })
+FetchCommand.log	bool
+FetchCommand.new	({ required this.store, required this.client, this.log = true, this.ignoreBudget = false, })
+FetchCommand.nodes	Future<FetchResult> ({ required String fileKey, required List<String> ids, int? depth, bool refresh = false, bool checkStale = false, })
+FetchCommand.store	CacheStore
+FetchResult	class
+FetchResult.cachedVersion	String?
+FetchResult.file	File
+FetchResult.fromCache	bool
+FetchResult.json	Map<String, dynamic>
+FetchResult.latestVersion	String?
+FetchResult.new	({ required this.file, required this.json, required this.fromCache, required this.tierCalls, this.stale = false, this.cachedVersion, this.latestVersion, })
+FetchResult.stale	bool
+FetchResult.tierCalls	int
+FigmaClient	class
+FigmaClient.close	void ()
+FigmaClient.getJson	Future<Map<String, dynamic>> (Uri url)
+FigmaHttpException	class
+FigmaHttpException.body	String
+FigmaHttpException.isRateLimited	bool
+FigmaHttpException.new	({ required this.statusCode, required this.url, this.retryAfter, this.body = '', })
+FigmaHttpException.retryAfter	Duration?
+FigmaHttpException.statusCode	int
+FigmaHttpException.toString	String ()
+FigmaHttpException.url	Uri
+FigmaSpecRenderer	class
+FigmaSpecRenderer.new	({this.skipNamePrefixes = _skipNamePrefixes})
+FigmaSpecRenderer.renderMarkdownFromRoot	String (Map root, String targetId)
+FigmaSpecRenderer.skipNamePrefixes	List<String>
+FigmaUrlTarget	class
+FigmaUrlTarget.fileKey	String
+FigmaUrlTarget.new	({required this.fileKey, required this.nodeId})
+FigmaUrlTarget.nodeId	String?
+HttpFigmaClient	class
+HttpFigmaClient.close	void ()
+HttpFigmaClient.getJson	Future<Map<String, dynamic>> (Uri url)
+HttpFigmaClient.new	({required this.token, this.timeout = const Duration(seconds: 60)})
+HttpFigmaClient.timeout	Duration
+HttpFigmaClient.token	String
+InitCommand	class
+InitCommand.new	(this.store)
+InitCommand.run	InitResult ({bool force = false})
+InitCommand.store	CacheStore
+InitResult	class
+InitResult.cacheDir	Directory
+InitResult.gitignoreAdded	List<String>
+InitResult.new	({ required this.tokenCreated, required this.gitignoreAdded, required this.cacheDir, })
+InitResult.tokenCreated	bool
+NumberUsage	class
+NumberUsage.count	int
+NumberUsage.new	(this.value)
+NumberUsage.value	String
+SpecChange	class
+SpecChange.after	String
+SpecChange.before	String
+SpecChange.field	String
+SpecChange.name	String
+SpecChange.new	({ required this.nodeId, required this.name, required this.field, required this.before, required this.after, })
+SpecChange.nodeId	String
+SpecChange.toString	String ()
+SpecDiff	class
+SpecDiff.changes	List<SpecChange> (Map before, Map after)
+SpecDiff.new	()
+SpecDiff.nodes	List<SpecNodeDelta> (Map before, Map after)
+SpecNodeDelta	class
+SpecNodeDelta.added	bool
+SpecNodeDelta.name	String
+SpecNodeDelta.new	({required this.nodeId, required this.name, required this.added})
+SpecNodeDelta.nodeId	String
+SpecNodeDelta.toString	String ()
+TextStyleUsage	class
+TextStyleUsage.align	String
+TextStyleUsage.color	String
+TextStyleUsage.count	int
+TextStyleUsage.family	String
+TextStyleUsage.key	String
+TextStyleUsage.letterSpacing	String
+TextStyleUsage.lineHeight	String
+TextStyleUsage.new	({ required this.family, required this.size, required this.weight, required this.lineHeight, required this.letterSpacing, required this.align, required this.color, })
+TextStyleUsage.samples	List<String>
+TextStyleUsage.size	String
+TextStyleUsage.weight	String
+TokenCollector	class
+TokenCollector.collect	void (Map document)
+TokenCollector.colors	Map<String, ColorUsage>
+TokenCollector.colorsSorted	List<ColorUsage> ()
+TokenCollector.minCount	int
+TokenCollector.new	({this.minCount = 1})
+TokenCollector.radii	Map<String, NumberUsage>
+TokenCollector.radiiSorted	List<NumberUsage> ()
+TokenCollector.spacings	Map<String, NumberUsage>
+TokenCollector.spacingsSorted	List<NumberUsage> ()
+TokenCollector.texts	Map<String, TextStyleUsage>
+TokenCollector.textsSorted	List<TextStyleUsage> ()
+TokenRenderer	class
+TokenRenderer.new	()
+TokenRenderer.renderMarkdown	String ({ required TokenCollector tokens, required String source, required List<String> nodeIds, Map<String, String> colorNames = const <String, String>{}, })
+UrlCommand	class
+UrlCommand.new	()
+UrlCommand.run	FigmaUrlTarget (String input)
+UsageCommand	class
+UsageCommand.new	(this.store)
+UsageCommand.run	UsageResult ({DateTime? now, int recent = 5})
+UsageCommand.store	CacheStore
+UsageEntry	class
+UsageEntry.at	String
+UsageEntry.cacheFile	String
+UsageEntry.kind	String
+UsageEntry.new	({required this.at, required this.kind, required this.cacheFile})
+UsageResult	class
+UsageResult.isNearLimit	bool
+UsageResult.limit	int
+UsageResult.month	String
+UsageResult.new	({ required this.month, required this.used, required this.limit, required this.recent, })
+UsageResult.recent	List<UsageEntry>
+UsageResult.remaining	int
+UsageResult.used	int
