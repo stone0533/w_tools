@@ -1,4 +1,4 @@
-## Unreleased
+## 1.18.0
 
 ### Changed
 - **消费方 AI_PROMPTS 与 AGENTS 对齐**：固定前缀补 `doctor --format=json`（0 error）、`test/` / `tool/` /
@@ -13,10 +13,6 @@
   N-1 小改动（单文件 / 小范围，先给最小改法再动手）；固定前缀的开发者称谓按项目类型渲染
   （纯 Dart 项目不再写「Dart / Flutter 开发者」）。
 - `feedback status --json` 在通道 disabled 时附带 `enableHint`，AI 不用再猜开启方式。
-
-## 1.18.0
-
-### Changed
 - **消费方 AGENTS 片段重做**：`init` 写入 `AGENTS.md` / `CLAUDE.md` / cursor / copilot 的片段从 280 行 / 11.6k 字符
   降到 72 行 / 4.2k 字符，固定四段：`怎么用 w_tools` → `硬规则` → `组件约定`（每包一行）→ `完成前`。
 - 硬规则上移并带 doctor 规则号（R1 / R2 / R4 / R5 / R9）；R2 的 import 例外（toolkit、`lib/app/ui/`、
