@@ -1,4 +1,4 @@
-## Unreleased
+## 12.0.3
 
 ### Changed
 - 根包 `w_tools_core` 约束抬到 `^3.1.2`（core 3.1.2：`WStorage.setObject` 的错误处理修正）。
