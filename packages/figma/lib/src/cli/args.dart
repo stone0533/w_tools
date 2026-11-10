@@ -1,5 +1,22 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
+
+/// 项目根默认值：`--root` 未给时用当前目录。
+String defaultRoot() => Directory.current.path;
+
+/// 取 `--root=<dir>` / `--root <dir>`；给 `run.dart` 这类需要提前知道 root 的调用方用。
+///
+/// `parseOptions` 在扫描参数时会自己消费 `--root`，两边共用 [defaultRoot]。
+String rootOption(List<String> args) {
+  for (var i = 0; i < args.length; i++) {
+    final arg = args[i];
+    if (arg.startsWith('--root=')) return arg.substring('--root='.length);
+    if (arg == '--root' && i + 1 < args.length) return args[i + 1];
+  }
+  return defaultRoot();
+}
+
 class CliOptions {
   CliOptions({
     required this.positional,
@@ -26,6 +43,7 @@ class CliOptions {
     required this.pageFilter,
     required this.verbose,
     required this.seen,
+    required this.seenText,
   });
 
   final List<String> positional;
@@ -57,139 +75,140 @@ class CliOptions {
   final String? nameFilter;
   final String? pageFilter;
   final bool verbose;
+
+  /// 出现过的选项（规范名，供 `rejectUnsupported` 的 allow-list 用）。
   final Set<String> seen;
+
+  /// 规范名 → 用户实际写的写法（`--no-markdown` 不会被报成 `--node-only`）。
+  final Map<String, String> seenText;
+}
+
+/// 取值型选项：缺值时也要报中文，别让 ArgParser 抛英文。
+const Set<String> _valueOptions = <String>{
+  '--root',
+  '--file',
+  '--min',
+  '--out',
+  '--depth',
+  '--scale',
+  '--node-depth',
+  '--set',
+  '--name',
+  '--page',
+  '--map',
+};
+
+/// 别名 → 规范名：allow-list 只认规范名，报错时用用户实际写的那个。
+const Map<String, String> _aliases = <String, String>{'no-markdown': 'node-only'};
+
+ArgParser _buildParser() {
+  return ArgParser()
+    ..addFlag('json', negatable: false)
+    ..addOption('root')
+    ..addOption('file')
+    ..addOption('min')
+    ..addOption('out')
+    ..addOption('depth')
+    ..addOption('scale')
+    ..addOption('node-depth')
+    ..addFlag('refresh', negatable: false)
+    ..addFlag('no-log', negatable: false)
+    ..addFlag('force', negatable: false)
+    ..addOption('set')
+    ..addFlag('check-stale', negatable: false)
+    ..addFlag('if-stale', negatable: false)
+    ..addFlag('ignore-budget', negatable: false)
+    ..addFlag('node-only', negatable: false)
+    ..addFlag('no-markdown', negatable: false)
+    ..addFlag('all', negatable: false)
+    ..addFlag('yes', abbr: 'y', negatable: false)
+    ..addOption('name')
+    ..addOption('page')
+    ..addFlag('verbose', negatable: false)
+    ..addOption('map');
+}
+
+/// 未知选项保留中文报错（ArgParser 自己的消息是英文）。
+void _rejectUnknownFlags(List<String> args, ArgParser parser) {
+  for (final arg in args) {
+    if (arg == '--' || arg == '-' || !arg.startsWith('-')) continue;
+    final name = arg.startsWith('--')
+        ? arg.substring(2).split('=').first
+        : arg.substring(1).split('=').first;
+    if (name == 'h' || name == 'y') continue;
+    final option = parser.options[name];
+    if (option == null) {
+      throw FormatException('未知选项：${arg.split('=').first}');
+    }
+    // 布尔 flag 不接受 `=值`：旧解析器把 `--json=true` 当未知选项，保持这条。
+    if (option.isFlag && arg.contains('=')) {
+      throw FormatException('未知选项：$arg');
+    }
+  }
+}
+
+/// 取值型选项写到末尾但没给值：`--depth`。
+void _rejectMissingValues(List<String> args) {
+  for (var i = 0; i < args.length; i++) {
+    if (_valueOptions.contains(args[i]) && i + 1 >= args.length) {
+      throw FormatException('${args[i]} 需要一个值');
+    }
+  }
 }
 
 CliOptions parseOptions(List<String> args) {
-  final positional = <String>[];
-  var json = false;
-  var root = Directory.current.path;
-  String? file;
-  var min = 1;
-  String? out;
-  int? depth;
-  var scale = 2;
-  int? nodeDepth;
-  var refresh = false;
-  var log = true;
-  int? budgetSet;
-  var checkStale = false;
-  var force = false;
-  var ifStale = false;
-  var ignoreBudget = false;
-  var nodeOnly = false;
-  String? mapFile;
-  var all = false;
-  var yes = false;
-  String? nameFilter;
-  String? pageFilter;
-  var verbose = false;
-  final seen = <String>{};
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    if (arg == '--json') {
-      json = true;
-      seen.add('json');
-    } else if (arg.startsWith('--root=')) {
-      root = arg.substring('--root='.length);
-      seen.add('root');
-    } else if (arg.startsWith('--file=')) {
-      file = arg.substring('--file='.length);
-      seen.add('file');
-    } else if (arg.startsWith('--min=')) {
-      min = _positiveInt('--min', arg.substring('--min='.length));
-      seen.add('min');
-    } else if (arg.startsWith('--out=')) {
-      out = arg.substring('--out='.length);
-      seen.add('out');
-    } else if (arg.startsWith('--depth=')) {
-      depth = _positiveInt('--depth', arg.substring('--depth='.length));
-      seen.add('depth');
-    } else if (arg.startsWith('--scale=')) {
-      scale = _positiveInt('--scale', arg.substring('--scale='.length));
-      seen.add('scale');
-    } else if (arg.startsWith('--node-depth=')) {
-      nodeDepth = _nonNegativeInt('--node-depth', arg.substring('--node-depth='.length));
-      seen.add('node-depth');
-    } else if (arg == '--yes' || arg == '-y') {
-      yes = true;
-      seen.add('yes');
-    } else if (arg == '--refresh') {
-      refresh = true;
-      seen.add('refresh');
-    } else if (arg == '--no-log') {
-      log = false;
-      seen.add('no-log');
-    } else if (arg == '--force') {
-      force = true;
-      seen.add('force');
-    } else if (arg == '--set' || arg.startsWith('--set=')) {
-      final raw = arg == '--set'
-          ? (i + 1 < args.length ? args[++i] : null)
-          : arg.substring('--set='.length);
-      if (raw == null || raw.isEmpty) {
-        throw const FormatException('--set 需要正整数');
-      }
-      budgetSet = _positiveInt('--set', raw);
-      seen.add('set');
-    } else if (arg == '--check-stale') {
-      checkStale = true;
-      seen.add('check-stale');
-    } else if (arg == '--if-stale') {
-      ifStale = true;
-      seen.add('if-stale');
-    } else if (arg == '--ignore-budget') {
-      ignoreBudget = true;
-      seen.add('ignore-budget');
-    } else if (arg == '--node-only' || arg == '--no-markdown') {
-      nodeOnly = true;
-      seen.add('node-only');
-    } else if (arg == '--all') {
-      all = true;
-      seen.add('all');
-    } else if (arg.startsWith('--name=')) {
-      nameFilter = arg.substring('--name='.length);
-      seen.add('name');
-    } else if (arg.startsWith('--page=')) {
-      pageFilter = arg.substring('--page='.length);
-      seen.add('page');
-    } else if (arg == '--verbose') {
-      verbose = true;
-      seen.add('verbose');
-    } else if (arg.startsWith('--map=')) {
-      mapFile = arg.substring('--map='.length);
-      seen.add('map');
-    } else if (arg.startsWith('--')) {
-      throw FormatException('未知选项：$arg');
-    } else {
-      positional.add(arg);
-    }
+  final parser = _buildParser();
+  _rejectUnknownFlags(args, parser);
+  _rejectMissingValues(args);
+
+  final ArgResults results;
+  try {
+    results = parser.parse(args);
+  } on ArgParserException catch (e) {
+    throw FormatException('参数解析失败：${e.message}');
   }
+
+  int? intOf(String name, String flag, {required bool positive}) {
+    final raw = results[name] as String?;
+    if (raw == null) return null;
+    return positive ? _positiveInt(flag, raw) : _nonNegativeInt(flag, raw);
+  }
+
+  final seen = <String>{};
+  final seenText = <String, String>{};
+  for (final name in parser.options.keys) {
+    if (!results.wasParsed(name)) continue;
+    final canonical = _aliases[name] ?? name;
+    seen.add(canonical);
+    seenText.putIfAbsent(canonical, () => '--$name');
+  }
+
   return CliOptions(
-    positional: positional,
-    json: json,
-    root: root,
-    file: file,
-    min: min,
-    out: out,
-    depth: depth,
-    scale: scale,
-    nodeDepth: nodeDepth,
-    refresh: refresh,
-    log: log,
-    budgetSet: budgetSet,
-    checkStale: checkStale,
-    force: force,
-    ifStale: ifStale,
-    ignoreBudget: ignoreBudget,
-    nodeOnly: nodeOnly,
-    mapFile: mapFile,
-    all: all,
-    yes: yes,
-    nameFilter: nameFilter,
-    pageFilter: pageFilter,
-    verbose: verbose,
+    positional: results.rest,
+    json: results['json'] as bool,
+    root: (results['root'] as String?) ?? defaultRoot(),
+    file: results['file'] as String?,
+    min: intOf('min', '--min', positive: true) ?? 1,
+    out: results['out'] as String?,
+    depth: intOf('depth', '--depth', positive: true),
+    scale: intOf('scale', '--scale', positive: true) ?? 2,
+    nodeDepth: intOf('node-depth', '--node-depth', positive: false),
+    refresh: results['refresh'] as bool,
+    log: !(results['no-log'] as bool),
+    budgetSet: intOf('set', '--set', positive: true),
+    checkStale: results['check-stale'] as bool,
+    force: results['force'] as bool,
+    ifStale: results['if-stale'] as bool,
+    ignoreBudget: results['ignore-budget'] as bool,
+    nodeOnly: (results['node-only'] as bool) || (results['no-markdown'] as bool),
+    mapFile: results['map'] as String?,
+    all: results['all'] as bool,
+    yes: results['yes'] as bool,
+    nameFilter: results['name'] as String?,
+    pageFilter: results['page'] as String?,
+    verbose: results['verbose'] as bool,
     seen: seen,
+    seenText: seenText,
   );
 }
 
@@ -197,8 +216,15 @@ CliOptions parseOptions(List<String> args) {
 void rejectUnsupported(CliOptions options, Set<String> allowed) {
   final bad = options.seen.difference(allowed);
   if (bad.isEmpty) return;
-  final names = bad.map((e) => '--$e').toList()..sort();
+  final names = bad.map((e) => options.seenText[e] ?? '--$e').toList()..sort();
   throw FormatException('不支持的选项：${names.join(', ')}');
+}
+
+/// 位置参数超出上限就报错：多写的参数以前会被静默忽略（`spec 1:2 9:9` 只处理第一个）。
+void rejectExtraPositional(CliOptions options, int max) {
+  if (options.positional.length <= max) return;
+  final extra = options.positional.sublist(max);
+  throw FormatException('多余的参数：${extra.join(' ')}');
 }
 
 int _positiveInt(String option, String raw) {

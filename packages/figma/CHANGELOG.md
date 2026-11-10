@@ -1,3 +1,48 @@
+## 0.12.0
+
+### Changed
+- `tokens --json` 增加结构化数组 `colors` / `texts` / `radii` / `spacings`（含出现次数与示例），
+  脚本 / AI 不必再解析 `markdown`；`counts` 与 `markdown` 保留，v1 schema 只增字段。
+- `url --json` / `me --json` 补 `schema` 字段（`w_tools_figma.url/1` / `w_tools_figma.me/1`），
+  与其它 `--json` 输出一致；`me` 保留 `/v1/me` 的原始字段，不做删减。
+- `frames` 复用 `_nodes-index.json` 里的 FRAME 摘要，不再每次解析全部缓存；
+  `spec --node-only` 不再先渲染一遍 markdown。缓存文件名格式不变。
+- `frames` 排序在同名画板时按 id 兜底，脚本拿到的顺序稳定。
+- 取值型选项支持空格写法（`--depth 3` / `--root /tmp/x`），与 `--depth=3` 等价；
+  以前只有 `--set 20` 是特例。
+- 参数解析改用 `package:args`（新增 `args: ^2.6.0` 依赖）：flag / 选项语义、中文报错与退出码不变，
+  手写分派链换成声明式配置。唯一可见差异是边界报错文案：`--node-depth -1` 现在报
+  "未知选项：-1"（以前报"需要非负整数"，退出码都是 2）。
+
+### Breaking
+- `UsageSummary` 重命名为 `UsageResult`。按 API 快照这是"删旧名 + 加新名"：
+  `UsageSummary.month` / `UsageSummary.used` / `UsageSummary.limit` / `UsageSummary.recent` /
+  `UsageSummary.remaining` / `UsageSummary.isNearLimit` 都迁到 `UsageResult.*`。
+  旧名保留为 `@Deprecated` 的 `typedef`（`remove-in: 0.13.0`），**源码兼容**，
+  但显式写 `UsageSummary` 类型的代码会收到弃用提示。
+- 构造器与返回类型同步改名：`UsageSummary.new` → `UsageResult.new`，
+  `UsageCommand.run` 的返回类型从 `UsageSummary` 变成 `UsageResult`（签名行为不变）。
+
+### Deprecated
+- `FigmaSpecRenderer.renderMarkdown` 标废弃，改用 `renderMarkdownFromRoot`（`remove-in: 0.13.0`）。
+- `spec --no-markdown` 标弃用，改用 `--node-only`（`remove-in: 0.13.0`）；行为不变，
+  使用时 stderr 提示一行，`--help` 已标注。
+
+### Fixed
+- `diff` / `diff --if-stale` 不再写死节点缓存的文件名：`fetch nodes --depth=<n>` 或批量 ids
+  产生的缓存也能当基线（之前会误报"没有变化"，并照扣 1 次 Tier 1）。没有旧缓存时提示
+  "首次 diff"，基线来自 `--depth` 时给警告；`--json` 输出不变。
+- `spec` / `tokens` 读到损坏的 nodes 缓存（如 `--file=` 指向被截断的缓存）时返回退出码 1
+  并提示清理 / 重拉，不再落到"参数错误"（退出码 2）。
+- `budget --set` 改为读-改-写，不再抹掉 `_budget.json` 里的其它字段（存量 `month` / `used`）。
+- 不带 `--file` 时，损坏的 nodes 缓存现在报"解析失败"并给出文件路径 + `cache clean` 建议，
+  不再只报"找不到节点"；`frames` 走索引跳过坏文件时也会在 stderr 提示。
+- 多余的位置参数（`spec 1:2 9:9`、`url a b`、`fetch nodes K 1:2 extra` 等）返回退出码 2，
+  不再静默忽略多出来的参数。
+- `spec` 规格表的描边列不再出现 Python 字面量：缺 `strokeWeight` 时省略宽度，不打印 `None px`。
+- 顶层 `--help` 与 `help <command>` 合并到同一份来源，`help fetch` 不再漏掉 `fetch nodes --depth`。
+- `help init` 点明这是 Figma 取数的 init，与 `w_tools_cli` 的 init（生成 AGENTS / doctor 配置）不是一回事。
+
 ## 0.11.5
 
 ### Fixed

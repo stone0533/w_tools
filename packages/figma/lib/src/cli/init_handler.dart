@@ -7,10 +7,9 @@ import 'args.dart';
 void runInit(List<String> args) {
   final options = parseOptions(args);
   rejectUnsupported(options, {'root', 'force'});
+
+  rejectExtraPositional(options, 0); // 旧路径迁移由 run.dart 的 ensureLegacyMigrated 独占，这里不再重复搬一次。
   final store = CacheStore(Directory(options.root));
-  for (final note in store.migrateLegacy()) {
-    stderr.writeln(note);
-  }
   final result = InitCommand(store).run(force: options.force);
   stderr.writeln(
     result.tokenCreated

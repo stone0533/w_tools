@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:w_tools_figma/w_tools_figma.dart';
-import 'package:w_tools_figma/src/cli/cache_data.dart';
+import 'package:w_tools_figma/src/cli/token_source.dart';
 import 'package:w_tools_figma/src/cli/cli_io.dart';
 
 void main() {

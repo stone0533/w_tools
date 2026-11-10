@@ -128,3 +128,26 @@ dart test
 ```
 
 详见 [packages/cli/README.md](../../packages/cli/README.md)。
+
+### 工具包 CLI 约定
+
+`w_tools_cli` / `w_tools_figma` / `w_tools_device` / `w_tools_e2e` 是四个**独立发布**的工具 CLI。
+它们不共享代码（独立版本、独立安装），但共享这套约定；新增命令 / flag 时逐条对照：
+
+- **值形态**：取值选项 `--depth=3` 与 `--depth 3` 都收（`figma spec 1:2 --node-depth 0` 可用）；
+  布尔 flag 不接受 `=值`（`--json=true` 报未知选项）。
+- **退出码**：`0` 成功 / `1` 一般错误 / `2` 参数或配置 / `3` 额度或外部不可用 / `4` token 或凭证 / `5` 网络。
+  新增命令必须落在这 6 个值里，不要自造。
+- **`--json`**：输出必须带 `schema` 字段（`w_tools_<pkg>.<命令>/1`）且有对应 schema 文件；
+  新增字段不 bump，删除 / 改名才 bump。
+- **`--help`**：顶层 usage 与 `help <command>` 只能有一份来源（figma 把两者放在 `help.dart`），
+  每条命令至少有"用法 / 说明 / 退出码"。
+- **报错**：说用户实际输入的那个名字（`--no-markdown` 不要报成 `--node-only`），
+  并给下一步（如 `figma cache clean`）。
+- **位置参数**：多写的参数报错，每个命令声明自己的上限（`spec` 1 个、`fetch` 3 个）。
+- **别名**：只保留一个规范名；别名先映射到规范名，再做 allow-list 判断。
+- **同名命令不同义**：`init` 在 `w_tools_cli`（生成 AGENTS / doctor 配置）与 `w_tools_figma`
+  （建 figma-token / 缓存 / 预算）是两件事，help 与文档必须点明是哪一个。
+- **flag 弃用**：先保留行为，`--help` 标 `（已弃用，改用 X；remove-in <版本>）`，使用时在 stderr
+  打一行提示；到 remove-in 版本再删，并把旧名补进 `scripts/check_removed_api.py` 与迁移文档。
+  不要无过渡直接删，也不要长期"两个名字都对"。

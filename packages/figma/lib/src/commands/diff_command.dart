@@ -43,6 +43,9 @@ class DiffCommand {
   final bool ignoreBudget;
 
   /// [oldFile] 是旧缓存文件；没有旧缓存时直接拉新（相当于 fetch）。
+  ///
+  /// 只有「旧缓存就是待覆盖的目标文件」时才需要先快照成 `.prev`；
+  /// 调用方已经给出别的基线文件时不再多拷一份。
   Future<DiffResult> run({
     required String fileKey,
     required String nodeId,
@@ -50,7 +53,15 @@ class DiffCommand {
   }) async {
     final target = store.cacheFile(kind: 'nodes', fileKey: fileKey, ids: nodeId);
     final backup = File('${target.path}.prev');
-    if (target.existsSync()) target.copySync(backup.path);
+    File? previous = oldFile;
+    if (previous == null) {
+      if (target.existsSync()) target.copySync(backup.path);
+      previous = backup.existsSync() ? backup : null;
+    } else if (previous.absolute.path == target.absolute.path) {
+      // 基线就是马上要被覆盖的目标文件：先快照，否则会拿新内容当旧内容比。
+      previous.copySync(backup.path);
+      previous = backup;
+    }
 
     final fetched = await _fetchFresh(fileKey: fileKey, nodeId: nodeId, target: target);
     final fetchedDocument = readDocument(fetched, nodeId);
@@ -59,7 +70,6 @@ class DiffCommand {
       throw StateError('最新数据里找不到节点 $nodeId');
     }
 
-    final previous = oldFile ?? (backup.existsSync() ? backup : null);
     if (previous == null || !previous.existsSync()) {
       _cleanupBackup(backup);
       return DiffResult(

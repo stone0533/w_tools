@@ -42,7 +42,8 @@ String figmaStrokes(Map node) {
     if (s is! Map || s['visible'] == false) continue;
     var desc = figmaHex(s['color']);
     if ('${s['type'] ?? ''}' != 'SOLID') desc = '${s['type'] ?? '?'}';
-    desc += ' ${_numText(node['strokeWeight'])}px';
+    final weight = _numText(node['strokeWeight']);
+    if (weight.isNotEmpty) desc += ' ${weight}px';
     final align = node['strokeAlign'];
     if (align is String && align.isNotEmpty) desc += ' align=$align';
     final sides = node['individualStrokeWeights'];
@@ -137,8 +138,9 @@ String _fmt1(Object? v) => pyFixed(v, 1);
 
 /// 与 Python `f'{x:.1f}'` 一致：**四舍六入五成双**（round-half-even）。
 ///
-/// Dart 的 `toStringAsFixed` 是「五一律进」，在 920.25 这种值上会与 Python 差 0.1，
-/// 而我们要和 `scripts/figma_spec.py` 的输出逐字节对齐。
+/// Dart 的 `toStringAsFixed` 是「五一律进」，在 920.25 这种值上会与 Python 差 0.1；
+/// 规格表的 golden（`test/fixtures/spec-expected.md`）来自迁移期对齐好的 Python 输出，
+/// 所以这里保留同一取整规则，由 `test/spec_renderer_test.dart` 的 golden 与单测守住。
 String pyFixed(Object? value, int digits) {
   final v = (value as num?)?.toDouble() ?? 0;
   final factor = _pow10(digits);
@@ -176,4 +178,4 @@ String _pyRound(Object? v, int digits) {
 }
 
 /// 与 Python 的 f-string 对齐：缺值打印 `None`，整数不带小数点。
-String _numText(Object? v) => v == null ? 'None' : '$v';
+String _numText(Object? v) => v == null ? '' : '$v';

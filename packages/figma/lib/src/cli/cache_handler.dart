@@ -14,6 +14,8 @@ void runCache(List<String> args) {
     options,
     sub == 'clean' ? {'root', 'json', 'all', 'yes'} : {'root', 'json'},
   );
+
+  rejectExtraPositional(options, 1);
   if (sub == 'clean' && options.yes && !options.all) {
     throw const FormatException('--yes 只与 --all 一起使用');
   }

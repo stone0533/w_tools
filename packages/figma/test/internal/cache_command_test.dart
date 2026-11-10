@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:w_tools_figma/src/cache/cache_store.dart';
-import 'package:w_tools_figma/src/cli/cache_data.dart' show isNodesCacheFile;
+import 'package:w_tools_figma/src/cache/nodes_index.dart' show isNodesCacheFile;
 import 'package:w_tools_figma/src/commands/cache_command.dart';
 
 void main() {

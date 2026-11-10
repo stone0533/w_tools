@@ -1,19 +1,19 @@
 import 'dart:convert';
-
-import 'package:yaml/yaml.dart';
 import 'dart:io';
 
-import '../spec/figma_node.dart';
-import '../tokens/token_collector.dart';
-import '../tokens/token_renderer.dart';
-import 'args.dart';
+import 'package:yaml/yaml.dart';
+
 import '../cache/cache_store.dart';
-import 'cache_data.dart';
+import '../commands/tokens_command.dart';
+import '../tokens/token_collector.dart';
+import 'args.dart';
 import 'cli_io.dart';
 
 Future<void> runTokens(List<String> args) async {
   final options = parseOptions(args);
   rejectUnsupported(options, {'root', 'file', 'json', 'min', 'out', 'map'});
+  rejectExtraPositional(options, 1);
+
   final rawIds = options.positional.isEmpty ? null : options.positional.first;
   if (rawIds == null) {
     stderr.writeln('tokens 需要节点 id，例如：tokens 1862:9222,1862:9226');
@@ -25,37 +25,17 @@ Future<void> runTokens(List<String> args) async {
     throw const FormatException('--json 与 --out 不能同时使用');
   }
 
-  final sources = resolveNodeCaches(
-    CacheStore(Directory(options.root)),
-    nodeIds,
-    explicitFile: options.file,
-  );
-  final documents = <File, Map<String, dynamic>>{};
-  final collector = TokenCollector(minCount: options.min);
-  for (final id in nodeIds) {
-    final file = sources[id]!;
-    final docs = documents.putIfAbsent(file, () => readDocuments(file));
-    final document = docs[id] ?? docs.values.where((d) => findFigmaNode(d, id) != null).firstOrNull;
-    final node = document == null ? null : findFigmaNode(document, id);
-    if (node == null) {
-      throw StateError('在缓存里找不到节点：$id；先运行 `figma frames --verbose` 查看');
-    }
-    collector.collect(node);
-  }
-  final sourceFiles = sources.values.map((f) => f.path).toSet().toList();
-  final source = sourceFiles.join(', ');
-
-  final colorNames = _loadColorNames(options.mapFile);
-  final markdown = const TokenRenderer().renderMarkdown(
-    tokens: collector,
-    source: source,
+  final report = TokensCommand(CacheStore(Directory(options.root))).run(
     nodeIds: nodeIds,
-    colorNames: colorNames,
+    file: options.file,
+    min: options.min,
+    colorNames: _loadColorNames(options.mapFile),
   );
+
   if (options.out != null) {
     final out = File(options.out!);
     out.parent.createSync(recursive: true);
-    out.writeAsStringSync(markdown);
+    out.writeAsStringSync(report.markdown);
     stderr.writeln('已写入 ${options.out}');
     return;
   }
@@ -63,21 +43,26 @@ Future<void> runTokens(List<String> args) async {
     printLine(
       jsonEncode({
         'schema': 'w_tools_figma.tokens/1',
-        'source': sourceFiles.first,
-        'sources': sourceFiles,
-        'nodeIds': nodeIds,
+        'source': report.sources.first,
+        'sources': report.sources,
+        'nodeIds': report.nodeIds,
         'counts': {
-          'colors': collector.colorsSorted().length,
-          'texts': collector.textsSorted().length,
-          'radii': collector.radiiSorted().length,
-          'spacings': collector.spacingsSorted().length,
+          'colors': report.colors.length,
+          'texts': report.texts.length,
+          'radii': report.radii.length,
+          'spacings': report.spacings.length,
         },
-        'markdown': markdown,
+        // 结构化数组：脚本 / AI 不该靠解析 markdown 拿 token。
+        'colors': _colorsJson(report.colors),
+        'texts': _textsJson(report.texts),
+        'radii': _numbersJson(report.radii),
+        'spacings': _numbersJson(report.spacings),
+        'markdown': report.markdown,
       }),
     );
     return;
   }
-  printOut(markdown);
+  printOut(report.markdown);
 }
 
 Map<String, String> _loadColorNames(String? path) {
@@ -102,3 +87,26 @@ Map<String, String> _loadColorNames(String? path) {
   }
   return out;
 }
+
+List<Map<String, Object?>> _colorsJson(List<ColorUsage> items) => [
+      for (final item in items) {'value': item.value, 'count': item.count, 'samples': item.samples},
+    ];
+
+List<Map<String, Object?>> _textsJson(List<TextStyleUsage> items) => [
+      for (final item in items)
+        {
+          'family': item.family,
+          'size': item.size,
+          'weight': item.weight,
+          'lineHeight': item.lineHeight,
+          'letterSpacing': item.letterSpacing,
+          'align': item.align,
+          'color': item.color,
+          'count': item.count,
+          'samples': item.samples,
+        },
+    ];
+
+List<Map<String, Object?>> _numbersJson(List<NumberUsage> items) => [
+      for (final item in items) {'value': item.value, 'count': item.count},
+    ];

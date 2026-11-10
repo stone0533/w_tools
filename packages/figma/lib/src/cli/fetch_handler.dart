@@ -5,7 +5,7 @@ import '../cache/cache_store.dart';
 import '../client/figma_client.dart';
 import '../commands/fetch_command.dart';
 import 'args.dart';
-import 'cache_data.dart';
+import 'token_source.dart';
 import 'cli_io.dart';
 
 Future<void> runFetch(List<String> args) async {
@@ -14,6 +14,8 @@ Future<void> runFetch(List<String> args) async {
     options,
     {'root', 'json', 'depth', 'scale', 'refresh', 'no-log', 'check-stale', 'ignore-budget'},
   );
+
+  rejectExtraPositional(options, 3);
   final positional = options.positional;
   if (positional.length < 2) {
     stderr.writeln('fetch 用法：fetch <file|nodes|images> <fileKey> [ids]');
