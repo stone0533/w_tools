@@ -674,6 +674,45 @@ void main() {
     expect('${frames.stdout}', contains('1:2'));
   });
 
+  test('url / get 用 --root 时提示已弃用，但行为不变', () async {
+    final url = await run(<String>['url', '1862:9222', '--root=${root.path}']);
+    expect(url.exitCode, 0, reason: '${url.stderr}');
+    expect('${url.stderr}', contains('--root 对 url 没有作用'));
+
+    // 不带 --root 时不能提示（run() 会给每条命令追加 --root，这里单独起进程）。
+    final urlNoRoot = await Process.run(
+      Platform.resolvedExecutable,
+      <String>['run', 'bin/figma.dart', 'url', '1862:9222'],
+      workingDirectory: Directory.current.path,
+      environment: <String, String>{
+        ...Platform.environment,
+        'HOME': home.path,
+        'USERPROFILE': home.path,
+        'FIGMA_TOKEN': '',
+      },
+    );
+    expect(urlNoRoot.exitCode, 0, reason: '${urlNoRoot.stderr}');
+    expect('${urlNoRoot.stderr}', isNot(contains('没有作用')));
+
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    server.listen((request) async {
+      request.response
+        ..statusCode = 200
+        ..add(<int>[1, 2, 3]);
+      await request.response.close();
+    });
+    addTearDown(() => server.close(force: true));
+    final out = File('${root.path}/img.bin');
+    final get = await run(<String>[
+      'get',
+      'http://${server.address.address}:${server.port}/img',
+      out.path,
+      '--root=${root.path}',
+    ]);
+    expect(get.exitCode, 0, reason: '${get.stderr}');
+    expect('${get.stderr}', contains('--root 对 get 没有作用'));
+  });
+
   test('多余的位置参数报错，不再静默忽略', () async {
     final spec = await run(<String>['spec', '1:2', '9:9']);
     expect(spec.exitCode, 2, reason: '${spec.stderr}');

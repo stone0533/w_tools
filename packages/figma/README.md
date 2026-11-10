@@ -63,7 +63,7 @@ dart pub add dev:w_tools_figma
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.13.0
+  w_tools_figma: ^0.13.1
 ```
 
 开发版使用 path 依赖：
