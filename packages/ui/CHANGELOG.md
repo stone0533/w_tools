@@ -1,3 +1,13 @@
+## 8.1.0
+
+### Added
+- `WImageSlots.emptyWidget` / `emptyBuilder`：空 data 的占位 UI（与加载失败分开）。
+
+### Changed
+- `WImage` 空 data（空字符串 / 纯空白）不再按加载失败处理：默认渲染中性 empty 占位，
+  不触发 `errorWidgetBuilder`，也不回调 `onLoadStatusChanged(failed)`。需要错误态时在
+  `emptyBuilder` 里自行返回；`WImageErrorKind.empty` 仍然保留，但不再由空 data 产生。
+
 ## 8.0.1
 
 ### Fixed

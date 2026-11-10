@@ -1,3 +1,13 @@
+## 1.18.2
+
+### Fixed
+- `init` 写 `.w_tools/init.json` 时持久化 `figmaInstall`；`doctor` R8 与 `init` 共用
+  `figmaInstallLine(pubspec)` 计算。修掉 pubspec 钉了 `w_tools_figma: ^x.y.z` 的项目
+  `init --force` 后 R8 仍报漂移、而 init 认为「已是最新」的死循环。
+
+### Changed
+- `init` 写入的子包约束同步 `w_tools_ui: ^8.1.0`、`w_tools_device: ^0.3.2`。
+
 ## 1.18.1
 
 ### Changed

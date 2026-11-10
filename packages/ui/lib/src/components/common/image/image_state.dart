@@ -197,11 +197,8 @@ class _WImageState extends State<WImage> {
     Widget result;
     if (_value.isEmpty) {
       _hasFrame = false;
-      _load.fail(WImageError(widget.source.raw, WImageErrorKind.empty));
-      result = _errorSlot(
-        context,
-        _load.error ?? WImageError(widget.source.raw, WImageErrorKind.empty),
-      );
+      // 空 data 是「没有配图」，不是加载失败：不写 failed、不走错误槽。
+      result = _emptySlot(context);
     } else {
       result = switch (widget.source) {
         WNetworkImageSource source => _buildNetwork(source),
@@ -242,6 +239,16 @@ class _WImageState extends State<WImage> {
   /// 图片加载中的占位（优先业务自定义）
   Widget _placeholderFor(BuildContext context) {
     return buildImagePlaceholder(
+      context: context,
+      slots: _slotsFor(context),
+      style: style,
+      data: _value,
+    );
+  }
+
+  /// 空 data 占位：业务 builder > 固定 Widget > 中性兜底。
+  Widget _emptySlot(BuildContext context) {
+    return buildImageEmptySlot(
       context: context,
       slots: _slotsFor(context),
       style: style,

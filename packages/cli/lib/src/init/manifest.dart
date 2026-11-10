@@ -108,5 +108,6 @@ class InitManifest {
         'device': device,
         'aiPrompts': aiPrompts,
         if (generator != null) 'generator': generator,
+        if (figmaInstall != null) 'figmaInstall': figmaInstall,
       })}\n';
 }

@@ -1,3 +1,9 @@
+## 12.0.4
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^8.1.0`（`WImage` 空 data 走 empty 占位 +
+  `WImageSlots.emptyWidget` / `emptyBuilder`）。
+
 ## 12.0.3
 
 ### Changed

@@ -17,6 +17,15 @@ void printLine(String text) {
   }
 }
 
+/// 写 stderr 的说明行；不进入 `--json` 的 stdout 契约。
+void printNote(String text) {
+  try {
+    stderr.writeln(text);
+  } on FileSystemException {
+    // 下游已经关闭，不算错误
+  }
+}
+
 /// 缺少 / 非法 token；退出码 4。
 class FigmaTokenException implements Exception {
   const FigmaTokenException(this.message);

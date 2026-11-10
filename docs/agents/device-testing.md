@@ -50,6 +50,7 @@ dart run w_tools_device:device shot --real --device=<名称>
 - iOS 模拟器点击需要 cliclick + 辅助功能/屏幕录制；
 - iOS 真机点击需要 idb/XCUITest，本工具不支持；
 - Android 的 tap 坐标是截图像素，不需要标定；
+- Android 多台就绪且未指定 `--device`（或型号子串命中多台）会报错并列出设备，用 `--device=` 指定；
 - `--region`：iOS 模拟器是设备坐标（point），Android 是截图像素；
 - `verify` 默认比较整屏，动画/轮播会误判，用 `--region`；
 - `--scale` 只用于 iOS 模拟器 calibrate/tap/drag/size/wait/verify；

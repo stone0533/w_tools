@@ -19,6 +19,8 @@ WImageSlots mergeImageSlots({
     placeholderBuilder:
         own.placeholderBuilder ?? (own.placeholder == null ? theme.placeholderBuilder : null),
     placeholder: own.placeholder ?? theme.placeholder,
+    emptyBuilder: own.emptyBuilder ?? (own.emptyWidget == null ? theme.emptyBuilder : null),
+    emptyWidget: own.emptyWidget ?? theme.emptyWidget,
     errorWidgetBuilder:
         own.errorWidgetBuilder ??
         (own.errorWidget == null && inheritThemeError ? theme.errorWidgetBuilder : null),

@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^8.0.1
+  w_tools_ui: ^8.1.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -66,6 +66,10 @@ WImage.source(
 
 所有来源统一走 `WImage.source` + `WImageSource`。
 
+空 data（`''` / 纯空白）表示「没有配图」，**不是加载失败**：默认渲染中性 empty 占位，
+不会触发 `errorWidgetBuilder`，也不会回调 `onLoadStatusChanged(failed)`。需要自定义时用
+`WImageSlots(emptyWidget: ...)` 或 `emptyBuilder: ...`；要区分「空」和「加载失败」就在这里分支。
+
 > `WImage` 不会自动给尺寸：没有 `width` / `height` / `aspectRatio` 时，必须由父级
 > （`SizedBox` / `Expanded` / `AspectRatio`）约束；否则在 `Row` / `Column` / `ListView`
 > 里加载前占位是 0 尺寸，表现为空白（debug 下会打印提示）。
@@ -79,6 +83,7 @@ WImage.source(
 | 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
 | 需要加载行为 | `options: WImageLoadOptions(...)` |
 | 需要单图占位/错误/进度/重试 UI | `slots: WImageSlots(...)` |
+| 没有配图 / 空 data | `slots: WImageSlots(emptyWidget: ...)` |
 | 需要视觉样式 | `style: WImageStyle(...)` |
 | 需要 App 级默认占位/错误/进度 | `WImageTheme(slots: WImageSlots(...))` |
 | 需要预加载 | `await WImageSource.resolve(...)` + `precacheImage` |

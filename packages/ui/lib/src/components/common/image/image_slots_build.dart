@@ -15,6 +15,11 @@ Widget fallbackImagePlaceholder(BuildContext context) {
   return ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest);
 }
 
+/// 空 data 的默认占位：中性底色，和「加载失败」的 errorContainer 明确区分。
+Widget fallbackImageEmpty(BuildContext context) {
+  return ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest);
+}
+
 Widget fallbackImageError(BuildContext context) {
   final colors = Theme.of(context).colorScheme;
   return ColoredBox(
@@ -31,6 +36,21 @@ Widget buildImagePlaceholder({
 }) {
   return slots.placeholderBuilder?.call(context, data) ??
       sizedImageSlot(style, slots.placeholder ?? fallbackImagePlaceholder(context));
+}
+
+Widget buildImageEmptySlot({
+  required BuildContext context,
+  required WImageSlots slots,
+  required WImageStyle style,
+  required String data,
+}) {
+  final builder = slots.emptyBuilder;
+  if (builder != null) {
+    return builder(context, data) ??
+        sizedImageSlot(style, slots.emptyWidget ?? fallbackImageEmpty(context));
+  }
+  if (slots.emptyWidget != null) return sizedImageSlot(style, slots.emptyWidget!);
+  return sizedImageSlot(style, fallbackImageEmpty(context));
 }
 
 Widget buildImageErrorSlot({

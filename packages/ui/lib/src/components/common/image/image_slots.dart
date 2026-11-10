@@ -10,21 +10,31 @@ import 'image_types.dart';
 class WImageSlots {
   const WImageSlots({
     this.placeholderBuilder,
+    this.emptyBuilder,
     this.errorWidgetBuilder,
     this.progressBuilder,
     this.placeholder,
+    this.emptyWidget,
     this.errorWidget,
     this.showRetryButton,
     this.retryLabel,
   });
 
   final Widget? Function(BuildContext context, String data)? placeholderBuilder;
+
+  /// 空 data（`''` / 纯空白）的占位 UI；默认与加载中占位一样是中性底色。
+  ///
+  /// 「没有配图」不是错误，不会触发 [errorWidgetBuilder] / [errorWidget]。
+  final Widget? Function(BuildContext context, String data)? emptyBuilder;
   final Widget? Function(BuildContext context, String data, WImageError error)? errorWidgetBuilder;
   final Widget? Function(BuildContext context, String data, WImageProgress progress)?
   progressBuilder;
 
   /// 固定占位符（与 [placeholderBuilder] 二选一）
   final Widget? placeholder;
+
+  /// 固定空占位（与 [emptyBuilder] 二选一）
+  final Widget? emptyWidget;
 
   /// 固定错误占位（与 [errorWidgetBuilder] 二选一）
   final Widget? errorWidget;
@@ -41,6 +51,10 @@ class WImageSlots {
       'placeholder 与 placeholderBuilder 只能选一个（builder 优先）',
     );
     assert(
+      !(emptyWidget != null && emptyBuilder != null),
+      'emptyWidget 与 emptyBuilder 只能选一个（builder 优先）',
+    );
+    assert(
       !(errorWidget != null && errorWidgetBuilder != null),
       'errorWidget 与 errorWidgetBuilder 只能选一个（builder 优先）',
     );
@@ -50,9 +64,11 @@ class WImageSlots {
   bool operator ==(Object other) =>
       other is WImageSlots &&
       other.placeholderBuilder == placeholderBuilder &&
+      other.emptyBuilder == emptyBuilder &&
       other.errorWidgetBuilder == errorWidgetBuilder &&
       other.progressBuilder == progressBuilder &&
       other.placeholder == placeholder &&
+      other.emptyWidget == emptyWidget &&
       other.errorWidget == errorWidget &&
       other.showRetryButton == showRetryButton &&
       other.retryLabel == retryLabel;
@@ -60,9 +76,11 @@ class WImageSlots {
   @override
   int get hashCode => Object.hash(
     placeholderBuilder,
+    emptyBuilder,
     errorWidgetBuilder,
     progressBuilder,
     placeholder,
+    emptyWidget,
     errorWidget,
     showRetryButton,
     retryLabel,

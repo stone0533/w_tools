@@ -3,15 +3,34 @@ part of 'device_cli.dart';
 Future<String> _androidSerial(DeviceOptions o) async {
   final devices = await _deps.adb().devices();
   final query = o.deviceQuery;
-  final target = Adb.resolve(devices, query);
-  if (target == null) {
+  final matches = _androidReadyMatches(devices, query);
+  if (matches.isEmpty) {
     final suffix = query == null || query.isEmpty ? '' : '，未找到：$query';
     throw DeviceCliException(
       '没有就绪的 Android 设备（检查数据线 / 调试授权：adb devices -l）$suffix',
       3,
     );
   }
-  return target.serial;
+  if (matches.length > 1) {
+    final list = matches.map((d) => '  ${d.serial}  ${d.model}').join('\n');
+    final hint = query == null || query.isEmpty
+        ? '检测到 ${matches.length} 台就绪的 Android 设备，请用 --device=<serial|model> 指定：'
+        : '匹配到 ${matches.length} 台 Android 设备，请用 --device=<serial> 精确指定：';
+    throw DeviceCliException('$hint\n$list', 2);
+  }
+  return matches.single.serial;
+}
+
+/// 与 [Adb.resolve] 的匹配规则一致，但保留全部命中项：
+/// 先按 serial 精确匹配，再按 model 子串匹配。命中多于一台时由调用方报歧义，
+/// 避免静默把截图 / 点击打到另一台设备。
+List<AndroidDevice> _androidReadyMatches(List<AndroidDevice> devices, String? query) {
+  final ready = devices.where((d) => d.isReady);
+  if (query == null || query.isEmpty) return ready.toList();
+  final exact = ready.where((d) => d.serial == query).toList();
+  if (exact.isNotEmpty) return exact;
+  final lower = query.toLowerCase();
+  return ready.where((d) => d.model.toLowerCase().contains(lower)).toList();
 }
 
 Future<void> _androidList(DeviceOptions o) async {

@@ -3,6 +3,7 @@ import 'dart:io';
 import '../common/project_pubspec.dart';
 import '../doctor/config.dart';
 import 'features.dart';
+import 'figma_install.dart';
 import 'generated_files.dart';
 import 'manifest.dart';
 import 'targets.dart';
@@ -50,7 +51,7 @@ class ExpectedArtifacts {
         withMap: features.map,
         withFigma: manifest.figma,
         withDevice: manifest.device,
-        figmaInstall: manifest.figmaInstall,
+        figmaInstall: manifest.figmaInstall ?? figmaInstallLine(pubspec),
         toolkitEntry: config.toolkitEntry,
         banned: config.banned,
       );

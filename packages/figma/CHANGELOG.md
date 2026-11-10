@@ -1,3 +1,9 @@
+## 0.13.2
+
+### Fixed
+- `spec` / `tokens` 同 id 命中多份 nodes 缓存时优先未 `--depth` 裁剪的完整树；
+  只剩裁剪缓存时在 stderr 提示子节点可能缺失（此前会静默输出空表 / 缺 token）。
+
 ## 0.13.1
 
 ### Deprecated

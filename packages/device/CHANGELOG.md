@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2
+
+### Changed
+- Android 多台就绪且未指定 `--device`、或型号子串命中多台时，直接报错（exit 2）并列出
+  serial / model；不再静默取第一台。`--device=<serial>` 仍可精确选中。
+
+### Fixed
+- `example/tool/device_smoke.dart`：重试成功后不再残留 `ok:false` 步骤；失败文案改为
+  「期望退出码 / 实际退出码」。
+
 ## 0.3.1
 
 ### Fixed

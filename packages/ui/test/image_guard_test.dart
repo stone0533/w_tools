@@ -39,7 +39,7 @@ void main() {
   });
 
   group('WImage 空 data 防护', () {
-    testWidgets("data = '' 不构建任何 Image（否则会 Image.asset('') 报错）", (tester) async {
+    testWidgets("data = '' 不构建任何 Image，也不进入错误态", (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(body: WImage.source(source: WImageSource.parse(''))),
@@ -48,8 +48,8 @@ void main() {
 
       expect(find.byType(Image), findsNothing);
       expect(find.byType(CachedNetworkImage), findsNothing);
-      // 默认错误占位是灰底 + error 图标
-      expect(find.byIcon(Icons.error), findsOneWidget);
+      // 空 data 是「没有配图」，不是加载失败：默认走中性 empty 占位
+      expect(find.byIcon(Icons.error), findsNothing);
     });
 
     testWidgets('纯空白同样视为没有图', (tester) async {
@@ -60,49 +60,60 @@ void main() {
       );
 
       expect(find.byType(Image), findsNothing);
-      expect(find.byIcon(Icons.error), findsOneWidget);
+      expect(find.byIcon(Icons.error), findsNothing);
     });
 
-    testWidgets('错误对象携带传给 WImage 的原始 data（未 trim）', (tester) async {
-      WImageError? captured;
+    testWidgets('emptyWidget 自定义空占位', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
-            source: WImageSource.parse('   '),
-            slots: WImageSlots(
-              errorWidgetBuilder: (context, url, error) {
-                captured = error;
-                return const SizedBox.shrink();
-              },
+          home: Scaffold(
+            body: WImage.source(
+              source: WImageSource.parse(''),
+              slots: const WImageSlots(emptyWidget: Text('empty-slot')),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('empty-slot'), findsOneWidget);
+    });
+
+    testWidgets('emptyBuilder 收到规范化后的 data', (tester) async {
+      String? captured;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WImage.source(
+              source: WImageSource.parse('   '),
+              slots: WImageSlots(
+                emptyBuilder: (context, data) {
+                  captured = data;
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(captured, '');
+    });
+
+    testWidgets('空 data 不回调 failed（没有真正发起加载）', (tester) async {
+      final statuses = <WImageLoadStatus>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WImage.source(
+              source: WImageSource.parse(''),
+              onLoadStatusChanged: statuses.add,
             ),
           ),
         ),
       );
       await tester.pump();
 
-      expect(captured?.kind, WImageErrorKind.empty);
-      expect(captured?.data, '   ');
-    });
-
-    testWidgets('空数据回调的是类型化错误', (tester) async {
-      Object? captured;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: WImage.source(
-            source: WImageSource.parse(''),
-            slots: WImageSlots(
-              errorWidgetBuilder: (context, url, error) {
-                captured = error;
-                return const Text('custom-error');
-              },
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-
-      expect((captured as WImageError?)?.kind, WImageErrorKind.empty);
-      expect(find.text('custom-error'), findsOneWidget);
+      expect(statuses, isNot(contains(WImageLoadStatus.failed)));
     });
   });
 
