@@ -27,8 +27,12 @@ Future<void> main(List<String> args) async {
 }
 
 class _SmokeFailure implements Exception {
-  _SmokeFailure(this.message);
+  _SmokeFailure(this.message, {this.step});
+
   final String message;
+
+  /// 失败步骤的 JSON 记录；由最终放弃重试的那一层写入，避免重试成功还残留。
+  final Map<String, Object?>? step;
 }
 
 class _Opts {
@@ -137,9 +141,13 @@ class _Runner {
           ['verify', '$x', '$y', '--region=$region', if (o.device != null) '--device=${o.device}'],
           label,
           expectExit: expectExit,
+          recordFailure: false,
         );
-      } on _SmokeFailure {
-        if (attempt >= 1) rethrow;
+      } on _SmokeFailure catch (e) {
+        if (attempt >= 1) {
+          if (e.step != null) _steps.add(e.step!);
+          rethrow;
+        }
         await Future<void>.delayed(const Duration(milliseconds: 800));
       }
     }
@@ -149,6 +157,7 @@ class _Runner {
     List<String> args,
     String label, {
     List<int> expectExit = const [0],
+    bool recordFailure = true,
   }) async {
     final r = await Process.run('dart', ['run', 'w_tools_device:device', ...args, '--json']);
     final out =
@@ -160,13 +169,16 @@ class _Runner {
       body = {};
     }
     if (!expectExit.contains(r.exitCode)) {
-      _steps.add({
+      final step = <String, Object?>{
         'step': label,
         'ok': false,
         'exit': r.exitCode,
-        'error': body['error'] ?? '${r.stderr}'.trim()
-      });
-      throw _SmokeFailure('$label 失败（exit=${r.exitCode}）：${body['error'] ?? '${r.stderr}'.trim()}');
+        'error': body['error'] ?? '${r.stderr}'.trim(),
+      };
+      final message = '$label 失败（期望退出码 ${expectExit.join('/')}，实际 ${r.exitCode}）：'
+          '${body['error'] ?? '${r.stderr}'.trim()}';
+      if (recordFailure) _steps.add(step);
+      throw _SmokeFailure(message, step: step);
     }
     if (body['ok'] != true && r.exitCode == 0) {
       throw _SmokeFailure('$label 输出不是 ok=true');

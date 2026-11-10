@@ -7,6 +7,7 @@ import 'package:w_tools_cli/src/init/features.dart';
 import 'package:w_tools_cli/src/init/init_project.dart';
 import 'package:w_tools_cli/src/init/versions.dart';
 import 'package:w_tools_cli/src/common/version.dart';
+import 'package:w_tools_cli/src/init/expected.dart';
 import 'package:w_tools_cli/src/init/manifest.dart';
 import 'package:yaml/yaml.dart';
 
@@ -265,6 +266,35 @@ void main() {
       // 老文件（没有 generator）
       file.writeAsStringSync('{"schema":"w_tools_cli.init/1","profile":"full"}');
       expect(InitManifest.load(root)?.generator, isNull);
+    });
+
+    test('manifest 持久化 figmaInstall，doctor 回放同一段命令', () {
+      final root = makeProject();
+      const install = 'dart pub add dev:w_tools_figma:^0.13.1';
+      final features = InitFeatures.forProfile(InitProfile.minimal);
+      final manifest = InitManifest(
+        profile: 'minimal',
+        features: features.toJson(),
+        targets: const <String>['agents'],
+        lang: 'zh',
+        figma: true,
+        device: false,
+        aiPrompts: false,
+        generator: cliVersion,
+        figmaInstall: install,
+      );
+      runInit(
+        root,
+        features: features,
+        figma: true,
+        figmaInstall: install,
+        aiPrompts: false,
+        manifest: manifest,
+      );
+
+      expect(InitManifest.load(root)?.figmaInstall, install);
+      final expected = ExpectedArtifacts.render(root)!;
+      expect(expected['AGENTS.md'], contains(install));
     });
 
     test('--check 不迁移 manifest，也不把内部 manifest 当缺失', () async {

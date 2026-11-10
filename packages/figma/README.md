@@ -63,7 +63,7 @@ dart pub add dev:w_tools_figma
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.13.1
+  w_tools_figma: ^0.13.2
 ```
 
 开发版使用 path 依赖：
@@ -142,6 +142,7 @@ dart run w_tools_figma:figma fetch nodes <fileKey> 0:1 --depth=2   # 大页面�
 ```
 
 `spec` / `tokens` 只读缓存，不先 fetch 会失败。
+同 id 有多份缓存时优先未 `--depth` 裁剪的完整树；只剩裁剪缓存时会在 stderr 提示子节点可能缺失。
 
 ### 5. 读规格 / 汇总 token
 

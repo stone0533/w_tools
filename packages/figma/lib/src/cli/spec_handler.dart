@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../cache/cache_store.dart';
+import '../cache/nodes_index.dart';
 import '../commands/spec_command.dart';
 import '../spec/spec_renderer.dart';
 import 'args.dart';
@@ -36,6 +37,14 @@ Future<void> runSpec(
     nodeDepth: options.nodeDepth,
     includeMarkdown: includeMarkdown,
   );
+
+  final depthLimited = depthLimitedCachePaths(result.entries.map((entry) => entry.source));
+  if (depthLimited.isNotEmpty) {
+    printNote(
+      '# 数据源来自 --depth 裁剪缓存（${depthLimited.join(', ')}），子节点可能缺失；'
+      '用 --file= 指定完整缓存，或重新 fetch nodes',
+    );
+  }
 
   if (options.json) {
     final items = <Map<String, Object?>>[

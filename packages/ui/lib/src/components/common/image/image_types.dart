@@ -89,7 +89,7 @@ class WImageProgress {
 
 /// 图片加载错误的分类
 enum WImageErrorKind {
-  /// 数据为空
+  /// 数据为空（兼容保留：空 data 不再产生该错误，改用 `WImageSlots.emptyBuilder`）
   empty,
 
   /// 网络加载失败

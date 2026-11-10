@@ -5,6 +5,7 @@ import 'package:args/args.dart';
 import '../common/project_pubspec.dart';
 import '../doctor/config.dart';
 import 'features.dart';
+import 'figma_install.dart';
 import 'manifest.dart';
 import 'targets.dart';
 
@@ -144,7 +145,7 @@ class InitOptions {
       force: args['force'] as bool,
       forceConfig: args['force-config'] as bool,
       forceStarters: (args['force-starters'] as bool) || (args['force-ui'] as bool),
-      figmaInstall: _figmaInstallLine(pubspec),
+      figmaInstall: figmaInstallLine(pubspec),
       manifest: manifest,
     );
   }
@@ -169,13 +170,6 @@ class InitOptionsException implements Exception {
 
   @override
   String toString() => message;
-}
-
-String? _figmaInstallLine(ProjectPubspec pubspec) {
-  if (!pubspec.hasDependency('w_tools_figma')) return null;
-  final constraint = pubspec.constraint('w_tools_figma');
-  if (constraint == null) return '# w_tools_figma 已通过 path/git 安装';
-  return 'dart pub add dev:w_tools_figma:$constraint';
 }
 
 bool _resolveFigma(ProjectPubspec pubspec, DoctorConfig config) {

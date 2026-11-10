@@ -49,9 +49,10 @@ dart run w_tools_device:device foreground --android
 - iOS 模拟器点击需要 cliclick，并给宿主 App 开「辅助功能」+「屏幕录制」；
 - iOS 真机只能 list/shot，点击需要 idb/XCUITest；
 - Android 不需要 cliclick/标定，`tap` 坐标就是截图像素；
+- 多台 Android 就绪且未指定 `--device`（或型号子串命中多台）会报错并列出设备，用 `--device=` 指定；
 - `verify` 默认比较整屏，动画/轮播会误判；用 `--region` 只看会变的区域；
 - `--scale` 只用于 iOS 模拟器的 calibrate/tap/drag/size/wait/verify；
-- 退出码：`0` 成功 · `1` 参数/执行错误 · `2` verify 没变化 · `3` wait 超时；
+- 退出码：`0` 成功 · `1` verify 没变化 · `2` 参数/配置错误 · `3` 外部不可用 / 超时 · `4` 未分类执行错误；
 - 标定缓存：`~/.cache/w_tools_device/<udid>.json`。
 
 ## 可选 recipe

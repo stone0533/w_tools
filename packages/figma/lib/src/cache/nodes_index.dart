@@ -22,8 +22,9 @@ Map<String, File> resolveNodeCaches(
   final ordered = _sortCacheFiles(files);
   final result = <String, File>{};
   for (final id in nodeIds) {
-    // 与历史行为一致：同 id 命中多个缓存时取最新那个（不优先完整深度）。
-    final file = _pickNodesCache(ordered, index.entries, id, preferFullDepth: false);
+    // spec / tokens 需要完整子树：同 id 命中多个缓存时优先未裁剪的那份；
+    // 只有 --depth 缓存时才退回它，由调用方打印提示。
+    final file = _pickNodesCache(ordered, index.entries, id, preferFullDepth: true);
     if (file != null) result[id] = file;
   }
   final missing = nodeIds.where((id) => !result.containsKey(id)).toList();
@@ -70,6 +71,18 @@ int? nodesCacheDepth(String path) {
   final name = path.replaceAll('\\', '/').split('/').last;
   final match = RegExp(r'-d(\d+)\.json$').firstMatch(name);
   return match == null ? null : int.tryParse(match.group(1)!);
+}
+
+/// 从一组缓存路径里挑出被 `--depth` 裁剪过的路径（去重，保持出现顺序）。
+///
+/// `spec` / `tokens` 需要完整子树；只剩裁剪缓存时仍可用，但要显式提示，
+/// 避免把「子节点缺失」误判成设计稿为空。
+List<String> depthLimitedCachePaths(Iterable<String> paths) {
+  final seen = <String>{};
+  return <String>[
+    for (final path in paths)
+      if (nodesCacheDepth(path) != null && seen.add(path)) path,
+  ];
 }
 
 /// 从一个 document 里收集 FRAME，按 id 合并进 [out]。

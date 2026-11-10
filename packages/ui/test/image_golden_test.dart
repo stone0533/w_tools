@@ -118,7 +118,6 @@ void main() {
         WImage.source(
           source: WImageSource.parse(''),
           style: const WImageStyle(width: 64, height: 64),
-          slots: const WImageSlots(errorWidget: _errorBox),
         ),
       ),
     );

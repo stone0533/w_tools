@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:yaml/yaml.dart';
 
 import '../cache/cache_store.dart';
+import '../cache/nodes_index.dart';
 import '../commands/tokens_command.dart';
 import '../tokens/token_collector.dart';
 import 'args.dart';
@@ -31,6 +32,14 @@ Future<void> runTokens(List<String> args) async {
     min: options.min,
     colorNames: _loadColorNames(options.mapFile),
   );
+
+  final depthLimited = depthLimitedCachePaths(report.sources);
+  if (depthLimited.isNotEmpty) {
+    printNote(
+      '# 数据源来自 --depth 裁剪缓存（${depthLimited.join(', ')}），子节点可能缺失；'
+      '用 --file= 指定完整缓存，或重新 fetch nodes',
+    );
+  }
 
   if (options.out != null) {
     final out = File(options.out!);

@@ -203,6 +203,49 @@ void main() {
     expect(json['screen'], isNotNull);
   });
 
+  test('多台就绪 Android 且未指定 --device → exit 2 并列出设备', () async {
+    File('${env.root.path}/adb.txt').writeAsStringSync(
+      'List of devices attached\n'
+      'SERIAL-A device model:Pixel_5 transport_id:1\n'
+      'emulator-5554 device model:sdk_gphone64 transport_id:2\n',
+    );
+
+    final r = await env.run(['size', '--android']);
+
+    expect(r.exitCode, 2, reason: 'stdout=${r.stdout} stderr=${r.stderr}');
+    expect('${r.stderr}', contains('SERIAL-A'));
+    expect('${r.stderr}', contains('emulator-5554'));
+    expect('${r.stderr}', contains('--device'));
+  });
+
+  test('--device 型号子串命中多台 → exit 2', () async {
+    File('${env.root.path}/adb.txt').writeAsStringSync(
+      'List of devices attached\n'
+      'SERIAL-A device model:Pixel_5 transport_id:1\n'
+      'SERIAL-B device model:Pixel_5 transport_id:2\n',
+    );
+
+    final r = await env.run(['size', '--android', '--device=Pixel_5']);
+
+    expect(r.exitCode, 2, reason: 'stdout=${r.stdout} stderr=${r.stderr}');
+    expect('${r.stderr}', contains('SERIAL-A'));
+    expect('${r.stderr}', contains('SERIAL-B'));
+  });
+
+  test('多台就绪 Android 时 --device 仍可精确选中', () async {
+    File('${env.root.path}/adb.txt').writeAsStringSync(
+      'List of devices attached\n'
+      'SERIAL-A device model:Pixel_5 transport_id:1\n'
+      'emulator-5554 device model:sdk_gphone64 transport_id:2\n',
+    );
+
+    final r = await env.run(['size', '--android', '--device=SERIAL-A', '--json']);
+
+    expect(r.exitCode, 0, reason: 'stdout=${r.stdout} stderr=${r.stderr}');
+    final json = jsonDecode('${r.stdout}'.trim()) as Map<String, dynamic>;
+    expect(json['serial'], 'SERIAL-A');
+  });
+
   test('size --android 优先 Override size', () async {
     final r = await env.run(['size', '--android', '--json']);
     expect(r.exitCode, 0, reason: 'stdout=${r.stdout} stderr=${r.stderr}');
