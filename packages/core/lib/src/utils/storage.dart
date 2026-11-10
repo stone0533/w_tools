@@ -140,7 +140,7 @@ class WStorage {
     await _ensureInitialized();
     try {
       final jsonString = jsonEncode(value);
-      return _prefs!.setString(key, jsonString);
+      return await _prefs!.setString(key, jsonString);
     } catch (e) {
       WLogger.e('WStorage.setObject($key) failed: $e');
       return false;

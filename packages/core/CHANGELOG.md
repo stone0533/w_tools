@@ -1,3 +1,9 @@
+## 3.1.2
+
+### Fixed
+- `WStorage.setObject` 的 `return` 改成 `return await`：编码 / 写入失败时现在真的会走 `catch`
+  记日志并返回 `false`（之前异步错误会绕过 `try`，稳定 API 语义与注释一致）。
+
 ## 3.1.1
 
 ### Fixed

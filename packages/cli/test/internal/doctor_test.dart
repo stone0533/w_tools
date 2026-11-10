@@ -423,7 +423,7 @@ void main() {
       expect(error.message, contains('w_tools_core'));
       expect(error.fix?.kind, 'edit');
       expect(error.fix?.path, 'dependencies.w_tools_core');
-      expect(error.fix?.value, '^3.1.1');
+      expect(error.fix?.value, '^3.1.2');
     });
 
     test('文件级 ignore-file R7 生效', () {
