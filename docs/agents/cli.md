@@ -142,8 +142,7 @@ dart test
   新增字段不 bump，删除 / 改名才 bump。
 - **`--help`**：顶层 usage 与 `help <command>` 只能有一份来源（figma 把两者放在 `help.dart`），
   每条命令至少有"用法 / 说明 / 退出码"。
-- **报错**：说用户实际输入的那个名字（`--no-markdown` 不要报成 `--node-only`），
-  并给下一步（如 `figma cache clean`）。
+- **报错**：说用户实际输入的那个名字，不要把别名报成规范名，并给下一步（如 `figma cache clean`）。
 - **位置参数**：多写的参数报错，每个命令声明自己的上限（`spec` 1 个、`fetch` 3 个）。
 - **别名**：只保留一个规范名；别名先映射到规范名，再做 allow-list 判断。
 - **同名命令不同义**：`init` 在 `w_tools_cli`（生成 AGENTS / doctor 配置）与 `w_tools_figma`

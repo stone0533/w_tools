@@ -53,7 +53,7 @@ void main() {
       '--check-stale',
       '--if-stale',
       '--ignore-budget',
-      '--no-markdown',
+      '--node-only',
       '--all',
       '-y',
       '--name=n',
@@ -83,7 +83,6 @@ void main() {
     expect(all.pageFilter, 'p');
     expect(all.verbose, isTrue);
     expect(all.mapFile, 'm');
-    expect(all.seenText['node-only'], '--no-markdown');
   });
 
   test('布尔 flag 不接受 =值（与旧解析器一致）', () {
@@ -110,21 +109,11 @@ void main() {
     expect(() => parseOptions(<String>['--name']), throwsFormatException);
   });
 
-  test('--no-markdown 被拒时报用户写的名字，不报 --node-only', () {
-    final options = parseOptions(<String>['--no-markdown']);
-
-    expect(options.nodeOnly, isTrue);
-    expect(options.seen, contains('node-only'), reason: 'allow-list 仍按规范名判断');
-
+  test('--no-markdown 在 0.13.0 已删除', () {
     expect(
-      () => rejectUnsupported(options, <String>{'json'}),
-      throwsA(
-        isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          allOf(contains('--no-markdown'), isNot(contains('--node-only'))),
-        ),
-      ),
+      () => parseOptions(<String>['--no-markdown']),
+      throwsA(isA<FormatException>()
+          .having((e) => e.message, 'message', contains('未知选项：--no-markdown'))),
     );
   });
 

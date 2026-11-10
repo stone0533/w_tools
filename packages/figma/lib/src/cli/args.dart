@@ -79,7 +79,7 @@ class CliOptions {
   /// 出现过的选项（规范名，供 `rejectUnsupported` 的 allow-list 用）。
   final Set<String> seen;
 
-  /// 规范名 → 用户实际写的写法（`--no-markdown` 不会被报成 `--node-only`）。
+  /// 规范名 → 命令行上的写法（用于把不支持的选项原样报回去）。
   final Map<String, String> seenText;
 }
 
@@ -97,9 +97,6 @@ const Set<String> _valueOptions = <String>{
   '--page',
   '--map',
 };
-
-/// 别名 → 规范名：allow-list 只认规范名，报错时用用户实际写的那个。
-const Map<String, String> _aliases = <String, String>{'no-markdown': 'node-only'};
 
 ArgParser _buildParser() {
   return ArgParser()
@@ -119,7 +116,6 @@ ArgParser _buildParser() {
     ..addFlag('if-stale', negatable: false)
     ..addFlag('ignore-budget', negatable: false)
     ..addFlag('node-only', negatable: false)
-    ..addFlag('no-markdown', negatable: false)
     ..addFlag('all', negatable: false)
     ..addFlag('yes', abbr: 'y', negatable: false)
     ..addOption('name')
@@ -178,9 +174,8 @@ CliOptions parseOptions(List<String> args) {
   final seenText = <String, String>{};
   for (final name in parser.options.keys) {
     if (!results.wasParsed(name)) continue;
-    final canonical = _aliases[name] ?? name;
-    seen.add(canonical);
-    seenText.putIfAbsent(canonical, () => '--$name');
+    seen.add(name);
+    seenText.putIfAbsent(name, () => '--$name');
   }
 
   return CliOptions(
@@ -200,7 +195,7 @@ CliOptions parseOptions(List<String> args) {
     force: results['force'] as bool,
     ifStale: results['if-stale'] as bool,
     ignoreBudget: results['ignore-budget'] as bool,
-    nodeOnly: (results['node-only'] as bool) || (results['no-markdown'] as bool),
+    nodeOnly: results['node-only'] as bool,
     mapFile: results['map'] as String?,
     all: results['all'] as bool,
     yes: results['yes'] as bool,

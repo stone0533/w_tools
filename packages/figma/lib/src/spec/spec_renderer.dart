@@ -12,16 +12,6 @@ class FigmaSpecRenderer {
 
   final List<String> skipNamePrefixes;
 
-  /// [node] 是目标画板；找不到时抛 [StateError]。
-  ///
-  /// 只是 [renderMarkdownFromRoot] 的转发：传进来的节点本身就会当根再查一次 targetId。
-  ///
-  /// remove-in: 0.13.0
-  @Deprecated('Use renderMarkdownFromRoot instead')
-  String renderMarkdown(Map node, String targetId) {
-    return renderMarkdownFromRoot(node, targetId);
-  }
-
   /// 从任意根节点开始查找 [targetId]。
   String renderMarkdownFromRoot(Map root, String targetId) {
     final found = findFigmaNode(root, targetId);

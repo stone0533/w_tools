@@ -72,3 +72,7 @@
 - [map 3.0](map-3.0.md)：拆成 `w_tools_map`（模型）+ `w_tools_map_google`（实现）
 - [qr 1.1](qr-1.1.md)：`onScanned` 可选、扫描间隔 400ms
 - [qr 2.0](qr-2.0.md)：`WQrController` 归调用方、`WQrOverlayStyle`、`WQrScanResult`、删除 `WQrViewState`
+
+## figma
+
+- [0.13](figma-0.13.md)：删除 `UsageSummary` / `FigmaSpecRenderer.renderMarkdown` / `spec --no-markdown`
