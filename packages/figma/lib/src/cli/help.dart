@@ -140,6 +140,7 @@ get — 下载图片 URL
 dart run w_tools_figma:figma get <url> <outfile>
 
 下载 fetch images 返回的签名 URL；不访问 Figma API，不消耗额度。
+--root 对这个命令没有作用（已弃用，改为无操作；remove-in 0.14.0）。
 ''',
   'me': '''
 me — 校验 token
@@ -155,6 +156,7 @@ dart run w_tools_figma:figma url '<figma-url>' [--json]
 dart run w_tools_figma:figma url 1862:9222
 
 输出 fileKey 与 nodeId，不访问 Figma。
+--root 对这个命令没有作用（已弃用，改为无操作；remove-in 0.14.0）。
 ''',
   'version': '''
 version — 显示版本

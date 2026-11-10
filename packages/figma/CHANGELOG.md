@@ -1,3 +1,9 @@
+## 0.13.1
+
+### Deprecated
+- `url --root` / `get --root` 标弃用：这两个命令本来就不用 `--root`，现在使用会在 stderr 提示，
+  `--help` 已标注（`remove-in: 0.14.0`）。行为不变，仍接受该参数。
+
 ## 0.13.0
 
 ### Breaking

@@ -10,6 +10,9 @@ void runUrl(List<String> args) {
   rejectUnsupported(options, {'root', 'json'});
 
   rejectExtraPositional(options, 1);
+  if (options.seen.contains('root')) {
+    stderr.writeln('# --root 对 url 没有作用（已弃用，remove-in: 0.14.0）');
+  }
   if (options.positional.isEmpty) {
     stderr.writeln('url 需要 Figma 链接或 nodeId');
     exitCode = 2;

@@ -11,6 +11,11 @@ void main() {
     expect(usageText, contains('version'));
   });
 
+  test('help 标注 url / get 的 --root 已弃用', () {
+    expect(commandUsage['url'], contains('remove-in 0.14.0'));
+    expect(commandUsage['get'], contains('remove-in 0.14.0'));
+  });
+
   test('help 不再推荐已删除的 --no-markdown', () {
     expect(usageText, isNot(contains('no-markdown')));
     expect(commandUsage['spec'], isNot(contains('no-markdown')));
