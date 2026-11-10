@@ -23,7 +23,7 @@
 不确定用哪段时，先发这段：
 
 ```text
-我是本项目的 Dart / Flutter 开发者，但不熟悉这些提示词。
+我是本项目的 {{role}} 开发者，但不熟悉这些提示词。
 
 先只读 .w_tools/AI_PROMPTS.md 的「1. 场景选择」，选出场景编号并说明理由。
 
@@ -49,7 +49,7 @@
 多轮场景默认在同一会话进行。新开会话时，先把上一轮输出作为「交接材料」贴进来；
 没有交接材料就回到上一步重新出计划。
 
-小任务一轮就够（固定前缀照旧先贴）：B-1 / G-1 / H-1 / I-1。
+小任务一轮就够（固定前缀照旧先贴）：B-1 / G-1 / H-1 / I-1 / N-1。
 
 不要第一轮就：
 
@@ -59,14 +59,14 @@
 
 ### AI 完成后先看
 
-按文末「3. AI 完成后你必须检查」逐条核对 —— 全文只有这一份清单，不在这里另抄一份。
+按 §3「AI 完成后你必须检查」逐条核对 —— 全文只有这一份清单，不在这里另抄一份。
 
 ---
 
 ## 0. 固定前缀（每次先贴）
 
 ```text
-你是本项目的 Dart / Flutter 开发者。
+你是本项目的 {{role}} 开发者。
 
 先读 {{rulesFiles}} 和 pubspec.yaml；项目规则优先于本文件。
 如存在 `.w_tools/PROMPTS.local.md`，也先读并按其中的项目约定执行。
@@ -81,13 +81,16 @@
 3. w_tools API 以 explain 输出为准。
 4. 依赖与入口：{{dependencyNote}}
    业务代码统一从项目聚合入口（{{toolkitImport}}）取 API；
-   直接 import package:w_tools_* 只出现在 toolkit 自身；启用 UI 时还包括 lib/app/ui/、lib/app/design_system/。
-5. 只改 {{rulesFiles}} 中 `w_tools:begin/end` 标记块外的内容；块内保持生成原样。
-6. 完成后运行 {{analyze}} / {{test}}，并贴实际输出；不能运行就明确说没运行。
+   直接 import package:w_tools_* 只出现在 toolkit 自身；启用 UI 时还包括 lib/app/ui/、lib/app/design_system/；
+   测试 / 工具目录（test/、tool/、integration_test/）下的 dev-only 工具包 import 不算违规。
+5. 需要改 {{rulesFiles}} 时，只改 `w_tools:begin/end` 标记块外的内容；块内保持生成原样。
+6. 完成后运行 {{analyze}} / {{test}}，并跑：
+   dart run w_tools_cli:w_tools doctor --format=json（0 error）
+   贴实际输出；不能运行就明确说没运行。
 7. 除非场景另有规定，默认输出 = 改动文件清单 + 关键代码片段 + {{analyze}} / {{test}} 原始输出。
 ```
 
-固定前缀的例外：让 AI 选场景时只读 §1；K-1 不贴固定前缀；其余场景每次先贴。
+固定前缀的例外：让 AI 选场景时只读 §1；K-1 不贴固定前缀；L-1 不跑 {{analyze}} / {{test}}；其余场景每次先贴。
 
 ---
 
@@ -165,6 +168,8 @@
 | 只审查 AI 改动 | J-1 |
 | AI 读不到仓库 / 不能跑命令 | K-1 |
 | 被 w_tools 卡住 / 有改进建议 | L-1 |
+| 刚接入 / doctor 报错 | M-1 |
+| 只想改一处 / 单文件修复 | N-1 |
 
 ### 从现象反查
 
@@ -180,6 +185,8 @@
 | 键盘弹出字段被挡 / overflow | G-1 |
 | AI 说改了，但拿不出 analyze 输出 | J-1 或 K-1 |
 | 用 w_tools 时被卡住，想记一条反馈 | L-1 |
+| init 后 doctor 一片红 | M-1 |
+| 只想改一处，不想动别的 | N-1 |
 | 不确定用哪段 | 上面「让 AI 帮你选场景」 |
 
 ---
@@ -263,7 +270,7 @@
 
 要求：
 1. 用 WForm + 直接字段，不传字段 config；
-2. 校验用字段 validator；WForm 统一传 validatorSettings；
+2. 校验用字段 validator；需要统一校验设置时放 WForm 的 validatorSettings，不要逐字段传（默认值够用就不传）；
 3. 提交中禁用重复提交；
 4. 接口失败保留用户输入；
 5. 键盘弹出时字段可见；
@@ -334,7 +341,7 @@
 <!-- @endif -->
 
 先运行 `dart run w_tools_cli:w_tools doctor --format=json`，再用 context / list / explain 核对。
-对每个 w_tools 类型 / import 跑 `explain`；exit 1 记为“catalog 未收录或名字不对”，
+对每个 w_tools 类型 / import 跑 `explain`；exit 1 记为“catalog 未收录 / 名字不对 / 匹配到多个”，
 再结合 `{{analyze}}` 的 deprecated 警告判断是否真的要替换。
 
 输出一张表，按严重度排序：
@@ -367,8 +374,8 @@
 任务：升级 w_tools 子包。先从 pubspec.lock 按包列出 <旧版本> 和 <新版本>（各包独立），再确定本次范围。
 
 先不要改代码。先做三件事：
-1. 按包读 migration 文档
-   （w_tools 仓库 docs/migrations/ 按包和版本找，例如 ui-7.0.md / form-5.1.md；或 pub.dev 上对应包的 CHANGELOG）；
+1. 按包读升级说明：优先看该包 CHANGELOG（pub.dev / GitHub），需要细节再看 w_tools 仓库 docs/migrations/
+   （例如 ui-8.0.md / form-6.0.md；docs/ 不随包发布，不要假设本地有）；
 2. 找出项目里所有旧 API 和需要改的调用点；
 3. 列出按文件分组的改动计划。
 
@@ -382,10 +389,11 @@
 按 F-1 的计划替换旧 API；同一会话继续，新会话先贴 F-1 的计划。本次只做：<范围>。
 
 要求：
-1. 按文件逐步替换，一个文件一次；
-2. 不改变无关业务行为；
-3. 遇到计划里没覆盖的调用点，停下来先报告，不要自己猜；
-4. 每改完一批跑一次 {{analyze}}。
+1. 先按 <新版本> 改 pubspec 约束并 pub get（跨 major 时普通 pub upgrade 不会生效；可手动改约束或用 `{{pubUpgrade}} --major-versions`）；
+2. 按文件逐步替换，一个文件一次；
+3. 不改变无关业务行为；
+4. 遇到计划里没覆盖的调用点，停下来先报告，不要自己猜；
+5. 每改完一批跑一次 {{analyze}}。
 
 输出：本批改动文件 + 关键 diff + {{analyze}} 原始输出。
 ```
@@ -482,7 +490,7 @@
 4. 失败保留截图 / 日志；
 5. 优先用项目已有的集成测试方案，坐标点击只作为兜底。
 
-运行：
+运行（没有对应测试目录就先问我；需要时换成具体测试文件）：
 - {{integrationTest}}
 
 需要真机时先看项目是否装了 w_tools_device：装了按它的文档操作，没装就跳过，
@@ -498,7 +506,7 @@
 ### J-1. 只读审查
 
 ```text
-只审查本次改动，不要改代码。
+只审查本次改动，不要改代码。先以 `git diff`（或我贴的 diff）为输入；拿不到 diff 就先问我改了什么。
 
 检查：
 1. 是否用了正确入口；
@@ -541,7 +549,8 @@
 任务：把这次用 w_tools 被卡住的问题（或改进建议）记成一条反馈。
 
 先跑 `dart run w_tools_cli:w_tools feedback status --json`，看返回的 channel：
-- disabled → 停止：只告诉我「项目没开启反馈通道」和开启方法，不要提交，也不要加 --issue；
+- disabled → 停止：告诉我「项目没开启反馈通道」，并给出开启方法（在 `.w_tools_doctor.yaml` 的 `feedback:` 下写 `enabled: true`，
+  等价于 `feedback.enabled: true`），重跑 status 确认；不要提交，也不要加 --issue；
 - ledger / issue → 继续。
 
 然后：
@@ -571,6 +580,51 @@
 
 ---
 
+## M. 接入 / 体检
+
+### M-1. 按 doctor 报告修到 0 error
+
+```text
+任务：项目刚接入或升级 w_tools，按 doctor 报告修到 0 error。
+
+先跑：
+dart run w_tools_cli:w_tools doctor --format=json
+
+要求：
+1. 先报总数：每条规则（R1~R9）的 error / warn 数，以及本次先修哪几条；
+2. 一次只修一条规则，先 error 后 warn；
+3. 只改报告指到的文件，不顺手重构、不改无关格式；
+4. 报告里有 fix 的按 fix 执行；没有 fix 先读 hint，再给最小修改；
+5. 每修完一条重跑 doctor，贴修复前后的 error / warn 数；
+6. 认为某条是误报时停下来问我，不要用 ignore 糊过去；
+7. 收尾跑 {{analyze}} / {{test}}，贴原始输出。
+
+输出：doctor 前后摘要 + 每条规则改了什么 + 改动文件清单 + {{analyze}} / {{test}} 原始输出。
+```
+
+---
+
+## N. 小改动
+
+### N-1. 单文件 / 小范围修改
+
+```text
+任务：在 <范围> 做一个小改动：<任务>。
+
+先读相关文件和现有测试，用一句话说明最小改法；我确认后直接改。
+（我已经给了明确指令时，可以跳过确认。）
+
+要求：
+1. 只改 <范围>，不顺手重构、不调格式、不升依赖；
+2. 行为有变化就补对应测试；纯文案 / 改名不补；
+3. 完成后跑 {{analyze}} 和相关测试，贴原始输出；
+4. 发现范围外的问题只报告，不修。
+
+输出：diff + 一句话改动理由 + {{analyze}} / 测试原始输出。
+```
+
+---
+
 ## 2. 输出不对时，加一句话就够
 
 不要重写整段提示词，按症状追加一句：
@@ -592,7 +646,7 @@ dart run w_tools_cli:w_tools explain <组件名> --format=prompt
 ```
 
 - 退出码 0：catalog 有记录，按输出核对参数名；
-- 退出码 1：catalog 未收录或名字不对（可能拼错，也可能是未登记的公开类型），
+- 退出码 1：catalog 未收录、名字不对，或匹配到多个（会列出候选）；可能是拼错，也可能是未登记的公开类型。
   先按 explain 实际列出的名字重写，再判断是否真的不存在。
 
 同理，AI 说 analyze / test 都过了，但没贴原始输出，就当作没跑。
@@ -605,7 +659,7 @@ dart run w_tools_cli:w_tools explain <组件名> --format=prompt
 [ ] 报告里说跑过的命令，都真的跑过；没跑就写明没跑
 [ ] 声称的 analyze / test 结果是原文，不是复述
 [ ] git diff 没有大范围无关改动
-[ ] 没有手改生成物
+[ ] 没有手改生成物（toolkit / AGENTS 标记块 / .w_tools/AI_PROMPTS.md / lib/app/ui/ starter）
 [ ] loading / empty / error / ready 四态完整
 [ ] 请求有取消 / dispose 保护（如涉及）
 <!-- @if:form -->
@@ -618,8 +672,9 @@ dart run w_tools_cli:w_tools explain <组件名> --format=prompt
 [ ] 路由参数和返回结果正确
 [ ] 键盘 / SafeArea / overflow 检查
 [ ] 暗色模式和 TextScaler 不溢出
-[ ] 业务代码没有直接 import w_tools_*（toolkit / UI 暂存层除外）
+[ ] 业务代码没有直接 import w_tools_*（toolkit / UI 暂存层 / test 下的 dev-only 工具包除外）
 [ ] 没有旧 API
+[ ] doctor --format=json 0 error
 [ ] {{analyze}} 通过
 [ ] {{test}} 通过
 [ ] 新增 / 修改的组件有测试

@@ -176,8 +176,19 @@ void main() {
   test('升级 migration 路径不只写 major', () {
     for (final content in <String>[zh, en]) {
       expect(content, contains('docs/migrations/'));
-      expect(content, contains('form-5.1.md'));
+      expect(content, contains('form-6.0.md'));
       expect(content, isNot(contains('<major>')));
+    }
+  });
+
+  test('完成前检查与反馈开启方式不再和 AGENTS 漂移', () {
+    // §3 是全文唯一的人工验收清单；L-1 是消费方默认关闭的反馈通道。
+    // 这两处曾与 AGENTS 的「完成前」段落不一致，用测试钉住。
+    for (final content in <String>[zh, en]) {
+      final checklist = content.substring(content.indexOf('## 3. '));
+      expect(checklist, contains('doctor --format=json'));
+      final l1 = content.substring(content.indexOf('### L-1.'));
+      expect(l1, contains('feedback.enabled: true'));
     }
   });
 
@@ -207,6 +218,7 @@ void main() {
     expect(dartAggregate, isNot(contains('flutter analyze')));
     expect(dartAggregate, contains('package:foo/app/w/toolkit.dart'));
     expect(dartAggregate, contains('已使用聚合包'));
+    expect(dartAggregate, contains('doctor R1'));
     expect(dartAggregate, isNot(contains('{{')));
 
     final subpackage = InitTemplates.aiPrompts();
@@ -214,6 +226,19 @@ void main() {
     expect(subpackage, contains('flutter analyze'));
     expect(subpackage, contains('AGENTS.md'));
     expect(subpackage, contains('package:app/app/w/toolkit.dart'));
+  });
+
+  test('开发者称谓跟随项目类型渲染', () {
+    final flutter = InitTemplates.aiPrompts();
+    expect(flutter, contains('Dart / Flutter 开发者'));
+
+    final dart = InitTemplates.aiPrompts(isFlutter: false);
+    expect(dart, contains('Dart 开发者'));
+    expect(dart, isNot(contains('Dart / Flutter')));
+
+    final dartEn = InitTemplates.aiPrompts(lang: 'en', isFlutter: false);
+    expect(dartEn, contains('Dart developer'));
+    expect(dartEn, isNot(contains('Dart / Flutter')));
   });
 
   test('AI 读不到仓库时也不指向 AGENTS 的 device 段', () {

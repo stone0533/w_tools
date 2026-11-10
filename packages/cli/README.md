@@ -190,7 +190,7 @@ copilot  .github/copilot-instructions.md
 
 ```text
 新手先看这里（三步 / 让 AI 选场景 / 默认工作流 / 完成后先看）
-0. 固定前缀（每次先贴）
+0. 固定前缀（每次先贴；选场景 / K-1 / L-1 例外）
 填空说明（占位符表）
 一个填好的例子
 1. 场景选择（＋从现象反查）
@@ -210,11 +210,14 @@ H-1 白盒测试
 I-1 黑盒测试
 J-1 只审查改动
 K-1 AI 不能读仓库
+L-1 记一条反馈
+M-1 接入体检（按 doctor 修到 0 error）
+N-1 小改动（单文件 / 小范围）
 ```
 
 固定前缀里的规则文件、toolkit 入口、`flutter` / `dart` 命令、聚合包 / 子包说明，会按本次 `init` 的 targets、`toolkit_entry` 与 pubspec 渲染；纯 Dart 项目不会拿到 `flutter` 命令，`--targets=claude` 也不会指向 `AGENTS.md`。
 
-文末「3. AI 完成后你必须检查」是全文唯一一份自检清单；每条要求标 `✅` / `N/A（写理由）` / `❌`。
+§3「AI 完成后你必须检查」是全文唯一一份自检清单；每条要求标 `✅` / `N/A（写理由）` / `❌`。
 
 它是生成物：内容与模板不同时 `init` 不覆盖、只报 drift；`init --force` 直接覆盖且没有备份，
 项目自己的提示词请另存。
@@ -391,7 +394,7 @@ dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
 - 从消费方写本机 w_tools 检出时，stderr 会提醒工作区变脏（JSON 带 `dirtiesRepo`）
 - 开关是硬门禁：未开启时 `--issue` 拒绝（exit 2）；本机有台账时 `--issue` 才是「明确要公开提 issue」
 - `feedback.enabled` 默认 `false`；`--issue` 需要已安装 `gh`（gh 会读取 `GH_TOKEN`/`GITHUB_TOKEN`，或 `gh auth login`）
-- `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`（issue 附带 `gh.ready`）
+- `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`（issue 附带 `gh.ready`；disabled 附带 `enableHint`）
 - `--ledger --linked-issue=123` 会在条目里写「关联 issue：#123」
 - 反馈 Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`；Issue 正文不带台账的 `### [待处理]` / `状态变更` 元数据
 - `lint --stale-days=<n>`：待处理超过 n 天给警告（默认 30，0 关闭），不影响退出码

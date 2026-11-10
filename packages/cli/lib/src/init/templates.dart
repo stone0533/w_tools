@@ -78,14 +78,17 @@ class InitTemplates {
     final en = lang == 'en';
     final analyze = isFlutter ? 'flutter analyze' : 'dart analyze';
     final test = isFlutter ? 'flutter test' : 'dart test';
+    final role = isFlutter ? 'Dart / Flutter' : 'Dart';
     final pubUpgrade = isFlutter ? 'flutter pub upgrade' : 'dart pub upgrade';
     final testFramework = isFlutter ? 'flutter_test' : 'test';
-    final integrationTest = isFlutter ? 'flutter test integration_test/...' : 'dart test test/...';
+    final integrationTest = isFlutter ? 'flutter test integration_test' : 'dart test test';
     final dependencyNote = usesAggregate
         ? (en
-              ? 'This project uses the aggregate `w_tools` package for legacy compatibility; '
-                    'keep it as-is and add new dependencies as sub-packages only.'
-              : '本项目已使用聚合包 `w_tools`（旧项目兼容）；保持现状，新依赖只加具体子包。')
+              ? 'This project uses the aggregate `w_tools` package for legacy compatibility: '
+                    'init will not change your dependencies, but doctor R1 reports `w_tools` in '
+                    'dependencies as an error; migrate via F-1, and add new dependencies as sub-packages only.'
+              : '本项目已使用聚合包 `w_tools`（旧项目兼容）：init 不会替你改依赖，'
+                    '但 doctor R1 会把 dependencies 里的 `w_tools` 判 error；迁移按 F-1，新依赖只加具体子包。')
         : (en
               ? 'This project depends on specific sub-packages; '
                     'add new dependencies as sub-packages only.'
@@ -99,6 +102,7 @@ class InitTemplates {
         .replaceAll('{{version}}', cliVersion)
         .replaceAll('{{rulesFiles}}', rulesFiles)
         .replaceAll('{{toolkitImport}}', toolkitImport)
+        .replaceAll('{{role}}', role)
         .replaceAll('{{dependencyNote}}', dependencyNote)
         .replaceAll('{{analyze}}', analyze)
         .replaceAll('{{test}}', test)
