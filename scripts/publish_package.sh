@@ -119,6 +119,36 @@ if [ ! -f "$src/pubspec.yaml" ]; then
   exit 2
 fi
 
+# 发布（含 dry-run）前先探测 cache 可写性：沙箱 / 只读 HOME 下的
+# FileSystemException / exit 66 看起来像发布内容问题，提前给人话。
+# --stage-only 只生成副本，不碰 pub cache，保持可用。
+if [ -z "$stage_only" ]; then
+  if [ -z "${HOME:-}" ]; then
+    echo "✗ HOME 未设置，无法定位 pub / dart cache；请在可写 HOME 下发布" >&2
+    exit 2
+  fi
+  check_writable_cache() {
+    local dir="$1" label="$2" hint="$3"
+    if ! mkdir -p "$dir" 2>/dev/null || ! touch "$dir/.w_tools_write_test.$$" 2>/dev/null; then
+      echo "✗ 无法写 ${label}（${dir}）：这是沙箱 / 只读 HOME 的限制，不是发布内容的问题。" >&2
+      echo "  ${hint}" >&2
+      return 1
+    fi
+    rm -f "$dir/.w_tools_write_test.$$" 2>/dev/null || true
+  }
+  pub_cache="${PUB_CACHE:-$HOME/.pub-cache}"
+  if ! check_writable_cache "$pub_cache" "pub cache" \
+    "换一个可写环境；或 PUB_CACHE=$PWD/.w_tools/pub-cache（会重新下载）。"; then
+    exit 2
+  fi
+  if [ "${CI:-}" != "true" ]; then
+    if ! check_writable_cache "$HOME/.dart-tool" "dart tool cache" \
+      "换一个可写 HOME；或 export CI=true 避免 telemetry 写入。"; then
+      exit 2
+    fi
+  fi
+fi
+
 staging="$(mktemp -d "${TMPDIR:-/tmp}/w-tools-publish.XXXXXX")"
 cleanup() {
   if [ -z "$stage_only" ]; then

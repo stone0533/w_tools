@@ -28,9 +28,9 @@ done
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 
-# 多数检查脚本 import yaml；缺依赖时给一句可执行的提示，而不是让 python 抛堆栈。
-if ! python3 -c 'import yaml' >/dev/null 2>&1; then
-  echo "缺少 PyYAML：python3 -m pip install pyyaml（CI 的 venv 会自动安装）" >&2
+# 多数检查脚本 import yaml；缺依赖时由共用守卫给两条可执行的修法。
+source "$root/scripts/_python.sh"
+if ! require_python_yaml; then
   exit 2
 fi
 
