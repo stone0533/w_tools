@@ -142,6 +142,7 @@ if [ "$branch" = "main" ]; then
 fi
 
 command -v gh >/dev/null 2>&1 || die "需要 gh（GitHub CLI）。安装：https://cli.github.com/"
+source "$root/scripts/_gh.sh"
 [ -f scripts/check_pr_ready.sh ] || die "缺少 scripts/check_pr_ready.sh（仓库不完整？）"
 
 # 两种模式：
@@ -160,12 +161,14 @@ fi
 
 if [ "$sync" -eq 0 ]; then
   # merge-only：gh 会按当前分支找 PR；先确认状态，避免把「没开 PR」误当成合并失败
+  pr_number="<current-pr>"
   if [ "$dry_run" -eq 0 ]; then
     state="$(gh pr view --json state --jq .state 2>/dev/null || true)"
     [ "$state" = "OPEN" ] || die "当前分支没有 OPEN PR（状态：${state:-无}）；先用 --type … 开 PR"
+    pr_number="$(gh pr view --json number -q .number)"
   fi
-  echo "== 等 checks（gh pr checks --watch）"
-  run gh pr checks --watch
+  echo "== 等 checks 注册 + watch"
+  run gh_wait_checks "$pr_number"
   echo "== Merge commit + 删远端分支"
   run gh pr merge --merge --delete-branch
   if [ "$dry_run" -eq 0 ]; then
@@ -350,8 +353,8 @@ fi
 
 # ---------- 5. 可选：等 checks + 合并 ----------
 if [ "$merge_after" -eq 1 ]; then
-  echo "== 等 checks（gh pr checks --watch）"
-  run gh pr checks "$pr_number" --watch
+  echo "== 等 checks 注册 + watch"
+  run gh_wait_checks "$pr_number"
   echo "== Merge commit + 删远端分支"
   run gh pr merge "$pr_number" --merge --delete-branch
   echo "✓ 已合并。下一步（本地收尾，手动执行）："
@@ -360,6 +363,4 @@ if [ "$merge_after" -eq 1 ]; then
 fi
 
 echo "下一步："
-echo "  gh pr checks --watch          # 等 Required checks"
-echo "  gh pr merge --merge --delete-branch"
-echo "  bash scripts/ship.sh --merge  # 或者用脚本一次做完（已开 PR 时不会重复创建）"
+echo "  bash scripts/ship.sh --merge  # 等 checks 注册后 watch 并合并（已开 PR 时不会重复创建）"

@@ -93,6 +93,22 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 
 ---
 
+## 人工验证配方
+
+### `ship.sh` 等 checks 注册
+
+`scripts/_gh.sh` 的 `gh_wait_checks <pr>` 先轮询
+`gh pr view <pr> --json statusCheckRollup` 非空，再 `gh pr checks <pr> --watch`；
+超时仍为空会明确拒绝自动合并。`ship.sh` 的 merge-only 与主路径都改用它。
+
+`scripts/tests/test_gh_wait_checks.py` 用假 `gh` 覆盖「先返回 0、再返回 1 条」和
+「一直返回 0」两种情况；手工复现时把假 `gh` 放进临时 PATH，再跑
+`bash -c 'source scripts/_gh.sh; gh_wait_checks 42 10'`。
+
+`_gh.sh` 与 `_python.sh` 一样以下划线开头，不进入 `check_gate_coverage` 的脚本清单。
+
+---
+
 ## 脚本分类
 
 ### 总门禁
