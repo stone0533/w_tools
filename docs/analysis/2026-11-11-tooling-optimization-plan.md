@@ -19,8 +19,8 @@
 
 | 阶段 | 项 | 状态 | 落点 / 验收 |
 | --- | --- | --- | --- |
-| 1 | 1.1 命令契约测试 | 未做 | `packages/cli/test/internal/command_contract_test.dart`；删一行表格应红 |
-| 1 | 1.2 脚本去硬编码命令名 | 未做 | `check_docs_facts.py` / `check_prompt_docs.py` 从 `bin/` 派生 |
+| 1 | 1.1 命令契约测试 | 完成（PR #134） | `packages/cli/test/internal/command_contract_test.dart`；删一行表格应红 |
+| 1 | 1.2 脚本去硬编码命令名 | 完成（PR #134） | `check_docs_facts.py` / `check_prompt_docs.py` 从 `bin/` 派生 |
 | 1 | 1.3（可选）`command_registry.dart` | 未做 | `lib/` 改动，随下个 CLI 版本发 |
 | 2 | 2.1 `ship.sh` 等 checks 竞态 | 未做（#119–#126 未复现，低优先级） | 两处 `gh pr checks --watch` 前先等 checks 注册 |
 | 2 | 2.2 自动建分支 | 未做 | main 上给 `-m` 就建 `feat|fix|chore/<slug>` |
@@ -184,7 +184,7 @@ exit code 容易被误读。输出里区分「计划可用 / 发布阻断」，e
 bash scripts/preflight.sh --package=cli   # 确认基线绿
 ```
 
-然后从子票 A（#127，1.1 + 1.2）开始：只加测试 / 改脚本，不动 `lib/`，不用发版。
+子票 A（#127，1.1 + 1.2）已由 PR #134 完成；下一张从子票 B（#128，环境前提）开始。
 
 ## 维护规则
 
