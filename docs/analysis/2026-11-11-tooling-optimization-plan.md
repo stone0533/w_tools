@@ -1,4 +1,4 @@
-> 分析记录：提案，部分已落地；状态以「进度」表为准。关联 issue [#116](https://github.com/stone0533/w_tools/issues/116)。
+> 分析记录：已落地；CLI 1.20.0 发布待走。状态以「进度」表为准。关联 issue [#116](https://github.com/stone0533/w_tools/issues/116)。
 
 # 工具链优化计划（2026-11-11）
 
@@ -29,10 +29,10 @@
 | 3 | 3.1 环境前提文档 | 完成（PR #135） | `scripts/README.md` 新增「环境前提」节（含 FVM / Flutter cache） |
 | 3 | 3.2 `scripts/_python.sh` | 完成（PR #135） | `preflight` / `check_docs` 共用 PyYAML 守卫 |
 | 3 | 3.3 发布可写性预检 | 完成（PR #135） | `publish_package.sh` 提前探测 `~/.pub-cache` / `~/.dart-tool` |
-| 4 | 4.1 PR 模板 J-4 工具包写法 | 未做 | `.github/pull_request_template.md` |
-| 4 | 4.2 `documentation-map` 索引说明 | 未做 | `docs/documentation-map.md` 的 analysis 行 |
+| 4 | 4.1 PR 模板 J-4 工具包写法 | 完成（PR #139） | `.github/PULL_REQUEST_TEMPLATE.md` |
+| 4 | 4.2 `documentation-map` 索引说明 | 完成（PR #139） | `docs/documentation-map.md` 的 analysis 行 |
 | 4 | 4.3 `context` 命令分行 | 完成（PR #138） | `context_project.dart` 的 `toPrompt` |
-| 4 | 4.4 `--format` 约定 | 未做 | `docs/agents/cli.md` 工具包约定 |
+| 4 | 4.4 `--format` 约定 | 完成（PR #139） | `docs/agents/cli.md` 工具包约定 |
 | 5 | 5.1 `release_wave plan` 语义 | 完成（基线 00904bf1 已有 plan 0 / `--check` 1、blockers / warnings；不建票） | 区分「计划可用 / 发布阻断」 |
 
 子票（#116 为父票）：A=#127 1.1+1.2；B=#128 3.1+3.2+3.3；C=#129 2.1+2.4；
@@ -184,7 +184,7 @@ exit code 容易被误读。输出里区分「计划可用 / 发布阻断」，e
 bash scripts/preflight.sh --package=cli   # 确认基线绿
 ```
 
-子票 A（#127）、B（#128）、C（#129）、D（#131）、E（#132）已分别由 PR #134 / #135 / #136 / #137 / #138 完成；下一张从子票 F（#130，J-4 工具包写法 / documentation-map / --format）开始。
+子票 A（#127）、B（#128）、C（#129）、D（#131）、E（#132）、F（#130）已分别由 PR #134 / #135 / #136 / #137 / #138 / #139 完成；计划全部落地，CLI 1.20.0 发布按 K-2 / K-3 / K-4 走独立窗口。
 
 ## 维护规则
 
