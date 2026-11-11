@@ -26,6 +26,8 @@ class ShipAutoBranchTest(unittest.TestCase):
         gh.write_text('#!/usr/bin/env bash\nexit 0\n')
         gh.chmod(0o755)
         subprocess.run(['git', 'init', '-q'], cwd=temp, check=True)
+        # 把复制进来的脚本先提交，否则 ship.sh 的 git add -A 会把它们当成本次改动。
+        subprocess.run(['git', 'add', '.'], cwd=temp, check=True)
         subprocess.run(
             [
                 'git',
@@ -34,7 +36,6 @@ class ShipAutoBranchTest(unittest.TestCase):
                 '-c',
                 'user.email=test@example.com',
                 'commit',
-                '--allow-empty',
                 '-m',
                 'init',
             ],
@@ -46,6 +47,10 @@ class ShipAutoBranchTest(unittest.TestCase):
         subprocess.run(['git', 'branch', '-m', 'main'], cwd=temp, check=True)
         env = dict(os.environ)
         env['PATH'] = f'{bin_dir}:{env["PATH"]}'
+        env['GIT_AUTHOR_NAME'] = 'test'
+        env['GIT_AUTHOR_EMAIL'] = 'test@example.com'
+        env['GIT_COMMITTER_NAME'] = 'test'
+        env['GIT_COMMITTER_EMAIL'] = 'test@example.com'
         return temp, env
 
     def _run(self, repo: pathlib.Path, env: dict[str, str], *args: str):
