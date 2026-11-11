@@ -215,13 +215,10 @@ def dart_file_errors(text: str, name: str) -> list[str]:
 
 
 def _cli_flags(subcommand: str) -> set[str] | None:
-    paths = [CLI_BIN / f'{subcommand}.dart']
-    if subcommand in {'feedback', 'upgrade'}:
-        # 这两个命令的 parser 已下沉到 lib/src/<sub>/<sub>_command.dart，
-        # bin/<sub>.dart 只剩 dispatch；两处都扫，flag 才不会被误判为未知。
-        paths.append(
-            CLI_BIN.parent / 'lib' / 'src' / subcommand / f'{subcommand}_command.dart'
-        )
+    # parser 可能在 bin/<sub>.dart，也可能下沉到 lib/src/<sub>/*.dart。
+    # 全部扫，新增命令 / 下沉 parser 时不用再在脚本里维护路径特例。
+    subdir = CLI_BIN.parent / 'lib' / 'src' / subcommand
+    paths = [CLI_BIN / f'{subcommand}.dart', *sorted(subdir.glob('*.dart'))]
     present = [path for path in paths if path.is_file()]
     if not present:
         return None
