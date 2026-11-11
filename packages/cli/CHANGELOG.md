@@ -1,3 +1,15 @@
+## 1.19.0
+
+### Added
+- 新增 `upgrade`：把 `pubspec.yaml` 里的 `w_tools` / `w_tools_*` 抬到 hosted 上的最新版本。
+  - `--check` 只读（有落后 / lock 落后 exit 1，可进 CI）；`--dry-run` 打印 diff 不写；
+    默认写入后跑 `pub get`，失败还原 pubspec 并 exit 2。
+  - 只动 `w_tools*`，其它依赖（含刻意钉死的版本）与 pubspec 注释一律不动；跨 major 默认只报告，
+    `--major` / `--only=<包>` 才写；0.x 包跨 minor 按跨 major 处理。
+  - 查最新走 `PUB_HOSTED_URL`（默认 pub.dev，认 `HTTP(S)_PROXY`），输出里带实际源。
+  - `context` 的 `commands` 加 `upgrade` / `upgradeCheck`，AI 能直接发现这条入口。
+- 消费方 AGENTS 片段加一条「升级依赖」路由；`AI_PROMPTS.md` 的 F-2 第 1 步改用 `upgrade`。
+
 ## 1.18.2
 
 ### Fixed

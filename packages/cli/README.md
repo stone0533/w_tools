@@ -45,6 +45,7 @@ doctor → 0 error / 0 warning 才算通过
 | 找现成组件 | `list` |
 | 看某个组件怎么用 | `explain` |
 | 给 AI 项目上下文 | `context --format=prompt` |
+| 把 w_tools 依赖抬到 pub 最新 | `upgrade`；只看不写用 `upgrade --check` |
 | 用 w_tools 撞到问题，要记一条反馈 | `feedback submit --package=<包>` |
 | 只检查不写文件 | `init --check` |
 | 检查模板是否过期 | `init --check-drift` |
@@ -482,11 +483,22 @@ R8 按**标记块内容**比对（版本号本身不算漂移），块内有内�
 
 ## 升级与重新生成
 
-CLI 模板会随版本变化。升级后执行：
+`w_tools` 系依赖用 `upgrade` 抬版本。它只动 `w_tools` / `w_tools_*`，
+其它依赖（含刻意钉死的版本）与 pubspec 注释都不碰：
 
 ```bash
-dart pub upgrade w_tools_cli
+dart run w_tools_cli:w_tools upgrade --check    # 只读：谁落后、lock 是否落后（exit 1）
+dart run w_tools_cli:w_tools upgrade --dry-run  # 打印 diff，不写文件
+dart run w_tools_cli:w_tools upgrade            # 写入 pubspec + pub get（失败还原）
+dart run w_tools_cli:w_tools upgrade --major --only=w_tools_ui   # 跨 major 只放开一个包
+```
 
+默认只抬「同 caret 窗口」的包；跨 major（0.x 包跨 minor 也算）只报告，要显式加 `--major`。
+查最新走 `PUB_HOSTED_URL`（默认 `pub.dev`），输出里的「源」就是实际用的地址。
+
+`upgrade` 之后 CLI 模板也可能变，用**新版本**刷新生成物：
+
+```bash
 dart run w_tools_cli:w_tools init --check-drift
 # 有 drift 时再覆盖生成物
 dart run w_tools_cli:w_tools init --force
@@ -519,6 +531,7 @@ doctor R8 按「标记块内容」比对生成物：CLI 升版本但模板没变
 | `doctor` | 无 error（`--strict` 时也无 warning） | 有失败 | 参数 / 项目错误；`--write-config` 冲突 |
 | `list` / `explain` | 找到 | 未找到 | 参数错误 |
 | `context` | 成功 | — | 参数 / 项目错误 |
+| `upgrade` | 成功（含“已是最新”） | `--check` 有落后（`--strict` 含跨 major / SDK 不兼容） | 参数 / 项目错误；workspace 项目；`pub get` 失败（已还原） |
 | `feedback path` / `lint` | 成功 / 无问题 / 没有可校验内容 | lint 有问题 | 参数 / 子命令错误 |
 | `feedback submit` | 写入台账 / 创建 Issue | Issue 提交失败 | 参数 / 字段缺失 / 开关未开启 / 无 `--ledger` 目标 |
 | `feedback search` | 找到 | 未找到 | 参数错误 |
@@ -526,6 +539,7 @@ doctor R8 按「标记块内容」比对生成物：CLI 升版本但模板没变
 `feedback submit` 没有可用通道时退出 `4`（什么都没写，跳过不等于成功）；
 `feedback submit --issue` 在 `gh` 未安装 / 未登录时退出 `3`（外部不可用），不再抛栈。
 `feedback search --gh` 在 `gh` 未安装 / 未登录时同样退出 `3`，本地结果不返回。
+`upgrade` 的 hosted 源不可达 / 跑不了 pub 退出 `3`；`pub get` 解析失败退出 `2`（pubspec 已还原）。
 
 ---
 

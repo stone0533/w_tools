@@ -143,6 +143,8 @@ class ProjectSnapshot {
       'list': 'dart run w_tools_cli:w_tools list <关键词> --format=prompt',
       'explain': 'dart run w_tools_cli:w_tools explain <组件名> --format=prompt',
       'initCheck': 'dart run w_tools_cli:w_tools init --check-drift',
+      'upgradeCheck': 'dart run w_tools_cli:w_tools upgrade --check',
+      'upgrade': 'dart run w_tools_cli:w_tools upgrade',
       'feedbackStatus': 'dart run w_tools_cli:w_tools feedback status',
       'feedbackSubmit':
           'dart run w_tools_cli:w_tools feedback submit --package=<包> --title=<标题> --stdin',

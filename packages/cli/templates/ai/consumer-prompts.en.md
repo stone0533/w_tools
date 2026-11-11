@@ -394,7 +394,7 @@ Wait for my confirmation before F-2.
 Replace outdated APIs following the F-1 plan; stay in the same conversation, or paste the F-1 plan first in a new chat. This round only covers: <scope>.
 
 Requirements:
-1. bump the pubspec constraint to <newversion> and run pub get first (a plain pub upgrade will not cross a major; edit the constraint by hand or use `{{pubUpgrade}} --major-versions`);
+1. run `dart run w_tools_cli:w_tools upgrade` first (it bumps w_tools packages and runs pub get; add `--major` or `--only=<package>` to cross a major — a plain `{{pubUpgrade}}` never will);
 2. go file by file, one file at a time;
 3. do not change unrelated behavior;
 4. stop and report any call site the plan missed; do not guess;

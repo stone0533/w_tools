@@ -396,7 +396,7 @@ const String aiPrompts = r'''
 按 F-1 的计划替换旧 API；同一会话继续，新会话先贴 F-1 的计划。本次只做：<范围>。
 
 要求：
-1. 先按 <新版本> 改 pubspec 约束并 pub get（跨 major 时普通 pub upgrade 不会生效；可手动改约束或用 `{{pubUpgrade}} --major-versions`）；
+1. 先跑 `dart run w_tools_cli:w_tools upgrade`（只抬 w_tools 系包；跨 major 加 `--major` 或 `--only=<包>`，普通 `{{pubUpgrade}}` 不会跨 major），它会改 pubspec 并 pub get；
 2. 按文件逐步替换，一个文件一次；
 3. 不改变无关业务行为；
 4. 遇到计划里没覆盖的调用点，停下来先报告，不要自己猜；
@@ -1110,7 +1110,7 @@ Wait for my confirmation before F-2.
 Replace outdated APIs following the F-1 plan; stay in the same conversation, or paste the F-1 plan first in a new chat. This round only covers: <scope>.
 
 Requirements:
-1. bump the pubspec constraint to <newversion> and run pub get first (a plain pub upgrade will not cross a major; edit the constraint by hand or use `{{pubUpgrade}} --major-versions`);
+1. run `dart run w_tools_cli:w_tools upgrade` first (it bumps w_tools packages and runs pub get; add `--major` or `--only=<package>` to cross a major — a plain `{{pubUpgrade}}` never will);
 2. go file by file, one file at a time;
 3. do not change unrelated behavior;
 4. stop and report any call site the plan missed; do not guess;
@@ -1564,6 +1564,8 @@ const String agentsBase = r'''
 - **import**：业务代码只 import 聚合入口；例外：{{importExceptions}}（R2）。
 - **生成物不要手改**：`{{toolkitEntry}}`、本标记块、`{{projectUiDir}}/`；刷新用 `init --force`，
   UI 脚手架用 `init --force-starters`。
+- **升级依赖**：`dart run w_tools_cli:w_tools upgrade --check` 看落后哪几个包；写入用 `upgrade`
+  （只动 `w_tools*`，跨 major 需 `--major`）。
 - **新组件先暂存**：`{{designSystemDir}}/` + 文件头 `// STAGED: 待上移到 w_tools_ui`；
   默认值要能直接用、至少有测试、API 参数优先 ≤ 3 个；是否进包由维护者决定，进包时由包维护者补 CHANGELOG（R4 / R5）。
 - **禁用 API** 见 `.w_tools_doctor.yaml` 的 `banned`（R9）；未登记的旧写法仍需人工评审。
@@ -1673,6 +1675,8 @@ const String agentsBaseEn = r'''
 - **Imports**: business code imports the toolkit entry only; exceptions: {{importExceptions}} (R2).
 - **Do not hand-edit generated files**: `{{toolkitEntry}}`, this block, `{{projectUiDir}}/`;
   refresh with `init --force` (`init --force-starters` for UI starters).
+- **Upgrading dependencies**: `dart run w_tools_cli:w_tools upgrade --check` lists what is behind;
+  write with `upgrade` (touches `w_tools*` only; cross-major needs `--major`).
 - **Stage new components first**: `{{designSystemDir}}/` + header `// STAGED: move to w_tools_ui`;
   working defaults, at least one test, prefer ≤ 3 API parameters; promotion is the maintainers' call,
   and package maintainers add the CHANGELOG entry (R4 / R5).

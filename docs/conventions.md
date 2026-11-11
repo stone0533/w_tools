@@ -81,6 +81,7 @@ dart pub add dev:w_tools_cli
 dart run w_tools_cli:w_tools doctor            # 本项目是否遵守接入约定
 dart run w_tools_cli:w_tools init --check      # 只检查缺失、不写文件（CI 用；内容不同只提示）
 dart run w_tools_cli:w_tools init --check-drift # 连「模板已过期」也判失败（CI 想追踪模板更新时）
+dart run w_tools_cli:w_tools upgrade --check   # w_tools 系依赖是否落后 pub 最新（有落后 exit 1）
 ```
 
 doctor 检查项：

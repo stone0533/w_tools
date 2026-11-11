@@ -18,6 +18,8 @@
 - **Imports**: business code imports the toolkit entry only; exceptions: {{importExceptions}} (R2).
 - **Do not hand-edit generated files**: `{{toolkitEntry}}`, this block, `{{projectUiDir}}/`;
   refresh with `init --force` (`init --force-starters` for UI starters).
+- **Upgrading dependencies**: `dart run w_tools_cli:w_tools upgrade --check` lists what is behind;
+  write with `upgrade` (touches `w_tools*` only; cross-major needs `--major`).
 - **Stage new components first**: `{{designSystemDir}}/` + header `// STAGED: move to w_tools_ui`;
   working defaults, at least one test, prefer ≤ 3 API parameters; promotion is the maintainers' call,
   and package maintainers add the CHANGELOG entry (R4 / R5).

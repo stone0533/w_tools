@@ -126,7 +126,7 @@ pub 只认 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 环境变量，不读 macOS
 ## 工具（本仓库维护）
 
 CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
-入口 `packages/cli/bin/w_tools.dart`（统一 dispatcher）与 `packages/cli/bin/{init,doctor,context,list,explain,feedback}.dart`（兼容），
+入口 `packages/cli/bin/w_tools.dart`（统一 dispatcher）与 `packages/cli/bin/{init,doctor,context,list,explain,upgrade,feedback}.dart`（兼容），
 使用规则见 [`docs/agents/cli.md`](docs/agents/cli.md)，
 实现分别在 `packages/cli/lib/src/init/`、`lib/src/doctor/`、`lib/src/context/`、`lib/src/catalog/`。
 

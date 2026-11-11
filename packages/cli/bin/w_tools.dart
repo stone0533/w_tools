@@ -11,6 +11,8 @@ import 'feedback.dart' as feedback;
 import 'init.dart' as init;
 import 'list.dart' as list;
 
+import 'package:w_tools_cli/src/upgrade/upgrade_command.dart' as upgrade;
+
 const _usage = '''
 w_tools_cli —— w_tools 项目工具
 
@@ -23,12 +25,13 @@ w_tools_cli —— w_tools 项目工具
   context    输出项目事实（AI / CI）
   list       查组件目录
   explain    解释一个组件
+  upgrade    把 w_tools 系依赖抬到 pub 最新
   feedback   提交 w_tools 反馈
 
 兼容入口仍保留：dart run w_tools_cli:init / doctor / ...
 ''';
 
-void main(List<String> argv) {
+Future<void> main(List<String> argv) async {
   if (argv.isEmpty || argv.first == '--help' || argv.first == '-h') {
     stdout.write(_usage);
     exitCode = argv.isEmpty ? 2 : 0;
@@ -51,6 +54,8 @@ void main(List<String> argv) {
       exitCode = list.run(rest).exitCode;
     case 'explain':
       exitCode = explain.run(rest).exitCode;
+    case 'upgrade':
+      exitCode = (await upgrade.run(rest)).exitCode;
     case 'feedback':
       exitCode = feedback.run(rest).exitCode;
     default:
