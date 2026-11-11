@@ -383,7 +383,7 @@ dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
 |---|---|
 | `submit` | 默认本地台账 → Issue → 跳过（exit 4）；`--ledger` / `--issue` 显式覆盖 |
 | `search` | 本地台账查重（本机无台账会提示加 `--gh`）；`--gh` 同时搜 GitHub issues |
-| `status` | 查看通道（ledger / issue / disabled）+ gh 可用性 |
+| `status` | 查看通道（ledger / issue / disabled）+ gh 可用性 + 公开 Issue 日额度 |
 | `path` | 返回真实可写的台账路径；本机没有 w_tools 仓库时明确说未启用 |
 | `lint` | 字段齐全 / 状态合法 / 已闭环带版本号 / 已确认链 issue / 索引与文件一致 / 待处理 stale 警告 |
 
@@ -391,11 +391,13 @@ dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
 - 仓库 clone 在别处（依赖解析不到）时：`feedback.ledger: ../w_tools`（相对项目根或绝对路径；无效时提示一次并忽略）
 - pub cache 里的 git 依赖不算本机库（不往缓存写台账）
 - 公开 Issue 每个项目每天最多 5 条（`feedback.max_issues_per_day`，0 = 不限；本地台账不占额度），
-  额度在 `.w_tools/feedback_budget.json`，耗尽 exit 2
+  额度在 `.w_tools/feedback_budget.json`，耗尽 exit 2；`feedback status` 会显示
+  date / used / max / remaining 与预算文件路径
 - 从消费方写本机 w_tools 检出时，stderr 会提醒工作区变脏（JSON 带 `dirtiesRepo`）
 - 开关是硬门禁：未开启时 `--issue` 拒绝（exit 2）；本机有台账时 `--issue` 才是「明确要公开提 issue」
 - `feedback.enabled` 默认 `false`；`--issue` 需要已安装 `gh`（gh 会读取 `GH_TOKEN`/`GITHUB_TOKEN`，或 `gh auth login`）
-- `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`（issue 附带 `gh.ready`；disabled 附带 `enableHint`）
+- `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`（issue 附带 `gh.ready`；disabled 附带 `enableHint`），
+  以及 `budget`（date / used / max / remaining / file）
 - `--ledger --linked-issue=123` 会在条目里写「关联 issue：#123」
 - 反馈 Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`；Issue 正文不带台账的 `### [待处理]` / `状态变更` 元数据
 - `lint --stale-days=<n>`：待处理超过 n 天给警告（默认 30，0 关闭），不影响退出码

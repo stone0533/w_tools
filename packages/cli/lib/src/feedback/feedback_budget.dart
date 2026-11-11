@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
 
@@ -24,12 +25,30 @@ class FeedbackBudget {
 
   DateTime get _today => now ?? DateTime.now();
 
+  /// 今天对应的日期（YYYY-MM-DD）。
+  String get date => _day(_today);
+
   /// 今天已经用了多少条（日期不同 / 文件损坏都按 0 算）。
   int usedToday() {
     final state = _read();
     if (state == null) return 0;
     return state.date == _day(_today) ? state.count : 0;
   }
+
+  /// 剩余条数；[max] <= 0 表示不限，返回 null。
+  int? remainingFor(int max) {
+    if (max <= 0) return null;
+    return math.max(0, max - usedToday());
+  }
+
+  /// 给 `feedback status --json` / 错误提示使用的结构化预算。
+  Map<String, Object?> toJson({required int max}) => <String, Object?>{
+    'date': date,
+    'used': usedToday(),
+    'max': max,
+    'remaining': remainingFor(max),
+    'file': file.path,
+  };
 
   /// [max] <= 0 表示不限。
   bool allows(int max) => max <= 0 || usedToday() < max;

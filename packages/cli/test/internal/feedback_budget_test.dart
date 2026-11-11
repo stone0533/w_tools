@@ -22,6 +22,26 @@ void main() {
     expect(budget.file.existsSync(), isTrue);
   });
 
+  test('date / remaining / toJson 给 status 和错误提示使用', () {
+    final root = _tmp('wt_budget_status_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final day = DateTime(2026, 11, 9, 10);
+    final budget = FeedbackBudget(FeedbackBudget.fileFor(root), now: day);
+    budget.record();
+    budget.record();
+
+    expect(budget.date, '2026-11-09');
+    expect(budget.remainingFor(5), 3);
+    expect(budget.remainingFor(0), isNull, reason: 'max=0 表示不限');
+    expect(budget.toJson(max: 5), {
+      'date': '2026-11-09',
+      'used': 2,
+      'max': 5,
+      'remaining': 3,
+      'file': budget.file.path,
+    });
+  });
+
   test('额度用满后拒绝；max=0 表示不限', () {
     final root = _tmp('wt_budget_max_');
     addTearDown(() => root.deleteSync(recursive: true));

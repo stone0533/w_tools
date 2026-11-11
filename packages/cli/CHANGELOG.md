@@ -1,3 +1,10 @@
+## 1.20.2
+
+### Changed
+- `feedback status`（text / json）新增公开 Issue 日额度：date / used / max / remaining / 预算文件路径。
+- `feedback submit` 额度耗尽的错误补上「已用 / 上限 / 剩余」、`max_issues_per_day` 配置路径、
+  默认值 5 和预算文件路径，便于直接排查 / 调整。
+
 ## 1.20.1
 
 ### Changed
