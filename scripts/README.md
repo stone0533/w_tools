@@ -77,6 +77,22 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 
 ---
 
+## 环境前提（本机 / AI 沙箱）
+
+| 前提 | 现象 | 修法 |
+|---|---|---|
+| `CI=true` | `dart test` / `dart run` 在 `~/.dart-tool` 不可写时无输出或 `FileSystemException` | `preflight` 已内置；单独跑时 `export CI=true` |
+| PyYAML | `preflight` / `check_docs` 直接 exit 2 | `python3 -m pip install pyyaml`；无 pip 权限时 `python3 -m pip install --target /tmp/pylibs pyyaml && export PYTHONPATH=/tmp/pylibs` |
+| `~/.pub-cache`（或 `PUB_CACHE`）可写 | `publish_package.sh` exit 66 + 一行 `FileSystemException` | 换可写环境；或 `PUB_CACHE=$PWD/.w_tools/pub-cache`（会重新下载） |
+| `~/.dart-tool` 可写 | 发布 / `dart` 命令写 telemetry 失败 | 换可写 HOME；或 `export CI=true` |
+| FVM / Flutter SDK cache 可写 | `flutter test` 直接 exit 1 / 无测试输出（`.../bin/cache/engine.stamp.tmp: Operation not permitted`） | 用可写环境；或 `preflight --sandbox` 跳过，由 CI 覆盖 |
+
+- `preflight.sh` / `check_docs.sh` 共用 `scripts/_python.sh` 的 `require_python_yaml()`；以下划线开头，不进 `check_gate_coverage` 的脚本清单。
+- `publish_package.sh` 在暂存前会探测 `PUB_CACHE` / `~/.pub-cache`（以及非 `CI=true` 时的 `~/.dart-tool`）可写性；失败会明确说是沙箱 / 只读 HOME，不是发布内容。
+- `--sandbox` 只跳过 Flutter 测试与 publish dry-run，不是完整通过；最终以 CI 为准。
+
+---
+
 ## 脚本分类
 
 ### 总门禁

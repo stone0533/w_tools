@@ -26,9 +26,9 @@
 | 2 | 2.2 自动建分支 | 未做 | main 上给 `-m` 就建 `feat|fix|chore/<slug>` |
 | 2 | 2.3 快照 PR 一条命令 | 未做 | `apply_snapshots.sh --ship` |
 | 2 | 2.4 `preflight` 失败摘要 | 未做 | 结尾打印「失败步骤：…」 |
-| 3 | 3.1 环境前提文档 | 未做（补 FVM / Flutter cache） | `scripts/README.md` 新增「环境前提」节 |
-| 3 | 3.2 `scripts/_python.sh` | 部分（inline PyYAML 守卫已有；共享 `_python.sh` 未抽） | `preflight` / `check_docs` 共用 PyYAML 守卫 |
-| 3 | 3.3 发布可写性预检 | 未做 | `publish_package.sh` 提前探测 `~/.pub-cache` / `~/.dart-tool` |
+| 3 | 3.1 环境前提文档 | 完成（PR #135） | `scripts/README.md` 新增「环境前提」节（含 FVM / Flutter cache） |
+| 3 | 3.2 `scripts/_python.sh` | 完成（PR #135） | `preflight` / `check_docs` 共用 PyYAML 守卫 |
+| 3 | 3.3 发布可写性预检 | 完成（PR #135） | `publish_package.sh` 提前探测 `~/.pub-cache` / `~/.dart-tool` |
 | 4 | 4.1 PR 模板 J-4 工具包写法 | 未做 | `.github/pull_request_template.md` |
 | 4 | 4.2 `documentation-map` 索引说明 | 未做 | `docs/documentation-map.md` 的 analysis 行 |
 | 4 | 4.3 `context` 命令分行 | 未做 | `context_project.dart` 的 `toPrompt` |
@@ -184,7 +184,7 @@ exit code 容易被误读。输出里区分「计划可用 / 发布阻断」，e
 bash scripts/preflight.sh --package=cli   # 确认基线绿
 ```
 
-子票 A（#127，1.1 + 1.2）已由 PR #134 完成；下一张从子票 B（#128，环境前提）开始。
+子票 A（#127）已由 PR #134 完成，子票 B（#128，环境前提）已由 PR #135 完成；下一张从子票 C（#129，ship 等 checks / preflight 摘要）开始。
 
 ## 维护规则
 
