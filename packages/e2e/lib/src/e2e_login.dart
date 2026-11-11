@@ -15,18 +15,27 @@ class E2eLogin {
   ///
   /// [afterLogin] 的失败（同步抛 / Future 报错）只上报，不影响返回值 ——
   /// 登录已经成功，不能因为导航出错就判成"没登录"。
+  ///
+  /// 默认 `afterLogin` 不阻塞 [run]（GetX 的 offAllNamed 有时不 resolve）；
+  /// 集成测试需要等导航完成时传 [awaitAfterLogin] = true。
   static Future<bool> run({
     E2eConfig? config,
     required E2eLoginCallback login,
     FutureOr<void> Function()? afterLogin,
     FutureOr<void> Function(Object error, StackTrace stack)? onError,
+    bool awaitAfterLogin = false,
   }) async {
     final cfg = config ?? E2eConfig.fromEnvironment();
     if (!cfg.canAutoLogin) return false;
     try {
       await login(cfg.email, cfg.password).timeout(cfg.timeout);
       debugPrint('[E2E] auto login ok: ${cfg.email}');
-      unawaited(_runAfterLogin(afterLogin, onError));
+      final after = _runAfterLogin(afterLogin, onError);
+      if (awaitAfterLogin) {
+        await after;
+      } else {
+        unawaited(after);
+      }
       return true;
     } catch (e, st) {
       await _report(onError, e, st, failed: true);

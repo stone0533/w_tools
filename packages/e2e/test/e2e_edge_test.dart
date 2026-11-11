@@ -87,5 +87,43 @@ void main() {
       expect(ok, isTrue, reason: '登录成功不应因导航失败而变 false');
       expect(reported, isA<StateError>());
     });
+
+    test('awaitAfterLogin: true 会等待 afterLogin 完成', () async {
+      final completer = Completer<void>();
+      var afterStarted = false;
+      final future = E2eLogin.run(
+        config: const E2eConfig(enabled: true, email: 'a', password: 'b'),
+        login: (_, __) async {},
+        afterLogin: () {
+          afterStarted = true;
+          return completer.future;
+        },
+        awaitAfterLogin: true,
+      );
+
+      var settled = false;
+      unawaited(future.then((_) => settled = true));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(afterStarted, isTrue);
+      expect(settled, isFalse, reason: 'afterLogin 未完成前不应返回');
+
+      completer.complete();
+      expect(await future, isTrue);
+      expect(settled, isTrue);
+    });
+
+    test('awaitAfterLogin: true 时 afterLogin 抛错仍返回 true', () async {
+      Object? reported;
+      final ok = await E2eLogin.run(
+        config: const E2eConfig(enabled: true, email: 'a', password: 'b'),
+        login: (_, __) async {},
+        afterLogin: () => throw StateError('nav boom'),
+        onError: (e, _) => reported = e,
+        awaitAfterLogin: true,
+      );
+
+      expect(ok, isTrue);
+      expect(reported, isA<StateError>());
+    });
   });
 }
