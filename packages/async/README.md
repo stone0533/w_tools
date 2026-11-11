@@ -138,8 +138,8 @@ final name = await WAsync.map<String, String>(
 
 并发组合器的边界：
 
-- `parallel` 是 **all-or-nothing**：任一失败整体抛错，其余 Future 继续执行但结果拿不到；
-  `eagerError: false` 仍会抛，不会返回部分结果。独立区块先用 `WAsync.tryRun` 包每个 Future；
+- `parallel` 是 **all-or-nothing**：任一失败整体抛错，其余 Future 会继续执行但结果拿不到，
+  不会自动取消；`eagerError: false` 仍会抛，不会返回部分结果。独立区块先用 `WAsync.tryRun` 包每个 Future；
 - `onError` 只是通知，不会把失败变成成功；不要用空实现吞掉诊断；
 - `first` 返回最先完成的结果，不会取消落败者；
 - `pool` 只上报第一个错误，其余错误被忽略。
