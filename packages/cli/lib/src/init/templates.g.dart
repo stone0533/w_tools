@@ -1578,7 +1578,8 @@ const String agentsClosing = r'''
 
 - `dart run w_tools_cli:w_tools doctor --format=json` → 0 error；规则清单与启用状态（R1~R9）也在这里看。
 - `{{analyze}}`、`{{test}}`；跑不了就明确说没跑，不要贴假输出。
-- 用了 `w_tools_*` 被卡住？`.w_tools_doctor.yaml` 的 `feedback.enabled: true` 才提交：
+- 用 w_tools 遇到问题 / 有改进建议时：先查重；仅当
+  `.w_tools_doctor.yaml` 的 `feedback.enabled: true` 时才提交：
   `dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>` → `feedback submit ...`；
   默认关闭时跳过（不写文件、不建 Issue、不加 `--issue`）；完整流程见 `.w_tools/AI_PROMPTS.md` 的 L-1。
 <!-- w_tools:end -->
@@ -1690,9 +1691,10 @@ const String agentsClosingEn = r'''
 
 - `dart run w_tools_cli:w_tools doctor --format=json` → 0 error; the rule list and activation state (R1–R9) live there.
 - `{{analyze}}`, `{{test}}`; if you cannot run them, say so — never paste fake output.
-- Used `w_tools_*` and got blocked? Submit only when `.w_tools_doctor.yaml` has `feedback.enabled: true`:
+- If you hit a problem or have a suggestion while using w_tools: search first; submit only when
+  `.w_tools_doctor.yaml` has `feedback.enabled: true`:
   `dart run w_tools_cli:w_tools feedback search "<keywords>" --package=<package>` → `feedback submit ...`;
-  when off (the default) skip it — no files, no Issue, no `--issue`. Full flow: `.w_tools/AI_PROMPTS.md` L-1.
+  skip when off (no files, no Issue, no `--issue`). Full flow: `.w_tools/AI_PROMPTS.md` L-1.
 <!-- w_tools:end -->
 ''';
 
