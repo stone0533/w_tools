@@ -20,6 +20,7 @@
 #   -t, --type <t>        internal | public | remove | new（可逗号分隔；public/remove/new 需要 --j4）
 #   --j4 <text>           填进 PR 的「J-4 结论」；公开变化时必填
 #   --closes <n>          追加 `Closes #n`（可重复）
+#   --branch <name>       在 main 上显式指定新分支名（默认从 -m 标题推导）
 #   --body <file>         直接用这份 PR body，跳过自动生成
 #   --tracked             只暂存已跟踪文件（默认 git add -A）
 #   -y, --yes             不再交互确认
@@ -43,6 +44,7 @@ types=""
 j4=""
 closes=()
 body_file=""
+branch_override=""
 staged_only=0
 assume_yes=0
 run_check=0
@@ -102,6 +104,11 @@ while [ $# -gt 0 ]; do
       body_file="$2"
       shift 2
       ;;
+    --branch)
+      [ $# -ge 2 ] || die "--branch 需要参数"
+      branch_override="$2"
+      shift 2
+      ;;
     --tracked)
       staged_only=1
       shift
@@ -133,17 +140,58 @@ while [ $# -gt 0 ]; do
 done
 
 # ---------- 0. 基础环境 ----------
+command -v gh >/dev/null 2>&1 || die "需要 gh（GitHub CLI）。安装：https://cli.github.com/"
+source "$root/scripts/_gh.sh"
+[ -f scripts/check_pr_ready.sh ] || die "缺少 scripts/check_pr_ready.sh（仓库不完整？）"
+
+branch_from_message() {
+  local title="${1%%$'\n'*}"
+  local pattern='^(feat|fix|chore|docs|refactor|test)(\([^)]*\))?:[[:space:]]*(.+)$'
+  if [[ ! "$title" =~ $pattern ]]; then
+    return 1
+  fi
+  local type="${BASH_REMATCH[1]}"
+  local desc="${BASH_REMATCH[3]}"
+  local slug
+  slug="$(
+    printf '%s' "$desc" |
+      tr '[:upper:]' '[:lower:]' |
+      sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' |
+      cut -c1-50 |
+      sed -E 's/-+$//'
+  )"
+  [ -n "$slug" ] || slug="update"
+  printf '%s/%s\n' "$type" "$slug"
+}
+
 branch="$(git rev-parse --abbrev-ref HEAD)"
 if [ "$branch" = "HEAD" ]; then
   die "当前不在分支上（detached HEAD）；先 git switch -c <分支>"
 fi
-if [ "$branch" = "main" ]; then
-  die "禁止在 main 上提交 / 推送（pre-push 也会拦）。先 git switch -c feat/<主题> 或 fix/<主题>"
+if [ -n "$branch_override" ] && [ "$branch" != "main" ]; then
+  die "--branch 只在 main 上创建新分支时使用（当前：$branch）"
 fi
-
-command -v gh >/dev/null 2>&1 || die "需要 gh（GitHub CLI）。安装：https://cli.github.com/"
-source "$root/scripts/_gh.sh"
-[ -f scripts/check_pr_ready.sh ] || die "缺少 scripts/check_pr_ready.sh（仓库不完整？）"
+if [ "$branch" = "main" ]; then
+  if [ -n "$branch_override" ]; then
+    branch="$branch_override"
+  elif [ -n "$message" ]; then
+    branch="$(branch_from_message "$message")" ||
+      die "无法从 -m 标题推导分支名；请用 --branch <name>（要求 feat|fix|chore|docs|refactor|test: ...）"
+  else
+    die "禁止在 main 上提交 / 推送。先给 -m 或 --branch，或手动 git switch -c <分支>"
+  fi
+  if ! git check-ref-format --branch "$branch" >/dev/null 2>&1; then
+    die "分支名不合法：$branch"
+  fi
+  if [ "$dry_run" -eq 1 ]; then
+    echo "== 将在 main 上创建分支：$branch"
+  else
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      die "分支已存在：$branch；换一个 --branch 或先 git switch $branch"
+    fi
+    git switch -c "$branch"
+  fi
+fi
 
 # 两种模式：
 # - sync（默认）：暂存 → commit → push → 开 / 更新 PR；需要 --type 或 --body

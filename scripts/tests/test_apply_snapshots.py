@@ -1,4 +1,6 @@
+import os
 import pathlib
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -73,9 +75,75 @@ class ApplySnapshotsTest(unittest.TestCase):
             result = run('--from', str(pending), '--to', str(target))
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((target / 'w_tools_toast-2.1.0.txt').is_file())
-            # 仓库 allow_auto_merge=false；快照 PR 打印的必须是可直接执行的 --merge。
-            self.assertIn('gh pr merge --merge', result.stdout)
+            # 快照 PR 交给 ship.sh：它会等 checks 注册后再 merge；不要教裸 gh pr checks。
+            self.assertIn('bash scripts/ship.sh --type internal --merge --yes', result.stdout)
+            self.assertNotIn('gh pr checks --required', result.stdout)
             self.assertNotIn('gh pr merge --auto', result.stdout)
+
+    def test_ship_creates_branch_and_delegates_to_ship(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            (root / 'scripts').mkdir()
+            shutil.copy(SCRIPT, root / 'scripts/apply_snapshots.sh')
+            log = root / 'ship.log'
+            fake = root / 'scripts/ship.sh'
+            fake.write_text(
+                '#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$SHIP_LOG"\n',
+            )
+            subprocess.run(['git', 'init', '-q'], cwd=root, check=True)
+            subprocess.run(
+                [
+                    'git',
+                    '-c',
+                    'user.name=test',
+                    '-c',
+                    'user.email=test@example.com',
+                    'commit',
+                    '--allow-empty',
+                    '-m',
+                    'init',
+                ],
+                cwd=root,
+                check=True,
+                capture_output=True,
+            )
+            pending = root / 'pending'
+            pending.mkdir()
+            (pending / 'w_tools_ui-7.0.0.txt').write_text('ui\n')
+            target = root / 'scripts/api_snapshots'
+            env = dict(os.environ)
+            env['SHIP_LOG'] = str(log)
+            result = subprocess.run(
+                [
+                    'bash',
+                    str(root / 'scripts/apply_snapshots.sh'),
+                    '--ship',
+                    '--from',
+                    str(pending),
+                    '--to',
+                    str(target),
+                ],
+                cwd=root,
+                env=env,
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            args = log.read_text().splitlines()
+            self.assertIn('chore(release): ui 7.0.0 API 基线', args)
+            self.assertIn('--type', args)
+            self.assertIn('internal', args)
+            self.assertIn('--merge', args)
+            branch = subprocess.run(
+                ['git', 'branch', '--show-current'],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+            ).stdout.strip()
+            self.assertTrue(branch.startswith('chore/release-snapshots-'), branch)
 
 
 if __name__ == '__main__':
