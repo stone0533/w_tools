@@ -21,7 +21,7 @@
 | --- | --- | --- | --- |
 | 1 | 1.1 命令契约测试 | 完成（PR #134） | `packages/cli/test/internal/command_contract_test.dart`；删一行表格应红 |
 | 1 | 1.2 脚本去硬编码命令名 | 完成（PR #134） | `check_docs_facts.py` / `check_prompt_docs.py` 从 `bin/` 派生 |
-| 1 | 1.3（可选）`command_registry.dart` | 未做 | `lib/` 改动，随下个 CLI 版本发 |
+| 1 | 1.3（可选）`command_registry.dart` | 完成（PR #138，CLI 1.20.0） | `lib/` 改动，已随 CLI minor 发版物料 |
 | 2 | 2.1 `ship.sh` 等 checks 竞态 | 完成（PR #136） | 两处 `gh pr checks --watch` 前先等 checks 注册 |
 | 2 | 2.2 自动建分支 | 完成（PR #137） | main 上给 `-m` 就建 `feat|fix|chore|docs|refactor|test/<slug>`；`--branch` 覆盖 |
 | 2 | 2.3 快照 PR 一条命令 | 完成（PR #137） | `apply_snapshots.sh --ship` |
@@ -31,7 +31,7 @@
 | 3 | 3.3 发布可写性预检 | 完成（PR #135） | `publish_package.sh` 提前探测 `~/.pub-cache` / `~/.dart-tool` |
 | 4 | 4.1 PR 模板 J-4 工具包写法 | 未做 | `.github/pull_request_template.md` |
 | 4 | 4.2 `documentation-map` 索引说明 | 未做 | `docs/documentation-map.md` 的 analysis 行 |
-| 4 | 4.3 `context` 命令分行 | 未做 | `context_project.dart` 的 `toPrompt` |
+| 4 | 4.3 `context` 命令分行 | 完成（PR #138） | `context_project.dart` 的 `toPrompt` |
 | 4 | 4.4 `--format` 约定 | 未做 | `docs/agents/cli.md` 工具包约定 |
 | 5 | 5.1 `release_wave plan` 语义 | 完成（基线 00904bf1 已有 plan 0 / `--check` 1、blockers / warnings；不建票） | 区分「计划可用 / 发布阻断」 |
 
@@ -184,7 +184,7 @@ exit code 容易被误读。输出里区分「计划可用 / 发布阻断」，e
 bash scripts/preflight.sh --package=cli   # 确认基线绿
 ```
 
-子票 A（#127）、B（#128）、C（#129）、D（#131）已分别由 PR #134 / #135 / #136 / #137 完成；下一张从子票 E（#132，CLI registry + context 命令分行）开始。
+子票 A（#127）、B（#128）、C（#129）、D（#131）、E（#132）已分别由 PR #134 / #135 / #136 / #137 / #138 完成；下一张从子票 F（#130，J-4 工具包写法 / documentation-map / --format）开始。
 
 ## 维护规则
 

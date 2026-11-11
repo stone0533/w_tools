@@ -1,6 +1,11 @@
-## Unreleased
+## 1.20.0
+
+### Added
+- 新增 `lib/src/command_registry.dart`：`--help` 的命令段与 `context.commands` 由同一份注册表派生；
+  新增命令不再 `bin/w_tools.dart` / `context_project.dart` 两处维护。
 
 ### Changed
+- `context --format=prompt` 的 `命令:` 段改为每个 `key=value` 一行，避免约 700 字符挤在一行。
 - `closing.md` 的反馈引导改为陈述式条件句，补上「有改进建议」，避免「被卡住？」和「才提交」的歧义。
 
 ## 1.19.1

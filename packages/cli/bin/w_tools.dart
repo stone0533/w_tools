@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:w_tools_cli/src/command_registry.dart';
 import 'package:w_tools_cli/src/common/version.dart';
 
 import 'context.dart' as context;
@@ -13,20 +14,15 @@ import 'list.dart' as list;
 
 import 'package:w_tools_cli/src/upgrade/upgrade_command.dart' as upgrade;
 
-const _usage = '''
+final _usage =
+    '''
 w_tools_cli —— w_tools 项目工具
 
 用法：
   dart run w_tools_cli:w_tools <command> [options]
 
 命令：
-  init       把 w_tools 接入项目
-  doctor     检查项目是否遵守接入约定
-  context    输出项目事实（AI / CI）
-  list       查组件目录
-  explain    解释一个组件
-  upgrade    把 w_tools 系依赖抬到 pub 最新
-  feedback   提交 w_tools 反馈
+${commandUsageLines()}
 
 兼容入口仍保留：dart run w_tools_cli:init / doctor / ...
 ''';

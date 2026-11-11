@@ -47,6 +47,19 @@ void main() {
     expect(commands['upgrade'], contains('w_tools upgrade'));
   });
 
+  test('toPrompt 的命令段每个 key=value 一行', () {
+    final root = _project({'pubspec.yaml': 'name: demo\n'});
+    addTearDown(() => root.deleteSync(recursive: true));
+    final prompt = ProjectSnapshot.load(root).toPrompt();
+    expect(prompt, contains('命令:\n'));
+    expect(
+      prompt,
+      contains('\n  context=dart run w_tools_cli:w_tools context --format=json'),
+    );
+    expect(prompt, isNot(contains('命令: context=')));
+    expect(prompt, isNot(contains(' | doctor=')));
+  });
+
   test('context 暴露已安装能力摘要', () {
     final root = _project({
       'pubspec.yaml': 'name: demo\ndependencies:\n  w_tools_async: ^5.0.0\n',
