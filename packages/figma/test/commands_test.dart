@@ -92,6 +92,39 @@ void main() {
       expect(full.file.existsSync(), isTrue);
     });
 
+    test('nodes ids 去重排序，缓存 key 与请求顺序无关', () async {
+      final client = FakeClient(payload);
+      final command = FetchCommand(store: store, client: client);
+
+      final first = await command.nodes(
+        fileKey: 'K',
+        ids: ['2:3', '1:2', '1:2'],
+      );
+      expect(client.calls.single.queryParameters['ids'], '1:2,2:3');
+      expect(first.fromCache, isFalse);
+
+      final second = await command.nodes(fileKey: 'K', ids: ['1:2', '2:3']);
+      expect(second.fromCache, isTrue);
+      expect(second.file.path, first.file.path);
+      expect(client.calls.length, 1, reason: '顺序/重复不应产生第二次请求');
+    });
+
+    test('images ids 去重排序，缓存 key 与请求顺序无关', () async {
+      final client = FakeClient(payload);
+      final command = FetchCommand(store: store, client: client);
+
+      final first = await command.images(
+        fileKey: 'K',
+        ids: ['2:3', '1:2', '1:2'],
+      );
+      expect(client.calls.single.queryParameters['ids'], '1:2,2:3');
+
+      final second = await command.images(fileKey: 'K', ids: ['1:2', '2:3']);
+      expect(second.fromCache, isTrue);
+      expect(second.file.path, first.file.path);
+      expect(client.calls.length, 1);
+    });
+
     test('--refresh 请求失败时保留旧缓存', () async {
       final first = FetchCommand(store: store, client: FakeClient(payload));
       final cached = await first.nodes(fileKey: 'K', ids: ['1:2']);
@@ -109,7 +142,7 @@ void main() {
       expect(cached.file.readAsStringSync(), before);
     });
 
-    test('--refresh 删缓存并重新请求（再记一次用量）', () async {
+    test('--refresh 跳过缓存并重新请求（再记一次用量）', () async {
       final client = FakeClient(payload);
       final command = FetchCommand(store: store, client: client);
       await command.nodes(fileKey: 'K', ids: ['1:2']);

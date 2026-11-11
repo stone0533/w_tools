@@ -63,7 +63,7 @@ dart pub add dev:w_tools_figma
 
 ```yaml
 dev_dependencies:
-  w_tools_figma: ^0.13.2
+  w_tools_figma: ^0.13.3
 ```
 
 开发版使用 path 依赖：
@@ -220,9 +220,12 @@ dart run w_tools_figma:figma fetch --help
 ```text
 缓存命中          → 不请求、不写日志、不需要 token
 缓存未命中        → 1 次 Tier 1
---refresh         → 删除缓存并重拉
+--refresh         → 跳过缓存读取并重拉；成功后才覆盖，失败保留旧缓存
 --check-stale     → 调 Tier 3 的 /meta，只提示不自动重拉
 ```
+
+`fetch nodes` / `fetch images` 的 ids 会去重并按字符串排序，因此
+`2:3,1:2` 与 `1:2,2:3` 命中同一份缓存，不会因顺序多打一次 Tier 1。
 
 `--check-stale` 即使用缓存也需要 token，因为会访问 `/meta`。
 第一次 `--check-stale` 只建立版本基线；之后线上版本变化才会报 stale。

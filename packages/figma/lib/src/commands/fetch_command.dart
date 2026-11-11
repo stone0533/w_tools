@@ -31,7 +31,7 @@ class FetchResult {
 ///
 /// 规则（见 packages/figma/README.md 的「缓存与额度」）：
 /// - 缓存命中直接返回，不写日志、不算 Tier 1；
-/// - `refresh` 才删除缓存并重新请求；
+/// - `refresh` 跳过缓存读取并重新请求，成功后覆盖；失败保留旧缓存；
 /// - 只有真的打了接口才写用量日志。
 class FetchCommand {
   FetchCommand({
@@ -71,7 +71,7 @@ class FetchCommand {
     bool refresh = false,
     bool checkStale = false,
   }) {
-    final joined = ids.join(',');
+    final joined = _canonicalIds(ids);
     return _fetch(
       kind: 'nodes',
       fileKey: fileKey,
@@ -93,7 +93,7 @@ class FetchCommand {
     bool refresh = false,
     bool checkStale = false,
   }) {
-    final joined = ids.join(',');
+    final joined = _canonicalIds(ids);
     return _fetch(
       kind: 'images',
       fileKey: fileKey,
@@ -109,6 +109,12 @@ class FetchCommand {
       refresh: refresh,
       checkStale: checkStale,
     );
+  }
+
+  /// ids 的缓存 key / URL 参数顺序不应影响命中；去重后按字符串排序。
+  String _canonicalIds(Iterable<String> ids) {
+    final unique = ids.toSet().toList()..sort();
+    return unique.join(',');
   }
 
   Future<FetchResult> _fetch({

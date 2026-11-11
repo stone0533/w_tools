@@ -324,7 +324,10 @@ _NodesIndex _loadIndex(CacheStore store, List<File> files) {
 String missingNodesMessage(List<String> missing, {List<File> corruptFiles = const []}) {
   final buffer = StringBuffer('在缓存里找不到节点：${missing.join(', ')}');
   if (corruptFiles.isEmpty) {
-    buffer.write('；先运行 `figma frames --verbose` 查看');
+    buffer.write(
+      '；先运行 `figma frames --verbose` 查看，或 `figma fetch nodes <fileKey> <nodeId>` 拉取'
+      '（fileKey 可用 `figma url <链接> --json` 解析）',
+    );
     return buffer.toString();
   }
   final paths = corruptFiles.map((file) => file.path).join(', ');
