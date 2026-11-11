@@ -13,6 +13,8 @@
 - 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
 - 切换筛选 / 搜索直接再调 `refresh()`：在飞刷新会被取消，旧结果不写回；不要禁用筛选。
 - 本地替换 / 乐观更新用 `replaceData`：会取消在飞 refresh / loadMore，`page` / `hasMore` 默认继承。
+- `state.isRefreshing` 只在有旧数据时为 true；首屏 / 重试用 `isLoading`；切换筛选直接 `refresh()`，不需要先判断。
+- 分页 + SmartRefresher：首屏 `refresh()`（不要 `requestRefresh()`），所有 refresh 走同一个 generation helper，footer 重试先 `requestLoading()`；见 `docs/recipes/paged-list.md`。
 - 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常。
 - `WAsync.run` 不再接受 `onSuccess`；需要映射用 `WAsync.map`。`runValue` / `WAsyncLoading` 已删除。
 - 取消用 `WCancelToken`；`withToken` 让 loader 感知取消；取消不中止底层 Future；

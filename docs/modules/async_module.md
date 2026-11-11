@@ -140,7 +140,8 @@ WAsyncState.loading(previousData: oldData)
 WAsyncState.failed(error, previousData: oldData)
 ```
 
-`data` 可读取旧数据；`when(...)` 四态全覆盖；`isRefreshing` 表示 loading + 旧数据。
+`data` 可读取旧数据；`when(...)` 四态全覆盖；`isRefreshing` 表示 loading + 旧数据
+（首屏 loading 为 false；判断是否在加载用 `isLoading`）。
 `WAsyncState.list(...)`（旧名 `ofList`，已 deprecated）把 null / 空列表转为 empty，与
 `WAsyncController.list` 对称。
 
@@ -191,6 +192,10 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 切换筛选 / 搜索直接再调 `refresh()`：在飞刷新会被取消，旧结果不写回；不需要禁用筛选。
 本地替换 / 乐观更新用 `replaceData`：会取消在飞 `refresh` / `loadMore`，`page` / `hasMore`
 默认沿用当前值，空列表默认没有更多；需要服务端校准再 `refresh()`。
+
+SmartRefresher 组合（首屏、generation、footer 重试）见
+[`docs/recipes/paged-list.md`](../recipes/paged-list.md)；首屏用 `refresh()`，所有 refresh
+入口统一走同一个 generation helper，只让最新一次 `refreshCompleted()`。
 
 ## 4. View
 

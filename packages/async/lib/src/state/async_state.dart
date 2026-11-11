@@ -100,6 +100,8 @@ class WAsyncState<T> {
   }
 
   /// 是否是在保留旧数据的前提下刷新。
+  ///
+  /// 首屏 loading（[data] 为 null）时为 false；判断是否在加载用 [isLoading]。
   bool get isRefreshing => isLoading && data != null;
 
   @override
