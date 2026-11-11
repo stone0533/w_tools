@@ -33,7 +33,7 @@ w_tools_cli feedback —— 把 w_tools 的问题/建议送达维护者
   lint    校验字段、状态、版本号、索引
   submit  默认路由：本地 w_tools 台账 → GitHub Issue → 跳过（exit 4）
   search  先查重：本地台账/收件箱；加 --gh 同时搜 GitHub issues
-  status  输出当前通道：ledger / issue / disabled（附带 gh 可用性）
+  status  输出当前通道：ledger / issue / disabled（附带 gh 可用性与公开 Issue 日额度）
 
 通道（submit / status 共用同一套判定）：
   1. 项目根是 w_tools 仓库      → 写 <仓库>/docs/feedback/（维护者默认，不读开关）
@@ -384,9 +384,13 @@ void _submit(ArgResults args, Directory root, bool asJson) {
   final budget = FeedbackBudget(FeedbackBudget.fileFor(root));
   final maxIssues = resolved.config.feedbackMaxIssuesPerDay;
   if (!budget.allows(maxIssues)) {
+    final remaining = budget.remainingFor(maxIssues) ?? 0;
     _refused(
-      '今天的公开反馈额度已用完（${budget.usedToday()}/$maxIssues 条，feedback.max_issues_per_day）。'
-      '本地台账不占额度，可用 --ledger；或调高上限 / 删 .w_tools/feedback_budget.json',
+      '今天的公开反馈额度已用完：已用 ${budget.usedToday()} / 上限 $maxIssues / 剩余 $remaining 条。'
+      '上限默认 5，可在 ${p.join(root.path, '.w_tools_doctor.yaml')} 的 '
+      'feedback.max_issues_per_day 调高（0 = 不限）。'
+      '预算文件：${budget.file.path}；本地台账不占额度，可用 --ledger；'
+      '或调高上限 / 删除预算文件（会归零）。',
       asJson,
     );
   }
@@ -482,7 +486,10 @@ Never _externalError(String message) {
 }
 
 void _status(Directory root, bool asJson) {
-  final channel = _channel(root);
+  final resolved = _resolve(root);
+  final channel = resolved.channel;
+  final maxIssues = resolved.config.feedbackMaxIssuesPerDay;
+  final budget = FeedbackBudget(FeedbackBudget.fileFor(root));
   final gh = channel.mode == FeedbackMode.issue ? GhStatus.probe() : null;
   if (asJson) {
     print(
@@ -493,6 +500,7 @@ void _status(Directory root, bool asJson) {
         if (channel.mode == FeedbackMode.disabled)
           'enableHint': '在 .w_tools_doctor.yaml 写 feedback.enabled: true 后重跑 status',
         'gh': gh?.toJson(),
+        'budget': budget.toJson(max: maxIssues),
       }),
     );
     return;
@@ -512,6 +520,13 @@ void _status(Directory root, bool asJson) {
       }
       print('开启：.w_tools_doctor.yaml → feedback.enabled: true');
   }
+  final remaining = budget.remainingFor(maxIssues);
+  final maxText = maxIssues <= 0 ? '不限' : '$maxIssues';
+  final remainingText = remaining == null ? '不限' : '$remaining';
+  print(
+    '公开反馈额度：已用 ${budget.usedToday()} / 上限 $maxText（剩余 $remainingText）；'
+    '预算文件：${budget.file.path}',
+  );
 }
 
 void _search(ArgResults args, Directory root, bool asJson) {

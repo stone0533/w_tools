@@ -1027,6 +1027,9 @@ banned:
 
     expect(r.exitCode, 2, reason: '${r.stderr}');
     expect('${r.stderr}', contains('额度'));
+    expect('${r.stderr}', contains('已用 5 / 上限 5'));
+    expect('${r.stderr}', contains('feedback.max_issues_per_day'));
+    expect('${r.stderr}', contains('feedback_budget.json'));
   });
 
   test('未知包名直接拒绝', () async {
@@ -1061,6 +1064,10 @@ banned:
     expect(r.exitCode, 0);
     expect('${r.stdout}', contains('"channel":"disabled"'));
     expect('${r.stdout}', contains('"enableHint"'));
+    expect('${r.stdout}', contains('"budget"'));
+    expect('${r.stdout}', contains('"used":0'));
+    expect('${r.stdout}', contains('"max":5'));
+    expect('${r.stdout}', contains('"remaining":5'));
   });
   test('feedback status 在仓库内输出 ledger', () async {
     final root = _project();

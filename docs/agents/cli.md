@@ -104,6 +104,8 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
 - `feedback.max_issues_per_day`（默认 5，0 = 不限）只约束**公开 Issue**：CLI 没有会话概念，
   用日额度兜住「一次会话 3–5 条」；额度耗尽 exit 2，本地台账不占额度。计数在
   `.w_tools/feedback_budget.json`（删了即归零，跨天自动重置）。
+  `feedback status`（text / `--json`）会显示 date / used / max / remaining / 预算文件路径；
+  额度错误也会给出配置键路径、默认值 5、预算文件路径和 `--ledger` 替代。
 - 从消费方写本机 w_tools 检出时会在 stderr 提醒「工作区会变脏」，提交前要 commit / discard。
 - **开关是硬门禁**：未开启时 `--issue` 不绕过（exit 2）；本机有台账时 `--issue` 才是「明确要公开提 issue」的覆盖。
 - 本机没有台账时 `search` 查不到东西，会提示加 `--gh` 搜 GitHub issues。
