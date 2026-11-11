@@ -257,7 +257,7 @@ footer 必须额外监听 `hasMoreListenable`，否则按钮会一直停在「�
 ```dart
 onFilterChanged: (value) {
   filter = value;
-  controller.refresh();
+  controller.refresh(); // 用 SmartRefresher 时改成与下拉共用的 _refresh
 },
 ```
 
@@ -273,6 +273,28 @@ items
   ..insert(0, updated);
 controller.replaceData(items);
 ```
+
+### SmartRefresher 组合
+
+分页 + `SmartRefresher` 的完整接线（首屏、下拉、筛选、footer 重试）见
+[`docs/recipes/paged-list.md`](https://github.com/stone0533/w_tools/blob/main/docs/recipes/paged-list.md)。
+
+首屏调 `refresh()`，不要 `requestRefresh()`；否则 header 和 sliver loading 会同时转圈。
+下拉、筛选切换、重试都走同一个带 generation 的 `_refresh`，只让最新一次
+`refreshCompleted()`：
+
+```dart
+int _refreshId = 0;
+
+Future<void> _refresh() async {
+  final id = ++_refreshId;
+  await controller.refresh();
+  if (id == _refreshId) refreshController.refreshCompleted();
+}
+```
+
+SmartRefresher 自带 footer 的重试先 `requestLoading()`，`onLoading` 里再 `loadMore()`。
+`state.isRefreshing` 只表示有旧数据时的刷新；首屏 / 重试用 `state.isLoading`。
 
 ## 全局默认视图与文案
 
