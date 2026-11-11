@@ -140,6 +140,11 @@ if ! require_python_yaml; then
 fi
 
 failed=0
+failed_steps=()
+record_failure() {
+  failed=1
+  failed_steps+=("$1")
+}
 run() {
   local name="$1"
   shift
@@ -148,7 +153,7 @@ run() {
     echo "    ✓ $name"
   else
     echo "    ✗ $name" >&2
-    failed=1
+    record_failure "$name"
   fi
 }
 
@@ -260,7 +265,7 @@ if [ -n "$with_tests" ]; then
       dart)
         run "test $name" bash -c "cd $path && dart --suppress-analytics test --reporter=compact"
         ;;
-      *) echo "未知 runner: $name=$runner" >&2; failed=1 ;;
+      *) echo "未知 runner: $name=$runner" >&2; record_failure "test $name (unknown runner)" ;;
     esac
   done < "$root/scripts/packages.manifest"
 
@@ -311,7 +316,11 @@ if [ -n "$with_dry_run" ]; then
 fi
 
 if [ "$failed" -ne 0 ]; then
-  echo "门禁失败" >&2
+  if [ -n "${failed_steps[*]:-}" ]; then
+    echo "门禁失败：${failed_steps[*]}" >&2
+  else
+    echo "门禁失败" >&2
+  fi
   exit 1
 fi
 echo "门禁通过"

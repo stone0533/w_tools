@@ -16,6 +16,12 @@ class PreflightRootDryRunTest(unittest.TestCase):
         self.assertNotIn('不会让整次门禁失败', text)
         self.assertNotIn('仅在全部子包已上线后才应通过', text)
 
+    def test_failure_summary_lists_failed_steps(self):
+        """失败步骤名要在结尾汇总，避免被几百行测试进度冲掉。"""
+        text = (ROOT / 'scripts/preflight.sh').read_text()
+        self.assertIn('failed_steps', text)
+        self.assertIn('门禁失败：${failed_steps[*]}', text)
+
 
 if __name__ == '__main__':
     unittest.main()
