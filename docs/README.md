@@ -59,6 +59,7 @@
 - [2026-11-07 全流程三轮审计：PR 分类、版本门禁与单包发布](analysis/2026-11-07-process-audit-round3.md)
 - [2026-11-08 全流程四轮审计：建议落地顺序的执行记录](analysis/2026-11-08-process-audit-round4.md)
 - [2026-11-09 全流程五轮审计：发布物 / 约束 / 本机可执行性](analysis/2026-11-09-process-audit-round5.md)
+- [2026-11-11 CLI「升级 w_tools 依赖」命令设计分析](analysis/2026-11-11-cli-upgrade-command.md)
 
 改完 `docs/` 后跑：
 

@@ -134,7 +134,9 @@ for readme in sorted((root / 'docs').glob('*/README.md')):
 
 # 4) 当前文档不得再使用旧命令入口。
 for path in files:
-    if re.search(r'dart run w_tools_cli:(context|list|explain|doctor|init|feedback)', path.read_text()):
+    if re.search(
+        r'dart run w_tools_cli:(context|list|explain|doctor|init|feedback|upgrade)', path.read_text()
+    ):
         errors.append(f'{path.relative_to(root)}: 仍用旧命令入口（应为 w_tools_cli:w_tools ...）')
 
 # 5) ADR：编号唯一且递增、文件命名规范、有状态行；索引状态/日期与正文一致；

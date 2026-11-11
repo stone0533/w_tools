@@ -389,7 +389,7 @@
 按 F-1 的计划替换旧 API；同一会话继续，新会话先贴 F-1 的计划。本次只做：<范围>。
 
 要求：
-1. 先按 <新版本> 改 pubspec 约束并 pub get（跨 major 时普通 pub upgrade 不会生效；可手动改约束或用 `{{pubUpgrade}} --major-versions`）；
+1. 先跑 `dart run w_tools_cli:w_tools upgrade`（只抬 w_tools 系包；跨 major 加 `--major` 或 `--only=<包>`，普通 `{{pubUpgrade}}` 不会跨 major），它会改 pubspec 并 pub get；
 2. 按文件逐步替换，一个文件一次；
 3. 不改变无关业务行为；
 4. 遇到计划里没覆盖的调用点，停下来先报告，不要自己猜；

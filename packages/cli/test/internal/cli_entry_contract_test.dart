@@ -21,7 +21,7 @@ void main() {
       File(p.join('schema', 'README.md')),
       File(p.join('..', '..', 'docs', 'agents', 'README.md')),
     ];
-    final legacy = RegExp(r'w_tools_cli:(?:init|doctor|context|list|explain|feedback)\b');
+    final legacy = RegExp(r'w_tools_cli:(?:init|doctor|context|list|explain|feedback|upgrade)\b');
     for (final file in files) {
       expect(
         legacy.hasMatch(file.readAsStringSync()),

@@ -46,6 +46,7 @@ dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 | 给 AI 项目事实 | `context --format=prompt` |
 | 找组件 | `list <关键词>` 或 `list --package=<包>`；给 AI 加 `--format=prompt` |
 | 看组件怎么用 | `explain <组件名>`；给 AI 加 `--format=prompt` |
+| 把 w_tools 依赖抬到 pub 最新 | `upgrade`；只看不写 / CI 用 `upgrade --check`（有落后 exit 1） |
 | 记录 w_tools 问题 | `feedback search` 查重 → `feedback submit --package=<包>`；默认路由：本地台账 → Issue → 跳过（exit 4）；ledger 默认拒绝重复，确认重复加 `--allow-duplicate` |
 
 所有命令统一走 dispatcher：`dart run w_tools_cli:w_tools <command> --help`
@@ -80,6 +81,11 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
 - `rules:` 里 `R2: false` 这类开关对全部规则生效；`--only=R1,R2` 是本次运行的白名单。
 - `list` / `explain` / `feedback search` 没找到时退出码 1；参数或配置错误 2；gh 等外部工具不可用 3；
   `feedback submit` 没有可用通道时 **4**（什么都没写）。
+- `upgrade` 只处理 `w_tools` / `w_tools_*`，其它依赖（含刻意钉死的版本）与 pubspec 注释都不动；
+  跨 major（含 0.x 跨 minor）默认只报告，`--major` / `--only=<包>` 才写；写入后跑 `pub get`，
+  失败会还原 pubspec 并 exit 2；查最新走 `PUB_HOSTED_URL`（默认 pub.dev），不可达 exit 3。
+- `upgrade` 抬了 `w_tools_cli` 之后要**用新版本重跑** `init`（`upgrade` 会打印 next）；
+  旧 CLI 现场跑 `init` 会刷出旧模板，R8 照样红。
 - `feedback path` 只返回**真实可写**的台账路径（仓库自身或本机 w_tools 检出）；两者都没有时明确提示未启用，
   不返回旧的本地收件箱。
 - `feedback search --gh` 在 `gh` 未安装 / 未登录时退出 `3`，且不返回本地结果；

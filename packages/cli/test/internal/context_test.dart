@@ -43,6 +43,8 @@ void main() {
     expect(commands['feedbackLint'], contains('feedback lint'));
     expect(commands['list'], contains('list'));
     expect(commands['explain'], contains('explain'));
+    expect(commands['upgradeCheck'], contains('upgrade --check'));
+    expect(commands['upgrade'], contains('w_tools upgrade'));
   });
 
   test('context 暴露已安装能力摘要', () {

@@ -16,6 +16,8 @@
 - **import**：业务代码只 import 聚合入口；例外：{{importExceptions}}（R2）。
 - **生成物不要手改**：`{{toolkitEntry}}`、本标记块、`{{projectUiDir}}/`；刷新用 `init --force`，
   UI 脚手架用 `init --force-starters`。
+- **升级依赖**：`dart run w_tools_cli:w_tools upgrade --check` 看落后哪几个包；写入用 `upgrade`
+  （只动 `w_tools*`，跨 major 需 `--major`）。
 - **新组件先暂存**：`{{designSystemDir}}/` + 文件头 `// STAGED: 待上移到 w_tools_ui`；
   默认值要能直接用、至少有测试、API 参数优先 ≤ 3 个；是否进包由维护者决定，进包时由包维护者补 CHANGELOG（R4 / R5）。
 - **禁用 API** 见 `.w_tools_doctor.yaml` 的 `banned`（R9）；未登记的旧写法仍需人工评审。
