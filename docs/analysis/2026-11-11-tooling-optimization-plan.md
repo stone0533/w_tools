@@ -1,10 +1,12 @@
-> 分析记录：提案，未实施；状态以「进度」表为准。关联 issue [#116](https://github.com/stone0533/w_tools/issues/116)。
+> 分析记录：提案，部分已落地；状态以「进度」表为准。关联 issue [#116](https://github.com/stone0533/w_tools/issues/116)。
 
 # 工具链优化计划（2026-11-11）
 
 > 背景：实现 `w_tools_cli` 1.19.0 的 `upgrade` 命令并走完发布全程后，暴露的**仓库流程摩擦**
 > （不是 w_tools 使用问题）。范围：CLI 命令的文档 / 门禁一致性、发布脚本、本机与沙箱环境前提。
 > 基线 `main @ 00904bf1`，工作区干净，15 个包全部已发布。
+>
+> 后续基线 / 子票状态见 issue #116 的「当前状态」；本文件保留分析时点，不随版本重写历史。
 
 ## 结论
 
@@ -20,18 +22,22 @@
 | 1 | 1.1 命令契约测试 | 未做 | `packages/cli/test/command_contract_test.dart`；删一行表格应红 |
 | 1 | 1.2 脚本去硬编码命令名 | 未做 | `check_docs_facts.py` / `check_prompt_docs.py` 从 `bin/` 派生 |
 | 1 | 1.3（可选）`command_registry.dart` | 未做 | `lib/` 改动，随下个 CLI 版本发 |
-| 2 | 2.1 `ship.sh` 等 checks 竞态 | 未做 | 两处 `gh pr checks --watch` 前先等 checks 注册 |
+| 2 | 2.1 `ship.sh` 等 checks 竞态 | 未做（#119–#126 未复现，低优先级） | 两处 `gh pr checks --watch` 前先等 checks 注册 |
 | 2 | 2.2 自动建分支 | 未做 | main 上给 `-m` 就建 `feat|fix|chore/<slug>` |
 | 2 | 2.3 快照 PR 一条命令 | 未做 | `apply_snapshots.sh --ship` |
 | 2 | 2.4 `preflight` 失败摘要 | 未做 | 结尾打印「失败步骤：…」 |
-| 3 | 3.1 环境前提文档 | 未做 | `scripts/README.md` 新增「环境前提」节 |
-| 3 | 3.2 `scripts/_python.sh` | 未做 | `preflight` / `check_docs` 共用 PyYAML 守卫 |
+| 3 | 3.1 环境前提文档 | 未做（补 FVM / Flutter cache） | `scripts/README.md` 新增「环境前提」节 |
+| 3 | 3.2 `scripts/_python.sh` | 部分（inline PyYAML 守卫已有；共享 `_python.sh` 未抽） | `preflight` / `check_docs` 共用 PyYAML 守卫 |
 | 3 | 3.3 发布可写性预检 | 未做 | `publish_package.sh` 提前探测 `~/.pub-cache` / `~/.dart-tool` |
 | 4 | 4.1 PR 模板 J-4 工具包写法 | 未做 | `.github/pull_request_template.md` |
 | 4 | 4.2 `documentation-map` 索引说明 | 未做 | `docs/documentation-map.md` 的 analysis 行 |
 | 4 | 4.3 `context` 命令分行 | 未做 | `context_project.dart` 的 `toPrompt` |
 | 4 | 4.4 `--format` 约定 | 未做 | `docs/agents/cli.md` 工具包约定 |
-| 5 | 5.1 `release_wave plan` 语义 | 未做 | 区分「计划可用 / 发布阻断」 |
+| 5 | 5.1 `release_wave plan` 语义 | 完成（基线 00904bf1 已有 plan 0 / `--check` 1、blockers / warnings；不建票） | 区分「计划可用 / 发布阻断」 |
+
+子票（#116 为父票）：A=#127 1.1+1.2；B=#128 3.1+3.2+3.3；C=#129 2.1+2.4；
+D=#131 2.2+2.3（依赖 C）；E=#132 1.3+4.3（依赖 A）；F=#130 4.1+4.2+4.4；
+5.1 已完成，不建票。
 
 ## 1. 命令契约（约半天，零行为变化）
 
@@ -120,6 +126,7 @@
 | `CI=true` | `dart test` 在 `~/.dart-tool` 不可写时**无测试输出、exit 1** | `export CI=true`（preflight 已内置） |
 | PyYAML | `preflight` / `check_docs` 直接退出 2 | `python3 -m pip install --target /tmp/pylibs pyyaml && export PYTHONPATH=/tmp/pylibs` |
 | `~/.pub-cache` 可写 | `publish_package.sh` exit 66 + 一行 `FileSystemException` | 在允许写该目录的环境发布；`CI=true` 避免 telemetry 写入 |
+| FVM / Flutter SDK cache 可写 | `flutter test` 直接 exit 1 / 无测试输出（`.../bin/cache/engine.stamp.tmp: Operation not permitted`） | 用可写环境；或 `preflight --sandbox` 跳过，由 CI 覆盖 |
 
 不删 PyYAML：11 个检查脚本 import yaml，是另一个工程。
 
@@ -177,11 +184,11 @@ exit code 容易被误读。输出里区分「计划可用 / 发布阻断」，e
 bash scripts/preflight.sh --package=cli   # 确认基线绿
 ```
 
-然后从「进度」表第 1 行（1.1 契约测试）开始：只加测试，不动 `lib/`，不用发版。
+然后从子票 A（#127，1.1 + 1.2）开始：只加测试 / 改脚本，不动 `lib/`，不用发版。
 
 ## 维护规则
 
-- 状态只改本文件「进度」表；issue #116 只勾 checklist，不复制讨论；
+- 状态只改本文件「进度」表；issue #116 只维护子票链接和完成条件，不复制讨论；
 - 每完成一项补 PR 链接，**不要让文档和 issue 各说各话**；
 - 全部完成时：本文件顶部补「已全部落地（日期）」并关 issue；文件保留（`analysis/` 是历史记录，不删）；
 - 新想法先进 issue 评论，攒够一批再改本文件。
