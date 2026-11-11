@@ -1139,7 +1139,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docsAnchor: "1-wasync",
     aliases: <String>["tryRun", "run", "map", "retry"],
     usage: "final result = await WAsync.tryRun(() => api.fetch());\nswitch (result) {\n  case WAsyncSuccess(:final value): use(value);\n  case WAsyncFailure(:final error): log(error);\n  case WAsyncCancelled(): log('cancelled');\n}\nfinal value = await WAsync.run(() => api.fetch());\nfinal name = await WAsync.map(() => api.fetch(), onSuccess: (v) => v.name);\n",
-    pitfalls: <String>["run 失败抛异常；tryRun 不抛异常", "onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess", "取消需要 WCancelToken；取消不中止底层 Future"],
+    pitfalls: <String>["run 失败抛异常；tryRun 不抛异常", "parallel 是 all-or-nothing；eagerError:false 仍会抛，不返回部分结果；独立区块先 tryRun 每个 Future", "onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess", "取消需要 WCancelToken；取消不中止底层 Future"],
     related: <String>["WAsyncResult", "WAsyncOptions", "WAsyncActivity", "WCancelToken"],
     teach: true,
   ),

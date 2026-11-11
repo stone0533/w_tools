@@ -80,6 +80,10 @@ if (result is WAsyncSuccess<Gift>) {
 
 `WAsyncActivity` 只用于同一批并行任务（如 `WAsync.parallel`），不要合并多个独立区块。
 
+`WAsync.parallel` 是 all-or-nothing：任一失败整体抛错，`eagerError: false` 也仍然抛、不返回部分结果。
+独立区块先 `WAsync.tryRun` 包每个 Future，再组合 `WAsyncResult`；不要用空 `onError` 吞错。
+完整写法见 [独立区块并行](../recipes/parallel-sections.md)。
+
 状态 / 结果 / 活动分不清时：
 
 | 类型 | 是什么 | 不是什么 |

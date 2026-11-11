@@ -158,6 +158,28 @@ void main() {
       );
     });
 
+    test('parallel 默认一损俱损', () async {
+      await expectLater(
+        WAsync.parallel<int>([
+          Future.value(1),
+          Future<int>.error(StateError('boom')),
+        ]),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('parallel 组合 tryRun 可保留部分结果', () async {
+      final results = await WAsync.parallel<WAsyncResult<int>>([
+        WAsync.tryRun(() async => 1),
+        WAsync.tryRun(() async => throw StateError('boom')),
+      ]);
+
+      expect(results[0], isA<WAsyncSuccess<int>>());
+      expect(results[1], isA<WAsyncFailure<int>>());
+      expect((results[0] as WAsyncSuccess<int>).value, 1);
+      expect((results[1] as WAsyncFailure<int>).error, isA<StateError>());
+    });
+
     test('pool 限制并发并保持顺序', () async {
       var active = 0;
       var peak = 0;
