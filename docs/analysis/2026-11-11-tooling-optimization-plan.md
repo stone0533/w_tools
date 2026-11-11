@@ -1,4 +1,4 @@
-> 分析记录：已落地；CLI 1.20.0 发布待走。状态以「进度」表为准。关联 issue [#116](https://github.com/stone0533/w_tools/issues/116)。
+> 分析记录：已落地；CLI 1.20.0 已发布（2026-11-11）。状态以「进度」表为准。关联 issue [#116](https://github.com/stone0533/w_tools/issues/116)。
 
 # 工具链优化计划（2026-11-11）
 
@@ -21,7 +21,7 @@
 | --- | --- | --- | --- |
 | 1 | 1.1 命令契约测试 | 完成（PR #134） | `packages/cli/test/internal/command_contract_test.dart`；删一行表格应红 |
 | 1 | 1.2 脚本去硬编码命令名 | 完成（PR #134） | `check_docs_facts.py` / `check_prompt_docs.py` 从 `bin/` 派生 |
-| 1 | 1.3（可选）`command_registry.dart` | 完成（PR #138，CLI 1.20.0） | `lib/` 改动，已随 CLI minor 发版物料 |
+| 1 | 1.3（可选）`command_registry.dart` | 完成（PR #138，CLI 1.20.0 已发布） | `lib/` 改动，已随 CLI 1.20.0 发布 |
 | 2 | 2.1 `ship.sh` 等 checks 竞态 | 完成（PR #136） | 两处 `gh pr checks --watch` 前先等 checks 注册 |
 | 2 | 2.2 自动建分支 | 完成（PR #137） | main 上给 `-m` 就建 `feat|fix|chore|docs|refactor|test/<slug>`；`--branch` 覆盖 |
 | 2 | 2.3 快照 PR 一条命令 | 完成（PR #137） | `apply_snapshots.sh --ship` |
@@ -184,7 +184,7 @@ exit code 容易被误读。输出里区分「计划可用 / 发布阻断」，e
 bash scripts/preflight.sh --package=cli   # 确认基线绿
 ```
 
-子票 A（#127）、B（#128）、C（#129）、D（#131）、E（#132）、F（#130）已分别由 PR #134 / #135 / #136 / #137 / #138 / #139 完成；计划全部落地，CLI 1.20.0 发布按 K-2 / K-3 / K-4 走独立窗口。
+子票 A（#127）、B（#128）、C（#129）、D（#131）、E（#132）、F（#130）已分别由 PR #134 / #135 / #136 / #137 / #138 / #139 完成；计划全部落地，CLI 1.20.0 已发布。
 
 ## 维护规则
 
