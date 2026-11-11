@@ -1,3 +1,8 @@
+## 1.20.1
+
+### Changed
+- `init` 写入的 `w_tools_api` 约束同步到 `^5.2.0`（`WLogInterceptor` 的 body 敏感字段脱敏）。
+
 ## 1.20.0
 
 ### Added

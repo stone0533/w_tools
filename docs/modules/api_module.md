@@ -11,7 +11,7 @@ Cookie 管理未内置，需要时请使用社区包 [`dio_cookie_manager`](http
 ## 快速判断
 - 要发请求 / 配拦截器 → `DioRegistry` + `WApiConfig`
 - Token 401 刷新 → `WTokenInterceptor`
-- 日志 → `WLogInterceptor`（默认脱敏敏感头）
+- 日志 → `WLogInterceptor`（默认脱敏敏感头与敏感 body）
 - 优先用 `DioRegistry`；裸 `Dio()` 必须传 `dio:`，否则 401 后无法重试
 - 可运行示例：[packages/api/example](../../packages/api/example/README.md)
 
@@ -109,9 +109,10 @@ DioRegistry.dispose('https://api.example.com');
 | `enableLog` | bool | 是否启用日志（默认 true） |
 | `redactedHeaders` | `Set<String>?` | 脱敏头列表；默认已内置常见敏感头 |
 | `sensitiveQueryKeys` | `Set<String>?` | 需要脱敏的 query 参数；默认 `token` / `access_token` 等 |
+| `sensitiveBodyKeys` | `Set<String>?` | 需要脱敏的 body key；默认覆盖 `password` / `token` / `access_token` 等 |
 | `maxBodyLength` | int | 单条 body 最大字符数（默认 2000，`<= 0` 不截断） |
 
-> 显式传 `parts` 时，未列出的片段不会输出（`error` 是详细错误，`errorHint` 是友好提示，二者独立）；需要 body 时显式加 `requestBody` / `responseBody`，并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；单条 body 超过 2000 字符会截断。
+> 显式传 `parts` 时，未列出的片段不会输出（`error` 是详细错误，`errorHint` 是友好提示，二者独立）；需要 body 时显式加 `requestBody` / `responseBody`，并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；`requestBody` / `responseBody` 的 Map / List / JSON 字符串 / FormData fields 会按 `sensitiveBodyKeys` 递归脱敏；单条 body 超过 2000 字符会截断。
 
 ### 使用示例
 

@@ -1,3 +1,9 @@
+## 12.0.6
+
+### Changed
+- 根包 `w_tools_api` 约束抬到 `^5.2.0`（`WLogInterceptor` 的 `requestBody` / `responseBody`
+  敏感字段脱敏，新增 `sensitiveBodyKeys`）。
+
 ## 12.0.5
 
 ### Changed

@@ -1329,10 +1329,11 @@ components:
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
     useFor: '请求 / 响应 / 错误日志'
-    dontUseFor: '不做业务错误处理；敏感头默认脱敏'
+    dontUseFor: '不做业务错误处理；敏感头 / 敏感 body 默认脱敏，但仍不要打进生产日志'
     usage: "final log = WLogInterceptor(parts: {WLogPart.request, WLogPart.error});"
     pitfalls:
       - "默认不打印 request / response body；需要时显式加 `requestBody` / `responseBody`，并用 `kDebugMode` 控制"
+      - "`requestBody` / `responseBody` 会按 `sensitiveBodyKeys` 递归脱敏（Map / List / JSON 字符串 / FormData fields）；任意对象的 toString 不保证脱敏"
       - "只做日志，不做业务错误处理"
     related: ["`WLogPart`", "`WApiConfig`"]
     teach: true

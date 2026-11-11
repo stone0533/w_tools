@@ -8,7 +8,7 @@
 ## 特性
 
 - **多客户端管理**：`DioRegistry` 按 `baseUrl` 缓存并复用 Dio 实例
-- **拦截器**：`WLogInterceptor` 日志（默认脱敏 Authorization / Cookie 等敏感头）、`WTokenInterceptor` Token 注入与 401 刷新
+- **拦截器**：`WLogInterceptor` 日志（默认脱敏 Authorization / Cookie 等敏感头与 password / token 等敏感 body）、`WTokenInterceptor` Token 注入与 401 刷新
 - **配置收敛**：`WApiConfig` 提供默认 `BaseOptions`
 - **Repository 基类**：`BaseRepository` 统一持有本地 / 远程数据源
 - **路径契约**：`IApiPath` 供业务实现基础 URL
@@ -19,7 +19,7 @@
 
 ```yaml
 dependencies:
-  w_tools_api: ^5.1.0
+  w_tools_api: ^5.2.0
 ```
 
 ```bash
@@ -43,7 +43,7 @@ final registry = DioRegistry.forBaseUrl(
 final response = await registry.dio.get('/users');
 ```
 
-> `WLogInterceptor` 只有注入 `WApiConfig.logDebugHandler` / `logErrorHandler` 后才会输出；默认不打印 request / response body，需要时显式传 `parts` 并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；单条 body 超过 2000 字符会截断。可用 `sensitiveQueryKeys` / `maxBodyLength` 覆盖默认值。
+> `WLogInterceptor` 只有注入 `WApiConfig.logDebugHandler` / `logErrorHandler` 后才会输出；默认不打印 request / response body，需要时显式传 `parts` 并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；`requestBody` / `responseBody` 里的 `password` / `token` / `access_token` 等敏感 key 也会递归脱敏（Map / List / JSON 字符串 / FormData fields），可用 `sensitiveBodyKeys` 自定义；单条 body 超过 2000 字符会截断，可用 `maxBodyLength` 覆盖。
 
 释放实例：
 
