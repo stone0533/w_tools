@@ -133,7 +133,7 @@ scripts/README.md         scripts 运行手册
 | `docs/guides/*.md` | 包使用者（人/AI） | 横向指南（测试策略 / 工程做法） | 指南做法变化 | 单包 API、跨包组合 |
 | `docs/migrations/*.md` | 升级用户（人/AI） | 版本迁移 | 发布 breaking change 时新增 | 当前用法教程 |
 | `docs/adr/*.md` | 维护者（人/仓库 AI） | 架构决策记录 | 新决策时新增，旧决策不改 | 操作手册 |
-| `docs/analysis/*.md` | 维护者 | 某次评审记录 | 评审时新增 | 当前事实源 |
+| `docs/analysis/*.md` | 维护者 | 某次评审记录 | 评审时新增；新增后进 `docs/README.md` 留一行 | 当前事实源 |
 | `docs/feedback/*.md` | 维护者 / 用户 | 问题台账 | 通过 CLI 追加 | 当前 API 文档 |
 | `docs/releasing.md` | 维护者（人/仓库 AI） | 发布流程 | 发布流程变化 | 具体版本号 |
 | `packages/<pkg>/README.md` | 包使用者（人/AI） | 安装、最小用法、常用配方、限制（用法事实源） | 公开 API / 行为变化 | 跨包组合大全 |
@@ -350,7 +350,7 @@ scripts/README.md
 8. 规则变化必须同步 AGENTS 模板。
 9. 至少更新一个可运行 example 或测试，避免只写文档。
 10. 改完跑 check_docs / preflight。
-11. 新增顶层文档 / 子目录 README / ADR，必须加进 `docs/README.md` 索引（check_docs_facts 会拦）。
+11. 新增顶层文档 / 子目录 README / ADR / analysis，必须加进 `docs/README.md` 索引（check_docs_facts 会拦）。
 12. 在 `docs/agents/README.md` 写的首选入口，必须能在该包规则页找到（check_agents_consistency 会拦）。
 ```
 

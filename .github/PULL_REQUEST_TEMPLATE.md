@@ -16,6 +16,10 @@
 
 > 矩阵列：公开类型 | catalog | teach | AGENTS zh | AGENTS en | explain | README | example。
 > 至少写一行结论；完整矩阵可贴在这里或链接到 issue / analysis。
+>
+> 工具包（`w_tools_cli` / `w_tools_figma` / `w_tools_device` / `w_tools_e2e`）无 barrel / catalog：
+> `catalog` / `teach` / `explain` 写 `N/A`，填 `AGENTS zh` / `AGENTS en` / `README` / `example`，
+> 并写命令清单同步位置（顶层 usage / `help` / README / `docs/agents/cli.md`）。
 
 - J-4 结论：
 

@@ -148,6 +148,8 @@ dart test
 - **`--json`**：输出必须带**版本标识**，但两套写法并存、不要求统一 ——
   `w_tools_figma` 用 `schema: "w_tools_figma.<命令>/1"` 并配 `schema/` 文件；
   `w_tools_device` 用 `schemaVersion: 1`。各自的契约由本包 README / schema 负责说明。
+- **`--format`**：新命令统一用 `--format=json|markdown|prompt`（按适用场景）；`--json` 只作兼容别名，
+  不再作为新命令的主开关；两者必须输出同一契约。弃用 `--json` 时按下面的 flag 弃用流程标 remove-in。
 - **`--help`**：顶层 usage 与 `help <command>` 只能有一份来源（figma 把两者放在 `help.dart`），
   每条命令至少有"用法 / 说明 / 退出码"。
 - **报错**：说用户实际输入的那个名字，不要把别名报成规范名，并给下一步（如 `figma cache clean`）。
