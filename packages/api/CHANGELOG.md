@@ -1,5 +1,15 @@
 # Changelog
 
+## 5.2.0
+
+### Added
+- `WLogInterceptor.sensitiveBodyKeys`：自定义 request / response body 的脱敏 key；默认覆盖
+  `password` / `token` / `access_token` / `refresh_token` / `api_key` / `secret` 等。
+
+### Fixed
+- `WLogInterceptor` 的 `requestBody` / `responseBody` 不再明文输出敏感字段；按 key 递归脱敏
+  Map / List / JSON 字符串 / FormData fields，且不修改调用方原始 body。
+
 ## 5.1.0
 
 ### Added

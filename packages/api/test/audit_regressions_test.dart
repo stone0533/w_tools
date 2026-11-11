@@ -84,6 +84,26 @@ class _First401ThenOkAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+class _SensitiveResponseAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    return ResponseBody.fromString(
+      '{"ok":true,"access_token":"resp-secret"}',
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 class _ThrowingToString {
   @override
   String toString() => throw StateError('log formatting should not run');
@@ -307,6 +327,88 @@ void main() {
 
       expect(logs.join(), contains('"a": 1'));
       expect(logs.join(), contains('Response Text'));
+    });
+  });
+
+  group('API-029 body 脱敏', () {
+    test('requestBody 递归脱敏且不修改原对象', () async {
+      final body = <String, dynamic>{
+        'email': 'a@b.c',
+        'password': 'p@ss',
+        'profile': {'token': 'nested'},
+        'items': [
+          {'access_token': 'list-token'},
+        ],
+        'password_policy': 'keep',
+      };
+      final dio = dioWith(_MockAdapter());
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.requestBody}));
+
+      await dio.post('/login', data: body);
+
+      final log = logs.join();
+      expect(log, contains('"password": "***"'));
+      expect(log, contains('"token": "***"'));
+      expect(log, contains('"access_token": "***"'));
+      expect(log, contains('"password_policy": "keep"'));
+      expect(log, isNot(contains('p@ss')));
+      expect(log, isNot(contains('nested')));
+      expect(log, isNot(contains('list-token')));
+      expect(body['password'], 'p@ss', reason: '不能修改调用方原始 body');
+    });
+
+    test('responseBody 也脱敏 access_token', () async {
+      final dio = dioWith(_SensitiveResponseAdapter());
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.responseBody}));
+
+      await dio.get('/login');
+
+      expect(logs.join(), contains('"access_token": "***"'));
+      expect(logs.join(), isNot(contains('resp-secret')));
+    });
+
+    test('sensitiveBodyKeys 可覆盖默认值', () async {
+      final dio = dioWith(_MockAdapter());
+      dio.interceptors.add(
+        WLogInterceptor(
+          parts: {WLogPart.requestBody},
+          sensitiveBodyKeys: {'session'},
+        ),
+      );
+
+      await dio.post(
+        '/x',
+        data: {'session': 'session-secret', 'password': 'keep'},
+      );
+
+      expect(logs.join(), contains('"session": "***"'));
+      expect(logs.join(), contains('"password": "keep"'));
+      expect(logs.join(), isNot(contains('session-secret')));
+    });
+
+    test('JSON 字符串 body 也会脱敏', () async {
+      final dio = dioWith(_MockAdapter());
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.requestBody}));
+
+      await dio.post('/x', data: '{"password":"str-secret","safe":"ok"}');
+
+      expect(logs.join(), contains('"password": "***"'));
+      expect(logs.join(), contains('"safe": "ok"'));
+      expect(logs.join(), isNot(contains('str-secret')));
+    });
+
+    test('FormData fields 也会脱敏', () async {
+      final dio = dioWith(_MockAdapter());
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.requestBody}));
+
+      await dio.post(
+        '/x',
+        data: FormData.fromMap({'password': 'form-secret', 'note': 'ok'}),
+      );
+
+      expect(logs.join(), contains('"password": "***"'));
+      expect(logs.join(), contains('"note": "ok"'));
+      expect(logs.join(), isNot(contains('form-secret')));
     });
   });
 

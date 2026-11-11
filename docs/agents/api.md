@@ -32,7 +32,9 @@ final response = await dio.get('/gifts');
 
 - 用裸 `Dio()` 绕过 `DioRegistry`；必须裸用时构造传 `dio:`，否则 401 后无法重试；
 - 同一 `baseUrl` 第二次传不同 `options` / `interceptors`（会抛 `ArgumentError`）；
-- 依赖日志拦截器做业务错误处理。
+- 依赖日志拦截器做业务错误处理；
+- 为了调试把 `password` / token 原样打进日志；`WLogInterceptor` 的 `requestBody` / `responseBody`
+  会按 `sensitiveBodyKeys` 脱敏，自定义字段用 `sensitiveBodyKeys` 补，不要关掉脱敏。
 
 ## 常见坑
 
