@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:w_tools_cli/src/command_registry.dart';
 import 'package:w_tools_cli/src/context/context_project.dart';
 
 /// 从当前目录向上找仓库根（含 workspace: 的 pubspec.yaml）。
@@ -122,6 +123,25 @@ void main() {
         File(p.join(root.path, 'packages/cli/bin/$command.dart')).existsSync(),
         isTrue,
         reason: '缺少 packages/cli/bin/$command.dart',
+      );
+    }
+  });
+
+  test('注册表派生 usage 与 context 命令示例', () {
+    expect(
+      cliCommands.map((command) => command.name).toSet(),
+      equals(commands),
+      reason: 'command_registry 与 dispatcher 命令不一致',
+    );
+    for (final command in cliCommands) {
+      expect(commandUsageLines(), contains(command.name));
+      expect(commandUsageLines(), contains(command.summary));
+    }
+    for (final example in contextCommandExamples().entries) {
+      expect(
+        contextCommands[example.key],
+        example.value,
+        reason: 'context.commands 的 ${example.key} 不是注册表里的值',
       );
     }
   });

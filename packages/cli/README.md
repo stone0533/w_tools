@@ -417,6 +417,9 @@ dart run w_tools_cli:w_tools context --format=json
 
 输出项目事实：依赖、toolkit 导出、暂存层、规则与检查结果。
 
+`--format=prompt` 的 `命令:` 段每个 `key=value` 各占一行（方便按行读取）；
+`--format=json` 的 `commands` 仍是对象。
+
 JSON 顶层包含：
 
 ```json

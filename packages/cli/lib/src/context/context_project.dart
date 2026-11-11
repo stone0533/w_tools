@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../catalog/catalog.dart';
+import '../command_registry.dart';
 import '../common/version.dart';
 import '../doctor/config.dart';
 import '../doctor/context.dart';
@@ -137,21 +138,11 @@ class ProjectSnapshot {
   }
 
   Map<String, String> commands() {
-    final result = <String, String>{
-      'context': 'dart run w_tools_cli:w_tools context --format=json',
-      'doctor': 'dart run w_tools_cli:w_tools doctor --json',
-      'list': 'dart run w_tools_cli:w_tools list <关键词> --format=prompt',
-      'explain': 'dart run w_tools_cli:w_tools explain <组件名> --format=prompt',
-      'initCheck': 'dart run w_tools_cli:w_tools init --check-drift',
-      'upgradeCheck': 'dart run w_tools_cli:w_tools upgrade --check',
-      'upgrade': 'dart run w_tools_cli:w_tools upgrade',
-      'feedbackStatus': 'dart run w_tools_cli:w_tools feedback status',
-      'feedbackSubmit':
-          'dart run w_tools_cli:w_tools feedback submit --package=<包> --title=<标题> --stdin',
-      'feedbackLint': 'dart run w_tools_cli:w_tools feedback lint --include-inbox',
-      'analyze': isFlutter ? 'flutter analyze' : 'dart analyze',
-      'test': isFlutter ? 'flutter test' : 'dart test',
-    };
+    final result = contextCommandExamples()
+      ..addAll(<String, String>{
+        'analyze': isFlutter ? 'flutter analyze' : 'dart analyze',
+        'test': isFlutter ? 'flutter test' : 'dart test',
+      });
     if (packages.containsKey('w_tools_device')) {
       result.addAll(<String, String>{
         'deviceList': 'dart run w_tools_device:device list',
@@ -222,7 +213,8 @@ class ProjectSnapshot {
       'toolkit: ${toolkitPath ?? '（未初始化）'}'
           '${toolkitExports.isEmpty ? '' : '（导出 ${toolkitExports.join(', ')}）'}',
       repoCheckout ? '当前: 仓库检出，跳过消费方 doctor 规则' : '当前: $errorCount error / $warnCount warning',
-      '命令: ${commands().entries.map((e) => '${e.key}=${e.value}').join(' | ')}',
+      '命令:',
+      for (final entry in commands().entries) '  ${entry.key}=${entry.value}',
       '反馈: 先 feedback status（ledger / issue / disabled）；开启后本地 w_tools 台账优先，其次 Issue；disabled 时不要提交（exit 4）',
       '直接依赖: ${dependencies.isEmpty ? '（无）' : dependencies.join(', ')}',
       '规则: ${doctorRuleIds.map((id) => '$id=${doctorRuleLevels[id]}').join(' ')}',
