@@ -33,13 +33,23 @@ setState(() {
 
 ## 正确写法：每个区块先 `tryRun`
 
-让每个请求自己 settle，再组合结果：
+让每个请求自己 settle，再组合结果。推荐 record `.wait`（并行且每个结果独立）：
+
+```dart
+final (codes, columns, banners) = await (
+  WAsync.tryRun(() => api.mobileRegionCodes()),
+  WAsync.tryRun(() => api.registerColumnList()),
+  WAsync.tryRun(() => api.homeBanners()),
+).wait;
+```
+
+如果三个请求返回同一类型，也可以用 `parallel<WAsyncResult<Object?>>`：
 
 ```dart
 final results = await WAsync.parallel<WAsyncResult<Object?>>([
-  WAsync.tryRun<Object?>(api.mobileRegionCodes),
-  WAsync.tryRun<Object?>(api.registerColumnList),
-  WAsync.tryRun<Object?>(api.homeBanners),
+  WAsync.tryRun<Object?>(() => api.mobileRegionCodes()),
+  WAsync.tryRun<Object?>(() => api.registerColumnList()),
+  WAsync.tryRun<Object?>(() => api.homeBanners()),
 ]);
 
 final codes = results[0];
@@ -57,6 +67,7 @@ setState(() {
 });
 ```
 
+注意 `tryRun` 的参数是 `Future<T> Function()`，要写 `() => api.xxx()`，不要直接传 `api.xxx()`。
 `tryRun` 不抛业务异常，返回值是 `WAsyncSuccess` / `WAsyncFailure` / `WAsyncCancelled`；
 `parallel` 这一层拿到的是 `WAsyncResult` 列表，单个失败不会丢掉其他成功结果。
 

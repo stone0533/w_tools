@@ -22,6 +22,9 @@ final api = _Api();
 class _Api {
   Future<List<Gift>> gifts() async => const [Gift('gift')];
   Future<Gift> gift(String id) async => Gift(id);
+  Future<List<String>> mobileRegionCodes() async => const ['code'];
+  Future<List<String>> registerColumnList() async => const ['column'];
+  Future<List<String>> homeBanners() async => const ['banner'];
 }
 
 /// README 快速开始的完整形态；保持编译即文档回归。
@@ -81,5 +84,28 @@ void main() {
       case WAsyncCancelled(:final reason):
         fail('unexpected cancel: $reason');
     }
+  });
+
+  test('独立区块 record .wait 示例可编译并保留每个结果', () async {
+    final (codes, columns, banners) = await (
+      WAsync.tryRun(() => api.mobileRegionCodes()),
+      WAsync.tryRun(() => api.registerColumnList()),
+      WAsync.tryRun(() => api.homeBanners()),
+    ).wait;
+
+    expect(codes, isA<WAsyncSuccess<List<String>>>());
+    expect(columns, isA<WAsyncSuccess<List<String>>>());
+    expect(banners, isA<WAsyncSuccess<List<String>>>());
+  });
+
+  test('parallel<WAsyncResult<Object?>> 示例可编译', () async {
+    final results = await WAsync.parallel<WAsyncResult<Object?>>([
+      WAsync.tryRun<Object?>(() => api.mobileRegionCodes()),
+      WAsync.tryRun<Object?>(() => api.registerColumnList()),
+      WAsync.tryRun<Object?>(() => api.homeBanners()),
+    ]);
+
+    expect(results, hasLength(3));
+    expect(results.every((result) => result.isSuccess), isTrue);
   });
 }
