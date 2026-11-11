@@ -23,8 +23,8 @@
 | 1 | 1.2 脚本去硬编码命令名 | 完成（PR #134） | `check_docs_facts.py` / `check_prompt_docs.py` 从 `bin/` 派生 |
 | 1 | 1.3（可选）`command_registry.dart` | 未做 | `lib/` 改动，随下个 CLI 版本发 |
 | 2 | 2.1 `ship.sh` 等 checks 竞态 | 完成（PR #136） | 两处 `gh pr checks --watch` 前先等 checks 注册 |
-| 2 | 2.2 自动建分支 | 未做 | main 上给 `-m` 就建 `feat|fix|chore/<slug>` |
-| 2 | 2.3 快照 PR 一条命令 | 未做 | `apply_snapshots.sh --ship` |
+| 2 | 2.2 自动建分支 | 完成（PR #137） | main 上给 `-m` 就建 `feat|fix|chore|docs|refactor|test/<slug>`；`--branch` 覆盖 |
+| 2 | 2.3 快照 PR 一条命令 | 完成（PR #137） | `apply_snapshots.sh --ship` |
 | 2 | 2.4 `preflight` 失败摘要 | 完成（PR #136） | 结尾打印「失败步骤：…」 |
 | 3 | 3.1 环境前提文档 | 完成（PR #135） | `scripts/README.md` 新增「环境前提」节（含 FVM / Flutter cache） |
 | 3 | 3.2 `scripts/_python.sh` | 完成（PR #135） | `preflight` / `check_docs` 共用 PyYAML 守卫 |
@@ -184,7 +184,7 @@ exit code 容易被误读。输出里区分「计划可用 / 发布阻断」，e
 bash scripts/preflight.sh --package=cli   # 确认基线绿
 ```
 
-子票 A（#127）、B（#128）、C（#129）已分别由 PR #134 / #135 / #136 完成；下一张从子票 D（#131，自动建分支 + apply_snapshots --ship）开始。
+子票 A（#127）、B（#128）、C（#129）、D（#131）已分别由 PR #134 / #135 / #136 / #137 完成；下一张从子票 E（#132，CLI registry + context 命令分行）开始。
 
 ## 维护规则
 
