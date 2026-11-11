@@ -170,7 +170,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_version_bump.py` | 对比 PR 的 **merge-base** 与 HEAD 的公开 API 表面：版本降级、版本不高于已发布基线、或版本没抬 → 失败（已抬过且高于已发布基线的未发布版本可以继续沿用；内部重构不会误报；无 barrel 的 cli 显式跳过）。根包 `lib/w_tools.dart` 的 export 行变化也要求根包版本高于 base。`--online` 时用 pub.dev 当已发布基线（取不到回退仓库快照并提醒），修 `git archive` 失败被当成新包 | CI `api-bump` job（带 `--online`）/ 本地 `--base main` |
 | `check_versions.py` | 版本约束的单一校验：root `pubspec.yaml` 的聚合包 caret 下界、`init/versions.dart` 的 `subpackageConstraints` / `cliConstraint` / `wToolsDeviceConstraint` 都必须等于当前 pubspec 版本 | preflight |
 | `check_pr_ready.sh` | 开 PR 前本地跑 PR 级门禁：`check_pr_scope --body-file` + `check_version_bump --base origin/main`；用法 `bash scripts/check_pr_ready.sh <pr-body.md>` | 开 PR 前（CI 同批检查的本地版） |
-| `ship.sh` | 一条命令走完「暂存 → commit → push → 开 PR（默认只到开 PR；`--merge` 才等 checks + Merge commit）」；PR body 自动带「## 改动类型」，公开类别强制 `--j4`；`--dry-run` 只打印计划 | 人工（日常提交 / PR） |
+| `ship.sh` | 一条命令走完「暂存 → commit → push → 开 PR（默认只到开 PR；`--merge` 才等 checks + Merge commit）」；在 main 上给 `-m` 会按标题自动建 `feat|fix|chore|docs|refactor|test/<slug>` 分支，`--branch` 可覆盖；PR body 自动带「## 改动类型」，公开类别强制 `--j4`；`--dry-run` 只打印计划 | 人工（日常提交 / PR） |
 | `check_pr_scope.py` | 读 PR 模板：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须有「## 改动类型」段且至少勾选一项；空 body 也失败。勾了公开类别（公开变化 / 删除废弃 / 新增包）时，**每个改了公开代码的包**都要改自己的 CHANGELOG；根包公开面要有根 `CHANGELOG.md`；本地版本还要高于已发布基线（CI 带 `--online`：用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`） | CI `api-bump` job |
 | `check_feedback.sh` | `docs/feedback/` 台账检查 | check_docs |
 
@@ -184,7 +184,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `publish_package.sh` | 在去掉 workspace 的暂存副本里发布；**正式发布前自己 fail-closed**：先 `git fetch`，再查干净工作区 + `main` 且 HEAD == `origin/main` + `release_check --strict` + 子包快照基线守卫（快照必须已提交，本地版本不得低于 / 等于快照，除非新包在 `pending_first_release.txt`）（`--force --reason "..."` 才跳过，reason 会打日志）；快照写入失败保留 staging；发布成功后快照先写到 `.w_tools/release-snapshots/` | **真正发布会执行，不是 dry-run** |
 | `check_publish_drift.py` | 下载 pub.dev 最新归档，与仓库比对 `pubspec.yaml` / `lib` / `README` / `CHANGELOG` / `example`：**code drift**（去掉注释后仍不同）→ 必须抬版本，`--check` 时 exit 1；**docs drift**（仅 Markdown）与 **comment drift**（仅 dartdoc/空行）只警告 | 每周一 CI（`--check`）/ 发布前审计 |
 | `check_example_paths.py` | 会随包发布的 `example/pubspec.yaml`：`path:` 依赖必须落在包目录内，且不得带 `dependency_overrides`（本地路径覆盖放 `example/pubspec_overrides.yaml`，发布脚本排除） | preflight / 发布前 |
-| `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`，并打印快照 PR 的命令（含 `gh pr checks --required` + `gh pr merge --merge`；仓库未开 auto-merge）；不 commit / 不 push | 一批发布结束后、发根包前 |
+| `apply_snapshots.sh` | 把 `.w_tools/release-snapshots/` 里暂存的 API 快照应用回 `scripts/api_snapshots/`；`--ship` 自动建分支并调 `ship.sh` 开 PR / 等 checks / merge；不带 `--ship` 只移动并打印手工命令 | 一批发布结束后、发根包前 |
 | `pending_first_release.txt` | 已合并、尚未首次发布到 pub.dev 的包（裸名）；`release_status` 对 404 只警告，避免新包首发窗口让周检变红 | 新包合并 → 首发成功后删行 |
 | `install-gh.sh` | GitHub CLI 安装 / 登录向导 | 一次性 |
 
@@ -370,7 +370,7 @@ bash scripts/publish_package.sh .
 由脚本生成，不要手改。`preflight` 按 manifest 逐包对比，**缺基线直接失败**（不再静默跳过）。
 
 - 正常情况：`publish_package.sh` 发布成功后先写到 `.w_tools/release-snapshots/`
-  （gitignored，不会挡住下一个包），一批发完用 `apply_snapshots.sh` 应用到这里；
+  （gitignored，不会挡住下一个包），一批发完用 `apply_snapshots.sh --ship` 应用到这里；
   **提交必须走分支 + PR**
   （`pre-push` 禁止直接 push main；发布脚本要求 `HEAD == origin/main`）。
   同一波要发聚合包时，先合入快照 PR，再 `git pull --ff-only` 后发根包。

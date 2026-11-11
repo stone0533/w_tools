@@ -9,9 +9,10 @@
 #
 # 用法：
 #   bash scripts/apply_snapshots.sh
+#   bash scripts/apply_snapshots.sh --ship                    # 应用后建分支、PR、等 checks、合并
 #   bash scripts/apply_snapshots.sh --from <dir> --to <dir>   # 调试 / 测试用
 #
-# 只做文件移动，不 commit / 不 push；应用后它会打印快照 PR 的命令。
+# 不带 --ship 只做文件移动，不 commit / 不 push；应用后打印快照 PR 的手工命令。
 # 根包发布前必须先合入快照 PR（release_check --strict 会检查快照 tracked 且版本一致）。
 #
 set -euo pipefail
@@ -19,9 +20,10 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 from="${W_TOOLS_SNAPSHOT_DIR:-$root/.w_tools/release-snapshots}"
 to="${W_TOOLS_SNAPSHOT_TARGET:-$root/scripts/api_snapshots}"
+ship=0
 
 usage() {
-  sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 while [ $# -gt 0 ]; do
@@ -38,6 +40,7 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     --to=*) to="${1#*=}" ;;
+    --ship) ship=1 ;;
     -h | --help)
       usage
       exit 0
@@ -67,6 +70,7 @@ if [ ${#files[@]} -eq 0 ]; then
 fi
 
 mkdir -p "$to"
+applied=()
 echo "== 应用 API 快照：$from -> $to"
 for file in "${files[@]}"; do
   base="$(basename "$file")"
@@ -84,11 +88,27 @@ for file in "${files[@]}"; do
     fi
   fi
   mv -f "$file" "$to/$base"
+  applied+=("$pkg $version")
   echo "  ✓ $base"
 done
 
 # 只有目录空了才删；有用户放进去的其他文件就保留。
 rmdir "$from" 2>/dev/null || true
+
+if [ "$ship" -eq 1 ]; then
+  branch="chore/release-snapshots-$(date +%Y%m%d-%H%M%S)"
+  if git -C "$root" show-ref --verify --quiet "refs/heads/$branch"; then
+    branch="${branch}-$$"
+  fi
+  git -C "$root" switch -c "$branch"
+  if [ ${#applied[@]} -eq 1 ]; then
+    subject="${applied[0]}"
+  else
+    subject="$(IFS=', '; echo "${applied[*]}")"
+  fi
+  exec bash "$root/scripts/ship.sh" \
+    -m "chore(release): ${subject} API 基线" --type internal --merge --yes
+fi
 
 cat <<'EOF'
 
@@ -96,10 +116,7 @@ cat <<'EOF'
   git switch -c chore/release-snapshots   # 已存在则 git switch chore/release-snapshots
   git add scripts/api_snapshots
   git commit -m "chore(release): <pkg> <version> API 基线"
-  git push -u origin HEAD
-  gh pr create --fill
-  gh pr checks --required       # 等 Required checks
-  gh pr merge --merge           # 仓库未开 auto-merge；若已开启可改用 --auto
+  bash scripts/ship.sh --type internal --merge --yes
 
 合入 PR 并 `git switch main && git pull --ff-only` 之后，才能发根包。
 EOF
