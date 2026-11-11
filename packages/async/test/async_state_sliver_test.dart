@@ -243,4 +243,96 @@ void main() {
 
     expect(errors, isNotEmpty);
   });
+
+  testWidgets('failed + 旧数据时错误条在列表上方', (tester) async {
+    await tester.pumpWidget(
+      _host(_scroll(ValueNotifier(const WAsyncState.failed('boom', previousData: 1)))),
+    );
+
+    final banner = tester.getTopLeft(find.byType(WAsyncErrorBanner));
+    final ready = tester.getTopLeft(find.text('ready-1'));
+    expect(banner.dy, lessThan(ready.dy));
+  });
+
+  testWidgets('长列表 offset 0 时错误条在视口内', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom', previousData: 100),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        CustomScrollView(
+          slivers: [
+            WAsyncStateSliver<int>(
+              state: state,
+              readySliverBuilder: (context, value) => SliverList.builder(
+                itemCount: 100,
+                itemBuilder: (context, index) => SizedBox(
+                  height: 20,
+                  child: Text('item-$index'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final banner = tester.getRect(find.byType(WAsyncErrorBanner));
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+    expect(banner.top, greaterThanOrEqualTo(0));
+    expect(banner.bottom, lessThanOrEqualTo(screen.height));
+  });
+
+  testWidgets('failed + 旧数据出现/消失时不重建 ready 子树', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(const WAsyncState.ready(1));
+    addTearDown(state.dispose);
+    var inits = 0;
+
+    Widget build() {
+      return CustomScrollView(
+        slivers: [
+          WAsyncStateSliver<int>(
+            state: state,
+            readySliverBuilder: (context, value) => SliverToBoxAdapter(
+              child: _InitCounter(onInit: () => inits++),
+            ),
+          ),
+        ],
+      );
+    }
+
+    await tester.pumpWidget(_host(build()));
+    expect(inits, 1);
+
+    state.value = const WAsyncState.failed('boom', previousData: 1);
+    await tester.pump();
+    expect(find.byType(WAsyncErrorBanner), findsOneWidget);
+    expect(inits, 1);
+
+    state.value = const WAsyncState.ready(1);
+    await tester.pump();
+    expect(inits, 1);
+  });
+}
+
+class _InitCounter extends StatefulWidget {
+  const _InitCounter({required this.onInit});
+
+  final VoidCallback onInit;
+
+  @override
+  State<_InitCounter> createState() => _InitCounterState();
+}
+
+class _InitCounterState extends State<_InitCounter> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onInit();
+  }
+
+  @override
+  Widget build(BuildContext context) => const Text('ready-1');
 }

@@ -1,5 +1,18 @@
 # Changelog
 
+## 6.2.0
+
+### Added
+- `WAsyncPagedController.replaceData(List<T> data, {int? page, bool? hasMore})`：
+  本地替换 / 乐观更新入口。会取消在飞 refresh / loadMore，避免旧结果覆盖本地修改；
+  `page` / `hasMore` 默认沿用当前值，空列表默认没有更多。
+
+### Fixed
+- `WAsyncPagedController.refresh()` 在刷新在飞时不再静默返回：新调用会取消上一次请求并以
+  新参数重发，旧结果不会写回 `state`；刷新失败保留上一次成功的页号与 `hasMore`。
+- `WAsyncStateSliver` 的 failed + 旧数据错误条移到列表上方，长列表下不再落在末尾；
+  错误条出现 / 消失不会重建 ready 子树。
+
 ## 6.1.0
 
 ### Added

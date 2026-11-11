@@ -11,12 +11,13 @@ import 'async_theme_views.dart';
 ///
 /// - ready → [readySliverBuilder]；
 /// - loading / empty / failed（无数据）→ [SliverFillRemaining]；
-/// - failed + 旧数据 → ready sliver + [WAsyncErrorBanner]；
+/// - failed + 旧数据 → [WAsyncErrorBanner]（列表上方）+ ready sliver；
 /// - refreshing + 旧数据 → ready sliver；如需额外进度，显式传
 ///   [refreshingSliverBuilder]。默认不添加进度条，避免和 SmartRefresher
 ///   自带的刷新指示器重复。
 ///
-/// 始终返回同一个 [SliverMainAxisGroup]，避免状态切换重建 ready 子树。
+/// 始终返回同一个 [SliverMainAxisGroup]，并用固定首槽保证 failed + 旧数据 /
+/// refreshing 切换时 ready 子树不被重建。
 /// [readySliverBuilder] 必须返回 sliver（例如 `SliverList`），不能返回 box。
 ///
 /// loading / empty / error 的默认值来自 `WAsyncTheme` 的 `sliver*Builder`；这些 builder 必须返回非滚动内容。
@@ -101,8 +102,22 @@ class WAsyncStateSliver<T> extends StatelessWidget {
 
     if (value.isReady) {
       // ready 的 data 允许为 null（T 可空），不能再用 data != null 判 ready
+      slivers.add(_emptySlot());
       slivers.add(readySliverBuilder(context, value.data as T));
     } else if (data != null) {
+      // 固定首槽：banner 出现 / 消失时 ready 子树仍在同一位置，不会被重建。
+      slivers.add(
+        value.isFailed
+            ? SliverToBoxAdapter(
+                child: views.sliverErrorBanner(
+                  context,
+                  value.error!,
+                  retry,
+                  explicit: errorBannerBuilder,
+                ),
+              )
+            : _emptySlot(),
+      );
       slivers.add(readySliverBuilder(context, data));
 
       if (value.isRefreshing) {
@@ -111,19 +126,6 @@ class WAsyncStateSliver<T> extends StatelessWidget {
           explicit: refreshingSliverBuilder,
         );
         if (refreshing != null) slivers.add(refreshing);
-      }
-
-      if (value.isFailed) {
-        slivers.add(
-          SliverToBoxAdapter(
-            child: views.sliverErrorBanner(
-              context,
-              value.error!,
-              retry,
-              explicit: errorBannerBuilder,
-            ),
-          ),
-        );
       }
     } else {
       final Widget child;
@@ -147,4 +149,6 @@ class WAsyncStateSliver<T> extends StatelessWidget {
 
     return SliverMainAxisGroup(slivers: slivers);
   }
+
+  Widget _emptySlot() => const SliverToBoxAdapter(child: SizedBox.shrink());
 }

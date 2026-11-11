@@ -59,4 +59,41 @@ Widget build(BuildContext context) {
 - 想在 footer 上区分「首屏还没翻过页」和「已翻过页、现在没有更多了」，用
   `controller.hasLoadedMoreThanOnePage`（或 `controller.page > controller.initialPage + 1`），
   不要用 `state.data.length` 变大去猜——失败路径上长度不变，猜出来的值会错；
-- `dispose()` 会取消上一次 `refresh()` 的 token。
+- `refresh()` 在飞时再次调用会取消旧请求并以新参数重发；`dispose()` 会取消在飞 token。
+
+## 切换筛选 / 搜索
+
+```dart
+onFilterChanged: (value) {
+  filter = value;
+  controller.refresh(); // 取消在飞请求，旧结果不写回
+},
+```
+
+- 不需要在刷新期间禁用筛选；
+- 被取代的 `refresh()` future 会随取消立即完成；要等最新结果就 await 最新一次调用；
+- 非 `SmartRefresher` 手势触发的刷新，sliver 默认不显示进度；传 `refreshingSliverBuilder`
+  或由页面自己显示 loading。
+
+## 详情返回置顶 / 乐观更新
+
+```dart
+void onDetailReturn(Gift updated) {
+  final items = List<Gift>.of(controller.state.value.data ?? const <Gift>[]);
+  items
+    ..removeWhere((gift) => gift.id == updated.id)
+    ..insert(0, updated);
+  controller.replaceData(items); // 取消在飞请求，page/hasMore 默认继承
+  // 需要服务端校准再 controller.refresh();
+}
+```
+
+- `replaceData([])` 进入 empty，默认 `hasMore = false`；需要继续分页显式 `hasMore: true`；
+- 首次加载前注入数据时默认视为第一页，下一次 `loadMore` 从 `initialPage + 1` 开始。
+
+## 刷新失败的错误条
+
+- sliver 版本：failed + 旧数据的错误条在列表上方，ready 子树不重建；
+- `WAsyncView` 版本：错误条是视口底部 overlay，始终可见；
+- 长列表滚动很深时，顶部错误条仍可能在视口外：用 `controller.onError` 弹 toast，或用
+  `WAsyncStateBuilder` 在滚动壳外叠加常驻错误条。

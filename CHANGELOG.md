@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed
+- 根包 `w_tools_async` 约束抬到 `^6.2.0`（refresh 可重入、sliver 错误条上移、新增
+  `WAsyncPagedController.replaceData`）。
+
 ## 12.0.4
 
 ### Changed
