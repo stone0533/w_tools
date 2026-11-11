@@ -19,7 +19,7 @@
 
 | 阶段 | 项 | 状态 | 落点 / 验收 |
 | --- | --- | --- | --- |
-| 1 | 1.1 命令契约测试 | 未做 | `packages/cli/test/command_contract_test.dart`；删一行表格应红 |
+| 1 | 1.1 命令契约测试 | 未做 | `packages/cli/test/internal/command_contract_test.dart`；删一行表格应红 |
 | 1 | 1.2 脚本去硬编码命令名 | 未做 | `check_docs_facts.py` / `check_prompt_docs.py` 从 `bin/` 派生 |
 | 1 | 1.3（可选）`command_registry.dart` | 未做 | `lib/` 改动，随下个 CLI 版本发 |
 | 2 | 2.1 `ship.sh` 等 checks 竞态 | 未做（#119–#126 未复现，低优先级） | 两处 `gh pr checks --watch` 前先等 checks 注册 |
@@ -45,7 +45,7 @@ D=#131 2.2+2.3（依赖 C）；E=#132 1.3+4.3（依赖 A）；F=#130 4.1+4.2+4.4
 
 **证据**：注册 `upgrade` 改了 13 个文件，其中 6 个是文档表；漏改任何一处都不会红。
 
-**做法**：新增 `packages/cli/test/command_contract_test.dart`（纯测试，不改 `lib/`）：
+**做法**：新增 `packages/cli/test/internal/command_contract_test.dart`（纯测试，不改 `lib/`）：
 
 - 从 `bin/w_tools.dart` 用正则取 `case '<cmd>':` → 命令清单（事实源）；
 - 每个命令断言：`packages/cli/README.md` 的「命令怎么选」表有行、退出码表有行、

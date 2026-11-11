@@ -133,11 +133,22 @@ for readme in sorted((root / 'docs').glob('*/README.md')):
             errors.append(f'{readme.relative_to(root)}: 没有索引 {path.name}')
 
 # 4) 当前文档不得再使用旧命令入口。
-for path in files:
-    if re.search(
-        r'dart run w_tools_cli:(context|list|explain|doctor|init|feedback|upgrade)', path.read_text()
-    ):
-        errors.append(f'{path.relative_to(root)}: 仍用旧命令入口（应为 w_tools_cli:w_tools ...）')
+# 命令清单从 dispatcher 派生，新增 / 删除命令时不在脚本里维护第二份列表。
+dispatcher = root / 'packages/cli/bin/w_tools.dart'
+command_names = sorted(
+    set(re.findall(r"case '([a-z0-9-]+)':", dispatcher.read_text())),
+    key=len,
+    reverse=True,
+)
+if not command_names:
+    errors.append('packages/cli/bin/w_tools.dart: 解析不到任何命令')
+else:
+    old_entry = re.compile(
+        r'dart run w_tools_cli:(?:' + '|'.join(re.escape(name) for name in command_names) + r')\b'
+    )
+    for path in files:
+        if old_entry.search(path.read_text()):
+            errors.append(f'{path.relative_to(root)}: 仍用旧命令入口（应为 w_tools_cli:w_tools ...）')
 
 # 5) ADR：编号唯一且递增、文件命名规范、有状态行；索引状态/日期与正文一致；
 #    「已取代」必须有 Superseded by 链接；「补充 / 修订」必须带日期。
