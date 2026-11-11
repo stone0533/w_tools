@@ -95,8 +95,10 @@ dart run w_tools_cli:w_tools explain <组件名>
 ## 规则
 
 - **先读缓存**：`spec` / `tokens` 不联网；只有缓存缺失或明确要更新时才 `fetch`。
-- **不要默认 `--refresh`**：会消耗 Tier 1。
-- **`--check-stale` 只提示，不重拉**；需要更新时再 `--refresh`。
+- **不要默认 `--refresh`**：会消耗 Tier 1；它跳过缓存读取，成功后才覆盖。
+- **`--check-stale` 只提示，不重拉**；需要更新时再 `--refresh`。缓存命中时它仍会访问
+  `/meta`，输出会标 `checked /meta`。
+- **ids 顺序不影响缓存**：`fetch nodes/images` 会去重排序，不要为同一个集合换顺序重复 fetch。
 - **`fetch images` 只返回下载地址**；需要文件时用 `get <url> <outfile>`。
 - **`spec --json` 同时包含 `node` 和 `markdown`**；优先读 `node`。
 - token 用 `FIGMA_TOKEN` 环境变量或 `~/.config/w_tools/figma-token`；不要打印、不要提交。

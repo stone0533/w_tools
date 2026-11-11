@@ -1,3 +1,15 @@
+## 0.13.3
+
+### Fixed
+- `fetch nodes` / `fetch images` 的 ids 去重后按字符串排序：缓存 key 与请求顺序无关，
+  `2:3,1:2` 与 `1:2,2:3` 不再产生两份缓存、重复消耗 Tier 1。
+
+### Changed
+- `--refresh` 文档改为「跳过缓存读取并重拉；成功后才覆盖，失败保留旧缓存」，与实现一致。
+- `fetch --check-stale` 命中缓存时输出 `cache hit (checked /meta)`，明确仍访问了 Tier 3。
+- `spec` / `tokens` 找不到缓存节点时，错误提示补 `fetch nodes <fileKey> <nodeId>` 和
+  `url <链接> --json` 的下一步。
+
 ## 0.13.2
 
 ### Fixed

@@ -67,7 +67,11 @@ Future<void> runFetch(List<String> args) async {
       _ => throw FormatException('未知的 fetch 类型：$kind（file / nodes / images）'),
     };
     if (result.fromCache) {
-      stderr.writeln('# cache hit: ${result.file.path}');
+      stderr.writeln(
+        options.checkStale
+            ? '# cache hit (checked /meta): ${result.file.path}'
+            : '# cache hit: ${result.file.path}',
+      );
     } else {
       stderr.writeln('# fetched: ${result.file.path}');
     }
