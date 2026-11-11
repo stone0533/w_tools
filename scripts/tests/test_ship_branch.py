@@ -42,6 +42,8 @@ class ShipAutoBranchTest(unittest.TestCase):
             check=True,
             capture_output=True,
         )
+        # CI 的 git init 默认分支可能是 master；ship.sh 的自动分支只认 main。
+        subprocess.run(['git', 'branch', '-m', 'main'], cwd=temp, check=True)
         env = dict(os.environ)
         env['PATH'] = f'{bin_dir}:{env["PATH"]}'
         return temp, env
