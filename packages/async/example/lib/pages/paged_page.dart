@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
-/// 二、WAsyncPagedController：首屏、loadMore、hasMore、追加失败。
+/// 二、WAsyncPagedController：首屏、loadMore、hasMore、追加失败、本地替换。
 class PagedPage extends StatefulWidget {
   const PagedPage({super.key});
 
@@ -46,6 +46,18 @@ class _PagedPageState extends State<PagedPage> {
             tooltip: '刷新第一页',
             onPressed: _controller.refresh,
             icon: const Icon(Icons.refresh_rounded),
+          ),
+          IconButton(
+            tooltip: '本地置顶最后一条',
+            onPressed: () {
+              final items = List<String>.of(
+                _controller.state.value.data ?? const <String>[],
+              );
+              if (items.isEmpty) return;
+              final last = items.removeLast();
+              _controller.replaceData([last, ...items]);
+            },
+            icon: const Icon(Icons.vertical_align_top_rounded),
           ),
           IconButton(
             tooltip: '下一页失败',

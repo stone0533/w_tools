@@ -8,11 +8,15 @@
 - `WAsyncView` / `WAsyncStateBuilder` 只监听 `ValueListenable`（`state` 不是 `Rx`）：
   页面里其它 Rx 状态（筛选条件、倒计时）该包 `Obx` 还得包；迁移时顺手删掉外层 `Obx`
   不会有编译错误，但那些状态就不再触发重建。
-- Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮。
+- Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮；failed + 旧数据的错误条在
+  列表上方，深滚动场景用 `onError` toast 或 `WAsyncStateBuilder` overlay。
 - 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
+- 切换筛选 / 搜索直接再调 `refresh()`：在飞刷新会被取消，旧结果不写回；不要禁用筛选。
+- 本地替换 / 乐观更新用 `replaceData`：会取消在飞 refresh / loadMore，`page` / `hasMore` 默认继承。
 - 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常。
 - `WAsync.run` 不再接受 `onSuccess`；需要映射用 `WAsync.map`。`runValue` / `WAsyncLoading` 已删除。
-- 取消用 `WCancelToken`；`withToken` 让 loader 感知取消；取消不中止底层 Future。
+- 取消用 `WCancelToken`；`withToken` 让 loader 感知取消；取消不中止底层 Future；
+  被新 refresh 取代的旧 refresh 也会 cancel token。
 
 选择入口：
 

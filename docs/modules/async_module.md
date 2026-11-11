@@ -182,11 +182,15 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 
 页号：
 
-- `page` 是**下一次 `loadMore` 将请求的页码**，首屏完成前等于 `initialPage`；刷新失败会回滚。
+- `page` 是**下一次 `loadMore` 将请求的页码**，首屏完成前等于 `initialPage`；刷新失败保留刷新前的页码。
 - `hasLoadedMoreThanOnePage`（`page > initialPage + 1`）表示已成功追加过第二页，
   用它区分「首屏还没翻过页」和「已翻过页、现在没有更多了」；不要用 `state.data.length` 变大去猜。
 
 `initialPage` 必须 >= 1；`initial: WAsyncState.ready([])` / `WAsyncState.empty()` 视为没有更多；`loadMore` 失败只写 `loadMoreError`，不清空列表。
+
+切换筛选 / 搜索直接再调 `refresh()`：在飞刷新会被取消，旧结果不写回；不需要禁用筛选。
+本地替换 / 乐观更新用 `replaceData`：会取消在飞 `refresh` / `loadMore`，`page` / `hasMore`
+默认沿用当前值，空列表默认没有更多；需要服务端校准再 `refresh()`。
 
 ## 4. View
 
@@ -200,6 +204,8 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 
 - `WAsyncView.onRetry` 可选；无 retry 时不渲染按钮，但自定义 error / banner builder 仍会收到 `null`，由 builder 决定是否渲染按钮；自定义 retry 失败用 `onRetryError` 观测；
 - `WAsyncStateSliver.onRetry` 可选；无 retry 时自定义 builder 仍会收到 `null`；
+- `WAsyncStateSliver` 的 failed + 旧数据错误条在列表上方，ready 子树不重建；`WAsyncView` 的错误条是视口底部 overlay；
+- 长列表深滚动时顶部错误条可能在视口外：用 `onError` toast 或 `WAsyncStateBuilder` overlay；
 - 默认文案由 `WAsyncStrings` 提供，通过 `WAsyncTheme.strings` 注入本地化。
 
 ## 5. Theme
@@ -230,4 +236,4 @@ cd packages/async
 flutter test
 ```
 
-当前 6.1.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
+当前 6.2.0；迁移见 [async-6.0](../migrations/async-6.0.md)。

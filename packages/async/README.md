@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^6.1.0
+  w_tools_async: ^6.2.0
 ```
 
 要求 Flutter 3.38+。
@@ -213,6 +213,9 @@ final controller = WAsyncController.withToken(
 WAsyncPagedController.withToken((page, token) => api.gifts(page, token));
 ```
 
+`refresh()` 被新的 `refresh()` 取代时也会取消旧 token；旧结果不会写回 `state`。
+被取代的 `refresh()` future 会随取消立即完成，要等最新结果就 await 最新一次调用。
+
 ## 分页
 
 ```dart
@@ -246,6 +249,30 @@ footer 必须额外监听 `hasMoreListenable`，否则按钮会一直停在「�
 用来区分「首屏还没翻过页」和「已翻过页、现在没有更多了」。
 
 `initial: WAsyncState.ready([])` 视为没有更多：不会请求 `initialPage + 1`。
+
+切换筛选 / 搜索时直接再调 `refresh()`：在飞请求会被取消，旧结果不会写回。
+如果这次刷新不是由 `SmartRefresher` 手势触发，sliver 默认不显示进度；需要时传
+`refreshingSliverBuilder` 或由页面自己显示 loading。
+
+```dart
+onFilterChanged: (value) {
+  filter = value;
+  controller.refresh();
+},
+```
+
+本地替换 / 乐观更新用 `replaceData`：它会取消在飞 `refresh` / `loadMore`，避免旧结果覆盖
+本地修改；`page` / `hasMore` 默认沿用当前值，空列表默认没有更多。需要服务端校准时再
+`refresh()`。
+
+```dart
+// 详情返回后把刚看过的项置顶
+final items = List<Gift>.of(controller.state.value.data ?? const <Gift>[]);
+items
+  ..removeWhere((gift) => gift.id == updated.id)
+  ..insert(0, updated);
+controller.replaceData(items);
+```
 
 ## 全局默认视图与文案
 
@@ -301,10 +328,12 @@ WAsyncStateSliver<List<Gift>>(
 )
 ```
 
-- 失败 + 旧数据：保留 ready sliver，追加错误条；
+- 失败 + 旧数据：错误条在列表上方，ready 子树不因错误条出现/消失而重建；
 - 刷新 + 旧数据：默认不额外加进度，避免和 `SmartRefresher` 重复；
 - `onRetry == null`：不显示重试按钮；自定义 error / banner builder 仍会收到 `null`，
-  需自行决定是否渲染按钮。
+  需自行决定是否渲染按钮；
+- 长列表滚动很深时错误条仍可能在视口外；需要常驻提示时用 `controller.onError`
+  弹 toast，或用 `WAsyncStateBuilder` 在滚动壳外叠加错误条。
 
 ## 约定
 

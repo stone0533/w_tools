@@ -45,7 +45,7 @@ void main() {
       final refreshing = controller.refresh();
       await controller.loadMore();
 
-      // 刷新未完成时 loadMore 直接返回，不会用被重置的 _page 请求第一页
+      // 刷新未完成时 loadMore 直接返回，不会用未提交的游标请求下一页
       expect(calls, [1, 1]);
       pending.complete(const [9, 9]);
       await refreshing;
@@ -435,6 +435,295 @@ void main() {
       await controller.refresh();
       expect(controller.page, 3);
       expect(controller.hasLoadedMoreThanOnePage, isTrue);
+    });
+  });
+
+  group('刷新取代（#118）', () {
+    test('刷新在飞时再次 refresh 取消旧请求，旧结果不写回', () async {
+      final tokens = <WCancelToken>[];
+      final pending = <Completer<List<int>>>[];
+      final controller = WAsyncPagedController<int>.withToken((_, token) {
+        tokens.add(token);
+        final completer = Completer<List<int>>();
+        pending.add(completer);
+        return completer.future;
+      });
+      addTearDown(controller.dispose);
+
+      final first = controller.refresh();
+      final second = controller.refresh();
+
+      expect(tokens, hasLength(2));
+      expect(tokens[0].isCancelled, isTrue);
+      expect(tokens[1].isCancelled, isFalse);
+
+      pending[0].complete(const [1]);
+      await first;
+      pending[1].complete(const [2]);
+      await second;
+
+      expect(controller.state.value.data, [2]);
+    });
+
+    test('旧 refresh 结束不会清掉新 refresh 的 in-flight 闸门', () async {
+      final calls = <int>[];
+      var pageOneCalls = 0;
+      final second = Completer<List<int>>();
+      final controller = WAsyncPagedController<int>((page) async {
+        calls.add(page);
+        if (page != 1) return const [2];
+        return pageOneCalls++ == 0 ? const [1] : second.future;
+      });
+      addTearDown(controller.dispose);
+
+      final first = controller.refresh();
+      final newer = controller.refresh();
+      await first;
+
+      await controller.loadMore();
+      expect(calls, [1, 1]);
+
+      second.complete(const [2]);
+      await newer;
+      await controller.loadMore();
+      expect(calls, [1, 1, 2]);
+    });
+
+    test('刷新被取代后失败，保留上一次成功的页号', () async {
+      final pending = <Completer<List<int>>>[];
+      final calls = <int>[];
+      var failRefresh = false;
+      final controller = WAsyncPagedController<int>((page) async {
+        calls.add(page);
+        if (failRefresh) {
+          final completer = Completer<List<int>>();
+          pending.add(completer);
+          return completer.future;
+        }
+        return <int>[page];
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      await controller.loadMore();
+      expect(controller.page, 4);
+
+      failRefresh = true;
+      calls.clear();
+      final first = controller.refresh();
+      final second = controller.refresh();
+      expect(calls, [1, 1]);
+      pending[0].completeError(StateError('old refresh'));
+      pending[1].completeError(StateError('new refresh'));
+      await Future.wait([first, second]);
+
+      expect(controller.state.value.isFailed, isTrue);
+      expect(controller.page, 4);
+      expect(controller.hasMore, isTrue);
+
+      failRefresh = false;
+      calls.clear();
+      await controller.loadMore();
+      expect(calls, [4]);
+      expect(controller.state.value.data, [1, 2, 3, 4]);
+    });
+  });
+
+  group('本地替换（#112）', () {
+    test('replaceData 替换数据并沿用分页游标', () async {
+      final calls = <int>[];
+      final controller = WAsyncPagedController<int>((page) async {
+        calls.add(page);
+        return <int>[page];
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      controller.replaceData(const [9, 8]);
+
+      expect(controller.state.value.data, [9, 8]);
+      expect(controller.page, 2);
+
+      await controller.loadMore();
+      expect(calls, [1, 2]);
+      expect(controller.state.value.data, [9, 8, 2]);
+    });
+
+    test('replaceData 在首次加载前视为第一页', () async {
+      final calls = <int>[];
+      final controller = WAsyncPagedController<int>((page) async {
+        calls.add(page);
+        return <int>[page];
+      });
+      addTearDown(controller.dispose);
+
+      controller.replaceData(const [9]);
+      expect(controller.page, 2);
+
+      await controller.loadMore();
+      expect(calls, [2]);
+      expect(controller.state.value.data, [9, 2]);
+    });
+
+    test('replaceData 空列表进入 empty 且默认没有更多', () async {
+      var calls = 0;
+      final controller = WAsyncPagedController<int>((page) async {
+        calls++;
+        return const [1];
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      controller.replaceData(const []);
+
+      expect(controller.state.value.isEmpty, isTrue);
+      expect(controller.hasMore, isFalse);
+
+      await controller.loadMore();
+      expect(calls, 1);
+    });
+
+    test('replaceData 默认沿用 hasMore=false', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const <int>[],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      expect(controller.hasMore, isFalse);
+
+      controller.replaceData(const [9]);
+      expect(controller.hasMore, isFalse);
+    });
+
+    test('replaceData 可显式指定 page / hasMore', () async {
+      final calls = <int>[];
+      final controller = WAsyncPagedController<int>((page) async {
+        calls.add(page);
+        return <int>[page];
+      });
+      addTearDown(controller.dispose);
+
+      controller.replaceData(const [7], page: 5, hasMore: true);
+      expect(controller.page, 5);
+
+      await controller.loadMore();
+      expect(calls, [5]);
+      expect(controller.state.value.data, [7, 5]);
+    });
+
+    test('replaceData 取消在飞 refresh，旧结果不覆盖', () async {
+      final pending = Completer<List<int>>();
+      final controller = WAsyncPagedController<int>.withToken((_, token) {
+        return pending.future;
+      });
+      addTearDown(controller.dispose);
+
+      final refreshing = controller.refresh();
+      controller.replaceData(const [9, 8]);
+
+      expect(controller.state.value.data, [9, 8]);
+
+      pending.complete(const [1, 2]);
+      await refreshing;
+
+      expect(controller.state.value.data, [9, 8]);
+    });
+
+    test('replaceData 取消在飞 refresh 后 loadMore 仍可用', () async {
+      final pending = Completer<List<int>>();
+      var calls = 0;
+      final controller = WAsyncPagedController<int>((page) async {
+        calls++;
+        if (calls == 1) return pending.future;
+        return <int>[page];
+      });
+      addTearDown(controller.dispose);
+
+      final refreshing = controller.refresh();
+      controller.replaceData(const [9], page: 3);
+      pending.complete(const [1]);
+      await refreshing;
+
+      await controller.loadMore();
+      expect(controller.state.value.data, [9, 3]);
+    });
+
+    test('replaceData 取消在飞 loadMore，旧结果不追加', () async {
+      final page2 = Completer<List<int>>();
+      final controller = WAsyncPagedController<int>((page) async {
+        if (page == 1) return const [1];
+        return page2.future;
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      final loading = controller.loadMore();
+      controller.replaceData(const [9, 8]);
+
+      page2.complete(const [2]);
+      await loading;
+
+      expect(controller.state.value.data, [9, 8]);
+    });
+
+    test('replaceData 复制输入列表且 state.data 不可变', () async {
+      final controller = WAsyncPagedController<int>((page) async => const [1]);
+      addTearDown(controller.dispose);
+
+      final input = <int>[1, 2];
+      controller.replaceData(input);
+      input.add(3);
+
+      expect(controller.state.value.data, [1, 2]);
+      expect(() => controller.state.value.data!.add(4), throwsUnsupportedError);
+    });
+
+    test('replaceData 清空 loadMoreError', () async {
+      final controller = WAsyncPagedController<int>((page) async {
+        if (page == 1) return const [1];
+        throw StateError('page failed');
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      expect(controller.loadMoreError.value, isNotNull);
+
+      controller.replaceData(const [2]);
+      expect(controller.loadMoreError.value, isNull);
+    });
+
+    test('replaceData page 必须大于 0', () {
+      final controller = WAsyncPagedController<int>((page) async => const [1]);
+      addTearDown(controller.dispose);
+
+      expect(
+        () => controller.replaceData(const [1], page: 0),
+        throwsArgumentError,
+      );
+    });
+
+    test('dispose 后 replaceData 不做事', () {
+      final controller = WAsyncPagedController<int>((page) async => const [1]);
+      controller.dispose();
+
+      controller.replaceData(const [1]);
+    });
+
+    test('replaceData 通知 changes', () {
+      final controller = WAsyncPagedController<int>((page) async => const [1]);
+      addTearDown(controller.dispose);
+      var notifications = 0;
+      void listener() => notifications++;
+      controller.changes.addListener(listener);
+      addTearDown(() => controller.changes.removeListener(listener));
+
+      controller.replaceData(const [2]);
+
+      expect(notifications, greaterThan(0));
     });
   });
 }

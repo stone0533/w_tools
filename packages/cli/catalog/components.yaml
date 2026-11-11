@@ -881,12 +881,14 @@ components:
     package: 'w_tools_async'
     docsAnchor: 'wasyncpagedcontroller'
     section: '3. Controller'
-    useFor: '分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md）'
+    useFor: '分页列表：首屏、刷新、追加、hasMore、本地替换（recipe: docs/recipes/paged-list.md）'
     dontUseFor: '普通单请求用 `WAsyncController`'
     usage: |
       final c = WAsyncPagedController<Item>((page) => api.list(page: page));
       await c.refresh();
       await c.loadMore();
+      c.refresh();                 // 切换筛选直接再调：取消在飞请求，旧结果不写回
+      c.replaceData(next);         // 本地替换 / 置顶：取消在飞 refresh / loadMore
       c.changes.addListener(() { ... }); // 或单项监听 hasMoreListenable / loadMoreError
       c.hasMoreListenable.addListener(() { ... });
       c.loadMoreError.addListener(() { ... });
@@ -896,13 +898,15 @@ components:
       - 'loadMore 失败只写 loadMoreError，不要清空列表'
       - 'initial: ready([]) / empty 视为没有更多'
       - 'page 是「下一次请求的页码」，不是「当前页」；别自己用 data.length 猜是否翻过页'
+      - '切换筛选直接再 refresh()：在飞请求会被取消，不要禁用筛选'
+      - 'replaceData 会取消在飞 refresh/loadMore；page/hasMore 默认继承，空列表 hasMore=false'
     related: ['WAsyncView', 'WAsyncController']
     teach: true
   - name: '`WAsyncStateSliver`'
     package: 'w_tools_async'
     docsAnchor: '4-view'
     section: '4. View'
-    useFor: 'CustomScrollView 的四态 sliver、failed+旧数据'
+    useFor: 'CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方）'
     dontUseFor: '非滚动页面用 `WAsyncView`'
     usage: |
       WAsyncStateSliver<List<Gift>>(
@@ -912,7 +916,8 @@ components:
       )
     pitfalls:
       - 'readySliverBuilder 必须返回 sliver；不要包在 WAsyncView 里'
-      - 'failed + 旧数据时保留 ready sliver，追加错误条'
+      - 'failed + 旧数据时错误条在列表上方；ready 子树保持同一 element'
+      - '深滚动场景错误条可能在视口外；用 onError toast 或 WAsyncStateBuilder overlay'
     related: ['WAsyncStateBuilder', 'WAsyncTheme']
     teach: true
   - name: '`WAsyncTheme`'

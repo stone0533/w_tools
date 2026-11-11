@@ -103,7 +103,7 @@ class WAsyncPagedController<T> {
 
   /// 下一次 [loadMore] 将请求的页码；首屏完成前等于 [initialPage]。
   ///
-  /// 只进不退的语义在这里不成立：首屏 [refresh] 失败会回滚到刷新前的页码，
+  /// 只进不退的语义在这里不成立：首屏 [refresh] 失败会保留刷新前的页码，
   /// [loadMore] 失败则停在原页码。普通 getter，不会通知；
   /// 需要感知变化时用 [changes]。
   int get page => _page;
@@ -111,7 +111,7 @@ class WAsyncPagedController<T> {
   /// 是否已经成功追加过第二页（`page > initialPage + 1`）。
   ///
   /// footer 用它区分「首屏还没翻过页」和「已经翻过页、现在没有更多了」；
-  /// 它由 [page] 派生，刷新失败回滚时不会误报。
+  /// 它由 [page] 派生，刷新失败保留游标时不会误报。
   bool get hasLoadedMoreThanOnePage => _page > initialPage + 1;
 
   /// state / isLoadingMore / loadMoreError / hasMore 任一变化都会通知。
@@ -122,29 +122,29 @@ class WAsyncPagedController<T> {
   Listenable get changes => _changes;
 
   /// 重新加载第一页；失败时保留旧数据。
+  ///
+  /// 刷新在飞时再次调用会取消上一次请求并以本次为准：旧请求的结果不会写入
+  /// [state]。切换筛选 / 搜索时直接再调一次即可，不需要禁用输入。
   Future<void> refresh() async {
-    if (_disposed || _refreshing) return;
+    if (_disposed) return;
+    final generation = ++_generation;
     _refreshing = true;
     try {
-      await _refresh();
+      await _refresh(generation);
     } finally {
-      _refreshing = false;
+      // 被取代的旧 refresh 结束时不能清掉新 refresh 的闸门。
+      if (generation == _generation) _refreshing = false;
     }
   }
 
-  Future<void> _refresh() async {
+  Future<void> _refresh(int generation) async {
     _refreshToken?.cancel('superseded by a newer refresh');
     _loadMoreToken?.cancel('refreshed while loadMore was in flight');
     final token = _refreshToken = WCancelToken();
 
-    final oldData = _state.value.data;
-    final oldPage = _page;
-    final oldHasMore = _hasMore.value;
-    final generation = ++_generation;
-    _page = initialPage;
-    _hasMore.value = true;
+    final previousData = _state.value.data;
     _loadMoreError.value = null;
-    _state.value = WAsyncState<List<T>>.loading(previousData: oldData);
+    _state.value = WAsyncState<List<T>>.loading(previousData: previousData);
 
     final result = await WAsync.tryRun<List<T>>(
       () => _loader(initialPage, token),
@@ -162,11 +162,11 @@ class WAsyncPagedController<T> {
           ? WAsyncState<List<T>>.empty()
           : WAsyncState<List<T>>.ready(_ChunkedList<T>.from(value));
     } else if (result is WAsyncFailure<List<T>>) {
-      _page = oldPage;
-      _hasMore.value = oldHasMore;
+      // 失败时保留上一次成功的页号 / hasMore，避免被取代的刷新回滚到
+      // 另一次刷新的临时值。
       _state.value = WAsyncState<List<T>>.failed(
         result.error,
-        previousData: oldData,
+        previousData: previousData,
       );
     }
     // WAsyncCancelled 已在上面的 token.isCancelled 提前返回。
@@ -215,6 +215,37 @@ class WAsyncPagedController<T> {
       case WAsyncCancelled<List<T>>():
         return;
     }
+  }
+
+  /// 用本地数据替换当前列表（乐观更新）。
+  ///
+  /// 会取消在飞的 [refresh] / [loadMore] 并让它们的结果失效，避免旧请求覆盖
+  /// 本地修改；需要以服务端为准时随后再调 [refresh]。
+  ///
+  /// [page] 默认沿用当前页号；首次加载前（还没有数据且页号仍是 [initialPage]）
+  /// 视为第一页，下一次 [loadMore] 从 `initialPage + 1` 开始。
+  /// [hasMore] 默认沿用当前值；空列表默认 `false`。
+  ///
+  /// 传入的列表会复制成不可变列表；空列表进入 [WAsyncState.empty]，
+  /// 并清空 [loadMoreError]。
+  void replaceData(List<T> data, {int? page, bool? hasMore}) {
+    if (_disposed) return;
+    if (page != null && page < 1) {
+      throw ArgumentError.value(page, 'page', '必须大于 0');
+    }
+
+    _generation++;
+    _refreshToken?.cancel('local data replaced');
+    _loadMoreToken?.cancel('local data replaced');
+    _refreshing = false;
+    _isLoadingMore.value = false;
+    _loadMoreError.value = null;
+
+    _page = page ?? (_state.value.data == null && _page == initialPage ? initialPage + 1 : _page);
+    _hasMore.value = hasMore ?? (data.isEmpty ? false : _hasMore.value);
+    _state.value = data.isEmpty
+        ? WAsyncState<List<T>>.empty()
+        : WAsyncState<List<T>>.ready(_ChunkedList<T>.from(data));
   }
 
   void dispose() {

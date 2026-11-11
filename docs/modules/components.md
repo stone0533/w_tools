@@ -93,7 +93,7 @@
 | `WBadgePosition` | ui | 角标位置：topEnd / center | 不要用它做外部布局；它只控制角标相对 child 的位置 |
 | `WFormIcons` | form | 表单图标统一入口（下拉 / 勾选 / 单选 / 密码 / 清空）；WForm 会继承外层 WFormTheme 的图标 | `WFormDefaults` 已删除；`WForm` / `WFormTheme` 已不再接受单项 `xxxIcon` 参数，统一用 `icons:` |
 | `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
-| `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
+| `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore、本地替换（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WLanguage` | app | 实例级语言状态 / 切换 / 只读变化流 | 不要自己保存 currentLanguage；用 app.language |
 | `WButtonSize` | ui | 按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap） | 不要用它控制宽度；宽度由父布局决定 |
 | `WButtonMotion` | ui | 按钮按压动效（opacity / scale / none） | 不要每个按钮自定义一套；默认动效已够，品牌统一放 AppButtons |
@@ -121,7 +121,7 @@
 | `WFormBorderDecoration` | form | 边框装饰值对象：border / color / borderRadius / boxShadow / gradient | 不要用 `Container(decoration:)` 代替 `WFormBorder` |
 | `WAsyncView` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
 | `WAsyncStateBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除 |
-| `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据 | 非滚动页面用 `WAsyncView` |
+| `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncView` |
 | `WRouteStack` | app_getx | 路由栈操作（`app.routeStack`） | — |
 | `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |
 | `WFormReadOnlyScope` | form | 只读作用域：由 WForm / 字段自动注入，穿透任意包装 | — |
