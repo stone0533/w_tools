@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 /// 默认值来自编译期 `--dart-define`：
 /// - `E2E=1`（或 `true`）
 /// - `E2E_EMAIL` / `E2E_PASSWORD`
+/// - `E2E_PROFILE=1`：profile 构建显式放行（默认只允许 debug）
 ///
 /// 注意 `bool.fromEnvironment` 只认 `"true"`，`E2E=1` 会得到 false —— 这里按字符串读。
 @immutable
@@ -18,8 +19,13 @@ class E2eConfig {
 
   factory E2eConfig.fromEnvironment() {
     const flag = String.fromEnvironment('E2E');
+    const profileFlag = String.fromEnvironment('E2E_PROFILE');
+    final envEnabled = flag == '1' || flag.toLowerCase() == 'true';
+    final profileEnabled = profileFlag == '1' || profileFlag.toLowerCase() == 'true';
+    // 默认 debug；profile 必须显式 E2E_PROFILE=1，避免 profile 分发包自动登录。
+    final modeAllowed = kDebugMode || (kProfileMode && profileEnabled);
     return E2eConfig(
-      enabled: (flag == '1' || flag.toLowerCase() == 'true') && !kReleaseMode,
+      enabled: envEnabled && !kReleaseMode && modeAllowed,
       email: const String.fromEnvironment('E2E_EMAIL'),
       password: const String.fromEnvironment('E2E_PASSWORD'),
     );
