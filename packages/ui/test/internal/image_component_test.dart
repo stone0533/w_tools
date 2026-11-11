@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 import 'package:w_tools_ui/src/internal/image_loader.dart';
+import 'package:w_tools_ui/src/components/common/image/image_size_hint.dart';
 
 void main() {
   setUpAll(() {
     WidgetsFlutterBinding.ensureInitialized();
   });
+  setUp(debugResetWImageSizeHintCache);
 
   group('WImageStyle', () {
     test('字段可读，copyWith 产生新实例', () {

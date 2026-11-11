@@ -11,7 +11,11 @@ const _redPixel =
 void main() {
   test('README 不包含 7.0 已删除的 API', () {
     final readme = File('README.md').readAsStringSync();
-    expect(readme, contains('w_tools_ui: ^8.1.0'));
+    final version = RegExp(
+      r'^version:\s*(\S+)',
+      multiLine: true,
+    ).firstMatch(File('pubspec.yaml').readAsStringSync())!.group(1);
+    expect(readme, contains('w_tools_ui: ^$version'));
     expect(readme, contains('options: WImageLoadOptions'));
     expect(readme, isNot(contains('config: WImageLoadConfig')));
     expect(readme, isNot(contains('WHexColor')));

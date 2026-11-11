@@ -1,3 +1,8 @@
+## 1.20.3
+
+### Changed
+- `init` 写入的 `w_tools_ui` 约束同步到 `^8.2.0`（WTabBar noSplash / WImage 提示带 source）。
+
 ## 1.20.2
 
 ### Changed
