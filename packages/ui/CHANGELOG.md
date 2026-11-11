@@ -1,3 +1,17 @@
+## 8.2.0
+
+### Breaking
+- `WTabBarStyle.copyWith` 签名新增可选 `splashFactory`：源码兼容，旧调用不需要改；
+  公开 API 快照把方法签名变化视为 Breaking。
+
+### Added
+- `WTabBarStyle.splashFactory` / `WTabBarStyle.noSplash`：可显式关闭 tab 的 overlay 与水波纹；
+  默认仍交给 `TabBarTheme`，不强制透明。
+
+### Changed
+- `WImage` 无尺寸提示带脱敏后的 source，并按 source + 轴去重；避免同一张图在测试 /
+  多个实例里反复刷屏。补充 `width + fitWidth` 仍需要 height / aspectRatio / 有界父级的文档。
+
 ## 8.1.0
 
 ### Added

@@ -47,6 +47,7 @@ class WTabBar extends StatelessWidget {
       dividerColor: style.dividerColor,
       dividerHeight: style.dividerHeight,
       overlayColor: style.overlayColor == null ? null : WidgetStateProperty.all(style.overlayColor),
+      splashFactory: style.splashFactory,
       tabAlignment: style.tabAlignment,
       onTap: onTap,
     );

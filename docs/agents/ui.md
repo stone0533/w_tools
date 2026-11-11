@@ -51,7 +51,8 @@ WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate�
 普通页面 → WScaffold + WAppBar
 （消费方项目的标准页面默认用 CLI 生成的 AppScaffold；本文件是库 / 仓库内用法）
 底部 tab → WNavBar / WNavController
-顶部 tab → WTabBar（依赖 TabController / DefaultTabController）
+顶部 tab → WTabBar（依赖 TabController / DefaultTabController；默认 overlay / ripple 跟
+TabBarTheme，要关用 `WTabBarStyle.noSplash` 或 `splashFactory` + `overlayColor`）
 步骤流程 → WStep / WStepFlow
 ```
 

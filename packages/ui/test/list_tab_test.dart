@@ -21,15 +21,18 @@ void main() {
         indicatorColor: Colors.blue,
         indicatorWeight: 3.0,
         tabAlignment: TabAlignment.center,
+        splashFactory: NoSplash.splashFactory,
       );
       expect(style.isScrollable, isTrue);
       expect(style.indicatorWeight, 3.0);
       expect(style.dividerHeight, 1.0);
+      expect(style.splashFactory, NoSplash.splashFactory);
 
       final updated = style.copyWith(dividerHeight: 2.0, dividerColor: Colors.red);
       expect(updated.dividerHeight, 2.0);
       expect(updated.dividerColor, Colors.red);
       expect(updated.labelStyle, style.labelStyle);
+      expect(updated.splashFactory, NoSplash.splashFactory);
     });
 
     test('值相等', () {
@@ -148,6 +151,23 @@ void main() {
     final tabBar = tester.widget<TabBar>(find.byType(TabBar));
     expect(tabBar.overlayColor?.resolve({}), Colors.red);
   });
+  testWidgets('WTabBar noSplash 预设同时关 overlay 与水波纹', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: DefaultTabController(
+          length: 2,
+          child: WTabBar(
+            style: WTabBarStyle.noSplash,
+            tabs: [Text('A'), Text('B')],
+          ),
+        ),
+      ),
+    );
+    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabBar.overlayColor?.resolve({}), Colors.transparent);
+    expect(tabBar.splashFactory, NoSplash.splashFactory);
+  });
+
   testWidgets('WTabBar 默认不强制透明 overlay，交给 TabBarTheme', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

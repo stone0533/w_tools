@@ -189,7 +189,7 @@ class _WImageState extends State<WImage> {
     _sizeHintScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      debugCheckWImageSizeHint(context);
+      debugCheckWImageSizeHint(context, source: widget.source);
     });
   }
 

@@ -1,3 +1,9 @@
+## 12.0.7
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^8.2.0`（WTabBar noSplash / splashFactory；WImage 无尺寸提示
+  带 source 并去重）。
+
 ## 12.0.6
 
 ### Changed

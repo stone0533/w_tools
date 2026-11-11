@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^8.1.0
+  w_tools_ui: ^8.2.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -73,6 +73,10 @@ WImage.source(
 > `WImage` 不会自动给尺寸：没有 `width` / `height` / `aspectRatio` 时，必须由父级
 > （`SizedBox` / `Expanded` / `AspectRatio`）约束；否则在 `Row` / `Column` / `ListView`
 > 里加载前占位是 0 尺寸，表现为空白（debug 下会打印提示）。
+>
+> 注意 `width + BoxFit.fitWidth` **不会确定高度**；仍要补 `height`、`aspectRatio` 或让父级
+> 在高度轴有界。`aspectRatio` 不能和固定 `width` / `height` 同时设置：固定宽度 + 比例时用
+> 父级 `AspectRatio`，或只给 `aspectRatio`。debug 提示会带脱敏 source，并按 source + 轴去重。
 
 ### 入口选择
 
@@ -316,6 +320,9 @@ DefaultTabController(
 ```
 
 `WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`。
+默认 overlay / 水波纹跟 `TabBarTheme`；要关闭灰色按压块 + ripple，用
+`WTabBarStyle.noSplash`，或分别设置 `overlayColor: Colors.transparent` /
+`splashFactory: NoSplash.splashFactory`。默认值不强制透明，避免覆盖 Material 主题。
 
 ## 扩展方法
 

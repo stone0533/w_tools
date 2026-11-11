@@ -16,7 +16,14 @@ class WTabBarStyle {
     this.indicatorWeight = 2.0,
     this.tabAlignment,
     this.overlayColor,
+    this.splashFactory,
   });
+
+  /// 明确关闭 overlay + 水波纹的预设；不改变默认样式。
+  static const WTabBarStyle noSplash = WTabBarStyle(
+    overlayColor: Colors.transparent,
+    splashFactory: NoSplash.splashFactory,
+  );
 
   final TextStyle? labelStyle;
   final TextStyle? unselectedLabelStyle;
@@ -31,6 +38,9 @@ class WTabBarStyle {
   final TabAlignment? tabAlignment;
   final Color? overlayColor;
 
+  /// 点击 / 长按的水波纹工厂；null 时交给 TabBarTheme。
+  final InteractiveInkFeatureFactory? splashFactory;
+
   WTabBarStyle copyWith({
     TextStyle? labelStyle,
     TextStyle? unselectedLabelStyle,
@@ -44,6 +54,7 @@ class WTabBarStyle {
     double? indicatorWeight,
     TabAlignment? tabAlignment,
     Color? overlayColor,
+    InteractiveInkFeatureFactory? splashFactory,
   }) {
     return WTabBarStyle(
       labelStyle: labelStyle ?? this.labelStyle,
@@ -58,6 +69,7 @@ class WTabBarStyle {
       indicatorWeight: indicatorWeight ?? this.indicatorWeight,
       tabAlignment: tabAlignment ?? this.tabAlignment,
       overlayColor: overlayColor ?? this.overlayColor,
+      splashFactory: splashFactory ?? this.splashFactory,
     );
   }
 
@@ -76,7 +88,8 @@ class WTabBarStyle {
           other.indicator == indicator &&
           other.indicatorWeight == indicatorWeight &&
           other.tabAlignment == tabAlignment &&
-          other.overlayColor == overlayColor;
+          other.overlayColor == overlayColor &&
+          other.splashFactory == splashFactory;
 
   @override
   int get hashCode => Object.hash(
@@ -92,5 +105,6 @@ class WTabBarStyle {
     indicatorWeight,
     tabAlignment,
     overlayColor,
+    splashFactory,
   );
 }

@@ -9,6 +9,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 import 'package:w_tools_ui/src/internal/image_loader.dart';
+import 'package:w_tools_ui/src/components/common/image/image_size_hint.dart';
 
 const _redPixel =
     'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAIklEQVR4nGO8Y2PDQApgIkk1w6gG4gATkergYFQDMYBkDQBDhAF0tn7oPgAAAABJRU5ErkJggg==';
@@ -101,6 +102,8 @@ Future<Color> _centerColor(GlobalKey boundaryKey) async {
 }
 
 void main() {
+  setUp(debugResetWImageSizeHintCache);
+
   test('WImageStyle 是值对象', () {
     expect(const WImageStyle(width: 10), WImageStyle(width: 10));
     expect(const WImageStyle(width: 10).hashCode, WImageStyle(width: 10).hashCode);
@@ -271,6 +274,40 @@ void main() {
       await tester.pumpWidget(build());
       await tester.pump();
       expect(logs.where((line) => line.contains('WImage 在')).length, 1);
+    } finally {
+      debugPrint = original;
+    }
+  });
+
+  testWidgets('同一 source 跨实例只打印一次，且日志带脱敏 source', (tester) async {
+    final logs = <String>[];
+    final original = debugPrint;
+    debugPrint = (message, {wrapWidth}) {
+      if (message != null) logs.add(message);
+    };
+    try {
+      await tester.pumpWidget(
+        _wrap(
+          Column(
+            children: [
+              WImage.source(
+                source: WImageSource.network('https://example.invalid/dedupe.png?token=secret'),
+                style: WImageStyle(),
+              ),
+              WImage.source(
+                source: WImageSource.network('https://example.invalid/dedupe.png?token=secret'),
+                style: WImageStyle(),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+      final hints = logs.where((line) => line.contains('WImage 在')).toList();
+      expect(hints.length, 1);
+      expect(hints.single, contains('source='));
+      expect(hints.single, contains('dedupe.png'));
+      expect(hints.single, isNot(contains('secret')));
     } finally {
       debugPrint = original;
     }
