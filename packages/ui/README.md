@@ -25,6 +25,17 @@ dependencies:
 
 > 本包最低要求 Flutter 3.38.0。
 
+## 依赖与平台
+
+- 直接第三方依赖只有 `cached_network_image`（约束 `^3.3.1`）。
+- 它会传递带入 `flutter_cache_manager`、`path_provider`、`sqflite`、`octo_image`、
+  `rxdart`、`uuid` 等；移动 / 桌面用 `path_provider` + `sqflite` 做磁盘缓存，
+  Web 走 `cached_network_image_web`。
+- `asset` / `file` / `base64` / `provider` 来源不经过网络缓存，但依赖仍在 pub 层，
+  不能靠“只用 asset 图”裁掉插件注册。
+- 已有 `ImageProvider` 用 `WImageSource.provider` 接管加载。是否拆分缓存依赖见
+  [ADR-0008](https://github.com/stone0533/w_tools/blob/main/docs/adr/0008-ui-image-cache-dependency.md)。
+
 ## 快速开始
 
 ```dart

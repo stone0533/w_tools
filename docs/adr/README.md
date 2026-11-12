@@ -16,6 +16,7 @@ ADR 记录**当时**的决策与理由，不记录当前实现。当前实现以
 | [0002](0002-consumers-depend-on-subpackages.md) | 消费方依赖子包，不依赖聚合包 | 已采纳（聚合范围见 0006） | 2026-10-24 |
 | [0003](0003-subpackage-typography-without-ui.md) | form / toast / async 不依赖 ui，排版走 `ThemeData` | 已采纳（2026-11-06 补充） | 2026-11-03 |
 | [0006](0006-package-topology.md) | 包拓扑：独立库包 + 契约/实现对，根包只聚合基础子包 | 已采纳（2026-11-06 补充） | 2026-11-04 |
+| [0008](0008-ui-image-cache-dependency.md) | w_tools_ui 保留 cached_network_image；拆分条件写进 ADR | 已采纳 | 2026-11-13 |
 
 ### 公共 API 与配置
 
