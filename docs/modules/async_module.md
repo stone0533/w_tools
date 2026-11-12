@@ -172,6 +172,18 @@ await paged.refresh();
 await paged.loadMore();
 ```
 
+第一页不足一页 / 服务端有 `total` 时用 `withPage` 显式返回 `hasMore`，避免多发一次空页请求：
+
+```dart
+final paged = WAsyncPagedController<Gift>.withPage((page) async {
+  final resp = await api.gifts(page: page, limit: 10);
+  return WAsyncPage(
+    items: resp.list,
+    hasMore: resp.total == null ? resp.list.length >= 10 : page * 10 < resp.total!,
+  );
+});
+```
+
 监听：
 
 ```text
@@ -241,4 +253,4 @@ cd packages/async
 flutter test
 ```
 
-当前 6.2.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
+当前 6.3.0；迁移见 [async-6.0](../migrations/async-6.0.md)。

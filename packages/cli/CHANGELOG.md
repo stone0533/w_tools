@@ -1,3 +1,8 @@
+## 1.20.4
+
+### Changed
+- `init` 写入的 `w_tools_async` 约束同步到 `^6.3.0`（`WAsyncPage` / `withPage`）。
+
 ## 1.20.3
 
 ### Changed

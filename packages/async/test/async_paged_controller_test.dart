@@ -29,6 +29,69 @@ void main() {
       expect(controller.hasMore, isFalse);
     });
 
+    test('withPage 首屏不足一页：hasMore=false，不再请求第二页', () async {
+      final calls = <int>[];
+      final controller = WAsyncPagedController<int>.withPage((page) async {
+        calls.add(page);
+        return const WAsyncPage(items: [1, 2, 3], hasMore: false);
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      expect(controller.state.value.data, [1, 2, 3]);
+      expect(controller.hasMore, isFalse);
+      expect(controller.hasLoadedMoreThanOnePage, isFalse);
+
+      await controller.loadMore();
+      expect(calls, [1], reason: '首屏已到底，不应再请求 page=2');
+    });
+
+    test('withPage 非空页显式 hasMore=false 时立即停止', () async {
+      final calls = <int>[];
+      final controller = WAsyncPagedController<int>.withPage((page) async {
+        calls.add(page);
+        return page == 1
+            ? const WAsyncPage(items: [1], hasMore: true)
+            : const WAsyncPage(items: [2], hasMore: false);
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      expect(controller.hasMore, isTrue);
+      await controller.loadMore();
+      expect(controller.state.value.data, [1, 2]);
+      expect(controller.hasMore, isFalse);
+      expect(controller.hasLoadedMoreThanOnePage, isTrue);
+
+      await controller.loadMore();
+      expect(calls, [1, 2]);
+    });
+
+    test('withPage 第二页空列表仍然覆盖 hasMore=true', () async {
+      final controller = WAsyncPagedController<int>.withPage((page) async {
+        return page == 1
+            ? const WAsyncPage(items: [1], hasMore: true)
+            : const WAsyncPage(items: [], hasMore: true);
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      expect(controller.state.value.data, [1]);
+      expect(controller.hasMore, isFalse);
+    });
+
+    test('withPageToken 支持显式 hasMore', () async {
+      final controller = WAsyncPagedController<int>.withPageToken((page, token) async {
+        return const WAsyncPage(items: [1, 2], hasMore: false);
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      expect(controller.state.value.data, [1, 2]);
+      expect(controller.hasMore, isFalse);
+    });
+
     test('refresh 进行中 loadMore 不追加、不请求第一页', () async {
       final calls = <int>[];
       final pending = Completer<List<int>>();

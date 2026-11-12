@@ -10,10 +10,49 @@ typedef WAsyncPageLoader<T> = Future<List<T>> Function(int page);
 /// 接收 [WCancelToken] 的分页 loader。
 typedef WAsyncTokenPageLoader<T> = Future<List<T>> Function(int page, WCancelToken token);
 
+/// 一页数据 + 是否还有更多；用于第一页不足一页 / 已知 total 的场景。
+///
+/// [hasMore] 为 null 时沿用旧规则：本页非空即认为还有更多。
+@immutable
+class WAsyncPage<T> {
+  const WAsyncPage({required this.items, this.hasMore});
+
+  final List<T> items;
+  final bool? hasMore;
+}
+
 /// 列表分页状态：首屏、刷新、追加、hasMore 与 loadMore 错误。
 class WAsyncPagedController<T> {
   WAsyncPagedController(
     WAsyncPageLoader<T> loader, {
+    int initialPage = 1,
+    void Function(Object error)? onError,
+    WAsyncState<List<T>>? initial,
+  }) : this._(
+         (page, _) async => WAsyncPage<T>(items: await loader(page)),
+         initialPage: initialPage,
+         onError: onError,
+         initial: initial,
+       );
+
+  /// 需要感知取消的分页 loader 版本。
+  WAsyncPagedController.withToken(
+    WAsyncTokenPageLoader<T> loader, {
+    int initialPage = 1,
+    void Function(Object error)? onError,
+    WAsyncState<List<T>>? initial,
+  }) : this._(
+         (page, token) async => WAsyncPage<T>(items: await loader(page, token)),
+         initialPage: initialPage,
+         onError: onError,
+         initial: initial,
+       );
+
+  /// 需要显式返回 hasMore 的分页 loader 版本。
+  ///
+  /// 第一页不足一页 / 服务端返回 total 时用这个构造，避免多发一次空页请求。
+  WAsyncPagedController.withPage(
+    Future<WAsyncPage<T>> Function(int page) loader, {
     int initialPage = 1,
     void Function(Object error)? onError,
     WAsyncState<List<T>>? initial,
@@ -24,9 +63,9 @@ class WAsyncPagedController<T> {
          initial: initial,
        );
 
-  /// 需要感知取消的分页 loader 版本。
-  WAsyncPagedController.withToken(
-    WAsyncTokenPageLoader<T> loader, {
+  /// 需要显式返回 hasMore 且感知取消的分页 loader 版本。
+  WAsyncPagedController.withPageToken(
+    Future<WAsyncPage<T>> Function(int page, WCancelToken token) loader, {
     int initialPage = 1,
     void Function(Object error)? onError,
     WAsyncState<List<T>>? initial,
@@ -64,7 +103,7 @@ class WAsyncPagedController<T> {
     return initial.data?.isNotEmpty ?? true;
   }
 
-  final WAsyncTokenPageLoader<T> _loader;
+  final Future<WAsyncPage<T>> Function(int page, WCancelToken token) _loader;
   final int initialPage;
 
   /// 失败兜底回调；分页状态由控制器维护，不提供 activity。
@@ -94,6 +133,7 @@ class WAsyncPagedController<T> {
 
   /// 是否还有下一页。
   ///
+  /// [withPage] 的 [WAsyncPage.hasMore] 优先；旧构造在本页非空时为 true。
   /// 最后一页返回空列表时这里会变 [false]，但 [state] 不变；
   /// 只按 [state] 重建的 footer 必须额外监听 [hasMoreListenable]。
   bool get hasMore => _hasMore.value;
@@ -146,7 +186,7 @@ class WAsyncPagedController<T> {
     _loadMoreError.value = null;
     _state.value = WAsyncState<List<T>>.loading(previousData: previousData);
 
-    final result = await WAsync.tryRun<List<T>>(
+    final result = await WAsync.tryRun<WAsyncPage<T>>(
       () => _loader(initialPage, token),
       options: onError == null ? null : WAsyncOptions(onError: onError),
       cancelToken: token,
@@ -154,14 +194,15 @@ class WAsyncPagedController<T> {
 
     if (_disposed || generation != _generation || token.isCancelled) return;
 
-    if (result is WAsyncSuccess<List<T>>) {
-      final value = result.value;
+    if (result is WAsyncSuccess<WAsyncPage<T>>) {
+      final page = result.value;
+      final value = page.items;
       _page = initialPage + 1;
-      _hasMore.value = value.isNotEmpty;
+      _hasMore.value = value.isEmpty ? false : (page.hasMore ?? true);
       _state.value = value.isEmpty
           ? WAsyncState<List<T>>.empty()
           : WAsyncState<List<T>>.ready(_ChunkedList<T>.from(value));
-    } else if (result is WAsyncFailure<List<T>>) {
+    } else if (result is WAsyncFailure<WAsyncPage<T>>) {
       // 失败时保留上一次成功的页号 / hasMore，避免被取代的刷新回滚到
       // 另一次刷新的临时值。
       _state.value = WAsyncState<List<T>>.failed(
@@ -190,7 +231,7 @@ class WAsyncPagedController<T> {
     _isLoadingMore.value = true;
     _loadMoreError.value = null;
 
-    final result = await WAsync.tryRun<List<T>>(
+    final result = await WAsync.tryRun<WAsyncPage<T>>(
       () => _loader(requestedPage, token),
       options: onError == null ? null : WAsyncOptions(onError: onError),
       cancelToken: token,
@@ -200,19 +241,21 @@ class WAsyncPagedController<T> {
     if (_disposed || generation != _generation) return;
 
     switch (result) {
-      case WAsyncSuccess<List<T>>(:final value):
-        if (value.isEmpty) {
+      case WAsyncSuccess<WAsyncPage<T>>(:final value):
+        final items = value.items;
+        if (items.isEmpty) {
           _hasMore.value = false;
           return;
         }
         _page++;
+        _hasMore.value = value.hasMore ?? true;
         final next = current is _ChunkedList<T>
-            ? current.appendAll(value)
-            : _ChunkedList<T>.from(current).appendAll(value);
+            ? current.appendAll(items)
+            : _ChunkedList<T>.from(current).appendAll(items);
         _state.value = WAsyncState<List<T>>.ready(next);
-      case WAsyncFailure<List<T>>(:final error):
+      case WAsyncFailure<WAsyncPage<T>>(:final error):
         _loadMoreError.value = error;
-      case WAsyncCancelled<List<T>>():
+      case WAsyncCancelled<WAsyncPage<T>>():
         return;
     }
   }

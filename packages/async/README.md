@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^6.2.0
+  w_tools_async: ^6.3.0
 ```
 
 要求 Flutter 3.38+。
@@ -250,6 +250,25 @@ final controller = WAsyncPagedController<Gift>((page) => api.gifts(page: page));
 await controller.refresh();
 await controller.loadMore();
 ```
+
+第一页不足一页、或服务端返回 `total` 时，用 `withPage` 显式给出 `hasMore`，
+避免多发一次空页请求：
+
+```dart
+final controller = WAsyncPagedController<Gift>.withPage((page) async {
+  final resp = await api.gifts(page: page, limit: 10);
+  return WAsyncPage(
+    items: resp.list,
+    hasMore: resp.total == null
+        ? resp.list.length >= 10
+        : page * 10 < resp.total!,
+  );
+});
+```
+
+- `hasMore: false` 后 `loadMore()` 直接返回，不再请求下一页；
+- 旧构造 `WAsyncPagedController((page) => Future<List<T>>)` 行为不变：
+  本页非空仍视为有更多；需要精确控制时用 `withPage` / `withPageToken`。
 
 监听：
 

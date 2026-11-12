@@ -887,6 +887,8 @@ components:
     dontUseFor: '普通单请求用 `WAsyncController`'
     usage: |
       final c = WAsyncPagedController<Item>((page) => api.list(page: page));
+      // 第一页不足一页 / 有 total 时用 withPage 显式 hasMore：
+      // WAsyncPagedController<Item>.withPage((page) async => WAsyncPage(items: ..., hasMore: ...));
       await c.refresh();
       await c.loadMore();
       c.refresh();                 // 切换筛选直接再调：取消在飞请求，旧结果不写回
@@ -898,6 +900,7 @@ components:
       c.hasLoadedMoreThanOnePage;  // 是否已成功追加过第二页
     pitfalls:
       - 'loadMore 失败只写 loadMoreError，不要清空列表'
+      - '第一页不足一页 / 已知 total 用 withPage + WAsyncPage(hasMore:)；旧构造仍是本页非空即有更多'
       - 'initial: ready([]) / empty 视为没有更多'
       - 'page 是「下一次请求的页码」，不是「当前页」；别自己用 data.length 猜是否翻过页'
       - '切换筛选直接再 refresh()：在飞请求会被取消，不要禁用筛选'
@@ -2166,6 +2169,21 @@ components:
       final WAsyncPageLoader<Gift> loader = (page) => api.gifts(page: page);
       WAsyncPagedController<Gift>(loader);
     related: ['WAsyncPagedController']
+    teach: false
+  - name: '`WAsyncPage`'
+    package: 'w_tools_async'
+    docsAnchor: 'wasyncpagedcontroller'
+    section: '3. Controller'
+    useFor: '分页 loader 返回 items + 显式 hasMore（第一页不足一页 / total）'
+    usage: |
+      WAsyncPagedController<Gift>.withPage((page) async {
+        final resp = await api.gifts(page: page, limit: 10);
+        return WAsyncPage(
+          items: resp.list,
+          hasMore: page * 10 < resp.total!,
+        );
+      });
+    related: ['WAsyncPagedController', 'WAsyncPageLoader']
     teach: false
   - name: '`WAsyncTokenLoader`'
     package: 'w_tools_async'

@@ -3,7 +3,13 @@
 用 `WAsyncPagedController` 管分页状态，`WAsyncStateBuilder` 只负责渲染滚动壳。
 
 ```dart
-final controller = WAsyncPagedController<Gift>((page) => api.gifts(page: page));
+final controller = WAsyncPagedController<Gift>.withPage((page) async {
+  final resp = await api.gifts(page: page, limit: 10);
+  return WAsyncPage(
+    items: resp.list,
+    hasMore: resp.total == null ? resp.list.length >= 10 : page * 10 < resp.total!,
+  );
+});
 final refreshController = RefreshController();
 int _refreshId = 0;
 
@@ -122,6 +128,59 @@ SmartRefresher(
 - `loadMoreError` / `hasMore` / `isLoadingMore` 仍是唯一状态源；
 - 自建 footer（上面的 `_Footer`）直接监听 controller 的 listenable 即可，不需要
   `requestLoading`。
+
+### 自建 footer：首屏到底不提示“上拉 / 没有更多”
+
+不依赖 `pull_to_refresh` 的纯展示 footer，用 `changes` 合并监听：
+
+```dart
+class _PagedFooter extends StatelessWidget {
+  const _PagedFooter(this.controller);
+
+  final WAsyncPagedController<Gift> controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller.changes,
+      builder: (context, _) {
+        final error = controller.loadMoreError.value;
+        if (error != null) {
+          return TextButton(
+            onPressed: controller.loadMore,
+            child: const Text('加载失败，重试'),
+          );
+        }
+        if (controller.isLoadingMore.value) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (!controller.hasMore) {
+          // 第一页就到底：不显示“上拉加载”，也不显示“没有更多”。
+          return controller.hasLoadedMoreThanOnePage
+              ? const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: Text('没有更多数据了')),
+                )
+              : const SizedBox.shrink();
+        }
+        return const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: Text('上拉加载更多')),
+        );
+      },
+    );
+  }
+}
+```
+
+把它放进 `SliverToBoxAdapter`；SmartRefresher 的 `CustomFooter` 只做
+`LoadStatus -> 视图` 的薄适配，不要把这个状态机塞进 UI 包。
+
+当前没有 `WPagedFooter`：如果 3+ 个项目仍在复制这段，再考虑在 `w_tools_ui`
+加一个**纯展示**组件（不依赖 `pull_to_refresh` / `w_tools_async`）。
 
 ### `isRefreshing` 与 `isLoading`
 
