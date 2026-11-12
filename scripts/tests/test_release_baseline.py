@@ -22,7 +22,9 @@ class BaselineTest(unittest.TestCase):
         self.assertIn('高于本地版本', message)
 
     def test_check_local_ahead_passes(self):
-        code, message = mod.baseline('ui', '9.0.0', mode='check')
+        # 快照版本 mock 掉：不依赖仓库当前基线（发布后真实基线会前移）。
+        with mock.patch.object(mod, 'snapshot_version', return_value='8.0.0'):
+            code, message = mod.baseline('ui', '9.0.0', mode='check')
         self.assertEqual(code, 0)
         self.assertIn('低于本地', message)
 
