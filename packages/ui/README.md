@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^8.2.0
+  w_tools_ui: ^8.3.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -217,6 +217,16 @@ theme: base.withWTextStyles(WTextStyles.fromTextTheme(base.textTheme)),
 ```
 
 `WTextConfig` 已移除；局部只覆盖需要的字段（`style/color/maxLines/overflow/textScaler`）。
+
+图标 + 文字一行：
+
+```dart
+WIconText(icon: Icons.star, text: '收藏');
+WIconText(icon: Icons.location_on, text: '上海市', variant: WTextVariant.caption);
+```
+
+不要用 `Row + Icon + Text` 手拼；中文行盒会让图标看起来偏高。需要按品牌字体微调时传
+`iconOffset`，间距用 `gap`。
 
 ## 按钮与点击
 

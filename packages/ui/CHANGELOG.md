@@ -1,3 +1,22 @@
+## 8.3.0
+
+### Added
+- `WIconText`：图标 + 文字一行，内部用 `WidgetSpan` + `PlaceholderAlignment.middle`
+  对齐行盒中点，替代手写 `Row + Icon + Text`；支持 `variant` / `style` / `color`、
+  `gap`、`iconSize`（默认随 `textScaler` 缩放）、`iconOffset`、`maxLines` / `overflow`、
+  `semanticsLabel`。
+
+## 8.2.1
+
+### Changed
+- `WImageError` 增加值相等（`data` + `kind`，`cause` 不参与），`WImageLoadSnapshot`
+  的结构化比较不再依赖异常实例身份。
+- `WTextStyles` 增加 `==` / `hashCode`：内容相同的两份主题不再因扩展实例不同而判不等，
+  避免 `ThemeData` 比较 / 重建时的额外开销。
+- `WButtonResolvedStyle` 增加 `==` / `hashCode`，`states` 与 `boxShadow` 按内容比较。
+- 文档：移除 8.0 已删除的 `badges` 依赖引用；修正 example README 的 `topRight` / config
+  残留；补充内置中文文案（加载中 / 重试 / 图片错误）的英文覆盖说明。
+
 ## 8.2.0
 
 ### Breaking

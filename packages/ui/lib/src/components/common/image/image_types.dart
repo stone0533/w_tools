@@ -136,6 +136,16 @@ class WImageError implements Exception {
     WImageErrorKind.unsupported => '当前平台不支持该图片源',
   };
 
+  /// 值相等只比较 [data] 与 [kind]；[cause] 是诊断信息，不参与相等。
+  ///
+  /// 这样 `WImageLoadSnapshot` 的结构化比较 / 测试不会因为异常实例不同而失败。
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is WImageError && other.data == data && other.kind == kind;
+
+  @override
+  int get hashCode => Object.hash(data, kind);
+
   @override
   String toString() => 'WImageError($message, data: $data)';
 }

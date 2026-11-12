@@ -18,11 +18,12 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 - **零业务框架依赖**：不依赖其他 w_tools 子包；`qr` 不聚合，需要时直接依赖 `w_tools_qr`。
 - **最低 Flutter 版本 3.38**：列表组件不再单独声明 `cacheExtent`，交给 Flutter 默认行为，避免 3.44+ 的 deprecated 警告。
 - **屏幕适配可选**：`WScreen` 内置设备信息获取，适配函数通过 delegate 注入；无 delegate 时返回原始值。
-- **第三方依赖**：`badges`（徽章）、`cached_network_image`（图片缓存），具体约束见 `packages/ui/pubspec.yaml`。
+- **第三方依赖**：仅 `cached_network_image`（图片缓存）；`badges` 已在 8.0.0 移除，
+  徽章使用包内 `WBadgePosition` / `WBadgeStyle`，具体约束见 `packages/ui/pubspec.yaml`。
 
 ## 重构取舍（2026-11）
 
-- **catalog 粒度**：68 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
+- **catalog 粒度**：69 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
   需要精确命中，合并会降低可发现性。
 - **token 层**：暂不引入 `WUiTokens`。当前颜色走 `ColorScheme`，尺寸走
   `WButtonSize` / `WStepStyle`，阴影/渐变走 `WShadows` / `WGradients`；
@@ -36,6 +37,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 | 任意 child / 卡片点击 | `WPressable` |
 | 表单里的值选择 | `WFormButton`（form 包） |
 | 文本 | `WText(variant:)` + `WTextStyles` |
+| 图标 + 文字一行 | `WIconText` |
 | 图片 | `WImage.source` + `WImageSource` |
 | 页面骨架 | `WScaffold` / `WAppBar` |
 | 列表 | `WListView` / `WListViewSliver` |
@@ -83,6 +85,8 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 按钮语义、禁用态与 loading 态的朗读由 `WButton.semantics`（`WButtonSemantics`）负责；自定义 child 时不要绕过。
 
+`WButtonSemantics.loadingLabel` 默认是中文「加载中」；英文项目需显式传 `WButtonSemantics(loadingLabel: 'Loading')`。
+
 ### WButtonSize
 
 尺寸与点击区域由 `WButtonSize` 控制；默认最小点击区域 48×48。
@@ -91,6 +95,13 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 `WPressable` 只提供点击反馈，不提供 button 语义。卡片、列表行、整块区域点击用它；
 需要键盘、焦点、最小点击区域或 button 语义时用 `WButton`。
+
+## 2.2 WIconText - 图标 + 文字
+
+- 图标 + 文字一行用 `WIconText`；不要手拼 `Row + Icon + Text`，中文行盒会让图标看起来偏高 1.5~2.5px。
+- 内部用 `WidgetSpan` + `PlaceholderAlignment.middle` 对齐行盒中点；`gap` 默认 6，`iconSize` 默认 `(fontSize + 2) * textScaler`。
+- 文本样式走 `variant` / `WTextStyles`；`style` / `color` 只覆盖差异。品牌字体的视觉重心不同时用 `iconOffset` 微调。
+- 纯图标或需要按钮语义时用 `WButton(icon: ...)`，不要用 `WIconText` 代替按钮。
 
 ## 3. WText - 文本组件
 
@@ -150,6 +161,10 @@ App 级默认 `WImageSlots`，放在主题 / App 根节点；单图仍可用 `sl
 错误分类用 `WImageError` / `WImageErrorKind`，进度用 `WImageProgress`；
 默认错误 UI 是 `WImageErrorView`。`WImageSource.resolve` 在 Base64 非法时抛 `FormatException`、
 Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError` 并渲染错误占位。
+
+内置错误文案（`WImageError.message`）与重试文案（`WImageErrorView.retryLabel` /
+`WImageSlots.retryLabel`）默认是中文；英文项目用 `slots.errorWidgetBuilder` 或
+`WImageSlots(retryLabel: 'Retry')` 覆盖。
 
 旧字符串图片入口已删除；新代码不要再使用 `WImage('url')` 形式。
 

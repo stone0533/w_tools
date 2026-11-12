@@ -17,6 +17,27 @@ List<Widget> buildComponentsOverviewSections() {
       ],
     ),
     const SizedBox(height: 24),
+    const DemoSectionTitle('WIconText 图标 + 文字'),
+    const Wrap(
+      spacing: 16,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        WIconText(icon: Icons.star, text: '收藏'),
+        WIconText(
+          icon: Icons.location_on,
+          text: '上海市',
+          variant: WTextVariant.caption,
+        ),
+        WIconText(
+          icon: Icons.info_outline,
+          text: '说明',
+          color: Colors.indigo,
+          iconOffset: Offset(0, 1),
+        ),
+      ],
+    ),
+    const SizedBox(height: 24),
     const DemoSectionTitle('WScaffold / WAppBar'),
     SizedBox(
       height: 220,
@@ -67,10 +88,12 @@ List<Widget> buildComponentsOverviewSections() {
           width: 48,
           height: 32,
           decoration: const BoxDecoration()
-              .withGradient(WGradients.vertical([
-                Colors.indigo,
-                Colors.lightBlue,
-              ]))
+              .withGradient(
+                WGradients.vertical([
+                  Colors.indigo,
+                  Colors.lightBlue,
+                ]),
+              )
               .withBorderRadius(const BorderRadius.all(Radius.circular(8)))
               .withShadow(WShadows.card),
         ),
@@ -133,7 +156,7 @@ List<Widget> buildComponentsOverviewSections() {
       ),
     ),
     const SizedBox(height: 12),
-    const DemoSectionTitle('WClipRRect 配置变体'),
+    const DemoSectionTitle('WClipRRect 非对称圆角 / 默认值'),
     const Wrap(
       spacing: 12,
       runSpacing: 12,

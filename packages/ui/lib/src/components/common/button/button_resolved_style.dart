@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// 当前 WidgetState 下解析后的按钮视觉值。
@@ -26,4 +27,31 @@ class WButtonResolvedStyle {
   final Color? foregroundColor;
   final double iconSize;
   final double gap;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WButtonResolvedStyle &&
+          setEquals(other.states, states) &&
+          other.backgroundColor == backgroundColor &&
+          other.gradient == gradient &&
+          other.border == border &&
+          listEquals(other.boxShadow, boxShadow) &&
+          other.textStyle == textStyle &&
+          other.foregroundColor == foregroundColor &&
+          other.iconSize == iconSize &&
+          other.gap == gap;
+
+  @override
+  int get hashCode => Object.hash(
+    Object.hashAllUnordered(states),
+    backgroundColor,
+    gradient,
+    border,
+    boxShadow == null ? null : Object.hashAll(boxShadow!),
+    textStyle,
+    foregroundColor,
+    iconSize,
+    gap,
+  );
 }

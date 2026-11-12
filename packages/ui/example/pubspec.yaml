@@ -6,8 +6,8 @@ version: 1.0.0
 # 与 packages/map_google/example 一致：不声明 resolution: workspace，
 # 示例要能从发布后的 w_tools_ui 独立 pub get。
 environment:
-  sdk: ^3.6.0
-  flutter: ">=3.27.0"
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
 
 dependencies:
   flutter:

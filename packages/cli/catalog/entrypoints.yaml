@@ -16,6 +16,7 @@ w_tools_async:
   - WAsync
 w_tools_ui:
   - WText
+  - WIconText
   - WImage
   - WButton
   - WPressable

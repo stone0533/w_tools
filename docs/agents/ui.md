@@ -80,7 +80,7 @@ WNotificationListener 的百分比只在 depth 0 的 ScrollUpdateNotification �
 
 ## 图标 + 文字
 
-当前没有统一的“图标和文字垂直居中一行”组件，不要直接用 `Row + Icon + Text` 当作稳定方案；中文行盒可能导致图标偏高。
+图标 + 文字一行用 `WIconText`（`explain WIconText`）；不要手拼 `Row + Icon + Text`，中文行盒会让图标偏高。纯图标 / 需要按钮语义用 `WButton(icon: ...)`。
 
 ## 轻提示
 

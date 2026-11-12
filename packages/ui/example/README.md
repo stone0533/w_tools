@@ -11,7 +11,7 @@
 | **状态矩阵** | `lib/states_page.dart` | 加载成功 / 失败 / 空数据 / 加载中 / 主题默认错误占位 / file 不支持 / `precacheImage` 预热 |
 | **常用配方** | `lib/recipes_page.dart` | `WImageStyle.avatar / thumbnail / cover`、宽度铺满 + 高度上限（`ConstrainedBox(maxHeight)` + `width: double.infinity` + `fitWidth`）、asset prefix、`WImageSource.provider(MemoryImage)`、内置错误 + 自动重试 |
 | **按钮** | `lib/buttons_page.dart` | `WButton` 的主题四态、loading / disabled、3 档尺寸 + 自定义、纯图标、列表行、对话框、content / contentBuilder、WidgetStateProperty、键盘 / 语义、`onLongPress`、`loadingBuilder`、`WButtonMotion`；`WPressable` 的 enabled / onLongPress / pressedOpacity |
-| **组件** | `lib/components_page.dart` | WText、WScaffold、WScreen.w、扩展、WBadge（topRight / center / showBadge / 空内容）、WClipRRect（含配置变体）、渐变进度（含 totalAngle / strokeCapRound）、WStep、WListView（separated / grid）、WActionRow、WSelectableRow、WTabBar、WNavBar、通知百分比、WImageController、keepAlive |
+| **组件** | `lib/components_page.dart` | WText、WIconText、WScaffold、WScreen.w、扩展、WBadge（topEnd / center / showBadge / 空内容）、WClipRRect（all / 非对称圆角 / 默认值）、渐变进度（含 totalAngle / strokeCapRound）、WStep、WListView（separated / grid）、WActionRow、WSelectableRow、WTabBar、WNavBar、通知百分比、WImageController、keepAlive |
 | **更多** | `lib/more_page.dart` | 二级示例入口（见下） |
 | └ WScaffold / WAppBar / WScreen | `lib/scaffold_page.dart` | WScaffold 全参数（appBar 覆盖 / titleWidget / leading / actions / onBack / appBarStyle / appBarBottom / FAB / underlay / 状态栏 / 安全区）、WAppBar 全参数、WAppBarStyle（背景 / 渐变 / 高度 / 标题 / overlay）、WScreen.of / 安全区 / 适配委托、WAssets + `assetImagePath` |
 | └ WText / WTextStyles | `lib/text_page.dart` | 11 个 variant、price/number 表格数字、maxLines / overflow / softWrap / textAlign / textScaler / style / color / semanticsLabel、自定义 `WTextStyles` + `withWTextStyles` |
@@ -20,23 +20,24 @@
 | └ 导航 / Tab | `lib/nav_page.dart` | WNavController（animateTo / currentIndex / previousIndex / indexIsChanging / offset）、onItemTap 拦截、WNavBarStyle 装饰 / padding、WTabBar 配置（indicator / divider / scrollable / tabAlignment / onTap）、WTabBarStyle.copyWith |
 | └ 步骤 | `lib/steps_page.dart` | WStep 默认、WStepStyle 全字段、itemBuilder / separatorBuilder / semanticLabelBuilder、WStepFlow 复用 + copyWith |
 
-## 覆盖矩阵（25 个入口分组 / 68 条 catalog）
+## 覆盖矩阵（26 个入口分组 / 69 条 catalog）
 
 | 入口 | 页面 | 关键点 |
 |---|---|---|
 | `WScaffold` | scaffold_page、main | title / actions / FAB / appBar 覆盖 / underlay / 安全区 |
 | `WAppBar` | scaffold_page | title / titleWidget / leading / actions / bottom / onBack / centerTitle / includeStatusBar |
-| `WNavBar` / `WNavController` | main、nav_page、components_page | 切换动画、拦截、状态、config |
+| `WNavBar` / `WNavController` | main、nav_page、components_page | 切换动画、拦截、状态、`WNavBarStyle` |
 | `WTabBar` | nav_page、components_page | indicator / divider / scrollable / onTap |
 | `WStep` / `WStepFlow` | steps_page、components_page | style / builders / 复用 |
 | `WText` / `WTextVariant` / `WTextStyles` | text_page、components_page | 11 variant / 覆盖 / 自定义主题 |
+| `WIconText` | components_page | 图标 + 文字 / gap / iconOffset / variant |
 | `WImage` | playground、states、recipes、components | 四种来源 / 状态 / 重试 / 进度 / 控制器 / 宽度铺满 + 高度上限 |
 | `WImageSource` | playground、states、recipes | network(headers/cacheKey) / asset / file / base64 / provider / parse |
 | `WButton` | buttons_page | 主题 / 尺寸 / loading / 语义 / motion / 长按 |
 | `WPressable` | buttons_page、extensions_page | enabled / long press / pressedOpacity / toPressable |
 | `WActionRow` / `WSelectableRow` | components_page | 横向操作行 / 单选高亮 |
-| `WBadge` | components_page | topRight / center / showBadge / 空内容 |
-| `WClipRRect` | components_page | all / copyWith / 默认值 |
+| `WBadge` | components_page | topEnd / center / showBadge / 空内容 |
+| `WClipRRect` | components_page | all / 非对称圆角 / 默认值 |
 | `WScreen` | scaffold_page、components_page | of(context) / w·h·sp / 委托 |
 | `WAssets` | scaffold_page、recipes_page | imagePath / assetImagePath |
 | `WGradientCircularProgressIndicator` | components_page | value / totalAngle / strokeCapRound / backgroundColor |

@@ -849,4 +849,26 @@ void main() {
       expect(first.danger.backgroundColor, isNotNull);
     });
   });
+
+  group('WButtonResolvedStyle', () {
+    test('值相等 / hashCode（states 与 boxShadow 按内容比较）', () {
+      const a = WButtonResolvedStyle(
+        states: {WidgetState.pressed, WidgetState.hovered},
+        backgroundColor: Colors.red,
+        boxShadow: [BoxShadow(color: Colors.black12)],
+        iconSize: 20,
+      );
+      final states = <WidgetState>{WidgetState.hovered, WidgetState.pressed};
+      final b = WButtonResolvedStyle(
+        states: states,
+        backgroundColor: Colors.red,
+        boxShadow: const [BoxShadow(color: Colors.black12)],
+        iconSize: 20,
+      );
+      expect(identical(a, b), isFalse);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+      expect(a == const WButtonResolvedStyle(), isFalse);
+    });
+  });
 }

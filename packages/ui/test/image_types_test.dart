@@ -182,6 +182,18 @@ void main() {
     });
   });
 
+  group('WImageError 值相等', () {
+    test('data + kind 相同即相等，cause 不参与', () {
+      const a = WImageError('x', WImageErrorKind.network);
+      const b = WImageError('x', WImageErrorKind.network, cause: 'boom');
+      expect(identical(a, b), isFalse);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+      expect(a, isNot(const WImageError('y', WImageErrorKind.network)));
+      expect(a, isNot(const WImageError('x', WImageErrorKind.asset)));
+    });
+  });
+
   group('WImageSlots', () {
     test('值相等 / validate / 默认值', () {
       const a = WImageSlots(showRetryButton: true);
