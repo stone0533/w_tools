@@ -223,7 +223,9 @@ class TextDemoPage extends StatelessWidget {
               children: [
                 _KeyValue(label: 'body.fontSize', value: base.body.fontSize?.toString() ?? '-'),
                 _KeyValue(
-                    label: 'title.fontWeight', value: base.title.fontWeight?.toString() ?? '-'),
+                  label: 'title.fontWeight',
+                  value: base.title.fontWeight?.toString() ?? '-',
+                ),
                 _KeyValue(label: 'price.fontSize', value: base.price.fontSize?.toString() ?? '-'),
                 const CodeText(
                   'WTextStyles.of(context).copyWith(title: ..., price: ..., number: ...)',
@@ -249,7 +251,9 @@ class _KeyValue extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Expanded(child: WText(text: label, variant: WTextVariant.caption)),
+          Expanded(
+            child: WText(text: label, variant: WTextVariant.caption),
+          ),
           WText(text: value, variant: WTextVariant.bodyStrong),
         ],
       ),

@@ -99,7 +99,8 @@ List<Widget> buildExtensionVisualSections({
             height: 48,
             decoration: const BoxDecoration()
                 .withGradient(
-                    WGradients.vertical([const Color(0xFF6366F1), const Color(0xFF06B6D4)]))
+                  WGradients.vertical([const Color(0xFF6366F1), const Color(0xFF06B6D4)]),
+                )
                 .withBorderRadius(const BorderRadius.all(Radius.circular(10))),
           ),
         ],

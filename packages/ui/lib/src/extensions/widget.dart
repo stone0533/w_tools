@@ -61,6 +61,25 @@ extension WWidgetExtension on Widget {
     );
   }
 
+  /// 添加起始侧 padding（LTR 左、RTL 右）。
+  ///
+  /// 需要跟随文字方向时优先用 [withStartPadding] / [withEndPadding]；
+  /// [withLeftPadding] / [withRightPadding] 是物理方向。
+  Widget withStartPadding(double padding) {
+    return Padding(
+      padding: EdgeInsetsDirectional.only(start: padding),
+      child: this,
+    );
+  }
+
+  /// 添加结束侧 padding（LTR 右、RTL 左）。
+  Widget withEndPadding(double padding) {
+    return Padding(
+      padding: EdgeInsetsDirectional.only(end: padding),
+      child: this,
+    );
+  }
+
   /// 添加顶部 padding
   Widget withTopPadding(double padding) {
     return Padding(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'horizontal_scroller.dart';
+import 'pressable.dart';
 
 class WSelectableRow extends StatefulWidget {
   const WSelectableRow({
@@ -105,8 +106,7 @@ class _WSelectableRowState extends State<WSelectableRow> {
           child: Semantics(
             button: true,
             selected: selected,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: WPressable(
               onTap: () => widget.onSelected(index),
               child: widget.builder(context, index, selected),
             ),

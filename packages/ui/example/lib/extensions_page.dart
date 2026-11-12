@@ -64,7 +64,9 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 const SizedBox(height: 12),
                 _KeyValue(label: '1234.toThousandsSeparated', value: 1234.toThousandsSeparated),
                 _KeyValue(
-                    label: "1234.5.toCurrency(symbol: '¥')", value: 1234.5.toCurrency(symbol: '¥')),
+                  label: "1234.5.toCurrency(symbol: '¥')",
+                  value: 1234.5.toCurrency(symbol: '¥'),
+                ),
                 _KeyValue(label: '0.125.toPercent', value: 0.125.toPercent),
                 _KeyValue(label: '0.125.toPercentWithFixed(2)', value: 0.125.toPercentWithFixed(2)),
                 _KeyValue(label: '42.toPadLeft(5)', value: 42.toPadLeft(5)),
@@ -164,10 +166,16 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Container(width: 20, height: 20, color: scheme.primary)
-                        .withHorizontalPadding(4),
-                    Container(width: 20, height: 20, color: scheme.secondary)
-                        .withVerticalPadding(4),
+                    Container(
+                      width: 20,
+                      height: 20,
+                      color: scheme.primary,
+                    ).withHorizontalPadding(4),
+                    Container(
+                      width: 20,
+                      height: 20,
+                      color: scheme.secondary,
+                    ).withVerticalPadding(4),
                     Container(width: 20, height: 20, color: scheme.tertiary).withLeftPadding(4),
                     Container(width: 20, height: 20, color: scheme.error).withRightPadding(4),
                   ],
@@ -177,9 +185,10 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Container(width: 60, color: scheme.surfaceContainerHighest)
-                          .withTopPadding(8)
-                          .withBottomPadding(8),
+                      Container(
+                        width: 60,
+                        color: scheme.surfaceContainerHighest,
+                      ).withTopPadding(8).withBottomPadding(8),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Container(
@@ -220,7 +229,8 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 ).toPressable(onTap: () => setState(() => _taps++)),
                 const SizedBox(height: 8),
                 WText(
-                  text: 'withTopSafeSpace / withBottomBarSpace：按平台安全区加 Padding'
+                  text:
+                      'withTopSafeSpace / withBottomBarSpace：按平台安全区加 Padding'
                       '（当前 status=${WScreen.statusBarHeight.toStringAsFixed(1)}，'
                       'bottom=${WScreen.bottomSafeAreaHeight.toStringAsFixed(1)}）',
                   variant: WTextVariant.caption,
@@ -253,7 +263,9 @@ class _KeyValue extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Expanded(child: WText(text: label, variant: WTextVariant.caption)),
+          Expanded(
+            child: WText(text: label, variant: WTextVariant.caption),
+          ),
           WText(text: value, variant: WTextVariant.bodyStrong),
         ],
       ),

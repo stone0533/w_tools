@@ -7,13 +7,15 @@ Widget _buildButtonLabel(_WButtonState state, WButtonResolvedStyle style) {
   final textStyle = style.textStyle;
   final iconColor = style.foregroundColor;
   if (label != null && icon != null) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: style.iconSize, color: iconColor),
-        SizedBox(width: style.gap),
-        Text(label, style: textStyle),
-      ],
+    // 与独立使用时的 WIconText 保持同一套行盒中点对齐 / RTL 间距；
+    // iconSize / gap / textStyle 来自已解析的按钮样式。
+    return WIconText(
+      icon: icon,
+      text: label,
+      style: textStyle,
+      iconSize: style.iconSize,
+      iconColor: iconColor,
+      gap: style.gap,
     );
   }
   if (icon != null) {
@@ -53,9 +55,11 @@ Widget _buildButtonLoading(
           color: indicatorColor,
         ),
       );
+  final loadingLabel = state._semantics.loadingLabel;
   return Semantics(
-    label: state._semantics.loadingLabel,
+    label: loadingLabel.isEmpty ? WUiStrings.of(context).loadingLabel : loadingLabel,
     container: true,
+    liveRegion: true,
     child: child,
   );
 }

@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
-const _pixelBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk'
+const _pixelBase64 =
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk'
     'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
 class StatesPage extends StatelessWidget {
@@ -17,62 +18,67 @@ class StatesPage extends StatelessWidget {
         const SizedBox(height: 8),
         _StateCard(
           child: WImage.source(
-              source: WImageSource.base64(_pixelBase64),
-              style: const WImageStyle(width: 160, height: 90, fit: BoxFit.contain)),
+            source: WImageSource.base64(_pixelBase64),
+            style: const WImageStyle(width: 160, height: 90, fit: BoxFit.contain),
+          ),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('加载失败（自定义错误占位）'),
         const SizedBox(height: 8),
         _StateCard(
           child: WImage.source(
-              source: WImageSource.base64('@@invalid@@'),
-              style: const WImageStyle(width: 160, height: 90),
-              slots: const WImageSlots(
-                errorWidget: ColoredBox(
-                  color: Color(0xFFFFEBEE),
-                  child: Center(child: Icon(Icons.broken_image_outlined)),
-                ),
-              )),
+            source: WImageSource.base64('@@invalid@@'),
+            style: const WImageStyle(width: 160, height: 90),
+            slots: const WImageSlots(
+              errorWidget: ColoredBox(
+                color: Color(0xFFFFEBEE),
+                child: Center(child: Icon(Icons.broken_image_outlined)),
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('空数据'),
         const SizedBox(height: 8),
         _StateCard(
           child: WImage.source(
-              source: WImageSource.base64(''),
-              style: const WImageStyle(width: 160, height: 90),
-              slots: const WImageSlots(
-                errorWidget: ColoredBox(
-                  color: Color(0xFFFFF3E0),
-                  child: Center(child: Icon(Icons.image_not_supported_outlined)),
-                ),
-              )),
+            source: WImageSource.base64(''),
+            style: const WImageStyle(width: 160, height: 90),
+            slots: const WImageSlots(
+              errorWidget: ColoredBox(
+                color: Color(0xFFFFF3E0),
+                child: Center(child: Icon(Icons.image_not_supported_outlined)),
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('加载中（placeholder）'),
         const SizedBox(height: 8),
         _StateCard(
           child: WImage.source(
-              source: WImageSource.network('https://example.invalid/loading.png'),
-              style: const WImageStyle(width: 160, height: 90),
-              slots: const WImageSlots(
-                placeholder: ColoredBox(
-                  color: Color(0xFFE8EAF6),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: ColoredBox(
-                  color: Color(0xFFFFEBEE),
-                  child: Center(child: Icon(Icons.broken_image_outlined)),
-                ),
-              )),
+            source: WImageSource.network('https://example.invalid/loading.png'),
+            style: const WImageStyle(width: 160, height: 90),
+            slots: const WImageSlots(
+              placeholder: ColoredBox(
+                color: Color(0xFFE8EAF6),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              errorWidget: ColoredBox(
+                color: Color(0xFFFFEBEE),
+                child: Center(child: Icon(Icons.broken_image_outlined)),
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('主题默认错误占位'),
         const SizedBox(height: 8),
         _StateCard(
           child: WImage.source(
-              source: WImageSource.base64('@@invalid@@'),
-              style: const WImageStyle(width: 160, height: 90)),
+            source: WImageSource.base64('@@invalid@@'),
+            style: const WImageStyle(width: 160, height: 90),
+          ),
         ),
         const SizedBox(height: 24),
         const _SectionTitle('预加载'),
@@ -97,14 +103,15 @@ class StatesPage extends StatelessWidget {
         const SizedBox(height: 8),
         _StateCard(
           child: WImage.source(
-              source: WImageSource.file('file:///definitely/not/here.png'),
-              style: const WImageStyle(width: 160, height: 90),
-              slots: const WImageSlots(
-                errorWidget: ColoredBox(
-                  color: Color(0xFFE0F2F1),
-                  child: Center(child: Icon(Icons.folder_off_outlined)),
-                ),
-              )),
+            source: WImageSource.file('file:///definitely/not/here.png'),
+            style: const WImageStyle(width: 160, height: 90),
+            slots: const WImageSlots(
+              errorWidget: ColoredBox(
+                color: Color(0xFFE0F2F1),
+                child: Center(child: Icon(Icons.folder_off_outlined)),
+              ),
+            ),
+          ),
         ),
       ],
     );

@@ -74,6 +74,7 @@ void main() {
     );
 
     expect(find.text('item-0-selected'), findsOneWidget);
+    expect(find.byType(WPressable), findsNWidgets(3));
     await tester.tap(find.text('item-2'));
     await tester.pumpAndSettle();
     expect(find.text('item-2-selected'), findsOneWidget);

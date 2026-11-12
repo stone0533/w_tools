@@ -87,7 +87,7 @@ void main() {
       ),
     );
     expect(find.byIcon(Icons.broken_image_outlined), findsOneWidget);
-    expect(find.text('重试'), findsNothing);
+    expect(find.text('Retry'), findsNothing);
   });
 
   testWidgets('WImageErrorView 大尺寸显示文案与重试', (tester) async {
@@ -105,8 +105,33 @@ void main() {
         ),
       ),
     );
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.textContaining('Network'), findsOneWidget);
+  });
+
+  testWidgets('WImageErrorView 中文 Locale 使用中文文案', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Localizations.override(
+            context: context,
+            locale: const Locale('zh'),
+            child: Center(
+              child: SizedBox(
+                width: 220,
+                height: 220,
+                child: WImageErrorView(
+                  error: const WImageError('x', WImageErrorKind.network),
+                  onRetry: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
     expect(find.text('重试'), findsOneWidget);
-    expect(find.textContaining('网络'), findsOneWidget);
+    expect(find.text('网络图片加载失败'), findsOneWidget);
   });
 }
 

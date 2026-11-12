@@ -539,6 +539,30 @@ void main() {
       expect(indicator.color, foreground);
     });
 
+    testWidgets('loading 语义是 liveRegion', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            style: _LegacyButtonStyles.primary,
+            label: '提交',
+            loading: true,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      final liveRegion = find.descendant(
+        of: find.byType(WButton),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Semantics && widget.properties.liveRegion == true,
+        ),
+      );
+      expect(liveRegion, findsOneWidget);
+      expect(tester.widget<Semantics>(liveRegion).properties.label, 'Loading');
+      handle.dispose();
+    });
+
     testWidgets('长按进入 Semantics 并触发 onLongPress', (tester) async {
       var longPressed = 0;
       await tester.pumpWidget(
@@ -847,6 +871,28 @@ void main() {
       final second = WButtonStyles.of(context);
       expect(identical(first.primary, second.primary), isTrue);
       expect(first.danger.backgroundColor, isNotNull);
+    });
+  });
+
+  group('WButtonResolvedStyle', () {
+    test('值相等 / hashCode（states 与 boxShadow 按内容比较）', () {
+      const a = WButtonResolvedStyle(
+        states: {WidgetState.pressed, WidgetState.hovered},
+        backgroundColor: Colors.red,
+        boxShadow: [BoxShadow(color: Colors.black12)],
+        iconSize: 20,
+      );
+      final states = <WidgetState>{WidgetState.hovered, WidgetState.pressed};
+      final b = WButtonResolvedStyle(
+        states: states,
+        backgroundColor: Colors.red,
+        boxShadow: const [BoxShadow(color: Colors.black12)],
+        iconSize: 20,
+      );
+      expect(identical(a, b), isFalse);
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+      expect(a == const WButtonResolvedStyle(), isFalse);
     });
   });
 }

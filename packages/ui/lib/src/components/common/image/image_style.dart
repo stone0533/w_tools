@@ -125,12 +125,47 @@ class WImageStyle {
     filterQuality,
   );
 
+  /// 派生新样式；传 null 表示保留当前值（不能用 copyWith 清空字段）。
+  ///
+  /// 需要清空可空字段时用 [withoutWidth] / [withoutHeight] /
+  /// [withoutAspectRatio] / [withoutBorderRadius] / [withoutBorder] /
+  /// [withoutBoxShadow] / [withoutMargin] / [withoutPadding] /
+  /// [withoutSemanticLabel]。
+  WImageStyle copyWith({
+    double? width,
+    double? height,
+    BoxFit? fit,
+    Alignment? alignment,
+    double? aspectRatio,
+    BorderRadius? borderRadius,
+    BoxBorder? border,
+    List<BoxShadow>? boxShadow,
+    EdgeInsets? margin,
+    EdgeInsets? padding,
+    String? semanticLabel,
+    bool? excludeFromSemantics,
+    FilterQuality? filterQuality,
+  }) {
+    return _copy(
+      width: width ?? this.width,
+      height: height ?? this.height,
+      fit: fit ?? this.fit,
+      alignment: alignment ?? this.alignment,
+      aspectRatio: aspectRatio ?? this.aspectRatio,
+      borderRadius: borderRadius ?? this.borderRadius,
+      border: border ?? this.border,
+      boxShadow: boxShadow ?? this.boxShadow,
+      margin: margin ?? this.margin,
+      padding: padding ?? this.padding,
+      semanticLabel: semanticLabel ?? this.semanticLabel,
+      excludeFromSemantics: excludeFromSemantics ?? this.excludeFromSemantics,
+      filterQuality: filterQuality ?? this.filterQuality,
+    );
+  }
+
   static const Object _unset = Object();
 
-  /// 派生新样式。
-  ///
-  /// 用 [_unset] 哨兵区分「未传」与「传 null 清空」。
-  WImageStyle copyWith({
+  WImageStyle _copy({
     Object? width = _unset,
     Object? height = _unset,
     Object? fit = _unset,
@@ -171,6 +206,24 @@ class WImageStyle {
           : filterQuality as FilterQuality,
     );
   }
+
+  WImageStyle withoutWidth() => _copy(width: null);
+
+  WImageStyle withoutHeight() => _copy(height: null);
+
+  WImageStyle withoutAspectRatio() => _copy(aspectRatio: null);
+
+  WImageStyle withoutBorderRadius() => _copy(borderRadius: null);
+
+  WImageStyle withoutBorder() => _copy(border: null);
+
+  WImageStyle withoutBoxShadow() => _copy(boxShadow: null);
+
+  WImageStyle withoutMargin() => _copy(margin: null);
+
+  WImageStyle withoutPadding() => _copy(padding: null);
+
+  WImageStyle withoutSemanticLabel() => _copy(semanticLabel: null);
 }
 
 /// 不可变样式的链式糖：每次返回新实例。

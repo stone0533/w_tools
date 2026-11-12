@@ -89,9 +89,6 @@ class WImageProgress {
 
 /// 图片加载错误的分类
 enum WImageErrorKind {
-  /// 数据为空（兼容保留：空 data 不再产生该错误，改用 `WImageSlots.emptyBuilder`）
-  empty,
-
   /// 网络加载失败
   network,
 
@@ -127,7 +124,6 @@ class WImageError implements Exception {
 
   /// 可读的原因
   String get message => switch (kind) {
-    WImageErrorKind.empty => '图片数据为空',
     WImageErrorKind.network => '网络图片加载失败',
     WImageErrorKind.asset => '本地资源加载失败',
     WImageErrorKind.decode => 'Base64 解码失败',
@@ -135,6 +131,16 @@ class WImageError implements Exception {
     WImageErrorKind.file => '本地文件读取失败',
     WImageErrorKind.unsupported => '当前平台不支持该图片源',
   };
+
+  /// 值相等只比较 [data] 与 [kind]；[cause] 是诊断信息，不参与相等。
+  ///
+  /// 这样 `WImageLoadSnapshot` 的结构化比较 / 测试不会因为异常实例不同而失败。
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is WImageError && other.data == data && other.kind == kind;
+
+  @override
+  int get hashCode => Object.hash(data, kind);
 
   @override
   String toString() => 'WImageError($message, data: $data)';

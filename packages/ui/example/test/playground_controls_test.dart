@@ -10,13 +10,14 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
-              child: PlaygroundControls(
-            config: const PlaygroundConfig(),
-            onChanged: (value) => next = value,
-            onRetry: () {},
-            status: null,
-            progress: null,
-          )),
+            child: PlaygroundControls(
+              config: const PlaygroundConfig(),
+              onChanged: (value) => next = value,
+              onRetry: () {},
+              status: null,
+              progress: null,
+            ),
+          ),
         ),
       ),
     );

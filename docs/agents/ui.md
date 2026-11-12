@@ -26,6 +26,8 @@ App 级默认占位 / 错误 / 进度用 `WImageTheme(slots: WImageSlots(...))`�
 数字格式化 → toThousandsSeparated / toCurrency / toPercent
 hex 颜色 → WColorExtension.fromHex / '#rrggbb'.toColor()
 EdgeInsets → num.allPadding
+RTL 侧边距 → withStartPadding / withEndPadding
+BorderSide → num.borderSideOf(context)（borderSide 已弃用，9.0 删除）
 BoxDecoration → withColor / withBorderRadius / withShadow
 ```
 
@@ -34,7 +36,7 @@ BoxDecoration → withColor / withBorderRadius / withShadow
 ## 工具
 
 ```text
-屏幕 / 字体适配 → WScreen.w / h / sp
+屏幕 / 字体适配 → WScreenScope + WScreen.of(context).w / h / sp（explain WScreen）
 资源前缀 → WAssets.imagePath
 SizedBox 间距 → 原生 SizedBox
 Padding → 原生 Padding
@@ -80,7 +82,7 @@ WNotificationListener 的百分比只在 depth 0 的 ScrollUpdateNotification �
 
 ## 图标 + 文字
 
-当前没有统一的“图标和文字垂直居中一行”组件，不要直接用 `Row + Icon + Text` 当作稳定方案；中文行盒可能导致图标偏高。
+图标 + 文字一行用 `WIconText`（`explain WIconText`）；不要手拼 `Row + Icon + Text`，中文行盒会让图标偏高。纯图标 / 需要按钮语义用 `WButton(icon: ...)`。
 
 ## 轻提示
 

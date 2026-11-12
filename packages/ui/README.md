@@ -20,10 +20,21 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^8.2.0
+  w_tools_ui: ^10.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
+
+## 依赖与平台
+
+- 直接第三方依赖只有 `cached_network_image`（约束 `^3.3.1`）。
+- 它会传递带入 `flutter_cache_manager`、`path_provider`、`sqflite`、`octo_image`、
+  `rxdart`、`uuid` 等；移动 / 桌面用 `path_provider` + `sqflite` 做磁盘缓存，
+  Web 走 `cached_network_image_web`。
+- `asset` / `file` / `base64` / `provider` 来源不经过网络缓存，但依赖仍在 pub 层，
+  不能靠“只用 asset 图”裁掉插件注册。
+- 已有 `ImageProvider` 用 `WImageSource.provider` 接管加载。是否拆分缓存依赖见
+  [ADR-0008](https://github.com/stone0533/w_tools/blob/main/docs/adr/0008-ui-image-cache-dependency.md)。
 
 ## 快速开始
 
@@ -69,6 +80,9 @@ WImage.source(
 空 data（`''` / 纯空白）表示「没有配图」，**不是加载失败**：默认渲染中性 empty 占位，
 不会触发 `errorWidgetBuilder`，也不会回调 `onLoadStatusChanged(failed)`。需要自定义时用
 `WImageSlots(emptyWidget: ...)` 或 `emptyBuilder: ...`；要区分「空」和「加载失败」就在这里分支。
+
+内置 loading / retry / 图片错误文案按当前 `Locale` 取中文或英文；
+`WButtonSemantics.loadingLabel` / `WImageSlots.retryLabel` 传非空字符串可覆盖。
 
 > `WImage` 不会自动给尺寸：没有 `width` / `height` / `aspectRatio` 时，必须由父级
 > （`SizedBox` / `Expanded` / `AspectRatio`）约束；否则在 `Row` / `Column` / `ListView`
@@ -192,6 +206,8 @@ ConstrainedBox(
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
+> 10.0 迁移见 [`docs/migrations/ui-10.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-10.0.md)；
+> 9.0 迁移见 [`docs/migrations/ui-9.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-9.0.md)；
 > 8.0 迁移见 [`docs/migrations/ui-8.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-8.0.md)；
 > 7.0 迁移见 [`docs/migrations/ui-7.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-7.0.md)；
 > 历史迁移见 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)。
@@ -217,6 +233,16 @@ theme: base.withWTextStyles(WTextStyles.fromTextTheme(base.textTheme)),
 ```
 
 `WTextConfig` 已移除；局部只覆盖需要的字段（`style/color/maxLines/overflow/textScaler`）。
+
+图标 + 文字一行：
+
+```dart
+WIconText(icon: Icons.star, text: '收藏');
+WIconText(icon: Icons.location_on, text: '上海市', variant: WTextVariant.caption);
+```
+
+不要用 `Row + Icon + Text` 手拼；中文行盒会让图标看起来偏高。需要按品牌字体微调时传
+`iconOffset`，间距用 `gap`。
 
 ## 按钮与点击
 
@@ -258,6 +284,7 @@ WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap:
 
 ```dart
 WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
+WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
 WActionRow(children: [WButton(...), WButton(...)]);
 ```
@@ -337,6 +364,8 @@ const SizedBox(height: 16);
 1234.56.toCurrency(symbol: '¥'); // ¥1,234.56
 0.125.toPercent;              // 12.5%
 '#FF5733'.toColor();
+card.withStartPadding(8).withEndPadding(4); // 跟随 Directionality
+2.borderSideOf(context);      // 跟随 ColorScheme.outline（borderSide 已弃用）
 
 const BoxDecoration()
     .withColor(Colors.white)
@@ -348,21 +377,29 @@ const BoxDecoration()
 ## 工具
 
 ```dart
-WScreen.w(16);
-WScreen.h(24);
-WScreen.sp(14);
+final screen = WScreen.of(context);
+screen.w(16);
+screen.h(24);
+screen.sp(14);
 
 WAssets.imagePath = 'assets/icons/';
 'logo.png'.assetImagePath;
 ```
 
-`WScreen` 无 delegate 时返回原始值；需要 `ScreenUtil` 时注入 delegate：
+`WScreen` 无 scope / delegate 时返回原始值；需要 `ScreenUtil` 时在 App 根节点注入
+`WScreenScope`：
 
 ```dart
-WScreen.delegateWidth = (v) => ScreenUtil().setWidth(v);
-WScreen.delegateHeight = (v) => ScreenUtil().setHeight(v);
-WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
+WScreenScope(
+  widthScaler: (v) => ScreenUtil().setWidth(v),
+  heightScaler: (v) => ScreenUtil().setHeight(v),
+  fontScaler: (v) => ScreenUtil().setSp(v),
+  child: app,
+);
 ```
+
+10.0 起静态 `WScreen.w/h/sp` 与 `WScreen.delegate*` 已删除；
+统一用 `WScreenScope` + `WScreen.of(context)`。
 
 
 ## 主要 API
@@ -378,7 +415,7 @@ WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
 | 滚动通知 | `WNotificationListener` |
 | 布局 | `WScaffold` / `WAppBar` / `WListView` |
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
-| 屏幕工具 | `WScreen` |
+| 屏幕工具 | `WScreen` / `WScreenScope` |
 | 资源 | `WAssets` |
 | 扩展 | `WColorExtension` / `WImageStyleExtension` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 

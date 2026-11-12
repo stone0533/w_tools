@@ -38,6 +38,12 @@ names = [
     r'WHexColor', r'WImageStyleX',
     # ui 8.0：Config 过渡入口 / 按钮冗余类型 / Builder 收口。
     r'\bWNavBarConfig\b', r'\bWTabBarConfig\b', r'\bWBadgeConfig\b', r'\bWClipRRectConfig\b',
+    r'\bWBadge[^\n|]*\btopRight\b',
+    r'WImageErrorKind\.empty',
+    r'\bWNumExtension\.borderSide\b',
+    r'\bWScreen\.(?:w|h|sp)\b',
+    r'\bWScreen\.delegate(?:Width|Height|Font)\b',
+    r'\bWScreen\.reset\b',
     r'\bWButtonMetrics\b', r'\bWButtonEffectType\b', r'\bWNotificationListenerBuilder\b',
     # form 6.0：实时派生 formEntered / 内部边框登记收口后删除的公开名。
     r'pruneFormEntered', r'removeFormEntered', r'hasBorder', r'errorChannelOf',
@@ -53,7 +59,13 @@ patterns = [
     re.compile(r'\b' + name + ('' if name.endswith(r'\)') else r'\b'))
     for name in names
 ]
-removal = re.compile(r'删除|移除|不再提供|迁移|removed', re.IGNORECASE)
+# 已移除的第三方依赖：当前文档不能再把它列为包依赖。
+# 迁移 / 历史文档不在 targets 里，所以这里只影响“现在仍然推荐”的文档。
+removed_dependencies = [
+    r'\bbadges\b',
+]
+dependency_patterns = [re.compile(pattern) for pattern in removed_dependencies]
+removal = re.compile(r'删除|移除|不再提供|不再依赖|迁移|removed', re.IGNORECASE)
 
 targets = []
 for sub in ('docs/agents', 'docs/recipes', 'docs/modules', 'docs/guides'):
@@ -99,11 +111,22 @@ for path in targets:
             if hit is not None:
                 bad.append(f'{path.relative_to(root)}:{number}: {line.strip()[:100]}')
                 break
+        else:
+            for pattern in dependency_patterns:
+                hit = next(
+                    (match for match in pattern.finditer(line) if not marked_as_removed(line, match.start())),
+                    None,
+                )
+                if hit is not None:
+                    bad.append(
+                        f'{path.relative_to(root)}:{number}: 仍引用已移除依赖：{line.strip()[:100]}'
+                    )
+                    break
 
 if bad:
-    print('文档/示例仍引用已删除 API：', file=sys.stderr)
+    print('文档/示例仍引用已删除 API 或依赖：', file=sys.stderr)
     for item in bad:
         print(f'  ✗ {item}', file=sys.stderr)
     sys.exit(1)
 
-print(f'✓ 已删除 API 未被推荐（{len(targets)} 个文件）')
+print(f'✓ 已删除 API / 依赖未被推荐（{len(targets)} 个文件）')

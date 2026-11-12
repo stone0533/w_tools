@@ -317,14 +317,19 @@ bool isValid = WValidator.isValidEmail('test@example.com');
 await WStorage.setString('key', 'value');
 String? value = WStorage.getString('key');
 
-// 响应式设计：WScreen 默认返回原始数值，
-// 需适配时注入委托（也可对接 flutter_screenutil 的 setWidth/setHeight/setSp）
-WScreen.delegateWidth = (v) => v * WScreen.screenWidth / 375;
-WScreen.delegateHeight = (v) => v * WScreen.screenHeight / 667;
+// 响应式设计：WScreenScope 默认恒等，
+// 需适配时在 App 根节点注入缩放（也可对接 flutter_screenutil 的 setWidth/setHeight/setSp）
+WScreenScope(
+  widthScaler: (v) => v * WScreen.screenWidth / 375,
+  heightScaler: (v) => v * WScreen.screenHeight / 667,
+  fontScaler: (v) => v,
+  child: app,
+);
 
+final screen = WScreen.of(context);
 Container(
-  width: WScreen.w(100), // 宽度按设计稿缩放
-  height: WScreen.h(50), // 高度按设计稿缩放
+  width: screen.w(100), // 宽度按设计稿缩放
+  height: screen.h(50), // 高度按设计稿缩放
   child: const Text('响应式布局'),
 )
 ```

@@ -108,6 +108,21 @@ void main() {
     expect(identical(first, second), isTrue);
   });
 
+  test('值相等 / hashCode；ThemeData.extensions 的比较依赖它', () {
+    final base = ThemeData(useMaterial3: true).textTheme;
+    final a = WTextStyles.fromTextTheme(base);
+    final b = WTextStyles.fromTextTheme(base);
+    expect(identical(a, b), isFalse);
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+
+    final themeA = ThemeData(useMaterial3: true).withWTextStyles(a);
+    final themeB = ThemeData(useMaterial3: true).withWTextStyles(b);
+    expect(themeA, themeB);
+
+    expect(a == a.copyWith(title: const TextStyle(fontSize: 21)), isFalse);
+  });
+
   testWidgets('装了扩展时直接返回安装的实例', (tester) async {
     final styles = _customStyles();
     late WTextStyles observed;

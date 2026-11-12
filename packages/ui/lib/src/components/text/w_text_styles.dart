@@ -191,6 +191,37 @@ class WTextStyles extends ThemeExtension<WTextStyles> {
       badge: lerpStyle(badge, other.badge)!,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WTextStyles &&
+          other.display == display &&
+          other.headline == headline &&
+          other.title == title &&
+          other.body == body &&
+          other.bodyStrong == bodyStrong &&
+          other.caption == caption &&
+          other.label == label &&
+          other.button == button &&
+          other.price == price &&
+          other.number == number &&
+          other.badge == badge;
+
+  @override
+  int get hashCode => Object.hash(
+    display,
+    headline,
+    title,
+    body,
+    bodyStrong,
+    caption,
+    label,
+    button,
+    price,
+    number,
+    badge,
+  );
 }
 
 /// 应用侧的一次性安装入口：让 `TextTheme` 与语义角色同源。

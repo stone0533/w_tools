@@ -27,19 +27,19 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   }
 
   String _snippet() => buildPlaygroundSnippet(
-        isNetwork: _config.isNetwork,
-        width: _config.width,
-        height: _config.height,
-        aspectRatio: _config.aspectRatio,
-        fitName: _config.fit.name,
-        memCache: _config.memCache,
-        radius: _config.radius,
-        withBorder: _config.withBorder,
-        withShadow: _config.withShadow,
-        withMargin: _config.withMargin,
-        customPlaceholder: _config.customPlaceholder,
-        retryCount: _config.retryCount,
-      );
+    isNetwork: _config.isNetwork,
+    width: _config.width,
+    height: _config.height,
+    aspectRatio: _config.aspectRatio,
+    fitName: _config.fit.name,
+    memCache: _config.memCache,
+    radius: _config.radius,
+    withBorder: _config.withBorder,
+    withShadow: _config.withShadow,
+    withMargin: _config.withMargin,
+    customPlaceholder: _config.customPlaceholder,
+    retryCount: _config.retryCount,
+  );
 
   @override
   Widget build(BuildContext context) {

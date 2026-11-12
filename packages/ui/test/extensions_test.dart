@@ -155,12 +155,6 @@ void main() {
       expect(radius, BorderRadius.circular(10));
     });
 
-    test('num.borderSide', () {
-      final side = 1.5.borderSide(color: Colors.red);
-      expect(side.width, 1.5);
-      expect(side.color, Colors.red);
-    });
-
     test('num.toThousandsSeparated', () {
       expect(1234.toThousandsSeparated, '1,234');
       expect(1234567.toThousandsSeparated, '1,234,567');
@@ -384,6 +378,37 @@ void main() {
       expect(paddingOf('r'), const EdgeInsets.only(right: 6));
       expect(paddingOf('t'), const EdgeInsets.only(top: 12));
       expect(paddingOf('b'), const EdgeInsets.only(bottom: 14));
+    });
+
+    testWidgets('withStartPadding / withEndPadding 跟随 Directionality', (tester) async {
+      Widget build(TextDirection direction) => MaterialApp(
+        home: Directionality(
+          textDirection: direction,
+          child: Column(
+            children: [
+              Container(key: const ValueKey('s'), child: const SizedBox().withStartPadding(4)),
+              Container(key: const ValueKey('e'), child: const SizedBox().withEndPadding(6)),
+            ],
+          ),
+        ),
+      );
+      EdgeInsetsDirectional paddingOf(String key) =>
+          tester
+                  .widget<Padding>(
+                    find
+                        .descendant(of: find.byKey(ValueKey(key)), matching: find.byType(Padding))
+                        .first,
+                  )
+                  .padding
+              as EdgeInsetsDirectional;
+
+      await tester.pumpWidget(build(TextDirection.ltr));
+      expect(paddingOf('s').resolve(TextDirection.ltr), const EdgeInsets.only(left: 4));
+      expect(paddingOf('e').resolve(TextDirection.ltr), const EdgeInsets.only(right: 6));
+
+      await tester.pumpWidget(build(TextDirection.rtl));
+      expect(paddingOf('s').resolve(TextDirection.rtl), const EdgeInsets.only(right: 4));
+      expect(paddingOf('e').resolve(TextDirection.rtl), const EdgeInsets.only(left: 6));
     });
 
     test('withIntrinsicHeight / expanded 包装正确', () {

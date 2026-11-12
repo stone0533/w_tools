@@ -37,12 +37,6 @@ extension WNumExtension on num {
   /// 返回：指定圆角的 BorderRadius 实例
   BorderRadius get borderRadius => BorderRadius.circular(toDouble());
 
-  /// 创建指定宽度的 BorderSide
-  ///
-  /// - [color]：边框颜色，默认为 Colors.grey
-  /// 返回：指定宽度的 BorderSide 实例
-  BorderSide borderSide({Color color = Colors.grey}) => BorderSide(width: toDouble(), color: color);
-
   /// 主题描边色（ColorScheme.outline）的 BorderSide；新代码优先用它。
   BorderSide borderSideOf(BuildContext context, {Color? color}) => BorderSide(
     width: toDouble(),

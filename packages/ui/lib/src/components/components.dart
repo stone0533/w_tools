@@ -12,6 +12,7 @@ export 'common/pressable.dart';
 export 'common/row_actions.dart';
 export 'text/w_text.dart';
 export 'text/w_text_styles.dart';
+export 'text/icon_text.dart';
 export 'common/gradient_circular_progress_indicator.dart';
 
 // 布局组件

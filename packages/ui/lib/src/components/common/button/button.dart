@@ -11,6 +11,8 @@ import 'button_semantics.dart';
 import 'button_size.dart';
 import 'button_style.dart';
 import 'button_styles.dart';
+import '../../../internal/ui_strings.dart';
+import '../../text/icon_text.dart';
 
 export 'button_motion.dart';
 export 'button_resolved_style.dart';

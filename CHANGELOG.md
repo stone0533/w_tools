@@ -1,3 +1,8 @@
+## Unreleased
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.0.0`（删除静态 WScreen 入口与 `WNumExtension.borderSide`）。
+
 ## 12.0.12
 
 ### Changed
