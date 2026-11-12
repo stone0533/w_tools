@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^6.6.0
+  w_tools_async: ^6.7.0
 ```
 
 要求 Flutter 3.38+。
@@ -259,7 +259,8 @@ class _GiftPageState extends State<GiftPage> {
 }
 ```
 
-每个独立区块一个 Controller。
+每个独立区块一个 Controller。重新加载用 `reload()`；`retry()` 是 deprecated 别名，
+自动重试用 `WAsync.retry`。
 
 Controller 只接 `onError`；不再接受 `WAsyncOptions` / `activity`。控制器自己维护四态。
 

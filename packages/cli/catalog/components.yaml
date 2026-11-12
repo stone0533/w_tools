@@ -866,11 +866,11 @@ components:
     package: 'w_tools_async'
     docsAnchor: 'wasynccontroller'
     section: '3. Controller'
-    useFor: '单区块异步状态、load / retry / replaceData / 旧请求丢弃'
+    useFor: '单区块异步状态、load / reload / replaceData / 旧请求丢弃'
     dontUseFor: '分页用 `WAsyncPagedController`；纯执行用 `WAsync`'
     usage: |
       final c = WAsyncController.list(() => api.list(), onError: (e) => log(e)); c.load();
-      c.retry();                        // 只重载一次，不自动重试
+      c.reload();                       // 只重载一次，不自动重试
       final withToken = WAsyncController.listWithToken((token) => api.list(token: token));
       c.replaceData(next);              // 本地替换：取消在飞 load，旧结果不写回
       @override
@@ -879,7 +879,7 @@ components:
       - '页面 dispose 时 controller.dispose()'
       - 'Controller 只接 onError；activity 只在 WAsync 上用'
       - 'list / listWithToken 的 state.data 是 unmodifiable；需要可变副本请自己 List.of'
-      - 'controller.retry() 只重载一次；自动重试用 WAsync.retry'
+      - 'controller.reload() 只重载一次；自动重试用 WAsync.retry；retry() 是 deprecated 别名'
       - 'replaceData 会取消在飞 load；需要服务端校准时再 load()'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
     teach: true

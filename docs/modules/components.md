@@ -92,7 +92,7 @@
 | `WBadgeStyle` | ui | 角标视觉：背景 / 前景 / 文字 / padding / 圆角 / 边框 | 不要在这里放位置；位置用 WBadgePosition |
 | `WBadgePosition` | ui | 角标位置：topEnd / center | 不要用它做外部布局；它只控制角标相对 child 的位置 |
 | `WFormIcons` | form | 表单图标统一入口（下拉 / 勾选 / 单选 / 密码 / 清空）；WForm 会继承外层 WFormTheme 的图标 | `WFormDefaults` 已删除；`WForm` / `WFormTheme` 已不再接受单项 `xxxIcon` 参数，统一用 `icons:` |
-| `WAsyncController` | async | 单区块异步状态、load / retry / replaceData / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
+| `WAsyncController` | async | 单区块异步状态、load / reload / replaceData / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore、本地替换（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WAsyncPagedFooterStatus` | async | 分页 footer 的派生状态：hidden / loading / failed / noMore / loadMore | 不要自己用 data / loadMoreError / hasMore 拼 footer 状态 |
 | `WLanguage` | app | 实例级语言状态 / 切换 / 只读变化流 | 不要自己保存 currentLanguage；用 app.language |

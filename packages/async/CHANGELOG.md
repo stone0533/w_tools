@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.7.0
+
+### Added
+- `WAsyncController.reload()`：与 `load()` 等价的明确命名。
+
+### Deprecated
+- `WAsyncController.retry()`：改用 `reload()`，remove-in 7.0.0；自动重试用 `WAsync.retry`。
+
 ## 6.6.0
 
 ### Added

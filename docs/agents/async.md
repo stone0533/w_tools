@@ -3,6 +3,7 @@
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
 - 每个独立区块一个 Controller；不要用一个 `WAsyncActivity` 合并多个独立区块。
+- Controller 重新加载用 `reload()`；`retry()` 是 deprecated 别名，自动重试用 `WAsync.retry`。
 - 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点。
 - 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`。
 - `WAsyncView` / `WAsyncStateBuilder` 只监听 `ValueListenable`（`state` 不是 `Rx`）：
