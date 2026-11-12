@@ -10,6 +10,18 @@
 - `app_card.dart`：重复卡片入口 `AppCard`
 - `app_scaffold.dart`：标准页面入口 `AppScaffold`
 
+## 主题
+
+`WText(variant:)` 的 `price` / `number` / `badge` 依赖主题里的语义样式；App 启动时装一次：
+
+```dart
+final base = ThemeData(colorScheme: scheme, useMaterial3: true);
+theme: base.withWTextStyles(WTextStyles.fromTextTheme(base.textTheme)),
+```
+
+图片需要 App 级占位 / 错误兜底时，在根节点包 `WImageTheme(slots: WImageSlots(...))`。
+不要在页面里逐个 `WText(style: ...)` 覆盖全局字体。
+
 ## 页面
 
 ```dart

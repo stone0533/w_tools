@@ -31,22 +31,9 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 快速判断
 
-| 需求 | 入口 |
-|---|---|
-| 普通业务按钮 | `WButton` |
-| 任意 child / 卡片点击 | `WPressable` |
-| 表单里的值选择 | `WFormButton`（form 包） |
-| 文本 | `WText(variant:)` + `WTextStyles` |
-| 图标 + 文字一行 | `WIconText` |
-| 图片 | `WImage.source` + `WImageSource` |
-| 页面骨架 | `WScaffold` / `WAppBar` |
-| 列表 | `WListView` / `WListViewSliver` |
-| 底部导航 / 顶部 tab | `WNavBar` / `WTabBar` |
-| 屏幕 / 字体适配 | `WScreen` |
-| 资源前缀 | `WAssets.imagePath` |
+> 组件选择以 [`docs/agents/ui.md`](../agents/ui.md)、[`docs/agents/button.md`](../agents/button.md)
+> 与 [`components.md`](components.md) 为准；这里不再维护“需求 → 入口”表，避免三份事实源漂移。
 
-选择规则以 [`docs/agents/ui.md`](../agents/ui.md) 与 [`docs/agents/button.md`](../agents/button.md) 为准；
-组件事实源是 [`components.md`](components.md)。
 
 ## 1. WScreen - 屏幕适配
 

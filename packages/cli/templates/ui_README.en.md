@@ -11,6 +11,19 @@ These files are **not** candidates for moving into `w_tools_ui`.
 - `app_card.dart`: repeated-card entry `AppCard`
 - `app_scaffold.dart`: standard page entry `AppScaffold`
 
+## Theme
+
+`WText(variant:)` resolves `price` / `number` / `badge` from the theme; install once at app start:
+
+```dart
+final base = ThemeData(colorScheme: scheme, useMaterial3: true);
+theme: base.withWTextStyles(WTextStyles.fromTextTheme(base.textTheme)),
+```
+
+For app-level image placeholder/error fallbacks, wrap the root with
+`WImageTheme(slots: WImageSlots(...))`. Do not override global typography with
+per-page `WText(style: ...)`.
+
 ## Pages
 
 ```dart

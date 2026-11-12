@@ -1,3 +1,9 @@
+## 1.20.9
+
+### Changed
+- `init` 生成的 `lib/app/ui/README.md` 补主题接入说明：`withWTextStyles` 与
+  `WImageTheme(slots: ...)`，避免消费方漏装语义字体 / 图片兜底。
+
 ## 1.20.8
 
 ### Changed

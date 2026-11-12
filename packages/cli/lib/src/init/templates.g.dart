@@ -1799,6 +1799,18 @@ const String uiReadme = r'''
 - `app_card.dart`：重复卡片入口 `AppCard`
 - `app_scaffold.dart`：标准页面入口 `AppScaffold`
 
+## 主题
+
+`WText(variant:)` 的 `price` / `number` / `badge` 依赖主题里的语义样式；App 启动时装一次：
+
+```dart
+final base = ThemeData(colorScheme: scheme, useMaterial3: true);
+theme: base.withWTextStyles(WTextStyles.fromTextTheme(base.textTheme)),
+```
+
+图片需要 App 级占位 / 错误兜底时，在根节点包 `WImageTheme(slots: WImageSlots(...))`。
+不要在页面里逐个 `WText(style: ...)` 覆盖全局字体。
+
 ## 页面
 
 ```dart
@@ -1881,6 +1893,19 @@ These files are **not** candidates for moving into `w_tools_ui`.
 - `app_buttons.dart`: button style registry, pages use `AppButtons`
 - `app_card.dart`: repeated-card entry `AppCard`
 - `app_scaffold.dart`: standard page entry `AppScaffold`
+
+## Theme
+
+`WText(variant:)` resolves `price` / `number` / `badge` from the theme; install once at app start:
+
+```dart
+final base = ThemeData(colorScheme: scheme, useMaterial3: true);
+theme: base.withWTextStyles(WTextStyles.fromTextTheme(base.textTheme)),
+```
+
+For app-level image placeholder/error fallbacks, wrap the root with
+`WImageTheme(slots: WImageSlots(...))`. Do not override global typography with
+per-page `WText(style: ...)`.
 
 ## Pages
 
