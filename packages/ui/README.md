@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^10.0.0
+  w_tools_ui: ^10.1.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -83,6 +83,9 @@ WImage.source(
 
 内置 loading / retry / 图片错误文案按当前 `Locale` 取中文或英文；
 `WButtonSemantics.loadingLabel` / `WImageSlots.retryLabel` 传非空字符串可覆盖。
+
+`WImageError.message` 是固定中文诊断文案（日志 / `toString()`）；UI 里用
+`error.localizedMessage(context)` 跟随当前 `Locale`。
 
 > `WImage` 不会自动给尺寸：没有 `width` / `height` / `aspectRatio` 时，必须由父级
 > （`SizedBox` / `Expanded` / `AspectRatio`）约束；否则在 `Row` / `Column` / `ListView`

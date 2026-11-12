@@ -1,3 +1,9 @@
+## 10.1.0
+
+### Added
+- `WImageError.localizedMessage(BuildContext)`：按当前 `Locale` 返回图片错误文案
+  （zh 中文 / 其他英文）；`message` 继续作为固定中文诊断文案。
+
 ## 10.0.0
 
 ### Breaking

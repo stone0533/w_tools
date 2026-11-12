@@ -1,3 +1,9 @@
+## 1.20.10
+
+### Changed
+- catalog 中 `WImageError` 的示例改用 `localizedMessage(context)`；同步 `w_tools_ui` 约束
+  `^10.1.0`。
+
 ## 1.20.9
 
 ### Changed

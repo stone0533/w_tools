@@ -1675,11 +1675,11 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '错误类型'
     section: '2. 文本与图标'
-    useFor: '图片加载错误（data / kind / cause / message）'
+    useFor: '图片加载错误（data / kind / cause / message / localizedMessage）'
     dontUseFor: '不要自己构造来 mock 失败；用 WImageSource 触发真实错误'
     usage: |
       WImageLoadOptions(
-        errorWidgetBuilder: (context, data, error) => Text(error.message),
+        errorWidgetBuilder: (context, data, error) => Text(error.localizedMessage(context)),
       )
     related: ['`WImageErrorKind`']
     teach: false

@@ -25,6 +25,31 @@ void main() {
     });
   });
 
+  testWidgets('WImageError.localizedMessage 跟随 Locale', (tester) async {
+    const error = WImageError('raw', WImageErrorKind.network);
+
+    Future<String> localized(Locale locale) async {
+      late String value;
+      await tester.pumpWidget(
+        Localizations(
+          locale: locale,
+          delegates: const [DefaultWidgetsLocalizations.delegate],
+          child: Builder(
+            builder: (context) {
+              value = error.localizedMessage(context);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      return value;
+    }
+
+    expect(await localized(const Locale('zh')), '网络图片加载失败');
+    expect(await localized(const Locale('en')), 'Network image failed');
+    expect(error.message, '网络图片加载失败');
+  });
+
   group('WImageError.message', () {
     const expected = {
       WImageErrorKind.network: '网络图片加载失败',

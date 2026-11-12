@@ -1,3 +1,8 @@
+## 13.0.1
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.1.0`（`WImageError.localizedMessage`）。
+
 ## 13.0.0
 
 ### Breaking
