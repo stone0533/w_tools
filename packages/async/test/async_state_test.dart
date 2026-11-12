@@ -46,6 +46,27 @@ void main() {
       expect(WAsyncState.list<int>(const [1, 2]).data, const [1, 2]);
     });
 
+    test('list 不复制、不包装输入列表', () {
+      final source = <int>[1, 2];
+      final state = WAsyncState.list<int>(source);
+
+      expect(state.data, same(source));
+      source.add(3);
+      expect(state.data, <int>[1, 2, 3]);
+    });
+
+    test('列表相等性是引用比较，不是深比较', () {
+      final list = <int>[1, 2];
+      expect(
+        WAsyncState<List<int>>.ready(list),
+        WAsyncState<List<int>>.ready(list),
+      );
+      expect(
+        WAsyncState<List<int>>.ready(<int>[1, 2]),
+        isNot(WAsyncState<List<int>>.ready(<int>[1, 2])),
+      );
+    });
+
     test('when 覆盖四态', () {
       String describe(WAsyncState<int> s) => s.when(
         loading: () => 'loading',

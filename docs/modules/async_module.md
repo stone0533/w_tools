@@ -159,7 +159,10 @@ WAsyncState.failed(error, previousData: oldData)
 `data` 可读取旧数据；`when(...)` 四态全覆盖；`isRefreshing` 表示 loading + 旧数据
 （首屏 loading 为 false；判断是否在加载用 `isLoading`）。
 `WAsyncState.list(...)`（旧名 `ofList`，已 deprecated）把 null / 空列表转为 empty，与
-`WAsyncController.list` 对称。
+`WAsyncController.list` 对称；但它**不复制、不包装**输入列表，需要不可变 data 时用
+`WAsyncController.list` 或自己传 `List.unmodifiable(...)`。
+
+`WAsyncState` 的相等性按字段 `==` 比较；`data` 是列表时按引用比较，不是深比较。
 
 ## 3. Controller
 
