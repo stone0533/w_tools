@@ -47,6 +47,7 @@
 - [0006 包拓扑](adr/0006-package-topology.md)：独立库包 + 契约/实现对，根包只聚合基础子包
 - [0007 组件命名约定](adr/0007-component-naming-roles.md)：命名收敛为角色判断（规则正文见 naming.md）
 - [0008 ui 图片缓存依赖](adr/0008-ui-image-cache-dependency.md)：保留 cached_network_image，记录传递依赖与拆分触发条件
+- [0009 WIconText 自定义图标](adr/0009-icon-text-custom-icon.md)：静态构造器 + Widget，不引入 flutter_svg
 
 ## 评审记录
 
