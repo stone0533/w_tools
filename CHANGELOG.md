@@ -1,4 +1,4 @@
-## Unreleased
+## 12.0.9
 
 ### Changed
 - 根包 `w_tools_async` 约束抬到 `^6.4.0`（取消竞态修复；新增 `WAsync.settle` /
