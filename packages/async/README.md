@@ -75,6 +75,10 @@ ready    → readyBuilder
 `errorBannerBuilder` / `refreshingBuilder`；`onRetryError` 用于观测自定义 retry 失败。
 未传时回退到 `WAsyncTheme` 的默认视图。
 
+`refreshingBuilder` / `errorBannerBuilder` 是**内容盒** overlay，不一定是视口：作为
+`Scaffold.body` / `Expanded` 等紧约束时填满视口，作为 `Column` 子项 / `ListView` item
+时只包住内容。需要固定到视口时，外层给有界高度，或用 `WAsyncStateBuilder` 自建滚动壳。
+
 完整可运行示例：[`example/`](example/README.md)（四态、分页、Sliver、执行、真实场景）。
 
 ## 主要 API

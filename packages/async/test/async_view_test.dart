@@ -165,6 +165,36 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('松约束下内容盒只包住内容，overlay 不撑满视口', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState<int>.failed('boom', previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          height: 600,
+          child: Column(
+            children: [
+              WAsyncView<int>(
+                state: state,
+                onRetry: () async {},
+                readyBuilder: (context, value) => SizedBox(
+                  height: 40,
+                  child: Text('value-$value'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(WAsyncErrorBanner), findsOneWidget);
+    expect(tester.getSize(find.byType(WAsyncView<int>)).height, lessThan(600));
+  });
+
   testWidgets('failed + previousData 保留内容并展示错误条', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom', previousData: 1),

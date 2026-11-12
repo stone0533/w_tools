@@ -254,7 +254,10 @@ SmartRefresher 组合（首屏、generation、footer 重试）见
 
 - `WAsyncView.onRetry` 可选；无 retry 时不渲染按钮，但自定义 error / banner builder 仍会收到 `null`，由 builder 决定是否渲染按钮；自定义 retry 失败用 `onRetryError` 观测；
 - `WAsyncStateSliver.onRetry` 可选；无 retry 时自定义 builder 仍会收到 `null`；
-- `WAsyncStateSliver` 的 failed + 旧数据错误条在列表上方，ready 子树不重建；`WAsyncView` 的错误条是视口底部 overlay；
+- `WAsyncStateSliver` 的 failed + 旧数据错误条在列表上方，ready 子树不重建；
+- `WAsyncView` 的 refreshing / errorBanner 是**内容盒** overlay，不一定是视口：作为
+  `Scaffold.body` / `Expanded` 等紧约束时填满视口，作为 `Column` 子项 / `ListView` item
+  时只包住内容；需要固定到视口时外层给有界高度，或用 `WAsyncStateBuilder` 自建滚动壳；
 - 长列表深滚动时顶部错误条可能在视口外：用 `onError` toast 或 `WAsyncStateBuilder` overlay；
 - 默认文案由 `WAsyncStrings` 提供，通过 `WAsyncTheme.strings` 注入本地化。
 

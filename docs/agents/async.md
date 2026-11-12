@@ -10,6 +10,9 @@
   不会有编译错误，但那些状态就不再触发重建。
 - Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮；failed + 旧数据的错误条在
   列表上方，深滚动场景用 `onError` toast 或 `WAsyncStateBuilder` overlay。
+- `WAsyncView` 的 refreshing / errorBanner 是内容盒 overlay，不一定是视口：紧约束
+  （Scaffold body / Expanded）填满视口，松约束（Column 子项 / ListView item）只包内容；
+  需要固定视口时外层给有界高度或用 `WAsyncStateBuilder`。
 - 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
 - 分页 footer 直接读 `controller.footerStatus`（hidden / loading / failed / noMore / loadMore），
   不再手写 data / loadMoreError / hasMore 组合；它是普通 getter，重建仍用 `changes`。
