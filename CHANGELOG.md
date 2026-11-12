@@ -1,3 +1,8 @@
+## 12.0.8
+
+### Changed
+- 根包 `w_tools_async` 约束抬到 `^6.3.0`（`WAsyncPage` / `withPage` 精确 hasMore）。
+
 ## 12.0.7
 
 ### Changed

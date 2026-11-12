@@ -104,6 +104,7 @@
 | `WFormThemeData` | form | 表单主题数据（icons / borderStyle + effective* 图标 getter）；`WFormThemeData.of(context)` 读取 | — |
 | `WFormTheme` | form | 主题 InheritedWidget：App 级图标 / 边框统一放外层，WForm 会继承 | — |
 | `WAsyncPageLoader` | async | 分页 loader 的类型：(page) => Future<List<T>> | — |
+| `WAsyncPage` | async | 分页 loader 返回 items + 显式 hasMore（第一页不足一页 / total） | — |
 | `WAsyncTokenLoader` | async | 可感知取消的 loader 类型：(token) => Future<T> | — |
 | `WAsyncTokenPageLoader` | async | 可感知取消的分页 loader 类型：(page, token) => Future<List<T>> | — |
 <!-- catalog:3:end -->

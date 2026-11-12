@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.3.0
+
+### Added
+- `WAsyncPage<T>` + `WAsyncPagedController.withPage` / `withPageToken`：
+  loader 可显式返回 `hasMore`，第一页不足一页或已知 `total` 时不再多发一次空页请求。
+- 旧构造 `WAsyncPagedController(loader)` / `withToken` 行为不变：本页非空仍视为有更多。
+
 ## 6.2.0
 
 ### Added
