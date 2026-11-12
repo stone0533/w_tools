@@ -56,6 +56,7 @@ Widget _buildButtonLoading(
   return Semantics(
     label: state._semantics.loadingLabel,
     container: true,
+    liveRegion: true,
     child: child,
   );
 }

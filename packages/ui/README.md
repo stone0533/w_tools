@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^8.3.0
+  w_tools_ui: ^8.4.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -268,6 +268,7 @@ WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap:
 
 ```dart
 WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
+WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
 WActionRow(children: [WButton(...), WButton(...)]);
 ```

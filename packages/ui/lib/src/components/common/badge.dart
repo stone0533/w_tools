@@ -103,6 +103,7 @@ class WBadge extends StatelessWidget {
     this.position = const WBadgePosition.topEnd(),
     this.style,
     this.showBadge = true,
+    this.semanticLabel,
   });
 
   /// 徽章内容；为 null 时不渲染徽章。
@@ -120,6 +121,12 @@ class WBadge extends StatelessWidget {
   /// 是否显示徽章。
   final bool showBadge;
 
+  /// 徽章的读屏标签（如「3 条未读」）。
+  ///
+  /// 提供后气泡内的文字 / 图标不再单独朗读，只播报这个标签；
+  /// 未提供时保持原有语义（气泡内容自行参与朗读）。
+  final String? semanticLabel;
+
   @override
   Widget build(BuildContext context) {
     final content = badgeContent;
@@ -128,21 +135,29 @@ class WBadge extends StatelessWidget {
     }
 
     final bubble = _WBadgeBubble(style: style, child: content);
+    final semantic = semanticLabel;
+    final paintedBubble = semantic == null
+        ? bubble
+        : Semantics(
+            label: semantic,
+            container: true,
+            child: ExcludeSemantics(child: bubble),
+          );
     final anchor = child;
-    if (anchor == null) return bubble;
+    if (anchor == null) return paintedBubble;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
         anchor,
         if (position.isCenter)
-          Positioned.fill(child: Center(child: bubble))
+          Positioned.fill(child: Center(child: paintedBubble))
         else
           Positioned.directional(
             textDirection: Directionality.of(context),
             top: position.top,
             end: position.end,
-            child: bubble,
+            child: paintedBubble,
           ),
       ],
     );

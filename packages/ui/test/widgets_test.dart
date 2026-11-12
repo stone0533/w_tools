@@ -180,6 +180,25 @@ void main() {
       expect((box.decoration as BoxDecoration).color, theme.colorScheme.error);
     });
 
+    testWidgets('semanticLabel 提供角标读屏上下文', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: WBadge(
+              semanticLabel: '3 条未读',
+              badgeContent: Text('3'),
+              child: Icon(Icons.notifications),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.bySemanticsLabel('3 条未读'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+      handle.dispose();
+    });
+
     testWidgets('自定义 position / style / showBadge', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(

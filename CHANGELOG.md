@@ -1,7 +1,7 @@
 ## Unreleased
 
 ### Changed
-- 根包 `w_tools_ui` 约束抬到 `^8.3.0`（新增 `WIconText`；值相等与文档修正）。
+- 根包 `w_tools_ui` 约束抬到 `^8.4.0`（`WBadge.semanticLabel`、`WSelectableRow` 按压反馈、loading liveRegion）。
 
 ## 12.0.12
 

@@ -171,6 +171,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 ## 5. WBadge - 徽章组件
 
 `WBadge` 用于角标 / 数量提示；位置用 `position`，视觉用 `style`，显隐用 `showBadge`。
+需要读屏上下文时传 `semanticLabel`（如「3 条未读」），气泡内容不再单独朗读。
 
 ### WBadgeStyle / WBadgePosition
 

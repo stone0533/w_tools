@@ -1,3 +1,15 @@
+## 8.4.0
+
+### Added
+- `WBadge.semanticLabel`：给角标提供读屏上下文（如「3 条未读」）；提供后气泡内容
+  不再单独朗读，child 的语义保持不变。
+
+### Changed
+- `WSelectableRow` 内部改用 `WPressable`：增加按压 / hover 反馈与点击光标；外层仍是
+  `Semantics(button: true, selected: ...)`。
+- `WButton` 的 loading 语义增加 `liveRegion`：loading 切换时由读屏播报
+  `WButtonSemantics.loadingLabel`。
+
 ## 8.3.0
 
 ### Added

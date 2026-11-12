@@ -539,6 +539,30 @@ void main() {
       expect(indicator.color, foreground);
     });
 
+    testWidgets('loading 语义是 liveRegion', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            style: _LegacyButtonStyles.primary,
+            label: '提交',
+            loading: true,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      final liveRegion = find.descendant(
+        of: find.byType(WButton),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Semantics && widget.properties.liveRegion == true,
+        ),
+      );
+      expect(liveRegion, findsOneWidget);
+      expect(tester.widget<Semantics>(liveRegion).properties.label, '加载中');
+      handle.dispose();
+    });
+
     testWidgets('长按进入 Semantics 并触发 onLongPress', (tester) async {
       var longPressed = 0;
       await tester.pumpWidget(

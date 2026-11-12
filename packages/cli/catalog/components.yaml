@@ -407,8 +407,10 @@ components:
       WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
       WBadge(position: const WBadgePosition.center(), badgeContent: const Text('NEW'), child: ...);
       WBadge(showBadge: false, badgeContent: const Text('hidden'), child: ...);
+      WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: ...);
     pitfalls:
       - 'badgeContent 为空时不渲染徽章（不报错）'
+      - '需要读屏上下文时传 semanticLabel；提供后气泡内容不再单独朗读'
       - '默认背景 / 前景取 ColorScheme.error / onError；自定义用 style: WBadgeStyle(...)'
     related: ['`WBadgeStyle`', '`WBadgePosition`']
     teach: false
