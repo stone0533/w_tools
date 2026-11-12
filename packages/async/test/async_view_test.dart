@@ -525,6 +525,30 @@ void main() {
     expect(find.byType(WAsyncErrorView), findsNothing);
   });
 
+  testWidgets('onRetryError 自身抛错不影响 UI', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.failed('boom'),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        WAsyncView<int>(
+          state: state,
+          onRetry: () async => throw Exception('retry failed'),
+          onRetryError: (_, _) => throw StateError('handler boom'),
+          readyBuilder: (context, value) => Text('value-$value'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('retry 失败且无 onRetryError 时走 FlutterError.reportError', (tester) async {
     final errors = <FlutterErrorDetails>[];
     final previous = FlutterError.onError;

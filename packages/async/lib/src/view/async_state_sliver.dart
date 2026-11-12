@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../state/async_state.dart';
+import 'async_retry.dart';
 import 'async_theme.dart';
 import 'async_theme_views.dart';
 
@@ -61,35 +60,10 @@ class WAsyncStateSliver<T> extends StatelessWidget {
   }
 
   void _fireRetry() {
-    try {
-      unawaited(
-        onRetry!().then<void>(
-          (_) {},
-          onError: _reportRetryError,
-        ),
-      );
-    } catch (error, stackTrace) {
-      _reportRetryError(error, stackTrace);
-    }
-  }
-
-  void _reportRetryError(Object error, StackTrace stackTrace) {
-    final handler = onRetryError;
-    if (handler != null) {
-      try {
-        handler(error, stackTrace);
-      } catch (_) {
-        // 观测回调自身异常不破坏 UI
-      }
-      return;
-    }
-    FlutterError.reportError(
-      FlutterErrorDetails(
-        exception: error,
-        stack: stackTrace,
-        library: 'w_tools_async',
-        context: ErrorDescription('while retrying WAsyncStateSliver'),
-      ),
+    fireAsyncRetry(
+      retry: onRetry!,
+      onRetryError: onRetryError,
+      context: 'while retrying WAsyncStateSliver',
     );
   }
 
