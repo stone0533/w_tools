@@ -315,6 +315,31 @@ void main() {
     await tester.pump();
     expect(inits, 1);
   });
+  testWidgets('hasScrollBody 透传给 SliverFillRemaining', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState<int>.empty(),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        CustomScrollView(
+          slivers: [
+            WAsyncStateSliver<int>(
+              state: state,
+              hasScrollBody: true,
+              readySliverBuilder: (context, value) => const SliverToBoxAdapter(child: SizedBox()),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final fill = tester.widget<SliverFillRemaining>(
+      find.byType(SliverFillRemaining),
+    );
+    expect(fill.hasScrollBody, isTrue);
+  });
 }
 
 class _InitCounter extends StatefulWidget {

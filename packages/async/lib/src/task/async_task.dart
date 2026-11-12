@@ -243,8 +243,8 @@ class WAsync {
   /// 每个任务都以 [WAsyncResult] 返回，适合首页多个互相独立的区块。
   /// 内部用 [pool] 限流，默认最多 [concurrency] 个任务同时执行。
   ///
-  /// [options] 按任务生效：`activity` 会按单个任务计数；需要整批 activity
-  /// 时用 [parallel] 配 [WAsyncOptions.activity]。
+  /// [options] 会传给每个任务；共享的 `activity` 按并发活动计数
+  /// （0→1 / 1→0），与 [parallel] 一致。需要逐任务计数请在每个任务里自行统计。
   static Future<List<WAsyncResult<T>>> settle<T>(
     Iterable<Future<T> Function()> tasks, {
     int concurrency = 4,

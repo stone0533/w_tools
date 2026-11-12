@@ -450,6 +450,75 @@ void main() {
     });
   });
 
+  test('parallel eagerError:false 等全部完成后再抛', () async {
+    final second = Completer<int>();
+    final future = WAsync.parallel<int>(
+      [
+        Future<int>.error(StateError('boom')),
+        second.future,
+      ],
+      eagerError: false,
+    );
+
+    var completed = false;
+    unawaited(
+      future.then<void>(
+        (_) => completed = true,
+        onError: (_) => completed = true,
+      ),
+    );
+
+    await Future<void>.delayed(Duration.zero);
+    expect(completed, isFalse, reason: '第二个 Future 还没完成');
+
+    second.complete(2);
+    await expectLater(future, throwsStateError);
+  });
+
+  test('settle 共享 activity 按批次计数', () async {
+    var starts = 0;
+    var ends = 0;
+
+    final results = await WAsync.settle<int>(
+      [
+        () async => 1,
+        () async => throw Exception('boom'),
+        () async => 3,
+      ],
+      options: WAsyncOptions(
+        activity: WAsyncActivity(
+          onStart: () => starts++,
+          onEnd: () => ends++,
+        ),
+      ),
+    );
+
+    expect(results, hasLength(3));
+    expect(results.where((result) => result.isFailure), hasLength(1));
+    // WAsyncActivity 是并发计数器：3 个任务并发时只触发一次 0→1 / 1→0。
+    expect(starts, 1);
+    expect(ends, 1);
+  });
+
+  test('retryIf 返回 false 时只尝试一次', () async {
+    var attempts = 0;
+
+    await expectLater(
+      WAsync.retry<int>(
+        () async {
+          attempts++;
+          throw Exception('not retryable');
+        },
+        retryCount: 3,
+        retryDelay: Duration.zero,
+        retryIf: (_) => false,
+      ),
+      throwsException,
+    );
+
+    expect(attempts, 1);
+  });
+
   group('取消边界', () {
     test('retry 在重试等待期间取消', () async {
       final token = WCancelToken();
