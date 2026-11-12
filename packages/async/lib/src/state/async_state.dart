@@ -34,7 +34,8 @@ enum WAsyncStatus {
 /// - 请求成功但结果为空才是 [empty]；
 /// - 请求失败是 [failed]，与「没有数据」是两种不同状态；
 /// - 已有数据时刷新失败用 [failed] + [previousData] 保留旧数据；
-///   不要用 data 为 null 的 failed 覆盖已有列表。
+///   不要用 data 为 null 的 failed 覆盖已有列表；
+/// - 相等性按字段 `==` 比较；`data` 是列表时按引用比较，不是深比较。
 @immutable
 class WAsyncState<T> {
   /// 首次请求进行中；[previousData] 用于刷新时保留旧数据。
@@ -56,7 +57,9 @@ class WAsyncState<T> {
 
   /// 列表类数据的便捷构造：null 或空列表都视为 [empty]。
   ///
-  /// 与 `WAsyncController.list` 命名对称：
+  /// 与 `WAsyncController.list` 命名对称，但**不复制、不包装**输入列表：
+  /// 传入的列表会被直接作为 [data] 保存。需要不可变 data 时用
+  /// `WAsyncController.list`，或自己传 `List.unmodifiable(...)`。
   ///
   /// ```dart
   /// final state = WAsyncState.list<Gift>(result);
@@ -104,6 +107,7 @@ class WAsyncState<T> {
   /// 首屏 loading（[data] 为 null）时为 false；判断是否在加载用 [isLoading]。
   bool get isRefreshing => isLoading && data != null;
 
+  /// 值相等：status / data / error 都使用 `==`；data 为列表时是引用比较。
   @override
   bool operator ==(Object other) =>
       other is WAsyncState<T> &&

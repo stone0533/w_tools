@@ -22,6 +22,8 @@
 - 第一页不足一页 / 服务端有 `total`：用 `WAsyncPagedController.withPage` + `WAsyncPage(hasMore:)`；
   旧构造仍是“本页非空即有更多”，不要用 `data.length` 猜。
 - 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常。
+- `WAsyncState.list` 不复制 / 不包装输入列表；需要不可变 data 用
+  `WAsyncController.list` 或 `List.unmodifiable`。状态相等性是浅比较，列表按引用比较。
 - `WAsyncOptions.onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
   `onError` / `catchError`，否则会有 unhandled Future。不要用空 `onError` 当 catch。
 - `WAsync.run` 不再接受 `onSuccess`；需要映射用 `WAsync.map`。`runValue` / `WAsyncLoading` 已删除。
