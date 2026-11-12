@@ -58,7 +58,7 @@
 | `WImageTheme` | ui | App 级图片占位 / 错误 / 进度默认配置 | 不要按单图传参；单图默认值用 WImageSlots，主题只做 App 级兜底 |
 | `WImageSlots` | ui | 单图 / App 级图片占位 / 空 / 错误 / 进度 / 重试 UI | 不要把重试次数、解码尺寸等行为配置塞进 WImageSlots |
 | `WImageErrorKind` | ui | 图片错误分类（WImageError.kind） | 不要用字符串比较错误；按 kind 分支 |
-| `WImageError` | ui | 图片加载错误（data / kind / cause / message） | 不要自己构造来 mock 失败；用 WImageSource 触发真实错误 |
+| `WImageError` | ui | 图片加载错误（data / kind / cause / message / localizedMessage） | 不要自己构造来 mock 失败；用 WImageSource 触发真实错误 |
 | `WImageProgress` | ui | 图片加载进度（downloadedBytes / totalBytes / fraction / isComplete） | 不要把 downloadedBytes 当总大小；总大小未知时看 fraction == null |
 | `WImageType` | ui | 图片来源类型（asset / network / file / base64 / provider） | 不要用它决定业务 UI；按 WImageSource 子类型或 error.kind 判断 |
 | `WImageLoadStatus` | ui | 图片加载状态（idle / loading / completed / failed） | 不要当业务状态机；只表示图片加载阶段 |

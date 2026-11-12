@@ -1,4 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
+import '../../../internal/ui_strings.dart';
 
 /// 图片加载状态枚举
 enum WImageLoadStatus {
@@ -122,7 +124,9 @@ class WImageError implements Exception {
   /// 底层原因（网络异常 / 解码异常等），可为空
   final Object? cause;
 
-  /// 可读的原因
+  /// 可读的原因（固定中文诊断文案，供日志 / `toString()`）。
+  ///
+  /// UI 请用 [localizedMessage]，它跟随当前 [Locale]。
   String get message => switch (kind) {
     WImageErrorKind.network => '网络图片加载失败',
     WImageErrorKind.asset => '本地资源加载失败',
@@ -131,6 +135,11 @@ class WImageError implements Exception {
     WImageErrorKind.file => '本地文件读取失败',
     WImageErrorKind.unsupported => '当前平台不支持该图片源',
   };
+
+  /// 按当前 [Locale] 返回错误文案（zh 中文 / 其他英文）。
+  ///
+  /// 需要在没有 [BuildContext] 的日志里保留固定中文时用 [message]。
+  String localizedMessage(BuildContext context) => WUiStrings.of(context).imageErrorMessage(kind);
 
   /// 值相等只比较 [data] 与 [kind]；[cause] 是诊断信息，不参与相等。
   ///
