@@ -21,31 +21,17 @@
   `null` 表示保留。清空解码尺寸改用 `withoutMemCacheWidth` / `withoutMemCacheHeight`。
 
 ### Added
-- `WScreenScope`：在子树内注入宽度 / 高度 / 字体缩放，替代全局 delegate。
-- `WScreenData.w` / `h` / `sp`：从 `WScreen.of(context)` 直接取缩放后的值；
-  `WScreenData` 构造器新增可选 scaler 字段（默认恒等）。
-
-### Changed
-- `WBadge.new` 新增可选 `semanticLabel`（8.5.0 未发布，并入 9.0）。
-- `WButtonSemantics.new` 的 `loadingLabel` 默认改为空字符串：按当前 `Locale` 取内置文案
-  （zh 加载中 / 其他 Loading）。
-- `WImageErrorView.new` 的 `retryLabel` 默认改为空字符串；错误文案同步按 `Locale` 本地化。
-
-### Removed
-- `WImageErrorKind.empty`：空 data 从 8.1 起不再产生该错误，继续用
-  `WImageSlots.emptyWidget` / `emptyBuilder`。
-
-### Deprecated（10.0 移除）
-- `WScreen.w` / `h` / `sp` 与 `WScreen.delegateWidth` / `delegateHeight` / `delegateFont`：
-  改用 `WScreenScope` + `WScreen.of(context).w/h/sp`；`WScreen.of` 在无 scope 时回退旧 delegate。
-
-## 8.5.0
-
-### Added
+- `WIconText`：图标 + 文字一行，内部用 `WidgetSpan` + `PlaceholderAlignment.middle`
+  对齐行盒中点，替代手写 `Row + Icon + Text`；支持 `variant` / `style` / `color`、
+  `gap`、`iconSize`（默认随 `textScaler` 缩放）、`iconOffset`、`maxLines` / `overflow`、
+  `semanticsLabel`。
 - `WBadge.semanticLabel`：给角标提供读屏上下文（如「3 条未读」）；提供后气泡内容
   不再单独朗读，child 的语义保持不变。
 - `WWidgetExtension.withStartPadding` / `withEndPadding`：跟随 `Directionality` 的侧边距；
   `withLeftPadding` / `withRightPadding` 继续表示物理方向。
+- `WScreenScope`：在子树内注入宽度 / 高度 / 字体缩放，替代全局 delegate。
+- `WScreenData.w` / `h` / `sp`：从 `WScreen.of(context)` 直接取缩放后的值；
+  `WScreenData` 构造器新增可选 scaler 字段（默认恒等）。
 
 ### Changed
 - `WSelectableRow` 内部改用 `WPressable`：增加按压 / hover 反馈与点击光标；外层仍是
@@ -56,30 +42,17 @@
 - 内置文案按 `Locale`：`WButtonSemantics.loadingLabel` / `WImageErrorView.retryLabel`
   默认改为空字符串（空 = 按 Locale 取内置文案，zh 中文 / 其他英文）；
   `WImageErrorView` 的错误文案同步本地化；`WImageError.message` 仍为固定中文。
+- `WImageError` / `WTextStyles` / `WButtonResolvedStyle` 增加值相等；文档移除 8.0 已删除的
+  `badges` 引用、修正 example README 的 `topRight` / config 残留，并补充中文默认文案说明。
 
+### Removed
+- `WImageErrorKind.empty`：空 data 从 8.1 起不再产生该错误，继续用
+  `WImageSlots.emptyWidget` / `emptyBuilder`。
 
 ### Deprecated（10.0 移除）
-- `WNumExtension.borderSide`：改用 `borderSideOf(context)` 跟随 `ColorScheme.outline`；
-  旧方法保留到 10.0.0。
-
-## 8.3.0
-
-### Added
-- `WIconText`：图标 + 文字一行，内部用 `WidgetSpan` + `PlaceholderAlignment.middle`
-  对齐行盒中点，替代手写 `Row + Icon + Text`；支持 `variant` / `style` / `color`、
-  `gap`、`iconSize`（默认随 `textScaler` 缩放）、`iconOffset`、`maxLines` / `overflow`、
-  `semanticsLabel`。
-
-## 8.2.1
-
-### Changed
-- `WImageError` 增加值相等（`data` + `kind`，`cause` 不参与），`WImageLoadSnapshot`
-  的结构化比较不再依赖异常实例身份。
-- `WTextStyles` 增加 `==` / `hashCode`：内容相同的两份主题不再因扩展实例不同而判不等，
-  避免 `ThemeData` 比较 / 重建时的额外开销。
-- `WButtonResolvedStyle` 增加 `==` / `hashCode`，`states` 与 `boxShadow` 按内容比较。
-- 文档：移除 8.0 已删除的 `badges` 依赖引用；修正 example README 的 `topRight` / config
-  残留；补充内置中文文案（加载中 / 重试 / 图片错误）的英文覆盖说明。
+- `WScreen.w` / `h` / `sp` 与 `WScreen.delegateWidth` / `delegateHeight` / `delegateFont`：
+  改用 `WScreenScope` + `WScreen.of(context).w/h/sp`；`WScreen.of` 在无 scope 时回退旧 delegate。
+- `WNumExtension.borderSide`：改用 `borderSideOf(context)` 跟随 `ColorScheme.outline`。
 
 ## 8.2.0
 
