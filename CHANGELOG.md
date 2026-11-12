@@ -1,4 +1,4 @@
-## Unreleased
+## 12.0.11
 
 ### Changed
 - 根包 `w_tools_async` 约束抬到 `^6.6.0`（`WAsyncStrings.loading` / 默认视图 `liveRegion`）。
