@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.5.0
+
+### Added
+- `WAsyncPagedFooterStatus` + `WAsyncPagedController.footerStatus`：派生 footer 的
+  hidden / loading / failed / noMore / loadMore；footer 用 `changes` 监听，
+  不新增通知源。
+
 ## 6.4.0
 
 ### Added

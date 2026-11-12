@@ -41,7 +41,7 @@ dependencies:
   w_tools_ui: ^8.2.0
   w_tools_api: ^5.2.0
   w_tools_toast: ^2.1.0
-  w_tools_async: ^6.4.0
+  w_tools_async: ^6.5.0
 
 dev_dependencies:
   flutter_test:

@@ -21,6 +21,24 @@ class WAsyncPage<T> {
   final bool? hasMore;
 }
 
+/// 分页 footer 的展示状态，由 [WAsyncPagedController.footerStatus] 派生。
+enum WAsyncPagedFooterStatus {
+  /// 不显示 footer（首屏 loading / empty / 整页 failed，或第一页就到底）。
+  hidden,
+
+  /// 正在追加下一页。
+  loading,
+
+  /// 追加失败；可点击重试。
+  failed,
+
+  /// 已翻过页且没有更多。
+  noMore,
+
+  /// 可以继续上拉 / 加载更多。
+  loadMore,
+}
+
 /// 列表分页状态：首屏、刷新、追加、hasMore 与 loadMore 错误。
 class WAsyncPagedController<T> {
   WAsyncPagedController(
@@ -153,6 +171,28 @@ class WAsyncPagedController<T> {
   /// footer 用它区分「首屏还没翻过页」和「已经翻过页、现在没有更多了」；
   /// 它由 [page] 派生，刷新失败保留游标时不会误报。
   bool get hasLoadedMoreThanOnePage => _page > initialPage + 1;
+
+  /// 当前 footer 应展示的状态。
+  ///
+  /// 派生规则（按优先级）：
+  /// - 还没有数据（首屏 loading / empty / 整页 failed）→ [hidden]；
+  /// - [loadMoreError] 非空 → [failed]；
+  /// - 正在追加 → [loading]；
+  /// - 没有更多：成功翻过页 → [noMore]，第一页就到底 → [hidden]；
+  /// - 其余 → [loadMore]。
+  ///
+  /// 普通 getter，不会通知；footer 用 [changes] 监听状态变化。
+  WAsyncPagedFooterStatus get footerStatus {
+    if (_state.value.data == null) return WAsyncPagedFooterStatus.hidden;
+    if (_loadMoreError.value != null) return WAsyncPagedFooterStatus.failed;
+    if (_isLoadingMore.value) return WAsyncPagedFooterStatus.loading;
+    if (!_hasMore.value) {
+      return hasLoadedMoreThanOnePage
+          ? WAsyncPagedFooterStatus.noMore
+          : WAsyncPagedFooterStatus.hidden;
+    }
+    return WAsyncPagedFooterStatus.loadMore;
+  }
 
   /// state / isLoadingMore / loadMoreError / hasMore 任一变化都会通知。
   ///

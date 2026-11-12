@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^6.4.0
+  w_tools_async: ^6.5.0
 ```
 
 要求 Flutter 3.38+。
@@ -340,6 +340,19 @@ controller.hasMoreListenable
 ```
 
 footer 想只挂一个监听时用 `controller.changes`（合并以上四个）；需要细粒度重建时仍用上面的单项。
+footer 展示状态直接读 `controller.footerStatus`：
+
+```dart
+switch (controller.footerStatus) {
+  case WAsyncPagedFooterStatus.hidden: // 首屏 / empty / 第一页就到底
+  case WAsyncPagedFooterStatus.loading: // 正在追加
+  case WAsyncPagedFooterStatus.failed: // 追加失败，可重试
+  case WAsyncPagedFooterStatus.noMore: // 已翻过页且没有更多
+  case WAsyncPagedFooterStatus.loadMore: // 可继续加载
+}
+```
+
+它是普通 getter，不通知；footer 仍用 `changes` 重建。
 
 `loadMore` 失败只写 `loadMoreError`，不会清空已有列表。
 

@@ -1,3 +1,8 @@
+## Unreleased
+
+### Changed
+- 根包 `w_tools_async` 约束抬到 `^6.5.0`（分页 footer 状态机）。
+
 ## 12.0.9
 
 ### Changed

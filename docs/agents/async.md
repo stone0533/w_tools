@@ -11,6 +11,8 @@
 - Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮；failed + 旧数据的错误条在
   列表上方，深滚动场景用 `onError` toast 或 `WAsyncStateBuilder` overlay。
 - 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
+- 分页 footer 直接读 `controller.footerStatus`（hidden / loading / failed / noMore / loadMore），
+  不再手写 data / loadMoreError / hasMore 组合；它是普通 getter，重建仍用 `changes`。
 - 切换筛选 / 搜索直接再调 `refresh()`：在飞刷新会被取消，旧结果不写回；不要禁用筛选。
 - 本地替换 / 乐观更新用 `replaceData`：会取消在飞 refresh / loadMore，`page` / `hasMore` 默认继承。
 - 单区块本地替换用 `WAsyncController.replaceData`：取消在飞 `load`，旧结果不写回。
@@ -41,6 +43,7 @@
 | 独立区块并行，保留每个结果 | `WAsync.settle` |
 | 单区块本地替换 | `WAsyncController.replaceData` |
 | 分页 | `WAsyncPagedController` |
+| 分页 footer 状态 | `WAsyncPagedFooterStatus` / `footerStatus` |
 | 观测自定义 retry 失败 | `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError` |
 
 `WAsync.map` 做结果映射，`serial` 做同类型顺序任务，`first` 做多源竞速。

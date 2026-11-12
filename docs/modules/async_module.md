@@ -13,6 +13,7 @@
 | 滚动壳复用全局默认 | `WAsyncThemeViews.of(context)` |
 | 刷新失败但保留旧数据 | `WAsyncErrorBanner` |
 | 分页 | `WAsyncPagedController` |
+| 分页 footer 状态 | `WAsyncPagedFooterStatus` / `WAsyncPagedController.footerStatus` |
 | Sliver | `WAsyncStateSliver` |
 
 不要手写 `ValueNotifier<WAsyncState>`，也不要在每个页面重复 `when + RetryView`。
@@ -223,6 +224,10 @@ state / isLoadingMore / loadMoreError / hasMoreListenable
 - `page` 是**下一次 `loadMore` 将请求的页码**，首屏完成前等于 `initialPage`；刷新失败保留刷新前的页码。
 - `hasLoadedMoreThanOnePage`（`page > initialPage + 1`）表示已成功追加过第二页，
   用它区分「首屏还没翻过页」和「已翻过页、现在没有更多了」；不要用 `state.data.length` 变大去猜。
+#### 分页 footer 状态
+
+- `footerStatus` 直接给出 footer 状态：`hidden` / `loading` / `failed` / `noMore` / `loadMore`；
+  它是普通 getter，不通知，footer 用 `changes` 重建。
 
 `initialPage` 必须 >= 1；`initial: WAsyncState.ready([])` / `WAsyncState.empty()` 视为没有更多；`loadMore` 失败只写 `loadMoreError`，不清空列表。
 
@@ -278,4 +283,4 @@ cd packages/async
 flutter test
 ```
 
-当前 6.4.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
+当前 6.5.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
