@@ -1,4 +1,4 @@
-## Unreleased
+## 12.0.12
 
 ### Changed
 - 根包 `w_tools_async` 约束抬到 `^6.7.0`（`WAsyncController.reload()`）。
