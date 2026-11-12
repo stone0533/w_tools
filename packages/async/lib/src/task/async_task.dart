@@ -12,8 +12,8 @@ export 'cancel_token.dart';
 
 /// 执行选项（纯数据）。
 ///
-/// [activity] 用于合并并发加载状态（显式 opt-in）；[onError] 是失败兜底回调。
-/// 执行结果由 [WAsync.tryRun] / 抛异常入口显式表达，不再用 null 表示失败。
+/// [activity] 用于合并并发加载状态（显式 opt-in）；[onError] 是失败**通知**回调，
+/// 不会吞掉异常。执行结果由 [WAsync.tryRun] / 抛异常入口显式表达，不再用 null 表示失败。
 @immutable
 class WAsyncOptions {
   const WAsyncOptions({this.activity, this.onError});
@@ -21,13 +21,17 @@ class WAsyncOptions {
   /// 并发活动计数器；为空表示不跟踪加载状态。
   final WAsyncActivity? activity;
 
-  /// 失败兜底回调；抛错会被忽略。
+  /// 失败通知回调；抛错会被忽略。
+  ///
+  /// 只是通知，不会改变 [WAsync.run] / [WAsync.map] / [WAsync.retry] /
+  /// [WAsync.timeout] 的抛异常语义，也不会让 Future 变成成功。
+  /// 调用方仍需 catchError / try-catch，或改用 [WAsync.tryRun]。
   final void Function(Object error)? onError;
 
   /// 去掉并发活动计数器，保留错误回调。
   WAsyncOptions withoutActivity() => WAsyncOptions(onError: onError);
 
-  /// 去掉错误兜底回调，保留并发活动计数器。
+  /// 去掉错误通知回调，保留并发活动计数器。
   ///
   /// 调用点自己处理错误时用它，避免 `onError` 与调用点重复上报。
   WAsyncOptions withoutOnError() => WAsyncOptions(activity: activity);
@@ -83,6 +87,10 @@ class WAsync {
   }
 
   /// 执行并直接返回成功值；失败抛异常，取消失抛 [WCancellationException]。
+  ///
+  /// [options] 里的 [WAsyncOptions.onError] 只是通知，不会吞掉异常；
+  /// `.then(onSuccess)` 必须同时提供 `onError` / `catchError`，否则会产生
+  /// unhandled Future；不需要抛异常的调用方改用 [tryRun]。
   static Future<T> run<T>(
     Future<T> Function() task, {
     WAsyncOptions? options,

@@ -16,6 +16,8 @@
 - `state.isRefreshing` 只在有旧数据时为 true；首屏 / 重试用 `isLoading`；切换筛选直接 `refresh()`，不需要先判断。
 - 分页 + SmartRefresher：首屏 `refresh()`（不要 `requestRefresh()`），所有 refresh 走同一个 generation helper，footer 重试先 `requestLoading()`；见 `docs/recipes/paged-list.md`。
 - 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常。
+- `WAsyncOptions.onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
+  `onError` / `catchError`，否则会有 unhandled Future。不要用空 `onError` 当 catch。
 - `WAsync.run` 不再接受 `onSuccess`；需要映射用 `WAsync.map`。`runValue` / `WAsyncLoading` 已删除。
 - 取消用 `WCancelToken`；`withToken` 让 loader 感知取消；取消不中止底层 Future；
   被新 refresh 取代的旧 refresh 也会 cancel token。

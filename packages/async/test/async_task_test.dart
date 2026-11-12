@@ -69,6 +69,18 @@ void main() {
       );
     });
 
+    test('run + onError 仍抛（onError 只是通知）', () async {
+      var reported = false;
+      await expectLater(
+        WAsync.run<int>(
+          () async => throw StateError('x'),
+          options: WAsyncOptions(onError: (_) => reported = true),
+        ),
+        throwsStateError,
+      );
+      expect(reported, isTrue, reason: 'onError 应被调用，但不能吞掉 run 的异常');
+    });
+
     test('map 映射成功值', () async {
       expect(await WAsync.map<int, String>(() async => 2, onSuccess: (v) => 'v=$v'), 'v=2');
     });
