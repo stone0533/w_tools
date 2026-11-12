@@ -87,30 +87,30 @@ class _HarnessState extends State<_Harness> with TickerProviderStateMixin {
   }
 
   Widget _tab(int i, Widget child) => TickerMode(
-        enabled: _index == i,
-        child: WKeepAliveWrapper(child: child),
-      );
+    enabled: _index == i,
+    child: WKeepAliveWrapper(child: child),
+  );
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: SafeArea(
-          child: PageView(
-            controller: _pages,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              for (var i = 0; i < 2; i++)
-                _tab(
-                  i,
-                  _CounterPage(
-                    key: (_keys[i] ??= GlobalKey()),
-                    index: i,
-                    scroll: (_scrolls[i] ??= ScrollController()),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      );
+    body: SafeArea(
+      child: PageView(
+        controller: _pages,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          for (var i = 0; i < 2; i++)
+            _tab(
+              i,
+              _CounterPage(
+                key: (_keys[i] ??= GlobalKey()),
+                index: i,
+                scroll: (_scrolls[i] ??= ScrollController()),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _CounterPage extends StatefulWidget {
@@ -126,25 +126,25 @@ class _CounterPageState extends State<_CounterPage> {
 
   @override
   Widget build(BuildContext context) => Column(
-        key: ValueKey('page-${widget.index}'),
-        children: [
-          TextButton(
-            key: const ValueKey('inc'),
-            onPressed: () => setState(() => _count++),
-            child: Text('count=$_count'),
-          ),
-          // 只播一次的动画：无限动画会让 pumpAndSettle 卡死
-          const SizedBox(height: 24, child: _OnceAnimation()),
-          Expanded(
-            child: ListView.builder(
-              key: const ValueKey('list'),
-              controller: widget.scroll,
-              itemCount: 40,
-              itemBuilder: (_, i) => SizedBox(height: 60, child: Text('item $i')),
-            ),
-          ),
-        ],
-      );
+    key: ValueKey('page-${widget.index}'),
+    children: [
+      TextButton(
+        key: const ValueKey('inc'),
+        onPressed: () => setState(() => _count++),
+        child: Text('count=$_count'),
+      ),
+      // 只播一次的动画：无限动画会让 pumpAndSettle 卡死
+      const SizedBox(height: 24, child: _OnceAnimation()),
+      Expanded(
+        child: ListView.builder(
+          key: const ValueKey('list'),
+          controller: widget.scroll,
+          itemCount: 40,
+          itemBuilder: (_, i) => SizedBox(height: 60, child: Text('item $i')),
+        ),
+      ),
+    ],
+  );
 }
 
 class _OnceAnimation extends StatefulWidget {
@@ -154,8 +154,10 @@ class _OnceAnimation extends StatefulWidget {
 }
 
 class _OnceAnimationState extends State<_OnceAnimation> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 200))..forward();
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 200),
+  )..forward();
 
   @override
   void dispose() {

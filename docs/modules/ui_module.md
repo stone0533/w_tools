@@ -23,7 +23,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 重构取舍（2026-11）
 
-- **catalog 粒度**：69 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
+- **catalog 粒度**：70 条子 API 保持逐条登记，不合并成"类型组"；`explain <具体类型>`
   需要精确命中，合并会降低可发现性。
 - **token 层**：暂不引入 `WUiTokens`。当前颜色走 `ColorScheme`，尺寸走
   `WButtonSize` / `WStepStyle`，阴影/渐变走 `WShadows` / `WGradients`；
@@ -50,14 +50,17 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 1. WScreen - 屏幕适配
 
-- `WScreen` 默认是**恒等函数**：未注入 delegate 时 `w/h/sp` 返回原值，不会自动缩放。
-- 设备信息用 `WScreen.of(context)`（推荐，跟随最近 `MediaQuery`）或
-  `WScreen.screenWidth` / `screenHeight` / `statusBarHeight` / `bottomSafeAreaHeight`；
-  这些与 delegate 无关。
+- 推荐在 App 根节点用 `WScreenScope` 注入缩放，再用 `WScreen.of(context).w/h/sp` 读取；
+  尺寸跟随最近 `MediaQuery`，分屏 / 多窗口 / 测试都能正确反映。
+- 没有 scope / delegate 时 `w/h/sp` 是**恒等函数**，返回原值。
+- 设备信息用 `WScreen.of(context)` 或 `WScreen.screenWidth` / `screenHeight` /
+  `statusBarHeight` / `bottomSafeAreaHeight`；这些静态 getter 读平台 view，与 delegate 无关。
+- 9.0 起静态 `WScreen.w/h/sp` 与 `WScreen.delegateWidth/Height/Font` 弃用
+  （remove-in: 10.0.0）；`WScreen.of` 在无 scope 时会回退旧 delegate 以兼容迁移。
 - 静态 getter 依赖 `WidgetsBinding.instance`；不要在 binding 初始化前调用。
 - 使用 `.sp` 的 `WTextStyles` 不得在 `main()` / 顶层 `final` 构建；必须放在
   `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期。
-- delegate 是全局状态；测试里改完要还原。
+- 旧 delegate 是全局状态；测试里改完要还原。
 
 ## 2. WButton - 按钮组件
 
@@ -72,6 +75,8 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
   - `WButtonContentBuilder`：复杂内容（多行、图标 + 文案 + 尾部）时使用。
 - **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成）；`WButtonStyles.of(context).primary`
   适合组件示例 / 独立 Demo。不要在每个调用点重复写完整 `WButtonStyle`。
+- `WButton(icon:, label:)` 内部复用 `WIconText` 做行盒中点对齐；不要再手写
+  `Row + Icon + Text` 补偏移。
 
 ### WButtonContentBuilder
 
@@ -85,7 +90,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 按钮语义、禁用态与 loading 态的朗读由 `WButton.semantics`（`WButtonSemantics`）负责；自定义 child 时不要绕过。
 
-`WButtonSemantics.loadingLabel` 默认是中文「加载中」；英文项目需显式传 `WButtonSemantics(loadingLabel: 'Loading')`。
+`WButtonSemantics.loadingLabel` 默认是空字符串，表示按当前 `Locale` 使用内置文案（zh：加载中；其他：Loading）；传非空字符串则覆盖。
 
 ### WButtonSize
 
@@ -137,10 +142,12 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 ### WImageStyle 配置
 
 视觉与布局：尺寸、`fit`、圆角、边框、占位比例等。不要用它控制加载 / 重试行为。
+9.0 起 `copyWith(null)` 表示保留字段；清空可空字段用 `withoutWidth` / `withoutBorderRadius` 等 `without*`。
 
 ### WImageLoadOptions 配置
 
 加载行为：缓存尺寸、重试与 `gaplessPlayback`。进度回调在 `WImage.onProgress`；不要把视觉参数或占位 UI 塞进来。
+9.0 起清空解码尺寸用 `withoutMemCacheWidth` / `withoutMemCacheHeight`，`copyWith(null)` 只表示保留。
 
 ### WImageSlots 配置
 
@@ -162,9 +169,9 @@ App 级默认 `WImageSlots`，放在主题 / App 根节点；单图仍可用 `sl
 默认错误 UI 是 `WImageErrorView`。`WImageSource.resolve` 在 Base64 非法时抛 `FormatException`、
 Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError` 并渲染错误占位。
 
-内置错误文案（`WImageError.message`）与重试文案（`WImageErrorView.retryLabel` /
-`WImageSlots.retryLabel`）默认是中文；英文项目用 `slots.errorWidgetBuilder` 或
-`WImageSlots(retryLabel: 'Retry')` 覆盖。
+`WImageErrorView` 的错误文案与重试文案按当前 `Locale` 本地化（zh / en）；
+`WImageError.message` 仍是固定中文，业务直接使用 `message` 时需自行本地化。
+`WImageSlots.retryLabel` 传空字符串 / 不传时使用内置本地化文案。
 
 旧字符串图片入口已删除；新代码不要再使用 `WImage('url')` 形式。
 
@@ -252,10 +259,12 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 ### WNumExtension
 
 数字格式化与间距 / 圆角 / `BorderSide` 糖：`toThousandsSeparated` / `toCurrency` / `toPercent` 等。
+`borderSide` 已弃用（remove-in: 10.0.0），边框统一用 `borderSideOf(context)` 跟随 `ColorScheme.outline`。
 
 ### WWidgetExtension
 
-容器装饰、布局调整等 Widget 扩展。
+容器装饰、布局调整等 Widget 扩展。需要 RTL 时用 `withStartPadding` / `withEndPadding`；
+`withLeftPadding` / `withRightPadding` 是物理方向。
 
 ### WBoxDecorationExtension / WGradients / WShadows
 

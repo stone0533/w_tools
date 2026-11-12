@@ -28,6 +28,7 @@
 - [6.0](ui-6.0.md)：`WImage` 单入口，删除旧构造器与 String 图片扩展
 - [7.0](ui-7.0.md)：`WImageLoadConfig` → `WImageLoadOptions`、`WImageDefaultsScope` → `WImageTheme`、删除 `WImageStyle.merge` / `WImage.type` / `WImage.data`
 - [8.0](ui-8.0.md)：删除 Config 过渡入口 / `WButtonMetrics` / Builder；角标自有类型；按钮 motion / semantics 参数化
+- [9.0](ui-9.0.md)：`copyWith(null)` 改为保留；`without*` 清空；删除 `WImageErrorKind.empty`
 
 ## form
 

@@ -1,14 +1,54 @@
-## 8.4.0
+## 9.0.0
+
+### Breaking
+- `WImageStyle.copyWith` 的参数从 `Object?` 改为具体类型；`null` 表示保留字段。
+  清空可空字段改用 `withoutWidth` / `withoutHeight` / `withoutAspectRatio` /
+  `withoutBorderRadius` / `withoutBorder` / `withoutBoxShadow` / `withoutMargin` /
+  `withoutPadding` / `withoutSemanticLabel`。
+- `WImageLoadOptions.copyWith` 的 `memCacheWidth` / `memCacheHeight` 改为 `int?`；
+  `null` 表示保留。清空解码尺寸改用 `withoutMemCacheWidth` / `withoutMemCacheHeight`。
+
+### Added
+- `WScreenScope`：在子树内注入宽度 / 高度 / 字体缩放，替代全局 delegate。
+- `WScreenData.w` / `h` / `sp`：从 `WScreen.of(context)` 直接取缩放后的值；
+  `WScreenData` 构造器新增可选 scaler 字段（默认恒等）。
+
+### Changed
+- `WBadge.new` 新增可选 `semanticLabel`（8.5.0 未发布，并入 9.0）。
+- `WButtonSemantics.new` 的 `loadingLabel` 默认改为空字符串：按当前 `Locale` 取内置文案
+  （zh 加载中 / 其他 Loading）。
+- `WImageErrorView.new` 的 `retryLabel` 默认改为空字符串；错误文案同步按 `Locale` 本地化。
+
+### Removed
+- `WImageErrorKind.empty`：空 data 从 8.1 起不再产生该错误，继续用
+  `WImageSlots.emptyWidget` / `emptyBuilder`。
+
+### Deprecated（10.0 移除）
+- `WScreen.w` / `h` / `sp` 与 `WScreen.delegateWidth` / `delegateHeight` / `delegateFont`：
+  改用 `WScreenScope` + `WScreen.of(context).w/h/sp`；`WScreen.of` 在无 scope 时回退旧 delegate。
+
+## 8.5.0
 
 ### Added
 - `WBadge.semanticLabel`：给角标提供读屏上下文（如「3 条未读」）；提供后气泡内容
   不再单独朗读，child 的语义保持不变。
+- `WWidgetExtension.withStartPadding` / `withEndPadding`：跟随 `Directionality` 的侧边距；
+  `withLeftPadding` / `withRightPadding` 继续表示物理方向。
 
 ### Changed
 - `WSelectableRow` 内部改用 `WPressable`：增加按压 / hover 反馈与点击光标；外层仍是
   `Semantics(button: true, selected: ...)`。
 - `WButton` 的 loading 语义增加 `liveRegion`：loading 切换时由读屏播报
   `WButtonSemantics.loadingLabel`。
+- `WButton(icon:, label:)` 内部改用 `WIconText` 的行盒中点对齐；补按钮四态 golden。
+- 内置文案按 `Locale`：`WButtonSemantics.loadingLabel` / `WImageErrorView.retryLabel`
+  默认改为空字符串（空 = 按 Locale 取内置文案，zh 中文 / 其他英文）；
+  `WImageErrorView` 的错误文案同步本地化；`WImageError.message` 仍为固定中文。
+
+
+### Deprecated（10.0 移除）
+- `WNumExtension.borderSide`：改用 `borderSideOf(context)` 跟随 `ColorScheme.outline`；
+  旧方法保留到 10.0.0。
 
 ## 8.3.0
 

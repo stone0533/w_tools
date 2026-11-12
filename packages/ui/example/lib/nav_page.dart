@@ -235,7 +235,9 @@ class _KeyValue extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Expanded(child: WText(text: label, variant: WTextVariant.caption)),
+          Expanded(
+            child: WText(text: label, variant: WTextVariant.caption),
+          ),
           WText(text: value, variant: WTextVariant.bodyStrong),
         ],
       ),

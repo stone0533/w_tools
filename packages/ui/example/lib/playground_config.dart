@@ -82,17 +82,17 @@ class PlaygroundConfig {
 
   @override
   int get hashCode => Object.hash(
-        isNetwork,
-        width,
-        height,
-        aspectRatio,
-        fit,
-        memCache,
-        radius,
-        retryCount,
-        customPlaceholder,
-        withBorder,
-        withShadow,
-        withMargin,
-      );
+    isNetwork,
+    width,
+    height,
+    aspectRatio,
+    fit,
+    memCache,
+    radius,
+    retryCount,
+    customPlaceholder,
+    withBorder,
+    withShadow,
+    withMargin,
+  );
 }

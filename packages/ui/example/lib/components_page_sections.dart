@@ -10,10 +10,11 @@ List<Widget> buildComponentsImageSections({
   return [
     const DemoSectionTitle('WImageController 手动重试'),
     WImage.source(
-        source: WImageSource.network('https://example.invalid/controller.png'),
-        controller: imageController,
-        style: const WImageStyle(width: 160, height: 90),
-        slots: const WImageSlots(showRetryButton: true)),
+      source: WImageSource.network('https://example.invalid/controller.png'),
+      controller: imageController,
+      style: const WImageStyle(width: 160, height: 90),
+      slots: const WImageSlots(showRetryButton: true),
+    ),
     TextButton(
       onPressed: imageController.retry,
       child: const Text('controller.retry()'),

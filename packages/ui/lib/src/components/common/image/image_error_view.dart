@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../internal/ui_strings.dart';
 import 'image_types.dart';
 
 const double _kActionMinWidth = 96;
@@ -16,13 +17,16 @@ class WImageErrorView extends StatelessWidget {
     super.key,
     required this.error,
     this.onRetry,
-    this.retryLabel = '重试',
+    this.retryLabel = '',
     this.compact = false,
     this.showAction = true,
   });
 
   final WImageError error;
   final VoidCallback? onRetry;
+
+  /// 重试按钮文案；空字符串表示按当前 `Locale` 使用内置文案
+  /// （zh：重试；其他：Retry）。
   final String retryLabel;
 
   /// 小尺寸时只显示图标（不显示文案/按钮）
@@ -34,6 +38,8 @@ class WImageErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final strings = WUiStrings.of(context);
+    final retryText = retryLabel.isEmpty ? strings.retryLabel : retryLabel;
     return ColoredBox(
       color: colors.errorContainer.withValues(alpha: 0.35),
       child: LayoutBuilder(
@@ -62,9 +68,9 @@ class WImageErrorView extends StatelessWidget {
                   if (showText) ...[
                     const SizedBox(height: 4),
                     Text(
-                      error.message,
+                      strings.imageErrorMessage(error.kind),
                       textAlign: TextAlign.center,
-                      maxLines: 2,
+                      maxLines: showButton ? 1 : 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
@@ -73,7 +79,7 @@ class WImageErrorView extends StatelessWidget {
                     const SizedBox(height: 4),
                     TextButton(
                       onPressed: onRetry,
-                      child: Text(retryLabel),
+                      child: Text(retryText),
                     ),
                   ],
                 ],

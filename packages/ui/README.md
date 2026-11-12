@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^8.4.0
+  w_tools_ui: ^9.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -69,6 +69,9 @@ WImage.source(
 空 data（`''` / 纯空白）表示「没有配图」，**不是加载失败**：默认渲染中性 empty 占位，
 不会触发 `errorWidgetBuilder`，也不会回调 `onLoadStatusChanged(failed)`。需要自定义时用
 `WImageSlots(emptyWidget: ...)` 或 `emptyBuilder: ...`；要区分「空」和「加载失败」就在这里分支。
+
+内置 loading / retry / 图片错误文案按当前 `Locale` 取中文或英文；
+`WButtonSemantics.loadingLabel` / `WImageSlots.retryLabel` 传非空字符串可覆盖。
 
 > `WImage` 不会自动给尺寸：没有 `width` / `height` / `aspectRatio` 时，必须由父级
 > （`SizedBox` / `Expanded` / `AspectRatio`）约束；否则在 `Row` / `Column` / `ListView`
@@ -192,6 +195,7 @@ ConstrainedBox(
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
+> 9.0 迁移见 [`docs/migrations/ui-9.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-9.0.md)；
 > 8.0 迁移见 [`docs/migrations/ui-8.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-8.0.md)；
 > 7.0 迁移见 [`docs/migrations/ui-7.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-7.0.md)；
 > 历史迁移见 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)。
@@ -348,6 +352,8 @@ const SizedBox(height: 16);
 1234.56.toCurrency(symbol: '¥'); // ¥1,234.56
 0.125.toPercent;              // 12.5%
 '#FF5733'.toColor();
+card.withStartPadding(8).withEndPadding(4); // 跟随 Directionality
+2.borderSideOf(context);      // 跟随 ColorScheme.outline（borderSide 已弃用）
 
 const BoxDecoration()
     .withColor(Colors.white)
@@ -359,21 +365,29 @@ const BoxDecoration()
 ## 工具
 
 ```dart
-WScreen.w(16);
-WScreen.h(24);
-WScreen.sp(14);
+final screen = WScreen.of(context);
+screen.w(16);
+screen.h(24);
+screen.sp(14);
 
 WAssets.imagePath = 'assets/icons/';
 'logo.png'.assetImagePath;
 ```
 
-`WScreen` 无 delegate 时返回原始值；需要 `ScreenUtil` 时注入 delegate：
+`WScreen` 无 scope / delegate 时返回原始值；需要 `ScreenUtil` 时在 App 根节点注入
+`WScreenScope`：
 
 ```dart
-WScreen.delegateWidth = (v) => ScreenUtil().setWidth(v);
-WScreen.delegateHeight = (v) => ScreenUtil().setHeight(v);
-WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
+WScreenScope(
+  widthScaler: (v) => ScreenUtil().setWidth(v),
+  heightScaler: (v) => ScreenUtil().setHeight(v),
+  fontScaler: (v) => ScreenUtil().setSp(v),
+  child: app,
+);
 ```
+
+9.0 起静态 `WScreen.w/h/sp` 与 `WScreen.delegate*` 弃用（10.0 移除）；
+`WScreen.of` 在没有 scope 时会回退旧 delegate，方便渐进迁移。
 
 
 ## 主要 API
@@ -389,7 +403,7 @@ WScreen.delegateFont = (v) => ScreenUtil().setSp(v);
 | 滚动通知 | `WNotificationListener` |
 | 布局 | `WScaffold` / `WAppBar` / `WListView` |
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
-| 屏幕工具 | `WScreen` |
+| 屏幕工具 | `WScreen` / `WScreenScope` |
 | 资源 | `WAssets` |
 | 扩展 | `WColorExtension` / `WImageStyleExtension` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 

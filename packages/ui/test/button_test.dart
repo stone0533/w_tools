@@ -559,7 +559,7 @@ void main() {
         ),
       );
       expect(liveRegion, findsOneWidget);
-      expect(tester.widget<Semantics>(liveRegion).properties.label, '加载中');
+      expect(tester.widget<Semantics>(liveRegion).properties.label, 'Loading');
       handle.dispose();
     });
 

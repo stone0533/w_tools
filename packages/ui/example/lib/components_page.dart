@@ -41,7 +41,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        ...buildComponentsOverviewSections(),
+        ...buildComponentsOverviewSections(context),
         ...buildComponentsStateSections(
           context: context,
           selectedTag: _selectedTag,

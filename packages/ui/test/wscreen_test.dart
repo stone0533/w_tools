@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
@@ -31,6 +32,44 @@ void main() {
               expect(data.height, 915);
               expect(data.statusBarHeight, 24);
               expect(data.bottomSafeAreaHeight, 12);
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+    });
+  });
+
+  group('WScreenScope', () {
+    testWidgets('scope 注入 w/h/sp，优先于全局 delegate', (tester) async {
+      WScreen.delegateWidth = (v) => v * 10;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: WScreenScope(
+            widthScaler: (v) => v * 2,
+            heightScaler: (v) => v + 3,
+            fontScaler: (v) => v * 1.5,
+            child: Builder(
+              builder: (context) {
+                final screen = WScreen.of(context);
+                expect(screen.w(10), 20);
+                expect(screen.h(10), 13);
+                expect(screen.sp(10), 15);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+    });
+
+    testWidgets('无 scope 时 WScreen.of 回退到旧 delegate', (tester) async {
+      WScreen.delegateWidth = (v) => v * 3;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              expect(WScreen.of(context).w(10), 30);
               return const SizedBox.shrink();
             },
           ),

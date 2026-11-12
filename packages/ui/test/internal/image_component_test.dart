@@ -268,7 +268,7 @@ void main() {
       await tester.pump();
       expect(find.byType(WImageErrorView), findsOneWidget);
 
-      await tester.tap(find.text('重试'));
+      await tester.tap(find.text('Retry'));
       await tester.pump();
       expect(controller.state.value.attempt, 1);
     });
@@ -285,7 +285,7 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(WImageErrorView), findsOneWidget);
-      expect(find.text('重试'), findsNothing);
+      expect(find.text('Retry'), findsNothing);
     });
 
     testWidgets('小尺寸错误视图只显示图标，不溢出', (tester) async {
@@ -300,7 +300,7 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(WImageErrorView), findsOneWidget);
-      expect(find.text('重试'), findsNothing);
+      expect(find.text('Retry'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
@@ -332,7 +332,7 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(WImageErrorView), findsOneWidget);
-      expect(find.text('重试'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
     });
 
     testWidgets('100x100 错误视图显示文案但不显示按钮', (tester) async {
@@ -348,8 +348,8 @@ void main() {
       await tester.pump();
       final view = tester.widget<WImageErrorView>(find.byType(WImageErrorView));
       expect(view.compact, isFalse);
-      expect(find.text('Base64 解码失败'), findsOneWidget);
-      expect(find.text('重试'), findsNothing);
+      expect(find.text('Base64 decode failed'), findsOneWidget);
+      expect(find.text('Retry'), findsNothing);
     });
 
     testWidgets('provider 解码失败使用 WImageProviderError', (tester) async {

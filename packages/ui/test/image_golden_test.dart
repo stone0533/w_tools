@@ -11,9 +11,15 @@ const _redPixel =
 
 Widget _wrap(Widget child) {
   return MaterialApp(
-    home: Scaffold(
-      body: Center(
-        child: RepaintBoundary(child: child),
+    home: Builder(
+      builder: (context) => Localizations.override(
+        context: context,
+        locale: const Locale('zh'),
+        child: Scaffold(
+          body: Center(
+            child: RepaintBoundary(child: child),
+          ),
+        ),
       ),
     ),
   );

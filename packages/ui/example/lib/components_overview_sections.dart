@@ -4,7 +4,7 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 import 'demo_widgets.dart';
 
 /// 组件页的概览 sections：文字 / 骨架 / 徽章 / 裁剪 / 进度 / 步骤 / 基础列表。
-List<Widget> buildComponentsOverviewSections() {
+List<Widget> buildComponentsOverviewSections(BuildContext context) {
   return [
     const DemoSectionTitle('WText 语义文字'),
     const Wrap(
@@ -82,7 +82,7 @@ List<Widget> buildComponentsOverviewSections() {
     const SizedBox(height: 8),
     Row(
       children: [
-        Text('WScreen.w(16) = ${WScreen.w(16)}'),
+        Text('WScreen.of(context).w(16) = ${WScreen.of(context).w(16)}'),
         const SizedBox(width: 12),
         Container(
           width: 48,

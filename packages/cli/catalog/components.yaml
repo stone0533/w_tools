@@ -280,6 +280,7 @@ components:
     pitfalls:
       - 'aspectRatio 不能与固定 width/height 同时传（debug 断言）'
       - '列表缩略图用 WImageStyle.thumbnail，解码尺寸交给 WImageLoadOptions.memCache*'
+      - 'copyWith(null) 表示保留；清空可空字段用 withoutWidth / withoutBorderRadius 等 without* 方法'
     related: ['`WImage`', '`WImageLoadOptions`']
     teach: true
   - name: '`WImageLoadOptions`'
@@ -293,6 +294,7 @@ components:
       const WImageLoadOptions(gaplessPlayback: true)
     pitfalls:
       - 'retryCount 默认 0（不自动重试）；需要重试要显式设置'
+      - 'copyWith(null) 表示保留；清空解码尺寸用 withoutMemCacheWidth / withoutMemCacheHeight'
       - '占位 / 错误 / 进度 / 重试 UI 用 `WImageSlots`，不要塞进 Options'
     related: ['`WImage`', '`WImageStyle`', '`WImageSlots`', '`WImageController`']
     teach: true
@@ -462,10 +464,11 @@ components:
     usage: |
       final screen = WScreen.of(context);
       screen.width; screen.statusBarHeight;
-      WScreen.w(16); WScreen.h(24); WScreen.sp(14);
-      WScreen.delegateWidth = (v) => ScreenUtil().setWidth(v); // 可选
+      screen.w(16); screen.h(24); screen.sp(14);
+      // App 根节点注入：WScreenScope(widthScaler: ..., heightScaler: ..., fontScaler: ..., child: app)
     pitfalls:
       - '静态 getter 读平台 view；树内 / 分屏 / 测试尺寸用 WScreen.of(context)'
+      - 'WScreen.w/h/sp 与 delegate* 9.0 起弃用（10.0 移除）；用 WScreenScope + WScreen.of(context)'
       - '不要在 main / 顶层 final 调 .sp；放到 ScreenUtilInit.builder 或 WAppPlugin.builderWrapper'
     related: ['`WScaffold`']
     teach: true
@@ -1558,8 +1561,9 @@ components:
       16.allPadding; 12.heightBox; 12.widthBox;
       1234.toThousandsSeparated; 1234.5.toCurrency(symbol: '¥');
       0.125.toPercent; 42.toPadLeft(5);
-      12.borderRadius; 2.borderSide(color: Colors.grey);
-      2.borderSideOf(context); // 主题 outline
+      12.borderRadius; 2.borderSideOf(context); // 跟随 ColorScheme.outline
+    pitfalls:
+      - 'borderSide 已弃用（remove-in: 10.0.0），改用 borderSideOf(context)'
     teach: false
   - name: '`WStringExtension`'
     package: 'w_tools_ui'
@@ -1588,10 +1592,13 @@ components:
     docsAnchor: 'wwidgetextension'
     section: '9. 扩展'
     useFor: 'Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight'
-    dontUseFor: '需要 button 语义用 `WButton`'
+    dontUseFor: '需要 button 语义用 `WButton`；物理左右用 withLeftPadding / withRightPadding'
     usage: |
       card.withHorizontalPadding(8).withVerticalPadding(4);
+      card.withStartPadding(8).withEndPadding(4); // 跟随 Directionality
       widget.expanded(); widget.withBottomBarSpaceOf(context); widget.withIntrinsicHeight();
+    pitfalls:
+      - '需要 RTL 时用 withStartPadding / withEndPadding；withLeftPadding / withRightPadding 是物理方向'
     teach: false
   - name: '`WUiWidgetExtension`'
     package: 'w_tools_ui'
@@ -1655,7 +1662,7 @@ components:
     useFor: '图片错误分类（WImageError.kind）'
     dontUseFor: '不要用字符串比较错误；按 kind 分支'
     usage: |
-      WImageLoadOptions(
+      WImageSlots(
         errorWidgetBuilder: (context, data, error) => switch (error.kind) {
           WImageErrorKind.network => const Icon(Icons.wifi_off),
           WImageErrorKind.asset => const Icon(Icons.image_not_supported),
@@ -1789,6 +1796,23 @@ components:
       final screen = WScreen.of(context);
       screen.width; screen.height; screen.statusBarHeight; screen.bottomSafeAreaHeight;
     related: ['`WScreen`']
+    teach: false
+  - name: '`WScreenScope`'
+    package: 'w_tools_ui'
+    docsAnchor: '1-wscreen---屏幕适配'
+    section: '4. 布局与容器'
+    useFor: '子树内的屏幕 / 字体缩放注入，替代全局 delegate'
+    dontUseFor: '不要和全局 delegate 混用；scope 优先'
+    usage: |
+      WScreenScope(
+        widthScaler: (v) => ScreenUtil().setWidth(v),
+        heightScaler: (v) => ScreenUtil().setHeight(v),
+        fontScaler: (v) => ScreenUtil().setSp(v),
+        child: app,
+      );
+      final screen = WScreen.of(context);
+      screen.w(16); screen.h(24); screen.sp(14);
+    related: ['`WScreen`', '`WScreenData`']
     teach: false
   - name: '`WStepState`'
     package: 'w_tools_ui'

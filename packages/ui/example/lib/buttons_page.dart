@@ -121,20 +121,23 @@ class _ButtonsPageState extends State<ButtonsPage> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               WButton(
-                  style: AppButtons.primary(context),
-                  label: 'Small',
-                  size: WButtonSize.small,
-                  onTap: () {}),
+                style: AppButtons.primary(context),
+                label: 'Small',
+                size: WButtonSize.small,
+                onTap: () {},
+              ),
               WButton(
-                  style: AppButtons.primary(context),
-                  label: 'Medium',
-                  size: WButtonSize.medium,
-                  onTap: () {}),
+                style: AppButtons.primary(context),
+                label: 'Medium',
+                size: WButtonSize.medium,
+                onTap: () {},
+              ),
               WButton(
-                  style: AppButtons.primary(context),
-                  label: 'Large',
-                  size: WButtonSize.large,
-                  onTap: () {}),
+                style: AppButtons.primary(context),
+                label: 'Large',
+                size: WButtonSize.large,
+                onTap: () {},
+              ),
               WButton(style: AppButtons.primary(context), label: 'Hero', size: _hero, onTap: () {}),
             ],
           ),
@@ -274,12 +277,13 @@ class _ButtonsPageState extends State<ButtonsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   WImage.source(
-                      source: WImageSource.asset('demo.png', prefix: true),
-                      style: const WImageStyle(
-                        width: 56,
-                        height: 56,
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                      )),
+                    source: WImageSource.asset('demo.png', prefix: true),
+                    style: const WImageStyle(
+                      width: 56,
+                      height: 56,
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -288,15 +292,15 @@ class _ButtonsPageState extends State<ButtonsPage> {
                         Text(
                           '订单 #A123',
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '3 件商品 · 待支付',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.black54,
-                              ),
+                            color: Colors.black54,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Row(
@@ -304,9 +308,9 @@ class _ButtonsPageState extends State<ButtonsPage> {
                             Text(
                               '¥ 128.00',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: const Color(0xFFD32F2F),
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                color: const Color(0xFFD32F2F),
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                             const Spacer(),
                             const Text(

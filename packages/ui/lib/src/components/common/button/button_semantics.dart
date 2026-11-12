@@ -6,11 +6,16 @@ class WButtonSemantics {
   const WButtonSemantics({
     this.label,
     this.hint,
-    this.loadingLabel = '加载中',
+    this.loadingLabel = '',
   });
 
   final String? label;
   final String? hint;
+
+  /// loading 时的读屏文案。
+  ///
+  /// 空字符串表示按当前 `Locale` 使用内置文案（zh：加载中；其他：Loading）；
+  /// 传非空字符串则完全使用调用方文案。
   final String loadingLabel;
 
   @override

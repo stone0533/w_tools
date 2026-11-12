@@ -215,21 +215,29 @@ class ScaffoldDemoPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _KeyValue(
-                    label: 'WScreen.of(context).width', value: screen.width.toStringAsFixed(1)),
+                  label: 'WScreen.of(context).width',
+                  value: screen.width.toStringAsFixed(1),
+                ),
                 _KeyValue(label: 'height', value: screen.height.toStringAsFixed(1)),
                 _KeyValue(
-                    label: 'statusBarHeight', value: screen.statusBarHeight.toStringAsFixed(1)),
+                  label: 'statusBarHeight',
+                  value: screen.statusBarHeight.toStringAsFixed(1),
+                ),
                 _KeyValue(
-                    label: 'bottomSafeAreaHeight',
-                    value: screen.bottomSafeAreaHeight.toStringAsFixed(1)),
-                _KeyValue(label: 'WScreen.w(16)', value: WScreen.w(16).toStringAsFixed(1)),
-                _KeyValue(label: 'WScreen.h(16)', value: WScreen.h(16).toStringAsFixed(1)),
-                _KeyValue(label: 'WScreen.sp(14)', value: WScreen.sp(14).toStringAsFixed(1)),
+                  label: 'bottomSafeAreaHeight',
+                  value: screen.bottomSafeAreaHeight.toStringAsFixed(1),
+                ),
+                _KeyValue(label: 'screen.w(16)', value: screen.w(16).toStringAsFixed(1)),
+                _KeyValue(label: 'screen.h(16)', value: screen.h(16).toStringAsFixed(1)),
+                _KeyValue(label: 'screen.sp(14)', value: screen.sp(14).toStringAsFixed(1)),
                 const CodeText(
-                  '// 与 flutter_screenutil 共存\n'
-                  'WScreen.delegateWidth = (v) => ScreenUtil().setWidth(v);\n'
-                  'WScreen.delegateHeight = (v) => ScreenUtil().setHeight(v);\n'
-                  'WScreen.delegateFont = (v) => ScreenUtil().setSp(v);',
+                  '// 与 flutter_screenutil 共存：在 App 根节点注入 scope\n'
+                  'WScreenScope(\n'
+                  '  widthScaler: (v) => ScreenUtil().setWidth(v),\n'
+                  '  heightScaler: (v) => ScreenUtil().setHeight(v),\n'
+                  '  fontScaler: (v) => ScreenUtil().setSp(v),\n'
+                  '  child: app,\n'
+                  ')',
                 ),
               ],
             ),

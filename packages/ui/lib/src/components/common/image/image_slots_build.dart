@@ -77,7 +77,7 @@ Widget buildImageErrorSlot({
       WImageErrorView(
         error: error,
         onRetry: canRetry ? onRetry : null,
-        retryLabel: slots.retryLabel ?? '重试',
+        retryLabel: slots.retryLabel ?? '',
       ),
     );
   }

@@ -27,7 +27,6 @@ void main() {
 
   group('WImageError.message', () {
     const expected = {
-      WImageErrorKind.empty: '图片数据为空',
       WImageErrorKind.network: '网络图片加载失败',
       WImageErrorKind.asset: '本地资源加载失败',
       WImageErrorKind.decode: 'Base64 解码失败',
@@ -68,7 +67,6 @@ void main() {
     });
   });
   test('WImageError 用 kind 区分分类与文案', () {
-    expect(const WImageError('x', WImageErrorKind.empty).kind, WImageErrorKind.empty);
     expect(const WImageError('x', WImageErrorKind.network).message, '网络图片加载失败');
     expect(const WImageError('x', WImageErrorKind.asset).message, '本地资源加载失败');
     expect(const WImageError('x', WImageErrorKind.decode).message, 'Base64 解码失败');
@@ -83,7 +81,8 @@ void main() {
       expect(style.width, 10);
       expect(next.width, 20);
       expect(next.borderRadius, BorderRadius.circular(8));
-      expect(next.copyWith(borderRadius: null).borderRadius, isNull);
+      expect(next.copyWith(borderRadius: null).borderRadius, isNotNull);
+      expect(next.withoutBorderRadius().borderRadius, isNull);
     });
 
     test('validate 校验视觉约束', () {
@@ -126,7 +125,7 @@ void main() {
       expect(style.filterQuality, FilterQuality.low);
     });
 
-    test('copyWith(null) 可清空可空字段', () {
+    test('copyWith(null) 保留字段，without* 才能清空', () {
       const style = WImageStyle(
         width: 10,
         height: 20,
@@ -134,28 +133,43 @@ void main() {
         border: Border.fromBorderSide(BorderSide(color: Color(0xFF000000))),
         semanticLabel: 'avatar',
       );
-      final cleared = style.copyWith(
+      final kept = style.copyWith(
         width: null,
         height: null,
         borderRadius: null,
         border: null,
         semanticLabel: null,
       );
+      expect(kept.width, 10);
+      expect(kept.height, 20);
+      expect(kept.borderRadius, isNotNull);
+      expect(kept.border, isNotNull);
+      expect(kept.semanticLabel, 'avatar');
+      expect(kept.fit, style.fit);
+
+      final cleared = style
+          .withoutWidth()
+          .withoutHeight()
+          .withoutBorderRadius()
+          .withoutBorder()
+          .withoutSemanticLabel();
       expect(cleared.width, isNull);
       expect(cleared.height, isNull);
       expect(cleared.borderRadius, isNull);
       expect(cleared.border, isNull);
       expect(cleared.semanticLabel, isNull);
-      final kept = style.copyWith(fit: BoxFit.contain);
-      expect(kept.width, 10);
-      expect(kept.fit, BoxFit.contain);
+
+      final changed = style.copyWith(fit: BoxFit.contain);
+      expect(changed.width, 10);
+      expect(changed.fit, BoxFit.contain);
     });
   });
 
   group('WImageLoadOptions', () {
-    test('copyWith 支持清空可空字段', () {
+    test('copyWith(null) 保留解码尺寸，without* 才能清空', () {
       const config = WImageLoadOptions(memCacheWidth: 100, retryCount: 2);
-      expect(config.copyWith(memCacheWidth: null).memCacheWidth, isNull);
+      expect(config.copyWith(memCacheWidth: null).memCacheWidth, 100);
+      expect(config.withoutMemCacheWidth().memCacheWidth, isNull);
       expect(config.copyWith(retryCount: 3).retryCount, 3);
     });
 

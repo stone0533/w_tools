@@ -39,6 +39,7 @@ names = [
     # ui 8.0：Config 过渡入口 / 按钮冗余类型 / Builder 收口。
     r'\bWNavBarConfig\b', r'\bWTabBarConfig\b', r'\bWBadgeConfig\b', r'\bWClipRRectConfig\b',
     r'\bWBadge[^\n|]*\btopRight\b',
+    r'WImageErrorKind\.empty',
     r'\bWButtonMetrics\b', r'\bWButtonEffectType\b', r'\bWNotificationListenerBuilder\b',
     # form 6.0：实时派生 formEntered / 内部边框登记收口后删除的公开名。
     r'pruneFormEntered', r'removeFormEntered', r'hasBorder', r'errorChannelOf',

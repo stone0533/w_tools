@@ -142,8 +142,9 @@ class _StepsDemoPageState extends State<StepsDemoPage> {
               children: [
                 _flow.build(current: _current),
                 const SizedBox(height: 16),
-                _flow.copyWith(labels: const ['下单', '付款', '发货', '完成', '评价']).build(
-                    current: _current),
+                _flow
+                    .copyWith(labels: const ['下单', '付款', '发货', '完成', '评价'])
+                    .build(current: _current),
                 const CodeText(
                   'final flow = WStepFlow(labels: [...], itemBuilder: ..., ...);\n'
                   'flow.build(current: 2);\n'

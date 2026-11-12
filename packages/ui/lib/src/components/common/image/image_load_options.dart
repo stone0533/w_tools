@@ -37,45 +37,36 @@ class WImageLoadOptions {
     assert(memCacheHeight == null || memCacheHeight! > 0, 'memCacheHeight 必须大于 0');
   }
 
-  static const Object _unset = Object();
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is WImageLoadOptions &&
-          other.memCacheWidth == memCacheWidth &&
-          other.memCacheHeight == memCacheHeight &&
-          other.gaplessPlayback == gaplessPlayback &&
-          other.retryCount == retryCount &&
-          other.retryDelay == retryDelay;
-
-  @override
-  int get hashCode => Object.hash(
-    memCacheWidth,
-    memCacheHeight,
-    gaplessPlayback,
-    retryCount,
-    retryDelay,
-  );
-
-  /// 派生新配置。
+  /// 派生新配置；传 null 表示保留当前值（不能用 copyWith 清空字段）。
   ///
-  /// 用 [_unset] 哨兵区分「未传」与「传 null 清空」。
+  /// 需要清空解码尺寸时用 [withoutMemCacheWidth] / [withoutMemCacheHeight]。
   WImageLoadOptions copyWith({
-    Object? memCacheWidth = _unset,
-    Object? memCacheHeight = _unset,
+    int? memCacheWidth,
+    int? memCacheHeight,
     bool? gaplessPlayback,
     int? retryCount,
     int? retryDelay,
   }) {
     return WImageLoadOptions(
-      memCacheWidth: identical(memCacheWidth, _unset) ? this.memCacheWidth : memCacheWidth as int?,
-      memCacheHeight: identical(memCacheHeight, _unset)
-          ? this.memCacheHeight
-          : memCacheHeight as int?,
+      memCacheWidth: memCacheWidth ?? this.memCacheWidth,
+      memCacheHeight: memCacheHeight ?? this.memCacheHeight,
       gaplessPlayback: gaplessPlayback ?? this.gaplessPlayback,
       retryCount: retryCount ?? this.retryCount,
       retryDelay: retryDelay ?? this.retryDelay,
     );
   }
+
+  WImageLoadOptions withoutMemCacheWidth() => WImageLoadOptions(
+    memCacheHeight: memCacheHeight,
+    gaplessPlayback: gaplessPlayback,
+    retryCount: retryCount,
+    retryDelay: retryDelay,
+  );
+
+  WImageLoadOptions withoutMemCacheHeight() => WImageLoadOptions(
+    memCacheWidth: memCacheWidth,
+    gaplessPlayback: gaplessPlayback,
+    retryCount: retryCount,
+    retryDelay: retryDelay,
+  );
 }

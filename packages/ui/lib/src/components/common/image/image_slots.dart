@@ -42,7 +42,8 @@ class WImageSlots {
   /// 是否显示内置“错误 + 重试”视图；null 表示继承主题
   final bool? showRetryButton;
 
-  /// 内置重试按钮文案；null 表示继承主题 / 使用「重试」
+  /// 内置重试按钮文案；null 表示继承主题，空字符串表示按当前 `Locale` 使用内置文案
+  /// （zh：重试；其他：Retry）。
   final String? retryLabel;
 
   void validate() {
