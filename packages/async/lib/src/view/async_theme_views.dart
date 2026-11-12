@@ -55,18 +55,26 @@ class WAsyncThemeViews {
 
   // ─── 普通视图（WAsyncView）───
 
-  /// 加载中：默认转圈。
+  /// 加载中：默认转圈，带 `liveRegion` 与可本地化的 `loading` 文案。
   Widget loading(BuildContext context, {WidgetBuilder? explicit}) {
     return explicit?.call(context) ??
         _theme?.loadingBuilder?.call(context) ??
-        const Center(child: CircularProgressIndicator());
+        Semantics(
+          liveRegion: true,
+          label: _strings.loading,
+          excludeSemantics: true,
+          child: const Center(child: CircularProgressIndicator()),
+        );
   }
 
-  /// 空数据：默认使用 `WAsyncStrings.empty`。
+  /// 空数据：默认使用 `WAsyncStrings.empty`，带 `liveRegion`。
   Widget empty(BuildContext context, {WidgetBuilder? explicit}) {
     return explicit?.call(context) ??
         _theme?.emptyBuilder?.call(context) ??
-        Center(child: Text(_strings.empty));
+        Semantics(
+          liveRegion: true,
+          child: Center(child: Text(_strings.empty)),
+        );
   }
 
   /// 加载失败：默认 [WAsyncErrorView]；没有 retry 时不带按钮。
@@ -112,18 +120,26 @@ class WAsyncThemeViews {
 
   // ─── Sliver 视图（WAsyncStateSliver）───
 
-  /// sliver 加载中：默认转圈（非滚动 Widget）。
+  /// sliver 加载中：默认转圈（非滚动 Widget），带 `liveRegion`。
   Widget sliverLoading(BuildContext context, {WidgetBuilder? explicit}) {
     return explicit?.call(context) ??
         _theme?.sliverLoadingBuilder?.call(context) ??
-        const Center(child: CircularProgressIndicator());
+        Semantics(
+          liveRegion: true,
+          label: _strings.loading,
+          excludeSemantics: true,
+          child: const Center(child: CircularProgressIndicator()),
+        );
   }
 
-  /// sliver 空数据：默认使用 `WAsyncStrings.empty`（非滚动 Widget）。
+  /// sliver 空数据：默认使用 `WAsyncStrings.empty`（非滚动 Widget），带 `liveRegion`。
   Widget sliverEmpty(BuildContext context, {WidgetBuilder? explicit}) {
     return explicit?.call(context) ??
         _theme?.sliverEmptyBuilder?.call(context) ??
-        Center(child: Text(_strings.empty));
+        Semantics(
+          liveRegion: true,
+          child: Center(child: Text(_strings.empty)),
+        );
   }
 
   /// sliver 失败：默认 [WAsyncErrorView]；没有 retry 时不带按钮。

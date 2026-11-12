@@ -20,34 +20,37 @@ class WAsyncErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '$error',
-              textAlign: TextAlign.center,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: onRetry,
-                child: Text(retryText),
+    return Semantics(
+      liveRegion: true,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
+              const SizedBox(height: 8),
+              Text(
+                '$error',
+                textAlign: TextAlign.center,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (onRetry != null) ...[
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: onRetry,
+                  child: Text(retryText),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^6.5.0
+  w_tools_async: ^6.6.0
 ```
 
 要求 Flutter 3.38+。
@@ -426,6 +426,7 @@ WAsyncTheme(
     empty: '暂无数据',
     errorTitle: '加载失败',
     retry: '重试',
+    loading: '加载中',
   ),
   errorBuilder: (context, error, retry) => AppRetryView(error, retry),
   errorBannerBuilder: (context, error, retry) => AppErrorBanner(error, retry),
@@ -436,6 +437,9 @@ WAsyncTheme(
 ```
 
 推荐放在 App 根节点。`WAsyncTheme` 的普通 builder 只作用于 `WAsyncView`；自建滚动壳用 `WAsyncThemeViews` 复用：
+
+默认 loading / empty / error 视图带 `liveRegion`，状态变化会被读屏播报；显式 / theme
+builder 不会自动加语义，自定义视图需要自行保留 `Semantics`。
 
 ```dart
 final views = WAsyncThemeViews.of(context);

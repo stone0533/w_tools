@@ -1,3 +1,10 @@
+## 1.20.7
+
+### Changed
+- `init` 写入的 `w_tools_async` 约束同步到 `^6.6.0`（`WAsyncStrings.loading` /
+  默认视图 `liveRegion`）。
+- `explain` / catalog / AGENTS 模板补充 `loading` 文案与默认可访问性语义。
+
 ## 1.20.6
 
 ### Changed

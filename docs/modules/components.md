@@ -157,7 +157,7 @@
 | `WRouteObserver` | app_getx | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
 | `WFormTextFieldData` | form | 文本字段插槽可读的数据（isPasswordVisible / readOnly 等） | — |
 | `WFormTextFieldScope` | form | 文本字段插槽的 InheritedWidget 入口（actions / suffix 用） | — |
-| `WAsyncStrings` | async | 全局默认文案：empty / errorTitle / retry | — |
+| `WAsyncStrings` | async | 全局默认文案：empty / errorTitle / retry / loading | — |
 | `WAsyncErrorWidgetBuilder` | async | error / errorBanner builder 的类型 | — |
 <!-- catalog:5:end -->
 

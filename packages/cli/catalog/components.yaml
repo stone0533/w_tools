@@ -2121,17 +2121,24 @@ components:
       WAsyncErrorBanner(error: error, onRetry: retry);
     pitfalls:
       - 'onRetry 为 null 时不显示重试按钮'
+      - '默认视图带 liveRegion；自定义 error / banner builder 要自己保留 Semantics'
     related: ['WAsyncView']
     teach: false
   - name: '`WAsyncStrings`'
     package: 'w_tools_async'
     docsAnchor: '5-theme'
     section: '5. Theme'
-    useFor: '全局默认文案：empty / errorTitle / retry'
+    useFor: '全局默认文案：empty / errorTitle / retry / loading'
     usage: |
-      const WAsyncStrings(empty: '暂无数据', errorTitle: '加载失败', retry: '重试')
+      const WAsyncStrings(
+        empty: '暂无数据',
+        errorTitle: '加载失败',
+        retry: '重试',
+        loading: '加载中',
+      )
     pitfalls:
       - '项目应注入本地化文案；默认是英文'
+      - 'loading 同时作为默认 loading 视图的 Semantics label'
     related: ['WAsyncTheme']
     teach: false
   - name: '`WAsyncStatus`'

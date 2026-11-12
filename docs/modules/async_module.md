@@ -265,7 +265,12 @@ SmartRefresher 组合（首屏、generation、footer 重试）见
 
 ```dart
 WAsyncTheme(
-  strings: const WAsyncStrings(empty: '暂无数据', errorTitle: '加载失败', retry: '重试'),
+  strings: const WAsyncStrings(
+    empty: '暂无数据',
+    errorTitle: '加载失败',
+    retry: '重试',
+    loading: '加载中',
+  ),
   loadingBuilder: (_) => const AppLoadingView(),
   emptyBuilder: (_) => const AppEmptyView(),
   errorBuilder: (context, error, retry) => AppRetryView(error, retry),
@@ -275,6 +280,8 @@ WAsyncTheme(
 ```
 
 普通 builder 只作用于 `WAsyncView`；sliver builder 以 `sliver*` 前缀区分。
+默认 loading / empty / error 视图带 `liveRegion`；显式 / theme builder 不会自动加语义，
+自定义视图需要自行保留 `Semantics`。
 
 自建滚动壳复用默认视图：
 
@@ -289,4 +296,4 @@ cd packages/async
 flutter test
 ```
 
-当前 6.5.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
+当前 6.6.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
