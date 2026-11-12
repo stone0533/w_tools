@@ -1,7 +1,7 @@
 ## Unreleased
 
 ### Changed
-- 根包 `w_tools_ui` 约束抬到 `^9.0.0`（`copyWith(null)` 保留语义、`WImageErrorKind.empty` 删除、`WScreenScope` 与静态 WScreen 弃用）。
+- 根包 `w_tools_ui` 约束抬到 `^10.0.0`（删除静态 WScreen 入口与 `WNumExtension.borderSide`）。
 
 ## 12.0.12
 

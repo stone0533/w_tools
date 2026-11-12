@@ -1,3 +1,15 @@
+## 10.0.0
+
+### Breaking
+- 删除全局 `WScreen.w` / `h` / `sp` 与 `WScreen.delegateWidth` / `delegateHeight` /
+  `delegateFont` / `reset`；`WScreen.of` 不再回退全局 delegate，统一用 `WScreenScope`
+  + `WScreen.of(context).w/h/sp`。
+
+### Removed
+- `WScreen.w`、`WScreen.h`、`WScreen.sp`、`WScreen.delegateWidth`、
+  `WScreen.delegateHeight`、`WScreen.delegateFont`、`WScreen.reset`。
+- `WNumExtension.borderSide`；改用 `borderSideOf(context)`。
+
 ## 9.0.0
 
 ### Breaking

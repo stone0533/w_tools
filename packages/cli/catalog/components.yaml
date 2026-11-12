@@ -468,7 +468,7 @@ components:
       // App 根节点注入：WScreenScope(widthScaler: ..., heightScaler: ..., fontScaler: ..., child: app)
     pitfalls:
       - '静态 getter 读平台 view；树内 / 分屏 / 测试尺寸用 WScreen.of(context)'
-      - 'WScreen.w/h/sp 与 delegate* 9.0 起弃用（10.0 移除）；用 WScreenScope + WScreen.of(context)'
+      - 'WScreen.w/h/sp 与 delegate* 10.0 已删除；用 WScreenScope + WScreen.of(context)'
       - '不要在 main / 顶层 final 调 .sp；放到 ScreenUtilInit.builder 或 WAppPlugin.builderWrapper'
     related: ['`WScaffold`']
     teach: true
@@ -1563,7 +1563,7 @@ components:
       0.125.toPercent; 42.toPadLeft(5);
       12.borderRadius; 2.borderSideOf(context); // 跟随 ColorScheme.outline
     pitfalls:
-      - 'borderSide 已弃用（remove-in: 10.0.0），改用 borderSideOf(context)'
+      - 'borderSide 10.0 已删除；改用 borderSideOf(context)'
     teach: false
   - name: '`WStringExtension`'
     package: 'w_tools_ui'

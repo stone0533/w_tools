@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^9.0.0
+  w_tools_ui: ^10.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -195,6 +195,7 @@ ConstrainedBox(
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
+> 10.0 迁移见 [`docs/migrations/ui-10.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-10.0.md)；
 > 9.0 迁移见 [`docs/migrations/ui-9.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-9.0.md)；
 > 8.0 迁移见 [`docs/migrations/ui-8.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-8.0.md)；
 > 7.0 迁移见 [`docs/migrations/ui-7.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-7.0.md)；
@@ -386,8 +387,8 @@ WScreenScope(
 );
 ```
 
-9.0 起静态 `WScreen.w/h/sp` 与 `WScreen.delegate*` 弃用（10.0 移除）；
-`WScreen.of` 在没有 scope 时会回退旧 delegate，方便渐进迁移。
+10.0 起静态 `WScreen.w/h/sp` 与 `WScreen.delegate*` 已删除；
+统一用 `WScreenScope` + `WScreen.of(context)`。
 
 
 ## 主要 API

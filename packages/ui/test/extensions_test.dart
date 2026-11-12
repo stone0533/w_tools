@@ -155,12 +155,6 @@ void main() {
       expect(radius, BorderRadius.circular(10));
     });
 
-    test('num.borderSide（已弃用，9.0 删除）', () {
-      final side = 1.5.borderSide(color: Colors.red);
-      expect(side.width, 1.5);
-      expect(side.color, Colors.red);
-    });
-
     test('num.toThousandsSeparated', () {
       expect(1234.toThousandsSeparated, '1,234');
       expect(1234567.toThousandsSeparated, '1,234,567');

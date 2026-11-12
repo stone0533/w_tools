@@ -55,8 +55,8 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 - 没有 scope / delegate 时 `w/h/sp` 是**恒等函数**，返回原值。
 - 设备信息用 `WScreen.of(context)` 或 `WScreen.screenWidth` / `screenHeight` /
   `statusBarHeight` / `bottomSafeAreaHeight`；这些静态 getter 读平台 view，与 delegate 无关。
-- 9.0 起静态 `WScreen.w/h/sp` 与 `WScreen.delegateWidth/Height/Font` 弃用
-  （remove-in: 10.0.0）；`WScreen.of` 在无 scope 时会回退旧 delegate 以兼容迁移。
+- 10.0 起静态 `WScreen.w/h/sp` 与 `WScreen.delegateWidth/Height/Font` 已删除；
+  统一用 `WScreenScope` + `WScreen.of(context)`。
 - 静态 getter 依赖 `WidgetsBinding.instance`；不要在 binding 初始化前调用。
 - 使用 `.sp` 的 `WTextStyles` 不得在 `main()` / 顶层 `final` 构建；必须放在
   `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期。
@@ -259,7 +259,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 ### WNumExtension
 
 数字格式化与间距 / 圆角 / `BorderSide` 糖：`toThousandsSeparated` / `toCurrency` / `toPercent` 等。
-`borderSide` 已弃用（remove-in: 10.0.0），边框统一用 `borderSideOf(context)` 跟随 `ColorScheme.outline`。
+`borderSide` 已在 10.0 删除；边框统一用 `borderSideOf(context)` 跟随 `ColorScheme.outline`。
 
 ### WWidgetExtension
 

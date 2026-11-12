@@ -40,6 +40,10 @@ names = [
     r'\bWNavBarConfig\b', r'\bWTabBarConfig\b', r'\bWBadgeConfig\b', r'\bWClipRRectConfig\b',
     r'\bWBadge[^\n|]*\btopRight\b',
     r'WImageErrorKind\.empty',
+    r'\bWNumExtension\.borderSide\b',
+    r'\bWScreen\.(?:w|h|sp)\b',
+    r'\bWScreen\.delegate(?:Width|Height|Font)\b',
+    r'\bWScreen\.reset\b',
     r'\bWButtonMetrics\b', r'\bWButtonEffectType\b', r'\bWNotificationListenerBuilder\b',
     # form 6.0：实时派生 formEntered / 内部边框登记收口后删除的公开名。
     r'pruneFormEntered', r'removeFormEntered', r'hasBorder', r'errorChannelOf',

@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:ui' as ui show FlutterView;
 
 import 'package:flutter/widgets.dart';
@@ -25,9 +24,8 @@ double _identityScaler(double value) => value;
 /// 此时 ScreenUtil 尚未 configure，应在 `ScreenUtilInit.builder` 或
 /// `WAppPlugin.builderWrapper` 的 build 期计算。
 ///
-/// 9.0 起静态 [WScreen.w] / [WScreen.h] / [WScreen.sp] 与 [WScreen.delegateWidth]
-/// 等全局委托已弃用（remove-in: 10.0.0）；新代码用 [WScreenScope] +
-/// [WScreen.of]。
+/// 9.0 起静态 `WScreen.w/h/sp` 与全局 delegate 已弃用；10.0 已删除。
+/// 新代码统一用 [WScreenScope] + [WScreen.of]。
 @immutable
 class WScreenData {
   const WScreenData({
@@ -41,13 +39,13 @@ class WScreenData {
   final Size size;
   final EdgeInsets padding;
 
-  /// 宽度缩放函数；无 scope / delegate 时是恒等函数。
+  /// 宽度缩放函数；无 scope 时是恒等函数。
   final double Function(double) widthScaler;
 
-  /// 高度缩放函数；无 scope / delegate 时是恒等函数。
+  /// 高度缩放函数；无 scope 时是恒等函数。
   final double Function(double) heightScaler;
 
-  /// 字体缩放函数；无 scope / delegate 时是恒等函数。
+  /// 字体缩放函数；无 scope 时是恒等函数。
   final double Function(double) fontScaler;
 
   double get width => size.width;
@@ -55,13 +53,13 @@ class WScreenData {
   double get statusBarHeight => padding.top;
   double get bottomSafeAreaHeight => padding.bottom;
 
-  /// 宽度缩放（跟随当前 [WScreenScope] / 旧 delegate）
+  /// 宽度缩放（跟随当前 [WScreenScope]）
   double w(double value) => widthScaler(value);
 
-  /// 高度缩放（跟随当前 [WScreenScope] / 旧 delegate）
+  /// 高度缩放（跟随当前 [WScreenScope]）
   double h(double value) => heightScaler(value);
 
-  /// 字体缩放（跟随当前 [WScreenScope] / 旧 delegate）
+  /// 字体缩放（跟随当前 [WScreenScope]）
   double sp(double value) => fontScaler(value);
 
   @override
@@ -84,9 +82,9 @@ class WScreenData {
   );
 }
 
-/// 在子树内注入屏幕 / 字体缩放，替代全局 [WScreen.delegateWidth] 等委托。
+/// 在子树内注入屏幕 / 字体缩放，替代 9.x 的全局 delegate。
 ///
-/// 放在 App 根节点；[WScreen.of] 会优先读取最近 scope，读不到才回退到旧 delegate。
+/// 放在 App 根节点；[WScreen.of] 会优先读取最近 scope；读不到时使用恒等缩放。
 class WScreenScope extends InheritedWidget {
   const WScreenScope({
     super.key,
@@ -114,16 +112,16 @@ class WScreen {
   /// 读取当前子树的屏幕信息与缩放函数（推荐）。
   ///
   /// 尺寸跟随最近的 `MediaQuery`，分屏 / 桌面多窗口 / 测试里注入的尺寸都能正确反映；
-  /// 缩放优先取最近 [WScreenScope]，没有 scope 时回退到已弃用的全局 delegate。
+  /// 缩放优先取最近 [WScreenScope]，没有 scope 时使用恒等函数。
   static WScreenData of(BuildContext context) {
     final mq = MediaQuery.of(context);
     final scope = WScreenScope.maybeOf(context);
     return WScreenData(
       size: mq.size,
       padding: mq.padding,
-      widthScaler: scope?.widthScaler ?? delegateWidth ?? _identityScaler,
-      heightScaler: scope?.heightScaler ?? delegateHeight ?? _identityScaler,
-      fontScaler: scope?.fontScaler ?? delegateFont ?? _identityScaler,
+      widthScaler: scope?.widthScaler ?? _identityScaler,
+      heightScaler: scope?.heightScaler ?? _identityScaler,
+      fontScaler: scope?.fontScaler ?? _identityScaler,
     );
   }
 
@@ -140,53 +138,6 @@ class WScreen {
 
   /// 底部安全区高度
   static double get bottomSafeAreaHeight => _view.padding.bottom / _view.devicePixelRatio;
-
-  // ──── 适配委托（已弃用，保留到 10.0.0） ────
-
-  /// 宽度缩放委托（对应 flutter_screenutil 的 .w）
-  ///
-  /// remove-in: 10.0.0
-  @Deprecated('Use WScreenScope / WScreen.of(context).w instead')
-  static double Function(double)? delegateWidth;
-
-  /// 高度缩放委托（对应 flutter_screenutil 的 .h）
-  ///
-  /// remove-in: 10.0.0
-  @Deprecated('Use WScreenScope / WScreen.of(context).h instead')
-  static double Function(double)? delegateHeight;
-
-  /// 字体缩放委托（对应 flutter_screenutil 默认 .sp 行为）
-  ///
-  /// remove-in: 10.0.0
-  @Deprecated('Use WScreenScope / WScreen.of(context).sp instead')
-  static double Function(double)? delegateFont;
-
-  // ──── 适配函数（已弃用，保留到 10.0.0） ────
-
-  /// 宽度缩放（无 delegate 时返回原始值）
-  ///
-  /// remove-in: 10.0.0
-  @Deprecated('Use WScreen.of(context).w instead')
-  static double w(double value) => delegateWidth?.call(value) ?? value;
-
-  /// 高度缩放（无 delegate 时返回原始值）
-  ///
-  /// remove-in: 10.0.0
-  @Deprecated('Use WScreen.of(context).h instead')
-  static double h(double value) => delegateHeight?.call(value) ?? value;
-
-  /// 字体缩放（无 delegate 时返回原始值）
-  ///
-  /// remove-in: 10.0.0
-  @Deprecated('Use WScreen.of(context).sp instead')
-  static double sp(double value) => delegateFont?.call(value) ?? value;
-
-  /// 测试用：清空全部 delegate，恢复恒等行为。
-  static void reset() {
-    delegateWidth = null;
-    delegateHeight = null;
-    delegateFont = null;
-  }
 
   // ──── 内部 ────
 
