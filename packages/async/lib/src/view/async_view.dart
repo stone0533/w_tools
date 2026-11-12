@@ -21,6 +21,12 @@ import 'async_theme_views.dart';
 /// [WAsyncView] 适合页面主体、Column 或 ListView item；
 /// 为错误条/刷新条约束有界宽度，不强制高度。
 ///
+/// [refreshingBuilder] / [errorBannerBuilder] 是内容盒上的 overlay，
+/// 定位相对**内容盒**，不一定是视口：作为 `Scaffold.body` / `Expanded` 等紧约束时
+/// 内容盒填满视口，看起来在视口顶部 / 底部；作为 `Column` 子项或 `ListView` item
+/// 等松约束时只包住内容。需要固定到视口时，外层给有界高度，或用
+/// `WAsyncStateBuilder` 自己搭滚动壳。
+///
 /// [onRetry] 由调用方负责处理异常；推荐直接传 `WAsyncController.load`。
 /// 为 null 时 [errorBuilder] / [errorBannerBuilder] 仍会收到 `null` 的 retry，
 /// 由 builder 决定是否渲染按钮；包内默认视图不带按钮。
