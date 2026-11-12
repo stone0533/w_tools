@@ -60,6 +60,30 @@ void main() {
       expect(await future, isA<WAsyncCancelled<int>>());
     });
 
+    test('取消与失败竞态：Exception 取消优先，Error 保留失败', () async {
+      final token = WCancelToken();
+      final completer = Completer<int>();
+      final future = WAsync.tryRun<int>(
+        () => completer.future,
+        cancelToken: token,
+      );
+      completer.completeError(Exception('boom'));
+      token.cancel('stop');
+
+      expect(await future, isA<WAsyncCancelled<int>>());
+
+      final errorToken = WCancelToken();
+      final errorCompleter = Completer<int>();
+      final errorFuture = WAsync.tryRun<int>(
+        () => errorCompleter.future,
+        cancelToken: errorToken,
+      );
+      errorCompleter.completeError(StateError('bug'));
+      errorToken.cancel('stop');
+
+      expect(await errorFuture, isA<WAsyncFailure<int>>());
+    });
+
     test('run 失败抛异常，取消抛 WCancellationException', () async {
       await expectLater(WAsync.run<int>(() async => throw StateError('x')), throwsStateError);
       final token = WCancelToken()..cancel('stop');
@@ -140,6 +164,84 @@ void main() {
       );
     });
 
+    test('retry 支持退避构造器与 attempt 观测', () async {
+      var calls = 0;
+      final attempts = <int>[];
+      final errors = <Object>[];
+      final delays = <Duration>[];
+
+      final value = await WAsync.retry<int>(
+        () async {
+          calls++;
+          if (calls < 4) throw Exception('fail $calls');
+          return calls;
+        },
+        retryCount: 3,
+        retryDelay: const Duration(days: 1),
+        retryDelayBuilder: (attempt) {
+          delays.add(Duration(milliseconds: attempt));
+          return Duration.zero;
+        },
+        onRetry: (attempt, error, delay) {
+          attempts.add(attempt);
+          errors.add(error);
+        },
+      );
+
+      expect(value, 4);
+      expect(calls, 4);
+      expect(attempts, [1, 2, 3]);
+      expect(errors, hasLength(3));
+      expect(errors.every((error) => error is Exception), isTrue);
+      expect(delays, const [
+        Duration(milliseconds: 1),
+        Duration(milliseconds: 2),
+        Duration(milliseconds: 3),
+      ]);
+    });
+
+    test('retryDelayBuilder 返回负值抛 ArgumentError', () async {
+      await expectLater(
+        WAsync.retry<int>(
+          () async => throw Exception('fail'),
+          retryCount: 1,
+          retryDelayBuilder: (_) => const Duration(seconds: -1),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('onRetry 抛错不影响重试', () async {
+      var calls = 0;
+      final value = await WAsync.retry<int>(
+        () async {
+          calls++;
+          if (calls < 2) throw Exception('fail');
+          return 1;
+        },
+        retryCount: 1,
+        retryDelay: Duration.zero,
+        onRetry: (_, _, _) => throw StateError('callback'),
+      );
+      expect(value, 1);
+    });
+
+    test('retryCount 是重试次数：总尝试 = retryCount + 1', () async {
+      var attempts = 0;
+      await expectLater(
+        WAsync.retry<int>(
+          () async {
+            attempts++;
+            throw Exception('fail');
+          },
+          retryCount: 2,
+          retryDelay: Duration.zero,
+        ),
+        throwsException,
+      );
+      expect(attempts, 3);
+    });
+
     test('timeout 超时抛 TimeoutException', () async {
       await expectLater(
         WAsync.timeout<int>(
@@ -155,6 +257,18 @@ void main() {
         WAsync.timeout<int>(() async => 1, const Duration(seconds: -1)),
         throwsArgumentError,
       );
+    });
+
+    test('timeout 异常包含时长', () async {
+      try {
+        await WAsync.timeout<int>(
+          () => Completer<int>().future,
+          const Duration(milliseconds: 5),
+        );
+        fail('expected timeout');
+      } on TimeoutException catch (error) {
+        expect(error.duration, const Duration(milliseconds: 5));
+      }
     });
   });
 
@@ -243,6 +357,97 @@ void main() {
       ]);
       expect(values, [1, 2, 3]);
     });
+
+    test('settle 保留每个结果与顺序', () async {
+      final results = await WAsync.settle<int>([
+        () async => 1,
+        () async => throw StateError('boom'),
+        () async => 3,
+      ]);
+
+      expect(results, hasLength(3));
+      expect((results[0] as WAsyncSuccess<int>).value, 1);
+      expect(results[1], isA<WAsyncFailure<int>>());
+      expect((results[2] as WAsyncSuccess<int>).value, 3);
+    });
+
+    test('settle 限制并发且保持顺序', () async {
+      var active = 0;
+      var peak = 0;
+      final results = await WAsync.settle<int>(
+        List.generate(5, (index) {
+          return () async {
+            active++;
+            if (active > peak) peak = active;
+            await Future<void>.delayed(const Duration(milliseconds: 5));
+            active--;
+            return index;
+          };
+        }),
+        concurrency: 2,
+      );
+
+      expect(
+        results.map((result) => (result as WAsyncSuccess<int>).value),
+        [0, 1, 2, 3, 4],
+      );
+      expect(peak, lessThanOrEqualTo(2));
+    });
+
+    test('settle 取消时返回 Cancelled 而不是整批抛错', () async {
+      final token = WCancelToken();
+      final never = Completer<int>();
+      final future = WAsync.settle<int>(
+        [() => never.future, () => never.future],
+        cancelToken: token,
+      );
+      await Future<void>.delayed(Duration.zero);
+      token.cancel('stop');
+
+      final results = await future;
+      expect(results, hasLength(2));
+      expect(results.every((result) => result.isCancelled), isTrue);
+    });
+
+    test('settle 空集合返回空列表', () async {
+      expect(await WAsync.settle<int>([]), isEmpty);
+      await expectLater(
+        WAsync.settle<int>([], concurrency: 0),
+        throwsArgumentError,
+      );
+    });
+
+    test('parallel / serial / pool 空集合也触发 activity', () async {
+      var starts = 0;
+      var ends = 0;
+      final options = WAsyncOptions(
+        activity: WAsyncActivity(
+          onStart: () => starts++,
+          onEnd: () => ends++,
+        ),
+      );
+
+      expect(await WAsync.parallel<int>([], options: options), isEmpty);
+      expect(await WAsync.serial<int>([], options: options), isEmpty);
+      expect(await WAsync.pool<int>([], options: options), isEmpty);
+      expect(starts, 3);
+      expect(ends, 3);
+    });
+
+    test('onError 与 activity 回调抛错不影响结果', () async {
+      final result = await WAsync.tryRun<int>(
+        () async => throw Exception('boom'),
+        options: WAsyncOptions(
+          activity: WAsyncActivity(
+            onStart: () => throw StateError('start'),
+            onEnd: () => throw StateError('end'),
+          ),
+          onError: (_) => throw StateError('onError'),
+        ),
+      );
+
+      expect(result, isA<WAsyncFailure<int>>());
+    });
   });
 
   group('取消边界', () {
@@ -251,10 +456,10 @@ void main() {
       final future = WAsync.retry<int>(
         () async => throw Exception('fail'),
         retryCount: 10,
-        retryDelay: const Duration(seconds: 1),
+        retryDelay: const Duration(days: 1),
         cancelToken: token,
       );
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await Future<void>.delayed(Duration.zero);
       token.cancel('stop');
       await expectLater(future, throwsA(isA<WCancellationException>()));
     });
@@ -264,27 +469,26 @@ void main() {
       final completer = Completer<int>();
       final future = WAsync.timeout<int>(
         () => completer.future,
-        const Duration(seconds: 10),
+        const Duration(days: 1),
         cancelToken: token,
       );
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await Future<void>.delayed(Duration.zero);
       token.cancel('stop');
       await expectLater(future, throwsA(isA<WCancellationException>()));
     });
 
     test('pool 取消后停止', () async {
       final token = WCancelToken();
+      final never = Completer<int>();
       final future = WAsync.pool<int>(
         List.generate(
           2,
-          (_) => () async {
-            await Future<void>.delayed(const Duration(seconds: 1));
-            return 1;
-          },
+          (_) =>
+              () => never.future,
         ),
         cancelToken: token,
       );
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await Future<void>.delayed(Duration.zero);
       token.cancel('stop');
       await expectLater(future, throwsA(isA<WCancellationException>()));
     });
@@ -292,10 +496,10 @@ void main() {
     test('first 等待期间取消', () async {
       final token = WCancelToken();
       final future = WAsync.first<int>(
-        [Future.delayed(const Duration(seconds: 1), () => 1)],
+        [Completer<int>().future],
         cancelToken: token,
       );
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await Future<void>.delayed(Duration.zero);
       token.cancel('stop');
       await expectLater(future, throwsA(isA<WCancellationException>()));
     });
@@ -303,10 +507,10 @@ void main() {
     test('parallel 等待期间取消', () async {
       final token = WCancelToken();
       final future = WAsync.parallel<int>(
-        [Future<int>.delayed(const Duration(seconds: 1), () => 1)],
+        [Completer<int>().future],
         cancelToken: token,
       );
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await Future<void>.delayed(Duration.zero);
       token.cancel('stop');
       await expectLater(future, throwsA(isA<WCancellationException>()));
     });
@@ -314,10 +518,10 @@ void main() {
     test('serial 等待期间取消', () async {
       final token = WCancelToken();
       final future = WAsync.serial<int>(
-        [() => Future.delayed(const Duration(seconds: 1), () => 1)],
+        [() => Completer<int>().future],
         cancelToken: token,
       );
-      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await Future<void>.delayed(Duration.zero);
       token.cancel('stop');
       await expectLater(future, throwsA(isA<WCancellationException>()));
     });

@@ -26,7 +26,7 @@
 | `WAppOptions` | app_getx | WApp 的标题 / 路由 / 外观 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
 | `WAppTheme` | app | 应用外观：亮/暗主题、主题模式、系统栏 | 不要用 WAsyncTheme；它是 Widget，本类型是配置 |
 | `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
-| `WAsync` | async | 无 UI 异步执行（tryRun / run / 组合器） | 页面四态用 `WAsyncController` + `WAsyncView`；不要用已删除的 `runValue` / `WAsyncLoading` |
+| `WAsync` | async | 无 UI 异步执行（tryRun / run / 组合器 / settle） | 页面四态用 `WAsyncController` + `WAsyncView`；不要用已删除的 `runValue` / `WAsyncLoading` |
 | `WAsyncOptions` | async | WAsync 的执行选项：并发活动计数与失败兜底回调 | Controller 不接 WAsyncOptions，只接 onError；不要用 activity 合并多个独立区块 |
 | `WAsyncActivity` | async | 同一批并发任务共享的加载计数：0→1 / 1→0 各回调一次 | 不是加载视图；不要拿它合并多个独立区块 |
 | `WCancelToken` | async | 协作式取消：传给 WAsync / withToken loader | 取消后不可复用；新请求要新建 token |
@@ -92,7 +92,7 @@
 | `WBadgeStyle` | ui | 角标视觉：背景 / 前景 / 文字 / padding / 圆角 / 边框 | 不要在这里放位置；位置用 WBadgePosition |
 | `WBadgePosition` | ui | 角标位置：topEnd / center | 不要用它做外部布局；它只控制角标相对 child 的位置 |
 | `WFormIcons` | form | 表单图标统一入口（下拉 / 勾选 / 单选 / 密码 / 清空）；WForm 会继承外层 WFormTheme 的图标 | `WFormDefaults` 已删除；`WForm` / `WFormTheme` 已不再接受单项 `xxxIcon` 参数，统一用 `icons:` |
-| `WAsyncController` | async | 单区块异步状态、load / retry / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
+| `WAsyncController` | async | 单区块异步状态、load / retry / replaceData / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore、本地替换（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WLanguage` | app | 实例级语言状态 / 切换 / 只读变化流 | 不要自己保存 currentLanguage；用 app.language |
 | `WButtonSize` | ui | 按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap） | 不要用它控制宽度；宽度由父布局决定 |

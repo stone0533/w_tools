@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^6.3.0
+  w_tools_async: ^6.4.0
 ```
 
 要求 Flutter 3.38+。
@@ -90,8 +90,10 @@ ready    → readyBuilder
 | 无 UI 执行，不抛异常 | `WAsync.tryRun` + `WAsyncResult` |
 | 无 UI 执行，失败抛异常 | `WAsync.run` / `map` / `retry` / `timeout` |
 | 并发执行 | `WAsync.parallel` / `pool` / `serial` / `first` |
+| 独立区块并行，保留每个结果 | `WAsync.settle` |
 | 并发活动回调 | `WAsyncActivity`（只传给 `WAsyncOptions`，不要手动 begin/end） |
-| 让 loader 感知取消 | `WAsyncController.withToken` / `WAsyncPagedController.withToken` |
+| 让 loader 感知取消 | `WAsyncController.withToken` / `listWithToken` / `WAsyncPagedController.withToken` |
+| 单区块本地替换 / 乐观更新 | `WAsyncController.replaceData` |
 | 四态快照 | `WAsyncState` / `WAsyncStatus` |
 | 观测自定义 retry 失败 | `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError` |
 
@@ -168,6 +170,45 @@ switch (result) {
 
 独立区块的完整写法见 [独立区块并行](https://github.com/stone0533/w_tools/blob/main/docs/recipes/parallel-sections.md)。
 
+不想手写 `tryRun` 包装时用 `WAsync.settle`：
+
+```dart
+final results = await WAsync.settle<HomeSection>([
+  () => api.banners(),
+  () => api.columns(),
+  () => api.notices(),
+], concurrency: 3);
+
+for (final result in results) {
+  switch (result) {
+    case WAsyncSuccess(:final value): use(value);
+    case WAsyncFailure(:final error): log(error);
+    case WAsyncCancelled(): break;
+  }
+}
+```
+
+`settle` 不会因为单个失败抛错，结果顺序与输入一致；`options.activity` 按任务计数，
+需要整批 activity 时用 `parallel` + `WAsyncOptions(activity:)`。
+
+重试支持退避与 attempt 观测：
+
+```dart
+await WAsync.retry(
+  () => api.submit(),
+  retryCount: 3,
+  retryDelayBuilder: (attempt) =>
+      Duration(milliseconds: 200 * (1 << (attempt - 1))),
+  onRetry: (attempt, error, delay) =>
+      log('retry #$attempt in $delay: $error'),
+);
+```
+
+`retryCount` 是重试次数，总尝试 = `retryCount + 1`；`onRetry` 自身异常会被忽略。
+
+取消与失败在同一轮竞态时，非 `Error` 的失败按取消处理；`Error` 仍返回
+`WAsyncFailure`，避免把 TypeError / StateError 吞成取消。
+
 自定义重试失败时，View 默认用 `FlutterError.reportError` 上报；需要自己记录时传：
 
 ```dart
@@ -221,9 +262,28 @@ Controller 只接 `onError`；不再接受 `WAsyncOptions` / `activity`。控制
 `WAsyncController.list` 与 `WAsyncPagedController` 的 `state.data` 是 unmodifiable 列表；
 泛型 `WAsyncController` 仍原样保存 loader 的返回值（无法通用地包一层）。
 
+列表 + 感知取消用 `listWithToken`，保留 empty / unmodifiable 语义：
+
+```dart
+final controller = WAsyncController.listWithToken(
+  (token) => api.gifts(cancelToken: token),
+);
+```
+
+本地替换 / 乐观更新用 `replaceData`；它会取消在飞 `load`，旧结果不会覆盖本地修改：
+
+```dart
+final items = List<Gift>.of(controller.state.value.data ?? const <Gift>[]);
+items
+  ..removeWhere((gift) => gift.id == updated.id)
+  ..insert(0, updated);
+controller.replaceData(items);
+// 需要服务端校准再 controller.load();
+```
+
 ## 取消
 
-控制器默认不接收 token；需要请求层感知取消时用 `withToken`：
+控制器默认不接收 token；需要请求层感知取消时用 `withToken` / `listWithToken`：
 
 ```dart
 final controller = WAsyncController.withToken(

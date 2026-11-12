@@ -61,6 +61,21 @@ class WAsyncController<T> {
     );
   }
 
+  /// 列表场景 + 感知取消：空列表归 empty；`state.data` 为 unmodifiable。
+  static WAsyncController<List<E>> listWithToken<E>(
+    WAsyncTokenLoader<List<E>> loader, {
+    void Function(Object error)? onError,
+    WAsyncState<List<E>>? initial,
+  }) {
+    return WAsyncController<List<E>>._(
+      loader,
+      onError: onError,
+      isEmpty: (value) => value.isEmpty,
+      normalize: (value) => List<E>.unmodifiable(value),
+      initial: initial,
+    );
+  }
+
   final WAsyncTokenLoader<T> _loader;
 
   /// 失败兜底回调；控制器自己维护四态，不提供 activity。
@@ -111,6 +126,23 @@ class WAsyncController<T> {
 
   /// 手动重试入口。
   Future<void> retry() => load();
+
+  /// 用本地数据替换当前值（乐观更新）。
+  ///
+  /// 会取消在飞的 [load] 并让旧结果失效；构造时传入的 `isEmpty` 为 true 时
+  /// 进入 empty。需要以服务端为准时随后再 [load]。
+  void replaceData(T data) {
+    if (_disposed) return;
+
+    _generation++;
+    _token?.cancel('local data replaced');
+    _token = null;
+
+    final value = _normalize?.call(data) ?? data;
+    _state.value = _isEmpty?.call(value) == true
+        ? WAsyncState<T>.empty()
+        : WAsyncState<T>.ready(value);
+  }
 
   void dispose() {
     if (_disposed) return;

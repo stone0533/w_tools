@@ -7,6 +7,8 @@
 | 页面展示异步结果 | `WAsyncController` + `WAsyncView` |
 | 观测 retry 失败 | `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError` |
 | 只执行、不要 UI | `WAsync` + `WAsyncResult` |
+| 独立区块并行、保留每个结果 | `WAsync.settle` |
+| 单区块本地替换 / 乐观更新 | `WAsyncController.replaceData` |
 | 全 App 默认 loading / empty / error | `WAsyncTheme` |
 | 滚动壳复用全局默认 | `WAsyncThemeViews.of(context)` |
 | 刷新失败但保留旧数据 | `WAsyncErrorBanner` |
@@ -93,7 +95,8 @@ switch (result) {
 | `map<T,R>` | 执行并映射成功值 |
 | `retry<T>` | 重试后返回成功值 |
 | `timeout<T>` | 超时抛 `TimeoutException` |
-| `parallel<T>` | 等待多个已启动 Future |
+| `parallel<T>` | 等待多个已启动 Future（all-or-nothing） |
+| `settle<T>` | 并发执行任务工厂，等待全部结束并保留每个 `WAsyncResult` |
 | `pool<T>` | 按并发上限执行任务工厂 |
 | `first<T>` | 返回最先完成结果；空集合抛 `StateError` |
 | `serial<T>` | 顺序执行 |
@@ -104,9 +107,13 @@ switch (result) {
 
 - 业务异常与 `Error` 都由 `tryRun` 转为 `WAsyncFailure`；抛异常入口会重新抛出；
 - 取消返回 `WAsyncCancelled`（或 `run` 抛 `WCancellationException`），不回调 `onError`；
+- 取消与失败同轮竞态时，非 `Error` 的失败按取消处理；`Error` 仍作为 `WAsyncFailure`，
+  避免吞掉编程错误；
 - 取消是协作式的，不中止底层 Future；
 - `parallel([])` / `serial([])` / `pool([])` 返回空列表并触发 activity；
-- `first([])` 抛 `StateError`。
+- `first([])` 抛 `StateError`；
+- `retryCount` 是重试次数（总尝试 = `retryCount + 1`）；`retryDelayBuilder` 可按失败次数
+  生成退避，`onRetry` 观测每次重试且自身异常被忽略。
 
 ### 示例
 
@@ -122,6 +129,14 @@ final name = await WAsync.map(() => fetchUser(), onSuccess: (u) => u.name);
 
 final result = await WAsync.tryRun(() => unstableApi());
 if (result is WAsyncFailure) log(result.error, result.stackTrace);
+
+await WAsync.retry(
+  () => submitOrder(),
+  retryCount: 3,
+  retryDelayBuilder: (attempt) =>
+      Duration(milliseconds: 200 * (1 << (attempt - 1))),
+  onRetry: (attempt, error, delay) => log('retry #$attempt: $error'),
+);
 ```
 
 ## 2. WAsyncState
@@ -160,9 +175,19 @@ await controller.load();
 - 每次 `load` 取消上一次 token；
 - 旧请求不会覆盖新请求；
 - 失败保留旧数据；
-- `withToken` 让 loader 拿到 `WCancelToken`；
+- `withToken` 让 loader 拿到 `WCancelToken`；`listWithToken` 同时保留空列表 → empty、
+  `state.data` unmodifiable；
+- `replaceData` 做单区块本地替换：取消在飞 `load`，旧结果不写回；空数据进 empty；
 - Controller 只接 `onError`；activity 只在 `WAsync` 上用；
 - `WAsyncController.list` / `WAsyncPagedController` 的 `state.data` 是 unmodifiable；泛型 `WAsyncController` 原样保存。
+
+```dart
+final controller = WAsyncController.listWithToken(
+  (token) => api.gifts(cancelToken: token),
+);
+
+controller.replaceData(localItems); // 本地替换；需要服务端校准再 load()
+```
 
 ### WAsyncPagedController
 
@@ -253,4 +278,4 @@ cd packages/async
 flutter test
 ```
 
-当前 6.3.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
+当前 6.4.0；迁移见 [async-6.0](../migrations/async-6.0.md)。

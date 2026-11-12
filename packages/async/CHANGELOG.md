@@ -1,5 +1,21 @@
 # Changelog
 
+## 6.4.0
+
+### Added
+- `WAsync.settle`：并发执行任务工厂并等待全部 settle，单个失败不会让整批抛错；
+  结果按输入顺序返回 `WAsyncResult`，默认最多 4 个并发。
+- `WAsyncController.replaceData`：单区块乐观更新，取消在飞 `load`，旧结果不写回。
+- `WAsyncController.listWithToken`：列表语义 + 感知取消；空列表归 empty，
+  `state.data` 为 unmodifiable。
+- `WAsync.retry` 新增 `retryDelayBuilder` / `onRetry`：支持指数退避与每次重试观测；
+  `onRetry` 自身异常会被忽略，不影响重试结果。
+
+### Fixed
+- `WAsync.tryRun` 的取消 / 失败竞态：token 已取消时，非 `Error` 的失败按
+  `WAsyncCancelled` 处理；`Error` 仍返回 `WAsyncFailure`，避免吞掉编程错误。
+- `WAsync.timeout` 的 `TimeoutException` 带上时长（`duration`），便于排查超时配置。
+
 ## 6.3.0
 
 ### Added

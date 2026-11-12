@@ -175,5 +175,76 @@ void main() {
       source.add(3);
       expect(controller.state.value.data, <int>[1, 2]);
     });
+
+    test('listWithToken：空列表进入 empty', () async {
+      final controller = WAsyncController.listWithToken<int>(
+        (token) async => const <int>[],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.load();
+
+      expect(controller.state.value.isEmpty, isTrue);
+      expect(controller.state.value.data, isNull);
+    });
+
+    test('listWithToken：loader 能感知 token，data 不可变', () async {
+      WCancelToken? seen;
+      final controller = WAsyncController.listWithToken<int>((token) {
+        seen = token;
+        return Future.value(<int>[1, 2]);
+      });
+      addTearDown(controller.dispose);
+
+      await controller.load();
+
+      expect(seen, isNotNull);
+      final data = controller.state.value.data!;
+      expect(data, [1, 2]);
+      expect(() => data.add(3), throwsUnsupportedError);
+    });
+
+    test('replaceData 替换数据并取消在飞 load', () async {
+      final completer = Completer<List<int>>();
+      final controller = WAsyncController.listWithToken<int>(
+        (token) => completer.future,
+      );
+      addTearDown(controller.dispose);
+
+      final loading = controller.load();
+      controller.replaceData(const [9, 8]);
+
+      expect(controller.state.value.data, [9, 8]);
+
+      completer.complete(const [1, 2]);
+      await loading;
+
+      expect(controller.state.value.data, [9, 8]);
+    });
+
+    test('replaceData 空列表进入 empty，list 数据不可变', () async {
+      final controller = WAsyncController.list<int>(() async => const [1]);
+      addTearDown(controller.dispose);
+
+      await controller.load();
+      controller.replaceData(const []);
+      expect(controller.state.value.isEmpty, isTrue);
+
+      controller.replaceData(const [2, 3]);
+      expect(controller.state.value.data, [2, 3]);
+      expect(
+        () => controller.state.value.data!.add(4),
+        throwsUnsupportedError,
+      );
+    });
+
+    test('replaceData dispose 后不做事', () {
+      final controller = WAsyncController<int>(() async => 1);
+      controller.dispose();
+
+      controller.replaceData(2);
+
+      expect(controller.state.value.isLoading, isTrue);
+    });
   });
 }

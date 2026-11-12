@@ -1,3 +1,11 @@
+## 1.20.5
+
+### Changed
+- `init` 写入的 `w_tools_async` 约束同步到 `^6.4.0`（取消竞态修复 / `settle` /
+  `replaceData` / `listWithToken` / retry 退避与观测）。
+- `explain` / catalog / AGENTS 模板补充 `WAsync.settle`、`WAsyncController.replaceData` /
+  `listWithToken`、`WAsync.retry` 的 `retryDelayBuilder` / `onRetry`。
+
 ## 1.20.4
 
 ### Changed

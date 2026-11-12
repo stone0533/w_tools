@@ -866,17 +866,21 @@ components:
     package: 'w_tools_async'
     docsAnchor: 'wasynccontroller'
     section: '3. Controller'
-    useFor: '单区块异步状态、load / retry / 旧请求丢弃'
+    useFor: '单区块异步状态、load / retry / replaceData / 旧请求丢弃'
     dontUseFor: '分页用 `WAsyncPagedController`；纯执行用 `WAsync`'
     usage: |
       final c = WAsyncController.list(() => api.list(), onError: (e) => log(e)); c.load();
-      c.retry();
+      c.retry();                        // 只重载一次，不自动重试
+      final withToken = WAsyncController.listWithToken((token) => api.list(token: token));
+      c.replaceData(next);              // 本地替换：取消在飞 load，旧结果不写回
       @override
       void dispose() { c.dispose(); super.dispose(); }
     pitfalls:
       - '页面 dispose 时 controller.dispose()'
       - 'Controller 只接 onError；activity 只在 WAsync 上用'
-      - 'list 的 state.data 是 unmodifiable；需要可变副本请自己 List.of'
+      - 'list / listWithToken 的 state.data 是 unmodifiable；需要可变副本请自己 List.of'
+      - 'controller.retry() 只重载一次；自动重试用 WAsync.retry'
+      - 'replaceData 会取消在飞 load；需要服务端校准时再 load()'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
     teach: true
   - name: '`WAsyncPagedController`'
@@ -1179,7 +1183,7 @@ components:
     package: 'w_tools_async'
     docsAnchor: '1-wasync'
     section: '1. WAsync'
-    useFor: '无 UI 异步执行（tryRun / run / 组合器）'
+    useFor: '无 UI 异步执行（tryRun / run / 组合器 / settle）'
     dontUseFor: '页面四态用 `WAsyncController` + `WAsyncView`；不要用已删除的 `runValue` / `WAsyncLoading`'
     usage: |
       final result = await WAsync.tryRun(() => api.fetch());
@@ -1190,14 +1194,18 @@ components:
       }
       final value = await WAsync.run(() => api.fetch());
       final name = await WAsync.map(() => api.fetch(), onSuccess: (v) => v.name);
+      final results = await WAsync.settle<Section>([() => api.banners(), () => api.columns()]);
+      await WAsync.retry(() => api.submit(), retryCount: 3,
+        retryDelayBuilder: (attempt) => Duration(milliseconds: 200 * (1 << (attempt - 1))));
     pitfalls:
       - 'run 失败抛异常；tryRun 不抛异常'
       - 'onError 只是通知，不会吞异常；run().then(onSuccess) 必须带 onError/catchError，或改用 tryRun'
-      - 'parallel 是 all-or-nothing；eagerError:false 仍会抛，不返回部分结果；独立区块先 tryRun 每个 Future'
+      - 'parallel 是 all-or-nothing；eagerError:false 仍会抛，不返回部分结果；独立区块用 settle 或先 tryRun 每个 Future'
       - 'onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess'
-      - '取消需要 WCancelToken；取消不中止底层 Future'
+      - '取消需要 WCancelToken；取消不中止底层 Future；取消与失败同轮时非 Error 按取消处理'
+      - 'retry 的 retryCount 是重试次数（总尝试 = retryCount + 1）；onRetry 自身异常被忽略'
     related: ['WAsyncResult', 'WAsyncOptions', 'WAsyncActivity', 'WCancelToken']
-    aliases: ['tryRun', 'run', 'map', 'retry']
+    aliases: ['tryRun', 'run', 'map', 'retry', 'settle']
     teach: true
   - name: '`WAsyncOptions`'
     package: 'w_tools_async'
