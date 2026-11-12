@@ -17,27 +17,30 @@ class WAsyncErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          children: [
-            const Icon(Icons.error_outline, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                '$title: $error',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+    return Semantics(
+      liveRegion: true,
+      child: Material(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              const Icon(Icons.error_outline, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '$title: $error',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            if (onRetry != null)
-              TextButton(
-                onPressed: onRetry,
-                child: Text(retryText),
-              ),
-          ],
+              if (onRetry != null)
+                TextButton(
+                  onPressed: onRetry,
+                  child: Text(retryText),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.6.0
+
+### Added
+- `WAsyncStrings.loading`（默认 `Loading`）：默认 loading 视图的可本地化文案，同时作为
+  `Semantics.label`。
+- 默认 loading / empty / error / banner 视图带 `Semantics(liveRegion: true)`；状态切换
+  会被读屏播报。显式 / theme builder 不自动加语义。
+
 ## 6.5.0
 
 ### Added

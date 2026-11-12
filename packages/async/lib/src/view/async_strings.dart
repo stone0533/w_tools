@@ -9,19 +9,22 @@ class WAsyncStrings {
     this.empty = 'No data',
     this.errorTitle = 'Something went wrong',
     this.retry = 'Retry',
+    this.loading = 'Loading',
   });
 
   final String empty;
   final String errorTitle;
   final String retry;
+  final String loading;
 
   @override
   bool operator ==(Object other) =>
       other is WAsyncStrings &&
       other.empty == empty &&
       other.errorTitle == errorTitle &&
-      other.retry == retry;
+      other.retry == retry &&
+      other.loading == loading;
 
   @override
-  int get hashCode => Object.hash(empty, errorTitle, retry);
+  int get hashCode => Object.hash(empty, errorTitle, retry, loading);
 }

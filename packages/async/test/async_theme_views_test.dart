@@ -190,6 +190,72 @@ void main() {
       expect(find.text('theme-refreshing'), findsOneWidget);
     });
 
+    testWidgets('默认 loading / empty / error 带 liveRegion', (tester) async {
+      final handle = tester.ensureSemantics();
+
+      await tester.pumpWidget(
+        _probe((context, views) => views.loading(context)),
+      );
+      final loading = find.bySemanticsLabel('Loading');
+      expect(loading, findsOneWidget);
+      expect(
+        tester.getSemantics(loading).flagsCollection.isLiveRegion,
+        isTrue,
+      );
+
+      await tester.pumpWidget(
+        _probe((context, views) => views.empty(context)),
+      );
+      final empty = find.bySemanticsLabel('No data');
+      expect(empty, findsOneWidget);
+      expect(
+        tester.getSemantics(empty).flagsCollection.isLiveRegion,
+        isTrue,
+      );
+
+      await tester.pumpWidget(
+        _probe(
+          (context, views) => views.error(context, Exception('boom'), null),
+        ),
+      );
+      final error = find.bySemanticsLabel(RegExp('Something went wrong'));
+      expect(error, findsOneWidget);
+      expect(
+        tester.getSemantics(error).flagsCollection.isLiveRegion,
+        isTrue,
+      );
+      handle.dispose();
+    });
+
+    testWidgets('显式 builder 不自动带 liveRegion', (tester) async {
+      final handle = tester.ensureSemantics();
+
+      await tester.pumpWidget(
+        _probe(
+          (context, views) => views.loading(context, explicit: (_) => const Text('custom')),
+        ),
+      );
+
+      final custom = find.bySemanticsLabel('custom');
+      expect(custom, findsOneWidget);
+      expect(
+        tester.getSemantics(custom).flagsCollection.isLiveRegion,
+        isFalse,
+      );
+      handle.dispose();
+    });
+
+    test('WAsyncStrings 按值相等，包含 loading', () {
+      expect(
+        const WAsyncStrings(loading: 'a'),
+        const WAsyncStrings(loading: 'a'),
+      );
+      expect(
+        const WAsyncStrings(loading: 'a'),
+        isNot(const WAsyncStrings(loading: 'b')),
+      );
+    });
+
     testWidgets('WAsyncStateBuilder 可复用主题默认视图', (tester) async {
       final controller = WAsyncController<List<int>>(
         () async => const <int>[],

@@ -113,4 +113,7 @@ if (result is WAsyncSuccess<Gift>) {
 | `WAsyncResult` | `tryRun` 的成功 / 失败 / 取消结果 | 不是 UI 状态 |
 | `WAsyncActivity` | 并发活动计数器 | 不是加载视图 |
 
+- 默认 loading / empty / error 视图带 `liveRegion`；显式 / theme builder 不会自动加语义，
+  自定义视图要自己保留 `Semantics`。
+
 完整说明：[async_module.md](../modules/async_module.md) · 示例：[packages/async/example](../../packages/async/example/README.md)
