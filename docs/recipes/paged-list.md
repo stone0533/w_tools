@@ -125,7 +125,7 @@ SmartRefresher(
 ```
 
 - 重试按钮：`onTap: refreshController.requestLoading`；
-- `loadMoreError` / `hasMore` / `isLoadingMore` 仍是唯一状态源；
+- footer 状态统一读 `controller.footerStatus`；底层仍是 `loadMoreError` / `hasMore` / `isLoadingMore`；
 - 自建 footer（上面的 `_Footer`）直接监听 controller 的 listenable 即可，不需要
   `requestLoading`。
 
@@ -144,32 +144,25 @@ class _PagedFooter extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller.changes,
       builder: (context, _) {
-        final error = controller.loadMoreError.value;
-        if (error != null) {
-          return TextButton(
-            onPressed: controller.loadMore,
-            child: const Text('加载失败，重试'),
-          );
-        }
-        if (controller.isLoadingMore.value) {
-          return const Padding(
+        return switch (controller.footerStatus) {
+          WAsyncPagedFooterStatus.hidden => const SizedBox.shrink(),
+          WAsyncPagedFooterStatus.loading => const Padding(
             padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (!controller.hasMore) {
-          // 第一页就到底：不显示“上拉加载”，也不显示“没有更多”。
-          return controller.hasLoadedMoreThanOnePage
-              ? const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: Text('没有更多数据了')),
-                )
-              : const SizedBox.shrink();
-        }
-        return const Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(child: Text('上拉加载更多')),
-        );
+          ),
+          WAsyncPagedFooterStatus.failed => TextButton(
+            onPressed: controller.loadMore,
+            child: const Text('加载失败，重试'),
+          ),
+          WAsyncPagedFooterStatus.noMore => const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: Text('没有更多数据了')),
+          ),
+          WAsyncPagedFooterStatus.loadMore => const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: Text('上拉加载更多')),
+          ),
+        };
       },
     );
   }
@@ -178,6 +171,9 @@ class _PagedFooter extends StatelessWidget {
 
 把它放进 `SliverToBoxAdapter`；SmartRefresher 的 `CustomFooter` 只做
 `LoadStatus -> 视图` 的薄适配，不要把这个状态机塞进 UI 包。
+
+`footerStatus` 已经处理了「首屏到底不显示、翻过页才显示没有更多、追加失败可重试」三种边界；
+不要再自己组合 `data == null` / `loadMoreError` / `hasMore`。
 
 当前没有 `WPagedFooter`：如果 3+ 个项目仍在复制这段，再考虑在 `w_tools_ui`
 加一个**纯展示**组件（不依赖 `pull_to_refresh` / `w_tools_async`）。

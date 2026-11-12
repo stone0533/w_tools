@@ -1,3 +1,9 @@
+## 1.20.6
+
+### Changed
+- `init` 写入的 `w_tools_async` 约束同步到 `^6.5.0`（分页 footer 状态机）。
+- `explain` / catalog / AGENTS 模板补充 `WAsyncPagedFooterStatus` / `footerStatus`。
+
 ## 1.20.5
 
 ### Changed

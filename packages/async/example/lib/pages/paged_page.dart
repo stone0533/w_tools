@@ -100,43 +100,45 @@ class _Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // isLoadingMore 在每次 loadMore 前后翻转，footer 会随之重建；
-    // 若 footer 只由 state 驱动，必须额外监听 controller.hasMoreListenable。
-    return ValueListenableBuilder<bool>(
-      valueListenable: controller.isLoadingMore,
-      builder: (context, loading, _) {
-        return ValueListenableBuilder<Object?>(
-          valueListenable: controller.loadMoreError,
-          builder: (context, error, _) {
-            return Column(
-              children: [
-                if (error != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      '追加失败：$error',
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
-                    ),
-                  ),
-                TextButton(
-                  onPressed: loading || !controller.hasMore ? null : controller.loadMore,
-                  child: Text(
-                    loading
-                        ? '加载中...'
-                        : controller.hasMore
-                        ? '加载更多'
-                        : '没有更多',
-                  ),
+    return AnimatedBuilder(
+      animation: controller.changes,
+      builder: (context, _) {
+        final status = controller.footerStatus;
+        if (status == WAsyncPagedFooterStatus.hidden) {
+          return const SizedBox.shrink();
+        }
+
+        final label = switch (status) {
+          WAsyncPagedFooterStatus.loading => '加载中...',
+          WAsyncPagedFooterStatus.failed => '重试',
+          WAsyncPagedFooterStatus.noMore => '没有更多',
+          WAsyncPagedFooterStatus.loadMore => '加载更多',
+          WAsyncPagedFooterStatus.hidden => '',
+        };
+        final canLoad =
+            status == WAsyncPagedFooterStatus.loadMore || status == WAsyncPagedFooterStatus.failed;
+
+        return Column(
+          children: [
+            if (status == WAsyncPagedFooterStatus.failed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '追加失败：${controller.loadMoreError.value}',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
-                // hasLoadedMoreThanOnePage 区分「首屏还没翻过页」和「已翻过页」，
-                // 不用自己拿 state.data.length 变大去猜（失败路径上长度不变）。
-                Text(
-                  controller.hasLoadedMoreThanOnePage ? '已加载多页' : '仅第一页',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            );
-          },
+              ),
+            TextButton(
+              onPressed: canLoad ? controller.loadMore : null,
+              child: Text(label),
+            ),
+            // hasLoadedMoreThanOnePage 区分「首屏还没翻过页」和「已翻过页」，
+            // 不用自己拿 state.data.length 变大去猜（失败路径上长度不变）。
+            Text(
+              controller.hasLoadedMoreThanOnePage ? '已加载多页' : '仅第一页',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         );
       },
     );

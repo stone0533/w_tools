@@ -902,6 +902,7 @@ components:
       c.loadMoreError.addListener(() { ... });
       c.page;                      // 下一次 loadMore 的页码（首屏前 = initialPage）
       c.hasLoadedMoreThanOnePage;  // 是否已成功追加过第二页
+      c.footerStatus;              // hidden / loading / failed / noMore / loadMore
     pitfalls:
       - 'loadMore 失败只写 loadMoreError，不要清空列表'
       - '第一页不足一页 / 已知 total 用 withPage + WAsyncPage(hasMore:)；旧构造仍是本页非空即有更多'
@@ -909,8 +910,29 @@ components:
       - 'page 是「下一次请求的页码」，不是「当前页」；别自己用 data.length 猜是否翻过页'
       - '切换筛选直接再 refresh()：在飞请求会被取消，不要禁用筛选'
       - 'replaceData 会取消在飞 refresh/loadMore；page/hasMore 默认继承，空列表 hasMore=false'
-    related: ['WAsyncView', 'WAsyncController']
+      - 'footer 状态用 footerStatus；它是普通 getter，重建仍用 changes'
+    related: ['WAsyncView', 'WAsyncController', 'WAsyncPagedFooterStatus']
     teach: true
+  - name: '`WAsyncPagedFooterStatus`'
+    package: 'w_tools_async'
+    docsAnchor: '分页-footer-状态'
+    section: '3. Controller'
+    useFor: '分页 footer 的派生状态：hidden / loading / failed / noMore / loadMore'
+    dontUseFor: '不要自己用 data / loadMoreError / hasMore 拼 footer 状态'
+    usage: |
+      switch (c.footerStatus) {
+        case WAsyncPagedFooterStatus.hidden: ...
+        case WAsyncPagedFooterStatus.loading: ...
+        case WAsyncPagedFooterStatus.failed: ...
+        case WAsyncPagedFooterStatus.noMore: ...
+        case WAsyncPagedFooterStatus.loadMore: ...
+      }
+      // footer 用 AnimatedBuilder(animation: c.changes) 重建
+    pitfalls:
+      - 'footerStatus 是普通 getter，不会通知；重建用 controller.changes'
+      - '第一页就到底返回 hidden，不是 noMore'
+    related: ['WAsyncPagedController']
+    teach: false
   - name: '`WAsyncStateSliver`'
     package: 'w_tools_async'
     docsAnchor: '4-view'

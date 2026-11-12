@@ -501,6 +501,86 @@ void main() {
     });
   });
 
+  group('footerStatus', () {
+    test('首屏 loading / empty 为 hidden', () async {
+      final loading = WAsyncPagedController<int>((page) async => const [1]);
+      addTearDown(loading.dispose);
+      expect(loading.footerStatus, WAsyncPagedFooterStatus.hidden);
+
+      await loading.refresh();
+      expect(loading.footerStatus, WAsyncPagedFooterStatus.loadMore);
+
+      final empty = WAsyncPagedController<int>((page) async => const []);
+      addTearDown(empty.dispose);
+      await empty.refresh();
+      expect(empty.footerStatus, WAsyncPagedFooterStatus.hidden);
+    });
+
+    test('loadMore 进行中为 loading，成功后回到 loadMore', () async {
+      final page2 = Completer<List<int>>();
+      final controller = WAsyncPagedController<int>((page) async {
+        if (page == 1) return const [1];
+        return page2.future;
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      final loading = controller.loadMore();
+      expect(controller.footerStatus, WAsyncPagedFooterStatus.loading);
+
+      page2.complete(const [2]);
+      await loading;
+      expect(controller.footerStatus, WAsyncPagedFooterStatus.loadMore);
+    });
+
+    test('loadMore 失败为 failed', () async {
+      final controller = WAsyncPagedController<int>((page) async {
+        if (page == 1) return const [1];
+        throw StateError('page failed');
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+
+      expect(controller.loadMoreError.value, isNotNull);
+      expect(controller.footerStatus, WAsyncPagedFooterStatus.failed);
+    });
+
+    test('第一页就到底为 hidden，翻过页后没有更多为 noMore', () async {
+      final firstPageOnly = WAsyncPagedController<int>.withPage((page) async {
+        return const WAsyncPage(items: [1], hasMore: false);
+      });
+      addTearDown(firstPageOnly.dispose);
+      await firstPageOnly.refresh();
+      expect(firstPageOnly.footerStatus, WAsyncPagedFooterStatus.hidden);
+
+      final twoPages = WAsyncPagedController<int>.withPage((page) async {
+        return page == 1
+            ? const WAsyncPage(items: [1], hasMore: true)
+            : const WAsyncPage(items: [2], hasMore: false);
+      });
+      addTearDown(twoPages.dispose);
+      await twoPages.refresh();
+      await twoPages.loadMore();
+      expect(twoPages.footerStatus, WAsyncPagedFooterStatus.noMore);
+    });
+
+    test('replaceData 后按新数据重新派生', () async {
+      final controller = WAsyncPagedController<int>(
+        (page) async => page == 1 ? const [1] : const [2],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      controller.replaceData(const []);
+      expect(controller.footerStatus, WAsyncPagedFooterStatus.hidden);
+
+      controller.replaceData(const [3], hasMore: true);
+      expect(controller.footerStatus, WAsyncPagedFooterStatus.loadMore);
+    });
+  });
+
   group('刷新取代（#118）', () {
     test('刷新在飞时再次 refresh 取消旧请求，旧结果不写回', () async {
       final tokens = <WCancelToken>[];

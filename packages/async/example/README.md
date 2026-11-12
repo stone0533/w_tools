@@ -3,7 +3,7 @@
 真实场景示例，覆盖：
 
 - 四态视图：`WAsyncController` + `WAsyncView`，含 `replaceData` 本地替换
-- 分页：`WAsyncPagedController`、`loadMore`、`hasMore`、追加失败
+- 分页：`WAsyncPagedController`、`loadMore`、`hasMore`、追加失败、`footerStatus`
 - Sliver：`WAsyncStateSliver`
 - 全局默认：`WAsyncTheme`（普通 + sliver 一套）
 - 状态构建器：`WAsyncStateBuilder` / `WAsyncErrorView`
