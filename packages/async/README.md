@@ -128,6 +128,28 @@ final name = await WAsync.map<String, String>(
 );
 ```
 
+> `WAsyncOptions.onError` 只是失败**通知**，不会吞异常。`run` / `map` / `retry` /
+> `timeout` 失败仍会抛；`.then` 必须同时给 `onError` / `catchError`，否则会有
+> unhandled Future。不需要抛异常的调用方直接用 `WAsync.tryRun`。
+
+```dart
+// 要保留 run 的抛异常语义：给 .then 传 onError
+WAsync.run(() => api.gift(id), options: options).then(
+  (gift) => use(gift),
+  onError: (Object error, StackTrace stack) {
+    // options.onError 已经提示过；这里只消费掉 Future 的异常
+  },
+);
+
+// 或者不抛：tryRun + WAsyncResult
+final result = await WAsync.tryRun(() => api.gift(id), options: options);
+switch (result) {
+  case WAsyncSuccess(:final value): use(value);
+  case WAsyncFailure(:final error): log(error);
+  case WAsyncCancelled(): log('cancelled');
+}
+```
+
 - 失败抛原始 error / stack；
 - 取消抛 `WCancellationException`；
 - `WAsync` 不再用 `null` 表示失败或取消；

@@ -1189,6 +1189,7 @@ components:
       final name = await WAsync.map(() => api.fetch(), onSuccess: (v) => v.name);
     pitfalls:
       - 'run 失败抛异常；tryRun 不抛异常'
+      - 'onError 只是通知，不会吞异常；run().then(onSuccess) 必须带 onError/catchError，或改用 tryRun'
       - 'parallel 是 all-or-nothing；eagerError:false 仍会抛，不返回部分结果；独立区块先 tryRun 每个 Future'
       - 'onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess'
       - '取消需要 WCancelToken；取消不中止底层 Future'
