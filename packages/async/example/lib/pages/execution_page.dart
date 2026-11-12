@@ -57,7 +57,9 @@ class _ExecutionPageState extends State<ExecutionPage> {
         },
         options: _options,
         retryCount: 3,
-        retryDelay: const Duration(milliseconds: 150),
+        retryDelayBuilder: (attempt) => Duration(milliseconds: 80 * attempt),
+        onRetry: (attempt, error, delay) =>
+            _log('retry #$attempt in ${delay.inMilliseconds}ms: $error'),
       );
       _log('retry: $result');
     } catch (error) {
@@ -127,6 +129,19 @@ class _ExecutionPageState extends State<ExecutionPage> {
     } catch (error) {
       _log('serial error: $error');
     }
+  }
+
+  Future<void> _settle() async {
+    final results = await WAsync.settle<String>(
+      [
+        () async => 'banner',
+        () async => throw Exception('columns failed'),
+        () async => 'notice',
+      ],
+      options: _options,
+    );
+    final summary = results.map((result) => result.isSuccess ? 'ok' : 'fail').join(', ');
+    _log('settle: $summary');
   }
 
   Future<void> _first() async {
@@ -199,6 +214,10 @@ class _ExecutionPageState extends State<ExecutionPage> {
               FilledButton.tonal(
                 onPressed: _first,
                 child: const Text('first'),
+              ),
+              FilledButton.tonal(
+                onPressed: _settle,
+                child: const Text('settle'),
               ),
             ],
           ),

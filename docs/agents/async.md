@@ -13,6 +13,8 @@
 - 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
 - 切换筛选 / 搜索直接再调 `refresh()`：在飞刷新会被取消，旧结果不写回；不要禁用筛选。
 - 本地替换 / 乐观更新用 `replaceData`：会取消在飞 refresh / loadMore，`page` / `hasMore` 默认继承。
+- 单区块本地替换用 `WAsyncController.replaceData`：取消在飞 `load`，旧结果不写回。
+- 列表 + 感知取消用 `WAsyncController.listWithToken`；保留空列表 → empty、`state.data` unmodifiable。
 - `state.isRefreshing` 只在有旧数据时为 true；首屏 / 重试用 `isLoading`；切换筛选直接 `refresh()`，不需要先判断。
 - 分页 + SmartRefresher：首屏 `refresh()`（不要 `requestRefresh()`），所有 refresh 走同一个 generation helper，footer 重试先 `requestLoading()`；见 `docs/recipes/paged-list.md`。
 - 第一页不足一页 / 服务端有 `total`：用 `WAsyncPagedController.withPage` + `WAsyncPage(hasMore:)`；
@@ -21,8 +23,9 @@
 - `WAsyncOptions.onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
   `onError` / `catchError`，否则会有 unhandled Future。不要用空 `onError` 当 catch。
 - `WAsync.run` 不再接受 `onSuccess`；需要映射用 `WAsync.map`。`runValue` / `WAsyncLoading` 已删除。
-- 取消用 `WCancelToken`；`withToken` 让 loader 感知取消；取消不中止底层 Future；
+- 取消用 `WCancelToken`；`withToken` / `listWithToken` 让 loader 感知取消；取消不中止底层 Future；
   被新 refresh 取代的旧 refresh 也会 cancel token。
+- 取消与失败同轮竞态：非 `Error` 按取消处理；`Error` 仍返回 failure，避免吞编程错误。
 
 选择入口：
 
@@ -35,6 +38,8 @@
 | 纯执行，失败抛异常 | `WAsync.run` |
 | 映射成功值 | `WAsync.map` |
 | 重试 / 超时 / 并发 | `WAsync.retry` / `timeout` / `parallel` / `pool` / `serial` / `first` |
+| 独立区块并行，保留每个结果 | `WAsync.settle` |
+| 单区块本地替换 | `WAsyncController.replaceData` |
 | 分页 | `WAsyncPagedController` |
 | 观测自定义 retry 失败 | `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError` |
 
@@ -85,8 +90,11 @@ if (result is WAsyncSuccess<Gift>) {
 `WAsyncActivity` 只用于同一批并行任务（如 `WAsync.parallel`），不要合并多个独立区块。
 
 `WAsync.parallel` 是 all-or-nothing：任一失败整体抛错，`eagerError: false` 也仍然抛、不返回部分结果。
-独立区块先 `WAsync.tryRun` 包每个 Future，再组合 `WAsyncResult`；不要用空 `onError` 吞错。
-完整写法见 [独立区块并行](../recipes/parallel-sections.md)。
+独立区块优先用 `WAsync.settle`（保留每个 `WAsyncResult`）；需要手写时先 `WAsync.tryRun` 包每个 Future，
+再组合 `WAsyncResult`；不要用空 `onError` 吞错。完整写法见 [独立区块并行](../recipes/parallel-sections.md)。
+
+`WAsync.retry` 的 `retryCount` 是重试次数（总尝试 = `retryCount + 1`）；`retryDelayBuilder`
+按失败次数生成退避，`onRetry` 观测每次重试，回调自身异常会被忽略。
 
 状态 / 结果 / 活动分不清时：
 

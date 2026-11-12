@@ -2,14 +2,15 @@
 
 真实场景示例，覆盖：
 
-- 四态视图：`WAsyncController` + `WAsyncView`
+- 四态视图：`WAsyncController` + `WAsyncView`，含 `replaceData` 本地替换
 - 分页：`WAsyncPagedController`、`loadMore`、`hasMore`、追加失败
 - Sliver：`WAsyncStateSliver`
 - 全局默认：`WAsyncTheme`（普通 + sliver 一套）
 - 状态构建器：`WAsyncStateBuilder` / `WAsyncErrorView`
 - 执行编排：`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`
-- 执行入口补充：`map` / `serial` / `first`
+- 执行入口补充：`map` / `serial` / `first` / `settle`
 - 真实场景：提交重试+取消、启动并行、限流上传、搜索竞态
+- 重试增强：`retryDelayBuilder` 退避、`onRetry` 观测
 
 ## 运行
 

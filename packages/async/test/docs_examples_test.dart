@@ -108,4 +108,51 @@ void main() {
     expect(results, hasLength(3));
     expect(results.every((result) => result.isSuccess), isTrue);
   });
+
+  test('README settle 示例可编译并保留每个结果', () async {
+    final results = await WAsync.settle<Gift>([
+      () => api.gift('1'),
+      () => api.gift('2'),
+    ]);
+
+    expect(results, hasLength(2));
+    for (final result in results) {
+      switch (result) {
+        case WAsyncSuccess(:final value):
+          expect(value, isA<Gift>());
+        case WAsyncFailure(:final error):
+          fail('unexpected failure: $error');
+        case WAsyncCancelled(:final reason):
+          fail('unexpected cancel: $reason');
+      }
+    }
+  });
+
+  test('README retry 退避示例可编译', () async {
+    var attempts = 0;
+    final value = await WAsync.retry<String>(
+      () async {
+        attempts++;
+        if (attempts < 2) throw Exception('fail');
+        return 'ok';
+      },
+      retryCount: 1,
+      retryDelayBuilder: (attempt) => Duration.zero,
+      onRetry: (attempt, error, delay) {},
+    );
+
+    expect(value, 'ok');
+  });
+
+  test('README listWithToken / replaceData 示例可编译', () async {
+    final controller = WAsyncController.listWithToken<Gift>(
+      (token) async => const [Gift('gift')],
+    );
+    addTearDown(controller.dispose);
+
+    await controller.load();
+    controller.replaceData(const [Gift('local')]);
+
+    expect(controller.state.value.data!.single.name, 'local');
+  });
 }

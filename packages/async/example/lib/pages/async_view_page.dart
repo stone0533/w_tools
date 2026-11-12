@@ -27,6 +27,14 @@ class _AsyncViewPageState extends State<AsyncViewPage> {
     super.dispose();
   }
 
+  void _replaceLocally() {
+    final current = _controller.state.value.data ?? const <String>[];
+    _controller.replaceData(<String>[
+      '本地替换 ${DateTime.now().microsecond}',
+      ...current,
+    ]);
+  }
+
   Future<List<String>> _load() async {
     await Future<void>.delayed(const Duration(milliseconds: 350));
     if (_failNext) {
@@ -66,6 +74,11 @@ class _AsyncViewPageState extends State<AsyncViewPage> {
               _controller.load();
             },
             icon: const Icon(Icons.inbox_outlined),
+          ),
+          IconButton(
+            tooltip: '本地替换',
+            onPressed: _replaceLocally,
+            icon: const Icon(Icons.edit_note_rounded),
           ),
         ],
       ),

@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed
+- 根包 `w_tools_async` 约束抬到 `^6.4.0`（取消竞态修复；新增 `WAsync.settle` /
+  `WAsyncController.replaceData` / `listWithToken` / retry 退避与观测回调）。
+
 ## 12.0.8
 
 ### Changed

@@ -53,6 +53,9 @@ class WAsync {
   ///
   /// 成功返回 [WAsyncSuccess]；业务异常/编程错误返回 [WAsyncFailure]；
   /// 取消返回 [WAsyncCancelled]。取消不会中止已经开始执行的 Future。
+  ///
+  /// 取消与失败在同一轮竞态时，非 [Error] 的失败按取消处理；编程错误仍返回
+  /// [WAsyncFailure]，避免把 TypeError / StateError 吞成取消。
   static Future<WAsyncResult<T>> tryRun<T>(
     Future<T> Function() task, {
     WAsyncOptions? options,
@@ -79,6 +82,10 @@ class WAsync {
       _notifyError(options, e);
       return WAsyncFailure<T>(e, stackTrace);
     } catch (e, stackTrace) {
+      // 任务失败与 token 取消可能在同一轮发生；取消优先，但不吞编程错误。
+      if (cancelToken?.isCancelled == true && e is! Error) {
+        return WAsyncCancelled<T>(cancelToken?.cancelReason);
+      }
       _notifyError(options, e);
       return WAsyncFailure<T>(e, stackTrace);
     } finally {
@@ -114,11 +121,17 @@ class WAsync {
   }
 
   /// 重试后返回成功值；最终失败抛异常。
+  ///
+  /// [retryDelayBuilder] 按失败次数（从 1 开始）生成本次重试前的等待时间，
+  /// 优先于 [retryDelay]；返回负值时抛 [ArgumentError]。
+  /// [onRetry] 在每次等待前通知一次，自身异常会被忽略，不影响重试结果。
   static Future<T> retry<T>(
     Future<T> Function() task, {
     WAsyncOptions? options,
     int retryCount = 3,
     Duration retryDelay = const Duration(seconds: 1),
+    Duration Function(int attempt)? retryDelayBuilder,
+    void Function(int attempt, Object error, Duration delay)? onRetry,
     bool Function(Object error)? retryIf,
     WCancelToken? cancelToken,
   }) async {
@@ -145,7 +158,16 @@ class WAsync {
             } catch (e) {
               if (e is WCancellationException || e is Error) rethrow;
               if (attempt <= retryCount && (retryIf?.call(e) ?? true)) {
-                await _cancelableDelay(retryDelay, cancelToken);
+                final delay = retryDelayBuilder?.call(attempt) ?? retryDelay;
+                if (delay.isNegative) {
+                  throw ArgumentError.value(
+                    delay,
+                    'retryDelayBuilder',
+                    '重试间隔不能为负数',
+                  );
+                }
+                _notifyRetry(onRetry, attempt, e, delay);
+                await _cancelableDelay(delay, cancelToken);
                 continue;
               }
               rethrow;
@@ -174,7 +196,10 @@ class WAsync {
           cancelToken?.throwIfCancelled();
           final future = task().timeout(
             timeout,
-            onTimeout: () => throw TimeoutException('Operation timed out'),
+            onTimeout: () => throw TimeoutException(
+              'Operation timed out after $timeout',
+              timeout,
+            ),
           );
           final result = cancelToken == null
               ? await future
@@ -209,6 +234,33 @@ class WAsync {
         options: options,
         cancelToken: cancelToken,
       ),
+    );
+  }
+
+  /// 并发执行一组任务工厂，等待全部结束，结果顺序与输入一致。
+  ///
+  /// 与 [parallel] 的 all-or-nothing 不同：单个任务失败不会让整体抛错，
+  /// 每个任务都以 [WAsyncResult] 返回，适合首页多个互相独立的区块。
+  /// 内部用 [pool] 限流，默认最多 [concurrency] 个任务同时执行。
+  ///
+  /// [options] 按任务生效：`activity` 会按单个任务计数；需要整批 activity
+  /// 时用 [parallel] 配 [WAsyncOptions.activity]。
+  static Future<List<WAsyncResult<T>>> settle<T>(
+    Iterable<Future<T> Function()> tasks, {
+    int concurrency = 4,
+    WAsyncOptions? options,
+    WCancelToken? cancelToken,
+  }) {
+    return pool<WAsyncResult<T>>(
+      tasks.map(
+        (task) =>
+            () => tryRun<T>(
+              task,
+              options: options,
+              cancelToken: cancelToken,
+            ),
+      ),
+      concurrency: concurrency,
     );
   }
 
@@ -340,6 +392,20 @@ class WAsync {
       options?.onError?.call(error);
     } catch (_) {
       // 错误回调自身异常不影响结果
+    }
+  }
+
+  static void _notifyRetry(
+    void Function(int attempt, Object error, Duration delay)? callback,
+    int attempt,
+    Object error,
+    Duration delay,
+  ) {
+    if (callback == null) return;
+    try {
+      callback(attempt, error, delay);
+    } catch (_) {
+      // 重试观测回调自身异常不影响重试
     }
   }
 
