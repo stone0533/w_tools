@@ -124,8 +124,16 @@ class WAsyncController<T> {
     // WAsyncCancelled 已在上面的 token.isCancelled 提前返回，不需要单独分支。
   }
 
-  /// 手动重试入口。
-  Future<void> retry() => load();
+  /// 重新加载；与 [load] 等价，不会自动重试。
+  ///
+  /// 需要自动重试 N 次时用 `WAsync.retry`。
+  Future<void> reload() => load();
+
+  /// 手动重试入口；等价于 [reload]。
+  ///
+  /// remove-in: 7.0.0
+  @Deprecated('Use reload() instead.')
+  Future<void> retry() => reload();
 
   /// 用本地数据替换当前值（乐观更新）。
   ///

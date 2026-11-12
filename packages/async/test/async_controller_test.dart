@@ -56,9 +56,19 @@ void main() {
 
       await controller.load();
       fail = true;
-      await controller.retry();
+      await controller.reload();
 
       expect(controller.state.value.isFailed, isTrue);
+      expect(controller.state.value.data, 1);
+    });
+
+    test('retry 是 reload 的 deprecated 别名', () async {
+      final controller = WAsyncController<int>(() async => 1);
+      addTearDown(controller.dispose);
+
+      // ignore: deprecated_member_use_from_same_package
+      await controller.retry();
+
       expect(controller.state.value.data, 1);
     });
 

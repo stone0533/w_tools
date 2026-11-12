@@ -176,7 +176,8 @@ final controller = WAsyncController.list(
 await controller.load();
 ```
 
-- 每次 `load` 取消上一次 token；
+- 每次 `load` / `reload` 取消上一次 token；`reload()` 与 `load` 等价，`retry()` 是
+  deprecated 别名（remove-in 7.0.0），自动重试用 `WAsync.retry`；
 - 旧请求不会覆盖新请求；
 - 失败保留旧数据；
 - `withToken` 让 loader 拿到 `WCancelToken`；`listWithToken` 同时保留空列表 → empty、
@@ -296,4 +297,4 @@ cd packages/async
 flutter test
 ```
 
-当前 6.6.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
+当前 6.7.0；迁移见 [async-6.0](../migrations/async-6.0.md)。

@@ -1,3 +1,9 @@
+## 1.20.8
+
+### Changed
+- `init` 写入的 `w_tools_async` 约束同步到 `^6.7.0`（`WAsyncController.reload()`）。
+- `explain` / catalog 推荐 `reload()`；`retry()` 标为 deprecated。
+
 ## 1.20.7
 
 ### Changed
