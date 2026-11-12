@@ -869,4 +869,25 @@ void main() {
       expect(notifications, greaterThan(0));
     });
   });
+
+  test('initial failed(previousData) 保留游标并从下一页继续', () async {
+    final calls = <int>[];
+    final controller = WAsyncPagedController<int>(
+      (page) async {
+        calls.add(page);
+        return <int>[page];
+      },
+      initial: const WAsyncState<List<int>>.failed(
+        'cached',
+        previousData: [1],
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    await controller.loadMore();
+
+    expect(calls, [2]);
+    expect(controller.state.value.isReady, isTrue);
+    expect(controller.state.value.data, [1, 2]);
+  });
 }

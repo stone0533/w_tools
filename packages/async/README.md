@@ -192,8 +192,8 @@ for (final result in results) {
 }
 ```
 
-`settle` 不会因为单个失败抛错，结果顺序与输入一致；`options.activity` 按任务计数，
-需要整批 activity 时用 `parallel` + `WAsyncOptions(activity:)`。
+`settle` 不会因为单个失败抛错，结果顺序与输入一致；共享的 `options.activity` 按并发活动
+计数（0→1 / 1→0），与 `parallel` 一致；需要逐任务计数请自行统计。
 
 重试支持退避与 attempt 观测：
 
