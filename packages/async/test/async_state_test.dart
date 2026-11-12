@@ -61,9 +61,12 @@ void main() {
         WAsyncState<List<int>>.ready(list),
         WAsyncState<List<int>>.ready(list),
       );
+
+      final first = <int>[1, 2];
+      final second = <int>[1, 2];
       expect(
-        WAsyncState<List<int>>.ready(<int>[1, 2]),
-        isNot(WAsyncState<List<int>>.ready(<int>[1, 2])),
+        WAsyncState<List<int>>.ready(first),
+        isNot(WAsyncState<List<int>>.ready(second)),
       );
     });
 
