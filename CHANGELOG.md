@@ -1,7 +1,13 @@
-## Unreleased
+## 13.0.0
+
+### Breaking
+- 聚合 `w_tools_ui` 10.0.0：删除 `WScreen.w/h/sp` / `delegate*` / `reset` 与
+  `WNumExtension.borderSide`；`WImageStyle` / `WImageLoadOptions` 的 `copyWith(null)`
+  改为保留语义；删除 `WImageErrorKind.empty`。
+- 新增 `WIconText`、`WScreenScope`、`WScreenData.w/h/sp` 等通过根包重导出。
 
 ### Changed
-- 根包 `w_tools_ui` 约束抬到 `^10.0.0`（删除静态 WScreen 入口与 `WNumExtension.borderSide`）。
+- 根包 `w_tools_ui` 约束抬到 `^10.0.0`。
 
 ## 12.0.12
 
