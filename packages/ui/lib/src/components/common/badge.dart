@@ -127,6 +127,52 @@ class WBadge extends StatelessWidget {
   /// 未提供时保持原有语义（气泡内容自行参与朗读）。
   final String? semanticLabel;
 
+  /// 数量角标：超过 [maxCount] 时显示 `maxCount+`。
+  factory WBadge.count({
+    Key? key,
+    required int count,
+    int? maxCount,
+    Widget? child,
+    WBadgePosition position = const WBadgePosition.topEnd(),
+    WBadgeStyle? style,
+    bool showBadge = true,
+    String? semanticLabel,
+  }) {
+    final text = maxCount != null && count > maxCount ? '$maxCount+' : '$count';
+    return WBadge(
+      key: key,
+      badgeContent: Text(text),
+      position: position,
+      style: style,
+      showBadge: showBadge,
+      semanticLabel: semanticLabel,
+      child: child,
+    );
+  }
+
+  /// 圆点角标：只有存在感，不显示数字。
+  factory WBadge.dot({
+    Key? key,
+    Widget? child,
+    WBadgePosition position = const WBadgePosition.topEnd(),
+    WBadgeStyle? style,
+    bool showBadge = true,
+    String? semanticLabel,
+  }) {
+    final effectiveStyle = (style ?? const WBadgeStyle()).copyWith(
+      padding: EdgeInsets.zero,
+    );
+    return WBadge(
+      key: key,
+      badgeContent: const SizedBox.square(dimension: 8),
+      position: position,
+      style: effectiveStyle,
+      showBadge: showBadge,
+      semanticLabel: semanticLabel,
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final content = badgeContent;

@@ -19,6 +19,7 @@ components:
     pitfalls:
       - '不要手拼 Scaffold + SafeArea；页面壳统一用 WScaffold'
       - '传 appBar 时不要再传 title/leading/actions；drawer/bottomSheet/非标准安全区才直接用 Scaffold'
+      - '有 bottomNavigationBar 时 WScaffold 不再给 body 加底部安全区；底栏若不是 WNavBar（已默认 SafeArea），需要自己处理底部 inset'
     related: ['`WAppBar`', '`WNavBar`']
     teach: true
   - name: '`WAppBar`'
@@ -79,6 +80,7 @@ components:
       }
     pitfalls:
       - 'onItemTap 返回 false 可以阻止切换'
+      - '默认 safeArea: true，会避开 home indicator；放进已包 SafeArea 的容器时传 safeArea: false'
     related: ['`WNavBarStyle`', '`WTabBar`']
     teach: false
   - name: '`WNavBarStyle`'
@@ -107,7 +109,11 @@ components:
         child: Column(
           children: [
             WTabBar(
-              style: const WTabBarStyle(indicatorColor: Colors.indigo),
+              style: const WTabBarStyle(
+                indicatorColor: Colors.indigo,
+                labelColor: Colors.indigo,
+                unselectedLabelColor: Colors.grey,
+              ),
               tabs: const [Tab(text: '全部'), Tab(text: '完成')],
             ),
             Expanded(child: TabBarView(children: [...])),
@@ -130,6 +136,9 @@ components:
           isScrollable: true,
           tabAlignment: TabAlignment.start,
           indicatorColor: Colors.indigo,
+          labelColor: Colors.indigo,
+          unselectedLabelColor: Colors.grey,
+          labelPadding: EdgeInsets.symmetric(horizontal: 12),
         ),
         tabs: const [Tab(text: '全部'), Tab(text: '完成')],
       )
@@ -189,10 +198,19 @@ components:
       WText(text: '标题', variant: WTextVariant.title);
       WText(text: '正文', variant: WTextVariant.body, maxLines: 2, overflow: TextOverflow.ellipsis);
       WText(text: '价格', variant: WTextVariant.price, style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]));
+      WText.rich(
+        textSpan: TextSpan(
+          text: '¥128',
+          children: [TextSpan(text: ' 起', style: TextStyle(fontSize: 12))],
+        ),
+        variant: WTextVariant.price,
+      );
       // 品牌样式装一次：ThemeData(...).withWTextStyles(WTextStyles.fromTextTheme(TextTheme))
     pitfalls:
       - '已移除 WTextConfig；样式统一 WTextStyles'
       - 'enum 只有 11 个 variant，不要自造'
+      - '混合样式用 WText.rich，子 TextSpan 只写差异，不要重复 root 样式'
+    aliases: ['WText.rich']
     related: ['`WTextStyles`']
     teach: true
   - name: '`WIconText`'
@@ -236,7 +254,7 @@ components:
       - '未知来源用 WImageSource.parse'
       - '没有 width/height/aspectRatio 时必须由父级约束（SizedBox/Expanded/AspectRatio）；否则 Row/Column/ListView 里加载前是 0 尺寸（空白）'
       - 'width + fitWidth 仍不会确定高度；aspectRatio 不能和固定 width/height 同时设置'
-      - '空 data（空字符串 / 纯空白）走 empty 占位，不是 error；自定义用 WImageSlots.emptyWidget / emptyBuilder'
+      - '空 source（空字符串 / 纯空白）走 empty 占位，不是 error；自定义用 WImageSlots.emptyWidget / emptyBuilder'
     related: ['`WImageSource`', '`WImageSlots`']
     teach: true
   - name: '`WImageSource`'
@@ -280,7 +298,7 @@ components:
         semanticLabel: '封面',
       )
     pitfalls:
-      - 'aspectRatio 不能与固定 width/height 同时传（debug 断言）'
+      - 'aspectRatio 不能与固定 width/height 同时传（debug 断言）；copyWith 设置 width/height 且未显式传 aspectRatio 时会自动清空比例'
       - '列表缩略图用 WImageStyle.thumbnail，解码尺寸交给 WImageLoadOptions.memCache*'
       - 'copyWith(null) 表示保留；清空可空字段用 withoutWidth / withoutBorderRadius 等 without* 方法'
     related: ['`WImage`', '`WImageLoadOptions`']
@@ -322,10 +340,12 @@ components:
     dontUseFor: '按钮宽度由父布局决定，`WButtonStyle` 不含 width'
     usage: |
       WButton(
-        style: WButtonStyle.filled(backgroundColor: Colors.deepPurple, foregroundColor: Colors.white),
+        style: WButtonStyle.filled(backgroundColor: Colors.deepPurple),
         label: '保存',
         onTap: save,
       )
+    pitfalls:
+      - 'filled 未传 foregroundColor 时按背景亮度自动选黑 / 白；需要品牌前景色时显式传'
     related: ['`WButton`']
   - name: '`WButton`'
     package: 'w_tools_ui'
@@ -405,17 +425,21 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '5-wbadge---徽章组件'
     section: '3. 按钮与操作'
-    useFor: '角标数字'
-    dontUseFor: '不要用于状态点或长文案；状态点用原生 Container，多字提示用 WText'
+    useFor: '角标数字 / 圆点'
+    dontUseFor: '不要用于长文案；多字提示用 WText'
     usage: |
       WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
+      WBadge.count(count: 120, maxCount: 99, child: const Icon(Icons.notifications));
+      WBadge.dot(child: const Icon(Icons.notifications));
       WBadge(position: const WBadgePosition.center(), badgeContent: const Text('NEW'), child: ...);
       WBadge(showBadge: false, badgeContent: const Text('hidden'), child: ...);
       WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: ...);
     pitfalls:
       - 'badgeContent 为空时不渲染徽章（不报错）'
+      - '数量角标用 WBadge.count（可传 maxCount 显示 maxCount+）；圆点用 WBadge.dot'
       - '需要读屏上下文时传 semanticLabel；提供后气泡内容不再单独朗读'
       - '默认背景 / 前景取 ColorScheme.error / onError；自定义用 style: WBadgeStyle(...)'
+    aliases: ['WBadge.count', 'WBadge.dot']
     related: ['`WBadgeStyle`', '`WBadgePosition`']
     teach: false
   - name: '`WBadgeStyle`'

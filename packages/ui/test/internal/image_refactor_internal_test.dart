@@ -26,6 +26,39 @@ void main() {
     expect(mergeImageSlots(own: null, theme: theme), same(theme));
   });
 
+  test('mergeImageSlots：单图 builder 不会同时保留主题 widget', () {
+    const theme = WImageSlots(placeholder: Text('theme-placeholder'));
+    final own = WImageSlots(
+      placeholderBuilder: (context, data) => const Text('own-placeholder'),
+    );
+
+    final merged = mergeImageSlots(own: own, theme: theme);
+    expect(merged.placeholderBuilder, same(own.placeholderBuilder));
+    expect(merged.placeholder, isNull);
+  });
+
+  test('mergeImageSlots：单图 widget 不会同时保留主题 builder', () {
+    final theme = WImageSlots(
+      placeholderBuilder: (context, data) => const Text('theme-placeholder'),
+    );
+    const own = WImageSlots(placeholder: Text('own-placeholder'));
+
+    final merged = mergeImageSlots(own: own, theme: theme);
+    expect(merged.placeholder, same(own.placeholder));
+    expect(merged.placeholderBuilder, isNull);
+  });
+
+  test('mergeImageSlots：错误占位 builder / widget 同样互斥', () {
+    const theme = WImageSlots(errorWidget: Text('theme-error'));
+    final own = WImageSlots(
+      errorWidgetBuilder: (context, data, error) => const Text('own-error'),
+    );
+
+    final merged = mergeImageSlots(own: own, theme: theme);
+    expect(merged.errorWidgetBuilder, same(own.errorWidgetBuilder));
+    expect(merged.errorWidget, isNull);
+  });
+
   test('createNetworkImageProvider 保留 headers / cacheKey / 解码尺寸', () {
     final provider = createNetworkImageProvider(
       const WNetworkImageSource(

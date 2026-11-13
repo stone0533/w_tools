@@ -42,6 +42,38 @@ void main() {
       expect(text.style?.color, Colors.green);
     });
 
+    testWidgets('WText.rich 渲染 TextSpan 并应用 variant', (tester) async {
+      final styles = WTextStyles.fromTextTheme(ThemeData.light().textTheme).copyWith(
+        body: const TextStyle(fontSize: 21),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(extensions: [styles]),
+          home: const Scaffold(
+            body: WText.rich(
+              textSpan: TextSpan(
+                text: 'rich',
+                children: [
+                  TextSpan(
+                    text: '!',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              variant: WTextVariant.body,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('rich!'), findsOneWidget);
+      final rich = tester.widget<RichText>(
+        find.descendant(of: find.byType(WText), matching: find.byType(RichText)),
+      );
+      expect(rich.text.style?.fontSize, 21);
+    });
+
     testWidgets('style / color 可覆盖 variant', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -162,6 +194,33 @@ void main() {
       );
       expect(find.text('3'), findsOneWidget);
       expect(find.byIcon(Icons.email), findsOneWidget);
+    });
+
+    testWidgets('WBadge.count 超过 maxCount 时显示 maxCount+', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WBadge.count(
+              count: 120,
+              maxCount: 99,
+              child: const Icon(Icons.email),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('99+'), findsOneWidget);
+    });
+
+    testWidgets('WBadge.dot 不渲染文本角标', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WBadge.dot(child: const Icon(Icons.email)),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.email), findsOneWidget);
+      expect(find.byType(Text), findsNothing);
     });
 
     testWidgets('默认样式跟随 ColorScheme.error / onError', (tester) async {

@@ -1,3 +1,9 @@
+## 13.0.3
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.3.0`（`WText.rich`、`WBadge.count` / `dot`、
+  `WNavBar.safeArea` 与一批 UI 修复）。
+
 ## 13.0.2
 
 ### Changed

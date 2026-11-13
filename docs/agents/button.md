@@ -158,6 +158,7 @@ disabled / pressed / hovered / focused 由 AppButtons 的 WidgetStateProperty �
 如果已有显式禁用色，设置 disabledOpacity: 1，避免二次变淡
 hover 由 _bg 处理时，把 hoverColor 设为 transparent，避免主题 overlay 叠加
 foregroundColor 会覆盖 textStyle.color
+WButtonStyle.filled 未传 foregroundColor 时按背景亮度自动选黑 / 白
 ```
 
 

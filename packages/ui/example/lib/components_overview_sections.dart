@@ -134,6 +134,21 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
     const SizedBox(height: 4),
     const Text('badgeContent 为空时静默不渲染（不报错）'),
     const SizedBox(height: 24),
+    const DemoSectionTitle('WBadge.count / WBadge.dot'),
+    Row(
+      children: [
+        WBadge.count(
+          count: 120,
+          maxCount: 99,
+          child: const Icon(Icons.notifications, size: 32),
+        ),
+        const SizedBox(width: 32),
+        WBadge.dot(child: const Icon(Icons.mark_email_unread_outlined, size: 32)),
+      ],
+    ),
+    const SizedBox(height: 4),
+    const Text('count 超过 maxCount 显示 99+；dot 不显示数字'),
+    const SizedBox(height: 24),
     const DemoSectionTitle('WClipRRect 圆角裁剪'),
     WClipRRect(
       borderRadius: BorderRadius.circular(16),

@@ -123,11 +123,3 @@ class WStepStyle {
     );
   }
 }
-
-/// 一组步骤的不可变定义，可在多个页面复用。
-///
-/// 页面只需要传 [current]：
-///
-/// ```dart
-/// AppSteps.register.build(current: step)
-/// ```

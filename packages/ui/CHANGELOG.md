@@ -1,3 +1,35 @@
+## 10.3.0
+
+### Breaking
+- `WTabBarStyle.copyWith` 增加 `labelColor` / `unselectedLabelColor` / `labelPadding` /
+  `indicatorPadding` / `textScaler` 命名参数。直接调用源码兼容；把该方法作为函数值
+  （tear-off）并显式声明旧签名时需要更新。
+
+### Added
+- `WText.rich`：富文本入口，子 `TextSpan` 可混排样式，同时复用 `variant` / `WTextStyles`、
+  `maxLines` / `overflow` / `textScaler` 等排版参数。
+- `WTabBarStyle.labelColor` / `unselectedLabelColor` / `labelPadding` / `indicatorPadding` /
+  `textScaler`：补齐 `TabBar` 最常用的标签颜色与布局参数。
+- `WBadge.count(count:, maxCount:)` / `WBadge.dot()`：数量角标（超限显示 `maxCount+`）与圆点角标。
+- `WNavBar.safeArea`：默认 `true`，自动避开底部 home indicator；外层已包 `SafeArea` 时传 `false`。
+
+### Changed
+- `WActionRow` / `WSelectableRow`：不同高度的子项改为垂直居中（原 `Wrap` 默认顶部对齐）。
+- `WButtonStyle.filled`：未传 `foregroundColor` 时按背景亮度自动选黑 / 白，避免深色背景文字不可读。
+- `WImageStyle.copyWith`：设置 `width` / `height` 且未显式传 `aspectRatio` 时清空比例，
+  修复 `WImageStyle.cover().square(40)` 触发断言的问题。
+
+### Fixed
+- `WImageLoadOptions` 补齐 `==` / `hashCode`；`WImage.didUpdateWidget` 不再因非 const options
+  每次重建都丢弃 gapless 上一帧。
+- `WImageController.dispose` 后重复释放 / `retry` 是安全的空操作。
+- `WImageSlots` 合并结果不再同时保留 builder 与固定 Widget，维持自身互斥约定。
+- `WGlobalKeyExtension.offset()` 在组件尚未布局时返回 null，与 `rect()` 一致。
+
+### Deprecated
+- `notifyScrollPercentage`：内部实现细节，`remove-in: 11.0.0`；请直接读
+  `ScrollNotification.metrics`。
+
 ## 10.2.0
 
 ### Added

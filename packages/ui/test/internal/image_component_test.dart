@@ -157,6 +157,15 @@ void main() {
     expect(controller.retry, returnsNormally);
   });
 
+  testWidgets('WImageController dispose 后 retry / 二次 dispose 安全', (tester) async {
+    final controller = WImageController();
+    controller.dispose();
+
+    expect(controller.isAttached, isFalse);
+    expect(controller.retry, returnsNormally);
+    expect(controller.dispose, returnsNormally);
+  });
+
   group('WImage', () {
     test('should build with config', () {
       const style = WImageStyle(width: 100, height: 100);

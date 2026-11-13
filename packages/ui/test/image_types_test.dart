@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
+/// 刻意返回非 const 实例：值相等测试不能依赖 const canonicalization。
+WImageLoadOptions _options(int retryCount) => WImageLoadOptions(retryCount: retryCount);
+
 void main() {
   group('WImageProgress.fraction', () {
     test('正常值按比例并 clamp', () {
@@ -143,6 +146,24 @@ void main() {
       expect(next.borderRadius, BorderRadius.circular(20));
     });
 
+    test('cover().square() 会清空 aspectRatio，组合仍是合法样式', () {
+      final style = WImageStyle.cover().square(40);
+      expect(style.aspectRatio, isNull);
+      expect(style.width, 40);
+      expect(style.height, 40);
+      expect(style.validate, returnsNormally);
+    });
+
+    test('copyWith 设置 width/height 时清空 aspectRatio', () {
+      final style = WImageStyle.cover().copyWith(width: 100);
+      expect(style.aspectRatio, isNull);
+      expect(style.validate, returnsNormally);
+
+      final height = WImageStyle.cover().copyWith(height: 100);
+      expect(height.aspectRatio, isNull);
+      expect(height.validate, returnsNormally);
+    });
+
     test('默认值', () {
       const style = WImageStyle();
       expect(style.fit, BoxFit.cover);
@@ -198,12 +219,13 @@ void main() {
       expect(config.copyWith(retryCount: 3).retryCount, 3);
     });
 
-    test('值相等可用于 InheritedWidget 比较', () {
-      const a = WImageLoadOptions(retryCount: 2);
-      const b = WImageLoadOptions(retryCount: 2);
+    test('值相等可用于 InheritedWidget 比较（非 const 实例）', () {
+      final a = _options(2);
+      final b = _options(2);
+      expect(identical(a, b), isFalse);
       expect(a, b);
       expect(a.hashCode, b.hashCode);
-      expect(a, isNot(const WImageLoadOptions(retryCount: 3)));
+      expect(a, isNot(_options(3)));
     });
 
     test('validate 校验加载约束', () {

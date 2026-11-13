@@ -57,6 +57,19 @@ void main() {
     expect(() => const WButtonSize(minHeight: -1).validate(), throwsAssertionError);
   });
 
+  test('WStepFlow 值相等 / copyWith 保留字段', () {
+    final a = WStepFlow(labels: const ['下单', '付款', '完成']);
+    final b = WStepFlow(labels: const ['下单', '付款', '完成']);
+    expect(identical(a, b), isFalse);
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(a, isNot(WStepFlow(labels: const ['下单'])));
+
+    final next = a.copyWith(labels: const ['A', 'B']);
+    expect(next.labels, const ['A', 'B']);
+    expect(next.style, a.style);
+  });
+
   test('WButtonMotion copyWith / validate / 值相等', () {
     const motion = WButtonMotion(duration: Duration(milliseconds: 200));
     final next = motion.copyWith(pressedScale: 0.9);

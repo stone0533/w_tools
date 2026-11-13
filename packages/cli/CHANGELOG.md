@@ -1,3 +1,9 @@
+## 1.20.12
+
+### Changed
+- catalog 补 `WText.rich`、`WBadge.count` / `dot`、`WTabBarStyle` 标签颜色与
+  `WNavBar.safeArea` 示例 / pitfalls；同步 `w_tools_ui` 约束 `^10.3.0`。
+
 ## 1.20.11
 
 ### Changed

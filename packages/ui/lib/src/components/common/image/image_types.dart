@@ -115,7 +115,9 @@ class WImageError implements Exception {
   /// 创建错误
   const WImageError(this.data, this.kind, {this.cause});
 
-  /// 触发错误的原始数据（调用方传给 `WImage` 的 `data`）
+  /// 触发错误的原始来源字符串（通常是 `WImageSource.raw`）。
+  ///
+  /// 字段名是 6.0 之前的 `data` 遗留；新代码把它当 source 字符串使用。
   final String data;
 
   /// 错误分类

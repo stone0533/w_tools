@@ -8,6 +8,7 @@ export 'step_flow.dart';
 export 'step_style.dart';
 export 'step_types.dart';
 
+/// 保证图标 / 数字在自定义背景色上可读。
 Color _onColor(Color background) =>
     ThemeData.estimateBrightnessForColor(background) == Brightness.dark
     ? Colors.white

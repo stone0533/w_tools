@@ -257,6 +257,73 @@ void main() {
     expect(controller.currentIndex, 0);
   });
 
+  testWidgets('WNavBar 默认避开底部安全区', (tester) async {
+    final ctrl = WNavController(length: 2, vsync: tester);
+    addTearDown(ctrl.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              padding: const EdgeInsets.only(bottom: 34),
+            ),
+            child: Scaffold(
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: WNavBar(
+                  controller: ctrl,
+                  itemBuilder: (context, index, selected) => SizedBox(
+                    key: Key('nav-item-$index'),
+                    width: 10,
+                    height: 10,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final item = tester.getRect(find.byKey(const Key('nav-item-0')));
+    expect(item.bottom, closeTo(566, 0.1));
+  });
+
+  testWidgets('WNavBar safeArea: false 时贴底', (tester) async {
+    final ctrl = WNavController(length: 2, vsync: tester);
+    addTearDown(ctrl.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              padding: const EdgeInsets.only(bottom: 34),
+            ),
+            child: Scaffold(
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: WNavBar(
+                  controller: ctrl,
+                  safeArea: false,
+                  itemBuilder: (context, index, selected) => SizedBox(
+                    key: Key('nav-item-$index'),
+                    width: 10,
+                    height: 10,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final item = tester.getRect(find.byKey(const Key('nav-item-0')));
+    expect(item.bottom, closeTo(600, 0.1));
+  });
+
   testWidgets('WNavBar 直接传 style', (tester) async {
     final ctrl = WNavController(length: 2, vsync: tester);
     addTearDown(ctrl.dispose);

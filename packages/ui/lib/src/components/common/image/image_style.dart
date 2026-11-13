@@ -131,6 +131,10 @@ class WImageStyle {
   /// [withoutAspectRatio] / [withoutBorderRadius] / [withoutBorder] /
   /// [withoutBoxShadow] / [withoutMargin] / [withoutPadding] /
   /// [withoutSemanticLabel]。
+  ///
+  /// 设置 [width] / [height] 且没有同时传 [aspectRatio] 时，会清空
+  /// [aspectRatio]：固定尺寸与比例互斥，这样 `WImageStyle.cover().square(40)`
+  /// 这类组合才不会触发 [validate] 断言。
   WImageStyle copyWith({
     double? width,
     double? height,
@@ -146,12 +150,14 @@ class WImageStyle {
     bool? excludeFromSemantics,
     FilterQuality? filterQuality,
   }) {
+    final nextAspectRatio =
+        aspectRatio ?? ((width != null || height != null) ? null : this.aspectRatio);
     return _copy(
       width: width ?? this.width,
       height: height ?? this.height,
       fit: fit ?? this.fit,
       alignment: alignment ?? this.alignment,
-      aspectRatio: aspectRatio ?? this.aspectRatio,
+      aspectRatio: nextAspectRatio,
       borderRadius: borderRadius ?? this.borderRadius,
       border: border ?? this.border,
       boxShadow: boxShadow ?? this.boxShadow,

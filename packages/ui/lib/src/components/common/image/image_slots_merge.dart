@@ -15,18 +15,31 @@ WImageSlots mergeImageSlots({
   final ownHasError = own.errorWidgetBuilder != null || own.errorWidget != null;
   final inheritThemeError = !ownHasError && showRetry != true;
 
+  final placeholderBuilder =
+      own.placeholderBuilder ?? (own.placeholder == null ? theme.placeholderBuilder : null);
+  final placeholder =
+      own.placeholder ??
+      (own.placeholderBuilder == null && placeholderBuilder == null ? theme.placeholder : null);
+  final emptyBuilder = own.emptyBuilder ?? (own.emptyWidget == null ? theme.emptyBuilder : null);
+  final emptyWidget =
+      own.emptyWidget ??
+      (own.emptyBuilder == null && emptyBuilder == null ? theme.emptyWidget : null);
+  final errorWidgetBuilder =
+      own.errorWidgetBuilder ??
+      (own.errorWidget == null && inheritThemeError ? theme.errorWidgetBuilder : null);
+  final errorWidget =
+      own.errorWidget ??
+      (own.errorWidgetBuilder == null && errorWidgetBuilder == null && inheritThemeError
+          ? theme.errorWidget
+          : null);
+
   return WImageSlots(
-    placeholderBuilder:
-        own.placeholderBuilder ?? (own.placeholder == null ? theme.placeholderBuilder : null),
-    placeholder: own.placeholder ?? theme.placeholder,
-    emptyBuilder: own.emptyBuilder ?? (own.emptyWidget == null ? theme.emptyBuilder : null),
-    emptyWidget: own.emptyWidget ?? theme.emptyWidget,
-    errorWidgetBuilder:
-        own.errorWidgetBuilder ??
-        (own.errorWidget == null && inheritThemeError ? theme.errorWidgetBuilder : null),
-    errorWidget:
-        own.errorWidget ??
-        (own.errorWidgetBuilder == null && inheritThemeError ? theme.errorWidget : null),
+    placeholderBuilder: placeholderBuilder,
+    placeholder: placeholder,
+    emptyBuilder: emptyBuilder,
+    emptyWidget: emptyWidget,
+    errorWidgetBuilder: errorWidgetBuilder,
+    errorWidget: errorWidget,
     progressBuilder: own.progressBuilder ?? theme.progressBuilder,
     showRetryButton: showRetry,
     retryLabel: own.retryLabel ?? theme.retryLabel,

@@ -77,6 +77,19 @@ class TextDemoPage extends StatelessWidget {
             ),
           ),
           const DemoSection(
+            title: 'WText.rich',
+            subtitle: '混合样式仍复用 variant 的根样式',
+            child: WText.rich(
+              textSpan: TextSpan(
+                text: '¥128',
+                children: [
+                  TextSpan(text: ' 起', style: TextStyle(fontSize: 12)),
+                ],
+              ),
+              variant: WTextVariant.price,
+            ),
+          ),
+          const DemoSection(
             title: 'price / number 的表格数字',
             subtitle: '价格用 tabular figures，避免数字宽度跳动',
             child: Column(

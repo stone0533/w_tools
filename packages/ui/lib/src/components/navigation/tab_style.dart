@@ -6,6 +6,11 @@ class WTabBarStyle {
   const WTabBarStyle({
     this.labelStyle,
     this.unselectedLabelStyle,
+    this.labelColor,
+    this.unselectedLabelColor,
+    this.labelPadding,
+    this.indicatorPadding,
+    this.textScaler,
     this.dividerColor,
     this.dividerHeight,
     this.padding,
@@ -27,6 +32,11 @@ class WTabBarStyle {
 
   final TextStyle? labelStyle;
   final TextStyle? unselectedLabelStyle;
+  final Color? labelColor;
+  final Color? unselectedLabelColor;
+  final EdgeInsetsGeometry? labelPadding;
+  final EdgeInsetsGeometry? indicatorPadding;
+  final TextScaler? textScaler;
   final Color? dividerColor;
   final double? dividerHeight;
   final EdgeInsetsGeometry? padding;
@@ -44,6 +54,11 @@ class WTabBarStyle {
   WTabBarStyle copyWith({
     TextStyle? labelStyle,
     TextStyle? unselectedLabelStyle,
+    Color? labelColor,
+    Color? unselectedLabelColor,
+    EdgeInsetsGeometry? labelPadding,
+    EdgeInsetsGeometry? indicatorPadding,
+    TextScaler? textScaler,
     Color? dividerColor,
     double? dividerHeight,
     EdgeInsetsGeometry? padding,
@@ -59,6 +74,11 @@ class WTabBarStyle {
     return WTabBarStyle(
       labelStyle: labelStyle ?? this.labelStyle,
       unselectedLabelStyle: unselectedLabelStyle ?? this.unselectedLabelStyle,
+      labelColor: labelColor ?? this.labelColor,
+      unselectedLabelColor: unselectedLabelColor ?? this.unselectedLabelColor,
+      labelPadding: labelPadding ?? this.labelPadding,
+      indicatorPadding: indicatorPadding ?? this.indicatorPadding,
+      textScaler: textScaler ?? this.textScaler,
       dividerColor: dividerColor ?? this.dividerColor,
       dividerHeight: dividerHeight ?? this.dividerHeight,
       padding: padding ?? this.padding,
@@ -79,6 +99,11 @@ class WTabBarStyle {
       other is WTabBarStyle &&
           other.labelStyle == labelStyle &&
           other.unselectedLabelStyle == unselectedLabelStyle &&
+          other.labelColor == labelColor &&
+          other.unselectedLabelColor == unselectedLabelColor &&
+          other.labelPadding == labelPadding &&
+          other.indicatorPadding == indicatorPadding &&
+          other.textScaler == textScaler &&
           other.dividerColor == dividerColor &&
           other.dividerHeight == dividerHeight &&
           other.padding == padding &&
@@ -95,6 +120,11 @@ class WTabBarStyle {
   int get hashCode => Object.hash(
     labelStyle,
     unselectedLabelStyle,
+    labelColor,
+    unselectedLabelColor,
+    labelPadding,
+    indicatorPadding,
+    textScaler,
     dividerColor,
     dividerHeight,
     padding,

@@ -27,12 +27,19 @@ class WNavBar extends StatefulWidget {
   /// 导航栏控制器
   final WNavController controller;
 
+  /// 是否避开底部安全区（home indicator / 手势条）。
+  ///
+  /// 默认 true：`WNavBar` 通常放在 `WScaffold.bottomNavigationBar`，需要自己
+  /// 处理底部 inset。放在页面 body 内或已由外层 `SafeArea` 包裹时传 false。
+  final bool safeArea;
+
   const WNavBar({
     super.key,
     this.style,
     required this.itemBuilder,
     this.onItemTap,
     required this.controller,
+    this.safeArea = true,
   });
 
   @override
@@ -104,6 +111,10 @@ class _WNavBarState extends State<WNavBar> {
           ),
       ],
     );
+
+    if (widget.safeArea) {
+      navContent = SafeArea(top: false, child: navContent);
+    }
 
     final decoration = widget.style?.decoration;
     final padding = widget.style?.padding;

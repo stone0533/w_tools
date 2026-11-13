@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^10.2.0
+  w_tools_ui: ^10.3.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -173,6 +173,7 @@ WImageStyle.thumbnail(80)
 WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)
 
 const WImageStyle().square(40).rounded(20)
+WImageStyle.cover().square(40) // 设置 width/height 时自动清空 aspectRatio
 ```
 
 ### 宽度铺满 + 高度上限
@@ -225,6 +226,13 @@ WText(
   variant: WTextVariant.price,
   style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
 );
+WText.rich(
+  textSpan: TextSpan(
+    text: '¥128',
+    children: [TextSpan(text: ' 起', style: TextStyle(fontSize: 12))],
+  ),
+  variant: WTextVariant.price,
+);
 ```
 
 11 个 variant：`display/headline/title/price/body/bodyStrong/number/caption/label/button/badge`。
@@ -258,6 +266,7 @@ WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 ```
 
 任意 child / 卡片点击用 `WPressable`；需要键盘、最小点击区域或 button 语义时用 `WButton`。
+`WButtonStyle.filled` 未传 `foregroundColor` 时按背景亮度自动选黑 / 白。
 
 ## 页面骨架与布局
 
@@ -288,6 +297,8 @@ WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap:
 
 ```dart
 WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
+WBadge.count(count: 120, maxCount: 99, child: const Icon(Icons.notifications));
+WBadge.dot(child: const Icon(Icons.notifications));
 WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
 WActionRow(children: [WButton(...), WButton(...)]);
@@ -328,6 +339,8 @@ class _NavDemoState extends State<NavDemo> {
 ```
 
 `WNavController` 需要页面 State 提供 `vsync`，并由调用方 `dispose`。
+`WNavBar` 默认 `safeArea: true`，会避开底部 home indicator；已在外层包 `SafeArea` 时传
+`safeArea: false`。
 
 顶部 tab：
 
@@ -351,7 +364,8 @@ DefaultTabController(
 ```
 
 `WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`。
-默认 overlay / 水波纹跟 `TabBarTheme`；要关闭灰色按压块 + ripple，用
+`WTabBarStyle` 支持 `labelColor` / `unselectedLabelColor` / `labelPadding` /
+`indicatorPadding` / `textScaler`；默认 overlay / 水波纹跟 `TabBarTheme`。要关闭灰色按压块 + ripple，用
 `WTabBarStyle.noSplash`，或分别设置 `overlayColor: Colors.transparent` /
 `splashFactory: NoSplash.splashFactory`。默认值不强制透明，避免覆盖 Material 主题。
 
@@ -390,7 +404,7 @@ WAssets.imagePath = 'assets/icons/';
 'logo.png'.assetImagePath;
 ```
 
-`WScreen` 无 scope / delegate 时返回原始值；需要 `ScreenUtil` 时在 App 根节点注入
+`WScreen` 无 `WScreenScope` 时返回原始值；需要 `ScreenUtil` 时在 App 根节点注入
 `WScreenScope`：
 
 ```dart

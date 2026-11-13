@@ -88,7 +88,13 @@ class _WActionRowScrollViewState extends State<WActionRowScrollView> {
       physics: widget.physics,
       child: Padding(
         padding: widget.padding ?? EdgeInsets.zero,
-        child: Wrap(spacing: widget.spacing, children: widget.children),
+        // 横向滚动下 Wrap 不会换行，等价于 Row；显式居中以对齐不同高度的子项，
+        // 和 Row 的默认 crossAxisAlignment 保持一致。
+        child: Wrap(
+          spacing: widget.spacing,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: widget.children,
+        ),
       ),
     );
   }

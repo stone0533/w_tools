@@ -29,5 +29,3 @@ typedef WStepSemanticLabelBuilder =
       int current,
       int total,
     );
-
-/// 步骤条视觉样式。

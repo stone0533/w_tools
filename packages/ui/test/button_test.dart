@@ -49,6 +49,20 @@ void main() {
       expect(() => motion.validate(), returnsNormally);
     });
 
+    test('filled 未传 foregroundColor 时按背景亮度推导前景色', () {
+      final dark = WButtonStyle.filled(backgroundColor: Colors.black);
+      expect(dark.foregroundColor?.resolve(<WidgetState>{}), Colors.white);
+
+      final light = WButtonStyle.filled(backgroundColor: Colors.white);
+      expect(light.foregroundColor?.resolve(<WidgetState>{}), Colors.black);
+
+      final explicit = WButtonStyle.filled(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.amber,
+      );
+      expect(explicit.foregroundColor?.resolve(<WidgetState>{}), Colors.amber);
+    });
+
     test('backgroundColor 与 gradient 互斥（debug assert）', () {
       const style = WButtonStyle(
         backgroundColor: WidgetStatePropertyAll(Colors.red),

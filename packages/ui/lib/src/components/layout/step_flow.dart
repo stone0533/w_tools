@@ -1,7 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'step.dart';
 
+/// 一组步骤的不可变定义，可在多个页面复用。
+///
+/// 页面只需要传 `current`：
+///
+/// ```dart
+/// final steps = WStepFlow(labels: const ['下单', '付款', '完成']);
+/// steps.build(current: 2);
+/// ```
 class WStepFlow {
   WStepFlow({
     required List<String> labels,
@@ -47,6 +55,23 @@ class WStepFlow {
       semanticLabelBuilder: semanticLabelBuilder,
     );
   }
-}
 
-/// 保证图标 / 数字在自定义背景色上可读。
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WStepFlow &&
+          listEquals(other.labels, labels) &&
+          other.style == style &&
+          other.itemBuilder == itemBuilder &&
+          other.separatorBuilder == separatorBuilder &&
+          other.semanticLabelBuilder == semanticLabelBuilder;
+
+  @override
+  int get hashCode => Object.hash(
+    Object.hashAll(labels),
+    style,
+    itemBuilder,
+    separatorBuilder,
+    semanticLabelBuilder,
+  );
+}

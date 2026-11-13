@@ -25,6 +25,26 @@ void main() {
     expect(taps, 1);
   });
 
+  testWidgets('WActionRow 不同高度子项垂直居中', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        const SizedBox(
+          width: 200,
+          child: WActionRow(
+            children: [
+              SizedBox(key: Key('short'), width: 40, height: 20),
+              SizedBox(key: Key('tall'), width: 40, height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final short = tester.getRect(find.byKey(const Key('short')));
+    final tall = tester.getRect(find.byKey(const Key('tall')));
+    expect(short.center.dy, closeTo(tall.center.dy, 0.5));
+  });
+
   testWidgets('WActionRow 不传 controller 时 onScroll 仍回调', (tester) async {
     final offsets = <double>[];
 

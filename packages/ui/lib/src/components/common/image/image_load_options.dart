@@ -69,4 +69,23 @@ class WImageLoadOptions {
     retryCount: retryCount,
     retryDelay: retryDelay,
   );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WImageLoadOptions &&
+          other.memCacheWidth == memCacheWidth &&
+          other.memCacheHeight == memCacheHeight &&
+          other.gaplessPlayback == gaplessPlayback &&
+          other.retryCount == retryCount &&
+          other.retryDelay == retryDelay;
+
+  @override
+  int get hashCode => Object.hash(
+    memCacheWidth,
+    memCacheHeight,
+    gaplessPlayback,
+    retryCount,
+    retryDelay,
+  );
 }
