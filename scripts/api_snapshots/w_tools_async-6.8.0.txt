@@ -1,0 +1,197 @@
+# w_tools_async 6.8.0
+WAsync	class
+WAsync._	()
+WAsyncActivity	class
+WAsyncActivity.begin	void ()
+WAsyncActivity.end	void ()
+WAsyncActivity.isLoading	bool
+WAsyncActivity.new	({this.onStart, this.onEnd})
+WAsyncActivity.onEnd	void Function()?
+WAsyncActivity.onStart	void Function()?
+WAsyncCancelled	class
+WAsyncCancelled.isCancelled	bool
+WAsyncCancelled.isFailure	bool
+WAsyncCancelled.isSuccess	bool
+WAsyncCancelled.new	([this.reason])
+WAsyncCancelled.reason	Object?
+WAsyncController	class
+WAsyncController._	(this._loader, { this.onError, bool Function(T value)? isEmpty, T Function(T value)? normalize, WAsyncState<T>? initial, })
+WAsyncController.dispose	void ()
+WAsyncController.load	Future<void> ()
+WAsyncController.new	(Future<T> Function() loader, { void Function(Object error)? onError, bool Function(T value)? isEmpty, WAsyncState<T>? initial, })
+WAsyncController.onError	void Function(Object error)?
+WAsyncController.reload	Future<void> ()
+WAsyncController.replaceData	void (T data)
+WAsyncController.retry	Future<void> ()
+WAsyncController.state	ValueListenable<WAsyncState<T>>
+WAsyncController.withToken	(WAsyncTokenLoader<T> loader, { void Function(Object error)? onError, bool Function(T value)? isEmpty, WAsyncState<T>? initial, })
+WAsyncErrorBanner	class
+WAsyncErrorBanner.build	Widget (BuildContext context)
+WAsyncErrorBanner.error	Object
+WAsyncErrorBanner.new	({ super.key, required this.error, this.onRetry, this.title = 'Something went wrong', this.retryText = 'Retry', })
+WAsyncErrorBanner.onRetry	VoidCallback?
+WAsyncErrorBanner.retryText	String
+WAsyncErrorBanner.title	String
+WAsyncErrorView	class
+WAsyncErrorView.build	Widget (BuildContext context)
+WAsyncErrorView.error	Object
+WAsyncErrorView.new	({ super.key, required this.error, this.onRetry, this.title = 'Something went wrong', this.retryText = 'Retry', })
+WAsyncErrorView.onRetry	VoidCallback?
+WAsyncErrorView.retryText	String
+WAsyncErrorView.title	String
+WAsyncErrorWidgetBuilder	typedef WAsyncErrorWidgetBuilder = Widget Function( BuildContext context, Object error, VoidCallback? onRetry, );
+WAsyncFailure	class
+WAsyncFailure.error	Object
+WAsyncFailure.isCancelled	bool
+WAsyncFailure.isFailure	bool
+WAsyncFailure.isProgrammingError	bool
+WAsyncFailure.isSuccess	bool
+WAsyncFailure.new	(this.error, this.stackTrace)
+WAsyncFailure.stackTrace	StackTrace
+WAsyncOptions	class
+WAsyncOptions.activity	WAsyncActivity?
+WAsyncOptions.new	({this.activity, this.onError})
+WAsyncOptions.onError	void Function(Object error)?
+WAsyncOptions.withoutActivity	WAsyncOptions ()
+WAsyncOptions.withoutOnError	WAsyncOptions ()
+WAsyncPage	class
+WAsyncPage.fromTotal	({ required List<T> items, required int? total, required int page, required int pageSize, })
+WAsyncPage.hasMore	bool?
+WAsyncPage.items	List<T>
+WAsyncPage.new	({required this.items, this.hasMore})
+WAsyncPageLoader	typedef WAsyncPageLoader<T> = Future<List<T>> Function(int page);
+WAsyncPagedController	class
+WAsyncPagedController._	(this._loader, { this.initialPage = 1, this.onError, WAsyncState<List<T>>? initial, })
+WAsyncPagedController.changes	Listenable
+WAsyncPagedController.dispose	void ()
+WAsyncPagedController.footerStatus	WAsyncPagedFooterStatus
+WAsyncPagedController.hasLoadedMoreThanOnePage	bool
+WAsyncPagedController.hasMore	bool
+WAsyncPagedController.hasMoreListenable	ValueListenable<bool>
+WAsyncPagedController.initialPage	int
+WAsyncPagedController.isLoadingMore	ValueListenable<bool>
+WAsyncPagedController.loadMore	Future<void> ()
+WAsyncPagedController.loadMoreError	ValueListenable<Object?>
+WAsyncPagedController.new	(WAsyncPageLoader<T> loader, { int initialPage = 1, void Function(Object error)? onError, WAsyncState<List<T>>? initial, })
+WAsyncPagedController.onError	void Function(Object error)?
+WAsyncPagedController.page	int
+WAsyncPagedController.refresh	Future<void> ()
+WAsyncPagedController.replaceData	void (List<T> data, {int? page, bool? hasMore})
+WAsyncPagedController.state	ValueListenable<WAsyncState<List<T>>>
+WAsyncPagedController.withPage	(Future<WAsyncPage<T>> Function(int page) loader, { int initialPage = 1, void Function(Object error)? onError, WAsyncState<List<T>>? initial, })
+WAsyncPagedController.withPageToken	(Future<WAsyncPage<T>> Function(int page, WCancelToken token) loader, { int initialPage = 1, void Function(Object error)? onError, WAsyncState<List<T>>? initial, })
+WAsyncPagedController.withToken	(WAsyncTokenPageLoader<T> loader, { int initialPage = 1, void Function(Object error)? onError, WAsyncState<List<T>>? initial, })
+WAsyncPagedFooterStatus	enum
+WAsyncPagedFooterStatus.failed	enum
+WAsyncPagedFooterStatus.hidden	enum
+WAsyncPagedFooterStatus.loadMore	enum
+WAsyncPagedFooterStatus.loading	enum
+WAsyncPagedFooterStatus.noMore	enum
+WAsyncResult	class
+WAsyncResult.isCancelled	bool
+WAsyncResult.isFailure	bool
+WAsyncResult.isSuccess	bool
+WAsyncResult.new	()
+WAsyncRetryErrorHandler	typedef WAsyncRetryErrorHandler = void Function(Object error, StackTrace stackTrace);
+WAsyncState	class
+WAsyncState.data	T?
+WAsyncState.empty	()
+WAsyncState.error	Object?
+WAsyncState.failed	(Object this.error, {T? previousData})
+WAsyncState.isEmpty	bool
+WAsyncState.isFailed	bool
+WAsyncState.isLoading	bool
+WAsyncState.isReady	bool
+WAsyncState.isRefreshing	bool
+WAsyncState.loading	({T? previousData})
+WAsyncState.previousData	data =
+WAsyncState.ready	(T this.data)
+WAsyncState.status	WAsyncStatus
+WAsyncState.toString	String ()
+WAsyncStateBuilder	class
+WAsyncStateBuilder.build	Widget (BuildContext context)
+WAsyncStateBuilder.builder	Widget Function(BuildContext context, WAsyncState<T> state)
+WAsyncStateBuilder.new	({ super.key, required this.state, required this.builder, })
+WAsyncStateBuilder.state	ValueListenable<WAsyncState<T>>
+WAsyncStateSliver	class
+WAsyncStateSliver.build	Widget (BuildContext context)
+WAsyncStateSliver.emptyBuilder	WidgetBuilder?
+WAsyncStateSliver.errorBannerBuilder	WAsyncErrorWidgetBuilder?
+WAsyncStateSliver.errorBuilder	WAsyncErrorWidgetBuilder?
+WAsyncStateSliver.hasScrollBody	bool
+WAsyncStateSliver.loadingBuilder	WidgetBuilder?
+WAsyncStateSliver.new	({ super.key, required this.state, required this.readySliverBuilder, this.onRetry, this.onRetryError, this.loadingBuilder, this.emptyBuilder, this.errorBuilder, this.errorBannerBuilder, this.refreshingSliverBuilder, this.hasScrollBody = false, })
+WAsyncStateSliver.onRetry	Future<void> Function()?
+WAsyncStateSliver.onRetryError	WAsyncRetryErrorHandler?
+WAsyncStateSliver.readySliverBuilder	Widget Function(BuildContext context, T data)
+WAsyncStateSliver.refreshingSliverBuilder	WidgetBuilder?
+WAsyncStateSliver.state	ValueListenable<WAsyncState<T>>
+WAsyncStatus	enum
+WAsyncStatus.empty	enum
+WAsyncStatus.failed	enum
+WAsyncStatus.loading	enum
+WAsyncStatus.ready	enum
+WAsyncStrings	class
+WAsyncStrings.empty	String
+WAsyncStrings.errorTitle	String
+WAsyncStrings.loading	String
+WAsyncStrings.new	({ this.empty = 'No data', this.errorTitle = 'Something went wrong', this.retry = 'Retry', this.loading = 'Loading', })
+WAsyncStrings.retry	String
+WAsyncSuccess	class
+WAsyncSuccess.isCancelled	bool
+WAsyncSuccess.isFailure	bool
+WAsyncSuccess.isSuccess	bool
+WAsyncSuccess.new	(this.value)
+WAsyncSuccess.value	T
+WAsyncTheme	class
+WAsyncTheme.emptyBuilder	WidgetBuilder?
+WAsyncTheme.errorBannerBuilder	WAsyncErrorWidgetBuilder?
+WAsyncTheme.errorBuilder	WAsyncErrorWidgetBuilder?
+WAsyncTheme.loadingBuilder	WidgetBuilder?
+WAsyncTheme.maybeOf	static WAsyncTheme? (BuildContext context)
+WAsyncTheme.new	({ super.key, this.loadingBuilder, this.emptyBuilder, this.errorBuilder, this.errorBannerBuilder, this.refreshingBuilder, this.sliverLoadingBuilder, this.sliverEmptyBuilder, this.sliverErrorBuilder, this.sliverErrorBannerBuilder, this.refreshingSliverBuilder, this.strings = const WAsyncStrings(), required super.child, })
+WAsyncTheme.refreshingBuilder	WidgetBuilder?
+WAsyncTheme.refreshingSliverBuilder	WidgetBuilder?
+WAsyncTheme.sliverEmptyBuilder	WidgetBuilder?
+WAsyncTheme.sliverErrorBannerBuilder	WAsyncErrorWidgetBuilder?
+WAsyncTheme.sliverErrorBuilder	WAsyncErrorWidgetBuilder?
+WAsyncTheme.sliverLoadingBuilder	WidgetBuilder?
+WAsyncTheme.strings	WAsyncStrings
+WAsyncTheme.updateShouldNotify	bool (WAsyncTheme oldWidget)
+WAsyncThemeViews	class
+WAsyncThemeViews._	(this._theme)
+WAsyncThemeViews.empty	Widget (BuildContext context, {WidgetBuilder? explicit})
+WAsyncThemeViews.error	Widget (BuildContext context, Object error, VoidCallback? retry, { WAsyncErrorWidgetBuilder? explicit, })
+WAsyncThemeViews.errorBanner	Widget (BuildContext context, Object error, VoidCallback? retry, { WAsyncErrorWidgetBuilder? explicit, })
+WAsyncThemeViews.loading	Widget (BuildContext context, {WidgetBuilder? explicit})
+WAsyncThemeViews.maybeRefreshingSliver	Widget? (BuildContext context, {WidgetBuilder? explicit})
+WAsyncThemeViews.of	static WAsyncThemeViews (BuildContext context)
+WAsyncThemeViews.refreshing	Widget (BuildContext context, {WidgetBuilder? explicit})
+WAsyncThemeViews.sliverEmpty	Widget (BuildContext context, {WidgetBuilder? explicit})
+WAsyncThemeViews.sliverError	Widget (BuildContext context, Object error, VoidCallback? retry, { WAsyncErrorWidgetBuilder? explicit, })
+WAsyncThemeViews.sliverErrorBanner	Widget (BuildContext context, Object error, VoidCallback? retry, { WAsyncErrorWidgetBuilder? explicit, })
+WAsyncThemeViews.sliverLoading	Widget (BuildContext context, {WidgetBuilder? explicit})
+WAsyncTokenLoader	typedef WAsyncTokenLoader<T> = Future<T> Function(WCancelToken token);
+WAsyncTokenPageLoader	typedef WAsyncTokenPageLoader<T> = Future<List<T>> Function(int page, WCancelToken token);
+WAsyncView	class
+WAsyncView.build	Widget (BuildContext context)
+WAsyncView.emptyBuilder	WidgetBuilder?
+WAsyncView.errorBannerBuilder	WAsyncErrorWidgetBuilder?
+WAsyncView.errorBuilder	WAsyncErrorWidgetBuilder?
+WAsyncView.loadingBuilder	WidgetBuilder?
+WAsyncView.new	({ super.key, required this.state, this.onRetry, this.onRetryError, required this.readyBuilder, this.loadingBuilder, this.emptyBuilder, this.errorBuilder, this.errorBannerBuilder, this.refreshingBuilder, })
+WAsyncView.onRetry	Future<void> Function()?
+WAsyncView.onRetryError	WAsyncRetryErrorHandler?
+WAsyncView.readyBuilder	Widget Function(BuildContext context, T data)
+WAsyncView.refreshingBuilder	WidgetBuilder?
+WAsyncView.state	ValueListenable<WAsyncState<T>>
+WCancelToken	class
+WCancelToken.cancel	void ([Object? reason])
+WCancelToken.cancelReason	Object?
+WCancelToken.clearListeners	void ()
+WCancelToken.isCancelled	bool
+WCancelToken.throwIfCancelled	void ()
+WCancellationException	class
+WCancellationException.new	(this.reason)
+WCancellationException.reason	Object?
+WCancellationException.toString	String ()
