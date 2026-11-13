@@ -257,29 +257,6 @@ void main() {
     expect(controller.currentIndex, 0);
   });
 
-  testWidgets('WNavBar 旧 onItemTap 仍可用（deprecated）', (tester) async {
-    final controller = WNavController(length: 2, vsync: tester);
-    addTearDown(controller.dispose);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WNavBar(
-            style: const WNavBarStyle(),
-            controller: controller,
-            // ignore: deprecated_member_use_from_same_package
-            onItemTap: (index) async => false,
-            itemBuilder: (_, index, selected) => Text('item-$index'),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('item-1'));
-    await tester.pumpAndSettle();
-    expect(controller.currentIndex, 0);
-  });
-
   testWidgets('WNavBar 默认避开底部安全区', (tester) async {
     final ctrl = WNavController(length: 2, vsync: tester);
     addTearDown(ctrl.dispose);

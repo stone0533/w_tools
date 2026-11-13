@@ -116,7 +116,6 @@
 <!-- catalog:4:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WClipRRect` | ui | 裁剪 | 不要用它替代图片圆角；图片圆角用 WImageStyle.borderRadius |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
 | `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |

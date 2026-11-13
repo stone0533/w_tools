@@ -1590,7 +1590,7 @@ const String agentsUi = r'''
   页面壳 `AppScaffold`（原生 `WScaffold` / `WAppBar` 只在特殊顶部栏或非标准安全区用）；
   `AppButtons` / `WButton` / `WPressable`；`WText(variant:)` / `WText.rich` / `WIconText`；`WImage.source`；`WListView` /
   `WKeepAliveWrapper` / `WNotificationListener` / `WGradientCircularProgressIndicator`；
-  `WNavBar` / `WTabBar` / `WStep` / `WBadge`（`WBadge.count` / `WBadge.dot`）/ `WClipRRect` / `WActionRow`；`WScreen` / `WAssets`；
+  `WNavBar` / `WTabBar` / `WStep` / `WBadge`（`WBadge.count` / `WBadge.dot`）/ `WActionRow`；`WScreen` / `WAssets`；
   `WSizeBox` / `WPadding` 已在 5.0 删除，用原生 `SizedBox` / `Padding`。细节：`explain WImage` / `explain WText` / `explain WIconText` / `{{projectUiDir}}/README.md`。
 ''';
 
@@ -1707,7 +1707,7 @@ const String agentsUiEn = r'''
   `WAppBar` only for custom app bars or non-standard safe areas); `AppButtons` / `WButton` /
   `WPressable`; `WText(variant:)` / `WText.rich` / `WIconText`; `WImage.source`; `WListView` / `WKeepAliveWrapper` /
   `WNotificationListener` / `WGradientCircularProgressIndicator`; `WNavBar` / `WTabBar` / `WStep` /
-  `WBadge` / `WClipRRect` / `WActionRow`; `WScreen` / `WAssets`;
+  `WBadge` / `WActionRow`; `WScreen` / `WAssets`;
   `WSizeBox` / `WPadding` were removed in 5.0 — use native `SizedBox` / `Padding`.
   Details: `explain WImage` / `explain WText` / `explain WIconText` / `{{projectUiDir}}/README.md`.
 ''';

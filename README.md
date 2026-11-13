@@ -188,7 +188,7 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 #### 通用组件
 - **Badge** (`WBadge`): 徽章组件
 - **Button** (`WButton`): 多种样式的按钮组件，支持透明度、缩放、震动等点击效果
-- **Clip** (`WClipRRect`): 圆角裁剪组件
+- **Clip**: 直接用 Flutter 原生 `ClipRRect`（`WClipRRect` 已在 11.0 删除）
 - **GradientCircularProgressIndicator** (`WGradientCircularProgressIndicator`): 渐变圆形进度指示器
 - **Image** (`WImage`): 增强的图片组件（网络图支持自动重试与 `WImageController` 手动重试）
 - **KeepAliveWrapper** (`WKeepAliveWrapper`): 保持组件状态的包装器

@@ -36,6 +36,10 @@ names = [
     r'WAppOptions\.darkTheme', r'WAppOptions\.themeMode', r'WAppOptions\.systemUiOverlayStyle',
     # ui 7.0 的改名：旧名不保留，必须登记，否则 README / example 里的旧推荐拦不住。
     r'WHexColor', r'WImageStyleX',
+    # ui 11.0：纯别名删除，圆角裁剪直接用 Flutter ClipRRect。
+    r'\bWClipRRect\b',
+    r'\bWNavBar\.onItemTap\b',
+    r'\bnotifyScrollPercentage\b',
     # ui 8.0：Config 过渡入口 / 按钮冗余类型 / Builder 收口。
     r'\bWNavBarConfig\b', r'\bWTabBarConfig\b', r'\bWBadgeConfig\b', r'\bWClipRRectConfig\b',
     r'\bWBadge[^\n|]*\btopRight\b',

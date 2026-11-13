@@ -149,8 +149,8 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
     const SizedBox(height: 4),
     const Text('count 超过 maxCount 显示 99+；dot 不显示数字'),
     const SizedBox(height: 24),
-    const DemoSectionTitle('WClipRRect 圆角裁剪'),
-    WClipRRect(
+    const DemoSectionTitle('ClipRRect 圆角裁剪'),
+    ClipRRect(
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: Container(
@@ -171,12 +171,12 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
       ),
     ),
     const SizedBox(height: 12),
-    const DemoSectionTitle('WClipRRect 非对称圆角 / 默认值'),
+    const DemoSectionTitle('ClipRRect 非对称圆角 / 默认值'),
     const Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
-        WClipRRect(
+        ClipRRect(
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             bottomRight: Radius.circular(24),
@@ -187,7 +187,7 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
             child: ColoredBox(color: Colors.indigo),
           ),
         ),
-        WClipRRect(
+        ClipRRect(
           child: SizedBox(
             width: 96,
             height: 64,

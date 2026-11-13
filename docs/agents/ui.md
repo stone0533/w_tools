@@ -260,6 +260,6 @@ bigText
 
 ```text
 角标 / 数量提示 → WBadge（数量用 WBadge.count，圆点用 WBadge.dot）
-圆角裁剪 → WClipRRect
+圆角裁剪 → Flutter 原生 ClipRRect（WClipRRect 已在 11.0 删除）
 普通 / 分隔线 / 网格 / 重叠列表 → WListView + WListViewSliver
 ```

@@ -11,7 +11,7 @@
 | **状态矩阵** | `lib/states_page.dart` | 加载成功 / 失败 / 空数据 / 加载中 / 主题默认错误占位 / file 不支持 / `precacheImage` 预热 |
 | **常用配方** | `lib/recipes_page.dart` | `WImageStyle.avatar / thumbnail / cover`、宽度铺满 + 高度上限（`ConstrainedBox(maxHeight)` + `width: double.infinity` + `fitWidth`）、asset prefix、`WImageSource.provider(MemoryImage)`、内置错误 + 自动重试 |
 | **按钮** | `lib/buttons_page.dart` | `WButton` 的主题四态、loading / disabled、3 档尺寸 + 自定义、纯图标、列表行、对话框、content / contentBuilder、WidgetStateProperty、键盘 / 语义、`onLongPress`、`loadingBuilder`、`WButtonMotion`；`WPressable` 的 enabled / onLongPress / pressedOpacity |
-| **组件** | `lib/components_page.dart` | WText、WIconText、WScaffold、WScreen.of、扩展、WBadge（topEnd / center / showBadge / 空内容）、WClipRRect（all / 非对称圆角 / 默认值）、渐变进度（含 totalAngle / strokeCapRound）、WStep、WListView（separated / grid）、WActionRow、WSelectableRow、WTabBar、WNavBar、通知百分比、WImageController、keepAlive |
+| **组件** | `lib/components_page.dart` | WText、WIconText、WScaffold、WScreen.of、扩展、WBadge（topEnd / center / showBadge / 空内容）、Flutter 原生 ClipRRect（all / 非对称圆角 / 默认值）、渐变进度（含 totalAngle / strokeCapRound）、WStep、WListView（separated / grid）、WActionRow、WSelectableRow、WTabBar、WNavBar、通知百分比、WImageController、keepAlive |
 | **更多** | `lib/more_page.dart` | 二级示例入口（见下） |
 | └ WScaffold / WAppBar / WScreen | `lib/scaffold_page.dart` | WScaffold 全参数（appBar 覆盖 / titleWidget / leading / actions / onBack / appBarStyle / appBarBottom / FAB / underlay / 状态栏 / 安全区）、WAppBar 全参数、WAppBarStyle（背景 / 渐变 / 高度 / 标题 / overlay）、WScreen.of / 安全区 / 旧 delegate 兼容、WAssets + `assetImagePath` |
 | └ WText / WTextStyles | `lib/text_page.dart` | 11 个 variant、price/number 表格数字、maxLines / overflow / softWrap / textAlign / textScaler / style / color / semanticsLabel、自定义 `WTextStyles` + `withWTextStyles` |
@@ -37,7 +37,7 @@
 | `WPressable` | buttons_page、extensions_page | enabled / long press / pressedOpacity / toPressable |
 | `WActionRow` / `WSelectableRow` | components_page | 横向操作行 / 单选高亮 |
 | `WBadge` | components_page | topEnd / center / showBadge / 空内容 |
-| `WClipRRect` | components_page | all / 非对称圆角 / 默认值 |
+| Flutter 原生 `ClipRRect` | components_page | all / 非对称圆角 / 默认值 |
 | `WScreen` | scaffold_page、components_page | of(context) / w·h·sp / 旧 delegate 兼容 |
 | `WAssets` | scaffold_page、recipes_page | imagePath / assetImagePath |
 | `WGradientCircularProgressIndicator` | components_page | value / totalAngle / strokeCapRound / backgroundColor |

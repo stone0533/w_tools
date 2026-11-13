@@ -22,17 +22,8 @@ class WNavBar extends StatefulWidget {
 
   /// 导航切换前回调；返回 `false` 阻止切换。
   ///
-  /// `FutureOr<bool>` 同时接受同步 / 异步结果。与 [onItemTap] 同时提供时，
-  /// 本回调优先。
+  /// `FutureOr<bool>` 同时接受同步 / 异步结果。
   final FutureOr<bool> Function(int)? onBeforeTap;
-
-  /// 导航项点击回调（旧入口，已弃用）。
-  ///
-  /// 返回 `false` 可阻止切换。新代码用 [onBeforeTap]。
-  ///
-  /// remove-in: 11.0.0
-  @Deprecated('Use onBeforeTap instead')
-  final Future<bool?>? Function(int)? onItemTap;
 
   /// 导航栏控制器
   final WNavController controller;
@@ -48,8 +39,6 @@ class WNavBar extends StatefulWidget {
     this.style,
     required this.itemBuilder,
     this.onBeforeTap,
-    // remove-in: 11.0.0
-    @Deprecated('Use onBeforeTap instead') this.onItemTap,
     required this.controller,
     this.safeArea = true,
   });
@@ -99,9 +88,6 @@ class _WNavBarState extends State<WNavBar> {
     if (beforeTap != null) {
       final allowed = await beforeTap(index);
       if (!mounted || token != _tapToken || !allowed) return;
-    } else {
-      final result = await widget.onItemTap?.call(index);
-      if (!mounted || token != _tapToken || result == false) return;
     }
     await _controller.animateTo(index);
   }

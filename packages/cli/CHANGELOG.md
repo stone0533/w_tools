@@ -1,3 +1,9 @@
+## 1.20.15
+
+### Changed
+- catalog / entrypoints / AGENTS 模板移除 `WClipRRect`（ui 11.0 删除，改用 Flutter `ClipRRect`）；
+  同步 `w_tools_ui` 约束 `^11.0.0`。
+
 ## 1.20.14
 
 ### Changed

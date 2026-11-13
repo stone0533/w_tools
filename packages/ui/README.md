@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^10.5.0
+  w_tools_ui: ^11.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -307,7 +307,8 @@ WBadge.count(count: 120, maxCount: 99, child: const Icon(Icons.notifications));
 WBadge.dot(child: const Icon(Icons.notifications));
 WBadge(offset: const Offset(4, -4), badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: const Icon(Icons.notifications));
-WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
+WClipRRect 已删除；圆角裁剪直接用 Flutter 原生 `ClipRRect`：
+ClipRRect(borderRadius: BorderRadius.circular(12), child: image);
 WActionRow(children: [WButton(...), WButton(...)]);
 ```
 
@@ -348,7 +349,7 @@ class _NavDemoState extends State<NavDemo> {
 
 `WNavController` 需要页面 State 提供 `vsync`，并由调用方 `dispose`。
 `WNavBar` 默认 `safeArea: true`，会避开底部 home indicator；已在外层包 `SafeArea` 时传
-`safeArea: false`。切换前拦截用 `onBeforeTap`（`FutureOr<bool>`）；旧 `onItemTap` 已弃用。
+`safeArea: false`。切换前拦截用 `onBeforeTap`（`FutureOr<bool>`）。
 
 顶部 tab：
 
@@ -439,7 +440,7 @@ WScreenScope(
 | 文本 / 图片 | `WText` / `WImage` |
 | 按钮 / 点击 | `WButton` / `WPressable` |
 | 徽标 / 横向操作 | `WBadge` / `WActionRow` / `WSelectableRow` |
-| 裁剪 | `WClipRRect` |
+| 裁剪 | Flutter 原生 `ClipRRect`（`WClipRRect` 已删除） |
 | 加载指示 | `WGradientCircularProgressIndicator` |
 | 列表保活 | `WKeepAliveWrapper` |
 | 滚动通知 | `WNotificationListener` |

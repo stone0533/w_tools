@@ -218,8 +218,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 底部导航：`WNavBar` + `WNavController`；`WNavController` 需要页面 State 提供 `vsync`，
 并由调用方 `dispose`。配置用 `WNavBarStyle`。`WNavBar` 默认 `safeArea: true`，会避开
 底部 home indicator；已在外层包 `SafeArea` 时传 `safeArea: false`。
-切换前拦截用 `onBeforeTap`（`FutureOr<bool>`，返回 false 阻止）；旧 `onItemTap` 已弃用，
-`remove-in: 11.0.0`。
+切换前拦截用 `onBeforeTap`（`FutureOr<bool>`，返回 false 阻止）。
 
 ### WTabBar
 
@@ -232,9 +231,9 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 横向操作 / 可选行；按钮组用 `WActionRow`，需要选中态用 `WSelectableRow`。
 
-### WClipRRect
+### 圆角裁剪
 
-圆角裁剪；直接传 `borderRadius`，不要再手写一层 `ClipRRect`。
+直接用 Flutter 原生 `ClipRRect`。`WClipRRect` 已在 11.0 删除，它只是原生组件的纯别名。
 
 ### WGradientCircularProgressIndicator
 

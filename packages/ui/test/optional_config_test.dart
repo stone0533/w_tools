@@ -4,15 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
-  testWidgets('WClipRRect 不传 borderRadius 也能渲染', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: WClipRRect(child: SizedBox(width: 10, height: 10)),
-      ),
-    );
-    expect(find.byType(WClipRRect), findsOneWidget);
-  });
-
   testWidgets('WBadge 只传 badgeContent 时显示', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

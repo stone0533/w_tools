@@ -31,16 +31,6 @@ class WNotificationListener<T extends Notification> extends StatelessWidget {
 }
 
 /// 计算并回调顶层滚动百分比。
-///
-/// remove-in: 11.0.0
-@Deprecated('内部实现细节；请直接读 ScrollNotification.metrics，11.0.0 移除')
-void notifyScrollPercentage(
-  Notification notification,
-  void Function(double percentage)? callback,
-) {
-  _notifyScrollPercentage(notification, callback);
-}
-
 void _notifyScrollPercentage(
   Notification notification,
   void Function(double percentage)? callback,

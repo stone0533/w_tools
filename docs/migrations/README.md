@@ -30,6 +30,7 @@
 - [8.0](ui-8.0.md)：删除 Config 过渡入口 / `WButtonMetrics` / Builder；角标自有类型；按钮 motion / semantics 参数化
 - [9.0](ui-9.0.md)：`copyWith(null)` 改为保留；`without*` 清空；删除 `WImageErrorKind.empty`
 - [10.0](ui-10.0.md)：删除全局 `WScreen.w/h/sp` / delegate；删除 `WNumExtension.borderSide`
+- [11.0](ui-11.0.md)：删除 `WClipRRect`（直接用 Flutter `ClipRRect`）
 
 ## form
 

@@ -3,6 +3,6 @@
   `WAppBar` only for custom app bars or non-standard safe areas); `AppButtons` / `WButton` /
   `WPressable`; `WText(variant:)` / `WText.rich` / `WIconText`; `WImage.source`; `WListView` / `WKeepAliveWrapper` /
   `WNotificationListener` / `WGradientCircularProgressIndicator`; `WNavBar` / `WTabBar` / `WStep` /
-  `WBadge` / `WClipRRect` / `WActionRow`; `WScreen` / `WAssets`;
+  `WBadge` / `WActionRow`; `WScreen` / `WAssets`;
   `WSizeBox` / `WPadding` were removed in 5.0 — use native `SizedBox` / `Padding`.
   Details: `explain WImage` / `explain WText` / `explain WIconText` / `{{projectUiDir}}/README.md`.

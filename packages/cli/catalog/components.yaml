@@ -92,7 +92,6 @@ components:
       }
     pitfalls:
       - 'onBeforeTap 返回 false 可以阻止切换；同步 / 异步都支持'
-      - 'onItemTap 已 deprecated，新代码用 onBeforeTap；remove-in: 11.0.0'
       - '默认 safeArea: true，会避开 home indicator；放进已包 SafeArea 的容器时传 safeArea: false'
     related: ['`WNavBarStyle`', '`WTabBar`']
     teach: false
@@ -486,20 +485,6 @@ components:
       WBadge(position: const WBadgePosition.topEnd(top: 2, end: 2), child: ...);
       WBadge(position: const WBadgePosition.center(), child: ...);
     related: ['`WBadge`', '`WBadgeStyle`']
-    teach: false
-  - name: '`WClipRRect`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wcliprrect'
-    section: '4. 布局与容器'
-    useFor: '裁剪'
-    dontUseFor: '不要用它替代图片圆角；图片圆角用 WImageStyle.borderRadius'
-    usage: |
-      WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
-      WClipRRect(
-        borderRadius: const BorderRadius.only(topLeft: Radius.circular(24)),
-        child: image,
-      )
-    related: ['`WImageStyle`']
     teach: false
   - name: '`WScreen`'
     package: 'w_tools_ui'

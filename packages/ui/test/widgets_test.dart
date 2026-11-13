@@ -146,40 +146,6 @@ void main() {
     });
   });
 
-  group('WClipRRect Widget', () {
-    testWidgets('渲染并应用 borderRadius', (tester) async {
-      const radius = BorderRadius.all(Radius.circular(12));
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: WClipRRect(
-              borderRadius: radius,
-              child: SizedBox(width: 10, height: 10),
-            ),
-          ),
-        ),
-      );
-      final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
-      expect(clip.borderRadius, radius);
-      expect(clip.clipBehavior, Clip.antiAlias);
-    });
-
-    testWidgets('支持 clipBehavior', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: WClipRRect(
-              borderRadius: BorderRadius.zero,
-              clipBehavior: Clip.hardEdge,
-              child: SizedBox(width: 10, height: 10),
-            ),
-          ),
-        ),
-      );
-      expect(tester.widget<ClipRRect>(find.byType(ClipRRect)).clipBehavior, Clip.hardEdge);
-    });
-  });
-
   group('WBadge Widget', () {
     testWidgets('渲染 badgeContent 与 child', (tester) async {
       await tester.pumpWidget(

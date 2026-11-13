@@ -1,3 +1,17 @@
+## 11.0.0
+
+### Breaking
+- `WButton.new` / `WBadge.new` / `WScaffold.new` / `WNavBar.new` / `WAppBarStyle.new` /
+  `WAppBarStyle.copyWith` / `WTabBarStyle.new` / `WTabBarStyle.copyWith`：10.3–10.5
+  引入的公开参数随 11.0.0 一起发布。直接调用源码兼容；把构造器 / `copyWith`
+  作为函数值（tear-off）并显式声明旧签名时需要更新。
+
+### Removed
+- `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。
+- `WNavBar.onItemTap`：用 `onBeforeTap`（`FutureOr<bool>`）。
+- `notifyScrollPercentage`：内部实现细节，直接读 `ScrollNotification.metrics`。
+  迁移见 `docs/migrations/ui-11.0.md`。
+
 ## 10.5.0
 
 ### Breaking
