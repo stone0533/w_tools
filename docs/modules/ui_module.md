@@ -239,8 +239,9 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ### WGradientCircularProgressIndicator
 
-渐变圆形进度指示器；颜色、半径、进度由构造参数控制。未传 `backgroundColor` 时
-取 `ColorScheme.surfaceContainerHighest`，不写死浅灰。
+渐变圆形进度指示器；颜色、半径、进度由构造参数控制。确定进度传 `value`；
+不知道总进度时传 `indeterminate: true`，组件会旋转一段固定弧长且不暴露百分比语义。
+未传 `backgroundColor` 时取 `ColorScheme.surfaceContainerHighest`，不写死浅灰。
 
 ### WKeepAliveWrapper
 

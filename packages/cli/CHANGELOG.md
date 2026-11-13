@@ -1,3 +1,8 @@
+## 1.20.23
+
+### Added
+- catalog 补 `WGradientCircularProgressIndicator.indeterminate` 用法与 pitfalls。
+
 ## 1.20.22
 
 ### Added

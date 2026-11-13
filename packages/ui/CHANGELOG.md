@@ -3,6 +3,8 @@
 ### Added
 - `WNavDestination` + `WNavBar.destinations`：底部导航的默认图标 / 文字项；
   与 `itemBuilder` 二选一。
+- `WGradientCircularProgressIndicator.indeterminate`：不确定进度（旋转弧段），
+  此时忽略 `value` 且语义不暴露百分比。
 
 ### Breaking
 - `WButton.new` / `WBadge.new` / `WScaffold.new` / `WNavBar.new` / `WAppBarStyle.new` /
@@ -23,6 +25,8 @@
   构造器签名变化；改用对应的 `*Builder`。
 - `WNavBar.itemBuilder`：类型改为可空，与新增的 `WNavBar.destinations` 二选一；
   继续传 `itemBuilder` 的调用点不变，读取该字段的代码需要处理 null。
+- `WGradientCircularProgressIndicator.build`：组件改为 `StatefulWidget`，
+  build 移到 State；不应直接调用组件的 build。
 
 ### Removed
 - `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。

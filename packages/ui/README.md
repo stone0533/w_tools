@@ -316,6 +316,7 @@ WActionRow(children: [WButton(...), WButton(...)]);
 
 ```dart
 WGradientCircularProgressIndicator(radius: 24, value: 0.6, colors: const [Colors.indigo, Colors.lightBlue]);
+WGradientCircularProgressIndicator(radius: 24, indeterminate: true, colors: const [Colors.indigo, Colors.lightBlue]);
 WKeepAliveWrapper(child: item);
 WNotificationListener<ScrollNotification>(
   onNotificationPercentage: (p) { ... },

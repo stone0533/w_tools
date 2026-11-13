@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// 带渐变效果的圆形进度指示器
-class WGradientCircularProgressIndicator extends StatelessWidget {
+class WGradientCircularProgressIndicator extends StatefulWidget {
   /// 构造函数
   ///
   /// - [key]：组件键
@@ -15,7 +15,8 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
   /// - [strokeCapRound]：两端是否为圆角
   /// - [backgroundColor]：进度条背景色
   /// - [totalAngle]：进度条的总弧度，2*PI为整圆，小于2*PI则不是整圆
-  /// - [value]：当前进度，取值范围 [0.0-1.0]
+  /// - [value]：当前进度，取值范围 [0.0-1.0]；[indeterminate] 为 true 时忽略
+  /// - [indeterminate]：不确定进度（旋转的弧段），用于不知道总进度的加载
   const WGradientCircularProgressIndicator({
     super.key,
     this.strokeWidth = 2.0,
@@ -26,6 +27,7 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
     this.backgroundColor,
     this.totalAngle = 2 * pi,
     this.value = 0,
+    this.indeterminate = false,
     this.semanticsLabel,
   }) : assert(radius > 0, 'radius 必须大于 0'),
        assert(strokeWidth > 0, 'strokeWidth 必须大于 0'),
@@ -40,8 +42,11 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
   /// 两端是否为圆角
   final bool strokeCapRound;
 
-  /// 当前进度，取值范围 [0.0-1.0]
+  /// 当前进度，取值范围 [0.0-1.0]；[indeterminate] 为 true 时忽略
   final double value;
+
+  /// 是否显示不确定进度；true 时旋转一段固定弧长，语义 value 为 null
+  final bool indeterminate;
 
   /// 进度条背景色；为 null 时取 `ColorScheme.surfaceContainerHighest`。
   final Color? backgroundColor;
@@ -59,34 +64,84 @@ class WGradientCircularProgressIndicator extends StatelessWidget {
   final List<double>? stops;
 
   @override
+  State<WGradientCircularProgressIndicator> createState() =>
+      _WGradientCircularProgressIndicatorState();
+}
+
+class _WGradientCircularProgressIndicatorState extends State<WGradientCircularProgressIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    if (widget.indeterminate) _controller.repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant WGradientCircularProgressIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.indeterminate != oldWidget.indeterminate) {
+      if (widget.indeterminate) {
+        _controller.repeat();
+      } else {
+        _controller
+          ..stop()
+          ..value = 0;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    assert(colors.isNotEmpty, 'colors 不能为空');
-    assert(stops == null || stops!.length == colors.length, 'stops 长度必须与 colors 一致');
-    assert(value.isFinite, 'value 必须是有限数');
+    assert(widget.colors.isNotEmpty, 'colors 不能为空');
+    assert(
+      widget.stops == null || widget.stops!.length == widget.colors.length,
+      'stops 长度必须与 colors 一致',
+    );
+    assert(widget.value.isFinite, 'value 必须是有限数');
 
     double offset = .0;
     // 如果两端为圆角，则需要对起始位置进行调整，否则圆角部分会偏离起始位置
-    if (strokeCapRound) {
-      offset = asin((strokeWidth / (radius * 2 - strokeWidth)).clamp(-1.0, 1.0));
+    if (widget.strokeCapRound) {
+      offset = asin(
+        (widget.strokeWidth / (widget.radius * 2 - widget.strokeWidth)).clamp(-1.0, 1.0),
+      );
     }
-    final progress = value.isFinite ? value.clamp(0.0, 1.0) : 0.0;
-    final background = backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
+    final progress = widget.value.isFinite ? widget.value.clamp(0.0, 1.0) : 0.0;
+    final background =
+        widget.backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
     return Semantics(
-      label: semanticsLabel,
-      value: '${(progress * 100).round()}%',
-      child: Transform.rotate(
-        angle: -pi / 2.0 - offset,
+      label: widget.semanticsLabel,
+      value: widget.indeterminate ? null : '${(progress * 100).round()}%',
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final rotation =
+              -pi / 2.0 - offset + (widget.indeterminate ? _controller.value * 2 * pi : 0.0);
+          return Transform.rotate(angle: rotation, child: child);
+        },
         child: CustomPaint(
-          size: Size.fromRadius(radius),
+          size: Size.fromRadius(widget.radius),
           painter: _WGradientCircularProgressPainter(
-            strokeWidth: strokeWidth,
-            strokeCapRound: strokeCapRound,
+            strokeWidth: widget.strokeWidth,
+            strokeCapRound: widget.strokeCapRound,
             backgroundColor: background,
-            value: value,
-            total: totalAngle,
-            radius: radius,
-            colors: colors,
-            stops: stops,
+            value: widget.indeterminate ? 0.25 : progress,
+            total: widget.totalAngle,
+            radius: widget.radius,
+            colors: widget.colors,
+            stops: widget.stops,
           ),
         ),
       ),

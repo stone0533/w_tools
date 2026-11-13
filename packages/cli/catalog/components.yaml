@@ -1079,16 +1079,22 @@ components:
     package: 'w_tools_ui'
     docsAnchor: 'wgradientcircularprogressindicator'
     section: '7. 状态与反馈'
-    useFor: '加载指示'
-    dontUseFor: '不要用于不确定进度；需要无障碍 value 语义时传 value'
+    useFor: '确定 / 不确定进度的渐变圆环'
+    dontUseFor: '不确定进度用 `indeterminate: true`，不要传假 value 假装旋转'
     usage: |
       WGradientCircularProgressIndicator(
         radius: 24,
         value: 0.6,
         colors: const [Colors.indigo, Colors.lightBlue],
       )
+      WGradientCircularProgressIndicator(
+        radius: 24,
+        indeterminate: true,
+        colors: const [Colors.indigo, Colors.lightBlue],
+      )
     pitfalls:
       - 'radius 与 colors 必填；value 是 0.0~1.0 的确定进度'
+      - 'indeterminate: true 时忽略 value，语义不暴露百分比；用于不知道总进度的加载'
     related: ['`WListView`']
     teach: false
   - name: '`WListView` / `WListViewSliver`'

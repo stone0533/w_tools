@@ -248,6 +248,47 @@ void main() {
     expect(find.byType(WGradientCircularProgressIndicator), findsOneWidget);
   });
 
+  testWidgets('WGradientCircularProgressIndicator — indeterminate 旋转且不暴露百分比', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WGradientCircularProgressIndicator(
+          radius: 40,
+          colors: [Colors.red, Colors.blue],
+          indeterminate: true,
+          semanticsLabel: '加载中',
+        ),
+      ),
+    );
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == '加载中' &&
+            widget.properties.value == null,
+      ),
+      findsOneWidget,
+    );
+
+    Matrix4 matrix() => tester
+        .widget<Transform>(
+          find
+              .descendant(
+                of: find.byType(WGradientCircularProgressIndicator),
+                matching: find.byType(Transform),
+              )
+              .first,
+        )
+        .transform;
+
+    final first = matrix().storage;
+    await tester.pump(const Duration(milliseconds: 300));
+    final second = matrix().storage;
+    expect(second, isNot(equals(first)));
+
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('WGradientCircularProgressIndicator — 语义进度会 clamp', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
