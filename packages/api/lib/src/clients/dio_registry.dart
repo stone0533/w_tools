@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../api_config.dart';
+import '../interceptors/retry.dart';
 import '../interceptors/token.dart';
 
 /// Dio 实例注册表：按 `baseUrl` 缓存并复用 [Dio] 实例
@@ -56,6 +57,7 @@ class DioRegistry {
       for (final element in _interceptors) {
         _dio.interceptors.add(element);
         if (element is WTokenInterceptor) element.bindDio(_dio);
+        if (element is WRetryInterceptor) element.bindDio(_dio);
       }
     } catch (_) {
       // 绑定失败时不要留下一个半初始化的 Dio。

@@ -1,0 +1,5 @@
+# 本地开发专用：用 workspace 的 w_tools_core（不随包发布）。
+# 不随包发布（publish_package.sh 排除；pub 只自动排除包根的 pubspec_overrides.yaml）。
+dependency_overrides:
+  w_tools_core:
+    path: ../../core

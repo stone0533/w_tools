@@ -26,10 +26,14 @@ api/
     ├── api.dart                    # 内部导出
     ├── api_config.dart             # WApiConfig 全局配置
     ├── common.dart                 # IApiPath / ApiClientId
+    ├── client/
+    │   ├── api_client.dart         # WApiClient / WApiBody / WPage / WApiEnvelopeParser
+    │   └── api_exception.dart      # WApiException / WApiErrorKind
     ├── clients/
     │   └── dio_registry.dart       # DioRegistry Dio 实例注册表
     ├── interceptors/
     │   ├── log.dart                # WLogInterceptor 日志拦截器
+    │   ├── retry.dart              # WRetryInterceptor 可选重试
     │   └── token.dart              # WTokenInterceptor 令牌拦截器
     └── repositories/
         └── base_repository.dart    # BaseRepository 数据仓库基类
@@ -238,6 +242,137 @@ class UserRepository extends BaseRepository<UserLocalDataSource, UserRemoteDataS
 
 ---
 
+## 7. WApiClient - 调用层
+
+### 功能说明
+
+在 `DioRegistry` 之上收敛 HTTP 方法、参数编码、JSON 解码与错误分类。只负责「怎么调」，
+不负责 token（`WTokenInterceptor`）、日志、缓存和业务编排。
+
+```dart
+final client = WApiClient(registry.dio);
+
+final user = await client.get(
+  '/users/{id}',
+  pathParameters: {'id': '42'},
+  query: {'include': 'profile'},
+  decode: (json) => User.fromJson(json as Map<String, dynamic>),
+);
+```
+
+### 方法与参数
+
+| 成员 | 说明 |
+|------|------|
+| `get` / `post` / `put` / `patch` / `delete` | 五个 HTTP 方法 |
+| `pathParameters` | 替换 `{id}` 模板，并对值做 `Uri.encodeComponent` |
+| `query` | 值为 `null` 的键会被丢弃 |
+| `body` | 原始值（Map / String / FormData…）或 `WApiBody` |
+| `decode` | `T Function(Object? json)`；不传则返回原始 JSON |
+| `WApiBody` | `json` / `form` / `multipart` / `bytes` 四种编码 |
+| `page` | GET 分页，返回 `WPage<T>`（`items` / `total` / `hasMore`） |
+| `upload` | `multipart/form-data` 上传，支持进度与取消 |
+| `download` | 下载并返回 `Uint8List` |
+| `WApiDecoders` | 常用 decoder：`none` / `listOf` / `jsonMap` / `nullable` |
+| `WApiException` | 统一错误分类；`kind` 供 UI 映射文案 |
+
+### 业务信封（可选）
+
+很多后端返回 `{code, message, data}`；默认不假设信封，传 `WApiEnvelopeParser` 才启用：
+
+```dart
+final client = WApiClient(
+  registry.dio,
+  envelope: WApiEnvelopeParser(
+    readCode: (json) => (json as Map)['status'],
+    readData: (json) => (json as Map)['result'],
+    readMessage: (json) => (json as Map)['msg'] as String?,
+    isSuccess: (code) => code == 'ok',
+  ),
+);
+```
+
+- 业务码失败 → `WApiException(kind: WApiErrorKind.business)`，带
+  `businessCode` / `payload`；
+- 成功时 `decode` 拿到的是 `data`，不是整个信封；
+- HTTP 401 仍由 `WTokenInterceptor` 处理；业务码里的「登录失效」需要业务自己处理。
+
+### 分页
+
+```dart
+final page = await client.page(
+  '/users',
+  query: const WPageQuery(page: 1, pageSize: 20),
+  itemDecode: (json) => User.fromJson(json as Map<String, dynamic>),
+);
+```
+
+`WPage.hasMore`：有 `total` 时按 `page * pageSize < total` 计算，否则按本页是否满页。
+默认只接受 JSON 数组；Map 结构用 `readItems` / `readTotal` 显式读取。
+页面状态仍交给 `WAsyncPagedController`，`WPage` 只做传输层结果。
+
+### 上传 / 下载
+
+```dart
+await client.upload<void>(
+  '/avatars',
+  files: {'avatar': MultipartFile.fromBytes(bytes)},
+  onProgress: (sent, total) {},
+  decode: WApiDecoders.none,
+);
+
+final image = await client.download(
+  '/avatars/me',
+  onProgress: (received, total) {},
+);
+```
+
+Web 上不要用 `MultipartFile.fromFile`，用 `fromBytes`；下载得到 `Uint8List`，
+是否写入文件由业务层决定。
+
+### 注意
+
+- Dart / Flutter 没有反射，`get<User>()` 不会自动反序列化；必须显式 `decode`
+  （或用 json_serializable / freezed 生成）。
+- `decode` 抛出的异常会包装成 `WApiException(kind: WApiErrorKind.decode)`，不会漏成 `TypeError`。
+- 用户传入的 `content-type` 优先于 `WApiBody` 的默认值。
+- 重试见第 8 节（可选）；HTTP 缓存 / 离线不在当前范围；401 刷新仍由 `WTokenInterceptor` 负责。
+
+---
+
+## 8. WRetryInterceptor - 可选重试
+
+默认不启用，显式加入 `DioRegistry` 才生效：
+
+```dart
+final registry = DioRegistry.forBaseUrl(
+  'https://api.example.com',
+  interceptors: [
+    WTokenInterceptor(...),
+    WRetryInterceptor(maxRetries: 2),
+  ],
+);
+```
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `maxRetries` | 2 | 重试次数（不含首次请求） |
+| `baseDelay` | 300ms | 指数退避基数 |
+| `maxDelay` | 5s | 单次等待上限 |
+| `retryOnMethods` | GET / HEAD / PUT / DELETE / OPTIONS | 幂等方法 |
+| `retryOnStatusCodes` | 408 / 429 / 500 / 502 / 503 / 504 | 可重试状态码 |
+| `retryOnConnectionErrors` | true | 连接 / 超时错误 |
+| `jitter` | true | 50%–100% 抖动，避免同时重试 |
+| `onRetry` | null | 每次重试前回调 |
+| `shouldRetry` | null | 自定义是否重试 |
+
+- 不重试 401（交给 `WTokenInterceptor`）、其他 4xx 和已取消的请求；
+- `POST` / `PATCH` 永不重试（避免重复提交）；
+- 裸 `Dio` 需构造传 `dio:` 或手动 `bindDio`；`DioRegistry` 会自动绑定；
+- 缓存 / 离线不在本包范围，使用 `dio_cache_interceptor` 等外部方案。
+
+---
+
 ## 完整配置示例
 
 ```dart
@@ -302,8 +437,8 @@ void setupApi() {
 ## 生命周期与全局状态（6.0.0 规划）
 
 - `DioRegistry` 是进程级静态缓存，按精确 `baseUrl` 缓存；可用 `DioRegistry.maxCachedInstances` 开启 LRU（`null` 不限制，默认），或用 `DioRegistry.cacheTtl` 设置惰性过期，或 `dispose(baseUrl)` / `clearCache()` 手动清理。6.0.0 再评估是否提供实例化 registry。
-- `WApiConfig` 是全局可变静态配置；`baseOptions` 在 registry 创建时复制，之后修改只影响新实例。测试 / 示例可用 `WApiConfig.reset()` 清理。6.0.0 再评估不可变 / 实例化配置。
-- `BaseRepository` / `BaseLocalDataSource` / `BaseRemoteDataSource` 只提供数据源容器；6.0.0 再评估是否保留、合并或收紧泛型约束。
+- `WApiConfig` 是全局可变静态配置；`baseOptions` 在 registry 创建时复制，之后修改只影响新实例。测试 / 示例可用 `WApiConfig.reset()` 清理。5.x 不做 breaking；6.0.0 再评估不可变 / 实例化配置。
+- `BaseRepository` / `BaseLocalDataSource` / `BaseRemoteDataSource` 只提供数据源容器；5.3 起确认保持该定位，不升级为 CRUD 基类；6.0.0 不改这一点。
 
 ---
 

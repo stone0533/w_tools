@@ -1,5 +1,36 @@
 # Changelog
 
+## 5.3.0
+
+### Added
+- `WApiClient`：统一 GET / POST / PUT / PATCH / DELETE，支持 `pathParameters`、`query`、
+  `WApiBody`、显式 `decode`、`CancelToken` 与自定义 header。
+- `WApiBody`：`json` / `form` / `multipart` / `bytes` 四种请求体编码。
+- `WApiException` / `WApiErrorKind`：把 `DioException` 与 decoder 异常统一成可分类的业务错误
+  （timeout / network / unauthorized / forbidden / notFound / client / server / canceled / decode / unknown / business）。
+- `WApiDecoder<T>`：显式 JSON → 模型映射契约。
+- `WApiEnvelopeParser`：可选业务信封（`code/message/data`）；业务码失败抛
+  `WApiException(kind: WApiErrorKind.business)`，带 `businessCode` / `payload`。
+- `WApiClient.page` / `WPage` / `WPageQuery`：分页结果、`total` 与 `hasMore`。
+- `WApiClient.upload` / `download`：multipart 上传与字节下载，支持进度与取消。
+- `WApiDecoders`：`none` / `listOf` / `jsonMap` / `nullable`。
+- `WApiErrorKind.business` / `WApiException.businessCode`。
+- `WRetryInterceptor`：可选的幂等请求重试（GET / HEAD / PUT / DELETE / OPTIONS），
+  默认只重试网络错误与 408 / 429 / 5xx，支持指数退避 + 抖动、`onRetry` / `shouldRetry`。
+- `DioRegistry` 自动绑定 `WRetryInterceptor`。
+- 重导出 `FormData` / `MultipartFile` / `ListFormat` / `ProgressCallback` / `HttpClientAdapter` /
+  `ResponseBody`，消费方做上传或写 MockAdapter 时不必再直接依赖 `dio`。
+
+### Changed
+- `WApiClient` 统一在 `_decode` 中处理信封与 decoder 异常。
+
+### Notes
+- `decode` 必须显式传；Dart / Flutter 没有反射，`get<User>()` 不会自动反序列化。
+- 依赖 `dio: ^5.10.0`（使用 `DioExceptionType.transformTimeout` 做超时分类）。
+- 重试默认关闭；401 仍由 `WTokenInterceptor` 处理，POST / PATCH 永不重试。
+- HTTP 缓存 / 离线不在本包范围，使用 `dio_cache_interceptor` 等外部方案。
+- `WApiErrorKind` 是本次新增的类型，不存在对已发布 5.2.0 的穷尽 switch 破坏。
+
 ## 5.2.0
 
 ### Added

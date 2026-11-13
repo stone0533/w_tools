@@ -1,5 +1,5 @@
 name: w_tools_api_example
-description: "w_tools_api 真实场景示例：DioRegistry、日志脱敏、Token 401 刷新与重试。"
+description: "w_tools_api 真实场景示例：DioRegistry、WApiClient、日志脱敏、Token 401 刷新与重试。"
 publish_to: none
 version: 1.0.0
 
@@ -12,7 +12,8 @@ dependencies:
     sdk: flutter
   w_tools_api:
     path: ../
-  dio: ^5.9.2
+  # 发布物里 example 必须能从 pub.dev 解析；本地开发用 pubspec_overrides.yaml 指到 workspace。
+  w_tools_core: ^3.1.2
 
 dev_dependencies:
   flutter_test:
