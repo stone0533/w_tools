@@ -8,7 +8,7 @@
 ## 特性
 
 - **多客户端管理**：`DioRegistry` 按 `baseUrl` 缓存并复用 Dio 实例
-- **调用层**：`WApiClient` 收敛 GET / POST / PUT / PATCH / DELETE、path / query / body 与显式 JSON 解码
+- **调用层**：`WApiClient` 收敛 GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS、path / query / body 与显式 JSON 解码
 - **请求体**：`WApiBody` 支持 json / form / multipart / bytes
 - **统一错误**：`WApiException` 按 `kind` 分类，不写死用户文案
 - **拦截器**：`WLogInterceptor` 日志（默认脱敏 Authorization / Cookie 等敏感头与 password / token 等敏感 body）、`WTokenInterceptor` Token 注入与 401 刷新
@@ -22,7 +22,7 @@
 
 ```yaml
 dependencies:
-  w_tools_api: ^5.3.0
+  w_tools_api: ^5.4.0
 ```
 
 ```bash
@@ -125,6 +125,9 @@ final bytes = await client.download(
 );
 ```
 
+`upload` 默认 `POST`；需要 PUT / PATCH 时传 `method: 'PUT'`（只允许
+`POST` / `PUT` / `PATCH`）。
+
 `download` 返回 `Uint8List`；写文件由业务层决定（Web 与移动端都可用）。
 
 ### 重试（可选）
@@ -207,7 +210,7 @@ Future<String?> refreshAccessToken() async {
 |---|---|
 | Dio 注册表 | `DioRegistry.forBaseUrl` / `maybeForBaseUrl` / `dispose` / `clearCache` |
 | 默认配置 | `WApiConfig.baseOptions` / `WApiConfig.reset`（测试清理） |
-| 调用层 | `WApiClient.get/post/put/patch/delete` |
+| 调用层 | `WApiClient.get/post/put/patch/delete/head/options` |
 | 请求体 | `WApiBody.json/form/multipart/bytes` |
 | 业务信封 | `WApiEnvelopeParser` |
 | 分页 | `WApiClient.page` / `WPage` / `WPageQuery` |

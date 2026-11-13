@@ -1,3 +1,11 @@
+## 15.2.0
+
+### Added
+- 聚合 `w_tools_api` 5.4.0：`WApiClient.head/options` 与 `upload(method:)`。
+
+### Changed
+- 依赖 `w_tools_api: ^5.4.0`。
+
 ## 15.1.0
 
 ### Added
