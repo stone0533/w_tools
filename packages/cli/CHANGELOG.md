@@ -1,3 +1,8 @@
+## 1.20.11
+
+### Changed
+- catalog 补 `WIconText.custom` 示例与 pitfalls；同步 `w_tools_ui` 约束 `^10.2.0`。
+
 ## 1.20.10
 
 ### Changed

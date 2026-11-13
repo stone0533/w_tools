@@ -1,3 +1,8 @@
+## 13.0.2
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.2.0`（`WIconText.custom`）。
+
 ## 13.0.1
 
 ### Changed

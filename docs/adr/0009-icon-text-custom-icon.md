@@ -2,7 +2,7 @@
 
 # ADR 0009：WIconText 自定义图标走静态构造器 + Widget，不引入 flutter_svg
 
-- 状态：提案中（2026-11-13）
+- 状态：已采纳（2026-11-13）
 - 相关：[`WIconText`](../../packages/ui/lib/src/components/text/icon_text.dart)、
   [ui 模块文档](../modules/ui_module.md)、[catalog](../../packages/cli/catalog/components.yaml)
 
@@ -49,7 +49,8 @@ WIconText(icon: Icons.star, text: '收藏');
 | `w_tools_ui` 直接依赖 `flutter_svg` | 所有消费方被迫带 SVG 渲染器；平台/体积成本高 |
 | 在 `WIconText` 里塞一个占位 `IconData` + `Widget` | `icon` 字段语义错误，容易误用 |
 
-## 落地计划
+## 落地结果
 
-- 10.2.0：新增 `WIconText.custom` + `_WIconTextLayout` 抽取 + 测试 / catalog / README。
-- 不在本 ADR 批次改代码、版本或 catalog；实现前状态保持「提案中」。
+- 10.2.0 已实现：`WIconText.custom` + `_WIconTextLayout` 抽取 + 测试 / catalog / README。
+- 主构造器仍为 `WIconText(icon: IconData)`；`custom` 返回私有实现，`find.byType(WIconText)`
+  不命中，测试用文本 / 目标 Widget 断言。

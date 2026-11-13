@@ -1,3 +1,9 @@
+## 10.2.0
+
+### Added
+- `WIconText.custom`：接收任意 `Widget` 图标（SVG / 资源图 / 品牌图标），复用行盒中点对齐、
+  gap / offset / 语义与文本样式；不引入 `flutter_svg` 依赖。
+
 ## 10.1.0
 
 ### Added
