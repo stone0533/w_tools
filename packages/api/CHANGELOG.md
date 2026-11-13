@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.6.0
+
+### Added
+- `WApiMetricsInterceptor` / `WApiMetric`：可选的请求指标（method / path / status /
+  duration / failed），支持 `sampleRate` 与 `onMetric`。
+
 ## 5.5.0
 
 ### Added
