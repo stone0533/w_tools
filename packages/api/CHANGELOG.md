@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.4.0
+
+### Added
+- `WApiClient.head` / `WApiClient.options`：补全 HEAD / OPTIONS。
+- `WApiClient.upload` 新增 `method`（`POST` / `PUT` / `PATCH`，默认 `POST`）。
+
 ## 5.3.0
 
 ### Added

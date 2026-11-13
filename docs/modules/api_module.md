@@ -264,14 +264,14 @@ final user = await client.get(
 
 | 成员 | 说明 |
 |------|------|
-| `get` / `post` / `put` / `patch` / `delete` | 五个 HTTP 方法 |
+| `get` / `post` / `put` / `patch` / `delete` / `head` / `options` | HTTP 方法 |
 | `pathParameters` | 替换 `{id}` 模板，并对值做 `Uri.encodeComponent` |
 | `query` | 值为 `null` 的键会被丢弃 |
 | `body` | 原始值（Map / String / FormData…）或 `WApiBody` |
 | `decode` | `T Function(Object? json)`；不传则返回原始 JSON |
 | `WApiBody` | `json` / `form` / `multipart` / `bytes` 四种编码 |
 | `page` | GET 分页，返回 `WPage<T>`（`items` / `total` / `hasMore`） |
-| `upload` | `multipart/form-data` 上传，支持进度与取消 |
+| `upload` | `multipart/form-data` 上传；`method` 支持 POST / PUT / PATCH |
 | `download` | 下载并返回 `Uint8List` |
 | `WApiDecoders` | 常用 decoder：`none` / `listOf` / `jsonMap` / `nullable` |
 | `WApiException` | 统一错误分类；`kind` 供 UI 映射文案 |

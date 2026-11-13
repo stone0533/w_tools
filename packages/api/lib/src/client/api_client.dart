@@ -256,6 +256,42 @@ class WApiClient {
     headers: headers,
   );
 
+  /// HEAD 请求。
+  Future<T> head<T>(
+    String path, {
+    Map<String, Object?>? query,
+    Map<String, String>? pathParameters,
+    WApiDecoder<T>? decode,
+    CancelToken? cancelToken,
+    Map<String, String>? headers,
+  }) => _send<T>(
+    'HEAD',
+    path,
+    query: query,
+    pathParameters: pathParameters,
+    decode: decode,
+    cancelToken: cancelToken,
+    headers: headers,
+  );
+
+  /// OPTIONS 请求。
+  Future<T> options<T>(
+    String path, {
+    Map<String, Object?>? query,
+    Map<String, String>? pathParameters,
+    WApiDecoder<T>? decode,
+    CancelToken? cancelToken,
+    Map<String, String>? headers,
+  }) => _send<T>(
+    'OPTIONS',
+    path,
+    query: query,
+    pathParameters: pathParameters,
+    decode: decode,
+    cancelToken: cancelToken,
+    headers: headers,
+  );
+
   /// POST 请求。
   Future<T> post<T>(
     String path, {
@@ -403,8 +439,10 @@ class WApiClient {
   /// 上传文件（`multipart/form-data`）。
   ///
   /// [files] 的 key 是表单字段名；[fields] 是普通表单字段。
+  /// [method] 只允许 `POST` / `PUT` / `PATCH`，默认 `POST`。
   Future<T> upload<T>(
     String path, {
+    String method = 'POST',
     Map<String, Object?> fields = const {},
     Map<String, MultipartFile> files = const {},
     Map<String, Object?>? query,
@@ -413,17 +451,28 @@ class WApiClient {
     void Function(int sent, int total)? onProgress,
     CancelToken? cancelToken,
     Map<String, String>? headers,
-  }) => _send<T>(
-    'POST',
-    path,
-    body: WApiBody.multipart(fields: fields, files: files),
-    query: query,
-    pathParameters: pathParameters,
-    decode: decode,
-    cancelToken: cancelToken,
-    headers: headers,
-    onSendProgress: onProgress,
-  );
+  }) async {
+    final normalized = method.toUpperCase();
+    if (!const {'POST', 'PUT', 'PATCH'}.contains(normalized)) {
+      throw ArgumentError.value(
+        method,
+        'method',
+        'upload 只支持 POST / PUT / PATCH',
+      );
+    }
+
+    return _send<T>(
+      normalized,
+      path,
+      body: WApiBody.multipart(fields: fields, files: files),
+      query: query,
+      pathParameters: pathParameters,
+      decode: decode,
+      cancelToken: cancelToken,
+      headers: headers,
+      onSendProgress: onProgress,
+    );
+  }
 
   /// 下载文件，返回原始字节。
   ///

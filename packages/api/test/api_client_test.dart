@@ -203,6 +203,35 @@ void main() {
     expect(adapter.last!.method, 'DELETE');
   });
 
+  test('HEAD / OPTIONS 使用对应 method', () async {
+    await client.head('/resource');
+    expect(adapter.last!.method, 'HEAD');
+
+    await client.options('/resource');
+    expect(adapter.last!.method, 'OPTIONS');
+  });
+
+  test('upload 支持 PUT，并拒绝非法 method', () async {
+    await client.upload<void>(
+      '/files',
+      method: 'PUT',
+      files: {
+        'file': MultipartFile.fromBytes([1]),
+      },
+      decode: WApiDecoders.none,
+    );
+    expect(adapter.last!.method, 'PUT');
+
+    await expectLater(
+      client.upload<void>(
+        '/files',
+        method: 'GET',
+        decode: WApiDecoders.none,
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('dio 超时异常映射成 timeout', () {
     final error = WApiException.from(
       DioException(
