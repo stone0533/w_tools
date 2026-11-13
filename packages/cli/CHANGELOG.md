@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed
+- `catalog` / `templates` 同步 `w_tools_api` 5.3.0 的 `WApiClient` / `WApiEnvelopeParser` / `WPage` / `WRetryInterceptor` 条目。
+- `init` 的 `w_tools_api` 约束抬到 `^5.3.0`。
+
 ## 1.20.29
 
 ### Changed
