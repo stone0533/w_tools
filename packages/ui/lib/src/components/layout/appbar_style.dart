@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -11,6 +12,9 @@ class WAppBarStyle {
     this.titleStyle,
     this.height = 56,
     this.titleSpacing,
+    this.leadingWidth,
+    this.actionsPadding,
+    this.boxShadow,
     this.systemOverlayStyle,
   });
 
@@ -20,6 +24,15 @@ class WAppBarStyle {
   final TextStyle? titleStyle;
   final double height;
   final double? titleSpacing;
+
+  /// leading 区域的宽度；null 时由 [NavigationToolbar] 决定。
+  final double? leadingWidth;
+
+  /// actions 区域的内边距；null 时不额外加 padding。
+  final EdgeInsetsGeometry? actionsPadding;
+
+  /// 顶栏阴影；自绘顶栏没有 Material elevation，需要阴影时显式传。
+  final List<BoxShadow>? boxShadow;
   final SystemUiOverlayStyle? systemOverlayStyle;
 
   /// 派生新样式；传 null 表示保留当前值（不能用 copyWith 清空字段）。
@@ -33,6 +46,9 @@ class WAppBarStyle {
     TextStyle? titleStyle,
     double? height,
     double? titleSpacing,
+    double? leadingWidth,
+    EdgeInsetsGeometry? actionsPadding,
+    List<BoxShadow>? boxShadow,
     SystemUiOverlayStyle? systemOverlayStyle,
   }) {
     return WAppBarStyle(
@@ -42,6 +58,9 @@ class WAppBarStyle {
       titleStyle: titleStyle ?? this.titleStyle,
       height: height ?? this.height,
       titleSpacing: titleSpacing ?? this.titleSpacing,
+      leadingWidth: leadingWidth ?? this.leadingWidth,
+      actionsPadding: actionsPadding ?? this.actionsPadding,
+      boxShadow: boxShadow ?? this.boxShadow,
       systemOverlayStyle: systemOverlayStyle ?? this.systemOverlayStyle,
     );
   }
@@ -62,6 +81,9 @@ class WAppBarStyle {
       titleStyle: titleStyle,
       height: height,
       titleSpacing: titleSpacing,
+      leadingWidth: leadingWidth,
+      actionsPadding: actionsPadding,
+      boxShadow: boxShadow,
       systemOverlayStyle: systemOverlayStyle,
     );
   }
@@ -73,6 +95,9 @@ class WAppBarStyle {
       titleStyle: titleStyle,
       height: height,
       titleSpacing: titleSpacing,
+      leadingWidth: leadingWidth,
+      actionsPadding: actionsPadding,
+      boxShadow: boxShadow,
       systemOverlayStyle: systemOverlayStyle,
     );
   }
@@ -87,6 +112,9 @@ class WAppBarStyle {
           other.titleStyle == titleStyle &&
           other.height == height &&
           other.titleSpacing == titleSpacing &&
+          other.leadingWidth == leadingWidth &&
+          other.actionsPadding == actionsPadding &&
+          listEquals(other.boxShadow, boxShadow) &&
           other.systemOverlayStyle == systemOverlayStyle;
 
   @override
@@ -97,6 +125,9 @@ class WAppBarStyle {
     titleStyle,
     height,
     titleSpacing,
+    leadingWidth,
+    actionsPadding,
+    boxShadow == null ? null : Object.hashAll(boxShadow!),
     systemOverlayStyle,
   );
 
@@ -105,6 +136,10 @@ class WAppBarStyle {
     assert(
       titleSpacing == null || (titleSpacing!.isFinite && titleSpacing! >= 0),
       'WAppBarStyle.titleSpacing 必须非负',
+    );
+    assert(
+      leadingWidth == null || (leadingWidth!.isFinite && leadingWidth! >= 0),
+      'WAppBarStyle.leadingWidth 必须非负',
     );
     assert(
       !(backgroundColor != null && gradient != null),

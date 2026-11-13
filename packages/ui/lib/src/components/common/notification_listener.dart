@@ -22,7 +22,7 @@ class WNotificationListener<T extends Notification> extends StatelessWidget {
   Widget build(BuildContext context) {
     return NotificationListener<T>(
       onNotification: (notification) {
-        notifyScrollPercentage(notification, onNotificationPercentage);
+        _notifyScrollPercentage(notification, onNotificationPercentage);
         return onNotification?.call(notification) ?? preventNotificationPropagation;
       },
       child: child,
@@ -31,7 +31,7 @@ class WNotificationListener<T extends Notification> extends StatelessWidget {
 }
 
 /// 计算并回调顶层滚动百分比。
-void notifyScrollPercentage(
+void _notifyScrollPercentage(
   Notification notification,
   void Function(double percentage)? callback,
 ) {

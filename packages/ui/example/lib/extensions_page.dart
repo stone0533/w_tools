@@ -22,13 +22,13 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
     final scheme = Theme.of(context).colorScheme;
     final baseStyle = TextStyle(fontSize: 14, color: scheme.onSurface);
 
-    return WScaffold(
+    return WScaffold.basic(
       title: '扩展方法',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           DemoSection(
-            title: 'WNumExtension：间距 / 圆角 / 数字格式',
+            title: 'WNumLayoutExtension / WNumFormatExtension：间距 / 圆角 / 数字格式',
             subtitle: 'heightBox / widthBox / squareBox / allPadding / 格式化',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,18 +135,18 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
             ),
           ),
           DemoSection(
-            title: 'WTextStyleExtension',
+            title: 'TextStyle.copyWith',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('bold', style: baseStyle.bold),
+                Text('bold', style: baseStyle.copyWith(fontWeight: FontWeight.bold)),
                 Text(
-                  'withColor(error)',
-                  style: baseStyle.withColor(scheme.error),
+                  'color(error)',
+                  style: baseStyle.copyWith(color: scheme.error),
                 ),
-                Text('withSize(20)', style: baseStyle.withSize(20)),
+                Text('fontSize(20)', style: baseStyle.copyWith(fontSize: 20)),
                 const CodeText(
-                  'TextStyle(...).bold / .withColor(color) / .withSize(20)',
+                  'TextStyle.copyWith(fontWeight: ...) / copyWith(color: ...) / copyWith(fontSize: ...)',
                 ),
               ],
             ),
@@ -166,18 +166,24 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Container(width: 20, height: 20, color: scheme.primary),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Container(width: 20, height: 20, color: scheme.secondary),
+                    ),
                     Container(
                       width: 20,
                       height: 20,
-                      color: scheme.primary,
-                    ).withHorizontalPadding(4),
+                      color: scheme.tertiary,
+                    ).withStartPadding(4),
                     Container(
                       width: 20,
                       height: 20,
-                      color: scheme.secondary,
-                    ).withVerticalPadding(4),
-                    Container(width: 20, height: 20, color: scheme.tertiary).withLeftPadding(4),
-                    Container(width: 20, height: 20, color: scheme.error).withRightPadding(4),
+                      color: scheme.error,
+                    ).withEndPadding(4),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -185,10 +191,13 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Container(
-                        width: 60,
-                        color: scheme.surfaceContainerHighest,
-                      ).withTopPadding(8).withBottomPadding(8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Container(
+                          width: 60,
+                          color: scheme.surfaceContainerHighest,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Container(

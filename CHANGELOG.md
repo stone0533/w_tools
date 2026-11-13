@@ -1,3 +1,44 @@
+## 14.0.0
+
+### Added
+- 聚合 `w_tools_ui` 11.0.0 新增 `WNavDestination` + `WNavBar.destinations`、
+  `WGradientCircularProgressIndicator.indeterminate` 与 `WScaffold.basic`。
+
+### Breaking
+- 聚合 `w_tools_ui` 11.0.0：删除 `WClipRRect`（用 Flutter `ClipRRect`）、
+  `WNavBar.onItemTap`（用 `onBeforeTap`）、`notifyScrollPercentage`、
+  `WTextStyleExtension`（用 `TextStyle.copyWith`）与 `WUiWidgetExtension`
+  （合并到 `WWidgetExtension`）；`WImageError.data` 改名 `sourceValue`，
+  `WListViewSliver.keepAlive` 改名 `addAutomaticKeepAlives`；`WButtonStyles`
+  合并到 `WButtonStyleSet.of(context)`；`WImageFrame` 不再导出，
+  `WImageStyle` 的 `borderRadius` / `margin` / `padding` 放宽为 Geometry 类型；
+  `WWidgetExtension` 删除 6 个物理 padding 方法，`withBottomBarSpaceOf` 改名
+  `withBottomSafeSpaceOf`；`WStep` 构造时复制 `labels`，不再是 `const` 构造器；
+  `WImageSlots` 删除 `placeholder` / `emptyWidget` / `errorWidget`，统一用 `*Builder`；
+  `WNumExtension` 拆分为 `WNumLayoutExtension` / `WNumFormatExtension`；
+  `WScaffold` 的默认顶栏参数移到 `WScaffold.basic`。
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^11.0.0`；`WScreen` 改为 `abstract final class`。
+
+## 13.0.5
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.5.0`（`WAppBar` / `WBadge` / `WTabBar` / `WScaffold` /
+  `WButton` 的兼容补充）。
+
+## 13.0.4
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.4.0`（`WScaffold` 抽屉 / 底部面板透传、
+  `WNavBar.onBeforeTap`）。
+
+## 13.0.3
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.3.0`（`WText.rich`、`WBadge.count` / `dot`、
+  `WNavBar.safeArea` 与一批 UI 修复）。
+
 ## 13.0.2
 
 ### Changed

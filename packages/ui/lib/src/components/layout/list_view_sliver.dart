@@ -11,7 +11,7 @@ class WListViewSliver extends StatelessWidget {
     this.footer,
     this.empty,
     this.emptyFill = false,
-    this.keepAlive = false,
+    this.addAutomaticKeepAlives = false,
   }) : _kind = _WListViewKind.list,
        separatorBuilder = null,
        gridDelegate = null,
@@ -29,7 +29,7 @@ class WListViewSliver extends StatelessWidget {
     this.footer,
     this.empty,
     this.emptyFill = false,
-    this.keepAlive = false,
+    this.addAutomaticKeepAlives = false,
   }) : _kind = _WListViewKind.separated,
        itemExtent = null,
        gridDelegate = null,
@@ -46,7 +46,7 @@ class WListViewSliver extends StatelessWidget {
     this.footer,
     this.empty,
     this.emptyFill = false,
-    this.keepAlive = false,
+    this.addAutomaticKeepAlives = false,
   }) : _kind = _WListViewKind.grid,
        itemExtent = null,
        separatorBuilder = null,
@@ -64,7 +64,7 @@ class WListViewSliver extends StatelessWidget {
     this.footer,
     this.empty,
     this.emptyFill = false,
-    this.keepAlive = false,
+    this.addAutomaticKeepAlives = false,
   }) : _kind = _WListViewKind.overlap,
        // ignore: prefer_initializing_formals
        itemExtent = itemExtent,
@@ -88,7 +88,11 @@ class WListViewSliver extends StatelessWidget {
   /// 直接放进 `CustomScrollView` 时同样受此限制。
   final bool emptyFill;
 
-  final bool keepAlive;
+  /// 是否启用 Flutter 的 `addAutomaticKeepAlives` 机制。
+  ///
+  /// 它只是允许子项请求保活；子项仍需 `WKeepAliveWrapper` /
+  /// `AutomaticKeepAliveClientMixin` 才会真正保留状态。
+  final bool addAutomaticKeepAlives;
 
   final _WListViewKind _kind;
   final double? itemExtent;
@@ -134,7 +138,7 @@ class WListViewSliver extends StatelessWidget {
           itemCount: itemCount,
           itemBuilder: itemBuilder,
           gridDelegate: gridDelegate!,
-          addAutomaticKeepAlives: keepAlive,
+          addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: true,
           addSemanticIndexes: true,
         );
@@ -143,7 +147,7 @@ class WListViewSliver extends StatelessWidget {
           itemCount: itemCount,
           itemBuilder: itemBuilder,
           separatorBuilder: separatorBuilder!,
-          addAutomaticKeepAlives: keepAlive,
+          addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: true,
           addSemanticIndexes: true,
         );
@@ -159,7 +163,7 @@ class WListViewSliver extends StatelessWidget {
               );
             },
             childCount: itemCount,
-            addAutomaticKeepAlives: keepAlive,
+            addAutomaticKeepAlives: addAutomaticKeepAlives,
             addRepaintBoundaries: true,
             addSemanticIndexes: true,
           ),
@@ -171,7 +175,7 @@ class WListViewSliver extends StatelessWidget {
             delegate: SliverChildBuilderDelegate(
               itemBuilder,
               childCount: itemCount,
-              addAutomaticKeepAlives: keepAlive,
+              addAutomaticKeepAlives: addAutomaticKeepAlives,
               addRepaintBoundaries: true,
               addSemanticIndexes: true,
             ),
@@ -180,7 +184,7 @@ class WListViewSliver extends StatelessWidget {
         return SliverList.builder(
           itemCount: itemCount,
           itemBuilder: itemBuilder,
-          addAutomaticKeepAlives: keepAlive,
+          addAutomaticKeepAlives: addAutomaticKeepAlives,
           addRepaintBoundaries: true,
           addSemanticIndexes: true,
         );

@@ -1,39 +1,60 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../common/pressable.dart';
 import 'nav_controller.dart';
+import 'nav_destination.dart';
 import 'nav_style.dart';
 
+export 'nav_destination.dart';
 export 'nav_style.dart';
 
 /// 底部导航栏组件
 ///
-/// 由传入的 [controller]（`WNavController`）驱动选中态与切换动画，
-/// 每个导航项交由 [itemBuilder] 渲染。
+/// 由传入的 [controller]（`WNavController`）驱动选中态与切换动画。
+/// 导航项可以用 [itemBuilder] 完全自定义，也可以传 [destinations] 使用默认图标 + 文字。
 ///
 /// [controller] 由调用方持有并负责释放，本组件只负责添加 / 移除监听。
 class WNavBar extends StatefulWidget {
   /// 标签栏样式
   final WNavBarStyle? style;
 
-  /// 导航项构建器
-  final Widget Function(BuildContext, int, bool) itemBuilder;
+  /// 导航项构建器；与 [destinations] 二选一
+  final Widget Function(BuildContext, int, bool)? itemBuilder;
 
-  /// 导航项点击回调。
+  /// 默认导航项描述；与 [itemBuilder] 二选一
+  final List<WNavDestination>? destinations;
+
+  /// 导航切换前回调；返回 `false` 阻止切换。
   ///
-  /// 返回 `false` 可阻止切换。异步请求期间调用方应自行做防抖 / loading /
-  /// 禁用点击；controller 只保证最终动画以最后一次切换为准。
-  final Future<bool?>? Function(int)? onItemTap;
+  /// `FutureOr<bool>` 同时接受同步 / 异步结果。
+  final FutureOr<bool> Function(int)? onBeforeTap;
 
   /// 导航栏控制器
   final WNavController controller;
 
+  /// 是否避开底部安全区（home indicator / 手势条）。
+  ///
+  /// 默认 true：`WNavBar` 通常放在 `WScaffold.bottomNavigationBar`，需要自己
+  /// 处理底部 inset。放在页面 body 内或已由外层 `SafeArea` 包裹时传 false。
+  final bool safeArea;
+
   const WNavBar({
     super.key,
     this.style,
-    required this.itemBuilder,
-    this.onItemTap,
+    this.itemBuilder,
+    this.destinations,
+    this.onBeforeTap,
     required this.controller,
-  });
+    this.safeArea = true,
+  }) : assert(
+         (itemBuilder == null) != (destinations == null),
+         'WNavBar: itemBuilder 与 destinations 必须且只能提供一个',
+       ),
+       assert(
+         destinations == null || destinations.length == controller.length,
+         'WNavBar: destinations 数量必须等于 controller.length',
+       );
 
   @override
   State<WNavBar> createState() => _WNavBarState();
@@ -76,11 +97,12 @@ class _WNavBarState extends State<WNavBar> {
     // 异步回调可能乱序返回：只有最后一次点击的 future 能触发切换，
     // 否则慢回调会覆盖用户后来的选择。
     final token = ++_tapToken;
-    final result = await widget.onItemTap?.call(index);
-    if (!mounted || token != _tapToken) return;
-    if (result != false) {
-      await _controller.animateTo(index);
+    final beforeTap = widget.onBeforeTap;
+    if (beforeTap != null) {
+      final allowed = await beforeTap(index);
+      if (!mounted || token != _tapToken || !allowed) return;
     }
+    await _controller.animateTo(index);
   }
 
   @override
@@ -97,13 +119,23 @@ class _WNavBarState extends State<WNavBar> {
               child: WPressable(
                 onTap: () => _handleTap(i),
                 child: RepaintBoundary(
-                  child: widget.itemBuilder(context, i, i == _controller.currentIndex),
+                  child: widget.itemBuilder != null
+                      ? widget.itemBuilder!(context, i, i == _controller.currentIndex)
+                      : _buildDestinationItem(
+                          context,
+                          widget.destinations![i],
+                          i == _controller.currentIndex,
+                        ),
                 ),
               ),
             ),
           ),
       ],
     );
+
+    if (widget.safeArea) {
+      navContent = SafeArea(top: false, child: navContent);
+    }
 
     final decoration = widget.style?.decoration;
     final padding = widget.style?.padding;
@@ -115,6 +147,37 @@ class _WNavBarState extends State<WNavBar> {
       decoration: decoration,
       padding: padding,
       child: navContent,
+    );
+  }
+
+  Widget _buildDestinationItem(
+    BuildContext context,
+    WNavDestination destination,
+    bool selected,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    final color = selected ? scheme.primary : scheme.onSurfaceVariant;
+    return Semantics(
+      label: destination.semanticLabel ?? destination.label,
+      child: ExcludeSemantics(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              selected ? destination.selectedIcon ?? destination.icon : destination.icon,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              destination.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

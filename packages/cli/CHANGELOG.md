@@ -1,3 +1,90 @@
+## 1.20.26
+
+### Changed
+- catalog 补 `WListViewSliver.overlap` 的 hit test pitfall 与 `WImageSlots`
+  原始 Base64 字符串提示。
+
+## 1.20.25
+
+### Changed
+- catalog / 模板同步 `WScaffold` 拆分：默认顶栏用 `WScaffold.basic`，
+  显式 `appBar` 用 `WScaffold`。
+
+## 1.20.24
+
+### Changed
+- catalog 把 `WNumExtension` 拆成 `WNumLayoutExtension` / `WNumFormatExtension`。
+
+## 1.20.23
+
+### Added
+- catalog 补 `WGradientCircularProgressIndicator.indeterminate` 用法与 pitfalls。
+
+## 1.20.22
+
+### Added
+- catalog 新增 `WNavDestination`，`WNavBar` 增加 `destinations` 默认项用法。
+
+## 1.20.21
+
+### Changed
+- catalog 同步 `WImageSlots` 只保留 builder（删除 `placeholder` / `emptyWidget` /
+  `errorWidget` 固定 Widget 入口）。
+
+## 1.20.20
+
+### Changed
+- catalog 补 `WStep` 构造时复制 `labels` 的说明（不再是 `const` 构造器）。
+
+## 1.20.19
+
+### Changed
+- catalog 同步 `WWidgetExtension` 精简（6 个物理 padding 删除、
+  `withBottomBarSpaceOf` 改名 `withBottomSafeSpaceOf`）。
+
+## 1.20.18
+
+### Changed
+- catalog 移除 `WImageFrame`（ui 11.0 不再从 barrel 导出）；
+  `WImageStyle` 的几何字段类型说明同步。
+
+## 1.20.17
+
+### Changed
+- catalog 把 `WButtonStyles` 合并到 `WButtonStyleSet`（`WButtonStyleSet.of(context)`）；
+  `WButton` 的示例 / pitfalls 同步。
+
+## 1.20.16
+
+### Changed
+- catalog 移除 `WTextStyleExtension` / `WUiWidgetExtension`（ui 11.0 删除，后者合并到
+  `WWidgetExtension`）；`WWidgetExtension` usage 补 `toPressable`。
+
+## 1.20.15
+
+### Changed
+- catalog / entrypoints / AGENTS 模板移除 `WClipRRect`（ui 11.0 删除，改用 Flutter `ClipRRect`）；
+  同步 `w_tools_ui` 约束 `^11.0.0`。
+
+## 1.20.14
+
+### Changed
+- catalog 补 `WAppBar` 阴影 / 两侧布局、`WBadge.offset`、`WTabBar` 交互参数、
+  `WScaffold.bottomNavigationBarSafeArea`、`WButton.tooltip` / `isSelected`；
+  同步 `w_tools_ui` 约束 `^10.5.0`。
+
+## 1.20.13
+
+### Changed
+- catalog 补 `WScaffold` 抽屉 / 底部面板透传与 `WNavBar.onBeforeTap` 示例 / pitfalls；
+  同步 `w_tools_ui` 约束 `^10.4.0`。
+
+## 1.20.12
+
+### Changed
+- catalog 补 `WText.rich`、`WBadge.count` / `dot`、`WTabBarStyle` 标签颜色与
+  `WNavBar.safeArea` 示例 / pitfalls；同步 `w_tools_ui` 约束 `^10.3.0`。
+
 ## 1.20.11
 
 ### Changed

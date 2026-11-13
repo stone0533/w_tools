@@ -25,7 +25,7 @@ void main() {
   testWidgets('README 快速开始可渲染', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '快速开始',
           body: WText(text: 'Hello w_tools_ui', variant: WTextVariant.title),
         ),
@@ -82,7 +82,7 @@ void main() {
           body: Column(
             children: [
               WBadge(badgeContent: Text('3'), child: Icon(Icons.notifications)),
-              WClipRRect(
+              ClipRRect(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
                 child: SizedBox(width: 10, height: 10),
               ),
@@ -92,7 +92,7 @@ void main() {
       ),
     );
     expect(find.text('3'), findsOneWidget);
-    expect(find.byType(WClipRRect), findsOneWidget);
+    expect(find.byType(ClipRRect), findsOneWidget);
   });
 
   test('README 扩展段落使用新扩展名', () {

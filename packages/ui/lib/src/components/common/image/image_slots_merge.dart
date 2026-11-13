@@ -10,23 +10,14 @@ WImageSlots mergeImageSlots({
 }) {
   if (own == null) return theme;
 
-  final ownShowRetry = own.showRetryButton;
-  final showRetry = ownShowRetry ?? theme.showRetryButton;
-  final ownHasError = own.errorWidgetBuilder != null || own.errorWidget != null;
-  final inheritThemeError = !ownHasError && showRetry != true;
+  final showRetry = own.showRetryButton ?? theme.showRetryButton;
+  final inheritThemeError = own.errorWidgetBuilder == null && showRetry != true;
 
   return WImageSlots(
-    placeholderBuilder:
-        own.placeholderBuilder ?? (own.placeholder == null ? theme.placeholderBuilder : null),
-    placeholder: own.placeholder ?? theme.placeholder,
-    emptyBuilder: own.emptyBuilder ?? (own.emptyWidget == null ? theme.emptyBuilder : null),
-    emptyWidget: own.emptyWidget ?? theme.emptyWidget,
+    placeholderBuilder: own.placeholderBuilder ?? theme.placeholderBuilder,
+    emptyBuilder: own.emptyBuilder ?? theme.emptyBuilder,
     errorWidgetBuilder:
-        own.errorWidgetBuilder ??
-        (own.errorWidget == null && inheritThemeError ? theme.errorWidgetBuilder : null),
-    errorWidget:
-        own.errorWidget ??
-        (own.errorWidgetBuilder == null && inheritThemeError ? theme.errorWidget : null),
+        own.errorWidgetBuilder ?? (inheritThemeError ? theme.errorWidgetBuilder : null),
     progressBuilder: own.progressBuilder ?? theme.progressBuilder,
     showRetryButton: showRetry,
     retryLabel: own.retryLabel ?? theme.retryLabel,

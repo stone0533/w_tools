@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// 导航栏的视觉样式（外层装饰 / padding）；新代码优先用它替代 config。
+/// 导航栏的外层装饰 / padding。
+///
+/// 选中态、切换动画与点击拦截由 `WNavController` / `WNavBar` 负责，不要放进这里。
 @immutable
 class WNavBarStyle {
   const WNavBarStyle({this.decoration, this.padding});

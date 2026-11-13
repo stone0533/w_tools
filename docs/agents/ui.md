@@ -16,7 +16,7 @@
 ```
 
 `WImageStyle` 管视觉，`WImageLoadOptions` 管加载 / 重试，`WImageSlots` 管占位 / 空 / 错误 / 进度 / 重试 UI；普通图片也优先复用 `WImage`。
-空 data（空字符串 / 纯空白）走 `WImageSlots.emptyWidget` / `emptyBuilder`，不算加载失败。
+空 data（空字符串 / 纯空白）走 `WImageSlots.emptyBuilder`，不算加载失败。
 App 级默认占位 / 错误 / 进度用 `WImageTheme(slots: WImageSlots(...))`，需要预加载时用
 `WImageSource.resolve(...)` + `precacheImage`。
 
@@ -43,7 +43,7 @@ Padding → 原生 Padding
 EdgeInsets → num.allPadding
 ```
 
-WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate。
+WScreen 无 `WScreenScope` 时返回原始值；需要 ScreenUtil 时用 `WScreenScope` 注入。
 可运行示例：`packages/ui/example/README.md`。
 `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已在 5.0 删除，直接用 Flutter 原生布局组件。
 
@@ -52,9 +52,10 @@ WScreen 无 delegate 时返回原始值；需要 ScreenUtil 时注入 delegate�
 ```text
 普通页面 → WScaffold + WAppBar
 （消费方项目的标准页面默认用 CLI 生成的 AppScaffold；本文件是库 / 仓库内用法）
-底部 tab → WNavBar / WNavController
+底部 tab → WNavBar / WNavController（默认 safeArea: true；外层已包 SafeArea 时传 false）
 顶部 tab → WTabBar（依赖 TabController / DefaultTabController；默认 overlay / ripple 跟
-TabBarTheme，要关用 `WTabBarStyle.noSplash` 或 `splashFactory` + `overlayColor`）
+TabBarTheme，要关用 `WTabBarStyle.noSplash` 或 `splashFactory` + `overlayColor`；
+labelColor / unselectedLabelColor / labelPadding / indicatorPadding / textScaler 走 style）
 步骤流程 → WStep / WStepFlow
 ```
 
@@ -102,6 +103,13 @@ WNotificationListener 的百分比只在 depth 0 的 ScrollUpdateNotification �
 
 ```dart
 WText(text: '标题', variant: WTextVariant.title)
+WText.rich(
+  textSpan: TextSpan(
+    text: '¥128',
+    children: [TextSpan(text: ' 起', style: TextStyle(fontSize: 12))],
+  ),
+  variant: WTextVariant.price,
+)
 ```
 
 ### 现有 variant
@@ -251,7 +259,7 @@ bigText
 ## 容器 / 列表
 
 ```text
-角标 / 数量提示 → WBadge
-圆角裁剪 → WClipRRect
+角标 / 数量提示 → WBadge（数量用 WBadge.count，圆点用 WBadge.dot）
+圆角裁剪 → Flutter 原生 ClipRRect（WClipRRect 已在 11.0 删除）
 普通 / 分隔线 / 网格 / 重叠列表 → WListView + WListViewSliver
 ```

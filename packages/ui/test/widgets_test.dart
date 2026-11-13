@@ -42,6 +42,38 @@ void main() {
       expect(text.style?.color, Colors.green);
     });
 
+    testWidgets('WText.rich 渲染 TextSpan 并应用 variant', (tester) async {
+      final styles = WTextStyles.fromTextTheme(ThemeData.light().textTheme).copyWith(
+        body: const TextStyle(fontSize: 21),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(extensions: [styles]),
+          home: const Scaffold(
+            body: WText.rich(
+              textSpan: TextSpan(
+                text: 'rich',
+                children: [
+                  TextSpan(
+                    text: '!',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              variant: WTextVariant.body,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('rich!'), findsOneWidget);
+      final rich = tester.widget<RichText>(
+        find.descendant(of: find.byType(WText), matching: find.byType(RichText)),
+      );
+      expect(rich.text.style?.fontSize, 21);
+    });
+
     testWidgets('style / color 可覆盖 variant', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -114,40 +146,6 @@ void main() {
     });
   });
 
-  group('WClipRRect Widget', () {
-    testWidgets('渲染并应用 borderRadius', (tester) async {
-      const radius = BorderRadius.all(Radius.circular(12));
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: WClipRRect(
-              borderRadius: radius,
-              child: SizedBox(width: 10, height: 10),
-            ),
-          ),
-        ),
-      );
-      final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
-      expect(clip.borderRadius, radius);
-      expect(clip.clipBehavior, Clip.antiAlias);
-    });
-
-    testWidgets('支持 clipBehavior', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: WClipRRect(
-              borderRadius: BorderRadius.zero,
-              clipBehavior: Clip.hardEdge,
-              child: SizedBox(width: 10, height: 10),
-            ),
-          ),
-        ),
-      );
-      expect(tester.widget<ClipRRect>(find.byType(ClipRRect)).clipBehavior, Clip.hardEdge);
-    });
-  });
-
   group('WBadge Widget', () {
     testWidgets('渲染 badgeContent 与 child', (tester) async {
       await tester.pumpWidget(
@@ -162,6 +160,33 @@ void main() {
       );
       expect(find.text('3'), findsOneWidget);
       expect(find.byIcon(Icons.email), findsOneWidget);
+    });
+
+    testWidgets('WBadge.count 超过 maxCount 时显示 maxCount+', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WBadge.count(
+              count: 120,
+              maxCount: 99,
+              child: const Icon(Icons.email),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('99+'), findsOneWidget);
+    });
+
+    testWidgets('WBadge.dot 不渲染文本角标', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WBadge.dot(child: const Icon(Icons.email)),
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.email), findsOneWidget);
+      expect(find.byType(Text), findsNothing);
     });
 
     testWidgets('默认样式跟随 ColorScheme.error / onError', (tester) async {
@@ -215,6 +240,35 @@ void main() {
       );
       expect(find.text('9'), findsNothing);
       expect(find.byIcon(Icons.email), findsOneWidget);
+    });
+
+    testWidgets('offset 在 position 基础上额外位移', (tester) async {
+      Future<Rect> bubbleRect(Offset offset) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: WBadge(
+                  position: const WBadgePosition.topEnd(top: 10, end: 10),
+                  offset: offset,
+                  badgeContent: const SizedBox(
+                    key: Key('badge-dot'),
+                    width: 8,
+                    height: 8,
+                  ),
+                  child: const Icon(Icons.email),
+                ),
+              ),
+            ),
+          ),
+        );
+        return tester.getRect(find.byKey(const Key('badge-dot')));
+      }
+
+      final base = await bubbleRect(Offset.zero);
+      final shifted = await bubbleRect(const Offset(6, -4));
+      expect(shifted.left - base.left, closeTo(6, 0.1));
+      expect(shifted.top - base.top, closeTo(-4, 0.1));
     });
 
     testWidgets('badgeContent 为空时不渲染徽章', (tester) async {

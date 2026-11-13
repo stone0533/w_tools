@@ -257,28 +257,6 @@ void main() {
       expect(find.byType(Expanded), findsNWidgets(2));
     });
 
-    testWidgets('Widget.withHorizontalPadding', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Container().withHorizontalPadding(16),
-          ),
-        ),
-      );
-      expect(find.byType(Padding), findsOneWidget);
-    });
-
-    testWidgets('Widget.withVerticalPadding', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Container().withVerticalPadding(16),
-          ),
-        ),
-      );
-      expect(find.byType(Padding), findsOneWidget);
-    });
-
     testWidgets('Widget.toPressable', (tester) async {
       bool tapped = false;
       await tester.pumpWidget(
@@ -291,15 +269,6 @@ void main() {
       await tester.tap(find.text('Click'));
       await tester.pump();
       expect(tapped, isTrue);
-    });
-  });
-
-  group('TextStyle extension', () {
-    test('bold / withColor / withSize', () {
-      const style = TextStyle();
-      expect(style.bold.fontWeight, FontWeight.bold);
-      expect(style.withColor(Colors.red).color, Colors.red);
-      expect(style.withSize(18).fontSize, 18);
     });
   });
 
@@ -350,36 +319,6 @@ void main() {
   });
 
   group('WWidgetExtension', () {
-    testWidgets('padding 系列返回对应 Padding', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Column(
-            children: [
-              Container(key: const ValueKey('h'), child: const SizedBox().withHorizontalPadding(8)),
-              Container(key: const ValueKey('v'), child: const SizedBox().withVerticalPadding(10)),
-              Container(key: const ValueKey('l'), child: const SizedBox().withLeftPadding(4)),
-              Container(key: const ValueKey('r'), child: const SizedBox().withRightPadding(6)),
-              Container(key: const ValueKey('t'), child: const SizedBox().withTopPadding(12)),
-              Container(key: const ValueKey('b'), child: const SizedBox().withBottomPadding(14)),
-            ],
-          ),
-        ),
-      );
-      EdgeInsets paddingOf(String key) {
-        final widget = tester.widget<Padding>(
-          find.descendant(of: find.byKey(ValueKey(key)), matching: find.byType(Padding)).first,
-        );
-        return widget.padding as EdgeInsets;
-      }
-
-      expect(paddingOf('h'), const EdgeInsets.symmetric(horizontal: 8));
-      expect(paddingOf('v'), const EdgeInsets.symmetric(vertical: 10));
-      expect(paddingOf('l'), const EdgeInsets.only(left: 4));
-      expect(paddingOf('r'), const EdgeInsets.only(right: 6));
-      expect(paddingOf('t'), const EdgeInsets.only(top: 12));
-      expect(paddingOf('b'), const EdgeInsets.only(bottom: 14));
-    });
-
     testWidgets('withStartPadding / withEndPadding 跟随 Directionality', (tester) async {
       Widget build(TextDirection direction) => MaterialApp(
         home: Directionality(
@@ -431,7 +370,7 @@ void main() {
     });
   });
   group('上下文相关扩展', () {
-    testWidgets('withTopSafeSpaceOf / withBottomBarSpaceOf 读 MediaQuery', (tester) async {
+    testWidgets('withTopSafeSpaceOf / withBottomSafeSpaceOf 读 MediaQuery', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -442,7 +381,7 @@ void main() {
               builder: (context) => Column(
                 children: [
                   const SizedBox(width: 10, height: 10).withTopSafeSpaceOf(context),
-                  const SizedBox(width: 10, height: 10).withBottomBarSpaceOf(context),
+                  const SizedBox(width: 10, height: 10).withBottomSafeSpaceOf(context),
                 ],
               ),
             ),

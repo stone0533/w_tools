@@ -57,6 +57,19 @@ void main() {
     expect(() => const WButtonSize(minHeight: -1).validate(), throwsAssertionError);
   });
 
+  test('WStepFlow 值相等 / copyWith 保留字段', () {
+    final a = WStepFlow(labels: const ['下单', '付款', '完成']);
+    final b = WStepFlow(labels: const ['下单', '付款', '完成']);
+    expect(identical(a, b), isFalse);
+    expect(a, b);
+    expect(a.hashCode, b.hashCode);
+    expect(a, isNot(WStepFlow(labels: const ['下单'])));
+
+    final next = a.copyWith(labels: const ['A', 'B']);
+    expect(next.labels, const ['A', 'B']);
+    expect(next.style, a.style);
+  });
+
   test('WButtonMotion copyWith / validate / 值相等', () {
     const motion = WButtonMotion(duration: Duration(milliseconds: 200));
     final next = motion.copyWith(pressedScale: 0.9);
@@ -109,21 +122,7 @@ void main() {
     expect(WImageSource.network('https://x/a.png').key, contains('network:'));
   });
 
-  test('WImageFrame 应用边框 / 阴影 / margin / padding', () {
-    const style = WImageStyle(
-      border: Border.fromBorderSide(BorderSide(color: Colors.black12)),
-      boxShadow: [BoxShadow(color: Colors.black12)],
-      margin: EdgeInsets.all(2),
-      padding: EdgeInsets.all(3),
-      borderRadius: BorderRadius.all(Radius.circular(6)),
-    );
-    const frame = WImageFrame(style: style, child: SizedBox(width: 10, height: 10));
-    expect(frame.style.border, isNotNull);
-    expect(frame.style.boxShadow, isNotEmpty);
-    expect(frame.style.margin, const EdgeInsets.all(2));
-  });
-
-  testWidgets('WButtonStyles.of 四种样式与值相等', (tester) async {
+  testWidgets('WButtonStyleSet.of 四种样式与值相等', (tester) async {
     late WButtonStyleSet first;
     late WButtonStyleSet second;
     await tester.pumpWidget(
@@ -131,8 +130,8 @@ void main() {
         theme: ThemeData(useMaterial3: true),
         home: Builder(
           builder: (context) {
-            first = WButtonStyles.of(context);
-            second = WButtonStyles.of(context);
+            first = WButtonStyleSet.of(context);
+            second = WButtonStyleSet.of(context);
             return const SizedBox.shrink();
           },
         ),
@@ -141,24 +140,6 @@ void main() {
     expect(first, second);
     expect(first.hashCode, second.hashCode);
     expect(first.primary, isNot(first.danger));
-  });
-
-  testWidgets('WImageFrame 构建阴影与前景边框', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: WImageFrame(
-          style: WImageStyle(
-            border: Border.fromBorderSide(BorderSide(color: Colors.black12)),
-            boxShadow: [BoxShadow(color: Colors.black12)],
-            borderRadius: BorderRadius.all(Radius.circular(6)),
-            margin: EdgeInsets.all(2),
-            padding: EdgeInsets.all(3),
-          ),
-          child: SizedBox(width: 10, height: 10),
-        ),
-      ),
-    );
-    expect(find.byType(DecoratedBox), findsNWidgets(2));
   });
 
   testWidgets('WBadge 自定义 style 应用边框与内边距', (tester) async {

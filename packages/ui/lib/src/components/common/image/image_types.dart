@@ -113,10 +113,10 @@ enum WImageErrorKind {
 /// 图片加载错误（4.2 起用 [kind] 区分；5.0 起不再提供子类）。
 class WImageError implements Exception {
   /// 创建错误
-  const WImageError(this.data, this.kind, {this.cause});
+  const WImageError(this.sourceValue, this.kind, {this.cause});
 
-  /// 触发错误的原始数据（调用方传给 `WImage` 的 `data`）
-  final String data;
+  /// 触发错误的原始来源字符串（通常是 `WImageSource.raw`）。
+  final String sourceValue;
 
   /// 错误分类
   final WImageErrorKind kind;
@@ -141,18 +141,19 @@ class WImageError implements Exception {
   /// 需要在没有 [BuildContext] 的日志里保留固定中文时用 [message]。
   String localizedMessage(BuildContext context) => WUiStrings.of(context).imageErrorMessage(kind);
 
-  /// 值相等只比较 [data] 与 [kind]；[cause] 是诊断信息，不参与相等。
+  /// 值相等只比较 [sourceValue] 与 [kind]；[cause] 是诊断信息，不参与相等。
   ///
   /// 这样 `WImageLoadSnapshot` 的结构化比较 / 测试不会因为异常实例不同而失败。
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is WImageError && other.data == data && other.kind == kind;
+      identical(this, other) ||
+      other is WImageError && other.sourceValue == sourceValue && other.kind == kind;
 
   @override
-  int get hashCode => Object.hash(data, kind);
+  int get hashCode => Object.hash(sourceValue, kind);
 
   @override
-  String toString() => 'WImageError($message, data: $data)';
+  String toString() => 'WImageError($message, source: $sourceValue)';
 }
 
 /// 图片加载快照（供 [WImageController.state] 监听）。

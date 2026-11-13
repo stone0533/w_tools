@@ -17,7 +17,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 - **零业务框架依赖**：不依赖其他 w_tools 子包；`qr` 不聚合，需要时直接依赖 `w_tools_qr`。
 - **最低 Flutter 版本 3.38**：列表组件不再单独声明 `cacheExtent`，交给 Flutter 默认行为，避免 3.44+ 的 deprecated 警告。
-- **屏幕适配可选**：`WScreen` 内置设备信息获取，适配函数通过 delegate 注入；无 delegate 时返回原始值。
+- **屏幕适配可选**：`WScreen` 内置设备信息获取，适配函数通过 `WScreenScope` 注入；无 scope 时返回原始值。
 - **第三方依赖**：仅 `cached_network_image`（图片缓存）；`badges` 已在 8.0.0 移除，
   徽章使用包内 `WBadgePosition` / `WBadgeStyle`，具体约束见 `packages/ui/pubspec.yaml`。
 
@@ -39,15 +39,15 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 - 推荐在 App 根节点用 `WScreenScope` 注入缩放，再用 `WScreen.of(context).w/h/sp` 读取；
   尺寸跟随最近 `MediaQuery`，分屏 / 多窗口 / 测试都能正确反映。
-- 没有 scope / delegate 时 `w/h/sp` 是**恒等函数**，返回原值。
+- 没有 scope 时 `w/h/sp` 是**恒等函数**，返回原值。
 - 设备信息用 `WScreen.of(context)` 或 `WScreen.screenWidth` / `screenHeight` /
-  `statusBarHeight` / `bottomSafeAreaHeight`；这些静态 getter 读平台 view，与 delegate 无关。
+  `statusBarHeight` / `bottomSafeAreaHeight`；这些静态 getter 读平台 view，与 scope 无关。
 - 10.0 起静态 `WScreen.w/h/sp` 与 `WScreen.delegateWidth/Height/Font` 已删除；
   统一用 `WScreenScope` + `WScreen.of(context)`。
 - 静态 getter 依赖 `WidgetsBinding.instance`；不要在 binding 初始化前调用。
 - 使用 `.sp` 的 `WTextStyles` 不得在 `main()` / 顶层 `final` 构建；必须放在
   `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期。
-- 旧 delegate 是全局状态；测试里改完要还原。
+- `WScreenScope` 是子树级注入；测试里换 scope 即可，不要恢复全局可变状态。
 
 ## 2. WButton - 按钮组件
 
@@ -56,14 +56,15 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 - 表单字段的“值选择”用 `WFormButton`，不要用 `WButton` 手写。
 - 样式分层：
   - `WButtonStyle`：视觉（颜色、圆角、边框、内边距等）；
-  - `WButtonStyles`：组件层预设（`primary` / `secondary` / `text` / `danger`），返回 `WButtonStyleSet`；
+  - `WButtonStyleSet.of(context)`：组件层预设（`primary` / `secondary` / `text` / `danger`），返回 `WButtonStyleSet`；
   - `WButton(motion:, semantics:)`：按下、缩放、透明度与无障碍语义；
   - `WButtonSize`：尺寸令牌；
   - `WButtonContentBuilder`：复杂内容（多行、图标 + 文案 + 尾部）时使用。
-- **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成）；`WButtonStyles.of(context).primary`
+- **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成）；`WButtonStyleSet.of(context).primary`
   适合组件示例 / 独立 Demo。不要在每个调用点重复写完整 `WButtonStyle`。
 - `WButton(icon:, label:)` 内部复用 `WIconText` 做行盒中点对齐；不要再手写
   `Row + Icon + Text` 补偏移。
+- 图标按钮可传 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）。
 
 ### WButtonContentBuilder
 
@@ -98,6 +99,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 ## 3. WText - 文本组件
 
 - 新代码统一 `WText(variant:)` + `WTextStyles`；字体、行高、字重放在 `WTextStyles`。
+- 混合样式用 `WText.rich(textSpan:, variant:)`；子 `TextSpan` 只写差异，不要重复 root 样式。
 - 先复用已有 variant；新增 variant 按 breaking change 评估。
 - 局部只覆盖需要的字段：`style` / `color` / `maxLines` / `overflow` / `textScaler`。
 - 品牌样式在主题构建处装一次：`ThemeData.withWTextStyles(WTextStyles.fromTextTheme(...))`。
@@ -130,6 +132,8 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 视觉与布局：尺寸、`fit`、圆角、边框、占位比例等。不要用它控制加载 / 重试行为。
 9.0 起 `copyWith(null)` 表示保留字段；清空可空字段用 `withoutWidth` / `withoutBorderRadius` 等 `without*`。
+设置 `width` / `height` 且未显式传 `aspectRatio` 时，`copyWith` 会清空比例，避免
+`WImageStyle.cover().square(40)` 这类组合触发断言。
 
 ### WImageLoadOptions 配置
 
@@ -139,6 +143,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 ### WImageSlots 配置
 
 单图的占位 / 错误 / 进度 / 重试 UI。App 级默认用 `WImageTheme`，单图覆盖用 `slots`。
+builder 的 `data` 是原始 source 字符串（Base64 可能很大），不要拼进日志 / 文本 UI。
 
 ### WImageTheme
 
@@ -166,6 +171,8 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 `WBadge` 用于角标 / 数量提示；位置用 `position`，视觉用 `style`，显隐用 `showBadge`。
 需要读屏上下文时传 `semanticLabel`（如「3 条未读」），气泡内容不再单独朗读。
+数量角标用 `WBadge.count(count:, maxCount:)`，圆点用 `WBadge.dot()`。
+位置用 `position`，额外位移用 `offset`（正值向右 / 向下）。
 
 ### WBadgeStyle / WBadgePosition
 
@@ -179,51 +186,62 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 - 与 `SmartRefresher` 组合时，刷新壳在外、`WListView` 在内；不要把 `SmartRefresher`
   包在 `WAsyncView` 外面（异步场景见 `docs/agents/async.md`）。
 - 头部 / 尾部 / 空状态通过对应 slot 传入，不要在 itemBuilder 里用 index 判断。
+- `WListViewSliver.overlap` 只调整布局；重叠区域的 hit test 不可靠，点击放在 item 内部。
 
 ## 7. WScaffold - 增强脚手架
 
-- 普通页面：`WScaffold` + `WAppBar`；需要自定义顶栏时 `WScaffold(appBar: WAppBar(...))`，
-  也可以传任意 `PreferredSizeWidget`（Material `AppBar` / `SliverAppBar`）。
+- 默认顶栏用 `WScaffold.basic(title: ...)`；需要自定义顶栏时用
+  `WScaffold(appBar: WAppBar(...))`，也可以传任意 `PreferredSizeWidget`
+  （Material `AppBar` / `SliverAppBar`）。两个入口分开，不再在同一个构造器里混用。
 - `WAppBar` 自身实现 `PreferredSizeWidget`；传 `WAppBar` 时 `includeStatusBar` 必须为 true。
-- 传了 `appBar` 时不要再传 `title` / `titleWidget` / `leading` / `actions` / `onBack` /
-  `appBarStyle` / `appBarBottom`，否则 assert；且 `appBar` 必须 `includeStatusBar: true`，
-  `WScaffold` 自身的 `automaticallyImplyLeading` / `centerTitle` 保持默认。
+- `drawer` / `endDrawer` / `bottomSheet` / `persistentFooterButtons` / `extendBody` 直接透传给
+  底层 `Scaffold`，不需要为此改用原生 `Scaffold`。
+- 有 `bottomNavigationBar` 时 body 不再加底部安全区；底栏不是 `WNavBar`（已默认
+  `safeArea: true`）时传 `bottomNavigationBarSafeArea: true`，由 `WScaffold` 包 `SafeArea`。
 
 ## 8. 其他组件速览
 
 ### WAppBar
 
 `WAppBar` 是自定义顶栏；默认包含状态栏背景，嵌套在 `SafeArea` 中时可传
-`includeStatusBar: false`。样式用 `WAppBarStyle`。
+`includeStatusBar: false`。样式用 `WAppBarStyle`；`leadingWidth` / `actionsPadding`
+控制两侧布局，`boxShadow` 提供阴影（自绘顶栏没有 Material elevation）。
 
 ### WStep
 
 `WStep` / `WStepFlow` 用于步骤指示；样式与状态用 `WStepStyle` / `WStepState`，
-自定义项 / 分隔线 / 语义用对应的 builder。`WStepStyle` 的完成 / 当前 / 未开始颜色
+自定义项 / 分隔线 / 语义用对应的 builder。`WStep` 与 `WStepFlow` 都会在构造时复制并冻结
+`labels`；因此 `WStep` 不再是 `const` 构造器。`WStepStyle` 的完成 / 当前 / 未开始颜色
 未显式设置时分别取 `ColorScheme.primary` / `primary` / `outline`，暗色主题下自动跟随。
 
 ### WNavBar / WNavController
 
 底部导航：`WNavBar` + `WNavController`；`WNavController` 需要页面 State 提供 `vsync`，
-并由调用方 `dispose`。配置用 `WNavBarStyle`。
+并由调用方 `dispose`。配置用 `WNavBarStyle`。`WNavBar` 默认 `safeArea: true`，会避开
+底部 home indicator；已在外层包 `SafeArea` 时传 `safeArea: false`。
+切换前拦截用 `onBeforeTap`（`FutureOr<bool>`，返回 false 阻止）。
+默认 item 用 `destinations: [WNavDestination(...)]`；需要完全自定义时用 `itemBuilder`，两者互斥。
 
 ### WTabBar
 
 顶部 tab：`WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`；
-配置用 `WTabBarStyle`。
+配置用 `WTabBarStyle`（含 `labelColor` / `unselectedLabelColor` / `labelPadding` /
+`indicatorPadding` / `textScaler` / `indicatorAnimation` / `mouseCursor` /
+`enableFeedback` / `splashBorderRadius`）。
 
 ### WActionRow / WSelectableRow
 
 横向操作 / 可选行；按钮组用 `WActionRow`，需要选中态用 `WSelectableRow`。
 
-### WClipRRect
+### 圆角裁剪
 
-圆角裁剪；直接传 `borderRadius`，不要再手写一层 `ClipRRect`。
+直接用 Flutter 原生 `ClipRRect`。`WClipRRect` 已在 11.0 删除，它只是原生组件的纯别名。
 
 ### WGradientCircularProgressIndicator
 
-渐变圆形进度指示器；颜色、半径、进度由构造参数控制。未传 `backgroundColor` 时
-取 `ColorScheme.surfaceContainerHighest`，不写死浅灰。
+渐变圆形进度指示器；颜色、半径、进度由构造参数控制。确定进度传 `value`；
+不知道总进度时传 `indeterminate: true`，组件会旋转一段固定弧长且不暴露百分比语义。
+未传 `backgroundColor` 时取 `ColorScheme.surfaceContainerHighest`，不写死浅灰。
 
 ### WKeepAliveWrapper
 
@@ -243,15 +261,20 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 字符串转数字 / 去空格 / hex 颜色 / 资源路径；新增前先看 `packages/ui/lib/src/extensions/` 是否已有。
 
-### WNumExtension
+### WNumLayoutExtension / WNumFormatExtension
 
-数字格式化与间距 / 圆角 / `BorderSide` 糖：`toThousandsSeparated` / `toCurrency` / `toPercent` 等。
+`num` 扩展按用途拆成两个：`WNumLayoutExtension` 提供 `heightBox` / `widthBox` /
+`squareBox` / `padding` / `borderRadius` / `borderSideOf(context)`；
+`WNumFormatExtension` 提供 `toThousandsSeparated` / `toCurrency` / `toPercent` /
+`toPercentWithFixed` / `toPadLeft`。
 `borderSide` 已在 10.0 删除；边框统一用 `borderSideOf(context)` 跟随 `ColorScheme.outline`。
 
 ### WWidgetExtension
 
-容器装饰、布局调整等 Widget 扩展。需要 RTL 时用 `withStartPadding` / `withEndPadding`；
-`withLeftPadding` / `withRightPadding` 是物理方向。
+容器装饰、布局调整、安全区与点击糖；`toPressable` 也在这里。
+需要 RTL 时用 `withStartPadding` / `withEndPadding`；物理左右 / 上下 padding 直接用 Flutter
+`Padding`（`withHorizontalPadding` / `withVerticalPadding` / `withLeftPadding` /
+`withRightPadding` / `withTopPadding` / `withBottomPadding` 已在 11.0 删除）。
 
 ### WBoxDecorationExtension / WGradients / WShadows
 
@@ -261,9 +284,10 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 GlobalKey 查找 / 定位；不要用它替代正常的 controller 传递。
 
-### WTextStyleExtension
+### TextStyle
 
-`TextStyle` 的 `bold` / `withColor` / `withSize` 扩展；品牌字体仍应放 `WTextStyles`。
+直接用 Flutter `TextStyle.copyWith`；`WTextStyleExtension` 已在 11.0 删除。
+品牌字体仍应放 `WTextStyles`。
 
 ## 10. 工具类
 
@@ -287,14 +311,15 @@ GlobalKey 查找 / 定位；不要用它替代正常的 controller 传递。
 `WListView` 不再单独声明 `cacheExtent`；不同 Flutter 版本使用框架默认值，避免 3.44+
 deprecated 警告。
 
-### WScreen delegate
+### WScreenScope
 
-delegate 是全局可变状态：App 启动时注入一次；测试结束后还原，避免测试间串值。
+`WScreenScope` 是子树级注入：在 App 根节点包一层即可；测试里换新的 scope 包围被测组件，
+不要恢复全局可变状态。
 
 ### WButton 样式复用
 
 项目页面优先用项目 UI 层的 `AppButtons`；组件示例 / 独立 Demo 可用
-`WButtonStyles.of(context)` 的预设。不要在每个调用点重复写完整 `WButtonStyle`。
+`WButtonStyleSet.of(context)` 的预设。不要在每个调用点重复写完整 `WButtonStyle`。
 
 ### WImage 平台差异
 

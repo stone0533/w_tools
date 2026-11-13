@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^10.2.0
+  w_tools_ui: ^11.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -46,7 +46,7 @@ class DemoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WScaffold(
+    return WScaffold.basic(
       title: 'Demo',
       body: const Center(
         child: WText(
@@ -79,7 +79,7 @@ WImage.source(
 
 空 data（`''` / 纯空白）表示「没有配图」，**不是加载失败**：默认渲染中性 empty 占位，
 不会触发 `errorWidgetBuilder`，也不会回调 `onLoadStatusChanged(failed)`。需要自定义时用
-`WImageSlots(emptyWidget: ...)` 或 `emptyBuilder: ...`；要区分「空」和「加载失败」就在这里分支。
+`WImageSlots(emptyBuilder: ...)`；要区分「空」和「加载失败」就在这里分支。
 
 内置 loading / retry / 图片错误文案按当前 `Locale` 取中文或英文；
 `WButtonSemantics.loadingLabel` / `WImageSlots.retryLabel` 传非空字符串可覆盖。
@@ -104,7 +104,7 @@ WImage.source(
 | 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
 | 需要加载行为 | `options: WImageLoadOptions(...)` |
 | 需要单图占位/错误/进度/重试 UI | `slots: WImageSlots(...)` |
-| 没有配图 / 空 data | `slots: WImageSlots(emptyWidget: ...)` |
+| 没有配图 / 空 data | `slots: WImageSlots(emptyBuilder: ...)` |
 | 需要视觉样式 | `style: WImageStyle(...)` |
 | 需要 App 级默认占位/错误/进度 | `WImageTheme(slots: WImageSlots(...))` |
 | 需要预加载 | `await WImageSource.resolve(...)` + `precacheImage` |
@@ -173,6 +173,7 @@ WImageStyle.thumbnail(80)
 WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)
 
 const WImageStyle().square(40).rounded(20)
+WImageStyle.cover().square(40) // 设置 width/height 时自动清空 aspectRatio
 ```
 
 ### 宽度铺满 + 高度上限
@@ -225,6 +226,13 @@ WText(
   variant: WTextVariant.price,
   style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
 );
+WText.rich(
+  textSpan: TextSpan(
+    text: '¥128',
+    children: [TextSpan(text: ' 起', style: TextStyle(fontSize: 12))],
+  ),
+  variant: WTextVariant.price,
+);
 ```
 
 11 个 variant：`display/headline/title/price/body/bodyStrong/number/caption/label/button/badge`。
@@ -253,24 +261,31 @@ WIconText.custom(icon: SvgPicture.asset('assets/star.svg'), text: '收藏'); // 
 ```dart
 WButton(label: '保存', onTap: save);
 WButton(label: '提交', loading: true, enabled: false, onTap: submit);
-WButton(icon: Icons.add, label: '新增', style: WButtonStyles.of(context).primary, onTap: add);
+WButton(icon: Icons.add, label: '新增', style: WButtonStyleSet.of(context).primary, onTap: add);
+WButton(icon: Icons.favorite, tooltip: '收藏', isSelected: true, onTap: toggle);
 WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 ```
 
 任意 child / 卡片点击用 `WPressable`；需要键盘、最小点击区域或 button 语义时用 `WButton`。
+图标按钮用 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）。
+`WButtonStyle.filled` 未传 `foregroundColor` 时按背景亮度自动选黑 / 白。
 
 ## 页面骨架与布局
 
 ```dart
-WScaffold(
+WScaffold.basic(
   title: '首页',
   actions: [IconButton(onPressed: ..., icon: const Icon(Icons.search))],
   floatingActionButton: FloatingActionButton(onPressed: ..., child: const Icon(Icons.add)),
+  drawer: Drawer(...),        // drawer / endDrawer / bottomSheet / footer 均透传
+  bottomSheet: ...,
   body: ...,
 );
 
 // 自定义顶栏：WAppBar 或其他 PreferredSizeWidget（Material AppBar / SliverAppBar）
 WScaffold(appBar: WAppBar(title: '详情'), body: ...);
+
+// 底栏不是 WNavBar 时：WScaffold(bottomNavigationBarSafeArea: true, ...)
 
 WStep(labels: const ['下单', '付款', '完成'], current: 2);
 ```
@@ -288,8 +303,12 @@ WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap:
 
 ```dart
 WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
+WBadge.count(count: 120, maxCount: 99, child: const Icon(Icons.notifications));
+WBadge.dot(child: const Icon(Icons.notifications));
+WBadge(offset: const Offset(4, -4), badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: const Icon(Icons.notifications));
-WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
+WClipRRect 已删除；圆角裁剪直接用 Flutter 原生 `ClipRRect`：
+ClipRRect(borderRadius: BorderRadius.circular(12), child: image);
 WActionRow(children: [WButton(...), WButton(...)]);
 ```
 
@@ -297,6 +316,7 @@ WActionRow(children: [WButton(...), WButton(...)]);
 
 ```dart
 WGradientCircularProgressIndicator(radius: 24, value: 0.6, colors: const [Colors.indigo, Colors.lightBlue]);
+WGradientCircularProgressIndicator(radius: 24, indeterminate: true, colors: const [Colors.indigo, Colors.lightBlue]);
 WKeepAliveWrapper(child: item);
 WNotificationListener<ScrollNotification>(
   onNotificationPercentage: (p) { ... },
@@ -321,6 +341,7 @@ class _NavDemoState extends State<NavDemo> {
     return WNavBar(
       style: const WNavBarStyle(),
       controller: _controller,
+      onBeforeTap: (index) async => true, // 返回 false 阻止切换
       itemBuilder: (context, index, selected) => Text('Tab $index'),
     );
   }
@@ -328,6 +349,9 @@ class _NavDemoState extends State<NavDemo> {
 ```
 
 `WNavController` 需要页面 State 提供 `vsync`，并由调用方 `dispose`。
+`WNavBar` 默认 `safeArea: true`，会避开底部 home indicator；已在外层包 `SafeArea` 时传
+`safeArea: false`。切换前拦截用 `onBeforeTap`（`FutureOr<bool>`）。
+默认 item 可传 `destinations: [WNavDestination(...)]`；完全自定义用 `itemBuilder`。
 
 顶部 tab：
 
@@ -337,7 +361,11 @@ DefaultTabController(
   child: Column(
     children: [
       WTabBar(
-        style: const WTabBarStyle(),
+        style: const WTabBarStyle(
+          labelColor: Colors.indigo,
+          enableFeedback: false,
+          indicatorAnimation: TabIndicatorAnimation.elastic,
+        ),
         tabs: const [Text('全部'), Text('已完成')],
       ),
       const Expanded(
@@ -351,7 +379,8 @@ DefaultTabController(
 ```
 
 `WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`。
-默认 overlay / 水波纹跟 `TabBarTheme`；要关闭灰色按压块 + ripple，用
+`WTabBarStyle` 支持 `labelColor` / `unselectedLabelColor` / `labelPadding` /
+`indicatorPadding` / `textScaler`；默认 overlay / 水波纹跟 `TabBarTheme`。要关闭灰色按压块 + ripple，用
 `WTabBarStyle.noSplash`，或分别设置 `overlayColor: Colors.transparent` /
 `splashFactory: NoSplash.splashFactory`。默认值不强制透明，避免覆盖 Material 主题。
 
@@ -390,7 +419,7 @@ WAssets.imagePath = 'assets/icons/';
 'logo.png'.assetImagePath;
 ```
 
-`WScreen` 无 scope / delegate 时返回原始值；需要 `ScreenUtil` 时在 App 根节点注入
+`WScreen` 无 `WScreenScope` 时返回原始值；需要 `ScreenUtil` 时在 App 根节点注入
 `WScreenScope`：
 
 ```dart
@@ -413,7 +442,7 @@ WScreenScope(
 | 文本 / 图片 | `WText` / `WImage` |
 | 按钮 / 点击 | `WButton` / `WPressable` |
 | 徽标 / 横向操作 | `WBadge` / `WActionRow` / `WSelectableRow` |
-| 裁剪 | `WClipRRect` |
+| 裁剪 | Flutter 原生 `ClipRRect`（`WClipRRect` 已删除） |
 | 加载指示 | `WGradientCircularProgressIndicator` |
 | 列表保活 | `WKeepAliveWrapper` |
 | 滚动通知 | `WNotificationListener` |
@@ -421,7 +450,7 @@ WScreenScope(
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
 | 屏幕工具 | `WScreen` / `WScreenScope` |
 | 资源 | `WAssets` |
-| 扩展 | `WColorExtension` / `WImageStyleExtension` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
+| 扩展 | `WColorExtension` / `WImageStyleExtension` / `WStringExtension` / `WNumLayoutExtension` / `WNumFormatExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 
 完整构造参数与成员见 [pub.dev API 文档](https://pub.dev/documentation/w_tools_ui/latest/)
 或 `packages/ui/lib` 源码；模块边界与设计取舍见 [`docs/modules/ui_module.md`](https://github.com/stone0533/w_tools/blob/main/docs/modules/ui_module.md)。

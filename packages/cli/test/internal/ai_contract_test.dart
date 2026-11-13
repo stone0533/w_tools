@@ -155,7 +155,6 @@ void main() {
         'WStepState',
         'WGradients',
         'WShadows',
-        'WTextStyleExtension',
         'WGlobalKeyExtension',
         'WPressEffect',
         'WAssetImageSource',
@@ -166,16 +165,15 @@ void main() {
         'WButtonContentBuilder',
         'WButtonResolvedStyle',
         'WImageErrorView',
-        'WImageFrame',
       ];
       for (final name in names) {
         expect(findComponent(name), isNotNull, reason: '$name 未登记到 catalog');
       }
     });
 
-    test('ui 模板包含 WBadge/WClipRRect/WActionRow/WStep 的选择规则', () {
+    test('ui 模板包含 WBadge/WActionRow/WStep 的选择规则', () {
       for (final template in <String>[templates.agentsUi, templates.agentsUiEn]) {
-        for (final name in <String>['WBadge', 'WClipRRect', 'WActionRow', 'WStep']) {
+        for (final name in <String>['WBadge', 'WActionRow', 'WStep']) {
           expect(template, contains(name), reason: '模板缺少 $name');
         }
       }

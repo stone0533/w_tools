@@ -38,7 +38,7 @@ class MorePage extends StatelessWidget {
       ),
       (
         'WNavBar / WNavController / WTabBar',
-        '切换动画、onItemTap 拦截、WNavBarStyle、WTabBar 配置',
+        '切换动画、onBeforeTap 拦截、WNavBarStyle、WTabBar 配置',
         (_) => const NavDemoPage(),
       ),
       (
@@ -48,7 +48,7 @@ class MorePage extends StatelessWidget {
       ),
     ];
 
-    return WScaffold(
+    return WScaffold.basic(
       title: '更多示例',
       body: ListView(
         padding: const EdgeInsets.all(16),

@@ -7,7 +7,6 @@ export 'src/extensions/color.dart';
 export 'src/extensions/global_key.dart';
 export 'src/extensions/num.dart';
 export 'src/extensions/string.dart';
-export 'src/extensions/text_style.dart';
 export 'src/extensions/widget.dart';
 
 // 工具

@@ -50,6 +50,8 @@ class WButton extends StatefulWidget {
     this.motion = const WButtonMotion(),
     this.semantics = const WButtonSemantics(),
     this.semanticLabel,
+    this.tooltip,
+    this.isSelected,
     this.onTap,
     this.onLongPress,
     this.enabled = true,
@@ -96,6 +98,12 @@ class WButton extends StatefulWidget {
 
   /// 显式无障碍标签；纯图标按钮建议提供
   final String? semanticLabel;
+
+  /// 长按 / hover 提示文案；null 时不包 Tooltip。
+  final String? tooltip;
+
+  /// 是否处于选中态（toggle button）；进入 `Semantics.selected`。
+  final bool? isSelected;
 
   final GestureTapCallback? onTap;
   final GestureLongPressCallback? onLongPress;
@@ -151,7 +159,7 @@ class _WButtonState extends State<WButton> {
       return _cachedStyle!;
     }
     _cachedTheme = theme;
-    final base = widget.style ?? WButtonStyles.of(context).primary;
+    final base = widget.style ?? WButtonStyleSet.of(context).primary;
     final sized = base.applySize(widget.size);
     assert(
       widget.icon == null ||
@@ -303,9 +311,10 @@ class _WButtonState extends State<WButton> {
       return _buildButtonTapTarget(result, style);
     }
 
-    return Semantics(
+    final button = Semantics(
       button: true,
       enabled: interactive,
+      selected: widget.isSelected,
       label: semantics.label,
       hint: semantics.hint,
       onTap: interactive && widget.onTap != null ? () => _activate() : null,
@@ -353,5 +362,14 @@ class _WButtonState extends State<WButton> {
         ),
       ),
     );
+
+    final tooltip = widget.tooltip;
+    return tooltip == null
+        ? button
+        : Tooltip(
+            message: tooltip,
+            excludeFromSemantics: true,
+            child: button,
+          );
   }
 }

@@ -13,7 +13,7 @@ class ScaffoldDemoPage extends StatelessWidget {
     final screen = WScreen.of(context);
     final scheme = Theme.of(context).colorScheme;
 
-    return WScaffold(
+    return WScaffold.basic(
       title: 'WScaffold / WAppBar / WScreen',
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -26,7 +26,7 @@ class ScaffoldDemoPage extends StatelessWidget {
               children: [
                 DemoBox(
                   height: 280,
-                  child: WScaffold(
+                  child: WScaffold.basic(
                     title: '订单详情',
                     actions: [
                       IconButton(
@@ -46,7 +46,7 @@ class ScaffoldDemoPage extends StatelessWidget {
                   ),
                 ),
                 const CodeText(
-                  "WScaffold(\n"
+                  "WScaffold.basic(\n"
                   "  title: '订单详情',\n"
                   "  actions: [IconButton(...)],\n"
                   "  onBack: () {},\n"
@@ -62,7 +62,7 @@ class ScaffoldDemoPage extends StatelessWidget {
             subtitle: '有 bottomNavigationBar 时，body 不再重复加底部安全区',
             child: DemoBox(
               height: 280,
-              child: WScaffold(
+              child: WScaffold.basic(
                 title: 'Tab 页',
                 appBarBottom: PreferredSize(
                   preferredSize: Size.fromHeight(40),
@@ -83,7 +83,7 @@ class ScaffoldDemoPage extends StatelessWidget {
             subtitle: 'underlay 在 body 之下，适合渐变背景',
             child: DemoBox(
               height: 300,
-              child: WScaffold(
+              child: WScaffold.basic(
                 title: '渐变背景',
                 backgroundColor: Colors.transparent,
                 includeTopSafeArea: true,
@@ -107,7 +107,7 @@ class ScaffoldDemoPage extends StatelessWidget {
           ),
           const DemoSection(
             title: 'WScaffold：appBar 完全覆盖',
-            subtitle: '传 appBar 时，WScaffold 上的 title/leading/actions 必须保持默认',
+            subtitle: '显式 appBar 用 WScaffold；默认顶栏用 WScaffold.basic',
             child: DemoBox(
               height: 260,
               child: WScaffold(

@@ -49,6 +49,20 @@ void main() {
       expect(() => motion.validate(), returnsNormally);
     });
 
+    test('filled 未传 foregroundColor 时按背景亮度推导前景色', () {
+      final dark = WButtonStyle.filled(backgroundColor: Colors.black);
+      expect(dark.foregroundColor?.resolve(<WidgetState>{}), Colors.white);
+
+      final light = WButtonStyle.filled(backgroundColor: Colors.white);
+      expect(light.foregroundColor?.resolve(<WidgetState>{}), Colors.black);
+
+      final explicit = WButtonStyle.filled(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.amber,
+      );
+      expect(explicit.foregroundColor?.resolve(<WidgetState>{}), Colors.amber);
+    });
+
     test('backgroundColor 与 gradient 互斥（debug assert）', () {
       const style = WButtonStyle(
         backgroundColor: WidgetStatePropertyAll(Colors.red),
@@ -791,6 +805,32 @@ void main() {
       expect(semantics.properties.hint, '关闭当前弹窗');
       expect(semantics.properties.onTap, isNotNull);
     });
+
+    testWidgets('tooltip / isSelected 进入 Tooltip 与 Semantics', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            label: '收藏',
+            tooltip: '收藏',
+            isSelected: true,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.byTooltip('收藏'), findsOneWidget);
+      final semantics = tester
+          .widgetList<Semantics>(
+            find.descendant(
+              of: find.byType(WButton),
+              matching: find.byType(Semantics),
+            ),
+          )
+          .firstWhere((s) => s.properties.button == true);
+      expect(semantics.properties.selected, isTrue);
+      handle.dispose();
+    });
   });
 
   testWidgets('全宽 WButton 的 label 居中', (tester) async {
@@ -851,7 +891,7 @@ void main() {
       );
     });
 
-    testWidgets('WButtonStyles.of 按 ThemeData 缓存', (tester) async {
+    testWidgets('WButtonStyleSet.of 按 ThemeData 缓存', (tester) async {
       final theme = ThemeData(useMaterial3: true);
       late BuildContext context;
 
@@ -867,8 +907,8 @@ void main() {
         ),
       );
 
-      final first = WButtonStyles.of(context);
-      final second = WButtonStyles.of(context);
+      final first = WButtonStyleSet.of(context);
+      final second = WButtonStyleSet.of(context);
       expect(identical(first.primary, second.primary), isTrue);
       expect(first.danger.backgroundColor, isNotNull);
     });

@@ -43,16 +43,32 @@ class AppScaffold extends StatelessWidget {
       'AppScaffold: 传了 appBar 时不要再传 title/leading/actions/onBack',
     );
 
-    final hasCustomAppBar = appBar != null;
+    if (appBar != null) {
+      return WScaffold(
+        appBar: appBar,
+        body: body,
+        bottomNavigationBar: bottomNavigationBar,
+        floatingActionButton: floatingActionButton,
+      );
+    }
 
-    return WScaffold(
-      appBar: appBar,
-      title: hasCustomAppBar ? null : title,
-      titleWidget: hasCustomAppBar ? null : titleWidget,
-      leading: hasCustomAppBar ? null : leading,
-      actions: hasCustomAppBar ? const <Widget>[] : actions,
-      onBack: hasCustomAppBar ? null : onBack,
-      appBarStyle: hasCustomAppBar ? null : AppBars.style(context),
+    final hasTopBar =
+        title != null || titleWidget != null || leading != null || actions.isNotEmpty || onBack != null;
+    if (!hasTopBar) {
+      return WScaffold(
+        body: body,
+        bottomNavigationBar: bottomNavigationBar,
+        floatingActionButton: floatingActionButton,
+      );
+    }
+
+    return WScaffold.basic(
+      title: title ?? '',
+      titleWidget: titleWidget,
+      leading: leading,
+      actions: actions,
+      onBack: onBack,
+      appBarStyle: AppBars.style(context),
       body: body,
       bottomNavigationBar: bottomNavigationBar,
       floatingActionButton: floatingActionButton,

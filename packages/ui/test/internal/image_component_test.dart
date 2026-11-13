@@ -157,6 +157,15 @@ void main() {
     expect(controller.retry, returnsNormally);
   });
 
+  testWidgets('WImageController dispose 后 retry / 二次 dispose 安全', (tester) async {
+    final controller = WImageController();
+    controller.dispose();
+
+    expect(controller.isAttached, isFalse);
+    expect(controller.retry, returnsNormally);
+    expect(controller.dispose, returnsNormally);
+  });
+
   group('WImage', () {
     test('should build with config', () {
       const style = WImageStyle(width: 100, height: 100);
@@ -187,7 +196,7 @@ void main() {
             home: Scaffold(
               body: WImage.source(
                 source: WImageSource.parse('data:image/png;base64,@@bad@@'),
-                slots: const WImageSlots(placeholder: Text('style')),
+                slots: WImageSlots(placeholderBuilder: (context, data) => const Text('style')),
               ),
             ),
           ),
@@ -446,7 +455,9 @@ void main() {
       Widget build() => MaterialApp(
         home: WImage.source(
           source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
-          slots: const WImageSlots(errorWidget: Text('base64-error')),
+          slots: WImageSlots(
+            errorWidgetBuilder: (context, data, error) => const Text('base64-error'),
+          ),
           onLoadStatusChanged: statuses.add,
         ),
       );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// num 扩展类，提供便捷的 SizedBox 创建方法和其他实用方法
-extension WNumExtension on num {
+/// num 布局扩展：SizedBox / EdgeInsets / BorderRadius / BorderSide 糖
+extension WNumLayoutExtension on num {
   /// 创建指定高度的 SizedBox
   ///
   /// 返回：指定高度的 SizedBox 实例
@@ -42,7 +42,10 @@ extension WNumExtension on num {
     width: toDouble(),
     color: color ?? Theme.of(context).colorScheme.outline,
   );
+}
 
+/// num 格式化扩展：千分位 / 货币 / 百分比 / 前导零
+extension WNumFormatExtension on num {
   /// 转换为带千分位分隔符的字符串
   ///
   /// 科学计数法（如 `1e+21`、`1.5e-7`）会先展开为普通十进制再分组；

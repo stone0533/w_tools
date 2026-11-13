@@ -48,7 +48,7 @@ class _StepsDemoPageState extends State<StepsDemoPage> {
       ),
     );
 
-    return WScaffold(
+    return WScaffold.basic(
       title: 'WStep / WStepFlow',
       body: ListView(
         padding: const EdgeInsets.all(16),

@@ -3,12 +3,14 @@ import 'package:flutter/services.dart';
 
 import 'appbar.dart';
 
-/// 项目页面脚手架：默认顶部栏 + body + 常用 Scaffold 槽位。
+/// 项目页面脚手架。
 ///
-/// 只传 `title` 时自动构建 [WAppBar]；特殊顶部栏用 [appBar] 覆盖。
-/// 两种方式二选一：显式 [appBar] 时不要再传便捷参数；新代码推荐显式 `appBar: WAppBar(...)`。
+/// - [WScaffold]：显式传 [appBar]（任意 [PreferredSizeWidget]），只负责 body / 槽位；
+/// - [WScaffold.basic]：只传标题等参数，自动构建 [WAppBar]。
+///
+/// 两种入口分开，避免“传了 appBar 又传 title”的互斥分支。
 class WScaffold extends StatelessWidget {
-  /// 顶部栏覆盖；与 title/titleWidget/leading/actions/onBack 互斥。
+  /// 顶部栏；仅主构造器使用，与 [WScaffold.basic] 互斥。
   ///
   /// 可以是任意 [PreferredSizeWidget]（如 Material `AppBar` / `SliverAppBar`）；
   /// 传 [WAppBar] 时会校验其包含状态栏。
@@ -22,25 +24,77 @@ class WScaffold extends StatelessWidget {
   final bool automaticallyImplyLeading;
   final bool centerTitle;
 
-  /// 默认顶部栏样式；仅在自动构建 WAppBar 时生效。
+  /// 默认顶部栏样式；仅 [WScaffold.basic] 使用。
   final WAppBarStyle? appBarStyle;
 
-  /// 默认顶部栏的 bottom（如 TabBar）。
+  /// 默认顶部栏的 bottom（如 TabBar）；仅 [WScaffold.basic] 使用。
   final PreferredSizeWidget? appBarBottom;
 
   final Widget? body;
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
+  final Widget? drawer;
+  final Widget? endDrawer;
+  final Widget? bottomSheet;
+  final List<Widget>? persistentFooterButtons;
+  final bool extendBody;
   final Color? backgroundColor;
   final SystemUiOverlayStyle? systemStatusBarStyle;
   final Widget? underlayWidget;
   final bool includeTopSafeArea;
   final bool includeBottomSafeArea;
+
+  /// 给 [bottomNavigationBar] 包一层 `SafeArea(top: false)`。
+  ///
+  /// `WNavBar` 已自带 `safeArea: true`，不要再开；底栏是普通 Widget（非 WNavBar）时
+  /// 打开这个开关，避免压在 home indicator 上。
+  final bool bottomNavigationBarSafeArea;
   final bool resizeToAvoidBottomInset;
 
+  /// 是否由 [WScaffold.basic] 自动构建 WAppBar。
+  final bool _basic;
+
+  bool get _needsDefaultAppBar =>
+      (title?.isNotEmpty ?? false) ||
+      titleWidget != null ||
+      leading != null ||
+      actions.isNotEmpty ||
+      onBack != null ||
+      appBarBottom != null;
+
+  /// 显式顶部栏入口。
   const WScaffold({
     super.key,
     this.appBar,
+    this.body,
+    this.bottomNavigationBar,
+    this.floatingActionButton,
+    this.drawer,
+    this.endDrawer,
+    this.bottomSheet,
+    this.persistentFooterButtons,
+    this.extendBody = false,
+    this.backgroundColor,
+    this.systemStatusBarStyle,
+    this.underlayWidget,
+    this.includeTopSafeArea = false,
+    this.includeBottomSafeArea = true,
+    this.bottomNavigationBarSafeArea = false,
+    this.resizeToAvoidBottomInset = true,
+  }) : title = null,
+       titleWidget = null,
+       leading = null,
+       actions = const <Widget>[],
+       onBack = null,
+       automaticallyImplyLeading = true,
+       centerTitle = true,
+       appBarStyle = null,
+       appBarBottom = null,
+       _basic = false;
+
+  /// 默认顶部栏入口：自动用 [WAppBar] 渲染 [title] / [titleWidget]。
+  const WScaffold.basic({
+    super.key,
     this.title,
     this.titleWidget,
     this.leading,
@@ -53,27 +107,55 @@ class WScaffold extends StatelessWidget {
     this.body,
     this.bottomNavigationBar,
     this.floatingActionButton,
+    this.drawer,
+    this.endDrawer,
+    this.bottomSheet,
+    this.persistentFooterButtons,
+    this.extendBody = false,
     this.backgroundColor,
     this.systemStatusBarStyle,
     this.underlayWidget,
     this.includeTopSafeArea = false,
     this.includeBottomSafeArea = true,
+    this.bottomNavigationBarSafeArea = false,
     this.resizeToAvoidBottomInset = true,
-  }) : assert(
+  }) : appBar = null,
+       _basic = true,
+       assert(
+         title != null || titleWidget != null,
+         'WScaffold.basic: title 与 titleWidget 至少提供一个',
+       ),
+       assert(
          title == null || titleWidget == null,
-         'WScaffold: title 与 titleWidget 只能选一个',
+         'WScaffold.basic: title 与 titleWidget 只能选一个',
        );
-
-  bool get _needsDefaultAppBar =>
-      (title?.isNotEmpty ?? false) ||
-      titleWidget != null ||
-      leading != null ||
-      actions.isNotEmpty ||
-      onBack != null ||
-      appBarBottom != null;
 
   @override
   Widget build(BuildContext context) {
+    if (appBar case final WAppBar bar) {
+      assert(
+        bar.includeStatusBar,
+        'WScaffold: 传 WAppBar 作为 appBar 时必须 includeStatusBar: true',
+      );
+    }
+
+    final PreferredSizeWidget? appBarWidget;
+    if (_basic && _needsDefaultAppBar) {
+      appBarWidget = WAppBar(
+        title: title,
+        titleWidget: titleWidget,
+        leading: leading,
+        actions: actions,
+        bottom: appBarBottom,
+        onBack: onBack,
+        automaticallyImplyLeading: automaticallyImplyLeading,
+        centerTitle: centerTitle,
+        style: appBarStyle ?? const WAppBarStyle(),
+      );
+    } else {
+      appBarWidget = appBar;
+    }
+
     assert(
       appBar == null ||
           (title == null &&
@@ -93,26 +175,6 @@ class WScaffold extends StatelessWidget {
         bar.includeStatusBar,
         'WScaffold: 传 WAppBar 作为 appBar 时必须 includeStatusBar: true',
       );
-    }
-
-    final PreferredSizeWidget? appBarWidget;
-    if (appBar != null) {
-      appBarWidget = appBar;
-    } else if (_needsDefaultAppBar) {
-      final bar = WAppBar(
-        title: title,
-        titleWidget: titleWidget,
-        leading: leading,
-        actions: actions,
-        bottom: appBarBottom,
-        onBack: onBack,
-        automaticallyImplyLeading: automaticallyImplyLeading,
-        centerTitle: centerTitle,
-        style: appBarStyle ?? const WAppBarStyle(),
-      );
-      appBarWidget = bar;
-    } else {
-      appBarWidget = null;
     }
 
     Widget? content = body;
@@ -139,12 +201,21 @@ class WScaffold extends StatelessWidget {
       content = Stack(fit: StackFit.expand, children: children);
     }
 
+    final bottomBar = bottomNavigationBar == null || !bottomNavigationBarSafeArea
+        ? bottomNavigationBar
+        : SafeArea(top: false, child: bottomNavigationBar!);
+
     final scaffold = Scaffold(
       appBar: appBarWidget,
       backgroundColor: backgroundColor,
       body: content,
-      bottomNavigationBar: bottomNavigationBar,
+      bottomNavigationBar: bottomBar,
       floatingActionButton: floatingActionButton,
+      drawer: drawer,
+      endDrawer: endDrawer,
+      bottomSheet: bottomSheet,
+      persistentFooterButtons: persistentFooterButtons,
+      extendBody: extendBody,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
     );
 

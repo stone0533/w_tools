@@ -6,10 +6,10 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 void main() {
   testWidgets('WStep — 默认显示 1 基 label / 状态', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 1,
-          labels: ['One', 'Two', 'Three'],
+          labels: const ['One', 'Two', 'Three'],
         ),
       ),
     );
@@ -56,7 +56,7 @@ void main() {
 
   testWidgets('WStep — WStepFlow 复用流程定义', (tester) async {
     final flow = WStepFlow(
-      labels: ['A', 'B', 'C'],
+      labels: const ['A', 'B', 'C'],
     );
 
     await tester.pumpWidget(
@@ -94,8 +94,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: theme,
-        home: const Scaffold(
-          body: WStep(labels: ['下单', '付款'], current: 1),
+        home: Scaffold(
+          body: WStep(labels: const ['下单', '付款'], current: 1),
         ),
       ),
     );
@@ -109,10 +109,10 @@ void main() {
 
   testWidgets('WStep — completed / current / upcoming 默认状态', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 2,
-          labels: ['A', 'B', 'C'],
+          labels: const ['A', 'B', 'C'],
         ),
       ),
     );
@@ -140,11 +140,11 @@ void main() {
 
   testWidgets('WStep — itemSize 必须大于 0', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 1,
-          labels: ['A'],
-          style: WStepStyle(itemSize: 0),
+          labels: const ['A'],
+          style: const WStepStyle(itemSize: 0),
         ),
       ),
     );
@@ -162,10 +162,10 @@ void main() {
 
   testWidgets('WStep — current 越界断言', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 4,
-          labels: ['A', 'B', 'C'],
+          labels: const ['A', 'B', 'C'],
         ),
       ),
     );
@@ -175,15 +175,30 @@ void main() {
 
   testWidgets('WStep — labels 为空断言', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 1,
-          labels: [],
+          labels: const [],
         ),
       ),
     );
 
     expect(tester.takeException(), isAssertionError);
+  });
+
+  testWidgets('WStep — labels 构造时复制，外部修改不影响', (tester) async {
+    final labels = ['A', 'B', 'C'];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WStep(current: 2, labels: labels),
+      ),
+    );
+
+    labels[1] = 'X';
+    await tester.pump();
+
+    expect(find.text('B'), findsOneWidget);
+    expect(find.text('X'), findsNothing);
   });
 
   testWidgets('WScaffold — 接受任意 PreferredSizeWidget 作为 appBar', (tester) async {
@@ -231,6 +246,47 @@ void main() {
       ),
     );
     expect(find.byType(WGradientCircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('WGradientCircularProgressIndicator — indeterminate 旋转且不暴露百分比', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WGradientCircularProgressIndicator(
+          radius: 40,
+          colors: [Colors.red, Colors.blue],
+          indeterminate: true,
+          semanticsLabel: '加载中',
+        ),
+      ),
+    );
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == '加载中' &&
+            widget.properties.value == null,
+      ),
+      findsOneWidget,
+    );
+
+    Matrix4 matrix() => tester
+        .widget<Transform>(
+          find
+              .descendant(
+                of: find.byType(WGradientCircularProgressIndicator),
+                matching: find.byType(Transform),
+              )
+              .first,
+        )
+        .transform;
+
+    final first = matrix().storage;
+    await tester.pump(const Duration(milliseconds: 300));
+    final second = matrix().storage;
+    expect(second, isNot(equals(first)));
+
+    await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets('WGradientCircularProgressIndicator — 语义进度会 clamp', (tester) async {
@@ -446,6 +502,38 @@ void main() {
     expect(find.byIcon(Icons.search), findsOneWidget);
   });
 
+  testWidgets('WAppBar — leadingWidth / actionsPadding / boxShadow 生效', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: WAppBar(
+            title: '标题',
+            leading: Icon(Icons.menu),
+            actions: [Icon(Icons.share)],
+            style: WAppBarStyle(
+              leadingWidth: 72,
+              actionsPadding: EdgeInsets.only(right: 8),
+              boxShadow: [BoxShadow(color: Color(0x33000000), blurRadius: 4)],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final toolbar = tester.widget<NavigationToolbar>(find.byType(NavigationToolbar));
+    expect(toolbar.leading, isA<SizedBox>());
+    expect((toolbar.leading! as SizedBox).width, 72);
+    expect(toolbar.trailing, isA<Padding>());
+    expect((toolbar.trailing! as Padding).padding, const EdgeInsets.only(right: 8));
+
+    final container = tester.widget<Container>(
+      find.descendant(of: find.byType(WAppBar), matching: find.byType(Container)).first,
+    );
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.boxShadow, isNotNull);
+    expect(decoration.boxShadow, hasLength(1));
+  });
+
   testWidgets('WAppBar — 标题跟随 AppBarTheme.titleTextStyle', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -497,7 +585,7 @@ void main() {
   testWidgets('WScaffold — title 自动生成默认 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '标题',
           body: Text('body'),
         ),
@@ -527,7 +615,7 @@ void main() {
       const MaterialApp(
         home: MediaQuery(
           data: MediaQueryData(padding: EdgeInsets.only(top: 24)),
-          child: WScaffold(
+          child: WScaffold.basic(
             title: '标题',
             body: Text('body'),
           ),
@@ -575,7 +663,8 @@ void main() {
   testWidgets('WScaffold — appBarBottom 会触发默认 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
+          title: '标题',
           appBarBottom: PreferredSize(
             preferredSize: Size.fromHeight(20),
             child: Text('tab'),
@@ -677,6 +766,64 @@ void main() {
     expect(tester.getBottomLeft(find.text('body')).dy, 560);
   });
 
+  testWidgets('WScaffold — bottomNavigationBarSafeArea 让普通底栏避开 inset', (tester) async {
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(bottom: 20),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: const WScaffold(
+            bottomNavigationBarSafeArea: true,
+            body: SizedBox(),
+            bottomNavigationBar: SizedBox(
+              key: Key('nav'),
+              height: 40,
+              child: Text('nav'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getRect(find.byKey(const Key('nav'))).bottom, 580);
+  });
+
+  testWidgets('WScaffold + WNavBar 不重复加底部安全区（回归）', (tester) async {
+    final controller = WNavController(length: 2, vsync: tester);
+    addTearDown(controller.dispose);
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(bottom: 34),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: WScaffold(
+            body: const SizedBox(),
+            bottomNavigationBar: WNavBar(
+              controller: controller,
+              itemBuilder: (context, index, selected) => SizedBox(
+                key: Key('nav-item-$index'),
+                width: 10,
+                height: 10,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // WNavBar 自带 safeArea: true，WScaffold 默认 bottomNavigationBarSafeArea: false。
+    // 只应扣一次 34，而不是 68。
+    expect(
+      tester.getRect(find.byKey(const Key('nav-item-0'))).bottom,
+      closeTo(566, 0.1),
+    );
+  });
+
   testWidgets('WScaffold — appBarBottom 高度包含状态栏', (tester) async {
     final data = MediaQueryData.fromView(tester.view).copyWith(
       padding: const EdgeInsets.only(top: 24),
@@ -685,7 +832,8 @@ void main() {
       MaterialApp(
         home: MediaQuery(
           data: data,
-          child: const WScaffold(
+          child: const WScaffold.basic(
+            title: '标题',
             appBarBottom: PreferredSize(
               preferredSize: Size.fromHeight(20),
               child: Text('tab'),
@@ -702,7 +850,7 @@ void main() {
   testWidgets('WScaffold — 空标题不创建 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '',
           body: Text('body'),
         ),
@@ -716,7 +864,7 @@ void main() {
     var taps = 0;
     await tester.pumpWidget(
       MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '标题',
           automaticallyImplyLeading: false,
           onBack: () => taps++,
@@ -733,7 +881,7 @@ void main() {
   testWidgets('WScaffold — 支持 bottomNavigationBar / floatingActionButton', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '标题',
           body: Text('body'),
           bottomNavigationBar: Text('nav'),
@@ -744,6 +892,32 @@ void main() {
 
     expect(find.text('nav'), findsOneWidget);
     expect(find.byType(FloatingActionButton), findsOneWidget);
+  });
+
+  testWidgets('WScaffold — 透传 drawer / endDrawer / bottomSheet / footer / extendBody', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WScaffold(
+          drawer: Drawer(child: Text('drawer')),
+          endDrawer: Drawer(child: Text('end-drawer')),
+          bottomSheet: SizedBox(key: Key('sheet'), height: 20),
+          persistentFooterButtons: [Text('footer')],
+          extendBody: true,
+          body: SizedBox(),
+        ),
+      ),
+    );
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.drawer, isNotNull);
+    expect(scaffold.endDrawer, isNotNull);
+    expect(scaffold.bottomSheet, isNotNull);
+    expect(scaffold.persistentFooterButtons, isNotNull);
+    expect(scaffold.extendBody, isTrue);
+    expect(find.text('footer'), findsOneWidget);
+    expect(find.byKey(const Key('sheet')), findsOneWidget);
   });
 
   group('GlobalKey 扩展', () {
@@ -833,16 +1007,21 @@ void main() {
     expect(custom.current, Colors.orange);
     expect(custom.upcoming, Colors.grey);
   });
-  testWidgets('WScaffold appBar 与便捷参数互斥', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: WScaffold(
-          appBar: WAppBar(title: 'A'),
-          title: 'B',
-          body: SizedBox.shrink(),
-        ),
-      ),
+  test('WScaffold.basic 必须提供 title 或 titleWidget', () {
+    expect(
+      () => WScaffold.basic(body: const SizedBox.shrink()),
+      throwsAssertionError,
     );
-    expect(tester.takeException(), isAssertionError);
+  });
+
+  test('WScaffold.basic title 与 titleWidget 互斥', () {
+    expect(
+      () => WScaffold.basic(
+        title: 'B',
+        titleWidget: const Text('B'),
+        body: const SizedBox.shrink(),
+      ),
+      throwsAssertionError,
+    );
   });
 }

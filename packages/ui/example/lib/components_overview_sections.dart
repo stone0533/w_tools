@@ -43,7 +43,7 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
       height: 220,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: const WScaffold(
+        child: const WScaffold.basic(
           title: 'WScaffold',
           body: Center(
             child: WText(
@@ -134,8 +134,23 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
     const SizedBox(height: 4),
     const Text('badgeContent 为空时静默不渲染（不报错）'),
     const SizedBox(height: 24),
-    const DemoSectionTitle('WClipRRect 圆角裁剪'),
-    WClipRRect(
+    const DemoSectionTitle('WBadge.count / WBadge.dot'),
+    Row(
+      children: [
+        WBadge.count(
+          count: 120,
+          maxCount: 99,
+          child: const Icon(Icons.notifications, size: 32),
+        ),
+        const SizedBox(width: 32),
+        WBadge.dot(child: const Icon(Icons.mark_email_unread_outlined, size: 32)),
+      ],
+    ),
+    const SizedBox(height: 4),
+    const Text('count 超过 maxCount 显示 99+；dot 不显示数字'),
+    const SizedBox(height: 24),
+    const DemoSectionTitle('ClipRRect 圆角裁剪'),
+    ClipRRect(
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: Container(
@@ -156,12 +171,12 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
       ),
     ),
     const SizedBox(height: 12),
-    const DemoSectionTitle('WClipRRect 非对称圆角 / 默认值'),
+    const DemoSectionTitle('ClipRRect 非对称圆角 / 默认值'),
     const Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
-        WClipRRect(
+        ClipRRect(
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             bottomRight: Radius.circular(24),
@@ -172,7 +187,7 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
             child: ColoredBox(color: Colors.indigo),
           ),
         ),
-        WClipRRect(
+        ClipRRect(
           child: SizedBox(
             width: 96,
             height: 64,
@@ -213,9 +228,9 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
     ),
     const SizedBox(height: 24),
     const DemoSectionTitle('WStep 步骤'),
-    const WStep(
+    WStep(
       current: 2,
-      labels: ['选择', '确认', '完成'],
+      labels: const ['选择', '确认', '完成'],
     ),
     const SizedBox(height: 24),
     const DemoSectionTitle('WListView 列表'),

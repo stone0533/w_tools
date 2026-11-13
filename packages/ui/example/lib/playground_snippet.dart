@@ -38,8 +38,10 @@ String buildPlaygroundSnippet({
   buffer.writeln('    retryCount: $retryCount,');
   buffer.writeln('  ),');
   buffer.writeln('  slots: WImageSlots(');
-  if (customPlaceholder) buffer.writeln('    placeholder: const _Placeholder(),');
-  buffer.writeln('    errorWidget: const _ErrorBox(),');
+  if (customPlaceholder) {
+    buffer.writeln('    placeholderBuilder: (context, data) => const _Placeholder(),');
+  }
+  buffer.writeln('    errorWidgetBuilder: (context, data, error) => const _ErrorBox(),');
   buffer.writeln('  ),');
   buffer.writeln('  controller: controller,');
   buffer.writeln('  onLoadStatusChanged: (status) => ...,');

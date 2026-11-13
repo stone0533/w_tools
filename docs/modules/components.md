@@ -12,10 +12,11 @@
 <!-- catalog:1:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WScaffold` | ui | 页面壳：默认 WAppBar、body、底部导航/FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
-| `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom） | 任意叠放/覆盖布局在页面层用 Container/Stack |
-| `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 | backgroundColor 与 gradient 只能选一个 |
+| `WScaffold` | ui | 页面壳：默认 WAppBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
+| `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom、leadingWidth/actionsPadding/shadow） | 任意叠放/覆盖布局在页面层用 Container/Stack |
+| `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 / leadingWidth / actionsPadding / 阴影 | backgroundColor 与 gradient 只能选一个 |
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 需 vsync 并由页面 State dispose | 不要自己写 `BottomNavigationBar` |
+| `WNavDestination` | ui | WNavBar 默认项的图标 / 选中图标 / 文案 | 需要完全自定义项时用 `WNavBar.itemBuilder` |
 | `WNavBarStyle` | ui | WNavBar 的外层装饰 / padding；新代码优先 | 选中态与切换动画由 `WNavController` 管，不要放进 style |
 | `WTabBar` | ui | 顶部 tab；依赖 TabController / DefaultTabController | 需要下划线跟随的复杂交互时先看它够不够 |
 | `WTabBarStyle` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式；新代码优先 | WTabBar 不自带 controller，不要在这里塞状态 |
@@ -71,7 +72,6 @@
 | `WBase64ImageSource` | ui | WImageSource 的 Base64 实现（通常用 WImageSource.base64） | 不要传超大 Base64 做主线程解码；优先网络 / 资源图 |
 | `WProviderImageSource` | ui | WImageSource 的 ImageProvider 实现（通常用 WImageSource.provider） | 不要用它绕开 WImage 的错误与语义处理；只在已有 provider 时用 |
 | `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / compact） | 不要当页面级错误组件；只用于图片占位 |
-| `WImageFrame` | ui | 把 WImageStyle 的圆角 / 边框 / 阴影应用到任意 child | 不要单独当卡片用；图片装饰走 WImageStyle |
 | `WAsyncStatus` | async | 四态枚举：loading / ready / empty / failed | — |
 <!-- catalog:2:end -->
 
@@ -86,10 +86,9 @@
 | `WButtonStyle` | ui | 按钮视觉：颜色 / 边框 / 圆角 / 内边距 / 尺寸 / 动效 / 语义 | 按钮宽度由父布局决定，`WButtonStyle` 不含 width |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义 / 键盘焦点 / 最小点击区域时用 `WButton` |
-| `WButtonStyles` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要硬编码颜色；页面统一样式用项目 AppButtons 注册表 |
-| `WButtonStyleSet` | ui | WButtonStyles.of 返回的四种语义样式集合 | 不要自己 new 这组样式；用 WButtonStyles.of(context) |
+| `WButtonStyleSet` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要自己 new 这组样式；页面统一样式用项目 AppButtons 注册表 |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
-| `WBadge` | ui | 角标数字 | 不要用于状态点或长文案；状态点用原生 Container，多字提示用 WText |
+| `WBadge` | ui | 角标数字 / 圆点 | 不要用于长文案；多字提示用 WText |
 | `WBadgeStyle` | ui | 角标视觉：背景 / 前景 / 文字 / padding / 圆角 / 边框 | 不要在这里放位置；位置用 WBadgePosition |
 | `WBadgePosition` | ui | 角标位置：topEnd / center | 不要用它做外部布局；它只控制角标相对 child 的位置 |
 | `WFormIcons` | form | 表单图标统一入口（下拉 / 勾选 / 单选 / 密码 / 清空）；WForm 会继承外层 WFormTheme 的图标 | `WFormDefaults` 已删除；`WForm` / `WFormTheme` 已不再接受单项 `xxxIcon` 参数，统一用 `icons:` |
@@ -116,7 +115,6 @@
 <!-- catalog:4:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WClipRRect` | ui | 裁剪 | 不要用它替代图片圆角；图片圆角用 WImageStyle.borderRadius |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
 | `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
@@ -182,7 +180,7 @@
 | `WFormValidatorItem` | form | 单个校验项：自定义规则或复用字段自身 validator | 字段自带 validator 已够用时不要重复声明规则 |
 | `WToast` | toast | 轻提示；带遮罩的提示用 `WToast.showModal`（点遮罩关、不穿透、超时兜底） | 提示不要直接用 `WToast.showCustomDialog`（BotToast 直通口：默认关不掉且点击穿透）；确认框用 Flutter `showDialog` |
 | `WToastStyle` | toast | Toast 的时长 / 对齐 / 背景 / 动画等样式 | 不要为单条 toast 重复造主题；全局用 WToastTheme |
-| `WGradientCircularProgressIndicator` | ui | 加载指示 | 不要用于不确定进度；需要无障碍 value 语义时传 value |
+| `WGradientCircularProgressIndicator` | ui | 确定 / 不确定进度的渐变圆环 | 不确定进度用 `indeterminate: true`，不要传假 value 假装旋转 |
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
 | `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
 | `WNotificationListener` | ui | 声明式监听滚动通知 / 百分比；新代码优先 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
@@ -223,15 +221,14 @@
 <!-- catalog:9:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WNumExtension` | ui | 数字格式化 / 间距 / 圆角 / BorderSide 糖 | 不要重复手写 toStringAsFixed / SizedBox / EdgeInsets |
+| `WNumLayoutExtension` | ui | num 的 SizedBox / EdgeInsets / BorderRadius / BorderSide 糖 | 不要重复手写 SizedBox / EdgeInsets / BorderRadius |
+| `WNumFormatExtension` | ui | 数字格式化：千分位 / 货币 / 百分比 / 前导零 | 不要重复手写 toStringAsFixed / 正则分组 |
 | `WStringExtension` | ui | String 转数字 / 去空格 / hex 颜色 / 资源路径 | 图片组件转换用 `WStringExtension` 的路径方法 |
 | `WBoxDecorationExtension` | ui | BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影） | 不要每次重写完整 BoxDecoration |
-| `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight | 需要 button 语义用 `WButton`；物理左右用 withLeftPadding / withRightPadding |
-| `WUiWidgetExtension` | ui | `toPressable`（任意 child 点击，无 button 语义） | 需要 button 语义用 `WButton` |
+| `WWidgetExtension` | ui | Widget 安全空间 / 方向 padding / 装饰 / IntrinsicHeight / toPressable | 需要 button 语义用 `WButton`；物理 padding 直接用 Flutter Padding |
 | `WColorExtension` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
 | `WGradients` | ui | 预设渐变（vertical / horizontal / diagonal / radial） | 不要写死品牌色；它只提供方向，颜色由调用方传 |
 | `WShadows` | ui | 预设阴影（none / card / elevated / floating） | 不要用于深色模式文字阴影；它只是中性预设 |
-| `WTextStyleExtension` | ui | TextStyle 快捷修改（bold / withColor / withSize） | 不要用它替代 WTextStyles 做全局字体；只做一次性覆盖 |
 | `WGlobalKeyExtension` | ui | GlobalKey 位置 / 边界（offset / rect） | 不要用它替代 controller / 状态传递；只做读取位置 |
 <!-- catalog:9:end -->
 

@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 extension WGlobalKeyExtension on GlobalKey {
   /// 获取组件在全局坐标系中的位置
   ///
-  /// 组件不可见时返回 null。
+  /// 组件不可见 / 尚未布局时返回 null。
   Offset? offset() {
     final object = currentContext?.findRenderObject();
-    if (object is! RenderBox) return null;
+    if (object is! RenderBox || !object.hasSize) return null;
     return object.localToGlobal(Offset.zero);
   }
 

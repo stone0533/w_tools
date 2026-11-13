@@ -18,7 +18,7 @@ void main() {
         _wrap(
           WImage.source(
             source: WImageSource.network(_url),
-            slots: const WImageSlots(placeholder: Text('LOAD')),
+            slots: WImageSlots(placeholderBuilder: (context, data) => const Text('LOAD')),
           ),
         ),
       );

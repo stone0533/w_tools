@@ -37,7 +37,7 @@ class TextDemoPage extends StatelessWidget {
       ),
     );
 
-    return WScaffold(
+    return WScaffold.basic(
       title: 'WText / WTextStyles',
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -74,6 +74,19 @@ class TextDemoPage extends StatelessWidget {
                     ),
                   ),
               ],
+            ),
+          ),
+          const DemoSection(
+            title: 'WText.rich',
+            subtitle: '混合样式仍复用 variant 的根样式',
+            child: WText.rich(
+              textSpan: TextSpan(
+                text: '¥128',
+                children: [
+                  TextSpan(text: ' 起', style: TextStyle(fontSize: 12)),
+                ],
+              ),
+              variant: WTextVariant.price,
             ),
           ),
           const DemoSection(

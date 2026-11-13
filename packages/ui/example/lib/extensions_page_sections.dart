@@ -34,7 +34,7 @@ List<Widget> buildExtensionVisualSections({
             children: [
               WButton(
                 label: '读取位置',
-                style: WButtonStyles.of(context).secondary,
+                style: WButtonStyleSet.of(context).secondary,
                 onTap: () {
                   final offset = boxKey.offset();
                   final rect = boxKey.rect();

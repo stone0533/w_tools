@@ -106,7 +106,7 @@ void main() {
         WImage.source(
           source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
           style: const WImageStyle(width: 64, height: 64),
-          slots: const WImageSlots(errorWidget: _errorBox),
+          slots: WImageSlots(errorWidgetBuilder: (context, data, error) => _errorBox),
         ),
       ),
     );

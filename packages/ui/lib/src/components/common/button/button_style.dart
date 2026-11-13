@@ -56,6 +56,9 @@ class WButtonStyle {
   final double gap;
 
   /// 填充按钮的常用构造。
+  ///
+  /// 未传 [foregroundColor] 时按背景亮度自动选黑 / 白，避免深色背景上
+  /// 文字沿用环境默认色而不可读；要固定品牌前景色时显式传。
   factory WButtonStyle.filled({
     required Color backgroundColor,
     Color? foregroundColor,
@@ -64,9 +67,14 @@ class WButtonStyle {
     EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     TextStyle? textStyle,
   }) {
+    final onColor =
+        foregroundColor ??
+        (ThemeData.estimateBrightnessForColor(backgroundColor) == Brightness.dark
+            ? Colors.white
+            : Colors.black);
     return WButtonStyle(
       backgroundColor: WidgetStatePropertyAll(backgroundColor),
-      foregroundColor: foregroundColor == null ? null : WidgetStatePropertyAll(foregroundColor),
+      foregroundColor: WidgetStatePropertyAll(onColor),
       border: borderColor == null ? null : WidgetStatePropertyAll(Border.all(color: borderColor)),
       borderRadius: borderRadius ?? BorderRadius.circular(8),
       padding: padding,

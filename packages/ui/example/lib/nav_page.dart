@@ -59,14 +59,14 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return WScaffold(
+    return WScaffold.basic(
       title: 'WNavBar / WNavController / WTabBar',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           DemoSection(
             title: 'WNavController：animateTo / currentIndex / 状态',
-            subtitle: 'onItemTap 返回 false 可阻止切换',
+            subtitle: 'onBeforeTap 返回 false 可阻止切换',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -75,7 +75,7 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
                   child: WNavBar(
                     controller: _nav,
                     itemBuilder: _itemBuilder,
-                    onItemTap: (index) async {
+                    onBeforeTap: (index) async {
                       setState(() => _lastTap = '${_items[index].$2}（$index）');
                       if (_blockLast && index == _items.length - 1) {
                         return false;
@@ -91,12 +91,12 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
                   children: [
                     WButton(
                       label: 'animateTo(2)',
-                      style: WButtonStyles.of(context).secondary,
+                      style: WButtonStyleSet.of(context).secondary,
                       onTap: () => _nav.animateTo(2),
                     ),
                     WButton(
                       label: 'currentIndex = 0',
-                      style: WButtonStyles.of(context).secondary,
+                      style: WButtonStyleSet.of(context).secondary,
                       onTap: () => _nav.currentIndex = 0,
                     ),
                   ],

@@ -19,7 +19,6 @@ import 'image_slots.dart';
 import 'image_theme.dart';
 import 'image_types.dart';
 
-export 'image_frame.dart';
 export 'image_error_view.dart';
 export 'image_source.dart';
 export 'image_style.dart';
@@ -42,6 +41,7 @@ class WImageController {
 
   _WImageState? _state;
   WImageLoader? _loader;
+  bool _disposed = false;
 
   /// 是否已绑定到 [WImage]
   bool get isAttached => _state != null;
@@ -54,11 +54,16 @@ class WImageController {
 
   /// 手动重新加载
   ///
-  /// 触发一次新的请求；组件未挂载时是空操作。
-  void retry() => _loader?.retryNow();
+  /// 触发一次新的请求；组件未挂载或 controller 已释放时是空操作。
+  void retry() {
+    if (_disposed) return;
+    _loader?.retryNow();
+  }
 
   /// 释放 controller 持有的监听与 notifier。
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _loader?.state.removeListener(_sync);
     _loader = null;
     _state = null;
@@ -67,6 +72,10 @@ class WImageController {
 
   /// @internal 由 _WImageState 调用
   void _attach(_WImageState state) {
+    if (_disposed) {
+      assert(!_disposed, 'WImageController 已 dispose，不能再绑定 WImage');
+      return;
+    }
     if (_state != null && !identical(_state, state)) {
       // release 下也报错：静默改绑会让第一张图的状态永久失联。
       FlutterError.reportError(
@@ -99,6 +108,7 @@ class WImageController {
   }
 
   void _sync() {
+    if (_disposed) return;
     final loader = _loader;
     if (loader == null) return;
     _notifier.value = loader.state.value;
@@ -168,7 +178,6 @@ class WImage extends StatefulWidget {
   }) {
     style.validate();
     options.validate();
-    slots?.validate();
   }
 
   @override

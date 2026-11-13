@@ -1,3 +1,137 @@
+## 11.0.0
+
+### Added
+- `WNavDestination` + `WNavBar.destinations`：底部导航的默认图标 / 文字项；
+  与 `itemBuilder` 二选一。
+- `WGradientCircularProgressIndicator.indeterminate`：不确定进度（旋转弧段），
+  此时忽略 `value` 且语义不暴露百分比。
+- `WScaffold.basic`：自动构建 `WAppBar` 的页面壳入口；`WScaffold` 主构造器只保留
+  显式 `appBar` 与槽位。
+
+### Changed
+- `WScreen` 改为 `abstract final class`：仍是静态命名空间，行为不变，只是禁止实例化 / 继承。
+
+### Breaking
+- `WButton.new` / `WBadge.new` / `WScaffold.new` / `WNavBar.new` / `WAppBarStyle.new` /
+  `WAppBarStyle.copyWith` / `WTabBarStyle.new` / `WTabBarStyle.copyWith`：10.3–10.5
+  引入的公开参数随 11.0.0 一起发布。直接调用源码兼容；把构造器 / `copyWith`
+  作为函数值（tear-off）并显式声明旧签名时需要更新。
+- `WImageError.new` / `WListViewSliver.list` / `WListViewSliver.separated` /
+  `WListViewSliver.grid` / `WListViewSliver.overlap`：字段 / 参数改名导致的签名变化；
+  `WImageError` 仍是位置参数，`WListViewSliver.keepAlive` 需要改成
+  `addAutomaticKeepAlives`。
+- `WImageStyle.avatar` / `WImageStyle.copyWith` / `WImageStyle.borderRadius` /
+  `WImageStyle.margin` / `WImageStyle.padding`：几何类型放宽为
+  `BorderRadiusGeometry` / `EdgeInsetsGeometry`；传 `BorderRadius` / `EdgeInsets`
+  的旧代码仍然兼容。
+- `WStep.new`：构造时复制并冻结 `labels`，因此不再是 `const` 构造器；
+  `const WStep(...)` 需要去掉 `const`。
+- `WImageSlots.new`：删除 `placeholder` / `emptyWidget` / `errorWidget` 固定 Widget 入口，
+  构造器签名变化；改用对应的 `*Builder`。
+- `WNavBar.itemBuilder`：类型改为可空，与新增的 `WNavBar.destinations` 二选一；
+  继续传 `itemBuilder` 的调用点不变，读取该字段的代码需要处理 null。
+- `WGradientCircularProgressIndicator.build`：组件改为 `StatefulWidget`，
+  build 移到 State；不应直接调用组件的 build。
+- `WScaffold.new`：`title` / `titleWidget` / `leading` / `actions` / `onBack` /
+  `appBarStyle` / `appBarBottom` / `automaticallyImplyLeading` / `centerTitle`
+  移到 `WScaffold.basic`；主构造器只保留 `appBar` 与 body / 槽位。
+  旧 `WScaffold(title: ...)` 改为 `WScaffold.basic(title: ...)`。
+
+### Removed
+- `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。
+- `WNavBar.onItemTap`：用 `onBeforeTap`（`FutureOr<bool>`）。
+- `notifyScrollPercentage`：内部实现细节，直接读 `ScrollNotification.metrics`。
+- `WTextStyleExtension`：直接用 Flutter `TextStyle.copyWith`。
+- `WUiWidgetExtension`：合并到 `WWidgetExtension`，`toPressable` 方法仍在。
+- `WImageError.data`：改名 `sourceValue`（值相等 / `toString` 同步）。
+- `WImageSlots.placeholder` / `WImageSlots.emptyWidget` / `WImageSlots.errorWidget`：
+  删除固定 Widget 入口，统一用对应的 `*Builder`。
+- `WImageSlots.validate`：slots 不再有互斥字段，校验方法随之删除。
+- `WListViewSliver.keepAlive`：改名 `addAutomaticKeepAlives`，与 Flutter 语义对齐。
+- `WButtonStyles`：合并到 `WButtonStyleSet.of(context)`。
+- `WImageFrame`：不再从 barrel 导出（图片装饰由 `WImageStyle` 负责）。
+- `WWidgetExtension.withHorizontalPadding` / `WWidgetExtension.withVerticalPadding` /
+  `WWidgetExtension.withLeftPadding` / `WWidgetExtension.withRightPadding` /
+  `WWidgetExtension.withTopPadding` / `WWidgetExtension.withBottomPadding`：改用 Flutter
+  `Padding`。
+- `WWidgetExtension.withBottomBarSpaceOf`：改名 `withBottomSafeSpaceOf`。
+- `WNumExtension`：拆分为 `WNumLayoutExtension`（布局糖）与
+  `WNumFormatExtension`（数字格式化）。
+- `WScreen._`：改为 `abstract final class` 后不再需要私有构造器。
+  迁移见 `docs/migrations/ui-11.0.md`。
+
+## 10.5.0
+
+### Breaking
+- `WAppBarStyle.copyWith` 增加 `leadingWidth` / `actionsPadding` / `boxShadow` 命名参数。
+- `WTabBarStyle.copyWith` 增加 `indicatorAnimation` / `mouseCursor` / `enableFeedback` /
+  `splashBorderRadius` 命名参数（含 10.3.0 引入的颜色 / padding / textScaler 参数）。
+  两处直接调用源码兼容；把方法作为函数值（tear-off）并显式声明旧签名时需要更新。
+
+### Added
+- `WAppBarStyle.leadingWidth` / `actionsPadding` / `boxShadow`：控制顶栏两侧布局与阴影
+  （自绘顶栏没有 Material elevation，阴影显式用 `boxShadow`）。
+- `WBadge.offset`（含 `WBadge.count` / `WBadge.dot`）：在 `position` 基础上额外位移。
+- `WTabBarStyle.indicatorAnimation` / `mouseCursor` / `enableFeedback` /
+  `splashBorderRadius`：补齐 `TabBar` 的交互类参数。
+- `WScaffold.bottomNavigationBarSafeArea`：给非 `WNavBar` 的底栏包 `SafeArea`。
+- `WButton.tooltip` / `isSelected`：图标按钮提示与 toggle 语义（进入 `Semantics.selected`）。
+
+### Tests
+- 新增值对象非 const 相等测试，覆盖 `WAppBarStyle` / `WButtonStyle` / `WTabBarStyle` /
+  `WStepStyle` / `WBadgeStyle` / `WImageStyle` / `WImageLoadOptions` / `WImageSlots` 等。
+
+## 10.4.0
+
+### Breaking
+- `WTabBarStyle.new` / `WTabBarStyle.copyWith`：10.3.0 增加的 `labelColor` /
+  `unselectedLabelColor` / `labelPadding` / `indicatorPadding` / `textScaler` 仍随本版发布。
+  直接调用源码兼容；把 `copyWith` 作为函数值（tear-off）并显式声明旧签名时需要更新。
+
+### Added
+- `WScaffold` 透传 `drawer` / `endDrawer` / `bottomSheet` / `persistentFooterButtons` /
+  `extendBody`，需要这些槽位时不必改用原生 `Scaffold`。
+- `WNavBar.onBeforeTap`：`FutureOr<bool> Function(int)?`，返回 `false` 阻止切换；
+  同步 / 异步都支持。
+
+### Changed
+- `WTabBarStyle` 补齐标签颜色 / 布局参数（10.3.0 引入，随 10.4.0 一起发布）。
+
+### Deprecated
+- `WNavBar.onItemTap`：改用 `onBeforeTap`，`remove-in: 11.0.0`。
+
+## 10.3.0
+
+### Breaking
+- `WTabBarStyle.copyWith` 增加 `labelColor` / `unselectedLabelColor` / `labelPadding` /
+  `indicatorPadding` / `textScaler` 命名参数。直接调用源码兼容；把该方法作为函数值
+  （tear-off）并显式声明旧签名时需要更新。
+
+### Added
+- `WText.rich`：富文本入口，子 `TextSpan` 可混排样式，同时复用 `variant` / `WTextStyles`、
+  `maxLines` / `overflow` / `textScaler` 等排版参数。
+- `WTabBarStyle.labelColor` / `unselectedLabelColor` / `labelPadding` / `indicatorPadding` /
+  `textScaler`：补齐 `TabBar` 最常用的标签颜色与布局参数。
+- `WBadge.count(count:, maxCount:)` / `WBadge.dot()`：数量角标（超限显示 `maxCount+`）与圆点角标。
+- `WNavBar.safeArea`：默认 `true`，自动避开底部 home indicator；外层已包 `SafeArea` 时传 `false`。
+
+### Changed
+- `WActionRow` / `WSelectableRow`：不同高度的子项改为垂直居中（原 `Wrap` 默认顶部对齐）。
+- `WButtonStyle.filled`：未传 `foregroundColor` 时按背景亮度自动选黑 / 白，避免深色背景文字不可读。
+- `WImageStyle.copyWith`：设置 `width` / `height` 且未显式传 `aspectRatio` 时清空比例，
+  修复 `WImageStyle.cover().square(40)` 触发断言的问题。
+
+### Fixed
+- `WImageLoadOptions` 补齐 `==` / `hashCode`；`WImage.didUpdateWidget` 不再因非 const options
+  每次重建都丢弃 gapless 上一帧。
+- `WImageController.dispose` 后重复释放 / `retry` 是安全的空操作。
+- `WImageSlots` 合并结果不再同时保留 builder 与固定 Widget，维持自身互斥约定。
+- `WGlobalKeyExtension.offset()` 在组件尚未布局时返回 null，与 `rect()` 一致。
+
+### Deprecated
+- `notifyScrollPercentage`：内部实现细节，`remove-in: 11.0.0`；请直接读
+  `ScrollNotification.metrics`。
+
 ## 10.2.0
 
 ### Added

@@ -131,6 +131,67 @@ void main() {
       final tabBar = tester.widget<TabBar>(find.byType(TabBar));
       expect(tabBar.indicatorWeight, 4);
     });
+
+    testWidgets('WTabBar 透传 labelColor / labelPadding / textScaler', (tester) async {
+      const cfg = WTabBarStyle(
+        labelColor: Colors.red,
+        unselectedLabelColor: Colors.blueGrey,
+        labelPadding: EdgeInsets.symmetric(horizontal: 6),
+        indicatorPadding: EdgeInsets.symmetric(horizontal: 2),
+        textScaler: TextScaler.linear(1.2),
+      );
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DefaultTabController(
+            length: 2,
+            child: Scaffold(
+              body: WTabBar(
+                style: cfg,
+                tabs: [Text('A'), Text('B')],
+              ),
+            ),
+          ),
+        ),
+      );
+      final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+      expect(tabBar.labelColor, Colors.red);
+      expect(tabBar.unselectedLabelColor, Colors.blueGrey);
+      expect(tabBar.labelPadding, const EdgeInsets.symmetric(horizontal: 6));
+      expect(tabBar.indicatorPadding, const EdgeInsets.symmetric(horizontal: 2));
+      expect(tabBar.textScaler, const TextScaler.linear(1.2));
+    });
+
+    testWidgets(
+      'WTabBar 透传 indicatorAnimation / mouseCursor / enableFeedback / splashBorderRadius',
+      (
+        tester,
+      ) async {
+        const cfg = WTabBarStyle(
+          indicatorAnimation: TabIndicatorAnimation.elastic,
+          mouseCursor: SystemMouseCursors.click,
+          enableFeedback: false,
+          splashBorderRadius: BorderRadius.all(Radius.circular(4)),
+        );
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: DefaultTabController(
+              length: 2,
+              child: Scaffold(
+                body: WTabBar(
+                  style: cfg,
+                  tabs: [Text('A'), Text('B')],
+                ),
+              ),
+            ),
+          ),
+        );
+        final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+        expect(tabBar.indicatorAnimation, TabIndicatorAnimation.elastic);
+        expect(tabBar.mouseCursor, SystemMouseCursors.click);
+        expect(tabBar.enableFeedback, isFalse);
+        expect(tabBar.splashBorderRadius, const BorderRadius.all(Radius.circular(4)));
+      },
+    );
   });
 
   testWidgets('WTabBar overlayColor 可配置', (tester) async {
