@@ -202,7 +202,7 @@
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头 / 敏感 body 默认脱敏，但仍不要打进生产日志 |
 | `WLogPart` | api | WLogInterceptor 的日志片段选择 | 不要单独使用；作为 `parts` 的枚举值 |
 | `WApiConfig` | api | 请求配置与日志注入 | — |
-| `WApiClient` | api | GET / POST / PUT / PATCH / DELETE 统一调用 + 显式 JSON 解码 | 不要在页面里直接拼 URL；不要用它替代 Repository 的业务编排 |
+| `WApiClient` | api | GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS 统一调用 + 显式 JSON 解码 + 上传 | 不要在页面里直接拼 URL；不要用它替代 Repository 的业务编排 |
 | `WApiBody` | api | 请求体编码：json / form / multipart / bytes | 不要用它承载业务逻辑；它只决定怎么编码 |
 | `WApiException` | api | 统一网络错误分类：timeout / network / 401 / 4xx / 5xx / decode | 不要在库里写死用户文案；UI 按 kind 映射 |
 | `WApiEnvelopeParser` | api | 可选业务信封解析：{code, message, data} | 不要默认开启；不是所有后端都用信封 |

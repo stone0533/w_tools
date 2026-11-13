@@ -1471,7 +1471,7 @@ components:
   - name: '`WApiClient`'
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
-    useFor: 'GET / POST / PUT / PATCH / DELETE 统一调用 + 显式 JSON 解码'
+    useFor: 'GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS 统一调用 + 显式 JSON 解码 + 上传'
     dontUseFor: '不要在页面里直接拼 URL；不要用它替代 Repository 的业务编排'
     usage: |
       final client = WApiClient(registry.dio);
@@ -1480,10 +1480,18 @@ components:
         pathParameters: {'id': '42'},
         decode: (json) => User.fromJson(json as Map<String, dynamic>),
       );
+      await client.head('/users/42');
+      await client.upload<void>(
+        '/files',
+        method: 'PUT',
+        files: {'file': MultipartFile.fromBytes(bytes)},
+        decode: WApiDecoders.none,
+      );
     pitfalls:
       - "decode 必须显式传：Dart 没有反射，不会自动把 JSON 变成模型"
       - "decode 抛错会包装成 WApiException(kind: decode)；HTTP / 网络错误统一为 WApiException"
       - "decode 为空时返回原始 JSON，不会自动推断类型"
+      - "head / options 只用于探测，不解析响应体；upload 的 method 只支持 POST / PUT / PATCH"
     related: ["`DioRegistry`", "`WApiBody`", "`WApiException`"]
     teach: true
 
