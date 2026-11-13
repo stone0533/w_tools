@@ -257,6 +257,53 @@ void main() {
     expect(controller.currentIndex, 0);
   });
 
+  testWidgets('WNavBar destinations 渲染默认图标 / 文字', (tester) async {
+    final controller = WNavController(length: 2, vsync: tester);
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WNavBar(
+            controller: controller,
+            destinations: const [
+              WNavDestination(
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home,
+                label: '首页',
+              ),
+              WNavDestination(icon: Icons.person_outline, label: '我的'),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('首页'), findsOneWidget);
+    expect(find.text('我的'), findsOneWidget);
+    expect(find.byIcon(Icons.home), findsOneWidget);
+    expect(find.byIcon(Icons.home_outlined), findsNothing);
+    expect(find.byIcon(Icons.person_outline), findsOneWidget);
+  });
+
+  testWidgets('WNavBar itemBuilder 与 destinations 互斥', (tester) async {
+    final controller = WNavController(length: 1, vsync: tester);
+    addTearDown(controller.dispose);
+
+    expect(
+      () => WNavBar(
+        controller: controller,
+        itemBuilder: (context, index, selected) => const SizedBox(),
+        destinations: const [WNavDestination(icon: Icons.home, label: '首页')],
+      ),
+      throwsAssertionError,
+    );
+    expect(
+      () => WNavBar(controller: controller),
+      throwsAssertionError,
+    );
+  });
+
   testWidgets('WNavBar 默认避开底部安全区', (tester) async {
     final ctrl = WNavController(length: 2, vsync: tester);
     addTearDown(ctrl.dispose);

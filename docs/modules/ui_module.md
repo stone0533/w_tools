@@ -220,6 +220,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 并由调用方 `dispose`。配置用 `WNavBarStyle`。`WNavBar` 默认 `safeArea: true`，会避开
 底部 home indicator；已在外层包 `SafeArea` 时传 `safeArea: false`。
 切换前拦截用 `onBeforeTap`（`FutureOr<bool>`，返回 false 阻止）。
+默认 item 用 `destinations: [WNavDestination(...)]`；需要完全自定义时用 `itemBuilder`，两者互斥。
 
 ### WTabBar
 

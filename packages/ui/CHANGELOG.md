@@ -1,5 +1,9 @@
 ## 11.0.0
 
+### Added
+- `WNavDestination` + `WNavBar.destinations`：底部导航的默认图标 / 文字项；
+  与 `itemBuilder` 二选一。
+
 ### Breaking
 - `WButton.new` / `WBadge.new` / `WScaffold.new` / `WNavBar.new` / `WAppBarStyle.new` /
   `WAppBarStyle.copyWith` / `WTabBarStyle.new` / `WTabBarStyle.copyWith`：10.3–10.5
@@ -17,6 +21,8 @@
   `const WStep(...)` 需要去掉 `const`。
 - `WImageSlots.new`：删除 `placeholder` / `emptyWidget` / `errorWidget` 固定 Widget 入口，
   构造器签名变化；改用对应的 `*Builder`。
+- `WNavBar.itemBuilder`：类型改为可空，与新增的 `WNavBar.destinations` 二选一；
+  继续传 `itemBuilder` 的调用点不变，读取该字段的代码需要处理 null。
 
 ### Removed
 - `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。

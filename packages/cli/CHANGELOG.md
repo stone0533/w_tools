@@ -1,3 +1,8 @@
+## 1.20.22
+
+### Added
+- catalog 新增 `WNavDestination`，`WNavBar` 增加 `destinations` 默认项用法。
+
 ## 1.20.21
 
 ### Changed

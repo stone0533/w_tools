@@ -350,6 +350,7 @@ class _NavDemoState extends State<NavDemo> {
 `WNavController` 需要页面 State 提供 `vsync`，并由调用方 `dispose`。
 `WNavBar` 默认 `safeArea: true`，会避开底部 home indicator；已在外层包 `SafeArea` 时传
 `safeArea: false`。切换前拦截用 `onBeforeTap`（`FutureOr<bool>`）。
+默认 item 可传 `destinations: [WNavDestination(...)]`；完全自定义用 `itemBuilder`。
 
 顶部 tab：
 

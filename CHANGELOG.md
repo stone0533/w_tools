@@ -1,5 +1,8 @@
 ## 14.0.0
 
+### Added
+- 聚合 `w_tools_ui` 11.0.0 新增 `WNavDestination` + `WNavBar.destinations`。
+
 ### Breaking
 - 聚合 `w_tools_ui` 11.0.0：删除 `WClipRRect`（用 Flutter `ClipRRect`）、
   `WNavBar.onItemTap`（用 `onBeforeTap`）、`notifyScrollPercentage`、

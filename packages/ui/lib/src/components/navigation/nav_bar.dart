@@ -3,22 +3,27 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../common/pressable.dart';
 import 'nav_controller.dart';
+import 'nav_destination.dart';
 import 'nav_style.dart';
 
+export 'nav_destination.dart';
 export 'nav_style.dart';
 
 /// 底部导航栏组件
 ///
-/// 由传入的 [controller]（`WNavController`）驱动选中态与切换动画，
-/// 每个导航项交由 [itemBuilder] 渲染。
+/// 由传入的 [controller]（`WNavController`）驱动选中态与切换动画。
+/// 导航项可以用 [itemBuilder] 完全自定义，也可以传 [destinations] 使用默认图标 + 文字。
 ///
 /// [controller] 由调用方持有并负责释放，本组件只负责添加 / 移除监听。
 class WNavBar extends StatefulWidget {
   /// 标签栏样式
   final WNavBarStyle? style;
 
-  /// 导航项构建器
-  final Widget Function(BuildContext, int, bool) itemBuilder;
+  /// 导航项构建器；与 [destinations] 二选一
+  final Widget Function(BuildContext, int, bool)? itemBuilder;
+
+  /// 默认导航项描述；与 [itemBuilder] 二选一
+  final List<WNavDestination>? destinations;
 
   /// 导航切换前回调；返回 `false` 阻止切换。
   ///
@@ -37,11 +42,19 @@ class WNavBar extends StatefulWidget {
   const WNavBar({
     super.key,
     this.style,
-    required this.itemBuilder,
+    this.itemBuilder,
+    this.destinations,
     this.onBeforeTap,
     required this.controller,
     this.safeArea = true,
-  });
+  }) : assert(
+         (itemBuilder == null) != (destinations == null),
+         'WNavBar: itemBuilder 与 destinations 必须且只能提供一个',
+       ),
+       assert(
+         destinations == null || destinations.length == controller.length,
+         'WNavBar: destinations 数量必须等于 controller.length',
+       );
 
   @override
   State<WNavBar> createState() => _WNavBarState();
@@ -106,7 +119,13 @@ class _WNavBarState extends State<WNavBar> {
               child: WPressable(
                 onTap: () => _handleTap(i),
                 child: RepaintBoundary(
-                  child: widget.itemBuilder(context, i, i == _controller.currentIndex),
+                  child: widget.itemBuilder != null
+                      ? widget.itemBuilder!(context, i, i == _controller.currentIndex)
+                      : _buildDestinationItem(
+                          context,
+                          widget.destinations![i],
+                          i == _controller.currentIndex,
+                        ),
                 ),
               ),
             ),
@@ -128,6 +147,37 @@ class _WNavBarState extends State<WNavBar> {
       decoration: decoration,
       padding: padding,
       child: navContent,
+    );
+  }
+
+  Widget _buildDestinationItem(
+    BuildContext context,
+    WNavDestination destination,
+    bool selected,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    final color = selected ? scheme.primary : scheme.onSurfaceVariant;
+    return Semantics(
+      label: destination.semanticLabel ?? destination.label,
+      child: ExcludeSemantics(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              selected ? destination.selectedIcon ?? destination.icon : destination.icon,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              destination.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

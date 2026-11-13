@@ -16,6 +16,7 @@
 | `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom、leadingWidth/actionsPadding/shadow） | 任意叠放/覆盖布局在页面层用 Container/Stack |
 | `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 / leadingWidth / actionsPadding / 阴影 | backgroundColor 与 gradient 只能选一个 |
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 需 vsync 并由页面 State dispose | 不要自己写 `BottomNavigationBar` |
+| `WNavDestination` | ui | WNavBar 默认项的图标 / 选中图标 / 文案 | 需要完全自定义项时用 `WNavBar.itemBuilder` |
 | `WNavBarStyle` | ui | WNavBar 的外层装饰 / padding；新代码优先 | 选中态与切换动画由 `WNavController` 管，不要放进 style |
 | `WTabBar` | ui | 顶部 tab；依赖 TabController / DefaultTabController | 需要下划线跟随的复杂交互时先看它够不够 |
 | `WTabBarStyle` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式；新代码优先 | WTabBar 不自带 controller，不要在这里塞状态 |

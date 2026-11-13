@@ -85,6 +85,16 @@ components:
         itemBuilder: (context, index, selected) => ...,
       );
       
+      // 或者用默认 item（图标 + 文字）：
+      WNavBar(
+        controller: nav,
+        destinations: const [
+          WNavDestination(icon: Icons.home_outlined, selectedIcon: Icons.home, label: '首页'),
+          WNavDestination(icon: Icons.explore_outlined, label: '发现'),
+          WNavDestination(icon: Icons.person_outline, label: '我的'),
+        ],
+      );
+
       @override
       void dispose() {
         nav.dispose();
@@ -93,7 +103,18 @@ components:
     pitfalls:
       - 'onBeforeTap 返回 false 可以阻止切换；同步 / 异步都支持'
       - '默认 safeArea: true，会避开 home indicator；放进已包 SafeArea 的容器时传 safeArea: false'
-    related: ['`WNavBarStyle`', '`WTabBar`']
+      - 'itemBuilder 与 destinations 必须且只能提供一个；destinations 数量必须等于 controller.length'
+    related: ['`WNavBarStyle`', '`WNavDestination`', '`WTabBar`']
+    teach: false
+  - name: '`WNavDestination`'
+    package: 'w_tools_ui'
+    docsAnchor: 'wnavbar--wnavcontroller'
+    section: '1. 页面骨架与导航'
+    useFor: 'WNavBar 默认项的图标 / 选中图标 / 文案'
+    dontUseFor: '需要完全自定义项时用 `WNavBar.itemBuilder`'
+    usage: |
+      WNavDestination(icon: Icons.home_outlined, selectedIcon: Icons.home, label: '首页');
+    related: ['`WNavBar`']
     teach: false
   - name: '`WNavBarStyle`'
     package: 'w_tools_ui'
