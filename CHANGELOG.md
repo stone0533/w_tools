@@ -1,3 +1,12 @@
+## 15.3.0
+
+### Added
+- 聚合 `w_tools_api` 5.5.0：`WApiResponse` / `WApiClient.send`、
+  `WApiEnvelopeParser.authFailureCodes` / `WApiClient.onAuthFailure`。
+
+### Changed
+- 依赖 `w_tools_api: ^5.5.0`。
+
 ## 15.2.0
 
 ### Added

@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.5.0
+
+### Added
+- `WApiResponse<T>` / `WApiClient.send`：保留 `statusCode` / `headers` / `requestOptions`。
+- `WApiEnvelopeParser.authFailureCodes` / `WApiClient.onAuthFailure`：业务码登录失效
+  抛 `unauthorized` 并回调，与 HTTP 401 走同一条登出链路。
+
 ## 5.4.0
 
 ### Added

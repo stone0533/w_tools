@@ -1492,7 +1492,8 @@ components:
       - "decode 抛错会包装成 WApiException(kind: decode)；HTTP / 网络错误统一为 WApiException"
       - "decode 为空时返回原始 JSON，不会自动推断类型"
       - "head / options 只用于探测，不解析响应体；upload 的 method 只支持 POST / PUT / PATCH"
-    related: ["`DioRegistry`", "`WApiBody`", "`WApiException`"]
+      - "需要 status / headers 用 send（返回 WApiResponse）；get / post 只返回 data"
+    related: ["`DioRegistry`", "`WApiBody`", "`WApiException`", "`WApiResponse`"]
     teach: true
 
   - name: '`WApiBody`'
@@ -1539,10 +1540,13 @@ components:
           readCode: (json) => (json as Map)['code'],
           readData: (json) => (json as Map)['data'],
           isSuccess: (code) => code == 0,
+          authFailureCodes: {401},
         ),
+        onAuthFailure: (error) { /* 清会话、跳登录 */ },
       );
     pitfalls:
       - "业务码失败抛 WApiException(kind: business)，用 businessCode 判断"
+      - "命中 authFailureCodes 时抛 unauthorized 并调用 WApiClient.onAuthFailure"
       - "HTTP 401 仍由 WTokenInterceptor 处理；不要把登录失效只放在业务码里"
     related: ["`WApiClient`", "`WApiException`"]
 
@@ -1561,6 +1565,23 @@ components:
     pitfalls:
       - "page 默认只接受 JSON 数组；Map 结构用 readItems / readTotal"
     related: ["`WApiClient`", "`WPageQuery`"]
+
+  - name: '`WApiResponse`'
+    package: 'w_tools_api'
+    section: '8. 能力（非 UI）'
+    useFor: '保留 status / headers / requestOptions 的响应结果'
+    dontUseFor: '普通请求不需要它；get / post 直接返回模型'
+    usage: |
+      final response = await client.send(
+        'GET',
+        '/users/42',
+      );
+      response.statusCode;
+      response.headers.value('x-total-count');
+      response.data;
+    pitfalls:
+      - "只有 WApiClient.send 返回它；get / post 仍返回 T"
+    related: ["`WApiClient`"]
 
   - name: '`WRetryInterceptor`'
     package: 'w_tools_api'

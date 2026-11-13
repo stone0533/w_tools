@@ -1,3 +1,10 @@
+## 1.20.33
+
+### Changed
+- catalog / explain 同步 `WApiResponse` / `WApiClient.send` /
+  `WApiEnvelopeParser.authFailureCodes`。
+- `init` 的 `w_tools_api` 约束抬到 `^5.5.0`。
+
 ## 1.20.32
 
 ### Changed
