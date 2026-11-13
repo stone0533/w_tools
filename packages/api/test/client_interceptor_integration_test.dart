@@ -48,6 +48,40 @@ void main() {
     expect(failing.authFailures, 1);
   });
 
+  test('刷新成功后重试请求失败：保留真实错误，不误触发 onAuthFailure', () async {
+    var calls = 0;
+    var authFailures = 0;
+    final dio = Dio(BaseOptions(baseUrl: 'https://auth.test'));
+    dio.httpClientAdapter = _CallbackAdapter(() {
+      calls++;
+      if (calls == 1) {
+        return _jsonResponse(401, {'error': 'unauthorized'});
+      }
+      return _jsonResponse(500, {'error': 'boom'});
+    });
+    dio.interceptors.add(
+      WTokenInterceptor(
+        dio: dio,
+        tokenGetter: () => 'expired',
+        tokenClearer: () async {},
+        tokenRefresher: () async => 'fresh',
+        onAuthFailure: (_) => authFailures++,
+      ),
+    );
+
+    await expectLater(
+      WApiClient(dio).get('/secure'),
+      throwsA(
+        isA<WApiException>()
+            .having((error) => error.kind, 'kind', WApiErrorKind.server)
+            .having((error) => error.statusCode, 'statusCode', 500),
+      ),
+    );
+
+    expect(calls, 2);
+    expect(authFailures, 0, reason: '刷新成功，认证已恢复，不应登出');
+  });
+
   test('download 遇到 401 也会刷新并返回 bytes', () async {
     final bytes = await harness.client.download('/file');
 
@@ -164,6 +198,30 @@ class _AuthAdapter implements HttpClientAdapter {
       Headers.contentTypeHeader: ['application/json'],
     },
   );
+
+  @override
+  void close({bool force = false}) {}
+}
+
+ResponseBody _jsonResponse(int status, Object? body) => ResponseBody.fromString(
+  jsonEncode(body),
+  status,
+  headers: {
+    Headers.contentTypeHeader: ['application/json'],
+  },
+);
+
+class _CallbackAdapter implements HttpClientAdapter {
+  _CallbackAdapter(this._respond);
+
+  final ResponseBody Function() _respond;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => _respond();
 
   @override
   void close({bool force = false}) {}

@@ -1,3 +1,11 @@
+## 1.20.35
+
+### Changed
+- catalog / explain / init 模板同步 `w_tools_api` 6.0：`WApiConfig` → `WApiSettings`、
+  `WApiMetricsInterceptor` → `WMetricsInterceptor`、`WApiMetric` → `WMetric`；删除空壳数据层与
+  日志友好提示。
+- `init` 的 `w_tools_api` 约束抬到 `^6.0.0`。
+
 ## 1.20.34
 
 ### Changed

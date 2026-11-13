@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import '../api_config.dart';
+import '../api_settings.dart';
 import '../interceptors/retry.dart';
 import '../interceptors/token.dart';
 
@@ -73,6 +73,9 @@ class DioRegistry {
   ///
   /// 设置后按最近使用淘汰：命中缓存的实例会被移到队尾，新实例入队后若超出上限，
   /// 队首实例会被 `dispose`。
+  ///
+  /// `<= 0` 时不缓存：每次 [forBaseUrl] 都新建实例，返回的实例仍可用，但不会被
+  /// 注册表持有；需要释放时由调用方 `registry.dio.close(force: true)`。
   static int? maxCachedInstances;
 
   /// 缓存 TTL；`null` 表示不过期（默认）
@@ -92,7 +95,7 @@ class DioRegistry {
   /// 需要换配置请先 [dispose]。
   ///
   /// @param baseUrl 基础 URL
-  /// @param options Dio 基础配置，缺省使用 [WApiConfig.baseOptions]
+  /// @param options Dio 基础配置，缺省使用 [WApiSettings.baseOptions]
   /// @param interceptors 拦截器列表，按传入顺序挂载
   /// @return DioRegistry 实例
   static DioRegistry forBaseUrl(
@@ -131,9 +134,15 @@ class DioRegistry {
 
     final registry = DioRegistry._internal(
       baseUrl,
-      options ?? WApiConfig.baseOptions,
+      options ?? WApiSettings.baseOptions,
       List.unmodifiable(interceptors ?? const []),
     );
+    // `<= 0` 表示不缓存：实例仍返回给调用方，但不能立刻 close，否则调用方拿到
+    // 一个已关闭的 Dio。
+    final max = maxCachedInstances;
+    if (max != null && max <= 0) {
+      return registry;
+    }
     _instances[baseUrl] = registry;
     _evictOverflow();
     return registry;
@@ -141,7 +150,7 @@ class DioRegistry {
 
   static void _evictOverflow() {
     final max = maxCachedInstances;
-    if (max == null) return;
+    if (max == null || max <= 0) return;
     while (_instances.isNotEmpty && _instances.length > max) {
       final oldest = _instances.keys.first;
       final evicted = _instances.remove(oldest);

@@ -63,31 +63,6 @@ class _MockAdapter implements HttpClientAdapter {
 void main() {
   tearDown(DioRegistry.clearCache);
 
-  test('parts 里 errorHint 可独立开关', () async {
-    final logs = <String>[];
-    WApiConfig.logErrorHandler = (dynamic message) => logs.add('$message');
-
-    final dio = Dio(BaseOptions(baseUrl: 'https://example.com'))
-      ..httpClientAdapter = _ErrorAdapter();
-    dio.interceptors.add(
-      WLogInterceptor(parts: {WLogPart.error}),
-    );
-
-    await expectLater(dio.get('/x'), throwsA(isA<DioException>()));
-    expect(logs.any((l) => l.contains('网络连接失败')), isFalse);
-
-    logs.clear();
-    final dio2 = Dio(BaseOptions(baseUrl: 'https://example.com'))
-      ..httpClientAdapter = _ErrorAdapter();
-    dio2.interceptors.add(
-      WLogInterceptor(parts: {WLogPart.errorHint}),
-    );
-    await expectLater(dio2.get('/x'), throwsA(isA<DioException>()));
-    expect(logs.any((l) => l.contains('网络连接失败')), isTrue);
-
-    WApiConfig.logErrorHandler = null;
-  });
-
   group('WTokenInterceptor', () {
     test('onRequest 添加 Authorization header', () async {
       final adapter = _MockAdapter();
@@ -153,25 +128,19 @@ void main() {
       expect(adapter._lastRequestHeaders!['Authorization'], isNull);
     });
 
-    test('configureRequest 回调被调用', () async {
-      RequestOptions? captured;
+    test('显式 Authorization header 不被 tokenGetter 覆盖', () async {
       final adapter = _MockAdapter();
       final dio = Dio()..httpClientAdapter = adapter;
       dio.interceptors.add(
-        WTokenInterceptor(
-          dio: dio,
-          tokenGetter: () => 'token',
-          configureRequest: (opts) {
-            captured = opts;
-            opts.headers['X-Custom'] = 'injected';
-          },
-        ),
+        WTokenInterceptor(dio: dio, tokenGetter: () => 'auto-token'),
       );
 
-      await dio.get('https://example.com/api');
+      await dio.get(
+        'https://example.com/api',
+        options: Options(headers: {'Authorization': 'Custom abc'}),
+      );
 
-      expect(captured, isNotNull);
-      expect(adapter._lastRequestHeaders!['X-Custom'], 'injected');
+      expect(adapter._lastRequestHeaders!['Authorization'], 'Custom abc');
     });
 
     test('onError 401 时触发 tokenClearer', () async {
@@ -196,33 +165,6 @@ void main() {
       );
 
       expect(clearCount, 1);
-    });
-
-    test('同时提供 observeError 与 tokenRefresher 时，401 仍会刷新（不再互斥）', () async {
-      int errorHandlerCalled = 0;
-      int authErrorCalled = 0;
-
-      final adapter = _MockAdapter(statusCode: 401);
-      final dio = Dio()..httpClientAdapter = adapter;
-      dio.interceptors.add(
-        WTokenInterceptor(
-          dio: dio,
-          tokenGetter: () => 'expired_token',
-          observeError: (err) => errorHandlerCalled++,
-          tokenRefresher: () async {
-            authErrorCalled++;
-            return null; // 刷新失败 → 不触发重试（避免真实网络）
-          },
-        ),
-      );
-
-      await expectLater(
-        dio.get('https://example.com/api'),
-        throwsA(isA<DioException>()),
-      );
-
-      expect(errorHandlerCalled, 1, reason: '错误观测回调应被调用');
-      expect(authErrorCalled, 1, reason: '401 仍应触发刷新，二者不再互斥');
     });
 
     test('tokenRefresher 为 null 时仍清除 token 并结束', () async {
@@ -315,7 +257,7 @@ void main() {
 
     test('长度正好 10 的 token 不在日志中完整输出', () async {
       final logs = <String>[];
-      WApiConfig.logDebugHandler = (m) => logs.add(m.toString());
+      WApiSettings.logDebugHandler = (m) => logs.add(m.toString());
 
       final dio = Dio()..httpClientAdapter = _MockAdapter();
       dio.interceptors.add(
@@ -372,7 +314,7 @@ void main() {
 
     test('未绑定 Dio 且未注册 registry 时不再隐式创建实例', () async {
       final logs = <String>[];
-      WApiConfig.logErrorHandler = (dynamic message) => logs.add('$message');
+      WApiSettings.logErrorHandler = (dynamic message) => logs.add('$message');
 
       final dio = Dio(BaseOptions(baseUrl: 'https://unbound.example.com'))
         ..httpClientAdapter = _MockAdapter(statusCode: 401);
@@ -390,7 +332,7 @@ void main() {
 
     test('body 为 Stream 时放弃重放，按原错误结束', () async {
       final logs = <String>[];
-      WApiConfig.logErrorHandler = (m) => logs.add(m.toString());
+      WApiSettings.logErrorHandler = (m) => logs.add(m.toString());
 
       final dio = Dio(BaseOptions(baseUrl: 'https://example.com'))
         ..httpClientAdapter = _MockAdapter(statusCode: 401);
@@ -444,22 +386,4 @@ void main() {
       expect(adapter._lastContentType, isNot('application/json'));
     });
   });
-}
-
-/// 抛 DioException 的 mock adapter
-class _ErrorAdapter implements HttpClientAdapter {
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<Uint8List>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    throw DioException.connectionError(
-      requestOptions: options,
-      reason: 'Mock connection error',
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
 }

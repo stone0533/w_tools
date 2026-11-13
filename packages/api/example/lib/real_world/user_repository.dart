@@ -27,7 +27,7 @@ class User {
 }
 
 /// 本地数据源：示例用内存；真实项目可换成 `WStorage` / 数据库。
-class UserLocalDataSource extends BaseLocalDataSource {
+class UserLocalDataSource {
   User? _cached;
 
   /// 当前缓存（测试 / 调试用）
@@ -39,7 +39,7 @@ class UserLocalDataSource extends BaseLocalDataSource {
 }
 
 /// 远程数据源：只依赖 [Dio]，不关心 token / 基地址。
-class UserRemoteDataSource extends BaseRemoteDataSource {
+class UserRemoteDataSource {
   UserRemoteDataSource(this._dio);
 
   final Dio _dio;
@@ -56,8 +56,11 @@ class UserRemoteDataSource extends BaseRemoteDataSource {
 }
 
 /// Repository：组合本地缓存与远程数据源，对上层只暴露业务方法。
-class UserRepository extends BaseRepository<UserLocalDataSource, UserRemoteDataSource> {
-  UserRepository({super.localDataSource, super.remoteDataSource});
+class UserRepository {
+  UserRepository({this.localDataSource, this.remoteDataSource});
+
+  final UserLocalDataSource? localDataSource;
+  final UserRemoteDataSource? remoteDataSource;
 
   /// 读取当前用户；[forceRefresh] 为 true 时跳过缓存。
   Future<User> me({bool forceRefresh = false}) async {

@@ -1413,7 +1413,7 @@ components:
     usage: "final r = DioRegistry.forBaseUrl('https://api.example.com'); await r.dio.get('/users');"
     pitfalls:
       - "\u540c\u4e00 baseUrl \u53ea\u80fd\u521d\u59cb\u5316\u4e00\u6b21\uff1b\u6362\u914d\u7f6e\u5148 dispose"
-    related: ["`WApiConfig`", "`WLogInterceptor`", "`WTokenInterceptor`"]
+    related: ["`WApiSettings`", "`WLogInterceptor`", "`WTokenInterceptor`"]
     teach: true
 
   - name: '`WTokenInterceptor`'
@@ -1430,7 +1430,7 @@ components:
     pitfalls:
       - "tokenRefresher 必须自己持久化新 token，否则 tokenGetter 仍返回旧值"
       - "裸 Dio 需构造传 `dio:`；推荐走 `DioRegistry` 自动绑定"
-    related: ["`DioRegistry`", "`WApiConfig`"]
+    related: ["`DioRegistry`", "`WApiSettings`"]
     teach: true
 
   - name: '`WLogInterceptor`'
@@ -1443,7 +1443,7 @@ components:
       - "默认不打印 request / response body；需要时显式加 `requestBody` / `responseBody`，并用 `kDebugMode` 控制"
       - "`requestBody` / `responseBody` 会按 `sensitiveBodyKeys` 递归脱敏（Map / List / JSON 字符串 / FormData fields）；任意对象的 toString 不保证脱敏"
       - "只做日志，不做业务错误处理"
-    related: ["`WLogPart`", "`WApiConfig`"]
+    related: ["`WLogPart`", "`WApiSettings`"]
     teach: true
 
   - name: '`WLogPart`'
@@ -1457,11 +1457,11 @@ components:
     related: ["`WLogInterceptor`"]
     teach: true
 
-  - name: '`WApiConfig`'
+  - name: '`WApiSettings`'
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
     useFor: '请求配置与日志注入'
-    usage: "WApiConfig.baseOptions = BaseOptions(connectTimeout: const Duration(seconds: 10));"
+    usage: "WApiSettings.baseOptions = BaseOptions(connectTimeout: const Duration(seconds: 10));"
     pitfalls:
       - "`baseOptions` 是字段不是方法；在首次 `DioRegistry.forBaseUrl` 前设置"
       - "\u4e0d\u8981\u76f4\u63a5 Dio()\uff1b\u7edf\u4e00\u8d70 DioRegistry"
@@ -1602,13 +1602,13 @@ components:
       - "HTTP 缓存 / 离线不在本包范围，用 dio_cache_interceptor 等外部方案"
     related: ["`DioRegistry`", "`WTokenInterceptor`"]
 
-  - name: '`WApiMetricsInterceptor`'
+  - name: '`WMetricsInterceptor`'
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
     useFor: '可选的请求指标：method / path / status / duration / failed'
-    dontUseFor: '不要用它做日志或上报；只产出 WApiMetric，由业务决定怎么用'
+    dontUseFor: '不要用它做日志或上报；只产出 WMetric，由业务决定怎么用'
     usage: |
-      final metrics = WApiMetricsInterceptor(
+      final metrics = WMetricsInterceptor(
         onMetric: (metric) => analytics.track(metric),
         sampleRate: 0.1,
       );
@@ -1619,8 +1619,8 @@ components:
     pitfalls:
       - "默认不启用；onMetric 抛异常会被吞掉，不影响请求"
       - "401 刷新 / 重试每次尝试都会产生一条指标"
-      - "WApiMetric.uri 可能带 query，上报前用 path 或自行过滤敏感参数"
-    related: ["`DioRegistry`", "`WApiMetric`"]
+      - "WMetric.uri 可能带 query，上报前用 path 或自行过滤敏感参数"
+    related: ["`DioRegistry`", "`WMetric`"]
 
   - name: '`WLanguage`'
     package: 'w_tools_app'

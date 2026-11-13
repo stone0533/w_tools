@@ -129,9 +129,9 @@
 - 库包的公开类型（barrel 导出的 `class` / `enum` / `mixin` / `extension` / `typedef`）一律 `W` 前缀。
   只在 `lib/src` 里可见、或用 `hide` 隐藏的迁移壳不算公开类型，不参与命名门禁。
 - 工具包不套 `W`：它们是给维护者用的 CLI / 设备工具，不是消费方 API。
-- 例外只有一类：api 数据层的公共类型（`BaseRepository` / `BaseLocalDataSource` / `ApiClientId` /
-  `DioRegistry` / `IApiPath` 等）。消费方要继承或实现它们，名字应该表达职责而不是品牌；
-  全部登记在 [`scripts/naming_baseline.yaml`](../scripts/naming_baseline.yaml)。
+- 例外只有一类：`DioRegistry` 这类基础设施入口（消费方只调用、不继承）。名字应该表达职责
+  而不是品牌，登记在 [`scripts/naming_baseline.yaml`](../scripts/naming_baseline.yaml)。
+  api 6.0 已删除数据层空壳类型（`BaseRepository` / `IApiPath` / `ApiClientId`），基线随之收缩。
 - 公开类型的首行 doc comment 写清它是什么；命名只负责可预测，不负责解释。
 - 私有类型用 `_` 前缀且不导出；需要对应公开类型时写成 `_WImageState` 这种形式。
 
@@ -264,7 +264,7 @@
 - `XxxConfigOptions` 这类双角色名：一个名字一个角色。
 - 可变 `XxxConfig`：要可变就用 `Controller` / `Options` / `Settings`。
 - 用 `XxxData` 当业务模型：用领域名（`Order` / `User`）。
-- 新 `I` 前缀接口（`IApiPath` 是存量）：Dart 用抽象类 / mixin 表达接口。
+- 新接口不要用 `I` 前缀（api 的 `IApiPath` 已在 6.0 删除）：Dart 用抽象类 / mixin 表达接口。
 - 自造缩写：`WImg` / `WBtn` / `WMsg`，用完整单词。
 - 参数 / 成员名不要拿 `config` 兜住所有类型：`Options` 用 `options`，`Style` 用 `style`，
   `Slots` 用 `slots`；否则类型叫 `Options`、参数叫 `config`，两个角色又混在一起。
@@ -308,8 +308,7 @@
 
 ### 4.3 缩写
 
-- 类型名里缩写按单词处理：`WQrView` / `WApiConfig`，
-  不写 `WQRView` / `WAPIConfig`。
+- 类型名里缩写按单词处理：`WQrView` / `WApiSettings`，不写成全大写缩写（如 WQR / WAPI 开头）。
 - 成员和变量用单词式缩写：`baseUrl`，不写 `baseURL`；
   平台判断沿用 `dart:io` 的 `isIOS` / `isMacOS` 写法，这是平台名惯例，不推广到其他词。
 - 不新造缩写：`usr` / `cfg` / `msg`；统一用 `url` / `api` / `id` / `json` / `qr` / `ui` / `http`。

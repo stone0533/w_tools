@@ -11,10 +11,9 @@
 - `WApiClient.upload` / `download`：multipart 上传与字节下载
 - `WRetryInterceptor`：可选幂等重试（见包测试）
 - `WLogInterceptor`：请求 / 响应日志与敏感头脱敏
-- `WTokenInterceptor`：401 清除、刷新、重试；`configureRequest` / `configureResponse` / `observeError`
-- `WApiConfig`：baseOptions 与日志回调注入
-- `BaseRepository` / 本地 / 远程数据源组合
-- `IApiPath` / `ApiClientId` 扩展契约
+- `WTokenInterceptor`：401 清除、刷新、重试；公共 header 用普通 `Interceptor` 注入
+- `WApiSettings`：baseOptions 与日志回调注入
+- 本地 / 远程数据源组合（普通类，不再继承基类）
 - 响应头脱敏 与 500 错误日志
 - 重试 / 取消 / Stream 等边界（见包测试）
 
@@ -39,10 +38,10 @@ flutter test
 
 | 文件 | 作用 |
 |---|---|
-| `app_api.dart` | `AppApi.init`：装配 `WApiConfig` + `DioRegistry` + `WTokenInterceptor`；登录 / 刷新 / 退出 |
+| `app_api.dart` | `AppApi.init`：装配 `WApiSettings` + `DioRegistry` + `WTokenInterceptor`；登录 / 刷新 / 退出 |
 | `token_store.dart` | `TokenStore` 契约；生产实现基于 `w_tools_core` 的 `WToken`，测试用内存实现 |
 | `api_exception.dart` | `DioException` → `ApiException` 的业务错误分类 |
-| `user_repository.dart` | `BaseRepository` + 本地缓存 / 远程数据源组合 |
+| `user_repository.dart` | 本地缓存 / 远程数据源组合 |
 
 `main()` 的接入顺序（示意）：
 
@@ -75,7 +74,7 @@ GET /error（500） 返回 500，观察错误日志
                  token 先过期，服务端返回 401；
                  WTokenInterceptor 清除旧 token、刷新、重试成功
 Repository 缓存
-                 通过 BaseRepository 组合本地 / 远程数据源
+                 组合本地 / 远程数据源
 分页             WApiClient.page + WPageQuery，展示 items / hasMore
 上传             WApiClient.upload + WApiDecoders.none
 500 重试          WRetryInterceptor 只对 /flaky 生效，首次 500 后成功

@@ -71,6 +71,13 @@ names = [
     r'WQrViewState', r'WQrViewOverlayShape', r'onQRViewCreated', r'noPermissionCallback',
     r'checkedBorderColor', r'showOverlay', r'restartScan', r'scanInvert', r'WQrController\.internal',
     # device 0.3.0：缓存 / 稳定判定的死代码收口。
+    # api 6.0：删除空壳数据层 / 契约类型，Config 改名 Settings，指标与日志 API 收口。
+    r'\bIApiPath\b', r'\bApiClientId\b', r'\bBaseRepository\b',
+    r'\bBaseLocalDataSource\b', r'\bBaseRemoteDataSource\b',
+    r'\bWApiBodyKind\b', r'WApiBody\.kind',
+    r'\bWApiConfig\b', r'\bWApiMetricsInterceptor\b', r'\bWApiMetric\b',
+    r'WTokenInterceptor\.(?:configureRequest|configureResponse|observeError)',
+    r'WLogPart\.errorHint',
     r'CalibrationStore\.isFresh\b', r'Stability\.changedAfter\b',
 ]
 # 以 `)` 结尾的条目不能补尾 `\b`：`)` 后面通常不是单词字符，补了就永远匹配不到。

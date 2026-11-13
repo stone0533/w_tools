@@ -1,3 +1,20 @@
+## 16.0.0
+
+### Breaking
+- 聚合 `w_tools_api` 6.0.0：`WApiConfig` → `WApiSettings`、`WApiMetricsInterceptor` →
+  `WMetricsInterceptor`、`WApiMetric` → `WMetric`。
+- 删除 `IApiPath` / `ApiClientId` / `BaseRepository` / `BaseLocalDataSource` /
+  `BaseRemoteDataSource`、`WApiBody.kind` / `WApiBodyKind`、`WLogPart.errorHint`，
+  以及 `WTokenInterceptor` 的 `configureRequest` / `configureResponse` / `observeError`。
+- 迁移见 `docs/migrations/api-6.0.md`。
+
+### Fixed
+- 聚合 api 的 `DioRegistry` / `WTokenInterceptor` / `WApiClient` 边界修复（LRU 0、
+  刷新后重试失败、空 path 参数）。
+
+### Changed
+- 依赖 `w_tools_api: ^6.0.0`。
+
 ## 15.4.0
 
 ### Added

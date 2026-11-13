@@ -163,7 +163,7 @@ flutter pub get
 | `w_tools_async` | 异步执行、状态、Controller 与异步视图 |
 | `w_tools_ui` | UI 组件（`WText` / `WImage` / `WButton` / `WScaffold` / `WAppBar` / `WListView` / `WNavBar` 等） |
 | `w_tools_form` | 表单组件（`WFormTextField` / `WFormDropdown` / `WFormCheckbox` / `WFormBorder` 等） |
-| `w_tools_api` | 网络请求（`DioRegistry` / `BaseOptions` / 各类拦截器 / `BaseRepository`） |
+| `w_tools_api` | 网络请求（`DioRegistry` / `WApiClient` / `BaseOptions` / 各类拦截器） |
 | `w_tools_toast` | 轻量提示（`WToast`） |
 
 ## 快速开始
@@ -221,9 +221,9 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 ### 🔌 API 相关
 - **Dio 工具** (`DioRegistry`): 基于 Dio 的网络请求工具，按 `baseUrl` 缓存实例
-- **Dio 基础配置** (`WApiConfig.baseOptions`): 全局默认 `BaseOptions`
+- **Dio 基础配置** (`WApiSettings.baseOptions`): 全局默认 `BaseOptions`
 - **拦截器**: 日志 (`WLogInterceptor`)、令牌 (`WTokenInterceptor`)
-- **仓库** (`BaseRepository`): 基础仓库类
+- **调用层** (`WApiClient`): 统一 HTTP 方法、显式解码、分页与上传下载
 
 ### 🔧 工具类
 

@@ -7,15 +7,15 @@ import 'package:w_tools_api/w_tools_api.dart';
 void main() {
   late Dio dio;
   late _Adapter adapter;
-  late List<WApiMetric> metrics;
-  late WApiMetricsInterceptor interceptor;
+  late List<WMetric> metrics;
+  late WMetricsInterceptor interceptor;
 
   setUp(() {
     adapter = _Adapter();
     dio = Dio(BaseOptions(baseUrl: 'https://metrics.test'));
     dio.httpClientAdapter = adapter;
-    metrics = <WApiMetric>[];
-    interceptor = WApiMetricsInterceptor(onMetric: metrics.add);
+    metrics = <WMetric>[];
+    interceptor = WMetricsInterceptor(onMetric: metrics.add);
     dio.interceptors.add(interceptor);
   });
 
@@ -49,7 +49,7 @@ void main() {
   test('sampleRate=0 不产生指标', () async {
     dio.interceptors.clear();
     dio.interceptors.add(
-      WApiMetricsInterceptor(onMetric: metrics.add, sampleRate: 0),
+      WMetricsInterceptor(onMetric: metrics.add, sampleRate: 0),
     );
 
     await dio.get('/users');
@@ -60,7 +60,7 @@ void main() {
   test('onMetric 抛异常不影响请求', () async {
     dio.interceptors.clear();
     dio.interceptors.add(
-      WApiMetricsInterceptor(
+      WMetricsInterceptor(
         onMetric: (_) => throw StateError('metrics failure'),
       ),
     );

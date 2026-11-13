@@ -30,7 +30,7 @@ void main() {
 
   tearDown(() {
     AppApi.dispose(baseUrl);
-    WApiConfig.reset();
+    WApiSettings.reset();
   });
 
   UserRepository newRepository() => UserRepository(

@@ -15,7 +15,7 @@ void main() {
   test('w_tools.dart 汇总 6 个基础子包的公开类型', () {
     expect(w.WToken, isNotNull); // core
     expect(w.WFormIcons, isNotNull); // form
-    expect(w.WApiConfig, isNotNull); // api
+    expect(w.WApiSettings, isNotNull); // api
     expect(w.WToast, isNotNull); // toast
     expect(w.WButton, isNotNull); // ui
     expect(w.WAsyncState<Object>, isNotNull); // async

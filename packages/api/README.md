@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/w_tools_api.svg)](https://pub.dev/packages/w_tools_api)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`w_tools_api` 是 w_tools 的网络层，基于 Dio 提供多客户端注册、调用层、日志与 Token 拦截器、401 刷新与错误提示，以及 Repository 基类。
+`w_tools_api` 是 w_tools 的网络层，基于 Dio 提供多客户端注册、调用层、日志与 Token 拦截器、401 刷新与错误分类。
 
 ## 特性
 
@@ -12,24 +12,22 @@
 - **请求体**：`WApiBody` 支持 json / form / multipart / bytes
 - **统一错误**：`WApiException` 按 `kind` 分类，不写死用户文案
 - **拦截器**：`WLogInterceptor` 日志（默认脱敏 Authorization / Cookie 等敏感头与 password / token 等敏感 body）、`WTokenInterceptor` Token 注入与 401 刷新
-- **配置收敛**：`WApiConfig` 提供默认 `BaseOptions`
-- **Repository 基类**：`BaseRepository` 统一持有本地 / 远程数据源
-- **路径契约**：`IApiPath` 供业务实现基础 URL
-
-`IApiPath` / `ApiClientId` 是业务侧扩展契约，库内部不强制使用；`DioRegistry` 仍按 `baseUrl` 缓存实例。
+- **配置收敛**：`WApiSettings` 提供默认 `BaseOptions` 与日志回调
+- **可选重试 / 指标**：`WRetryInterceptor`、`WMetricsInterceptor`（默认关闭）
 
 ## 安装
 
 ```yaml
 dependencies:
-  w_tools_api: ^5.6.0
+  w_tools_api: ^6.0.0
 ```
 
 ```bash
 flutter pub get
 ```
 
-> 本包最低要求 Flutter 3.38.0。
+> 本包最低要求 Flutter 3.38.0。从 5.x 升级先看 [`docs/migrations/api-6.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/api-6.0.md)：
+> `WApiConfig` → `WApiSettings`、删除空壳数据层 / `WApiBody.kind` / 日志友好提示。
 
 ## 快速开始
 
@@ -176,10 +174,10 @@ final registry = DioRegistry.forBaseUrl(
 
 ### 指标（可选）
 
-`WApiMetricsInterceptor` 只产出 `WApiMetric`，不写日志、不上报：
+`WMetricsInterceptor` 只产出 `WMetric`，不写日志、不上报：
 
 ```dart
-final metrics = WApiMetricsInterceptor(
+final metrics = WMetricsInterceptor(
   onMetric: (metric) {
     analytics.track('http', {
       'method': metric.method,
@@ -196,7 +194,7 @@ final metrics = WApiMetricsInterceptor(
 - 401 刷新 / 重试每次尝试都会各产生一条；
 - `uri` 可能带 query，上报用 `path` 或自行过滤敏感参数。
 
-> `WLogInterceptor` 只有注入 `WApiConfig.logDebugHandler` / `logErrorHandler` 后才会输出；默认不打印 request / response body，需要时显式传 `parts` 并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；`requestBody` / `responseBody` 里的 `password` / `token` / `access_token` 等敏感 key 也会递归脱敏（Map / List / JSON 字符串 / FormData fields），可用 `sensitiveBodyKeys` 自定义；单条 body 超过 2000 字符会截断，可用 `maxBodyLength` 覆盖。
+> `WLogInterceptor` 只有注入 `WApiSettings.logDebugHandler` / `logErrorHandler` 后才会输出；默认不打印 request / response body，需要时显式传 `parts` 并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；`requestBody` / `responseBody` 里的 `password` / `token` / `access_token` 等敏感 key 也会递归脱敏（Map / List / JSON 字符串 / FormData fields），可用 `sensitiveBodyKeys` 自定义；单条 body 超过 2000 字符会截断，可用 `maxBodyLength` 覆盖。
 
 释放实例：
 
@@ -252,7 +250,7 @@ Future<String?> refreshAccessToken() async {
 | 能力 | 入口 |
 |---|---|
 | Dio 注册表 | `DioRegistry.forBaseUrl` / `maybeForBaseUrl` / `dispose` / `clearCache` |
-| 默认配置 | `WApiConfig.baseOptions` / `WApiConfig.reset`（测试清理） |
+| 默认配置 | `WApiSettings.baseOptions` / `WApiSettings.reset`（测试清理） |
 | 调用层 | `WApiClient.get/post/put/patch/delete/head/options` |
 | 原始响应 | `WApiClient.send` / `WApiResponse` |
 | 请求体 | `WApiBody.json/form/multipart/bytes` |
@@ -264,8 +262,7 @@ Future<String?> refreshAccessToken() async {
 | 错误分类 | `WApiException` / `WApiErrorKind` |
 | 日志拦截 | `WLogInterceptor` |
 | Token 拦截 | `WTokenInterceptor` |
-| Repository | `BaseRepository` |
-| 路径契约 | `IApiPath` / `ApiClientId` |
+| 指标（可选） | `WMetricsInterceptor` / `WMetric` |
 
 ## 完整示例
 
@@ -276,7 +273,7 @@ Future<String?> refreshAccessToken() async {
 
 真实项目分层写法见 [`example/lib/real_world/`](example/lib/real_world/)：
 `TokenStore` 注入、登录 / 刷新、`DioException` → `ApiException` 映射、
-`BaseRepository` 缓存组合，附对应测试。
+本地缓存 + 远程数据源组合，附对应测试。
 
 ## 选型：WApiClient / retrofit / OpenAPI
 

@@ -47,25 +47,25 @@ void main() {
     expect(failures, 1);
   });
 
-  test('API-024 WApiConfig.reset 恢复默认值', () {
-    WApiConfig.baseOptions = BaseOptions(
+  test('API-024 WApiSettings.reset 恢复默认值', () {
+    WApiSettings.baseOptions = BaseOptions(
       connectTimeout: const Duration(seconds: 1),
       receiveTimeout: const Duration(seconds: 2),
     );
-    WApiConfig.logDebugHandler = (_) {};
-    WApiConfig.logErrorHandler = (_) {};
+    WApiSettings.logDebugHandler = (_) {};
+    WApiSettings.logErrorHandler = (_) {};
 
-    WApiConfig.reset();
+    WApiSettings.reset();
 
     expect(
-      WApiConfig.baseOptions.connectTimeout,
+      WApiSettings.baseOptions.connectTimeout,
       const Duration(milliseconds: 10000),
     );
     expect(
-      WApiConfig.baseOptions.receiveTimeout,
+      WApiSettings.baseOptions.receiveTimeout,
       const Duration(milliseconds: 50000),
     );
-    expect(WApiConfig.logDebugHandler, isNull);
-    expect(WApiConfig.logErrorHandler, isNull);
+    expect(WApiSettings.logDebugHandler, isNull);
+    expect(WApiSettings.logErrorHandler, isNull);
   });
 }

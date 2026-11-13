@@ -166,6 +166,20 @@ void main() {
       expect(DioRegistry.maybeForBaseUrl('https://lru-c.example.com'), same(c.dio));
     });
 
+    test('maxCachedInstances = 0 不缓存，且返回的实例可用', () async {
+      DioRegistry.maxCachedInstances = 0;
+      addTearDown(() => DioRegistry.maxCachedInstances = null);
+
+      final registry = DioRegistry.forBaseUrl('https://no-cache.example.com');
+      registry.dio.httpClientAdapter = _EchoAdapter();
+      addTearDown(() => registry.dio.close(force: true));
+
+      final response = await registry.dio.get<Map<String, dynamic>>('/x');
+
+      expect(response.statusCode, 200);
+      expect(DioRegistry.maybeForBaseUrl('https://no-cache.example.com'), isNull);
+    });
+
     test('clearCache 清空所有缓存', () {
       DioRegistry.forBaseUrl('https://a.example.com');
       DioRegistry.forBaseUrl('https://b.example.com');
@@ -175,4 +189,22 @@ void main() {
       expect(util, isA<DioRegistry>());
     });
   });
+}
+
+class _EchoAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => ResponseBody.fromString(
+    '{}',
+    200,
+    headers: {
+      Headers.contentTypeHeader: ['application/json'],
+    },
+  );
+
+  @override
+  void close({bool force = false}) {}
 }

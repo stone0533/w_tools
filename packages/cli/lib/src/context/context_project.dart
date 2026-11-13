@@ -124,7 +124,7 @@ class ProjectSnapshot {
       'w_tools_async': 'WAsyncController + WAsyncView；纯执行 WAsync.tryRun/run',
       'w_tools_ui': 'WText / WImage / WButton / WScaffold',
       'w_tools_form': 'WForm + 直接字段（WFormTextField 等）',
-      'w_tools_api': 'WApiConfig + DioRegistry + WLogInterceptor',
+      'w_tools_api': 'WApiSettings + DioRegistry + WLogInterceptor',
       'w_tools_toast': 'WToast.showXxx + WToastStyle',
       'w_tools_app_getx': 'WApp + WAppPlugin + GetX 路由',
       'w_tools_map_google': 'WMap + WMapZone',

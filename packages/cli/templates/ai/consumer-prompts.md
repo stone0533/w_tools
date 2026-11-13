@@ -290,7 +290,7 @@
 任务：实现 <接口> 与 <页面> 的登录流程。
 
 要求：
-1. 用 WApiConfig + DioRegistry，不直接 new Dio；
+1. 用 WApiSettings + DioRegistry，不直接 new Dio；
 2. token 用 WToken；
 3. 401 刷新只重试一次；
 4. 请求失败要有业务错误提示；
@@ -322,7 +322,7 @@
    - 表单：WForm + 直接字段，不传 config
 <!-- @endif -->
 <!-- @if:api -->
-   - 接口：WApiConfig + DioRegistry，token 用 WToken
+   - 接口：WApiSettings + DioRegistry，token 用 WToken
 <!-- @endif -->
 <!-- @if:toast -->
    - Toast：WToast + WToastTheme，不要直接用 BotToast

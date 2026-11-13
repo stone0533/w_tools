@@ -8,9 +8,9 @@ HTTP 请求、token 注入与 401 重试、请求日志。
 
 ```dart
 // baseOptions 必须在第一次 forBaseUrl 之前设置；日志回调不注入则拦截器静默不输出
-WApiConfig.baseOptions = BaseOptions(connectTimeout: const Duration(seconds: 10));
-WApiConfig.logDebugHandler = (message) => debugPrint('$message');
-WApiConfig.logErrorHandler = (message) => debugPrint('$message');
+WApiSettings.baseOptions = BaseOptions(connectTimeout: const Duration(seconds: 10));
+WApiSettings.logDebugHandler = (message) => debugPrint('$message');
+WApiSettings.logErrorHandler = (message) => debugPrint('$message');
 
 final dio = DioRegistry.forBaseUrl(
   'https://api.example.com',
@@ -21,7 +21,7 @@ final dio = DioRegistry.forBaseUrl(
       // 刷新后必须自己落盘，保证 tokenGetter 随后返回新 token
       tokenRefresher: () async => refresh(),
     ),
-    WLogInterceptor(parts: {WLogPart.request, WLogPart.error, WLogPart.errorHint}),
+    WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
   ],
 ).dio;
 
@@ -78,7 +78,7 @@ await client.upload<void>(
   不配置时不会触发 `WTokenInterceptor`；
 - 需要 status / headers 用 `WApiClient.send`（返回 `WApiResponse`）；`get/post` 只返回 data；
 - 重试用 `WRetryInterceptor`（默认关闭，只对幂等方法）；HTTP 缓存 / 离线用外部方案，不在本包范围；
-- 指标用 `WApiMetricsInterceptor`（opt-in），只产出 `WApiMetric`，日志 / 上报由业务决定；
+- 指标用 `WMetricsInterceptor`（opt-in），只产出 `WMetric`，日志 / 上报由业务决定；
 - 选型（手写 `fromJson` / json_serializable / retrofit / OpenAPI）：见
   `packages/api/README.md` 的「选型」章节。
 
@@ -86,7 +86,8 @@ await client.upload<void>(
 
 - 用裸 `Dio()` 绕过 `DioRegistry`；必须裸用时构造传 `dio:`，否则 401 后无法重试；
 - 同一 `baseUrl` 第二次传不同 `options` / `interceptors`（会抛 `ArgumentError`）；
-- 依赖日志拦截器做业务错误处理；
+- 依赖日志拦截器做业务错误处理；日志只输出技术信息，UI 文案按 `WApiException.kind` 映射；
+- 把公共 header / 响应加工塞进 `WTokenInterceptor`；再挂一个普通 `Interceptor` 即可；
 - 为了调试把 `password` / token 原样打进日志；`WLogInterceptor` 的 `requestBody` / `responseBody`
   会按 `sensitiveBodyKeys` 脱敏，自定义字段用 `sensitiveBodyKeys` 补，不要关掉脱敏。
 
@@ -97,6 +98,9 @@ await client.upload<void>(
 - 默认不打印 request / response body；需要时显式加 `parts`，并用 `kDebugMode` 控制；
 - `validateStatus` 按引用比较：自定义闭包会被视为“不同配置”；
 - 裸 `Dio()` 必须构造传 `dio: dio`，否则 401 后无法重试（会报错，不再隐式注册）；推荐用 `DioRegistry`；
-- `WRetryInterceptor` 不重试 POST / PATCH，也不重试 401；`maxRetries` 不含首次请求。
+- `WRetryInterceptor` 不重试 POST / PATCH，也不重试 401；`maxRetries` 不含首次请求；
+- 显式传 `headers: {'Authorization': ...}` 时 token 拦截器不再覆盖（登录 / 公开接口用得上）；
+- 开了业务信封后，204 / 空 body 需要 `readCode` 自己判空，或该请求用 `WApiDecoders.none`；
+- `DioRegistry.maxCachedInstances <= 0` 表示不缓存：每次新建，返回的实例由调用方负责关闭。
 
 完整说明：[api_module.md](../modules/api_module.md) · 示例：`packages/api/example`

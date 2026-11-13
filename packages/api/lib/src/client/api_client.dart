@@ -2,253 +2,13 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
-import '../api_config.dart';
+import '../api_settings.dart';
+import 'api_body.dart';
+import 'api_decoders.dart';
+import 'api_envelope.dart';
 import 'api_exception.dart';
-
-/// 把 JSON 转成业务模型的显式解码函数。
-///
-/// Dart / Flutter 没有反射，`get<User>()` 不会自动调用 `User.fromJson`；
-/// 必须把映射显式传给 `decode`（或用 json_serializable / freezed 生成）。
-typedef WApiDecoder<T> = T Function(Object? json);
-
-/// 请求体的编码方式。
-enum WApiBodyKind {
-  /// `application/json`
-  json,
-
-  /// `application/x-www-form-urlencoded`
-  form,
-
-  /// `multipart/form-data`
-  multipart,
-
-  /// 原始字节
-  bytes,
-}
-
-/// 请求体描述。
-///
-/// ```dart
-/// WApiBody.json({'name': 'Ada'});
-/// WApiBody.form({'name': 'Ada'});
-/// WApiBody.multipart(
-///   fields: {'bucket': 'avatar'},
-///   files: {'file': MultipartFile.fromBytes(bytes)},
-/// );
-/// WApiBody.bytes(bytes, contentType: 'application/octet-stream');
-/// ```
-class WApiBody {
-  /// JSON body（Map / List / 可 jsonEncode 的值）。
-  const WApiBody.json(Object? value)
-    : kind = WApiBodyKind.json,
-      data = value,
-      contentType = Headers.jsonContentType;
-
-  /// 表单 body；`null` 字段会被丢弃。
-  WApiBody.form(Map<String, Object?> fields)
-    : kind = WApiBodyKind.form,
-      data = _withoutNulls(fields),
-      contentType = Headers.formUrlEncodedContentType;
-
-  /// multipart body；`null` 字段会被丢弃。
-  ///
-  /// [files] 的 key 是表单字段名（dio 5 的 `MultipartFile` 不再自带字段名）。
-  WApiBody.multipart({
-    Map<String, Object?> fields = const {},
-    Map<String, MultipartFile> files = const {},
-  }) : kind = WApiBodyKind.multipart,
-       data = _formData(fields, files),
-       contentType = null;
-
-  /// 原始字节 body。
-  WApiBody.bytes(List<int> bytes, {this.contentType})
-    : kind = WApiBodyKind.bytes,
-      data = Uint8List.fromList(bytes);
-
-  /// 编码方式
-  final WApiBodyKind kind;
-
-  /// 直接传给 dio 的 `data`
-  final Object? data;
-
-  /// `Content-Type`；multipart 时为 null，由 dio 生成 boundary
-  final String? contentType;
-
-  static Map<String, Object?> _withoutNulls(Map<String, Object?> fields) => {
-    for (final entry in fields.entries)
-      if (entry.value != null) entry.key: entry.value,
-  };
-
-  static FormData _formData(
-    Map<String, Object?> fields,
-    Map<String, MultipartFile> files,
-  ) {
-    final form = FormData();
-    for (final entry in _withoutNulls(fields).entries) {
-      form.fields.add(MapEntry(entry.key, entry.value.toString()));
-    }
-    for (final entry in files.entries) {
-      form.files.add(MapEntry(entry.key, entry.value));
-    }
-    return form;
-  }
-}
-
-/// 业务信封解析器。
-///
-/// 很多后端返回 `{code, message, data}`；`WApiClient` 默认不假设信封，
-/// 传 [WApiEnvelopeParser] 后才启用：
-///
-/// ```dart
-/// final client = WApiClient(
-///   registry.dio,
-///   envelope: WApiEnvelopeParser(
-///     readCode: (json) => (json as Map)['code'],
-///     readData: (json) => (json as Map)['data'],
-///     readMessage: (json) => (json as Map)['message'] as String?,
-///     isSuccess: (code) => code == 0 || code == 200,
-///   ),
-/// );
-/// ```
-///
-/// 业务码失败会抛 `WApiException(kind: WApiErrorKind.business)`，
-/// 带上 [WApiException.businessCode] 和原始 [WApiException.payload]。
-class WApiEnvelopeParser {
-  /// 创建解析器。
-  const WApiEnvelopeParser({
-    required this.readCode,
-    required this.readData,
-    required this.isSuccess,
-    this.readMessage,
-    this.authFailureCodes = const {},
-  });
-
-  /// 读取业务码
-  final Object? Function(Object? json) readCode;
-
-  /// 读取业务数据（成功时传给 `decode`）
-  final Object? Function(Object? json) readData;
-
-  /// 业务码是否表示成功
-  final bool Function(Object? code) isSuccess;
-
-  /// 读取业务提示信息（可选）
-  final String? Function(Object? json)? readMessage;
-
-  /// 视为「登录失效」的业务码。
-  ///
-  /// 命中时 `WApiClient` 抛 `WApiException(kind: unauthorized)` 并调用
-  /// `WApiClient.onAuthFailure`，与 HTTP 401 走同一条登出链路。
-  final Set<Object?> authFailureCodes;
-}
-
-/// 分页请求参数。
-///
-/// [pageKey] / [pageSizeKey] 用于适配不同后端的参数名（默认 `page` / `pageSize`）。
-class WPageQuery {
-  /// 创建分页参数；页码从 1 开始。
-  const WPageQuery({
-    this.page = 1,
-    this.pageSize = 20,
-    this.pageKey = 'page',
-    this.pageSizeKey = 'pageSize',
-  }) : assert(page >= 1, 'page 从 1 开始'),
-       assert(pageSize >= 1, 'pageSize 必须大于 0');
-
-  /// 页码（从 1 开始）
-  final int page;
-
-  /// 每页条数
-  final int pageSize;
-
-  /// 页码参数名
-  final String pageKey;
-
-  /// 每页条数参数名
-  final String pageSizeKey;
-
-  /// 转成 query 参数
-  Map<String, Object?> toQuery() => {pageKey: page, pageSizeKey: pageSize};
-}
-
-/// 一页数据 + 是否还有更多。
-class WPage<T> {
-  /// 创建分页结果。
-  const WPage({
-    required this.items,
-    required this.page,
-    required this.pageSize,
-    this.total,
-  });
-
-  /// 当前页数据
-  final List<T> items;
-
-  /// 当前页码（从 1 开始）
-  final int page;
-
-  /// 每页条数
-  final int pageSize;
-
-  /// 总条数；服务端不返回时为 null
-  final int? total;
-
-  /// 是否还有下一页。
-  ///
-  /// 有 [total] 时按 `page * pageSize < total` 计算；没有时按「本页是否满页」判断。
-  bool get hasMore {
-    final total = this.total;
-    if (total != null) return page * pageSize < total;
-    return items.length >= pageSize;
-  }
-}
-
-/// 常用 decoder 辅助。
-abstract final class WApiDecoders {
-  /// 忽略响应体（DELETE / 204 用）。
-  static WApiDecoder<void> get none => (json) {};
-
-  /// 直接返回 `Map<String, dynamic>`（不做字段映射）。
-  static WApiDecoder<Map<String, dynamic>> get jsonMap =>
-      (json) => json as Map<String, dynamic>;
-
-  /// JSON 数组 → `List<T>`。
-  static WApiDecoder<List<T>> listOf<T>(WApiDecoder<T> itemDecode) =>
-      (json) => (json as List).map(itemDecode).toList();
-
-  /// 允许响应体为 null 的 decoder。
-  static WApiDecoder<T?> nullable<T>(WApiDecoder<T> itemDecode) =>
-      (json) => json == null ? null : itemDecode(json);
-}
-
-/// 保留响应元数据的调用结果。
-///
-/// 需要 status / headers（限流、分页 total、请求 ID）时用
-/// `WApiClient.send`；普通 `get/post/...` 仍直接返回 `T`。
-class WApiResponse<T> {
-  /// 创建响应结果。
-  const WApiResponse({
-    required this.data,
-    required this.statusCode,
-    required this.headers,
-    required this.requestOptions,
-  });
-
-  /// 解码后的业务数据
-  final T data;
-
-  /// HTTP 状态码
-  final int? statusCode;
-
-  /// 响应头
-  final Headers headers;
-
-  /// 原始请求信息
-  final RequestOptions requestOptions;
-
-  /// 请求 URI
-  Uri get uri => requestOptions.uri;
-}
+import 'api_page.dart';
+import 'api_response.dart';
 
 /// 协议层统一入口：收敛 HTTP 方法、参数编码、JSON 解码与错误分类。
 ///
@@ -528,7 +288,7 @@ class WApiClient {
       throw ArgumentError.value(
         method,
         'method',
-        'upload 只支持 POST / PUT / PATCH',
+        'upload only supports POST / PUT / PATCH',
       );
     }
 
@@ -657,7 +417,7 @@ class WApiClient {
             try {
               onAuthFailure?.call(exception);
             } catch (error) {
-              WApiConfig.logErrorHandler?.call('onAuthFailure failed: $error');
+              WApiSettings.logErrorHandler?.call('onAuthFailure failed: $error');
             }
           }
           throw exception;
@@ -682,18 +442,21 @@ class WApiClient {
   }
 
   /// 把 `'/users/{id}'` + `{'id': '42'}` 解析成 `'/users/42'`。
+  ///
+  /// 路径里仍留有 `{name}` 占位符（包括没传 `pathParameters`）时抛
+  /// [ArgumentError]，避免把编码后的 `%7Bname%7D` 发给服务端。
   static String _resolvePath(
     String path,
     Map<String, String>? pathParameters,
   ) {
-    if (pathParameters == null || pathParameters.isEmpty) return path;
-
     var resolved = path;
-    for (final entry in pathParameters.entries) {
-      resolved = resolved.replaceAll(
-        '{${entry.key}}',
-        Uri.encodeComponent(entry.value),
-      );
+    if (pathParameters != null) {
+      for (final entry in pathParameters.entries) {
+        resolved = resolved.replaceAll(
+          '{${entry.key}}',
+          Uri.encodeComponent(entry.value),
+        );
+      }
     }
 
     final missing = RegExp(r'\{[^}]+\}').firstMatch(resolved);

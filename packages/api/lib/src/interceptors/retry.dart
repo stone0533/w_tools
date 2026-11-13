@@ -3,8 +3,8 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 
-import '../api_config.dart';
-import '../clients/dio_registry.dart';
+import '../api_settings.dart';
+import '../client/dio_registry.dart';
 
 /// 可选的幂等请求重试拦截器。
 ///
@@ -97,6 +97,9 @@ class WRetryInterceptor extends Interceptor {
     DioExceptionType.connectionTimeout,
     DioExceptionType.sendTimeout,
     DioExceptionType.receiveTimeout,
+    // dio 5.10 起把「响应体转换超时」单独分类；对调用方来说它是 timeout，
+    // 与 WApiException 的 timeout 分类保持一致。
+    DioExceptionType.transformTimeout,
     DioExceptionType.connectionError,
     DioExceptionType.unknown,
   };
@@ -136,7 +139,7 @@ class WRetryInterceptor extends Interceptor {
     }
 
     final delay = _delayFor(attempt);
-    WApiConfig.logDebugHandler?.call(
+    WApiSettings.logDebugHandler?.call(
       'Retrying ${err.requestOptions.method} ${err.requestOptions.uri} '
       '(${attempt + 1}/$maxRetries) after ${delay.inMilliseconds}ms',
     );
@@ -144,7 +147,7 @@ class WRetryInterceptor extends Interceptor {
     try {
       onRetry?.call(attempt + 1, err);
     } catch (error) {
-      WApiConfig.logErrorHandler?.call(
+      WApiSettings.logErrorHandler?.call(
         'WRetryInterceptor.onRetry failed: $error',
       );
     }
@@ -160,7 +163,7 @@ class WRetryInterceptor extends Interceptor {
 
     final dio = _dio ?? DioRegistry.maybeForBaseUrl(err.requestOptions.baseUrl);
     if (dio == null) {
-      WApiConfig.logErrorHandler?.call(
+      WApiSettings.logErrorHandler?.call(
         'Cannot retry ${err.requestOptions.uri}: WRetryInterceptor 未绑定 Dio。'
         '请用 DioRegistry.forBaseUrl 创建，或构造时传 dio: dio。',
       );
@@ -181,7 +184,7 @@ class WRetryInterceptor extends Interceptor {
       // 内层链路会按新的 attempt 继续重试 / 结束；这里只交出最终错误。
       super.onError(error, handler);
     } catch (error, stackTrace) {
-      WApiConfig.logErrorHandler?.call('Retry failed: $error\n$stackTrace');
+      WApiSettings.logErrorHandler?.call('Retry failed: $error\n$stackTrace');
       super.onError(err, handler);
     }
   }

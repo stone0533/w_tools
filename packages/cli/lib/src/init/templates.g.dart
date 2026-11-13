@@ -297,7 +297,7 @@ const String aiPrompts = r'''
 任务：实现 <接口> 与 <页面> 的登录流程。
 
 要求：
-1. 用 WApiConfig + DioRegistry，不直接 new Dio；
+1. 用 WApiSettings + DioRegistry，不直接 new Dio；
 2. token 用 WToken；
 3. 401 刷新只重试一次；
 4. 请求失败要有业务错误提示；
@@ -329,7 +329,7 @@ const String aiPrompts = r'''
    - 表单：WForm + 直接字段，不传 config
 <!-- @endif -->
 <!-- @if:api -->
-   - 接口：WApiConfig + DioRegistry，token 用 WToken
+   - 接口：WApiSettings + DioRegistry，token 用 WToken
 <!-- @endif -->
 <!-- @if:toast -->
    - Toast：WToast + WToastTheme，不要直接用 BotToast
@@ -1011,7 +1011,7 @@ Requirements:
 Task: implement <api> and the login flow for <page>.
 
 Requirements:
-1. use WApiConfig + DioRegistry; do not create Dio directly;
+1. use WApiSettings + DioRegistry; do not create Dio directly;
 2. store tokens with WToken;
 3. refresh on 401 and retry only once;
 4. show business errors on failure;
@@ -1043,7 +1043,7 @@ Check this project:
    - forms: WForm + direct fields, no config
 <!-- @endif -->
 <!-- @if:api -->
-   - network: WApiConfig + DioRegistry, tokens with WToken
+   - network: WApiSettings + DioRegistry, tokens with WToken
 <!-- @endif -->
 <!-- @if:toast -->
    - toast: WToast + WToastTheme instead of BotToast directly
@@ -1601,8 +1601,8 @@ const String agentsForm = r'''
 ''';
 
 const String agentsApi = r'''
-- **接口**（`WApiConfig` + `DioRegistry.forBaseUrl`）：不要直接 `Dio()`，裸 Dio 必须传 `dio:`；
-  token 用 `WToken` + `WTokenInterceptor`，日志用 `WLogInterceptor`。细节：`explain WApiConfig`。
+- **接口**（`WApiSettings` + `DioRegistry.forBaseUrl`）：不要直接 `Dio()`，裸 Dio 必须传 `dio:`；
+  token 用 `WToken` + `WTokenInterceptor`，日志用 `WLogInterceptor`。细节：`explain WApiSettings`。
 - **调用**（`WApiClient`）：GET/POST/PUT/PATCH/DELETE 用 `WApiClient`；`decode` 必须显式传，
   不要手写 `response.data as Map`。细节：`explain WApiClient`。
 ''';
@@ -1722,9 +1722,9 @@ const String agentsFormEn = r'''
 ''';
 
 const String agentsApiEn = r'''
-- **Network** (`WApiConfig` + `DioRegistry.forBaseUrl`): never a bare `Dio()`; a raw Dio must receive
+- **Network** (`WApiSettings` + `DioRegistry.forBaseUrl`): never a bare `Dio()`; a raw Dio must receive
   `dio:`; tokens via `WToken` + `WTokenInterceptor`, logging via `WLogInterceptor`.
-  Details: `explain WApiConfig`.
+  Details: `explain WApiSettings`.
 - **Calls** (`WApiClient`): GET/POST/PUT/PATCH/DELETE via `WApiClient`; always pass an explicit
   `decode`; never hand-cast `response.data`. Details: `explain WApiClient`.
 ''';
