@@ -23,7 +23,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('/error → 失败'), findsOneWidget);
-    expect(find.textContaining('服务器返回错误: 500'), findsOneWidget);
+    expect(find.textContaining('*** DioError ***'), findsWidgets);
+    expect(find.textContaining('statusCode: 500'), findsWidgets);
     expect(find.textContaining('observed: 500'), findsWidgets);
   });
 
@@ -54,25 +55,25 @@ void main() {
     expect(find.textContaining('X-Demo-Secret: ***'), findsWidgets);
   });
 
-  testWidgets('退出示例后恢复 WApiConfig.baseOptions', (tester) async {
-    WApiConfig.baseOptions = BaseOptions(
+  testWidgets('退出示例后恢复 WApiSettings.baseOptions', (tester) async {
+    WApiSettings.baseOptions = BaseOptions(
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 50),
     );
 
     await tester.pumpWidget(const ApiExampleApp());
     expect(
-      WApiConfig.baseOptions.connectTimeout,
+      WApiSettings.baseOptions.connectTimeout,
       const Duration(seconds: 5),
     );
 
     await tester.pumpWidget(const SizedBox());
     expect(
-      WApiConfig.baseOptions.connectTimeout,
+      WApiSettings.baseOptions.connectTimeout,
       const Duration(seconds: 10),
     );
     expect(
-      WApiConfig.baseOptions.receiveTimeout,
+      WApiSettings.baseOptions.receiveTimeout,
       const Duration(seconds: 50),
     );
   });

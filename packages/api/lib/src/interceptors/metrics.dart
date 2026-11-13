@@ -6,9 +6,9 @@ import 'package:dio/dio.dart';
 ///
 /// 只描述这次请求，不包含用户 / 业务信息；[uri] 可能带 query，
 /// 上报前请自己过滤敏感参数，或改用 [path]。
-class WApiMetric {
+class WMetric {
   /// 创建指标。
-  const WApiMetric({
+  const WMetric({
     required this.method,
     required this.uri,
     required this.duration,
@@ -40,17 +40,17 @@ class WApiMetric {
 
   @override
   String toString() =>
-      'WApiMetric($method ${uri.path}, status: $statusCode, '
+      'WMetric($method ${uri.path}, status: $statusCode, '
       'duration: ${duration.inMilliseconds}ms, failed: $failed)';
 }
 
 /// 可选的请求指标拦截器。
 ///
-/// 默认不启用；只负责产出 [WApiMetric]，不写日志、不上报、不弹提示。
+/// 默认不启用；只负责产出 [WMetric]，不写日志、不上报、不弹提示。
 /// 需要接入埋点 / Prometheus / Sentry 时，在 [onMetric] 里自己决定。
 ///
 /// ```dart
-/// final metrics = WApiMetricsInterceptor(
+/// final metrics = WMetricsInterceptor(
 ///   onMetric: (metric) => analytics.track('http', {
 ///     'method': metric.method,
 ///     'path': metric.path,
@@ -63,12 +63,12 @@ class WApiMetric {
 /// 注意：
 /// - 401 刷新 / 重试会重新走请求链路，每次尝试都会产生一条指标；
 /// - [onMetric] 抛出的异常会被吞掉，不影响请求；
-/// - [WApiMetric.uri] 可能带 query，上报前请过滤敏感参数。
-class WApiMetricsInterceptor extends Interceptor {
+/// - [WMetric.uri] 可能带 query，上报前请过滤敏感参数。
+class WMetricsInterceptor extends Interceptor {
   /// 创建指标拦截器。
   ///
   /// [sampleRate] 取值 0–1；0 表示关闭，1 表示全量。
-  WApiMetricsInterceptor({
+  WMetricsInterceptor({
     required this.onMetric,
     this.sampleRate = 1.0,
   }) : assert(
@@ -77,7 +77,7 @@ class WApiMetricsInterceptor extends Interceptor {
        );
 
   /// 指标回调
-  final void Function(WApiMetric metric) onMetric;
+  final void Function(WMetric metric) onMetric;
 
   /// 采样率（0–1）
   final double sampleRate;
@@ -135,7 +135,7 @@ class WApiMetricsInterceptor extends Interceptor {
 
     try {
       onMetric(
-        WApiMetric(
+        WMetric(
           method: options.method.toUpperCase(),
           uri: options.uri,
           duration: duration,

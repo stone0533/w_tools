@@ -798,7 +798,7 @@ G. 维护与发布
 | async | 四态、分页 loadMore/loadMoreError、刷新、取消、WAsyncTheme、sliver |
 | app / app_getx | 启动顺序、插件 dependsOn、wrapApp/builderWrapper、路由、语言、底部弹窗 |
 | core | WStorage.init 前置、明文存储边界、WEncrypt AES-CBC 无完整性、WValidator/WRegExp、WLogger |
-| api | WApiConfig + DioRegistry.forBaseUrl 单例与 dispose、WToken 注入、WLogInterceptor 职责边界 |
+| api | WApiSettings + DioRegistry.forBaseUrl 单例与 dispose、WToken 注入、WLogInterceptor 职责边界 |
 | toast | BotToastInit / BotToastNavigatorObserver 挂载、WToast.showXxx、样式覆盖 |
 | qr | WQrView scanOnce 默认 true、restartScan、相机权限、onScanned 仅在 code 非空时触发 |
 | map / map_google | 模型与实现分层、markerId 稳定性、WMapItemMapper、WMapController、Google key 与 init --map 默认关 |

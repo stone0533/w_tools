@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
-import '../api_config.dart';
+import '../api_settings.dart';
 
 /// 日志输出片段。
 enum WLogPart {
@@ -13,7 +13,6 @@ enum WLogPart {
   responseHeader,
   responseBody,
   error,
-  errorHint,
 }
 
 /// 日志拦截器，用于记录 HTTP 请求和响应的详细信息。
@@ -40,9 +39,6 @@ class WLogInterceptor extends Interceptor {
 
   /// 是否打印错误信息（详细）
   final bool _error;
-
-  /// 是否打印错误友好提示
-  final bool _errorHint;
 
   /// 是否启用日志
   final bool enableLog;
@@ -149,8 +145,7 @@ class WLogInterceptor extends Interceptor {
        _requestBody = parts?.contains(WLogPart.requestBody) ?? false,
        _responseHeader = parts?.contains(WLogPart.responseHeader) ?? false,
        _responseBody = parts?.contains(WLogPart.responseBody) ?? false,
-       _error = parts?.contains(WLogPart.error) ?? true,
-       _errorHint = parts?.contains(WLogPart.errorHint) ?? true;
+       _error = parts?.contains(WLogPart.error) ?? true;
 
   /// 请求阶段：打印请求详情
   @override
@@ -168,7 +163,7 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
-    if (WApiConfig.logDebugHandler == null) {
+    if (WApiSettings.logDebugHandler == null) {
       handler.next(options);
       return;
     }
@@ -210,7 +205,7 @@ class WLogInterceptor extends Interceptor {
       builder.write('data:\n');
       builder.write(_message(res));
     }
-    WApiConfig.logDebugHandler?.call(builder.toString());
+    WApiSettings.logDebugHandler?.call(builder.toString());
     handler.next(options);
   }
 
@@ -326,7 +321,7 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
-    if (WApiConfig.logDebugHandler == null) {
+    if (WApiSettings.logDebugHandler == null) {
       handler.next(response);
       return;
     }
@@ -339,7 +334,7 @@ class WLogInterceptor extends Interceptor {
 
     var builder = StringBuffer('*** Response *** \n');
     _printResponse(response, builder, (message) {
-      WApiConfig.logDebugHandler?.call(message);
+      WApiSettings.logDebugHandler?.call(message);
     });
     handler.next(response);
   }
@@ -357,7 +352,7 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
-    if (WApiConfig.logErrorHandler == null) {
+    if (WApiSettings.logErrorHandler == null) {
       handler.next(err);
       return;
     }
@@ -368,38 +363,14 @@ class WLogInterceptor extends Interceptor {
       builder.write('$err');
       if (err.response != null) {
         _printResponse(err.response!, builder, (message) {
-          WApiConfig.logErrorHandler?.call(message);
+          WApiSettings.logErrorHandler?.call(message);
         });
       } else {
-        WApiConfig.logErrorHandler?.call(builder.toString());
+        WApiSettings.logErrorHandler?.call(builder.toString());
       }
     }
 
-    if (_errorHint) _handleError(err);
     handler.next(err);
-  }
-
-  /// 按错误类型给出用户友好的提示语
-  void _handleError(DioException err) {
-    switch (err.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        WApiConfig.logErrorHandler?.call('网络连接超时，请检查网络设置');
-        break;
-      case DioExceptionType.connectionError:
-        WApiConfig.logErrorHandler?.call('网络连接失败，请检查网络连接');
-        break;
-      case DioExceptionType.badResponse:
-        WApiConfig.logErrorHandler?.call('服务器返回错误: ${err.response?.statusCode}');
-        break;
-      case DioExceptionType.cancel:
-        WApiConfig.logErrorHandler?.call('请求已取消');
-        break;
-      default:
-        WApiConfig.logErrorHandler?.call('网络请求失败: ${err.message}');
-        break;
-    }
   }
 
   /// 打印响应信息

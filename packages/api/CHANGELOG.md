@@ -1,5 +1,40 @@
 # Changelog
 
+## 6.0.0
+
+### Breaking
+- `WApiConfig` 改名 `WApiSettings`（文件 `api_settings.dart`）；日志回调参数由 `dynamic`
+  收紧为 `String`。迁移见 [`docs/migrations/api-6.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/api-6.0.md)。
+- `WApiMetricsInterceptor` / `WApiMetric` 改名 `WMetricsInterceptor` / `WMetric`。
+- `WTokenInterceptor` 删除 `WTokenInterceptor.configureRequest` /
+  `WTokenInterceptor.configureResponse` / `WTokenInterceptor.observeError`，以及仅用于转发
+  `configureResponse` 的 `WTokenInterceptor.onResponse` 覆写：公共 header / 响应加工 / 错误观测
+  改用普通 `Interceptor`。
+- `WLogPart.errorHint` 删除；日志只输出技术信息，UI 按 `WApiException.kind` 映射文案。
+- `WApiBody.kind` / `WApiBodyKind` 删除。
+- `WApiClient` 的 `pathParameters` 未覆盖占位符时一律抛 `ArgumentError`（含空 Map / 未传）。
+
+### Removed
+- `IApiPath` / `ApiClientId`：库内无消费方，直接用 `baseUrl`。
+- `BaseRepository` / `BaseLocalDataSource` / `BaseRemoteDataSource`：空壳基类，由业务项目自定义。
+
+### Fixed
+- `DioRegistry.maxCachedInstances <= 0` 不再关闭刚创建、正要返回的实例。
+- 刷新成功但重试请求失败时保留真实错误（如 500），不再误报原始 401 或误触发 `onAuthFailure`。
+- `WApiClient` 空 `pathParameters` 不再把 `%7Bid%7D` 发给服务端。
+- `WRetryInterceptor` 把 `DioExceptionType.transformTimeout` 视为可重试网络错误。
+
+### Changed
+- `WTokenInterceptor` 不再覆盖显式 `Authorization`；请求已带该头时跳过注入。
+- `WTokenInterceptor` 不再修改 `content-type`（交给 dio 内置推断）。
+- `DioRegistry` 源码移入 `src/client/`；`api_client.dart` 按角色拆分为多个文件。
+- 认证重试计数键改为 `_w_tools_auth_retry_count`，与网络的
+  `_w_tools_network_retry_count` 区分。
+
+### Added
+- barrel 重导出 `RequestInterceptorHandler` / `ResponseInterceptorHandler` /
+  `ErrorInterceptorHandler`，自定义拦截器不必再直接依赖 dio。
+
 ## 5.6.0
 
 ### Added

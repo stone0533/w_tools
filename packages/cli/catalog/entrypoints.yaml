@@ -37,7 +37,7 @@ w_tools_form:
   - WFormCheckbox
   - WFormButton
 w_tools_api:
-  - WApiConfig
+  - WApiSettings
   - DioRegistry
   - WTokenInterceptor
   - WLogInterceptor

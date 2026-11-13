@@ -123,6 +123,22 @@ void main() {
     expect(noRetryAdapter.calls, 1);
   });
 
+  test('transformTimeout 属于可重试的网络错误', () async {
+    final timeouts = Dio(BaseOptions(baseUrl: 'https://transform-timeout.test'));
+    final adapter = _TransformTimeoutAdapter();
+    timeouts.httpClientAdapter = adapter;
+    final retry = WRetryInterceptor(
+      maxRetries: 1,
+      baseDelay: Duration.zero,
+      jitter: false,
+    );
+    timeouts.interceptors.add(retry);
+    retry.bindDio(timeouts);
+
+    await expectLater(timeouts.get('/user'), throwsA(isA<DioException>()));
+    expect(adapter.calls, 2);
+  });
+
   test('DioRegistry 会自动绑定 WRetryInterceptor', () async {
     const baseUrl = 'https://retry-registry.test';
     final registry = DioRegistry.forBaseUrl(
@@ -259,6 +275,26 @@ class _SequenceAdapter implements HttpClientAdapter {
       headers: {
         Headers.contentTypeHeader: ['application/json'],
       },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _TransformTimeoutAdapter implements HttpClientAdapter {
+  int calls = 0;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    calls++;
+    throw DioException(
+      requestOptions: options,
+      type: DioExceptionType.transformTimeout,
     );
   }
 

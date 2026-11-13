@@ -133,14 +133,14 @@ void main() {
     }
   });
 
-  test('API-001：WApiConfig usage 不把 baseOptions 字段当方法调用', () {
-    final entry = findComponent('WApiConfig');
+  test('API-001：WApiSettings usage 不把 baseOptions 字段当方法调用', () {
+    final entry = findComponent('WApiSettings');
     expect(entry, isNotNull);
     expect(entry!.usage, isNotNull);
-    expect(entry.usage, contains('WApiConfig.baseOptions ='));
+    expect(entry.usage, contains('WApiSettings.baseOptions ='));
     expect(
       entry.usage,
-      isNot(contains('WApiConfig.baseOptions(')),
+      isNot(contains('WApiSettings.baseOptions(')),
       reason: 'baseOptions 是字段，不能像方法一样调用',
     );
   });

@@ -232,7 +232,7 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 | async | `WAsyncController` + `WAsyncView`；`WAsyncTheme` 放根节点；分页失败写 `loadMoreError` | [async](docs/agents/async.md) |
 | ui | 新代码 `WText(variant:)` + `WTextStyles`；普通按钮 `WButton`、任意 child 点击 `WPressable`；图片 `WImage` | [ui](docs/agents/ui.md) |
 | form | `WForm` + 直接字段；不要从 `Config.build` 开始，字段不传 `config` | [form](docs/agents/form.md) |
-| api | `WApiConfig` + `DioRegistry.forBaseUrl`；不要直接 `Dio()`；token 用 `WToken` | [api](docs/agents/api.md) |
+| api | `WApiSettings` + `DioRegistry.forBaseUrl`；不要直接 `Dio()`；token 用 `WToken` | [api](docs/agents/api.md) |
 | toast | `WToast` + `WToastStyle` / `WToastTheme`；根节点一次 `BotToastInit` | [toast](docs/agents/toast.md) |
 | app | `WApp.options(WAppOptions(...)).start()`；插件用 `WAppPlugin`，有顺序要求用 `dependsOn` | [app](docs/agents/app.md) |
 | qr | `WQrView` + `WQrController`（重扫 `controller.restart()`），不要直接用 `QRView` | [qr](docs/agents/qr.md) |

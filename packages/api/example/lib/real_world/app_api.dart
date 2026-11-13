@@ -11,7 +11,7 @@ import 'token_store.dart';
 /// 后注入给 Repository / Controller，不要在页面里反复创建。
 ///
 /// 关键点：
-/// - 配置在第一次 [DioRegistry.forBaseUrl] **之前**写入 [WApiConfig]；
+/// - 配置在第一次 [DioRegistry.forBaseUrl] **之前**写入 [WApiSettings]；
 /// - 同一 baseUrl 的 options / interceptors 只能确定一次，换配置先 [dispose]；
 /// - token 存储通过 [TokenStore] 注入，生产用 [WTokenStore]，测试用
 ///   [MemoryTokenStore]；
@@ -53,20 +53,22 @@ class AppApi {
     }
 
     // 全局默认配置：在第一次创建 registry 之前设置才会生效。
-    WApiConfig.baseOptions = BaseOptions(
+    WApiSettings.baseOptions = BaseOptions(
       connectTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 20),
       receiveTimeout: const Duration(seconds: 20),
       headers: const {'Accept': 'application/json'},
     );
-    WApiConfig.logDebugHandler = enableLog ? (message) => WLogger.d(message) : null;
-    WApiConfig.logErrorHandler = enableLog ? (message) => WLogger.e(message) : null;
+    WApiSettings.logDebugHandler = enableLog ? (message) => WLogger.d(message) : null;
+    WApiSettings.logErrorHandler = enableLog ? (message) => WLogger.e(message) : null;
 
     // 先声明再创建：tokenRefresher 需要拿到 registry 自己。
     late final DioRegistry registry;
     registry = DioRegistry.forBaseUrl(
       baseUrl,
       interceptors: [
+        // 公共 header 不属于 token 职责，用普通拦截器。
+        _AppHeaderInterceptor(),
         // 放在日志前：请求方向先注入 Authorization，日志才能看到（已脱敏的）头。
         WTokenInterceptor(
           tokenGetter: () => store.accessToken,
@@ -74,9 +76,6 @@ class AppApi {
           tokenRefresher: () => _refresh(registry, store),
           // 刷新失败 / 达到重试上限：交给 App 层清会话并跳登录。
           onAuthFailure: (_) => onAuthFailure?.call(),
-          configureRequest: (options) {
-            options.headers['X-App-Platform'] = defaultTargetPlatform.name;
-          },
         ),
         WLogInterceptor(
           enableLog: enableLog,
@@ -86,7 +85,6 @@ class AppApi {
             if (enableLog) WLogPart.requestBody,
             if (enableLog) WLogPart.responseBody,
             WLogPart.error,
-            WLogPart.errorHint,
           },
         ),
       ],
@@ -168,5 +166,14 @@ class AppApi {
       refreshToken: (json['refreshToken'] as String?) ?? fallbackRefreshToken ?? '',
       expiry: expiresIn is num ? DateTime.now().add(Duration(seconds: expiresIn.toInt())) : null,
     );
+  }
+}
+
+/// 示例：公共 header 用普通拦截器注入，不要塞进 token 拦截器。
+class _AppHeaderInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['X-App-Platform'] = defaultTargetPlatform.name;
+    handler.next(options);
   }
 }

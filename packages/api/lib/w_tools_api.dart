@@ -1,10 +1,9 @@
 // w_tools_api 子包统一导出
 
 export 'src/api.dart';
-export 'src/api_config.dart';
 
-// 公开 API 里出现了 dio 类型（WApiConfig.baseOptions / DioRegistry.dio / 拦截器），
-// 统一从这里取，消费方不必再手动依赖 dio。
+// 公开 API 里出现了 dio 类型（WApiSettings.baseOptions / DioRegistry.dio / 拦截器），
+// 统一从这里取，消费方不必再手动依赖 dio。自定义拦截器需要的 handler 也一并导出。
 export 'package:dio/dio.dart'
     show
         BaseOptions,
@@ -12,6 +11,7 @@ export 'package:dio/dio.dart'
         Dio,
         DioException,
         DioExceptionType,
+        ErrorInterceptorHandler,
         FormData,
         Headers,
         HttpClientAdapter,
@@ -20,7 +20,9 @@ export 'package:dio/dio.dart'
         MultipartFile,
         Options,
         ProgressCallback,
+        RequestInterceptorHandler,
         RequestOptions,
         Response,
         ResponseBody,
+        ResponseInterceptorHandler,
         ResponseType;

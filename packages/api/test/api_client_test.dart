@@ -39,6 +39,20 @@ void main() {
     );
   });
 
+  test('pathParameters 为空 Map 时仍报告缺失占位符', () async {
+    await expectLater(
+      client.get('/users/{id}', pathParameters: const {}),
+      throwsA(isA<ArgumentError>()),
+    );
+  });
+
+  test('完全没传 pathParameters 时报告缺失占位符', () async {
+    await expectLater(
+      client.get('/users/{id}'),
+      throwsA(isA<ArgumentError>()),
+    );
+  });
+
   test('POST 发送 JSON 并设置 content-type', () async {
     adapter.handler = (_) => _json(200, {'id': 2, 'name': 'Grace'});
 

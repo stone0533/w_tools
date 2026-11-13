@@ -33,8 +33,6 @@ class ApiDemoPage extends StatefulWidget {
 }
 
 class _ApiDemoPageState extends State<ApiDemoPage> {
-  static const _path = _DemoPath();
-  static const _clientId = ApiClientId('demo');
   static const _baseUrl = 'https://api.example.com';
 
   late final DioRegistry _registry;
@@ -49,22 +47,27 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
   @override
   void initState() {
     super.initState();
-    WApiConfig.logDebugHandler = (message) {
+    WApiSettings.logDebugHandler = (message) {
       if (mounted) setState(() => _logs.insert(0, message.toString().trim()));
     };
-    WApiConfig.logErrorHandler = (message) {
+    WApiSettings.logErrorHandler = (message) {
       if (mounted) setState(() => _logs.insert(0, 'ERROR: $message'));
     };
-    _previousBaseOptions = WApiConfig.baseOptions;
-    WApiConfig.baseOptions = BaseOptions(
+    _previousBaseOptions = WApiSettings.baseOptions;
+    WApiSettings.baseOptions = BaseOptions(
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 10),
     );
 
     _adapter = _DemoAdapter();
     _registry = DioRegistry.forBaseUrl(
-      _path.baseUrl,
+      _baseUrl,
       interceptors: [
+        _DemoMetaInterceptor(
+          onErrorObserved: (status) {
+            if (mounted) setState(() => _logs.insert(0, 'observed: $status'));
+          },
+        ),
         WTokenInterceptor(
           tokenGetter: () => _token,
           tokenClearer: () async => _token = null,
@@ -73,18 +76,6 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
             _token = 'fresh-token';
             return _token;
           },
-          configureRequest: (options) {
-            options.headers['X-Demo-Client'] = 'api-example';
-          },
-          configureResponse: (response) {
-            response.extra['demoClient'] = 'w_tools_api';
-          },
-          observeError: (error) {
-            final status = error.response?.statusCode;
-            if (mounted) {
-              setState(() => _logs.insert(0, 'observed: $status'));
-            }
-          },
         ),
         WLogInterceptor(
           parts: {
@@ -92,7 +83,6 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
             WLogPart.requestHeader,
             WLogPart.responseHeader,
             WLogPart.error,
-            WLogPart.errorHint,
           },
           redactedHeaders: {
             ...WLogInterceptor.defaultRedactedHeaders,
@@ -118,9 +108,9 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
   @override
   void dispose() {
     DioRegistry.dispose(_baseUrl);
-    WApiConfig.baseOptions = _previousBaseOptions;
-    WApiConfig.logDebugHandler = null;
-    WApiConfig.logErrorHandler = null;
+    WApiSettings.baseOptions = _previousBaseOptions;
+    WApiSettings.logDebugHandler = null;
+    WApiSettings.logErrorHandler = null;
     super.dispose();
   }
 
@@ -236,8 +226,7 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
-            Text('client：${_clientId.name}'),
-            Text('baseUrl：${_path.baseUrl}'),
+            const Text('baseUrl：$_baseUrl'),
             Text('当前 token：${_token ?? 'null'}'),
             const SizedBox(height: 16),
             Wrap(
@@ -317,13 +306,6 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
   }
 }
 
-class _DemoPath implements IApiPath {
-  const _DemoPath();
-
-  @override
-  String get baseUrl => 'https://api.example.com';
-}
-
 class _DemoUser {
   const _DemoUser({required this.id, required this.name});
 
@@ -336,11 +318,11 @@ class _DemoUser {
   final String name;
 }
 
-class _DemoLocalDataSource extends BaseLocalDataSource {
+class _DemoLocalDataSource {
   String? cached;
 }
 
-class _DemoRemoteDataSource extends BaseRemoteDataSource {
+class _DemoRemoteDataSource {
   _DemoRemoteDataSource(this.dio);
 
   final Dio dio;
@@ -351,13 +333,41 @@ class _DemoRemoteDataSource extends BaseRemoteDataSource {
   }
 }
 
-class _DemoRepository extends BaseRepository<_DemoLocalDataSource, _DemoRemoteDataSource> {
-  _DemoRepository({super.localDataSource, super.remoteDataSource});
+class _DemoRepository {
+  _DemoRepository({this.localDataSource, this.remoteDataSource});
+
+  final _DemoLocalDataSource? localDataSource;
+  final _DemoRemoteDataSource? remoteDataSource;
 
   Future<String> load() async {
     final value = await remoteDataSource!.fetch();
     localDataSource!.cached = value;
     return value;
+  }
+}
+
+/// 示例：不属于 token 职责的公共 header / 响应标记 / 错误观测，用普通拦截器实现。
+class _DemoMetaInterceptor extends Interceptor {
+  _DemoMetaInterceptor({this.onErrorObserved});
+
+  final void Function(int? status)? onErrorObserved;
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['X-Demo-Client'] = 'api-example';
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    response.extra['demoClient'] = 'w_tools_api';
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    onErrorObserved?.call(err.response?.statusCode);
+    handler.next(err);
   }
 }
 

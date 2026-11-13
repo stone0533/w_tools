@@ -12,13 +12,7 @@ version: 1
 # 公开 W*Config（barrel 导出的名字）
 configs:
   WLocaleConfig: 不可变数据载体，允许
-  WApiConfig: 遗留可变静态配置，冻结新增，下个 major 再评估
 
-# 不套 W 前缀的公开类型（api 数据层）
+# 不套 W 前缀的公开类型（api 基础设施）
 prefixes:
-  ApiClientId: api 数据层类型
-  BaseLocalDataSource: 消费方继承
-  BaseRemoteDataSource: 消费方继承
-  BaseRepository: 消费方继承
   DioRegistry: api 基础设施入口
-  IApiPath: 遗留，不新增 I 前缀接口

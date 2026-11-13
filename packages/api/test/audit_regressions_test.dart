@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_api/w_tools_api.dart';
 
@@ -114,13 +113,13 @@ void main() {
 
   setUp(() {
     logs = <String>[];
-    WApiConfig.logDebugHandler = (dynamic message) => logs.add('$message');
-    WApiConfig.logErrorHandler = (dynamic message) => logs.add('ERR:$message');
+    WApiSettings.logDebugHandler = (dynamic message) => logs.add('$message');
+    WApiSettings.logErrorHandler = (dynamic message) => logs.add('ERR:$message');
   });
 
   tearDown(() {
-    WApiConfig.logDebugHandler = null;
-    WApiConfig.logErrorHandler = null;
+    WApiSettings.logDebugHandler = null;
+    WApiSettings.logErrorHandler = null;
     DioRegistry.clearCache();
   });
 
@@ -269,8 +268,8 @@ void main() {
     });
 
     test('没有日志 handler 时不格式化 body', () {
-      WApiConfig.logDebugHandler = null;
-      WApiConfig.logErrorHandler = null;
+      WApiSettings.logDebugHandler = null;
+      WApiSettings.logErrorHandler = null;
       final interceptor = WLogInterceptor(parts: {WLogPart.requestBody});
       final handler = RequestInterceptorHandler();
       final options = RequestOptions(path: '/x', data: _ThrowingToString());
@@ -434,40 +433,6 @@ void main() {
       expect(caught, isA<DioException>());
       expect((caught! as DioException).response?.statusCode, 401);
     });
-
-    test('observeError 抛异常不替换原始 401', () async {
-      final dio = dioWith(_MockAdapter(statusCode: 401));
-      dio.interceptors.add(
-        WTokenInterceptor(
-          dio: dio,
-          tokenGetter: () => 'expired',
-          observeError: (_) => throw StateError('observer down'),
-          tokenRefresher: () async => 'new',
-        ),
-      );
-
-      Object? caught;
-      try {
-        await dio.get<dynamic>('/x');
-      } catch (error) {
-        caught = error;
-      }
-
-      expect(caught, isA<DioException>());
-      expect((caught! as DioException).response?.statusCode, 401);
-    });
-  });
-
-  group('API-017 ApiClientId', () {
-    test('同 name 的实例值相等', () {
-      // 非 const：验证值相等，而不是 const canonicalization。
-      final a = ApiClientId('client'); // ignore: prefer_const_constructors
-      final b = ApiClientId('client'); // ignore: prefer_const_constructors
-
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-      expect(a.toString(), contains('client'));
-    });
   });
 
   group('API-018 DioRegistry 配置比较', () {
@@ -541,7 +506,7 @@ void main() {
       expect(adapter.calls, 2);
       expect(adapter.extras[1]['_retryCount'], 99);
       expect(adapter.extras[1]['user'], true);
-      expect(adapter.extras[1]['_w_tools_retry_count'], 1);
+      expect(adapter.extras[1]['_w_tools_auth_retry_count'], 1);
     });
   });
 

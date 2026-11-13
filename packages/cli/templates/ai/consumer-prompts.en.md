@@ -295,7 +295,7 @@ Requirements:
 Task: implement <api> and the login flow for <page>.
 
 Requirements:
-1. use WApiConfig + DioRegistry; do not create Dio directly;
+1. use WApiSettings + DioRegistry; do not create Dio directly;
 2. store tokens with WToken;
 3. refresh on 401 and retry only once;
 4. show business errors on failure;
@@ -327,7 +327,7 @@ Check this project:
    - forms: WForm + direct fields, no config
 <!-- @endif -->
 <!-- @if:api -->
-   - network: WApiConfig + DioRegistry, tokens with WToken
+   - network: WApiSettings + DioRegistry, tokens with WToken
 <!-- @endif -->
 <!-- @if:toast -->
    - toast: WToast + WToastTheme instead of BotToast directly
