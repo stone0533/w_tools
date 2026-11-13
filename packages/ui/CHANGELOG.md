@@ -24,6 +24,11 @@
 - `WListViewSliver.keepAlive`：改名 `addAutomaticKeepAlives`，与 Flutter 语义对齐。
 - `WButtonStyles`：合并到 `WButtonStyleSet.of(context)`。
 - `WImageFrame`：不再从 barrel 导出（图片装饰由 `WImageStyle` 负责）。
+- `WWidgetExtension.withHorizontalPadding` / `WWidgetExtension.withVerticalPadding` /
+  `WWidgetExtension.withLeftPadding` / `WWidgetExtension.withRightPadding` /
+  `WWidgetExtension.withTopPadding` / `WWidgetExtension.withBottomPadding`：改用 Flutter
+  `Padding`。
+- `WWidgetExtension.withBottomBarSpaceOf`：改名 `withBottomSafeSpaceOf`。
   迁移见 `docs/migrations/ui-11.0.md`。
 
 ## 10.5.0

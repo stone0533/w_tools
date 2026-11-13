@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../components/common/press_effect.dart';
 import '../components/common/pressable.dart';
 
-/// Widget 扩展（布局 / padding / 点击糖）
+/// Widget 扩展（布局 / 安全区 / 装饰 / 点击糖）
 extension WWidgetExtension on Widget {
   /// 将 Widget 包装在 Expanded 中
   Widget expanded([int flex = 1]) {
@@ -14,7 +14,7 @@ extension WWidgetExtension on Widget {
   }
 
   /// 添加底部安全空间；读取最近的 [MediaQuery]（分屏 / 多窗口 / 测试可注入）。
-  Widget withBottomBarSpaceOf(BuildContext context) {
+  Widget withBottomSafeSpaceOf(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
       child: this,
@@ -29,42 +29,7 @@ extension WWidgetExtension on Widget {
     );
   }
 
-  /// 添加水平 padding
-  Widget withHorizontalPadding(double padding) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: padding),
-      child: this,
-    );
-  }
-
-  /// 添加垂直 padding
-  Widget withVerticalPadding(double padding) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: padding),
-      child: this,
-    );
-  }
-
-  /// 添加左侧 padding
-  Widget withLeftPadding(double padding) {
-    return Padding(
-      padding: EdgeInsets.only(left: padding),
-      child: this,
-    );
-  }
-
-  /// 添加右侧 padding
-  Widget withRightPadding(double padding) {
-    return Padding(
-      padding: EdgeInsets.only(right: padding),
-      child: this,
-    );
-  }
-
   /// 添加起始侧 padding（LTR 左、RTL 右）。
-  ///
-  /// 需要跟随文字方向时优先用 [withStartPadding] / [withEndPadding]；
-  /// [withLeftPadding] / [withRightPadding] 是物理方向。
   Widget withStartPadding(double padding) {
     return Padding(
       padding: EdgeInsetsDirectional.only(start: padding),
@@ -76,22 +41,6 @@ extension WWidgetExtension on Widget {
   Widget withEndPadding(double padding) {
     return Padding(
       padding: EdgeInsetsDirectional.only(end: padding),
-      child: this,
-    );
-  }
-
-  /// 添加顶部 padding
-  Widget withTopPadding(double padding) {
-    return Padding(
-      padding: EdgeInsets.only(top: padding),
-      child: this,
-    );
-  }
-
-  /// 添加底部 padding
-  Widget withBottomPadding(double padding) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: padding),
       child: this,
     );
   }

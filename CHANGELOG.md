@@ -7,7 +7,9 @@
   （合并到 `WWidgetExtension`）；`WImageError.data` 改名 `sourceValue`，
   `WListViewSliver.keepAlive` 改名 `addAutomaticKeepAlives`；`WButtonStyles`
   合并到 `WButtonStyleSet.of(context)`；`WImageFrame` 不再导出，
-  `WImageStyle` 的 `borderRadius` / `margin` / `padding` 放宽为 Geometry 类型。
+  `WImageStyle` 的 `borderRadius` / `margin` / `padding` 放宽为 Geometry 类型；
+  `WWidgetExtension` 删除 6 个物理 padding 方法，`withBottomBarSpaceOf` 改名
+  `withBottomSafeSpaceOf`。
 
 ### Changed
 - 根包 `w_tools_ui` 约束抬到 `^11.0.0`。

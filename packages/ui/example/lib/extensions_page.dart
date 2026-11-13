@@ -166,18 +166,24 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Container(width: 20, height: 20, color: scheme.primary),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Container(width: 20, height: 20, color: scheme.secondary),
+                    ),
                     Container(
                       width: 20,
                       height: 20,
-                      color: scheme.primary,
-                    ).withHorizontalPadding(4),
+                      color: scheme.tertiary,
+                    ).withStartPadding(4),
                     Container(
                       width: 20,
                       height: 20,
-                      color: scheme.secondary,
-                    ).withVerticalPadding(4),
-                    Container(width: 20, height: 20, color: scheme.tertiary).withLeftPadding(4),
-                    Container(width: 20, height: 20, color: scheme.error).withRightPadding(4),
+                      color: scheme.error,
+                    ).withEndPadding(4),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -185,10 +191,13 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Container(
-                        width: 60,
-                        color: scheme.surfaceContainerHighest,
-                      ).withTopPadding(8).withBottomPadding(8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Container(
+                          width: 60,
+                          color: scheme.surfaceContainerHighest,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Container(

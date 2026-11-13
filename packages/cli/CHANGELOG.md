@@ -1,3 +1,9 @@
+## 1.20.19
+
+### Changed
+- catalog 同步 `WWidgetExtension` 精简（6 个物理 padding 删除、
+  `withBottomBarSpaceOf` 改名 `withBottomSafeSpaceOf`）。
+
 ## 1.20.18
 
 ### Changed

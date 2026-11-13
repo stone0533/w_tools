@@ -265,9 +265,10 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ### WWidgetExtension
 
-容器装饰、布局调整等 Widget 扩展；`toPressable` 也在这里（原 `WUiWidgetExtension` 已删除，合并到 `WWidgetExtension`）。
-需要 RTL 时用 `withStartPadding` / `withEndPadding`；
-`withLeftPadding` / `withRightPadding` 是物理方向。
+容器装饰、布局调整、安全区与点击糖；`toPressable` 也在这里。
+需要 RTL 时用 `withStartPadding` / `withEndPadding`；物理左右 / 上下 padding 直接用 Flutter
+`Padding`（`withHorizontalPadding` / `withVerticalPadding` / `withLeftPadding` /
+`withRightPadding` / `withTopPadding` / `withBottomPadding` 已在 11.0 删除）。
 
 ### WBoxDecorationExtension / WGradients / WShadows
 

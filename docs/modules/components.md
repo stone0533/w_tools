@@ -223,7 +223,7 @@
 | `WNumExtension` | ui | 数字格式化 / 间距 / 圆角 / BorderSide 糖 | 不要重复手写 toStringAsFixed / SizedBox / EdgeInsets |
 | `WStringExtension` | ui | String 转数字 / 去空格 / hex 颜色 / 资源路径 | 图片组件转换用 `WStringExtension` 的路径方法 |
 | `WBoxDecorationExtension` | ui | BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影） | 不要每次重写完整 BoxDecoration |
-| `WWidgetExtension` | ui | Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight / toPressable | 需要 button 语义用 `WButton`；物理左右用 withLeftPadding / withRightPadding |
+| `WWidgetExtension` | ui | Widget 安全空间 / 方向 padding / 装饰 / IntrinsicHeight / toPressable | 需要 button 语义用 `WButton`；物理 padding 直接用 Flutter Padding |
 | `WColorExtension` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
 | `WGradients` | ui | 预设渐变（vertical / horizontal / diagonal / radial） | 不要写死品牌色；它只提供方向，颜色由调用方传 |
 | `WShadows` | ui | 预设阴影（none / card / elevated / floating） | 不要用于深色模式文字阴影；它只是中性预设 |
