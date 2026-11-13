@@ -265,7 +265,7 @@ import 'package:w_tools/w_tools.dart';
 class MyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return WScaffold(
+    return WScaffold.basic(
       title: '示例页面',
       body: Center(
         child: Column(

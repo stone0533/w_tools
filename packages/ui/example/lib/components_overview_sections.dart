@@ -43,7 +43,7 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
       height: 220,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: const WScaffold(
+        child: const WScaffold.basic(
           title: 'WScaffold',
           body: Center(
             child: WText(

@@ -188,12 +188,10 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ## 7. WScaffold - 增强脚手架
 
-- 普通页面：`WScaffold` + `WAppBar`；需要自定义顶栏时 `WScaffold(appBar: WAppBar(...))`，
-  也可以传任意 `PreferredSizeWidget`（Material `AppBar` / `SliverAppBar`）。
+- 默认顶栏用 `WScaffold.basic(title: ...)`；需要自定义顶栏时用
+  `WScaffold(appBar: WAppBar(...))`，也可以传任意 `PreferredSizeWidget`
+  （Material `AppBar` / `SliverAppBar`）。两个入口分开，不再在同一个构造器里混用。
 - `WAppBar` 自身实现 `PreferredSizeWidget`；传 `WAppBar` 时 `includeStatusBar` 必须为 true。
-- 传了 `appBar` 时不要再传 `title` / `titleWidget` / `leading` / `actions` / `onBack` /
-  `appBarStyle` / `appBarBottom`，否则 assert；且 `appBar` 必须 `includeStatusBar: true`，
-  `WScaffold` 自身的 `automaticallyImplyLeading` / `centerTitle` 保持默认。
 - `drawer` / `endDrawer` / `bottomSheet` / `persistentFooterButtons` / `extendBody` 直接透传给
   底层 `Scaffold`，不需要为此改用原生 `Scaffold`。
 - 有 `bottomNavigationBar` 时 body 不再加底部安全区；底栏不是 `WNavBar`（已默认

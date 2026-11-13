@@ -9,7 +9,7 @@ components:
     useFor: '页面壳：默认 WAppBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区'
     dontUseFor: '任意顶部叠放用页面层 Container/Stack'
     usage: |
-      WScaffold(
+      WScaffold.basic(
         title: '首页',
         actions: [IconButton(onPressed: ..., icon: Icon(Icons.search))],
         floatingActionButton: FloatingActionButton(onPressed: ..., child: Icon(Icons.add)),
@@ -22,7 +22,7 @@ components:
       // 覆盖顶栏：WScaffold(appBar: WAppBar(...), body: ...)
     pitfalls:
       - '不要手拼 Scaffold + SafeArea；页面壳统一用 WScaffold'
-      - '传 appBar 时不要再传 title/leading/actions；任意叠放布局仍用页面层 Container/Stack'
+      - '默认顶栏用 WScaffold.basic（title / actions）；显式 appBar 用 WScaffold(appBar: ...)，两者不再混用'
       - 'drawer / endDrawer / bottomSheet / persistentFooterButtons / extendBody 已透传，不需要为此改用原生 Scaffold'
       - '有 bottomNavigationBar 时 WScaffold 不再给 body 加底部安全区；底栏不是 WNavBar（已默认 SafeArea）时传 bottomNavigationBarSafeArea: true'
     related: ['`WAppBar`', '`WNavBar`']

@@ -1,3 +1,9 @@
+## 1.20.25
+
+### Changed
+- catalog / 模板同步 `WScaffold` 拆分：默认顶栏用 `WScaffold.basic`，
+  显式 `appBar` 用 `WScaffold`。
+
 ## 1.20.24
 
 ### Changed

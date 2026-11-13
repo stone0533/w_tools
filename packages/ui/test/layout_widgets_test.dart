@@ -585,7 +585,7 @@ void main() {
   testWidgets('WScaffold — title 自动生成默认 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '标题',
           body: Text('body'),
         ),
@@ -615,7 +615,7 @@ void main() {
       const MaterialApp(
         home: MediaQuery(
           data: MediaQueryData(padding: EdgeInsets.only(top: 24)),
-          child: WScaffold(
+          child: WScaffold.basic(
             title: '标题',
             body: Text('body'),
           ),
@@ -663,7 +663,8 @@ void main() {
   testWidgets('WScaffold — appBarBottom 会触发默认 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
+          title: '标题',
           appBarBottom: PreferredSize(
             preferredSize: Size.fromHeight(20),
             child: Text('tab'),
@@ -797,7 +798,8 @@ void main() {
       MaterialApp(
         home: MediaQuery(
           data: data,
-          child: const WScaffold(
+          child: const WScaffold.basic(
+            title: '标题',
             appBarBottom: PreferredSize(
               preferredSize: Size.fromHeight(20),
               child: Text('tab'),
@@ -814,7 +816,7 @@ void main() {
   testWidgets('WScaffold — 空标题不创建 AppBar', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '',
           body: Text('body'),
         ),
@@ -828,7 +830,7 @@ void main() {
     var taps = 0;
     await tester.pumpWidget(
       MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '标题',
           automaticallyImplyLeading: false,
           onBack: () => taps++,
@@ -845,7 +847,7 @@ void main() {
   testWidgets('WScaffold — 支持 bottomNavigationBar / floatingActionButton', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '标题',
           body: Text('body'),
           bottomNavigationBar: Text('nav'),
@@ -971,16 +973,21 @@ void main() {
     expect(custom.current, Colors.orange);
     expect(custom.upcoming, Colors.grey);
   });
-  testWidgets('WScaffold appBar 与便捷参数互斥', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: WScaffold(
-          appBar: WAppBar(title: 'A'),
-          title: 'B',
-          body: SizedBox.shrink(),
-        ),
-      ),
+  test('WScaffold.basic 必须提供 title 或 titleWidget', () {
+    expect(
+      () => WScaffold.basic(body: const SizedBox.shrink()),
+      throwsAssertionError,
     );
-    expect(tester.takeException(), isAssertionError);
+  });
+
+  test('WScaffold.basic title 与 titleWidget 互斥', () {
+    expect(
+      () => WScaffold.basic(
+        title: 'B',
+        titleWidget: const Text('B'),
+        body: const SizedBox.shrink(),
+      ),
+      throwsAssertionError,
+    );
   });
 }

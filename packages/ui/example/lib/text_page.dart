@@ -37,7 +37,7 @@ class TextDemoPage extends StatelessWidget {
       ),
     );
 
-    return WScaffold(
+    return WScaffold.basic(
       title: 'WText / WTextStyles',
       body: ListView(
         padding: const EdgeInsets.all(16),

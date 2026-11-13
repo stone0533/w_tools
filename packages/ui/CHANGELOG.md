@@ -5,6 +5,8 @@
   与 `itemBuilder` 二选一。
 - `WGradientCircularProgressIndicator.indeterminate`：不确定进度（旋转弧段），
   此时忽略 `value` 且语义不暴露百分比。
+- `WScaffold.basic`：自动构建 `WAppBar` 的页面壳入口；`WScaffold` 主构造器只保留
+  显式 `appBar` 与槽位。
 
 ### Breaking
 - `WButton.new` / `WBadge.new` / `WScaffold.new` / `WNavBar.new` / `WAppBarStyle.new` /
@@ -27,6 +29,10 @@
   继续传 `itemBuilder` 的调用点不变，读取该字段的代码需要处理 null。
 - `WGradientCircularProgressIndicator.build`：组件改为 `StatefulWidget`，
   build 移到 State；不应直接调用组件的 build。
+- `WScaffold.new`：`title` / `titleWidget` / `leading` / `actions` / `onBack` /
+  `appBarStyle` / `appBarBottom` / `automaticallyImplyLeading` / `centerTitle`
+  移到 `WScaffold.basic`；主构造器只保留 `appBar` 与 body / 槽位。
+  旧 `WScaffold(title: ...)` 改为 `WScaffold.basic(title: ...)`。
 
 ### Removed
 - `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。

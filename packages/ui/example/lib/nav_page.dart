@@ -59,7 +59,7 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return WScaffold(
+    return WScaffold.basic(
       title: 'WNavBar / WNavController / WTabBar',
       body: ListView(
         padding: const EdgeInsets.all(16),

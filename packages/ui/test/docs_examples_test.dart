@@ -25,7 +25,7 @@ void main() {
   testWidgets('README 快速开始可渲染', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: WScaffold(
+        home: WScaffold.basic(
           title: '快速开始',
           body: WText(text: 'Hello w_tools_ui', variant: WTextVariant.title),
         ),

@@ -1,8 +1,8 @@
 ## 14.0.0
 
 ### Added
-- 聚合 `w_tools_ui` 11.0.0 新增 `WNavDestination` + `WNavBar.destinations`，
-  以及 `WGradientCircularProgressIndicator.indeterminate`。
+- 聚合 `w_tools_ui` 11.0.0 新增 `WNavDestination` + `WNavBar.destinations`、
+  `WGradientCircularProgressIndicator.indeterminate` 与 `WScaffold.basic`。
 
 ### Breaking
 - 聚合 `w_tools_ui` 11.0.0：删除 `WClipRRect`（用 Flutter `ClipRRect`）、
@@ -15,7 +15,8 @@
   `WWidgetExtension` 删除 6 个物理 padding 方法，`withBottomBarSpaceOf` 改名
   `withBottomSafeSpaceOf`；`WStep` 构造时复制 `labels`，不再是 `const` 构造器；
   `WImageSlots` 删除 `placeholder` / `emptyWidget` / `errorWidget`，统一用 `*Builder`；
-  `WNumExtension` 拆分为 `WNumLayoutExtension` / `WNumFormatExtension`。
+  `WNumExtension` 拆分为 `WNumLayoutExtension` / `WNumFormatExtension`；
+  `WScaffold` 的默认顶栏参数移到 `WScaffold.basic`。
 
 ### Changed
 - 根包 `w_tools_ui` 约束抬到 `^11.0.0`。

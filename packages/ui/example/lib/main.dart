@@ -96,7 +96,7 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return WScaffold(
+    return WScaffold.basic(
       title: 'w_tools_ui 示例',
       body: ListenableBuilder(
         listenable: _navController,

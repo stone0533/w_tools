@@ -22,7 +22,7 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
     final scheme = Theme.of(context).colorScheme;
     final baseStyle = TextStyle(fontSize: 14, color: scheme.onSurface);
 
-    return WScaffold(
+    return WScaffold.basic(
       title: '扩展方法',
       body: ListView(
         padding: const EdgeInsets.all(16),

@@ -46,7 +46,7 @@ class DemoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WScaffold(
+    return WScaffold.basic(
       title: 'Demo',
       body: const Center(
         child: WText(
@@ -273,7 +273,7 @@ WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 ## 页面骨架与布局
 
 ```dart
-WScaffold(
+WScaffold.basic(
   title: '首页',
   actions: [IconButton(onPressed: ..., icon: const Icon(Icons.search))],
   floatingActionButton: FloatingActionButton(onPressed: ..., child: const Icon(Icons.add)),
