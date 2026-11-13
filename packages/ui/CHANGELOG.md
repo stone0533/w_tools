@@ -13,6 +13,8 @@
   `WImageStyle.margin` / `WImageStyle.padding`：几何类型放宽为
   `BorderRadiusGeometry` / `EdgeInsetsGeometry`；传 `BorderRadius` / `EdgeInsets`
   的旧代码仍然兼容。
+- `WStep.new`：构造时复制并冻结 `labels`，因此不再是 `const` 构造器；
+  `const WStep(...)` 需要去掉 `const`。
 
 ### Removed
 - `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。

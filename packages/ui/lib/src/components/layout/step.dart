@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'step_flow.dart';
 import 'step_style.dart';
 import 'step_types.dart';
 
@@ -18,18 +17,17 @@ Color _onColor(Color background) =>
 ///
 /// [current] 从 1 开始，等于当前步骤在 [labels] 中的位置。
 ///
-/// 直接传 [labels] 时由调用方保证列表不再变化；需要复用流程请使用
-/// [WStepFlow]，它会在构造时复制并冻结 labels。
+/// 直接传 [labels] 时会在构造时复制并冻结，之后修改原列表不会影响组件。
 class WStep extends StatelessWidget {
-  const WStep({
+  WStep({
     super.key,
     required this.current,
-    required this.labels,
+    required List<String> labels,
     this.itemBuilder,
     this.separatorBuilder,
     this.semanticLabelBuilder,
     this.style = const WStepStyle(),
-  });
+  }) : labels = List.unmodifiable(labels);
 
   final int current;
   final List<String> labels;
@@ -40,7 +38,6 @@ class WStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // labels 是运行时列表，const 构造器无法常量求值；断言留在 build。
     assert(labels.isNotEmpty, 'WStep.labels 不能为空');
     assert(
       current >= 1 && current <= labels.length,
@@ -96,6 +93,7 @@ class WStep extends StatelessWidget {
 
     final currentLabel = current >= 1 && current <= labels.length ? labels[current - 1] : '';
     return Semantics(
+      container: true,
       label:
           semanticLabelBuilder?.call(current, labels.length) ??
           (currentLabel.isEmpty

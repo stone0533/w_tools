@@ -1,3 +1,8 @@
+## 1.20.20
+
+### Changed
+- catalog 补 `WStep` 构造时复制 `labels` 的说明（不再是 `const` 构造器）。
+
 ## 1.20.19
 
 ### Changed

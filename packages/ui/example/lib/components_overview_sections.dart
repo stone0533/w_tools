@@ -228,9 +228,9 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
     ),
     const SizedBox(height: 24),
     const DemoSectionTitle('WStep 步骤'),
-    const WStep(
+    WStep(
       current: 2,
-      labels: ['选择', '确认', '完成'],
+      labels: const ['选择', '确认', '完成'],
     ),
     const SizedBox(height: 24),
     const DemoSectionTitle('WListView 列表'),

@@ -175,7 +175,7 @@ components:
       flow.build(current: 2);
     pitfalls:
       - 'current 从 1 开始；越界 / 空 labels 会在 debug 断言'
-      - 'WStepFlow 构造时复制并冻结 labels'
+      - 'WStep 与 WStepFlow 构造时复制并冻结 labels；WStep 不再是 const 构造器'
     related: ['`WStepStyle`']
     teach: false
   - name: '`WStepStyle`'

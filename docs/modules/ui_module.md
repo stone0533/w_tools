@@ -210,7 +210,8 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 ### WStep
 
 `WStep` / `WStepFlow` 用于步骤指示；样式与状态用 `WStepStyle` / `WStepState`，
-自定义项 / 分隔线 / 语义用对应的 builder。`WStepStyle` 的完成 / 当前 / 未开始颜色
+自定义项 / 分隔线 / 语义用对应的 builder。`WStep` 与 `WStepFlow` 都会在构造时复制并冻结
+`labels`；因此 `WStep` 不再是 `const` 构造器。`WStepStyle` 的完成 / 当前 / 未开始颜色
 未显式设置时分别取 `ColorScheme.primary` / `primary` / `outline`，暗色主题下自动跟随。
 
 ### WNavBar / WNavController

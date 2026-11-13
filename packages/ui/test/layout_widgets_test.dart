@@ -6,10 +6,10 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 void main() {
   testWidgets('WStep — 默认显示 1 基 label / 状态', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 1,
-          labels: ['One', 'Two', 'Three'],
+          labels: const ['One', 'Two', 'Three'],
         ),
       ),
     );
@@ -56,7 +56,7 @@ void main() {
 
   testWidgets('WStep — WStepFlow 复用流程定义', (tester) async {
     final flow = WStepFlow(
-      labels: ['A', 'B', 'C'],
+      labels: const ['A', 'B', 'C'],
     );
 
     await tester.pumpWidget(
@@ -94,8 +94,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: theme,
-        home: const Scaffold(
-          body: WStep(labels: ['下单', '付款'], current: 1),
+        home: Scaffold(
+          body: WStep(labels: const ['下单', '付款'], current: 1),
         ),
       ),
     );
@@ -109,10 +109,10 @@ void main() {
 
   testWidgets('WStep — completed / current / upcoming 默认状态', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 2,
-          labels: ['A', 'B', 'C'],
+          labels: const ['A', 'B', 'C'],
         ),
       ),
     );
@@ -140,11 +140,11 @@ void main() {
 
   testWidgets('WStep — itemSize 必须大于 0', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 1,
-          labels: ['A'],
-          style: WStepStyle(itemSize: 0),
+          labels: const ['A'],
+          style: const WStepStyle(itemSize: 0),
         ),
       ),
     );
@@ -162,10 +162,10 @@ void main() {
 
   testWidgets('WStep — current 越界断言', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 4,
-          labels: ['A', 'B', 'C'],
+          labels: const ['A', 'B', 'C'],
         ),
       ),
     );
@@ -175,15 +175,30 @@ void main() {
 
   testWidgets('WStep — labels 为空断言', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: WStep(
           current: 1,
-          labels: [],
+          labels: const [],
         ),
       ),
     );
 
     expect(tester.takeException(), isAssertionError);
+  });
+
+  testWidgets('WStep — labels 构造时复制，外部修改不影响', (tester) async {
+    final labels = ['A', 'B', 'C'];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: WStep(current: 2, labels: labels),
+      ),
+    );
+
+    labels[1] = 'X';
+    await tester.pump();
+
+    expect(find.text('B'), findsOneWidget);
+    expect(find.text('X'), findsNothing);
   });
 
   testWidgets('WScaffold — 接受任意 PreferredSizeWidget 作为 appBar', (tester) async {

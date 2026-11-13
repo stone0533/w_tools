@@ -131,7 +131,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docsAnchor: "wstep",
     aliases: <String>[],
     usage: "WStep(labels: const ['下单', '付款', '完成'], current: 2);\n\nfinal flow = WStepFlow(labels: const ['下单', '付款', '完成']);\nflow.build(current: 2);\n",
-    pitfalls: <String>["current 从 1 开始；越界 / 空 labels 会在 debug 断言", "WStepFlow 构造时复制并冻结 labels"],
+    pitfalls: <String>["current 从 1 开始；越界 / 空 labels 会在 debug 断言", "WStep 与 WStepFlow 构造时复制并冻结 labels；WStep 不再是 const 构造器"],
     related: <String>["`WStepStyle`"],
     teach: false,
   ),

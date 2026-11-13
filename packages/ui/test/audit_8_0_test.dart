@@ -97,7 +97,7 @@ void main() {
   testWidgets('WStep 默认语义标签不写死英文', (tester) async {
     final handle = tester.ensureSemantics();
     await tester.pumpWidget(
-      const MaterialApp(home: WStep(labels: ['下单', '付款'], current: 1)),
+      MaterialApp(home: WStep(labels: const ['下单', '付款'], current: 1)),
     );
     final label = tester.getSemantics(find.byType(WStep)).label;
     expect(label, contains('1/2'));
@@ -149,9 +149,9 @@ void main() {
     expect(find.byType(WNotificationListener<ScrollNotification>), findsOneWidget);
   });
 
-  testWidgets('UI-021: WStep / WListView 的 const 用法仍然成立', (tester) async {
+  testWidgets('UI-021: WStep / WListView 可渲染', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: WStep(labels: ['a', 'b'], current: 1)),
+      MaterialApp(home: WStep(labels: const ['a', 'b'], current: 1)),
     );
     expect(find.byType(WStep), findsOneWidget);
 
@@ -197,7 +197,7 @@ void main() {
         theme: base.copyWith(
           textTheme: base.textTheme.copyWith(bodySmall: const TextStyle(fontSize: 9)),
         ),
-        home: const WStep(labels: ['a'], current: 1),
+        home: WStep(labels: const ['a'], current: 1),
       ),
     );
     expect(tester.widget<Text>(find.text('a')).style?.fontSize, 9);
