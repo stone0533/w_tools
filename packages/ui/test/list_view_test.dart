@@ -222,6 +222,40 @@ void main() {
       expect(third - second, 80);
     });
 
+    testWidgets('overlap 重叠区的 hit test 命中后绘制的 item', (tester) async {
+      final taps = <int>[];
+      await tester.pumpWidget(
+        _host(
+          WListView(
+            sliver: WListViewSliver.overlap(
+              itemExtent: 100,
+              overlap: 20,
+              itemCount: 2,
+              itemBuilder: (_, i) => GestureDetector(
+                key: Key('item-$i'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => taps.add(i),
+                child: SizedBox(
+                  height: 100,
+                  child: ColoredBox(
+                    color: i == 0 ? Colors.red : Colors.blue,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // 非重叠区：item-0 的可见上半部分
+      await tester.tapAt(const Offset(400, 10));
+      expect(taps, [0]);
+
+      // 重叠区：item-0 画到 100，item-1 从 80 开始；后绘制的 item-1 命中
+      await tester.tapAt(const Offset(400, 90));
+      expect(taps, [0, 1]);
+    });
+
     testWidgets('overlap 与 padding / footer 一起工作', (tester) async {
       await tester.pumpWidget(
         _host(
