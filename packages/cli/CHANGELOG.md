@@ -1,4 +1,4 @@
-## Unreleased
+## 1.20.30
 
 ### Changed
 - `catalog` / `templates` 同步 `w_tools_api` 5.3.0 的 `WApiClient` / `WApiEnvelopeParser` / `WPage` / `WRetryInterceptor` 条目。
