@@ -214,6 +214,39 @@ void main() {
     expect(error.kind, WApiErrorKind.timeout);
   });
 
+  test('403 / 404 映射成 forbidden / notFound', () {
+    for (final status in [403, 404]) {
+      final options = RequestOptions(path: '/x');
+      final error = WApiException.from(
+        DioException(
+          requestOptions: options,
+          response: Response(requestOptions: options, statusCode: status),
+          type: DioExceptionType.badResponse,
+        ),
+      );
+
+      expect(
+        error.kind,
+        status == 403 ? WApiErrorKind.forbidden : WApiErrorKind.notFound,
+      );
+      expect(error.statusCode, status);
+    }
+  });
+
+  test('form body 实际编码为 urlencoded', () async {
+    final capture = _BodyCaptureAdapter();
+    final formDio = Dio(BaseOptions(baseUrl: 'https://api.test'));
+    formDio.httpClientAdapter = capture;
+
+    await WApiClient(formDio).post<void>(
+      '/form',
+      body: WApiBody.form({'name': 'Ada'}),
+      decode: (json) {},
+    );
+
+    expect(capture.body, contains('name=Ada'));
+  });
+
   test('barrel 补全上传 / adapter 类型重导出', () {
     expect(FormData(), isA<FormData>());
     expect(MultipartFile.fromBytes([1]), isA<MultipartFile>());
@@ -251,6 +284,29 @@ class _RecordingAdapter implements HttpClientAdapter {
     calls++;
     last = options;
     return handler?.call(options) ?? _json(200, {'ok': true});
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _BodyCaptureAdapter implements HttpClientAdapter {
+  String? body;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (requestStream != null) {
+      final bytes = <int>[];
+      await for (final chunk in requestStream) {
+        bytes.addAll(chunk);
+      }
+      body = utf8.decode(bytes);
+    }
+    return _json(200, {'ok': true});
   }
 
   @override
