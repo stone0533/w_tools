@@ -145,6 +145,78 @@ void main() {
     expect(user.name, 'Ada');
     DioRegistry.dispose(baseUrl);
   });
+
+  test('shouldRetry 返回 false 时不重试', () async {
+    final retry = WRetryInterceptor(
+      maxRetries: 2,
+      baseDelay: Duration.zero,
+      jitter: false,
+      shouldRetry: (_) => false,
+    );
+    final localDio = Dio(BaseOptions(baseUrl: 'https://retry-custom.test'));
+    final localAdapter = _SequenceAdapter([500]);
+    localDio.httpClientAdapter = localAdapter;
+    localDio.interceptors.add(retry);
+    retry.bindDio(localDio);
+
+    await expectLater(WApiClient(localDio).get('/user'), throwsA(anything));
+
+    expect(localAdapter.calls, 1);
+  });
+
+  test('等待期间取消后不再重试', () async {
+    final token = CancelToken();
+    final retry = WRetryInterceptor(
+      maxRetries: 2,
+      baseDelay: const Duration(milliseconds: 10),
+      jitter: false,
+      onRetry: (attempt, error) => token.cancel('cancelled during backoff'),
+    );
+    final localDio = Dio(BaseOptions(baseUrl: 'https://retry-cancel.test'));
+    final localAdapter = _SequenceAdapter([500, 200]);
+    localDio.httpClientAdapter = localAdapter;
+    localDio.interceptors.add(retry);
+    retry.bindDio(localDio);
+
+    await expectLater(
+      WApiClient(localDio).get('/user', cancelToken: token),
+      throwsA(
+        isA<WApiException>().having(
+          (error) => error.kind,
+          'kind',
+          WApiErrorKind.canceled,
+        ),
+      ),
+    );
+
+    expect(localAdapter.calls, 1);
+  });
+
+  test('PUT multipart 500 后重试会 clone FormData', () async {
+    final retry = WRetryInterceptor(
+      maxRetries: 1,
+      baseDelay: Duration.zero,
+      jitter: false,
+    );
+    final localDio = Dio(BaseOptions(baseUrl: 'https://retry-form.test'));
+    final localAdapter = _SequenceAdapter([500, 200]);
+    localDio.httpClientAdapter = localAdapter;
+    localDio.interceptors.add(retry);
+    retry.bindDio(localDio);
+
+    await WApiClient(localDio).put<void>(
+      '/upload',
+      body: WApiBody.multipart(
+        files: {
+          'file': MultipartFile.fromBytes([1, 2, 3]),
+        },
+      ),
+      decode: WApiDecoders.none,
+    );
+
+    expect(localAdapter.calls, 2);
+    expect(localAdapter.last?.data, isA<FormData>());
+  });
 }
 
 _User _userFromJson(Object? json) => _User.fromJson(json as Map<String, dynamic>);
@@ -166,6 +238,7 @@ class _SequenceAdapter implements HttpClientAdapter {
 
   final List<int> statuses;
   int calls = 0;
+  RequestOptions? last;
 
   @override
   Future<ResponseBody> fetch(
@@ -173,6 +246,7 @@ class _SequenceAdapter implements HttpClientAdapter {
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
   ) async {
+    last = options;
     final index = calls < statuses.length ? calls : statuses.length - 1;
     final status = statuses[index];
     calls++;
