@@ -54,6 +54,7 @@ names = [
     r'\bWBadge[^\n|]*\btopRight\b',
     r'WImageErrorKind\.empty',
     r'\bWNumExtension\.borderSide\b',
+    r'\bWNumExtension\b',
     r'\bWScreen\.(?:w|h|sp)\b',
     r'\bWScreen\.delegate(?:Width|Height|Font)\b',
     r'\bWScreen\.reset\b',

@@ -450,7 +450,7 @@ WScreenScope(
 | 导航 | `WNavBar` / `WNavController` / `WTabBar` |
 | 屏幕工具 | `WScreen` / `WScreenScope` |
 | 资源 | `WAssets` |
-| 扩展 | `WColorExtension` / `WImageStyleExtension` / `WStringExtension` / `WNumExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
+| 扩展 | `WColorExtension` / `WImageStyleExtension` / `WStringExtension` / `WNumLayoutExtension` / `WNumFormatExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 
 完整构造参数与成员见 [pub.dev API 文档](https://pub.dev/documentation/w_tools_ui/latest/)
 或 `packages/ui/lib` 源码；模块边界与设计取舍见 [`docs/modules/ui_module.md`](https://github.com/stone0533/w_tools/blob/main/docs/modules/ui_module.md)。

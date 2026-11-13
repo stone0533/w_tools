@@ -14,7 +14,8 @@
   `WImageStyle` 的 `borderRadius` / `margin` / `padding` 放宽为 Geometry 类型；
   `WWidgetExtension` 删除 6 个物理 padding 方法，`withBottomBarSpaceOf` 改名
   `withBottomSafeSpaceOf`；`WStep` 构造时复制 `labels`，不再是 `const` 构造器；
-  `WImageSlots` 删除 `placeholder` / `emptyWidget` / `errorWidget`，统一用 `*Builder`。
+  `WImageSlots` 删除 `placeholder` / `emptyWidget` / `errorWidget`，统一用 `*Builder`；
+  `WNumExtension` 拆分为 `WNumLayoutExtension` / `WNumFormatExtension`。
 
 ### Changed
 - 根包 `w_tools_ui` 约束抬到 `^11.0.0`。

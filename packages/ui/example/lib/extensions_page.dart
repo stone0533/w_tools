@@ -28,7 +28,7 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
         padding: const EdgeInsets.all(16),
         children: [
           DemoSection(
-            title: 'WNumExtension：间距 / 圆角 / 数字格式',
+            title: 'WNumLayoutExtension / WNumFormatExtension：间距 / 圆角 / 数字格式',
             subtitle: 'heightBox / widthBox / squareBox / allPadding / 格式化',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

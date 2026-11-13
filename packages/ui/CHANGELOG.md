@@ -46,6 +46,8 @@
   `WWidgetExtension.withTopPadding` / `WWidgetExtension.withBottomPadding`：改用 Flutter
   `Padding`。
 - `WWidgetExtension.withBottomBarSpaceOf`：改名 `withBottomSafeSpaceOf`。
+- `WNumExtension`：拆分为 `WNumLayoutExtension`（布局糖）与
+  `WNumFormatExtension`（数字格式化）。
   迁移见 `docs/migrations/ui-11.0.md`。
 
 ## 10.5.0

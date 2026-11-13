@@ -221,7 +221,8 @@
 <!-- catalog:9:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WNumExtension` | ui | 数字格式化 / 间距 / 圆角 / BorderSide 糖 | 不要重复手写 toStringAsFixed / SizedBox / EdgeInsets |
+| `WNumLayoutExtension` | ui | num 的 SizedBox / EdgeInsets / BorderRadius / BorderSide 糖 | 不要重复手写 SizedBox / EdgeInsets / BorderRadius |
+| `WNumFormatExtension` | ui | 数字格式化：千分位 / 货币 / 百分比 / 前导零 | 不要重复手写 toStringAsFixed / 正则分组 |
 | `WStringExtension` | ui | String 转数字 / 去空格 / hex 颜色 / 资源路径 | 图片组件转换用 `WStringExtension` 的路径方法 |
 | `WBoxDecorationExtension` | ui | BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影） | 不要每次重写完整 BoxDecoration |
 | `WWidgetExtension` | ui | Widget 安全空间 / 方向 padding / 装饰 / IntrinsicHeight / toPressable | 需要 button 语义用 `WButton`；物理 padding 直接用 Flutter Padding |

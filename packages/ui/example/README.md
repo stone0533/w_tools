@@ -44,7 +44,7 @@
 | `WListView` / `WListViewSliver` | lists_page、components_page | list / separated / grid / overlap / 空态 / addAutomaticKeepAlives |
 | `WKeepAliveWrapper` | lists_page、components_page | 开关与回收 |
 | `WNotificationListener` | lists_page、components_page | onNotification / percentage / prevent |
-| `WNumExtension` | extensions_page、components_page | 间距 / 格式化 / 圆角 |
+| `WNumLayoutExtension` / `WNumFormatExtension` | extensions_page、components_page | 间距 / 格式化 / 圆角 |
 | `WStringExtension` | extensions_page | toInt / toDouble / trimAll / toColor / assetImagePath |
 | `WBoxDecorationExtension` | extensions_page、components_page | with* / without* / shape |
 | `WWidgetExtension` | extensions_page | expanded / padding / intrinsic / decoration / toPressable |

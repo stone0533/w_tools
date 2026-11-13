@@ -261,9 +261,12 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 字符串转数字 / 去空格 / hex 颜色 / 资源路径；新增前先看 `packages/ui/lib/src/extensions/` 是否已有。
 
-### WNumExtension
+### WNumLayoutExtension / WNumFormatExtension
 
-数字格式化与间距 / 圆角 / `BorderSide` 糖：`toThousandsSeparated` / `toCurrency` / `toPercent` 等。
+`num` 扩展按用途拆成两个：`WNumLayoutExtension` 提供 `heightBox` / `widthBox` /
+`squareBox` / `padding` / `borderRadius` / `borderSideOf(context)`；
+`WNumFormatExtension` 提供 `toThousandsSeparated` / `toCurrency` / `toPercent` /
+`toPercentWithFixed` / `toPadLeft`。
 `borderSide` 已在 10.0 删除；边框统一用 `borderSideOf(context)` 跟随 `ColorScheme.outline`。
 
 ### WWidgetExtension

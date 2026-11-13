@@ -1599,19 +1599,27 @@ components:
       - '每个 WApp 持有自己的栈；没有全局 defaultStack'
     related: ['`WRouteObserver`', '`WApp`']
     teach: true
-  - name: '`WNumExtension`'
+  - name: '`WNumLayoutExtension`'
     package: 'w_tools_ui'
-    docsAnchor: 'wnumextension'
+    docsAnchor: 'wnumlayoutextension--wnumformatextension'
     section: '9. 扩展'
-    useFor: '数字格式化 / 间距 / 圆角 / BorderSide 糖'
-    dontUseFor: '不要重复手写 toStringAsFixed / SizedBox / EdgeInsets'
+    useFor: 'num 的 SizedBox / EdgeInsets / BorderRadius / BorderSide 糖'
+    dontUseFor: '不要重复手写 SizedBox / EdgeInsets / BorderRadius'
     usage: |
-      16.allPadding; 12.heightBox; 12.widthBox;
-      1234.toThousandsSeparated; 1234.5.toCurrency(symbol: '¥');
-      0.125.toPercent; 42.toPadLeft(5);
+      16.allPadding; 12.heightBox; 12.widthBox; 12.squareBox;
       12.borderRadius; 2.borderSideOf(context); // 跟随 ColorScheme.outline
     pitfalls:
       - 'borderSide 10.0 已删除；改用 borderSideOf(context)'
+    teach: false
+  - name: '`WNumFormatExtension`'
+    package: 'w_tools_ui'
+    docsAnchor: 'wnumlayoutextension--wnumformatextension'
+    section: '9. 扩展'
+    useFor: '数字格式化：千分位 / 货币 / 百分比 / 前导零'
+    dontUseFor: '不要重复手写 toStringAsFixed / 正则分组'
+    usage: |
+      1234.toThousandsSeparated; 1234.5.toCurrency(symbol: '¥');
+      0.125.toPercent; 42.toPadLeft(5);
     teach: false
   - name: '`WStringExtension`'
     package: 'w_tools_ui'

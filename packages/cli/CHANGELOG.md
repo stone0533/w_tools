@@ -1,3 +1,8 @@
+## 1.20.24
+
+### Changed
+- catalog 把 `WNumExtension` 拆成 `WNumLayoutExtension` / `WNumFormatExtension`。
+
 ## 1.20.23
 
 ### Added
