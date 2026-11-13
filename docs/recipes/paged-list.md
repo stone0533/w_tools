@@ -1,13 +1,16 @@
 # 分页列表：刷新 + 追加 + 错误
 
 用 `WAsyncPagedController` 管分页状态，`WAsyncStateBuilder` 只负责渲染滚动壳。
+测试用 [分页列表测试 recipe](paged-list-test.md) 的本地 harness，不要每个项目重写 fake。
 
 ```dart
 final controller = WAsyncPagedController<Gift>.withPage((page) async {
   final resp = await api.gifts(page: page, limit: 10);
-  return WAsyncPage(
+  return WAsyncPage<Gift>.fromTotal(
     items: resp.list,
-    hasMore: resp.total == null ? resp.list.length >= 10 : page * 10 < resp.total!,
+    total: resp.total,
+    page: page,
+    pageSize: 10,
   );
 });
 final refreshController = RefreshController();

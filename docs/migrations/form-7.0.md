@@ -138,6 +138,11 @@ form.setValue('email', 'a@b.com'); // 写值 + 清错
 form.clearError('email');          // 只清错
 ```
 
+> **不要在字段自己的 `onChanged` 里 `setValue` 同字段。**  
+> 字段值已由 FormBuilder 更新，`onChanged` 里再回写会形成
+> `didChange → onChanged → setValue → didChange` 的闭环；7.0.1 起同值回写会 no-op，
+> 但这不是推荐写法。`setValue` 只用于程序化改值。
+
 `formEntered` 仍按字段值实时派生；自定义字段不需要再额外上报。
 
 ## 8. 本版同时包含 6.x 的新增能力

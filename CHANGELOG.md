@@ -1,3 +1,9 @@
+## 15.0.1
+
+### Changed
+- 根包 `w_tools_form` 约束抬到 `^7.0.1`（setValue 同值 no-op），
+  `w_tools_async` 抬到 `^6.8.0`（WAsyncPage.fromTotal）。
+
 ## 15.0.0
 
 ### Breaking

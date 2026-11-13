@@ -104,7 +104,7 @@ WFormTheme(
 | `fields` | 字段集合；未挂载时为 null |
 | `formEntered` | 各字段是否已输入的派生快照（每次调用返回独立副本，改它不影响表单） |
 | `isAllEntered(names)` | 指定字段是否都已输入 |
-| `setValue` | 写值 + 清该字段边框错误；立刻反映到 `formEntered` |
+| `setValue` | 程序化写值 + 清该字段边框错误；立刻反映到 `formEntered`；不要在字段自己的 `onChanged` 里回写同字段 |
 | `clearError` | 只清该字段边框错误 |
 | `getFieldsValue<T>` | 不 `save` 也能取即时值 |
 | `validate({items})` | 一步校验；未挂载返回 false |

@@ -207,9 +207,11 @@ await paged.loadMore();
 ```dart
 final paged = WAsyncPagedController<Gift>.withPage((page) async {
   final resp = await api.gifts(page: page, limit: 10);
-  return WAsyncPage(
+  return WAsyncPage<Gift>.fromTotal(
     items: resp.list,
-    hasMore: resp.total == null ? resp.list.length >= 10 : page * 10 < resp.total!,
+    total: resp.total,
+    page: page,
+    pageSize: 10,
   );
 });
 ```
@@ -297,4 +299,4 @@ cd packages/async
 flutter test
 ```
 
-当前 6.7.0；迁移见 [async-6.0](../migrations/async-6.0.md)。
+当前 6.8.0；迁移见 [async-6.0](../migrations/async-6.0.md)。

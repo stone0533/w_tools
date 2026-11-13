@@ -68,9 +68,16 @@ class WFormController {
   ///
   /// 直接调用字段的 `didChange`：值写入后 [formEntered] 会立即反映
   /// （它按当前字段值实时派生，没有需要手工维护的输入状态）。
+  ///
+  /// 只用于程序化改值；不要在字段自己的 `onChanged` 里回写同一字段。
+  /// 字段值已由 FormBuilder 更新；同值回写会 no-op，避免
+  /// didChange → onChanged → setValue 的递归。
   void setValue<T>(String name, T value) {
     clearError(name);
-    formKey.currentState?.fields[name]?.didChange(value);
+    final field = formKey.currentState?.fields[name];
+    if (field == null) return;
+    if (field.value == value) return;
+    field.didChange(value);
   }
 
   /// 清空指定字段：把值写成 `null` 并清除边框错误

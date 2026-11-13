@@ -15,6 +15,8 @@
   （Scaffold body / Expanded）填满视口，松约束（Column 子项 / ListView item）只包内容；
   需要固定视口时外层给有界高度或用 `WAsyncStateBuilder`。
 - 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
+- 第一页不足一页 / 服务端有 `total`：用 `withPage` + `WAsyncPage.fromTotal(total:, page:, pageSize:)`；
+  旧构造仍是“本页非空即有更多”。
 - 分页 footer 直接读 `controller.footerStatus`（hidden / loading / failed / noMore / loadMore），
   不再手写 data / loadMoreError / hasMore 组合；它是普通 getter，重建仍用 `changes`。
 - 切换筛选 / 搜索直接再调 `refresh()`：在飞刷新会被取消，旧结果不写回；不要禁用筛选。
