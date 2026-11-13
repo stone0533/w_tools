@@ -202,11 +202,11 @@ void main() {
     );
   });
 
-  testWidgets('WNavBar 异步回调乱序时以最后一次点击为准', (tester) async {
+  testWidgets('WNavBar onBeforeTap 异步乱序时以最后一次点击为准', (tester) async {
     final controller = WNavController(length: 3, vsync: tester);
     addTearDown(controller.dispose);
-    final firstTap = Completer<bool?>();
-    final secondTap = Completer<bool?>();
+    final firstTap = Completer<bool>();
+    final secondTap = Completer<bool>();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -214,7 +214,7 @@ void main() {
           body: WNavBar(
             style: const WNavBarStyle(),
             controller: controller,
-            onItemTap: (index) => index == 1 ? firstTap.future : secondTap.future,
+            onBeforeTap: (index) => index == 1 ? firstTap.future : secondTap.future,
             itemBuilder: (_, index, selected) => Text('item-$index'),
           ),
         ),
@@ -235,7 +235,7 @@ void main() {
     expect(controller.currentIndex, 2, reason: '最后一次点击应赢');
   });
 
-  testWidgets('WNavBar onItemTap 返回 false 时阻止切换', (tester) async {
+  testWidgets('WNavBar onBeforeTap 返回 false 时阻止切换', (tester) async {
     final controller = WNavController(length: 2, vsync: tester);
     addTearDown(controller.dispose);
 
@@ -245,6 +245,29 @@ void main() {
           body: WNavBar(
             style: const WNavBarStyle(),
             controller: controller,
+            onBeforeTap: (index) async => false,
+            itemBuilder: (_, index, selected) => Text('item-$index'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('item-1'));
+    await tester.pumpAndSettle();
+    expect(controller.currentIndex, 0);
+  });
+
+  testWidgets('WNavBar 旧 onItemTap 仍可用（deprecated）', (tester) async {
+    final controller = WNavController(length: 2, vsync: tester);
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WNavBar(
+            style: const WNavBarStyle(),
+            controller: controller,
+            // ignore: deprecated_member_use_from_same_package
             onItemTap: (index) async => false,
             itemBuilder: (_, index, selected) => Text('item-$index'),
           ),

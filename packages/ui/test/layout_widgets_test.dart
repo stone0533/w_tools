@@ -746,6 +746,32 @@ void main() {
     expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 
+  testWidgets('WScaffold — 透传 drawer / endDrawer / bottomSheet / footer / extendBody', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WScaffold(
+          drawer: Drawer(child: Text('drawer')),
+          endDrawer: Drawer(child: Text('end-drawer')),
+          bottomSheet: SizedBox(key: Key('sheet'), height: 20),
+          persistentFooterButtons: [Text('footer')],
+          extendBody: true,
+          body: SizedBox(),
+        ),
+      ),
+    );
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.drawer, isNotNull);
+    expect(scaffold.endDrawer, isNotNull);
+    expect(scaffold.bottomSheet, isNotNull);
+    expect(scaffold.persistentFooterButtons, isNotNull);
+    expect(scaffold.extendBody, isTrue);
+    expect(find.text('footer'), findsOneWidget);
+    expect(find.byKey(const Key('sheet')), findsOneWidget);
+  });
+
   group('GlobalKey 扩展', () {
     testWidgets('rect() 返回全局坐标矩形（回归：曾返回局部 paintBounds）', (tester) async {
       final key = GlobalKey();

@@ -1,3 +1,22 @@
+## 10.4.0
+
+### Breaking
+- `WTabBarStyle.new` / `WTabBarStyle.copyWith`：10.3.0 增加的 `labelColor` /
+  `unselectedLabelColor` / `labelPadding` / `indicatorPadding` / `textScaler` 仍随本版发布。
+  直接调用源码兼容；把 `copyWith` 作为函数值（tear-off）并显式声明旧签名时需要更新。
+
+### Added
+- `WScaffold` 透传 `drawer` / `endDrawer` / `bottomSheet` / `persistentFooterButtons` /
+  `extendBody`，需要这些槽位时不必改用原生 `Scaffold`。
+- `WNavBar.onBeforeTap`：`FutureOr<bool> Function(int)?`，返回 `false` 阻止切换；
+  同步 / 异步都支持。
+
+### Changed
+- `WTabBarStyle` 补齐标签颜色 / 布局参数（10.3.0 引入，随 10.4.0 一起发布）。
+
+### Deprecated
+- `WNavBar.onItemTap`：改用 `onBeforeTap`，`remove-in: 11.0.0`。
+
 ## 10.3.0
 
 ### Breaking

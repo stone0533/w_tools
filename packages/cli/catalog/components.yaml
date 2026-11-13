@@ -6,19 +6,22 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '7-wscaffold---增强脚手架'
     section: '1. 页面骨架与导航'
-    useFor: '页面壳：默认 WAppBar、body、底部导航/FAB、安全区'
+    useFor: '页面壳：默认 WAppBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区'
     dontUseFor: '任意顶部叠放用页面层 Container/Stack'
     usage: |
       WScaffold(
         title: '首页',
         actions: [IconButton(onPressed: ..., icon: Icon(Icons.search))],
         floatingActionButton: FloatingActionButton(onPressed: ..., child: Icon(Icons.add)),
+        drawer: Drawer(...),
+        bottomSheet: ...,
         body: ...,
       )
       // 覆盖顶栏：WScaffold(appBar: WAppBar(...), body: ...)
     pitfalls:
       - '不要手拼 Scaffold + SafeArea；页面壳统一用 WScaffold'
-      - '传 appBar 时不要再传 title/leading/actions；drawer/bottomSheet/非标准安全区才直接用 Scaffold'
+      - '传 appBar 时不要再传 title/leading/actions；任意叠放布局仍用页面层 Container/Stack'
+      - 'drawer / endDrawer / bottomSheet / persistentFooterButtons / extendBody 已透传，不需要为此改用原生 Scaffold'
       - '有 bottomNavigationBar 时 WScaffold 不再给 body 加底部安全区；底栏若不是 WNavBar（已默认 SafeArea），需要自己处理底部 inset'
     related: ['`WAppBar`', '`WNavBar`']
     teach: true
@@ -70,6 +73,7 @@ components:
       WNavBar(
         controller: nav,
         style: const WNavBarStyle(padding: EdgeInsets.symmetric(horizontal: 8)),
+        onBeforeTap: (index) async => true, // 返回 false 阻止切换
         itemBuilder: (context, index, selected) => ...,
       );
       
@@ -79,7 +83,8 @@ components:
         super.dispose();
       }
     pitfalls:
-      - 'onItemTap 返回 false 可以阻止切换'
+      - 'onBeforeTap 返回 false 可以阻止切换；同步 / 异步都支持'
+      - 'onItemTap 已 deprecated，新代码用 onBeforeTap；remove-in: 11.0.0'
       - '默认 safeArea: true，会避开 home indicator；放进已包 SafeArea 的容器时传 safeArea: false'
     related: ['`WNavBarStyle`', '`WTabBar`']
     teach: false

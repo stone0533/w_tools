@@ -192,6 +192,8 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 - 传了 `appBar` 时不要再传 `title` / `titleWidget` / `leading` / `actions` / `onBack` /
   `appBarStyle` / `appBarBottom`，否则 assert；且 `appBar` 必须 `includeStatusBar: true`，
   `WScaffold` 自身的 `automaticallyImplyLeading` / `centerTitle` 保持默认。
+- `drawer` / `endDrawer` / `bottomSheet` / `persistentFooterButtons` / `extendBody` 直接透传给
+  底层 `Scaffold`，不需要为此改用原生 `Scaffold`。
 - 有 `bottomNavigationBar` 时 body 不再加底部安全区；底栏不是 `WNavBar`（已默认
   `safeArea: true`）时需要自己处理底部 inset。
 
@@ -213,6 +215,8 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 底部导航：`WNavBar` + `WNavController`；`WNavController` 需要页面 State 提供 `vsync`，
 并由调用方 `dispose`。配置用 `WNavBarStyle`。`WNavBar` 默认 `safeArea: true`，会避开
 底部 home indicator；已在外层包 `SafeArea` 时传 `safeArea: false`。
+切换前拦截用 `onBeforeTap`（`FutureOr<bool>`，返回 false 阻止）；旧 `onItemTap` 已弃用，
+`remove-in: 11.0.0`。
 
 ### WTabBar
 

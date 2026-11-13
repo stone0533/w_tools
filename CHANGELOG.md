@@ -1,3 +1,9 @@
+## 13.0.4
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.4.0`（`WScaffold` 抽屉 / 底部面板透传、
+  `WNavBar.onBeforeTap`）。
+
 ## 13.0.3
 
 ### Changed

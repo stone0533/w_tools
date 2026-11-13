@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^10.3.0
+  w_tools_ui: ^10.4.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -275,6 +275,8 @@ WScaffold(
   title: '首页',
   actions: [IconButton(onPressed: ..., icon: const Icon(Icons.search))],
   floatingActionButton: FloatingActionButton(onPressed: ..., child: const Icon(Icons.add)),
+  drawer: Drawer(...),        // drawer / endDrawer / bottomSheet / footer 均透传
+  bottomSheet: ...,
   body: ...,
 );
 
@@ -332,6 +334,7 @@ class _NavDemoState extends State<NavDemo> {
     return WNavBar(
       style: const WNavBarStyle(),
       controller: _controller,
+      onBeforeTap: (index) async => true, // 返回 false 阻止切换
       itemBuilder: (context, index, selected) => Text('Tab $index'),
     );
   }
@@ -340,7 +343,7 @@ class _NavDemoState extends State<NavDemo> {
 
 `WNavController` 需要页面 State 提供 `vsync`，并由调用方 `dispose`。
 `WNavBar` 默认 `safeArea: true`，会避开底部 home indicator；已在外层包 `SafeArea` 时传
-`safeArea: false`。
+`safeArea: false`。切换前拦截用 `onBeforeTap`（`FutureOr<bool>`）；旧 `onItemTap` 已弃用。
 
 顶部 tab：
 

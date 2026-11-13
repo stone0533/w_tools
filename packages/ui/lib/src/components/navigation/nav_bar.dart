@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../common/pressable.dart';
 import 'nav_controller.dart';
@@ -18,10 +20,18 @@ class WNavBar extends StatefulWidget {
   /// 导航项构建器
   final Widget Function(BuildContext, int, bool) itemBuilder;
 
-  /// 导航项点击回调。
+  /// 导航切换前回调；返回 `false` 阻止切换。
   ///
-  /// 返回 `false` 可阻止切换。异步请求期间调用方应自行做防抖 / loading /
-  /// 禁用点击；controller 只保证最终动画以最后一次切换为准。
+  /// `FutureOr<bool>` 同时接受同步 / 异步结果。与 [onItemTap] 同时提供时，
+  /// 本回调优先。
+  final FutureOr<bool> Function(int)? onBeforeTap;
+
+  /// 导航项点击回调（旧入口，已弃用）。
+  ///
+  /// 返回 `false` 可阻止切换。新代码用 [onBeforeTap]。
+  ///
+  /// remove-in: 11.0.0
+  @Deprecated('Use onBeforeTap instead')
   final Future<bool?>? Function(int)? onItemTap;
 
   /// 导航栏控制器
@@ -37,7 +47,9 @@ class WNavBar extends StatefulWidget {
     super.key,
     this.style,
     required this.itemBuilder,
-    this.onItemTap,
+    this.onBeforeTap,
+    // remove-in: 11.0.0
+    @Deprecated('Use onBeforeTap instead') this.onItemTap,
     required this.controller,
     this.safeArea = true,
   });
@@ -83,11 +95,15 @@ class _WNavBarState extends State<WNavBar> {
     // 异步回调可能乱序返回：只有最后一次点击的 future 能触发切换，
     // 否则慢回调会覆盖用户后来的选择。
     final token = ++_tapToken;
-    final result = await widget.onItemTap?.call(index);
-    if (!mounted || token != _tapToken) return;
-    if (result != false) {
-      await _controller.animateTo(index);
+    final beforeTap = widget.onBeforeTap;
+    if (beforeTap != null) {
+      final allowed = await beforeTap(index);
+      if (!mounted || token != _tapToken || !allowed) return;
+    } else {
+      final result = await widget.onItemTap?.call(index);
+      if (!mounted || token != _tapToken || result == false) return;
     }
+    await _controller.animateTo(index);
   }
 
   @override

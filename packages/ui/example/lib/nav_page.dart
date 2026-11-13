@@ -66,7 +66,7 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
         children: [
           DemoSection(
             title: 'WNavController：animateTo / currentIndex / 状态',
-            subtitle: 'onItemTap 返回 false 可阻止切换',
+            subtitle: 'onBeforeTap 返回 false 可阻止切换',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -75,7 +75,7 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
                   child: WNavBar(
                     controller: _nav,
                     itemBuilder: _itemBuilder,
-                    onItemTap: (index) async {
+                    onBeforeTap: (index) async {
                       setState(() => _lastTap = '${_items[index].$2}（$index）');
                       if (_blockLast && index == _items.length - 1) {
                         return false;

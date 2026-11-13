@@ -31,6 +31,11 @@ class WScaffold extends StatelessWidget {
   final Widget? body;
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
+  final Widget? drawer;
+  final Widget? endDrawer;
+  final Widget? bottomSheet;
+  final List<Widget>? persistentFooterButtons;
+  final bool extendBody;
   final Color? backgroundColor;
   final SystemUiOverlayStyle? systemStatusBarStyle;
   final Widget? underlayWidget;
@@ -53,6 +58,11 @@ class WScaffold extends StatelessWidget {
     this.body,
     this.bottomNavigationBar,
     this.floatingActionButton,
+    this.drawer,
+    this.endDrawer,
+    this.bottomSheet,
+    this.persistentFooterButtons,
+    this.extendBody = false,
     this.backgroundColor,
     this.systemStatusBarStyle,
     this.underlayWidget,
@@ -145,6 +155,11 @@ class WScaffold extends StatelessWidget {
       body: content,
       bottomNavigationBar: bottomNavigationBar,
       floatingActionButton: floatingActionButton,
+      drawer: drawer,
+      endDrawer: endDrawer,
+      bottomSheet: bottomSheet,
+      persistentFooterButtons: persistentFooterButtons,
+      extendBody: extendBody,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
     );
 

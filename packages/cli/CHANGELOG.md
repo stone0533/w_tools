@@ -1,3 +1,9 @@
+## 1.20.13
+
+### Changed
+- catalog 补 `WScaffold` 抽屉 / 底部面板透传与 `WNavBar.onBeforeTap` 示例 / pitfalls；
+  同步 `w_tools_ui` 约束 `^10.4.0`。
+
 ## 1.20.12
 
 ### Changed
