@@ -78,6 +78,7 @@ await client.upload<void>(
   不配置时不会触发 `WTokenInterceptor`；
 - 需要 status / headers 用 `WApiClient.send`（返回 `WApiResponse`）；`get/post` 只返回 data；
 - 重试用 `WRetryInterceptor`（默认关闭，只对幂等方法）；HTTP 缓存 / 离线用外部方案，不在本包范围；
+- 指标用 `WApiMetricsInterceptor`（opt-in），只产出 `WApiMetric`，日志 / 上报由业务决定；
 - 选型（手写 `fromJson` / json_serializable / retrofit / OpenAPI）：见
   `packages/api/README.md` 的「选型」章节。
 

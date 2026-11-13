@@ -1,3 +1,11 @@
+## 15.4.0
+
+### Added
+- 聚合 `w_tools_api` 5.6.0：`WApiMetricsInterceptor` / `WApiMetric`。
+
+### Changed
+- 依赖 `w_tools_api: ^5.6.0`。
+
 ## 15.3.0
 
 ### Added

@@ -1,3 +1,9 @@
+## 1.20.34
+
+### Changed
+- catalog / explain 同步 `WApiMetricsInterceptor` / `WApiMetric`。
+- `init` 的 `w_tools_api` 约束抬到 `^5.6.0`。
+
 ## 1.20.33
 
 ### Changed

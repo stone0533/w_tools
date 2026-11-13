@@ -22,7 +22,7 @@
 
 ```yaml
 dependencies:
-  w_tools_api: ^5.5.0
+  w_tools_api: ^5.6.0
 ```
 
 ```bash
@@ -173,6 +173,28 @@ final registry = DioRegistry.forBaseUrl(
 - 默认只重试网络错误和 408 / 429 / 5xx；401 交给 `WTokenInterceptor`；
 - `maxRetries` 是重试次数（不含首次）；`baseDelay` 指数退避，`jitter` 默认开启；
 - HTTP 缓存 / 离线不在本包范围，可使用 `dio_cache_interceptor` 等外部方案。
+
+### 指标（可选）
+
+`WApiMetricsInterceptor` 只产出 `WApiMetric`，不写日志、不上报：
+
+```dart
+final metrics = WApiMetricsInterceptor(
+  onMetric: (metric) {
+    analytics.track('http', {
+      'method': metric.method,
+      'path': metric.path,
+      'status': metric.statusCode,
+      'ms': metric.duration.inMilliseconds,
+    });
+  },
+);
+```
+
+- 默认全量采样；`sampleRate: 0.1` 可抽样；
+- 回调抛异常会被吞掉，不影响请求；
+- 401 刷新 / 重试每次尝试都会各产生一条；
+- `uri` 可能带 query，上报用 `path` 或自行过滤敏感参数。
 
 > `WLogInterceptor` 只有注入 `WApiConfig.logDebugHandler` / `logErrorHandler` 后才会输出；默认不打印 request / response body，需要时显式传 `parts` 并用 `kDebugMode` 控制。URI 中 `token` / `access_token` 等敏感 query 参数默认脱敏；`requestBody` / `responseBody` 里的 `password` / `token` / `access_token` 等敏感 key 也会递归脱敏（Map / List / JSON 字符串 / FormData fields），可用 `sensitiveBodyKeys` 自定义；单条 body 超过 2000 字符会截断，可用 `maxBodyLength` 覆盖。
 

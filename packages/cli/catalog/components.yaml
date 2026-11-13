@@ -1602,6 +1602,26 @@ components:
       - "HTTP 缓存 / 离线不在本包范围，用 dio_cache_interceptor 等外部方案"
     related: ["`DioRegistry`", "`WTokenInterceptor`"]
 
+  - name: '`WApiMetricsInterceptor`'
+    package: 'w_tools_api'
+    section: '8. 能力（非 UI）'
+    useFor: '可选的请求指标：method / path / status / duration / failed'
+    dontUseFor: '不要用它做日志或上报；只产出 WApiMetric，由业务决定怎么用'
+    usage: |
+      final metrics = WApiMetricsInterceptor(
+        onMetric: (metric) => analytics.track(metric),
+        sampleRate: 0.1,
+      );
+      final registry = DioRegistry.forBaseUrl(
+        'https://api.example.com',
+        interceptors: [metrics],
+      );
+    pitfalls:
+      - "默认不启用；onMetric 抛异常会被吞掉，不影响请求"
+      - "401 刷新 / 重试每次尝试都会产生一条指标"
+      - "WApiMetric.uri 可能带 query，上报前用 path 或自行过滤敏感参数"
+    related: ["`DioRegistry`", "`WApiMetric`"]
+
   - name: '`WLanguage`'
     package: 'w_tools_app'
     docsAnchor: '3-wlanguage---语言管理'

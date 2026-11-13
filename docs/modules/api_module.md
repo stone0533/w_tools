@@ -391,6 +391,33 @@ final registry = DioRegistry.forBaseUrl(
 
 ---
 
+## 9. WApiMetricsInterceptor - 可选指标
+
+默认不启用，显式加入 `DioRegistry` 才生效；只观测，不写日志 / 不上报：
+
+```dart
+final metrics = WApiMetricsInterceptor(
+  sampleRate: 0.1,
+  onMetric: (m) => print('${m.method} ${m.path} ${m.statusCode}'),
+);
+```
+
+| 字段 | 说明 |
+|------|------|
+| `method` | HTTP 方法（大写） |
+| `uri` | 完整 URI，可能带 query |
+| `path` | 不含 query 的路径 |
+| `duration` | 从请求开始到响应 / 错误 |
+| `statusCode` | HTTP 状态码，网络错误为 null |
+| `failed` | 网络错误或 4xx / 5xx |
+| `error` | 原始错误（失败时） |
+
+- `onMetric` 抛异常会被吞掉，不影响请求；
+- 401 刷新 / 重试每次尝试都会各产生一条；
+- `sampleRate` 取值 0–1，0 表示关闭。
+
+---
+
 ## 完整配置示例
 
 ```dart
