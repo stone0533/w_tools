@@ -65,6 +65,68 @@ void main() {
     );
   });
 
+  test('authFailureCodes 命中时映射成 unauthorized 并回调', () async {
+    adapter.handler = (_) => _json(200, {
+      'code': 401,
+      'message': 'expired',
+      'data': null,
+    });
+    final failures = <WApiException>[];
+    final wrapped = WApiClient(
+      dio,
+      envelope: const WApiEnvelopeParser(
+        readCode: _readCode,
+        readData: _readData,
+        isSuccess: _isSuccess,
+        readMessage: _readMessage,
+        authFailureCodes: {401},
+      ),
+      onAuthFailure: failures.add,
+    );
+
+    await expectLater(
+      wrapped.get('/me'),
+      throwsA(
+        isA<WApiException>()
+            .having((error) => error.kind, 'kind', WApiErrorKind.unauthorized)
+            .having(
+              (error) => error.requiresLogin,
+              'requiresLogin',
+              isTrue,
+            ),
+      ),
+    );
+
+    expect(failures, hasLength(1));
+  });
+
+  test('未配置 authFailureCodes 时业务码 401 仍是 business', () async {
+    adapter.handler = (_) => _json(200, {
+      'code': 401,
+      'message': 'expired',
+      'data': null,
+    });
+    final failures = <WApiException>[];
+    final wrapped = WApiClient(
+      dio,
+      envelope: _envelope,
+      onAuthFailure: failures.add,
+    );
+
+    await expectLater(
+      wrapped.get('/me'),
+      throwsA(
+        isA<WApiException>().having(
+          (error) => error.kind,
+          'kind',
+          WApiErrorKind.business,
+        ),
+      ),
+    );
+
+    expect(failures, isEmpty);
+  });
+
   test('page 默认解析 JSON 数组并带上 query', () async {
     adapter.handler = (_) => _json(200, [
       {'id': 1, 'name': 'A'},

@@ -207,6 +207,7 @@
 | `WApiException` | api | 统一网络错误分类：timeout / network / 401 / 4xx / 5xx / decode | 不要在库里写死用户文案；UI 按 kind 映射 |
 | `WApiEnvelopeParser` | api | 可选业务信封解析：{code, message, data} | 不要默认开启；不是所有后端都用信封 |
 | `WPage` | api | 一页数据 + total / hasMore | 不要把它当 UI 状态；页面分页用 WAsyncPagedController |
+| `WApiResponse` | api | 保留 status / headers / requestOptions 的响应结果 | 普通请求不需要它；get / post 直接返回模型 |
 | `WRetryInterceptor` | api | 可选的幂等请求重试（GET / HEAD / PUT / DELETE / OPTIONS） | 不要默认开启；不要对 POST / PATCH 重试（可能重复提交） |
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；重扫不要 Key 状态，用 `WQrController.restart` |
 | `WQrController` | qr | 相机控制、广播扫描流与重扫 | 不要用它重置 UI 状态：单次锁定与成功色由 `WQrView` 管理 |

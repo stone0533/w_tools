@@ -211,6 +211,44 @@ void main() {
     expect(adapter.last!.method, 'OPTIONS');
   });
 
+  test('send 保留 status / headers / requestOptions', () async {
+    adapter.handler = (_) => _json(200, {'id': 1, 'name': 'Ada'});
+
+    final response = await client.send<User>(
+      'get',
+      '/users/42',
+      decode: (json) => User.fromJson(json as Map<String, dynamic>),
+    );
+
+    expect(response.data.name, 'Ada');
+    expect(response.statusCode, 200);
+    expect(
+      response.headers.value(Headers.contentTypeHeader),
+      contains('application/json'),
+    );
+    expect(response.requestOptions.method, 'GET');
+    expect(response.uri.path, '/users/42');
+  });
+
+  test('send HEAD 保留响应头', () async {
+    adapter.handler = (_) => ResponseBody.fromString(
+      '',
+      200,
+      headers: {
+        'x-total-count': ['3'],
+      },
+    );
+
+    final response = await client.send<void>(
+      'HEAD',
+      '/users',
+      decode: WApiDecoders.none,
+    );
+
+    expect(response.statusCode, 200);
+    expect(response.headers.value('x-total-count'), '3');
+  });
+
   test('upload 支持 PUT，并拒绝非法 method', () async {
     await client.upload<void>(
       '/files',

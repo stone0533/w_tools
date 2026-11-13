@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
+import '../api_config.dart';
 import 'api_exception.dart';
 
 /// 把 JSON 转成业务模型的显式解码函数。
@@ -119,6 +120,7 @@ class WApiEnvelopeParser {
     required this.readData,
     required this.isSuccess,
     this.readMessage,
+    this.authFailureCodes = const {},
   });
 
   /// 读取业务码
@@ -132,6 +134,12 @@ class WApiEnvelopeParser {
 
   /// 读取业务提示信息（可选）
   final String? Function(Object? json)? readMessage;
+
+  /// 视为「登录失效」的业务码。
+  ///
+  /// 命中时 `WApiClient` 抛 `WApiException(kind: unauthorized)` 并调用
+  /// `WApiClient.onAuthFailure`，与 HTTP 401 走同一条登出链路。
+  final Set<Object?> authFailureCodes;
 }
 
 /// 分页请求参数。
@@ -213,6 +221,35 @@ abstract final class WApiDecoders {
       (json) => json == null ? null : itemDecode(json);
 }
 
+/// 保留响应元数据的调用结果。
+///
+/// 需要 status / headers（限流、分页 total、请求 ID）时用
+/// `WApiClient.send`；普通 `get/post/...` 仍直接返回 `T`。
+class WApiResponse<T> {
+  /// 创建响应结果。
+  const WApiResponse({
+    required this.data,
+    required this.statusCode,
+    required this.headers,
+    required this.requestOptions,
+  });
+
+  /// 解码后的业务数据
+  final T data;
+
+  /// HTTP 状态码
+  final int? statusCode;
+
+  /// 响应头
+  final Headers headers;
+
+  /// 原始请求信息
+  final RequestOptions requestOptions;
+
+  /// 请求 URI
+  Uri get uri => requestOptions.uri;
+}
+
 /// 协议层统一入口：收敛 HTTP 方法、参数编码、JSON 解码与错误分类。
 ///
 /// 只负责「怎么调」，不负责 token（`WTokenInterceptor`）、日志、缓存和业务编排。
@@ -230,13 +267,47 @@ class WApiClient {
   /// 用已创建的 [Dio] 构造；通常来自 `DioRegistry.forBaseUrl(...).dio`。
   ///
   /// [envelope] 默认关闭；传入后才按业务信封解析。
-  WApiClient(this._dio, {WApiEnvelopeParser? envelope}) : _envelope = envelope;
+  /// [onAuthFailure] 只在业务码命中 [WApiEnvelopeParser.authFailureCodes] 时调用；
+  /// HTTP 401 仍由 `WTokenInterceptor.onAuthFailure` 负责。
+  WApiClient(
+    this._dio, {
+    WApiEnvelopeParser? envelope,
+    this.onAuthFailure,
+  }) : _envelope = envelope;
 
   final Dio _dio;
   final WApiEnvelopeParser? _envelope;
 
+  /// 业务码认证失败回调
+  final void Function(WApiException error)? onAuthFailure;
+
   /// 底层 dio（高级场景 / 上传进度 / 自定义 adapter 用）
   Dio get dio => _dio;
+
+  /// 发送任意 HTTP 方法，并保留 status / headers / requestOptions。
+  ///
+  /// 需要限流头、分页 total 头或请求 ID 时用它；普通请求仍用 `get/post/...`。
+  Future<WApiResponse<T>> send<T>(
+    String method,
+    String path, {
+    Object? body,
+    Map<String, Object?>? query,
+    Map<String, String>? pathParameters,
+    WApiDecoder<T>? decode,
+    CancelToken? cancelToken,
+    Map<String, String>? headers,
+    void Function(int sent, int total)? onSendProgress,
+  }) => _sendResponse<T>(
+    method,
+    path,
+    body: body,
+    query: query,
+    pathParameters: pathParameters,
+    decode: decode,
+    cancelToken: cancelToken,
+    headers: headers,
+    onSendProgress: onSendProgress,
+  );
 
   /// GET 请求。
   Future<T> get<T>(
@@ -514,6 +585,28 @@ class WApiClient {
     CancelToken? cancelToken,
     Map<String, String>? headers,
     void Function(int sent, int total)? onSendProgress,
+  }) async => (await _sendResponse<T>(
+    method,
+    path,
+    body: body,
+    query: query,
+    pathParameters: pathParameters,
+    decode: decode,
+    cancelToken: cancelToken,
+    headers: headers,
+    onSendProgress: onSendProgress,
+  )).data;
+
+  Future<WApiResponse<T>> _sendResponse<T>(
+    String method,
+    String path, {
+    Object? body,
+    Map<String, Object?>? query,
+    Map<String, String>? pathParameters,
+    WApiDecoder<T>? decode,
+    CancelToken? cancelToken,
+    Map<String, String>? headers,
+    void Function(int sent, int total)? onSendProgress,
   }) async {
     final resolvedPath = _resolvePath(path, pathParameters);
     final requestBody = body is WApiBody ? body.data : body;
@@ -528,14 +621,19 @@ class WApiClient {
         queryParameters: _cleanQuery(query),
         cancelToken: cancelToken,
         options: Options(
-          method: method,
+          method: method.toUpperCase(),
           headers: mergedHeaders,
           contentType: contentType,
         ),
         onSendProgress: onSendProgress,
       );
 
-      return _decode(response.data, decode);
+      return WApiResponse<T>(
+        data: _decode(response.data, decode),
+        statusCode: response.statusCode,
+        headers: response.headers,
+        requestOptions: response.requestOptions,
+      );
     } on DioException catch (error) {
       throw WApiException.from(error);
     }
@@ -548,12 +646,21 @@ class WApiClient {
       if (envelope != null) {
         final code = envelope.readCode(json);
         if (!envelope.isSuccess(code)) {
-          throw WApiException(
-            WApiErrorKind.business,
+          final isAuthFailure = envelope.authFailureCodes.contains(code);
+          final exception = WApiException(
+            isAuthFailure ? WApiErrorKind.unauthorized : WApiErrorKind.business,
             businessCode: code,
             message: envelope.readMessage?.call(json) ?? 'Business error',
             payload: json,
           );
+          if (isAuthFailure) {
+            try {
+              onAuthFailure?.call(exception);
+            } catch (error) {
+              WApiConfig.logErrorHandler?.call('onAuthFailure failed: $error');
+            }
+          }
+          throw exception;
         }
         json = envelope.readData(json);
       }

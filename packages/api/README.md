@@ -22,7 +22,7 @@
 
 ```yaml
 dependencies:
-  w_tools_api: ^5.4.0
+  w_tools_api: ^5.5.0
 ```
 
 ```bash
@@ -74,6 +74,25 @@ await client.delete('/users/42');
 > （或用 json_serializable / freezed 生成）。失败统一抛 `WApiException`，
 > 用 `kind` 分类（`timeout` / `network` / `unauthorized` / `server` / `decode` / `business` 等）。
 
+### 原始响应（status / headers）
+
+需要限流头、分页 total 或请求 ID 时用 `send`，它返回 `WApiResponse<T>`：
+
+```dart
+final response = await client.send<User>(
+  'GET',
+  '/users/42',
+  decode: (json) => User.fromJson(json as Map<String, dynamic>),
+);
+
+response.data;
+response.statusCode;
+response.headers;
+response.uri;
+```
+
+`get/post/...` 仍直接返回模型；只有需要元数据时才用 `send`。
+
 ### 业务信封（可选）
 
 ```dart
@@ -83,13 +102,15 @@ final client = WApiClient(
     readCode: (json) => (json as Map)['code'],
     readData: (json) => (json as Map)['data'],
     isSuccess: (code) => code == 0,
+    authFailureCodes: {401},
   ),
+  onAuthFailure: (error) { /* 清会话、跳登录 */ },
 );
 ```
 
 业务码失败会抛 `WApiException(kind: business, businessCode: ...)`；
-`decode` 拿到的已经是 `data`，不是整个信封。HTTP 401 仍由 `WTokenInterceptor` 处理，
-不要把「登录失效」只放在业务码里。
+命中 `authFailureCodes` 时抛 `kind: unauthorized` 并调用 `onAuthFailure`。
+HTTP 401 仍由 `WTokenInterceptor` 处理。
 
 ### 分页
 
@@ -211,6 +232,7 @@ Future<String?> refreshAccessToken() async {
 | Dio 注册表 | `DioRegistry.forBaseUrl` / `maybeForBaseUrl` / `dispose` / `clearCache` |
 | 默认配置 | `WApiConfig.baseOptions` / `WApiConfig.reset`（测试清理） |
 | 调用层 | `WApiClient.get/post/put/patch/delete/head/options` |
+| 原始响应 | `WApiClient.send` / `WApiResponse` |
 | 请求体 | `WApiBody.json/form/multipart/bytes` |
 | 业务信封 | `WApiEnvelopeParser` |
 | 分页 | `WApiClient.page` / `WPage` / `WPageQuery` |

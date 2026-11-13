@@ -74,7 +74,9 @@ await client.upload<void>(
 ```
 
 - 分页结果转成 `WAsyncPage` 后交给 `WAsyncPagedController`，不要自己维护 page / hasMore 状态；
-- 业务码里的「登录失效」不会触发 `WTokenInterceptor`，需要业务自己处理或让服务端返回 HTTP 401；
+- 业务码里的「登录失效」用 `WApiEnvelopeParser.authFailureCodes` + `WApiClient.onAuthFailure`；
+  不配置时不会触发 `WTokenInterceptor`；
+- 需要 status / headers 用 `WApiClient.send`（返回 `WApiResponse`）；`get/post` 只返回 data；
 - 重试用 `WRetryInterceptor`（默认关闭，只对幂等方法）；HTTP 缓存 / 离线用外部方案，不在本包范围。
 
 ## 不要用

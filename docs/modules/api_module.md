@@ -265,6 +265,7 @@ final user = await client.get(
 | 成员 | 说明 |
 |------|------|
 | `get` / `post` / `put` / `patch` / `delete` / `head` / `options` | HTTP 方法 |
+| `send` | 任意方法，返回 `WApiResponse<T>`（含 status / headers） |
 | `pathParameters` | 替换 `{id}` 模板，并对值做 `Uri.encodeComponent` |
 | `query` | 值为 `null` 的键会被丢弃 |
 | `body` | 原始值（Map / String / FormData…）或 `WApiBody` |
@@ -275,6 +276,20 @@ final user = await client.get(
 | `download` | 下载并返回 `Uint8List` |
 | `WApiDecoders` | 常用 decoder：`none` / `listOf` / `jsonMap` / `nullable` |
 | `WApiException` | 统一错误分类；`kind` 供 UI 映射文案 |
+
+### 原始响应（WApiResponse）
+
+```dart
+final raw = await client.send(
+  'HEAD',
+  '/users',
+);
+raw.statusCode;
+raw.headers.value('x-total-count');
+```
+
+`WApiResponse<T>` 保留 `data` / `statusCode` / `headers` / `requestOptions`；
+`get/post/...` 仍只返回 `data`。
 
 ### 业务信封（可选）
 
@@ -288,14 +303,17 @@ final client = WApiClient(
     readData: (json) => (json as Map)['result'],
     readMessage: (json) => (json as Map)['msg'] as String?,
     isSuccess: (code) => code == 'ok',
+    authFailureCodes: {401},
   ),
+  onAuthFailure: (error) { /* 清会话、跳登录 */ },
 );
 ```
 
 - 业务码失败 → `WApiException(kind: WApiErrorKind.business)`，带
   `businessCode` / `payload`；
+- 命中 `authFailureCodes` → `kind: unauthorized`，并调用 `WApiClient.onAuthFailure`；
 - 成功时 `decode` 拿到的是 `data`，不是整个信封；
-- HTTP 401 仍由 `WTokenInterceptor` 处理；业务码里的「登录失效」需要业务自己处理。
+- HTTP 401 仍由 `WTokenInterceptor` 处理。
 
 ### 分页
 
