@@ -13,8 +13,8 @@
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WScaffold` | ui | 页面壳：默认 WAppBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
-| `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom） | 任意叠放/覆盖布局在页面层用 Container/Stack |
-| `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 | backgroundColor 与 gradient 只能选一个 |
+| `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom、leadingWidth/actionsPadding/shadow） | 任意叠放/覆盖布局在页面层用 Container/Stack |
+| `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 / leadingWidth / actionsPadding / 阴影 | backgroundColor 与 gradient 只能选一个 |
 | `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 需 vsync 并由页面 State dispose | 不要自己写 `BottomNavigationBar` |
 | `WNavBarStyle` | ui | WNavBar 的外层装饰 / padding；新代码优先 | 选中态与切换动画由 `WNavController` 管，不要放进 style |
 | `WTabBar` | ui | 顶部 tab；依赖 TabController / DefaultTabController | 需要下划线跟随的复杂交互时先看它够不够 |

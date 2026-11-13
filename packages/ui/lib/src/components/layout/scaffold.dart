@@ -41,6 +41,12 @@ class WScaffold extends StatelessWidget {
   final Widget? underlayWidget;
   final bool includeTopSafeArea;
   final bool includeBottomSafeArea;
+
+  /// 给 [bottomNavigationBar] 包一层 `SafeArea(top: false)`。
+  ///
+  /// `WNavBar` 已自带 `safeArea: true`，不要再开；底栏是普通 Widget（非 WNavBar）时
+  /// 打开这个开关，避免压在 home indicator 上。
+  final bool bottomNavigationBarSafeArea;
   final bool resizeToAvoidBottomInset;
 
   const WScaffold({
@@ -68,6 +74,7 @@ class WScaffold extends StatelessWidget {
     this.underlayWidget,
     this.includeTopSafeArea = false,
     this.includeBottomSafeArea = true,
+    this.bottomNavigationBarSafeArea = false,
     this.resizeToAvoidBottomInset = true,
   }) : assert(
          title == null || titleWidget == null,
@@ -149,11 +156,15 @@ class WScaffold extends StatelessWidget {
       content = Stack(fit: StackFit.expand, children: children);
     }
 
+    final bottomBar = bottomNavigationBar == null || !bottomNavigationBarSafeArea
+        ? bottomNavigationBar
+        : SafeArea(top: false, child: bottomNavigationBar!);
+
     final scaffold = Scaffold(
       appBar: appBarWidget,
       backgroundColor: backgroundColor,
       body: content,
-      bottomNavigationBar: bottomNavigationBar,
+      bottomNavigationBar: bottomBar,
       floatingActionButton: floatingActionButton,
       drawer: drawer,
       endDrawer: endDrawer,

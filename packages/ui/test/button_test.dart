@@ -805,6 +805,32 @@ void main() {
       expect(semantics.properties.hint, '关闭当前弹窗');
       expect(semantics.properties.onTap, isNotNull);
     });
+
+    testWidgets('tooltip / isSelected 进入 Tooltip 与 Semantics', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _wrap(
+          WButton(
+            label: '收藏',
+            tooltip: '收藏',
+            isSelected: true,
+            onTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.byTooltip('收藏'), findsOneWidget);
+      final semantics = tester
+          .widgetList<Semantics>(
+            find.descendant(
+              of: find.byType(WButton),
+              matching: find.byType(Semantics),
+            ),
+          )
+          .firstWhere((s) => s.properties.button == true);
+      expect(semantics.properties.selected, isTrue);
+      handle.dispose();
+    });
   });
 
   testWidgets('全宽 WButton 的 label 居中', (tester) async {

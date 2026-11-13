@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^10.4.0
+  w_tools_ui: ^10.5.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -262,10 +262,12 @@ WIconText.custom(icon: SvgPicture.asset('assets/star.svg'), text: '收藏'); // 
 WButton(label: '保存', onTap: save);
 WButton(label: '提交', loading: true, enabled: false, onTap: submit);
 WButton(icon: Icons.add, label: '新增', style: WButtonStyles.of(context).primary, onTap: add);
+WButton(icon: Icons.favorite, tooltip: '收藏', isSelected: true, onTap: toggle);
 WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 ```
 
 任意 child / 卡片点击用 `WPressable`；需要键盘、最小点击区域或 button 语义时用 `WButton`。
+图标按钮用 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）。
 `WButtonStyle.filled` 未传 `foregroundColor` 时按背景亮度自动选黑 / 白。
 
 ## 页面骨架与布局
@@ -282,6 +284,8 @@ WScaffold(
 
 // 自定义顶栏：WAppBar 或其他 PreferredSizeWidget（Material AppBar / SliverAppBar）
 WScaffold(appBar: WAppBar(title: '详情'), body: ...);
+
+// 底栏不是 WNavBar 时：WScaffold(bottomNavigationBarSafeArea: true, ...)
 
 WStep(labels: const ['下单', '付款', '完成'], current: 2);
 ```
@@ -301,6 +305,7 @@ WListView(sliver: WListViewSliver.overlap(itemCount: n, itemExtent: 80, overlap:
 WBadge(badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WBadge.count(count: 120, maxCount: 99, child: const Icon(Icons.notifications));
 WBadge.dot(child: const Icon(Icons.notifications));
+WBadge(offset: const Offset(4, -4), badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WClipRRect(borderRadius: BorderRadius.circular(12), child: image);
 WActionRow(children: [WButton(...), WButton(...)]);
@@ -353,7 +358,11 @@ DefaultTabController(
   child: Column(
     children: [
       WTabBar(
-        style: const WTabBarStyle(),
+        style: const WTabBarStyle(
+          labelColor: Colors.indigo,
+          enableFeedback: false,
+          indicatorAnimation: TabIndicatorAnimation.elastic,
+        ),
         tabs: const [Text('全部'), Text('已完成')],
       ),
       const Expanded(

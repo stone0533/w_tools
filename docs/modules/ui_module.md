@@ -64,6 +64,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
   适合组件示例 / 独立 Demo。不要在每个调用点重复写完整 `WButtonStyle`。
 - `WButton(icon:, label:)` 内部复用 `WIconText` 做行盒中点对齐；不要再手写
   `Row + Icon + Text` 补偏移。
+- 图标按钮可传 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）。
 
 ### WButtonContentBuilder
 
@@ -170,6 +171,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 `WBadge` 用于角标 / 数量提示；位置用 `position`，视觉用 `style`，显隐用 `showBadge`。
 需要读屏上下文时传 `semanticLabel`（如「3 条未读」），气泡内容不再单独朗读。
 数量角标用 `WBadge.count(count:, maxCount:)`，圆点用 `WBadge.dot()`。
+位置用 `position`，额外位移用 `offset`（正值向右 / 向下）。
 
 ### WBadgeStyle / WBadgePosition
 
@@ -195,14 +197,15 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 - `drawer` / `endDrawer` / `bottomSheet` / `persistentFooterButtons` / `extendBody` 直接透传给
   底层 `Scaffold`，不需要为此改用原生 `Scaffold`。
 - 有 `bottomNavigationBar` 时 body 不再加底部安全区；底栏不是 `WNavBar`（已默认
-  `safeArea: true`）时需要自己处理底部 inset。
+  `safeArea: true`）时传 `bottomNavigationBarSafeArea: true`，由 `WScaffold` 包 `SafeArea`。
 
 ## 8. 其他组件速览
 
 ### WAppBar
 
 `WAppBar` 是自定义顶栏；默认包含状态栏背景，嵌套在 `SafeArea` 中时可传
-`includeStatusBar: false`。样式用 `WAppBarStyle`。
+`includeStatusBar: false`。样式用 `WAppBarStyle`；`leadingWidth` / `actionsPadding`
+控制两侧布局，`boxShadow` 提供阴影（自绘顶栏没有 Material elevation）。
 
 ### WStep
 
@@ -222,7 +225,8 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 顶部 tab：`WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`；
 配置用 `WTabBarStyle`（含 `labelColor` / `unselectedLabelColor` / `labelPadding` /
-`indicatorPadding` / `textScaler`）。
+`indicatorPadding` / `textScaler` / `indicatorAnimation` / `mouseCursor` /
+`enableFeedback` / `splashBorderRadius`）。
 
 ### WActionRow / WSelectableRow
 

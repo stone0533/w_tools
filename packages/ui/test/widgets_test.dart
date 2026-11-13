@@ -276,6 +276,35 @@ void main() {
       expect(find.byIcon(Icons.email), findsOneWidget);
     });
 
+    testWidgets('offset 在 position 基础上额外位移', (tester) async {
+      Future<Rect> bubbleRect(Offset offset) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: WBadge(
+                  position: const WBadgePosition.topEnd(top: 10, end: 10),
+                  offset: offset,
+                  badgeContent: const SizedBox(
+                    key: Key('badge-dot'),
+                    width: 8,
+                    height: 8,
+                  ),
+                  child: const Icon(Icons.email),
+                ),
+              ),
+            ),
+          ),
+        );
+        return tester.getRect(find.byKey(const Key('badge-dot')));
+      }
+
+      final base = await bubbleRect(Offset.zero);
+      final shifted = await bubbleRect(const Offset(6, -4));
+      expect(shifted.left - base.left, closeTo(6, 0.1));
+      expect(shifted.top - base.top, closeTo(-4, 0.1));
+    });
+
     testWidgets('badgeContent 为空时不渲染徽章', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(

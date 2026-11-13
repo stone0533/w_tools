@@ -15,21 +15,23 @@ components:
         floatingActionButton: FloatingActionButton(onPressed: ..., child: Icon(Icons.add)),
         drawer: Drawer(...),
         bottomSheet: ...,
+        bottomNavigationBar: WNavBar(...), // WNavBar 自带 SafeArea
         body: ...,
       )
+      // 非 WNavBar 底栏：WScaffold(bottomNavigationBarSafeArea: true, ...)
       // 覆盖顶栏：WScaffold(appBar: WAppBar(...), body: ...)
     pitfalls:
       - '不要手拼 Scaffold + SafeArea；页面壳统一用 WScaffold'
       - '传 appBar 时不要再传 title/leading/actions；任意叠放布局仍用页面层 Container/Stack'
       - 'drawer / endDrawer / bottomSheet / persistentFooterButtons / extendBody 已透传，不需要为此改用原生 Scaffold'
-      - '有 bottomNavigationBar 时 WScaffold 不再给 body 加底部安全区；底栏若不是 WNavBar（已默认 SafeArea），需要自己处理底部 inset'
+      - '有 bottomNavigationBar 时 WScaffold 不再给 body 加底部安全区；底栏不是 WNavBar（已默认 SafeArea）时传 bottomNavigationBarSafeArea: true'
     related: ['`WAppBar`', '`WNavBar`']
     teach: true
   - name: '`WAppBar`'
     package: 'w_tools_ui'
     docsAnchor: 'wappbar'
     section: '1. 页面骨架与导航'
-    useFor: '标准顶部导航栏（leading/title/actions/bottom）'
+    useFor: '标准顶部导航栏（leading/title/actions/bottom、leadingWidth/actionsPadding/shadow）'
     dontUseFor: '任意叠放/覆盖布局在页面层用 Container/Stack'
     usage: |
       WAppBar(
@@ -37,16 +39,22 @@ components:
         leading: BackButton(onPressed: ...),
         actions: [IconButton(onPressed: ..., icon: Icon(Icons.share))],
         bottom: PreferredSize(preferredSize: Size.fromHeight(40), child: ...),
+        style: const WAppBarStyle(
+          leadingWidth: 72,
+          actionsPadding: EdgeInsets.only(right: 8),
+          boxShadow: [BoxShadow(color: Color(0x33000000), blurRadius: 4)],
+        ),
       )
     pitfalls:
       - '单独放进页面 body 时设 includeStatusBar: false，避免重复状态栏内边距'
+      - '自绘顶栏没有 Material elevation；需要阴影时用 WAppBarStyle.boxShadow'
     related: ['`WScaffold`', '`WAppBarStyle`']
     teach: false
   - name: '`WAppBarStyle`'
     package: 'w_tools_ui'
     docsAnchor: 'wappbar'
     section: '1. 页面骨架与导航'
-    useFor: 'WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度'
+    useFor: 'WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 / leadingWidth / actionsPadding / 阴影'
     dontUseFor: 'backgroundColor 与 gradient 只能选一个'
     usage: |
       WAppBar(
@@ -144,12 +152,15 @@ components:
           labelColor: Colors.indigo,
           unselectedLabelColor: Colors.grey,
           labelPadding: EdgeInsets.symmetric(horizontal: 12),
+          indicatorAnimation: TabIndicatorAnimation.elastic,
+          enableFeedback: false,
         ),
         tabs: const [Tab(text: '全部'), Tab(text: '完成')],
       )
     pitfalls:
       - 'tabAlignment 非默认值时必须同时设 isScrollable: true'
       - '默认 overlay / ripple 跟随 TabBarTheme；要关用 WTabBarStyle.noSplash 或 splashFactory + overlayColor'
+      - 'mouseCursor / enableFeedback / splashBorderRadius 为 null 时交给 TabBarTheme'
     related: ['`WTabBar`']
     teach: false
   - name: '`WStep` / `WStepFlow`'
@@ -362,12 +373,14 @@ components:
       WButton(label: '保存', onTap: save);
       WButton(label: '提交', loading: true, enabled: false, onTap: save);
       WButton(icon: Icons.add, label: '新增', onTap: add);
+      WButton(icon: Icons.favorite, tooltip: '收藏', isSelected: true, onTap: toggle);
       WButton(label: '详情', content: Row(mainAxisSize: MainAxisSize.min, children: [...]), onTap: ...);
     pitfalls:
       - '任意 child 点击用 WPressable，不要套 WButton'
       - '项目页面优先用 AppButtons；WButtonStyles 只用于组件示例 / 独立 Demo'
       - 'loading 时同时设 enabled: false，避免重复点击'
       - 'label 与 content 不能同时传；icon-only 要提供 semanticLabel'
+      - 'toggle 按钮用 isSelected；纯图标按钮仍需 tooltip / semanticLabel'
     related: ['`WPressable`', '`WButtonStyles`']
     teach: true
   - name: '`WPressable`'
@@ -437,11 +450,13 @@ components:
       WBadge.count(count: 120, maxCount: 99, child: const Icon(Icons.notifications));
       WBadge.dot(child: const Icon(Icons.notifications));
       WBadge(position: const WBadgePosition.center(), badgeContent: const Text('NEW'), child: ...);
+      WBadge(offset: const Offset(4, -4), badgeContent: const Text('3'), child: ...);
       WBadge(showBadge: false, badgeContent: const Text('hidden'), child: ...);
       WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: ...);
     pitfalls:
       - 'badgeContent 为空时不渲染徽章（不报错）'
       - '数量角标用 WBadge.count（可传 maxCount 显示 maxCount+）；圆点用 WBadge.dot'
+      - 'offset 是 position 之上的额外位移；默认 Offset.zero'
       - '需要读屏上下文时传 semanticLabel；提供后气泡内容不再单独朗读'
       - '默认背景 / 前景取 ColorScheme.error / onError；自定义用 style: WBadgeStyle(...)'
     aliases: ['WBadge.count', 'WBadge.dot']

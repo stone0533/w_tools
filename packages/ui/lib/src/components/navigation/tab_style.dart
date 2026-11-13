@@ -19,9 +19,13 @@ class WTabBarStyle {
     this.indicatorColor,
     this.indicator,
     this.indicatorWeight = 2.0,
+    this.indicatorAnimation,
     this.tabAlignment,
     this.overlayColor,
     this.splashFactory,
+    this.mouseCursor,
+    this.enableFeedback,
+    this.splashBorderRadius,
   });
 
   /// 明确关闭 overlay + 水波纹的预设；不改变默认样式。
@@ -45,11 +49,21 @@ class WTabBarStyle {
   final Color? indicatorColor;
   final Decoration? indicator;
   final double indicatorWeight;
+  final TabIndicatorAnimation? indicatorAnimation;
   final TabAlignment? tabAlignment;
   final Color? overlayColor;
 
   /// 点击 / 长按的水波纹工厂；null 时交给 TabBarTheme。
   final InteractiveInkFeatureFactory? splashFactory;
+
+  /// 鼠标指针；null 时交给 TabBarTheme。
+  final MouseCursor? mouseCursor;
+
+  /// 点击 / 长按是否触发反馈；null 时交给 TabBarTheme。
+  final bool? enableFeedback;
+
+  /// 水波纹裁剪圆角；null 时交给 TabBarTheme。
+  final BorderRadius? splashBorderRadius;
 
   WTabBarStyle copyWith({
     TextStyle? labelStyle,
@@ -67,9 +81,13 @@ class WTabBarStyle {
     Color? indicatorColor,
     Decoration? indicator,
     double? indicatorWeight,
+    TabIndicatorAnimation? indicatorAnimation,
     TabAlignment? tabAlignment,
     Color? overlayColor,
     InteractiveInkFeatureFactory? splashFactory,
+    MouseCursor? mouseCursor,
+    bool? enableFeedback,
+    BorderRadius? splashBorderRadius,
   }) {
     return WTabBarStyle(
       labelStyle: labelStyle ?? this.labelStyle,
@@ -87,9 +105,13 @@ class WTabBarStyle {
       indicatorColor: indicatorColor ?? this.indicatorColor,
       indicator: indicator ?? this.indicator,
       indicatorWeight: indicatorWeight ?? this.indicatorWeight,
+      indicatorAnimation: indicatorAnimation ?? this.indicatorAnimation,
       tabAlignment: tabAlignment ?? this.tabAlignment,
       overlayColor: overlayColor ?? this.overlayColor,
       splashFactory: splashFactory ?? this.splashFactory,
+      mouseCursor: mouseCursor ?? this.mouseCursor,
+      enableFeedback: enableFeedback ?? this.enableFeedback,
+      splashBorderRadius: splashBorderRadius ?? this.splashBorderRadius,
     );
   }
 
@@ -112,12 +134,16 @@ class WTabBarStyle {
           other.indicatorColor == indicatorColor &&
           other.indicator == indicator &&
           other.indicatorWeight == indicatorWeight &&
+          other.indicatorAnimation == indicatorAnimation &&
           other.tabAlignment == tabAlignment &&
           other.overlayColor == overlayColor &&
-          other.splashFactory == splashFactory;
+          other.splashFactory == splashFactory &&
+          other.mouseCursor == mouseCursor &&
+          other.enableFeedback == enableFeedback &&
+          other.splashBorderRadius == splashBorderRadius;
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     labelStyle,
     unselectedLabelStyle,
     labelColor,
@@ -133,8 +159,12 @@ class WTabBarStyle {
     indicatorColor,
     indicator,
     indicatorWeight,
+    indicatorAnimation,
     tabAlignment,
     overlayColor,
     splashFactory,
-  );
+    mouseCursor,
+    enableFeedback,
+    splashBorderRadius,
+  ]);
 }

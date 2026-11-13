@@ -446,6 +446,38 @@ void main() {
     expect(find.byIcon(Icons.search), findsOneWidget);
   });
 
+  testWidgets('WAppBar — leadingWidth / actionsPadding / boxShadow 生效', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: WAppBar(
+            title: '标题',
+            leading: Icon(Icons.menu),
+            actions: [Icon(Icons.share)],
+            style: WAppBarStyle(
+              leadingWidth: 72,
+              actionsPadding: EdgeInsets.only(right: 8),
+              boxShadow: [BoxShadow(color: Color(0x33000000), blurRadius: 4)],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final toolbar = tester.widget<NavigationToolbar>(find.byType(NavigationToolbar));
+    expect(toolbar.leading, isA<SizedBox>());
+    expect((toolbar.leading! as SizedBox).width, 72);
+    expect(toolbar.trailing, isA<Padding>());
+    expect((toolbar.trailing! as Padding).padding, const EdgeInsets.only(right: 8));
+
+    final container = tester.widget<Container>(
+      find.descendant(of: find.byType(WAppBar), matching: find.byType(Container)).first,
+    );
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.boxShadow, isNotNull);
+    expect(decoration.boxShadow, hasLength(1));
+  });
+
   testWidgets('WAppBar — 标题跟随 AppBarTheme.titleTextStyle', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -675,6 +707,30 @@ void main() {
     );
 
     expect(tester.getBottomLeft(find.text('body')).dy, 560);
+  });
+
+  testWidgets('WScaffold — bottomNavigationBarSafeArea 让普通底栏避开 inset', (tester) async {
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(bottom: 20),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: const WScaffold(
+            bottomNavigationBarSafeArea: true,
+            body: SizedBox(),
+            bottomNavigationBar: SizedBox(
+              key: Key('nav'),
+              height: 40,
+              child: Text('nav'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getRect(find.byKey(const Key('nav'))).bottom, 580);
   });
 
   testWidgets('WScaffold — appBarBottom 高度包含状态栏', (tester) async {

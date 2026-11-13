@@ -1,3 +1,24 @@
+## 10.5.0
+
+### Breaking
+- `WAppBarStyle.copyWith` 增加 `leadingWidth` / `actionsPadding` / `boxShadow` 命名参数。
+- `WTabBarStyle.copyWith` 增加 `indicatorAnimation` / `mouseCursor` / `enableFeedback` /
+  `splashBorderRadius` 命名参数（含 10.3.0 引入的颜色 / padding / textScaler 参数）。
+  两处直接调用源码兼容；把方法作为函数值（tear-off）并显式声明旧签名时需要更新。
+
+### Added
+- `WAppBarStyle.leadingWidth` / `actionsPadding` / `boxShadow`：控制顶栏两侧布局与阴影
+  （自绘顶栏没有 Material elevation，阴影显式用 `boxShadow`）。
+- `WBadge.offset`（含 `WBadge.count` / `WBadge.dot`）：在 `position` 基础上额外位移。
+- `WTabBarStyle.indicatorAnimation` / `mouseCursor` / `enableFeedback` /
+  `splashBorderRadius`：补齐 `TabBar` 的交互类参数。
+- `WScaffold.bottomNavigationBarSafeArea`：给非 `WNavBar` 的底栏包 `SafeArea`。
+- `WButton.tooltip` / `isSelected`：图标按钮提示与 toggle 语义（进入 `Semantics.selected`）。
+
+### Tests
+- 新增值对象非 const 相等测试，覆盖 `WAppBarStyle` / `WButtonStyle` / `WTabBarStyle` /
+  `WStepStyle` / `WBadgeStyle` / `WImageStyle` / `WImageLoadOptions` / `WImageSlots` 等。
+
 ## 10.4.0
 
 ### Breaking

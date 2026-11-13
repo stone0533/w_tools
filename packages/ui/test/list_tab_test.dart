@@ -160,6 +160,38 @@ void main() {
       expect(tabBar.indicatorPadding, const EdgeInsets.symmetric(horizontal: 2));
       expect(tabBar.textScaler, const TextScaler.linear(1.2));
     });
+
+    testWidgets(
+      'WTabBar 透传 indicatorAnimation / mouseCursor / enableFeedback / splashBorderRadius',
+      (
+        tester,
+      ) async {
+        const cfg = WTabBarStyle(
+          indicatorAnimation: TabIndicatorAnimation.elastic,
+          mouseCursor: SystemMouseCursors.click,
+          enableFeedback: false,
+          splashBorderRadius: BorderRadius.all(Radius.circular(4)),
+        );
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: DefaultTabController(
+              length: 2,
+              child: Scaffold(
+                body: WTabBar(
+                  style: cfg,
+                  tabs: [Text('A'), Text('B')],
+                ),
+              ),
+            ),
+          ),
+        );
+        final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+        expect(tabBar.indicatorAnimation, TabIndicatorAnimation.elastic);
+        expect(tabBar.mouseCursor, SystemMouseCursors.click);
+        expect(tabBar.enableFeedback, isFalse);
+        expect(tabBar.splashBorderRadius, const BorderRadius.all(Radius.circular(4)));
+      },
+    );
   });
 
   testWidgets('WTabBar overlayColor 可配置', (tester) async {

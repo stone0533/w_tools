@@ -1,3 +1,9 @@
+## 13.0.5
+
+### Changed
+- 根包 `w_tools_ui` 约束抬到 `^10.5.0`（`WAppBar` / `WBadge` / `WTabBar` / `WScaffold` /
+  `WButton` 的兼容补充）。
+
 ## 13.0.4
 
 ### Changed

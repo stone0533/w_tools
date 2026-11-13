@@ -1,3 +1,10 @@
+## 1.20.14
+
+### Changed
+- catalog 补 `WAppBar` 阴影 / 两侧布局、`WBadge.offset`、`WTabBar` 交互参数、
+  `WScaffold.bottomNavigationBarSafeArea`、`WButton.tooltip` / `isSelected`；
+  同步 `w_tools_ui` 约束 `^10.5.0`。
+
 ## 1.20.13
 
 ### Changed

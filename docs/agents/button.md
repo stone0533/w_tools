@@ -47,7 +47,8 @@ label / icon
 content / contentBuilder
 size
 loading / enabled
-semanticLabel
+semanticLabel / tooltip
+isSelected（toggle 语义）
 onLongPress
 ```
 

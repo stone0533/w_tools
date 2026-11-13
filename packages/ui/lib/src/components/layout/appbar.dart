@@ -47,10 +47,17 @@ class WAppBar extends StatelessWidget implements PreferredSizeWidget {
     // 断言依赖运行时 style；const 构造器无法调用 validate()，故留在 build。
     style.validate();
     final leadingWidget = leading ?? _buildLeading(context);
+    final sizedLeading = leadingWidget == null || style.leadingWidth == null
+        ? leadingWidget
+        : SizedBox(width: style.leadingWidth, child: leadingWidget);
     final middle = _buildTitle(context);
-    final trailing = actions.isEmpty
-        ? null
-        : Row(mainAxisSize: MainAxisSize.min, children: actions);
+    Widget? trailing;
+    if (actions.isNotEmpty) {
+      final row = Row(mainAxisSize: MainAxisSize.min, children: actions);
+      trailing = style.actionsPadding == null
+          ? row
+          : Padding(padding: style.actionsPadding!, child: row);
+    }
 
     final foreground = style.foregroundColor;
     final statusBarHeight = includeStatusBar ? MediaQuery.paddingOf(context).top : 0.0;
@@ -61,7 +68,7 @@ class WAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: IconTheme.merge(
         data: foreground == null ? const IconThemeData() : IconThemeData(color: foreground),
         child: NavigationToolbar(
-          leading: leadingWidget,
+          leading: sizedLeading,
           middle: middle,
           trailing: trailing,
           centerMiddle: centerTitle,
@@ -83,6 +90,7 @@ class WAppBar extends StatelessWidget implements PreferredSizeWidget {
       decoration: BoxDecoration(
         color: style.gradient == null ? style.backgroundColor : null,
         gradient: style.gradient,
+        boxShadow: style.boxShadow == null ? null : List<BoxShadow>.unmodifiable(style.boxShadow!),
       ),
       child: content,
     );
