@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.3
+
+### Fixed
+- iOS 模拟器 `tap` / `drag` 的 `deviceRect` 统一为屏幕坐标，`toScreen` 不再重复叠加
+  `window.x/y`；窗口不在 `(0,0)` 时内容区不再整体偏移。
+- calibration 缓存增加 `coordinateSpace` / `calibrationVersion`；旧缓存自动失效。
+- `calibrate --json` 区分 `window.scale`（窗口截图 px/point）与 `screenshot.scale`
+  （设备截图 px/point），并保留 `screenshot.windowScale`。
+
+### Tests
+- 增加窗口 `(40,107)` 的 #145 回归坐标：`tap 33 248` → `(422.746, 351.339)`。
+- 增加旧 calibration 缓存不命中、`calibrate --json` 两套 scale 字段的测试。
+
 ## 0.3.2
 
 ### Changed

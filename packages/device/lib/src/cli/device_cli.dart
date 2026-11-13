@@ -18,7 +18,7 @@ part 'device_ios_commands.dart';
 part 'device_android_commands.dart';
 
 /// 与 pubspec 版本保持一致；`test/docs_test.dart` 会守住。
-const String deviceCliVersion = '0.3.2';
+const String deviceCliVersion = '0.3.3';
 
 var _tempSeq = 0;
 
