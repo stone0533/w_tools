@@ -256,6 +256,24 @@ Future<String?> refreshAccessToken() async {
 `TokenStore` 注入、登录 / 刷新、`DioException` → `ApiException` 映射、
 `BaseRepository` 缓存组合，附对应测试。
 
+## 选型：WApiClient / retrofit / OpenAPI
+
+| 路线 | 适用场景 | 成本 | 与 w_tools_api 的关系 |
+|---|---|---|---|
+| `WApiClient` + 手写 `fromJson` | 模型少、后端无契约 | 低 | 本包默认；`decode` 显式传 |
+| `json_serializable` / `freezed` | 模型多、嵌套 / 日期 / 枚举多 | 中 | 只生成 DTO；`WApiClient` 继续做调用 |
+| retrofit | 接口多、团队协作 | 中高 | 替代接口层；`DioRegistry` / 拦截器仍可用 |
+| OpenAPI 生成 | 后端有 Swagger / OpenAPI | 低（生成） | 生成 client + model；`WApiClient` 可不参与 |
+
+retrofit 的接口写法（示例，不在本包内）：
+
+```dart
+@GET('/users/{id}')
+Future<User> getUser(@Path('id') int id);
+```
+
+不要在本仓库自研注解代码生成器；缓存 / 离线用 `dio_cache_interceptor` 等外部方案。
+
 ## 历史迁移
 
 升级前先看 [`docs/migrations/`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/README.md)：
