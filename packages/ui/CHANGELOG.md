@@ -5,6 +5,10 @@
   `WAppBarStyle.copyWith` / `WTabBarStyle.new` / `WTabBarStyle.copyWith`：10.3–10.5
   引入的公开参数随 11.0.0 一起发布。直接调用源码兼容；把构造器 / `copyWith`
   作为函数值（tear-off）并显式声明旧签名时需要更新。
+- `WImageError.new` / `WListViewSliver.list` / `WListViewSliver.separated` /
+  `WListViewSliver.grid` / `WListViewSliver.overlap`：字段 / 参数改名导致的签名变化；
+  `WImageError` 仍是位置参数，`WListViewSliver.keepAlive` 需要改成
+  `addAutomaticKeepAlives`。
 
 ### Removed
 - `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。
@@ -12,6 +16,8 @@
 - `notifyScrollPercentage`：内部实现细节，直接读 `ScrollNotification.metrics`。
 - `WTextStyleExtension`：直接用 Flutter `TextStyle.copyWith`。
 - `WUiWidgetExtension`：合并到 `WWidgetExtension`，`toPressable` 方法仍在。
+- `WImageError.data`：改名 `sourceValue`（值相等 / `toString` 同步）。
+- `WListViewSliver.keepAlive`：改名 `addAutomaticKeepAlives`，与 Flutter 语义对齐。
   迁移见 `docs/migrations/ui-11.0.md`。
 
 ## 10.5.0

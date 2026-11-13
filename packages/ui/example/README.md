@@ -11,12 +11,12 @@
 | **状态矩阵** | `lib/states_page.dart` | 加载成功 / 失败 / 空数据 / 加载中 / 主题默认错误占位 / file 不支持 / `precacheImage` 预热 |
 | **常用配方** | `lib/recipes_page.dart` | `WImageStyle.avatar / thumbnail / cover`、宽度铺满 + 高度上限（`ConstrainedBox(maxHeight)` + `width: double.infinity` + `fitWidth`）、asset prefix、`WImageSource.provider(MemoryImage)`、内置错误 + 自动重试 |
 | **按钮** | `lib/buttons_page.dart` | `WButton` 的主题四态、loading / disabled、3 档尺寸 + 自定义、纯图标、列表行、对话框、content / contentBuilder、WidgetStateProperty、键盘 / 语义、`onLongPress`、`loadingBuilder`、`WButtonMotion`；`WPressable` 的 enabled / onLongPress / pressedOpacity |
-| **组件** | `lib/components_page.dart` | WText、WIconText、WScaffold、WScreen.of、扩展、WBadge（topEnd / center / showBadge / 空内容）、Flutter 原生 ClipRRect（all / 非对称圆角 / 默认值）、渐变进度（含 totalAngle / strokeCapRound）、WStep、WListView（separated / grid）、WActionRow、WSelectableRow、WTabBar、WNavBar、通知百分比、WImageController、keepAlive |
+| **组件** | `lib/components_page.dart` | WText、WIconText、WScaffold、WScreen.of、扩展、WBadge（topEnd / center / showBadge / 空内容）、Flutter 原生 ClipRRect（all / 非对称圆角 / 默认值）、渐变进度（含 totalAngle / strokeCapRound）、WStep、WListView（separated / grid）、WActionRow、WSelectableRow、WTabBar、WNavBar、通知百分比、WImageController、addAutomaticKeepAlives |
 | **更多** | `lib/more_page.dart` | 二级示例入口（见下） |
 | └ WScaffold / WAppBar / WScreen | `lib/scaffold_page.dart` | WScaffold 全参数（appBar 覆盖 / titleWidget / leading / actions / onBack / appBarStyle / appBarBottom / FAB / underlay / 状态栏 / 安全区）、WAppBar 全参数、WAppBarStyle（背景 / 渐变 / 高度 / 标题 / overlay）、WScreen.of / 安全区 / 旧 delegate 兼容、WAssets + `assetImagePath` |
 | └ WText / WTextStyles | `lib/text_page.dart` | 11 个 variant、price/number 表格数字、maxLines / overflow / softWrap / textAlign / textScaler / style / color / semanticsLabel、自定义 `WTextStyles` + `withWTextStyles` |
 | └ 扩展方法 | `lib/extensions_page.dart` | 7 个扩展文件：数字、字符串、颜色 / hex、文字样式、Widget（expanded / padding / intrinsic / decoration / toPressable）、GlobalKey、BoxDecoration、WGradients / WShadows |
-| └ 列表 / 通知 / 保活 | `lib/lists_page.dart` | WListViewSliver 的 list / separated / grid / overlap、header / footer / empty / emptyFill、keepAlive、WNotificationListener（onNotification / percentage / prevent）、WKeepAliveWrapper 开关 |
+| └ 列表 / 通知 / 保活 | `lib/lists_page.dart` | WListViewSliver 的 list / separated / grid / overlap、header / footer / empty / emptyFill、addAutomaticKeepAlives、WNotificationListener（onNotification / percentage / prevent）、WKeepAliveWrapper 开关 |
 | └ 导航 / Tab | `lib/nav_page.dart` | WNavController（animateTo / currentIndex / previousIndex / indexIsChanging / offset）、onItemTap 拦截、WNavBarStyle 装饰 / padding、WTabBar 配置（indicator / divider / scrollable / tabAlignment / onTap）、WTabBarStyle.copyWith |
 | └ 步骤 | `lib/steps_page.dart` | WStep 默认、WStepStyle 全字段、itemBuilder / separatorBuilder / semanticLabelBuilder、WStepFlow 复用 + copyWith |
 
@@ -41,7 +41,7 @@
 | `WScreen` | scaffold_page、components_page | of(context) / w·h·sp / 旧 delegate 兼容 |
 | `WAssets` | scaffold_page、recipes_page | imagePath / assetImagePath |
 | `WGradientCircularProgressIndicator` | components_page | value / totalAngle / strokeCapRound / backgroundColor |
-| `WListView` / `WListViewSliver` | lists_page、components_page | list / separated / grid / overlap / 空态 / keepAlive |
+| `WListView` / `WListViewSliver` | lists_page、components_page | list / separated / grid / overlap / 空态 / addAutomaticKeepAlives |
 | `WKeepAliveWrapper` | lists_page、components_page | 开关与回收 |
 | `WNotificationListener` | lists_page、components_page | onNotification / percentage / prevent |
 | `WNumExtension` | extensions_page、components_page | 间距 / 格式化 / 圆角 |

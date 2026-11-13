@@ -4,7 +4,7 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 import 'demo_widgets.dart';
 import 'lists_page_sections.dart';
 
-/// WListView / WListViewSliver / 通知 / keepAlive 的完整演示。
+/// WListView / WListViewSliver / 通知 / 保活的完整演示。
 class ListsDemoPage extends StatefulWidget {
   const ListsDemoPage({super.key});
 
@@ -197,14 +197,14 @@ class _ListsDemoPageState extends State<ListsDemoPage> {
             ),
           ),
           DemoSection(
-            title: '横向列表 + keepAlive',
-            subtitle: 'keepAlive 让滚出视口的 item 保留 State',
+            title: '横向列表 + addAutomaticKeepAlives',
+            subtitle: 'addAutomaticKeepAlives 启用保活；子项用 WKeepAliveWrapper 请求保留 State',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const WText(text: 'keepAlive', variant: WTextVariant.caption),
+                    const WText(text: 'addAutomaticKeepAlives', variant: WTextVariant.caption),
                     Switch(
                       value: _keepAlive,
                       onChanged: (value) => setState(() => _keepAlive = value),
@@ -218,7 +218,7 @@ class _ListsDemoPageState extends State<ListsDemoPage> {
                     sliver: WListViewSliver.list(
                       itemCount: 20,
                       itemExtent: 84,
-                      keepAlive: _keepAlive,
+                      addAutomaticKeepAlives: _keepAlive,
                       padding: const EdgeInsets.all(8),
                       itemBuilder: (context, index) => _CounterTile(
                         index: index,

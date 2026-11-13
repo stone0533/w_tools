@@ -249,13 +249,13 @@ void main() {
       expect(find.text('footer'), findsOneWidget);
     });
 
-    testWidgets('keepAlive 开启后 item 可保持', (tester) async {
+    testWidgets('addAutomaticKeepAlives 开启后 item 可保持', (tester) async {
       await tester.pumpWidget(
         _host(
           WListView(
             sliver: WListViewSliver.list(
               itemCount: 3,
-              keepAlive: true,
+              addAutomaticKeepAlives: true,
               itemBuilder: (_, i) => Text('item-$i'),
             ),
           ),

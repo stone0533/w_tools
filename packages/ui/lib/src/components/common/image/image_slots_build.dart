@@ -62,7 +62,7 @@ Widget buildImageErrorSlot({
 }) {
   final builder = slots.errorWidgetBuilder;
   if (builder != null) {
-    return builder(context, error.data, error) ??
+    return builder(context, error.sourceValue, error) ??
         sizedImageSlot(style, slots.errorWidget ?? fallbackImageError(context));
   }
   if (slots.errorWidget != null) return sizedImageSlot(style, slots.errorWidget!);
