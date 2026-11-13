@@ -76,6 +76,9 @@ GET /error（500） 返回 500，观察错误日志
                  WTokenInterceptor 清除旧 token、刷新、重试成功
 Repository 缓存
                  通过 BaseRepository 组合本地 / 远程数据源
+分页             WApiClient.page + WPageQuery，展示 items / hasMore
+上传             WApiClient.upload + WApiDecoders.none
+500 重试          WRetryInterceptor 只对 /flaky 生效，首次 500 后成功
 清空日志
 ```
 
