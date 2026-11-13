@@ -1,17 +1,18 @@
-# WImage golden baselines
+# Golden baselines
 
-这些基线由 `packages/ui` 的 `test/image_golden_test.dart` 生成，当前在 **macOS / Flutter 3.38.4** 上生成。
+这些基线由 `packages/ui` 的 `test/*_golden_test.dart` 生成，当前在 **macOS / Flutter 3.38.4** 上生成。
+覆盖：WImage 状态、WButton 变体、WIconText、WAppBar leading/actions。
 
 ## 重新生成
 
 ```bash
 cd packages/ui
-flutter test --update-goldens test/image_golden_test.dart
+flutter test --update-goldens test/*_golden_test.dart
 ```
 
 ## CI / 跨平台
 
-当前 `image_golden_test.dart` 通过 `defaultTargetPlatform == TargetPlatform.macOS` 仅在 macOS 运行 golden；
+当前 golden 测试通过 `Platform.isMacOS` 仅在 macOS 运行；
 其它平台自动 skip，避免用 macOS 基线误判 Linux/Windows。
 
 - 在对应平台重新执行上面的命令生成基线并提交；

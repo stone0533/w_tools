@@ -790,6 +790,40 @@ void main() {
     expect(tester.getRect(find.byKey(const Key('nav'))).bottom, 580);
   });
 
+  testWidgets('WScaffold + WNavBar 不重复加底部安全区（回归）', (tester) async {
+    final controller = WNavController(length: 2, vsync: tester);
+    addTearDown(controller.dispose);
+    final data = MediaQueryData.fromView(tester.view).copyWith(
+      padding: const EdgeInsets.only(bottom: 34),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: data,
+          child: WScaffold(
+            body: const SizedBox(),
+            bottomNavigationBar: WNavBar(
+              controller: controller,
+              itemBuilder: (context, index, selected) => SizedBox(
+                key: Key('nav-item-$index'),
+                width: 10,
+                height: 10,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // WNavBar 自带 safeArea: true，WScaffold 默认 bottomNavigationBarSafeArea: false。
+    // 只应扣一次 34，而不是 68。
+    expect(
+      tester.getRect(find.byKey(const Key('nav-item-0'))).bottom,
+      closeTo(566, 0.1),
+    );
+  });
+
   testWidgets('WScaffold — appBarBottom 高度包含状态栏', (tester) async {
     final data = MediaQueryData.fromView(tester.view).copyWith(
       padding: const EdgeInsets.only(top: 24),
