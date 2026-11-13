@@ -165,7 +165,6 @@ void main() {
         'WButtonContentBuilder',
         'WButtonResolvedStyle',
         'WImageErrorView',
-        'WImageFrame',
       ];
       for (final name in names) {
         expect(findComponent(name), isNotNull, reason: '$name 未登记到 catalog');

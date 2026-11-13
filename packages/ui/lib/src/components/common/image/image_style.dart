@@ -26,7 +26,7 @@ class WImageStyle {
   /// 常用预设：头像（正方形 + 全圆角）
   factory WImageStyle.avatar(
     double size, {
-    BorderRadius? borderRadius,
+    BorderRadiusGeometry? borderRadius,
     Border? border,
     List<BoxShadow>? boxShadow,
   }) {
@@ -69,11 +69,11 @@ class WImageStyle {
   final BoxFit fit;
   final Alignment alignment;
   final double? aspectRatio;
-  final BorderRadius? borderRadius;
+  final BorderRadiusGeometry? borderRadius;
   final BoxBorder? border;
   final List<BoxShadow>? boxShadow;
-  final EdgeInsets? margin;
-  final EdgeInsets? padding;
+  final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry? padding;
   final String? semanticLabel;
   final bool excludeFromSemantics;
   final FilterQuality filterQuality;
@@ -141,11 +141,11 @@ class WImageStyle {
     BoxFit? fit,
     Alignment? alignment,
     double? aspectRatio,
-    BorderRadius? borderRadius,
+    BorderRadiusGeometry? borderRadius,
     BoxBorder? border,
     List<BoxShadow>? boxShadow,
-    EdgeInsets? margin,
-    EdgeInsets? padding,
+    EdgeInsetsGeometry? margin,
+    EdgeInsetsGeometry? padding,
     String? semanticLabel,
     bool? excludeFromSemantics,
     FilterQuality? filterQuality,
@@ -196,11 +196,11 @@ class WImageStyle {
           : (aspectRatio as num?)?.toDouble(),
       borderRadius: identical(borderRadius, _unset)
           ? this.borderRadius
-          : borderRadius as BorderRadius?,
+          : borderRadius as BorderRadiusGeometry?,
       border: identical(border, _unset) ? this.border : border as BoxBorder?,
       boxShadow: identical(boxShadow, _unset) ? this.boxShadow : boxShadow as List<BoxShadow>?,
-      margin: identical(margin, _unset) ? this.margin : margin as EdgeInsets?,
-      padding: identical(padding, _unset) ? this.padding : padding as EdgeInsets?,
+      margin: identical(margin, _unset) ? this.margin : margin as EdgeInsetsGeometry?,
+      padding: identical(padding, _unset) ? this.padding : padding as EdgeInsetsGeometry?,
       semanticLabel: identical(semanticLabel, _unset)
           ? this.semanticLabel
           : semanticLabel as String?,

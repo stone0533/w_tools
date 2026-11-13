@@ -71,7 +71,6 @@
 | `WBase64ImageSource` | ui | WImageSource 的 Base64 实现（通常用 WImageSource.base64） | 不要传超大 Base64 做主线程解码；优先网络 / 资源图 |
 | `WProviderImageSource` | ui | WImageSource 的 ImageProvider 实现（通常用 WImageSource.provider） | 不要用它绕开 WImage 的错误与语义处理；只在已有 provider 时用 |
 | `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / compact） | 不要当页面级错误组件；只用于图片占位 |
-| `WImageFrame` | ui | 把 WImageStyle 的圆角 / 边框 / 阴影应用到任意 child | 不要单独当卡片用；图片装饰走 WImageStyle |
 | `WAsyncStatus` | async | 四态枚举：loading / ready / empty / failed | — |
 <!-- catalog:2:end -->
 

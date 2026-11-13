@@ -9,6 +9,10 @@
   `WListViewSliver.grid` / `WListViewSliver.overlap`：字段 / 参数改名导致的签名变化；
   `WImageError` 仍是位置参数，`WListViewSliver.keepAlive` 需要改成
   `addAutomaticKeepAlives`。
+- `WImageStyle.avatar` / `WImageStyle.copyWith` / `WImageStyle.borderRadius` /
+  `WImageStyle.margin` / `WImageStyle.padding`：几何类型放宽为
+  `BorderRadiusGeometry` / `EdgeInsetsGeometry`；传 `BorderRadius` / `EdgeInsets`
+  的旧代码仍然兼容。
 
 ### Removed
 - `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。
@@ -19,6 +23,7 @@
 - `WImageError.data`：改名 `sourceValue`（值相等 / `toString` 同步）。
 - `WListViewSliver.keepAlive`：改名 `addAutomaticKeepAlives`，与 Flutter 语义对齐。
 - `WButtonStyles`：合并到 `WButtonStyleSet.of(context)`。
+- `WImageFrame`：不再从 barrel 导出（图片装饰由 `WImageStyle` 负责）。
   迁移见 `docs/migrations/ui-11.0.md`。
 
 ## 10.5.0

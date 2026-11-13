@@ -19,7 +19,6 @@ import 'image_slots.dart';
 import 'image_theme.dart';
 import 'image_types.dart';
 
-export 'image_frame.dart';
 export 'image_error_view.dart';
 export 'image_source.dart';
 export 'image_style.dart';

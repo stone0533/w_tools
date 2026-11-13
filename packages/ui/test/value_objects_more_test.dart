@@ -122,20 +122,6 @@ void main() {
     expect(WImageSource.network('https://x/a.png').key, contains('network:'));
   });
 
-  test('WImageFrame 应用边框 / 阴影 / margin / padding', () {
-    const style = WImageStyle(
-      border: Border.fromBorderSide(BorderSide(color: Colors.black12)),
-      boxShadow: [BoxShadow(color: Colors.black12)],
-      margin: EdgeInsets.all(2),
-      padding: EdgeInsets.all(3),
-      borderRadius: BorderRadius.all(Radius.circular(6)),
-    );
-    const frame = WImageFrame(style: style, child: SizedBox(width: 10, height: 10));
-    expect(frame.style.border, isNotNull);
-    expect(frame.style.boxShadow, isNotEmpty);
-    expect(frame.style.margin, const EdgeInsets.all(2));
-  });
-
   testWidgets('WButtonStyleSet.of 四种样式与值相等', (tester) async {
     late WButtonStyleSet first;
     late WButtonStyleSet second;
@@ -154,24 +140,6 @@ void main() {
     expect(first, second);
     expect(first.hashCode, second.hashCode);
     expect(first.primary, isNot(first.danger));
-  });
-
-  testWidgets('WImageFrame 构建阴影与前景边框', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: WImageFrame(
-          style: WImageStyle(
-            border: Border.fromBorderSide(BorderSide(color: Colors.black12)),
-            boxShadow: [BoxShadow(color: Colors.black12)],
-            borderRadius: BorderRadius.all(Radius.circular(6)),
-            margin: EdgeInsets.all(2),
-            padding: EdgeInsets.all(3),
-          ),
-          child: SizedBox(width: 10, height: 10),
-        ),
-      ),
-    );
-    expect(find.byType(DecoratedBox), findsNWidgets(2));
   });
 
   testWidgets('WBadge 自定义 style 应用边框与内边距', (tester) async {

@@ -1,3 +1,9 @@
+## 1.20.18
+
+### Changed
+- catalog 移除 `WImageFrame`（ui 11.0 不再从 barrel 导出）；
+  `WImageStyle` 的几何字段类型说明同步。
+
 ## 1.20.17
 
 ### Changed

@@ -2003,16 +2003,6 @@ components:
       WImageErrorView(error: error, onRetry: retry)
     related: ['`WImageError`']
     teach: false
-  - name: '`WImageFrame`'
-    package: 'w_tools_ui'
-    docsAnchor: '4-wimage---图片组件'
-    section: '2. 文本与图标'
-    useFor: '把 WImageStyle 的圆角 / 边框 / 阴影应用到任意 child'
-    dontUseFor: '不要单独当卡片用；图片装饰走 WImageStyle'
-    usage: |
-      WImageFrame(style: style, child: child)
-    related: ['`WImageStyle`']
-    teach: false
 
   - name: '`WFormThemeData`'
     package: 'w_tools_form'
