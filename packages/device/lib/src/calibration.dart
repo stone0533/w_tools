@@ -6,7 +6,7 @@ import 'package:image/image.dart' as img;
 
 import 'device_hub.dart';
 
-/// 标定结果：DeviceHub 窗口 + 设备屏幕在窗口内的矩形（窗口坐标，单位 point）。
+/// 标定结果：DeviceHub 窗口 + 设备屏幕矩形（屏幕坐标，单位 point）。
 class Calibration {
   const Calibration({
     required this.window,
@@ -20,7 +20,9 @@ class Calibration {
 
   final HubWindow window;
 
-  /// 设备屏幕矩形（窗口局部坐标，point）
+  /// 设备屏幕矩形（屏幕坐标，point）
+  ///
+  /// 直接用于 [toScreen]，不再叠加 [window] 原点；窗口只用于缓存命中判断。
   final DRect deviceRect;
 
   /// 设备逻辑分辨率（point），例如 402 × 874
@@ -31,22 +33,27 @@ class Calibration {
   final int screenshotWidth;
   final int screenshotHeight;
 
-  /// 标定时的 px / point；`--scale` 变化时缓存应失效。
+  /// 窗口截图 px / point（Retina 通常为 2）；不是设备截图的 scale。
   final double scale;
 
   bool matches(HubWindow w) => window.sameAs(w);
 
   /// 设备坐标（point）→ 屏幕坐标（point）。
+  ///
+  /// [deviceRect] 已经是屏幕坐标；不要再叠加 [window] 原点，否则窗口不在
+  /// (0,0) 时会整体偏移 window.x / window.y。
   DPoint toScreen(DPoint devicePoint) {
     final fx = deviceWidth == 0 ? 0.0 : devicePoint.x / deviceWidth;
     final fy = deviceHeight == 0 ? 0.0 : devicePoint.y / deviceHeight;
     return DPoint(
-      window.x + deviceRect.left + fx * deviceRect.width,
-      window.y + deviceRect.top + fy * deviceRect.height,
+      deviceRect.left + fx * deviceRect.width,
+      deviceRect.top + fy * deviceRect.height,
     );
   }
 
   Map<String, dynamic> toJson() => {
+        'coordinateSpace': 'screen',
+        'calibrationVersion': 2,
         'window': window.toJson(),
         'deviceRect': {
           'x': deviceRect.left,
@@ -63,6 +70,10 @@ class Calibration {
 
   static Calibration? fromJson(Map<String, dynamic>? json) {
     if (json == null) return null;
+    // 0.3.2 及更早缓存是窗口局部坐标 / 旧 scale 语义；不能继续用。
+    if (json['coordinateSpace'] != 'screen' || json['calibrationVersion'] != 2) {
+      return null;
+    }
     final window = HubWindow.fromJson(json['window'] as Map<String, dynamic>?);
     final r = json['deviceRect'];
     if (window == null || r is! Map) return null;

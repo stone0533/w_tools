@@ -52,6 +52,7 @@ dart run w_tools_device:device shot --real --device=<名称>
 - Android 的 tap 坐标是截图像素，不需要标定；
 - Android 多台就绪且未指定 `--device`（或型号子串命中多台）会报错并列出设备，用 `--device=` 指定；
 - `--region`：iOS 模拟器是设备坐标（point），Android 是截图像素；
+- iOS 模拟器的 `deviceRect` 是屏幕坐标；`tap` 不再叠加 `window.x/y`。窗口不在 (0,0) 时若内容区整体偏移，先 `calibrate --json` 看 `coordinateSpace`，再 `--no-cache`；
 - `verify` 默认比较整屏，动画/轮播会误判，用 `--region`；
 - `--scale` 只用于 iOS 模拟器 calibrate/tap/drag/size/wait/verify；
 - `--no-cache` 只用于 iOS 模拟器 tap/drag/verify；`wait --region` 不需要标定，也不需要 `--no-cache`；

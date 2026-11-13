@@ -15,7 +15,7 @@
 
 ```yaml
 dev_dependencies:
-  w_tools_device: ^0.3.2
+  w_tools_device: ^0.3.3
 ```
 
 或：
@@ -47,6 +47,15 @@ iOS 模拟器  point
 Android     截图像素
 iOS 真机    list / shot only
 ```
+
+iOS 模拟器的 `calibrate --json` 里：
+
+- `deviceRect` 是**屏幕坐标**（point），`tap` / `drag` 直接使用，不再叠加 `window.x/y`；
+- `window.scale` 是 DeviceHub 窗口截图的 px/point（Retina 通常 2）；
+- `screenshot.scale` 是设备截图的 px/point（例如 1206/402 = 3）；
+- `screenshot.windowScale` 保留窗口 scale，避免两套 scale 混用。
+
+0.3.3 之前的 calibration 缓存会被自动视为未命中；升级后第一次运行会重新标定。
 
 选项：`--device=<udid|名称>`（也支持 `--device <值>`）、`--no-cache`（强制重标定）、
 `--scale=3`（像素密度）、`--timeout-ms=15000`、`--stable-ms=600`、
@@ -120,7 +129,8 @@ dart run w_tools_device:device foreground --android    # 前台包名（冒烟�
 > 所以 `tap`/`drag`/`verify --region` 的坐标一律是**截图像素**（用 `size --android` 看）。
 
 坐标标定原理：截 DeviceHub 窗口 → 找最外层黑色机身（连通域）→ 内缩得到设备屏幕矩形 →
-按设备分辨率换算成「设备坐标 ↔ 屏幕坐标」。结果缓存在 `~/.cache/w_tools_device/`，
+按设备分辨率换算成「设备坐标 ↔ 屏幕坐标」。`deviceRect` 以屏幕坐标返回；
+窗口只用于缓存命中判断，不再在 `toScreen` 里重复叠加。结果缓存在 `~/.cache/w_tools_device/`，
 窗口位置 / 尺寸 / 设备宽高（`--scale` 变化）不同就会失效并重算；需要强制重算时用 `--no-cache`。
 
 **横屏（Landscape）当前不支持**：`calibrate` 会明确提示切回 Portrait。

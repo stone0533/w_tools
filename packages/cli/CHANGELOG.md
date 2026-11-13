@@ -1,3 +1,8 @@
+## 1.20.29
+
+### Changed
+- `init` 写入的 `w_tools_device` 约束同步到 `^0.3.3`。
+
 ## 1.20.28
 
 ### Changed

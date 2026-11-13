@@ -169,7 +169,7 @@ void main() {
       expect(cal.deviceRect.width / cal.deviceRect.height, closeTo(402 / 874, 0.02));
     });
 
-    test('映射：设备坐标 → 屏幕坐标（含窗口偏移）', () {
+    test('映射：deviceRect 已是屏幕坐标，不再叠加 window 原点', () {
       const cal = Calibration(
         window: HubWindow(1000, 200, 872, 1084),
         deviceRect: DRect(300, 60, 430, 934),
@@ -177,12 +177,24 @@ void main() {
         deviceHeight: 874,
       );
       final center = cal.toScreen(const DPoint(201, 437));
-      expect(center.x, closeTo(1000 + 300 + 215, 0.5));
-      expect(center.y, closeTo(200 + 60 + 467, 0.5));
+      expect(center.x, closeTo(300 + 215, 0.5));
+      expect(center.y, closeTo(60 + 467, 0.5));
 
       final topLeft = cal.toScreen(const DPoint(0, 0));
-      expect(topLeft.x, closeTo(1300, 0.01));
-      expect(topLeft.y, closeTo(260, 0.01));
+      expect(topLeft.x, closeTo(300, 0.01));
+      expect(topLeft.y, closeTo(60, 0.01));
+    });
+
+    test('回归 #145：窗口不在 (0,0) 时不再多出 window.x/y', () {
+      const cal = Calibration(
+        window: HubWindow(40, 107, 872, 1004),
+        deviceRect: DRect(395.392, 145.77265671641794, 333.216, 724.4546865671641),
+        deviceWidth: 402,
+        deviceHeight: 874,
+      );
+      final p = cal.toScreen(const DPoint(33, 248));
+      expect(p.x, closeTo(422.746, 0.01));
+      expect(p.y, closeTo(351.339, 0.01));
     });
 
     test('JSON 保留截图尺寸与 scale，便于缓存复用', () {
@@ -199,6 +211,16 @@ void main() {
       expect(back.screenshotWidth, 1206);
       expect(back.screenshotHeight, 2622);
       expect(back.scale, 2);
+    });
+
+    test('旧缓存（无 coordinateSpace / version）不再命中', () {
+      final old = {
+        'window': {'x': 40, 'y': 107, 'w': 872, 'h': 1004},
+        'deviceRect': {'x': 395.392, 'y': 145.773, 'w': 333.216, 'h': 724.455},
+        'deviceWidth': 402,
+        'deviceHeight': 874,
+      };
+      expect(Calibration.fromJson(old), isNull);
     });
 
     test('窗口变了，缓存的标定应失效', () {

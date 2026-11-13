@@ -242,7 +242,12 @@ void _emitCalibration(DeviceOptions o, Calibration c, {String? deviceId}) {
   _emit(
       o,
       {
-        'window': c.window.toJson(),
+        'coordinateSpace': 'screen',
+        'calibrationVersion': 2,
+        'window': {
+          ...c.window.toJson(),
+          'scale': c.scale,
+        },
         'deviceRect': {
           'x': c.deviceRect.left,
           'y': c.deviceRect.top,
@@ -253,12 +258,13 @@ void _emitCalibration(DeviceOptions o, Calibration c, {String? deviceId}) {
         'screenshot': {
           'width': c.screenshotWidth,
           'height': c.screenshotHeight,
-          'scale': c.scale,
+          'scale': c.deviceWidth == 0 ? 0 : c.screenshotWidth / c.deviceWidth,
+          'windowScale': c.scale,
         },
         if (deviceId != null) 'deviceId': deviceId,
       },
       '窗口：(${c.window.x}, ${c.window.y}) ${c.window.width}×${c.window.height}\n'
-      '设备屏幕（窗口内）：(${c.deviceRect.left.toStringAsFixed(1)}, '
+      '设备屏幕（屏幕坐标）：(${c.deviceRect.left.toStringAsFixed(1)}, '
       '${c.deviceRect.top.toStringAsFixed(1)}) '
       '${c.deviceRect.width.toStringAsFixed(1)}×${c.deviceRect.height.toStringAsFixed(1)}\n'
       '设备分辨率：${c.deviceWidth}×${c.deviceHeight}');

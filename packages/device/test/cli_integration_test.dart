@@ -165,6 +165,17 @@ void main() {
     expect(File(path).existsSync(), isTrue);
   });
 
+  test('calibrate --json 明确坐标空间与两套 scale', () async {
+    final r = await env.run(['calibrate', '--json']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final json = jsonDecode('${r.stdout}'.trim()) as Map<String, dynamic>;
+    expect(json['coordinateSpace'], 'screen');
+    expect(json['calibrationVersion'], 2);
+    expect((json['window'] as Map)['scale'], 1);
+    expect((json['screenshot'] as Map)['scale'], 3);
+    expect((json['screenshot'] as Map)['windowScale'], 1);
+  });
+
   test('缓存命中的 tap 不再激活 DeviceHub', () async {
     expect((await env.run(['calibrate'])).exitCode, 0);
     final before = 'activate'.allMatches(env.calls).length;
