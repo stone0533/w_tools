@@ -99,6 +99,13 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
             'x-demo-secret',
           },
         ),
+        // 只对 /flaky 重试，避免影响 /error 的 500 错误演示。
+        WRetryInterceptor(
+          maxRetries: 2,
+          baseDelay: Duration.zero,
+          jitter: false,
+          shouldRetry: (error) => error.requestOptions.path == '/flaky',
+        ),
       ],
     );
     _registry.dio.httpClientAdapter = _adapter;
@@ -150,6 +157,62 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
     });
   }
 
+  Future<void> _loadPage() async {
+    setState(() => _lastResult = '分页加载中');
+    try {
+      final page = await WApiClient(_registry.dio).page<_DemoUser>(
+        '/page',
+        query: const WPageQuery(page: 1, pageSize: 2),
+        itemDecode: (json) => _DemoUser.fromJson(json as Map<String, dynamic>),
+      );
+      if (!mounted) return;
+      setState(() {
+        _lastResult =
+            'page → ${page.items.length} 条\n'
+            'hasMore: ${page.hasMore}\n'
+            '${page.items.map((user) => user.name).join(', ')}';
+      });
+    } on WApiException catch (error) {
+      if (!mounted) return;
+      setState(() => _lastResult = '分页失败：${error.kind.name}');
+    }
+  }
+
+  Future<void> _upload() async {
+    setState(() => _lastResult = '上传中');
+    try {
+      await WApiClient(_registry.dio).upload<void>(
+        '/upload',
+        fields: const {'bucket': 'avatar'},
+        files: {
+          'file': MultipartFile.fromBytes([1, 2, 3], filename: 'demo.bin'),
+        },
+        decode: WApiDecoders.none,
+      );
+      if (!mounted) return;
+      setState(() => _lastResult = '上传成功');
+    } on WApiException catch (error) {
+      if (!mounted) return;
+      setState(() => _lastResult = '上传失败：${error.kind.name}');
+    }
+  }
+
+  Future<void> _retryRequest() async {
+    setState(() => _lastResult = '重试请求中');
+    try {
+      final response = await _registry.dio.get<Map<String, dynamic>>('/flaky');
+      if (!mounted) return;
+      setState(() {
+        _lastResult =
+            '/flaky → ${response.statusCode}\n'
+            'attempt: ${response.data?['attempt']}';
+      });
+    } on DioException catch (error) {
+      if (!mounted) return;
+      setState(() => _lastResult = '/flaky → 失败：${error.message}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -196,6 +259,18 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
                 OutlinedButton(
                   onPressed: _loadRepository,
                   child: const Text('Repository 缓存'),
+                ),
+                FilledButton.tonal(
+                  onPressed: _loadPage,
+                  child: const Text('分页'),
+                ),
+                OutlinedButton(
+                  onPressed: _upload,
+                  child: const Text('上传'),
+                ),
+                OutlinedButton(
+                  onPressed: _retryRequest,
+                  child: const Text('500 重试'),
                 ),
               ],
             ),
@@ -249,6 +324,18 @@ class _DemoPath implements IApiPath {
   String get baseUrl => 'https://api.example.com';
 }
 
+class _DemoUser {
+  const _DemoUser({required this.id, required this.name});
+
+  factory _DemoUser.fromJson(Map<String, dynamic> json) => _DemoUser(
+    id: (json['id'] as num).toInt(),
+    name: json['name'] as String,
+  );
+
+  final int id;
+  final String name;
+}
+
 class _DemoLocalDataSource extends BaseLocalDataSource {
   String? cached;
 }
@@ -274,8 +361,10 @@ class _DemoRepository extends BaseRepository<_DemoLocalDataSource, _DemoRemoteDa
   }
 }
 
-/// 模拟服务端：/secure 只在 fresh-token 时返回 200。
+/// 模拟服务端：/secure 只在 fresh-token 时返回 200，/flaky 首次 500 后成功。
 class _DemoAdapter implements HttpClientAdapter {
+  int _flakyCalls = 0;
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
@@ -301,6 +390,49 @@ class _DemoAdapter implements HttpClientAdapter {
         headers: {
           Headers.contentTypeHeader: ['application/json'],
           'set-cookie': ['session=secret'],
+        },
+      );
+    }
+
+    if (options.path == '/flaky') {
+      _flakyCalls++;
+      if (_flakyCalls == 1) {
+        return ResponseBody.fromString(
+          jsonEncode({'error': 'temporary'}),
+          500,
+          headers: {
+            Headers.contentTypeHeader: ['application/json'],
+          },
+        );
+      }
+      return ResponseBody.fromString(
+        jsonEncode({'ok': true, 'attempt': _flakyCalls}),
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+        },
+      );
+    }
+
+    if (options.path == '/page') {
+      return ResponseBody.fromString(
+        jsonEncode([
+          {'id': 1, 'name': 'Ada'},
+          {'id': 2, 'name': 'Grace'},
+        ]),
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+        },
+      );
+    }
+
+    if (options.path == '/upload') {
+      return ResponseBody.fromString(
+        jsonEncode({'ok': true}),
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
         },
       );
     }
