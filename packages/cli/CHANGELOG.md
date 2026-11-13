@@ -1,3 +1,9 @@
+## 1.20.26
+
+### Changed
+- catalog 补 `WListViewSliver.overlap` 的 hit test pitfall 与 `WImageSlots`
+  原始 Base64 字符串提示。
+
 ## 1.20.25
 
 ### Changed

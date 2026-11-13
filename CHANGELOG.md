@@ -19,7 +19,7 @@
   `WScaffold` 的默认顶栏参数移到 `WScaffold.basic`。
 
 ### Changed
-- 根包 `w_tools_ui` 约束抬到 `^11.0.0`。
+- 根包 `w_tools_ui` 约束抬到 `^11.0.0`；`WScreen` 改为 `abstract final class`。
 
 ## 13.0.5
 

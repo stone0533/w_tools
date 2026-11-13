@@ -143,6 +143,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 ### WImageSlots 配置
 
 单图的占位 / 错误 / 进度 / 重试 UI。App 级默认用 `WImageTheme`，单图覆盖用 `slots`。
+builder 的 `data` 是原始 source 字符串（Base64 可能很大），不要拼进日志 / 文本 UI。
 
 ### WImageTheme
 
@@ -185,6 +186,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 - 与 `SmartRefresher` 组合时，刷新壳在外、`WListView` 在内；不要把 `SmartRefresher`
   包在 `WAsyncView` 外面（异步场景见 `docs/agents/async.md`）。
 - 头部 / 尾部 / 空状态通过对应 slot 传入，不要在 itemBuilder 里用 index 判断。
+- `WListViewSliver.overlap` 只调整布局；重叠区域的 hit test 不可靠，点击放在 item 内部。
 
 ## 7. WScaffold - 增强脚手架
 

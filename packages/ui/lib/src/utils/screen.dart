@@ -108,7 +108,7 @@ class WScreenScope extends InheritedWidget {
       fontScaler != oldWidget.fontScaler;
 }
 
-class WScreen {
+abstract final class WScreen {
   /// 读取当前子树的屏幕信息与缩放函数（推荐）。
   ///
   /// 尺寸跟随最近的 `MediaQuery`，分屏 / 桌面多窗口 / 测试里注入的尺寸都能正确反映；
@@ -142,6 +142,4 @@ class WScreen {
   // ──── 内部 ────
 
   static ui.FlutterView get _view => WidgetsBinding.instance.platformDispatcher.views.first;
-
-  WScreen._();
 }

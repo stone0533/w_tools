@@ -8,6 +8,9 @@
 - `WScaffold.basic`：自动构建 `WAppBar` 的页面壳入口；`WScaffold` 主构造器只保留
   显式 `appBar` 与槽位。
 
+### Changed
+- `WScreen` 改为 `abstract final class`：仍是静态命名空间，行为不变，只是禁止实例化 / 继承。
+
 ### Breaking
 - `WButton.new` / `WBadge.new` / `WScaffold.new` / `WNavBar.new` / `WAppBarStyle.new` /
   `WAppBarStyle.copyWith` / `WTabBarStyle.new` / `WTabBarStyle.copyWith`：10.3–10.5
@@ -54,6 +57,7 @@
 - `WWidgetExtension.withBottomBarSpaceOf`：改名 `withBottomSafeSpaceOf`。
 - `WNumExtension`：拆分为 `WNumLayoutExtension`（布局糖）与
   `WNumFormatExtension`（数字格式化）。
+- `WScreen._`：改为 `abstract final class` 后不再需要私有构造器。
   迁移见 `docs/migrations/ui-11.0.md`。
 
 ## 10.5.0

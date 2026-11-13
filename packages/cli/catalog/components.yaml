@@ -1111,6 +1111,7 @@ components:
     pitfalls:
       - '嵌 SmartRefresher / NestedScrollView 时只用 WListViewSliver，外层自己给滚动壳'
       - 'shrinkWrap: true 与 emptyFill: true 同时用会断言'
+      - 'overlap 只调整布局；重叠区域的 hit test 不可靠，点击放在 item 内部，不要依赖重叠区'
     related: ['`WKeepAliveWrapper`', '`WNotificationListener`']
     teach: true
   - name: '`WKeepAliveWrapper`'
@@ -1701,6 +1702,8 @@ components:
         showRetryButton: true,
       )
     dontUseFor: '不要把重试次数、解码尺寸等行为配置塞进 WImageSlots'
+    pitfalls:
+      - 'builder 的 data 是原始 source 字符串（Base64 可能很大）；不要拼进日志 / 文本 UI'
     related: ['`WImageTheme`', '`WImageLoadOptions`', '`WImage`']
     teach: false
   - name: '`WImageErrorKind`'
