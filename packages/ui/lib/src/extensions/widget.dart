@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../components/common/press_effect.dart';
 import '../components/common/pressable.dart';
 
-/// Widget 扩展（通用工具方法，不依赖 ui 组件）
+/// Widget 扩展（布局 / padding / 点击糖）
 extension WWidgetExtension on Widget {
   /// 将 Widget 包装在 Expanded 中
   Widget expanded([int flex = 1]) {
@@ -111,11 +111,8 @@ extension WWidgetExtension on Widget {
   Widget withIntrinsicHeight() {
     return IntrinsicHeight(child: this);
   }
-}
 
-/// Widget 扩展（依赖 ui 组件）
-extension WUiWidgetExtension on Widget {
-  /// 给任意 Widget 添加点击能力（不声明 button 语义）
+  /// 给任意 Widget 添加点击能力（不声明 button 语义）。
   Widget toPressable({
     GestureTapCallback? onTap,
     GestureLongPressCallback? onLongPress,

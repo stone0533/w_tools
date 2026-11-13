@@ -1622,23 +1622,15 @@ components:
     package: 'w_tools_ui'
     docsAnchor: 'wwidgetextension'
     section: '9. 扩展'
-    useFor: 'Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight'
+    useFor: 'Widget 间距 / 安全空间 / 装饰 / IntrinsicHeight / toPressable'
     dontUseFor: '需要 button 语义用 `WButton`；物理左右用 withLeftPadding / withRightPadding'
     usage: |
       card.withHorizontalPadding(8).withVerticalPadding(4);
       card.withStartPadding(8).withEndPadding(4); // 跟随 Directionality
       widget.expanded(); widget.withBottomBarSpaceOf(context); widget.withIntrinsicHeight();
+      Container(...).toPressable(onTap: open);
     pitfalls:
       - '需要 RTL 时用 withStartPadding / withEndPadding；withLeftPadding / withRightPadding 是物理方向'
-    teach: false
-  - name: '`WUiWidgetExtension`'
-    package: 'w_tools_ui'
-    docsAnchor: '9-扩展方法'
-    section: '9. 扩展'
-    useFor: '`toPressable`（任意 child 点击，无 button 语义）'
-    dontUseFor: '需要 button 语义用 `WButton`'
-    usage: |
-      Container(...).toPressable(onTap: open);
     related: ['`WPressable`']
     teach: false
   - name: '`WColorExtension`'
@@ -1880,17 +1872,6 @@ components:
     usage: |
       boxShadow: WShadows.card;
       boxShadow: WShadows.elevated;
-    teach: false
-  - name: '`WTextStyleExtension`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wtextstyleextension'
-    section: '9. 扩展'
-    useFor: 'TextStyle 快捷修改（bold / withColor / withSize）'
-    dontUseFor: '不要用它替代 WTextStyles 做全局字体；只做一次性覆盖'
-    usage: |
-      style.bold;
-      style.withColor(Colors.red);
-      style.withSize(20);
     teach: false
   - name: '`WGlobalKeyExtension`'
     package: 'w_tools_ui'

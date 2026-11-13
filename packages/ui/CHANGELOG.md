@@ -10,6 +10,8 @@
 - `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。
 - `WNavBar.onItemTap`：用 `onBeforeTap`（`FutureOr<bool>`）。
 - `notifyScrollPercentage`：内部实现细节，直接读 `ScrollNotification.metrics`。
+- `WTextStyleExtension`：直接用 Flutter `TextStyle.copyWith`。
+- `WUiWidgetExtension`：合并到 `WWidgetExtension`，`toPressable` 方法仍在。
   迁移见 `docs/migrations/ui-11.0.md`。
 
 ## 10.5.0

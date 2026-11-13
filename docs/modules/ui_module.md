@@ -265,7 +265,8 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ### WWidgetExtension
 
-容器装饰、布局调整等 Widget 扩展。需要 RTL 时用 `withStartPadding` / `withEndPadding`；
+容器装饰、布局调整等 Widget 扩展；`toPressable` 也在这里（原 `WUiWidgetExtension` 已删除，合并到 `WWidgetExtension`）。
+需要 RTL 时用 `withStartPadding` / `withEndPadding`；
 `withLeftPadding` / `withRightPadding` 是物理方向。
 
 ### WBoxDecorationExtension / WGradients / WShadows
@@ -276,9 +277,10 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 GlobalKey 查找 / 定位；不要用它替代正常的 controller 传递。
 
-### WTextStyleExtension
+### TextStyle
 
-`TextStyle` 的 `bold` / `withColor` / `withSize` 扩展；品牌字体仍应放 `WTextStyles`。
+直接用 Flutter `TextStyle.copyWith`；`WTextStyleExtension` 已在 11.0 删除。
+品牌字体仍应放 `WTextStyles`。
 
 ## 10. 工具类
 

@@ -47,8 +47,7 @@
 | `WNumExtension` | extensions_page、components_page | 间距 / 格式化 / 圆角 |
 | `WStringExtension` | extensions_page | toInt / toDouble / trimAll / toColor / assetImagePath |
 | `WBoxDecorationExtension` | extensions_page、components_page | with* / without* / shape |
-| `WWidgetExtension` | extensions_page | expanded / padding / intrinsic / decoration |
-| `WUiWidgetExtension` | extensions_page | toPressable |
+| `WWidgetExtension` | extensions_page | expanded / padding / intrinsic / decoration / toPressable |
 | `WColorExtension` | extensions_page | fromHex / toHex |
 
 ## 运行

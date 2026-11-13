@@ -196,7 +196,7 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 - **QrView** (`WQrView`): 二维码扫描组件（来自 `w_tools_qr` 子包）
 - **RowButtons** (`WActionRow` / `WSelectableRow`): 行按钮组件
 - **Text** (`WText`): 增强的文本组件
-- **TextStyle** (`WTextStyleExtension`): `TextStyle` 的 `bold` / `withColor` / `withSize` 扩展
+- **TextStyle**: 直接用 Flutter `TextStyle.copyWith`（`WTextStyleExtension` 已在 11.0 删除）
 
 #### 输入组件
 - **FormButton** (`WFormButton`): 表单字段值选择按钮（`WButton` 负责普通点击）
@@ -249,10 +249,9 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 - **颜色扩展** (`WColorExtension`): 十六进制颜色解析 / 生成（`fromHex` / `toHex`）
 - **字符串扩展** (`WStringExtension`): 提供字符串格式化、验证、转换等功能
 - **数字扩展** (`WNumExtension`): 提供数字格式化、范围检查等功能
-- **容器扩展** (`WWidgetExtension`): 提供容器装饰、布局调整等功能
+- **Widget 扩展** (`WWidgetExtension`): 布局 / 间距 / 装饰 / `toPressable`
 - **映射扩展** (`WMapExtension`): 提供映射操作、转换等功能
 - **全局键扩展** (`WGlobalKeyExtension`): GlobalKey 查找 / 定位
-- **文本样式扩展** (`WTextStyleExtension`): `bold` / `withColor` / `withSize`
 - **布局糖**（`WRow` / `WColumn` / `WSizeBox` / `WPadding`）已弃用（5.0 移除），直接用 Flutter `Row` / `Column` / `SizedBox` / `EdgeInsets`
 
 ## 使用示例

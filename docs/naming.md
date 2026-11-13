@@ -177,7 +177,7 @@
 | 11 | 种类 | `Type` / `Kind` | 语义 | 封闭枚举语义 | 是「哪一种」？ | `WImageType` / `WPlatformType` | 弱 |
 | 12 | 组件数据 | `Data` | 语义 | 组件产出的纯数据 | 是组件内部流转的数据？ | `WScreenData` / `WFormTextFieldData` | 弱 |
 | 13 | 列表项 | `Item` | 语义 | 列表单元模型 | 是列表里的一项？ | `WMapItem` / `WFormValidatorItem` | 弱 |
-| 14 | 扩展 | `Extension` | 构件 | 给已有类型加方法 | 不改类型本身加能力？ | `WTextStyleExtension` / `WBoxDecorationExtension` | 弱 |
+| 14 | 扩展 | `Extension` | 构件 | 给已有类型加方法 | 不改类型本身加能力？ | `WColorExtension` / `WBoxDecorationExtension` | 弱 |
 | 15 | 回调 | `Callback` | 语义 | 公开签名里的函数类型 | 是公开的函数类型别名？ | `WCountdownCallback` | 弱 |
 | 16 | 可变设置 | `Settings` | 生命周期 | 运行期可改的一组设置（不一定落盘） | 需要在运行期改一组设置？ | `WFormValidatorSettings` | 弱 |
 | 17 | 调用参数 | `Params` | 生命周期 | 一次性入参 | 只是这次调用的参数？ | —（暂无公开类型） | 弱 |
@@ -217,7 +217,7 @@
   不是两个并列角色；`XxxConfigOptions` 这类并列角色仍然禁止。
 - Flutter 既有名词（`ThemeData` / `Sliver` / `Route`）原样保留，不拆成两个角色。
 - 扩展名的 `Extension` 前紧挨被扩展的类型，用途 / 领域限定词放在它前面：
-  `<用途><目标类型>Extension`（如 `WUiWidgetExtension`），不要写成 `<目标类型><用途>Extension`。
+  `<用途><目标类型>Extension`，不要写成 `<目标类型><用途>Extension`。
 - 试用角色：`Slots` / `Settings` / `Params` 目前是窄角色，但都允许在新代码使用（不需要先转正）；
   出现第二个使用方后按 §9 评估是否转正；`Params` 暂无公开类型，暂不推广。
 - 常见构件名词（不是角色后缀，确有其物时才用）：`Loader` / `Formatter` / `Interceptor` /
@@ -308,7 +308,7 @@
 
 ### 4.3 缩写
 
-- 类型名里缩写按单词处理：`WQrView` / `WApiConfig` / `WUiWidgetExtension`，
+- 类型名里缩写按单词处理：`WQrView` / `WApiConfig`，
   不写 `WQRView` / `WAPIConfig`。
 - 成员和变量用单词式缩写：`baseUrl`，不写 `baseURL`；
   平台判断沿用 `dart:io` 的 `isIOS` / `isMacOS` 写法，这是平台名惯例，不推广到其他词。

@@ -294,15 +294,6 @@ void main() {
     });
   });
 
-  group('TextStyle extension', () {
-    test('bold / withColor / withSize', () {
-      const style = TextStyle();
-      expect(style.bold.fontWeight, FontWeight.bold);
-      expect(style.withColor(Colors.red).color, Colors.red);
-      expect(style.withSize(18).fontSize, 18);
-    });
-  });
-
   group('Row / Column / GlobalKey extensions', () {
     testWidgets('Row / Column withIntrinsicHeight', (tester) async {
       await tester.pumpWidget(

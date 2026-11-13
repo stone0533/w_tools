@@ -2,7 +2,9 @@
 
 ### Breaking
 - 聚合 `w_tools_ui` 11.0.0：删除 `WClipRRect`（用 Flutter `ClipRRect`）、
-  `WNavBar.onItemTap`（用 `onBeforeTap`）与 `notifyScrollPercentage`。
+  `WNavBar.onItemTap`（用 `onBeforeTap`）、`notifyScrollPercentage`、
+  `WTextStyleExtension`（用 `TextStyle.copyWith`）与 `WUiWidgetExtension`
+  （合并到 `WWidgetExtension`）。
 
 ### Changed
 - 根包 `w_tools_ui` 约束抬到 `^11.0.0`。

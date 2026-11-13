@@ -1,3 +1,9 @@
+## 1.20.16
+
+### Changed
+- catalog 移除 `WTextStyleExtension` / `WUiWidgetExtension`（ui 11.0 删除，后者合并到
+  `WWidgetExtension`）；`WWidgetExtension` usage 补 `toPressable`。
+
 ## 1.20.15
 
 ### Changed

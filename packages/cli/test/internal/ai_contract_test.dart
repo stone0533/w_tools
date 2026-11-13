@@ -155,7 +155,6 @@ void main() {
         'WStepState',
         'WGradients',
         'WShadows',
-        'WTextStyleExtension',
         'WGlobalKeyExtension',
         'WPressEffect',
         'WAssetImageSource',
