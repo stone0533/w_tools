@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^10.1.0
+  w_tools_ui: ^10.2.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -242,6 +242,7 @@ theme: base.withWTextStyles(WTextStyles.fromTextTheme(base.textTheme)),
 ```dart
 WIconText(icon: Icons.star, text: '收藏');
 WIconText(icon: Icons.location_on, text: '上海市', variant: WTextVariant.caption);
+WIconText.custom(icon: SvgPicture.asset('assets/star.svg'), text: '收藏'); // 任意 Widget
 ```
 
 不要用 `Row + Icon + Text` 手拼；中文行盒会让图标看起来偏高。需要按品牌字体微调时传

@@ -14,6 +14,9 @@ import 'w_text_styles.dart';
 ///
 /// 文本样式走 [variant] / [WTextStyles]，局部差异用 [style] / [color]；
 /// 纯图标或需要按钮语义时用 `WButton(icon: ...)`。
+///
+/// SVG / 资源图 / 品牌图标用 [WIconText.custom] 传任意 [Widget]，不强制引入
+/// `flutter_svg`；详见 ADR-0009。
 class WIconText extends StatelessWidget {
   const WIconText({
     super.key,
@@ -72,6 +75,180 @@ class WIconText extends StatelessWidget {
   final bool? softWrap;
   final String? semanticsLabel;
 
+  /// 自定义图标：接受任意 [Widget]（`SvgPicture.asset` / `Image.asset` / 品牌图标等）。
+  ///
+  /// 与主构造器保持相同的行盒对齐、间距、语义与文字样式；不引入 `flutter_svg`
+  /// 依赖，SVG 项目自行传 `SvgPicture`。
+  ///
+  /// [iconSize] / [iconColor] 通过 `IconTheme` 传给图标；不读取 `IconTheme` 的
+  /// Widget（如部分 SVG 配置）需要自行控制尺寸 / 颜色。
+  static Widget custom({
+    Key? key,
+    required Widget icon,
+    required String text,
+    WTextVariant? variant,
+    TextStyle? style,
+    Color? color,
+    double? iconSize,
+    Color? iconColor,
+    double gap = 6,
+    Offset iconOffset = Offset.zero,
+    int? maxLines,
+    TextOverflow? overflow,
+    TextAlign? textAlign,
+    TextDirection? textDirection,
+    TextScaler? textScaler,
+    bool? softWrap,
+    String? semanticsLabel,
+  }) {
+    assert(gap >= 0, 'WIconText.gap 不能为负');
+    return _WIconTextCustom(
+      key: key,
+      icon: icon,
+      text: text,
+      variant: variant,
+      style: style,
+      color: color,
+      iconSize: iconSize,
+      iconColor: iconColor,
+      gap: gap,
+      iconOffset: iconOffset,
+      maxLines: maxLines,
+      overflow: overflow,
+      textAlign: textAlign,
+      textDirection: textDirection,
+      textScaler: textScaler,
+      softWrap: softWrap,
+      semanticsLabel: semanticsLabel,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _WIconTextLayout(
+      iconData: icon,
+      text: text,
+      variant: variant,
+      style: style,
+      color: color,
+      iconSize: iconSize,
+      iconColor: iconColor,
+      gap: gap,
+      iconOffset: iconOffset,
+      maxLines: maxLines,
+      overflow: overflow,
+      textAlign: textAlign,
+      textDirection: textDirection,
+      textScaler: textScaler,
+      softWrap: softWrap,
+      semanticsLabel: semanticsLabel,
+    );
+  }
+}
+
+class _WIconTextCustom extends StatelessWidget {
+  const _WIconTextCustom({
+    super.key,
+    required this.icon,
+    required this.text,
+    this.variant,
+    this.style,
+    this.color,
+    this.iconSize,
+    this.iconColor,
+    this.gap = 6,
+    this.iconOffset = Offset.zero,
+    this.maxLines,
+    this.overflow,
+    this.textAlign,
+    this.textDirection,
+    this.textScaler,
+    this.softWrap,
+    this.semanticsLabel,
+  });
+
+  final Widget icon;
+  final String text;
+  final WTextVariant? variant;
+  final TextStyle? style;
+  final Color? color;
+  final double? iconSize;
+  final Color? iconColor;
+  final double gap;
+  final Offset iconOffset;
+  final int? maxLines;
+  final TextOverflow? overflow;
+  final TextAlign? textAlign;
+  final TextDirection? textDirection;
+  final TextScaler? textScaler;
+  final bool? softWrap;
+  final String? semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return _WIconTextLayout(
+      iconWidget: icon,
+      text: text,
+      variant: variant,
+      style: style,
+      color: color,
+      iconSize: iconSize,
+      iconColor: iconColor,
+      gap: gap,
+      iconOffset: iconOffset,
+      maxLines: maxLines,
+      overflow: overflow,
+      textAlign: textAlign,
+      textDirection: textDirection,
+      textScaler: textScaler,
+      softWrap: softWrap,
+      semanticsLabel: semanticsLabel,
+    );
+  }
+}
+
+class _WIconTextLayout extends StatelessWidget {
+  const _WIconTextLayout({
+    this.iconData,
+    this.iconWidget,
+    required this.text,
+    this.variant,
+    this.style,
+    this.color,
+    this.iconSize,
+    this.iconColor,
+    this.gap = 6,
+    this.iconOffset = Offset.zero,
+    this.maxLines,
+    this.overflow,
+    this.textAlign,
+    this.textDirection,
+    this.textScaler,
+    this.softWrap,
+    this.semanticsLabel,
+  }) : assert(
+         (iconData == null) != (iconWidget == null),
+         'WIconText 图标只能二选一',
+       );
+
+  final IconData? iconData;
+  final Widget? iconWidget;
+  final String text;
+  final WTextVariant? variant;
+  final TextStyle? style;
+  final Color? color;
+  final double? iconSize;
+  final Color? iconColor;
+  final double gap;
+  final Offset iconOffset;
+  final int? maxLines;
+  final TextOverflow? overflow;
+  final TextAlign? textAlign;
+  final TextDirection? textDirection;
+  final TextScaler? textScaler;
+  final bool? softWrap;
+  final String? semanticsLabel;
+
   @override
   Widget build(BuildContext context) {
     final fallbackStyle = DefaultTextStyle.of(context).style;
@@ -83,19 +260,22 @@ class WIconText extends StatelessWidget {
     final resolvedIconColor = iconColor ?? effectiveStyle?.color ?? fallbackStyle.color;
 
     final effectiveDirection = textDirection ?? Directionality.of(context);
-    final iconWidget = Directionality(
+    final Widget iconChild;
+    if (iconData != null) {
+      iconChild = Icon(iconData, size: resolvedIconSize, color: resolvedIconColor);
+    } else {
+      iconChild = IconTheme(
+        data: IconThemeData(size: resolvedIconSize, color: resolvedIconColor),
+        child: iconWidget!,
+      );
+    }
+    final iconBox = Directionality(
       textDirection: effectiveDirection,
       child: Padding(
         padding: EdgeInsetsDirectional.only(end: gap),
         child: Transform.translate(
           offset: iconOffset,
-          child: ExcludeSemantics(
-            child: Icon(
-              icon,
-              size: resolvedIconSize,
-              color: resolvedIconColor,
-            ),
-          ),
+          child: ExcludeSemantics(child: iconChild),
         ),
       ),
     );
@@ -105,7 +285,7 @@ class WIconText extends StatelessWidget {
         children: [
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
-            child: iconWidget,
+            child: iconBox,
           ),
           TextSpan(text: text),
         ],

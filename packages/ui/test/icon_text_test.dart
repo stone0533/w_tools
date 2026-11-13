@@ -153,4 +153,50 @@ void main() {
     expect(semantics.label, contains('说明文字'));
     handle.dispose();
   });
+
+  testWidgets('custom 接受任意 Widget 图标并复用行盒对齐', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        WIconText.custom(
+          icon: const Icon(Icons.bolt, key: Key('custom-icon')),
+          text: '自定义图标',
+          gap: 4,
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('custom-icon')), findsOneWidget);
+    final text = tester.widget<Text>(find.byType(Text));
+    expect((text.textSpan! as TextSpan).toPlainText(), contains('自定义图标'));
+    final iconTheme = tester.widget<IconTheme>(
+      find
+          .ancestor(of: find.byKey(const Key('custom-icon')), matching: find.byType(IconTheme))
+          .first,
+    );
+    expect(iconTheme.data.size, greaterThan(0));
+  });
+
+  testWidgets('custom 支持 semanticsLabel / maxLines / RTL', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _wrap(
+        WIconText.custom(
+          icon: const Icon(Icons.info_outline),
+          text: '一段比较长的说明',
+          semanticsLabel: '说明文字',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textDirection: TextDirection.rtl,
+          gap: 4,
+        ),
+      ),
+    );
+
+    final textWidget = tester.widget<Text>(find.byType(Text));
+    expect(textWidget.maxLines, 1);
+    expect(textWidget.textDirection, TextDirection.rtl);
+    final semantics = tester.getSemantics(find.byType(Text));
+    expect(semantics.label, contains('说明文字'));
+    handle.dispose();
+  });
 }
