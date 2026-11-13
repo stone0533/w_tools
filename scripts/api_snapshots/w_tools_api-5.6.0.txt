@@ -1,0 +1,170 @@
+# w_tools_api 5.6.0
+ApiClientId	class
+ApiClientId.name	String
+ApiClientId.new	(this.name)
+ApiClientId.toString	String ()
+BaseLocalDataSource	class
+BaseRemoteDataSource	class
+BaseRepository	class
+BaseRepository.localDataSource	LocalDataSourceType?
+BaseRepository.new	({this.localDataSource, this.remoteDataSource})
+BaseRepository.remoteDataSource	RemoteDataSourceType?
+DioRegistry	class
+DioRegistry._internal	(String baseUrl, BaseOptions options, List<Interceptor> interceptors,)
+DioRegistry.cacheTtl	static Duration?
+DioRegistry.clearCache	static void ()
+DioRegistry.dio	Dio
+DioRegistry.dispose	static void (String baseUrl)
+DioRegistry.forBaseUrl	static DioRegistry (String baseUrl, { BaseOptions? options, List<Interceptor>? interceptors, })
+DioRegistry.maxCachedInstances	static int?
+DioRegistry.maybeForBaseUrl	static Dio? (String baseUrl)
+IApiPath	class
+IApiPath.baseUrl	String
+WApiBody	class
+WApiBody.bytes	(List<int> bytes, {this.contentType})
+WApiBody.contentType	String?
+WApiBody.data	Object?
+WApiBody.form	(Map<String, Object?> fields)
+WApiBody.json	(Object? value)
+WApiBody.kind	WApiBodyKind
+WApiBody.multipart	({ Map<String, Object?> fields = const {}, Map<String, MultipartFile> files = const {}, })
+WApiBodyKind	enum
+WApiBodyKind.bytes	enum
+WApiBodyKind.form	enum
+WApiBodyKind.json	enum
+WApiBodyKind.multipart	enum
+WApiClient	class
+WApiClient.dio	Dio
+WApiClient.download	Future<Uint8List> (String path, { Map<String, Object?>? query, Map<String, String>? pathParameters, void Function(int received, int total)? onProgress, CancelToken? cancelToken, Map<String, String>? headers, })
+WApiClient.new	(this._dio, { WApiEnvelopeParser? envelope, this.onAuthFailure, })
+WApiClient.onAuthFailure	void Function(WApiException error)?
+WApiConfig	class
+WApiConfig.Duration	receiveTimeout: const (seconds: 50)
+WApiConfig._	()
+WApiConfig.baseOptions	static BaseOptions
+WApiConfig.logDebugHandler	static void Function(dynamic message)?
+WApiConfig.logErrorHandler	static void Function(dynamic message)?
+WApiConfig.reset	static void ()
+WApiDecoder	typedef WApiDecoder<T> = T Function(Object? json);
+WApiDecoders	class
+WApiDecoders.jsonMap	static WApiDecoder<Map<String, dynamic>>
+WApiDecoders.none	static WApiDecoder<void>
+WApiEnvelopeParser	class
+WApiEnvelopeParser.authFailureCodes	Set<Object?>
+WApiEnvelopeParser.isSuccess	bool Function(Object? code)
+WApiEnvelopeParser.new	({ required this.readCode, required this.readData, required this.isSuccess, this.readMessage, this.authFailureCodes = const {}, })
+WApiEnvelopeParser.readCode	Object? Function(Object? json)
+WApiEnvelopeParser.readData	Object? Function(Object? json)
+WApiEnvelopeParser.readMessage	String? Function(Object? json)?
+WApiErrorKind	enum
+WApiErrorKind.business	enum
+WApiErrorKind.canceled	enum
+WApiErrorKind.client	enum
+WApiErrorKind.decode	enum
+WApiErrorKind.forbidden	enum
+WApiErrorKind.network	enum
+WApiErrorKind.notFound	enum
+WApiErrorKind.server	enum
+WApiErrorKind.timeout	enum
+WApiErrorKind.unauthorized	enum
+WApiErrorKind.unknown	enum
+WApiException	class
+WApiException.businessCode	Object?
+WApiException.cause	Object?
+WApiException.from	(DioException error)
+WApiException.kind	WApiErrorKind
+WApiException.message	String?
+WApiException.new	(this.kind, { this.statusCode, this.businessCode, this.message, this.cause, this.payload, })
+WApiException.payload	Object?
+WApiException.requiresLogin	bool
+WApiException.statusCode	int?
+WApiException.toString	String ()
+WApiMetric	class
+WApiMetric.duration	Duration
+WApiMetric.error	Object?
+WApiMetric.failed	bool
+WApiMetric.method	String
+WApiMetric.new	({ required this.method, required this.uri, required this.duration, this.statusCode, this.failed = false, this.error, })
+WApiMetric.path	String
+WApiMetric.statusCode	int?
+WApiMetric.toString	String ()
+WApiMetric.uri	Uri
+WApiMetricsInterceptor	class
+WApiMetricsInterceptor.new	({ required this.onMetric, this.sampleRate = 1.0, })
+WApiMetricsInterceptor.onError	void (DioException err, ErrorInterceptorHandler handler)
+WApiMetricsInterceptor.onMetric	void Function(WApiMetric metric)
+WApiMetricsInterceptor.onRequest	void (RequestOptions options, RequestInterceptorHandler handler,)
+WApiMetricsInterceptor.onResponse	void (Response response, ResponseInterceptorHandler handler)
+WApiMetricsInterceptor.sampleRate	double
+WApiResponse	class
+WApiResponse.data	T
+WApiResponse.headers	Headers
+WApiResponse.new	({ required this.data, required this.statusCode, required this.headers, required this.requestOptions, })
+WApiResponse.requestOptions	RequestOptions
+WApiResponse.statusCode	int?
+WApiResponse.uri	Uri
+WLogInterceptor	class
+WLogInterceptor.defaultMaxBodyLength	int
+WLogInterceptor.defaultRedactedHeaders	Set<String>
+WLogInterceptor.defaultSensitiveBodyKeys	Set<String>
+WLogInterceptor.defaultSensitiveQueryKeys	Set<String>
+WLogInterceptor.enableLog	bool
+WLogInterceptor.maxBodyLength	int
+WLogInterceptor.new	({ Set<WLogPart>? parts, this.enableLog = true, Set<String>? redactedHeaders, this.maxBodyLength = defaultMaxBodyLength, Set<String>? sensitiveQueryKeys, Set<String>? sensitiveBodyKeys, })
+WLogInterceptor.onError	void (DioException err, ErrorInterceptorHandler handler)
+WLogInterceptor.onRequest	void (RequestOptions options, RequestInterceptorHandler handler,)
+WLogInterceptor.onResponse	void (Response response, ResponseInterceptorHandler handler)
+WLogInterceptor.parts	Set<WLogPart>?
+WLogInterceptor.redactedHeaders	Set<String>
+WLogInterceptor.sensitiveBodyKeys	Set<String>
+WLogInterceptor.sensitiveQueryKeys	Set<String>
+WLogPart	enum
+WLogPart.error	enum
+WLogPart.errorHint	enum
+WLogPart.request	enum
+WLogPart.requestBody	enum
+WLogPart.requestHeader	enum
+WLogPart.responseBody	enum
+WLogPart.responseHeader	enum
+WPage	class
+WPage.hasMore	bool
+WPage.items	List<T>
+WPage.new	({ required this.items, required this.page, required this.pageSize, this.total, })
+WPage.page	int
+WPage.pageSize	int
+WPage.total	int?
+WPageQuery	class
+WPageQuery.new	({ this.page = 1, this.pageSize = 20, this.pageKey = 'page', this.pageSizeKey = 'pageSize', })
+WPageQuery.page	int
+WPageQuery.pageKey	String
+WPageQuery.pageSize	int
+WPageQuery.pageSizeKey	String
+WPageQuery.toQuery	Map<String, Object?> ()
+WRetryInterceptor	class
+WRetryInterceptor.baseDelay	Duration
+WRetryInterceptor.bindDio	void (Dio dio)
+WRetryInterceptor.jitter	bool
+WRetryInterceptor.maxDelay	Duration
+WRetryInterceptor.maxRetries	int
+WRetryInterceptor.new	({ this.maxRetries = 2, this.baseDelay = const Duration(milliseconds: 300), this.maxDelay = const Duration(seconds: 5), Set<String>? retryOnMethods, Set<int>? retryOnStatusCodes, this.retryOnConnectionErrors = true, this.jitter = true, this.onRetry, this.shouldRetry, Dio? dio, })
+WRetryInterceptor.onError	Future<void> (DioException err, ErrorInterceptorHandler handler,)
+WRetryInterceptor.onRetry	void Function(int attempt, DioException error)?
+WRetryInterceptor.retryOnConnectionErrors	bool
+WRetryInterceptor.retryOnMethods	Set<String>
+WRetryInterceptor.retryOnStatusCodes	Set<int>
+WRetryInterceptor.shouldRetry	bool Function(DioException error)?
+WTokenInterceptor	class
+WTokenInterceptor.bindDio	void (Dio dio)
+WTokenInterceptor.configureRequest	void Function(RequestOptions)?
+WTokenInterceptor.configureResponse	void Function(Response)?
+WTokenInterceptor.maxAuthRetries	int
+WTokenInterceptor.new	({ this.tokenGetter, this.tokenClearer, this.tokenRefresher, this.configureRequest, this.configureResponse, this.observeError, this.onAuthFailure, this.unauthorizedStatusCode = 401, this.maxAuthRetries = 1, Dio? dio, })
+WTokenInterceptor.observeError	void Function(DioException)?
+WTokenInterceptor.onAuthFailure	void Function(DioException)?
+WTokenInterceptor.onError	Future<void> (DioException err, ErrorInterceptorHandler handler,)
+WTokenInterceptor.onRequest	void (RequestOptions options, RequestInterceptorHandler handler,)
+WTokenInterceptor.onResponse	void (Response response, ResponseInterceptorHandler handler)
+WTokenInterceptor.tokenClearer	Future<void> Function()?
+WTokenInterceptor.tokenGetter	String? Function()?
+WTokenInterceptor.tokenRefresher	Future<String?> Function()?
+WTokenInterceptor.unauthorizedStatusCode	int
