@@ -30,7 +30,7 @@ void main() {
       final formData = WFormController();
       return MaterialApp(
         home: Scaffold(
-          body: WFormScope(
+          body: themedScope(
             formData: formData,
             child: WFormDropdownCore<String>(
               name: name,
@@ -135,7 +135,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               child: WFormDropdownCore<String>(
                 name: 'fruit',
@@ -209,7 +209,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: formBorderCfg.buildStyle(),
               child: assembleFormField(
@@ -239,7 +239,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: WFormController(),
               formBorderStyle: formBorderCfg.buildStyle(),
               child: assembleFormField(
@@ -296,7 +296,7 @@ void main() {
     final formData = WFormController();
     return MaterialApp(
       home: Scaffold(
-        body: WFormScope(
+        body: themedScope(
           formData: formData,
           child: WFormMultiDropdownCore(
             name: name,
@@ -469,7 +469,7 @@ void main() {
       final container = tester.widget<Container>(
         find
             .descendant(
-              of: find.byType(WFormMultiDropdownCore),
+              of: find.byType(WFormMultiDropdownCore<String>),
               matching: find.byType(Container),
             )
             .first,

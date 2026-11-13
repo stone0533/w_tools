@@ -13,7 +13,7 @@ import 'border_layout.dart';
 class WFormBorder extends StatefulWidget {
   /// 创建表单边框容器
   ///
-  /// [style] 为 null 时继承祖先 [WFormScope.formBorderStyle]。
+  /// [style] 为 null 时不渲染装饰；由 `WFormFieldShell` 传入生效样式。
   const WFormBorder({
     super.key,
     this.style,
@@ -41,7 +41,7 @@ class WFormBorder extends StatefulWidget {
   /// 是否聚焦
   final bool? isFocused;
 
-  /// 边框配置（为 null 时继承祖先 WFormScope.formBorderStyle）
+  /// 边框配置（为 null 时不渲染装饰）
   final WFormBorderStyle? style;
 
   /// 错误通道：非 null 时显示为错误态，list 交给 `errorBuilder` 渲染
@@ -59,7 +59,7 @@ class WFormBorder extends StatefulWidget {
 
 /// WFormBorder 的状态类
 class WFormBorderState extends State<WFormBorder> {
-  /// 当前生效的边框配置（显式传入或继承自 [WFormScope.formBorderStyle]）
+  /// 当前生效的边框配置（显式传入或默认空配置）
   late WFormBorderStyle style;
 
   /// 是否有错误
@@ -79,7 +79,7 @@ class WFormBorderState extends State<WFormBorder> {
   bool _hasInlineError = false;
 
   /// 缓存的装饰对象
-  WFormBorderDecoration? _cachedDecoration;
+  BoxDecoration? _cachedDecoration;
 
   /// 缓存的 BoxDecoration 对象
   BoxDecoration? _cachedBoxDecoration;
@@ -122,7 +122,7 @@ class WFormBorderState extends State<WFormBorder> {
   void initState() {
     super.initState();
     // initState 中不能读取 InheritedWidget：先用显式配置或空配置占位，
-    // 继承 WFormScope.formBorderStyle 在 didChangeDependencies 中完成
+    // 样式在 initState / didUpdateWidget 中同步
     style = widget.style ?? const WFormBorderStyle();
     _styleReady = true;
     _ownChannel = widget.errorChannel == null ? ValueNotifier<List<String>?>(null) : null;
@@ -164,12 +164,11 @@ class WFormBorderState extends State<WFormBorder> {
     super.dispose();
   }
 
-  /// 同步生效配置：显式传入优先，否则继承最近的 [WFormBorderStyleScope]。
+  /// 同步生效配置：显式传入优先，否则用空配置（不渲染装饰）。
   ///
   /// 用 `==`（值比较）而不是快照：内置工厂不再产生闭包，值相等的配置不会触发重建。
   void _syncStyle() {
-    final resolved =
-        widget.style ?? WFormBorderStyleScope.maybeOf(context) ?? const WFormBorderStyle();
+    final resolved = widget.style ?? const WFormBorderStyle();
     if (_styleReady && resolved == style) return;
     style = resolved;
     _styleReady = true;
@@ -186,7 +185,7 @@ class WFormBorderState extends State<WFormBorder> {
   }
 
   /// 获取当前状态对应的装饰（带缓存，状态未变时复用上次结果）
-  WFormBorderDecoration? _getDecoration() {
+  BoxDecoration? _getDecoration() {
     final key = (
       transparent: widget.isTransparentBackground,
       readOnly: widget.isReadOnly,
@@ -199,7 +198,7 @@ class WFormBorderState extends State<WFormBorder> {
     }
     _decorationKey = key;
 
-    WFormBorderDecoration? decoration;
+    BoxDecoration? decoration;
     if (key.isError) {
       // 错误态优先于透明背景：校验反馈不应因背景透明而丢失
       decoration = style.errorDecoration ?? style.defaultDecoration;
@@ -214,8 +213,10 @@ class WFormBorderState extends State<WFormBorder> {
     }
 
     _cachedDecoration = decoration;
-    _cachedBoxDecoration = decoration?.toBoxDecoration();
-    _cachedBorderRadius = decoration?.borderRadius;
+    _cachedBoxDecoration = decoration;
+    final radius = decoration?.borderRadius;
+    // ClipRRect 只接受 BorderRadius；Directional 圆角不参与裁剪，但装饰仍然生效。
+    _cachedBorderRadius = radius is BorderRadius ? radius : null;
 
     return decoration;
   }
@@ -284,10 +285,10 @@ class WFormBorderState extends State<WFormBorder> {
 ///
 /// 本类为不可变配置；修改实例用 copyWith。
 class WFormBorderStyle {
-  final WFormBorderDecoration? defaultDecoration;
-  final WFormBorderDecoration? readOnlyDecoration;
-  final WFormBorderDecoration? errorDecoration;
-  final WFormBorderDecoration? focusedDecoration;
+  final BoxDecoration? defaultDecoration;
+  final BoxDecoration? readOnlyDecoration;
+  final BoxDecoration? errorDecoration;
+  final BoxDecoration? focusedDecoration;
 
   /// hint / error 文案的默认文字样式。
   ///
@@ -326,7 +327,7 @@ class WFormBorderStyle {
     TextStyle? hintStyle,
     TextStyle? errorStyle,
   }) {
-    final base = WFormBorderDecoration(
+    final base = BoxDecoration(
       color: backgroundColor,
       border: Border.all(color: borderColor),
       borderRadius: BorderRadius.circular(radius),
@@ -369,7 +370,7 @@ class WFormBorderStyle {
     TextStyle? errorStyle,
   }) {
     final scheme = theme.colorScheme;
-    final base = WFormBorderDecoration(
+    final base = BoxDecoration(
       color: scheme.surface,
       border: Border.all(color: scheme.outlineVariant),
       borderRadius: BorderRadius.circular(radius),
@@ -396,10 +397,10 @@ class WFormBorderStyle {
   }
 
   WFormBorderStyle copyWith({
-    WFormBorderDecoration? defaultDecoration,
-    WFormBorderDecoration? readOnlyDecoration,
-    WFormBorderDecoration? errorDecoration,
-    WFormBorderDecoration? focusedDecoration,
+    BoxDecoration? defaultDecoration,
+    BoxDecoration? readOnlyDecoration,
+    BoxDecoration? errorDecoration,
+    BoxDecoration? focusedDecoration,
     TextStyle? hintStyle,
     TextStyle? errorStyle,
     Widget Function(List<String>? list)? hintBuilder,
@@ -444,142 +445,4 @@ class WFormBorderStyle {
     errorBuilder,
     layout,
   );
-}
-
-/// 表单边框装饰类，定义边框、背景色、圆角、阴影和渐变等样式
-class WFormBorderDecoration {
-  /// 边框（支持 `Border` 与 `BorderDirectional`）
-  final BoxBorder? border;
-
-  /// 背景颜色
-  final Color? color;
-
-  /// 边框圆角
-  final BorderRadius? borderRadius;
-
-  /// 阴影
-  final List<BoxShadow>? boxShadow;
-
-  /// 渐变
-  final Gradient? gradient;
-
-  /// 创建边框装饰
-  const WFormBorderDecoration({
-    this.border,
-    this.color,
-    this.borderRadius,
-    this.boxShadow,
-    this.gradient,
-  });
-
-  /// 转换为 [BoxDecoration]
-  BoxDecoration toBoxDecoration() {
-    return BoxDecoration(
-      border: border,
-      color: color,
-      borderRadius: borderRadius,
-      boxShadow: boxShadow,
-      gradient: gradient,
-    );
-  }
-
-  /// 创建当前装饰的副本，并可以选择性地更新某些属性
-  ///
-  /// 参数为 null 表示沿用原值。
-  WFormBorderDecoration copyWith({
-    BoxBorder? border,
-    Color? color,
-    BorderRadius? borderRadius,
-    List<BoxShadow>? boxShadow,
-    Gradient? gradient,
-  }) {
-    return WFormBorderDecoration(
-      border: border ?? this.border,
-      color: color ?? this.color,
-      borderRadius: borderRadius ?? this.borderRadius,
-      boxShadow: boxShadow ?? this.boxShadow,
-      gradient: gradient ?? this.gradient,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      other is WFormBorderDecoration &&
-      other.border == border &&
-      other.color == color &&
-      other.borderRadius == borderRadius &&
-      listEquals(other.boxShadow, boxShadow) &&
-      other.gradient == gradient;
-
-  @override
-  int get hashCode => Object.hash(
-    border,
-    color,
-    borderRadius,
-    boxShadow == null ? null : Object.hashAll(boxShadow!),
-    gradient,
-  );
-}
-
-/// WFormBorderDecoration 扩展，提供链式调用方法
-extension WFormBorderDecorationExtension on WFormBorderDecoration {
-  /// 设置边框
-  WFormBorderDecoration withBorder(BoxBorder border) {
-    return copyWith(border: border);
-  }
-
-  /// 设置背景颜色
-  WFormBorderDecoration withColor(Color color) {
-    return copyWith(color: color);
-  }
-
-  /// 设置边框圆角
-  WFormBorderDecoration withBorderRadius(BorderRadius borderRadius) {
-    return copyWith(borderRadius: borderRadius);
-  }
-
-  /// 设置阴影
-  WFormBorderDecoration withBoxShadow(List<BoxShadow> boxShadow) {
-    return copyWith(boxShadow: boxShadow);
-  }
-
-  /// 设置渐变
-  WFormBorderDecoration withGradient(Gradient gradient) {
-    return copyWith(gradient: gradient);
-  }
-
-  /// 设置统一的边框宽度和颜色
-  WFormBorderDecoration withUniformBorder(double width, Color color) {
-    return copyWith(
-      border: Border.all(width: width, color: color),
-    );
-  }
-
-  /// 设置统一的边框圆角
-  WFormBorderDecoration withUniformBorderRadius(double radius) {
-    return copyWith(borderRadius: BorderRadius.all(Radius.circular(radius)));
-  }
-}
-
-/// 边框配置作用域。
-///
-/// WFormScope / WFormTheme 只负责写入本作用域；WFormBorder 只读取最近的作用域，
-/// 不再反向依赖表单 Scope 或主题，从而避免循环 import。
-class WFormBorderStyleScope extends InheritedWidget {
-  const WFormBorderStyleScope({
-    super.key,
-    required this.style,
-    required super.child,
-  });
-
-  final WFormBorderStyle? style;
-
-  static WFormBorderStyle? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<WFormBorderStyleScope>()?.style;
-  }
-
-  @override
-  bool updateShouldNotify(WFormBorderStyleScope oldWidget) {
-    return style != oldWidget.style;
-  }
 }

@@ -202,7 +202,6 @@ void main() {
         'WFormFieldStyle',
         'WFormValidatorSettings',
         'WFormBorder',
-        'WFormBorderDecoration',
         'WFormIcons',
         'WFormFieldStyleScope',
         'WFormValidatorItem',

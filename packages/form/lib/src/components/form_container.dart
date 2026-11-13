@@ -118,12 +118,12 @@ class _WFormState extends State<WForm> {
     widget.controller.validatorSettings = _settings;
   }
 
-  /// 边框配置解析：显式参数 > 祖先 [WFormBorderStyleScope] > 主题派生默认值。
+  /// 边框配置解析：显式参数 > 祖先 [WFormThemeData] > 主题派生默认值。
   WFormBorderStyle? _resolveBorderStyle(BuildContext context) {
     final explicit = widget.borderStyle;
     if (explicit != null) return explicit;
 
-    final inherited = WFormBorderStyleScope.maybeOf(context);
+    final inherited = WFormThemeData.of(context)?.borderStyle;
     if (inherited != null) return inherited;
 
     final theme = Theme.of(context);

@@ -120,7 +120,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: data,
               child: const Column(
                 children: [

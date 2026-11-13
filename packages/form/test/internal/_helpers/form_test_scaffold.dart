@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:w_tools_form/src/components/border/border_access.dart' as access;
+import 'package:w_tools_form/src/components/border/border_registry.dart';
 import 'package:w_tools_form/src/components/field_assembly.dart';
 import 'package:w_tools_form/src/components/fields/checkbox.dart';
 import 'package:w_tools_form/src/components/field_button.dart';
@@ -8,10 +10,15 @@ import 'package:w_tools_form/src/components/fields/text_field.dart';
 import 'package:w_tools_form/src/components/fields/radio_group.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
+/// 测试专用：读取 controller 的边框错误通道。
+///
+/// 生产 API 不再暴露 `WFormController.borders`；这个 helper 只给测试用。
+WFormBorderRegistry formBordersOf(WFormController form) => access.bordersOf(form);
+
 /// 在测试中 pump 一个带 WFormScope 的完整 scaffold
 ///
 /// 所有 form Widget 都必须放在 WFormScope 下面才能正常工作
-/// （WFormTextFieldCore 通过 context.visitAncestorElements 查找它）
+/// （核心组件通过 WFormScope 的 InheritedWidget 查找 controller）。
 ///
 /// [formBorderStyle] 未显式传入时，使用一个只提供文案渲染的最小配置
 /// （生产代码不再内置默认主题，测试里需要能断言错误/提示文本）。
@@ -24,15 +31,38 @@ Future<void> pumpForm(
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: WFormScope(
-          formData: formData ?? WFormController(),
-          formBorderStyle: formBorderStyle ?? terseBorderStyle(),
-          child: child,
+        body: WFormTheme(
+          borderStyle: formBorderStyle ?? terseBorderStyle(),
+          child: WFormScope(
+            formData: formData ?? WFormController(),
+            child: child,
+          ),
         ),
       ),
     ),
   );
   await tester.pump();
+}
+
+/// 测试专用：`WFormScope` + 外层 `WFormTheme(borderStyle:)`。
+///
+/// 7.0 起 `WFormScope` 不再接受 `formBorderStyle`；测试要配边框就包这一层。
+Widget themedScope({
+  required WFormController formData,
+  required Widget child,
+  WFormBorderStyle? formBorderStyle,
+  AutovalidateMode? autovalidateMode,
+  ValueChanged<Map<String, dynamic>>? onChanged,
+}) {
+  return WFormTheme(
+    borderStyle: formBorderStyle,
+    child: WFormScope(
+      formData: formData,
+      autovalidateMode: autovalidateMode,
+      onChanged: onChanged,
+      child: child,
+    ),
+  );
 }
 
 /// 测试用最小边框配置：只提供文案渲染能力，不设置任何装饰
@@ -55,10 +85,10 @@ WFormBorderStyle terseBorderStyle() {
 /// 生产 API 的 `WFormBorderStyleBuilder` 已在 4.0 删除；测试保留一个等价 helper，
 /// 避免每个用例重复写构造参数。
 class TestFormBorderBuilder {
-  WFormBorderDecoration? defaultDecoration;
-  WFormBorderDecoration? readOnlyDecoration;
-  WFormBorderDecoration? errorDecoration;
-  WFormBorderDecoration? focusedDecoration;
+  BoxDecoration? defaultDecoration;
+  BoxDecoration? readOnlyDecoration;
+  BoxDecoration? errorDecoration;
+  BoxDecoration? focusedDecoration;
   TextStyle? hintStyle;
   TextStyle? errorStyle;
   Widget Function(List<String>? list)? hintBuilder;

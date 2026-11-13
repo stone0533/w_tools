@@ -1,7 +1,7 @@
 part of 'multi_dropdown.dart';
 
 /// 内部多选下拉框组件
-class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
+class _WFormMultiDropdown<T> extends FormBuilderField<Set<T>> {
   /// 图标大小
   final double? iconSize;
 
@@ -17,7 +17,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
   final Color? iconEnabledColor;
 
   /// 选项映射，键为值，值为显示文本
-  final Map<String, String> items;
+  final Map<T, String> items;
 
   /// 未选中状态的复选框图标
   final Widget? checkboxUnselectedIcon;
@@ -50,7 +50,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
   final String? hintText;
 
   /// 禁用的键
-  final Set<String> disabledKeys;
+  final Set<T> disabledKeys;
 
   /// 选项项内边距
   final EdgeInsetsGeometry? itemPadding;
@@ -89,7 +89,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
     this.popUpLayerElevation,
     this.popUpLayerShadowColor,
     this.hintText,
-    this.disabledKeys = const <String>{},
+    this.disabledKeys = const <Never>{},
     this.itemPadding,
     this.itemStyle,
     this.itemCheckedStyle,
@@ -97,12 +97,12 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
     this.itemTitlePadding,
     super.focusNode,
   }) : super(
-         builder: (FormFieldState<Set<String>?> field) {
-           final state = field as _WFormMultiDropdownState;
+         builder: (FormFieldState<Set<T>?> field) {
+           final state = field as _WFormMultiDropdownState<T>;
            final theme = WFormThemeData.of(state.context);
 
            // 按已选顺序拼接显示文本
-           final selectedValues = state.value ?? const <String>{};
+           final selectedValues = state.value ?? const <Never>{};
            final title = selectedValues.map((key) => items[key]).whereType<String>().join(', ');
 
            // 未选择任何项时显示占位文本（未配置 hintText 就不显示）
@@ -136,7 +136,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                                return Container(
                                  width: double.infinity,
                                  padding: popUpLayerPadding,
-                                 child: ValueListenableBuilder<Set<String>>(
+                                 child: ValueListenableBuilder<Set<T>>(
                                    valueListenable: state.selection,
                                    builder: (context, selection, _) => SingleChildScrollView(
                                      child: Wrap(
@@ -154,7 +154,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                                            status = _WFormMultiDropdownItemStatus.disable;
                                          }
 
-                                         return _WFormMultiDropdownItem(
+                                         return _WFormMultiDropdownItem<T>(
                                            value: e.key,
                                            title: e.value,
                                            disabled: isDisabled,
@@ -171,7 +171,7 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
                                            onTap: (v, isChecked) {
                                              // 弹层挂在 Navigator 上，可能比字段活得久
                                              if (!state.mounted) return;
-                                             final selected = <String>{...?state.value};
+                                             final selected = <T>{...?state.value};
                                              if (isChecked) {
                                                selected.add(v);
                                              } else {
@@ -231,24 +231,24 @@ class _WFormMultiDropdown extends FormBuilderField<Set<String>> {
        );
 
   @override
-  FormBuilderFieldState<_WFormMultiDropdown, Set<String>> createState() =>
-      _WFormMultiDropdownState();
+  FormBuilderFieldState<_WFormMultiDropdown<T>, Set<T>> createState() =>
+      _WFormMultiDropdownState<T>();
 }
 
 /// 多选字段 state：用 [ValueNotifier] 让已打开的弹层跟随外部值变化。
-class _WFormMultiDropdownState extends FormBuilderFieldState<_WFormMultiDropdown, Set<String>> {
-  final ValueNotifier<Set<String>> selection = ValueNotifier<Set<String>>(const {});
+class _WFormMultiDropdownState<T> extends FormBuilderFieldState<_WFormMultiDropdown<T>, Set<T>> {
+  final ValueNotifier<Set<T>> selection = ValueNotifier<Set<T>>(const {});
 
   @override
   void initState() {
     super.initState();
-    selection.value = widget.initialValue ?? const <String>{};
+    selection.value = widget.initialValue ?? const <Never>{};
   }
 
   @override
-  void didChange(Set<String>? value) {
+  void didChange(Set<T>? value) {
     super.didChange(value);
-    selection.value = value ?? const <String>{};
+    selection.value = value ?? const <Never>{};
   }
 
   @override

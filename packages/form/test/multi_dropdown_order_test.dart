@@ -19,7 +19,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byType(WFormMultiDropdown));
+    await tester.tap(find.byType(WFormMultiDropdown<String>));
     await tester.pumpAndSettle();
 
     // 先选 B，再选 A：展示必须按点击先后拼成 "B, A"。

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/src/components/fields/checkbox.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/border/border_access.dart';
 import 'package:w_tools_form/src/components/fields/dropdown.dart';
 import 'package:w_tools_form/src/components/fields/text_field.dart';
 
@@ -169,7 +170,7 @@ void main() {
       ),
     );
 
-    expect(form.borders.has('email'), isTrue);
+    expect(bordersOf(form).has('email'), isTrue);
     form.setError('email', errorTextList: const ['邮箱错误']);
     await tester.pump();
     expect(tester.takeException(), isNull);
@@ -442,7 +443,7 @@ void main() {
     );
 
     form.setValue<String>('email', 'changed');
-    form.updateValue<bool>('agree', true);
+    form.setValue<bool>('agree', true);
     await tester.pump();
     expect(form.getFieldsValue<String>('email'), 'changed');
     expect(form.formEntered['agree'], isTrue);

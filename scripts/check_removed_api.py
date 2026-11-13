@@ -62,6 +62,11 @@ names = [
     # form 6.0：实时派生 formEntered / 内部边框登记收口后删除的公开名。
     r'pruneFormEntered', r'removeFormEntered', r'hasBorder', r'errorChannelOf',
     r'registerBorder', r'unregisterBorder', r'removeErrorChannel',
+    # form 7.0：controller 边框通道 / 纯静态工厂 / 冗余 copy 收口。
+    r'WFormController\.borders', r'WFormController\.updateValue\b', r'WFormController\.handleChange\b',
+    r'WFormScope\.formBorderStyle\b',
+    r'WFormInputFormatters\(\)', r'WFormInputFormatters\.phone\b',
+    r'WFormValidatorSettings\.copy\b', r'\bWFormBorderDecoration\b', r'WFormBorderDecorationExtension',
     # qr 2.0：控制器归调用方、样式收口、结果结构化后移除的公开名。
     r'WQrViewState', r'WQrViewOverlayShape', r'onQRViewCreated', r'noPermissionCallback',
     r'checkedBorderColor', r'showOverlay', r'restartScan', r'scanInvert', r'WQrController\.internal',

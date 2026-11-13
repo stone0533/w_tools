@@ -56,6 +56,9 @@ class WFormTextFieldCore extends StatefulWidget {
   /// 最大行数
   final int? maxLines;
 
+  /// 最大字符数（null 表示不限制）
+  final int? maxLength;
+
   /// 键盘动作
   final TextInputAction? textInputAction;
 
@@ -104,7 +107,6 @@ class WFormTextFieldCore extends StatefulWidget {
   /// 是否只读
   final bool readOnly;
 
-  /// 是否启用（null 时读取 [enabled]）
   /// 是否启用（只读作用域仍会覆盖）
   final bool enabled;
 
@@ -140,6 +142,7 @@ class WFormTextFieldCore extends StatefulWidget {
     this.textAlign,
     this.autofocus,
     this.maxLines,
+    this.maxLength,
     this.textInputAction,
     this.height,
     this.width,
@@ -231,7 +234,7 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
     // 值变化回调：同步 ValueNotifier + FormData + 用户回调
     void onChanged(String? value) {
       _valueNotifier.value = value;
-      _formData.handleChange(widget.name, value);
+      _formData.clearError(widget.name);
       widget.onChanged?.call(value);
     }
 
@@ -242,7 +245,7 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
     final readOnly = _effectiveReadOnly;
 
     final customDecoration = widget.decoration;
-    final hintText = widget.hintText ?? widget.hintText ?? customDecoration?.hintText;
+    final hintText = widget.hintText ?? customDecoration?.hintText;
 
     return WFormTextFieldScope._(
       state: this,
@@ -301,6 +304,7 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
           autofocus: widget.autofocus ?? false,
           autocorrect: false,
           maxLines: widget.maxLines ?? 1,
+          maxLength: widget.maxLength,
           onSubmitted: widget.onSubmitted,
           onEditingComplete: widget.onEditingComplete,
         ),

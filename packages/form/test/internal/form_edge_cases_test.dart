@@ -18,7 +18,7 @@ void main() {
       final data = WFormController();
       await pumpForm(tester, formData: data, child: child);
 
-      data.updateValue<Object?>(name, value);
+      data.setValue<Object?>(name, value);
       await tester.pump();
       expect(data.formEntered[name], isTrue);
 

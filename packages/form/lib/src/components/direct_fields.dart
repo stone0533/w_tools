@@ -119,6 +119,8 @@ class WFormTextField extends _WFormDirectField {
     this.keyboardType,
     this.textInputAction,
     this.maxLines,
+    this.maxLength,
+    this.textAlign,
     this.inputFormatters,
     super.actions,
     super.leading,
@@ -145,6 +147,12 @@ class WFormTextField extends _WFormDirectField {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final int? maxLines;
+
+  /// 最大字符数（null 表示不限制）
+  final int? maxLength;
+
+  /// 文本对齐；默认由平台 / Material 决定
+  final TextAlign? textAlign;
   final List<TextInputFormatter>? inputFormatters;
 
   /// 正文样式（未传时取 `WForm.fieldStyle`）
@@ -176,6 +184,8 @@ class WFormTextField extends _WFormDirectField {
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       maxLines: maxLines,
+      maxLength: maxLength,
+      textAlign: textAlign,
       inputFormatters: inputFormatters,
       actions: actions,
       leading: leading,
@@ -183,6 +193,11 @@ class WFormTextField extends _WFormDirectField {
   }
 }
 
+/// 下拉选择字段。
+///
+/// [items] 的 key 是字段值、value 是展示文本，值类型由泛型 [T] 决定；
+/// 未选择时的占位文案用 [hintText]（[label] 是历史别名）。
+/// 在 `WForm` 子树内使用，边框 / 只读 / 校验由容器统一提供。
 class WFormDropdown<T> extends _WFormDirectField {
   const WFormDropdown({
     super.key,
@@ -201,11 +216,13 @@ class WFormDropdown<T> extends _WFormDirectField {
     super.isTransparentBackground,
     super.enableFocusBorder,
     this.icon,
+    this.iconSize,
     this.dropdownColor,
     this.contentPadding,
     super.leading,
     super.actions,
     this.focusNode,
+    this.style,
   });
 
   final Map<T, String> items;
@@ -219,10 +236,16 @@ class WFormDropdown<T> extends _WFormDirectField {
   @override
   final bool bordered;
   final Widget? icon;
+
+  /// 右侧图标尺寸；未传时用底层默认 24
+  final double? iconSize;
   final Color? dropdownColor;
   final EdgeInsetsGeometry? contentPadding;
 
   final FocusNode? focusNode;
+
+  /// 选项文字样式（未传时取 `WForm.fieldStyle`）
+  final TextStyle? style;
 
   @override
   Widget _buildField(
@@ -239,7 +262,8 @@ class WFormDropdown<T> extends _WFormDirectField {
       hintText: hintText ?? label,
       enabled: effectiveEnabled,
       icon: icon,
-      style: fieldStyle?.textStyle,
+      iconSize: iconSize,
+      style: style ?? fieldStyle?.textStyle,
       hintStyle: fieldStyle?.hintStyle,
       contentPadding: contentPadding,
       focusNode: focusNode,
@@ -252,7 +276,12 @@ class WFormDropdown<T> extends _WFormDirectField {
   }
 }
 
-class WFormMultiDropdown extends _WFormDirectField {
+/// 多选下拉字段（值为 `Set<T>`）。
+///
+/// 弹层由 `WFormPopup` 在锚点下方打开；[disabledKeys] 控制不可点击项，
+/// [itemStyle] / [itemCheckedStyle] / [itemDisabledStyle] 控制选项文字。
+/// 在 `WForm` 子树内使用，边框 / 只读 / 校验由容器统一提供。
+class WFormMultiDropdown<T> extends _WFormDirectField {
   const WFormMultiDropdown({
     super.key,
     required super.name,
@@ -274,7 +303,7 @@ class WFormMultiDropdown extends _WFormDirectField {
     this.checkboxUnselectedIcon,
     this.checkboxSelectedIcon,
     this.checkboxDisabledIcon,
-    this.disabledKeys = const <String>{},
+    this.disabledKeys = const <Never>{},
     this.itemStyle,
     this.itemCheckedStyle,
     this.itemDisabledStyle,
@@ -283,14 +312,14 @@ class WFormMultiDropdown extends _WFormDirectField {
     this.focusNode,
   });
 
-  final Map<String, String> items;
+  final Map<T, String> items;
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
   final String? hintText;
-  final Set<String>? initialValue;
-  final FormFieldValidator<Set<String>>? validator;
-  final ValueChanged<Set<String>>? onChanged;
+  final Set<T>? initialValue;
+  final FormFieldValidator<Set<T>>? validator;
+  final ValueChanged<Set<T>>? onChanged;
   @override
   final bool bordered;
   final Widget? icon;
@@ -298,7 +327,7 @@ class WFormMultiDropdown extends _WFormDirectField {
   final Widget? checkboxUnselectedIcon;
   final Widget? checkboxSelectedIcon;
   final Widget? checkboxDisabledIcon;
-  final Set<String> disabledKeys;
+  final Set<T> disabledKeys;
   final TextStyle? itemStyle;
   final TextStyle? itemCheckedStyle;
   final TextStyle? itemDisabledStyle;
@@ -311,7 +340,7 @@ class WFormMultiDropdown extends _WFormDirectField {
     WFormFieldStyle? fieldStyle,
     bool effectiveEnabled,
   ) {
-    return WFormMultiDropdownCore(
+    return WFormMultiDropdownCore<T>(
       name: name,
       items: items,
       initialValue: initialValue,
@@ -339,6 +368,11 @@ class WFormMultiDropdown extends _WFormDirectField {
   }
 }
 
+/// 日期选择字段。
+///
+/// 字段值固定存 ISO `yyyy-MM-dd`，显示格式由 [displayFormat] 决定（默认 `yMMMMd`）。
+/// 点击后调用系统 `showDatePicker`；`firstDate` / `lastDate` 默认 1900 / 2100。
+/// 在 `WForm` 子树内使用，边框 / 只读 / 校验由容器统一提供。
 class WFormDatePicker extends _WFormDirectField {
   const WFormDatePicker({
     super.key,
@@ -347,6 +381,7 @@ class WFormDatePicker extends _WFormDirectField {
     this.hintText,
     super.message,
     this.initialValue,
+    this.initialDate,
     this.firstDate,
     this.lastDate,
     this.displayFormat,
@@ -371,6 +406,9 @@ class WFormDatePicker extends _WFormDirectField {
   /// 占位符；优先于历史参数 [label]。
   final String? hintText;
   final String? initialValue;
+
+  /// 用 `DateTime` 给初值；与 [initialValue] 二选一，同时传时 [initialValue] 优先
+  final DateTime? initialDate;
   final DateTime? firstDate;
   final DateTime? lastDate;
 
@@ -398,7 +436,7 @@ class WFormDatePicker extends _WFormDirectField {
       name: name,
       firstDate: firstDate ?? DateTime(1900),
       lastDate: lastDate ?? DateTime(2100),
-      initialValue: initialValue,
+      initialValue: initialValue ?? initialDate?.toIso8601String().split('T').first,
       validator: validator,
       onChanged: onChanged,
       enabled: effectiveEnabled,
@@ -421,6 +459,10 @@ class WFormDatePicker extends _WFormDirectField {
   }
 }
 
+/// 复选框字段（布尔值）。
+///
+/// [title] 是整行的标题 widget；默认 `bordered: false`，与其余直接字段不同。
+/// 选中 / 未选中 / 禁用图标可通过同名参数或 `WFormIcons` 统一配置。
 class WFormCheckbox extends _WFormDirectField {
   const WFormCheckbox({
     super.key,
@@ -493,6 +535,10 @@ class WFormCheckbox extends _WFormDirectField {
   }
 }
 
+/// 单选组字段（单列布局）。
+///
+/// [items] 的 key 是字段值、value 是展示文本；[titleBuilder] / [itemExtraBuilder]
+/// 可定制每个选项；默认 `bordered: false`，与复选保持一致。
 class WFormRadioGroup<T> extends _WFormDirectField {
   const WFormRadioGroup({
     super.key,

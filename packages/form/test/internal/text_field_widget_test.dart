@@ -326,7 +326,7 @@ void main() {
       final formData = WFormController();
       Widget build(bool readOnly) => MaterialApp(
         home: Scaffold(
-          body: WFormScope(
+          body: themedScope(
             formData: formData,
             child: WFormReadOnlyScope(
               readOnly: readOnly,

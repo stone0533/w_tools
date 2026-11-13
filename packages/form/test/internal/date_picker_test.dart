@@ -3,6 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+
+import '_helpers/form_test_scaffold.dart';
 import 'package:w_tools_form/src/components/field_assembly.dart';
 import 'package:w_tools_form/src/components/fields/date_picker.dart';
 
@@ -24,7 +26,7 @@ void main() {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: WFormScope(
+      home: themedScope(
         formData: formData,
         child: child,
       ),

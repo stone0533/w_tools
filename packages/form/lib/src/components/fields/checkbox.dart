@@ -194,6 +194,6 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckboxCore, bool>
   void didChange(bool? value) {
     super.didChange(value);
     // 交互与表单 reset 都会经过 didChange，统一在此维护输入状态
-    _formData?.handleChange(widget.name, value);
+    _formData?.clearError(widget.name);
   }
 }

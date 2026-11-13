@@ -14,17 +14,17 @@ const exampleFieldStyle = WFormFieldStyle(
 
 /// 自定义边框：灰底 + 聚焦绿边 + 错误红边，消息使用自定义前缀。
 final exampleCompactBorderConfig = WFormBorderStyle(
-  defaultDecoration: WFormBorderDecoration(
+  defaultDecoration: BoxDecoration(
     color: const Color(0xFFF9FAFB),
     border: Border.all(color: const Color(0xFFE5E7EB)),
     borderRadius: BorderRadius.circular(8),
   ),
-  focusedDecoration: WFormBorderDecoration(
+  focusedDecoration: BoxDecoration(
     color: Colors.white,
     border: Border.all(color: const Color(0xFF059669), width: 1.5),
     borderRadius: BorderRadius.circular(8),
   ),
-  errorDecoration: WFormBorderDecoration(
+  errorDecoration: BoxDecoration(
     color: const Color(0xFFFFF1F2),
     border: Border.all(color: const Color(0xFFDC2626)),
     borderRadius: BorderRadius.circular(8),

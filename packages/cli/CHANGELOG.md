@@ -1,3 +1,8 @@
+## 1.20.27
+
+### Changed
+- catalog / `init` 版本约束同步 `w_tools_form` 7.0.0（公开面收口、字段参数补齐、controller 值 API 收敛）。
+
 ## 1.20.26
 
 ### Changed

@@ -19,6 +19,9 @@ class WFormDropdownCore<T> extends StatelessWidget {
   /// 右侧图标（null 时取 WFormTheme / WFormIcons 默认）
   final Widget? icon;
 
+  /// 右侧图标尺寸（null 时用 FormBuilderDropdown 默认 24）
+  final double? iconSize;
+
   /// 选项文字样式
   final TextStyle? style;
 
@@ -60,7 +63,8 @@ class WFormDropdownCore<T> extends StatelessWidget {
 
   /// 选项映射，键为值，值为显示文本
   ///
-  /// 初始值 / 字段值必须存在于 [items] 中，否则底层 `FormBuilderDropdown` 会断言失败。
+  /// 初始值 / 字段值应存在于 [items] 中；不在 items 时界面不显示该值，
+  /// 但表单里仍保留原值，调用方需自行保证一致性。
   final Map<T, String> items;
 
   /// 初始值
@@ -78,7 +82,6 @@ class WFormDropdownCore<T> extends StatelessWidget {
   /// 提示文本
   final String? hintText;
 
-  /// 是否启用（由字段参数 / 外层只读作用域决定）
   /// 是否启用（只读作用域仍会覆盖）
   final bool enabled;
 
@@ -98,6 +101,7 @@ class WFormDropdownCore<T> extends StatelessWidget {
     this.enabled = true,
     this.width,
     this.icon,
+    this.iconSize,
     this.style,
     this.hintStyle,
     this.contentPadding,
@@ -118,7 +122,7 @@ class WFormDropdownCore<T> extends StatelessWidget {
     final wFormData = WFormScope.requireOf(context);
 
     void onChangedHandler(T? value) {
-      wFormData.handleChange(name, value);
+      wFormData.clearError(name);
       onChanged?.call(value);
     }
 
@@ -171,6 +175,7 @@ class WFormDropdownCore<T> extends StatelessWidget {
         initialValue: initialValue,
         validator: validator,
         icon: icon ?? theme?.effectiveDropdownIcon ?? WFormIcons.defaults.dropdown,
+        iconSize: iconSize ?? 24,
         onChanged: onChangedHandler,
         hint: hintWidget,
         enabled: effectiveEnabled,

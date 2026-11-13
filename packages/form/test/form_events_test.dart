@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
+import 'internal/_helpers/form_test_scaffold.dart';
+
 void main() {
   testWidgets('WForm.onChanged 收到整表值', (tester) async {
     Map<String, dynamic>? changed;
@@ -166,7 +168,7 @@ void main() {
       ),
     );
 
-    expect(form.borders.has('plain'), isFalse);
+    expect(formBordersOf(form).has('plain'), isFalse);
     expect(
       () => form.setError('plain', errorTextList: const ['不会渲染']),
       throwsAssertionError,

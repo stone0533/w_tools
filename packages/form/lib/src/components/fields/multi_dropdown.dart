@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
@@ -14,12 +15,12 @@ part 'multi_dropdown_item.dart';
 
 /// 表单多选下拉框组件
 ///
-/// 点击后在锚点下方弹出可多选的选项列表，字段值为 `Set<String>`；
+/// 点击后在锚点下方弹出可多选的选项列表，字段值为 `Set<T>`（`T` 由 items 推断）；
 /// 未选择时的占位文本、禁用项、弹层外观与选项样式可通过
 /// 直接参数配置，只读状态会合并外层 [WFormReadOnlyScope]。
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
-class WFormMultiDropdownCore extends StatelessWidget {
+class WFormMultiDropdownCore<T> extends StatelessWidget {
   /// 输入装饰
   final InputDecoration? decoration;
 
@@ -60,7 +61,7 @@ class WFormMultiDropdownCore extends StatelessWidget {
   final Color? popUpLayerShadowColor;
 
   /// 禁用键
-  final Set<String> disabledKeys;
+  final Set<T> disabledKeys;
 
   /// 选项内边距
   final EdgeInsetsGeometry? itemPadding;
@@ -105,16 +106,16 @@ class WFormMultiDropdownCore extends StatelessWidget {
   final String name;
 
   /// 选项映射，键为值，值为显示文本
-  final Map<String, String> items;
+  final Map<T, String> items;
 
   /// 初始值
-  final Set<String>? initialValue;
+  final Set<T>? initialValue;
 
   /// 值变化回调（空集合表示未选择）
-  final ValueChanged<Set<String>>? onChanged;
+  final ValueChanged<Set<T>>? onChanged;
 
   /// 校验器
-  final FormFieldValidator<Set<String>>? validator;
+  final FormFieldValidator<Set<T>>? validator;
 
   /// 未选择时的展示文本（null 时使用 hintText；仍未配置则不显示占位）
   final String? hintText;
@@ -150,7 +151,7 @@ class WFormMultiDropdownCore extends StatelessWidget {
     this.popUpLayerPadding,
     this.popUpLayerElevation,
     this.popUpLayerShadowColor,
-    this.disabledKeys = const <String>{},
+    this.disabledKeys = const <Never>{},
     this.itemPadding,
     this.itemStyle,
     this.itemCheckedStyle,
@@ -170,9 +171,9 @@ class WFormMultiDropdownCore extends StatelessWidget {
   Widget build(BuildContext context) {
     final wFormData = WFormScope.requireOf(context);
 
-    void onChangedHandler(Set<String>? value) {
-      final selected = value ?? const <String>{};
-      wFormData.handleChange(name, selected);
+    void onChangedHandler(Set<T>? value) {
+      final selected = value ?? const <Never>{};
+      wFormData.clearError(name);
       onChanged?.call(selected);
     }
 
@@ -185,7 +186,7 @@ class WFormMultiDropdownCore extends StatelessWidget {
       yOffset: yOffset,
       leading: leading,
       actions: actions,
-      child: _WFormMultiDropdown(
+      child: _WFormMultiDropdown<T>(
         name: name,
         items: items,
         initialValue: initialValue,
@@ -205,7 +206,7 @@ class WFormMultiDropdownCore extends StatelessWidget {
         popUpLayerPadding: popUpLayerPadding,
         popUpLayerElevation: popUpLayerElevation,
         popUpLayerShadowColor: popUpLayerShadowColor,
-        hintText: hintText ?? hintText,
+        hintText: hintText,
         disabledKeys: disabledKeys,
         itemPadding: itemPadding,
         itemStyle: itemStyle,

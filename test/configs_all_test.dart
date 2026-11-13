@@ -88,22 +88,11 @@ void main() {
   group('WFormBorderStyle', () {
     test('defaultDecoration / errorDecoration 可直接构造，并支持 copyWith', () {
       const c = WFormBorderStyle(
-        defaultDecoration: WFormBorderDecoration(color: Colors.grey),
-        errorDecoration: WFormBorderDecoration(color: Colors.red),
+        defaultDecoration: BoxDecoration(color: Colors.grey),
+        errorDecoration: BoxDecoration(color: Colors.red),
       );
       expect(c.defaultDecoration, isNotNull);
       expect(c.copyWith(errorStyle: const TextStyle(fontSize: 12)).errorStyle, isNotNull);
-    });
-  });
-
-  group('WFormBorderDecoration', () {
-    test('链式方法返回新对象', () {
-      const original = WFormBorderDecoration();
-      final colored = original.withColor(Colors.blue);
-      expect(colored, isA<WFormBorderDecoration>());
-      // withBorderRadius 也是链式
-      final rounded = original.withBorderRadius(BorderRadius.circular(12));
-      expect(rounded, isA<WFormBorderDecoration>());
     });
   });
 

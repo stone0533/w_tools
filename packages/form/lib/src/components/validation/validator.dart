@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
+import '../border/border_access.dart';
 import '../form_controller.dart';
 
 /// 表单验证器类，用于管理和执行表单验证
@@ -57,10 +58,18 @@ class WFormValidator {
   /// [WFormValidatorItem.field] 执行字段自身声明的 validator。
   /// 校验结果会写入 [errors]（字段名 -> 错误文本），可用于汇总展示全部错误。
   /// 未显式传 [settings]、且 controller 也没有注入时，按 `showBorderError = true` 解析。
+  /// 表单未挂载时：纯自定义校验项（`validatorBuilder`）仍可运行；包含字段项
+  /// 或没有任何校验项时返回 false（与 `WFormController.validate()` 一致）。
   bool validate() {
     formData.closeKeyboard();
     final formKey = formData.formKey;
-    formKey.currentState?.save();
+    final formState = formKey.currentState;
+    final hasFieldItem = validationItems.any((item) => item.validatorBuilder == null);
+    if (formState == null && (validationItems.isEmpty || hasFieldItem)) {
+      _errors.clear();
+      return false;
+    }
+    formState?.save();
     // 每次校验都重新解析：不把结果写回 settings，否则运行期改 controller.validatorSettings
     // 或复用同一个 validator 时，会一直沿用第一次的设置。
     // 没有任何显式设置时按「显示边框错误」解析：错误可见不应依赖是否用了 WForm 容器。
@@ -75,11 +84,12 @@ class WFormValidator {
     final items = <WFormValidatorItem>[];
     for (final item in validationItems) {
       final shouldSkip =
-          resolvedConfig.shouldSkipValidation?.call(item.fieldName, formKey.currentState?.value) ??
-          false;
+          resolvedConfig.shouldSkipValidation?.call(item.fieldName, formState?.value) ?? false;
+      // 跳过项也要清掉上一次的边框错误：skip 常用来表达“当前不参与校验”，
+      // 留着旧红框会让隐藏 / 停用的字段继续显示错误。
+      formData.clearError(item.fieldName);
       if (shouldSkip) continue;
       items.add(item);
-      formData.clearError(item.fieldName);
     }
 
     bool allValid = true;
@@ -87,7 +97,7 @@ class WFormValidator {
     bool notifiedFirstError = false;
 
     for (final item in items) {
-      final String? errorText = _validateItem(item, formKey.currentState);
+      final String? errorText = _validateItem(item, formState);
       final bool isValid = errorText == null;
 
       resolvedConfig.itemValidationCallback?.call(item.fieldName, isValid, errorText);
@@ -105,7 +115,7 @@ class WFormValidator {
         }
       }
 
-      if (resolvedConfig.showBorderError == true && formData.borders.has(item.fieldName)) {
+      if (resolvedConfig.showBorderError == true && bordersOf(formData).has(item.fieldName)) {
         formData.setError(item.fieldName, errorTextList: [errorText]);
       }
 
@@ -220,9 +230,6 @@ class WFormValidatorSettings {
 
   /// 校验前判断是否跳过当前字段
   final bool Function(String fieldName, Map<String, dynamic>? formValues)? shouldSkipValidation;
-
-  /// 创建当前配置的副本
-  WFormValidatorSettings copy() => copyWith();
 
   /// 创建当前配置的副本，并可以选择性地更新某些属性
   ///

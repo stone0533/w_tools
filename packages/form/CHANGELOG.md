@@ -1,3 +1,34 @@
+## 7.0.0
+
+### Breaking
+- `WFormController.borders` 不再公开：边框错误通道由包内 `WFormBorderRegistry` 维护，业务侧继续用 `setError` / `clearError`。
+- `WFormInputFormatters.new` 不再存在：该类是纯静态工厂，不能实例化；直接用 `WFormInputFormatters.hkPhone()`。
+- `WFormInputFormatters.phone` 删除：用 `WFormInputFormatters.hkPhone()`（`remove-in: 7.0.0` 到期）。
+- `WFormValidatorSettings.copy` 删除：用 `copyWith()` 生成新实例。
+- `WFormBorderDecoration` / `WFormBorderDecorationExtension` 删除：装饰直接使用 Flutter `BoxDecoration`。
+- `WFormBorderStyle.new` / `WFormBorderStyle.copyWith` / `WFormBorderStyle.defaultDecoration` / `WFormBorderStyle.readOnlyDecoration` / `WFormBorderStyle.errorDecoration` / `WFormBorderStyle.focusedDecoration` 的装饰类型改为 `BoxDecoration?`。
+- 直接使用 `WFormBorder` 时必须显式传 `style`：它不再读取 `WFormTheme` / `WFormScope`；普通字段仍由 `WFormFieldShell` 自动接线。
+- `WFormScope.formBorderStyle` / `WFormScope.new` 删除该参数：边框配置改用 `WFormTheme(borderStyle:)` / `WForm(borderStyle:)`。
+- `WFormMultiDropdown.disabledKeys` / `WFormMultiDropdown.initialValue` / `WFormMultiDropdown.items` / `WFormMultiDropdown.new` / `WFormMultiDropdown.onChanged` / `WFormMultiDropdown.validator` 随 `WFormMultiDropdown<T>` 泛型化改为 `T` / `Set<T>`；String 用法可由 items 推断，显式类型标注需要补 `<String>`。
+- `WFormController.updateValue` / `WFormController.handleChange` 删除：`WFormController.setValue` 现在同时清除该字段边框错误；只清错误用 `WFormController.clearError`。
+- 迁移见 `docs/migrations/form-7.0.md`。
+
+### Added
+- `WFormTextField.textAlign` / `maxLength`：直接文本字段补齐常用输入参数。
+- `WFormDropdown.style` / `iconSize`：单字段覆盖选项文字样式与右侧图标尺寸。
+- `WFormDatePicker.initialDate`：用 `DateTime` 给初值，自动转 ISO；与 `initialValue` 二选一。
+- `WFormTextFieldAction.semanticLabel` / `semanticLabelBuilder`、`WFormTextFieldPasswordToggle.showSemanticLabel` / `hideSemanticLabel`、`WFormTextFieldClearButton.semanticLabel`：为文本插槽按钮提供读屏标签；清空按钮未传时回退到本地化 `clearButtonTooltip`。
+
+### Fixed
+- `WFormValidator` 先写边框错误、下一帧再走原生 `formKey.validate()` 时，同一字段的错误文案不再渲染两次。
+- `WFormValidatorSettings.shouldSkipValidation` 跳过的字段不再保留上一次的边框错误（条件隐藏 / 停用字段不会残留红框）。
+- 表单未挂载时，字段校验项 / 空校验项的 `WFormValidator.validate()` 返回 `false`，与 `WFormController.validate()` 一致；纯自定义 `validatorBuilder` 仍可运行。
+- 文本 `actions` 与多选弹层选项补齐 `button` + `onTap` 语义，并支持 Enter / Space 键盘激活。
+- 修正 `WFormFieldShell`、`WFormDropdown` / `WFormMultiDropdown` / `WFormDatePicker` / `WFormCheckbox` / `WFormRadioGroup` 的类文档，以及 6.0 后过期的边框 key / 类型独立表述。
+
+### Changed
+- `WFormTheme` / `WFormThemeData` 成为边框样式唯一来源；内部 `WFormBorderStyleScope` 删除。
+
 ## 6.0.0
 
 ### Breaking

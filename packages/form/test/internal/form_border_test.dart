@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/border/border_access.dart';
 
 import '_helpers/border_state.dart';
 
@@ -11,10 +12,10 @@ import 'package:w_tools_form/src/components/fields/text_field.dart';
 
 /// 创建带默认 hintBuilder/errorBuilder 的 WFormBorderStyle
 TestFormBorderBuilder makeCfg({
-  WFormBorderDecoration? defaultDecoration,
-  WFormBorderDecoration? readOnlyDecoration,
-  WFormBorderDecoration? errorDecoration,
-  WFormBorderDecoration? focusedDecoration,
+  BoxDecoration? defaultDecoration,
+  BoxDecoration? readOnlyDecoration,
+  BoxDecoration? errorDecoration,
+  BoxDecoration? focusedDecoration,
 }) {
   final cfg = TestFormBorderBuilder();
   cfg.hintBuilder = (_) => const SizedBox.shrink();
@@ -28,10 +29,10 @@ TestFormBorderBuilder makeCfg({
 
 /// 直接生成不可变配置，便于传给 WFormBorder
 WFormBorderStyle makeCfgConfig({
-  WFormBorderDecoration? defaultDecoration,
-  WFormBorderDecoration? readOnlyDecoration,
-  WFormBorderDecoration? errorDecoration,
-  WFormBorderDecoration? focusedDecoration,
+  BoxDecoration? defaultDecoration,
+  BoxDecoration? readOnlyDecoration,
+  BoxDecoration? errorDecoration,
+  BoxDecoration? focusedDecoration,
 }) => makeCfg(
   defaultDecoration: defaultDecoration,
   readOnlyDecoration: readOnlyDecoration,
@@ -136,7 +137,7 @@ void main() {
     testWidgets('配置原地修改 / 清空后，组件重建即生效（回归）', (tester) async {
       final key = GlobalKey();
       final cfg = TestFormBorderBuilder()
-        ..defaultDecoration = const WFormBorderDecoration(color: Color(0xFF111111));
+        ..defaultDecoration = const BoxDecoration(color: Color(0xFF111111));
 
       Widget buildWith(List<String> hints) => MaterialApp(
         home: Scaffold(
@@ -153,7 +154,7 @@ void main() {
       expect(findBorderFillColor(const Color(0xFF111111)), findsOneWidget);
 
       // 原地替换装饰：重建后应生效（此前按实例身份比较，永远不生效）
-      cfg.defaultDecoration = const WFormBorderDecoration(color: Color(0xFF222222));
+      cfg.defaultDecoration = const BoxDecoration(color: Color(0xFF222222));
       await tester.pumpWidget(buildWith(const ['b']));
       expect(findBorderFillColor(const Color(0xFF222222)), findsOneWidget);
 
@@ -341,7 +342,7 @@ void main() {
           home: Scaffold(
             body: WFormBorder(
               style: makeCfgConfig(
-                defaultDecoration: const WFormBorderDecoration(color: Colors.red),
+                defaultDecoration: const BoxDecoration(color: Colors.red),
               ),
               isTransparentBackground: true,
               child: const Text('field'),
@@ -359,8 +360,8 @@ void main() {
           home: Scaffold(
             body: WFormBorder(
               style: makeCfgConfig(
-                defaultDecoration: const WFormBorderDecoration(color: Colors.white),
-                readOnlyDecoration: const WFormBorderDecoration(color: Colors.grey),
+                defaultDecoration: const BoxDecoration(color: Colors.white),
+                readOnlyDecoration: const BoxDecoration(color: Colors.grey),
               ),
               isReadOnly: true,
               child: const Text('field'),
@@ -378,8 +379,8 @@ void main() {
           home: Scaffold(
             body: WFormBorder(
               style: makeCfgConfig(
-                defaultDecoration: const WFormBorderDecoration(color: Colors.white),
-                focusedDecoration: const WFormBorderDecoration(color: Colors.blue),
+                defaultDecoration: const BoxDecoration(color: Colors.white),
+                focusedDecoration: const BoxDecoration(color: Colors.blue),
               ),
               isFocused: true,
               child: const Text('field'),
@@ -399,10 +400,10 @@ void main() {
             body: WFormBorder(
               key: key,
               style: makeCfgConfig(
-                defaultDecoration: const WFormBorderDecoration(color: Colors.white),
-                readOnlyDecoration: const WFormBorderDecoration(color: Colors.grey),
-                focusedDecoration: const WFormBorderDecoration(color: Colors.blue),
-                errorDecoration: const WFormBorderDecoration(color: Colors.red),
+                defaultDecoration: const BoxDecoration(color: Colors.white),
+                readOnlyDecoration: const BoxDecoration(color: Colors.grey),
+                focusedDecoration: const BoxDecoration(color: Colors.blue),
+                errorDecoration: const BoxDecoration(color: Colors.red),
               ),
               isReadOnly: true,
               isFocused: true,
@@ -423,7 +424,7 @@ void main() {
     test('copyWith 默认 builder 缺失时仍可用（新 cfg 也未初始化 → 但 setter 之后 OK）', () {
       final base = makeCfg(); // 已初始化 builder
       final custom = base.buildStyle().copyWith(
-        defaultDecoration: const WFormBorderDecoration(color: Colors.red),
+        defaultDecoration: const BoxDecoration(color: Colors.red),
       );
       expect(custom, isA<WFormBorderStyle>());
       // copyWith 返回新实例，hintBuilder/errorBuilder 从 base 继承
@@ -442,54 +443,6 @@ void main() {
       );
 
       expect(find.text('custom-layout'), findsOneWidget);
-    });
-  });
-
-  group('WFormBorderDecoration', () {
-    test('const 构造默认值', () {
-      const d = WFormBorderDecoration();
-      expect(d.border, isNull);
-      expect(d.color, isNull);
-      expect(d.borderRadius, isNull);
-      expect(d.boxShadow, isNull);
-      expect(d.gradient, isNull);
-    });
-
-    test('toBoxDecoration 转换', () {
-      const d = WFormBorderDecoration(color: Colors.white);
-      final bd = d.toBoxDecoration();
-      expect(bd, isA<BoxDecoration>());
-      expect(bd.color, Colors.white);
-    });
-
-    test('copyWith 部分覆盖', () {
-      const d = WFormBorderDecoration(color: Colors.white);
-      final d2 = d.copyWith(color: Colors.red);
-      expect(d2.color, Colors.red);
-      expect(d2.borderRadius, isNull);
-    });
-  });
-
-  group('WFormBorderDecorationExtension — 链式方法', () {
-    test('withColor', () {
-      const d = WFormBorderDecoration();
-      expect(d.withColor(Colors.red).color, Colors.red);
-    });
-
-    test('withUniformBorder + withUniformBorderRadius', () {
-      const d = WFormBorderDecoration();
-      final r = d.withUniformBorder(1.5, Colors.black).withUniformBorderRadius(20);
-      expect(r.border, isNotNull);
-      expect(r.borderRadius, BorderRadius.circular(20));
-    });
-
-    test('withBoxShadow + withGradient', () {
-      const d = WFormBorderDecoration();
-      final shadows = [const BoxShadow(color: Colors.black, blurRadius: 8)];
-      expect(d.withBoxShadow(shadows).boxShadow, shadows);
-
-      const grad = LinearGradient(colors: [Colors.red, Colors.blue]);
-      expect(d.withGradient(grad).gradient, grad);
     });
   });
 
@@ -514,7 +467,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: const WFormFieldShell(
@@ -528,7 +481,7 @@ void main() {
       );
 
       expect(find.text('input'), findsOneWidget);
-      expect(formData.borders.has('email'), true);
+      expect(bordersOf(formData).has('email'), true);
     });
 
     testWidgets('hintTextList 从 WFormFieldShell 传递', (tester) async {
@@ -540,7 +493,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: cfg.buildStyle(),
               child: const WFormFieldShell(
@@ -568,7 +521,7 @@ void main() {
             body: WFormBorder(
               key: key,
               style: makeCfgConfig(
-                errorDecoration: const WFormBorderDecoration(
+                errorDecoration: const BoxDecoration(
                   border: Border.fromBorderSide(
                     BorderSide(color: Color(0xFFC0061A), width: 1),
                   ),
@@ -598,15 +551,15 @@ void main() {
 
       Widget buildWith({required bool enableFocusBorder}) => MaterialApp(
         home: Scaffold(
-          body: WFormScope(
+          body: themedScope(
             formData: formData,
             formBorderStyle: makeCfgConfig(
-              defaultDecoration: const WFormBorderDecoration(
+              defaultDecoration: const BoxDecoration(
                 border: Border.fromBorderSide(
                   BorderSide(color: Color(0xFFEAEAEA), width: 1),
                 ),
               ),
-              focusedDecoration: const WFormBorderDecoration(
+              focusedDecoration: const BoxDecoration(
                 border: Border.fromBorderSide(
                   BorderSide(color: Colors.blue, width: 1),
                 ),
@@ -643,7 +596,7 @@ void main() {
       final formData = WFormController();
       final cfgNotifier = ValueNotifier<WFormBorderStyle>(
         makeCfg(
-          defaultDecoration: const WFormBorderDecoration(color: Color(0xFF111111)),
+          defaultDecoration: const BoxDecoration(color: Color(0xFF111111)),
         ).buildStyle(),
       );
       addTearDown(cfgNotifier.dispose);
@@ -653,7 +606,7 @@ void main() {
           home: Scaffold(
             body: ValueListenableBuilder<WFormBorderStyle>(
               valueListenable: cfgNotifier,
-              builder: (context, cfg, _) => WFormScope(
+              builder: (context, cfg, _) => themedScope(
                 formData: formData,
                 formBorderStyle: cfg,
                 child: const WFormFieldShell(
@@ -670,7 +623,7 @@ void main() {
       expect(findBorderFillColor(const Color(0xFF111111)), findsOneWidget);
 
       cfgNotifier.value = makeCfg(
-        defaultDecoration: const WFormBorderDecoration(color: Color(0xFF222222)),
+        defaultDecoration: const BoxDecoration(color: Color(0xFF222222)),
       ).buildStyle();
       await tester.pump();
 
@@ -678,7 +631,7 @@ void main() {
       expect(findBorderFillColor(const Color(0xFF111111)), findsNothing);
     });
 
-    testWidgets('直接使用 WFormBorder 时继承 WFormScope.formBorderStyle', (tester) async {
+    testWidgets('直接使用 WFormBorder 时显式 style 生效', (tester) async {
       final cfg = TestFormBorderBuilder();
       cfg.hintBuilder = (list) => Column(
         children: [for (final e in list ?? const <String>[]) Text('hint-$e')],
@@ -688,12 +641,12 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
-              formBorderStyle: cfg.buildStyle(),
-              child: const WFormBorder(
-                hintTextList: ['继承成功'],
-                child: Text('c'),
+              child: WFormBorder(
+                style: cfg.buildStyle(),
+                hintTextList: const ['继承成功'],
+                child: const Text('c'),
               ),
             ),
           ),
@@ -716,7 +669,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: builderCfg.buildStyle(),
               child: WFormBorder(
@@ -741,7 +694,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: WFormScope(
+          body: themedScope(
             formData: formData,
             child: const WFormFieldShell(
               name: 'dynamic_field',
@@ -753,12 +706,12 @@ void main() {
       ),
     );
 
-    formData.handleChange('dynamic_field', 'x');
-    expect(formData.borders.has('dynamic_field'), isTrue);
+    formData.clearError('dynamic_field');
+    expect(bordersOf(formData).has('dynamic_field'), isTrue);
 
     await tester.pumpWidget(const SizedBox.shrink());
 
-    expect(formData.borders.has('dynamic_field'), isFalse);
+    expect(bordersOf(formData).has('dynamic_field'), isFalse);
     expect(formData.formEntered.containsKey('dynamic_field'), isFalse);
   });
 
@@ -769,7 +722,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: const Row(
@@ -808,7 +761,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: const Row(
@@ -842,7 +795,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: Row(children: [container]).withFormBorder(name: 'row'),
@@ -866,7 +819,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: Row(
@@ -897,7 +850,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: (const Row(
@@ -930,7 +883,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: (const Row(
@@ -962,7 +915,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: Row(
@@ -991,7 +944,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WFormScope(
+            body: themedScope(
               formData: formData,
               formBorderStyle: makeCfgConfig(),
               child: const Row(
