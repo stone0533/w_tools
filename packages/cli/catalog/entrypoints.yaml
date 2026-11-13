@@ -41,6 +41,7 @@ w_tools_api:
   - DioRegistry
   - WTokenInterceptor
   - WLogInterceptor
+  - WApiClient
 w_tools_toast:
   - WToast
   - WToastStyle

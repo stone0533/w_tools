@@ -9,6 +9,11 @@ packages:
     - BaseRemoteDataSource
     - BaseRepository
     - IApiPath
+    - WApiBodyKind
+    - WApiDecoder
+    - WApiDecoders
+    - WApiErrorKind
+    - WPageQuery
   w_tools_core:
     - WCountdownCallback
     - WCountdownRemainingType

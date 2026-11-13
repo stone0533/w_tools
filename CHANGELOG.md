@@ -1,3 +1,13 @@
+## 15.1.0
+
+### Added
+- 聚合 `w_tools_api` 5.3.0：`WApiClient` / `WApiBody` / `WApiException` /
+  `WApiErrorKind` / `WApiDecoder` / `WApiEnvelopeParser` / `WPage` / `WPageQuery` /
+  `WApiDecoders` / `WRetryInterceptor`，以及上传 / adapter 类型重导出。
+
+### Changed
+- 依赖 `w_tools_api: ^5.3.0`。
+
 ## 15.0.1
 
 ### Changed

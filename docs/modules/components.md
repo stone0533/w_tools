@@ -202,6 +202,12 @@
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头 / 敏感 body 默认脱敏，但仍不要打进生产日志 |
 | `WLogPart` | api | WLogInterceptor 的日志片段选择 | 不要单独使用；作为 `parts` 的枚举值 |
 | `WApiConfig` | api | 请求配置与日志注入 | — |
+| `WApiClient` | api | GET / POST / PUT / PATCH / DELETE 统一调用 + 显式 JSON 解码 | 不要在页面里直接拼 URL；不要用它替代 Repository 的业务编排 |
+| `WApiBody` | api | 请求体编码：json / form / multipart / bytes | 不要用它承载业务逻辑；它只决定怎么编码 |
+| `WApiException` | api | 统一网络错误分类：timeout / network / 401 / 4xx / 5xx / decode | 不要在库里写死用户文案；UI 按 kind 映射 |
+| `WApiEnvelopeParser` | api | 可选业务信封解析：{code, message, data} | 不要默认开启；不是所有后端都用信封 |
+| `WPage` | api | 一页数据 + total / hasMore | 不要把它当 UI 状态；页面分页用 WAsyncPagedController |
+| `WRetryInterceptor` | api | 可选的幂等请求重试（GET / HEAD / PUT / DELETE / OPTIONS） | 不要默认开启；不要对 POST / PATCH 重试（可能重复提交） |
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；重扫不要 Key 状态，用 `WQrController.restart` |
 | `WQrController` | qr | 相机控制、广播扫描流与重扫 | 不要用它重置 UI 状态：单次锁定与成功色由 `WQrView` 管理 |
 | `WQrOverlayStyle` | qr | 扫描框颜色 / 是否显示 / 外边距与尺寸 | 不要为了改边框颜色去动 `WQrView` 的其它参数 |

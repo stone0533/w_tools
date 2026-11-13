@@ -7,7 +7,7 @@ const subpackageConstraints = <String, String>{
   'w_tools_app_getx': '^2.1.1',
   'w_tools_form': '^7.0.1',
   'w_tools_ui': '^11.0.0',
-  'w_tools_api': '^5.2.0',
+  'w_tools_api': '^5.3.0',
   'w_tools_toast': '^2.1.0',
   'w_tools_qr': '^2.0.0',
   'w_tools_map': '^3.0.0',
