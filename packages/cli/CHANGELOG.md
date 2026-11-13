@@ -1,3 +1,8 @@
+## 1.20.32
+
+### Changed
+- catalog / explain 同步 `WApiClient.head/options` 与 `upload(method:)`。
+
 ## 1.20.31
 
 ### Changed
