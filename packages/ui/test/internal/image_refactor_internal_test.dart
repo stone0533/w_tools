@@ -8,17 +8,17 @@ import 'package:w_tools_ui/src/components/common/image/image_slots_build.dart';
 
 void main() {
   test('mergeImageSlots：单图字段优先，主题兜底', () {
-    const theme = WImageSlots(
+    final theme = WImageSlots(
       showRetryButton: true,
       retryLabel: 'theme',
-      placeholder: Text('theme-placeholder'),
+      placeholderBuilder: (context, data) => const Text('theme-placeholder'),
     );
     const own = WImageSlots(retryLabel: 'own');
 
     final merged = mergeImageSlots(own: own, theme: theme);
     expect(merged.retryLabel, 'own');
     expect(merged.showRetryButton, isTrue);
-    expect(merged.placeholder, same(theme.placeholder));
+    expect(merged.placeholderBuilder, same(theme.placeholderBuilder));
   });
 
   test('mergeImageSlots：单图 null 时直接返回主题', () {
@@ -26,37 +26,38 @@ void main() {
     expect(mergeImageSlots(own: null, theme: theme), same(theme));
   });
 
-  test('mergeImageSlots：单图 builder 不会同时保留主题 widget', () {
-    const theme = WImageSlots(placeholder: Text('theme-placeholder'));
+  test('mergeImageSlots：单图 builder 优先', () {
+    final theme = WImageSlots(
+      placeholderBuilder: (context, data) => const Text('theme-placeholder'),
+    );
     final own = WImageSlots(
       placeholderBuilder: (context, data) => const Text('own-placeholder'),
     );
 
     final merged = mergeImageSlots(own: own, theme: theme);
     expect(merged.placeholderBuilder, same(own.placeholderBuilder));
-    expect(merged.placeholder, isNull);
   });
 
-  test('mergeImageSlots：单图 widget 不会同时保留主题 builder', () {
+  test('mergeImageSlots：showRetryButton: true 不继承主题错误 builder', () {
     final theme = WImageSlots(
-      placeholderBuilder: (context, data) => const Text('theme-placeholder'),
+      errorWidgetBuilder: (context, data, error) => const Text('theme-error'),
     );
-    const own = WImageSlots(placeholder: Text('own-placeholder'));
+    const own = WImageSlots(showRetryButton: true);
 
     final merged = mergeImageSlots(own: own, theme: theme);
-    expect(merged.placeholder, same(own.placeholder));
-    expect(merged.placeholderBuilder, isNull);
+    expect(merged.errorWidgetBuilder, isNull);
   });
 
-  test('mergeImageSlots：错误占位 builder / widget 同样互斥', () {
-    const theme = WImageSlots(errorWidget: Text('theme-error'));
+  test('mergeImageSlots：单图错误 builder 优先', () {
+    final theme = WImageSlots(
+      errorWidgetBuilder: (context, data, error) => const Text('theme-error'),
+    );
     final own = WImageSlots(
       errorWidgetBuilder: (context, data, error) => const Text('own-error'),
     );
 
     final merged = mergeImageSlots(own: own, theme: theme);
     expect(merged.errorWidgetBuilder, same(own.errorWidgetBuilder));
-    expect(merged.errorWidget, isNull);
   });
 
   test('createNetworkImageProvider 保留 headers / cacheKey / 解码尺寸', () {
@@ -97,7 +98,7 @@ void main() {
   test('buildImageErrorSlot 优先返回业务 errorWidget', () {
     final widget = buildImageErrorSlot(
       context: _FakeBuildContext(),
-      slots: const WImageSlots(errorWidget: Text('custom')),
+      slots: WImageSlots(errorWidgetBuilder: (context, data, error) => const Text('custom')),
       style: const WImageStyle(),
       error: const WImageError('x', WImageErrorKind.network),
       onRetry: null,

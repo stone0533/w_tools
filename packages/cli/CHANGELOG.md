@@ -1,3 +1,9 @@
+## 1.20.21
+
+### Changed
+- catalog 同步 `WImageSlots` 只保留 builder（删除 `placeholder` / `emptyWidget` /
+  `errorWidget` 固定 Widget 入口）。
+
 ## 1.20.20
 
 ### Changed

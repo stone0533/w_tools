@@ -256,27 +256,13 @@ void main() {
   });
 
   group('WImageSlots', () {
-    test('值相等 / validate / 默认值', () {
+    test('值相等 / 默认值', () {
       const a = WImageSlots(showRetryButton: true);
       const b = WImageSlots(showRetryButton: true);
       expect(a, b);
       expect(a.hashCode, b.hashCode);
       expect(const WImageSlots().showRetryButton, isNull);
       expect(const WImageSlots().retryLabel, isNull);
-      expect(
-        () => WImageSlots(
-          placeholder: const Text('p'),
-          placeholderBuilder: (_, __) => const Text('b'),
-        ).validate(),
-        throwsAssertionError,
-      );
-      expect(
-        () => WImageSlots(
-          errorWidget: const Text('e'),
-          errorWidgetBuilder: (_, __, ___) => const Text('b'),
-        ).validate(),
-        throwsAssertionError,
-      );
     });
   });
 }

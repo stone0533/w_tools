@@ -46,6 +46,7 @@ names = [
     r'\bWListViewSliver\.keepAlive\b',
     r'\bWButtonStyles\b',
     r'\bWImageFrame\b',
+    r'\bWImageSlots\.(?:placeholder|emptyWidget|errorWidget)\b',
     r'\bWWidgetExtension\.withBottomBarSpaceOf\b',
     r'\bWWidgetExtension\.with(?:Horizontal|Vertical|Left|Right|Top|Bottom)Padding\b',
     # ui 8.0：Config 过渡入口 / 按钮冗余类型 / Builder 收口。

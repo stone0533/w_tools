@@ -196,7 +196,7 @@ void main() {
             home: Scaffold(
               body: WImage.source(
                 source: WImageSource.parse('data:image/png;base64,@@bad@@'),
-                slots: const WImageSlots(placeholder: Text('style')),
+                slots: WImageSlots(placeholderBuilder: (context, data) => const Text('style')),
               ),
             ),
           ),
@@ -455,7 +455,9 @@ void main() {
       Widget build() => MaterialApp(
         home: WImage.source(
           source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
-          slots: const WImageSlots(errorWidget: Text('base64-error')),
+          slots: WImageSlots(
+            errorWidgetBuilder: (context, data, error) => const Text('base64-error'),
+          ),
           onLoadStatusChanged: statuses.add,
         ),
       );

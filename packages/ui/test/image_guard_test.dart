@@ -69,7 +69,7 @@ void main() {
           home: Scaffold(
             body: WImage.source(
               source: WImageSource.parse(''),
-              slots: const WImageSlots(emptyWidget: Text('empty-slot')),
+              slots: WImageSlots(emptyBuilder: (context, data) => const Text('empty-slot')),
             ),
           ),
         ),

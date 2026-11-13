@@ -79,7 +79,7 @@ WImage.source(
 
 空 data（`''` / 纯空白）表示「没有配图」，**不是加载失败**：默认渲染中性 empty 占位，
 不会触发 `errorWidgetBuilder`，也不会回调 `onLoadStatusChanged(failed)`。需要自定义时用
-`WImageSlots(emptyWidget: ...)` 或 `emptyBuilder: ...`；要区分「空」和「加载失败」就在这里分支。
+`WImageSlots(emptyBuilder: ...)`；要区分「空」和「加载失败」就在这里分支。
 
 内置 loading / retry / 图片错误文案按当前 `Locale` 取中文或英文；
 `WButtonSemantics.loadingLabel` / `WImageSlots.retryLabel` 传非空字符串可覆盖。
@@ -104,7 +104,7 @@ WImage.source(
 | 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
 | 需要加载行为 | `options: WImageLoadOptions(...)` |
 | 需要单图占位/错误/进度/重试 UI | `slots: WImageSlots(...)` |
-| 没有配图 / 空 data | `slots: WImageSlots(emptyWidget: ...)` |
+| 没有配图 / 空 data | `slots: WImageSlots(emptyBuilder: ...)` |
 | 需要视觉样式 | `style: WImageStyle(...)` |
 | 需要 App 级默认占位/错误/进度 | `WImageTheme(slots: WImageSlots(...))` |
 | 需要预加载 | `await WImageSource.resolve(...)` + `precacheImage` |

@@ -34,8 +34,9 @@ Widget buildImagePlaceholder({
   required WImageStyle style,
   required String data,
 }) {
-  return slots.placeholderBuilder?.call(context, data) ??
-      sizedImageSlot(style, slots.placeholder ?? fallbackImagePlaceholder(context));
+  final custom = slots.placeholderBuilder?.call(context, data);
+  if (custom != null) return sizedImageSlot(style, custom);
+  return sizedImageSlot(style, fallbackImagePlaceholder(context));
 }
 
 Widget buildImageEmptySlot({
@@ -44,12 +45,8 @@ Widget buildImageEmptySlot({
   required WImageStyle style,
   required String data,
 }) {
-  final builder = slots.emptyBuilder;
-  if (builder != null) {
-    return builder(context, data) ??
-        sizedImageSlot(style, slots.emptyWidget ?? fallbackImageEmpty(context));
-  }
-  if (slots.emptyWidget != null) return sizedImageSlot(style, slots.emptyWidget!);
+  final custom = slots.emptyBuilder?.call(context, data);
+  if (custom != null) return sizedImageSlot(style, custom);
   return sizedImageSlot(style, fallbackImageEmpty(context));
 }
 
@@ -60,12 +57,8 @@ Widget buildImageErrorSlot({
   required WImageError error,
   required VoidCallback? onRetry,
 }) {
-  final builder = slots.errorWidgetBuilder;
-  if (builder != null) {
-    return builder(context, error.sourceValue, error) ??
-        sizedImageSlot(style, slots.errorWidget ?? fallbackImageError(context));
-  }
-  if (slots.errorWidget != null) return sizedImageSlot(style, slots.errorWidget!);
+  final custom = slots.errorWidgetBuilder?.call(context, error.sourceValue, error);
+  if (custom != null) return sizedImageSlot(style, custom);
   if (slots.showRetryButton ?? false) {
     final canRetry = const {
       WImageErrorKind.network,

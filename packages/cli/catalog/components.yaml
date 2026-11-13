@@ -269,7 +269,7 @@ components:
       - '未知来源用 WImageSource.parse'
       - '没有 width/height/aspectRatio 时必须由父级约束（SizedBox/Expanded/AspectRatio）；否则 Row/Column/ListView 里加载前是 0 尺寸（空白）'
       - 'width + fitWidth 仍不会确定高度；aspectRatio 不能和固定 width/height 同时设置'
-      - '空 source（空字符串 / 纯空白）走 empty 占位，不是 error；自定义用 WImageSlots.emptyWidget / emptyBuilder'
+      - '空 source（空字符串 / 纯空白）走 empty 占位，不是 error；自定义用 WImageSlots.emptyBuilder'
     related: ['`WImageSource`', '`WImageSlots`']
     teach: true
   - name: '`WImageSource`'
@@ -1660,7 +1660,7 @@ components:
     usage: |
       WImageSlots(
         placeholderBuilder: (context, data) => const CircularProgressIndicator(),
-        emptyWidget: const SizedBox.shrink(),
+        emptyBuilder: (context, data) => const SizedBox.shrink(),
         errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
         progressBuilder: (context, data, progress) => const LinearProgressIndicator(),
         showRetryButton: true,

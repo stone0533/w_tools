@@ -15,6 +15,8 @@
   的旧代码仍然兼容。
 - `WStep.new`：构造时复制并冻结 `labels`，因此不再是 `const` 构造器；
   `const WStep(...)` 需要去掉 `const`。
+- `WImageSlots.new`：删除 `placeholder` / `emptyWidget` / `errorWidget` 固定 Widget 入口，
+  构造器签名变化；改用对应的 `*Builder`。
 
 ### Removed
 - `WClipRRect`：Flutter `ClipRRect` 的纯别名，默认值完全一致；圆角裁剪直接用 `ClipRRect`。
@@ -23,6 +25,9 @@
 - `WTextStyleExtension`：直接用 Flutter `TextStyle.copyWith`。
 - `WUiWidgetExtension`：合并到 `WWidgetExtension`，`toPressable` 方法仍在。
 - `WImageError.data`：改名 `sourceValue`（值相等 / `toString` 同步）。
+- `WImageSlots.placeholder` / `WImageSlots.emptyWidget` / `WImageSlots.errorWidget`：
+  删除固定 Widget 入口，统一用对应的 `*Builder`。
+- `WImageSlots.validate`：slots 不再有互斥字段，校验方法随之删除。
 - `WListViewSliver.keepAlive`：改名 `addAutomaticKeepAlives`，与 Flutter 语义对齐。
 - `WButtonStyles`：合并到 `WButtonStyleSet.of(context)`。
 - `WImageFrame`：不再从 barrel 导出（图片装饰由 `WImageStyle` 负责）。

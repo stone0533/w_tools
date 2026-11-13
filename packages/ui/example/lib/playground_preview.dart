@@ -55,8 +55,8 @@ WImageLoadOptions _optionsFor(PlaygroundConfig config) => WImageLoadOptions(
 );
 
 WImageSlots _slotsFor(PlaygroundConfig config) => WImageSlots(
-  placeholder: config.customPlaceholder ? const _Placeholder() : null,
-  errorWidget: const _ErrorBox(),
+  placeholderBuilder: config.customPlaceholder ? (context, data) => const _Placeholder() : null,
+  errorWidgetBuilder: (context, data, error) => const _ErrorBox(),
 );
 
 class _Placeholder extends StatelessWidget {

@@ -178,7 +178,6 @@ class WImage extends StatefulWidget {
   }) {
     style.validate();
     options.validate();
-    slots?.validate();
   }
 
   @override

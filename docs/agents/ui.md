@@ -16,7 +16,7 @@
 ```
 
 `WImageStyle` 管视觉，`WImageLoadOptions` 管加载 / 重试，`WImageSlots` 管占位 / 空 / 错误 / 进度 / 重试 UI；普通图片也优先复用 `WImage`。
-空 data（空字符串 / 纯空白）走 `WImageSlots.emptyWidget` / `emptyBuilder`，不算加载失败。
+空 data（空字符串 / 纯空白）走 `WImageSlots.emptyBuilder`，不算加载失败。
 App 级默认占位 / 错误 / 进度用 `WImageTheme(slots: WImageSlots(...))`，需要预加载时用
 `WImageSource.resolve(...)` + `precacheImage`。
 
