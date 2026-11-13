@@ -1,3 +1,9 @@
+## 7.0.1
+
+### Fixed
+- `WFormController.setValue` 在字段自己的 `onChanged` 里回写同值时不再递归爆栈：
+  同值回写直接 no-op。迁移 / README / catalog 明确该写法仍不推荐，`setValue` 只用于程序化改值。
+
 ## 7.0.0
 
 ### Breaking

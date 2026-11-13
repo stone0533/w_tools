@@ -5,6 +5,52 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
 void main() {
+  group('WAsyncPage.fromTotal', () {
+    test('total 为 null 时回退 hasMore=null', () {
+      final page = WAsyncPage<int>.fromTotal(
+        items: const [1],
+        total: null,
+        page: 1,
+        pageSize: 10,
+      );
+      expect(page.hasMore, isNull);
+    });
+
+    test('按 total / pageSize 计算 hasMore', () {
+      expect(
+        WAsyncPage<int>.fromTotal(items: const [1], total: 3, page: 1, pageSize: 10).hasMore,
+        isFalse,
+      );
+      expect(
+        WAsyncPage<int>.fromTotal(items: const [1], total: 10, page: 1, pageSize: 10).hasMore,
+        isFalse,
+      );
+      expect(
+        WAsyncPage<int>.fromTotal(items: const [1], total: 11, page: 1, pageSize: 10).hasMore,
+        isTrue,
+      );
+      expect(
+        WAsyncPage<int>.fromTotal(items: const [1], total: 30, page: 3, pageSize: 10).hasMore,
+        isFalse,
+      );
+      expect(
+        WAsyncPage<int>.fromTotal(items: const [1], total: 31, page: 3, pageSize: 10).hasMore,
+        isTrue,
+      );
+    });
+
+    test('page / pageSize 非法时抛 ArgumentError', () {
+      expect(
+        () => WAsyncPage<int>.fromTotal(items: const [], total: 1, page: 0, pageSize: 10),
+        throwsArgumentError,
+      );
+      expect(
+        () => WAsyncPage<int>.fromTotal(items: const [], total: 1, page: 1, pageSize: 0),
+        throwsArgumentError,
+      );
+    });
+  });
+
   group('WAsyncPagedController', () {
     test('refresh 加载第一页并可继续追加', () async {
       final pages = <int, List<int>>{
@@ -27,6 +73,25 @@ void main() {
       await controller.loadMore();
       expect(controller.state.value.data, [1, 2, 3]);
       expect(controller.hasMore, isFalse);
+    });
+
+    test('withPage + fromTotal：首屏 total=3、pageSize=10 不再请求第二页', () async {
+      final calls = <int>[];
+      final controller = WAsyncPagedController<int>.withPage((page) async {
+        calls.add(page);
+        return WAsyncPage<int>.fromTotal(
+          items: const [1, 2, 3],
+          total: 3,
+          page: page,
+          pageSize: 10,
+        );
+      });
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      expect(controller.hasMore, isFalse);
+      await controller.loadMore();
+      expect(calls, [1]);
     });
 
     test('withPage 首屏不足一页：hasMore=false，不再请求第二页', () async {

@@ -563,6 +563,7 @@ components:
       - '与 WForm 一对一'
       - 'controller 由页面持有，不需要每帧重建'
       - 'setValue 会同时清该字段边框错误；只清错误用 clearError'
+      - 'setValue 只用于程序化改值；不要在字段自己的 onChanged 里回写同字段（同值 7.0.1 起 no-op）'
     related: ['`WForm`']
     teach: true
   - name: '`WFormTextField`'
@@ -2277,9 +2278,11 @@ components:
     usage: |
       WAsyncPagedController<Gift>.withPage((page) async {
         final resp = await api.gifts(page: page, limit: 10);
-        return WAsyncPage(
+        return WAsyncPage<Gift>.fromTotal(
           items: resp.list,
-          hasMore: page * 10 < resp.total!,
+          total: resp.total,
+          page: page,
+          pageSize: 10,
         );
       });
     related: ['WAsyncPagedController', 'WAsyncPageLoader']

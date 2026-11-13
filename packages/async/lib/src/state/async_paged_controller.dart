@@ -17,6 +17,28 @@ typedef WAsyncTokenPageLoader<T> = Future<List<T>> Function(int page, WCancelTok
 class WAsyncPage<T> {
   const WAsyncPage({required this.items, this.hasMore});
 
+  /// 按服务端 `total` / `pageSize` 计算 [hasMore]。
+  ///
+  /// [page] 从 1 开始；[total] 是总条数（不是剩余条数）。
+  /// [total] 为 null 时 [hasMore] 也是 null，回退旧行为。
+  factory WAsyncPage.fromTotal({
+    required List<T> items,
+    required int? total,
+    required int page,
+    required int pageSize,
+  }) {
+    if (page < 1) {
+      throw ArgumentError.value(page, 'page', 'page 从 1 开始');
+    }
+    if (pageSize < 1) {
+      throw ArgumentError.value(pageSize, 'pageSize', 'pageSize 必须大于 0');
+    }
+    return WAsyncPage<T>(
+      items: items,
+      hasMore: total == null ? null : page * pageSize < total,
+    );
+  }
+
   final List<T> items;
   final bool? hasMore;
 }

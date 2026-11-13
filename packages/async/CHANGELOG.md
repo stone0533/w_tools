@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.8.0
+
+### Added
+- `WAsyncPage.fromTotal(items:, total:, page:, pageSize:)`：按总条数 / 页大小计算 `hasMore`；
+  `total == null` 时回退 `hasMore:null`，`page` 从 1 开始。
+
 ## 6.7.0
 
 ### Added

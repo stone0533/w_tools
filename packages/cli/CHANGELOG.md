@@ -1,3 +1,8 @@
+## 1.20.28
+
+### Changed
+- `init` 写入的 `w_tools_form` 约束同步到 `^7.0.1`，`w_tools_async` 同步到 `^6.8.0`。
+
 ## 1.20.27
 
 ### Changed

@@ -20,7 +20,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^6.7.0
+  w_tools_async: ^6.8.0
 ```
 
 要求 Flutter 3.38+。
@@ -322,11 +322,11 @@ await controller.loadMore();
 ```dart
 final controller = WAsyncPagedController<Gift>.withPage((page) async {
   final resp = await api.gifts(page: page, limit: 10);
-  return WAsyncPage(
+  return WAsyncPage<Gift>.fromTotal(
     items: resp.list,
-    hasMore: resp.total == null
-        ? resp.list.length >= 10
-        : page * 10 < resp.total!,
+    total: resp.total,
+    page: page,
+    pageSize: 10,
   );
 });
 ```

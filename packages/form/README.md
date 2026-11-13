@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^7.0.0
+  w_tools_form: ^7.0.1
 ```
 
 > 最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
@@ -191,7 +191,7 @@ form.validators().validate(); // 不传 items：校验全部已挂载字段
 form.validate(settings: const WFormValidatorSettings(continueOnError: true));
 
 form.value; form.savedValue;
-form.setValue('email', 'a@b.com');
+form.setValue('email', 'a@b.com'); // 程序化改值；不要在字段自己的 onChanged 里回写同字段
 form.reset();
 
 // 整表变化（任一字段变化后回调当前值）
