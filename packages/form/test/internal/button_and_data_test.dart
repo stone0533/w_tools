@@ -344,17 +344,17 @@ void main() {
       );
 
       expect(data.formEntered['name'], isFalse); // 空字符串
-      data.updateValue('name', 'x');
+      data.setValue('name', 'x');
       await tester.pump();
       expect(data.formEntered['name'], isTrue);
 
       expect(data.formEntered['agree'], isFalse); // 初始 false 视为未输入
-      data.updateValue('agree', true);
+      data.setValue('agree', true);
       await tester.pump();
       expect(data.formEntered['agree'], isTrue);
 
       expect(data.formEntered['tags'], isFalse); // null
-      data.updateValue('tags', {'a'});
+      data.setValue('tags', {'a'});
       await tester.pump();
       expect(data.formEntered['tags'], isTrue);
     });
@@ -373,7 +373,7 @@ void main() {
       );
 
       expect(data.isAllEntered(const ['a']), isFalse);
-      data.updateValue('a', 'x');
+      data.setValue('a', 'x');
       await tester.pump();
       expect(data.isAllEntered(const ['a']), isTrue);
       expect(data.isAllEntered(const ['a', 'b']), isFalse);
@@ -412,19 +412,24 @@ void main() {
       expect(data.getFieldsValue('a'), 'hello');
     });
 
-    testWidgets('updateValue 同时写值和输入状态', (tester) async {
+    testWidgets('setValue 同时写值和清除边框错误', (tester) async {
       final data = WFormController();
       await pumpForm(
         tester,
         formData: data,
-        child: const WFormTextFieldCore(name: 'a'),
+        child: const WFormTextField(name: 'a'),
       );
 
-      data.updateValue<String>('a', 'hello');
+      data.setError('a', errorTextList: const ['必填']);
+      await tester.pump();
+      expect(find.text('必填'), findsOneWidget);
+
+      data.setValue<String>('a', 'hello');
       await tester.pump();
 
       expect(data.getFieldsValue<String>('a'), 'hello');
       expect(data.formEntered['a'], isTrue);
+      expect(find.text('必填'), findsNothing);
     });
 
     testWidgets('裸字段卸载时清理 formEntered', (tester) async {
@@ -435,7 +440,7 @@ void main() {
         child: const WFormTextFieldCore(name: 'raw'),
       );
 
-      data.updateValue('raw', 'x');
+      data.setValue('raw', 'x');
       await tester.pump();
       expect(data.formEntered['raw'], isTrue);
 
@@ -455,7 +460,7 @@ void main() {
         child: const WFormTextFieldCore(name: 'a'),
       );
 
-      data.updateValue<String>('a', 'hello');
+      data.setValue<String>('a', 'hello');
       data.clearValue('a');
       await tester.pump();
 
@@ -475,7 +480,7 @@ void main() {
       );
 
       expect(data.validate(), isFalse);
-      data.updateValue<String>('email', 'a@b.com');
+      data.setValue<String>('email', 'a@b.com');
       await tester.pump();
       expect(data.validate(), isTrue);
     });

@@ -12,12 +12,12 @@ enum _WFormMultiDropdownItemStatus {
 }
 
 /// 多选下拉框选项点击回调
-typedef _WFormMultiDropdownItemTapCallback = void Function(String value, bool isChecked);
+typedef _WFormMultiDropdownItemTapCallback<T> = void Function(T value, bool isChecked);
 
 /// 多选下拉框选项组件
-class _WFormMultiDropdownItem extends StatefulWidget {
+class _WFormMultiDropdownItem<T> extends StatefulWidget {
   /// 选项值
-  final String value;
+  final T value;
 
   /// 选项标题
   final String title;
@@ -32,7 +32,7 @@ class _WFormMultiDropdownItem extends StatefulWidget {
   final bool disabled;
 
   /// 点击回调
-  final _WFormMultiDropdownItemTapCallback onTap;
+  final _WFormMultiDropdownItemTapCallback<T> onTap;
 
   /// 文本样式
   final TextStyle? style;
@@ -73,11 +73,11 @@ class _WFormMultiDropdownItem extends StatefulWidget {
   });
 
   @override
-  State<_WFormMultiDropdownItem> createState() => _WFormMultiDropdownItemState();
+  State<_WFormMultiDropdownItem<T>> createState() => _WFormMultiDropdownItemState<T>();
 }
 
 /// _WFormMultiDropdownItem 的状态类
-class _WFormMultiDropdownItemState extends State<_WFormMultiDropdownItem> {
+class _WFormMultiDropdownItemState<T> extends State<_WFormMultiDropdownItem<T>> {
   /// 是否选中
   bool isChecked = false;
 
@@ -88,7 +88,7 @@ class _WFormMultiDropdownItemState extends State<_WFormMultiDropdownItem> {
   }
 
   @override
-  void didUpdateWidget(covariant _WFormMultiDropdownItem oldWidget) {
+  void didUpdateWidget(covariant _WFormMultiDropdownItem<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     // 外部值变化（回填 / 重置）后，让本地选中态重新跟随 status
     if (widget.status != oldWidget.status) {
@@ -100,22 +100,38 @@ class _WFormMultiDropdownItemState extends State<_WFormMultiDropdownItem> {
   Widget build(BuildContext context) {
     final isDisabled = widget.disabled || widget.status == _WFormMultiDropdownItemStatus.disable;
 
+    void toggle() {
+      if (isDisabled) return;
+      setState(() {
+        isChecked = !isChecked;
+      });
+      widget.onTap.call(widget.value, isChecked);
+    }
+
     return Semantics(
       container: true,
+      button: true,
       checked: isChecked,
       enabled: !isDisabled,
-      child: MouseRegion(
-        cursor: isDisabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      onTap: isDisabled ? null : toggle,
+      child: FocusableActionDetector(
+        enabled: !isDisabled,
+        mouseCursor: isDisabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+        shortcuts: const <ShortcutActivator, Intent>{
+          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+        },
+        actions: <Type, Action<Intent>>{
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              toggle();
+              return null;
+            },
+          ),
+        },
         child: GestureDetector(
-          onTap: () {
-            if (isDisabled) {
-              return;
-            }
-            setState(() {
-              isChecked = !isChecked;
-            });
-            widget.onTap.call(widget.value, isChecked);
-          },
+          onTap: toggle,
+          excludeFromSemantics: true,
           child: Container(
             padding: widget.padding ?? EdgeInsets.zero,
             alignment: Alignment.centerLeft,

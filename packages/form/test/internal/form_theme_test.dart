@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/src/components/border/border.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+
+import '_helpers/form_test_scaffold.dart';
 import 'package:w_tools_form/src/components/fields/checkbox.dart';
 
 void main() {
@@ -11,7 +13,7 @@ void main() {
         home: Scaffold(
           body: WFormTheme(
             icons: const WFormIcons(checkboxUnselected: Icon(Icons.star)),
-            child: WFormScope(
+            child: themedScope(
               formData: WFormController(),
               child: WFormCheckboxCore(
                 name: 'agree',
@@ -31,7 +33,7 @@ void main() {
     expect(WFormBorder(style: config, child: const Text('x')), isA<WFormBorder>());
   });
 
-  testWidgets('WFormScope.formBorderStyle 优先于 WFormTheme', (tester) async {
+  testWidgets('内层 WFormTheme.borderStyle 优先于外层', (tester) async {
     final themeConfig = WFormBorderStyle.standard(backgroundColor: Colors.blue);
     final explicitConfig = WFormBorderStyle.standard(backgroundColor: Colors.red);
 
@@ -39,10 +41,14 @@ void main() {
       MaterialApp(
         home: WFormTheme(
           borderStyle: themeConfig,
-          child: WFormScope(
+          child: themedScope(
             formData: WFormController(),
             formBorderStyle: explicitConfig,
-            child: const WFormBorder(child: Text('field')),
+            child: const WFormFieldShell(
+              name: 'field',
+              readOnly: false,
+              child: Text('field'),
+            ),
           ),
         ),
       ),
@@ -52,16 +58,20 @@ void main() {
     expect(state.style, same(explicitConfig));
   });
 
-  testWidgets('WFormTheme 位于 WFormScope 内时 WFormBorder 仍能读取', (tester) async {
+  testWidgets('WFormTheme 位于 WFormScope 内时 WFormFieldShell 仍能读取', (tester) async {
     final borderStyle = WFormBorderStyle.standard();
 
     await tester.pumpWidget(
       MaterialApp(
-        home: WFormScope(
+        home: themedScope(
           formData: WFormController(),
           child: WFormTheme(
             borderStyle: borderStyle,
-            child: const WFormBorder(child: Text('field')),
+            child: const WFormFieldShell(
+              name: 'field',
+              readOnly: false,
+              child: Text('field'),
+            ),
           ),
         ),
       ),
@@ -71,14 +81,14 @@ void main() {
     expect(state.style, same(borderStyle));
   });
 
-  testWidgets('WFormScope 继承 WFormTheme.borderStyle', (tester) async {
+  testWidgets('WFormScope.borderStyleOf 读取 WFormTheme.borderStyle', (tester) async {
     final borderStyle = WFormBorderStyle.standard();
 
     await tester.pumpWidget(
       MaterialApp(
         home: WFormTheme(
           borderStyle: borderStyle,
-          child: WFormScope(
+          child: themedScope(
             formData: WFormController(),
             child: Builder(
               builder: (context) {
@@ -97,7 +107,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: WFormTheme(
-            child: WFormScope(
+            child: themedScope(
               formData: WFormController(),
               child: WFormCheckboxCore(
                 name: 'agree',

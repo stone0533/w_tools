@@ -1,3 +1,18 @@
+## 15.0.0
+
+### Breaking
+- 聚合 `w_tools_form` 7.0.0：删除 `WFormBorderDecoration` / `WFormBorderDecorationExtension`、
+  `WFormController.borders` / `updateValue` / `handleChange`、`WFormInputFormatters.phone`；
+  `WFormMultiDropdown` 改为泛型 `WFormMultiDropdown<T>`；`WFormBorderStyle` 装饰字段改用
+  `BoxDecoration?`；直接使用 `WFormBorder` 必须显式传 `style`。
+
+### Added
+- 同步 `w_tools_form` 7.0.0 的 `textAlign` / `maxLength`、`style` / `iconSize`、
+  `initialDate` 与文本插槽按钮读屏标签。
+
+### Changed
+- 依赖 `w_tools_form: ^7.0.0`。
+
 ## 14.0.0
 
 ### Added

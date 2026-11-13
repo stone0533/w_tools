@@ -3,8 +3,9 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/border.dart';
 import 'form_controller.dart';
+import 'form_theme.dart';
 
-/// 表单数据继承组件，用于在 widget 树中传递 WFormController 与表单边框配置
+/// 表单数据继承组件，用于在 widget 树中传递 WFormController
 class _WFormControllerInherited extends InheritedWidget {
   /// 表单数据对象
   final WFormController formData;
@@ -34,19 +35,12 @@ class WFormScope extends StatelessWidget {
   /// 任一字段值变化后的回调（参数为当前整表值）
   final ValueChanged<Map<String, dynamic>>? onChanged;
 
-  /// 表单边框配置（作用于本 builder 子树内的所有表单边框）
-  ///
-  /// 按引用捕获：运行期修改请替换实例（`formBorderStyle = newCfg`，
-  /// 通常用 `copyWith` 生成），原地修改同一实例不会触发子树重建。
-  final WFormBorderStyle? formBorderStyle;
-
   /// 创建表单构建器
   const WFormScope({
     super.key,
     required this.formData,
     required this.child,
     this.autovalidateMode,
-    this.formBorderStyle,
     this.onChanged,
   });
 
@@ -67,24 +61,19 @@ class WFormScope extends StatelessWidget {
 
   /// 获取当前子树生效的边框配置
   ///
-  /// 未配置时返回 null，此时 [WFormBorder] 不渲染任何装饰，
-  /// 外观完全由显式配置决定。
+  /// 读取最近 `WFormThemeData.borderStyle`；未配置时返回 null。
   static WFormBorderStyle? borderStyleOf(BuildContext context) =>
-      WFormBorderStyleScope.maybeOf(context);
+      WFormThemeData.of(context)?.borderStyle;
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBorderConfig = formBorderStyle ?? WFormBorderStyleScope.maybeOf(context);
-    return WFormBorderStyleScope(
-      style: effectiveBorderConfig,
-      child: _WFormControllerInherited(
-        formData: formData,
-        child: FormBuilder(
-          key: formData.formKey,
-          autovalidateMode: autovalidateMode,
-          onChanged: onChanged == null ? null : () => onChanged!(formData.value),
-          child: child,
-        ),
+    return _WFormControllerInherited(
+      formData: formData,
+      child: FormBuilder(
+        key: formData.formKey,
+        autovalidateMode: autovalidateMode,
+        onChanged: onChanged == null ? null : () => onChanged!(formData.value),
+        child: child,
       ),
     );
   }

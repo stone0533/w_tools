@@ -4,7 +4,7 @@
 export 'components/form_icons.dart';
 
 // 边框与布局
-export 'components/border/border.dart' hide WFormBorderStyleScope, WFormBorderState;
+export 'components/border/border.dart' hide WFormBorderState;
 export 'components/border/border_layout.dart';
 export 'components/border/field_shell.dart';
 export 'components/border/read_only_scope.dart';

@@ -5,7 +5,7 @@ const subpackageConstraints = <String, String>{
   'w_tools_async': '^6.7.0',
   'w_tools_app': '^3.1.1',
   'w_tools_app_getx': '^2.1.1',
-  'w_tools_form': '^6.0.0',
+  'w_tools_form': '^7.0.0',
   'w_tools_ui': '^11.0.0',
   'w_tools_api': '^5.2.0',
   'w_tools_toast': '^2.1.0',
@@ -16,7 +16,7 @@ const subpackageConstraints = <String, String>{
 
 /// CLI 自己的版本约束（消费方放在 dev_dependencies）。
 /// 同样必须等于 `packages/cli/pubspec.yaml` 的当前版本，由 init_test 读取 pubspec 校验。
-const cliConstraint = '^1.20.26';
+const cliConstraint = '^1.20.27';
 
 /// 设备验证工具（dev_dependencies，独立包）
 const wToolsDeviceConstraint = '^0.3.2';

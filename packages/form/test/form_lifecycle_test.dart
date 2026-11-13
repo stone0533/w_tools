@@ -147,7 +147,7 @@ void main() {
       ),
     );
 
-    form.updateValue('a', 'x');
+    form.setValue('a', 'x');
     await tester.pump();
     expect(form.formEntered['a'], isTrue);
 
@@ -182,8 +182,7 @@ void main() {
     form.setError('email', callback: () => called++);
     expect(called, 1);
 
-    form.handleChange('email', 'b@c.com', callback: () => called++);
-    expect(called, 2);
+    form.clearError('email');
   });
 
   testWidgets('多选弹层跟随外部值变化', (tester) async {

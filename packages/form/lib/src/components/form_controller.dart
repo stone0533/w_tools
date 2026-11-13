@@ -1,8 +1,7 @@
-import 'package:flutter/foundation.dart' show internal;
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'border/border_registry.dart';
+import 'border/border_access.dart';
 import 'validation/validator.dart';
 
 /// 表单数据管理类
@@ -10,7 +9,7 @@ import 'validation/validator.dart';
 /// 持有表单 [formKey]，并提供：
 /// - 字段值读写：[value]、[setValue]、[getFieldsValue]（[fields] 为底层字段集合）
 /// - 输入状态：[formEntered]、[isAllEntered]
-/// - 边框错误：[setError]、[clearError]（通道登记在内部 `borders`）
+/// - 边框错误：[setError]、[clearError]（通道由包内 registry 维护）
 /// - 校验器工厂：[validators]
 class WFormController {
   /// 创建表单数据容器
@@ -34,7 +33,7 @@ class WFormController {
   /// 各字段是否已输入的映射（**由当前字段值实时派生**，只读）
   ///
   /// 判定规则：字符串 / 集合 / Map 按非空，布尔按自身值，其它类型按非 null。
-  /// 不再依赖字段自觉调用 [handleChange]，自定义字段也能被正确反映。
+  /// 不依赖字段额外上报，自定义字段也能被正确反映。
   Map<String, bool> get formEntered {
     final registered = fields;
     if (registered == null) return const <String, bool>{};
@@ -65,34 +64,26 @@ class WFormController {
     return true;
   }
 
-  /// 按字段名设置字段值
+  /// 按字段名设置字段值，并清除该字段的边框错误
   ///
   /// 直接调用字段的 `didChange`：值写入后 [formEntered] 会立即反映
   /// （它按当前字段值实时派生，没有需要手工维护的输入状态）。
   void setValue<T>(String name, T value) {
+    clearError(name);
     formKey.currentState?.fields[name]?.didChange(value);
   }
 
-  /// 写入字段值并清除该字段的边框错误
-  ///
-  /// 等价于 [setValue] + [handleChange]；[formEntered] 由字段值实时派生，
-  /// 两种写法都会反映，`updateValue` 只是顺带清掉上一次的边框错误。
-  void updateValue<T>(String name, T value) {
-    setValue<T>(name, value);
-    handleChange<T>(name, value);
-  }
-
-  /// 清空指定字段：把值写成 `null` 并更新输入状态
+  /// 清空指定字段：把值写成 `null` 并清除边框错误
   ///
   /// 只对**可空类型**（String / 数值等）语义明确；`bool` / `Set` 这类非空值类型
   /// 请用 [resetValue] 回到字段自己的 `initialValue`。
   void clearValue(String name) {
-    updateValue<String?>(name, null);
+    setValue<String?>(name, null);
   }
 
   /// 把指定字段重置回它自己的 `initialValue`
   ///
-  /// 适用于非空值类型：`bool` → 初值（含 `false`）、`Set<String>` → 初值集合、
+  /// 适用于非空值类型：`bool` → 初值（含 `false`）、`Set<T>` → 初值集合、
   /// 日期 / 下拉 → 初值。等价于对该字段调用 `FormFieldState.reset()`，
   /// 因此字段自己声明的 `onReset` 也会执行。
   void resetValue(String name) {
@@ -107,32 +98,12 @@ class WFormController {
     formKey.currentState?.reset();
   }
 
-  /// 处理字段内容变更：清除该字段的错误样式
-  ///
-  /// [formEntered] 不依赖本方法（它按字段值实时派生）；保留参数是为了兼容
-  /// 既有调用与 `callback` 时机。
-  void handleChange<T>(
-    String name,
-    T? value, {
-    VoidCallback? callback,
-  }) {
-    clearError(name);
-    callback?.call();
-  }
-
   /// 获取字段的即时值（无需先 save）
   ///
   /// 实际类型与 [T] 不符时抛错。
   T? getFieldsValue<T>(String name) {
     return formKey.currentState?.fields[name]?.value as T?;
   }
-
-  /// 内部：字段边框 / 错误通道登记
-  ///
-  /// 包内实现（`WFormFieldShell`、`WFormBorder` 使用）；业务侧请用
-  /// [setError] / [clearError]，不要直接操作通道。
-  @internal
-  final WFormBorderRegistry borders = WFormBorderRegistry();
 
   /// 设置指定字段的错误样式
   ///
@@ -143,20 +114,21 @@ class WFormController {
     List<String>? errorTextList,
     VoidCallback? callback,
   }) {
+    final registry = bordersOf(this);
     assert(
-      borders.has(name) || !(fields?.containsKey(name) ?? false),
+      registry.has(name) || !(fields?.containsKey(name) ?? false),
       '字段 $name 没有边框（bordered: false 的字段不会渲染 setError）；'
       '这类字段的错误请从 WFormValidator.errors 读取。',
     );
-    if (borders.has(name)) {
-      borders.channelOf(name).value = errorTextList ?? const <String>[];
+    if (registry.has(name)) {
+      registry.channelOf(name).value = errorTextList ?? const <String>[];
     }
     callback?.call();
   }
 
   /// 清除指定字段的错误样式
   void clearError(String name) {
-    borders.clearChannel(name);
+    bordersOf(this).clearChannel(name);
   }
 
   /// 关闭键盘
@@ -167,7 +139,8 @@ class WFormController {
   /// 创建表单校验器（校验项由 [WFormValidator.validate] 按序执行）
   ///
   /// [items] 为 null 时与 [validate] 一致：校验当前已挂载字段的自身 validator。
-  /// 表单未挂载时按空校验项处理（调用 [WFormValidator.validate] 会通过）。
+  /// 表单未挂载时：字段校验项 / 空校验项返回 false；纯自定义 `validatorBuilder`
+  /// 仍然可以运行。
   WFormValidator validators({WFormValidatorSettings? settings, List<WFormValidatorItem>? items}) {
     final validationItems =
         items ?? (fields?.keys.map(WFormValidatorItem.field).toList() ?? <WFormValidatorItem>[]);

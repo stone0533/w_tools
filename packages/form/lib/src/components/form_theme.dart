@@ -13,7 +13,7 @@ class WFormThemeData {
   /// 图标集合；未配置项回退 [WFormIcons.defaults]
   final WFormIcons? icons;
 
-  /// 表单边框样式；`WFormScope` 未显式传 `formBorderStyle` 时继承本项
+  /// 表单边框样式；由 `WForm` / `WFormTheme` 统一写入
   final WFormBorderStyle? borderStyle;
 
   /// 读取最近的表单主题数据（无祖先时返回 null）
@@ -63,7 +63,7 @@ class WFormTheme extends StatelessWidget {
 
   final Widget child;
 
-  /// 表单边框样式；`WFormScope` 未显式传 `formBorderStyle` 时继承本项
+  /// 表单边框样式；未传时继承外层 `WFormThemeData.borderStyle`
   final WFormBorderStyle? borderStyle;
 
   /// 图标集合；未配置项回退 [WFormIcons.defaults]
@@ -71,15 +71,13 @@ class WFormTheme extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inherited = WFormBorderStyleScope.maybeOf(context);
-    final effective = borderStyle ?? inherited;
-    final data = WFormThemeData(icons: icons, borderStyle: effective);
-    // 显式参数优先于祖先作用域（嵌套 WForm / WFormTheme 时，里层的配置说了算）；
-    // 没有有效样式时不插入空作用域，避免多一层 InheritedWidget。
-    return _WFormThemeInherited(
-      data: data,
-      child: effective == null ? child : WFormBorderStyleScope(style: effective, child: child),
+    final inherited = WFormThemeData.of(context);
+    final data = WFormThemeData(
+      icons: icons ?? inherited?.icons,
+      borderStyle: borderStyle ?? inherited?.borderStyle,
     );
+    // 显式参数优先于祖先主题（嵌套 WForm / WFormTheme 时，里层的配置说了算）。
+    return _WFormThemeInherited(data: data, child: child);
   }
 }
 

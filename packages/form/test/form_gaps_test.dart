@@ -217,7 +217,7 @@ void main() {
     );
 
     await tester.pumpWidget(build(show: true));
-    await tester.tap(find.byType(WFormMultiDropdown));
+    await tester.tap(find.byType(WFormMultiDropdown<String>));
     await tester.pumpAndSettle();
     expect(find.text('A'), findsWidgets);
 
@@ -367,7 +367,7 @@ void main() {
     expect(find.text('必填'), findsOneWidget);
   });
 
-  testWidgets('自定义字段（未接 handleChange）也能被 formEntered 反映', (tester) async {
+  testWidgets('自定义字段（未接额外上报）也能被 formEntered 反映', (tester) async {
     final form = WFormController();
     await tester.pumpWidget(
       MaterialApp(
@@ -401,16 +401,16 @@ void main() {
     await tester.pumpWidget(build(show: true));
     form.setError('a', errorTextList: const ['出错了']);
     await tester.pump();
-    expect(form.borders.has('a'), isTrue);
+    expect(formBordersOf(form).has('a'), isTrue);
 
     await tester.pumpWidget(build(show: false));
     await tester.pump();
-    expect(form.borders.has('a'), isFalse);
+    expect(formBordersOf(form).has('a'), isFalse);
 
     // 同名字段重新挂载：不应继承上一次的错误
     await tester.pumpWidget(build(show: true));
     await tester.pump();
-    expect(form.borders.has('a'), isTrue);
+    expect(formBordersOf(form).has('a'), isTrue);
     expect(find.text('出错了'), findsNothing);
   });
 
@@ -431,7 +431,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byType(WFormMultiDropdown));
+    await tester.tap(find.byType(WFormMultiDropdown<String>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('B').last);
     await tester.pumpAndSettle();
@@ -573,6 +573,134 @@ void main() {
     final fields = tester.widgetList<TextField>(find.byType(TextField)).toList();
     expect(fields[0].style?.color, const Color(0xFF111111));
     expect(fields[1].style?.color, const Color(0xFF222222));
+  });
+
+  testWidgets('先边框错误、下一帧再内联错误时只渲染一条文案', (tester) async {
+    final form = WFormController();
+    await pumpForm(
+      tester,
+      formData: form,
+      child: const WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
+    );
+
+    // 第一帧：WFormValidator 写边框错误。
+    expect(form.validate(), isFalse);
+    await tester.pump();
+    expect(find.text('必填'), findsOneWidget);
+
+    // 第二帧：原生 Form 校验写字段内联错误；边框不能重复展示。
+    expect(form.formKey.currentState!.validate(), isFalse);
+    await tester.pump();
+    expect(find.text('必填'), findsOneWidget);
+  });
+
+  testWidgets('shouldSkipValidation 跳过的字段会清掉上次的边框错误', (tester) async {
+    final form = WFormController();
+    await pumpForm(
+      tester,
+      formData: form,
+      child: const Column(
+        children: [
+          WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
+          WFormTextField(name: 'b', label: 'B', validator: _alwaysFail),
+        ],
+      ),
+    );
+
+    expect(
+      form.validators(settings: const WFormValidatorSettings(showBorderError: true)).validate(),
+      isFalse,
+    );
+    await tester.pump();
+    expect(find.text('必填'), findsOneWidget);
+
+    // 第二次校验跳过 a：a 的旧边框错误必须清掉，只保留 b 的错误。
+    expect(
+      form
+          .validators(
+            settings: WFormValidatorSettings(
+              showBorderError: true,
+              shouldSkipValidation: (name, _) => name == 'a',
+            ),
+          )
+          .validate(),
+      isFalse,
+    );
+    await tester.pump();
+    expect(find.text('必填'), findsOneWidget);
+  });
+
+  test('未挂载表单的 validators().validate() 返回 false', () {
+    expect(WFormController().validators().validate(), isFalse);
+  });
+
+  testWidgets('text 的 textAlign / maxLength 生效', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormTextField(
+              name: 'a',
+              label: 'A',
+              textAlign: TextAlign.end,
+              maxLength: 5,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.textAlign, TextAlign.end);
+    expect(field.maxLength, 5);
+  });
+
+  testWidgets('dropdown 的 style / iconSize 生效', (tester) async {
+    const red = Color(0xFFFF0000);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: WFormController(),
+            child: const WFormDropdown<String>(
+              name: 'd',
+              items: {'a': 'A'},
+              initialValue: 'a',
+              style: TextStyle(color: red),
+              iconSize: 18,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final dropdown = tester.widget<DropdownButton<String>>(
+      find.byType(DropdownButton<String>),
+    );
+    expect(dropdown.iconSize, 18);
+    expect(tester.widget<Text>(find.text('A')).style?.color, red);
+  });
+
+  testWidgets('date 的 DateTime initialDate 转成 ISO 字段值', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: WFormDatePicker(
+              name: 'd',
+              initialDate: DateTime(2024, 3, 5),
+              displayFormat: 'yyyy-MM-dd',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('2024-03-05'), findsOneWidget);
+    expect(form.value['d'], '2024-03-05');
   });
 }
 

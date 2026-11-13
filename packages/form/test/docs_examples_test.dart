@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
+import 'internal/_helpers/form_test_scaffold.dart';
+
 /// 防止 README / docs/agents/form.md 中的公开 API 示例随重构失效。
 ///
 /// 测试不解析 Markdown，而是用同一组入口做编译和渲染校验；
@@ -100,11 +102,12 @@ void main() {
     );
     expect(validator.errors, isEmpty);
 
-    // §4 边框：不可变配置 + 链式装饰 + 自定义布局
-    final decoration = const WFormBorderDecoration()
-        .withUniformBorder(1, Colors.grey)
-        .withUniformBorderRadius(8)
-        .withColor(Colors.white);
+    // §4 边框：不可变配置 + 自定义布局
+    const decoration = BoxDecoration(
+      color: Colors.white,
+      border: Border.fromBorderSide(BorderSide(width: 1, color: Colors.grey)),
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+    );
     final borderStyle =
         WFormBorderStyle(
           defaultDecoration: decoration,
@@ -215,6 +218,6 @@ void main() {
 
     expect(find.byIcon(Icons.attach_money), findsOneWidget);
     expect(form.validate(), isFalse);
-    expect(form.borders.has('amount'), isTrue);
+    expect(formBordersOf(form).has('amount'), isTrue);
   });
 }

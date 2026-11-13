@@ -18,7 +18,8 @@ class WFormPopup {
 
   /// 显示弹出层，返回关闭时回传的结果
   ///
-  /// 同一 [Navigator] 已有弹层时忽略本次调用，返回一个已完成的 null Future。
+  /// 同一 [Navigator] 已有弹层时：release 忽略本次调用并返回一个已完成的
+  /// null Future；debug 下断言报出，避免静默丢失。
   ///
   /// - [anchorContext]：定位锚点（默认使用 [context]），用于对齐到更精确的输入区域
   /// - [rootNavigator]：是否推入根 Navigator

@@ -119,7 +119,6 @@
 | `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
 | `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
 | `WFormBorderStyle` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式 | 普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderStyle: ...)` 下发 |
-| `WFormBorderDecoration` | form | 边框装饰值对象：border / color / borderRadius / boxShadow / gradient | 不要用 `Container(decoration:)` 代替 `WFormBorder` |
 | `WAsyncView` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
 | `WAsyncStateBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除 |
 | `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncView` |
@@ -129,7 +128,6 @@
 | `WFormReadOnlyScope` | form | 只读作用域：由 WForm / 字段自动注入，穿透任意包装 | — |
 | `WFormBorderLayout` / `WFormBorderLayoutData` | form | 边框与消息的布局策略：一个函数 typedef（默认 columnBorderLayout） | — |
 | `WFormFieldShell` | form | 字段外框装配（内置字段自动使用；自定义字段可参考 form_module.md §4.3） | — |
-| `WFormBorderDecorationExtension` | form | 边框装饰值对象的链式扩展（withUniformBorder / withColor 等） | — |
 | `WAsyncErrorView` / `WAsyncErrorBanner` | async | 默认整块错误视图 / 保留旧数据时的错误条 | — |
 | `WAsyncRetryErrorHandler` | async | onRetryError 回调的类型 | — |
 <!-- catalog:4:end -->
@@ -141,10 +139,10 @@
 | --- | --- | --- | --- |
 | `WForm` | form | 页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验 | 普通页面不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` 三层嵌套；App 级图标 / 边框才用外层 `WFormTheme` |
 | `WFormController` | form | 表单数据 / 字段值 / 校验入口 | 两个 WForm 不能同时挂载同一个 controller（会显示重复挂载提示） |
-| `WFormTextField` | form | 直接文本 / 密码字段（label / message / validator） | 不要默认写 `WFormTextFieldConfig().build(...)` |
-| `WFormDropdown` | form | 直接下拉字段（items / 初始值 / icon / contentPadding） | 多选用 `WFormMultiDropdown`；自定义弹层用 `WFormPopup` |
-| `WFormMultiDropdown` | form | 直接多选字段（items / disabledKeys / 选项样式） | 单选用 `WFormDropdown` |
-| `WFormDatePicker` | form | 直接日期字段（displayFormat / firstDate / lastDate） | 时间选择不在本组件范围；自定义弹层用 `WFormPopup` |
+| `WFormTextField` | form | 直接文本 / 密码字段（label / message / validator / textAlign / maxLength） | 不要默认写 `WFormTextFieldConfig().build(...)` |
+| `WFormDropdown` | form | 直接下拉字段（items / 初始值 / icon / iconSize / style / contentPadding） | 多选用 `WFormMultiDropdown`；自定义弹层用 `WFormPopup` |
+| `WFormMultiDropdown` | form | 直接多选字段（items / disabledKeys / 选项样式；T 由 items 推断） | 单选用 `WFormDropdown` |
+| `WFormDatePicker` | form | 直接日期字段（initialDate / displayFormat / firstDate / lastDate） | 时间选择不在本组件范围；自定义弹层用 `WFormPopup` |
 | `WFormCheckbox` | form | 直接复选字段（title 必填，默认 bordered: false） | 多选用 `WFormMultiDropdown` |
 | `WFormRadioGroup` | form | 直接单选字段（items / titleBuilder / lineSpacing） | 多选用 `WFormMultiDropdown` |
 | `WFormButton` | form | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用 |
