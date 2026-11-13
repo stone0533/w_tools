@@ -136,7 +136,7 @@ void main() {
     expect(frame.style.margin, const EdgeInsets.all(2));
   });
 
-  testWidgets('WButtonStyles.of 四种样式与值相等', (tester) async {
+  testWidgets('WButtonStyleSet.of 四种样式与值相等', (tester) async {
     late WButtonStyleSet first;
     late WButtonStyleSet second;
     await tester.pumpWidget(
@@ -144,8 +144,8 @@ void main() {
         theme: ThemeData(useMaterial3: true),
         home: Builder(
           builder: (context) {
-            first = WButtonStyles.of(context);
-            second = WButtonStyles.of(context);
+            first = WButtonStyleSet.of(context);
+            second = WButtonStyleSet.of(context);
             return const SizedBox.shrink();
           },
         ),

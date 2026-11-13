@@ -261,7 +261,7 @@ WIconText.custom(icon: SvgPicture.asset('assets/star.svg'), text: '收藏'); // 
 ```dart
 WButton(label: '保存', onTap: save);
 WButton(label: '提交', loading: true, enabled: false, onTap: submit);
-WButton(icon: Icons.add, label: '新增', style: WButtonStyles.of(context).primary, onTap: add);
+WButton(icon: Icons.add, label: '新增', style: WButtonStyleSet.of(context).primary, onTap: add);
 WButton(icon: Icons.favorite, tooltip: '收藏', isSelected: true, onTap: toggle);
 WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 ```

@@ -9,7 +9,7 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 final _goldenSkip = !Platform.isMacOS || kIsWeb;
 
 Widget _buildButtons(BuildContext context) {
-  final styles = WButtonStyles.of(context);
+  final styles = WButtonStyleSet.of(context);
   return Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,

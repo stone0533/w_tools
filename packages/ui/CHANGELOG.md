@@ -18,6 +18,7 @@
 - `WUiWidgetExtension`：合并到 `WWidgetExtension`，`toPressable` 方法仍在。
 - `WImageError.data`：改名 `sourceValue`（值相等 / `toString` 同步）。
 - `WListViewSliver.keepAlive`：改名 `addAutomaticKeepAlives`，与 Flutter 语义对齐。
+- `WButtonStyles`：合并到 `WButtonStyleSet.of(context)`。
   迁移见 `docs/migrations/ui-11.0.md`。
 
 ## 10.5.0

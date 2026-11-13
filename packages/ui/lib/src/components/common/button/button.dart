@@ -159,7 +159,7 @@ class _WButtonState extends State<WButton> {
       return _cachedStyle!;
     }
     _cachedTheme = theme;
-    final base = widget.style ?? WButtonStyles.of(context).primary;
+    final base = widget.style ?? WButtonStyleSet.of(context).primary;
     final sized = base.applySize(widget.size);
     assert(
       widget.icon == null ||

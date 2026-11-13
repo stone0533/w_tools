@@ -56,11 +56,11 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 - 表单字段的“值选择”用 `WFormButton`，不要用 `WButton` 手写。
 - 样式分层：
   - `WButtonStyle`：视觉（颜色、圆角、边框、内边距等）；
-  - `WButtonStyles`：组件层预设（`primary` / `secondary` / `text` / `danger`），返回 `WButtonStyleSet`；
+  - `WButtonStyleSet.of(context)`：组件层预设（`primary` / `secondary` / `text` / `danger`），返回 `WButtonStyleSet`；
   - `WButton(motion:, semantics:)`：按下、缩放、透明度与无障碍语义；
   - `WButtonSize`：尺寸令牌；
   - `WButtonContentBuilder`：复杂内容（多行、图标 + 文案 + 尾部）时使用。
-- **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成）；`WButtonStyles.of(context).primary`
+- **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成）；`WButtonStyleSet.of(context).primary`
   适合组件示例 / 独立 Demo。不要在每个调用点重复写完整 `WButtonStyle`。
 - `WButton(icon:, label:)` 内部复用 `WIconText` 做行盒中点对齐；不要再手写
   `Row + Icon + Text` 补偏移。
@@ -312,7 +312,7 @@ deprecated 警告。
 ### WButton 样式复用
 
 项目页面优先用项目 UI 层的 `AppButtons`；组件示例 / 独立 Demo 可用
-`WButtonStyles.of(context)` 的预设。不要在每个调用点重复写完整 `WButtonStyle`。
+`WButtonStyleSet.of(context)` 的预设。不要在每个调用点重复写完整 `WButtonStyle`。
 
 ### WImage 平台差异
 

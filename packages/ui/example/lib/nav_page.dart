@@ -91,12 +91,12 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
                   children: [
                     WButton(
                       label: 'animateTo(2)',
-                      style: WButtonStyles.of(context).secondary,
+                      style: WButtonStyleSet.of(context).secondary,
                       onTap: () => _nav.animateTo(2),
                     ),
                     WButton(
                       label: 'currentIndex = 0',
-                      style: WButtonStyles.of(context).secondary,
+                      style: WButtonStyleSet.of(context).secondary,
                       onTap: () => _nav.currentIndex = 0,
                     ),
                   ],

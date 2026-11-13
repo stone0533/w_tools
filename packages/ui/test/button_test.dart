@@ -891,7 +891,7 @@ void main() {
       );
     });
 
-    testWidgets('WButtonStyles.of 按 ThemeData 缓存', (tester) async {
+    testWidgets('WButtonStyleSet.of 按 ThemeData 缓存', (tester) async {
       final theme = ThemeData(useMaterial3: true);
       late BuildContext context;
 
@@ -907,8 +907,8 @@ void main() {
         ),
       );
 
-      final first = WButtonStyles.of(context);
-      final second = WButtonStyles.of(context);
+      final first = WButtonStyleSet.of(context);
+      final second = WButtonStyleSet.of(context);
       expect(identical(first.primary, second.primary), isTrue);
       expect(first.danger.backgroundColor, isNotNull);
     });

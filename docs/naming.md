@@ -232,7 +232,7 @@
 | 失败分支 | `Failure` | `Error` | `Failure` 是 `Result` 的失败分支（`WAsyncFailure`） |
 | 错误对象 / 视图 | `Error` | `Failure` | `Error` 是错误本身或错误视图（`WImageError` / `WImageErrorView`） |
 | 返回值（成功 / 失败 / 取消） | `Result` | `Status` | 返回值用 `Result`，即使内部是 enum；`Status` 只描述过程阶段（idle / loading / ready） |
-| 成组的样式 / 常量 | `Styles` | `Style` | 成组用复数（`WTextStyles` / `WButtonStyles`）；单组件参数用单数 `Style` |
+| 成组的样式 / 常量 | `Styles` | `Style` | 成组用复数（`WTextStyles`）；单组件参数用单数 `Style` |
 | 子树默认值 | `Theme` | `Scope` | 一组默认值（`WFormTheme`），可被局部覆盖 |
 | 运行期上下文 | `Scope` | `Theme` | controller / 当前实例进子树（`WFormScope`），不是默认值 |
 | 构造后不变的行为参数 | `Options` | `Settings` / `Params` | 构造后不变（`WImageLoadOptions`） |

@@ -20,13 +20,13 @@ void main() {
     expect(colors.upcoming, scheme.outline);
   });
 
-  testWidgets('WButtonStyles.of 返回命名类型 WButtonStyleSet', (tester) async {
+  testWidgets('WButtonStyleSet.of 返回命名类型 WButtonStyleSet', (tester) async {
     late WButtonStyleSet set;
     await tester.pumpWidget(
       MaterialApp(
         home: Builder(
           builder: (context) {
-            set = WButtonStyles.of(context);
+            set = WButtonStyleSet.of(context);
             return const SizedBox();
           },
         ),

@@ -1,3 +1,9 @@
+## 1.20.17
+
+### Changed
+- catalog 把 `WButtonStyles` 合并到 `WButtonStyleSet`（`WButtonStyleSet.of(context)`）；
+  `WButton` 的示例 / pitfalls 同步。
+
 ## 1.20.16
 
 ### Changed

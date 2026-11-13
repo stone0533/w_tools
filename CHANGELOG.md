@@ -5,7 +5,8 @@
   `WNavBar.onItemTap`（用 `onBeforeTap`）、`notifyScrollPercentage`、
   `WTextStyleExtension`（用 `TextStyle.copyWith`）与 `WUiWidgetExtension`
   （合并到 `WWidgetExtension`）；`WImageError.data` 改名 `sourceValue`，
-  `WListViewSliver.keepAlive` 改名 `addAutomaticKeepAlives`。
+  `WListViewSliver.keepAlive` 改名 `addAutomaticKeepAlives`；`WButtonStyles`
+  合并到 `WButtonStyleSet.of(context)`。
 
 ### Changed
 - 根包 `w_tools_ui` 约束抬到 `^11.0.0`。

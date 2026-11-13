@@ -376,11 +376,11 @@ components:
       WButton(label: '详情', content: Row(mainAxisSize: MainAxisSize.min, children: [...]), onTap: ...);
     pitfalls:
       - '任意 child 点击用 WPressable，不要套 WButton'
-      - '项目页面优先用 AppButtons；WButtonStyles 只用于组件示例 / 独立 Demo'
+      - '项目页面优先用 AppButtons；WButtonStyleSet.of(context) 只用于组件示例 / 独立 Demo'
       - 'loading 时同时设 enabled: false，避免重复点击'
       - 'label 与 content 不能同时传；icon-only 要提供 semanticLabel'
       - 'toggle 按钮用 isSelected；纯图标按钮仍需 tooltip / semanticLabel'
-    related: ['`WPressable`', '`WButtonStyles`']
+    related: ['`WPressable`', '`WButtonStyleSet`']
     teach: true
   - name: '`WPressable`'
     package: 'w_tools_ui'
@@ -396,27 +396,17 @@ components:
       - 'effect 默认 opacity；需要缩放用 WPressEffect.scale'
     related: ['`WButton`']
     teach: true
-  - name: '`WButtonStyles`'
-    package: 'w_tools_ui'
-    docsAnchor: '2-wbutton---按钮组件'
-    section: '3. 按钮与操作'
-    useFor: '按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger）'
-    dontUseFor: '不要硬编码颜色；页面统一样式用项目 AppButtons 注册表'
-    usage: |
-      WButton(style: WButtonStyles.of(context).primary, label: '保存', onTap: save);
-      // WButtonStyles.of(context).secondary / .text / .danger 同源
-    related: ['`WButton`']
-    teach: false
   - name: '`WButtonStyleSet`'
     package: 'w_tools_ui'
     docsAnchor: '2-wbutton---按钮组件'
     section: '3. 按钮与操作'
-    useFor: 'WButtonStyles.of 返回的四种语义样式集合'
-    dontUseFor: '不要自己 new 这组样式；用 WButtonStyles.of(context)'
+    useFor: '按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger）'
+    dontUseFor: '不要自己 new 这组样式；页面统一样式用项目 AppButtons 注册表'
     usage: |
-      final set = WButtonStyles.of(context);
+      final set = WButtonStyleSet.of(context);
       WButton(style: set.primary, label: '保存', onTap: save);
-    related: ['`WButtonStyles`', '`WButton`']
+      // set.secondary / .text / .danger 同源
+    related: ['`WButton`']
     teach: false
   - name: '`WActionRow` / `WSelectableRow`'
     package: 'w_tools_ui'
@@ -1791,7 +1781,7 @@ components:
     dontUseFor: '不要用它替代 Semantics 组件；它只供 WButton 的朗读文案'
     usage: |
       WButton(
-        style: WButtonStyles.of(context).primary,
+        style: WButtonStyleSet.of(context).primary,
         semantics: const WButtonSemantics(label: '保存', hint: '保存当前内容'),
         label: '保存',
         onTap: save,

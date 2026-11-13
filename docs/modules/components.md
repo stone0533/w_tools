@@ -86,8 +86,7 @@
 | `WButtonStyle` | ui | 按钮视觉：颜色 / 边框 / 圆角 / 内边距 / 尺寸 / 动效 / 语义 | 按钮宽度由父布局决定，`WButtonStyle` 不含 width |
 | `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义 / 键盘焦点 / 最小点击区域时用 `WButton` |
-| `WButtonStyles` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要硬编码颜色；页面统一样式用项目 AppButtons 注册表 |
-| `WButtonStyleSet` | ui | WButtonStyles.of 返回的四种语义样式集合 | 不要自己 new 这组样式；用 WButtonStyles.of(context) |
+| `WButtonStyleSet` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要自己 new 这组样式；页面统一样式用项目 AppButtons 注册表 |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 / 圆点 | 不要用于长文案；多字提示用 WText |
 | `WBadgeStyle` | ui | 角标视觉：背景 / 前景 / 文字 / padding / 圆角 / 边框 | 不要在这里放位置；位置用 WBadgePosition |

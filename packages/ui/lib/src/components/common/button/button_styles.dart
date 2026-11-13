@@ -4,7 +4,7 @@ import 'button_style.dart';
 
 /// 四种语义按钮样式的命名集合。
 ///
-/// 用 [WButtonStyles.of] 获取；结果按 `ThemeData` 缓存，主题不变时是同一个实例。
+/// 用 [WButtonStyleSet.of] 获取；结果按 `ThemeData` 缓存，主题不变时是同一个实例。
 @immutable
 class WButtonStyleSet {
   const WButtonStyleSet({
@@ -26,24 +26,7 @@ class WButtonStyleSet {
   /// 危险按钮：`error` / `onError`
   final WButtonStyle danger;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is WButtonStyleSet &&
-          other.primary == primary &&
-          other.secondary == secondary &&
-          other.text == text &&
-          other.danger == danger;
-
-  @override
-  int get hashCode => Object.hash(primary, secondary, text, danger);
-}
-
-/// 按当前主题派生四种语义按钮样式。
-///
-/// 新代码用 `WButtonStyles.of(context).primary`（跟随 `ColorScheme` / `TextTheme`）。
-abstract final class WButtonStyles {
-  /// 按当前主题派生的四种语义样式。
+  /// 按当前主题派生四种语义样式。
   ///
   /// - `primary`：`colorScheme.primary` / `onPrimary`
   /// - `secondary`：描边，`primary` 前景 + `outline` 边框
@@ -83,4 +66,16 @@ abstract final class WButtonStyles {
       ),
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WButtonStyleSet &&
+          other.primary == primary &&
+          other.secondary == secondary &&
+          other.text == text &&
+          other.danger == danger;
+
+  @override
+  int get hashCode => Object.hash(primary, secondary, text, danger);
 }

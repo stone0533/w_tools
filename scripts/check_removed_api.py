@@ -44,6 +44,7 @@ names = [
     r'\bWUiWidgetExtension\b',
     r'\bWImageError\.data\b',
     r'\bWListViewSliver\.keepAlive\b',
+    r'\bWButtonStyles\b',
     # ui 8.0：Config 过渡入口 / 按钮冗余类型 / Builder 收口。
     r'\bWNavBarConfig\b', r'\bWTabBarConfig\b', r'\bWBadgeConfig\b', r'\bWClipRRectConfig\b',
     r'\bWBadge[^\n|]*\btopRight\b',
