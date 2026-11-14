@@ -55,8 +55,17 @@ FocusManager.instance.primaryFocus?.unfocus();
 
 ## 4. `WFormCustomValidator` 删除
 
-`WFormCustomValidator.custom(...)` 只是把一个函数包成 `FormFieldValidator`；
-直接传函数即可，`form_builder_validators` 依赖也从包里移除。
+旧实现只是把一个 `String? Function(T?)` 包成 `FormFieldValidator<T>`；它内部继承
+`BaseValidator` 并覆写 `validate`，唯一特殊之处是**绕开 `BaseValidator` 对空值的短路**。
+字段的 `validator:` 原本就会收到 `null`，所以直接传闭包行为等价。
+
+两个前提要记住：
+
+1. **`value` 可能是 `null`**（空输入通常以 `null` 传入）。必填 / trim 等规则由闭包自己判断。
+2. **`form_builder_validators` 不再是 `w_tools_form` 的依赖**。如果你的项目曾直接
+   `import 'package:form_builder_validators/form_builder_validators.dart'`（靠传递依赖），
+   升级 8.0 后需要在自己的 `pubspec.yaml` 显式添加；只使用 `w_tools_form` 的字段
+   `validator:` 则不需要。
 
 ```dart
 // before
@@ -67,12 +76,36 @@ WFormTextField(
   ),
 );
 
-// after
+// after：字段级直接传闭包
 WFormTextField(
   name: 'code',
   validator: (value) => (value == null || value.isEmpty) ? '必填' : null,
 );
 ```
+
+表单级规则两种写法：
+
+```dart
+// 1) 复用字段自己声明的强类型 validator（推荐）
+WFormTextField(
+  name: 'code',
+  validator: (value) => (value == null || value.isEmpty) ? '必填' : null,
+);
+form.validators(items: [WFormValidatorItem.field('code')]).validate();
+
+// 2) 按运行期状态生成动态规则
+form.validators(items: [
+  WFormValidatorItem(
+    fieldName: 'code',
+    validatorBuilder: () => (value) =>
+        (value == null || value.isEmpty) ? '必填' : null,
+  ),
+]).validate();
+```
+
+需要跨字段 / 多个页面复用规则时，在项目 UI 层封装普通函数（例如
+`String? Function(String?)`），不要依赖已删除的包装类；示例见
+[`packages/form/README.md`](../../packages/form/README.md) 的「自定义校验」。
 
 ## 5. `WFormInputFormatters` / `WCardNumberInputFormatter` / `WDividerInputFormatter` 删除
 

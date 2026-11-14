@@ -95,6 +95,10 @@ WFormButton(
 WForm(controller: form, icons: const WFormIcons(dropdown: Icon(Icons.expand_more)), child: ...);
 
 form.validators(items: [WFormValidatorItem.field('email')]).validate();
+
+自定义校验直接传 `validator:` 闭包（`value` 可能为 `null`，必填自己判）；表单级用
+`WFormValidatorItem.field(name)` 复用字段规则，或用 `validatorBuilder` 生成动态规则。
+`WFormCustomValidator` 已在 8.0 删除（只是函数包装），不要再去引用。
 form.validate(settings: const WFormValidatorSettings(continueOnError: true));
 form.reset();
 ```
