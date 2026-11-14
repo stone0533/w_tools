@@ -24,7 +24,7 @@ void main() {
             controller: WFormController(),
             child: Column(
               children: [
-                WFormTextField(name: 'email', label: '邮箱'),
+                WFormTextField(name: 'email', hintText: '邮箱'),
                 _DemoField(name: 'demo'),
               ],
             ),

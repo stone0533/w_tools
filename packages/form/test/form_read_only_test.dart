@@ -15,7 +15,7 @@ void main() {
             readOnly: true,
             child: Column(
               children: [
-                const WFormTextField(name: 'email', label: '邮箱'),
+                const WFormTextField(name: 'email', hintText: '邮箱'),
                 const WFormCheckbox(name: 'agree', title: Text('同意')),
                 WFormButton(
                   name: 'coupon',
@@ -53,7 +53,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            child: const WFormTextField(name: 'email', label: '邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱'),
           ),
         ),
       ),

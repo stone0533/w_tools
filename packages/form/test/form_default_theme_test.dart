@@ -13,7 +13,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            child: const WFormTextField(name: 'email', label: '邮箱', message: '请输入邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱', message: '请输入邮箱'),
           ),
         ),
       ),
@@ -42,7 +42,7 @@ void main() {
             controller: form,
             child: WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
             ),
           ),
@@ -66,7 +66,7 @@ void main() {
             borderStyle: const WFormBorderStyle(),
             child: WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               message: '请输入邮箱',
               validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
             ),
@@ -84,7 +84,7 @@ void main() {
   testWidgets('祖先 WFormTheme 的 borderStyle 在 WForm 未显式传时生效', (tester) async {
     final ancestor = WFormBorderStyle.fromTheme(
       ThemeData(useMaterial3: true),
-      hintStyle: const TextStyle(color: Color(0xFF00AA00)),
+      helperStyle: const TextStyle(color: Color(0xFF00AA00)),
     );
 
     await tester.pumpWidget(
@@ -94,7 +94,7 @@ void main() {
             borderStyle: ancestor,
             child: WForm(
               controller: WFormController(),
-              child: const WFormTextField(name: 'email', label: '邮箱', message: '提示'),
+              child: const WFormTextField(name: 'email', hintText: '邮箱', message: '提示'),
             ),
           ),
         ),
@@ -108,11 +108,11 @@ void main() {
   testWidgets('WForm 显式 borderStyle 优先于祖先 WFormTheme（嵌套场景）', (tester) async {
     final ancestor = WFormBorderStyle.fromTheme(
       ThemeData(useMaterial3: true),
-      hintStyle: const TextStyle(color: Color(0xFF00AA00)),
+      helperStyle: const TextStyle(color: Color(0xFF00AA00)),
     );
     final inner = WFormBorderStyle.fromTheme(
       ThemeData(useMaterial3: true),
-      hintStyle: const TextStyle(color: Color(0xFF0000AA)),
+      helperStyle: const TextStyle(color: Color(0xFF0000AA)),
     );
 
     await tester.pumpWidget(
@@ -123,7 +123,7 @@ void main() {
             child: WForm(
               controller: WFormController(),
               borderStyle: inner,
-              child: const WFormTextField(name: 'email', label: '邮箱', message: '提示'),
+              child: const WFormTextField(name: 'email', hintText: '邮箱', message: '提示'),
             ),
           ),
         ),
@@ -143,7 +143,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            child: const WFormTextField(name: 'email', label: '邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱'),
           ),
         ),
       ),

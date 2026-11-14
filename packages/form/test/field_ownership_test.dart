@@ -16,8 +16,8 @@ void main() {
               controller: WFormController(),
               child: const Column(
                 children: [
-                  WFormTextField(name: 'email', label: '邮箱 A'),
-                  WFormTextField(name: 'email', label: '邮箱 B'),
+                  WFormTextField(name: 'email', hintText: '邮箱 A'),
+                  WFormTextField(name: 'email', hintText: '邮箱 B'),
                 ],
               ),
             ),

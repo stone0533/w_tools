@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/read_only_scope.dart';
 import 'field_frame.dart';
-import 'form_scope.dart';
 import 'form_controller.dart';
 
 /// 表单按钮组件，用于创建可点击的表单字段
@@ -99,12 +98,12 @@ class WFormFieldButtonCore<T> extends StatelessWidget {
       child: _WFormScopeButton<T>(
         name: name,
         initialValue: initialValue,
-        enabled: enabled && !WFormReadOnlyScope.readOnlyOf(context),
+        enabled: enabled && !WFormReadOnly.of(context),
         onTap: onTap,
         hintWidget: hintWidget,
         selectedWidgetBuilder: selectedWidgetBuilder,
         validator: validator,
-        focusNode: focusNode,
+        interactionFocusNode: focusNode,
       ),
     );
   }
@@ -121,6 +120,9 @@ class _WFormScopeButton<T> extends FormBuilderField<T> {
   /// 点击回调函数
   final void Function(T? value, ValueChanged<T> didChange) onTap;
 
+  /// 交互控件使用的焦点节点（由 `WFormFieldButtonCore.focusNode` 传入）
+  final FocusNode? interactionFocusNode;
+
   /// 创建内部按钮字段
   _WFormScopeButton({
     super.key,
@@ -132,14 +134,14 @@ class _WFormScopeButton<T> extends FormBuilderField<T> {
     super.enabled,
     super.onSaved,
     super.onReset,
-    super.focusNode,
+    this.interactionFocusNode,
     super.restorationId,
     this.selectedWidgetBuilder,
     required this.onTap,
     this.hintWidget,
   }) : super(
          builder: (FormFieldState<T?> field) {
-           final state = field as FormBuilderFieldState<_WFormScopeButton<T>, T>;
+           final state = field as _WFormScopeButtonState<T>;
 
            final T? value = state.value;
            final Widget content = value == null
@@ -162,6 +164,7 @@ class _WFormScopeButton<T> extends FormBuilderField<T> {
                      : null,
                  mouseCursor: state.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
                  canRequestFocus: state.enabled,
+                 focusNode: state.interactionFocusNode,
                  child: Opacity(
                    opacity: state.enabled ? 1 : 0.5,
                    child: content,
@@ -181,10 +184,26 @@ class _WFormScopeButtonState<T> extends FormBuilderFieldState<_WFormScopeButton<
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
   WFormController? _formData;
 
+  /// 未传 external focusNode 时自建的交互节点
+  FocusNode? _ownFocusNode;
+
+  /// 交互控件实际使用的焦点节点
+  FocusNode get interactionFocusNode =>
+      widget.interactionFocusNode ?? (_ownFocusNode ??= FocusNode(debugLabel: widget.name));
+
+  @override
+  void focus() => interactionFocusNode.requestFocus();
+
+  @override
+  void dispose() {
+    _ownFocusNode?.dispose();
+    super.dispose();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _formData = WFormScope.of(context);
+    _formData = WFormController.of(context);
   }
 
   @override

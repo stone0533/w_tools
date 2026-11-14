@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/popup.dart';
 
 void main() {
   testWidgets('没有弹层时 WFormPopup.hide 不会 pop 当前页面', (tester) async {

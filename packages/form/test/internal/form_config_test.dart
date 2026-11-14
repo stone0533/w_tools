@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
@@ -59,56 +58,6 @@ void main() {
       expect(base.continueOnError, isFalse);
       expect(copy.showBorderError, isTrue);
       expect(copy.continueOnError, isTrue);
-    });
-  });
-
-  group('WFormCustomValidator', () {
-    test('空值同样交给自定义函数（可自行实现必填规则）', () {
-      final validator = WFormCustomValidator.custom<String>(
-        validator: (v) => (v == null || v.isEmpty) ? '必填' : null,
-      );
-
-      // 修复前：checkNullOrEmpty=false 时会跳过自定义函数、直接放行
-      expect(validator(null), '必填');
-      expect(validator(''), '必填');
-      expect(validator('abc'), isNull);
-    });
-
-    test('返回 null 表示校验通过', () {
-      final validator = WFormCustomValidator.custom<int>(
-        validator: (v) => (v != null && v > 0) ? null : '必须为正数',
-      );
-
-      expect(validator(1), isNull);
-      expect(validator(-1), '必须为正数');
-      expect(validator(null), '必须为正数');
-    });
-
-    testWidgets('作为表单字段校验器挂载（FormBuilder）：空值失败、填写后通过', (tester) async {
-      final formData = WFormController();
-
-      await pumpForm(
-        tester,
-        formData: formData,
-        child: FormBuilderTextField(
-          name: 'name',
-          decoration: const InputDecoration(),
-          validator: WFormCustomValidator.custom<String>(
-            validator: (v) => (v == null || v.trim().isEmpty) ? '必填' : null,
-          ),
-        ),
-      );
-
-      // 空值：校验失败并渲染错误文案
-      expect(formData.formKey.currentState!.validate(), isFalse);
-      await tester.pump();
-      expect(find.text('必填'), findsOneWidget);
-
-      // 填写后：校验通过、错误清除
-      await tester.enterText(find.byType(TextField), 'abc');
-      expect(formData.formKey.currentState!.validate(), isTrue);
-      await tester.pump();
-      expect(find.text('必填'), findsNothing);
     });
   });
 

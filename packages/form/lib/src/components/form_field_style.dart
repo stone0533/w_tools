@@ -10,13 +10,23 @@ class WFormFieldStyle {
     this.height,
     this.containerPadding,
     this.textStyle,
-    this.hintStyle,
+    this.placeholderStyle,
+    // remove-in: 9.0.0
+    @Deprecated('Use placeholderStyle instead. remove-in: 9.0.0') this.hintStyle,
   });
 
   final double? height;
   final EdgeInsetsGeometry? containerPadding;
   final TextStyle? textStyle;
+
+  /// 占位符文字样式。
+  final TextStyle? placeholderStyle;
+
+  /// 历史占位符样式；用 [placeholderStyle]。构造参数已弃用（remove-in: 9.0.0）。
   final TextStyle? hintStyle;
+
+  /// 兼容新旧字段的实际占位符样式。
+  TextStyle? get effectiveHintStyle => placeholderStyle ?? hintStyle;
 
   /// 读取最近的字段样式；没有 WForm 时返回 null。
   static WFormFieldStyle? of(BuildContext context) {
@@ -29,10 +39,11 @@ class WFormFieldStyle {
       other.height == height &&
       other.containerPadding == containerPadding &&
       other.textStyle == textStyle &&
+      other.placeholderStyle == placeholderStyle &&
       other.hintStyle == hintStyle;
 
   @override
-  int get hashCode => Object.hash(height, containerPadding, textStyle, hintStyle);
+  int get hashCode => Object.hash(height, containerPadding, textStyle, placeholderStyle, hintStyle);
 }
 
 /// 覆盖一棵子树内直接字段的 [WFormFieldStyle]。

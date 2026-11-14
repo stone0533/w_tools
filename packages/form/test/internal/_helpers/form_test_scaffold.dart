@@ -9,6 +9,7 @@ import 'package:w_tools_form/src/components/field_button.dart';
 import 'package:w_tools_form/src/components/fields/text_field.dart';
 import 'package:w_tools_form/src/components/fields/radio_group.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/form_scope.dart';
 
 /// 测试专用：读取 controller 的边框错误通道。
 ///
@@ -89,22 +90,20 @@ class TestFormBorderBuilder {
   BoxDecoration? readOnlyDecoration;
   BoxDecoration? errorDecoration;
   BoxDecoration? focusedDecoration;
-  TextStyle? hintStyle;
+  TextStyle? helperStyle;
   TextStyle? errorStyle;
   Widget Function(List<String>? list)? hintBuilder;
   Widget Function(List<String>? list)? errorBuilder;
-  WFormBorderLayout layout = columnBorderLayout;
 
   WFormBorderStyle buildStyle() => WFormBorderStyle(
     defaultDecoration: defaultDecoration,
     readOnlyDecoration: readOnlyDecoration,
     errorDecoration: errorDecoration,
     focusedDecoration: focusedDecoration,
-    hintStyle: hintStyle,
+    helperStyle: helperStyle,
     errorStyle: errorStyle,
     hintBuilder: hintBuilder,
     errorBuilder: errorBuilder,
-    layout: layout,
   );
 }
 
@@ -150,6 +149,7 @@ Widget radioCore<T>({
     name: name,
     bordered: bordered,
     readOnly: readOnly || !enabled,
+    rendersInlineError: false,
     child: WFormRadioGroupCore<T>(
       name: name,
       items: items,
@@ -182,6 +182,7 @@ Widget checkboxCore({
     name: name,
     bordered: bordered,
     readOnly: readOnly || !enabled,
+    rendersInlineError: false,
     child: WFormCheckboxCore(
       name: name,
       title: title,
@@ -226,6 +227,7 @@ Widget buttonCore({
     name: name,
     bordered: bordered,
     readOnly: readOnly || !effectiveEnabled,
+    rendersInlineError: false,
     hintTextList: hintTextList,
     child: WFormFieldButtonCore<String>(
       name: name,

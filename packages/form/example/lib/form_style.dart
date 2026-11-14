@@ -9,7 +9,7 @@ const exampleFieldStyle = WFormFieldStyle(
   height: 52,
   containerPadding: EdgeInsets.symmetric(horizontal: 16),
   textStyle: TextStyle(fontSize: 16, color: Color(0xFF111827)),
-  hintStyle: TextStyle(fontSize: 16, color: Color(0xFF9CA3AF)),
+  placeholderStyle: TextStyle(fontSize: 16, color: Color(0xFF9CA3AF)),
 );
 
 /// 自定义边框：灰底 + 聚焦绿边 + 错误红边，消息使用自定义前缀。

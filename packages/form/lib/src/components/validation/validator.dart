@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/border_access.dart';
@@ -61,7 +61,7 @@ class WFormValidator {
   /// 表单未挂载时：纯自定义校验项（`validatorBuilder`）仍可运行；包含字段项
   /// 或没有任何校验项时返回 false（与 `WFormController.validate()` 一致）。
   bool validate() {
-    formData.closeKeyboard();
+    FocusManager.instance.primaryFocus?.unfocus();
     final formKey = formData.formKey;
     final formState = formKey.currentState;
     final hasFieldItem = validationItems.any((item) => item.validatorBuilder == null);
@@ -69,7 +69,6 @@ class WFormValidator {
       _errors.clear();
       return false;
     }
-    formState?.save();
     // 每次校验都重新解析：不把结果写回 settings，否则运行期改 controller.validatorSettings
     // 或复用同一个 validator 时，会一直沿用第一次的设置。
     // 没有任何显式设置时按「显示边框错误」解析：错误可见不应依赖是否用了 WForm 容器。
@@ -84,7 +83,8 @@ class WFormValidator {
     final items = <WFormValidatorItem>[];
     for (final item in validationItems) {
       final shouldSkip =
-          resolvedConfig.shouldSkipValidation?.call(item.fieldName, formState?.value) ?? false;
+          resolvedConfig.shouldSkipValidation?.call(item.fieldName, formState?.instantValue) ??
+          false;
       // 跳过项也要清掉上一次的边框错误：skip 常用来表达“当前不参与校验”，
       // 留着旧红框会让隐藏 / 停用的字段继续显示错误。
       formData.clearError(item.fieldName);
@@ -142,7 +142,7 @@ class WFormValidator {
   String? _validateItem(WFormValidatorItem item, FormBuilderState? formState) {
     final builder = item.validatorBuilder;
     if (builder != null) {
-      return builder().call(formState?.value[item.fieldName]);
+      return builder().call(formState?.instantValue[item.fieldName]);
     }
 
     // 字段泛型与 validator 参数类型在运行期才确定：全程按 dynamic 访问，
@@ -154,7 +154,7 @@ class WFormValidator {
     }
     // 直接调用 validator，不写入字段的 errorText：
     // 避免 InputDecoration 与 WFormBorder 同时展示错误（双通道）
-    return validator.call(formState?.value[item.fieldName]) as String?;
+    return validator.call(formState?.instantValue[item.fieldName]) as String?;
   }
 }
 

@@ -44,7 +44,7 @@ class _BorderExamplePageState extends State<BorderExamplePage> {
             const SizedBox(height: 24),
             WFormTextField(
               name: 'nickname',
-              label: '昵称',
+              hintText: '昵称',
               message: '这里会显示自定义 hintBuilder',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) return '请输入昵称';
@@ -54,7 +54,7 @@ class _BorderExamplePageState extends State<BorderExamplePage> {
             const SizedBox(height: 16),
             WFormTextField(
               name: 'code',
-              label: '验证码',
+              hintText: '验证码',
               message: '输入 1234',
               validator: (value) {
                 if (value != '1234') return '验证码不正确';

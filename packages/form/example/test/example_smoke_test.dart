@@ -31,21 +31,6 @@ void main() {
     expect(find.textContaining('当前是只读预览'), findsOneWidget);
   });
 
-  testWidgets('可以打开锚定弹层并回传选择', (tester) async {
-    await tester.pumpWidget(const FormExampleApp());
-    await tester.tap(find.text('弹层'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('选择优惠券'), findsOneWidget);
-    await tester.tap(find.text('请选择优惠券'));
-    await tester.pumpAndSettle();
-    expect(find.text('新客券'), findsOneWidget);
-
-    await tester.tap(find.text('新客券'));
-    await tester.pumpAndSettle();
-    expect(find.text('当前优惠券：new_user'), findsOneWidget);
-  });
-
   testWidgets('高级字段页可读取 controller 状态', (tester) async {
     await tester.pumpWidget(const FormExampleApp());
     await tester.tap(find.text('高级'));

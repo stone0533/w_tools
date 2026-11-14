@@ -91,6 +91,7 @@ class WFormFieldFrame extends StatelessWidget {
     List<String>? hintTextList,
     bool? isTransparentBackground,
     bool enableFocusBorder = true,
+    bool rendersInlineError = true,
     bool readOnly = false,
   }) {
     if (name.isEmpty) {
@@ -102,6 +103,7 @@ class WFormFieldFrame extends StatelessWidget {
       isTransparentBackground: isTransparentBackground,
       readOnly: readOnly,
       enableFocusBorder: enableFocusBorder,
+      rendersInlineError: rendersInlineError,
       child: child,
     );
   }

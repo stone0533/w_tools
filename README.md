@@ -162,7 +162,7 @@ flutter pub get
 | `w_tools_core` | 工具类、扩展方法、全局配置 |
 | `w_tools_async` | 异步执行、状态、Controller 与异步视图 |
 | `w_tools_ui` | UI 组件（`WText` / `WImage` / `WButton` / `WScaffold` / `WAppBar` / `WListView` / `WNavBar` 等） |
-| `w_tools_form` | 表单组件（`WFormTextField` / `WFormDropdown` / `WFormCheckbox` / `WFormBorder` 等） |
+| `w_tools_form` | 表单组件（`WFormTextField` / `WFormDropdown` / `WFormCheckbox` / `WFormBorderStyle` 等） |
 | `w_tools_api` | 网络请求（`DioRegistry` / `WApiClient` / `BaseOptions` / 各类拦截器） |
 | `w_tools_toast` | 轻量提示（`WToast`） |
 
@@ -201,7 +201,6 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 #### 输入组件
 - **FormButton** (`WFormButton`): 表单字段值选择按钮（`WButton` 负责普通点击）
 - **FormCheckbox** (`WFormCheckbox`): 单个复选框字段组件
-- **FormBuilder** (`WFormScope`): 表单构建器组件
 - **FormDropdown** (`WFormDropdown`): 表单下拉选择组件，支持自定义样式和选项
 - **FormMultiDropdown** (`WFormMultiDropdown`): 表单多选下拉框组件，支持多项选择和自定义样式配置
 - **FormRadioGroup** (`WFormRadioGroup`): 表单单选按钮组组件
@@ -235,7 +234,6 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 - **倒计时工具** (`WCountdown`): 提供倒计时功能
 - **用户体验** (`WUx`): 提供防抖、节流、平滑滚动等用户体验优化功能
 - **存储工具** (`WStorage`): 提供本地存储功能
-- **弹窗工具** (`WFormPopup.show`): 提供从触发控件下方弹出的自定义路由
 - **语言工具** (`WLanguage`): 提供语言管理和切换功能
 - **Toast 工具** (`WToast`): 提供轻量级消息提示功能
 - **异步工具** (`WAsync` / `WAsyncState` / `WAsyncView`): 提供执行、四态状态、Controller 与异步视图

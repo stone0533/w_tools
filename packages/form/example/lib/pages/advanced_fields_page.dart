@@ -49,7 +49,7 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
               style: WFormFieldStyle(height: 72),
               child: WFormTextField(
                 name: 'bio',
-                label: '个人简介',
+                hintText: '个人简介',
                 message: '最多三行',
                 maxLines: 3,
                 leading: Icon(Icons.notes_rounded),
@@ -58,7 +58,7 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
             const SizedBox(height: 16),
             const WFormDropdown<String>(
               name: 'city',
-              label: '城市',
+              hintText: '城市',
               initialValue: 'HK',
               enabled: false,
               items: {'HK': '香港', 'SZ': '深圳', 'SH': '上海'},
@@ -104,9 +104,9 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
                   label: const Text('写入示例值'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: () => _form.clearValue('bio'),
+                  onPressed: () => _form.resetValue('bio'),
                   icon: const Icon(Icons.backspace_outlined),
-                  label: const Text('清空简介'),
+                  label: const Text('重置简介'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
@@ -114,10 +114,6 @@ class _AdvancedFieldsPageState extends State<AdvancedFieldsPage> {
                       _snapshot =
                           'values: ${_form.value}\n'
                           'fields: ${_form.getFieldsValue<String>('bio')}';
-                      _snapshot =
-                          '$_snapshot\n'
-                          'formEntered: ${_form.formEntered}\n'
-                          'entered: ${_form.isAllEntered(['bio', 'agree', 'level'])}';
                     });
                   },
                   icon: const Icon(Icons.memory),

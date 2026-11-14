@@ -4,7 +4,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_scope.dart';
+import '../form_controller.dart';
 import '../form_icons.dart';
 import '../form_theme.dart';
 
@@ -119,7 +119,7 @@ class WFormDropdownCore<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = WFormThemeData.of(context);
-    final wFormData = WFormScope.requireOf(context);
+    final wFormData = WFormController.requireOf(context);
 
     void onChangedHandler(T? value) {
       wFormData.clearError(name);
@@ -135,7 +135,7 @@ class WFormDropdownCore<T> extends StatelessWidget {
     }
 
     // 继承外层只读作用域（WFormFieldShell.readOnly）
-    final effectiveEnabled = enabled && !WFormReadOnlyScope.readOnlyOf(context);
+    final effectiveEnabled = enabled && !WFormReadOnly.of(context);
 
     return WFormFieldFrame(
       height: height,

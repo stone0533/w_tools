@@ -46,7 +46,7 @@
 | 子包 | 强依赖外部包 |
 |------|--------------|
 | `w_tools_app_getx` | `get`（GetX，不可替换） |
-| `w_tools_form` | `flutter_form_builder`、`form_builder_validators`、`intl` |
+| `w_tools_form` | `flutter_form_builder`、`intl` |
 | `w_tools_ui` | `cached_network_image` |
 | `w_tools_qr` | `qr_code_scanner_plus` |
 | `w_tools_toast` | `bot_toast` |

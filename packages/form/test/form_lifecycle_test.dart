@@ -46,36 +46,6 @@ void main() {
     expect(form.validatorSettings, same(on));
   });
 
-  testWidgets('字段 name 变化会清理旧 formEntered', (tester) async {
-    final form = WFormController();
-    var name = 'a';
-    late StateSetter setHostState;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: StatefulBuilder(
-            builder: (context, setState) {
-              setHostState = setState;
-              return WForm(
-                controller: form,
-                child: WFormTextField(name: name, label: 'A'),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-
-    await tester.enterText(find.byType(TextField), 'x');
-    await tester.pump();
-    expect(form.formEntered['a'], isTrue);
-
-    setHostState(() => name = 'b');
-    await tester.pump();
-
-    expect(form.formEntered.containsKey('a'), isFalse);
-  });
-
   testWidgets('WFormFieldStyleScope 运行期变化会更新字段高度', (tester) async {
     Widget build(double height) => MaterialApp(
       home: Scaffold(
@@ -83,7 +53,7 @@ void main() {
           controller: WFormController(),
           child: WFormFieldStyleScope(
             style: WFormFieldStyle(height: height),
-            child: const WFormTextField(name: 'a', label: 'A'),
+            child: const WFormTextField(name: 'a', hintText: 'A'),
           ),
         ),
       ),
@@ -102,7 +72,7 @@ void main() {
     final formWidget = WForm(
       key: formKey,
       controller: form,
-      child: const WFormTextField(name: 'a', label: 'A'),
+      child: const WFormTextField(name: 'a', hintText: 'A'),
     );
 
     Widget build({required bool firstParent}) => MaterialApp(
@@ -122,41 +92,6 @@ void main() {
     expect(find.text('A'), findsWidgets);
   });
 
-  testWidgets('下拉字段 name 变化会清理旧 formEntered', (tester) async {
-    final form = WFormController();
-    var name = 'a';
-    late StateSetter setHostState;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: StatefulBuilder(
-            builder: (context, setState) {
-              setHostState = setState;
-              return WForm(
-                controller: form,
-                child: WFormDropdown<String>(
-                  name: name,
-                  label: 'A',
-                  bordered: false,
-                  items: const {'x': 'X'},
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-
-    form.setValue('a', 'x');
-    await tester.pump();
-    expect(form.formEntered['a'], isTrue);
-
-    setHostState(() => name = 'b');
-    await tester.pump();
-
-    expect(form.formEntered.containsKey('a'), isFalse);
-  });
-
   testWidgets('savedValue / getFieldsValue / setError callback', (tester) async {
     final form = WFormController();
     await tester.pumpWidget(
@@ -165,7 +100,7 @@ void main() {
           body: WForm(
             controller: form,
             borderStyle: WFormBorderStyle.standard(),
-            child: const WFormTextField(name: 'email', label: '邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱'),
           ),
         ),
       ),
@@ -176,6 +111,8 @@ void main() {
     expect(form.getFieldsValue<String>('email'), 'a@b.com');
 
     form.validate();
+    expect(form.savedValue['email'], isNull);
+    form.save();
     expect(form.savedValue['email'], 'a@b.com');
 
     var called = 0;
@@ -194,7 +131,7 @@ void main() {
             controller: form,
             child: const WFormMultiDropdown(
               name: 'tags',
-              label: '标签',
+              hintText: '标签',
               items: {'a': 'A', 'b': 'B'},
               initialValue: {'a'},
             ),
@@ -221,7 +158,7 @@ void main() {
             controller: form,
             child: WFormDatePicker(
               name: 'future',
-              label: '未来',
+              hintText: '未来',
               firstDate: DateTime(2030),
               lastDate: DateTime(2040),
             ),

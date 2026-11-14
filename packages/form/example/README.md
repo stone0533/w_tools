@@ -5,7 +5,6 @@
 - 登录表单：`WForm` 容器、直接字段构造、字段 validator、`WFormValidatorSettings`
 - 会员资料：输入格式化、下拉、日期配置、多选配置、单选、复选、自定义 `WFormButton`
 - 只读预览：`WForm(readOnly: true)`
-- 锚定弹层：`WFormPopup` + `WFormButton`
 - 高级字段：leading / maxLines / 禁用下拉 / 自定义勾选 / 单选样式 / controller 读取
 - 自定义边框：`WFormBorderStyle` 的聚焦 / 错误装饰、hint / error builder、itemValidationCallback
 - 统一边框 / 图标：`WFormBorderStyle` + `WForm` 的 icon 配置
@@ -34,11 +33,10 @@ lib/
   pages/
     login_page.dart     登录场景
     profile_page.dart   资料编辑 / 只读场景
-    popup_page.dart     WFormPopup 锚定弹层
     advanced_fields_page.dart 字段参数 / controller 读取
     border_page.dart   自定义 WFormBorderStyle
 test/
-  example_smoke_test.dart  首页 / 只读 / 弹层冒烟
+  example_smoke_test.dart  首页 / 只读冒烟
   example_pages_test.dart  边框回调 / 多行高度 / 泛型按钮 / 多选 / 日期
 ```
 
@@ -63,8 +61,7 @@ WForm(
 
 ```text
 WFormTheme
-WFormScope
-WFormReadOnlyScope
+（WFormScope / WFormReadOnlyScope 8.0 起移除公开入口）
 ```
 
 ### 直接字段构造
@@ -127,16 +124,4 @@ WForm(
 
 // 页面提交时直接使用默认设置
 if (!form.validate()) return;
-```
-
-### 锚定弹层
-
-```dart
-final anchor = anchorKey.currentContext!;
-final value = await WFormPopup.show<String>(
-  context: anchor,
-  anchorContext: anchor,
-  width: 220,
-  builder: (popupContext) => ...,
-);
 ```

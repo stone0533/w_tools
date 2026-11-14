@@ -25,13 +25,13 @@ void main() {
     expect(paragraph.text.style?.color, _red);
   });
 
-  testWidgets('WForm.fieldStyle.hintStyle 作用于日期字段占位符', (tester) async {
+  testWidgets('WForm.fieldStyle.placeholderStyle 作用于日期字段占位符', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            fieldStyle: const WFormFieldStyle(hintStyle: TextStyle(color: _red)),
+            fieldStyle: const WFormFieldStyle(placeholderStyle: TextStyle(color: _red)),
             child: const WFormDatePicker(name: 'birthday', hintText: '生日'),
           ),
         ),
@@ -42,13 +42,13 @@ void main() {
     expect(paragraph.text.style?.color, _red);
   });
 
-  testWidgets('WForm.fieldStyle.hintStyle 作用于多选字段占位符', (tester) async {
+  testWidgets('WForm.fieldStyle.placeholderStyle 作用于多选字段占位符', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            fieldStyle: const WFormFieldStyle(hintStyle: TextStyle(color: _red)),
+            fieldStyle: const WFormFieldStyle(placeholderStyle: TextStyle(color: _red)),
             child: const WFormMultiDropdown(
               name: 'tags',
               hintText: '标签',
@@ -70,7 +70,7 @@ WFormFieldStyle _makeStyle(double height) => WFormFieldStyle(
   height: height,
   containerPadding: const EdgeInsets.symmetric(horizontal: 16),
   textStyle: const TextStyle(color: _red),
-  hintStyle: const TextStyle(color: _red),
+  placeholderStyle: const TextStyle(color: _red),
 );
 
 void _styleEqualityTests() {

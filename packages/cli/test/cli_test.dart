@@ -647,10 +647,10 @@ banned:
     expect('${r.stdout}', contains('reset'));
   });
 
-  test('explain WFormScope 命中自身而不是 WForm', () async {
-    final r = await _run('explain.dart', ['WFormScope', '--format=prompt']);
+  test('explain WFormReadOnly 命中自身而不是 WForm', () async {
+    final r = await _run('explain.dart', ['WFormReadOnly', '--format=prompt']);
     expect(r.exitCode, 0);
-    expect('${r.stdout}', startsWith('# WFormScope '));
+    expect('${r.stdout}', startsWith('# WFormReadOnly '));
   });
 
   test('explain WForm 的文档带章节锚点', () async {

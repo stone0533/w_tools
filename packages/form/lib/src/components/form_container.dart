@@ -6,6 +6,7 @@ import 'border/read_only_scope.dart';
 import 'form_scope.dart';
 import 'form_field_style.dart';
 import 'form_theme.dart';
+import 'form_settings.dart';
 import 'validation/validator.dart';
 import 'form_controller.dart';
 
@@ -115,7 +116,7 @@ class _WFormState extends State<WForm> {
     // 现在默认边框一定存在（显式 / 祖先主题 / fromTheme），
     // 未显式配置校验设置时默认把错误显示在边框上。
     _settings = widget.validatorSettings ?? const WFormValidatorSettings(showBorderError: true);
-    widget.controller.validatorSettings = _settings;
+    setFormValidatorSettings(widget.controller, _settings);
   }
 
   /// 边框配置解析：显式参数 > 祖先 [WFormThemeData] > 主题派生默认值。
@@ -138,8 +139,8 @@ class _WFormState extends State<WForm> {
   void didUpdateWidget(covariant WForm oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      if (oldWidget.controller.validatorSettings == _settings) {
-        oldWidget.controller.validatorSettings = null;
+      if (formValidatorSettingsOf(oldWidget.controller) == _settings) {
+        setFormValidatorSettings(oldWidget.controller, null);
       }
       _releaseController(oldWidget.controller, this);
       _ownsController = _claimController(widget.controller, this);
@@ -170,8 +171,8 @@ class _WFormState extends State<WForm> {
   @override
   void dispose() {
     _releaseController(widget.controller, this);
-    if (widget.controller.validatorSettings == _settings) {
-      widget.controller.validatorSettings = null;
+    if (formValidatorSettingsOf(widget.controller) == _settings) {
+      setFormValidatorSettings(widget.controller, null);
     }
     super.dispose();
   }

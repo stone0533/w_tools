@@ -448,7 +448,7 @@ components:
     docsAnchor: '36-直接字段与-wform'
     section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验'
-    dontUseFor: '普通页面不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` 三层嵌套；App 级图标 / 边框才用外层 `WFormTheme`'
+    dontUseFor: '普通页面不要手写主题 / scope 嵌套（`WFormScope` / `WFormReadOnlyScope` 8.0 起移除公开入口）；App 级图标 / 边框才用外层 `WFormTheme`'
     usage: |
       WForm(
         controller: form,
@@ -473,8 +473,10 @@ components:
       WForm(controller: form, child: ...);
       form.value; form.savedValue;
       form.setValue('email', 'a@b.com');
+      form.save(); // 需要 savedValue / onSaved 时显式调用
       form.reset();
       if (!form.validate()) return;
+      WFormController.of(context); // 字段子树里取 controller
     pitfalls:
       - '与 WForm 一对一'
       - 'controller 由页面持有，不需要每帧重建'
@@ -486,7 +488,7 @@ components:
     package: 'w_tools_form'
     docsAnchor: '51-wformtextfield'
     section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '直接文本 / 密码字段（label / message / validator / textAlign / maxLength）'
+    useFor: '直接文本 / 密码字段（hintText / message / validator / textAlign / maxLength）'
     dontUseFor: '不要默认写 `WFormTextFieldConfig().build(...)`'
     usage: |
       WFormTextField(
@@ -501,7 +503,7 @@ components:
       - '密码字段：obscureText: true + actions: [WFormTextFieldPasswordToggle()]，两者要一起传'
       - 'message 与 hintTextList 二选一，同时传会断言'
       - 'maxLines > 1 时同步提高 WFormFieldStyle.height（或用 WFormFieldStyleScope），否则内容会被裁'
-      - '插槽里读 WFormTextFieldScope.of(context).hasText 不会随输入重建；要跟随值变化请用 ListenableBuilder(data.valueListenable) 或预置的 WFormTextFieldAction'
+      - '插槽里读 WFormTextFieldData.of(context).hasText 不会随输入重建；要跟随值变化请用 ListenableBuilder(data.valueListenable) 或预置的 WFormTextFieldAction'
     related: ['`WForm`', '`WFormFieldStyle`']
     teach: true
   - name: '`WFormDropdown`'
@@ -509,7 +511,7 @@ components:
     docsAnchor: '52-wformdropdownt'
     section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '直接下拉字段（items / 初始值 / icon / iconSize / style / contentPadding）'
-    dontUseFor: '多选用 `WFormMultiDropdown`；自定义弹层用 `WFormPopup`'
+    dontUseFor: '多选用 `WFormMultiDropdown`；自定义弹层用 Flutter `MenuAnchor` / `showMenu`'
     usage: |
       WFormDropdown<String>(
         name: 'city',
@@ -520,7 +522,7 @@ components:
       )
     pitfalls:
       - '初始值与回填值应存在于 items；不在 items 时界面不显示该值，但表单仍保留原值'
-      - 'hintText 优先于历史参数 label'
+      - 'label 已弃用（remove-in: 9.0.0）；占位符用 hintText'
     related: ['`WFormTextField`', '`WFormMultiDropdown`']
     teach: true
   - name: '`WFormMultiDropdown`'
@@ -539,62 +541,62 @@ components:
     pitfalls:
       - '字段值是 Set<T>；已选中且被 disabled 的项显示选中态但不可取消'
       - '未配置 hintText 时不显示占位（与 WFormDropdown 一致）；建议总是传业务文案'
-    related: ['`WFormDropdown`', '`WFormPopup`']
+    related: ['`WFormDropdown`', '`WFormMultiDropdown`']
     teach: true
   - name: '`WFormDatePicker`'
     package: 'w_tools_form'
     docsAnchor: '56-wformdatepicker'
     section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '直接日期字段（initialDate / displayFormat / firstDate / lastDate）'
-    dontUseFor: '时间选择不在本组件范围；自定义弹层用 `WFormPopup`'
+    useFor: '直接日期字段（initialValue / displayFormat / firstDate / lastDate）'
+    dontUseFor: '时间选择不在本组件范围；自定义弹层用 Flutter `MenuAnchor` / `showMenu`'
     usage: |
       WFormDatePicker(
         name: 'birthday',
-        label: '生日',
-        initialDate: DateTime(1998, 6, 18),
+        hintText: '生日',
+        initialValue: '1998-06-18',
         displayFormat: 'yyyy-MM-dd',
         firstDate: DateTime(1900),
         lastDate: DateTime(2100),
       )
     pitfalls:
       - 'firstDate / lastDate 默认 1900 到 2100；需要更窄的区间（例如只能选过去）请显式传 lastDate'
-      - 'initialValue 与 initialDate 二选一；同时传时 initialValue 优先'
-      - 'hintText 与 label 都作为占位符，hintText 优先'
+      - '初值只接受 ISO `yyyy-MM-dd` 字符串；DateTime 请先格式化'
+      - 'label 已弃用（remove-in: 9.0.0）；占位符用 hintText'
     related: ['`WFormTextField`', '`WFormFieldStyle`']
     teach: true
   - name: '`WFormCheckbox`'
     package: 'w_tools_form'
     docsAnchor: '54-wformcheckbox'
     section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '直接复选字段（title 必填，默认 bordered: false）'
+    useFor: '直接复选字段（title 必填，默认 bordered: true）'
     dontUseFor: '多选用 `WFormMultiDropdown`'
     usage: |
       WFormCheckbox(
         name: 'agree',
         title: Text('同意'),
-        bordered: true,
         validator: (value) => value == true ? null : '请先同意',
       )
     pitfalls:
-      - 'title 必填；message 无边框时渲染在字段下方（默认样式），有边框时交给 errorBuilder/hintBuilder'
+      - 'title 必填；message 在有边框时作为提示，校验失败时由边框展示错误'
+      - '显式 bordered: false 时没有边框错误位置，错误只进 WFormValidator.errors'
     related: ['`WFormRadioGroup`', '`WFormFieldStyle`']
     teach: true
   - name: '`WFormRadioGroup`'
     package: 'w_tools_form'
     docsAnchor: '55-wformradiogroupt'
     section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '直接单选字段（items / titleBuilder / lineSpacing）'
+    useFor: '直接单选字段（items / titleBuilder / lineSpacing，默认 bordered: true）'
     dontUseFor: '多选用 `WFormMultiDropdown`'
     usage: |
       WFormRadioGroup<String>(
         name: 'gender',
         items: const {'male': '男', 'female': '女'},
         lineSpacing: 4,
-        bordered: true,
       )
     pitfalls:
       - 'titleBuilder 是每个选项的标题，不是分组标题'
-      - '默认 bordered: false；message 无边框时渲染在字段下方（默认样式），有边框时交给 errorBuilder/hintBuilder'
+      - '单选组是多行布局：height 由选项内容决定，WForm.fieldStyle.height 不会套到它上面'
+      - '显式 bordered: false 时没有边框错误位置，错误只进 WFormValidator.errors'
     related: ['`WFormCheckbox`', '`WFormFieldStyle`']
     teach: true
   - name: '`WFormButton`'
@@ -616,7 +618,7 @@ components:
       - '显示已选值用 selectedWidgetBuilder，不要在外面再维护一份状态'
       - '`WFormButton` 是 `WFormFieldButton<String>` 的别名（不是独立类型）；enum / int 用 `WFormFieldButton<T>`'
       - 'message 与 hintTextList 二选一，同时传会断言'
-    related: ['`WForm`', '`WFormPopup`', '`WFormFieldButton`']
+    related: ['`WForm`', '`WFormFieldButton`']
     teach: true
   - name: '`WFormFieldButton`'
     package: 'w_tools_form'
@@ -630,22 +632,24 @@ components:
         label: '选择等级',
         onTap: (value, didChange) => didChange(3),
       )
-    related: ['`WFormButton`', '`WFormPopup`']
+    related: ['`WFormButton`']
     teach: false
   - name: '`WFormFieldStyle`'
     package: 'w_tools_form'
     docsAnchor: '36-直接字段与-wform'
     section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '页面级字段默认高度 / 内边距 / 文字 / hint 样式'
+    useFor: '页面级单行字段默认高度 / 内边距 / 文字 / 占位符样式'
     dontUseFor: '字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹'
     usage: |
       const WFormFieldStyle(
         height: 52,
         containerPadding: EdgeInsets.symmetric(horizontal: 16),
         textStyle: TextStyle(fontSize: 15),
-        hintStyle: TextStyle(color: Colors.grey),
+        placeholderStyle: TextStyle(color: Colors.grey),
       )
       // 传给 WForm(fieldStyle: ...)
+    pitfalls:
+      - 'height 只对单行字段生效；单选组 / 多行文本由内容撑高，避免多个选项被固定高度裁掉'
     related: ['`WForm`']
     teach: false
   - name: '`WFormValidatorSettings`'
@@ -661,29 +665,12 @@ components:
       form.validate(settings: settings);
     related: ['`WFormValidator`']
     teach: false
-  - name: '`WFormBorder`'
-    package: 'w_tools_form'
-    docsAnchor: '4-边框系统'
-    section: '4. 边框系统'
-    useFor: '低层边框 / 错误展示；普通页面由 `WForm` 统一提供'
-    dontUseFor: '普通字段不要手写 `WFormBorder`'
-    pitfalls:
-      - '字段 bordered: false 时没有边框错误通道，setError 在 debug 会断言提示（release 为 no-op）；这类字段的错误从 WFormValidator.errors 读'
-      - '直接使用 WFormBorder 时必须显式传 style；它不读取 WFormTheme，普通字段用 WFormFieldShell 自动接线'
-    usage: |
-      // 由字段自动装配；自定义外观用 WFormBorderStyle
-      WForm(
-        borderStyle: WFormBorderStyle.fromTheme(Theme.of(context)),
-        child: ...,
-      )
-    related: ['`WFormBorderStyle`']
-    teach: false
   - name: '`WFormBorderStyle`'
     package: 'w_tools_form'
     docsAnchor: '41-wformborderstyle'
     section: '4. 边框系统'
-    useFor: '不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式'
-    dontUseFor: '普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderStyle: ...)` 下发'
+    useFor: '不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 helper/error 文案样式'
+    dontUseFor: '配置通过 `WForm(borderStyle: ...)` 下发；`WFormBorder` 8.0 起移除公开入口'
     usage: |
       final border = WFormBorderStyle.fromTheme(Theme.of(context));
       WForm(borderStyle: border, child: ...);
@@ -691,7 +678,8 @@ components:
     pitfalls:
       - '`standard()` 是显式浅色预设，不跟随深色主题；新代码用 `fromTheme`'
       - '`copyWith(null)` 不会清空字段；清空要重新构造配置'
-    related: ['`WForm`', '`WFormBorder`']
+      - '布局固定为边框在上、消息在下；8.0 删除 `layout` 与 `WFormBorder` 公开入口'
+    related: ['`WForm`', '`WFormFieldShell`']
     teach: true
   - name: '`WFormIcons`'
     package: 'w_tools_form'
@@ -753,7 +741,7 @@ components:
     docsAnchor: '51-wformtextfield'
     section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空'
-    dontUseFor: '不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldScope.of`'
+    dontUseFor: '不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldData.of`'
     usage: |
       WFormTextField(
         name: 'password',
@@ -785,23 +773,6 @@ components:
       - '基于 Get.bottomSheet；需要 GetX 运行时'
     related: ['`WApp`']
     teach: true
-  - name: '`WFormPopup`'
-    package: 'w_tools_form'
-    docsAnchor: '6-wformpopup--弹出层'
-    section: '6. WFormPopup — 弹出层'
-    useFor: '**锚定式**下拉弹层（贴在输入框下方）'
-    dontUseFor: '⚠️ 它不是居中对话框，别拿来做「确认弹窗」'
-    usage: |
-      final value = await WFormPopup.show<String>(
-        context: context,
-        anchorContext: fieldKey.currentContext,
-        builder: (context) => ...,
-      );
-    pitfalls:
-      - '同一 Navigator 同时只允许一个 WFormPopup'
-      - '没有弹层时 hide 是 no-op（不会 pop 普通页面）；rootNavigator 需与 show 一致'
-    related: ['`WFormButton`']
-    teach: false
   - name: '`WAsyncView`'
     package: 'w_tools_async'
     docsAnchor: '4-view'
@@ -2076,28 +2047,15 @@ components:
       - '普通页面用 WForm(icons:/borderStyle:)；需要 App 级统一时才在外层用 WFormTheme'
     related: ['`WForm`']
     teach: false
-  - name: '`WFormScope`'
+  - name: '`WFormReadOnly`'
     package: 'w_tools_form'
-    docsAnchor: '1-wformscope--表单容器'
-    section: '1. WFormScope — 表单容器'
-    useFor: '表单 InheritedWidget 管道（WForm 内部组合）'
-    usage: |
-      // 普通页面用 WForm；只有自定义布局时才直接组合 WFormScope
-      WForm(controller: form, child: ...)
-    pitfalls:
-      - '普通页面不要直接实例化；自定义布局场景才用，且 formData 必须与字段子树同一个 controller'
-      - 'formBorderStyle 已删除；边框配置放 WFormTheme(borderStyle:) / WForm(borderStyle:)'
-    related: ['`WForm`', '`WFormController`']
-    teach: false
-  - name: '`WFormReadOnlyScope`'
-    package: 'w_tools_form'
-    docsAnchor: '43-wformreadonlyscope'
+    docsAnchor: '43-wformreadonly'
     section: '4. 边框系统'
-    useFor: '只读作用域：由 WForm / 字段自动注入，穿透任意包装'
+    useFor: '读取当前子树是否只读（WForm / 字段自动注入）'
     usage: |
-      WForm(readOnly: true, child: ...)
+      final readOnly = WFormReadOnly.of(context);
     pitfalls:
-      - '不要手写；需要局部只读时用 WForm(readOnly: true) 或字段 readOnly'
+      - '不要手写作用域；局部只读用 WForm(readOnly: true) 或字段 readOnly'
     related: ['`WForm`']
     teach: false
   - name: '`WFormTextFieldData`'
@@ -2106,70 +2064,9 @@ components:
     section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '文本字段插槽可读的数据（isPasswordVisible / readOnly 等）'
     usage: |
-      final data = WFormTextFieldScope.of(context);
+      final data = WFormTextFieldData.of(context);
       data.isPasswordVisible; data.readOnly;
-    related: ['`WFormTextFieldScope`']
-    teach: false
-  - name: '`WFormTextFieldScope`'
-    package: 'w_tools_form'
-    docsAnchor: '51-wformtextfield'
-    section: '5. 字段组件（直接用法 / 低层细节）'
-    useFor: '文本字段插槽的 InheritedWidget 入口（actions / suffix 用）'
-    usage: |
-      final data = WFormTextFieldScope.of(context);
-    pitfalls:
-      - '只能在 WFormTextField 的 actions / suffix 子树里读'
     related: ['`WFormTextFieldAction`']
-    teach: false
-  - name: '`WFormInputFormatters`'
-    package: 'w_tools_form'
-    docsAnchor: '8-form_input_formattersdart'
-    section: '8. form_input_formatters.dart'
-    useFor: '常用输入格式化器工厂（电话号码等）'
-    usage: |
-      WFormTextField(name: 'phone', inputFormatters: WFormInputFormatters.hkPhone())
-    related: ['`WFormTextField`']
-    teach: false
-  - name: '`WCardNumberInputFormatter`'
-    package: 'w_tools_form'
-    docsAnchor: '8-form_input_formattersdart'
-    section: '8. form_input_formatters.dart'
-    useFor: '每 4 位插入空格的卡号格式化器'
-    usage: |
-      WCardNumberInputFormatter()
-    pitfalls:
-      - '只处理数字分组；长度限制需另配 LengthLimitingTextInputFormatter'
-    teach: false
-  - name: '`WDividerInputFormatter`'
-    package: 'w_tools_form'
-    docsAnchor: '8-form_input_formattersdart'
-    section: '8. form_input_formatters.dart'
-    useFor: '通用分隔符输入格式化器（first / rear / pattern）'
-    usage: |
-      WDividerInputFormatter(first: 4, rear: 4, pattern: '-')
-    teach: false
-  - name: '`WFormCustomValidator`'
-    package: 'w_tools_form'
-    docsAnchor: '7-校验系统'
-    section: '7. 校验系统'
-    useFor: '把自定义校验函数包成 FormFieldValidator'
-    usage: |
-      WFormTextField(
-        name: 'code',
-        validator: WFormCustomValidator.custom<String>(validator: (value) => ...),
-      )
-    related: ['`WFormValidator`']
-    teach: false
-  - name: '`WFormBorderLayout` / `WFormBorderLayoutData`'
-    package: 'w_tools_form'
-    docsAnchor: '4-边框系统'
-    section: '4. 边框系统'
-    useFor: '边框与消息的布局策略：一个函数 typedef（默认 columnBorderLayout）'
-    usage: |
-      WFormBorderStyle(layout: (context, data) => Row(children: [data.child, data.message]))
-    pitfalls:
-      - '默认 columnBorderLayout（边框在上、消息在下）；自定义直接传函数，不需要建类'
-    related: ['`WFormBorderStyle`']
     teach: false
   - name: '`WFormFieldShell`'
     package: 'w_tools_form'
@@ -2180,7 +2077,8 @@ components:
       WFormFieldShell(name: 'x', readOnly: false, child: ...)
     pitfalls:
       - '普通字段不要手写；自定义字段可参考 form_module.md §4.3'
-    related: ['`WFormBorder`']
+      - '自定义字段不渲染 FormFieldState.errorText 时传 rendersInlineError: false，否则边框会吞掉原生 validate() 的文案'
+    related: ['`WFormBorderStyle`']
     teach: false
   - name: '`WAsyncErrorView` / `WAsyncErrorBanner`'
     package: 'w_tools_async'

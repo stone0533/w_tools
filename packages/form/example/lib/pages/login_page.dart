@@ -45,7 +45,7 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
             const SizedBox(height: 24),
             WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               message: '请输入邮箱',
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
@@ -61,7 +61,7 @@ class _LoginExamplePageState extends State<LoginExamplePage> {
             const SizedBox(height: 16),
             WFormTextField(
               name: 'password',
-              label: '密码',
+              hintText: '密码',
               message: '密码至少 8 位',
               obscureText: true,
               textInputAction: TextInputAction.done,

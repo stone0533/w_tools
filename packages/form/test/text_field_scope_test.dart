@@ -5,14 +5,14 @@ import 'package:w_tools_form/w_tools_form.dart';
 
 /// 插槽里跟随输入值变化的**唯一受支持写法**：订阅 `valueListenable`。
 ///
-/// 这条是 FORM-002 的回归网：`WFormTextFieldScope.of(context)` 本身只在
+/// 这条是 FORM-002 的回归网：`WFormTextFieldData.of(context)` 本身只在
 /// 密码可见性 / 只读变化时通知，直接读 `hasText` 不重建。
 class _SearchAction extends StatelessWidget {
   const _SearchAction();
 
   @override
   Widget build(BuildContext context) {
-    final data = WFormTextFieldScope.of(context);
+    final data = WFormTextFieldData.of(context);
     if (data == null) return const Text('no-scope');
     return ListenableBuilder(
       listenable: data.valueListenable,
@@ -36,7 +36,7 @@ void main() {
             controller: WFormController(),
             child: const WFormTextField(
               name: 'q',
-              label: '搜索',
+              hintText: '搜索',
               actions: [_SearchAction()],
             ),
           ),

@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_scope.dart';
 import '../form_controller.dart';
 import '../form_icons.dart';
 import '../form_theme.dart';
@@ -34,6 +33,9 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
 
   /// 标题文字样式
   final TextStyle? style;
+
+  /// 交互控件使用的焦点节点（由直接字段的 `focusNode` 传入）
+  final FocusNode? interactionFocusNode;
 
   /// 外框高度
   final double? height;
@@ -89,14 +91,14 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
     this.containerPadding,
     this.leading,
     this.actions,
-    super.focusNode,
+    this.interactionFocusNode,
   }) : super(
          builder: (FormFieldState<T?> field) {
-           final state = field as FormBuilderFieldState<WFormRadioGroupCore<T>, T>;
+           final state = field as _WFormRadioGroupState<T>;
            final theme = WFormThemeData.of(field.context);
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
-           final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(field.context);
+           final isEnabled = state.enabled && !WFormReadOnly.of(field.context);
 
            void click(T v) {
              if (!isEnabled) {
@@ -113,6 +115,9 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
                spacing: lineSpacing ?? 0,
                children: items.entries.map((element) {
                  final isSelected = state.value == element.key;
+                 // 外部 focusNode 只绑到第一个选项：同一个 FocusNode 不能同时挂到
+                 // 多个 FocusableActionDetector 上；其余选项各自持有内部节点。
+                 final isFirstOption = element.key == items.keys.first;
 
                  Widget? child = itemExtraBuilder != null
                      ? itemExtraBuilder(field.context, element.key, element.value, isSelected)
@@ -120,6 +125,7 @@ class WFormRadioGroupCore<T> extends FormBuilderField<T> {
 
                  return FocusableActionDetector(
                    enabled: isEnabled,
+                   focusNode: isFirstOption ? state.interactionFocusNode : null,
                    actions: <Type, Action<Intent>>{
                      ActivateIntent: CallbackAction<ActivateIntent>(
                        onInvoke: (_) {
@@ -230,10 +236,26 @@ class _WFormRadioGroupState<T> extends FormBuilderFieldState<WFormRadioGroupCore
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
   WFormController? _formData;
 
+  /// 未传 external focusNode 时自建的交互节点
+  FocusNode? _ownFocusNode;
+
+  /// 交互控件实际使用的焦点节点
+  FocusNode get interactionFocusNode =>
+      widget.interactionFocusNode ?? (_ownFocusNode ??= FocusNode(debugLabel: widget.name));
+
+  @override
+  void focus() => interactionFocusNode.requestFocus();
+
+  @override
+  void dispose() {
+    _ownFocusNode?.dispose();
+    super.dispose();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _formData = WFormScope.of(context);
+    _formData = WFormController.of(context);
   }
 
   @override

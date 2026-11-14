@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/border/read_only_scope.dart';
 
 import '_helpers/form_test_scaffold.dart';
 import 'package:w_tools_form/src/components/field_assembly.dart';
@@ -265,28 +266,6 @@ void main() {
       expect(formData.formKey.currentState!.validate(), isFalse);
       expect(formData.formKey.currentState!.fields['validated_date']!.errorText, '请选择日期');
     });
-
-    testWidgets('form reset 后 formEntered 同步复位', (tester) async {
-      final formData = WFormController();
-      await tester.pumpWidget(
-        buildWrapped(
-          formData: formData,
-          child: WFormDatePickerCore(
-            name: 'reset_date',
-            firstDate: firstDate,
-            lastDate: lastDate,
-          ),
-        ),
-      );
-
-      formData.setValue<String?>('reset_date', initialValue);
-      await tester.pump();
-      expect(formData.formEntered['reset_date'], isTrue);
-
-      formData.formKey.currentState!.reset();
-      await tester.pump();
-      expect(formData.formEntered['reset_date'], isFalse);
-    });
   });
 
   group('WFormDatePickerCore — DatePickerDialog 交互', () {
@@ -338,7 +317,6 @@ void main() {
       expect(formData.value['d1'], isNotNull);
       expect(formData.value['d1'], isA<String>());
       expect(formData.value['d1'], matches(RegExp(r'^\d{4}-\d{2}-\d{2}$')));
-      expect(formData.formEntered['d1'], isTrue);
     });
 
     testWidgets('Cancel → 不更新 FormData', (tester) async {

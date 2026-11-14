@@ -25,8 +25,8 @@ WForm(
   controller: form,
   child: Column(
     children: [
-      const WFormTextField(name: 'name', label: '姓名', message: '必填'),
-      const WFormTextField(name: 'phone', label: '手机号'),
+      const WFormTextField(name: 'name', hintText: '姓名', message: '必填'),
+      const WFormTextField(name: 'phone', hintText: '手机号'),
       FilledButton(onPressed: _submit, child: const Text('提交')),
     ],
   ),

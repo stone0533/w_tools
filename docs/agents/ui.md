@@ -74,12 +74,12 @@ WNotificationListener 的百分比只在 depth 0 的 ScrollUpdateNotification �
 ## 弹层
 
 ```text
-锚定下拉 / 选择 → WFormPopup
+锚定下拉 / 选择 → Flutter MenuAnchor / showMenu
 底部面板 → WBottomSheet
 确认弹窗 → Flutter showDialog（当前无统一 WDialog）
 ```
 
-`WFormPopup` 是锚定式弹层，不是居中确认框。
+`WFormPopup` 8.0 起移除公开入口；需要锚定弹层时用 Flutter 自带能力。
 
 ## 图标 + 文字
 

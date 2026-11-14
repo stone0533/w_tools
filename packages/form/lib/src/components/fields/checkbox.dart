@@ -4,7 +4,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_scope.dart';
 import '../form_controller.dart';
 import '../form_icons.dart';
 import '../form_theme.dart';
@@ -33,6 +32,12 @@ class WFormCheckboxCore extends FormBuilderField<bool> {
 
   /// 标题文字样式
   final TextStyle? style;
+
+  /// 交互控件使用的焦点节点（由直接字段的 `focusNode` 传入）
+  ///
+  /// 不交给 `FormBuilderField` 的 `focusNode`：FFB 会自己 attach，同一个节点再交给
+  /// `FocusableActionDetector` 会重复挂载；`focus()` 由本字段 state 覆写到交互节点。
+  final FocusNode? interactionFocusNode;
 
   /// 外框高度
   final double? height;
@@ -80,14 +85,14 @@ class WFormCheckboxCore extends FormBuilderField<bool> {
     this.containerPadding,
     this.leading,
     this.actions,
-    super.focusNode,
+    this.interactionFocusNode,
   }) : super(
          builder: (FormFieldState<bool?> field) {
-           final state = field as FormBuilderFieldState<WFormCheckboxCore, bool>;
+           final state = field as _WFormCheckboxState;
            final theme = WFormThemeData.of(field.context);
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
-           final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(field.context);
+           final isEnabled = state.enabled && !WFormReadOnly.of(field.context);
 
            void toggle() {
              if (!isEnabled) {
@@ -113,6 +118,7 @@ class WFormCheckboxCore extends FormBuilderField<bool> {
 
            return FocusableActionDetector(
              enabled: isEnabled,
+             focusNode: state.interactionFocusNode,
              actions: <Type, Action<Intent>>{
                ActivateIntent: CallbackAction<ActivateIntent>(
                  onInvoke: (_) {
@@ -184,10 +190,26 @@ class _WFormCheckboxState extends FormBuilderFieldState<WFormCheckboxCore, bool>
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
   WFormController? _formData;
 
+  /// 未传 external focusNode 时自建的交互节点
+  FocusNode? _ownFocusNode;
+
+  /// 交互控件实际使用的焦点节点
+  FocusNode get interactionFocusNode =>
+      widget.interactionFocusNode ?? (_ownFocusNode ??= FocusNode(debugLabel: widget.name));
+
+  @override
+  void focus() => interactionFocusNode.requestFocus();
+
+  @override
+  void dispose() {
+    _ownFocusNode?.dispose();
+    super.dispose();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _formData = WFormScope.of(context);
+    _formData = WFormController.of(context);
   }
 
   @override

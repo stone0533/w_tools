@@ -38,7 +38,7 @@ void main() {
               icons: const WFormIcons(dropdown: star),
               child: const WFormDropdown<String>(
                 name: 'country',
-                label: '国家',
+                hintText: '国家',
                 items: {'CN': '中国'},
               ),
             ),
@@ -72,7 +72,7 @@ void main() {
           icons: WFormIcons(dropdown: Icon(icon)),
           child: WForm(
             controller: WFormController(),
-            child: const WFormDropdown<String>(name: 'c', label: 'C', items: {'a': 'A'}),
+            child: const WFormDropdown<String>(name: 'c', hintText: 'C', items: {'a': 'A'}),
           ),
         ),
       ),

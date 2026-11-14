@@ -24,7 +24,7 @@ void main() {
     await pumpForm(
       tester,
       formData: form,
-      child: const WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
+      child: const WFormTextField(name: 'a', hintText: 'A', validator: _alwaysFail),
     );
 
     expect(form.validate(), isFalse);
@@ -41,26 +41,27 @@ void main() {
     );
   });
 
-  testWidgets('validate() 跟随 controller.validatorSettings 的后续变更', (tester) async {
+  testWidgets('validate() 跟随 WForm.validatorSettings 的后续变更', (tester) async {
     final form = WFormController();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: form,
-            borderStyle: terseBorderStyle(),
-            child: const WFormTextField(
-              name: 'a',
-              label: 'A',
-              validator: _alwaysFail,
-            ),
+
+    Widget build(WFormValidatorSettings? settings) => MaterialApp(
+      home: Scaffold(
+        body: WForm(
+          controller: form,
+          borderStyle: terseBorderStyle(),
+          validatorSettings: settings,
+          child: const WFormTextField(
+            name: 'a',
+            hintText: 'A',
+            validator: _alwaysFail,
           ),
         ),
       ),
     );
 
-    // 不传 settings 的 validator：每次 validate 都应重新解析 controller 的设置。
-    form.validatorSettings = const WFormValidatorSettings();
+    await tester.pumpWidget(build(const WFormValidatorSettings()));
+
+    // 不传 settings 的 validator：每次 validate 都应重新解析 WForm 注入的设置。
     final validator = WFormValidator(
       formData: form,
       validationItems: [WFormValidatorItem.field('a')],
@@ -70,7 +71,7 @@ void main() {
     expect(find.text('必填'), findsNothing);
 
     // 运行期改设置后，同一个 validator 必须跟着变，不能沿用第一次解析的结果。
-    form.validatorSettings = const WFormValidatorSettings(showBorderError: true);
+    await tester.pumpWidget(build(const WFormValidatorSettings(showBorderError: true)));
     expect(validator.validate(), isFalse);
     await tester.pump();
     expect(find.text('必填'), findsOneWidget);

@@ -30,7 +30,6 @@
 | `WCancelToken` | async | 协作式取消：传给 WAsync / withToken loader | 取消后不可复用；新请求要新建 token |
 | `WStepState` | ui | 步骤项状态（completed / current / upcoming） | 不要自己拼状态字符串；按 enum 分支 |
 | `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | 不要在 builder 里返回 Expanded；外层已经包了 Expanded |
-| `WFormScope` | form | 表单 InheritedWidget 管道（WForm 内部组合） | — |
 | `WAsyncSuccess` | async | tryRun 成功结果 | — |
 | `WAsyncFailure` | async | tryRun 失败结果（error / stackTrace / isProgrammingError） | — |
 | `WAsyncCancelled` | async | tryRun 取消结果（reason） | — |
@@ -107,16 +106,14 @@
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
-| `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
-| `WFormBorderStyle` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式 | 普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderStyle: ...)` 下发 |
+| `WFormBorderStyle` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 helper/error 文案样式 | 配置通过 `WForm(borderStyle: ...)` 下发；`WFormBorder` 8.0 起移除公开入口 |
 | `WAsyncView` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
 | `WAsyncStateBuilder` | async | 滚动页面 / `SmartRefresher` / 自定义状态布局 | 普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除 |
 | `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncView` |
 | `WRouteStack` | app_getx | 路由栈操作（`app.routeStack`） | — |
 | `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |
 | `WScreenScope` | ui | 子树内的屏幕 / 字体缩放注入，替代全局 delegate | 不要和全局 delegate 混用；scope 优先 |
-| `WFormReadOnlyScope` | form | 只读作用域：由 WForm / 字段自动注入，穿透任意包装 | — |
-| `WFormBorderLayout` / `WFormBorderLayoutData` | form | 边框与消息的布局策略：一个函数 typedef（默认 columnBorderLayout） | — |
+| `WFormReadOnly` | form | 读取当前子树是否只读（WForm / 字段自动注入） | — |
 | `WFormFieldShell` | form | 字段外框装配（内置字段自动使用；自定义字段可参考 form_module.md §4.3） | — |
 | `WAsyncErrorView` / `WAsyncErrorBanner` | async | 默认整块错误视图 / 保留旧数据时的错误条 | — |
 | `WAsyncRetryErrorHandler` | async | onRetryError 回调的类型 | — |
@@ -127,24 +124,23 @@
 <!-- catalog:5:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WForm` | form | 页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验 | 普通页面不要手写 `WFormTheme + WFormScope + WFormReadOnlyScope` 三层嵌套；App 级图标 / 边框才用外层 `WFormTheme` |
+| `WForm` | form | 页面表单容器：主题 / Scope / 只读 / 默认字段样式 / 默认校验 | 普通页面不要手写主题 / scope 嵌套（`WFormScope` / `WFormReadOnlyScope` 8.0 起移除公开入口）；App 级图标 / 边框才用外层 `WFormTheme` |
 | `WFormController` | form | 表单数据 / 字段值 / 校验入口 | 两个 WForm 不能同时挂载同一个 controller（会显示重复挂载提示） |
-| `WFormTextField` | form | 直接文本 / 密码字段（label / message / validator / textAlign / maxLength） | 不要默认写 `WFormTextFieldConfig().build(...)` |
-| `WFormDropdown` | form | 直接下拉字段（items / 初始值 / icon / iconSize / style / contentPadding） | 多选用 `WFormMultiDropdown`；自定义弹层用 `WFormPopup` |
+| `WFormTextField` | form | 直接文本 / 密码字段（hintText / message / validator / textAlign / maxLength） | 不要默认写 `WFormTextFieldConfig().build(...)` |
+| `WFormDropdown` | form | 直接下拉字段（items / 初始值 / icon / iconSize / style / contentPadding） | 多选用 `WFormMultiDropdown`；自定义弹层用 Flutter `MenuAnchor` / `showMenu` |
 | `WFormMultiDropdown` | form | 直接多选字段（items / disabledKeys / 选项样式；T 由 items 推断） | 单选用 `WFormDropdown` |
-| `WFormDatePicker` | form | 直接日期字段（initialDate / displayFormat / firstDate / lastDate） | 时间选择不在本组件范围；自定义弹层用 `WFormPopup` |
-| `WFormCheckbox` | form | 直接复选字段（title 必填，默认 bordered: false） | 多选用 `WFormMultiDropdown` |
-| `WFormRadioGroup` | form | 直接单选字段（items / titleBuilder / lineSpacing） | 多选用 `WFormMultiDropdown` |
+| `WFormDatePicker` | form | 直接日期字段（initialValue / displayFormat / firstDate / lastDate） | 时间选择不在本组件范围；自定义弹层用 Flutter `MenuAnchor` / `showMenu` |
+| `WFormCheckbox` | form | 直接复选字段（title 必填，默认 bordered: true） | 多选用 `WFormMultiDropdown` |
+| `WFormRadioGroup` | form | 直接单选字段（items / titleBuilder / lineSpacing，默认 bordered: true） | 多选用 `WFormMultiDropdown` |
 | `WFormButton` | form | 直接自定义字段按钮（选择、弹层触发） | 普通业务按钮用 `WButton`；底层 `*Core` 已内部化，不要直接使用 |
 | `WFormFieldButton` | form | 泛型字段值选择器：enum / int 等非 String 值 | String 值优先用 `WFormButton`；普通业务按钮用 `WButton` |
-| `WFormFieldStyle` | form | 页面级字段默认高度 / 内边距 / 文字 / hint 样式 | 字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹 |
+| `WFormFieldStyle` | form | 页面级单行字段默认高度 / 内边距 / 文字 / 占位符样式 | 字段级差异用直接字段参数；单字段样式用 `WFormFieldStyleScope` 包裹 |
 | `WFormFieldStyleScope` | form | 单个字段覆盖 `WForm.fieldStyle`（高度 / 内边距 / 文字 / hint） | 整页样式直接传 `WForm.fieldStyle`，不要逐字段包一层 |
-| `WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton` | form | 文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空 | 不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldScope.of` |
+| `WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton` | form | 文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空 | 不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldData.of` |
 | `WAsyncTheme` | async | App 根部统一默认 loading / empty / error（普通 + sliver） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
 | `WAsyncThemeViews` | async | 自建滚动壳复用 WAsyncTheme 的默认四态视图 | 普通页面直接用 WAsyncView，不要重复搭状态分支 |
 | `WRouteObserver` | app_getx | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
 | `WFormTextFieldData` | form | 文本字段插槽可读的数据（isPasswordVisible / readOnly 等） | — |
-| `WFormTextFieldScope` | form | 文本字段插槽的 InheritedWidget 入口（actions / suffix 用） | — |
 | `WAsyncStrings` | async | 全局默认文案：empty / errorTitle / retry / loading | — |
 | `WAsyncErrorWidgetBuilder` | async | error / errorBanner builder 的类型 | — |
 <!-- catalog:5:end -->
@@ -155,7 +151,6 @@
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WBottomSheet` | app_getx | 底部面板外壳 | — |
-| `WFormPopup` | form | **锚定式**下拉弹层（贴在输入框下方） | ⚠️ 它不是居中对话框，别拿来做「确认弹窗」 |
 <!-- catalog:6:end -->
 
 ## 7. 状态与反馈
@@ -172,7 +167,6 @@
 | `WListView` / `WListViewSliver` | ui | 列表（独立滚动 / SmartRefresher sliver） | 不要把 WListViewSliver 直接放进非 sliver 子树 |
 | `WKeepAliveWrapper` | ui | 列表项保活 | 不要用它做滚动回调；只负责 keepAlive |
 | `WNotificationListener` | ui | 声明式监听滚动通知 / 百分比；新代码优先 | 百分比只处理 depth 0 的 ScrollUpdateNotification |
-| `WFormCustomValidator` | form | 把自定义校验函数包成 FormFieldValidator | — |
 <!-- catalog:7:end -->
 
 ## 8. 能力（非 UI）
@@ -208,9 +202,6 @@
 | `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
 | `WNumFormatExtension` | core | 数字格式化：千分位 / 货币 / 百分比 / 前导零（12.0 从 ui 迁入） | 不要重复手写 toStringAsFixed / 正则分组；需要 locale 时用 intl |
-| `WFormInputFormatters` | form | 常用输入格式化器工厂（电话号码等） | — |
-| `WCardNumberInputFormatter` | form | 每 4 位插入空格的卡号格式化器 | — |
-| `WDividerInputFormatter` | form | 通用分隔符输入格式化器（first / rear / pattern） | — |
 <!-- catalog:8:end -->
 
 ## 9. 扩展

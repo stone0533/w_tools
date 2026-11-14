@@ -1,3 +1,10 @@
+## Unreleased
+
+### Changed
+- `init` 的 `w_tools_form` 约束抬到 `^8.0.0`；catalog 同步 form 8.0（删除
+  `WFormPopup` / `WFormInputFormatters` / `WFormCustomValidator` 等条目，新增
+  `WFormReadOnly`，`label` / `hintStyle` 标记弃用）。
+
 ## 1.21.0
 
 ### Changed
