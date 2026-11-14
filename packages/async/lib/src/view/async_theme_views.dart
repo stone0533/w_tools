@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'async_error_banner.dart';
@@ -8,39 +9,17 @@ import 'async_theme.dart';
 /// 四态视图的统一解析入口：显式 builder > [WAsyncTheme] > 包内默认。
 ///
 /// [WAsyncView] / [WAsyncStateSliver] 内部都走这里，保证两条渲染路径的默认值
-/// 不会各自漂移。`WAsyncStateBuilder` 这类「自己搭滚动壳」的场景也可以用它拿到
-/// 全局默认，避免每个滚动页重写一遍 loading / empty / error：
-///
-/// ```dart
-/// final views = WAsyncThemeViews.of(context);
-///
-/// WAsyncStateBuilder<List<Gift>>(
-///   state: controller.state,
-///   builder: (context, state) => SmartRefresher(
-///     onRefresh: controller.load,
-///     child: CustomScrollView(
-///       slivers: [
-///         ...state.when(
-///           loading: () => [SliverFillRemaining(child: views.loading(context))],
-///           empty: () => [SliverFillRemaining(child: views.empty(context))],
-///           failed: (error) => [
-///             SliverFillRemaining(
-///               child: views.error(context, error, controller.load),
-///             ),
-///           ],
-///           ready: (gifts) => [SliverList(...)],
-///         ),
-///       ],
-///     ),
-///   ),
-/// )
-/// ```
+/// 不会各自漂移。本类不从 barrel 导出；需要完全自定义布局时直接写
+/// `ValueListenableBuilder` + 自己的视图。
 ///
 /// 约定：
 /// - `retry` 为 null 时仍会调用显式 / 主题 builder，并把 `null` 传进去；
 ///   builder 自己决定是否渲染重试按钮。包内默认视图不带按钮。
-/// - `sliver*` 默认值是非滚动 Widget；[maybeRefreshingSliver] 可能返回 null
-///   （默认不额外加进度，刷新进度由外层 `SmartRefresher` 负责）。
+/// - 默认错误视图不渲染异常原文，只显示 `errorTitle`；需要详情时用
+///   [WAsyncTheme.errorBuilder] 或自定义 builder。
+///
+/// 非公开 API：不从 barrel 导出，只供 [WAsyncView] / [WAsyncStateSliver] 内部使用。
+@internal
 class WAsyncThemeViews {
   const WAsyncThemeViews._(this._theme);
 
@@ -52,8 +31,6 @@ class WAsyncThemeViews {
   final WAsyncTheme? _theme;
 
   WAsyncStrings get _strings => _theme?.strings ?? const WAsyncStrings();
-
-  // ─── 普通视图（WAsyncView）───
 
   /// 加载中：默认转圈，带 `liveRegion` 与可本地化的 `loading` 文案。
   Widget loading(BuildContext context, {WidgetBuilder? explicit}) {
@@ -87,10 +64,9 @@ class WAsyncThemeViews {
     return explicit?.call(context, error, retry) ??
         _theme?.errorBuilder?.call(context, error, retry) ??
         WAsyncErrorView(
-          error: error,
-          onRetry: retry,
           title: _strings.errorTitle,
           retryText: _strings.retry,
+          onRetry: retry,
         );
   }
 
@@ -104,10 +80,9 @@ class WAsyncThemeViews {
     return explicit?.call(context, error, retry) ??
         _theme?.errorBannerBuilder?.call(context, error, retry) ??
         WAsyncErrorBanner(
-          error: error,
-          onRetry: retry,
           title: _strings.errorTitle,
           retryText: _strings.retry,
+          onRetry: retry,
         );
   }
 
@@ -116,68 +91,5 @@ class WAsyncThemeViews {
     return explicit?.call(context) ??
         _theme?.refreshingBuilder?.call(context) ??
         const LinearProgressIndicator();
-  }
-
-  // ─── Sliver 视图（WAsyncStateSliver）───
-
-  /// sliver 加载中：默认转圈（非滚动 Widget），带 `liveRegion`。
-  Widget sliverLoading(BuildContext context, {WidgetBuilder? explicit}) {
-    return explicit?.call(context) ??
-        _theme?.sliverLoadingBuilder?.call(context) ??
-        Semantics(
-          liveRegion: true,
-          label: _strings.loading,
-          excludeSemantics: true,
-          child: const Center(child: CircularProgressIndicator()),
-        );
-  }
-
-  /// sliver 空数据：默认使用 `WAsyncStrings.empty`（非滚动 Widget），带 `liveRegion`。
-  Widget sliverEmpty(BuildContext context, {WidgetBuilder? explicit}) {
-    return explicit?.call(context) ??
-        _theme?.sliverEmptyBuilder?.call(context) ??
-        Semantics(
-          liveRegion: true,
-          child: Center(child: Text(_strings.empty)),
-        );
-  }
-
-  /// sliver 失败：默认 [WAsyncErrorView]；没有 retry 时不带按钮。
-  Widget sliverError(
-    BuildContext context,
-    Object error,
-    VoidCallback? retry, {
-    WAsyncErrorWidgetBuilder? explicit,
-  }) {
-    return explicit?.call(context, error, retry) ??
-        _theme?.sliverErrorBuilder?.call(context, error, retry) ??
-        WAsyncErrorView(
-          error: error,
-          onRetry: retry,
-          title: _strings.errorTitle,
-          retryText: _strings.retry,
-        );
-  }
-
-  /// sliver 刷新失败但有旧数据：默认 [WAsyncErrorBanner]。
-  Widget sliverErrorBanner(
-    BuildContext context,
-    Object error,
-    VoidCallback? retry, {
-    WAsyncErrorWidgetBuilder? explicit,
-  }) {
-    return explicit?.call(context, error, retry) ??
-        _theme?.sliverErrorBannerBuilder?.call(context, error, retry) ??
-        WAsyncErrorBanner(
-          error: error,
-          onRetry: retry,
-          title: _strings.errorTitle,
-          retryText: _strings.retry,
-        );
-  }
-
-  /// sliver 刷新中：默认返回 null（不额外加进度，交给外层 SmartRefresher）。
-  Widget? maybeRefreshingSliver(BuildContext context, {WidgetBuilder? explicit}) {
-    return (explicit ?? _theme?.refreshingSliverBuilder)?.call(context);
   }
 }

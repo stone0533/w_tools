@@ -1,3 +1,11 @@
+## 1.22.2
+
+### Changed
+- `init` 的 `w_tools_async` 约束抬到 `^7.0.0`；CLI 自身 `cliConstraint` 同步 `^1.22.2`。
+- catalog / agents 模板同步 async 7.0：删除 `WAsyncStateBuilder` / `WAsyncOptions` /
+  `WAsyncActivity` / `WAsyncThemeViews` 条目，分页改为 `snapshot`，执行层收敛为
+  `tryRun` / `run` / `retry` / `timeout` / `settle`。
+
 ## 1.22.1
 
 ### Changed

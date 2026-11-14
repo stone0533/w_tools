@@ -41,7 +41,7 @@ class _GiftPageState extends State<GiftPage> {
   @override
   void initState() {
     super.initState();
-    _gifts = WAsyncController.list(() => api.gifts());
+    _gifts = WAsyncController.list((_) => api.gifts());
     _gifts.load();
   }
 
@@ -98,17 +98,6 @@ void main() {
     expect(banners, isA<WAsyncSuccess<List<String>>>());
   });
 
-  test('parallel<WAsyncResult<Object?>> 示例可编译', () async {
-    final results = await WAsync.parallel<WAsyncResult<Object?>>([
-      WAsync.tryRun<Object?>(() => api.mobileRegionCodes()),
-      WAsync.tryRun<Object?>(() => api.registerColumnList()),
-      WAsync.tryRun<Object?>(() => api.homeBanners()),
-    ]);
-
-    expect(results, hasLength(3));
-    expect(results.every((result) => result.isSuccess), isTrue);
-  });
-
   test('README settle 示例可编译并保留每个结果', () async {
     final results = await WAsync.settle<Gift>([
       () => api.gift('1'),
@@ -144,8 +133,22 @@ void main() {
     expect(value, 'ok');
   });
 
-  test('README listWithToken / replaceData 示例可编译', () async {
-    final controller = WAsyncController.listWithToken<Gift>(
+  test('README 分页 snapshot 示例可编译', () async {
+    final controller = WAsyncPagedController.list<Gift>(
+      (page, token) async => const [Gift('gift')],
+    );
+    addTearDown(controller.dispose);
+
+    await controller.refresh();
+    expect(controller.snapshot.value.footerStatus, isNot(WAsyncPagedFooterStatus.hidden));
+    expect(controller.state.value.data!.single.name, 'gift');
+
+    final footer = controller.snapshot.value;
+    expect(footer.isLoadingMore, isFalse);
+  });
+
+  test('README list / replaceData 示例可编译', () async {
+    final controller = WAsyncController.list<Gift>(
       (token) async => const [Gift('gift')],
     );
     addTearDown(controller.dispose);

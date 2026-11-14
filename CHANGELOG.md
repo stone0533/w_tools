@@ -1,3 +1,15 @@
+## 18.0.0
+
+### Breaking
+- 聚合 `w_tools_async` 7.0.0：根包重导出面同步移除 `WAsyncOptions` / `WAsyncActivity` /
+  `WAsyncStateBuilder` / `WAsyncThemeViews` / `WAsyncRetryErrorHandler`，以及
+  `WAsync.parallel` / `WAsync.pool` / `WAsync.serial` / `WAsync.first` / `WAsync.map`、
+  `WAsyncController.load` 之外的 `reload` / `retry`、分页 `page` / `footerStatus` getter 等。
+  分页改读 `WAsyncPagedController.snapshot`；详见 `packages/async/CHANGELOG.md`。
+
+### Changed
+- 聚合依赖 `w_tools_async: ^7.0.0`。
+
 ## 17.0.0
 
 ### Breaking

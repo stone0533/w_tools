@@ -613,7 +613,7 @@ banned:
     final r = await _run('explain.dart', ['WAsyncView', '--format=prompt']);
     expect(r.exitCode, 0);
     expect('${r.stdout}', contains('errorBuilder'));
-    expect('${r.stdout}', contains('onRetryError'));
+    expect('${r.stdout}', contains('errorBannerBuilder'));
   });
 
   test('explain WAsyncPagedController 覆盖 loadMore', () async {
@@ -689,9 +689,9 @@ banned:
     expect(alias.exitCode, 0);
     expect('${alias.stdout}', startsWith('WAsync  (w_tools_async)'));
 
-    final themeViews = await _run('explain.dart', ['WAsyncThemeViews']);
-    expect(themeViews.exitCode, 0);
-    expect('${themeViews.stdout}', contains('WAsyncThemeViews.of(context)'));
+    final snapshot = await _run('explain.dart', ['WAsyncPagedSnapshot']);
+    expect(snapshot.exitCode, 0);
+    expect('${snapshot.stdout}', contains('snapshot'));
   });
 
   test('context 对坏配置报配置文件名', () async {

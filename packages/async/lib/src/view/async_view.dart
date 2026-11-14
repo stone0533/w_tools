@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../state/async_state.dart';
-import 'async_retry.dart';
 import 'async_theme.dart';
 import 'async_theme_views.dart';
 
@@ -18,18 +17,14 @@ import 'async_theme_views.dart';
 /// 默认 loading / empty / error 文案只是 fallback；正式项目应通过
 /// [WAsyncTheme] 或显式 builder 覆盖。
 ///
-/// [WAsyncView] 适合页面主体、Column 或 ListView item；
-/// 为错误条/刷新条约束有界宽度，不强制高度。
+/// [WAsyncView] 适合页面主体、Column 或 ListView item。
+/// `refreshingBuilder` / `errorBannerBuilder` 的定位：
+/// - 高度有界（`Scaffold.body`、`Expanded`）时占固定槽，内容让位，不遮挡列表；
+/// - 高度无界（`Column` 子项、`ListView` item）时作为 content box 的 overlay，
+///   需要固定到视口请外层给有界高度。
 ///
-/// [refreshingBuilder] / [errorBannerBuilder] 是内容盒上的 overlay，
-/// 定位相对**内容盒**，不一定是视口：作为 `Scaffold.body` / `Expanded` 等紧约束时
-/// 内容盒填满视口，看起来在视口顶部 / 底部；作为 `Column` 子项或 `ListView` item
-/// 等松约束时只包住内容。需要固定到视口时，外层给有界高度，或用
-/// `WAsyncStateBuilder` 自己搭滚动壳。
-///
-/// [onRetry] 由调用方负责处理异常；推荐直接传 `WAsyncController.load`。
-/// 为 null 时 [errorBuilder] / [errorBannerBuilder] 仍会收到 `null` 的 retry，
-/// 由 builder 决定是否渲染按钮；包内默认视图不带按钮。
+/// [onRetry] 为 null 时 [errorBuilder] / [errorBannerBuilder] 仍会收到 `null` 的
+/// retry，由 builder 决定是否渲染按钮；包内默认视图不带按钮。
 ///
 /// [readyBuilder] 返回内容本身；需要 `SmartRefresher` / `RefreshIndicator`
 /// 时，把滚动组件放进 [readyBuilder] 内部，不要包在 [WAsyncView] 外面。
@@ -45,7 +40,6 @@ class WAsyncView<T> extends StatelessWidget {
     super.key,
     required this.state,
     this.onRetry,
-    this.onRetryError,
     required this.readyBuilder,
     this.loadingBuilder,
     this.emptyBuilder,
@@ -57,10 +51,7 @@ class WAsyncView<T> extends StatelessWidget {
   final ValueListenable<WAsyncState<T>> state;
 
   /// 重试回调；为 null 时错误态不渲染重试按钮。
-  final Future<void> Function()? onRetry;
-
-  /// retry 失败时的观测出口；不传时走 `FlutterError.reportError`。
-  final WAsyncRetryErrorHandler? onRetryError;
+  final VoidCallback? onRetry;
   final Widget Function(BuildContext context, T data) readyBuilder;
   final WidgetBuilder? loadingBuilder;
   final WidgetBuilder? emptyBuilder;
@@ -84,11 +75,9 @@ class WAsyncView<T> extends StatelessWidget {
           return _buildContent(
             context,
             data: data,
-            overlay: Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              child: views.refreshing(context, explicit: refreshingBuilder),
+            leading: views.refreshing(
+              context,
+              explicit: refreshingBuilder,
             ),
           );
         }
@@ -97,16 +86,11 @@ class WAsyncView<T> extends StatelessWidget {
           return _buildContent(
             context,
             data: data,
-            overlay: Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: views.errorBanner(
-                context,
-                value.error!,
-                _retry(),
-                explicit: errorBannerBuilder,
-              ),
+            trailing: views.errorBanner(
+              context,
+              value.error!,
+              onRetry,
+              explicit: errorBannerBuilder,
             ),
           );
         }
@@ -118,7 +102,7 @@ class WAsyncView<T> extends StatelessWidget {
           failed: (error) => views.error(
             context,
             error,
-            _retry(),
+            onRetry,
             explicit: errorBuilder,
           ),
         );
@@ -126,32 +110,39 @@ class WAsyncView<T> extends StatelessWidget {
     );
   }
 
-  /// 把异步重试包装成安全的 VoidCallback；没有 retry 时返回 null。
-  VoidCallback? _retry() {
-    final retry = onRetry;
-    if (retry == null) return null;
-    return () => fireAsyncRetry(
-      retry: retry,
-      onRetryError: onRetryError,
-      context: 'while retrying WAsyncView',
-    );
-  }
-
-  /// ready / refreshing / failed+data 都使用同一层 Stack，
+  /// ready / refreshing / failed+data 都使用同一层容器，
   /// 避免 SmartRefresher 等 readyBuilder 子树在状态切换时被重新挂载。
   ///
-  /// 只约束有界宽度，不强制高度；滚动组件的高度由页面父级决定。
+  /// 高度有界时用固定槽 Column（leading / content / trailing 索引固定），
+  /// 错误条和刷新条占空间而不是盖住内容；高度无界时退回 Stack overlay。
   Widget _buildContent(
     BuildContext context, {
     required T data,
-    Widget? overlay,
+    Widget? leading,
+    Widget? trailing,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final content = readyBuilder(context, data);
+
+        if (constraints.hasBoundedWidth && constraints.hasBoundedHeight) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              leading ?? const SizedBox.shrink(),
+              // loose：滚动内容仍拿满可用高度，普通内容保持自身高度，不强行撑满。
+              Flexible(fit: FlexFit.loose, child: content),
+              trailing ?? const SizedBox.shrink(),
+            ],
+          );
+        }
+
         final stack = Stack(
           children: [
-            readyBuilder(context, data),
-            if (overlay != null) overlay,
+            content,
+            if (leading != null) Positioned(left: 0, right: 0, top: 0, child: leading),
+            if (trailing != null) Positioned(left: 0, right: 0, bottom: 0, child: trailing),
           ],
         );
 

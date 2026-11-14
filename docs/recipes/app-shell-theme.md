@@ -3,10 +3,10 @@
 ```dart
 void main() {
   runApp(
-    // 普通 + sliver 的全局默认视图（在 MaterialApp 外也可以）
+    // 普通 + sliver 共用的全局默认视图（在 MaterialApp 外也可以）
     WAsyncTheme(
-      sliverLoadingBuilder: (_) => const Center(child: CircularProgressIndicator()),
-      sliverEmptyBuilder: (_) => const Center(child: Text('暂无数据')),
+      loadingBuilder: (_) => const Center(child: CircularProgressIndicator()),
+      emptyBuilder: (_) => const Center(child: Text('暂无数据')),
       child: WToastTheme(
         style: WToastStyle.defaults,
         child: MaterialApp(

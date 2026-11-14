@@ -149,7 +149,7 @@
 | `Scaffold` | 页面骨架 | `WScaffold` |
 | `Sliver` | 某个列表 / 区块的 sliver 版本 | `WListViewSliver` / `WAsyncStateSliver` |
 
-- `Builder` 是显式构建器（`WAsyncStateBuilder`），
+- `Builder` 是显式构建器（`WStepItemBuilder`），
   只能有一个 `build()` 入口。
 - 组合优先用名词堆叠（`WFormTextFieldPasswordToggle`），不用 `With` / `And` 连接词；
   堆叠要能读成一个名词短语，不要把两个角色并排。
@@ -165,14 +165,14 @@
 | 顺序 | 角色 | 后缀 | 维度 | 装什么 | 判定问句 | 典型例子 | 检查 |
 |---|---|---|---|---|---|---|---|
 | 1 | 视觉样式 | `Style` | 语义 | 颜色 / 字号 / 圆角 / 阴影 / fit | 只影响「长什么样」？ | `WImageStyle` / Material `ButtonStyle` | 弱 |
-| 2 | 行为参数 | `Options` | 语义 | 回调 / 重试 / 超时 / 解码 / 放行规则 | 装的是行为字段（回调 / 重试 / 超时 / 解码 / 放行规则），不是纯数据？ | `WImageLoadOptions` / `WAsyncOptions` | 弱 |
+| 2 | 行为参数 | `Options` | 语义 | 回调 / 重试 / 超时 / 解码 / 放行规则 | 装的是行为字段（回调 / 重试 / 超时 / 解码 / 放行规则），不是纯数据？ | `WImageLoadOptions` | 弱 |
 | 3 | 作用域默认 | `Theme` | 作用域 | 给子树的一组默认值（可被局部覆盖） | 要给整棵子树兜底一组默认值？ | `WFormTheme` / `WImageTheme` | 弱 |
 | 4 | UI 插槽 | `Slots` | 语义 | 占位 / 错误 / 进度 / 重试 | 替换组件内部的某块 UI？ | `WImageSlots` | 弱 |
 | 5 | 运行期控制 | `Controller` | 构件 | 分页 / 重试 / 播放 / 滚动 | 有生命周期，要命令式调用？ | `WAsyncController` / `WMapController` | 弱 |
 | 6 | 状态 | `State` | 语义 | 运行期状态 / widget `State<T>` / 不可变快照 | 是「当前状态」的载体？ | `WAsyncState` / `WStepState` | 弱 |
 | 7 | 输入 | `Source` | 语义 | URL / 文件 / 字节 / 业务模型 | 描述「数据从哪来」？ | `WImageSource` / `WNetworkImageSource` | 弱 |
 | 8 | 输出 | `Result` / `Failure` / `Error` | 语义 | 成功结果 / 失败分支 / 错误对象 | 是调用的返回值、失败分支或错误？ | `WAsyncResult` / `WAsyncFailure` / `WImageError` | 弱 |
-| 9 | 构建入口 | `Builder` | 构件 | 组装 widget 的回调对象 | 需要调用方决定子结构？ | `WAsyncStateBuilder` / `WStepItemBuilder` | 弱 |
+| 9 | 构建入口 | `Builder` | 构件 | 组装 widget 的回调对象 | 需要调用方决定子结构？ | `WStepItemBuilder` | 弱 |
 | 10 | 子树上下文 | `Scope` | 作用域 | 把 controller / 当前实例放进子树读取 | 要在子树里读写运行期上下文？ | `WFormScope` | 弱 |
 | 11 | 种类 | `Type` / `Kind` | 语义 | 封闭枚举语义 | 是「哪一种」？ | `WImageType` / `WPlatformType` | 弱 |
 | 12 | 组件数据 | `Data` | 语义 | 组件产出的纯数据 | 是组件内部流转的数据？ | `WScreenData` / `WFormTextFieldData` | 弱 |
@@ -242,8 +242,8 @@
 
 #### async 的窄角色
 
-- `Activity`（`WAsyncActivity`）：并发活动计数器，不是加载视图；新代码优先复用，不另造 `LoadingCounter`。
-- `Views`（`WAsyncThemeViews`）：默认视图解析器；新代码优先复用，不另造 `Resolver`。
+- `Snapshot`（`WAsyncPagedSnapshot`）：分页某一刻的不可变快照，含 `footerStatus` /
+  `loadMoreError` / `hasMore`；不是 controller，也不是单区块四态 `State`。
 
 ### 3.4 Config 的硬约束
 

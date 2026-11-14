@@ -1,16 +1,15 @@
 # 分页列表：刷新 + 追加 + 错误
 
-用 `WAsyncPagedController` 管分页状态，`WAsyncStateBuilder` 只负责渲染滚动壳。
-测试用 [分页列表测试 recipe](paged-list-test.md) 的本地 harness，不要每个项目重写 fake。
+用 `WAsyncPagedController` 管分页状态，`WAsyncStateSliver` 渲染四态，footer 读
+`controller.snapshot`。测试用 [分页列表测试 recipe](paged-list-test.md) 的本地 harness，
+不要每个项目重写 fake。
 
 ```dart
-final controller = WAsyncPagedController<Gift>.withPage((page) async {
-  final resp = await api.gifts(page: page, limit: 10);
-  return WAsyncPage<Gift>.fromTotal(
+final controller = WAsyncPagedController<Gift>((page, token) async {
+  final resp = await api.gifts(page: page, limit: 10, token: token);
+  return WAsyncPage<Gift>(
     items: resp.list,
-    total: resp.total,
-    page: page,
-    pageSize: 10,
+    hasMore: resp.total == null ? null : page * 10 < resp.total,
   );
 });
 final refreshController = RefreshController();
@@ -40,26 +39,31 @@ void dispose() {
 
 @override
 Widget build(BuildContext context) {
-  return WAsyncStateBuilder<List<Gift>>(
-    state: controller.state,
-    builder: (context, state) => SmartRefresher(
-      controller: refreshController,
-      onRefresh: _refresh,
-      child: CustomScrollView(
-        slivers: [
-          WAsyncStateSliver<List<Gift>>(
-            state: controller.state,
-            onRetry: _refresh,
-            readySliverBuilder: (context, gifts) => SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => GiftTile(gifts[index]),
-                childCount: gifts.length,
-              ),
+  return SmartRefresher(
+    controller: refreshController,
+    onRefresh: _refresh,
+    onLoading: () async {
+      await controller.loadMore();
+      if (controller.snapshot.value.loadMoreError != null) {
+        refreshController.loadFailed();
+      } else {
+        refreshController.loadComplete();
+      }
+    },
+    child: CustomScrollView(
+      slivers: [
+        WAsyncStateSliver<List<Gift>>(
+          state: controller.state,
+          onRetry: _refresh,
+          readySliverBuilder: (context, gifts) => SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => GiftTile(gifts[index]),
+              childCount: gifts.length,
             ),
           ),
-          const SliverToBoxAdapter(child: _Footer()),
-        ],
-      ),
+        ),
+        SliverToBoxAdapter(child: _PagedFooter(controller)),
+      ],
     ),
   );
 }
@@ -67,14 +71,13 @@ Widget build(BuildContext context) {
 
 要点：
 
-- `builder` 必须始终返回同一个 `SmartRefresher + CustomScrollView`，四态只作为 slivers；
-- 追加下一页用 `controller.loadMore()`，失败看 `controller.loadMoreError`，**不要**把整页替换成失败态；
-- `controller.hasMore` 是普通 getter；footer 必须监听 `hasMoreListenable`——最后一页返回空列表时
-  `hasMore` 会变但 `state` 不变，只按 `state` 重建的 footer 不会刷新；`isLoadingMore` / `loadMoreError`
-  按需监听；
-- 想在 footer 上区分「首屏还没翻过页」和「已翻过页、现在没有更多了」，用
-  `controller.hasLoadedMoreThanOnePage`（或 `controller.page > controller.initialPage + 1`），
-  不要用 `state.data.length` 变大去猜——失败路径上长度不变，猜出来的值会错；
+- `WAsyncStateSliver` 始终返回同一个 `SliverMainAxisGroup`，滚动壳（`CustomScrollView`）不需要
+  再包一层状态 builder；
+- 追加下一页用 `controller.loadMore()`，失败看 `controller.snapshot.value.loadMoreError`，
+  **不要**把整页替换成失败态；
+- footer 只监听 `controller.snapshot`；最后一页返回空列表时 `snapshot.hasMore` 会变但
+  `state` 不变，只按 `state` 重建的 footer 不会刷新；
+- footer 状态读 `snapshot.footerStatus`，不要自己组合 `data == null` / `loadMoreError` / `hasMore`；
 - `refresh()` 在飞时再次调用会取消旧请求并以新参数重发；`dispose()` 会取消在飞 token。
 
 ## SmartRefresher 组合：首屏、generation、footer
@@ -107,7 +110,7 @@ Future<void> _refresh() async {
 ### footer：重试先 `requestLoading()`
 
 用 SmartRefresher 自带 footer 时，footer 失败后直接调 `controller.loadMore()` 只会更新
-`isLoadingMore`，footer 仍停在 `LoadStatus.failed`；重试按钮应先
+`snapshot.footerStatus`，SmartRefresher 仍停在 `LoadStatus.failed`；重试按钮应先
 `refreshController.requestLoading()`，由 `onLoading` 再执行 `loadMore()`：
 
 ```dart
@@ -116,25 +119,20 @@ SmartRefresher(
   onRefresh: _refresh,
   onLoading: () async {
     await controller.loadMore();
-    if (controller.loadMoreError.value != null) {
+    if (controller.snapshot.value.loadMoreError != null) {
       refreshController.loadFailed();
     } else {
       refreshController.loadComplete();
     }
   },
-  footer: ..., // SmartRefresher 自带 footer 或自建 footer
   child: ...,
 )
 ```
 
 - 重试按钮：`onTap: refreshController.requestLoading`；
-- footer 状态统一读 `controller.footerStatus`；底层仍是 `loadMoreError` / `hasMore` / `isLoadingMore`；
-- 自建 footer（上面的 `_Footer`）直接监听 controller 的 listenable 即可，不需要
-  `requestLoading`。
+- 自建 footer（下面的 `_PagedFooter`）直接监听 `snapshot` 即可，不需要 `requestLoading`。
 
-### 自建 footer：首屏到底不提示“上拉 / 没有更多”
-
-不依赖 `pull_to_refresh` 的纯展示 footer，用 `changes` 合并监听：
+### 自建 footer
 
 ```dart
 class _PagedFooter extends StatelessWidget {
@@ -145,9 +143,10 @@ class _PagedFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: controller.changes,
+      animation: controller.snapshot,
       builder: (context, _) {
-        return switch (controller.footerStatus) {
+        final footer = controller.snapshot.value;
+        return switch (footer.footerStatus) {
           WAsyncPagedFooterStatus.hidden => const SizedBox.shrink(),
           WAsyncPagedFooterStatus.loading => const Padding(
             padding: EdgeInsets.all(16),
@@ -175,8 +174,7 @@ class _PagedFooter extends StatelessWidget {
 把它放进 `SliverToBoxAdapter`；SmartRefresher 的 `CustomFooter` 只做
 `LoadStatus -> 视图` 的薄适配，不要把这个状态机塞进 UI 包。
 
-`footerStatus` 已经处理了「首屏到底不显示、翻过页才显示没有更多、追加失败可重试」三种边界；
-不要再自己组合 `data == null` / `loadMoreError` / `hasMore`。
+`footerStatus` 已经处理了「首屏到底不显示、翻过页才显示没有更多、追加失败可重试」三种边界。
 
 当前没有 `WPagedFooter`：如果 3+ 个项目仍在复制这段，再考虑在 `w_tools_ui`
 加一个**纯展示**组件（不依赖 `pull_to_refresh` / `w_tools_async`）。
@@ -184,7 +182,7 @@ class _PagedFooter extends StatelessWidget {
 ### `isRefreshing` 与 `isLoading`
 
 `state.isRefreshing` 只表示「有旧数据时的刷新」；首屏 / 重试用 `state.isLoading`。
-切换筛选不需要先判断 `isRefreshing`：直接 `_refresh()`，6.2.0 会取消旧请求。
+切换筛选不需要先判断 `isRefreshing`：直接 `_refresh()`，被取代的刷新会被取消。
 
 ## 切换筛选 / 搜索
 
@@ -197,9 +195,7 @@ onFilterChanged: (value) {
 
 - 不需要在刷新期间禁用筛选；
 - 被取代的 `refresh()` future 会随取消立即完成；这正是 `_refreshId` 守卫存在的原因；
-- 不要直接调 `controller.refresh()`，否则 generation 不会更新，旧的下拉刷新可能提前收 header；
-- 非 `SmartRefresher` 手势触发的刷新，sliver 默认不显示进度；传 `refreshingSliverBuilder`
-  或由页面自己显示 loading。
+- 不要直接调 `controller.refresh()`，否则 generation 不会更新，旧的下拉刷新可能提前收 header。
 
 ## 详情返回置顶 / 乐观更新
 
@@ -209,17 +205,17 @@ void onDetailReturn(Gift updated) {
   items
     ..removeWhere((gift) => gift.id == updated.id)
     ..insert(0, updated);
-  controller.replaceData(items); // 取消在飞请求，page/hasMore 默认继承
+  controller.replaceData(items); // 取消在飞请求，hasMore 默认继承
   // 需要服务端校准再 controller.refresh();
 }
 ```
 
 - `replaceData([])` 进入 empty，默认 `hasMore = false`；需要继续分页显式 `hasMore: true`；
-- 首次加载前注入数据时默认视为第一页，下一次 `loadMore` 从 `initialPage + 1` 开始。
+- 首次加载前注入数据时默认视为第一页，下一次 `loadMore` 从构造参数 `initialPage` + 1 开始。
 
 ## 刷新失败的错误条
 
 - sliver 版本：failed + 旧数据的错误条在列表上方，ready 子树不重建；
-- `WAsyncView` 版本：错误条是视口底部 overlay，始终可见；
-- 长列表滚动很深时，顶部错误条仍可能在视口外：用 `controller.onError` 弹 toast，或用
-  `WAsyncStateBuilder` 在滚动壳外叠加常驻错误条。
+- `WAsyncView` 版本：宽高都有界时错误条在内容盒底部占位；无界时是 overlay；
+- 长列表滚动很深时，顶部错误条仍可能在视口外：用 `onError` 弹 toast，或在滚动壳外叠加
+  常驻错误条。

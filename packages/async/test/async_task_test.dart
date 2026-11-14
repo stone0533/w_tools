@@ -15,11 +15,19 @@ void main() {
       Object? reported;
       final result = await WAsync.tryRun<int>(
         () async => throw StateError('boom'),
-        options: WAsyncOptions(onError: (e) => reported = e),
+        onError: (e) => reported = e,
       );
       expect(result, isA<WAsyncFailure<int>>());
       expect((result as WAsyncFailure<int>).error, isA<StateError>());
       expect(reported, isA<StateError>());
+    });
+
+    test('onError 回调抛错不影响结果', () async {
+      final result = await WAsync.tryRun<int>(
+        () async => throw Exception('boom'),
+        onError: (_) => throw StateError('onError'),
+      );
+      expect(result, isA<WAsyncFailure<int>>());
     });
 
     test('result pattern 可解构 isProgrammingError', () async {
@@ -98,15 +106,11 @@ void main() {
       await expectLater(
         WAsync.run<int>(
           () async => throw StateError('x'),
-          options: WAsyncOptions(onError: (_) => reported = true),
+          onError: (_) => reported = true,
         ),
         throwsStateError,
       );
       expect(reported, isTrue, reason: 'onError 应被调用，但不能吞掉 run 的异常');
-    });
-
-    test('map 映射成功值', () async {
-      expect(await WAsync.map<int, String>(() async => 2, onSuccess: (v) => 'v=$v'), 'v=2');
     });
   });
 
@@ -133,7 +137,7 @@ void main() {
           () async => throw Exception('fail'),
           retryCount: 1,
           retryDelay: Duration.zero,
-          options: WAsyncOptions(onError: (_) => errors++),
+          onError: (_) => errors++,
         ),
         throwsException,
       );
@@ -272,93 +276,8 @@ void main() {
     });
   });
 
-  group('组合执行', () {
-    test('parallel 保持顺序', () async {
-      expect(
-        await WAsync.parallel<int>([
-          Future.value(1),
-          Future.value(2),
-          Future.value(3),
-        ]),
-        [1, 2, 3],
-      );
-    });
-
-    test('parallel 默认一损俱损', () async {
-      await expectLater(
-        WAsync.parallel<int>([
-          Future.value(1),
-          Future<int>.error(StateError('boom')),
-        ]),
-        throwsA(isA<StateError>()),
-      );
-    });
-
-    test('parallel 组合 tryRun 可保留部分结果', () async {
-      final results = await WAsync.parallel<WAsyncResult<int>>([
-        WAsync.tryRun(() async => 1),
-        WAsync.tryRun(() async => throw StateError('boom')),
-      ]);
-
-      expect(results[0], isA<WAsyncSuccess<int>>());
-      expect(results[1], isA<WAsyncFailure<int>>());
-      expect((results[0] as WAsyncSuccess<int>).value, 1);
-      expect((results[1] as WAsyncFailure<int>).error, isA<StateError>());
-    });
-
-    test('pool 限制并发并保持顺序', () async {
-      var active = 0;
-      var peak = 0;
-      final values = await WAsync.pool<int>(
-        List.generate(
-          5,
-          (i) => () async {
-            active++;
-            peak = active > peak ? active : peak;
-            await Future<void>.delayed(const Duration(milliseconds: 10));
-            active--;
-            return i;
-          },
-        ),
-        concurrency: 2,
-      );
-      expect(values, [0, 1, 2, 3, 4]);
-      expect(peak, lessThanOrEqualTo(2));
-      await expectLater(WAsync.pool<int>([], concurrency: 0), throwsArgumentError);
-    });
-
-    test('pool 任务抛错时抛出首个错误并保留 stack', () async {
-      final error = StateError('boom');
-      try {
-        await WAsync.pool<int>(
-          [
-            () async => throw error,
-            () async => 2,
-          ],
-          concurrency: 2,
-        );
-        fail('expected throw');
-      } catch (caught, stackTrace) {
-        expect(caught, same(error));
-        expect(stackTrace.toString(), isNotEmpty);
-      }
-    });
-
-    test('first 返回最先完成的结果，空集合抛错', () async {
-      expect(await WAsync.first<int>([Future.value(1), Future.value(2)]), anyOf(1, 2));
-      await expectLater(WAsync.first<int>([]), throwsStateError);
-    });
-
-    test('serial 顺序执行', () async {
-      final values = await WAsync.serial<int>([
-        () async => 1,
-        () async => 2,
-        () async => 3,
-      ]);
-      expect(values, [1, 2, 3]);
-    });
-
-    test('settle 保留每个结果与顺序', () async {
+  group('settle', () {
+    test('保留每个结果与顺序', () async {
       final results = await WAsync.settle<int>([
         () async => 1,
         () async => throw StateError('boom'),
@@ -371,7 +290,7 @@ void main() {
       expect((results[2] as WAsyncSuccess<int>).value, 3);
     });
 
-    test('settle 限制并发且保持顺序', () async {
+    test('限制并发且保持顺序', () async {
       var active = 0;
       var peak = 0;
       final results = await WAsync.settle<int>(
@@ -394,7 +313,7 @@ void main() {
       expect(peak, lessThanOrEqualTo(2));
     });
 
-    test('settle 取消时返回 Cancelled 而不是整批抛错', () async {
+    test('取消时返回 Cancelled 而不是整批抛错', () async {
       final token = WCancelToken();
       final never = Completer<int>();
       final future = WAsync.settle<int>(
@@ -409,7 +328,7 @@ void main() {
       expect(results.every((result) => result.isCancelled), isTrue);
     });
 
-    test('settle 空集合返回空列表', () async {
+    test('空集合返回空列表；并发数非法抛 ArgumentError', () async {
       expect(await WAsync.settle<int>([]), isEmpty);
       await expectLater(
         WAsync.settle<int>([], concurrency: 0),
@@ -417,87 +336,20 @@ void main() {
       );
     });
 
-    test('parallel / serial / pool 空集合也触发 activity', () async {
-      var starts = 0;
-      var ends = 0;
-      final options = WAsyncOptions(
-        activity: WAsyncActivity(
-          onStart: () => starts++,
-          onEnd: () => ends++,
-        ),
+    test('onError 按失败任务逐个通知', () async {
+      final errors = <Object>[];
+      final results = await WAsync.settle<int>(
+        [
+          () async => throw Exception('a'),
+          () async => 1,
+          () async => throw Exception('b'),
+        ],
+        onError: errors.add,
       );
 
-      expect(await WAsync.parallel<int>([], options: options), isEmpty);
-      expect(await WAsync.serial<int>([], options: options), isEmpty);
-      expect(await WAsync.pool<int>([], options: options), isEmpty);
-      expect(starts, 3);
-      expect(ends, 3);
+      expect(results.where((result) => result.isFailure), hasLength(2));
+      expect(errors, hasLength(2));
     });
-
-    test('onError 与 activity 回调抛错不影响结果', () async {
-      final result = await WAsync.tryRun<int>(
-        () async => throw Exception('boom'),
-        options: WAsyncOptions(
-          activity: WAsyncActivity(
-            onStart: () => throw StateError('start'),
-            onEnd: () => throw StateError('end'),
-          ),
-          onError: (_) => throw StateError('onError'),
-        ),
-      );
-
-      expect(result, isA<WAsyncFailure<int>>());
-    });
-  });
-
-  test('parallel eagerError:false 等全部完成后再抛', () async {
-    final second = Completer<int>();
-    final future = WAsync.parallel<int>(
-      [
-        Future<int>.error(StateError('boom')),
-        second.future,
-      ],
-      eagerError: false,
-    );
-
-    var completed = false;
-    unawaited(
-      future.then<void>(
-        (_) => completed = true,
-        onError: (_) => completed = true,
-      ),
-    );
-
-    await Future<void>.delayed(Duration.zero);
-    expect(completed, isFalse, reason: '第二个 Future 还没完成');
-
-    second.complete(2);
-    await expectLater(future, throwsStateError);
-  });
-
-  test('settle 共享 activity 按批次计数', () async {
-    var starts = 0;
-    var ends = 0;
-
-    final results = await WAsync.settle<int>(
-      [
-        () async => 1,
-        () async => throw Exception('boom'),
-        () async => 3,
-      ],
-      options: WAsyncOptions(
-        activity: WAsyncActivity(
-          onStart: () => starts++,
-          onEnd: () => ends++,
-        ),
-      ),
-    );
-
-    expect(results, hasLength(3));
-    expect(results.where((result) => result.isFailure), hasLength(1));
-    // WAsyncActivity 是并发计数器：3 个任务并发时只触发一次 0→1 / 1→0。
-    expect(starts, 1);
-    expect(ends, 1);
   });
 
   test('retryIf 返回 false 时只尝试一次', () async {
@@ -546,53 +398,17 @@ void main() {
       await expectLater(future, throwsA(isA<WCancellationException>()));
     });
 
-    test('pool 取消后停止', () async {
+    test('settle 等待期间取消', () async {
       final token = WCancelToken();
       final never = Completer<int>();
-      final future = WAsync.pool<int>(
-        List.generate(
-          2,
-          (_) =>
-              () => never.future,
-        ),
+      final future = WAsync.settle<int>(
+        [() => never.future],
         cancelToken: token,
       );
       await Future<void>.delayed(Duration.zero);
       token.cancel('stop');
-      await expectLater(future, throwsA(isA<WCancellationException>()));
-    });
-
-    test('first 等待期间取消', () async {
-      final token = WCancelToken();
-      final future = WAsync.first<int>(
-        [Completer<int>().future],
-        cancelToken: token,
-      );
-      await Future<void>.delayed(Duration.zero);
-      token.cancel('stop');
-      await expectLater(future, throwsA(isA<WCancellationException>()));
-    });
-
-    test('parallel 等待期间取消', () async {
-      final token = WCancelToken();
-      final future = WAsync.parallel<int>(
-        [Completer<int>().future],
-        cancelToken: token,
-      );
-      await Future<void>.delayed(Duration.zero);
-      token.cancel('stop');
-      await expectLater(future, throwsA(isA<WCancellationException>()));
-    });
-
-    test('serial 等待期间取消', () async {
-      final token = WCancelToken();
-      final future = WAsync.serial<int>(
-        [() => Completer<int>().future],
-        cancelToken: token,
-      );
-      await Future<void>.delayed(Duration.zero);
-      token.cancel('stop');
-      await expectLater(future, throwsA(isA<WCancellationException>()));
+      final results = await future;
+      expect(results.single.isCancelled, isTrue);
     });
   });
 
@@ -604,59 +420,8 @@ void main() {
       expect(reason, 'stop');
     });
 
-    test('clearListeners / 异常 toString', () {
-      final token = WCancelToken();
-      var called = false;
-      token.addListener((_) => called = true);
-      token.clearListeners();
-      token.cancel('stop');
-      expect(called, isFalse);
+    test('异常 toString', () {
       expect(WCancellationException('stop').toString(), contains('stop'));
-    });
-  });
-
-  group('WAsyncActivity', () {
-    test('并发活动只触发一次开始 / 结束', () async {
-      var starts = 0;
-      var ends = 0;
-      final activity = WAsyncActivity(
-        onStart: () => starts++,
-        onEnd: () => ends++,
-      );
-      final options = WAsyncOptions(activity: activity);
-      await Future.wait([
-        WAsync.run<int>(() async => 1, options: options),
-        WAsync.run<int>(() async => 2, options: options),
-      ]);
-      expect(starts, 1);
-      expect(ends, 1);
-      expect(activity.isLoading, isFalse);
-    });
-
-    test('未 begin 时 end 是空操作', () {
-      var ends = 0;
-      final activity = WAsyncActivity(onEnd: () => ends++);
-      activity.end();
-      expect(ends, 0);
-      expect(activity.isLoading, isFalse);
-    });
-
-    test('withoutActivity 保留 onError', () {
-      final options = WAsyncOptions(
-        activity: WAsyncActivity(),
-        onError: (_) {},
-      );
-      final copy = options.withoutActivity();
-      expect(copy.activity, isNull);
-      expect(copy.onError, same(options.onError));
-    });
-
-    test('withoutOnError 保留 activity', () {
-      final activity = WAsyncActivity();
-      final options = WAsyncOptions(activity: activity, onError: (_) {});
-      final copy = options.withoutOnError();
-      expect(copy.activity, same(activity));
-      expect(copy.onError, isNull);
     });
   });
 }

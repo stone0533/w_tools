@@ -54,6 +54,7 @@
 - [4.1](async-4.1.md)：取消立即返回、`options.onError` 覆盖 `Error`、`WAsyncThemeViews` / `withToken` / `runValue`
 - [5.0](async-5.0.md)：不再用 null 表示失败 / 取消，改 `WAsyncSuccess` / `WAsyncFailure` / `WAsyncCancelled`
 - [6.0](async-6.0.md)：Controller 改 `onError`、`onError` 去 nullable、error builder retry 可空
+- [7.0](async-7.0.md)：执行层收敛（删 parallel/pool/serial/first/map）、分页改 `snapshot`、删 `WAsyncStateBuilder` / `onRetryError`、错误视图不再渲染原文
 
 ## toast
 

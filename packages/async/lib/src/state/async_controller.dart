@@ -10,21 +10,11 @@ typedef WAsyncTokenLoader<T> = Future<T> Function(WCancelToken token);
 ///
 /// 每个页面区块使用一个独立实例；旧请求返回后不会覆盖新请求的状态。
 /// [load] 会取消上一次的 [WCancelToken]；[dispose] 也会取消。
+///
+/// loader 统一接收 [WCancelToken]；不需要取消时写 `(_) => api.list()`。
+/// 列表语义用 [WAsyncController.list]（空列表归 empty，data 为 unmodifiable）。
 class WAsyncController<T> {
   WAsyncController(
-    Future<T> Function() loader, {
-    void Function(Object error)? onError,
-    bool Function(T value)? isEmpty,
-    WAsyncState<T>? initial,
-  }) : this._(
-         (token) => loader(),
-         onError: onError,
-         isEmpty: isEmpty,
-         initial: initial,
-       );
-
-  /// 需要感知取消的 loader 版本。
-  WAsyncController.withToken(
     WAsyncTokenLoader<T> loader, {
     void Function(Object error)? onError,
     bool Function(T value)? isEmpty,
@@ -48,21 +38,6 @@ class WAsyncController<T> {
 
   /// 列表场景：空列表自动归为 empty；`state.data` 为 unmodifiable。
   static WAsyncController<List<E>> list<E>(
-    Future<List<E>> Function() loader, {
-    void Function(Object error)? onError,
-    WAsyncState<List<E>>? initial,
-  }) {
-    return WAsyncController<List<E>>._(
-      (token) => loader(),
-      onError: onError,
-      isEmpty: (value) => value.isEmpty,
-      normalize: (value) => List<E>.unmodifiable(value),
-      initial: initial,
-    );
-  }
-
-  /// 列表场景 + 感知取消：空列表归 empty；`state.data` 为 unmodifiable。
-  static WAsyncController<List<E>> listWithToken<E>(
     WAsyncTokenLoader<List<E>> loader, {
     void Function(Object error)? onError,
     WAsyncState<List<E>>? initial,
@@ -78,7 +53,7 @@ class WAsyncController<T> {
 
   final WAsyncTokenLoader<T> _loader;
 
-  /// 失败兜底回调；控制器自己维护四态，不提供 activity。
+  /// 失败兜底回调；控制器自己维护四态。
   final void Function(Object error)? onError;
 
   final bool Function(T value)? _isEmpty;
@@ -104,17 +79,26 @@ class WAsyncController<T> {
 
     final result = await WAsync.tryRun<T>(
       () => _loader(token),
-      options: onError == null ? null : WAsyncOptions(onError: onError),
+      onError: onError,
       cancelToken: token,
     );
 
     if (_disposed || generation != _generation || token.isCancelled) return;
 
     if (result is WAsyncSuccess<T>) {
-      final value = _normalize?.call(result.value) ?? result.value;
-      _state.value = _isEmpty?.call(value) == true
-          ? WAsyncState<T>.empty()
-          : WAsyncState<T>.ready(value);
+      try {
+        final value = _normalize?.call(result.value) ?? result.value;
+        _state.value = _isEmpty?.call(value) == true
+            ? WAsyncState<T>.empty()
+            : WAsyncState<T>.ready(value);
+      } catch (error) {
+        // isEmpty / normalize 是调用方回调；抛错不能让 load() 的 Future 裸 reject。
+        _notifyError(error);
+        _state.value = WAsyncState<T>.failed(
+          error,
+          previousData: previousData,
+        );
+      }
     } else if (result is WAsyncFailure<T>) {
       _state.value = WAsyncState<T>.failed(
         result.error,
@@ -123,17 +107,6 @@ class WAsyncController<T> {
     }
     // WAsyncCancelled 已在上面的 token.isCancelled 提前返回，不需要单独分支。
   }
-
-  /// 重新加载；与 [load] 等价，不会自动重试。
-  ///
-  /// 需要自动重试 N 次时用 `WAsync.retry`。
-  Future<void> reload() => load();
-
-  /// 手动重试入口；等价于 [reload]。
-  ///
-  /// remove-in: 7.0.0
-  @Deprecated('Use reload() instead.')
-  Future<void> retry() => reload();
 
   /// 用本地数据替换当前值（乐观更新）。
   ///
@@ -157,5 +130,13 @@ class WAsyncController<T> {
     _disposed = true;
     _token?.cancel('controller disposed');
     _state.dispose();
+  }
+
+  void _notifyError(Object error) {
+    try {
+      onError?.call(error);
+    } catch (_) {
+      // onError 只是通知，自身异常不影响状态机
+    }
   }
 }

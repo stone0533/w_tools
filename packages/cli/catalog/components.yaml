@@ -781,12 +781,11 @@ components:
     docsAnchor: '4-view'
     section: '4. View'
     useFor: '普通页面异步四态视图、默认重试页与刷新错误条'
-    dontUseFor: '滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController`'
+    dontUseFor: '滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`'
     usage: |
       WAsyncView<List<Gift>>(
         state: c.state,
-        onRetry: c.load,
-        onRetryError: (error, stackTrace) => ...,
+        onRetry: c.load, // 可选；不传不显示重试按钮
         readyBuilder: (context, data) => ...,
         loadingBuilder: (context) => ...,
         emptyBuilder: (context) => ...,
@@ -796,47 +795,30 @@ components:
     pitfalls:
       - 'Controller 必须先 load()，否则一直是 loading'
       - 'onRetry 为 null 时不渲染重试按钮'
-    related: ['WAsyncController', 'WAsyncTheme', 'WAsyncStateBuilder']
+      - '高度有界时错误条 / 刷新条占固定槽；无界时是内容盒 overlay'
+    related: ['WAsyncController', 'WAsyncTheme', 'WAsyncStateSliver']
     teach: true
-  - name: '`WAsyncStateBuilder`'
-    package: 'w_tools_async'
-    docsAnchor: '4-view'
-    section: '4. View'
-    useFor: '滚动页面 / `SmartRefresher` / 自定义状态布局'
-    dontUseFor: '普通页面优先用 `WAsyncView`；旧 `WAsyncBuilder` 已删除'
-    usage: |
-      WAsyncStateBuilder<List<Gift>>(
-        state: c.state,
-        builder: (context, state) => SmartRefresher(
-          onRefresh: c.load,
-          child: CustomScrollView(slivers: [...state.when(...)]),
-        ),
-      )
-    pitfalls:
-      - 'builder 必须始终返回同一个滚动壳，不要在外层切 Center'
-    related: ['WAsyncView', 'WAsyncThemeViews']
-    teach: true
+
   - name: '`WAsyncController`'
     package: 'w_tools_async'
     docsAnchor: 'wasynccontroller'
     section: '3. Controller'
-    useFor: '单区块异步状态、load / reload / replaceData / 旧请求丢弃'
+    useFor: '单区块异步状态、load / replaceData / 旧请求丢弃'
     dontUseFor: '分页用 `WAsyncPagedController`；纯执行用 `WAsync`'
     usage: |
-      final c = WAsyncController.list(() => api.list(), onError: (e) => log(e)); c.load();
-      c.reload();                       // 只重载一次，不自动重试
-      final withToken = WAsyncController.listWithToken((token) => api.list(token: token));
+      final c = WAsyncController.list((_) => api.list(), onError: (e) => log(e)); c.load();
+      final withToken = WAsyncController((token) => api.list(token: token));
       c.replaceData(next);              // 本地替换：取消在飞 load，旧结果不写回
       @override
       void dispose() { c.dispose(); super.dispose(); }
     pitfalls:
       - '页面 dispose 时 controller.dispose()'
-      - 'Controller 只接 onError；activity 只在 WAsync 上用'
-      - 'list / listWithToken 的 state.data 是 unmodifiable；需要可变副本请自己 List.of'
-      - 'controller.reload() 只重载一次；自动重试用 WAsync.retry；retry() 是 deprecated 别名'
+      - 'loader 统一接收 WCancelToken；不需要取消时写 (_) => ...'
+      - 'list 的 state.data 是 unmodifiable；需要可变副本请自己 List.of'
       - 'replaceData 会取消在飞 load；需要服务端校准时再 load()'
     related: ['WAsyncView', 'WAsyncState', 'WAsyncPagedController']
     teach: true
+
   - name: '`WAsyncPagedController`'
     package: 'w_tools_async'
     docsAnchor: 'wasyncpagedcontroller'
@@ -844,29 +826,37 @@ components:
     useFor: '分页列表：首屏、刷新、追加、hasMore、本地替换（recipe: docs/recipes/paged-list.md）'
     dontUseFor: '普通单请求用 `WAsyncController`'
     usage: |
-      final c = WAsyncPagedController<Item>((page) => api.list(page: page));
-      // 第一页不足一页 / 有 total 时用 withPage 显式 hasMore：
-      // WAsyncPagedController<Item>.withPage((page) async => WAsyncPage(items: ..., hasMore: ...));
+      final c = WAsyncPagedController<Item>((page, token) async {
+        final resp = await api.list(page: page, token: token);
+        return WAsyncPage(items: resp.list, hasMore: resp.total > page * 20);
+      });
       await c.refresh();
       await c.loadMore();
-      c.refresh();                 // 切换筛选直接再调：取消在飞请求，旧结果不写回
-      c.replaceData(next);         // 本地替换 / 置顶：取消在飞 refresh / loadMore
-      c.changes.addListener(() { ... }); // 或单项监听 hasMoreListenable / loadMoreError
-      c.hasMoreListenable.addListener(() { ... });
-      c.loadMoreError.addListener(() { ... });
-      c.page;                      // 下一次 loadMore 的页码（首屏前 = initialPage）
-      c.hasLoadedMoreThanOnePage;  // 是否已成功追加过第二页
-      c.footerStatus;              // hidden / loading / failed / noMore / loadMore
+      c.snapshot.addListener(() { ... });        // 唯一观察入口
+      final footer = c.snapshot.value;           // state / footerStatus / loadMoreError / hasMore
+      WAsyncView(state: c.state, ...);           // 列表四态仍用 state
+      c.replaceData(next);                       // 取消在飞 refresh / loadMore
     pitfalls:
-      - 'loadMore 失败只写 loadMoreError，不要清空列表'
-      - '第一页不足一页 / 已知 total 用 withPage + WAsyncPage(hasMore:)；旧构造仍是本页非空即有更多'
+      - 'loadMore 失败只写 snapshot.loadMoreError，不要清空列表'
+      - 'footer 读 snapshot.footerStatus，不要自己用 data / error / hasMore 拼'
       - 'initial: ready([]) / empty 视为没有更多'
-      - 'page 是「下一次请求的页码」，不是「当前页」；别自己用 data.length 猜是否翻过页'
       - '切换筛选直接再 refresh()：在飞请求会被取消，不要禁用筛选'
-      - 'replaceData 会取消在飞 refresh/loadMore；page/hasMore 默认继承，空列表 hasMore=false'
-      - 'footer 状态用 footerStatus；它是普通 getter，重建仍用 changes'
-    related: ['WAsyncView', 'WAsyncController', 'WAsyncPagedFooterStatus']
+      - 'replaceData 会取消在飞 refresh/loadMore；hasMore 默认继承，空列表 hasMore=false'
+    related: ['WAsyncView', 'WAsyncController', 'WAsyncPagedSnapshot', 'WAsyncPagedFooterStatus']
     teach: true
+  - name: '`WAsyncPagedSnapshot`'
+    package: 'w_tools_async'
+    docsAnchor: 'wasyncpagedcontroller'
+    section: '3. Controller'
+    useFor: '分页的唯一观察快照：state / footerStatus / loadMoreError / hasMore / isLoadingMore'
+    dontUseFor: '不要自己拼多个 ValueListenable；footer 读这个快照'
+    usage: |
+      final footer = c.snapshot.value;
+      if (footer.footerStatus == WAsyncPagedFooterStatus.failed) retry(footer.loadMoreError);
+      if (footer.hasMore) c.loadMore();
+    related: ['WAsyncPagedController', 'WAsyncPagedFooterStatus']
+    teach: false
+
   - name: '`WAsyncPagedFooterStatus`'
     package: 'w_tools_async'
     docsAnchor: '分页-footer-状态'
@@ -874,19 +864,21 @@ components:
     useFor: '分页 footer 的派生状态：hidden / loading / failed / noMore / loadMore'
     dontUseFor: '不要自己用 data / loadMoreError / hasMore 拼 footer 状态'
     usage: |
-      switch (c.footerStatus) {
+      final footer = c.snapshot.value;
+      switch (footer.footerStatus) {
         case WAsyncPagedFooterStatus.hidden: ...
         case WAsyncPagedFooterStatus.loading: ...
         case WAsyncPagedFooterStatus.failed: ...
         case WAsyncPagedFooterStatus.noMore: ...
         case WAsyncPagedFooterStatus.loadMore: ...
       }
-      // footer 用 AnimatedBuilder(animation: c.changes) 重建
+      // footer 用 AnimatedBuilder(animation: c.snapshot) 重建
     pitfalls:
-      - 'footerStatus 是普通 getter，不会通知；重建用 controller.changes'
+      - 'footerStatus 在 snapshot 里；每次 snapshot 变化都会带新状态'
       - '第一页就到底返回 hidden，不是 noMore'
     related: ['WAsyncPagedController']
     teach: false
+
   - name: '`WAsyncStateSliver`'
     package: 'w_tools_async'
     docsAnchor: '4-view'
@@ -902,43 +894,29 @@ components:
     pitfalls:
       - 'readySliverBuilder 必须返回 sliver；不要包在 WAsyncView 里'
       - 'failed + 旧数据时错误条在列表上方；ready 子树保持同一 element'
-      - '深滚动场景错误条可能在视口外；用 onError toast 或 WAsyncStateBuilder overlay'
-    related: ['WAsyncStateBuilder', 'WAsyncTheme']
+      - '深滚动场景错误条可能在视口外；用 onError toast 或外层滚动容器提示'
+    related: ['WAsyncView', 'WAsyncTheme']
     teach: true
+
   - name: '`WAsyncTheme`'
     package: 'w_tools_async'
     docsAnchor: '5-theme'
     section: '5. Theme'
-    useFor: 'App 根部统一默认 loading / empty / error（普通 + sliver）'
+    useFor: 'App 根部统一默认 loading / empty / error（普通 + sliver 共用）'
     dontUseFor: '不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先'
     usage: |
       WAsyncTheme(
         strings: const WAsyncStrings(empty: '暂无数据'),
         loadingBuilder: (_) => const AppLoadingView(),
-        errorBuilder: (context, error, retry) => AppRetryView(error, retry),
-        sliverLoadingBuilder: (_) => const AppLoadingView(),
+        errorBuilder: (context, error, retry) => AppRetryView(retry),
         child: app,
       )
     pitfalls:
-      - '普通 builder 只作用于 WAsyncView；sliver 用 sliver*Builder'
-      - 'sliver*Builder 返回非滚动 Widget；WAsyncStateSliver 会包 SliverFillRemaining，不要返回 sliver'
-    related: ['WAsyncThemeViews', 'WAsyncView', 'WAsyncStateSliver']
+      - '同一组 builder 同时作用于 WAsyncView 与 WAsyncStateSliver'
+      - 'builder 返回非滚动 Widget（不是 sliver，也不要返回 ListView / CustomScrollView）；sliver 组件会自己包 SliverFillRemaining'
+    related: ['WAsyncView', 'WAsyncStateSliver']
     teach: true
-  - name: '`WAsyncThemeViews`'
-    package: 'w_tools_async'
-    docsAnchor: '5-theme'
-    section: '5. Theme'
-    useFor: '自建滚动壳复用 WAsyncTheme 的默认四态视图'
-    dontUseFor: '普通页面直接用 WAsyncView，不要重复搭状态分支'
-    usage: |
-      final views = WAsyncThemeViews.of(context);
-      views.loading(context);
-      views.empty(context);
-      views.error(context, error, retry);
-    pitfalls:
-      - '普通页面直接用 WAsyncView，不要重复搭四态分支'
-    related: ['WAsyncTheme', 'WAsyncStateBuilder']
-    teach: true
+
   - name: '`WToast`'
     package: 'w_tools_toast'
     section: '7. 状态与反馈'
@@ -1166,8 +1144,8 @@ components:
     package: 'w_tools_async'
     docsAnchor: '1-wasync'
     section: '1. WAsync'
-    useFor: '无 UI 异步执行（tryRun / run / 组合器 / settle）'
-    dontUseFor: '页面四态用 `WAsyncController` + `WAsyncView`；不要用已删除的 `runValue` / `WAsyncLoading`'
+    useFor: '无 UI 异步执行（tryRun / run / retry / timeout / settle）'
+    dontUseFor: '页面四态用 `WAsyncController` + `WAsyncView`；并发组合用 Future.wait / package:async'
     usage: |
       final result = await WAsync.tryRun(() => api.fetch());
       switch (result) {
@@ -1176,60 +1154,24 @@ components:
         case WAsyncCancelled(): log('cancelled');
       }
       final value = await WAsync.run(() => api.fetch());
-      final name = await WAsync.map(() => api.fetch(), onSuccess: (v) => v.name);
       final results = await WAsync.settle<Section>([() => api.banners(), () => api.columns()]);
       await WAsync.retry(() => api.submit(), retryCount: 3,
         retryDelayBuilder: (attempt) => Duration(milliseconds: 200 * (1 << (attempt - 1))));
     pitfalls:
       - 'run 失败抛异常；tryRun 不抛异常'
       - 'onError 只是通知，不会吞异常；run().then(onSuccess) 必须带 onError/catchError，或改用 tryRun'
-      - 'parallel 是 all-or-nothing；eagerError:false 仍会抛，不返回部分结果；独立区块用 settle 或先 tryRun 每个 Future'
-      - 'onSuccess 只属于 WAsync.map；WAsync.run 不接受 onSuccess'
+      - 'settle 保留每个结果；失败任务逐个通知 onError'
       - '取消需要 WCancelToken；取消不中止底层 Future；取消与失败同轮时非 Error 按取消处理'
       - 'retry 的 retryCount 是重试次数（总尝试 = retryCount + 1）；onRetry 自身异常被忽略'
-    related: ['WAsyncResult', 'WAsyncOptions', 'WAsyncActivity', 'WCancelToken']
-    aliases: ['tryRun', 'run', 'map', 'retry', 'settle']
+    related: ['WAsyncResult', 'WCancelToken']
+    aliases: ['tryRun', 'run', 'retry', 'timeout', 'settle']
     teach: true
-  - name: '`WAsyncOptions`'
-    package: 'w_tools_async'
-    docsAnchor: '1-wasync'
-    section: '1. WAsync'
-    useFor: 'WAsync 的执行选项：并发活动计数与失败兜底回调'
-    dontUseFor: 'Controller 不接 WAsyncOptions，只接 onError；不要用 activity 合并多个独立区块'
-    usage: |
-      final activity = WAsyncActivity(onStart: ..., onEnd: ...);
-      final options = WAsyncOptions(activity: activity, onError: (e) => log(e));
-      await WAsync.run(() => api.fetch(), options: options);
-    pitfalls:
-      - 'Controller 只接 onError，不接 WAsyncOptions'
-      - '调用点自己处理错误时用 withoutOnError()，避免重复上报'
-    related: ['WAsync', 'WAsyncActivity', 'WCancelToken']
-    teach: true
-  - name: '`WAsyncActivity`'
-    package: 'w_tools_async'
-    docsAnchor: '1-wasync'
-    section: '1. WAsync'
-    useFor: '同一批并发任务共享的加载计数：0→1 / 1→0 各回调一次'
-    dontUseFor: '不是加载视图；不要拿它合并多个独立区块'
-    usage: |
-      final activity = WAsyncActivity(
-        onStart: () => setState(() => _loading = true),
-        onEnd: () => setState(() => _loading = false),
-      );
-      await WAsync.parallel(
-        [loadConfig(), loadProfile()],
-        options: WAsyncOptions(activity: activity),
-      );
-    pitfalls:
-      - 'begin / end 是框架内部使用，业务不要直接调'
-      - '只在 WAsync 直接执行时生效；Controller 不接受 activity'
-    related: ['WAsync', 'WAsyncOptions']
-    teach: true
+
   - name: '`WCancelToken`'
     package: 'w_tools_async'
     docsAnchor: '1-wasync'
     section: '1. WAsync'
-    useFor: '协作式取消：传给 WAsync / withToken loader'
+    useFor: '协作式取消：传给 WAsync 或 Controller 的 loader'
     dontUseFor: '取消后不可复用；新请求要新建 token'
     usage: |
       final token = WCancelToken();
@@ -1241,8 +1183,9 @@ components:
     pitfalls:
       - '取消是协作式的：底层 Future 不一定停，只是等待提前结束'
       - '令牌取消后不能复用'
-    related: ['WAsync', 'WAsyncOptions', 'WCancellationException']
+    related: ['WAsync', 'WCancellationException']
     teach: true
+
   - name: '`WCountdown`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
@@ -2089,13 +2032,15 @@ components:
     section: '4. View'
     useFor: '默认整块错误视图 / 保留旧数据时的错误条'
     usage: |
-      WAsyncErrorView(error: error, onRetry: retry);
-      WAsyncErrorBanner(error: error, onRetry: retry);
+      WAsyncErrorView(title: '加载失败', onRetry: retry);
+      WAsyncErrorBanner(title: '刷新失败', message: '请稍后重试', onRetry: retry);
     pitfalls:
+      - '默认只显示 title；message 需要显式传入，不要直接传异常原文'
       - 'onRetry 为 null 时不显示重试按钮'
       - '默认视图带 liveRegion；自定义 error / banner builder 要自己保留 Semantics'
     related: ['WAsyncView']
     teach: false
+
   - name: '`WAsyncStrings`'
     package: 'w_tools_async'
     docsAnchor: '5-theme'
@@ -2173,49 +2118,42 @@ components:
     package: 'w_tools_async'
     docsAnchor: 'wasyncpagedcontroller'
     section: '3. Controller'
-    useFor: '分页 loader 的类型：(page) => Future<List<T>>'
+    useFor: '分页 loader 的类型：(page, token) => Future<WAsyncPage<T>>'
     usage: |
-      final WAsyncPageLoader<Gift> loader = (page) => api.gifts(page: page);
+      final WAsyncPageLoader<Gift> loader = (page, token) => api.gifts(page, token);
       WAsyncPagedController<Gift>(loader);
     related: ['WAsyncPagedController']
     teach: false
+
   - name: '`WAsyncPage`'
     package: 'w_tools_async'
     docsAnchor: 'wasyncpagedcontroller'
     section: '3. Controller'
     useFor: '分页 loader 返回 items + 显式 hasMore（第一页不足一页 / total）'
     usage: |
-      WAsyncPagedController<Gift>.withPage((page) async {
+      WAsyncPagedController<Gift>((page, token) async {
         final resp = await api.gifts(page: page, limit: 10);
-        return WAsyncPage<Gift>.fromTotal(
+        return WAsyncPage<Gift>(
           items: resp.list,
-          total: resp.total,
-          page: page,
-          pageSize: 10,
+          hasMore: page * 10 < resp.total,
         );
       });
+    pitfalls:
+      - 'hasMore 为 null 时本页非空即认为还有更多'
     related: ['WAsyncPagedController', 'WAsyncPageLoader']
     teach: false
+
   - name: '`WAsyncTokenLoader`'
     package: 'w_tools_async'
     docsAnchor: 'wasynccontroller'
     section: '3. Controller'
-    useFor: '可感知取消的 loader 类型：(token) => Future<T>'
+    useFor: '控制器 loader 的类型：(token) => Future<T>'
     usage: |
       final WAsyncTokenLoader<Gift> loader = (token) => api.gift(token: token);
-      WAsyncController<Gift>.withToken(loader);
+      WAsyncController<Gift>(loader);
     related: ['WAsyncController', 'WCancelToken']
     teach: false
-  - name: '`WAsyncTokenPageLoader`'
-    package: 'w_tools_async'
-    docsAnchor: 'wasyncpagedcontroller'
-    section: '3. Controller'
-    useFor: '可感知取消的分页 loader 类型：(page, token) => Future<List<T>>'
-    usage: |
-      final WAsyncTokenPageLoader<Gift> loader = (page, token) => api.gifts(page, token);
-      WAsyncPagedController<Gift>.withToken(loader);
-    related: ['WAsyncPagedController']
-    teach: false
+
   - name: '`WAsyncErrorWidgetBuilder`'
     package: 'w_tools_async'
     docsAnchor: '5-theme'
@@ -2227,18 +2165,6 @@ components:
       )
     related: ['WAsyncView']
     teach: false
-  - name: '`WAsyncRetryErrorHandler`'
-    package: 'w_tools_async'
-    docsAnchor: '4-view'
-    section: '4. View'
-    useFor: 'onRetryError 回调的类型'
-    usage: |
-      WAsyncView<Gift>(
-        onRetryError: (error, stackTrace) => ...,
-      )
-    related: ['WAsyncView']
-    teach: false
-
   - name: '`WLocaleConfig`'
     package: 'w_tools_app'
     docsAnchor: 'wappoptions-字段'

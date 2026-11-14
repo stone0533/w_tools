@@ -34,53 +34,6 @@ class _CounterState extends State<_Counter> {
 }
 
 void main() {
-  testWidgets('retry 同步抛错也能被 onRetryError 观测', (tester) async {
-    final state = ValueNotifier<WAsyncState<int>>(
-      WAsyncState<int>.failed(Exception('load')),
-    );
-    addTearDown(state.dispose);
-    Object? reported;
-
-    await tester.pumpWidget(
-      _host(
-        WAsyncView<int>(
-          state: state,
-          onRetry: () => throw Exception('sync retry'),
-          onRetryError: (error, _) => reported = error,
-          readyBuilder: (_, value) => Text('$value'),
-        ),
-      ),
-    );
-    await tester.tap(find.text('Retry'));
-    await tester.pump();
-
-    expect(reported, isA<Exception>());
-  });
-
-  testWidgets('自定义 retry 失败可通过 onRetryError 观测', (tester) async {
-    final state = ValueNotifier<WAsyncState<int>>(
-      WAsyncState<int>.failed(Exception('load')),
-    );
-    addTearDown(state.dispose);
-    Object? reported;
-
-    await tester.pumpWidget(
-      _host(
-        WAsyncView<int>(
-          state: state,
-          onRetry: () async => throw Exception('retry failed'),
-          onRetryError: (error, _) => reported = error,
-          readyBuilder: (_, value) => Text('$value'),
-        ),
-      ),
-    );
-    await tester.tap(find.text('Retry'));
-    await tester.pump();
-    await tester.pump();
-
-    expect(reported, isA<Exception>());
-  });
-
   testWidgets('loading / ready / empty / failed', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.loading(),
@@ -91,7 +44,7 @@ void main() {
       _host(
         WAsyncView<int>(
           state: state,
-          onRetry: () async {},
+          onRetry: () {},
           readyBuilder: (context, value) => Text('value-$value'),
         ),
       ),
@@ -122,7 +75,7 @@ void main() {
       _host(
         WAsyncView<int>(
           state: state,
-          onRetry: () async {},
+          onRetry: () {},
           readyBuilder: (context, value) => const _Counter(),
         ),
       ),
@@ -150,7 +103,7 @@ void main() {
           height: 240,
           child: WAsyncView<int>(
             state: state,
-            onRetry: () async {},
+            onRetry: () {},
             readyBuilder: (context, value) {
               return ListView(
                 children: const [Text('row')],
@@ -163,6 +116,36 @@ void main() {
 
     expect(find.byType(ListView), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('松约束有界高度下普通内容不强行撑满', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.ready(1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        Column(
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: WAsyncView<int>(
+                state: state,
+                onRetry: () {},
+                readyBuilder: (context, value) => Text('value-$value'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(WAsyncView<int>)).height,
+      lessThan(300),
+      reason: '有界但松约束时，普通内容应保持自身高度；滚动内容由 Flexible 拿满可用高度',
+    );
   });
 
   testWidgets('松约束下内容盒只包住内容，overlay 不撑满视口', (tester) async {
@@ -179,7 +162,7 @@ void main() {
             children: [
               WAsyncView<int>(
                 state: state,
-                onRetry: () async {},
+                onRetry: () {},
                 readyBuilder: (context, value) => SizedBox(
                   height: 40,
                   child: Text('value-$value'),
@@ -195,6 +178,58 @@ void main() {
     expect(tester.getSize(find.byType(WAsyncView<int>)).height, lessThan(600));
   });
 
+  testWidgets('高度有界时错误条占位，不遮挡内容', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState<int>.failed('boom', previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          height: 240,
+          child: WAsyncView<int>(
+            state: state,
+            onRetry: () {},
+            readyBuilder: (context, value) => ListView(
+              children: [Text('value-$value')],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final listBottom = tester.getBottomLeft(find.byType(ListView)).dy;
+    final bannerTop = tester.getTopLeft(find.byType(WAsyncErrorBanner)).dy;
+    expect(listBottom, lessThanOrEqualTo(bannerTop));
+  });
+
+  testWidgets('高度有界时刷新条占位，不遮挡内容', (tester) async {
+    final state = ValueNotifier<WAsyncState<int>>(
+      const WAsyncState.loading(previousData: 1),
+    );
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          height: 240,
+          child: WAsyncView<int>(
+            state: state,
+            onRetry: () {},
+            readyBuilder: (context, value) => ListView(
+              children: [Text('value-$value')],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final progressBottom = tester.getBottomLeft(find.byType(LinearProgressIndicator)).dy;
+    final listTop = tester.getTopLeft(find.byType(ListView)).dy;
+    expect(listTop, greaterThanOrEqualTo(progressBottom));
+  });
+
   testWidgets('failed + previousData 保留内容并展示错误条', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
       const WAsyncState.failed('boom', previousData: 1),
@@ -205,7 +240,7 @@ void main() {
       _host(
         WAsyncView<int>(
           state: state,
-          onRetry: () async {},
+          onRetry: () {},
           readyBuilder: (context, value) => Text('value-$value'),
           errorBannerBuilder: (context, error, retry) => Text('error-$error'),
         ),
@@ -226,7 +261,7 @@ void main() {
       _host(
         WAsyncView<int>(
           state: state,
-          onRetry: () async {},
+          onRetry: () {},
           readyBuilder: (context, value) => Text('value-$value'),
         ),
       ),
@@ -248,7 +283,7 @@ void main() {
           errorBuilder: (context, error, retry) => const Text('default-error'),
           child: WAsyncView<int>(
             state: state,
-            onRetry: () async {},
+            onRetry: () {},
             readyBuilder: (context, value) => Text('value-$value'),
           ),
         ),
@@ -270,7 +305,7 @@ void main() {
           errorBannerBuilder: (context, error, retry) => const Text('default-banner'),
           child: WAsyncView<int>(
             state: state,
-            onRetry: () async {},
+            onRetry: () {},
             readyBuilder: (context, value) => Text('value-$value'),
             errorBannerBuilder: (context, error, retry) => const Text('explicit-banner'),
           ),
@@ -288,7 +323,8 @@ void main() {
     await tester.pumpWidget(
       _host(
         WAsyncErrorBanner(
-          error: 'boom',
+          title: 'Something went wrong',
+          message: 'boom',
           onRetry: () => retries++,
         ),
       ),
@@ -302,7 +338,7 @@ void main() {
   testWidgets('WAsyncErrorBanner 无 onRetry 时不显示按钮', (tester) async {
     await tester.pumpWidget(
       _host(
-        const WAsyncErrorBanner(error: 'boom'),
+        const WAsyncErrorBanner(title: 'Something went wrong'),
       ),
     );
 
@@ -312,7 +348,10 @@ void main() {
   testWidgets('WAsyncErrorBanner 默认文案使用 ASCII 冒号', (tester) async {
     await tester.pumpWidget(
       _host(
-        const WAsyncErrorBanner(error: 'boom'),
+        const WAsyncErrorBanner(
+          title: 'Something went wrong',
+          message: 'boom',
+        ),
       ),
     );
 
@@ -329,7 +368,7 @@ void main() {
       _host(
         WAsyncView<int>(
           state: state,
-          onRetry: () async {},
+          onRetry: () {},
           readyBuilder: (context, value) => Text('value-$value'),
           refreshingBuilder: (context) => const Text('custom-refreshing'),
         ),
@@ -353,7 +392,7 @@ void main() {
           children: [
             WAsyncView<int>(
               state: state,
-              onRetry: () async {},
+              onRetry: () {},
               readyBuilder: (context, value) => Text('value-$value'),
             ),
           ],
@@ -377,7 +416,7 @@ void main() {
           home: Scaffold(
             body: WAsyncView<int>(
               state: state,
-              onRetry: () async {},
+              onRetry: () {},
               readyBuilder: (context, value) => Text('value-$value'),
             ),
           ),
@@ -400,7 +439,7 @@ void main() {
           refreshingBuilder: (context) => const Text('default-refreshing'),
           child: WAsyncView<int>(
             state: state,
-            onRetry: () async {},
+            onRetry: () {},
             readyBuilder: (context, value) => Text('value-$value'),
           ),
         ),
@@ -422,7 +461,7 @@ void main() {
           errorBannerBuilder: (context, error, retry) => const Text('banner-error'),
           child: WAsyncView<int>(
             state: state,
-            onRetry: () async {},
+            onRetry: () {},
             readyBuilder: (context, value) => Text('value-$value'),
           ),
         ),
@@ -443,7 +482,7 @@ void main() {
       _host(
         WAsyncView<int>(
           state: state,
-          onRetry: () async {},
+          onRetry: () {},
           readyBuilder: (context, value) => Text('value-$value'),
         ),
       ),
@@ -453,34 +492,24 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('WAsyncStateBuilder 透传状态变化', (tester) async {
+  testWidgets('默认错误视图不渲染异常原文', (tester) async {
     final state = ValueNotifier<WAsyncState<int>>(
-      const WAsyncState.loading(),
+      const WAsyncState.failed('DioException: token=abc'),
     );
     addTearDown(state.dispose);
 
     await tester.pumpWidget(
       _host(
-        WAsyncStateBuilder<int>(
+        WAsyncView<int>(
           state: state,
-          builder: (context, value) => Text('status-${value.status.name}'),
+          onRetry: () {},
+          readyBuilder: (context, value) => Text('value-$value'),
         ),
       ),
     );
 
-    expect(find.text('status-loading'), findsOneWidget);
-
-    state.value = const WAsyncState.ready(1);
-    await tester.pump();
-    expect(find.text('status-ready'), findsOneWidget);
-
-    state.value = const WAsyncState.empty();
-    await tester.pump();
-    expect(find.text('status-empty'), findsOneWidget);
-
-    state.value = const WAsyncState.failed('boom');
-    await tester.pump();
-    expect(find.text('status-failed'), findsOneWidget);
+    expect(find.text('Something went wrong'), findsOneWidget);
+    expect(find.textContaining('DioException'), findsNothing);
   });
 
   testWidgets('默认错误视图Retry回调可用', (tester) async {
@@ -494,7 +523,7 @@ void main() {
       _host(
         WAsyncView<int>(
           state: state,
-          onRetry: () async => retries++,
+          onRetry: () => retries++,
           readyBuilder: (context, value) => Text('value-$value'),
         ),
       ),
@@ -544,7 +573,7 @@ void main() {
       _host(
         WAsyncView<int>(
           state: state,
-          onRetry: () async {},
+          onRetry: () {},
           readyBuilder: (context, value) => Text('value-$value'),
           errorBuilder: (context, error, retry) => const Text('custom-error'),
         ),
@@ -553,57 +582,5 @@ void main() {
 
     expect(find.text('custom-error'), findsOneWidget);
     expect(find.byType(WAsyncErrorView), findsNothing);
-  });
-
-  testWidgets('onRetryError 自身抛错不影响 UI', (tester) async {
-    final state = ValueNotifier<WAsyncState<int>>(
-      const WAsyncState.failed('boom'),
-    );
-    addTearDown(state.dispose);
-
-    await tester.pumpWidget(
-      _host(
-        WAsyncView<int>(
-          state: state,
-          onRetry: () async => throw Exception('retry failed'),
-          onRetryError: (_, _) => throw StateError('handler boom'),
-          readyBuilder: (context, value) => Text('value-$value'),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('Retry'));
-    await tester.pump();
-    await tester.pump();
-
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('retry 失败且无 onRetryError 时走 FlutterError.reportError', (tester) async {
-    final errors = <FlutterErrorDetails>[];
-    final previous = FlutterError.onError;
-    FlutterError.onError = errors.add;
-    addTearDown(() => FlutterError.onError = previous);
-
-    final state = ValueNotifier<WAsyncState<int>>(
-      const WAsyncState.failed('boom'),
-    );
-    addTearDown(state.dispose);
-
-    await tester.pumpWidget(
-      _host(
-        WAsyncView<int>(
-          state: state,
-          onRetry: () async => throw Exception('retry failed'),
-          readyBuilder: (context, value) => Text('value-$value'),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('Retry'));
-    await tester.pump();
-    await tester.pump();
-
-    expect(errors, isNotEmpty);
   });
 }

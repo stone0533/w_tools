@@ -25,17 +25,15 @@ class PagedHarness<T> {
   final int pageSize;
   final calls = <int>[];
 
-  Future<WAsyncPage<T>> load(int page) async {
+  Future<WAsyncPage<T>> load(int page, WCancelToken token) async {
     calls.add(page);
     final error = errors[page];
     if (error != null) throw error;
 
     final items = page <= pages.length ? pages[page - 1] : const <T>[];
-    return WAsyncPage<T>.fromTotal(
+    return WAsyncPage<T>(
       items: items,
-      total: total,
-      page: page,
-      pageSize: pageSize,
+      hasMore: total == null ? null : page * pageSize < total,
     );
   }
 }
@@ -52,12 +50,12 @@ group('分页 controller', () {
       ],
       total: 3,
     );
-    final controller = WAsyncPagedController<int>.withPage(harness.load);
+    final controller = WAsyncPagedController<int>(harness.load);
     addTearDown(controller.dispose);
 
     await controller.refresh();
-    expect(controller.hasMore, isFalse);
-    expect(controller.footerStatus, WAsyncPagedFooterStatus.hidden);
+    expect(controller.snapshot.value.hasMore, isFalse);
+    expect(controller.snapshot.value.footerStatus, WAsyncPagedFooterStatus.hidden);
 
     await controller.loadMore();
     expect(harness.calls, [1]);
@@ -70,13 +68,13 @@ group('分页 controller', () {
         [],
       ],
     );
-    final controller = WAsyncPagedController<int>.withPage(harness.load);
+    final controller = WAsyncPagedController<int>(harness.load);
     addTearDown(controller.dispose);
 
     await controller.refresh();
     await controller.loadMore();
     expect(controller.state.value.data, [1, 2]);
-    expect(controller.hasMore, isFalse);
+    expect(controller.snapshot.value.hasMore, isFalse);
   });
 
   test('loadMore 失败：保留旧数据，写 loadMoreError', () async {
@@ -87,19 +85,19 @@ group('分页 controller', () {
       ],
       errors: {2: StateError('network')},
     );
-    final controller = WAsyncPagedController<int>.withPage(harness.load);
+    final controller = WAsyncPagedController<int>(harness.load);
     addTearDown(controller.dispose);
 
     await controller.refresh();
     await controller.loadMore();
     expect(controller.state.value.data, [1]);
-    expect(controller.loadMoreError.value, isA<StateError>());
+    expect(controller.snapshot.value.loadMoreError, isA<StateError>());
   });
 
   test('refresh 取代在飞 loadMore：旧结果不写回', () async {
     final page2 = Completer<List<int>>();
     var calls = 0;
-    final controller = WAsyncPagedController<int>.withPage((page) async {
+    final controller = WAsyncPagedController<int>((page, _) async {
       calls++;
       if (page == 1) return const WAsyncPage(items: [1], hasMore: true);
       return WAsyncPage(items: await page2.future, hasMore: true);
@@ -123,19 +121,19 @@ group('分页 controller', () {
       ],
       total: null,
     );
-    final controller = WAsyncPagedController<int>.withPage(harness.load);
+    final controller = WAsyncPagedController<int>(harness.load);
     addTearDown(controller.dispose);
 
     await controller.refresh();
-    expect(controller.hasMore, isTrue, reason: '本页非空且 total 未知');
+    expect(controller.snapshot.value.hasMore, isTrue, reason: '本页非空且 total 未知');
   });
 });
 ```
 
 ## 注意
 
-- 用 `withPage` + `WAsyncPage.fromTotal`，不要自己重复 `page * pageSize < total`；
+- 直接算 `hasMore: page * pageSize < total`，不要用 `data.length` 猜；
 - `total` 是**总条数**，不是剩余条数；`page` 从 1 开始；
 - `total == null` 时 `hasMore` 为 null，控制器回退“本页非空即有更多”；
-- footer 状态直接断言 `controller.footerStatus`，不要只测 `state.data.length`；
+- footer 状态直接断言 `controller.snapshot.value.footerStatus`，不要只测 `state.data.length`；
 - 不要把这个 harness 放进 `w_tools_async` 的 runtime 导出；需要跨项目复用时再单独评估。

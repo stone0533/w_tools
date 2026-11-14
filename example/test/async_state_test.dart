@@ -4,7 +4,7 @@ import 'package:w_tools/w_tools.dart';
 
 void main() {
   testWidgets('WAsyncView 从 loading 到 ready', (tester) async {
-    final controller = WAsyncController<List<String>>(() async => ['Ada']);
+    final controller = WAsyncController<List<String>>((_) async => ['Ada']);
     addTearDown(controller.dispose);
 
     await tester.pumpWidget(
@@ -29,7 +29,7 @@ void main() {
 
   testWidgets('WAsyncView 失败后可以重试', (tester) async {
     var attempt = 0;
-    final controller = WAsyncController<String>(() async {
+    final controller = WAsyncController<String>((_) async {
       attempt++;
       if (attempt == 1) throw StateError('first');
       return 'ok';

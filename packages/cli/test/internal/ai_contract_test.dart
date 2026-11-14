@@ -270,9 +270,9 @@ void main() {
         'WCancellationException',
         'WAsyncPageLoader',
         'WAsyncTokenLoader',
-        'WAsyncTokenPageLoader',
         'WAsyncErrorWidgetBuilder',
-        'WAsyncRetryErrorHandler',
+        'WAsyncPagedSnapshot',
+        'WAsyncPagedFooterStatus',
       ];
       for (final name in names) {
         expect(findComponent(name), isNotNull, reason: '$name 未登记到 catalog');
@@ -282,8 +282,9 @@ void main() {
     test('async teach usage 覆盖 View / Paged / Sliver / State 关键参数', () {
       CatalogEntry byName(String name) => asyncs.firstWhere((e) => e.names.contains(name));
       expect(byName('WAsyncView').usage, contains('errorBuilder'));
-      expect(byName('WAsyncView').usage, contains('onRetryError'));
+      expect(byName('WAsyncView').usage, contains('errorBannerBuilder'));
       expect(byName('WAsyncPagedController').usage, contains('loadMore'));
+      expect(byName('WAsyncPagedController').usage, contains('snapshot'));
       expect(byName('WAsyncStateSliver').usage, contains('onRetry'));
       expect(byName('WAsyncState').usage, contains('status'));
     });
