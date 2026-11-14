@@ -1,3 +1,9 @@
+## 1.22.3
+
+### Changed
+- `init` 的 `w_tools_async` 约束抬到 `^7.0.1`；CLI 自身 `cliConstraint` 同步 `^1.22.3`。
+- 对应 async 7.0.1 的 `loadMore` 重入修复；catalog / templates 无变化。
+
 ## 1.22.2
 
 ### Changed

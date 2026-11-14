@@ -5,12 +5,18 @@
 受影响的公开符号：`WAsync.parallel` / `WAsync.pool` / `WAsync.serial` / `WAsync.first` /
 `WAsync.map`、`WAsyncOptions` / `WAsyncActivity`、`WAsyncStateBuilder` /
 `WAsyncThemeViews` / `WAsyncRetryErrorHandler`、`WAsyncView.onRetryError` /
-`WAsyncStateSliver.onRetryError`、`WAsyncController.withToken` /
-`WAsyncController.listWithToken` / `WAsyncController.retry` / `WAsyncController.reload`、
+`WAsyncStateSliver.onRetryError` / `WAsyncStateSliver.refreshingSliverBuilder`、
+`WAsyncController.withToken` / `WAsyncController.listWithToken` /
+`WAsyncController.retry` / `WAsyncController.reload`、
 `WAsyncPagedController.withToken` / `WAsyncPagedController.withPage` /
 `WAsyncPagedController.withPageToken`、`WAsyncPagedController.page` /
+`WAsyncPagedController.initialPage` / `WAsyncPagedController.isLoadingMore` /
+`WAsyncPagedController.loadMoreError` / `WAsyncPagedController.hasMore` /
+`WAsyncPagedController.hasMoreListenable` / `WAsyncPagedController.changes` /
 `WAsyncPagedController.hasLoadedMoreThanOnePage` / `WAsyncPagedController.footerStatus`、
 `WAsyncPage.fromTotal`、`WAsyncState.ofList`、`WCancelToken.clearListeners`、
+`WAsyncTokenPageLoader`、`WAsyncPageLoader` 的签名、`WAsyncErrorView.error` /
+`WAsyncErrorBanner.error`、`replaceData(page:)`、
 `WAsyncTheme.sliver*Builder` / `WAsyncTheme.refreshingSliverBuilder`。
 
 ## 1. 执行层只保留 tryRun / run / retry / timeout / settle
@@ -152,3 +158,36 @@ WAsyncErrorView(title: '加载失败', onRetry: retry);
 // 需要详情时显式传 message（确认不含 token / 内部异常原文）：
 WAsyncErrorBanner(title: '刷新失败', message: '请稍后重试', onRetry: retry);
 ```
+
+## 7. 移除符号 → 替代速查
+
+| 旧 | 新 |
+| --- | --- |
+| `WAsync.parallel` | `Future.wait`（原子加载）/ `WAsync.settle`（独立区块） |
+| `WAsync.pool` | `WAsync.settle(concurrency:)` |
+| `WAsync.serial` | `for` 循环 / `Future.wait` |
+| `WAsync.first` | `Future.any` |
+| `WAsync.map` | `WAsync.run` + 自己映射 |
+| `WAsyncOptions` | 直接给执行方法传 `onError` |
+| `WAsyncActivity` | 调用点维护 bool，或读 `controller.state` |
+| `WAsyncStateBuilder` | `WAsyncView(readyBuilder: ...)` |
+| `WAsyncThemeViews` | 不再导出；需要完全自定义时自建视图 |
+| `WAsyncRetryErrorHandler` / `onRetryError` | 无替代；在 `onRetry` / `onError` 自己处理 |
+| `WAsyncState.ofList` | `WAsyncState.list` |
+| `WAsyncController.withToken` / `listWithToken` | 主构造 / `list`（loader 统一收 token） |
+| `WAsyncController.reload` / `retry` | `load` |
+| `WAsyncPagedController.withToken` / `withPage` / `withPageToken` | 主构造（loader 返回 `WAsyncPage`） |
+| `WAsyncPagedController.page` / `initialPage` | 不再公开；footer 读 `snapshot.footerStatus` |
+| `WAsyncPagedController.hasLoadedMoreThanOnePage` | `snapshot.footerStatus` |
+| `WAsyncPagedController.isLoadingMore` / `loadMoreError` / `hasMore` / `hasMoreListenable` / `changes` | `snapshot` |
+| `WAsyncPagedController.footerStatus` getter | `snapshot.value.footerStatus` |
+| `WAsyncPage.fromTotal` | `WAsyncPage(items:, hasMore: page * pageSize < total)` |
+| `WAsyncTokenPageLoader` | `WAsyncPageLoader`：`(page, token) => Future<WAsyncPage<T>>` |
+| `WAsyncErrorView.error` / `WAsyncErrorBanner.error` | `message`，或自定义 `errorBuilder` |
+| `WCancelToken.clearListeners` | 无替代，直接删除调用 |
+| `WAsyncTheme.sliver*Builder` | 普通 builder（返回非滚动 Widget） |
+| `WAsyncStateSliver.refreshingSliverBuilder` | 外层 `SmartRefresher` / 页面自己显示进度 |
+| `replaceData(page:)` | `replaceData(...)` 后 `await refresh()` 重置分页 |
+
+7.0.1 无公开 API 变化：修复 `loadMore` 在 `onError` 重入 `refresh` / `replaceData`
+时的 stale `loadMoreError`；升级到 `^7.0.1` 即可。

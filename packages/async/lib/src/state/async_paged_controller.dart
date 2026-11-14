@@ -247,6 +247,7 @@ class WAsyncPagedController<T> {
 
     final requestedPage = _page;
     final token = _loadMoreToken = WCancelToken();
+    final generation = _generation;
     _isLoadingMore = true;
     _loadMoreError = null;
     _emit();
@@ -259,8 +260,9 @@ class WAsyncPagedController<T> {
 
     if (_disposed) return;
     _isLoadingMore = false;
-    // 被 refresh / replaceData / dispose 取代时，token 已被取消，tryRun 返回
-    // WAsyncCancelled；这里不需要额外的 generation 检查。
+    // token 取消覆盖外部取代；generation 覆盖 onError 回调里重入
+    // refresh / replaceData 的场景，避免旧失败在刷新之后写回 stale loadMoreError。
+    if (generation != _generation) return;
 
     switch (result) {
       case WAsyncSuccess<WAsyncPage<T>>(:final value):

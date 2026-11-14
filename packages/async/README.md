@@ -12,10 +12,12 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^7.0.0
+  w_tools_async: ^7.0.1
 ```
 
 要求 Flutter 3.38+。
+
+从 6.x 升级：见 [docs/migrations/async-7.0.md](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
 ## 快速开始
 

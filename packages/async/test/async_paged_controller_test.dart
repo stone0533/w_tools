@@ -321,6 +321,61 @@ void main() {
       expect(reported, isA<StateError>());
     });
 
+    test('onError 内 refresh：旧 loadMore 失败不污染新状态', () async {
+      late WAsyncPagedController<int> controller;
+      Future<void>? refreshFuture;
+      var calls = 0;
+      controller = WAsyncPagedController<int>(
+        (page, _) async {
+          calls++;
+          if (calls == 1) {
+            return const WAsyncPage<int>(items: [1], hasMore: true);
+          }
+          if (page == 2) throw StateError('loadMore failed');
+          return const WAsyncPage<int>(items: [1], hasMore: true);
+        },
+        onError: (error) {
+          refreshFuture = controller.refresh();
+        },
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+      await refreshFuture;
+
+      expect(controller.snapshot.value.loadMoreError, isNull);
+      expect(
+        controller.snapshot.value.footerStatus,
+        WAsyncPagedFooterStatus.loadMore,
+      );
+    });
+
+    test('onError 内 replaceData：旧 loadMore 失败不污染新状态', () async {
+      late WAsyncPagedController<int> controller;
+      var calls = 0;
+      controller = WAsyncPagedController<int>(
+        (page, _) async {
+          calls++;
+          if (calls == 1) {
+            return const WAsyncPage<int>(items: [1], hasMore: true);
+          }
+          if (page == 2) throw StateError('loadMore failed');
+          return const WAsyncPage<int>(items: [1], hasMore: true);
+        },
+        onError: (error) {
+          controller.replaceData(const [9]);
+        },
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+
+      expect(controller.snapshot.value.loadMoreError, isNull);
+      expect(controller.state.value.data, [9]);
+    });
+
     test('initialPage 必须大于 0（release 也校验）', () {
       expect(
         () => WAsyncPagedController<int>(

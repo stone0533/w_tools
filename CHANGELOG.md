@@ -1,3 +1,9 @@
+## 18.0.1
+
+### Changed
+- 聚合依赖 `w_tools_async: ^7.0.1`（修复 `WAsyncPagedController.loadMore` 在
+  `onError` 重入 `refresh` / `replaceData` 时的 stale `loadMoreError`）。
+
 ## 18.0.0
 
 ### Breaking

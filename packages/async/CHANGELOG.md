@@ -1,5 +1,15 @@
 # Changelog
 
+> 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
+
+## 7.0.1
+
+### Fixed
+- `WAsyncPagedController.loadMore` 恢复 `generation` 守卫：`onError` 回调里重入
+  `refresh()` / `replaceData()` 时，旧的 `loadMore` 失败不再在刷新之后写回
+  `snapshot.loadMoreError`，footer 不会误显示 failed。
+- 补两条回归测试：`onError` 内 `refresh` / `replaceData`。
+
 ## 7.0.0
 
 ### Breaking
