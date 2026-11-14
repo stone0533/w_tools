@@ -1028,16 +1028,18 @@ J-5 多包/家族
 
 要求：
 1. 版本号必须与 CHANGELOG 的 ## 段一致；
-2. 更新 README 安装示例的 caret 下界（必须等于新版本），不要写死「当前 x.y.z」；
-3. 跑 python3 scripts/check_versions.py
+2. 根包 re-export 的子包发生 major / 删除公开类型 → 根包至少 major（根包没有符号级
+   API 快照，必须人工确认 `lib/w_tools.dart` 的重导出面）；
+3. 更新 README 安装示例的 caret 下界（必须等于新版本），不要写死「当前 x.y.z」；
+4. 跑 python3 scripts/check_versions.py
    与 bash scripts/release_check.sh --package <pkg>（根包用 --strict）
    与 bash scripts/preflight.sh --with-tests --with-flutter-analyze（整波只跑这一次完整档）；
-4. 提交前跑本地 PR 预检：bash scripts/check_pr_ready.sh /tmp/pr.md
+5. 提交前跑本地 PR 预检：bash scripts/check_pr_ready.sh /tmp/pr.md
    （check_pr_scope + check_version_bump；body 与 `gh pr create --body-file` 用同一份）；
-5. 提交到 feature 分支并 push，开 PR（正文保留「## 改动类型」段；可用 bash scripts/ship.sh
+6. 提交到 feature 分支并 push，开 PR（正文保留「## 改动类型」段；可用 bash scripts/ship.sh
    代做提交 / push / 开 PR，公开类别要带 --j4），用 bash scripts/check_pr_checks.sh 确认
    Required checks 通过后合并到 main（K-3 / K-4 要求 main 且 HEAD == origin/main）；
-6. 报告 changed files 和检查结果。
+7. 报告 changed files 和检查结果。
 ```
 
 ### K-2M. 批量版本准备
@@ -1105,6 +1107,9 @@ PUBLISH_TIMEOUT 可调）。网络预检默认只警告，CI 可加 `--require-n
 自动化 / 无 TTY 时加 --yes（只跳过 pub 的 y/N 确认，仍跑完整校验）：
 bash scripts/publish_package.sh packages/<pkg> --yes
 不要用 `yes | ...`（会顺带批准任何意外提示）。
+
+CI / 明确要求 OAuth 域可达时，加 `--require-network`（默认网络预检只警告）：
+bash scripts/publish_package.sh packages/<pkg> --yes --require-network
 
 禁止：
 - 直接在包目录 flutter pub publish / dart pub publish

@@ -306,6 +306,10 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 | `--online` | 与 pub.dev API 对比最新版本；一个包都取不到时退出 2（环境不可用，不打印「检查通过」）；404 只 warn，要判 404 用 `release_status.py --online --check` |
 | `--package <pkg>` | 收窄版本 / 物料检查；根包版本与其他子包不参与，但弃用检查与根 README 仍全仓；会提示最新快照高于 / 等于 / 缺失本地版本；完整快照 tracked 检查只在完整 `--strict` |
 
+## 平台
+
+发布脚本按 POSIX 编写（bash / `rsync` / 进程组），支持 macOS / Linux；Windows 请用 WSL。
+
 ## 常见坑
 
 - **`pub login` / `pub publish` 卡住、没有任何输出**：pub 的 OAuth 校验要连
