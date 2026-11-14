@@ -1,4 +1,4 @@
-## Unreleased
+## 1.22.0
 
 ### Changed
 - `init` 的 `w_tools_form` 约束抬到 `^8.0.0`；catalog 同步 form 8.0（删除
