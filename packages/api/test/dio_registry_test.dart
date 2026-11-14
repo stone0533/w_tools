@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_api/w_tools_api.dart';
 
@@ -35,13 +37,13 @@ void main() {
     });
 
     test('命中缓存但 interceptors 不同时报错', () {
-      final log = WLogInterceptor(enableLog: false);
+      final log = WLogInterceptor(parts: const {});
       DioRegistry.forBaseUrl('https://interceptor-conflict.example.com', interceptors: [log]);
 
       expect(
         () => DioRegistry.forBaseUrl(
           'https://interceptor-conflict.example.com',
-          interceptors: [WLogInterceptor(enableLog: false)],
+          interceptors: [WLogInterceptor(parts: const {})],
         ),
         throwsArgumentError,
       );
@@ -90,7 +92,7 @@ void main() {
     });
 
     test('interceptors 被添加到 dio', () {
-      final interceptor = WLogInterceptor(enableLog: false);
+      final interceptor = WLogInterceptor(parts: const {});
       final util = DioRegistry.forBaseUrl(
         'https://interceptor.example.com',
         interceptors: [interceptor],
@@ -102,7 +104,7 @@ void main() {
     });
 
     test('interceptors 按传入顺序挂载', () {
-      final logInterceptor = WLogInterceptor(enableLog: false);
+      final logInterceptor = WLogInterceptor(parts: const {});
       final tokenInterceptor = WTokenInterceptor(tokenGetter: () => 't');
       final util = DioRegistry.forBaseUrl(
         'https://order.example.com',

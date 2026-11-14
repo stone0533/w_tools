@@ -33,7 +33,7 @@ final response = await dio.get('/gifts');
 下面这些默认不需要，用了才加：
 
 - `DioRegistry.forBaseUrl(..., replace: true)`：换同 `baseUrl` 的配置；
-- `DioRegistry.maxCachedInstances` / `cacheTtl`：多域名缓存策略（高级，默认不限制）；
+- `DioRegistry.maxCachedInstances` / `cacheTtl`：已弃用（7.0 删除），新代码用 `dispose` / `replace`；
 - `WTokenInterceptor.shouldRefresh`：登录 / 刷新 / 公开接口自己处理 401；
 - `WApiClient.send` / `page` 的 `envelope`：单条请求覆盖信封；
 - `downloadResponse` / `readTotalFromResponse`：下载元数据 / 页头 total；
@@ -127,6 +127,6 @@ await client.upload<void>(
 - 显式传 `headers: {'Authorization': ...}` 时 token 拦截器不再覆盖（登录 / 公开接口用得上）；
 - 开了业务信封后，204 / 空 body 默认跳过信封（`skipEmptyBody: true`），不会调用 `readCode(null)`；
   需要旧行为时显式传 `skipEmptyBody: false`；
-- `DioRegistry.maxCachedInstances <= 0` 表示不缓存：每次新建，返回的实例由调用方负责关闭。
+- `DioRegistry.maxCachedInstances` / `cacheTtl` 已弃用（7.0 删除）：新代码用 `dispose` / `replace`。
 
 完整说明：[api_module.md](../modules/api_module.md) · 示例：`packages/api/example`

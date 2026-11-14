@@ -334,6 +334,9 @@ class WApiClient {
   ///
   /// 写文件 / 保存到相册由业务层决定；Web 与移动端都可用。
   /// 需要文件名 / Content-Type / status 时用 [downloadResponse]。
+  ///
+  /// remove-in: 7.0.0
+  @Deprecated('Use downloadResponse().data instead')
   Future<Uint8List> download(
     String path, {
     Map<String, Object?>? query,

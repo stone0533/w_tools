@@ -39,6 +39,9 @@ class WLogInterceptor extends Interceptor {
   final bool _error;
 
   /// 是否启用日志
+  ///
+  /// remove-in: 7.0.0
+  @Deprecated('Use parts: {} or omit log handlers instead')
   final bool enableLog;
 
   /// 需要脱敏的请求 / 响应头（大小写不敏感）
@@ -167,6 +170,7 @@ class WLogInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) {
+    // ignore: deprecated_member_use_from_same_package
     if (!enableLog) {
       handler.next(options);
       return;
@@ -226,6 +230,7 @@ class WLogInterceptor extends Interceptor {
   /// 响应阶段：打印响应详情
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
+    // ignore: deprecated_member_use_from_same_package
     if (!enableLog || (parts != null && parts!.isEmpty)) {
       handler.next(response);
       return;
@@ -252,6 +257,7 @@ class WLogInterceptor extends Interceptor {
   /// 错误阶段：打印错误详情与友好提示
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    // ignore: deprecated_member_use_from_same_package
     if (!enableLog) {
       handler.next(err);
       return;

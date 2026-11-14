@@ -75,15 +75,22 @@ class DioRegistry {
   ///
   /// `<= 0` 时不缓存：每次 [forBaseUrl] 都新建实例，返回的实例仍可用，但不会被
   /// 注册表持有；需要释放时由调用方 `registry.dio.close(force: true)`。
+  ///
+  /// remove-in: 7.0.0
+  @Deprecated('LRU cache will be removed in 7.0.0; use dispose/replace instead')
   static int? maxCachedInstances;
 
   /// 缓存 TTL；`null` 表示不过期（默认）
   ///
   /// 在 [forBaseUrl] / [maybeForBaseUrl] 访问时惰性判断，过期实例会被
   /// `close(force: false)` 关闭并移除（不强制中断在途请求）。
+  ///
+  /// remove-in: 7.0.0
+  @Deprecated('Cache TTL will be removed in 7.0.0; rebuild the registry instead')
   static Duration? cacheTtl;
 
   bool get _expired {
+    // ignore: deprecated_member_use_from_same_package
     final ttl = cacheTtl;
     return ttl != null && DateTime.now().difference(_createdAt) > ttl;
   }
@@ -147,6 +154,7 @@ class DioRegistry {
     );
     // `<= 0` 表示不缓存：实例仍返回给调用方，但不能立刻 close，否则调用方拿到
     // 一个已关闭的 Dio。
+    // ignore: deprecated_member_use_from_same_package
     final max = maxCachedInstances;
     if (max != null && max <= 0) {
       return registry;
@@ -157,6 +165,7 @@ class DioRegistry {
   }
 
   static void _evictOverflow() {
+    // ignore: deprecated_member_use_from_same_package
     final max = maxCachedInstances;
     if (max == null || max <= 0) return;
     // 淘汰不强制中断在途请求（close force:false）；显式 dispose / clearCache 仍

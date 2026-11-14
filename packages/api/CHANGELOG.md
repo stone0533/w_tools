@@ -1,5 +1,18 @@
 # Changelog
 
+## 6.2.0
+
+### Deprecated
+- `DioRegistry.maxCachedInstances` / `DioRegistry.cacheTtl`：缓存策略过度封装，7.0.0 删除；
+  迁移到 `replace` / `dispose`，或由业务层持有 Dio。
+- `WApiClient.download`：与 `downloadResponse` 重复，7.0.0 删除；
+  改用 `downloadResponse(...).data`。
+- `WLogInterceptor.enableLog`：与 `parts` / 日志回调三重开关，7.0.0 删除；
+  改用 `parts: {}` 或不注入日志回调。
+
+### Changed
+- 测试 / 示例改用 `downloadResponse`、`parts`，不再使用上述弃用入口。
+
 ## 6.1.0
 
 ### Breaking

@@ -38,7 +38,7 @@ Token、日志、重试、指标都是按需加；下面「高级配置」里的
 
 ```yaml
 dependencies:
-  w_tools_api: ^6.1.0
+  w_tools_api: ^6.2.0
 ```
 
 ```bash
@@ -184,17 +184,18 @@ await client.upload<void>(
   decode: WApiDecoders.none,
 );
 
-final bytes = await client.download(
+final response = await client.downloadResponse(
   '/files/1',
   onProgress: (received, total) {},
 );
+response.data;
 ```
 
 `upload` 默认 `POST`；需要 PUT / PATCH 时传 `method: 'PUT'`（只允许
 `POST` / `PUT` / `PATCH`）。
 
-`download` 返回 `Uint8List`；写文件由业务层决定（Web 与移动端都可用）。
-需要 status / headers / `content-disposition` 时用 `downloadResponse`：
+`downloadResponse` 返回 `WApiResponse<Uint8List>`，保留 status / headers；写文件由业务层决定。
+`download`（仅返回 bytes）已弃用，7.0 删除。
 
 ```dart
 final response = await client.downloadResponse('/files/1');
@@ -268,7 +269,7 @@ import 'package:w_tools_core/w_tools_core.dart';
 final registry = DioRegistry.forBaseUrl(
   'https://api.example.com',
   interceptors: [
-    WLogInterceptor(enableLog: kDebugMode),
+    WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
     WTokenInterceptor(
       tokenGetter: WToken.getToken,
       tokenClearer: WToken.clearToken,
@@ -318,7 +319,7 @@ Future<String?> refreshAccessToken() async {
 | 能力 | 什么时候用 | 入口 |
 |---|---|---|
 | 换配置 / 重建实例 | 同 `baseUrl` 要换 options / interceptors | `DioRegistry.forBaseUrl(..., replace: true)` |
-| 缓存上限 / TTL | 多域名、长驻进程 | `DioRegistry.maxCachedInstances` / `cacheTtl` |
+| 缓存上限 / TTL（已弃用，7.0 删除） | 多域名、长驻进程 | `DioRegistry.maxCachedInstances` / `cacheTtl` |
 | 登录 / 刷新接口跳过自动刷新 | 这些接口自己处理 401 | `WTokenInterceptor.shouldRefresh` |
 | 单条请求覆盖信封 | 同一个 client 混用不同后端 | `client.send(..., envelope: ...)` / `client.page(..., envelope: ...)` |
 | 下载元数据 | 需要文件名 / Content-Type | `client.downloadResponse(...)` |
@@ -340,7 +341,7 @@ Future<String?> refreshAccessToken() async {
 | 请求体 | `WApiBody.json/form/multipart/bytes` |
 | 业务信封 | `WApiEnvelopeParser` |
 | 分页 | `WApiClient.page`（含 `readTotalFromResponse`） / `WPage` / `WPageQuery` |
-| 上传 / 下载 | `WApiClient.upload` / `download` / `downloadResponse` |
+| 上传 / 下载 | `WApiClient.upload` / `downloadResponse`（`download` 已弃用） |
 | 重试（可选） | `WRetryInterceptor` |
 | decoder helper | `WApiDecoders.none/listOf/jsonMap/nullable` |
 | 错误分类 | `WApiException` / `WApiErrorKind` |
