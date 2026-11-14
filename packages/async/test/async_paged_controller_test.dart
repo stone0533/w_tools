@@ -321,6 +321,34 @@ void main() {
       expect(reported, isA<StateError>());
     });
 
+    test('onError 内重新 refresh：旧失败不覆盖新状态', () async {
+      late WAsyncPagedController<int> controller;
+      Future<void>? secondRefresh;
+      final gate = Completer<WAsyncPage<int>>();
+      var calls = 0;
+      controller = WAsyncPagedController<int>(
+        (page, _) {
+          calls++;
+          if (calls == 1) {
+            return Future<WAsyncPage<int>>.error(StateError('first'));
+          }
+          return gate.future;
+        },
+        onError: (error) {
+          if (calls == 1) secondRefresh = controller.refresh();
+        },
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      expect(controller.state.value.isLoading, isTrue);
+
+      gate.complete(const WAsyncPage<int>(items: [2], hasMore: false));
+      await secondRefresh;
+
+      expect(controller.state.value.data, [2]);
+    });
+
     test('onError 内 refresh：旧 loadMore 失败不污染新状态', () async {
       late WAsyncPagedController<int> controller;
       Future<void>? refreshFuture;
