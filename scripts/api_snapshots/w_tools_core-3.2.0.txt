@@ -1,0 +1,210 @@
+# w_tools_core 3.2.0
+WCountdown	class
+WCountdown.callback	WCountdownCallback?
+WCountdown.dispose	void ()
+WCountdown.formatRemaining	String ({WCountdownRemainingType type = WCountdownRemainingType.seconds})
+WCountdown.isPaused	bool
+WCountdown.isRunning	bool
+WCountdown.new	({this.callback, this.onComplete})
+WCountdown.onComplete	WCountdownCallback?
+WCountdown.pause	void ()
+WCountdown.remaining	ValueListenable<int>
+WCountdown.remainingSeconds	int
+WCountdown.resume	void ()
+WCountdown.start	void ({required int second})
+WCountdown.stop	void ()
+WCountdown.totalSeconds	int
+WCountdown.value	int
+WCountdownCallback	typedef WCountdownCallback = void Function(int value);
+WCountdownRemainingType	enum
+WCountdownRemainingType.minutesSeconds	enum
+WCountdownRemainingType.seconds	enum
+WDebounce	class
+WDebounce.call	void ()
+WDebounce.cancel	void ()
+WDebounce.duration	Duration
+WDebounce.isPending	bool
+WDebounce.new	(this._action, {this.duration = const Duration(milliseconds: 300)})
+WEncrypt	class
+WEncrypt._	()
+WEncrypt.aesDecrypt	static String (String data, { required String keyStr, })
+WEncrypt.aesEncrypt	static String (String data, { required String keyStr, String? ivStr, })
+WEncrypt.base64Decode	static String (String data)
+WEncrypt.base64Encode	static String (String data)
+WEncrypt.generateIv	static String ({int length = 16})
+WEncrypt.generateKey	static String ({int length = 32})
+WHash	class
+WHash._	()
+WHash.bytesMd5	static String (List<int> bytes)
+WHash.hmacSha256	static String (String data, String key)
+WHash.md5	static String (String data)
+WHash.sha1	static String (String data)
+WHash.sha256	static String (String data)
+WHash.sha512	static String (String data)
+WLogger	class
+WLogger._	()
+WLogger.cancelPerformanceTimer	static void (String key)
+WLogger.d	static void (dynamic message, { DateTime? time, Object? error, StackTrace? stackTrace, String? tag, })
+WLogger.e	static void (dynamic message, { DateTime? time, Object? error, StackTrace? stackTrace, String? tag, })
+WLogger.f	static void (dynamic message, { DateTime? time, Object? error, StackTrace? stackTrace, String? tag, })
+WLogger.getActivePerformanceTimers	static List<String> ()
+WLogger.i	static void (dynamic message, { DateTime? time, Object? error, StackTrace? stackTrace, String? tag, })
+WLogger.setLevel	static void (Level level)
+WLogger.startPerformanceTimer	static void (String key)
+WLogger.stopPerformanceTimer	static int (String key, {String? message})
+WLogger.t	static void (dynamic message, { DateTime? time, Object? error, StackTrace? stackTrace, String? tag, })
+WLogger.turnOff	static void ()
+WLogger.w	static void (dynamic message, { DateTime? time, Object? error, StackTrace? stackTrace, String? tag, })
+WMapExtension	extension
+WMapExtension.merge	Map<K, V> (Map<K, V> other, {bool overwrite = true})
+WNumFormatExtension	extension
+WNumFormatExtension.toCurrency	String ({ String symbol = '', String thousandSeparator = ',', String decimalSeparator = '.', })
+WNumFormatExtension.toPadLeft	String (int length)
+WNumFormatExtension.toPercent	String
+WNumFormatExtension.toPercentWithFixed	String (int fractionDigits)
+WNumFormatExtension.toThousandsSeparated	String
+WPlatform	class
+WPlatform._	()
+WPlatform.isAndroid	static bool
+WPlatform.isDesktop	static bool
+WPlatform.isIOS	static bool
+WPlatform.isLinux	static bool
+WPlatform.isMacOS	static bool
+WPlatform.isMobile	static bool
+WPlatform.isWeb	static bool
+WPlatform.isWindows	static bool
+WPlatform.platformType	static WPlatformType
+WPlatformType	enum
+WPlatformType.android	enum
+WPlatformType.fuchsia	enum
+WPlatformType.ios	enum
+WPlatformType.linux	enum
+WPlatformType.macos	enum
+WPlatformType.web	enum
+WPlatformType.windows	enum
+WRegExp	class
+WRegExp._	()
+WRegExp.bankCard	RegExp
+WRegExp.chineseName	RegExp
+WRegExp.date	RegExp
+WRegExp.dateTime	RegExp
+WRegExp.decimal	RegExp
+WRegExp.email	RegExp
+WRegExp.extractBirthdayFromIdCard	static String? (String idCard)
+WRegExp.extractGenderFromIdCard	static String? (String idCard)
+WRegExp.firstBankCardMatch	static Match? (String input)
+WRegExp.firstChineseNameMatch	static Match? (String input)
+WRegExp.firstDateMatch	static Match? (String input)
+WRegExp.firstDecimalMatch	static Match? (String input)
+WRegExp.firstEmailMatch	static Match? (String input)
+WRegExp.firstIdCardMatch	static Match? (String input)
+WRegExp.firstIntegerMatch	static Match? (String input)
+WRegExp.firstIpv4Match	static Match? (String input)
+WRegExp.firstMacAddressMatch	static Match? (String input)
+WRegExp.firstNumberMatch	static Match? (String input)
+WRegExp.firstPasswordMatch	static Match? (String input)
+WRegExp.firstPhoneMatch	static Match? (String input)
+WRegExp.firstPositiveDecimalMatch	static Match? (String input)
+WRegExp.firstPositiveIntegerMatch	static Match? (String input)
+WRegExp.firstPositiveNumberMatch	static Match? (String input)
+WRegExp.firstPostalCodeMatch	static Match? (String input)
+WRegExp.firstUrlMatch	static Match? (String input)
+WRegExp.formatDate	static String? (String date)
+WRegExp.formatPhone	static String (String phone)
+WRegExp.idCard	RegExp
+WRegExp.integer	RegExp
+WRegExp.ipv4	RegExp
+WRegExp.macAddress	RegExp
+WRegExp.maskBankCard	static String (String bankCard)
+WRegExp.maskPhone	static String (String phone)
+WRegExp.number	RegExp
+WRegExp.password	RegExp
+WRegExp.phone	RegExp
+WRegExp.positiveDecimal	RegExp
+WRegExp.positiveInteger	RegExp
+WRegExp.positiveNumber	RegExp
+WRegExp.postalCode	RegExp
+WRegExp.time	RegExp
+WRegExp.url	RegExp
+WRegExp.username	RegExp
+WStorage	class
+WStorage._	()
+WStorage.allKeys	static Set<String> ()
+WStorage.clear	static Future<bool> ()
+WStorage.containsKey	static bool (String key)
+WStorage.getBool	static bool? (String key, {bool? defaultValue})
+WStorage.getDouble	static double? (String key, {double? defaultValue})
+WStorage.getInt	static int? (String key, {int? defaultValue})
+WStorage.getString	static String? (String key, {String? defaultValue})
+WStorage.getStringList	static List<String>? (String key, {List<String>? defaultValue})
+WStorage.init	static Future<void> ()
+WStorage.isInitialized	static bool
+WStorage.prefs	static SharedPreferences
+WStorage.remove	static Future<bool> (String key)
+WStorage.setBool	static Future<bool> (String key, bool value)
+WStorage.setDouble	static Future<bool> (String key, double value)
+WStorage.setInt	static Future<bool> (String key, int value)
+WStorage.setObject	static Future<bool> (String key, dynamic value)
+WStorage.setString	static Future<bool> (String key, String value)
+WStorage.setStringList	static Future<bool> (String key, List<String> value)
+WThrottle	class
+WThrottle.call	void ()
+WThrottle.cancel	void ()
+WThrottle.duration	Duration
+WThrottle.isThrottled	bool
+WThrottle.new	(this._action, {this.duration = const Duration(milliseconds: 300)})
+WToken	class
+WToken._	()
+WToken.clearAllTokens	static Future<void> ()
+WToken.clearRefreshToken	static Future<void> ()
+WToken.clearToken	static Future<void> ()
+WToken.getRefreshToken	static String? ()
+WToken.getToken	static String? ()
+WToken.getTokenExpiry	static DateTime? ()
+WToken.hasRefreshToken	static bool ()
+WToken.isTokenExpired	static bool ()
+WToken.isTokenValid	static bool ()
+WToken.refreshTokenKey	static String
+WToken.saveRefreshToken	static Future<void> (String refreshToken)
+WToken.saveToken	static Future<void> (String token, [DateTime? expiry])
+WToken.saveTokens	static Future<void> (String token, String refreshToken, [DateTime? expiry])
+WToken.tokenExpiryKey	static String
+WToken.tokenKey	static String
+WToken.updateTokenExpiry	static Future<void> (DateTime expiry)
+WUx	class
+WUx._internal	()
+WUx.defaultCurve	Curve
+WUx.defaultDuration	Duration
+WUx.duration	Future<void> delay(Function() function, {int
+WUx.fastDuration	Duration
+WUx.new	()
+WUx.slowDuration	Duration
+WUx.smoothScrollTo	Future<void> (ScrollController scrollController, double offset, { Duration duration = const Duration(milliseconds: 300), })
+WUx.smoothScrollToBottom	Future<void> (ScrollController scrollController, { Duration duration = const Duration(milliseconds: 300), })
+WUx.smoothScrollToTop	Future<void> (ScrollController scrollController, { Duration duration = const Duration(milliseconds: 300), })
+WValidator	class
+WValidator._	()
+WValidator.isInteger	static bool (String input)
+WValidator.isLengthValid	static bool (String input, int min, int max)
+WValidator.isNonNegative	static bool (String input)
+WValidator.isNotBlank	static bool (String input)
+WValidator.isNumeric	static bool (String input)
+WValidator.isPositive	static bool (String input)
+WValidator.isValidBankCard	static bool (String bankCard)
+WValidator.isValidChineseName	static bool (String input)
+WValidator.isValidDate	static bool (String date)
+WValidator.isValidDateTime	static bool (String dateTime)
+WValidator.isValidDecimal	static bool (String input)
+WValidator.isValidEmail	static bool (String email)
+WValidator.isValidIdCard	static bool (String idCard)
+WValidator.isValidIpv4	static bool (String ip)
+WValidator.isValidMacAddress	static bool (String input)
+WValidator.isValidPassword	static bool (String password)
+WValidator.isValidPhone	static bool (String phone)
+WValidator.isValidPositiveDecimal	static bool (String input)
+WValidator.isValidPositiveInteger	static bool (String input)
+WValidator.isValidPostalCode	static bool (String input)
+WValidator.isValidTime	static bool (String time)
+WValidator.isValidUrl	static bool (String url)
+WValidator.isValidUsername	static bool (String username)
+WValidator.passwordPattern	String
