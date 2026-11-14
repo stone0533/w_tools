@@ -144,13 +144,15 @@ class BuildPlanTest(unittest.TestCase):
             row('map_google', '2.0.1'),
             row('cli', '1.17.1'),
         ]
-        plan = mod.build_plan(
-            data(
-                rows,
-                published={'core': '3.1.1', 'app_getx': '2.1.0', 'map_google': '2.0.0', 'cli': '1.17.0'},
-                snapshots={'core': '3.1.1', 'app_getx': '2.1.0', 'map_google': '2.0.0', 'cli': '1.17.0'},
-            ),
-        )
+        with mock.patch.object(mod, 'cli_version_constant', return_value='1.17.1'), \
+                mock.patch.object(mod, 'budget_recorded', return_value=True):
+            plan = mod.build_plan(
+                data(
+                    rows,
+                    published={'core': '3.1.1', 'app_getx': '2.1.0', 'map_google': '2.0.0', 'cli': '1.17.0'},
+                    snapshots={'core': '3.1.1', 'app_getx': '2.1.0', 'map_google': '2.0.0', 'cli': '1.17.0'},
+                ),
+            )
         self.assertEqual(plan['order'], ['app_getx', 'map_google', 'cli'])
         self.assertEqual(plan['summary']['publish'], 3)
         self.assertEqual(plan['root']['action'], 'publish')
@@ -180,6 +182,24 @@ class BuildPlanTest(unittest.TestCase):
         package = next(p for p in plan['packages'] if p['short'] == 'app_getx')
         self.assertEqual(package['action'], 'blocked')
         self.assertIn('CHANGELOG', package['reason'])
+
+    def test_cli_version_constant_mismatch_blocks(self):
+        rows = [row('cli', '1.22.0')]
+        with mock.patch.object(mod, 'cli_version_constant', return_value='1.21.0'), \
+                mock.patch.object(mod, 'budget_recorded', return_value=True):
+            plan = mod.build_plan(
+                data(rows, published={'cli': '1.21.0'}, snapshots={'cli': '1.21.0'}),
+            )
+        self.assertTrue(any('cliVersion 1.21.0' in item for item in plan['blockers']))
+
+    def test_cli_missing_budget_snapshot_blocks(self):
+        rows = [row('cli', '1.22.0')]
+        with mock.patch.object(mod, 'cli_version_constant', return_value='1.22.0'), \
+                mock.patch.object(mod, 'budget_recorded', return_value=False):
+            plan = mod.build_plan(
+                data(rows, published={'cli': '1.21.0'}, snapshots={'cli': '1.21.0'}),
+            )
+        self.assertTrue(any('agents_budget.jsonl 缺 1.22.0' in item for item in plan['blockers']))
 
     def test_dirty_worktree_is_a_blocker(self):
         rows = [row('app_getx', '2.1.1')]
@@ -398,3 +418,36 @@ class RunGateTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ReconcileTest(unittest.TestCase):
+    def package(self):
+        return {
+            'name': 'w_tools_toast',
+            'short': 'toast',
+            'path': 'packages/toast',
+            'version': '2.1.0',
+        }
+
+    def test_already_published_recovers_snapshot_without_publish(self):
+        with mock.patch.object(mod, 'fetch_latest', return_value='2.1.0'), \
+                mock.patch.object(mod, '_recover_snapshot') as recover, \
+                mock.patch.object(mod, '_cmd') as cmd:
+            mod._publish_package(self.package(), dry_run=False)
+        recover.assert_called_once()
+        cmd.assert_not_called()
+
+    def test_online_newer_blocks_publish(self):
+        with mock.patch.object(mod, 'fetch_latest', return_value='2.2.0'), \
+                mock.patch.object(mod, '_cmd'):
+            with self.assertRaises(mod.RunFailed):
+                mod._publish_package(self.package(), dry_run=False)
+
+    def test_not_published_runs_checks_and_publish(self):
+        calls = []
+        with mock.patch.object(mod, 'fetch_latest', side_effect=mod.PackageNotFound('toast')), \
+                mock.patch.object(mod, '_cmd', side_effect=lambda args, **kwargs: calls.append((args, kwargs))):
+            mod._publish_package(self.package(), dry_run=False)
+        self.assertEqual(calls[0][0][0:2], ['bash', 'scripts/release_check.sh'])
+        self.assertEqual(calls[-1][0][-1], '--yes')
+        self.assertEqual(calls[-1][1].get('timeout'), mod.PUBLISH_TIMEOUT_SECONDS)

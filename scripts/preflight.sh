@@ -8,6 +8,7 @@
 #   bash scripts/preflight.sh --package ui    # 静态门禁 + 只跑 ui 包（含 example）的测试
 #   bash scripts/preflight.sh --changed       # 只跑相对 origin/main 改动到的包（含工作区改动）
 #   bash scripts/preflight.sh --sandbox       # 不跑 Flutter 测试（本机 / agent 沙箱没有 FVM cache 写权限时）
+#   bash scripts/preflight.sh --with-flutter-analyze  # 额外跑 flutter analyze（CI 的 Flutter job 等价档）
 #   bash scripts/preflight.sh --with-dry-run  # 再加全部子包 + 根包 publish dry-run
 #   bash scripts/preflight.sh --all           # 全部
 #
@@ -29,6 +30,7 @@ usage() {
 
 with_tests=""
 with_dry_run=""
+with_flutter_analyze=""
 only_pkg=""
 changed=""
 sandbox=""
@@ -37,6 +39,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --with-tests) with_tests=1 ;;
     --with-dry-run) with_dry_run=1 ;;
+    --with-flutter-analyze) with_flutter_analyze=1 ;;
     --changed) changed=1; with_tests=1 ;;
     --sandbox) sandbox=1 ;;
     --package)
@@ -208,9 +211,13 @@ fi
 
 # dart analyze 与 flutter analyze 用同一个 analyzer，但不需要 Flutter SDK 的
 # engine cache；本机 / agent 沙箱里 flutter analyze 会因 FVM cache 只读直接失败。
-# CI 的每包 job 仍会跑 flutter analyze，这里换成 dart analyze 不会降低覆盖面。
+# 注意：CI 的 minimum Flutter job 把 info 也当失败（例如同包内使用自己 @Deprecated
+# 的成员），dart analyze 不一定报。发布准备 PR 前加 --with-flutter-analyze。
 run "format" dart --suppress-analytics format --output=none --set-exit-if-changed lib packages test example
 run "analyze" dart --suppress-analytics analyze
+if [ -n "$with_flutter_analyze" ]; then
+  run "flutter analyze" flutter --suppress-analytics analyze
+fi
 run "docs" bash scripts/check_docs.sh
 run "naming" python3 scripts/check_naming.py
 run "public catalog" python3 scripts/check_public_catalog.py

@@ -30,8 +30,11 @@ import os
 import pathlib
 import re
 import shutil
+import signal
 import subprocess
 import sys
+import tarfile
+import tempfile
 import time
 import urllib.request
 from dataclasses import dataclass
@@ -42,10 +45,13 @@ SCHEMA = 'w_tools.release_plan/1'
 STATE_SCHEMA = 'w_tools.release_wave_state/1'
 TOOL_PACKAGES = {'cli', 'figma', 'device', 'e2e'}
 VERSIONS_DART = ROOT / 'packages' / 'cli' / 'lib' / 'src' / 'init' / 'versions.dart'
+CLI_VERSION_DART = ROOT / 'packages' / 'cli' / 'lib' / 'src' / 'common' / 'version.dart'
+BUDGET_HISTORY = ROOT / 'docs' / 'metrics' / 'agents_budget.jsonl'
 SNAPSHOT_DIR = ROOT / '.w_tools' / 'release-snapshots'
 STATE_FILE = ROOT / '.w_tools' / 'release-wave-state.json'
 LOCK_FILE = ROOT / '.w_tools' / 'release-wave.lock'
 HEARTBEAT_SECONDS = 30
+PUBLISH_TIMEOUT_SECONDS = int(os.environ.get('W_TOOLS_PUBLISH_TIMEOUT', '600'))
 
 sys.path.insert(0, str(ROOT / 'scripts'))
 from release_status import (  # noqa: E402
@@ -135,6 +141,30 @@ def changelog_has_version(path: pathlib.Path, version: str | None) -> bool:
     if not version or not path.is_file():
         return False
     return bool(re.search(rf'(?m)^##\s+{re.escape(version)}(?:\s|$)', path.read_text()))
+
+
+def cli_version_constant() -> str | None:
+    if not CLI_VERSION_DART.is_file():
+        return None
+    match = re.search(
+        r"const\s+String\s+cliVersion\s*=\s*'([^']+)'",
+        CLI_VERSION_DART.read_text(),
+    )
+    return match.group(1) if match else None
+
+
+def budget_recorded(version: str) -> bool:
+    if not BUDGET_HISTORY.is_file():
+        return False
+    for line in BUDGET_HISTORY.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            if json.loads(line).get('generator') == version:
+                return True
+        except json.JSONDecodeError:
+            continue
+    return False
 
 
 def versions_dart_constraints() -> dict[str, str]:
@@ -377,7 +407,7 @@ def build_plan(data: PlanData) -> dict[str, object]:
         )
         if action == 'publish' and not data.changelog.get(short, False):
             action = 'blocked'
-            reason = f'CHANGELOG 缺 ## {local} 段'
+            reason = f'CHANGELOG 缺 ## {local} 段（若仍是 ## Unreleased，先 K-2 折叠）'
         drift = data.drift.get(short)
         if action == 'skip' and drift == 'code':
             # 不在本波发布的包有同版本漂移：提醒，但不阻断本波。周检 / 单独 patch 处理。
@@ -400,6 +430,23 @@ def build_plan(data: PlanData) -> dict[str, object]:
             _add(blockers, short, reason)
 
     candidates = [row['short'] for row in data.rows if by_short[row['short']]['action'] == 'publish']
+    if 'cli' in candidates:
+        cli_version = str(by_short['cli']['version'])
+        constant = cli_version_constant()
+        if constant != cli_version:
+            _add(
+                blockers,
+                'cli',
+                f'cliVersion {constant or "缺失"} != pubspec {cli_version}；K-2 同步 '
+                'packages/cli/lib/src/common/version.dart',
+            )
+        if not budget_recorded(cli_version):
+            _add(
+                blockers,
+                'cli',
+                f'docs/metrics/agents_budget.jsonl 缺 {cli_version}；'
+                '跑 `cd packages/cli && dart run tool/agent_budget.dart --record`',
+            )
     if not data.audit_drift:
         warnings.append('所有包：未核对 code drift（--no-drift）；发布前请跑 check_publish_drift.py')
 
@@ -438,7 +485,7 @@ def build_plan(data: PlanData) -> dict[str, object]:
         )
     if root_action == 'publish' and not data.root_changelog_ok:
         root_action = 'blocked'
-        root_reason = f'根 CHANGELOG 缺 ## {root_version} 段'
+        root_reason = f'根 CHANGELOG 缺 ## {root_version} 段（若仍是 ## Unreleased，先 K-2 折叠）'
     root_drift = data.drift.get('root')
     if root_action == 'skip' and root_drift == 'code':
         warnings.append('root: 同版本 CODE DRIFT（不在本波发布；建议单独 patch）')
@@ -613,9 +660,11 @@ def _cmd(
     capture: bool = False,
     check: bool = True,
     code: int = 3,
+    timeout: float | None = None,
 ) -> subprocess.CompletedProcess:
     print(f"==> {' '.join(args)}", flush=True)
     start = time.time()
+    deadline = start + timeout if timeout else None
     warned = False
     process = subprocess.Popen(
         args,
@@ -624,6 +673,7 @@ def _cmd(
         stdout=subprocess.PIPE if capture else None,
         stderr=subprocess.PIPE if capture else None,
         env={**os.environ, 'CI': 'true'},
+        start_new_session=True,
     )
     while True:
         try:
@@ -631,6 +681,21 @@ def _cmd(
             break
         except subprocess.TimeoutExpired:
             elapsed = int(time.time() - start)
+            if deadline is not None and time.time() > deadline:
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                    process.wait(timeout=2)
+                except (ProcessLookupError, subprocess.TimeoutExpired):
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                process.communicate()
+                raise RunFailed(
+                    f'命令超时（{int(timeout or 0)}s）：{" ".join(args)}；'
+                    '若是 pub publish，先检查代理，并确认 pub.dev 是否已有该版本，不要直接重试',
+                    code,
+                )
             print(f'  … 仍在运行（{elapsed}s）', file=sys.stderr, flush=True)
             if not warned and elapsed >= 120:
                 warned = True
@@ -822,13 +887,92 @@ def validate_run_plan(
     return errors
 
 
+def _recover_snapshot(package: dict) -> None:
+    """从 pub.dev 归档补快照：用于 publish 已上传但进程被 kill 的中断恢复。"""
+    short = str(package['short'])
+    name = str(package['name'])
+    version = str(package['version'])
+    target = SNAPSHOT_DIR / f'{name}-{version}.txt'
+    if target.is_file():
+        return
+    SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    url = f'https://pub.dev/api/archives/{name}-{version}.tar.gz'
+    with tempfile.TemporaryDirectory(prefix=f'{name}-{version}-') as tmp:
+        archive = pathlib.Path(tmp) / 'package.tar.gz'
+        try:
+            with urllib.request.urlopen(url, timeout=60) as response, archive.open('wb') as out:
+                shutil.copyfileobj(response, out)
+        except Exception as error:
+            raise RunFailed(
+                f'{short}: 已发布但下载归档失败（{error}）；先手动补快照：{url}',
+                3,
+            ) from error
+        extract = pathlib.Path(tmp) / 'package'
+        extract.mkdir()
+        with tarfile.open(archive, 'r:gz') as tar:
+            try:
+                tar.extractall(extract, filter='data')
+            except TypeError:  # Python < 3.12
+                tar.extractall(extract)
+        _progress(f'{short}: 已发布，从归档补快照 {version}')
+        _cmd(
+            [
+                sys.executable,
+                'scripts/check_public_api_diff.py',
+                '--snapshot-from',
+                str(extract),
+                '--package',
+                short,
+                '--version',
+                version,
+                '--output-dir',
+                str(SNAPSHOT_DIR),
+            ],
+            code=3,
+        )
+
+
+def _reconcile_published(package: dict) -> bool:
+    """发布前对账：若线上已有该版本，补快照并跳过 publish。"""
+    short = str(package['short'])
+    version = str(package['version'])
+    try:
+        online = fetch_latest(f'w_tools_{short}')
+    except PackageNotFound:
+        return False
+    except Exception as error:
+        print(
+            f'  ! {short}: 查询 pub.dev 失败（{error}），按未发布继续；'
+            '若曾中断过，请先确认线上版本',
+            file=sys.stderr,
+        )
+        return False
+    if online == version:
+        print(f'  ! {short} {version} 已在 pub.dev；跳过 publish，补快照')
+        _recover_snapshot(package)
+        return True
+    if online and version_tuple(online) > version_tuple(version):
+        raise RunFailed(f'{short}: 线上 {online} 已高于本地 {version}，不能发布', 3)
+    return False
+
+
 def _publish_package(package: dict, *, dry_run: bool) -> None:
     short = str(package['short'])
     path = str(package.get('path') or f'packages/{short}')
+    if not dry_run and _reconcile_published(package):
+        return
     _cmd(['bash', 'scripts/release_check.sh', '--strict', '--package', short], code=3)
-    _cmd(['bash', 'scripts/publish_package.sh', path, '--dry-run'], code=3)
+    _cmd(
+        ['bash', 'scripts/publish_package.sh', path, '--dry-run'],
+        code=3,
+        timeout=PUBLISH_TIMEOUT_SECONDS,
+    )
     if not dry_run:
-        _cmd(['bash', 'scripts/publish_package.sh', path, '--yes'], code=3)
+        _cmd(
+            ['bash', 'scripts/publish_package.sh', path, '--yes'],
+            code=3,
+            timeout=PUBLISH_TIMEOUT_SECONDS,
+        )
 
 
 def _wait_versions(state: dict, wait_minutes: int) -> None:
