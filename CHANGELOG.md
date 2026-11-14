@@ -1,3 +1,9 @@
+## 16.0.3
+
+### Changed
+- 聚合依赖 `w_tools_api: ^6.3.0`（6.3 弃用 `WApiClient.page` / `WPage` / `WPageQuery`，
+  7.0 删除）。
+
 ## 16.0.2
 
 ### Changed

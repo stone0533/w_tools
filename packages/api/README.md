@@ -38,7 +38,7 @@ Token、日志、重试、指标都是按需加；下面「高级配置」里的
 
 ```yaml
 dependencies:
-  w_tools_api: ^6.2.0
+  w_tools_api: ^6.3.0
 ```
 
 ```bash
@@ -146,32 +146,31 @@ final user = await client.send(
 
 ### 分页
 
-```dart
-final page = await client.page(
-  '/users',
-  query: const WPageQuery(page: 1, pageSize: 20),
-  itemDecode: (json) => User.fromJson(json as Map<String, dynamic>),
-);
+> `WApiClient.page` / `WPage` / `WPageQuery` 已弃用（7.0 删除）。
+> 分页参数名、额外 query、total 的位置在不同后端差异很大，不再做通用分页类型。
 
-page.items;      // List<User>
-page.hasMore;    // 有 total 时按 total 计算，否则按是否满页
-page.total;
-```
-
-默认只接受 JSON 数组；后端返回 `{list: [], total: 0}` 时用
-`readItems` / `readTotal` 显式读取；total 在响应头（如 `X-Total-Count`）时用
-`readTotalFromResponse`。`page` 只支持 1-based 页码分页；offset / cursor 后端
-请用 `client.send` 手工请求并自行构造 `WPage`：
+在 Repository 里按 API 自己取：
 
 ```dart
-final page = await client.page(
+final json = await client.get<Map<String, dynamic>>(
   '/users',
-  query: const WPageQuery(page: 1, pageSize: 20),
-  itemDecode: (json) => User.fromJson(json as Map<String, dynamic>),
-  readTotalFromResponse: (response) =>
-      int.tryParse(response.headers.value('x-total-count') ?? ''),
+  query: {
+    'pageNo': 1,
+    'size': 20,
+    'status': 'active',
+  },
 );
+
+final data = json['data'] as Map<String, dynamic>;
+final items = (data['list'] as List)
+    .map((e) => User.fromJson(e as Map<String, dynamic>))
+    .toList();
+final total = data['total'] as int?;
+final hasMore = total == null ? items.length >= 20 : 1 * 20 < total;
 ```
+
+需要把分页交给 UI 时，在业务层映射到 `WAsyncPage`（`w_tools_async`），
+不要在页面里维护 `page` / `hasMore`。total 在响应头时用 `client.send` 读 headers。
 
 ### 上传 / 下载
 
@@ -321,7 +320,7 @@ Future<String?> refreshAccessToken() async {
 | 换配置 / 重建实例 | 同 `baseUrl` 要换 options / interceptors | `DioRegistry.forBaseUrl(..., replace: true)` |
 | 缓存上限 / TTL（已弃用，7.0 删除） | 多域名、长驻进程 | `DioRegistry.maxCachedInstances` / `cacheTtl` |
 | 登录 / 刷新接口跳过自动刷新 | 这些接口自己处理 401 | `WTokenInterceptor.shouldRefresh` |
-| 单条请求覆盖信封 | 同一个 client 混用不同后端 | `client.send(..., envelope: ...)` / `client.page(..., envelope: ...)` |
+| 单条请求覆盖信封 | 同一个 client 混用不同后端 | `client.send(..., envelope: ...)` |
 | 下载元数据 | 需要文件名 / Content-Type | `client.downloadResponse(...)` |
 | 页头 total | 后端把 total 放在 `X-Total-Count` | `page(readTotalFromResponse: ...)` |
 | 自定义重试边界 | 只对特定路径 / 状态重试 | `WRetryInterceptor.shouldRetry` / `disableRetryExtraKey` |
@@ -340,7 +339,7 @@ Future<String?> refreshAccessToken() async {
 | 下载响应 | `WApiClient.downloadResponse` |
 | 请求体 | `WApiBody.json/form/multipart/bytes` |
 | 业务信封 | `WApiEnvelopeParser` |
-| 分页 | `WApiClient.page`（含 `readTotalFromResponse`） / `WPage` / `WPageQuery` |
+| 分页 | 已弃用：`WApiClient.page` / `WPage` / `WPageQuery`（7.0 删除） |
 | 上传 / 下载 | `WApiClient.upload` / `downloadResponse`（`download` 已弃用） |
 | 重试（可选） | `WRetryInterceptor` |
 | decoder helper | `WApiDecoders.none/listOf/jsonMap/nullable` |

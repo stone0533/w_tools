@@ -18,6 +18,19 @@ class DemoUser {
   final String name;
 }
 
+/// 每个 API 自己的分页模型；不再使用通用 WPage。
+class DemoUserPage {
+  const DemoUserPage({
+    required this.items,
+    required this.hasMore,
+    this.total,
+  });
+
+  final List<DemoUser> items;
+  final bool hasMore;
+  final int? total;
+}
+
 /// 一个领域 API：URL、方法和解码都收敛在这里。
 class DemoUserApi {
   DemoUserApi(this._client);
@@ -43,23 +56,47 @@ class DemoUserApi {
     decode: (json) {},
   );
 
-  Future<WPage<DemoUser>> page({int page = 1, int pageSize = 20}) => _client.page(
-    '/users',
-    query: WPageQuery(page: page, pageSize: pageSize),
-    itemDecode: (json) => DemoUser.fromJson(json as Map<String, dynamic>),
-  );
+  /// 每个 API 自己写分页参数 / items / total，不再套通用 WPageQuery。
+  Future<DemoUserPage> page({int page = 1, int pageSize = 20}) async {
+    final json = await _client.get<Map<String, dynamic>>(
+      '/users',
+      query: {'page': page, 'pageSize': pageSize},
+    );
+    final items = (json['items'] as List)
+        .cast<Map<String, dynamic>>()
+        .map(DemoUser.fromJson)
+        .toList();
+    final total = json['total'] as int?;
+    return DemoUserPage(
+      items: items,
+      hasMore: total == null ? items.length >= pageSize : page * pageSize < total,
+      total: total,
+    );
+  }
 
-  /// total 在响应头（如 `X-Total-Count`）时，用 readTotalFromResponse。
-  Future<WPage<DemoUser>> pageWithHeaderTotal({
+  /// total 在响应头（如 `X-Total-Count`）时，用 send 的 WApiResponse.headers。
+  Future<DemoUserPage> pageWithHeaderTotal({
     int page = 1,
     int pageSize = 20,
-  }) => _client.page(
-    '/users',
-    query: WPageQuery(page: page, pageSize: pageSize),
-    itemDecode: (json) => DemoUser.fromJson(json as Map<String, dynamic>),
-    readTotalFromResponse: (response) =>
-        int.tryParse(response.headers.value('x-total-count') ?? ''),
-  );
+  }) async {
+    final response = await _client.send<Map<String, dynamic>>(
+      'GET',
+      '/users',
+      query: {'page': page, 'pageSize': pageSize},
+      decode: (json) => json as Map<String, dynamic>,
+    );
+    final json = response.data;
+    final items = (json['items'] as List)
+        .cast<Map<String, dynamic>>()
+        .map(DemoUser.fromJson)
+        .toList();
+    final total = int.tryParse(response.headers.value('x-total-count') ?? '');
+    return DemoUserPage(
+      items: items,
+      hasMore: total == null ? items.length >= pageSize : page * pageSize < total,
+      total: total,
+    );
+  }
 
   /// send 保留 status / headers；普通 get/post 只返回 data。
   Future<WApiResponse<DemoUser>> meRaw({int id = 42}) => _client.send(

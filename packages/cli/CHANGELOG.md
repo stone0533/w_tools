@@ -1,3 +1,10 @@
+## 1.20.42
+
+### Changed
+- catalog 同步 `w_tools_api` 6.3：`WApiClient.page` / `WPage` / `WPageQuery` 已弃用，
+  7.0 删除；分页改在 Repository 用 `get` / `send` + `WAsyncPage`。
+- `init` 的 `w_tools_api` 约束抬到 `^6.3.0`。
+
 ## 1.20.41
 
 ### Changed
