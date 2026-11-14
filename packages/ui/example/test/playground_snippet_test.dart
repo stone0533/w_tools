@@ -17,7 +17,6 @@ void main() {
       radius: 12,
       withBorder: true,
       withShadow: false,
-      withMargin: false,
       customPlaceholder: true,
       retryCount: 0,
     );
@@ -27,10 +26,10 @@ void main() {
     expect(snippet, contains('width: 320'));
     expect(snippet, contains('border: Border.all'));
     expect(snippet, isNot(contains('config:')));
+    expect(snippet, isNot(contains('controller:')));
+    expect(snippet, contains('errorWidgetBuilder: (context, data, error, retry)'));
   });
   testWidgets('buildPlaygroundPreview 使用配置构造 WImage', (tester) async {
-    final controller = WImageController();
-    addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
         home: buildPlaygroundPreview(
@@ -46,9 +45,7 @@ void main() {
             customPlaceholder: true,
             withBorder: true,
             withShadow: false,
-            withMargin: false,
           ),
-          controller: controller,
           onStatus: (_) {},
           onProgress: (_) {},
         ),

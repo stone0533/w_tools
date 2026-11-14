@@ -10,25 +10,26 @@
 ## 图片
 
 ```text
-网络图 → WImageSource.network
-资源图 → WImage.source(source: WImageSource.asset(name, prefix: true))
+网络图 → WImageSource.network(url)
+资源图 → WImageSource.asset('assets/images/logo.png')   // 完整路径
 不要裸用 Image.network / Image.asset
 ```
 
-`WImageStyle` 管视觉，`WImageLoadOptions` 管加载 / 重试，`WImageSlots` 管占位 / 空 / 错误 / 进度 / 重试 UI；普通图片也优先复用 `WImage`。
-空 data（空字符串 / 纯空白）走 `WImageSlots.emptyBuilder`，不算加载失败。
-App 级默认占位 / 错误 / 进度用 `WImageTheme(slots: WImageSlots(...))`，需要预加载时用
-`WImageSource.resolve(...)` + `precacheImage`。
+`WImageStyle` 管视觉，`WImageLoadOptions` 管加载 / 自动重试，`WImageSlots` 只有两个槽：
+`placeholderBuilder`（空 data / 加载中 / 等待重试）与 `errorWidgetBuilder`（收到 `onRetry`）。
+需要「错误 + 重试按钮」时在 error builder 里返回 `WImageErrorView(error: error, onRetry: retry)`。
+App 级默认用 `WImageTheme(slots: WImageSlots(...))`；预加载用 `WImageSource.resolve(...)` + `precacheImage`。
+12.0 删除了 `WImageController`、`WImageSource.parse`、`WAssets.imagePath` 与 `WImageStyle.margin/padding`。
 
 ## 扩展方法
 
 ```text
-数字格式化 → toThousandsSeparated / toCurrency / toPercent
-hex 颜色 → WColorExtension.fromHex / '#rrggbb'.toColor()
+数字格式化 → w_tools_core 的 WNumFormatExtension（ui 12.0 已移出）
+hex 颜色 → WColorExtension.fromHex（AARRGGBB）/ fromCssHex（RRGGBBAA）
 EdgeInsets → num.allPadding
 RTL 侧边距 → withStartPadding / withEndPadding
 BorderSide → num.borderSideOf(context)（borderSide 已弃用，9.0 删除）
-BoxDecoration → withColor / withBorderRadius / withShadow
+BoxDecoration → withBackground（color / gradient 二选一）/ circle
 ```
 
 新增通用工具前先看 `packages/ui/lib/src/extensions/` 是否已有。
@@ -37,7 +38,7 @@ BoxDecoration → withColor / withBorderRadius / withShadow
 
 ```text
 屏幕 / 字体适配 → WScreenScope + WScreen.of(context).w / h / sp（explain WScreen）
-资源前缀 → WAssets.imagePath
+资源路径 → WImageSource.asset('完整路径')（12.0 删除了 WAssets.imagePath）
 SizedBox 间距 → 原生 SizedBox
 Padding → 原生 Padding
 EdgeInsets → num.allPadding
@@ -53,10 +54,9 @@ WScreen 无 `WScreenScope` 时返回原始值；需要 ScreenUtil 时用 `WScree
 普通页面 → WScaffold + WAppBar
 （消费方项目的标准页面默认用 CLI 生成的 AppScaffold；本文件是库 / 仓库内用法）
 底部 tab → WNavBar / WNavController（默认 safeArea: true；外层已包 SafeArea 时传 false）
-顶部 tab → WTabBar（依赖 TabController / DefaultTabController；默认 overlay / ripple 跟
-TabBarTheme，要关用 `WTabBarStyle.noSplash` 或 `splashFactory` + `overlayColor`；
-labelColor / unselectedLabelColor / labelPadding / indicatorPadding / textScaler 走 style）
-步骤流程 → WStep / WStepFlow
+顶部 tab → Material TabBar + TabBarTheme（WTabBar / WTabBarStyle 已在 12.0 删除；
+indicator / divider / scrollable / tabAlignment 直接传 TabBar）
+步骤流程 → WStep
 ```
 
 不要为了统一把任意叠放布局塞进 `WScaffold`；需要自定义覆盖时在页面层用 `Container` / `Stack`。

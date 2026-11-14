@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -49,13 +50,13 @@ void main() {
       expect(provider.maxHeight, 120);
     });
 
-    testWidgets('进度指示器分支正常构建', (tester) async {
+    testWidgets('loadingBuilder 分支正常构建', (tester) async {
       await tester.pumpWidget(
         _wrap(
           WImage.source(
             source: WImageSource.network(_url),
             slots: WImageSlots(
-              progressBuilder: (_, __, ___) => const Text('PROG'),
+              placeholderBuilder: (_, __) => const Text('PROG'),
             ),
           ),
         ),
@@ -63,6 +64,7 @@ void main() {
 
       final image = tester.widget<Image>(find.byType(Image));
       expect(image.loadingBuilder, isNotNull);
+      expect(find.text('PROG'), findsOneWidget);
     });
 
     testWidgets('同一 source 重建复用 provider', (tester) async {
@@ -74,100 +76,30 @@ void main() {
 
       expect(identical(first, second), isTrue);
     });
-
-    testWidgets('重试会换掉 Image 的 key，强制重新解析 provider', (tester) async {
-      final controller = WImageController();
-      await tester.pumpWidget(
-        _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
-      );
-      final first = tester.widget<Image>(find.byType(Image)).key;
-
-      controller.retry();
-      await tester.pump();
-      final second = tester.widget<Image>(find.byType(Image)).key;
-
-      expect(first, isNot(second));
-    });
   });
 
-  group('WImageController', () {
-    testWidgets('retry() 重建并递增 attempt', (tester) async {
-      final controller = WImageController();
+  group('手动重试', () {
+    testWidgets('errorWidgetBuilder 的 onRetry 会换 key 重新加载', (tester) async {
       await tester.pumpWidget(
-        _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
-      );
-
-      expect(controller.isAttached, isTrue);
-      expect(controller.state.value.attempt, 0);
-
-      controller.retry();
-      await tester.pump();
-
-      expect(controller.state.value.attempt, 1);
-    });
-
-    testWidgets('controller.state 暴露加载快照', (tester) async {
-      final controller = WImageController();
-      await tester.pumpWidget(
-        _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
-      );
-      expect(controller.state, isNotNull);
-      expect(controller.state.value.attempt, 0);
-
-      controller.retry();
-      await tester.pump();
-      expect(controller.state.value.attempt, 1);
-    });
-
-    testWidgets('卸载后自动解绑，retry() 不抛异常', (tester) async {
-      final controller = WImageController();
-      await tester.pumpWidget(
-        _wrap(WImage.source(source: WImageSource.network(_url), controller: controller)),
-      );
-      expect(controller.isAttached, isTrue);
-
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-
-      expect(controller.isAttached, isFalse);
-      expect(controller.retry, returnsNormally);
-    });
-  });
-
-  group('重试状态', () {
-    testWidgets('retryCount 变化后 attempt 归零', (tester) async {
-      final controller = WImageController();
-
-      Widget build(int retryCount) => _wrap(
-        WImage.source(
-          source: WImageSource.network(_url),
-          options: WImageLoadOptions(retryCount: retryCount),
-          controller: controller,
+        _wrap(
+          WImage.source(
+            source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
+            slots: WImageSlots(
+              errorWidgetBuilder: (context, data, error, retry) => TextButton(
+                onPressed: retry,
+                child: const Text('retry'),
+              ),
+            ),
+          ),
         ),
       );
-
-      await tester.pumpWidget(build(3));
-      controller.retry();
       await tester.pump();
-      controller.retry();
-      await tester.pump();
-      expect(controller.state.value.attempt, 2);
-
-      await tester.pumpWidget(build(0));
-      expect(controller.state.value.attempt, 0);
-    });
-
-    testWidgets('retry() 对资产图同样生效（换 key 重建）', (tester) async {
-      final controller = WImageController();
-      await tester.pumpWidget(
-        _wrap(WImage.source(source: WImageSource.asset('assets/none.png'), controller: controller)),
-      );
 
       final first = tester.widget<Image>(find.byType(Image)).key;
-
-      controller.retry();
+      await tester.tap(find.text('retry'));
       await tester.pump();
-
       final second = tester.widget<Image>(find.byType(Image)).key;
+
       expect(first, isNot(second));
     });
   });

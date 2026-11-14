@@ -45,7 +45,7 @@ void main() {
     expect(taps, 0);
   });
 
-  testWidgets('禁用时默认保留 child 语义，可选排除', (tester) async {
+  testWidgets('禁用时保留 child 语义', (tester) async {
     Widget child() => Semantics(
       label: 'child-action',
       onTap: () {},
@@ -76,23 +76,6 @@ void main() {
         matching: find.byType(ExcludeSemantics),
       ),
       findsNothing,
-    );
-
-    await tester.pumpWidget(
-      _wrap(
-        WPressable(
-          enabled: false,
-          hasChildSemanticsWhenDisabled: false,
-          child: child(),
-        ),
-      ),
-    );
-    expect(
-      find.descendant(
-        of: find.byType(WPressable),
-        matching: find.byType(ExcludeSemantics),
-      ),
-      findsOneWidget,
     );
   });
 

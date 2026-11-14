@@ -21,9 +21,8 @@ List<Widget> buildListsNotificationSections({
         builder: (context) {
           final probe = WNotificationListener<ScrollNotification>(
             onNotificationPercentage: (value) => percent.value = value,
-            preventNotificationPropagation: prevent,
             onNotification: prevent
-                ? null
+                ? (_) => true
                 : (_) {
                     notifications.value++;
                     return false;
@@ -59,7 +58,7 @@ List<Widget> buildListsNotificationSections({
               Row(
                 children: [
                   const WText(
-                    text: 'preventNotificationPropagation',
+                    text: 'onNotification 返回 true 阻止冒泡',
                     variant: WTextVariant.caption,
                   ),
                   Switch(

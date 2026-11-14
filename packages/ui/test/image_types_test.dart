@@ -72,28 +72,6 @@ void main() {
     }
   });
 
-  group('WImageLoadSnapshot', () {
-    test('相等性 / hashCode / toString', () {
-      const a = WImageLoadSnapshot(
-        status: WImageLoadStatus.loading,
-        attempt: 1,
-        retryScheduled: true,
-        retryDelayMs: 200,
-      );
-      const b = WImageLoadSnapshot(
-        status: WImageLoadStatus.loading,
-        attempt: 1,
-        retryScheduled: true,
-        retryDelayMs: 200,
-      );
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-      expect(a.isLoading, isTrue);
-      expect(a.isCompleted, isFalse);
-      expect(a.isFailed, isFalse);
-      expect(a.toString(), contains('loading'));
-    });
-  });
   test('WImageError 用 kind 区分分类与文案', () {
     expect(const WImageError('x', WImageErrorKind.network).message, '网络图片加载失败');
     expect(const WImageError('x', WImageErrorKind.asset).message, '本地资源加载失败');
@@ -122,16 +100,6 @@ void main() {
     });
 
     test('常用预设', () {
-      final avatar = WImageStyle.avatar(80);
-      expect(avatar.width, 80);
-      expect(avatar.height, 80);
-      expect(avatar.borderRadius, BorderRadius.circular(40));
-      expect(avatar.fit, BoxFit.cover);
-
-      final thumb = WImageStyle.thumbnail(80);
-      expect(thumb.width, 80);
-      expect(thumb.height, 80);
-
       final cover = WImageStyle.cover(aspectRatio: 2, radius: 12);
       expect(cover.aspectRatio, 2);
       expect(cover.borderRadius, BorderRadius.circular(12));
@@ -256,13 +224,12 @@ void main() {
   });
 
   group('WImageSlots', () {
-    test('值相等 / 默认值', () {
-      const a = WImageSlots(showRetryButton: true);
-      const b = WImageSlots(showRetryButton: true);
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-      expect(const WImageSlots().showRetryButton, isNull);
-      expect(const WImageSlots().retryLabel, isNull);
+    test('默认无 builder；同实例相等', () {
+      const slots = WImageSlots();
+      expect(slots.placeholderBuilder, isNull);
+      expect(slots.errorWidgetBuilder, isNull);
+      expect(slots, const WImageSlots());
+      expect(slots.hashCode, const WImageSlots().hashCode);
     });
   });
 }

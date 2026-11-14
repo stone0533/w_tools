@@ -42,7 +42,7 @@ void main() {
     testWidgets("data = '' 不构建任何 Image，也不进入错误态", (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.source(source: WImageSource.parse(''))),
+          home: Scaffold(body: WImage.source(source: WImageSource.asset(''))),
         ),
       );
 
@@ -55,7 +55,7 @@ void main() {
     testWidgets('纯空白同样视为没有图', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: WImage.source(source: WImageSource.parse('   '))),
+          home: Scaffold(body: WImage.source(source: WImageSource.asset('   '))),
         ),
       );
 
@@ -63,32 +63,17 @@ void main() {
       expect(find.byIcon(Icons.error), findsNothing);
     });
 
-    testWidgets('emptyWidget 自定义空占位', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WImage.source(
-              source: WImageSource.parse(''),
-              slots: WImageSlots(emptyBuilder: (context, data) => const Text('empty-slot')),
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('empty-slot'), findsOneWidget);
-    });
-
-    testWidgets('emptyBuilder 收到规范化后的 data', (tester) async {
+    testWidgets('空 data 走 placeholderBuilder', (tester) async {
       String? captured;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: WImage.source(
-              source: WImageSource.parse('   '),
+              source: WImageSource.asset('   '),
               slots: WImageSlots(
-                emptyBuilder: (context, data) {
+                placeholderBuilder: (context, data) {
                   captured = data;
-                  return const SizedBox.shrink();
+                  return const Text('empty-slot');
                 },
               ),
             ),
@@ -97,6 +82,7 @@ void main() {
       );
 
       expect(captured, '');
+      expect(find.text('empty-slot'), findsOneWidget);
     });
 
     testWidgets('空 data 不回调 failed（没有真正发起加载）', (tester) async {
@@ -105,7 +91,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WImage.source(
-              source: WImageSource.parse(''),
+              source: WImageSource.asset(''),
               onLoadStatusChanged: statuses.add,
             ),
           ),
@@ -117,31 +103,12 @@ void main() {
     });
   });
 
-  group('WImage 类型判定', () {
-    Future<void> expectNetwork(WidgetTester tester, String data) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: WImage.source(source: WImageSource.parse(data))),
-        ),
-      );
-      expect(
-        find.byType(Image),
-        findsOneWidget,
-        reason: '$data 应判定为网络图片',
-      );
-    }
-
-    testWidgets('大写 scheme / 前导空格 / 协议相对地址都算网络图', (tester) async {
-      await expectNetwork(tester, 'HTTPS://cdn.example.com/a.png');
-      await expectNetwork(tester, '  https://cdn.example.com/a.png  ');
-      await expectNetwork(tester, '//cdn.example.com/a.png');
-    });
-
+  group('WImage 来源规范化', () {
     testWidgets('协议相对地址会补 https，而不是把 // 原样丢给网络层', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(source: WImageSource.parse('//cdn.example.com/a.png')),
+            body: WImage.source(source: WImageSource.network('//cdn.example.com/a.png')),
           ),
         ),
       );
@@ -155,7 +122,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WImage.source(
-              source: WImageSource.parse('data:application/octet-stream;base64,$_pngBase64'),
+              source: WImageSource.base64('data:application/octet-stream;base64,$_pngBase64'),
             ),
           ),
         ),
@@ -231,7 +198,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WImage.source(
-              source: WImageSource.parse('https://cdn.example.com/a.png'),
+              source: WImageSource.network('https://cdn.example.com/a.png'),
               options: config,
             ),
           ),
@@ -269,7 +236,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: WImage.source(
-              source: WImageSource.parse('data:image/png;base64,$_pngBase64'),
+              source: WImageSource.base64('data:image/png;base64,$_pngBase64'),
               style: WImageStyle(
                 width: 10,
                 height: 10,
@@ -292,16 +259,15 @@ void main() {
       expect(decorations.first.borderRadius, radius);
     });
 
-    testWidgets('padding 在 width/height 之外（当前语义）', (tester) async {
+    testWidgets('外层 Padding 加在 WImage 之外（尺寸语义与 Flutter 一致）', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: WImage.source(
-              source: WImageSource.parse('data:image/png;base64,$_pngBase64'),
-              style: const WImageStyle(
-                width: 10,
-                height: 10,
-                padding: EdgeInsets.all(5),
+            body: Padding(
+              padding: const EdgeInsets.all(5),
+              child: WImage.source(
+                source: WImageSource.base64('data:image/png;base64,$_pngBase64'),
+                style: const WImageStyle(width: 10, height: 10),
               ),
             ),
           ),
@@ -312,7 +278,8 @@ void main() {
       final image = tester.widget<Image>(find.byType(Image));
       expect(image.width, 10);
       expect(image.height, 10);
-      expect(tester.getSize(find.byType(WImage)), const Size(20, 20));
+      expect(tester.getSize(find.byType(WImage)), const Size(10, 10));
+      expect(tester.getSize(find.byType(Padding).first), const Size(20, 20));
     });
   });
 

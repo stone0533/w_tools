@@ -107,11 +107,4 @@ void main() {
       });
     });
   });
-
-  test('WAssets.reset 恢复默认前缀', () {
-    WAssets.imagePath = 'assets/icons/';
-    expect('logo.png'.assetImagePath, 'assets/icons/logo.png');
-    WAssets.reset();
-    expect(WAssets.imagePath, 'assets/images/');
-  });
 }

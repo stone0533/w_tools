@@ -13,7 +13,6 @@ void main() {
             child: PlaygroundControls(
               config: const PlaygroundConfig(),
               onChanged: (value) => next = value,
-              onRetry: () {},
               status: null,
               progress: null,
             ),

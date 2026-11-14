@@ -143,7 +143,7 @@
 
 | 后缀 | 用途 | 例 |
 |---|---|---|
-| （无） | 组件名就是名词短语 | `WImage` / `WButton` / `WStepFlow` |
+| （无） | 组件名就是名词短语 | `WImage` / `WButton` / `WNavDestination` |
 | `View` | 某个状态 / 数据的展示层；可以有交互，命令式控制放 `Controller` | `WAsyncView` / `WImageErrorView` / `WQrView` |
 | `Page` | 全屏页面入口；当前没有公开的 `W*Page`，新增页面时使用 | — |
 | `Scaffold` | 页面骨架 | `WScaffold` |
@@ -164,7 +164,7 @@
 
 | 顺序 | 角色 | 后缀 | 维度 | 装什么 | 判定问句 | 典型例子 | 检查 |
 |---|---|---|---|---|---|---|---|
-| 1 | 视觉样式 | `Style` | 语义 | 颜色 / 字号 / 圆角 / 阴影 / fit | 只影响「长什么样」？ | `WImageStyle` / `WButtonStyle` | 弱 |
+| 1 | 视觉样式 | `Style` | 语义 | 颜色 / 字号 / 圆角 / 阴影 / fit | 只影响「长什么样」？ | `WImageStyle` / Material `ButtonStyle` | 弱 |
 | 2 | 行为参数 | `Options` | 语义 | 回调 / 重试 / 超时 / 解码 / 放行规则 | 装的是行为字段（回调 / 重试 / 超时 / 解码 / 放行规则），不是纯数据？ | `WImageLoadOptions` / `WAsyncOptions` | 弱 |
 | 3 | 作用域默认 | `Theme` | 作用域 | 给子树的一组默认值（可被局部覆盖） | 要给整棵子树兜底一组默认值？ | `WFormTheme` / `WImageTheme` | 弱 |
 | 4 | UI 插槽 | `Slots` | 语义 | 占位 / 错误 / 进度 / 重试 | 替换组件内部的某块 UI？ | `WImageSlots` | 弱 |
@@ -183,7 +183,7 @@
 | 17 | 调用参数 | `Params` | 生命周期 | 一次性入参 | 只是这次调用的参数？ | —（暂无公开类型） | 弱 |
 | 18 | 不可变数据载体 | `Config` | 形态 | 纯数据、无业务行为、构造后不变 | 没有行为字段，只是一个不可变的值对象？ | `WLocaleConfig` | 强（基线） |
 
-以上都不成立 → **不套角色后缀**，用组件专属名词（`WPressable` / `WStepFlow` 这类）；
+以上都不成立 → **不套角色后缀**，用组件专属名词（`WPressable` / `WNavDestination` 这类）；
 不要为了「像规范」硬加一个后缀。
 
 按维度看，18 行可以分成五组（这只帮助理解，不是分组优先级）：
@@ -228,7 +228,7 @@
 | 你会犹豫 | 用 | 别用 | 判据 |
 |---|---|---|---|
 | 状态载体 | `State` | `Status` | `State` 是载体（`WAsyncState`）；`Status` 只表示封闭状态枚举 / 标签（`WAsyncStatus`） |
-| 只读快照 | `Snapshot` | `State` | 只有强调「某一刻的不可变拷贝」才用（`WImageLoadSnapshot`），否则归 `State` |
+| 只读快照 | `Snapshot` | `State` | 只有强调「某一刻的不可变拷贝」才用（例如 `XxxSnapshot`），否则归 `State` |
 | 失败分支 | `Failure` | `Error` | `Failure` 是 `Result` 的失败分支（`WAsyncFailure`） |
 | 错误对象 / 视图 | `Error` | `Failure` | `Error` 是错误本身或错误视图（`WImageError` / `WImageErrorView`） |
 | 返回值（成功 / 失败 / 取消） | `Result` | `Status` | 返回值用 `Result`，即使内部是 enum；`Status` 只描述过程阶段（idle / loading / ready） |
@@ -318,7 +318,7 @@
 - 顶层函数不套 `W` 前缀：判定用 `is` / `has` / `can` 开头，动作直接用动词
   （`isRetryableNetworkError`）。它们仍是公开 API，要写 `///` 说明。
 - 顶层常量用 `camelCase`；成组常量放进 `abstract final class` 承载
-  （`WShadows` / `WAssets` / `WGradients`）。
+  （`WShadows` / `WGradients`）。
 
 ## 5. 测试、脚本与文档
 

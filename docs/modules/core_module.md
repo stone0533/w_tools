@@ -52,7 +52,7 @@ core/
 
 ### 功能说明
 
-集中管理 token / refresh token / 过期时间的存储键名；资源前缀用 `w_tools_ui` 的 `WAssets.imagePath`。
+集中管理 token / refresh token / 过期时间的存储键名；资源路径直接用完整路径（ui 12.0 删除了 `WAssets.imagePath`）。
 
 ### 配置字段
 
@@ -556,6 +556,20 @@ base.merge({'b': 0}, overwrite: false); // 不覆盖已有值
 
 ---
 
+## 13. WNumFormatExtension - 数字格式化
+
+从 `w_tools_ui` 12.0 迁入；与 UI 无关，需要 locale 感知时直接用 `intl`。
+
+```dart
+1234.toThousandsSeparated;        // 1,234
+1234.5.toCurrency(symbol: '¥');   // ¥1,234.5
+0.125.toPercent;                  // 12.5%
+42.toPadLeft(5);                  // 00042
+```
+
+`toCurrency` 的 `thousandSeparator` / `decimalSeparator` 是纯字符串替换，不做 locale 推断；
+科学计数法会先展开为普通十进制，`NaN` / `Infinity` 原样返回。
+
 ## 完整配置示例
 
 ### 示例 1：启动期一次性配置
@@ -564,7 +578,7 @@ base.merge({'b': 0}, overwrite: false); // 不覆盖已有值
 import 'package:w_tools_core/w_tools_core.dart';
 
 Future<void> initializeApp() async {
-  // 1. 静态配置（资源前缀请用 w_tools_ui 的 WAssets.imagePath）
+  // 1. 静态配置（资源路径直接传完整路径，ui 12.0 删除了 WAssets.imagePath）
   WToken.tokenKey = 'app_auth_token';
   WToken.refreshTokenKey = 'app_refresh_token';
   WToken.tokenExpiryKey = 'app_token_expiry';

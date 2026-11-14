@@ -16,43 +16,15 @@ class WImageStyle {
     this.borderRadius,
     this.border,
     this.boxShadow,
-    this.margin,
-    this.padding,
     this.semanticLabel,
     this.excludeFromSemantics = false,
     this.filterQuality = FilterQuality.low,
   });
 
-  /// 常用预设：头像（正方形 + 全圆角）
-  factory WImageStyle.avatar(
-    double size, {
-    BorderRadiusGeometry? borderRadius,
-    Border? border,
-    List<BoxShadow>? boxShadow,
-  }) {
-    return WImageStyle(
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
-      borderRadius: borderRadius ?? BorderRadius.circular(size / 2),
-      border: border,
-      boxShadow: boxShadow,
-    );
-  }
-
-  /// 常用预设：列表缩略图（正方形视觉占位；解码尺寸由 WImageLoadOptions 控制）
-  factory WImageStyle.thumbnail(
-    double width, {
-    double? height,
-  }) {
-    return WImageStyle(
-      width: width,
-      height: height ?? width,
-      fit: BoxFit.cover,
-    );
-  }
-
   /// 常用预设：封面图（固定比例 + 可选圆角）
+  ///
+  /// 头像 / 缩略图直接用 `WImageStyle(width:, height:, borderRadius:)`，
+  /// 不再提供 `avatar` / `thumbnail` 这类与项目设计稿争定义的预设。
   factory WImageStyle.cover({
     double? aspectRatio = 16 / 9,
     double? radius,
@@ -72,8 +44,6 @@ class WImageStyle {
   final BorderRadiusGeometry? borderRadius;
   final BoxBorder? border;
   final List<BoxShadow>? boxShadow;
-  final EdgeInsetsGeometry? margin;
-  final EdgeInsetsGeometry? padding;
   final String? semanticLabel;
   final bool excludeFromSemantics;
   final FilterQuality filterQuality;
@@ -101,8 +71,6 @@ class WImageStyle {
             other.borderRadius == borderRadius &&
             other.border == border &&
             listEquals(other.boxShadow, boxShadow) &&
-            other.margin == margin &&
-            other.padding == padding &&
             other.semanticLabel == semanticLabel &&
             other.excludeFromSemantics == excludeFromSemantics &&
             other.filterQuality == filterQuality;
@@ -118,8 +86,6 @@ class WImageStyle {
     borderRadius,
     border,
     boxShadow == null ? null : Object.hashAll(boxShadow!),
-    margin,
-    padding,
     semanticLabel,
     excludeFromSemantics,
     filterQuality,
@@ -129,8 +95,7 @@ class WImageStyle {
   ///
   /// 需要清空可空字段时用 [withoutWidth] / [withoutHeight] /
   /// [withoutAspectRatio] / [withoutBorderRadius] / [withoutBorder] /
-  /// [withoutBoxShadow] / [withoutMargin] / [withoutPadding] /
-  /// [withoutSemanticLabel]。
+  /// [withoutBoxShadow] / [withoutSemanticLabel]。
   ///
   /// 设置 [width] / [height] 且没有同时传 [aspectRatio] 时，会清空
   /// [aspectRatio]：固定尺寸与比例互斥，这样 `WImageStyle.cover().square(40)`
@@ -144,8 +109,6 @@ class WImageStyle {
     BorderRadiusGeometry? borderRadius,
     BoxBorder? border,
     List<BoxShadow>? boxShadow,
-    EdgeInsetsGeometry? margin,
-    EdgeInsetsGeometry? padding,
     String? semanticLabel,
     bool? excludeFromSemantics,
     FilterQuality? filterQuality,
@@ -161,8 +124,6 @@ class WImageStyle {
       borderRadius: borderRadius ?? this.borderRadius,
       border: border ?? this.border,
       boxShadow: boxShadow ?? this.boxShadow,
-      margin: margin ?? this.margin,
-      padding: padding ?? this.padding,
       semanticLabel: semanticLabel ?? this.semanticLabel,
       excludeFromSemantics: excludeFromSemantics ?? this.excludeFromSemantics,
       filterQuality: filterQuality ?? this.filterQuality,
@@ -180,8 +141,6 @@ class WImageStyle {
     Object? borderRadius = _unset,
     Object? border = _unset,
     Object? boxShadow = _unset,
-    Object? margin = _unset,
-    Object? padding = _unset,
     Object? semanticLabel = _unset,
     Object? excludeFromSemantics = _unset,
     Object? filterQuality = _unset,
@@ -199,8 +158,6 @@ class WImageStyle {
           : borderRadius as BorderRadiusGeometry?,
       border: identical(border, _unset) ? this.border : border as BoxBorder?,
       boxShadow: identical(boxShadow, _unset) ? this.boxShadow : boxShadow as List<BoxShadow>?,
-      margin: identical(margin, _unset) ? this.margin : margin as EdgeInsetsGeometry?,
-      padding: identical(padding, _unset) ? this.padding : padding as EdgeInsetsGeometry?,
       semanticLabel: identical(semanticLabel, _unset)
           ? this.semanticLabel
           : semanticLabel as String?,
@@ -224,10 +181,6 @@ class WImageStyle {
   WImageStyle withoutBorder() => _copy(border: null);
 
   WImageStyle withoutBoxShadow() => _copy(boxShadow: null);
-
-  WImageStyle withoutMargin() => _copy(margin: null);
-
-  WImageStyle withoutPadding() => _copy(padding: null);
 
   WImageStyle withoutSemanticLabel() => _copy(semanticLabel: null);
 }

@@ -17,7 +17,6 @@ class PlaygroundConfig {
     this.customPlaceholder = true,
     this.withBorder = false,
     this.withShadow = false,
-    this.withMargin = false,
   });
 
   final bool isNetwork;
@@ -31,7 +30,6 @@ class PlaygroundConfig {
   final bool customPlaceholder;
   final bool withBorder;
   final bool withShadow;
-  final bool withMargin;
 
   PlaygroundConfig copyWith({
     bool? isNetwork,
@@ -45,7 +43,6 @@ class PlaygroundConfig {
     bool? customPlaceholder,
     bool? withBorder,
     bool? withShadow,
-    bool? withMargin,
   }) {
     return PlaygroundConfig(
       isNetwork: isNetwork ?? this.isNetwork,
@@ -59,7 +56,6 @@ class PlaygroundConfig {
       customPlaceholder: customPlaceholder ?? this.customPlaceholder,
       withBorder: withBorder ?? this.withBorder,
       withShadow: withShadow ?? this.withShadow,
-      withMargin: withMargin ?? this.withMargin,
     );
   }
 
@@ -77,8 +73,7 @@ class PlaygroundConfig {
           other.retryCount == retryCount &&
           other.customPlaceholder == customPlaceholder &&
           other.withBorder == withBorder &&
-          other.withShadow == withShadow &&
-          other.withMargin == withMargin;
+          other.withShadow == withShadow;
 
   @override
   int get hashCode => Object.hash(
@@ -93,6 +88,5 @@ class PlaygroundConfig {
     customPlaceholder,
     withBorder,
     withShadow,
-    withMargin,
   );
 }

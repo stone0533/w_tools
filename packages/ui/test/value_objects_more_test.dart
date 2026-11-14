@@ -5,32 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 void main() {
-  test('WNavBarStyle 值相等 / hashCode', () {
-    const a = WNavBarStyle(
-      decoration: BoxDecoration(color: Colors.white),
-      padding: EdgeInsets.all(8),
-    );
-    const b = WNavBarStyle(
-      decoration: BoxDecoration(color: Colors.white),
-      padding: EdgeInsets.all(8),
-    );
-    expect(a, b);
-    expect(a.hashCode, b.hashCode);
-    expect(a, isNot(const WNavBarStyle(padding: EdgeInsets.all(4))));
-  });
-
-  test('WTabBarStyle copyWith / noSplash / 值相等', () {
-    const style = WTabBarStyle(isScrollable: true, indicatorWeight: 3);
-    final next = style.copyWith(labelStyle: const TextStyle(fontSize: 14));
-    expect(style.isScrollable, isTrue);
-    expect(next.labelStyle?.fontSize, 14);
-    expect(next.indicatorWeight, 3);
-    expect(next.copyWith(isScrollable: false).isScrollable, isFalse);
-    expect(WTabBarStyle.noSplash.overlayColor, Colors.transparent);
-    expect(WTabBarStyle.noSplash.splashFactory, NoSplash.splashFactory);
-    expect(style, const WTabBarStyle(isScrollable: true, indicatorWeight: 3));
-  });
-
   test('WBadgeStyle copyWith / 值相等', () {
     const base = WBadgeStyle(backgroundColor: Colors.red);
     final next = base.copyWith(foregroundColor: Colors.white);
@@ -55,31 +29,6 @@ void main() {
     expect(next.minHeight, 36);
     expect(next.padding, WButtonSize.small.padding);
     expect(() => const WButtonSize(minHeight: -1).validate(), throwsAssertionError);
-  });
-
-  test('WStepFlow 值相等 / copyWith 保留字段', () {
-    final a = WStepFlow(labels: const ['下单', '付款', '完成']);
-    final b = WStepFlow(labels: const ['下单', '付款', '完成']);
-    expect(identical(a, b), isFalse);
-    expect(a, b);
-    expect(a.hashCode, b.hashCode);
-    expect(a, isNot(WStepFlow(labels: const ['下单'])));
-
-    final next = a.copyWith(labels: const ['A', 'B']);
-    expect(next.labels, const ['A', 'B']);
-    expect(next.style, a.style);
-  });
-
-  test('WButtonMotion copyWith / validate / 值相等', () {
-    const motion = WButtonMotion(duration: Duration(milliseconds: 200));
-    final next = motion.copyWith(pressedScale: 0.9);
-    expect(next.duration, const Duration(milliseconds: 200));
-    expect(next.pressedScale, 0.9);
-    expect(motion, const WButtonMotion(duration: Duration(milliseconds: 200)));
-    expect(
-      () => const WButtonMotion(pressedOpacity: 2).validate(),
-      throwsAssertionError,
-    );
   });
 
   test('WTextStyles copyWith / lerp / 值相等', () {
@@ -116,30 +65,56 @@ void main() {
       WImageSource.network('https://x/a.png'),
       isNot(WImageSource.network('https://x/b.png')),
     );
-    expect(WImageSource.asset('a.png', prefix: true), WImageSource.asset('a.png', prefix: true));
+    expect(WImageSource.asset('a.png'), WImageSource.asset('a.png'));
     expect(WImageSource.base64('AAAA'), WImageSource.base64('AAAA'));
     expect(WImageSource.file('/tmp/a.png'), WImageSource.file('/tmp/a.png'));
     expect(WImageSource.network('https://x/a.png').key, contains('network:'));
   });
 
-  testWidgets('WButtonStyleSet.of 四种样式与值相等', (tester) async {
-    late WButtonStyleSet first;
-    late WButtonStyleSet second;
+  testWidgets('WButtonTheme.of 缺省回退到 ColorScheme，覆盖优先', (tester) async {
+    late WButtonTheme fallback;
+    late WButtonTheme custom;
+    final scheme = ThemeData(useMaterial3: true).colorScheme;
     await tester.pumpWidget(
       MaterialApp(
         theme: ThemeData(useMaterial3: true),
         home: Builder(
           builder: (context) {
-            first = WButtonStyleSet.of(context);
-            second = WButtonStyleSet.of(context);
+            fallback = WButtonTheme.of(context);
             return const SizedBox.shrink();
           },
         ),
       ),
     );
-    expect(first, second);
-    expect(first.hashCode, second.hashCode);
-    expect(first.primary, isNot(first.danger));
+    expect(fallback.filled?.backgroundColor?.resolve({}), scheme.primary);
+    expect(fallback.outlined?.foregroundColor?.resolve({}), scheme.primary);
+    expect(fallback.danger?.backgroundColor?.resolve({}), scheme.error);
+
+    final customTheme = ThemeData(
+      useMaterial3: true,
+      extensions: const [
+        WButtonTheme(
+          filled: ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll(Colors.black),
+          ),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: customTheme,
+        home: Builder(
+          builder: (context) {
+            custom = WButtonTheme.of(context);
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(custom.filled?.backgroundColor?.resolve({}), Colors.black);
+    // 未覆盖的变体仍然用派生值
+    expect(custom.outlined?.foregroundColor?.resolve({}), scheme.primary);
   });
 
   testWidgets('WBadge 自定义 style 应用边框与内边距', (tester) async {
@@ -178,9 +153,10 @@ void main() {
   testWidgets('WImageTheme of / maybeOf', (tester) async {
     WImageSlots? scoped;
     WImageSlots? fallback;
+    final themed = WImageSlots(placeholderBuilder: (context, data) => const SizedBox());
     await tester.pumpWidget(
       WImageTheme(
-        slots: const WImageSlots(showRetryButton: true),
+        slots: themed,
         child: Builder(
           builder: (context) {
             scoped = WImageTheme.maybeOf(context);
@@ -189,13 +165,13 @@ void main() {
         ),
       ),
     );
-    expect(scoped?.showRetryButton, isTrue);
+    expect(scoped?.placeholderBuilder, isNotNull);
 
     await tester.pumpWidget(
       Builder(
         builder: (context) {
           fallback = WImageTheme.maybeOf(context);
-          expect(WImageTheme.of(context).showRetryButton, isNull);
+          expect(WImageTheme.of(context).placeholderBuilder, isNull);
           return const SizedBox.shrink();
         },
       ),
@@ -216,9 +192,11 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(build(const WImageSlots(showRetryButton: true)));
+    await tester.pumpWidget(build(const WImageSlots()));
     final first = builds;
-    await tester.pumpWidget(build(const WImageSlots(showRetryButton: false)));
+    await tester.pumpWidget(
+      build(WImageSlots(placeholderBuilder: (context, data) => const SizedBox())),
+    );
     expect(builds, greaterThan(first));
   });
 }

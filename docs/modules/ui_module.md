@@ -51,38 +51,36 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 2. WButton - 按钮组件
 
-- `WButton` 负责按钮语义、键盘、最小点击区域（48×48）与 loading / enabled 状态。
+- `WButton` 直接渲染 Material `FilledButton` / `OutlinedButton` / `TextButton`，
+  视觉由 `ButtonStyle` 驱动：水波纹、键盘 / 焦点、禁用态都与 Material 一致。
 - `WPressable` 只负责“任意 child 的点击反馈”，没有 button 语义；卡片、整行点击用它。
 - 表单字段的“值选择”用 `WFormButton`，不要用 `WButton` 手写。
-- 样式分层：
-  - `WButtonStyle`：视觉（颜色、圆角、边框、内边距等）；
-  - `WButtonStyleSet.of(context)`：组件层预设（`primary` / `secondary` / `text` / `danger`），返回 `WButtonStyleSet`；
-  - `WButton(motion:, semantics:)`：按下、缩放、透明度与无障碍语义；
-  - `WButtonSize`：尺寸令牌；
-  - `WButtonContentBuilder`：复杂内容（多行、图标 + 文案 + 尾部）时使用。
-- **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成）；`WButtonStyleSet.of(context).primary`
-  适合组件示例 / 独立 Demo。不要在每个调用点重复写完整 `WButtonStyle`。
+- 样式分层（12.0 起统一到 Material）：
+  - `WButtonVariant`：`filled` / `outlined` / `text` / `danger`；
+  - `WButtonTheme`：ThemeExtension，全站四种 `ButtonStyle`；未安装时按 `ColorScheme` 派生；
+  - `WButton(style: ButtonStyle)`：单个按钮覆盖；
+  - `WButtonSize`：尺寸令牌（minWidth / minHeight / padding / 字号 / iconSize / gap）；
+  - `WButton(label/icon/content)`：内容三选一；复杂内容用 `content`，其 Text / Icon
+    自动继承按钮前景色与文字样式。
+- **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成，返回 `ButtonStyle`）；
+  `WButtonTheme` 适合全站换色，不要在调用点重复写完整 `ButtonStyle`。
 - `WButton(icon:, label:)` 内部复用 `WIconText` 做行盒中点对齐；不要再手写
   `Row + Icon + Text` 补偏移。
 - 图标按钮可传 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）。
-
-### WButtonContentBuilder
-
-复杂按钮内容用 `WButtonContentBuilder` 组合，不要在 `WButton` 里塞多层 `Row` / `Column` 后再补语义。
-
-### WButtonMotion
-
-按下缩放、透明度等效果由 `WButton.motion`（`WButtonMotion` + `WPressEffect`）控制；默认已满足大多数场景。
-
-### WButtonSemantics
-
-按钮语义、禁用态与 loading 态的朗读由 `WButton.semantics`（`WButtonSemantics`）负责；自定义 child 时不要绕过。
-
-`WButtonSemantics.loadingLabel` 默认是空字符串，表示按当前 `Locale` 使用内置文案（zh：加载中；其他：Loading）；传非空字符串则覆盖。
+- 纯图标按钮必须提供 `semanticLabel`；loading 文案用 `loadingLabel`。
 
 ### WButtonSize
 
-尺寸与点击区域由 `WButtonSize` 控制；默认最小点击区域 48×48。
+`WButtonSize` 只表达尺寸（minWidth / minHeight / padding / 字号 / iconSize / gap），
+映射到 `ButtonStyle` 的 `minimumSize` / `padding` / `textStyle`；默认
+`WButtonSize.medium`。点击区域由 Material 的 padded tap target 保证。
+
+### 12.0 删除
+
+12.0 已删除 `WButtonStyle` / `WButtonStyleSet` / `WButtonMotion` / `WButtonSemantics` /
+`WButtonContentBuilder` / `WButtonResolvedStyle`（以上均已删除）：改用 `ButtonStyle` +
+`WButtonTheme` + `WButtonVariant` + 直接参数（`semanticLabel` / `semanticHint` /
+`loadingLabel`）。
 
 ## 2.1 WPressable - 任意 child 点击
 
@@ -106,19 +104,20 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ## 4. WImage - 图片组件
 
-- 统一入口：`WImage.source(source: WImageSource..., style:, options:, slots:, controller:)`；7.0 起只接受 `options:`。
-- 来源用 `WImageSource.network / asset / file / base64 / provider`；动态字符串先
-  `WImageSource.parse`。需要精确控制来源类型时用具体 `W*ImageSource` 子类，一般优先工厂。
-- `WImageSource.asset(name)` 默认**不**拼 `WAssets.imagePath`；需要前缀时显式传 `prefix: true`。
+- 统一入口：`WImage.source(source: WImageSource..., style:, options:, slots:)`；7.0 起只接受 `options:`。
+- 来源用 `WImageSource.network / asset / file / base64 / provider`，类型由调用方显式选择；
+  12.0 删除了 `WImageSource.parse` 的字符串猜测。
+- `WImageSource.asset(name)` 接收**完整资源路径**（如 `assets/images/logo.png`）；
+  12.0 删除了 `WAssets.imagePath` 与 `prefix` 参数。
 - 三层职责分开：
   - `WImageStyle`：尺寸、fit、圆角、边框等视觉；
-  - `WImageLoadOptions`：缓存、重试、进度等加载行为；
-  - `WImageSlots`：占位 / 错误 / 进度 / 重试 UI。
+  - `WImageLoadOptions`：缓存、自动重试、`gaplessPlayback` 等加载行为；
+  - `WImageSlots`：占位（空 / 加载中 / 等待重试）与错误两个 UI 槽。
 - App 级默认占位与错误用 `WImageTheme(slots: ...)`；单图覆盖用 `slots:`。
 - `WImage` 不自动给尺寸：没有 `width` / `height` / `aspectRatio` 时，必须由父级
   （`SizedBox` / `Expanded` / `AspectRatio`）约束，否则加载前占位是 0 尺寸。
-- `WImageStyle.width/height` 不含 `padding` / `margin`：它们会额外计入总尺寸
-  （与 `Container` 的尺寸语义不同）。
+- 12.0 删除了 `WImageStyle.margin/padding`：留白在外部包 `Padding` / `Container`，
+  这样 `width/height` 的尺寸语义与 Flutter 一致。
 - 宽度铺满 + 高度上限（长图截断）：`ConstrainedBox(maxHeight:)` +
   `WImageStyle(width: double.infinity, fit: BoxFit.fitWidth, alignment: ...)`；超限时按
   `alignment` 保留上 / 中 / 下。完整配方与坑见
@@ -142,7 +141,9 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 
 ### WImageSlots 配置
 
-单图的占位 / 错误 / 进度 / 重试 UI。App 级默认用 `WImageTheme`，单图覆盖用 `slots`。
+只有两个槽：`placeholderBuilder`（空 data / 加载中 / 等待重试）与 `errorWidgetBuilder`
+（收到 `onRetry`）。App 级默认用 `WImageTheme`，单图覆盖用 `slots`。
+需要「错误 + 重试」时在 error builder 里返回 `WImageErrorView(error: error, onRetry: retry)`。
 builder 的 `data` 是原始 source 字符串（Base64 可能很大），不要拼进日志 / 文本 UI。
 
 ### WImageTheme
@@ -151,9 +152,10 @@ App 级默认 `WImageSlots`，放在主题 / App 根节点；单图仍可用 `sl
 
 ### 重试与手动重试
 
-需要手动重试 / 读状态时用 `WImageController`；预加载用
-`WImageSource.resolve(...)` + `precacheImage`。`WImageController.state` 返回
-`WImageLoadSnapshot`，状态枚举是 `WImageLoadStatus`。
+自动重试用 `WImageLoadOptions.retryCount`；手动重试用 `errorWidgetBuilder` 的 `onRetry`
+（组件未挂载时是空操作）。状态用 `onLoadStatusChanged`（`WImageLoadStatus`），
+进度用 `onProgress`。预加载用 `WImageSource.resolve(...)` + `precacheImage`。
+12.0 删除了 `WImageController` / `WImageLoadSnapshot`。
 
 ### 错误类型
 
@@ -163,7 +165,7 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 `WImageErrorView` 的错误文案与重试文案按当前 `Locale` 本地化（zh / en）；
 `WImageError.message` 仍是固定中文，业务直接使用 `message` 时需自行本地化。
-`WImageSlots.retryLabel` 传空字符串 / 不传时使用内置本地化文案。
+`WImageErrorView.retryLabel` 传空字符串 / 不传时使用内置本地化文案。
 
 旧字符串图片入口已删除；新代码不要再使用 `WImage('url')` 形式。
 
@@ -209,25 +211,19 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ### WStep
 
-`WStep` / `WStepFlow` 用于步骤指示；样式与状态用 `WStepStyle` / `WStepState`，
-自定义项 / 分隔线 / 语义用对应的 builder。`WStep` 与 `WStepFlow` 都会在构造时复制并冻结
-`labels`；因此 `WStep` 不再是 `const` 构造器。`WStepStyle` 的完成 / 当前 / 未开始颜色
+`WStep` 用于步骤指示；样式与状态用 `WStepStyle` / `WStepState`，
+自定义项 / 分隔线 / 语义用对应的 builder。`WStep` 是 `const` 组件，`labels` 由调用方保证
+不可变（不要在 build 内构造新列表），组件不做复制。`WStepStyle` 的完成 / 当前 / 未开始颜色
 未显式设置时分别取 `ColorScheme.primary` / `primary` / `outline`，暗色主题下自动跟随。
 
 ### WNavBar / WNavController
 
-底部导航：`WNavBar` + `WNavController`；`WNavController` 需要页面 State 提供 `vsync`，
-并由调用方 `dispose`。配置用 `WNavBarStyle`。`WNavBar` 默认 `safeArea: true`，会避开
+底部导航：`WNavBar` + `WNavController`；`WNavController` 只维护 `currentIndex`
+（不需要 `vsync`），由调用方 `dispose`。外层装饰 / 内边距直接传 `decoration` / `padding`
+（12.0 删除了 `WNavBarStyle`）。`WNavBar` 默认 `safeArea: true`，会避开
 底部 home indicator；已在外层包 `SafeArea` 时传 `safeArea: false`。
 切换前拦截用 `onBeforeTap`（`FutureOr<bool>`，返回 false 阻止）。
 默认 item 用 `destinations: [WNavDestination(...)]`；需要完全自定义时用 `itemBuilder`，两者互斥。
-
-### WTabBar
-
-顶部 tab：`WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`；
-配置用 `WTabBarStyle`（含 `labelColor` / `unselectedLabelColor` / `labelPadding` /
-`indicatorPadding` / `textScaler` / `indicatorAnimation` / `mouseCursor` /
-`enableFeedback` / `splashBorderRadius`）。
 
 ### WActionRow / WSelectableRow
 
@@ -259,15 +255,17 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ### WStringExtension
 
-字符串转数字 / 去空格 / hex 颜色 / 资源路径；新增前先看 `packages/ui/lib/src/extensions/` 是否已有。
+只剩 hex 颜色；数字转换、去空格、trim 直接用 Dart 原生 API，
+资源路径用 `WImageSource.asset('完整路径')`（12.0 删除了 `assetImagePath`）。
+新增前先看 `packages/ui/lib/src/extensions/` 是否已有。
 
-### WNumLayoutExtension / WNumFormatExtension
+### WNumLayoutExtension
 
-`num` 扩展按用途拆成两个：`WNumLayoutExtension` 提供 `heightBox` / `widthBox` /
-`squareBox` / `padding` / `borderRadius` / `borderSideOf(context)`；
-`WNumFormatExtension` 提供 `toThousandsSeparated` / `toCurrency` / `toPercent` /
-`toPercentWithFixed` / `toPadLeft`。
+`WNumLayoutExtension` 只保留 `allPadding` / `borderSideOf(context)`。
 `borderSide` 已在 10.0 删除；边框统一用 `borderSideOf(context)` 跟随 `ColorScheme.outline`。
+`heightBox` / `widthBox` / `squareBox` / `horizontalPadding` / `verticalPadding` /
+`borderRadius` 已在 12.0 删除，SizedBox / EdgeInsets / BorderRadius 直接用 Flutter 原生构造。
+数字格式化（`WNumFormatExtension`）12.0 起在 `w_tools_core`，不在 ui。
 
 ### WWidgetExtension
 
@@ -278,11 +276,9 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ### WBoxDecorationExtension / WGradients / WShadows
 
-`BoxDecoration` 的颜色 / 圆角 / 边框 / 阴影链式扩展，以及渐变 / 阴影预设。
-
-### WGlobalKeyExtension
-
-GlobalKey 查找 / 定位；不要用它替代正常的 controller 传递。
+`BoxDecoration` 只保留两处组合糖：`withBackground`（color / gradient 二选一，自动清空另一个）
+与 `circle`（圆形并清空 borderRadius）；其余字段直接传构造器。渐变 / 阴影预设见
+`WGradients` / `WShadows`。
 
 ### TextStyle
 
@@ -291,9 +287,10 @@ GlobalKey 查找 / 定位；不要用它替代正常的 controller 传递。
 
 ## 10. 工具类
 
-### WAssets
+### 资源路径
 
-资源前缀：`WAssets.imagePath`；需要 `AssetImage` 时用 `assetImagePath`。
+12.0 删除了全局 `WAssets.imagePath` 与 `assetImagePath`；`WImageSource.asset` /
+`AssetImage` 都接收完整路径。
 
 ### 预加载
 
@@ -318,8 +315,8 @@ deprecated 警告。
 
 ### WButton 样式复用
 
-项目页面优先用项目 UI 层的 `AppButtons`；组件示例 / 独立 Demo 可用
-`WButtonStyleSet.of(context)` 的预设。不要在每个调用点重复写完整 `WButtonStyle`。
+项目页面优先用项目 UI 层的 `AppButtons`（返回 Material `ButtonStyle`）；全站换色用
+`WButtonTheme`，不要在调用点重复写完整 `ButtonStyle`。
 
 ### WImage 平台差异
 
@@ -327,7 +324,7 @@ deprecated 警告。
 
 ### WListView / WNavController 生命周期
 
-两者都由页面 State 持有并 `dispose`；不要在 build 里创建，否则滚动位置或动画会重置。
+两者都由页面 State 持有并 `dispose`；不要在 build 里创建，否则滚动位置或选中态会重置。
 
 ## 完整 API
 

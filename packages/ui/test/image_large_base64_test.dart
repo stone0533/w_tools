@@ -44,7 +44,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: WImage.source(
-            source: WImageSource.parse('data:image/png;base64,$base64Text'),
+            source: WImageSource.base64('data:image/png;base64,$base64Text'),
             style: const WImageStyle(width: 64, height: 64),
           ),
         ),

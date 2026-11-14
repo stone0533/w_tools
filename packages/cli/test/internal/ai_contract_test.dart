@@ -142,9 +142,8 @@ void main() {
     test('ui 高频子 API 能通过 explain 查到', () {
       const names = <String>[
         'WButtonSize',
-        'WButtonMotion',
-        'WButtonSemantics',
-        'WButtonStyleSet',
+        'WButtonTheme',
+        'WButtonVariant',
         'WBadgeStyle',
         'WBadgePosition',
         'WStepColors',
@@ -155,15 +154,12 @@ void main() {
         'WStepState',
         'WGradients',
         'WShadows',
-        'WGlobalKeyExtension',
         'WPressEffect',
         'WAssetImageSource',
         'WBase64ImageSource',
         'WFileImageSource',
         'WNetworkImageSource',
         'WProviderImageSource',
-        'WButtonContentBuilder',
-        'WButtonResolvedStyle',
         'WImageErrorView',
       ];
       for (final name in names) {

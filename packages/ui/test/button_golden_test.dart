@@ -9,18 +9,32 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 final _goldenSkip = !Platform.isMacOS || kIsWeb;
 
 Widget _buildButtons(BuildContext context) {
-  final styles = WButtonStyleSet.of(context);
   return Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      WButton(style: styles.primary, icon: Icons.star, label: 'Primary', onTap: () {}),
+      WButton(icon: Icons.star, label: 'Primary', onTap: () {}),
       const SizedBox(height: 8),
-      WButton(style: styles.secondary, icon: Icons.add, label: 'Secondary', onTap: () {}),
+      WButton(
+        variant: WButtonVariant.outlined,
+        icon: Icons.add,
+        label: 'Secondary',
+        onTap: () {},
+      ),
       const SizedBox(height: 8),
-      WButton(style: styles.text, icon: Icons.info_outline, label: 'Text', onTap: () {}),
+      WButton(
+        variant: WButtonVariant.text,
+        icon: Icons.info_outline,
+        label: 'Text',
+        onTap: () {},
+      ),
       const SizedBox(height: 8),
-      WButton(style: styles.danger, icon: Icons.delete_outline, label: 'Danger', onTap: () {}),
+      WButton(
+        variant: WButtonVariant.danger,
+        icon: Icons.delete_outline,
+        label: 'Danger',
+        onTap: () {},
+      ),
     ],
   );
 }

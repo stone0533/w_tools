@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
-import '../../../utils/assets.dart';
 import 'image_base64.dart';
 import 'image_load_options.dart';
 import 'image_provider_factory.dart';
@@ -9,8 +8,7 @@ import 'image_types.dart';
 
 /// 图片来源。
 ///
-/// 6.0 起 `WImage` 只接收 [WImageSource]，不再用 `String data` 猜类型；
-/// 需要字符串入口时用 [WImageSource.parse]。
+/// `WImage` 只接收 [WImageSource]，类型由调用方显式选择；不再从字符串猜类型。
 sealed class WImageSource {
   const WImageSource();
 
@@ -76,20 +74,6 @@ sealed class WImageSource {
     }
   }
 
-  /// 从字符串解析来源；猜不中时按 asset 处理。
-  factory WImageSource.parse(String raw, {WImageType? type}) {
-    final value = raw.trim();
-    if (value.isEmpty) return WAssetImageSource(raw);
-    final resolved = type ?? _detect(value);
-    return switch (resolved) {
-      WImageType.network => WNetworkImageSource(raw),
-      WImageType.asset => WAssetImageSource(raw),
-      WImageType.file => WFileImageSource(raw),
-      WImageType.base64 => WBase64ImageSource(raw),
-      WImageType.provider => throw ArgumentError('provider 来源不能从字符串解析'),
-    };
-  }
-
   /// 网络图片
   factory WImageSource.network(
     String url, {
@@ -97,12 +81,9 @@ sealed class WImageSource {
     String? cacheKey,
   }) => WNetworkImageSource(url, headers: headers, cacheKey: cacheKey);
 
-  /// 本地资源
-  factory WImageSource.asset(
-    String name, {
-    String? package,
-    bool prefix = false,
-  }) => WAssetImageSource(name, package: package, prefix: prefix);
+  /// 本地资源（传完整资源路径，如 `assets/images/logo.png`）
+  factory WImageSource.asset(String name, {String? package}) =>
+      WAssetImageSource(name, package: package);
 
   /// 本地文件
   factory WImageSource.file(String path) => WFileImageSource(path);
@@ -116,18 +97,6 @@ sealed class WImageSource {
   static bool _hasPrefix(String value, String prefix) {
     return value.length >= prefix.length &&
         value.substring(0, prefix.length).toLowerCase() == prefix;
-  }
-
-  static WImageType _detect(String value) {
-    final uri = Uri.tryParse(value);
-    final scheme = uri?.scheme.toLowerCase() ?? '';
-    if ((scheme == 'http' || scheme == 'https') && (uri?.host.isNotEmpty ?? false)) {
-      return WImageType.network;
-    }
-    if (scheme == 'file') return WImageType.file;
-    if (_hasPrefix(value, 'data:')) return WImageType.base64;
-    if (value.startsWith('//')) return WImageType.network;
-    return WImageType.asset;
   }
 
   static String _filePathOf(String value) {
@@ -191,12 +160,14 @@ final class WNetworkImageSource extends WImageSource {
 }
 
 /// 本地资源
+///
+/// `name` 是完整的资源路径（如 `assets/images/logo.png`）；
+/// 12.0 删除了全局前缀 `WAssets.imagePath` 与 `prefix` 参数。
 final class WAssetImageSource extends WImageSource {
-  const WAssetImageSource(this.name, {this.package, this.prefix = false});
+  const WAssetImageSource(this.name, {this.package});
 
   final String name;
   final String? package;
-  final bool prefix;
 
   @override
   WImageType get type => WImageType.asset;
@@ -205,23 +176,17 @@ final class WAssetImageSource extends WImageSource {
   String get raw => name;
 
   @override
-  String get value {
-    final name = this.name.trim();
-    return prefix ? '${WAssets.imagePath}$name' : name;
-  }
+  String get value => name.trim();
 
   @override
   String get key => 'asset:${package ?? ''}:$value';
 
   @override
   bool operator ==(Object other) =>
-      other is WAssetImageSource &&
-      other.name == name &&
-      other.package == package &&
-      other.prefix == prefix;
+      other is WAssetImageSource && other.name == name && other.package == package;
 
   @override
-  int get hashCode => Object.hash(name, package, prefix);
+  int get hashCode => Object.hash(name, package);
 }
 
 /// 本地文件

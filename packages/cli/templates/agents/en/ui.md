@@ -2,7 +2,7 @@
   staging area, not planned for promotion): page shell `AppScaffold` (use raw `WScaffold` /
   `WAppBar` only for custom app bars or non-standard safe areas); `AppButtons` / `WButton` /
   `WPressable`; `WText(variant:)` / `WText.rich` / `WIconText`; `WImage.source`; `WListView` / `WKeepAliveWrapper` /
-  `WNotificationListener` / `WGradientCircularProgressIndicator`; `WNavBar` / `WTabBar` / `WStep` /
-  `WBadge` / `WActionRow`; `WScreen` / `WAssets`;
+  `WNotificationListener` / `WGradientCircularProgressIndicator`; `WNavBar` / `WStep` /
+  `WBadge` / `WActionRow` / Material `TabBar`; `WScreen`;
   `WSizeBox` / `WPadding` were removed in 5.0 — use native `SizedBox` / `Padding`.
   Details: `explain WImage` / `explain WText` / `explain WIconText` / `{{projectUiDir}}/README.md`.

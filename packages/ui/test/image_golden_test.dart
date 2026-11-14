@@ -69,8 +69,12 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         WImage.source(
-          source: WImageSource.parse('data:image/png;base64,$_redPixel'),
-          style: WImageStyle.avatar(64),
+          source: WImageSource.base64('data:image/png;base64,$_redPixel'),
+          style: const WImageStyle(
+            width: 64,
+            height: 64,
+            borderRadius: BorderRadius.all(Radius.circular(32)),
+          ),
         ),
       ),
     );
@@ -86,9 +90,12 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         WImage.source(
-          source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
+          source: WImageSource.base64('data:image/png;base64,@@invalid@@'),
           style: const WImageStyle(width: 160, height: 120),
-          slots: const WImageSlots(showRetryButton: true),
+          slots: WImageSlots(
+            errorWidgetBuilder: (context, data, error, retry) =>
+                WImageErrorView(error: error, onRetry: retry),
+          ),
         ),
       ),
     );
@@ -104,9 +111,11 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         WImage.source(
-          source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
+          source: WImageSource.base64('data:image/png;base64,@@invalid@@'),
           style: const WImageStyle(width: 64, height: 64),
-          slots: WImageSlots(errorWidgetBuilder: (context, data, error) => _errorBox),
+          slots: WImageSlots(
+            errorWidgetBuilder: (context, data, error, retry) => _errorBox,
+          ),
         ),
       ),
     );
@@ -122,7 +131,7 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         WImage.source(
-          source: WImageSource.parse(''),
+          source: WImageSource.asset(''),
           style: const WImageStyle(width: 64, height: 64),
         ),
       ),

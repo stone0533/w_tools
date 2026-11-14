@@ -1,54 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:w_tools_ui/w_tools_ui.dart';
 
-/// 项目按钮样式：定义一次，页面直接传 style。
+/// 项目按钮样式：定义一次，页面直接传 style（Material ButtonStyle）。
 abstract final class AppButtons {
-  static WButtonStyle primary(BuildContext context) {
+  static ButtonStyle primary(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return WButtonStyle(
-      backgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return scheme.onSurface.withValues(alpha: 0.12);
-        }
-        if (states.contains(WidgetState.pressed)) {
-          return scheme.primary.withValues(alpha: 0.82);
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return scheme.primary.withValues(alpha: 0.92);
-        }
-        return scheme.primary;
-      }),
-      foregroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return scheme.onSurface.withValues(alpha: 0.38);
-        }
-        return scheme.onPrimary;
-      }),
-      borderRadius: BorderRadius.circular(8),
+    return FilledButton.styleFrom(
+      backgroundColor: scheme.primary,
+      foregroundColor: scheme.onPrimary,
+      disabledBackgroundColor: scheme.onSurface.withValues(alpha: 0.12),
+      disabledForegroundColor: scheme.onSurface.withValues(alpha: 0.38),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      disabledOpacity: 1,
     );
   }
 
-  static WButtonStyle secondary(BuildContext context) {
+  static ButtonStyle secondary(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return WButtonStyle.outlined(
+    return OutlinedButton.styleFrom(
       foregroundColor: scheme.primary,
-      borderColor: scheme.primary,
+      side: BorderSide(color: scheme.primary),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 
-  static WButtonStyle text(BuildContext context) {
+  static ButtonStyle text(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return WButtonStyle.text(foregroundColor: scheme.primary);
+    return TextButton.styleFrom(foregroundColor: scheme.primary);
   }
 
-  static WButtonStyle danger(BuildContext context) {
+  static ButtonStyle danger(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return WButtonStyle.filled(
+    return FilledButton.styleFrom(
       backgroundColor: scheme.error,
       foregroundColor: scheme.onError,
-      borderRadius: BorderRadius.circular(8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }

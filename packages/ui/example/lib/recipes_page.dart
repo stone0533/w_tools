@@ -18,36 +18,40 @@ class RecipesPage extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const _SectionTitle('头像：WImage + WImageStyle.avatar'),
+        const _SectionTitle('头像：WImage + 正方形 + 全圆角'),
         const SizedBox(height: 8),
         _Card(
           child: WImage.source(
-            source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
-            style: WImageStyle.avatar(72),
+            source: WImageSource.asset('assets/demo.png'),
+            style: WImageStyle(
+              width: 72,
+              height: 72,
+              borderRadius: BorderRadius.circular(36),
+            ),
           ),
         ),
         const _Code(
-          "WImage.source(source: WImageSource.parse('assets/demo.png'), style: WImageStyle.avatar(72))",
+          'style: WImageStyle(width: 72, height: 72, borderRadius: BorderRadius.circular(36))',
         ),
         const SizedBox(height: 24),
-        const _SectionTitle('缩略图：WImage + WImageStyle.thumbnail'),
+        const _SectionTitle('缩略图：WImage + 正方形 + 解码上限'),
         const SizedBox(height: 8),
         _Card(
           child: WImage.source(
-            source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
-            style: WImageStyle.thumbnail(96),
+            source: WImageSource.asset('assets/demo.png'),
+            style: const WImageStyle(width: 96, height: 96),
             options: const WImageLoadOptions(memCacheWidth: 288, memCacheHeight: 288),
           ),
         ),
         const _Code(
-          'WImage.source(source: ..., style: WImageStyle.thumbnail(96), options: WImageLoadOptions(...))',
+          'style: WImageStyle(width: 96, height: 96), options: WImageLoadOptions(memCacheWidth: 288, memCacheHeight: 288)',
         ),
         const SizedBox(height: 24),
         const _SectionTitle('封面：WImage + WImageStyle.cover'),
         const SizedBox(height: 8),
         _Card(
           child: WImage.source(
-            source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
+            source: WImageSource.asset('assets/demo.png'),
             style: WImageStyle.cover(aspectRatio: 16 / 9, radius: 12),
           ),
         ),
@@ -61,7 +65,7 @@ class RecipesPage extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 96),
             child: WImage.source(
-              source: WImageSource.parse('assets/demo.png', type: WImageType.asset),
+              source: WImageSource.asset('assets/demo.png'),
               style: const WImageStyle(
                 width: double.infinity,
                 fit: BoxFit.fitWidth,
@@ -74,16 +78,16 @@ class RecipesPage extends StatelessWidget {
           'ConstrainedBox(maxHeight: 96) + WImageStyle(width: double.infinity, fit: BoxFit.fitWidth, alignment: Alignment.topCenter)',
         ),
         const SizedBox(height: 24),
-        const _SectionTitle('自动拼接资源路径：WImage.source(source: WImageSource.asset(), prefix: true))'),
+        const _SectionTitle('资源路径：直接传完整路径'),
         const SizedBox(height: 8),
         _Card(
           child: WImage.source(
-            source: WImageSource.asset('demo.png', prefix: true),
+            source: WImageSource.asset('assets/demo.png'),
             style: const WImageStyle(width: 120, height: 68),
           ),
         ),
         const _Code(
-          "WAssets.imagePath = 'assets/' 后：WImage.source(source: WImageSource.asset('demo.png', prefix: true))",
+          "WImage.source(source: WImageSource.asset('assets/demo.png'))",
         ),
         const SizedBox(height: 24),
         const _SectionTitle('内存字节：WImageSource.provider(MemoryImage(...))'),
@@ -108,14 +112,17 @@ class RecipesPage extends StatelessWidget {
         const SizedBox(height: 8),
         _Card(
           child: WImage.source(
-            source: WImageSource.parse('https://example.invalid/retry.png'),
+            source: WImageSource.network('https://example.invalid/retry.png'),
             style: const WImageStyle(width: 160, height: 90),
             options: const WImageLoadOptions(retryCount: 1),
-            slots: const WImageSlots(showRetryButton: true),
+            slots: WImageSlots(
+              errorWidgetBuilder: (context, data, error, retry) =>
+                  WImageErrorView(error: error, onRetry: retry),
+            ),
           ),
         ),
         const _Code(
-          'WImageStyle(width: 160, height: 90) + WImageLoadOptions(retryCount: 1) + WImageSlots(showRetryButton: true)',
+          'WImageSlots.errorWidgetBuilder: (c, d, error, retry) => WImageErrorView(error: error, onRetry: retry)',
         ),
       ],
     );

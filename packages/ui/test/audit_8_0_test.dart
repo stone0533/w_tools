@@ -20,36 +20,19 @@ void main() {
     expect(colors.upcoming, scheme.outline);
   });
 
-  testWidgets('WButtonStyleSet.of 返回命名类型 WButtonStyleSet', (tester) async {
-    late WButtonStyleSet set;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) {
-            set = WButtonStyleSet.of(context);
-            return const SizedBox();
-          },
-        ),
-      ),
-    );
-    expect(set.primary, isA<WButtonStyle>());
-    expect(set.secondary, isA<WButtonStyle>());
-    expect(set.text, isA<WButtonStyle>());
-    expect(set.danger, isA<WButtonStyle>());
-  });
-
-  testWidgets('WButton 支持 motion / semantics 参数', (tester) async {
+  testWidgets('WButton 使用 Material ButtonStyle 与语义参数', (tester) async {
     final handle = tester.ensureSemantics();
     await tester.pumpWidget(
       MaterialApp(
         home: WButton(
           label: '保存',
-          motion: const WButtonMotion(effect: WPressEffect.scale),
-          semantics: const WButtonSemantics(label: '保存按钮'),
+          variant: WButtonVariant.danger,
+          semanticLabel: '保存按钮',
           onTap: () {},
         ),
       ),
     );
+    expect(find.byType(FilledButton), findsOneWidget);
     expect(tester.getSemantics(find.byType(WButton)).label, contains('保存按钮'));
     handle.dispose();
   });
@@ -97,7 +80,7 @@ void main() {
   testWidgets('WStep 默认语义标签不写死英文', (tester) async {
     final handle = tester.ensureSemantics();
     await tester.pumpWidget(
-      MaterialApp(home: WStep(labels: const ['下单', '付款'], current: 1)),
+      const MaterialApp(home: WStep(labels: ['下单', '付款'], current: 1)),
     );
     final label = tester.getSemantics(find.byType(WStep)).label;
     expect(label, contains('1/2'));
@@ -122,21 +105,6 @@ void main() {
     expect(data.statusBarHeight, WScreen.statusBarHeight);
   });
 
-  testWidgets('WTabBar 只用 style 构建', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: DefaultTabController(
-          length: 1,
-          child: WTabBar(
-            style: WTabBarStyle(isScrollable: true),
-            tabs: [Tab(text: '全部')],
-          ),
-        ),
-      ),
-    );
-    expect(find.byType(WTabBar), findsOneWidget);
-  });
-
   testWidgets('WNotificationListener 是唯一通知入口', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -151,7 +119,7 @@ void main() {
 
   testWidgets('UI-021: WStep / WListView 可渲染', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(home: WStep(labels: const ['a', 'b'], current: 1)),
+      const MaterialApp(home: WStep(labels: ['a', 'b'], current: 1)),
     );
     expect(find.byType(WStep), findsOneWidget);
 
@@ -197,7 +165,7 @@ void main() {
         theme: base.copyWith(
           textTheme: base.textTheme.copyWith(bodySmall: const TextStyle(fontSize: 9)),
         ),
-        home: WStep(labels: const ['a'], current: 1),
+        home: const WStep(labels: ['a'], current: 1),
       ),
     );
     expect(tester.widget<Text>(find.text('a')).style?.fontSize, 9);

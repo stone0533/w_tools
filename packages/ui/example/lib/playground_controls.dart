@@ -8,14 +8,12 @@ class PlaygroundControls extends StatelessWidget {
     super.key,
     required this.config,
     required this.onChanged,
-    required this.onRetry,
     required this.status,
     required this.progress,
   });
 
   final PlaygroundConfig config;
   final ValueChanged<PlaygroundConfig> onChanged;
-  final VoidCallback onRetry;
   final String? status;
   final double? progress;
 
@@ -136,26 +134,9 @@ class PlaygroundControls extends StatelessWidget {
           value: config.withShadow,
           onChanged: (value) => onChanged(config.copyWith(withShadow: value)),
         ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('WImageStyle.margin'),
-          value: config.withMargin,
-          onChanged: (value) => onChanged(config.copyWith(withMargin: value)),
-        ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'status: ${status ?? '-'} · progress: ${progress?.toStringAsFixed(2) ?? '-'}',
-              ),
-            ),
-            TextButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('controller.retry()'),
-            ),
-          ],
+        Text(
+          'status: ${status ?? '-'} · progress: ${progress?.toStringAsFixed(2) ?? '-'}',
         ),
       ],
     );

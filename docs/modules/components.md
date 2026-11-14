@@ -15,12 +15,9 @@
 | `WScaffold` | ui | 页面壳：默认 WAppBar、body、抽屉 / 底部面板 / 底部导航 / FAB、安全区 | 任意顶部叠放用页面层 Container/Stack |
 | `WAppBar` | ui | 标准顶部导航栏（leading/title/actions/bottom、leadingWidth/actionsPadding/shadow） | 任意叠放/覆盖布局在页面层用 Container/Stack |
 | `WAppBarStyle` | ui | WAppBar 的背景 / 渐变 / 前景色 / 标题样式 / 高度 / leadingWidth / actionsPadding / 阴影 | backgroundColor 与 gradient 只能选一个 |
-| `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 需 vsync 并由页面 State dispose | 不要自己写 `BottomNavigationBar` |
+| `WNavBar` / `WNavController` | ui | 底部 tab 栏；controller 只维护 currentIndex，由页面 State dispose | 不要自己写 `BottomNavigationBar` |
 | `WNavDestination` | ui | WNavBar 默认项的图标 / 选中图标 / 文案 | 需要完全自定义项时用 `WNavBar.itemBuilder` |
-| `WNavBarStyle` | ui | WNavBar 的外层装饰 / padding；新代码优先 | 选中态与切换动画由 `WNavController` 管，不要放进 style |
-| `WTabBar` | ui | 顶部 tab；依赖 TabController / DefaultTabController | 需要下划线跟随的复杂交互时先看它够不够 |
-| `WTabBarStyle` | ui | 指示器 / 分割线 / 对齐 / overlay / 标签样式；新代码优先 | WTabBar 不自带 controller，不要在这里塞状态 |
-| `WStep` / `WStepFlow` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
+| `WStep` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
 | `WStepStyle` | ui | 步骤条颜色 / 尺寸 / 间距 / 标签样式 | 不要靠改 WStep 内部布局实现视觉；优先用 itemBuilder |
 | `WStepColors` | ui | WStepStyle.resolve 返回的 completed / current / upcoming 颜色 | 不要自己按 Brightness 推颜色；让 WStepStyle.resolve 解析主题 |
 | `WApp` | app_getx | GetX 启动器 | — |
@@ -47,31 +44,29 @@
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WText` / `WTextVariant` / `WTextStyles` | ui | 语义文字样式、overrides、maxLines、textScaler | 不要再用已移除的 `WTextConfig`，改用 `WTextStyles` |
-| `WIconText` | ui | 图标 + 文字一行（垂直居中 / 光学补偿），替代 Row + Icon + Text | 纯图标 / 需要按钮语义用 `WButton(icon: ...)`；复杂多行内容用 `WButtonContentBuilder` |
-| `WImage` | ui | 网络图/资源图（缓存、占位；重试需显式设置 retryCount） | 不要裸用 `Image.network` |
-| `WImageSource` | ui | WImage 的来源：network / asset / file / base64 / provider / parse | 不要用已删除的 WImage.network / asset / file / data |
+| `WIconText` | ui | 图标 + 文字一行（垂直居中 / 光学补偿），替代 Row + Icon + Text | 纯图标 / 需要按钮语义用 `WButton(icon: ...)`；复杂多行内容用 `WButton(content: ...)` |
+| `WImage` | ui | 网络图/资源图（缓存、占位；自动重试用 retryCount） | 不要裸用 `Image.network` |
+| `WImageSource` | ui | WImage 的来源：network / asset / file / base64 / provider | 不要用已删除的 WImage.network / asset / file / data，也不要用 WImageSource.parse |
 | `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里 |
 | `WImageLoadOptions` | ui | 图片加载行为：解码尺寸 / 重试 / gapless | 视觉样式用 `WImageStyle` |
-| `WImageController` | ui | 手动重试与加载状态（retry / state） | 一个 controller 只能绑定一张 WImage |
 | `WAppPlugin` | app | 插件分层初始化 | — |
 | `WAppPluginRunner` | app | GetX-free 的插件注册表与 dependsOn 分层初始化 | 不要绕过 WApp.init 直接调用；WApp 内部会委托它 |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
 | `WImageTheme` | ui | App 级图片占位 / 错误 / 进度默认配置 | 不要按单图传参；单图默认值用 WImageSlots，主题只做 App 级兜底 |
-| `WImageSlots` | ui | 单图 / App 级图片占位 / 空 / 错误 / 进度 / 重试 UI | 不要把重试次数、解码尺寸等行为配置塞进 WImageSlots |
+| `WImageSlots` | ui | 单图 / App 级图片占位 / 错误 UI（两槽） | 不要把重试次数、解码尺寸等行为配置塞进 WImageSlots |
 | `WImageErrorKind` | ui | 图片错误分类（WImageError.kind） | 不要用字符串比较错误；按 kind 分支 |
 | `WImageError` | ui | 图片加载错误（data / kind / cause / message / localizedMessage） | 不要自己构造来 mock 失败；用 WImageSource 触发真实错误 |
 | `WImageProgress` | ui | 图片加载进度（downloadedBytes / totalBytes / fraction / isComplete） | 不要把 downloadedBytes 当总大小；总大小未知时看 fraction == null |
 | `WImageType` | ui | 图片来源类型（asset / network / file / base64 / provider） | 不要用它决定业务 UI；按 WImageSource 子类型或 error.kind 判断 |
 | `WImageLoadStatus` | ui | 图片加载状态（idle / loading / completed / failed） | 不要当业务状态机；只表示图片加载阶段 |
-| `WImageLoadSnapshot` | ui | 图片加载快照（status / progress / attempt / error / retryScheduled） | 不要缓存后当实时状态；监听 WImageController.state |
 | `WImageStyleExtension` | ui | WImageStyle 链式糖：square / rounded | 不要用它做条件样式；复杂组合直接构造 WImageStyle |
 | `WThemeDataExtension` | ui | ThemeData.withWTextStyles：同时写 TextTheme 与 WTextStyles | 不要只装 TextTheme 不装扩展；会丢 price / number / badge 语义 |
 | `WNetworkImageSource` | ui | WImageSource 的网络实现（通常用 WImageSource.network） | 不要复用可变 headers 后再改；source 是值对象 |
-| `WAssetImageSource` | ui | WImageSource 的资源实现（通常用 WImageSource.asset） | 不要在已带 WAssets 前缀的路径上再传 prefix: true；会重复前缀 |
+| `WAssetImageSource` | ui | WImageSource 的资源实现（通常用 WImageSource.asset） | 不要传只有文件名的路径；asset 需要完整资源路径 |
 | `WFileImageSource` | ui | WImageSource 的本地文件实现（通常用 WImageSource.file） | 不要在 Web 上用；Web 上 WImageSource.resolve 抛 UnsupportedError |
 | `WBase64ImageSource` | ui | WImageSource 的 Base64 实现（通常用 WImageSource.base64） | 不要传超大 Base64 做主线程解码；优先网络 / 资源图 |
 | `WProviderImageSource` | ui | WImageSource 的 ImageProvider 实现（通常用 WImageSource.provider） | 不要用它绕开 WImage 的错误与语义处理；只在已有 provider 时用 |
-| `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / compact） | 不要当页面级错误组件；只用于图片占位 |
+| `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / showAction） | 不要当页面级错误组件；只用于图片占位 |
 | `WAsyncStatus` | async | 四态枚举：loading / ready / empty / failed | — |
 <!-- catalog:2:end -->
 
@@ -83,10 +78,10 @@
 <!-- catalog:3:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WButtonStyle` | ui | 按钮视觉：颜色 / 边框 / 圆角 / 内边距 / 尺寸 / 动效 / 语义 | 按钮宽度由父布局决定，`WButtonStyle` 不含 width |
-| `WButton` | ui | 真正的按钮（label/icon + style/size/loading） | 任意 child 点击用 `WPressable` |
+| `WButton` | ui | Material 按钮（variant + ButtonStyle），带 loading / 语义 / 尺寸 | 任意 child 点击用 `WPressable`；表单值选择用 `WFormButton` |
+| `WButtonTheme` | ui | 全站按钮四态 ButtonStyle（filled / outlined / text / danger），ThemeExtension | 单个按钮覆盖用 `WButton(style: ButtonStyle(...))`，不要改全局主题 |
+| `WButtonVariant` | ui | 按钮语义变体：filled / outlined / text / danger | 不要用它控制尺寸 / 圆角；那些走 WButtonTheme 或 ButtonStyle |
 | `WPressable` | ui | 任意 child 的点击 + 基础效果（无 button 语义） | 需要 button 语义 / 键盘焦点 / 最小点击区域时用 `WButton` |
-| `WButtonStyleSet` | ui | 按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger） | 不要自己 new 这组样式；页面统一样式用项目 AppButtons 注册表 |
 | `WActionRow` / `WSelectableRow` | ui | 横向滚动按钮行：`WActionRow` 无选中、`WSelectableRow` 单选高亮 | 旧的 `WRowButtons` 已在 5.0 删除；纯静态排列直接用 `Row` |
 | `WBadge` | ui | 角标数字 / 圆点 | 不要用于长文案；多字提示用 WText |
 | `WBadgeStyle` | ui | 角标视觉：背景 / 前景 / 文字 / padding / 圆角 / 边框 | 不要在这里放位置；位置用 WBadgePosition |
@@ -96,12 +91,8 @@
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore、本地替换（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WAsyncPagedFooterStatus` | async | 分页 footer 的派生状态：hidden / loading / failed / noMore / loadMore | 不要自己用 data / loadMoreError / hasMore 拼 footer 状态 |
 | `WLanguage` | app | 实例级语言状态 / 切换 / 只读变化流 | 不要自己保存 currentLanguage；用 app.language |
-| `WButtonSize` | ui | 按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap） | 不要用它控制宽度；宽度由父布局决定 |
-| `WButtonMotion` | ui | 按钮按压动效（opacity / scale / none） | 不要每个按钮自定义一套；默认动效已够，品牌统一放 AppButtons |
-| `WButtonSemantics` | ui | 按钮无障碍语义（label / hint） | 不要用它替代 Semantics 组件；它只供 WButton 的朗读文案 |
+| `WButtonSize` | ui | 按钮尺寸令牌（minWidth/minHeight/padding/fontSize/iconSize/gap），映射到 ButtonStyle | 不要用它控制宽度；宽度由父布局决定；颜色 / 边框走 WButtonTheme |
 | `WPressEffect` | ui | WPressable 按压效果（opacity / scale / none） | 不要用它做 loading；只做按压反馈 |
-| `WButtonContentBuilder` | ui | WButton.contentBuilder 的类型：拿到最终样式自己排版 | 不要在 builder 里重新读 Theme 派生样式；直接用传入的 resolved style |
-| `WButtonResolvedStyle` | ui | contentBuilder 拿到的最终样式（states / 背景 / 文字样式等） | 不要缓存后跨帧使用；它只对当前 WidgetState 有效 |
 | `WFormThemeData` | form | 表单主题数据（icons / borderStyle + effective* 图标 getter）；`WFormThemeData.of(context)` 读取 | — |
 | `WFormTheme` | form | 主题 InheritedWidget：App 级图标 / 边框统一放外层，WForm 会继承 | — |
 | `WAsyncPageLoader` | async | 分页 loader 的类型：(page) => Future<List<T>> | — |
@@ -116,7 +107,6 @@
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
-| `WAssets` | ui | 图片资源前缀唯一开关 | 不要硬编码 `assets/images/` |
 | `WFormBorder` | form | 低层边框 / 错误展示；普通页面由 `WForm` 统一提供 | 普通字段不要手写 `WFormBorder` |
 | `WFormBorderStyle` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 hint/error 样式 | 普通字段不要手写 `WFormBorder`；配置通过 `WForm(borderStyle: ...)` 下发 |
 | `WAsyncView` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面用 `WAsyncStateBuilder`；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
@@ -217,6 +207,7 @@
 | `WMap` / `WMapZone` | map_google | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
 | `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
+| `WNumFormatExtension` | core | 数字格式化：千分位 / 货币 / 百分比 / 前导零（12.0 从 ui 迁入） | 不要重复手写 toStringAsFixed / 正则分组；需要 locale 时用 intl |
 | `WFormInputFormatters` | form | 常用输入格式化器工厂（电话号码等） | — |
 | `WCardNumberInputFormatter` | form | 每 4 位插入空格的卡号格式化器 | — |
 | `WDividerInputFormatter` | form | 通用分隔符输入格式化器（first / rear / pattern） | — |
@@ -227,15 +218,13 @@
 <!-- catalog:9:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WNumLayoutExtension` | ui | num 的 SizedBox / EdgeInsets / BorderRadius / BorderSide 糖 | 不要重复手写 SizedBox / EdgeInsets / BorderRadius |
-| `WNumFormatExtension` | ui | 数字格式化：千分位 / 货币 / 百分比 / 前导零 | 不要重复手写 toStringAsFixed / 正则分组 |
-| `WStringExtension` | ui | String 转数字 / 去空格 / hex 颜色 / 资源路径 | 图片组件转换用 `WStringExtension` 的路径方法 |
-| `WBoxDecorationExtension` | ui | BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影） | 不要每次重写完整 BoxDecoration |
+| `WNumLayoutExtension` | ui | num 的 EdgeInsets / BorderSide 糖 | SizedBox / BorderRadius 直接用 Flutter 原生构造；12.0 删除了 heightBox / widthBox / squareBox / horizontalPadding / verticalPadding / borderRadius |
+| `WStringExtension` | ui | hex 颜色 | 数字转换 / 去空格 / trim / 资源路径都直接用 Dart / WImageSource |
+| `WBoxDecorationExtension` | ui | BoxDecoration 的唯一背景 / 圆形组合 | 边框 / 圆角 / 阴影直接传 BoxDecoration 构造器；12.0 删除了 withColor / withBorderRadius / withShadow 等逐字段方法 |
 | `WWidgetExtension` | ui | Widget 安全空间 / 方向 padding / 装饰 / IntrinsicHeight / toPressable | 需要 button 语义用 `WButton`；物理 padding 直接用 Flutter Padding |
 | `WColorExtension` | ui | 十六进制颜色解析 / 输出 | 不要手写 Color(int.parse(...)) |
 | `WGradients` | ui | 预设渐变（vertical / horizontal / diagonal / radial） | 不要写死品牌色；它只提供方向，颜色由调用方传 |
 | `WShadows` | ui | 预设阴影（none / card / elevated / floating） | 不要用于深色模式文字阴影；它只是中性预设 |
-| `WGlobalKeyExtension` | ui | GlobalKey 位置 / 边界（offset / rect） | 不要用它替代 controller / 状态传递；只做读取位置 |
 <!-- catalog:9:end -->
 
 ## 10. 待补（有重复用例，尚未进包）

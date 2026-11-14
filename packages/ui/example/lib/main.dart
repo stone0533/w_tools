@@ -21,7 +21,8 @@ void main() {
     WImageTheme(
       slots: WImageSlots(
         placeholderBuilder: (context, data) => const Center(child: CircularProgressIndicator()),
-        errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
+        errorWidgetBuilder: (context, data, error, retry) =>
+            WImageErrorView(error: error, onRetry: retry),
       ),
       child: const WUiExampleApp(),
     ),
@@ -56,7 +57,7 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
+class _HomeShellState extends State<HomeShell> {
   late final WNavController _navController;
 
   static const _pages = <Widget>[
@@ -80,12 +81,7 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // 让 WImage.source(source: WImageSource.asset('demo.png', prefix: true)) 指向 example/assets/demo.png。
-    WAssets.imagePath = 'assets/';
-    _navController = WNavController(
-      length: _destinations.length,
-      vsync: this,
-    );
+    _navController = WNavController(length: _destinations.length);
   }
 
   @override
@@ -106,7 +102,6 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
         ),
       ),
       bottomNavigationBar: WNavBar(
-        style: const WNavBarStyle(),
         controller: _navController,
         itemBuilder: (context, index, selected) {
           final item = _destinations[index];

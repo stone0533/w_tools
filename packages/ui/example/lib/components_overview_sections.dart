@@ -68,9 +68,6 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
           ),
         ),
         const SizedBox(width: 8),
-        const Text('1234 → '),
-        Text(1234.toThousandsSeparated),
-        const SizedBox(width: 8),
         const Text(' #FF5733 → '),
         Container(
           width: 16,
@@ -87,15 +84,14 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
         Container(
           width: 48,
           height: 32,
-          decoration: const BoxDecoration()
-              .withGradient(
-                WGradients.vertical([
-                  Colors.indigo,
-                  Colors.lightBlue,
-                ]),
-              )
-              .withBorderRadius(const BorderRadius.all(Radius.circular(8)))
-              .withShadow(WShadows.card),
+          decoration: BoxDecoration(
+            gradient: WGradients.vertical([
+              Colors.indigo,
+              Colors.lightBlue,
+            ]),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            boxShadow: WShadows.card,
+          ),
         ),
       ],
     ),
@@ -228,9 +224,9 @@ List<Widget> buildComponentsOverviewSections(BuildContext context) {
     ),
     const SizedBox(height: 24),
     const DemoSectionTitle('WStep 步骤'),
-    WStep(
+    const WStep(
       current: 2,
-      labels: const ['选择', '确认', '完成'],
+      labels: ['选择', '确认', '完成'],
     ),
     const SizedBox(height: 24),
     const DemoSectionTitle('WListView 列表'),

@@ -6,82 +6,52 @@ void main() {
   const base = BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.all(Radius.circular(12)),
+    border: Border.fromBorderSide(BorderSide(color: Colors.black12)),
+    boxShadow: WShadows.card,
   );
 
   group('WBoxDecorationExtension', () {
-    test('withGradient 保留其他字段', () {
-      final next = base.withGradient(
-        WGradients.vertical(const [Colors.red, Colors.blue]),
-      );
-
-      expect(next.color, Colors.white);
-      expect(next.borderRadius, const BorderRadius.all(Radius.circular(12)));
-      expect(next.gradient, isA<LinearGradient>());
-    });
-
-    test('withShadow 保留背景和圆角', () {
+    test('withBackground(color:) 清空 gradient，保留其他字段', () {
       final next = base
-          .withGradient(WGradients.horizontal(const [Colors.red, Colors.blue]))
-          .withShadow(WShadows.card);
-
-      expect(next.gradient, isNotNull);
-      expect(next.borderRadius, base.borderRadius);
-      expect(next.boxShadow, WShadows.card);
-    });
-
-    test('withShadow 复制列表，外部修改不影响装饰', () {
-      final shadows = <BoxShadow>[
-        const BoxShadow(color: Colors.black12, blurRadius: 4),
-      ];
-      final next = base.withShadow(shadows);
-
-      shadows.clear();
-
-      expect(next.boxShadow, isNotEmpty);
-      expect(() => next.boxShadow!.add(const BoxShadow()), throwsUnsupportedError);
-    });
-
-    test('color 与 gradient 可以共存', () {
-      final next = base
-          .withGradient(WGradients.vertical(const [Colors.red, Colors.blue]))
-          .withColor(Colors.black);
+          .withBackground(gradient: WGradients.vertical(const [Colors.red, Colors.blue]))
+          .withBackground(color: Colors.black);
 
       expect(next.color, Colors.black);
-      expect(next.gradient, isNotNull);
+      expect(next.gradient, isNull);
+      expect(next.borderRadius, base.borderRadius);
+      expect(next.border, base.border);
+      expect(next.boxShadow, base.boxShadow);
     });
 
-    test('without* 可以显式清空', () {
-      final decorated = base
-          .withGradient(WGradients.diagonal(const [Colors.red, Colors.blue]))
-          .withShadow(WShadows.card)
-          .withBorder(Border.all(color: Colors.black));
+    test('withBackground(gradient:) 清空 color', () {
+      final next = base.withBackground(
+        gradient: WGradients.vertical(const [Colors.red, Colors.blue]),
+      );
 
-      expect(decorated.withoutGradient().gradient, isNull);
-      expect(decorated.withoutShadow().boxShadow, isNull);
-      expect(decorated.withoutBorder().border, isNull);
-      expect(decorated.withoutBorderRadius().borderRadius, isNull);
-      expect(decorated.withoutColor().color, isNull);
+      expect(next.color, isNull);
+      expect(next.gradient, isA<LinearGradient>());
+      expect(next.borderRadius, base.borderRadius);
     });
 
-    test('circle 清空 borderRadius', () {
+    test('withBackground 必须且只能传一个背景', () {
+      expect(() => base.withBackground(), throwsAssertionError);
+      expect(
+        () => base.withBackground(
+          color: Colors.black,
+          gradient: WGradients.vertical(const [Colors.red, Colors.blue]),
+        ),
+        throwsAssertionError,
+      );
+    });
+
+    test('circle 清空 borderRadius，保留背景与阴影', () {
       final circle = base.circle();
 
       expect(circle.shape, BoxShape.circle);
       expect(circle.borderRadius, isNull);
-    });
-
-    test('circle 后不能再设置 borderRadius', () {
-      expect(
-        () => base.circle().withBorderRadius(BorderRadius.circular(8)),
-        throwsAssertionError,
-      );
-    });
-
-    test('已有 borderRadius 时不能直接 withShape(circle)', () {
-      expect(
-        () => base.withShape(BoxShape.circle),
-        throwsAssertionError,
-      );
+      expect(circle.color, Colors.white);
+      expect(circle.border, base.border);
+      expect(circle.boxShadow, base.boxShadow);
     });
   });
 

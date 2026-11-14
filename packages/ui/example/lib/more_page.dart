@@ -28,7 +28,7 @@ class MorePage extends StatelessWidget {
       ),
       (
         '扩展方法',
-        '数字 / 字符串 / 颜色 / 文字样式 / Widget / BoxDecoration / GlobalKey',
+        '数字 / 颜色 / 文字样式 / Widget / BoxDecoration',
         (_) => const ExtensionsDemoPage(),
       ),
       (
@@ -37,13 +37,13 @@ class MorePage extends StatelessWidget {
         (_) => const ListsDemoPage(),
       ),
       (
-        'WNavBar / WNavController / WTabBar',
-        '切换动画、onBeforeTap 拦截、WNavBarStyle、WTabBar 配置',
+        'WNavBar / WNavController',
+        'onBeforeTap 拦截、decoration / padding',
         (_) => const NavDemoPage(),
       ),
       (
-        'WStep / WStepFlow',
-        'WStepStyle、itemBuilder / separatorBuilder、流程复用',
+        'WStep',
+        'WStepStyle、itemBuilder / separatorBuilder、参数复用',
         (_) => const StepsDemoPage(),
       ),
     ];

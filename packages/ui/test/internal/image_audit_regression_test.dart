@@ -22,15 +22,11 @@ Future<void> _settle(WidgetTester tester) async {
   await tester.pump();
 }
 
-Future<void> _settleUntilCompleted(WidgetTester tester, WImageController controller) async {
-  for (var i = 0; i < 12 && !controller.state.value.isCompleted; i++) {
+Future<void> _settleUntilCompleted(WidgetTester tester, bool Function() isCompleted) async {
+  for (var i = 0; i < 12 && !isCompleted(); i++) {
     await _settle(tester);
   }
-  expect(
-    controller.state.value.status,
-    WImageLoadStatus.completed,
-    reason: 'image did not finish loading: ${controller.state.value}',
-  );
+  expect(isCompleted(), isTrue, reason: 'image did not finish loading');
 }
 
 class _HangingProvider extends ImageProvider<_HangingProvider> {
@@ -53,41 +49,6 @@ class _HangingProvider extends ImageProvider<_HangingProvider> {
   int get hashCode => identityHashCode(this);
 }
 
-class _ListenerHost extends StatefulWidget {
-  const _ListenerHost({super.key});
-
-  @override
-  State<_ListenerHost> createState() => _ListenerHostState();
-}
-
-class _ListenerHostState extends State<_ListenerHost> {
-  final WImageController controller = WImageController();
-  WImageSource source = WImageSource.network('https://example.invalid/a.png');
-
-  void setSource(WImageSource next) => setState(() => source = next);
-
-  void rebuild() => setState(() {});
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: WImage.source(
-          source: source,
-          controller: controller,
-          style: const WImageStyle(width: 100, height: 100),
-        ),
-      ),
-    );
-  }
-}
-
 int _green(Color color) => (color.g * 255).round();
 
 Future<Color> _centerColor(GlobalKey boundaryKey) async {
@@ -107,13 +68,6 @@ void main() {
   test('WImageStyle 是值对象', () {
     expect(const WImageStyle(width: 10), WImageStyle(width: 10));
     expect(const WImageStyle(width: 10).hashCode, WImageStyle(width: 10).hashCode);
-  });
-
-  test('WImageController 创建后即可监听 idle 状态', () {
-    final controller = WImageController();
-    addTearDown(controller.dispose);
-    expect(controller.state.value.isIdle, isTrue);
-    expect(controller.state.value.attempt, 0);
   });
 
   testWidgets('border 绘制在图片之上', (tester) async {
@@ -156,7 +110,7 @@ void main() {
     );
   });
 
-  testWidgets('aspectRatio 作用于图片内容，padding 在外', (tester) async {
+  testWidgets('aspectRatio 作用于图片内容', (tester) async {
     await tester.pumpWidget(
       _wrap(
         Column(
@@ -165,10 +119,7 @@ void main() {
               width: 200,
               child: WImage.source(
                 source: WImageSource.base64(_redPixel),
-                style: const WImageStyle(
-                  aspectRatio: 2,
-                  padding: EdgeInsets.all(10),
-                ),
+                style: const WImageStyle(aspectRatio: 2),
               ),
             ),
           ],
@@ -179,21 +130,20 @@ void main() {
 
     final imageSize = tester.getSize(find.byType(Image));
     expect(imageSize.width / imageSize.height, closeTo(2, 0.01));
-    expect(tester.getSize(find.byType(WImage)), const Size(200, 110));
+    expect(tester.getSize(find.byType(WImage)), const Size(200, 100));
   });
 
   testWidgets('gaplessPlayback 换 source 时保留上一帧', (tester) async {
     final boundaryKey = GlobalKey();
-    final controller = WImageController();
-    addTearDown(controller.dispose);
+    var completed = false;
     Widget build(WImageSource source, {required bool gapless}) => _wrap(
       Center(
         child: RepaintBoundary(
           key: boundaryKey,
           child: WImage.source(
             source: source,
-            controller: controller,
             options: WImageLoadOptions(gaplessPlayback: gapless),
+            onLoadStatusChanged: (status) => completed = status == WImageLoadStatus.completed,
             style: const WImageStyle(width: 64, height: 64),
           ),
         ),
@@ -201,7 +151,7 @@ void main() {
     );
 
     await tester.pumpWidget(build(WImageSource.base64(_redPixel), gapless: true));
-    await _settleUntilCompleted(tester, controller);
+    await _settleUntilCompleted(tester, () => completed);
     final before = await tester.runAsync(() => _centerColor(boundaryKey));
     expect(_green(before!), lessThan(120));
 
@@ -213,15 +163,14 @@ void main() {
 
   testWidgets('gaplessPlayback=false 时换 source 立即回到占位', (tester) async {
     final boundaryKey = GlobalKey();
-    final controller = WImageController();
-    addTearDown(controller.dispose);
+    var completed = false;
     Widget build(WImageSource source) => _wrap(
       Center(
         child: RepaintBoundary(
           key: boundaryKey,
           child: WImage.source(
             source: source,
-            controller: controller,
+            onLoadStatusChanged: (status) => completed = status == WImageLoadStatus.completed,
             style: const WImageStyle(width: 64, height: 64),
           ),
         ),
@@ -229,26 +178,12 @@ void main() {
     );
 
     await tester.pumpWidget(build(WImageSource.base64(_redPixel)));
-    await _settleUntilCompleted(tester, controller);
+    await _settleUntilCompleted(tester, () => completed);
     await tester.pumpWidget(build(WImageSource.provider(_HangingProvider())));
     await tester.pump();
 
     final after = await tester.runAsync(() => _centerColor(boundaryKey));
     expect(_green(after!), greaterThan(120), reason: '没有 gapless 时应回到主题占位色');
-  });
-
-  testWidgets('controller.state 在 build 期通知不会让外部 setState 崩溃', (tester) async {
-    final hostKey = GlobalKey<_ListenerHostState>();
-    await tester.pumpWidget(_ListenerHost(key: hostKey));
-    final host = hostKey.currentState!;
-    host.controller.state.addListener(() {
-      if (host.mounted) host.rebuild();
-    });
-
-    host.setSource(WImageSource.network('https://example.invalid/b.png'));
-    await tester.pump();
-
-    expect(tester.takeException(), isNull);
   });
 
   testWidgets('尺寸提示对同一 State 只打印一次', (tester) async {
@@ -355,11 +290,16 @@ void main() {
   });
 
   test('completed 进度不再伪造 1/1 字节', () {
-    final loader = WImageLoader(retryCount: 0, retryDelay: 1000);
+    final events = <WImageProgress>[];
+    final loader = WImageLoader(
+      retryCount: 0,
+      retryDelay: 1000,
+      onProgress: events.add,
+    );
     addTearDown(loader.dispose);
     loader.reset(retryCount: 0, retryDelay: 1000);
     loader.handleCompleted(notifyProgress: true);
-    final progress = loader.state.value.progress!;
+    final progress = events.single;
     expect(progress.isComplete, isTrue);
     expect(progress.downloadedBytes, isNull);
     expect(progress.totalBytes, isNull);
@@ -391,17 +331,19 @@ void main() {
     expect(provider, isA<ResizeImage>());
   });
 
-  testWidgets('单图 showRetryButton 优先于 WImageTheme 的错误 builder', (tester) async {
+  testWidgets('单图 errorWidgetBuilder 优先于 WImageTheme', (tester) async {
     await tester.pumpWidget(
       WImageTheme(
         slots: WImageSlots(
-          errorWidgetBuilder: (context, data, error) => const Text('THEME_ERROR'),
+          errorWidgetBuilder: (context, data, error, retry) => const Text('THEME_ERROR'),
         ),
         child: _wrap(
           WImage.source(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             style: const WImageStyle(width: 160, height: 120),
-            slots: const WImageSlots(showRetryButton: true),
+            slots: WImageSlots(
+              errorWidgetBuilder: (context, data, error, retry) => const Text('OWN_ERROR'),
+            ),
           ),
         ),
       ),
@@ -409,6 +351,6 @@ void main() {
     await tester.pump();
 
     expect(find.text('THEME_ERROR'), findsNothing);
-    expect(find.byType(WImageErrorView), findsOneWidget);
+    expect(find.text('OWN_ERROR'), findsOneWidget);
   });
 }

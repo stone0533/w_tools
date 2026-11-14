@@ -44,7 +44,10 @@ void main() {
               source: WImageSource.base64(_redPixel),
               style: const WImageStyle(width: 32, height: 32),
               options: const WImageLoadOptions(memCacheWidth: 64),
-              slots: const WImageSlots(showRetryButton: true),
+              slots: WImageSlots(
+                errorWidgetBuilder: (context, data, error, retry) =>
+                    WImageErrorView(error: error, onRetry: retry),
+              ),
             ),
           ),
         ),
@@ -62,10 +65,7 @@ void main() {
           length: 2,
           child: Column(
             children: [
-              WTabBar(
-                style: WTabBarStyle(),
-                tabs: [Text('全部'), Text('已完成')],
-              ),
+              TabBar(tabs: [Text('全部'), Text('已完成')]),
               Expanded(
                 child: TabBarView(children: [Text('全部内容'), Text('已完成内容')]),
               ),
@@ -74,7 +74,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(WTabBar), findsOneWidget);
+    expect(find.byType(TabBar), findsOneWidget);
 
     await tester.pumpWidget(
       const MaterialApp(

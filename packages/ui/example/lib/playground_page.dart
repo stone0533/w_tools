@@ -1,6 +1,5 @@
 // ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
 import 'package:flutter/material.dart';
-import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'playground_config.dart';
 import 'playground_controls.dart';
@@ -18,14 +17,6 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   PlaygroundConfig _config = const PlaygroundConfig();
   String? _status;
   double? _progress;
-  final WImageController _controller = WImageController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   String _snippet() => buildPlaygroundSnippet(
     isNetwork: _config.isNetwork,
     width: _config.width,
@@ -36,7 +27,6 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     radius: _config.radius,
     withBorder: _config.withBorder,
     withShadow: _config.withShadow,
-    withMargin: _config.withMargin,
     customPlaceholder: _config.customPlaceholder,
     retryCount: _config.retryCount,
   );
@@ -53,7 +43,6 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
             child: Center(
               child: buildPlaygroundPreview(
                 config: _config,
-                controller: _controller,
                 onStatus: (status) => setState(() => _status = status),
                 onProgress: (progress) => setState(() => _progress = progress.fraction),
               ),
@@ -64,7 +53,6 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
         PlaygroundControls(
           config: _config,
           onChanged: (next) => setState(() => _config = next),
-          onRetry: _controller.retry,
           status: _status,
           progress: _progress,
         ),

@@ -23,4 +23,3 @@ export 'layout/step.dart';
 // 导航组件
 export 'navigation/nav_bar.dart';
 export 'navigation/nav_controller.dart';
-export 'navigation/tab_bar.dart';

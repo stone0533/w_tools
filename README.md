@@ -2,14 +2,14 @@
 
 [![CI](https://github.com/stone0533/w_tools/actions/workflows/ci.yml/badge.svg)](https://github.com/stone0533/w_tools/actions/workflows/ci.yml)
 
-一个按子包拆分、以子包配置（`WToken` / `WAssets` / `WLocaleConfig` 等）驱动的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
+一个按子包拆分、以子包配置（`WToken` / `WLocaleConfig` 等）驱动的 Flutter 工具库，提供了多种实用工具和组件，帮助开发者快速构建高质量的 Flutter 应用。
 
 ## 特性
 
 - **组件库**：提供丰富的 UI 组件，涵盖通用组件、输入组件、布局组件和导航组件
 - **工具类**：包含加密、验证、日志、存储、网络请求等多种实用工具
 - **扩展功能**：提供颜色、字符串、数字、容器等多种扩展方法
-- **配置在子包**：`WToken`（键名）/ `WAssets`（资源前缀）/ `WLocaleConfig`（语言）等配置各归其包（`WConfig` 已在 3.0 删除）
+- **配置在子包**：`WToken`（键名）/ `WLocaleConfig`（语言）等配置各归其包（`WConfig` 已在 3.0 删除，`WAssets` 已在 ui 12.0 删除）
 - **响应式设计**：支持屏幕适配，自动适应不同设备尺寸
 
 ## 文档
@@ -114,7 +114,7 @@ import 'package:flutter/material.dart';
 import 'package:w_tools/w_tools.dart';
 
 WToken.tokenKey = 'auth_token';         // core：token 键名
-WAssets.imagePath = 'assets/images/';   // ui：资源前缀
+// ui：资源路径直接传完整路径 → WImageSource.asset('assets/images/logo.png')
 
 // form：图标按页面作用域配置（WFormIcons 没有全局静态赋值）
 WFormTheme(
@@ -187,10 +187,10 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 #### 通用组件
 - **Badge** (`WBadge`): 徽章组件
-- **Button** (`WButton`): 多种样式的按钮组件，支持透明度、缩放、震动等点击效果
+- **Button** (`WButton`): Material 按钮（`WButtonVariant` + `ButtonStyle` / `WButtonTheme`），带 loading / 语义 / 尺寸
 - **Clip**: 直接用 Flutter 原生 `ClipRRect`（`WClipRRect` 已在 11.0 删除）
 - **GradientCircularProgressIndicator** (`WGradientCircularProgressIndicator`): 渐变圆形进度指示器
-- **Image** (`WImage`): 增强的图片组件（网络图支持自动重试与 `WImageController` 手动重试）
+- **Image** (`WImage`): 增强的图片组件（网络图支持自动重试；手动重试用 `WImageSlots.errorWidgetBuilder` 的 `onRetry`）
 - **KeepAliveWrapper** (`WKeepAliveWrapper`): 保持组件状态的包装器
 - **NotificationListener** (`WNotificationListener`): 声明式通知监听器
 - **QrView** (`WQrView`): 二维码扫描组件（来自 `w_tools_qr` 子包）
@@ -216,8 +216,8 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 #### 导航组件
 - **NavBar** (`WNavBar`): 可自定义的底部导航栏组件，支持自定义导航项、点击回调和缓存机制
-- **TabBar** (`WTabBar`): 增强的标签栏组件，支持自定义样式、指示器和分割线
-- **NavController** (`WNavController`): 导航控制器，用于管理导航栏的状态和动画
+- **TabBar**: 直接用 Material `TabBar` + `TabBarTheme`（`WTabBar` / `WTabBarStyle` 已在 12.0 删除）
+- **NavController** (`WNavController`): 导航控制器，只维护 `currentIndex`
 
 ### 🔌 API 相关
 - **Dio 工具** (`DioRegistry`): 基于 Dio 的网络请求工具，按 `baseUrl` 缓存实例
@@ -247,11 +247,10 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 #### 扩展方法
 - **颜色扩展** (`WColorExtension`): 十六进制颜色解析 / 生成（`fromHex` / `toHex`）
-- **字符串扩展** (`WStringExtension`): 提供字符串格式化、验证、转换等功能
-- **数字扩展** (`WNumLayoutExtension` / `WNumFormatExtension`): 提供间隔 / 圆角 / 数字格式化
+- **字符串扩展** (`WStringExtension`): hex 颜色 / 资源路径（数字转换、trim 用 Dart 原生 API）
+- **数字扩展**：格式化在 core（`WNumFormatExtension`），布局糖在 ui（`WNumLayoutExtension`：`allPadding` / `borderSideOf`）
 - **Widget 扩展** (`WWidgetExtension`): 布局 / 间距 / 装饰 / `toPressable`
 - **映射扩展** (`WMapExtension`): 提供映射操作、转换等功能
-- **全局键扩展** (`WGlobalKeyExtension`): GlobalKey 查找 / 定位
 - **布局糖**（`WRow` / `WColumn` / `WSizeBox` / `WPadding`）已弃用（5.0 移除），直接用 Flutter `Row` / `Column` / `SizedBox` / `EdgeInsets`
 
 ## 使用示例

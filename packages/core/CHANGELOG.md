@@ -1,3 +1,10 @@
+## 3.2.0
+
+### Added
+- `WNumFormatExtension`：从 `w_tools_ui` 迁入（`toThousandsSeparated` / `toCurrency` /
+  `toPercent` / `toPercentWithFixed` / `toPadLeft`）。数字格式化与 UI 无关，
+  需要 locale 感知时直接用 `intl`。ui 12.0 删除同名扩展。
+
 ## 3.1.2
 
 ### Fixed

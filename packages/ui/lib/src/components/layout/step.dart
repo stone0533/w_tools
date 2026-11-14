@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'step_style.dart';
 import 'step_types.dart';
 
-export 'step_flow.dart';
 export 'step_style.dart';
 export 'step_types.dart';
 
@@ -16,18 +15,17 @@ Color _onColor(Color background) =>
 /// 步骤条。
 ///
 /// [current] 从 1 开始，等于当前步骤在 [labels] 中的位置。
-///
-/// 直接传 [labels] 时会在构造时复制并冻结，之后修改原列表不会影响组件。
+/// [labels] 由调用方保证不可变（不要在 build 内构造新列表），组件不做复制。
 class WStep extends StatelessWidget {
-  WStep({
+  const WStep({
     super.key,
     required this.current,
-    required List<String> labels,
+    required this.labels,
     this.itemBuilder,
     this.separatorBuilder,
     this.semanticLabelBuilder,
     this.style = const WStepStyle(),
-  }) : labels = List.unmodifiable(labels);
+  });
 
   final int current;
   final List<String> labels;

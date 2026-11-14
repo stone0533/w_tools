@@ -53,8 +53,8 @@ void main() {
       'WText / WTextStyles',
       '扩展方法',
       'WListView / 通知 / keepAlive',
-      'WNavBar / WNavController / WTabBar',
-      'WStep / WStepFlow',
+      'WNavBar / WNavController',
+      'WStep',
     ];
     for (final title in demos) {
       await tester.scrollUntilVisible(

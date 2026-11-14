@@ -52,36 +52,20 @@ List<Widget> buildButtonsInteractionSections({
       ),
     ),
     DemoSection(
-      title: '15. WButtonMotion：opacity / scale / none',
-      subtitle: '通过 WButton.motion 局部覆盖',
+      title: '15. WButtonVariant：四种语义',
+      subtitle: 'filled / outlined / text / danger，全站样式用 WButtonTheme',
       child: Wrap(
         spacing: 12,
         runSpacing: 12,
         children: [
+          WButton(label: 'filled', onTap: () {}),
           WButton(
-            style: AppButtons.primary(context),
-            motion: const WButtonMotion(
-              effect: WPressEffect.scale,
-              pressedScale: 0.96,
-            ),
-            label: 'scale 按压',
+            variant: WButtonVariant.outlined,
+            label: 'outlined',
             onTap: () {},
           ),
-          WButton(
-            style: AppButtons.secondary(context),
-            motion: const WButtonMotion(
-              effect: WPressEffect.opacity,
-              pressedOpacity: 0.6,
-            ),
-            label: 'opacity 按压',
-            onTap: () {},
-          ),
-          WButton(
-            style: AppButtons.text(context),
-            motion: const WButtonMotion(effect: WPressEffect.none),
-            label: '无按压效果',
-            onTap: () {},
-          ),
+          WButton(variant: WButtonVariant.text, label: 'text', onTap: () {}),
+          WButton(variant: WButtonVariant.danger, label: 'danger', onTap: () {}),
         ],
       ),
     ),

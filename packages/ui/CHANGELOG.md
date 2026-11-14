@@ -1,3 +1,108 @@
+## 12.0.0
+
+### Added
+- `WButtonTheme`：按钮四态（filled / outlined / text / danger）的 Material
+  `ButtonStyle` ThemeExtension；未安装时按 `ColorScheme` 派生。
+- `WButtonVariant`：`filled` / `outlined` / `text` / `danger` 语义变体。
+- `WButton.semanticLabel` / `WButton.semanticHint` / `WButton.loadingLabel`：替代
+  `WButtonSemantics`；纯图标按钮仍要求语义标签。
+- `WColorExtension.fromCssHex` / `WColorExtension.toCssHex` /
+  `WStringExtension.toCssColor`：CSS / Figma 的 `RRGGBBAA` 字节序；
+  `fromHex` / `toHex` 仍是 Flutter 的 `AARRGGBB`。
+
+### Breaking
+- `WNavController.new` / `WNavController.vsync`：删除 `vsync` 参数与字段。选中态只维护
+  `currentIndex`，不再持有动画资源，页面 State 不需要 `TickerProviderStateMixin`。
+  `WNavController.dispose` 不再单独声明（继承 `ChangeNotifier`）。
+- `WNavController.animation` / `WNavController.offset` /
+  `WNavController.previousIndex` / `WNavController.indexIsChanging` /
+  `WNavController.animateTo`：删除。这些成员从未被 `WNavBar` 消费；切换直接赋值
+  `currentIndex`，需要过渡动画时由页面自己绘制。
+- `WNavBar.new` / `WNavBar.style`：删除 `style`，改为直接接收 `decoration` / `padding`
+  （`WNavBar.decoration` / `WNavBar.padding`）。
+- `WScaffold.new` / `WScaffold.basic.new` / `WScaffold.underlayWidget`：删除
+  `underlayWidget`；背景叠层在页面层用 `Stack`。
+- `WPressable.new` / `WPressable.hasChildSemanticsWhenDisabled`：删除该参数；禁用时固定
+  保留 child 语义（原默认行为）。
+- `WNotificationListener.new` / `WNotificationListener.preventNotificationPropagation`：
+  删除该参数；用 `onNotification` 返回 `true` 阻止冒泡。
+- `WImageErrorView.new` / `WImageErrorView.compact`：删除 `compact` 参数；小尺寸由可用高度
+  自动降级（文案 / 操作按钮各有一个最小高度），不再需要第二套开关。
+- `WStep.new`：构造函数恢复 `const`；不再复制 `labels`，由调用方保证列表不可变。
+- `WImageStyle.avatar` / `WImageStyle.thumbnail`：删除；头像 / 缩略图直接用
+  `width` + `height`（+ `borderRadius`）。
+- `WButton.new` / `WButton.style` / `WButton.size` / `WButton.createState` /
+  `WButton.contentBuilder` / `WButton.motion` / `WButton.semantics`：`WButton` 改为
+  `StatelessWidget` 并直接渲染 Material 按钮；`size` 变为非空（默认 medium）；
+  样式参数变成
+  `variant` + `style: ButtonStyle?`，删除 `contentBuilder` / `motion` / `semantics`
+  （复杂内容用 `content`，颜色由 Material 承接；无障碍用 `semanticLabel` /
+  `semanticHint` / `loadingLabel`）。
+- `WButtonStyle` / `WButtonStyleSet` / `WButtonMotion` / `WButtonSemantics` /
+  `WButtonContentBuilder` / `WButtonResolvedStyle`：删除；分别由 Material
+  `ButtonStyle` + `WButtonTheme` / `WButtonVariant` / 直接参数替代。
+- `WNumFormatExtension`（`toThousandsSeparated` / `toCurrency` / `toPercent` /
+  `toPercentWithFixed` / `toPadLeft`）：从 ui 删除，迁到 `w_tools_core` 3.2.0。
+- `WImageStyle.margin` / `WImageStyle.padding` / `WImageStyle.withoutMargin` /
+  `WImageStyle.withoutPadding`：删除；留白在外层包 `Padding` / `Container`，
+  `width/height` 的尺寸语义与 Flutter 一致。
+- `WImage.new` / `WImage.source` / `WImage.controller`：删除 `controller` 参数；
+  手动重试改用 `WImageSlots.errorWidgetBuilder` 的 `onRetry`。
+- `WImageSlots.emptyBuilder` / `WImageSlots.progressBuilder` /
+  `WImageSlots.showRetryButton` / `WImageSlots.retryLabel` / `WImageSlots.new`：
+  删除；空 data / 加载中 / 等待重试统一走 `placeholderBuilder`，错误走
+  `errorWidgetBuilder`。
+- `WImageSlots.errorWidgetBuilder`：签名增加 `VoidCallback onRetry` 第四参数
+  （`(context, data, error, retry)`）。
+- `WImage._`（`WImage.source` 的实现构造）：删除 `controller` 参数。
+- `WImageStyle.new` / `WImageStyle.copyWith`：删除 `margin` / `padding` 参数。
+- `WImageSource.parse` 与各子类上的同签名成员（`WNetworkImageSource.parse` /
+  `WAssetImageSource.parse` / `WFileImageSource.parse` / `WBase64ImageSource.parse` /
+  `WProviderImageSource.parse`）：删除；来源类型由调用方显式选择。
+- `WImageSource.asset` 与各子类上的同签名成员（`WNetworkImageSource.asset` /
+  `WAssetImageSource.asset` / `WFileImageSource.asset` / `WBase64ImageSource.asset` /
+  `WProviderImageSource.asset`）/ `WAssetImageSource.new` / `WAssetImageSource.prefix`：
+  删除 `prefix` 参数；`name` 改为完整资源路径。
+- `WAssets` / `WAssets.imagePath` / `WAssets.reset` /
+  `WStringExtension.assetImagePath`：删除；路径由 `WImageSource.asset('完整路径')` 显式传入。
+
+### Removed
+- `WTabBar` / `WTabBarStyle`：Material `TabBar` 的逐字参数镜像（22 个字段、零默认值）；
+  直接用 `TabBar` + `TabBarTheme`，`noSplash` 用 `overlayColor` + `splashFactory`。
+- `WImageController`（含 `retry` / `state` / `isAttached` 与
+  `WImageController.dispose`）与 `WImageLoadSnapshot`：手动重试与状态观察已有
+  `errorWidgetBuilder` 的 `onRetry` / `WImage.onLoadStatusChanged` / `onProgress` 覆盖。
+- `WStepFlow`：`WStep` 的参数镜像（labels / style / 3 个 builder）+ `copyWith` /
+  `build`，与直接构造 `WStep` 等价；复用请复用参数本身。
+- `WNavBarStyle`：只包 `decoration` / `padding` 两个字段，`WNavBar` 直接接收。
+- `WGlobalKeyExtension` / `WGlobalKeyExtension.offset` / `WGlobalKeyExtension.rect`：
+  `key.currentContext?.findRenderObject()` + `localToGlobal` 即可。
+- `WNumLayoutExtension.heightBox` / `WNumLayoutExtension.widthBox` /
+  `WNumLayoutExtension.squareBox` / `WNumLayoutExtension.horizontalPadding` /
+  `WNumLayoutExtension.verticalPadding` / `WNumLayoutExtension.borderRadius`：
+  直接用 `SizedBox` / `EdgeInsets` / `BorderRadius` 构造（`allPadding` /
+  `borderSideOf` 保留）。
+- `WStringExtension.toInt` / `WStringExtension.toDouble` / `WStringExtension.toNum` /
+  `WStringExtension.trimAll`：直接用 `int.tryParse` / `double.tryParse` /
+  `num.tryParse` / `replaceAll`。
+- `WNumFormatExtension`（`toThousandsSeparated` / `toCurrency` / `toPercent` /
+  `toPercentWithFixed` / `toPadLeft`）：迁到 `w_tools_core` 3.2.0；格式化与 UI 无关。
+- `WBoxDecorationExtension.withColor` / `WBoxDecorationExtension.withoutColor` /
+  `WBoxDecorationExtension.withGradient` / `WBoxDecorationExtension.withoutGradient` /
+  `WBoxDecorationExtension.withBorder` / `WBoxDecorationExtension.withoutBorder` /
+  `WBoxDecorationExtension.withBorderRadius` /
+  `WBoxDecorationExtension.withoutBorderRadius` / `WBoxDecorationExtension.withShadow` /
+  `WBoxDecorationExtension.withoutShadow` / `WBoxDecorationExtension.withShape`：
+  只保留 `withBackground`（color / gradient 二选一，自动清空另一个）与 `circle`；
+  其余字段直接传 `BoxDecoration` 构造器。
+
+### Fixed
+- `WScaffold.basic(title: '')` 不再静默丢失整条顶栏（含返回按钮）；`.basic` 一定渲染
+  `WAppBar`，只有显式空 `title` 时不显示标题文本。
+- `WScaffold`：删除重复两遍的 `includeStatusBar` 断言，以及构造函数已保证、永远为真的
+  「appBar 与 title 互斥」断言。
+- `WSelectableRow`：删除只被透传、从未读取的滚动视图 key。
+
 ## 11.0.0
 
 ### Added

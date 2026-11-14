@@ -1,3 +1,11 @@
+## 16.1.0
+
+### Changed
+- 聚合依赖 `w_tools_core: ^3.2.0`（`WNumFormatExtension` 从 ui 迁入 core）。
+- 聚合依赖 `w_tools_ui: ^12.0.0`（12.0 删除 `WStepFlow` / `WNavBarStyle` /
+  `WGlobalKeyExtension` 等冗余入口与 `WNavController` 的动画 API，详见
+  `packages/ui/CHANGELOG.md`）。
+
 ## 16.0.3
 
 ### Changed
