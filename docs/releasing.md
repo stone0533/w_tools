@@ -351,3 +351,11 @@ pub 只认 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 环境变量，不读 macOS
   不要用 `--no-verify` 绕过。
 - **快照还留在 `.w_tools/release-snapshots/` 就发根包**：`publish_package.sh .` 会直接拒绝；
   先 `apply_snapshots.sh` 并合入 PR。
+- **`release_status` / pub.dev API 可见 ≠ 依赖求解器可见**：子包刚发布时，根包
+  `publish_package.sh . --dry-run` 可能仍报 `w_tools depends on w_tools_async ^x.y.z
+  which doesn't match any versions`。先等 1–2 分钟，用临时工程 `flutter pub get` 确认目标版本
+  可解析，再发根包；不要改约束绕过。快照 PR 合并后 HEAD 会变化，`release_wave --resume`
+  会拒绝旧 plan，此时重新 `plan`（只剩 root）再 `run --dry-run` / `run --yes`。
+- **发布后只做 `pub get` 不够**：临时工程依赖 `w_tools: ^x.y.z` + `w_tools_async: ^x.y.z`，
+  跑一次 `flutter test` 渲染 `WAsyncView` / 分页 footer / 这次修复的重入场景；
+  `pub get` 只能证明解析，不能证明运行。发布后冒烟属于 K-5，不替代发布前 CI。
