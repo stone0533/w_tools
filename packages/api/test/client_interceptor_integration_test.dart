@@ -83,7 +83,7 @@ void main() {
   });
 
   test('download 遇到 401 也会刷新并返回 bytes', () async {
-    final bytes = await harness.client.download('/file');
+    final bytes = (await harness.client.downloadResponse('/file')).data;
 
     expect(bytes, [1, 2, 3]);
     expect(harness.adapter.fileCalls, 2);

@@ -70,8 +70,8 @@ Dio 实例之间也不会共享同一份可变配置。
 | `DioRegistry.maybeForBaseUrl(baseUrl)` | 读取已注册的 `Dio`，不创建新实例 |
 | `DioRegistry.dispose(baseUrl)` | 关闭并移除指定 `baseUrl` 的实例 |
 | `DioRegistry.clearCache()` | 关闭并清空所有缓存实例 |
-| `maxCachedInstances` | 缓存上限；`null` 不限制，`<= 0` 不缓存 |
-| `cacheTtl` | 缓存惰性过期；`null` 不过期 |
+| `maxCachedInstances` | 已弃用（7.0 删除）；缓存上限，`null` 不限制，`<= 0` 不缓存 |
+| `cacheTtl` | 已弃用（7.0 删除）；缓存惰性过期，`null` 不过期 |
 
 > 同一 `baseUrl` 命中缓存后返回已有实例；如果这次显式传入了**不同**的
 > `options` / `interceptors`，会抛 `ArgumentError`。需要更换配置用
@@ -82,7 +82,7 @@ Dio 实例之间也不会共享同一份可变配置。
 > `BaseOptions` 的 `headers` / `extra` / `queryParameters` 都会被复制，实例之间不共享
 > 可变 Map。
 >
-> `maxCachedInstances <= 0` 时不缓存：每次 `forBaseUrl` 都新建实例，返回的实例仍可用，
+> `maxCachedInstances` / `cacheTtl` 已弃用（7.0 删除）；`maxCachedInstances <= 0` 时不缓存：每次 `forBaseUrl` 都新建实例，返回的实例仍可用，
 > 但注册表不持有它；需要释放时由调用方 `registry.dio.close(force: true)`。
 
 ### 使用示例
@@ -91,7 +91,7 @@ Dio 实例之间也不会共享同一份可变配置。
 final registry = DioRegistry.forBaseUrl(
   'https://api.example.com',
   interceptors: [
-    WLogInterceptor(enableLog: kDebugMode),
+    WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
     WTokenInterceptor(tokenGetter: () => token),
   ],
 );
@@ -116,7 +116,6 @@ request / response body）；传空集合表示全部关闭。
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `parts` | `Set<WLogPart>?` | 要输出的片段：`request` / `requestHeader` / `requestBody` / `responseHeader` / `responseBody` / `error` |
-| `enableLog` | bool | 是否启用日志（默认 true） |
 | `redactedHeaders` | `Set<String>?` | 脱敏头列表；默认追加到内置敏感头 |
 | `sensitiveQueryKeys` | `Set<String>?` | 需要脱敏的 query 参数；默认追加 `token` / `access_token` 等 |
 | `sensitiveBodyKeys` | `Set<String>?` | 需要脱敏的 body key；默认追加 `password` / `token` / `access_token` 等 |
@@ -145,7 +144,6 @@ final logInterceptor = WLogInterceptor(
     if (kDebugMode) WLogPart.responseBody,
     WLogPart.error,
   },
-  enableLog: true,
 );
 ```
 
@@ -253,7 +251,7 @@ final user = await client.get(
 | `WApiBody` | `json` / `form` / `multipart` / `bytes` 四种编码 |
 | `page` | GET 分页，返回 `WPage<T>`（`items` / `total` / `hasMore`）；`readTotalFromResponse` 可从响应头读 total，`envelope` 可按请求覆盖 |
 | `upload` | `multipart/form-data` 上传；`method` 支持 POST / PUT / PATCH |
-| `download` | 下载并返回 `Uint8List` |
+| `download` | 已弃用（7.0 删除）；下载并返回 `Uint8List` |
 | `downloadResponse` | 下载并保留 status / headers / requestOptions |
 | `WApiDecoders` | 常用 decoder：`none` / `listOf` / `jsonMap` / `nullable` |
 | `WApiException` | 统一错误分类；`kind` 供 UI 映射文案 |
@@ -325,11 +323,6 @@ await client.upload<void>(
   files: {'avatar': MultipartFile.fromBytes(bytes)},
   onProgress: (sent, total) {},
   decode: WApiDecoders.none,
-);
-
-final image = await client.download(
-  '/avatars/me',
-  onProgress: (received, total) {},
 );
 
 final response = await client.downloadResponse('/avatars/me');
@@ -436,7 +429,7 @@ void setupApi() {
   final registry = DioRegistry.forBaseUrl(
     'https://api.example.com',
     interceptors: [
-      WLogInterceptor(enableLog: kDebugMode),
+      WLogInterceptor(parts: {WLogPart.request, WLogPart.error}),
       WTokenInterceptor(tokenGetter: () => token),
     ],
   );
@@ -482,7 +475,7 @@ void setupApi() {
 ## 全局状态
 
 - `DioRegistry` 是进程级静态缓存，按精确 `baseUrl` 缓存；可用
-  `maxCachedInstances` 开启 LRU（`null` 不限制，默认），用 `cacheTtl` 设置惰性过期，
+  `maxCachedInstances` / `cacheTtl` 已弃用（7.0 删除）；缓存开启 LRU 时 `null` 不限制，用 `cacheTtl` 设置惰性过期，
   或 `dispose(baseUrl)` / `clearCache()` 手动清理。`<= 0` 表示不缓存。
   LRU / TTL 淘汰不强制中断在途请求；显式 `dispose` / `clearCache` 仍 `force: true`。
 - `WApiSettings` 是全局可变设置；`baseOptions` 在 registry 创建时复制，之后修改只影响

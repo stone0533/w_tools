@@ -1,3 +1,10 @@
+## 1.20.41
+
+### Changed
+- catalog 同步 `w_tools_api` 6.2 的弃用：`DioRegistry.maxCachedInstances` / `cacheTtl`、
+  `WApiClient.download`、`WLogInterceptor.enableLog`（均 remove-in 7.0.0）。
+- `init` 的 `w_tools_api` 约束抬到 `^6.2.0`。
+
 ## 1.20.40
 
 ### Changed

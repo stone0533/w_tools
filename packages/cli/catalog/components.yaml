@@ -1414,6 +1414,7 @@ components:
     pitfalls:
       - "同一 baseUrl 只能初始化一次；换配置用 `replace: true` 或先 dispose"
       - "`replace` 会 close(force: true)；LRU / TTL 淘汰用 close(force: false)，不强制中断在途请求"
+      - "`maxCachedInstances` / `cacheTtl` 已弃用（7.0 删除）；改用 dispose / replace"
     related: ["`WApiSettings`", "`WLogInterceptor`", "`WTokenInterceptor`"]
     teach: true
 
@@ -1447,6 +1448,7 @@ components:
       - "`requestBody` / `responseBody` 会按 `sensitiveBodyKeys` 递归脱敏（Map / List / JSON 字符串 / FormData fields）；任意对象的 toString 不保证脱敏"
       - "只做日志，不做业务错误处理"
       - "`sensitiveBodyKeys` / `sensitiveQueryKeys` / `redactedHeaders` 会与内置集合合并"
+      - "`enableLog` 已弃用（7.0 删除）；用 `parts: {}` 或不注入日志回调"
     related: ["`WLogPart`", "`WApiSettings`"]
     teach: true
 
@@ -1499,6 +1501,7 @@ components:
       - "需要 status / headers 用 send（返回 WApiResponse）；get / post 只返回 data"
       - "下载要 headers / 文件名用 downloadResponse；分页 total 在响应头用 readTotalFromResponse"
       - "单条请求临时覆盖信封用 `send(..., envelope: ...)` / `page(..., envelope: ...)`"
+      - "`download` 已弃用（7.0 删除）；用 `downloadResponse` 取 bytes + headers"
     related: ["`DioRegistry`", "`WApiBody`", "`WApiException`", "`WApiResponse`"]
     teach: true
 

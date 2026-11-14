@@ -1,3 +1,9 @@
+## 16.0.2
+
+### Changed
+- 聚合依赖 `w_tools_api: ^6.2.0`（6.2 弃用 `maxCachedInstances` / `cacheTtl` /
+  `download` / `enableLog`，7.0 删除）。
+
 ## 16.0.1
 
 ### Changed

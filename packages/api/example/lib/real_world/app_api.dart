@@ -80,14 +80,15 @@ class AppApi {
           onAuthFailure: (_) => onAuthFailure?.call(),
         ),
         WLogInterceptor(
-          enableLog: enableLog,
-          parts: {
-            WLogPart.request,
-            WLogPart.requestHeader,
-            if (enableLog) WLogPart.requestBody,
-            if (enableLog) WLogPart.responseBody,
-            WLogPart.error,
-          },
+          parts: enableLog
+              ? {
+                  WLogPart.request,
+                  WLogPart.requestHeader,
+                  WLogPart.requestBody,
+                  WLogPart.responseBody,
+                  WLogPart.error,
+                }
+              : const <WLogPart>{},
         ),
       ],
     );

@@ -211,7 +211,7 @@ void main() {
     expect(form.files.single.value.filename, 'a.bin');
   });
 
-  test('download 返回字节并设置 responseType=bytes', () async {
+  test('downloadResponse 返回字节并设置 responseType=bytes', () async {
     adapter.handler = (_) => ResponseBody.fromBytes(
       Uint8List.fromList([1, 2, 3]),
       200,
@@ -220,9 +220,9 @@ void main() {
       },
     );
 
-    final bytes = await client.download('/files/1');
+    final response = await client.downloadResponse('/files/1');
 
-    expect(bytes, [1, 2, 3]);
+    expect(response.data, [1, 2, 3]);
     expect(adapter.last!.responseType, ResponseType.bytes);
   });
 
