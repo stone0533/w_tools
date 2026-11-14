@@ -3,6 +3,7 @@ import io
 import pathlib
 import sys
 import tempfile
+import time
 import unittest
 import urllib.error
 from unittest import mock
@@ -492,3 +493,27 @@ class ArchiveDownloadTest(unittest.TestCase):
                 with self.assertRaises(urllib.error.HTTPError):
                     mod._download_archive('https://example/x', target, attempts=3, delay=0)
             self.assertEqual(urlopen.call_count, 1)
+
+
+class CmdTimeoutTest(unittest.TestCase):
+    def test_timeout_is_enforced_below_heartbeat(self):
+        started = time.monotonic()
+        with self.assertRaises(mod.RunFailed) as caught:
+            mod._cmd(
+                [sys.executable, '-c', 'import time; time.sleep(5)'],
+                timeout=0.3,
+                capture=True,
+            )
+        elapsed = time.monotonic() - started
+        self.assertEqual(caught.exception.code, 3)
+        self.assertLess(elapsed, 3)
+        self.assertIn('0.3s', str(caught.exception))
+
+    def test_success_before_timeout(self):
+        result = mod._cmd(
+            [sys.executable, '-c', 'print("ok")'],
+            timeout=5,
+            capture=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn('ok', result.stdout)
