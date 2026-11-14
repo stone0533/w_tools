@@ -236,7 +236,7 @@ void main() {
       expect(logs.join(), isNot(contains('abc123')));
     });
 
-    test('sensitiveQueryKeys 可覆盖默认敏感参数', () async {
+    test('sensitiveQueryKeys 默认追加默认敏感参数', () async {
       final dio = dioWith(_MockAdapter());
       dio.interceptors.add(
         WLogInterceptor(
@@ -248,23 +248,9 @@ void main() {
       await dio.get('/x?session=abc123&token=keep');
 
       expect(logs.join(), contains('session=***'));
-      expect(logs.join(), contains('token=keep'));
+      expect(logs.join(), contains('token=***'));
       expect(logs.join(), isNot(contains('abc123')));
-    });
-  });
-
-  group('API-006 日志格式化成本', () {
-    test('二进制 body 只输出字节数', () async {
-      final dio = dioWith(_MockAdapter());
-      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.requestBody}));
-
-      await dio.post(
-        '/upload',
-        data: Uint8List.fromList(List<int>.filled(20, 7)),
-      );
-
-      expect(logs.join(), contains('<20 bytes>'));
-      expect(logs.join(), isNot(contains('[7')));
+      expect(logs.join(), isNot(contains('token=keep')));
     });
 
     test('没有日志 handler 时不格式化 body', () {
@@ -275,6 +261,26 @@ void main() {
       final options = RequestOptions(path: '/x', data: _ThrowingToString());
 
       expect(() => interceptor.onRequest(options, handler), returnsNormally);
+    });
+
+    test('超大 Map body 先限量再编码', () async {
+      final dio = dioWith(_MockAdapter());
+      dio.interceptors.add(
+        WLogInterceptor(
+          parts: {WLogPart.requestBody},
+          maxBodyLength: 100,
+        ),
+      );
+
+      await dio.post(
+        '/x',
+        data: {for (var i = 0; i < 1000; i++) 'k$i': 'v$i'},
+      );
+
+      final log = logs.join();
+      expect(log, contains('"..."'));
+      expect(log, contains('truncated'));
+      expect(log.length, lessThan(1000));
     });
 
     test('大文本 body 会截断，避免日志体积放大', () async {
@@ -366,7 +372,7 @@ void main() {
       expect(logs.join(), isNot(contains('resp-secret')));
     });
 
-    test('sensitiveBodyKeys 可覆盖默认值', () async {
+    test('sensitiveBodyKeys 默认追加默认值', () async {
       final dio = dioWith(_MockAdapter());
       dio.interceptors.add(
         WLogInterceptor(
@@ -381,8 +387,9 @@ void main() {
       );
 
       expect(logs.join(), contains('"session": "***"'));
-      expect(logs.join(), contains('"password": "keep"'));
+      expect(logs.join(), contains('"password": "***"'));
       expect(logs.join(), isNot(contains('session-secret')));
+      expect(logs.join(), isNot(contains('"password": "keep"')));
     });
 
     test('JSON 字符串 body 也会脱敏', () async {
@@ -432,6 +439,74 @@ void main() {
 
       expect(caught, isA<DioException>());
       expect((caught! as DioException).response?.statusCode, 401);
+    });
+
+    test('日志 handler 抛异常不影响请求', () async {
+      final dio = dioWith(_MockAdapter());
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.request}));
+      WApiSettings.logDebugHandler = (_) => throw StateError('logger down');
+
+      final response = await dio.get('/x');
+
+      expect(response.statusCode, 200);
+    });
+  });
+
+  group('API-020 错误响应片段', () {
+    test('只开 responseBody 时错误响应 body 仍输出', () async {
+      final dio = dioWith(_MockAdapter(statusCode: 500));
+      dio.interceptors.add(WLogInterceptor(parts: {WLogPart.responseBody}));
+
+      await expectLater(dio.get('/error'), throwsA(isA<DioException>()));
+
+      expect(logs.join(), contains('"ok": true'));
+      expect(logs.join(), isNot(contains('*** DioError ***')));
+    });
+  });
+
+  group('API-019 内部日志 URI 脱敏', () {
+    test('WTokenInterceptor 未绑定 Dio 时日志不泄露 query token', () async {
+      final dio = dioWith(
+        _MockAdapter(statusCode: 401),
+        baseUrl: 'https://token-log.example.com',
+      );
+      dio.interceptors.add(
+        WTokenInterceptor(
+          tokenGetter: () => 'old',
+          tokenClearer: () async {},
+          tokenRefresher: () async => 'new',
+        ),
+      );
+
+      await expectLater(
+        dio.get('/x?token=secret-token'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(logs.join(), isNot(contains('secret-token')));
+      expect(logs.join(), contains('token=***'));
+    });
+
+    test('WRetryInterceptor 未绑定 Dio 时日志不泄露 query token', () async {
+      final dio = dioWith(
+        _MockAdapter(statusCode: 500),
+        baseUrl: 'https://retry-log.example.com',
+      );
+      dio.interceptors.add(
+        WRetryInterceptor(
+          maxRetries: 1,
+          baseDelay: Duration.zero,
+          jitter: false,
+        ),
+      );
+
+      await expectLater(
+        dio.get('/x?access_token=secret-token'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(logs.join(), isNot(contains('secret-token')));
+      expect(logs.join(), contains('access_token=***'));
     });
   });
 

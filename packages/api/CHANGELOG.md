@@ -1,5 +1,52 @@
 # Changelog
 
+## 6.1.0
+
+### Breaking
+- `DioRegistry.forBaseUrl` 签名新增可选参数 `replace`（源码兼容；公开签名快照变化需记录）。
+- `WTokenInterceptor` 构造新增可选 `shouldRefresh`；`WApiClient.send` / `page` 新增可选
+  `envelope`（均为源码兼容的可选参数，公开签名快照变化需记录）。
+
+### Added
+- `WApiEnvelopeParser.skipEmptyBody`：204 / 空 body 默认跳过信封解析，不再要求
+  `readCode(null)` 自己判空。
+- `DioRegistry.forBaseUrl(replace: true)`：替换同 `baseUrl` 的已有实例。
+- `WApiClient.send(onReceiveProgress:)`、`WApiClient.downloadResponse`，以及
+  `WApiClient.page(readTotalFromResponse:)`（从 `X-Total-Count` 等响应头读 total）。
+- `WRetryInterceptor.disableRetryExtraKey`：单条请求关闭重试。
+- `WMetric.attempt`：区分首次请求与重试 / 401 刷新后的尝试。
+- `WTokenInterceptor.shouldRefresh`：对登录 / 刷新 / 公开接口等请求跳过自动刷新。
+- `WApiClient.send` / `page` 的 `envelope` 参数：按请求覆盖 client 级信封。
+- barrel 重导出 `InterceptorsWrapper` / `QueuedInterceptor`。
+
+### Fixed
+- 业务信封 + 204 / 空 body 不再先执行 `readCode(null)` 而误报 `decode` 错误。
+- `DioRegistry` 配置冲突比较补上 `transformTimeout`；`queryParameters` 深拷贝，
+  不再与调用方 / 全局 `BaseOptions` 共享可变 Map。
+- 日志回调抛异常不再影响请求；token / retry 内部日志的 URI 也按敏感 query 脱敏。
+- `DioExceptionType.unknown` 带 response 时按 HTTP 状态分类，不再一律 `unknown`。
+- `WLogInterceptor` 只开 `responseHeader` / `responseBody` 时，错误响应片段也会输出。
+- `WLogInterceptor` 截断 body 时不再切断 UTF-16 代理对（emoji 等）。
+- `WLogInterceptor` 对超大 body 先按字符预算限量再 JSON 编码，避免 `maxBodyLength`
+  只限制输出、不限制中间内存。
+- `DioRegistry` 的 LRU / TTL 淘汰改为 `close(force: false)`，不再强制中断在途请求；
+  显式 `dispose` / `clearCache` 仍强制关闭。
+- `WRetryInterceptor` 退避期间取消会立即结束等待，不再等完整个 backoff。
+- `WApiClient._decode` 里 `onAuthFailure` 的日志回调异常不再覆盖原始 unauthorized。
+
+### Changed
+- 业务信封在 204 / 空 body 默认跳过 `readCode`；旧行为显式传 `skipEmptyBody: false`。
+- `WLogInterceptor` 的 `sensitiveQueryKeys` / `sensitiveBodyKeys` / `redactedHeaders`
+  与内置敏感集合合并；不再提供整体替换开关。
+- `WRetryInterceptor` 默认不再重试 `DioExceptionType.unknown`；需要放行时用
+  `shouldRetry` 自定义。
+- `WApiClient.page` 返回的 `items` 改为不可变列表。
+- `WApiClient.page` 对 `page < 1` / `pageSize < 1` 抛 `ArgumentError`（release 也生效）。
+- `WTokenInterceptor.maxAuthRetries` 为负时触发 `assert`。
+- `download` 改为委托 `downloadResponse`，行为不变。
+- example 补 `send` 元数据 / 按请求信封 / `downloadResponse` / 页头 total /
+  `WTokenInterceptor.shouldRefresh` 的可运行示例与测试。
+
 ## 6.0.0
 
 ### Breaking

@@ -10,6 +10,13 @@ Token 通过 `tokenGetter` / `tokenClearer` 注入，由调用方决定存储实
 
 Cookie 管理未内置，需要时请使用社区包 [`dio_cookie_manager`](https://pub.dev/packages/dio_cookie_manager)。
 
+## 最小用法（默认路径）
+
+普通请求只需要 `DioRegistry` + `WApiClient`；完整示例见
+[`packages/api/README.md`](../../packages/api/README.md) 的「最小用法」。
+Token / 日志 / 重试 / 指标都是按需加。下面的 LRU / TTL、`replace`、`shouldRefresh`、
+按请求 `envelope`、`downloadResponse`、`WMetric.attempt` 属于高级能力，默认路径不需要。
+
 ## 快速判断
 
 - 要发请求 / 配拦截器 → `DioRegistry` + `WApiSettings`
@@ -67,8 +74,13 @@ Dio 实例之间也不会共享同一份可变配置。
 | `cacheTtl` | 缓存惰性过期；`null` 不过期 |
 
 > 同一 `baseUrl` 命中缓存后返回已有实例；如果这次显式传入了**不同**的
-> `options` / `interceptors`，会抛 `ArgumentError`。需要更换配置请先
-> `DioRegistry.dispose(baseUrl)`。
+> `options` / `interceptors`，会抛 `ArgumentError`。需要更换配置用
+> `DioRegistry.forBaseUrl(..., replace: true)` 或先 `DioRegistry.dispose(baseUrl)`；
+> `replace` 会 `close(force: true)`；LRU / TTL 淘汰用 `close(force: false)`，
+> 不强制中断在途请求。
+>
+> `BaseOptions` 的 `headers` / `extra` / `queryParameters` 都会被复制，实例之间不共享
+> 可变 Map。
 >
 > `maxCachedInstances <= 0` 时不缓存：每次 `forBaseUrl` 都新建实例，返回的实例仍可用，
 > 但注册表不持有它；需要释放时由调用方 `registry.dio.close(force: true)`。
@@ -93,7 +105,7 @@ DioRegistry.dispose('https://api.example.com');
 ## 2. WLogInterceptor - 日志拦截器
 
 默认脱敏 `Authorization` / `Cookie` / `Set-Cookie` / `Proxy-Authorization` / `X-Api-Key` /
-`X-Auth-Token` 等敏感头；可通过 `redactedHeaders` 覆盖（大小写不敏感）。
+`X-Auth-Token` 等敏感头；`redactedHeaders` 会与内置集合合并（大小写不敏感），不能整体替换默认值。
 
 按 `parts`（`WLogPart`）打印请求与响应详情，输出经 `WApiSettings.logDebugHandler` /
 `WApiSettings.logErrorHandler`。`parts` 为 `null` 时使用包内默认值（默认不打印
@@ -105,19 +117,22 @@ request / response body）；传空集合表示全部关闭。
 |------|------|------|
 | `parts` | `Set<WLogPart>?` | 要输出的片段：`request` / `requestHeader` / `requestBody` / `responseHeader` / `responseBody` / `error` |
 | `enableLog` | bool | 是否启用日志（默认 true） |
-| `redactedHeaders` | `Set<String>?` | 脱敏头列表；默认已内置常见敏感头 |
-| `sensitiveQueryKeys` | `Set<String>?` | 需要脱敏的 query 参数；默认 `token` / `access_token` 等 |
-| `sensitiveBodyKeys` | `Set<String>?` | 需要脱敏的 body key；默认覆盖 `password` / `token` / `access_token` 等 |
+| `redactedHeaders` | `Set<String>?` | 脱敏头列表；默认追加到内置敏感头 |
+| `sensitiveQueryKeys` | `Set<String>?` | 需要脱敏的 query 参数；默认追加 `token` / `access_token` 等 |
+| `sensitiveBodyKeys` | `Set<String>?` | 需要脱敏的 body key；默认追加 `password` / `token` / `access_token` 等 |
 | `maxBodyLength` | int | 单条 body 最大字符数（默认 2000，`<= 0` 不截断） |
 
 > 显式传 `parts` 时，未列出的片段不会输出；需要 body 时显式加
 > `requestBody` / `responseBody`，并用 `kDebugMode` 控制。URI 中 `token` /
 > `access_token` 等敏感 query 参数默认脱敏；`requestBody` / `responseBody` 的
 > Map / List / JSON 字符串 / FormData fields 会按 `sensitiveBodyKeys` 递归脱敏；
+> 自定义 key 会与内置集合合并；
 > 单条 body 超过 2000 字符会截断。
 >
 > 6.0 起日志只输出技术信息，不再内置面向用户的「友好提示」文案；UI 提示请按
 > `WApiException.kind` 自行映射。
+>
+> 只开 `responseHeader` / `responseBody` 时，错误响应片段也会输出（不需要同时开 `error`）。
 
 ### 使用示例
 
@@ -152,6 +167,7 @@ final logInterceptor = WLogInterceptor(
 | `tokenClearer` | `Future<void> Function()?` | null | 清除 token |
 | `tokenRefresher` | `Future<String?> Function()?` | null | 刷新 token，返回新 token（返回 null 表示失败） |
 | `onAuthFailure` | `void Function(DioException)?` | null | 刷新失败 / 无刷新器 / 达到重试上限时回调 |
+| `shouldRefresh` | `bool Function(RequestOptions)?` | null | 每次 401 是否允许自动刷新；返回 false 时直接交出 401 |
 | `unauthorizedStatusCode` | int | 401 | 未授权状态码 |
 | `maxAuthRetries` | int | 1 | 认证重试上限 |
 
@@ -159,6 +175,7 @@ final logInterceptor = WLogInterceptor(
 
 - 请求已显式带 `Authorization` 时跳过注入；否则按 `tokenGetter` 注入。
 - 同一个 `WTokenInterceptor` 只能绑定一个 Dio；多个 registry 请各建实例，共享实例会在第二次绑定时报 `ArgumentError`。
+- 登录 / 刷新 / 公开接口可用 `shouldRefresh` 跳过自动刷新；返回 false 时不清理、不刷新、不重试。
 - 刷新失败 / 未配置 `tokenRefresher` / 达到 `maxAuthRetries` 时调用 `onAuthFailure`，适合跳登录或清会话。
 - **并发 401 共享同一次刷新（single-flight）**，不会重复调用 `tokenRefresher`。
 - `tokenRefresher` 抛出的异常会被捕获并记录日志，请求以原错误结束，不会逃逸出拦截器链。
@@ -202,6 +219,7 @@ WApiSettings.logDebugHandler = (m) => debugPrint('$m');
 WApiSettings.logErrorHandler = (m) => debugPrint('[E] $m');
 ```
 
+> 默认 `BaseOptions` 只设 connect / receive 超时，不设 `sendTimeout`；大文件上传请显式设置。
 > `reset()` 只重置设置；`DioRegistry` 的实例缓存用 `DioRegistry.clearCache()` 单独清理。
 
 ---
@@ -227,15 +245,16 @@ final user = await client.get(
 | 成员 | 说明 |
 |------|------|
 | `get` / `post` / `put` / `patch` / `delete` / `head` / `options` | HTTP 方法 |
-| `send` | 任意方法，返回 `WApiResponse<T>`（含 status / headers） |
+| `send` | 任意方法，返回 `WApiResponse<T>`（含 status / headers），支持 `onReceiveProgress` 与按请求 `envelope` |
 | `pathParameters` | 替换 `{id}` 模板，并对值做 `Uri.encodeComponent`；缺参数抛 `ArgumentError` |
 | `query` | 值为 `null` 的键会被丢弃 |
 | `body` | 原始值（Map / String / FormData…）或 `WApiBody` |
 | `decode` | `T Function(Object? json)`；不传则返回原始 JSON |
 | `WApiBody` | `json` / `form` / `multipart` / `bytes` 四种编码 |
-| `page` | GET 分页，返回 `WPage<T>`（`items` / `total` / `hasMore`） |
+| `page` | GET 分页，返回 `WPage<T>`（`items` / `total` / `hasMore`）；`readTotalFromResponse` 可从响应头读 total，`envelope` 可按请求覆盖 |
 | `upload` | `multipart/form-data` 上传；`method` 支持 POST / PUT / PATCH |
 | `download` | 下载并返回 `Uint8List` |
+| `downloadResponse` | 下载并保留 status / headers / requestOptions |
 | `WApiDecoders` | 常用 decoder：`none` / `listOf` / `jsonMap` / `nullable` |
 | `WApiException` | 统一错误分类；`kind` 供 UI 映射文案 |
 
@@ -276,8 +295,10 @@ final client = WApiClient(
 - 命中 `authFailureCodes` → `kind: unauthorized`，并调用 `WApiClient.onAuthFailure`；
 - 成功时 `decode` 拿到的是 `data`，不是整个信封；
 - HTTP 401 仍由 `WTokenInterceptor` 处理；
-- 204 / 空 body 不会自动绕过信封：`readCode(null)` 必须返回成功码，或让这类请求
-  的 `decode` 使用 `WApiDecoders.none`。
+- 204 / 空 body 默认跳过信封（`skipEmptyBody: true`），不会调用 `readCode(null)`；
+  需要旧行为时显式传 `skipEmptyBody: false`；
+- 需要只对某条请求启用 / 覆盖信封时，用 `client.send(..., envelope: parser)` 或
+  `client.page(..., envelope: parser)`。
 
 ### 分页
 
@@ -291,8 +312,10 @@ final page = await client.page(
 
 `WPage.hasMore`：有 `total` 时按 `page * pageSize < total` 计算，否则按本页是否满页。
 服务端若把 pageSize 截得比请求小，按满页判断可能提前结束；这种场景请让后端返回 total。
-默认只接受 JSON 数组；Map 结构用 `readItems` / `readTotal` 显式读取。
-页面状态仍交给 `WAsyncPagedController`，`WPage` 只做传输层结果。
+默认只接受 JSON 数组；Map 结构用 `readItems` / `readTotal` 显式读取；total 在响应头
+（如 `X-Total-Count`）时用 `readTotalFromResponse`。页面状态仍交给
+`WAsyncPagedController`，`WPage` 只做传输层结果。`page` 只支持 1-based 页码分页；
+offset / cursor 后端用 `WApiClient.send` 手工请求并构造 `WPage`。
 
 ### 上传 / 下载
 
@@ -308,6 +331,10 @@ final image = await client.download(
   '/avatars/me',
   onProgress: (received, total) {},
 );
+
+final response = await client.downloadResponse('/avatars/me');
+response.data;                                  // Uint8List
+response.headers.value('content-disposition');  // 文件名
 ```
 
 Web 上不要用 `MultipartFile.fromFile`，用 `fromBytes`；下载得到 `Uint8List`，
@@ -349,8 +376,10 @@ final registry = DioRegistry.forBaseUrl(
 | `onRetry` | null | 每次重试前回调 |
 | `shouldRetry` | null | 自定义是否重试 |
 
-- 不重试 401（交给 `WTokenInterceptor`）、其他 4xx 和已取消的请求；
-- `POST` / `PATCH` 永不重试（避免重复提交）；
+- 不重试 401（交给 `WTokenInterceptor`）、其他 4xx、`unknown`（默认）和已取消的请求；
+  需要放行 `unknown` 用 `shouldRetry`；
+- `POST` / `PATCH` 默认不重试（避免重复提交）；显式覆盖 `retryOnMethods` 后自行保证幂等；
+- 单条请求关闭重试：`Options(extra: {WRetryInterceptor.disableRetryExtraKey: true})`；
 - 裸 `Dio` 需构造传 `dio:` 或手动 `bindDio`；`DioRegistry` 会自动绑定；
 - 缓存 / 离线不在本包范围，使用 `dio_cache_interceptor` 等外部方案。
 
@@ -376,9 +405,11 @@ final metrics = WMetricsInterceptor(
 | `statusCode` | HTTP 状态码，网络错误为 null |
 | `failed` | 网络错误或 4xx / 5xx |
 | `error` | 原始错误（失败时） |
+| `attempt` | 第几次尝试（首次 1，重试 / 401 刷新递增） |
 
 - `onMetric` 抛异常会被吞掉，不影响请求；
-- 401 刷新 / 重试每次尝试都会各产生一条；
+- 401 刷新 / 重试每次尝试都会各产生一条；是否每条都出取决于拦截器顺序，
+  严格场景把 metrics 放在重试 / token 之前；
 - `sampleRate` 取值 0–1，0 表示关闭。
 
 ---
@@ -453,6 +484,7 @@ void setupApi() {
 - `DioRegistry` 是进程级静态缓存，按精确 `baseUrl` 缓存；可用
   `maxCachedInstances` 开启 LRU（`null` 不限制，默认），用 `cacheTtl` 设置惰性过期，
   或 `dispose(baseUrl)` / `clearCache()` 手动清理。`<= 0` 表示不缓存。
+  LRU / TTL 淘汰不强制中断在途请求；显式 `dispose` / `clearCache` 仍 `force: true`。
 - `WApiSettings` 是全局可变设置；`baseOptions` 在 registry 创建时复制，之后修改只影响
   新实例。测试 / 示例可用 `WApiSettings.reset()` + `DioRegistry.clearCache()` 清理。
 - 数据源 / Repository 由业务项目自己定义，本包不再提供空壳基类。

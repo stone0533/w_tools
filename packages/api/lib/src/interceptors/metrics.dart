@@ -15,6 +15,7 @@ class WMetric {
     this.statusCode,
     this.failed = false,
     this.error,
+    this.attempt = 1,
   });
 
   /// HTTP 方法（大写）
@@ -35,13 +36,17 @@ class WMetric {
   /// 原始错误（失败时）
   final Object? error;
 
+  /// 第几次尝试（首次为 1；重试 / 401 刷新会递增）
+  final int attempt;
+
   /// 不含 query 的路径，适合直接上报
   String get path => uri.path;
 
   @override
   String toString() =>
       'WMetric($method ${uri.path}, status: $statusCode, '
-      'duration: ${duration.inMilliseconds}ms, failed: $failed)';
+      'duration: ${duration.inMilliseconds}ms, failed: $failed, '
+      'attempt: $attempt)';
 }
 
 /// 可选的请求指标拦截器。
@@ -62,6 +67,9 @@ class WMetric {
 ///
 /// 注意：
 /// - 401 刷新 / 重试会重新走请求链路，每次尝试都会产生一条指标；
+///   该结论依赖拦截器顺序：如果重试 / token 拦截器先 `resolve`，更早的
+///   `onError` 可能不会执行；需要严格每次尝试都上报时，把 metrics 放在
+///   重试 / token 拦截器之前（错误方向先执行）。
 /// - [onMetric] 抛出的异常会被吞掉，不影响请求；
 /// - [WMetric.uri] 可能带 query，上报前请过滤敏感参数。
 class WMetricsInterceptor extends Interceptor {
@@ -84,6 +92,8 @@ class WMetricsInterceptor extends Interceptor {
 
   static const String _startKey = '_w_tools_metrics_start';
   static const String _sampledKey = '_w_tools_metrics_sampled';
+  static const String _networkRetryKey = '_w_tools_network_retry_count';
+  static const String _authRetryKey = '_w_tools_auth_retry_count';
 
   final Random _random = Random();
 
@@ -92,7 +102,7 @@ class WMetricsInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) {
-    options.extra[_startKey] = DateTime.now();
+    options.extra[_startKey] = Stopwatch()..start();
     options.extra[_sampledKey] =
         sampleRate >= 1 || (sampleRate > 0 && _random.nextDouble() < sampleRate);
     handler.next(options);
@@ -103,7 +113,7 @@ class WMetricsInterceptor extends Interceptor {
     _emit(
       response.requestOptions,
       statusCode: response.statusCode,
-      failed: false,
+      failed: _isFailedStatus(response.statusCode),
     );
     handler.next(response);
   }
@@ -131,7 +141,11 @@ class WMetricsInterceptor extends Interceptor {
     options.extra.remove(_sampledKey);
     if (!sampled) return;
 
-    final duration = started is DateTime ? DateTime.now().difference(started) : Duration.zero;
+    final duration = started is Stopwatch ? started.elapsed : Duration.zero;
+    final attempt =
+        1 +
+        ((options.extra[_networkRetryKey] as int?) ?? 0) +
+        ((options.extra[_authRetryKey] as int?) ?? 0);
 
     try {
       onMetric(
@@ -142,10 +156,13 @@ class WMetricsInterceptor extends Interceptor {
           statusCode: statusCode,
           failed: failed,
           error: error,
+          attempt: attempt,
         ),
       );
     } catch (_) {
       // 指标回调不能影响请求本身。
     }
   }
+
+  static bool _isFailedStatus(int? status) => status != null && (status < 200 || status >= 300);
 }

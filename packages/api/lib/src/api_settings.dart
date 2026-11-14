@@ -4,6 +4,9 @@ import 'package:dio/dio.dart';
 ///
 /// 运行期可改：默认 [baseOptions] 与日志回调。`baseOptions` 在
 /// [DioRegistry.forBaseUrl] 创建实例时被复制，之后修改只影响新实例。
+///
+/// 默认只设置 connect / receive 超时，**不设置 `sendTimeout`**；大文件上传
+/// 请显式覆盖 [baseOptions] 的 `sendTimeout`。
 class WApiSettings {
   /// 默认 Dio 基础配置（可全局覆盖）
   ///

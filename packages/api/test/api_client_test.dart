@@ -336,6 +336,25 @@ void main() {
     expect(ListFormat.multi, isNotNull);
     expect(ProgressCallback, isNotNull);
   });
+
+  test('barrel 重导出 InterceptorsWrapper / QueuedInterceptor', () {
+    expect(InterceptorsWrapper(), isA<Interceptor>());
+    expect(QueuedInterceptor(), isA<Interceptor>());
+  });
+
+  test('DioException.unknown 带响应时按 HTTP 状态分类', () {
+    final request = RequestOptions(path: '/x');
+    final error = DioException(
+      requestOptions: request,
+      type: DioExceptionType.unknown,
+      response: Response(requestOptions: request, statusCode: 503),
+    );
+
+    final exception = WApiException.from(error);
+
+    expect(exception.kind, WApiErrorKind.server);
+    expect(exception.statusCode, 503);
+  });
 }
 
 /// 测试用模型：只关心 decode 是否被调用以及字段类型。

@@ -1,3 +1,9 @@
+## 16.0.1
+
+### Changed
+- 聚合依赖 `w_tools_api: ^6.1.0`（信封空 body、DioRegistry replace、下载/分页元数据、
+  日志脱敏合并、WMetric.attempt）。
+
 ## 16.0.0
 
 ### Breaking

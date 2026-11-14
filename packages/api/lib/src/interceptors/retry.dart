@@ -3,8 +3,8 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 
-import '../api_settings.dart';
 import '../client/dio_registry.dart';
+import 'log_support.dart' as log_support;
 
 /// 可选的幂等请求重试拦截器。
 ///
@@ -12,9 +12,15 @@ import '../client/dio_registry.dart';
 ///
 /// 安全边界：
 /// - 只重试幂等方法：`GET` / `HEAD` / `PUT` / `DELETE` / `OPTIONS`；
-///   `POST` / `PATCH` 永不重试（避免重复提交）；
+///   `POST` / `PATCH` 默认不重试（避免重复提交）；
 /// - 只重试网络错误和 `408` / `429` / `5xx`（可用 [retryOnStatusCodes] 覆盖）；
-/// - 不重试 `401`（交给 `WTokenInterceptor`）、其他 4xx 和已取消的请求。
+/// - 不重试 `401`（交给 `WTokenInterceptor`）、其他 4xx、`unknown` 和已取消的请求；
+///   需要放行 `unknown` 时用 [shouldRetry] 自定义；
+/// - 可用 `Options(extra: {WRetryInterceptor.disableRetryExtraKey: true})`
+///   对单条请求关闭重试。
+///
+/// `POST` / `PATCH` 默认不在 [retryOnMethods] 里；显式覆盖该集合后，幂等性由
+/// 调用方自己保证。
 ///
 /// ```dart
 /// final registry = DioRegistry.forBaseUrl(
@@ -83,6 +89,15 @@ class WRetryInterceptor extends Interceptor {
 
   static const String _retryCountKey = '_w_tools_network_retry_count';
 
+  /// 单条请求关闭重试的 `RequestOptions.extra` 键。
+  ///
+  /// ```dart
+  /// dio.get('/x', options: Options(
+  ///   extra: {WRetryInterceptor.disableRetryExtraKey: true},
+  /// ));
+  /// ```
+  static const String disableRetryExtraKey = '_w_tools_disable_retry';
+
   static const Set<String> _defaultMethods = {
     'GET',
     'HEAD',
@@ -101,7 +116,6 @@ class WRetryInterceptor extends Interceptor {
     // 与 WApiException 的 timeout 分类保持一致。
     DioExceptionType.transformTimeout,
     DioExceptionType.connectionError,
-    DioExceptionType.unknown,
   };
 
   final Random _random = Random();
@@ -139,22 +153,21 @@ class WRetryInterceptor extends Interceptor {
     }
 
     final delay = _delayFor(attempt);
-    WApiSettings.logDebugHandler?.call(
-      'Retrying ${err.requestOptions.method} ${err.requestOptions.uri} '
+    log_support.logDebug(
+      'Retrying ${err.requestOptions.method} '
+      '${log_support.redactUri(err.requestOptions.uri, log_support.defaultSensitiveQueryKeys)} '
       '(${attempt + 1}/$maxRetries) after ${delay.inMilliseconds}ms',
     );
 
     try {
       onRetry?.call(attempt + 1, err);
     } catch (error) {
-      WApiSettings.logErrorHandler?.call(
+      log_support.logError(
         'WRetryInterceptor.onRetry failed: $error',
       );
     }
 
-    if (delay.inMilliseconds > 0) {
-      await Future<void>.delayed(delay);
-    }
+    await _waitForDelay(delay, cancelToken);
 
     if (cancelToken?.isCancelled ?? false) {
       super.onError(err, handler);
@@ -163,8 +176,8 @@ class WRetryInterceptor extends Interceptor {
 
     final dio = _dio ?? DioRegistry.maybeForBaseUrl(err.requestOptions.baseUrl);
     if (dio == null) {
-      WApiSettings.logErrorHandler?.call(
-        'Cannot retry ${err.requestOptions.uri}: WRetryInterceptor 未绑定 Dio。'
+      log_support.logError(
+        'Cannot retry ${log_support.redactUri(err.requestOptions.uri, log_support.defaultSensitiveQueryKeys)}: WRetryInterceptor 未绑定 Dio。'
         '请用 DioRegistry.forBaseUrl 创建，或构造时传 dio: dio。',
       );
       super.onError(err, handler);
@@ -184,13 +197,30 @@ class WRetryInterceptor extends Interceptor {
       // 内层链路会按新的 attempt 继续重试 / 结束；这里只交出最终错误。
       super.onError(error, handler);
     } catch (error, stackTrace) {
-      WApiSettings.logErrorHandler?.call('Retry failed: $error\n$stackTrace');
+      log_support.logError('Retry failed: $error\n$stackTrace');
       super.onError(err, handler);
     }
   }
 
+  /// 退避等待；取消时立即返回，不要求调用方等完整个 delay。
+  Future<void> _waitForDelay(Duration delay, CancelToken? cancelToken) async {
+    if (delay.inMilliseconds <= 0) return;
+    if (cancelToken == null) {
+      await Future<void>.delayed(delay);
+      return;
+    }
+    if (cancelToken.isCancelled) return;
+
+    final cancelled = cancelToken.whenCancel.then<void>((_) {}).catchError((_) {});
+    await Future.any<void>([
+      Future<void>.delayed(delay),
+      cancelled,
+    ]);
+  }
+
   bool _shouldRetry(DioException err, int attempt) {
     if (maxRetries <= 0 || attempt >= maxRetries) return false;
+    if (err.requestOptions.extra[disableRetryExtraKey] == true) return false;
     if (err.type == DioExceptionType.cancel) return false;
     if (err.requestOptions.data is Stream) return false;
     // 401 是 WTokenInterceptor 的职责；在这里重试会绕过刷新流程。
@@ -200,7 +230,14 @@ class WRetryInterceptor extends Interceptor {
     if (!retryOnMethods.contains(method)) return false;
 
     final custom = shouldRetry;
-    if (custom != null) return custom(err);
+    if (custom != null) {
+      try {
+        return custom(err);
+      } catch (error) {
+        log_support.logError('WRetryInterceptor.shouldRetry failed: $error');
+        return false;
+      }
+    }
 
     final status = err.response?.statusCode;
     if (status != null) return retryOnStatusCodes.contains(status);

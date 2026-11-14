@@ -1,6 +1,8 @@
 /// 分页请求参数。
 ///
 /// [pageKey] / [pageSizeKey] 用于适配不同后端的参数名（默认 `page` / `pageSize`）。
+/// 只支持 1-based 页码分页；offset / limit 或 cursor 分页请用 `WApiClient.send`
+/// 手工请求并自行构造 `WPage`。
 class WPageQuery {
   /// 创建分页参数；页码从 1 开始。
   const WPageQuery({

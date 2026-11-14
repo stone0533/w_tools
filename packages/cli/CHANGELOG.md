@@ -1,3 +1,39 @@
+## 1.20.40
+
+### Changed
+- catalog 删除 `WRetryInterceptor` 的 `Retry-After` / `retryOnUnknownErrors` 说明，
+  `WLogInterceptor` 删除 `replace*` 参数说明；6.1.0 收敛为更小的功能面。
+- `init` 的 `w_tools_api` 约束保持 `^6.1.0`（同版本内收敛）。
+
+## 1.20.39
+
+### Changed
+- catalog 同步 `w_tools_api` 6.1 的 LRU / TTL 语义：淘汰不再强制中断在途请求，
+  显式 dispose / clearCache 仍 force。
+- 同步日志超大 body 限量和 retry 退避取消行为。
+
+## 1.20.38
+
+### Changed
+- catalog 补 `WPage` 分页边界：`page` 只支持 1-based 页码分页，offset / cursor 用
+  `WApiClient.send` 手工构造；同步 `WApiClient.page` 非法 `page` / `pageSize` 的
+  `ArgumentError` 说明。
+
+## 1.20.37
+
+### Changed
+- catalog 同步 `w_tools_api` 6.1：`WTokenInterceptor.shouldRefresh`、
+  `WApiClient.send/page` 按请求覆盖信封、`WLogInterceptor` 错误响应片段。
+- `init` 的 `w_tools_api` 约束保持 `^6.1.0`（同版本内补齐 6.1 条目）。
+
+## 1.20.36
+
+### Changed
+- catalog 同步 `w_tools_api` 6.1：信封空 body、`DioRegistry.replace`、
+  `downloadResponse` / `readTotalFromResponse`、日志脱敏追加语义、
+  `Retry-After` / `retryOnUnknownErrors`、`WMetric.attempt`。
+- `init` 的 `w_tools_api` 约束抬到 `^6.1.0`。
+
 ## 1.20.35
 
 ### Changed

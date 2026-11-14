@@ -1,9 +1,7 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:dio/dio.dart';
 
-import '../api_settings.dart';
+import 'log_sanitizer.dart';
+import 'log_support.dart' as log_support;
 
 /// 日志输出片段。
 enum WLogPart {
@@ -50,16 +48,7 @@ class WLogInterceptor extends Interceptor {
   static const int defaultMaxBodyLength = 2000;
 
   /// 默认需要脱敏的 query 参数（大小写不敏感）
-  static const Set<String> defaultSensitiveQueryKeys = {
-    'token',
-    'access_token',
-    'refresh_token',
-    'api_key',
-    'apikey',
-    'secret',
-    'password',
-    'auth',
-  };
+  static const Set<String> defaultSensitiveQueryKeys = log_support.defaultSensitiveQueryKeys;
 
   /// 默认需要脱敏的 body key（大小写不敏感）。
   ///
@@ -97,6 +86,8 @@ class WLogInterceptor extends Interceptor {
   /// 需要脱敏的 body key（大小写不敏感）
   final Set<String> sensitiveBodyKeys;
 
+  WLogSanitizer? _sanitizerCache;
+
   /// 默认脱敏的敏感头
   static const Set<String> defaultRedactedHeaders = {
     'authorization',
@@ -121,6 +112,9 @@ class WLogInterceptor extends Interceptor {
   /// Map / List、JSON 字符串与 FormData 的字段；默认见
   /// [defaultSensitiveBodyKeys]。只做 key 精确匹配，不做子串匹配。
   ///
+  /// [redactedHeaders]、[sensitiveQueryKeys]、[sensitiveBodyKeys] 会与内置默认值**合并**，
+  /// 不能整体替换默认集合；需要完全自定义时请自行实现 `Interceptor`。
+  ///
   /// [maxBodyLength] 为单条 body 的最大输出字符数，默认
   /// [defaultMaxBodyLength]；传 `<= 0` 表示不截断。
   WLogInterceptor({
@@ -131,14 +125,17 @@ class WLogInterceptor extends Interceptor {
     Set<String>? sensitiveQueryKeys,
     Set<String>? sensitiveBodyKeys,
   }) : parts = parts == null ? null : Set<WLogPart>.unmodifiable(parts),
-       redactedHeaders = Set<String>.unmodifiable(
-         (redactedHeaders ?? defaultRedactedHeaders).map((header) => header.toLowerCase()),
+       redactedHeaders = _mergeLower(
+         redactedHeaders,
+         defaultRedactedHeaders,
        ),
-       sensitiveQueryKeys = Set<String>.unmodifiable(
-         (sensitiveQueryKeys ?? defaultSensitiveQueryKeys).map((key) => key.toLowerCase()),
+       sensitiveQueryKeys = _mergeLower(
+         sensitiveQueryKeys,
+         defaultSensitiveQueryKeys,
        ),
-       sensitiveBodyKeys = Set<String>.unmodifiable(
-         (sensitiveBodyKeys ?? defaultSensitiveBodyKeys).map((key) => key.toLowerCase()),
+       sensitiveBodyKeys = _mergeLower(
+         sensitiveBodyKeys,
+         defaultSensitiveBodyKeys,
        ),
        _request = parts?.contains(WLogPart.request) ?? true,
        _requestHeader = parts?.contains(WLogPart.requestHeader) ?? true,
@@ -146,6 +143,23 @@ class WLogInterceptor extends Interceptor {
        _responseHeader = parts?.contains(WLogPart.responseHeader) ?? false,
        _responseBody = parts?.contains(WLogPart.responseBody) ?? false,
        _error = parts?.contains(WLogPart.error) ?? true;
+
+  static Set<String> _mergeLower(
+    Set<String>? custom,
+    Set<String> defaults,
+  ) {
+    final source = <String>{...defaults, ...?custom};
+    return Set<String>.unmodifiable(
+      source.map((value) => value.toLowerCase()),
+    );
+  }
+
+  WLogSanitizer get _sanitizer => _sanitizerCache ??= WLogSanitizer(
+    redactedHeaders: redactedHeaders,
+    sensitiveQueryKeys: sensitiveQueryKeys,
+    sensitiveBodyKeys: sensitiveBodyKeys,
+    maxBodyLength: maxBodyLength,
+  );
 
   /// 请求阶段：打印请求详情
   @override
@@ -163,7 +177,7 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
-    if (WApiSettings.logDebugHandler == null) {
+    if (!log_support.hasDebugHandler) {
       handler.next(options);
       return;
     }
@@ -175,7 +189,7 @@ class WLogInterceptor extends Interceptor {
     }
 
     var builder = StringBuffer('*** Request *** \n');
-    builder.write(_printKV('uri', _safeUri(options.uri)));
+    builder.write(_printKV('uri', _sanitizer.safeUri(options.uri)));
 
     if (_request) {
       builder.write(_printKV('method', options.method));
@@ -196,121 +210,17 @@ class WLogInterceptor extends Interceptor {
       builder.write('headers:\n');
       options.headers.forEach(
         (key, v) => builder.write(
-          _printKV('  $key', _isRedacted(key) ? '***' : v),
+          _printKV('  $key', _sanitizer.isRedactedHeader(key) ? '***' : v),
         ),
       );
     }
     if (_requestBody) {
       var res = options.data;
       builder.write('data:\n');
-      builder.write(_message(res));
+      builder.write(_sanitizer.formatBody(res));
     }
-    WApiSettings.logDebugHandler?.call(builder.toString());
+    log_support.logDebug(builder.toString());
     handler.next(options);
-  }
-
-  /// 处理 JsonEncoder 无法处理的对象
-  Object _toEncodableFallback(dynamic object) {
-    return object.toString();
-  }
-
-  /// 格式化为可读文本：先按敏感 key 脱敏，Map/Iterable 走缩进 JSON，
-  /// 二进制只输出字节数。
-  String _message(dynamic res) {
-    if (res is Uint8List) {
-      return '<${res.length} bytes>';
-    }
-    final safe = _redactBody(res);
-    String text;
-    if (safe is Map || safe is Iterable) {
-      var encoder = JsonEncoder.withIndent('  ', _toEncodableFallback);
-      try {
-        text = encoder.convert(safe);
-      } catch (_) {
-        text = safe.toString();
-      }
-    } else {
-      text = safe.toString();
-    }
-    return _truncate(text);
-  }
-
-  /// 对 body 做递归脱敏；返回新对象，不修改调用方传入的 data。
-  ///
-  /// 覆盖 Map / List、JSON 字符串（以 `{` / `[` 开头）与 FormData fields；
-  /// 任意对象的 `toString()` 无法可靠识别字段，保持原样。
-  Object? _redactBody(dynamic value, {int depth = 0}) {
-    if (depth > 16) return '<redacted: too deep>';
-    if (value is FormData) {
-      final fields = <String, String>{};
-      for (final entry in value.fields) {
-        fields[entry.key] = _isSensitiveBodyKey(entry.key) ? '***' : entry.value;
-      }
-      return <String, dynamic>{
-        'fields': fields,
-        'files': [
-          for (final entry in value.files)
-            <String, String>{
-              'field': entry.key,
-              'filename': entry.value.filename ?? '',
-            },
-        ],
-      };
-    }
-    if (value is Map) {
-      final result = <dynamic, dynamic>{};
-      value.forEach((key, child) {
-        result[key] = _isSensitiveBodyKey(key.toString())
-            ? '***'
-            : _redactBody(child, depth: depth + 1);
-      });
-      return result;
-    }
-    if (value is Iterable) {
-      return <dynamic>[
-        for (final child in value) _redactBody(child, depth: depth + 1),
-      ];
-    }
-    if (value is String) {
-      final trimmed = value.trim();
-      if (trimmed.isEmpty) return value;
-      // 0x7B = `{`，0x5B = `[`；不要写成字符串字面量，API 快照脚本按字符数花括号。
-      final first = trimmed.codeUnitAt(0);
-      if (first != 0x7B && first != 0x5B) return value;
-      try {
-        return _redactBody(jsonDecode(value), depth: depth + 1);
-      } catch (_) {
-        return value;
-      }
-    }
-    return value;
-  }
-
-  bool _isSensitiveBodyKey(String key) => sensitiveBodyKeys.contains(key.toLowerCase());
-
-  String _truncate(String text) {
-    if (maxBodyLength <= 0 || text.length <= maxBodyLength) return text;
-    return '${text.substring(0, maxBodyLength)}\n... (truncated, ${text.length} chars)';
-  }
-
-  /// query 中常见的敏感参数默认脱敏，避免 token 随 URI 进入日志。
-  Uri _safeUri(Uri uri) {
-    if (uri.queryParametersAll.isEmpty) return uri;
-
-    var changed = false;
-    final pairs = <String>[];
-    uri.queryParametersAll.forEach((key, values) {
-      final encodedKey = Uri.encodeQueryComponent(key);
-      if (sensitiveQueryKeys.contains(key.toLowerCase())) {
-        pairs.add('$encodedKey=***');
-        changed = true;
-      } else {
-        for (final value in values) {
-          pairs.add('$encodedKey=${Uri.encodeQueryComponent(value)}');
-        }
-      }
-    });
-    return changed ? uri.replace(query: pairs.join('&')) : uri;
   }
 
   /// 响应阶段：打印响应详情
@@ -321,7 +231,7 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
-    if (WApiSettings.logDebugHandler == null) {
+    if (!log_support.hasDebugHandler) {
       handler.next(response);
       return;
     }
@@ -334,7 +244,7 @@ class WLogInterceptor extends Interceptor {
 
     var builder = StringBuffer('*** Response *** \n');
     _printResponse(response, builder, (message) {
-      WApiSettings.logDebugHandler?.call(message);
+      log_support.logDebug(message);
     });
     handler.next(response);
   }
@@ -352,21 +262,25 @@ class WLogInterceptor extends Interceptor {
       return;
     }
 
-    if (WApiSettings.logErrorHandler == null) {
+    if (!log_support.hasErrorHandler) {
       handler.next(err);
       return;
     }
 
-    if (_error) {
-      var builder = StringBuffer('*** DioError *** \n');
-      builder.write('uri: ${_safeUri(err.requestOptions.uri)}\n');
-      builder.write('$err');
+    // error 关掉但显式开了 responseHeader / responseBody 时，仍然输出
+    // 错误响应片段；只开 response* 的人不应该拿到空日志。
+    if (_error || (err.response != null && (_responseHeader || _responseBody))) {
+      final builder = StringBuffer();
+      if (_error) {
+        builder.write('*** DioError *** \n');
+        builder.write('uri: ${_sanitizer.safeUri(err.requestOptions.uri)}\n');
+        builder.write('$err');
+      }
       if (err.response != null) {
-        _printResponse(err.response!, builder, (message) {
-          WApiSettings.logErrorHandler?.call(message);
-        });
+        if (_error) builder.write('\n');
+        _printResponse(err.response!, builder, log_support.logError);
       } else {
-        WApiSettings.logErrorHandler?.call(builder.toString());
+        log_support.logError(builder.toString());
       }
     }
 
@@ -375,7 +289,7 @@ class WLogInterceptor extends Interceptor {
 
   /// 打印响应信息
   void _printResponse(Response response, StringBuffer builder, void Function(String) pr) {
-    builder.write(_printKV('uri', _safeUri(response.requestOptions.uri)));
+    builder.write(_printKV('uri', _sanitizer.safeUri(response.requestOptions.uri)));
     // statusCode / redirect 属响应元信息，始终打印，不受 responseHeader 开关影响
     builder.write(_printKV('statusCode', response.statusCode));
     if (response.isRedirect == true) {
@@ -388,22 +302,20 @@ class WLogInterceptor extends Interceptor {
         (key, v) => builder.write(
           _printKV(
             ' $key',
-            _isRedacted(key) ? '***' : v.join('\r\n\t'),
+            _sanitizer.isRedactedHeader(key) ? '***' : v.join('\r\n\t'),
           ),
         ),
       );
     }
     if (_responseBody) {
       builder.write('Response Text:\r\n');
-      // 直接使用 response.data，交由 _message 安全格式化。
+      // 直接使用 response.data，交由 sanitizer 安全格式化。
       // 不再用 response.toString() + 手动 jsonDecode：List 的 toString()（如 ["a","b"] → [a, b]）
       // 并非合法 JSON，会导致解析抛异常并让成功的请求失败。
-      builder.write(_message(response.data));
+      builder.write(_sanitizer.formatBody(response.data));
     }
     pr(builder.toString());
   }
-
-  bool _isRedacted(String header) => redactedHeaders.contains(header.toLowerCase());
 
   /// 打印键值对
   String _printKV(String key, Object? v) {
