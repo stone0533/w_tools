@@ -177,6 +177,43 @@ void main() {
       expect(reported, isA<StateError>());
     });
 
+    test('onError 内重新 load：旧失败不覆盖新状态', () async {
+      late WAsyncController<int> controller;
+      Future<void>? secondLoad;
+      final gate = Completer<int>();
+      var calls = 0;
+      controller = WAsyncController<int>(
+        (_) {
+          calls++;
+          if (calls == 1) return Future<int>.error(StateError('first'));
+          return gate.future;
+        },
+        onError: (error) {
+          if (calls == 1) secondLoad = controller.load();
+        },
+      );
+      addTearDown(controller.dispose);
+
+      await controller.load();
+      expect(controller.state.value.isLoading, isTrue);
+
+      gate.complete(2);
+      await secondLoad;
+
+      expect(controller.state.value.data, 2);
+    });
+
+    test('replaceData 的 isEmpty 抛错当前同步抛出', () {
+      final controller = WAsyncController<int>(
+        (_) async => 1,
+        isEmpty: (_) => throw StateError('isEmpty boom'),
+      );
+      addTearDown(controller.dispose);
+
+      // 当前行为：同步抛出；若决定与 load 一样转 failed，改这条用例 + 代码。
+      expect(() => controller.replaceData(1), throwsStateError);
+    });
+
     test('list 的 state.data 是不可变列表（与 Paged 一致）', () async {
       final source = <int>[1, 2];
       final controller = WAsyncController.list<int>((_) async => source);
