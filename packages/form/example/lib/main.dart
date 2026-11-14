@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'pages/advanced_fields_page.dart';
 import 'pages/border_page.dart';
 import 'pages/login_page.dart';
-import 'pages/popup_page.dart';
 import 'pages/profile_page.dart';
 
 void main() {
@@ -45,7 +44,6 @@ class _ExampleHomeState extends State<_ExampleHome> {
         children: const [
           LoginExamplePage(),
           ProfileExamplePage(),
-          PopupExamplePage(),
           AdvancedFieldsPage(),
           BorderExamplePage(),
         ],
@@ -63,10 +61,6 @@ class _ExampleHomeState extends State<_ExampleHome> {
           NavigationDestination(
             icon: Icon(Icons.person_rounded),
             label: '会员资料',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.arrow_drop_down_circle_outlined),
-            label: '弹层',
           ),
           NavigationDestination(
             icon: Icon(Icons.tune_rounded),

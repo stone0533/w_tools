@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
@@ -27,13 +28,13 @@ void main() {
               children: [
                 WFormTextField(
                   name: 'email',
-                  label: '邮箱',
+                  hintText: '邮箱',
                   message: '请输入邮箱',
                   validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
                 ),
                 const WFormDropdown<String>(
                   name: 'country',
-                  label: '国家 / 地区',
+                  hintText: '国家 / 地区',
                   items: {
                     'CN': '中国大陆',
                     'HK': '中国香港',
@@ -41,7 +42,7 @@ void main() {
                 ),
                 const WFormMultiDropdown(
                   name: 'interests',
-                  label: '兴趣',
+                  hintText: '兴趣',
                   items: {
                     'music': '音乐',
                     'travel': '旅行',
@@ -49,7 +50,7 @@ void main() {
                 ),
                 const WFormDatePicker(
                   name: 'birthday',
-                  label: '生日',
+                  hintText: '生日',
                 ),
                 const WFormCheckbox(
                   name: 'marketing',
@@ -102,25 +103,20 @@ void main() {
     );
     expect(validator.errors, isEmpty);
 
-    // §4 边框：不可变配置 + 自定义布局
+    // §4 边框：不可变配置 + 自定义文案
     const decoration = BoxDecoration(
       color: Colors.white,
       border: Border.fromBorderSide(BorderSide(width: 1, color: Colors.grey)),
       borderRadius: BorderRadius.all(Radius.circular(8)),
     );
     final borderStyle =
-        WFormBorderStyle(
+        const WFormBorderStyle(
           defaultDecoration: decoration,
           focusedDecoration: decoration,
           errorDecoration: decoration,
-          hintStyle: const TextStyle(fontSize: 12),
-          errorStyle: const TextStyle(fontSize: 12),
-          layout: (context, data) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [data.child, data.message],
-          ),
+          helperStyle: TextStyle(fontSize: 12),
+          errorStyle: TextStyle(fontSize: 12),
         ).copyWith(
-          layout: columnBorderLayout,
           errorBuilder: (list) => Text(list?.join('；') ?? ''),
         );
     expect(borderStyle.copyWith(), equals(borderStyle));
@@ -144,9 +140,9 @@ void main() {
               children: [
                 WFormTextField(
                   name: 'email',
-                  label: '邮箱',
-                  // §8 格式化器
-                  inputFormatters: WFormInputFormatters.hkPhone(),
+                  hintText: '邮箱',
+                  // 输入格式化直接使用 Flutter 自带 formatter
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   actions: [
                     WFormTextFieldAction(
                       visibleWhen: (data) => data.hasText,
@@ -159,7 +155,7 @@ void main() {
                 ),
                 WFormDatePicker(
                   name: 'birthday',
-                  label: '生日',
+                  hintText: '生日',
                   displayFormat: 'yyyy-MM-dd',
                   firstDate: DateTime(1900),
                   lastDate: DateTime(2100),

@@ -24,6 +24,7 @@ Widget assembleFormField({
   bool bordered = true,
   bool readOnly = false,
   bool enableFocusBorder = true,
+  bool rendersInlineError = true,
   String? message,
   List<String>? hintTextList,
   bool? isTransparentBackground,
@@ -62,6 +63,7 @@ Widget assembleFormField({
     hintTextList: hints,
     isTransparentBackground: isTransparentBackground,
     enableFocusBorder: enableFocusBorder,
+    rendersInlineError: rendersInlineError,
     readOnly: readOnly,
     child: child,
   );

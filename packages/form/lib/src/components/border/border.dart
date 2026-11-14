@@ -24,6 +24,7 @@ class WFormBorder extends StatefulWidget {
     this.isFocused,
     this.errorChannel,
     this.fieldErrorText,
+    this.rendersInlineError = true,
   });
 
   /// 子组件
@@ -49,9 +50,16 @@ class WFormBorder extends StatefulWidget {
 
   /// 字段自身的内联错误（`FormFieldState.errorText`）
   ///
-  /// 非 null 时说明错误已由输入控件（InputDecoration）渲染，边框不再重复展示文案，
-  /// 只保留错误态装饰——这就是「两套错误通道」的消重规则。
+  /// [rendersInlineError] 为 true 时说明错误已由输入控件（InputDecoration）渲染，
+  /// 边框不再重复展示文案，只保留错误态装饰——这就是「两套错误通道」的消重规则。
+  /// 为 false 时（checkbox / radio / date / multi / button），边框负责把文案渲染出来。
   final String? fieldErrorText;
+
+  /// 字段自身是否会渲染 [fieldErrorText]。
+  ///
+  /// text / dropdown 走 InputDecoration，传 true；其余直接字段没有内联错误位置，
+  /// 传 false 让边框兜底，避免原生 `validate()` 的错误文案被静默丢弃。
+  final bool rendersInlineError;
 
   @override
   State<WFormBorder> createState() => WFormBorderState();
@@ -77,6 +85,9 @@ class WFormBorderState extends State<WFormBorder> {
 
   /// 本帧是否存在内联错误（由输入控件渲染）
   bool _hasInlineError = false;
+
+  /// 本帧需要由边框兜底渲染的字段原生错误（字段自身不渲染 errorText 时）
+  String? _externalErrorText;
 
   /// 缓存的装饰对象
   BoxDecoration? _cachedDecoration;
@@ -189,7 +200,7 @@ class WFormBorderState extends State<WFormBorder> {
     final key = (
       transparent: widget.isTransparentBackground,
       readOnly: widget.isReadOnly,
-      isError: _isError || _hasInlineError,
+      isError: _isError || _hasInlineError || _externalErrorText != null,
       focused: widget.isFocused,
     );
 
@@ -235,8 +246,11 @@ class WFormBorderState extends State<WFormBorder> {
 
   @override
   Widget build(BuildContext context) {
-    // 内联错误必须在计算装饰前确定：它同时影响装饰与消息去重
-    _hasInlineError = widget.fieldErrorText != null;
+    // 内联错误必须在计算装饰前确定：它同时影响装饰与消息去重。
+    // 字段不渲染 errorText 时（checkbox / radio / date / multi / button），
+    // 由边框兜底展示，不能让原生 validate() 的文案静默消失。
+    _hasInlineError = widget.rendersInlineError && widget.fieldErrorText != null;
+    _externalErrorText = widget.rendersInlineError ? null : widget.fieldErrorText;
     final decoration = _getBoxDecoration();
     final borderRadius = _getBorderRadius();
 
@@ -252,7 +266,13 @@ class WFormBorderState extends State<WFormBorder> {
     // 2. 按状态构建消息
     //
     // 内联错误（由输入控件渲染）优先：同一字段只出现一次错误文案。
-    final List<String>? errorList = _hasInlineError || !_isError ? null : _messageList;
+    final List<String>? externalErrorList = _externalErrorText == null
+        ? null
+        : <String>[_externalErrorText!];
+    final List<String>? channelErrorList = _isError ? _messageList : null;
+    final List<String>? errorList = _hasInlineError
+        ? null
+        : ((channelErrorList?.isNotEmpty ?? false) ? channelErrorList : externalErrorList);
     final bool hasMessage = _hasInlineError
         ? false
         : (errorList?.isNotEmpty ?? (_messageList?.isNotEmpty ?? false));
@@ -263,17 +283,18 @@ class WFormBorderState extends State<WFormBorder> {
       message = style.errorBuilder?.call(errorList) ?? _defaultMessage(errorList, style.errorStyle);
     } else {
       message =
-          style.hintBuilder?.call(_messageList) ?? _defaultMessage(messageList!, style.hintStyle);
+          style.hintBuilder?.call(_messageList) ??
+          _defaultMessage(messageList!, style.effectiveHelperStyle);
     }
 
-    // 3. 交给布局策略组装
-    return style.layout(
+    // 3. 组装：边框在上，消息在下（固定布局）
+    return columnBorderLayout(
       context,
       WFormBorderLayoutData(
         child: child,
         message: message,
         hasMessage: hasMessage,
-        isError: _isError || _hasInlineError,
+        isError: _isError || _hasInlineError || _externalErrorText != null,
         isReadOnly: widget.isReadOnly ?? false,
         borderRadius: borderRadius,
       ),
@@ -290,28 +311,35 @@ class WFormBorderStyle {
   final BoxDecoration? errorDecoration;
   final BoxDecoration? focusedDecoration;
 
-  /// hint / error 文案的默认文字样式。
+  /// helper / error 文案的默认文字样式。
   ///
   /// [hintBuilder] / [errorBuilder] 为空时用它渲染 `Text(list.join('；'))`。
   /// 内置工厂（[WFormBorderStyle.standard] / [WFormBorderStyle.fromTheme]）走这两个字段
   /// 而不是闭包，因此配置之间可以做 `==` 比较（避免每帧重建）。
+  final TextStyle? helperStyle;
+
+  /// 历史名；用 [helperStyle]。构造参数已弃用（remove-in: 9.0.0）。
   final TextStyle? hintStyle;
+
   final TextStyle? errorStyle;
+
+  /// 兼容新旧字段的实际 helper 文案样式。
+  TextStyle? get effectiveHelperStyle => helperStyle ?? hintStyle;
 
   final Widget Function(List<String>? list)? hintBuilder;
   final Widget Function(List<String>? list)? errorBuilder;
-  final WFormBorderLayout layout;
 
   const WFormBorderStyle({
     this.defaultDecoration,
     this.readOnlyDecoration,
     this.errorDecoration,
     this.focusedDecoration,
-    this.hintStyle,
+    this.helperStyle,
+    // remove-in: 9.0.0
+    @Deprecated('Use helperStyle instead. remove-in: 9.0.0') this.hintStyle,
     this.errorStyle,
     this.hintBuilder,
     this.errorBuilder,
-    this.layout = columnBorderLayout,
   });
 
   /// 显式浅色预设（历史入口）。
@@ -324,7 +352,9 @@ class WFormBorderStyle {
     Color errorColor = const Color(0xFFEF4444), // style-literal-ok: 显式浅色预设
     Color readOnlyColor = const Color(0xFFF9FAFB), // style-literal-ok: 显式浅色预设
     double radius = 12,
-    TextStyle? hintStyle,
+    TextStyle? helperStyle,
+    // remove-in: 9.0.0
+    @Deprecated('Use helperStyle instead. remove-in: 9.0.0') TextStyle? hintStyle,
     TextStyle? errorStyle,
   }) {
     final base = BoxDecoration(
@@ -333,6 +363,7 @@ class WFormBorderStyle {
       borderRadius: BorderRadius.circular(radius),
     );
     final hintTextStyle =
+        helperStyle ??
         hintStyle ??
         const TextStyle(fontSize: 12, color: Color(0xFF6B7280)); // style-literal-ok: 显式浅色预设
     final errorTextStyle = errorStyle ?? TextStyle(fontSize: 12, color: errorColor);
@@ -346,7 +377,7 @@ class WFormBorderStyle {
         border: Border.all(color: errorColor),
       ),
       readOnlyDecoration: base.copyWith(color: readOnlyColor),
-      hintStyle: hintTextStyle,
+      helperStyle: hintTextStyle,
       errorStyle: errorTextStyle,
     );
   }
@@ -366,7 +397,9 @@ class WFormBorderStyle {
   factory WFormBorderStyle.fromTheme(
     ThemeData theme, {
     double radius = 12,
-    TextStyle? hintStyle,
+    TextStyle? helperStyle,
+    // remove-in: 9.0.0
+    @Deprecated('Use helperStyle instead. remove-in: 9.0.0') TextStyle? hintStyle,
     TextStyle? errorStyle,
   }) {
     final scheme = theme.colorScheme;
@@ -375,9 +408,10 @@ class WFormBorderStyle {
       border: Border.all(color: scheme.outlineVariant),
       borderRadius: BorderRadius.circular(radius),
     );
-    final hintTextStyle = (hintStyle ?? theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
-      color: hintStyle?.color ?? scheme.onSurfaceVariant,
-    );
+    final hintTextStyle =
+        (helperStyle ?? hintStyle ?? theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
+          color: (helperStyle ?? hintStyle)?.color ?? scheme.onSurfaceVariant,
+        );
     final errorTextStyle = (errorStyle ?? theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
       color: errorStyle?.color ?? scheme.error,
     );
@@ -391,7 +425,7 @@ class WFormBorderStyle {
         border: Border.all(color: scheme.error),
       ),
       readOnlyDecoration: base.copyWith(color: scheme.surfaceContainerLow),
-      hintStyle: hintTextStyle,
+      helperStyle: hintTextStyle,
       errorStyle: errorTextStyle,
     );
   }
@@ -401,22 +435,22 @@ class WFormBorderStyle {
     BoxDecoration? readOnlyDecoration,
     BoxDecoration? errorDecoration,
     BoxDecoration? focusedDecoration,
-    TextStyle? hintStyle,
+    TextStyle? helperStyle,
+    // remove-in: 9.0.0
+    @Deprecated('Use helperStyle instead. remove-in: 9.0.0') TextStyle? hintStyle,
     TextStyle? errorStyle,
     Widget Function(List<String>? list)? hintBuilder,
     Widget Function(List<String>? list)? errorBuilder,
-    WFormBorderLayout? layout,
   }) {
     return WFormBorderStyle(
       defaultDecoration: defaultDecoration ?? this.defaultDecoration,
       readOnlyDecoration: readOnlyDecoration ?? this.readOnlyDecoration,
       errorDecoration: errorDecoration ?? this.errorDecoration,
       focusedDecoration: focusedDecoration ?? this.focusedDecoration,
-      hintStyle: hintStyle ?? this.hintStyle,
+      helperStyle: helperStyle ?? hintStyle ?? effectiveHelperStyle,
       errorStyle: errorStyle ?? this.errorStyle,
       hintBuilder: hintBuilder ?? this.hintBuilder,
       errorBuilder: errorBuilder ?? this.errorBuilder,
-      layout: layout ?? this.layout,
     );
   }
 
@@ -427,11 +461,11 @@ class WFormBorderStyle {
       other.readOnlyDecoration == readOnlyDecoration &&
       other.errorDecoration == errorDecoration &&
       other.focusedDecoration == focusedDecoration &&
+      other.helperStyle == helperStyle &&
       other.hintStyle == hintStyle &&
       other.errorStyle == errorStyle &&
       other.hintBuilder == hintBuilder &&
-      other.errorBuilder == errorBuilder &&
-      other.layout == layout;
+      other.errorBuilder == errorBuilder;
 
   @override
   int get hashCode => Object.hash(
@@ -439,10 +473,10 @@ class WFormBorderStyle {
     readOnlyDecoration,
     errorDecoration,
     focusedDecoration,
+    helperStyle,
     hintStyle,
     errorStyle,
     hintBuilder,
     errorBuilder,
-    layout,
   );
 }

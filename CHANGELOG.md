@@ -1,3 +1,11 @@
+## Unreleased
+
+### Changed
+- 聚合依赖 `w_tools_form: ^8.0.0`（删除 `clearValue` / `formEntered` / `isAllEntered` /
+  `closeKeyboard` / `WFormCustomValidator` / `WFormInputFormatters`；`WFormPopup` 移除公开入口；
+  `WFormBorder` / 自定义 layout 移除公开入口；
+  `label` 弃用；复选 / 单选默认带边框、原生校验错误可见、单选组高度内容驱动）。
+
 ## 16.1.0
 
 ### Changed

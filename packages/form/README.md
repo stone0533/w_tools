@@ -10,8 +10,8 @@
 - **WForm 容器**：一次组合主题、表单作用域和只读作用域
 - **直接字段构造**：`WFormTextField` / `WFormDropdown` / `WFormDatePicker` 等直接使用
 - **直接字段参数**：常用样式/插槽直接传参；可变字段 Config 已在 5.0 移除
-- **边框体系**：`WFormBorderStyle`（不可变）+ `WFormBorder`
-- **只读与校验**：`WFormReadOnlyScope` / `WFormValidatorSettings`
+- **边框体系**：`WFormBorderStyle`（不可变）；`WFormBorder` 8.0 起移除公开入口
+- **只读与校验**：`WFormReadOnly` / `WFormValidatorSettings`
 - **字段按钮**：`WFormButton`（String）/ `WFormFieldButton<T>`（泛型）自定义选择、弹层等交互
 
 完整可运行示例见 [`example/`](example/)。
@@ -20,10 +20,10 @@
 
 ```yaml
 dependencies:
-  w_tools_form: ^7.0.1
+  w_tools_form: ^8.0.0
 ```
 
-> 最低要求 Flutter 3.38.0（由 `flutter_form_builder` / `form_builder_validators` 依赖约束）。
+> 最低要求 Flutter 3.38.0（由 `flutter_form_builder` 依赖约束）。
 >
 > **公开依赖**：`WFormController.formKey` / `fields` 的类型来自 `flutter_form_builder`，
 > 自定义字段也要继承它的 `FormBuilderField` / `FormBuilderFieldState`。这些类型已由
@@ -99,6 +99,7 @@ class _LoginFormState extends State<LoginForm> {
 
 普通页面优先用直接字段参数；跨字段默认值放 `WForm.fieldStyle`。
 可变 `WForm*Config` / `Config.build` 已在 form 5.0 移除。
+`WForm.fieldStyle.height` 只对单行字段生效；单选组、多行文本由内容撑高。
 多行字段（`maxLines > 1`）要同步提高高度：`WFormFieldStyleScope(style: WFormFieldStyle(height: 72), ...)`。
 
 ```dart
@@ -114,18 +115,16 @@ WFormTextField(
 ```dart
 WFormDropdown<String>(name: 'city', items: const {'sh': '上海'}, initialValue: 'sh');
 WFormMultiDropdown(name: 'tags', items: const {'a': 'A'}, disabledKeys: const {'b'});
-WFormDatePicker(name: 'birthday', label: '生日', displayFormat: 'yyyy-MM-dd');
+WFormDatePicker(name: 'birthday', hintText: '生日', displayFormat: 'yyyy-MM-dd');
 WFormCheckbox(
   name: 'agree',
   title: Text('同意'),
   message: '请先同意协议',
-  bordered: true,
 );
 WFormRadioGroup<String>(
   name: 'gender',
   items: const {'male': '男', 'female': '女'},
   message: '请选择性别',
-  bordered: true,
 );
 WFormButton(
   name: 'coupon',
@@ -158,20 +157,13 @@ WFormFieldStyleScope(
 );
 ```
 
-## 弹层与输入格式化
+## 弹层
 
-```dart
-final value = await WFormPopup.show<String>(
-  context: context,
-  anchorContext: fieldKey.currentContext,
-  builder: (context) => ...,
-);
+`WFormPopup` 从 8.0 起移除公开入口（内部实现保留）；需要锚定弹层时用 Flutter 自带的
+`MenuAnchor` / `showMenu` / `OverlayPortal`。
 
-WFormTextField(
-  name: 'phone',
-  inputFormatters: WFormInputFormatters.hkPhone(),
-);
-```
+输入格式化直接用 `flutter/services.dart` 的
+`FilteringTextInputFormatter` / `LengthLimitingTextInputFormatter`；本包不提供业务格式化器。
 
 ## 图标
 
@@ -191,6 +183,7 @@ form.validators().validate(); // 不传 items：校验全部已挂载字段
 form.validate(settings: const WFormValidatorSettings(continueOnError: true));
 
 form.value; form.savedValue;
+form.save(); // 需要 savedValue / onSaved 时显式调用
 form.setValue('email', 'a@b.com'); // 程序化改值；不要在字段自己的 onChanged 里回写同字段
 form.reset();
 
@@ -212,7 +205,7 @@ WForm(
 | 日期 | `WFormDatePicker` |
 | 复选 / 单选 | `WFormCheckbox` / `WFormRadioGroup` |
 | 自定义字段按钮 | `WFormButton` / `WFormFieldButton<T>` |
-| 边框（低层，普通页面不用手写） | `WFormBorder` / `WFormBorderStyle` |
+| 边框配置 | `WFormBorderStyle` |
 | 校验 | `WFormValidator` / `WFormValidatorItem` / `WFormValidatorSettings` |
 
 ## 历史迁移

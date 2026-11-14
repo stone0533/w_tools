@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../form_scope.dart';
 import '../form_controller.dart';
+import '../form_theme.dart';
 import 'border.dart';
 import 'border_access.dart';
 import 'read_only_scope.dart';
@@ -32,6 +32,12 @@ class WFormFieldShell extends StatefulWidget {
   /// 是否启用焦点边框
   final bool enableFocusBorder;
 
+  /// 字段自身是否渲染 `FormFieldState.errorText`
+  ///
+  /// text / dropdown 由 InputDecoration 渲染，传 true；checkbox / radio / date /
+  /// multi / button 没有内联错误位置，传 false 让边框兜底展示错误文案。
+  final bool rendersInlineError;
+
   /// 创建带表单数据的边框
   const WFormFieldShell({
     super.key,
@@ -40,6 +46,7 @@ class WFormFieldShell extends StatefulWidget {
     this.isTransparentBackground,
     required this.readOnly,
     this.enableFocusBorder = true,
+    this.rendersInlineError = true,
     required this.child,
   });
 
@@ -58,7 +65,7 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final next = WFormScope.requireOf(context);
+    final next = WFormController.requireOf(context);
     if (!identical(_formData, next)) {
       final previous = _formData;
       if (previous != null) {
@@ -109,10 +116,10 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
     // 上一帧的 `fieldErrorText` 快照，导致和内联错误各渲染一条文案。
     Form.maybeOf(context);
 
-    final formData = WFormScope.requireOf(context);
+    final formData = WFormController.requireOf(context);
 
     // 继承外层只读作用域：内层无法解除外层的只读锁定
-    final isReadOnly = widget.readOnly || WFormReadOnlyScope.readOnlyOf(context);
+    final isReadOnly = widget.readOnly || WFormReadOnly.of(context);
 
     Widget child = widget.child;
     if (widget.enableFocusBorder) {
@@ -124,7 +131,8 @@ class _WFormFieldShellState extends State<WFormFieldShell> {
     return WFormBorder(
       errorChannel: bordersOf(formData).channelOf(widget.name),
       fieldErrorText: formData.fields?[widget.name]?.errorText,
-      style: WFormScope.borderStyleOf(context),
+      rendersInlineError: widget.rendersInlineError,
+      style: WFormThemeData.of(context)?.borderStyle,
       hintTextList: widget.hintTextList,
       isReadOnly: isReadOnly,
       isTransparentBackground: widget.isTransparentBackground,

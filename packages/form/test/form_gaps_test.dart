@@ -13,7 +13,7 @@ void main() {
           body: WForm(
             controller: WFormController(),
             autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: const WFormTextField(name: 'a', label: 'A'),
+            child: const WFormTextField(name: 'a', hintText: 'A'),
           ),
         ),
       ),
@@ -30,7 +30,7 @@ void main() {
         body: WForm(
           controller: form,
           readOnly: readOnly,
-          child: const WFormTextField(name: 'a', label: 'A'),
+          child: const WFormTextField(name: 'a', hintText: 'A'),
         ),
       ),
     );
@@ -61,8 +61,8 @@ void main() {
       formData: form,
       child: const Column(
         children: [
-          WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
-          WFormTextField(name: 'b', label: 'B', validator: _alwaysFail),
+          WFormTextField(name: 'a', hintText: 'A', validator: _alwaysFail),
+          WFormTextField(name: 'b', hintText: 'B', validator: _alwaysFail),
         ],
       ),
     );
@@ -112,7 +112,7 @@ void main() {
               controller: WFormController(),
               child: const WFormTextField(
                 name: 'a',
-                label: 'A',
+                hintText: 'A',
                 bordered: false,
                 message: '提示文案',
               ),
@@ -144,7 +144,7 @@ void main() {
             controller: WFormController(),
             child: const WFormTextField(
               name: 'a',
-              label: 'A',
+              hintText: 'A',
               bordered: false,
               hintTextList: ['第一条', '第二条'],
             ),
@@ -164,7 +164,7 @@ void main() {
             controller: WFormController(),
             child: const WFormDatePicker(
               name: 'd',
-              label: '日期',
+              hintText: '日期',
               initialValue: '2024-03-05',
               displayFormat: 'yyyy/MM/dd',
             ),
@@ -185,7 +185,7 @@ void main() {
             controller: WFormController(),
             child: WFormTextField(
               name: 'bio',
-              label: '简介',
+              hintText: '简介',
               maxLines: 3,
               textInputAction: TextInputAction.done,
               onEditingComplete: () => completed = true,
@@ -314,7 +314,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            child: WFormTextField(name: 'a', label: 'A', focusNode: node),
+            child: WFormTextField(name: 'a', hintText: 'A', focusNode: node),
           ),
         ),
       ),
@@ -339,8 +339,8 @@ void main() {
             borderStyle: style,
             child: Builder(
               builder: (context) {
-                resolved = WFormScope.borderStyleOf(context);
-                return const WFormTextField(name: 'a', label: 'A');
+                resolved = WFormThemeData.of(context)?.borderStyle;
+                return const WFormTextField(name: 'a', hintText: 'A');
               },
             ),
           ),
@@ -356,7 +356,7 @@ void main() {
     await pumpForm(
       tester,
       formData: form,
-      child: const WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
+      child: const WFormTextField(name: 'a', hintText: 'A', validator: _alwaysFail),
     );
 
     expect(form.validate(), isFalse); // 边框通道
@@ -367,33 +367,13 @@ void main() {
     expect(find.text('必填'), findsOneWidget);
   });
 
-  testWidgets('自定义字段（未接额外上报）也能被 formEntered 反映', (tester) async {
-    final form = WFormController();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: form,
-            child: const _BareCustomField(name: 'custom'),
-          ),
-        ),
-      ),
-    );
-
-    form.formKey.currentState!.fields['custom']!.didChange('hello');
-    await tester.pump();
-
-    expect(form.formEntered['custom'], isTrue);
-    expect(form.isAllEntered(['custom']), isTrue);
-  });
-
   testWidgets('字段卸载后错误通道与边框登记都被清理', (tester) async {
     final form = WFormController();
     Widget build({required bool show}) => MaterialApp(
       home: Scaffold(
         body: WForm(
           controller: form,
-          child: show ? const WFormTextField(name: 'a', label: 'A') : const SizedBox.shrink(),
+          child: show ? const WFormTextField(name: 'a', hintText: 'A') : const SizedBox.shrink(),
         ),
       ),
     );
@@ -503,33 +483,6 @@ void main() {
     expect(form.value['city'], 'not-in-items');
   });
 
-  testWidgets('WFormPopup 点击屏障外部会关闭', (tester) async {
-    late BuildContext anchor;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Align(
-            alignment: Alignment.topLeft,
-            child: Builder(
-              builder: (context) {
-                anchor = context;
-                return const SizedBox(width: 1, height: 1);
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-
-    WFormPopup.show<void>(context: anchor, builder: (_) => const Text('popup'));
-    await tester.pumpAndSettle();
-    expect(find.text('popup'), findsOneWidget);
-
-    await tester.tapAt(const Offset(400, 300));
-    await tester.pumpAndSettle();
-    expect(find.text('popup'), findsNothing);
-  });
-
   testWidgets('等值的 validatorSettings 不会每帧重写 controller', (tester) async {
     final form = WFormController();
     Widget build() => MaterialApp(
@@ -538,7 +491,7 @@ void main() {
           controller: form,
           // 官方示例就是这么内联构造的：只要值相等，就不该触发重新注入
           validatorSettings: const WFormValidatorSettings(continueOnError: true),
-          child: const WFormTextField(name: 'a', label: 'A'),
+          child: const WFormTextField(name: 'a', hintText: 'A'),
         ),
       ),
     );
@@ -561,8 +514,8 @@ void main() {
             fieldStyle: const WFormFieldStyle(textStyle: fieldStyle),
             child: const Column(
               children: [
-                WFormTextField(name: 'a', label: 'A'),
-                WFormTextField(name: 'b', label: 'B', style: override),
+                WFormTextField(name: 'a', hintText: 'A'),
+                WFormTextField(name: 'b', hintText: 'B', style: override),
               ],
             ),
           ),
@@ -580,7 +533,7 @@ void main() {
     await pumpForm(
       tester,
       formData: form,
-      child: const WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
+      child: const WFormTextField(name: 'a', hintText: 'A', validator: _alwaysFail),
     );
 
     // 第一帧：WFormValidator 写边框错误。
@@ -601,8 +554,8 @@ void main() {
       formData: form,
       child: const Column(
         children: [
-          WFormTextField(name: 'a', label: 'A', validator: _alwaysFail),
-          WFormTextField(name: 'b', label: 'B', validator: _alwaysFail),
+          WFormTextField(name: 'a', hintText: 'A', validator: _alwaysFail),
+          WFormTextField(name: 'b', hintText: 'B', validator: _alwaysFail),
         ],
       ),
     );
@@ -642,7 +595,7 @@ void main() {
             controller: WFormController(),
             child: const WFormTextField(
               name: 'a',
-              label: 'A',
+              hintText: 'A',
               textAlign: TextAlign.end,
               maxLength: 5,
             ),
@@ -682,16 +635,16 @@ void main() {
     expect(tester.widget<Text>(find.text('A')).style?.color, red);
   });
 
-  testWidgets('date 的 DateTime initialDate 转成 ISO 字段值', (tester) async {
+  testWidgets('date 的 initialValue 用 ISO 字符串', (tester) async {
     final form = WFormController();
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: WForm(
             controller: form,
-            child: WFormDatePicker(
+            child: const WFormDatePicker(
               name: 'd',
-              initialDate: DateTime(2024, 3, 5),
+              initialValue: '2024-03-05',
               displayFormat: 'yyyy-MM-dd',
             ),
           ),
@@ -705,10 +658,3 @@ void main() {
 }
 
 String? _alwaysFail(String? value) => '必填';
-
-/// 只声明值、不接 onChanged 的自定义字段：用来证明 formEntered 不应依赖字段自觉上报。
-class _BareCustomField extends FormBuilderField<String> {
-  const _BareCustomField({required super.name}) : super(builder: _buildBare);
-
-  static Widget _buildBare(FormFieldState<String?> field) => const SizedBox.shrink();
-}

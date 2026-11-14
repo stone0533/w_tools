@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/border/border.dart';
 import 'package:w_tools_form/src/components/border/border_access.dart';
 
 import '_helpers/border_state.dart';
@@ -162,72 +163,6 @@ void main() {
       cfg.defaultDecoration = null;
       await tester.pumpWidget(buildWith(const ['c']));
       expect(findBorderFillColor(const Color(0xFF222222)), findsNothing);
-    });
-
-    testWidgets('自定义 layout — 消息可放到子组件右侧', (tester) async {
-      const childKey = Key('layout-child');
-      final cfg = TestFormBorderBuilder()
-        ..hintBuilder = ((list) => Text(list!.first))
-        ..layout = (context, data) => Row(
-          children: [
-            Expanded(child: data.child),
-            data.message,
-          ],
-        );
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WFormBorder(
-              style: cfg.buildStyle(),
-              hintTextList: const ['侧边提示'],
-              child: const SizedBox(key: childKey, height: 40),
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('侧边提示'), findsOneWidget);
-      expect(
-        tester.getCenter(find.text('侧边提示')).dx,
-        greaterThan(tester.getCenter(find.byKey(childKey)).dx),
-      );
-    });
-
-    testWidgets('运行期替换 layout 后生效', (tester) async {
-      const childKey = Key('layout-child');
-      final cfg = TestFormBorderBuilder()..hintBuilder = (list) => Text(list!.first);
-
-      Widget build() => MaterialApp(
-        home: Scaffold(
-          body: WFormBorder(
-            style: cfg.buildStyle(),
-            hintTextList: const ['提示'],
-            child: const SizedBox(key: childKey, width: 120, height: 40),
-          ),
-        ),
-      );
-
-      await tester.pumpWidget(build());
-      // 默认布局：消息在子组件下方
-      expect(
-        tester.getCenter(find.text('提示')).dy,
-        greaterThan(tester.getCenter(find.byKey(childKey)).dy),
-      );
-
-      cfg.layout = (context, data) => Row(
-        children: [
-          Expanded(child: data.child),
-          data.message,
-        ],
-      );
-      await tester.pumpWidget(build());
-
-      // 替换后：消息移到右侧
-      expect(
-        tester.getCenter(find.text('提示')).dx,
-        greaterThan(tester.getCenter(find.byKey(childKey)).dx),
-      );
     });
 
     testWidgets('setError(true) → 显示 errorBuilder', (tester) async {
@@ -429,20 +364,6 @@ void main() {
       expect(custom, isA<WFormBorderStyle>());
       // copyWith 返回新实例，hintBuilder/errorBuilder 从 base 继承
       expect(identical(base, custom), false);
-    });
-
-    testWidgets('copyWith() 保留自定义 layout', (tester) async {
-      final base = makeCfg()..layout = (context, data) => const Text('custom-layout');
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: WFormBorder(style: base.buildStyle(), child: const Text('child')),
-          ),
-        ),
-      );
-
-      expect(find.text('custom-layout'), findsOneWidget);
     });
   });
 
@@ -712,7 +633,6 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
 
     expect(bordersOf(formData).has('dynamic_field'), isFalse);
-    expect(formData.formEntered.containsKey('dynamic_field'), isFalse);
   });
 
   group('WFormFieldShell + WFormReadOnlyScope（替代已删除的 Row.withFormBorder）', () {

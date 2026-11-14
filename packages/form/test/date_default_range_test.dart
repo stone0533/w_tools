@@ -8,7 +8,7 @@ void main() {
   testWidgets('WFormDatePicker 默认区间允许选未来日期', (tester) async {
     await pumpForm(
       tester,
-      child: const WFormDatePicker(name: 'birthday', label: '生日'),
+      child: const WFormDatePicker(name: 'birthday', hintText: '生日'),
     );
 
     await tester.tap(find.byType(WFormDatePicker));

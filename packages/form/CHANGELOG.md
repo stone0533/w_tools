@@ -1,3 +1,69 @@
+## 8.0.0
+
+### Breaking
+- 删除 `WFormController.clearValue`：清空用 `resetValue`，或对可空字段显式
+  `setValue<String?>(name, null)`。
+- 删除 `WFormController.formEntered` / `WFormController.isAllEntered`：判断是否填写直接读
+  `value`，或用字段 validator 表达 required。
+- 删除 `WFormController.closeKeyboard`：用 `FocusManager.instance.primaryFocus?.unfocus()`。
+- 删除 `WFormCustomValidator`，并移除 `form_builder_validators` 依赖：自定义规则直接传
+  `FormFieldValidator`（如 `validator: (value) => ...`）。
+- 删除 `WFormInputFormatters` / `WCardNumberInputFormatter` / `WDividerInputFormatter`：
+  输入格式化直接用 `flutter/services.dart` 的 `FilteringTextInputFormatter` /
+  `LengthLimitingTextInputFormatter`，或 `TextInputFormatter.withFunction`。
+- `WFormCheckbox.new` / `WFormRadioGroup.new` 的 `bordered` 默认值由 `false` 改为 `true`；
+  需要旧视觉请显式传 `bordered: false`。
+- `WFormFieldShell.new` 新增 `rendersInlineError` 可选参数（默认 `true`）；
+  不渲染 `errorText` 的自定义字段传 `false`，由边框兜底展示原生错误。
+- `WFormScope` / `WFormReadOnlyScope` / `WFormTextFieldScope` 不再公开：
+  `WFormScope.of` / `WFormScope.requireOf` → `WFormController.of` / `WFormController.requireOf`；
+  `WFormScope.borderStyleOf` → `WFormThemeData.of(context)?.borderStyle`；
+  `WFormReadOnlyScope.readOnlyOf` → `WFormReadOnly.of`；
+  `WFormTextFieldScope.of` → `WFormTextFieldData.of`。
+- `WFormBorder` / `WFormBorderLayout` / `WFormBorderLayoutData` / `columnBorderLayout` 不再公开：
+  边框由 `WFormFieldShell` 内部装配；自定义字段继续用 `WFormFieldShell`。
+- `WFormBorderStyle.new` / `WFormBorderStyle.copyWith` 删除 `layout` 参数。
+- `WFormBorderStyle.layout` 删除：布局固定为「边框在上、消息在下」。
+- 删除 `WFormDatePicker.initialDate`：初值只接受 `initialValue`（ISO `yyyy-MM-dd`）；
+  `DateTime` 请先格式化。
+- `WFormController.validatorSettings` 改为只读 getter（原先可写字段）：默认校验设置只由
+  `WForm(validatorSettings:)` 注入；单次调用用 `validate(settings:)` / `validators(settings:)`。
+- 移除 `WFormPopup` 公开入口（`WFormPopup.show` / `WFormPopup.hide`）；`WFormMultiDropdown` 的弹层
+  仍由包内实现。需要锚定弹层时用 Flutter 的 `MenuAnchor` / `showMenu` / `OverlayPortal`。
+- 迁移见 `docs/migrations/form-8.0.md`。
+
+### Deprecated
+- `WFormFieldStyle.hintStyle` → `placeholderStyle`；`WFormBorderStyle.hintStyle` → `helperStyle`；
+  `remove-in: 9.0.0`。
+- `WFormTextField.label` / `WFormDropdown.label` / `WFormMultiDropdown.label` /
+  `WFormDatePicker.label`：占位符改用 `hintText`；`remove-in: 9.0.0`。
+  `WFormFieldButton.label` / `WFormButton.label` 不受影响。
+
+### Added
+- `WFormFieldStyle.placeholderStyle` / `WFormBorderStyle.helperStyle`：替代同名歧义的 `hintStyle`。
+- `WFormController.save()`：显式保存当前值（触发字段 `onSaved`，刷新 `savedValue`）。
+- `WFormController.of` / `WFormController.requireOf`、`WFormReadOnly.of`、
+  `WFormTextFieldData.of`：替代三个内部 scope 的读取入口。
+- `WFormFieldShell.rendersInlineError`：声明字段是否自己渲染
+  `FormFieldState.errorText`。默认 `true` 保持自定义字段现状；checkbox / radio / date / multi /
+  button 由直接字段传 `false`，交给边框展示原生 `validate()` 的错误。
+- checkbox / radio / date / multi / button 的 `focusNode` 现在接到真正可交互的控件，
+  `formKey.currentState.fields[name].focus()` 与 Tab 能落到控件上；支持 Enter / Space 激活
+  （radio 的外部 `focusNode` 绑到第一个选项，其余选项保留各自焦点节点）。
+
+### Changed
+- `WFormValidator.validate()` / `WFormController.validate()` 不再隐式调用 `save()`：
+  校验读取 `instantValue`，`savedValue` 与 `onSaved` 只在 `form.save()` 时更新。
+- `WForm.fieldStyle.height` 不再套到 `WFormRadioGroup`：单选组高度由选项内容决定，
+  避免 3 个及以上选项被固定高度裁掉。
+
+### Fixed
+- `WFormController.getFieldsValue` 字段名拼错时在 debug 断言，不再静默返回 null。
+- `formKey.validate()` / `WForm.autovalidateMode` 写入 checkbox / radio / date / multi / button
+  的 `errorText` 时，边框不再误判“文案已内联渲染”而吞掉自己的错误文案。
+- 默认无边框的 checkbox / radio 校验失败时看不到错误：默认带边框后，validator 错误可在界面显示。
+- `WFormController.setValue` / `resetValue` 字段名拼错时在 debug 断言报出，不再静默 no-op。
+
 ## 7.0.1
 
 ### Fixed

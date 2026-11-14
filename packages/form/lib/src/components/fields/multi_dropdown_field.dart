@@ -67,6 +67,9 @@ class _WFormMultiDropdown<T> extends FormBuilderField<Set<T>> {
   /// 选项项标题内边距
   final EdgeInsets? itemTitlePadding;
 
+  /// 交互控件使用的焦点节点（由直接字段的 `focusNode` 传入）
+  final FocusNode? interactionFocusNode;
+
   /// 创建内部多选下拉框字段
   _WFormMultiDropdown({
     required super.name,
@@ -95,7 +98,7 @@ class _WFormMultiDropdown<T> extends FormBuilderField<Set<T>> {
     this.itemCheckedStyle,
     this.itemDisabledStyle,
     this.itemTitlePadding,
-    super.focusNode,
+    this.interactionFocusNode,
   }) : super(
          builder: (FormFieldState<Set<T>?> field) {
            final state = field as _WFormMultiDropdownState<T>;
@@ -108,120 +111,134 @@ class _WFormMultiDropdown<T> extends FormBuilderField<Set<T>> {
            // 未选择任何项时显示占位文本（未配置 hintText 就不显示）
            final displayText = title.isEmpty ? hintText ?? '' : title;
 
-           return Semantics(
-             container: true,
-             button: true,
-             enabled: enabled,
-             child: InputDecorator(
-               isEmpty: title.isEmpty,
-               decoration:
-                   decoration ??
-                   const InputDecoration(
-                     border: InputBorder.none,
-                     focusedBorder: InputBorder.none,
-                     enabledBorder: InputBorder.none,
-                   ),
-               child: MouseRegion(
-                 cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-                 child: GestureDetector(
-                   onTap: enabled
-                       ? () {
-                           WFormPopup.show(
-                             context: state.context,
-                             elevation: popUpLayerElevation ?? 10,
-                             shadowColor:
-                                 popUpLayerShadowColor ??
-                                 Theme.of(state.context).colorScheme.shadow,
-                             builder: (context) {
-                               return Container(
-                                 width: double.infinity,
-                                 padding: popUpLayerPadding,
-                                 child: ValueListenableBuilder<Set<T>>(
-                                   valueListenable: state.selection,
-                                   builder: (context, selection, _) => SingleChildScrollView(
-                                     child: Wrap(
-                                       children: items.entries.map((e) {
-                                         // 是否在禁用列表中
-                                         final bool isDisabled = disabledKeys.contains(e.key);
+           void openPopup() {
+             WFormPopup.show(
+               context: state.context,
+               elevation: popUpLayerElevation ?? 10,
+               shadowColor: popUpLayerShadowColor ?? Theme.of(state.context).colorScheme.shadow,
+               builder: (context) {
+                 return Container(
+                   width: double.infinity,
+                   padding: popUpLayerPadding,
+                   child: ValueListenableBuilder<Set<T>>(
+                     valueListenable: state.selection,
+                     builder: (context, selection, _) => SingleChildScrollView(
+                       child: Wrap(
+                         children: items.entries.map((e) {
+                           // 是否在禁用列表中
+                           final bool isDisabled = disabledKeys.contains(e.key);
 
-                                         // 显示优先级：选中 > 禁用 > 可用
-                                         // （已选中的项即使被禁用，也应显示为选中态）
-                                         _WFormMultiDropdownItemStatus status =
-                                             _WFormMultiDropdownItemStatus.enable;
-                                         if (selection.contains(e.key)) {
-                                           status = _WFormMultiDropdownItemStatus.checked;
-                                         } else if (isDisabled) {
-                                           status = _WFormMultiDropdownItemStatus.disable;
-                                         }
+                           // 显示优先级：选中 > 禁用 > 可用
+                           // （已选中的项即使被禁用，也应显示为选中态）
+                           _WFormMultiDropdownItemStatus status =
+                               _WFormMultiDropdownItemStatus.enable;
+                           if (selection.contains(e.key)) {
+                             status = _WFormMultiDropdownItemStatus.checked;
+                           } else if (isDisabled) {
+                             status = _WFormMultiDropdownItemStatus.disable;
+                           }
 
-                                         return _WFormMultiDropdownItem<T>(
-                                           value: e.key,
-                                           title: e.value,
-                                           disabled: isDisabled,
-                                           icon:
-                                               checkboxUnselectedIcon ??
-                                               theme?.effectiveCheckboxUnselectedIcon ??
-                                               WFormIcons.defaults.checkboxUnselected,
-                                           checkedIcon:
-                                               checkboxSelectedIcon ??
-                                               theme?.effectiveCheckboxSelectedIcon ??
-                                               WFormIcons.defaults.checkboxSelected,
-                                           disabledIcon: checkboxDisabledIcon,
-                                           status: status,
-                                           onTap: (v, isChecked) {
-                                             // 弹层挂在 Navigator 上，可能比字段活得久
-                                             if (!state.mounted) return;
-                                             final selected = <T>{...?state.value};
-                                             if (isChecked) {
-                                               selected.add(v);
-                                             } else {
-                                               selected.remove(v);
-                                             }
-                                             state.didChange(selected);
-                                           },
-                                           titlePadding: itemTitlePadding,
-                                           style: itemStyle,
-                                           padding: itemPadding,
-                                           checkedStyle: itemCheckedStyle,
-                                           disabledStyle: itemDisabledStyle,
-                                         );
-                                       }).toList(),
-                                     ),
-                                   ),
-                                 ),
-                               );
+                           return _WFormMultiDropdownItem<T>(
+                             value: e.key,
+                             title: e.value,
+                             disabled: isDisabled,
+                             icon:
+                                 checkboxUnselectedIcon ??
+                                 theme?.effectiveCheckboxUnselectedIcon ??
+                                 WFormIcons.defaults.checkboxUnselected,
+                             checkedIcon:
+                                 checkboxSelectedIcon ??
+                                 theme?.effectiveCheckboxSelectedIcon ??
+                                 WFormIcons.defaults.checkboxSelected,
+                             disabledIcon: checkboxDisabledIcon,
+                             status: status,
+                             onTap: (v, isChecked) {
+                               // 弹层挂在 Navigator 上，可能比字段活得久
+                               if (!state.mounted) return;
+                               final selected = <T>{...?state.value};
+                               if (isChecked) {
+                                 selected.add(v);
+                               } else {
+                                 selected.remove(v);
+                               }
+                               state.didChange(selected);
                              },
+                             titlePadding: itemTitlePadding,
+                             style: itemStyle,
+                             padding: itemPadding,
+                             checkedStyle: itemCheckedStyle,
+                             disabledStyle: itemDisabledStyle,
                            );
-                         }
-                       : null,
-                   behavior: HitTestBehavior.translucent,
-                   child: Row(
-                     children: [
-                       Expanded(
-                         child: Text(
-                           displayText,
-                           style: title.isEmpty ? (hintStyle ?? style) : style,
-                           strutStyle: style != null
-                               ? StrutStyle(
-                                   fontFamily: style.fontFamily,
-                                   fontWeight: style.fontWeight,
-                                   fontSize: style.fontSize,
-                                   leading: 0,
-                                   forceStrutHeight: true,
-                                   height: 1.3,
-                                 )
-                               : null,
-                         ),
+                         }).toList(),
                        ),
-                       IconTheme(
-                         data: IconThemeData(
-                           size: iconSize,
-                           color: enabled ? iconEnabledColor : iconDisabledColor,
+                     ),
+                   ),
+                 );
+               },
+             );
+           }
+
+           return FocusableActionDetector(
+             enabled: enabled,
+             focusNode: state.interactionFocusNode,
+             shortcuts: const <ShortcutActivator, Intent>{
+               SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+               SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+             },
+             actions: <Type, Action<Intent>>{
+               ActivateIntent: CallbackAction<ActivateIntent>(
+                 onInvoke: (_) {
+                   if (enabled) openPopup();
+                   return null;
+                 },
+               ),
+             },
+             child: Semantics(
+               container: true,
+               button: true,
+               enabled: enabled,
+               child: InputDecorator(
+                 isEmpty: title.isEmpty,
+                 decoration:
+                     decoration ??
+                     const InputDecoration(
+                       border: InputBorder.none,
+                       focusedBorder: InputBorder.none,
+                       enabledBorder: InputBorder.none,
+                     ),
+                 child: MouseRegion(
+                   cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                   child: GestureDetector(
+                     onTap: enabled ? () => openPopup() : null,
+                     behavior: HitTestBehavior.translucent,
+                     child: Row(
+                       children: [
+                         Expanded(
+                           child: Text(
+                             displayText,
+                             style: title.isEmpty ? (hintStyle ?? style) : style,
+                             strutStyle: style != null
+                                 ? StrutStyle(
+                                     fontFamily: style.fontFamily,
+                                     fontWeight: style.fontWeight,
+                                     fontSize: style.fontSize,
+                                     leading: 0,
+                                     forceStrutHeight: true,
+                                     height: 1.3,
+                                   )
+                                 : null,
+                           ),
                          ),
-                         child:
-                             icon ?? theme?.effectiveDropdownIcon ?? WFormIcons.defaults.dropdown,
-                       ),
-                     ],
+                         IconTheme(
+                           data: IconThemeData(
+                             size: iconSize,
+                             color: enabled ? iconEnabledColor : iconDisabledColor,
+                           ),
+                           child:
+                               icon ?? theme?.effectiveDropdownIcon ?? WFormIcons.defaults.dropdown,
+                         ),
+                       ],
+                     ),
                    ),
                  ),
                ),
@@ -239,6 +256,16 @@ class _WFormMultiDropdown<T> extends FormBuilderField<Set<T>> {
 class _WFormMultiDropdownState<T> extends FormBuilderFieldState<_WFormMultiDropdown<T>, Set<T>> {
   final ValueNotifier<Set<T>> selection = ValueNotifier<Set<T>>(const {});
 
+  /// 未传 external focusNode 时自建的交互节点
+  FocusNode? _ownFocusNode;
+
+  /// 交互控件实际使用的焦点节点
+  FocusNode get interactionFocusNode =>
+      widget.interactionFocusNode ?? (_ownFocusNode ??= FocusNode(debugLabel: widget.name));
+
+  @override
+  void focus() => interactionFocusNode.requestFocus();
+
   @override
   void initState() {
     super.initState();
@@ -253,6 +280,7 @@ class _WFormMultiDropdownState<T> extends FormBuilderFieldState<_WFormMultiDropd
 
   @override
   void dispose() {
+    _ownFocusNode?.dispose();
     selection.dispose();
     super.dispose();
   }

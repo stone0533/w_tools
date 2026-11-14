@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'border/border_access.dart';
+import 'form_settings.dart';
 import 'validation/validator.dart';
 
 /// 表单数据管理类
 ///
 /// 持有表单 [formKey]，并提供：
 /// - 字段值读写：[value]、[setValue]、[getFieldsValue]（[fields] 为底层字段集合）
-/// - 输入状态：[formEntered]、[isAllEntered]
 /// - 边框错误：[setError]、[clearError]（通道由包内 registry 维护）
 /// - 校验器工厂：[validators]
 class WFormController {
@@ -18,74 +18,57 @@ class WFormController {
   /// 表单 key
   final formKey = GlobalKey<FormBuilderState>();
 
-  /// WForm 提供的默认校验设置；未显式传 settings 时使用。
-  WFormValidatorSettings? validatorSettings;
+  /// 当前子树中的 [WFormController]（无 `WForm` / `WFormScope` 祖先时返回 null）
+  static WFormController? of(BuildContext context) => WFormControllerScope.of(context);
+
+  /// 当前子树中的 [WFormController]，没有祖先时抛 [StateError]
+  static WFormController requireOf(BuildContext context) {
+    final formData = of(context);
+    if (formData == null) {
+      throw StateError('WFormScope 未找到');
+    }
+    return formData;
+  }
+
+  /// `WForm` 注入的默认校验设置（只读）；未显式传 settings 时使用。
+  ///
+  /// 写入口只有 `WForm(validatorSettings:)`；不要在 controller 上二次覆盖。
+  WFormValidatorSettings? get validatorSettings => formValidatorSettingsOf(this);
 
   /// 表单字段集合（表单未挂载时为 null）
   FormBuilderFields? get fields => formKey.currentState?.fields;
 
+  /// 字段名拼错时在 debug 直接报出来；未挂载时不做判断。
+  void _assertFieldExists(String name) {
+    assert(
+      formKey.currentState == null || (fields?.containsKey(name) ?? false),
+      '字段 $name 不存在：检查 name 是否与字段声明一致（或字段尚未挂载）。',
+    );
+  }
+
   /// 表单实时值（字段 `didChange` 后立即反映；表单未挂载时返回空表）
   Map<String, dynamic> get value => formKey.currentState?.instantValue ?? const <String, dynamic>{};
 
-  /// 上次 `validate()` / `save()` 时的快照（旧 `value` 语义）
+  /// 上次显式 [save] 时的快照（旧 `value` 语义）
   Map<String, dynamic> get savedValue => formKey.currentState?.value ?? const <String, dynamic>{};
 
-  /// 各字段是否已输入的映射（**由当前字段值实时派生**，只读）
-  ///
-  /// 判定规则：字符串 / 集合 / Map 按非空，布尔按自身值，其它类型按非 null。
-  /// 不依赖字段额外上报，自定义字段也能被正确反映。
-  Map<String, bool> get formEntered {
-    final registered = fields;
-    if (registered == null) return const <String, bool>{};
-    return {
-      for (final name in registered.keys) name: _isEntered(registered[name]?.value),
-    };
-  }
-
-  static bool _isEntered(Object? value) => switch (value) {
-    String v => v.isNotEmpty,
-    Iterable v => v.isNotEmpty,
-    Map v => v.isNotEmpty,
-    bool v => v,
-    _ => value != null,
-  };
-
-  /// 指定字段是否都已输入
-  ///
-  /// 用字段名显式表达判断范围，避免传错数量；空集合返回 false。
-  /// 字段卸载后 [formEntered] 会被清理，因此动态字段不会残留。
-  bool isAllEntered(Iterable<String> fieldNames) {
-    if (fieldNames.isEmpty) return false;
-    final registered = fields;
-    if (registered == null) return false;
-    for (final name in fieldNames) {
-      if (!_isEntered(registered[name]?.value)) return false;
-    }
-    return true;
+  /// 保存当前值（触发字段 `onSaved`）；`validate()` 不再隐式调用。
+  void save() {
+    formKey.currentState?.save();
   }
 
   /// 按字段名设置字段值，并清除该字段的边框错误
-  ///
-  /// 直接调用字段的 `didChange`：值写入后 [formEntered] 会立即反映
-  /// （它按当前字段值实时派生，没有需要手工维护的输入状态）。
   ///
   /// 只用于程序化改值；不要在字段自己的 `onChanged` 里回写同一字段。
   /// 字段值已由 FormBuilder 更新；同值回写会 no-op，避免
   /// didChange → onChanged → setValue 的递归。
   void setValue<T>(String name, T value) {
+    _assertFieldExists(name);
     clearError(name);
     final field = formKey.currentState?.fields[name];
     if (field == null) return;
     if (field.value == value) return;
     field.didChange(value);
-  }
-
-  /// 清空指定字段：把值写成 `null` 并清除边框错误
-  ///
-  /// 只对**可空类型**（String / 数值等）语义明确；`bool` / `Set` 这类非空值类型
-  /// 请用 [resetValue] 回到字段自己的 `initialValue`。
-  void clearValue(String name) {
-    setValue<String?>(name, null);
   }
 
   /// 把指定字段重置回它自己的 `initialValue`
@@ -94,21 +77,23 @@ class WFormController {
   /// 日期 / 下拉 → 初值。等价于对该字段调用 `FormFieldState.reset()`，
   /// 因此字段自己声明的 `onReset` 也会执行。
   void resetValue(String name) {
+    _assertFieldExists(name);
     formKey.currentState?.fields[name]?.reset();
   }
 
   /// 重置表单：所有字段回到各自初始值
   ///
   /// 等价于 `formKey.currentState?.reset()`，封装以避免业务代码直接操作
-  /// [formKey]。[formEntered] 按字段值派生，reset 后自动复位。
+  /// [formKey]。
   void reset() {
     formKey.currentState?.reset();
   }
 
   /// 获取字段的即时值（无需先 save）
   ///
-  /// 实际类型与 [T] 不符时抛错。
+  /// 实际类型与 [T] 不符时抛错；字段名拼错时在 debug 断言。
   T? getFieldsValue<T>(String name) {
+    _assertFieldExists(name);
     return formKey.currentState?.fields[name]?.value as T?;
   }
 
@@ -138,11 +123,6 @@ class WFormController {
     bordersOf(this).clearChannel(name);
   }
 
-  /// 关闭键盘
-  void closeKeyboard() {
-    WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
-  }
-
   /// 创建表单校验器（校验项由 [WFormValidator.validate] 按序执行）
   ///
   /// [items] 为 null 时与 [validate] 一致：校验当前已挂载字段的自身 validator。
@@ -165,10 +145,31 @@ class WFormController {
   /// 造成两套错误通道。
   ///
   /// 表单未挂载时返回 false；已挂载但没有字段时按“无错误”返回 true。
+  /// 校验不会隐式 `save()`；需要保存时单独调用 [save]。
   bool validate({WFormValidatorSettings? settings, List<WFormValidatorItem>? items}) {
     if (formKey.currentState == null) return false;
     final validationItems =
         items ?? (fields?.keys.map(WFormValidatorItem.field).toList() ?? <WFormValidatorItem>[]);
     return validators(items: validationItems, settings: settings ?? validatorSettings).validate();
   }
+}
+
+/// 包内：把 [WFormController] 放进 widget 子树，由 `WFormScope` 装配。
+class WFormControllerScope extends InheritedWidget {
+  /// 表单数据对象
+  final WFormController formData;
+
+  /// 创建 controller 作用域
+  const WFormControllerScope({
+    super.key,
+    required this.formData,
+    required super.child,
+  });
+
+  /// 读取最近的 controller（无祖先时返回 null）
+  static WFormController? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<WFormControllerScope>()?.formData;
+
+  @override
+  bool updateShouldNotify(WFormControllerScope oldWidget) => formData != oldWidget.formData;
 }

@@ -88,7 +88,7 @@ class _AggregateExamplePageState extends State<AggregateExamplePage> {
             const SizedBox(height: 24),
             WFormTextField(
               name: 'nickname',
-              label: '昵称',
+              hintText: '昵称',
               message: '请输入昵称',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) return '请输入昵称';
@@ -98,7 +98,7 @@ class _AggregateExamplePageState extends State<AggregateExamplePage> {
             const SizedBox(height: 16),
             const WFormDropdown<String>(
               name: 'city',
-              label: '城市',
+              hintText: '城市',
               initialValue: 'HK',
               items: {
                 'HK': '香港',

@@ -10,13 +10,13 @@ const _style = WFormFieldStyle(
   height: 64,
   containerPadding: _pad,
   textStyle: TextStyle(color: _red),
-  hintStyle: TextStyle(color: _red),
+  placeholderStyle: TextStyle(color: _red),
 );
 
-/// 直接字段的 fieldStyle 接线矩阵：每个字段都必须同时接上
-/// height / containerPadding / textStyle，不能只接其中一部分。
+/// 直接字段的 fieldStyle 接线矩阵：单行字段接 height / containerPadding / textStyle，
+/// 多行单选组只接 containerPadding / textStyle（height 固定会裁掉多个选项）。
 ///
-/// 这类「漏接一个参数」的 bug（见 FORM-001）只有逐字段断言才能拦住。
+/// 这类「漏接 / 错接一个参数」的 bug（见 FORM-001）只有逐字段断言才能拦住。
 WFormFieldFrame _frameOf(WidgetTester tester) =>
     tester.widget<WFormFieldFrame>(find.byType(WFormFieldFrame));
 
@@ -113,14 +113,15 @@ void main() {
       expect(paragraph.text.style?.color, _red);
     });
 
-    testWidgets('WFormRadioGroup：height / containerPadding / textStyle', (tester) async {
+    testWidgets('WFormRadioGroup：containerPadding / textStyle，不接 height', (tester) async {
       await _pump(
         tester,
         const WFormRadioGroup<String>(name: 'r', items: {'a': 'A'}),
       );
 
       final frame = _frameOf(tester);
-      expect(frame.height, 64);
+      // 单选组是多行布局：页面级 height 会把它压成固定高度，3 个选项就溢出。
+      expect(frame.height, isNull);
       // 单选把 containerPadding 作用在内层选项列上（外框不再重复施加），
       // 这里断言内层 Padding 真的拿到了页面级值。
       expect(
@@ -135,6 +136,20 @@ void main() {
 
       final paragraph = tester.renderObject<RenderParagraph>(find.text('A'));
       expect(paragraph.text.style?.color, _red);
+    });
+
+    testWidgets('WFormRadioGroup：3 个选项 + 页面 height 不溢出', (tester) async {
+      await _pump(
+        tester,
+        const WFormRadioGroup<String>(
+          name: 'r',
+          items: {'a': 'A', 'b': 'B', 'c': 'C'},
+          initialValue: 'a',
+        ),
+      );
+
+      expect(_frameOf(tester).height, isNull);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('WFormFieldButton：height / containerPadding', (tester) async {
@@ -153,7 +168,7 @@ void main() {
     });
   });
 
-  group('WForm.fieldStyle.hintStyle 到达各字段占位符', () {
+  group('WForm.fieldStyle.placeholderStyle 到达各字段占位符', () {
     Future<void> expectHintColor(WidgetTester tester, String hint) async {
       final paragraph = tester.renderObject<RenderParagraph>(find.text(hint));
       expect(paragraph.text.style?.color, _red);

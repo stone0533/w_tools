@@ -100,7 +100,7 @@ void main() {
       expect(find.byIcon(Icons.check_box), findsOneWidget);
     });
 
-    testWidgets('点击后同步 formEntered', (tester) async {
+    testWidgets('点击后同步字段值', (tester) async {
       final formData = WFormController();
       await pumpForm(
         tester,
@@ -114,28 +114,7 @@ void main() {
 
       await tester.tap(find.text('记录输入'));
       await tester.pump();
-      expect(formData.formEntered['entered'], isTrue);
-    });
-
-    testWidgets('form reset 后 formEntered 同步复位', (tester) async {
-      final formData = WFormController();
-      await pumpForm(
-        tester,
-        formData: formData,
-        child: checkboxCore(
-          name: 'reset_checkbox',
-          title: const Text('重置复选框'),
-          initialValue: false,
-        ),
-      );
-
-      await tester.tap(find.text('重置复选框'));
-      await tester.pump();
-      expect(formData.formEntered['reset_checkbox'], isTrue);
-
-      formData.formKey.currentState!.reset();
-      await tester.pump();
-      expect(formData.formEntered['reset_checkbox'], isFalse);
+      expect(formData.value['entered'], isTrue);
     });
 
     testWidgets('validator 暴露：formKey.validate() 执行并写入 errorText', (tester) async {
@@ -315,27 +294,7 @@ void main() {
       await tester.tap(find.text('Y'));
       await tester.pump();
       expect(lastValue, 'y');
-      expect(formData.formEntered['pick'], isTrue);
-    });
-
-    testWidgets('form reset 后 formEntered 同步复位', (tester) async {
-      final formData = WFormController();
-      await pumpForm(
-        tester,
-        formData: formData,
-        child: radioCore<String>(
-          name: 'reset_radio',
-          items: const {'x': 'X', 'y': 'Y'},
-        ),
-      );
-
-      await tester.tap(find.text('Y'));
-      await tester.pump();
-      expect(formData.formEntered['reset_radio'], isTrue);
-
-      formData.formKey.currentState!.reset();
-      await tester.pump();
-      expect(formData.formEntered['reset_radio'], isFalse);
+      expect(formData.value['pick'], 'y');
     });
 
     testWidgets('validator 暴露：formKey.validate() 执行并写入 errorText', (tester) async {

@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_scope.dart';
 import '../form_controller.dart';
 
 /// 表单日期选择器组件
@@ -33,6 +33,9 @@ class WFormDatePickerCore extends FormBuilderField<String> {
 
   /// 文本样式
   final TextStyle? style;
+
+  /// 交互控件使用的焦点节点（由直接字段的 `focusNode` 传入）
+  final FocusNode? interactionFocusNode;
 
   /// 显示格式（字段值始终按 ISO yyyy-MM-dd 存储）
   final String displayFormat;
@@ -80,7 +83,7 @@ class WFormDatePickerCore extends FormBuilderField<String> {
     super.onSaved,
     super.autovalidateMode = AutovalidateMode.disabled,
     super.onReset,
-    super.focusNode,
+    this.interactionFocusNode,
     this.decoration,
     this.icon,
     this.iconSize,
@@ -98,69 +101,87 @@ class WFormDatePickerCore extends FormBuilderField<String> {
     this.containerPadding,
   }) : super(
          builder: (FormFieldState<String?> field) {
-           final state = field as FormBuilderFieldState<WFormDatePickerCore, String>;
+           final state = field as _WFormDatePickerState;
            final locale = Localizations.localeOf(state.context).toString();
 
            // 继承外层只读作用域（WFormFieldShell.readOnly）
-           final isEnabled = state.enabled && !WFormReadOnlyScope.readOnlyOf(state.context);
+           final isEnabled = state.enabled && !WFormReadOnly.of(state.context);
 
            // 显示文本
            final date = _tryParse(state.value);
            final title = date == null ? '' : _formatDisplay(date, displayFormat, locale);
 
-           // 容器与图标
-           final content = Semantics(
-             container: true,
-             button: true,
-             enabled: isEnabled,
-             child: InputDecorator(
-               decoration: decoration ?? const InputDecoration(),
-               isEmpty: date == null,
-               child: MouseRegion(
-                 cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-                 child: GestureDetector(
-                   onTap: isEnabled
-                       ? () {
-                           // 解析初始日期并 clamp 到 [firstDate, lastDate]
-                           DateTime? initDate = _tryParse(state.value);
-                           if (initDate != null) {
-                             if (initDate.isBefore(firstDate)) {
-                               initDate = firstDate;
-                             } else if (initDate.isAfter(lastDate)) {
-                               initDate = lastDate;
-                             }
-                           }
+           void openPicker() {
+             // 解析初始日期并 clamp 到 [firstDate, lastDate]
+             DateTime? initDate = _tryParse(state.value);
+             if (initDate != null) {
+               if (initDate.isBefore(firstDate)) {
+                 initDate = firstDate;
+               } else if (initDate.isAfter(lastDate)) {
+                 initDate = lastDate;
+               }
+             }
 
-                           showDatePicker(
-                             context: state.context,
-                             firstDate: firstDate,
-                             lastDate: lastDate,
-                             initialDate: initDate,
-                           ).then((value) {
-                             if (!state.mounted || value == null) {
-                               return;
-                             }
-                             final formatted = _formatStorage(value);
-                             state.didChange(formatted);
-                           });
-                         }
-                       : null,
-                   behavior: HitTestBehavior.translucent,
-                   child: Row(
-                     children: [
-                       Expanded(
-                         child: Text(
-                           title,
-                           style: style,
-                         ),
-                       ),
-                       icon ??
-                           Icon(
-                             Icons.arrow_drop_down,
-                             size: iconSize,
-                             color: isEnabled ? iconEnabledColor : iconDisabledColor,
+             showDatePicker(
+               context: state.context,
+               firstDate: firstDate,
+               lastDate: lastDate,
+               initialDate: initDate,
+             ).then((value) {
+               if (!state.mounted || value == null) {
+                 return;
+               }
+               final formatted = _formatStorage(value);
+               state.didChange(formatted);
+             });
+           }
+
+           // 容器与图标
+           final content = FocusableActionDetector(
+             enabled: isEnabled,
+             focusNode: state.interactionFocusNode,
+             shortcuts: const <ShortcutActivator, Intent>{
+               SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+               SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+             },
+             actions: <Type, Action<Intent>>{
+               ActivateIntent: CallbackAction<ActivateIntent>(
+                 onInvoke: (_) {
+                   if (isEnabled) openPicker();
+                   return null;
+                 },
+               ),
+             },
+             child: Semantics(
+               container: true,
+               button: true,
+               enabled: isEnabled,
+               onTap: isEnabled ? openPicker : null,
+               child: InputDecorator(
+                 decoration: decoration ?? const InputDecoration(),
+                 isEmpty: date == null,
+                 child: MouseRegion(
+                   cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                   child: GestureDetector(
+                     excludeFromSemantics: true,
+                     onTap: isEnabled ? openPicker : null,
+                     behavior: HitTestBehavior.translucent,
+                     child: Row(
+                       children: [
+                         Expanded(
+                           child: Text(
+                             title,
+                             style: style,
                            ),
-                     ],
+                         ),
+                         icon ??
+                             Icon(
+                               Icons.arrow_drop_down,
+                               size: iconSize,
+                               color: isEnabled ? iconEnabledColor : iconDisabledColor,
+                             ),
+                       ],
+                     ),
                    ),
                  ),
                ),
@@ -215,10 +236,26 @@ class _WFormDatePickerState extends FormBuilderFieldState<WFormDatePickerCore, S
   /// 宿主表单数据（在 [didChangeDependencies] 中获取）
   WFormController? _formData;
 
+  /// 未传 external focusNode 时自建的交互节点
+  FocusNode? _ownFocusNode;
+
+  /// 交互控件实际使用的焦点节点
+  FocusNode get interactionFocusNode =>
+      widget.interactionFocusNode ?? (_ownFocusNode ??= FocusNode(debugLabel: widget.name));
+
+  @override
+  void focus() => interactionFocusNode.requestFocus();
+
+  @override
+  void dispose() {
+    _ownFocusNode?.dispose();
+    super.dispose();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _formData = WFormScope.of(context);
+    _formData = WFormController.of(context);
   }
 
   @override

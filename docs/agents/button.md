@@ -19,7 +19,7 @@
   → WActionRow
 
 完全自定义字段
-  → FormBuilderField + WFormReadOnlyScope（不要用内部 *Core）
+  → FormBuilderField + WFormFieldShell（不要用内部 *Core）
 ```
 
 不要用：

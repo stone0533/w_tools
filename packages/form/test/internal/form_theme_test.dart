@@ -92,7 +92,7 @@ void main() {
             formData: WFormController(),
             child: Builder(
               builder: (context) {
-                expect(WFormScope.borderStyleOf(context), same(borderStyle));
+                expect(WFormThemeData.of(context)?.borderStyle, same(borderStyle));
                 return const SizedBox.shrink();
               },
             ),

@@ -101,6 +101,14 @@ names = [
     r'WFormScope\.formBorderStyle\b',
     r'WFormInputFormatters\(\)', r'WFormInputFormatters\.phone\b',
     r'WFormValidatorSettings\.copy\b', r'\bWFormBorderDecoration\b', r'WFormBorderDecorationExtension',
+    # form 8.0：controller 输入状态 / 业务格式化器 / 自定义校验包装收口。
+    r'WFormController\.(?:clearValue|formEntered|isAllEntered|closeKeyboard)\b',
+    r'\bWFormCustomValidator\b', r'\bWFormPopup\b', r'\bWFormScope\b', r'\bWFormReadOnlyScope\b', r'\bWFormTextFieldScope\b',
+    r'WFormScope\.(?:of|requireOf|borderStyleOf)\b',
+    r'\bWFormBorder\b',
+    r'\bWFormBorderLayout\b', r'\bWFormBorderLayoutData\b', r'\bcolumnBorderLayout\b',
+    r'WFormBorderStyle\.layout',
+    r'\bWFormInputFormatters\b', r'\bWCardNumberInputFormatter\b', r'\bWDividerInputFormatter\b',
     # qr 2.0：控制器归调用方、样式收口、结果结构化后移除的公开名。
     r'WQrViewState', r'WQrViewOverlayShape', r'onQRViewCreated', r'noPermissionCallback',
     r'checkedBorderColor', r'showOverlay', r'restartScan', r'scanInvert', r'WQrController\.internal',
@@ -123,6 +131,7 @@ patterns = [
 # 迁移 / 历史文档不在 targets 里，所以这里只影响“现在仍然推荐”的文档。
 removed_dependencies = [
     r'\bbadges\b',
+    r'\bform_builder_validators\b',
 ]
 dependency_patterns = [re.compile(pattern) for pattern in removed_dependencies]
 removal = re.compile(r'删除|移除|不再提供|不再依赖|迁移|removed', re.IGNORECASE)

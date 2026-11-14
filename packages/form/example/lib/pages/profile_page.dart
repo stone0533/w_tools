@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:w_tools_form/w_tools_form.dart';
 
 import '../form_style.dart';
@@ -63,7 +64,7 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
             const SizedBox(height: 24),
             WFormTextField(
               name: 'name',
-              label: '昵称',
+              hintText: '昵称',
               message: '请输入昵称',
               initialValue: 'Alex',
               textInputAction: TextInputAction.next,
@@ -75,12 +76,15 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
             const SizedBox(height: 16),
             WFormTextField(
               name: 'phone',
-              label: '手机号',
-              message: '香港手机号 8 位',
+              hintText: '手机号',
+              message: '手机号 8 位',
               keyboardType: TextInputType.phone,
-              inputFormatters: WFormInputFormatters.hkPhone(),
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(8),
+              ],
               validator: (value) {
-                final digits = (value ?? '').replaceAll(' ', '');
+                final digits = value ?? '';
                 if (digits.isNotEmpty && digits.length != 8) {
                   return '请输入 8 位手机号';
                 }
@@ -90,7 +94,7 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
             const SizedBox(height: 16),
             WFormDropdown<String>(
               name: 'country',
-              label: '国家 / 地区',
+              hintText: '国家 / 地区',
               message: '请选择国家 / 地区',
               items: const {
                 'CN': '中国大陆',
@@ -103,7 +107,7 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
             const SizedBox(height: 16),
             WFormDatePicker(
               name: 'birthday',
-              label: '生日',
+              hintText: '生日',
               message: '请选择生日',
               initialValue: '1998-06-18',
               firstDate: DateTime(1900),
@@ -113,28 +117,18 @@ class _ProfileExamplePageState extends State<ProfileExamplePage> {
               iconSize: 20,
             ),
             const SizedBox(height: 16),
-            const Card(
-              elevation: 0,
-              color: Color(0xFFF9FAFB),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: WFormRadioGroup<String>(
-                  name: 'gender',
-                  items: {
-                    'female': '女',
-                    'male': '男',
-                  },
-                  initialValue: 'female',
-                ),
-              ),
+            const WFormRadioGroup<String>(
+              name: 'gender',
+              items: {
+                'female': '女',
+                'male': '男',
+              },
+              initialValue: 'female',
             ),
             const SizedBox(height: 16),
             const WFormMultiDropdown(
               name: 'interests',
-              label: '兴趣',
+              hintText: '兴趣',
               message: '请选择兴趣',
               items: {
                 'music': '音乐',

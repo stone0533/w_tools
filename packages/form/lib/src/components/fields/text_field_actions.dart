@@ -46,7 +46,7 @@ class WFormTextFieldAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = WFormTextFieldScope.of(context);
+    final data = WFormTextFieldData.of(context);
     if (data == null) return const SizedBox.shrink();
 
     return ListenableBuilder(

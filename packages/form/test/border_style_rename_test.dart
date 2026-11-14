@@ -12,7 +12,7 @@ void main() {
     expect(WFormBorderStyle.fromTheme(ThemeData()), WFormBorderStyle.fromTheme(ThemeData()));
     expect(const WFormBorderStyle(), const WFormBorderStyle());
     expect(WFormBorderStyle.standard().errorDecoration, isNotNull);
-    expect(WFormBorderStyle.standard().hintStyle, isNotNull);
+    expect(WFormBorderStyle.standard().helperStyle, isNotNull);
   });
 
   testWidgets('WForm(borderStyle:) 下发给字段边框并渲染 message', (tester) async {
@@ -23,7 +23,7 @@ void main() {
           body: WForm(
             controller: form,
             borderStyle: terseBorderStyle(),
-            child: const WFormTextField(name: 'a', label: 'A', message: '提示文案'),
+            child: const WFormTextField(name: 'a', hintText: 'A', message: '提示文案'),
           ),
         ),
       ),
@@ -43,7 +43,7 @@ void main() {
             borderStyle: style,
             child: WForm(
               controller: form,
-              child: const WFormTextField(name: 'b', label: 'B', message: '继承来的'),
+              child: const WFormTextField(name: 'b', hintText: 'B', message: '继承来的'),
             ),
           ),
         ),
@@ -52,6 +52,6 @@ void main() {
     await tester.pump();
 
     expect(find.text('继承来的'), findsOneWidget);
-    expect(WFormScope.borderStyleOf(tester.element(find.byType(WFormTextField))), style);
+    expect(WFormThemeData.of(tester.element(find.byType(WFormTextField)))?.borderStyle, style);
   });
 }

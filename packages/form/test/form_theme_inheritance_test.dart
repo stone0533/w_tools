@@ -13,7 +13,7 @@ void main() {
               controller: WFormController(),
               child: const WFormDropdown<String>(
                 name: 'country',
-                label: '国家',
+                hintText: '国家',
                 items: {'CN': '中国'},
               ),
             ),
@@ -59,7 +59,7 @@ void main() {
               icons: const WFormIcons(dropdown: Icon(Icons.favorite)),
               child: const WFormDropdown<String>(
                 name: 'country',
-                label: '国家',
+                hintText: '国家',
                 items: {'CN': '中国'},
               ),
             ),

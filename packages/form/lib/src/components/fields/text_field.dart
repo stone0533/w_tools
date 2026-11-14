@@ -5,14 +5,13 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_scope.dart';
 import '../form_controller.dart';
 
 /// 表单单行文本输入组件
 ///
 /// 支持密码模式、输入格式化器、只读样式与 `actions` / `leading` 插槽；
 /// 只读状态会合并自身 [readOnly] 与外层 [WFormReadOnlyScope]。
-/// 插槽中的控件可通过 [WFormTextFieldScope.of] 读取输入状态并触发清空、
+/// 插槽中的控件可通过 [WFormTextFieldData.of] 读取输入状态并触发清空、
 /// 密码可见性切换等操作。
 /// 框架内部使用：普通业务用直接字段（`WFormTextField` 等），4.0 移出公共面。
 @internal
@@ -188,7 +187,7 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // 跟随 WFormScope 的 formData 实例变化，避免持有旧实例
-    _formData = WFormScope.requireOf(context);
+    _formData = WFormController.requireOf(context);
   }
 
   @override
@@ -239,7 +238,7 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
     }
 
     // 合并自身 enabled / enabled / 外层只读作用域
-    final inheritedReadOnly = WFormReadOnlyScope.readOnlyOf(context);
+    final inheritedReadOnly = WFormReadOnly.of(context);
     final isEnabled = widget.enabled && !inheritedReadOnly;
     _effectiveReadOnly = !isEnabled || widget.readOnly || inheritedReadOnly;
     final readOnly = _effectiveReadOnly;
@@ -319,7 +318,7 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
 
 /// WFormTextFieldCore 暴露给 actions / leading 槽 Widget 的只读接口。
 ///
-/// 用户自定义 action Widget 通过 [WFormTextFieldScope.of] 获取此接口，
+/// 用户自定义 action Widget 通过 [WFormTextFieldData.of] 获取此接口，
 /// 读取输入状态、订阅值变化、触发密码切换或清空等动作，无需闭包或外部回调。
 ///
 /// 使用示例（需要跟随输入值重建时，必须订阅 [valueListenable]）：
@@ -328,7 +327,7 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
 ///   const MyCustomSearchAction({super.key});
 ///   @override
 ///   Widget build(BuildContext context) {
-///     final data = WFormTextFieldScope.of(context);
+///     final data = WFormTextFieldData.of(context);
 ///     if (data == null) return const SizedBox.shrink();
 ///     return ListenableBuilder(
 ///       listenable: data.valueListenable,
@@ -348,6 +347,10 @@ class _WFormTextFieldState extends State<WFormTextFieldCore> {
 /// 所以在 `build` 里直接读它们会拿到旧值。预置的 [WFormTextFieldAction] /
 /// [WFormTextFieldClearButton] 已内部订阅。
 abstract interface class WFormTextFieldData {
+  /// 从 context 向上查找最近的输入状态（不在 `WFormTextField` 子树时返回 null）
+  static WFormTextFieldData? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<WFormTextFieldScope>();
+
   /// 当前密码是否可见（仅 `WFormTextField.obscureText` 为 true 时有意义）
   bool get isPasswordVisible;
 
@@ -377,9 +380,9 @@ abstract interface class WFormTextFieldData {
   void clear();
 }
 
-/// 承载 WFormTextFieldCore 内部状态的 InheritedWidget，实现 [WFormTextFieldData]。
+/// 包内：承载 WFormTextFieldCore 内部状态的 InheritedWidget。
 ///
-/// widget 树中任意位置的 Widget 可通过 [WFormTextFieldScope.of] 获取接口实例。
+/// 业务通过 [WFormTextFieldData.of] 获取接口实例。
 final class WFormTextFieldScope extends InheritedWidget implements WFormTextFieldData {
   /// 宿主 State（内部实现委托）
   final _WFormTextFieldState _state;

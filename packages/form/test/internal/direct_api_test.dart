@@ -22,12 +22,12 @@ void main() {
               children: [
                 WFormTextField(
                   name: 'email',
-                  label: '邮箱',
+                  hintText: '邮箱',
                   validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
                 ),
                 const WFormDropdown<String>(
                   name: 'country',
-                  label: '国家',
+                  hintText: '国家',
                   items: {'CN': '中国'},
                 ),
                 WFormButton(
@@ -47,26 +47,6 @@ void main() {
     expect(find.text('选择优惠券'), findsOneWidget);
   });
 
-  testWidgets('hintText 优先于历史 label', (tester) async {
-    final form = WFormController();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: form,
-            child: const WFormTextField(
-              name: 'email',
-              label: '旧占位符',
-              hintText: '新占位符',
-            ),
-          ),
-        ),
-      ),
-    );
-    expect(find.text('新占位符'), findsWidgets);
-    expect(find.text('旧占位符'), findsNothing);
-  });
-
   testWidgets('WForm 直接 API 走字段 validator', (tester) async {
     final form = WFormController();
 
@@ -77,7 +57,7 @@ void main() {
             controller: form,
             child: WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
             ),
           ),
@@ -105,7 +85,7 @@ void main() {
             validatorSettings: const WFormValidatorSettings(showBorderError: true),
             child: WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
             ),
           ),
@@ -126,7 +106,7 @@ void main() {
           body: WForm(
             controller: form,
             validatorSettings: settings,
-            child: const WFormTextField(name: 'email', label: '邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱'),
           ),
         ),
       ),
@@ -144,7 +124,7 @@ void main() {
           body: WForm(
             controller: WFormController(),
             fieldStyle: const WFormFieldStyle(height: 60),
-            child: const WFormTextField(name: 'email', label: '邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱'),
           ),
         ),
       ),
@@ -164,7 +144,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            child: const WFormTextField(name: 'email', label: '邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱'),
           ),
         ),
       ),
@@ -182,7 +162,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: WFormController(),
-            child: const WFormTextField(name: 'email', label: '邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱'),
           ),
         ),
       ),
@@ -205,7 +185,7 @@ void main() {
             borderStyle: WFormBorderStyle.standard(),
             child: WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
             ),
           ),
@@ -230,7 +210,7 @@ void main() {
             validatorSettings: const WFormValidatorSettings(),
             child: WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
             ),
           ),
@@ -268,35 +248,13 @@ void main() {
           body: WForm(
             controller: WFormController(),
             borderStyle: WFormBorderStyle.standard(),
-            child: const WFormDatePicker(name: 'birthday', label: '生日'),
+            child: const WFormDatePicker(name: 'birthday', hintText: '生日'),
           ),
         ),
       ),
     );
 
     expect(find.text('生日'), findsOneWidget);
-  });
-
-  testWidgets('WFormDropdown hintText 优先于历史 label', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WForm(
-            controller: WFormController(),
-            borderStyle: WFormBorderStyle.standard(),
-            child: const WFormDropdown<String>(
-              name: 'city',
-              label: '旧占位符',
-              hintText: '新占位符',
-              items: {'sh': '上海'},
-            ),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.text('新占位符'), findsWidgets);
-    expect(find.text('旧占位符'), findsNothing);
   });
 
   testWidgets('WFormMultiDropdown hintText 为空字符串时不显示占位', (tester) async {
@@ -446,14 +404,12 @@ void main() {
     form.setValue<bool>('agree', true);
     await tester.pump();
     expect(form.getFieldsValue<String>('email'), 'changed');
-    expect(form.formEntered['agree'], isTrue);
+    expect(form.getFieldsValue<bool>('agree'), isTrue);
 
     form.reset();
     await tester.pump();
     expect(form.getFieldsValue<String>('email'), 'seed');
-    expect(form.formEntered['email'], isTrue);
     expect(form.getFieldsValue<bool>('agree'), isFalse);
-    expect(form.formEntered['agree'], isFalse);
   });
 
   testWidgets('直接字段可交互写值：checkbox / radio / button', (tester) async {
@@ -532,7 +488,7 @@ void _noopTap(String? value, ValueChanged<String> didChange) {
     );
 
     expect(
-      tester.widget<WFormCheckboxCore>(find.byType(WFormCheckboxCore)).focusNode,
+      tester.widget<WFormCheckboxCore>(find.byType(WFormCheckboxCore)).interactionFocusNode,
       same(node),
     );
     node.dispose();

@@ -66,8 +66,15 @@ abstract class _WFormDirectField extends StatelessWidget {
   /// 右侧操作插槽
   final List<Widget>? actions;
 
-  /// 是否带边框（复选 / 单选默认 false，其余 true）
+  /// 是否带边框（复选 / 单选默认 true，与其余字段一致）
   bool get bordered => true;
+
+  /// 字段自身是否渲染 `FormFieldState.errorText`
+  ///
+  /// 默认 false：直接字段大多没有内联错误位置，由边框兜底展示，避免原生
+  /// `validate()` 的错误文案被丢弃。text / dropdown 由 InputDecoration 渲染，
+  /// 覆盖为 true。
+  bool get rendersInlineError => false;
 
   /// 构建字段的 core；公共装配（断言 / 只读 / 提示 / 外框）已由本类完成。
   Widget _buildField(
@@ -84,6 +91,7 @@ abstract class _WFormDirectField extends StatelessWidget {
       name: name,
       bordered: bordered,
       readOnly: readOnly || !effectiveEnabled,
+      rendersInlineError: rendersInlineError,
       message: message,
       hintTextList: hintTextList,
       isTransparentBackground: isTransparentBackground,
@@ -102,7 +110,8 @@ class WFormTextField extends _WFormDirectField {
   const WFormTextField({
     super.key,
     required super.name,
-    this.label,
+    // remove-in: 9.0.0
+    @Deprecated('Use hintText instead. remove-in: 9.0.0') this.label,
     this.hintText,
     super.message,
     this.initialValue,
@@ -130,6 +139,7 @@ class WFormTextField extends _WFormDirectField {
     this.style,
   });
 
+  /// 历史占位符别名；改用 [hintText]。构造参数已弃用（remove-in: 9.0.0）。
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
@@ -142,6 +152,9 @@ class WFormTextField extends _WFormDirectField {
   final FocusNode? focusNode;
   @override
   final bool bordered;
+
+  @override
+  bool get rendersInlineError => true;
   final bool? obscureText;
   final bool? autofocus;
   final TextInputType? keyboardType;
@@ -176,7 +189,7 @@ class WFormTextField extends _WFormDirectField {
       readOnly: readOnly,
       enabled: effectiveEnabled,
       style: style ?? fieldStyle?.textStyle,
-      hintStyle: fieldStyle?.hintStyle,
+      hintStyle: fieldStyle?.effectiveHintStyle,
       height: fieldStyle?.height,
       containerPadding: fieldStyle?.containerPadding,
       obscureText: obscureText ?? false,
@@ -203,7 +216,8 @@ class WFormDropdown<T> extends _WFormDirectField {
     super.key,
     required super.name,
     required this.items,
-    this.label,
+    // remove-in: 9.0.0
+    @Deprecated('Use hintText instead. remove-in: 9.0.0') this.label,
     this.hintText,
     super.message,
     this.initialValue,
@@ -226,6 +240,8 @@ class WFormDropdown<T> extends _WFormDirectField {
   });
 
   final Map<T, String> items;
+
+  /// 历史占位符别名；改用 [hintText]。构造参数已弃用（remove-in: 9.0.0）。
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
@@ -235,6 +251,9 @@ class WFormDropdown<T> extends _WFormDirectField {
   final ValueChanged<T?>? onChanged;
   @override
   final bool bordered;
+
+  @override
+  bool get rendersInlineError => true;
   final Widget? icon;
 
   /// 右侧图标尺寸；未传时用底层默认 24
@@ -264,7 +283,7 @@ class WFormDropdown<T> extends _WFormDirectField {
       icon: icon,
       iconSize: iconSize,
       style: style ?? fieldStyle?.textStyle,
-      hintStyle: fieldStyle?.hintStyle,
+      hintStyle: fieldStyle?.effectiveHintStyle,
       contentPadding: contentPadding,
       focusNode: focusNode,
       dropdownColor: dropdownColor,
@@ -278,7 +297,7 @@ class WFormDropdown<T> extends _WFormDirectField {
 
 /// 多选下拉字段（值为 `Set<T>`）。
 ///
-/// 弹层由 `WFormPopup` 在锚点下方打开；[disabledKeys] 控制不可点击项，
+/// 弹层由包内实现在锚点下方打开；[disabledKeys] 控制不可点击项，
 /// [itemStyle] / [itemCheckedStyle] / [itemDisabledStyle] 控制选项文字。
 /// 在 `WForm` 子树内使用，边框 / 只读 / 校验由容器统一提供。
 class WFormMultiDropdown<T> extends _WFormDirectField {
@@ -286,7 +305,8 @@ class WFormMultiDropdown<T> extends _WFormDirectField {
     super.key,
     required super.name,
     required this.items,
-    this.label,
+    // remove-in: 9.0.0
+    @Deprecated('Use hintText instead. remove-in: 9.0.0') this.label,
     this.hintText,
     super.message,
     this.initialValue,
@@ -313,6 +333,8 @@ class WFormMultiDropdown<T> extends _WFormDirectField {
   });
 
   final Map<T, String> items;
+
+  /// 历史占位符别名；改用 [hintText]。构造参数已弃用（remove-in: 9.0.0）。
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
@@ -322,6 +344,9 @@ class WFormMultiDropdown<T> extends _WFormDirectField {
   final ValueChanged<Set<T>>? onChanged;
   @override
   final bool bordered;
+
+  @override
+  bool get rendersInlineError => false;
   final Widget? icon;
   final double? iconSize;
   final Widget? checkboxUnselectedIcon;
@@ -351,7 +376,7 @@ class WFormMultiDropdown<T> extends _WFormDirectField {
       icon: icon,
       iconSize: iconSize,
       style: fieldStyle?.textStyle,
-      hintStyle: fieldStyle?.hintStyle,
+      hintStyle: fieldStyle?.effectiveHintStyle,
       height: fieldStyle?.height,
       containerPadding: fieldStyle?.containerPadding,
       disabledKeys: disabledKeys,
@@ -377,11 +402,11 @@ class WFormDatePicker extends _WFormDirectField {
   const WFormDatePicker({
     super.key,
     required super.name,
-    this.label,
+    // remove-in: 9.0.0
+    @Deprecated('Use hintText instead. remove-in: 9.0.0') this.label,
     this.hintText,
     super.message,
     this.initialValue,
-    this.initialDate,
     this.firstDate,
     this.lastDate,
     this.displayFormat,
@@ -401,14 +426,13 @@ class WFormDatePicker extends _WFormDirectField {
     this.focusNode,
   });
 
+  /// 历史占位符别名；改用 [hintText]。构造参数已弃用（remove-in: 9.0.0）。
   final String? label;
 
   /// 占位符；优先于历史参数 [label]。
   final String? hintText;
   final String? initialValue;
 
-  /// 用 `DateTime` 给初值；与 [initialValue] 二选一，同时传时 [initialValue] 优先
-  final DateTime? initialDate;
   final DateTime? firstDate;
   final DateTime? lastDate;
 
@@ -420,6 +444,9 @@ class WFormDatePicker extends _WFormDirectField {
   final ValueChanged<String?>? onChanged;
   @override
   final bool bordered;
+
+  @override
+  bool get rendersInlineError => false;
 
   /// 日期文字样式（未传时取 `WForm.fieldStyle`）
   final TextStyle? style;
@@ -436,7 +463,7 @@ class WFormDatePicker extends _WFormDirectField {
       name: name,
       firstDate: firstDate ?? DateTime(1900),
       lastDate: lastDate ?? DateTime(2100),
-      initialValue: initialValue ?? initialDate?.toIso8601String().split('T').first,
+      initialValue: initialValue,
       validator: validator,
       onChanged: onChanged,
       enabled: effectiveEnabled,
@@ -448,12 +475,12 @@ class WFormDatePicker extends _WFormDirectField {
           ? null
           : (const InputDecoration()).copyWith(
               hintText: hintText ?? label,
-              hintStyle: fieldStyle?.hintStyle,
+              hintStyle: fieldStyle?.effectiveHintStyle,
             ),
       height: fieldStyle?.height,
       containerPadding: fieldStyle?.containerPadding,
       leading: leading,
-      focusNode: focusNode,
+      interactionFocusNode: focusNode,
       actions: actions,
     );
   }
@@ -461,7 +488,9 @@ class WFormDatePicker extends _WFormDirectField {
 
 /// 复选框字段（布尔值）。
 ///
-/// [title] 是整行的标题 widget；默认 `bordered: false`，与其余直接字段不同。
+/// [title] 是整行的标题 widget；默认 `bordered: true`，与其余直接字段一致，
+/// 这样 validator 的错误才有边框位置可显示。显式 `bordered: false` 时错误只进
+/// `WFormValidator.errors`。
 /// 选中 / 未选中 / 禁用图标可通过同名参数或 `WFormIcons` 统一配置。
 class WFormCheckbox extends _WFormDirectField {
   const WFormCheckbox({
@@ -474,7 +503,7 @@ class WFormCheckbox extends _WFormDirectField {
     this.onChanged,
     super.enabled,
     super.readOnly,
-    this.bordered = false,
+    this.bordered = true,
     super.hintTextList,
     super.isTransparentBackground,
     super.enableFocusBorder,
@@ -496,6 +525,9 @@ class WFormCheckbox extends _WFormDirectField {
   final ValueChanged<bool?>? onChanged;
   @override
   final bool bordered;
+
+  @override
+  bool get rendersInlineError => false;
   final Widget? unselectedIcon;
   final Widget? selectedIcon;
   final Widget? disabledIcon;
@@ -529,7 +561,7 @@ class WFormCheckbox extends _WFormDirectField {
       height: fieldStyle?.height,
       containerPadding: fieldStyle?.containerPadding,
       leading: leading,
-      focusNode: focusNode,
+      interactionFocusNode: focusNode,
       actions: actions,
     );
   }
@@ -538,7 +570,9 @@ class WFormCheckbox extends _WFormDirectField {
 /// 单选组字段（单列布局）。
 ///
 /// [items] 的 key 是字段值、value 是展示文本；[titleBuilder] / [itemExtraBuilder]
-/// 可定制每个选项；默认 `bordered: false`，与复选保持一致。
+/// 可定制每个选项；默认 `bordered: true`，与其余直接字段一致。显式
+/// `bordered: false` 时错误只进 `WFormValidator.errors`。
+/// 高度由选项内容决定：不接 `WForm.fieldStyle.height`，避免多选项被固定高度裁掉。
 class WFormRadioGroup<T> extends _WFormDirectField {
   const WFormRadioGroup({
     super.key,
@@ -552,7 +586,7 @@ class WFormRadioGroup<T> extends _WFormDirectField {
     this.itemExtraBuilder,
     super.enabled,
     super.readOnly,
-    this.bordered = false,
+    this.bordered = true,
     super.hintTextList,
     super.isTransparentBackground,
     super.enableFocusBorder,
@@ -576,6 +610,9 @@ class WFormRadioGroup<T> extends _WFormDirectField {
   final Widget Function(BuildContext, T, String, bool)? itemExtraBuilder;
   @override
   final bool bordered;
+
+  @override
+  bool get rendersInlineError => false;
   final Widget? unselectedIcon;
   final Widget? selectedIcon;
   final double? iconSpacing;
@@ -606,10 +643,10 @@ class WFormRadioGroup<T> extends _WFormDirectField {
       lineSpacing: lineSpacing,
       iconYOffset: iconYOffset,
       style: style ?? fieldStyle?.textStyle,
-      height: fieldStyle?.height,
+      // 单选组是多行布局：页面级 height 固定高度会裁掉多个选项，高度交给内容。
       containerPadding: fieldStyle?.containerPadding,
       leading: leading,
-      focusNode: focusNode,
+      interactionFocusNode: focusNode,
       actions: actions,
     );
   }
@@ -657,6 +694,9 @@ class WFormFieldButton<T> extends _WFormDirectField {
   final FocusNode? focusNode;
   @override
   final bool bordered;
+
+  @override
+  bool get rendersInlineError => false;
 
   @override
   Widget _buildField(

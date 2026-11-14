@@ -1,27 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'border/border.dart';
 import 'form_controller.dart';
-import 'form_theme.dart';
 
-/// 表单数据继承组件，用于在 widget 树中传递 WFormController
-class _WFormControllerInherited extends InheritedWidget {
-  /// 表单数据对象
-  final WFormController formData;
-
-  const _WFormControllerInherited({
-    required this.formData,
-    required super.child,
-  });
-
-  @override
-  bool updateShouldNotify(_WFormControllerInherited oldWidget) {
-    return formData != oldWidget.formData;
-  }
-}
-
-/// 表单构建器组件，用于创建和管理表单
+/// 表单构建器组件（包内实现，不导出）。
+///
+/// 业务页面用 `WForm`；需要 controller 时用 `WFormController.of(context)`。
 class WFormScope extends StatelessWidget {
   /// 表单数据对象
   final WFormController formData;
@@ -45,29 +29,14 @@ class WFormScope extends StatelessWidget {
   });
 
   /// 获取当前子树中的 [WFormController]（无祖先时返回 null）
-  static WFormController? of(BuildContext context) {
-    final inherited = context.dependOnInheritedWidgetOfExactType<_WFormControllerInherited>();
-    return inherited?.formData;
-  }
+  static WFormController? of(BuildContext context) => WFormController.of(context);
 
-  /// 获取当前子树中的 [WFormController]，没有 [WFormScope] 祖先时抛 [StateError]
-  static WFormController requireOf(BuildContext context) {
-    final formData = of(context);
-    if (formData == null) {
-      throw StateError('WFormScope 未找到');
-    }
-    return formData;
-  }
-
-  /// 获取当前子树生效的边框配置
-  ///
-  /// 读取最近 `WFormThemeData.borderStyle`；未配置时返回 null。
-  static WFormBorderStyle? borderStyleOf(BuildContext context) =>
-      WFormThemeData.of(context)?.borderStyle;
+  /// 获取当前子树中的 [WFormController]，没有祖先时抛 [StateError]
+  static WFormController requireOf(BuildContext context) => WFormController.requireOf(context);
 
   @override
   Widget build(BuildContext context) {
-    return _WFormControllerInherited(
+    return WFormControllerScope(
       formData: formData,
       child: FormBuilder(
         key: formData.formKey,

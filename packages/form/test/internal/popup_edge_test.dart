@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/popup.dart';
 
 void main() {
   testWidgets('锚点靠右 + 显式 width 超出屏幕时向右钳制', (tester) async {

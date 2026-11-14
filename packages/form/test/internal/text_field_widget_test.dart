@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/border/read_only_scope.dart';
 
 import '_helpers/form_test_scaffold.dart';
 import 'package:w_tools_form/src/components/fields/text_field.dart';
@@ -361,7 +362,7 @@ class _CustomPwdToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = WFormTextFieldScope.of(context);
+    final data = WFormTextFieldData.of(context);
     if (data == null) return const SizedBox.shrink();
 
     return GestureDetector(
@@ -377,7 +378,7 @@ class _CustomClearAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = WFormTextFieldScope.of(context);
+    final data = WFormTextFieldData.of(context);
     if (data == null) return const SizedBox.shrink();
 
     return ListenableBuilder(

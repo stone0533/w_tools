@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:w_tools_form/w_tools_form.dart';
+import 'package:w_tools_form/src/components/border/border.dart';
 
 void main() {
   group('WFormBorderStyle.fromTheme', () {
@@ -70,11 +70,11 @@ void main() {
       expect(error.style?.color, scheme.error);
     });
 
-    testWidgets('显式 hintStyle 的颜色优先', (tester) async {
+    testWidgets('显式 helperStyle 的颜色优先', (tester) async {
       final theme = ThemeData(useMaterial3: true);
       final style = WFormBorderStyle.fromTheme(
         theme,
-        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF112233)),
+        helperStyle: const TextStyle(fontSize: 13, color: Color(0xFF112233)),
       );
 
       await tester.pumpWidget(

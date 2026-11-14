@@ -13,7 +13,7 @@ void main() {
           body: WForm(
             controller: WFormController(),
             onChanged: (values) => changed = values,
-            child: const WFormTextField(name: 'email', label: '邮箱'),
+            child: const WFormTextField(name: 'email', hintText: '邮箱'),
           ),
         ),
       ),
@@ -35,7 +35,7 @@ void main() {
             controller: form,
             child: WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               validator: (value) => (value == null || value.isEmpty) ? '请输入邮箱' : null,
             ),
           ),
@@ -59,7 +59,7 @@ void main() {
             controller: WFormController(),
             child: const WFormTextField(
               name: 'email',
-              label: '邮箱',
+              hintText: '邮箱',
               message: '消息',
               hintTextList: ['提示'],
             ),
@@ -80,11 +80,11 @@ void main() {
             children: [
               WForm(
                 controller: form,
-                child: const WFormTextField(name: 'a', label: 'A'),
+                child: const WFormTextField(name: 'a', hintText: 'A'),
               ),
               WForm(
                 controller: form,
-                child: const WFormTextField(name: 'b', label: 'B'),
+                child: const WFormTextField(name: 'b', hintText: 'B'),
               ),
             ],
           ),
@@ -106,7 +106,7 @@ void main() {
           body: WForm(
             key: const ValueKey('first'),
             controller: form,
-            child: const WFormTextField(name: 'a', label: 'A'),
+            child: const WFormTextField(name: 'a', hintText: 'A'),
           ),
         ),
       ),
@@ -118,7 +118,7 @@ void main() {
           body: WForm(
             key: const ValueKey('second'),
             controller: form,
-            child: const WFormTextField(name: 'b', label: 'B'),
+            child: const WFormTextField(name: 'b', hintText: 'B'),
           ),
         ),
       ),
@@ -134,7 +134,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            child: const WFormTextField(name: 'a', label: 'A'),
+            child: const WFormTextField(name: 'a', hintText: 'A'),
           ),
         ),
       ),
@@ -146,7 +146,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            child: const WFormTextField(name: 'b', label: 'B'),
+            child: const WFormTextField(name: 'b', hintText: 'B'),
           ),
         ),
       ),
@@ -162,7 +162,7 @@ void main() {
         home: Scaffold(
           body: WForm(
             controller: form,
-            child: const WFormTextField(name: 'plain', label: '无边框', bordered: false),
+            child: const WFormTextField(name: 'plain', hintText: '无边框', bordered: false),
           ),
         ),
       ),
@@ -184,7 +184,7 @@ void main() {
             controller: form,
             child: WFormTextField(
               name: 'plain',
-              label: '无边框',
+              hintText: '无边框',
               bordered: false,
               validator: (_) => '必填',
             ),
@@ -209,12 +209,12 @@ void main() {
               WForm(
                 key: const ValueKey('first'),
                 controller: form,
-                child: const WFormTextField(name: 'a', label: 'A'),
+                child: const WFormTextField(name: 'a', hintText: 'A'),
               ),
             WForm(
               key: const ValueKey('second'),
               controller: form,
-              child: const WFormTextField(name: 'b', label: 'B'),
+              child: const WFormTextField(name: 'b', hintText: 'B'),
             ),
           ],
         ),
@@ -241,12 +241,12 @@ void main() {
               WForm(
                 key: const ValueKey('first'),
                 controller: form,
-                child: const WFormTextField(name: 'a', label: 'A'),
+                child: const WFormTextField(name: 'a', hintText: 'A'),
               ),
             WForm(
               key: const ValueKey('second'),
               controller: form,
-              child: const WFormTextField(name: 'b', label: 'B'),
+              child: const WFormTextField(name: 'b', hintText: 'B'),
             ),
           ],
         ),
@@ -268,7 +268,7 @@ void main() {
       home: Scaffold(
         body: WForm(
           controller: controller,
-          child: const WFormTextField(name: 'email', label: '邮箱'),
+          child: const WFormTextField(name: 'email', hintText: '邮箱'),
         ),
       ),
     );
@@ -302,32 +302,36 @@ void main() {
     expect(find.text('请选择优惠券'), findsWidgets);
   });
 
-  test('formEntered 未挂载时是不可变空表', () {
-    final form = WFormController();
-    expect(() => form.formEntered['x'] = true, throwsUnsupportedError);
-  });
-
-  testWidgets('formEntered 返回独立副本：改它不影响表单', (tester) async {
+  testWidgets('getFieldsValue 字段名拼错会断言', (tester) async {
     final form = WFormController();
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: WForm(
             controller: form,
-            child: const WFormTextField(name: 'a', label: 'A'),
+            child: const WFormTextField(name: 'a', hintText: 'A'),
           ),
         ),
       ),
     );
 
-    await tester.enterText(find.byType(TextField), 'x');
-    await tester.pump();
+    expect(() => form.getFieldsValue<String>('typo'), throwsAssertionError);
+  });
 
-    final snapshot = form.formEntered;
-    snapshot['extra'] = true;
+  testWidgets('setValue / resetValue 字段名拼错会断言', (tester) async {
+    final form = WFormController();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: form,
+            child: const WFormTextField(name: 'a', hintText: 'A'),
+          ),
+        ),
+      ),
+    );
 
-    // 改副本不能写回表单：formEntered 是按字段值派生的快照。
-    expect(form.formEntered.containsKey('extra'), isFalse);
-    expect(form.formEntered['a'], isTrue);
+    expect(() => form.setValue('typo', 'x'), throwsAssertionError);
+    expect(() => form.resetValue('typo'), throwsAssertionError);
   });
 }

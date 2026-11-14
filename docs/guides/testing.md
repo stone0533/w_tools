@@ -58,7 +58,7 @@ testWidgets('表单校验失败时不提交', (tester) async {
           children: [
             WFormTextField(
               name: 'name',
-              label: '名称',
+              hintText: '名称',
               validator: (value) =>
                   (value == null || value.isEmpty) ? '请输入' : null,
             ),

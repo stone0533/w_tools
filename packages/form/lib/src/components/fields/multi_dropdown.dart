@@ -5,7 +5,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import '../border/read_only_scope.dart';
 import '../field_frame.dart';
-import '../form_scope.dart';
+import '../form_controller.dart';
 import '../form_icons.dart';
 import '../form_theme.dart';
 import '../popup.dart';
@@ -169,7 +169,7 @@ class WFormMultiDropdownCore<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wFormData = WFormScope.requireOf(context);
+    final wFormData = WFormController.requireOf(context);
 
     void onChangedHandler(Set<T>? value) {
       final selected = value ?? const <Never>{};
@@ -192,7 +192,7 @@ class WFormMultiDropdownCore<T> extends StatelessWidget {
         initialValue: initialValue,
         onChanged: onChangedHandler,
         validator: validator,
-        enabled: enabled && !WFormReadOnlyScope.readOnlyOf(context),
+        enabled: enabled && !WFormReadOnly.of(context),
         decoration: decoration,
         icon: icon,
         iconSize: iconSize,
@@ -213,7 +213,7 @@ class WFormMultiDropdownCore<T> extends StatelessWidget {
         itemCheckedStyle: itemCheckedStyle,
         itemDisabledStyle: itemDisabledStyle,
         itemTitlePadding: itemTitlePadding,
-        focusNode: focusNode,
+        interactionFocusNode: focusNode,
       ),
     );
   }
