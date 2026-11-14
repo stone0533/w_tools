@@ -59,7 +59,7 @@
 ```text
 第 1 轮：只审计（G / J-0 / J-4 / K-1），不改文件
 第 2 轮：只修 P0/P1（B / A / J-2）
-第 3 轮：跑 bash scripts/preflight.sh --changed（整波 / 发布前再加 --with-tests），检查 explain 输出；发布任务再加归档核对
+第 3 轮：跑 bash scripts/preflight.sh --changed（整波 / 发布前再加 --with-tests --with-flutter-analyze），检查 explain 输出；发布任务再加归档核对
 ```
 
 小修 / 文档 / 内部重构可以直接走 A / F，不必先审计。
@@ -96,7 +96,7 @@ packages/<pkg>/README.md（存在时），再开始；改具体包时按 docs/ag
 7. 不要改无关包、无关文档、无关测试。
 8. 默认只改工作区：不要 commit / push / 开 PR / 合并，除非任务块明确要求（如 K-2 / K-2M）；
    不要用 `git reset --hard` / `git clean` 清理未提交内容。
-9. 公开变化：抬子包版本 + 在当前版本 CHANGELOG 段写变更；所有库子包都要同步
+9. 公开变化：抬子包版本 + 在当前版本 CHANGELOG 段写变更；本次改到的库子包要同步
    `packages/cli/lib/src/init/versions.dart` 的 `subpackageConstraints`（工具包
    cli / figma / device / e2e 除外），聚合子包（core / async / ui / form / api / toast）
    还要抬根 pubspec 的 `^x.y.z` 下界 —— `check_versions.py` 要求下界 == 当前版本。
@@ -236,6 +236,9 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 | `release_status` 报「快照 ≠ 线上」 | K-4 / K-5 | `bash scripts/apply_snapshots.sh` |
 | 新包 `public api diff` 红 | E | `python3 scripts/check_public_api_diff.py --snapshot-from packages/<pkg> --package <pkg> --version <当前版本>` |
 | 本地 `preflight` 绿但 PR 红 | N | 看 CI-only：`check_version_bump` / `check_pr_scope` / dry-run |
+| `Flutter declared minimum` 红，`deprecated_member_use_from_same_package` | K-2 / N | `bash scripts/preflight.sh --with-tests --with-flutter-analyze` |
+| `Package / cli` 红：`version_test` / `templates_fresh_test` | K-2 | 检查 `cliVersion`；`cd packages/cli && dart run tool/agent_budget.dart --record` |
+| `pub publish` 长时间无输出 | K-4 / K-5 | 先查代理；不要直接重试；确认 pub.dev 是否已有版本 |
 
 ---
 
@@ -905,6 +908,18 @@ J-5 多包/家族
 > 命令细节、发布顺序与常见坑以 [`docs/releasing.md`](releasing.md) 为准（冲突时以它为准）。
 > 不要用一条“帮我发布”的无计划提示词；用 `plan` 生成计划，确认后再用 `run --plan ... --yes`。
 
+### 先选发布路径
+
+| 情况 | 路径 |
+|---|---|
+| 代码未合并 | K-2M → PR → K-0 |
+| 代码已合并、版本已准备 | K-0 plan → `release_wave.py run` |
+| 单包 hotfix | K-1 → K-2 → K-3 → K-4 |
+| 只补快照 | `bash scripts/apply_snapshots.sh` + 快照 PR |
+| 只核对线上 | K-5 |
+
+手动块和 `release_wave` 块二选一，不要混着走；整波优先 `release_wave`。
+
 ### K-0. 发布波次总控（多包）
 
 单包按 K-1 → K-2 → K-3 → K-4 → K-5。同一波多个包按下面顺序，每步都有产物：
@@ -1009,6 +1024,17 @@ J-5 多包/家族
 还没抬时才输出“版本提案表”（旧版本 → 新版本、major/minor/patch、依据）等确认。
 逃生口：若任务文本里已经给出确认过的版本提案表，视为已确认，直接执行，不要再停一轮。
 
+版本决策表（无确认表时按此提案）：
+
+| 改动 | 根包 | CLI |
+|---|---|---|
+| 子包 major / 删除根包 re-export 的公开类型 | 至少 major | 不适用 |
+| 只改依赖约束 / 聚合版本 | patch 或 minor，按是否影响消费方行为 | minor |
+| CLI `init` 约束 / 模板 / catalog 行为变化 | 不适用 | minor |
+| 纯文档 / 内部脚本 | 不抬 | 不抬 |
+
+根包没有符号级 API 快照；删除重导出类型时不要只看 `lib/w_tools.dart` 的 export 行。
+
 允许改：
 - packages/<pkg>/pubspec.yaml
 - packages/<pkg>/CHANGELOG.md
@@ -1043,6 +1069,9 @@ J-5 多包/家族
 ```
 
 ### K-2M. 批量版本准备
+
+优先在功能 PR 内完成子包版本；根包 / CLI 的 `## Unreleased` 可以放功能 PR，
+也可以单独 K-2M PR，但必须在生成 release plan 之前合并。
 
 ```text
 任务：为以下包批量准备发布：<pkg1>, <pkg2>, ...
@@ -1091,6 +1120,9 @@ bash scripts/check_pr_ready.sh /tmp/pr.md
 任务：发布 <pkg>。
 
 前置条件：
+0. 代码已在 main；若还在 feature 分支，先走 K-2 / K-2M + PR。
+   K-4 本身不负责创建分支 / commit / 开 PR；只有任务明确写“发布全流程”
+   时才按 K-0 步骤 3~7 执行。
 1. 版本号与发布范围已确认（任务里给过就算确认）；
 2. K-1 ~ K-3 已通过；
 3. 工作区干净、main 且 HEAD == origin/main；
@@ -1121,7 +1153,8 @@ bash scripts/publish_package.sh packages/<pkg> --yes --require-network
 批量发布：
 
 ```text
-一次只执行一个 publish 命令。
+手动模式一次只执行一个 publish 命令；
+release_wave run --yes 会按 plan 串行执行多个，不要并行、不要手动插队。
 每包以 publish 成功消息为准：pub.dev 最多 10 分钟才对外可见，
 不要立刻用 release_status 判失败；延迟后再核对（K-5 阶段 1）。
 归档 diff 在批末统一做（check_publish_drift.py），不要每包都下载一次。
@@ -1184,6 +1217,7 @@ bash scripts/publish_package.sh .
 | 快照写入失败（脚本保留 staging） | 按脚本打印的 `check_public_api_diff.py --snapshot-from ...` 重跑 | 不要手写快照 |
 | 发根包被拦（快照未合入 / 约束不满足） | `bash scripts/release_check.sh --strict` | 先合快照 PR，再 `git pull --ff-only` |
 | 误用 `--yes` | —— | 它只跳 y/N 确认，不跳校验；已发布版本不可回滚，只能 fix-forward |
+| publish 卡住 / 无输出 | 检查 HTTPS_PROXY；publish 有 180s 无输出 watchdog | 超时后先查 pub.dev 是否已有版本；已上传则从归档补快照，再 `--resume` |
 
 ### K 的硬边界
 
@@ -1394,10 +1428,12 @@ K-1 → K-2（确认版本）→ 提交并 push → K-3 → K-4 → K-5，逐包
 [ ] README / example 已更新
 [ ] docs/README.md 已索引新增文档；docs/agents 的首选入口能在该包规则页找到
 [ ] 公开变化 PR：正文有「## 改动类型」段且至少勾选一项；每个改了公开代码的包都改了 CHANGELOG
-[ ] 发布时：git status 干净、归档 diff 看过、lib/src/common/version.dart 与 pubspec 一致
+[ ] 发布时：git status 干净、归档 diff 看过、cliVersion 与 pubspec 一致
+[ ] CLI 版本变化：docs/metrics/agents_budget.jsonl 已 `--record`
 [ ] 发布时：快照 PR 已合入（根包前）、没有用 --force、
     python3 scripts/release_status.py --online --check 通过
 [ ] 按改动范围跑 preflight（单包 --package / 多包 --changed / 整波 --with-tests）实际通过
+[ ] 发布准备 PR：preflight --with-tests --with-flutter-analyze 已通过
 [ ] 没有削弱测试；改守卫 / 错误分支时做过一次定向变异（bash scripts/mutate_guard.sh）
 ```
 
