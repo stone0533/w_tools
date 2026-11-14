@@ -1,10 +1,13 @@
-## Unreleased
+## 17.0.0
+
+### Breaking
+- 聚合 `w_tools_form` 8.0.0：根包重导出面同步移除 `WFormPopup` / `WFormBorder` /
+  `WFormBorderLayout` / 三个低层 scope / `WFormCustomValidator` / `WFormInputFormatters`
+  等已删除类型；`label` / `hintStyle` 标记弃用。
 
 ### Changed
-- 聚合依赖 `w_tools_form: ^8.0.0`（删除 `clearValue` / `formEntered` / `isAllEntered` /
-  `closeKeyboard` / `WFormCustomValidator` / `WFormInputFormatters`；`WFormPopup` 移除公开入口；
-  `WFormBorder` / 自定义 layout 移除公开入口；
-  `label` 弃用；复选 / 单选默认带边框、原生校验错误可见、单选组高度内容驱动）。
+- 聚合依赖 `w_tools_form: ^8.0.0`（错误可见性、显式 save、单选高度内容驱动等；
+  详见 `packages/form/CHANGELOG.md`）。
 
 ## 16.1.0
 
