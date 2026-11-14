@@ -7,12 +7,8 @@ import '../interceptors/token.dart';
 
 /// Dio 实例注册表：按 `baseUrl` 缓存并复用 [Dio] 实例
 ///
-/// 跨平台兼容：Web 使用 BrowserHttpClientAdapter，Android/iOS/Desktop 使用 IOHttpClientAdapter。
-/// 如需在原生平台自定义 HTTPS 证书验证，使用条件导入：
-/// ```dart
-/// import 'package:dio/io.dart' if (dart.library.html) '';
-/// ```
-/// 然后在 `!kIsWeb` 分支里 cast `dio.httpClientAdapter as IOHttpClientAdapter`。
+/// 默认复用 dio 的平台 adapter；需要自定义 HTTPS 证书验证时，按 dio 文档
+/// 在原生分支里操作 `httpClientAdapter`，不要把平台判断塞进本类。
 ///
 /// ```dart
 /// final dio = DioRegistry.forBaseUrl(
@@ -43,13 +39,16 @@ class DioRegistry {
   ///
   /// 传入的 [options] 会被复制并注入 [baseUrl]，因此：
   /// - 传入的 BaseOptions 实例不会被本类修改；
-  /// - 多个 Dio 实例之间不会共享同一份可变配置。
+  /// - headers / extra / queryParameters 不与调用方共享同一份可变 Map。
   DioRegistry._internal(
     String baseUrl,
     BaseOptions options,
     List<Interceptor> interceptors,
   ) {
-    _options = options.copyWith(baseUrl: baseUrl);
+    _options = options.copyWith(
+      baseUrl: baseUrl,
+      queryParameters: Map<String, dynamic>.from(options.queryParameters),
+    );
     _interceptors = List.unmodifiable(interceptors);
     _dio = Dio(_options);
 
@@ -72,7 +71,7 @@ class DioRegistry {
   /// 最大缓存实例数；`null` 表示不限制（默认），`<= 0` 表示不缓存
   ///
   /// 设置后按最近使用淘汰：命中缓存的实例会被移到队尾，新实例入队后若超出上限，
-  /// 队首实例会被 `dispose`。
+  /// 队首实例会被 `close(force: false)` 关闭并移除（不强制中断在途请求）。
   ///
   /// `<= 0` 时不缓存：每次 [forBaseUrl] 都新建实例，返回的实例仍可用，但不会被
   /// 注册表持有；需要释放时由调用方 `registry.dio.close(force: true)`。
@@ -80,7 +79,8 @@ class DioRegistry {
 
   /// 缓存 TTL；`null` 表示不过期（默认）
   ///
-  /// 在 [forBaseUrl] / [maybeForBaseUrl] 访问时惰性判断，过期实例会被关闭并移除。
+  /// 在 [forBaseUrl] / [maybeForBaseUrl] 访问时惰性判断，过期实例会被
+  /// `close(force: false)` 关闭并移除（不强制中断在途请求）。
   static Duration? cacheTtl;
 
   bool get _expired {
@@ -92,21 +92,29 @@ class DioRegistry {
   ///
   /// 同一 [baseUrl] 命中缓存时返回已有实例；如果这次显式传入了**不同**的
   /// [options] / [interceptors]，会抛 [ArgumentError]，不再静默忽略。
-  /// 需要换配置请先 [dispose]。
+  /// 需要换配置时传 [replace] = `true`，或先 [dispose]。
+  ///
+  /// [replace] 会先关闭并移除同一 [baseUrl] 的旧实例，再按本次配置重建；
+  /// 旧实例上的在途请求会随 `close(force: true)` 一起结束。
   ///
   /// @param baseUrl 基础 URL
   /// @param options Dio 基础配置，缺省使用 [WApiSettings.baseOptions]
   /// @param interceptors 拦截器列表，按传入顺序挂载
+  /// @param replace 是否替换同 baseUrl 的已有实例
   /// @return DioRegistry 实例
   static DioRegistry forBaseUrl(
     String baseUrl, {
     BaseOptions? options,
     List<Interceptor>? interceptors,
+    bool replace = false,
   }) {
+    if (replace) {
+      dispose(baseUrl);
+    }
     final existing = _instances[baseUrl];
     if (existing != null && existing._expired) {
       _instances.remove(baseUrl);
-      existing._dio.close(force: true);
+      existing._dio.close(force: false);
     }
     final active = _instances[baseUrl];
     if (active != null) {
@@ -151,10 +159,12 @@ class DioRegistry {
   static void _evictOverflow() {
     final max = maxCachedInstances;
     if (max == null || max <= 0) return;
+    // 淘汰不强制中断在途请求（close force:false）；显式 dispose / clearCache 仍
+    // 使用 force:true。
     while (_instances.isNotEmpty && _instances.length > max) {
       final oldest = _instances.keys.first;
       final evicted = _instances.remove(oldest);
-      evicted?._dio.close(force: true);
+      evicted?._dio.close(force: false);
     }
   }
 
@@ -166,7 +176,7 @@ class DioRegistry {
     if (registry == null) return null;
     if (registry._expired) {
       _instances.remove(baseUrl);
-      registry._dio.close(force: true);
+      registry._dio.close(force: false);
       return null;
     }
     return registry.dio;
@@ -181,6 +191,7 @@ class DioRegistry {
     return a.connectTimeout == b.connectTimeout &&
         a.receiveTimeout == b.receiveTimeout &&
         a.sendTimeout == b.sendTimeout &&
+        a.transformTimeout == b.transformTimeout &&
         a.responseType == b.responseType &&
         a.contentType == b.contentType &&
         a.followRedirects == b.followRedirects &&

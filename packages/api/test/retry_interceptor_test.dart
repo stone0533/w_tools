@@ -208,6 +208,114 @@ void main() {
     expect(localAdapter.calls, 1);
   });
 
+  test('disableRetryExtraKey 对单条请求关闭重试', () async {
+    final retry = WRetryInterceptor(
+      maxRetries: 2,
+      baseDelay: Duration.zero,
+      jitter: false,
+    );
+    final localDio = Dio(BaseOptions(baseUrl: 'https://retry-disable.test'));
+    final localAdapter = _SequenceAdapter([500]);
+    localDio.httpClientAdapter = localAdapter;
+    localDio.interceptors.add(retry);
+    retry.bindDio(localDio);
+
+    await expectLater(
+      localDio.get(
+        '/user',
+        options: Options(
+          extra: {WRetryInterceptor.disableRetryExtraKey: true},
+        ),
+      ),
+      throwsA(isA<DioException>()),
+    );
+
+    expect(localAdapter.calls, 1);
+  });
+
+  test('shouldRetry 抛异常时不重试', () async {
+    final retry = WRetryInterceptor(
+      maxRetries: 2,
+      baseDelay: Duration.zero,
+      jitter: false,
+      shouldRetry: (_) => throw StateError('policy failed'),
+    );
+    final localDio = Dio(BaseOptions(baseUrl: 'https://retry-throw.test'));
+    final localAdapter = _SequenceAdapter([500]);
+    localDio.httpClientAdapter = localAdapter;
+    localDio.interceptors.add(retry);
+    retry.bindDio(localDio);
+
+    await expectLater(WApiClient(localDio).get('/user'), throwsA(anything));
+
+    expect(localAdapter.calls, 1);
+  });
+
+  test('unknown 默认不重试，shouldRetry 可显式放行', () async {
+    final defaultRetry = WRetryInterceptor(
+      maxRetries: 2,
+      baseDelay: Duration.zero,
+      jitter: false,
+    );
+    final defaultDio = Dio(BaseOptions(baseUrl: 'https://retry-unknown.test'));
+    final defaultAdapter = _UnknownErrorAdapter();
+    defaultDio.httpClientAdapter = defaultAdapter;
+    defaultDio.interceptors.add(defaultRetry);
+    defaultRetry.bindDio(defaultDio);
+
+    await expectLater(defaultDio.get('/user'), throwsA(isA<DioException>()));
+    expect(defaultAdapter.calls, 1);
+
+    final retryUnknown = WRetryInterceptor(
+      maxRetries: 2,
+      baseDelay: Duration.zero,
+      jitter: false,
+      shouldRetry: (error) => error.type == DioExceptionType.unknown,
+    );
+    final retryDio = Dio(BaseOptions(baseUrl: 'https://retry-unknown-on.test'));
+    final retryAdapter = _UnknownErrorAdapter();
+    retryDio.httpClientAdapter = retryAdapter;
+    retryDio.interceptors.add(retryUnknown);
+    retryUnknown.bindDio(retryDio);
+
+    await expectLater(retryDio.get('/user'), throwsA(isA<DioException>()));
+    expect(retryAdapter.calls, 3);
+  });
+
+  test('退避期间取消会立即结束等待', () async {
+    final token = CancelToken();
+    final retry = WRetryInterceptor(
+      maxRetries: 2,
+      baseDelay: const Duration(seconds: 5),
+      jitter: false,
+    );
+    final localDio = Dio(BaseOptions(baseUrl: 'https://retry-cancel-wait.test'));
+    final localAdapter = _SequenceAdapter([500]);
+    localDio.httpClientAdapter = localAdapter;
+    localDio.interceptors.add(retry);
+    retry.bindDio(localDio);
+
+    final request = WApiClient(localDio).get('/user', cancelToken: token);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    token.cancel('stop during backoff');
+
+    final watch = Stopwatch()..start();
+    await expectLater(
+      request,
+      throwsA(
+        isA<WApiException>().having(
+          (error) => error.kind,
+          'kind',
+          WApiErrorKind.canceled,
+        ),
+      ),
+    );
+    watch.stop();
+
+    expect(localAdapter.calls, 1);
+    expect(watch.elapsed, lessThan(const Duration(seconds: 2)));
+  });
+
   test('PUT multipart 500 后重试会 clone FormData', () async {
     final retry = WRetryInterceptor(
       maxRetries: 1,
@@ -275,6 +383,26 @@ class _SequenceAdapter implements HttpClientAdapter {
       headers: {
         Headers.contentTypeHeader: ['application/json'],
       },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _UnknownErrorAdapter implements HttpClientAdapter {
+  int calls = 0;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    calls++;
+    throw DioException(
+      requestOptions: options,
+      type: DioExceptionType.unknown,
     );
   }
 

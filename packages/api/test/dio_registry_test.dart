@@ -188,6 +188,55 @@ void main() {
       final util = DioRegistry.forBaseUrl('https://a.example.com');
       expect(util, isA<DioRegistry>());
     });
+
+    test('transformTimeout 不同也算配置冲突', () {
+      DioRegistry.forBaseUrl(
+        'https://transform-timeout.example.com',
+        options: BaseOptions(
+          transformTimeout: const Duration(milliseconds: 100),
+        ),
+      );
+
+      expect(
+        () => DioRegistry.forBaseUrl(
+          'https://transform-timeout.example.com',
+          options: BaseOptions(
+            transformTimeout: const Duration(milliseconds: 200),
+          ),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('queryParameters 不与调用方共享引用', () {
+      final options = BaseOptions(queryParameters: {'locale': 'zh'});
+      final registry = DioRegistry.forBaseUrl(
+        'https://query-copy.example.com',
+        options: options,
+      );
+
+      options.queryParameters['locale'] = 'en';
+
+      expect(registry.dio.options.queryParameters['locale'], 'zh');
+    });
+
+    test('replace 会重建同 baseUrl 的实例', () {
+      final first = DioRegistry.forBaseUrl(
+        'https://replace.example.com',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 1)),
+      );
+      final second = DioRegistry.forBaseUrl(
+        'https://replace.example.com',
+        options: BaseOptions(connectTimeout: const Duration(seconds: 2)),
+        replace: true,
+      );
+
+      expect(second, isNot(same(first)));
+      expect(
+        second.dio.options.connectTimeout,
+        const Duration(seconds: 2),
+      );
+    });
   });
 }
 

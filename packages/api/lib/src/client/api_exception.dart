@@ -100,10 +100,14 @@ class WApiException implements Exception {
           payload: error.response?.data,
         );
       case DioExceptionType.unknown:
+        // 有些 adapter / 拦截器会把带响应的错误归到 unknown；有状态码时
+        // 仍按 HTTP 语义分类，避免把 5xx 误报成 unknown。
         return WApiException(
-          WApiErrorKind.unknown,
+          statusCode == null ? WApiErrorKind.unknown : _kindOfStatus(statusCode),
+          statusCode: statusCode,
           message: error.message ?? 'Request failed',
           cause: error,
+          payload: error.response?.data,
         );
     }
   }
@@ -114,7 +118,7 @@ class WApiException implements Exception {
   /// HTTP 状态码（非 HTTP 错误时为 null）
   final int? statusCode;
 
-  /// 业务码（仅 `WApiErrorKind.business` 时非空）
+  /// 业务码（`business`，或业务码命中 `authFailureCodes` 的 `unauthorized` 时非空）
   final Object? businessCode;
 
   /// 技术描述，不是用户文案

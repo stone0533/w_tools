@@ -226,6 +226,161 @@ void main() {
     expect(adapter.last!.responseType, ResponseType.bytes);
   });
 
+  test('信封 + 204 空 body 跳过 readCode', () async {
+    adapter.handler = (_) => ResponseBody.fromString('', 204);
+    final wrapped = WApiClient(dio, envelope: _envelope);
+
+    await wrapped.delete<void>('/x', decode: WApiDecoders.none);
+  });
+
+  test('skipEmptyBody=false 时保留旧的 readCode(null) 行为', () async {
+    adapter.handler = (_) => ResponseBody.fromString('', 204);
+    final wrapped = WApiClient(
+      dio,
+      envelope: const WApiEnvelopeParser(
+        readCode: _readCode,
+        readData: _readData,
+        isSuccess: _isSuccess,
+        skipEmptyBody: false,
+      ),
+    );
+
+    await expectLater(
+      wrapped.delete<void>('/x', decode: WApiDecoders.none),
+      throwsA(
+        isA<WApiException>().having(
+          (error) => error.kind,
+          'kind',
+          WApiErrorKind.decode,
+        ),
+      ),
+    );
+  });
+
+  test('page 可从响应头读 total', () async {
+    adapter.handler = (_) => _json(
+      200,
+      [
+        {'id': 1, 'name': 'A'},
+        {'id': 2, 'name': 'B'},
+      ],
+      headers: {
+        'x-total-count': ['3'],
+      },
+    );
+
+    final page = await client.page(
+      '/users',
+      query: const WPageQuery(page: 1, pageSize: 2),
+      itemDecode: _userFromJson,
+      readTotalFromResponse: (response) =>
+          int.tryParse(response.headers.value('x-total-count') ?? ''),
+    );
+
+    expect(page.total, 3);
+    expect(page.hasMore, isTrue);
+  });
+
+  test('downloadResponse 保留 headers / status', () async {
+    adapter.handler = (_) => ResponseBody.fromBytes(
+      Uint8List.fromList([1, 2, 3]),
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/octet-stream'],
+        'content-disposition': ['attachment; filename="a.bin"'],
+      },
+    );
+
+    final response = await client.downloadResponse('/files/1');
+
+    expect(response.data, [1, 2, 3]);
+    expect(response.statusCode, 200);
+    expect(
+      response.headers.value('content-disposition'),
+      contains('a.bin'),
+    );
+  });
+
+  test('send 可按请求覆盖信封', () async {
+    adapter.handler = (_) => _json(200, {
+      'code': 0,
+      'message': 'ok',
+      'data': {'id': 9, 'name': 'Zoe'},
+    });
+
+    final user = await client.send(
+      'GET',
+      '/me',
+      envelope: _envelope,
+      decode: _userFromJson,
+    );
+
+    expect(user.data.name, 'Zoe');
+  });
+
+  test('page 可按请求覆盖信封', () async {
+    adapter.handler = (_) => _json(200, {
+      'code': 0,
+      'message': 'ok',
+      'data': [
+        {'id': 1, 'name': 'A'},
+        {'id': 2, 'name': 'B'},
+      ],
+    });
+
+    final page = await client.page(
+      '/users',
+      query: const WPageQuery(page: 1, pageSize: 2),
+      itemDecode: _userFromJson,
+      envelope: _envelope,
+    );
+
+    expect(page.items.map((user) => user.name), ['A', 'B']);
+  });
+
+  test('onAuthFailure 与日志回调同时抛错时仍保留 unauthorized', () async {
+    adapter.handler = (_) => _json(200, {
+      'code': 401,
+      'message': 'expired',
+      'data': null,
+    });
+    WApiSettings.logErrorHandler = (_) => throw StateError('logger down');
+    addTearDown(WApiSettings.reset);
+
+    final wrapped = WApiClient(
+      dio,
+      envelope: const WApiEnvelopeParser(
+        readCode: _readCode,
+        readData: _readData,
+        isSuccess: _isSuccess,
+        authFailureCodes: {401},
+      ),
+      onAuthFailure: (_) => throw StateError('auth handler down'),
+    );
+
+    await expectLater(
+      wrapped.get('/me'),
+      throwsA(
+        isA<WApiException>().having(
+          (error) => error.kind,
+          'kind',
+          WApiErrorKind.unauthorized,
+        ),
+      ),
+    );
+  });
+
+  test('page 对非法 page 抛 ArgumentError（release 守护）', () async {
+    await expectLater(
+      client.page(
+        '/users',
+        query: const _InvalidPageQuery(),
+        itemDecode: _userFromJson,
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('WApiDecoders 提供常用 helper', () {
     final users = WApiDecoders.listOf(_userFromJson)([
       {'id': 1, 'name': 'A'},
@@ -236,6 +391,13 @@ void main() {
     expect(WApiDecoders.nullable(_userFromJson)(null), isNull);
     WApiDecoders.none({'ignored': true});
   });
+}
+
+class _InvalidPageQuery extends WPageQuery {
+  const _InvalidPageQuery();
+
+  @override
+  int get page => 0;
 }
 
 class _User {
@@ -289,10 +451,15 @@ class _RecordingAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-ResponseBody _json(int status, Object? body) => ResponseBody.fromString(
+ResponseBody _json(
+  int status,
+  Object? body, {
+  Map<String, List<String>>? headers,
+}) => ResponseBody.fromString(
   jsonEncode(body),
   status,
   headers: {
     Headers.contentTypeHeader: ['application/json'],
+    ...?headers,
   },
 );

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:w_tools_api/w_tools_api.dart';
 
 /// 示例模型：手写 `fromJson`。
@@ -47,6 +49,41 @@ class DemoUserApi {
     itemDecode: (json) => DemoUser.fromJson(json as Map<String, dynamic>),
   );
 
+  /// total 在响应头（如 `X-Total-Count`）时，用 readTotalFromResponse。
+  Future<WPage<DemoUser>> pageWithHeaderTotal({
+    int page = 1,
+    int pageSize = 20,
+  }) => _client.page(
+    '/users',
+    query: WPageQuery(page: page, pageSize: pageSize),
+    itemDecode: (json) => DemoUser.fromJson(json as Map<String, dynamic>),
+    readTotalFromResponse: (response) =>
+        int.tryParse(response.headers.value('x-total-count') ?? ''),
+  );
+
+  /// send 保留 status / headers；普通 get/post 只返回 data。
+  Future<WApiResponse<DemoUser>> meRaw({int id = 42}) => _client.send(
+    'GET',
+    '/users/{id}',
+    pathParameters: {'id': '$id'},
+    decode: (json) => DemoUser.fromJson(json as Map<String, dynamic>),
+  );
+
+  /// 单条请求临时覆盖信封，不影响 client 级配置。
+  Future<DemoUser> meWithEnvelope({int id = 42}) async {
+    final response = await _client.send<DemoUser>(
+      'GET',
+      '/envelope/users/{id}',
+      pathParameters: {'id': '$id'},
+      envelope: _envelope,
+      decode: (json) => DemoUser.fromJson(json as Map<String, dynamic>),
+    );
+    return response.data;
+  }
+
+  /// 下载并保留 headers（文件名 / Content-Type）。
+  Future<WApiResponse<Uint8List>> downloadAvatar() => _client.downloadResponse('/users/me/avatar');
+
   Future<void> uploadAvatar(List<int> bytes) => _client.upload<void>(
     '/users/me/avatar',
     fields: const {'bucket': 'avatar'},
@@ -54,3 +91,13 @@ class DemoUserApi {
     decode: WApiDecoders.none,
   );
 }
+
+const _envelope = WApiEnvelopeParser(
+  readCode: _readCode,
+  readData: _readData,
+  isSuccess: _isSuccess,
+);
+
+Object? _readCode(Object? json) => (json as Map)['code'];
+Object? _readData(Object? json) => (json as Map)['data'];
+bool _isSuccess(Object? code) => code == 0;

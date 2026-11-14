@@ -57,6 +57,44 @@ void main() {
     expect(metrics, isEmpty);
   });
 
+  test('自定义 validateStatus 接受 4xx 时 failed 仍按状态判定', () async {
+    adapter.handler = (_) => _json(404, {'error': 'missing'});
+
+    await dio.get(
+      '/missing',
+      options: Options(validateStatus: (_) => true),
+    );
+
+    expect(metrics, hasLength(1));
+    expect(metrics.single.statusCode, 404);
+    expect(metrics.single.failed, isTrue);
+  });
+
+  test('重试时每次尝试的 attempt 递增', () async {
+    var calls = 0;
+    adapter.handler = (_) {
+      calls++;
+      return _json(calls == 1 ? 500 : 200, {'ok': true});
+    };
+
+    dio.interceptors.clear();
+    final retry = WRetryInterceptor(
+      maxRetries: 1,
+      baseDelay: Duration.zero,
+      jitter: false,
+    );
+    // metrics 放在 retry 之前：请求方向先启动计时，错误方向先产出当次 metric。
+    dio.interceptors.add(WMetricsInterceptor(onMetric: metrics.add));
+    dio.interceptors.add(retry);
+    retry.bindDio(dio);
+
+    await dio.get('/retry');
+
+    expect(metrics.map((metric) => metric.attempt), [1, 2]);
+    expect(metrics.first.failed, isTrue);
+    expect(metrics.last.failed, isFalse);
+  });
+
   test('onMetric 抛异常不影响请求', () async {
     dio.interceptors.clear();
     dio.interceptors.add(

@@ -18,9 +18,9 @@
 /// 业务码失败会抛 `WApiException(kind: WApiErrorKind.business)`，
 /// 带上 [WApiException.businessCode] 和原始 [WApiException.payload]。
 ///
-/// 无响应体（204 / 空 body）不会自动绕过信封：`readCode(null)` 必须自己返回
-/// 成功码，或把这类请求的 `decode` 设为 `WApiDecoders.none` 并确保 `readCode`
-/// 对 null 安全。
+/// 无响应体（204 / 空 body）默认会跳过信封解析（[skipEmptyBody]）：不会调用
+/// [readCode]，而是把 `null` 交给 `decode` 或直接返回。关闭 [skipEmptyBody]
+/// 后按旧行为处理，此时 [readCode] 必须自己容忍 null。
 class WApiEnvelopeParser {
   /// 创建解析器。
   const WApiEnvelopeParser({
@@ -29,6 +29,7 @@ class WApiEnvelopeParser {
     required this.isSuccess,
     this.readMessage,
     this.authFailureCodes = const {},
+    this.skipEmptyBody = true,
   });
 
   /// 读取业务码
@@ -48,4 +49,11 @@ class WApiEnvelopeParser {
   /// 命中时 `WApiClient` 抛 `WApiException(kind: unauthorized)` 并调用
   /// `WApiClient.onAuthFailure`，与 HTTP 401 走同一条登出链路。
   final Set<Object?> authFailureCodes;
+
+  /// 空响应体（204 / 空 body）是否跳过信封解析。
+  ///
+  /// 默认 `true`：body 为 `null` 或空字符串时不调用 [readCode]，直接把 `null`
+  /// 交给 `decode` / 返回。设为 `false` 时恢复旧行为，[readCode] 必须自己
+  /// 返回成功码并容忍 null。
+  final bool skipEmptyBody;
 }

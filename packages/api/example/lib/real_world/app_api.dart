@@ -74,6 +74,8 @@ class AppApi {
           tokenGetter: () => store.accessToken,
           tokenClearer: store.clearAccessToken,
           tokenRefresher: () => _refresh(registry, store),
+          // 登录 / 刷新接口自己处理 401，跳过自动刷新，避免递归刷新。
+          shouldRefresh: (options) => !options.path.startsWith('/auth/'),
           // 刷新失败 / 达到重试上限：交给 App 层清会话并跳登录。
           onAuthFailure: (_) => onAuthFailure?.call(),
         ),

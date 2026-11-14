@@ -386,4 +386,77 @@ void main() {
       expect(adapter._lastContentType, isNot('application/json'));
     });
   });
+
+  group('WTokenInterceptor.shouldRefresh', () {
+    test('返回 false 时不清理、不刷新、不重试', () async {
+      var refreshes = 0;
+      var clears = 0;
+      final adapter = _MockAdapter(statusCode: 401);
+      final dio = Dio()..httpClientAdapter = adapter;
+      dio.interceptors.add(
+        WTokenInterceptor(
+          dio: dio,
+          tokenGetter: () => 'old',
+          tokenClearer: () async => clears++,
+          tokenRefresher: () async {
+            refreshes++;
+            return 'new';
+          },
+          shouldRefresh: (_) => false,
+        ),
+      );
+
+      await expectLater(
+        dio.get('https://example.com/secure'),
+        throwsA(
+          isA<DioException>().having(
+            (error) => error.response?.statusCode,
+            'statusCode',
+            401,
+          ),
+        ),
+      );
+
+      expect(refreshes, 0);
+      expect(clears, 0);
+    });
+
+    test('回调抛错时按不刷新处理，保留原始 401', () async {
+      var refreshes = 0;
+      final adapter = _MockAdapter(statusCode: 401);
+      final dio = Dio()..httpClientAdapter = adapter;
+      dio.interceptors.add(
+        WTokenInterceptor(
+          dio: dio,
+          tokenGetter: () => 'old',
+          tokenRefresher: () async {
+            refreshes++;
+            return 'new';
+          },
+          shouldRefresh: (_) => throw StateError('policy failed'),
+        ),
+      );
+
+      await expectLater(
+        dio.get('https://example.com/secure'),
+        throwsA(
+          isA<DioException>().having(
+            (error) => error.response?.statusCode,
+            'statusCode',
+            401,
+          ),
+        ),
+      );
+      expect(refreshes, 0);
+    });
+  });
+
+  group('WTokenInterceptor 参数校验', () {
+    test('maxAuthRetries 不能为负', () {
+      expect(
+        () => WTokenInterceptor(maxAuthRetries: -1),
+        throwsAssertionError,
+      );
+    });
+  });
 }

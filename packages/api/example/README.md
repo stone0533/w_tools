@@ -5,13 +5,13 @@
 覆盖：
 
 - `DioRegistry.forBaseUrl`：按 baseUrl 创建并复用 Dio
-- `WApiClient`：GET / POST / PUT / PATCH / DELETE、path / query、显式 decoder（`lib/wapi_client_demo.dart`）
+- `WApiClient`：GET / POST / PUT / PATCH / DELETE、path / query、显式 decoder、`send` 元数据、按请求信封（`lib/wapi_client_demo.dart`）
 - `WApiEnvelopeParser`：可选 `{code, message, data}` 信封
-- `WApiClient.page` / `WPage`：分页、`total` 与 `hasMore`
-- `WApiClient.upload` / `download`：multipart 上传与字节下载
+- `WApiClient.page` / `WPage`：分页、`total` / `hasMore`，以及从响应头读 total
+- `WApiClient.upload` / `downloadResponse`：multipart 上传与保留响应头的字节下载
 - `WRetryInterceptor`：可选幂等重试（见包测试）
 - `WLogInterceptor`：请求 / 响应日志与敏感头脱敏
-- `WTokenInterceptor`：401 清除、刷新、重试；公共 header 用普通 `Interceptor` 注入
+- `WTokenInterceptor`：401 清除、刷新、重试；登录 / 刷新用 `shouldRefresh` 跳过；公共 header 用普通 `Interceptor` 注入
 - `WApiSettings`：baseOptions 与日志回调注入
 - 本地 / 远程数据源组合（普通类，不再继承基类）
 - 响应头脱敏 与 500 错误日志
@@ -40,7 +40,7 @@ flutter test
 |---|---|
 | `app_api.dart` | `AppApi.init`：装配 `WApiSettings` + `DioRegistry` + `WTokenInterceptor`；登录 / 刷新 / 退出 |
 | `token_store.dart` | `TokenStore` 契约；生产实现基于 `w_tools_core` 的 `WToken`，测试用内存实现 |
-| `api_exception.dart` | `DioException` → `ApiException` 的业务错误分类 |
+| `api_exception.dart` | 业务层自定义错误映射（可直接展示文案；不需要时用 `WApiException`） |
 | `user_repository.dart` | 本地缓存 / 远程数据源组合 |
 
 `main()` 的接入顺序（示意）：

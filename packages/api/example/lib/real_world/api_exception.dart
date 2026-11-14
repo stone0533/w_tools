@@ -32,8 +32,10 @@ enum ApiErrorKind {
 
 /// 网络层对外抛出的统一异常。
 ///
-/// `w_tools_api` 只负责把 [DioException] 交回来，**不做业务错误分类**；
-/// 在 Repository 边界把它翻译成 [ApiException]，UI 层就不依赖 dio。
+/// `w_tools_api` 6.x 已提供 `WApiException` 做通用分类；本示例保留 [ApiException]
+/// 作为业务层自定义错误（重点是可直接展示的用户文案），在 Repository 边界把
+/// [DioException] 翻译成它，UI 层就不依赖 dio。不需要自定义文案时直接用
+/// `WApiException` 即可，不必重复维护这套映射。
 class ApiException implements Exception {
   const ApiException(
     this.kind,
