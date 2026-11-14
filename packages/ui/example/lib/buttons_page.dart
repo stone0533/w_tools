@@ -219,13 +219,13 @@ class _ButtonsPageState extends State<ButtonsPage> {
         ),
         DemoSection(
           title: '7. 单按钮样式覆盖',
-          subtitle: '不需要主题变体，直接传一个 WButtonStyle',
+          subtitle: '不需要主题变体，直接传一个 Material ButtonStyle',
           child: Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
               WButton(
-                style: WButtonStyle.filled(
+                style: FilledButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
                   foregroundColor: Colors.white,
                 ),
@@ -233,7 +233,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
                 onTap: () {},
               ),
               WButton(
-                style: WButtonStyle.filled(
+                style: FilledButton.styleFrom(
                   backgroundColor: Colors.amber,
                   foregroundColor: Colors.black87,
                 ),
@@ -277,7 +277,7 @@ class _ButtonsPageState extends State<ButtonsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   WImage.source(
-                    source: WImageSource.asset('demo.png', prefix: true),
+                    source: WImageSource.asset('assets/demo.png'),
                     style: const WImageStyle(
                       width: 56,
                       height: 56,
@@ -361,16 +361,14 @@ class _ButtonsPageState extends State<ButtonsPage> {
               WButton(
                 style: AppButtons.secondary(context),
                 onTap: () {},
-                contentBuilder: (context, style) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, size: style.iconSize),
-                      SizedBox(width: style.gap),
-                      Text('新增', style: style.textStyle),
-                    ],
-                  );
-                },
+                content: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, size: 18),
+                    SizedBox(width: 8),
+                    Text('新增'),
+                  ],
+                ),
               ),
             ],
           ),
@@ -424,10 +422,8 @@ class _ButtonsPageState extends State<ButtonsPage> {
               ),
               WButton(
                 style: AppButtons.secondary(context),
-                semantics: const WButtonSemantics(
-                  label: '保存草稿',
-                  hint: '保存当前内容但不提交',
-                ),
+                semanticLabel: '保存草稿',
+                semanticHint: '保存当前内容但不提交',
                 label: '带语义的按钮',
                 onTap: () {},
               ),

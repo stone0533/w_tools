@@ -15,24 +15,21 @@ class ComponentsPage extends StatefulWidget {
   State<ComponentsPage> createState() => _ComponentsPageState();
 }
 
-class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStateMixin {
+class _ComponentsPageState extends State<ComponentsPage> {
   late final WNavController _navController;
   int _selectedTag = 0;
-  late final WImageController _imageController;
   double? _scrollPercent;
   double _actionOffset = 0;
 
   @override
   void initState() {
     super.initState();
-    _navController = WNavController(length: 3, vsync: this);
-    _imageController = WImageController();
+    _navController = WNavController(length: 3);
   }
 
   @override
   void dispose() {
     _navController.dispose();
-    _imageController.dispose();
     super.dispose();
   }
 
@@ -52,7 +49,7 @@ class _ComponentsPageState extends State<ComponentsPage> with TickerProviderStat
           scrollPercent: _scrollPercent,
           onScrollPercent: (value) => setState(() => _scrollPercent = value),
         ),
-        ...buildComponentsImageSections(imageController: _imageController),
+        ...buildComponentsImageSections(),
         const SizedBox(height: 24),
       ],
     );

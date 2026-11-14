@@ -3,27 +3,25 @@ import 'package:flutter/material.dart';
 /// 声明式通知监听器。
 ///
 /// [onNotification] 与 [onNotificationPercentage] 可同时生效：先计算滚动百分比，
-/// 再把通知交给自定义回调决定是否继续传递。
+/// 再把通知交给 [onNotification] 决定是否继续传递（返回 true 表示已处理、阻止冒泡）。
 class WNotificationListener<T extends Notification> extends StatelessWidget {
   const WNotificationListener({
     super.key,
     required this.child,
     this.onNotification,
     this.onNotificationPercentage,
-    this.preventNotificationPropagation = false,
   });
 
   final Widget child;
   final bool Function(T notification)? onNotification;
   final void Function(double percentage)? onNotificationPercentage;
-  final bool preventNotificationPropagation;
 
   @override
   Widget build(BuildContext context) {
     return NotificationListener<T>(
       onNotification: (notification) {
         _notifyScrollPercentage(notification, onNotificationPercentage);
-        return onNotification?.call(notification) ?? preventNotificationPropagation;
+        return onNotification?.call(notification) ?? false;
       },
       child: child,
     );

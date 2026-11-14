@@ -143,7 +143,7 @@ class WImageError implements Exception {
 
   /// 值相等只比较 [sourceValue] 与 [kind]；[cause] 是诊断信息，不参与相等。
   ///
-  /// 这样 `WImageLoadSnapshot` 的结构化比较 / 测试不会因为异常实例不同而失败。
+  /// 这样错误去重 / 测试不会因为异常实例不同而失败。
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -154,56 +154,4 @@ class WImageError implements Exception {
 
   @override
   String toString() => 'WImageError($message, source: $sourceValue)';
-}
-
-/// 图片加载快照（供 [WImageController.state] 监听）。
-///
-/// 初始为 [WImageLoadStatus.idle]；`status` 不再可空。
-@immutable
-class WImageLoadSnapshot {
-  const WImageLoadSnapshot({
-    this.status = WImageLoadStatus.idle,
-    this.progress,
-    this.attempt = 0,
-    this.error,
-    this.retryScheduled = false,
-    this.retryDelayMs,
-  });
-
-  final WImageLoadStatus status;
-  final WImageProgress? progress;
-  final int attempt;
-  final WImageError? error;
-  final bool retryScheduled;
-  final int? retryDelayMs;
-
-  bool get isIdle => status == WImageLoadStatus.idle;
-  bool get isLoading => status == WImageLoadStatus.loading;
-  bool get isCompleted => status == WImageLoadStatus.completed;
-  bool get isFailed => status == WImageLoadStatus.failed;
-
-  @override
-  bool operator ==(Object other) =>
-      other is WImageLoadSnapshot &&
-      other.status == status &&
-      other.progress == progress &&
-      other.attempt == attempt &&
-      other.error == error &&
-      other.retryScheduled == retryScheduled &&
-      other.retryDelayMs == retryDelayMs;
-
-  @override
-  int get hashCode => Object.hash(
-    status,
-    progress,
-    attempt,
-    error,
-    retryScheduled,
-    retryDelayMs,
-  );
-
-  @override
-  String toString() =>
-      'WImageLoadSnapshot(status: $status, attempt: $attempt, '
-      'progress: $progress, retryScheduled: $retryScheduled)';
 }

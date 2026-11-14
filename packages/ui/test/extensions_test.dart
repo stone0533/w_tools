@@ -67,28 +67,45 @@ void main() {
       expect(color.toHex(), '#ffff5733');
       expect(color.toHex(leadingHashSign: false), 'ffff5733');
     });
+
+    test('fromCssHex 按 RRGGBBAA 解析（与 fromHex 相反）', () {
+      final css = WColorExtension.fromCssHex('#FF573380');
+      final value = css.toARGB32();
+      expect((value >> 24) & 0xFF, 128); // alpha 在最后两位
+      expect((value >> 16) & 0xFF, 255); // red
+      expect((value >> 8) & 0xFF, 87); // green
+      expect(value & 0xFF, 51); // blue
+
+      expect(
+        WColorExtension.fromCssHex('#FF5733').toARGB32(),
+        const Color(0xFFFF5733).toARGB32(),
+      );
+      expect(WColorExtension.fromCssHex('FF573380').toARGB32(), value);
+    });
+
+    test('fromCssHex 无效格式抛出 FormatException', () {
+      expect(() => WColorExtension.fromCssHex(''), throwsFormatException);
+      expect(() => WColorExtension.fromCssHex('#FFF'), throwsFormatException);
+      expect(() => WColorExtension.fromCssHex('#FF573'), throwsFormatException);
+      expect(() => WColorExtension.fromCssHex('#FF57#380'), throwsFormatException);
+    });
+
+    test('toCssHex 输出 RRGGBBAA', () {
+      const color = Color(0x80FF5733);
+      expect(color.toCssHex(), '#ff573380');
+      expect(color.toCssHex(leadingHashSign: false), 'ff573380');
+      expect(WColorExtension.fromCssHex(color.toCssHex()).toARGB32(), color.toARGB32());
+    });
   });
 
   group('String Extensions', () {
-    test('String.toInt', () {
-      expect('123'.toInt(), 123);
-      expect('abc'.toInt(), isNull);
-      expect(''.toInt(), isNull);
-      expect('  456  '.toInt(), 456);
-    });
-
-    test('String.toDouble', () {
-      expect('123.45'.toDouble(), 123.45);
-      expect('abc'.toDouble(), isNull);
-      expect(''.toDouble(), isNull);
-      expect('1.23e4'.toDouble(), 12300.0);
-    });
-
-    test('String.trimAll', () {
-      expect('  hello  world  '.trimAll(), 'helloworld');
-      expect('hello\nworld'.trimAll(), 'helloworld');
-      expect(''.trimAll(), '');
-      expect('  \n\t  '.trimAll(), '');
+    test('String.toCssColor 按 CSS 顺序解析', () {
+      final color = '#FF573380'.toCssColor();
+      final value = color.toARGB32();
+      expect((value >> 24) & 0xFF, 128);
+      expect((value >> 16) & 0xFF, 255);
+      expect((value >> 8) & 0xFF, 87);
+      expect(value & 0xFF, 51);
     });
 
     test('String.toColor', () {
@@ -107,136 +124,12 @@ void main() {
       expect((value >> 8) & 0xFF, 87); // green
       expect(value & 0xFF, 51); // blue
     });
-
-    test('String.assetImagePath 读 WAssets.imagePath（资源前缀唯一开关）', () {
-      final origin = WAssets.imagePath;
-      WAssets.imagePath = 'assets/test';
-      expect(WAssets.imagePath, 'assets/test/');
-      expect('logo.png'.assetImagePath, 'assets/test/logo.png');
-      WAssets.imagePath = origin;
-      expect('logo.png'.assetImagePath, 'assets/images/logo.png');
-    });
   });
 
-  group('Num Extensions', () {
-    test('num.heightBox', () {
-      final box = 10.heightBox;
-      expect(box.height, 10);
-    });
-
-    test('num.widthBox', () {
-      final box = 10.widthBox;
-      expect(box.width, 10);
-    });
-
-    test('num.squareBox', () {
-      final box = 10.squareBox;
-      expect(box.width, 10);
-      expect(box.height, 10);
-    });
-
+  group('Num Layout Extensions', () {
     test('num.allPadding', () {
       final padding = 10.allPadding;
       expect(padding, const EdgeInsets.all(10));
-    });
-
-    test('num.horizontalPadding', () {
-      final padding = 10.horizontalPadding;
-      expect(padding, const EdgeInsets.symmetric(horizontal: 10));
-    });
-
-    test('num.verticalPadding', () {
-      final padding = 10.verticalPadding;
-      expect(padding, const EdgeInsets.symmetric(vertical: 10));
-    });
-
-    test('num.borderRadius', () {
-      final radius = 10.borderRadius;
-      expect(radius, BorderRadius.circular(10));
-    });
-
-    test('num.toThousandsSeparated', () {
-      expect(1234.toThousandsSeparated, '1,234');
-      expect(1234567.toThousandsSeparated, '1,234,567');
-      expect(1234.56.toThousandsSeparated, '1,234.56');
-      expect(0.toThousandsSeparated, '0');
-      expect((-1234).toThousandsSeparated, '-1,234');
-    });
-
-    test('num.toThousandsSeparated — 科学计数法展开', () {
-      // 1e21 的 toString() 为 "1e+21"
-      expect(1e21.toThousandsSeparated, '1,000,000,000,000,000,000,000');
-      expect((-1e21).toThousandsSeparated, '-1,000,000,000,000,000,000,000');
-      // 1.2345e+22 → 12345000000000000000000
-      expect(1.2345e22.toThousandsSeparated, '12,345,000,000,000,000,000,000');
-      // 1.5e-7 的 toString() 为 "1.5e-7"
-      expect(1.5e-7.toThousandsSeparated, '0.00000015');
-      expect(1e-7.toThousandsSeparated, '0.0000001');
-      expect(double.nan.toThousandsSeparated, 'NaN');
-      expect(double.infinity.toThousandsSeparated, 'Infinity');
-      expect((-double.infinity).toThousandsSeparated, '-Infinity');
-    });
-
-    test('num.toCurrency', () {
-      expect(1234.toCurrency(symbol: '¥'), '¥1,234');
-      expect(1234.56.toCurrency(symbol: '\$'), '\$1,234.56');
-      expect(0.toCurrency(symbol: '¥'), '¥0');
-      expect((-1234.56).toCurrency(symbol: '\$'), '-\$1,234.56');
-    });
-
-    test('num.toCurrency — 科学计数法展开', () {
-      expect(1e21.toCurrency(symbol: '¥'), '¥1,000,000,000,000,000,000,000');
-      expect(
-        1.2345e22.toCurrency(symbol: '¥', thousandSeparator: ' '),
-        '¥12 345 000 000 000 000 000 000',
-      );
-      expect(
-        1.5e-7.toCurrency(symbol: '\$', decimalSeparator: ','),
-        '\$0,00000015',
-      );
-      expect(double.nan.toCurrency(symbol: '¥'), 'NaN');
-      expect(double.infinity.toCurrency(symbol: '¥'), 'Infinity');
-    });
-
-    test('num.toPercent', () {
-      expect(0.5.toPercent, '50%');
-      expect(0.333.toPercent, '33.3%');
-      expect(1.25.toPercentWithFixed(1), '125.0%');
-      expect(0.0.toPercent, '0%');
-      expect(2.0.toPercent, '200%');
-      expect(double.infinity.toPercent, 'Infinity%');
-      expect(double.nan.toPercent, 'NaN%');
-    });
-
-    test('num.toPadLeft', () {
-      expect(1.toPadLeft(2), '01');
-      expect(123.toPadLeft(2), '123');
-      expect(5.toPadLeft(4), '0005');
-      expect(0.toPadLeft(3), '000');
-      expect((-1).toPadLeft(3), '-01');
-      expect((-12).toPadLeft(4), '-012');
-      expect(() => 1.toPadLeft(-1), throwsAssertionError);
-    });
-  });
-
-  group('GlobalKey Extensions', () {
-    testWidgets('非 RenderBox 返回 null', (tester) async {
-      final key = GlobalKey();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                key: key,
-                child: const SizedBox(height: 10),
-              ),
-            ],
-          ),
-        ),
-      );
-
-      expect(key.offset(), isNull);
-      expect(key.rect(), isNull);
     });
   });
 
@@ -272,7 +165,7 @@ void main() {
     });
   });
 
-  group('Row / Column / GlobalKey extensions', () {
+  group('Row / Column extensions', () {
     testWidgets('Row / Column withIntrinsicHeight', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -288,33 +181,6 @@ void main() {
       );
 
       expect(find.byType(IntrinsicHeight), findsNWidgets(2));
-    });
-
-    testWidgets('GlobalKey offset / rect 使用全局坐标', (tester) async {
-      final key = GlobalKey();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Align(
-              alignment: Alignment.topLeft,
-              child: SizedBox(
-                key: key,
-                width: 20,
-                height: 10,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      expect(key.offset(), Offset.zero);
-      expect(key.rect(), const Rect.fromLTWH(0, 0, 20, 10));
-    });
-
-    testWidgets('未挂载的 GlobalKey 返回 null', (tester) async {
-      final key = GlobalKey();
-      expect(key.offset(), isNull);
-      expect(key.rect(), isNull);
     });
   });
 

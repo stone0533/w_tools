@@ -87,15 +87,14 @@ List<Widget> buildComponentsStateSections({
     ),
     Text('onScroll offset: ${actionOffset.toStringAsFixed(1)}'),
     const SizedBox(height: 24),
-    const DemoSectionTitle('WTabBar 顶部 Tab'),
+    const DemoSectionTitle('Material TabBar 顶部 Tab'),
     const SizedBox(
       height: 180,
       child: DefaultTabController(
         length: 3,
         child: Column(
           children: [
-            WTabBar(
-              style: WTabBarStyle(),
+            TabBar(
               tabs: [
                 Tab(text: '全部'),
                 Tab(text: '进行中'),
@@ -122,7 +121,6 @@ List<Widget> buildComponentsStateSections({
       child: DecoratedBox(
         decoration: const BoxDecoration(color: Colors.white),
         child: WNavBar(
-          style: const WNavBarStyle(),
           controller: navController,
           itemBuilder: (context, index, selected) {
             const icons = [Icons.home, Icons.message, Icons.person];

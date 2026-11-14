@@ -3,7 +3,7 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'demo_widgets.dart';
 
-/// WStep / WStepFlow / WStepStyle 的完整演示。
+/// WStep / WStepStyle 的完整演示。
 class StepsDemoPage extends StatefulWidget {
   const StepsDemoPage({super.key});
 
@@ -13,21 +13,9 @@ class StepsDemoPage extends StatefulWidget {
 
 class _StepsDemoPageState extends State<StepsDemoPage> {
   static const _labels = ['下单', '付款', '发货', '完成'];
+  static const _extendedLabels = ['下单', '付款', '发货', '完成', '评价'];
 
   int _current = 2;
-  late final WStepFlow _flow = WStepFlow(
-    labels: _labels,
-    itemBuilder: (context, index, state) => _FlowItem(
-      index: index,
-      state: state,
-    ),
-    separatorBuilder: (context, index, completed) => Container(
-      height: 3,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      color: completed ? const Color(0xFF10B981) : const Color(0xFFE5E7EB),
-    ),
-    semanticLabelBuilder: (current, total) => '第 $current 步，共 $total 步',
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +36,17 @@ class _StepsDemoPageState extends State<StepsDemoPage> {
       ),
     );
 
+    // 复用 = 复用参数；WStep 是 const 组件，不需要额外的流程容器。
+    Widget flowItem(BuildContext context, int index, WStepState state) =>
+        _FlowItem(index: index, state: state);
+    Widget flowSeparator(BuildContext context, int index, bool completed) => Container(
+      height: 3,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      color: completed ? const Color(0xFF10B981) : scheme.outlineVariant,
+    );
+
     return WScaffold.basic(
-      title: 'WStep / WStepFlow',
+      title: 'WStep',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -112,15 +109,8 @@ class _StepsDemoPageState extends State<StepsDemoPage> {
                 WStep(
                   labels: _labels,
                   current: _current,
-                  itemBuilder: (context, index, state) => _FlowItem(
-                    index: index,
-                    state: state,
-                  ),
-                  separatorBuilder: (context, index, completed) => Container(
-                    height: 3,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    color: completed ? const Color(0xFF10B981) : scheme.outlineVariant,
-                  ),
+                  itemBuilder: flowItem,
+                  separatorBuilder: flowSeparator,
                   semanticLabelBuilder: (current, total) => '第 $current 步，共 $total 步',
                 ),
                 const CodeText(
@@ -135,20 +125,21 @@ class _StepsDemoPageState extends State<StepsDemoPage> {
             ),
           ),
           DemoSection(
-            title: 'WStepFlow：多处复用同一套流程',
-            subtitle: '构造时复制并冻结 labels；copyWith 派生新流程',
+            title: '复用同一套 labels / builders',
+            subtitle: '复用参数即可，不需要额外的流程容器',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _flow.build(current: _current),
-                const SizedBox(height: 16),
-                _flow
-                    .copyWith(labels: const ['下单', '付款', '发货', '完成', '评价'])
-                    .build(current: _current),
+                WStep(
+                  labels: _extendedLabels,
+                  current: _current,
+                  itemBuilder: flowItem,
+                  separatorBuilder: flowSeparator,
+                  semanticLabelBuilder: (current, total) => '第 $current 步，共 $total 步',
+                ),
                 const CodeText(
-                  'final flow = WStepFlow(labels: [...], itemBuilder: ..., ...);\n'
-                  'flow.build(current: 2);\n'
-                  'flow.copyWith(labels: [...5 步]).build(current: 2);',
+                  'WStep(labels: labels, current: 2, itemBuilder: itemBuilder, ...);\n'
+                  'WStep(labels: extended, current: 2, itemBuilder: itemBuilder, ...);',
                 ),
               ],
             ),

@@ -40,7 +40,6 @@ class WScaffold extends StatelessWidget {
   final bool extendBody;
   final Color? backgroundColor;
   final SystemUiOverlayStyle? systemStatusBarStyle;
-  final Widget? underlayWidget;
   final bool includeTopSafeArea;
   final bool includeBottomSafeArea;
 
@@ -53,14 +52,6 @@ class WScaffold extends StatelessWidget {
 
   /// 是否由 [WScaffold.basic] 自动构建 WAppBar。
   final bool _basic;
-
-  bool get _needsDefaultAppBar =>
-      (title?.isNotEmpty ?? false) ||
-      titleWidget != null ||
-      leading != null ||
-      actions.isNotEmpty ||
-      onBack != null ||
-      appBarBottom != null;
 
   /// 显式顶部栏入口。
   const WScaffold({
@@ -76,7 +67,6 @@ class WScaffold extends StatelessWidget {
     this.extendBody = false,
     this.backgroundColor,
     this.systemStatusBarStyle,
-    this.underlayWidget,
     this.includeTopSafeArea = false,
     this.includeBottomSafeArea = true,
     this.bottomNavigationBarSafeArea = false,
@@ -114,7 +104,6 @@ class WScaffold extends StatelessWidget {
     this.extendBody = false,
     this.backgroundColor,
     this.systemStatusBarStyle,
-    this.underlayWidget,
     this.includeTopSafeArea = false,
     this.includeBottomSafeArea = true,
     this.bottomNavigationBarSafeArea = false,
@@ -140,7 +129,9 @@ class WScaffold extends StatelessWidget {
     }
 
     final PreferredSizeWidget? appBarWidget;
-    if (_basic && _needsDefaultAppBar) {
+    if (_basic) {
+      // .basic 构造器已断言 title / titleWidget 至少一个，这里不再按文案是否为空
+      // 二次判断，否则 title: '' 会静默丢掉整条顶栏（连返回按钮一起消失）。
       appBarWidget = WAppBar(
         title: title,
         titleWidget: titleWidget,
@@ -154,27 +145,6 @@ class WScaffold extends StatelessWidget {
       );
     } else {
       appBarWidget = appBar;
-    }
-
-    assert(
-      appBar == null ||
-          (title == null &&
-              titleWidget == null &&
-              leading == null &&
-              actions.isEmpty &&
-              onBack == null &&
-              appBarStyle == null &&
-              appBarBottom == null &&
-              automaticallyImplyLeading &&
-              centerTitle),
-      'WScaffold: 传了 appBar 时不要再传 title/leading/actions/onBack/appBarStyle/appBarBottom；'
-      'WScaffold 自身的 leading/centerTitle 参数保持默认',
-    );
-    if (appBar case final WAppBar bar) {
-      assert(
-        bar.includeStatusBar,
-        'WScaffold: 传 WAppBar 作为 appBar 时必须 includeStatusBar: true',
-      );
     }
 
     Widget? content = body;
@@ -193,12 +163,6 @@ class WScaffold extends StatelessWidget {
           child: content,
         );
       }
-    }
-
-    if (underlayWidget != null) {
-      final children = <Widget>[underlayWidget!];
-      if (content != null) children.add(content);
-      content = Stack(fit: StackFit.expand, children: children);
     }
 
     final bottomBar = bottomNavigationBar == null || !bottomNavigationBarSafeArea

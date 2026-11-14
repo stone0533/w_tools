@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
@@ -352,21 +351,6 @@ void main() {
       const WBadgeStyle(backgroundColor: Colors.red),
     );
   });
-
-  testWidgets('GlobalKey.rect() 对未布局的 RenderBox 返回 null', (tester) async {
-    final key = GlobalKey();
-    await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: _NoLayoutBox(
-          child: SizedBox(key: key, width: 10, height: 10),
-        ),
-      ),
-    );
-
-    expect(key.rect(), isNull);
-    expect(tester.takeException(), isNull);
-  });
 }
 
 /// 保活探针：记录 initState / dispose 次数，用于断言子树是否被保活
@@ -395,24 +379,4 @@ class _KeepAliveProbeState extends State<_KeepAliveProbe> {
 
   @override
   Widget build(BuildContext context) => const SizedBox(height: 100);
-}
-
-class _NoLayoutBox extends SingleChildRenderObjectWidget {
-  const _NoLayoutBox({super.child});
-
-  @override
-  RenderObject createRenderObject(BuildContext context) => _RenderNoLayout();
-}
-
-class _RenderNoLayout extends RenderProxyBox {
-  @override
-  void performLayout() {
-    size = constraints.smallest;
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {}
-
-  @override
-  void visitChildrenForSemantics(RenderObjectVisitor visitor) {}
 }

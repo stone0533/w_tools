@@ -3,7 +3,7 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'demo_widgets.dart';
 
-/// WNavBar / WNavController / WTabBar 的完整演示。
+/// WNavBar / WNavController 的完整演示。
 class NavDemoPage extends StatefulWidget {
   const NavDemoPage({super.key});
 
@@ -11,7 +11,7 @@ class NavDemoPage extends StatefulWidget {
   State<NavDemoPage> createState() => _NavDemoPageState();
 }
 
-class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin {
+class _NavDemoPageState extends State<NavDemoPage> {
   late final WNavController _nav;
   bool _blockLast = false;
   int _tabTap = -1;
@@ -27,7 +27,7 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    _nav = WNavController(length: _items.length, vsync: this);
+    _nav = WNavController(length: _items.length);
   }
 
   @override
@@ -60,12 +60,12 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
     final scheme = Theme.of(context).colorScheme;
 
     return WScaffold.basic(
-      title: 'WNavBar / WNavController / WTabBar',
+      title: 'WNavBar / WNavController',
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           DemoSection(
-            title: 'WNavController：animateTo / currentIndex / 状态',
+            title: 'WNavController：currentIndex',
             subtitle: 'onBeforeTap 返回 false 可阻止切换',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,13 +90,13 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
                   runSpacing: 8,
                   children: [
                     WButton(
-                      label: 'animateTo(2)',
-                      style: WButtonStyleSet.of(context).secondary,
-                      onTap: () => _nav.animateTo(2),
+                      label: 'currentIndex = 2',
+                      variant: WButtonVariant.outlined,
+                      onTap: () => _nav.currentIndex = 2,
                     ),
                     WButton(
                       label: 'currentIndex = 0',
-                      style: WButtonStyleSet.of(context).secondary,
+                      variant: WButtonVariant.outlined,
                       onTap: () => _nav.currentIndex = 0,
                     ),
                   ],
@@ -114,59 +114,50 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
                 _KeyValue(label: '最后一次点击', value: _lastTap),
                 ListenableBuilder(
                   listenable: _nav,
-                  builder: (context, _) => Column(
-                    children: [
-                      _KeyValue(label: 'currentIndex', value: '${_nav.currentIndex}'),
-                      _KeyValue(label: 'previousIndex', value: '${_nav.previousIndex}'),
-                      _KeyValue(label: 'indexIsChanging', value: '${_nav.indexIsChanging}'),
-                      _KeyValue(label: 'offset', value: _nav.offset.toStringAsFixed(2)),
-                    ],
+                  builder: (context, _) => _KeyValue(
+                    label: 'currentIndex',
+                    value: '${_nav.currentIndex}',
                   ),
                 ),
                 const CodeText(
-                  'final nav = WNavController(length: 4, vsync: this);\n'
-                  'nav.animateTo(2);\n'
-                  'nav.currentIndex = 0;\n'
+                  'final nav = WNavController(length: 4);\n'
+                  'nav.currentIndex = 2;\n'
                   '// dispose 里 nav.dispose()',
                 ),
               ],
             ),
           ),
           DemoSection(
-            title: 'WNavBarStyle：外层装饰 / padding',
+            title: 'WNavBar：decoration / padding',
             child: DemoBox(
               height: 100,
               child: WNavBar(
                 controller: _nav,
                 itemBuilder: _itemBuilder,
-                style: WNavBarStyle(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
           ),
           DemoSection(
-            title: 'WTabBar：style / indicator / divider / scrollable',
-            subtitle: 'WTabBar 不自带 controller，需要 DefaultTabController 或外部传入',
+            title: 'Material TabBar：indicator / divider / scrollable',
+            subtitle: 'WTabBar / WTabBarStyle 已在 12.0 删除；直接用 TabBar + TabBarTheme',
             child: DemoBox(
               height: 280,
               child: DefaultTabController(
                 length: 3,
                 child: Column(
                   children: [
-                    WTabBar(
-                      style: const WTabBarStyle(
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        indicatorColor: Color(0xFF4F46E5),
-                        indicatorWeight: 3,
-                        dividerColor: Color(0x1F000000),
-                        overlayColor: Color(0x1F4F46E5),
-                      ),
+                    TabBar(
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      indicatorColor: const Color(0xFF4F46E5),
+                      indicatorWeight: 3,
+                      dividerColor: const Color(0x1F000000),
+                      overlayColor: const WidgetStatePropertyAll(Color(0x1F4F46E5)),
                       tabs: const [
                         Tab(text: '全部'),
                         Tab(text: '进行中'),
@@ -189,17 +180,8 @@ class _NavDemoPageState extends State<NavDemoPage> with TickerProviderStateMixin
             ),
           ),
           DemoSection(
-            title: 'WTabBarStyle.copyWith',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _KeyValue(label: 'onTap index', value: '$_tabTap'),
-                const CodeText(
-                  'const base = WTabBarStyle(isScrollable: true);\n'
-                  'final style = base.copyWith(indicatorColor: Colors.indigo);',
-                ),
-              ],
-            ),
+            title: 'TabBarTheme：全站 tab 样式',
+            child: _KeyValue(label: 'onTap index', value: '$_tabTap'),
           ),
         ],
       ),

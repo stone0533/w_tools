@@ -4,15 +4,14 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 
 import 'image_load_state.dart';
-import 'image_notifier.dart';
 import '../components/common/image/image_retry_policy.dart';
 import '../components/common/image/image_types.dart';
 
-/// 图片加载状态持有者：把 `WImageLoadState` 与 `ValueListenable` 组合。
+/// 图片加载状态持有者：`WImageLoadState` + `ChangeNotifier`。
 ///
-/// 渲染仍由 WImage 的 State 负责；Loader 负责可观察的加载状态。
+/// 渲染仍由 WImage 的 State 负责；Loader 只负责可观察的加载状态。
 @internal
-class WImageLoader extends WImageLoadState {
+class WImageLoader extends WImageLoadState with ChangeNotifier {
   WImageLoader({
     required int retryCount,
     required int retryDelay,
@@ -25,9 +24,6 @@ class WImageLoader extends WImageLoadState {
     reset(retryCount: retryCount, retryDelay: retryDelay);
   }
 
-  final ValueNotifier<WImageLoadSnapshot> _notifier =
-      WImageDeferredValueNotifier<WImageLoadSnapshot>(const WImageLoadSnapshot());
-
   /// 状态回调（State 负责切到 post-frame）
   final ValueChanged<WImageLoadStatus>? onStatus;
 
@@ -36,28 +32,34 @@ class WImageLoader extends WImageLoadState {
 
   int _retryCount;
   int _retryDelay;
-  int? _scheduledDelayMs;
   final Random _random;
   Timer? _retryTimer;
 
   /// 最近一次错误
   WImageError? error;
 
-  /// 只读状态流
-  ValueListenable<WImageLoadSnapshot> get state => _notifier;
+  bool _disposed = false;
+  WImageLoadStatus? _lastNotifiedStatus;
+  int? _lastNotifiedAttempt;
+  bool? _lastNotifiedRetryScheduled;
+  Object? _lastNotifiedError;
 
-  /// 把当前状态推给监听者
-  void emit() {
-    final next = WImageLoadSnapshot(
-      status: status,
-      progress: pendingProgress,
-      attempt: attempt,
-      error: error,
-      retryScheduled: retryScheduled,
-      retryDelayMs: retryScheduled ? _scheduledDelayMs : null,
-    );
-    if (_notifier.value == next) return;
-    _notifier.value = next;
+  /// 把当前状态推给监听者（State 负责在 build 期延后重建）。
+  ///
+  /// 纯进度变化不触发：进度走 onProgress，重建只看状态 / 重试 / 错误。
+  void _notify() {
+    if (_disposed) return;
+    if (status == _lastNotifiedStatus &&
+        attempt == _lastNotifiedAttempt &&
+        retryScheduled == _lastNotifiedRetryScheduled &&
+        identical(error, _lastNotifiedError)) {
+      return;
+    }
+    _lastNotifiedStatus = status;
+    _lastNotifiedAttempt = attempt;
+    _lastNotifiedRetryScheduled = retryScheduled;
+    _lastNotifiedError = error;
+    notifyListeners();
   }
 
   bool get hasRetries => autoRetries < _retryCount;
@@ -69,11 +71,10 @@ class WImageLoader extends WImageLoadState {
     _retryTimer = null;
     _retryCount = retryCount;
     _retryDelay = retryDelay;
-    _scheduledDelayMs = null;
     error = null;
     super.reset(retryCount: retryCount, retryDelay: retryDelay);
     if (wasActive) onStatus?.call(WImageLoadStatus.idle);
-    emit();
+    _notify();
   }
 
   @override
@@ -85,20 +86,18 @@ class WImageLoader extends WImageLoadState {
     if (changed) {
       _retryCount = retryCount;
       _retryDelay = retryDelay;
-      _scheduledDelayMs = null;
       _retryTimer?.cancel();
       _retryTimer = null;
       // 保留已有 error：失败后修改 retry 配置不应把 failed 状态变成“无错误”
-      emit();
+      _notify();
     }
     return changed;
   }
 
   @override
   void beginAttempt() {
-    _scheduledDelayMs = null;
     super.beginAttempt();
-    emit();
+    _notify();
   }
 
   /// 进入 loading（无进度事件时使用）
@@ -109,7 +108,7 @@ class WImageLoader extends WImageLoadState {
     if (markStatus(WImageLoadStatus.loading)) {
       onStatus?.call(WImageLoadStatus.loading);
     }
-    emit();
+    _notify();
   }
 
   /// 收到进度
@@ -122,7 +121,7 @@ class WImageLoader extends WImageLoadState {
     if (markStatus(WImageLoadStatus.loading)) {
       onStatus?.call(WImageLoadStatus.loading);
     }
-    emit();
+    _notify();
     // 父级/自身重建会让 loadingBuilder 用同一个 progress 再调用一次；
     // 只有进度真正变化时才对外回调，避免调用方 setState 造成重建放大。
     if (changed) onProgress?.call(progress);
@@ -135,7 +134,6 @@ class WImageLoader extends WImageLoadState {
     _retryTimer?.cancel();
     _retryTimer = null;
     retryScheduled = false;
-    _scheduledDelayMs = null;
     error = null;
     if (markStatus(WImageLoadStatus.completed)) {
       onStatus?.call(WImageLoadStatus.completed);
@@ -145,7 +143,7 @@ class WImageLoader extends WImageLoadState {
       pendingProgress = const WImageProgress.complete();
       onProgress?.call(pendingProgress!);
     }
-    emit();
+    _notify();
   }
 
   /// 失败；[retry] 决定是否按网络错误策略自动重试
@@ -166,7 +164,7 @@ class WImageLoader extends WImageLoadState {
     if (markStatus(WImageLoadStatus.failed)) {
       onStatus?.call(WImageLoadStatus.failed);
     }
-    emit();
+    _notify();
   }
 
   /// 直接失败（例如 Web 不支持 file://）
@@ -180,18 +178,16 @@ class WImageLoader extends WImageLoadState {
       base: Duration(milliseconds: _retryDelay),
       random: _random,
     );
-    _scheduledDelayMs = delay.inMilliseconds;
     _generationAtSchedule = generation;
     _retryTimer?.cancel();
     _retryTimer = Timer(delay, () {
       if (generation != _generationAtSchedule) return;
       super.beginAttempt();
       retryScheduled = false;
-      _scheduledDelayMs = null;
       error = null;
-      emit();
+      _notify();
     });
-    emit();
+    _notify();
   }
 
   int _generationAtSchedule = 0;
@@ -202,22 +198,18 @@ class WImageLoader extends WImageLoadState {
     _retryTimer = null;
     generation++;
     retryScheduled = false;
-    _scheduledDelayMs = null;
     pendingProgress = null;
     error = null;
     super.beginManualAttempt();
-    emit();
+    _notify();
   }
 
+  @override
   void dispose() {
+    _disposed = true;
     _retryTimer?.cancel();
     _retryTimer = null;
-    _scheduledDelayMs = null;
-    if (retryScheduled) {
-      retryScheduled = false;
-      emit();
-    }
-    // 不 dispose notifier：controller 可能在 WImage 卸载后仍持有它。
-    // notifier 会随 loader/controller 一起被 GC。
+    retryScheduled = false;
+    super.dispose();
   }
 }

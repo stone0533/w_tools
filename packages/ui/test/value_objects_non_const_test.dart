@@ -19,34 +19,14 @@ void main() {
     _expectValueEquality(a, b);
   });
 
-  test('WButtonStyle 非 const 值相等', () {
-    final a = WButtonStyle(minWidth: 48, minHeight: 32, disabledOpacity: 0.5);
-    final b = WButtonStyle(minWidth: 48, minHeight: 32, disabledOpacity: 0.5);
-    _expectValueEquality(a, b);
-  });
-
-  test('WButtonMotion / WButtonSemantics / WButtonSize 非 const 值相等', () {
-    _expectValueEquality(
-      WButtonMotion(duration: const Duration(milliseconds: 120)),
-      WButtonMotion(duration: const Duration(milliseconds: 120)),
-    );
-    _expectValueEquality(
-      WButtonSemantics(label: '保存', hint: '提交表单'),
-      WButtonSemantics(label: '保存', hint: '提交表单'),
-    );
+  test('WButtonSize 非 const 值相等', () {
     _expectValueEquality(
       WButtonSize(minWidth: 10, minHeight: 20, padding: EdgeInsets.zero),
       WButtonSize(minWidth: 10, minHeight: 20, padding: EdgeInsets.zero),
     );
   });
 
-  test('WTabBarStyle 非 const 值相等', () {
-    final a = WTabBarStyle(labelColor: Colors.red, indicatorWeight: 3);
-    final b = WTabBarStyle(labelColor: Colors.red, indicatorWeight: 3);
-    _expectValueEquality(a, b);
-  });
-
-  test('WStepStyle / WStepColors / WStepFlow 非 const 值相等', () {
+  test('WStepStyle / WStepColors 非 const 值相等', () {
     _expectValueEquality(
       WStepStyle(itemSize: 30, labelSpacing: 6),
       WStepStyle(itemSize: 30, labelSpacing: 6),
@@ -54,10 +34,6 @@ void main() {
     _expectValueEquality(
       WStepColors(completed: Colors.green, current: Colors.blue, upcoming: Colors.grey),
       WStepColors(completed: Colors.green, current: Colors.blue, upcoming: Colors.grey),
-    );
-    _expectValueEquality(
-      WStepFlow(labels: ['a', 'b']),
-      WStepFlow(labels: ['a', 'b']),
     );
   });
 
@@ -99,10 +75,6 @@ void main() {
       WImageError('url', WImageErrorKind.network),
       WImageError('url', WImageErrorKind.network),
     );
-    _expectValueEquality(
-      WImageLoadSnapshot(status: WImageLoadStatus.loading, attempt: 1),
-      WImageLoadSnapshot(status: WImageLoadStatus.loading, attempt: 1),
-    );
   });
 
   test('WImageSource 家族非 const 值相等', () {
@@ -111,8 +83,8 @@ void main() {
       WImageSource.network('https://example.com/a.png'),
     );
     _expectValueEquality(
-      WImageSource.asset('logo.png', prefix: true),
-      WImageSource.asset('logo.png', prefix: true),
+      WImageSource.asset('logo.png'),
+      WImageSource.asset('logo.png'),
     );
     _expectValueEquality(
       WImageSource.file('/tmp/a.png'),

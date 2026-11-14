@@ -24,7 +24,6 @@ class WPressable extends StatefulWidget {
     this.duration = const Duration(milliseconds: 100),
     this.curve = Curves.easeInOut,
     this.behavior = HitTestBehavior.opaque,
-    this.hasChildSemanticsWhenDisabled = true,
   }) : assert(
          pressedOpacity >= 0 && pressedOpacity <= 1,
          'pressedOpacity 必须在 0..1',
@@ -44,11 +43,6 @@ class WPressable extends StatefulWidget {
   final Duration duration;
   final Curve curve;
   final HitTestBehavior behavior;
-
-  /// 禁用时是否仍保留 child 的语义。
-  ///
-  /// 默认 true：保留内容语义；如果 child 内部有交互控件，可设为 false 彻底禁用。
-  final bool hasChildSemanticsWhenDisabled;
 
   @override
   State<WPressable> createState() => _WPressableState();
@@ -115,8 +109,7 @@ class _WPressableState extends State<WPressable> {
   Widget build(BuildContext context) {
     assert(!widget.duration.isNegative, 'duration 不能为负');
     if (!widget.enabled) {
-      final disabled = IgnorePointer(child: widget.child);
-      return widget.hasChildSemanticsWhenDisabled ? disabled : ExcludeSemantics(child: disabled);
+      return IgnorePointer(child: widget.child);
     }
     if (!_actionable) {
       return widget.child;

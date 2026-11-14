@@ -15,7 +15,7 @@ void main() {
         home: WImage.source(
           source: WImageSource.file('/tmp/a.png'),
           slots: WImageSlots(
-            errorWidgetBuilder: (context, url, error) {
+            errorWidgetBuilder: (context, url, error, retry) {
               captured = error;
               return const Text('UNSUPPORTED');
             },

@@ -16,13 +16,13 @@ void main() {
     expect(find.text('1'), findsOneWidget);
   });
 
-  testWidgets('WTabBar 不传 style 也能渲染 tabs', (tester) async {
+  testWidgets('TabBar 渲染 tabs（WTabBar 已在 12.0 删除）', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: DefaultTabController(
           length: 2,
           child: const Scaffold(
-            body: WTabBar(
+            body: TabBar(
               tabs: [
                 Tab(text: 'A'),
                 Tab(text: 'B'),

@@ -31,6 +31,7 @@
 - [9.0](ui-9.0.md)：`copyWith(null)` 改为保留；`without*` 清空；删除 `WImageErrorKind.empty`
 - [10.0](ui-10.0.md)：删除全局 `WScreen.w/h/sp` / delegate；删除 `WNumExtension.borderSide`
 - [11.0](ui-11.0.md)：删除 `WClipRRect`（直接用 Flutter `ClipRRect`）
+- [12.0](ui-12.0.md)：删除 `WStepFlow` / `WNavBarStyle` / `WGlobalKeyExtension`、`WNavController` 动画 API、num / string / BoxDecoration 冗余糖
 
 ## form
 

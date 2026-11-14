@@ -34,14 +34,8 @@ class _WImageState extends State<WImage> {
   /// 是否已有可复用的上一帧（gaplessPlayback）
   bool _hasFrame = false;
 
-  /// 上一次用于驱动重建的快照（progress-only 变化不重建）
-  WImageLoadSnapshot? _lastSnapshot;
-
   /// 加载 / 重试 / 进度状态
   late final WImageLoader _load;
-
-  /// 供 controller 读取的状态
-  WImageLoader get loader => _load;
 
   WImageStyle get style => widget.style;
   WImageLoadOptions get options => widget.options;
@@ -68,25 +62,36 @@ class _WImageState extends State<WImage> {
       },
     );
     _reset();
-    _lastSnapshot = _load.state.value;
-    _load.state.addListener(_handleLoadStateChanged);
-    widget.controller?._attach(this);
+    _lastStatus = _load.status;
+    _lastAttempt = _load.attempt;
+    _lastRetryScheduled = _load.retryScheduled;
+    _lastError = _load.error;
+    _load.addListener(_handleLoadStateChanged);
   }
 
   bool _rebuildScheduled = false;
 
-  /// 只重建真正影响 WImage 树的状态；进度变化由内部 Image.loadingBuilder 自己处理。
+  WImageLoadStatus? _lastStatus;
+  int _lastAttempt = 0;
+  bool _lastRetryScheduled = false;
+  Object? _lastError;
+
+  /// 只重建真正影响 WImage 树的状态；纯进度变化由 loadingBuilder 自己处理。
   void _handleLoadStateChanged() {
-    final next = _load.state.value;
-    final previous = _lastSnapshot;
-    _lastSnapshot = next;
-    if (previous != null &&
-        previous.status == next.status &&
-        previous.attempt == next.attempt &&
-        previous.retryScheduled == next.retryScheduled &&
-        identical(previous.error, next.error)) {
+    final status = _load.status;
+    final attempt = _load.attempt;
+    final retryScheduled = _load.retryScheduled;
+    final error = _load.error;
+    if (status == _lastStatus &&
+        attempt == _lastAttempt &&
+        retryScheduled == _lastRetryScheduled &&
+        identical(error, _lastError)) {
       return;
     }
+    _lastStatus = status;
+    _lastAttempt = attempt;
+    _lastRetryScheduled = retryScheduled;
+    _lastError = error;
     _scheduleRebuild();
   }
 
@@ -113,10 +118,6 @@ class _WImageState extends State<WImage> {
       retryCount: options.retryCount,
       retryDelay: options.retryDelay,
     );
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller?._detach(this);
-      widget.controller?._attach(this);
-    }
     if (oldWidget.style != widget.style ||
         oldWidget.options != widget.options ||
         oldWidget.slots != widget.slots) {
@@ -138,8 +139,7 @@ class _WImageState extends State<WImage> {
 
   @override
   void dispose() {
-    widget.controller?._detach(this);
-    _load.state.removeListener(_handleLoadStateChanged);
+    _load.removeListener(_handleLoadStateChanged);
     _load.dispose();
     super.dispose();
   }
@@ -197,8 +197,8 @@ class _WImageState extends State<WImage> {
     Widget result;
     if (_value.isEmpty) {
       _hasFrame = false;
-      // 空 data 是「没有配图」，不是加载失败：不写 failed、不走错误槽。
-      result = _emptySlot(context);
+      // 空 data 是「没有配图」，不是加载失败：不写 failed，走占位槽。
+      result = _placeholderFor(context);
     } else {
       result = switch (widget.source) {
         WNetworkImageSource source => _buildNetwork(source),
@@ -211,44 +211,26 @@ class _WImageState extends State<WImage> {
 
     final aspectRatio = style.aspectRatio;
     if (aspectRatio != null && aspectRatio > 0) {
-      // 比例作用于图片内容；padding / margin 在 WImageFrame 外层叠加。
+      // 比例作用于图片内容；外层留白交给调用方的 Padding / Container。
       result = AspectRatio(aspectRatio: aspectRatio, child: result);
     }
     return WImageFrame(style: style, child: result);
   }
 
-  /// 合并单图 slots 与主题 slots：单图非空字段优先，错误占位在
-  /// showRetryButton=true 时不再继承主题的错误 builder。
-  WImageSlots? _mergedSlots;
-  WImageSlots? _mergedThemeSlots;
-  WImageSlots? _mergedOwnSlots;
-
+  /// 合并单图 slots 与主题 slots：单图非空字段优先。
   WImageSlots _slotsFor(BuildContext context) {
     final theme = WImageTheme.maybeOf(context) ?? const WImageSlots();
-    if (_mergedSlots != null &&
-        identical(theme, _mergedThemeSlots) &&
-        identical(widget.slots, _mergedOwnSlots)) {
-      return _mergedSlots!;
-    }
-    _mergedThemeSlots = theme;
-    _mergedOwnSlots = widget.slots;
-    _mergedSlots = mergeImageSlots(own: widget.slots, theme: theme);
-    return _mergedSlots!;
+    final own = widget.slots;
+    if (own == null) return theme;
+    return WImageSlots(
+      placeholderBuilder: own.placeholderBuilder ?? theme.placeholderBuilder,
+      errorWidgetBuilder: own.errorWidgetBuilder ?? theme.errorWidgetBuilder,
+    );
   }
 
   /// 图片加载中的占位（优先业务自定义）
   Widget _placeholderFor(BuildContext context) {
     return buildImagePlaceholder(
-      context: context,
-      slots: _slotsFor(context),
-      style: style,
-      data: _value,
-    );
-  }
-
-  /// 空 data 占位：业务 builder > 固定 Widget > 中性兜底。
-  Widget _emptySlot(BuildContext context) {
-    return buildImageEmptySlot(
       context: context,
       slots: _slotsFor(context),
       style: style,
@@ -334,8 +316,7 @@ class _WImageState extends State<WImage> {
           totalBytes: loadingProgress.expectedTotalBytes,
         );
         _load.handleProgress(progress);
-        final builder = _slotsFor(context).progressBuilder;
-        return builder?.call(context, _value, progress) ?? _placeholderFor(context);
+        return _placeholderFor(context);
       },
       errorBuilder: (context, error, stackTrace) {
         if (_load.status == WImageLoadStatus.completed) {

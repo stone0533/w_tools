@@ -13,9 +13,7 @@ class ExtensionsDemoPage extends StatefulWidget {
 }
 
 class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
-  final GlobalKey _boxKey = GlobalKey();
   int _taps = 0;
-  String? _position;
 
   @override
   Widget build(BuildContext context) {
@@ -28,26 +26,18 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
         padding: const EdgeInsets.all(16),
         children: [
           DemoSection(
-            title: 'WNumLayoutExtension / WNumFormatExtension：间距 / 圆角 / 数字格式',
-            subtitle: 'heightBox / widthBox / squareBox / allPadding / 格式化',
+            title: 'WNumLayoutExtension：间距 / 描边',
+            subtitle: 'allPadding / borderSideOf（数字格式化在 core）',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Container(width: 32, height: 32, color: scheme.primary),
-                    8.widthBox,
+                    const SizedBox(width: 8),
                     Container(width: 32, height: 32, color: scheme.secondary),
-                    8.widthBox,
+                    const SizedBox(width: 8),
                     Container(width: 32, height: 32, color: scheme.tertiary),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Container(width: 32, height: 32, color: scheme.primary),
-                    8.squareBox,
-                    Container(width: 32, height: 32, color: scheme.secondary),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -62,38 +52,23 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _KeyValue(label: '1234.toThousandsSeparated', value: 1234.toThousandsSeparated),
-                _KeyValue(
-                  label: "1234.5.toCurrency(symbol: '¥')",
-                  value: 1234.5.toCurrency(symbol: '¥'),
-                ),
-                _KeyValue(label: '0.125.toPercent', value: 0.125.toPercent),
-                _KeyValue(label: '0.125.toPercentWithFixed(2)', value: 0.125.toPercentWithFixed(2)),
-                _KeyValue(label: '42.toPadLeft(5)', value: 42.toPadLeft(5)),
-                _KeyValue(label: '12.borderRadius', value: 12.borderRadius.toString()),
                 const CodeText(
-                  'Container(width: 32, height: 32), 8.widthBox, ...\n'
+                  'SizedBox(width: 8)\n'
                   'Padding(padding: 12.allPadding, child: ...)\n'
-                  '1234.5.toCurrency(symbol: "¥")',
+                  '// 数字格式化在 w_tools_core 的 WNumFormatExtension',
                 ),
               ],
             ),
           ),
           DemoSection(
-            title: 'WStringExtension：数字 / 去空格 / 颜色 / 资源路径',
+            title: 'WStringExtension：颜色',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _KeyValue(label: "'42'.toInt()", value: '${'42'.toInt()}'),
-                _KeyValue(label: "'3.14'.toDouble()", value: '${'3.14'.toDouble()}'),
-                _KeyValue(label: "'1e3'.toNum()", value: '${'1e3'.toNum()}'),
-                _KeyValue(label: "' a b\\nc '.trimAll()", value: ' a b\nc '.trimAll()),
-                _KeyValue(label: "'logo.png'.assetImagePath", value: 'logo.png'.assetImagePath),
-                const SizedBox(height: 8),
                 Row(
                   children: [
                     Container(width: 24, height: 24, color: '#FF5733'.toColor()),
-                    8.widthBox,
+                    const SizedBox(width: 8),
                     const WText(text: "'#FF5733'.toColor()", variant: WTextVariant.caption),
                   ],
                 ),
@@ -108,7 +83,7 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 Row(
                   children: [
                     Container(width: 24, height: 24, color: WColorExtension.fromHex('#4F46E5')),
-                    8.widthBox,
+                    const SizedBox(width: 8),
                     const WText(
                       text: "WColorExtension.fromHex('#4F46E5')",
                       variant: WTextVariant.caption,
@@ -119,7 +94,7 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 Row(
                   children: [
                     Container(width: 24, height: 24, color: '#80FF5733'.toColor()),
-                    8.widthBox,
+                    const SizedBox(width: 8),
                     const WText(
                       text: "'#80FF5733'（alpha 在前）",
                       variant: WTextVariant.caption,
@@ -159,7 +134,7 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 Row(
                   children: [
                     Container(height: 24, color: scheme.primary).expanded(),
-                    8.widthBox,
+                    const SizedBox(width: 8),
                     Container(height: 24, color: scheme.secondary).expanded(2),
                   ],
                 ),
@@ -239,7 +214,7 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
                 const SizedBox(height: 8),
                 WText(
                   text:
-                      'withTopSafeSpace / withBottomBarSpace：按平台安全区加 Padding'
+                      'withTopSafeSpaceOf / withBottomSafeSpaceOf：按平台安全区加 Padding'
                       '（当前 status=${WScreen.statusBarHeight.toStringAsFixed(1)}，'
                       'bottom=${WScreen.bottomSafeAreaHeight.toStringAsFixed(1)}）',
                   variant: WTextVariant.caption,
@@ -248,11 +223,7 @@ class _ExtensionsDemoPageState extends State<ExtensionsDemoPage> {
             ),
           ),
           ...buildExtensionVisualSections(
-            context: context,
             scheme: scheme,
-            boxKey: _boxKey,
-            position: _position,
-            onPosition: (value) => setState(() => _position = value),
           ),
         ],
       ),

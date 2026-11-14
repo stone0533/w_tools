@@ -60,30 +60,6 @@ void main() {
     });
   });
 
-  group('WNavBarStyle', () {
-    test('decoration / padding 可设置', () {
-      const c = WNavBarStyle(
-        decoration: BoxDecoration(color: Colors.white),
-        padding: EdgeInsets.all(4),
-      );
-      expect(c.decoration, isNotNull);
-      expect(c.padding, const EdgeInsets.all(4));
-    });
-  });
-
-  group('WTabBarStyle', () {
-    test('不可变构造 / copyWith', () {
-      const c = WTabBarStyle(
-        labelStyle: TextStyle(fontSize: 16),
-        indicatorColor: Colors.red,
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        indicatorSize: TabBarIndicatorSize.label,
-        tabAlignment: TabAlignment.center,
-      );
-      expect(c.copyWith(indicatorColor: Colors.blue).indicatorColor, Colors.blue);
-    });
-  });
-
   // ========= form Config =========
   group('WFormBorderStyle', () {
     test('defaultDecoration / errorDecoration 可直接构造，并支持 copyWith', () {

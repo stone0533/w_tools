@@ -4,20 +4,16 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 import 'demo_widgets.dart';
 
 /// 组件页的图片 / 保活 sections。
-List<Widget> buildComponentsImageSections({
-  required WImageController imageController,
-}) {
+List<Widget> buildComponentsImageSections() {
   return [
-    const DemoSectionTitle('WImageController 手动重试'),
+    const DemoSectionTitle('WImageSlots.errorWidgetBuilder + 手动重试'),
     WImage.source(
-      source: WImageSource.network('https://example.invalid/controller.png'),
-      controller: imageController,
+      source: WImageSource.network('https://example.invalid/retry.png'),
       style: const WImageStyle(width: 160, height: 90),
-      slots: const WImageSlots(showRetryButton: true),
-    ),
-    TextButton(
-      onPressed: imageController.retry,
-      child: const Text('controller.retry()'),
+      slots: WImageSlots(
+        errorWidgetBuilder: (context, data, error, retry) =>
+            WImageErrorView(error: error, onRetry: retry),
+      ),
     ),
     const SizedBox(height: 24),
     const DemoSectionTitle('WKeepAliveWrapper 列表保活'),

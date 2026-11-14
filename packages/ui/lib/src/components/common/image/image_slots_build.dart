@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'image_slots.dart';
-import 'image_error_view.dart';
 import 'image_style.dart';
 import 'image_types.dart';
 
@@ -12,11 +11,6 @@ Widget sizedImageSlot(WImageStyle style, Widget child) {
 }
 
 Widget fallbackImagePlaceholder(BuildContext context) {
-  return ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest);
-}
-
-/// 空 data 的默认占位：中性底色，和「加载失败」的 errorContainer 明确区分。
-Widget fallbackImageEmpty(BuildContext context) {
   return ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest);
 }
 
@@ -39,40 +33,22 @@ Widget buildImagePlaceholder({
   return sizedImageSlot(style, fallbackImagePlaceholder(context));
 }
 
-Widget buildImageEmptySlot({
-  required BuildContext context,
-  required WImageSlots slots,
-  required WImageStyle style,
-  required String data,
-}) {
-  final custom = slots.emptyBuilder?.call(context, data);
-  if (custom != null) return sizedImageSlot(style, custom);
-  return sizedImageSlot(style, fallbackImageEmpty(context));
-}
-
+/// 错误占位：业务 builder 优先（自带 onRetry），否则内置图标。
+///
+/// 需要「错误文案 + 重试按钮」时在 builder 里返回 `WImageErrorView`。
 Widget buildImageErrorSlot({
   required BuildContext context,
   required WImageSlots slots,
   required WImageStyle style,
   required WImageError error,
-  required VoidCallback? onRetry,
+  required VoidCallback onRetry,
 }) {
-  final custom = slots.errorWidgetBuilder?.call(context, error.sourceValue, error);
+  final custom = slots.errorWidgetBuilder?.call(
+    context,
+    error.sourceValue,
+    error,
+    onRetry,
+  );
   if (custom != null) return sizedImageSlot(style, custom);
-  if (slots.showRetryButton ?? false) {
-    final canRetry = const {
-      WImageErrorKind.network,
-      WImageErrorKind.provider,
-      WImageErrorKind.file,
-    }.contains(error.kind);
-    return sizedImageSlot(
-      style,
-      WImageErrorView(
-        error: error,
-        onRetry: canRetry ? onRetry : null,
-        retryLabel: slots.retryLabel ?? '',
-      ),
-    );
-  }
   return sizedImageSlot(style, fallbackImageError(context));
 }

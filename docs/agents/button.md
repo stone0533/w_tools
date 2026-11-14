@@ -32,35 +32,43 @@ GestureDetector / InkWell 自己拼按钮
 
 ## WButton
 
+`WButton` 直接渲染 Material `FilledButton` / `OutlinedButton` / `TextButton`，
+视觉由 Material `ButtonStyle` 驱动（水波纹、键盘 / 焦点、禁用态都与 Material 一致）。
+
 ```dart
 WButton(
-  style: AppButtons.primary(context),
+  style: AppButtons.primary(context), // 返回 ButtonStyle
   label: '保存',
   onTap: _save,
 )
+
+// 或直接用语义变体（取 WButtonTheme 的派生样式）
+WButton(variant: WButtonVariant.outlined, label: '取消', onTap: _cancel);
 ```
 
 支持：
 
 ```text
-label / icon
-content / contentBuilder
-size
-loading / enabled
-semanticLabel / tooltip
-isSelected（toggle 语义）
-onLongPress
+variant：filled / outlined / text / danger
+style：单个按钮的 ButtonStyle 覆盖
+size：WButtonSize.small / medium / large 或自定义令牌
+label / icon / content
+loading / loadingBuilder / enabled
+semanticLabel / semanticHint / loadingLabel
+tooltip / isSelected / onLongPress
+focusNode / autofocus
 ```
 
 按钮宽度：
 
 ```text
-WButtonSize / WButtonStyle 不包含 width
+WButton / ButtonStyle 不包含 width
 width 由父布局决定
 撑满用 SizedBox(width: double.infinity) 或 Expanded
 固定宽度用外层 SizedBox(width: ...)
-minWidth 只是最小视觉 / 点击尺寸，不是固定宽度
+WButtonSize 的 minWidth / minHeight 只是最小视觉尺寸，不是固定宽度
 ```
+
 ## AI 默认模板
 
 ### 主按钮
@@ -77,9 +85,19 @@ WButton(
 
 ```dart
 WButton(
-  style: AppButtons.secondary(context),
+  variant: WButtonVariant.outlined,
   label: '取消',
   onTap: _cancel,
+)
+```
+
+### 危险操作
+
+```dart
+WButton(
+  variant: WButtonVariant.danger,
+  label: '删除',
+  onTap: _remove,
 )
 ```
 
@@ -90,10 +108,11 @@ WButton(
   style: AppButtons.primary(context),
   label: '提交',
   loading: submitting,
-  enabled: !submitting,
   onTap: _submit,
 )
 ```
+
+`loading: true` 时按钮自动不可点并显示 spinner，不需要再传 `enabled: false`。
 
 ### 全宽按钮
 
@@ -106,12 +125,6 @@ SizedBox(
     onTap: _submit,
   ),
 )
-```
-
-`WButtonStyle.alignment` 默认居中；需要左对齐时显式设置：
-
-```dart
-WButtonStyle(alignment: Alignment.centerLeft)
 ```
 
 ### 图标按钮
@@ -140,35 +153,31 @@ WButton(
 
 ```text
 label / label+icon → 最简单，优先
-content            → 静态复杂内容
-contentBuilder     → 需要读取最终 style / state
+content            → 静态复杂内容（Row / Column / 自定义组合）
 ```
 
-不要同时传 `label` 和 `content`。
+不要同时传 `label` 和 `content`；`content` 内部的 `Text` / `Icon` 会自动继承按钮的
+前景色与文字样式（Material 的 `DefaultTextStyle` / `IconTheme`），不要再手写颜色。
 
-`WButton` 没有 `variant` 参数，也没有 `WButtonVariant`；样式用 `style`。
+项目页面统一用 `AppButtons`（CLI 生成，返回 Material `ButtonStyle`）；
+全站换色用 `WButtonTheme`，单个按钮用 `WButton(style: ...)`。
+12.0 删除了 `WButtonStyle` / `WButtonStyleSet` / `WButtonMotion` /
+`WButtonSemantics` / `WButtonContentBuilder` / `WButtonResolvedStyle`（以上均已删除）。
 
-项目页面统一用 `AppButtons`；组件示例/独立 Demo 才用 `WButtonStyleSet.of(context)` 或 `WButtonStyle`。
-
-> `WButton` 不传 `style` 时默认用 `WButtonStyleSet.of(context).primary`，颜色来自
-> `ColorScheme`（`primary` / `onPrimary`、`error` / `onError`、`outline`）；旧静态预设已在 5.0 删除。
 状态色：
 
 ```text
-disabled / pressed / hovered / focused 由 AppButtons 的 WidgetStateProperty 解析
-如果已有显式禁用色，设置 disabledOpacity: 1，避免二次变淡
-hover 由 _bg 处理时，把 hoverColor 设为 transparent，避免主题 overlay 叠加
-foregroundColor 会覆盖 textStyle.color
-WButtonStyle.filled 未传 foregroundColor 时按背景亮度自动选黑 / 白
+disabled / pressed / hovered / focused 由 Material ButtonStyle 解析
+AppButtons 用 FilledButton.styleFrom / OutlinedButton.styleFrom 显式给 disabled 颜色
+按钮按压反馈由 Material ink 负责；WButtonMotion 已删除
 ```
-
-
 
 构造约束：
 
 ```text
-content / contentBuilder / label+icon 只能选一种
+content 与 label + icon 只能选一种
 enabled=true 时至少提供 onTap 或 onLongPress
+纯图标按钮必须提供 semanticLabel
 ```
 
 常用状态：
@@ -177,7 +186,6 @@ enabled=true 时至少提供 onTap 或 onLongPress
 WButton(
   label: '提交',
   loading: submitting,
-  enabled: !submitting,
   onTap: _submit,
 )
 ```
@@ -186,6 +194,24 @@ WButton(
 
 ```dart
 semanticLabel: '关闭'
+```
+
+## WButtonTheme
+
+全站四态样式装一次即可；未覆盖的变体按 `ColorScheme` 派生：
+
+```dart
+theme: ThemeData(
+  colorScheme: scheme,
+  extensions: [
+    WButtonTheme(
+      filled: FilledButton.styleFrom(backgroundColor: brand),
+      outlined: OutlinedButton.styleFrom(foregroundColor: brand),
+      text: TextButton.styleFrom(foregroundColor: brand),
+      danger: FilledButton.styleFrom(backgroundColor: scheme.error),
+    ),
+  ],
+)
 ```
 
 ## WPressable
@@ -198,6 +224,7 @@ WPressable(
 ```
 
 用于整卡、列表项等任意 child 点击；没有 button 语义。
+需要按压缩放 / 透明度时用 `WPressable(effect: WPressEffect.scale)`。
 
 ## WFormButton
 

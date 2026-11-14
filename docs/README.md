@@ -63,6 +63,7 @@
 - [2026-11-09 全流程五轮审计：发布物 / 约束 / 本机可执行性](analysis/2026-11-09-process-audit-round5.md)
 - [2026-11-11 CLI「升级 w_tools 依赖」命令设计分析](analysis/2026-11-11-cli-upgrade-command.md)
 - [2026-11-11 工具链优化计划（命令契约 / 发布链路 / 环境前提）](analysis/2026-11-11-tooling-optimization-plan.md)
+- [2026-11-14 ui 12.0 清理：维护者提示词与执行记录](analysis/2026-11-14-ui-12-cleanup-prompts.md)
 
 改完 `docs/` 后跑：
 

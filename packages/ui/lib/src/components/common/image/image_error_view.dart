@@ -3,22 +3,29 @@ import 'package:flutter/material.dart';
 import '../../../internal/ui_strings.dart';
 import 'image_types.dart';
 
-const double _kActionMinWidth = 96;
-const double _kActionMinHeight = 88;
-const double _kTextMinHeightWithButton = 112;
+/// 文案 / 操作按钮各自需要的最小高度；低于该高度只显示图标，避免溢出。
 const double _kTextMinHeight = 64;
+const double _kActionMinHeight = 88;
 
-/// 内置的错误占位：图标 + 文案 + 可选重试按钮。
+/// 现成的「错误 + 重试」占位。
 ///
-/// 通过 `WImageSlots(showRetryButton: true)` 启用（`WImageStyle` 没有该参数）；
-/// 业务也可以直接复用它。
+/// 在 `WImageSlots.errorWidgetBuilder` 里返回它，并把 builder 收到的 `onRetry`
+/// 传进来即可：
+///
+/// ```dart
+/// slots: WImageSlots(
+///   errorWidgetBuilder: (context, data, error, retry) =>
+///       WImageErrorView(error: error, onRetry: retry),
+/// )
+/// ```
+///
+/// 是否显示重试按钮由 [showAction] 与可用高度共同决定。
 class WImageErrorView extends StatelessWidget {
   const WImageErrorView({
     super.key,
     required this.error,
     this.onRetry,
     this.retryLabel = '',
-    this.compact = false,
     this.showAction = true,
   });
 
@@ -29,10 +36,7 @@ class WImageErrorView extends StatelessWidget {
   /// （zh：重试；其他：Retry）。
   final String retryLabel;
 
-  /// 小尺寸时只显示图标（不显示文案/按钮）
-  final bool compact;
-
-  /// 是否允许显示重试按钮（由外层按已知尺寸决定）
+  /// 是否允许显示重试按钮；高度不足时仍会自动隐藏。
   final bool showAction;
 
   @override
@@ -44,19 +48,9 @@ class WImageErrorView extends StatelessWidget {
       color: colors.errorContainer.withValues(alpha: 0.35),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final width = constraints.maxWidth.isFinite ? constraints.maxWidth : 400.0;
           final height = constraints.maxHeight.isFinite ? constraints.maxHeight : 400.0;
-          // 小尺寸优先保留可操作的“重试”：空间不够时隐藏文案而不是隐藏按钮。
-          final showButton =
-              !compact &&
-              showAction &&
-              onRetry != null &&
-              width >= _kActionMinWidth &&
-              height >= _kActionMinHeight;
-          final showText =
-              !compact &&
-              width >= _kActionMinWidth &&
-              height >= (showButton ? _kTextMinHeightWithButton : _kTextMinHeight);
+          final showButton = showAction && onRetry != null && height >= _kActionMinHeight;
+          final showText = height >= _kTextMinHeight;
 
           return Center(
             child: Padding(
@@ -70,7 +64,7 @@ class WImageErrorView extends StatelessWidget {
                     Text(
                       strings.imageErrorMessage(error.kind),
                       textAlign: TextAlign.center,
-                      maxLines: showButton ? 1 : 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),

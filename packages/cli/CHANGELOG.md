@@ -1,3 +1,13 @@
+## 1.21.0
+
+### Changed
+- `init` 的 `w_tools_ui` 约束抬到 `^12.0.0`、`w_tools_core` 抬到 `^3.2.0`；CLI 自身
+  `cliConstraint` 同步 `^1.21.0`。
+- `app_buttons` 模板改为返回 Material `ButtonStyle`（`FilledButton.styleFrom` 等），
+  配合 ui 12.0 删除 `WButtonStyle` / `WButtonStyleSet`；已生成的项目需重新 `init` 刷新。
+- catalog 同步 ui 12.0 / core 3.2：删除 `WTabBar` / `WImageController` / `WButtonStyle` 等
+  条目，新增 `WButtonTheme` / `WButtonVariant`，`WNumFormatExtension` 归 core。
+
 ## 1.20.42
 
 ### Changed

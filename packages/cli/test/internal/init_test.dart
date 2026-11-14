@@ -79,7 +79,7 @@ void main() {
         p.join(root.path, 'lib/app/ui/app_buttons.dart'),
       ).readAsStringSync();
       expect(appButtons, contains('class AppButtons'));
-      expect(appButtons, contains('WButtonStyle primary'));
+      expect(appButtons, contains('ButtonStyle primary'));
       final appBoxes = File(
         p.join(root.path, 'lib/app/ui/app_boxes.dart'),
       ).readAsStringSync();

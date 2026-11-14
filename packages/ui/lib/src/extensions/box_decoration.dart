@@ -2,48 +2,34 @@ import 'package:flutter/material.dart';
 
 const Object _unset = Object();
 
-/// 让 [BoxDecoration] 可组合，避免重复写完整构造。
+/// [BoxDecoration] 的高频组合糖。
 ///
-/// `withGradient` / `withColor` 只设置对应字段，不会自动清空另一个；
-/// 需要唯一背景时显式调用 `withoutColor()` / `withoutGradient()`。
+/// 只保留两处真正省事的写法：
+/// - [withBackground]：color / gradient 二选一，自动清空另一个（避免非法装饰）；
+/// - [circle]：圆形 + 清空 borderRadius。
+///
+/// 其余字段（border / borderRadius / boxShadow / image）直接传给 `BoxDecoration` 构造器，
+/// 不再逐个提供 `with*` / `without*` 方法。
 extension WBoxDecorationExtension on BoxDecoration {
   BoxDecoration _copy({
     Object? color = _unset,
-    Object? image = _unset,
-    Object? border = _unset,
     Object? borderRadius = _unset,
-    Object? boxShadow = _unset,
     Object? gradient = _unset,
-    Object? backgroundBlendMode = _unset,
     BoxShape? shape,
   }) {
     return BoxDecoration(
       color: identical(color, _unset) ? this.color : color as Color?,
-      image: identical(image, _unset) ? this.image : image as DecorationImage?,
-      border: identical(border, _unset) ? this.border : border as BoxBorder?,
+      image: image,
+      border: border,
       borderRadius: identical(borderRadius, _unset)
           ? this.borderRadius
           : borderRadius as BorderRadiusGeometry?,
-      boxShadow: identical(boxShadow, _unset) ? this.boxShadow : boxShadow as List<BoxShadow>?,
+      boxShadow: boxShadow,
       gradient: identical(gradient, _unset) ? this.gradient : gradient as Gradient?,
-      backgroundBlendMode: identical(backgroundBlendMode, _unset)
-          ? this.backgroundBlendMode
-          : backgroundBlendMode as BlendMode?,
+      backgroundBlendMode: backgroundBlendMode,
       shape: shape ?? this.shape,
     );
   }
-
-  /// 只设置 color，不会清空 gradient。
-  ///
-  /// 需要唯一背景时先调用 [withoutGradient]。
-  BoxDecoration withColor(Color color) => _copy(color: color);
-
-  BoxDecoration withoutColor() => _copy(color: null);
-
-  /// 只设置 gradient，不会清空 color。
-  ///
-  /// 需要唯一背景时先调用 [withoutColor]。
-  BoxDecoration withGradient(Gradient gradient) => _copy(gradient: gradient);
 
   /// 设置唯一背景：color / gradient 二选一，并清空另一个。
   BoxDecoration withBackground({Color? color, Gradient? gradient}) {
@@ -52,33 +38,6 @@ extension WBoxDecorationExtension on BoxDecoration {
       'withBackground: color 与 gradient 必须且只能传一个',
     );
     return _copy(color: color, gradient: gradient);
-  }
-
-  BoxDecoration withoutGradient() => _copy(gradient: null);
-
-  BoxDecoration withBorder(BoxBorder border) => _copy(border: border);
-
-  BoxDecoration withoutBorder() => _copy(border: null);
-
-  BoxDecoration withBorderRadius(BorderRadiusGeometry radius) {
-    assert(shape != BoxShape.circle, 'circle 不能设置 borderRadius');
-    return _copy(borderRadius: radius);
-  }
-
-  BoxDecoration withoutBorderRadius() => _copy(borderRadius: null);
-
-  /// 设置阴影；列表会复制为不可变，避免调用方后续修改影响装饰。
-  BoxDecoration withShadow(List<BoxShadow> shadow) =>
-      _copy(boxShadow: List<BoxShadow>.unmodifiable(shadow));
-
-  BoxDecoration withoutShadow() => _copy(boxShadow: null);
-
-  BoxDecoration withShape(BoxShape shape) {
-    assert(
-      shape != BoxShape.circle || borderRadius == null,
-      'circle 不能同时保留 borderRadius，请用 circle()',
-    );
-    return _copy(shape: shape);
   }
 
   /// 转为圆形，并清空 borderRadius。

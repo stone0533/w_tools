@@ -12,15 +12,15 @@
 
 - **通用组件**：`WText` / `WImage` / `WButton` / `WBadge` 等
 - **布局组件**：`WScaffold` / `WAppBar` / `WListView` / `WStep`
-- **导航组件**：`WNavBar` / `WNavController` / `WTabBar`
-- **扩展方法**：颜色、字符串、数字、TextStyle、Widget、BoxDecoration 等
+- **导航组件**：`WNavBar` / `WNavController`（顶部 tab 直接用 Material `TabBar`）
+- **扩展方法**：颜色、字符串、数字、Widget、BoxDecoration 等
 - **屏幕适配**：`WScreen`、间距与尺寸工具
 
 ## 安装
 
 ```yaml
 dependencies:
-  w_tools_ui: ^11.0.0
+  w_tools_ui: ^12.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -77,12 +77,25 @@ WImage.source(
 
 所有来源统一走 `WImage.source` + `WImageSource`。
 
-空 data（`''` / 纯空白）表示「没有配图」，**不是加载失败**：默认渲染中性 empty 占位，
-不会触发 `errorWidgetBuilder`，也不会回调 `onLoadStatusChanged(failed)`。需要自定义时用
-`WImageSlots(emptyBuilder: ...)`；要区分「空」和「加载失败」就在这里分支。
+空 data（`''` / 纯空白）表示「没有配图」，**不是加载失败**：走 `placeholderBuilder`，
+不会触发 `errorWidgetBuilder`，也不会回调 `onLoadStatusChanged(failed)`。
+
+`WImageSlots` 只有两个槽：`placeholderBuilder`（空 / 加载中 / 等待重试）与
+`errorWidgetBuilder`（收到 `onRetry`）。需要「错误文案 + 重试按钮」时在 error builder 里
+返回 `WImageErrorView`：
+
+```dart
+WImage.source(
+  source: WImageSource.network(url),
+  slots: WImageSlots(
+    errorWidgetBuilder: (context, data, error, retry) =>
+        WImageErrorView(error: error, onRetry: retry),
+  ),
+)
+```
 
 内置 loading / retry / 图片错误文案按当前 `Locale` 取中文或英文；
-`WButtonSemantics.loadingLabel` / `WImageSlots.retryLabel` 传非空字符串可覆盖。
+`WButton.loadingLabel` / `WImageErrorView.retryLabel` 传非空字符串可覆盖。
 
 `WImageError.message` 是固定中文诊断文案（日志 / `toString()`）；UI 里用
 `error.localizedMessage(context)` 跟随当前 `Locale`。
@@ -101,32 +114,41 @@ WImage.source(
 |---|---|
 | 已知网络 / 资源 / 文件 / Base64 | `WImageSource.network/asset/file/base64` |
 | 任意 `ImageProvider` / 内存字节 | `WImageSource.provider` / `ImageProvider` + `MemoryImage` |
-| 动态字符串，需要自动判定 | `WImageSource.parse` + `WImage.source` |
 | 需要加载行为 | `options: WImageLoadOptions(...)` |
-| 需要单图占位/错误/进度/重试 UI | `slots: WImageSlots(...)` |
-| 没有配图 / 空 data | `slots: WImageSlots(emptyBuilder: ...)` |
+| 需要单图占位 / 错误 / 重试 UI | `slots: WImageSlots(...)` |
+| 没有配图 / 空 data | `slots: WImageSlots(placeholderBuilder: ...)` |
 | 需要视觉样式 | `style: WImageStyle(...)` |
 | 需要 App 级默认占位/错误/进度 | `WImageTheme(slots: WImageSlots(...))` |
 | 需要预加载 | `await WImageSource.resolve(...)` + `precacheImage` |
-| 需要手动重试/状态 | `controller: WImageController()` |
+| 需要手动重试 | `errorWidgetBuilder` 的 `onRetry` |
 
-`WImageSource.asset(name)` 默认 **不**拼 `WAssets.imagePath`；
-需要自动拼前缀时用 `WImageSource.asset(name, prefix: true)`。
+`WImageSource.asset(name)` 接收**完整资源路径**（如 `assets/images/logo.png`）；
+12.0 删除了全局前缀 `WAssets.imagePath` 与 `prefix` 参数。
 
 ### 常用配方
 
 ```dart
-WImage.source(source: WImageSource.parse(url), style: WImageStyle.avatar(40))
 WImage.source(
-  source: WImageSource.parse(url),
-  style: WImageStyle.thumbnail(80),
+  source: WImageSource.network(url),
+  style: const WImageStyle(
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.all(Radius.circular(20)),
+  ),
+)
+WImage.source(
+  source: WImageSource.network(url),
+  style: const WImageStyle(width: 80, height: 80),
   options: const WImageLoadOptions(memCacheWidth: 240, memCacheHeight: 240),
 )
 WImage.source(
   source: WImageSource.network(url),
-  slots: const WImageSlots(showRetryButton: true),
+  slots: WImageSlots(
+    errorWidgetBuilder: (context, data, error, retry) =>
+        WImageErrorView(error: error, onRetry: retry),
+  ),
 )
-WImage.source(source: WImageSource.asset('logo.png', prefix: true))
+WImage.source(source: WImageSource.asset('assets/images/logo.png'))
 WImage.source(source: WImageSource.provider(MemoryImage(bytes)))
 ```
 
@@ -149,32 +171,34 @@ final provider = await WImageSource.network(url).resolve(memCacheWidth: 240);
 await precacheImage(provider, context);
 ```
 
-手动重试/状态监听：
+手动重试 / 状态监听：
 
 ```dart
-final controller = WImageController();
 WImage.source(
   source: WImageSource.network(url),
-  controller: controller,
-  slots: const WImageSlots(showRetryButton: true),
+  onLoadStatusChanged: (status) => debugPrint('$status'),
+  onProgress: (progress) => debugPrint('${progress.fraction}'),
+  slots: WImageSlots(
+    errorWidgetBuilder: (context, data, error, retry) =>
+        WImageErrorView(error: error, onRetry: retry),
+  ),
 );
-controller.state.addListener(() => debugPrint('${controller.state.value.status}'));
-// controller.dispose();
 ```
 
-`WImageStyle.width/height` 只约束图片内容；`padding` / `margin` 会加在总尺寸上
-（`width: 10` + `padding: 5` → 总尺寸 20），这一点与 `Container` 不同。
+留白不在 `WImageStyle` 里：需要 padding / margin 时在外层包 `Padding` / `Container`
+（12.0 删除了 `WImageStyle.margin/padding`，`width/height` 语义与 Flutter 一致）。
 
-`WImageStyle` 也提供预设与链式糖：
+`WImageStyle` 只保留一个预设与两条链式糖：
 
 ```dart
-WImageStyle.avatar(40)
-WImageStyle.thumbnail(80)
 WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)
 
 const WImageStyle().square(40).rounded(20)
 WImageStyle.cover().square(40) // 设置 width/height 时自动清空 aspectRatio
 ```
+
+头像 / 缩略图直接用 `width` + `height` + 可选 `borderRadius`，不必再记预设名；
+`WImageStyle.avatar` / `WImageStyle.thumbnail` 已在 12.0 删除（它们只是这两行的预设）。
 
 ### 宽度铺满 + 高度上限
 
@@ -185,7 +209,7 @@ WImageStyle.cover().square(40) // 设置 width/height 时自动清空 aspectRati
 ConstrainedBox(
   constraints: const BoxConstraints(maxHeight: 240),
   child: WImage.source(
-    source: WImageSource.parse(url),
+    source: WImageSource.network(url),
     style: const WImageStyle(
       width: double.infinity, // 必须：宽度要是紧约束，否则夹高时会被缩窄
       fit: BoxFit.fitWidth,
@@ -210,6 +234,7 @@ ConstrainedBox(
 完整的网络、资源、Base64、进度、重试、主题与预加载示例见
 [`example/`](example/README.md)。
 
+> 12.0 迁移见 [`docs/migrations/ui-12.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-12.0.md)；
 > 10.0 迁移见 [`docs/migrations/ui-10.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-10.0.md)；
 > 9.0 迁移见 [`docs/migrations/ui-9.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-9.0.md)；
 > 8.0 迁移见 [`docs/migrations/ui-8.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-8.0.md)；
@@ -260,15 +285,19 @@ WIconText.custom(icon: SvgPicture.asset('assets/star.svg'), text: '收藏'); // 
 
 ```dart
 WButton(label: '保存', onTap: save);
-WButton(label: '提交', loading: true, enabled: false, onTap: submit);
-WButton(icon: Icons.add, label: '新增', style: WButtonStyleSet.of(context).primary, onTap: add);
-WButton(icon: Icons.favorite, tooltip: '收藏', isSelected: true, onTap: toggle);
+WButton(variant: WButtonVariant.outlined, label: '取消', onTap: cancel);
+WButton(variant: WButtonVariant.danger, label: '删除', onTap: remove);
+WButton(label: '提交', loading: true, onTap: submit);
+WButton(icon: Icons.add, label: '新增', size: WButtonSize.small, onTap: add);
+WButton(icon: Icons.favorite, semanticLabel: '收藏', tooltip: '收藏', isSelected: true, onTap: toggle);
 WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 ```
 
+`WButton` 渲染 Material `FilledButton` / `OutlinedButton` / `TextButton`，视觉走
+`ButtonStyle`；全站换色装 `WButtonTheme`，单按钮传 `style: ButtonStyle(...)`。
 任意 child / 卡片点击用 `WPressable`；需要键盘、最小点击区域或 button 语义时用 `WButton`。
-图标按钮用 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）。
-`WButtonStyle.filled` 未传 `foregroundColor` 时按背景亮度自动选黑 / 白。
+图标按钮用 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）；
+纯图标按钮必须给 `semanticLabel`。
 
 ## 页面骨架与布局
 
@@ -328,7 +357,7 @@ WNotificationListener<ScrollNotification>(
 
 ```dart
 class _NavDemoState extends State<NavDemo> {
-  late final _controller = WNavController(length: 3, vsync: this);
+  late final _controller = WNavController(length: 3);
 
   @override
   void dispose() {
@@ -339,8 +368,9 @@ class _NavDemoState extends State<NavDemo> {
   @override
   Widget build(BuildContext context) {
     return WNavBar(
-      style: const WNavBarStyle(),
       controller: _controller,
+      decoration: const BoxDecoration(color: Colors.white),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       onBeforeTap: (index) async => true, // 返回 false 阻止切换
       itemBuilder: (context, index, selected) => Text('Tab $index'),
     );
@@ -348,10 +378,11 @@ class _NavDemoState extends State<NavDemo> {
 }
 ```
 
-`WNavController` 需要页面 State 提供 `vsync`，并由调用方 `dispose`。
+`WNavController` 只维护 `currentIndex`，不需要 `vsync`；由调用方 `dispose`。
 `WNavBar` 默认 `safeArea: true`，会避开底部 home indicator；已在外层包 `SafeArea` 时传
 `safeArea: false`。切换前拦截用 `onBeforeTap`（`FutureOr<bool>`）。
 默认 item 可传 `destinations: [WNavDestination(...)]`；完全自定义用 `itemBuilder`。
+外层装饰 / 内边距直接传 `decoration` / `padding`（12.0 删除了 `WNavBarStyle`）。
 
 顶部 tab：
 
@@ -360,12 +391,9 @@ DefaultTabController(
   length: 2,
   child: Column(
     children: [
-      WTabBar(
-        style: const WTabBarStyle(
-          labelColor: Colors.indigo,
-          enableFeedback: false,
-          indicatorAnimation: TabIndicatorAnimation.elastic,
-        ),
+      TabBar(
+        labelColor: Colors.indigo,
+        indicatorAnimation: TabIndicatorAnimation.elastic,
         tabs: const [Text('全部'), Text('已完成')],
       ),
       const Expanded(
@@ -378,31 +406,32 @@ DefaultTabController(
 )
 ```
 
-`WTabBar` 不自带 controller，需要 `DefaultTabController` 或显式 `TabController`。
-`WTabBarStyle` 支持 `labelColor` / `unselectedLabelColor` / `labelPadding` /
-`indicatorPadding` / `textScaler`；默认 overlay / 水波纹跟 `TabBarTheme`。要关闭灰色按压块 + ripple，用
-`WTabBarStyle.noSplash`，或分别设置 `overlayColor: Colors.transparent` /
-`splashFactory: NoSplash.splashFactory`。默认值不强制透明，避免覆盖 Material 主题。
+顶部 tab 直接用 Material `TabBar`（12.0 删除了 `WTabBar` / `WTabBarStyle`），
+`labelColor` / `indicatorColor` / `indicatorPadding` / `textScaler` / `indicatorAnimation`
+等参数原样传给 `TabBar`，全站样式放 `TabBarTheme`。要关闭灰色按压块 + ripple，
+设置 `overlayColor: WidgetStatePropertyAll(Colors.transparent)` +
+`splashFactory: NoSplash.splashFactory`。
 
 ## 扩展方法
 
 > `WSizeBox` / `WPadding` / `WRow` / `WColumn` 已在 5.0 删除，直接用 Flutter 原生组件；
-> `heightBox` / `widthBox` / `squareBox` 仍保留，是 `SizedBox` 的简写；
+> `heightBox` / `widthBox` / `squareBox` / `horizontalPadding` / `verticalPadding` /
+> `borderRadius` 已在 12.0 删除，直接用 `SizedBox` / `EdgeInsets` / `BorderRadius`；
 > `allPadding` 用于需要 `EdgeInsets` 值的场景。
 
 ```dart
 const SizedBox(height: 16);
 16.allPadding;                // EdgeInsets.all(16)
-1234.toThousandsSeparated;    // 1,234
-1234.56.toCurrency(symbol: '¥'); // ¥1,234.56
-0.125.toPercent;              // 12.5%
-'#FF5733'.toColor();
+'#FF5733'.toColor();          // AARRGGBB
+'#FF573380'.toCssColor();     // CSS / Figma 的 RRGGBBAA
+// 数字格式化（toThousandsSeparated / toCurrency / toPercent）在 w_tools_core 的
+// WNumFormatExtension（ui 12.0 移出）。
 card.withStartPadding(8).withEndPadding(4); // 跟随 Directionality
 2.borderSideOf(context);      // 跟随 ColorScheme.outline（borderSide 已弃用）
 
 const BoxDecoration()
-    .withColor(Colors.white)
-    .withBorderRadius(BorderRadius.circular(8));
+    .withBackground(color: Colors.white)   // color / gradient 二选一
+    .circle();                             // 圆形并清空 borderRadius
 ```
 
 扩展方法随 `package:w_tools_ui/w_tools_ui.dart` 一起导入。
@@ -415,8 +444,8 @@ screen.w(16);
 screen.h(24);
 screen.sp(14);
 
-WAssets.imagePath = 'assets/icons/';
-'logo.png'.assetImagePath;
+// 资源路径直接传完整路径（12.0 删除了 WAssets.imagePath）
+WImageSource.asset('assets/images/logo.png');
 ```
 
 `WScreen` 无 `WScreenScope` 时返回原始值；需要 `ScreenUtil` 时在 App 根节点注入
@@ -447,10 +476,10 @@ WScreenScope(
 | 列表保活 | `WKeepAliveWrapper` |
 | 滚动通知 | `WNotificationListener` |
 | 布局 | `WScaffold` / `WAppBar` / `WListView` |
-| 导航 | `WNavBar` / `WNavController` / `WTabBar` |
+| 导航 | `WNavBar` / `WNavController` |
 | 屏幕工具 | `WScreen` / `WScreenScope` |
-| 资源 | `WAssets` |
-| 扩展 | `WColorExtension` / `WImageStyleExtension` / `WStringExtension` / `WNumLayoutExtension` / `WNumFormatExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
+| 资源 | `WImageSource.asset`（完整路径） |
+| 扩展 | `WColorExtension` / `WImageStyleExtension` / `WStringExtension` / `WNumLayoutExtension` / `WWidgetExtension` / `WBoxDecorationExtension` |
 
 完整构造参数与成员见 [pub.dev API 文档](https://pub.dev/documentation/w_tools_ui/latest/)
 或 `packages/ui/lib` 源码；模块边界与设计取舍见 [`docs/modules/ui_module.md`](https://github.com/stone0533/w_tools/blob/main/docs/modules/ui_module.md)。

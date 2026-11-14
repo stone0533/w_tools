@@ -4,20 +4,21 @@ import 'package:flutter/material.dart';
 import '../common/pressable.dart';
 import 'nav_controller.dart';
 import 'nav_destination.dart';
-import 'nav_style.dart';
 
 export 'nav_destination.dart';
-export 'nav_style.dart';
 
 /// 底部导航栏组件
 ///
-/// 由传入的 [controller]（`WNavController`）驱动选中态与切换动画。
+/// 由传入的 [controller]（`WNavController`）驱动选中态。
 /// 导航项可以用 [itemBuilder] 完全自定义，也可以传 [destinations] 使用默认图标 + 文字。
 ///
 /// [controller] 由调用方持有并负责释放，本组件只负责添加 / 移除监听。
 class WNavBar extends StatefulWidget {
-  /// 标签栏样式
-  final WNavBarStyle? style;
+  /// 外层装饰（背景 / 圆角 / 边框 / 阴影）；null 时由外层容器决定。
+  final BoxDecoration? decoration;
+
+  /// 外层内边距；null 时不留白。
+  final EdgeInsetsGeometry? padding;
 
   /// 导航项构建器；与 [destinations] 二选一
   final Widget Function(BuildContext, int, bool)? itemBuilder;
@@ -41,7 +42,8 @@ class WNavBar extends StatefulWidget {
 
   const WNavBar({
     super.key,
-    this.style,
+    this.decoration,
+    this.padding,
     this.itemBuilder,
     this.destinations,
     this.onBeforeTap,
@@ -102,7 +104,8 @@ class _WNavBarState extends State<WNavBar> {
       final allowed = await beforeTap(index);
       if (!mounted || token != _tapToken || !allowed) return;
     }
-    await _controller.animateTo(index);
+    // 选中态本身不需要动画：直接切换索引，由上层决定是否做过渡。
+    _controller.currentIndex = index;
   }
 
   @override
@@ -137,8 +140,8 @@ class _WNavBarState extends State<WNavBar> {
       navContent = SafeArea(top: false, child: navContent);
     }
 
-    final decoration = widget.style?.decoration;
-    final padding = widget.style?.padding;
+    final decoration = widget.decoration;
+    final padding = widget.padding;
     if (decoration == null && padding == null) {
       return navContent;
     }

@@ -44,7 +44,6 @@ class WSelectableRow extends StatefulWidget {
 }
 
 class _WSelectableRowState extends State<WSelectableRow> {
-  final GlobalKey _rowKey = GlobalKey();
   final List<GlobalKey> _itemKeys = [];
 
   @override
@@ -94,7 +93,6 @@ class _WSelectableRowState extends State<WSelectableRow> {
   @override
   Widget build(BuildContext context) {
     return WActionRowScrollView(
-      scrollViewKey: _rowKey,
       padding: widget.padding,
       spacing: widget.spacing,
       physics: widget.physics,

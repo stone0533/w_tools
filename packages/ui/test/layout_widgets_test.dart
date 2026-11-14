@@ -6,10 +6,10 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 void main() {
   testWidgets('WStep — 默认显示 1 基 label / 状态', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: WStep(
           current: 1,
-          labels: const ['One', 'Two', 'Three'],
+          labels: ['One', 'Two', 'Three'],
         ),
       ),
     );
@@ -54,22 +54,6 @@ void main() {
     });
   });
 
-  testWidgets('WStep — WStepFlow 复用流程定义', (tester) async {
-    final flow = WStepFlow(
-      labels: const ['A', 'B', 'C'],
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: flow.build(current: 3),
-      ),
-    );
-
-    expect(find.text('A'), findsOneWidget);
-    expect(find.text('C'), findsOneWidget);
-    expect(() => flow.labels.add('D'), throwsUnsupportedError);
-  });
-
   testWidgets('WStep — semanticLabelBuilder 自定义语义标签', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -94,8 +78,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: theme,
-        home: Scaffold(
-          body: WStep(labels: const ['下单', '付款'], current: 1),
+        home: const Scaffold(
+          body: WStep(labels: ['下单', '付款'], current: 1),
         ),
       ),
     );
@@ -109,10 +93,10 @@ void main() {
 
   testWidgets('WStep — completed / current / upcoming 默认状态', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: WStep(
           current: 2,
-          labels: const ['A', 'B', 'C'],
+          labels: ['A', 'B', 'C'],
         ),
       ),
     );
@@ -123,28 +107,13 @@ void main() {
     expect(find.text('3'), findsOneWidget);
   });
 
-  testWidgets('WStep — WStepFlow.copyWith', (tester) async {
-    final flow = WStepFlow(labels: const ['A', 'B', 'C']);
-    final copy = flow.copyWith(labels: const ['X', 'Y']);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: copy.build(current: 2),
-      ),
-    );
-
-    expect(find.text('X'), findsOneWidget);
-    expect(find.text('Y'), findsOneWidget);
-    expect(copy.labels, isNot(same(flow.labels)));
-  });
-
   testWidgets('WStep — itemSize 必须大于 0', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: WStep(
           current: 1,
-          labels: const ['A'],
-          style: const WStepStyle(itemSize: 0),
+          labels: ['A'],
+          style: WStepStyle(itemSize: 0),
         ),
       ),
     );
@@ -162,10 +131,10 @@ void main() {
 
   testWidgets('WStep — current 越界断言', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: WStep(
           current: 4,
-          labels: const ['A', 'B', 'C'],
+          labels: ['A', 'B', 'C'],
         ),
       ),
     );
@@ -175,10 +144,10 @@ void main() {
 
   testWidgets('WStep — labels 为空断言', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: WStep(
           current: 1,
-          labels: const [],
+          labels: [],
         ),
       ),
     );
@@ -186,19 +155,12 @@ void main() {
     expect(tester.takeException(), isAssertionError);
   });
 
-  testWidgets('WStep — labels 构造时复制，外部修改不影响', (tester) async {
-    final labels = ['A', 'B', 'C'];
-    await tester.pumpWidget(
-      MaterialApp(
-        home: WStep(current: 2, labels: labels),
-      ),
-    );
-
-    labels[1] = 'X';
-    await tester.pump();
+  testWidgets('WStep — 支持 const 构造', (tester) async {
+    const step = WStep(current: 2, labels: ['A', 'B', 'C']);
+    await tester.pumpWidget(const MaterialApp(home: step));
 
     expect(find.text('B'), findsOneWidget);
-    expect(find.text('X'), findsNothing);
+    expect(find.text('2'), findsOneWidget);
   });
 
   testWidgets('WScaffold — 接受任意 PreferredSizeWidget 作为 appBar', (tester) async {
@@ -791,7 +753,7 @@ void main() {
   });
 
   testWidgets('WScaffold + WNavBar 不重复加底部安全区（回归）', (tester) async {
-    final controller = WNavController(length: 2, vsync: tester);
+    final controller = WNavController(length: 2);
     addTearDown(controller.dispose);
     final data = MediaQueryData.fromView(tester.view).copyWith(
       padding: const EdgeInsets.only(bottom: 34),
@@ -847,7 +809,7 @@ void main() {
     expect(tester.getTopLeft(find.text('body')).dy, 100);
   });
 
-  testWidgets('WScaffold — 空标题不创建 AppBar', (tester) async {
+  testWidgets('WScaffold — 空标题仍渲染顶栏（回归：曾静默不渲染）', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: WScaffold.basic(
@@ -857,7 +819,8 @@ void main() {
       ),
     );
 
-    expect(find.byType(NavigationToolbar), findsNothing);
+    expect(find.byType(NavigationToolbar), findsOneWidget);
+    expect(find.byType(WAppBar), findsOneWidget);
   });
 
   testWidgets('WScaffold — onBack 优先于 automaticallyImplyLeading', (tester) async {
@@ -918,38 +881,6 @@ void main() {
     expect(scaffold.extendBody, isTrue);
     expect(find.text('footer'), findsOneWidget);
     expect(find.byKey(const Key('sheet')), findsOneWidget);
-  });
-
-  group('GlobalKey 扩展', () {
-    testWidgets('rect() 返回全局坐标矩形（回归：曾返回局部 paintBounds）', (tester) async {
-      final key = GlobalKey();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Align(
-            alignment: Alignment.topLeft,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 50, top: 30),
-              child: SizedBox(key: key, width: 100, height: 40),
-            ),
-          ),
-        ),
-      );
-
-      final offset = key.offset();
-      final rect = key.rect();
-
-      expect(offset, isNotNull);
-      expect(rect, isNotNull);
-      // 全局坐标：矩形左上角应与 offset() 一致（若为局部坐标则恒为 Offset.zero）
-      expect(rect!.topLeft, offset);
-      expect(rect.size, const Size(100, 40));
-    });
-
-    testWidgets('未挂载时 offset()/rect() 返回 null', (tester) async {
-      final key = GlobalKey();
-      expect(key.offset(), isNull);
-      expect(key.rect(), isNull);
-    });
   });
 
   test('WAppBarStyle.withBackground / withoutBackground 可在纯色与渐变间切换', () {

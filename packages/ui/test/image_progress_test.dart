@@ -55,13 +55,13 @@ class _ChunkProvider extends ImageProvider<_ChunkProvider> {
 }
 
 void main() {
-  testWidgets('defaults progressBuilder 用于网络/字节进度', (tester) async {
+  testWidgets('主题 placeholderBuilder 覆盖加载中（含进度）', (tester) async {
     final provider = _ChunkProvider(base64Decode(_redPixel));
 
     await tester.pumpWidget(
       WImageTheme(
         slots: WImageSlots(
-          progressBuilder: (context, url, progress) => const Text('THEME_PROGRESS'),
+          placeholderBuilder: (context, data) => const Text('THEME_PROGRESS'),
         ),
         child: MaterialApp(
           home: WImage.source(

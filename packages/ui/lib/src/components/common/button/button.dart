@@ -1,103 +1,97 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import 'button_motion.dart';
-import '../press_effect.dart';
-import 'button_resolved_style.dart';
-import 'button_semantics.dart';
-import 'button_size.dart';
-import 'button_style.dart';
-import 'button_styles.dart';
 import '../../../internal/ui_strings.dart';
 import '../../text/icon_text.dart';
+import 'button_size.dart';
+import 'button_theme.dart';
+import 'button_variant.dart';
 
-export 'button_motion.dart';
-export 'button_resolved_style.dart';
-export 'button_semantics.dart';
 export 'button_size.dart';
-export 'button_style.dart';
-export 'button_styles.dart';
+export 'button_theme.dart';
+export 'button_variant.dart';
 
-part 'button_content.dart';
-part 'button_effect.dart';
-part 'button_tap_target.dart';
-
-/// 按钮内容构建器。
+/// 按钮。
 ///
-/// [style] 是已经应用 size 的最终样式。
-typedef WButtonContentBuilder =
-    Widget Function(
-      BuildContext context,
-      WButtonResolvedStyle style,
-    );
-
-/// 真正的按钮组件。
+/// 视觉完全交给 Material [ButtonStyle]（`FilledButton` / `OutlinedButton` /
+/// `TextButton`），因此主题、水波纹、键盘 / 焦点、禁用态都与 Material 一致；
+/// 全站样式用 `WButtonTheme`，单个按钮用 [style] 覆盖。
 ///
-/// 支持 label/icon、静态 [content]、需要最终样式的 [contentBuilder]；
-/// 保留 button 语义、键盘、loading 和最小点击区域。
-class WButton extends StatefulWidget {
+/// 只负责按钮语义、loading、最小尺寸与图标 + 文字内容。
+class WButton extends StatelessWidget {
   const WButton({
     super.key,
+    this.variant = WButtonVariant.filled,
     this.style,
+    this.size = WButtonSize.medium,
     this.label,
     this.icon,
     this.content,
-    this.contentBuilder,
-    this.size,
-    this.motion = const WButtonMotion(),
-    this.semantics = const WButtonSemantics(),
-    this.semanticLabel,
-    this.tooltip,
-    this.isSelected,
-    this.onTap,
-    this.onLongPress,
-    this.enabled = true,
     this.loading = false,
     this.loadingBuilder,
+    this.enabled = true,
+    this.onTap,
+    this.onLongPress,
+    this.semanticLabel,
+    this.semanticHint,
+    this.loadingLabel = '',
+    this.tooltip,
+    this.isSelected,
     this.focusNode,
     this.autofocus = false,
   }) : assert(
-         content != null || contentBuilder != null || label != null || icon != null,
-         'WButton: content / contentBuilder / label / icon 至少提供一个',
+         content != null || label != null || icon != null,
+         'WButton: content / label / icon 至少提供一个',
        ),
        assert(
-         (content == null ? 0 : 1) +
-                 (contentBuilder == null ? 0 : 1) +
-                 ((label != null || icon != null) ? 1 : 0) ==
-             1,
-         'WButton: content / contentBuilder / label+icon 只能选择一种',
+         content == null || (label == null && icon == null),
+         'WButton: content 与 label + icon 只能选择一种',
        ),
        assert(
          !enabled || loading || onTap != null || onLongPress != null,
          'WButton: 可交互按钮至少提供 onTap 或 onLongPress',
+       ),
+       assert(
+         icon == null || label != null || content != null || semanticLabel != null || loading,
+         'WButton: 纯图标按钮请提供 semanticLabel',
        );
 
-  final WButtonStyle? style;
+  /// 语义变体；视觉由 `WButtonTheme` 对应的 `ButtonStyle` 决定。
+  final WButtonVariant variant;
+
+  /// 单按钮样式覆盖（Material [ButtonStyle]）；优先级高于 [size] 与 `WButtonTheme`。
+  final ButtonStyle? style;
+
+  /// 尺寸令牌；默认 `WButtonSize.medium`。
+  final WButtonSize size;
 
   /// 简单内容
   final String? label;
   final IconData? icon;
 
-  /// 静态复杂内容
+  /// 静态复杂内容；内部 Text / Icon 继承按钮前景色与文字样式。
   final Widget? content;
 
-  /// 需要最终 style 的复杂内容
-  final WButtonContentBuilder? contentBuilder;
+  final bool loading;
 
-  /// 尺寸；null 时 variant 构造回退到 medium
-  final WButtonSize? size;
+  /// 加载中占位；默认小号 CircularProgressIndicator
+  final WidgetBuilder? loadingBuilder;
 
-  /// 按压动效（opacity / scale / none）
-  final WButtonMotion motion;
+  final bool enabled;
 
-  /// 无障碍语义；`semanticLabel` 会覆盖其中的 label
-  final WButtonSemantics semantics;
+  final GestureTapCallback? onTap;
+  final GestureLongPressCallback? onLongPress;
 
-  /// 显式无障碍标签；纯图标按钮建议提供
+  /// 显式无障碍标签；纯图标按钮建议提供。
+  ///
+  /// 提供后会替代按钮内容的朗读，并保留 `button` / `enabled` 语义。
   final String? semanticLabel;
+
+  /// 无障碍提示（操作后会发生什么）。
+  final String? semanticHint;
+
+  /// loading 时的读屏文案；空字符串表示按当前 `Locale` 使用内置文案
+  /// （zh：加载中；其他：Loading）。
+  final String loadingLabel;
 
   /// 长按 / hover 提示文案；null 时不包 Tooltip。
   final String? tooltip;
@@ -105,271 +99,153 @@ class WButton extends StatefulWidget {
   /// 是否处于选中态（toggle button）；进入 `Semantics.selected`。
   final bool? isSelected;
 
-  final GestureTapCallback? onTap;
-  final GestureLongPressCallback? onLongPress;
-
-  final bool enabled;
-  final bool loading;
-
-  /// 加载中占位；默认小号 CircularProgressIndicator
-  final WidgetBuilder? loadingBuilder;
-
   final FocusNode? focusNode;
   final bool autofocus;
 
-  @override
-  State<WButton> createState() => _WButtonState();
-}
-
-class _WButtonState extends State<WButton> {
-  final ValueNotifier<bool> _pressed = ValueNotifier<bool>(false);
-  Timer? _pressTimer;
-  int _pressToken = 0;
-  bool _focused = false;
-  bool _hovered = false;
-  WButtonStyle? _cachedStyle;
-  Object? _cachedStyleKey;
-  ThemeData? _cachedTheme;
-
-  bool get _interactive =>
-      widget.enabled && !widget.loading && (widget.onTap != null || widget.onLongPress != null);
-
-  @override
-  void dispose() {
-    _pressTimer?.cancel();
-    _pressed.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(WButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!_interactive) {
-      _setPressed(false);
-      _focused = false;
-      _hovered = false;
-    }
-  }
-
-  WButtonStyle _resolveStyle(BuildContext context) {
-    final theme = Theme.of(context);
-    // ThemeData.hashCode 是深比较；这里只关心 Theme 实例是否变化（Theme.of 返回稳定实例）。
-    final key = Object.hash(widget.style, widget.size);
-    if (_cachedStyle != null && _cachedStyleKey == key && identical(_cachedTheme, theme)) {
-      return _cachedStyle!;
-    }
-    _cachedTheme = theme;
-    final base = widget.style ?? WButtonStyleSet.of(context).primary;
-    final sized = base.applySize(widget.size);
-    assert(
-      widget.icon == null ||
-          widget.label != null ||
-          widget.content != null ||
-          widget.contentBuilder != null ||
-          widget.semanticLabel != null ||
-          widget.semantics.label != null,
-      'WButton: 纯图标按钮请提供 semanticLabel',
-    );
-    _cachedStyle = sized;
-    _cachedStyleKey = key;
-    return sized;
-  }
-
-  WButtonSemantics get _semantics {
-    final label = widget.semanticLabel;
-    return label == null ? widget.semantics : widget.semantics.copyWith(label: label);
-  }
-
-  void _setPressed(bool value) {
-    if (_pressed.value == value) return;
-    _pressed.value = value;
-  }
-
-  void _pulse(WButtonMotion motion) {
-    final token = ++_pressToken;
-    _pressTimer?.cancel();
-    _setPressed(true);
-    _pressTimer = Timer(motion.duration, () {
-      if (mounted && token == _pressToken) _setPressed(false);
-    });
-  }
-
-  void _handleTap() {
-    if (!_interactive) return;
-    widget.onTap?.call();
-  }
-
-  void _handleLongPress() {
-    if (!_interactive) return;
-    widget.onLongPress?.call();
-  }
-
-  void _activate() {
-    if (!_interactive || widget.onTap == null) return;
-    _pulse(widget.motion);
-    _handleTap();
-  }
-
-  void _onTapDown(TapDownDetails details) {
-    if (!_interactive) return;
-    _pressToken++;
-    _pressTimer?.cancel();
-    _setPressed(true);
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    if (!_interactive) return;
-    _setPressed(false);
-  }
-
-  void _onTapCancel() {
-    if (!_interactive) return;
-    _setPressed(false);
-  }
+  bool get _interactive => enabled && !loading && (onTap != null || onLongPress != null);
 
   @override
   Widget build(BuildContext context) {
-    final style = _resolveStyle(context);
-    // 断言依赖运行时 style；const 构造器无法调用 validate()，故留在 build。
-    style.validate();
-    final motion = widget.motion..validate();
-    final semantics = _semantics;
-    final interactive = _interactive;
-    final keyboardInteractive = interactive && widget.onTap != null;
     final theme = Theme.of(context);
-    final hoverColor = style.hoverColor ?? theme.hoverColor;
-    final focusColor = style.focusColor ?? theme.focusColor;
+    final themed = WButtonTheme.of(context).styleFor(variant);
+    // 优先级：单按钮 style > WButtonSize > WButtonTheme。
+    // ButtonStyle.merge 是「this 优先」，所以按低 → 高依次 merge。
+    final sized = _withSize(size, themed, theme);
+    final style = (this.style ?? const ButtonStyle()).merge(sized);
 
-    Widget buildResolvedVisual(
-      BuildContext context,
-      WButtonStyle style,
-      WButtonResolvedStyle visual,
-      bool pressed,
-    ) {
-      final child = _buildButtonContentWidget(this, context, visual);
-      final inner = _buildButtonContent(this, context, visual, child);
-      final padded = Padding(
-        padding: style.padding ?? EdgeInsets.zero,
-        child: Align(
-          alignment: style.alignment,
-          widthFactor: 1,
-          heightFactor: 1,
-          child: inner,
-        ),
+    final interactive = _interactive;
+    final onPressed = interactive ? (onTap ?? _noop) : null;
+
+    final body = Builder(
+      builder: (context) {
+        final child = content ?? _buildButtonLabel(this);
+        return loading ? _buildButtonLoading(context, child, loadingLabel) : child;
+      },
+    );
+
+    Widget button = switch (variant) {
+      WButtonVariant.filled || WButtonVariant.danger => FilledButton(
+        style: style,
+        onPressed: onPressed,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        child: body,
+      ),
+      WButtonVariant.outlined => OutlinedButton(
+        style: style,
+        onPressed: onPressed,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        child: body,
+      ),
+      WButtonVariant.text => TextButton(
+        style: style,
+        onPressed: onPressed,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        child: body,
+      ),
+    };
+
+    if (onLongPress != null) {
+      button = GestureDetector(
+        onLongPress: interactive ? onLongPress : null,
+        child: button,
       );
-
-      Widget content = padded;
-      final hasDecoration =
-          visual.backgroundColor != null ||
-          visual.gradient != null ||
-          visual.border != null ||
-          style.borderRadius != null ||
-          visual.boxShadow != null;
-      if (hasDecoration) {
-        content = DecoratedBox(
-          decoration: BoxDecoration(
-            color: visual.backgroundColor,
-            gradient: visual.gradient,
-            border: visual.border,
-            borderRadius: style.borderRadius,
-            boxShadow: visual.boxShadow,
-          ),
-          child: padded,
-        );
-      }
-      if (style.clipBehavior != Clip.none) {
-        content = ClipRRect(
-          borderRadius: style.borderRadius ?? BorderRadius.zero,
-          clipBehavior: style.clipBehavior,
-          child: content,
-        );
-      }
-
-      Widget visualChild = ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: style.minWidth,
-          minHeight: style.minHeight,
-        ),
-        child: content,
-      );
-
-      visualChild = IgnorePointer(ignoring: !interactive, child: visualChild);
-      if (!interactive) {
-        visualChild = Opacity(
-          opacity: style.disabledOpacity.clamp(0.0, 1.0),
-          child: visualChild,
-        );
-      }
-
-      var result = _buildButtonVisual(motion, pressed, visualChild);
-      if (_hovered && interactive) {
-        result = _buildButtonOverlay(result, hoverColor, style.borderRadius);
-      }
-      if (_focused && interactive) {
-        result = _buildButtonOverlay(result, focusColor, style.borderRadius);
-      }
-      return _buildButtonTapTarget(result, style);
     }
 
-    final button = Semantics(
-      button: true,
-      enabled: interactive,
-      selected: widget.isSelected,
-      label: semantics.label,
-      hint: semantics.hint,
-      onTap: interactive && widget.onTap != null ? () => _activate() : null,
-      onLongPress: interactive && widget.onLongPress != null ? _handleLongPress : null,
-      child: FocusableActionDetector(
-        enabled: keyboardInteractive,
-        autofocus: widget.autofocus,
-        focusNode: widget.focusNode,
-        onShowFocusHighlight: (value) => setState(() => _focused = value),
-        onShowHoverHighlight: (value) => setState(() => _hovered = value),
-        mouseCursor: interactive ? SystemMouseCursors.click : SystemMouseCursors.basic,
-        shortcuts: const <ShortcutActivator, Intent>{
-          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-        },
-        actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) {
-              _activate();
-              return null;
-            },
-          ),
-        },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          excludeFromSemantics: true,
-          onTap: interactive ? _handleTap : null,
-          onLongPress: interactive && widget.onLongPress != null ? _handleLongPress : null,
-          onTapDown: interactive ? (details) => _onTapDown(details) : null,
-          onTapUp: interactive ? _onTapUp : null,
-          onTapCancel: interactive ? _onTapCancel : null,
-          child: ValueListenableBuilder<bool>(
-            valueListenable: _pressed,
-            builder: (context, pressed, _) {
-              final states = <WidgetState>{
-                if (!interactive) WidgetState.disabled,
-                if (pressed) WidgetState.pressed,
-                if (_hovered) WidgetState.hovered,
-                if (_focused) WidgetState.focused,
-              };
-              final visual = style.resolve(states);
-              return buildResolvedVisual(context, style, visual, pressed);
-            },
+    if (isSelected != null) {
+      button = Semantics(selected: isSelected, child: button);
+    }
+
+    final semanticText = semanticLabel;
+    if (semanticText != null || semanticHint != null) {
+      button = Semantics(
+        button: true,
+        enabled: interactive,
+        label: semanticText,
+        hint: semanticHint,
+        excludeSemantics: true,
+        child: button,
+      );
+    }
+
+    final tip = tooltip;
+    return tip == null ? button : Tooltip(message: tip, excludeFromSemantics: true, child: button);
+  }
+
+  static void _noop() {}
+
+  static ButtonStyle _withSize(WButtonSize size, ButtonStyle base, ThemeData theme) {
+    size.validate();
+    return ButtonStyle(
+      padding: size.padding == null ? null : WidgetStatePropertyAll(size.padding),
+      minimumSize: WidgetStatePropertyAll(
+        Size(size.minWidth ?? 48, size.minHeight ?? 48),
+      ),
+      tapTargetSize: size.tapTargetSize >= 48
+          ? MaterialTapTargetSize.padded
+          : MaterialTapTargetSize.shrinkWrap,
+      textStyle: WidgetStateProperty.resolveWith((states) {
+        final text =
+            base.textStyle?.resolve(states) ?? theme.textTheme.labelLarge ?? const TextStyle();
+        return text.copyWith(
+          fontSize: size.fontSize,
+          fontWeight: size.fontWeight,
+          height: size.lineHeight,
+          letterSpacing: size.letterSpacing,
+        );
+      }),
+    ).merge(base);
+  }
+}
+
+/// 加载中占位（spinner 跟随按钮前景色，保持原内容占位避免尺寸跳动）。
+Widget _buildButtonLoading(
+  BuildContext context,
+  Widget child,
+  String loadingLabel,
+) {
+  // 默认 spinner 取 colorScheme.primary；在主色填充按钮上会与背景同色。
+  final indicatorColor = DefaultTextStyle.of(context).style.color;
+  final label = loadingLabel.isEmpty ? WUiStrings.of(context).loadingLabel : loadingLabel;
+  return Stack(
+    alignment: Alignment.center,
+    children: [
+      ExcludeSemantics(child: Opacity(opacity: 0, child: child)),
+      Semantics(
+        container: true,
+        liveRegion: true,
+        label: label,
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: indicatorColor,
           ),
         ),
       ),
-    );
+    ],
+  );
+}
 
-    final tooltip = widget.tooltip;
-    return tooltip == null
-        ? button
-        : Tooltip(
-            message: tooltip,
-            excludeFromSemantics: true,
-            child: button,
-          );
+/// 默认内容：图标 + 文字一行（与独立 `WIconText` 同一套行盒对齐）。
+Widget _buildButtonLabel(WButton button) {
+  final label = button.label;
+  final icon = button.icon;
+  final size = button.size;
+  final iconSize = size.iconSize ?? 18;
+  final gap = size.gap ?? 8;
+  if (label != null && icon != null) {
+    return WIconText(
+      icon: icon,
+      text: label,
+      iconSize: iconSize,
+      gap: gap,
+    );
   }
+  if (icon != null) return Icon(icon, size: iconSize);
+  if (label != null) return Text(label);
+  return const SizedBox.shrink();
 }

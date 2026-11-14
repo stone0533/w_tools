@@ -13,7 +13,6 @@ class WActionRowScrollView extends StatefulWidget {
     this.physics,
     this.controller,
     this.onScroll,
-    this.scrollViewKey,
   });
 
   final List<Widget> children;
@@ -22,7 +21,6 @@ class WActionRowScrollView extends StatefulWidget {
   final ScrollPhysics? physics;
   final ScrollController? controller;
   final ValueChanged<double>? onScroll;
-  final Key? scrollViewKey;
 
   @override
   State<WActionRowScrollView> createState() => _WActionRowScrollViewState();
@@ -82,7 +80,6 @@ class _WActionRowScrollViewState extends State<WActionRowScrollView> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      key: widget.scrollViewKey,
       scrollDirection: Axis.horizontal,
       controller: _effectiveController,
       physics: widget.physics,

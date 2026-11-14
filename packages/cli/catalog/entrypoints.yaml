@@ -23,7 +23,6 @@ w_tools_ui:
   - WScaffold
   - WAppBar
   - WNavBar
-  - WTabBar
   - WStep
   - WBadge
   - WListView

@@ -74,13 +74,13 @@ components:
     package: 'w_tools_ui'
     docsAnchor: 'wnavbar--wnavcontroller'
     section: '1. 页面骨架与导航'
-    useFor: '底部 tab 栏；controller 需 vsync 并由页面 State dispose'
+    useFor: '底部 tab 栏；controller 只维护 currentIndex，由页面 State dispose'
     dontUseFor: '不要自己写 `BottomNavigationBar`'
     usage: |
-      final nav = WNavController(length: 3, vsync: this); // State with TickerProviderStateMixin
+      final nav = WNavController(length: 3);
       WNavBar(
         controller: nav,
-        style: const WNavBarStyle(padding: EdgeInsets.symmetric(horizontal: 8)),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         onBeforeTap: (index) async => true, // 返回 false 阻止切换
         itemBuilder: (context, index, selected) => ...,
       );
@@ -104,7 +104,7 @@ components:
       - 'onBeforeTap 返回 false 可以阻止切换；同步 / 异步都支持'
       - '默认 safeArea: true，会避开 home indicator；放进已包 SafeArea 的容器时传 safeArea: false'
       - 'itemBuilder 与 destinations 必须且只能提供一个；destinations 数量必须等于 controller.length'
-    related: ['`WNavBarStyle`', '`WNavDestination`', '`WTabBar`']
+    related: ['`WNavDestination`']
     teach: false
   - name: '`WNavDestination`'
     package: 'w_tools_ui'
@@ -116,74 +116,7 @@ components:
       WNavDestination(icon: Icons.home_outlined, selectedIcon: Icons.home, label: '首页');
     related: ['`WNavBar`']
     teach: false
-  - name: '`WNavBarStyle`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wnavbar--wnavcontroller'
-    section: '1. 页面骨架与导航'
-    useFor: 'WNavBar 的外层装饰 / padding；新代码优先'
-    dontUseFor: '选中态与切换动画由 `WNavController` 管，不要放进 style'
-    usage: |
-      WNavBar(
-        controller: nav,
-        style: const WNavBarStyle(padding: EdgeInsets.symmetric(horizontal: 8)),
-        itemBuilder: ...,
-      )
-    teach: false
-    related: ['`WNavBar`']
-  - name: '`WTabBar`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wtabbar'
-    section: '1. 页面骨架与导航'
-    useFor: '顶部 tab；依赖 TabController / DefaultTabController'
-    dontUseFor: '需要下划线跟随的复杂交互时先看它够不够'
-    usage: |
-      DefaultTabController(
-        length: 2,
-        child: Column(
-          children: [
-            WTabBar(
-              style: const WTabBarStyle(
-                indicatorColor: Colors.indigo,
-                labelColor: Colors.indigo,
-                unselectedLabelColor: Colors.grey,
-              ),
-              tabs: const [Tab(text: '全部'), Tab(text: '完成')],
-            ),
-            Expanded(child: TabBarView(children: [...])),
-          ],
-        ),
-      )
-    pitfalls:
-      - 'WTabBar 不自带 controller；外面必须有 DefaultTabController 或显式 TabController'
-    related: ['`WTabBarStyle`', '`WNavBar`']
-    teach: false
-  - name: '`WTabBarStyle`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wtabbar'
-    section: '1. 页面骨架与导航'
-    useFor: '指示器 / 分割线 / 对齐 / overlay / 标签样式；新代码优先'
-    dontUseFor: 'WTabBar 不自带 controller，不要在这里塞状态'
-    usage: |
-      WTabBar(
-        style: const WTabBarStyle(
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          indicatorColor: Colors.indigo,
-          labelColor: Colors.indigo,
-          unselectedLabelColor: Colors.grey,
-          labelPadding: EdgeInsets.symmetric(horizontal: 12),
-          indicatorAnimation: TabIndicatorAnimation.elastic,
-          enableFeedback: false,
-        ),
-        tabs: const [Tab(text: '全部'), Tab(text: '完成')],
-      )
-    pitfalls:
-      - 'tabAlignment 非默认值时必须同时设 isScrollable: true'
-      - '默认 overlay / ripple 跟随 TabBarTheme；要关用 WTabBarStyle.noSplash 或 splashFactory + overlayColor'
-      - 'mouseCursor / enableFeedback / splashBorderRadius 为 null 时交给 TabBarTheme'
-    related: ['`WTabBar`']
-    teach: false
-  - name: '`WStep` / `WStepFlow`'
+  - name: '`WStep`'
     package: 'w_tools_ui'
     docsAnchor: 'wstep'
     section: '1. 页面骨架与导航'
@@ -191,12 +124,9 @@ components:
     dontUseFor: '背景/高度用外层 Container；多步骤注意横向空间'
     usage: |
       WStep(labels: const ['下单', '付款', '完成'], current: 2);
-      
-      final flow = WStepFlow(labels: const ['下单', '付款', '完成']);
-      flow.build(current: 2);
     pitfalls:
       - 'current 从 1 开始；越界 / 空 labels 会在 debug 断言'
-      - 'WStep 与 WStepFlow 构造时复制并冻结 labels；WStep 不再是 const 构造器'
+      - 'WStep 是 const 组件；labels 由调用方保证不可变，组件不做复制'
     related: ['`WStepStyle`']
     teach: false
   - name: '`WStepStyle`'
@@ -254,7 +184,7 @@ components:
     docsAnchor: '22-wicontext---图标--文字'
     section: '2. 文本与图标'
     useFor: '图标 + 文字一行（垂直居中 / 光学补偿），替代 Row + Icon + Text'
-    dontUseFor: '纯图标 / 需要按钮语义用 `WButton(icon: ...)`；复杂多行内容用 `WButtonContentBuilder`'
+    dontUseFor: '纯图标 / 需要按钮语义用 `WButton(icon: ...)`；复杂多行内容用 `WButton(content: ...)`'
     usage: |
       WIconText(icon: Icons.star, text: '收藏');
       WIconText(icon: Icons.location_on, text: '上海市', variant: WTextVariant.body);
@@ -273,45 +203,49 @@ components:
     package: 'w_tools_ui'
     docsAnchor: '4-wimage---图片组件'
     section: '2. 文本与图标'
-    useFor: '网络图/资源图（缓存、占位；重试需显式设置 retryCount）'
+    useFor: '网络图/资源图（缓存、占位；自动重试用 retryCount）'
     dontUseFor: '不要裸用 `Image.network`'
     usage: |
       WImage.source(source: WImageSource.network(url));
-      WImage.source(source: WImageSource.asset('logo.png', prefix: true));
-      WImage.source(source: WImageSource.parse(raw));
-      WImage.source(source: WImageSource.network(url), slots: const WImageSlots(showRetryButton: true));
+      WImage.source(source: WImageSource.asset('assets/images/logo.png'));
       WImage.source(
         source: WImageSource.network(url),
         options: const WImageLoadOptions(memCacheWidth: 800, retryCount: 2),
       );
+      WImage.source(
+        source: WImageSource.network(url),
+        slots: WImageSlots(
+          errorWidgetBuilder: (context, data, error, retry) =>
+              WImageErrorView(error: error, onRetry: retry),
+        ),
+      );
       // 必须给 width/height/aspectRatio，或由父级约束（SizedBox/Expanded/AspectRatio）
     pitfalls:
       - '旧 WImage.network/asset/data 已在 6.0 删除'
-      - '未知来源用 WImageSource.parse'
       - '没有 width/height/aspectRatio 时必须由父级约束（SizedBox/Expanded/AspectRatio）；否则 Row/Column/ListView 里加载前是 0 尺寸（空白）'
       - 'width + fitWidth 仍不会确定高度；aspectRatio 不能和固定 width/height 同时设置'
-      - '空 source（空字符串 / 纯空白）走 empty 占位，不是 error；自定义用 WImageSlots.emptyBuilder'
+      - '空 source（空字符串 / 纯空白）走 placeholderBuilder，不是 error'
+      - '12.0 删除了 WImageController 与 WImageSlots 的 showRetryButton / emptyBuilder / progressBuilder；手动重试用 errorWidgetBuilder 的 onRetry'
     related: ['`WImageSource`', '`WImageSlots`']
     teach: true
   - name: '`WImageSource`'
     package: 'w_tools_ui'
     docsAnchor: '4-wimage---图片组件'
     section: '2. 文本与图标'
-    useFor: 'WImage 的来源：network / asset / file / base64 / provider / parse'
-    dontUseFor: '不要用已删除的 WImage.network / asset / file / data'
+    useFor: 'WImage 的来源：network / asset / file / base64 / provider'
+    dontUseFor: '不要用已删除的 WImage.network / asset / file / data，也不要用 WImageSource.parse'
     usage: |
       WImageSource.network(url);
       WImageSource.network(url, headers: {'Authorization': token}, cacheKey: 'avatar');
-      WImageSource.asset('logo.png', prefix: true); // 默认不拼 WAssets.imagePath
+      WImageSource.asset('assets/images/logo.png'); // 完整路径
       WImageSource.file(path);
       WImageSource.base64(raw);
       WImageSource.provider(MemoryImage(bytes));
-      WImageSource.parse(raw); // 未知字符串
-      await WImageSource.asset('logo.png').resolve(memCacheWidth: 240); // 预加载 provider
+      await WImageSource.asset('assets/images/logo.png').resolve(memCacheWidth: 240); // 预加载
     pitfalls:
-      - 'asset(name) 默认不拼 WAssets.imagePath；需要前缀时显式 prefix: true'
+      - 'asset(name) 要传完整资源路径；12.0 删除了 WAssets.imagePath 与 prefix 参数'
       - '旧 WImage.network/asset/file 已删除'
-      - '未知字符串用 WImageSource.parse'
+      - '来源类型由调用方显式选择；12.0 删除了 WImageSource.parse 的字符串猜测'
       - '预加载用 WImageSource.resolve，不要自己拼 AssetImage/CachedNetworkImageProvider'
     related: ['`WImage`']
     teach: true
@@ -322,8 +256,11 @@ components:
     useFor: '图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义'
     dontUseFor: '占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里'
     usage: |
-      WImageStyle.avatar(40)
-      WImageStyle.thumbnail(80)
+      WImageStyle(
+        width: 40,
+        height: 40,
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+      )
       WImageStyle.cover(aspectRatio: 16 / 9, radius: 12)
       WImageStyle(
         width: 120,
@@ -335,7 +272,7 @@ components:
       )
     pitfalls:
       - 'aspectRatio 不能与固定 width/height 同时传（debug 断言）；copyWith 设置 width/height 且未显式传 aspectRatio 时会自动清空比例'
-      - '列表缩略图用 WImageStyle.thumbnail，解码尺寸交给 WImageLoadOptions.memCache*'
+      - '头像 / 缩略图直接用 width + height（+ borderRadius）；12.0 删除了 WImageStyle.avatar / thumbnail'
       - 'copyWith(null) 表示保留；清空可空字段用 withoutWidth / withoutBorderRadius 等 without* 方法'
     related: ['`WImage`', '`WImageLoadOptions`']
     teach: true
@@ -352,57 +289,61 @@ components:
       - 'retryCount 默认 0（不自动重试）；需要重试要显式设置'
       - 'copyWith(null) 表示保留；清空解码尺寸用 withoutMemCacheWidth / withoutMemCacheHeight'
       - '占位 / 错误 / 进度 / 重试 UI 用 `WImageSlots`，不要塞进 Options'
-    related: ['`WImage`', '`WImageStyle`', '`WImageSlots`', '`WImageController`']
+    related: ['`WImage`', '`WImageStyle`', '`WImageSlots`']
     teach: true
-  - name: '`WImageController`'
-    package: 'w_tools_ui'
-    docsAnchor: '重试与手动重试'
-    section: '2. 文本与图标'
-    useFor: '手动重试与加载状态（retry / state）'
-    dontUseFor: '一个 controller 只能绑定一张 WImage'
-    usage: |
-      final controller = WImageController();
-      WImage.source(source: WImageSource.network(url), controller: controller);
-      controller.retry();
-      controller.state.addListener(() { ... }); // 初始即 idle，无需判空
-      controller.dispose();
-    related: ['`WImage`']
-    teach: false
-  - name: '`WButtonStyle`'
-    package: 'w_tools_ui'
-    docsAnchor: '2-wbutton---按钮组件'
-    section: '3. 按钮与操作'
-    useFor: '按钮视觉：颜色 / 边框 / 圆角 / 内边距 / 尺寸 / 动效 / 语义'
-    dontUseFor: '按钮宽度由父布局决定，`WButtonStyle` 不含 width'
-    usage: |
-      WButton(
-        style: WButtonStyle.filled(backgroundColor: Colors.deepPurple),
-        label: '保存',
-        onTap: save,
-      )
-    pitfalls:
-      - 'filled 未传 foregroundColor 时按背景亮度自动选黑 / 白；需要品牌前景色时显式传'
-    related: ['`WButton`']
   - name: '`WButton`'
     package: 'w_tools_ui'
     docsAnchor: '2-wbutton---按钮组件'
     section: '3. 按钮与操作'
-    useFor: '真正的按钮（label/icon + style/size/loading）'
-    dontUseFor: '任意 child 点击用 `WPressable`'
+    useFor: 'Material 按钮（variant + ButtonStyle），带 loading / 语义 / 尺寸'
+    dontUseFor: '任意 child 点击用 `WPressable`；表单值选择用 `WFormButton`'
     usage: |
       WButton(label: '保存', onTap: save);
-      WButton(label: '提交', loading: true, enabled: false, onTap: save);
-      WButton(icon: Icons.add, label: '新增', onTap: add);
-      WButton(icon: Icons.favorite, tooltip: '收藏', isSelected: true, onTap: toggle);
-      WButton(label: '详情', content: Row(mainAxisSize: MainAxisSize.min, children: [...]), onTap: ...);
+      WButton(variant: WButtonVariant.outlined, label: '取消', onTap: cancel);
+      WButton(variant: WButtonVariant.danger, label: '删除', onTap: remove);
+      WButton(label: '提交', loading: true, onTap: save);
+      WButton(icon: Icons.add, label: '新增', size: WButtonSize.small, onTap: add);
+      WButton(icon: Icons.favorite, semanticLabel: '收藏', tooltip: '收藏', isSelected: true, onTap: toggle);
+      WButton(label: '品牌', style: FilledButton.styleFrom(backgroundColor: brand), onTap: save);
     pitfalls:
-      - '任意 child 点击用 WPressable，不要套 WButton'
-      - '项目页面优先用 AppButtons；WButtonStyleSet.of(context) 只用于组件示例 / 独立 Demo'
-      - 'loading 时同时设 enabled: false，避免重复点击'
-      - 'label 与 content 不能同时传；icon-only 要提供 semanticLabel'
+      - '视觉走 Material ButtonStyle（FilledButton / OutlinedButton / TextButton），不要自己拿 DecoratedBox 拼'
+      - '项目页面优先用 AppButtons（CLI 生成，返回 ButtonStyle）；全站换色用 WButtonTheme'
+      - 'loading 时按钮自动不可点；不必再传 enabled: false'
+      - 'content 与 label/icon 不能同时传；icon-only 要提供 semanticLabel'
       - 'toggle 按钮用 isSelected；纯图标按钮仍需 tooltip / semanticLabel'
-    related: ['`WPressable`', '`WButtonStyleSet`']
+    related: ['`WPressable`', '`WButtonTheme`', '`WButtonSize`']
     teach: true
+  - name: '`WButtonTheme`'
+    package: 'w_tools_ui'
+    docsAnchor: '2-wbutton---按钮组件'
+    section: '3. 按钮与操作'
+    useFor: '全站按钮四态 ButtonStyle（filled / outlined / text / danger），ThemeExtension'
+    dontUseFor: '单个按钮覆盖用 `WButton(style: ButtonStyle(...))`，不要改全局主题'
+    usage: |
+      ThemeData(
+        colorScheme: scheme,
+        extensions: [
+          WButtonTheme(
+            filled: FilledButton.styleFrom(backgroundColor: brand),
+            outlined: OutlinedButton.styleFrom(foregroundColor: brand),
+          ),
+        ],
+      )
+    pitfalls:
+      - '只覆盖需要的变体；缺省字段回退到 ColorScheme 派生值'
+      - '12.0 删除了 WButtonStyle / WButtonStyleSet，传 Material ButtonStyle'
+    related: ['`WButton`']
+    teach: false
+  - name: '`WButtonVariant`'
+    package: 'w_tools_ui'
+    docsAnchor: '2-wbutton---按钮组件'
+    section: '3. 按钮与操作'
+    useFor: '按钮语义变体：filled / outlined / text / danger'
+    dontUseFor: '不要用它控制尺寸 / 圆角；那些走 WButtonTheme 或 ButtonStyle'
+    usage: |
+      WButton(variant: WButtonVariant.outlined, label: '取消', onTap: cancel);
+    related: ['`WButton`', '`WButtonTheme`']
+    teach: false
   - name: '`WPressable`'
     package: 'w_tools_ui'
     docsAnchor: '21-wpressable---任意-child-点击'
@@ -417,18 +358,6 @@ components:
       - 'effect 默认 opacity；需要缩放用 WPressEffect.scale'
     related: ['`WButton`']
     teach: true
-  - name: '`WButtonStyleSet`'
-    package: 'w_tools_ui'
-    docsAnchor: '2-wbutton---按钮组件'
-    section: '3. 按钮与操作'
-    useFor: '按 ColorScheme 派生的四种语义样式（primary / secondary / text / danger）'
-    dontUseFor: '不要自己 new 这组样式；页面统一样式用项目 AppButtons 注册表'
-    usage: |
-      final set = WButtonStyleSet.of(context);
-      WButton(style: set.primary, label: '保存', onTap: save);
-      // set.secondary / .text / .danger 同源
-    related: ['`WButton`']
-    teach: false
   - name: '`WActionRow` / `WSelectableRow`'
     package: 'w_tools_ui'
     docsAnchor: 'wactionrow--wselectablerow'
@@ -514,19 +443,6 @@ components:
       - '不要在 main / 顶层 final 调 .sp；放到 ScreenUtilInit.builder 或 WAppPlugin.builderWrapper'
     related: ['`WScaffold`']
     teach: true
-  - name: '`WAssets`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wassets'
-    section: '4. 布局与容器'
-    useFor: '图片资源前缀唯一开关'
-    dontUseFor: '不要硬编码 `assets/images/`'
-    usage: |
-      WAssets.imagePath = 'assets/images/';
-      'logo.png'.assetImagePath;
-    pitfalls:
-      - 'setter 自动补末尾 /；空字符串表示不添加前缀'
-    related: ['`WImageSource`']
-    teach: false
   - name: '`WForm`'
     package: 'w_tools_form'
     docsAnchor: '36-直接字段与-wform'
@@ -1771,22 +1687,21 @@ components:
     teach: true
   - name: '`WNumLayoutExtension`'
     package: 'w_tools_ui'
-    docsAnchor: 'wnumlayoutextension--wnumformatextension'
+    docsAnchor: 'wnumlayoutextension'
     section: '9. 扩展'
-    useFor: 'num 的 SizedBox / EdgeInsets / BorderRadius / BorderSide 糖'
-    dontUseFor: '不要重复手写 SizedBox / EdgeInsets / BorderRadius'
+    useFor: 'num 的 EdgeInsets / BorderSide 糖'
+    dontUseFor: 'SizedBox / BorderRadius 直接用 Flutter 原生构造；12.0 删除了 heightBox / widthBox / squareBox / horizontalPadding / verticalPadding / borderRadius'
     usage: |
-      16.allPadding; 12.heightBox; 12.widthBox; 12.squareBox;
-      12.borderRadius; 2.borderSideOf(context); // 跟随 ColorScheme.outline
+      16.allPadding;
+      2.borderSideOf(context); // 跟随 ColorScheme.outline
     pitfalls:
       - 'borderSide 10.0 已删除；改用 borderSideOf(context)'
     teach: false
   - name: '`WNumFormatExtension`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wnumlayoutextension--wnumformatextension'
-    section: '9. 扩展'
-    useFor: '数字格式化：千分位 / 货币 / 百分比 / 前导零'
-    dontUseFor: '不要重复手写 toStringAsFixed / 正则分组'
+    package: 'w_tools_core'
+    section: '8. 能力（非 UI）'
+    useFor: '数字格式化：千分位 / 货币 / 百分比 / 前导零（12.0 从 ui 迁入）'
+    dontUseFor: '不要重复手写 toStringAsFixed / 正则分组；需要 locale 时用 intl'
     usage: |
       1234.toThousandsSeparated; 1234.5.toCurrency(symbol: '¥');
       0.125.toPercent; 42.toPadLeft(5);
@@ -1795,23 +1710,22 @@ components:
     package: 'w_tools_ui'
     docsAnchor: 'wstringextension'
     section: '9. 扩展'
-    useFor: 'String 转数字 / 去空格 / hex 颜色 / 资源路径'
-    dontUseFor: '图片组件转换用 `WStringExtension` 的路径方法'
+    useFor: 'hex 颜色'
+    dontUseFor: '数字转换 / 去空格 / trim / 资源路径都直接用 Dart / WImageSource'
     usage: |
-      '42'.toInt(); '3.14'.toDouble(); ' a b '.trimAll();
-      '#FF5733'.toColor(); 'logo.png'.assetImagePath;
+      '#FF5733'.toColor();
     teach: false
   - name: '`WBoxDecorationExtension`'
     package: 'w_tools_ui'
     docsAnchor: 'wboxdecorationextension--wgradients--wshadows'
     section: '9. 扩展'
-    useFor: 'BoxDecoration 组合（颜色 / 边框 / 圆角 / 阴影）'
-    dontUseFor: '不要每次重写完整 BoxDecoration'
+    useFor: 'BoxDecoration 的唯一背景 / 圆形组合'
+    dontUseFor: '边框 / 圆角 / 阴影直接传 BoxDecoration 构造器；12.0 删除了 withColor / withBorderRadius / withShadow 等逐字段方法'
     usage: |
+      const BoxDecoration().withBackground(color: Colors.white);
       const BoxDecoration()
-          .withBackground(color: Colors.white)
-          .withBorderRadius(BorderRadius.circular(8))
-          .withShadow(WShadows.card)
+          .withBackground(gradient: WGradients.vertical([...]))
+          .circle();
     teach: false
   - name: '`WWidgetExtension`'
     package: 'w_tools_ui'
@@ -1848,32 +1762,32 @@ components:
       WImageTheme(
         slots: WImageSlots(
           placeholderBuilder: (context, data) => const CircularProgressIndicator(),
-          errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
+          errorWidgetBuilder: (context, data, error, retry) =>
+              WImageErrorView(error: error, onRetry: retry),
         ),
         child: app,
       )
     pitfalls:
       - '单张图的 WImage.slots 优先于 WImageTheme；WImageLoadOptions 只放行为'
-      - 'WImageTheme 只接收 WImageSlots（占位/错误/进度/重试 UI），不承载重试/解码配置'
+      - 'WImageTheme 只接收 WImageSlots（占位 / 错误两槽），不承载重试 / 解码配置'
     related: ['`WImageSlots`', '`WImage`']
     teach: false
   - name: '`WImageSlots`'
     package: 'w_tools_ui'
     docsAnchor: 'wimageslots-配置'
     section: '2. 文本与图标'
-    useFor: '单图 / App 级图片占位 / 空 / 错误 / 进度 / 重试 UI'
+    useFor: '单图 / App 级图片占位 / 错误 UI（两槽）'
     usage: |
       WImageSlots(
         placeholderBuilder: (context, data) => const CircularProgressIndicator(),
-        emptyBuilder: (context, data) => const SizedBox.shrink(),
-        errorWidgetBuilder: (context, data, error) => const Icon(Icons.broken_image),
-        progressBuilder: (context, data, progress) => const LinearProgressIndicator(),
-        showRetryButton: true,
+        errorWidgetBuilder: (context, data, error, retry) =>
+            WImageErrorView(error: error, onRetry: retry),
       )
     dontUseFor: '不要把重试次数、解码尺寸等行为配置塞进 WImageSlots'
     pitfalls:
+      - '空 data / 加载中 / 等待重试都走 placeholderBuilder；错误走 errorWidgetBuilder'
       - 'builder 的 data 是原始 source 字符串（Base64 可能很大）；不要拼进日志 / 文本 UI'
-    related: ['`WImageTheme`', '`WImageLoadOptions`', '`WImage`']
+      - '12.0 删除了 emptyBuilder / progressBuilder / showRetryButton / retryLabel'
     teach: false
   - name: '`WImageErrorKind`'
     package: 'w_tools_ui'
@@ -1883,7 +1797,7 @@ components:
     dontUseFor: '不要用字符串比较错误；按 kind 分支'
     usage: |
       WImageSlots(
-        errorWidgetBuilder: (context, data, error) => switch (error.kind) {
+        errorWidgetBuilder: (context, data, error, retry) => switch (error.kind) {
           WImageErrorKind.network => const Icon(Icons.wifi_off),
           WImageErrorKind.asset => const Icon(Icons.image_not_supported),
           _ => const Icon(Icons.broken_image),
@@ -1898,8 +1812,9 @@ components:
     useFor: '图片加载错误（data / kind / cause / message / localizedMessage）'
     dontUseFor: '不要自己构造来 mock 失败；用 WImageSource 触发真实错误'
     usage: |
-      WImageLoadOptions(
-        errorWidgetBuilder: (context, data, error) => Text(error.localizedMessage(context)),
+      WImageSlots(
+        errorWidgetBuilder: (context, data, error, retry) =>
+            Text(error.localizedMessage(context)),
       )
     related: ['`WImageErrorKind`']
     teach: false
@@ -1910,9 +1825,10 @@ components:
     useFor: '图片加载进度（downloadedBytes / totalBytes / fraction / isComplete）'
     dontUseFor: '不要把 downloadedBytes 当总大小；总大小未知时看 fraction == null'
     usage: |
-      WImageLoadOptions(
-        progressBuilder: (context, data, progress) =>
-            LinearProgressIndicator(value: progress.fraction),
+      WImage.source(
+        source: WImageSource.network(url),
+        onProgress: (progress) =>
+            setState(() => _percent = progress.fraction),
       )
     related: ['`WImage`']
     teach: false
@@ -1923,7 +1839,7 @@ components:
     useFor: '图片来源类型（asset / network / file / base64 / provider）'
     dontUseFor: '不要用它决定业务 UI；按 WImageSource 子类型或 error.kind 判断'
     usage: |
-      WImageSource.parse(raw, type: WImageType.asset);
+      WImageSource.asset('assets/images/logo.png').type; // WImageType.asset
     related: ['`WImageSource`']
     teach: false
   - name: '`WImageLoadStatus`'
@@ -1933,66 +1849,25 @@ components:
     useFor: '图片加载状态（idle / loading / completed / failed）'
     dontUseFor: '不要当业务状态机；只表示图片加载阶段'
     usage: |
-      controller.state.addListener(() {
-        if (controller.state.value.status == WImageLoadStatus.failed) { ... }
-      });
-    related: ['`WImageLoadSnapshot`']
-    teach: false
-  - name: '`WImageLoadSnapshot`'
-    package: 'w_tools_ui'
-    docsAnchor: '重试与手动重试'
-    section: '2. 文本与图标'
-    useFor: '图片加载快照（status / progress / attempt / error / retryScheduled）'
-    dontUseFor: '不要缓存后当实时状态；监听 WImageController.state'
-    usage: |
-      controller.state.addListener(() {
-        final snapshot = controller.state.value;
-        // snapshot.status / progress / attempt / error
-      });
-    related: ['`WImageController`']
+      WImage.source(
+        source: WImageSource.network(url),
+        onLoadStatusChanged: (status) {
+          if (status == WImageLoadStatus.failed) { ... }
+        },
+      );
+    related: ['`WImage`']
     teach: false
   - name: '`WButtonSize`'
     package: 'w_tools_ui'
     docsAnchor: 'wbuttonsize'
     section: '3. 按钮与操作'
-    useFor: '按钮尺寸值对象（minWidth/minHeight/padding/fontSize/iconSize/gap）'
-    dontUseFor: '不要用它控制宽度；宽度由父布局决定'
+    useFor: '按钮尺寸令牌（minWidth/minHeight/padding/fontSize/iconSize/gap），映射到 ButtonStyle'
+    dontUseFor: '不要用它控制宽度；宽度由父布局决定；颜色 / 边框走 WButtonTheme'
     usage: |
       const WButtonSize(name: 'hero', minHeight: 56, fontSize: 17, fontWeight: FontWeight.w700);
       WButton(size: WButtonSize.large, label: '保存', onTap: save);
     pitfalls:
       - '视觉尺寸可以更小，tapTargetSize 默认 48 保证点击区域'
-    related: ['`WButton`']
-    teach: false
-  - name: '`WButtonMotion`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wbuttonmotion'
-    section: '3. 按钮与操作'
-    useFor: '按钮按压动效（opacity / scale / none）'
-    dontUseFor: '不要每个按钮自定义一套；默认动效已够，品牌统一放 AppButtons'
-    usage: |
-      WButton(
-        motion: const WButtonMotion(effect: WPressEffect.scale, pressedScale: 0.96),
-        label: '保存',
-        onTap: save,
-      )
-    pitfalls:
-      - 'effect: WPressEffect.none 关闭按压效果'
-    related: ['`WButton`', '`WPressEffect`']
-    teach: false
-  - name: '`WButtonSemantics`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wbuttonsemantics'
-    section: '3. 按钮与操作'
-    useFor: '按钮无障碍语义（label / hint）'
-    dontUseFor: '不要用它替代 Semantics 组件；它只供 WButton 的朗读文案'
-    usage: |
-      WButton(
-        style: WButtonStyleSet.of(context).primary,
-        semantics: const WButtonSemantics(label: '保存', hint: '保存当前内容'),
-        label: '保存',
-        onTap: save,
-      )
     related: ['`WButton`']
     teach: false
   - name: '`WPressEffect`'
@@ -2070,16 +1945,6 @@ components:
       boxShadow: WShadows.card;
       boxShadow: WShadows.elevated;
     teach: false
-  - name: '`WGlobalKeyExtension`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wglobalkeyextension'
-    section: '9. 扩展'
-    useFor: 'GlobalKey 位置 / 边界（offset / rect）'
-    dontUseFor: '不要用它替代 controller / 状态传递；只做读取位置'
-    usage: |
-      final key = GlobalKey();
-      key.offset(); key.rect();
-    teach: false
   - name: '`WImageStyleExtension`'
     package: 'w_tools_ui'
     docsAnchor: 'wimagestyle-配置'
@@ -2133,11 +1998,11 @@ components:
     docsAnchor: '显式构造'
     section: '2. 文本与图标'
     useFor: 'WImageSource 的资源实现（通常用 WImageSource.asset）'
-    dontUseFor: '不要在已带 WAssets 前缀的路径上再传 prefix: true；会重复前缀'
+    dontUseFor: '不要传只有文件名的路径；asset 需要完整资源路径'
     usage: |
-      const WAssetImageSource('logo.png', prefix: true)
+      const WAssetImageSource('assets/images/logo.png')
     pitfalls:
-      - 'prefix 默认 false；需要 WAssets.imagePath 前缀时显式传 true'
+      - '12.0 删除了 prefix 参数与 WAssets.imagePath；完整路径由调用方提供'
     related: ['`WImageSource`']
     teach: false
   - name: '`WFileImageSource`'
@@ -2170,45 +2035,18 @@ components:
       const WProviderImageSource(MemoryImage(bytes))
     related: ['`WImageSource`']
     teach: false
-  - name: '`WButtonContentBuilder`'
-    package: 'w_tools_ui'
-    docsAnchor: 'wbuttoncontentbuilder'
-    section: '3. 按钮与操作'
-    useFor: 'WButton.contentBuilder 的类型：拿到最终样式自己排版'
-    dontUseFor: '不要在 builder 里重新读 Theme 派生样式；直接用传入的 resolved style'
-    usage: |
-      WButton(
-        contentBuilder: (context, style) => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [Icon(Icons.add, size: style.iconSize), Text('新增', style: style.textStyle)],
-        ),
-        onTap: add,
-      )
-    related: ['`WButton`']
-    teach: false
-  - name: '`WButtonResolvedStyle`'
-    package: 'w_tools_ui'
-    docsAnchor: '2-wbutton---按钮组件'
-    section: '3. 按钮与操作'
-    useFor: 'contentBuilder 拿到的最终样式（states / 背景 / 文字样式等）'
-    dontUseFor: '不要缓存后跨帧使用；它只对当前 WidgetState 有效'
-    usage: |
-      contentBuilder: (context, style) {
-        return Text('保存', style: style.textStyle);
-      }
-    pitfalls:
-      - '只读：不要直接改 style 字段；需要不同样式用 WButtonStyle'
-    related: ['`WButtonContentBuilder`']
-    teach: false
   - name: '`WImageErrorView`'
     package: 'w_tools_ui'
     docsAnchor: '错误类型'
     section: '2. 文本与图标'
-    useFor: '内置图片错误视图（error / onRetry / retryLabel / compact）'
+    useFor: '内置图片错误视图（error / onRetry / retryLabel / showAction）'
     dontUseFor: '不要当页面级错误组件；只用于图片占位'
     usage: |
-      WImageErrorView(error: error, onRetry: retry)
-    related: ['`WImageError`']
+      WImageSlots(
+        errorWidgetBuilder: (context, data, error, retry) =>
+            WImageErrorView(error: error, onRetry: retry),
+      )
+    related: ['`WImageError`', '`WImageSlots`']
     teach: false
 
   - name: '`WFormThemeData`'

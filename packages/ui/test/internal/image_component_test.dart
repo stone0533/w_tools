@@ -32,41 +32,41 @@ void main() {
     test('非法配置触发 assert', () {
       expect(
         () => WImage.source(
-          source: WImageSource.parse('x'),
+          source: WImageSource.asset('x'),
           options: const WImageLoadOptions(retryCount: -1),
         ),
         throwsAssertionError,
       );
       expect(
         () => WImage.source(
-          source: WImageSource.parse('x'),
+          source: WImageSource.asset('x'),
           options: const WImageLoadOptions(retryDelay: -1),
         ),
         throwsAssertionError,
       );
       expect(
         () => WImage.source(
-          source: WImageSource.parse('x'),
+          source: WImageSource.asset('x'),
           options: const WImageLoadOptions(memCacheWidth: 0),
         ),
         throwsAssertionError,
       );
       expect(
         () => WImage.source(
-          source: WImageSource.parse('x'),
+          source: WImageSource.asset('x'),
           options: const WImageLoadOptions(memCacheHeight: 0),
         ),
         throwsAssertionError,
       );
       expect(
         () => WImage.source(
-          source: WImageSource.parse('x'),
+          source: WImageSource.asset('x'),
           style: const WImageStyle(aspectRatio: 0),
         ),
         throwsAssertionError,
       );
       expect(
-        () => WImage.source(source: WImageSource.parse('x'), style: const WImageStyle(width: -1)),
+        () => WImage.source(source: WImageSource.asset('x'), style: const WImageStyle(width: -1)),
         throwsAssertionError,
       );
     });
@@ -139,37 +139,10 @@ void main() {
     });
   });
 
-  testWidgets('WImageController 解绑后状态保留且 retry 安全', (tester) async {
-    final controller = WImageController();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: WImage.source(source: WImageSource.base64('invalid'), controller: controller),
-      ),
-    );
-    expect(controller.isAttached, isTrue);
-    final state = controller.state;
-    expect(state, isNotNull);
-
-    await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
-    expect(controller.isAttached, isFalse);
-    expect(controller.state, same(state));
-
-    expect(controller.retry, returnsNormally);
-  });
-
-  testWidgets('WImageController dispose 后 retry / 二次 dispose 安全', (tester) async {
-    final controller = WImageController();
-    controller.dispose();
-
-    expect(controller.isAttached, isFalse);
-    expect(controller.retry, returnsNormally);
-    expect(controller.dispose, returnsNormally);
-  });
-
   group('WImage', () {
     test('should build with config', () {
       const style = WImageStyle(width: 100, height: 100);
-      final image = WImage.source(source: WImageSource.parse('test_image.png'), style: style);
+      final image = WImage.source(source: WImageSource.asset('test_image.png'), style: style);
 
       expect(image.style.width, 100);
       expect(image.style.height, 100);
@@ -195,7 +168,7 @@ void main() {
           child: MaterialApp(
             home: Scaffold(
               body: WImage.source(
-                source: WImageSource.parse('data:image/png;base64,@@bad@@'),
+                source: WImageSource.base64('data:image/png;base64,@@bad@@'),
                 slots: WImageSlots(placeholderBuilder: (context, data) => const Text('style')),
               ),
             ),
@@ -214,7 +187,7 @@ void main() {
           ),
           child: MaterialApp(
             home: Scaffold(
-              body: WImage.source(source: WImageSource.parse('data:image/png;base64,@@bad@@')),
+              body: WImage.source(source: WImageSource.base64('data:image/png;base64,@@bad@@')),
             ),
           ),
         ),
@@ -226,11 +199,11 @@ void main() {
       await tester.pumpWidget(
         WImageTheme(
           slots: WImageSlots(
-            errorWidgetBuilder: (context, data, error) => Text('ERR:${error.runtimeType}'),
+            errorWidgetBuilder: (context, data, error, retry) => Text('ERR:${error.runtimeType}'),
           ),
           child: MaterialApp(
             home: Scaffold(
-              body: WImage.source(source: WImageSource.parse('data:image/png;base64,@@bad@@')),
+              body: WImage.source(source: WImageSource.base64('data:image/png;base64,@@bad@@')),
             ),
           ),
         ),
@@ -262,53 +235,48 @@ void main() {
       expect(find.byType(Image), findsOneWidget);
     });
 
-    testWidgets('showRetryButton 使用内置错误视图并可重试', (tester) async {
-      final controller = WImageController();
+    testWidgets('errorWidgetBuilder 组合 WImageErrorView 并可重试', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: WImage.source(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
-            controller: controller,
             style: const WImageStyle(width: 160, height: 120),
-            slots: const WImageSlots(showRetryButton: true),
+            slots: WImageSlots(
+              errorWidgetBuilder: (context, data, error, retry) =>
+                  WImageErrorView(error: error, onRetry: retry),
+            ),
           ),
         ),
       );
       await tester.pump();
       expect(find.byType(WImageErrorView), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
 
+      final first = tester.widget<Image>(find.byType(Image)).key;
       await tester.tap(find.text('Retry'));
       await tester.pump();
-      expect(controller.state.value.attempt, 1);
-    });
-
-    testWidgets('不可重试的错误不显示重试按钮', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: WImage.source(
-            source: WImageSource.parse('data:image/png;base64,@@bad@@'),
-            style: const WImageStyle(width: 160, height: 120),
-            slots: const WImageSlots(showRetryButton: true),
-          ),
-        ),
-      );
-      await tester.pump();
-      expect(find.byType(WImageErrorView), findsOneWidget);
-      expect(find.text('Retry'), findsNothing);
+      expect(tester.widget<Image>(find.byType(Image)).key, isNot(first));
     });
 
     testWidgets('小尺寸错误视图只显示图标，不溢出', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: WImage.source(
-            source: WImageSource.parse('data:image/png;base64,@@bad@@'),
-            style: const WImageStyle(width: 40, height: 40),
-            slots: const WImageSlots(showRetryButton: true),
+          // Center 让 40x40 成为松约束；否则 home 的紧约束会盖掉 SizedBox。
+          home: Center(
+            child: WImage.source(
+              source: WImageSource.base64('data:image/png;base64,@@bad@@'),
+              style: const WImageStyle(width: 40, height: 40),
+              slots: WImageSlots(
+                errorWidgetBuilder: (context, data, error, retry) =>
+                    WImageErrorView(error: error, onRetry: retry),
+              ),
+            ),
           ),
         ),
       );
       await tester.pump();
       expect(find.byType(WImageErrorView), findsOneWidget);
+      expect(tester.getSize(find.byType(WImageErrorView)), const Size(40, 40));
       expect(find.text('Retry'), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -335,7 +303,10 @@ void main() {
           home: WImage.source(
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             style: const WImageStyle(width: 160, height: 90),
-            slots: const WImageSlots(showRetryButton: true),
+            slots: WImageSlots(
+              errorWidgetBuilder: (context, data, error, retry) =>
+                  WImageErrorView(error: error, onRetry: retry),
+            ),
           ),
         ),
       );
@@ -344,21 +315,23 @@ void main() {
       expect(find.text('Retry'), findsOneWidget);
     });
 
-    testWidgets('100x100 错误视图显示文案但不显示按钮', (tester) async {
+    testWidgets('100x100 可重试错误显示文案和重试按钮', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: WImage.source(
-            source: WImageSource.parse('data:image/png;base64,@@bad@@'),
+            source: WImageSource.provider(MemoryImage(Uint8List.fromList([1, 2, 3]))),
             style: const WImageStyle(width: 100, height: 100),
-            slots: const WImageSlots(showRetryButton: true),
+            slots: WImageSlots(
+              errorWidgetBuilder: (context, data, error, retry) =>
+                  WImageErrorView(error: error, onRetry: retry),
+            ),
           ),
         ),
       );
       await tester.pump();
-      final view = tester.widget<WImageErrorView>(find.byType(WImageErrorView));
-      expect(view.compact, isFalse);
-      expect(find.text('Base64 decode failed'), findsOneWidget);
-      expect(find.text('Retry'), findsNothing);
+      expect(find.byType(WImageErrorView), findsOneWidget);
+      expect(find.text('Image decode failed'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
     });
 
     testWidgets('provider 解码失败使用 WImageProviderError', (tester) async {
@@ -380,7 +353,7 @@ void main() {
             source: WImageSource.provider(MemoryImage(Uint8List.fromList([4, 5, 6]))),
             style: const WImageStyle(width: 64, height: 64),
             slots: WImageSlots(
-              errorWidgetBuilder: (context, url, error) {
+              errorWidgetBuilder: (context, url, error, retry) {
                 captured = error;
                 return const SizedBox.shrink();
               },
@@ -426,9 +399,9 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: WImage.source(
-              source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
+              source: WImageSource.base64('data:image/png;base64,@@invalid@@'),
               slots: WImageSlots(
-                errorWidgetBuilder: (context, url, error) {
+                errorWidgetBuilder: (context, url, error, retry) {
                   capturedError = error;
                   return const Text('base64-error');
                 },
@@ -454,9 +427,9 @@ void main() {
 
       Widget build() => MaterialApp(
         home: WImage.source(
-          source: WImageSource.parse('data:image/png;base64,@@invalid@@'),
+          source: WImageSource.base64('data:image/png;base64,@@invalid@@'),
           slots: WImageSlots(
-            errorWidgetBuilder: (context, data, error) => const Text('base64-error'),
+            errorWidgetBuilder: (context, data, error, retry) => const Text('base64-error'),
           ),
           onLoadStatusChanged: statuses.add,
         ),
@@ -597,35 +570,5 @@ void main() {
       expect(image.options.retryCount, 1);
       expect(image.options.memCacheWidth, 120);
     });
-  });
-
-  testWidgets('同一 controller 绑定第二张图时报错且保留第一张', (tester) async {
-    final controller = WImageController();
-    addTearDown(controller.dispose);
-    final errors = <FlutterErrorDetails>[];
-    final original = FlutterError.onError;
-    FlutterError.onError = errors.add;
-    try {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Column(
-            children: [
-              WImage.source(
-                source: WImageSource.network('https://example.com/a.png'),
-                controller: controller,
-              ),
-              WImage.source(
-                source: WImageSource.network('https://example.com/b.png'),
-                controller: controller,
-              ),
-            ],
-          ),
-        ),
-      );
-      expect(errors, isNotEmpty);
-      expect(controller.isAttached, isTrue);
-    } finally {
-      FlutterError.onError = original;
-    }
   });
 }

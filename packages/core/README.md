@@ -25,7 +25,7 @@
 
 ```yaml
 dependencies:
-  w_tools_core: ^3.1.2
+  w_tools_core: ^3.2.0
 ```
 
 ```bash
@@ -45,6 +45,7 @@ Future<void> example() async {
 
   WLogger.i('saved: ${WStorage.getString('token')}');
   WLogger.d('email valid: ${WValidator.isValidEmail('dev@example.com')}');
+  WLogger.d('amount: ${1234.5.toCurrency(symbol: '¥')}');
 }
 ```
 
@@ -52,7 +53,7 @@ Future<void> example() async {
 
 | 能力 | 入口 |
 |---|---|
-| 配置 | `WToken`（token 键名）；`WConfig` 已在 3.0 删除（资源前缀在 w_tools_ui 的 `WAssets`） |
+| 配置 | `WToken`（token 键名）；`WConfig` 已在 3.0 删除（资源路径直接用完整路径） |
 | 校验 | `WValidator` |
 | 正则 | `WRegExp` |
 | 加密 / 哈希 | `WEncrypt` / `WHash` |
@@ -62,6 +63,7 @@ Future<void> example() async {
 | 平台判断 | `WPlatform` / `WPlatformType` |
 | 交互工具 | `WDebounce` / `WThrottle`；`WUx` 的同名方法已在 3.0 删除 |
 | Map 扩展 | `WMapExtension.sortedByKeys` / `merge` |
+| 数字格式化 | `WNumFormatExtension`：`toThousandsSeparated` / `toCurrency` / `toPercent` / `toPercentWithFixed` / `toPadLeft` |
 
 ## 行为说明
 

@@ -4,7 +4,7 @@ import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'demo_widgets.dart';
 
-/// WScaffold / WAppBar / WScreen / WAssets 的完整参数演示。
+/// WScaffold / WAppBar / WScreen 的完整参数演示。
 class ScaffoldDemoPage extends StatelessWidget {
   const ScaffoldDemoPage({super.key});
 
@@ -79,8 +79,8 @@ class ScaffoldDemoPage extends StatelessWidget {
             ),
           ),
           DemoSection(
-            title: 'WScaffold：underlayWidget + 状态栏样式 + 顶部安全区',
-            subtitle: 'underlay 在 body 之下，适合渐变背景',
+            title: 'WScaffold：状态栏样式 + 顶部安全区',
+            subtitle: '渐变背景用页面层 Stack，scaffold 只负责 body / 槽位',
             child: DemoBox(
               height: 300,
               child: WScaffold.basic(
@@ -88,19 +88,24 @@ class ScaffoldDemoPage extends StatelessWidget {
                 backgroundColor: Colors.transparent,
                 includeTopSafeArea: true,
                 systemStatusBarStyle: SystemUiOverlayStyle.light,
-                underlayWidget: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: WGradients.diagonal([
-                      scheme.primary,
-                      scheme.tertiary,
-                    ]),
-                  ),
-                ),
-                body: const Center(
-                  child: WText(
-                    text: 'underlayWidget + systemStatusBarStyle',
-                    variant: WTextVariant.body,
-                  ),
+                body: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: WGradients.diagonal([
+                          scheme.primary,
+                          scheme.tertiary,
+                        ]),
+                      ),
+                    ),
+                    const Center(
+                      child: WText(
+                        text: 'Stack + systemStatusBarStyle',
+                        variant: WTextVariant.body,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -242,19 +247,11 @@ class ScaffoldDemoPage extends StatelessWidget {
               ],
             ),
           ),
-          DemoSection(
-            title: 'WAssets：资源前缀唯一开关',
-            subtitle: 'setter 会自动补齐末尾 /；空字符串表示不添加前缀',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _KeyValue(label: 'WAssets.imagePath', value: WAssets.imagePath),
-                _KeyValue(label: "'logo.png'.assetImagePath", value: 'logo.png'.assetImagePath),
-                const CodeText(
-                  "WAssets.imagePath = 'assets/images/';\n"
-                  "WImage.source(source: WImageSource.asset('logo.png', prefix: true))",
-                ),
-              ],
+          const DemoSection(
+            title: '资源路径',
+            subtitle: '12.0 删除了全局 WAssets.imagePath；直接传完整路径',
+            child: CodeText(
+              "WImage.source(source: WImageSource.asset('assets/images/logo.png'))",
             ),
           ),
         ],
