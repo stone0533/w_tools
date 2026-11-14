@@ -72,6 +72,7 @@ docs/modules/components.md
 
 改版本号 / CHANGELOG / 根包依赖约束后跑 `bash scripts/release_check.sh`（CI 也会跑）；发布流程见 `docs/releasing.md`。发布后核对线上 / 快照：`python3 scripts/release_status.py --online`（每周一 CI 也会跑，`--check` 把「落后 / 快照漂移 / 缺快照 / pub.dev 404」判失败；网络不可达返回 2，周检按跳过处理）。子包与聚合包版本独立，发布根包前 `release_check --strict` 要求根包的 `^x.y.z` 约束覆盖子包当前版本，并且**根聚合包**的 API 快照版本 == 本地（工具包 / 不聚合的包允许待发布；`w_tools_cli` 是独立工具包，根包不依赖它）。
 
+发布脚本按 POSIX 编写（bash / 进程组），支持 macOS / Linux；Windows 用 WSL。
 实际发布必须用 `bash scripts/publish_package.sh <包目录>`（根包用 `.`），不要在包目录直接 `flutter pub publish`：仓库的 `workspace:` / `resolution: workspace` 会被原样发布，消费方 `dart pub deps` 会因此失败（2.0.0 踩过）。正式发布时脚本自己会先 `git fetch`，再要求干净工作区、`main` 且 HEAD == 最新的 `origin/main`、并跑 `release_check --strict`；子包还会过快照基线守卫（最新快照已提交，本地版本不得低于 / 等于快照，新包首发在 `pending_first_release.txt` 时除外）。脚本里的 `--force --reason "..."` 只用于明确的例外。
 
 子包发布成功后，脚本先把快照写到 `.w_tools/release-snapshots/`（gitignored，不会挡住下一个包）；一批发完运行 `bash scripts/apply_snapshots.sh` 应用到 `scripts/api_snapshots/`，再走分支 + PR：`pre-push` 禁止直接 push main，而发布脚本要求 `HEAD == origin/main`。同一波还要发根包时，先合入快照 PR 并 `git pull --ff-only`，再发根包（详见 `docs/releasing.md` 第 7 步）。

@@ -36,6 +36,7 @@ import sys
 import tarfile
 import tempfile
 import time
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -654,6 +655,18 @@ class RunFailed(Exception):
         self.code = code
 
 
+def _terminate_process_group(process: subprocess.Popen) -> None:
+    """超时 / Ctrl+C 时结束整个进程组，避免留下 flutter / pub 子进程。"""
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+        process.wait(timeout=2)
+    except (ProcessLookupError, subprocess.TimeoutExpired):
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+
+
 def _cmd(
     args: list[str],
     *,
@@ -675,36 +688,33 @@ def _cmd(
         env={**os.environ, 'CI': 'true'},
         start_new_session=True,
     )
-    while True:
-        try:
-            stdout, stderr = process.communicate(timeout=HEARTBEAT_SECONDS)
-            break
-        except subprocess.TimeoutExpired:
-            elapsed = int(time.time() - start)
-            if deadline is not None and time.time() > deadline:
-                try:
-                    os.killpg(process.pid, signal.SIGTERM)
-                    process.wait(timeout=2)
-                except (ProcessLookupError, subprocess.TimeoutExpired):
-                    try:
-                        os.killpg(process.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                process.communicate()
-                raise RunFailed(
-                    f'命令超时（{int(timeout or 0)}s）：{" ".join(args)}；'
-                    '若是 pub publish，先检查代理，并确认 pub.dev 是否已有该版本，不要直接重试',
-                    code,
-                )
-            print(f'  … 仍在运行（{elapsed}s）', file=sys.stderr, flush=True)
-            if not warned and elapsed >= 120:
-                warned = True
-                print(
-                    '  ! 已运行 2 分钟。若是 pub publish 卡住：检查 HTTPS_PROXY / 网络，'
-                    'Ctrl+C 后确认 pub.dev 无该版本，再用 run --resume 继续。',
-                    file=sys.stderr,
-                    flush=True,
-                )
+    try:
+        while True:
+            try:
+                stdout, stderr = process.communicate(timeout=HEARTBEAT_SECONDS)
+                break
+            except subprocess.TimeoutExpired:
+                elapsed = int(time.time() - start)
+                if deadline is not None and time.time() > deadline:
+                    _terminate_process_group(process)
+                    process.communicate()
+                    raise RunFailed(
+                        f'命令超时（{int(timeout or 0)}s）：{" ".join(args)}；'
+                        '若是 pub publish，先检查代理，并确认 pub.dev 是否已有该版本，不要直接重试',
+                        code,
+                    )
+                print(f'  … 仍在运行（{elapsed}s）', file=sys.stderr, flush=True)
+                if not warned and elapsed >= 120:
+                    warned = True
+                    print(
+                        '  ! 已运行 2 分钟。若是 pub publish 卡住：检查 HTTPS_PROXY / 网络，'
+                        'Ctrl+C 后确认 pub.dev 无该版本，再用 run --resume 继续。',
+                        file=sys.stderr,
+                        flush=True,
+                    )
+    except KeyboardInterrupt:
+        _terminate_process_group(process)
+        raise
     result = subprocess.CompletedProcess(args, process.returncode, stdout, stderr)
     if result.returncode != 0 and check:
         if capture:
@@ -887,6 +897,27 @@ def validate_run_plan(
     return errors
 
 
+def _download_archive(url: str, destination: pathlib.Path, *, attempts: int = 12, delay: float = 10.0) -> None:
+    """下载 pub.dev 归档；上传后 archive 可能短暂 404 / 网络抖动，做退避重试。"""
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            with urllib.request.urlopen(url, timeout=60) as response, destination.open('wb') as out:
+                shutil.copyfileobj(response, out)
+            return
+        except Exception as error:  # noqa: BLE001 - 统一转成可读失败
+            last_error = error
+            if isinstance(error, urllib.error.HTTPError) and error.code != 404:
+                raise
+            if attempt >= attempts:
+                break
+            _progress(f'归档暂不可用（{error}），{int(delay)}s 后重试 {attempt}/{attempts - 1}')
+            time.sleep(delay)
+    if last_error is None:
+        raise RunFailed(f'归档下载失败：{url}', 3)
+    raise last_error
+
+
 def _recover_snapshot(package: dict) -> None:
     """从 pub.dev 归档补快照：用于 publish 已上传但进程被 kill 的中断恢复。"""
     short = str(package['short'])
@@ -900,8 +931,7 @@ def _recover_snapshot(package: dict) -> None:
     with tempfile.TemporaryDirectory(prefix=f'{name}-{version}-') as tmp:
         archive = pathlib.Path(tmp) / 'package.tar.gz'
         try:
-            with urllib.request.urlopen(url, timeout=60) as response, archive.open('wb') as out:
-                shutil.copyfileobj(response, out)
+            _download_archive(url, archive)
         except Exception as error:
             raise RunFailed(
                 f'{short}: 已发布但下载归档失败（{error}）；先手动补快照：{url}',

@@ -2,7 +2,9 @@ import contextlib
 import io
 import pathlib
 import sys
+import tempfile
 import unittest
+import urllib.error
 from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -451,3 +453,42 @@ class ReconcileTest(unittest.TestCase):
         self.assertEqual(calls[0][0][0:2], ['bash', 'scripts/release_check.sh'])
         self.assertEqual(calls[-1][0][-1], '--yes')
         self.assertEqual(calls[-1][1].get('timeout'), mod.PUBLISH_TIMEOUT_SECONDS)
+
+
+class ArchiveDownloadTest(unittest.TestCase):
+    def test_retries_404_then_succeeds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = pathlib.Path(tmp) / 'pkg.tar.gz'
+            error = urllib.error.HTTPError('https://example/x', 404, 'Not Found', None, None)
+            with mock.patch.object(
+                mod.urllib.request,
+                'urlopen',
+                side_effect=[error, io.BytesIO(b'ok')],
+            ) as urlopen, mock.patch.object(mod, '_progress'), mock.patch.object(
+                mod.time, 'sleep'
+            ) as sleep:
+                mod._download_archive('https://example/x', target, attempts=2, delay=1)
+            self.assertEqual(target.read_bytes(), b'ok')
+            self.assertEqual(urlopen.call_count, 2)
+            sleep.assert_called_once_with(1)
+
+    def test_gives_up_after_attempts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = pathlib.Path(tmp) / 'pkg.tar.gz'
+            error = urllib.error.HTTPError('https://example/x', 404, 'Not Found', None, None)
+            with mock.patch.object(
+                mod.urllib.request,
+                'urlopen',
+                side_effect=error,
+            ), mock.patch.object(mod, '_progress'), mock.patch.object(mod.time, 'sleep'):
+                with self.assertRaises(urllib.error.HTTPError):
+                    mod._download_archive('https://example/x', target, attempts=2, delay=0)
+
+    def test_403_is_not_retried(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = pathlib.Path(tmp) / 'pkg.tar.gz'
+            error = urllib.error.HTTPError('https://example/x', 403, 'Forbidden', None, None)
+            with mock.patch.object(mod.urllib.request, 'urlopen', side_effect=error) as urlopen:
+                with self.assertRaises(urllib.error.HTTPError):
+                    mod._download_archive('https://example/x', target, attempts=3, delay=0)
+            self.assertEqual(urlopen.call_count, 1)

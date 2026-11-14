@@ -96,6 +96,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 - `preflight.sh` / `check_docs.sh` 共用 `scripts/_python.sh` 的 `require_python_yaml()`；以下划线开头，不进 `check_gate_coverage` 的脚本清单。
 - `publish_package.sh` 在暂存前会探测 `PUB_CACHE` / `~/.pub-cache`（以及非 `CI=true` 时的 `~/.dart-tool`）可写性；失败会明确说是沙箱 / 只读 HOME，不是发布内容。
 - `--sandbox` 只跳过 Flutter 测试与 publish dry-run，不是完整通过；最终以 CI 为准。
+- 发布脚本（`publish_package.sh` / `release_wave.py` / `_run_with_timeout.py`）按 POSIX 编写，支持 macOS / Linux；Windows 用 WSL。
 
 ---
 
