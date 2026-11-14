@@ -288,4 +288,12 @@ K-2M 版本准备 → K-3 dry-run → K-4 发布 → 快照 PR → K-5 验证。
 每包 CHANGELOG / pubspec / pub.dev 版本一致。
 ```
 
-状态：执行中（2026-11-14）。
+状态：完成（2026-11-14 15:03 CST）。
+
+结果：
+
+- `w_tools_core` 3.2.0、`w_tools_ui` 12.0.0、`w_tools_cli` 1.21.0、`w_tools` 16.1.0
+  已发布到 pub.dev；快照 PR #232 已合并。
+- `python3 scripts/release_status.py --online --check`：状态正常（16 个包）。
+- `check_publish_drift.py --package core/ui/cli/w_tools --check`：全部无漂移。
+- 波次 state：`.w_tools/release-wave-state.json`（gitignored）。
