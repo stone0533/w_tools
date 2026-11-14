@@ -48,6 +48,7 @@
 - [0007 组件命名约定](adr/0007-component-naming-roles.md)：命名收敛为角色判断（规则正文见 naming.md）
 - [0008 ui 图片缓存依赖](adr/0008-ui-image-cache-dependency.md)：保留 cached_network_image，记录传递依赖与拆分触发条件
 - [0009 WIconText 自定义图标](adr/0009-icon-text-custom-icon.md)：静态构造器 + Widget，不引入 flutter_svg
+- [0010 patch 版本级联](adr/0010-patch-version-cascade.md)：保持精确下界，三包级联走 `release_wave`
 
 ## 评审记录
 
