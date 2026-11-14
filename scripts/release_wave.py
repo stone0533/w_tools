@@ -690,16 +690,18 @@ def _cmd(
     )
     try:
         while True:
+            remaining = deadline - time.time() if deadline is not None else HEARTBEAT_SECONDS
+            poll = max(0.05, min(HEARTBEAT_SECONDS, remaining))
             try:
-                stdout, stderr = process.communicate(timeout=HEARTBEAT_SECONDS)
+                stdout, stderr = process.communicate(timeout=poll)
                 break
             except subprocess.TimeoutExpired:
                 elapsed = int(time.time() - start)
-                if deadline is not None and time.time() > deadline:
+                if deadline is not None and time.time() >= deadline:
                     _terminate_process_group(process)
                     process.communicate()
                     raise RunFailed(
-                        f'命令超时（{int(timeout or 0)}s）：{" ".join(args)}；'
+                        f'命令超时（{(timeout or 0):g}s）：{" ".join(args)}；'
                         '若是 pub publish，先检查代理，并确认 pub.dev 是否已有该版本，不要直接重试',
                         code,
                     )
@@ -712,6 +714,14 @@ def _cmd(
                         file=sys.stderr,
                         flush=True,
                     )
+        if deadline is not None and time.time() > deadline:
+            _terminate_process_group(process)
+            process.communicate()
+            raise RunFailed(
+                f'命令超时（{(timeout or 0):g}s）：{" ".join(args)}；'
+                '若是 pub publish，先检查代理，并确认 pub.dev 是否已有该版本，不要直接重试',
+                code,
+            )
     except KeyboardInterrupt:
         _terminate_process_group(process)
         raise
