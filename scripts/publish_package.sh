@@ -14,6 +14,8 @@
 #   scripts/publish_package.sh packages/ui --dry-run
 #   scripts/publish_package.sh . --stage-only    # 只生成暂存副本（调试用，不删除）
 #   scripts/publish_package.sh packages/ui --yes  # 跳过 pub publish 的 y/N 确认（自动化 / 无 TTY）
+#   scripts/publish_package.sh packages/ui --skip-network-check  # CI / 已缓存 OAuth 时跳过网络预检
+#   scripts/publish_package.sh packages/ui --require-network     # 网络预检不可达时直接失败（CI 可选）
 #   scripts/publish_package.sh . --force --reason "hotfix: 快照 PR 未合入"  # 跳过发布前保护
 #                                       # --force 必须写 --reason（会打印到日志）
 #                                       # 注意：脚本级 --force 与 pub 的 --yes 是两件事
@@ -71,11 +73,15 @@ stage_only=""
 force=""
 force_reason=""
 publish_yes=""
+skip_network_check=""
+require_network=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) dry_run="--dry-run" ;;
     --stage-only) stage_only="1" ;;
     --yes) publish_yes="1" ;;
+    --skip-network-check) skip_network_check="1" ;;
+    --require-network) require_network="1" ;;
     --force) force="1" ;;
     --reason)
       if [ $# -lt 2 ]; then
@@ -242,6 +248,42 @@ if [ -n "$stage_only" ]; then
   exit 0
 fi
 
+# pub 的 OAuth 走 accounts.google.com / oauth2.googleapis.com；本机直连这两个域不通时
+# pub publish 会无超时卡住。正式发布前做一次 3s 预检，避免 10 分钟无输出。
+check_publish_network() {
+  if [ -n "$skip_network_check" ] || [ "${W_TOOLS_SKIP_NETWORK_CHECK:-}" = "1" ]; then
+    return 0
+  fi
+  if [ "$publish_host" != "https://pub.dev" ]; then
+    return 0
+  fi
+  if [ -n "${HTTPS_PROXY:-}${https_proxy:-}${HTTP_PROXY:-}${http_proxy:-}" ]; then
+    return 0
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "! 找不到 curl，跳过 pub 网络预检；publish 有 180s 无输出 watchdog。" >&2
+    return 0
+  fi
+  for host in accounts.google.com oauth2.googleapis.com; do
+    if curl -sS --max-time 3 -o /dev/null "https://$host" 2>/dev/null; then
+      return 0
+    fi
+  done
+  cat >&2 <<'EOF'
+! accounts.google.com / oauth2.googleapis.com 不可达；pub publish 的 OAuth 可能无输出卡住。
+  若本机需要代理，按 AGENTS.md「本机网络」设置：
+    export HTTPS_PROXY=http://127.0.0.1:7890
+    export HTTP_PROXY=http://127.0.0.1:7890
+    export NO_PROXY=localhost,127.0.0.1,pub.flutter-io.cn,storage.flutter-io.cn,pub.dev
+    dart pub login   # 秒回 already logged in 即代理生效
+  若已有缓存 OAuth，可忽略；publish 仍有 180s 无输出 watchdog。
+  需要把预检变成硬失败时加 --require-network（CI 可选）。
+EOF
+  if [ -n "$require_network" ]; then
+    exit 2
+  fi
+}
+
 # 正式发布前的保护。暂存副本来自工作区，而暂存目录在 git 之外 ——
 # `pub publish` 看不到未提交改动、错误分支、落后 main，也看不到 CHANGELOG 缺段。
 # 以前这些全靠操作者先手动跑 release_check --strict，漏跑就能把没合并的代码发出去；
@@ -309,8 +351,31 @@ if [ -n "$publish_yes" ] && [ -z "$dry_run" ]; then
   pub_confirm="--force"
 fi
 
+if [ -z "$dry_run" ]; then
+  check_publish_network
+fi
+
 cd "$staging"
-PUB_HOSTED_URL="$publish_host" "$publish_runner" pub publish $dry_run $pub_confirm
+set +e
+python3 "$repo_root/scripts/_run_with_timeout.py" \
+  --idle-timeout "${PUBLISH_IDLE_TIMEOUT:-180}" \
+  --total-timeout "${PUBLISH_TIMEOUT:-600}" \
+  --label "$pkg_name $version publish" \
+  -- "$publish_runner" pub publish $dry_run $pub_confirm
+publish_status=$?
+set -e
+if [ "$publish_status" -ne 0 ]; then
+  if [ "$publish_status" -eq 124 ]; then
+    stage_only=1
+    echo "!! 发布超时，暂存副本保留在：$staging" >&2
+    echo "!! 先查 https://pub.dev/packages/${pkg_name}/versions 是否已有 $version；不要直接重试。" >&2
+    echo "!! 若已上传，从归档补快照：" >&2
+    echo "!!   curl -L https://pub.dev/api/archives/${pkg_name}-${version}.tar.gz -o /tmp/${pkg_name}-${version}.tar.gz" >&2
+    echo "!!   tar -xzf /tmp/${pkg_name}-${version}.tar.gz -C /tmp/${pkg_name}-${version}" >&2
+    echo "!!   python3 scripts/check_public_api_diff.py --snapshot-from /tmp/${pkg_name}-${version} --package ${pkg_short} --version $version --output-dir $snapshot_dir" >&2
+  fi
+  exit "$publish_status"
+fi
 
 # 发布成功后把当前版本写成新的公开 API 基线（先写 gitignored 的 pending 目录，发布完一批再应用）。
 # 发布已成功、快照失败时保留暂存副本并返回非 0，方便直接重跑生成命令。

@@ -62,7 +62,7 @@ docs/modules/components.md
 
 守卫 / 错误分支 / 边界 clamp 的用例要能证明「删掉被守逻辑它就红」：用 `bash scripts/mutate_guard.sh` 做一次定向变异（`--expect` 与 `bash -c` 写法见 `CONTRIBUTING.md` §4 和 `scripts/README.md`「测试有效性（人工）」）。只断言 `takeException()` / `returnsNormally` 的用例优先查——删掉功能它也可能绿；变异存活先补正向断言，再考虑删守卫。
 
-本机 / agent 沙箱没有 Flutter cache 写权限时，用 `bash scripts/preflight.sh --sandbox` 跳过 Flutter 测试（由 CI 覆盖）；单包改动用 `--package`，多包用 `--changed`，不要默认全量 `--with-tests`。preflight 用 `dart analyze`（同一 analyzer，不需要 Flutter engine cache）；CI 的每包 job 仍会跑 `flutter analyze`。
+本机 / agent 沙箱没有 Flutter cache 写权限时，用 `bash scripts/preflight.sh --sandbox` 跳过 Flutter 测试（由 CI 覆盖）；单包改动用 `--package`，多包用 `--changed`，不要默认全量 `--with-tests`。preflight 默认用 `dart analyze`（同一 analyzer，不需要 Flutter engine cache）；CI 的 Flutter job 会跑 `flutter analyze`，且 minimum Flutter job 把 info 也当失败（例如同包内使用自己 `@Deprecated` 的成员）。发布准备 PR 前加 `--with-flutter-analyze`。
 
 ## 文档
 

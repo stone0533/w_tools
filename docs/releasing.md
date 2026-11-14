@@ -318,8 +318,12 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
   export NO_PROXY=localhost,127.0.0.1,pub.flutter-io.cn,storage.flutter-io.cn,pub.dev
   dart pub login   # 秒回 "You are already logged in as ..." 即代理生效
   ```
-  pub 只认 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 环境变量，不读 macOS 系统代理设置；
-  换机器 / 换端口先 `nc -z 127.0.0.1 <port>` 探活。
+
+`publish_package.sh` 还会在正式 publish 前做 3s 网络预检（默认只警告；`--require-network`
+可硬失败），并带 180s 无输出 / 600s 总超时 watchdog；超时后先查 pub.dev 是否已有该版本，不要直接重试。
+
+pub 只认 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 环境变量，不读 macOS 系统代理设置；
+换机器 / 换端口先 `nc -z 127.0.0.1 <port>` 探活。
 - **`pub publish` 在无 TTY 时直接 `Package upload canceled`**：确认提示需要终端。
   自动化里加 `--yes`（脚本会给 `pub publish` 传 `--force`：只跳过 y/N 确认，仍跑完整校验）：
   `bash scripts/publish_package.sh packages/<pkg> --yes`。不要用 `yes | ...`——它会顺带批准

@@ -24,10 +24,18 @@ class PublishYesTest(unittest.TestCase):
             runner.chmod(0o755)
         self.snapshots = self.tmp / 'snapshots'
 
-    def _run(self, *args: str) -> subprocess.CompletedProcess:
+    def _run(self, *args: str, skip_network: bool = True) -> subprocess.CompletedProcess:
         env = dict(os.environ)
         env['PATH'] = f'{self.bin}:{env["PATH"]}'
         env['W_TOOLS_SNAPSHOT_DIR'] = str(self.snapshots)
+        if skip_network:
+            env['W_TOOLS_SKIP_NETWORK_CHECK'] = '1'
+        else:
+            env.pop('W_TOOLS_SKIP_NETWORK_CHECK', None)
+            env.pop('HTTPS_PROXY', None)
+            env.pop('https_proxy', None)
+            env.pop('HTTP_PROXY', None)
+            env.pop('http_proxy', None)
         return subprocess.run(
             ['bash', str(SCRIPT), 'packages/toast', *args],
             cwd=ROOT,
@@ -59,6 +67,25 @@ class PublishYesTest(unittest.TestCase):
         args = self.log.read_text().splitlines()
         self.assertIn('publish', args)
         self.assertIn('--force', args)
+
+    def test_network_check_warns_without_proxy(self):
+        curl = self.bin / 'curl'
+        curl.write_text('#!/usr/bin/env bash\nexit 1\n')
+        curl.chmod(0o755)
+        result = self._run('--yes', '--force', '--reason', 'unit test', skip_network=False)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('accounts.google.com', result.stderr)
+        self.assertIn('--require-network', result.stderr)
+
+    def test_require_network_blocks_without_proxy(self):
+        curl = self.bin / 'curl'
+        curl.write_text('#!/usr/bin/env bash\nexit 1\n')
+        curl.chmod(0o755)
+        result = self._run(
+            '--yes', '--force', '--reason', 'unit test', '--require-network', skip_network=False
+        )
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn('accounts.google.com', result.stderr)
 
     def test_without_yes_does_not_force(self):
         result = self._run('--force', '--reason', 'unit test')

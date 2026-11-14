@@ -924,7 +924,7 @@ J-5 多包/家族
 | 步 | 做什么 | 命令 / 门禁 | 产物 |
 |---|---|---|---|
 | 1 | 生成发布计划（只读） | `python3 scripts/release_wave.py plan --all --out .w_tools/release-plan.json` | 计划表 / JSON（本地 / 线上 / 快照 / 顺序 / 阻断） |
-| 2 | 审阅计划、定版本 | 计划输出 + K-1 细节 | 版本提案表 + 发布顺序 |
+| 2 | 审阅计划、定版本 | 计划输出 + K-1 细节；plan 会提前阻断 CLI `cliVersion` / AGENTS 预算未同步 | 版本提案表 + 发布顺序 |
 | 3 | 版本 / CHANGELOG（一个 PR） | K-2M | 发布准备 PR（已合并） |
 | 4 | 逐包 dry-run | K-3，或 `run --dry-run` | 每包 0 warning |
 | 5 | 逐包发布 | K-4，或 `run --yes`（一次一个包） | 每包 publish 成功 |
@@ -1018,6 +1018,8 @@ J-5 多包/家族
 - 根包 / CLI 自身的 `## Unreleased`：本步折叠成对应版本段（没有 API diff 的约束变化）
 - 必要的 migration
 - 版本常量（cli/figma 的 lib/src/common/version.dart 等）
+- CLI 版本变化时记录 AGENTS 预算：`cd packages/cli && dart run tool/agent_budget.dart --record`
+  （提交 `docs/metrics/agents_budget.jsonl`）
 
 不允许：
 - 执行 pub publish
@@ -1029,7 +1031,7 @@ J-5 多包/家族
 2. 更新 README 安装示例的 caret 下界（必须等于新版本），不要写死「当前 x.y.z」；
 3. 跑 python3 scripts/check_versions.py
    与 bash scripts/release_check.sh --package <pkg>（根包用 --strict）
-   与 bash scripts/preflight.sh --with-tests（整波只跑这一次完整档）；
+   与 bash scripts/preflight.sh --with-tests --with-flutter-analyze（整波只跑这一次完整档）；
 4. 提交前跑本地 PR 预检：bash scripts/check_pr_ready.sh /tmp/pr.md
    （check_pr_scope + check_version_bump；body 与 `gh pr create --body-file` 用同一份）；
 5. 提交到 feature 分支并 push，开 PR（正文保留「## 改动类型」段；可用 bash scripts/ship.sh
@@ -1045,13 +1047,14 @@ J-5 多包/家族
 
 第一步只输出版本提案表（包 | 旧版本 | 新版本 | 级别 | 依据），等维护者确认；
 任务文本已给确认表时视为已确认，直接执行。
-确认后按 K-2 逐包改 pubspec / CHANGELOG / README / 聚合与根包下界 / 版本常量。
+确认后按 K-2 逐包改 pubspec / CHANGELOG / README / 聚合与根包下界 / 版本常量；
+CLI 版本变化时同步 `cliVersion` 并跑 `cd packages/cli && dart run tool/agent_budget.dart --record`。
 不要改无关包。
 
 最后统一跑：
 python3 scripts/check_versions.py
 bash scripts/release_check.sh
-bash scripts/preflight.sh --with-tests
+bash scripts/preflight.sh --with-tests --with-flutter-analyze
 bash scripts/check_pr_ready.sh /tmp/pr.md
 提交并 push，开 PR（正文保留「## 改动类型」段）并合并到 main。
 ```
@@ -1093,6 +1096,11 @@ bash scripts/check_pr_ready.sh /tmp/pr.md
 
 执行（人工或 AI；整波推荐 release_wave.py run，单包手动如下）：
 bash scripts/publish_package.sh packages/<pkg>
+
+publish 自带 watchdog：默认 180s 无输出 / 600s 总超时（PUBLISH_IDLE_TIMEOUT /
+PUBLISH_TIMEOUT 可调）。网络预检默认只警告，CI 可加 `--require-network` 变硬失败；
+超时先查代理与 pub.dev 是否已有该版本，不要直接重试；
+若已上传，按提示从归档补快照。
 
 自动化 / 无 TTY 时加 --yes（只跳过 pub 的 y/N 确认，仍跑完整校验）：
 bash scripts/publish_package.sh packages/<pkg> --yes
