@@ -121,10 +121,13 @@ class _DemoAdapter implements HttpClientAdapter {
 
     if (options.method == 'GET' && options.path == '/users') {
       return _json(
-        [
-          {'id': 1, 'name': 'Ada'},
-          {'id': 2, 'name': 'Grace'},
-        ],
+        {
+          'items': [
+            {'id': 1, 'name': 'Ada'},
+            {'id': 2, 'name': 'Grace'},
+          ],
+          'total': 3,
+        },
         headers: {
           'x-total-count': ['3'],
         },

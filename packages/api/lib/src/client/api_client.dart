@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -229,6 +231,9 @@ class WApiClient {
   ///       int.tryParse(response.headers.value('x-total-count') ?? ''),
   /// );
   /// ```
+  ///
+  /// remove-in: 7.0.0
+  @Deprecated('Use WApiClient.get/send + WAsyncPage in the repository')
   Future<WPage<T>> page<T>(
     String path, {
     WPageQuery query = const WPageQuery(),

@@ -249,7 +249,7 @@ final user = await client.get(
 | `body` | 原始值（Map / String / FormData…）或 `WApiBody` |
 | `decode` | `T Function(Object? json)`；不传则返回原始 JSON |
 | `WApiBody` | `json` / `form` / `multipart` / `bytes` 四种编码 |
-| `page` | GET 分页，返回 `WPage<T>`（`items` / `total` / `hasMore`）；`readTotalFromResponse` 可从响应头读 total，`envelope` 可按请求覆盖 |
+| `page` | 已弃用（7.0 删除）；GET 分页，返回 `WPage<T>` |
 | `upload` | `multipart/form-data` 上传；`method` 支持 POST / PUT / PATCH |
 | `download` | 已弃用（7.0 删除）；下载并返回 `Uint8List` |
 | `downloadResponse` | 下载并保留 status / headers / requestOptions |
@@ -296,24 +296,28 @@ final client = WApiClient(
 - 204 / 空 body 默认跳过信封（`skipEmptyBody: true`），不会调用 `readCode(null)`；
   需要旧行为时显式传 `skipEmptyBody: false`；
 - 需要只对某条请求启用 / 覆盖信封时，用 `client.send(..., envelope: parser)` 或
-  `client.page(..., envelope: parser)`。
+  `client.send(..., envelope: parser)`。
 
 ### 分页
 
+> `WApiClient.page` / `WPage` / `WPageQuery` 已弃用（7.0 删除）。
+> 不同后端的页码参数、额外 query、total 位置 / 是否存在都不同，不再做通用分页类型。
+
+在 Repository 里按 API 自己取，再映射到 `WAsyncPage`：
+
 ```dart
-final page = await client.page(
+final json = await client.get<Map<String, dynamic>>(
   '/users',
-  query: const WPageQuery(page: 1, pageSize: 20),
-  itemDecode: (json) => User.fromJson(json as Map<String, dynamic>),
+  query: {'pageNo': 1, 'size': 20, 'status': 'active'},
 );
+final items = (json['data']['list'] as List)
+    .map((e) => User.fromJson(e as Map<String, dynamic>))
+    .toList();
+final total = json['data']['total'] as int?;
+final hasMore = total == null ? items.length >= 20 : 20 < total;
 ```
 
-`WPage.hasMore`：有 `total` 时按 `page * pageSize < total` 计算，否则按本页是否满页。
-服务端若把 pageSize 截得比请求小，按满页判断可能提前结束；这种场景请让后端返回 total。
-默认只接受 JSON 数组；Map 结构用 `readItems` / `readTotal` 显式读取；total 在响应头
-（如 `X-Total-Count`）时用 `readTotalFromResponse`。页面状态仍交给
-`WAsyncPagedController`，`WPage` 只做传输层结果。`page` 只支持 1-based 页码分页；
-offset / cursor 后端用 `WApiClient.send` 手工请求并构造 `WPage`。
+页面状态仍交给 `WAsyncPagedController`；total 在响应头时用 `client.send` 读 headers。
 
 ### 上传 / 下载
 

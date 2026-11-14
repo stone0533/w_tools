@@ -74,14 +74,15 @@ final client = WApiClient(
   ),
 );
 
-final page = await client.page(
+final json = await client.get<Map<String, dynamic>>(
   '/users',
-  query: const WPageQuery(page: 1, pageSize: 20),
-  itemDecode: (json) => User.fromJson(json as Map<String, dynamic>),
-  // total 在响应头时：
-  readTotalFromResponse: (response) =>
-      int.tryParse(response.headers.value('x-total-count') ?? ''),
+  query: {'pageNo': 1, 'size': 20, 'status': 'active'},
 );
+final items = (json['data']['list'] as List)
+    .map((e) => User.fromJson(e as Map<String, dynamic>))
+    .toList();
+final total = json['data']['total'] as int?;
+final hasMore = total == null ? items.length >= 20 : 20 < total;
 
 await client.upload<void>(
   '/files',
@@ -90,11 +91,11 @@ await client.upload<void>(
 );
 ```
 
-- 分页结果转成 `WAsyncPage` 后交给 `WAsyncPagedController`，不要自己维护 page / hasMore 状态；
-- `page` 只支持 1-based 页码分页；offset / cursor 后端用 `client.send` 手工请求并构造 `WPage`；
+- 分页在 Repository 里按 API 自己取；结果映射到 `WAsyncPage` 后交给 `WAsyncPagedController`，不要自己维护 page / hasMore 状态；
+- `WApiClient.page` / `WPage` / `WPageQuery` 已弃用（7.0 删除），不要在新代码里用；
 - 业务码里的「登录失效」用 `WApiEnvelopeParser.authFailureCodes` + `WApiClient.onAuthFailure`；
   不配置时不会触发 `WTokenInterceptor`；
-- 单条请求临时覆盖信封用 `client.send(..., envelope: ...)` / `client.page(..., envelope: ...)`；
+- 单条请求临时覆盖信封用 `client.send(..., envelope: ...)`；`page` 已弃用；
 - 需要 status / headers 用 `WApiClient.send`（返回 `WApiResponse`）；`get/post` 只返回 data；
   下载需要 headers / 文件名用 `WApiClient.downloadResponse`；
 - 重试用 `WRetryInterceptor`（默认关闭，只对幂等方法）；HTTP 缓存 / 离线用外部方案，不在本包范围；

@@ -150,17 +150,22 @@ class _ApiDemoPageState extends State<ApiDemoPage> {
   Future<void> _loadPage() async {
     setState(() => _lastResult = '分页加载中');
     try {
-      final page = await WApiClient(_registry.dio).page<_DemoUser>(
+      final json = await WApiClient(_registry.dio).get<Map<String, dynamic>>(
         '/page',
-        query: const WPageQuery(page: 1, pageSize: 2),
-        itemDecode: (json) => _DemoUser.fromJson(json as Map<String, dynamic>),
+        query: const {'page': 1, 'pageSize': 2},
       );
+      final items = (json['items'] as List)
+          .cast<Map<String, dynamic>>()
+          .map(_DemoUser.fromJson)
+          .toList();
+      final total = json['total'] as int?;
+      final hasMore = total == null ? items.length >= 2 : 2 < total;
       if (!mounted) return;
       setState(() {
         _lastResult =
-            'page → ${page.items.length} 条\n'
-            'hasMore: ${page.hasMore}\n'
-            '${page.items.map((user) => user.name).join(', ')}';
+            'page → ${items.length} 条\n'
+            'hasMore: $hasMore\n'
+            '${items.map((user) => user.name).join(', ')}';
       });
     } on WApiException catch (error) {
       if (!mounted) return;
@@ -426,10 +431,13 @@ class _DemoAdapter implements HttpClientAdapter {
 
     if (options.path == '/page') {
       return ResponseBody.fromString(
-        jsonEncode([
-          {'id': 1, 'name': 'Ada'},
-          {'id': 2, 'name': 'Grace'},
-        ]),
+        jsonEncode({
+          'items': [
+            {'id': 1, 'name': 'Ada'},
+            {'id': 2, 'name': 'Grace'},
+          ],
+          'total': 3,
+        }),
         200,
         headers: {
           Headers.contentTypeHeader: ['application/json'],

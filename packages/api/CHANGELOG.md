@@ -1,5 +1,16 @@
 # Changelog
 
+## 6.3.0
+
+### Deprecated
+- `WApiClient.page` / `WPage` / `WPageQuery`：页码分页假设太窄，无法覆盖不同参数名、
+  额外 query、total 缺失 / 异名、offset / cursor 等场景；7.0.0 删除。
+  迁移：在 Repository 里用 `get` / `send` 按 API 构造分页，UI 用 `WAsyncPage` /
+  `WAsyncPagedController`。
+
+### Changed
+- example 改为每个 API 自己的分页模型，不再使用 `WPageQuery`。
+
 ## 6.2.0
 
 ### Deprecated

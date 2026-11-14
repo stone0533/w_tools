@@ -3,6 +3,9 @@
 /// [pageKey] / [pageSizeKey] 用于适配不同后端的参数名（默认 `page` / `pageSize`）。
 /// 只支持 1-based 页码分页；offset / limit 或 cursor 分页请用 `WApiClient.send`
 /// 手工请求并自行构造 `WPage`。
+///
+/// remove-in: 7.0.0
+@Deprecated('Use per-API page models and WAsyncPage in the repository')
 class WPageQuery {
   /// 创建分页参数；页码从 1 开始。
   const WPageQuery({
@@ -30,6 +33,9 @@ class WPageQuery {
 }
 
 /// 一页数据 + 是否还有更多。
+///
+/// remove-in: 7.0.0
+@Deprecated('Use per-API page models and WAsyncPage in the repository')
 class WPage<T> {
   /// 创建分页结果。
   const WPage({

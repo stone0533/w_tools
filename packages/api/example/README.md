@@ -7,7 +7,7 @@
 - `DioRegistry.forBaseUrl`：按 baseUrl 创建并复用 Dio
 - `WApiClient`：GET / POST / PUT / PATCH / DELETE、path / query、显式 decoder、`send` 元数据、按请求信封（`lib/wapi_client_demo.dart`）
 - `WApiEnvelopeParser`：可选 `{code, message, data}` 信封
-- `WApiClient.page` / `WPage`：分页、`total` / `hasMore`，以及从响应头读 total
+- 每个 API 自己的分页模型（`DemoUserPage`）：参数名 / total 位置由 API 决定；旧 `WPage` / `WPageQuery` 已弃用
 - `WApiClient.upload` / `downloadResponse`：multipart 上传与保留响应头的字节下载
 - `WRetryInterceptor`：可选幂等重试（见包测试）
 - `WLogInterceptor`：请求 / 响应日志与敏感头脱敏
@@ -75,7 +75,7 @@ GET /error（500） 返回 500，观察错误日志
                  WTokenInterceptor 清除旧 token、刷新、重试成功
 Repository 缓存
                  组合本地 / 远程数据源
-分页             WApiClient.page + WPageQuery，展示 items / hasMore
+分页            每个 API 自己分页（DemoUserPage），展示 items / hasMore
 上传             WApiClient.upload + WApiDecoders.none
 500 重试          WRetryInterceptor 只对 /flaky 生效，首次 500 后成功
 清空日志
