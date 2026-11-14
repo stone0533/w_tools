@@ -4,12 +4,14 @@ import 'package:test/test.dart';
 
 /// 仓库级文档回归：这些文件不随包发布，但会直接影响用户 / AI 的写法。
 void main() {
-  test('ASYNC-003：分页 footer 的监听说明包含 hasMoreListenable', () {
+  test('ASYNC-003：分页 footer 统一读 snapshot', () {
     final recipe = File('../../docs/recipes/paged-list.md').readAsStringSync();
     final example = File('../../packages/async/example/README.md').readAsStringSync();
 
-    expect(recipe, contains('hasMoreListenable'));
-    expect(example, contains('hasMoreListenable'));
+    expect(recipe, contains('snapshot.footerStatus'));
+    expect(example, contains('snapshot.footerStatus'));
+    expect(recipe, isNot(contains('hasMoreListenable')));
+    expect(example, isNot(contains('hasMoreListenable')));
   });
 
   test('ASYNC-005：async 源码注释不再引用已删除 API / 旧 null 语义', () {
@@ -35,11 +37,11 @@ void main() {
     expect(module, contains('当前 $version'));
   });
 
-  test('ASYNC-017：naming.md 登记 async 的 Activity / Views 角色', () {
+  test('ASYNC-017：naming.md 登记 async 的 Snapshot 角色', () {
     final naming = File('../../docs/naming.md').readAsStringSync();
 
-    expect(naming, contains('`Activity`'));
-    expect(naming, contains('`Views`'));
+    expect(naming, contains('`Snapshot`'));
+    expect(naming, contains('WAsyncPagedSnapshot'));
   });
 
   test('ASYNC-020：async CHANGELOG 标题在第一行', () {
@@ -48,19 +50,12 @@ void main() {
     expect(log.split('\n').first, '# Changelog');
   });
 
-  test('ASYNC-023：README 写明并发组合器的落败者行为', () {
+  test('ASYNC-023：README 写明 settle 的失败与顺序语义', () {
     final readme = File('../../packages/async/README.md').readAsStringSync();
 
-    expect(readme, contains('其余 Future 会继续执行'));
-    expect(readme, contains('不会取消落败者'));
-    expect(readme, contains('只上报第一个错误'));
-  });
-
-  test('ASYNC-009：分页追加的 chunked 结构已写明', () {
-    final readme = File('../../packages/async/README.md').readAsStringSync();
-
-    expect(readme, contains('chunked'));
-    expect(readme, contains('结构共享'));
+    expect(readme, contains('结果顺序与输入一致'));
+    expect(readme, contains('onError'));
+    expect(readme, contains('settle'));
   });
 
   test('ASYNC-024：WAsyncState.errorMessage 已移除并记录迁移', () {

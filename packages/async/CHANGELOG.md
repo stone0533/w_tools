@@ -1,5 +1,56 @@
 # Changelog
 
+## 7.0.0
+
+### Breaking
+- 执行层收敛：删除 `WAsync.parallel` / `WAsync.pool` / `WAsync.serial` / `WAsync.first` /
+  `WAsync.map`；并发直接用 `Future.wait` / `Future.any` / `package:async`，独立区块用 `settle`。
+- 删除 `WAsyncOptions` / `WAsyncActivity`：`tryRun` / `run` / `retry` / `timeout` / `settle`
+  改收 `onError` 参数；不再有 activity 计数。
+- 删除 `WAsyncStateBuilder`；滚动组件放进 `WAsyncView.readyBuilder`，sliver 用 `WAsyncStateSliver`。
+- 删除 `WAsyncThemeViews`（不再从 barrel 导出，内部保留）与 `WAsyncRetryErrorHandler`；
+  删除 `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError`；`onRetry` 类型改为 `VoidCallback?`。
+- `WAsyncController` 构造函数收敛：loader 统一接收 `WCancelToken`；删除
+  `WAsyncController.withToken` / `WAsyncController.listWithToken` / `WAsyncController.retry` /
+  `WAsyncController.reload`。
+- `WAsyncPagedController` 构造函数收敛：loader 统一接收 `(int page, WCancelToken token)` 并返回
+  `WAsyncPage<T>`；删除 `WAsyncPagedController.withToken` / `WAsyncPagedController.withPage` /
+  `WAsyncPagedController.withPageToken`。
+- 分页观察面收敛：新增 `WAsyncPagedSnapshot`；删除 `WAsyncPagedController.page` /
+  `WAsyncPagedController.initialPage` / `WAsyncPagedController.hasLoadedMoreThanOnePage` /
+  `WAsyncPagedController.isLoadingMore` / `WAsyncPagedController.loadMoreError` /
+  `WAsyncPagedController.hasMore` / `WAsyncPagedController.hasMoreListenable` /
+  `WAsyncPagedController.changes` / `WAsyncPagedController.footerStatus`。
+  `replaceData` 删除 `page` 参数。
+- 删除 `WAsyncPage.fromTotal`；`WAsyncPageLoader` 改为
+  `(page, token) => Future<WAsyncPage<T>>`；删除 `WAsyncTokenPageLoader`。
+- 删除 `WAsyncTheme.sliverLoadingBuilder` / `WAsyncTheme.sliverEmptyBuilder` /
+  `WAsyncTheme.sliverErrorBuilder` / `WAsyncTheme.sliverErrorBannerBuilder` /
+  `WAsyncTheme.refreshingSliverBuilder`；sliver 复用普通 builder。
+- 删除 `WAsyncState.ofList`、`WCancelToken.clearListeners`。
+- 默认错误视图不再渲染异常原文：`WAsyncErrorView` / `WAsyncErrorBanner` 改为
+  `title` + 可选 `message`，删除构造参数 `error`。
+- 分页追加不再使用 `_ChunkedList` 结构共享，回到 `List.unmodifiable`。
+- 构造函数 / 签名变化：`WAsyncController.new`、`WAsyncPagedController._`、`WAsyncTheme.new`、
+  `WAsyncErrorView.new`、`WAsyncErrorBanner.new`、`WAsyncErrorView.error`、
+  `WAsyncErrorBanner.error`、`WAsyncPagedController.replaceData`、
+  `WAsyncStateSliver.refreshingSliverBuilder`。
+
+### Changed
+- `WAsyncView` 在宽高都有界时用固定槽 Column：错误条 / 刷新条占位，不遮挡内容；
+  普通内容保持自身高度，滚动内容拿满可用高度；任一维无界时仍是内容盒 overlay。
+- `settle` 的 `onError` 按失败任务逐个通知（不再有 activity 合并计数）。
+- `WAsyncView` / `WAsyncStateSliver` 的默认错误视图只显示文案标题，错误详情走日志 / `onError`。
+- `WAsyncController.load` 的 `isEmpty` / `normalize` 抛错转为 `failed` 并通知 `onError`，
+  不再让 `load()` 的 Future 裸 reject。
+- 分页 `refresh` 期间 footer 返回 `hidden`（`loadMore` 会被忽略）；refresh 结束发一次最新
+  快照，恢复 `loadMore` / `noMore`，不会停在旧状态。
+
+### Added
+- `WAsyncPagedSnapshot`：分页唯一观察入口（`state` / `footerStatus` / `loadMoreError` /
+  `hasMore` / `isLoadingMore`）。
+- `WAsyncPagedController.state` 保留为只读 adapter，直接喂给 `WAsyncView`。
+
 ## 6.8.0
 
 ### Added

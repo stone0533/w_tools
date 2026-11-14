@@ -29,6 +29,22 @@ names = [
     r'WFormBorderConfigScope', r'WFormBorderState', r'\bWFormBorderConfig\b', r'WFormPopupRoute',
     r'WAsyncViewDefaults', r'WAsyncSliverDefaults', r'WAsyncBuilder', r'WAsyncConfig',
     r'WAsyncLoading', r'WAsyncState\.errorMessage', r'\bWConfig\b', r'\bWRoute\b', r'WRegExpPattern', r'WRegExpPreset',
+    # async 7.0：执行层 / 分页观察面 / 视图定制收口。
+    r'\bWAsyncStateBuilder\b', r'\bWAsyncActivity\b', r'\bWAsyncOptions\b',
+    r'\bWAsyncThemeViews\b', r'\bWAsyncTokenPageLoader\b', r'\bWAsyncRetryErrorHandler\b',
+    r'WAsync\.(?:parallel|pool|serial|first|map)\b',
+    r'WAsyncState\.ofList\b',
+    r'WAsyncController\.(?:withToken|listWithToken|retry|reload)\b',
+    r'WAsyncPagedController\.(?:withToken|withPage|withPageToken|page|initialPage|'
+    r'hasLoadedMoreThanOnePage|isLoadingMore|loadMoreError|hasMore|hasMoreListenable|'
+    r'changes|footerStatus)\b',
+    r'WAsyncPage\.fromTotal\b',
+    r'WAsyncTheme\.(?:sliverLoadingBuilder|sliverEmptyBuilder|sliverErrorBuilder|'
+    r'sliverErrorBannerBuilder|refreshingSliverBuilder)\b',
+    r'WAsyncView\.onRetryError\b',
+    r'WAsyncStateSliver\.(?:onRetryError|refreshingSliverBuilder)\b',
+    r'WCancelToken\.clearListeners\b',
+    r'WAsyncErrorView\.error\b', r'WAsyncErrorBanner\.error\b',
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
     # app_getx 2.0：全局语言状态与静态路由栈收口。
     r'\bWAppConfig\b', r'WLocaleConfig\.defaultLanguage', r'WLanguage\.languageStream',

@@ -5,8 +5,8 @@ import 'package:w_tools_async/w_tools_async.dart';
 
 /// 真实场景页：
 /// - 提交订单：retry + timeout + cancel
-/// - App 启动：parallel + WAsyncActivity
-/// - 上传：pool 限流
+/// - App 启动：settle + 手动 loading
+/// - 上传：settle 限流
 /// - 搜索：tryRun + 旧请求取消
 class ScenariosPage extends StatefulWidget {
   const ScenariosPage({super.key});
@@ -72,30 +72,22 @@ class _ScenariosPageState extends State<ScenariosPage> {
 
   Future<void> _bootstrap() async {
     if (_bootstrapping) return;
-    final activity = WAsyncActivity(
-      onStart: () {
-        if (mounted) setState(() => _bootstrapping = true);
-      },
-      onEnd: () {
-        if (mounted) setState(() => _bootstrapping = false);
-      },
-    );
-    final options = WAsyncOptions(activity: activity);
+    if (mounted) setState(() => _bootstrapping = true);
 
     try {
-      final values = await WAsync.parallel<String>(
-        [
-          Future.delayed(const Duration(milliseconds: 300), () => '配置'),
-          Future.delayed(const Duration(milliseconds: 200), () => '用户'),
-          Future.delayed(const Duration(milliseconds: 400), () => '通知'),
-        ],
-        options: options,
-      );
+      final results = await WAsync.settle<String>([
+        () => Future.delayed(const Duration(milliseconds: 300), () => '配置'),
+        () => Future.delayed(const Duration(milliseconds: 200), () => '用户'),
+        () => Future.delayed(const Duration(milliseconds: 400), () => '通知'),
+      ], onError: (error) => _log('启动 onError：$error'));
+
+      final values = [
+        for (final result in results)
+          if (result is WAsyncSuccess<String>) result.value,
+      ];
       _log('启动完成：${values.join(' / ')}');
-    } on WCancellationException {
-      _log('启动已取消');
-    } catch (error) {
-      _log('启动失败：$error');
+    } finally {
+      if (mounted) setState(() => _bootstrapping = false);
     }
   }
 
@@ -103,7 +95,7 @@ class _ScenariosPageState extends State<ScenariosPage> {
     _uploadToken?.cancel('superseded');
     final token = _uploadToken = WCancelToken();
     try {
-      final results = await WAsync.pool<String>(
+      final results = await WAsync.settle<String>(
         List.generate(6, (index) {
           return () async {
             await Future<void>.delayed(Duration(milliseconds: 150 + index * 30));
@@ -113,12 +105,17 @@ class _ScenariosPageState extends State<ScenariosPage> {
         }),
         concurrency: 2,
         cancelToken: token,
+        onError: (error) => _log('上传失败：$error'),
       );
-      _log('上传完成：${results.join('、')}');
-    } on WCancellationException {
-      _log('上传已取消');
-    } catch (error) {
-      _log('上传失败：$error');
+      if (token.isCancelled) {
+        _log('上传已取消');
+        return;
+      }
+      final values = [
+        for (final result in results)
+          if (result is WAsyncSuccess<String>) result.value,
+      ];
+      _log('上传完成：${values.join('、')}');
     } finally {
       if (identical(_uploadToken, token)) _uploadToken = null;
     }
@@ -221,7 +218,7 @@ class _ScenariosPageState extends State<ScenariosPage> {
           ),
           _ScenarioCard(
             title: 'App 启动',
-            subtitle: 'parallel + WAsyncActivity',
+            subtitle: 'settle（保留每个结果）',
             actions: [
               FilledButton.tonal(
                 onPressed: _bootstrap,
@@ -231,7 +228,7 @@ class _ScenariosPageState extends State<ScenariosPage> {
           ),
           _ScenarioCard(
             title: '上传文件',
-            subtitle: 'pool(concurrency: 2)',
+            subtitle: 'settle(concurrency: 2)',
             actions: [
               FilledButton.tonal(
                 onPressed: _upload,

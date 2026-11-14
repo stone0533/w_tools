@@ -16,7 +16,9 @@ class _PagedPageState extends State<PagedPage> {
   @override
   void initState() {
     super.initState();
-    _controller = WAsyncPagedController<String>(_loadPage);
+    _controller = WAsyncPagedController.list<String>(
+      (page, _) => _loadPage(page),
+    );
     _controller.refresh();
   }
 
@@ -101,9 +103,10 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: controller.changes,
+      animation: controller.snapshot,
       builder: (context, _) {
-        final status = controller.footerStatus;
+        final footer = controller.snapshot.value;
+        final status = footer.footerStatus;
         if (status == WAsyncPagedFooterStatus.hidden) {
           return const SizedBox.shrink();
         }
@@ -124,19 +127,13 @@ class _Footer extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  '追加失败：${controller.loadMoreError.value}',
+                  '追加失败：${footer.loadMoreError}',
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
             TextButton(
               onPressed: canLoad ? controller.loadMore : null,
               child: Text(label),
-            ),
-            // hasLoadedMoreThanOnePage 区分「首屏还没翻过页」和「已翻过页」，
-            // 不用自己拿 state.data.length 变大去猜（失败路径上长度不变）。
-            Text(
-              controller.hasLoadedMoreThanOnePage ? '已加载多页' : '仅第一页',
-              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         );

@@ -9,7 +9,7 @@ Widget _host(Widget child) {
   );
 }
 
-Widget _scroll(ValueListenable<WAsyncState<int>> state, {Future<void> Function()? onRetry}) {
+Widget _scroll(ValueListenable<WAsyncState<int>> state, {VoidCallback? onRetry}) {
   return CustomScrollView(
     slivers: [
       WAsyncStateSliver<int>(
@@ -47,6 +47,7 @@ void main() {
       _host(_scroll(ValueNotifier(const WAsyncState.failed('boom')))),
     );
     expect(find.byType(WAsyncErrorView), findsOneWidget);
+    expect(find.textContaining('boom'), findsNothing);
   });
 
   testWidgets('failed + 旧数据保留 ready 并附加 banner', (tester) async {
@@ -67,33 +68,6 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 
-  testWidgets('可显式添加 refreshing sliver', (tester) async {
-    const state = WAsyncState<int>.loading(previousData: 1);
-    await tester.pumpWidget(
-      _host(
-        CustomScrollView(
-          slivers: [
-            WAsyncStateSliver<int>(
-              state: ValueNotifier(state),
-              onRetry: () async {},
-              readySliverBuilder: (context, value) {
-                return SliverToBoxAdapter(child: Text('ready-$value'));
-              },
-              refreshingSliverBuilder: (context) {
-                return const SliverToBoxAdapter(
-                  child: Text('custom-refreshing'),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-
-    expect(find.text('ready-1'), findsOneWidget);
-    expect(find.text('custom-refreshing'), findsOneWidget);
-  });
-
   testWidgets('Retry回调可用', (tester) async {
     var retries = 0;
 
@@ -101,7 +75,7 @@ void main() {
       _host(
         _scroll(
           ValueNotifier(const WAsyncState.failed('boom')),
-          onRetry: () async {
+          onRetry: () {
             retries++;
           },
         ),
@@ -177,7 +151,7 @@ void main() {
           slivers: [
             WAsyncStateSliver<int>(
               state: ValueNotifier(const WAsyncState.failed('boom')),
-              onRetry: () async {},
+              onRetry: () {},
               readySliverBuilder: (context, value) =>
                   SliverToBoxAdapter(child: Text('ready-$value')),
               errorBuilder: (context, error, retry) => const Text('custom-error'),
@@ -189,59 +163,6 @@ void main() {
 
     expect(find.text('custom-error'), findsOneWidget);
     expect(find.byType(WAsyncErrorView), findsNothing);
-  });
-
-  testWidgets('retry 同步抛错可被 onRetryError 观测', (tester) async {
-    Object? reported;
-
-    await tester.pumpWidget(
-      _host(
-        CustomScrollView(
-          slivers: [
-            WAsyncStateSliver<int>(
-              state: ValueNotifier(const WAsyncState.failed('boom')),
-              onRetry: () => throw Exception('sync retry'),
-              onRetryError: (error, _) => reported = error,
-              readySliverBuilder: (context, value) =>
-                  SliverToBoxAdapter(child: Text('ready-$value')),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('Retry'));
-    await tester.pump();
-
-    expect(reported, isA<Exception>());
-  });
-
-  testWidgets('retry 失败且无 onRetryError 时走 FlutterError.reportError', (tester) async {
-    final errors = <FlutterErrorDetails>[];
-    final previous = FlutterError.onError;
-    FlutterError.onError = errors.add;
-    addTearDown(() => FlutterError.onError = previous);
-
-    await tester.pumpWidget(
-      _host(
-        CustomScrollView(
-          slivers: [
-            WAsyncStateSliver<int>(
-              state: ValueNotifier(const WAsyncState.failed('boom')),
-              onRetry: () async => throw Exception('retry failed'),
-              readySliverBuilder: (context, value) =>
-                  SliverToBoxAdapter(child: Text('ready-$value')),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('Retry'));
-    await tester.pump();
-    await tester.pump();
-
-    expect(errors, isNotEmpty);
   });
 
   testWidgets('failed + 旧数据时错误条在列表上方', (tester) async {

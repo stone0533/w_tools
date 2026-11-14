@@ -37,7 +37,7 @@ class _AggregateExamplePageState extends State<AggregateExamplePage> {
   @override
   void initState() {
     super.initState();
-    _async = WAsyncController<String>(_loadAsync);
+    _async = WAsyncController<String>((_) => _loadAsync());
     _async.load();
   }
 

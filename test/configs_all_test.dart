@@ -13,29 +13,26 @@ import 'package:w_tools_toast/w_tools_toast.dart';
 
 void main() {
   // ========= core =========
-  group('WAsyncOptions', () {
-    test('withoutActivity 只清空 activity', () {
-      final options = WAsyncOptions(
-        activity: WAsyncActivity(onStart: () {}),
-        onError: (_) {},
+  group('WAsync', () {
+    test('run 的 onError 只是通知，失败仍抛', () async {
+      Object? reported;
+      await expectLater(
+        WAsync.run<int>(
+          () async => throw StateError('boom'),
+          onError: (error) => reported = error,
+        ),
+        throwsStateError,
       );
-      final copy = options.withoutActivity();
-      expect(copy.activity, isNull);
-      expect(copy.onError, same(options.onError));
+      expect(reported, isA<StateError>());
     });
 
-    test('WAsyncActivity 合并 0→1 / 1→0', () async {
-      var starts = 0;
-      var ends = 0;
-      final activity = WAsyncActivity(onStart: () => starts++, onEnd: () => ends++);
-      final options = WAsyncOptions(activity: activity);
-      await Future.wait([
-        WAsync.run<void>(() async {}, options: options),
-        WAsync.run<void>(() async {}, options: options),
+    test('settle 保留每个结果', () async {
+      final results = await WAsync.settle<int>([
+        () async => 1,
+        () async => throw StateError('boom'),
       ]);
-      expect(starts, 1);
-      expect(ends, 1);
-      expect(activity.isLoading, isFalse);
+      expect(results.whereType<WAsyncSuccess<int>>().single.value, 1);
+      expect(results.whereType<WAsyncFailure<int>>(), hasLength(1));
     });
   });
 

@@ -70,13 +70,6 @@ class WCancelToken {
       throw WCancellationException(_cancelReason);
     }
   }
-
-  /// 清空尚未触发的取消回调
-  ///
-  /// 不会重置 [isCancelled] / [cancelReason]。
-  void clearListeners() {
-    _listeners.clear();
-  }
 }
 
 /// 取消异常

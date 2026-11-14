@@ -16,7 +16,7 @@ class _SliverPageState extends State<SliverPage> {
   @override
   void initState() {
     super.initState();
-    _controller = WAsyncController<List<String>>(_load);
+    _controller = WAsyncController<List<String>>((_) => _load());
     _controller.load();
   }
 

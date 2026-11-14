@@ -68,12 +68,6 @@ class WAsyncState<T> {
       ? WAsyncState<List<E>>.empty()
       : WAsyncState<List<E>>.ready(list);
 
-  /// 列表类数据的便捷构造；保留旧名，改用 [list]。
-  ///
-  /// remove-in: 7.0.0
-  @Deprecated('Use WAsyncState.list instead.')
-  static WAsyncState<List<E>> ofList<E>(List<E>? list) => WAsyncState.list<E>(list);
-
   final WAsyncStatus status;
   final T? data;
   final Object? error;

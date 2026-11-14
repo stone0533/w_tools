@@ -5,7 +5,6 @@ import 'pages/execution_page.dart';
 import 'pages/scenarios_page.dart';
 import 'pages/paged_page.dart';
 import 'pages/sliver_page.dart';
-import 'pages/state_builder_page.dart';
 import 'pages/async_view_page.dart';
 
 void main() {
@@ -33,19 +32,8 @@ class AsyncExampleApp extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('全局 error：$error'),
-            const SizedBox(height: 8),
-            FilledButton(onPressed: onRetry, child: const Text('重试')),
-          ],
-        ),
-      ),
-      sliverLoadingBuilder: (_) => const Center(child: Text('Sliver loading')),
-      sliverEmptyBuilder: (_) => const Center(child: Text('Sliver empty')),
-      sliverErrorBuilder: (context, error, onRetry) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Sliver error：$error'),
+            // 错误详情只进日志，不直接展示给用户。
+            const Text('全局 error'),
             const SizedBox(height: 8),
             FilledButton(onPressed: onRetry, child: const Text('重试')),
           ],
@@ -83,7 +71,6 @@ class _ExampleHomeState extends State<_ExampleHome> {
           AsyncViewPage(),
           PagedPage(),
           SliverPage(),
-          StateBuilderPage(),
           ExecutionPage(),
           ScenariosPage(),
         ],
@@ -103,10 +90,6 @@ class _ExampleHomeState extends State<_ExampleHome> {
           NavigationDestination(
             icon: Icon(Icons.view_day_rounded),
             label: 'Sliver',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_customize_outlined),
-            label: 'Builder',
           ),
           NavigationDestination(
             icon: Icon(Icons.play_circle_outline_rounded),

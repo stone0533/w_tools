@@ -111,26 +111,28 @@ void main() {
     }
   });
 
-  test('ASYNC-001：sliver*Builder 的示例返回非滚动 Widget', () {
+  test('ASYNC-001：WAsyncTheme 的 builder 示例返回普通 Widget', () {
     final entry = findComponent('WAsyncTheme');
     expect(entry, isNotNull);
     expect(entry!.usage, isNotNull);
-    expect(entry.usage, contains('sliverLoadingBuilder'));
+    expect(entry.usage, contains('loadingBuilder'));
+    expect(entry.usage, isNot(contains('sliverLoadingBuilder')));
     expect(
       entry.usage,
       isNot(contains('SliverFillRemaining')),
-      reason: 'sliver*Builder 由 WAsyncStateSliver 包 SliverFillRemaining，示例不能返回 sliver',
+      reason: 'sliver 复用普通 builder，由 WAsyncStateSliver 包 SliverFillRemaining',
     );
   });
 
-  test('ASYNC-002：WAsyncOptions / WAsyncActivity / WCancelToken 各自可 explain', () {
-    for (final name in <String>['WAsyncOptions', 'WAsyncActivity', 'WCancelToken']) {
+  test('ASYNC-002：WCancelToken / WAsyncPagedSnapshot 各自可 explain', () {
+    for (final name in <String>['WCancelToken', 'WAsyncPagedSnapshot']) {
       final entry = findComponent(name);
       expect(entry, isNotNull, reason: '$name 没有独立条目');
       expect(entry!.name, name, reason: '$name 仍被合并到 ${entry.name}');
       expect(entry.usage, isNotNull, reason: '$name 没有 usage');
-      expect(entry.teach, isTrue, reason: '$name 是入口类型，应 teach');
     }
+    expect(findComponent('WAsyncOptions'), isNull);
+    expect(findComponent('WAsyncActivity'), isNull);
   });
 
   test('API-001：WApiSettings usage 不把 baseOptions 字段当方法调用', () {

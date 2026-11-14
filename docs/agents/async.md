@@ -2,59 +2,57 @@
 
 - 页面展示异步结果：`WAsyncController` + `WAsyncView`。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
-- 每个独立区块一个 Controller；不要用一个 `WAsyncActivity` 合并多个独立区块。
-- Controller 重新加载用 `reload()`；`retry()` 是 deprecated 别名，自动重试用 `WAsync.retry`。
-- 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点。
-- 普通页面区块用 `WAsyncView`；滚动页面 / `SmartRefresher` 用 `WAsyncStateBuilder`。
-- `WAsyncView` / `WAsyncStateBuilder` 只监听 `ValueListenable`（`state` 不是 `Rx`）：
+- 每个独立区块一个 Controller；不要在多个独立区块之间共享一个加载计数器。
+- Controller 重新加载用 `load()`；自动重试用 `WAsync.retry`。
+- 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点。builder 必须返回
+  **非滚动** Widget（sliver 复用同一组 builder），不要把 `ListView` 塞进 loading / error。
+- 普通页面区块用 `WAsyncView`；滚动组件（`SmartRefresher` / `ListView`）放进 `readyBuilder`。
+- Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮。
+- `WAsyncView` / `WAsyncStateSliver` 只监听 `ValueListenable`（`state` 不是 `Rx`）：
   页面里其它 Rx 状态（筛选条件、倒计时）该包 `Obx` 还得包；迁移时顺手删掉外层 `Obx`
   不会有编译错误，但那些状态就不再触发重建。
-- Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮；failed + 旧数据的错误条在
-  列表上方，深滚动场景用 `onError` toast 或 `WAsyncStateBuilder` overlay。
-- `WAsyncView` 的 refreshing / errorBanner 是内容盒 overlay，不一定是视口：紧约束
-  （Scaffold body / Expanded）填满视口，松约束（Column 子项 / ListView item）只包内容；
-  需要固定视口时外层给有界高度或用 `WAsyncStateBuilder`。
-- 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `loadMoreError`。
-- 第一页不足一页 / 服务端有 `total`：用 `withPage` + `WAsyncPage.fromTotal(total:, page:, pageSize:)`；
-  旧构造仍是“本页非空即有更多”。
-- 分页 footer 直接读 `controller.footerStatus`（hidden / loading / failed / noMore / loadMore），
-  不再手写 data / loadMoreError / hasMore 组合；它是普通 getter，重建仍用 `changes`。
+- `WAsyncView` 的 refreshing / errorBanner：宽高都有界（`Scaffold.body` / `Expanded`）时占固定槽，
+  内容让位；普通内容保持自身高度，滚动内容拿满可用高度；任一维无界（`Column` 子项 /
+  `ListView` item / `Row`）时是内容盒 overlay。
+- 分页用 `WAsyncPagedController`；`loadMore` 失败只写 `snapshot.loadMoreError`。
+- 第一页不足一页 / 服务端有 `total`：loader 返回 `WAsyncPage(items:, hasMore: page * pageSize < total)`，
+  不要用 `data.length` 猜。
+- 分页 footer 只读 `controller.snapshot.value.footerStatus`（hidden / loading / failed / noMore / loadMore），
+  重建用 `AnimatedBuilder(animation: controller.snapshot)`；不要在外部拼 data / error / hasMore。
 - 切换筛选 / 搜索直接再调 `refresh()`：在飞刷新会被取消，旧结果不写回；不要禁用筛选。
-- 本地替换 / 乐观更新用 `replaceData`：会取消在飞 refresh / loadMore，`page` / `hasMore` 默认继承。
+- 本地替换 / 乐观更新用 `replaceData`：会取消在飞 refresh / loadMore，`hasMore` 默认继承。
 - 单区块本地替换用 `WAsyncController.replaceData`：取消在飞 `load`，旧结果不写回。
-- 列表 + 感知取消用 `WAsyncController.listWithToken`；保留空列表 → empty、`state.data` unmodifiable。
-- `state.isRefreshing` 只在有旧数据时为 true；首屏 / 重试用 `isLoading`；切换筛选直接 `refresh()`，不需要先判断。
-- 分页 + SmartRefresher：首屏 `refresh()`（不要 `requestRefresh()`），所有 refresh 走同一个 generation helper，footer 重试先 `requestLoading()`；见 `docs/recipes/paged-list.md`。
-- 第一页不足一页 / 服务端有 `total`：用 `WAsyncPagedController.withPage` + `WAsyncPage(hasMore:)`；
-  旧构造仍是“本页非空即有更多”，不要用 `data.length` 猜。
-- 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常。
+- 列表语义用 `WAsyncController.list`：保留空列表 → empty、`state.data` unmodifiable。
+- `state.isRefreshing` 只在有旧数据时为 true；首屏 / 重试用 `isLoading`；切换筛选直接 `refresh()`。
+- 分页 + SmartRefresher：首屏 `refresh()`（不要 `requestRefresh()`），footer 重试先 `requestLoading()`；
+  见 `docs/recipes/paged-list.md`。
+- 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常；
+  独立区块并行用 `WAsync.settle`；普通并发直接用 `Future.wait` / `Future.any`。
 - `WAsyncState.list` 不复制 / 不包装输入列表；需要不可变 data 用
   `WAsyncController.list` 或 `List.unmodifiable`。状态相等性是浅比较，列表按引用比较。
-- `WAsyncOptions.onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
+- `onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
   `onError` / `catchError`，否则会有 unhandled Future。不要用空 `onError` 当 catch。
-- `WAsync.run` 不再接受 `onSuccess`；需要映射用 `WAsync.map`。`runValue` / `WAsyncLoading` 已删除。
-- 取消用 `WCancelToken`；`withToken` / `listWithToken` 让 loader 感知取消；取消不中止底层 Future；
+- `WAsync.run` 不接受 `onSuccess`；7.0 已删除 `WAsync.map` / `parallel` / `pool` / `serial` / `first`；
+  `runValue` / `WAsyncLoading` 也已删除。- 取消用 `WCancelToken`；Controller 的 loader 统一接收 token；取消不中止底层 Future；
   被新 refresh 取代的旧 refresh 也会 cancel token。
 - 取消与失败同轮竞态：非 `Error` 按取消处理；`Error` 仍返回 failure，避免吞编程错误。
+- 默认 loading / empty / error 视图带 `liveRegion`；显式 / theme builder 不会自动加语义。
+- 默认错误视图只显示标题，不渲染异常原文；需要展示详情时用 `errorBuilder` 并自己确认脱敏。
 
 选择入口：
 
 | 需求 | 用 |
 | --- | --- |
 | 页面区块 | `WAsyncController` + `WAsyncView` |
-| 滚动页 | `WAsyncStateBuilder` |
+| 滚动页 | `WAsyncView`（滚动组件放进 `readyBuilder`） |
 | Sliver | `WAsyncStateSliver` |
 | 纯执行，不抛异常 | `WAsync.tryRun` |
 | 纯执行，失败抛异常 | `WAsync.run` |
-| 映射成功值 | `WAsync.map` |
-| 重试 / 超时 / 并发 | `WAsync.retry` / `timeout` / `parallel` / `pool` / `serial` / `first` |
+| 重试 / 超时 | `WAsync.retry` / `WAsync.timeout` |
 | 独立区块并行，保留每个结果 | `WAsync.settle` |
 | 单区块本地替换 | `WAsyncController.replaceData` |
 | 分页 | `WAsyncPagedController` |
-| 分页 footer 状态 | `WAsyncPagedFooterStatus` / `footerStatus` |
-| 观测自定义 retry 失败 | `WAsyncView.onRetryError` / `WAsyncStateSliver.onRetryError` |
-
-`WAsync.map` 做结果映射，`serial` 做同类型顺序任务，`first` 做多源竞速。
+| 分页 footer 状态 | `WAsyncPagedSnapshot.footerStatus` |
 
 `onRetry == null` 时不显示重试按钮；自定义 error / banner builder 仍会收到 `null`，由 builder 决定是否渲染按钮。
 
@@ -71,7 +69,7 @@ switch (result) {
 最小用法：
 
 ```dart
-final gifts = WAsyncController.list(() => api.gifts());
+final gifts = WAsyncController.list((_) => api.gifts());
 gifts.load();
 
 WAsyncView<List<Gift>>(
@@ -93,30 +91,21 @@ if (result is WAsyncSuccess<Gift>) {
 ```
 
 `WAsyncView` 还支持按页面覆盖 `loadingBuilder` / `emptyBuilder` / `errorBuilder` /
-`errorBannerBuilder` / `refreshingBuilder`，以及 `onRetryError`；未传时回退到
-`WAsyncTheme`。`WAsyncStrings` 注入默认文案，`WAsyncStatus` 是 `state.status` 的枚举，
+`errorBannerBuilder` / `refreshingBuilder`；未传时回退到 `WAsyncTheme`。
+`WAsyncStrings` 注入默认文案，`WAsyncStatus` 是 `state.status` 的枚举，
 取消抛 `WCancellationException`，`tryRun` 的结果分支是 `WAsyncSuccess` /
 `WAsyncFailure` / `WAsyncCancelled`。
-
-`WAsyncActivity` 只用于同一批并行任务（如 `WAsync.parallel`），不要合并多个独立区块。
-
-`WAsync.parallel` 是 all-or-nothing：任一失败整体抛错，`eagerError: false` 也仍然抛、不返回部分结果。
-独立区块优先用 `WAsync.settle`（保留每个 `WAsyncResult`）；需要手写时先 `WAsync.tryRun` 包每个 Future，
-再组合 `WAsyncResult`；不要用空 `onError` 吞错。完整写法见 [独立区块并行](../recipes/parallel-sections.md)。
 
 `WAsync.retry` 的 `retryCount` 是重试次数（总尝试 = `retryCount + 1`）；`retryDelayBuilder`
 按失败次数生成退避，`onRetry` 观测每次重试，回调自身异常会被忽略。
 
-状态 / 结果 / 活动分不清时：
+状态 / 结果分不清时：
 
 | 类型 | 是什么 | 不是什么 |
 |---|---|---|
 | `WAsyncState` | 一次请求的四态快照（status / data / error） | 不是执行结果 |
 | `WAsyncStatus` | 四态枚举 | 不是状态载体 |
 | `WAsyncResult` | `tryRun` 的成功 / 失败 / 取消结果 | 不是 UI 状态 |
-| `WAsyncActivity` | 并发活动计数器 | 不是加载视图 |
-
-- 默认 loading / empty / error 视图带 `liveRegion`；显式 / theme builder 不会自动加语义，
-  自定义视图要自己保留 `Semantics`。
+| `WAsyncPagedSnapshot` | 分页列表的只读快照 | 不是单区块四态 |
 
 完整说明：[async_module.md](../modules/async_module.md) · 示例：[packages/async/example](../../packages/async/example/README.md)

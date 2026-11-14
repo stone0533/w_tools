@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
-/// 四、WAsync / WAsyncOptions / WAsyncActivity / WCancelToken：不需要 UI 状态时的执行入口。
+/// 四、WAsync / WCancelToken：不需要 UI 状态时的执行入口。
 class ExecutionPage extends StatefulWidget {
   const ExecutionPage({super.key});
 
@@ -11,19 +11,7 @@ class ExecutionPage extends StatefulWidget {
 
 class _ExecutionPageState extends State<ExecutionPage> {
   final _logs = <String>[];
-  bool _loading = false;
   int _retryAttempt = 0;
-
-  WAsyncOptions get _options => WAsyncOptions(
-    activity: WAsyncActivity(
-      onStart: () {
-        if (mounted) setState(() => _loading = true);
-      },
-      onEnd: () {
-        if (mounted) setState(() => _loading = false);
-      },
-    ),
-  );
 
   void _log(String message) {
     if (mounted) setState(() => _logs.insert(0, message));
@@ -36,7 +24,7 @@ class _ExecutionPageState extends State<ExecutionPage> {
           await Future<void>.delayed(const Duration(milliseconds: 250));
           return '执行成功';
         },
-        options: _options,
+        onError: (error) => _log('run onError: $error'),
       );
       _log('run: $result');
     } catch (error) {
@@ -55,7 +43,6 @@ class _ExecutionPageState extends State<ExecutionPage> {
           }
           return '第 $_retryAttempt 次成功';
         },
-        options: _options,
         retryCount: 3,
         retryDelayBuilder: (attempt) => Duration(milliseconds: 80 * attempt),
         onRetry: (attempt, error, delay) =>
@@ -75,7 +62,6 @@ class _ExecutionPageState extends State<ExecutionPage> {
           return '不会返回';
         },
         const Duration(milliseconds: 200),
-        options: _options,
       );
       _log('timeout result: $result');
     } catch (error) {
@@ -90,7 +76,7 @@ class _ExecutionPageState extends State<ExecutionPage> {
         await Future<void>.delayed(const Duration(milliseconds: 800));
         return '已取消，不会回调 onError';
       },
-      options: _options,
+      onError: (error) => _log('cancel onError: $error'),
       cancelToken: token,
     );
     await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -103,34 +89,6 @@ class _ExecutionPageState extends State<ExecutionPage> {
     }
   }
 
-  Future<void> _map() async {
-    try {
-      final result = await WAsync.map<int, String>(
-        () async => 42,
-        onSuccess: (value) => 'answer=$value',
-        options: _options,
-      );
-      _log('map: $result');
-    } catch (error) {
-      _log('map error: $error');
-    }
-  }
-
-  Future<void> _serial() async {
-    try {
-      final results = await WAsync.serial<String>(
-        [
-          () async => 'step 1',
-          () async => 'step 2',
-        ],
-        options: _options,
-      );
-      _log('serial: ${results.join(' -> ')}');
-    } catch (error) {
-      _log('serial error: $error');
-    }
-  }
-
   Future<void> _settle() async {
     final results = await WAsync.settle<String>(
       [
@@ -138,51 +96,21 @@ class _ExecutionPageState extends State<ExecutionPage> {
         () async => throw Exception('columns failed'),
         () async => 'notice',
       ],
-      options: _options,
+      onError: (error) => _log('settle onError: $error'),
     );
     final summary = results.map((result) => result.isSuccess ? 'ok' : 'fail').join(', ');
     _log('settle: $summary');
   }
 
-  Future<void> _first() async {
-    try {
-      final result = await WAsync.first<String>(
-        [
-          Future.delayed(const Duration(milliseconds: 250), () => 'slow'),
-          Future.delayed(const Duration(milliseconds: 50), () => 'fast'),
-        ],
-        options: _options,
-      );
-      _log('first: $result');
-    } catch (error) {
-      _log('first error: $error');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('执行编排'),
-        actions: [
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Center(
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('执行编排')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           const Text(
-            'WAsync 不依赖 Widget；适合接口调用、重试、超时和取消。',
+            'WAsync 不依赖 Widget；适合接口调用、重试、超时、取消和独立区块并行。',
             style: TextStyle(color: Color(0xFF6B7280)),
           ),
           const SizedBox(height: 16),
@@ -202,18 +130,6 @@ class _ExecutionPageState extends State<ExecutionPage> {
               OutlinedButton(
                 onPressed: _cancel,
                 child: const Text('执行并取消'),
-              ),
-              FilledButton.tonal(
-                onPressed: _map,
-                child: const Text('map'),
-              ),
-              FilledButton.tonal(
-                onPressed: _serial,
-                child: const Text('serial'),
-              ),
-              FilledButton.tonal(
-                onPressed: _first,
-                child: const Text('first'),
               ),
               FilledButton.tonal(
                 onPressed: _settle,

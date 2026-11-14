@@ -3,12 +3,11 @@
 真实场景示例，覆盖：
 
 - 四态视图：`WAsyncController` + `WAsyncView`，含 `replaceData` 本地替换
-- 分页：`WAsyncPagedController`、`loadMore`、`hasMore`、追加失败、`footerStatus`
+- 分页：`WAsyncPagedController`、`loadMore`、`hasMore`、追加失败、`snapshot.footerStatus`
 - Sliver：`WAsyncStateSliver`
 - 全局默认：`WAsyncTheme`（普通 + sliver 一套）
-- 状态构建器：`WAsyncStateBuilder` / `WAsyncErrorView`
-- 执行编排：`WAsync` / `WAsyncOptions` / `WAsyncActivity` / `WCancelToken`
-- 执行入口补充：`map` / `serial` / `first` / `settle`
+- 执行编排：`WAsync` / `WCancelToken`
+- 执行入口：`tryRun` / `run` / `retry` / `timeout` / `settle`
 - 真实场景：提交重试+取消、启动并行、限流上传、搜索竞态
 - 重试增强：`retryDelayBuilder` 退避、`onRetry` 观测
 
@@ -34,10 +33,9 @@ lib/
   main.dart                 示例入口 + 全局默认 + 底部导航
   pages/
     async_view_page.dart    WAsyncController + WAsyncView
-    paged_page.dart         WAsyncPagedController
+    paged_page.dart         WAsyncPagedController + snapshot footer
     sliver_page.dart        WAsyncStateSliver
-    state_builder_page.dart WAsyncStateBuilder
-    execution_page.dart     WAsync / 重试 / 超时 / 取消
+    execution_page.dart     WAsync / 重试 / 超时 / 取消 / settle
     scenarios_page.dart     提交 / 启动 / 上传 / 搜索竞态
 test/
   example_smoke_test.dart
@@ -71,25 +69,26 @@ await WAsync.retry(
 ### App 启动
 
 ```dart
-await WAsync.parallel<String>(
-  [loadConfig(), loadProfile(), loadNotifications()],
-  options: WAsyncOptions(activity: activity),
-);
+final results = await WAsync.settle<String>([
+  () => loadConfig(),
+  () => loadProfile(),
+  () => loadNotifications(),
+], onError: (error) => log(error));
 ```
 
-多个任务共享 `WAsyncActivity`，loading 只触发一次 0→1→0。
+`settle` 保留每个结果；页面自己在调用点维护 loading 布尔。
 
 ### 上传文件
 
 ```dart
-await WAsync.pool<String>(
+final results = await WAsync.settle<String>(
   files.map((file) => () => upload(file)),
   concurrency: 2,
   cancelToken: token,
 );
 ```
 
-限制并发数，结果顺序与输入一致。
+限制并发数，结果顺序与输入一致；取消时未完成任务以 `WAsyncCancelled` 结束。
 
 ### 搜索竞态
 
@@ -108,7 +107,7 @@ final result = await WAsync.tryRun(
 ### 四态视图
 
 ```dart
-final controller = WAsyncController<List<String>>(load);
+final controller = WAsyncController<List<String>>((_) => load());
 
 WAsyncView<List<String>>(
   state: controller.state,
@@ -130,23 +129,40 @@ WAsyncView<List<String>>(
 ### 分页
 
 ```dart
-final controller = WAsyncPagedController<String>(loadPage);
+final controller = WAsyncPagedController.list<String>(
+  (page, _) => loadPage(page),
+);
 
 await controller.refresh();
 await controller.loadMore();
 ```
 
-footer 监听：
+footer 只监听 `snapshot`：
 
-```text
-isLoadingMore
-loadMoreError
-hasMoreListenable
+```dart
+AnimatedBuilder(
+  animation: controller.snapshot,
+  builder: (context, _) {
+    final footer = controller.snapshot.value;
+    return switch (footer.footerStatus) {
+      WAsyncPagedFooterStatus.hidden => const SizedBox.shrink(),
+      WAsyncPagedFooterStatus.loading => const Text('加载中...'),
+      WAsyncPagedFooterStatus.failed => TextButton(
+          onPressed: controller.loadMore,
+          child: const Text('重试'),
+        ),
+      WAsyncPagedFooterStatus.noMore => const Text('没有更多'),
+      WAsyncPagedFooterStatus.loadMore => TextButton(
+          onPressed: controller.loadMore,
+          child: const Text('加载更多'),
+        ),
+    };
+  },
+);
 ```
 
-`hasMoreListenable` 不能省：最后一页返回空列表时 `hasMore` 会变，但 `state` 不变。
-如果 footer 只由 `state` 重建，就必须再监听 `hasMoreListenable`；示例里的 footer 还监听
-`isLoadingMore`，而它在每次 `loadMore` 前后都会翻转，所以能顺带刷新。
+最后一页返回空列表时 `snapshot.hasMore` 会变，但 `state` 不变；只由 `state` 重建的
+footer 不会刷新，所以统一监听 `snapshot`。
 
 ### Sliver
 

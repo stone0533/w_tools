@@ -12,7 +12,7 @@ w_tools_core:
 w_tools_async:
   - WAsyncController
   - WAsyncView
-  - WAsyncStateBuilder
+  - WAsyncPagedController
   - WAsync
 w_tools_ui:
   - WText

@@ -22,11 +22,17 @@ void main() {
     expect(find.text('第 2 页 · 1'), findsOneWidget);
   });
 
-  testWidgets('状态构建器页面保持滚动壳并展示数据', (tester) async {
+  testWidgets('分页 footer 读取 snapshot 状态', (tester) async {
     await tester.pumpWidget(const AsyncExampleApp());
-    await tester.tap(find.text('Builder'));
+    await tester.tap(find.text('分页'));
     await tester.pumpAndSettle();
-    expect(find.text('Builder 数据 1'), findsOneWidget);
+    expect(find.text('第 1 页 · 1'), findsOneWidget);
+    expect(find.text('加载更多'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('加载更多'));
+    await tester.tap(find.text('加载更多'));
+    await tester.pumpAndSettle();
+    expect(find.text('第 2 页 · 1'), findsOneWidget);
   });
 
   testWidgets('执行页面可以运行 WAsync.run', (tester) async {
@@ -53,22 +59,14 @@ void main() {
     expect(find.textContaining('提交成功'), findsOneWidget);
   });
 
-  testWidgets('执行页覆盖 map / serial / first', (tester) async {
+  testWidgets('执行页覆盖 settle', (tester) async {
     await tester.pumpWidget(const AsyncExampleApp());
     await tester.tap(find.text('执行 API'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'map'));
+    await tester.tap(find.widgetWithText(FilledButton, 'settle'));
     await tester.pumpAndSettle();
-    expect(find.text('map: answer=42'), findsOneWidget);
-
-    await tester.tap(find.widgetWithText(FilledButton, 'serial'));
-    await tester.pumpAndSettle();
-    expect(find.text('serial: step 1 -> step 2'), findsOneWidget);
-
-    await tester.tap(find.widgetWithText(FilledButton, 'first'));
-    await tester.pumpAndSettle();
-    expect(find.text('first: fast'), findsOneWidget);
+    expect(find.text('settle: ok, fail, ok'), findsOneWidget);
   });
 
   testWidgets('Sliver 页面展示四态 sliver', (tester) async {
