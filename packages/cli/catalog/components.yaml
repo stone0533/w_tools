@@ -504,6 +504,7 @@ components:
       - 'message 与 hintTextList 二选一，同时传会断言'
       - 'maxLines > 1 时同步提高 WFormFieldStyle.height（或用 WFormFieldStyleScope），否则内容会被裁'
       - '插槽里读 WFormTextFieldData.of(context).hasText 不会随输入重建；要跟随值变化请用 ListenableBuilder(data.valueListenable) 或预置的 WFormTextFieldAction'
+      - 'validator 的 value 可能是 null（空输入通常以 null 传入）；自定义规则直接写闭包并自己判空，8.0 已删除 WFormCustomValidator'
     related: ['`WForm`', '`WFormFieldStyle`']
     teach: true
   - name: '`WFormDropdown`'
@@ -734,6 +735,8 @@ components:
         fieldName: 'age',
         validatorBuilder: () => (value) => value == null ? '必填' : null,
       )
+    pitfalls:
+      - 'validatorBuilder 返回 FormFieldValidator<dynamic>；复用字段强类型规则用 WFormValidatorItem.field(name)'
     related: ['`WFormValidator`']
     teach: false
   - name: '`WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton`'

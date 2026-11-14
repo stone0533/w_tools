@@ -294,6 +294,19 @@ validator 的错误才有边框位置可显示。显式 `bordered: false` 时错
 | `WFormValidatorItem.field(name)` | 使用字段自身 validator |
 | `WFormValidatorItem(fieldName:, validatorBuilder:)` | 自定义校验；每次校验生成规则 |
 
+### 自定义校验
+
+- 字段级：直接传 `validator:`（`FormFieldValidator<T>`）。`value` 可能是 `null`
+  （空输入通常以 null 传入），必填 / trim 规则要自己判断。
+- 表单级：`WFormValidatorItem.field(name)` 复用字段声明过的强类型 validator；
+  `WFormValidatorItem(fieldName:, validatorBuilder:)` 每次校验重新生成规则，适合依赖
+  运行期状态的动态校验。
+- 8.0 删除了 `WFormCustomValidator`：它只是把函数包成 `FormFieldValidator`，直接传闭包
+  行为等价；`form_builder_validators` 已移除依赖（w_tools_form 不再依赖它；直接 import 它的项目需自行添加）。
+- 可复用规则 / 组合 / 异步校验示例见
+  [`packages/form/README.md`](../../packages/form/README.md) 的「自定义校验」与
+  [`docs/migrations/form-8.0.md`](../migrations/form-8.0.md) §4。
+
 ### WFormValidatorSettings（默认值）
 
 | 字段 | 默认 | 说明 |

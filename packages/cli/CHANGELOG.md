@@ -1,3 +1,10 @@
+## 1.22.1
+
+### Changed
+- catalog 补 form 8.0 自定义校验指引：`validator` 的 value 可能为 `null`，直接写闭包；
+  `WFormValidatorItem.validatorBuilder` 返回动态类型，复用强类型字段规则用
+  `WFormValidatorItem.field(name)`。`WFormCustomValidator` 已删除，不再作为入口。
+
 ## 1.22.0
 
 ### Changed

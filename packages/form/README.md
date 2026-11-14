@@ -195,6 +195,84 @@ WForm(
 );
 ```
 
+## 自定义校验
+
+8.0 删除了 `WFormCustomValidator`：它只是把校验函数包成 `FormFieldValidator`，字段的
+`validator:` 直接传闭包即可，行为等价。注意 **`value` 可能是 `null`**（空输入通常以 null 传入），
+必填 / trim 等规则由闭包自己判断。
+
+```dart
+WFormTextField(
+  name: 'code',
+  validator: (value) {
+    if (value == null || value.trim().isEmpty) return '请输入验证码';
+    if (!RegExp(r'^\d{6}$').hasMatch(value)) return '验证码为 6 位数字';
+    return null;
+  },
+)
+```
+
+需要跨页面复用时，在项目 UI 层封装普通函数（类型就是 `String? Function(T?)`）：
+
+```dart
+typedef FieldValidator<T> = String? Function(T? value);
+
+abstract final class AppValidators {
+  static FieldValidator<T> custom<T>(String? Function(T?) fn) => fn;
+
+  static FieldValidator<String> required({String message = '必填'}) =>
+      (value) => (value == null || value.trim().isEmpty) ? message : null;
+
+  static FieldValidator<T> compose<T>(List<FieldValidator<T>> rules) {
+    return (value) {
+      for (final rule in rules) {
+        final error = rule(value);
+        if (error != null) return error;
+      }
+      return null;
+    };
+  }
+}
+
+WFormTextField(
+  name: 'email',
+  validator: AppValidators.compose<String>([
+    AppValidators.required(message: '请输入邮箱'),
+    (value) => value!.contains('@') ? null : '邮箱格式不正确',
+  ]),
+)
+```
+
+表单级规则用 `WFormValidatorItem`：
+
+```dart
+// 复用字段自己的强类型 validator（推荐）
+WFormTextField(name: 'code', validator: AppValidators.required(message: '请输入验证码'));
+form.validators(items: [WFormValidatorItem.field('code')]).validate();
+
+// 按运行期状态生成动态规则
+form.validators(items: [
+  WFormValidatorItem(
+    fieldName: 'idCard',
+    validatorBuilder: () => (value) =>
+        isCompany && (value == null || value.isEmpty) ? '企业用户需填写证件号' : null,
+  ),
+]).validate();
+```
+
+服务端异步校验放在提交阶段，结果写回边框：
+
+```dart
+final error = await api.checkInviteCode(form.value['code'] as String?);
+if (error != null) {
+  form.setError('code', errorTextList: [error]);
+  return;
+}
+```
+
+> `form_builder_validators` 已移除依赖：如果你的项目曾直接 import 它，升级 8.0 后要在自己的
+> `pubspec.yaml` 显式添加（`w_tools_form` 不再传递它）；只用字段 `validator:` 则不需要。
+
 ## 主要 API
 
 | 能力 | 入口 |
