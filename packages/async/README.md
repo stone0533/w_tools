@@ -350,6 +350,13 @@ Widget（不是 sliver，也不要返回 `ListView` / `CustomScrollView`），sl
 默认错误视图只显示标题，**不渲染异常原文**；错误详情走 `onError` / 日志，或自定义
 `errorBuilder` / `errorBannerBuilder` 展示（自己确认脱敏，不要在 UI 里直接 `'$error'`）。
 
+```dart
+final controller = WAsyncController<Gift>(
+  (_) => api.gift(),
+  onError: (error) => logger.e(error), // 详情只进日志，不上屏
+);
+```
+
 ## 行为约定
 
 - `WAsyncView` 的 refreshing / errorBanner：宽高都有界时占固定槽，内容让位；普通内容保持
