@@ -658,6 +658,7 @@ components:
     docsAnchor: 'wformvalidatorsettings默认值'
     section: '7. 校验系统'
     useFor: '校验行为：边框错误、短路 / 全量、回调'
+    dontUseFor: '不要用它承载单字段规则；单字段用字段 validators，settings 只放校验行为'
     usage: |
       final settings = WFormValidatorSettings(
         showBorderError: true,
@@ -767,6 +768,7 @@ components:
     docsAnchor: '6-wbottomsheet---底部弹窗'
     section: '6. WBottomSheet - 底部弹窗'
     useFor: '底部面板外壳'
+    dontUseFor: '不要用于全屏页面或需要路由返回栈的场景；只做底部面板外壳'
     usage: |
       final result = await WBottomSheet.show<String>(
         const MySheetContent(),
@@ -1011,6 +1013,7 @@ components:
     docsAnchor: '1-wapp---启动器'
     section: '1. WApp - 启动器'
     useFor: 'GetX 启动器'
+    dontUseFor: '不要用于非 GetX 项目；也不要重复 start / run，语言与路由栈是实例状态'
     usage: |
       final app = WApp.options(
         WAppOptions(
@@ -1078,6 +1081,7 @@ components:
     docsAnchor: '2-wappplugin---插件接口'
     section: '2. WAppPlugin - 插件接口'
     useFor: '插件分层初始化'
+    dontUseFor: '不要在 wrapApp 里读 Theme / MediaQuery；有顺序要求必须写 dependsOn'
     usage: |
       class EnvPlugin extends WAppPlugin {
         @override String get name => 'env';
@@ -1190,6 +1194,7 @@ components:
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
     useFor: '倒计时'
+    dontUseFor: '不要用于服务端计时或精确闹钟；它只是 UI 倒计时'
   - name: '`WStorage`'
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
@@ -1222,6 +1227,7 @@ components:
     package: 'w_tools_core'
     section: '8. 能力（非 UI）'
     useFor: '日志、校验、正则'
+    dontUseFor: '不要用 WLogger 记录敏感信息；不要用 WValidator 替代服务端校验'
     usage: "WLogger.i('saved'); WValidator.isValidEmail(email);"
     pitfalls:
       - "\u7eaf\u6b63\u5219\u5339\u914d\u7528 WRegExp\uff0c\u4e0d\u8981\u624b\u5199\u91cd\u590d\u6b63\u5219"
@@ -1300,6 +1306,7 @@ components:
     package: 'w_tools_api'
     section: '8. 能力（非 UI）'
     useFor: '请求配置与日志注入'
+    dontUseFor: '不要在请求发出后改 baseOptions；它只在 DioRegistry.forBaseUrl 前设置'
     usage: "WApiSettings.baseOptions = BaseOptions(connectTimeout: const Duration(seconds: 10));"
     pitfalls:
       - "`baseOptions` 是字段不是方法；在首次 `DioRegistry.forBaseUrl` 前设置"
@@ -1595,6 +1602,7 @@ components:
     docsAnchor: '4-wroutestack---路由栈管理'
     section: '4. WRouteStack - 路由栈管理'
     useFor: '路由栈操作（`app.routeStack`）'
+    dontUseFor: '不要跨 WApp 操作路由栈；每个 WApp 持有自己的栈'
     usage: |
       app.routeStack.popUntilRoute('/home');
       app.routeStack.routes;
@@ -1971,6 +1979,7 @@ components:
     docsAnchor: '3-wformtheme--wformicons--表单主题'
     section: '3. WFormTheme / WFormIcons — 表单主题'
     useFor: '表单主题数据（icons / borderStyle + effective* 图标 getter）；`WFormThemeData.of(context)` 读取'
+    dontUseFor: '不要直接构造或改字段；通过 WFormThemeData.of / WFormTheme 读取'
     usage: |
       final data = WFormThemeData.of(context);
       data?.effectiveDropdownIcon;
@@ -1983,6 +1992,7 @@ components:
     docsAnchor: '3-wformtheme--wformicons--表单主题'
     section: '3. WFormTheme / WFormIcons — 表单主题'
     useFor: '主题 InheritedWidget：App 级图标 / 边框统一放外层，WForm 会继承'
+    dontUseFor: '不要在普通页面单独包一层；页面级用 WForm(icons:/borderStyle:)'
     usage: |
       WFormTheme(
         icons: WFormIcons.defaults,
@@ -1998,6 +2008,7 @@ components:
     docsAnchor: '43-wformreadonly'
     section: '4. 边框系统'
     useFor: '读取当前子树是否只读（WForm / 字段自动注入）'
+    dontUseFor: '不要手写只读作用域；局部只读用 WForm(readOnly: true) 或字段 readOnly'
     usage: |
       final readOnly = WFormReadOnly.of(context);
     pitfalls:
@@ -2009,6 +2020,7 @@ components:
     docsAnchor: '51-wformtextfield'
     section: '5. 字段组件（直接用法 / 低层细节）'
     useFor: '文本字段插槽可读的数据（isPasswordVisible / readOnly 等）'
+    dontUseFor: '不要在 builder 外构造或缓存；插槽内只读'
     usage: |
       final data = WFormTextFieldData.of(context);
       data.isPasswordVisible; data.readOnly;
@@ -2019,6 +2031,7 @@ components:
     docsAnchor: '42-wformfieldshell'
     section: '4. 边框系统'
     useFor: '字段外框装配（内置字段自动使用；自定义字段可参考 form_module.md §4.3）'
+    dontUseFor: '普通字段不要手写外框；自定义字段不要用它绕开 FormField'
     usage: |
       WFormFieldShell(name: 'x', readOnly: false, child: ...)
     pitfalls:
@@ -2031,6 +2044,7 @@ components:
     docsAnchor: '4-view'
     section: '4. View'
     useFor: '默认整块错误视图 / 保留旧数据时的错误条'
+    dontUseFor: '不要传异常原文；业务错误弹窗用 Toast / 表单错误，不用它'
     usage: |
       WAsyncErrorView(title: '加载失败', onRetry: retry);
       WAsyncErrorBanner(title: '刷新失败', message: '请稍后重试', onRetry: retry);
@@ -2046,6 +2060,7 @@ components:
     docsAnchor: '5-theme'
     section: '5. Theme'
     useFor: '全局默认文案：empty / errorTitle / retry / loading'
+    dontUseFor: '不要用它写业务文案；项目应注入本地化，默认文案是英文'
     usage: |
       const WAsyncStrings(
         empty: '暂无数据',
@@ -2063,6 +2078,7 @@ components:
     docsAnchor: '2-wasyncstate'
     section: '2. WAsyncState'
     useFor: '四态枚举：loading / ready / empty / failed'
+    dontUseFor: '不要把它当业务状态机；新增值会破坏 exhaustive switch'
     usage: |
       switch (state.status) {
         case WAsyncStatus.loading: ...
@@ -2077,6 +2093,7 @@ components:
     docsAnchor: '1-wasync'
     section: '1. WAsync'
     useFor: 'tryRun 成功结果'
+    dontUseFor: '不要直接构造；它是 tryRun 的结果，不代表业务成功'
     usage: |
       case WAsyncSuccess<Gift>(:final value): use(value);
     related: ['WAsyncResult']
@@ -2086,6 +2103,7 @@ components:
     docsAnchor: '1-wasync'
     section: '1. WAsync'
     useFor: 'tryRun 失败结果（error / stackTrace / isProgrammingError）'
+    dontUseFor: '不要吞掉 stackTrace；不要把编程错误当业务失败重试'
     usage: |
       case WAsyncFailure<Gift>(:final error, :final stackTrace): log(error, stackTrace);
     pitfalls:
@@ -2097,6 +2115,7 @@ components:
     docsAnchor: '1-wasync'
     section: '1. WAsync'
     useFor: 'tryRun 取消结果（reason）'
+    dontUseFor: '不要把取消当失败展示；已取消请求不要自动重试'
     usage: |
       case WAsyncCancelled<Gift>(:final reason): log(reason);
     related: ['WAsyncResult']
@@ -2106,6 +2125,7 @@ components:
     docsAnchor: '1-wasync'
     section: '1. WAsync'
     useFor: 'run 被取消时抛出的异常（reason）'
+    dontUseFor: '不要用它捕获所有异常；捕获后要保留 reason'
     usage: |
       try {
         await WAsync.run(() => api.gift());
@@ -2119,6 +2139,7 @@ components:
     docsAnchor: 'wasyncpagedcontroller'
     section: '3. Controller'
     useFor: '分页 loader 的类型：(page, token) => Future<WAsyncPage<T>>'
+    dontUseFor: '不要在 loader 里做 UI；不要忽略 token'
     usage: |
       final WAsyncPageLoader<Gift> loader = (page, token) => api.gifts(page, token);
       WAsyncPagedController<Gift>(loader);
@@ -2130,6 +2151,7 @@ components:
     docsAnchor: 'wasyncpagedcontroller'
     section: '3. Controller'
     useFor: '分页 loader 返回 items + 显式 hasMore（第一页不足一页 / total）'
+    dontUseFor: '不要把它当完整分页状态；观察 WAsyncPagedSnapshot'
     usage: |
       WAsyncPagedController<Gift>((page, token) async {
         final resp = await api.gifts(page: page, limit: 10);
@@ -2148,6 +2170,7 @@ components:
     docsAnchor: 'wasynccontroller'
     section: '3. Controller'
     useFor: '控制器 loader 的类型：(token) => Future<T>'
+    dontUseFor: '不要在 loader 里忽略 token；不要返回已取消请求的旧结果'
     usage: |
       final WAsyncTokenLoader<Gift> loader = (token) => api.gift(token: token);
       WAsyncController<Gift>(loader);
@@ -2159,6 +2182,7 @@ components:
     docsAnchor: '5-theme'
     section: '5. Theme'
     useFor: 'error / errorBanner builder 的类型'
+    dontUseFor: '不要直接显示 error 原文；不要返回 sliver'
     usage: |
       WAsyncView<Gift>(
         errorBuilder: (context, error, retry) => ...,
@@ -2170,6 +2194,7 @@ components:
     docsAnchor: 'wappoptions-字段'
     section: '1. WApp - 启动器'
     useFor: '语言支持列表、首次启动语言与回退语言（WAppOptions.localeConfig）'
+    dontUseFor: '不要放未在 supportedLanguages 里的语言；不要在运行时改'
     usage: |
       WLocaleConfig(
         supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},

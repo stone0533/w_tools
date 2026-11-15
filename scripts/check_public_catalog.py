@@ -50,7 +50,13 @@ def write_baseline(data: dict[str, set[str]]) -> None:
 def main() -> int:
     raw = yaml.safe_load(CATALOG.read_text())
     catalog_names: set[str] = set()
+    catalog_errors: list[str] = []
     for component in raw['components']:
+        if not str(component.get('dontUseFor') or '').strip():
+            catalog_errors.append(
+                f'catalog {component.get("name", "?")}: 缺 dontUseFor；'
+                '写清“什么场景不要用”，否则不要登记'
+            )
         for name in component['name'].split('/'):
             catalog_names.add(name.replace('`', '').replace('*', '').strip())
 
@@ -68,7 +74,7 @@ def main() -> int:
         print(f'已写入 {BASELINE.relative_to(ROOT)}')
         return 0
 
-    errors: list[str] = []
+    errors: list[str] = list(catalog_errors)
     for pkg, names in current.items():
         unknown = names - baseline.get(pkg, set())
         for name in sorted(unknown):
