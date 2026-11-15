@@ -7,6 +7,10 @@
 - 分页：`WAsyncPagedController` + `WAsyncPagedSnapshot`。
 - 全局默认视图：`WAsyncTheme`。
 
+> 本页只讲**架构、职责边界与行为约定**；完整代码示例统一看
+> [`packages/async/README.md`](../../packages/async/README.md)。两处不要各写一份可运行代码，
+> 避免默认值 / 参数在两边漂移。
+
 ## 快速判断
 
 | 需求 | 入口 |
@@ -26,18 +30,18 @@
 
 ```text
 lib/src/task/
-  async_task.dart       # WAsync 执行入口
-  async_result.dart     # WAsyncResult / Success / Failure / Cancelled
-  cancel_token.dart     # WCancelToken / WCancellationException
+  async_task.dart              # WAsync 执行入口
+  async_result.dart            # WAsyncResult / Success / Failure / Cancelled
+  cancel_token.dart            # WCancelToken / WCancellationException
 lib/src/state/
-  async_state.dart      # WAsyncState / WAsyncStatus
-  async_controller.dart # WAsyncController
-  async_paged_controller.dart # WAsyncPagedController / WAsyncPage / WAsyncPagedSnapshot
+  async_state.dart             # WAsyncState / WAsyncStatus
+  async_controller.dart        # WAsyncController
+  async_paged_controller.dart  # WAsyncPagedController / WAsyncPage / WAsyncPagedSnapshot
 lib/src/view/
-  async_view.dart       # WAsyncView
-  async_state_sliver.dart # WAsyncStateSliver
-  async_theme.dart      # WAsyncTheme
-  async_theme_views.dart # 默认视图解析（内部）
+  async_view.dart              # WAsyncView
+  async_state_sliver.dart      # WAsyncStateSliver
+  async_theme.dart             # WAsyncTheme
+  async_theme_views.dart       # 默认视图解析（内部，不从 barrel 导出）
   async_strings.dart / async_error_view.dart / async_error_banner.dart
 ```
 
@@ -56,47 +60,24 @@ lib/src/view/
 | `settle` | 并发执行任务工厂，单个失败不抛错，每个结果按输入顺序返回 |
 
 普通并发直接用 `Future.wait` / `Future.any`；本包只保留和「多区块页面」直接相关的入口。
-
 参数错误（`concurrency < 1`、负数的 `retryCount` / `retryDelay` / `timeout`）以失败的
 Future 返回 `ArgumentError`。
 
-### 结果
-
-```dart
-final result = await WAsync.tryRun(() => api.gift(id));
-switch (result) {
-  case WAsyncSuccess(:final value): use(value);
-  case WAsyncFailure(:final error, :final stackTrace): log(error, stackTrace);
-  case WAsyncCancelled(:final reason): log('cancelled: $reason');
-}
-```
+### 行为约定
 
 - `WAsyncFailure.isProgrammingError` 区分 `Error`（TypeError / StateError）与业务异常；
 - `onError` 只是失败通知，不改变返回值，也不会吞 `run` / `retry` / `timeout` 的异常；
-- `onError` / `onRetry` 自身抛错会被忽略，不影响主流程。
+  `onError` / `onRetry` 自身抛错会被忽略；
+- `settle` 的 `onError` 按**失败任务个数**通知，不是按批次；
+- 取消是协作式的：`WCancelToken` 在开始、结束、重试等待等边界检查，不中止已经开始的
+  Future；取消后不可复用；
+- 取消与失败同轮竞态：非 `Error` 按取消处理，`Error` 仍返回 `WAsyncFailure`，避免把编程
+  错误吞成取消。
 
-### 取消
-
-`WCancelToken` 是协作式取消：在开始、结束、重试等待等边界检查；不会中止已经开始执行的
-Future。取消后不可复用。
-
-取消与失败在同一轮竞态时，非 `Error` 的失败按取消处理；`Error` 仍返回 `WAsyncFailure`，
-避免把编程错误吞成取消。完整示例见 [README 的「取消」](../../packages/async/README.md#取消)。
-
-### 示例
-
-```dart
-final value = await WAsync.run(() => api.fetch());
-final results = await WAsync.settle<Section>([
-  () => api.banners(),
-  () => api.columns(),
-]);
-await WAsync.retry(
-  () => api.submit(),
-  retryCount: 3,
-  retryDelayBuilder: (attempt) => Duration(milliseconds: 200 * (1 << (attempt - 1))),
-);
-```
+完整用法：[README 执行结果](../../packages/async/README.md#执行结果) ·
+[独立区块并行](../../packages/async/README.md#独立区块并行) ·
+[重试与超时](../../packages/async/README.md#重试与超时) ·
+[取消](../../packages/async/README.md#取消)
 
 ## 2. WAsyncState
 
@@ -105,22 +86,13 @@ await WAsync.retry(
 - 首次请求发出前是 `loading`，不能用 `empty` 占位；
 - 请求成功但结果为空才是 `empty`；
 - 请求失败是 `failed`，与「没有数据」是两种状态；
-- 已有数据时刷新失败用 `failed` + `previousData` 保留旧数据。
+- 已有数据时刷新失败用 `failed` + `previousData` 保留旧数据；
+- `isRefreshing` 只表示「有旧数据时的 loading」，首屏 / 重试仍看 `isLoading`；
+- `WAsyncState.list` 把 null / 空列表转为 `empty`，但不复制、不包装输入列表；
+- 相等性是字段浅比较；列表按引用比较，不按内容比较。
 
-```dart
-state.when(
-  loading: () => ...,
-  ready: (data) => ...,
-  empty: () => ...,
-  failed: (error) => ...,
-);
-state.status; state.data; state.error;
-state.isRefreshing; // loading 且有旧数据
-```
-
-`WAsyncState.list(items)` 把 null / 空列表转为 `empty`，但不复制、不包装输入列表；
-需要不可变 data 用 `WAsyncController.list` 或 `List.unmodifiable`。
-相等性是字段浅比较，列表按引用比较。
+状态读取：`when` 四态全覆盖，或 `status` + `data` / `error` 手写分支。
+类型分工见 [README 状态 / 结果分不清时](../../packages/async/README.md#四态状态)。
 
 ## 3. Controller
 
@@ -128,79 +100,59 @@ state.isRefreshing; // loading 且有旧数据
 
 一个区块一个 Controller。loader 统一接收 `WCancelToken`；不需要取消时写 `(_) => ...`。
 
-```dart
-final controller = WAsyncController<List<Gift>>((_) => api.gifts());
-await controller.load();
-controller.replaceData(const [Gift('local')]);
-controller.dispose();
-```
-
-- `load()` 会取消上一次请求；旧请求返回后不会覆盖新状态；
-- `state.data` 为列表时，`WAsyncController.list` 会包成 unmodifiable；
-- `replaceData` 会取消在飞 `load`，旧结果不写回；
-- `onError` 只是失败兜底通知，四态仍由 Controller 维护。
+- `load()` 取消上一次请求；旧请求返回后不会覆盖新状态；
+- `WAsyncController.list` 额外保留空列表 → empty、`state.data` unmodifiable；
+- `replaceData` 取消在飞 `load`，旧结果不写回；
+- `onError` 只是失败兜底通知，四态仍由 Controller 维护；
+- `isEmpty` 是同步回调，不要抛错：`load()` 会把回调抛错转为 `failed` 并通知 `onError`；
+  `replaceData()` 会同步抛出（编程错误直接暴露）。
 
 ### WAsyncPagedController
 
-loader 统一返回 `WAsyncPage`：
-
-```dart
-final paged = WAsyncPagedController<Gift>((page, token) async {
-  final resp = await api.gifts(page: page, token: token);
-  return WAsyncPage<Gift>(
-    items: resp.list,
-    hasMore: resp.total == null ? null : page * 20 < resp.total,
-  );
-});
-await paged.refresh();
-await paged.loadMore();
-```
+loader 统一返回 `WAsyncPage`（items + 可选 hasMore）。
 
 - `refresh()` 重新加载第一页；刷新在飞时再次调用会取消旧请求，旧结果不写回；
 - `loadMore()` 只追加，失败只写 `snapshot.loadMoreError`，不清空列表；
 - `hasMore` 为 null 时「本页非空即还有更多」；
-- `replaceData(data, {bool? hasMore})` 会取消在飞 refresh / loadMore；
-- 观察入口只有两个：`state`（四态，喂给 `WAsyncView`）与 `snapshot`（分页状态）。
+- `replaceData(data, {bool? hasMore})` 取消在飞 refresh / loadMore；
+- 观察入口只有两个：`state`（四态，喂给 `WAsyncView`）与 `snapshot`（分页状态）；
+- `onError` 里重入 `refresh` / `replaceData` 时，`loadMore` 的 generation 守卫会丢弃旧失败，
+  不把 stale `loadMoreError` 写回新状态。
 
 #### 分页 footer 状态
 
 `WAsyncPagedSnapshot` 是分页的唯一观察快照：
 
-```dart
-final footer = controller.snapshot.value;
-footer.state;          // WAsyncState<List<T>>
-footer.footerStatus;   // hidden / loading / failed / noMore / loadMore
-footer.loadMoreError;  // 最近一次追加失败
-footer.hasMore;
-footer.isLoadingMore;  // footerStatus == loading
-```
+| 字段 | 作用 |
+| --- | --- |
+| `state` | `WAsyncState<List<T>>`，直接喂 `WAsyncView` |
+| `footerStatus` | hidden / loading / failed / noMore / loadMore |
+| `loadMoreError` | 最近一次追加失败 |
+| `hasMore` | 是否还有下一页 |
+| `isLoadingMore` | `footerStatus == loading` |
 
-footer 用 `AnimatedBuilder(animation: controller.snapshot)` 重建。派生规则：
+footer 用 `AnimatedBuilder(animation: controller.snapshot)` 重建。派生规则（按优先级）：
 
 - 还没有数据（首屏 loading / empty / 整页 failed）→ `hidden`；
+- refresh 进行中 → `hidden`（`loadMore` 会被忽略）；
 - `loadMoreError` 非空 → `failed`；
 - 正在追加 → `loading`；
 - 没有更多：成功翻过页 → `noMore`，第一页就到底 → `hidden`；
 - 其余 → `loadMore`。
 
+完整代码与 SmartRefresher 组合见 [paged-list 配方](../recipes/paged-list.md)。
+
 ## 4. View
 
-`WAsyncView` 渲染四态：
+`WAsyncView` 渲染四态，`onRetry` 为 `VoidCallback?`；为 null 时默认错误视图不渲染按钮。
 
-```dart
-WAsyncView<List<Gift>>(
-  state: controller.state,
-  onRetry: controller.load,
-  readyBuilder: (context, gifts) => GiftList(gifts),
-);
-```
-
-- `onRetry` 为 `VoidCallback?`；为 null 时默认错误视图不渲染按钮；
-- 每视图可覆盖 `loadingBuilder` / `emptyBuilder` / `errorBuilder` /
-  `errorBannerBuilder` / `refreshingBuilder`，未传时回退到 `WAsyncTheme`；
-- refreshing / errorBanner：宽高都有界时占固定槽，内容让位；任一维无界时是内容盒 overlay；
-- ready / refreshing / failed + 旧数据共用同一层容器，状态切换不重建 `readyBuilder` 子树；
-- 默认错误视图只显示标题，不渲染异常原文；需要详情用 `errorBuilder`。
+| 能力 | 约定 |
+| --- | --- |
+| loading / empty / error | 未传 per-view builder 时回退到 `WAsyncTheme` |
+| refreshing / errorBanner | 宽高都有界时占固定槽，内容让位；任一维无界时是内容盒 overlay |
+| ready / refreshing / failed + 旧数据 | 共用同一层容器，状态切换不重建 `readyBuilder` 子树 |
+| 默认错误视图 | 只显示标题，不渲染异常原文；详情走 `onError` / 日志 / 自定义 builder |
+| 滚动内容 | 滚动组件放进 `readyBuilder`，不要包在 `WAsyncView` 外面 |
 
 `WAsyncStateSliver` 用于 `CustomScrollView`：
 
@@ -215,16 +167,7 @@ Widget（不是 sliver），组件会自己包 `SliverFillRemaining`。
 
 ## 5. Theme
 
-`WAsyncTheme` 放在 App 根部，统一默认视图与文案：
-
-```dart
-WAsyncTheme(
-  strings: const WAsyncStrings(empty: '暂无数据', retry: '重试'),
-  loadingBuilder: (_) => const AppLoadingView(),
-  errorBuilder: (context, error, retry) => AppRetryView(retry),
-  child: app,
-);
-```
+`WAsyncTheme` 放在 App 根部，统一默认视图与文案。
 
 | 字段 | 作用 |
 | --- | --- |
@@ -238,6 +181,8 @@ Widget（不是 sliver，也不要返回 `ListView` / `CustomScrollView`）；�
 `readyBuilder` / `readySliverBuilder`。
 包内默认视图带 `liveRegion`；显式 / 主题 builder 不会自动加语义，自定义视图要自己保留。
 
+完整示例见 [README 主题](../../packages/async/README.md#主题)。
+
 ## 6. 测试与版本
 
 ```bash
@@ -246,3 +191,4 @@ flutter test
 ```
 
 当前 7.0.1；迁移见 [async-7.0](../migrations/async-7.0.md)。
+AI 路由见 [docs/agents/async.md](../agents/async.md)。
