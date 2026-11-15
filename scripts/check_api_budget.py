@@ -292,7 +292,8 @@ def breaking_signature_changes(
                 reasons.append(f'{key}: 参数 {name} 从可选变成 required')
         old_positional = [item['name'] for item in old_list if item['positional']]
         new_positional = [item['name'] for item in new_list if item['positional']]
-        if old_positional != new_positional:
+        # 允许在末尾追加 optional positional；插到中间 / 重排会改变既有实参绑定。
+        if new_positional[:len(old_positional)] != old_positional:
             reasons.append(f'{key}: 位置参数顺序 / 数量变化 {old_positional} → {new_positional}')
     return reasons
 

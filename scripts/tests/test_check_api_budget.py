@@ -108,6 +108,19 @@ class BudgetCheckTest(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertTrue(any('additive' in note for note in notes))
 
+    def test_minor_optional_positional_added_is_additive(self):
+        self._snapshot('class WDemo {\n  void a() {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a([int? x]) {}\n}\n')
+        errors, notes, _ = self._check({'growth': 5})
+        self.assertEqual(errors, [])
+        self.assertTrue(any('additive' in note for note in notes))
+
+    def test_minor_optional_positional_inserted_fails(self):
+        self._snapshot('class WDemo {\n  void a([int? x]) {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a([int? y, int? x]) {}\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertTrue(any('位置参数' in error for error in errors))
+
     def test_minor_required_param_added_fails(self):
         self._snapshot('class WDemo {\n  void a() {}\n}\n')
         self._package('1.1.0', 'class WDemo {\n  void a(int x) {}\n}\n')
