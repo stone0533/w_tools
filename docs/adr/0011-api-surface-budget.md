@@ -25,18 +25,22 @@
 
 ## 决策
 
-1. **有 barrel 的库包按公开类型 / 成员计预算**：patch 不允许新增 / 删除公开 API；
-   minor 成员净增不超过 `api_budget.yaml` 的预算；新增公开类型必须写 ADR，并在
-   `exceptions` 里指向该 ADR；major 允许删除。
-2. **`w_tools_cli` 不数成员**：它的 interface 是子命令、flag、catalog 条目和模板，
-   走人工评审；成员计数对它没有意义。
-3. **根包 `w_tools` 不参与成员预算**：它只做重导出，计入会重复计算同一 API。
-4. **设计红线**：一个用户任务一个入口；不包装原语；状态只有一个真相；构造函数上限
+1. **有 barrel 的库包按公开类型 / 成员计预算**：patch 不允许新增 / 删除 / 修改公开 API；
+   minor 成员净增不超过 `api_budget.yaml` 的预算，删除公开 API 要抬 major；新增公开类型
+   必须写 ADR，并在 `exceptions` 里指向该 ADR；major 允许删除。
+2. **已有 enum 新增 value / 已有 sealed 类型新增子类型按 breaking addition 处理**：
+   它们会破坏 exhaustive switch，minor 直接失败，必须抬 major。新 enum / 新 sealed
+   类型自己的值 / 子类型不算 breaking（没有既有 switch 覆盖它）。跨包 sealed 基类不在
+   脚本识别范围内，仍需评审。
+3. **`w_tools_cli` 不数成员**：它的 interface 是子命令、flag、catalog 条目和模板，
+   走人工评审；成员计数对它没有意义。CLI 面目前没有数字预算，只有评审清单。
+4. **根包 `w_tools` 不参与成员预算**：它只做重导出，计入会重复计算同一 API。
+5. **设计红线**：一个用户任务一个入口；不包装原语；状态只有一个真相；构造函数上限
    2 个/类型；主题只在根节点；别名最多活一个 major；没有真实消费者不加 API。
-5. **每个公开新增都要过删除测试**：删掉它，哪个用户任务会坏？答不出就不加。
-6. **预算例外必须可审计**：新增类型在 `scripts/api_budget.yaml` 登记 `package` / `type` /
+6. **每个公开新增都要过删除测试**：删掉它，哪个用户任务会坏？答不出就不加。
+7. **预算例外必须可审计**：新增类型在 `scripts/api_budget.yaml` 登记 `package` / `type` /
    `adr` / `until`；类型进入已发布快照后删除例外。
-7. **PR 模板 + 季度审计**：PR 填公开面变化、删除测试、两个消费者；季度审计做一次
+8. **PR 模板 + 季度审计**：PR 填公开面变化、删除测试、两个消费者；季度审计做一次
    “删除测试 + 合并重复入口 + 收回派生状态”。
 
 ## 后果
@@ -52,15 +56,18 @@
 
 - 预算需要按包维护，新增包要同步 `api_budget.yaml`；
 - 成员计数是烟雾报警器，不是设计评审：签名变化、可选参数、配置对象仍需人工看；
-- 新增类型要写 ADR + 例外，冷启动有一次性成本；
+- 新增类型要写 ADR + 例外，冷启动有一次性成本；新类型自身的成员仍占预算，
+  一个大类型即使 ADR 通过，也可能需要调高 `growth`；
+- 解析器只看本包源码：跨包 sealed 基类、类修饰符（abstract / interface / base / final）
+  与 `implements` 关系可能漏检，仍需人工看；
 - 例外过期 / 清理需要季度审计兜底。
 
 ## 落地结果
 
 - 状态：已完成
 - 证据：[`scripts/check_api_budget.py`](../../scripts/check_api_budget.py) 已接入
-  `preflight`；[`scripts/api_budget.yaml`](../../scripts/api_budget.yaml) 覆盖 manifest 的
-  15 个包（`cli` 为 `mode: tool`）；当前 15 个包全部通过。
+  `preflight`；[`scripts/api_budget.yaml`](../../scripts/api_budget.yaml) 覆盖
+  `packages.manifest` 里的全部包（`cli` 为 `mode: tool`）；当前全部通过。
 - 与决策的偏差：无。根包不在 manifest，按决策 3 不纳入脚本。
 
 ## 备选方案

@@ -95,6 +95,94 @@ class BudgetCheckTest(unittest.TestCase):
         errors, _, _ = self._check({'growth': 5})
         self.assertTrue(any('签名 / 默认值变化' in error for error in errors))
 
+    def test_patch_signature_change_fails(self):
+        self._snapshot('class WDemo {\n  void a() {}\n}\n')
+        self._package('1.0.1', 'class WDemo {\n  void a(int x) {}\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertTrue(any('patch 版本不允许' in error for error in errors))
+
+    def test_minor_changed_signature_reports_note(self):
+        self._snapshot('class WDemo {\n  void a() {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a(int x) {}\n}\n')
+        errors, notes, _ = self._check({'growth': 5})
+        self.assertEqual(errors, [])
+        self.assertTrue(any('确认是否 breaking' in note for note in notes))
+
+    def test_new_enum_value_fails_on_minor(self):
+        self._snapshot('enum WStatus {\n  a,\n}\n')
+        self._package('1.1.0', 'enum WStatus {\n  a,\n  b,\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertTrue(any('breaking addition' in error for error in errors))
+
+    def test_new_enum_value_passes_on_major(self):
+        self._snapshot('enum WStatus {\n  a,\n}\n')
+        self._package('2.0.0', 'enum WStatus {\n  a,\n  b,\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertEqual(errors, [])
+
+    def test_new_sealed_subtype_fails_on_minor(self):
+        self._snapshot('sealed class WBase {}\n')
+        self._package(
+            '1.1.0',
+            'sealed class WBase {}\nclass WChild extends WBase {}\n',
+        )
+        errors, _, _ = self._check(
+            {'growth': 5},
+            [{
+                'package': 'demo',
+                'type': 'WChild',
+                'adr': 'docs/adr/0001-demo.md',
+            }],
+        )
+        self.assertTrue(any('sealed 子类型' in error for error in errors))
+
+    def test_new_enum_type_in_minor_is_not_breaking(self):
+        self._snapshot('class WDemo {}\n')
+        self._package('1.1.0', 'class WDemo {}\nenum WNew {\n  a,\n}\n')
+        errors, _, _ = self._check(
+            {'growth': 5},
+            [{
+                'package': 'demo',
+                'type': 'WNew',
+                'adr': 'docs/adr/0001-demo.md',
+            }],
+        )
+        self.assertEqual(errors, [])
+
+    def test_new_sealed_hierarchy_in_minor_is_not_breaking(self):
+        self._snapshot('class WDemo {}\n')
+        self._package(
+            '1.1.0',
+            'class WDemo {}\nsealed class WBase {}\nclass WChild extends WBase {}\n',
+        )
+        errors, _, _ = self._check(
+            {'growth': 5},
+            [
+                {'package': 'demo', 'type': 'WBase', 'adr': 'docs/adr/0001-demo.md'},
+                {'package': 'demo', 'type': 'WChild', 'adr': 'docs/adr/0001-demo.md'},
+            ],
+        )
+        self.assertEqual(errors, [])
+
+    def test_new_sealed_subtype_passes_on_major(self):
+        self._snapshot('sealed class WBase {}\n')
+        self._package(
+            '2.0.0',
+            'sealed class WBase {}\nclass WChild extends WBase {}\n',
+        )
+        errors, _, _ = self._check(
+            {'growth': 5},
+            [{
+                'package': 'demo',
+                'type': 'WChild',
+                'adr': 'docs/adr/0001-demo.md',
+            }],
+        )
+        self.assertEqual(errors, [])
+
+    def test_aggregate_mode_is_not_supported(self):
+        self.assertNotIn('aggregate', budget.VALID_MODES)
+
     def test_minor_growth_within_budget(self):
         self._snapshot('class WDemo {\n  void a() {}\n}\n')
         self._package('1.1.0', 'class WDemo {\n  void a() {}\n  void b() {}\n}\n')

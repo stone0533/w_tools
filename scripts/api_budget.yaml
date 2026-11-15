@@ -5,8 +5,9 @@
 # 被算两次）。
 #
 # 预算规则见 docs/adr/0011-api-surface-budget.md：
-# - patch：不允许新增 / 删除公开 API（只能修行为）；
+# - patch：不允许新增 / 删除 / 修改公开 API（只能修行为）；
 # - minor：新增成员净增 <= 本文件预算；新增公开类型要登记 exceptions（含 ADR）；
+#   新增 enum value / sealed 子类型是 breaking addition，要抬 major；
 # - major：同 minor，但允许删除；
 # - 版本没抬（pubspec == 最新快照）时出现公开 API 变化直接失败。
 defaults:
