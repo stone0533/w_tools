@@ -33,6 +33,7 @@ ADR 记录**当时**的决策与理由，不记录当前实现。当前实现以
 |---|---|---|---|
 | [0001](0001-package-versioning.md) | 子包独立版本与 semver（操作规则见 [releasing.md](../releasing.md)） | 已采纳 | 2026-10-24 |
 | [0010](0010-patch-version-cascade.md) | patch 发布保持精确下界；三包级联走 `release_wave`，不按 patch 放宽 | 已采纳 | 2026-11-15 |
+| [0011](0011-api-surface-budget.md) | 公开面预算：库包数类型 / 成员，CLI 与根包分开；新增类型需 ADR 例外 | 已采纳 | 2026-11-15 |
 
 ## 状态词
 

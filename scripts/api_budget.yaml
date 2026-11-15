@@ -1,0 +1,40 @@
+# 公开面预算：防止「每加一个派生状态 / 便利构造就加一个公开 API」重新长回来。
+#
+# 只对**有 barrel 的库包**数公开类型 / 成员；`cli` 没有 barrel，接口是命令 / catalog /
+# 模板，走单独的人工评审；根包 `w_tools` 只做重导出，不在这里重复计数（避免同一 API
+# 被算两次）。
+#
+# 预算规则见 docs/adr/0011-api-surface-budget.md：
+# - patch：不允许新增 / 删除公开 API（只能修行为）；
+# - minor：新增成员净增 <= 本文件预算；新增公开类型要登记 exceptions（含 ADR）；
+# - major：同 minor，但允许删除；
+# - 版本没抬（pubspec == 最新快照）时出现公开 API 变化直接失败。
+defaults:
+  mode: library
+  growth_ratio: 0.03
+  min_growth: 3
+  max_growth: 12
+
+packages:
+  core: {}
+  async:
+    growth: 5
+  ui:
+    growth: 12
+  form: {}
+  api: {}
+  toast: {}
+  app: {}
+  app_getx: {}
+  map: {}
+  map_google: {}
+  qr: {}
+  figma: {}
+  device: {}
+  e2e: {}
+  cli:
+    mode: tool
+
+# 新增公开类型必须在这里登记，并指向真正的 ADR；`until` 到期后例外失效。
+# 新类型进入已发布快照后，删掉对应条目（脚本会对过期条目告警）。
+exceptions: []
