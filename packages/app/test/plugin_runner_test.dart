@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -31,6 +32,23 @@ class _GatePlugin extends WAppPlugin {
   Future<void> onInit() async {
     started.add(name);
     await gate.future;
+  }
+}
+
+class _FlakyPlugin extends WAppPlugin {
+  _FlakyPlugin(this.name, this.log);
+
+  @override
+  final String name;
+
+  final List<String> log;
+  int attempts = 0;
+
+  @override
+  Future<void> onInit() async {
+    attempts++;
+    if (attempts == 1) throw StateError('boom');
+    log.add(name);
   }
 }
 
@@ -95,6 +113,24 @@ void main() {
       ]).init(),
       throwsA(isA<StateError>()),
     );
+  });
+
+  test('失败重试跳过已成功的插件', () async {
+    final log = <String>[];
+    final success = _RecorderPlugin('a', log: log);
+    final flaky = _FlakyPlugin('b', log);
+    final alsoSuccess = _RecorderPlugin('c', log: log);
+    final runner = WAppPluginRunner([success, flaky, alsoSuccess]);
+
+    await expectLater(runner.init(), throwsA(isA<StateError>()));
+    expect(log, containsAll(<String>['a', 'c']));
+    expect(flaky.attempts, 1);
+
+    await runner.init();
+    expect(log.where((name) => name == 'a'), hasLength(1));
+    expect(log.where((name) => name == 'c'), hasLength(1));
+    expect(flaky.attempts, 2);
+    expect(log, contains('b'));
   });
 
   test('init 之后不可增删插件', () async {

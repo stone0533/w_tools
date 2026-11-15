@@ -39,6 +39,8 @@ class WLocaleConfig {
 
   static const Object _unset = Object();
 
+  /// remove-in: 4.0.0
+  @Deprecated('4.0.0 删除；直接构造新实例；remove-in: 4.0.0')
   WLocaleConfig copyWith({
     Map<String, String>? supportedLanguages,
     Object? initialLanguage = _unset,

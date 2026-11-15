@@ -1074,6 +1074,7 @@ components:
     pitfalls:
       - '通过 WAppOptions.theme 传入；不是 Widget'
       - '默认透明状态栏 + 黑色导航栏；显式 systemUiOverlayStyle: null 关闭'
+      - 'copyWith 3.2.0 起 deprecated，4.0.0 删除；直接构造新实例'
     related: ['`WAppOptions`', '`WApp`']
     teach: false
   - name: '`WAppPlugin`'
@@ -1094,8 +1095,9 @@ components:
       }
     pitfalls:
       - '有顺序要求必须写 dependsOn，不能依赖注册顺序'
-      - 'onInit 抛错会中断启动（fail-fast）'
+      - 'onInit 抛错会中断启动（fail-fast）；失败重试会跳过已成功插件'
       - 'wrapApp 在 MaterialApp 外，没有 Theme / MediaQuery'
+      - 'builderWrapper / wrapApp 3.2.0 起 deprecated，4.0.0 删除；改用 WAppOptions.builder / appWrapper'
     related: ['`WApp`', '`WAppPluginRunner`']
     teach: true
   - name: '`WAppPluginRunner`'
@@ -1110,7 +1112,7 @@ components:
     pitfalls:
       - '插件 name 必须唯一'
       - 'dependsOn 必须引用已注册插件；循环依赖会抛 StateError'
-      - 'init 之后不可增删插件'
+      - 'init 之后不可增删插件；addPlugin / addPlugins / removePlugin / clearPlugins 3.2.0 起 deprecated，4.0.0 删除'
     related: ['`WAppPlugin`', '`WApp`']
     teach: true
   - name: '`WAsyncState`'
@@ -1491,6 +1493,8 @@ components:
     pitfalls:
       - '不再有全局单例；每个 WApp 持有自己的 app.language'
       - '未在 supportedLanguages 中的语言会被拒绝并返回 false'
+      - '5 参构造 / listenLanguageChange / bindLocaleUpdater 3.2.0 起 deprecated，4.0.0 删除'
+      - '页面读取可用 WLanguageScope.of(context)（3.2.0 新增）'
     related: ['`WLocaleConfig`', '`WApp`']
     teach: false
   - name: '`WRouteObserver`'
@@ -2203,5 +2207,6 @@ components:
       )
     pitfalls:
       - 'initialLanguage / fallbackLanguage 必须出现在 supportedLanguages 中'
+      - 'copyWith 3.2.0 起 deprecated，4.0.0 删除；直接构造新实例'
     related: ['`WAppOptions`', '`WLanguage`']
     teach: false

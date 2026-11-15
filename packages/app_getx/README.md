@@ -97,6 +97,10 @@ run()    通常由 start 调用；只能调用一次
 初始化失败时 `isInitialized` 保持 false；再次调用 `init()` 会重新执行插件 `onInit`。
 `init` 之后再修改插件列表会抛 `StateError`。
 
+> `w_tools_app 3.2.0` 起插件渲染钩子、runner 增删、语言回调与 `copyWith` 标记
+> `@Deprecated`，4.0.0 删除；本包 2.1.1 仍使用旧入口，3.0.0 再迁移。
+> 3.2.0 新增的 `WLanguageScope` 可以手动使用，但 `WApp` 还不会自动插入。
+
 ## 语言
 
 ```dart

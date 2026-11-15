@@ -4,8 +4,12 @@
 
 应用启动（初始化顺序、插件、路由、主题、多语言）、底部弹窗。
 
-`WAppPlugin` / `WAppPluginRunner` / `WLanguage` / `WLocaleConfig` / `WAppTheme` 在
-`w_tools_app`；`WApp` / `WAppOptions` / 路由 / 底部弹窗在 `w_tools_app_getx`。
+`WAppPlugin` / `WAppPluginRunner` / `WLanguage` / `WLanguageScope` / `WLocaleConfig` /
+`WAppTheme` 在 `w_tools_app`；`WApp` / `WAppOptions` / 路由 / 底部弹窗在 `w_tools_app_getx`。
+
+> 3.2.0 起插件渲染钩子、runner 增删、语言回调与 `copyWith` 标记 deprecated，
+> 4.0.0 删除；3.2.0 行为不变。页面可用 `WLanguageScope.of(context)` 读语言，
+> 但 `WApp` 3.2 还不会自动插入 scope。
 
 ## 最小用法
 
@@ -100,7 +104,8 @@ await app.start();
 - 手写 `runApp` + 自己的初始化顺序（用 `app.start()`）；
 - 重复添加 `WRouteObserver`（`WApp` 已自动追加）；
 - 在 `wrapApp` 里读 Theme / MediaQuery（它在 MaterialApp 外）；
-- 自己保存 `WLanguage` 实例 / 用已删除的 `WRouteStack.defaultStack`；改用 `app.language` / `app.routeStack`。
+- 自己保存 `WLanguage` 实例 / 用已删除的 `WRouteStack.defaultStack`；改用 `app.language` / `app.routeStack`；
+  页面内读语言可用 `WLanguageScope.of(context)`（3.2.0 新增，需手动包 scope）。
 
 ## 常见坑
 

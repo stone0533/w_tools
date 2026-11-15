@@ -50,6 +50,7 @@
 - [0009 WIconText 自定义图标](adr/0009-icon-text-custom-icon.md)：静态构造器 + Widget，不引入 flutter_svg
 - [0010 patch 版本级联](adr/0010-patch-version-cascade.md)：保持精确下界，三包级联走 `release_wave`
 - [0011 公开面预算](adr/0011-api-surface-budget.md)：库包数类型 / 成员，CLI 与根包分开，新增类型需 ADR 例外
+- [0012 语言作用域与 4.0 删除计划](adr/0012-app-tree-scopes.md)：3.2.0 先弃用，4.0.0 再删除
 
 ## 评审记录
 
