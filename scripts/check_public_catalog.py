@@ -16,10 +16,23 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 CATALOG = ROOT / 'packages/cli/catalog/components.yaml'
 BASELINE = ROOT / 'packages/cli/catalog/uncataloged.yaml'
 SKIP = {'w_tools_cli', 'w_tools_device', 'w_tools_e2e', 'w_tools_figma'}
+PLACEHOLDER_DONT_USE = {'—', '-', 'N/A', '无', '不适用', '不要用'}
 
 # barrel / export / part 的解析与 check_doc_symbols 共用，避免“公开类型”两套定义。
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from _dart_exports import exported_types  # noqa: E402
+
+
+def dont_use_for_error(component: dict) -> str | None:
+    value = str(component.get('dontUseFor') or '').strip()
+    name = component.get('name', '?')
+    if not value:
+        return f'catalog {name}: 缺 dontUseFor；写清“什么场景不要用”，否则不要登记'
+    if value in PLACEHOLDER_DONT_USE:
+        return f'catalog {name}: dontUseFor 是占位符 {value!r}；写具体场景'
+    if len(value) < 8:
+        return f'catalog {name}: dontUseFor 太短（{value!r}）；写具体场景'
+    return None
 
 
 def load_baseline() -> dict[str, set[str]]:
@@ -52,11 +65,9 @@ def main() -> int:
     catalog_names: set[str] = set()
     catalog_errors: list[str] = []
     for component in raw['components']:
-        if not str(component.get('dontUseFor') or '').strip():
-            catalog_errors.append(
-                f'catalog {component.get("name", "?")}: 缺 dontUseFor；'
-                '写清“什么场景不要用”，否则不要登记'
-            )
+        problem = dont_use_for_error(component)
+        if problem:
+            catalog_errors.append(problem)
         for name in component['name'].split('/'):
             catalog_names.add(name.replace('`', '').replace('*', '').strip())
 
