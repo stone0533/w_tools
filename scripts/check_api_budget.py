@@ -3,8 +3,9 @@
 
 对比 `packages/<pkg>` 当前公开 API 与**最新已发布快照**：
 
-- patch：不允许新增 / 删除公开 API（行为修复可以，接口不变）；
+- patch：不允许新增 / 删除 / 修改公开 API（行为修复可以，接口不变）；
 - minor：新增成员净增 <= 预算；新增公开类型必须登记 `exceptions`（带 ADR）；
+  新增 enum value / sealed 子类型是 breaking addition，必须抬 major；
 - major：同 minor，但允许删除；
 - 版本没抬（pubspec == 快照）时出现公开 API 变化直接失败。
 
@@ -27,6 +28,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 import yaml  # noqa: E402
 
+from _dart_exports import exported_types, strip_comments  # noqa: E402
+
 from check_public_api_diff import (  # noqa: E402
     SNAPSHOTS as _DEFAULT_SNAPSHOTS,
     _load_snapshot,
@@ -41,7 +44,7 @@ CONFIG = ROOT / 'scripts' / 'api_budget.yaml'
 MANIFEST = ROOT / 'scripts' / 'packages.manifest'
 SNAPSHOTS = _DEFAULT_SNAPSHOTS
 
-VALID_MODES = {'library', 'tool', 'aggregate'}
+VALID_MODES = {'library', 'tool'}
 
 
 class BudgetConfigError(Exception):
@@ -95,6 +98,76 @@ def surface_delta(baseline: dict[str, str], current: dict[str, str]) -> dict[str
             key for key in baseline if key in current and baseline[key] != current[key]
         ),
     }
+
+
+def new_enum_values(
+    delta: dict[str, list[str]],
+    baseline: dict[str, str],
+    current: dict[str, str],
+) -> list[str]:
+    """已有 enum 新增 value：exhaustive switch 会编译失败，属于 breaking addition。
+
+    新 enum 类型自己的 value 不算 breaking（没有既有 switch 覆盖它）。
+    """
+    values: list[str] = []
+    for key in delta['new_members']:
+        parent = key.split('.', 1)[0]
+        if current.get(parent) == 'enum' and baseline.get(parent) == 'enum':
+            values.append(key)
+    return values
+
+
+def _source_text(package_dir: pathlib.Path) -> str:
+    return '\n'.join(
+        strip_comments(path.read_text())
+        for path in (package_dir / 'lib').rglob('*.dart')
+    )
+
+
+def exported_sealed_types(package_dir: pathlib.Path) -> set[str]:
+    exported = set(exported_types(package_dir))
+    sealed = set(
+        re.findall(r'\bsealed\s+(?:class|mixin)\s+([A-Z]\w*)', _source_text(package_dir))
+    )
+    return sealed & exported
+
+
+def new_sealed_subtypes(
+    package_dir: pathlib.Path,
+    baseline: dict[str, str],
+    new_types: list[str],
+) -> list[str]:
+    """新增类型若继承 / 实现 / mixin 了**已存在**的导出 sealed 类型，属于 breaking。
+
+    新 sealed 类型自己的新子类型不算 breaking（没有既有 switch 覆盖它）。
+    解析器只看本包源码；跨包 sealed 基类不在这里识别（已知局限）。
+    """
+    sealed = exported_sealed_types(package_dir) & set(public_types(baseline))
+    if not sealed or not new_types:
+        return []
+    text = _source_text(package_dir)
+    out: list[str] = []
+    for name in new_types:
+        declaration = re.search(
+            rf'\b(?:class|mixin|enum|extension|typedef)\s+{re.escape(name)}\b([^{{;]*)',
+            text,
+        )
+        if not declaration:
+            continue
+        supers: set[str] = set()
+        for clause in re.finditer(
+            r'\b(?:extends|implements|with)\s+([^{{;]+)', declaration.group(1)
+        ):
+            segment = re.split(
+                r'\b(?:extends|implements|with|on)\b', clause.group(1)
+            )[0]
+            for part in segment.split(','):
+                candidate = part.strip().split('<', 1)[0].strip()
+                if re.match(r'^[A-Z]\w*$', candidate):
+                    supers.add(candidate)
+        if supers & sealed:
+            out.append(name)
+    return out
 
 
 def allowed_growth(entry: dict, defaults: dict, baseline_members: int) -> int:
@@ -249,8 +322,6 @@ def check_package(
                 '或确认这个包确实没有 Dart 公开 API'
             ], [], ''
         return [], [], f'- {package}: tool 包，跳过成员预算（CLI 面走人工评审）'
-    if mode == 'aggregate':
-        return [], [], f'- {package}: aggregate 包，跳过（只做重导出检查）'
     snapshot = snapshot_path(package)
     if snapshot is None:
         return [], [], f'- {package}: 没有 API 快照，跳过（首发）'
@@ -303,13 +374,13 @@ def check_package(
                     f'{package}: 版本没抬，但有 {len(changed)} 个签名 / 默认值变化；'
                     '公开 API 变化至少抬 minor'
                 )
-                for key in changed:
-                    errors.append(f'  ~ {key}')
             else:
-                notes.append(
-                    f'{package}: {len(changed)} 个签名 / 默认值变化'
-                    '（不占增长预算，仍走 CHANGELOG）'
+                errors.append(
+                    f'{package}: patch 版本不允许公开 API 变化'
+                    f'（{len(changed)} 个签名 / 默认值）'
                 )
+            for key in changed:
+                errors.append(f'  ~ {key}')
 
     if kind == 'minor' and (removed_types or removed_members):
         errors.append(f'{package}: minor 不允许删除公开 API；删除 / 改名请抬 major')
@@ -318,7 +389,24 @@ def check_package(
         for key in removed_members:
             errors.append(f'  - {key}')
 
+    enum_values = new_enum_values(delta, baseline, current)
+    sealed_subtypes = new_sealed_subtypes(package_dir, baseline, new_types)
+    if kind == 'minor' and (enum_values or sealed_subtypes):
+        errors.append(
+            f'{package}: 新增 enum value / sealed 子类型是 breaking addition；'
+            '请抬 major（exhaustive switch 会失败）'
+        )
+        for key in enum_values:
+            errors.append(f'  + enum {key}')
+        for key in sealed_subtypes:
+            errors.append(f'  + sealed 子类型 {key}')
+
     if kind in {'minor', 'major'}:
+        if changed:
+            notes.append(
+                f'{package}: {len(changed)} 个签名 / 默认值变化，'
+                '逐条确认是否 breaking'
+            )
         allowed = allowed_growth(entry, defaults, len(public_members(baseline)))
         if net_members > allowed:
             errors.append(

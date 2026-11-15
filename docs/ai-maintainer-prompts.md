@@ -288,7 +288,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
    看总表的「结论」列，exit 0 不代表无异常），
    或 scripts/api_snapshots/ 的最新快照；没有网络时以快照为准并注明。
    0.x 工具包（figma / device / e2e）按预发布语义：破坏性变更抬 minor，不走 major。
-   新增公开类型先写 ADR，并在 `scripts/api_budget.yaml` 的 `exceptions` 登记；预算规则见
+   新增公开类型先写 ADR，并在 `scripts/api_budget.yaml` 的 `exceptions` 登记；新增
+   enum value / sealed 子类型会破坏 exhaustive switch，必须抬 major。预算规则见
    `docs/adr/0011-api-surface-budget.md`。
 3. 抬 packages/<pkg>/pubspec.yaml 版本，并在 CHANGELOG 最上面写 `## <新版本>` 段
    （Fixed / Added / Changed / Breaking / Removed）；所有库子包同步
