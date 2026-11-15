@@ -230,6 +230,7 @@ run "public api diff" bash -c '
     python3 scripts/check_public_api_diff.py --package "${name#w_tools_}"
   done < scripts/packages.manifest
 '
+run "api budget" python3 scripts/check_api_budget.py
 if [ -n "$only_pkg" ]; then
   run "test imports" python3 scripts/check_test_imports.py --package "$only_pkg"
 else

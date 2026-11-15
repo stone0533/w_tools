@@ -288,6 +288,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
    看总表的「结论」列，exit 0 不代表无异常），
    或 scripts/api_snapshots/ 的最新快照；没有网络时以快照为准并注明。
    0.x 工具包（figma / device / e2e）按预发布语义：破坏性变更抬 minor，不走 major。
+   新增公开类型先写 ADR，并在 `scripts/api_budget.yaml` 的 `exceptions` 登记；预算规则见
+   `docs/adr/0011-api-surface-budget.md`。
 3. 抬 packages/<pkg>/pubspec.yaml 版本，并在 CHANGELOG 最上面写 `## <新版本>` 段
    （Fixed / Added / Changed / Breaking / Removed）；所有库子包同步
    `packages/cli/lib/src/init/versions.dart` 的 `subpackageConstraints`，聚合子包再加根
@@ -311,7 +313,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
    dart run tool/gen_catalog.dart
    dart run tool/gen_templates.dart
 10. 运行 dart run w_tools_cli:w_tools explain <组件> --format=prompt，贴输出。
-11. 运行 bash scripts/preflight.sh --package <pkg>（改了多个包用 --changed），贴结果。
+11. 运行 python3 scripts/check_api_budget.py --package <pkg>，再运行
+    bash scripts/preflight.sh --package <pkg>（改了多个包用 --changed），贴结果。
 12. PR 正文保留「## 改动类型」段并至少勾选一项；勾公开类别时本包 CHANGELOG 必须被改。
 ```
 
@@ -326,7 +329,8 @@ example 是否覆盖真实场景、用户和 AI 是否知道怎么用。
 1. 先判断它是 teach 入口还是普通组件，并说明理由；读 CONTRIBUTING §1 / §2 / §4。
 2. 实现 + 测试（行为测试放 packages/<pkg>/test/，依赖写进该包 dev_dependencies）；
    如果需要 async / 状态，先查 async 规则。
-3. 抬 packages/<pkg>/pubspec.yaml 版本，在 CHANGELOG 最上面写 `## <新版本>`；所有库子包同步
+3. 新增公开类型先写 ADR，并在 `scripts/api_budget.yaml` 的 `exceptions` 登记（见 ADR 0011）。
+   抬 packages/<pkg>/pubspec.yaml 版本，在 CHANGELOG 最上面写 `## <新版本>`；所有库子包同步
    `packages/cli/lib/src/init/versions.dart` 的 `subpackageConstraints`，聚合子包再加根
    pubspec 的 `^x.y.z` 下界；根 pubspec 有改动但根包版本没抬时，在根 CHANGELOG 写非空
    `## Unreleased`（K-2 折叠成版本段）。

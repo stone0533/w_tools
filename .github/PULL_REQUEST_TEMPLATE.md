@@ -12,6 +12,17 @@
 - [ ] 删除 / 废弃
 - [ ] 新增包
 
+## 公开面预算（有公开 API / 行为变化时必填）
+
+> 规则见 [`docs/adr/0011-api-surface-budget.md`](../docs/adr/0011-api-surface-budget.md)。
+> 先跑 `python3 scripts/check_api_budget.py --package <pkg>`，数字以脚本为准。
+
+- 类型 / 成员变化：+0 / +N
+- 新增公开类型：无 / 已写 ADR 并在 `scripts/api_budget.yaml` 的 `exceptions` 登记
+- 删除测试：删掉它，哪个用户任务会坏？
+- 两个消费者：example / issue #
+- 是否包装原语 / 新增别名 / 新增状态源：否
+
 ## J-4 结论（有公开 API / 行为变化时必填）
 
 > 矩阵列：公开类型 | catalog | teach | AGENTS zh | AGENTS en | explain | README | example。
