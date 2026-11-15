@@ -298,9 +298,25 @@ def check_package(
             for key in removed_members:
                 errors.append(f'  - {key}')
         if changed:
-            notes.append(
-                f'{package}: {len(changed)} 个签名 / 默认值变化（不占增长预算，仍走 CHANGELOG）'
-            )
+            if kind == 'same':
+                errors.append(
+                    f'{package}: 版本没抬，但有 {len(changed)} 个签名 / 默认值变化；'
+                    '公开 API 变化至少抬 minor'
+                )
+                for key in changed:
+                    errors.append(f'  ~ {key}')
+            else:
+                notes.append(
+                    f'{package}: {len(changed)} 个签名 / 默认值变化'
+                    '（不占增长预算，仍走 CHANGELOG）'
+                )
+
+    if kind == 'minor' and (removed_types or removed_members):
+        errors.append(f'{package}: minor 不允许删除公开 API；删除 / 改名请抬 major')
+        for key in removed_types:
+            errors.append(f'  - 类型 {key}')
+        for key in removed_members:
+            errors.append(f'  - {key}')
 
     if kind in {'minor', 'major'}:
         allowed = allowed_growth(entry, defaults, len(public_members(baseline)))

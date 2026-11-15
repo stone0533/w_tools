@@ -83,6 +83,18 @@ class BudgetCheckTest(unittest.TestCase):
         errors, _, _ = self._check({'growth': 5})
         self.assertTrue(any('版本没抬' in error for error in errors))
 
+    def test_minor_removal_fails(self):
+        self._snapshot('class WDemo {\n  void a() {}\n  void b() {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a() {}\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertTrue(any('minor 不允许删除' in error for error in errors))
+
+    def test_same_version_signature_change_fails(self):
+        self._snapshot('class WDemo {\n  void a() {}\n}\n')
+        self._package('1.0.0', 'class WDemo {\n  void a(int x) {}\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertTrue(any('签名 / 默认值变化' in error for error in errors))
+
     def test_minor_growth_within_budget(self):
         self._snapshot('class WDemo {\n  void a() {}\n}\n')
         self._package('1.1.0', 'class WDemo {\n  void a() {}\n  void b() {}\n}\n')
