@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../main.dart';
+import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 
 class DetailPage extends StatelessWidget {
   const DetailPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final app = WApp.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('详情路由')),
       body: Center(

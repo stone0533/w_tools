@@ -12,8 +12,7 @@ import 'language.dart';
 /// language.changeLanguage('en_US');
 /// ```
 ///
-/// `WApp` 在 3.2.0 里还不会自动插入本 scope；需要页面内访问时，
-/// 在 `WAppOptions.appWrapper` 或测试里手动包一层。
+/// `WApp.run()` 会自动插入本 scope。
 class WLanguageScope extends InheritedNotifier<ValueListenable<String>> {
   WLanguageScope({
     super.key,
@@ -30,7 +29,7 @@ class WLanguageScope extends InheritedNotifier<ValueListenable<String>> {
     if (scope == null) {
       throw FlutterError(
         'WLanguageScope.of() 找不到 WLanguageScope。'
-        '请在 WAppOptions.appWrapper 或测试里手动包一层。',
+        '用 WApp 启动时会自动注入；测试或非 GetX 壳里请手动包一层。',
       );
     }
     return scope._language;

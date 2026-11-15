@@ -3,9 +3,9 @@
 ## 概述
 
 App 模块由 `w_tools_app`（GetX-free 应用内核）+ `w_tools_app_getx`（GetX 实现）组成：
-`WAppPlugin` / `WAppPluginRunner` / `WLanguage` / `WLocaleConfig` / `WAppTheme` 在
-`w_tools_app`；`WApp` / `WAppOptions` / 路由 / 底部弹窗在 `w_tools_app_getx`。
-本文同时说明两层。
+`WAppPlugin` / `WAppPluginRunner` / `WLanguage` / `WLanguageScope` / `WLocaleConfig` /
+`WAppTheme` 在 `w_tools_app`；`WApp` / `WAppScope` / `WAppOptions` / 路由 / 底部弹窗在
+`w_tools_app_getx`。本文同时说明两层。
 
 `w_tools_app` **不依赖 GetX**；`w_tools_app_getx` 强依赖 GetX（`get` 包），
 提供 `WApp` / `WAppOptions` / 路由 / 底部弹窗，并复用 `w_tools_app` 的插件编排、
@@ -14,6 +14,7 @@ App 模块由 `w_tools_app`（GetX-free 应用内核）+ `w_tools_app_getx`（Ge
 ## 快速判断
 - 启动 → `WApp.options(WAppOptions(...)).start()`（2.0+）
 - 插件顺序 → `WAppPlugin.dependsOn`
+- 页面取实例 → `WLanguageScope.of(context)` / `WApp.of(context)`
 - 全局默认视图 → `WAppOptions.appWrapper`；`WAppPlugin` 是消费方自建插件的扩展点，子包不自带插件
 - 强依赖 GetX
 - 可运行示例：[packages/app_getx/example](../../packages/app_getx/example/README.md)
@@ -30,6 +31,7 @@ packages/app/                         # 应用内核（GetX 无关）
     │   └── app_plugin_runner.dart    # WAppPluginRunner
     ├── language/
     │   ├── language.dart             # WLanguage
+    │   ├── language_scope.dart       # WLanguageScope
     │   └── locale_config.dart        # WLocaleConfig
     └── theme/
         └── app_theme.dart            # WAppTheme
@@ -38,7 +40,7 @@ packages/app_getx/                    # GetX 实现层
 └── lib/
     ├── w_tools_app_getx.dart          # 统一导出 + re-export app 类型
     └── src/
-        ├── app.dart                  # WApp 启动器
+        ├── app.dart                  # WApp 启动器 + WAppScope
         ├── options.dart              # WAppOptions
         ├── routing/
         │   ├── route_stack.dart      # WRouteStack
@@ -89,19 +91,17 @@ await app.start();
 | `getPages` | `List<GetPage<dynamic>>?` | null | GetX 路由表；`home` 为 null 时必填 |
 | `routes` | `Map<String, WidgetBuilder>?` | null | 普通命名路由 |
 | `navigatorKey` | `GlobalKey<NavigatorState>?` | null | 自定义 Navigator key |
-| `theme` | `WAppTheme?` | null | 应用外观；null 时使用默认 `WAppTheme`（含默认系统栏） |
+| `theme` | `WAppTheme?` | null | 应用外观；null 时不覆盖壳的默认主题 |
 | `translations` | `Translations?` | null | GetX 国际化翻译表 |
-| `locale` | `Locale?` | null | 当前语言 |
-| `fallbackLocale` | `Locale?` | null | 兜底语言 |
-| `supportedLocales` | `List<Locale>?` | null | 显式覆盖；默认由 `localeConfig` 派生 |
+| `supportedLocales` | `List<Locale>?` | null | 显式覆盖 Flutter 本地化列表；默认由 `localeConfig` 派生 |
 | `localizationsDelegates` | `Iterable<LocalizationsDelegate<dynamic>>?` | null | 默认使用 `GlobalMaterialLocalizations.delegates` |
-| `builder` | `TransitionBuilder?` | null | GetMaterialApp.builder；位于插件 builderWrapper 链之后（更外层） |
+| `builder` | `TransitionBuilder?` | null | GetMaterialApp.builder；位于 MaterialApp 内 |
 | `navigatorObservers` | `List<NavigatorObserver>?` | null | 额外的 navigator observers |
 | `defaultTransition` | `Transition?` | null | GetX 默认转场动画 |
 | `orientations` | `List<DeviceOrientation>` | `[portraitUp]` | 支持的屏幕方向 |
 | `shouldApplyOrientations` | `bool` | `false` | 是否启动时应用 `orientations` |
-| `appWrapper` | `Widget Function(Widget)?` | null | 包裹 GetMaterialApp；位于插件 wrapApp 之内 |
-| `localeConfig` | `WLocaleConfig?` | null | 支持语言 / 首次语言 / 回退语言 |
+| `appWrapper` | `Widget Function(Widget)?` | null | 包裹 GetMaterialApp；位于 MaterialApp 外 |
+| `localeConfig` | `WLocaleConfig?` | null | 支持语言 / 启动语言 / 回退语言 |
 | `plugins` | `List<WAppPlugin>` | `[]` | 启动插件 |
 | `routeStack` | `WRouteStack?` | null | 自定义路由栈；默认新建 |
 | `unknownRoute` | `GetPage<dynamic>?` | null | GetX 未知路由 |
@@ -115,22 +115,15 @@ await app.start();
 | `light` | `ThemeData?` | null | 亮色主题 |
 | `dark` | `ThemeData?` | null | 暗色主题 |
 | `mode` | `ThemeMode` | `ThemeMode.system` | 主题模式 |
-| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | 透明状态栏 + 黑色导航栏 | 系统 UI 样式；显式传 `null` 不干预 |
+| `systemUiOverlayStyle` | `SystemUiOverlayStyle?` | null | 系统 UI 样式；null 时完全交给系统 |
 
-`WAppTheme` 是应用外观值对象，实现 `==` / `hashCode` / `copyWith`；不要和 `WAsyncTheme`（Widget）混用。
-默认恢复透明状态栏（`statusBarColor: Colors.transparent`）；需要完全交给系统时传
-`WAppTheme(systemUiOverlayStyle: null)`。
+`WAppTheme` 是应用外观值对象，实现 `==` / `hashCode`；不要和 `WAsyncTheme`（Widget）混用。
+默认**不干预**系统栏；需要固定状态栏 / 导航栏时显式传入 `systemUiOverlayStyle`。
 
-### 插件管理方法
+### 插件管理
 
-| 方法 | 说明 |
-|------|------|
-| `addPlugin(WAppPlugin plugin)` | 注册单个插件（init 前） |
-| `addPlugins(Iterable<WAppPlugin> plugins)` | 批量注册（init 前） |
-| `removePlugin(String name)` | 按名称移除（init 前） |
-| `clearPlugins()` | 清空所有插件（init 前） |
-
-`init` 之后再修改插件会抛 `StateError`，避免“插件没跑 onInit 却参与了 wrapper”的静默错误。
+插件只在 `WAppOptions.plugins` 声明，`WApp` 已删除 `addPlugin` / `removePlugin` /
+`clearPlugins`；`init` 之后也不能修改插件列表。
 
 ### 生命周期方法
 
@@ -143,44 +136,35 @@ await app.start();
 ### 包裹顺序（由外向内）
 
 ```text
-插件 wrapApp（后注册者更外）
-  → WAppOptions.appWrapper
-    → GetMaterialApp
-      → WApp.builder（MaterialApp 内部）
-```
-
-builder 链（由内向外）：
-
-```text
-插件 builderWrapper[0] → 插件 builderWrapper[1] → ... → WApp.builder
+WAppOptions.appWrapper（MaterialApp 外）
+  → GetMaterialApp
+    → WAppOptions.builder（MaterialApp 内）
+      → 页面
 ```
 
 ### 插件初始化流程
 
-- 同层插件**并行**初始化（`Future.wait`）。
-- 跨层**串行**。
+- 按 `dependsOn` 分层；同层按注册顺序**串行**执行，跨层串行。
+- 某个 `onInit` 抛错会立即中断本次 `init`，同层后续插件不再执行。
+- 重试会跳过已成功的插件，从失败点继续。
 - 插件 `name` 重复、`dependsOn` 引用未注册插件、存在循环依赖时抛 `StateError`。
 
-### `builderWrapper` 与 `.sp`
+### `builder` 与 `.sp`
 
 如果 `ThemeData.extensions` 里的 `WTextStyles` 使用 `flutter_screenutil` 的 `.sp`，
-必须放在 `builderWrapper`（或 `ScreenUtilInit.builder`）中构建：
+必须放在 `WAppOptions.builder`（或 `ScreenUtilInit.builder`）中构建：
 
 ```dart
-class TextStylesPlugin with WAppPlugin {
-  @override
-  String get name => 'text-styles';
-
-  @override
-  TransitionBuilder get builderWrapper => (context, child) {
+WAppOptions(
+  builder: (context, child) {
     return Theme(
       data: Theme.of(context).copyWith(
         extensions: [buildAppTextStyles()],
       ),
       child: child ?? const SizedBox.shrink(),
     );
-  };
-}
+  },
+);
 ```
 
 不要在 `main` / 顶层 `final` 中构造：
@@ -190,9 +174,7 @@ class TextStylesPlugin with WAppPlugin {
 final appTheme = AppTheme.data;
 ```
 
-`wrapApp` 在 MaterialApp 外，没有 Theme；需要 Theme/`.sp` 的排版扩展用
-`builderWrapper`。`WAsyncTheme` 这类只存 builder、不立即计算 `.sp`
-的配置仍可放在 `wrapApp`。
+`appWrapper` 在 MaterialApp 外，没有 Theme；需要 Theme/`.sp` 的排版扩展用 `builder`。
 
 ### 使用示例
 
@@ -259,9 +241,9 @@ Future<void> main() async {
 | 钩子 | 返回类型 | 说明 |
 |------|----------|------|
 | `onInit()` | `Future<void>` | 初始化阶段被调用，参与分层编排 |
-| `builderWrapper` | `TransitionBuilder?` | 对 `MaterialApp.builder` 的再次包裹；**后注册的插件在 builder 链更外层** |
-| `wrapApp` | `Widget Function(Widget)` | 对根 Widget 的包裹；**后注册者最外**。位于 MaterialApp 之外，没有 Theme/MediaQuery |
-| `navigatorObservers` | `List<NavigatorObserver>?` | 额外的 `NavigatorObserver`，会与 `WAppOptions.navigatorObservers` 合并 |
+| `navigatorObservers` | `List<NavigatorObserver>?` | 额外的 `NavigatorObserver`，会与 `WAppOptions.navigatorObservers` 合并；只由 `WApp` 消费 |
+
+插件已删除 `builderWrapper` / `wrapApp`：全局包裹用 `WAppOptions.builder` / `appWrapper`。
 
 ### 使用示例
 
@@ -269,9 +251,6 @@ Future<void> main() async {
 class AuthPlugin with WAppPlugin {
   @override
   String get name => 'auth';
-
-  @override
-  Widget wrapApp(Widget child) => AuthProvider(child: child);
 
   @override
   Future<void> onInit() async {
@@ -298,9 +277,10 @@ final runner = WAppPluginRunner([EnvPlugin(), ServicePlugin()]);
 await runner.init();
 ```
 
-- 同层并行、跨层串行；
+- 同层按注册顺序串行、跨层串行；
 - `name` 重复 / 依赖未注册 / 循环依赖抛 `StateError`；
-- `init` 之后不可增删插件。
+- 某个 `onInit` 抛错会中断本次 init；重试跳过已成功的插件；
+- 插件列表在构造时确定，`init` 之后不可增删。
 
 ---
 
@@ -315,12 +295,14 @@ await runner.init();
 - 只读变化流 / 值监听；
 - 语言码 ↔ `Locale` 解析。
 
-没有全局单例，也没有第二份可写的 `currentLanguage`。
+没有全局单例，也没有第二份可写的 `currentLanguage`；本类**不持久化**选择，恢复上次语言
+在 `start()` 之前调用 `changeLanguage(saved)`。
 
 ### 公开成员
 
 | 成员 | 类型 | 说明 |
 |------|------|------|
+| `fromConfig(WLocaleConfig?)` | `WLanguage` | 唯一公开构造；`null` 使用默认 `en_US` |
 | `supportedLanguages` | `Map<String, String>` | 只读支持列表 |
 | `currentLanguage` | `String` | 当前语言码 |
 | `currentLanguageName` | `String` | 当前语言展示名；未收录时回退为语言码 |
@@ -328,8 +310,8 @@ await runner.init();
 | `languageChanges` | `Stream<String>` | 只读变化流 |
 | `languageListenable` | `ValueListenable<String>` | 只读值监听，可用于 `ValueListenableBuilder` |
 | `changeLanguage(String)` | `bool` | 切换语言；未收录返回 false。只触发 GetMaterialApp 重建，不整树 reassemble |
-| `listenLanguageChange(...)` | `StreamSubscription<String>` | 监听语言变化，可取消 |
 | `hasExplicitSelection` | `bool` | 是否已显式选择语言 |
+| `localeFromCode(String)` | `Locale` | 语言码解析；只接受三种形态，非法码抛 `ArgumentError` |
 
 ### 使用示例
 
@@ -338,7 +320,7 @@ await runner.init();
 app.language.changeLanguage('en_US');
 
 // 监听
-final subscription = app.language.listenLanguageChange((code) {
+final subscription = app.language.languageChanges.listen((code) {
   debugPrint('语言已切换为 $code');
 });
 await subscription.cancel();
@@ -349,6 +331,9 @@ ValueListenableBuilder<String>(
   builder: (context, code, _) => Text(app.language.currentLanguageName),
 );
 ```
+
+语言码只接受 `lang` / `lang_COUNTRY` / `lang_Script_COUNTRY`（如 `en` / `en_US` /
+`zh_Hant_TW`）；`WLocaleConfig` 构造时会校验。
 
 ---
 
@@ -429,6 +414,52 @@ final result = await WBottomSheet.show<String>(
 
 ---
 
+## 7. 页面内访问（WLanguageScope / WAppScope）
+
+### 功能说明
+
+`WApp` 的语言与路由栈是实例状态，但页面不应该保存全局 `app`。`WApp.run()` 会在
+`GetMaterialApp` 外自动插入两层 scope：
+
+```text
+WAppScope（WApp 实例）
+  → WLanguageScope（WLanguage，语言变化时通知依赖者）
+    → WAppOptions.appWrapper
+      → GetMaterialApp
+        → WAppOptions.builder
+          → 页面
+```
+
+- `WLanguageScope.of(context)`：读取最近的 `WLanguage`；语言切换时依赖者自动重建。
+- `WApp.of(context)`：读取最近的 `WApp`，可用于 `routeStack` 等应用级状态。
+- 两者都有 `maybeOf(context)`；`of` 找不到 scope 时抛 `FlutterError`。
+- 嵌套时取最近的 scope；`WLanguageScope` 可单独用于非 GetX 壳或测试。
+
+```dart
+final language = WLanguageScope.of(context);
+final app = WApp.of(context);
+
+language.changeLanguage('en_US');
+app.routeStack.popUntilRoute('/home');
+```
+
+测试里可以手动包一层，不必启动完整应用：
+
+```dart
+await tester.pumpWidget(
+  WAppScope(
+    app: app,
+    child: WLanguageScope(language: app.language, child: const MyPage()),
+  ),
+);
+```
+
+`WAppScope` 只按实例 identity 通知；`WLanguageScope` 监听
+`language.languageListenable`，所以用 `WLanguageScope.of(context)` 的页面会在语言切换时
+自动重建。
+
+---
+
 ## 完整配置示例
 
 ```dart
@@ -454,14 +485,14 @@ Future<void> main() async {
         initialLanguage: 'zh_CN',
         fallbackLanguage: 'en_US',
       ),
+      builder: (context, child) {
+        return GlobalLoading(child: child ?? const SizedBox.shrink());
+      },
       plugins: [AuthPlugin(), PushPlugin()],
     ),
   );
 
   await app.start(
-    builder: (context, child) {
-      return GlobalLoading(child: child ?? const SizedBox.shrink());
-    },
     onLazyInit: () {
       WBottomSheet.show(const Text('欢迎使用！'));
     },
@@ -503,15 +534,20 @@ language.changeLanguage('en_US');
 
 - **强依赖 GetX**：整个子包（包括 `WBottomSheet`）基于 `get` 包实现。
 - **`init` 必须在 `run` 之前调用**；`start` 会自动处理顺序。
-- **插件依赖是声明式的**：`WAppPlugin.dependsOn` 决定初始化顺序，而非 `addPlugin` 的调用顺序。
+- **插件依赖是声明式的**：`WAppPlugin.dependsOn` 决定初始化顺序；同层按注册顺序串行，
+  不要依赖“恰好并行/恰好先跑”的偶然性。
 - **`start` / `run` 只能调用一次**，重复调用抛 `StateError`。
 - **`home` 与 `initialRoute` + `getPages` 二选一**；`WAppOptions` 构造时校验。
 - **路由栈仅覆盖根 Navigator**：嵌套 Navigator 的路由变化不会进入 `app.routeStack.routes`。
 - **`WLanguage.currentLocale` 解析约定**：语言码用下划线或连字符分隔，支持脚本码（`zh_Hant_TW`）。
-- **语言列表是实例状态**：`app.language` 与 `WAppOptions.localeConfig` 二选一即可；
-  `WAppConfig` 已删除，不再有全局静态语言配置。
+- **语言列表是实例状态**：只由 `WAppOptions.localeConfig` 决定；`WAppConfig` 已删除，
+  不再有全局静态语言配置。`supportedLocales` 只覆盖 Flutter 本地化列表，当前语言不在
+  列表内时 `run()` 抛 `StateError`。
+- **语言不持久化**：恢复上次语言时在 `start()` 之前调用 `app.language.changeLanguage(saved)`。
+- **页面内访问**：用 `WLanguageScope.of(context)` / `WApp.of(context)`；`WApp.run()` 已自动
+  插入 scope，`of` 找不到时抛 `FlutterError`，测试可手动包一层。
 - **应用外观**：`theme` / `darkTheme` / `themeMode` / `systemUiOverlayStyle` 统一放 `WAppTheme`；
-  默认透明状态栏，显式 `systemUiOverlayStyle: null` 关闭。
+  默认不干预系统栏，需要时显式传 `systemUiOverlayStyle`。
 - **Flutter 本地化**：默认使用 `GlobalMaterialLocalizations.delegates`；
   需要自定义时传 `WAppOptions.localizationsDelegates`。
 

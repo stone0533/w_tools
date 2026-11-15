@@ -31,8 +31,6 @@ class WAppOptions {
     this.navigatorKey,
     this.theme,
     this.translations,
-    this.locale,
-    this.fallbackLocale,
     List<Locale>? supportedLocales,
     this.localizationsDelegates,
     this.builder,
@@ -74,6 +72,13 @@ class WAppOptions {
         'home 为 null 时必须提供非空 getPages',
       );
     }
+    if (this.supportedLocales != null && this.supportedLocales!.isEmpty) {
+      throw ArgumentError.value(
+        this.supportedLocales,
+        'supportedLocales',
+        '不能为空列表',
+      );
+    }
   }
 
   final String title;
@@ -84,8 +89,10 @@ class WAppOptions {
   final GlobalKey<NavigatorState>? navigatorKey;
   final WAppTheme? theme;
   final Translations? translations;
-  final Locale? locale;
-  final Locale? fallbackLocale;
+
+  /// 显式覆盖 Flutter 本地化支持列表；默认从 [localeConfig] 派生。
+  ///
+  /// 语言选择本身由 [localeConfig] / `app.language` 决定，不要在这里放“当前语言”。
   final List<Locale>? supportedLocales;
   final Iterable<LocalizationsDelegate<dynamic>>? localizationsDelegates;
   final TransitionBuilder? builder;
@@ -113,8 +120,6 @@ class WAppOptions {
     Object? navigatorKey = _unset,
     Object? theme = _unset,
     Object? translations = _unset,
-    Object? locale = _unset,
-    Object? fallbackLocale = _unset,
     Object? supportedLocales = _unset,
     Object? localizationsDelegates = _unset,
     Object? builder = _unset,
@@ -139,8 +144,6 @@ class WAppOptions {
       navigatorKey: pick<GlobalKey<NavigatorState>>(navigatorKey, this.navigatorKey),
       theme: pick<WAppTheme>(theme, this.theme),
       translations: pick<Translations>(translations, this.translations),
-      locale: pick<Locale>(locale, this.locale),
-      fallbackLocale: pick<Locale>(fallbackLocale, this.fallbackLocale),
       supportedLocales: pick<List<Locale>>(supportedLocales, this.supportedLocales),
       localizationsDelegates: identical(localizationsDelegates, _unset)
           ? this.localizationsDelegates
@@ -173,8 +176,6 @@ class WAppOptions {
         other.navigatorKey == navigatorKey &&
         other.theme == theme &&
         other.translations == translations &&
-        other.locale == locale &&
-        other.fallbackLocale == fallbackLocale &&
         listEquals(other.supportedLocales, supportedLocales) &&
         listEquals(
           other.localizationsDelegates?.toList(growable: false),
@@ -204,8 +205,6 @@ class WAppOptions {
     navigatorKey,
     theme,
     translations,
-    locale,
-    fallbackLocale,
     Object.hashAll(supportedLocales ?? const <Locale>[]),
     localizationsDelegates == null ? null : Object.hashAll(localizationsDelegates!.cast<Object>()),
     builder,

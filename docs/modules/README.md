@@ -15,8 +15,8 @@
 |------|------|------|
 | `w_tools_core` | `packages/core/` | 零 UI 依赖的核心工具：扩展方法、日志、加解密、Token 管理、存储、倒计时、正则等 |
 | `w_tools_async` | `packages/async/` | 异步执行、四态状态、Controller 与异步视图 |
-| `w_tools_app` | `packages/app/` | 启动契约 `WAppPlugin`（GetX 无关） |
-| `w_tools_app_getx` | `packages/app_getx/` | GetX 启动器 `WApp`、语言切换、路由管理、底部弹窗 |
+| `w_tools_app` | `packages/app/` | 启动契约 `WAppPlugin` + 语言 / 外观 / `WLanguageScope`（GetX 无关） |
+| `w_tools_app_getx` | `packages/app_getx/` | GetX 启动器 `WApp`、语言切换、路由管理、底部弹窗、`WApp.of(context)` |
 | `w_tools_ui` | `packages/ui/` | 通用 UI 组件：按钮、图片、文本、AppBar、Scaffold、导航、TabBar、列表等 |
 | `w_tools_form` | `packages/form/` | 基于 `flutter_form_builder` 的表单组件：输入框、下拉、日期选择、校验、按钮、边框 |
 | `w_tools_api` | `packages/api/` | 基于 Dio 的网络请求封装：`DioRegistry`、日志/Token 拦截器、仓库基类 |

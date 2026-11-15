@@ -75,7 +75,9 @@
 - [app 3.0](app-3.0.md)：拆成 `w_tools_app`（插件契约）+ `w_tools_app_getx`（GetX 启动器）
 - [app 3.1](app-3.1.md)：GetX-free 内核类型（`WAppPluginRunner` / `WLanguage` / `WLocaleConfig` / `WAppTheme`）
 - [app 3.2](app-3.2.md)：新增 `WLanguageScope`；插件/语言入口标记弃用（4.0 删除）
+- [app 4.0](app-4.0.md)：插件去渲染钩子/注册表增删、语言构造收口、系统栏默认不干预
 - [app_getx 2.0](app_getx-2.0.md)：实例化语言/路由栈，删除 `WAppConfig` / `defaultStack`
+- [app_getx 3.0](app_getx-3.0.md)：语言只留 `localeConfig`、插件只在 options 声明、包裹回字段版
 - [map 1.3.1](map-1.3.1.md)：Marker 复用、控制器清理
 - [map 2.0](map-2.0.md)：删除 `onDataUpdated`
 - [map 3.0](map-3.0.md)：拆成 `w_tools_map`（模型）+ `w_tools_map_google`（实现）

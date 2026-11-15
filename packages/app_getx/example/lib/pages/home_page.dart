@@ -16,6 +16,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final language = WLanguageScope.of(context);
+    final app = WApp.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('w_tools_app 示例')),
       body: ListView(
@@ -35,9 +37,9 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 16),
           ValueListenableBuilder<String>(
-            valueListenable: app.language.languageListenable,
+            valueListenable: language.languageListenable,
             builder: (context, code, _) => Text(
-              '当前语言：${app.language.currentLanguageName} ($code)',
+              '当前语言：${language.currentLanguageName} ($code)',
               style: const TextStyle(fontSize: 16),
             ),
           ),
@@ -52,8 +54,8 @@ class _HomePageState extends State<HomePage> {
               ),
               FilledButton.tonal(
                 onPressed: () {
-                  app.language.changeLanguage(
-                    app.language.currentLanguage == 'zh_CN' ? 'en_US' : 'zh_CN',
+                  language.changeLanguage(
+                    language.currentLanguage == 'zh_CN' ? 'en_US' : 'zh_CN',
                   );
                 },
                 child: const Text('切换语言'),
@@ -104,8 +106,8 @@ class _HomePageState extends State<HomePage> {
                   Text('WApp.init → 系统设置 → 插件 onInit → run'),
                   Text('插件：FeaturePlugin 依赖 EnvPlugin，先 env 后 feature'),
                   Text('WRouteObserver 由 WApp 自动追加'),
-                  Text('PresentationPlugin: builderWrapper + wrapApp'),
-                  Text('WApp.builder / appWrapper 也已启用'),
+                  Text('全局包裹：WAppOptions.builder（Theme/MediaQuery）'),
+                  Text('最外层包裹：WAppOptions.appWrapper（RepaintBoundary）'),
                 ],
               ),
             ),

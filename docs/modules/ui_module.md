@@ -46,7 +46,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
   统一用 `WScreenScope` + `WScreen.of(context)`。
 - 静态 getter 依赖 `WidgetsBinding.instance`；不要在 binding 初始化前调用。
 - 使用 `.sp` 的 `WTextStyles` 不得在 `main()` / 顶层 `final` 构建；必须放在
-  `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期。
+  `ScreenUtilInit.builder` 或 `WAppOptions.builder` 的 build 期。
 - `WScreenScope` 是子树级注入；测试里换 scope 即可，不要恢复全局可变状态。
 
 ## 2. WButton - 按钮组件

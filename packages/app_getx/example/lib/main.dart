@@ -6,9 +6,6 @@ import 'package:w_tools_app_getx/w_tools_app_getx.dart';
 import 'pages/detail_page.dart';
 import 'pages/home_page.dart';
 
-/// 当前应用实例；示例页面通过它访问 `language` / `routeStack`。
-late WApp app;
-
 /// 示例启动日志：便于观察插件依赖顺序。
 final List<String> startupEvents = <String>[];
 
@@ -42,30 +39,6 @@ class EnvPlugin extends WAppPlugin {
   }
 }
 
-class PresentationPlugin extends WAppPlugin {
-  @override
-  String get name => 'presentation';
-
-  @override
-  Future<void> onInit() async {
-    startupEvents.add('presentation: hooks ready');
-  }
-
-  @override
-  TransitionBuilder? get builderWrapper => (context, child) {
-    final theme = Theme.of(context);
-    return Theme(
-      data: theme.copyWith(
-        colorScheme: theme.colorScheme.copyWith(secondary: Colors.amber),
-      ),
-      child: child ?? const SizedBox.shrink(),
-    );
-  };
-
-  @override
-  Widget wrapApp(Widget child) => RepaintBoundary(child: child);
-}
-
 class RouteObserverPlugin extends WAppPlugin {
   @override
   String get name => 'route-observer';
@@ -88,7 +61,7 @@ class FeaturePlugin extends WAppPlugin {
 }
 
 WApp createApp() {
-  final instance = WApp.options(
+  return WApp.options(
     WAppOptions(
       title: 'w_tools_app 示例',
       initialRoute: '/',
@@ -99,18 +72,26 @@ WApp createApp() {
         ),
       ),
       appWrapper: (child) => RepaintBoundary(child: child),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: const TextScaler.linear(1.0),
-        ),
-        child: child ?? const SizedBox.shrink(),
-      ),
+      // 需要 Theme / MediaQuery 的全局中间件放在 builder 里。
+      builder: (context, child) {
+        final theme = Theme.of(context);
+        return Theme(
+          data: theme.copyWith(
+            colorScheme: theme.colorScheme.copyWith(secondary: Colors.amber),
+          ),
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(1.0),
+            ),
+            child: child ?? const SizedBox.shrink(),
+          ),
+        );
+      },
       getPages: [
         GetPage(name: '/', page: () => const HomePage()),
         GetPage(name: '/detail', page: () => const DetailPage()),
       ],
       plugins: [
-        PresentationPlugin(),
         RouteObserverPlugin(),
         FeaturePlugin(),
         EnvPlugin(),
@@ -122,8 +103,6 @@ WApp createApp() {
       ),
     ),
   );
-  app = instance;
-  return instance;
 }
 
 Future<void> main() async {

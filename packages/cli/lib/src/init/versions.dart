@@ -3,8 +3,8 @@
 const subpackageConstraints = <String, String>{
   'w_tools_core': '^3.2.0',
   'w_tools_async': '^7.0.1',
-  'w_tools_app': '^3.2.0',
-  'w_tools_app_getx': '^2.1.1',
+  'w_tools_app': '^4.0.0',
+  'w_tools_app_getx': '^3.0.0',
   'w_tools_form': '^8.0.0',
   'w_tools_ui': '^12.0.0',
   'w_tools_api': '^6.3.0',

@@ -1,10 +1,33 @@
 # Changelog
 
-## Unreleased
+## 3.0.0
+
+### Added
+- `WAppScope` / `WApp.of(context)` / `WApp.maybeOf(context)`：在应用树内读取当前 `WApp`，
+  页面不再需要保存全局 `app`；`WApp.run()` 会自动插入 scope。
+- re-export `WLanguageScope`，页面可用 `WLanguageScope.of(context)` 读取语言。
+
+### Breaking
+- 删除 `WAppOptions.locale` / `WAppOptions.fallbackLocale`，以及 `WApp.start` / `WApp.run`
+  上的 `locale` / `fallbackLocale` 参数：语言选择统一走 `WAppOptions.localeConfig`
+  （`WLanguage`）；GetX 的 `fallbackLocale` 从 `WLocaleConfig.fallbackLanguage` 派生。
+- 删除 `WApp.addPlugin` / `WApp.addPlugins` / `WApp.removePlugin` / `WApp.clearPlugins`：
+  插件只在 `WAppOptions.plugins` 声明。
+- 删除 `WAppPlugin.builderWrapper` / `WAppPlugin.wrapApp`：用
+  `WAppOptions.builder` / `appWrapper` 包裹；`WApp` 不再叠加插件包裹钩子。
+- 删除 `WAppPluginRunner.addPlugin` / `addPlugins` / `removePlugin` / `clearPlugins`
+  （随 `w_tools_app` 4.0 的 re-export 面变化）。
+- 删除 `WLanguage.listenLanguageChange` / `WLanguage.bindLocaleUpdater` /
+  `WLanguage.new` / `WLocaleConfig.copyWith` / `WAppTheme.copyWith`。
+- `WAppOptions.new` / `WAppOptions.copyWith` 的签名移除 locale / fallbackLocale 参数。
+- `WAppTheme.new` 的 `systemUiOverlayStyle` 默认值改为 `null`。
 
 ### Changed
-- 适配 `w_tools_app 3.2.0` 的 deprecation 注解：内部忽略 `deprecated_member_use`，
-  无行为 / API 变化；3.0.0 再迁移到新入口。
+- `WAppOptions.supportedLocales` 仍可显式覆盖，默认从 `localeConfig` 派生；当前语言
+  不在列表内时 `WApp.run()` 抛 `StateError`。空列表在构造时抛 `ArgumentError`。
+- 语言切换改为监听 `app.language.languageListenable`，不再通过回调槽注入。
+- `appWrapper` 位于 `GetMaterialApp` 外；`builder` 位于 `GetMaterialApp` 内，二者不再
+  与插件钩子混排。
 
 ## 2.1.1
 

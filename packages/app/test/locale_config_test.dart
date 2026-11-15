@@ -28,22 +28,34 @@ void main() {
     );
   });
 
+  test('支持列表不能为空', () {
+    expect(
+      () => WLocaleConfig(supportedLanguages: const {}),
+      throwsArgumentError,
+    );
+  });
+
+  test('语言码只接受三种形态', () {
+    for (final code in ['en', 'en_US', 'zh_Hant_TW', 'en-Latn-US']) {
+      expect(
+        () => WLocaleConfig(supportedLanguages: {code: code}),
+        returnsNormally,
+        reason: code,
+      );
+    }
+    for (final code in ['', 'e', 'en_US_POSIX', 'zh_CN_#Hans', 'zh_hant_TW']) {
+      expect(
+        () => WLocaleConfig(supportedLanguages: {code: code}),
+        throwsArgumentError,
+        reason: code,
+      );
+    }
+  });
+
   test('相同内容 == / hashCode 一致', () {
     final a = WLocaleConfig(supportedLanguages: supported);
     final b = WLocaleConfig(supportedLanguages: supported);
     expect(a, b);
     expect(a.hashCode, b.hashCode);
-  });
-
-  test('copyWith 可改 initial / fallback', () {
-    final base = WLocaleConfig(supportedLanguages: supported);
-    final copy = base.copyWith(
-      initialLanguage: 'zh_CN',
-      fallbackLanguage: 'en_US',
-    );
-
-    expect(copy.initialLanguage, 'zh_CN');
-    expect(copy.fallbackLanguage, 'en_US');
-    expect(copy.supportedLanguages, supported);
   });
 }
