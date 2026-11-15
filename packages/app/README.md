@@ -29,7 +29,7 @@ await runner.init();
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^3.0.0
+  w_tools_app_getx: ^3.1.0
 ```
 
 语言与外观类型也可以直接引用：

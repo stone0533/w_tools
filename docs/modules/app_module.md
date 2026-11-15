@@ -526,7 +526,7 @@ language.changeLanguage('en_US');
 
 `WApp.of(context)` / `WAppScope` 也由 `w_tools_app_getx 3.0.0` 提供。
 
-4.0.0 再删除上述入口，并应用系统栏默认、插件执行顺序、语言码解析等行为变化。
+4.0.0 已删除上述入口，并已应用系统栏默认、插件执行顺序、语言码解析等行为变化。
 
 ## 注意事项
 

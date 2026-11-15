@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.1.0
+
+### Changed
+- `w_tools_app` 下界从 `>=3.2.0 <5.0.0` 收紧到 `^4.0.0`：3.0.0 起页面作用域与行为按
+  app 4.0.0 设计，不再对 3.2.0 的旧 runner / 语言码解析行为作兼容承诺。
+- 清理 3.0.0 里为 app 3.2.0 deprecation 留下的内部 `deprecated_member_use` ignore 注释。
+- 文档：`app_getx` 3.0.0 / app 4.0.0 的现状与迁移入口。
+
 ## 3.0.0
 
 ### Added
