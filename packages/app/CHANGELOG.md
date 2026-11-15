@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.2.0
+
+### Added
+- `WLanguageScope`：把 `WLanguage` 注入子树；`WLanguageScope.of(context)` 读取实例，
+  语言切换时依赖者自动重建。
+
+### Deprecated（4.0 删除）
+- `WAppPlugin.builderWrapper` / `WAppPlugin.wrapApp`：改用 `WAppOptions.builder` /
+  `WAppOptions.appWrapper`。
+- `WAppPluginRunner.addPlugin` / `WAppPluginRunner.addPlugins` /
+  `WAppPluginRunner.removePlugin` / `WAppPluginRunner.clearPlugins`：插件列表在构造时确定。
+- `WLanguage` 5 参公开构造：改用 `WLanguage.fromConfig`。
+- `WLanguage.listenLanguageChange`：改用 `languageChanges.listen`。
+- `WLanguage.bindLocaleUpdater`：改用 `languageListenable`。
+- `WLocaleConfig.copyWith` / `WAppTheme.copyWith`：直接构造新实例。
+
+### Fixed
+- `WAppPluginRunner.init` 失败后重试会跳过已成功的插件，不再重复执行。
+
 ## 3.1.1
 
 ### Changed

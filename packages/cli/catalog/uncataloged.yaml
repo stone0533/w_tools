@@ -10,6 +10,7 @@ packages:
     - WMetric
     - WPageQuery
   w_tools_app:
+    - WLanguageScope
   w_tools_app_getx:
   w_tools_async:
   w_tools_core:

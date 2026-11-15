@@ -8,8 +8,11 @@ import 'locale_config.dart';
 /// 一个应用语言实例。
 ///
 /// 每个应用壳持有自己的实例；当前语言只有一个可写入口 [changeLanguage]。
-/// 本类不依赖 GetX；应用壳通过 [bindLocaleUpdater] 注入自己的 locale 刷新逻辑。
+/// 本类不依赖 GetX；4.0.0 起删除 `bindLocaleUpdater` / `listenLanguageChange`，
+/// 应用壳改用 [languageListenable] / [languageChanges]。
 class WLanguage {
+  /// remove-in: 4.0.0
+  @Deprecated('4.0.0 起改用 WLanguage.fromConfig；remove-in: 4.0.0')
   WLanguage({
     Map<String, String> supportedLanguages = const {'en_US': 'English'},
     String currentLanguage = 'en_US',
@@ -44,7 +47,9 @@ class WLanguage {
 
   /// 从 [WLocaleConfig] 创建实例；配置存在即视为显式选择语言。
   factory WLanguage.fromConfig(WLocaleConfig? config) {
+    // ignore: deprecated_member_use_from_same_package
     if (config == null) return WLanguage();
+    // ignore: deprecated_member_use_from_same_package
     return WLanguage(
       supportedLanguages: config.supportedLanguages,
       currentLanguage: config.initialLanguage ?? config.supportedLanguages.keys.first,
@@ -94,11 +99,15 @@ class WLanguage {
   }
 
   /// 绑定应用壳的 locale 刷新逻辑（由 GetX 适配层注入）。
+  /// remove-in: 4.0.0
+  @Deprecated('4.0.0 删除；改用 languageListenable；remove-in: 4.0.0')
   void bindLocaleUpdater(void Function(Locale locale) updater) {
     _onLocaleChanged = updater;
   }
 
   /// 监听语言变化；返回可取消的订阅。
+  /// remove-in: 4.0.0
+  @Deprecated('4.0.0 删除；改用 languageChanges.listen；remove-in: 4.0.0')
   StreamSubscription<String> listenLanguageChange(
     void Function(String) callback,
   ) {

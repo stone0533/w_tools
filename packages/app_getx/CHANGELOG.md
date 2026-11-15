@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- 适配 `w_tools_app 3.2.0` 的 deprecation 注解：内部忽略 `deprecated_member_use`，
+  无行为 / API 变化；3.0.0 再迁移到新入口。
+
 ## 2.1.1
 
 ### Fixed

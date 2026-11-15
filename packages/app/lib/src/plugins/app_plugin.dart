@@ -98,8 +98,12 @@ abstract mixin class WAppPlugin {
   /// 返回的 TransitionBuilder 按插件注册顺序串联（后注册者更靠外），
   /// 最后再叠加实现层 `WAppOptions.builder`。
   ///
+  /// **注意**：4.0.0 起删除；改用 `WAppOptions.builder`。
+  ///
   /// **注意**：返回的 widget 必须把入参 `child` 纳入其 widget 树，
   /// 否则会丢弃整个 app（黑屏）。
+  /// remove-in: 4.0.0
+  @Deprecated('4.0.0 起改用 WAppOptions.builder；remove-in: 4.0.0')
   TransitionBuilder? get builderWrapper => null;
 
   /// 包裹整个 app Widget（最外层包装）
@@ -113,8 +117,12 @@ abstract mixin class WAppPlugin {
   /// 多个插件时**最外层**插件的返回值即 runApp 的 child；`WAppOptions.appWrapper`
   /// 会先于本钩子执行，因而位于插件 wrapApp 链的**更内层**。
   ///
+  /// **注意**：4.0.0 起删除；改用 `WAppOptions.appWrapper`。
+  ///
   /// **注意**：返回的 widget 必须把入参 `child` 纳入其 widget 树，
   /// 否则会丢弃整个 app（黑屏）。
+  /// remove-in: 4.0.0
+  @Deprecated('4.0.0 起改用 WAppOptions.appWrapper；remove-in: 4.0.0')
   Widget wrapApp(Widget child) => child;
 
   /// 额外的 NavigatorObserver

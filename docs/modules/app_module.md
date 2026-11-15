@@ -475,6 +475,30 @@ Future<void> main() async {
 
 ---
 
+## 3.2 弃用与 4.0 计划
+
+`w_tools_app 3.2.0` 只做弃用 + 新增 `WLanguageScope`，**不改变默认行为**。
+以下入口仍可用，但带 `@Deprecated`，4.0.0 删除：
+
+| 旧 | 新 |
+|---|---|
+| `WAppPlugin.builderWrapper` / `wrapApp` | `WAppOptions.builder` / `appWrapper` |
+| `WAppPluginRunner.addPlugin` / `addPlugins` / `removePlugin` / `clearPlugins` | 构造时传列表 |
+| `WLanguage` 5 参构造 / `listenLanguageChange` / `bindLocaleUpdater` | `WLanguage.fromConfig` / `languageChanges` / `languageListenable` |
+| `WLocaleConfig.copyWith` / `WAppTheme.copyWith` | 直接构造 |
+
+`WLanguageScope` 是 3.2.0 新增的页面读取入口：
+
+```dart
+final language = WLanguageScope.of(context);
+language.changeLanguage('en_US');
+```
+
+3.2.0 的 `WApp` 不会自动插入 scope，需要在 `WAppOptions.appWrapper` 或测试里手动包一层；
+自动插入与页面级应用实例入口属于 `w_tools_app_getx 3.0.0`。
+
+4.0.0 再删除上述入口，并应用系统栏默认、插件执行顺序、语言码解析等行为变化。
+
 ## 注意事项
 
 - **强依赖 GetX**：整个子包（包括 `WBottomSheet`）基于 `get` 包实现。

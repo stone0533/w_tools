@@ -74,6 +74,7 @@
 - [app 2.0](app-2.0.md)：删除字段版 `WApp` 与静态 `WRoute`
 - [app 3.0](app-3.0.md)：拆成 `w_tools_app`（插件契约）+ `w_tools_app_getx`（GetX 启动器）
 - [app 3.1](app-3.1.md)：GetX-free 内核类型（`WAppPluginRunner` / `WLanguage` / `WLocaleConfig` / `WAppTheme`）
+- [app 3.2](app-3.2.md)：新增 `WLanguageScope`；插件/语言入口标记弃用（4.0 删除）
 - [app_getx 2.0](app_getx-2.0.md)：实例化语言/路由栈，删除 `WAppConfig` / `defaultStack`
 - [map 1.3.1](map-1.3.1.md)：Marker 复用、控制器清理
 - [map 2.0](map-2.0.md)：删除 `onDataUpdated`

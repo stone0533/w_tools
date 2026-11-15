@@ -4,8 +4,12 @@
 
 - `WAppPlugin`：插件契约；
 - `WAppPluginRunner`：插件注册表、`dependsOn` 分层初始化；
-- `WLanguage` / `WLocaleConfig`：语言状态与语言配置；
+- `WLanguage` / `WLanguageScope` / `WLocaleConfig`：语言状态、树内语言作用域与语言配置；
 - `WAppTheme`：应用外观（亮/暗主题、主题模式、系统栏）。
+
+> 3.2.0 起插件渲染钩子、runner 增删、语言回调与 `copyWith` 标记 `@Deprecated`，
+> 4.0.0 删除；3.2.0 仍保持 3.1.1 的默认行为。升级前看
+> [`app-3.2`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/app-3.2.md)。
 
 ```dart
 class AppServicePlugin extends WAppPlugin {
