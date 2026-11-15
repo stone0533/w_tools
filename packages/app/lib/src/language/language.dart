@@ -8,7 +8,7 @@ import 'locale_config.dart';
 /// 一个应用语言实例。
 ///
 /// 每个应用壳持有自己的实例；当前语言只有一个可写入口 [changeLanguage]。
-/// 本类不依赖 GetX；4.0.0 起删除 [bindLocaleUpdater] / [listenLanguageChange]，
+/// 本类不依赖 GetX；4.0.0 起删除 `bindLocaleUpdater` / `listenLanguageChange`，
 /// 应用壳改用 [languageListenable] / [languageChanges]。
 class WLanguage {
   /// remove-in: 4.0.0
