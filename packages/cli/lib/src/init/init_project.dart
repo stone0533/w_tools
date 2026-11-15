@@ -98,151 +98,25 @@ InitReport runInit(
     report.warnings.add('已把 .w_tools_init.json 迁到 ${InitManifest.fileName}');
   }
 
-  void write(
-    String rel,
-    String content, {
-    bool projectConfig = false,
-    bool starter = false,
-    bool markedBlock = false,
-    bool metadata = false,
-  }) {
-    final file = File(p.join(root.path, rel));
-    if (file.existsSync()) {
-      if (metadata) {
-        final same = file.readAsStringSync() == content;
-        if (same) {
-          report.upToDate.add(rel);
-          return;
-        }
-        if (check) {
-          report.drift.add('$rel（内容不同，未改动）');
-          return;
-        }
-        // manifest 是本次 init 的运行记录，不受 --force 限制。
-        file.writeAsStringSync(content);
-        report.created.add('$rel（已更新）');
-        return;
-      }
-      if (markedBlock) {
-        final existing = file.readAsStringSync();
-        final begin = existing.indexOf('// w_tools:begin');
-        final end = existing.indexOf('// w_tools:end');
-        if (begin >= 0 && end > begin) {
-          final next =
-              '${existing.substring(0, begin)}${content.trimRight()}${existing.substring(end + '// w_tools:end'.length)}';
-          if (next == existing) {
-            report.upToDate.add(rel);
-            return;
-          }
-          if (check) {
-            report.drift.add('$rel（内容不同：标记块与模板不同）');
-            return;
-          }
-          if (!force) {
-            report.drift.add('$rel（标记块内容不同，未改动）');
-            return;
-          }
-          file.writeAsStringSync(next);
-          report.created.add('$rel（已覆盖）');
-          return;
-        }
-        // 旧文件没有 marker：--force 前备份，首次迁移为 marker block。
-        if (check || !force) {
-          report.drift.add('$rel（内容不同：缺少 w_tools:begin/end 标记块）');
-          return;
-        }
-        final extras = _extraExports(existing, content);
-        final name = backupFile(file);
-        final migrated = extras.isEmpty
-            ? content
-            : '${content.trimRight()}\n\n// migrated from legacy toolkit\n${extras.join('\n')}\n';
-        file.writeAsStringSync(migrated);
-        report.warnings.add(
-          extras.isEmpty
-              ? '覆盖了 $rel：旧文件无标记块，原内容已备份到 $name'
-              : '覆盖了 $rel：旧文件无标记块，已迁移 ${extras.length} 个自定义 export；'
-                    '其余自定义代码仍在 $name',
-        );
-        report.created.add('$rel（已覆盖）');
-        return;
-      }
-      // 项目配置（.w_tools_doctor.yaml）：内容由项目手工维护（palette / banned / ignore）。
-      // 默认即使 --force 也保留；只有 --force-config 才覆盖，覆盖前先备份。
-      if (projectConfig) {
-        if (file.readAsStringSync() == content) {
-          report.upToDate.add(rel);
-          return;
-        }
-        if (check) {
-          if (forceConfig) {
-            report.drift.add('$rel（内容不同，未改动）');
-          } else {
-            report.upToDate.add(rel);
-          }
-          return;
-        }
-        if (!forceConfig) {
-          report.upToDate.add(rel);
-          if (force) {
-            report.warnings.add('保留了 $rel（项目配置；需要覆盖用 --force-config）');
-          }
-          return;
-        }
-        final name = backupFile(file);
-        file.writeAsStringSync(content);
-        report.warnings.add('覆盖了 $rel：原内容已备份到 $name');
-        report.created.add('$rel（已覆盖）');
-        return;
-      }
-      // 可自定义的起始文件：存在即视为完成；只有 --force-starters 才覆盖
-      if (starter && !forceStarters) {
-        report.upToDate.add(rel);
-        return;
-      }
-      if (file.readAsStringSync() == content) {
-        report.upToDate.add(rel);
-        return;
-      }
-      if (check) {
-        report.drift.add('$rel（内容不同，未改动）');
-        return;
-      }
-      if (!force && !(starter && forceStarters)) {
-        report.drift.add('$rel（已存在且内容不同，未改动）');
-        return;
-      }
-      if (projectConfig) {
-        report.warnings.add('覆盖了 $rel：原有的自定义配置会丢失');
-      } else if (starter) {
-        final name = backupFile(file);
-        report.warnings.add('覆盖了 $rel：原内容已备份到 $name');
-      }
-      file.writeAsStringSync(content);
-      report.created.add('$rel（已覆盖）');
-      return;
-    }
-    if (check) {
-      // `--check` 只检查用户可见的生成物：
-      // - `.w_tools/init.json` 是内部运行记录，不是项目产物；
-      // - `.w_tools_doctor.yaml` 是可选配置（不写也按默认运行）。
-      if (!metadata && !projectConfig) report.missing.add(rel);
-      return;
-    }
-    file.parent.createSync(recursive: true);
-    file.writeAsStringSync(content);
-    report.created.add(rel);
-  }
+  final writer = _InitWriter(
+    root: root,
+    report: report,
+    check: check,
+    force: force,
+    forceConfig: forceConfig,
+    forceStarters: forceStarters,
+  );
 
   if (device) {
-    write(
+    writer.write(
       'docs/agents/device-testing.md',
       InitTemplates.deviceTestingDoc(projectName: app),
-      starter: true,
+      kind: _FileKind.starter,
     );
-    write(
+    writer.write(
       'tool/gradle-mirror.init.gradle.example',
       InitTemplates.deviceGradleMirror(),
-      starter: true,
+      kind: _FileKind.starter,
     );
   }
 
@@ -254,20 +128,25 @@ InitReport runInit(
   } on Object {
     report.warnings.add('${DoctorConfig.fileName} 解析失败，本次按空 banned 生成 AGENTS');
   }
+  report.warnings.addAll(projectConfig.removalWarnings);
 
-  write(
+  writer.write(
     projectConfig.toolkitEntry,
     InitTemplates.toolkit(features: features),
-    markedBlock: true,
+    kind: _FileKind.markedBlock,
   );
   if (features.ui) {
     for (final entry in InitTemplates.uiStarters(lang: lang).entries) {
-      write(entry.key, entry.value.content, starter: entry.value.starter);
+      writer.write(
+        entry.key,
+        entry.value.content,
+        kind: entry.value.starter ? _FileKind.starter : _FileKind.generated,
+      );
     }
   }
   // doctor 的默认配置：带注释，值与内置默认一致，只是把开关摊开。
   // 它是项目配置而不是生成物：存在就不再比对内容。
-  write(DoctorConfig.fileName, renderDefaultConfig(), projectConfig: true);
+  writer.write(DoctorConfig.fileName, renderDefaultConfig(), kind: _FileKind.config);
   for (final target in targets) {
     final rel = targetFiles[target];
     if (rel == null) continue;
@@ -304,7 +183,7 @@ InitReport runInit(
   }
 
   if (aiPrompts && targets.isNotEmpty) {
-    write(
+    writer.write(
       GeneratedFiles.aiPrompts,
       InitTemplates.aiPrompts(
         lang: lang,
@@ -339,7 +218,7 @@ InitReport runInit(
   // --check 只读：manifest 是本次 init 的运行记录，check 模式下不写、也不参与 drift
   // （否则 CLI 升级后 generator 版本变化会让 --check-drift 永远红）。
   if (!check && manifest != null) {
-    write(InitManifest.fileName, manifest.encode(), metadata: true);
+    writer.write(InitManifest.fileName, manifest.encode(), kind: _FileKind.metadata);
   }
   report.pubspecSnippet = _snippet(
     pubspec,
@@ -348,6 +227,187 @@ InitReport runInit(
     device: device,
   );
   return report;
+}
+
+/// `init` 要写的文件种类；每类只走一个写入分支。
+///
+/// 为什么不是一排布尔参数：`write()` 过去同时管 5 种文件 + 4 个 force 开关，
+/// 分支有 20 条。按种类拆开后，每类文件的「存在 / 不存在 × check × force」
+/// 可以单独读；新增一种生成物只需要加一个 enum 分支。
+enum _FileKind { generated, config, starter, metadata, markedBlock }
+
+/// `init` 的写入策略执行器（状态在构造时固定，方法只做决策 + 记录）。
+class _InitWriter {
+  _InitWriter({
+    required this.root,
+    required this.report,
+    required this.check,
+    required this.force,
+    required this.forceConfig,
+    required this.forceStarters,
+  });
+
+  final Directory root;
+  final InitReport report;
+  final bool check;
+  final bool force;
+  final bool forceConfig;
+  final bool forceStarters;
+
+  void write(String rel, String content, {_FileKind kind = _FileKind.generated}) {
+    final file = File(p.join(root.path, rel));
+    if (!file.existsSync()) {
+      _create(file, rel, content, kind);
+      return;
+    }
+    switch (kind) {
+      case _FileKind.metadata:
+        _writeMetadata(file, rel, content);
+      case _FileKind.markedBlock:
+        _writeMarkedBlock(file, rel, content);
+      case _FileKind.config:
+        _writeConfig(file, rel, content);
+      case _FileKind.starter:
+        _writeStarter(file, rel, content);
+      case _FileKind.generated:
+        _writeGenerated(file, rel, content);
+    }
+  }
+
+  void _create(File file, String rel, String content, _FileKind kind) {
+    if (check) {
+      // `--check` 只检查用户可见的生成物：
+      // - `.w_tools/init.json` 是内部运行记录，不是项目产物；
+      // - `.w_tools_doctor.yaml` 是可选配置（不写也按默认运行）。
+      if (kind != _FileKind.metadata && kind != _FileKind.config) {
+        report.missing.add(rel);
+      }
+      return;
+    }
+    file.parent.createSync(recursive: true);
+    file.writeAsStringSync(content);
+    report.created.add(rel);
+  }
+
+  void _writeMetadata(File file, String rel, String content) {
+    if (file.readAsStringSync() == content) {
+      report.upToDate.add(rel);
+      return;
+    }
+    if (check) {
+      report.drift.add('$rel（内容不同，未改动）');
+      return;
+    }
+    // manifest 是本次 init 的运行记录，不受 --force 限制。
+    file.writeAsStringSync(content);
+    report.created.add('$rel（已更新）');
+  }
+
+  void _writeMarkedBlock(File file, String rel, String content) {
+    final existing = file.readAsStringSync();
+    final begin = existing.indexOf('// w_tools:begin');
+    final end = existing.indexOf('// w_tools:end');
+    if (begin >= 0 && end > begin) {
+      final next =
+          '${existing.substring(0, begin)}${content.trimRight()}${existing.substring(end + '// w_tools:end'.length)}';
+      if (next == existing) {
+        report.upToDate.add(rel);
+        return;
+      }
+      if (check) {
+        report.drift.add('$rel（内容不同：标记块与模板不同）');
+        return;
+      }
+      if (!force) {
+        report.drift.add('$rel（标记块内容不同，未改动）');
+        return;
+      }
+      file.writeAsStringSync(next);
+      report.created.add('$rel（已覆盖）');
+      return;
+    }
+    // 旧文件没有 marker：--force 前备份，首次迁移为 marker block。
+    if (check || !force) {
+      report.drift.add('$rel（内容不同：缺少 w_tools:begin/end 标记块）');
+      return;
+    }
+    final extras = _extraExports(existing, content);
+    final name = backupFile(file);
+    final migrated = extras.isEmpty
+        ? content
+        : '${content.trimRight()}\n\n// migrated from legacy toolkit\n${extras.join('\n')}\n';
+    file.writeAsStringSync(migrated);
+    report.warnings.add(
+      extras.isEmpty
+          ? '覆盖了 $rel：旧文件无标记块，原内容已备份到 $name'
+          : '覆盖了 $rel：旧文件无标记块，已迁移 ${extras.length} 个自定义 export；'
+                '其余自定义代码仍在 $name',
+    );
+    report.created.add('$rel（已覆盖）');
+  }
+
+  void _writeConfig(File file, String rel, String content) {
+    if (file.readAsStringSync() == content) {
+      report.upToDate.add(rel);
+      return;
+    }
+    if (check) {
+      if (forceConfig) {
+        report.drift.add('$rel（内容不同，未改动）');
+      } else {
+        report.upToDate.add(rel);
+      }
+      return;
+    }
+    if (!forceConfig) {
+      report.upToDate.add(rel);
+      if (force) {
+        report.warnings.add('保留了 $rel（项目配置；需要覆盖用 --force-config）');
+      }
+      return;
+    }
+    final name = backupFile(file);
+    file.writeAsStringSync(content);
+    report.warnings.add('覆盖了 $rel：原内容已备份到 $name');
+    report.created.add('$rel（已覆盖）');
+  }
+
+  void _writeStarter(File file, String rel, String content) {
+    // 存在即视为完成；只有 --force-starters 才覆盖。
+    if (!forceStarters) {
+      report.upToDate.add(rel);
+      return;
+    }
+    if (file.readAsStringSync() == content) {
+      report.upToDate.add(rel);
+      return;
+    }
+    if (check) {
+      report.drift.add('$rel（内容不同，未改动）');
+      return;
+    }
+    final name = backupFile(file);
+    report.warnings.add('覆盖了 $rel：原内容已备份到 $name');
+    file.writeAsStringSync(content);
+    report.created.add('$rel（已覆盖）');
+  }
+
+  void _writeGenerated(File file, String rel, String content) {
+    if (file.readAsStringSync() == content) {
+      report.upToDate.add(rel);
+      return;
+    }
+    if (check) {
+      report.drift.add('$rel（内容不同，未改动）');
+      return;
+    }
+    if (!force) {
+      report.drift.add('$rel（已存在且内容不同，未改动）');
+      return;
+    }
+    file.writeAsStringSync(content);
+    report.created.add('$rel（已覆盖）');
+  }
 }
 
 const _deviceFiles = <String>[

@@ -2,16 +2,14 @@
 
 import 'dart:io';
 
+import 'package:w_tools_cli/src/catalog/list_command.dart' as list;
 import 'package:w_tools_cli/src/command_registry.dart';
 import 'package:w_tools_cli/src/common/version.dart';
-
-import 'context.dart' as context;
-import 'doctor.dart' as doctor;
-import 'explain.dart' as explain;
-import 'feedback.dart' as feedback;
-import 'init.dart' as init;
-import 'list.dart' as list;
-
+import 'package:w_tools_cli/src/context/command.dart' as context;
+import 'package:w_tools_cli/src/doctor/command.dart' as doctor;
+import 'package:w_tools_cli/src/explain/explain_command.dart' as explain;
+import 'package:w_tools_cli/src/feedback/feedback_command.dart' as feedback;
+import 'package:w_tools_cli/src/init/command.dart' as init;
 import 'package:w_tools_cli/src/upgrade/upgrade_command.dart' as upgrade;
 
 final _usage =
@@ -23,8 +21,6 @@ w_tools_cli —— w_tools 项目工具
 
 命令：
 ${commandUsageLines()}
-
-兼容入口仍保留：dart run w_tools_cli:init / doctor / ...
 ''';
 
 Future<void> main(List<String> argv) async {
@@ -33,7 +29,9 @@ Future<void> main(List<String> argv) async {
     exitCode = argv.isEmpty ? 2 : 0;
     return;
   }
-  if (argv.contains('--version')) {
+  // 只认顶层 `w_tools --version`；不要扫描整个 argv（`w_tools init --version`
+  // 应该交给 init 自己处理，而不是静默跳过 init 只打印版本）。
+  if (argv.first == '--version') {
     print(cliVersion);
     return;
   }

@@ -11,14 +11,13 @@ enum FeedbackMode {
   issue,
   disabled;
 
-  /// 与 `feedback status --json` / 文档里的字符串一致。
+  /// 与 `feedback submit --json` 里的字符串一致。
   String get wire => name;
 }
 
 /// 解析后的反馈通道。
 ///
-/// 路由只在这里实现一次，`submit` / `status` / `path` / `search` / `lint` 都复用它，
-/// 避免「`path` 说能写台账、`submit` 却说跳过」这类自相矛盾。
+/// 路由只在这里实现一次，`submit` / `search` 都复用它。
 ///
 /// 优先级：
 /// 1. 项目根就是 w_tools 仓库 → 写该仓库的 `docs/feedback/`（维护者默认路径，不读开关）；
@@ -122,7 +121,7 @@ class FeedbackChannel {
         ledgerOverrideInvalid: overrideInvalid,
       );
     }
-    // 未开启：不自动写，但保留「本机有台账」这个事实，好让 --ledger / path 说真话。
+    // 未开启：不自动写，但保留「本机有台账」这个事实，好让 --ledger / 跳过输出说真话。
     return FeedbackChannel(
       mode: FeedbackMode.disabled,
       repoRoot: repo,
@@ -158,36 +157,4 @@ String? _defaultPubCache() {
   if (explicit != null && explicit.isNotEmpty) return explicit;
   final home = env['HOME'] ?? env['USERPROFILE'];
   return home == null ? null : p.join(home, '.pub-cache');
-}
-
-/// `gh` 是否可用于建 Issue（安装 + 登录）。
-class GhStatus {
-  const GhStatus({required this.installed, required this.authenticated});
-
-  final bool installed;
-  final bool authenticated;
-
-  bool get ready => installed && authenticated;
-
-  Map<String, Object?> toJson() => <String, Object?>{
-    'installed': installed,
-    'authenticated': authenticated,
-    'ready': ready,
-  };
-
-  /// 探测 `gh`；不抛异常，失败即视为不可用。
-  static GhStatus probe() {
-    if (!_exitOk(const <String>['--version'])) {
-      return const GhStatus(installed: false, authenticated: false);
-    }
-    return GhStatus(installed: true, authenticated: _exitOk(const <String>['auth', 'status']));
-  }
-
-  static bool _exitOk(List<String> args) {
-    try {
-      return Process.runSync('gh', args).exitCode == 0;
-    } on ProcessException {
-      return false;
-    }
-  }
 }

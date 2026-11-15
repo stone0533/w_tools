@@ -1,5 +1,6 @@
 import pathlib
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -55,6 +56,29 @@ class CliFlagTest(unittest.TestCase):
     def test_bare_w_tools_is_not_a_subcommand(self):
         # `w_tools_cli:w_tools`（后面没有子命令）不能被回退匹配成子命令 `w`。
         self.assertEqual(mod.cli_flag_errors('dart run w_tools_cli:w_tools\n', 'x'), [])
+
+    def test_legacy_compat_entry_is_rejected(self):
+        errors = mod.cli_flag_errors('dart run w_tools_cli:init\n', 'x')
+        self.assertTrue(errors)
+        self.assertIn('兼容入口', errors[0])
+
+    def test_command_must_be_wired_in_dispatcher(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            bin_dir = root / 'bin'
+            bin_dir.mkdir()
+            (bin_dir / 'w_tools.dart').write_text("switch (command) {\n  case 'list':\n}\n")
+            ghost = root / 'lib' / 'src' / 'ghost'
+            ghost.mkdir(parents=True)
+            (ghost / 'ghost_command.dart').write_text("..addFlag('x');\n")
+            old = mod.CLI_BIN
+            mod.CLI_BIN = bin_dir
+            try:
+                errors = mod.cli_flag_errors('dart run w_tools_cli:w_tools ghost --x\n', 'x')
+            finally:
+                mod.CLI_BIN = old
+        self.assertTrue(errors)
+        self.assertIn('未知的 w_tools 子命令', errors[0])
 
     def test_flags_on_continuation_line_are_checked(self):
         text = (

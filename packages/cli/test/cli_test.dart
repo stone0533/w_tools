@@ -15,15 +15,20 @@ Directory _project() {
   return root;
 }
 
-/// 用真实的 dart run 跑入口，验证参数解析与退出码（main 里有 exit，不能直接调用）。
+/// 用真实的 dart run 跑 dispatcher，验证参数解析与退出码。
+///
+/// `bin` 仍写 `init.dart` 这类历史名字：内部统一转成 `w_tools.dart <command>`，
+/// 兼容入口已经删除，测试不依赖它。
 Future<ProcessResult> _run(
   String bin,
   List<String> args, {
   Map<String, String>? env,
 }) {
+  final isDispatcher = bin == 'w_tools.dart';
+  final command = bin.replaceFirst(RegExp(r'\.dart$'), '');
   return Process.run(
     Platform.resolvedExecutable,
-    <String>['run', 'bin/$bin', ...args],
+    <String>['run', 'bin/w_tools.dart', if (!isDispatcher) command, ...args],
     workingDirectory: Directory.current.path,
     environment: env,
   );
@@ -110,7 +115,7 @@ banned:
     expect(agents, isNot(contains('DioRegistry')));
   });
 
-  test('init map 参数统一为 --map / --no-map / --with-map 别名', () async {
+  test('init map 参数统一为 --map / --no-map', () async {
     final mapRoot = _project();
     expect((await _run('init.dart', ['--root', mapRoot.path, '--map'])).exitCode, 0);
     expect(
@@ -125,14 +130,7 @@ banned:
       isNot(contains('package:w_tools_map')),
     );
 
-    final aliasRoot = _project();
-    expect((await _run('init.dart', ['--root', aliasRoot.path, '--with-map'])).exitCode, 0);
-    expect(
-      File(p.join(aliasRoot.path, 'lib/app/w/toolkit.dart')).readAsStringSync(),
-      contains('package:w_tools_map'),
-    );
-
-    final conflict = await _run('init.dart', ['--root', aliasRoot.path, '--map', '--no-map']);
+    final conflict = await _run('init.dart', ['--root', mapRoot.path, '--map', '--no-map']);
     expect(conflict.exitCode, 2);
     expect('${conflict.stderr}', contains('不能同时'));
   });
@@ -511,11 +509,15 @@ banned:
     expect(json['commands'], isA<Map>());
   });
 
-  test('context 的 --max-tokens 非法时返回 2', () async {
+  test('context / doctor 接受 --format=text（统一词汇）', () async {
     final root = _project();
-    final r = await _run('context.dart', ['--root', root.path, '--max-tokens=abc']);
-    expect(r.exitCode, 2);
-    expect('${r.stderr}', contains('--max-tokens'));
+    final context = await _run('context.dart', ['--root', root.path, '--format=text']);
+    expect(context.exitCode, 0, reason: '${context.stderr}');
+    expect('${context.stdout}', contains('# w_tools 项目上下文'));
+
+    final doctor = await _run('doctor.dart', ['--root', root.path, '--format=text']);
+    expect(doctor.exitCode, 0, reason: '${doctor.stderr}');
+    expect('${doctor.stdout}', contains('w_tools doctor'));
   });
 
   test('list 能按关键词查到组件（text / json）', () async {
@@ -791,8 +793,27 @@ banned:
     final root = _project();
     final r = await _run('feedback.dart', ['--root', root.path]);
     expect(r.exitCode, 2);
-    expect('${r.stderr}', contains('path'));
-    expect('${r.stderr}', contains('lint'));
+    expect('${r.stderr}', contains('submit'));
+    expect('${r.stderr}', contains('search'));
+  });
+
+  test('doctor / init 提示已移除的配置键', () async {
+    final root = _project();
+    File(tmpConfig(root)).writeAsStringSync('rules:\n  R6: true\n');
+
+    final doctor = await _run('doctor.dart', ['--root', root.path, '--json']);
+    expect(doctor.exitCode, 0, reason: '${doctor.stderr}');
+    expect('${doctor.stdout}', contains('"warnings"'));
+    expect('${doctor.stdout}', contains('rules.R6'));
+
+    final init = await _run('init.dart', [
+      '--root',
+      root.path,
+      '--no-ui',
+      '--no-instructions',
+    ]);
+    expect(init.exitCode, 0, reason: '${init.stderr}');
+    expect('${init.stdout}', contains('rules.R6'));
   });
 
   test('init 命令体错误也输出 JSON', () async {
@@ -861,6 +882,7 @@ banned:
       '--json',
     ]);
     expect(r.exitCode, 2);
+    expect('${r.stdout}', contains('"schema":"w_tools_cli.error/1"'));
     expect('${r.stdout}', contains('"ok":false'));
     expect('${r.stdout}', contains('反馈缺少必填字段'));
   });
@@ -991,47 +1013,6 @@ banned:
     expect('${r.stderr}', contains('工作区会变脏'));
   });
 
-  test('feedback 公开 Issue 日额度用完后 exit 2', () async {
-    final root = _project();
-    // 没有本机仓库：确保走 Issue 通道
-    final cache = Directory(p.join(root.path, 'pubcache', 'w_tools_cli'))
-      ..createSync(recursive: true);
-    File(p.join(cache.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools_cli\n');
-    File(p.join(root.path, '.dart_tool', 'package_config.json'))
-      ..createSync(recursive: true)
-      ..writeAsStringSync(
-        jsonEncode({
-          'configVersion': 2,
-          'packages': [
-            {'name': 'w_tools_cli', 'rootUri': cache.path},
-          ],
-        }),
-      );
-    File(tmpConfig(root)).writeAsStringSync('feedback:\n  enabled: true\n');
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    File(p.join(root.path, '.w_tools', 'feedback_budget.json'))
-      ..createSync(recursive: true)
-      ..writeAsStringSync(jsonEncode({'date': today, 'count': 5}));
-    final body = File(p.join(root.path, 'body.md'))..writeAsStringSync(_feedbackBody);
-
-    final r = await _run('feedback.dart', [
-      'submit',
-      '--root',
-      root.path,
-      '--package=ui',
-      '--title=t',
-      '--body-file',
-      body.path,
-      '--repo=stone0533/__w_tools_feedback_guard__',
-    ]);
-
-    expect(r.exitCode, 2, reason: '${r.stderr}');
-    expect('${r.stderr}', contains('额度'));
-    expect('${r.stderr}', contains('已用 5 / 上限 5'));
-    expect('${r.stderr}', contains('feedback.max_issues_per_day'));
-    expect('${r.stderr}', contains('feedback_budget.json'));
-  });
-
   test('未知包名直接拒绝', () async {
     final root = _project();
     final r = await _run('feedback.dart', [
@@ -1058,27 +1039,6 @@ banned:
     expect('${r.stderr}', contains('未知反馈包'));
   });
 
-  test('feedback status 输出通道', () async {
-    final root = _project();
-    final r = await _run('feedback.dart', ['status', '--root', root.path, '--json']);
-    expect(r.exitCode, 0);
-    expect('${r.stdout}', contains('"channel":"disabled"'));
-    expect('${r.stdout}', contains('"enableHint"'));
-    expect('${r.stdout}', contains('"budget"'));
-    expect('${r.stdout}', contains('"used":0'));
-    expect('${r.stdout}', contains('"max":5'));
-    expect('${r.stdout}', contains('"remaining":5'));
-  });
-  test('feedback status 在仓库内输出 ledger', () async {
-    final root = _project();
-    File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools\n');
-    Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
-    Directory(p.join(root.path, 'docs', 'feedback')).createSync(recursive: true);
-    final r = await _run('feedback.dart', ['status', '--root', root.path, '--json']);
-    expect(r.exitCode, 0);
-    expect('${r.stdout}', contains('"channel":"ledger"'));
-  });
-
   test('init 自动检测 w_tools_device 并生成设备脚手架', () async {
     final root = _project();
     File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync(
@@ -1099,19 +1059,11 @@ banned:
     );
   });
 
-  test('--device-test 保留 deprecated shim', () async {
+  test('已移除的 --device-test 不再可用（exit 2）', () async {
     final root = _project();
     final r = await _run('init.dart', ['--root', root.path, '--device-test']);
-    expect(r.exitCode, 0);
-    expect('${r.stdout}', contains('--device-test 已移除'));
-    expect(
-      File(p.join(root.path, 'docs', 'agents', 'device-testing.md')).existsSync(),
-      isTrue,
-    );
-    expect(
-      File(p.join(root.path, 'integration_test', 'app_keepalive_smoke_test.dart')).existsSync(),
-      isFalse,
-    );
+    expect(r.exitCode, 2);
+    expect('${r.stderr}', contains('device-test'));
   });
 
   test('CLI-001 init 拒绝越界 toolkit_entry，且不写项目外文件', () async {
@@ -1261,13 +1213,6 @@ banned:
             )
             as Map<String, Object?>;
     expect(explain['schema'], 'w_tools_cli.explain/1');
-
-    final status =
-        jsonDecode(
-              '${(await _run('feedback.dart', ['status', '--root', root.path, '--json'])).stdout}',
-            )
-            as Map<String, Object?>;
-    expect(status['schema'], 'w_tools_cli.feedback/1');
   });
 
   test('CLI-016 --format json 的空格写法在错误时也输出 JSON', () async {
@@ -1283,14 +1228,7 @@ banned:
     expect('${r.stdout}', contains('--force-config'));
   });
 
-  test('CLI-007 feedback path 拒绝未知包', () async {
-    final root = _project();
-    final r = await _run('feedback.dart', ['path', '--root', root.path, '--package=foo']);
-    expect(r.exitCode, 2);
-    expect('${r.stderr}', contains('未知反馈包'));
-  });
-
-  test('CLI-007 feedback path 与 submit 对 app_getx 一致', () async {
+  test('CLI-007 feedback submit 支持 app_getx 包', () async {
     final root = _project();
     File(p.join(root.path, 'pubspec.yaml')).writeAsStringSync('name: w_tools\n');
     Directory(p.join(root.path, 'packages', 'cli')).createSync(recursive: true);
@@ -1302,15 +1240,6 @@ banned:
 | --- | --- | --- |
 | [api](api.md) | 0 | 2026-11-04 |
 ''');
-
-    final path = await _run('feedback.dart', [
-      'path',
-      '--root',
-      root.path,
-      '--package=app_getx',
-    ]);
-    expect(path.exitCode, 0);
-    expect('${path.stdout}', contains('app_getx.md'));
 
     final body = File(p.join(root.path, 'body.md'))
       ..writeAsStringSync('''

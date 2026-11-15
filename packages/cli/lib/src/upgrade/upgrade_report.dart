@@ -30,12 +30,23 @@ class UpgradeOutcome {
   final bool restored;
   final List<String> next;
 
+  /// `ok` 按 mode 定义，不能用「计划里有没有可写的包」当失败：
+  ///
+  /// - `check`：没有落后才 ok；
+  /// - `dry-run`：只预览，不写文件，不还原 → ok（findings 在 summary 里）；
+  /// - `write`：没还原且 `pub get` 成功（或没跑）才 ok。
+  bool _ok(UpgradePlan plan) => switch (mode) {
+    'check' => !plan.hasFindings,
+    'dry-run' => !restored,
+    _ => !restored && (pubExit == null || pubExit == 0),
+  };
+
   Map<String, Object?> toJson(UpgradePlan plan) {
     final packages = plan.packages;
     return <String, Object?>{
-      'schema': 'w_tools_cli.upgrade/1',
-      'schemaVersion': 1,
-      'ok': !plan.hasFindings && !restored,
+      'schema': 'w_tools_cli.upgrade/2',
+      'schemaVersion': 2,
+      'ok': _ok(plan),
       'hosted': plan.hosted,
       'mode': mode,
       'project': projectName,
@@ -45,7 +56,6 @@ class UpgradeOutcome {
         'outdated': plan.count(UpgradeStatus.outdated),
         'upToDate': plan.count(UpgradeStatus.upToDate),
         'majorBlocked': plan.count(UpgradeStatus.majorBlocked),
-        'sdkBlocked': plan.count(UpgradeStatus.sdkBlocked),
         'skipped': plan.count(UpgradeStatus.skipped),
         'lockBehind': packages.where((p) => p.lockBehind).length,
         'written': written.length,
@@ -161,7 +171,6 @@ class UpgradeOutcome {
           UpgradeStatus.majorBlocked =>
             '跨major ${p.name}: ${p.declared} -> ${p.latest?.version}'
                 '${p.reason == null ? '' : '（${p.reason}）'}',
-          UpgradeStatus.sdkBlocked => 'sdk ${p.name}: ${p.reason}',
           UpgradeStatus.skipped => '跳过 ${p.name}: ${p.reason}',
           UpgradeStatus.upToDate => '已最新 ${p.name}: ${p.locked ?? p.declared}',
         },
@@ -189,7 +198,6 @@ class UpgradeOutcome {
       UpgradeStatus.upToDate => '已最新',
       UpgradeStatus.outdated => '可升级',
       UpgradeStatus.majorBlocked => '跨 major',
-      UpgradeStatus.sdkBlocked => 'SDK 不兼容',
       UpgradeStatus.skipped => '跳过',
     };
   }

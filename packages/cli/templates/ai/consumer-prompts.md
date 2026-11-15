@@ -548,12 +548,6 @@
 ```text
 任务：把这次用 w_tools 被卡住的问题（或改进建议）记成一条反馈。
 
-先跑 `dart run w_tools_cli:w_tools feedback status --json`，看返回的 channel：
-- disabled → 停止：告诉我「项目没开启反馈通道」，并给出开启方法（在 `.w_tools_doctor.yaml` 的 `feedback:` 下写 `enabled: true`，
-  等价于 `feedback.enabled: true`），重跑 status 确认；不要提交，也不要加 --issue；
-- ledger / issue → 继续。
-
-然后：
 1. 查重：`dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>`
    命中相同问题就把文件行号或 issue 编号给我，不要重复提交；
 2. 按固定字段写正文（缺字段会被拒绝），先把草稿给我看：
@@ -567,7 +561,9 @@
    - 复现数据：最小 demo / 日志片段，先脱敏
    保存到 /tmp/w_tools_feedback.md；
 3. 提交：`dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" --body-file=/tmp/w_tools_feedback.md`
-   默认路由：本机有 w_tools 仓库就写它的 docs/feedback/；没有才建 Issue；都没有则 exit 4（什么都没写）。
+   按退出码判断：0 = 已写入台账 / 已建 Issue；4 = 项目没开启反馈通道（什么都没写），
+   停下来告诉我开启方法（在 `.w_tools_doctor.yaml` 的 `feedback:` 下写 `enabled: true`，即 `feedback.enabled: true`），
+   不要当成功，也不要加 --issue；2 = 参数 / 开关错误；3 = gh 不可用。
 
 不要：
 - 不要加 --issue（除非我明确说要公开提 issue）；

@@ -19,7 +19,7 @@ w_tools_cli doctor —— 扫描消费方项目是否符合 w_tools 的接入约
 
 选项：
   --root=<dir>        项目根目录（默认当前目录）
-  --format=<fmt>      输出格式：human | json | markdown（默认 human）
+  --format=<fmt>      输出格式：text | json | markdown（text 是 human 的新名字；默认 text）
   --json              等价于 --format=json（兼容旧用法）
   --strict            warning 也视为失败（默认关）
   --only=<R1,R2>      只跑指定规则
@@ -50,7 +50,11 @@ CommandResult run(List<String> argv) {
     ..addFlag('strict', negatable: false)
     ..addFlag('include-tests', negatable: false)
     ..addOption('only')
-    ..addOption('format', defaultsTo: 'human', allowed: <String>['human', 'json', 'markdown'])
+    ..addOption(
+      'format',
+      defaultsTo: 'text',
+      allowed: <String>['text', 'human', 'json', 'markdown'],
+    )
     ..addFlag('print-config', negatable: false)
     ..addFlag('write-config', negatable: false)
     ..addFlag('force', negatable: false);
@@ -140,7 +144,6 @@ CommandResult run(List<String> argv) {
         failCli(args, e.message);
       }
       if (only != null) {
-        // --only=R6 时也要真的打开 R6，否则它的开关逻辑会把它跳过
         config = config.copyWith(enabledRules: only);
       }
 
@@ -160,18 +163,14 @@ CommandResult run(List<String> argv) {
       final format = outputFormat(args, fallback: 'human');
       switch (format) {
         case 'json':
-          reporter.printJson(results);
+          reporter.printJson(results, warnings: config.removalWarnings);
         case 'markdown':
-          reporter.printMarkdown(results);
+          reporter.printMarkdown(results, warnings: config.removalWarnings);
         default:
-          reporter.printHuman(results);
+          reporter.printHuman(results, warnings: config.removalWarnings);
       }
       throw CliExit(reporter.exitCode(results));
     },
   ).run(argv);
   return result;
-}
-
-void main(List<String> argv) {
-  exitCode = run(argv).exitCode;
 }

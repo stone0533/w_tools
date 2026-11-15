@@ -9,6 +9,9 @@ int get catalogVersion => catalogSchemaVersion;
 /// 全部组件（只读）
 List<CatalogEntry> get catalog => catalogEntries;
 
+/// `context.capabilities` 的摘要（只收消费入口包）；来源 catalog/capabilities.yaml。
+Map<String, String> get capabilitySummaries => catalogCapabilitySummaries;
+
 /// 精确查找（按任一别名，大小写不敏感）
 CatalogEntry? findComponent(String name) {
   final q = name.toLowerCase();

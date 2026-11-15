@@ -1,0 +1,4 @@
+# 运行时只用 lib/src/**/*.g.dart；这些是生成器源文件 / 维护者工具，不随包发布。
+catalog/
+templates/
+tool/

@@ -1,6 +1,19 @@
+// ignore_for_file: avoid_print
+
+// 维护者工具：校验 docs/feedback/*.md 的字段 / 状态 / 版本号 / 索引。
+//
+// 用法（在 packages/cli 下，脚本会传 --root）：
+//   dart run tool/feedback_lint.dart --root ../.. --stale-days=30
+//   dart run tool/feedback_lint.dart --root ../.. --json
+//
+// 规则只在 CLI 的 `submit` 与这个工具里各实现一次：submit 校验字段，
+// 台账 / 索引 / stale 由这里校验；scripts/check_feedback.sh 是它的包装。
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
+import 'package:w_tools_cli/src/feedback/feedback_fields.dart';
 
 /// 一条 lint 问题。
 class FeedbackIssue {
@@ -55,40 +68,6 @@ class FeedbackLintResult {
     'issues': <Map<String, Object?>>[for (final i in issues) i.toJson()],
     'warnings': <Map<String, Object?>>[for (final i in warnings) i.toJson()],
   };
-}
-
-/// 待处理 / 提交反馈必须出现的字段（中英文均可）。
-const feedbackRequiredFields = <List<String>>[
-  ['包/版本', 'package/version'],
-  ['环境', 'environment'],
-  ['命令', 'command'],
-  ['期望', 'expected'],
-  ['实际', 'actual'],
-  ['影响', 'impact'],
-  ['建议', 'suggestion'],
-  ['复现数据', 'repro'],
-];
-
-/// 按行首 `- 字段：` 提取字段名。
-final feedbackFieldLine = RegExp(r'^\s*-\s*(.+?)\s*[：:]');
-
-/// 从一段 Markdown 中提取已填写的字段名。
-Set<String> feedbackFieldsIn(String text) {
-  final present = <String>{};
-  for (final line in text.split('\n')) {
-    final m = feedbackFieldLine.firstMatch(line);
-    if (m != null) present.add(m.group(1)!.trim());
-  }
-  return present;
-}
-
-/// 返回缺失的必填字段（展示第一个别名）。
-List<String> missingFeedbackFields(String text) {
-  final present = feedbackFieldsIn(text);
-  return [
-    for (final aliases in feedbackRequiredFields)
-      if (!aliases.any((a) => present.any((key) => key.startsWith(a)))) aliases.first,
-  ];
 }
 
 /// 校验反馈文件的格式：字段齐全、状态合法、已闭环带版本号、待处理不 stale。
@@ -414,4 +393,61 @@ class FeedbackLinter {
     }
     return issues;
   }
+}
+
+void main(List<String> argv) {
+  final parser = ArgParser()
+    ..addOption('root', defaultsTo: Directory.current.path)
+    ..addOption('stale-days', defaultsTo: '30')
+    ..addFlag('json', negatable: false)
+    ..addFlag('help', abbr: 'h', negatable: false);
+
+  ArgResults args;
+  try {
+    args = parser.parse(argv);
+  } on FormatException catch (e) {
+    stderr.writeln('参数错误：${e.message}');
+    exitCode = 2;
+    return;
+  }
+  if (args['help'] as bool) {
+    print('w_tools feedback lint —— 校验 docs/feedback/*.md 与索引');
+    print('用法：dart run tool/feedback_lint.dart --root <repo> [--stale-days=30] [--json]');
+    return;
+  }
+  final staleRaw = args['stale-days'] as String;
+  final staleDays = int.tryParse(staleRaw);
+  if (staleDays == null) {
+    stderr.writeln('--stale-days 需要整数：$staleRaw');
+    exitCode = 2;
+    return;
+  }
+
+  final root = Directory(args['root'] as String);
+  final feedbackDir = Directory(p.join(root.path, 'docs', 'feedback'));
+  final linter = FeedbackLinter(staleDays: staleDays);
+  final result = feedbackDir.existsSync()
+      ? linter.lintLibrary(feedbackDir)
+      : FeedbackLintResult(files: const <String>[], pending: 0, closed: 0);
+
+  if (args['json'] as bool) {
+    print(jsonEncode(result.toJson()));
+  } else if (result.files.isEmpty) {
+    print('跳过：${feedbackDir.path} 没有可校验的反馈文件。');
+  } else {
+    for (final issue in result.issues) {
+      stderr.writeln('✗ $issue');
+    }
+    for (final warning in result.warnings) {
+      stderr.writeln('! $warning');
+    }
+    for (final file in result.files) {
+      stdout.writeln('· $file');
+    }
+    print(
+      '${result.ok ? '✓' : '✗'} 待处理 ${result.pending} 条，已闭环 ${result.closed} 条，'
+      '问题 ${result.issues.length} 个，警告 ${result.warnings.length} 个',
+    );
+  }
+  if (!result.ok) exitCode = 1;
 }

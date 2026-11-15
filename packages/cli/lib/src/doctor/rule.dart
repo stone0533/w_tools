@@ -1,4 +1,4 @@
-/// 默认启用的规则（R6 默认关；R7/R8 默认开）。
+/// 默认启用的规则。
 const doctorDefaultEnabledRules = <String>{
   'R1',
   'R2',

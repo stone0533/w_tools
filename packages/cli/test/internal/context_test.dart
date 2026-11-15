@@ -38,9 +38,8 @@ void main() {
     addTearDown(() => root.deleteSync(recursive: true));
     final json = ProjectSnapshot.load(root).toJson();
     final commands = json['commands'] as Map<String, String>;
-    expect(commands['feedbackStatus'], contains('feedback status'));
+    expect(commands['feedbackSearch'], contains('feedback search'));
     expect(commands['feedbackSubmit'], contains('feedback submit'));
-    expect(commands['feedbackLint'], contains('feedback lint'));
     expect(commands['list'], contains('list'));
     expect(commands['explain'], contains('explain'));
     expect(commands['upgradeCheck'], contains('upgrade --check'));
@@ -78,9 +77,10 @@ packages:
     final snapshot = ProjectSnapshot.load(root);
     final caps = snapshot.toJson()['capabilities'] as List;
     expect(caps, isNotEmpty);
+    final async = caps.singleWhere((e) => (e as Map)['package'] == 'w_tools_async');
     expect(
-      caps.any((e) => (e as Map)['package'] == 'w_tools_async'),
-      isTrue,
+      (async as Map)['summary'],
+      'WAsyncController + WAsyncView；纯执行 WAsync.tryRun/run',
     );
     expect(snapshot.toPrompt(), contains('WAsyncController'));
   });

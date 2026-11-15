@@ -79,47 +79,16 @@ class R8GeneratedStale {
       final expected = expectedArtifacts?[rel];
       if (expected != null) {
         if (_comparable(content) == _comparable(expected)) continue;
-        issues.add(
-          DoctorIssue(
-            rule: id,
-            level: DoctorLevel.warn,
-            file: rel,
-            message: match == null
-                ? '生成物缺少 w_tools_cli 版本标记'
-                : match.group(1) == installed
-                ? '内容与 w_tools_cli $installed 的模板不同（可能被手改过）'
-                : '由 w_tools_cli ${match.group(1)} 生成，内容与当前安装的 $installed 模板不同',
-            hint: '运行 dart run w_tools_cli:w_tools init --force 刷新生成物（先看 --check-drift 的差异）',
-            fix: DoctorFix.run('dart run w_tools_cli:w_tools init --force'),
-          ),
-        );
+        issues.add(_contentIssue(rel, match, installed));
         continue;
       }
       if (match == null) {
-        issues.add(
-          DoctorIssue(
-            rule: id,
-            level: DoctorLevel.warn,
-            file: rel,
-            message: '生成物缺少 w_tools_cli 版本标记',
-            hint: '运行 dart run w_tools_cli:w_tools init --force 重新生成',
-            fix: DoctorFix.run('dart run w_tools_cli:w_tools init --force'),
-          ),
-        );
+        issues.add(_missingVersionIssue(rel));
         continue;
       }
       final generatedBy = match.group(1)!;
       if (generatedBy != installed) {
-        issues.add(
-          DoctorIssue(
-            rule: id,
-            level: DoctorLevel.warn,
-            file: rel,
-            message: '由 w_tools_cli $generatedBy 生成，当前安装的是 $installed',
-            hint: '运行 dart run w_tools_cli:w_tools init --force 刷新生成物（先看 --check-drift 的差异）',
-            fix: DoctorFix.run('dart run w_tools_cli:w_tools init --force'),
-          ),
-        );
+        issues.add(_versionIssue(rel, generatedBy, installed));
       }
     }
 
@@ -139,6 +108,43 @@ class R8GeneratedStale {
       issues: issues,
     );
   }
+
+  /// 有 manifest 时按内容比：版本号本身不算漂移，模板 / 配置变了才算。
+  static DoctorIssue _contentIssue(String rel, RegExpMatch? match, String installed) => DoctorIssue(
+    rule: id,
+    level: DoctorLevel.warn,
+    file: rel,
+    message: match == null
+        ? '生成物缺少 w_tools_cli 版本标记'
+        : match.group(1) == installed
+        ? '内容与 w_tools_cli $installed 的模板不同（可能被手改过）'
+        : '由 w_tools_cli ${match.group(1)} 生成，内容与当前安装的 $installed 模板不同',
+    hint: _forceHint,
+    fix: _forceFix,
+  );
+
+  /// 没有 manifest 的老项目：只比版本标记。
+  static DoctorIssue _versionIssue(String rel, String generatedBy, String installed) => DoctorIssue(
+    rule: id,
+    level: DoctorLevel.warn,
+    file: rel,
+    message: '由 w_tools_cli $generatedBy 生成，当前安装的是 $installed',
+    hint: _forceHint,
+    fix: _forceFix,
+  );
+
+  static DoctorIssue _missingVersionIssue(String rel) => DoctorIssue(
+    rule: id,
+    level: DoctorLevel.warn,
+    file: rel,
+    message: '生成物缺少 w_tools_cli 版本标记',
+    hint: _forceHint,
+    fix: _forceFix,
+  );
+
+  static const _forceHint =
+      '运行 dart run w_tools_cli:w_tools init --force 刷新生成物（先看 --check-drift 的差异）';
+  static const _forceFix = DoctorFix.run('dart run w_tools_cli:w_tools init --force');
 
   /// 只比「生成物本体」：标记块内是生成内容，块外是项目自己的东西。
   /// 没有标记块（AI_PROMPTS）时比整份文件。

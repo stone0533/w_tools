@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import 'feedback_lint.dart';
+import 'feedback_fields.dart';
 
 /// 提交反馈时的参数/校验错误。
 class FeedbackSubmitException implements Exception {
@@ -35,16 +35,8 @@ const feedbackBodyTemplate = '''- 包/版本：
 - 复现数据：
 ''';
 
-/// 提交反馈的正文骨架（英文）。
-const feedbackBodyTemplateEn = '''- package/version:
-- environment:
-- command / input:
-- expected:
-- actual:
-- impact:
-- suggestion:
-- repro data:
-''';
+/// 反馈默认进哪个 GitHub 仓库；`--repo` 会覆盖它。
+const defaultFeedbackRepo = 'stone0533/w_tools';
 
 /// `w_tools_ui` / `ui` 都归一成台账包名 `ui`。
 String normalizeFeedbackPackage(String package) {
@@ -58,6 +50,7 @@ class FeedbackDraft {
     required String package,
     required this.title,
     required String body,
+    this.repo = defaultFeedbackRepo,
   }) : package = normalizeFeedbackPackage(package),
        body = _normalizeBody(
          package: normalizeFeedbackPackage(package),
@@ -68,6 +61,9 @@ class FeedbackDraft {
   final String package;
   final String title;
   final String body;
+
+  /// 目标仓库（`owner/repo`）；由 `feedback submit --repo` 覆盖。
+  final String repo;
 
   static String _normalizeBody({
     required String package,
@@ -109,7 +105,7 @@ class FeedbackDraft {
   String get issueTitle => '[feedback][$package] $title';
 
   /// 预填 GitHub 新建 issue 的链接（不自动提交）。
-  Uri get issueUrl => Uri.https('github.com', '/stone0533/w_tools/issues/new', {
+  Uri get issueUrl => Uri.https('github.com', '/$repo/issues/new', {
     'title': issueTitle,
     'body': issueBody,
     'labels': 'needs-triage',
@@ -117,7 +113,7 @@ class FeedbackDraft {
 
   /// 给 AI / 人复制的 gh 命令（body 走临时文件）。
   String get ghCommand =>
-      'gh issue create --repo stone0533/w_tools --title ${_shell(issueTitle)} --body-file <反馈正文.md>';
+      'gh issue create --repo $repo --title ${_shell(issueTitle)} --body-file <反馈正文.md>';
 
   Map<String, Object?> toJson() => <String, Object?>{
     'schema': 'w_tools_cli.feedback_submit/1',
@@ -134,10 +130,8 @@ class FeedbackDraft {
 }
 
 /// 通过已登录的 `gh` 创建 GitHub issue；失败时抛 [FeedbackSubmitException]。
-Uri createGitHubIssue(
-  FeedbackDraft draft, {
-  String repo = 'stone0533/w_tools',
-}) {
+Uri createGitHubIssue(FeedbackDraft draft, {String? repo}) {
+  final target = repo ?? draft.repo;
   final ProcessResult gh;
   try {
     gh = Process.runSync('gh', const <String>['--version']);
@@ -171,7 +165,7 @@ Uri createGitHubIssue(
       'issue',
       'create',
       '--repo',
-      repo,
+      target,
       '--title',
       draft.issueTitle,
       '--body-file',
@@ -220,9 +214,6 @@ List<FeedbackMatch> searchLocal(
   String? ledgerDir,
 }) {
   final files = <File>[];
-  final inbox = File(p.join(projectRoot.path, 'docs', 'agents', 'feedback.md'));
-  if (inbox.existsSync()) files.add(inbox);
-
   final ledger = Directory(ledgerDir ?? p.join(projectRoot.path, 'docs', 'feedback'));
   if (ledger.existsSync()) {
     if (package != null) {

@@ -11,8 +11,7 @@ import 'package:w_tools_cli/src/upgrade/upgrade_report.dart';
 /// upgrade 的三段纯逻辑（计划 / 编辑 / 报告）+ 一条本地 HTTP 的取数测试。
 /// 命令层用假 [LatestFetcher] 注入，测试不联网、不跑 pub。
 
-LatestRelease _rel(String version, {String? sdk = '^3.10.0'}) =>
-    LatestRelease(version: version, sdkConstraint: sdk);
+LatestRelease _rel(String version) => LatestRelease(version: version);
 
 class _FakeFetcher implements LatestFetcher {
   _FakeFetcher(this.hosted, this.releases);
@@ -121,16 +120,6 @@ void main() {
       expect(const SemVer(0, 0, 3).caretUpperBound(), const SemVer(0, 0, 4));
     });
 
-    test('sdk 约束只认能解析的写法，解析不了返回 null（不拦）', () {
-      expect(satisfiesConstraint('^3.10.0', const SemVer(3, 12, 2)), isTrue);
-      expect(satisfiesConstraint('^3.10.0', const SemVer(3, 9, 9)), isFalse);
-      expect(satisfiesConstraint('>=3.9.0 <4.0.0', const SemVer(3, 12, 2)), isTrue);
-      expect(satisfiesConstraint('>=3.9.0 <4.0.0', const SemVer(4, 0, 0)), isFalse);
-      expect(satisfiesConstraint('>=3.9.0 <4.0.0', const SemVer(3, 8, 0)), isFalse);
-      expect(satisfiesConstraint('any', const SemVer(3, 12, 2)), isNull);
-      expect(satisfiesConstraint(null, const SemVer(3, 12, 2)), isNull);
-    });
-
     test('只接受 caret 约束；精确钉死 / any 交给人工', () {
       expect(parseCaretConstraint('^8.0.1'), const SemVer(8, 0, 1));
       expect(parseCaretConstraint('4.9.0'), isNull);
@@ -145,7 +134,6 @@ void main() {
       bool allowMajor = false,
       Set<String> only = const <String>{},
       Set<String> overrides = const <String>{},
-      String dart = '3.12.2',
       Map<String, String>? locked,
     }) {
       return buildPlan(
@@ -175,7 +163,6 @@ void main() {
         overrides: overrides,
         allowMajor: allowMajor,
         only: only,
-        dartVersion: dart,
       );
     }
 
@@ -196,7 +183,6 @@ void main() {
       final blocked = plan(latest: {'w_tools_ui': _rel('9.0.0')});
       expect(byName(blocked, 'w_tools_ui').status, UpgradeStatus.majorBlocked);
       expect(byName(blocked, 'w_tools_ui').target, isNull);
-      expect(blocked.hasRisks, isTrue);
 
       final allowed = plan(latest: {'w_tools_ui': _rel('9.0.0')}, allowMajor: true);
       expect(byName(allowed, 'w_tools_ui').status, UpgradeStatus.outdated);
@@ -218,17 +204,6 @@ void main() {
       expect(async.status, UpgradeStatus.upToDate);
       expect(async.lockBehind, isTrue);
       expect(p.hasFindings, isTrue);
-    });
-
-    test('SDK 不兼容时不写，并给出原因', () {
-      final p = plan(
-        dart: '3.9.0',
-        latest: {'w_tools_ui': _rel('8.1.0', sdk: '^3.10.0')},
-      );
-      final ui = byName(p, 'w_tools_ui');
-      expect(ui.status, UpgradeStatus.sdkBlocked);
-      expect(ui.reason, contains('^3.10.0'));
-      expect(ui.target, isNull);
     });
 
     test('override / path / 精确钉死 / 非 caret 都是 skipped（带原因）', () {
@@ -325,19 +300,14 @@ dependency_overrides:
       return server;
     }
 
-    test('解析 latest.version 与 environment', () async {
+    test('解析 latest.version', () async {
       final server = await serve(
-        (name) => name == 'w_tools_ui'
-            ? '{"latest":{"version":"8.1.0","published":"2026-11-10T00:00:00Z",'
-                  '"pubspec":{"environment":{"sdk":"^3.10.0","flutter":">=3.38.0"}}}}'
-            : null,
+        (name) => name == 'w_tools_ui' ? '{"latest":{"version":"8.1.0"}}' : null,
       );
       final fetcher = HttpLatestFetcher(hosted: 'http://127.0.0.1:${server.port}');
       addTearDown(fetcher.close);
       final result = await fetcher.fetch(<String>['w_tools_ui', 'w_tools_nope']);
       expect(result['w_tools_ui']?.version, '8.1.0');
-      expect(result['w_tools_ui']?.sdkConstraint, '^3.10.0');
-      expect(result['w_tools_ui']?.flutterConstraint, '>=3.38.0');
       expect(result['w_tools_nope'], isNull);
     });
 
@@ -379,7 +349,7 @@ dependency_overrides:
         fetcher: _FakeFetcher('https://example.test', _latest()),
       );
       expect(code, 1);
-      expect(out, contains('"schema": "w_tools_cli.upgrade/1"'));
+      expect(out, contains('"schema": "w_tools_cli.upgrade/2"'));
       expect(out, contains('"status": "outdated"'));
       expect(out, contains('"ok": false'));
       expect(File('${root.path}/pubspec.yaml').readAsStringSync(), _pubspec);
@@ -558,7 +528,6 @@ dependency_overrides:
       overrides: const <String>{},
       allowMajor: false,
       only: const <String>{},
-      dartVersion: '3.12.2',
     );
 
     test('text 列出可升级 / 跨 major / next', () {
@@ -578,10 +547,45 @@ dependency_overrides:
     test('json 带 schema / summary / pub 段', () {
       final outcome = UpgradeOutcome(projectName: 'demo_app', mode: 'write');
       final json = outcome.toJson(samplePlan());
-      expect(json['schema'], 'w_tools_cli.upgrade/1');
+      expect(json['schema'], 'w_tools_cli.upgrade/2');
       expect((json['summary'] as Map<String, Object?>)['outdated'], 2);
       expect((json['packages'] as List).length, 3);
       expect((json['pub'] as Map<String, Object?>)['ran'], isFalse);
+    });
+
+    test('json 的 ok 按 mode 定义（写入成功不能报 false）', () {
+      final plan = samplePlan();
+
+      final check = UpgradeOutcome(projectName: 'demo_app', mode: 'check');
+      expect(check.toJson(plan)['ok'], isFalse, reason: '有落后');
+
+      final dryRun = UpgradeOutcome(projectName: 'demo_app', mode: 'dry-run');
+      expect(dryRun.toJson(plan)['ok'], isTrue, reason: '预览不算失败');
+
+      final written = UpgradeOutcome(
+        projectName: 'demo_app',
+        mode: 'write',
+        written: const <String, String>{'w_tools_core': '^3.1.2'},
+        pubCommand: 'dart pub get',
+        pubExit: 0,
+      );
+      expect(written.toJson(plan)['ok'], isTrue);
+
+      final noGet = UpgradeOutcome(
+        projectName: 'demo_app',
+        mode: 'write',
+        written: const <String, String>{'w_tools_core': '^3.1.2'},
+      );
+      expect(noGet.toJson(plan)['ok'], isTrue, reason: '--no-get 没跑 pub');
+
+      final failed = UpgradeOutcome(
+        projectName: 'demo_app',
+        mode: 'write',
+        pubCommand: 'dart pub get',
+        pubExit: 1,
+        restored: true,
+      );
+      expect(failed.toJson(plan)['ok'], isFalse);
     });
 
     test('prompt 每行一个包，适合贴给 AI', () {

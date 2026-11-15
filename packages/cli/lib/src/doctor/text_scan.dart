@@ -34,7 +34,7 @@ class SourceLine {
   /// 已去注释的可扫描文本（字符串保留，供 R9 / fromHex 匹配）。
   String get code => text;
 
-  /// 去注释且清空字符串内容；R3 的 `Color(...)` / R6 的单位用它，避免字符串误报。
+  /// 去注释且清空字符串内容；R3 的 `Color(...)` 用它，避免字符串误报。
   String get codeOnly => _codeOnly;
 }
 
@@ -107,16 +107,9 @@ String stripComments(String source) {
   return out.toString();
 }
 
-/// 去掉字符串外的行尾 `//` 注释（保留给旧调用 / 单行场景）。
-String stripLineComment(String source) {
-  final stripped = stripComments(source);
-  final newline = stripped.indexOf('\n');
-  return newline < 0 ? stripped.trimRight() : stripped.substring(0, newline).trimRight();
-}
-
 /// 把字符串字面量的内容替换成空格，保留引号、换行与行号。
 ///
-/// 用于 R3 的 `Color(...)` / R6 单位这类“代码里才有意义”的匹配；
+/// 用于 R3 的 `Color(...)` 这类“代码里才有意义”的匹配；
 /// 需要匹配字符串内容（如 `fromHex('#...')` 或 R9）时仍用 [stripComments] 的结果。
 String stripStrings(String source) {
   final out = StringBuffer();

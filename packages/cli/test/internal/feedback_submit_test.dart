@@ -32,6 +32,18 @@ void main() {
     expect(draft.issueUrl.queryParameters['body'], contains('w_tools_ui 5.0.0'));
   });
 
+  test('--repo 同时影响 issueUrl 与 ghCommand', () {
+    final draft = FeedbackDraft(
+      package: 'ui',
+      title: 'WImage 空白',
+      body: _body,
+      repo: 'fork/w_tools',
+    );
+    expect(draft.issueUrl.path, '/fork/w_tools/issues/new');
+    expect(draft.ghCommand, contains('--repo fork/w_tools'));
+    expect(draft.toJson()['url'], contains('/fork/w_tools/issues/new'));
+  });
+
   test('Issue 正文去掉台账元数据，台账正文仍保留', () {
     final draft = FeedbackDraft(package: 'ui', title: 'WImage 空白', body: _body);
 
@@ -62,17 +74,17 @@ void main() {
     expect(hits.single.file, p.join(ledger.path, 'ui.md'));
   });
 
-  test('searchLocal 搜台账与收件箱', () {
+  test('searchLocal 搜台账并按包过滤', () {
     final root = Directory.systemTemp.createTempSync('wt_fb_search_');
     addTearDown(() => root.deleteSync(recursive: true));
-    Directory(p.join(root.path, 'docs', 'feedback')).createSync(recursive: true);
-    File(p.join(root.path, 'docs', 'feedback', 'ui.md')).writeAsStringSync('### WImage 空白\n');
-    Directory(p.join(root.path, 'docs', 'agents')).createSync(recursive: true);
-    File(p.join(root.path, 'docs', 'agents', 'feedback.md')).writeAsStringSync('### WImage 第二次\n');
+    final dir = Directory(p.join(root.path, 'docs', 'feedback'))..createSync(recursive: true);
+    File(p.join(dir.path, 'ui.md')).writeAsStringSync('### WImage 空白\n');
+    File(p.join(dir.path, 'api.md')).writeAsStringSync('### WImage 404\n');
+
     final hits = searchLocal(root, query: 'WImage');
     expect(hits.length, 2);
+
     final filtered = searchLocal(root, package: 'ui', query: 'WImage');
-    expect(filtered.any((m) => m.file.endsWith('ui.md')), isTrue);
-    expect(filtered.any((m) => m.file.endsWith('feedback.md')), isTrue);
+    expect(filtered.single.file, endsWith('ui.md'));
   });
 }

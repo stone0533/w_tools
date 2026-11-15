@@ -15,12 +15,15 @@ void main() {
     expect(nested.colorMinCount, 2);
   });
 
-  test('R6 支持布尔与 enabled map 两种开关', () {
-    expect(DoctorConfig.parse('rules:\n  R6: true\n').enabledRules, contains('R6'));
-    expect(
-      DoctorConfig.parse('rules:\n  R6:\n    enabled: true\n').enabledRules,
-      contains('R6'),
+  test('已移除的 R6 / max_issues_per_day 进 removedKeys，并给迁移提示', () {
+    final config = DoctorConfig.parse(
+      'rules:\n  R6: true\nfeedback:\n  max_issues_per_day: 5\n',
     );
+    expect(config.removedKeys, containsAll(<String>['rules.R6', 'feedback.max_issues_per_day']));
+    expect(config.enabledRules, isNot(contains('R6')));
+    final warnings = config.removalWarnings.join('\n');
+    expect(warnings, contains('R9'));
+    expect(warnings, contains('GitHub'));
   });
 
   test('rules 里显式 false 可关掉默认规则', () {
@@ -38,27 +41,6 @@ void main() {
     expect(
       DoctorConfig.parse('feedback:\n  enabled: false\n  issue: true\n').feedbackEnabled,
       isFalse,
-    );
-  });
-
-  test('feedback.max_issues_per_day 默认 5，非法值忽略', () {
-    expect(DoctorConfig().feedbackMaxIssuesPerDay, 5);
-    expect(
-      DoctorConfig.parse('feedback:\n  max_issues_per_day: 3\n').feedbackMaxIssuesPerDay,
-      3,
-    );
-    expect(
-      DoctorConfig.parse('feedback:\n  max_issues_per_day: 0\n').feedbackMaxIssuesPerDay,
-      0,
-      reason: '0 = 不限',
-    );
-    expect(
-      DoctorConfig.parse('feedback:\n  max_issues_per_day: -1\n').feedbackMaxIssuesPerDay,
-      5,
-    );
-    expect(
-      DoctorConfig.parse('feedback:\n  max_issues_per_day: "3"\n').feedbackMaxIssuesPerDay,
-      5,
     );
   });
 

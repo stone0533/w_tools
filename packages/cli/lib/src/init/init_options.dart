@@ -111,13 +111,6 @@ class InitOptions {
         features = features.withFeature(spec.feature, args[spec.flag] as bool);
       }
     }
-    if (args['with-map'] as bool) {
-      if (args.wasParsed('map') && args['map'] == false) {
-        throw const InitOptionsException('--with-map 与 --no-map 不能同时使用');
-      }
-      features = features.withFeature(InitFeature.map, true);
-    }
-
     final pubspec = ProjectPubspec.load(root);
     final figma = args.wasParsed('figma')
         ? args['figma'] as bool
@@ -127,9 +120,7 @@ class InitOptions {
         : args.wasParsed('ai-prompts')
         ? args['ai-prompts'] as bool
         : (manifest?.aiPrompts ?? true);
-    final device = (args['device-test'] as bool)
-        ? true
-        : args.wasParsed('device')
+    final device = args.wasParsed('device')
         ? args['device'] as bool
         : (manifest?.device ?? pubspec.hasDependency('w_tools_device'));
     return InitOptions(
@@ -144,7 +135,7 @@ class InitOptions {
       checkDrift: checkDrift,
       force: args['force'] as bool,
       forceConfig: args['force-config'] as bool,
-      forceStarters: (args['force-starters'] as bool) || (args['force-ui'] as bool),
+      forceStarters: args['force-starters'] as bool,
       figmaInstall: figmaInstallLine(pubspec),
       manifest: manifest,
     );

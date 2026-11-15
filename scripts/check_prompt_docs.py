@@ -18,7 +18,7 @@
 5. （仅提示词手册）正文占位符必须出现在填空表里（表下说明里的 <runner> 等除外）；
 6. （仅提示词手册）§1 场景选择里引用的 A~Z / X-n 必须有对应标题；
 7. 其余当前文档：脚本存在、flag 被脚本认识；
-8. `dart run w_tools_cli:<sub>` 的 flag 必须被 packages/cli/bin/<sub>.dart 认识，
+8. `dart run w_tools_cli:<sub>` 的 flag 必须被 dispatcher / lib/src 下的实现认识，
    未知子命令报错；以 `\\` 结尾的续行会先拼成一条逻辑行再校验；
 9. （仅提示词手册）代码块里的 `docs/**.md` / `packages/**.md` 路径必须存在
    （模板路径 `<>` 不匹配；其它文档可能写「输出到 docs/x.md」这类未来路径，不做此检查）；
@@ -214,11 +214,24 @@ def dart_file_errors(text: str, name: str) -> list[str]:
     return errors
 
 
+def _dispatcher_has(subcommand: str) -> bool:
+    """dispatcher 的 `case '<sub>':` 才是命令存在的唯一依据。"""
+    dispatcher = CLI_BIN / 'w_tools.dart'
+    if not dispatcher.is_file():
+        return False
+    return re.search(rf"case '{re.escape(subcommand)}':", dispatcher.read_text()) is not None
+
+
 def _cli_flags(subcommand: str) -> set[str] | None:
-    # parser 可能在 bin/<sub>.dart，也可能下沉到 lib/src/<sub>/*.dart。
-    # 全部扫，新增命令 / 下沉 parser 时不用再在脚本里维护路径特例。
-    subdir = CLI_BIN.parent / 'lib' / 'src' / subcommand
+    if not _dispatcher_has(subcommand):
+        return None
+    # parser 可能在 bin/<sub>.dart，也可能下沉到 lib/src/<sub>/*.dart；
+    # 命令文件可能是 <sub>_command.dart，也可能在别的子目录（list → catalog/list_command.dart）。
+    lib_src = CLI_BIN.parent / 'lib' / 'src'
+    subdir = lib_src / subcommand
     paths = [CLI_BIN / f'{subcommand}.dart', *sorted(subdir.glob('*.dart'))]
+    if not any(path.is_file() for path in paths):
+        paths += sorted(lib_src.rglob(f'{subcommand}_command.dart'))
     present = [path for path in paths if path.is_file()]
     if not present:
         return None
@@ -250,13 +263,20 @@ def cli_flag_errors(text: str, name: str) -> list[str]:
         for match in CLI_CALL.finditer(line):
             subcommand = match.group(1) or match.group(2)
             tail = match.group(3)
+            if match.group(2) is not None:
+                # 兼容入口 `w_tools_cli:<sub>` 已在 2.0 删除；只允许 dispatcher 形式。
+                errors.append(
+                    f'{name}:{lineno}: 兼容入口 w_tools_cli:{subcommand} 已删除，'
+                    f'改用 w_tools_cli:w_tools {subcommand}'
+                )
+                continue
             if subcommand not in cache:
                 cache[subcommand] = _cli_flags(subcommand)
             flags = cache[subcommand]
             if flags is None:
                 errors.append(
                     f'{name}:{lineno}: 未知的 w_tools 子命令 {subcommand}'
-                    f'（没有 packages/cli/bin/{subcommand}.dart）'
+                    f'（没有 bin/{subcommand}.dart 或 lib/src 下的 {subcommand} 实现）'
                 )
                 continue
             for flag in re.findall(r'--([A-Za-z][A-Za-z0-9-]*)', tail):

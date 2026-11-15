@@ -119,19 +119,8 @@ class ProjectSnapshot {
   /// cli / figma / device / e2e 是工具包，都不单列。
   List<Map<String, String>> capabilities() {
     final installed = <String>{...packages.keys, ...dependencies};
-    const summaries = <String, String>{
-      'w_tools_core': 'WStorage / WToken / WValidator / WLogger',
-      'w_tools_async': 'WAsyncController + WAsyncView；纯执行 WAsync.tryRun/run',
-      'w_tools_ui': 'WText / WImage / WButton / WScaffold',
-      'w_tools_form': 'WForm + 直接字段（WFormTextField 等）',
-      'w_tools_api': 'WApiSettings + DioRegistry + WLogInterceptor',
-      'w_tools_toast': 'WToast.showXxx + WToastStyle',
-      'w_tools_app_getx': 'WApp + WAppPlugin + GetX 路由',
-      'w_tools_map_google': 'WMap + WMapZone',
-      'w_tools_qr': 'WQrView + WQrController（重扫 restart）',
-    };
     return [
-      for (final entry in summaries.entries)
+      for (final entry in capabilitySummaries.entries)
         if (installed.contains(entry.key))
           <String, String>{'package': entry.key, 'summary': entry.value},
     ];
@@ -203,8 +192,7 @@ class ProjectSnapshot {
     return b.toString();
   }
 
-  String toPrompt({int maxTokens = 0}) {
-    // 优先级：标题/项目/入口/检查/命令最高；已装包和目录最容易被截
+  String toPrompt() {
     final lines = <String>[
       '# w_tools 项目上下文（给 AI）',
       '项目: $projectName',
@@ -215,7 +203,7 @@ class ProjectSnapshot {
       repoCheckout ? '当前: 仓库检出，跳过消费方 doctor 规则' : '当前: $errorCount error / $warnCount warning',
       '命令:',
       for (final entry in commands().entries) '  ${entry.key}=${entry.value}',
-      '反馈: 先 feedback status（ledger / issue / disabled）；开启后本地 w_tools 台账优先，其次 Issue；disabled 时不要提交（exit 4）',
+      '反馈: 先 feedback search 查重；feedback submit 返回 4 = 未开启反馈通道（什么都没写，不要当成功）',
       '直接依赖: ${dependencies.isEmpty ? '（无）' : dependencies.join(', ')}',
       '规则: ${doctorRuleIds.map((id) => '$id=${doctorRuleLevels[id]}').join(' ')}',
       '暂存层: $stagingDir（$designSystemFiles 个文件，$missingStaged 个缺 STAGED）',
@@ -224,26 +212,7 @@ class ProjectSnapshot {
         '能力: ${capabilities().map((e) => '${e['package']}=${e['summary']}').join(' | ')}',
       '组件: ${catalog.length} 条，用 list/explain 查，不要凭记忆造组件名',
     ];
-    if (maxTokens <= 0) return lines.join('\n');
-    // 中文约 1 字/token，按 2 字符/token 留余量，而不是 4
-    final budget = maxTokens * 2;
-    final out = StringBuffer();
-    var truncated = false;
-    for (final line in lines) {
-      final remaining = budget - out.length;
-      if (remaining <= 1) {
-        truncated = true;
-        break;
-      }
-      if (line.length + 1 > remaining) {
-        out.writeln('${line.substring(0, remaining - 1)}…');
-        truncated = true;
-        break;
-      }
-      out.writeln(line);
-    }
-    if (truncated) out.writeln('…（已截断，完整内容用 --format=json）');
-    return out.toString();
+    return lines.join('\n');
   }
 
   String _installed() {

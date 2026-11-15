@@ -103,18 +103,6 @@ class HttpLatestFetcher implements LatestFetcher {
     if (latest is! Map<String, Object?>) return null;
     final version = latest['version'];
     if (version is! String) return null;
-    final pubspec = latest['pubspec'];
-    final environment = pubspec is Map<String, Object?> ? pubspec['environment'] : null;
-    String? read(String key) {
-      final value = environment is Map<String, Object?> ? environment[key] : null;
-      return value is String ? value : null;
-    }
-
-    return LatestRelease(
-      version: version,
-      sdkConstraint: read('sdk'),
-      flutterConstraint: read('flutter'),
-      published: latest['published'] is String ? latest['published'] as String : null,
-    );
+    return LatestRelease(version: version);
   }
 }

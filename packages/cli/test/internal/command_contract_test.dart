@@ -120,9 +120,9 @@ void main() {
         reason: 'ProjectSnapshot.commands() 没有任何 value 含 `w_tools $command`',
       );
       expect(
-        File(p.join(root.path, 'packages/cli/bin/$command.dart')).existsSync(),
+        dispatcher.contains("case '$command':"),
         isTrue,
-        reason: '缺少 packages/cli/bin/$command.dart',
+        reason: 'dispatcher 里缺少 $command 分支',
       );
     }
   });
@@ -147,8 +147,7 @@ void main() {
   });
 
   test('表格里没有 dispatcher 之外的命令', () {
-    // 退出码表里有 `feedback path` / `lint` 这类子命令，不能可靠反推顶层命令；
-    // 反向检查只覆盖两张「命令怎么选」表。
+    // 退出码表按顶层命令列，不反推子命令；反向检查只覆盖两张「命令怎么选」表。
     final tables = <String, Set<String>>{
       'packages/cli/README.md 命令表': readmeCommands,
       'docs/agents/cli.md 命令表': agentsCommands,

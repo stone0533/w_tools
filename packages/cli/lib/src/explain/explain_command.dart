@@ -174,10 +174,6 @@ CommandResult run(List<String> argv) {
   return result;
 }
 
-void main(List<String> argv) {
-  exitCode = run(argv).exitCode;
-}
-
 List<BannedRule> _matchingBanned(String query, Directory root) {
   final config = ProjectFiles.loadConfig(root);
   return config.banned.where((entry) => entry.validate() == null && entry.matches(query)).toList();

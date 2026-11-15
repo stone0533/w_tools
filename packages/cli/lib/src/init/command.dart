@@ -41,12 +41,10 @@ w_tools_cli init —— 把 w_tools 的接入约定装进当前项目
   --force-config 覆盖 .w_tools_doctor.yaml（先 .bak；--force 不会覆盖它）
   --reset        忽略 .w_tools/init.json，按本次参数与默认值重来
   --force-starters 覆盖 UI / device starter（先 .bak）
-  --force-ui     等同 --force-starters（兼容别名）
   --profile=<p>  minimal | ui | api | full（默认 full）
                  profile 决定基础能力；--<feature> / --no-<feature> 覆盖单项
                  minimal / api 不生成 lib/app/ui
 {{features}}
-  --with-map     兼容别名，等同 --map
   --figma / --no-figma  生成 Figma 取数与页面开发说明（默认关，不影响 toolkit）
   --device / --no-device  生成通用设备文档 / Gradle 镜像（docs/agents/device-testing.md /
                         tool/gradle-mirror.init.gradle.example；检测到 w_tools_device 时默认开）
@@ -122,17 +120,14 @@ CommandResult run(List<String> argv) {
     ..addFlag('force', negatable: false)
     ..addFlag('force-config', negatable: false)
     ..addFlag('force-starters', negatable: false)
-    ..addFlag('force-ui', negatable: false)
     ..addFlag('reset', negatable: false)
     ..addOption(
       'profile',
       defaultsTo: 'full',
       allowed: <String>['minimal', 'ui', 'api', 'full'],
     )
-    ..addFlag('with-map', negatable: false)
     ..addFlag('figma', negatable: true, defaultsTo: false)
     ..addFlag('device', negatable: true, defaultsTo: false)
-    ..addFlag('device-test', negatable: false, hide: true, defaultsTo: false)
     ..addFlag('ai-prompts', negatable: true, defaultsTo: true)
     ..addFlag('instructions', negatable: true, defaultsTo: true)
     ..addOption('targets')
@@ -187,12 +182,6 @@ CommandResult run(List<String> argv) {
         aiPrompts: options.aiPrompts,
         manifest: options.toManifest(generator: cliVersion),
       );
-      if (args.wasParsed('device-test')) {
-        report.warnings.add(
-          '--device-test 已移除；本次按 --device 生成设备工具，不再生成 UI keep-alive 示例。',
-        );
-      }
-
       if (outputFormat(args) == 'json') {
         print(
           const JsonEncoder.withIndent('  ').convert(<String, Object?>{
@@ -266,8 +255,4 @@ CommandResult run(List<String> argv) {
     },
   ).run(argv);
   return result;
-}
-
-void main(List<String> argv) {
-  exitCode = run(argv).exitCode;
 }

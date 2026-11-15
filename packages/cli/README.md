@@ -59,12 +59,12 @@ doctor → 0 error / 0 warning 才算通过
 命令入口：
 
 ```bash
-# 统一入口（推荐）
+# 统一入口（唯一入口）
 dart run w_tools_cli:w_tools <command>
-
-# 兼容入口（仍保留）
-dart run w_tools_cli:<command>
 ```
+
+2.0 起只有 dispatcher：1.x 的 `w_tools_cli:<command>` 入口已删除，脚本 / CI 请改成
+`dart run w_tools_cli:w_tools <command>`。
 
 ```bash
 dart run w_tools_cli:w_tools doctor --help
@@ -115,7 +115,6 @@ dart run w_tools_cli:w_tools init --no-toast
 dart run w_tools_cli:w_tools init --no-qr
 dart run w_tools_cli:w_tools init --map         # 会引入 google_maps_flutter
 dart run w_tools_cli:w_tools init --no-map      # 显式关闭（默认关）
-# --with-map 仍可用，等同 --map
 ```
 
 ### 设备验证
@@ -268,12 +267,11 @@ dart run w_tools_cli:w_tools doctor --strict            # warning 也失败
 | R3 | warn | 业务层硬编码语义色（`colors.palette` 为空时跳过） |
 | R4 | error | 设计系统 import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
-| R6 | warn | 禁用单位 `.h` / `.r`（项目专用，默认关，`rules.R6: true` 打开） |
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致 |
-| R8 | warn | 生成物由旧版 `w_tools_cli` 生成 |
+| R8 | warn | 生成物由旧版 `w_tools_cli` 生成（有 `.w_tools/init.json` 按内容比，否则按版本标记） |
 | R9 | 配置 | 项目禁用 API（`banned`；默认空） |
 
-> doctor 规则是文本级检查：注释会跳过；R3 的 `Color(...)` / R6 单位不会命中字符串字面量，
+> doctor 规则是文本级检查：注释会跳过；R3 的 `Color(...)` 不会命中字符串字面量，
 > 但 R9 与 `fromHex('#...')` 仍按字符串内容匹配。
 > 完整规则细节与豁免语义以仓库里的
 > [docs/conventions.md §7](https://github.com/stone0533/w_tools/blob/main/docs/conventions.md) 为准。
@@ -374,35 +372,25 @@ dart run w_tools_cli:w_tools feedback submit --package=ui --title="..." --body-f
 dart run w_tools_cli:w_tools feedback submit ... --ledger   # 强制写本地台账（需本机仓库检出）
 # 相同标题 + 正文默认拒绝；确认重复时加 --allow-duplicate
 dart run w_tools_cli:w_tools feedback submit ... --issue    # 强制建 Issue（需 feedback.enabled）
-
-dart run w_tools_cli:w_tools feedback path --package=figma   # 该写哪个文件
-dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
 ```
 
 | 子命令 | 作用 |
 |---|---|
 | `submit` | 默认本地台账 → Issue → 跳过（exit 4）；`--ledger` / `--issue` 显式覆盖 |
 | `search` | 本地台账查重（本机无台账会提示加 `--gh`）；`--gh` 同时搜 GitHub issues |
-| `status` | 查看通道（ledger / issue / disabled）+ gh 可用性 + 公开 Issue 日额度 |
-| `path` | 返回真实可写的台账路径；本机没有 w_tools 仓库时明确说未启用 |
-| `lint` | 字段齐全 / 状态合法 / 已闭环带版本号 / 已确认链 issue / 索引与文件一致 / 待处理 stale 警告 |
 
 - 本地台账存在时**不联网**；Issue 需 `.w_tools_doctor.yaml` 的 `feedback.enabled: true`（旧键 `feedback.issue` 兼容）
 - 仓库 clone 在别处（依赖解析不到）时：`feedback.ledger: ../w_tools`（相对项目根或绝对路径；无效时提示一次并忽略）
 - pub cache 里的 git 依赖不算本机库（不往缓存写台账）
-- 公开 Issue 每个项目每天最多 5 条（`feedback.max_issues_per_day`，0 = 不限；本地台账不占额度），
-  额度在 `.w_tools/feedback_budget.json`，耗尽 exit 2；`feedback status` 会显示
-  date / used / max / remaining 与预算文件路径
 - 从消费方写本机 w_tools 检出时，stderr 会提醒工作区变脏（JSON 带 `dirtiesRepo`）
 - 开关是硬门禁：未开启时 `--issue` 拒绝（exit 2）；本机有台账时 `--issue` 才是「明确要公开提 issue」
 - `feedback.enabled` 默认 `false`；`--issue` 需要已安装 `gh`（gh 会读取 `GH_TOKEN`/`GITHUB_TOKEN`，或 `gh auth login`）
-- `feedback status --json` 可查当前通道：`ledger` / `issue` / `disabled`（issue 附带 `gh.ready`；disabled 附带 `enableHint`），
-  以及 `budget`（date / used / max / remaining / file）
 - `--ledger --linked-issue=123` 会在条目里写「关联 issue：#123」
 - 反馈 Issue 模板：`.github/ISSUE_TEMPLATE/feedback.md`；Issue 正文不带台账的 `### [待处理]` / `状态变更` 元数据
-- `lint --stale-days=<n>`：待处理超过 n 天给警告（默认 30，0 关闭），不影响退出码
-- 本机没有台账时 `lint` 明确输出「跳过」而不是 `✓ 0 条`；`search` 会提示加 `--gh`
-- 规则与文件格式见仓库 `docs/feedback/README.md`；CI 的 `scripts/check_feedback.sh` 就是这条命令的包装
+- 本机没有台账时 `search` 会提示加 `--gh`
+- 规则与文件格式见仓库 `docs/feedback/README.md`；维护者校验台账用
+  `cd packages/cli && dart run tool/feedback_lint.dart --root ../..`，CI 的
+  `scripts/check_feedback.sh` 就是它的包装
 - `--package` 只接受小写字母/数字/下划线（防路径穿越）
 
 ---
@@ -413,7 +401,6 @@ dart run w_tools_cli:w_tools feedback lint --include-inbox   # 写完自检
 
 ```bash
 dart run w_tools_cli:w_tools context
-dart run w_tools_cli:w_tools context --format=prompt --max-tokens=1500
 dart run w_tools_cli:w_tools context --format=json
 ```
 
@@ -436,6 +423,8 @@ JSON 顶层包含：
 - 新增字段属于兼容变更，不 bump `schemaVersion`。
 - 消费方必须忽略未知字段。
 - 删除 / 重命名 / 改类型 / 改语义才 bump。
+- `commands` 是**提示映射**：key 会随命令收敛变化（例如 `feedbackSearch`），消费方按值执行并
+  忽略未知 / 缺失 key；增删 key 不 bump。
 - v1 结构见 [`schema/context.v1.json`](schema/context.v1.json)。
 
 ### list
@@ -501,6 +490,10 @@ dart run w_tools_cli:w_tools upgrade --major --only=w_tools_ui   # 跨 major 只
 默认只抬「同 caret 窗口」的包；跨 major（0.x 包跨 minor 也算）只报告，要显式加 `--major`。
 查最新走 `PUB_HOSTED_URL`（默认 `pub.dev`），输出里的「源」就是实际用的地址。
 
+`--json` 的 `ok` 按 mode 定义：`--check` = 没有落后；`--dry-run` = 没有失败；
+写入 = 没还原且 `pub get` 成功（或用了 `--no-get`）。JSON 契约是
+`w_tools_cli.upgrade/2`（删掉了 `sdkBlocked` / `sdk` / `flutter`）。
+
 `upgrade` 之后 CLI 模板也可能变，用**新版本**刷新生成物：
 
 ```bash
@@ -536,8 +529,7 @@ doctor R8 按「标记块内容」比对生成物：CLI 升版本但模板没变
 | `doctor` | 无 error（`--strict` 时也无 warning） | 有失败 | 参数 / 项目错误；`--write-config` 冲突 |
 | `list` / `explain` | 找到 | 未找到 | 参数错误 |
 | `context` | 成功 | — | 参数 / 项目错误 |
-| `upgrade` | 成功（含“已是最新”） | `--check` 有落后（`--strict` 含跨 major / SDK 不兼容） | 参数 / 项目错误；workspace 项目；`pub get` 失败（已还原） |
-| `feedback path` / `lint` | 成功 / 无问题 / 没有可校验内容 | lint 有问题 | 参数 / 子命令错误 |
+| `upgrade` | 成功（含“已是最新”） | `--check` 有落后（可升未升 / lock 落后） | 参数 / 项目错误；workspace 项目；`pub get` 失败（已还原） |
 | `feedback submit` | 写入台账 / 创建 Issue | Issue 提交失败 | 参数 / 字段缺失 / 开关未开启 / 无 `--ledger` 目标 |
 | `feedback search` | 找到 | 未找到 | 参数错误 |
 
@@ -561,7 +553,9 @@ bash example/run_demo.sh
 
 ## 维护者
 
-模板唯一来源是 `templates/`，目录唯一来源是 `catalog/components.yaml`：
+> `catalog/`、`templates/`、`tool/` 是仓库内维护者源文件，不随 pub 包发布（运行时用 `*.g.dart`）。
+
+模板唯一来源是 `templates/`，目录唯一来源是 `catalog/components.yaml`，`context.capabilities` 唯一来源是 `catalog/capabilities.yaml`：
 
 ```bash
 cd packages/cli
@@ -584,7 +578,7 @@ AI 教学契约由 `test/ai_contract_test.dart` 检查：teach 组件必须有
 usage / pitfalls / related，所有 AGENTS feature 必须有 zh/en 模板。
 
 新增包时同步 `lib/src/feedback/feedback_ledger.dart` 的 `feedbackPackages` 与
-`bin/explain.dart` 的 `_examplePackages`；`test/internal/package_lists_test.dart` 会挡住漂移。
+`lib/src/explain/explain_command.dart` 的 `_examplePackages`；`test/internal/package_lists_test.dart` 会挡住漂移。
 
 > 改 CLI 版本号时同步 `lib/src/common/version.dart` 的 `cliVersion`；
 > `test/version_test.dart` 会拦住漂移。
