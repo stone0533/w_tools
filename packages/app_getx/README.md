@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^3.0.0
+  w_tools_app_getx: ^3.1.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -102,9 +102,8 @@ run()    通常由 start 调用；只能调用一次
 插件不会重复执行，`customTasks` 会重新执行。插件列表在 `WAppOptions.plugins` 声明，
 `init` 之后不再允许修改。
 
-> `w_tools_app 3.2.0` 起插件渲染钩子、runner 增删、语言回调与 `copyWith` 标记
-> `@Deprecated`，4.0.0 删除；本包 2.1.1 仍使用旧入口，3.0.0 再迁移。
-> 3.2.0 新增的 `WLanguageScope` 可以手动使用，但 `WApp` 还不会自动插入。
+> `w_tools_app 3.2.0` 的 deprecated 入口已在 4.0.0 删除；本包 3.0.0 起迁移到
+> `WApp.of` / `WLanguageScope`，3.1.0 把依赖下界收到 `w_tools_app ^4.0.0`。
 
 ## 语言
 

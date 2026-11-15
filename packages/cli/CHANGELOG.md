@@ -1,7 +1,8 @@
-## Unreleased
+## 1.23.0
 
 ### Changed
-- `init` 的 `w_tools_app` / `w_tools_app_getx` 约束同步到 `^4.0.0` / `^3.0.0`。
+- `init` 的 `w_tools_app` / `w_tools_app_getx` 约束同步到 `^4.0.0` / `^3.1.0`；
+  CLI 自身 `cliConstraint` 同步 `^1.23.0`。
 
 ## 1.22.3
 
