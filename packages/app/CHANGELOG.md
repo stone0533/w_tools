@@ -1,23 +1,33 @@
 # Changelog
 
-## 3.2.0
+## 4.0.0
 
 ### Added
 - `WLanguageScope`：把 `WLanguage` 注入子树；`WLanguageScope.of(context)` 读取实例，
-  语言切换时依赖者自动重建。
+  语言切换时依赖者自动重建。`WApp.run()` 会自动插入。
 
-### Deprecated（4.0 删除）
-- `WAppPlugin.builderWrapper` / `WAppPlugin.wrapApp`：改用 `WAppOptions.builder` /
-  `WAppOptions.appWrapper`。
-- `WAppPluginRunner.addPlugin` / `WAppPluginRunner.addPlugins` /
+### Breaking
+- 删除 `WAppPlugin.builderWrapper` / `WAppPlugin.wrapApp`：渲染包裹统一用
+  `WAppOptions.builder` / `WAppOptions.appWrapper`，插件只负责生命周期与
+  `navigatorObservers`。
+- 删除 `WAppPluginRunner.addPlugin` / `WAppPluginRunner.addPlugins` /
   `WAppPluginRunner.removePlugin` / `WAppPluginRunner.clearPlugins`：插件列表在构造时确定。
-- `WLanguage` 5 参公开构造：改用 `WLanguage.fromConfig`。
-- `WLanguage.listenLanguageChange`：改用 `languageChanges.listen`。
-- `WLanguage.bindLocaleUpdater`：改用 `languageListenable`。
-- `WLocaleConfig.copyWith` / `WAppTheme.copyWith`：直接构造新实例。
+- 删除 `WLanguage.listenLanguageChange`：改用 `languageChanges.listen(...)`。
+- 删除 `WLanguage.bindLocaleUpdater`：GetX 启动器改为监听 `languageListenable`。
+- 删除 `WLanguage.new`：改用 `WLanguage.fromConfig(WLocaleConfig?)`；不再接受空
+  `supportedLanguages`（与 `WLocaleConfig` 对齐）。
+- 删除 `WLocaleConfig.copyWith` / `WAppTheme.copyWith`：配置对象在启动时构造一次。
+- `WAppTheme.new` 的 `systemUiOverlayStyle` 默认值改为 `null`：不再默认设置透明状态栏 +
+  黑色导航栏，需要时显式传入。
 
-### Fixed
-- `WAppPluginRunner.init` 失败后重试会跳过已成功的插件，不再重复执行。
+### Changed
+- `WAppPluginRunner` 同层插件改为按注册顺序**串行**执行；某个 `onInit` 抛错会立即
+  中断本次 init，重试时已成功的插件不重复执行、从失败点继续。
+- `WLanguage.localeFromCode` 只接受 `lang` / `lang_COUNTRY` / `lang_Script_COUNTRY`，
+  非法语言码抛 `ArgumentError`；`WLocaleConfig` 构造时同样校验语言码。
+- `WAppPlugin` 的文档收口：runner 只执行 `dependsOn` / `onInit`，
+  `navigatorObservers` 只由 `WApp` 消费；`onInit` 的 GetX 服务注册提示改指向
+  `registerService<T>`。
 
 ## 3.1.1
 

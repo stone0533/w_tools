@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed
+- 文档注释：`.sp` / `WTextStyles` 的根装配位置改指 `WAppOptions.builder`
+  （配合 `w_tools_app` 4.0 删除插件包裹钩子）。
+
 ## 12.0.0
 
 ### Added

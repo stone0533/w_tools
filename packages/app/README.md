@@ -2,14 +2,10 @@
 
 `w_tools_app` 是 w_tools 的 **GetX-free 应用内核**，提供：
 
-- `WAppPlugin`：插件契约；
-- `WAppPluginRunner`：插件注册表、`dependsOn` 分层初始化；
-- `WLanguage` / `WLanguageScope` / `WLocaleConfig`：语言状态、树内语言作用域与语言配置；
+- `WAppPlugin`：插件契约（`name` / `dependsOn` / `onInit` / `navigatorObservers`）；
+- `WAppPluginRunner`：插件注册表、`dependsOn` 分层串行初始化；
+- `WLanguage` / `WLanguageScope` / `WLocaleConfig`：语言状态、树内注入与语言配置；
 - `WAppTheme`：应用外观（亮/暗主题、主题模式、系统栏）。
-
-> 3.2.0 起插件渲染钩子、runner 增删、语言回调与 `copyWith` 标记 `@Deprecated`，
-> 4.0.0 删除；3.2.0 仍保持 3.1.1 的默认行为。升级前看
-> [`app-3.2`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/app-3.2.md)。
 
 ```dart
 class AppServicePlugin extends WAppPlugin {
@@ -26,15 +22,38 @@ final runner = WAppPluginRunner([AppServicePlugin()]);
 await runner.init();
 ```
 
+`WAppPluginRunner` 只执行 `dependsOn` / `onInit`；插件上的 `navigatorObservers`
+由 GetX 启动器 `WApp` 消费。同层插件按注册顺序串行执行，失败后重试会跳过已成功的插件。
+
 需要完整的 `WApp` 启动器、GetX 路由与底部弹窗时，依赖：
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^2.1.1
+  w_tools_app_getx: ^3.0.0
 ```
 
-需要 GetX 启动器时使用 `w_tools_app_getx`；本包的内核类型可以直接从
-`package:w_tools_app/w_tools_app.dart` 引用。
+语言与外观类型也可以直接引用：
+
+```dart
+final language = WLanguage.fromConfig(
+  WLocaleConfig(
+    supportedLanguages: const {'zh_CN': '简体中文', 'en_US': 'English'},
+    initialLanguage: 'zh_CN',
+    fallbackLanguage: 'en_US',
+  ),
+);
+language.changeLanguage('en_US');
+```
+
+`WLanguage` 不持久化选择；恢复上次语言时，在 `start()` 之前调用
+`changeLanguage(saved)`（不在支持列表内会返回 `false`）。
+
+页面里用 `WLanguageScope.of(context)` 读取当前语言；语言切换时依赖者自动重建：
+
+```dart
+final language = WLanguageScope.of(context);
+language.changeLanguage('en_US');
+```
 
 ## 历史迁移
 

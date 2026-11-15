@@ -49,6 +49,14 @@ names = [
     # app_getx 2.0：全局语言状态与静态路由栈收口。
     r'\bWAppConfig\b', r'WLocaleConfig\.defaultLanguage', r'WLanguage\.languageStream',
     r'WLanguage\.syncFromConfig', r'WRouteStack\.defaultStack', r'WAppOptions\.applyOrientations',
+    # app 4.0 / app_getx 3.0：插件渲染钩子、注册表增删、语言与外观收口。
+    r'WAppPlugin\.(?:builderWrapper|wrapApp)',
+    r'WAppPluginRunner\.(?:addPlugin|addPlugins|removePlugin|clearPlugins)',
+    r'WLanguage\.(?:listenLanguageChange|bindLocaleUpdater)',
+    r'WLanguage\.new\b', r'WLanguage\(\s*supportedLanguages',
+    r'WLocaleConfig\.copyWith', r'WAppTheme\.copyWith',
+    r'WApp\.(?:addPlugin|addPlugins|removePlugin|clearPlugins)',
+    r'WAppOptions\.locale(?!Config)', r'WAppOptions\.fallbackLocale',
     r'WAppOptions\.darkTheme', r'WAppOptions\.themeMode', r'WAppOptions\.systemUiOverlayStyle',
     # ui 7.0 的改名：旧名不保留，必须登记，否则 README / example 里的旧推荐拦不住。
     r'WHexColor', r'WImageStyleX',

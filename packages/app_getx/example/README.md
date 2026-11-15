@@ -7,7 +7,7 @@
 - GetX 路由
 - `app.routeStack` / `WRouteObserver`
 - 插件 `navigatorObservers` 路由事件
-- 插件 `builderWrapper` / `wrapApp`
+- `WApp.of(context)` / `WLanguageScope.of(context)`（页面不再保存全局 app）
 - `WAppOptions.builder` / `appWrapper`
 - `customTasks` / `onLazyInit`
 - `app.routeStack.popUntilRoute`

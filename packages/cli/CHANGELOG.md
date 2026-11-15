@@ -1,7 +1,7 @@
 ## Unreleased
 
 ### Changed
-- `init` 的 `w_tools_app` 约束同步到 `^3.2.0`（deprecation 版本）。
+- `init` 的 `w_tools_app` / `w_tools_app_getx` 约束同步到 `^4.0.0` / `^3.0.0`。
 
 ## 1.22.3
 

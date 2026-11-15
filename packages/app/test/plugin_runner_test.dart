@@ -1,4 +1,3 @@
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -64,7 +63,7 @@ void main() {
     expect(log.indexOf('env'), lessThan(log.indexOf('service')));
   });
 
-  test('同层插件并行执行', () async {
+  test('同层插件按注册顺序串行执行', () async {
     final started = <String>[];
     final gate = Completer<void>();
     final runner = WAppPluginRunner([
@@ -74,13 +73,14 @@ void main() {
 
     final init = runner.init();
     await Future<void>.delayed(Duration.zero);
-    expect(started, containsAll(<String>['a', 'b']));
+    expect(started, ['a']);
 
     gate.complete();
     await init;
+    expect(started, ['a', 'b']);
   });
 
-  test('多层依赖按层串行推进', () async {
+  test('多层依赖按层推进', () async {
     final log = <String>[];
     final runner = WAppPluginRunner([
       _RecorderPlugin('c', log: log, dependsOn: ['b']),
@@ -115,30 +115,32 @@ void main() {
     );
   });
 
-  test('失败重试跳过已成功的插件', () async {
+  test('某个 onInit 抛错后同层后续插件不再执行', () async {
+    final log = <String>[];
+    final runner = WAppPluginRunner([
+      _RecorderPlugin('a', log: log),
+      _FlakyPlugin('b', log),
+      _RecorderPlugin('c', log: log),
+    ]);
+
+    await expectLater(runner.init(), throwsA(isA<StateError>()));
+    expect(log, ['a']);
+  });
+
+  test('重试跳过已成功的插件，从失败点继续', () async {
     final log = <String>[];
     final success = _RecorderPlugin('a', log: log);
     final flaky = _FlakyPlugin('b', log);
-    final alsoSuccess = _RecorderPlugin('c', log: log);
-    final runner = WAppPluginRunner([success, flaky, alsoSuccess]);
+    final after = _RecorderPlugin('c', log: log);
+    final runner = WAppPluginRunner([success, flaky, after]);
 
     await expectLater(runner.init(), throwsA(isA<StateError>()));
-    expect(log, containsAll(<String>['a', 'c']));
+    expect(log, ['a']);
     expect(flaky.attempts, 1);
 
     await runner.init();
-    expect(log.where((name) => name == 'a'), hasLength(1));
-    expect(log.where((name) => name == 'c'), hasLength(1));
+    expect(log, ['a', 'b', 'c']);
     expect(flaky.attempts, 2);
-    expect(log, contains('b'));
-  });
-
-  test('init 之后不可增删插件', () async {
-    final runner = WAppPluginRunner();
-    await runner.init();
-
-    expect(() => runner.addPlugin(_RecorderPlugin('p', log: <String>[])), throwsStateError);
-    expect(() => runner.clearPlugins(), throwsStateError);
   });
 
   test('plugins 是只读视图', () {

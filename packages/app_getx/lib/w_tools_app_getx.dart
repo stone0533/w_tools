@@ -2,7 +2,7 @@
 library w_tools_app_getx;
 
 export 'package:w_tools_app/w_tools_app.dart'
-    show WAppPlugin, WAppPluginRunner, WAppTheme, WLanguage, WLocaleConfig;
+    show WAppPlugin, WAppPluginRunner, WAppTheme, WLanguage, WLanguageScope, WLocaleConfig;
 
 export 'src/app.dart';
 export 'src/options.dart';

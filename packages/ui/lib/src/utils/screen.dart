@@ -22,7 +22,7 @@ double _identityScaler(double value) => value;
 ///
 /// 注意：不要在 main / 顶层 final / static 初始化中调用 `.sp`；
 /// 此时 ScreenUtil 尚未 configure，应在 `ScreenUtilInit.builder` 或
-/// `WAppPlugin.builderWrapper` 的 build 期计算。
+/// `WAppOptions.builder` 的 build 期计算。
 ///
 /// 9.0 起静态 `WScreen.w/h/sp` 与全局 delegate 已弃用；10.0 已删除。
 /// 新代码统一用 [WScreenScope] + [WScreen.of]。

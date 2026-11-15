@@ -5,11 +5,8 @@
 应用启动（初始化顺序、插件、路由、主题、多语言）、底部弹窗。
 
 `WAppPlugin` / `WAppPluginRunner` / `WLanguage` / `WLanguageScope` / `WLocaleConfig` /
-`WAppTheme` 在 `w_tools_app`；`WApp` / `WAppOptions` / 路由 / 底部弹窗在 `w_tools_app_getx`。
-
-> 3.2.0 起插件渲染钩子、runner 增删、语言回调与 `copyWith` 标记 deprecated，
-> 4.0.0 删除；3.2.0 行为不变。页面可用 `WLanguageScope.of(context)` 读语言，
-> 但 `WApp` 3.2 还不会自动插入 scope。
+`WAppTheme` 在 `w_tools_app`；`WApp` / `WAppScope` / `WAppOptions` / 路由 / 底部弹窗在
+`w_tools_app_getx`。
 
 ## 最小用法
 
@@ -55,6 +52,10 @@ final app = WApp.options(
 await app.start();
 ```
 
+插件按 `dependsOn` 分层、同层按注册顺序**串行**执行；某个 `onInit` 抛错会中断本次
+`init`，重试时已成功的插件不重复执行。插件列表只在 `WAppOptions.plugins` 声明，
+没有 `addPlugin` / `removePlugin`。
+
 多语言：
 
 ```dart
@@ -64,8 +65,8 @@ final app = WApp.options(
     home: const HomePage(),
     localeConfig: WLocaleConfig(
       supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-      initialLanguage: 'zh_CN',   // 首次启动语言
-      fallbackLanguage: 'en_US',  // 当前语言不受支持时回退
+      initialLanguage: 'zh_CN',   // 启动语言
+      fallbackLanguage: 'en_US',  // GetX 翻译缺失时的回退
     ),
   ),
 );
@@ -76,50 +77,77 @@ app.language.changeLanguage('en_US');
 // UI 监听：app.language.languageListenable（ValueListenable）或 languageChanges（Stream）
 ```
 
+语言只有 `localeConfig` 一个入口，`WAppOptions.locale` / `fallbackLocale` 已删除。
+`WAppOptions.supportedLocales` 只用于显式覆盖 Flutter 本地化列表；当前语言不在列表内时
+`run()` 抛 `StateError`。语言不持久化：要恢复上次选择，在 `start()` 之前调用
+`app.language.changeLanguage(saved)`。
+
+页面里用 `WLanguageScope.of(context)` 读取语言（切换时自动重建），用
+`WApp.of(context)` 读取应用实例；不要保存全局 `app`。
+
+`WAppScope` / `WLanguageScope` 由 `WApp.run()` 自动插入；测试里可以手动包一层：
+
+```dart
+await tester.pumpWidget(WAppScope(app: app, child: const MyPage()));
+```
+
 `WAppOptions.copyWith(...)` 可复用配置；`start()` 只覆盖 `initialRoute / getPages / builder /
-navigatorObservers / defaultTransition / theme / translations / locale / fallbackLocale`，
+navigatorObservers / defaultTransition / theme / translations`，
 `title`、`home`、`orientations`、`shouldApplyOrientations`、`appWrapper`、`localeConfig`、
 `plugins` 等只能放 `WAppOptions`；外观（theme / darkTheme / themeMode / systemUiOverlayStyle）
-统一放 `WAppTheme`；默认透明状态栏，显式 `systemUiOverlayStyle: null` 关闭。
+统一放 `WAppTheme`；默认不干预系统栏，需要时显式传 `systemUiOverlayStyle`。
 
-## 组合全局主题（不需要插件）
+## 包裹应用（不需要插件）
 
 ```dart
 final app = WApp.options(
   WAppOptions(
     title: 'Demo',
     home: const HomePage(),
+    // MaterialApp 外：没有 Theme / MediaQuery
     appWrapper: (child) => WAsyncTheme(
       child: WToastTheme(style: WToastStyle.defaults, child: child),
+    ),
+    // MaterialApp 内：有 Theme / Localizations / MediaQuery
+    builder: (context, child) => Theme(
+      data: Theme.of(context).copyWith(extensions: [buildAppTextStyles()]),
+      child: child ?? const SizedBox.shrink(),
     ),
   ),
 );
 await app.start();
 ```
 
-`appWrapper` 在 MaterialApp 外、插件 `wrapApp` 之内；需要 Theme 的东西放 `builderWrapper`。
+插件已删除 `builderWrapper` / `wrapApp`；需要 Theme 的全局中间件放 `builder`。
+`appWrapper` 在 `GetMaterialApp` 外，`builder` 在 `GetMaterialApp` 内。
 
 ## 不要用
 
 - 手写 `runApp` + 自己的初始化顺序（用 `app.start()`）；
 - 重复添加 `WRouteObserver`（`WApp` 已自动追加）；
-- 在 `wrapApp` 里读 Theme / MediaQuery（它在 MaterialApp 外）；
-- 自己保存 `WLanguage` 实例 / 用已删除的 `WRouteStack.defaultStack`；改用 `app.language` / `app.routeStack`；
-  页面内读语言可用 `WLanguageScope.of(context)`（3.2.0 新增，需手动包 scope）。
+- 在 `appWrapper` 里读 Theme / MediaQuery（它在 MaterialApp 外）；
+- 给 `WAppOptions` 传 `locale` / `fallbackLocale`（3.0 已删除；用 `localeConfig`）；
+- 保存全局 `app` 变量；页面用 `WApp.of(context)` / `WLanguageScope.of(context)` 读取；
+- 自己保存 `WLanguage` 实例；用 `WLanguageScope.of(context)`；
+- 使用已删除的 `WRouteStack.defaultStack`；改用 `WApp.of(context).routeStack`。
 
 ## 常见坑
 
 - `start()` / `run()` 只能调一次（重复调用抛 `StateError`）；
-- 需要 Theme 的插件生命周期用 `builderWrapper`，不是 `wrapApp`；
+- 插件同层串行，有顺序要求仍要写 `dependsOn`，不要依赖注册顺序的偶然性；
 - 多语言用 `app.language.changeLanguage(...)`，监听 `app.language.languageChanges`；
   不要保存第二份 current；
-- `WLanguage` 的 `languageChanges` 是只读流，`languageListenable` 是只读 `ValueListenable`。
+- `WLanguage` 的 `languageChanges` 是只读流，`languageListenable` 是只读 `ValueListenable`；
+- 语言码只接受 `lang` / `lang_COUNTRY` / `lang_Script_COUNTRY`（如 `en` / `en_US` / `zh_Hant_TW`）。
 
 ## 语言与路由栈
 
 ```dart
-app.language.changeLanguage('zh_CN');
-app.language.languageChanges.listen((code) { ... });
+final app = WApp.of(context);
+final language = WLanguageScope.of(context);
+
+language.changeLanguage('zh_CN');
+language.languageChanges.listen((code) { ... });
 
 app.routeStack.popUntilRoute('/home');
 app.routeStack.routes;

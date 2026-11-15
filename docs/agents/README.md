@@ -9,7 +9,7 @@
 | ui | `WText` / `WButton` / `WImage` / `WScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（5.0 已删除） | `packages/ui/example` |
 | form | `WForm` + 直接字段；边框 `WFormBorderStyle.fromTheme` | `Config.build`、`*Core`（`@internal`）、字段 `config` 参数、`WFormDefaults`（4.0 已删除） | `packages/form/example` |
 | api | `WApiSettings` + `DioRegistry`；`WLogInterceptor(parts:)` | 直接 `Dio()`、旧 bool 日志参数 | `packages/api/example` |
-| app | `WApp.options(WAppOptions(...)).start()` + `WAppPlugin`；`WBottomSheet` | 手写 `runApp` 初始化顺序；`WApp.appWrapper`（字段在 `WAppOptions`） | `packages/app_getx/example` |
+| app | `WApp.options(WAppOptions(...)).start()` + `WAppPlugin`；页面 `WApp.of(context)` / `WLanguageScope.of(context)`；`WBottomSheet` | 手写 `runApp` 初始化顺序；全局 `app`；`WAppOptions.appWrapper` / `builder` 混用 | `packages/app_getx/example` |
 | toast | `WToast.showXxx` + `WToastStyle` + `WToastTheme` | `WToastConfig`（已删除） | `packages/toast/example` |
 | map | `WMap` + `WMapZone` + `WMapItemMapper` | 直接 `GoogleMap`；手改 `zone.markers` | `packages/map_google/example` |
 | qr | `WQrView` + `WQrController`（重扫走 `restart()`） | 直接 `QRView` | `packages/qr/example` |

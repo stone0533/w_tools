@@ -41,6 +41,17 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('supportedLocales 不能是空列表', () {
+      expect(
+        () => WAppOptions(
+          title: 'Demo',
+          home: const SizedBox.shrink(),
+          supportedLocales: const [],
+        ),
+        throwsArgumentError,
+      );
+    });
   });
 
   group('WAppOptions 不可变与比较', () {

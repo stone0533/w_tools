@@ -4,7 +4,7 @@ import 'toast_style.dart';
 
 /// 全局默认提示样式。
 ///
-/// 放在 App 根部（`wrapApp` / `appWrapper`）即可让页面里的
+/// 放在 App 根部（`WAppOptions.appWrapper`）即可让页面里的
 /// `WToast.showSuccess(..., context: context)` 自动使用同一套样式；
 /// 调用处显式传 `style:` 时仍然优先。
 class WToastTheme extends InheritedWidget {
