@@ -244,6 +244,8 @@ controller.dispose();
 - `load()` 会取消上一次请求，旧请求返回后不会覆盖新状态；
 - `WAsyncController.list` 额外保留空列表 → empty、`state.data` unmodifiable；
 - `onError` 只是失败兜底通知，四态由 Controller 维护；
+- `isEmpty` 是同步回调，不要抛错：`load()` 会把回调抛错转为 `failed` 并通知 `onError`；
+  `replaceData()` 会同步抛出（编程错误直接暴露，不静默吞）。
 - `replaceData` 之后需要服务端为准时再 `load()`。
 
 ## 分页
