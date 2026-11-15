@@ -18,7 +18,7 @@
 > 先跑 `python3 scripts/check_api_budget.py --package <pkg>`，数字以脚本为准。
 
 - 类型 / 成员变化：+0 / +N
-- 新增公开类型：无 / 已写 ADR 并在 `scripts/api_budget.yaml` 的 `exceptions` 登记
+- 新增公开类型：无 / 已写 ADR 并在 `scripts/api_budget.yaml` 的 `exceptions` 登记（含 `until`）
 - 是否新增 enum value / sealed 子类型：否 / 已抬 major
 - 删除测试：删掉它，哪个用户任务会坏？
 - 两个消费者：example / issue #

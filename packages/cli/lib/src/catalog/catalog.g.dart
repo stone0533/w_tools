@@ -1469,7 +1469,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     package: "w_tools_map_google",
     section: "8. 能力（非 UI）",
     useFor: "业务侧选中 / 关闭 marker",
-    dontUseFor: "未挂载时无效果",
+    dontUseFor: "未挂载到地图时调用没有任何效果",
     importPath: "package:w_tools_map_google/w_tools_map_google.dart",
     docs: "docs/modules/map_module.md",
     docsAnchor: null,

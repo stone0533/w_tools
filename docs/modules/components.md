@@ -194,7 +194,7 @@
 | `WQrOverlayStyle` | qr | 扫描框颜色 / 是否显示 / 外边距与尺寸 | 不要为了改边框颜色去动 `WQrView` 的其它参数 |
 | `WQrScanResult` | qr | onScanned 的扫码结果（code / format / rawBytes / timestamp） | 不要把它当原始 Barcode：需要原始对象请监听 `WQrController.scannedDataStream` |
 | `WMap` / `WMapZone` | map_google | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
-| `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载时无效果 |
+| `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载到地图时调用没有任何效果 |
 | `WMapItemMapper` | map | 生成模型取地图字段 | 不要在 build 内重复创建 |
 | `WNumFormatExtension` | core | 数字格式化：千分位 / 货币 / 百分比 / 前导零（12.0 从 ui 迁入） | 不要重复手写 toStringAsFixed / 正则分组；需要 locale 时用 intl |
 <!-- catalog:8:end -->

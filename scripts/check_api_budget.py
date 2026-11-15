@@ -34,6 +34,7 @@ from check_public_api_diff import (  # noqa: E402
     SNAPSHOTS as _DEFAULT_SNAPSHOTS,
     _load_snapshot,
     _pubspec_version,
+    _split_top_level,
     api_surface,
     latest_snapshot,
     snapshot_version_of,
@@ -132,12 +133,51 @@ def exported_sealed_types(package_dir: pathlib.Path) -> set[str]:
     return sealed & exported
 
 
+def _declared_supertypes(text: str, name: str) -> set[str]:
+    declaration = re.search(
+        rf'\b(?:class|mixin|enum|extension|typedef)\s+{re.escape(name)}\b([^{{;]*)',
+        text,
+    )
+    if not declaration:
+        return set()
+    supers: set[str] = set()
+    for clause in re.finditer(
+        r'\b(?:extends|implements|with)\s+([^{{;]+)', declaration.group(1)
+    ):
+        segment = re.split(
+            r'\b(?:extends|implements|with|on)\b', clause.group(1)
+        )[0]
+        for part in segment.split(','):
+            candidate = part.strip().split('<', 1)[0].strip()
+            if re.match(r'^[A-Za-z_]\w*$', candidate):
+                supers.add(candidate)
+    return supers
+
+
+def _supertype_closure(
+    text: str,
+    name: str,
+    cache: dict[str, set[str]],
+) -> set[str]:
+    """递归收集 supertype；私有中间层（_Mid）也会被走到。"""
+    if name in cache:
+        return cache[name]
+    cache[name] = set()  # 环保护
+    closure: set[str] = set()
+    for super_name in _declared_supertypes(text, name):
+        closure.add(super_name)
+        closure |= _supertype_closure(text, super_name, cache)
+    cache[name] = closure
+    return closure
+
+
 def new_sealed_subtypes(
     package_dir: pathlib.Path,
     baseline: dict[str, str],
     new_types: list[str],
 ) -> list[str]:
-    """新增类型若继承 / 实现 / mixin 了**已存在**的导出 sealed 类型，属于 breaking。
+    """新增类型若（直接或间接）继承 / 实现 / mixin 了**已存在**的导出 sealed 类型，
+    属于 breaking。
 
     新 sealed 类型自己的新子类型不算 breaking（没有既有 switch 覆盖它）。
     解析器只看本包源码；跨包 sealed 基类不在这里识别（已知局限）。
@@ -146,28 +186,115 @@ def new_sealed_subtypes(
     if not sealed or not new_types:
         return []
     text = _source_text(package_dir)
-    out: list[str] = []
-    for name in new_types:
-        declaration = re.search(
-            rf'\b(?:class|mixin|enum|extension|typedef)\s+{re.escape(name)}\b([^{{;]*)',
-            text,
-        )
-        if not declaration:
+    cache: dict[str, set[str]] = {}
+    return [
+        name
+        for name in new_types
+        if _supertype_closure(text, name, cache) & sealed
+    ]
+
+
+def _signature_parts(value: str) -> tuple[str, str] | None:
+    """把 `void (int x)` / `({required int x})` 拆成 (返回类型, 参数串)。
+
+    函数类型字段（`Widget? Function(...)`）不当成方法签名，避免把字段类型变化误判成参数。
+    """
+    start = value.find('(')
+    end = value.rfind(')')
+    if start < 0 or end <= start:
+        return None
+    prefix = value[:start].strip()
+    if not value.startswith('(') and prefix.endswith('Function'):
+        return None
+    return prefix, value[start + 1:end]
+
+
+def _parse_params(params: str) -> list[dict] | None:
+    """解析参数串为 [{name, type, required, positional}]；解析失败返回 None。"""
+    params = params.strip()
+    if not params:
+        return []
+    result: list[dict] = []
+    for chunk in _split_top_level(params):
+        chunk = chunk.strip()
+        if not chunk:
             continue
-        supers: set[str] = set()
-        for clause in re.finditer(
-            r'\b(?:extends|implements|with)\s+([^{{;]+)', declaration.group(1)
-        ):
-            segment = re.split(
-                r'\b(?:extends|implements|with|on)\b', clause.group(1)
-            )[0]
-            for part in segment.split(','):
-                candidate = part.strip().split('<', 1)[0].strip()
-                if re.match(r'^[A-Z]\w*$', candidate):
-                    supers.add(candidate)
-        if supers & sealed:
-            out.append(name)
-    return out
+        section = 'required'
+        if chunk.startswith('{') and chunk.endswith('}'):
+            section = 'named'
+            inner = chunk[1:-1]
+        elif chunk.startswith('[') and chunk.endswith(']'):
+            section = 'optional'
+            inner = chunk[1:-1]
+        else:
+            inner = chunk
+        for part in _split_top_level(inner):
+            text = part.strip()
+            if not text:
+                continue
+            required = section == 'required' or bool(re.match(r'^required\b', text))
+            text = re.sub(r'^required\s+', '', text)
+            text = re.sub(r'^(?:this\.|super\.)', '', text)
+            declaration = text.split('=', 1)[0].strip()
+            name_match = re.search(r'([A-Za-z_]\w*)\s*$', declaration)
+            if not name_match:
+                return None
+            name = name_match.group(1)
+            type_text = declaration[:name_match.start()].strip()
+            type_text = re.sub(r'^(?:final|covariant)\s+', '', type_text)
+            result.append({
+                'name': name,
+                'type': type_text,
+                'required': required and section != 'optional',
+                'positional': section != 'named',
+            })
+    return result
+
+
+def breaking_signature_changes(
+    changed: list[str],
+    baseline: dict[str, str],
+    current: dict[str, str],
+) -> list[str]:
+    """minor 下识别 breaking 签名变化；只新增 optional 参数算 additive。"""
+    reasons: list[str] = []
+    for key in changed:
+        old = baseline[key]
+        new = current[key]
+        old_signature = _signature_parts(old)
+        new_signature = _signature_parts(new)
+        if old_signature is None or new_signature is None:
+            reasons.append(f'{key}: 类型变化 {old} → {new}')
+            continue
+        old_return, old_params = old_signature
+        new_return, new_params = new_signature
+        if old_return != new_return:
+            reasons.append(f'{key}: 返回类型 {old_return or "(构造)"} → {new_return or "(构造)"}')
+        old_list = _parse_params(old_params)
+        new_list = _parse_params(new_params)
+        if old_list is None or new_list is None:
+            reasons.append(f'{key}: 参数签名无法解析，按 breaking 处理')
+            continue
+        old_by = {item['name']: item for item in old_list}
+        new_by = {item['name']: item for item in new_list}
+        for name in sorted(old_by.keys() - new_by.keys()):
+            reasons.append(f'{key}: 删除参数 {name}')
+        for name in sorted(new_by.keys() - old_by.keys()):
+            if new_by[name]['required']:
+                reasons.append(f'{key}: 新增 required 参数 {name}')
+        for name in sorted(old_by.keys() & new_by.keys()):
+            if old_by[name]['type'] != new_by[name]['type']:
+                reasons.append(
+                    f'{key}: 参数 {name} 类型 '
+                    f'{old_by[name]["type"] or "(推断)"} → {new_by[name]["type"] or "(推断)"}'
+                )
+            if not old_by[name]['required'] and new_by[name]['required']:
+                reasons.append(f'{key}: 参数 {name} 从可选变成 required')
+        old_positional = [item['name'] for item in old_list if item['positional']]
+        new_positional = [item['name'] for item in new_list if item['positional']]
+        if old_positional != new_positional:
+            reasons.append(f'{key}: 位置参数顺序 / 数量变化 {old_positional} → {new_positional}')
+    return reasons
 
 
 def allowed_growth(entry: dict, defaults: dict, baseline_members: int) -> int:
@@ -251,7 +378,7 @@ def load_config(path: pathlib.Path) -> dict:
     for item in exceptions:
         if not isinstance(item, dict):
             raise BudgetConfigError(f'{path}: exceptions 的每一项必须是 mapping')
-        for field in ('package', 'type', 'adr'):
+        for field in ('package', 'type', 'adr', 'until'):
             if not item.get(field):
                 raise BudgetConfigError(f'{path}: exceptions 缺 {field}: {item!r}')
     return {'defaults': defaults, 'packages': packages, 'exceptions': exceptions}
@@ -295,6 +422,8 @@ def _validate_exception(item: dict, package: str, type_name: str, current_versio
     if not (ROOT / adr).is_file():
         return f'{package}.{type_name}: 例外指向的 ADR 不存在：{adr}'
     until = item.get('until')
+    if not until:
+        return f'{package}.{type_name}: 例外缺 until'
     if until:
         until_v = parse_version(str(until))
         current_v = parse_version(current_version)
@@ -403,10 +532,23 @@ def check_package(
 
     if kind in {'minor', 'major'}:
         if changed:
-            notes.append(
-                f'{package}: {len(changed)} 个签名 / 默认值变化，'
-                '逐条确认是否 breaking'
-            )
+            if kind == 'minor':
+                breaking = breaking_signature_changes(changed, baseline, current)
+                if breaking:
+                    errors.append(
+                        f'{package}: minor 不允许 breaking 签名变化；请抬 major'
+                    )
+                    for reason in breaking:
+                        errors.append(f'  ~ {reason}')
+                else:
+                    notes.append(
+                        f'{package}: {len(changed)} 个签名 / 默认值变化（additive 或仅默认值）'
+                    )
+            else:
+                notes.append(
+                    f'{package}: {len(changed)} 个签名 / 默认值变化，'
+                    '逐条确认是否 breaking'
+                )
         allowed = allowed_growth(entry, defaults, len(public_members(baseline)))
         if net_members > allowed:
             errors.append(

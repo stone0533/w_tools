@@ -101,12 +101,37 @@ class BudgetCheckTest(unittest.TestCase):
         errors, _, _ = self._check({'growth': 5})
         self.assertTrue(any('patch 版本不允许' in error for error in errors))
 
-    def test_minor_changed_signature_reports_note(self):
+    def test_minor_optional_param_added_is_additive(self):
         self._snapshot('class WDemo {\n  void a() {}\n}\n')
-        self._package('1.1.0', 'class WDemo {\n  void a(int x) {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a({int? x}) {}\n}\n')
         errors, notes, _ = self._check({'growth': 5})
         self.assertEqual(errors, [])
-        self.assertTrue(any('确认是否 breaking' in note for note in notes))
+        self.assertTrue(any('additive' in note for note in notes))
+
+    def test_minor_required_param_added_fails(self):
+        self._snapshot('class WDemo {\n  void a() {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a(int x) {}\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertTrue(any('required 参数' in error for error in errors))
+
+    def test_minor_param_removed_fails(self):
+        self._snapshot('class WDemo {\n  void a(int x) {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a() {}\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertTrue(any('删除参数' in error for error in errors))
+
+    def test_minor_param_type_change_fails(self):
+        self._snapshot('class WDemo {\n  void a(int x) {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a(String x) {}\n}\n')
+        errors, _, _ = self._check({'growth': 5})
+        self.assertTrue(any('类型' in error for error in errors))
+
+    def test_minor_default_value_change_is_additive(self):
+        self._snapshot('class WDemo {\n  void a([int x = 1]) {}\n}\n')
+        self._package('1.1.0', 'class WDemo {\n  void a([int x = 2]) {}\n}\n')
+        errors, notes, _ = self._check({'growth': 5})
+        self.assertEqual(errors, [])
+        self.assertTrue(any('additive' in note for note in notes))
 
     def test_new_enum_value_fails_on_minor(self):
         self._snapshot('enum WStatus {\n  a,\n}\n')
@@ -132,6 +157,7 @@ class BudgetCheckTest(unittest.TestCase):
                 'package': 'demo',
                 'type': 'WChild',
                 'adr': 'docs/adr/0001-demo.md',
+                'until': '1.1.0',
             }],
         )
         self.assertTrue(any('sealed 子类型' in error for error in errors))
@@ -145,6 +171,7 @@ class BudgetCheckTest(unittest.TestCase):
                 'package': 'demo',
                 'type': 'WNew',
                 'adr': 'docs/adr/0001-demo.md',
+                'until': '1.1.0',
             }],
         )
         self.assertEqual(errors, [])
@@ -158,11 +185,30 @@ class BudgetCheckTest(unittest.TestCase):
         errors, _, _ = self._check(
             {'growth': 5},
             [
-                {'package': 'demo', 'type': 'WBase', 'adr': 'docs/adr/0001-demo.md'},
-                {'package': 'demo', 'type': 'WChild', 'adr': 'docs/adr/0001-demo.md'},
+                {'package': 'demo', 'type': 'WBase', 'adr': 'docs/adr/0001-demo.md', 'until': '1.1.0'},
+                {'package': 'demo', 'type': 'WChild', 'adr': 'docs/adr/0001-demo.md', 'until': '1.1.0'},
             ],
         )
         self.assertEqual(errors, [])
+
+    def test_indirect_sealed_subtype_fails_on_minor(self):
+        self._snapshot('sealed class WBase {}\n')
+        self._package(
+            '1.1.0',
+            'sealed class WBase {}\n'
+            'class _Mid extends WBase {}\n'
+            'class WChild extends _Mid {}\n',
+        )
+        errors, _, _ = self._check(
+            {'growth': 5},
+            [{
+                'package': 'demo',
+                'type': 'WChild',
+                'adr': 'docs/adr/0001-demo.md',
+                'until': '1.1.0',
+            }],
+        )
+        self.assertTrue(any('sealed 子类型' in error for error in errors))
 
     def test_new_sealed_subtype_passes_on_major(self):
         self._snapshot('sealed class WBase {}\n')
@@ -176,6 +222,7 @@ class BudgetCheckTest(unittest.TestCase):
                 'package': 'demo',
                 'type': 'WChild',
                 'adr': 'docs/adr/0001-demo.md',
+                'until': '2.0.0',
             }],
         )
         self.assertEqual(errors, [])
@@ -241,6 +288,20 @@ class BudgetCheckTest(unittest.TestCase):
             }],
         )
         self.assertTrue(any('到期' in error for error in errors))
+
+    def test_exception_without_until_fails(self):
+        problem = budget._validate_exception(
+            {
+                'package': 'demo',
+                'type': 'WNew',
+                'adr': 'docs/adr/0001-demo.md',
+            },
+            'demo',
+            'WNew',
+            '1.1.0',
+        )
+        self.assertIsNotNone(problem)
+        self.assertIn('until', problem)
 
     def test_tool_mode_skips(self):
         errors, _, summary = self._check({'mode': 'tool'})
