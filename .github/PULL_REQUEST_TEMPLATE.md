@@ -23,6 +23,7 @@
 - 删除测试：删掉它，哪个用户任务会坏？
 - 两个消费者：example / issue #
 - 是否包装原语 / 新增别名 / 新增状态源：否
+- CLI 命令 / flag / catalog 条目：无 / 已更新 help、README、docs/agents/cli.md
 
 ## J-4 结论（有公开 API / 行为变化时必填）
 

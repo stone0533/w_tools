@@ -20,7 +20,7 @@
 | `WStep` | ui | 步骤条（注册流程等） | 背景/高度用外层 Container；多步骤注意横向空间 |
 | `WStepStyle` | ui | 步骤条颜色 / 尺寸 / 间距 / 标签样式 | 不要靠改 WStep 内部布局实现视觉；优先用 itemBuilder |
 | `WStepColors` | ui | WStepStyle.resolve 返回的 completed / current / upcoming 颜色 | 不要自己按 Brightness 推颜色；让 WStepStyle.resolve 解析主题 |
-| `WApp` | app_getx | GetX 启动器 | — |
+| `WApp` | app_getx | GetX 启动器 | 不要用于非 GetX 项目；也不要重复 start / run，语言与路由栈是实例状态 |
 | `WAppOptions` | app_getx | WApp 的标题 / 路由 / 外观 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
 | `WAppTheme` | app | 应用外观：亮/暗主题、主题模式、系统栏 | 不要用 WAsyncTheme；它是 Widget，本类型是配置 |
 | `WAsyncResult` | async | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
@@ -28,11 +28,11 @@
 | `WCancelToken` | async | 协作式取消：传给 WAsync 或 Controller 的 loader | 取消后不可复用；新请求要新建 token |
 | `WStepState` | ui | 步骤项状态（completed / current / upcoming） | 不要自己拼状态字符串；按 enum 分支 |
 | `WStepItemBuilder` / `WStepSeparatorBuilder` / `WStepSemanticLabelBuilder` | ui | WStep 的三类 builder：步骤项 / 分割线 / 语义标签 | 不要在 builder 里返回 Expanded；外层已经包了 Expanded |
-| `WAsyncSuccess` | async | tryRun 成功结果 | — |
-| `WAsyncFailure` | async | tryRun 失败结果（error / stackTrace / isProgrammingError） | — |
-| `WAsyncCancelled` | async | tryRun 取消结果（reason） | — |
-| `WCancellationException` | async | run 被取消时抛出的异常（reason） | — |
-| `WLocaleConfig` | app | 语言支持列表、首次启动语言与回退语言（WAppOptions.localeConfig） | — |
+| `WAsyncSuccess` | async | tryRun 成功结果 | 不要直接构造；它是 tryRun 的结果，不代表业务成功 |
+| `WAsyncFailure` | async | tryRun 失败结果（error / stackTrace / isProgrammingError） | 不要吞掉 stackTrace；不要把编程错误当业务失败重试 |
+| `WAsyncCancelled` | async | tryRun 取消结果（reason） | 不要把取消当失败展示；已取消请求不要自动重试 |
+| `WCancellationException` | async | run 被取消时抛出的异常（reason） | 不要用它捕获所有异常；捕获后要保留 reason |
+| `WLocaleConfig` | app | 语言支持列表、首次启动语言与回退语言（WAppOptions.localeConfig） | 不要放未在 supportedLanguages 里的语言；不要在运行时改 |
 <!-- catalog:1:end -->
 
 ## 2. 文本与图标
@@ -46,7 +46,7 @@
 | `WImageSource` | ui | WImage 的来源：network / asset / file / base64 / provider | 不要用已删除的 WImage.network / asset / file / data，也不要用 WImageSource.parse |
 | `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里 |
 | `WImageLoadOptions` | ui | 图片加载行为：解码尺寸 / 重试 / gapless | 视觉样式用 `WImageStyle` |
-| `WAppPlugin` | app | 插件分层初始化 | — |
+| `WAppPlugin` | app | 插件分层初始化 | 不要在 wrapApp 里读 Theme / MediaQuery；有顺序要求必须写 dependsOn |
 | `WAppPluginRunner` | app | GetX-free 的插件注册表与 dependsOn 分层初始化 | 不要绕过 WApp.init 直接调用；WApp 内部会委托它 |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
 | `WImageTheme` | ui | App 级图片占位 / 错误 / 进度默认配置 | 不要按单图传参；单图默认值用 WImageSlots，主题只做 App 级兜底 |
@@ -64,7 +64,7 @@
 | `WBase64ImageSource` | ui | WImageSource 的 Base64 实现（通常用 WImageSource.base64） | 不要传超大 Base64 做主线程解码；优先网络 / 资源图 |
 | `WProviderImageSource` | ui | WImageSource 的 ImageProvider 实现（通常用 WImageSource.provider） | 不要用它绕开 WImage 的错误与语义处理；只在已有 provider 时用 |
 | `WImageErrorView` | ui | 内置图片错误视图（error / onRetry / retryLabel / showAction） | 不要当页面级错误组件；只用于图片占位 |
-| `WAsyncStatus` | async | 四态枚举：loading / ready / empty / failed | — |
+| `WAsyncStatus` | async | 四态枚举：loading / ready / empty / failed | 不要把它当业务状态机；新增值会破坏 exhaustive switch |
 <!-- catalog:2:end -->
 
 > **图标 + 文字排成一行**（垂直居中）：目前没有组件，见文末「待补」——
@@ -91,11 +91,11 @@
 | `WLanguage` | app | 实例级语言状态 / 切换 / 只读变化流 | 不要自己保存 currentLanguage；用 app.language |
 | `WButtonSize` | ui | 按钮尺寸令牌（minWidth/minHeight/padding/fontSize/iconSize/gap），映射到 ButtonStyle | 不要用它控制宽度；宽度由父布局决定；颜色 / 边框走 WButtonTheme |
 | `WPressEffect` | ui | WPressable 按压效果（opacity / scale / none） | 不要用它做 loading；只做按压反馈 |
-| `WFormThemeData` | form | 表单主题数据（icons / borderStyle + effective* 图标 getter）；`WFormThemeData.of(context)` 读取 | — |
-| `WFormTheme` | form | 主题 InheritedWidget：App 级图标 / 边框统一放外层，WForm 会继承 | — |
-| `WAsyncPageLoader` | async | 分页 loader 的类型：(page, token) => Future<WAsyncPage<T>> | — |
-| `WAsyncPage` | async | 分页 loader 返回 items + 显式 hasMore（第一页不足一页 / total） | — |
-| `WAsyncTokenLoader` | async | 控制器 loader 的类型：(token) => Future<T> | — |
+| `WFormThemeData` | form | 表单主题数据（icons / borderStyle + effective* 图标 getter）；`WFormThemeData.of(context)` 读取 | 不要直接构造或改字段；通过 WFormThemeData.of / WFormTheme 读取 |
+| `WFormTheme` | form | 主题 InheritedWidget：App 级图标 / 边框统一放外层，WForm 会继承 | 不要在普通页面单独包一层；页面级用 WForm(icons:/borderStyle:) |
+| `WAsyncPageLoader` | async | 分页 loader 的类型：(page, token) => Future<WAsyncPage<T>> | 不要在 loader 里做 UI；不要忽略 token |
+| `WAsyncPage` | async | 分页 loader 返回 items + 显式 hasMore（第一页不足一页 / total） | 不要把它当完整分页状态；观察 WAsyncPagedSnapshot |
+| `WAsyncTokenLoader` | async | 控制器 loader 的类型：(token) => Future<T> | 不要在 loader 里忽略 token；不要返回已取消请求的旧结果 |
 <!-- catalog:3:end -->
 
 ## 4. 布局与容器
@@ -107,12 +107,12 @@
 | `WFormBorderStyle` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 helper/error 文案样式 | 配置通过 `WForm(borderStyle: ...)` 下发；`WFormBorder` 8.0 起移除公开入口 |
 | `WAsyncView` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
 | `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncView` |
-| `WRouteStack` | app_getx | 路由栈操作（`app.routeStack`） | — |
+| `WRouteStack` | app_getx | 路由栈操作（`app.routeStack`） | 不要跨 WApp 操作路由栈；每个 WApp 持有自己的栈 |
 | `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |
 | `WScreenScope` | ui | 子树内的屏幕 / 字体缩放注入，替代全局 delegate | 不要和全局 delegate 混用；scope 优先 |
-| `WFormReadOnly` | form | 读取当前子树是否只读（WForm / 字段自动注入） | — |
-| `WFormFieldShell` | form | 字段外框装配（内置字段自动使用；自定义字段可参考 form_module.md §4.3） | — |
-| `WAsyncErrorView` / `WAsyncErrorBanner` | async | 默认整块错误视图 / 保留旧数据时的错误条 | — |
+| `WFormReadOnly` | form | 读取当前子树是否只读（WForm / 字段自动注入） | 不要手写只读作用域；局部只读用 WForm(readOnly: true) 或字段 readOnly |
+| `WFormFieldShell` | form | 字段外框装配（内置字段自动使用；自定义字段可参考 form_module.md §4.3） | 普通字段不要手写外框；自定义字段不要用它绕开 FormField |
+| `WAsyncErrorView` / `WAsyncErrorBanner` | async | 默认整块错误视图 / 保留旧数据时的错误条 | 不要传异常原文；业务错误弹窗用 Toast / 表单错误，不用它 |
 <!-- catalog:4:end -->
 
 ## 5. 表单
@@ -135,9 +135,9 @@
 | `WFormTextFieldAction` / `WFormTextFieldPasswordToggle` / `WFormTextFieldClearButton` | form | 文本字段插槽 action：自定义按钮 / 密码可见切换 / 清空 | 不要自己用 `InheritedWidget` 读输入状态；用 `WFormTextFieldData.of` |
 | `WAsyncTheme` | async | App 根部统一默认 loading / empty / error（普通 + sliver 共用） | 不要用它包装单个页面；单个 WAsyncView 的显式 builder 优先 |
 | `WRouteObserver` | app_getx | 维护 `WRouteStack` 路由栈 | 不要重复添加；WApp 已自动追加 |
-| `WFormTextFieldData` | form | 文本字段插槽可读的数据（isPasswordVisible / readOnly 等） | — |
-| `WAsyncStrings` | async | 全局默认文案：empty / errorTitle / retry / loading | — |
-| `WAsyncErrorWidgetBuilder` | async | error / errorBanner builder 的类型 | — |
+| `WFormTextFieldData` | form | 文本字段插槽可读的数据（isPasswordVisible / readOnly 等） | 不要在 builder 外构造或缓存；插槽内只读 |
+| `WAsyncStrings` | async | 全局默认文案：empty / errorTitle / retry / loading | 不要用它写业务文案；项目应注入本地化，默认文案是英文 |
+| `WAsyncErrorWidgetBuilder` | async | error / errorBanner builder 的类型 | 不要直接显示 error 原文；不要返回 sliver |
 <!-- catalog:5:end -->
 
 ## 6. 弹层
@@ -145,7 +145,7 @@
 <!-- catalog:6:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WBottomSheet` | app_getx | 底部面板外壳 | — |
+| `WBottomSheet` | app_getx | 底部面板外壳 | 不要用于全屏页面或需要路由返回栈的场景；只做底部面板外壳 |
 <!-- catalog:6:end -->
 
 ## 7. 状态与反馈
@@ -153,7 +153,7 @@
 <!-- catalog:7:start -->
 | 组件 | 子包 | 用来做什么 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WFormValidatorSettings` | form | 校验行为：边框错误、短路 / 全量、回调 | — |
+| `WFormValidatorSettings` | form | 校验行为：边框错误、短路 / 全量、回调 | 不要用它承载单字段规则；单字段用字段 validators，settings 只放校验行为 |
 | `WFormValidator` | form | 统一校验入口：短路 / 全量、边框错误、错误汇总 | 不要同时用 `formKey.validate()`，会形成两套错误通道 |
 | `WFormValidatorItem` | form | 单个校验项：自定义规则或复用字段自身 validator | 字段自带 validator 已够用时不要重复声明规则 |
 | `WToast` | toast | 轻提示；带遮罩的提示用 `WToast.showModal`（点遮罩关、不穿透、超时兜底） | 提示不要直接用 `WToast.showCustomDialog`（BotToast 直通口：默认关不掉且点击穿透）；确认框用 Flutter `showDialog` |
@@ -169,18 +169,18 @@
 <!-- catalog:8:start -->
 | 能力 | 子包 | 说明 | **不要用在哪** |
 | --- | --- | --- | --- |
-| `WCountdown` | core | 倒计时 | — |
+| `WCountdown` | core | 倒计时 | 不要用于服务端计时或精确闹钟；它只是 UI 倒计时 |
 | `WStorage` | core | 本地类型读写 | 读取前必须 `init`；明文存储 |
 | `WToken` | core | token 存取 | 明文存储；高敏感场景用 Keychain / Keystore |
 | `WEncrypt` / `WHash` | core | 加密、摘要 | AES-CBC 不提供完整性 |
-| `WLogger` / `WValidator` / `WRegExp` | core | 日志、校验、正则 | — |
+| `WLogger` / `WValidator` / `WRegExp` | core | 日志、校验、正则 | 不要用 WLogger 记录敏感信息；不要用 WValidator 替代服务端校验 |
 | `WDebounce` / `WThrottle` | core | 防抖 / 节流（`WUx` 的同名方法已弃用） | 不要每次 build 新建实例；页面 dispose 时 cancel |
 | `WPlatform` | core | 平台判断 | 不要用 Platform.isXxx 绕过统一判断 |
 | `DioRegistry` | api | 按 baseUrl 创建并复用 Dio（可 replace 重建） | 不要直接 `Dio()`；同一 baseUrl 只配置一次 |
 | `WTokenInterceptor` | api | Token 注入 / 401 刷新 / 重试（可运行示例：packages/api/example） | 不要在拦截器里存 token |
 | `WLogInterceptor` | api | 请求 / 响应 / 错误日志 | 不做业务错误处理；敏感头 / 敏感 body 默认脱敏，但仍不要打进生产日志 |
 | `WLogPart` | api | WLogInterceptor 的日志片段选择 | 不要单独使用；作为 `parts` 的枚举值 |
-| `WApiSettings` | api | 请求配置与日志注入 | — |
+| `WApiSettings` | api | 请求配置与日志注入 | 不要在请求发出后改 baseOptions；它只在 DioRegistry.forBaseUrl 前设置 |
 | `WApiClient` | api | GET / POST / PUT / PATCH / DELETE / HEAD / OPTIONS 统一调用 + 显式 JSON 解码 + 上传 | 不要在页面里直接拼 URL；不要用它替代 Repository 的业务编排 |
 | `WApiBody` | api | 请求体编码：json / form / multipart / bytes | 不要用它承载业务逻辑；它只决定怎么编码 |
 | `WApiException` | api | 统一网络错误分类：timeout / network / 401 / 4xx / 5xx / decode | 不要在库里写死用户文案；UI 按 kind 映射 |
