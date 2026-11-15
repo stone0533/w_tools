@@ -96,7 +96,7 @@ language.changeLanguage('en_US');
 
 - `WLanguageScope.of(context)` 读取语言，并在切换时重建依赖者；
 - `WApp.of(context)` 读取应用实例（路由栈等）；
-- 两者都有 `maybeOf`；`of` 找不到 scope 时抛 `FlutterError`；
+- `WLanguageScope.of` / `WApp.of` 找不到 scope 时抛 `FlutterError`；`WApp.maybeOf` 返回 null；
 - 测试可手动包 `WLanguageScope` / `WAppScope`，不必启动完整应用。
 
 ## 外观

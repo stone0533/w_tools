@@ -18,7 +18,7 @@
 ## 决策
 
 1. **`WLanguageScope`（`w_tools_app`）**：`InheritedNotifier<ValueListenable<String>>`，
-   持有 `WLanguage`；`WLanguageScope.of(context)` / `maybeOf(context)` 读取最近实例。
+   持有 `WLanguage`；`WLanguageScope.of(context)` 读取最近实例。
    语言切换时依赖者自动重建。
 2. **`WAppScope`（`w_tools_app_getx`）**：普通 `InheritedWidget`，持有 `WApp`；
    `WApp.of(context)` / `WApp.maybeOf(context)` 读取最近实例。
@@ -34,7 +34,7 @@
    ```
 
 4. **嵌套取最近 scope**；`WAppScope` 只按实例 identity 通知，`WLanguageScope` 按语言变化通知。
-5. **失败语义**：`of` 找不到 scope 时抛 `FlutterError` 并给出修复方式；`maybeOf` 返回 null。
+5. **失败语义**：`of` 找不到 scope 时抛 `FlutterError` 并给出修复方式；`WApp.maybeOf` 返回 null。
 6. 不在 `WApp` 上加“当前实例”静态单例；scope 是唯一的树内入口。
 
 ## 后果

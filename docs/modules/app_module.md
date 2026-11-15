@@ -432,7 +432,7 @@ WAppScope（WApp 实例）
 
 - `WLanguageScope.of(context)`：读取最近的 `WLanguage`；语言切换时依赖者自动重建。
 - `WApp.of(context)`：读取最近的 `WApp`，可用于 `routeStack` 等应用级状态。
-- 两者都有 `maybeOf(context)`；`of` 找不到 scope 时抛 `FlutterError`。
+- `WLanguageScope.of` / `WApp.of` 找不到 scope 时抛 `FlutterError`；`WApp.maybeOf` 返回 null。
 - 嵌套时取最近的 scope；`WLanguageScope` 可单独用于非 GetX 壳或测试。
 
 ```dart
@@ -506,27 +506,25 @@ Future<void> main() async {
 
 ---
 
-## 3.2 弃用与 4.0 计划
+## 3.2 弃用 → 4.0 删除
 
-`w_tools_app 3.2.0` 只做弃用 + 新增 `WLanguageScope`，**不改变默认行为**。
-以下入口仍可用，但带 `@Deprecated`，4.0.0 删除：
+`w_tools_app 3.2.0` 只做弃用 + 新增 `WLanguageScope`；`4.0.0` 已删除以下入口：
 
-| 旧 | 新 |
+| 旧（4.0.0 已删除） | 新 |
 |---|---|
-| `WAppPlugin.builderWrapper` / `wrapApp` | `WAppOptions.builder` / `appWrapper` |
-| `WAppPluginRunner.addPlugin` / `addPlugins` / `removePlugin` / `clearPlugins` | 构造时传列表 |
-| `WLanguage` 5 参构造 / `listenLanguageChange` / `bindLocaleUpdater` | `WLanguage.fromConfig` / `languageChanges` / `languageListenable` |
-| `WLocaleConfig.copyWith` / `WAppTheme.copyWith` | 直接构造 |
+| `WAppPlugin.builderWrapper` / `wrapApp`（已删除） | `WAppOptions.builder` / `appWrapper` |
+| `WAppPluginRunner.addPlugin` / `addPlugins` / `removePlugin` / `clearPlugins`（已删除） | 构造时传列表 |
+| `WLanguage` 5 参构造 / `listenLanguageChange` / `bindLocaleUpdater`（已删除） | `WLanguage.fromConfig` / `languageChanges` / `languageListenable` |
+| `WLocaleConfig.copyWith` / `WAppTheme.copyWith`（已删除） | 直接构造 |
 
-`WLanguageScope` 是 3.2.0 新增的页面读取入口：
+`WLanguageScope` 由 `WApp.run()` 自动插入；页面直接读：
 
 ```dart
 final language = WLanguageScope.of(context);
 language.changeLanguage('en_US');
 ```
 
-3.2.0 的 `WApp` 不会自动插入 scope，需要在 `WAppOptions.appWrapper` 或测试里手动包一层；
-自动插入与页面级应用实例入口属于 `w_tools_app_getx 3.0.0`。
+`WApp.of(context)` / `WAppScope` 也由 `w_tools_app_getx 3.0.0` 提供。
 
 4.0.0 再删除上述入口，并应用系统栏默认、插件执行顺序、语言码解析等行为变化。
 
