@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 
+import 'locale_code.dart';
+
 /// 应用支持的语言与启动/回退策略。
 ///
-/// 只描述“支持哪些语言、首次启动用哪种、当前语言不受支持时回退到哪种”，
-/// 运行期当前语言由 `WLanguage` 实例维护。
+/// 只描述“支持哪些语言、启动用哪种、回退到哪种”，运行期当前语言由 `WLanguage`
+/// 实例维护；本类不持久化任何选择。
 @immutable
 class WLocaleConfig {
   factory WLocaleConfig({
@@ -29,35 +31,35 @@ class WLocaleConfig {
   );
 
   /// 支持的语言（语言码 → 展示名），不可变。
+  ///
+  /// 语言码只接受 `lang` / `lang_COUNTRY` / `lang_Script_COUNTRY` 三种形态。
   final Map<String, String> supportedLanguages;
 
-  /// 首次启动使用的语言；为 null 时使用 [supportedLanguages] 的第一个。
+  /// 启动时使用的语言；为 null 时使用 [supportedLanguages] 的第一个。
+  ///
+  /// 本类不持久化运行期选择；要恢复上次语言，在 `start()` 之前调用
+  /// `app.language.changeLanguage(saved)`。
   final String? initialLanguage;
 
-  /// 当前语言不在 [supportedLanguages] 时的回退语言；为 null 时不回退。
+  /// 回退语言；同时作为 GetX 翻译缺失时的 `fallbackLocale`。
+  ///
+  /// 为 null 时不额外指定回退。
   final String? fallbackLanguage;
-
-  static const Object _unset = Object();
-
-  WLocaleConfig copyWith({
-    Map<String, String>? supportedLanguages,
-    Object? initialLanguage = _unset,
-    Object? fallbackLanguage = _unset,
-  }) {
-    return WLocaleConfig(
-      supportedLanguages: supportedLanguages ?? this.supportedLanguages,
-      initialLanguage: identical(initialLanguage, _unset)
-          ? this.initialLanguage
-          : initialLanguage as String?,
-      fallbackLanguage: identical(fallbackLanguage, _unset)
-          ? this.fallbackLanguage
-          : fallbackLanguage as String?,
-    );
-  }
 
   void _validate() {
     if (supportedLanguages.isEmpty) {
       throw ArgumentError.value(supportedLanguages, 'supportedLanguages', '不能为空');
+    }
+    for (final code in supportedLanguages.keys) {
+      try {
+        parseLocaleCode(code);
+      } on ArgumentError {
+        throw ArgumentError.value(
+          code,
+          'supportedLanguages',
+          '语言码格式非法，只支持 lang / lang_COUNTRY / lang_Script_COUNTRY',
+        );
+      }
     }
     final initial = initialLanguage;
     if (initial != null && !supportedLanguages.containsKey(initial)) {

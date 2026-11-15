@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- 文档注释：`WToastTheme` 的根装配示例改指 `WAppOptions.appWrapper`。
+
 ## 2.1.0
 
 ### Added

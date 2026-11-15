@@ -11,7 +11,7 @@ typedef WAsyncErrorWidgetBuilder =
 
 /// 异步视图的全局默认主题。
 ///
-/// 放在 App 根部（推荐 `WAppPlugin.wrapApp` / `WAppOptions.appWrapper`）即可让多个页面共享
+/// 放在 App 根部（`WAppOptions.appWrapper`）即可让多个页面共享
 /// 默认 loading / empty / error / 刷新视图；单个 `WAsyncView` / `WAsyncStateSliver`
 /// 的显式 builder 仍然优先。
 ///

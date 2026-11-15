@@ -41,29 +41,14 @@ void main() {
     );
   });
 
-  test('未显式关闭时恢复默认透明状态栏', () async {
+  List<MethodCall> styleCalls() =>
+      calls.where((call) => call.method == 'SystemChrome.setSystemUIOverlayStyle').toList();
+
+  test('默认不干预系统栏', () async {
     await _app().init();
     await Future<void>.delayed(Duration.zero);
 
-    final styleCalls = calls
-        .where((call) => call.method == 'SystemChrome.setSystemUIOverlayStyle')
-        .toList();
-    expect(styleCalls, hasLength(1));
-
-    final style = SystemChrome.latestStyle;
-    expect(style, isNotNull);
-    expect(style!.statusBarColor, Colors.transparent);
-    expect(style.systemNavigationBarColor, Colors.black);
-  });
-
-  test('WAppTheme(systemUiOverlayStyle: null) 明确不干预', () async {
-    await _app(theme: const WAppTheme(systemUiOverlayStyle: null)).init();
-    await Future<void>.delayed(Duration.zero);
-
-    final styleCalls = calls
-        .where((call) => call.method == 'SystemChrome.setSystemUIOverlayStyle')
-        .toList();
-    expect(styleCalls, isEmpty);
+    expect(styleCalls(), isEmpty);
     expect(SystemChrome.latestStyle?.statusBarColor, Colors.red);
   });
 
@@ -73,10 +58,7 @@ void main() {
     ).init();
     await Future<void>.delayed(Duration.zero);
 
-    final styleCalls = calls
-        .where((call) => call.method == 'SystemChrome.setSystemUIOverlayStyle')
-        .toList();
-    expect(styleCalls, hasLength(1));
+    expect(styleCalls(), hasLength(1));
     expect(SystemChrome.latestStyle, SystemUiOverlayStyle.dark);
   });
 }

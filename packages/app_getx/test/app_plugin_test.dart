@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,22 +25,6 @@ class _RecorderPlugin extends WAppPlugin {
   }
 }
 
-class _GatePlugin extends WAppPlugin {
-  _GatePlugin(this.name, this.started, this.gate);
-
-  @override
-  final String name;
-
-  final List<String> started;
-  final Completer<void> gate;
-
-  @override
-  Future<void> onInit() async {
-    started.add(name);
-    await gate.future;
-  }
-}
-
 class _BaseService {
   String get kind => 'base';
 }
@@ -53,21 +35,6 @@ class _MixinPlugin extends _BaseService with WAppPlugin {
 
   @override
   Future<void> onInit() async {}
-}
-
-class _WrapPlugin extends WAppPlugin {
-  _WrapPlugin(this.name);
-
-  @override
-  final String name;
-
-  @override
-  Widget wrapApp(Widget child) => KeyedSubtree(key: Key('wrap-$name'), child: child);
-
-  @override
-  TransitionBuilder? get builderWrapper =>
-      (context, child) =>
-          KeyedSubtree(key: Key('builder-$name'), child: child ?? const SizedBox.shrink());
 }
 
 WApp _app(List<WAppPlugin> plugins, {WAppOptions? options}) => WApp.options(
@@ -101,23 +68,7 @@ void main() {
     expect(log.indexOf('env'), lessThan(log.indexOf('service')));
   });
 
-  test('同层插件并行执行（用 Completer 证明，不依赖墙钟）', () async {
-    final started = <String>[];
-    final gate = Completer<void>();
-    final app = _app([
-      _GatePlugin('a', started, gate),
-      _GatePlugin('b', started, gate),
-    ]);
-
-    final init = app.init();
-    await Future<void>.delayed(Duration.zero);
-    expect(started, containsAll(<String>['a', 'b']));
-
-    gate.complete();
-    await init;
-  });
-
-  test('多层依赖按层串行推进', () async {
+  test('多层依赖按层推进', () async {
     final log = <String>[];
     await _app([
       _RecorderPlugin('c', log: log, dependsOn: ['b']),
@@ -164,57 +115,6 @@ void main() {
     final plugin = _MixinPlugin();
     expect(plugin.kind, 'base');
     await _app([plugin]).init();
-  });
-
-  testWidgets('wrapApp / builderWrapper 的嵌套顺序符合文档', (tester) async {
-    final app = _app(
-      [_WrapPlugin('a'), _WrapPlugin('b')],
-      options: WAppOptions(
-        title: 'test',
-        home: const Text('home'),
-        appWrapper: (child) => KeyedSubtree(key: const Key('app-wrapper'), child: child),
-        builder: (context, child) => KeyedSubtree(
-          key: const Key('options-builder'),
-          child: child ?? const SizedBox.shrink(),
-        ),
-        plugins: [_WrapPlugin('a'), _WrapPlugin('b')],
-      ),
-    );
-
-    await app.start();
-    await tester.pumpAndSettle();
-
-    // 后注册的 wrapApp 更靠外：wrap-b 是 wrap-a 的祖先。
-    expect(
-      find.ancestor(
-        of: find.byKey(const Key('wrap-a')),
-        matching: find.byKey(const Key('wrap-b')),
-      ),
-      findsOneWidget,
-    );
-    // appWrapper 位于插件 wrapApp 之内：wrap-a 是 app-wrapper 的祖先。
-    expect(
-      find.ancestor(
-        of: find.byKey(const Key('app-wrapper')),
-        matching: find.byKey(const Key('wrap-a')),
-      ),
-      findsOneWidget,
-    );
-    // options.builder 位于插件 builderWrapper 之外。
-    expect(
-      find.ancestor(
-        of: find.byKey(const Key('builder-a')),
-        matching: find.byKey(const Key('builder-b')),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.ancestor(
-        of: find.byKey(const Key('builder-b')),
-        matching: find.byKey(const Key('options-builder')),
-      ),
-      findsOneWidget,
-    );
   });
 
   testWidgets('WApp 自动追加 WRouteObserver 且不重复追加', (tester) async {

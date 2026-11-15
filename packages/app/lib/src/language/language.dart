@@ -3,62 +3,45 @@ import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
 
+import 'locale_code.dart';
 import 'locale_config.dart';
 
 /// 一个应用语言实例。
 ///
 /// 每个应用壳持有自己的实例；当前语言只有一个可写入口 [changeLanguage]。
-/// 本类不依赖 GetX；应用壳通过 [bindLocaleUpdater] 注入自己的 locale 刷新逻辑。
+/// 本类不依赖 GetX，也不持久化选择：需要恢复上次语言时，在 `start()` 之前调用
+/// [changeLanguage] 即可。
 class WLanguage {
-  WLanguage({
-    Map<String, String> supportedLanguages = const {'en_US': 'English'},
-    String currentLanguage = 'en_US',
-    String? initialLanguage,
-    String? fallbackLanguage,
-    bool explicitSelection = false,
-  }) : _supportedLanguages = Map<String, String>.unmodifiable(
-         Map<String, String>.from(supportedLanguages),
-       ) {
-    final initial = initialLanguage;
-    if (initial != null && !_supportedLanguages.containsKey(initial)) {
-      throw ArgumentError.value(
-        initial,
-        'initialLanguage',
-        '必须出现在 supportedLanguages 中',
-      );
-    }
-    final fallback = fallbackLanguage;
-    if (fallback != null && !_supportedLanguages.containsKey(fallback)) {
-      throw ArgumentError.value(
-        fallback,
-        'fallbackLanguage',
-        '必须出现在 supportedLanguages 中',
-      );
-    }
-
-    _current = ValueNotifier<String>(
-      _resolveInitial(currentLanguage, initial, fallback),
-    );
-    _explicit = explicitSelection || initial != null;
-  }
+  WLanguage._({
+    required Map<String, String> supportedLanguages,
+    required String initialLanguage,
+    required bool explicitSelection,
+  }) : _supportedLanguages = Map<String, String>.unmodifiable(supportedLanguages),
+       _current = ValueNotifier<String>(initialLanguage),
+       _explicit = explicitSelection;
 
   /// 从 [WLocaleConfig] 创建实例；配置存在即视为显式选择语言。
+  ///
+  /// 传 null 时使用默认语言 `en_US`，且不算显式选择。
   factory WLanguage.fromConfig(WLocaleConfig? config) {
-    if (config == null) return WLanguage();
-    return WLanguage(
+    if (config == null) {
+      return WLanguage._(
+        supportedLanguages: const <String, String>{'en_US': 'English'},
+        initialLanguage: 'en_US',
+        explicitSelection: false,
+      );
+    }
+    return WLanguage._(
       supportedLanguages: config.supportedLanguages,
-      currentLanguage: config.initialLanguage ?? config.supportedLanguages.keys.first,
-      initialLanguage: config.initialLanguage,
-      fallbackLanguage: config.fallbackLanguage,
+      initialLanguage: config.initialLanguage ?? config.supportedLanguages.keys.first,
       explicitSelection: true,
     );
   }
 
   final Map<String, String> _supportedLanguages;
-  late final ValueNotifier<String> _current;
+  final ValueNotifier<String> _current;
   final StreamController<String> _changes = StreamController<String>.broadcast();
-  bool _explicit = false;
-  void Function(Locale)? _onLocaleChanged;
+  bool _explicit;
 
   /// 支持的语言（只读）。
   Map<String, String> get supportedLanguages => _supportedLanguages;
@@ -89,50 +72,11 @@ class WLanguage {
 
     _current.value = languageCode;
     _changes.add(languageCode);
-    _onLocaleChanged?.call(currentLocale);
     return true;
   }
 
-  /// 绑定应用壳的 locale 刷新逻辑（由 GetX 适配层注入）。
-  void bindLocaleUpdater(void Function(Locale locale) updater) {
-    _onLocaleChanged = updater;
-  }
-
-  /// 监听语言变化；返回可取消的订阅。
-  StreamSubscription<String> listenLanguageChange(
-    void Function(String) callback,
-  ) {
-    return _changes.stream.listen(callback);
-  }
-
-  /// 把语言码解析为 [Locale]，支持 `en` / `zh_CN` / `zh_Hant_TW`。
-  static Locale localeFromCode(String languageCode) {
-    final parts = languageCode.split(RegExp(r'[_-]'));
-    if (parts.length >= 3) {
-      return Locale.fromSubtags(
-        languageCode: parts[0],
-        scriptCode: parts[1],
-        countryCode: parts[2],
-      );
-    }
-    if (parts.length == 2) {
-      return Locale.fromSubtags(
-        languageCode: parts[0],
-        countryCode: parts[1],
-      );
-    }
-    return Locale.fromSubtags(languageCode: parts[0]);
-  }
-
-  String _resolveInitial(
-    String currentLanguage,
-    String? initialLanguage,
-    String? fallbackLanguage,
-  ) {
-    if (initialLanguage != null) return initialLanguage;
-    if (_supportedLanguages.containsKey(currentLanguage)) return currentLanguage;
-    if (fallbackLanguage != null) return fallbackLanguage;
-    if (_supportedLanguages.isNotEmpty) return _supportedLanguages.keys.first;
-    return currentLanguage;
-  }
+  /// 把语言码解析为 [Locale]，支持 `en` / `zh_CN` / `zh_Hant_TW` 三种形态。
+  ///
+  /// 非法形态（例如 `en_US_POSIX`）抛 [ArgumentError]。
+  static Locale localeFromCode(String languageCode) => parseLocaleCode(languageCode);
 }

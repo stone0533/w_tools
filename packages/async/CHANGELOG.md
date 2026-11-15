@@ -2,6 +2,11 @@
 
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+## Unreleased
+
+### Changed
+- 文档注释：`WAsyncTheme` 的根装配示例改指 `WAppOptions.appWrapper`。
+
 ## 7.0.1
 
 ### Fixed

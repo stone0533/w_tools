@@ -32,7 +32,7 @@
 | `WAsyncFailure` | async | tryRun 失败结果（error / stackTrace / isProgrammingError） | 不要吞掉 stackTrace；不要把编程错误当业务失败重试 |
 | `WAsyncCancelled` | async | tryRun 取消结果（reason） | 不要把取消当失败展示；已取消请求不要自动重试 |
 | `WCancellationException` | async | run 被取消时抛出的异常（reason） | 不要用它捕获所有异常；捕获后要保留 reason |
-| `WLocaleConfig` | app | 语言支持列表、首次启动语言与回退语言（WAppOptions.localeConfig） | 不要放未在 supportedLanguages 里的语言；不要在运行时改 |
+| `WLocaleConfig` | app | 语言支持列表、启动语言与回退语言（WAppOptions.localeConfig） | 不要放未在 supportedLanguages 里的语言；不要在运行时改 |
 <!-- catalog:1:end -->
 
 ## 2. 文本与图标
@@ -46,7 +46,7 @@
 | `WImageSource` | ui | WImage 的来源：network / asset / file / base64 / provider | 不要用已删除的 WImage.network / asset / file / data，也不要用 WImageSource.parse |
 | `WImageStyle` | ui | 图片视觉：尺寸 / fit / 圆角 / 边框 / 阴影 / aspectRatio / 语义 | 占位/错误 UI 用 `WImageSlots`，加载/重试用 `WImageLoadOptions`，不要混在 style 里 |
 | `WImageLoadOptions` | ui | 图片加载行为：解码尺寸 / 重试 / gapless | 视觉样式用 `WImageStyle` |
-| `WAppPlugin` | app | 插件分层初始化 | 不要在 wrapApp 里读 Theme / MediaQuery；有顺序要求必须写 dependsOn |
+| `WAppPlugin` | app | 插件分层初始化 | 不要用插件包裹应用；需要 Theme / MediaQuery 的中间件放 WAppOptions.builder |
 | `WAppPluginRunner` | app | GetX-free 的插件注册表与 dependsOn 分层初始化 | 不要绕过 WApp.init 直接调用；WApp 内部会委托它 |
 | `WAsyncState` | async | 四态快照与 `when` | 不要手写 `ValueNotifier<WAsyncState>` |
 | `WImageTheme` | ui | App 级图片占位 / 错误 / 进度默认配置 | 不要按单图传参；单图默认值用 WImageSlots，主题只做 App 级兜底 |
@@ -88,7 +88,7 @@
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore、本地替换（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WAsyncPagedSnapshot` | async | 分页的唯一观察快照：state / footerStatus / loadMoreError / hasMore / isLoadingMore | 不要自己拼多个 ValueListenable；footer 读这个快照 |
 | `WAsyncPagedFooterStatus` | async | 分页 footer 的派生状态：hidden / loading / failed / noMore / loadMore | 不要自己用 data / loadMoreError / hasMore 拼 footer 状态 |
-| `WLanguage` | app | 实例级语言状态 / 切换 / 只读变化流 | 不要自己保存 currentLanguage；用 app.language |
+| `WLanguage` | app | 实例级语言状态 / 切换 / 只读变化流 | 不要自己保存 currentLanguage；页面用 WLanguageScope.of(context) |
 | `WButtonSize` | ui | 按钮尺寸令牌（minWidth/minHeight/padding/fontSize/iconSize/gap），映射到 ButtonStyle | 不要用它控制宽度；宽度由父布局决定；颜色 / 边框走 WButtonTheme |
 | `WPressEffect` | ui | WPressable 按压效果（opacity / scale / none） | 不要用它做 loading；只做按压反馈 |
 | `WFormThemeData` | form | 表单主题数据（icons / borderStyle + effective* 图标 getter）；`WFormThemeData.of(context)` 读取 | 不要直接构造或改字段；通过 WFormThemeData.of / WFormTheme 读取 |

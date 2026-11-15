@@ -440,7 +440,7 @@ components:
     pitfalls:
       - '静态 getter 读平台 view；树内 / 分屏 / 测试尺寸用 WScreen.of(context)'
       - 'WScreen.w/h/sp 与 delegate* 10.0 已删除；用 WScreenScope + WScreen.of(context)'
-      - '不要在 main / 顶层 final 调 .sp；放到 ScreenUtilInit.builder 或 WAppPlugin.builderWrapper'
+      - '不要在 main / 顶层 final 调 .sp；放到 ScreenUtilInit.builder 或 WAppOptions.builder'
     related: ['`WScaffold`']
     teach: true
   - name: '`WForm`'
@@ -1028,10 +1028,12 @@ components:
       await app.start();
       app.language.changeLanguage('en_US');
       app.routeStack.popUntilRoute('/');
+      // 页面里：final app = WApp.of(context);
     pitfalls:
       - 'WApp 在 w_tools_app_getx，不在 core w_tools_app'
       - 'start() / run() 只能调用一次'
       - '语言与路由栈是实例状态：app.language / app.routeStack，没有全局单例'
+      - '页面里用 WApp.of(context) / WLanguageScope.of(context)，不要保存全局 app'
     related: ['`WAppPlugin`', '`WAppOptions`', '`WLanguage`']
     teach: true
   - name: '`WAppOptions`'
@@ -1054,7 +1056,8 @@ components:
       );
     pitfalls:
       - 'home 为 null 时必须提供 initialRoute + getPages'
-      - 'start() 只覆盖 initialRoute / getPages / builder / navigatorObservers / defaultTransition / theme / translations / locale / fallbackLocale；其余字段只能放 WAppOptions'
+      - '语言只在 localeConfig 声明；start() 不再接受 locale / fallbackLocale'
+      - 'start() 只覆盖 initialRoute / getPages / builder / navigatorObservers / defaultTransition / theme / translations；其余字段只能放 WAppOptions'
       - '外观统一放 WAppTheme；不要往 WAppOptions 加视觉字段'
     related: ['`WApp`', '`WAppTheme`', '`WLocaleConfig`']
     teach: true
@@ -1073,7 +1076,7 @@ components:
       )
     pitfalls:
       - '通过 WAppOptions.theme 传入；不是 Widget'
-      - '默认透明状态栏 + 黑色导航栏；显式 systemUiOverlayStyle: null 关闭'
+      - '默认不干预系统栏；需要时显式传 systemUiOverlayStyle'
     related: ['`WAppOptions`', '`WApp`']
     teach: false
   - name: '`WAppPlugin`'
@@ -1081,7 +1084,7 @@ components:
     docsAnchor: '2-wappplugin---插件接口'
     section: '2. WAppPlugin - 插件接口'
     useFor: '插件分层初始化'
-    dontUseFor: '不要在 wrapApp 里读 Theme / MediaQuery；有顺序要求必须写 dependsOn'
+    dontUseFor: '不要用插件包裹应用；需要 Theme / MediaQuery 的中间件放 WAppOptions.builder'
     usage: |
       class EnvPlugin extends WAppPlugin {
         @override String get name => 'env';
@@ -1093,9 +1096,9 @@ components:
         @override Future<void> onInit() async { ... }
       }
     pitfalls:
-      - '有顺序要求必须写 dependsOn，不能依赖注册顺序'
-      - 'onInit 抛错会中断启动（fail-fast）'
-      - 'wrapApp 在 MaterialApp 外，没有 Theme / MediaQuery'
+      - '有顺序要求必须写 dependsOn；同层按注册顺序串行'
+      - 'onInit 抛错会中断本次 init；重试跳过已成功插件'
+      - '插件没有 builderWrapper / wrapApp；全局包裹用 WAppOptions.builder / appWrapper'
     related: ['`WApp`', '`WAppPluginRunner`']
     teach: true
   - name: '`WAppPluginRunner`'
@@ -1110,7 +1113,7 @@ components:
     pitfalls:
       - '插件 name 必须唯一'
       - 'dependsOn 必须引用已注册插件；循环依赖会抛 StateError'
-      - 'init 之后不可增删插件'
+      - '插件列表构造时确定；没有 addPlugin / removePlugin'
     related: ['`WAppPlugin`', '`WApp`']
     teach: true
   - name: '`WAsyncState`'
@@ -1483,14 +1486,18 @@ components:
     docsAnchor: '3-wlanguage---语言管理'
     section: '3. WLanguage - 语言管理'
     useFor: '实例级语言状态 / 切换 / 只读变化流'
-    dontUseFor: '不要自己保存 currentLanguage；用 app.language'
+    dontUseFor: '不要自己保存 currentLanguage；页面用 WLanguageScope.of(context)'
     usage: |
-      app.language.changeLanguage('zh_CN');
-      app.language.languageChanges.listen((code) { ... });
-      app.language.languageListenable; // ValueListenable
+      final language = WLanguageScope.of(context);
+      language.changeLanguage('zh_CN');
+      language.languageChanges.listen((code) { ... });
+      language.languageListenable; // ValueListenable
     pitfalls:
-      - '不再有全局单例；每个 WApp 持有自己的 app.language'
+      - '不再有全局单例；每个 App 持有自己的 app.language'
+      - 'WApp.run 会自动插入 WLanguageScope；页面用 WLanguageScope.of(context) 读取'
       - '未在 supportedLanguages 中的语言会被拒绝并返回 false'
+      - '没有公开构造函数：用 WLanguage.fromConfig(WLocaleConfig?) 或 app.language'
+      - '语言不持久化；恢复上次选择在 start() 之前 changeLanguage(saved)'
     related: ['`WLocaleConfig`', '`WApp`']
     teach: false
   - name: '`WRouteObserver`'
@@ -2193,7 +2200,7 @@ components:
     package: 'w_tools_app'
     docsAnchor: 'wappoptions-字段'
     section: '1. WApp - 启动器'
-    useFor: '语言支持列表、首次启动语言与回退语言（WAppOptions.localeConfig）'
+    useFor: '语言支持列表、启动语言与回退语言（WAppOptions.localeConfig）'
     dontUseFor: '不要放未在 supportedLanguages 里的语言；不要在运行时改'
     usage: |
       WLocaleConfig(
@@ -2203,5 +2210,6 @@ components:
       )
     pitfalls:
       - 'initialLanguage / fallbackLanguage 必须出现在 supportedLanguages 中'
+      - '语言码只接受 lang / lang_COUNTRY / lang_Script_COUNTRY；非法码抛 ArgumentError'
     related: ['`WAppOptions`', '`WLanguage`']
     teach: false

@@ -1609,8 +1609,8 @@ const String agentsApi = r'''
 
 const String agentsApp = r'''
 - **启动 / 插件**（`explain WApp`）：`WApp.options(WAppOptions(...)).start()`；插件 `WAppPlugin` + `dependsOn`，
-  非 GetX 用 `WAppPluginRunner`；语言 `WLanguage` / `WLocaleConfig`；路由栈 `WRouteStack`（`app.routeStack`）；
-  外观 `WAppTheme`；底部面板 `WBottomSheet`。
+  非 GetX 用 `WAppPluginRunner`；语言 `WLanguage` / `WLocaleConfig`（页面用 `WLanguageScope.of(context)`）；
+  路由栈 `WRouteStack`（页面用 `WApp.of(context).routeStack`）；外观 `WAppTheme`；底部面板 `WBottomSheet`。
   插件里注册服务用 `registerService(() => Svc().init())`；`Future<void> onInit() => Get.putAsync(...)`
   会把泛型推成 `void`，实例注册到 `void` 下，`Get.find` 找不到且 analyzer 不报。
 ''';
@@ -1733,8 +1733,8 @@ const String agentsApiEn = r'''
 const String agentsAppEn = r'''
 - **Startup / plugins** (`explain WApp`): `WApp.options(WAppOptions(...)).start()`; plugins implement
   `WAppPlugin` and declare `dependsOn`; `WAppPluginRunner` for non-GetX shells; language via
-  `WLanguage` / `WLocaleConfig`; route stack via `WRouteStack` (`app.routeStack`); appearance via
-  `WAppTheme`; bottom sheets via `WBottomSheet`.
+  `WLanguage` / `WLocaleConfig` (pages use `WLanguageScope.of(context)`); route stack via `WRouteStack`
+  (pages use `WApp.of(context).routeStack`); appearance via `WAppTheme`; bottom sheets via `WBottomSheet`.
   Register services with `registerService(() => Svc().init())`; `Future<void> onInit() => Get.putAsync(...)`
   infers the generic as `void`, the instance lands under `void`, and `Get.find` misses it without an analyzer error.
 ''';

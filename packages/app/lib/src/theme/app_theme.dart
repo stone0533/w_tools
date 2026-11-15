@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const SystemUiOverlayStyle _defaultSystemUiOverlayStyle = SystemUiOverlayStyle(
-  statusBarColor: Colors.transparent,
-  statusBarBrightness: Brightness.dark,
-  systemNavigationBarColor: Colors.black,
-  systemNavigationBarIconBrightness: Brightness.light,
-);
-
 /// 应用外观配置：亮/暗主题、主题模式与系统 UI 样式。
 ///
 /// 这是应用级的外观值对象，不属于组件 `Options`；`WAppOptions.theme` 使用它。
@@ -17,38 +10,23 @@ class WAppTheme {
     this.light,
     this.dark,
     this.mode = ThemeMode.system,
-    this.systemUiOverlayStyle = _defaultSystemUiOverlayStyle,
+    this.systemUiOverlayStyle,
   });
 
-  /// 亮色主题；为 null 时使用 `GetMaterialApp` 默认值。
+  /// 亮色主题；为 null 时不覆盖应用壳的默认主题。
   final ThemeData? light;
 
-  /// 暗色主题；为 null 时使用 `GetMaterialApp` 默认值。
+  /// 暗色主题；为 null 时不覆盖应用壳的默认主题。
   final ThemeData? dark;
 
   /// 主题模式，默认跟随系统。
   final ThemeMode mode;
 
-  /// 系统 UI 样式；默认透明状态栏，显式传 null 时不主动干预。
+  /// 系统 UI 样式；默认 null，不主动设置系统栏。
+  ///
+  /// 需要固定状态栏 / 导航栏样式时显式传入，例如
+  /// `SystemUiOverlayStyle(statusBarColor: Colors.transparent)`。
   final SystemUiOverlayStyle? systemUiOverlayStyle;
-
-  static const Object _unset = Object();
-
-  WAppTheme copyWith({
-    Object? light = _unset,
-    Object? dark = _unset,
-    ThemeMode? mode,
-    Object? systemUiOverlayStyle = _unset,
-  }) {
-    return WAppTheme(
-      light: identical(light, _unset) ? this.light : light as ThemeData?,
-      dark: identical(dark, _unset) ? this.dark : dark as ThemeData?,
-      mode: mode ?? this.mode,
-      systemUiOverlayStyle: identical(systemUiOverlayStyle, _unset)
-          ? this.systemUiOverlayStyle
-          : systemUiOverlayStyle as SystemUiOverlayStyle?,
-    );
-  }
 
   @override
   bool operator ==(Object other) {

@@ -38,4 +38,12 @@ packages:
 
 # 新增公开类型必须在这里登记，并指向真正的 ADR；`until` 到期后例外失效。
 # 新类型进入已发布快照后，删掉对应条目（脚本会对过期条目告警）。
-exceptions: []
+exceptions:
+  - package: app
+    type: WLanguageScope
+    adr: docs/adr/0012-app-tree-scopes.md
+    until: 5.0.0
+  - package: app_getx
+    type: WAppScope
+    adr: docs/adr/0012-app-tree-scopes.md
+    until: 5.0.0

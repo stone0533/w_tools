@@ -804,7 +804,7 @@ G. 维护与发布
 | ui | WImage 尺寸/来源、WText variant、WScaffold/WAppBar、WButton/WPressable、WListView、WScreen |
 | form | WForm/WFormController 生命周期、validator、readOnly、border、字段矩阵、WFormPopup |
 | async | 四态、分页 loadMore/loadMoreError、刷新、取消、WAsyncTheme、sliver |
-| app / app_getx | 启动顺序、插件 dependsOn、wrapApp/builderWrapper、路由、语言、底部弹窗 |
+| app / app_getx | 启动顺序、插件 dependsOn、builder/appWrapper、WApp.of / WLanguageScope、路由、语言、底部弹窗 |
 | core | WStorage.init 前置、明文存储边界、WEncrypt AES-CBC 无完整性、WValidator/WRegExp、WLogger |
 | api | WApiSettings + DioRegistry.forBaseUrl 单例与 dispose、WToken 注入、WLogInterceptor 职责边界 |
 | toast | BotToastInit / BotToastNavigatorObserver 挂载、WToast.showXxx、样式覆盖 |

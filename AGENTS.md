@@ -241,9 +241,10 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 
 ## 启动与主题（跨包）
 
-- 不要在 `main()` / 顶层 `final` 计算 `.sp`；在 `ScreenUtilInit.builder` 或 `WAppPlugin.builderWrapper` 的 build 期构建。
-- `WAppPlugin.wrapApp` 在 MaterialApp 外，没有 Theme / MediaQuery；需要 Theme 用 `builderWrapper`。
-- `WAsyncTheme` 只存 builder，可放 `wrapApp`。
+- 不要在 `main()` / 顶层 `final` 计算 `.sp`；在 `ScreenUtilInit.builder` 或 `WAppOptions.builder` 的 build 期构建。
+- `WAppOptions.appWrapper` 在 MaterialApp 外，没有 Theme / MediaQuery；需要 Theme 用 `WAppOptions.builder`。
+- `WAsyncTheme` 只存 builder，可放 `WAppOptions.appWrapper`。
+- 页面内读语言 / 应用实例用 `WLanguageScope.of(context)` / `WApp.of(context)`；不要保存全局 `app`。
 
 > 组件目录由 [`catalog/components.yaml`](packages/cli/catalog/components.yaml) 生成；
 > README / example 是该包的用户事实源与可运行场景。

@@ -34,6 +34,21 @@ class _BlockingPlugin extends WAppPlugin {
   }
 }
 
+class _FlakyPlugin extends WAppPlugin {
+  _FlakyPlugin(this.name);
+
+  @override
+  final String name;
+
+  int attempts = 0;
+
+  @override
+  Future<void> onInit() async {
+    attempts++;
+    if (attempts == 1) throw StateError('boom');
+  }
+}
+
 WApp _app({
   List<WAppPlugin> plugins = const [],
   WAppOptions? options,
@@ -112,14 +127,20 @@ void main() {
     expect(() => app.run(), throwsA(isA<StateError>()));
   });
 
-  test('init 之后修改插件列表抛 StateError', () async {
-    final app = _app();
-    await app.init();
+  test('init 失败后可重试，已成功插件不重复执行', () async {
+    final success = _CountingPlugin('a');
+    final flaky = _FlakyPlugin('b');
+    final app = _app(plugins: [success, flaky]);
 
-    expect(() => app.addPlugin(_CountingPlugin('p')), throwsA(isA<StateError>()));
-    expect(() => app.addPlugins([_CountingPlugin('p')]), throwsA(isA<StateError>()));
-    expect(() => app.removePlugin('p'), throwsA(isA<StateError>()));
-    expect(() => app.clearPlugins(), throwsA(isA<StateError>()));
+    await expectLater(app.init(), throwsA(isA<StateError>()));
+    expect(success.initCount, 1);
+    expect(flaky.attempts, 1);
+    expect(app.isInitialized, isFalse);
+
+    await app.init();
+    expect(success.initCount, 1);
+    expect(flaky.attempts, 2);
+    expect(app.isInitialized, isTrue);
   });
 
   test('customTasks 在 init 内并行执行', () async {
@@ -211,6 +232,42 @@ void main() {
 
     expect(resolved.languageCode, 'zh');
     expect(resolved.countryCode, 'CN');
+  });
+
+  testWidgets('localeConfig.fallbackLanguage 映射为 GetX fallbackLocale', (tester) async {
+    final app = WApp.options(
+      WAppOptions(
+        title: 'test',
+        home: const SizedBox.shrink(),
+        localeConfig: WLocaleConfig(
+          supportedLanguages: const {'en_US': 'English', 'zh_CN': '简体中文'},
+          initialLanguage: 'zh_CN',
+          fallbackLanguage: 'en_US',
+        ),
+      ),
+    );
+
+    await app.start();
+    await tester.pump();
+
+    final materialApp = tester.widget<GetMaterialApp>(find.byType(GetMaterialApp));
+    expect(materialApp.fallbackLocale, const Locale('en', 'US'));
+  });
+
+  test('supportedLocales 不包含当前语言时 run 抛 StateError', () async {
+    final app = WApp.options(
+      WAppOptions(
+        title: 'test',
+        home: const SizedBox.shrink(),
+        localeConfig: WLocaleConfig(
+          supportedLanguages: const {'zh_CN': '简体中文'},
+        ),
+        supportedLocales: const <Locale>[Locale('en', 'US')],
+      ),
+    );
+
+    await app.init();
+    expect(() => app.run(), throwsStateError);
   });
 
   test('WApp 的语言与路由栈是实例状态', () {

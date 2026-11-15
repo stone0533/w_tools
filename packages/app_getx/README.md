@@ -10,9 +10,9 @@
 ## 特性
 
 - **一站式启动**：`app.start()` = `init()` + `run()`；入口是 `WApp.options(...)`
-- **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层并行、跨层串行）
+- **插件体系**：`WAppPlugin` 支持 `dependsOn` 分层初始化（同层按注册顺序串行）
 - **实例级状态**：`app.language` / `app.routeStack`，没有全局单例
-- **语言切换**：`WLanguage` + `WLocaleConfig`（来自 `w_tools_app`，支持初始化/回退语言）
+- **语言切换**：`WLanguage` + `WLocaleConfig`（来自 `w_tools_app`）
 - **路由工具**：`WRouteStack` / `WRouteObserver` 记录与操作 GetX 路由
 - **底部弹窗**：`WBottomSheet.show()`
 
@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_app_getx: ^2.1.1
+  w_tools_app_getx: ^3.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -66,6 +66,10 @@ final app = WApp.options(
 await app.start();
 ```
 
+插件负责初始化（以及可选的 `navigatorObservers`）；需要包裹整个应用时用
+`WAppOptions.appWrapper`，需要在 MaterialApp 内部插入 Theme / MediaQuery 时用
+`WAppOptions.builder`。
+
 ### 在插件里注册服务
 
 `onInit` 返回 `Future<void>`：直接用箭头写 `Get.putAsync(...)` 会让泛型 `S` 被推成
@@ -94,10 +98,13 @@ start()  = init() + run()，只调用一次
 run()    通常由 start 调用；只能调用一次
 ```
 
-初始化失败时 `isInitialized` 保持 false；再次调用 `init()` 会重新执行插件 `onInit`。
-`init` 之后再修改插件列表会抛 `StateError`。
+初始化失败时 `isInitialized` 保持 false；再次调用 `init()` 会从失败点继续：已经成功的
+插件不会重复执行，`customTasks` 会重新执行。插件列表在 `WAppOptions.plugins` 声明，
+`init` 之后不再允许修改。
 
 ## 语言
+
+语言只通过 `WLocaleConfig` 声明：
 
 ```dart
 final app = WApp.options(
@@ -106,8 +113,8 @@ final app = WApp.options(
     home: const HomePage(),
     localeConfig: WLocaleConfig(
       supportedLanguages: {'zh_CN': '简体中文', 'en_US': 'English'},
-      initialLanguage: 'zh_CN',   // 首次启动语言
-      fallbackLanguage: 'en_US',  // 当前语言不受支持时回退
+      initialLanguage: 'zh_CN',   // 启动语言
+      fallbackLanguage: 'en_US',  // GetX 翻译缺失时的回退
     ),
   ),
 );
@@ -119,18 +126,41 @@ app.language.languageChanges.listen((code) {
 });
 ```
 
+`WAppOptions.supportedLocales` 只用于显式覆盖 Flutter 本地化列表，默认从
+`localeConfig` 派生；当前语言不在列表内时 `run()` 抛 `StateError`。语言不会持久化，
+要恢复上次选择，在 `start()` 之前调用 `app.language.changeLanguage(saved)`。
+
+页面里用 `WLanguageScope.of(context)` 读取语言，用 `WApp.of(context)` 读取应用实例：
+
+```dart
+final language = WLanguageScope.of(context);
+final app = WApp.of(context);
+app.routeStack.routes;
+```
+
+## 包裹顺序
+
+```text
+WAppOptions.appWrapper（MaterialApp 外，没有 Theme / MediaQuery）
+  → GetMaterialApp
+    → WAppOptions.builder（MaterialApp 内，可用 Theme / MediaQuery）
+      → 页面
+```
+
+插件不再提供 `builderWrapper` / `wrapApp`；需要 Theme 的全局中间件放 `builder`。
+
 ## 路由
 
 ```dart
-// WApp 自动维护 app.routeStack，不需要手动添加 WRouteObserver
+// 页面里：WApp 自动维护 routeStack，不需要手动添加 WRouteObserver
+final app = WApp.of(context);
 app.routeStack.popUntilRoute('/home');
 app.routeStack.routes;
 
 final result = await WBottomSheet.show<String>(const MySheetContent());
 ```
 
-`appWrapper` 在 MaterialApp 外（没有 Theme / MediaQuery）；需要 Theme 的插件生命周期用
-`builderWrapper`。完整示例见 [`example/`](example/) 的插件顺序、语言、路由栈与底部弹窗页面。
+完整示例见 [`example/`](example/) 的插件顺序、语言、路由栈与底部弹窗页面。
 
 ## 主要 API
 
@@ -139,6 +169,7 @@ final result = await WBottomSheet.show<String>(const MySheetContent());
 | 应用启动 | `WApp` / `app.start()` |
 | 插件契约 | `WAppPlugin` / `WAppPlugin.dependsOn` |
 | 应用配置 | `WAppOptions` / `WLocaleConfig` |
+| 页面内访问 | `WApp.of(context)` / `WLanguageScope.of(context)` |
 | 应用外观 | `WAppTheme`（来自 `w_tools_app`） |
 | 语言 | `app.language`（`WLanguage`，来自 `w_tools_app`） |
 | 路由 | `app.routeStack` / `WRouteObserver` |
@@ -150,8 +181,8 @@ final result = await WBottomSheet.show<String>(const MySheetContent());
 
 ## 历史迁移
 
-从 1.x 升级先看 [`docs/migrations/app_getx-2.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/app_getx-2.0.md)：
-`WAppConfig` / `WRouteStack.defaultStack` / 全局 `WLanguage()` 已移除。
+从 2.x 升级先看 [`docs/migrations/app_getx-3.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/app_getx-3.0.md)：
+语言只留 `localeConfig`、插件只在 options 声明、包裹回到字段版。
 
 ## License
 

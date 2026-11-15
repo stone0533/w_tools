@@ -5,38 +5,23 @@ import 'app_plugin.dart';
 /// `WAppPlugin` 的注册表与分层初始化器。
 ///
 /// 只负责插件依赖图与生命周期，不依赖 GetX；任何应用壳都可以复用它。
+/// 插件列表在构造时确定，[init] 之后不再修改。
 class WAppPluginRunner {
   WAppPluginRunner([Iterable<WAppPlugin> plugins = const []]) : _plugins = <WAppPlugin>[...plugins];
 
   final List<WAppPlugin> _plugins;
+  final Set<String> _completed = <String>{};
   bool _initialized = false;
 
   /// 已注册插件（只读视图）。
   List<WAppPlugin> get plugins => UnmodifiableListView<WAppPlugin>(_plugins);
 
-  void addPlugin(WAppPlugin plugin) {
-    _ensureEditable('addPlugin');
-    _plugins.add(plugin);
-  }
-
-  void addPlugins(Iterable<WAppPlugin> plugins) {
-    _ensureEditable('addPlugins');
-    _plugins.addAll(plugins);
-  }
-
-  void removePlugin(String name) {
-    _ensureEditable('removePlugin');
-    _plugins.removeWhere((plugin) => plugin.name == name);
-  }
-
-  void clearPlugins() {
-    _ensureEditable('clearPlugins');
-    _plugins.clear();
-  }
-
   /// 按 [WAppPlugin.dependsOn] 分层执行 [WAppPlugin.onInit]。
   ///
-  /// 同层并行、跨层串行；插件 name 重复、依赖未注册、循环依赖时抛 [StateError]。
+  /// 同层按注册顺序串行、跨层串行；某个 onInit 抛错会立即中断本次 init。
+  /// 插件 name 重复、依赖未注册、循环依赖时抛 [StateError]。
+  ///
+  /// 失败后可以重试：已经成功的插件不会重复执行，从失败点继续。
   Future<void> init() async {
     if (_initialized) return;
     if (_plugins.isEmpty) {
@@ -59,8 +44,8 @@ class WAppPluginRunner {
       }
     }
 
-    final done = <String>{};
-    final pending = <WAppPlugin>[..._plugins];
+    final done = <String>{..._completed};
+    final pending = _plugins.where((plugin) => !done.contains(plugin.name)).toList();
 
     while (pending.isNotEmpty) {
       final ready = pending
@@ -72,17 +57,15 @@ class WAppPluginRunner {
         );
       }
 
-      await Future.wait(ready.map((plugin) => plugin.onInit()));
-      done.addAll(ready.map((plugin) => plugin.name));
-      pending.removeWhere(ready.contains);
+      for (final plugin in ready) {
+        await plugin.onInit();
+        _completed.add(plugin.name);
+        done.add(plugin.name);
+      }
+
+      pending.removeWhere((plugin) => done.contains(plugin.name));
     }
 
     _initialized = true;
-  }
-
-  void _ensureEditable(String action) {
-    if (_initialized) {
-      throw StateError('$action() 必须在 init() 之前调用');
-    }
   }
 }
