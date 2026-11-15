@@ -1,5 +1,5 @@
 // 由 tool/gen_catalog.dart 生成，不要手改。
-// 来源：catalog/components.yaml（唯一来源）。
+// 来源：catalog/components.yaml + catalog/capabilities.yaml（唯一来源）。
 //
 // dart format off
 import 'catalog_entry.dart';
@@ -2248,4 +2248,17 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     teach: false,
   ),
 ];
+
+/// context.capabilities 的摘要；只收消费入口包。
+const Map<String, String> catalogCapabilitySummaries = <String, String>{
+  "w_tools_core": "WStorage / WToken / WValidator / WLogger",
+  "w_tools_async": "WAsyncController + WAsyncView；纯执行 WAsync.tryRun/run",
+  "w_tools_ui": "WText / WImage / WButton / WScaffold",
+  "w_tools_form": "WForm + 直接字段（WFormTextField 等）",
+  "w_tools_api": "WApiSettings + DioRegistry + WLogInterceptor",
+  "w_tools_toast": "WToast.showXxx + WToastStyle",
+  "w_tools_app_getx": "WApp + WAppPlugin + GetX 路由",
+  "w_tools_map_google": "WMap + WMapZone",
+  "w_tools_qr": "WQrView + WQrController（重扫 restart）",
+};
 

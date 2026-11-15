@@ -49,8 +49,8 @@ dart run w_tools_cli:w_tools doctor       # 0 error 才算接入完成
 | 把 w_tools 依赖抬到 pub 最新 | `upgrade`；只看不写 / CI 用 `upgrade --check`（有落后 exit 1） |
 | 记录 w_tools 问题 | `feedback search` 查重 → `feedback submit --package=<包>`；默认路由：本地台账 → Issue → 跳过（exit 4）；ledger 默认拒绝重复，确认重复加 `--allow-duplicate` |
 
-所有命令统一走 dispatcher：`dart run w_tools_cli:w_tools <command> --help`
-（`w_tools_cli:init` 这类兼容入口仍保留，但新文档统一写 dispatcher 形式）。
+所有命令统一走 dispatcher：`dart run w_tools_cli:w_tools <command> --help`。
+`bin/` 只保留 `w_tools.dart`；命令实现在 `lib/src/<命令>/command.dart`，没有 `w_tools_cli:<command>` 兼容入口。
 
 ## AI 闭环
 
@@ -63,7 +63,6 @@ dart run w_tools_cli:w_tools explain WFormDropdown     # 3. 用法/反例/import
 dart run w_tools_cli:w_tools doctor --format=json  # 4. 写完自检
 
 # 被 w_tools 卡住 / 有改进建议（默认关闭，先看 feedback.enabled）：
-dart run w_tools_cli:w_tools feedback status --json                  # 通道：ledger / issue / disabled
 dart run w_tools_cli:w_tools feedback search "关键词" --package=<包>
 dart run w_tools_cli:w_tools feedback submit --template > /tmp/feedback.md   # 可选：打印骨架
 dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" --body-file=/tmp/feedback.md
@@ -86,12 +85,10 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
   失败会还原 pubspec 并 exit 2；查最新走 `PUB_HOSTED_URL`（默认 pub.dev），不可达 exit 3。
 - `upgrade` 抬了 `w_tools_cli` 之后要**用新版本重跑** `init`（`upgrade` 会打印 next）；
   旧 CLI 现场跑 `init` 会刷出旧模板，R8 照样红。
-- `feedback path` 只返回**真实可写**的台账路径（仓库自身或本机 w_tools 检出）；两者都没有时明确提示未启用，
-  不返回旧的本地收件箱。
 - `feedback search --gh` 在 `gh` 未安装 / 未登录时退出 `3`，且不返回本地结果；
   只想查本地台账时去掉 `--gh`。
 - `feedback` 是记录 **w_tools 本身**的问题，不是业务代码问题。
-- **通道只有一套判定**（`submit` / `status` / `path` / `search` / `lint` 共用）：
+- **通道只有一套判定**（`submit` / `search` 共用）：
   1. 项目根是 w_tools 仓库 → 写该仓库 `docs/feedback/` 并更新索引（维护者默认，不读开关）；
   2. `feedback.enabled: true` 且本机解析到 w_tools 仓库检出（path / git 依赖）→ 写**那个仓库**的台账，
      **不建 Issue**（本地优先）；
@@ -101,11 +98,6 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
 - `feedback.enabled` 默认 `false`；旧键 `feedback.issue` 仍兼容（`enabled` 优先）。
 - 仓库 clone 在别处（依赖解析不到）时用 `feedback.ledger: <路径>` 显式指过去；指向的不是
   w_tools 仓库会在 stderr 提示一次并忽略，不会静默写错地方。
-- `feedback.max_issues_per_day`（默认 5，0 = 不限）只约束**公开 Issue**：CLI 没有会话概念，
-  用日额度兜住「一次会话 3–5 条」；额度耗尽 exit 2，本地台账不占额度。计数在
-  `.w_tools/feedback_budget.json`（删了即归零，跨天自动重置）。
-  `feedback status`（text / `--json`）会显示 date / used / max / remaining / 预算文件路径；
-  额度错误也会给出配置键路径、默认值 5、预算文件路径和 `--ledger` 替代。
 - 从消费方写本机 w_tools 检出时会在 stderr 提醒「工作区会变脏」，提交前要 commit / discard。
 - **开关是硬门禁**：未开启时 `--issue` 不绕过（exit 2）；本机有台账时 `--issue` 才是「明确要公开提 issue」的覆盖。
 - 本机没有台账时 `search` 查不到东西，会提示加 `--gh` 搜 GitHub issues。
@@ -121,7 +113,6 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
 | `init --check` 一直失败 | 文件缺失或 drift；按输出运行 `init` / `init --force` |
 | toast 全部静默 | 没挂 `BotToastInit()` / `BotToastNavigatorObserver()`；见 [toast.md](toast.md) |
 | 反馈没有提交（exit 4） | 默认关闭：仓库内用 `--ledger`；消费方在 `.w_tools_doctor.yaml` 开 `feedback.enabled: true`；未开启时 `--issue` 也会 exit 2 |
-| 不确定当前通道 | `dart run w_tools_cli:w_tools feedback status --json` |
 | 不想保留上次选择 | `init --reset` |
 
 ## 维护者
@@ -133,6 +124,13 @@ cd packages/cli
 dart run tool/gen_templates.dart
 dart run tool/gen_catalog.dart
 dart test
+```
+
+反馈台账（`docs/feedback/`）自检是维护者工具，不在 CLI 子命令里：
+
+```bash
+bash scripts/check_feedback.sh
+# 等价于：cd packages/cli && dart run tool/feedback_lint.dart --root ../.. --stale-days=30
 ```
 
 详见 [packages/cli/README.md](../../packages/cli/README.md)。

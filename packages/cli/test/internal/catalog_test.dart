@@ -15,6 +15,21 @@ void main() {
     );
   });
 
+  test('capabilities 覆盖且只覆盖消费入口包', () {
+    expect(capabilitySummaries.keys.toSet(), <String>{
+      'w_tools_core',
+      'w_tools_async',
+      'w_tools_ui',
+      'w_tools_form',
+      'w_tools_api',
+      'w_tools_toast',
+      'w_tools_app_getx',
+      'w_tools_map_google',
+      'w_tools_qr',
+    });
+    expect(capabilitySummaries['w_tools_async'], contains('WAsyncController'));
+  });
+
   test('别名唯一，能按名字精确查找', () {
     final seen = <String>{};
     for (final entry in catalog) {

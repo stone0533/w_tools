@@ -63,6 +63,25 @@
         "type": "string"
       }
     },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "package",
+          "summary"
+        ],
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
     "toolkit": {
       "type": "object",
       "additionalProperties": true,

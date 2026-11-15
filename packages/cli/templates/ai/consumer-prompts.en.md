@@ -553,13 +553,6 @@ I provide:
 ```text
 Task: record what blocked you in w_tools (or a capability suggestion) as one feedback entry.
 
-Run `dart run w_tools_cli:w_tools feedback status --json` first and read channel:
-- disabled -> stop: tell me "the project has not enabled feedback" and how to enable it (`enabled: true`
-  under `feedback:` in .w_tools_doctor.yaml, i.e. `feedback.enabled: true`), then rerun status;
-  do not submit, and do not pass --issue;
-- ledger / issue -> continue.
-
-Then:
 1. Search first: `dart run w_tools_cli:w_tools feedback search "<keyword>" --package=<package>`
    If the same problem exists, give me the file:line or issue number; do not submit a duplicate;
 2. Write the body with the fixed fields (missing fields are rejected); show me the draft first:
@@ -573,8 +566,10 @@ Then:
    - repro data: minimal demo / log excerpt, redacted first
    Save it as /tmp/w_tools_feedback.md;
 3. Submit: `dart run w_tools_cli:w_tools feedback submit --package=<package> --title="<symptom>" --body-file=/tmp/w_tools_feedback.md`
-   Default route: a local w_tools checkout -> its docs/feedback/; otherwise a GitHub Issue;
-   neither -> exit 4 and nothing is written.
+   Use the exit code: 0 = written to the ledger / issue created; 4 = feedback is disabled for the project
+   (nothing was written), stop and tell me how to enable it (`enabled: true` under `feedback:` in
+   .w_tools_doctor.yaml, i.e. `feedback.enabled: true`), do not treat it as success and do not add --issue; 2 = bad args/switch;
+   3 = gh unavailable.
 
 Do not:
 - add --issue unless I explicitly ask for a public issue;

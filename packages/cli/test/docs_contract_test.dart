@@ -7,7 +7,7 @@ void main() {
   test('DOC-003 feedback --help 说明 --gh 不可用时退出 3 且只查本地', () {
     final result = Process.runSync(
       Platform.resolvedExecutable,
-      <String>['run', 'bin/feedback.dart', '--help'],
+      <String>['run', 'bin/w_tools.dart', 'feedback', '--help'],
       workingDirectory: Directory.current.path,
     );
     expect(result.exitCode, 0, reason: '${result.stderr}');
@@ -26,7 +26,7 @@ void main() {
   test('DOC-005 doctor --write-config help/docs 与“已存在报错”行为一致', () {
     final result = Process.runSync(
       Platform.resolvedExecutable,
-      <String>['run', 'bin/doctor.dart', '--help'],
+      <String>['run', 'bin/w_tools.dart', 'doctor', '--help'],
       workingDirectory: Directory.current.path,
     );
     expect(result.exitCode, 0, reason: '${result.stderr}');
@@ -40,7 +40,7 @@ void main() {
   test('DOC-006 doctor --write-config 说明 .bak 轮转', () {
     final result = Process.runSync(
       Platform.resolvedExecutable,
-      <String>['run', 'bin/doctor.dart', '--help'],
+      <String>['run', 'bin/w_tools.dart', 'doctor', '--help'],
       workingDirectory: Directory.current.path,
     );
     expect(result.exitCode, 0, reason: '${result.stderr}');

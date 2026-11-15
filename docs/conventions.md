@@ -93,10 +93,13 @@ doctor 检查项：
 | R3 | warn | 业务层硬编码语义色（**调色板默认空**，需声明 `colors.palette`；项目 UI / 暂存层豁免） |
 | R4 | error | 设计系统（`lib/app/ui/`、暂存层）import 了 `data/` / `modules/` / `routes/` / `services/` |
 | R5 | warn | 暂存层文件缺 `// STAGED:` 标记 |
-| R6 | warn | 禁用单位 `.h` / `.r`（**项目专用，默认关**，配置 `rules.R6: true` 打开） |
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致（导出未依赖 / 依赖未导出） |
-| R8 | warn | 生成物由旧版 `w_tools_cli` 生成（检查 toolkit、target 文件与 `.w_tools/AI_PROMPTS.md`；UI starter 可自定义，不检查；版本标记与 `pubspec.lock` 不一致） |
+| R8 | warn | 生成物由旧版 `w_tools_cli` 生成（检查 toolkit、target 文件与 `.w_tools/AI_PROMPTS.md`；UI starter 可自定义，不检查；有 `.w_tools/init.json` 时按内容比对，没有 manifest 时退回版本标记比对） |
 | R9 | 配置 | 项目禁用 API（`.w_tools_doctor.yaml` 的 `banned`；默认空，命中按条目 level 报） |
+
+R6（禁用单位 `.h` / `.r`）已移除：这类**项目专用**规范改用 R9 的 `banned`（`mode: regex`）表达，
+不再有专用规则与配置键。配置里残留 `rules.R6` / `feedback.max_issues_per_day` 时，
+`doctor` / `init` 会输出迁移提示（不再静默忽略）。
 
 本节是 R1~R9 的**规则细节唯一来源**；[`packages/cli/README.md`](../packages/cli/README.md) 的表格
 是给 pub.dev 读者的简版。新增或修改规则时先改这里，再同步包 README 与 `doctor --print-config` 的输出；
@@ -121,7 +124,7 @@ dart run w_tools_cli:w_tools doctor --write-config    # 写到 .w_tools_doctor.y
 ```
 
 `init` 也会顺手生成这个文件（带注释的默认配置，值与内置默认一致）。
-常见调整：`colors.palette` 填项目语义色（不填则 R3 跳过）、`rules.R6: true` 打开禁用单位检查；
+常见调整：`colors.palette` 填项目语义色（不填则 R3 跳过）、`rules.R2: false` 关闭某条规则；
 `ai.figma: auto` 让 `init` 根据 pubspec 是否依赖 `w_tools_figma` 自动生成 Figma 片段（也可设 true/false）；
 
 ### 项目禁用 API（R9）

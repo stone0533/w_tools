@@ -28,7 +28,7 @@ class DoctorConfig {
     this.aiFigma = 'auto',
     this.feedbackEnabled = false,
     this.feedbackLedger,
-    this.feedbackMaxIssuesPerDay = 5,
+    this.removedKeys = const <String>[],
   });
 
   /// R2 的白名单：这个文件里允许 import 子包（它就是聚合入口）
@@ -40,7 +40,7 @@ class DoctorConfig {
   /// R3 阈值：同一颜色出现次数达到此值才报
   final int colorMinCount;
 
-  /// 启用的规则 id（R6 默认不启用）
+  /// 启用的规则 id
   final Set<String> enabledRules;
 
   /// 忽略的路径前缀（相对项目根，按 startsWith 匹配）
@@ -70,10 +70,19 @@ class DoctorConfig {
   /// 用于「仓库 clone 在别处、依赖里解析不到」的场景；指向的不是 w_tools 仓库时忽略。
   final String? feedbackLedger;
 
-  /// 每个项目每天最多建几条公开 Issue（`feedback.max_issues_per_day`，0 = 不限）。
-  ///
-  /// CLI 没有会话概念，用日额度兜住「一次会话最多 3–5 条」；本地台账不占额度。
-  final int feedbackMaxIssuesPerDay;
+  /// 已移除、但配置里还写着的键（给迁移提示，不参与规则执行）。
+  final List<String> removedKeys;
+
+  /// 已移除配置键的迁移提示。
+  List<String> get removalWarnings => <String>[
+    for (final key in removedKeys)
+      switch (key) {
+        'rules.R6' => 'rules.R6 已移除；禁用 .h / .r 请改用 R9 的 banned（mode: regex）',
+        'feedback.max_issues_per_day' =>
+          'feedback.max_issues_per_day 已移除；公开 Issue 频率交给 GitHub / gh',
+        _ => '$key 已移除',
+      },
+  ];
 
   /// 配置文件名（项目根）
   static const fileName = '.w_tools_doctor.yaml';
@@ -92,12 +101,14 @@ class DoctorConfig {
     if (raw is! YamlMap) return DoctorConfig();
 
     final rules = <String>{...doctorDefaultEnabledRules};
+    final removedKeys = <String>[];
     final rulesNode = raw['rules'];
     if (rulesNode is YamlMap) {
       rulesNode.forEach((k, v) {
-        if (v == true) rules.add('$k');
-        if (v == false) rules.remove('$k');
-        if (k == 'R6' && v is YamlMap && v['enabled'] == true) rules.add('R6');
+        final name = '$k';
+        if (name == 'R6') removedKeys.add('rules.R6');
+        if (v == true && name != 'R6') rules.add(name);
+        if (v == false) rules.remove(name);
       });
     }
 
@@ -181,7 +192,6 @@ class DoctorConfig {
     var aiFigma = 'auto';
     var feedbackEnabled = false;
     String? feedbackLedger;
-    var feedbackMaxIssuesPerDay = 5;
     final feedbackNode = raw['feedback'];
     if (feedbackNode is YamlMap) {
       // `enabled` 是主键；`issue` 是 1.17 之前的旧键，等价处理。
@@ -196,9 +206,8 @@ class DoctorConfig {
       if (ledgerPath is String && ledgerPath.trim().isNotEmpty) {
         feedbackLedger = ledgerPath.trim();
       }
-      final maxIssues = feedbackNode['max_issues_per_day'];
-      if (maxIssues is int && maxIssues >= 0) {
-        feedbackMaxIssuesPerDay = maxIssues;
+      if (feedbackNode.containsKey('max_issues_per_day')) {
+        removedKeys.add('feedback.max_issues_per_day');
       }
     }
 
@@ -236,7 +245,7 @@ class DoctorConfig {
       aiFigma: aiFigma,
       feedbackEnabled: feedbackEnabled,
       feedbackLedger: feedbackLedger,
-      feedbackMaxIssuesPerDay: feedbackMaxIssuesPerDay,
+      removedKeys: removedKeys,
     );
   }
 
@@ -252,7 +261,7 @@ class DoctorConfig {
     String? aiFigma,
     bool? feedbackEnabled,
     String? feedbackLedger,
-    int? feedbackMaxIssuesPerDay,
+    List<String>? removedKeys,
   }) {
     return DoctorConfig(
       toolkitEntry: toolkitEntry ?? this.toolkitEntry,
@@ -266,7 +275,7 @@ class DoctorConfig {
       aiFigma: aiFigma ?? this.aiFigma,
       feedbackEnabled: feedbackEnabled ?? this.feedbackEnabled,
       feedbackLedger: feedbackLedger ?? this.feedbackLedger,
-      feedbackMaxIssuesPerDay: feedbackMaxIssuesPerDay ?? this.feedbackMaxIssuesPerDay,
+      removedKeys: removedKeys ?? this.removedKeys,
     );
   }
 }
@@ -315,8 +324,8 @@ String renderDefaultConfig() {
     ..writeln('  min_count: ${defaults.colorMinCount}')
     ..writeln()
     ..writeln('rules:')
-    ..writeln('  # R6 是**项目专用**规则（禁用 .h / .r 尺寸单位），需要时打开：')
-    ..writeln('  # R6: true')
+    ..writeln('  # 显式关闭某条规则（默认开启的规则才需要写），例如：')
+    ..writeln('  # R2: false')
     ..writeln()
     ..writeln('ai:')
     ..writeln('  # init 生成哪些指令文件：agents / claude / cursor / copilot')
@@ -332,8 +341,6 @@ String renderDefaultConfig() {
     ..writeln('  # issue: true')
     ..writeln('  # 本机 w_tools 仓库不在依赖里时，显式指过去（相对项目根或绝对路径）：')
     ..writeln('  # ledger: ../w_tools')
-    ..writeln('  # 每个项目每天最多几条公开 Issue（0 = 不限）；本地台账不占额度')
-    ..writeln('  max_issues_per_day: ${defaults.feedbackMaxIssuesPerDay}')
     ..writeln()
     ..writeln('# 跳过的路径前缀（相对项目根）')
     ..writeln('ignore: []')
@@ -349,8 +356,6 @@ String renderDefaultConfig() {
     ..writeln('#    level: warn')
     ..writeln("#    paths: ['lib/app/modules/**']")
     ..writeln("#    ignore: ['lib/app/ui/**']")
-    ..writeln()
-    ..writeln('# 未来可继承团队基线（当前版本尚未支持）：')
-    ..writeln('# include: ../.w_tools_doctor.yaml');
+    ..writeln('# 项目级配置到此为止；init --force-config 会用这份默认值覆盖。');
   return buf.toString();
 }

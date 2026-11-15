@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 // ignore_for_file: avoid_print
 
 import 'package:w_tools_cli/src/catalog/catalog.dart';
@@ -86,10 +85,6 @@ CommandResult run(List<String> argv) {
     },
   ).run(argv);
   return result;
-}
-
-void main(List<String> argv) {
-  exitCode = run(argv).exitCode;
 }
 
 /// 工具包没有 catalog 条目（教学在 docs/agents 与 README），空结果时给专门提示。

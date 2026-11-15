@@ -1,5 +1,5 @@
-// 把 catalog/components.yaml 生成两份产物：
-//   - lib/src/catalog/catalog.g.dart（CLI 的 list / explain 数据）
+// 把 catalog/components.yaml / capabilities.yaml 生成两份产物：
+//   - lib/src/catalog/catalog.g.dart（list / explain 数据 + context.capabilities 摘要）
 //   - docs/modules/components.md 的 §1~§9 表格（人和 AI 的入口）
 //
 // 用法：
@@ -29,10 +29,11 @@ String generate(String packageRoot) {
   final raw = loadYaml(File(p.join(packageRoot, 'catalog', 'components.yaml')).readAsStringSync());
   final version = (raw as YamlMap)['version'] as int;
   final components = (raw['components'] as YamlList).cast<YamlMap>();
+  final capabilities = _loadCapabilities(packageRoot);
 
   final buf = StringBuffer()
     ..writeln('// 由 tool/gen_catalog.dart 生成，不要手改。')
-    ..writeln('// 来源：catalog/components.yaml（唯一来源）。')
+    ..writeln('// 来源：catalog/components.yaml + catalog/capabilities.yaml（唯一来源）。')
     ..writeln('//')
     ..writeln('// dart format off')
     ..writeln("import 'catalog_entry.dart';")
@@ -81,8 +82,69 @@ String generate(String packageRoot) {
   }
   buf
     ..writeln('];')
+    ..writeln()
+    ..writeln('/// context.capabilities 的摘要；只收消费入口包。')
+    ..writeln('const Map<String, String> catalogCapabilitySummaries = <String, String>{');
+  for (final entry in capabilities.entries) {
+    buf.writeln('  ${jsonEncode(entry.key)}: ${jsonEncode(entry.value)},');
+  }
+  buf
+    ..writeln('};')
     ..writeln();
   return buf.toString();
+}
+
+/// 读 capabilities.yaml，并校验它和 entrypoints.yaml 的消费入口包集合一致。
+///
+/// 这是防止「新增消费包忘了补摘要」的唯一门禁：不是靠文档提醒，而是 gen --check。
+Map<String, String> _loadCapabilities(String packageRoot) {
+  final capsRaw = loadYaml(
+    File(p.join(packageRoot, 'catalog', 'capabilities.yaml')).readAsStringSync(),
+  );
+  if (capsRaw is! YamlMap) {
+    throw StateError('catalog/capabilities.yaml 顶层必须是 map');
+  }
+  final packages = capsRaw['packages'];
+  if (packages is! YamlMap) {
+    throw StateError('catalog/capabilities.yaml 缺少 packages:');
+  }
+  final capabilities = <String, String>{
+    for (final entry in packages.entries) '${entry.key}': '${entry.value}'.trim(),
+  };
+
+  final entryRaw = loadYaml(
+    File(p.join(packageRoot, 'catalog', 'entrypoints.yaml')).readAsStringSync(),
+  );
+  if (entryRaw is! YamlMap) {
+    throw StateError('catalog/entrypoints.yaml 顶层必须是 map');
+  }
+  // 契约层由 app_getx / map_google 代表，不单列。
+  const contractLayers = <String>{'w_tools_app', 'w_tools_map'};
+  final expected = entryRaw.keys.map((key) => '$key').toSet().difference(contractLayers);
+  final actual = capabilities.keys.toSet();
+  final missing = expected.difference(actual);
+  final extra = actual.difference(expected);
+  if (missing.isNotEmpty || extra.isNotEmpty) {
+    final parts = <String>[
+      if (missing.isNotEmpty) '缺 ${missing.join(', ')}',
+      if (extra.isNotEmpty) '多 ${extra.join(', ')}',
+    ];
+    throw StateError('catalog/capabilities.yaml 与 entrypoints.yaml 不一致：${parts.join('；')}');
+  }
+
+  for (final entry in capabilities.entries) {
+    if (entry.value.isEmpty) {
+      throw StateError('catalog/capabilities.yaml: ${entry.key} 的摘要不能为空');
+    }
+    final names = (entryRaw[entry.key] as YamlList).map((name) => '$name').toList();
+    if (!names.any(entry.value.contains)) {
+      throw StateError(
+        'catalog/capabilities.yaml: ${entry.key} 的摘要至少要提到一个 entrypoint '
+        '（${names.join(', ')}）',
+      );
+    }
+  }
+  return capabilities;
 }
 
 /// 文档表格的列名：§8 是「能力」，其余是「组件」。
@@ -138,8 +200,15 @@ void main(List<String> argv) {
   final packageRoot = Directory.current.path;
   final target = File(p.join(packageRoot, 'lib', 'src', 'catalog', 'catalog.g.dart'));
   final docsPath = p.join(packageRoot, '..', '..', 'docs', 'modules', 'components.md');
-  final generated = generate(packageRoot);
-  final generatedDocs = generateDocs(packageRoot);
+  late final String generated;
+  late final String generatedDocs;
+  try {
+    generated = generate(packageRoot);
+    generatedDocs = generateDocs(packageRoot);
+  } on StateError catch (e) {
+    stderr.writeln('✗ ${e.message}');
+    exit(1);
+  }
 
   if (argv.contains('--check')) {
     var stale = false;

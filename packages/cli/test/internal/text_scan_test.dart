@@ -5,7 +5,6 @@ import 'package:test/test.dart';
 import 'package:w_tools_cli/src/doctor/config.dart';
 import 'package:w_tools_cli/src/doctor/context.dart';
 import 'package:w_tools_cli/src/doctor/rules/r3_hardcoded_colors.dart';
-import 'package:w_tools_cli/src/doctor/rules/r6_banned_units.dart';
 import 'package:w_tools_cli/src/doctor/text_scan.dart';
 
 Directory _project(Map<String, String> files) {
@@ -47,11 +46,11 @@ void main() {
     );
     expect(r3.issues.single.message, contains('2 处'));
 
-    final unitsConfig = DoctorConfig(enabledRules: <String>{'R6'});
-    final r6 = R6BannedUnits.check(
-      ProjectContext.load(root, unitsConfig, includeTests: true),
-      unitsConfig,
+    // 字符串里的代码形态不能进 `codeOnly`（R3 的 Color(...) 依赖这个保证）。
+    final source = SourceFile(
+      'lib/a.dart',
+      <String>["const s = 'Color(0xFF3F3F3F) 1.5.r';"].toList(),
     );
-    expect(r6.issues, isEmpty);
+    expect(source.codeLines.single.codeOnly, isNot(contains('1.5.r')));
   });
 }

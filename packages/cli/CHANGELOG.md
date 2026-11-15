@@ -1,3 +1,72 @@
+## 2.0.0
+
+### Breaking
+- 删除 `dart run w_tools_cli:init` 这类兼容入口：`bin/` 只剩 `w_tools.dart`，
+  统一用 `dart run w_tools_cli:w_tools <command>`；命令实现下沉到
+  `lib/src/<命令>/command.dart`（list / explain 在 `catalog/list_command.dart` /
+  `explain/explain_command.dart`）。
+- `feedback` 收敛为 `submit` / `search`：删除 `lint` / `path` / `status` 子命令，以及只给
+  lint 用的 `--include-inbox` / `--stale-days`。台账校验改为维护者工具
+  `packages/cli/tool/feedback_lint.dart`（`scripts/check_feedback.sh` 已切换），
+  不再作为消费方 CLI 的一部分。
+- `feedback search` 不再搜旧的 `docs/agents/feedback.md` 收件箱，只查 `docs/feedback/` 台账。
+- `doctor` 删除 R6（禁用 `.h` / `.r`）：这类**项目专用**规范改用 R9 的 `banned`
+  （`mode: regex`）表达；`--only=R6` 现在报未知规则，`rules.R6` 配置被忽略。
+- `feedback status` 不再输出 `budget`；`feedback submit` 不再按「每项目每天 5 条」拒绝。
+  `feedback.max_issues_per_day` 配置键与 `.w_tools/feedback_budget.json` 删除，
+  公开 Issue 的频率约束交回 GitHub / `gh`。
+- `init` 删除兼容别名 `--force-ui`（用 `--force-starters`）与 `--with-map`（用 `--map`），
+  以及已废弃的隐藏 flag `--device-test`。
+- `context` 删除 `--max-tokens`：它按字符数近似 token，实际会超预算；prompt 输出不再截断。
+- `upgrade` 删除 `--strict`：`--check` 只按「可升未升 / lock 落后」判落后，不再把跨 major 或
+  SDK 约束算进来。跨 major 仍默认只报告，`--major` / `--only` 才写。
+- 删除 `UpgradeStatus.sdkBlocked` 与半套 Dart 约束解析（`satisfiesConstraint` /
+  `LatestRelease.sdkConstraint` / `flutterConstraint` / `published`）：SDK 不兼容不再预判，
+  交给 `pub get` 的真实失败（失败会还原 pubspec 并 exit 2）。
+- `upgrade --json` 升到 `w_tools_cli.upgrade/2`：`summary` 去掉 `sdkBlocked`，
+  包条目去掉 `sdk` / `flutter`。
+
+### Changed
+- `--format` 词汇统一：`doctor` 与 `context` 接受 `text`（`doctor` 的 `human`、
+  `context` 的 `markdown` 仍可用）；`doctor --format=text` 不再报错。
+- `feedback` 的错误 JSON 统一为 `w_tools_cli.error/1`（与其它命令同一个信封），
+  不再用 `w_tools_cli.feedback/1`；删除模块级 `_jsonMode`，错误输出由显式 format 决定。
+- `feedback submit` / `search --repo` 与 JSON 的 `url` / `ghCommand` 保持一致
+  （此前 URL 固定 `stone0533/w_tools`）。
+- `context` 的 `commands` 去掉 `feedbackStatus` / `feedbackLint`，新增 `feedbackSearch`。
+  `commands` 的 key 是提示，不作为稳定契约。
+- `feedback` 的帮助 / README 去掉 status / path / lint；AI_PROMPTS 的 L-1 改为按 `submit`
+  退出码判断（4 = 项目未开启反馈通道，什么都没写）。
+- `scripts/check_feedback.sh` 改为调用 `dart run tool/feedback_lint.dart`，规则实现仍只有一份。
+- `init` 的写入策略按 `_FileKind` + `_InitWriter` 拆分：`check` / `force` / `force-config` /
+  `force-starters` 的判定与报告文本不变（内部重构）。
+- `LatestRelease` 只保留 `version`；`buildPlan` 不再接收 `dartVersion`。
+- `context.capabilities` 的摘要挪到 `catalog/capabilities.yaml`，由 `gen_catalog` 生成；
+  输出文案不变；新增消费入口包漏摘要时 `gen_catalog --check` 会失败。
+- `upgrade --json` 的 `ok` 按 mode 定义：`check` = 没有落后；`dry-run` = 没有失败；
+  `write` = 没还原且 `pub get` 成功（或没跑）。此前 write 成功也会因为计划里有可写包而报
+  `ok: false`。
+
+### Fixed
+- `w_tools --version` 只认顶层参数：dispatcher 不再扫描整个 argv。
+
+### Removed
+- 死代码：`FeedbackTarget`、`feedbackBodyTemplateEn`、`stripLineComment`，
+  以及 `init` 写入策略里不可达的 `projectConfig` 分支。
+- `inboxFile`（旧收件箱兼容）与 `GhStatus`（只被 `status` 使用）。
+- `doctor --print-config` 中「未来可继承团队基线（尚未支持）」的 `include` 注释。
+- 配置里残留 `rules.R6` / `feedback.max_issues_per_day` 时不再静默忽略：`doctor` / `init`
+  会输出迁移提示（`rules.R6` 改用 R9 banned；额度交给 GitHub / gh）。
+
+### Docs
+- `README.md`、`docs/agents/cli.md`、`docs/conventions.md`、`docs/feedback/README.md`、
+  根 `AGENTS.md` 同步删除兼容入口、feedback status/path/lint、budget、R6、别名、
+  `--max-tokens`、`upgrade --strict`。
+- `README.md` 的退出码表与 `upgrade --json` 说明同步 `w_tools_cli.upgrade/2`；
+  命令入口补 1.x `w_tools_cli:<command>` → dispatcher 的迁移说明。
+- 发布物不再包含 `catalog/` / `templates/` / `tool/` 源文件（运行时只用 `*.g.dart`），
+  见 `packages/cli/.pubignore`；维护者工具仍在仓库。
+
 ## 1.23.0
 
 ### Changed

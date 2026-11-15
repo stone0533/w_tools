@@ -10,7 +10,6 @@ import 'package:w_tools_cli/src/doctor/rules/r2_direct_subpackage_import.dart';
 import 'package:w_tools_cli/src/doctor/rules/r3_hardcoded_colors.dart';
 import 'package:w_tools_cli/src/doctor/rules/r4_design_system_boundary.dart';
 import 'package:w_tools_cli/src/doctor/rules/r5_staged_marker.dart';
-import 'package:w_tools_cli/src/doctor/rules/r6_banned_units.dart';
 import 'package:w_tools_cli/src/doctor/rules/r7_toolkit_consistency.dart';
 import 'package:w_tools_cli/src/doctor/rules/r8_generated_stale.dart';
 import 'package:w_tools_cli/src/doctor/run.dart';
@@ -553,54 +552,29 @@ void main() {
       expect(r.issues.single.message, contains('不同'));
     });
 
+    test('manifest 存在但 banned 配置变了 → 报内容不同（不是手改）', () {
+      final block = InitTemplates.agentsBlock(
+        app: 'demo',
+        isFlutter: false,
+        withMap: false,
+      );
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\n',
+        'pubspec.lock': 'packages:\n  w_tools_cli:\n    version: "$cliVersion"\n',
+        '.w_tools/init.json': presetManifest().encode(),
+        '.w_tools_doctor.yaml': 'banned:\n  - id: no-foo\n    pattern: Foo\n',
+        'AGENTS.md': block,
+      });
+      final config = DoctorConfig.load(root);
+      final r = R8GeneratedStale.check(ctxOf(root, config), config);
+      expect(r.status, DoctorRuleStatus.fail);
+      expect(r.issues.single.message, contains('模板不同'));
+    });
+
     test('没有 w_tools_cli 的 lock → 跳过', () {
       final root = makeProject({'pubspec.yaml': 'name: demo\n'});
       final r = R8GeneratedStale.check(ctxOf(root, DoctorConfig()), DoctorConfig());
       expect(r.status, DoctorRuleStatus.skipped);
-    });
-  });
-
-  group('R6 禁用单位', () {
-    test('默认不启用 → 跳过', () {
-      final root = makeProject({'pubspec.yaml': 'name: demo\n', 'lib/a.dart': 'final x = 12.h;\n'});
-      final r = R6BannedUnits.check(ctxOf(root, DoctorConfig()), DoctorConfig());
-      expect(r.status, DoctorRuleStatus.skipped);
-    });
-
-    test('启用后 → warn（项目专用，--strict 才失败）', () {
-      final root = makeProject({'pubspec.yaml': 'name: demo\n', 'lib/a.dart': 'final x = 12.h;\n'});
-      final config = DoctorConfig(enabledRules: <String>{'R6'});
-      final r = R6BannedUnits.check(ctxOf(root, config), config);
-      expect(r.issues.single.line, 1);
-      expect(r.issues.single.level, DoctorLevel.warn);
-    });
-
-    test('行级 ignore R6 生效', () {
-      final root = makeProject({
-        'pubspec.yaml': 'name: demo\n',
-        'lib/a.dart':
-            '// w_tools:ignore R6 reason: legacy unit\n'
-            'final x = 12.h;\n',
-      });
-      final config = DoctorConfig(enabledRules: <String>{'R6'});
-      final r = R6BannedUnits.check(ctxOf(root, config), config);
-      expect(r.status, DoctorRuleStatus.pass);
-    });
-
-    test('行尾注释里的 .h 不算', () {
-      final root = makeProject({
-        'lib/a.dart': 'final x = 10; // 这里只是提到 .h\n',
-      });
-      final config = DoctorConfig.parse('rules:\n  R6: true\n');
-      final r = R6BannedUnits.check(ctxOf(root, config), config);
-      expect(r.status, DoctorRuleStatus.pass);
-    });
-
-    test('注释里的 .h 不算', () {
-      final root = makeProject({'pubspec.yaml': 'name: demo\n', 'lib/a.dart': '// 旧单位 12.h\n'});
-      final config = DoctorConfig(enabledRules: <String>{'R6'});
-      final r = R6BannedUnits.check(ctxOf(root, config), config);
-      expect(r.status, DoctorRuleStatus.pass);
     });
   });
 
@@ -670,19 +644,6 @@ void main() {
   });
 
   group('规则列表一致性（未启用规则不消失）', () {
-    test('默认关闭的 R6 以 skipped 出现，并带 skipReason', () {
-      final root = makeProject({
-        'pubspec.yaml': 'name: demo\n',
-        'lib/a.dart': 'final x = 12.h;\n',
-      });
-      addTearDown(() => root.deleteSync(recursive: true));
-      final config = DoctorConfig();
-      final r6 = runDoctor(ctxOf(root, config), config).singleWhere((r) => r.ruleId == 'R6');
-      expect(r6.status, DoctorRuleStatus.skipped);
-      expect(r6.skipReason, isNotEmpty);
-      expect(r6.issues, isEmpty);
-    });
-
     test('显式关闭的规则同样以 skipped 出现，不再整个缺失', () {
       final root = makeProject({'pubspec.yaml': 'name: demo\n'});
       addTearDown(() => root.deleteSync(recursive: true));

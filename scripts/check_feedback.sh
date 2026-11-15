@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 反馈日志自检（docs/feedback/）—— 规则只在 `w_tools_cli:feedback lint` 里实现一次。
+# 反馈日志自检（docs/feedback/）—— 规则只在 `packages/cli/tool/feedback_lint.dart` 里实现一次。
 # 规则：字段齐全 / 状态合法 / 已闭环带版本号 / 索引数量与文件一致 / 待处理 stale 警告
 # 用法：bash scripts/check_feedback.sh
 #
@@ -24,7 +24,7 @@ if [ ! -f .dart_tool/package_config.json ]; then
 fi
 
 # --suppress-analytics：这是只读门禁，不该因为写不了 telemetry 文件而整条失败。
-output="$(dart --suppress-analytics run w_tools_cli:feedback lint --stale-days=30 2>&1)"
+output="$(cd packages/cli && dart --suppress-analytics run tool/feedback_lint.dart --root "$root" --stale-days=30 2>&1)"
 status=$?
 printf '%s\n' "$output"
 

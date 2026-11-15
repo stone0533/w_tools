@@ -202,11 +202,13 @@ lib/src/init/templates.g.dart
 
 ### 3.4 改了 context 能力
 
-当前 `context.capabilities` 在：
+`context.capabilities` 的摘要在：
 
-[`packages/cli/lib/src/context/context_project.dart`](../packages/cli/lib/src/context/context_project.dart)
+[`packages/cli/catalog/capabilities.yaml`](../packages/cli/catalog/capabilities.yaml)
 
-新增包或能力时要同步摘要。
+由 `cd packages/cli && dart run tool/gen_catalog.dart` 生成到 `catalog.g.dart`。
+新增包或能力时改 YAML 后重跑生成器；`gen_catalog --check` 会校验 keys 与
+`catalog/entrypoints.yaml` 的消费入口包集合一致（漏摘要会直接失败）。
 
 摘要只收录**消费入口包**（6 个聚合子包 + `app_getx` / `map_google` / `qr`）。
 `w_tools_app` / `w_tools_map` 是契约层，分别由 `app_getx` / `map_google` 代表，不单列；
@@ -318,7 +320,7 @@ teach: false  普通组件：至少 useFor / dontUseFor
 - 补 README；
 - 有 example 则补 example；
 - 如果是 init feature，补 `templates/agents/{zh,en}/<feature>.md`；
-- 如果是消费入口包，补 `context.capabilities`（契约层 `app` / `map` 与工具包不单列）；
+- 如果是消费入口包，补 `catalog/capabilities.yaml` 的摘要（契约层 `app` / `map` 与工具包不单列）；
 - 补 `docs/modules` 索引；
 - 补 release 约束 / 版本。
 
@@ -382,7 +384,7 @@ bash scripts/preflight.sh --with-tests
 - 大部分 `teach: false` 组件仍只有 useFor / dontUseFor（具体比例见 catalog，不在文档里写死）；
 - README / example 是“完整参考”，不是与当前安装版本一一对应的快照；`explain` 的仓库文档链接固定 main，API 文档才按 lock 版本拼接；
 - `entrypoints.yaml` 是覆盖契约，只证明核心入口在 docs/agents / 模板 / README / example 里“提到过”，不证明讲清楚了；语义仍由 J-4 人工审计；
-- `context.capabilities` 是静态映射，新增**消费入口包**时需同步（契约层 / 工具包不单列）；
+- `context.capabilities` 由 `catalog/capabilities.yaml` 生成；新增**消费入口包**时需同步（契约层 / 工具包不单列），漏写会被 `gen_catalog --check` 挡住；
 - `check_pr_scope.py` 只读 PR 正文：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）时要求「## 改动类型」段并至少勾选一项（空 body 也失败），勾了公开类别时要求每个被改包的 CHANGELOG 被改、根包公开面有根 CHANGELOG、本地版本高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`）；它无法验证改动**是否真的**是公开变化；
 - `check_published_links.py` 只检查会随发布物发出的 Markdown；校验本仓库 GitHub 绝对 URL 的路径存在，不校验外部 URL / 锚点 / 引用式链接；
 - Markdown 全量代码块编译尚未开启，只检查关键示例。

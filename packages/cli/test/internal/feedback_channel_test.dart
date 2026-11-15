@@ -377,75 +377,6 @@ feedback:
       expect(File(p.join(app.path, 'docs', 'feedback', 'ui.md')).existsSync(), isFalse);
     });
 
-    test('公开 Issue 每日额度用完后拒绝（exit 2）', () {
-      final root = _tmp('wt_ch_budget_');
-      addTearDown(() => root.deleteSync(recursive: true));
-      final app = _consumer(root);
-      _enableFeedback(app);
-      final today = DateTime.now().toIso8601String().substring(0, 10);
-      File(p.join(app.path, '.w_tools', 'feedback_budget.json'))
-        ..createSync(recursive: true)
-        ..writeAsStringSync(jsonEncode({'date': today, 'count': 5}));
-      final body = File(p.join(root.path, 'body.md'))..writeAsStringSync(_body);
-
-      final result = command.run(<String>[
-        'submit',
-        '--root=${app.path}',
-        '--package=ui',
-        '--title=t',
-        '--body-file=${body.path}',
-        '--repo=stone0533/__w_tools_feedback_guard__',
-      ]);
-
-      expect(result.exitCode, 2);
-    });
-
-    test('Issue 提交失败不扣额度（不写预算文件）', () {
-      final root = _tmp('wt_ch_budget_fail_');
-      addTearDown(() => root.deleteSync(recursive: true));
-      final app = _consumer(root);
-      _enableFeedback(app);
-      final body = File(p.join(root.path, 'body.md'))..writeAsStringSync(_body);
-
-      final result = command.run(<String>[
-        'submit',
-        '--root=${app.path}',
-        '--package=ui',
-        '--title=t',
-        '--body-file=${body.path}',
-        '--repo=stone0533/__w_tools_feedback_guard__',
-      ]);
-
-      expect(result.exitCode, anyOf(1, 3));
-      expect(
-        File(p.join(app.path, '.w_tools', 'feedback_budget.json')).existsSync(),
-        isFalse,
-      );
-    });
-
-    test('写本地台账不占公开额度', () {
-      final root = _tmp('wt_ch_budget_ledger_');
-      addTearDown(() => root.deleteSync(recursive: true));
-      final repo = _repo(root);
-      final app = _consumer(root, linkRepo: repo.path);
-      _enableFeedback(app);
-      final body = File(p.join(root.path, 'body.md'))..writeAsStringSync(_body);
-
-      final result = command.run(<String>[
-        'submit',
-        '--root=${app.path}',
-        '--package=ui',
-        '--title=t',
-        '--body-file=${body.path}',
-      ]);
-
-      expect(result.exitCode, 0);
-      expect(
-        File(p.join(app.path, '.w_tools', 'feedback_budget.json')).existsSync(),
-        isFalse,
-      );
-    });
-
     test('仓库自身不带开关也默认写台账', () {
       final root = _tmp('wt_ch_self_');
       addTearDown(() => root.deleteSync(recursive: true));
@@ -465,33 +396,6 @@ feedback:
         File(p.join(repo.path, 'docs', 'feedback', 'cli.md')).existsSync(),
         isTrue,
       );
-    });
-  });
-
-  group('status / path / lint 与 submit 同一判定', () {
-    test('消费方开启 + 本机有仓库：status 报 ledger，path 指向该仓库', () {
-      final root = _tmp('wt_ch_status_');
-      addTearDown(() => root.deleteSync(recursive: true));
-      final repo = _repo(root);
-      final app = _consumer(root, linkRepo: repo.path);
-      _enableFeedback(app);
-
-      expect(
-        command.run(<String>['status', '--root=${app.path}']).exitCode,
-        0,
-      );
-      expect(
-        command.run(<String>['path', '--root=${app.path}', '--package=ui']).exitCode,
-        0,
-      );
-    });
-
-    test('本机没有台账时 lint 跳过（exit 0，不再输出 ✓ 0 条）', () {
-      final root = _tmp('wt_ch_lint_');
-      addTearDown(() => root.deleteSync(recursive: true));
-      final app = _consumer(root);
-
-      expect(command.run(<String>['lint', '--root=${app.path}']).exitCode, 0);
     });
   });
 }

@@ -555,12 +555,6 @@ const String aiPrompts = r'''
 ```text
 任务：把这次用 w_tools 被卡住的问题（或改进建议）记成一条反馈。
 
-先跑 `dart run w_tools_cli:w_tools feedback status --json`，看返回的 channel：
-- disabled → 停止：告诉我「项目没开启反馈通道」，并给出开启方法（在 `.w_tools_doctor.yaml` 的 `feedback:` 下写 `enabled: true`，
-  等价于 `feedback.enabled: true`），重跑 status 确认；不要提交，也不要加 --issue；
-- ledger / issue → 继续。
-
-然后：
 1. 查重：`dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>`
    命中相同问题就把文件行号或 issue 编号给我，不要重复提交；
 2. 按固定字段写正文（缺字段会被拒绝），先把草稿给我看：
@@ -574,7 +568,9 @@ const String aiPrompts = r'''
    - 复现数据：最小 demo / 日志片段，先脱敏
    保存到 /tmp/w_tools_feedback.md；
 3. 提交：`dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" --body-file=/tmp/w_tools_feedback.md`
-   默认路由：本机有 w_tools 仓库就写它的 docs/feedback/；没有才建 Issue；都没有则 exit 4（什么都没写）。
+   按退出码判断：0 = 已写入台账 / 已建 Issue；4 = 项目没开启反馈通道（什么都没写），
+   停下来告诉我开启方法（在 `.w_tools_doctor.yaml` 的 `feedback:` 下写 `enabled: true`，即 `feedback.enabled: true`），
+   不要当成功，也不要加 --issue；2 = 参数 / 开关错误；3 = gh 不可用。
 
 不要：
 - 不要加 --issue（除非我明确说要公开提 issue）；
@@ -1269,13 +1265,6 @@ I provide:
 ```text
 Task: record what blocked you in w_tools (or a capability suggestion) as one feedback entry.
 
-Run `dart run w_tools_cli:w_tools feedback status --json` first and read channel:
-- disabled -> stop: tell me "the project has not enabled feedback" and how to enable it (`enabled: true`
-  under `feedback:` in .w_tools_doctor.yaml, i.e. `feedback.enabled: true`), then rerun status;
-  do not submit, and do not pass --issue;
-- ledger / issue -> continue.
-
-Then:
 1. Search first: `dart run w_tools_cli:w_tools feedback search "<keyword>" --package=<package>`
    If the same problem exists, give me the file:line or issue number; do not submit a duplicate;
 2. Write the body with the fixed fields (missing fields are rejected); show me the draft first:
@@ -1289,8 +1278,10 @@ Then:
    - repro data: minimal demo / log excerpt, redacted first
    Save it as /tmp/w_tools_feedback.md;
 3. Submit: `dart run w_tools_cli:w_tools feedback submit --package=<package> --title="<symptom>" --body-file=/tmp/w_tools_feedback.md`
-   Default route: a local w_tools checkout -> its docs/feedback/; otherwise a GitHub Issue;
-   neither -> exit 4 and nothing is written.
+   Use the exit code: 0 = written to the ledger / issue created; 4 = feedback is disabled for the project
+   (nothing was written), stop and tell me how to enable it (`enabled: true` under `feedback:` in
+   .w_tools_doctor.yaml, i.e. `feedback.enabled: true`), do not treat it as success and do not add --issue; 2 = bad args/switch;
+   3 = gh unavailable.
 
 Do not:
 - add --issue unless I explicitly ask for a public issue;

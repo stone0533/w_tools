@@ -1,9 +1,8 @@
-import 'dart:io';
-
 /// `w_tools upgrade` 的纯逻辑：声明 + lock + 最新版本 → 升级计划。
 ///
 /// 这里不读文件、不发网络请求：命令层把 [ProjectPubspec] 的结果和
-/// [LatestRelease] 喂进来，测试可以直接穷举各种边界（0.x、跨 major、SDK 不兼容）。
+/// [LatestRelease] 喂进来，测试可以直接穷举各种边界（0.x、跨 major、lock 落后）。
+library;
 
 /// 语义化版本；只用于比较和 caret 上界，不追求完整的 semver（预发布按同版本处理）。
 class SemVer implements Comparable<SemVer> {
@@ -26,8 +25,6 @@ class SemVer implements Comparable<SemVer> {
       int.parse(match.group(3)!),
     );
   }
-
-  static SemVer? parsePrefix(String raw) => tryParse(raw);
 
   /// `^a.b.c` 的上界（不含）：`8.1.2 -> 9.0.0`、`0.13.1 -> 0.14.0`、`0.0.3 -> 0.0.4`。
   SemVer caretUpperBound() {
@@ -59,17 +56,9 @@ class SemVer implements Comparable<SemVer> {
 
 /// hosted 源上的一个发布版本。
 class LatestRelease {
-  const LatestRelease({
-    required this.version,
-    this.sdkConstraint,
-    this.flutterConstraint,
-    this.published,
-  });
+  const LatestRelease({required this.version});
 
   final String version;
-  final String? sdkConstraint;
-  final String? flutterConstraint;
-  final String? published;
 }
 
 enum UpgradeStatus {
@@ -81,9 +70,6 @@ enum UpgradeStatus {
 
   /// 最新版本在 caret 窗口外；默认只报告，`--major` 才写。
   majorBlocked,
-
-  /// 最新版本要求的 Dart 版本本机不满足。
-  sdkBlocked,
 
   /// 不参与本次升级（path / git / override / 非 caret 约束 …）。
   skipped,
@@ -122,8 +108,6 @@ class PackageUpgrade {
 
   bool get needsWrite => status == UpgradeStatus.outdated && target != null;
 
-  bool get risky => status == UpgradeStatus.majorBlocked || status == UpgradeStatus.sdkBlocked;
-
   Map<String, Object?> toJson() => <String, Object?>{
     'name': name,
     'dev': dev,
@@ -134,8 +118,6 @@ class PackageUpgrade {
     if (target != null) 'target': target,
     if (reason != null) 'reason': reason,
     'lockBehind': lockBehind,
-    if (latest?.sdkConstraint != null) 'sdk': latest!.sdkConstraint,
-    if (latest?.flutterConstraint != null) 'flutter': latest!.flutterConstraint,
   };
 }
 
@@ -151,9 +133,6 @@ class UpgradePlan {
 
   /// `--check` 的判定：可升的没升，或者 lock 落后于最新。
   bool get hasFindings => packages.any((p) => p.needsWrite || p.lockBehind);
-
-  /// 跨 major / SDK 不兼容；`--strict` 时也算落后。
-  bool get hasRisks => packages.any((p) => p.risky);
 }
 
 /// `w_tools` / `w_tools_*` 才是本命令的处理对象；其它依赖（含刻意钉死的）一律不碰。
@@ -164,44 +143,6 @@ SemVer? parseCaretConstraint(String raw) {
   final text = raw.trim();
   if (!text.startsWith('^')) return null;
   return SemVer.tryParse(text.substring(1));
-}
-
-/// 判断 `current` 是否满足 `sdk: ^3.10.0` / `>=3.9.0 <4.0.0` 这类约束。
-///
-/// 只实现 hosted 上 `environment.sdk` 实际会出现的写法；解析不了返回 null（= 不知道，不拦）。
-bool? satisfiesConstraint(String? constraint, SemVer? current) {
-  if (constraint == null || current == null) return null;
-  final tokens = constraint.trim().split(RegExp(r'\s+')).where((t) => t.isNotEmpty);
-  var seen = false;
-  for (final token in tokens) {
-    final ok = _satisfiesToken(token, current);
-    if (ok == null) return null;
-    if (!ok) return false;
-    seen = true;
-  }
-  return seen ? true : null;
-}
-
-bool? _satisfiesToken(String token, SemVer current) {
-  if (token.startsWith('^')) {
-    final floor = SemVer.tryParse(token.substring(1));
-    if (floor == null) return null;
-    return !(current < floor) && current < floor.caretUpperBound();
-  }
-  for (final prefix in <String>['>=', '<=', '>', '<']) {
-    if (!token.startsWith(prefix)) continue;
-    final bound = SemVer.tryParse(token.substring(prefix.length));
-    if (bound == null) return null;
-    return switch (prefix) {
-      '>=' => !(current < bound),
-      '<=' => !(current > bound),
-      '>' => current > bound,
-      _ => current < bound,
-    };
-  }
-  final exact = SemVer.tryParse(token);
-  if (exact == null) return null;
-  return current == exact;
 }
 
 /// 生成计划。
@@ -217,9 +158,7 @@ UpgradePlan buildPlan({
   required Set<String> overrides,
   required bool allowMajor,
   required Set<String> only,
-  String? dartVersion,
 }) {
-  final currentDart = SemVer.parsePrefix(dartVersion ?? Platform.version);
   final names = <String>{
     ...dependencies.keys,
     ...devDependencies.keys,
@@ -236,7 +175,6 @@ UpgradePlan buildPlan({
         overridden: overrides.contains(name),
         allowMajor: allowMajor,
         included: only.isEmpty || only.contains(name),
-        currentDart: currentDart,
       ),
   ];
   return UpgradePlan(hosted: hosted, packages: packages);
@@ -251,7 +189,6 @@ PackageUpgrade _planOne({
   required bool overridden,
   required bool allowMajor,
   required bool included,
-  required SemVer? currentDart,
 }) {
   PackageUpgrade skip(String reason) => PackageUpgrade(
     name: name,
@@ -291,14 +228,6 @@ PackageUpgrade _planOne({
   if (latestVersion == null) return skip('最新版本号无法解析（${latest.version}）');
 
   if (!(latestVersion > floor)) return rest(UpgradeStatus.upToDate);
-
-  final sdkOk = satisfiesConstraint(latest.sdkConstraint, currentDart);
-  if (sdkOk == false) {
-    return rest(
-      UpgradeStatus.sdkBlocked,
-      reason: '最新版要求 Dart ${latest.sdkConstraint}，本机 ${currentDart ?? '未知'}',
-    );
-  }
 
   final inCaretWindow = latestVersion < floor.caretUpperBound();
   if (!inCaretWindow && !allowMajor) {

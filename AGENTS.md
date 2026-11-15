@@ -20,7 +20,7 @@
 1. **内部重构**：公开 API / 默认行为不变 → 只改代码 + 测试。
 2. **公开变化**：API / 行为 / 新组件 → 更新 catalog / AGENTS / README / example；**抬子包版本 + 写当前版本 CHANGELOG 段**（聚合子包同时抬根包 `^x.y.z` 下界；改到 CLI `init` 约束时同步 `packages/cli/lib/src/init/versions.dart`；**公开 API 变化必须抬版本** —— `check_version_bump` 不认 `## Unreleased`；根包 / CLI 自身没有 API diff 的约束变化可以跟功能 PR，但必须写进非空 `## Unreleased`，由 K-2 折叠成版本段，见 `docs/releasing.md`；`scripts/check_versions.py` 保证所有下界 == 当前版本）；必要时 migration；改根包 `lib/` / `pubspec.yaml` 时必须同时改根 `CHANGELOG.md`，根包 re-export 变化必须抬根包版本（`check_version_bump`）。行为变化没有公开 API diff，CI 的 `check_pr_scope.py` 按 PR 模板兜底：改了公开代码（`lib/` / `bin/` / CLI `templates/` / `catalog/` / `schema/`）的 PR 必须带「## 改动类型」段并至少勾选一项（空 body 也会失败）；勾了公开类别（公开变化 / 删除废弃 / 新增包）时，每个改了公开代码的包都要改自己的 CHANGELOG，且版本要高于已发布基线（CI 带 `--online` 时用 pub.dev，取不到回退快照；或 CHANGELOG 有非空 `## Unreleased`）。
 3. **删除 / 废弃**：额外清理 aliases / related / migration，把删除的公开名补进 `scripts/check_removed_api.py` 的名单，并跑 removed API 检查。
-4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities（仅消费入口包） / release。工具包（无 barrel）还要登记 `check_public_api_diff.py` 的 `NO_PUBLIC_API`、`check_docs_facts.py` 的 `TOOLS`、`check_naming.py` 的 `TOOL_PACKAGES`，并生成 header-only 快照（否则 `check_public_api_diff` 缺基线会失败）。首次发布前把裸名加进 `scripts/pending_first_release.txt`（首发成功后删行），否则周检会因 pub.dev 404 判红。
+4. **新增包**：额外更新 `scripts/packages.manifest` / workspace / README / example / feature 模板 / context capabilities（`packages/cli/catalog/capabilities.yaml`，仅消费入口包） / release。工具包（无 barrel）还要登记 `check_public_api_diff.py` 的 `NO_PUBLIC_API`、`check_docs_facts.py` 的 `TOOLS`、`check_naming.py` 的 `TOOL_PACKAGES`，并生成 header-only 快照（否则 `check_public_api_diff` 缺基线会失败）。首次发布前把裸名加进 `scripts/pending_first_release.txt`（首发成功后删行），否则周检会因 pub.dev 404 判红。
 
 ## 改代码后更新 AI 资产
 
@@ -127,9 +127,9 @@ pub 只认 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` 环境变量，不读 macOS
 ## 工具（本仓库维护）
 
 CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
-入口 `packages/cli/bin/w_tools.dart`（统一 dispatcher）与 `packages/cli/bin/{init,doctor,context,list,explain,upgrade,feedback}.dart`（兼容），
-使用规则见 [`docs/agents/cli.md`](docs/agents/cli.md)，
-实现分别在 `packages/cli/lib/src/init/`、`lib/src/doctor/`、`lib/src/context/`、`lib/src/catalog/`。
+入口只有 `packages/cli/bin/w_tools.dart`（统一 dispatcher）；命令实现在
+`packages/cli/lib/src/<命令>/command.dart`（list 在 `catalog/list_command.dart`、explain 在
+`explain/explain_command.dart`）。使用规则见 [`docs/agents/cli.md`](docs/agents/cli.md)。
 
 改动它们时必须同步：
 
@@ -196,8 +196,6 @@ dart run w_tools_cli:w_tools feedback submit \
 - 本机有 w_tools 仓库检出（path / git 依赖）→ 写**那个仓库**的 `docs/feedback/`，不建 Issue；
   仓库 clone 在别处时用 `feedback.ledger: <路径>` 指过去；
   没有检出才建 Issue（需已安装 gh；gh 读取 `GH_TOKEN` / `GITHUB_TOKEN`，或 `gh auth login`）；
-- 公开 Issue 每个项目每天最多 5 条（`feedback.max_issues_per_day`，0 = 不限），额度耗尽 exit 2；
-  本地台账不占额度；
 - `--issue` 只在「本机有台账但确实要公开提 issue」时用；开关未开启时会被拒绝（exit 2）；
 - 消费方**不要**直接改 `docs/feedback/` 的索引（没有索引维护能力）。
 

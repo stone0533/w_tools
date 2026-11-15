@@ -39,7 +39,7 @@ Windows 请使用 Git Bash 或 WSL；`dart test` 在 Windows 上会跳过依赖 
 执行 doctor
 执行 context
 执行 list / explain
-执行 feedback status / path
+（feedback 默认关闭，demo 不演示提交）
 退出时清理临时目录
 ```
 

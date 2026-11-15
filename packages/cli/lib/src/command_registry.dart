@@ -66,12 +66,11 @@ const cliCommands = <CliCommand>[
   ),
   CliCommand(
     name: 'feedback',
-    summary: '提交 w_tools 反馈',
+    summary: '查重 / 提交 w_tools 反馈',
     examples: <String, String>{
-      'feedbackStatus': 'dart run w_tools_cli:w_tools feedback status',
+      'feedbackSearch': 'dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>',
       'feedbackSubmit':
           'dart run w_tools_cli:w_tools feedback submit --package=<包> --title=<标题> --stdin',
-      'feedbackLint': 'dart run w_tools_cli:w_tools feedback lint --include-inbox',
     },
   ),
 ];

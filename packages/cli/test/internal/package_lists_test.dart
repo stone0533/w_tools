@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:w_tools_cli/src/feedback/feedback_ledger.dart';
 
-import '../../bin/explain.dart' show exampleUrl;
+import 'package:w_tools_cli/src/explain/explain_command.dart' show exampleUrl;
 
 void main() {
   test('CLI-011 manifest 的每个包在 feedback / example 清单里都有落点', () {

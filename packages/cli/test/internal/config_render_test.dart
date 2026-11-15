@@ -22,10 +22,10 @@ void main() {
     expect(parsed.aiLanguage, defaults.aiLanguage);
   });
 
-  test('渲染文本里的 R6 与 palette 都是注释掉的', () {
+  test('渲染文本里的 palette / rules 示例都是注释掉的', () {
     final text = renderDefaultConfig();
-    expect(text, contains('# R6: true'));
     expect(text, contains('# palette:'));
+    expect(text, contains('# R2: false'));
     // 未注释的 key 只有这几个
     final activeKeys = text
         .split('\n')
@@ -53,9 +53,9 @@ void main() {
     expect(parsed.palette, containsAll(<String>['#3F3F3F', '#545454', '#EAEAEA']));
   });
 
-  test('取消注释 rules.R6 后能生效', () {
-    final text = renderDefaultConfig().replaceFirst('# R6: true', 'R6: true');
-    expect(DoctorConfig.parse(text).enabledRules, contains('R6'));
+  test('取消注释 rules.R2: false 后能生效', () {
+    final text = renderDefaultConfig().replaceFirst('# R2: false', 'R2: false');
+    expect(DoctorConfig.parse(text).enabledRules, isNot(contains('R2')));
   });
 
   test('--write-config 的落盘内容与默认配置一致', () {

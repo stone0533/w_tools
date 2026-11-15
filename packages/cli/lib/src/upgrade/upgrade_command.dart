@@ -30,13 +30,12 @@ w_tools_cli upgrade —— 把 w_tools 系依赖抬到 hosted 上的最新版本
   --hosted=<url>      覆盖 hosted 源（默认 PUB_HOSTED_URL，再退回 pub.dev）
   --format=<fmt>      text | json | prompt（默认 text）
   --json              等价于 --format=json
-  --strict            跨 major / 被 SDK 挡住也算落后（配合 --check）
   --version           显示版本
   --help, -h          显示本帮助
 
 退出码：
   0  成功（含「已是最新」）
-  1  --check 发现落后（--strict 时包含跨 major / SDK 不兼容）
+  1  --check 发现落后（可升未升 / lock 落后）
   2  参数或项目错误（无 pubspec、workspace 项目、pub get 失败）
   3  hosted 源不可用 / 跑不了 pub
 
@@ -87,8 +86,7 @@ ArgParser _parser() => cliParser()
   ..addFlag('get', defaultsTo: true)
   ..addOption('hosted')
   ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json', 'prompt'])
-  ..addFlag('json', negatable: false)
-  ..addFlag('strict', negatable: false);
+  ..addFlag('json', negatable: false);
 
 Future<int> _execute(ArgResults args, LatestFetcher? injected, PubRunner runPub) async {
   try {
@@ -157,7 +155,6 @@ Future<int> _runUpgrade(ArgResults args, LatestFetcher? injected, PubRunner runP
 
   final check = args['check'] as bool;
   final dryRun = args['dry-run'] as bool;
-  final strict = args['strict'] as bool;
   final mode = check ? 'check' : (dryRun ? 'dry-run' : 'write');
   final projectName = pubspec.declaredName ?? '(未命名项目)';
 
@@ -208,7 +205,7 @@ Future<int> _runUpgrade(ArgResults args, LatestFetcher? injected, PubRunner runP
     written = <String, String>{for (final pkg in plan.writable) pkg.name: pkg.target!};
   }
 
-  final findings = plan.hasFindings || (strict && plan.hasRisks);
+  final findings = plan.hasFindings;
   final outcome = UpgradeOutcome(
     projectName: projectName,
     mode: mode,

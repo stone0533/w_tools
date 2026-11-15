@@ -6,7 +6,6 @@ import 'rules/r2_direct_subpackage_import.dart';
 import 'rules/r3_hardcoded_colors.dart';
 import 'rules/r4_design_system_boundary.dart';
 import 'rules/r5_staged_marker.dart';
-import 'rules/r6_banned_units.dart';
 import 'rules/r7_toolkit_consistency.dart';
 import 'rules/r8_generated_stale.dart';
 import 'rules/r9_banned_api.dart';
@@ -73,14 +72,6 @@ const List<DoctorRule> doctorRules = <DoctorRule>[
     summaryZh: 'STAGED 标记',
     summaryEn: 'STAGED marker',
     check: R5StagedMarker.check,
-  ),
-  DoctorRule(
-    id: R6BannedUnits.id,
-    title: R6BannedUnits.title,
-    level: DoctorLevel.warn,
-    summaryZh: '禁用 .h / .r',
-    summaryEn: 'Banned .h / .r units',
-    check: R6BannedUnits.check,
   ),
   DoctorRule(
     id: R7ToolkitConsistency.id,

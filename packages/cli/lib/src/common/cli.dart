@@ -6,6 +6,9 @@ import 'package:yaml/yaml.dart';
 
 import 'version.dart';
 
+/// 所有命令共用的错误信封 schema；机器消费方只认这一种。
+const cliErrorSchema = 'w_tools_cli.error/1';
+
 /// 所有入口共用的解析器：`--version` / `--help` 自动带上。
 ArgParser cliParser() => ArgParser()
   ..addFlag('version', negatable: false)
@@ -39,7 +42,7 @@ CommandResult runCli(
     if (wantsJson) {
       stdout.writeln(
         jsonEncode({
-          'schema': 'w_tools_cli.error/1',
+          'schema': cliErrorSchema,
           'ok': false,
           'error': message,
         }),
@@ -116,7 +119,7 @@ Never failCli(ArgResults args, String message, {int code = 2}) {
   if (json) {
     stdout.writeln(
       jsonEncode({
-        'schema': 'w_tools_cli.error/1',
+        'schema': cliErrorSchema,
         'ok': false,
         'error': message,
       }),

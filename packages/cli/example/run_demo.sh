@@ -34,7 +34,7 @@ dart run bin/w_tools.dart doctor --root="$TMP" --format=markdown
 
 echo
 echo "== context =="
-dart run bin/w_tools.dart context --root="$TMP" --format=prompt --max-tokens=1200
+dart run bin/w_tools.dart context --root="$TMP" --format=prompt
 
 echo
 echo "== list =="
@@ -43,11 +43,6 @@ dart run bin/w_tools.dart list WForm
 echo
 echo "== explain =="
 dart run bin/w_tools.dart explain WForm
-
-echo
-echo "== feedback =="
-dart run bin/w_tools.dart feedback status --root="$TMP"
-dart run bin/w_tools.dart feedback path --root="$TMP" --package=cli
 
 echo
 echo "临时 demo 项目：${TMP}"

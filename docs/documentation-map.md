@@ -215,7 +215,7 @@ workspace
 pubspec / README / CHANGELOG / LICENSE / .pubignore
 example（有真实入口时）
 templates/agents/{zh,en}/<feature>.md（init feature）
-context.capabilities（仅消费入口包）
+context.capabilities（`catalog/capabilities.yaml`，仅消费入口包）
 docs/modules/README.md
 release 约束 / 版本
 ```

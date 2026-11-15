@@ -568,7 +568,7 @@ void main() {
       expect(File(p.join(root.path, 'AGENTS.md')).existsSync(), isTrue);
     });
 
-    test('--no-qr / --with-map 影响导出', () async {
+    test('--no-qr / map 影响导出', () async {
       final root = makeProject();
       runInit(root, features: InitFeatures.full.copyWith(qr: false, map: true));
       expect(

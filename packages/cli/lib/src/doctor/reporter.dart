@@ -12,12 +12,15 @@ class DoctorReporter {
   final int fileCount;
   final bool strict;
 
-  void printHuman(List<DoctorRuleResult> results) {
+  void printHuman(List<DoctorRuleResult> results, {List<String> warnings = const []}) {
     final errors = _count(results, DoctorLevel.error);
     final warns = _count(results, DoctorLevel.warn);
 
     print('w_tools doctor · $projectName · 扫描 $fileCount 个 dart 文件');
     print('━' * 60);
+    for (final warning in warnings) {
+      print('! 配置：$warning');
+    }
     for (final r in results) {
       switch (r.status) {
         case DoctorRuleStatus.skipped:
@@ -41,7 +44,7 @@ class DoctorReporter {
     print('$errors error · $warns warning · 退出码 ${exitCode(results)}');
   }
 
-  void printJson(List<DoctorRuleResult> results) {
+  void printJson(List<DoctorRuleResult> results, {List<String> warnings = const []}) {
     final payload = <String, Object?>{
       'schema': 'w_tools_cli.doctor/1',
       'schemaVersion': 1,
@@ -52,6 +55,7 @@ class DoctorReporter {
         'warn': _count(results, DoctorLevel.warn),
       },
       'exitCode': exitCode(results),
+      'warnings': warnings,
       'rules': results
           .map(
             (r) => <String, Object?>{
@@ -79,7 +83,7 @@ class DoctorReporter {
   }
 
   /// Markdown 摘要：可直接粘给 AI / 写进 PR 评论。
-  void printMarkdown(List<DoctorRuleResult> results) {
+  void printMarkdown(List<DoctorRuleResult> results, {List<String> warnings = const []}) {
     final errors = _count(results, DoctorLevel.error);
     final warns = _count(results, DoctorLevel.warn);
     final b = StringBuffer()
@@ -88,6 +92,15 @@ class DoctorReporter {
       ..writeln('- 扫描文件：$fileCount')
       ..writeln('- 结果：$errors error / $warns warning（退出码 ${exitCode(results)}）')
       ..writeln();
+    if (warnings.isNotEmpty) {
+      b
+        ..writeln('## 配置警告')
+        ..writeln();
+      for (final warning in warnings) {
+        b.writeln('- $warning');
+      }
+      b.writeln();
+    }
     for (final r in results) {
       if (r.status == DoctorRuleStatus.skipped) {
         b.writeln('- `${r.ruleId}` ${r.title}：跳过（${r.skipReason ?? ''}）');

@@ -58,15 +58,13 @@ void main() {
     expect((json['commands'] as Map)['test'], 'dart test');
   });
 
-  test('markdown / prompt 都能生成，prompt 支持截断', () {
+  test('markdown / prompt 都能生成', () {
     final snap = ProjectSnapshot.load(_project());
     expect(snap.toMarkdown(), contains('# w_tools 项目上下文'));
     expect(snap.toMarkdown(), contains('w_tools_ui'));
     final prompt = snap.toPrompt();
     expect(prompt, contains('项目: demo_app'));
-    final short = snap.toPrompt(maxTokens: 6);
-    expect(short.length, lessThan(prompt.length));
-    expect(short, contains('已截断'));
+    expect(prompt, contains('组件:'));
   });
   test('Flutter 项目输出 flutter 命令', () {
     final root = _project();
