@@ -217,6 +217,19 @@ if grep -qE '^(workspace:|resolution:[[:space:]]*workspace)' "$staging/pubspec.y
   exit 1
 fi
 
+# `.pubignore` 的目录模式是 gitignore 语义：`catalog/` 会匹配任意层级的
+# `catalog/`，包括 `lib/src/catalog/`。2.0.0 就是这样漏掉运行时源码的。
+# 这里对已知的根目录源文件强制要求前导 `/`，避免再次静默发布缺文件的包。
+if [ -f "$staging/.pubignore" ]; then
+  for dir in catalog templates tool; do
+    if grep -qE "^[[:space:]]*${dir}/[[:space:]]*$" "$staging/.pubignore"; then
+      echo "✗ .pubignore 的 ${dir}/ 会匹配任意层级的 ${dir}/（包括 lib/src/${dir}/）；" >&2
+      echo "  改成根锚定：/${dir}/" >&2
+      exit 1
+    fi
+  done
+fi
+
 echo "== 发布目标: $publish_host"
 if [ "$publish_host" != "https://pub.dev" ]; then
   echo "!! 注意：目标不是 pub.dev" >&2
