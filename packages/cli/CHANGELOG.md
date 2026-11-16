@@ -1,3 +1,11 @@
+## 2.0.1
+
+### Fixed
+- 修复 2.0.0 发布包遗漏 `lib/src/catalog/` 的问题：`.pubignore` 里的 `catalog/`
+  会按 gitignore 语义匹配 `lib/src/catalog/`，导致 `init` / `list` / `explain` 等
+  命令编译失败（`bin/w_tools.dart` 找不到 `list_command.dart`）。
+  2.0.0 不可用，请升级到 2.0.1。
+
 ## 2.0.0
 
 ### Breaking
