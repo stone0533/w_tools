@@ -62,10 +62,7 @@ void main() {
 
     await tester.tap(find.text('扫描框'));
     await tester.pump();
-    expect(
-      tester.widget<WQrView>(find.byType(WQrView)).style.isVisible,
-      isFalse,
-    );
+    expect(tester.widget<WQrView>(find.byType(WQrView)).style, isNull);
 
     await tester.tap(find.text('仅二维码'));
     await tester.pump();

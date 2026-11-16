@@ -8,20 +8,19 @@ QR 模块（`w_tools_qr` 子包）基于 `qr_code_scanner_plus` 封装，提供�
 
 **核心特性**：
 - 支持 Android、iOS 与 Web（桌面端插件抛 `UnsupportedError`）
-- 默认单次扫描模式（`scanOnce=true`）：首条码后回调一次、边框切成功色并暂停相机
-- 不传 `onScanned` 时不会自动暂停相机，可只监听广播流
-- 连续扫描模式下按 `scanInterval`（默认 400ms）对相同内容去重
-- 应用退后台自动暂停、回前台恢复（单次扫描完成时不恢复）
+- 默认单次扫描（`scanOnce=true`）：首条有效码后暂停相机并只回调一次，再扫走 `restart()`
+- 连续扫描按 `scanThrottle` 对连续相同内容节流（只在连续模式生效）
+- 应用退后台自动暂停、回前台恢复（单次扫描完成时不恢复；Web 跳过，见平台限制）
 - `scannedDataStream` 为广播流，可多监听，且跨平台视图重建保持不变
-- Android 热重载自动 pause/resume 防黑屏
+- `controller` 必传；`style: null` 表示全屏扫描
 
 依赖：`qr_code_scanner_plus`（锁定 `>=2.1.2 <2.2.0`，2.2+ 要求 Flutter 3.44 / iOS 13 / AGP 9，暂不升级）。
 
 ## 快速判断
 
-- 扫码 → `WQrView`
+- 扫码 → `WQrView`（`controller` 必传）
 - 重扫 / 闪光灯 / 翻转 / 暂停 → `WQrController`
-- 扫描框颜色与尺寸 → `WQrOverlayStyle`
+- 扫描框颜色与尺寸 → `WQrOverlayStyle`（`style: null` 全屏）
 - 扫码结果 → `WQrScanResult`
 - 不要直接用 `qr_code_scanner_plus` 的 `QRView`
 - 可运行示例：[packages/qr/example](../../packages/qr/example/README.md)
@@ -33,11 +32,15 @@ QR 模块（`w_tools_qr` 子包）基于 `qr_code_scanner_plus` 封装，提供�
 ```
 qr/
 └── lib/src/
-    ├── qr_view.dart          # WQrView + 内部 State
-    ├── qr_controller.dart    # WQrController
+    ├── qr_core.dart          # 内部 library：imports + part（接线不进入公开 API）
+    ├── qr_view.dart          # WQrView + 内部 State（part of qr_core.dart）
+    ├── qr_controller.dart    # WQrController（part of qr_core.dart）
     ├── qr_overlay_style.dart # WQrOverlayStyle
     └── qr_scan_result.dart   # WQrScanResult
 ```
+
+`WQrController` 与 `WQrView` 互相需要私有接线（挂载平台视图、重扫回调），因此放在同一个
+library 里用 `part` 拆分；barrel 只导出 `WQrController` / `WQrView`。
 
 ---
 
@@ -45,15 +48,13 @@ qr/
 
 ### 功能说明
 
-扫描相关的视觉参数只有这一处：是否显示、边框颜色、成功色、外边距与扫描框几何。
+扫描框的视觉参数只有这一处。`WQrView.style` 传 `null` 表示不绘制扫描框（全屏扫描）。
 
 ### 配置字段
 
 | 字段 | 默认值 | 说明 |
 |------|--------|------|
-| `isVisible` | `true` | 是否绘制扫描框；为 false 时全屏扫描，其余字段不生效 |
-| `borderColor` | `Colors.red` | 扫描中的边框颜色 |
-| `successColor` | `Colors.green` | 单次扫码成功后的边框颜色（保持到 `restart()`） |
+| `borderColor` | `Colors.red` | 边框颜色 |
 | `margin` | `EdgeInsets.zero` | 扫描框外边距 |
 | `borderWidth` | `3.0` | 边框宽度（逻辑像素） |
 | `overlayColor` | `Color.fromRGBO(0, 0, 0, 0.5)` | 遮罩颜色（半透明黑） |
@@ -63,14 +64,14 @@ qr/
 | `cutOutHeight` | 同 `cutOutWidth` | 扫描框高度（为 null 时回退到宽度） |
 | `cutOutBottomOffset` | `0` | 扫描框底部偏移（逻辑像素），正值向下移动 |
 
-`WQrOverlayStyle` 实现了 `==` / `hashCode`，相同配置可比较。
+`borderWidth` / `borderLength` / 扫描框尺寸必须为正数（本类断言）；`borderLength` 与扫描框
+尺寸的比例约束由插件 `QrScannerOverlayShape` 断言。本类不实现 `==` / `hashCode`。
 
 ### 使用示例
 
 ```dart
 const style = WQrOverlayStyle(
   borderColor: Colors.blue,
-  successColor: Colors.greenAccent,
   borderWidth: 4.0,
   borderRadius: 8,
   cutOutWidth: 300,
@@ -91,46 +92,41 @@ WQrView(
 
 ### 功能说明
 
-由调用方创建并持有（与 `WMapController` 同模式），传给 `WQrView.controller`：
+由调用方创建并持有，传给 `WQrView.controller`（必传）：
 
 - `scannedDataStream` 是**广播流**，支持多个监听者；控制器实例与流在平台视图重建后保持不变
 - 相机操作方法转发给底层控制器；未挂载时抛 `StateError`（不静默失败）
-- 平台视图（重新）创建时挂载、销毁前解除挂载，由 `WQrView` 内部完成
-- 传了 `controller` 时由调用方 `dispose()`；不传时 `WQrView` 自己创建并释放
+- 平台视图（重新）创建时挂载、组件销毁时解除挂载，由 `WQrView` 内部完成
+- 页面 `dispose()` 时调用 `dispose()` 释放
 
 ### 核心属性
 
 | 属性 | 类型 | 说明 |
 |------|------|------|
 | `isAttached` | `bool` | 是否已挂载到平台视图 |
-| `scannedDataStream` | `Stream<Barcode>` | 扫描数据流（广播，可多监听，不关心空 code） |
-| `hasPermissions` | `bool` | 相机权限是否已获取（未挂载时 false） |
-| `cameraFacing` | `CameraFacing?` | 最近一次已知的相机方向（尚未查询时为 null） |
+| `scannedDataStream` | `Stream<Barcode>` | 扫描数据流（广播，可多监听，不做空 code 过滤） |
+| `cameraFacing` | `CameraFacing?` | 最近一次已知的相机方向（挂载后即初始方向） |
 
 ### 核心方法
 
 | 方法 | 返回类型 | 说明 |
 |------|----------|------|
-| `restart()` | `Future<void>` | 重扫：重置单次锁定 / 成功色 / 去重窗口并恢复相机；未挂载时 no-op |
-| `pauseCamera()` | `Future<void>` | 暂停相机 |
+| `restart()` | `Future<void>` | 重扫：重置单次锁定 / 节流窗口并恢复相机；未挂载时抛 `StateError` |
+| `pauseCamera()` | `Future<void>` | 暂停相机（Web 上插件未实现） |
 | `resumeCamera()` | `Future<void>` | 恢复相机。**只恢复相机，不重置单次锁定**，需重置请用 `restart()` |
-| `stopCamera()` | `Future<void>` | 停止相机（插件只在 iOS 生效，其他平台 no-op） |
 | `flipCamera()` | `Future<CameraFacing>` | 翻转前后摄像头，返回翻转后的方向 |
-| `getCameraInfo()` | `Future<CameraFacing>` | 获取当前摄像头方向 |
 | `getFlashStatus()` | `Future<bool?>` | 获取闪光灯状态 |
 | `toggleFlash()` | `Future<void>` | 切换闪光灯 |
-| `getSystemFeatures()` | `Future<SystemFeatures>` | 获取设备可用能力 |
-| `setInvert(bool enabled)` | `Future<void>` | 开关反色扫描（**仅 Android 生效**） |
-| `dispose()` | `Future<void>` | 释放广播流与底层订阅；调用方持有控制器时才需要 |
+| `dispose()` | `Future<void>` | 释放广播流并解除挂载 |
 
 ### 注意事项
 
 - `resumeCamera` 只恢复相机运行态，不会重置单次扫码锁定；若 `scanOnce=true` 且已扫码一次，
   调用后相机恢复但不会再触发 `onScanned`，需要重新扫描请用 `restart()`。
 - `WQrView` 内部发出的相机调用失败会走 `onError`；直接调用 `WQrController` 成员
-  （含 Web 上同步抛 `UnimplementedError` 的 `hasPermissions` / `stopCamera` / `setInvert` /
-  `getSystemFeatures`）会抛给调用方，请自行 `try/catch`。
-- 未挂载时调用相机方法抛 `StateError`；`restart()` 是 no-op，便于在初始化前后统一调用。
+  （含 Web 上同步抛 `UnimplementedError` 的 `pauseCamera` / `resumeCamera`）会抛给调用方，
+  请自行 `try/catch`。
+- 未挂载时相机方法与 `restart()` 都抛 `StateError`；`isAttached` 可用于判断。
 
 ### 使用示例
 
@@ -163,30 +159,28 @@ await controller.restart();
 基于 `qr_code_scanner_plus` 的 `StatefulWidget`，封装扫描框 UI、相机生命周期管理、扫码逻辑与错误处理。
 
 **交互行为**：
-- 单次扫码（`scanOnce=true` 且传了 `onScanned`）：边框切 `successColor` → 暂停相机 → 回调
-- 连续扫码（`scanOnce=false`）：持续回调，按 `scanInterval` 去重，不切换成功色
-- 不传 `onScanned`：不暂停相机，只把数据送进 `scannedDataStream`
-- 退后台自动暂停，回前台恢复（单次扫描完成时不恢复）
-- Android 热重载自动 pause → resume 防黑屏
+- 单次模式（`scanOnce=true`，默认）：首条有效码 → 暂停相机 → 回调一次
+- 连续模式（`scanOnce=false`）：持续回调，连续相同内容按 `scanThrottle` 节流，不暂停相机
+- `onScanned` 可省略；省略时仍按 `scanOnce` 管理相机，只是没有回调
+- 退后台自动暂停，回前台恢复（单次扫描完成时不恢复；Web 跳过）
 - `cameraFacing` / `formatsAllowed` 变化时重建平台视图并重置扫描状态
 
 ### 构造参数
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `controller` | `WQrController?` | `null` | 相机控制器；省略时组件内部创建并在销毁时释放 |
-| `style` | `WQrOverlayStyle` | `WQrOverlayStyle()` | 扫描框样式（见 §1） |
+| `controller` | `WQrController` | 必填 | 相机控制器；由调用方创建并持有 |
+| `style` | `WQrOverlayStyle?` | `WQrOverlayStyle()` | 扫描框样式；传 `null` 全屏扫描（见 §1） |
 | `onScanned` | `void Function(WQrScanResult)?` | `null` | 扫码结果回调；仅在 `Barcode.code` 非空时触发；单次模式最多一次 |
-| `onControllerReady` | `void Function(WQrController)?` | `null` | 相机就绪回调；平台视图（重新）创建后触发，传入的就是 `controller` |
+| `onControllerReady` | `void Function(WQrController)?` | `null` | 相机就绪回调；平台视图（重新）创建后触发，参数就是 `controller` |
 | `onPermissionDenied` | `VoidCallback?` | `null` | 无相机权限回调；只在「未授权」首次触发，重新授权后重置 |
 | `onError` | `void Function(Object, StackTrace)?` | `null` | 错误回调（相机操作失败、流错误、回调自身异常）；未提供时 debug 下 `debugPrint` |
 | `cameraFacing` | `CameraFacing` | `CameraFacing.back` | 摄像头方向。运行期修改会**重建平台视图**并重置扫描状态 |
 | `formatsAllowed` | `List<BarcodeFormat>` | `[]` | 允许识别的条码格式；为空表示平台默认。运行期修改会重建平台视图 |
-| `scanOnce` | `bool` | `true` | 是否只扫描一次；只有传了 `onScanned` 才生效 |
-| `scanInterval` | `Duration` | `400ms` | 相同内容的最小回调间隔；`Duration.zero` 关闭去重；单次 / 连续模式都生效 |
+| `scanOnce` | `bool` | `true` | 首码后暂停且只回调一次；为 false 时连续回调 |
+| `scanThrottle` | `Duration` | `400ms` | 连续模式下连续相同内容的最小回调间隔；`Duration.zero` 关闭；单次模式不生效 |
 
-`onScanned` 与 `onControllerReady` 都可省略，也不存在「只监听流必须传 `scanOnce: false`」的约束：
-不传 `onScanned` 时组件根本不会自动暂停。
+`onScanned` 与 `onControllerReady` 都可省略；`scanOnce` 与是否传 `onScanned` 无关。
 
 ### WQrScanResult
 
@@ -195,38 +189,36 @@ await controller.restart();
 | `code` | `String` | 扫码内容，保证非空 |
 | `format` | `BarcodeFormat` | 条码格式 |
 | `rawBytes` | `List<int>?` | 原始字节，仅 Android / iOS 提供 |
-| `timestamp` | `DateTime` | 包内收到结果的时间 |
+
+需要插件原始对象（例如自己过滤）时监听 `WQrController.scannedDataStream`。
 
 ### 行为说明
 
-#### 扫码流程（scanOnce=true 且传了 onScanned）
+#### 扫码流程（scanOnce=true）
 
 ```
 相机捕获 → 解析 Barcode
   ├─ code 为空 → 忽略
   ├─ 已扫码 → 忽略
-  ├─ 去重窗口内相同内容 → 忽略
   └─ 有效扫码
-       ├─ 边框切换为 successColor
-       ├─ 暂停相机
+       ├─ 暂停相机（Web 跳过）
        └─ 回调 onScanned(WQrScanResult)
             └─ 回调抛异常时：回滚锁定、恢复相机、走 onError
 ```
 
-#### 扫码流程（scanOnce=false 或未传 onScanned）
+#### 扫码流程（scanOnce=false）
 
 ```
 相机捕获 → 解析 Barcode
   ├─ code 为空 → 忽略
-  ├─ 去重窗口内相同内容 → 忽略
-  └─ 有效扫码
-       └─ 回调 onScanned（若有），不暂停、不切换成功色
+  ├─ 节流窗口内连续相同内容 → 忽略
+  └─ 有效扫码 → 回调 onScanned（若有），不暂停
 ```
 
 #### 生命周期
 
 ```
-应用进入后台 → pauseCamera() + 标记 _pausedByLifecycle = true
+应用进入后台 → pauseCamera() + 标记 _pausedByLifecycle = true（Web 跳过）
 应用回到前台（_pausedByLifecycle = true）
   ├─ 单次模式且已扫码 → 不恢复（保持暂停）
   └─ 其他 → resumeCamera() + 清除 _pausedByLifecycle
@@ -237,52 +229,32 @@ await controller.restart();
 | 参数变化 | 影响 |
 |----------|------|
 | `cameraFacing` 或 `formatsAllowed` | 重建平台视图（更换 `_qrKey`），重置所有扫描状态 |
-| `controller` | 解绑旧控制器（内部创建的会释放）并挂到新控制器 |
+| `controller` | 解绑旧控制器并挂到新控制器（旧控制器不再收到数据） |
 | `style` | 即时更新样式（不重建视图） |
-| `scanOnce` / `onScanned` 是否为空 | 重置单次锁定、成功色与去重记录 |
-
-#### reassemble（热重载）
-
-Android 上热重载后相机可能黑屏，框架自动执行 `pauseCamera()` → `resumeCamera()` 恢复；Web 跳过此步骤。
+| `scanOnce` | 重置单次锁定与节流记录；true → false 时恢复相机 |
 
 ### 使用示例
 
 ```dart
-// 基础单次扫描
+// 单次扫码
 final controller = WQrController();
 WQrView(
   controller: controller,
-  onScanned: (result) {
-    debugPrint('扫码结果: ${result.code}');
-  },
+  onScanned: (result) => debugPrint(result.code),
 );
+await controller.restart(); // 继续扫描
 
-// 连续扫描 + 去重
+// 连续扫描 + 节流
 WQrView(
   controller: controller,
   scanOnce: false,
-  scanInterval: const Duration(milliseconds: 500),
-  onScanned: (result) => debugPrint('连续扫码: ${result.code}'),
+  scanThrottle: const Duration(milliseconds: 500),
+  onScanned: (result) => debugPrint(result.code),
 );
 
-// 只监听广播流
-controller.scannedDataStream.listen((barcode) {
-  debugPrint('广播流收到: ${barcode.code}');
-});
-WQrView(controller: controller);
-
-// 自定义扫描框样式
-WQrView(
-  controller: controller,
-  style: const WQrOverlayStyle(
-    borderWidth: 4,
-    borderRadius: 8,
-    cutOutWidth: 280,
-    cutOutHeight: 280,
-    cutOutBottomOffset: 60,
-  ),
-  onScanned: (result) {},
-);
+// 只订阅广播流（默认单次仍会暂停，持续接收要显式 scanOnce: false）
+controller.scannedDataStream.listen((barcode) => debugPrint(barcode.code));
+WQrView(controller: controller, scanOnce: false);
 ```
 
 ---
@@ -307,11 +279,11 @@ WQrView(
      │  │
      │  └──► didUpdateWidget:
      │          - style 变化 → 即时更新
-     │          - scanOnce 切换 → 重置锁定 / 去重
+     │          - scanOnce 切换 → 重置锁定 / 节流
      │
      └──► 扫码成功
-            ├─ 单次模式 → 成功色 + 暂停相机 + 回调（异常则回滚）
-            └─ 连续模式 → 回调（scanInterval 去重），不暂停
+            ├─ 单次模式 → 暂停相机 + 回调（异常则回滚）
+            └─ 连续模式 → 回调（按 scanThrottle 节流），不暂停
                            │
                            ▼
                     业务方处理完 → controller.restart()
@@ -335,7 +307,8 @@ WQrView(
   <key>NSCameraUsageDescription</key>
   <string>需要相机权限以扫描二维码</string>
   ```
-- 运行时需先申请权限（例如使用 `permission_handler` 包），否则 `onPermissionDenied` 会被触发。
+- 插件会在平台视图创建时自行发起相机权限请求；被拒绝后 `onPermissionDenied` 只回调一次，
+  引导用户去系统设置需要业务自行实现（例如 `permission_handler` 的 `openAppSettings`）。
 
 ### 平台限制
 
@@ -343,7 +316,7 @@ WQrView(
 |------|----------|
 | Android | ✅ 完整支持 |
 | iOS | ✅ 完整支持 |
-| Web | ⚠️ 扫码可用；`pause/resume/flip` 经 WQrView 调用会走 `onError`，直接调用 controller 的 4 个成员同步抛 `UnimplementedError` |
+| Web | ⚠️ 扫码可用；插件没有实现 `pauseCamera` / `resumeCamera`，`WQrView` 在 Web 上跳过自动暂停 / 恢复 |
 | Windows / macOS / Linux | ❌ 插件抛 `UnsupportedError` |
 
 ### 版本锁定
@@ -357,7 +330,7 @@ WQrView(
   并再次触发 `onControllerReady`。
 - `resumeCamera()` 只恢复相机运行态，**不会重置单次锁定**；需显式调用 `restart()`。
 - 单次扫描完成后应用退后台再回前台，**不会自动恢复相机**（避免意外重复扫码）；如需重新扫描请调用 `restart()`。
-- 传了 `controller` 时框架不会释放它，页面销毁时要自己 `dispose()`。
+- 页面销毁时由调用方 `dispose()` 控制器。
 
 ### 错误处理
 
@@ -367,18 +340,19 @@ WQrView(
 
 ### 其他
 
-- `borderLength` 需 `<= min(cutOutWidth, cutOutHeight) / 2 + borderWidth * 2`，否则构造时断言失败。
-- `scanInterval` 默认 `400ms`：同一内容最快每 400ms 回调一次；持续对着同一码会持续回调，
-  需要「一码一次」请自行去重或改用单次模式。
-- `style.isVisible = false` 时全屏扫描，颜色与扫描框几何均不生效。
-- `formatsAllowed` 为空列表时使用平台默认识别格式，显式指定可提升识别速度。
+- `scanThrottle` 默认 `400ms`：连续模式对「连续相同内容」节流；持续对着同一码会按窗口重复回调，
+  需要「一码一次」请用单次模式或自行去重。
+- `style` 为 `null` 时全屏扫描，颜色与几何都不生效。
+- `formatsAllowed` 为空列表时使用平台默认识别格式，显式指定可提升识别速度；请传新列表，
+  原地修改同一列表不会被检测到。
 - 桌面端（Windows/macOS/Linux）运行会在插件层抛 `UnsupportedError`，请在使用前做平台判断。
+- Web 上 `WQrController.pauseCamera()` / `resumeCamera()` 会同步抛 `UnimplementedError`。
 
-### 从 1.x 升级
+### 从 2.x 升级
 
-2.0 是 breaking 版本：`WQrViewState` 已移除，命令式入口改为 `WQrController.restart()`；
-`onScanned` 改为回调 `WQrScanResult`；扫描框样式统一到 `WQrOverlayStyle`。
-逐条对照见 [qr 2.0 迁移](../migrations/qr-2.0.md)。
+3.0 是 breaking 版本：`controller` 必传、扫描模式由 `scanOnce` 决定、连续模式节流改为
+`scanThrottle`、控制器删掉平台残缺与纯转发能力、扫码结果去掉合成字段。逐条对照见
+[qr 3.0 迁移](../migrations/qr-3.0.md)。
 
 ---
 

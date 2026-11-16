@@ -10,7 +10,7 @@
 final controller = WQrController();
 
 WQrView(
-  controller: controller,
+  controller: controller, // 必传
   onScanned: (result) => debugPrint(result.code), // WQrScanResult
 );
 // 需要再扫
@@ -20,28 +20,26 @@ await controller.restart();
 `WQrController` 由页面创建并持有，`dispose()` 里释放；`WQrViewState` 已移除（2.0），
 不要再通过 `GlobalKey` 取状态。
 
-只监听广播流时不用传 `onScanned`，也不会自动暂停相机：
+只监听广播流时可省略 `onScanned`；需要持续接收流就显式传 `scanOnce: false`：
 
 ```dart
 controller.scannedDataStream.listen((barcode) => debugPrint(barcode.code));
-WQrView(controller: controller);
+WQrView(controller: controller, scanOnce: false);
 ```
 
 ## 不要用
 
 - 直接 `QRView`（用 `WQrView`）；
 - 在 `onScanned` 里做重 UI 操作（先暂停相机、再跳转）；
-- 用 `scanInvert`（2.0 已移除，改用 `setInvert`）。
+- 在 Web 上调 `WQrController.pauseCamera()` / `resumeCamera()`（插件未实现，组件已跳过）。
 
 ## 常见坑
 
 - Android 配 `CAMERA`；iOS 配 `NSCameraUsageDescription`；
-- 默认 `scanOnce = true`：传了 `onScanned` 时扫完暂停，再扫要 `controller.restart()`；
-  没传 `onScanned` 则不会暂停，`scanOnce` 不生效；
-- `scanInterval` 默认 400ms：同一内容最快每 400ms 回调一次（单次 / 连续模式都生效），
-  `Duration.zero` 关闭去重；
+- 默认 `scanOnce = true`：首条有效码后暂停相机，再扫要 `controller.restart()`；
+- `scanThrottle` 默认 400ms，只在连续模式（`scanOnce: false`）对连续相同内容节流，
+  `Duration.zero` 关闭；
 - 运行期改 `cameraFacing` / `formatsAllowed` 会重建平台视图（相机重启、扫描状态重置）；
-- 未挂载（还没收到 `onControllerReady` 或视图已销毁）时，相机方法抛 `StateError`，
-  `controller.restart()` 是 no-op。
+- 未挂载（`isAttached == false`）时相机方法与 `restart()` 都抛 `StateError`。
 
 完整说明：[qr_module.md](../modules/qr_module.md) · 示例：`packages/qr/example`
