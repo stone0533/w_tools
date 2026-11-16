@@ -7,4 +7,3 @@
 #
 # 例：
 # geo
-w_tools_async_ui
