@@ -23,7 +23,10 @@
 9. （仅提示词手册）代码块里的 `docs/**.md` / `packages/**.md` 路径必须存在
    （模板路径 `<>` 不匹配；其它文档可能写「输出到 docs/x.md」这类未来路径，不做此检查）；
 10. （仅提示词手册）`dart run tool/<file>` / `dart test test/<file>` 的文件必须存在；
-    场景标题不能重复，且每个顶层场景都必须在 §1 出现（反向也要能查到）。
+    场景标题不能重复，且每个顶层场景都必须在 §1 出现（反向也要能查到）；
+11. （仅提示词手册）行数预算：全文 > MANUAL_BUDGET_LINES 失败、≥ MANUAL_WARN_LINES 警告；
+    单个叶子场景块 > SCENARIO_BUDGET_LINES 失败、≥ SCENARIO_WARN_LINES 警告。
+    超预算说明流程知识写进了手册；先迁移到事实源，调大常数要写理由。
 """
 from __future__ import annotations
 
@@ -41,6 +44,16 @@ CLI_CALL = re.compile(
     r'w_tools_cli:(?:w_tools\s+([a-z][a-z0-9-]*)(?![\w_])|([a-z][a-z0-9-]*)(?![\w_]))([^\n]*)'
 )
 DOC_PATH = re.compile(r'(?<![\w<])((?:docs|packages)/[A-Za-z0-9_./-]+\.md)')
+# 手册只放“可复制块 + 索引”。预算超了先把流程细节迁回事实源
+# （docs/releasing.md / scripts/README.md / AGENTS.md）。
+# 两档：达到 WARN 只提醒（不挡 PR），超过 BUDGET 才失败。
+MANUAL_WARN_LINES = 760
+MANUAL_BUDGET_LINES = 800
+SCENARIO_WARN_LINES = 60
+SCENARIO_BUDGET_LINES = 80
+
+SCENARIO_HEADING = re.compile(r'^(#{2,3})\s+([A-Z](?:-\d+[A-Z]?)?)\.')
+
 DOCUMENTED_BELOW = {
     '<runner>',
     '<包目录>',
@@ -285,6 +298,99 @@ def cli_flag_errors(text: str, name: str) -> list[str]:
     return errors
 
 
+def _scenario_spans(lines: list[str]) -> list[tuple[int, int, str]]:
+    """返回叶子场景的 (起始行号, 行数, 场景 ID)。
+
+    所有标题决定块在哪结束；只有更深的“场景”标题才把父块拆走。
+    普通子标题（`### 补充说明`）仍算在父块里，不能让它豁免父块预算。
+    代码块里的 `## 注意` 不是标题：否则长 prompt 块能靠一个围栏标题躲过预算。
+    """
+    all_headings: list[tuple[int, int]] = []
+    scenarios: list[tuple[int, int, str]] = []
+    in_fence = False
+    for index, line in enumerate(lines):
+        if line.startswith('```'):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        heading = re.match(r'^(#{1,3})\s+', line)
+        if heading:
+            all_headings.append((index, len(heading.group(1))))
+        match = SCENARIO_HEADING.match(line)
+        if match:
+            scenarios.append((index, len(match.group(1)), match.group(2)))
+
+    spans: list[tuple[int, int, str]] = []
+    for start, level, scenario in scenarios:
+        end = len(lines)
+        for next_start, next_level in all_headings:
+            if next_start <= start:
+                continue
+            if next_level <= level:
+                end = next_start
+                break
+        nested = any(
+            other_start > start and other_start < end and other_level > level
+            for other_start, other_level, _ in scenarios
+        )
+        if not nested:
+            spans.append((start, end - start, scenario))
+    return spans
+
+
+def budget_warnings(
+    text: str,
+    name: str,
+    warn_lines: int = MANUAL_WARN_LINES,
+    warn_scenario: int = SCENARIO_WARN_LINES,
+    max_lines: int = MANUAL_BUDGET_LINES,
+    max_scenario: int = SCENARIO_BUDGET_LINES,
+) -> list[str]:
+    """接近预算只提醒，不挡 PR；超过硬预算由 budget_errors 报错。"""
+    lines = text.splitlines()
+    warnings: list[str] = []
+    if warn_lines <= len(lines) <= max_lines:
+        warnings.append(
+            f'{name}: 手册共 {len(lines)} 行，接近预算 {max_lines} 行；'
+            '新内容先想清楚该不该进事实源',
+        )
+    for start, length, scenario in _scenario_spans(lines):
+        if warn_scenario <= length <= max_scenario:
+            warnings.append(
+                f'{name}:{start + 1}: 场景 {scenario} 有 {length} 行，'
+                f'接近单块预算 {max_scenario} 行',
+            )
+    return warnings
+
+
+def budget_errors(
+    text: str,
+    name: str,
+    max_lines: int = MANUAL_BUDGET_LINES,
+    max_scenario: int = SCENARIO_BUDGET_LINES,
+) -> list[str]:
+    """行数硬预算：整本手册 + 每个叶子场景块。
+
+    只数叶子场景（`## A.` / `### J-1.`）；带子场景的父块（`## J.`）不单独计数，
+    否则 J 的总长度会被重复算两次。预算不是目标：超了先迁流程知识，再谈调常数。
+    """
+    lines = text.splitlines()
+    errors: list[str] = []
+    if len(lines) > max_lines:
+        errors.append(
+            f'{name}: 手册共 {len(lines)} 行，超过预算 {max_lines} 行；'
+            '流程细节请迁到事实源（docs/releasing.md / scripts/README.md / AGENTS.md）',
+        )
+    for start, length, scenario in _scenario_spans(lines):
+        if length > max_scenario:
+            errors.append(
+                f'{name}:{start + 1}: 场景 {scenario} 有 {length} 行，'
+                f'超过单块预算 {max_scenario} 行；块内只留任务与验收，流程细节迁到事实源',
+            )
+    return errors
+
+
 def command_docs() -> list[pathlib.Path]:
     docs: list[pathlib.Path] = [
         root / 'README.md',
@@ -335,6 +441,12 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     errors: list[str] = strict_errors(doc)
+    if doc.resolve() == DEFAULT_DOC.resolve():
+        # 预算只属于维护者手册；--doc 指向消费方模板时不应该套这个上限。
+        manual = doc.read_text()
+        errors += budget_errors(manual, doc.name)
+        for warning in budget_warnings(manual, doc.name):
+            print(f'! {warning}', file=sys.stderr)
     for path in consumer_prompt_docs():
         if path.resolve() == doc.resolve():
             continue

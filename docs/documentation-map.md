@@ -85,7 +85,7 @@ docs/
   naming.md               命名规范（唯一事实源）
   releasing.md            发版流程
   ai-contract.md          AI 分层、更新、完整性检查
-  ai-maintainer-prompts.md 维护者按场景使用的 AI 提示词
+  ai-maintainer-prompts.md 维护者按场景使用的提示词块（只放复制块 + 索引）
 
   modules/                使用者：包职责 / API / 用法
     components.md         生成物：组件目录表
@@ -125,7 +125,7 @@ scripts/README.md         scripts 运行手册
 | `docs/conventions.md` | 接入者 / 维护者 | 接入方式与 doctor 规则 | 接入规则 / R1~R9 变化 | 组件目录 |
 | `docs/naming.md` | 维护者 / 仓库 AI | 包、文件、类型、成员的命名规则与存量例外 | 命名规则变化 | 组件 API、教程 |
 | `docs/ai-contract.md` | 维护者 / 仓库 AI | AI 分层、更新流程、完整性 | catalog / AGENTS 机制变化 | 单个组件教程 |
-| `docs/ai-maintainer-prompts.md` | 维护者（人/仓库 AI） | 按场景复制的提示词 | 工作流变化 | 完整规则副本；命令由 `check_prompt_docs.py` 守 |
+| `docs/ai-maintainer-prompts.md` | 维护者（人/仓库 AI） | 按场景复制的提示词块 + 场景索引；流程细节一律链接事实源 | 场景 / 提示词变化 | 完整规则副本、流程 runbook、失败分支、脚本参数表；任务级路由 / 决策表可以留；行数预算由 `check_prompt_docs.py` 守（全文 ≤ 800 行、760 起警告；单块 ≤ 80 行、60 起警告） |
 | `docs/modules/*.md` | 包使用者（人/AI） | 包边界、架构、跨类关系；安装 / 最小用法以包 README 为准，逐参数 API 以 pub.dev API 文档 / 源码为准 | 包架构 / 边界变化 | 逐参数 API 表、安装示例（历史重叠按包逐步收敛） |
 | `docs/modules/components.md` | 包使用者（人/AI） | 组件目录 | **只由生成器改** | 手写内容 |
 | `docs/agents/*.md` | 仓库 AI | 包级详细规则、首选入口、禁止项（详细源） | 规则 / 入口变化 | 完整教程、历史 |

@@ -42,6 +42,9 @@ _step() {
   output="$("$@" 2>&1)"
   status=$?
   if [ "$status" -eq 0 ]; then
+    # 成功步骤默认只打 ✓；提示词手册的预算警告（`! ` 开头）要透出来，
+    # 否则 760 行的警告档在 check_docs / preflight 里永远看不到。
+    printf '%s\n' "$output" | sed -n 's/^! /    ! /p'
     printf '✓ %s\n' "$label"
   elif [ "$allow_skip" -eq 1 ] && [ "$status" -eq 2 ]; then
     printf '! %s（环境不可用，跳过）\n' "$label"
