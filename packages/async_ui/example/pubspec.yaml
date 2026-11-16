@@ -1,0 +1,23 @@
+name: w_tools_async_ui_example
+description: "w_tools_async_ui 真实场景示例：单区块与标准分页。"
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  w_tools_async_ui:
+    path: ../
+  w_tools_async: ^7.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

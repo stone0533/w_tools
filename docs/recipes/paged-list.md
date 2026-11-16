@@ -1,5 +1,8 @@
 # 分页列表：刷新 + 追加 + 错误
 
+> 业务页面优先用 `w_tools_async_ui` 的 `WAsyncPagedList`：它内部处理刷新、上拉、footer、
+> 重试和 generation。下面的原语组合用于自定义滚动 / 库内部 / 设计系统。
+
 用 `WAsyncPagedController` 管分页状态，`WAsyncStateSliver` 渲染四态，footer 读
 `controller.snapshot`。测试用 [分页列表测试 recipe](paged-list-test.md) 的本地 harness，
 不要每个项目重写 fake。

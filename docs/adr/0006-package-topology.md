@@ -82,3 +82,9 @@
 - 状态：已完成；当前包角色与依赖边与上表一致，内部边只有 `app_getx → app`、`map_google → map`。
 - 证据：`packages/*/pubspec.yaml`、`scripts/ci_matrix.py`、`docs/modules/README.md`。
 - 偏差：无；包数量以 `packages.manifest` 与各包 `pubspec.yaml` 为准（本文不写死）。
+
+## 补充（2026-11-17）
+
+`w_tools_async_ui` 是 7.0 之后新增的**可选应用层**：它依赖 `w_tools_async`，
+但不属于核心库包、不聚合进根包，也不改变「库包之间零内部依赖」的默认规则。
+这是「实现包 / 应用层 → 核心」的单向例外，详见 [ADR-0013](0013-async-ui-extension-package.md)。

@@ -251,7 +251,8 @@
 
 要求：
 1. 先看项目现有列表页写法；
-2. 首屏 loading / empty / error 必须完整；error 必须有可点重试入口，并补一个失败态 widget test；
+2. 首屏 loading / empty / error 必须完整；单区块用 `WAsyncSection`，分页用 `WAsyncPagedList`；
+   error 必须有可点重试入口，并补一个失败态 widget test；
 3. 加载更多失败只更新 footer，不替换列表；
 4. 列表项使用稳定 key；
 5. 图片按需限制解码尺寸；
@@ -331,8 +332,8 @@
    - App：WApp.options / WAppPlugin，不要手工初始化插件
 <!-- @endif -->
 <!-- @if:async -->
-   - Async：WAsyncController / WAsyncView，不要自己维护 loading / error 状态；
-     检查 WAsyncView / WAsyncStateSliver 是否漏 onRetry、是否维护 hasLoadedMorePage、
+   - Async：单区块 `WAsyncSection`、分页 `WAsyncPagedList`；核心 `WAsyncView` / `WAsyncStateSliver` 只用于库/设计系统；
+     检查业务层是否误用 WAsyncView / WAsyncStateSliver、是否维护 hasLoadedMorePage、
      是否用 data != null 代替四态、fire-and-forget 是否漏 onError
 <!-- @endif -->
 <!-- @if:qr -->
@@ -415,7 +416,7 @@
    dart run w_tools_cli:w_tools init --check-drift
 4. 有 drift 时再运行（会覆盖生成物，没有备份）：
    dart run w_tools_cli:w_tools init --force
-5. 扫描 WAsyncView / WAsyncStateSliver 是否漏 onRetry；
+5. 扫描业务层是否直接使用 WAsyncView / WAsyncStateSliver，改用 WAsyncSection / WAsyncPagedList；
 6. 扫描 hasLoadedMorePage / hasLoadedMoreThanOnePage 残留；
 7. 每个失败态有 widget test，断言重试入口存在。
 

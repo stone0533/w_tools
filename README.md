@@ -166,6 +166,10 @@ flutter pub get
 | `w_tools_api` | 网络请求（`DioRegistry` / `WApiClient` / `BaseOptions` / 各类拦截器） |
 | `w_tools_toast` | 轻量提示（`WToast`） |
 
+异步页面的规范应用层 `w_tools_async_ui` 是**可选扩展**（不聚合进根包）：业务页面用
+`WAsyncSection` / `WAsyncPagedList`，核心 `w_tools_async` 仍只提供原语。
+见 [`docs/extensions/async_ui.md`](https://github.com/stone0533/w_tools/blob/main/docs/extensions/async_ui.md)。
+
 ## 快速开始
 
 根包只包含基础能力。应用启动器 `WApp` 需要单独依赖：

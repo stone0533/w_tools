@@ -23,6 +23,7 @@ workspace:
   - packages/map_google
   - packages/qr
   - packages/async
+  - packages/async_ui
   - packages/cli
   - packages/figma
   - packages/device

@@ -27,6 +27,7 @@ ADR 记录**当时**的决策与理由，不记录当前实现。当前实现以
 | [0005](0005-app-options-and-plugin-ownership.md) | `WApp` 单配置面与插件归属 | 已采纳 | 2026-11-03 |
 | [0007](0007-component-naming-roles.md) | 组件命名收敛为角色判断（修订 0004 决策 2；规则正文在 naming.md） | 已采纳 | 2026-11-06 |
 | [0012](0012-app-tree-scopes.md) | 应用树语言 / 应用实例作用域：`WLanguageScope` + `WApp.of` | 已采纳 | 2026-11-15 |
+| [0013](0013-async-ui-extension-package.md) | async 的规范应用层独立成可选包 `w_tools_async_ui` | 已采纳 | 2026-11-17 |
 
 ### 版本与发布
 

@@ -20,6 +20,7 @@ export 'package:w_tools_qr/w_tools_qr.dart'; // @optional:qr
 export 'package:w_tools_map/w_tools_map.dart'; // @optional:map
 export 'package:w_tools_map_google/w_tools_map_google.dart'; // @optional:map
 export 'package:w_tools_async/w_tools_async.dart'; // @optional:async
+export 'package:w_tools_async_ui/w_tools_async_ui.dart'; // @optional:async
 
 // 项目级页面规范
 export '../ui/app_bars.dart'; // @optional:ui

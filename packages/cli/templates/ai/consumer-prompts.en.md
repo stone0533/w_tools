@@ -256,8 +256,9 @@ Confirm first:
 
 Requirements:
 1. follow existing list pages in this project;
-2. first-screen loading / empty / error must be complete; error must have a working retry entry,
-   and add a failed-state widget test;
+2. first-screen loading / empty / error must be complete; use `WAsyncSection` for one block and
+   `WAsyncPagedList` for paged lists; error must have a working retry entry, and add a failed-state
+   widget test;
 3. load-more failure updates the footer only, do not replace the list;
 4. use stable keys for list items;
 5. limit image decode size;
@@ -337,8 +338,9 @@ Check this project:
    - app: WApp.options / WAppPlugin instead of manual plugin setup
 <!-- @endif -->
 <!-- @if:async -->
-   - async: WAsyncController / WAsyncView instead of hand-maintained loading / error state;
-     check WAsyncView / WAsyncStateSliver for missing onRetry, hasLoadedMorePage leftovers,
+   - async: `WAsyncSection` for one block, `WAsyncPagedList` for paged lists; raw `WAsyncView` /
+     `WAsyncStateSliver` only in libraries/design systems;
+     check for raw WAsyncView / WAsyncStateSliver in app code, hasLoadedMorePage leftovers,
      data != null instead of the four states, and fire-and-forget onError
 <!-- @endif -->
 <!-- @if:qr -->
@@ -421,7 +423,7 @@ Requirements:
    dart run w_tools_cli:w_tools init --check-drift
 4. on drift run this (overwrites generated files, no backup):
    dart run w_tools_cli:w_tools init --force
-5. scan WAsyncView / WAsyncStateSliver for missing onRetry;
+5. scan app code for raw WAsyncView / WAsyncStateSliver; use WAsyncSection / WAsyncPagedList;
 6. scan for hasLoadedMorePage / hasLoadedMoreThanOnePage leftovers;
 7. every failed state has a widget test asserting the retry entry exists.
 

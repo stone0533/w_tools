@@ -5,7 +5,8 @@
 | 包 | 首选入口 | 不要用（已弃用 / 内部） | 示例 |
 | --- | --- | --- | --- |
 | core | `WStorage` / `WToken` / `WValidator` / `WLogger` / `WDebounce` | `WConfig`、`WUx.debounce/throttle`、`WRegExpPattern`（3.0 已删除） | `packages/core/example` |
-| async | 页面用 `WAsyncController` + `WAsyncView`；滚动组件放进 `readyBuilder`，sliver 用 `WAsyncStateSliver`；无 UI 用 `WAsync.tryRun` + `WAsyncResult`，或 `WAsync.run`（失败抛异常）；独立区块用 `WAsync.settle` | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults`（3.0 已删除）；`WAsyncStateBuilder` / `WAsyncOptions` / `WAsyncActivity` / `WAsync.parallel` 等（7.0 已删除） | `packages/async/example` |
+| async | 无 UI 用 `WAsync.tryRun` + `WAsyncResult`，或 `WAsync.run`（失败抛异常）；独立区块用 `WAsync.settle`；页面原语见 async_ui | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults`（3.0 已删除）；`WAsyncStateBuilder` / `WAsyncOptions` / `WAsyncActivity` / `WAsync.parallel` 等（7.0 已删除） | `packages/async/example` |
+| async_ui | 业务页面用 `WAsyncSection`（单区块）/ `WAsyncPagedList`（标准分页）/ `WAsyncPagedSliver`（自定义滚动）；footer 文案用 `WAsyncPagedStrings` | 业务页面直接 `WAsyncView` / `WAsyncStateSliver`；自建 footerStatus + footerChanges；`hasLoadedMorePage` | `packages/async_ui/example` |
 | ui | `WText` / `WButton` / `WImage` / `WScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（5.0 已删除） | `packages/ui/example` |
 | form | `WForm` + 直接字段；边框 `WFormBorderStyle.fromTheme` | `Config.build`、`*Core`（`@internal`）、字段 `config` 参数、`WFormDefaults`（4.0 已删除） | `packages/form/example` |
 | api | `WApiSettings` + `DioRegistry`；`WLogInterceptor(parts:)` | 直接 `Dio()`、旧 bool 日志参数 | `packages/api/example` |
@@ -28,6 +29,7 @@
 - [Button 选择](button.md)
 - [Form 规则](form.md)（深入：[form_module](../modules/form_module.md)）
 - [Async 规则](async.md)（深入：[async_module](../modules/async_module.md)）
+- [Async UI 规范应用层](async_ui.md)（深入：[async_ui_module](../modules/async_ui_module.md)）
 - [网络规则](api.md)（深入：[api_module](../modules/api_module.md)）
 - [启动规则](app.md)（深入：[app_module](../modules/app_module.md)）
 - [Toast 规则](toast.md)（深入：[toast_module](../modules/toast_module.md)）

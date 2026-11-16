@@ -19,6 +19,7 @@ void main() {
     expect(capabilitySummaries.keys.toSet(), <String>{
       'w_tools_core',
       'w_tools_async',
+      'w_tools_async_ui',
       'w_tools_ui',
       'w_tools_form',
       'w_tools_api',

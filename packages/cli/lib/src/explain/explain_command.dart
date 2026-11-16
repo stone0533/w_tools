@@ -219,6 +219,7 @@ const _examplePackages = <String, String>{
   'w_tools_ui': 'packages/ui/example',
   'w_tools_form': 'packages/form/example',
   'w_tools_async': 'packages/async/example',
+  'w_tools_async_ui': 'packages/async_ui/example',
   'w_tools_core': 'packages/core/example',
   'w_tools_api': 'packages/api/example',
   'w_tools_toast': 'packages/toast/example',

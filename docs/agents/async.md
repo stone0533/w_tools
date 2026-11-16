@@ -1,13 +1,16 @@
 # 异步区块（给人和 AI）
 
-- 页面展示异步结果：`WAsyncController` + `WAsyncView`。
+- 业务页面展示异步结果：单区块用 `WAsyncSection`，标准分页用 `WAsyncPagedList`（来自 `w_tools_async_ui`）。
+- 库 / 设计系统 / 自定义扩展才直接用 `WAsyncView` / `WAsyncStateSliver` 原语。
 - 不要手写 `ValueNotifier<WAsyncState>`，也不要每页重复 `when + RetryView`。
 - 每个独立区块一个 Controller；不要在多个独立区块之间共享一个加载计数器。
 - Controller 重新加载用 `load()`；自动重试用 `WAsync.retry`。
 - 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点。builder 必须返回
   **非滚动** Widget（sliver 复用同一组 builder），不要把 `ListView` 塞进 loading / error。
-- 普通页面区块用 `WAsyncView`；滚动组件（`SmartRefresher` / `ListView`）放进 `readyBuilder`。
-- Sliver 页面用 `WAsyncStateSliver`；失败无 retry 时不显示按钮。
+- 单区块用 `WAsyncSection`；它默认把失败重试接到 `controller.load`。
+- 标准分页用 `WAsyncPagedList`；不要自己包 `SmartRefresher` / 自建 footer。
+- 自定义滚动壳用 `WAsyncPagedSliver`。
+- 核心 `WAsyncStateSliver` 只用于库 / 设计系统 / 自定义扩展；业务页面用 `WAsyncPagedList` / `WAsyncPagedSliver`。
 - `WAsyncView` / `WAsyncStateSliver` 只监听 `ValueListenable`（`state` 不是 `Rx`）：
   页面里其它 Rx 状态（筛选条件、倒计时）该包 `Obx` 还得包；迁移时顺手删掉外层 `Obx`
   不会有编译错误，但那些状态就不再触发重建。
@@ -43,16 +46,41 @@
 
 | 需求 | 用 |
 | --- | --- |
-| 页面区块 | `WAsyncController` + `WAsyncView` |
-| 滚动页 | `WAsyncView`（滚动组件放进 `readyBuilder`） |
-| Sliver | `WAsyncStateSliver` |
+| 单区块页面 | `WAsyncSection` |
+| 标准分页 | `WAsyncPagedList` |
+| 自定义滚动 / Sliver | `WAsyncPagedSliver` |
 | 纯执行，不抛异常 | `WAsync.tryRun` |
 | 纯执行，失败抛异常 | `WAsync.run` |
 | 重试 / 超时 | `WAsync.retry` / `WAsync.timeout` |
 | 独立区块并行，保留每个结果 | `WAsync.settle` |
 | 单区块本地替换 | `WAsyncController.replaceData` |
-| 分页 | `WAsyncPagedController` |
+| 分页 controller | `WAsyncPagedController` |
 | 分页 footer 状态 | `WAsyncPagedSnapshot.footerStatus` |
+
+## 规范应用层（async_ui）
+
+业务页面优先依赖 `w_tools_async_ui`：
+
+```dart
+WAsyncSection<List<Gift>>(
+  controller: gifts,
+  builder: (context, data) => GiftList(data),
+)
+```
+
+```dart
+WAsyncPagedList<Gift>(
+  controller: gifts,
+  itemBuilder: (context, gift) => GiftTile(gift),
+)
+```
+
+- `WAsyncSection`：单区块；默认 `onRetry: controller.load`；
+- `WAsyncPagedList`：标准分页；内部持有 `RefreshController` / SmartRefresher，处理 footer 和 generation；
+- `WAsyncPagedSliver`：自定义 `CustomScrollView` 用；不包含刷新壳；
+- `WAsyncPagedStrings`：footer 文案；
+- 不自动 load / refresh；页面 controller 负责首屏请求；
+- 核心 `WAsyncView` / `WAsyncStateSliver` 保留给库、设计系统、明确的自定义扩展。
 
 `onRetry == null` 时不显示重试按钮；自定义 error / banner builder 仍会收到 `null`，由 builder 决定是否渲染按钮。
 

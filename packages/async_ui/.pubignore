@@ -1,0 +1,5 @@
+# 仓库内测试 / 构建产物不进入发布包
+test/
+coverage/
+build/
+.dart_tool/
