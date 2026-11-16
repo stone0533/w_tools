@@ -1,0 +1,43 @@
+# w_tools_qr 3.0.0
+WQrController	class
+WQrController.cameraFacing	CameraFacing?
+WQrController.dispose	Future<void> ()
+WQrController.flipCamera	Future<CameraFacing> ()
+WQrController.getFlashStatus	Future<bool?> ()
+WQrController.isAttached	bool
+WQrController.new	()
+WQrController.pauseCamera	Future<void> ()
+WQrController.restart	Future<void> ()
+WQrController.resumeCamera	Future<void> ()
+WQrController.scannedDataStream	Stream<Barcode>
+WQrController.toggleFlash	Future<void> ()
+WQrOverlayStyle	class
+WQrOverlayStyle.borderColor	Color
+WQrOverlayStyle.borderLength	double
+WQrOverlayStyle.borderRadius	double
+WQrOverlayStyle.borderWidth	double
+WQrOverlayStyle.cutOutBottomOffset	double
+WQrOverlayStyle.cutOutHeight	double
+WQrOverlayStyle.cutOutWidth	double
+WQrOverlayStyle.margin	EdgeInsetsGeometry
+WQrOverlayStyle.new	({ this.borderColor = Colors.red, this.margin = EdgeInsets.zero, this.borderWidth = 3.0, this.overlayColor = const Color.fromRGBO(0, 0, 0, 0.5), this.borderRadius = 0, this.borderLength = 40, this.cutOutWidth = 250, double? cutOutHeight, this.cutOutBottomOffset = 0, })
+WQrOverlayStyle.overlayColor	Color
+WQrScanResult	class
+WQrScanResult.code	String
+WQrScanResult.format	BarcodeFormat
+WQrScanResult.new	({ required this.code, required this.format, this.rawBytes, })
+WQrScanResult.rawBytes	List<int>?
+WQrScanResult.toString	String ()
+WQrView	class
+WQrView.cameraFacing	CameraFacing
+WQrView.controller	WQrController
+WQrView.createState	State<WQrView> ()
+WQrView.formatsAllowed	List<BarcodeFormat>
+WQrView.new	({ super.key, required this.controller, this.style = const WQrOverlayStyle(), this.onScanned, this.onControllerReady, this.onPermissionDenied, this.onError, this.cameraFacing = CameraFacing.back, this.formatsAllowed = const <BarcodeFormat>[], this.scanOnce = true, this.scanThrottle = const Duration(milliseconds: 400), })
+WQrView.onControllerReady	void Function(WQrController controller)?
+WQrView.onError	void Function(Object error, StackTrace stackTrace)?
+WQrView.onPermissionDenied	VoidCallback?
+WQrView.onScanned	void Function(WQrScanResult result)?
+WQrView.scanOnce	bool
+WQrView.scanThrottle	Duration
+WQrView.style	WQrOverlayStyle?
