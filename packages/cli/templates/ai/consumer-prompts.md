@@ -251,7 +251,7 @@
 
 要求：
 1. 先看项目现有列表页写法；
-2. 首屏 loading / empty / error 必须完整；
+2. 首屏 loading / empty / error 必须完整；error 必须有可点重试入口，并补一个失败态 widget test；
 3. 加载更多失败只更新 footer，不替换列表；
 4. 列表项使用稳定 key；
 5. 图片按需限制解码尺寸；
@@ -331,7 +331,9 @@
    - App：WApp.options / WAppPlugin，不要手工初始化插件
 <!-- @endif -->
 <!-- @if:async -->
-   - Async：WAsyncController / WAsyncView，不要自己维护 loading / error 状态
+   - Async：WAsyncController / WAsyncView，不要自己维护 loading / error 状态；
+     检查 WAsyncView / WAsyncStateSliver 是否漏 onRetry、是否维护 hasLoadedMorePage、
+     是否用 data != null 代替四态、fire-and-forget 是否漏 onError
 <!-- @endif -->
 <!-- @if:qr -->
    - 扫码：WQrView，不要直接用 QRView
@@ -376,7 +378,8 @@
 先不要改代码。先做三件事：
 1. 按包读升级说明：优先看该包 CHANGELOG（pub.dev / GitHub），需要细节再看 w_tools 仓库 docs/migrations/
    （例如 ui-8.0.md / form-6.0.md；docs/ 不随包发布，不要假设本地有）；
-2. 找出项目里所有旧 API 和需要改的调用点；
+2. 找出项目里所有旧 API 和需要改的调用点；以 w_tools 仓库 docs/migrations/ 为准；
+   项目自己的旧迁移备忘可能过期，不能当唯一依据；
 3. 列出按文件分组的改动计划。
 
 输出：旧 API 清单（文件:行 + 替换方式） + 分文件改动计划 + 风险点。
@@ -391,7 +394,8 @@
 要求：
 1. 先跑 `dart run w_tools_cli:w_tools upgrade`（只抬 w_tools 系包；跨 major 加 `--major` 或 `--only=<包>`，普通 `{{pubUpgrade}}` 不会跨 major），它会改 pubspec 并 pub get；
 2. 按文件逐步替换，一个文件一次；
-3. 不改变无关业务行为；
+3. 不改变无关业务行为；但错误态 / 重试入口属于本次迁移验收，必须补齐，
+   不要机械保留旧的无重试占位；
 4. 遇到计划里没覆盖的调用点，停下来先报告，不要自己猜；
 5. 每改完一批跑一次 {{analyze}}。
 
@@ -411,6 +415,9 @@
    dart run w_tools_cli:w_tools init --check-drift
 4. 有 drift 时再运行（会覆盖生成物，没有备份）：
    dart run w_tools_cli:w_tools init --force
+5. 扫描 WAsyncView / WAsyncStateSliver 是否漏 onRetry；
+6. 扫描 hasLoadedMorePage / hasLoadedMoreThanOnePage 残留；
+7. 每个失败态有 widget test，断言重试入口存在。
 
 输出：{{analyze}} / {{test}} 原始输出 + 残留清单 + drift 检查结果。
 ```

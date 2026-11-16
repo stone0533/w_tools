@@ -77,3 +77,32 @@ final (codes, columns, banners) = await (
 - `onError` 是通知回调，不会把失败变成成功；
 - 独立区块用 `settle`（或 record `.wait`）；原子页面用 `Future.wait` + 页面级错误；
 - 不要在多个独立区块之间共享一个加载布尔；每个区块自己的 loading 由自己的状态负责。
+
+## UI 多区块：每块一个 Controller + View
+
+纯执行用 `settle`；如果是**页面上的多个独立区块**，用多个 `WAsyncController` +
+`WAsyncView`，不要用一个 `data != null` 手动拼四态：
+
+```dart
+final wallet = WAsyncController<WalletDetail>((_) => api.wallet());
+final code = WAsyncController<WalletPayCode>((_) => api.payCode());
+
+Column(
+  children: [
+    WAsyncView<WalletDetail>(
+      state: wallet.state,
+      onRetry: wallet.load,
+      readyBuilder: (context, data) => WalletSummary(data),
+    ),
+    WAsyncView<WalletPayCode>(
+      state: code.state,
+      onRetry: code.load,
+      readyBuilder: (context, data) => PayCodeCard(data),
+    ),
+  ],
+)
+```
+
+- 每块都要 `onRetry`；默认错误视图不显示重试按钮；
+- 不要用 `data != null` 代替 loading / empty / failed；
+- 如果必须把两块合成一个 builder，用 `WAsyncState.when`，不要自己维护两个 bool。
