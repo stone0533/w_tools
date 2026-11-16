@@ -180,7 +180,7 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
    bash scripts/publish_package.sh . --dry-run     # 预演
    bash scripts/publish_package.sh .               # 正式发布
    ```
-9. 发布后确认（推荐 `release_status.py`，它把「待发布」视为正常）：
+9. 发布后确认（阶段 2：快照 PR 合入后再跑；发布后立刻先看下面的「发布后验证（两阶段）」阶段 1）：
    ```bash
    python3 scripts/release_status.py --online --check
    ```
@@ -192,6 +192,18 @@ dart run w_tools_cli:w_tools init --check-drift # 只检查是否过期，不改
 
 > `--online` 在**发布前**跑必然报「待发布」，它只用于发布后核对线上版本；
 > 发布前的门禁是第 4、6 步。
+
+### 发布后验证（两阶段）
+
+发布成功后不要立刻用 `--check` 判失败：
+
+- **阶段 1（立刻，快照还没 apply）**：`python3 scripts/release_status.py --online`（不加
+  `--check`，看「异常：」段）+ `python3 scripts/check_publish_drift.py --package <pkg>`
+  （code drift 必须为零）。出现「未核对」行时重跑一次，不要当成通过。
+- **阶段 2（快照 PR 合入、main 已 pull 之后）**：`python3 scripts/release_status.py --online --check`；
+  根包再跑 `bash scripts/release_check.sh --strict`，并用临时工程 `flutter pub get`（纯 Dart 包用 `dart pub get`）验证依赖可解析。
+
+pub.dev 最多 10 分钟才对外可见；「查不到版本」先等，不要立即判发布事故。
 
 ### 一条命令执行已批准的计划（K-3 ~ K-5）
 
@@ -309,6 +321,21 @@ PUBLISH_HOSTED_URL=https://your.pub.host bash scripts/publish_package.sh package
 ## 平台
 
 发布脚本按 POSIX 编写（bash / `rsync` / 进程组），支持 macOS / Linux；Windows 请用 WSL。
+
+## 发布失败分支
+
+| 症状 | 先跑 | 处理 |
+|---|---|---|
+| drift 报 `CODE DRIFT` | `python3 scripts/check_publish_drift.py --package <pkg>` | 发 patch（内容已改）或回退改动；不能重发同版本 |
+| 只有 `docs drift` / `comment drift` | 同上 | 可延后到下次功能版本，写进 release 说明 |
+| `release_status` 有「未核对」 | 重跑 `python3 scripts/release_status.py --online` | 连续失败按网络问题处理，不判发布事故 |
+| 发布成功但 pub.dev 查不到版本 | 等 10 分钟再跑发布后验证阶段 1 | 仍不可见才排查 |
+| 快照写入失败（脚本保留 staging） | 按脚本打印的 `check_public_api_diff.py --snapshot-from ...` 重跑 | 不要手写快照 |
+| 发根包被拦（快照未合入 / 约束不满足） | `bash scripts/release_check.sh --strict` | 先合快照 PR，再 `git pull --ff-only` |
+| 误用 `--yes` | —— | 它只跳 y/N 确认，不跳校验；已发布版本不可回滚，只能 fix-forward |
+| publish 卡住 / 无输出 | 检查 `HTTPS_PROXY`；publish 有 180s 无输出 watchdog | 超时后先查 pub.dev 是否已有版本；已上传则从归档补快照，再 `--resume` |
+
+细节（代理、`--yes`、快照分支）见下文「常见坑」。
 
 ## 常见坑
 

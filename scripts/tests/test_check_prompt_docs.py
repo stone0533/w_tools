@@ -1,3 +1,5 @@
+import contextlib
+import io
 import pathlib
 import sys
 import tempfile
@@ -164,6 +166,110 @@ class ScenarioHeadingTest(unittest.TestCase):
         text = '## 1. 场景选择\n\nA-1 / A-2\n\n## A. a\n\n### A-1. a1\n'
         errors = mod.scenario_errors(text, 'x')
         self.assertTrue(any('A-2' in error for error in errors))
+
+
+class BudgetTest(unittest.TestCase):
+    def test_under_budget_passes(self):
+        text = '## 1. 场景选择\n\nA\n\n## A. a\n\n短\n'
+        self.assertEqual(mod.budget_errors(text, 'x', max_lines=20, max_scenario=10), [])
+
+    def test_over_total_budget_is_reported(self):
+        errors = mod.budget_errors('line\n' * 10, 'doc.md', max_lines=5)
+        self.assertTrue(any('超过预算' in error for error in errors))
+
+    def test_long_scenario_block_is_reported(self):
+        text = '## 1. 场景选择\n\nA\n\n## A. a\n' + 'line\n' * 10
+        errors = mod.budget_errors(text, 'x', max_lines=100, max_scenario=5)
+        self.assertTrue(any('场景 A' in error for error in errors))
+
+    def test_non_scenario_heading_ends_block(self):
+        # 最后一个场景不能被后面的普通章节（## 2. / ## 3.）撑大。
+        text = '## 1. 场景选择\n\nA\n\n## A. a\n短\n\n## 2. 例子\n' + 'y\n' * 20
+        self.assertEqual(mod.budget_errors(text, 'x', max_lines=100, max_scenario=5), [])
+
+    def test_non_scenario_subheading_does_not_exempt_parent(self):
+        # `### 补充说明` 不是场景，不能因为它存在就把 `## A.` 的超长藏起来。
+        text = (
+            '## 1. 场景选择\n\nA\n\n## A. a\n'
+            + 'x\n' * 100
+            + '\n### 补充说明\n'
+            + 'y\n' * 100
+            + '\n## B. b\n短\n'
+        )
+        errors = mod.budget_errors(text, 'x', max_lines=1000, max_scenario=80)
+        self.assertTrue(any('场景 A' in error for error in errors))
+
+    def test_fenced_heading_does_not_end_scenario(self):
+        # 代码块里的 `## 注意` 不是真标题，不能靠它把长 prompt 块截短。
+        text = (
+            '## 1. 场景选择\n\nA\n\n## A. a\n```text\n## 注意\n```\n'
+            + 'x\n' * 100
+            + '\n## B. b\n短\n'
+        )
+        errors = mod.budget_errors(text, 'x', max_lines=1000, max_scenario=80)
+        self.assertTrue(any('场景 A' in error for error in errors))
+
+    def test_warning_starts_at_threshold(self):
+        text = '## 1. 场景选择\n\nA\n\n## A. a\n' + 'x\n' * 4
+        lines = text.splitlines()
+        warnings = mod.budget_warnings(
+            text, 'x', warn_lines=len(lines), warn_scenario=100,
+            max_lines=100, max_scenario=100,
+        )
+        self.assertTrue(any('接近预算' in warning for warning in warnings))
+
+    def test_warning_threshold_does_not_fail(self):
+        text = '## 1. 场景选择\n\nA\n\n## A. a\n' + 'x\n' * 10
+        self.assertEqual(mod.budget_errors(text, 'x', max_lines=100, max_scenario=100), [])
+        warnings = mod.budget_warnings(
+            text, 'x', warn_lines=5, warn_scenario=100, max_lines=100, max_scenario=100,
+        )
+        self.assertTrue(any('接近预算' in warning for warning in warnings))
+
+    def test_scenario_warning_threshold(self):
+        text = '## 1. 场景选择\n\nA\n\n## A. a\n' + 'x\n' * 7
+        warnings = mod.budget_warnings(
+            text, 'x', warn_lines=100, warn_scenario=3, max_lines=100, max_scenario=10,
+        )
+        self.assertTrue(any('场景 A' in warning for warning in warnings))
+
+    def test_parent_with_subscenarios_is_not_counted(self):
+        # `## J.` 的篇幅由子场景承担，父块不单独计数，避免重复算两遍。
+        text = (
+            '## 1. 场景选择\n\nJ-1 / J-2\n\n## J. j\n'
+            + 'parent\n' * 20
+            + '### J-1. one\n' + 'x\n' * 5
+            + '### J-2. two\n' + 'y\n' * 5
+        )
+        self.assertEqual(mod.budget_errors(text, 'x', max_lines=100, max_scenario=10), [])
+
+
+class BudgetScopeTest(unittest.TestCase):
+    def test_budget_only_applies_to_default_doc(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
+            long_doc = tmp_path / 'long.md'
+            long_doc.write_text('## 1. 场景选择\n\nA\n\n## A. a\n' + 'x\n' * 900)
+            default = tmp_path / 'default.md'
+            default.write_text('## 1. 场景选择\n\nA\n\n## A. a\n短\n')
+
+            old_default = mod.DEFAULT_DOC
+            old_consumer = mod.consumer_prompt_docs
+            old_command = mod.command_docs
+            mod.DEFAULT_DOC = default
+            mod.consumer_prompt_docs = lambda: []
+            mod.command_docs = lambda: []
+            try:
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    # --doc 指向非默认文档：不套 800 行预算。
+                    self.assertEqual(mod.main(['--doc', str(long_doc)]), 0)
+                    # 同一个长文档变成默认手册：预算失败。
+                    mod.DEFAULT_DOC = long_doc
+                    self.assertEqual(mod.main([]), 1)
+            finally:
+                mod.DEFAULT_DOC = old_default
+                mod.consumer_prompt_docs = old_consumer
+                mod.command_docs = old_command
 
 
 class ConsumerTemplateTest(unittest.TestCase):

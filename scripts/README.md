@@ -83,6 +83,31 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 
 ---
 
+## 常用单点命令（不进 preflight）
+
+这些是提示词场景里会单独跑的命令；参数细节由脚本自己的 `--help` 和
+[发布流程](../docs/releasing.md) 承载。
+
+```bash
+# 公开 API 变化 / 新包缺基线
+python3 scripts/check_public_api_diff.py --package <pkg>
+python3 scripts/check_public_api_diff.py --snapshot-from packages/<pkg> --package <pkg> --version <当前版本>
+
+# PR 版本门禁（CI api-bump 的本地版）
+python3 scripts/check_version_bump.py --base origin/main
+
+# 教学入口是否出现在 docs/agents / 模板 / README / example
+python3 scripts/check_teaching_coverage.py
+
+# 发布归档漂移（code drift 必须为零）
+python3 scripts/check_publish_drift.py --package <pkg>
+
+# 文档命令可执行性 + 提示词手册行数预算
+python3 scripts/check_prompt_docs.py
+```
+
+`check_public_api_diff.py` / `check_version_bump.py` 的完整判定见下文「脚本分类」。
+
 ## 环境前提（本机 / AI 沙箱）
 
 | 前提 | 现象 | 修法 |
@@ -150,7 +175,7 @@ Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 +
 | `check_agents_consistency.py` | `docs/agents` 索引与规则页的入口名 + 高频规则短语一致 | check_docs |
 | `check_agents_routing.py` | 消费方 AGENTS 模板每条 bullet 必须有**锚**（`explain X` / 路径 / 规则号 / 命令 / 占位符），否则要写 `<!-- no-anchor: 理由 -->` 显式豁免；空理由也算失败 | check_docs |
 | `agents_budget_trend.py` | 读 `docs/metrics/agents_budget.jsonl`（一个 CLI 版本一行），渲染 AGENTS 片段预算的版本趋势 Markdown 到 `$GITHUB_STEP_SUMMARY`；只读不测量，历史缺失 / 坏行失败，记录落后于当前版本只告警 | release-status（周检） |
-| `check_prompt_docs.py` | 文档命令可执行（提示词手册 **+ `packages/cli/templates/ai/*.md`**：脚本 / flag / cwd / 占位符（带空格的写法逃过校验，模板里不许写空格）/ 场景编号（§1 ↔ 标题双向、重复标题）/ `w_tools` 子命令 flag（含 `\` 续行）/ 手册内 docs 路径 / 生成器与测试文件存在；其余当前文档：脚本存在 + flag 存在 + CLI flag 存在；历史目录不参与） | check_docs |
+| `check_prompt_docs.py` | 文档命令可执行（提示词手册 **+ `packages/cli/templates/ai/*.md`**：脚本 / flag / cwd / 占位符（带空格的写法逃过校验，模板里不许写空格）/ 场景编号（§1 ↔ 标题双向、重复标题）/ `w_tools` 子命令 flag（含 `\` 续行）/ 手册内 docs 路径 / 生成器与测试文件存在 / **手册 ≤ 800 行（760 起警告）、单场景块 ≤ 80 行（60 起警告）**；其余当前文档：脚本存在 + flag 存在 + CLI flag 存在；历史目录不参与） | check_docs |
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查（双向：新类型要登记，基线里的旧名字也要删）；每个 catalog 条目必须有具体 `dontUseFor`（占位符 / 过短直接失败） | preflight |
 | `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到 | check_docs / preflight |
 | `check_catalog_symbols.py` | catalog `usage` / `useFor` / `related` 里的 `W*` / `W*.member` 必须真实存在于公开 API | preflight |
