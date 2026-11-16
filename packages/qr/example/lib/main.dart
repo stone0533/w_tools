@@ -128,16 +128,17 @@ class _QrScannerPageState extends State<QrScannerPage> {
               onPermissionDenied: _onPermissionDenied,
               onError: _report,
               scanOnce: !_continuous,
-              scanInterval: const Duration(seconds: 1),
+              scanThrottle: const Duration(seconds: 1),
               formatsAllowed: _qrOnly
                   ? const <BarcodeFormat>[BarcodeFormat.qrcode]
                   : const <BarcodeFormat>[],
-              style: WQrOverlayStyle(
-                isVisible: _showOverlay,
-                borderWidth: 4,
-                cutOutWidth: 240,
-                cutOutHeight: 240,
-              ),
+              style: _showOverlay
+                  ? const WQrOverlayStyle(
+                      borderWidth: 4,
+                      cutOutWidth: 240,
+                      cutOutHeight: 240,
+                    )
+                  : null,
             ),
           ),
           Positioned(

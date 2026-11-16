@@ -1,3 +1,40 @@
+# Changelog
+
+## 3.0.0
+
+### Breaking
+- `WQrView.controller` 改为必传：组件不再内部创建控制器，`onControllerReady` 传入的始终是调用方
+  持有的实例；`WQrView.style` 改为可空（`WQrOverlayStyle?`），`style: null` 表示全屏扫描。
+- `WQrView.scanInterval` → `scanThrottle`：只在 `scanOnce: false` 时生效，`Duration.zero` 关闭节流。
+- `scanOnce` 不再依赖是否传 `onScanned`：首条有效码后一律暂停相机；只监听流又需要连续扫描时，
+  显式传 `scanOnce: false`。
+- `WQrController.restart()` 未挂载时抛 `StateError`（原为 no-op）。
+
+### Removed
+- `WQrController.hasPermissions` / `WQrController.getCameraInfo` / `WQrController.stopCamera` /
+  `WQrController.getSystemFeatures` / `WQrController.setInvert`：平台残缺或纯转发能力。
+- `WQrController.attach` / `WQrController.detach`：改为同一个 library 内的私有接线。
+- `WQrOverlayStyle.isVisible` / `WQrOverlayStyle.successColor`：全屏扫描改用 `style: null`，
+  成功反馈由业务自绘。
+- `WQrScanResult.timestamp`：回调时刻的 `DateTime.now()`，没有业务含义。
+- `WQrView.scanInterval`：由 `WQrView.scanThrottle` 取代。
+- barrel 不再转出 `SystemFeatures`。
+
+### Changed
+- `WQrOverlayStyle` 构造函数删除 `isVisible` / `successColor` 参数，也不再实现 `==` / `hashCode`；
+  保留正数断言，`borderLength` 与扫描框尺寸的比例约束交给插件断言。
+- `WQrScanResult` 构造函数删除 `timestamp` 参数，只保留 `code` / `format` / `rawBytes`。
+- Web 上跳过自动暂停 / 恢复（插件 Web 实现同步抛 `UnimplementedError`），默认单次扫码不再把
+  假错误送进 `onError`。
+- 连续模式节流简化为「上一次内容 + 单调时钟」，删除 64 条去重表与淘汰算法。
+- `formatsAllowed` 需要传新列表；删除对原地修改列表的兼容与不可变快照。
+- 删除 `reassemble` 热重载补丁。
+- 删除单次扫码成功后的边框高亮：成功反馈由业务在 `onScanned` 里自绘。
+- 控制器与组件的接线收进同一个 library 私有成员，公开面只剩 `WQrController` / `WQrView`。
+
+### Fixed
+- `# Changelog` 标题回到文件顶部（2.0.0 / 1.1.1 两节此前浮在标题之上）。
+
 ## 2.0.0
 
 ### Breaking
@@ -38,8 +75,6 @@
 - 只监听 `scannedDataStream` / 使用 `onQRViewCreated` 却沿用默认 `scanOnce: true` 时，
   首码后相机会暂停；构造增加 assert，必须显式传 `scanOnce: false`（文档已同步）。
 - `flipCamera` / `getCameraInfo` 记录当前方向，平台视图重建后保持翻转结果。
-
-# Changelog
 
 ## 1.1.0
 

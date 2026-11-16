@@ -136,6 +136,15 @@ names = [
     # qr 2.0：控制器归调用方、样式收口、结果结构化后移除的公开名。
     r'WQrViewState', r'WQrViewOverlayShape', r'onQRViewCreated', r'noPermissionCallback',
     r'checkedBorderColor', r'showOverlay', r'restartScan', r'scanInvert', r'WQrController\.internal',
+    # qr 3.0：控制器收口、样式 / 结果瘦身、节流改名后移除的公开名。
+    r'WQrController\.(?:hasPermissions|getCameraInfo|stopCamera|getSystemFeatures|setInvert|attach|detach)\b',
+    r'WQrOverlayStyle\.isVisible',
+    r'WQrScanResult\.timestamp',
+    r'WQrView\.scanInterval',
+    # 裸名只留给「自有参数 / 字段」：模板和示例最容易漏掉 `WQrView.` 前缀。
+    # 控制器成员保留上面的限定名，避免和插件的同名成员（如 hasPermissions）误伤；
+    # 迁移 / 历史文档不在扫描范围。
+    r'\bscanInterval\b', r'\bsuccessColor\b',
     # device 0.3.0：缓存 / 稳定判定的死代码收口。
     # api 6.0：删除空壳数据层 / 契约类型，Config 改名 Settings，指标与日志 API 收口。
     r'\bIApiPath\b', r'\bApiClientId\b', r'\bBaseRepository\b',

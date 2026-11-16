@@ -1,3 +1,10 @@
+## Unreleased
+
+### Changed
+- `init` 的 `w_tools_qr` 约束抬到 `^3.0.0`：qr 3.0 移除了 `WQrController` 的
+  `hasPermissions` / `stopCamera` / `getSystemFeatures` / `setInvert` / `getCameraInfo`，
+  `WQrView.controller` 改为必传，`scanInterval` 改为 `scanThrottle`。
+
 ## 2.1.0
 
 ### Added

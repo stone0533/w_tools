@@ -1646,7 +1646,7 @@ const String agentsCore = r'''
 
 const String agentsQr = r'''
 - **扫码**（`WQrView` + `WQrController`，页面创建并 `dispose`）：重扫用 `controller.restart()`；
-  连续扫描 `scanOnce: false` + `scanInterval`。细节：`explain WQrView`。
+  连续扫描 `scanOnce: false` + `scanThrottle`。细节：`explain WQrView`。
 ''';
 
 const String agentsMap = r'''
@@ -1772,7 +1772,7 @@ const String agentsCoreEn = r'''
 
 const String agentsQrEn = r'''
 - **Scanning** (`WQrView` + `WQrController`, created and disposed by the page): restart with
-  `controller.restart()`; for continuous scanning use `scanOnce: false` + `scanInterval`.
+  `controller.restart()`; for continuous scanning use `scanOnce: false` + `scanThrottle`.
   Details: `explain WQrView`.
 ''';
 
