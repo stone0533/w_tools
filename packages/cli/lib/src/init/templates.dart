@@ -231,6 +231,7 @@ class InitTemplates {
       if (withApi) part(generated.agentsApi, generated.agentsApiEn),
       if (withApp) part(generated.agentsApp, generated.agentsAppEn),
       if (withAsync) part(generated.agentsAsync, generated.agentsAsyncEn),
+      if (withAsync) part(generated.agentsAsyncUi, generated.agentsAsyncUiEn),
       if (withToast) part(generated.agentsToast, generated.agentsToastEn),
       part(generated.agentsCore, generated.agentsCoreEn),
       if (withQr) part(generated.agentsQr, generated.agentsQrEn),

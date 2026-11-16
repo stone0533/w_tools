@@ -783,7 +783,7 @@ components:
     docsAnchor: '4-view'
     section: '4. View'
     useFor: '普通页面四态视图、默认错误页 / 刷新错误条；onRetry 控制重试按钮'
-    dontUseFor: '滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`；不要省略 onRetry 还期待默认重试按钮'
+    dontUseFor: '滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`；业务页面优先用 WAsyncSection；不要省略 onRetry 还期待默认重试按钮'
     usage: |
       WAsyncView<List<Gift>>(
         state: c.state,
@@ -800,6 +800,82 @@ components:
       - '高度有界时错误条 / 刷新条占固定槽；无界时是内容盒 overlay'
     related: ['WAsyncController', 'WAsyncTheme', 'WAsyncStateSliver']
     teach: true
+
+  - name: '`WAsyncSection`'
+    package: 'w_tools_async_ui'
+    docsAnchor: 'wasyncsection'
+    section: '4. View'
+    useFor: '业务页面单区块四态的规范入口；失败态默认接 controller.load'
+    dontUseFor: '自定义布局 / 特殊错误页 / 需要 per-view builder 时用核心 `WAsyncView`；不要在本组件里塞全局 loading'
+    usage: |
+      WAsyncSection<List<Gift>>(
+        controller: gifts,
+        builder: (context, data) => GiftList(data),
+        emptyBuilder: (context) => const EmptyView(), // 可选
+      )
+    pitfalls:
+      - '不自动 load；页面在 controller 的 initState / onInit 调 load()'
+      - '不持有 controller；页面 dispose / onClose 负责 dispose'
+      - 'loading / error 外观走 WAsyncTheme；空态用 emptyBuilder'
+    related: ['WAsyncController', 'WAsyncView', 'WAsyncPagedList']
+    teach: true
+
+  - name: '`WAsyncPagedList`'
+    package: 'w_tools_async_ui'
+    docsAnchor: 'wasyncpagedlist'
+    section: '4. View'
+    useFor: '标准分页列表的规范入口；内部处理刷新、上拉、footer 和重试'
+    dontUseFor: '自定义滚动壳用 `WAsyncPagedSliver`；不要在外面再包 SmartRefresher 或传 footerStatus / footerChanges'
+    usage: |
+      WAsyncPagedList<Gift>(
+        controller: gifts,
+        itemBuilder: (context, gift) => GiftTile(gift),
+        emptyBuilder: (context) => const EmptyView(), // 可选
+        strings: const WAsyncPagedStrings(noMore: '没有更多数据了'),
+      )
+    pitfalls:
+      - '不自动 refresh；页面在 controller 的 initState / onInit 调 refresh()'
+      - 'loadMore 失败只更新 footer，不清空列表；不要再额外 toast'
+      - '不要维护 hasLoadedMorePage；footer 只读 snapshot.footerStatus'
+    related: ['WAsyncPagedController', 'WAsyncPagedSliver', 'WAsyncPagedStrings']
+    teach: true
+
+  - name: '`WAsyncPagedSliver`'
+    package: 'w_tools_async_ui'
+    docsAnchor: 'wasyncpagedsliver'
+    section: '4. View'
+    useFor: '自定义 CustomScrollView 里的分页内容（四态 + footer）'
+    dontUseFor: '标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncStateSliver 单区块'
+    usage: |
+      CustomScrollView(
+        slivers: [
+          WAsyncPagedSliver<Gift>(
+            controller: gifts,
+            itemBuilder: (context, gift) => GiftTile(gift),
+          ),
+        ],
+      )
+    pitfalls:
+      - '不包含 SmartRefresher / RefreshController；刷新由页面自己的滚动壳负责'
+      - '不自动 refresh；页面 controller 负责首屏请求'
+    related: ['WAsyncPagedList', 'WAsyncStateSliver']
+    teach: false
+
+  - name: '`WAsyncPagedStrings`'
+    package: 'w_tools_async_ui'
+    docsAnchor: 'wasyncpagedstrings'
+    section: '4. View'
+    useFor: '分页 footer 的文案（loading / failed / retry / noMore / loadMore）'
+    dontUseFor: '不要用它修改核心 WAsyncStrings；单区块文案仍走 WAsyncTheme'
+    usage: |
+      const WAsyncPagedStrings(
+        failed: '加载失败',
+        retry: '重试',
+        noMore: '没有更多数据了',
+        loadMore: '上拉加载更多',
+      )
+    related: ['WAsyncPagedList', 'WAsyncPagedSliver']
+    teach: false
 
   - name: '`WAsyncController`'
     package: 'w_tools_async'
@@ -887,7 +963,7 @@ components:
     docsAnchor: '4-view'
     section: '4. View'
     useFor: 'CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方）'
-    dontUseFor: '非滚动页面用 `WAsyncView`'
+    dontUseFor: '非滚动页面用 `WAsyncSection`；标准分页用 `WAsyncPagedList`；不要自建 footer'
     usage: |
       WAsyncStateSliver<List<Gift>>(
         state: c.state,

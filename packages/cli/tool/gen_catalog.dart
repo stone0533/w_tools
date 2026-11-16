@@ -23,6 +23,7 @@ const _docsByPackage = <String, String>{
   'w_tools_map': 'docs/modules/map_module.md',
   'w_tools_map_google': 'docs/modules/map_module.md',
   'w_tools_async': 'docs/modules/async_module.md',
+  'w_tools_async_ui': 'docs/modules/async_ui_module.md',
 };
 
 String generate(String packageRoot) {

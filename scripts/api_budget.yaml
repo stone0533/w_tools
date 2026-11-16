@@ -20,6 +20,8 @@ packages:
   core: {}
   async:
     growth: 5
+  async_ui:
+    growth: 2
   ui:
     growth: 12
   form: {}

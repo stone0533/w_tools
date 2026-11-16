@@ -2,10 +2,10 @@
 
 ## 概述
 
-`w_tools` 是一个 Flutter Monorepo：**11 个库子包**（10 个 Flutter + 1 个纯 Dart 地图接口）
+`w_tools` 是一个 Flutter Monorepo：**12 个库子包**（11 个 Flutter + 1 个纯 Dart 地图接口）
 + **聚合包 `w_tools`** + **工具包（`w_tools_cli` / `figma` / `device` / `e2e`）**。
 
-11 个库子包中，只有 `core` / `async` / `ui` / `form` / `api` / `toast` 由根包
+12 个库子包中，只有 `core` / `async` / `ui` / `form` / `api` / `toast` 由根包
 `w_tools` 聚合导出；`app` / `app_getx` / `map` / `map_google` / `qr` 按需直接依赖。
 `w_tools_cli` 是独立的开发工具（`init` / `doctor`），只放 `dev_dependencies`，不参与聚合、也不进构建。
 
@@ -15,6 +15,7 @@
 |------|------|------|
 | `w_tools_core` | `packages/core/` | 零 UI 依赖的核心工具：扩展方法、日志、加解密、Token 管理、存储、倒计时、正则等 |
 | `w_tools_async` | `packages/async/` | 异步执行、四态状态、Controller 与异步视图 |
+| `w_tools_async_ui` | `packages/async_ui/` | async 规范应用层：单区块 / 分页 / Sliver / footer 文案 |
 | `w_tools_app` | `packages/app/` | 启动契约 `WAppPlugin` + 语言 / 外观 / `WLanguageScope`（GetX 无关） |
 | `w_tools_app_getx` | `packages/app_getx/` | GetX 启动器 `WApp`、语言切换、路由管理、底部弹窗、`WApp.of(context)` |
 | `w_tools_ui` | `packages/ui/` | 通用 UI 组件：按钮、图片、文本、AppBar、Scaffold、导航、TabBar、列表等 |
@@ -53,6 +54,7 @@
 | `w_tools_api` | `dio` |
 | `w_tools_map_google` | `google_maps_flutter` |
 | `w_tools_async` | `flutter`（无第三方强依赖） |
+| `w_tools_async_ui` | `flutter`、`pull_to_refresh` |
 | `w_tools_core` | `encrypt`、`crypto`、`convert`、`logger`、`shared_preferences`、`synchronized` |
 
 除 `app_getx → app`、`map_google → map` 两对契约关系外，库子包之间没有相互依赖，可单独引入；
@@ -68,6 +70,7 @@
 |------|----------|-------------|
 | `w_tools_core` | ^3.10.0 | >= 3.38 |
 | `w_tools_async` | ^3.10.0 | >= 3.38 |
+| `w_tools_async_ui` | ^3.10.0 | >= 3.38 |
 | `w_tools_app` | ^3.10.0 | >= 3.38 |
 | `w_tools_app_getx` | ^3.10.0 | >= 3.38 |
 | `w_tools_ui` | ^3.10.0 | >= 3.38 |
@@ -112,6 +115,7 @@
 | App 模块 | [app_module.md](app_module.md) |
 | Core 模块 | [core_module.md](core_module.md) |
 | Async 模块 | [async_module.md](async_module.md) |
+| Async 规范应用层 | [async_ui_module.md](async_ui_module.md) |
 | UI 模块 | [ui_module.md](ui_module.md) |
 | Form 模块 | [form_module.md](form_module.md) |
 | API 模块 | [api_module.md](api_module.md) |

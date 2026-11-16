@@ -71,7 +71,7 @@ CI 的静态门禁直接调用 `preflight.sh`（不再手抄步骤），包矩�
 重量级 job（umbrella / packages / min_sdk）由 `changes` job 按路径门控：纯文档改动时它们
 全部 skip，仍会跑 `matrix` / `changes` / `docs`（`check_docs.sh` + `release_check` +
 `ci_matrix --check` / `check_gate_coverage`）/ `api-bump` / `required` —— 这几个都不装
-Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 + docs，不跑 15 个包矩阵。
+Flutter，合计约 10 秒；只改 `scripts/` 时跑 umbrella 的静态门禁 + docs，不跑 16 个包矩阵。
 分支保护只要求最后的 `Required checks` 聚合 job，避免 required check 名字随包矩阵变化。
 
 > 路径过滤在 `.github/workflows/ci.yml` 的 `changes` job，用 `dorny/paths-filter@v4` +

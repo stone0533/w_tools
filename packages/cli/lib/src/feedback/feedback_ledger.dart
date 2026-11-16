@@ -30,6 +30,7 @@ const feedbackPackages = <String>{
   'w_tools',
   'core',
   'async',
+  'async_ui',
   'ui',
   'form',
   'api',

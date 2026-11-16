@@ -2,7 +2,7 @@
 
 | 目录 | 受众 | 内容 |
 |------|------|------|
-| [`modules/`](modules/README.md) | 使用者 | 11 个库子包索引、组件目录、依赖矩阵（9 份模块文档 + app_getx/map_google 用包 README） |
+| [`modules/`](modules/README.md) | 使用者 | 12 个库子包索引、组件目录、依赖矩阵（10 份模块文档 + app_getx/map_google 用包 README） |
 | [`agents/`](agents/README.md) | 仓库 AI / 维护者 | 包级首选入口、硬规则、禁止项、工具工作流 |
 | [`recipes/`](recipes/README.md) | 使用者 | 跨包组合场景（分页 / 表单提交 / App 根装配…） |
 | [`guides/`](guides/README.md) | 使用者 | 横向指南（测试策略等），不绑定单个包 |
@@ -17,6 +17,7 @@
 - [模块文档索引](modules/README.md)：包职责、依赖矩阵、SDK 速查
 - [组件目录](modules/components.md)：按用途找现成组件，含「不要用在哪」
 - [组合用法](recipes/README.md)：几件事怎么拼起来（分页、表单提交、App 根装配…）
+- [非核心扩展](extensions/README.md)：`w_tools_async_ui` 等可选应用层
 - [使用指南](guides/README.md)：测试策略等横向指南（白盒 / 黑盒 / 设备 / E2E）
 - [文档地图](documentation-map.md)：每个文档写什么、AI 应该把信息放哪
 - [接入约定](conventions.md)：包 / 暂存层 / 业务层的判定与 doctor 规则
@@ -37,6 +38,8 @@
 - [scripts 运行手册](../scripts/README.md)：门禁清单的唯一来源（何时跑哪个脚本）
 
 ## 架构决策（ADR）
+
+- [0013 async 规范应用层](adr/0013-async-ui-extension-package.md)：`w_tools_async_ui` 作为可选扩展包
 
 - [ADR 索引与模板](adr/README.md)：按主题分组的索引、状态词、模板、新增/取代规则
 - [0001 子包独立版本](adr/0001-package-versioning.md)：独立 semver、不回滚（操作规则见 releasing.md）

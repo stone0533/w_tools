@@ -579,6 +579,7 @@ String _snippet(
     if (features.map) 'w_tools_map',
     if (features.map) 'w_tools_map_google',
     if (features.asyncFeature) 'w_tools_async',
+    if (features.asyncFeature) 'w_tools_async_ui',
   ];
 
   final depLines = <String>[

@@ -1,0 +1,29 @@
+# w_tools_async_ui 0.1.0
+WAsyncPagedList	class
+WAsyncPagedList.controller	WAsyncPagedController<T>
+WAsyncPagedList.createState	State<WAsyncPagedList<T>> ()
+WAsyncPagedList.emptyBuilder	WidgetBuilder?
+WAsyncPagedList.itemBuilder	Widget Function(BuildContext context, T item)
+WAsyncPagedList.new	({ super.key, required this.controller, required this.itemBuilder, this.emptyBuilder, this.strings = const WAsyncPagedStrings(), })
+WAsyncPagedList.strings	WAsyncPagedStrings
+WAsyncPagedSliver	class
+WAsyncPagedSliver.build	Widget (BuildContext context)
+WAsyncPagedSliver.controller	WAsyncPagedController<T>
+WAsyncPagedSliver.emptyBuilder	WidgetBuilder?
+WAsyncPagedSliver.itemBuilder	Widget Function(BuildContext context, T item)
+WAsyncPagedSliver.new	({ super.key, required this.controller, required this.itemBuilder, this.emptyBuilder, this.strings = const WAsyncPagedStrings(), })
+WAsyncPagedSliver.strings	WAsyncPagedStrings
+WAsyncPagedStrings	class
+WAsyncPagedStrings.failed	String
+WAsyncPagedStrings.loadMore	String
+WAsyncPagedStrings.loading	String
+WAsyncPagedStrings.new	({ this.loading = 'Loading...', this.failed = 'Load failed', this.retry = 'Retry', this.noMore = 'No more data', this.loadMore = 'Pull up to load more', })
+WAsyncPagedStrings.noMore	String
+WAsyncPagedStrings.retry	String
+WAsyncPagedStrings.toString	String ()
+WAsyncSection	class
+WAsyncSection.build	Widget (BuildContext context)
+WAsyncSection.builder	Widget Function(BuildContext context, T data)
+WAsyncSection.controller	WAsyncController<T>
+WAsyncSection.emptyBuilder	WidgetBuilder?
+WAsyncSection.new	({ super.key, required this.controller, required this.builder, this.emptyBuilder, })

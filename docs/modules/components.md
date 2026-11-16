@@ -105,8 +105,12 @@
 | --- | --- | --- | --- |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WFormBorderStyle` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 helper/error 文案样式 | 配置通过 `WForm(borderStyle: ...)` 下发；`WFormBorder` 8.0 起移除公开入口 |
-| `WAsyncView` | async | 普通页面四态视图、默认错误页 / 刷新错误条；onRetry 控制重试按钮 | 滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`；不要省略 onRetry 还期待默认重试按钮 |
-| `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncView` |
+| `WAsyncView` | async | 普通页面四态视图、默认错误页 / 刷新错误条；onRetry 控制重试按钮 | 滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`；业务页面优先用 WAsyncSection；不要省略 onRetry 还期待默认重试按钮 |
+| `WAsyncSection` | async_ui | 业务页面单区块四态的规范入口；失败态默认接 controller.load | 自定义布局 / 特殊错误页 / 需要 per-view builder 时用核心 `WAsyncView`；不要在本组件里塞全局 loading |
+| `WAsyncPagedList` | async_ui | 标准分页列表的规范入口；内部处理刷新、上拉、footer 和重试 | 自定义滚动壳用 `WAsyncPagedSliver`；不要在外面再包 SmartRefresher 或传 footerStatus / footerChanges |
+| `WAsyncPagedSliver` | async_ui | 自定义 CustomScrollView 里的分页内容（四态 + footer） | 标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncStateSliver 单区块 |
+| `WAsyncPagedStrings` | async_ui | 分页 footer 的文案（loading / failed / retry / noMore / loadMore） | 不要用它修改核心 WAsyncStrings；单区块文案仍走 WAsyncTheme |
+| `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncSection`；标准分页用 `WAsyncPagedList`；不要自建 footer |
 | `WRouteStack` | app_getx | 路由栈操作（`app.routeStack`） | 不要跨 WApp 操作路由栈；每个 WApp 持有自己的栈 |
 | `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |
 | `WScreenScope` | ui | 子树内的屏幕 / 字体缩放注入，替代全局 delegate | 不要和全局 delegate 混用；scope 优先 |

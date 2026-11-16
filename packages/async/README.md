@@ -19,6 +19,9 @@ dependencies:
 
 从 6.x 升级：见 [docs/migrations/async-7.0.md](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+业务页面的规范入口在可选包 [`w_tools_async_ui`](https://github.com/stone0533/w_tools/blob/main/packages/async_ui/README.md)：单区块 `WAsyncSection`、
+标准分页 `WAsyncPagedList`；核心包继续只提供原语。
+
 ## 快速开始
 
 ```dart

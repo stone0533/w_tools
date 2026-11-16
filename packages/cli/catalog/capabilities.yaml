@@ -6,6 +6,7 @@ version: 1
 packages:
   w_tools_core: 'WStorage / WToken / WValidator / WLogger'
   w_tools_async: 'WAsyncController + WAsyncView；纯执行 WAsync.tryRun/run'
+  w_tools_async_ui: 'WAsyncSection / WAsyncPagedList / WAsyncPagedSliver'
   w_tools_ui: 'WText / WImage / WButton / WScaffold'
   w_tools_form: 'WForm + 直接字段（WFormTextField 等）'
   w_tools_api: 'WApiSettings + DioRegistry + WLogInterceptor'

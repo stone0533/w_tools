@@ -228,7 +228,8 @@ single-context — one root `GLOSSARY.md` shared by the app and all packages, wi
 | 包 | 最短硬规则 | 详情 |
 |---|---|---|
 | core | `WStorage` 读前 `await WStorage.init()`；`WValidator` / `WRegExp` / `WLogger`；`WEncrypt` 的 AES-CBC 不提供完整性 | [core](docs/agents/core.md) |
-| async | `WAsyncController` + `WAsyncView`；`WAsyncTheme` 放根节点；分页失败写 `loadMoreError` | [async](docs/agents/async.md) |
+| async | 页面原语：`WAsyncController` + `WAsyncView`；`WAsyncTheme` 放根节点；分页失败写 `loadMoreError` | [async](docs/agents/async.md) |
+| async_ui | 业务页面用 `WAsyncSection` / `WAsyncPagedList`；`WAsyncView` / `WAsyncStateSliver` 只用于库/设计系统；不要维护 `hasLoadedMorePage` | [async](docs/agents/async.md) |
 | ui | 新代码 `WText(variant:)` + `WTextStyles`；普通按钮 `WButton`、任意 child 点击 `WPressable`；图片 `WImage` | [ui](docs/agents/ui.md) |
 | form | `WForm` + 直接字段；不要从 `Config.build` 开始，字段不传 `config` | [form](docs/agents/form.md) |
 | api | `WApiSettings` + `DioRegistry.forBaseUrl`；不要直接 `Dio()`；token 用 `WToken` | [api](docs/agents/api.md) |

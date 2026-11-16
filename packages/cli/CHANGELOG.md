@@ -1,3 +1,17 @@
+## 2.2.0
+
+### Added
+- `init` 的 async feature 现在同时接入 `w_tools_async_ui`：导出 `WAsyncSection` /
+  `WAsyncPagedList` / `WAsyncPagedSliver` / `WAsyncPagedStrings`，并生成新的 async AGENTS 规则。
+- catalog 新增 async_ui 四个入口；`explain WAsyncSection` / `WAsyncPagedList` 可直接查到
+  规范用法，核心 `WAsyncView` 的 `dontUseFor` 指向它们。
+- 新增 `docs/extensions/async_ui.md`、`docs/modules/async_ui_module.md` 与 ADR-0013。
+
+### Changed
+- 消费方 async 页面默认写法从 `WAsyncController + WAsyncView` 收敛为
+  `WAsyncSection`（单区块）/ `WAsyncPagedList`（标准分页）；`WAsyncView` /
+  `WAsyncStateSliver` 只用于库、设计系统和明确的自定义扩展。
+
 ## 2.1.1
 
 ### Changed

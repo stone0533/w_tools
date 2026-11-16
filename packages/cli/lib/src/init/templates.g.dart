@@ -258,7 +258,8 @@ const String aiPrompts = r'''
 
 要求：
 1. 先看项目现有列表页写法；
-2. 首屏 loading / empty / error 必须完整；error 必须有可点重试入口，并补一个失败态 widget test；
+2. 首屏 loading / empty / error 必须完整；单区块用 `WAsyncSection`，分页用 `WAsyncPagedList`；
+   error 必须有可点重试入口，并补一个失败态 widget test；
 3. 加载更多失败只更新 footer，不替换列表；
 4. 列表项使用稳定 key；
 5. 图片按需限制解码尺寸；
@@ -338,8 +339,8 @@ const String aiPrompts = r'''
    - App：WApp.options / WAppPlugin，不要手工初始化插件
 <!-- @endif -->
 <!-- @if:async -->
-   - Async：WAsyncController / WAsyncView，不要自己维护 loading / error 状态；
-     检查 WAsyncView / WAsyncStateSliver 是否漏 onRetry、是否维护 hasLoadedMorePage、
+   - Async：单区块 `WAsyncSection`、分页 `WAsyncPagedList`；核心 `WAsyncView` / `WAsyncStateSliver` 只用于库/设计系统；
+     检查业务层是否误用 WAsyncView / WAsyncStateSliver、是否维护 hasLoadedMorePage、
      是否用 data != null 代替四态、fire-and-forget 是否漏 onError
 <!-- @endif -->
 <!-- @if:qr -->
@@ -422,7 +423,7 @@ const String aiPrompts = r'''
    dart run w_tools_cli:w_tools init --check-drift
 4. 有 drift 时再运行（会覆盖生成物，没有备份）：
    dart run w_tools_cli:w_tools init --force
-5. 扫描 WAsyncView / WAsyncStateSliver 是否漏 onRetry；
+5. 扫描业务层是否直接使用 WAsyncView / WAsyncStateSliver，改用 WAsyncSection / WAsyncPagedList；
 6. 扫描 hasLoadedMorePage / hasLoadedMoreThanOnePage 残留；
 7. 每个失败态有 widget test，断言重试入口存在。
 
@@ -975,8 +976,9 @@ Confirm first:
 
 Requirements:
 1. follow existing list pages in this project;
-2. first-screen loading / empty / error must be complete; error must have a working retry entry,
-   and add a failed-state widget test;
+2. first-screen loading / empty / error must be complete; use `WAsyncSection` for one block and
+   `WAsyncPagedList` for paged lists; error must have a working retry entry, and add a failed-state
+   widget test;
 3. load-more failure updates the footer only, do not replace the list;
 4. use stable keys for list items;
 5. limit image decode size;
@@ -1056,8 +1058,9 @@ Check this project:
    - app: WApp.options / WAppPlugin instead of manual plugin setup
 <!-- @endif -->
 <!-- @if:async -->
-   - async: WAsyncController / WAsyncView instead of hand-maintained loading / error state;
-     check WAsyncView / WAsyncStateSliver for missing onRetry, hasLoadedMorePage leftovers,
+   - async: `WAsyncSection` for one block, `WAsyncPagedList` for paged lists; raw `WAsyncView` /
+     `WAsyncStateSliver` only in libraries/design systems;
+     check for raw WAsyncView / WAsyncStateSliver in app code, hasLoadedMorePage leftovers,
      data != null instead of the four states, and fire-and-forget onError
 <!-- @endif -->
 <!-- @if:qr -->
@@ -1140,7 +1143,7 @@ Requirements:
    dart run w_tools_cli:w_tools init --check-drift
 4. on drift run this (overwrites generated files, no backup):
    dart run w_tools_cli:w_tools init --force
-5. scan WAsyncView / WAsyncStateSliver for missing onRetry;
+5. scan app code for raw WAsyncView / WAsyncStateSliver; use WAsyncSection / WAsyncPagedList;
 6. scan for hasLoadedMorePage / hasLoadedMoreThanOnePage leftovers;
 7. every failed state has a widget test asserting the retry entry exists.
 
@@ -1462,6 +1465,7 @@ export 'package:w_tools_qr/w_tools_qr.dart'; // @optional:qr
 export 'package:w_tools_map/w_tools_map.dart'; // @optional:map
 export 'package:w_tools_map_google/w_tools_map_google.dart'; // @optional:map
 export 'package:w_tools_async/w_tools_async.dart'; // @optional:async
+export 'package:w_tools_async_ui/w_tools_async_ui.dart'; // @optional:async
 
 // 项目级页面规范
 export '../ui/app_bars.dart'; // @optional:ui
@@ -1622,15 +1626,24 @@ const String agentsApp = r'''
 ''';
 
 const String agentsAsync = r'''
-- **异步区块**（`explain WAsyncView` / `explain WAsyncPagedController`）：`WAsyncController` + `WAsyncView`，
-  滚动组件放进 `readyBuilder`；sliver 用 `WAsyncStateSliver`；失败态必须传 `onRetry`（或自定义
-  errorBuilder 带重试），默认错误视图不显示按钮；分页 footer 只读 `snapshot.footerStatus`
-  （hidden / loading / failed / noMore / loadMore），`loadMore` 失败只写
-  `snapshot.loadMoreError`，不要维护 `hasLoadedMorePage`；多个独立区块
-  每块一个 controller + WAsyncView，不要用 `data != null` 代替四态；`WAsyncStatus` /
+- **异步区块**（`explain WAsyncSection` / `explain WAsyncPagedList`；分页 controller：
+  `explain WAsyncPagedController`）：业务页面单区块用 `WAsyncController` + `WAsyncSection`（默认 onRetry =
+  controller.load），分页用 `WAsyncPagedList`（内部 SmartRefresher / footer / 重试），
+  自定义滚动用 `WAsyncPagedSliver`；`WAsyncView` / `WAsyncStateSliver` 只用于库 / 设计系统 /
+  自定义扩展。分页 footer 只读 `snapshot.footerStatus`（hidden / loading / failed / noMore /
+  loadMore），`loadMore` 失败只写 `snapshot.loadMoreError`，不要维护 `hasLoadedMorePage`；
+  多个独立区块每块一个 controller，不要用 `data != null` 代替四态；`WAsyncStatus` /
   `WAsyncStrings` 走 `WAsyncTheme`；结果分支 `WAsyncSuccess` / `WAsyncFailure` /
   `WAsyncCancelled`，取消异常 `WCancellationException`；纯执行用 `WAsync.tryRun` / `run`，
   独立区块用 `WAsync.settle`；`WAsyncView.state` 是 `ValueListenable` 不是 `Rx`，外层 `Obx` 要保留。
+''';
+
+const String agentsAsyncUi = r'''
+- **Async 规范入口**（`explain WAsyncSection` / `explain WAsyncPagedList`）：业务页面单区块用
+  `WAsyncSection`，标准分页用 `WAsyncPagedList`（内部 SmartRefresher / footer / 重试），
+  自定义滚动用 `WAsyncPagedSliver`；footer 文案用 `WAsyncPagedStrings`。不要维护
+  `hasLoadedMorePage`，分页只读 `snapshot.footerStatus`；`WAsyncView` / `WAsyncStateSliver`
+  只用于库 / 设计系统 / 明确的自定义扩展。
 ''';
 
 const String agentsToast = r'''
@@ -1745,17 +1758,25 @@ const String agentsAppEn = r'''
 ''';
 
 const String agentsAsyncEn = r'''
-- **Async blocks** (`explain WAsyncView` / `explain WAsyncPagedController`): `WAsyncController` + `WAsyncView`;
-  put the scrollable in `readyBuilder`, use `WAsyncStateSliver` for slivers; failed states **must** pass
-  `onRetry` (or a custom `errorBuilder` with retry) — the default error view has no button; the paged footer
-  reads only `snapshot.footerStatus` (hidden / loading / failed / noMore / loadMore); write
-  `snapshot.loadMoreError` on failure — do not maintain `hasLoadedMorePage`; one controller + WAsyncView
-  per independent block; do not use `data != null` for
-  the four states; `WAsyncStatus` / `WAsyncStrings` come from `WAsyncTheme`; branch on `WAsyncSuccess` /
-  `WAsyncFailure` / `WAsyncCancelled`, cancellation throws `WCancellationException`; use
-  `WAsync.tryRun` / `WAsync.run` for pure execution and `WAsync.settle` for independent sections;
-  `WAsyncView.state` is a `ValueListenable`,
-  not `Rx`, keep the outer `Obx`.
+- **Async blocks** (`explain WAsyncSection` / `explain WAsyncPagedList`; paged controller:
+  `explain WAsyncPagedController`): app pages use `WAsyncController` + `WAsyncSection` for one block (default `onRetry` =
+  `controller.load`) and `WAsyncPagedList` for standard paged lists (SmartRefresher / footer /
+  retry); use `WAsyncPagedSliver` only for custom scroll. `WAsyncView` / `WAsyncStateSliver` are
+  for libraries / design systems / explicit extensions. Footer reads only
+  `snapshot.footerStatus` (hidden / loading / failed / noMore / loadMore); `loadMore` failure
+  writes `snapshot.loadMoreError`; do not maintain `hasLoadedMorePage`; one controller per
+  independent block; do not use `data != null` for the four states; `WAsyncStatus` /
+  `WAsyncStrings` come from `WAsyncTheme`; branch on `WAsyncSuccess` / `WAsyncFailure` /
+  `WAsyncCancelled`, cancellation throws `WCancellationException`; use `WAsync.tryRun` / `run`
+  for pure execution and `WAsync.settle` for independent sections; `WAsyncView.state` is a
+  `ValueListenable`, not `Rx`, keep the outer `Obx`.
+''';
+
+const String agentsAsyncUiEn = r'''
+- **Async entries** (`explain WAsyncSection` / `explain WAsyncPagedList`): use
+  `WAsyncSection` / `WAsyncPagedList` for blocks / paging (SmartRefresher/footer); use `WAsyncPagedSliver` for custom scroll; `WAsyncPagedStrings` for footer.
+  Don't maintain `hasLoadedMorePage`; footer reads `snapshot.footerStatus`.
+  `WAsyncView`/`WAsyncStateSliver` are library/design-system.
 ''';
 
 const String agentsToastEn = r'''

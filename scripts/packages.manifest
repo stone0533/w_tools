@@ -1,6 +1,7 @@
 # name|path|runner|root_aggregate|example_test
 w_tools_core|packages/core|flutter|root|example
 w_tools_async|packages/async|flutter|root|example
+w_tools_async_ui|packages/async_ui|flutter|-|example
 w_tools_ui|packages/ui|flutter|root|example
 w_tools_form|packages/form|flutter|root|example
 w_tools_api|packages/api|flutter|root|example
