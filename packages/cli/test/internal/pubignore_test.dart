@@ -16,6 +16,18 @@ void main() {
     }
   });
 
+  test('发布 manifest 覆盖运行时 catalog 源码', () {
+    final manifest = File('tool/publish_manifest.txt').readAsLinesSync();
+    for (final name in [
+      'lib/src/catalog/catalog.dart',
+      'lib/src/catalog/catalog_entry.dart',
+      'lib/src/catalog/catalog.g.dart',
+      'lib/src/catalog/list_command.dart',
+    ]) {
+      expect(manifest, contains(name), reason: name);
+    }
+  });
+
   test('运行时 catalog 源码存在', () {
     for (final name in [
       'catalog.dart',

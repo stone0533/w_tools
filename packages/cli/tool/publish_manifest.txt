@@ -1,0 +1,7 @@
+# 发布归档必须包含的运行时文件；publish_package.sh 会在正式发布前校验。
+bin/w_tools.dart
+lib/src/catalog/catalog.dart
+lib/src/catalog/catalog_entry.dart
+lib/src/catalog/catalog.g.dart
+lib/src/catalog/list_command.dart
+lib/src/explain/explain_command.dart

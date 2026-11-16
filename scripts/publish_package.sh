@@ -368,6 +368,33 @@ if [ -z "$dry_run" ]; then
   check_publish_network
 fi
 
+
+# 发布前按 manifest 校验归档内容。`dart pub publish --dry-run` 会应用 .pubignore，
+# 是唯一能在上传前看到真实归档文件列表的方式；只靠包大小 / warning 查不出缺文件。
+if [ -z "$dry_run" ] && [ -f "$src/tool/publish_manifest.txt" ]; then
+  echo "== 校验发布归档必需文件"
+  if ! archive_dry_run="$(cd "$staging" && "$publish_runner" pub publish --dry-run 2>&1)"; then
+    echo "$archive_dry_run" >&2
+    echo "✗ 发布前 dry-run 失败；先修依赖 / pubspec" >&2
+    exit 1
+  fi
+  missing=0
+  while IFS= read -r path; do
+    case "$path" in '' | '#'*) continue ;; esac
+    base="${path##*/}"
+    base_pattern="${base//./\\.}"
+    if ! grep -qE "(^|[[:space:]])${base_pattern}([[:space:]]|$)" <<<"$archive_dry_run"; then
+      echo "✗ 发布归档缺少：$path" >&2
+      missing=1
+    fi
+  done < "$src/tool/publish_manifest.txt"
+  if [ "$missing" -ne 0 ]; then
+    echo "✗ 发布归档缺少运行时文件；检查 .pubignore（目录模式要加前导 /）" >&2
+    exit 1
+  fi
+  echo "  ✓ 必需运行时文件齐全"
+fi
+
 cd "$staging"
 set +e
 python3 "$repo_root/scripts/_run_with_timeout.py" \
