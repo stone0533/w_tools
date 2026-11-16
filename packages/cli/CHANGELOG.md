@@ -1,9 +1,11 @@
-## Unreleased
+## 2.1.1
 
 ### Changed
 - `init` 的 `w_tools_qr` 约束抬到 `^3.0.0`：qr 3.0 移除了 `WQrController` 的
   `hasPermissions` / `stopCamera` / `getSystemFeatures` / `setInvert` / `getCameraInfo`，
   `WQrView.controller` 改为必传，`scanInterval` 改为 `scanThrottle`。
+- 消费方 AGENTS 模板与 catalog 同步 qr 3.0：连续扫描改用 `scanThrottle`，`explain WQrView`
+  不再教 qr 2.x 的扫描参数与已删除能力。
 
 ## 2.1.0
 
