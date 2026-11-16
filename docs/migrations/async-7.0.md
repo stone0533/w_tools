@@ -122,6 +122,11 @@ return WAsyncPage<Gift>(items: resp.list, hasMore: page * 20 < resp.total);
 `replaceData(data, page: ...)` 的 `page` 参数删除；`page` / `hasLoadedMoreThanOnePage`
 不再公开，footer 只读 `snapshot.footerStatus`。
 
+> **反例：不要自己维护 `hasLoadedMorePage`。**
+> `snapshot.footerStatus` 已经区分「首屏就到底」和「翻过页才到底」：
+> 首屏到底 → `hidden`，翻过页到底 → `noMore`。旧 getter 只服务旧 footer；
+> 迁移后应删除，不要再加一个 bool 或一个 controller 字段。
+
 ## 5. 视图：删 WAsyncStateBuilder / onRetryError
 
 滚动页面把滚动组件放进 `WAsyncView.readyBuilder`；`onRetryError` 删除，`onRetry` 改为
@@ -137,6 +142,7 @@ WAsyncStateBuilder(
 // after
 WAsyncView<List<Gift>>(
   state: c.state,
+  onRetry: c.load,
   readyBuilder: (context, gifts) => SmartRefresher(
     onRefresh: c.load,
     child: ListView(...),
@@ -146,6 +152,13 @@ WAsyncView<List<Gift>>(
 
 `WAsyncThemeViews` 不再导出；主题只保留 `loading` / `empty` / `error` / `errorBanner` /
 `refreshing` 五个 builder，sliver 复用同一组 builder（返回普通 Widget，不是 sliver）。
+
+> **反例：`WAsyncView` 默认错误视图不显示重试按钮。**
+> `onRetry == null` 时只有标题。页面有失败态且需要用户恢复时，必须传 `onRetry`，
+> 或自定义 `errorBuilder` 自带重试。迁移时补齐这个入口不算“改变业务行为”。
+
+多个独立异步区块不要用一个 `data != null` 手动拼四态：每块一个 `WAsyncController` +
+一个 `WAsyncView`，各自 `onRetry`；确需在一个 builder 里组合时用 `WAsyncState.when`。
 
 ## 6. 默认错误视图不再渲染异常原文
 

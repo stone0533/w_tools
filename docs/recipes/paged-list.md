@@ -179,6 +179,96 @@ class _PagedFooter extends StatelessWidget {
 当前没有 `WPagedFooter`：如果 3+ 个项目仍在复制这段，再考虑在 `w_tools_ui`
 加一个**纯展示**组件（不依赖 `pull_to_refresh` / `w_tools_async`）。
 
+### 抽成项目壳：只传 snapshot
+
+如果项目里多个列表共用壳，壳只接收分页快照，不要同时传
+`footerStatus` + `footerChanges` 两个入口：
+
+```dart
+class AppPagedSliverList<T> extends StatelessWidget {
+  const AppPagedSliverList({
+    super.key,
+    required this.state,
+    required this.snapshot,
+    required this.refreshController,
+    required this.onRefresh,
+    required this.onLoading,
+    required this.itemBuilder,
+    this.onRetryLoadMore,
+  });
+
+  final ValueListenable<WAsyncState<List<T>>> state;
+  final ValueListenable<WAsyncPagedSnapshot<T>> snapshot;
+  final RefreshController refreshController;
+  final Future<void> Function() onRefresh;
+  final Future<void> Function() onLoading;
+  final Future<void> Function()? onRetryLoadMore;
+  final Widget Function(BuildContext context, T item) itemBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    return SmartRefresher(
+      controller: refreshController,
+      onRefresh: onRefresh,
+      onLoading: onLoading,
+      child: CustomScrollView(
+        slivers: [
+          WAsyncStateSliver<List<T>>(
+            state: state,
+            onRetry: onRefresh,
+            readySliverBuilder: (context, items) => SliverList.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index) => itemBuilder(context, items[index]),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: AnimatedBuilder(
+              animation: snapshot,
+              builder: (context, _) => _FooterStatus(
+                status: snapshot.value.footerStatus,
+                onRetry: onRetryLoadMore,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FooterStatus extends StatelessWidget {
+  const _FooterStatus({required this.status, this.onRetry});
+
+  final WAsyncPagedFooterStatus status;
+  final Future<void> Function()? onRetry;
+
+  @override
+  Widget build(BuildContext context) => switch (status) {
+    WAsyncPagedFooterStatus.hidden => const SizedBox.shrink(),
+    WAsyncPagedFooterStatus.loading => const Padding(
+      padding: EdgeInsets.all(16),
+      child: Center(child: CircularProgressIndicator()),
+    ),
+    WAsyncPagedFooterStatus.failed => TextButton(
+      onPressed: onRetry == null ? null : () => onRetry!(),
+      child: const Text('重试'),
+    ),
+    WAsyncPagedFooterStatus.noMore => const Padding(
+      padding: EdgeInsets.all(16),
+      child: Center(child: Text('没有更多')),
+    ),
+    WAsyncPagedFooterStatus.loadMore => const Padding(
+      padding: EdgeInsets.all(16),
+      child: Center(child: Text('上拉加载更多')),
+    ),
+  };
+}
+```
+
+要点：壳只读 `snapshot`，不要同时收 `footerStatus` 和 `footerChanges`；也不要在
+controller 里维护 `hasLoadedMorePage`。`footerStatus` 已经区分首屏到底（`hidden`）和
+翻页后到底（`noMore`）。
+
 ### `isRefreshing` 与 `isLoading`
 
 `state.isRefreshing` 只表示「有旧数据时的刷新」；首屏 / 重试用 `state.isLoading`。

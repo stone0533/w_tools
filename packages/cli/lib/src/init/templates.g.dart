@@ -258,7 +258,7 @@ const String aiPrompts = r'''
 
 要求：
 1. 先看项目现有列表页写法；
-2. 首屏 loading / empty / error 必须完整；
+2. 首屏 loading / empty / error 必须完整；error 必须有可点重试入口，并补一个失败态 widget test；
 3. 加载更多失败只更新 footer，不替换列表；
 4. 列表项使用稳定 key；
 5. 图片按需限制解码尺寸；
@@ -338,7 +338,9 @@ const String aiPrompts = r'''
    - App：WApp.options / WAppPlugin，不要手工初始化插件
 <!-- @endif -->
 <!-- @if:async -->
-   - Async：WAsyncController / WAsyncView，不要自己维护 loading / error 状态
+   - Async：WAsyncController / WAsyncView，不要自己维护 loading / error 状态；
+     检查 WAsyncView / WAsyncStateSliver 是否漏 onRetry、是否维护 hasLoadedMorePage、
+     是否用 data != null 代替四态、fire-and-forget 是否漏 onError
 <!-- @endif -->
 <!-- @if:qr -->
    - 扫码：WQrView，不要直接用 QRView
@@ -383,7 +385,8 @@ const String aiPrompts = r'''
 先不要改代码。先做三件事：
 1. 按包读升级说明：优先看该包 CHANGELOG（pub.dev / GitHub），需要细节再看 w_tools 仓库 docs/migrations/
    （例如 ui-8.0.md / form-6.0.md；docs/ 不随包发布，不要假设本地有）；
-2. 找出项目里所有旧 API 和需要改的调用点；
+2. 找出项目里所有旧 API 和需要改的调用点；以 w_tools 仓库 docs/migrations/ 为准；
+   项目自己的旧迁移备忘可能过期，不能当唯一依据；
 3. 列出按文件分组的改动计划。
 
 输出：旧 API 清单（文件:行 + 替换方式） + 分文件改动计划 + 风险点。
@@ -398,7 +401,8 @@ const String aiPrompts = r'''
 要求：
 1. 先跑 `dart run w_tools_cli:w_tools upgrade`（只抬 w_tools 系包；跨 major 加 `--major` 或 `--only=<包>`，普通 `{{pubUpgrade}}` 不会跨 major），它会改 pubspec 并 pub get；
 2. 按文件逐步替换，一个文件一次；
-3. 不改变无关业务行为；
+3. 不改变无关业务行为；但错误态 / 重试入口属于本次迁移验收，必须补齐，
+   不要机械保留旧的无重试占位；
 4. 遇到计划里没覆盖的调用点，停下来先报告，不要自己猜；
 5. 每改完一批跑一次 {{analyze}}。
 
@@ -418,6 +422,9 @@ const String aiPrompts = r'''
    dart run w_tools_cli:w_tools init --check-drift
 4. 有 drift 时再运行（会覆盖生成物，没有备份）：
    dart run w_tools_cli:w_tools init --force
+5. 扫描 WAsyncView / WAsyncStateSliver 是否漏 onRetry；
+6. 扫描 hasLoadedMorePage / hasLoadedMoreThanOnePage 残留；
+7. 每个失败态有 widget test，断言重试入口存在。
 
 输出：{{analyze}} / {{test}} 原始输出 + 残留清单 + drift 检查结果。
 ```
@@ -968,7 +975,8 @@ Confirm first:
 
 Requirements:
 1. follow existing list pages in this project;
-2. first-screen loading / empty / error must be complete;
+2. first-screen loading / empty / error must be complete; error must have a working retry entry,
+   and add a failed-state widget test;
 3. load-more failure updates the footer only, do not replace the list;
 4. use stable keys for list items;
 5. limit image decode size;
@@ -1048,7 +1056,9 @@ Check this project:
    - app: WApp.options / WAppPlugin instead of manual plugin setup
 <!-- @endif -->
 <!-- @if:async -->
-   - async: WAsyncController / WAsyncView instead of hand-maintained loading / error state
+   - async: WAsyncController / WAsyncView instead of hand-maintained loading / error state;
+     check WAsyncView / WAsyncStateSliver for missing onRetry, hasLoadedMorePage leftovers,
+     data != null instead of the four states, and fire-and-forget onError
 <!-- @endif -->
 <!-- @if:qr -->
    - QR: WQrView, not QRView directly
@@ -1093,7 +1103,8 @@ Task: upgrade the w_tools sub-packages. First list <oldversion> and <newversion>
 Do not change code yet. Do three things first:
 1. read the upgrade notes per package: prefer that package's CHANGELOG (pub.dev / GitHub); for details see
    docs/migrations/ in the w_tools repo (e.g. ui-8.0.md / form-6.0.md; docs/ is not published with the package, so do not assume it is local);
-2. find every outdated API and call site in this project;
+2. find every outdated API and call site in this project; the w_tools repo docs/migrations/ is authoritative;
+   the project's old migration memo may be stale and must not be the only source;
 3. list a per-file change plan.
 
 Output: outdated API inventory (file:line + replacement) + per-file plan + risks.
@@ -1108,7 +1119,8 @@ Replace outdated APIs following the F-1 plan; stay in the same conversation, or 
 Requirements:
 1. run `dart run w_tools_cli:w_tools upgrade` first (it bumps w_tools packages and runs pub get; add `--major` or `--only=<package>` to cross a major — a plain `{{pubUpgrade}}` never will);
 2. go file by file, one file at a time;
-3. do not change unrelated behavior;
+3. do not change unrelated behavior; error / retry entry points are part of this migration's acceptance —
+   fill them in, do not mechanically keep the old no-retry placeholder;
 4. stop and report any call site the plan missed; do not guess;
 5. run {{analyze}} after each batch.
 
@@ -1128,6 +1140,9 @@ Requirements:
    dart run w_tools_cli:w_tools init --check-drift
 4. on drift run this (overwrites generated files, no backup):
    dart run w_tools_cli:w_tools init --force
+5. scan WAsyncView / WAsyncStateSliver for missing onRetry;
+6. scan for hasLoadedMorePage / hasLoadedMoreThanOnePage leftovers;
+7. every failed state has a widget test asserting the retry entry exists.
 
 Output: raw {{analyze}} / {{test}} output + leftover list + drift result.
 ```
@@ -1607,16 +1622,15 @@ const String agentsApp = r'''
 ''';
 
 const String agentsAsync = r'''
-- **异步区块**（`explain WAsyncPagedController`）：`WAsyncController` + `WAsyncView`，滚动组件放进 `readyBuilder`，
-  sliver 用 `WAsyncStateSliver`；`WAsyncStatus` / `WAsyncStrings` 走 `WAsyncTheme`（放 App 根节点）；
-  结果分支 `WAsyncSuccess` / `WAsyncFailure` / `WAsyncCancelled`，取消异常 `WCancellationException`；
-  纯执行（不要 UI）用 `WAsync.tryRun` / `WAsync.run`；独立区块用 `WAsync.settle` 保留每个结果；
-  单区块本地替换用 `WAsyncController.replaceData`；分页 `WAsyncPagedController`，
-  footer 只读 `snapshot.footerStatus`（hidden / loading / failed / noMore / loadMore），
-  `loadMore` 失败只写 `snapshot.loadMoreError`，重建用 `AnimatedBuilder(animation: c.snapshot)`；
-  默认 loading / empty / error 视图带 `liveRegion`，自定义 builder 要自己保留语义。
-  `WAsyncView` 的 `state` 是 `ValueListenable` 不是 `Rx`：外层 `Obx` 还得包着，
-  删掉不报错，但页面里其它 Rx 状态不再触发重建。
+- **异步区块**（`explain WAsyncView` / `explain WAsyncPagedController`）：`WAsyncController` + `WAsyncView`，
+  滚动组件放进 `readyBuilder`；sliver 用 `WAsyncStateSliver`；失败态必须传 `onRetry`（或自定义
+  errorBuilder 带重试），默认错误视图不显示按钮；分页 footer 只读 `snapshot.footerStatus`
+  （hidden / loading / failed / noMore / loadMore），`loadMore` 失败只写
+  `snapshot.loadMoreError`，不要维护 `hasLoadedMorePage`；多个独立区块
+  每块一个 controller + WAsyncView，不要用 `data != null` 代替四态；`WAsyncStatus` /
+  `WAsyncStrings` 走 `WAsyncTheme`；结果分支 `WAsyncSuccess` / `WAsyncFailure` /
+  `WAsyncCancelled`，取消异常 `WCancellationException`；纯执行用 `WAsync.tryRun` / `run`，
+  独立区块用 `WAsync.settle`；`WAsyncView.state` 是 `ValueListenable` 不是 `Rx`，外层 `Obx` 要保留。
 ''';
 
 const String agentsToast = r'''
@@ -1731,18 +1745,17 @@ const String agentsAppEn = r'''
 ''';
 
 const String agentsAsyncEn = r'''
-- **Async blocks** (`explain WAsyncPagedController`): `WAsyncController` + `WAsyncView`; put the
-  scrollable inside `readyBuilder`, use `WAsyncStateSliver` for slivers; `WAsyncStatus` /
-  `WAsyncStrings` come from `WAsyncTheme` (at the app root); branch on `WAsyncSuccess` /
-  `WAsyncFailure` / `WAsyncCancelled`, cancellation throws `WCancellationException`; for execution
-  without UI use `WAsync.tryRun` / `WAsync.run`; use `WAsync.settle` for independent sections so
-  every result survives; replace one block locally with `WAsyncController.replaceData`; paginate
-  with `WAsyncPagedController` and render the footer from `snapshot.footerStatus`
-  (hidden / loading / failed / noMore / loadMore), write `snapshot.loadMoreError` on failure, and
-  rebuild via `AnimatedBuilder(animation: c.snapshot)`; default loading / empty / error views carry
-  `liveRegion`, keep semantics in custom builders.
-  `WAsyncView`'s `state` is a `ValueListenable`, not `Rx`: keep the outer `Obx`; deleting it
-  compiles, but other Rx state stops rebuilding.
+- **Async blocks** (`explain WAsyncView` / `explain WAsyncPagedController`): `WAsyncController` + `WAsyncView`;
+  put the scrollable in `readyBuilder`, use `WAsyncStateSliver` for slivers; failed states **must** pass
+  `onRetry` (or a custom `errorBuilder` with retry) — the default error view has no button; the paged footer
+  reads only `snapshot.footerStatus` (hidden / loading / failed / noMore / loadMore); write
+  `snapshot.loadMoreError` on failure — do not maintain `hasLoadedMorePage`; one controller + WAsyncView
+  per independent block; do not use `data != null` for
+  the four states; `WAsyncStatus` / `WAsyncStrings` come from `WAsyncTheme`; branch on `WAsyncSuccess` /
+  `WAsyncFailure` / `WAsyncCancelled`, cancellation throws `WCancellationException`; use
+  `WAsync.tryRun` / `WAsync.run` for pure execution and `WAsync.settle` for independent sections;
+  `WAsyncView.state` is a `ValueListenable`,
+  not `Rx`, keep the outer `Obx`.
 ''';
 
 const String agentsToastEn = r'''

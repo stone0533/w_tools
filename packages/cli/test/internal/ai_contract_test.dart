@@ -310,6 +310,24 @@ void main() {
       }
     });
 
+    test('async 模板包含 onRetry / footer / 多区块规则', () {
+      for (final template in <String>[templates.agentsAsync, templates.agentsAsyncEn]) {
+        expect(template, contains('onRetry'));
+        expect(template, contains('hasLoadedMorePage'));
+        expect(template, contains('data != null'));
+      }
+    });
+
+    test('WAsyncView / WAsyncPagedController catalog 暴露反例', () {
+      final view = findComponent('WAsyncView');
+      expect(view, isNotNull);
+      expect(view!.dontUseFor, contains('onRetry'));
+
+      final paged = findComponent('WAsyncPagedController');
+      expect(paged, isNotNull);
+      expect(paged!.pitfalls.join(' '), contains('hasLoadedMorePage'));
+    });
+
     test('async docsAnchor 都能在 async_module.md 找到', () {
       final text = File('../../docs/modules/async_module.md').readAsStringSync();
       String slug(String heading) {

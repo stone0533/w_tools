@@ -256,7 +256,8 @@ Confirm first:
 
 Requirements:
 1. follow existing list pages in this project;
-2. first-screen loading / empty / error must be complete;
+2. first-screen loading / empty / error must be complete; error must have a working retry entry,
+   and add a failed-state widget test;
 3. load-more failure updates the footer only, do not replace the list;
 4. use stable keys for list items;
 5. limit image decode size;
@@ -336,7 +337,9 @@ Check this project:
    - app: WApp.options / WAppPlugin instead of manual plugin setup
 <!-- @endif -->
 <!-- @if:async -->
-   - async: WAsyncController / WAsyncView instead of hand-maintained loading / error state
+   - async: WAsyncController / WAsyncView instead of hand-maintained loading / error state;
+     check WAsyncView / WAsyncStateSliver for missing onRetry, hasLoadedMorePage leftovers,
+     data != null instead of the four states, and fire-and-forget onError
 <!-- @endif -->
 <!-- @if:qr -->
    - QR: WQrView, not QRView directly
@@ -381,7 +384,8 @@ Task: upgrade the w_tools sub-packages. First list <oldversion> and <newversion>
 Do not change code yet. Do three things first:
 1. read the upgrade notes per package: prefer that package's CHANGELOG (pub.dev / GitHub); for details see
    docs/migrations/ in the w_tools repo (e.g. ui-8.0.md / form-6.0.md; docs/ is not published with the package, so do not assume it is local);
-2. find every outdated API and call site in this project;
+2. find every outdated API and call site in this project; the w_tools repo docs/migrations/ is authoritative;
+   the project's old migration memo may be stale and must not be the only source;
 3. list a per-file change plan.
 
 Output: outdated API inventory (file:line + replacement) + per-file plan + risks.
@@ -396,7 +400,8 @@ Replace outdated APIs following the F-1 plan; stay in the same conversation, or 
 Requirements:
 1. run `dart run w_tools_cli:w_tools upgrade` first (it bumps w_tools packages and runs pub get; add `--major` or `--only=<package>` to cross a major — a plain `{{pubUpgrade}}` never will);
 2. go file by file, one file at a time;
-3. do not change unrelated behavior;
+3. do not change unrelated behavior; error / retry entry points are part of this migration's acceptance —
+   fill them in, do not mechanically keep the old no-retry placeholder;
 4. stop and report any call site the plan missed; do not guess;
 5. run {{analyze}} after each batch.
 
@@ -416,6 +421,9 @@ Requirements:
    dart run w_tools_cli:w_tools init --check-drift
 4. on drift run this (overwrites generated files, no backup):
    dart run w_tools_cli:w_tools init --force
+5. scan WAsyncView / WAsyncStateSliver for missing onRetry;
+6. scan for hasLoadedMorePage / hasLoadedMoreThanOnePage leftovers;
+7. every failed state has a widget test asserting the retry entry exists.
 
 Output: raw {{analyze}} / {{test}} output + leftover list + drift result.
 ```

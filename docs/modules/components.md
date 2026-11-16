@@ -84,7 +84,7 @@
 | `WBadgeStyle` | ui | 角标视觉：背景 / 前景 / 文字 / padding / 圆角 / 边框 | 不要在这里放位置；位置用 WBadgePosition |
 | `WBadgePosition` | ui | 角标位置：topEnd / center | 不要用它做外部布局；它只控制角标相对 child 的位置 |
 | `WFormIcons` | form | 表单图标统一入口（下拉 / 勾选 / 单选 / 密码 / 清空）；WForm 会继承外层 WFormTheme 的图标 | `WFormDefaults` 已删除；`WForm` / `WFormTheme` 已不再接受单项 `xxxIcon` 参数，统一用 `icons:` |
-| `WAsyncController` | async | 单区块异步状态、load / replaceData / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync` |
+| `WAsyncController` | async | 单区块异步状态、load / replaceData / 旧请求丢弃 | 分页用 `WAsyncPagedController`；纯执行用 `WAsync`；多个独立区块不要共用一个 controller，每块一个 controller + WAsyncView |
 | `WAsyncPagedController` | async | 分页列表：首屏、刷新、追加、hasMore、本地替换（recipe: docs/recipes/paged-list.md） | 普通单请求用 `WAsyncController` |
 | `WAsyncPagedSnapshot` | async | 分页的唯一观察快照：state / footerStatus / loadMoreError / hasMore / isLoadingMore | 不要自己拼多个 ValueListenable；footer 读这个快照 |
 | `WAsyncPagedFooterStatus` | async | 分页 footer 的派生状态：hidden / loading / failed / noMore / loadMore | 不要自己用 data / loadMoreError / hasMore 拼 footer 状态 |
@@ -105,7 +105,7 @@
 | --- | --- | --- | --- |
 | `WScreen` | ui | 屏幕 / 字体适配（w/h/sp）、状态栏 / 底部安全区 | 不要重复用 MediaQuery 手写全局适配 |
 | `WFormBorderStyle` | form | 不可变边框配置：默认 / 聚焦 / 错误 / 只读装饰与 helper/error 文案样式 | 配置通过 `WForm(borderStyle: ...)` 下发；`WFormBorder` 8.0 起移除公开入口 |
-| `WAsyncView` | async | 普通页面异步四态视图、默认重试页与刷新错误条 | 滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController` |
+| `WAsyncView` | async | 普通页面四态视图、默认错误页 / 刷新错误条；onRetry 控制重试按钮 | 滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`；不要省略 onRetry 还期待默认重试按钮 |
 | `WAsyncStateSliver` | async | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncView` |
 | `WRouteStack` | app_getx | 路由栈操作（`app.routeStack`） | 不要跨 WApp 操作路由栈；每个 WApp 持有自己的栈 |
 | `WScreenData` | ui | WScreen.of(context) 返回的尺寸 / 安全区快照 | 不要在 build 外缓存；它跟随最近的 MediaQuery |

@@ -49,7 +49,7 @@ class _GiftPageState extends State<GiftPage> {
   Widget build(BuildContext context) {
     return WAsyncView<List<Gift>>(
       state: _gifts.state,
-      onRetry: _gifts.load, // 可选；不传错误态不显示重试按钮
+      onRetry: _gifts.load, // 需要重试时必传；不传错误态没有按钮
       readyBuilder: (context, gifts) => GiftList(gifts),
     );
   }
@@ -64,6 +64,8 @@ empty    → WAsyncStrings.empty
 failed   → 错误页（有 onRetry 才显示重试）
 ready    → readyBuilder
 ```
+
+> 生产页面只要失败态需要用户恢复，`onRetry` 就是必填；默认错误视图不会自己生成按钮。
 
 单个 `WAsyncView` 还可覆盖 `loadingBuilder` / `emptyBuilder` / `errorBuilder` /
 `errorBannerBuilder` / `refreshingBuilder`；未传时回退到 `WAsyncTheme` 的默认视图。

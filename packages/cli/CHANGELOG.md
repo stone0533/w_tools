@@ -1,3 +1,18 @@
+## 2.1.0
+
+### Added
+- 生成的消费方 `AGENTS.md` 补异步契约：失败态必须传 `onRetry`（或自定义
+  `errorBuilder` 带重试）；分页 footer 只读 `snapshot.footerStatus`，不要维护
+  `hasLoadedMorePage`；多个独立区块每块一个 `WAsyncController` + `WAsyncView`。
+- `AI_PROMPTS` 的 B-1 / E-1 / F-1 / F-2 / F-3 补错误态重试、迁移验收和残留扫描
+  （`hasLoadedMorePage` / `onRetry`）。
+- catalog 的 `WAsyncView` / `WAsyncPagedController` 补反例，`explain` 能直接说明
+  默认错误视图不显示重试按钮、footer 不需要手写 `hasLoadedMorePage`。
+
+### Changed
+- `init` 生成的 `AGENTS.md` / `AI_PROMPTS.md` 内容变化；升级后建议重新运行
+  `dart run w_tools_cli:w_tools init --check-drift`，确认 drift 后按需 `--force`。
+
 ## 2.0.1
 
 ### Fixed
