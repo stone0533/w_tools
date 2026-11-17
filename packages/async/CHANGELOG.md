@@ -2,6 +2,14 @@
 
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+## 7.2.0
+
+### Added
+- `WAsync.retry` / `WAsync.timeout` 增加 `onStart` / `onFinally`；整次操作各一次，
+  `onRetry` 仍按 attempt 调用。
+- `WAsync.settle` 增加 batch-level `onStart` / `onFinally`：整批各一次；
+  `onError` 仍按失败任务调用；空集合 / 已取消 token 不调用。
+
 ## 7.1.0
 
 ### Added

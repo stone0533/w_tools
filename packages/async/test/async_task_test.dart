@@ -350,6 +350,83 @@ void main() {
       );
     });
 
+    test('retry onStart/onFinally 整次一次，onRetry 按 attempt', () async {
+      final events = <String>[];
+      var attempts = 0;
+      final value = await WAsync.retry<int>(
+        () async {
+          attempts++;
+          events.add('attempt$attempts');
+          if (attempts < 3) throw Exception('retry');
+          return attempts;
+        },
+        retryCount: 3,
+        retryDelay: Duration.zero,
+        onStart: () => events.add('start'),
+        onRetry: (attempt, _, __) => events.add('retry$attempt'),
+        onFinally: () => events.add('finally'),
+      );
+      expect(value, 3);
+      expect(events, [
+        'start',
+        'attempt1',
+        'retry1',
+        'attempt2',
+        'retry2',
+        'attempt3',
+        'finally',
+      ]);
+    });
+
+    test('retry 最终失败：onError 后执行 onFinally', () async {
+      final events = <String>[];
+      await expectLater(
+        WAsync.retry<int>(
+          () async {
+            events.add('task');
+            throw Exception('fail');
+          },
+          retryCount: 1,
+          retryDelay: Duration.zero,
+          onStart: () => events.add('start'),
+          onError: (_) => events.add('error'),
+          onFinally: () => events.add('finally'),
+        ),
+        throwsException,
+      );
+      expect(events, ['start', 'task', 'task', 'error', 'finally']);
+    });
+
+    test('timeout 成功：onStart / onFinally 各一次', () async {
+      final events = <String>[];
+      final value = await WAsync.timeout<int>(
+        () async {
+          events.add('task');
+          return 1;
+        },
+        const Duration(seconds: 1),
+        onStart: () => events.add('start'),
+        onFinally: () => events.add('finally'),
+      );
+      expect(value, 1);
+      expect(events, ['start', 'task', 'finally']);
+    });
+
+    test('timeout 超时：onError 后执行 onFinally', () async {
+      final events = <String>[];
+      await expectLater(
+        WAsync.timeout<int>(
+          () => Completer<int>().future,
+          const Duration(milliseconds: 5),
+          onStart: () => events.add('start'),
+          onError: (_) => events.add('error'),
+          onFinally: () => events.add('finally'),
+        ),
+        throwsA(isA<TimeoutException>()),
+      );
+      expect(events, ['start', 'error', 'finally']);
+    });
+
     test('timeout 异常包含时长', () async {
       try {
         await WAsync.timeout<int>(
@@ -421,6 +498,54 @@ void main() {
         WAsync.settle<int>([], concurrency: 0),
         throwsArgumentError,
       );
+    });
+
+    test('onStart / onFinally 整批一次，onError 按失败任务', () async {
+      final events = <String>[];
+      final results = await WAsync.settle<int>(
+        [
+          () async {
+            events.add('task1');
+            return 1;
+          },
+          () async {
+            events.add('task2');
+            throw Exception('boom');
+          },
+        ],
+        onStart: () => events.add('start'),
+        onError: (_) => events.add('error'),
+        onFinally: () => events.add('finally'),
+      );
+
+      expect(results, hasLength(2));
+      expect(events.where((event) => event == 'start'), hasLength(1));
+      expect(events.where((event) => event == 'finally'), hasLength(1));
+      expect(events.where((event) => event == 'error'), hasLength(1));
+    });
+
+    test('空集合不触发 onStart / onFinally', () async {
+      final events = <String>[];
+      final results = await WAsync.settle<int>(
+        [],
+        onStart: () => events.add('start'),
+        onFinally: () => events.add('finally'),
+      );
+      expect(results, isEmpty);
+      expect(events, isEmpty);
+    });
+
+    test('已取消 token 不触发 onStart / onFinally', () async {
+      final events = <String>[];
+      final token = WCancelToken()..cancel('stop');
+      final results = await WAsync.settle<int>(
+        [() async => 1],
+        cancelToken: token,
+        onStart: () => events.add('start'),
+        onFinally: () => events.add('finally'),
+      );
+      expect(results.single.isCancelled, isTrue);
+      expect(events, isEmpty);
     });
 
     test('onError 按失败任务逐个通知', () async {

@@ -1,8 +1,10 @@
-## Unreleased
+## 2.3.8
 
 ### Changed
 - `init` 的 `w_tools_qr` 约束抬到 `^3.1.0`：qr 3.1.0 恢复 opt-in 的
   `WQrOverlayStyle.successColor`（单次模式扫中高亮）。
+- `init` 的 `w_tools_async` 约束抬到 `^7.2.0`。
+- catalog 的 `WAsync` usage 补 `retry` / `timeout` / `settle` 生命周期钩子。
 
 ## 2.3.7
 
