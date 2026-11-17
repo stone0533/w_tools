@@ -174,7 +174,7 @@ const String aiPrompts = r'''
 | 补黑盒测试 | I-1 |
 | 只审查 AI 改动 | J-1 |
 | AI 读不到仓库 / 不能跑命令 | K-1 |
-| 被 w_tools 卡住 / 有改进建议 | L-1 |
+| w_tools 能力/配置无法正常使用 / 有公共改进建议 | L-1 |
 | 刚接入 / doctor 报错 | M-1 |
 | 只想改一处 / 单文件修复 | N-1 |
 
@@ -191,7 +191,7 @@ const String aiPrompts = r'''
 <!-- @endif -->
 | 键盘弹出字段被挡 / overflow | G-1 |
 | AI 说改了，但拿不出 analyze 输出 | J-1 或 K-1 |
-| 用 w_tools 时被卡住，想记一条反馈 | L-1 |
+| w_tools 提供的能力/配置用不了，或设置项不生效 | L-1 |
 | init 后 doctor 一片红 | M-1 |
 | 只想改一处，不想动别的 | N-1 |
 | 不确定用哪段 | 上面「让 AI 帮你选场景」 |
@@ -561,7 +561,16 @@ const String aiPrompts = r'''
 ### L-1. 记一条反馈
 
 ```text
-任务：把这次用 w_tools 被卡住的问题（或改进建议）记成一条反馈。
+任务：记录一条 w_tools 库本身的反馈，不是业务代码问题。
+
+反馈范围：
+- w_tools 提供的能力 / 配置在项目里无法正常工作；
+- 设置项不生效，或无法实现它声称的功能；
+- 文档 / 迁移说明导致错误用法；
+- 缺少公共能力，导致多个项目重复绕路。
+
+不反馈：业务代码问题、环境 / 权限问题、一次性问题、纯项目偏好。
+Bug / 配置无效只要可复现就反馈；能力建议需要有公共复用价值。
 
 1. 查重：`dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>`
    命中相同问题就把文件行号或 issue 编号给我，不要重复提交；
@@ -583,7 +592,7 @@ const String aiPrompts = r'''
 不要：
 - 不要加 --issue（除非我明确说要公开提 issue）；
 - 不要贴密钥 / token / 业务敏感数据；
-- 一次会话最多 3–5 条，只记真正卡住的；
+- 一次会话最多 3–5 条，只记真正属于 w_tools 的问题；
 - 状态只写「待处理」，不要自己标「已修复」。
 
 输出：提交结果（台账路径或 issue URL）+ 20 字以内的现象摘要；被拒绝时原样贴错误。
@@ -892,7 +901,7 @@ and **it says what to deliver**.
 | Add black-box tests | I-1 |
 | Review AI changes only | J-1 |
 | AI cannot read the repo / run commands | K-1 |
-| Blocked by w_tools / has a suggestion | L-1 |
+| w_tools capability/configuration unusable / shared improvement | L-1 |
 | Just adopted / doctor reports errors | M-1 |
 | One small change / single-file fix | N-1 |
 
@@ -909,7 +918,7 @@ and **it says what to deliver**.
 <!-- @endif -->
 | Field hidden by keyboard / overflow | G-1 |
 | AI says it changed things but shows no analyze output | J-1 or K-1 |
-| Blocked by w_tools and want to file feedback | L-1 |
+| A w_tools capability/configuration is unusable or a setting has no effect | L-1 |
 | Doctor is all red after init | M-1 |
 | Only want to change one spot, nothing else | N-1 |
 | Not sure which block to use | "Let the AI pick a scenario" above |
@@ -1281,7 +1290,16 @@ I provide:
 ### L-1. File one feedback entry
 
 ```text
-Task: record what blocked you in w_tools (or a capability suggestion) as one feedback entry.
+Task: record feedback about w_tools itself, not business code.
+
+Scope:
+- a w_tools capability/configuration does not work in a real project;
+- a setting has no effect or cannot achieve its stated function;
+- docs/migrations lead to incorrect usage;
+- a missing shared capability forces repeated workarounds.
+
+Do not file business, environment/permission, one-off, or project-preference issues.
+Bugs / ineffective settings: file when reproducible; capability suggestions: require shared reuse value.
 
 1. Search first: `dart run w_tools_cli:w_tools feedback search "<keyword>" --package=<package>`
    If the same problem exists, give me the file:line or issue number; do not submit a duplicate;
@@ -1304,7 +1322,7 @@ Task: record what blocked you in w_tools (or a capability suggestion) as one fee
 Do not:
 - add --issue unless I explicitly ask for a public issue;
 - paste secrets, tokens or business-sensitive data;
-- exceed 3-5 entries per session, and only what actually blocked you;
+- exceed 3-5 entries per session, and only genuine w_tools issues;
 - write any status other than "pending".
 
 Output: the result (ledger path or issue URL) + a symptom summary under 20 words;
@@ -1588,9 +1606,12 @@ const String agentsClosing = r'''
 
 - `dart run w_tools_cli:w_tools doctor --format=json` → 0 error；规则清单与启用状态（R1~R9）也在这里看。
 - `{{analyze}}`、`{{test}}`；跑不了就明确说没跑，不要贴假输出。
-- 用 w_tools 遇到问题 / 有改进建议时：先查重；仅当
-  `.w_tools_doctor.yaml` 的 `feedback.enabled: true` 时才提交：
-  `dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>` → `feedback submit ...`；
+- w_tools 提供的能力 / 配置无法按文档或合理预期工作，或设置项不生效、
+  无法实现对应功能时：先查重；仅当 `.w_tools_doctor.yaml` 的
+  `feedback.enabled: true` 时才提交：
+  `dart run w_tools_cli:w_tools feedback search "<关键词>" --package=<包>` → `feedback submit ...`。
+  也包括文档 / 迁移误导、公共能力缺口导致重复绕路。
+  业务代码、环境权限、一次性问题、纯项目偏好不要记；反馈不是每个任务都必须提交。
   默认关闭时跳过（不写文件、不建 Issue、不加 `--issue`）；完整流程见 `.w_tools/AI_PROMPTS.md` 的 L-1。
 <!-- w_tools:end -->
 ''';
@@ -1715,10 +1736,11 @@ const String agentsClosingEn = r'''
 
 - `dart run w_tools_cli:w_tools doctor --format=json` → 0 error; the rule list and activation state (R1–R9) live there.
 - `{{analyze}}`, `{{test}}`; if you cannot run them, say so — never paste fake output.
-- If you hit a problem or have a suggestion while using w_tools: search first; submit only when
-  `.w_tools_doctor.yaml` has `feedback.enabled: true`:
-  `dart run w_tools_cli:w_tools feedback search "<keywords>" --package=<package>` → `feedback submit ...`;
-  skip when off (no files, no Issue, no `--issue`). Full flow: `.w_tools/AI_PROMPTS.md` L-1.
+- If a w_tools capability/config is unusable or a setting has no effect: search first;
+  submit when `.w_tools_doctor.yaml` has `feedback.enabled: true`:
+  `dart run w_tools_cli:w_tools feedback search "<keywords>" --package=<package>` → `feedback submit ...`.
+  Business/environment/one-off/preference issues do not count.
+  Skip when off (no `--issue`); details: `.w_tools/AI_PROMPTS.md` L-1.
 <!-- w_tools:end -->
 ''';
 

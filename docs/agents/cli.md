@@ -62,7 +62,7 @@ dart run w_tools_cli:w_tools list 表单                  # 2. 找组件
 dart run w_tools_cli:w_tools explain WFormDropdown     # 3. 用法/反例/import
 dart run w_tools_cli:w_tools doctor --format=json  # 4. 写完自检
 
-# 被 w_tools 卡住 / 有改进建议（默认关闭，先看 feedback.enabled）：
+# w_tools 能力/配置用不了 / 设置不生效 / 文档误导 / 公共能力缺口（默认关闭，先看 feedback.enabled）：
 dart run w_tools_cli:w_tools feedback search "关键词" --package=<包>
 dart run w_tools_cli:w_tools feedback submit --template > /tmp/feedback.md   # 可选：打印骨架
 dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" --body-file=/tmp/feedback.md
@@ -87,7 +87,10 @@ dart run w_tools_cli:w_tools feedback submit --package=<包> --title="<现象>" 
   旧 CLI 现场跑 `init` 会刷出旧模板，R8 照样红。
 - `feedback search --gh` 在 `gh` 未安装 / 未登录时退出 `3`，且不返回本地结果；
   只想查本地台账时去掉 `--gh`。
-- `feedback` 是记录 **w_tools 本身**的问题，不是业务代码问题。
+- `feedback` 是记录 **w_tools 本身**的问题，不是业务代码问题。包括：
+  w_tools 提供的能力 / 配置在项目里无法正常工作、设置项不生效 / 无法实现对应功能、
+  文档 / 迁移误导、公共能力缺口导致重复绕路。业务代码 / 环境 / 一次性问题不记。
+- 反馈不是每个任务的必选项；`feedback.enabled: true` 只是允许提交，不是要求提交。
 - **通道只有一套判定**（`submit` / `search` 共用）：
   1. 项目根是 w_tools 仓库 → 写该仓库 `docs/feedback/` 并更新索引（维护者默认，不读开关）；
   2. `feedback.enabled: true` 且本机解析到 w_tools 仓库检出（path / git 依赖）→ 写**那个仓库**的台账，
