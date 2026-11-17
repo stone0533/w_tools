@@ -1,3 +1,8 @@
+## 18.0.4
+
+### Changed
+- `w_tools_async` 约束抬到 `^7.1.0`（`WAsync.run` / `tryRun` 新增 `onStart` / `onFinally`）。
+
 ## 18.0.3
 
 ### Changed

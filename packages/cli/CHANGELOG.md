@@ -1,3 +1,9 @@
+## 2.3.7
+
+### Changed
+- `init` 的 `w_tools_async` 约束抬到 `^7.1.0`。
+- catalog 的 `WAsync` usage 补 `onStart` / `onFinally`。
+
 ## 2.3.6
 
 ### Changed

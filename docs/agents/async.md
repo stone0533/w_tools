@@ -37,6 +37,8 @@
   `WAsyncController.list` 或 `List.unmodifiable`。状态相等性是浅比较，列表按引用比较。
 - `onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
   `onError` / `catchError`，否则会有 unhandled Future。不要用空 `onError` 当 catch。
+- `WAsync.run` / `tryRun` 的 `onStart` / `onFinally` 管 loading 生命周期；`onFinally`
+  在成功 / 失败 / 取消都执行，成功用返回值，不提供 `onSuccess`。
 - `WAsync.run` 不接受 `onSuccess`；7.0 已删除 `WAsync.map` / `parallel` / `pool` / `serial` / `first`；
   `runValue` / `WAsyncLoading` 也已删除。- 取消用 `WCancelToken`；Controller 的 loader 统一接收 token；取消不中止底层 Future；
   被新 refresh 取代的旧 refresh 也会 cancel token。

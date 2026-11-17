@@ -25,55 +25,73 @@ class WAsync {
   /// 成功返回 [WAsyncSuccess]；业务异常/编程错误返回 [WAsyncFailure]；
   /// 取消返回 [WAsyncCancelled]。取消不会中止已经开始执行的 Future。
   ///
-  /// [onError] 只是失败通知，不会改变返回值；回调自身异常会被忽略。
+  /// [onStart] 在任务开始前调用一次；已取消的 token 不会触发。
+  /// [onError] 只是失败通知，不会改变返回值。
+  /// [onFinally] 在成功 / 失败 / 取消后调用一次，且在 [onError] 之后。
+  /// 三个回调自身抛出的异常都会被忽略，不影响任务结果。
   ///
   /// 取消与失败在同一轮竞态时，非 [Error] 的失败按取消处理；编程错误仍返回
   /// [WAsyncFailure]，避免把 TypeError / StateError 吞成取消。
   static Future<WAsyncResult<T>> tryRun<T>(
     Future<T> Function() task, {
+    void Function()? onStart,
     void Function(Object error)? onError,
+    void Function()? onFinally,
     WCancelToken? cancelToken,
   }) async {
     if (cancelToken?.isCancelled == true) {
       return WAsyncCancelled<T>(cancelToken?.cancelReason);
     }
 
+    _notifyStart(onStart);
     try {
-      cancelToken?.throwIfCancelled();
-      final future = task();
-      final result = cancelToken == null
-          ? await future
-          : await _awaitWithCancellation(future, cancelToken);
-      cancelToken?.throwIfCancelled();
-      return WAsyncSuccess<T>(result);
-    } on WCancellationException catch (e, stackTrace) {
-      if (cancelToken?.isCancelled == true) {
-        return WAsyncCancelled<T>(e.reason);
+      try {
+        cancelToken?.throwIfCancelled();
+        final future = task();
+        final result = cancelToken == null
+            ? await future
+            : await _awaitWithCancellation(future, cancelToken);
+        cancelToken?.throwIfCancelled();
+        return WAsyncSuccess<T>(result);
+      } on WCancellationException catch (e, stackTrace) {
+        if (cancelToken?.isCancelled == true) {
+          return WAsyncCancelled<T>(e.reason);
+        }
+        _notifyError(onError, e);
+        return WAsyncFailure<T>(e, stackTrace);
+      } catch (e, stackTrace) {
+        // 任务失败与 token 取消可能在同一轮发生；取消优先，但不吞编程错误。
+        if (cancelToken?.isCancelled == true && e is! Error) {
+          return WAsyncCancelled<T>(cancelToken?.cancelReason);
+        }
+        _notifyError(onError, e);
+        return WAsyncFailure<T>(e, stackTrace);
       }
-      _notifyError(onError, e);
-      return WAsyncFailure<T>(e, stackTrace);
-    } catch (e, stackTrace) {
-      // 任务失败与 token 取消可能在同一轮发生；取消优先，但不吞编程错误。
-      if (cancelToken?.isCancelled == true && e is! Error) {
-        return WAsyncCancelled<T>(cancelToken?.cancelReason);
-      }
-      _notifyError(onError, e);
-      return WAsyncFailure<T>(e, stackTrace);
+    } finally {
+      _notifyFinally(onFinally);
     }
   }
 
   /// 执行并直接返回成功值；失败抛异常，取消失抛 [WCancellationException]。
   ///
-  /// [onError] 只是通知，不会吞掉异常；`.then(onSuccess)` 必须同时提供
-  /// `onError` / `catchError`，否则会产生 unhandled Future；不需要抛异常的调用方
-  /// 改用 [tryRun]。
+  /// [onStart] / [onFinally] 与 [tryRun] 相同；[onError] 只是通知，不会吞掉异常。
+  /// `.then(onSuccess)` 必须同时提供 `onError` / `catchError`，否则会产生
+  /// unhandled Future；不需要抛异常的调用方改用 [tryRun]。
   static Future<T> run<T>(
     Future<T> Function() task, {
+    void Function()? onStart,
     void Function(Object error)? onError,
+    void Function()? onFinally,
     WCancelToken? cancelToken,
   }) async {
     return _unwrap(
-      await tryRun<T>(task, onError: onError, cancelToken: cancelToken),
+      await tryRun<T>(
+        task,
+        onStart: onStart,
+        onError: onError,
+        onFinally: onFinally,
+        cancelToken: cancelToken,
+      ),
     );
   }
 
@@ -215,6 +233,22 @@ class WAsync {
       ),
       WAsyncCancelled<T>(:final reason) => throw WCancellationException(reason),
     };
+  }
+
+  static void _notifyStart(void Function()? onStart) {
+    try {
+      onStart?.call();
+    } catch (_) {
+      // 开始通知自身异常不影响任务
+    }
+  }
+
+  static void _notifyFinally(void Function()? onFinally) {
+    try {
+      onFinally?.call();
+    } catch (_) {
+      // 收尾通知自身异常不影响结果
+    }
   }
 
   static void _notifyError(

@@ -16,15 +16,27 @@ WApiBody.form	(Map<String, Object?> fields)
 WApiBody.json	(Object? value)
 WApiBody.multipart	({ Map<String, Object?> fields = const {}, Map<String, MultipartFile> files = const {}, })
 WApiClient	class
+WApiClient.delete	Future<T> (String path, { Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, CancelToken? cancelToken, Map<String, String>? headers, })
 WApiClient.dio	Dio
 WApiClient.download	Future<Uint8List> (String path, { Map<String, Object?>? query, Map<String, String>? pathParameters, void Function(int received, int total)? onProgress, CancelToken? cancelToken, Map<String, String>? headers, })
 WApiClient.downloadResponse	Future<WApiResponse<Uint8List>> (String path, { Map<String, Object?>? query, Map<String, String>? pathParameters, void Function(int received, int total)? onProgress, CancelToken? cancelToken, Map<String, String>? headers, })
+WApiClient.get	Future<T> (String path, { Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, CancelToken? cancelToken, Map<String, String>? headers, })
+WApiClient.head	Future<T> (String path, { Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, CancelToken? cancelToken, Map<String, String>? headers, })
 WApiClient.new	(this._dio, { WApiEnvelopeParser? envelope, this.onAuthFailure, })
 WApiClient.onAuthFailure	void Function(WApiException error)?
+WApiClient.options	Future<T> (String path, { Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, CancelToken? cancelToken, Map<String, String>? headers, })
+WApiClient.page	Future<WPage<T>> (String path, { WPageQuery query = const WPageQuery(), required WApiDecoder<T> itemDecode, List<Object?> Function(Object? json)? readItems, int? Function(Object? json)? readTotal, int? Function(WApiResponse<Object?> response)? readTotalFromResponse, WApiEnvelopeParser? envelope, Map<String, Object?>? extraQuery, Map<String, String>? pathParameters, CancelToken? cancelToken, Map<String, String>? headers, })
+WApiClient.patch	Future<T> (String path, { Object? body, Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, CancelToken? cancelToken, Map<String, String>? headers, })
+WApiClient.post	Future<T> (String path, { Object? body, Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, CancelToken? cancelToken, Map<String, String>? headers, })
+WApiClient.put	Future<T> (String path, { Object? body, Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, CancelToken? cancelToken, Map<String, String>? headers, })
+WApiClient.send	Future<WApiResponse<T>> (String method, String path, { Object? body, Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, WApiEnvelopeParser? envelope, CancelToken? cancelToken, Map<String, String>? headers, void Function(int sent, int total)? onSendProgress, void Function(int received, int total)? onReceiveProgress, })
+WApiClient.upload	Future<T> (String path, { String method = 'POST', Map<String, Object?> fields = const {}, Map<String, MultipartFile> files = const {}, Map<String, Object?>? query, Map<String, String>? pathParameters, WApiDecoder<T>? decode, void Function(int sent, int total)? onProgress, CancelToken? cancelToken, Map<String, String>? headers, })
 WApiDecoder	typedef WApiDecoder<T> = T Function(Object? json);
 WApiDecoders	class
 WApiDecoders.jsonMap	static WApiDecoder<Map<String, dynamic>>
+WApiDecoders.listOf	static WApiDecoder<List<T>> (WApiDecoder<T> itemDecode)
 WApiDecoders.none	static WApiDecoder<void>
+WApiDecoders.nullable	static WApiDecoder<T?> (WApiDecoder<T> itemDecode)
 WApiEnvelopeParser	class
 WApiEnvelopeParser.authFailureCodes	Set<Object?>
 WApiEnvelopeParser.isSuccess	bool Function(Object? code)

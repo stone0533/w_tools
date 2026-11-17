@@ -114,6 +114,93 @@ void main() {
     });
   });
 
+  group('onStart / onFinally', () {
+    test('run 成功：onStart → task → onFinally', () async {
+      final events = <String>[];
+      final value = await WAsync.run<int>(
+        () async {
+          events.add('task');
+          return 1;
+        },
+        onStart: () => events.add('start'),
+        onFinally: () => events.add('finally'),
+      );
+      expect(value, 1);
+      expect(events, ['start', 'task', 'finally']);
+    });
+
+    test('run 失败：onError 在 onFinally 之前', () async {
+      final events = <String>[];
+      await expectLater(
+        WAsync.run<int>(
+          () async {
+            events.add('task');
+            throw StateError('boom');
+          },
+          onStart: () => events.add('start'),
+          onError: (_) => events.add('error'),
+          onFinally: () => events.add('finally'),
+        ),
+        throwsStateError,
+      );
+      expect(events, ['start', 'task', 'error', 'finally']);
+    });
+
+    test('tryRun 取消仍执行 onFinally', () async {
+      final token = WCancelToken();
+      final events = <String>[];
+      final future = WAsync.tryRun<int>(
+        () async {
+          events.add('task');
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          return 1;
+        },
+        onStart: () => events.add('start'),
+        onFinally: () => events.add('finally'),
+        cancelToken: token,
+      );
+      token.cancel('stop');
+      expect(await future, isA<WAsyncCancelled<int>>());
+      expect(events, ['start', 'task', 'finally']);
+    });
+
+    test('已取消 token 不执行 onStart / onFinally', () async {
+      final token = WCancelToken()..cancel('stop');
+      final events = <String>[];
+      final result = await WAsync.tryRun<int>(
+        () async {
+          events.add('task');
+          return 1;
+        },
+        onStart: () => events.add('start'),
+        onFinally: () => events.add('finally'),
+        cancelToken: token,
+      );
+      expect(result, isA<WAsyncCancelled<int>>());
+      expect(events, isEmpty);
+    });
+
+    test('回调抛异常不影响结果，onFinally 仍执行', () async {
+      final events = <String>[];
+      final value = await WAsync.run<int>(
+        () async {
+          events.add('task');
+          return 1;
+        },
+        onStart: () {
+          events.add('start');
+          throw StateError('start');
+        },
+        onFinally: () {
+          events.add('finally');
+          throw StateError('finally');
+        },
+      );
+      expect(value, 1);
+      expect(events, ['start', 'task', 'finally']);
+    });
+  });
+
   group('Retry / 超时', () {
     test('retry 成功Retry并返回结果', () async {
       var attempts = 0;

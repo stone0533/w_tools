@@ -1,6 +1,7 @@
 # w_tools_toast 2.1.1
 WToast	class
 WToast.hideLoading	static void ()
+WToast.runWithLoading	static Future<T> (Future<T> Function() task, { Object? message, bool dismissible = false, WToastStyle? style, BuildContext? context, Object? successMessage, Object? Function(Object error)? errorMessage, })
 WToast.showCustom	static CancelFunc ({ WToastStyle? style, BuildContext? context, Duration? duration, Alignment? align, Widget Function(CancelFunc cancelFunc)? toastBuilder, })
 WToast.showCustomDialog	static CancelFunc ({ required Widget Function(CancelFunc cancelFunc) toastBuilder, Alignment? align, void Function()? onClose, Duration? duration, Color? backgroundColor, Duration? animationDuration = const Duration(milliseconds: 200), bool allowClick = true, bool clickClose = false, void Function(dynamic error)? onError, })
 WToast.showError	static CancelFunc (Object? message, { WToastStyle? style, BuildContext? context, Duration? duration, Alignment? align, })

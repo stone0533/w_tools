@@ -1,6 +1,11 @@
 # w_tools_async 7.0.2
 WAsync	class
 WAsync._	()
+WAsync.retry	static Future<T> (Future<T> Function() task, { void Function(Object error)? onError, int retryCount = 3, Duration retryDelay = const Duration(seconds: 1), Duration Function(int attempt)? retryDelayBuilder, void Function(int attempt, Object error, Duration delay)? onRetry, bool Function(Object error)? retryIf, WCancelToken? cancelToken, })
+WAsync.run	static Future<T> (Future<T> Function() task, { void Function(Object error)? onError, WCancelToken? cancelToken, })
+WAsync.settle	static Future<List<WAsyncResult<T>>> (Iterable<Future<T> Function()> tasks, { int concurrency = 4, void Function(Object error)? onError, WCancelToken? cancelToken, })
+WAsync.timeout	static Future<T> (Future<T> Function() task, Duration timeout, { void Function(Object error)? onError, WCancelToken? cancelToken, })
+WAsync.tryRun	static Future<WAsyncResult<T>> (Future<T> Function() task, { void Function(Object error)? onError, WCancelToken? cancelToken, })
 WAsyncCancelled	class
 WAsyncCancelled.isCancelled	bool
 WAsyncCancelled.isFailure	bool
@@ -10,6 +15,7 @@ WAsyncCancelled.reason	Object?
 WAsyncController	class
 WAsyncController._	(this._loader, { this.onError, bool Function(T value)? isEmpty, T Function(T value)? normalize, WAsyncState<T>? initial, })
 WAsyncController.dispose	void ()
+WAsyncController.list	static WAsyncController<List<E>> (WAsyncTokenLoader<List<E>> loader, { void Function(Object error)? onError, WAsyncState<List<E>>? initial, })
 WAsyncController.load	Future<void> ()
 WAsyncController.new	(WAsyncTokenLoader<T> loader, { void Function(Object error)? onError, bool Function(T value)? isEmpty, WAsyncState<T>? initial, })
 WAsyncController.onError	void Function(Object error)?
@@ -46,6 +52,7 @@ WAsyncPageLoader	typedef WAsyncPageLoader<T> = Future<WAsyncPage<T>> Function(in
 WAsyncPagedController	class
 WAsyncPagedController._	(this._loader, { int initialPage = 1, this.onError, WAsyncState<List<T>>? initial, })
 WAsyncPagedController.dispose	void ()
+WAsyncPagedController.list	static WAsyncPagedController<E> (Future<List<E>> Function(int page, WCancelToken token) loader, { int initialPage = 1, void Function(Object error)? onError, WAsyncState<List<E>>? initial, })
 WAsyncPagedController.loadMore	Future<void> ()
 WAsyncPagedController.new	(WAsyncPageLoader<T> loader, { int initialPage = 1, void Function(Object error)? onError, WAsyncState<List<T>>? initial, })
 WAsyncPagedController.onError	void Function(Object error)?
@@ -82,11 +89,13 @@ WAsyncState.isFailed	bool
 WAsyncState.isLoading	bool
 WAsyncState.isReady	bool
 WAsyncState.isRefreshing	bool
+WAsyncState.list	static WAsyncState<List<E>> (List<E>? list)
 WAsyncState.loading	({T? previousData})
 WAsyncState.previousData	data =
 WAsyncState.ready	(T this.data)
 WAsyncState.status	WAsyncStatus
 WAsyncState.toString	String ()
+WAsyncState.when	R ({ required R Function() loading, required R Function(T data) ready, required R Function() empty, required R Function(Object error) failed, })
 WAsyncStateSliver	class
 WAsyncStateSliver.build	Widget (BuildContext context)
 WAsyncStateSliver.emptyBuilder	WidgetBuilder?
