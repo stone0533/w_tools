@@ -16,7 +16,7 @@ footer 文案       → WAsyncPagedStrings
 
 ```yaml
 dependencies:
-  w_tools_async_ui: ^0.1.0
+  w_tools_async_ui: ^0.2.0
 ```
 
 要求 Flutter 3.38+。
@@ -48,7 +48,20 @@ Widget build(BuildContext context) {
 ```
 
 `WAsyncSection` 默认把失败重试接到 `gifts.load`；loading / error 外观走
-`WAsyncTheme`，空态可用 `emptyBuilder` 覆盖。
+`WAsyncTheme`。设计稿口径的区块可以传 per-block builder 和自定义重试：
+
+```dart
+WAsyncSection<List<Gift>>(
+  controller: gifts,
+  onRetry: () => gifts.load(),
+  loadingBuilder: (context) => const GiftSkeleton(),
+  errorBuilder: (context, error, retry) => GiftError(retry: retry),
+  errorBannerBuilder: (context, error, retry) => GiftErrorBanner(retry: retry),
+  refreshingBuilder: (context) => const LinearProgressIndicator(),
+  builder: (context, data) => GiftList(data),
+  emptyBuilder: (context) => const GiftEmpty(),
+)
+```
 
 ## 标准分页
 
@@ -105,8 +118,19 @@ CustomScrollView(
 )
 ```
 
-`WAsyncPagedSliver` 不包含刷新壳；需要 SmartRefresher 时用
-`WAsyncPagedList`，需要 NestedScrollView / overlap 卡片时用这个入口。
+`WAsyncPagedSliver` 不包含刷新壳；需要 NestedScrollView / overlap 卡片时用这个入口。
+需要自定义 ready sliver / footer 时：
+
+```dart
+WAsyncPagedSliver<Gift>(
+  controller: gifts,
+  readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
+  footer: const SizedBox.shrink(), // 由外层 SmartRefresher 的 CustomFooter 负责
+)
+```
+
+`WAsyncPagedList` 是标准壳，不提供 header/footer 覆盖；需要设计稿口径的刷新头 / footer 时，
+用 `WAsyncPagedSliver` + 自己的 `SmartRefresher`。
 
 ## 边界
 

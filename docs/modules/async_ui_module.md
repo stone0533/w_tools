@@ -22,7 +22,10 @@ WAsyncSection<List<Gift>>(
 - 内部使用 `WAsyncView`；
 - 失败态默认把重试接到 `WAsyncController.load`；
 - 页面在 controller 的 `initState` / `onInit` 调 `load()`；
-- loading / error 外观走 `WAsyncTheme`；空态可用 `emptyBuilder` 覆盖。
+- loading / error 外观默认走 `WAsyncTheme`；per-block 可传
+  `loadingBuilder` / `errorBuilder` / `errorBannerBuilder` / `refreshingBuilder`；
+- 空态可用 `emptyBuilder` 覆盖；
+- 自定义重试可传 `onRetry`，不传时用 `controller.load`。
 
 ## WAsyncPagedList
 
@@ -39,10 +42,12 @@ WAsyncSection<List<Gift>>(
 
 标准用法见 [packages/async_ui/README.md](../../packages/async_ui/README.md) 的「自定义滚动」；这里只记录边界：
 
-- 只返回 `SliverMainAxisGroup`（四态 + footer）；
+- 只返回 `SliverMainAxisGroup`（四态 + 可选 footer）；
+- 支持 `readySliverBuilder`（叠卡 / 自定义 sliver），与 `itemBuilder` 二选一；
+- 支持 `footer` 覆盖；自定义刷新壳传 `footer: const SizedBox.shrink()` 关闭内部 footer；
 - 不包含 `SmartRefresher` / `RefreshController`；
 - 给 NestedScrollView、overlap 卡片、自定义滚动壳使用；
-- 标准页面优先用 `WAsyncPagedList`。
+- 标准页面优先用 `WAsyncPagedList`；`WAsyncPagedList` 不提供 header/footer 覆盖。
 
 ## WAsyncPagedStrings
 

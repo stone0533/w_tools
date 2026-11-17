@@ -19,6 +19,9 @@ import 'paged_strings.dart';
 ///
 /// [controller] 由页面持有；请在 `initState` / `onInit` 调
 /// `controller.refresh()`，不要在这里自动发起首屏请求。
+///
+/// 标准壳不暴露 header / footer：需要设计稿口径的刷新头 / footer 或自定义
+/// ready sliver 时，用 `WAsyncPagedSliver` + 自己的 `SmartRefresher`。
 class WAsyncPagedList<T> extends StatefulWidget {
   const WAsyncPagedList({
     super.key,

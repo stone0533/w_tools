@@ -61,4 +61,77 @@ void main() {
 
     expect(find.text('custom empty'), findsOneWidget);
   });
+
+  testWidgets('WAsyncPagedSliver 支持 readySliverBuilder', (tester) async {
+    final controller = WAsyncPagedController<int>(
+      (page, _) async => const WAsyncPage<int>(items: <int>[1], hasMore: false),
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              WAsyncPagedSliver<int>(
+                controller: controller,
+                readySliverBuilder: (context, items) => SliverToBoxAdapter(
+                  child: Text('custom ready ${items.length}'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('custom ready 1'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedSliver 支持 footer 覆盖和关闭', (tester) async {
+    final controller = WAsyncPagedController<int>(
+      (page, _) async => const WAsyncPage<int>(items: <int>[1], hasMore: true),
+    );
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              WAsyncPagedSliver<int>(
+                controller: controller,
+                itemBuilder: (context, item) => Text('item $item'),
+                footer: const Text('custom footer'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('custom footer'), findsOneWidget);
+    expect(find.text('Pull up to load more'), findsNothing);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              WAsyncPagedSliver<int>(
+                controller: controller,
+                itemBuilder: (context, item) => Text('item $item'),
+                footer: const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Pull up to load more'), findsNothing);
+  });
 }
