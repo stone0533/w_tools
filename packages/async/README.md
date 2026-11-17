@@ -12,7 +12,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^7.2.0
+  w_tools_async: ^7.3.0
 ```
 
 要求 Flutter 3.38+。
@@ -157,6 +157,71 @@ final result = await WAsync.tryRun(() => api.gift(id));
 `Future.wait` / `Future.any`，限流用 `settle(concurrency:)`。
 
 ## loading 框 / 生命周期钩子
+
+### 默认 hooks
+
+项目在 composition root 配置一次：
+
+```dart
+void main() {
+  WAsync.defaultHooks = WAsyncHooks(
+    onStart: AppLoading.show,
+    onError: AppToast.error,
+    onFinally: AppLoading.hide,
+  );
+  runApp(const App());
+}
+```
+
+之后：
+
+```dart
+await WAsync.run(() => api.save());
+await WAsync.tryRun(() => api.fetch());
+```
+
+解析优先级：
+
+```text
+显式 onStart / onError / onFinally
+  → 本次 hooks
+  → WAsync.defaultHooks
+```
+
+单次关闭默认：
+
+```dart
+await WAsync.run(task, hooks: WAsyncHooks.none);
+```
+
+测试里重置：
+
+```dart
+setUp(() => WAsync.defaultHooks = WAsyncHooks.none);
+tearDown(() => WAsync.defaultHooks = WAsyncHooks.none);
+```
+
+如果项目使用 `WAppPlugin`，把赋值放进专用插件：
+
+```dart
+class AsyncHooksPlugin with WAppPlugin {
+  @override
+  String get name => 'async-hooks';
+
+  @override
+  Future<void> onInit() async {
+    WAsync.defaultHooks = WAsyncHooks(
+      onStart: AppLoading.show,
+      onError: AppToast.error,
+      onFinally: AppLoading.hide,
+    );
+  }
+}
+```
+
+插件 `onInit` 在 `runApp` 之前执行，适合做 composition root。
+
+### 单次调用
 
 `WAsync.run` / `WAsync.tryRun` / `WAsync.retry` / `WAsync.timeout` / `WAsync.settle`
 都支持 `onStart` / `onFinally`，不需要 app 再写通用 `_withLoading` 包装：

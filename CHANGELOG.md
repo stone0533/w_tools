@@ -1,3 +1,8 @@
+## 18.0.6
+
+### Changed
+- `w_tools_async` 约束抬到 `^7.3.0`（新增 `WAsyncHooks` / `WAsync.defaultHooks`）。
+
 ## 18.0.5
 
 ### Changed

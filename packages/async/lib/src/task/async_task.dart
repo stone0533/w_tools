@@ -6,6 +6,25 @@ import 'cancel_token.dart';
 export 'async_result.dart';
 export 'cancel_token.dart';
 
+/// 执行入口的默认生命周期回调。
+///
+/// 项目在 composition root 设置一次 [WAsync.defaultHooks]；单次调用可用
+/// [WAsync.run] 等入口的 `hooks` 参数覆盖，或传 [WAsyncHooks.none] 关闭默认。
+class WAsyncHooks {
+  const WAsyncHooks({
+    this.onStart,
+    this.onError,
+    this.onFinally,
+  });
+
+  final void Function()? onStart;
+  final void Function(Object error)? onError;
+  final void Function()? onFinally;
+
+  /// 本次调用不使用任何默认回调。
+  static const none = WAsyncHooks();
+}
+
 /// 异步执行助手。
 ///
 /// 两套入口：
@@ -19,6 +38,9 @@ export 'cancel_token.dart';
 /// 以失败的 Future 返回 [ArgumentError]。
 class WAsync {
   WAsync._();
+
+  /// 所有执行入口的默认生命周期回调；测试中应重置为 [WAsyncHooks.none]。
+  static WAsyncHooks defaultHooks = const WAsyncHooks();
 
   /// 执行单个异步操作并返回结果对象。
   ///
@@ -34,6 +56,7 @@ class WAsync {
   /// [WAsyncFailure]，避免把 TypeError / StateError 吞成取消。
   static Future<WAsyncResult<T>> tryRun<T>(
     Future<T> Function() task, {
+    WAsyncHooks? hooks,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -43,7 +66,11 @@ class WAsync {
       return WAsyncCancelled<T>(cancelToken?.cancelReason);
     }
 
-    _notifyStart(onStart);
+    final effective = hooks ?? defaultHooks;
+    final start = onStart ?? effective.onStart;
+    final errorHandler = onError ?? effective.onError;
+    final finallyHandler = onFinally ?? effective.onFinally;
+    _notifyStart(start);
     try {
       try {
         cancelToken?.throwIfCancelled();
@@ -57,18 +84,18 @@ class WAsync {
         if (cancelToken?.isCancelled == true) {
           return WAsyncCancelled<T>(e.reason);
         }
-        _notifyError(onError, e);
+        _notifyError(errorHandler, e);
         return WAsyncFailure<T>(e, stackTrace);
       } catch (e, stackTrace) {
         // 任务失败与 token 取消可能在同一轮发生；取消优先，但不吞编程错误。
         if (cancelToken?.isCancelled == true && e is! Error) {
           return WAsyncCancelled<T>(cancelToken?.cancelReason);
         }
-        _notifyError(onError, e);
+        _notifyError(errorHandler, e);
         return WAsyncFailure<T>(e, stackTrace);
       }
     } finally {
-      _notifyFinally(onFinally);
+      _notifyFinally(finallyHandler);
     }
   }
 
@@ -79,6 +106,7 @@ class WAsync {
   /// unhandled Future；不需要抛异常的调用方改用 [tryRun]。
   static Future<T> run<T>(
     Future<T> Function() task, {
+    WAsyncHooks? hooks,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -87,6 +115,7 @@ class WAsync {
     return _unwrap(
       await tryRun<T>(
         task,
+        hooks: hooks,
         onStart: onStart,
         onError: onError,
         onFinally: onFinally,
@@ -104,6 +133,7 @@ class WAsync {
   /// 失败 / 取消后一次；不会按 attempt 重复。
   static Future<T> retry<T>(
     Future<T> Function() task, {
+    WAsyncHooks? hooks,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -153,6 +183,7 @@ class WAsync {
             }
           }
         },
+        hooks: hooks,
         onStart: onStart,
         onError: onError,
         onFinally: onFinally,
@@ -168,6 +199,7 @@ class WAsync {
   static Future<T> timeout<T>(
     Future<T> Function() task,
     Duration timeout, {
+    WAsyncHooks? hooks,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -193,6 +225,7 @@ class WAsync {
           cancelToken?.throwIfCancelled();
           return result;
         },
+        hooks: hooks,
         onStart: onStart,
         onError: onError,
         onFinally: onFinally,
@@ -211,6 +244,7 @@ class WAsync {
   static Future<List<WAsyncResult<T>>> settle<T>(
     Iterable<Future<T> Function()> tasks, {
     int concurrency = 4,
+    WAsyncHooks? hooks,
     void Function()? onStart,
     void Function(Object error)? onError,
     void Function()? onFinally,
@@ -231,6 +265,10 @@ class WAsync {
       );
     }
 
+    final effective = hooks ?? defaultHooks;
+    final start = onStart ?? effective.onStart;
+    final errorHandler = onError ?? effective.onError;
+    final finallyHandler = onFinally ?? effective.onFinally;
     final results = List<WAsyncResult<T>?>.filled(taskList.length, null);
     var nextIndex = 0;
 
@@ -240,19 +278,20 @@ class WAsync {
         if (index >= taskList.length) return;
         results[index] = await tryRun<T>(
           taskList[index],
-          onError: onError,
+          hooks: WAsyncHooks.none,
+          onError: errorHandler,
           cancelToken: cancelToken,
         );
       }
     }
 
-    _notifyStart(onStart);
+    _notifyStart(start);
     try {
       final workerCount = taskList.length < concurrency ? taskList.length : concurrency;
       await Future.wait(List.generate(workerCount, (_) => worker()));
       return results.cast<WAsyncResult<T>>();
     } finally {
-      _notifyFinally(onFinally);
+      _notifyFinally(finallyHandler);
     }
   }
 

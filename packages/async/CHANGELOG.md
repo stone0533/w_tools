@@ -2,6 +2,14 @@
 
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+## 7.3.0
+
+### Added
+- 新增 `WAsyncHooks` 值对象与 `WAsync.defaultHooks`；`run` / `tryRun` / `retry` /
+  `timeout` / `settle` 增加 `hooks` 参数。
+- 解析优先级：显式回调 → 本次 `hooks` → `WAsync.defaultHooks`；
+  传 `WAsyncHooks.none` 可关闭本次默认。
+
 ## 7.2.0
 
 ### Added

@@ -97,6 +97,29 @@ navigatorObservers / defaultTransition / theme / translations`，
 `plugins` 等只能放 `WAppOptions`；外观（theme / darkTheme / themeMode / systemUiOverlayStyle）
 统一放 `WAppTheme`；默认不干预系统栏，需要时显式传 `systemUiOverlayStyle`。
 
+## WAsync 默认 hooks（项目 composition root）
+
+如果项目使用默认 async loading / toast，用专用插件设置一次：
+
+```dart
+class AsyncHooksPlugin with WAppPlugin {
+  @override
+  String get name => 'async-hooks';
+
+  @override
+  Future<void> onInit() async {
+    WAsync.defaultHooks = WAsyncHooks(
+      onStart: AppLoading.show,
+      onError: AppToast.error,
+      onFinally: AppLoading.hide,
+    );
+  }
+}
+```
+
+在 `WAppOptions.plugins` 注册；`onInit` 在 `runApp` 前执行。测试要重置
+`WAsync.defaultHooks = WAsyncHooks.none`。不要把赋值放 `lib/app/ui/` 或 `initState`。
+
 ## 包裹应用（不需要插件）
 
 ```dart
