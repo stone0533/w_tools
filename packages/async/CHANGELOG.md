@@ -2,6 +2,14 @@
 
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+## 7.3.1
+
+### Fixed
+- `WAsyncController.load` / `WAsyncPagedController.refresh` / `loadMore` 内部
+  `tryRun` 显式使用 `WAsyncHooks.none`，不再继承 `WAsync.defaultHooks`；
+  页面四态与骨架不会和全局 loading 遮罩重复。
+- 显式执行入口 `run` / `tryRun` / `retry` / `timeout` / `settle` 仍使用默认 hooks。
+
 ## 7.3.0
 
 ### Added

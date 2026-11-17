@@ -1125,7 +1125,7 @@ const List<CatalogEntry> catalogEntries = <CatalogEntry>[
     docsAnchor: "1-wasync",
     aliases: <String>[],
     usage: "WAsync.defaultHooks = WAsyncHooks(\n  onStart: AppLoading.show,\n  onError: AppToast.error,\n  onFinally: AppLoading.hide,\n);\n",
-    pitfalls: <String>["默认配置一次；单次用 hooks 覆盖，WAsyncHooks.none 关闭", "测试必须重置 WAsync.defaultHooks"],
+    pitfalls: <String>["默认配置一次；单次用 hooks 覆盖，WAsyncHooks.none 关闭", "默认只作用于显式执行入口；controller 的 load/refresh/loadMore 不继承", "测试必须重置 WAsync.defaultHooks"],
     related: <String>["WAsync"],
     teach: true,
   ),

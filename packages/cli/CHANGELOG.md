@@ -1,3 +1,9 @@
+## 2.3.10
+
+### Fixed
+- catalog 的 `WAsyncHooks` 说明：默认 hooks 不进入 controller。
+- `init` 的 `w_tools_async` 约束抬到 `^7.3.1`。
+
 ## 2.3.9
 
 ### Changed
