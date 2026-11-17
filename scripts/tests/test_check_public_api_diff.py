@@ -49,6 +49,25 @@ class PublicApiDiffTest(unittest.TestCase):
         )
         self.assertEqual(errors, [])
 
+    def test_named_constructor_optional_param_can_be_added(self):
+        changes = [
+            (
+                'WAsyncPagedSliver.custom',
+                '({ required this.controller, required this.readySliverBuilder, this.emptyBuilder, })',
+                '({ required this.controller, required this.readySliverBuilder, this.emptyBuilder, this.onRetry, })',
+            )
+        ]
+        errors = check_notes(
+            changes,
+            changelog=(
+                '## 1.1.0\n\n### Added\n'
+                '- WAsyncPagedSliver.custom 增加可选 onRetry\n'
+            ),
+            migration='',
+            current={'WAsyncPagedSliver.custom': '({ ... })'},
+        )
+        self.assertEqual(errors, [])
+
     def test_migration_can_satisfy_instead_of_changelog(self):
         changes = [('WStepStyle.completedColor', 'Color', 'Color?')]
         errors = check_notes(

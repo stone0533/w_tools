@@ -1,3 +1,9 @@
+## 2.3.6
+
+### Changed
+- `init` 的 `w_tools_async_ui` 约束抬到 `^1.1.0`。
+- catalog 的 `WAsyncPagedList` 补 `refreshController`，`WAsyncPagedSliver` 补 `onRetry`。
+
 ## 2.3.5
 
 ### Changed

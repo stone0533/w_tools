@@ -1,3 +1,14 @@
+## 1.1.0
+
+### Added
+- `WAsyncPagedSliver.onRetry`：自建 `SmartRefresher` 时可以把错误态重试接到
+  `refreshController.requestRefresh()`，默认仍是 `controller.refresh()`。
+- `WAsyncPagedList.refreshController`：可选注入 `RefreshController`，支持
+  `requestRefresh()` 的 header 动画、`isRefresh`、`resetNoData()` 等；外部传入时由 app
+  dispose，未传入时组件内部创建并 dispose。
+- `WAsyncPagedList` 的错误态 Retry 改为 `refreshController.requestRefresh()`，
+  标准壳的重试也走 header 动画。
+
 ## 1.0.0
 
 ### Breaking

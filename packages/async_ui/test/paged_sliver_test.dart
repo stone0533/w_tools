@@ -90,4 +90,38 @@ void main() {
 
     expect(find.text('custom ready 1'), findsOneWidget);
   });
+
+  testWidgets('WAsyncPagedSliver 自定义 onRetry 覆盖 controller.refresh', (tester) async {
+    var loadCalls = 0;
+    var retryCalls = 0;
+    final controller = WAsyncPagedController<int>((page, _) async {
+      loadCalls++;
+      throw StateError('boom');
+    });
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              WAsyncPagedSliver<int>(
+                controller: controller,
+                itemBuilder: (context, item) => Text('item $item'),
+                onRetry: () => retryCalls++,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+
+    expect(retryCalls, 1);
+    expect(loadCalls, 1);
+  });
 }

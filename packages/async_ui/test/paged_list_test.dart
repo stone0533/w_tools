@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -161,5 +162,73 @@ void main() {
 
     expect(find.text('item 1'), findsOneWidget);
     expect(calls, 2);
+  });
+
+  testWidgets('WAsyncPagedList 外部 refreshController 支持带动画刷新', (tester) async {
+    final completer = Completer<WAsyncPage<int>>();
+    final controller = WAsyncPagedController<int>(
+      (page, _) => completer.future,
+    );
+    addTearDown(controller.dispose);
+    final refreshController = RefreshController();
+    addTearDown(refreshController.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WAsyncPagedList<int>(
+            controller: controller,
+            itemBuilder: (context, item) => Text('item $item'),
+            refreshController: refreshController,
+          ),
+        ),
+      ),
+    );
+
+    refreshController.requestRefresh();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(refreshController.isRefresh, isTrue);
+
+    completer.complete(const WAsyncPage<int>(items: <int>[1], hasMore: false));
+    await tester.pumpAndSettle();
+    expect(refreshController.isRefresh, isFalse);
+    expect(find.text('item 1'), findsOneWidget);
+  });
+
+  testWidgets('WAsyncPagedList 错误态重试走外部 refreshController 的 header', (tester) async {
+    var calls = 0;
+    final retryCompleter = Completer<WAsyncPage<int>>();
+    final controller = WAsyncPagedController<int>((page, _) async {
+      calls++;
+      if (calls == 1) throw StateError('boom');
+      return retryCompleter.future;
+    });
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    final refreshController = RefreshController();
+    addTearDown(refreshController.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WAsyncPagedList<int>(
+            controller: controller,
+            itemBuilder: (context, item) => Text('item $item'),
+            refreshController: refreshController,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(refreshController.isRefresh, isTrue);
+
+    retryCompleter.complete(const WAsyncPage<int>(items: <int>[1], hasMore: false));
+    await tester.pumpAndSettle();
+    expect(refreshController.isRefresh, isFalse);
+    expect(find.text('item 1'), findsOneWidget);
   });
 }

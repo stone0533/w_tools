@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:w_tools_async/w_tools_async.dart';
@@ -27,11 +25,18 @@ class WAsyncPagedList<T> extends StatefulWidget {
     this.emptyBuilder,
     this.header,
     this.footer,
+    this.refreshController,
   });
 
   final WAsyncPagedController<T> controller;
   final Widget Function(BuildContext context, T item) itemBuilder;
   final WidgetBuilder? emptyBuilder;
+
+  /// 可选的刷新控制器；传入时由调用方持有 / dispose。
+  ///
+  /// 不传时组件内部创建并 dispose。传入后可以：
+  /// `requestRefresh()` 触发带动画的下拉刷新，或读 `isRefresh` 防重复请求。
+  final RefreshController? refreshController;
 
   /// 直接传给 [SmartRefresher.header]；为 null 时使用其默认 header。
   final Widget? header;
@@ -47,12 +52,33 @@ class WAsyncPagedList<T> extends StatefulWidget {
 }
 
 class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
-  final RefreshController _refreshController = RefreshController();
+  late RefreshController _refreshController;
+  bool _ownsRefreshController = false;
   int _refreshId = 0;
 
   @override
+  void initState() {
+    super.initState();
+    _attachRefreshController(widget.refreshController);
+  }
+
+  void _attachRefreshController(RefreshController? provided) {
+    _ownsRefreshController = provided == null;
+    _refreshController = provided ?? RefreshController();
+  }
+
+  @override
+  void didUpdateWidget(covariant WAsyncPagedList<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.refreshController != widget.refreshController) {
+      if (_ownsRefreshController) _refreshController.dispose();
+      _attachRefreshController(widget.refreshController);
+    }
+  }
+
+  @override
   void dispose() {
-    _refreshController.dispose();
+    if (_ownsRefreshController) _refreshController.dispose();
     super.dispose();
   }
 
@@ -96,7 +122,7 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
         slivers: [
           WAsyncStateSliver<List<T>>(
             state: widget.controller.state,
-            onRetry: () => unawaited(widget.controller.refresh()),
+            onRetry: () => _refreshController.requestRefresh(),
             emptyBuilder: widget.emptyBuilder,
             readySliverBuilder: (context, items) => SliverList.builder(
               itemCount: items.length,

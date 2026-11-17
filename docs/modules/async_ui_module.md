@@ -33,6 +33,7 @@ WAsyncSection<List<Gift>>(
 - 内部持有 `RefreshController` 和 `SmartRefresher`；
 - 统一处理下拉刷新、上拉加载、generation、`loadFailed / loadNoData / loadComplete`；
 - `header` / `footer` 直接转给 `SmartRefresher`；不传时使用其默认样式；
+- `refreshController` 可选；外部传入时支持带动画的 `requestRefresh()` / `isRefresh`；
 - app 自定义 footer 读 `controller.snapshot`，重试调用 `controller.loadMore()`；
 - 不在组件内自动发起首屏请求。
 
@@ -44,6 +45,7 @@ WAsyncSection<List<Gift>>(
 - 支持 `WAsyncPagedSliver.custom(readySliverBuilder: ...)`（叠卡 / 自定义 sliver）；
 - 不包含 `SmartRefresher` / `RefreshController`；
 - 不包含 footer / 文案；header / footer 由调用方自己的滚动壳负责；
+- 自建 `SmartRefresher` 时传 `onRetry: refreshController.requestRefresh`；
 - 给 NestedScrollView、overlap 卡片、自定义滚动壳使用；
 - 标准页面优先用 `WAsyncPagedList`。
 
