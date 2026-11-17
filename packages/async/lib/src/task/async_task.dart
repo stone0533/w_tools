@@ -8,7 +8,7 @@ export 'cancel_token.dart';
 
 /// 执行入口的默认生命周期回调。
 ///
-/// 项目在 composition root 设置一次 [WAsync.defaultHooks]；单次调用可用
+/// 项目在 composition root 设置一次 `WAsync.defaultHooks`；单次调用可用
 /// [WAsync.run] 等入口的 `hooks` 参数覆盖，或传 [WAsyncHooks.none] 关闭默认。
 ///
 /// 只作用于显式执行入口；[WAsyncController] / [WAsyncPagedController] 的内部
@@ -45,6 +45,8 @@ class WAsync {
   /// 显式执行入口的默认生命周期回调；测试中应重置为 [WAsyncHooks.none]。
   ///
   /// 不作用于 [WAsyncController] / [WAsyncPagedController] 的内部请求。
+  /// remove-in: 8.0.0
+  @Deprecated('Use WAsyncExecutor; defaultHooks will be removed in 8.0.0')
   static WAsyncHooks defaultHooks = const WAsyncHooks();
 
   /// 执行单个异步操作并返回结果对象。
@@ -71,7 +73,7 @@ class WAsync {
       return WAsyncCancelled<T>(cancelToken?.cancelReason);
     }
 
-    final effective = hooks ?? defaultHooks;
+    final effective = _resolveHooks(hooks);
     final start = onStart ?? effective.onStart;
     final errorHandler = onError ?? effective.onError;
     final finallyHandler = onFinally ?? effective.onFinally;
@@ -270,7 +272,7 @@ class WAsync {
       );
     }
 
-    final effective = hooks ?? defaultHooks;
+    final effective = _resolveHooks(hooks);
     final start = onStart ?? effective.onStart;
     final errorHandler = onError ?? effective.onError;
     final finallyHandler = onFinally ?? effective.onFinally;
@@ -309,6 +311,11 @@ class WAsync {
       ),
       WAsyncCancelled<T>(:final reason) => throw WCancellationException(reason),
     };
+  }
+
+  static WAsyncHooks _resolveHooks(WAsyncHooks? hooks) {
+    // ignore: deprecated_member_use_from_same_package
+    return hooks ?? defaultHooks;
   }
 
   static void _notifyStart(void Function()? onStart) {

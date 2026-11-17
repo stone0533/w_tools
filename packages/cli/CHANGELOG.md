@@ -1,3 +1,9 @@
+## 2.3.11
+
+### Changed
+- `init` 的 `w_tools_async` 约束抬到 `^7.4.0`。
+- catalog 增加 `WAsyncExecutor`，`WAsync.defaultHooks` 标记 deprecated。
+
 ## 2.3.10
 
 ### Fixed

@@ -2,6 +2,16 @@
 
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+## 7.4.0
+
+### Added
+- 新增 `WAsyncExecutor`：携带默认 [WAsyncHooks] 的实例执行器，支持
+  `run` / `tryRun` / `retry` / `timeout` / `settle`；单次可覆盖 hooks。
+
+### Deprecated
+- `WAsync.defaultHooks` 标记为 deprecated；改用 `WAsyncExecutor`。
+  默认全局 hooks 保留到 8.0.0 再删除。
+
 ## 7.3.1
 
 ### Fixed

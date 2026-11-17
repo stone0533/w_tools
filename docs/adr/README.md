@@ -29,6 +29,7 @@ ADR 记录**当时**的决策与理由，不记录当前实现。当前实现以
 | [0012](0012-app-tree-scopes.md) | 应用树语言 / 应用实例作用域：`WLanguageScope` + `WApp.of` | 已采纳 | 2026-11-15 |
 | [0013](0013-async-ui-extension-package.md) | async 的规范应用层独立成可选包 `w_tools_async_ui` | 已采纳 | 2026-11-17 |
 | [0014](0014-async-default-hooks.md) | WAsync 默认生命周期钩子：值对象 + `defaultHooks` + 单次 `hooks` | 已采纳 | 2026-11-17 |
+| [0015](0015-async-executor.md) | 用 `WAsyncExecutor` 实例替代全局 `defaultHooks` | 已采纳 | 2026-11-17 |
 
 ### 版本与发布
 

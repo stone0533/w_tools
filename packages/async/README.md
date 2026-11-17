@@ -12,7 +12,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^7.3.1
+  w_tools_async: ^7.4.0
 ```
 
 要求 Flutter 3.38+。
@@ -158,72 +158,69 @@ final result = await WAsync.tryRun(() => api.gift(id));
 
 ## loading 框 / 生命周期钩子
 
-### 默认 hooks
+### 默认 hooks：用 WAsyncExecutor
 
-项目在 composition root 配置一次：
+推荐在 composition root 创建一次执行器：
 
 ```dart
-void main() {
-  WAsync.defaultHooks = WAsyncHooks(
+final appAsync = WAsyncExecutor(
+  WAsyncHooks(
     onStart: AppLoading.show,
     onError: AppToast.error,
     onFinally: AppLoading.hide,
-  );
-  runApp(const App());
-}
+  ),
+);
 ```
 
-之后：
+之后业务使用执行器：
 
 ```dart
-await WAsync.run(() => api.save());
-await WAsync.tryRun(() => api.fetch());
+await appAsync.run(() => api.save());
+await appAsync.tryRun(() => api.fetch());
 ```
 
-`defaultHooks` 只作用于显式执行入口；`WAsyncController` / `WAsyncPagedController`
-内部的 `load` / `refresh` / `loadMore` **不会继承**。页面四态仍由
-`WAsyncSection` / `WAsyncPagedList` 管理，避免骨架 + 全屏遮罩双重 loading。
+单次覆盖：
+
+```dart
+await appAsync.run(task, hooks: WAsyncHooks.none);
+```
 
 解析优先级：
 
 ```text
 显式 onStart / onError / onFinally
   → 本次 hooks
-  → WAsync.defaultHooks
+  → executor 的默认 hooks
 ```
 
-单次关闭默认：
+`WAsyncExecutor` 不是全局静态；测试可以创建独立实例，多个 app / 模块可以注入不同实例。
+`WAsyncController` / `WAsyncPagedController` 完全不使用 executor，页面四态仍由
+`WAsyncSection` / `WAsyncPagedList` 管理。
+
+`WAsync.defaultHooks` 已 deprecated，保留到 8.0.0；旧代码可以暂时继续，但新代码用
+`WAsyncExecutor`。
+
+如果项目使用 `WAppPlugin`，在插件里创建并注册 executor：
 
 ```dart
-await WAsync.run(task, hooks: WAsyncHooks.none);
-```
-
-测试里重置：
-
-```dart
-setUp(() => WAsync.defaultHooks = WAsyncHooks.none);
-tearDown(() => WAsync.defaultHooks = WAsyncHooks.none);
-```
-
-如果项目使用 `WAppPlugin`，把赋值放进专用插件：
-
-```dart
-class AsyncHooksPlugin with WAppPlugin {
+class AsyncExecutorPlugin with WAppPlugin {
   @override
-  String get name => 'async-hooks';
+  String get name => 'async-executor';
 
   @override
   Future<void> onInit() async {
-    WAsync.defaultHooks = WAsyncHooks(
-      onStart: AppLoading.show,
-      onError: AppToast.error,
-      onFinally: AppLoading.hide,
+    Get.put(
+      WAsyncExecutor(
+        WAsyncHooks(
+          onStart: AppLoading.show,
+          onError: AppToast.error,
+          onFinally: AppLoading.hide,
+        ),
+      ),
     );
   }
 }
 ```
-
-插件 `onInit` 在 `runApp` 之前执行，适合做 composition root。
 
 ### 单次调用
 
