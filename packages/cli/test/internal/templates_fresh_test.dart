@@ -225,6 +225,17 @@ void main() {
       expect(violations(budget, rows: rows), isEmpty);
     });
 
+    test('en/full 留出至少 100 字符预算余量', () {
+      final row = measure(AgentBudget.load()).singleWhere(
+        (row) => row.lang == 'en' && row.profile == 'full',
+      );
+      expect(
+        row.charMargin,
+        greaterThanOrEqualTo(100),
+        reason: 'en/full 只剩很少预算；下次加规则前先精简 AGENTS',
+      );
+    });
+
     test('--json 快照字段齐全，历史记录幂等', () {
       final budget = AgentBudget.load();
       final snapshot = snapshotJson(budget);

@@ -101,3 +101,31 @@ banned:
 - 不包含全局 loading / toast / 登录失效；
 - 不包含项目设计系统；空态 / 错误通过 `WAsyncTheme` 或 builder 注入；
 - 不自动 load / refresh；首屏请求由页面 controller 负责。
+
+## R10 迁移
+
+CLI 2.3.1 起，R10 从 `warn` 升级为 `error`。项目依赖 `w_tools_async_ui` 时，
+`lib/app/modules/**` 里以下写法会被 doctor 拦住：
+
+```text
+WAsyncView(...)          → WAsyncSection(...)
+WAsyncStateSliver(...)   → WAsyncPagedList(...) / WAsyncPagedSliver(...)
+hasLoadedMorePage        → snapshot.footerStatus
+```
+
+迁移期临时放行：
+
+```dart
+// w_tools:ignore R10 reason: 迁移中
+WAsyncView<List<Gift>>(...);
+```
+
+或按项目关闭（`rules.R10: false`）：
+
+```yaml
+rules:
+  R10: false
+```
+
+长期仍建议把业务页面的 async 原语替换成 `WAsyncSection` / `WAsyncPagedList`；
+`lib/app/ui` / 暂存层不在 R10 扫描范围，可以继续封装原语。

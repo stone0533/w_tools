@@ -1,3 +1,8 @@
+## 18.0.3
+
+### Changed
+- 聚合依赖 `w_tools_ui: ^12.0.1`、`w_tools_toast: ^2.1.1`（docs-only patch）。
+
 ## 18.0.2
 
 ### Changed

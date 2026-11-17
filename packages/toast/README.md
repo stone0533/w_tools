@@ -17,7 +17,7 @@
 
 ```yaml
 dependencies:
-  w_tools_toast: ^2.1.0
+  w_tools_toast: ^2.1.1
 ```
 
 先在 `MaterialApp` 上完成 BotToast 初始化（只做一次）：
