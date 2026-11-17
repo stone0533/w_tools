@@ -1,3 +1,9 @@
+## Unreleased
+
+### Changed
+- `init` 的 `w_tools_qr` 约束抬到 `^3.1.0`：qr 3.1.0 恢复 opt-in 的
+  `WQrOverlayStyle.successColor`（单次模式扫中高亮）。
+
 ## 2.3.7
 
 ### Changed

@@ -106,6 +106,9 @@ class _WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   /// 是否因单次扫码完成而暂停了相机
   bool _pausedByScan = false;
 
+  /// 单次模式是否已命中并切到 [WQrOverlayStyle.successColor]
+  bool _successHighlighted = false;
+
   /// 是否因应用进入后台而暂停了相机
   bool _pausedByLifecycle = false;
 
@@ -181,7 +184,9 @@ class _WQrViewState extends State<WQrView> with WidgetsBindingObserver {
       overlay: style == null
           ? null
           : QrScannerOverlayShape(
-              borderColor: style.borderColor,
+              borderColor: _successHighlighted && style.successColor != null
+                  ? style.successColor!
+                  : style.borderColor,
               borderWidth: style.borderWidth,
               overlayColor: style.overlayColor,
               borderRadius: style.borderRadius,
@@ -201,6 +206,7 @@ class _WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   void _resetScanState() {
     _scanHandled = false;
     _pausedByScan = false;
+    _successHighlighted = false;
     _lastScan = null;
     _clock.reset();
   }
@@ -288,6 +294,10 @@ class _WQrViewState extends State<WQrView> with WidgetsBindingObserver {
 
     if (widget.scanOnce) {
       _scanHandled = true;
+      if (widget.style?.successColor != null) {
+        _successHighlighted = true;
+        setState(() {});
+      }
       // 先暂停再回调：调用方在 onScanned 内调用 restart() 时，
       // resume 会排在 pause 之后，最终状态正确
       _pauseAfterScan();
@@ -308,7 +318,9 @@ class _WQrViewState extends State<WQrView> with WidgetsBindingObserver {
       // 回调失败时回滚单次锁定并恢复相机，避免扫码能力被静默锁死
       if (widget.scanOnce) {
         _scanHandled = false;
+        _successHighlighted = false;
         _resumeCamera();
+        if (mounted) setState(() {});
       }
       _reportError(error, stackTrace);
     }
@@ -375,7 +387,9 @@ class _WQrViewState extends State<WQrView> with WidgetsBindingObserver {
   /// 回到前台再恢复。
   Future<void> _restartScan() async {
     if (!mounted) return;
+    final bool wasHighlighted = _successHighlighted;
     _resetScanState();
+    if (wasHighlighted) setState(() {});
     if (_pausedByLifecycle || !_canPauseCamera || !widget.controller.isAttached) {
       return;
     }

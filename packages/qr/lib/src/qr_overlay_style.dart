@@ -10,6 +10,7 @@ class WQrOverlayStyle {
   /// 创建扫描框样式
   ///
   /// - [borderColor]：默认 `Colors.red`
+  /// - [successColor]：默认 null（不做扫中高亮）
   /// - [margin]：默认 [EdgeInsets.zero]
   /// - [borderWidth]：默认 3.0
   /// - [overlayColor]：默认半透明黑色
@@ -20,6 +21,7 @@ class WQrOverlayStyle {
   /// - [cutOutBottomOffset]：默认 0
   const WQrOverlayStyle({
     this.borderColor = Colors.red,
+    this.successColor,
     this.margin = EdgeInsets.zero,
     this.borderWidth = 3.0,
     this.overlayColor = const Color.fromRGBO(0, 0, 0, 0.5),
@@ -36,6 +38,13 @@ class WQrOverlayStyle {
 
   /// 扫描框边框颜色
   final Color borderColor;
+
+  /// 单次模式命中有效码后的边框颜色
+  ///
+  /// 为 null 时不做任何高亮（与 3.0 默认行为一致）。命中后保持到
+  /// `WQrController.restart()`；`onScanned` 抛异常回滚时也会复位。
+  /// 连续模式（`scanOnce: false`）不生效。
+  final Color? successColor;
 
   /// 扫描框外边距
   final EdgeInsetsGeometry margin;

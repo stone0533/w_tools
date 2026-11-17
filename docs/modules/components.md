@@ -194,7 +194,7 @@
 | `WMetricsInterceptor` | api | 可选的请求指标：method / path / status / duration / failed | 不要用它做日志或上报；只产出 WMetric，由业务决定怎么用 |
 | `WQrView` | qr | 二维码 / 条形码扫描 | 不要直接用 `QRView`；重扫不要 Key 状态，用 `WQrController.restart` |
 | `WQrController` | qr | 相机控制、广播扫描流与重扫 | 不要用它重置 UI 状态：单次锁定与节流由 `WQrView` 管理 |
-| `WQrOverlayStyle` | qr | 扫描框颜色、外边距与扫描区域尺寸 | 不要为了改边框颜色去动 `WQrView` 的其它参数 |
+| `WQrOverlayStyle` | qr | 扫描框颜色（含单次命中高亮）、外边距与扫描区域尺寸 | 不要用 `successColor` 做连续扫描的每码反馈：它只在单次模式生效；也不要自绘扫描框几何 |
 | `WQrScanResult` | qr | onScanned 的扫码结果（code / format / rawBytes） | 不要把它当原始 Barcode：需要原始对象请监听 `WQrController.scannedDataStream` |
 | `WMap` / `WMapZone` | map_google | Google Maps 地图与数据区域 | 不要直接用 `GoogleMap`；需要 API Key |
 | `WMapController` | map_google | 业务侧选中 / 关闭 marker | 未挂载到地图时调用没有任何效果 |

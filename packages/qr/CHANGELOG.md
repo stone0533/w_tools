@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.1.0
+
+### Added
+- 恢复 `WQrOverlayStyle.successColor`（opt-in，默认 `null`）：单次模式命中有效码后边框切到该颜色，
+  保持到 `WQrController.restart()`；`onScanned` 抛异常回滚时复位，连续模式不生效。默认不改变
+  3.0 的静态边框行为。修复 #309。
+
 ## 3.0.0
 
 ### Breaking
