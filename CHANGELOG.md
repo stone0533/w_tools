@@ -1,3 +1,8 @@
+## 18.0.5
+
+### Changed
+- `w_tools_async` 约束抬到 `^7.2.0`（`retry` / `timeout` / `settle` 增加生命周期钩子）。
+
 ## 18.0.4
 
 ### Changed

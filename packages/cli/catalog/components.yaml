@@ -1247,12 +1247,24 @@ components:
         onError: showError,
         onFinally: hideLoading,
       );
-      final results = await WAsync.settle<Section>([() => api.banners(), () => api.columns()]);
-      await WAsync.retry(() => api.submit(), retryCount: 3,
-        retryDelayBuilder: (attempt) => Duration(milliseconds: 200 * (1 << (attempt - 1))));
+      await WAsync.retry(
+        () => api.submit(),
+        onStart: showLoading,
+        onError: showError,
+        onFinally: hideLoading,
+        retryCount: 3,
+        retryDelayBuilder: (attempt) => Duration(milliseconds: 200 * (1 << (attempt - 1))),
+      );
+      await WAsync.settle(
+        [() => api.banners(), () => api.columns()],
+        onStart: showLoading,
+        onError: showError,
+        onFinally: hideLoading,
+      );
     pitfalls:
       - 'run 失败抛异常；tryRun 不抛异常'
       - 'onStart / onFinally 管 loading；onFinally 在成功 / 失败 / 取消都执行'
+      - 'retry / timeout 的钩子整次一次；settle 是 batch-level，整批一次'
       - '成功用返回值，不提供 onSuccess；onError 只是通知，不会吞异常'
       - 'run().then(onSuccess) 必须带 onError/catchError，或改用 tryRun'
       - 'settle 保留每个结果；失败任务逐个通知 onError'

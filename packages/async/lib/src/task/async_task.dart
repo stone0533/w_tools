@@ -100,9 +100,13 @@ class WAsync {
   /// [retryDelayBuilder] 按失败次数（从 1 开始）生成本次重试前的等待时间，
   /// 优先于 [retryDelay]；返回负值时抛 [ArgumentError]。
   /// [onRetry] 在每次等待前通知一次，自身异常会被忽略，不影响重试结果。
+  /// [onStart] / [onFinally] 包住整次 retry：onStart 一次，onFinally 在最终成功 /
+  /// 失败 / 取消后一次；不会按 attempt 重复。
   static Future<T> retry<T>(
     Future<T> Function() task, {
+    void Function()? onStart,
     void Function(Object error)? onError,
+    void Function()? onFinally,
     int retryCount = 3,
     Duration retryDelay = const Duration(seconds: 1),
     Duration Function(int attempt)? retryDelayBuilder,
@@ -149,17 +153,24 @@ class WAsync {
             }
           }
         },
+        onStart: onStart,
         onError: onError,
+        onFinally: onFinally,
         cancelToken: cancelToken,
       ),
     );
   }
 
   /// 超时后返回成功值；超时抛 [TimeoutException]。
+  ///
+  /// [onStart] / [onFinally] 包住整次 timeout：分别一次，onFinally 在所有结果后
+  /// 执行。
   static Future<T> timeout<T>(
     Future<T> Function() task,
     Duration timeout, {
+    void Function()? onStart,
     void Function(Object error)? onError,
+    void Function()? onFinally,
     WCancelToken? cancelToken,
   }) async {
     if (timeout.isNegative) {
@@ -182,7 +193,9 @@ class WAsync {
           cancelToken?.throwIfCancelled();
           return result;
         },
+        onStart: onStart,
         onError: onError,
+        onFinally: onFinally,
         cancelToken: cancelToken,
       ),
     );
@@ -192,11 +205,15 @@ class WAsync {
   ///
   /// 单个任务失败不会让整体抛错，每个任务都以 [WAsyncResult] 返回；
   /// 失败任务会触发一次 [onError]（按失败个数，不是按批次）。
+  /// [onStart] / [onFinally] 是 **batch-level**：整批只各调用一次；
+  /// 空集合 / 进入时已取消的 token 不调用。
   /// 内部用私有 worker 池限流，默认最多 [concurrency] 个任务同时执行。
   static Future<List<WAsyncResult<T>>> settle<T>(
     Iterable<Future<T> Function()> tasks, {
     int concurrency = 4,
+    void Function()? onStart,
     void Function(Object error)? onError,
+    void Function()? onFinally,
     WCancelToken? cancelToken,
   }) async {
     if (concurrency < 1) {
@@ -204,6 +221,16 @@ class WAsync {
     }
 
     final taskList = tasks.toList();
+    if (taskList.isEmpty) return <WAsyncResult<T>>[];
+
+    final token = cancelToken;
+    if (token != null && token.isCancelled) {
+      return List<WAsyncResult<T>>.generate(
+        taskList.length,
+        (_) => WAsyncCancelled<T>(token.cancelReason),
+      );
+    }
+
     final results = List<WAsyncResult<T>?>.filled(taskList.length, null);
     var nextIndex = 0;
 
@@ -219,9 +246,14 @@ class WAsync {
       }
     }
 
-    final workerCount = taskList.length < concurrency ? taskList.length : concurrency;
-    await Future.wait(List.generate(workerCount, (_) => worker()));
-    return results.cast<WAsyncResult<T>>();
+    _notifyStart(onStart);
+    try {
+      final workerCount = taskList.length < concurrency ? taskList.length : concurrency;
+      await Future.wait(List.generate(workerCount, (_) => worker()));
+      return results.cast<WAsyncResult<T>>();
+    } finally {
+      _notifyFinally(onFinally);
+    }
   }
 
   static T _unwrap<T>(WAsyncResult<T> result) {
