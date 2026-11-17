@@ -165,9 +165,12 @@ CLI 是纯 Dart 包：测试用 `dart test`；发布统一用 `bash scripts/publ
 Figma 取数工具在 `packages/figma/`（`w_tools_figma`，独立 CLI 包）。需要设计稿规格 / token / diff 时，
 先看 [`docs/agents/figma.md`](docs/agents/figma.md)，不要直接手写 Figma API 调用。
 
-## 使用反馈（遇到问题先查再记）
+## 使用反馈（能力用不了 / 配置不生效 / 文档误导先查再记）
 
-用 `w_tools_*` 时撞到问题，**先查重，再提交** —— 这是完善 w_tools 的主要输入。
+用 `w_tools_*` 时，w_tools **提供的能力 / 配置无法按文档或合理预期工作**，或设置项不生效、
+无法实现对应功能时，**先查重，再按需提交**；这也是完善 w_tools 的主要输入。
+也包括文档 / 迁移误导、公共能力缺口导致多个项目重复绕路。业务代码 / 环境 / 一次性问题不记；
+反馈不是每个任务的必选项。
 
 ### 本仓库内（维护者 / 仓库 AI）
 

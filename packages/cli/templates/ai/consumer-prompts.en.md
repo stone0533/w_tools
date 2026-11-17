@@ -172,7 +172,7 @@ and **it says what to deliver**.
 | Add black-box tests | I-1 |
 | Review AI changes only | J-1 |
 | AI cannot read the repo / run commands | K-1 |
-| Blocked by w_tools / has a suggestion | L-1 |
+| w_tools capability/configuration unusable / shared improvement | L-1 |
 | Just adopted / doctor reports errors | M-1 |
 | One small change / single-file fix | N-1 |
 
@@ -189,7 +189,7 @@ and **it says what to deliver**.
 <!-- @endif -->
 | Field hidden by keyboard / overflow | G-1 |
 | AI says it changed things but shows no analyze output | J-1 or K-1 |
-| Blocked by w_tools and want to file feedback | L-1 |
+| A w_tools capability/configuration is unusable or a setting has no effect | L-1 |
 | Doctor is all red after init | M-1 |
 | Only want to change one spot, nothing else | N-1 |
 | Not sure which block to use | "Let the AI pick a scenario" above |
@@ -561,7 +561,16 @@ I provide:
 ### L-1. File one feedback entry
 
 ```text
-Task: record what blocked you in w_tools (or a capability suggestion) as one feedback entry.
+Task: record feedback about w_tools itself, not business code.
+
+Scope:
+- a w_tools capability/configuration does not work in a real project;
+- a setting has no effect or cannot achieve its stated function;
+- docs/migrations lead to incorrect usage;
+- a missing shared capability forces repeated workarounds.
+
+Do not file business, environment/permission, one-off, or project-preference issues.
+Bugs / ineffective settings: file when reproducible; capability suggestions: require shared reuse value.
 
 1. Search first: `dart run w_tools_cli:w_tools feedback search "<keyword>" --package=<package>`
    If the same problem exists, give me the file:line or issue number; do not submit a duplicate;
@@ -584,7 +593,7 @@ Task: record what blocked you in w_tools (or a capability suggestion) as one fee
 Do not:
 - add --issue unless I explicitly ask for a public issue;
 - paste secrets, tokens or business-sensitive data;
-- exceed 3-5 entries per session, and only what actually blocked you;
+- exceed 3-5 entries per session, and only genuine w_tools issues;
 - write any status other than "pending".
 
 Output: the result (ledger path or issue URL) + a symptom summary under 20 words;
