@@ -68,12 +68,15 @@ Future 返回 `ArgumentError`。
 - `WAsyncFailure.isProgrammingError` 区分 `Error`（TypeError / StateError）与业务异常；
 - `onError` 只是失败通知，不改变返回值，也不会吞 `run` / `retry` / `timeout` 的异常；
   `onError` / `onRetry` 自身抛错会被忽略；
+- `WAsyncHooks` + `WAsync.defaultHooks` 提供全局默认；单次 `hooks` 可覆盖，
+  `WAsyncHooks.none` 可关闭默认；解析优先级为显式回调 → hooks → defaultHooks；
 - `run` / `tryRun` / `retry` / `timeout` 支持 `onStart` / `onFinally`：`onStart` 在任务前，
   `onFinally` 在成功 / 失败 / 取消后（且在 `onError` 之后）；已取消 token 不触发；
 - `retry` / `timeout` 的钩子包住整次操作，不按 attempt 重复；`onRetry` 仍按 attempt 调用；
 - `settle` 的 `onStart` / `onFinally` 是 **batch-level**，整批各一次；空集合 / 已取消 token 不触发；
 - 成功结果用返回值 / `WAsyncSuccess`，不提供 `onSuccess`；
 - `onStart` / `onFinally` 自身异常被忽略，不影响任务结果；
+- 全局默认仅应在 composition root 设置一次；测试必须重置为 `WAsyncHooks.none`；
 - `settle` 的 `onError` 按**失败任务个数**通知，不是按批次；
 - 取消是协作式的：`WCancelToken` 在开始、结束、重试等待等边界检查，不中止已经开始的
   Future；取消后不可复用；
@@ -196,5 +199,5 @@ cd packages/async
 flutter test
 ```
 
-当前 7.2.0；迁移见 [async-7.0](../migrations/async-7.0.md)。
+当前 7.3.0；迁移见 [async-7.0](../migrations/async-7.0.md)。
 AI 路由见 [docs/agents/async.md](../agents/async.md)。

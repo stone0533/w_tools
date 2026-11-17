@@ -24,6 +24,7 @@
 | `WAppOptions` | app_getx | core | WApp 的标题 / 路由 / 外观 / 语言 / 包装器配置 | 不要手写 runApp；入口用 WApp.options(...).start() |
 | `WAppTheme` | app | core | 应用外观：亮/暗主题、主题模式、系统栏 | 不要用 WAsyncTheme；它是 Widget，本类型是配置 |
 | `WAsyncResult` | async | core | `WAsync.tryRun` 的成功 / 失败 / 取消结果 | 需要失败抛异常时用 `WAsync.run` |
+| `WAsyncHooks` | async | core | WAsync 执行入口的默认生命周期回调：onStart / onError / onFinally | 不要在这里放 loading / toast 实现；项目在 composition root 配置一次 |
 | `WAsync` | async | core | 无 UI 异步执行（tryRun / run / retry / timeout / settle） | 页面四态用 `WAsyncController` + `WAsyncView`；并发组合用 Future.wait / package:async |
 | `WCancelToken` | async | core | 协作式取消：传给 WAsync 或 Controller 的 loader | 取消后不可复用；新请求要新建 token |
 | `WStepState` | ui | core | 步骤项状态（completed / current / upcoming） | 不要自己拼状态字符串；按 enum 分支 |

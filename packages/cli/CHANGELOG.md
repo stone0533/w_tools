@@ -1,3 +1,9 @@
+## 2.3.9
+
+### Changed
+- `init` 的 `w_tools_async` 约束抬到 `^7.3.0`。
+- catalog 的 `WAsync` usage 补 `defaultHooks` / `hooks`。
+
 ## 2.3.8
 
 ### Changed

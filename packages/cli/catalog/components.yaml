@@ -1228,6 +1228,25 @@ components:
       - 'isProgrammingError 只存在于 WAsyncFailure'
     related: ['WAsync', 'WAsyncController']
     teach: true
+  - name: '`WAsyncHooks`'
+    package: 'w_tools_async'
+    tier: core
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: 'WAsync 执行入口的默认生命周期回调：onStart / onError / onFinally'
+    dontUseFor: '不要在这里放 loading / toast 实现；项目在 composition root 配置一次'
+    usage: |
+      WAsync.defaultHooks = WAsyncHooks(
+        onStart: AppLoading.show,
+        onError: AppToast.error,
+        onFinally: AppLoading.hide,
+      );
+    pitfalls:
+      - '默认配置一次；单次用 hooks 覆盖，WAsyncHooks.none 关闭'
+      - '测试必须重置 WAsync.defaultHooks'
+    related: ['WAsync']
+    teach: true
+
   - name: '`WAsync`'
     package: 'w_tools_async'
     docsAnchor: '1-wasync'
@@ -1235,6 +1254,11 @@ components:
     useFor: '无 UI 异步执行（tryRun / run / retry / timeout / settle）'
     dontUseFor: '页面四态用 `WAsyncController` + `WAsyncView`；并发组合用 Future.wait / package:async'
     usage: |
+      WAsync.defaultHooks = WAsyncHooks( // composition root 设置一次
+        onStart: AppLoading.show,
+        onError: AppToast.error,
+        onFinally: AppLoading.hide,
+      );
       final result = await WAsync.tryRun(() => api.fetch());
       switch (result) {
         case WAsyncSuccess(:final value): use(value);
@@ -1264,6 +1288,8 @@ components:
     pitfalls:
       - 'run 失败抛异常；tryRun 不抛异常'
       - 'onStart / onFinally 管 loading；onFinally 在成功 / 失败 / 取消都执行'
+      - 'WAsyncHooks / defaultHooks 配置一次；显式回调 > hooks > defaultHooks'
+      - '本次关闭默认传 hooks: WAsyncHooks.none；测试必须重置 defaultHooks'
       - 'retry / timeout 的钩子整次一次；settle 是 batch-level，整批一次'
       - '成功用返回值，不提供 onSuccess；onError 只是通知，不会吞异常'
       - 'run().then(onSuccess) 必须带 onError/catchError，或改用 tryRun'
