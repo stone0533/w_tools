@@ -96,12 +96,13 @@ doctor 检查项：
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致（导出未依赖 / 依赖未导出） |
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成（检查 toolkit、target 文件与 `.w_tools/AI_PROMPTS.md`；UI starter 可自定义，不检查；有 `.w_tools/init.json` 时按内容比对，没有 manifest 时退回版本标记比对） |
 | R9 | 配置 | 项目禁用 API（`.w_tools_doctor.yaml` 的 `banned`；默认空，命中按条目 level 报） |
+| R10 | warn | 项目直接依赖 `w_tools_async_ui` 时，业务页面（`lib/app/modules/**`）直接使用 `WAsyncView` / `WAsyncStateSliver` 或维护 `hasLoadedMorePage` |
 
 R6（禁用单位 `.h` / `.r`）已移除：这类**项目专用**规范改用 R9 的 `banned`（`mode: regex`）表达，
 不再有专用规则与配置键。配置里残留 `rules.R6` / `feedback.max_issues_per_day` 时，
 `doctor` / `init` 会输出迁移提示（不再静默忽略）。
 
-本节是 R1~R9 的**规则细节唯一来源**；[`packages/cli/README.md`](../packages/cli/README.md) 的表格
+本节是 R1~R10 的**规则细节唯一来源**；[`packages/cli/README.md`](../packages/cli/README.md) 的表格
 是给 pub.dev 读者的简版。新增或修改规则时先改这里，再同步包 README 与 `doctor --print-config` 的输出；
 两张表的 R id 与级别由 `scripts/check_docs_facts.py` 校验一致。
 
@@ -151,7 +152,7 @@ Image.asset('logo.png');
 // w_tools:ignore-file R2 reason: migration bridge
 ```
 
-`R2`~`R9` 支持豁免；`R1` 暂不支持。行级规则用 `// w_tools:ignore`，文件级规则（R5/R7/R8）用 `// w_tools:ignore-file`。没有 `reason:` 的豁免不生效；整行注释和行尾 `//` 注释会跳过，字符串仍可能命中；`init` 会把有效 `banned` 生成到 AGENTS。
+`R2`~`R10` 支持豁免；`R1` 暂不支持。行级规则用 `// w_tools:ignore`，文件级规则（R5/R7/R8）用 `// w_tools:ignore-file`。没有 `reason:` 的豁免不生效；整行注释和行尾 `//` 注释会跳过，字符串仍可能命中；`init` 会把有效 `banned` 生成到 AGENTS。
 `init --force` 只刷新生成物，**不覆盖 `.w_tools_doctor.yaml`**；要覆盖项目配置用 `init --force-config`（先 `.bak`）。UI starter 需显式 `--force-starters`（1.8.0+），覆盖前会写 `.bak`。
 项目 UI 层固定为 `lib/app/ui/`，暂存层固定为 `lib/app/design_system/`；`init` 与 doctor 使用同一套路径（`packages/cli/lib/src/layout.dart` 是唯一来源）。聚合入口默认 `lib/app/w/toolkit.dart`，可用 `.w_tools_doctor.yaml` 的 `toolkit_entry` 覆盖 —— `init` 与 doctor 都读它。
 

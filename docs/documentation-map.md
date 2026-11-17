@@ -81,7 +81,7 @@ CONTRIBUTING.md           改组件的硬性要求
 docs/
   README.md               文档总索引
   documentation-map.md    本文：文档定位 + AI 整理规则
-  conventions.md          接入约定 / doctor R1~R9
+  conventions.md          接入约定 / doctor R1~R10
   naming.md               命名规范（唯一事实源）
   releasing.md            发版流程
   ai-contract.md          AI 分层、更新、完整性检查
@@ -122,7 +122,7 @@ scripts/README.md         scripts 运行手册
 | `CONTRIBUTING.md` | 维护者（人/AI） | 新增 / 修改组件的硬要求 | 组件规范变化 | 具体组件 API |
 | `docs/README.md` | 所有人 | 文档总索引 | 新增文档目录 | 具体规则 |
 | `docs/documentation-map.md` | 维护者（人/仓库 AI） | 文档定位与整理规则 | 文档结构变化 | 包 API 细节 |
-| `docs/conventions.md` | 接入者 / 维护者 | 接入方式与 doctor 规则 | 接入规则 / R1~R9 变化 | 组件目录 |
+| `docs/conventions.md` | 接入者 / 维护者 | 接入方式与 doctor 规则 | 接入规则 / R1~R10 变化 | 组件目录 |
 | `docs/naming.md` | 维护者 / 仓库 AI | 包、文件、类型、成员的命名规则与存量例外 | 命名规则变化 | 组件 API、教程 |
 | `docs/ai-contract.md` | 维护者 / 仓库 AI | AI 分层、更新流程、完整性 | catalog / AGENTS 机制变化 | 单个组件教程 |
 | `docs/ai-maintainer-prompts.md` | 维护者（人/仓库 AI） | 按场景复制的提示词块 + 场景索引；流程细节一律链接事实源 | 场景 / 提示词变化 | 完整规则副本、流程 runbook、失败分支、脚本参数表；任务级路由 / 决策表可以留；行数预算由 `check_prompt_docs.py` 守（全文 ≤ 800 行、760 起警告；单块 ≤ 80 行、60 起警告） |

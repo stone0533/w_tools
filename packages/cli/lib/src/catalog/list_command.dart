@@ -16,6 +16,7 @@ w_tools_cli list —— 按关键词查组件目录
 
 选项：
   --package=<pkg> 只列该包，可写 w_tools_ui 或 ui
+  --tier=<tier>   app | core | all（默认 all；业务页面查 app）
   --format=<fmt>  text | json | prompt（默认 text）
   --json          等价于 --format=json
   --version       显示版本
@@ -25,6 +26,7 @@ w_tools_cli list —— 按关键词查组件目录
 CommandResult run(List<String> argv) {
   final parser = cliParser()
     ..addOption('package')
+    ..addOption('tier', defaultsTo: 'all', allowed: <String>['app', 'core', 'all'])
     ..addOption('format', defaultsTo: 'text', allowed: <String>['text', 'json', 'prompt'])
     ..addFlag('json', negatable: false);
 
@@ -35,10 +37,17 @@ CommandResult run(List<String> argv) {
       final query = args.rest.join(' ').trim();
       final packageOpt = args['package'] as String?;
       final package = packageOpt != null ? _normalizePackage(packageOpt) : _packageFromQuery(query);
-      final results = package != null
+      final tier = args['tier'] as String;
+      var results = package != null
           ? catalog.where((entry) => entry.package == package).toList()
           : searchComponents(query);
-      final label = package != null ? 'package=$package' : 'query=${query.isEmpty ? '*' : query}';
+      if (tier != 'all') {
+        results = results.where((entry) => entry.tier == tier).toList();
+      }
+      final label = <String>[
+        package != null ? 'package=$package' : 'query=${query.isEmpty ? '*' : query}',
+        if (tier != 'all') 'tier=$tier',
+      ].join(' ');
       final asJson = (args['json'] as bool) || args['format'] == 'json';
       final asPrompt = args['format'] == 'prompt';
       final hint = results.isEmpty ? _toolHint(package) : null;

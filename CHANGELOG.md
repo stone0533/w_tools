@@ -1,8 +1,3 @@
-## Unreleased
-
-### Changed
-- workspace 加入 `packages/async_ui`；根包不聚合 `w_tools_async_ui`，根依赖与公开 API 不变。
-
 ## 18.0.1
 
 ### Changed

@@ -104,4 +104,34 @@ void main() {
 
     expect(calls, 0);
   });
+
+  testWidgets('refresh 失败显示错误，点击重试恢复', (tester) async {
+    var calls = 0;
+    final controller = WAsyncPagedController<int>((page, _) async {
+      calls++;
+      if (calls == 1) throw StateError('refresh failed');
+      return const WAsyncPage<int>(items: <int>[1], hasMore: false);
+    });
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WAsyncPagedList<int>(
+            controller: controller,
+            itemBuilder: (context, item) => Text('item $item'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Something went wrong'), findsOneWidget);
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('item 1'), findsOneWidget);
+    expect(calls, 2);
+  });
 }

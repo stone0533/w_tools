@@ -234,6 +234,7 @@ dart run tool/gen_templates.dart --check
   section: '…'
   useFor: '…'
   dontUseFor: '…'
+  # tier: app | core（可选；默认 core）
 ```
 
 `teach: true` 的入口组件还必须有：

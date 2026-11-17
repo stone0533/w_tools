@@ -624,7 +624,7 @@ K 的硬边界：不要直接 `flutter pub publish` / `dart pub publish`；不�
 ```text
 任务：修改 w_tools_cli 的 <文件>，原因是 <原因>。
 
-先读：docs/agents/cli.md（维护者一节）、docs/conventions.md §7（doctor 的 R1~R9）、
+先读：docs/agents/cli.md（维护者一节）、docs/conventions.md §7（doctor 的 R1~R10）、
 packages/cli/README.md。
 
 要求：

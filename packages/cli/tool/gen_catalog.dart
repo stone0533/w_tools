@@ -63,6 +63,7 @@ String generate(String packageRoot) {
     final docsAnchor = c['docsAnchor'] as String?;
     final pitfalls = ((c['pitfalls'] as YamlList?)?.cast<String>() ?? const <String>[]);
     final teach = c['teach'] == true;
+    final tier = (c['tier'] as String?) ?? 'core';
     buf
       ..writeln('  CatalogEntry(')
       ..writeln('    name: ${jsonEncode(name)},')
@@ -71,6 +72,7 @@ String generate(String packageRoot) {
       ..writeln('    section: ${jsonEncode(c['section'] as String)},')
       ..writeln('    useFor: ${jsonEncode(c['useFor'] as String)},')
       ..writeln('    dontUseFor: ${dont == null ? 'null' : jsonEncode(dont)},')
+      ..writeln('    tier: ${jsonEncode(tier)},')
       ..writeln('    importPath: ${jsonEncode('package:$package/$package.dart')},')
       ..writeln('    docs: ${jsonEncode(docs)},')
       ..writeln('    docsAnchor: ${docsAnchor == null ? 'null' : jsonEncode(docsAnchor)},')
