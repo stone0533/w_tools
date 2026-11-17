@@ -382,6 +382,11 @@ def _section(text: str, title: str) -> str:
     return rest[:next_match.start()] if next_match else rest
 
 
+def _is_constructor(value: str | None) -> bool:
+    """构造器签名没有返回类型；命名构造也是 `({ ... })` / `(...)`。"""
+    return bool(value) and value.lstrip().startswith('(')
+
+
 def check_notes(
     changes: list[tuple[str, str, str | None]],
     changelog: str,
@@ -407,7 +412,12 @@ def check_notes(
         if mentioned:
             continue
         # 构造器新增可选参数是 additive：允许记在 Added/Changed；构造器删除仍要 Breaking。
-        if key.endswith('.new') and new is not None and current is not None and key in current:
+        if (
+            new is not None
+            and current is not None
+            and key in current
+            and _is_constructor(new)
+        ):
             if key in added or type_name in added:
                 continue
         change = '删除' if new is None else f'{old} → {new}'

@@ -16,6 +16,7 @@ class WAsyncPagedSliver<T> extends StatelessWidget {
     required this.controller,
     required this.itemBuilder,
     this.emptyBuilder,
+    this.onRetry,
   }) : readySliverBuilder = null;
 
   /// 自定义 ready sliver：叠卡、瀑布流、特殊布局。
@@ -26,6 +27,7 @@ class WAsyncPagedSliver<T> extends StatelessWidget {
     required this.controller,
     required this.readySliverBuilder,
     this.emptyBuilder,
+    this.onRetry,
   }) : itemBuilder = null;
 
   final WAsyncPagedController<T> controller;
@@ -38,11 +40,17 @@ class WAsyncPagedSliver<T> extends StatelessWidget {
 
   final WidgetBuilder? emptyBuilder;
 
+  /// 错误态重试；为 null 时使用 [WAsyncPagedController.refresh]。
+  ///
+  /// 自建 `SmartRefresher` 时传 `refreshController.requestRefresh`，
+  /// 让重试走页面刷新头。
+  final VoidCallback? onRetry;
+
   @override
   Widget build(BuildContext context) {
     return WAsyncStateSliver<List<T>>(
       state: controller.state,
-      onRetry: () => unawaited(controller.refresh()),
+      onRetry: onRetry ?? () => unawaited(controller.refresh()),
       emptyBuilder: emptyBuilder,
       readySliverBuilder:
           readySliverBuilder ??

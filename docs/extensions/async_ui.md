@@ -63,12 +63,27 @@ Widget build(BuildContext context) {
     footer: CustomFooter(
       builder: (context, _) => AppFooter(controller: gifts),
     ),
+    refreshController: refreshController, // 可选；外部持有 / dispose
   );
 }
 ```
 
 `WAsyncPagedList` 的 `header` / `footer` 原样转给 `SmartRefresher`；不传时使用其默认样式。
 app 自定义 footer 读 `gifts.snapshot`，重试调用 `gifts.loadMore()`。
+
+需要带动画的程序化刷新时，传外部 `RefreshController`：
+
+```dart
+final refreshController = RefreshController();
+
+WAsyncPagedList<Gift>(
+  controller: gifts,
+  itemBuilder: (context, gift) => GiftTile(gift),
+  refreshController: refreshController,
+);
+
+refreshController.requestRefresh();
+```
 
 ## 反例
 

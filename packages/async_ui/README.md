@@ -15,7 +15,7 @@
 
 ```yaml
 dependencies:
-  w_tools_async_ui: ^1.0.0
+  w_tools_async_ui: ^1.1.0
 ```
 
 要求 Flutter 3.38+。
@@ -101,7 +101,25 @@ Widget build(BuildContext context) {
         ),
       ),
     ),
+    refreshController: refreshController, // 可选；外部持有 / dispose
   );
+}
+```
+
+需要带动画的程序化刷新时，传入外部 `RefreshController`：
+
+```dart
+final refreshController = RefreshController();
+
+WAsyncPagedList<Gift>(
+  controller: gifts,
+  itemBuilder: (context, gift) => GiftTile(gift),
+  refreshController: refreshController,
+);
+
+refreshController.requestRefresh(); // 有下拉 header 动画
+if (refreshController.isRefresh) {
+  // 刷新在飞，避免重复 requestRefresh
 }
 ```
 
@@ -110,6 +128,7 @@ generation 和 `loadFailed / loadNoData / loadComplete`。
 
 - `header` / `footer` 原样转给 `SmartRefresher`；
 - 不传时使用 `SmartRefresher` 的默认 header / footer；
+- `refreshController` 可选；外部传入时由 app dispose，不传时组件内部创建并 dispose；
 - app 自定义 footer 时，读 `controller.snapshot`，重试调用 `controller.loadMore()`；
   不要依赖内部 `RefreshController`；
 - 不要再在页面里拼 `footerStatus` / `footerChanges` 两套参数。
@@ -136,6 +155,7 @@ CustomScrollView(
 WAsyncPagedSliver<Gift>.custom(
   controller: gifts,
   readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
+  onRetry: refreshController.requestRefresh, // 错误重试走页面 header
 )
 ```
 
@@ -143,7 +163,8 @@ WAsyncPagedSliver<Gift>.custom(
 
 - 不包含 `SmartRefresher` / `RefreshController`；
 - 不包含 footer / 文案；
-- header / footer 由页面自己的滚动壳负责。
+- header / footer 由页面自己的滚动壳负责；
+- 自建滚动壳的错误重试传 `onRetry: refreshController.requestRefresh`。
 
 ## 边界
 

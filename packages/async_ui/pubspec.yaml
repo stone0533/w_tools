@@ -1,6 +1,6 @@
 name: w_tools_async_ui
 description: "w_tools_async 的规范应用层：单区块、分页列表、Sliver 与 footer 文案，统一业务页面写法。"
-version: 1.0.0
+version: 1.1.0
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/async_ui

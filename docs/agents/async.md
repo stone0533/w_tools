@@ -9,8 +9,9 @@
   **非滚动** Widget（sliver 复用同一组 builder），不要把 `ListView` 塞进 loading / error。
 - 单区块用 `WAsyncSection`；它默认把失败重试接到 `controller.load`。
 - 标准分页用 `WAsyncPagedList`；需要自定义刷新头 / footer 时传它的 `header` / `footer`，
-  不要再在外面包一层 `SmartRefresher`。
-- 自定义滚动壳用 `WAsyncPagedSliver`；它的 header / footer 由调用方自己的滚动壳负责。
+  不要再在外面包一层 `SmartRefresher`；程序化带动画刷新传 `refreshController`。
+- 自定义滚动壳用 `WAsyncPagedSliver`；它的 header / footer 由调用方自己的滚动壳负责，
+  错误重试传 `onRetry: refreshController.requestRefresh`。
 - 核心 `WAsyncStateSliver` 只用于库 / 设计系统 / 自定义扩展；业务页面用 `WAsyncPagedList` / `WAsyncPagedSliver`。
 - `WAsyncView` / `WAsyncStateSliver` 只监听 `ValueListenable`（`state` 不是 `Rx`）：
   页面里其它 Rx 状态（筛选条件、倒计时）该包 `Obx` 还得包；迁移时顺手删掉外层 `Obx`
