@@ -10,6 +10,7 @@ class CatalogEntry {
     required this.docs,
     this.docsAnchor,
     this.dontUseFor,
+    this.tier = 'core',
     this.aliases = const <String>[],
     this.usage,
     this.pitfalls = const <String>[],
@@ -35,6 +36,9 @@ class CatalogEntry {
   /// 文档章节锚点（不含 #）；为空时指向整篇文档。
   final String? docsAnchor;
 
+  /// 入口层级：`app`（业务页面默认）或 `core`（库 / 设计系统 / 高级入口）。
+  final String tier;
+
   /// 方法名 / 旧名等补充别名；不参与展示名。
   final List<String> aliases;
 
@@ -57,6 +61,7 @@ class CatalogEntry {
     'section': section,
     'useFor': useFor,
     if (dontUseFor != null) 'dontUseFor': dontUseFor,
+    'tier': tier,
     'import': importPath,
     'docs': docs,
     if (docsAnchor != null) 'docsAnchor': docsAnchor,

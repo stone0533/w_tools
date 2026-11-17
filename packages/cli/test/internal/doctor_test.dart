@@ -12,6 +12,7 @@ import 'package:w_tools_cli/src/doctor/rules/r4_design_system_boundary.dart';
 import 'package:w_tools_cli/src/doctor/rules/r5_staged_marker.dart';
 import 'package:w_tools_cli/src/doctor/rules/r7_toolkit_consistency.dart';
 import 'package:w_tools_cli/src/doctor/rules/r8_generated_stale.dart';
+import 'package:w_tools_cli/src/doctor/rules/r10_async_ui_usage.dart';
 import 'package:w_tools_cli/src/doctor/run.dart';
 import 'package:w_tools_cli/src/common/version.dart';
 import 'package:w_tools_cli/src/init/features.dart';
@@ -672,6 +673,62 @@ void main() {
       expect(all.map((r) => r.ruleId), unorderedEquals(doctorRuleIds));
       final only = runDoctor(ctxOf(root, config), config, only: {'R1'});
       expect(only.map((r) => r.ruleId), ['R1']);
+    });
+  });
+  group('R10 async_ui 规范入口', () {
+    test('未依赖 async_ui 时跳过（不误报）', () {
+      final root = makeProject({'pubspec.yaml': 'name: demo\n'});
+      addTearDown(() => root.deleteSync(recursive: true));
+      final result = R10AsyncUiUsage.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(result.status, DoctorRuleStatus.skipped);
+    });
+
+    test('依赖 async_ui 时，业务页面直接 WAsyncView → warn', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\ndependencies:\n  w_tools_async_ui: ^0.1.0\n',
+        'lib/app/modules/demo/view.dart':
+            'WAsyncView<List<int>>(state: c.state, readyBuilder: (_, data) => Text(\'x\'));\n',
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final result = R10AsyncUiUsage.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(result.status, DoctorRuleStatus.fail);
+      expect(result.issues.single.level, DoctorLevel.warn);
+      expect(result.issues.single.hint, contains('WAsyncSection'));
+    });
+
+    test('hasLoadedMorePage → warn', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\ndependencies:\n  w_tools_async_ui: ^0.1.0\n',
+        'lib/app/modules/demo/controller.dart': 'bool hasLoadedMorePage = false;\n',
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final result = R10AsyncUiUsage.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(result.status, DoctorRuleStatus.fail);
+      expect(result.issues.single.message, contains('hasLoadedMorePage'));
+      expect(result.issues.single.hint, contains('footerStatus'));
+    });
+
+    test('lib/app/ui 不在 R10 扫描范围', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\ndependencies:\n  w_tools_async_ui: ^0.1.0\n',
+        'lib/app/ui/app_async.dart':
+            'WAsyncView<List<int>>(state: c.state, readyBuilder: (_, data) => Text(\'x\'));\n',
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final result = R10AsyncUiUsage.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(result.status, DoctorRuleStatus.pass);
+    });
+
+    test('行级 ignore R10 生效', () {
+      final root = makeProject({
+        'pubspec.yaml': 'name: demo\ndependencies:\n  w_tools_async_ui: ^0.1.0\n',
+        'lib/app/modules/demo/view.dart':
+            '// w_tools:ignore R10 reason: custom bridge\n'
+            'WAsyncView<List<int>>(state: c.state, readyBuilder: (_, data) => Text(\'x\'));\n',
+      });
+      addTearDown(() => root.deleteSync(recursive: true));
+      final result = R10AsyncUiUsage.check(ctxOf(root, DoctorConfig()), DoctorConfig());
+      expect(result.status, DoctorRuleStatus.pass);
     });
   });
 }

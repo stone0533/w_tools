@@ -135,7 +135,7 @@ CLI 在 **`packages/cli/`（包名 `w_tools_cli`，纯 Dart）**：
 
 - 本仓库内反馈用 `dart run w_tools_cli:w_tools feedback submit ... --ledger`（自动维护 `docs/feedback/` 与索引）；
   消费方开启 `feedback.enabled` 后**本地台账优先、其次 Issue**；都没有 → `submit` exit 4（什么都没写）
-- [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R9）
+- [`docs/conventions.md`](docs/conventions.md) §7 的规则表（doctor 的 R1~R10）
 - [`docs/modules/components.md`](docs/modules/components.md)（若涉及组件建议）
 - `packages/cli/test/internal/init_test.dart` / `internal/doctor_test.dart` 的用例
 - `packages/cli/CHANGELOG.md`

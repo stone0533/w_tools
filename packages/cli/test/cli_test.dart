@@ -570,6 +570,15 @@ banned:
     expect(count, greaterThanOrEqualTo(30), reason: 'ui 目录没有列全');
   });
 
+  test('list --tier=app 只返回业务入口', () async {
+    final r = await _run('list.dart', ['WAsync', '--tier=app', '--format=prompt']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final out = '${r.stdout}';
+    expect(out, contains('WAsyncSection'));
+    expect(out, contains('WAsyncPagedList'));
+    expect(out, isNot(contains('WAsyncView [')));
+  });
+
   test('list 位置参数 ui 按包名过滤', () async {
     final r = await _run('list.dart', ['ui', '--format=prompt']);
     expect(r.exitCode, 0, reason: '${r.stderr}');

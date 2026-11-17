@@ -140,6 +140,7 @@ CommandResult run(List<String> argv) {
         return;
       }
       print('${e.name}  (${e.package})');
+      print('层级：${e.tier}');
       if (packageVersion != null) print('包版本：${e.package} $packageVersion');
       print('分组：${e.section}');
       print('用途：${e.useFor}');

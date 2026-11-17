@@ -8,6 +8,7 @@ const doctorDefaultEnabledRules = <String>{
   'R7',
   'R8',
   'R9',
+  'R10',
 };
 
 /// doctor 的问题级别。

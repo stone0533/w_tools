@@ -270,6 +270,7 @@ dart run w_tools_cli:w_tools doctor --strict            # warning 也失败
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致 |
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成（有 `.w_tools/init.json` 按内容比，否则按版本标记） |
 | R9 | 配置 | 项目禁用 API（`banned`；默认空） |
+| R10 | warn | 依赖 `w_tools_async_ui` 时，业务页面直接用 `WAsyncView` / `WAsyncStateSliver` 或维护 `hasLoadedMorePage` |
 
 > doctor 规则是文本级检查：注释会跳过；R3 的 `Color(...)` 不会命中字符串字面量，
 > 但 R9 与 `fromHex('#...')` 仍按字符串内容匹配。
@@ -292,7 +293,7 @@ dart run w_tools_cli:w_tools doctor --include-tests
 | ① design_system / ui 不依赖业务 | R4 | 只覆盖 `data/` / `modules/` / `routes/` / `services/`；严格 import 白名单是项目特有，不在 CLI |
 | ② 业务代码不直接 import `w_tools_*` | R2 | 默认扫 `lib/`，要覆盖 `test/` / `tool/` 加 `--include-tests` |
 | ③ pubspec 不依赖聚合包 | R1 | 区分 `dependencies`、`dev_dependencies`、`dependency_overrides` |
-| ④ 图片只走 `WImage` | R9 | 用 `banned` 配置，不新增默认 R10；路径白名单按项目配置 |
+| ④ 图片只走 `WImage` | R9 | 用 `banned` 配置；R10 是 async_ui 条件规则，不用于图片 |
 
 不要把这四条 grep 直接搬进 CLI：① 含项目特有 import 例外，④ 的允许路径也因项目而异。
 
@@ -434,6 +435,7 @@ dart run w_tools_cli:w_tools list             # 列出全部组件
 dart run w_tools_cli:w_tools list 下拉        # 按关键词搜索
 dart run w_tools_cli:w_tools list --format=json
 dart run w_tools_cli:w_tools list async --format=prompt
+dart run w_tools_cli:w_tools list WAsync --tier=app   # 只看业务入口
 ```
 
 ### explain

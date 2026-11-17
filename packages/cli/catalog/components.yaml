@@ -803,6 +803,7 @@ components:
 
   - name: '`WAsyncSection`'
     package: 'w_tools_async_ui'
+    tier: app
     docsAnchor: 'wasyncsection'
     section: '4. View'
     useFor: '业务页面单区块四态的规范入口；失败态默认接 controller.load'
@@ -822,6 +823,7 @@ components:
 
   - name: '`WAsyncPagedList`'
     package: 'w_tools_async_ui'
+    tier: app
     docsAnchor: 'wasyncpagedlist'
     section: '4. View'
     useFor: '标准分页列表的规范入口；内部处理刷新、上拉、footer 和重试'
@@ -842,6 +844,7 @@ components:
 
   - name: '`WAsyncPagedSliver`'
     package: 'w_tools_async_ui'
+    tier: app
     docsAnchor: 'wasyncpagedsliver'
     section: '4. View'
     useFor: '自定义 CustomScrollView 里的分页内容（四态 + footer）'
@@ -863,6 +866,7 @@ components:
 
   - name: '`WAsyncPagedStrings`'
     package: 'w_tools_async_ui'
+    tier: app
     docsAnchor: 'wasyncpagedstrings'
     section: '4. View'
     useFor: '分页 footer 的文案（loading / failed / retry / noMore / loadMore）'

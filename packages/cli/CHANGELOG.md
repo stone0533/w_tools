@@ -1,3 +1,16 @@
+## 2.3.0
+
+### Added
+- doctor 新增条件规则 **R10**：项目依赖 `w_tools_async_ui` 时，扫描
+  `lib/app/modules/**` 的 `WAsyncView` / `WAsyncStateSliver` / `hasLoadedMorePage`；
+  未依赖 async_ui 的项目自动跳过。
+- catalog 增加 `tier` 元数据（`app` / `core`），`list` 支持 `--tier=app|core|all`；
+  `explain` 输出层级。
+
+### Changed
+- 业务页面规范入口继续由 `WAsyncSection` / `WAsyncPagedList` 承担；R10 先以 `warn`
+  级别提示，迁移稳定后再考虑 `error`。
+
 ## 2.2.0
 
 ### Added

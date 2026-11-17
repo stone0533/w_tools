@@ -9,6 +9,7 @@ import 'rules/r5_staged_marker.dart';
 import 'rules/r7_toolkit_consistency.dart';
 import 'rules/r8_generated_stale.dart';
 import 'rules/r9_banned_api.dart';
+import 'rules/r10_async_ui_usage.dart';
 
 /// 一条规则的元数据 + 执行函数。
 ///
@@ -96,6 +97,14 @@ const List<DoctorRule> doctorRules = <DoctorRule>[
     summaryZh: '项目禁用 API',
     summaryEn: 'Project-banned APIs',
     check: R9BannedApi.check,
+  ),
+  DoctorRule(
+    id: R10AsyncUiUsage.id,
+    title: R10AsyncUiUsage.title,
+    level: DoctorLevel.warn,
+    summaryZh: 'async_ui 规范入口',
+    summaryEn: 'async_ui canonical entry',
+    check: R10AsyncUiUsage.check,
   ),
 ];
 

@@ -29,7 +29,7 @@
 ## 维护者 / agent
 
 - [Agent 文档索引](agents/README.md)：各包首选入口、规则页、工具与仓库流程
-- [conventions.md](conventions.md)：接入约定与 doctor 的 R1~R9
+- [conventions.md](conventions.md)：接入约定与 doctor 的 R1~R10
 - [命名规范](naming.md)：包 / 文件 / 类型 / 成员 / 测试的命名规则与存量例外（唯一事实源）
 - [AI 使用契约](ai-contract.md)：catalog 事实源 + explain / AGENTS / README 三种投影、更新流程、完整性边界
 - [维护者 AI 提示词](ai-maintainer-prompts.md)：按场景（A~N）复制提示词块（只放复制块与索引）
