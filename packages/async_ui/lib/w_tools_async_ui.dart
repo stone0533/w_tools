@@ -6,4 +6,3 @@
 export 'src/async_section.dart';
 export 'src/paged_list.dart';
 export 'src/paged_sliver.dart';
-export 'src/paged_strings.dart';

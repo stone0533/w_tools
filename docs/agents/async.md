@@ -8,8 +8,9 @@
 - 全局默认 loading / empty / error 用 `WAsyncTheme`；放在 App 根节点。builder 必须返回
   **非滚动** Widget（sliver 复用同一组 builder），不要把 `ListView` 塞进 loading / error。
 - 单区块用 `WAsyncSection`；它默认把失败重试接到 `controller.load`。
-- 标准分页用 `WAsyncPagedList`；不要自己包 `SmartRefresher` / 自建 footer。
-- 自定义滚动壳用 `WAsyncPagedSliver`。
+- 标准分页用 `WAsyncPagedList`；需要自定义刷新头 / footer 时传它的 `header` / `footer`，
+  不要再在外面包一层 `SmartRefresher`。
+- 自定义滚动壳用 `WAsyncPagedSliver`；它的 header / footer 由调用方自己的滚动壳负责。
 - 核心 `WAsyncStateSliver` 只用于库 / 设计系统 / 自定义扩展；业务页面用 `WAsyncPagedList` / `WAsyncPagedSliver`。
 - `WAsyncView` / `WAsyncStateSliver` 只监听 `ValueListenable`（`state` 不是 `Rx`）：
   页面里其它 Rx 状态（筛选条件、倒计时）该包 `Obx` 还得包；迁移时顺手删掉外层 `Obx`
@@ -27,8 +28,8 @@
 - 单区块本地替换用 `WAsyncController.replaceData`：取消在飞 `load`，旧结果不写回。
 - 列表语义用 `WAsyncController.list`：保留空列表 → empty、`state.data` unmodifiable。
 - `state.isRefreshing` 只在有旧数据时为 true；首屏 / 重试用 `isLoading`；切换筛选直接 `refresh()`。
-- 分页 + SmartRefresher：首屏 `refresh()`（不要 `requestRefresh()`），footer 重试先 `requestLoading()`；
-  见 `docs/recipes/paged-list.md`。
+- 分页 + SmartRefresher：标准壳用 `WAsyncPagedList`；自定义壳用 `WAsyncPagedSliver` + 自己的
+  `SmartRefresher`，见 `docs/recipes/paged-list.md`。
 - 纯执行、不要 UI：`WAsync.tryRun` 拿 `WAsyncResult`，或 `WAsync.run` 失败抛异常；
   独立区块并行用 `WAsync.settle`；普通并发直接用 `Future.wait` / `Future.any`。
 - `WAsyncState.list` 不复制 / 不包装输入列表；需要不可变 data 用
@@ -76,9 +77,9 @@ WAsyncPagedList<Gift>(
 ```
 
 - `WAsyncSection`：单区块；默认 `onRetry: controller.load`；
-- `WAsyncPagedList`：标准分页；内部持有 `RefreshController` / SmartRefresher，处理 footer 和 generation；
-- `WAsyncPagedSliver`：自定义 `CustomScrollView` 用；不包含刷新壳；
-- `WAsyncPagedStrings`：footer 文案；
+- `WAsyncPagedList`：标准分页；内部持有 `RefreshController` / SmartRefresher，处理 generation
+  和 loadMore 收尾；`header` / `footer` 可覆盖；
+- `WAsyncPagedSliver`：自定义 `CustomScrollView` 用；只负责四态和 ready 分支，不包含刷新壳 / footer；
 - 不自动 load / refresh；页面 controller 负责首屏请求；
 - 核心 `WAsyncView` / `WAsyncStateSliver` 保留给库、设计系统、明确的自定义扩展。
 

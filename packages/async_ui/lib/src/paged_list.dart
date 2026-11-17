@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 
-import 'paged_footer.dart';
-import 'paged_strings.dart';
-
 /// 标准分页列表。
 ///
 /// 内部持有 [RefreshController] 和 [SmartRefresher]，统一处理：
@@ -28,13 +25,22 @@ class WAsyncPagedList<T> extends StatefulWidget {
     required this.controller,
     required this.itemBuilder,
     this.emptyBuilder,
-    this.strings = const WAsyncPagedStrings(),
+    this.header,
+    this.footer,
   });
 
   final WAsyncPagedController<T> controller;
   final Widget Function(BuildContext context, T item) itemBuilder;
   final WidgetBuilder? emptyBuilder;
-  final WAsyncPagedStrings strings;
+
+  /// 直接传给 [SmartRefresher.header]；为 null 时使用其默认 header。
+  final Widget? header;
+
+  /// 直接传给 [SmartRefresher.footer]；为 null 时使用其默认 footer。
+  ///
+  /// app 自定义 footer 时，建议监听 `controller.snapshot`，重试调用
+  /// `controller.loadMore()`；不要依赖内部 `RefreshController`。
+  final Widget? footer;
 
   @override
   State<WAsyncPagedList<T>> createState() => _WAsyncPagedListState<T>();
@@ -83,16 +89,8 @@ class _WAsyncPagedListState<T> extends State<WAsyncPagedList<T>> {
       enablePullUp: true,
       onRefresh: _onRefresh,
       onLoading: _onLoading,
-      footer: CustomFooter(
-        builder: (context, _) => AnimatedBuilder(
-          animation: widget.controller.snapshot,
-          builder: (context, _) => WAsyncPagedFooter(
-            status: widget.controller.snapshot.value.footerStatus,
-            strings: widget.strings,
-            onRetry: () => _refreshController.requestLoading(),
-          ),
-        ),
-      ),
+      header: widget.header,
+      footer: widget.footer,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [

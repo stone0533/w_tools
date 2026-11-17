@@ -4,6 +4,9 @@
 # 模板，走单独的人工评审；根包 `w_tools` 只做重导出，不在这里重复计数（避免同一 API
 # 被算两次）。
 #
+# 预算是评审触发器，不是设计目标：正确 API 与预算冲突时先评审 API 语义，
+# 再通过 ADR / 调 growth / 抬 major 解决；不要为省成员数加 dummy 字段或伪构造。
+#
 # 预算规则见 docs/adr/0011-api-surface-budget.md：
 # - patch：不允许新增 / 删除 / 修改公开 API（只能修行为）；
 # - minor：新增成员净增 <= 本文件预算；新增公开类型要登记 exceptions（含 ADR）；

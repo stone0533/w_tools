@@ -15,7 +15,7 @@
 |------|------|------|
 | `w_tools_core` | `packages/core/` | 零 UI 依赖的核心工具：扩展方法、日志、加解密、Token 管理、存储、倒计时、正则等 |
 | `w_tools_async` | `packages/async/` | 异步执行、四态状态、Controller 与异步视图 |
-| `w_tools_async_ui` | `packages/async_ui/` | async 规范应用层：单区块 / 分页 / Sliver / footer 文案 |
+| `w_tools_async_ui` | `packages/async_ui/` | async 规范应用层：单区块 / 分页 / 自定义 Sliver |
 | `w_tools_app` | `packages/app/` | 启动契约 `WAppPlugin` + 语言 / 外观 / `WLanguageScope`（GetX 无关） |
 | `w_tools_app_getx` | `packages/app_getx/` | GetX 启动器 `WApp`、语言切换、路由管理、底部弹窗、`WApp.of(context)` |
 | `w_tools_ui` | `packages/ui/` | 通用 UI 组件：按钮、图片、文本、AppBar、Scaffold、导航、TabBar、列表等 |

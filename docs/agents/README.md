@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | core | `WStorage` / `WToken` / `WValidator` / `WLogger` / `WDebounce` | `WConfig`、`WUx.debounce/throttle`、`WRegExpPattern`（3.0 已删除） | `packages/core/example` |
 | async | 无 UI 用 `WAsync.tryRun` + `WAsyncResult`，或 `WAsync.run`（失败抛异常）；独立区块用 `WAsync.settle`；页面原语见 async_ui | `WAsyncConfig`、`WAsyncBuilder`、`WAsyncViewDefaults`（3.0 已删除）；`WAsyncStateBuilder` / `WAsyncOptions` / `WAsyncActivity` / `WAsync.parallel` 等（7.0 已删除） | `packages/async/example` |
-| async_ui | 业务页面用 `WAsyncSection`（单区块）/ `WAsyncPagedList`（标准分页）/ `WAsyncPagedSliver`（自定义滚动）；footer 文案用 `WAsyncPagedStrings` | 业务页面直接 `WAsyncView` / `WAsyncStateSliver`；自建 footerStatus + footerChanges；`hasLoadedMorePage` | `packages/async_ui/example` |
+| async_ui | 业务页面用 `WAsyncSection`（单区块）/ `WAsyncPagedList`（标准分页，header/footer 可覆盖）/ `WAsyncPagedSliver`（自定义滚动） | 业务页面直接 `WAsyncView` / `WAsyncStateSliver`；自建 footerStatus + footerChanges；`hasLoadedMorePage` | `packages/async_ui/example` |
 | ui | `WText` / `WButton` / `WImage` / `WScaffold` | `WRowButtons`、`HexColor`、`WRow/WColumn/WSizeBox`、`WImageConfig`（5.0 已删除） | `packages/ui/example` |
 | form | `WForm` + 直接字段；边框 `WFormBorderStyle.fromTheme` | `Config.build`、`*Core`（`@internal`）、字段 `config` 参数、`WFormDefaults`（4.0 已删除） | `packages/form/example` |
 | api | `WApiSettings` + `DioRegistry`；`WLogInterceptor(parts:)` | 直接 `Dio()`、旧 bool 日志参数 | `packages/api/example` |

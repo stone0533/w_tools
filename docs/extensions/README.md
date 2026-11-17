@@ -4,7 +4,7 @@
 
 | 扩展 | 包 | 用途 |
 | --- | --- | --- |
-| [async_ui](async_ui.md) | `w_tools_async_ui` | `w_tools_async` 的规范页面入口：单区块、分页列表、Sliver、footer 文案 |
+| [async_ui](async_ui.md) | `w_tools_async_ui` | `w_tools_async` 的规范页面入口：单区块、分页列表、自定义 Sliver |
 
 约定：
 

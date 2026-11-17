@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:w_tools_async/w_tools_async.dart';
 import 'package:w_tools_async_ui/w_tools_async_ui.dart';
 
+Widget _statusFooter(WAsyncPagedController<int> controller) {
+  return CustomFooter(
+    builder: (context, _) => ValueListenableBuilder<WAsyncPagedSnapshot<int>>(
+      valueListenable: controller.snapshot,
+      builder: (context, snapshot, _) => Text('footer ${snapshot.footerStatus.name}'),
+    ),
+  );
+}
+
 void main() {
-  testWidgets('WAsyncPagedList 渲染分页数据并显示 footer', (tester) async {
+  testWidgets('WAsyncPagedList 渲染分页数据', (tester) async {
     final controller = WAsyncPagedController<int>(
       (page, _) async => WAsyncPage<int>(
         items: page == 1 ? const <int>[1, 2] : const <int>[],
@@ -28,18 +38,21 @@ void main() {
 
     expect(find.text('item 1'), findsOneWidget);
     expect(find.text('item 2'), findsOneWidget);
-    expect(find.text('Pull up to load more'), findsOneWidget);
   });
 
-  testWidgets('loadMore 到底后显示 noMore', (tester) async {
+  testWidgets('WAsyncPagedList 转发自定义 header / footer', (tester) async {
     final controller = WAsyncPagedController<int>(
-      (page, _) async => WAsyncPage<int>(
-        items: page == 1 ? const <int>[1] : const <int>[2],
-        hasMore: page == 1,
-      ),
+      (page, _) async => const WAsyncPage<int>(items: <int>[1], hasMore: true),
     );
     addTearDown(controller.dispose);
     await controller.refresh();
+
+    final header = CustomHeader(
+      builder: (context, _) => const Text('custom header'),
+    );
+    final footer = CustomFooter(
+      builder: (context, _) => const Text('custom footer'),
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -47,20 +60,26 @@ void main() {
           body: WAsyncPagedList<int>(
             controller: controller,
             itemBuilder: (context, item) => Text('item $item'),
+            header: header,
+            footer: footer,
           ),
         ),
       ),
     );
-    await controller.loadMore();
     await tester.pumpAndSettle();
 
-    expect(find.text('No more data'), findsOneWidget);
+    final refresher = tester.widget<SmartRefresher>(find.byType(SmartRefresher));
+    expect(refresher.header, same(header));
+    expect(refresher.footer, same(footer));
   });
 
-  testWidgets('loadMore 失败只显示 footer failed', (tester) async {
+  testWidgets('app footer 可以监听 snapshot 并处理 noMore / failed', (tester) async {
+    var pageTwoCalls = 0;
     final controller = WAsyncPagedController<int>((page, _) async {
       if (page == 1) return const WAsyncPage<int>(items: <int>[1], hasMore: true);
-      throw StateError('load more failed');
+      pageTwoCalls++;
+      if (pageTwoCalls == 1) throw StateError('load more failed');
+      return const WAsyncPage<int>(items: <int>[2], hasMore: false);
     });
     addTearDown(controller.dispose);
     await controller.refresh();
@@ -71,15 +90,24 @@ void main() {
           body: WAsyncPagedList<int>(
             controller: controller,
             itemBuilder: (context, item) => Text('item $item'),
+            footer: _statusFooter(controller),
           ),
         ),
       ),
     );
-    await controller.loadMore();
     await tester.pumpAndSettle();
 
-    expect(find.text('Load failed · Retry'), findsOneWidget);
+    expect(find.text('footer loadMore'), findsOneWidget);
+
+    await controller.loadMore();
+    await tester.pumpAndSettle();
+    expect(find.text('footer failed'), findsOneWidget);
     expect(find.text('item 1'), findsOneWidget);
+
+    await controller.loadMore();
+    await tester.pumpAndSettle();
+    expect(find.text('item 2'), findsOneWidget);
+    expect(find.text('footer noMore'), findsOneWidget);
   });
 
   testWidgets('WAsyncPagedList 不自动 refresh', (tester) async {
@@ -133,36 +161,5 @@ void main() {
 
     expect(find.text('item 1'), findsOneWidget);
     expect(calls, 2);
-  });
-
-  testWidgets('footer 失败后再次 loadMore 恢复列表', (tester) async {
-    var pageTwoCalls = 0;
-    final controller = WAsyncPagedController<int>((page, _) async {
-      if (page == 1) return const WAsyncPage<int>(items: <int>[1], hasMore: true);
-      pageTwoCalls++;
-      if (pageTwoCalls == 1) throw StateError('load more failed');
-      return const WAsyncPage<int>(items: <int>[2], hasMore: false);
-    });
-    addTearDown(controller.dispose);
-    await controller.refresh();
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WAsyncPagedList<int>(
-            controller: controller,
-            itemBuilder: (context, item) => Text('item $item'),
-          ),
-        ),
-      ),
-    );
-    await controller.loadMore();
-    await tester.pumpAndSettle();
-    expect(find.text('Load failed · Retry'), findsOneWidget);
-
-    await controller.loadMore();
-    await tester.pumpAndSettle();
-    expect(find.text('item 2'), findsOneWidget);
-    expect(pageTwoCalls, 2);
   });
 }

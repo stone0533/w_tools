@@ -23,11 +23,11 @@
 
 1. **核心 `w_tools_async` 不变**：只保留 Controller / State / Snapshot / 原语 View。
 2. **新增可选包 `w_tools_async_ui`**，只放业务页面规范入口：
-   `WAsyncSection` / `WAsyncPagedList` / `WAsyncPagedSliver` / `WAsyncPagedStrings`。
+   `WAsyncSection` / `WAsyncPagedList` / `WAsyncPagedSliver`。
 3. **依赖方向**：`w_tools_async_ui → w_tools_async`；核心绝不反向依赖。
 4. **不聚合进根包**：消费方按需直接依赖；新项目由 `init` 的 async feature 带入。
 5. **不吸收 app 策略**：全局 loading / toast / 登录失效 / 设计系统留在 app；
-   扩展包只接受 builder / strings / theme。
+   扩展包只接受 builder / theme。
 6. **不恢复执行组合子**：`parallel` / `pool` / `serial` / `first` / `map` 仍用
    `Future.wait` / `WAsync.settle` / `Future.any` / for 替代。
 7. **规范优先**：业务页面默认用 `WAsyncSection` / `WAsyncPagedList`；
@@ -45,8 +45,8 @@
 **代价 / 已知局限**
 
 - 多一个包：workspace / manifest / catalog / docs / 发布都要同步；
-- `WAsyncPagedList` 对刷新壳有默认选择（SmartRefresher），自定义需求走
-  `WAsyncPagedSliver`；
+- `WAsyncPagedList` 对刷新壳有默认选择（SmartRefresher），但 `header` / `footer`
+  可覆盖；完全自定义滚动壳走 `WAsyncPagedSliver`；
 - 扩展包仍需要 app 注入设计系统 / 文案 / 全局错误策略；
 - 不能保证业务代码一定使用规范入口，仍需 catalog / AGENTS / doctor 配合。
 
