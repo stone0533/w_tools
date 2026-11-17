@@ -74,7 +74,7 @@ void main() {
         home: Scaffold(
           body: CustomScrollView(
             slivers: [
-              WAsyncPagedSliver<int>(
+              WAsyncPagedSliver<int>.ready(
                 controller: controller,
                 readySliverBuilder: (context, items) => SliverToBoxAdapter(
                   child: Text('custom ready ${items.length}'),

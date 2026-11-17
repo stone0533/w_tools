@@ -43,7 +43,7 @@ WAsyncSection<List<Gift>>(
 标准用法见 [packages/async_ui/README.md](../../packages/async_ui/README.md) 的「自定义滚动」；这里只记录边界：
 
 - 只返回 `SliverMainAxisGroup`（四态 + 可选 footer）；
-- 支持 `readySliverBuilder`（叠卡 / 自定义 sliver），与 `itemBuilder` 二选一；
+- 支持 `WAsyncPagedSliver.ready(readySliverBuilder: ...)`（叠卡 / 自定义 sliver）；
 - 支持 `footer` 覆盖；自定义刷新壳传 `footer: const SizedBox.shrink()` 关闭内部 footer；
 - 不包含 `SmartRefresher` / `RefreshController`；
 - 给 NestedScrollView、overlap 卡片、自定义滚动壳使用；

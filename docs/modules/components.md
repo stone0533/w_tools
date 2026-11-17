@@ -108,7 +108,7 @@
 | `WAsyncView` | async | core | 普通页面四态视图、默认错误页 / 刷新错误条；onRetry 控制重试按钮 | 滚动页面把滚动组件放进 readyBuilder；纯状态逻辑用 `WAsyncState` / `WAsyncController`；业务页面优先用 WAsyncSection；不要省略 onRetry 还期待默认重试按钮 |
 | `WAsyncSection` | async_ui | app | 业务页面单区块四态的规范入口；支持 per-block builder 与自定义 onRetry | 分页用 WAsyncPagedList；纯执行用 WAsync；不要在本组件里塞全局 loading |
 | `WAsyncPagedList` | async_ui | app | 标准分页列表的规范入口；内部处理刷新、上拉、footer 和重试 | 自定义 header/footer 或 ready sliver 用 `WAsyncPagedSliver` + 自己的 SmartRefresher；不要在 WAsyncPagedList 外再传 footerStatus / footerChanges |
-| `WAsyncPagedSliver` | async_ui | app | 自定义 CustomScrollView 里的分页内容；支持 readySliverBuilder / footer 覆盖 | 标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncSection 单区块 |
+| `WAsyncPagedSliver` | async_ui | app | 自定义 CustomScrollView 里的分页内容；.ready 支持 readySliverBuilder / footer 覆盖 | 标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncSection 单区块 |
 | `WAsyncPagedStrings` | async_ui | app | 分页 footer 的文案（loading / failed / retry / noMore / loadMore） | 不要用它修改核心 WAsyncStrings；单区块文案仍走 WAsyncTheme |
 | `WAsyncStateSliver` | async | core | CustomScrollView 的四态 sliver、failed+旧数据（错误条在列表上方） | 非滚动页面用 `WAsyncSection`；标准分页用 `WAsyncPagedList`；不要自建 footer |
 | `WRouteStack` | app_getx | core | 路由栈操作（`app.routeStack`） | 不要跨 WApp 操作路由栈；每个 WApp 持有自己的栈 |

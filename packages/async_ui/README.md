@@ -122,7 +122,7 @@ CustomScrollView(
 需要自定义 ready sliver / footer 时：
 
 ```dart
-WAsyncPagedSliver<Gift>(
+WAsyncPagedSliver<Gift>.ready(
   controller: gifts,
   readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
   footer: const SizedBox.shrink(), // 由外层 SmartRefresher 的 CustomFooter 负责

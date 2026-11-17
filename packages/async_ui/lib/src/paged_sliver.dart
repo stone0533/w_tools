@@ -19,22 +19,29 @@ class WAsyncPagedSliver<T> extends StatelessWidget {
   const WAsyncPagedSliver({
     super.key,
     required this.controller,
-    this.itemBuilder,
-    this.readySliverBuilder,
+    required this.itemBuilder,
     this.emptyBuilder,
     this.footer,
     this.strings = const WAsyncPagedStrings(),
-  }) : assert(
-         (itemBuilder != null) != (readySliverBuilder != null),
-         'itemBuilder 与 readySliverBuilder 必须二选一',
-       );
+  }) : readySliverBuilder = null;
+
+  /// 用自定义 ready sliver（例如叠卡）替代默认的 [itemBuilder] 列表。
+  const WAsyncPagedSliver.ready({
+    super.key,
+    required this.controller,
+    required this.readySliverBuilder,
+    this.emptyBuilder,
+    this.footer,
+    this.strings = const WAsyncPagedStrings(),
+  }) : itemBuilder = _ignoredItemBuilder<T>,
+       assert(readySliverBuilder != null, 'ready 构造必须提供 readySliverBuilder');
 
   final WAsyncPagedController<T> controller;
 
-  /// 普通列表项构建器；与 [readySliverBuilder] 二选一。
-  final Widget Function(BuildContext context, T item)? itemBuilder;
+  /// 普通列表项构建器；[WAsyncPagedSliver.ready] 时内部忽略。
+  final Widget Function(BuildContext context, T item) itemBuilder;
 
-  /// 自定义 ready sliver；与 [itemBuilder] 二选一，必须返回 sliver。
+  /// 自定义 ready sliver；仅 [WAsyncPagedSliver.ready] 非 null，必须返回 sliver。
   final Widget Function(BuildContext context, List<T> items)? readySliverBuilder;
 
   final WidgetBuilder? emptyBuilder;
@@ -55,7 +62,7 @@ class WAsyncPagedSliver<T> extends StatelessWidget {
               readySliverBuilder ??
               (context, items) => SliverList.builder(
                 itemCount: items.length,
-                itemBuilder: (context, index) => itemBuilder!(context, items[index]),
+                itemBuilder: (context, index) => itemBuilder(context, items[index]),
               ),
         ),
         SliverToBoxAdapter(
@@ -74,3 +81,5 @@ class WAsyncPagedSliver<T> extends StatelessWidget {
     );
   }
 }
+
+Widget _ignoredItemBuilder<T>(BuildContext context, T item) => const SizedBox.shrink();

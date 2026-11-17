@@ -852,12 +852,12 @@ components:
     tier: app
     docsAnchor: 'wasyncpagedsliver'
     section: '4. View'
-    useFor: '自定义 CustomScrollView 里的分页内容；支持 readySliverBuilder / footer 覆盖'
+    useFor: '自定义 CustomScrollView 里的分页内容；.ready 支持 readySliverBuilder / footer 覆盖'
     dontUseFor: '标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncSection 单区块'
     usage: |
       CustomScrollView(
         slivers: [
-          WAsyncPagedSliver<Gift>(
+          WAsyncPagedSliver<Gift>.ready(
             controller: gifts,
             readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
             footer: const SizedBox.shrink(), // 外层 CustomFooter 负责
