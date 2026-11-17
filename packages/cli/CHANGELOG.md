@@ -1,3 +1,9 @@
+## 2.3.5
+
+### Changed
+- `init` 的 `w_tools_async_ui` 约束抬到 `^1.0.0`。
+- catalog 的 `WAsyncPagedList` 改为 `header` / `footer` 覆盖；删除 `WAsyncPagedStrings`。
+
 ## 2.3.4
 
 ### Changed

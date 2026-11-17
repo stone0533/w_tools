@@ -45,6 +45,11 @@ names = [
     r'WAsyncStateSliver\.(?:onRetryError|refreshingSliverBuilder)\b',
     r'WCancelToken\.clearListeners\b',
     r'WAsyncErrorView\.error\b', r'WAsyncErrorBanner\.error\b',
+    # async_ui 1.0：footer 文案 / 固定 footer 删除，header/footer 交给 app。
+    r'\bWAsyncPagedStrings\b',
+    r'\bWAsyncPagedFooter\b',
+    r'WAsyncPagedList\.strings\b',
+    r'WAsyncPagedSliver\.(?:ready|footer|strings)\b',
     r'WTextConfig', r'\bonDataUpdated\b', r'WApp\(\)', r'WMapConfig\.build',
     # app_getx 2.0：全局语言状态与静态路由栈收口。
     r'\bWAppConfig\b', r'WLocaleConfig\.defaultLanguage', r'WLanguage\.languageStream',

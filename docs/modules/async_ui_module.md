@@ -1,13 +1,12 @@
 # w_tools_async_ui
 
 `w_tools_async_ui` 是 `w_tools_async` 的**规范应用层**。核心包只提供 Controller /
-State / Snapshot / 原语 View；本包把业务页面最常见的写法收敛成 4 个入口。
+State / Snapshot / 原语 View；本包把业务页面最常见的写法收敛成 3 个入口。
 
 ```text
-单区块四态        → WAsyncSection
-标准分页列表      → WAsyncPagedList
+单区块四态         → WAsyncSection
+标准分页列表       → WAsyncPagedList
 自定义滚动里的分页 → WAsyncPagedSliver
-footer 文案       → WAsyncPagedStrings
 ```
 
 ## WAsyncSection
@@ -30,33 +29,27 @@ WAsyncSection<List<Gift>>(
 ## WAsyncPagedList
 
 标准用法见 [packages/async_ui/README.md](../../packages/async_ui/README.md) 的「标准分页」；这里只记录边界：
-内部持有 `RefreshController` 和 `SmartRefresher`，统一处理刷新 / 上拉 / footer / generation。
 
 - 内部持有 `RefreshController` 和 `SmartRefresher`；
-- 统一处理下拉刷新、上拉加载、footer 五种状态、重试和 generation；
-- `loadMore` 失败只更新 footer，不清空列表；
-- 页面在 controller 的 `initState` / `onInit` 调 `refresh()`；
+- 统一处理下拉刷新、上拉加载、generation、`loadFailed / loadNoData / loadComplete`；
+- `header` / `footer` 直接转给 `SmartRefresher`；不传时使用其默认样式；
+- app 自定义 footer 读 `controller.snapshot`，重试调用 `controller.loadMore()`；
 - 不在组件内自动发起首屏请求。
 
 ## WAsyncPagedSliver
 
 标准用法见 [packages/async_ui/README.md](../../packages/async_ui/README.md) 的「自定义滚动」；这里只记录边界：
 
-- 只返回 `SliverMainAxisGroup`（四态 + 可选 footer）；
-- 支持 `WAsyncPagedSliver.ready(readySliverBuilder: ...)`（叠卡 / 自定义 sliver）；
-- 支持 `footer` 覆盖；自定义刷新壳传 `footer: const SizedBox.shrink()` 关闭内部 footer；
+- 只返回四态 sliver（`WAsyncStateSliver<List<T>>`）；
+- 支持 `WAsyncPagedSliver.custom(readySliverBuilder: ...)`（叠卡 / 自定义 sliver）；
 - 不包含 `SmartRefresher` / `RefreshController`；
+- 不包含 footer / 文案；header / footer 由调用方自己的滚动壳负责；
 - 给 NestedScrollView、overlap 卡片、自定义滚动壳使用；
-- 标准页面优先用 `WAsyncPagedList`；`WAsyncPagedList` 不提供 header/footer 覆盖。
-
-## WAsyncPagedStrings
-
-分页 footer 的文案值对象，默认英文；项目传中文或其它语言。不要修改核心
-`WAsyncStrings`。
+- 标准页面优先用 `WAsyncPagedList`。
 
 ## 边界
 
-- 不包含 已删除的执行组合子（`parallel` / `pool` / `serial` / `first` / `map`）；
+- 不包含已删除的执行组合子（`parallel` / `pool` / `serial` / `first` / `map`）；
 - 不包含全局 loading / toast / 登录失效；
 - 不 import 任何项目设计系统；
 - 不替代核心 `WAsyncView` / `WAsyncStateSliver`：库、设计系统和明确的自定义扩展

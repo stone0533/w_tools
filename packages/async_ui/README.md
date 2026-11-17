@@ -3,10 +3,9 @@
 `w_tools_async` 的规范应用层：业务页面用少量固定入口，不再每页重复接线。
 
 ```text
-单区块四态        → WAsyncSection
-标准分页列表      → WAsyncPagedList
+单区块四态         → WAsyncSection
+标准分页列表       → WAsyncPagedList
 自定义滚动里的分页 → WAsyncPagedSliver
-footer 文案       → WAsyncPagedStrings
 ```
 
 核心 `w_tools_async` 仍然只提供 Controller / State / Snapshot / 原语 View；
@@ -16,7 +15,7 @@ footer 文案       → WAsyncPagedStrings
 
 ```yaml
 dependencies:
-  w_tools_async_ui: ^0.2.0
+  w_tools_async_ui: ^1.0.0
 ```
 
 要求 Flutter 3.38+。
@@ -91,19 +90,29 @@ Widget build(BuildContext context) {
   return WAsyncPagedList<Gift>(
     controller: gifts,
     itemBuilder: (context, gift) => GiftTile(gift),
-    strings: const WAsyncPagedStrings(
-      failed: '加载失败',
-      retry: '重试',
-      noMore: '没有更多数据了',
-      loadMore: '上拉加载更多',
+    // 可选：直接传 SmartRefresher 的 header / footer。
+    header: const AppRefreshHeader(),
+    footer: CustomFooter(
+      builder: (context, _) => ValueListenableBuilder(
+        valueListenable: gifts.snapshot,
+        builder: (context, snapshot, _) => AppFooter(
+          status: snapshot.footerStatus,
+          onRetry: gifts.loadMore,
+        ),
+      ),
     ),
   );
 }
 ```
 
 `WAsyncPagedList` 内部持有 `RefreshController`，统一处理下拉刷新、上拉加载、
-footer 状态、重试和 generation；不要再在页面里拼 `footerStatus` /
-`footerChanges` 两套参数。
+generation 和 `loadFailed / loadNoData / loadComplete`。
+
+- `header` / `footer` 原样转给 `SmartRefresher`；
+- 不传时使用 `SmartRefresher` 的默认 header / footer；
+- app 自定义 footer 时，读 `controller.snapshot`，重试调用 `controller.loadMore()`；
+  不要依赖内部 `RefreshController`；
+- 不要再在页面里拼 `footerStatus` / `footerChanges` 两套参数。
 
 ## 自定义滚动
 
@@ -114,23 +123,27 @@ CustomScrollView(
       controller: gifts,
       itemBuilder: (context, gift) => GiftTile(gift),
     ),
+    SliverToBoxAdapter(
+      child: AppFooter(controller: gifts),
+    ),
   ],
 )
 ```
 
-`WAsyncPagedSliver` 不包含刷新壳；需要 NestedScrollView / overlap 卡片时用这个入口。
-需要自定义 ready sliver / footer 时：
+需要 NestedScrollView / overlap 卡片时用 `.custom`：
 
 ```dart
-WAsyncPagedSliver<Gift>.ready(
+WAsyncPagedSliver<Gift>.custom(
   controller: gifts,
   readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
-  footer: const SizedBox.shrink(), // 由外层 SmartRefresher 的 CustomFooter 负责
 )
 ```
 
-`WAsyncPagedList` 是标准壳，不提供 header/footer 覆盖；需要设计稿口径的刷新头 / footer 时，
-用 `WAsyncPagedSliver` + 自己的 `SmartRefresher`。
+`WAsyncPagedSliver` 只负责四态和 ready 分支：
+
+- 不包含 `SmartRefresher` / `RefreshController`；
+- 不包含 footer / 文案；
+- header / footer 由页面自己的滚动壳负责。
 
 ## 边界
 

@@ -1,4 +1,4 @@
-# async_ui：把 async 页面写法收敛成 4 个入口
+# async_ui：把 async 页面写法收敛成 3 个入口
 
 `w_tools_async_ui` 是 `w_tools_async` 的可选应用层。它解决的是**同一功能太多正确写法**，
 不是增加 async 能力。
@@ -9,8 +9,7 @@
 | --- | --- |
 | 单区块 | `WAsyncSection` |
 | 标准分页 | `WAsyncPagedList` |
-| 自定义滚动 / ready sliver / footer | `WAsyncPagedSliver` |
-| footer 文案 | `WAsyncPagedStrings` |
+| 自定义滚动 / ready sliver | `WAsyncPagedSliver` |
 
 业务页面不要再直接写 `WAsyncView` / `WAsyncStateSliver`；它们保留给库、设计系统和明确的自定义扩展。
 
@@ -59,16 +58,25 @@ Widget build(BuildContext context) {
   return WAsyncPagedList<Gift>(
     controller: gifts,
     itemBuilder: (context, gift) => GiftTile(gift),
+    // 可选：直接覆盖 SmartRefresher 的 header / footer。
+    header: const AppRefreshHeader(),
+    footer: CustomFooter(
+      builder: (context, _) => AppFooter(controller: gifts),
+    ),
   );
 }
 ```
+
+`WAsyncPagedList` 的 `header` / `footer` 原样转给 `SmartRefresher`；不传时使用其默认样式。
+app 自定义 footer 读 `gifts.snapshot`，重试调用 `gifts.loadMore()`。
 
 ## 反例
 
 | 不要 | 改用 |
 | --- | --- |
 | 业务页面直接 `WAsyncView` | `WAsyncSection` |
-| 业务页面直接 `WAsyncStateSliver` + 自建 footer | `WAsyncPagedList` |
+| 业务页面直接 `WAsyncStateSliver` + 自建刷新壳 | `WAsyncPagedList` / `WAsyncPagedSliver` |
+| 在 `WAsyncPagedList` 外再包一层 `SmartRefresher` | 用 `WAsyncPagedList.header` / `footer` |
 | 自建 `footerStatus` + `footerChanges` 双入口 | `WAsyncPagedList` 的 snapshot |
 | 维护 `hasLoadedMorePage` | `snapshot.footerStatus` |
 | 在多个独立区块之间共享一个 loading bool | 每块一个 controller + `WAsyncSection` |
@@ -110,6 +118,7 @@ CLI 2.3.1 起，R10 从 `warn` 升级为 `error`。项目依赖 `w_tools_async_u
 ```text
 WAsyncView(...)          → WAsyncSection(...)
 WAsyncStateSliver(...)   → WAsyncPagedList(...) / WAsyncPagedSliver(...)
+// footer 由 app 自己的 header/footer 负责
 hasLoadedMorePage        → snapshot.footerStatus
 ```
 
@@ -127,5 +136,5 @@ rules:
   R10: false
 ```
 
-长期仍建议把业务页面的 async 原语替换成 `WAsyncSection` / `WAsyncPagedList`；
+长期仍建议把业务页面的 async 原语替换成 `WAsyncSection` / `WAsyncPagedList` / `WAsyncPagedSliver`；
 `lib/app/ui` / 暂存层不在 R10 扫描范围，可以继续封装原语。

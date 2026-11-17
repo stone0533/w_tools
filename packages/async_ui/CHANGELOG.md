@@ -1,3 +1,16 @@
+## 1.0.0
+
+### Breaking
+- 删除 `WAsyncPagedStrings`；分页 footer 文案由 app 自己的 header/footer 维护。
+- 删除 `WAsyncPagedFooter`；`WAsyncPagedList` 默认使用 `SmartRefresher` 自带 header/footer。
+- 删除 `WAsyncPagedList.strings`；`WAsyncPagedList.new` 改为可选
+  `WAsyncPagedList.header` / `footer`，原样转发给 `SmartRefresher`，app 可传
+  `CustomHeader` / `CustomFooter` 自定义样式。
+- 删除 `WAsyncPagedSliver.footer` / `WAsyncPagedSliver.strings`；`WAsyncPagedSliver.new`
+  只保留四态、`emptyBuilder` 和标准列表；`WAsyncPagedSliver.itemBuilder` 改为可空字段，
+  由默认构造保证非空；header / footer 由调用方自己的滚动壳负责。
+- `WAsyncPagedSliver.ready` 改名为 `WAsyncPagedSliver.custom`；默认构造仍是标准列表。
+
 ## 0.2.0
 
 ### Added
