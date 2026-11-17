@@ -1,6 +1,7 @@
 // w_tools_async：异步执行、状态与异步视图。
 
 export 'src/task/async_task.dart';
+export 'src/task/async_executor.dart';
 export 'src/task/cancel_token.dart';
 export 'src/state/async_state.dart';
 export 'src/state/async_controller.dart';

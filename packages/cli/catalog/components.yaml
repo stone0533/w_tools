@@ -1233,19 +1233,45 @@ components:
     tier: core
     docsAnchor: '1-wasync'
     section: '1. WAsync'
-    useFor: 'WAsync 执行入口的默认生命周期回调：onStart / onError / onFinally'
-    dontUseFor: '不要在这里放 loading / toast 实现；项目在 composition root 配置一次'
+    useFor: '执行入口的生命周期回调值对象：onStart / onError / onFinally'
+    dontUseFor: '不要在这里放 loading / toast 实现；用 WAsyncExecutor 携带默认值'
     usage: |
-      WAsync.defaultHooks = WAsyncHooks(
+      final hooks = WAsyncHooks(
         onStart: AppLoading.show,
         onError: AppToast.error,
         onFinally: AppLoading.hide,
       );
+      final appAsync = WAsyncExecutor(hooks);
+      await appAsync.run(() => api.save());
     pitfalls:
-      - '默认配置一次；单次用 hooks 覆盖，WAsyncHooks.none 关闭'
-      - '默认只作用于显式执行入口；controller 的 load/refresh/loadMore 不继承'
-      - '测试必须重置 WAsync.defaultHooks'
-    related: ['WAsync']
+      - 'WAsyncHooks 只是回调值对象，不持有执行逻辑'
+      - 'WAsync.defaultHooks 已 deprecated；改用 WAsyncExecutor'
+      - 'WAsyncHooks.none 可关闭本次 hooks'
+    related: ['WAsyncExecutor', 'WAsync']
+    teach: true
+
+  - name: '`WAsyncExecutor`'
+    package: 'w_tools_async'
+    tier: core
+    docsAnchor: '1-wasync'
+    section: '1. WAsync'
+    useFor: '携带默认 WAsyncHooks 的实例执行器：run / tryRun / retry / timeout / settle'
+    dontUseFor: '不要做成全局单例；在 composition root 创建并注入；controller 不使用它'
+    usage: |
+      final appAsync = WAsyncExecutor(
+        WAsyncHooks(
+          onStart: AppLoading.show,
+          onError: AppToast.error,
+          onFinally: AppLoading.hide,
+        ),
+      );
+      await appAsync.run(() => api.save());
+      final result = await appAsync.tryRun(() => api.fetch());
+    pitfalls:
+      - '单次用 hooks 覆盖默认；WAsyncHooks.none 关闭本次'
+      - '不要放进全局静态；按 app / 模块注入'
+      - 'WAsyncController / WAsyncPagedController 不使用 executor'
+    related: ['WAsyncHooks', 'WAsync']
     teach: true
 
   - name: '`WAsync`'
@@ -1255,12 +1281,14 @@ components:
     useFor: '无 UI 异步执行（tryRun / run / retry / timeout / settle）'
     dontUseFor: '页面四态用 `WAsyncController` + `WAsyncView`；并发组合用 Future.wait / package:async'
     usage: |
-      WAsync.defaultHooks = WAsyncHooks( // composition root 设置一次
-        onStart: AppLoading.show,
-        onError: AppToast.error,
-        onFinally: AppLoading.hide,
+      final appAsync = WAsyncExecutor(
+        WAsyncHooks(
+          onStart: AppLoading.show,
+          onError: AppToast.error,
+          onFinally: AppLoading.hide,
+        ),
       );
-      final result = await WAsync.tryRun(() => api.fetch());
+      final result = await appAsync.tryRun(() => api.fetch());
       switch (result) {
         case WAsyncSuccess(:final value): use(value);
         case WAsyncFailure(:final error): log(error);
@@ -1290,6 +1318,7 @@ components:
       - 'run 失败抛异常；tryRun 不抛异常'
       - 'onStart / onFinally 管 loading；onFinally 在成功 / 失败 / 取消都执行'
       - 'WAsyncHooks / defaultHooks 配置一次；显式回调 > hooks > defaultHooks'
+      - 'defaultHooks 已 deprecated；优先用 WAsyncExecutor'
       - '本次关闭默认传 hooks: WAsyncHooks.none；测试必须重置 defaultHooks'
       - 'retry / timeout 的钩子整次一次；settle 是 batch-level，整批一次'
       - '成功用返回值，不提供 onSuccess；onError 只是通知，不会吞异常'

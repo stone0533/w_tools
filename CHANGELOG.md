@@ -1,3 +1,8 @@
+## 18.0.8
+
+### Changed
+- `w_tools_async` 约束抬到 `^7.4.0`（新增 `WAsyncExecutor`，deprecated `defaultHooks`）。
+
 ## 18.0.7
 
 ### Fixed

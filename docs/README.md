@@ -41,6 +41,7 @@
 
 - [0013 async 规范应用层](adr/0013-async-ui-extension-package.md)：`w_tools_async_ui` 作为可选扩展包
 - [0014 WAsync 默认生命周期钩子](adr/0014-async-default-hooks.md)：`WAsyncHooks` / `defaultHooks` / 单次 `hooks`
+- [0015 WAsyncExecutor](adr/0015-async-executor.md)：实例执行器替代全局 `defaultHooks`
 
 - [ADR 索引与模板](adr/README.md)：按主题分组的索引、状态词、模板、新增/取代规则
 - [0001 子包独立版本](adr/0001-package-versioning.md)：独立 semver、不回滚（操作规则见 releasing.md）

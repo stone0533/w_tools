@@ -43,4 +43,8 @@ packages:
 
 # 新增公开类型必须在这里登记，并指向真正的 ADR；`until` 到期后例外失效。
 # 新类型进入已发布快照后，删掉对应条目（脚本会对过期条目告警）。
-exceptions: []
+exceptions:
+  - package: async
+    type: WAsyncExecutor
+    adr: docs/adr/0015-async-executor.md
+    until: 7.5.0

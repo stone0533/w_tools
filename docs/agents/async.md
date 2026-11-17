@@ -37,10 +37,11 @@
   `WAsyncController.list` 或 `List.unmodifiable`。状态相等性是浅比较，列表按引用比较。
 - `onError` 只是通知，不会吞异常；`run(...).then(onSuccess)` 必须同时给
   `onError` / `catchError`，否则会有 unhandled Future。不要用空 `onError` 当 catch。
-- `WAsyncHooks` / `WAsync.defaultHooks` 管显式执行入口的默认；单次 `hooks` 可覆盖，
-  `WAsyncHooks.none` 关闭默认；测试必须重置。
+- `WAsyncHooks` 是回调值对象；`WAsyncExecutor` 携带默认 hooks，在 composition root
+  创建并注入；单次 `hooks` 可覆盖，`WAsyncHooks.none` 关闭默认。
+- `WAsync.defaultHooks` 已 deprecated；不要在新代码使用。测试用独立 executor，不重置全局。
 - `WAsyncController.load` / `WAsyncPagedController.refresh` / `loadMore` 不继承
-  `defaultHooks`；页面 loading 走 `WAsyncSection` / `WAsyncPagedList` 四态。
+  executor / defaultHooks；页面 loading 走 `WAsyncSection` / `WAsyncPagedList` 四态。
 - `WAsync.run` / `tryRun` / `retry` / `timeout` 的 `onStart` / `onFinally` 管 loading 生命周期；
   `onFinally` 在成功 / 失败 / 取消都执行，成功用返回值，不提供 `onSuccess`。
 - `retry` / `timeout` 的钩子整次一次；`settle` 的钩子是 batch-level，整批一次。
