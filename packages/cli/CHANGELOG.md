@@ -1,3 +1,11 @@
+## 2.3.1
+
+### Changed
+- **R10 从 warn 升级为 error**：依赖 `w_tools_async_ui` 的项目，业务页面直接使用
+  `WAsyncView` / `WAsyncStateSliver` 或维护 `hasLoadedMorePage` 会失败；需要时用
+  `// w_tools:ignore R10 reason: ...` 或 `rules.R10: false`。
+- `init` 的 `w_tools_async` 约束抬到 `^7.0.2`（async docs-only patch）。
+
 ## 2.3.0
 
 ### Added

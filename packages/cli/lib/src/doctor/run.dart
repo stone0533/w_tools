@@ -101,7 +101,7 @@ const List<DoctorRule> doctorRules = <DoctorRule>[
   DoctorRule(
     id: R10AsyncUiUsage.id,
     title: R10AsyncUiUsage.title,
-    level: DoctorLevel.warn,
+    level: DoctorLevel.error,
     summaryZh: 'async_ui 规范入口',
     summaryEn: 'async_ui canonical entry',
     check: R10AsyncUiUsage.check,

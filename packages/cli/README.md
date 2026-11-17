@@ -270,7 +270,7 @@ dart run w_tools_cli:w_tools doctor --strict            # warning 也失败
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致 |
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成（有 `.w_tools/init.json` 按内容比，否则按版本标记） |
 | R9 | 配置 | 项目禁用 API（`banned`；默认空） |
-| R10 | warn | 依赖 `w_tools_async_ui` 时，业务页面直接用 `WAsyncView` / `WAsyncStateSliver` 或维护 `hasLoadedMorePage` |
+| R10 | error | 依赖 `w_tools_async_ui` 时，业务页面直接用 `WAsyncView` / `WAsyncStateSliver` 或维护 `hasLoadedMorePage` |
 
 > doctor 规则是文本级检查：注释会跳过；R3 的 `Color(...)` 不会命中字符串字面量，
 > 但 R9 与 `fromHex('#...')` 仍按字符串内容匹配。

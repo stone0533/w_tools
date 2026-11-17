@@ -44,7 +44,7 @@ class R10AsyncUiUsage {
           issues.add(
             DoctorIssue(
               rule: id,
-              level: DoctorLevel.warn,
+              level: DoctorLevel.error,
               file: file,
               line: line.lineNumber,
               message: '业务页面直接使用了 async 原语',
@@ -58,7 +58,7 @@ class R10AsyncUiUsage {
           issues.add(
             DoctorIssue(
               rule: id,
-              level: DoctorLevel.warn,
+              level: DoctorLevel.error,
               file: file,
               line: line.lineNumber,
               message: '业务页面维护了 hasLoadedMorePage',
