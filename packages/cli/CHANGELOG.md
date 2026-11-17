@@ -1,3 +1,10 @@
+## 2.3.4
+
+### Changed
+- `init` 的 `w_tools_async_ui` 约束抬到 `^0.2.0`。
+- catalog 的 `WAsyncSection` / `WAsyncPagedSliver` usage 补 per-block builder、
+  `readySliverBuilder` 与 footer 覆盖。
+
 ## 2.3.3
 
 ### Changed

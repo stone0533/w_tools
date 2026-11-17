@@ -806,18 +806,23 @@ components:
     tier: app
     docsAnchor: 'wasyncsection'
     section: '4. View'
-    useFor: '业务页面单区块四态的规范入口；失败态默认接 controller.load'
-    dontUseFor: '自定义布局 / 特殊错误页 / 需要 per-view builder 时用核心 `WAsyncView`；不要在本组件里塞全局 loading'
+    useFor: '业务页面单区块四态的规范入口；支持 per-block builder 与自定义 onRetry'
+    dontUseFor: '分页用 WAsyncPagedList；纯执行用 WAsync；不要在本组件里塞全局 loading'
     usage: |
       WAsyncSection<List<Gift>>(
         controller: gifts,
         builder: (context, data) => GiftList(data),
-        emptyBuilder: (context) => const EmptyView(), // 可选
+        onRetry: gifts.load, // 可选；默认 controller.load
+        loadingBuilder: (context) => const GiftSkeleton(),
+        emptyBuilder: (context) => const EmptyView(),
+        errorBuilder: (context, error, retry) => GiftError(retry: retry),
+        errorBannerBuilder: (context, error, retry) => GiftBanner(retry: retry),
+        refreshingBuilder: (context) => const LinearProgressIndicator(),
       )
     pitfalls:
       - '不自动 load；页面在 controller 的 initState / onInit 调 load()'
       - '不持有 controller；页面 dispose / onClose 负责 dispose'
-      - 'loading / error 外观走 WAsyncTheme；空态用 emptyBuilder'
+      - 'per-block builder 覆盖 WAsyncTheme；不传时仍走全局主题'
     related: ['WAsyncController', 'WAsyncView', 'WAsyncPagedList']
     teach: true
 
@@ -827,7 +832,7 @@ components:
     docsAnchor: 'wasyncpagedlist'
     section: '4. View'
     useFor: '标准分页列表的规范入口；内部处理刷新、上拉、footer 和重试'
-    dontUseFor: '自定义滚动壳用 `WAsyncPagedSliver`；不要在外面再包 SmartRefresher 或传 footerStatus / footerChanges'
+    dontUseFor: '自定义 header/footer 或 ready sliver 用 `WAsyncPagedSliver` + 自己的 SmartRefresher；不要在 WAsyncPagedList 外再传 footerStatus / footerChanges'
     usage: |
       WAsyncPagedList<Gift>(
         controller: gifts,
@@ -847,19 +852,21 @@ components:
     tier: app
     docsAnchor: 'wasyncpagedsliver'
     section: '4. View'
-    useFor: '自定义 CustomScrollView 里的分页内容（四态 + footer）'
-    dontUseFor: '标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncStateSliver 单区块'
+    useFor: '自定义 CustomScrollView 里的分页内容；.ready 支持 readySliverBuilder / footer 覆盖'
+    dontUseFor: '标准页面优先用 `WAsyncPagedList`；不要用它替代普通 WAsyncSection 单区块'
     usage: |
       CustomScrollView(
         slivers: [
-          WAsyncPagedSliver<Gift>(
+          WAsyncPagedSliver<Gift>.ready(
             controller: gifts,
-            itemBuilder: (context, gift) => GiftTile(gift),
+            readySliverBuilder: (context, items) => WListViewSliver.overlap(...),
+            footer: const SizedBox.shrink(), // 外层 CustomFooter 负责
           ),
         ],
       )
     pitfalls:
       - '不包含 SmartRefresher / RefreshController；刷新由页面自己的滚动壳负责'
+      - 'itemBuilder 与 readySliverBuilder 二选一；footer 不传时用内部 footer'
       - '不自动 refresh；页面 controller 负责首屏请求'
     related: ['WAsyncPagedList', 'WAsyncStateSliver']
     teach: false

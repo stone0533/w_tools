@@ -9,7 +9,7 @@
 | --- | --- |
 | 单区块 | `WAsyncSection` |
 | 标准分页 | `WAsyncPagedList` |
-| 自定义滚动 | `WAsyncPagedSliver` |
+| 自定义滚动 / ready sliver / footer | `WAsyncPagedSliver` |
 | footer 文案 | `WAsyncPagedStrings` |
 
 业务页面不要再直接写 `WAsyncView` / `WAsyncStateSliver`；它们保留给库、设计系统和明确的自定义扩展。
@@ -75,7 +75,7 @@ Widget build(BuildContext context) {
 
 ## 推荐门禁
 
-迁移期先 `warn`，稳定后改 `error`：
+R10 从 CLI 2.3.1 起为 `error`；如果项目还没迁移完，用下面的 ignore / rules.R10 关闭。
 
 ```yaml
 banned:
@@ -83,7 +83,7 @@ banned:
     pattern: '\bWAsyncView\b'
     use: 'WAsyncSection'
     reason: '业务页面统一走 async_ui；默认 onRetry 接 controller.load'
-    level: warn
+    level: error
     paths: ['lib/app/modules/**']
     ignore: ['lib/app/ui/**', 'lib/app/design_system/**']
 
@@ -91,7 +91,7 @@ banned:
     pattern: '\bWAsyncStateSliver\b'
     use: 'WAsyncPagedList / WAsyncPagedSliver'
     reason: '分页 footer 统一读 snapshot'
-    level: warn
+    level: error
     paths: ['lib/app/modules/**']
 ```
 

@@ -21,7 +21,7 @@ packages:
   async:
     growth: 5
   async_ui:
-    growth: 2
+    growth: 8
   ui:
     growth: 12
   form: {}
