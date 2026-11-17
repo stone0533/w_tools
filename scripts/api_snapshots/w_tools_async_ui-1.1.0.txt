@@ -1,0 +1,30 @@
+# w_tools_async_ui 1.1.0
+WAsyncPagedList	class
+WAsyncPagedList.controller	WAsyncPagedController<T>
+WAsyncPagedList.createState	State<WAsyncPagedList<T>> ()
+WAsyncPagedList.emptyBuilder	WidgetBuilder?
+WAsyncPagedList.footer	Widget?
+WAsyncPagedList.header	Widget?
+WAsyncPagedList.itemBuilder	Widget Function(BuildContext context, T item)
+WAsyncPagedList.new	({ super.key, required this.controller, required this.itemBuilder, this.emptyBuilder, this.header, this.footer, this.refreshController, })
+WAsyncPagedList.refreshController	RefreshController?
+WAsyncPagedSliver	class
+WAsyncPagedSliver.build	Widget (BuildContext context)
+WAsyncPagedSliver.controller	WAsyncPagedController<T>
+WAsyncPagedSliver.custom	({ super.key, required this.controller, required this.readySliverBuilder, this.emptyBuilder, this.onRetry, })
+WAsyncPagedSliver.emptyBuilder	WidgetBuilder?
+WAsyncPagedSliver.itemBuilder	Widget Function(BuildContext context, T item)?
+WAsyncPagedSliver.new	({ super.key, required this.controller, required this.itemBuilder, this.emptyBuilder, this.onRetry, })
+WAsyncPagedSliver.onRetry	VoidCallback?
+WAsyncPagedSliver.readySliverBuilder	Widget Function(BuildContext context, List<T> items)?
+WAsyncSection	class
+WAsyncSection.build	Widget (BuildContext context)
+WAsyncSection.builder	Widget Function(BuildContext context, T data)
+WAsyncSection.controller	WAsyncController<T>
+WAsyncSection.emptyBuilder	WidgetBuilder?
+WAsyncSection.errorBannerBuilder	WAsyncErrorWidgetBuilder?
+WAsyncSection.errorBuilder	WAsyncErrorWidgetBuilder?
+WAsyncSection.loadingBuilder	WidgetBuilder?
+WAsyncSection.new	({ super.key, required this.controller, required this.builder, this.onRetry, this.loadingBuilder, this.emptyBuilder, this.errorBuilder, this.errorBannerBuilder, this.refreshingBuilder, })
+WAsyncSection.onRetry	VoidCallback?
+WAsyncSection.refreshingBuilder	WidgetBuilder?
