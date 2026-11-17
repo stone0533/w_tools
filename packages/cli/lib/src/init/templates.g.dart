@@ -1641,7 +1641,7 @@ const String agentsAsync = r'''
 const String agentsAsyncUi = r'''
 - **Async 规范入口**（`explain WAsyncSection` / `explain WAsyncPagedList`）：业务页面单区块用
   `WAsyncSection`，标准分页用 `WAsyncPagedList`（内部 SmartRefresher / footer / 重试），
-  自定义滚动用 `WAsyncPagedSliver`；footer 文案用 `WAsyncPagedStrings`。不要维护
+  自定义滚动用 `WAsyncPagedSliver`；业务入口查询用 `list --tier=app`。不要维护
   `hasLoadedMorePage`，分页只读 `snapshot.footerStatus`；`WAsyncView` / `WAsyncStateSliver`
   只用于库 / 设计系统 / 明确的自定义扩展。
 ''';
@@ -1774,7 +1774,7 @@ const String agentsAsyncEn = r'''
 
 const String agentsAsyncUiEn = r'''
 - **Async entries** (`explain WAsyncSection` / `explain WAsyncPagedList`): use
-  `WAsyncSection` / `WAsyncPagedList` for blocks / paging (SmartRefresher/footer); use `WAsyncPagedSliver` for custom scroll; `WAsyncPagedStrings` for footer.
+  `WAsyncSection` / `WAsyncPagedList` for blocks / paging (SmartRefresher/footer); use `WAsyncPagedSliver` for custom scroll; use `list --tier=app` for app entries.
   Don't maintain `hasLoadedMorePage`; footer reads `snapshot.footerStatus`.
   `WAsyncView`/`WAsyncStateSliver` are library/design-system.
 ''';

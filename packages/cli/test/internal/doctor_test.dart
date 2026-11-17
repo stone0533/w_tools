@@ -683,7 +683,7 @@ void main() {
       expect(result.status, DoctorRuleStatus.skipped);
     });
 
-    test('依赖 async_ui 时，业务页面直接 WAsyncView → warn', () {
+    test('依赖 async_ui 时，业务页面直接 WAsyncView → error', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\ndependencies:\n  w_tools_async_ui: ^0.1.0\n',
         'lib/app/modules/demo/view.dart':
@@ -692,11 +692,11 @@ void main() {
       addTearDown(() => root.deleteSync(recursive: true));
       final result = R10AsyncUiUsage.check(ctxOf(root, DoctorConfig()), DoctorConfig());
       expect(result.status, DoctorRuleStatus.fail);
-      expect(result.issues.single.level, DoctorLevel.warn);
+      expect(result.issues.single.level, DoctorLevel.error);
       expect(result.issues.single.hint, contains('WAsyncSection'));
     });
 
-    test('hasLoadedMorePage → warn', () {
+    test('hasLoadedMorePage → error', () {
       final root = makeProject({
         'pubspec.yaml': 'name: demo\ndependencies:\n  w_tools_async_ui: ^0.1.0\n',
         'lib/app/modules/demo/controller.dart': 'bool hasLoadedMorePage = false;\n',

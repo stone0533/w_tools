@@ -1,3 +1,8 @@
+## Unreleased
+
+### Changed
+- 聚合依赖 `w_tools_async: ^7.0.2`（async docs-only patch；根包 API 不变）。
+
 ## 18.0.1
 
 ### Changed

@@ -96,7 +96,7 @@ doctor 检查项：
 | R7 | error | toolkit 的 `export` 与 pubspec 依赖不一致（导出未依赖 / 依赖未导出） |
 | R8 | warn | 生成物由旧版 `w_tools_cli` 生成（检查 toolkit、target 文件与 `.w_tools/AI_PROMPTS.md`；UI starter 可自定义，不检查；有 `.w_tools/init.json` 时按内容比对，没有 manifest 时退回版本标记比对） |
 | R9 | 配置 | 项目禁用 API（`.w_tools_doctor.yaml` 的 `banned`；默认空，命中按条目 level 报） |
-| R10 | warn | 项目直接依赖 `w_tools_async_ui` 时，业务页面（`lib/app/modules/**`）直接使用 `WAsyncView` / `WAsyncStateSliver` 或维护 `hasLoadedMorePage` |
+| R10 | error | 项目直接依赖 `w_tools_async_ui` 时，业务页面（`lib/app/modules/**`）直接使用 `WAsyncView` / `WAsyncStateSliver` 或维护 `hasLoadedMorePage` |
 
 R6（禁用单位 `.h` / `.r`）已移除：这类**项目专用**规范改用 R9 的 `banned`（`mode: regex`）表达，
 不再有专用规则与配置键。配置里残留 `rules.R6` / `feedback.max_issues_per_day` 时，

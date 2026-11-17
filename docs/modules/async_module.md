@@ -190,5 +190,5 @@ cd packages/async
 flutter test
 ```
 
-当前 7.0.1；迁移见 [async-7.0](../migrations/async-7.0.md)。
+当前 7.0.2；迁移见 [async-7.0](../migrations/async-7.0.md)。
 AI 路由见 [docs/agents/async.md](../agents/async.md)。
