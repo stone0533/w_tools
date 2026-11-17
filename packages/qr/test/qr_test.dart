@@ -56,6 +56,11 @@ String? _decodeMethodName(ByteData? message) {
 /// 编码一个成功回包
 ByteData? _success([Object? value]) => const StandardMethodCodec().encodeSuccessEnvelope(value);
 
+/// 当前 QRView overlay 的边框颜色（用于断言扫中高亮）
+Color? _overlayBorderColor(WidgetTester tester) {
+  return tester.widget<QRView>(find.byType(QRView)).overlay?.borderColor;
+}
+
 /// 创建控制器并在用例结束时释放
 WQrController _newController() {
   final controller = WQrController();
@@ -76,6 +81,7 @@ void main() {
       expect(style.cutOutWidth, 250);
       expect(style.cutOutHeight, 250);
       expect(style.cutOutBottomOffset, 0);
+      expect(style.successColor, isNull);
     });
 
     test('cutOutHeight 缺省时回退到 cutOutWidth', () {
@@ -108,6 +114,7 @@ void main() {
     test('自定义扫描框与颜色', () {
       const style = WQrOverlayStyle(
         borderColor: Colors.blue,
+        successColor: Colors.greenAccent,
         margin: EdgeInsets.all(8),
         borderWidth: 5,
         borderRadius: 10,
@@ -117,6 +124,7 @@ void main() {
         cutOutBottomOffset: 20,
       );
       expect(style.borderColor, Colors.blue);
+      expect(style.successColor, Colors.greenAccent);
       expect(style.margin, const EdgeInsets.all(8));
       expect(style.borderWidth, 5);
       expect(style.borderRadius, 10);
@@ -336,6 +344,70 @@ void main() {
       expect(result.rawBytes, [1, 2, 3]);
       expect(result.toString(), contains('hello'));
       expect(platformCalls.where((call) => call == 'pauseCamera').length, 1);
+    });
+
+    testWidgets('successColor：单次命中后变绿，restart 复位', (tester) async {
+      final controller = _newController();
+      const style = WQrOverlayStyle(
+        borderColor: Colors.white,
+        successColor: Colors.green,
+      );
+      await pumpQrView(
+        tester,
+        controller: controller,
+        style: style,
+        onScanned: (_) {},
+      );
+
+      expect(_overlayBorderColor(tester), Colors.white);
+      await _emitBarcode(tester, 'hello');
+      expect(_overlayBorderColor(tester), Colors.green);
+
+      await controller.restart();
+      await tester.pump();
+      expect(_overlayBorderColor(tester), Colors.white);
+    });
+
+    testWidgets('未配置 successColor 时单次命中不改变边框', (tester) async {
+      const style = WQrOverlayStyle(borderColor: Colors.white);
+      await pumpQrView(tester, style: style, onScanned: (_) {});
+
+      await _emitBarcode(tester, 'hello');
+      expect(_overlayBorderColor(tester), Colors.white);
+    });
+
+    testWidgets('successColor：连续模式不高亮', (tester) async {
+      const style = WQrOverlayStyle(
+        borderColor: Colors.white,
+        successColor: Colors.green,
+      );
+      await pumpQrView(
+        tester,
+        style: style,
+        scanOnce: false,
+        onScanned: (_) {},
+      );
+
+      await _emitBarcode(tester, 'hello');
+      expect(_overlayBorderColor(tester), Colors.white);
+    });
+
+    testWidgets('successColor：onScanned 抛异常时回滚边框', (tester) async {
+      final errors = <Object>[];
+      const style = WQrOverlayStyle(
+        borderColor: Colors.white,
+        successColor: Colors.green,
+      );
+      await pumpQrView(
+        tester,
+        style: style,
+        onScanned: (_) => throw StateError('boom'),
+        onError: (error, _) => errors.add(error),
+      );
+
+      await _emitBarcode(tester, 'hello');
+      expect(_overlayBorderColor(tester), Colors.white);
+      expect(errors.single, isA<StateError>());
     });
 
     testWidgets('scanOnce 为 false：持续回调且不暂停相机', (tester) async {

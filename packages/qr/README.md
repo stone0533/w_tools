@@ -29,7 +29,7 @@
 
 ```yaml
 dependencies:
-  w_tools_qr: ^3.0.0
+  w_tools_qr: ^3.1.0
 ```
 
 ## 快速开始
@@ -115,6 +115,7 @@ WQrView(
   controller: _controller,
   style: const WQrOverlayStyle(
     borderColor: Colors.blue,
+    successColor: Colors.greenAccent, // 单次命中后变绿
     borderWidth: 4,
     cutOutWidth: 240,
     cutOutHeight: 240,
@@ -124,6 +125,9 @@ WQrView(
 ```
 
 传 `style: null` 表示全屏扫描，不绘制扫描框。
+
+`successColor` 是 opt-in：不传（默认 `null`）时边框保持 `borderColor`；传了之后，单次模式
+命中有效码时边框切到该颜色，并保持到 `WQrController.restart()`。连续模式不生效。
 
 ## 权限
 

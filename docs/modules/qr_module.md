@@ -55,6 +55,7 @@ library 里用 `part` 拆分；barrel 只导出 `WQrController` / `WQrView`。
 | 字段 | 默认值 | 说明 |
 |------|--------|------|
 | `borderColor` | `Colors.red` | 边框颜色 |
+| `successColor` | `null` | 单次模式命中后的边框颜色；null 表示不做高亮 |
 | `margin` | `EdgeInsets.zero` | 扫描框外边距 |
 | `borderWidth` | `3.0` | 边框宽度（逻辑像素） |
 | `overlayColor` | `Color.fromRGBO(0, 0, 0, 0.5)` | 遮罩颜色（半透明黑） |
@@ -67,11 +68,16 @@ library 里用 `part` 拆分；barrel 只导出 `WQrController` / `WQrView`。
 `borderWidth` / `borderLength` / 扫描框尺寸必须为正数（本类断言）；`borderLength` 与扫描框
 尺寸的比例约束由插件 `QrScannerOverlayShape` 断言。本类不实现 `==` / `hashCode`。
 
+`successColor` 为 null 时不做高亮（3.0 默认行为）；非 null 时只在单次模式命中后生效，
+保持到 `restart()`，`onScanned` 抛异常回滚时复位；连续模式不生效。不要用
+`QrScannerOverlayShape` + 透明 `overlayColor` 自绘高亮：`paint` 的 `saveLayer` 会把边框一起抹掉。
+
 ### 使用示例
 
 ```dart
 const style = WQrOverlayStyle(
   borderColor: Colors.blue,
+  successColor: Colors.greenAccent,
   borderWidth: 4.0,
   borderRadius: 8,
   cutOutWidth: 300,

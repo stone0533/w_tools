@@ -40,6 +40,8 @@ WQrView(controller: controller, scanOnce: false);
 - `scanThrottle` 默认 400ms，只在连续模式（`scanOnce: false`）对连续相同内容节流，
   `Duration.zero` 关闭；
 - 运行期改 `cameraFacing` / `formatsAllowed` 会重建平台视图（相机重启、扫描状态重置）；
-- 未挂载（`isAttached == false`）时相机方法与 `restart()` 都抛 `StateError`。
+- 未挂载（`isAttached == false`）时相机方法与 `restart()` 都抛 `StateError`；
+- 扫中变绿用 `WQrOverlayStyle.successColor`（opt-in，单次模式，保持到 `restart()`）；
+  不要自绘扫描框几何，透明 `overlayColor` 会把边框一起抹掉（`explain WQrOverlayStyle`）。
 
 完整说明：[qr_module.md](../modules/qr_module.md) · 示例：`packages/qr/example`

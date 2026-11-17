@@ -137,6 +137,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                       borderWidth: 4,
                       cutOutWidth: 240,
                       cutOutHeight: 240,
+                      successColor: Colors.greenAccent,
                     )
                   : null,
             ),
