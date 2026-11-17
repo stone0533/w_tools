@@ -1,4 +1,4 @@
-## Unreleased
+## 12.0.1
 
 ### Changed
 - 文档注释：`.sp` / `WTextStyles` 的根装配位置改指 `WAppOptions.builder`

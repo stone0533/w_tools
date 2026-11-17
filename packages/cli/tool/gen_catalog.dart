@@ -155,20 +155,25 @@ const _sectionHeader = <String, List<String>>{
   '8': <String>['能力', '子包', '说明', '**不要用在哪**'],
 };
 
-const _defaultHeader = <String>['组件', '子包', '用来做什么', '**不要用在哪**'];
+const _defaultHeader = <String>['组件', '子包', '层级', '用来做什么', '**不要用在哪**'];
 
 /// 生成 §1~§9 的表格文本（不含标题）。
 String buildTable(String section, List<YamlMap> components) {
   final header = _sectionHeader[section] ?? _defaultHeader;
   final buf = StringBuffer()
     ..writeln('| ${header.join(' | ')} |')
-    ..writeln('| --- | --- | --- | --- |');
+    ..writeln('| ${List<String>.filled(header.length, '---').join(' | ')} |');
   for (final c in components) {
     final name = c['name'] as String;
     final pkg = (c['package'] as String).replaceFirst('w_tools_', '');
     final useFor = (c['useFor'] as String).replaceAll('|', r'\|');
     final dont = ((c['dontUseFor'] as String?) ?? '—').replaceAll('|', r'\|');
-    buf.writeln('| $name | $pkg | $useFor | $dont |');
+    final tier = (c['tier'] as String?) ?? 'core';
+    if (section == '8') {
+      buf.writeln('| $name | $pkg | $useFor | $dont |');
+    } else {
+      buf.writeln('| $name | $pkg | $tier | $useFor | $dont |');
+    }
   }
   return buf.toString().trimRight();
 }

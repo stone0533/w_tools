@@ -1,3 +1,9 @@
+## 2.3.2
+
+### Changed
+- `init` 的 `w_tools_ui` 约束抬到 `^12.0.1`、`w_tools_toast` 约束抬到 `^2.1.1`
+  （均为 docs-only patch）。
+
 ## 2.3.1
 
 ### Changed

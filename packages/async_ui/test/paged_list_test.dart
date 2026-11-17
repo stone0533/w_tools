@@ -134,4 +134,35 @@ void main() {
     expect(find.text('item 1'), findsOneWidget);
     expect(calls, 2);
   });
+
+  testWidgets('footer 失败后再次 loadMore 恢复列表', (tester) async {
+    var pageTwoCalls = 0;
+    final controller = WAsyncPagedController<int>((page, _) async {
+      if (page == 1) return const WAsyncPage<int>(items: <int>[1], hasMore: true);
+      pageTwoCalls++;
+      if (pageTwoCalls == 1) throw StateError('load more failed');
+      return const WAsyncPage<int>(items: <int>[2], hasMore: false);
+    });
+    addTearDown(controller.dispose);
+    await controller.refresh();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WAsyncPagedList<int>(
+            controller: controller,
+            itemBuilder: (context, item) => Text('item $item'),
+          ),
+        ),
+      ),
+    );
+    await controller.loadMore();
+    await tester.pumpAndSettle();
+    expect(find.text('Load failed · Retry'), findsOneWidget);
+
+    await controller.loadMore();
+    await tester.pumpAndSettle();
+    expect(find.text('item 2'), findsOneWidget);
+    expect(pageTwoCalls, 2);
+  });
 }

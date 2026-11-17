@@ -37,6 +37,13 @@ void main() {
     expect(module, contains('当前 $version'));
   });
 
+  test('ASYNC-025：async_ui 文档包含 R10 迁移入口', () {
+    final text = File('../../docs/extensions/async_ui.md').readAsStringSync();
+    expect(text, contains('R10 迁移'));
+    expect(text, contains('rules.R10: false'));
+    expect(text, contains('w_tools:ignore R10'));
+  });
+
   test('ASYNC-017：naming.md 登记 async 的 Snapshot 角色', () {
     final naming = File('../../docs/naming.md').readAsStringSync();
 

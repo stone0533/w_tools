@@ -1759,10 +1759,9 @@ const String agentsAppEn = r'''
 
 const String agentsAsyncEn = r'''
 - **Async blocks** (`explain WAsyncSection` / `explain WAsyncPagedList`; paged controller:
-  `explain WAsyncPagedController`): app pages use `WAsyncController` + `WAsyncSection` for one block (default `onRetry` =
-  `controller.load`) and `WAsyncPagedList` for standard paged lists (SmartRefresher / footer /
-  retry); use `WAsyncPagedSliver` only for custom scroll. `WAsyncView` / `WAsyncStateSliver` are
-  for libraries / design systems / explicit extensions. Footer reads only
+  `explain WAsyncPagedController`): app pages use `WAsyncController` + `WAsyncSection` for one block
+  (onRetry=controller.load) and `WAsyncPagedList` for paged lists; `WAsyncPagedSliver` for custom
+  scroll. `WAsyncView` / `WAsyncStateSliver` are for libraries/design systems. Footer reads only
   `snapshot.footerStatus` (hidden / loading / failed / noMore / loadMore); `loadMore` failure
   writes `snapshot.loadMoreError`; do not maintain `hasLoadedMorePage`; one controller per
   independent block; do not use `data != null` for the four states; `WAsyncStatus` /
@@ -1774,8 +1773,8 @@ const String agentsAsyncEn = r'''
 
 const String agentsAsyncUiEn = r'''
 - **Async entries** (`explain WAsyncSection` / `explain WAsyncPagedList`): use
-  `WAsyncSection` / `WAsyncPagedList` for blocks / paging (SmartRefresher/footer); use `WAsyncPagedSliver` for custom scroll; use `list --tier=app` for app entries.
-  Don't maintain `hasLoadedMorePage`; footer reads `snapshot.footerStatus`.
+  `WAsyncSection` / `WAsyncPagedList` for blocks / paging; `WAsyncPagedSliver` for custom scroll;
+  `list --tier=app`. Don't maintain `hasLoadedMorePage`; footer reads `snapshot.footerStatus`.
   `WAsyncView`/`WAsyncStateSliver` are library/design-system.
 ''';
 

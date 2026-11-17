@@ -570,6 +570,18 @@ banned:
     expect(count, greaterThanOrEqualTo(30), reason: 'ui 目录没有列全');
   });
 
+  test('list 默认把 app 入口排在 core 前面', () async {
+    final r = await _run('list.dart', ['WAsync', '--format=prompt']);
+    expect(r.exitCode, 0, reason: '${r.stderr}');
+    final out = '${r.stdout}';
+    final app = out.indexOf('WAsyncSection');
+    final core = out.indexOf('WAsyncView');
+    expect(app, greaterThanOrEqualTo(0));
+    expect(core, greaterThanOrEqualTo(0));
+    expect(app, lessThan(core), reason: 'app 入口应排在 core 原语前');
+    expect(out, contains('[app]'));
+  });
+
   test('list --tier=app 只返回业务入口', () async {
     final r = await _run('list.dart', ['WAsync', '--tier=app', '--format=prompt']);
     expect(r.exitCode, 0, reason: '${r.stderr}');

@@ -31,6 +31,12 @@ void main() {
     expect(capabilitySummaries['w_tools_async'], contains('WAsyncController'));
   });
 
+  test('components.md 表格包含层级列', () {
+    final text = File('../../docs/modules/components.md').readAsStringSync();
+    expect(text, contains('| 组件 | 子包 | 层级 | 用来做什么 |'));
+    expect(text, contains('| `WAsyncSection` | async_ui | app |'));
+  });
+
   test('别名唯一，能按名字精确查找', () {
     final seen = <String>{};
     for (final entry in catalog) {

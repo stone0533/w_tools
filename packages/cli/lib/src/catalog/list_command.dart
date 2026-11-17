@@ -44,6 +44,11 @@ CommandResult run(List<String> argv) {
       if (tier != 'all') {
         results = results.where((entry) => entry.tier == tier).toList();
       }
+      // app 入口优先：不改变结果集，只把业务规范入口排在 core 原语前。
+      results.sort((a, b) {
+        if (a.tier == b.tier) return 0;
+        return a.tier == 'app' ? -1 : 1;
+      });
       final label = <String>[
         package != null ? 'package=$package' : 'query=${query.isEmpty ? '*' : query}',
         if (tier != 'all') 'tier=$tier',
@@ -72,7 +77,7 @@ CommandResult run(List<String> argv) {
         print('# w_tools catalog v$catalogVersion · $label');
         if (hint != null) print(hint);
         for (final entry in results) {
-          print('- ${entry.name} [${entry.package}]: ${entry.useFor}');
+          print('- ${entry.name} [${entry.package}] [${entry.tier}]: ${entry.useFor}');
           if (entry.usage != null) {
             print('  ${entry.usage!.split('\n').first}');
           }
