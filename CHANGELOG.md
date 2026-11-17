@@ -1,3 +1,8 @@
+## 18.0.7
+
+### Fixed
+- `w_tools_async` 约束抬到 `^7.3.1`：controller 内部不再继承 `defaultHooks`。
+
 ## 18.0.6
 
 ### Changed

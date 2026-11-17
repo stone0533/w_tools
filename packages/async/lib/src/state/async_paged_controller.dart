@@ -88,6 +88,10 @@ class WAsyncPagedSnapshot<T> {
 /// - [state]：直接喂给 `WAsyncView` 的只读视图。
 ///
 /// 两者都由同一个内部通知源派生，不会出现两套状态漂移。
+/// 分页状态控制器。
+///
+/// `refresh` / `loadMore` 内部不继承 [WAsync.defaultHooks]；页面四态与 footer
+/// 由 `WAsyncPagedList` / `WAsyncPagedSliver` 负责。
 class WAsyncPagedController<T> {
   WAsyncPagedController(
     WAsyncPageLoader<T> loader, {
@@ -206,6 +210,7 @@ class WAsyncPagedController<T> {
 
     final result = await WAsync.tryRun<WAsyncPage<T>>(
       () => _loader(_initialPage, token),
+      hooks: WAsyncHooks.none,
       onError: onError,
       cancelToken: token,
     );
@@ -254,6 +259,7 @@ class WAsyncPagedController<T> {
 
     final result = await WAsync.tryRun<WAsyncPage<T>>(
       () => _loader(requestedPage, token),
+      hooks: WAsyncHooks.none,
       onError: onError,
       cancelToken: token,
     );

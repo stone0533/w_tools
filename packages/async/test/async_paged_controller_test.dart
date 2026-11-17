@@ -29,6 +29,9 @@ WAsyncPagedController<int> _controller(
 }
 
 void main() {
+  setUp(() => WAsync.defaultHooks = WAsyncHooks.none);
+  tearDown(() => WAsync.defaultHooks = WAsyncHooks.none);
+
   group('WAsyncPage', () {
     test('items / hasMore 原样保留', () {
       const page = WAsyncPage<int>(items: [1, 2], hasMore: false);
@@ -769,5 +772,30 @@ void main() {
 
     expect(requested, [2]);
     expect(controller.state.value.data, [1, 2]);
+  });
+
+  group('WAsyncPagedController defaultHooks', () {
+    test('refresh / loadMore 不继承 defaultHooks', () async {
+      final events = <String>[];
+      WAsync.defaultHooks = WAsyncHooks(
+        onStart: () => events.add('start'),
+        onError: (_) => events.add('error'),
+        onFinally: () => events.add('finally'),
+      );
+      final controller = _controller(
+        {
+          1: [1],
+          2: [2],
+        },
+        lastPage: 2,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refresh();
+      await controller.loadMore();
+
+      expect(controller.state.value.data, [1, 2]);
+      expect(events, isEmpty);
+    });
   });
 }

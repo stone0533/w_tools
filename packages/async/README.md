@@ -12,7 +12,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^7.3.0
+  w_tools_async: ^7.3.1
 ```
 
 要求 Flutter 3.38+。
@@ -179,6 +179,10 @@ void main() {
 await WAsync.run(() => api.save());
 await WAsync.tryRun(() => api.fetch());
 ```
+
+`defaultHooks` 只作用于显式执行入口；`WAsyncController` / `WAsyncPagedController`
+内部的 `load` / `refresh` / `loadMore` **不会继承**。页面四态仍由
+`WAsyncSection` / `WAsyncPagedList` 管理，避免骨架 + 全屏遮罩双重 loading。
 
 解析优先级：
 

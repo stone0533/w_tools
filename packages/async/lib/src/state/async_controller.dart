@@ -13,6 +13,10 @@ typedef WAsyncTokenLoader<T> = Future<T> Function(WCancelToken token);
 ///
 /// loader 统一接收 [WCancelToken]；不需要取消时写 `(_) => api.list()`。
 /// 列表语义用 [WAsyncController.list]（空列表归 empty，data 为 unmodifiable）。
+/// 页面区块的状态控制器。
+///
+/// [WAsyncController.load] 内部不继承 [WAsync.defaultHooks]；页面 loading /
+/// error 由 [WAsyncView] / WAsyncSection 负责。
 class WAsyncController<T> {
   WAsyncController(
     WAsyncTokenLoader<T> loader, {
@@ -79,6 +83,7 @@ class WAsyncController<T> {
 
     final result = await WAsync.tryRun<T>(
       () => _loader(token),
+      hooks: WAsyncHooks.none,
       onError: onError,
       cancelToken: token,
     );

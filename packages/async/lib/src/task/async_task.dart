@@ -10,6 +10,9 @@ export 'cancel_token.dart';
 ///
 /// 项目在 composition root 设置一次 [WAsync.defaultHooks]；单次调用可用
 /// [WAsync.run] 等入口的 `hooks` 参数覆盖，或传 [WAsyncHooks.none] 关闭默认。
+///
+/// 只作用于显式执行入口；[WAsyncController] / [WAsyncPagedController] 的内部
+/// load / refresh / loadMore 不继承，页面四态由 WAsyncView / WAsyncSection 管理。
 class WAsyncHooks {
   const WAsyncHooks({
     this.onStart,
@@ -39,7 +42,9 @@ class WAsyncHooks {
 class WAsync {
   WAsync._();
 
-  /// 所有执行入口的默认生命周期回调；测试中应重置为 [WAsyncHooks.none]。
+  /// 显式执行入口的默认生命周期回调；测试中应重置为 [WAsyncHooks.none]。
+  ///
+  /// 不作用于 [WAsyncController] / [WAsyncPagedController] 的内部请求。
   static WAsyncHooks defaultHooks = const WAsyncHooks();
 
   /// 执行单个异步操作并返回结果对象。
