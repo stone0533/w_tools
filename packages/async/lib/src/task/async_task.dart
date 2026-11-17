@@ -8,7 +8,7 @@ export 'cancel_token.dart';
 
 /// 执行入口的默认生命周期回调。
 ///
-/// 项目在 composition root 设置一次 [WAsync.defaultHooks]；单次调用可用
+/// 项目在 composition root 设置一次 `WAsync.defaultHooks`；单次调用可用
 /// [WAsync.run] 等入口的 `hooks` 参数覆盖，或传 [WAsyncHooks.none] 关闭默认。
 ///
 /// 只作用于显式执行入口；[WAsyncController] / [WAsyncPagedController] 的内部

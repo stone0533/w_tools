@@ -21,7 +21,7 @@ import 'async_task.dart';
 class WAsyncExecutor {
   const WAsyncExecutor(this.hooks);
 
-  /// 默认 hooks；不会读取 [WAsync.defaultHooks]。
+  /// 默认 hooks；不会读取 `WAsync.defaultHooks`。
   final WAsyncHooks hooks;
 
   Future<T> run<T>(

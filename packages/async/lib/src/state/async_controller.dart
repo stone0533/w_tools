@@ -15,7 +15,7 @@ typedef WAsyncTokenLoader<T> = Future<T> Function(WCancelToken token);
 /// 列表语义用 [WAsyncController.list]（空列表归 empty，data 为 unmodifiable）。
 /// 页面区块的状态控制器。
 ///
-/// [WAsyncController.load] 内部不继承 [WAsync.defaultHooks]；页面 loading /
+/// [WAsyncController.load] 内部不继承 `WAsync.defaultHooks`；页面 loading /
 /// error 由 [WAsyncView] / WAsyncSection 负责。
 class WAsyncController<T> {
   WAsyncController(

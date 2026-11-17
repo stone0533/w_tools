@@ -90,7 +90,7 @@ class WAsyncPagedSnapshot<T> {
 /// 两者都由同一个内部通知源派生，不会出现两套状态漂移。
 /// 分页状态控制器。
 ///
-/// `refresh` / `loadMore` 内部不继承 [WAsync.defaultHooks]；页面四态与 footer
+/// `refresh` / `loadMore` 内部不继承 `WAsync.defaultHooks`；页面四态与 footer
 /// 由 `WAsyncPagedList` / `WAsyncPagedSliver` 负责。
 class WAsyncPagedController<T> {
   WAsyncPagedController(
