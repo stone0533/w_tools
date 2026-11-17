@@ -179,7 +179,7 @@ python3 scripts/check_prompt_docs.py
 | `check_public_catalog.py` | 公开类型 → catalog 反向检查（双向：新类型要登记，基线里的旧名字也要删）；每个 catalog 条目必须有具体 `dontUseFor`（占位符 / 过短直接失败） | preflight |
 | `check_catalog_anchors.py` | catalog 的 `docsAnchor` 必须能在 `docs/modules/*_module.md` 的标题里找到 | check_docs / preflight |
 | `check_catalog_symbols.py` | catalog `usage` / `useFor` / `related` 里的 `W*` / `W*.member` 必须真实存在于公开 API | preflight |
-| `check_public_api_diff.py` | 公开 API 快照 diff：删除 / 类型/可空性 / 方法 / 构造器变化必须出现在**当前 pubspec 版本**的 CHANGELOG Breaking/Removed 或 migration（构造器可选参数可记 Added）；缺基线直接失败 | preflight |
+| `check_public_api_diff.py` | 公开 API 快照 diff：删除 / 类型/可空性 / 方法 / 构造器变化必须出现在**当前 pubspec 版本**的 CHANGELOG Breaking/Removed 或 migration（方法 / 构造器的 optional 参数可记 Added）；缺基线直接失败 | preflight |
 | `check_api_budget.py` | 公开面预算：按 `api_budget.yaml` 对比当前 API 与最新快照；patch 不允许新增 / 删除 / 修改，minor 成员净增不超预算、不得删除、required 参数 / 参数删除 / 类型变化要抬 major，新增 enum value / sealed 子类型要抬 major，新增公开类型要登记带 `until` 的 ADR 例外；`cli` 无 barrel 跳过成员计数 | preflight / 改公开 API |
 | `check_test_imports.py` | `package:w_tools_<pkg>/src/...` 只允许出现在 `test/internal/`；全包检查，存量登记在 `test_imports_baseline.yaml`（只减不增） | preflight |
 | `check_teaching_coverage.py` | 11 个库包的 `entrypoints.yaml` 入口必须出现在 docs/agents / 模板 zh+en / README（有 example 还要在 example/lib）；app_getx / map_google 共用 app / map 规则页（J-4A） | check_docs / preflight |

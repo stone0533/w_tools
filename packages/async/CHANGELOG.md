@@ -2,6 +2,14 @@
 
 > 7.0 迁移见 [async-7.0](https://github.com/stone0533/w_tools/blob/main/docs/migrations/async-7.0.md)。
 
+## 7.1.0
+
+### Added
+- `WAsync.run` / `WAsync.tryRun` 增加可选 `onStart` / `onFinally`：
+  `onStart` 在任务开始前调用，`onFinally` 在成功 / 失败 / 取消后调用；
+  `onFinally` 在 `onError` 之后执行，三个回调自身异常均不影响任务结果。
+- app 可以用钩子管理 loading 框，不再需要通用 `_withLoading` 包装；`WAsync` 仍不内置 UI。
+
 ## 7.0.2
 
 ### Changed

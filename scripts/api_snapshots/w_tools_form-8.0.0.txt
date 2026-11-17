@@ -55,6 +55,7 @@ WFormCheckbox.validator	FormFieldValidator<bool>?
 WFormController	class
 WFormController.clearError	void (String name)
 WFormController.fields	FormBuilderFields?
+WFormController.getFieldsValue	T? (String name)
 WFormController.new	()
 WFormController.of	static WFormController? (BuildContext context)
 WFormController.requireOf	static WFormController (BuildContext context)
@@ -63,6 +64,7 @@ WFormController.resetValue	void (String name)
 WFormController.save	void ()
 WFormController.savedValue	Map<String, dynamic>
 WFormController.setError	void (String name, { List<String>? errorTextList, VoidCallback? callback, })
+WFormController.setValue	void (String name, T value)
 WFormController.validate	bool ({WFormValidatorSettings? settings, List<WFormValidatorItem>? items})
 WFormController.validatorSettings	WFormValidatorSettings?
 WFormController.validators	WFormValidator ({WFormValidatorSettings? settings, List<WFormValidatorItem>? items})

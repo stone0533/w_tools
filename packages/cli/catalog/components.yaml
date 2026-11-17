@@ -1241,13 +1241,20 @@ components:
         case WAsyncFailure(:final error): log(error);
         case WAsyncCancelled(): log('cancelled');
       }
-      final value = await WAsync.run(() => api.fetch());
+      final value = await WAsync.run(
+        () => api.fetch(),
+        onStart: showLoading,
+        onError: showError,
+        onFinally: hideLoading,
+      );
       final results = await WAsync.settle<Section>([() => api.banners(), () => api.columns()]);
       await WAsync.retry(() => api.submit(), retryCount: 3,
         retryDelayBuilder: (attempt) => Duration(milliseconds: 200 * (1 << (attempt - 1))));
     pitfalls:
       - 'run 失败抛异常；tryRun 不抛异常'
-      - 'onError 只是通知，不会吞异常；run().then(onSuccess) 必须带 onError/catchError，或改用 tryRun'
+      - 'onStart / onFinally 管 loading；onFinally 在成功 / 失败 / 取消都执行'
+      - '成功用返回值，不提供 onSuccess；onError 只是通知，不会吞异常'
+      - 'run().then(onSuccess) 必须带 onError/catchError，或改用 tryRun'
       - 'settle 保留每个结果；失败任务逐个通知 onError'
       - '取消需要 WCancelToken；取消不中止底层 Future；取消与失败同轮时非 Error 按取消处理'
       - 'retry 的 retryCount 是重试次数（总尝试 = retryCount + 1）；onRetry 自身异常被忽略'

@@ -38,6 +38,7 @@ WAppScope.app	WApp
 WAppScope.new	({super.key, required this.app, required super.child})
 WAppScope.updateShouldNotify	bool (WAppScope oldWidget)
 WBottomSheet	class
+WBottomSheet.show	static Future<T?> (Widget content, { Color? backgroundColor, Color? barrierColor, bool? isDismissible, bool? enableDrag, ShapeBorder? shape, Clip? clipBehavior, bool? ignoreSafeArea, double? elevation, bool isScrollControlled = true, })
 WRouteObserver	class
 WRouteObserver.didPop	void (Route<dynamic> route, Route<dynamic>? previousRoute)
 WRouteObserver.didPush	void (Route<dynamic> route, Route<dynamic>? previousRoute)

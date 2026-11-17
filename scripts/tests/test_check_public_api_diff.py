@@ -49,6 +49,54 @@ class PublicApiDiffTest(unittest.TestCase):
         )
         self.assertEqual(errors, [])
 
+    def test_method_optional_param_can_be_added(self):
+        changes = [
+            (
+                'WAsync.run',
+                'Future<T> (Future<T> Function() task, {void Function(Object error)? onError, })',
+                'Future<T> (Future<T> Function() task, {void Function()? onStart, void Function(Object error)? onError, void Function()? onFinally, })',
+            )
+        ]
+        errors = check_notes(
+            changes,
+            changelog='## 7.1.0\n\n### Added\n- WAsync.run 增加 onStart / onFinally\n',
+            migration='',
+            current={'WAsync.run': 'Future<T> (...)'},
+        )
+        self.assertEqual(errors, [])
+
+    def test_method_required_param_still_requires_breaking(self):
+        changes = [
+            (
+                'WAsync.run',
+                'Future<T> (Future<T> Function() task, )',
+                'Future<T> (Future<T> Function() task, {required bool force, })',
+            )
+        ]
+        errors = check_notes(
+            changes,
+            changelog='## 7.1.0\n\n### Added\n- WAsync.run 增加 force\n',
+            migration='',
+            current={'WAsync.run': 'Future<T> (...)'},
+        )
+        self.assertEqual(len(errors), 1)
+
+    def test_method_return_type_change_still_requires_breaking(self):
+        changes = [
+            (
+                'WAsync.run',
+                'Future<T> (Future<T> Function() task, )',
+                'Future<T?> (Future<T> Function() task, {void Function()? onStart, })',
+            )
+        ]
+        errors = check_notes(
+            changes,
+            changelog='## 7.1.0\n\n### Added\n- WAsync.run 增加 onStart\n',
+            migration='',
+            current={'WAsync.run': 'Future<T> (...)'},
+        )
+        self.assertEqual(len(errors), 1)
+
     def test_named_constructor_optional_param_can_be_added(self):
         changes = [
             (
@@ -93,6 +141,25 @@ class PublicApiDiffTest(unittest.TestCase):
             surface = api_surface(package)
             self.assertEqual(surface.get('WThing.run'), 'void (int value)')
             self.assertEqual(surface.get('WThing.name'), 'String')
+
+    def test_generic_static_method_is_captured(self):
+        with tempfile.TemporaryDirectory() as temp:
+            package = pathlib.Path(temp)
+            (package / 'lib' / 'src').mkdir(parents=True)
+            (package / 'lib' / 'w_tools_demo.dart').write_text(
+                "export 'src/a.dart';\n"
+            )
+            (package / 'lib' / 'src' / 'a.dart').write_text(
+                'class WAsyncDemo {\n'
+                '  static Future<T> run<T>(\n'
+                '    Future<T> Function() task, {\n'
+                '    void Function()? onStart,\n'
+                '  }) async => task();\n'
+                '}\n'
+            )
+            surface = api_surface(package)
+            self.assertIn('WAsyncDemo.run', surface)
+            self.assertIn('onStart', surface['WAsyncDemo.run'])
 
     def test_function_typed_field_is_field_not_method(self):
         with tempfile.TemporaryDirectory() as temp:

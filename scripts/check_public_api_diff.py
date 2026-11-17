@@ -249,7 +249,9 @@ def _members(
                 close_paren = _close_paren(signature, open_paren) if open_paren >= 0 else -1
                 if open_paren >= 0 and close_paren > open_paren:
                     head = signature[:open_paren].strip()
-                    method = re.match(r'^(.+?)\s+([a-zA-Z_]\w*)$', head)
+                    method = re.match(
+                        r'^(.+?)\s+([a-zA-Z_]\w*)(?:<[^>]+>)?$', head
+                    )
                     if method:
                         return_type, method_name = method.groups()
                         if method_name not in {'operator', 'Function'} and not method_name.startswith('_'):
@@ -382,9 +384,70 @@ def _section(text: str, title: str) -> str:
     return rest[:next_match.start()] if next_match else rest
 
 
-def _is_constructor(value: str | None) -> bool:
-    """构造器签名没有返回类型；命名构造也是 `({ ... })` / `(...)`。"""
-    return bool(value) and value.lstrip().startswith('(')
+def _signature_parts(value: str) -> tuple[str, str] | None:
+    """返回 `(返回类型/构造前缀, 参数串)`；不是函数签名返回 None。"""
+    start = value.find('(')
+    end = value.rfind(')')
+    if start < 0 or end <= start:
+        return None
+    return value[:start].strip(), value[start + 1:end].strip()
+
+
+def _parameter_details(value: str) -> tuple[str, dict[str, tuple[str, bool, bool]]] | None:
+    """解析函数签名的参数：name → (声明, required, positional)。"""
+    parts = _signature_parts(value)
+    if parts is None:
+        return None
+    prefix, inner = parts
+    sections: list[tuple[str, str]] = []
+    inner = inner.strip()
+    if inner:
+        for part in _split_top_level(inner):
+            part = part.strip()
+            if part.startswith('{') and part.endswith('}'):
+                sections.append(('named', part[1:-1]))
+            elif part.startswith('[') and part.endswith(']'):
+                sections.append(('optional', part[1:-1]))
+            else:
+                sections.append(('required', part))
+
+    details: dict[str, tuple[str, bool, bool]] = {}
+    for section, body in sections:
+        for part in _split_top_level(body):
+            text = part.strip()
+            if not text:
+                continue
+            required = section == 'required' or text.startswith('required ')
+            declaration = re.sub(r'^required\s+', '', text)
+            declaration = re.sub(r'^(?:this\.|super\.)', '', declaration)
+            match = re.search(r'([A-Za-z_]\w*)\s*$', declaration.split('=', 1)[0].strip())
+            if not match:
+                continue
+            name = match.group(1)
+            declaration = re.sub(r'\s+', ' ', declaration).strip()
+            details[name] = (declaration, required, section != 'named')
+    return prefix, details
+
+
+def _params_additive(old: str, new: str) -> bool:
+    """old → new 只增加 optional 参数（方法 / 构造器都适用）。"""
+    old_parts = _parameter_details(old)
+    new_parts = _parameter_details(new)
+    if old_parts is None or new_parts is None:
+        return False
+    old_prefix, old_params = old_parts
+    new_prefix, new_params = new_parts
+    if re.sub(r'\s+', ' ', old_prefix) != re.sub(r'\s+', ' ', new_prefix):
+        return False
+    for name, detail in old_params.items():
+        if name not in new_params or new_params[name] != detail:
+            return False
+    for name, detail in new_params.items():
+        if name in old_params:
+            continue
+        if detail[1]:  # required
+            return False
+    return True
 
 
 def check_notes(
@@ -411,12 +474,14 @@ def check_notes(
             mentioned = mentioned or type_name in notes
         if mentioned:
             continue
-        # 构造器新增可选参数是 additive：允许记在 Added/Changed；构造器删除仍要 Breaking。
+        # 方法 / 构造器新增可选参数是 additive：允许记在 Added/Changed；
+        # required / 类型 / 默认值变化仍要 Breaking。
         if (
-            new is not None
+            old is not None
+            and new is not None
             and current is not None
             and key in current
-            and _is_constructor(new)
+            and _params_additive(old, new)
         ):
             if key in added or type_name in added:
                 continue

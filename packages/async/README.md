@@ -12,7 +12,7 @@ w_tools 的异步层：执行、四态状态、Controller、分页与可复用�
 
 ```yaml
 dependencies:
-  w_tools_async: ^7.0.2
+  w_tools_async: ^7.1.0
 ```
 
 要求 Flutter 3.38+。
@@ -155,6 +155,29 @@ final result = await WAsync.tryRun(() => api.gift(id));
 
 不再提供 `WAsync.map` / `parallel` / `pool` / `serial` / `first`：并发直接用
 `Future.wait` / `Future.any`，限流用 `settle(concurrency:)`。
+
+## loading 框 / 生命周期钩子
+
+`WAsync.run` / `WAsync.tryRun` 支持 `onStart` / `onFinally`，不需要 app 再写通用
+`_withLoading` 包装：
+
+```dart
+await WAsync.run(
+  () => api.save(),
+  onStart: showLoading,
+  onError: showError,
+  onFinally: hideLoading,
+);
+```
+
+- `onStart` 在任务开始前调用；
+- `onFinally` 在成功 / 失败 / 取消后调用，且在 `onError` 之后；
+- 成功结果用返回值，不提供 `onSuccess`；
+- 已取消的 token 不会触发 `onStart` / `onFinally`；
+- 回调自身异常会被忽略，不影响任务结果；
+- `onStart` / `onFinally` 目前只在 `run` / `tryRun` 上提供，`retry` / `timeout` / `settle` 不含。
+
+并发操作仍建议在 app 层用引用计数管理全局 loading；`WAsync` 只保证钩子成对触发。
 
 ## 独立区块并行
 

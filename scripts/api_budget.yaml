@@ -22,7 +22,7 @@ defaults:
 packages:
   core: {}
   async:
-    growth: 5
+    growth: 15
   async_ui:
     growth: 8
   ui:
