@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.1
+
+### Changed
+- README 的 `w_tools_app_getx` 示例版本更新到 `^3.1.0`。docs-only，无代码 / API 变化。
+
 ## 4.0.0
 
 ### Added
