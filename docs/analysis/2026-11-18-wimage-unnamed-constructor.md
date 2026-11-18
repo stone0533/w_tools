@@ -1,7 +1,7 @@
 # `WImage.source` 改为无名构造器：决策记录与执行清单
 
 - 日期：2026-11-18
-- 状态：**已实现（2026-11-18）**；`w_tools_ui` 14.0.0 / `w_tools_cli` 2.6.0 / `w_tools` 20.0.0 已准备，未发布
+- 状态：**已发布（2026-11-18）**；`w_tools_ui` 14.0.0 / `w_tools_cli` 2.6.0 / `w_tools` 20.0.0
 - 目标版本：`w_tools_ui` **14.0.0**（13.0.0 → 14.0.0；breaking）
 - 决策：删除 `WImage.source`，改为 **无名 `WImage(...)`**：
   ```dart
@@ -105,4 +105,11 @@ bash scripts/preflight.sh --changed
 - 仓库内代码 / 模板 / 当前文档全部迁移；历史 migration / CHANGELOG 保留原文；
 - `check_removed_api` 已登记 `WImage.source`；
 - `docs/migrations/ui-14.0.md` 已写；
-- ui 14.0.0 / cli 2.6.0 / root 20.0.0 版本与约束已准备，未发布。
+- ui 14.0.0 / cli 2.6.0 / root 20.0.0 已发布；快照 PR #339 已合并。
+
+
+## 发布结果（2026-11-18）
+
+- PR #338 合并；快照 PR #339 合并。
+- `w_tools_ui` 14.0.0、`w_tools_cli` 2.6.0、`w_tools` 20.0.0 已发布。
+- `release_status --online --check`：状态正常；`check_publish_drift`：三包无漂移。
