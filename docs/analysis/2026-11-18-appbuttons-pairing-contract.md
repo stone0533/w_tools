@@ -1,7 +1,7 @@
 # AppButtons 配对契约与回归测试（L 任务）
 
 - 日期：2026-11-18
-- 状态：**已实现（2026-11-18）**；CLI 模板 / ui_README / example / 测试已落地，未发布
+- 状态：**已发布（2026-11-18）**；随 `w_tools_cli` 2.4.0 上线
 - 场景：**L（改 w_tools_cli / init 模板）**，附带 `packages/ui/example` 镜像与测试
 - 依赖：[`WButton` 改用 named constructors](2026-11-18-wbutton-named-constructors.md)
   （需要 `WButton.filled` / `.outlined` / `.text` 才能写新契约；不要在 12.x 提前改）
@@ -89,3 +89,11 @@ cd ../..
 bash scripts/check_docs.sh
 bash scripts/preflight.sh --changed
 ```
+
+
+---
+
+## 发布结果（2026-11-18）
+
+- CLI 2.4.0 已发布；`app_buttons.dart.tpl` 配对注释、`ui_README` 配对表、
+  example 配对测试随包上线。
