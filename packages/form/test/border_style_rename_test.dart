@@ -15,6 +15,55 @@ void main() {
     expect(WFormBorderStyle.standard().helperStyle, isNotNull);
   });
 
+  test('弃用 hintStyle 仍兼容，且新名优先', () {
+    const oldFieldStyle = WFormFieldStyle(
+      // ignore: deprecated_member_use_from_same_package
+      hintStyle: TextStyle(color: Colors.red),
+    );
+    expect(oldFieldStyle.effectiveHintStyle?.color, Colors.red);
+
+    const bothFieldStyle = WFormFieldStyle(
+      placeholderStyle: TextStyle(color: Colors.blue),
+      // ignore: deprecated_member_use_from_same_package
+      hintStyle: TextStyle(color: Colors.red),
+    );
+    expect(bothFieldStyle.effectiveHintStyle?.color, Colors.blue);
+
+    const oldBorderStyle = WFormBorderStyle(
+      // ignore: deprecated_member_use_from_same_package
+      hintStyle: TextStyle(color: Colors.green),
+    );
+    expect(oldBorderStyle.effectiveHelperStyle?.color, Colors.green);
+
+    const bothBorderStyle = WFormBorderStyle(
+      helperStyle: TextStyle(color: Colors.blue),
+      // ignore: deprecated_member_use_from_same_package
+      hintStyle: TextStyle(color: Colors.green),
+    );
+    expect(bothBorderStyle.effectiveHelperStyle?.color, Colors.blue);
+  });
+
+  test('弃用 hintStyle 在工厂 / copyWith 仍兼容', () {
+    final fromTheme = WFormBorderStyle.fromTheme(
+      ThemeData(),
+      // ignore: deprecated_member_use_from_same_package
+      hintStyle: const TextStyle(color: Colors.orange),
+    );
+    expect(fromTheme.effectiveHelperStyle?.color, Colors.orange);
+
+    final standard = WFormBorderStyle.standard(
+      // ignore: deprecated_member_use_from_same_package
+      hintStyle: const TextStyle(color: Colors.purple),
+    );
+    expect(standard.effectiveHelperStyle?.color, Colors.purple);
+
+    final copied = const WFormBorderStyle().copyWith(
+      // ignore: deprecated_member_use_from_same_package
+      hintStyle: const TextStyle(color: Colors.teal),
+    );
+    expect(copied.effectiveHelperStyle?.color, Colors.teal);
+  });
+
   testWidgets('WForm(borderStyle:) 下发给字段边框并渲染 message', (tester) async {
     final form = WFormController();
     await tester.pumpWidget(

@@ -69,7 +69,7 @@ WFormTheme
 ```dart
 WFormTextField(
   name: 'email',
-  label: '邮箱',
+  hintText: '邮箱',
   message: '请输入邮箱',
   validator: (value) {
     if (value == null || value.isEmpty) return '请输入邮箱';
@@ -83,7 +83,7 @@ WFormTextField(
 ```dart
 WFormTextField(
   name: 'email',
-  label: '邮箱',
+  hintText: '邮箱',
   leading: const Icon(Icons.mail_outline),
 )
 

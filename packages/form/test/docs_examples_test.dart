@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -215,5 +217,20 @@ void main() {
     expect(find.byIcon(Icons.attach_money), findsOneWidget);
     expect(form.validate(), isFalse);
     expect(formBordersOf(form).has('amount'), isTrue);
+  });
+
+  test('example README 的 WFormTextField 示例不使用已弃用 label', () {
+    final lines = File('example/README.md').readAsLinesSync();
+    for (var i = 0; i < lines.length; i++) {
+      if (!lines[i].contains('WFormTextField(')) continue;
+      for (var j = i; j < lines.length; j++) {
+        expect(
+          lines[j],
+          isNot(contains('label:')),
+          reason: 'example/README.md:${j + 1} 仍在使用 WFormTextField.label，改用 hintText',
+        );
+        if (lines[j].trim() == ')') break;
+      }
+    }
   });
 }

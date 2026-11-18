@@ -96,9 +96,10 @@ final borderStyle = WFormThemeData.of(context)?.borderStyle;
 | `value` / `savedValue` | 当前值 / 上次显式 `save()` 的快照 |
 | `fields` | 字段集合；未挂载时为 null |
 | `setValue` | 程序化写值 + 清该字段边框错误；不要在字段自己的 `onChanged` 里回写同字段 |
-| `clearError` | 只清该字段边框错误 |
+| `save` | 显式保存；触发字段 `onSaved`，刷新 `savedValue` |
+| `validatorSettings` | `WForm` 注入的默认校验设置（只读） |
 | `getFieldsValue<T>` | 不 `save` 也能取即时值 |
-| `validate({items})` | 一步校验；未挂载返回 false |
+| `validate({settings, items})` | 一步校验；未挂载返回 false |
 | `validators({settings, items})` | 创建 `WFormValidator` |
 | `setError` / `clearError` | 驱动边框错误 |
 | `reset()` | 重置整表 |
@@ -317,6 +318,10 @@ validator 的错误才有边框位置可显示。显式 `bordered: false` 时错
 | `customErrorCallback` | null | `(fieldName, errorText)` |
 | `itemValidationCallback` | null | 每项结果回调 |
 | `shouldSkipValidation` | null | 返回 true 跳过该项 |
+
+> `WFormValidatorSettings()` 直接构造时 `showBorderError = false`；但 `WForm` 未显式传
+> `validatorSettings` 时会注入 `showBorderError: true`，所以表单内默认显示边框错误。
+> 只有显式传 `settings` / `validatorSettings` 时才按传入值生效。
 
 `WFormValidator.errors` 是只读错误快照，每次 `validate()` 重新填充。
 `WFormValidatorSettings` 不可变（`const` 构造 + `copyWith`），字段全部 `final`。
