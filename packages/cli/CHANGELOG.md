@@ -1,3 +1,8 @@
+## Unreleased
+
+### Changed
+- `init` 的 `w_tools_form` 约束抬到 `^8.1.0`（`WFormFieldShell.readOnly` 默认 false）。
+
 ## 2.4.1
 
 ### Changed

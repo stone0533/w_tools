@@ -1,3 +1,10 @@
+## 8.1.0
+
+### Changed
+- `WFormFieldShell.new` 的 `readOnly` 改为可选，默认 `false`；外层 `WForm(readOnly: true)`
+  仍然强制只读。自定义字段的子控件自身 `enabled: false` 时仍需显式传 `readOnly: true`，
+  否则边框不会显示只读态。
+
 ## 8.0.1
 
 ### Changed

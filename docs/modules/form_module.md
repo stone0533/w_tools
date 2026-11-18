@@ -192,7 +192,10 @@ const WFormBorderStyle(
 ### 4.2 WFormFieldShell
 
 注册 `WFormController` 的边框错误通道、注入包内只读作用域。
+它是字段的**外层装配**，不持有 value，也不代替 `FormBuilderField`；与包内布局层、视觉层区分。
 `WFormBorder` 8.0 起移除公开入口，自定义字段用本类包住 `flutter_form_builder` 字段即可。
+`readOnly` 可省略，默认 `false`；外层 `WForm(readOnly: true)` 仍然强制只读。
+自定义字段的子控件自身 `enabled: false` 时仍需显式传 `readOnly: true`，否则边框不会显示只读态。
 需要输入框内部细节（`contentPadding` / `prefix` / `decoration`）时，用它包住
 `flutter_form_builder` 字段；边框 / 错误 / 只读仍走同一套。
 

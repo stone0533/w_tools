@@ -383,6 +383,30 @@ void main() {
       expect(tester.takeException(), isNotNull);
     });
 
+    testWidgets('readOnly 默认 false，外层 readOnly 仍生效', (tester) async {
+      final formData = WFormController();
+
+      Widget build({required bool readOnly}) => MaterialApp(
+        home: Scaffold(
+          body: WForm(
+            controller: formData,
+            readOnly: readOnly,
+            child: const WFormFieldShell(
+              name: 'default_read_only',
+              child: WFormTextFieldCore(name: 'default_read_only'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(build(readOnly: false));
+      expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isFalse);
+
+      await tester.pumpWidget(build(readOnly: true));
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isTrue);
+    });
+
     testWidgets('name 为空 → 抛 ArgumentError', (tester) async {
       final formData = WFormController();
       await tester.pumpWidget(

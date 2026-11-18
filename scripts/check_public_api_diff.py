@@ -450,6 +450,36 @@ def _params_additive(old: str, new: str) -> bool:
     return True
 
 
+def _params_relaxed(old: str, new: str) -> bool:
+    """old → new 只把 required 参数放宽为 optional（源码兼容）。"""
+    old_parts = _parameter_details(old)
+    new_parts = _parameter_details(new)
+    if old_parts is None or new_parts is None:
+        return False
+    old_prefix, old_params = old_parts
+    new_prefix, new_params = new_parts
+    if re.sub(r'\s+', ' ', old_prefix) != re.sub(r'\s+', ' ', new_prefix):
+        return False
+    for name, old_detail in old_params.items():
+        new_detail = new_params.get(name)
+        if new_detail is None:
+            return False
+        old_decl = re.sub(r'\s+', ' ', old_detail[0].split('=', 1)[0]).strip()
+        new_decl = re.sub(r'\s+', ' ', new_detail[0].split('=', 1)[0]).strip()
+        if old_decl != new_decl:
+            return False
+        if old_detail[1] and not new_detail[1]:
+            continue
+        if old_detail != new_detail:
+            return False
+    for name, detail in new_params.items():
+        if name in old_params:
+            continue
+        if detail[1]:
+            return False
+    return True
+
+
 def check_notes(
     changes: list[tuple[str, str, str | None]],
     changelog: str,
@@ -481,7 +511,7 @@ def check_notes(
             and new is not None
             and current is not None
             and key in current
-            and _params_additive(old, new)
+            and (_params_additive(old, new) or _params_relaxed(old, new))
         ):
             if key in added or type_name in added:
                 continue
