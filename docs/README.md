@@ -73,6 +73,9 @@
 - [2026-11-11 工具链优化计划（命令契约 / 发布链路 / 环境前提）](analysis/2026-11-11-tooling-optimization-plan.md)
 - [2026-11-14 ui 12.0 清理：维护者提示词与执行记录](analysis/2026-11-14-ui-12-cleanup-prompts.md)
 - [2026-11-14 form 自定义校验：处理方案与提示词](analysis/2026-11-14-form-custom-validation-guidance.md)
+- [2026-11-18 删除 WScaffold.basic：决策记录与执行清单](analysis/2026-11-18-wscaffold-basic-removal.md)
+- [2026-11-18 WButton 改用 named constructors：决策记录与执行清单](analysis/2026-11-18-wbutton-named-constructors.md)
+- [2026-11-18 AppButtons 配对契约与回归测试（L 任务）](analysis/2026-11-18-appbuttons-pairing-contract.md)
 
 改完 `docs/` 后跑：
 

@@ -45,12 +45,21 @@ AppScaffold(
 ## Buttons
 
 ```dart
-WButton(
+WButton.filled(
   style: AppButtons.primary(context),
   label: 'Submit',
   onTap: submit,
 )
 ```
+
+
+`AppButtons` only supplies style; it does not choose the button type. Pair them:
+
+| `AppButtons` | `WButton` constructor |
+|---|---|
+| `primary` / `danger` | `WButton.filled` |
+| `secondary` | `WButton.outlined` |
+| `text` | `WButton.text` |
 
 Use `WButton` for real buttons and `WPressable` for arbitrary card/child taps.
 `AppScaffold` uses `WScaffold` internally; business pages must not bypass `AppScaffold` and use `WScaffold` directly.

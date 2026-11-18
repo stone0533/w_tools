@@ -24,13 +24,13 @@ List<Widget> buildButtonsInteractionSections({
             runSpacing: 12,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              WButton(
+              WButton.filled(
                 style: AppButtons.secondary(context),
                 label: '长按我',
                 onTap: () => onTap(),
                 onLongPress: () => onLongPress(),
               ),
-              WButton(
+              WButton.filled(
                 style: AppButtons.primary(context),
                 label: '提交中',
                 loading: true,
@@ -52,20 +52,26 @@ List<Widget> buildButtonsInteractionSections({
       ),
     ),
     DemoSection(
-      title: '15. WButtonVariant：四种语义',
-      subtitle: 'filled / outlined / text / danger，全站样式用 WButtonTheme',
+      title: '15. WButton 构造器：三种类型',
+      subtitle: 'filled / outlined / text；危险色用 style 或 AppButtons.danger',
       child: Wrap(
         spacing: 12,
         runSpacing: 12,
         children: [
-          WButton(label: 'filled', onTap: () {}),
-          WButton(
-            variant: WButtonVariant.outlined,
+          WButton.filled(label: 'filled', onTap: () {}),
+          WButton.outlined(
             label: 'outlined',
             onTap: () {},
           ),
-          WButton(variant: WButtonVariant.text, label: 'text', onTap: () {}),
-          WButton(variant: WButtonVariant.danger, label: 'danger', onTap: () {}),
+          WButton.text(label: 'text', onTap: () {}),
+          WButton.filled(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            label: 'danger',
+            onTap: () {},
+          ),
         ],
       ),
     ),

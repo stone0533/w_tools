@@ -88,7 +88,6 @@ void main() {
     );
     expect(fallback.filled?.backgroundColor?.resolve({}), scheme.primary);
     expect(fallback.outlined?.foregroundColor?.resolve({}), scheme.primary);
-    expect(fallback.danger?.backgroundColor?.resolve({}), scheme.error);
 
     final customTheme = ThemeData(
       useMaterial3: true,

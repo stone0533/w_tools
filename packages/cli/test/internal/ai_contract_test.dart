@@ -141,9 +141,9 @@ void main() {
 
     test('ui 高频子 API 能通过 explain 查到', () {
       const names = <String>[
+        'WButton',
         'WButtonSize',
         'WButtonTheme',
-        'WButtonVariant',
         'WBadgeStyle',
         'WBadgePosition',
         'WStepColors',

@@ -59,7 +59,7 @@ class _NavDemoPageState extends State<NavDemoPage> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return WScaffold.basic(
+    return demoScaffold(
       title: 'WNavBar / WNavController',
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -89,14 +89,12 @@ class _NavDemoPageState extends State<NavDemoPage> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    WButton(
+                    WButton.filled(
                       label: 'currentIndex = 2',
-                      variant: WButtonVariant.outlined,
                       onTap: () => _nav.currentIndex = 2,
                     ),
-                    WButton(
+                    WButton.filled(
                       label: 'currentIndex = 0',
-                      variant: WButtonVariant.outlined,
                       onTap: () => _nav.currentIndex = 0,
                     ),
                   ],

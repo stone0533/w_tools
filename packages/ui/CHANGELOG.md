@@ -1,3 +1,27 @@
+## 13.0.0
+
+### Breaking
+- `WButton.new`：删除无名构造器；改用 `WButton.filled` / `.outlined` / `.text`。
+- `WButton.variant` / `WButtonVariant`：删除；按钮类型由命名的构造器决定。
+- `WButtonTheme.styleFor`：删除；`WButton` 内部按类型读取 `filled` / `outlined` / `text`。
+- `WButtonTheme.new` / `WButtonTheme.danger` / `WButtonTheme.copyWith(danger:)` /
+  `WButtonTheme.lerp` 的 `danger` 参数：删除；危险色用
+  `WButton.filled(style: AppButtons.danger(context))` 或
+  `style: FilledButton.styleFrom(...)` 表达，不再有全局 danger 槽。
+- `WScaffold.basic`：删除；改用 `WScaffold(appBar: WAppBar(...))`。
+- `WScaffold.title` / `WScaffold.titleWidget` / `WScaffold.leading` / `WScaffold.actions` /
+  `WScaffold.onBack` / `WScaffold.automaticallyImplyLeading` / `WScaffold.centerTitle` /
+  `WScaffold.appBarStyle` / `WScaffold.appBarBottom`：删除（只服务 `.basic`）。
+  `WScaffold` 只保留显式 `appBar` 与 body / 槽位。
+
+### Added
+- `WButton.filled` / `WButton.outlined` / `WButton.text`：`const` 命名构造器，分别渲染
+  `FilledButton` / `OutlinedButton` / `TextButton`。
+- `WButtonTheme` 只保留 `filled` / `outlined` / `text` 三个类型槽。
+
+### Migration
+见 [`docs/migrations/ui-13.0.md`](https://github.com/stone0533/w_tools/blob/main/docs/migrations/ui-13.0.md)。
+
 ## 12.0.1
 
 ### Changed

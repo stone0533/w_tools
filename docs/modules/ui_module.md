@@ -55,16 +55,18 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
   视觉由 `ButtonStyle` 驱动：水波纹、键盘 / 焦点、禁用态都与 Material 一致。
 - `WPressable` 只负责“任意 child 的点击反馈”，没有 button 语义；卡片、整行点击用它。
 - 表单字段的“值选择”用 `WFormButton`，不要用 `WButton` 手写。
-- 样式分层（12.0 起统一到 Material）：
-  - `WButtonVariant`：`filled` / `outlined` / `text` / `danger`；
-  - `WButtonTheme`：ThemeExtension，全站四种 `ButtonStyle`；未安装时按 `ColorScheme` 派生；
-  - `WButton(style: ButtonStyle)`：单个按钮覆盖；
+- 构造器只表达类型（13.0 起）：`WButton.filled` / `.outlined` / `.text`；
+  `style` 只覆盖属性，不改变类型。
+- 样式分层：
+  - `WButtonTheme`：ThemeExtension，全站三类 `ButtonStyle`；未安装时按 `ColorScheme` 派生；
+  - `WButton.filled(style: ButtonStyle)`：单个按钮覆盖；
   - `WButtonSize`：尺寸令牌（minWidth / minHeight / padding / 字号 / iconSize / gap）；
-  - `WButton(label/icon/content)`：内容三选一；复杂内容用 `content`，其 Text / Icon
+  - `label` / `icon` / `content`：内容三选一；复杂内容用 `content`，其 Text / Icon
     自动继承按钮前景色与文字样式。
 - **项目页面优先用项目 UI 层的 `AppButtons`**（由 CLI 生成，返回 `ButtonStyle`）；
+  `AppButtons.primary/danger` 配 `.filled`，`secondary` 配 `.outlined`，`text` 配 `.text`。
   `WButtonTheme` 适合全站换色，不要在调用点重复写完整 `ButtonStyle`。
-- `WButton(icon:, label:)` 内部复用 `WIconText` 做行盒中点对齐；不要再手写
+- `WButton.filled(icon:, label:)` 内部复用 `WIconText` 做行盒中点对齐；不要再手写
   `Row + Icon + Text` 补偏移。
 - 图标按钮可传 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）。
 - 纯图标按钮必须提供 `semanticLabel`；loading 文案用 `loadingLabel`。
@@ -75,12 +77,15 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 映射到 `ButtonStyle` 的 `minimumSize` / `padding` / `textStyle`；默认
 `WButtonSize.medium`。点击区域由 Material 的 padded tap target 保证。
 
-### 12.0 删除
+### 13.0 删除
+
+13.0 删除了无名 `WButton(...)`、`WButtonVariant` / `variant`、`WButtonTheme.danger` /
+`WButtonTheme.styleFor`（已删除）：改用 `WButton.filled` / `.outlined` / `.text` + `style`；
+危险色用项目 `AppButtons.danger` / `style`。
 
 12.0 已删除 `WButtonStyle` / `WButtonStyleSet` / `WButtonMotion` / `WButtonSemantics` /
 `WButtonContentBuilder` / `WButtonResolvedStyle`（以上均已删除）：改用 `ButtonStyle` +
-`WButtonTheme` + `WButtonVariant` + 直接参数（`semanticLabel` / `semanticHint` /
-`loadingLabel`）。
+`WButtonTheme` + 直接参数（`semanticLabel` / `semanticHint` / `loadingLabel`）。
 
 ## 2.1 WPressable - 任意 child 点击
 
@@ -92,7 +97,7 @@ UI 模块（`w_tools_ui` 子包）提供基于 Flutter 的通用 UI 组件、布
 - 图标 + 文字一行用 `WIconText`；不要手拼 `Row + Icon + Text`，中文行盒会让图标看起来偏高 1.5~2.5px。
 - 内部用 `WidgetSpan` + `PlaceholderAlignment.middle` 对齐行盒中点；`gap` 默认 6，`iconSize` 默认 `(fontSize + 2) * textScaler`。
 - 文本样式走 `variant` / `WTextStyles`；`style` / `color` 只覆盖差异。品牌字体的视觉重心不同时用 `iconOffset` 微调。
-- 纯图标或需要按钮语义时用 `WButton(icon: ...)`，不要用 `WIconText` 代替按钮。
+- 纯图标或需要按钮语义时用 `WButton.filled(icon: ...)`，不要用 `WIconText` 代替按钮。
 
 ## 3. WText - 文本组件
 
@@ -192,9 +197,9 @@ Web 上的 `file` 抛 `UnsupportedError`；`WImage` 内部会转成 `WImageError
 
 ## 7. WScaffold - 增强脚手架
 
-- 默认顶栏用 `WScaffold.basic(title: ...)`；需要自定义顶栏时用
-  `WScaffold(appBar: WAppBar(...))`，也可以传任意 `PreferredSizeWidget`
-  （Material `AppBar` / `SliverAppBar`）。两个入口分开，不再在同一个构造器里混用。
+- 顶栏统一显式传 `WScaffold(appBar: WAppBar(...))`，也可以传任意
+  `PreferredSizeWidget`（Material `AppBar` / `SliverAppBar`）。
+  13.0 删除了 `WScaffold.basic`，不再有自动顶栏构造器。
 - `WAppBar` 自身实现 `PreferredSizeWidget`；传 `WAppBar` 时 `includeStatusBar` 必须为 true。
 - `drawer` / `endDrawer` / `bottomSheet` / `persistentFooterButtons` / `extendBody` 直接透传给
   底层 `Scaffold`，不需要为此改用原生 `Scaffold`。

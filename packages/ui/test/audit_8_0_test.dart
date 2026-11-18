@@ -24,9 +24,8 @@ void main() {
     final handle = tester.ensureSemantics();
     await tester.pumpWidget(
       MaterialApp(
-        home: WButton(
+        home: WButton.filled(
           label: '保存',
-          variant: WButtonVariant.danger,
           semanticLabel: '保存按钮',
           onTap: () {},
         ),

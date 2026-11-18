@@ -32,6 +32,7 @@
 - [10.0](ui-10.0.md)：删除全局 `WScreen.w/h/sp` / delegate；删除 `WNumExtension.borderSide`
 - [11.0](ui-11.0.md)：删除 `WClipRRect`（直接用 Flutter `ClipRRect`）
 - [12.0](ui-12.0.md)：删除 `WStepFlow` / `WNavBarStyle` / `WGlobalKeyExtension`、`WNavController` 动画 API、num / string / BoxDecoration 冗余糖
+- [13.0](ui-13.0.md)：`WButton` 改 named constructors（删除 `WButtonVariant` / `WButtonTheme.danger`）；删除 `WScaffold.basic`
 
 ## form
 

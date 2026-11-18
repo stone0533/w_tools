@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:w_tools_ui/w_tools_ui.dart';
 
 import 'buttons_page.dart';
+import 'demo_widgets.dart';
 import 'components_page.dart';
 import 'more_page.dart';
 import 'playground_page.dart';
@@ -92,7 +93,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    return WScaffold.basic(
+    return demoScaffold(
       title: 'w_tools_ui 示例',
       body: ListenableBuilder(
         listenable: _navController,

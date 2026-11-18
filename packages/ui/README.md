@@ -20,7 +20,7 @@
 
 ```yaml
 dependencies:
-  w_tools_ui: ^12.0.1
+  w_tools_ui: ^13.0.0
 ```
 
 > 本包最低要求 Flutter 3.38.0。
@@ -46,8 +46,8 @@ class DemoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WScaffold.basic(
-      title: 'Demo',
+    return WScaffold(
+      appBar: const WAppBar(title: 'Demo'),
       body: const Center(
         child: WText(
           text: 'Hello w_tools_ui',
@@ -284,17 +284,20 @@ WIconText.custom(icon: SvgPicture.asset('assets/star.svg'), text: '收藏'); // 
 ## 按钮与点击
 
 ```dart
-WButton(label: '保存', onTap: save);
-WButton(variant: WButtonVariant.outlined, label: '取消', onTap: cancel);
-WButton(variant: WButtonVariant.danger, label: '删除', onTap: remove);
-WButton(label: '提交', loading: true, onTap: submit);
-WButton(icon: Icons.add, label: '新增', size: WButtonSize.small, onTap: add);
-WButton(icon: Icons.favorite, semanticLabel: '收藏', tooltip: '收藏', isSelected: true, onTap: toggle);
+WButton.filled(label: '保存', onTap: save);
+WButton.outlined(label: '取消', onTap: cancel);
+WButton.text(label: '查看更多', onTap: more);
+WButton.filled(label: '提交', loading: true, onTap: submit);
+WButton.filled(icon: Icons.add, label: '新增', size: WButtonSize.small, onTap: add);
+WButton.filled(icon: Icons.favorite, semanticLabel: '收藏', tooltip: '收藏', isSelected: true, onTap: toggle);
+WButton.filled(style: AppButtons.danger(context), label: '删除', onTap: remove);
 WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 ```
 
 `WButton` 渲染 Material `FilledButton` / `OutlinedButton` / `TextButton`，视觉走
-`ButtonStyle`；全站换色装 `WButtonTheme`，单按钮传 `style: ButtonStyle(...)`。
+`ButtonStyle`；`style` 只覆盖属性，不改变类型。`AppButtons.primary/danger` 配 `.filled`，
+`secondary` 配 `.outlined`，`text` 配 `.text`。
+全站换色装 `WButtonTheme`，单按钮传 `style: ButtonStyle(...)`。
 任意 child / 卡片点击用 `WPressable`；需要键盘、最小点击区域或 button 语义时用 `WButton`。
 图标按钮用 `tooltip`；toggle 按钮用 `isSelected`（进入 `Semantics.selected`）；
 纯图标按钮必须给 `semanticLabel`。
@@ -302,17 +305,19 @@ WPressable(onTap: openDetail, child: card); // 任意 child，无 button 语义
 ## 页面骨架与布局
 
 ```dart
-WScaffold.basic(
-  title: '首页',
-  actions: [IconButton(onPressed: ..., icon: const Icon(Icons.search))],
+WScaffold(
+  appBar: WAppBar(
+    title: '首页',
+    actions: [IconButton(onPressed: ..., icon: const Icon(Icons.search))],
+  ),
   floatingActionButton: FloatingActionButton(onPressed: ..., child: const Icon(Icons.add)),
   drawer: Drawer(...),        // drawer / endDrawer / bottomSheet / footer 均透传
   bottomSheet: ...,
   body: ...,
 );
 
-// 自定义顶栏：WAppBar 或其他 PreferredSizeWidget（Material AppBar / SliverAppBar）
-WScaffold(appBar: WAppBar(title: '详情'), body: ...);
+// appBar 也可以是任意 PreferredSizeWidget（Material AppBar / SliverAppBar）
+WScaffold(appBar: const WAppBar(title: '详情'), body: ...);
 
 // 底栏不是 WNavBar 时：WScaffold(bottomNavigationBarSafeArea: true, ...)
 
@@ -338,7 +343,7 @@ WBadge(offset: const Offset(4, -4), badgeContent: const Text('3'), child: const 
 WBadge(semanticLabel: '3 条未读', badgeContent: const Text('3'), child: const Icon(Icons.notifications));
 WClipRRect 已删除；圆角裁剪直接用 Flutter 原生 `ClipRRect`：
 ClipRRect(borderRadius: BorderRadius.circular(12), child: image);
-WActionRow(children: [WButton(...), WButton(...)]);
+WActionRow(children: [WButton.filled(...), WButton.filled(...)]);
 ```
 
 ## 状态与反馈

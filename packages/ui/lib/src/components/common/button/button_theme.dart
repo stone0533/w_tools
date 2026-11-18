@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-import 'button_variant.dart';
-
-/// 按钮四态样式（Material [ButtonStyle]）。
+/// 按钮类型样式（Material [ButtonStyle]）。
 ///
 /// 装到 `ThemeData.extensions` 后，全站 `WButton` 跟随它；未安装时按
 /// `ColorScheme` / `TextTheme` 派生（按 `ThemeData` 缓存）。
-/// 单个按钮仍可传 `WButton(style: ButtonStyle(...))` 覆盖。
+/// 单个按钮仍可传 `WButton.filled(style: ButtonStyle(...))` 覆盖。
+///
+/// 只覆盖三种按钮类型；危险色属于项目语义（`AppButtons.danger` / `style`），
+/// 不再提供全局 `danger` 槽。
 @immutable
 class WButtonTheme extends ThemeExtension<WButtonTheme> {
   const WButtonTheme({
     this.filled,
     this.outlined,
     this.text,
-    this.danger,
   });
 
   /// 主按钮；null 时用内置派生值。
@@ -25,10 +25,7 @@ class WButtonTheme extends ThemeExtension<WButtonTheme> {
   /// 文字按钮；null 时用内置派生值。
   final ButtonStyle? text;
 
-  /// 危险按钮；null 时用内置派生值。
-  final ButtonStyle? danger;
-
-  /// 取某个变体的样式；缺省字段回退到内置派生值。
+  /// 取当前主题的按钮样式；缺省字段回退到内置派生值。
   static WButtonTheme of(BuildContext context) {
     final themeData = Theme.of(context);
     final fallback = _fallbacks[themeData] ??= _build(themeData);
@@ -38,21 +35,10 @@ class WButtonTheme extends ThemeExtension<WButtonTheme> {
       filled: custom.filled ?? fallback.filled,
       outlined: custom.outlined ?? fallback.outlined,
       text: custom.text ?? fallback.text,
-      danger: custom.danger ?? fallback.danger,
     );
   }
 
   static final Expando<WButtonTheme> _fallbacks = Expando<WButtonTheme>('WButtonTheme.fallback');
-
-  /// 当前变体对应的 [ButtonStyle]。
-  ButtonStyle styleFor(WButtonVariant variant) {
-    return switch (variant) {
-      WButtonVariant.filled => filled!,
-      WButtonVariant.outlined => outlined!,
-      WButtonVariant.text => text!,
-      WButtonVariant.danger => danger!,
-    };
-  }
 
   static WButtonTheme _build(ThemeData theme) {
     final scheme = theme.colorScheme;
@@ -83,14 +69,6 @@ class WButtonTheme extends ThemeExtension<WButtonTheme> {
         textStyle: labelStyle,
         shape: shape,
       ),
-      danger: FilledButton.styleFrom(
-        backgroundColor: scheme.error,
-        foregroundColor: scheme.onError,
-        disabledBackgroundColor: disabledBackground,
-        disabledForegroundColor: disabledForeground,
-        textStyle: labelStyle,
-        shape: shape,
-      ),
     );
   }
 
@@ -99,13 +77,11 @@ class WButtonTheme extends ThemeExtension<WButtonTheme> {
     ButtonStyle? filled,
     ButtonStyle? outlined,
     ButtonStyle? text,
-    ButtonStyle? danger,
   }) {
     return WButtonTheme(
       filled: filled ?? this.filled,
       outlined: outlined ?? this.outlined,
       text: text ?? this.text,
-      danger: danger ?? this.danger,
     );
   }
 
@@ -116,7 +92,6 @@ class WButtonTheme extends ThemeExtension<WButtonTheme> {
       filled: ButtonStyle.lerp(filled, other.filled, t),
       outlined: ButtonStyle.lerp(outlined, other.outlined, t),
       text: ButtonStyle.lerp(text, other.text, t),
-      danger: ButtonStyle.lerp(danger, other.danger, t),
     );
   }
 
@@ -126,9 +101,8 @@ class WButtonTheme extends ThemeExtension<WButtonTheme> {
       other is WButtonTheme &&
           other.filled == filled &&
           other.outlined == outlined &&
-          other.text == text &&
-          other.danger == danger;
+          other.text == text;
 
   @override
-  int get hashCode => Object.hash(filled, outlined, text, danger);
+  int get hashCode => Object.hash(filled, outlined, text);
 }
