@@ -1,3 +1,8 @@
+## 19.0.1
+
+### Changed
+- 聚合依赖 `w_tools_form: ^8.0.1`（README 自定义校验文档，docs-only）。
+
 ## 19.0.0
 
 ### Breaking

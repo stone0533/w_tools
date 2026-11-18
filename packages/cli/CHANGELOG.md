@@ -1,3 +1,9 @@
+## 2.4.1
+
+### Changed
+- `init` 约束同步 `w_tools_form ^8.0.1` / `w_tools_app ^4.0.1` / `w_tools_map ^3.0.1`
+  （三包仅 README 修正，docs-only）。
+
 ## 2.4.0
 
 ### Changed

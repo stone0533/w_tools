@@ -1,3 +1,10 @@
+## 8.0.1
+
+### Changed
+- README 补「自定义校验」：`WFormCustomValidator` 删除后的闭包写法、`value` 可能为 `null`、
+  项目内可复用 validator、`WFormValidatorItem` 与 `form_builder_validators` 依赖移除说明。
+  docs-only，无代码 / API 变化。
+
 ## 8.0.0
 
 ### Breaking

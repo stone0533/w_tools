@@ -1,6 +1,6 @@
 name: w_tools_map
 description: "w_tools 地图接口层：地图条目、mapper 与平台无关的数据模型；Google 实现见 w_tools_map_google。"
-version: 3.0.0
+version: 3.0.1
 
 homepage: https://github.com/stone0533/w_tools
 repository: https://github.com/stone0533/w_tools/tree/main/packages/map

@@ -1,3 +1,9 @@
+## 3.0.1
+
+### Changed
+- README 修正 `WMapConfig` → `WMapOptions`，更新安装示例与 `w_tools_map_google` 链接，
+  补历史迁移入口。docs-only，无代码 / API 变化。
+
 ## 3.0.0
 
 ### Breaking
